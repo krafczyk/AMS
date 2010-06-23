@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.23 2010/06/04 18:04:02 pzuccon Exp $
+//  $Id: event_tk.C,v 1.24 2010/06/23 17:40:51 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -68,8 +68,8 @@ void AMSEvent::_retkevent(integer refit){
 
   int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
   AMSgObj::BookTimer.start("RETKEVENT");
-
-  bool lowdt = (ptr1->gettrtime(4) <= TrRecon::RecPar.lowdt);
+  bool lowdt = false;
+  if(ptr1) lowdt=(ptr1->gettrtime(4) <= TrRecon::RecPar.lowdt);
   hman.Fill((lowdt ? "TrNrawLt" : "TrNrawHt"), getEvent(), nraw);
 
   trstat = 0;
@@ -77,7 +77,7 @@ void AMSEvent::_retkevent(integer refit){
 
   //RAW Clusters -->  Clusters
   if(TRCLFFKEY.recflag>0 &&     // Wanted from TkDCards
-     ptr1 &&                    // LVL1 exists
+     //   ptr1 &&                    // LVL1 exists
      nraw <TrRecon::RecPar.MaxNrawCls) // Not too many RAW Clusters
   {
     AMSgObj::BookTimer.start("TrCluster");
@@ -104,11 +104,13 @@ void AMSEvent::_retkevent(integer refit){
       if (nhit>=TrRecon::RecPar.MaxNtrHit) trstat |= 8;
 
       // Hits --> Tracks
-      int tflg = ptr1->gettoflag1();
+      int tflg =0;
+      if(ptr1)ptr1->gettoflag1();
       if(TRCLFFKEY.recflag>110 &&          // Wanted from TkDCards
 	 retr2>=0&&                        // Hits are built
-	 nhit<TrRecon::RecPar.MaxNtrHit && // Not to many Hits
-	 tflg>=0&&tflg<9)            // TOF trigger pattern at least 1U and 1L
+	 nhit<TrRecon::RecPar.MaxNtrHit  // Not to many Hits
+	 &&	 tflg>=0&&tflg<9            // TOF trigger pattern at least 1U and 1L
+	 )
       {
 	AMSgObj::BookTimer.start("TrTrack");
 	TrRecon::RecPar.NbuildTrack++;
@@ -189,7 +191,7 @@ void AMSEvent::_retkevent(integer refit){
   // Fill histograms
   int nhit = AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
   int ntrk = AMSEvent::gethead()->getC("AMSTrTrack" )->getnelem();
-  hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
+  if(ptr1)  hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
   hman.Fill("TrTimH", nhit, rec->GetCpuTime());
   hman.Fill("TrTimT", ntrk, rec->GetCpuTime());
   hman.Fill("TrRecon", trstat);

@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.79 2010/06/09 15:49:10 pzuccon Exp $
+//  $Id: beta.C,v 1.80 2010/06/23 17:40:50 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -128,79 +128,132 @@ AMSTrTrack * AMSBeta::FindFalseTrackForBeta(int refit){
   return 0;
 }
 
-int AMSBeta::BuildBeta(AMSTrTrack* ptrack){
- // Pattern recognition + fit
-  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
-		     BETAFITFFKEY.SearchReg[2]);
-  int bfound=0;
-  AMSTOFCluster * phit[4]={0,0,0,0};
-  AMSTOFCluster * phit2[4]={0,0,0,0};
-  number sleng[4]={0,0,0,0};
-  number sleng2[4]={0,0,0,0};
-  number chi2space=0;
-  integer tofpatt=0;
-  //There is a near TOF hit in TOF plane N?
-  
+class mtof_hit{
+public:
+  AMSTOFCluster * phit;
+  AMSPoint min_d;
+  number sleng;
+  bool Xmatch;
+  bool Ymatch;
+  bool Tmatch;
+  bool Lmatch;
+  AMSPoint checker;
+  mtof_hit():phit(0),min_d(AMSPoint(0,0,0)),sleng(0),
+	     Xmatch(false),Ymatch(false),Tmatch(false),Lmatch(false)
+  {
+  //                    Transversal              Longitudinal  
+    checker=AMSPoint(BETAFITFFKEY.SearchReg[0], BETAFITFFKEY.SearchReg[1],
+	     BETAFITFFKEY.SearchReg[2]);  //dummy
+  }
+  mtof_hit(mtof_hit &orig):phit(orig.phit),min_d(orig.min_d),sleng(orig.sleng),
+			   Xmatch(orig.Xmatch),Ymatch(orig.Ymatch),
+			   Tmatch(orig.Tmatch),Lmatch(orig.Lmatch),checker(orig.checker){}
+  ~mtof_hit(){phit=0;}
+  void MatchCheck();
+  number distT() {return (phit->getplane()==1 ||phit->getplane()==4)? min_d[1]:min_d[0];}
+}; 
+
+void mtof_hit::MatchCheck(){
+  if(!phit) return;
+  bool YY=(phit->getplane()==1 ||phit->getplane()==4);
+  if (YY){
+    Xmatch= (  min_d[0]   <=  checker[1]*phit->getnmemb());
+    Ymatch= (  min_d[1]   <=  checker[0]*phit->getnmemb());
+    Tmatch=Ymatch; 
+    Lmatch=Xmatch;
+  }
+  else   { 
+    Xmatch= (  min_d[0]   <=  checker[0]*phit->getnmemb());
+    Ymatch= (  min_d[1]   <=  checker[1]*phit->getnmemb());    
+    Tmatch=Xmatch; 
+    Lmatch=Ymatch;
+  }
+}
+
+int FindCloserTOF(AMSTrTrack* ptrack,mtof_hit* tmhit){
+
+  // 0 -- Search for the geometrically matching TOF Hits  
+  int tofcoo[4]={1,0,0,1};
   for (int TOFlay=0;TOFlay<4;TOFlay++){
-    // Loop on cluster on the (TOFlay) TOF plane
     int cluster=AMSEvent::gethead()->getC(AMSID("AMSTOFCluster",TOFlay))->getnelem();
-    //    cerr <<" ----> Trovati "<<cluster<<" TOF clusters sul Layer  "<<TOFlay<<endl;
-    int clnum=0;
-    AMSPoint min_d(1000,1000,1000);
+    tmhit[TOFlay].min_d= AMSPoint(1000,1000,1000);
+    
+    // 1 -- FIND on each TOF layer the hit closer to the track
     for ( AMSTOFCluster * tofhit=AMSTOFCluster::gethead(TOFlay) ; tofhit; tofhit=tofhit->next()) {
       number td, ssleng;
       if(tofhit->checkstatus(AMSDBc::BAD)) continue;
-      //PZ FIXME it is a normalized distance with respect the TOF incertitude,
+      // it is a normalized distance with respect the TOF incertitude,
       // sleng is signed coo along the track
       AMSPoint dst=AMSBeta::Distance(tofhit->getcoo(),tofhit->getecoo(),
 				     ptrack,ssleng,td);
-      //cerr<< "Cluster "<<clnum++<<" on  plane"<< TOFlay  <<" coo: "<<(tofhit->getcoo()) <<" err "<<tofhit->getecoo()<<endl;
-      //cerr<<"Dist  "<<dst<<endl<<endl;;
       
-      if (dst <= min_d){ 
+      if (fabs(dst[tofcoo[TOFlay]]) <= tmhit[TOFlay].min_d[tofcoo[TOFlay]]){ 
 	//cout<<" The cluster "<<clnum-1<<" is good"<<endl; 
-	min_d=dst; 
-	phit[TOFlay]=tofhit;
-	sleng[TOFlay]=ssleng;
+	tmhit[TOFlay].min_d = dst.abs(); 
+	tmhit[TOFlay].phit  = tofhit;
+	tmhit[TOFlay].sleng = ssleng;
       }
     }
-    // if the selected hit has a resonable distance count it!
-    if ( phit[TOFlay] && min_d<=SearchReg*phit[TOFlay]->getnmemb()){
-      tofpatt|=1<<(TOFlay+1);
-      chi2space+=sqrt(min_d[0]*min_d[0]+min_d[1]*min_d[1]);
-      //PZDEBUG	
-      //cerr<<"TOFLAY "<<TOFlay<<" chi2 "<<chi2space<<endl;
-    }else
-      phit[TOFlay]=0;	
-    
+    // 2 -- CHECK if the hit is at a resonable distance if the selected hit has a resonable distance count it!
+    tmhit[TOFlay].MatchCheck();
+  }
+
+  return 0;
+}
+
+
+int AMSBeta::BuildBeta(AMSTrTrack* ptrack){
+  
+  int bfound=0;
+  AMSTOFCluster * phit[4]={0,0,0,0};
+  number sleng[4]={0,0,0,0};
+  number chi2space=0;
+  integer tofpatt=0;
+
+  mtof_hit tofhit[4];
+
+  // 1 -- FIND on each TOF layer the hit closer to the track
+  // 2 -- CHECK if the hit is at a resonable distance, if the selected hit has a resonable distance count it!
+  FindCloserTOF( ptrack,tofhit);
+
+  // 3 -- Select the matched hit for Beta
+  mtof_hit tofhit2[4];
+  int idx=0;
+  for (int ii=0;ii<4;ii++){
+    if(tofhit[ii].Tmatch){ //good space match
+      
+      // 3.1 -- Check if the time(that is the long coo) is consistent with the track passing point
+      int status=tofhit[ii].phit->getstatus();
+      if((status&TOFGC::SCBADB2)!=0 &&  (status&TOFGC::SCBADB5)!=0){    //tempor  use now only TOF-recovered
+	tofhit[ii].phit->recovers2(ptrack);
+	tofhit[ii].MatchCheck();
+      }
+      if(tofhit[ii].Lmatch){ // time determination compatible with the track position
+	tofpatt|=(1<<ii);
+	chi2space+=pow(tofhit[ii].distT(),2);
+	tofhit2[idx++]=tofhit[ii];
+      }
+    }
   }
   
-  
-  int indx=0;
-  for (int ii=0;ii<4;ii++)
-    if(phit[ii]){
-      sleng2[indx]=sleng[ii];
-      phit2[indx++]=phit[ii];
-    }
   // Loop on TOF patterns
   int sel_patt=-1;
   for ( int patb=0; patb<npatb; patb++){
     if(!BETAFITFFKEY.pattern[patb]) continue;
-      int testpatt=0x1e&(
-			 (1<<patconf[patb][0])|
-			 (1<<patconf[patb][1])|
-			 (1<<patconf[patb][2])|
-			 (1<<patconf[patb][3]));
-      if ((tofpatt&0x1e)==(testpatt&0x1e)){
-	sel_patt=patb;
-	break;
-      }
+    int testpatt=0x1e&(
+		       (1<<patconf[patb][0])|
+		       (1<<patconf[patb][1])|
+		       (1<<patconf[patb][2])|
+		       (1<<patconf[patb][3]));
+    if ((tofpatt&0x1e)==(testpatt&0x1e)){
+      sel_patt=patb;
+      break;
+    }
   }
-  
+  for (int ii=0;ii<idx;ii++) { phit[ii]=tofhit2[ii].phit; sleng[ii]=tofhit2[ii].sleng;}
+
   if(sel_patt>=0&& sel_patt<9)  
-    
-    if(AMSBeta::_addnextP(sel_patt,patpoints[sel_patt],sleng2,phit2,ptrack,chi2space))
-      
+    if(AMSBeta::_addnextP(sel_patt,patpoints[sel_patt],sleng,phit,ptrack,chi2space))
       bfound++;
   
   return bfound;
@@ -226,7 +279,11 @@ AMSPoint AMSBeta::Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
   return outp;
 }
 
-#else
+
+
+#else  // STD GBATCH
+
+
 integer AMSBeta::build(integer refit){
 
 // Pattern recognition + fit
@@ -752,18 +809,17 @@ integer AMSBeta::_addnextP(integer pat, integer nhit, number sleng[],
   AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
 #endif
 
-  //PZ bug fix: change the sign of sleng to comply to beta sign convention
-  //  for(int ll=0;ll<nhit;ll++) sleng[ll]*=-1;
-
-  //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
-  for(int nh=0;nh<nhit;nh++){
-    int status=pthit[nh]->getstatus();
-    if((status&TOFGC::SCBADB2)!=0 && 
-       (status&TOFGC::SCBADB5)!=0)    {//tempor  use now only TOF-recovered
-      pbeta->setstatus(AMSDBc::RECOVERED);
-      pthit[nh]->recovers2(ptrack);
-    }
-  }
+ 
+  //   DONE Outside now!!!
+//   //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
+//   for(int nh=0;nh<nhit;nh++){
+//     int status=pthit[nh]->getstatus();
+//     if((status&TOFGC::SCBADB2)!=0 && 
+//        (status&TOFGC::SCBADB5)!=0)    {//tempor  use now only TOF-recovered
+//       pbeta->setstatus(AMSDBc::RECOVERED);
+//       pthit[nh]->recovers2(ptrack);
+//     }
+//   }
   
   
   pbeta->SimpleFit(nhit, sleng);
