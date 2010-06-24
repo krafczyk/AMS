@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.45 2010/02/08 11:10:44 choutko Exp $
+//  $Id: mceventg.h,v 1.46 2010/06/24 10:49:59 zweng Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -117,6 +117,10 @@ void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer fixedmom(){return _fixedmom;}
 static integer fixeddir(){return _fixeddir;}
 static void FillMCInfo();
+#ifdef __AMSVMC__
+static void FillMCInfoVMC(int vmc_ipart,int vmc_inwvol,int CurrentLevel,const char* CurrentVolName,float* vmc_vect);
+#endif
+
 static integer debug;
 
 static integer Out(integer status=0);
@@ -128,6 +132,17 @@ void init(integer);
 void run(integer ipart);
 void run(integer ipart, integer ipat);
 void run();
+
+
+#ifdef __AMSVMC__
+
+ void runvmc(integer ipart,TVirtualMCStack* fStack,int vmc_version);
+ void runvmc(integer ipart, integer ipat,int vmc_version);
+ void runvmc(TVirtualMCStack* fStack,int vmc_version);
+
+#endif
+
+
 #ifdef __G4AMS__
 void runG4(integer ipart=0);
 #endif
