@@ -1,4 +1,11 @@
-#  $Id: MoptVMC,v 1.2 2010/06/24 12:22:40 zweng Exp $
+#  $Id: MoptVMC,v 1.3 2010/06/24 12:37:57 zweng Exp $
+
+
+#Zhili.Weng Jun.2010	
+#Modefied the oroginal Makefile to accomodate VMC
+
+
+
 
 #P.Zuccon june 2005
 
@@ -670,38 +677,38 @@ endif
 #===============================================================================
 
 $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
-	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
+	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
 
 
 $(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
-	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
 
 
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
+	sed  "s/NQUOT=1000/NQUOT=32000/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
 $(BIN)grfile.o:      $(SFF)grfile.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
-	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
+	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
 
 $(BIN)gskpho.o:      $(SFF)gskpho.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
 
 $(SFF)hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
 	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
-	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./;  s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
+	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./;  s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
 	rm -rf $(SFF)hadevv.F.tmp 
 
 $(BIN)hadevv.o:      $(SFF)hadevv.F
 	$(FFOLD) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include $(SFF)hadevv.F -o $(BIN)hadevv.o
 
 $(SFF)sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
-	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \" VMCrename.h \"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
+	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
 
 $(BIN)sbcomp.o:      $(SFF)sbcomp.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -I./ -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
 
 
 $(BIN)flinit.o:      $(SFF)flinit.F
