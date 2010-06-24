@@ -1,4 +1,4 @@
-//  $Id: geant321g.h,v 1.15 2010/01/22 11:08:36 pzuccon Exp $
+//  $Id: geant321g.h,v 1.16 2010/06/24 09:39:31 zweng Exp $
 #ifndef __GEANT321G__
 #define __GEANT321G__
 #ifdef __ALPHA__
@@ -30,9 +30,10 @@ fortran filename   : gudtim.f
 /*------------------------------------------------------------------
 fortran filename   : gufld.f
 ------------------------------------------------------------------*/
-
+#ifndef __AMSVMC__
 PROTOCCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV)
 #define GUFLD(A1,A2)  CCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV,A1,A2)
+#endif
 #endif
 /*------------------------------------------------------------------
 fortran filename   : guhadr.f

@@ -1,4 +1,4 @@
-//  $Id: geant321.h,v 1.3 2001/01/22 17:32:43 choutko Exp $
+//  $Id: geant321.h,v 1.4 2010/06/24 09:39:31 zweng Exp $
 /*------------------------------------------------------------------
 fortran filename   : abbrch.f
 
@@ -3733,8 +3733,11 @@ fortran filename   : gfpart.f
 #define gfpart_ELEMLEN_2        ZTRINGV_NUM(20)
 */
 
+//For AMSVMC, this GFPART function is already renamed, and with slightly different definition
+#ifndef __AMSVMC__
 PROTOCCALLSFSUB8(GFPART,gfpart,INT,STRING,PINT,PFLOAT,PFLOAT,PFLOAT,FLOATV,PINT)
 #define GFPART(A1,A2,A3,A4,A5,A6,A7,A8)  CCALLSFSUB8(GFPART,gfpart,INT,STRING,PINT,PFLOAT,PFLOAT,PFLOAT,FLOATV,PINT,A1,A2,A3,A4,A5,A6,A7,A8)
+#endif
 
 /*------------------------------------------------------------------
 fortran filename   : gfpath.f
