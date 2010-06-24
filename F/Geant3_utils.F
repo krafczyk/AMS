@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.11 2010/02/26 14:16:14 pzuccon Exp $
+* $Id: Geant3_utils.F,v 1.12 2010/06/24 11:08:40 zweng Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.12  2010/06/24 11:08:40  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.11  2010/02/26 14:16:14  pzuccon
 * PGTRACK update
 *
@@ -122,7 +125,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.11 2010/02/26 14:16:14 pzuccon Exp $
+*  $Id: Geant3_utils.F,v 1.12 2010/06/24 11:08:40 zweng Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -139,6 +142,13 @@ CDECK  ID>, LSCOMS.
 CDECK  ID>, ZPINIT. 
 *     CMZ :          05/06/92  09.26.29  by
 *--   Author :
+
+
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
+
       SUBROUTINE ZPINIT
       COMMON/GCKINE/IKINE,PKINE(10),ITRA,ISTAK,IVERT,IPART,ITRTYP
      +     ,NAPART(5),AMASS,CHARGE,TLIFE,VERT(3),PVERT(4),IPAOLD

@@ -1,10 +1,16 @@
-*  $Id: gtckov.F,v 1.7 2009/11/06 17:29:49 choutko Exp $
+*  $Id: gtckov.F,v 1.8 2010/06/24 11:13:35 zweng Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
 *CMZ :          12/09/95  11.07.14  by  S.Ravndal
 *CMZ :  3.21/04 13/12/94  15.17.13  by  S.Giani
 *-- Author :
+
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
+
       SUBROUTINE GTCKOV
 C.
 C.    ******************************************************************

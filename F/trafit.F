@@ -1,4 +1,9 @@
-*  $Id: trafit.F,v 1.13 2009/12/04 13:15:51 choutko Exp $
+*  $Id: trafit.F,v 1.14 2010/06/24 11:15:50 zweng Exp $
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
+
       SUBROUTINE TRAFIT
      $      (IFIT,X,Y,WXY,Z,SSZ,NPT,RESXY,RESSZ,IFLAG,SPCOR,WORK,
      +       SCHIXY,SCHIZ,xmom,exmom,p0,theta,phit)

@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
+*  $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
        subroutine rkmsinit(zposl)
 #include "rkms.h"
           real zposl(9)
@@ -8,6 +8,11 @@
           write(*,*)'RKMS-I-InitTo ',trkZ0
           end
 
+
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
 
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
@@ -1090,8 +1095,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
+* $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
 * $Log: rkms.F,v $
+* Revision 1.15  2010/06/24 11:13:35  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.14  2010/03/24 10:19:03  choutko
 * make rkms work with perm meg opt
 *
@@ -1278,8 +1286,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.14 2010/03/24 10:19:03 choutko Exp $
+* $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
 * $Log: rkms.F,v $
+* Revision 1.15  2010/06/24 11:13:35  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.14  2010/03/24 10:19:03  choutko
 * make rkms work with perm meg opt
 *

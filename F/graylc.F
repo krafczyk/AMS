@@ -1,8 +1,9 @@
-*  $Id: graylc.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
+*  $Id: graylc.F,v 1.3 2010/06/24 11:13:35 zweng Exp $
 
-
-
-
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
 
       SUBROUTINE GRAYLC                                                                 
 C.                                                                                      

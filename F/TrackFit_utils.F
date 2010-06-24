@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.38  2010/06/24 11:10:31  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.37  2010/04/23 15:41:06  choutko
 * *** empty log message ***
 *
@@ -200,7 +203,13 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
+
+
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
 
 
 CDECK  ID>, ERTRAK. 
@@ -7809,9 +7818,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.37 2010/04/23 15:41:06 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.38  2010/06/24 11:10:31  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.37  2010/04/23 15:41:06  choutko
 * *** empty log message ***
 *

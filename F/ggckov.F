@@ -1,8 +1,11 @@
-*  $Id: ggckov.F,v 1.3 2007/10/02 16:06:50 mdelgado Exp $
+*  $Id: ggckov.F,v 1.4 2010/06/24 11:13:35 zweng Exp $
 *
-* $Id: ggckov.F,v 1.3 2007/10/02 16:06:50 mdelgado Exp $
+* $Id: ggckov.F,v 1.4 2010/06/24 11:13:35 zweng Exp $
 *
 * $Log: ggckov.F,v $
+* Revision 1.4  2010/06/24 11:13:35  zweng
+* Add #include "VMCrename.h"
+*
 * Revision 1.3  2007/10/02 16:06:50  mdelgado
 * Big cupdate of RICH related code. It includes source cleanup and a lot
 * of improvements in simulation:
@@ -27,6 +30,11 @@
 *
 *
 #include "geant321/pilot.h"
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
+
 *CMZ :  3.21/02 29/03/94  15.41.23  by  S.Giani
 *-- Author :
       SUBROUTINE GGCKOV

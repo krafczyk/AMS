@@ -1,3 +1,8 @@
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
+
       SUBROUTINE TKFITA(NPOINTS, XM, EXM, IPLANEZ,
      + IMSCAT, XMASS, OUTPAR, CHI2, NDOF, IERR,xout)
 *********************************************************************
