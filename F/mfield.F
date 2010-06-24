@@ -1,4 +1,9 @@
-*  $Id: mfield.F,v 1.37 2010/04/19 13:37:55 choutko Exp $
+*  $Id: mfield.F,v 1.38 2010/06/24 11:33:48 zweng Exp $
+
+c. Add by Zhili.Weng 2009-11-11
+#ifdef __AMSVMC__
+#include "VMCrename.h"
+#endif
 
 
       subroutine readmfield_rphi
