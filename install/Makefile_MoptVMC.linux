@@ -1,0 +1,226 @@
+# P.Zuccon june 2005
+# General clean up and reorganization
+#
+
+#   Architecture linux g++
+
+
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+
+VERGCC       := $(shell gcc --version | grep 4.1)
+
+ifdef VER
+NEW = 
+else
+NEW = _new
+endif
+
+
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+
+SLC4system=1
+RH9=1
+RH9add=
+ifdef RH9
+ RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+endif
+
+RH9add=-pthread $(BIN)ctype.o 
+
+
+
+########################################################################
+#Compilers
+########################################################################
+  CC  = gcc -m32 -D__AMSVMC__
+  CXX = g++ -m32  -D__AMSVMC__
+  FF  = g77 -m32   -D__AMSVMC__
+  FFOLD=$(FF)
+  LD  = g++ -m32  -D__AMSVMC__
+  FORTRAN2_LIBS=
+  FORTRAN_LIBS=-lg2c 
+ifdef VERGCC
+  FORTRAN_LIBS+= -lgfortran 
+endif
+
+
+ORBIT2DIR=/opt/Orbit2
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=orbit-idl-2 -l cpp
+
+
+########################################################################
+# CERN & AMS Libraries
+########################################################################
+#ifndef CERN_LEVEL
+CERN_LEVEL = pro
+
+#endif
+CERNLIBS= -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+CERNSRCDIR = /cern/$(CERN_LEVEL)
+
+# -lgeant321
+
+CERNDIR = /cern/$(CERN_LEVEL)
+
+ifndef AMSLIB
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+ifdef VERGCC
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc4
+endif
+endif
+
+ifndef NAGDIR
+NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+endif
+
+
+
+########################################################################
+# Compilers FLAGS
+########################################################################
+
+
+ifdef AMSDEBUG
+DEFINES+=  -D__AMSDEBUG__
+endif
+
+ifdef TFADBW
+DEFINES+=  -D__TFADBW__
+endif
+
+ifdef TFAPEDC
+DEFINES+=  -D__TFAPEDC__
+endif
+
+
+CFLAGSB= -Wno-deprecated  -march=i686 
+DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
+
+ifdef AMSPROFILE
+  CFLAGSB+=-pg
+endif
+
+CFLAGS=       $(CFLAGSB)   
+CFLAGSTOFSIM= $(CFLAGSB) 
+CFLAGSn=      $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB) 
+
+FFLAGS=       -fno-automatic 
+FFLAGSn=      -fno-automatic 
+
+
+ifdef AMSPROFILE 
+  FFLAGS+=-pg
+  FFLAGSn+=-pg
+endif
+
+ifdef DEBUGFLAG
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
+    CFLAGS       += -g
+    CFLAGSTOFSIM += -g
+    CFLAGSn      += -g
+    CFLAGSDAQ    += -g
+    FFLAGS       += -g
+    FFLAGSn      += -g
+else
+    CFLAGS       += -O3      
+    CFLAGSTOFSIM += -O1
+    CFLAGSn      += -O2    
+    CFLAGSDAQ    += -O2 
+    FFLAGS       += -O3    
+    FFLAGSn      += -O2  
+endif
+
+SOFLAGS = -shared
+
+
+ifdef SLC4system
+ifdef VER
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+endif
+endif
+
+SHLDFLAGS=   
+
+########################################################################
+# Output dirs
+########################################################################
+
+#----------------------------------------------------
+
+
+# Library list 
+TIMEL=
+
+LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lfreetype\
+ -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre    -L/opt/intel/Compiler/11.0/069/lib/ia32 -lirc \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+
+# -lRoot
+
+LDFLAGS=      $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag   \
+-L$(AMSLIB)  -lamsut   \
+-L$(CERNDIR)/lib   $(CERNLIBS) \
+-L$(ROOTSYS)/lib  -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) -L/opt/intel/Compiler/11.0/069/lib/ia32 -lirc
+
+#-lRoot
+
+ifdef AMSPROFILE
+  LDFLAGS+=-pg
+endif
+
+LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add)
+#LDFLAGSSTATIC:=  $(LDFLAGS) $(RH9add)
+
+
+
+
+#--------------------------------------------------------------------------------------------------
+#------- Client/server ORbIt/CORBA part
+#--------------------------------------------------------------------------------------------------
+
+TIMEL=
+
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
+
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+
+
+ifdef DEBUGFLAG
+CXX_ORBIT+= -g
+CCC_ORBIT+= -g
+else
+CXX_ORBIT+= -O3
+CCC_ORBIT+= -O3
+endif
+
+
+#endif
+
+# end of Linux case
+
+#########################################################

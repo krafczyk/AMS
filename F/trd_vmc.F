@@ -1363,7 +1363,7 @@ C
 C... *** Input information from DETRA1,DETRA2,DETRA3 files ***
 C
 #include "trdf.h"
-#include "mfield_Old.h"
+#include "mfield.h"
          real ac,zc,roc
          integer nnwe,k,i,ig
 

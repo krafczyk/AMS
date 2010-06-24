@@ -1,5 +1,10 @@
-*  $Id: mfield.h,v 1.18 2010/04/23 15:41:06 choutko Exp $
+*  $Id: mfield.h,v 1.19 2010/06/24 11:46:08 zweng Exp $
       integer nx,ny,nz
+
+#ifdef __AMSVMC__
+      interger nzo
+#endif
+
 c       PARAMETER (nx=41,ny=41,nz=41,nzo=41)
        PARAMETER (nx=41,ny=41,nz=180,nzo=41)
 c
@@ -103,3 +108,7 @@ c      real *8 u(1),v(1),w(1),qx(1),qy(1),qz(1),q(1)
        common/MAGSFFKEY/magstat,fscale,ecutge,r0(3),pitch,yaw,roll,rphi
        integer magstat,rphi
        real fscale,ecutge,r0,pitch,yaw,roll
+
+#ifdef __AMSVMC__
+      interger magstat2
+#endif
