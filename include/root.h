@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.275 2010/06/21 16:15:43 choutko Exp $
+//  $Id: root.h,v 1.276 2010/06/24 10:52:15 zweng Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -40,11 +40,36 @@
 #endif
 #include "trdhrec.h"
 
+
+#ifdef __AMSVMC__
+#include "amsvmc_MCApplication.h"
+#include "amsvmc_DetectorConstruction.h"
+#include "amsvmc_PrimaryGenerator.h"
+#include "amsvmc_MCStack.h"
+#include "amsvmc_RootManager.h"
+#include "amsvmc_MagField.h"
+#endif
+
+
+
 using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
+
+
+#ifdef __AMSVMC__
+class amsvmc_MCApplication;
+class amsvmc_DetectorConstruction;
+class amsvmc_PrimaryGenerator;
+class amsvmc_MCStack;
+class amsvmc_MagField;
+class amsvmc_RootManager;
+#endif
+
+
+
 #ifndef _PGTRACK_
 class AMSTrCluster;
 class AMSTrMCCluster;
@@ -109,6 +134,20 @@ class AMSTRDMCCluster{};
 class AMSTRDRawHit{};
 class AMSTRDSegment{};
 class AMSTRDTrack{};
+
+
+
+#ifdef __AMSVMC__
+class amsvmc_MCApplication{};
+class amsvmc_DetectorConstruction{};
+class amsvmc_PrimaryGenerator{};
+class amsvmc_MCStack{};
+class amsvmc_RootManager{};
+class amsvmc_MagField{};
+#endif
+
+
+
 #ifndef _PGTRACK_
 class AMSTrCluster{};
 class AMSTrMCCluster{};
