@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.58 2010/06/01 13:08:28 mmilling Exp $
+//  $Id: linkdef.h,v 1.59 2010/06/24 10:48:29 zweng Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -87,6 +87,15 @@
 #pragma link C++ class DaqEventR+;
 #pragma link C++ class AMSEventR+;
 #pragma link C++ class AMSEventR::Service+;
+
+#ifdef __AMSVMC__
+#pragma link C++ class amsvmc_MCApplication+;
+#pragma link C++ class amsvmc_DetectorConstruction+;
+#pragma link C++ class amsvmc_PrimaryGenerator+;
+#pragma link C++ class amsvmc_MCStack+;
+#pragma link C++ class amsvmc_RootManager+;
+#pragma link C++ class amsvmc_MagField+;
+#endif
 
 
 #endif
