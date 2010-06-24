@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.289 2010/06/01 09:35:01 oliva Exp $
+//  $Id: commons.h,v 1.290 2010/06/24 09:19:22 zweng Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -20,6 +20,13 @@
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #endif
+
+
+#ifdef __AMSVMC__
+#include "geant3function_redefine.h"
+#endif
+
+
 
 class TRMFFKEY_DEF{
 public:
