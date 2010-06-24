@@ -1,4 +1,4 @@
-//  $Id: gmat.h,v 1.13 2010/06/01 09:35:01 oliva Exp $
+//  $Id: gmat.h,v 1.14 2010/06/24 09:48:00 zweng Exp $
 // Author V. Choutko 24-may-1996
 //
 // Sep 06, 1996 ak. add getnpar and getNumbers functions
@@ -110,6 +110,9 @@ class AMSgtmed : public AMSNode
             geant stmin=-1):_G4Range(-1 ),_G4EHad(GCCUTS.CUTHAD),_G4EEl(GCCUTS.CUTELE),_G4EPh(GCCUTS.CUTGAM),_G4EHNeu(GCCUTS.CUTNEU),_G4EMu(GCCUTS.CUTMUO),_G4TofMax(GCCUTS.TOFMAX),
     _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),_nwbuf(0),_uwbuf(0),
+#ifdef __AMSVMC__
+    _yOptical('N'), _VMCnument(0), _VMCpmom(0), _VMCabsl(0), _VMCeff(0), _VMCrindex(0), _VMCrayleigh(0),
+#endif
     AMSNode(){
    _pgmat=AMSgmat::getpmat(matname); 
    if(!_pgmat){
@@ -138,6 +141,19 @@ class AMSgtmed : public AMSNode
     char getyb() {return _yb;}
 //-
 
+
+#ifdef __AMSVMC__
+    char getyOptical() { return _yOptical;}
+    integer VMCnument(){return _VMCnument;}
+    number* VMCpmom(){return _VMCpmom;}
+    number* VMCabsl(){return _VMCabsl;}
+    number* VMCeff(){return _VMCeff;}
+    number* VMCrindex(){return _VMCrindex;}
+    number VMCrayleigh(){return _VMCrayleigh;}
+#endif
+
+
+
   static uinteger GetLastMedNo(){return _GlobalMedI;}
   AMSgmat * getpgmat(){ return _pgmat;}
   integer IsSensitive() const {return _isvol?1:0;}
@@ -148,13 +164,69 @@ class AMSgtmed : public AMSNode
   geant & CUTMUO(){ return _G4EMu;}
   geant & CUTRANGE(){ return _G4Range;}
   geant & TOFMAX(){ return _G4TofMax;}
+
+
+#ifdef __AMSVMC__
+  geant & BIRKS1(){ return _birks[0];}
+  geant & BIRKS2(){ return _birks[1];}
+  geant & BIRKS3(){ return _birks[2];}
+#endif
+
+
+
   void AGSCKOV(integer nument, geant pmom[], geant absl[], geant eff[], geant rindex[], geant rayleigh);
-  void     CUTGAM(geant cut){_G4EPh=cut;GSTPAR(_itmed,"CUTGAM",cut);}
-  void     CUTHAD(geant cut){_G4EHad=cut;GSTPAR(_itmed,"CUTHAD",cut);}
-  void     CUTNEU(geant cut){_G4EHNeu=cut;GSTPAR(_itmed,"CUTNEU",cut);}
-  void     CUTELE(geant cut){_G4EEl=cut;GSTPAR(_itmed,"CUTELE",cut);}
-  void     CUTMUO(geant cut){_G4EMu=cut;GSTPAR(_itmed,"CUTMUO",cut);}
-  void     TOFMAX(geant cut){_G4TofMax=cut;GSTPAR(_itmed,"TOFMAX",cut);}
+
+  void     CUTGAM(geant cut)
+    {_G4EPh=cut;
+#ifdef __AMSVMC__
+#else
+    GSTPAR(_itmed,"CUTGAM",cut);
+#endif
+    }
+  void     CUTHAD(geant cut)
+    {
+      _G4EHad=cut;
+
+#ifdef __AMSVMC__
+#else
+      GSTPAR(_itmed,"CUTHAD",cut);
+#endif
+    }
+  void     CUTNEU(geant cut)
+    {
+      _G4EHNeu=cut;
+
+#ifdef __AMSVMC__
+#else
+      GSTPAR(_itmed,"CUTNEU",cut);
+#endif
+
+    }
+  void     CUTELE(geant cut)
+    {
+      _G4EEl=cut;
+
+#ifdef __AMSVMC__
+#else
+      GSTPAR(_itmed,"CUTELE",cut);
+#endif
+    }
+  void     CUTMUO(geant cut){
+    _G4EMu=cut;
+#ifdef __AMSVMC__
+#else
+    GSTPAR(_itmed,"CUTMUO",cut);
+#endif
+  }
+  void     TOFMAX(geant cut)
+    {
+      _G4TofMax=cut;
+#ifdef __AMSVMC__
+#else
+      GSTPAR(_itmed,"TOFMAX",cut);
+#endif
+    }
+
 
   inline integer getifield() { return _ifield; }
   inline integer getisvol()  { return _isvol;  }
@@ -192,5 +264,18 @@ class AMSgtmed : public AMSNode
    geant _G4EPh;
    geant _G4TofMax;
    virtual ostream & print(ostream &)const;
+
+
+#ifdef __AMSVMC__
+   char _yOptical;
+   integer _VMCnument;
+   number* _VMCpmom;
+   number* _VMCabsl;
+   number* _VMCeff;
+   number* _VMCrindex;
+   number _VMCrayleigh;
+#endif
+
+
 };
 #endif
