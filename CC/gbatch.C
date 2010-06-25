@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.107 2010/03/01 16:20:52 pzuccon Exp $
+//  $Id: gbatch.C,v 1.108 2010/06/25 14:55:29 zweng Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -21,6 +21,12 @@
 #ifdef _PGTRACK_
 #include "TrRecon.h"
 #endif
+
+#ifdef __AMSVMC__
+extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
+#endif
+
+
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
 struct PAWC_DEF{
@@ -78,12 +84,20 @@ std::set_unexpected (my_unexpected);
 try{
      
     UGINIT(argc,argv);
+#ifndef __AMSVMC__
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();
 #else
     GRUN();
 #endif
+#endif
+
+#ifdef __AMSVMC__
+    std::cout<<"DEBUG: in gbatch.C, Before VMCRUN()"<<std::endl;
+    amsvmc::VMCRUN(appl);
+#endif
+
 } 
 catch (amsglobalerror & a){
  cerr<<a.getmessage()<< endl;
@@ -111,6 +125,10 @@ catch (AMSClientError & ab){
 }
 #endif
 try{
+#ifdef __AMSVMC__
+  amsvmc::VMCLAST();
+#endif
+
     UGLAST();
 }
 catch (amsglobalerror & a){

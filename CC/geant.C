@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.125 2010/06/01 09:35:00 oliva Exp $
+//  $Id: geant.C,v 1.126 2010/06/25 14:58:47 zweng Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -66,6 +66,24 @@
 #include "status.h"
 #include "geantnamespace.h"
 #include "timeid.h"
+
+#ifdef __AMSVMC__
+#include <TROOT.h>
+#include <TChain.h>
+#include <TFile.h>
+#include <TH1F.h>
+#include <TCanvas.h>
+#include <TVirtualMC.h>
+#include <TGeoManager.h>
+#include <TGeoMatrix.h>
+#include <TGeoMaterial.h>
+#include <TGeoMedium.h>
+#include <TGeoBBox.h>
+#include "amsvmc_MCApplication.h"
+extern amsvmc_MCApplication*  appl;
+#endif
+
+
 #ifdef __DB__
 #include <db_comm.h>
 integer trigEvents;               // number of events written to the DBase
@@ -132,10 +150,19 @@ extern "C" void gstran_(int & itrt,float & ch, float &mas);
 void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;
   timest_(zero);
+
+
+#ifdef __AMSVMC__
+  TFile* file1 = new TFile("ams02vmcgeometry.root","RECREATE");
+  TGeoManager*  rootgeom = new TGeoManager("ams02vmcgeometry", "ams02vmcgeometry");
+  amsvmc::VMCINIT(appl);
+  //AMSJob::gethead()->data(); already done in geant3 library
+#else
   cout.sync_with_stdio();   
   GINIT();
   new AMSJob();
   AMSJob::gethead()->data();
+#endif
   GCTLIT.ITCKOV=1;
   GCPHYS.IRAYL=1;
   integer mone=-1;
@@ -158,10 +185,11 @@ void gams::UGINIT(int argc,  char * argv[]){
 
 
   // Geant initialization
-
+#ifndef __AMSVMC__
   GZINIT();
   GPART();
   GPIONS(4);
+#endif
   int itrt=4;
   gstran_(itrt,CCFFKEY.StrCharge,CCFFKEY.StrMass);
 
@@ -174,7 +202,23 @@ void gams::UGINIT(int argc,  char * argv[]){
    AMSgmat::amsmat();
    AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
-   
+
+
+   #ifdef __AMSVMC__
+      TGeoVolume *top = rootgeom->GetVolume("AMSG");
+      //   TGeoBBox *box = new TGeoBBox("s_box", 10,10,10);
+      //      TGeoVolume *top = new TGeoVolume("Dumy",box,gGeoManager->GetMedium(15));
+   rootgeom->SetTopVolume(top); // mandatory !
+   rootgeom->CloseGeometry();
+   cout<<"Root Geometry Closed"<<endl;
+   rootgeom->Write();
+   cout<<"Root Geometry Saved"<<endl;
+   file1->Write();
+   cout<<"Root Geometry file Saved"<<endl;
+   file1->Close();
+   cout<<"Root Geometry file Closed"<<endl;
+#endif
+
 // GRFILE(1,"geomstr.dat","Q");
 // GROUT("VOLU",1," ");
 // GREND(1);
@@ -221,7 +265,9 @@ GDINIT();
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On)g4ams::G4INIT();
 #endif
+#ifndef __AMSVMC__
 GPHYSI();
+#endif
 AMSJob::map(1);
 }
 
