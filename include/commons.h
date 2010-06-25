@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.290 2010/06/24 09:19:22 zweng Exp $
+//  $Id: commons.h,v 1.291 2010/06/25 14:18:51 zweng Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -170,6 +170,12 @@ integer histoman;
 integer skip;
 integer WriteTGeometry;
 integer TGeometryFileName[40];
+
+#ifdef __AMSVMC__
+integer VMCVersion;
+integer VMCEventno;
+#endif
+
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
