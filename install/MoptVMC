@@ -1,4 +1,4 @@
-#  $Id: MoptVMC,v 1.3 2010/06/24 12:37:57 zweng Exp $
+#  $Id: MoptVMC,v 1.4 2010/06/25 14:36:02 zweng Exp $
 
 
 #Zhili.Weng Jun.2010	
@@ -206,7 +206,7 @@ COMMON_FILES += $(SCC)amsvmc.o $(SCC)amsvmc_MCApplication.o  $(SCC)amsvmc_Detect
 ROOTLIBS = -L$(VMCLIB)/ -static -lRootVMC -lfreetype -lpcre
 
 CLHEP = /afs/cern.ch/exp/ams/Offline/CLHEP/lib
-VMCLIBS =   -L$(VMCLIB)/  -lgeant4vmc -lgeant321newG4 	
+VMCLIBS =   -L$(VMCLIB)/  -lgeant4vmc -lgeant321newG4 -lgfortran 	
 CLHEPLIB = -L$(VMCLIB)/  -lCLHEP 
 G4VMCLIBS = -L$(VMCLIB)/Linux-g++ \
         -lG4visXXX \
