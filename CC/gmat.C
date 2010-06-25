@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.101 2010/05/27 12:49:05 pzuccon Exp $
+//  $Id: gmat.C,v 1.102 2010/06/25 15:04:12 zweng Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -12,6 +12,24 @@
 #include "G4Element.hh"
 #include "G4UnitsTable.hh"
 #include <strstream>
+#endif
+
+#ifdef __AMSVMC__
+#include "amsvmc_MCApplication.h"
+#include <TVirtualMCApplication.h>
+ #include <TROOT.h>
+ #include <TInterpreter.h>
+ #include <TVirtualMC.h>
+ #include <TRandom.h>
+ #include <TPDGCode.h>
+ #include <TVector3.h>
+ #include <Riostream.h>
+ #include <TGeoManager.h>
+ /////#include <TGeoUniformMagField.h>
+ #include <TVirtualGeoTrack.h>
+ #include <TParticle.h>
+ #include <TCanvas.h>
+ #include <TMath.h>
 #endif
 
 #ifdef _PGTRACK_
@@ -40,9 +58,24 @@ if(MISCFFKEY.G3On){
      z[i]=_z[i];
    }
    
+#ifdef __AMSVMC__   
+   if(_npar == 1)  gGeoManager->Material(_name, a[0], z[0], _rho,_imate ,_radl,_absl);   //Lack of _ubuf,1
+   else {
+     cout<<"DEBUG: Adding Mixture:"<<_name<<endl;
+     double total=0;
+     for (int i=0;i<_npar;i++) total+=a[i]*w[i];
+     geant *weight = new geant[_npar];
+     for (int i=0;i<_npar;i++) weight[i]=a[i]*w[i]/total;
+     for (int i=0;i<_npar;i++) cout<<"Weight for component"<<i<<": "<<weight[i]<<endl;
+     gGeoManager->Mixture(_name,a,z,_rho,_npar,weight,_imate); //  lack  uid     w should be atom number, do not sure this is right
+}
+
+#else
+
   if(_npar == 1)   GSMATE(_imate,_name,a[0],z[0],_rho,_radl,_absl,_ubuf,1);
 
   else    GSMIXT(_imate,_name,a,z,_rho,-_npar,w);
+#endif
    delete []a;
    delete []z;
    delete []w;
@@ -85,13 +118,31 @@ void AMSgtmed::_init(){
     }
   }
 #endif
+#ifdef __AMSVMC__
+  gGeoManager->Medium(_name,_itmed,_pgmat->getmati(),_isvol,_ifield,_fieldm,_tmaxfd,_stemax,_deemax,_epsil,_stmin);   //Lack of _uwbuf,_nwbuf
+  //the following need to re-implement, now they are manually input in amsvmc_MCApplication
+  cout<<"Adding Material :"<<_name<<", the Material is :"<<gGeoManager->GetMedium(_name)->GetMaterial()->GetName()<<", _nwbuf:"<<_nwbuf<<endl;
+  gGeoManager->GetMedium(_name)->SetParam(8,_nwbuf);
+  if(_nwbuf){
+    for(int i=0; i<_nwbuf;i++){
+      cout<<"adding _uwbuf[i]:"<<_uwbuf[i]<<endl;
+      gGeoManager->GetMedium(_name)->SetParam(9+i,_uwbuf[i]);
+    }
+  }
+#else
+
   GSTMED(_itmed,_name,_pgmat->getmati(),_isvol,_ifield,_fieldm,_tmaxfd,
   _stemax,_deemax,_epsil,_stmin,_uwbuf,_nwbuf);
+#endif
+
+#ifndef __AMSVMC__
   if(_yb=='Y'){
    GSTPAR(_itmed,"BIRK1",_birks[0]);
    GSTPAR(_itmed,"BIRK2",_birks[1]);
    GSTPAR(_itmed,"BIRK3",_birks[2]);
   }
+#endif
+
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>1){
     CUTGAM(1.01e-6);
 //   GSTPAR(_itmed,"CUTGAM",1.01e-6);
@@ -763,7 +814,11 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 
 // RICH MOTHER VOLUME
 
+#ifdef __AMSVMC__
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUMTRD",0));  // absorber, Still need to understand why VMC needs VACUUMTRD
+#else
   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",0));  // absorber
+#endif
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e10;
@@ -1084,7 +1139,27 @@ if(MISCFFKEY.G4On){
 }
 else
 #endif
+
+
+#ifdef __AMSVMC__
+ _yOptical='Y';
+ _VMCnument = nument;
+ _VMCpmom=new number[nument];
+ _VMCabsl=new number[nument];
+ _VMCeff=new number[nument];
+ _VMCrindex=new number[nument];
+ 
+ for (int i=0;i<nument;i++){
+   _VMCpmom[i]=pmom[i];
+   _VMCabsl[i]=absl[i];
+   _VMCeff[i]=eff[i];
+   _VMCrindex[i]=rindex[i];
+   _VMCrayleigh=rayleigh;
+ }
+#else
+
 GSCKOV(_itmed,nument,pmom,absl,eff,rindex);
+#endif
 }
 
 
