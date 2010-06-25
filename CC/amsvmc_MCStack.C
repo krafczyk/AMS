@@ -1,7 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-// Class for particle stack handler.
-// Implemented RICH photon selection
 
 
 #include <TParticle.h>

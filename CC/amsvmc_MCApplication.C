@@ -1,7 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-// Implementation of MCApplication, Class for initialization, stepping, output,.....(everything)
-
 
 #include <TROOT.h>
 #include <TInterpreter.h>
@@ -299,7 +295,7 @@ void amsvmc_MCApplication::RunMC(Int_t nofEvents)
 void amsvmc_MCApplication::FinishRun()
 {    
   /// Finish MC run.
-  cout<<"DEBUG: in amsvmc_MCApplication::FinishRun()"<<endl;
+  //  cout<<"DEBUG: in amsvmc_MCApplication::FinishRun()"<<endl;
 
   fRootManager.GetFile()->cd();
 h_edep_absorption->Write();
@@ -341,7 +337,19 @@ void amsvmc_MCApplication::PreInit()
 //   else vmc_version=2;  //Geant4
 
 
-    vmc_version=1;
+//    vmc_version=IOPA.version;
+
+
+
+      //===========From geant.C====
+      cout.sync_with_stdio();   
+      GINIT();
+      new AMSJob();
+      AMSJob::gethead()->data();
+      GFFGO();
+      //      cout<<"in InitMC(), before TG4RunConfiguration"<<endl;
+
+    vmc_version=IOPA.version;
 
 
   if(vmc_version==2)  //For geant4_vmc, here only initilizing some data structure, the initialize of geant4_vmc in InitMC()
@@ -349,11 +357,11 @@ void amsvmc_MCApplication::PreInit()
       cout<<"~~~~~~~~~~~~~~~Geant4_VMC is selected"<<endl;
        
       //===========From geant.C====
-      cout.sync_with_stdio();   
-      GINIT();
-      new AMSJob();
-      AMSJob::gethead()->data();
-      GFFGO();
+      //      cout.sync_with_stdio();   
+      //      GINIT();
+      //      new AMSJob();
+      //      AMSJob::gethead()->data();
+      //      GFFGO();
       //      cout<<"in InitMC(), before TG4RunConfiguration"<<endl;
 
     }
@@ -450,7 +458,6 @@ void amsvmc_MCApplication::BeginEvent()
 {    
   fEventNo++;
   cout << "\n---> Begin of event: " << fEventNo << endl;
-  cout <<"Track number in stacks:"<<gMC->GetStack()->GetNtrack()<<endl;
   fOptPhotonNo=0;
   fECALedep=0;
 }
@@ -1742,7 +1749,7 @@ void amsvmc_MCApplication::FinishPrimary()
 
 void amsvmc_MCApplication::FinishEvent()
 {    
-  cout<<"~~~~~~~~~~~~~~~~~~~~~FinishEvent()~~~~~~~~~~~~~~~~~~~"<<endl;
+  //  cout<<"~~~~~~~~~~~~~~~~~~~~~FinishEvent()~~~~~~~~~~~~~~~~~~~"<<endl;
   fVerbose.FinishEvent();
   AMSgObj::BookTimer.start("GUOUT");
   if(    AMSEvent::gethead()->HasNoCriticalErrors()){

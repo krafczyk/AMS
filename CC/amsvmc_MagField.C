@@ -1,8 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-// Class for accesing magnetifield via gufldvmc_, which is the original function being renamed.
-
-
 #include <iostream>
 #include <TVirtualMagField.h>
 #include "amsvmc_MagField.h"

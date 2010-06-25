@@ -1,10 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-//Root file Manager, for particle stacking, and for data-output if needed.
-//Some of the methords are Obsolete, just for test purpose
- 
-
-
 #include "amsvmc_RootManager.h"
 
 #include <TParticle.h>

@@ -1,6 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-//Detector Construction, from original example.. Obsolete, just for test purpose
  
 #include <Riostream.h>
 #include <TGeoManager.h>

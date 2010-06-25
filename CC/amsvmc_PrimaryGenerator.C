@@ -1,7 +1,3 @@
-// AMS02 Virtual MonteCarlo Application,  Zhili.Weng  2009/8/17
-
-// Class for Primary particle generation, use mceventg
-// Some include file needs clean up
 #include "typedefs.h"
 #include "cern.h"
 #include "mceventg.h"
@@ -69,7 +65,7 @@ amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator(TVirtualMCStack* stack)
     fNofPrimaries(1)
     
 {
-  cout<<"DEBUG: in amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator(TVirtualMCStack* stack), fNofPrimaries:"<<fNofPrimaries<<endl;
+  //  cout<<"DEBUG: in amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator(TVirtualMCStack* stack), fNofPrimaries:"<<fNofPrimaries<<endl;
 /// Standard constructor
 /// \param stack  The VMC stack
 }
@@ -84,7 +80,7 @@ amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator()
     fNofPrimaries(0)
 {    
 
-  cout<<"DEBUG: in amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator()"<<endl;
+  //  cout<<"DEBUG: in amsvmc_PrimaryGenerator::amsvmc_PrimaryGenerator()"<<endl;
 
 /// Default constructor
 }
@@ -110,38 +106,20 @@ void amsvmc_PrimaryGenerator::GeneratePrimary1(int vmc_version)
    int a[2];
 
 
+
+
+
+
     AMSgObj::BookTimer.start("GEANTTRACKING");
 	   if(IOPA.mode%10 !=1 ){
 	    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
-      //       a[0]=10000000*gRandom->Rndm();
-      //       a[1]=10000000*gRandom->Rndm();
-      //       cout<<"In GeneratePrimary1, Random Seed, before:"<<a[0]<<","<<a[1]<<endl;
-      //       cout<<"In GeneratePrimary1, Random Seed, before:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
-      //       GRNDMQ(a[0],a[1],1,"S");
-      //       cout<<"In GeneratePrimary1, Random Seed After :"<<a[0]<<","<<a[1]<<endl;
-      //       cout<<"In GeneratePrimary1, Random Seed After:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
-
-      //     AMSmceventg* genp=new AMSmceventg(a);
-      
-
-//       GCFLAG.NRNDM[0]=4324545;
-//       GCFLAG.NRNDM[1]=8985;
-//       cout<<"In GeneratePrimary1, Random Seed Before:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
-//       GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"S");
-//       GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],1,"S");
-     
-//       cout<<"In GeneratePrimary1, Random Seed After:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
-
-//       GCFLAG.NRNDM[0]=76745;
-//       GCFLAG.NRNDM[1]=55778;
-       cout<<"In GeneratePrimary1, Random Seed After2:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
-
+     GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+     //       cout<<"In GeneratePrimary1, Get Random Seed:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
      AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-     //          cout<<"DEBUG:  about to call  genp->run(GCKINE.ikine);"<<endl;
      genp->runvmc(GCKINE.ikine,fStack,vmc_version);
      if (CCFFKEY.npat>1 && TRDMCFFKEY.multiples==1){
 	 if (i>0){
