@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.211 2010/04/21 11:23:24 choutko Exp $
+//  $Id: amsgeom.C,v 1.212 2010/06/25 14:31:03 zweng Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -242,7 +242,15 @@ else{
 #ifdef __G4AMS__
 if(MISCFFKEY.G3On){
 #endif
+
+
+#ifdef __AMSVMC__
+
+  false_mother.MakeRootVolumes();
+
+#else
 false_mother.MakeG3Volumes();
+#endif
 
   cout << "AMSGeom::-I-"<<getNpv()<<" Physical volumes, "<<getNlv()<<" logical volumes and "<<getNrm()<<" rotation matrixes have been created "<<endl;
 // Check recursion
@@ -271,7 +279,9 @@ if(abort){
  cerr<<"AMSGeom-F-Geant3VolumesWithDaugthersMustHaveDifferentNames"<<endl;
  exit(1);
 }
+#ifndef __AMSVMC__
 GGCLOS();
+#endif
 cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
 
 #ifdef __G4AMS__
