@@ -26,26 +26,31 @@ I 564        SimulationType        (def=0)    0 GBATCH old algorythm
 I 565        MinMCClusters         (def=0)    Minimum number of MC Clusters in order to trigger digitization (=0, all events)  
 I 566        NoiseType             (def=1)    0 No Noise (only signal) 
                                               1 Gaussian noise generation for every channel (full simulation, slow)
-                                              2 Gaussian noise generation only on ladders with signal + Fake clusters for the rest
-                                              3 Gaussian noise generation only around MC clusters + Fake cluster on the rest (not implemented)
-I 567        FakeClusterType       (def=0)    Meaningful only if NoiseType>1  
-                                              0 Random clusters on the gaussian tails
-                                              1 From test beam data 2010
-I 568        TrSim2010_ADCConvType (def=3)    0 No conversion between MeV and ADC
+                                              2 Gaussian noise generation only on ladders with signal + Fake clusters
+                                              3 Gaussian noise generation only around MC clusters + Fake cluster (not implemented)
+I 567        FakeClusterType       (def=1)    Meaningful only if NoiseType>1 
+                                              0 No fake clusters 
+                                              1 Random clusters on the gaussian tails
+                                              2 From test beam data 2010
+R [568,569]  DSPSeedThr            (def=4,4)  DSP Seed Threshold for (n/p sides)
+R [570,571]  DSPNeigThr            (def=1,1)  DSP Neig Threshold for (n/p sides)
+I 572        TrSim2010_ADCConvType (def=3)    0 No conversion between MeV and ADC
                                               1 Only MPV scaling 
                                               2 MPV and shape scaling 
                                               3 MPV, shape and gain scaling (ladder,VA)
-R [569,570]  TrSim2010_DSPSeedThr (def=4,4)   DSP Seed Threshold for (n/p sides)
-R [571,572]  TrSim2010_DSPNeigThr (def=1,1)   DSP Neig Threshold for (n/p sides)
-R [573,574]  TrSim2010_Cint (def=100,100)     Interstrip Capacitance (n/p sides)
-R [575,576]  TrSim2010_Cbk  (def= 10, 10)     Backplane + Guard-ring capacitance (n/p sides)
-R [577,578]  TrSim2010_Cdec (def=800,800)     Decoupling Capacitance (n/p sides)
-I [579,580]  TrSim2010_DiffType (def=2)       0 Box
+I 573        TrSim2010_EDepType               1 TB2003
+                                              2 TB2010
+R [574,575]  TrSim2010_DSPSeedThr (def=4,4)   DSP Seed Threshold for (n/p sides)
+R [576,577]  TrSim2010_DSPNeigThr (def=1,1)   DSP Neig Threshold for (n/p sides)
+R [578,579]  TrSim2010_Cint (def=100,100)     Interstrip Capacitance (n/p sides)
+R [580,581]  TrSim2010_Cbk  (def= 10, 10)     Backplane + Guard-ring capacitance (n/p sides)
+R [582,583]  TrSim2010_Cdec (def=800,800)     Decoupling Capacitance (n/p sides)
+I [584,585]  TrSim2010_DiffType   (def=2,2)   0 Box
                                               1 Gaussian
                                               2 Gaussian Convoluted with Box
                                               3 Traingular
-R [581,584]  TrSim2010_DiffPars[2][2]         Parameters for the selected diffusion type
-R [585,586]  TrSim2010_IntrNoise[2] (def=0.05,0.05) Intrisic Noise (from 0 to  1 scale)   
+R [586,589]  TrSim2010_DiffPars[2][2]         Parameters for the selected diffusion type
+R [590,591]  TrSim2010_IntrNoise[2] (def=0.05,0.05) Intrisic Noise (from 0 to  1 scale)   
 
 
 //==============================

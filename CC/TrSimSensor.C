@@ -73,7 +73,7 @@ void TrSimSensor::SetDefaults() {
   switch (GetSensorType()) {
     case 0: // S
       _mcfun->SetParameters(74.46,5.78,1,1);
-      if (TRMCFFKEY.TrSim2010_RefunType == 2)
+      if (TRMCFFKEY.TrSim2010_EDepType == 2)
 	_refun->SetParameters(1.00,27.0,0.942883,7.65,43.38); // TB2010 temporary
       else
 	_refun->SetParameters(1.00,31.5,0.942883,7.65,43.38); // TB2003
@@ -81,7 +81,7 @@ void TrSimSensor::SetDefaults() {
     case 1: // K5
     case 2: // K7
       _mcfun->SetParameters(81.66,7.35,1,1);
-      if (TRMCFFKEY.TrSim2010_RefunType == 2)
+      if (TRMCFFKEY.TrSim2010_EDepType == 2)
 	_refun->SetParameters(3.31,26.0,1.03703,6.5,105.78); // TB2010 temporary
       else
 	_refun->SetParameters(3.31,40.5,1.03703,6.5,105.78); // TB2003

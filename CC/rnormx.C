@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.12 2009/08/19 18:29:25 pzuccon Exp $
+//  $Id: rnormx.C,v 1.13 2010/06/25 21:18:09 oliva Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -26,6 +26,10 @@ double ROOTRndm(int dummy){
 //   into the shared lib to get rid of the 
 //   fortran part (look at random.h)
   return rr.Rndm();
+}
+
+extern "C" void ROOTPoissn(float& mean, int& val, int& dummy) {
+  val = rr.Poisson(mean);
 }
 
 #include "typedefs.h"

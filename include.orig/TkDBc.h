@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.11 2010/05/25 16:56:54 pzuccon Exp $
+// $Id: TkDBc.h,v 1.12 2010/06/25 21:18:09 oliva Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -6,9 +6,11 @@
 #include "typedefs.h"
 
 #include <iostream>
+#include <iterator>
 #include <fstream>
 #include <string>
 #include <map>
+
 #include "TkLadder.h"
 #include "TkPlane.h"
 
@@ -323,9 +325,9 @@ public:
   //! Return the pointer to the iith (ii [1-6]) TkPlane object 
   TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return planes[ii-1]; else return 0;}
 
-  //! map (TkId) number of elements
+  //! TkId map number of elements
   int GetEntries() { return tkidmap.size(); }
-  //! map (TkId) iterator index
+  //! TkId map element by iterator index
   TkLadder* GetEntry(int ii);
   //! TkId for the ii entry in the TkId map (0-191)
   int Entry2TkId(int ii);

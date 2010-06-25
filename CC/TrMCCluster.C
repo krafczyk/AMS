@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.12 2010/06/14 13:44:59 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.13 2010/06/25 21:18:09 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/06/14 13:44:59 $
+///$Date: 2010/06/25 21:18:09 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -298,10 +298,10 @@ void TrMCClusterR::GenSimClusters(){
   simcl[0] = 0;
   simcl[1] = 0;
   char   sidename[2] = {'X','Y'};
-  AMSPoint glo = GetXgl();                // Coordinate [cm]
-  AMSPoint mom = GetMom();                // Momentum Vector [GeV/c]
-  double   edep = Sum()*1.e6;             // Energy Deposition [keV] 
-  double   momentum = mom.norm();         // Momentum [GeV/C]
+  AMSPoint glo = GetXgl();                         // Coordinate [cm]
+  AMSPoint mom = GetMom();                         // Momentum Vector [GeV/c]
+  double   edep = Sum()*1.e6;                      // Energy Deposition [keV] 
+  double   momentum = mom.norm();                  // Momentum [GeV/C]
   double   mass = TrSim::GetG3Mass(GetPart());     // Mass [GeV/c2] 
   double   charge = TrSim::GetG3Charge(GetPart()); // Charge [unit of e]
   if ( (mass==0)||(charge==0) ) {
@@ -370,25 +370,10 @@ void TrMCClusterR::GenSimClusters(){
       GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(edepnorm*GetTrSimSensor(iside,GetTkId())->GetkeVtoADC()),
       ADC);
     */
-    
     if (VERBOSE) { 
       printf("TrSim::SimCluster ADC=%f\n",ADC);
       simcluster->Info(10);
     }
-    
   }
-  //     // Putting cluster on the ladder buffer 
-  //     for (int ist=0; ist<simcluster->GetWidth(); ist++) {
-  //       int address = ist + simcluster->GetAddress() + 640*(1-iside); // address on buffer (P and N side together)
-  
-  //       // sometimes address is out of range and cause crash
-  //       if (0 <= address && address < 1024)
-  // 	_ladbuf[address] += simcluster->GetSignal(ist);
-  
-  //     }
-  //     nclusters++;
-  //     if (simcluster) delete simcluster;  
-  //     }
-  //     return nclusters;
   return;
 }

@@ -11,6 +11,8 @@
 #if defined(__ROOTSHAREDLIBRARY__) && defined(_PGTRACK_)
 double ROOTRndm(int dummy);
 #define RNDM(A) ROOTRndm(A)
+extern "C" void ROOTPoissn(float &, int &, int&);
+#define POISSN ROOTPoissn
 #else
 
 #ifdef __G4AMS__

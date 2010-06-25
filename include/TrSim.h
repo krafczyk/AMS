@@ -80,7 +80,7 @@ class TrSim {
   //! Fast simulation TrRawCluster creation (generate TrRawCluster directly from step infos) 
   static void  gencluster(int idsoft, float vect[], float edep, float step, int itra);  
   //! Generate fake noise cluster (where there is no full simulation)
-  static void  sitknoise();
+  static void  sitknoise(int nsimladders);
   //! Generate the TrRawClusters from the TrMCCluster (calls the specific simulation type)
   static void  sitkdigi();
   //! Create the MC Cluster TkId map and generate MC ideal clusters 

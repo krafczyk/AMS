@@ -78,26 +78,25 @@ number ADC2KeV(){
   return 0.5e6/beta/dedx2nprel;
 }
 
-// I [564] SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
+// SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
 integer SimulationType; 
-// I [565,567] Common Parameters
+// Common Parameters
 integer MinMCClusters;
 integer NoiseType;    
 integer FakeClusterType;
-// TrSim2010: main parameters
-integer TrSim2010_ADCConvType;    
-geant   TrSim2010_DSPSeedThr[2];  
-geant   TrSim2010_DSPNeigThr[2];  
-// TrSim2010: detailed description
+geant   DSPSeedThr[2];  
+geant   DSPNeigThr[2];
+// Main Parameters
+integer TrSim2010_ADCConvType;
+integer TrSim2010_EDepType;    
+// Detailed Description
 geant   TrSim2010_Cint[2];        
 geant   TrSim2010_Cbk[2];  
 geant   TrSim2010_Cdec[2]; 
-// Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
+// Diffusion Shape Type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
 integer TrSim2010_DiffType[2]; 
 geant   TrSim2010_DiffPars[2][2]; 
 geant   TrSim2010_IntrNoise[2]; 
-// EDep real data type: 1:TB2003 2:TB2010
-integer TrSim2010_RefunType; 
 // landau x gaus x exp description?
 
 };

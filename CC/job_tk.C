@@ -219,6 +219,16 @@ void AMSJob::_sitkinitjob(){
   AMSgObj::BookTimer.book("SITKDIGIb");
   AMSgObj::BookTimer.book("SITKDIGIc");
   AMSgObj::BookTimer.book("TrMCCluster");
+
+  AMSgObj::BookTimer.book("SiTkSimuAll");
+
+  AMSgObj::BookTimer.book("SiTkDigiAll");
+  AMSgObj::BookTimer.book("SiTkDigiShow");
+  AMSgObj::BookTimer.book("SiTkDigiLadd");
+  AMSgObj::BookTimer.book("SiTkDigiNoise");
+  AMSgObj::BookTimer.book("SiTkDigiDsp");
+  AMSgObj::BookTimer.book("SiTkDigiFake");
+
 }
 
 //------------------------------------------------------
