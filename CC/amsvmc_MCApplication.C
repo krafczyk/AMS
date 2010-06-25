@@ -349,7 +349,7 @@ void amsvmc_MCApplication::PreInit()
       GFFGO();
       //      cout<<"in InitMC(), before TG4RunConfiguration"<<endl;
 
-    vmc_version=IOPA.version;
+    vmc_version=IOPA.VMCVersion;
 
 
   if(vmc_version==2)  //For geant4_vmc, here only initilizing some data structure, the initialize of geant4_vmc in InitMC()

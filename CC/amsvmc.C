@@ -30,7 +30,7 @@ void amsvmc::VMCRUN(amsvmc_MCApplication* _appl){
  //  cin>>eventno;
  feclearexcept(FE_ALL_EXCEPT);
  fedisableexcept(FE_ALL_EXCEPT);
-  _appl->RunMC(IOPA.eventno);
+  _appl->RunMC(IOPA.VMCEventno);
   //    delete _appl;
 }
 

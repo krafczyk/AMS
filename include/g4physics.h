@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.8 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: g4physics.h,v 1.9 2010/06/25 16:17:43 zweng Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -27,6 +27,8 @@ protected:
   AMSIDs* _pg4tog3;
   integer _Ng3tog4; 
  // these methods Construct physics processes and register them
+
+#ifndef __AMSVMC__
   virtual void ConstructGeneral();
   virtual void ConstructEM();
   virtual void ConstructHad();
@@ -39,6 +41,7 @@ protected:
   virtual void ConstructAllBarions();
   virtual void ConstructAllIons();
   virtual void ConstructAllShortLiveds();
+#endif
 };
 
 

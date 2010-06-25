@@ -1,11 +1,4 @@
-#  $Id: MoptVMC,v 1.4 2010/06/25 14:36:02 zweng Exp $
-
-
-#Zhili.Weng Jun.2010	
-#Modefied the oroginal Makefile to accomodate VMC
-
-
-
+#  $Id: MoptVMC,v 1.5 2010/06/25 16:17:26 zweng Exp $
 
 #P.Zuccon june 2005
 
@@ -63,9 +56,6 @@ SHELL=/bin/sh
 ### defaults can be redefined in the OS specific Makefile (Makefile.[OS])
 ## these defaults are for  Linux at CERN 
 
-CERN_LEVEL = 2001
-CERNDIR = /cern/$(CERN_LEVEL)
-CERNSRCDIR =  /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 
 ifndef AMSWD
 AMSWD := ..
@@ -76,7 +66,7 @@ endif
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
 
 DEFINES  =    -D__WRITEROOT__ 
-INCDIRS  = -I../include  -I$(VMCINC)	-I /users/zweng/ForCVS/RootINC -I$(CERNDIR)/include -I$(ROOTSYS)/include -I$(VMCINC)/G4include/  -I$(VMCINC)/CLHEP
+INCDIRS  = -I../include  -I$(VMCINC)	-I /users/zweng/ForCVS/RootINC -I$(CERNDIR)/include -I$(ROOTSYS)/include -I$(VMCINC)/G4include/   -I$(VMCINC)/CLHEP
 CPPFLAGS = $(DEFINES)  $(INCDIRS)
 
 ROOTDICT_CPPFLAGS= $(CPPFLAGS) 
@@ -114,7 +104,7 @@ IDLFLAGS=-D__CORBA__ -I$(BIN)
 #-- CALL OS SPECIFIC FILE-------------------------------------------
 
 # Operating system dependence.
-# include a file called Makefile_MoptVMC.$(ARCH)
+# include a file called Makefile.$(ARCH)
 # this file has os dependent defs
 # ARCH comes from the ROOT arch 
 
@@ -186,7 +176,7 @@ COMMON_FILES+= $(AMS_BASE)
 
 # Base GBATCH Classes
 GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(SCC)snode.C \
-	        $(SCC)cont.C  $(SCC)upool.C $(SCC)uzstat.C $(SCC)apool.C
+	        $(SCC)cont.C  $(SCC)upool.C $(SCC)uzstat.C $(SCC)apool.C $(SCC)ams2tgeo.C  
 
 COMMON_FILES+=$(GBATCH_BASE)
 
@@ -198,15 +188,16 @@ COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
 		$(SCC)gmat.C    $(SCC)mceventg.C  $(SCC)mccluster.C     \
 		$(SFF)egzav.F    $(SFF)rzerowrapper.F
 
+
 #===========================AMS VMC Application
 COMMON_FILES += $(SCC)amsvmc.o $(SCC)amsvmc_MCApplication.o  $(SCC)amsvmc_DetectorConstruction.C   \
                 $(SCC)amsvmc_PrimaryGenerator.C   $(SCC)amsvmc_MCStack.C   $(SCC)amsvmc_RootManager.C \
-                 $(SFF)trd_vmc.F $(SFF)readtrd_vmc.F  $(SCC)amsvmc_MagField.C  $(SCC)g4physics.C
+                $(SFF)trd_vmc.F $(SFF)readtrd_vmc.F  $(SCC)amsvmc_MagField.C  $(SCC)g4physics.C
 
 ROOTLIBS = -L$(VMCLIB)/ -static -lRootVMC -lfreetype -lpcre
 
 CLHEP = /afs/cern.ch/exp/ams/Offline/CLHEP/lib
-VMCLIBS =   -L$(VMCLIB)/  -lgeant4vmc -lgeant321newG4 -lgfortran 	
+VMCLIBS =   -L$(VMCLIB)/  -lgeant4vmc -lgeant321newG4 -lgfortran	
 CLHEPLIB = -L$(VMCLIB)/  -lCLHEP 
 G4VMCLIBS = -L$(VMCLIB)/Linux-g++ \
         -lG4visXXX \
@@ -246,6 +237,10 @@ G4VMCLIBS = -L$(VMCLIB)/Linux-g++ \
 
 
 #========================================================
+
+
+
+
 
 #Utils
 COMMON_FILES +=  $(SCC)commons.C  $(SCC)cern.C    $(SFF)sgif.F   $(SCC)rnormx.C  $(SFF)geocoor.F     \
@@ -290,7 +285,7 @@ TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
 
 #TRD 
-COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
 
 
 #TOF + ACC
@@ -343,21 +338,26 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrMCCluster.h \
                 ../include/trrec.h \
 		../include/point.h  ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h  ../include/linkdef.h  
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/linkdef.h
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h
 endif
+
+ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h
+
+ROOTDICTFILES += ../include/linkdef.h
+
 
 #------------------------------------------------------------------------------
 # File list for standard gbatch compilation
 #------------------------------------------------------------------------------
 
 FILES= 	$(COMMON_FILES) \
-	$(SCC)gbatch.C  $(SCC)geant.C       \
+	$(SCC)gbatch.C  $(SCC)geant.C    \
 	$(SCC)job.C     $(SCC)event.C   $(SCC)daqevt.C $(SFF)rndm.F   \
 	$(SCC)timeid.C  $(SCC)ntuple.C  $(SFF)richnodisp_lip.F
-#	$(SCC)geant3.C 
 
+#	$(SCC)geant3.C    
 
 ifndef PGTRACK
 FILES +=$(SFF)TrackFit_utils.F
@@ -386,7 +386,7 @@ OBJECTR:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o)
 
 OBJECTR+= 	$(BIN)geant.o  $(BIN)geant3.o $(BIN)job.o \
 		$(BIN)event.o   $(BIN)timeid.o $(BIN)ntuple.o \
-		$(BIN)rootdict.o $(BIN)amsvmc_MCApplication.o
+		$(BIN)rootdict.o
 
 #------------------------------------------------------------------------------
 # File list for interactive gbatch compilation
@@ -474,6 +474,7 @@ STANDALONE:=$(EXE)gbatch_VMC$(PG).exe
 
 gbatch: amswd $(STANDALONE)
 
+
 $(STANDALONE):	$(OBJECTS) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC)  -o $@  $(OBJECTS) $(TIMEL) $(VMCLIBS)  $(ROOTLIBS) $(LDFLAGSSTATIC) $(G4VMCLIBS) $(CLHEPLIB)
@@ -482,7 +483,6 @@ readdaq:amswd  $(EXE)readdaq$(PG)
 
 $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
-
 
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
@@ -538,9 +538,11 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o
+	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+
 endif
 
 shared : amswd $(SHLD)
@@ -557,13 +559,12 @@ $(NTLD): $(SHLIBO)
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
 
-
-
 $(BIN)amsvmc_MCApplication.o : $(SCC)amsvmc_MCApplication.C 
 	@echo Compiling  $< ...
 	rm $(BIN)amsvmc_MCApplication*		
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CXX) -c $(CFLAGS) $< -o $@ 
+
 
 $(BIN)geant.o: 	 $(SCC)geant.C
 	$(CXX) -c $(CFLAGS) -D__BATCH__  $< -o $@
@@ -596,14 +597,15 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h ../include/am
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 else
+
 $(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h   ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict.C -c -D__AMSVMC__ -I(VMCINC)/ForRootcint $^
+	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict.C -c -D__AMSVMC__ -I$(VMCINC)/ForRootcint $^
 	@echo "OK"
 
 $(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -D__AMSVMC__ -I$(VMCINC)ForRootcint  $^
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -D__AMSVMC__ -I$(VMCINC)/ForRootcint  $^
 	@echo "OK"
 
 endif
@@ -677,38 +679,38 @@ endif
 #===============================================================================
 
 $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
-	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
+	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC || defined __INTEL_COMPILER\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
 
 
 $(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
-	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n       IF(MODEL.EQ.0)THEN\n        C=C*DENS**2     \n        RKB=RKB*DENS \n       EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n       EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n      ENDIF\n  99  RETURN/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
 
 
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
+	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
 $(BIN)grfile.o:      $(SFF)grfile.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
-	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g "  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
+	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
 
 $(BIN)gskpho.o:      $(SFF)gskpho.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
 
 $(SFF)hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
 	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
-	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./;  s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
+	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
 	rm -rf $(SFF)hadevv.F.tmp 
 
 $(BIN)hadevv.o:      $(SFF)hadevv.F
 	$(FFOLD) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include $(SFF)hadevv.F -o $(BIN)hadevv.o
 
 $(SFF)sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
-	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g; s/\#include \"geant321\/pilot.h\"/\#ifdef __AMSVMC__ \n\#include \"VMCrename.h\"  \n\#endif \n\#include \"geant321\/pilot.h\"/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
+	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
 
 $(BIN)sbcomp.o:      $(SFF)sbcomp.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -I./ -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
 
 
 $(BIN)flinit.o:      $(SFF)flinit.F

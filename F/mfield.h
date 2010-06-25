@@ -1,8 +1,8 @@
-*  $Id: mfield.h,v 1.19 2010/06/24 11:46:08 zweng Exp $
+*  $Id: mfield.h,v 1.20 2010/06/25 16:17:40 zweng Exp $
       integer nx,ny,nz
 
 #ifdef __AMSVMC__
-      interger nzo
+      integer nzo
 #endif
 
 c       PARAMETER (nx=41,ny=41,nz=41,nzo=41)
@@ -110,5 +110,5 @@ c      real *8 u(1),v(1),w(1),qx(1),qy(1),qz(1),q(1)
        real fscale,ecutge,r0,pitch,yaw,roll
 
 #ifdef __AMSVMC__
-      interger magstat2
+      integer magstat2
 #endif
