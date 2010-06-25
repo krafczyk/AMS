@@ -1093,7 +1093,6 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	    //Traker Here
 		    if(CurrentLevel+1 >=3 && vmc_destep != 0 && vmc_isvol != 0 && GrandMotherVolName[0]== 'S' && GrandMotherVolName[1]=='T' && GrandMotherVolName[2]=='K'){
 
-		      //	      vmc_istop=3;
 
 	      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 #ifdef _PGTRACK_
@@ -1120,7 +1119,6 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	    if( CurrentLevel+1 ==3 && vmc_isvol != 0 && vmc_charge !=0 && CurrentVolName[0]=='T' && CurrentVolName[1]=='F'){// <=== charged part. in "TFnn"
 
 
-	      //	      vmc_istop=3;
 
 	      int tflv;  
 	      char name[4];
@@ -1416,12 +1414,6 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	    geant dee;
 	    //	    if(CurrentLevel==6 && CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){a
 	    if(CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){
-
-
-
-	      vmc_istop=3;
-
-
 
 	      if(vmc_destep != 0.){
 	   

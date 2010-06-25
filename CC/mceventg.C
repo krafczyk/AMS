@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.152 2010/06/25 14:27:26 zweng Exp $
+//  $Id: mceventg.C,v 1.153 2010/06/25 16:27:17 zweng Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1263,6 +1263,7 @@ else
     plab[1]=_mom*_dir[1];
     plab[2]=_mom*_dir[2];
 
+    cout<<"Primary particle mom:"<<plab[0]<<", "<<plab[1]<<", "<<plab[2]<<endl;
  // Track ID (filled by stack)
  Int_t ntr;
  
