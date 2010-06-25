@@ -1412,8 +1412,8 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	if(doecal)
 	  {  //ECAL Here
 	    geant dee;
-	    //	    if(CurrentLevel==6 && CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){a
-	    if(CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){
+	    	    if(CurrentLevel==6 && CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){a
+	    //	    if(CurrentVolName[0]== 'E' && CurrentVolName[1]=='C'){
 
 	      if(vmc_destep != 0.){
 	   
