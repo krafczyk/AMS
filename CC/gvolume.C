@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.56 2008/02/21 18:29:59 choutko Exp $
+//  $Id: gvolume.C,v 1.57 2010/06/25 15:00:04 zweng Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -820,6 +820,133 @@ if(VolumeHasG3Attributes()){
      
 }
 
+#ifdef __AMSVMC__
+
+
+void AMSgvolume::MakeRootVolumes(){
+//ignore g4 volumes
+if(VolumeHasG3Attributes()){
+// Recursive Routine
+
+  _Nlog++;
+  _Nrm++;
+  _Nph++;
+  AMSgvolume *cur = up() && prev()?prev():up();
+    int newrm=1;
+    while (cur){
+     if(VolumeHasSameRotationMatrixAs(cur)){
+      _Nrm--;
+      newrm=0;
+      _rotmno=cur->getrotmatrixno();
+      break;
+     }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    if(newrm){
+      cur =up() && prev()?prev():0;
+      while (cur){
+      if(VolumeHasSameRotationMatrixAs(cur)){
+       _Nrm--;
+       newrm=0;
+       _rotmno=cur->getrotmatrixno();
+       break;
+      }
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+      }
+    }
+    if(newrm){
+      if(_rotmno){
+        _rotmno=++_GlobalRotMatrixNo;
+        geant r[3],sph,cth,cph,sth,theta[3],phi[3];
+        integer rt=0;
+        for (int j=0;j<3;j++){
+         for (int k=0;k<3;k++) r[k]=(_nrm->_nrm)[k][j];
+         GFANG(r, cth,  sth, cph, sph,  rt);
+         theta[j]=atan2((double)sth,(double)cth)*AMSDBc::raddeg;
+         phi[j]=atan2((double)sph,(double)cph)*AMSDBc::raddeg;
+        }
+
+	gGeoManager->Matrix(_rotmno,theta[0],phi[0],theta[1],phi[1],theta[2],phi[2]);
+	/**
+	char _rotmname[5];
+	sprintf(_rotmname,"rot%d",_rotmno);
+	rot[_rotmno] = new TGeoRotation(_rotmname,theta[0],phi[0],theta[1],phi[1],theta[2],phi[2]);
+	**/
+
+
+
+      }
+      else _Nrm--;
+    }
+
+    cur = up() && prev()?prev():up();
+    int newv=1;
+    while (cur){
+      if(VolumeHasSameG3AttributesAs(cur)){
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    if(newv){
+     cur = up() && prev()?prev():0;
+     while (cur){
+      if(VolumeHasSameG3AttributesAs(cur)){
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+     }
+    }
+    if(newv){
+       int ivol;
+       if(!_posp)
+	 {
+	   gGeoManager->Volume(_name,_shape,_matter,_par,_npar);
+	 }
+       else if(_posp>0)
+	 { 
+	   gGeoManager->Volume(_name,_shape,_matter,_par,0);
+	 }
+    }    
+
+
+// Position
+    if(up()){
+     geant coo[3];
+     _coo.getp(coo[0],coo[1],coo[2]);
+
+
+       bool isonly;
+       if(!strcmp(_gonly,"ONLY")){isonly=1;}
+       else if(!strcmp(_gonly,"MANY")){
+	 isonly=0;
+
+	 //	 cout<<"~~~~~~~~~MANY~~~~~"<<_name<<endl;
+
+
+}
+       else cout<<"DEBUG: in gvolume.C, Not Only and Not Many, Need to inspect!!~~~~~~~~~~~~~~~~~~~~~~~~~~";
+
+
+
+
+     // check gonly;
+     if(_posp){
+       gGeoManager->Node(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,isonly,_par,_npar);
+     }
+     else {
+       gGeoManager->Node(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,isonly,_par,0);
+     } 
+    }
+ }
+    if(down())down()->MakeRootVolumes();
+    if(up() && next())next()->MakeRootVolumes();
+     
+}
+#endif
 
 
 
