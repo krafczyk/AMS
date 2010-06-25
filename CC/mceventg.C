@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.151 2010/06/21 16:15:53 choutko Exp $
+//  $Id: mceventg.C,v 1.152 2010/06/25 14:27:26 zweng Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -13,6 +13,29 @@
 #include "ecaldbc.h"
 #include "tofdbc02.h"
 #include "astro.h" //ISN 
+
+#ifdef __AMSVMC__
+
+#include "amsvmc_MCStack.h"
+#include "TParticle.h"
+#include "TVirtualMC.h"
+#include <TVirtualMC.h>
+#include <TVirtualMCStack.h>
+#include <TVirtualMCApplication.h>
+#include <TRandom.h>
+#include <TPDGCode.h>
+#include <TVector3.h>
+#include <TParticlePDG.h>
+#include <TDatabasePDG.h>
+
+#include "TGeant3.h"
+#include "TGeant3TGeo.h"
+#include "g4physics.h"
+//extern TGeant4* geant4;
+extern TGeant3* geant3;
+#endif
+
+
 #ifdef __G4AMS__
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
@@ -1209,6 +1232,178 @@ else
    }   
   }
 
+
+//============AMSVMC========= ZHili.Weng 2009-10-29
+
+#ifdef __AMSVMC__
+void AMSmceventg::runvmc(integer ipart, TVirtualMCStack* fStack,int vmc_version){
+   init(ipart);
+   geant plab[3],vertex[3];
+   integer nvert=0;
+   integer nt=0;
+
+                     do{
+           gener();
+			         }while(!accept());
+
+    // Set seed
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+_seed[0]=HepRandom::getTheSeeds()[0];
+_seed[1]=HepRandom::getTheSeeds()[1];
+}
+else
+#endif
+   GRNDMQ(_seed[0],_seed[1],0,"G");
+
+    vertex[0]=_coo[0];
+    vertex[1]=_coo[1];
+    vertex[2]=_coo[2];
+    plab[0]=_mom*_dir[0];
+    plab[1]=_mom*_dir[1];
+    plab[2]=_mom*_dir[2];
+
+ // Track ID (filled by stack)
+ Int_t ntr;
+ 
+ // Option: to be tracked
+ Int_t toBeDone = 1; 
+
+ // PDG
+
+ Int_t pdg;
+ TParticlePDG* particlePDG;
+ if(vmc_version==1)
+   {  
+     pdg = geant3->PDGFromId(GCKINE.ikine);  
+     cout<<"Primary particle is:"<<gMC->ParticleName(pdg)<<endl;
+  particlePDG = TDatabasePDG::Instance()->GetParticle(pdg);
+   }
+
+ if(vmc_version==2)  {
+   const char* pdgname = AMSJob::gethead()->getg4physics()->G3toG4(GCKINE.ikine);
+   cout<<"Primary particle is:"<<pdgname<<endl;
+ 
+  particlePDG = TDatabasePDG::Instance()->GetParticle(pdgname);
+  cout<<"particlePDG defined"<<endl;
+   pdg = particlePDG->PdgCode();
+   cout<<"particlePDG defined,pdg:"<<pdg<<endl;
+  }
+
+ 
+ // Polarization
+ Double_t polx = 0.; 
+ Double_t poly = 0.; 
+ Double_t polz = 0.; 
+
+ // Position
+ Double_t vx  = vertex[0];
+ Double_t vy  = vertex[1]; 
+ Double_t vz =  vertex[2];
+
+ Double_t tof = 0.;
+
+ Double_t px, py, pz, p0;
+
+ px = plab[0];
+ py = plab[1];
+ pz = plab[2];
+ p0 = sqrt(plab[0]*plab[0]+plab[1]*plab[1]+plab[2]*plab[2]);
+
+ // Energy (in GeV)
+       Double_t mass = particlePDG->Mass(); 
+       Double_t e  = sqrt(mass*mass + p0*p0); 
+       cout<<"Particle generated:"<<e<<"GeV"<<endl;
+
+ fStack->PushTrack(toBeDone, -1, pdg, px, py, pz, e, vx,  vy,  vz, tof, polx, poly, polz,kPPrimary, ntr, 1., 0);
+
+}
+
+  void AMSmceventg::runvmc(TVirtualMCStack* fStack,int vmc_version){
+   geant plab[3],vertex[3];
+   integer nvert=0;
+   integer nt=0;
+   if(acceptio()){
+    vertex[0]=_coo[0];
+    vertex[1]=_coo[1];
+    vertex[2]=_coo[2];
+    plab[0]=_mom*_dir[0];
+    plab[1]=_mom*_dir[1];
+    plab[2]=_mom*_dir[2];
+
+    //   cout<<"DEBUG: about to generate particle in VMC Stack"<<endl;
+   {
+
+ // Track ID (filled by stack)
+ Int_t ntr;
+ 
+ // Option: to be tracked
+ Int_t toBeDone = 1; 
+ 
+ // PDG
+ Int_t pdg  = kElectron;     //To be Changed to convert geant3 coding to PDG coding
+ TParticlePDG* particlePDG = TDatabasePDG::Instance()->GetParticle(pdg);
+
+
+
+
+
+ // Polarization
+ Double_t polx = 0.; 
+ Double_t poly = 0.; 
+ Double_t polz = 0.; 
+
+ // Position
+ Double_t vx  = vertex[0];
+ Double_t vy  = vertex[1]; 
+ Double_t vz =  vertex[2];
+
+ Double_t tof = 0.;
+
+ Double_t px, py, pz, p0;
+
+ px = plab[0];
+ py = plab[1];
+ pz = plab[2];
+ p0 = sqrt(plab[0]*plab[0]+plab[1]*plab[1]+plab[2]*plab[2]);
+
+ // Energy (in GeV)
+
+ Double_t mass = particlePDG->Mass(); //To be Changed to convert geant3 coding to PDG coding 
+ Double_t e  = sqrt(mass*mass + p0*p0); //To be Changed to convert geant3 coding to PDG coding
+
+/// Create a new particle and push into stack;
+/// adds it to the particles array (fParticles) and if not done to the 
+/// stack (fStack).
+/// Use TParticle::fMother[1] to store Track ID. 
+/// \param toBeDone  1 if particles should go to tracking, 0 otherwise
+/// \param parent    number of the parent track, -1 if track is primary
+/// \param pdg       PDG encoding
+/// \param px        particle momentum - x component [GeV/c]
+/// \param py        particle momentum - y component [GeV/c]
+/// \param pz        particle momentum - z component [GeV/c]
+/// \param e         total energy [GeV]
+/// \param vx        position - x component [cm]
+/// \param vy        position - y component  [cm]
+/// \param vz        position - z component  [cm]
+/// \param tof       time of flight [s]
+/// \param polx      polarization - x component
+/// \param poly      polarization - y component
+/// \param polz      polarization - z component
+/// \param mech      creator process VMC code
+/// \param ntr       track number (is filled by the stack
+/// \param weight    particle weight
+/// \param is        generation status code
+
+ fStack->PushTrack(toBeDone, -1, pdg, px, py, pz, e, vx,  vy,  vz, tof, polx, poly, polz,kPPrimary, ntr, 1., 0);
+
+   }   
+   }
+   
+  }
+#endif
+
+
 void AMSmceventg::InitSeed(){
 
   //C
@@ -1554,6 +1749,78 @@ if(GCKINE.itra==1 && CCFFKEY.SpecialCut/10 && GCKINE.ikine==GCKINE.ipart){
      }
 
 }
+
+
+
+#ifdef __AMSVMC__
+// AMSmceventg::FillMCInfoVMC  Still need to check    Zhili.Weng
+void AMSmceventg::FillMCInfoVMC(int vmc_ipart,int vmc_inwvol,int CurrentLevel,const char* CurrentVolName,float* vmc_vect){
+static number radl=0;
+static number absl=0;
+static integer init=0;
+static number ECALZ=-FLT_MAX;
+if(!init){
+ init=1;
+ AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
+if(p){
+ ECALZ=p->getcooA(2)*0.95;
+ cout <<"AMSmceventg::FillMCInfo-I-LowestZSetTo "<<ECALZ<<endl;
+}
+else{
+ cerr<<"AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound"<<endl;
+}
+}
+
+if(gMC->TrackLength()==0){
+ radl=0;
+ absl=0;
+ 
+}
+int scan=0;
+getscanfl_(scan);
+
+  
+if(1+gMC->GetStack()->GetCurrentTrackNumber()==1 && scan && GCKINE.ikine==vmc_ipart){
+
+  float _tmp_a,_tmp_z,_tmp_dens,_tmp_radl,_tmp_absl;     
+  int CurrentMatId = gMC->CurrentMaterial(_tmp_a,_tmp_z,_tmp_dens,_tmp_radl,_tmp_absl);
+  radl+=  (geant) gMC->TrackStep()/_tmp_radl;
+  absl+=  gMC->TrackStep()/_tmp_absl;
+
+ char nvol[5]="EXIT";
+ if(vmc_inwvol==1 && CurrentLevel<500){
+       for(int i=0;i<4;i++)nvol[i]=CurrentVolName[i];
+       AMSmctrack* genp=new AMSmctrack(radl,absl,vmc_vect,nvol);
+       AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+
+ }
+ else if(vmc_inwvol==3){
+       AMSmctrack* genp=new AMSmctrack(radl,absl,vmc_vect,nvol);
+       AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+ }
+}
+
+     for (int i=0;i<gMC->NSecondaries();i++){
+       int sec_id;
+       TLorentzVector sec_pos;
+       TLorentzVector sec_mom;
+       gMC->GetSecondary(i, sec_id, sec_pos, sec_mom);
+       number  mom=sec_mom.P();
+       if(sec_pos.Z()>ECALZ){
+	 AMSmceventg* genp=new AMSmceventg(-sec_id,mom,
+					   AMSPoint(sec_pos.X(),sec_pos.Y(),sec_pos.Z()),
+					   AMSDir(sec_mom.Px(),sec_mom.Py(),sec_pos.Pz()));
+	   AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+       }
+     }
+
+}
+#endif
+
+
+
+
+
 
 integer AMSmceventg::Out(integer status){
 static integer init=0;
