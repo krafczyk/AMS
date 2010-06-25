@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.37 2009/04/15 15:25:13 mdelgado Exp $
+//  $Id: richgeom.C,v 1.38 2010/06/25 15:08:05 zweng Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -403,8 +403,11 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[2]=0;
   
 
-
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      0,
                                      "MIRA",
                                      "TRAP",
@@ -424,7 +427,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=-RICHDB::lg_mirror_pos(1);
   coo[1]=0;
   
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot,     
                                      "MIRA",
                                      "TRAP",
@@ -446,7 +454,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=0;
   coo[1]=-RICHDB::lg_mirror_pos(1); 
                                    
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot+2,
                                      "MIRA",
                                      "TRAP",
@@ -469,7 +482,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=RICHDB::lg_mirror_pos(1);
   coo[1]=0;
 
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot+3,
                                      "MIRA",
                                      "TRAP",
@@ -504,7 +522,11 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[2]=0;
 
 
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      0,     
                                      "MIRB",
                                      "TRAP",
@@ -524,7 +546,11 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=-RICHDB::lg_mirror_pos(2);
   coo[1]=0;                          
 
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot,
                                      "MIRB",
                                      "TRAP",
@@ -546,7 +572,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=0;
   coo[1]=-RICHDB::lg_mirror_pos(2);  
 
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot+2,
                                      "MIRB",
                                      "TRAP",
@@ -568,7 +599,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[0]=RICHDB::lg_mirror_pos(2);
   coo[1]=0;
   
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot+3,
                                      "MIRB",
                                      "TRAP",
@@ -605,7 +641,12 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[2]=0;
 
 
+
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      0,
                                      "MIRC",
                                      "TRAP",
@@ -622,7 +663,11 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
 
+#ifdef __AMSVMC__
+  dummy=solid_lg->add(new AMSgvolume("RICH VACUUM",
+#else
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
+#endif
                                      RICnrot,
                                      "MIRC",
                                      "TRAP",
@@ -674,8 +719,12 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[1]=0;
   RICHDB::RICradpos()+=ZShift;
   coo[2]=RICHDB::RICradpos()-RICHDB::total_height()/2;
+#ifdef __AMSVMC__
+  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("RICH VACUUM",
+#else
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
-							   0,
+#endif
+ 							   0,
 							   "RICH",
 							   "CONE",
   							   par,
@@ -701,8 +750,11 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
 
   coo[2]=RICHDB::total_height()/2.-RICHDB::mirror_pos();
-
+#ifdef __AMSVMC__
+  AMSgvolume *mirror=(AMSgvolume *)rich->add(new AMSgvolume("RICH VACUUM",  // Material
+#else
   AMSgvolume *mirror=(AMSgvolume *)rich->add(new AMSgvolume("VACUUM",  // Material
+#endif
 				           0,          // No rotation
 				           "OMIR",     // Name 
 				           "CONE",    // Shape
@@ -821,8 +873,11 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   coo[1]=0;
   coo[2]=RICHDB::total_height()/2-RICHDB::rad_pos();
 
-
+#ifdef __AMSVMC__
+  AMSgvolume *radiator_box=(AMSgvolume*)rich->add(new AMSgvolume("RICH VACUUM",
+#else 
   AMSgvolume *radiator_box=(AMSgvolume*)rich->add(new AMSgvolume("VACUUM",
+#endif
 								 0,
 								 "RBOX",
 								 "PGON",
