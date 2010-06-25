@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.29 2008/06/11 09:46:10 yzhou Exp $
+//  $Id: g4physics.C,v 1.30 2010/06/25 14:35:01 zweng Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.29 2008/06/11 09:46:10 yzhou Exp $
+// $Id: g4physics.C,v 1.30 2010/06/25 14:35:01 zweng Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -57,6 +57,26 @@ AMSG4Physics::~AMSG4Physics(){
 }
 
 
+#ifdef __AMSVMC__
+void AMSG4Physics::ConstructParticle()
+{
+	//DUMMY FUNCTION
+	
+}
+
+void AMSG4Physics::ConstructProcess()
+{
+	//DUMMY FUNCTION
+	
+}
+
+void AMSG4Physics::SetCuts()
+{
+	//DUMMY FUNCTION
+	
+}
+
+#else
 void AMSG4Physics::ConstructParticle()
 {
 
@@ -908,7 +928,7 @@ void AMSG4Physics::ConstructAllShortLiveds()
   pConstructor.ConstructParticle();  
 }
 
-
+#endif
 
 
 
