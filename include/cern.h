@@ -1,4 +1,4 @@
-//  $Id: cern.h,v 1.17 2010/04/23 15:41:07 choutko Exp $
+//  $Id: cern.h,v 1.18 2010/06/27 09:59:47 zweng Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __CERN__
@@ -26,6 +26,7 @@ extern "C" void ucopy2_(void *, void*, const int &);
 #define UCOPY2 ucopy2_
 extern "C" void vzero_(void *,  const int &);
 #define VZERO  vzero_
+
 #ifdef __G4AMS__
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoissonQ.h"
@@ -35,11 +36,28 @@ PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDM(A) (MISCFFKEY.G4On?(RandFlat::shoot()):RNDMG3(A))
 #define POISSN(A,B,C) if(MISCFFKEY.G4On){C=0;B=RandPoissonQ::shoot(A);} else poissn_(A,B,C)
 #else
+
+#ifdef __AMSVMC__
+
+#include "CLHEP/Random/RandFlat.h"
+#include "CLHEP/Random/RandPoissonQ.h"
+extern "C" void poissn_(float &, int &, int&);
+PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
+#define RNDMG3(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
+#define RNDM(A) if(IOPA.VMCVersion==2){RandFlat::shoot();} else RNDMG3(A)
+#define POISSN(A,B,C) if(IOPA.VMCVersion==2){C=0;B=RandPoissonQ::shoot(A);} else poissn_(A,B,C)
+
+#else
 extern "C" void poissn_(float &, int &, int&);
 #define POISSN poissn_
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDM(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
+
+
 #endif
+#endif
+
+
 PROTOCCALLSFSUB4(FFKEY,ffkey,STRING,FLOATV,INT,STRING)
 #define FFKEY(A1,A2,A3,A4) CCALLSFSUB4(FFKEY,ffkey,STRING,FLOATV,INT,STRING,A1,A2,A3,A4)
 
