@@ -28,14 +28,14 @@ PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #else
 
 #ifdef __AMSVMC__
-
+#include "commons.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoissonQ.h"
 extern "C" void poissn_(float &, int &, int&);
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDMG3(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
-#define RNDM(A) if(IOPA.VMCVersion==2){RandFlat::shoot();} else RNDMG3(A)
-#define POISSN(A,B,C) if(IOPA.VMCVersion==2){C=0;B=RandPoissonQ::shoot(A);} else poissn_(A,B,C)
+#define RNDM(A) (IOPA.VMCVersion==2?(CLHEP::RandFlat::shoot()):RNDMG3(A))
+#define POISSN(A,B,C) if(IOPA.VMCVersion==2){C=0;B=CLHEP::RandPoissonQ::shoot(A);} else poissn_(A,B,C)
 
 #else
 
