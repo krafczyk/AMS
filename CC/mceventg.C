@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.153 2010/06/25 16:27:17 zweng Exp $
+//  $Id: mceventg.C,v 1.154 2010/06/27 12:01:09 zweng Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -36,7 +36,7 @@ extern TGeant3* geant3;
 #endif
 
 
-#ifdef __G4AMS__
+#ifdef __G4AMS__ || __AMSVMC__
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
 #include <iostream.h>
@@ -1247,13 +1247,11 @@ void AMSmceventg::runvmc(integer ipart, TVirtualMCStack* fStack,int vmc_version)
 			         }while(!accept());
 
     // Set seed
-#ifdef __G4AMS__
-if(!MISCFFKEY.G3On){
-_seed[0]=HepRandom::getTheSeeds()[0];
-_seed[1]=HepRandom::getTheSeeds()[1];
+if(vmc_version==2){
+  _seed[0]=CLHEP::HepRandom::getTheSeeds()[0];
+  _seed[1]=CLHEP::HepRandom::getTheSeeds()[1];
 }
 else
-#endif
    GRNDMQ(_seed[0],_seed[1],0,"G");
 
     vertex[0]=_coo[0];
@@ -1420,8 +1418,12 @@ void AMSmceventg::InitSeed(){
   //
   GCFLAG.NRNDM[0]=_seed[0];
   GCFLAG.NRNDM[1]=_seed[1];
+#ifdef __G4AMS__ || __AMSVMC__
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
+#else
+if(IOPA.VMCVersion==2){
+#endif
  long seedl[3]={0,0,0};
  seedl[0]=_seed[0];
  seedl[1]=_seed[1];
@@ -1435,7 +1437,7 @@ else{
    GRNDMQ(_seed[0],_seed[1],ISEQ,"Q");
    GRNDMQ(_seed[0],_seed[1],ISEQ,"S");
   }
-#ifdef __G4AMS__
+#ifdef __G4AMS__ || __AMSVMC__
 }
 #endif
 }  
@@ -1920,8 +1922,12 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
 }
 
 void AMSmceventg::SaveSeeds(){
+#ifdef __G4AMS__ || __AMSVMC__
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
+#else
+if(IOPA.VMCVersion==2){
+#endif
 GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
 GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
 }
@@ -1940,8 +1946,12 @@ GCFLAG.NRNDM[0]=tmp[0];
 GCFLAG.NRNDM[1]=tmp[1];
 }
 void AMSmceventg::RestoreSeeds(){
+#ifdef __G4AMS__ || __AMSVMC__
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
+#else
+if(IOPA.VMCVersion==2){
+#endif
  long seedl[3]={0,0,0};
  seedl[0]=GCFLAG.NRNDM[0];
  seedl[1]=GCFLAG.NRNDM[1];
@@ -1955,8 +1965,12 @@ else
 
 void AMSmceventg::SetSeed( int seed){
 
+#ifdef __G4AMS__ || __AMSVMC__
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
+#else
+if(IOPA.VMCVersion==2){
+#endif
  HepRandom::setTheSeed(seed);
 }
 else{
@@ -1964,7 +1978,7 @@ else{
    integer __seed[2];
    GRNDMQ(__seed[0],__seed[1],seed+1,"Q");
    GRNDMQ(__seed[0],__seed[1],seed+1,"S");
-#ifdef __G4AMS__
+#ifdef __G4AMS__ || __AMSVMC__
 }
 
 #endif

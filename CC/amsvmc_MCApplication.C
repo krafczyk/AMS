@@ -266,6 +266,16 @@ h_edep_ionization=new TH1F("h_edep_ionization","h_edep_ionization",2000,0,100);
     gMC->SetProcess("DCAY",1);
     gMC->SetProcess("MUNU",1);
     
+    CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
+long seed[3]={0,0,0};
+seed[0]=GCFLAG.NRNDM[0];
+seed[1]=GCFLAG.NRNDM[1];
+ CLHEP::HepRandom::setTheSeeds(seed);
+
+
+
+
+
   }
 
   fVerbose.InitMC();
@@ -457,6 +467,15 @@ void amsvmc_MCApplication::BeginEvent()
 {    
   fEventNo++;
   cout << "\n---> Begin of event: " << fEventNo << endl;
+
+  if(vmc_version==1)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+  else {
+    GCFLAG.NRNDM[0]=CLHEP::HepRandom::getTheSeeds()[0];
+    GCFLAG.NRNDM[1]=CLHEP::HepRandom::getTheSeeds()[1];
+  }
+  cout <<"  **** RANDOM NUMBER GENERATOR Before starting event: "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
+
+
   fOptPhotonNo=0;
   fECALedep=0;
 }
@@ -1914,6 +1933,17 @@ void amsvmc_MCApplication::FinishEvent()
       GCTIME.ITIME=1;
     }
   }
+
+
+
+
+  if(vmc_version==1)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+  else {
+    GCFLAG.NRNDM[0]=CLHEP::HepRandom::getTheSeeds()[0];
+    GCFLAG.NRNDM[1]=CLHEP::HepRandom::getTheSeeds()[1];
+  }
+  cout <<"           **** RANDOM NUMBER GENERATOR AFTER LAST COMPLETE EVENT "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
+
 
   //cout<<"DEBUG: in FinishEvent(), check T"<<endl;
   //  cout <<"Track number in stacks:"<<gMC->GetStack()->GetNtrack()<<endl;

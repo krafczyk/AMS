@@ -112,10 +112,16 @@ void amsvmc_PrimaryGenerator::GeneratePrimary1(int vmc_version)
 
     AMSgObj::BookTimer.start("GEANTTRACKING");
 	   if(IOPA.mode%10 !=1 ){
-	    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
-    for(integer i=0;i<CCFFKEY.npat;i++){
-     GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+	     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+								 new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
+	     for(integer i=0;i<CCFFKEY.npat;i++){
+	       if(vmc_version==1)
+		 GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+	       else if (vmc_version==2){
+		 GCFLAG.NRNDM[0]=CLHEP::HepRandom::getTheSeeds()[0];
+		 GCFLAG.NRNDM[1]=CLHEP::HepRandom::getTheSeeds()[1];
+	       }
+
      //       cout<<"In GeneratePrimary1, Get Random Seed:"<<GCFLAG.NRNDM[0]<<","<<GCFLAG.NRNDM[1]<<endl;
      AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
