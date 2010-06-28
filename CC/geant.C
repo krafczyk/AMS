@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.126 2010/06/25 14:58:47 zweng Exp $
+//  $Id: geant.C,v 1.127 2010/06/28 14:01:56 zweng Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -166,7 +166,11 @@ void gams::UGINIT(int argc,  char * argv[]){
   GCTLIT.ITCKOV=1;
   GCPHYS.IRAYL=1;
   integer mone=-1;
+
+#ifndef __AMSVMC__
  GFFGO();
+#endif
+
 #ifndef __DARWIN__
   if(MISCFFKEY.RaiseFPE==0){
       fedisableexcept(FE_ALL_EXCEPT );
