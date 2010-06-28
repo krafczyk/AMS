@@ -427,19 +427,19 @@ bool TrdHReconR::check_geometry(TrdHSegmentR *s1, TrdHSegmentR *s2){
 }
 
 int TrdHReconR::combine_segments(int debug){
-  bool s_done[trdhrecon.rhits.size()];
-  bool s_poss[trdhrecon.rhits.size()][trdhrecon.rhits.size()];
+  bool s_done[trdhrecon.hsegvec.size()];
+  bool s_poss[trdhrecon.hsegvec.size()][trdhrecon.hsegvec.size()];
 
-  for(int i=0;i!=trdhrecon.rhits.size();i++){
+  for(int i=0;i!=trdhrecon.hsegvec.size();i++){
     s_done[i]=0;
-    for(int j=0;j!=trdhrecon.rhits.size();j++){
+    for(int j=0;j!=trdhrecon.hsegvec.size();j++){
       if(j==i||trdhrecon.hsegvec[i]->d==trdhrecon.hsegvec[j]->d){s_poss[i][j]=0;s_poss[j][i]=0;}
       else {s_poss[i][j]=1;s_poss[j][i]=1;}
     }
   }
   
-  for(int i=0;i!=trdhrecon.rhits.size();i++){
-    for(int j=i+1;j!=trdhrecon.rhits.size();j++){
+  for(int i=0;i!=trdhrecon.hsegvec.size();i++){
+    for(int j=i+1;j!=trdhrecon.hsegvec.size();j++){
       if(s_poss[i][j]==0)continue;
 
       if(trdhrecon.hsegvec[i]->nTrdRawHit()<3){s_poss[i][j]=0;s_poss[j][i]=0;continue;}
@@ -448,15 +448,15 @@ int TrdHReconR::combine_segments(int debug){
     }
   }
   
-  int n_poss[trdhrecon.rhits.size()];
-  for(int i=0;i!=trdhrecon.rhits.size();i++){
+  int n_poss[trdhrecon.hsegvec.size()];
+  for(int i=0;i!=trdhrecon.hsegvec.size();i++){
     if(s_done[i]==1)continue;
     
     n_poss[i]=0;
-    for(int j=0;j!=trdhrecon.rhits.size();j++)if(s_poss[i][j]==1)n_poss[i]++;
+    for(int j=0;j!=trdhrecon.hsegvec.size();j++)if(s_poss[i][j]==1)n_poss[i]++;
     
     else if(n_poss[i]==1){
-      for(int j=0;j!=trdhrecon.rhits.size();j++){
+      for(int j=0;j!=trdhrecon.hsegvec.size();j++){
 	if(s_poss[i][j]!=1)continue;
 	if(s_done[i]==1||s_done[j]==1)continue;
 	TrdHTrackR *tr=trdhrecon.SegToTrack(trdhrecon.hsegvec[i],trdhrecon.hsegvec[j]);
@@ -468,8 +468,8 @@ int TrdHReconR::combine_segments(int debug){
   }
 
   int n_done=0;
-  for(int i=0;i!=trdhrecon.rhits.size();i++)if(s_done[i]==1)n_done++;
-  if(trdhrecon.rhits.size()==n_done)return trdhrecon.htrvec.size();
+  for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(s_done[i]==1)n_done++;
+  if(trdhrecon.hsegvec.size()==n_done)return trdhrecon.htrvec.size();
 
   // check for vertices
   vector<pair<int,int> > check=trdhrecon.check_secondaries();
@@ -488,9 +488,9 @@ int TrdHReconR::combine_segments(int debug){
   }
 
   n_done=0;
-  for(int i=0;i!=trdhrecon.rhits.size();i++)if(s_done[i]==1)n_done++;
+  for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(s_done[i]==1)n_done++;
 
-  if(debug)printf("%i segment(s) not done after sec. search \n",trdhrecon.rhits.size()-n_done);
+  if(debug)printf("%i segment(s) not done after sec. search \n",trdhrecon.hsegvec.size()-n_done);
 
   return trdhrecon.htrvec.size();
 }
