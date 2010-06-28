@@ -244,6 +244,8 @@ h_edep_ionization=new TH1F("h_edep_ionization","h_edep_ionization",2000,0,100);
     AMSG4Physics * pph = new AMSG4Physics();
     pph->_init();
     AMSJob::gethead()->getg4physics()=pph;
+
+    GCFLAG.IEVENT=1;
   }
 
   bool doinitgeomertry=1;
@@ -267,15 +269,10 @@ h_edep_ionization=new TH1F("h_edep_ionization","h_edep_ionization",2000,0,100);
     gMC->SetProcess("MUNU",1);
     
     CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
-long seed[3]={0,0,0};
-seed[0]=GCFLAG.NRNDM[0];
-seed[1]=GCFLAG.NRNDM[1];
- CLHEP::HepRandom::setTheSeeds(seed);
-
-
-
-
-
+    long seed[3]={0,0,0};
+    seed[0]=GCFLAG.NRNDM[0];
+    seed[1]=GCFLAG.NRNDM[1];
+    CLHEP::HepRandom::setTheSeeds(seed);
   }
 
   fVerbose.InitMC();
@@ -1944,6 +1941,7 @@ void amsvmc_MCApplication::FinishEvent()
   }
   cout <<"           **** RANDOM NUMBER GENERATOR AFTER LAST COMPLETE EVENT "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 
+  if(vmc_version==2)GCFLAG.IEVENT++;
 
   //cout<<"DEBUG: in FinishEvent(), check T"<<endl;
   //  cout <<"Track number in stacks:"<<gMC->GetStack()->GetNtrack()<<endl;
