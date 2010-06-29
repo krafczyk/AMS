@@ -144,6 +144,7 @@ amsvmc_MCApplication::amsvmc_MCApplication(const char *name, const char *title, 
       vmc_nstep(0),
       vmc_istop(0),
       vmc_version(0),
+      vmc_nevent(1),
       CurrentVol(0),
       copyNo(0),
       MotherVol(0),
@@ -182,6 +183,7 @@ amsvmc_MCApplication::amsvmc_MCApplication()
     vmc_nstep(0),
     vmc_istop(0),
     vmc_version(0),
+    vmc_nevent(1),
     CurrentVol(),
     copyNo(0),
     MotherVol(0),
@@ -244,6 +246,8 @@ h_edep_ionization=new TH1F("h_edep_ionization","h_edep_ionization",2000,0,100);
     AMSG4Physics * pph = new AMSG4Physics();
     pph->_init();
     AMSJob::gethead()->getg4physics()=pph;
+
+
 
     GCFLAG.IEVENT=1;
   }
@@ -353,10 +357,8 @@ void amsvmc_MCApplication::PreInit()
       new AMSJob();
       AMSJob::gethead()->data();
       GFFGO();
-      //      cout<<"in InitMC(), before TG4RunConfiguration"<<endl;
-
-    vmc_version=IOPA.VMCVersion;
-
+      vmc_nevent=GCFLAG.NEVENT;
+      vmc_version=IOPA.VMCVersion;
 
   if(vmc_version==2)  //For geant4_vmc, here only initilizing some data structure, the initialize of geant4_vmc in InitMC()
     {
@@ -1241,7 +1243,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 
 			if(tfprf)cout<<"-->WroBigTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<" tof="<<tof<<endl;
 
-			if(TFMCFFKEY.birks && vmc_version==1 )G3BIRK(dee);     
+			if(TFMCFFKEY.birks && vmc_version==3 )G3BIRK(dee);     
 			//	      cout<<"A, callAMSTOFMCCluster::sitofhits"<<endl;
 			AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
 		      }
@@ -1255,7 +1257,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 		      tof=tpr+0.5*dt;
 		      dee=vmc_destep;
 		      //  if(tfprf)cout<<"-->WroSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<" tof="<<tof<<endl;
-		      if(TFMCFFKEY.birks  && vmc_version==1 ){
+		      if(TFMCFFKEY.birks  && vmc_version==3 ){
 			//	      cout<<"----->Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
 			G3BIRK(dee);
 			//	      cout<<"----->Aft.Birks:Edep="<<dee<<endl;
@@ -1276,7 +1278,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 		      coo[2]=z;
 		      tof=t;
 		      dee=vmc_destep;
-		      if(TFMCFFKEY.birks  && vmc_version==1 )G3BIRK(dee);
+		      if(TFMCFFKEY.birks  && vmc_version==3 )G3BIRK(dee);
 
 		      //	      cout<<"C, callAMSTOFMCCluster::sitofhits"<<endl;
 		      AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
@@ -1295,7 +1297,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 			  }
 			  vmc_destep=estepsum;
 			  vmc_step=stepsum;
-			  if(TFMCFFKEY.birks   && vmc_version==1 )G3BIRK(estepsum);
+			  if(TFMCFFKEY.birks   && vmc_version==3 )G3BIRK(estepsum);
 			  AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
 			  stepsum=pstep;//fill with current small step...
 			  estepsum=de;
@@ -1328,7 +1330,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 			    //                        <<" Eacc/nst="<<estepsum<<" "<<nsmstps<<" SSB:tof="<<sstime<<endl;
 			    vmc_destep=estepsum;
 			    vmc_step=stepsum;
-			    if(TFMCFFKEY.birks   && vmc_version==1  )G3BIRK(estepsum);
+			    if(TFMCFFKEY.birks   && vmc_version==3  )G3BIRK(estepsum);
 
 			    //		  cout<<"D, callAMSTOFMCCluster::sitofhits"<<endl;
 			    AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
@@ -1368,7 +1370,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 		    //  }
 		    vmc_destep=estepsum;
 		    vmc_step=stepsum;
-		    if(TFMCFFKEY.birks  && vmc_version==1  )G3BIRK(estepsum);
+		    if(TFMCFFKEY.birks  && vmc_version==3  )G3BIRK(estepsum);
 
 		    //	      cout<<"E, callAMSTOFMCCluster::sitofhits"<<endl;
 		    AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
@@ -1408,7 +1410,7 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 	      
 	      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 	      dee=vmc_destep; 
-	      if(TFMCFFKEY.birks   && vmc_version==1  )G3BIRK(dee);
+	      if(TFMCFFKEY.birks   && vmc_version==3  )G3BIRK(dee);
 	      isphys=copyNo;
 	      islog=floor(0.5*(isphys-1))+1;//not used now
      
@@ -1453,50 +1455,50 @@ h_edep_absorption2->Fill(TRD_edep_absorption2);
 		//        gMC->Gstpar(mediumId,"BIRK3",birks[2]);
 		//   }
 	   
-		//	   int mode=0;
+			   int mode=0;
 	   
-		// 	   if(vmc_version==2){
+		 	   if(vmc_version==2 && abs(vmc_charge)>0.0000001 && mode<=2){
 	          
-		// 	     float gbirk_rkb,gbirk_c;
-		// 	     double density=CurrentMat->GetDensity();
-		// 	     gbirk_rkb=0.0011/density;
-		// 	     gbirk_c=0.0011/(density*density);
-	     
-		// 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_rkb=gbirk_rkb*7.2/12.6;
-		// 	     	     float dedxcm=1000*10;
-		// 	     dee=vmc_destep/(1.+gbirk_rkb*dedxcm+gbirk_c*dedxcm*dedxcm);
-
-		// 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_c=0;
-
-		// 	     if(abs(vmc_charge)>=2){
-		// 	       float gamass=vmc_totalenergy+vmc_mass;
-		// 	       float bet2=vmc_kine*gamass/(vmc_totalenergy*vmc_totalenergy);
-		// 	       float bet=sqrt(bet2);
-		// 	       float w1=1.034-0.1777*exp(-0.08114*vmc_charge);
-		// 	       float w2=bet/pow(abs(vmc_charge),2/3);
-		// 	       float w3=121.4139*w2+0.0378*sin(190.7165*w2);
-		// 	       float charge1=vmc_charge*(1.-w1*exp(-w3));
-		// 	       if(charge1<0) vmc_charge=1;
-		// 	       float charge2=charge1*charge1;
-		// 	       dedxcm=dedxcm*charge2;
+		 	     float gbirk_rkb,gbirk_c;
+		 	     double density=CurrentMat->GetDensity();
+		 	     gbirk_rkb=0.0011/density;
+		 	     gbirk_c=0.52/(density*density);
+	        
+		 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_rkb=gbirk_rkb*7.2/12.6;
+			     	     float dedxcm=1000*10;
+		 	     dee=vmc_destep/(1.+gbirk_rkb*dedxcm+gbirk_c*dedxcm*dedxcm);
+                
+		 	     if(mode==1 && abs(vmc_charge)>=2)gbirk_c=0;
+                
+		 	     if(abs(vmc_charge)>=2){
+		 	       float gamass=vmc_totalenergy+vmc_mass;
+		 	       float bet2=vmc_kine*gamass/(vmc_totalenergy*vmc_totalenergy);
+		 	       float bet=sqrt(bet2);
+		 	       float w1=1.034-0.1777*exp(-0.08114*vmc_charge);
+		 	       float w2=bet/pow(abs(vmc_charge),2/3);
+		 	       float w3=121.4139*w2+0.0378*sin(190.7165*w2);
+		 	       float charge1=vmc_charge*(1.-w1*exp(-w3));
+		 	       if(charge1<0) vmc_charge=1;
+		 	       float charge2=charge1*charge1;
+		 	       dedxcm=dedxcm*charge2;
     
-		// }
-		// 	     if(mode==0){
-		// 	       gbirk_c=gbirk_c*(density*density);
-		// 	       gbirk_rkb=gbirk_rkb*density;
-		// 	       dee=vmc_destep/(1+gbirk_c*atan(gbirk_rkb/(gbirk_c*dedxcm)));
+			     }
+		 	     if(mode==0){
+		 	       gbirk_c=gbirk_c*(density*density);
+		 	       gbirk_rkb=gbirk_rkb*density;
+		 	       dee=vmc_destep/(1+gbirk_c*atan(gbirk_rkb/gbirk_c*dedxcm));
+			       //			       cout<<"mode=0, correction:"<<(1+gbirk_c*atan(gbirk_rkb/gbirk_c*dedxcm))<<endl;
+			     }
+		 	     else 
+		 	       dee=vmc_destep/(1.+gbirk_rkb*dedxcm+gbirk_c*dedxcm*dedxcm);
 
-		// }
-		// 	     else 
-		// 	       dee=vmc_destep/(1.+gbirk_rkb*dedxcm+gbirk_c*dedxcm*dedxcm);
-
-
-
-		// 	     cout<<"in Geant4, ECAL GBIRK correction, vmc_destep:"<<vmc_destep<<endl;
-		// 	     cout<<"dee:"<<dee<<endl;
-
-		// }
+		 }
 		fECALedep+=vmc_destep;
+
+		//		cout<<"G4BIRK: destep before, after:"<<vmc_destep<<",   "<<dee<<endl;
+
+
+
 		AMSEcalMCHit::siecalhits(mothercopyNo,vmc_vect,dee,vmc_tofg);
 		if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 	      }
@@ -1942,6 +1944,17 @@ void amsvmc_MCApplication::FinishEvent()
   cout <<"           **** RANDOM NUMBER GENERATOR AFTER LAST COMPLETE EVENT "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 
   if(vmc_version==2)GCFLAG.IEVENT++;
+
+
+  //    GCFLAG.IEOTRI=0;
+  //    GCFLAG.IEORUN=0;
+  if(GCFLAG.IEVENT>=vmc_nevent){
+
+   gMC->StopRun();
+  //    GCFLAG.IEOTRI=1;
+  //    GCFLAG.IEORUN=1;
+  }
+  //  if(GCFLAG.IEOTRI || GCFLAG.IEORUN) this->FinishRun();
 
   //cout<<"DEBUG: in FinishEvent(), check T"<<endl;
   //  cout <<"Track number in stacks:"<<gMC->GetStack()->GetNtrack()<<endl;

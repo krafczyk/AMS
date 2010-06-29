@@ -79,7 +79,7 @@ class amsvmc_MCApplication : public TVirtualMCApplication
     Int_t                     vmc_nstep;
     Int_t                     vmc_istop;
     Int_t                     vmc_version;
-   
+    Int_t                     vmc_nevent;
     TGeoVolume*               CurrentVol;
 
     TGeoNode*             MotherVol;
