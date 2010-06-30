@@ -46,6 +46,7 @@ AMSgvolume *BuildLadder       (AMSgvolume *mvol, int tkid);
 void        BuildSensor       (AMSgvolume *mvol, int tkid, int s);
 void        BuildHybrid       (AMSgvolume *mvol, int tkid);
 void        BuildSupport      (AMSgvolume *mvol, int tkid);
+void      BuildPlane1NSupport (AMSgvolume* mvol);
 
 
 void amsgeom::tkgeom02(AMSgvolume &mother)
@@ -60,6 +61,8 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
     AMSgvolume *vplane = BuildPlaneEnvelop(&mother, 7);
     // Build plane support
     BuildHoneycomb(vplane, 7);
+    BuildPlane1NSupport(&mother);
+
   }
   // Loop on planes
   for (int plane=1; plane<=TkDBc::Head->GetNPlanes();plane++){
@@ -110,7 +113,6 @@ void amsgeom::tkgeom02(AMSgvolume &mother)
     }//lay
 
   }//plane
-
   std::cout << "<---- TKGeom-I-" << nladder
             << " Active halfladders initialized" 
             << std::endl << std::endl;
@@ -639,6 +641,108 @@ void BuildHoneycomb(AMSgvolume *mvol, int plane)
 
   return;
 }
+
+
+
+
+void BuildPlane1NSupport(AMSgvolume* mvol){
+
+  //Leps honeycomb support
+  float coo[3];
+  float par[20];
+  number nrm[3][3];
+  char name[5];
+
+
+  sprintf(name,"P1NS");
+  coo[0]=TkDBc::Head->P1NSupportCoo[0];
+  coo[1]=TkDBc::Head->P1NSupportCoo[1];
+  coo[2]=TkDBc::Head->P1NSupportCoo[2];
+
+  //Al- honeycomb
+  par[0]=0;    //inital phi
+  par[1]=360;  // phi amplitude
+  par[2]=8;    // pgon sides
+  par[3]=2;    // n z planes
+  par[4]=-TkDBc::Head->P1NSupportThickness/2.;   // z1
+  par[5]=0;
+  par[6]=TkDBc::Head->P1NSupportRadius;
+  par[7]=TkDBc::Head->P1NSupportThickness/2.;
+  par[8]=0;
+  par[9]=TkDBc::Head->P1NSupportRadius;
+  VZERO(nrm,9*sizeof(nrm[0][0])/4);
+  nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  
+  mvol->add(new AMSgvolume("Tr_HoneyOUT", _nrot++, name,
+			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
+
+
+  sprintf(name, "P1NK");
+  coo[0]=TkDBc::Head->P1NSupportCoo[0];
+  coo[1]=TkDBc::Head->P1NSupportCoo[1];
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]+
+    TkDBc::Head->P1NSupportThickness/2.+
+    TkDBc::Head->P1NSupportSkinThickness/2.;
+
+  //Al- honeycomb skin
+  par[0]=0;    //inital phi
+  par[1]=360;  // phi amplitude
+  par[2]=8;    // pgon sides
+  par[3]=2;    // n z planes
+  par[4]=-TkDBc::Head->P1NSupportSkinThickness/2.;   // z1
+  par[5]=0;
+  par[6]=TkDBc::Head->P1NSupportRadius;
+  par[7]=TkDBc::Head->P1NSupportSkinThickness/2.;
+  par[8]=0;
+  par[9]=TkDBc::Head->P1NSupportRadius;
+  VZERO(nrm,9*sizeof(nrm[0][0])/4);
+  nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  
+  mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
+			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
+
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]-
+    TkDBc::Head->P1NSupportThickness/2.-
+    TkDBc::Head->P1NSupportSkinThickness/2.;
+
+  mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
+			   "PGON", par, 10, coo, nrm, "ONLY", 1, 2, 1));
+
+
+
+  sprintf(name,"P1NC");
+  coo[0]=TkDBc::Head->P1NSupportCoo[0];
+  coo[1]=TkDBc::Head->P1NSupportCoo[1];
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]-
+    TkDBc::Head->P1NSupportThickness/2.-
+    TkDBc::Head->P1NSupportSkinThickness-
+    TkDBc::Head->P1NSCThickness/2.;
+
+  //Al- honeycomb C struct
+  par[0]=0;    //inital phi
+  par[1]=360;  // phi amplitude
+  par[2]=8;    // pgon sides
+  par[3]=2;    // n z planes
+  par[4]=-TkDBc::Head->P1NSCThickness/2.;   // z1
+  par[5]=TkDBc::Head->P1NSCRadius-0.1;
+  par[6]=TkDBc::Head->P1NSCRadius;
+  par[7]=TkDBc::Head->P1NSCThickness/2.;
+  par[8]=TkDBc::Head->P1NSCRadius-0.1;
+  par[9]=TkDBc::Head->P1NSCRadius;
+  VZERO(nrm,9*sizeof(nrm[0][0])/4);
+  nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;  
+  
+  mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
+			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
+  
+
+}
+
+
+
+
+
+
 #else
 //==================-----------------============================
 
@@ -982,8 +1086,5 @@ void amsgeom::tkgeom02(AMSgvolume & mother){
   cout <<"<---- TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl<<endl;
 
 }
-
-
-
 
 #endif

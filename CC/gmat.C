@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.102 2010/06/25 15:04:12 zweng Exp $
+//  $Id: gmat.C,v 1.103 2010/06/30 10:52:14 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -289,6 +289,8 @@ void AMSgmat::amsmat(){
   mat.add (new AMSgmat( "CSkin-Tr",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
   density=1.5/scl;
   mat.add (new AMSgmat( "CSkin-Trpl6",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
+  density=1.6/scl;
+  mat.add (new AMSgmat( "CSkin-P1NS",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
 
 
 
@@ -666,6 +668,9 @@ tmed.add (new AMSgtmed("Tr_HoneyIN","AL-HONEYC-TrIn",0));
 tmed.add (new AMSgtmed("Tr_HoneyOUT","AL-HONEYC-TrOut",0));
 tmed.add (new AMSgtmed("Tr_HoneySkin","CSkin-Tr",0));
 tmed.add (new AMSgtmed("pl6_HoneySkin","CSkin-Trpl6",0));
+tmed.add (new AMSgtmed("P1NS_HoneySkin","CSkin-P1NS",0));
+
+
 #else
  tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));
 #endif
