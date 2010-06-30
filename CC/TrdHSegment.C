@@ -337,3 +337,29 @@ integer TrdHSegmentR::build(int rerun){
   return trdhrecon.hsegvec.size();
 }
 
+
+
+
+void TH2V::Fill( float x, float y, float za, float zb, float weight ){
+  ix = int((x-Xlo)*Fx);
+  iy = int((y-Ylo)*Fy);
+  //    iz = int((z-Zlo)*Fz);
+  add=true;
+  for( int i=0; i<histo.size(); i++ ){
+    if( ix==histo[i].x && iy==histo[i].y){// && iz == histo[i].z){
+      histo[i].c+=weight;
+      histo[i].z+=(za+zb)/2.;
+      if(za<histo[i].zmin)histo[i].zmin=za;
+      if(zb<histo[i].zmin)histo[i].zmin=zb;
+      if(za>histo[i].zmax)histo[i].zmax=za;
+      if(zb>histo[i].zmax)histo[i].zmax=zb;
+      add = false;
+      break;
+    }
+  }
+  if( add ){
+    int kk=(za+zb)/2.;
+    BIN bin(ix,iy,kk,weight);
+    histo.push_back(bin);
+  }
+}

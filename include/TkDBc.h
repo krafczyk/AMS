@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.12 2010/06/25 21:18:09 oliva Exp $
+// $Id: TkDBc.h,v 1.13 2010/06/30 10:52:55 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -80,6 +80,14 @@ public:
   */
   static TkDBc* Head;
 
+
+  // ------- PLANE 1N Support--------------------   
+  number P1NSupportCoo[3];
+  number P1NSupportRadius;
+  number P1NSupportThickness;
+  number P1NSupportSkinThickness;
+  number P1NSCRadius;
+  number P1NSCThickness;
 
   // ------- PLANES -----------------------------   
 

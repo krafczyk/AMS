@@ -96,42 +96,21 @@ private:
 
 public:
   vector<BIN> histo;
-
+  
   TH2V(const char* name, const char* title, int nbx, float Xlo, float Xup, int
        nby, float Ylo, float Yup)
     : nbx(nbx), Xlo(Xlo), Xup(Xup), nby(nby), Ylo(Ylo), Yup(Yup)
   { Fx =(float)nbx/(Xup-Xlo);
     Fy =(float)nby/(Yup-Ylo);  }
-
+  
   void dump(){
     printf("nbx %i nby %i ix %i iy %i\n",nbx,nby,ix,iy);
     printf("Xlo %f Xup %f Ylo %f Yup %f Fx %f Fy %f\n",Xlo,Xup,Ylo,Yup,Fx,Fy);
     //    for(int i=0;i!=histo.size();i++){
-      //printf("bin %i x %i y %i c %i\n",i,histo[i].x,histo[i].y,histo[i].c);
+    //printf("bin %i x %i y %i c %i\n",i,histo[i].x,histo[i].y,histo[i].c);
     //    }
   }
-  void Fill( float x, float y, float za, float zb, float weight ){
-    ix = int((x-Xlo)*Fx);
-    iy = int((y-Ylo)*Fy);
-    //    iz = int((z-Zlo)*Fz);
-    add=true;
-    for( int i=0; i<histo.size(); i++ ){
-      if( ix==histo[i].x && iy==histo[i].y){// && iz == histo[i].z){
-        histo[i].c+=weight;
-	histo[i].z+=(za+zb)/2.;
-	if(za<histo[i].zmin)histo[i].zmin=za;
-	if(zb<histo[i].zmin)histo[i].zmin=zb;
-	if(za>histo[i].zmax)histo[i].zmax=za;
-	if(zb>histo[i].zmax)histo[i].zmax=zb;
-        add = false;
-        break;
-      }
-    }
-    if( add ){
-      BIN bin(ix,iy,(za+zb)/2.,weight);
-      histo.push_back(bin);
-    }
-  }
+  void Fill( float x, float y, float za, float zb, float weight );
   void Reset(){ histo.clear(); }
 
   vector<PeakXYZW> FindPeaks(int npeak=0);

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.88 2010/01/19 09:24:16 choumilo Exp $
+//  $Id: trigger102.C,v 1.89 2010/06/30 10:52:43 pzuccon Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -1279,7 +1279,7 @@ if((TGL1FFKEY.printfl%10)>0){
     printf(" ............. from A-side           : % 8d\n",daqc1[2]);
     printf(" ............. from B-side           : % 8d\n",daqc1[3]);
     printf(" ... with format(unkn/raw/comp/mix   : %8d %8d %8d %8d\n",daqc1[20],daqc1[21],daqc1[22],daqc1[23]);
-    printf(" ... NonDATA segments(?????)         : % 8d\n",daqc1[24]);
+    printf(" ... NonDATA segments( ????? )         : % 8d\n",daqc1[24]);
     printf(" ReplyStatus:  CRCerr  ASSMerr  AMSWerr  TimeOut FEPOWerr   SEQerr  CDPnode:\n");
    printf("             %8d %8d %8d %8d %8d %8d %8d\n",
                                  daqc1[25],daqc1[26],daqc1[27],daqc1[28],daqc1[29],daqc1[30],daqc1[31]); 

@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.12 2010/02/26 14:16:14 pzuccon Exp $
+*  $Id: egzav.F,v 1.13 2010/06/30 10:53:45 pzuccon Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -1639,8 +1639,8 @@ C
       COMMON / STATIS / MGENST, MANGST, MENEST, MDETST
       LOGICAL GENER,TRACK,READ,WRITE1,WRITE2,NOWEGH,STAND
       COMMON / SWITCH /GENER,TRACK,READ,WRITE1,WRITE2,NOWEGH,STAND
-         DIMENSION MSTATI(10)
-         EQUIVALENCE (MSTATI(1),MGENST)
+c         DIMENSION MSTATI(10)
+c         EQUIVALENCE (MSTATI(1),MGENST)
 *
          DATA RBIHCA,RBOHCA,ZWIHCA,ZWOHCA,DENHCA
      /       /  89.,  220.,  100.,  235.,  7.5 /
