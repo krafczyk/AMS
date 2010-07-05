@@ -156,7 +156,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia32/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/ia32/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix 
 endif
 endif
 
