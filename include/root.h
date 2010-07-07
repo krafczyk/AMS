@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.277 2010/07/07 14:12:53 pzuccon Exp $
+//  $Id: root.h,v 1.278 2010/07/07 16:47:42 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -328,7 +328,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,13)       //HeaderR
+  ClassDef(HeaderR,14)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 

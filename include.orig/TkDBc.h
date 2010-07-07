@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.13 2010/06/30 10:52:55 pzuccon Exp $
+// $Id: TkDBc.h,v 1.14 2010/07/07 16:48:39 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -412,7 +412,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 3);
+  ClassDef(TkDBc, 4);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
