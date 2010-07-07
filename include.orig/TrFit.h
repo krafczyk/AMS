@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.12 2010/06/09 15:49:20 pzuccon Exp $
+//  $Id: TrFit.h,v 1.13 2010/07/07 14:12:53 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/06/09 15:49:20 $
+///$Date: 2010/07/07 14:12:53 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -157,6 +157,8 @@ public:
 
   /// Runge-Kutta transportation imported from Fortran
   static void Rkuta(double, double, double*, double*);
+
+  ClassDef(TrProp,1);
 };
 
 class TrFit : public TrProp {
@@ -366,6 +368,9 @@ public:
   static int Inv55(double mtx[5][5]);
   /// 5x5 Matrix inversion imported from ROOT
   static int Inv66(double mtx[6][6]);
+
+  ClassDef(TrFit,1);
+
 };
 
 #endif

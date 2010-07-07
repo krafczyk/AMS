@@ -224,6 +224,20 @@ int  AMSChain::LoadUF(char* fname){
 
 }
 
+Long64_t AMSChain::GetMCEvents(){
+
+  Long64_t nev=0;
+  TObjArray * list=GetListOfFiles();
+  for (int ii=0;ii<list->GetEntries();ii++){
+    TChainElement * gg=(TChainElement*)list->At(ii);
+    TFile f(gg->GetTitle());
+    TTree* tt=(TTree*) f.Get(gg->GetName());
+    RunHeader* hh=(RunHeader*)tt->GetUserInfo()->First();
+    nev+=hh->gevent;
+    f.Close();
+  }
+  return nev;
+}
 
 /*
 

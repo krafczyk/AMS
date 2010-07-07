@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.291 2010/06/25 14:18:51 zweng Exp $
+//  $Id: commons.h,v 1.292 2010/07/07 14:12:53 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -823,6 +823,7 @@ public:
   integer FullReco;
   geant Chi2S;  // Max acceptable chi2 for space fit
   integer MassFromBetaRaw;
+  integer OldNew; // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ; N==3 Beta Old & New; M==0 Master New, M==1 Master old
 };
 //
 

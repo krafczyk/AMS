@@ -97,6 +97,10 @@ ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
 endif
 
+ifdef WEBACCESS
+DEFINES+=  -D_WEBACCESS_
+endif
+
 ifdef TFADBW
 DEFINES+=  -D__TFADBW__
 endif
@@ -106,7 +110,9 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB= -Wno-deprecated  -march=i686 
+#CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated  -march=i686 
+#CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated  -march=i686 
+CFLAGSB=  -Wno-deprecated  -march=i686 
 DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
@@ -186,7 +192,12 @@ ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
+ifdef WEBACCESS
+  LDFLAGS+= -lcurl
+LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
+else
+LDFLAGSSTATIC:=  -static  $(LDFLAGS) $(RH9add) 
+endif
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.155 2010/06/30 10:52:43 pzuccon Exp $
+//  $Id: mceventg.C,v 1.156 2010/07/07 14:12:45 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -160,9 +160,9 @@ void AMSmceventg::gener(){
      _mom=sqrt(etot*etot-_mass*_mass);
 //     if(_ipart>50)cout <<"  got "<<_ipart<<" "<<_charge<<" "<<_mom<<" "<<_nucleons[xp]<<" "<<xp<<endl;     
     } 
-/*
-   not documented - removed by vc
-     else if(CCFFKEY.low=7){
+    // Generates uniformely on 13 Rig Points by PZ
+    // documented in datacards.doc
+    else if(CCFFKEY.low=7){
       static int my_index=0;
       number mom_array[13]={0.5,1.,2.,5.,
 			    10.,20.,50.,
@@ -170,9 +170,9 @@ void AMSmceventg::gener(){
 			    1000.,2000.,5000.};
       if(my_index>=13) my_index=0;
       _mom=mom_array[my_index++];
-
+      
     }
-*/
+    
     else{
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){

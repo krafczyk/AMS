@@ -94,7 +94,8 @@ class AMSChain : public TChain {
   /// Generate a skeleton to be used as  user event selection function
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
   
-  
+  /// Returns the number of generated events in MC
+  Long64_t GetMCEvents();
   //  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   
   ClassDef(AMSChain,5)       //AMSChain

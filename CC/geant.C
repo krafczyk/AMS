@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.127 2010/06/28 14:01:56 zweng Exp $
+//  $Id: geant.C,v 1.128 2010/07/07 14:12:45 pzuccon Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -286,6 +286,9 @@ if(message)AMSJob::gethead()->setMessage(message);
 if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif
+
+
+int nevents= GCFLAG.IEVENT;
 GLAST();
        delete AMSJob::gethead();
 

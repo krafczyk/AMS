@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.21 2010/06/09 15:49:10 pzuccon Exp $
+//  $Id: TrFit.C,v 1.22 2010/07/07 14:12:44 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/06/09 15:49:10 $
+///$Date: 2010/07/07 14:12:44 $
 ///
-///$Revision: 1.21 $
+///$Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +27,8 @@
 #include <cmath>
 #include <iostream>     // for min and max
 
+ClassImp(TrProp);
+ClassImp(TrFit);
 
 int TrFit::_mscat = 0;
 int TrFit::_eloss = 0;

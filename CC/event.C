@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.473 2010/06/15 16:54:17 choutko Exp $
+//  $Id: event.C,v 1.474 2010/07/07 14:12:44 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1158,6 +1158,9 @@ void AMSEvent::_reaxinitevent(){
   for( i=0;i<npatb;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSBeta",i),&AMSBeta::build,0));
 
+  for( i=0;i<npatb;i++)  ptr = add (
+  new AMSContainer(AMSID("AMSContainer:AMSBetaB",i),&AMSBeta::build,0));
+
   add (
   new AMSContainer(AMSID("AMSContainer:AMSCharge",0),&AMSCharge::build,0));
 
@@ -1305,11 +1308,16 @@ void  AMSEvent::write(int trig){
     for (int i=0;;){
       cur=AMSEvent::EventMap.getid(i++);   // get one by one
       if(cur){
+	if(strstr("AMSBetaB",cur->getname())!=0)continue;
         if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->writeC();
       }
       else break;
     }
-
+    for( int kk=0;kk<npatb;kk++) 
+      for (AMSlink *pptr=getheadC("AMSBetaB",kk);pptr!=0;pptr=pptr->next()){
+	//      printf("Adding AMSBetaB to tree\n");
+	AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObjectB((AMSBeta*)pptr);
+      }
 #ifdef _PGTRACK_
     //Fortracker only
     for (AMSlink *pptr=getheadC("AMSTrRawCluster",0);	 pptr!=0;pptr=pptr->next()){

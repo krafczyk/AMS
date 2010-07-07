@@ -51,9 +51,15 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   if(!ss) tkid*=-1;
   //  printf("TrSim::sitkhits: WWWW  tkid %d LAYER %d !!!\n",tkid,tkid/100);
   TkLadder* lad=TkDBc::Head->FindTkId(tkid);
-  // Skip not connected ladders
-  if(!lad){ printf("TrSim::sitkhits: WWWW  tkid %d unknown!!!!\n",tkid);return;}
-  if(lad->GetHwId()<0) {printf("TrSim::sitkhits: WWWW  tkid %d NO HWID !!!\n",tkid);return;}
+  // skip unnown ladders! This should never happen!!!
+  if(!lad){ printf("TrSim::sitkhits: WWWW  tkid %d unknown This sholud never happen!!!!\n",tkid);return;}
+
+  // Skip not connected ladders 
+  if(lad->GetHwId()<0) {
+    //  printf("TrSim::sitkhits: WWWW  tkid %d NO HWID !!!\n",tkid);
+    return;
+  }
+
   // If fast simulation make the TrRawCluster directly with gencluster() 
   if (TRMCFFKEY.SimulationType==kNoRawSim) {
     gencluster(idsoft, vect, edep, step, itra);

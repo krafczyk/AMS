@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.714 2010/06/15 16:54:17 choutko Exp $
+// $Id: job.C,v 1.715 2010/07/07 14:12:45 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1520,6 +1520,7 @@ BETAFITFFKEY.SearchReg[2]=3.;
 BETAFITFFKEY.LowBetaThr=0.4;
 BETAFITFFKEY.FullReco=0;
 BETAFITFFKEY.MassFromBetaRaw=1;
+BETAFITFFKEY.OldNew=1;
 FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }

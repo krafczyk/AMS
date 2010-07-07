@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.30 2010/06/09 15:49:20 pzuccon Exp $
+//  $Id: point.h,v 1.31 2010/07/07 14:12:53 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -24,25 +24,25 @@ public:
   //! Default constructor it sets the point to (0,0,0)
   AMSPoint():_x(0),_y(0),_z(0){};
   //! Explicit constructor
-  AMSPoint(number x, number y,number z):_x(x),_y(y),_z(z){};
+  AMSPoint(number fx, number fy,number fz):_x(fx),_y(fy),_z(fz){};
   //! Explicit constructor
   AMSPoint(number coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
   //! Explicit constructor
   AMSPoint(geant coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
   //! it sets the position
-  void setp(number x,number y,number z){_x=x;_y=y;_z=z;}
+  void setp(number fx,number fy,number fz){_x=fx;_y=fy;_z=fz;}
   //! it sets the position
-  void setp(number x[]){_x=x[0];_y=x[1];_z=x[2];}
+  void setp(number fx[]){_x=fx[0];_y=fx[1];_z=fx[2];}
   //! it sets the position
-  void setp(geant x[]){_x=x[0];_y=x[1];_z=x[2];}
+  void setp(geant fx[]){_x=fx[0];_y=fx[1];_z=fx[2];}
   //! it gets the position to the three args
-  void getp(number &x, number &y, number &z)const{x=_x;y=_y;z=_z;}
+  void getp(number &fx, number &fy, number &fz)const{fx=_x;fy=_y;fz=_z;}
   //! it gets the position to the three args
-  void getp(geant &x, geant &y, geant &z){x=_x;y=_y;z=_z;}
+  void getp(geant &fx, geant &fy, geant &fz){fx=_x;fy=_y;fz=_z;}
   //! it gets the position to array arg
-  void getp(number x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
+  void getp(number fx[]){fx[0]=_x;fx[1]=_y;fx[2]=_z;}
   //! it gets the position to array arg
-  void getp(geant x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
+  void getp(geant fx[]){fx[0]=_x;fx[1]=_y;fx[2]=_z;}
   //! get x coordinate
   number x() const { return _x; } 
   //! get y coordinate
@@ -55,8 +55,8 @@ public:
   AMSPoint mm3i(number [][3]);
   //! it does the matrix product (left) with a matrix represented by the input array
   AMSPoint mm3i(AMSRotMat);
-  //! Equivalence  operator it reuire that the two point are the same 
-  integer operator ==(const AMSPoint & o) const{return _x==o._x && _y==o._y &&_z==o._z;}
+  //! Equivalence  operator it require that the two point are the same 
+  integer operator ==(const AMSPoint & o) const{return ((_x-o._x)+(_y-o._y)+(_z-o._z))<1E-32;}
   //! less than operator it requires that all the threee coo are smaller than those of o
   integer operator <(AMSPoint o) const{return _x<o._x && _y<o._y &&_z<o._z;}
   //! lessequal  than operator it reuqires that all the threee coo are smaller or equal than those of o
@@ -136,7 +136,7 @@ class AMSDir :public AMSPoint{
   //! Standard constructor  it sets the direction to (0,0,0)
   AMSDir():AMSPoint(){};
   //! explicit constructor from an AMSPoint
-  AMSDir(const AMSPoint& o){number x,y,z;o.getp( x,y,z);_copy(x,y,z);}
+  AMSDir(const AMSPoint& o){number fx,fy,fz;o.getp( fx,fy,fz);_copy(fx,fy,fz);}
   //! explicit constructor in polar notation
   AMSDir(number theta, number phi);
   //! it returns the zenith angle
@@ -150,7 +150,7 @@ class AMSDir :public AMSPoint{
     _x=sin(th)*cos(phi);
     _y=sin(th)*sin(phi);
     number mod=sqrt(_z*_z+_y*_y+_x*_x);
-    if(mod!=0){_x/=mod;    _y/=mod;    _z/=mod;}
+    if(mod>0){_x/=mod;    _y/=mod;    _z/=mod;}
   }
   //! sets  the azimutal angle
   void SetPhi(number phi) {
@@ -158,20 +158,20 @@ class AMSDir :public AMSPoint{
     _x=sin(th)*cos(phi);
     _y=sin(th)*sin(phi);
     number mod=sqrt(_z*_z+_y*_y+_x*_x);
-    if(mod!=0){_x/=mod;    _y/=mod;    _z/=mod;}
+    if(mod>0){_x/=mod;    _y/=mod;    _z/=mod;}
   }
 
 
   //! copy constructor
   AMSDir(const AMSDir& o):AMSPoint(){_copy(o._x,o._y,o._z);}
   //! explicit constructor from coo
-  AMSDir(number x, number y,number z){_copy(x,y,z);}
+  AMSDir(number fx, number fy,number fz){_copy(fx,fy,fz);}
   //! explicit constructor from an array
-  AMSDir(number x[]){_copy(x[0],x[1],x[2]);}
+  AMSDir(number fx[]){_copy(fx[0],fx[1],fx[2]);}
   //! it sets the direction from coo
-  void setd(number x,number y,number z){_copy(x,y,z);}
+  void setd(number fx,number fy,number fz){_copy(fx,fy,fz);}
   //! it sets the direction from an array
-  void setd(number x[]){_copy(x[0],x[1],x[2]);}
+  void setd(number fx[]){_copy(fx[0],fx[1],fx[2]);}
   //! it does the vector cross product of two AMSDir
   AMSDir cross(const AMSDir & o);
     ClassDef(AMSDir,1);

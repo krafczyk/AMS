@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.328 2010/06/06 08:12:51 choumilo Exp $
+#  $Id: datacards.doc,v 1.329 2010/07/07 14:13:11 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -225,6 +225,8 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //uniform momentum(4) 
                                   //uniform log(momentum) (5)
                                   //from flux file(6)
+                                  //(7) uniform on 13 Rigidity values 
+				  // [.5,1,2,5,10,20,50,100,200,500,1000,2000,5000] GV
 I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
@@ -396,6 +398,8 @@ R16 LowBetaThr(0.4)        // below this the refit will be done using pat #7
 I17 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
 R18 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
 I19 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
+I20  OldNew(1)            // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ; 
+                          // N==3 Beta Old & New; M==0 Master New, M==1 Master old
 
 CHARGEFIT
 I 1 NmembMax(3)          // maximum number of members for TOF clusters

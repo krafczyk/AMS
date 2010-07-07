@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.59 2010/06/24 10:48:29 zweng Exp $
+//  $Id: linkdef.h,v 1.60 2010/07/07 14:12:53 pzuccon Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -21,8 +21,8 @@
 #pragma link C++ class TrSimSensor;
 #pragma link C++ class TrSimCluster;
 #pragma link C++ class MagField;
-#pragma link C++ class TrFit;
-#pragma link C++ class TrProp;
+#pragma link C++ class TrFit+;
+#pragma link C++ class TrProp+;
 #pragma link C++ class TrAlignFit;
 #pragma link C++ class VCon;
 #ifdef __ROOTSHAREDLIBRARY__
@@ -87,6 +87,7 @@
 #pragma link C++ class DaqEventR+;
 #pragma link C++ class AMSEventR+;
 #pragma link C++ class AMSEventR::Service+;
+#pragma link C++ class RunHeader+;
 
 #ifdef __AMSVMC__
 #pragma link C++ class amsvmc_MCApplication+;

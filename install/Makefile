@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.103 2010/06/01 13:26:31 mmilling Exp $
+#  $Id: Makefile,v 1.104 2010/07/07 14:17:21 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -141,7 +141,7 @@ $(BIN)%.o : $(SFF)%.F
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SCC)%.C
@@ -159,7 +159,7 @@ $(BIN)%_s.o: $(SCC)%.C ../include/root_methods.h
 $(BIN)%.o : $(SCC)%.c
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(CXX) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 #------------------------------------------------------------------------------
 # gbatch source files
@@ -266,6 +266,11 @@ COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C
 #DAQ Interface
 COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C 
 
+ifdef WEBACCESS
+#AMSDataDir Web access interface
+COMMON_FILES +=  $(SCC)fopen.c 
+endif
+
 #HBOOK interface
 #COMMON_FILES += $(SCC)ntuple.C
 
@@ -308,12 +313,13 @@ ifndef PGTRACK
 FILES +=$(SFF)TrackFit_utils.F
 endif
 
+OBJECTS:= $(BIN)mtx.o $(BIN)rootdict.o
+
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
-OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+OBJECTS+=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-OBJECTS+= $(BIN)mtx.o $(BIN)rootdict.o
 
 #------------------------------------------------------------------------------
 # File list for readdaq  gbatch compilation
@@ -516,9 +522,6 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
-
-$(BIN)timelx.o: $(SCC)timelx.c
-	$(CC) -c $(CFLAGS) $< -o$@
 
 
 ../include/root_methods.h:      ../perl/root.perl

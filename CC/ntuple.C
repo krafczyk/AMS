@@ -1,9 +1,10 @@
-//  $Id: ntuple.C,v 1.196 2010/05/06 15:42:35 oliva Exp $
+//  $Id: ntuple.C,v 1.197 2010/07/07 14:12:45 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
 //  
 
+#include "cern.h"
 #include "commonsi.h"
 #include "node.h"
 #include "ntuple.h"
@@ -284,72 +285,74 @@ void AMSNtuple::write(integer addentry){
 
 void AMSNtuple::endR(){
 
-if(_rfile && evmap.size()){
-cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
-  for(evmapi i=evmap.begin();i!=evmap.end();i++){
-
-   if(_tree){
-      if(!_lun )_Nentries++;
-      AMSEventR::Head()=i->second;
-      _tree->Fill();
-    }
+  if(_rfile && evmap.size()){
+    cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
+    for(evmapi i=evmap.begin();i!=evmap.end();i++){
+      
+      if(_tree){
+	if(!_lun )_Nentries++;
+	AMSEventR::Head()=i->second;
+	_tree->Fill();
+      }
       delete i->second;
+    }
+    evmap.clear();
+    cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
   }
-  evmap.clear();
- cout<<"AMSNtupe::endR-I-MapErased "<<evmap.size()<<endl;
-}
 #ifdef __WRITEROOT__
-// write tracker alignment structure
-
-   if(_rfile){
+  // write tracker alignment structure
+  
+  if(_rfile){
 #ifndef _PGTRACK_
-     _ta.SetString(AMSTrAligFit::GetAligString());
-     //cout <<AMSTrAligFit::GetAligString()<<endl;
-     _ta.Write("TrackerAlignment");
+    _ta.SetString(AMSTrAligFit::GetAligString());
+    //cout <<AMSTrAligFit::GetAligString()<<endl;
+    _ta.Write("TrackerAlignment");
 #else
-   TrCalDB::Head->Write();
-   TkDBc  ::Head->Write();
-   TrParDB::Head->Write();
-   // if(TrCalDB::Head) TrCalDB::Head->Write();
-   if (TrTasDB::Head) TrTasDB::Head->Write();
-   if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
-   if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
-   if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
-   _rfile->cd();
-   TrRecon::RecPar.Write();
-#endif   
-
-     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
-       TRDPlotInit();
-       
-       _can=TRDPlot(1);
-       _can->Write("c_occ");
-       
-       TRDFitMOP();
-       _can=TRDPlot(2);
-       _can->Write("c_mop");
-       
-       _can=TRDPlot(3);
-       _can->Write("c_emop");
-       
-       
-       if(TRDFITFFKEY.SaveHistos==1){
-	 for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
-	   int hid=41000+i*290+j*16+k;
-	   // get hit amplitude histogram
-	   TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
-	   if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
-	 }
-       }
-
-       if(tfr)delete tfr;
-     }
-
-     _rfile->Write();
-     _rfile->Close();
-     delete _rfile;
-   }
-   _rfile=0;
+    TrCalDB::Head->Write();
+    TkDBc  ::Head->Write();
+    TrParDB::Head->Write();
+    // if(TrCalDB::Head) TrCalDB::Head->Write();
+    if (TrTasDB::Head) TrTasDB::Head->Write();
+    if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
+    if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
+    if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
+    _rfile->cd();
+    TrRecon::RecPar.Write();
+#endif 
+    RunHeader runheader;
+    if(AMSJob::gethead()->isSimulation()) runheader.gevent=GCFLAG.IEVENT;
+    _tree->GetUserInfo()->Add(&runheader);
+    if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
+      TRDPlotInit();
+      
+      _can=TRDPlot(1);
+      _can->Write("c_occ");
+      
+      TRDFitMOP();
+      _can=TRDPlot(2);
+      _can->Write("c_mop");
+      
+      _can=TRDPlot(3);
+      _can->Write("c_emop");
+      
+      
+      if(TRDFITFFKEY.SaveHistos==1){
+	for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
+	  int hid=41000+i*290+j*16+k;
+	  // get hit amplitude histogram
+	  TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+	  if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
+	}
+      }
+      
+      if(tfr)delete tfr;
+    }
+    
+    _rfile->Write();
+    _rfile->Close();
+    delete _rfile;
+  }
+  _rfile=0;
 #endif
 }
 

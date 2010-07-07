@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.276 2010/06/24 10:52:15 zweng Exp $
+//  $Id: root.h,v 1.277 2010/07/07 14:12:53 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -168,6 +168,16 @@ class EventNtuple02{};
 class DAQEvent{};
 #endif
 
+//! Run Header Class to be retrived with [tree_pointer]->GetUserInfo()->First();
+class RunHeader: public TObject {
+public:
+  //! Number of triggers in MC generation
+  int gevent;
+  //! constructor
+  RunHeader():gevent(0){}
+  ClassDef(RunHeader,1)
+};
+
 //!  Root Header class
 /*!
   Contains:
@@ -258,6 +268,7 @@ int   TrdHTracks;
 int   Level1s;
 int   Level3s;
 int   Betas; 
+int   BetaBs; 
 int   Vertexs; 
 int   Charges;  
 int   Particles;  
@@ -2372,6 +2383,7 @@ static TBranch*  bTrdHTrack;
 static TBranch*  bLevel1;
 static TBranch*  bLevel3;
 static TBranch*  bBeta;
+static TBranch*  bBetaB;
 static TBranch*  bVertex;
 static TBranch*  bCharge;
 static TBranch*  bParticle;
@@ -2387,7 +2399,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 
 #endif
 
@@ -2419,6 +2431,7 @@ static void*  vTrdHTrack;
 static void*  vLevel1;
 static void*  vLevel3;
 static void*  vBeta;
+static void*  vBetaB;
 static void*  vVertex;
 static void*  vCharge;
 static void*  vParticle;
@@ -2757,6 +2770,8 @@ int   nLevel3()const { return fHeader.Level3s;} ///< \return number of Level3R e
 ///
 int   nBeta()const { return fHeader.Betas;} ///< \return number of BetaR elements (fast) 
 ///
+int   nBetaB()const { return fHeader.BetaBs;} ///< \return number of BetaR elements alternative rec (fast) 
+///
 int   nVertex()const { return fHeader.Vertexs;} ///< \return number of VertexR elements (fast) 
 ///
 int   nCharge()const { return fHeader.Charges;} ///< \return number of ChargeR elements (fast)  
@@ -2837,6 +2852,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
   //AxAMS
   vector<BetaR> fBeta; 
+  vector<BetaR> fBetaB; 
   vector<ChargeR> fCharge;  
   vector<VertexR> fVertex;  
   vector<ParticleR> fParticle;  
@@ -3740,6 +3756,41 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
+       ///  BetaR accessor to BetaB container (alt. reconstruction)
+      ///  \return number of BetaR to BetaB container (alt. reconstruction)
+      ///
+      unsigned int   NBetaB()  {
+        if(fHeader.BetaBs && fBetaB.size()==0)bBetaB->GetEntry(_Entry);
+        return fBetaB.size();
+      }
+      ///  \return reference of BetaR Collection to BetaB container (alt. reconstruction)
+      ///
+      vector<BetaR> & BetaB()  {
+        if(fHeader.BetaBs && fBetaB.size()==0)bBetaB->GetEntry(_Entry);
+         return  fBetaB;
+       }
+
+       ///  BetaR accessor to BetaB container (alt. reconstruction)
+       /// \param l index of BetaR Collection
+      ///  \return reference to corresponding BetaR element to BetaB container (alt. reconstruction)
+      ///
+       BetaR &   BetaB(unsigned int l) {
+        if(fHeader.BetaBs && fBetaB.size()==0)bBetaB->GetEntry(_Entry);
+         return fBetaB.at(l);
+      }
+
+       ///  BetaR accessor to BetaB container (alt. reconstruction)
+       /// \param l index of BetaR Collection
+      ///  \return pointer to corresponding BetaR element to BetaB container (alt. reconstruction)
+      ///
+      BetaR *   pBetaB(unsigned int l) {
+        if(fHeader.BetaBs && fBetaB.size()==0)bBetaB->GetEntry(_Entry);
+        return l<fBetaB.size()?&(fBetaB[l]):0;
+      }
+
+
+
+
 
 
 
@@ -4192,6 +4243,7 @@ void         AddAMSObject(Anti2RawEvent *ptr);
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
+void         AddAMSObjectB(AMSBeta *ptr);
 void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
                           float probtr[], int chintr[], float probrc[], 
                           int chinrc[], float proballtr);
@@ -4228,7 +4280,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,12)       //AMSEventR
+ClassDef(AMSEventR,13)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

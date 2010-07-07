@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.58 2010/01/19 09:24:16 choumilo Exp $
+//  $Id: amsdbc.C,v 1.59 2010/07/07 14:12:44 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #define __AMSDBC_C__ 
 #include <math.h>
@@ -92,4 +92,20 @@ void AMSDBc::transform(AMSPoint & dir){
     for(int k=0;k<3;k++)coo[i]+=coo1[k]*ams_nrm[k][i];
   }
   for(int k=0;k<3;k++)dir[k]=coo[k];
+}
+
+
+#include <fenv.h>
+
+void fegetexcept_(int * val){
+*val=fegetexcept();
+}
+
+void fesetexcept_(int *val){
+feclearexcept(*val);
+feenableexcept(*val);
+}
+
+void feunsetexcept_(){
+fedisableexcept(FE_ALL_EXCEPT);
 }

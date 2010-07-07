@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.18 2010/05/03 08:38:07 shaino Exp $
+//  $Id: beta.h,v 1.19 2010/07/07 14:12:53 pzuccon Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -32,8 +32,9 @@ protected:
   static bool BadBetaAlreadyExists(int npatb);
 #ifdef _PGTRACK_
   static AMSTrTrack* FindFalseTrackForBeta(integer refit);
-  static int BuildBeta(AMSTrTrack* ptrack);
-
+  static int BuildBeta(AMSTrTrack* ptrack,int Master=1);
+  static integer build_old(integer refit=0,int Master=1);
+  
 #endif
 public:
   ~AMSBeta();
@@ -55,11 +56,11 @@ public:
   AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
   void SimpleFit(integer nhit, number sleng[]);
   static integer _addnextP(integer pat, integer nhit, number sleng[],
-			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number chi2s);
+			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number chi2s,int Master=1);
   static integer _addnext(integer pat, integer nhit, number sleng[],
-			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta, number chi2s);
+			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta, number chi2s,int Master=1);
   static integer _addnext(integer pat, integer nhit, number sleng[],
-			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number chi2s);
+			  AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number chi2s,int Master=1);
   static AMSPoint Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
 			   number & sleng, number & theta);
   static integer build(integer refit=0);
