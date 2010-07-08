@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.81 2010/07/07 14:12:44 pzuccon Exp $
+//  $Id: beta.C,v 1.82 2010/07/08 09:57:48 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -41,7 +41,9 @@ integer AMSBeta::build(integer refit){
   bool new_build  = BETAFITFFKEY.OldNew&0x1>0;
   bool old_build  = BETAFITFFKEY.OldNew&0x2>0;
   int master_old = BETAFITFFKEY.OldNew/10  ;
+  if(!new_build && old_build) Master=0;
   if(master_old>0) Master=0;
+  if(new_build && !old_build) Master=1;
 
   int built=0;
   int bfound=0;
