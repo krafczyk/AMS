@@ -61,7 +61,7 @@ endif
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi
 
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 
 ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
