@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.156 2010/07/07 14:12:45 pzuccon Exp $
+//  $Id: mceventg.C,v 1.157 2010/07/09 14:55:50 zweng Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -36,11 +36,17 @@ extern TGeant3* geant3;
 #endif
 
 
-#if  defined (__G4AMS__) || defined (__AMSVMC__)
+#if  defined __G4AMS__ 
 #include "CLHEP/Random/Random.h"
 #include "g4util.h"
 #include <iostream.h>
 #endif
+
+#if defined __AMSVMC__
+#include "CLHEP/Random/Random.h"
+using namespace CLHEP;
+#endif
+
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;
 AMSPoint* AMSmceventg::_r_c;
