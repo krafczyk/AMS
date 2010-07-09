@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.83 2010/07/09 15:37:36 pzuccon Exp $
+//  $Id: beta.C,v 1.84 2010/07/09 15:40:54 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1325,7 +1325,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //              break;
 //             } 
 //           }
-	  pbeta->type=0;
+//	  pbeta->type=0;
 	  if(Master)
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
 	  else
