@@ -5,7 +5,7 @@ ClassImp(TrdHSegmentR)
 int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<fTrdRawHit.size()?fTrdRawHit[i]:-1;};
-TrdRawHitR * TrdHSegmentR::pTrdRawHit(unsigned int i){ return ( i<trdhrecon.rhits.size())?trdhrecon.rhits[fTrdRawHit[i]]:0;};
+TrdRawHitR * TrdHSegmentR::pTrdRawHit(unsigned int i){ return ( i<trdhrecon.rhits.size())?&trdhrecon.rhits[fTrdRawHit[i]]:0;};
 
 TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){};
 
@@ -38,7 +38,7 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
 void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
   for(int i=0;i!=Nhits_;i++){
     for(int j=0;j!=trdhrecon.rhits.size();j++)
-      if(pthit[i]&&pthit[i]==trdhrecon.rhits[j])fTrdRawHit[i]=j;
+      if(pthit[i]&&*(pthit[i])==trdhrecon.rhits[j])fTrdRawHit[i]=j;
   }
 }
   
@@ -50,7 +50,7 @@ float TrdHSegmentR::resid(float r_, float z_, int d_){
 void TrdHSegmentR::calChi2(){
   Chi2=0.;
   for(int i=0;i!=nTrdRawHit();i++){
-    TRDHitRZD rzd=TRDHitRZD(pTrdRawHit(i));
+    TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(i));
     Chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12.)),2);
   }
 }
@@ -74,13 +74,13 @@ int TrdHSegmentR::LinReg(int debug)
   if(nTrdRawHit()<3)return -1;
     
   for(int i=0; i<nTrdRawHit(); i++){
-    TRDHitRZD rzdi=TRDHitRZD(pTrdRawHit(i));
+    TRDHitRZD rzdi=TRDHitRZD(*pTrdRawHit(i));
     int nz=1;
     float ri=rzdi.r;
     float zi=rzdi.z;
       
     for(int j=i+1; j<nTrdRawHit(); j++){
-      TRDHitRZD rzdj=TRDHitRZD(pTrdRawHit(j));
+      TRDHitRZD rzdj=TRDHitRZD(*pTrdRawHit(j));
       if(rzdj.z!=zi)continue;
       ri+=rzdj.r;nz++;
     }
@@ -94,7 +94,7 @@ int TrdHSegmentR::LinReg(int debug)
     else if(nz>1){
       float rmean=ri/(float)nz;
       for(int j=0; j<nTrdRawHit(); j++){
-	TRDHitRZD rzd=TRDHitRZD(pTrdRawHit(j));
+	TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(j));
 	if(rzd.z==zi)sigma+=pow(rzd.r-rmean,2);
       }
 	
@@ -176,7 +176,7 @@ TrdHSegmentR* TrdHSegmentR::Refit(int debug){
   float zmax=0.,zmin=200.;
   int nhits=0;
   for(int h=0;h!=nTrdRawHit();h++){	
-    TRDHitRZD rzd=TRDHitRZD(pTrdRawHit(h));
+    TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(h));
     if(rzd.d!=d)continue;
     if(rzd.z>zmax)zmax=rzd.z;
     if(rzd.z<zmin)zmin=rzd.z;
@@ -308,13 +308,13 @@ integer TrdHSegmentR::build(int rerun){
   if(!trdhrecon.H2V_mvr[0])trdhrecon.H2V_mvr[0]=new TH2V ("hv_mvr_0", "m vs x", 314, -105.0, 105.0, 119, -3.0, 3.0);
   if(!trdhrecon.H2V_mvr[1])trdhrecon.H2V_mvr[1]=new TH2V ("hv_mvr_1", "m vs y", 314, -105.0, 105.0, 119, -3.0, 3.0);
 
-  if(nrh>nhcut){
+  //  if(nrh>nhcut){
     trdhrecon.H2A_mvr[0]->Reset();
     trdhrecon.H2A_mvr[1]->Reset();
-  }else{
+    //  }else{
     trdhrecon.H2V_mvr[0]->Reset();
     trdhrecon.H2V_mvr[1]->Reset();
-  }
+    //  }
   
   vector<PeakXYZW> segvec_x;
   vector<PeakXYZW> segvec_y;
@@ -325,41 +325,15 @@ integer TrdHSegmentR::build(int rerun){
     if(debug)printf("skipping \n");
     return 0;
   }
-  vector<TrdHSegmentR*> segments=trdhrecon.DoLinReg(&segvec_x,&segvec_y);
+  vector<TrdHSegmentR> segments=trdhrecon.DoLinReg(&segvec_x,&segvec_y,debug);
   
   trdhrecon.hsegvec=trdhrecon.clean_segvec(segments);
   
   for(int i=0;i!=trdhrecon.hsegvec.size();i++)
-    trdhrecon.hsegvec[i]->calChi2();
+    trdhrecon.hsegvec[i].calChi2();
 
   if(debug) printf("returning %i segments\n",trdhrecon.hsegvec.size());
 
   return trdhrecon.hsegvec.size();
 }
 
-
-
-
-void TH2V::Fill( float x, float y, float za, float zb, float weight ){
-  ix = int((x-Xlo)*Fx);
-  iy = int((y-Ylo)*Fy);
-  //    iz = int((z-Zlo)*Fz);
-  add=true;
-  for( int i=0; i<histo.size(); i++ ){
-    if( ix==histo[i].x && iy==histo[i].y){// && iz == histo[i].z){
-      histo[i].c+=weight;
-      histo[i].z+=(za+zb)/2.;
-      if(za<histo[i].zmin)histo[i].zmin=za;
-      if(zb<histo[i].zmin)histo[i].zmin=zb;
-      if(za>histo[i].zmax)histo[i].zmax=za;
-      if(zb>histo[i].zmax)histo[i].zmax=zb;
-      add = false;
-      break;
-    }
-  }
-  if( add ){
-    int kk=(za+zb)/2.;
-    BIN bin(ix,iy,kk,weight);
-    histo.push_back(bin);
-  }
-}

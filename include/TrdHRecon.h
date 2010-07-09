@@ -9,13 +9,13 @@
 class TrdHReconR{
  public:
   /// vector of TrdRawHits (used as input to reconstruction)
-  vector<TrdRawHitR*> rhits;
+  vector<TrdRawHitR> rhits;
   
   /// vector of reconstructed TrdHSegmentss
-  vector<TrdHSegmentR*> hsegvec;
+  vector<TrdHSegmentR> hsegvec;
 
   /// vector of reconstructed TrdHTracks
-  vector<TrdHTrackR*> htrvec;
+  vector<TrdHTrackR> htrvec;
 
   // vector of reference hits (optional)
   vector<AMSPoint> refhits;
@@ -44,13 +44,13 @@ class TrdHReconR{
   TH2V* H2V_mvr[2];
   
   /// remove multiple reconstructed TrdHSegment
-  vector<TrdHSegmentR*> clean_segvec(vector<TrdHSegmentR*> vec,int debug=0);
+  vector<TrdHSegmentR> clean_segvec(vector<TrdHSegmentR> vec,int debug=0);
   
   /// run prefit
   int DoPrefit(vector<PeakXYZW> &seg_x, vector<PeakXYZW> &seg_y);
 
   /// run linear regression
-  vector<TrdHSegmentR*> DoLinReg(vector<PeakXYZW> *segvec_x,vector<PeakXYZW> *segvec_y,int debug=0);
+  vector<TrdHSegmentR> DoLinReg(vector<PeakXYZW> *segvec_x,vector<PeakXYZW> *segvec_y,int debug=0);
   
   /// check if combined 3D track would have hits outside TRD volume 
   bool check_geometry(TrdHSegmentR *s1, TrdHSegmentR* s2);

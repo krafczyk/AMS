@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.203 2010/06/01 13:08:56 mmilling Exp $
+//  $Id: particle.C,v 1.204 2010/07/09 12:14:09 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -490,7 +490,7 @@ void AMSParticle::trd_Hlikelihood(){
     
     //    while(seg){
     for(int s=0;s!=trdhrecon.hsegvec.size();s++){
-      TrdHSegmentR* seg=trdhrecon.hsegvec[s];
+      TrdHSegmentR* seg=&trdhrecon.hsegvec[s];
       float dz=zpl-seg->z;
       float expos=seg->r+ seg->m*dz;
       if(debug)printf("seg d %i r %.2f m %.2f z %.2f\n",seg->d,seg->r,seg->m,seg->z);

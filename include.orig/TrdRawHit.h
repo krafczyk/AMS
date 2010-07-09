@@ -18,12 +18,20 @@ public:
  TrdRawHitR():Layer(-1),Ladder(-1),Tube(-1),Amp(-1),Haddr(-1){};
  TrdRawHitR(int lay, int lad, int tub, float amp):Layer(lay),Ladder(lad),Tube(tub),Amp(amp),Haddr(0){};
 
+   bool operator==(const TrdRawHitR& other) const {
+     if(Layer != other.Layer)return 0;
+     if(Ladder!= other.Ladder)return 0;
+     if(Tube  != other.Tube)return 0;
+     if(Amp   != other.Amp)return 0;
+     return 1;
+   }
+
 #ifdef __WRITEROOT__
    TrdRawHitR(AMSTRDRawHit *ptr);
 #endif
 
    virtual ~TrdRawHitR(){};
-  ClassDef(TrdRawHitR,1)       //TrdRawHitR
+  ClassDef(TrdRawHitR,2)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -34,11 +42,11 @@ class TRDHitRZD{
  int d; 
  TRDHitRZD():r(0.),z(0.),d(0){};
  TRDHitRZD(double r_, double z_, int d_):r(r_),z(z_),d(d_){};
- TRDHitRZD(TrdRawHitR* hit){
+ TRDHitRZD(TrdRawHitR hit){
    //   if(hit==NULL) 
-   int layer  = hit->Layer;
-   int ladder = hit->Ladder;
-   int tube   = hit->Tube;
+   int layer  = hit.Layer;
+   int ladder = hit.Ladder;
+   int tube   = hit.Tube;
 
    if(layer<12) ladder++;
    if(layer< 4) ladder++;
