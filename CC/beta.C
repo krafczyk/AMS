@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.82 2010/07/08 09:57:48 pzuccon Exp $
+//  $Id: beta.C,v 1.83 2010/07/09 15:37:36 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -37,13 +37,13 @@ integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2,2,2};
 
 #ifdef _PGTRACK_
 integer AMSBeta::build(integer refit){
-  int Master=1;
-  bool new_build  = BETAFITFFKEY.OldNew&0x1>0;
-  bool old_build  = BETAFITFFKEY.OldNew&0x2>0;
-  int master_old = BETAFITFFKEY.OldNew/10  ;
-  if(!new_build && old_build) Master=0;
-  if(master_old>0) Master=0;
-  if(new_build && !old_build) Master=1;
+  int master_new=1;
+  int master_old=0;
+
+  bool new_build  = ((BETAFITFFKEY.OldNew%10)&0x1)>0;
+  bool old_build  = ((BETAFITFFKEY.OldNew%10)&0x2)>0;
+
+  if(BETAFITFFKEY.OldNew/10 >0|| (!new_build && old_build)) {master_new=0; master_old=1;}
 
   int built=0;
   int bfound=0;
@@ -56,7 +56,7 @@ integer AMSBeta::build(integer refit){
     if(nTrtracks>0){ // Build Beta from a real TrTrack!!
       AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
       for ( ; ptrack ; ptrack=ptrack->next()) {   
-	bfound+=BuildBeta(ptrack,Master);
+	bfound+=BuildBeta(ptrack,master_new);
       }
       //PZ DEBUG   printf("Reconstructed %d Beta from tracks!\n",bfound);
     }
@@ -71,7 +71,7 @@ integer AMSBeta::build(integer refit){
 	// Make False Tr Track from TRD-Track       
 	AMSTrTrack *ptrack = new AMSTrTrack(ptrackT->gettheta(),ptrackT->getphi(), ptrackT->getcoo());
 	ptrack->setstatus(AMSDBc::TRDTRACK); 
-	bfound+=BuildBeta(ptrack,Master);
+	bfound+=BuildBeta(ptrack,master_new);
 	//PZDEBUG       printf("Reconstructed %d Beta from TRD track!\n",bfound);
       }
     }
@@ -80,12 +80,13 @@ integer AMSBeta::build(integer refit){
     if(!bfound){
 
       AMSTrTrack * ptrack=FindFalseTrackForBeta(refit);
-      if(ptrack) bfound+=BuildBeta(ptrack,Master);
+      if(ptrack) bfound+=BuildBeta(ptrack,master_new);
       //PZDEBUG      printf("Reconstructed Beta W/O track %d Beta!\n",bfound);
     }
     //PZDEBUG  printf("Reconstructed total %d Beta!\n",bfound);
   }
-  if(master_old&& old_build )
+
+  if(master_old && old_build )
     return built;
   else 
     return bfound;
@@ -1167,6 +1168,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 #ifdef __UPOOL__
     pbeta=new AMSBeta(beta);
 #endif
+    //    pbeta->type=0;
     if(Master)
       AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
     else
@@ -1265,6 +1267,7 @@ integer AMSBeta::_addnextP(integer pat, integer nhit, number sleng[],
 #ifdef __UPOOL__
     pbeta=new AMSBeta(beta);
 #endif
+    //    pbeta->type=1;
     if(Master)
       AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
     else
@@ -1322,6 +1325,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //              break;
 //             } 
 //           }
+	  pbeta->type=0;
 	  if(Master)
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
 	  else
