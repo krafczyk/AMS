@@ -1,56 +1,64 @@
-*  $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
-       subroutine rkmsinit(zposl)
+*  $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
+*-----------------------------------------------------------------------
+* A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
+*-----------------------------------------------------------------------
+* Rigidity reconstruction program for AMS02 with permanet magnet
+* Taking care of the Multipole Scattering in AMS Tracking detector:
+* Reconstruct track's kinematical parameters with full (nondiagonal)
+* Covar.Error Metrix due to Multipole Scattering in Si tracking planes
+* as well as in TRD, TOF and RICH.
+*------------------------------------------------------
+      subroutine rkmsinit(zposl)
+      implicit none
 #include "rkms.h"
-          real zposl(9)
-          do k=1,9
-             trkZ0(k)=zposl(k)
-          enddo
-          write(*,*)'RKMS-I-InitTo ',trkZ0
-          end
+*----------------
+      integer k
+      real zposl(NPma)
+
+      do k=1,NPma
+        trkZ0(k)=zposl(k)
+      enddo
+      write(*,*)'RKMS-I-InitTo ',trkZ0
+      end
 
 
 c. Add by Zhili.Weng 2009-11-11
 #ifdef __AMSVMC__
 #include "VMCrename.h"
 #endif
-
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
-*---------------------------------------------------------------------
-* A.Chikanian, Yale, 2003
-* Reconstruct track's kinematical parameters with full (nondiagonal)
-* Covar.Error Metrix due to Multipole Scattering in Si tracking planes.
-* Supposed to be used when the Mult.Scatt. is dominate.
-*---------------------------------------------------------------------
+*     interface to "rkms_fit"
+*----------------------------------------------------------------
 * Input:   npo        - # points
 *          npl        - plane #, associated with each point
 *          xyz(3,npl) - 3d coordinates
 *          dxyz(npl)  - errors (intrinsic Si planes resolution)
 *          ipa        - particle Geant ID#
 *          Rini       - initial Rigidity value (try the best !!!)
-
+*          --------------------------------------
 * Output:  Out(*)     - reconstructed parameters
 *          Out(1-3)   - x, y, z 
 *          Out(4-5)   - Theta, Phi
 *          Out(6)     - Rigidity
-*          Out(7)     - Chi2/D.F.
+*          Out(7)     - Chi2
 *          Out(8)     - not used
 *          Out(9)     - err(1/Rigidity)=err(R)/(R*R)
 *---------------------------------------------------
       implicit none
-*     -------------------
+*----------------
 #include "rkms.h"
-*     -------------------
-!$OMP threadprivate(/rktrk/)
+*----------------
       double precision charge,sigcha ! for GRKUTA
       common/rktrk/    charge,sigcha
-*-------------------------
+!$OMP threadprivate(/rktrk/)
+*     ------------------------------
       integer npo,npl(npo),ipa,i
       real xyz(3,npo),dxyz(3,npo)
       real x(NPma),y(NPma),z(NPma),dx(NPma),dy(NPma)
       real Rini,Out(9),Chi2,R,dR,Rin
       double precision Xout(5),Eout(5)
-*---------------------------------------------------
+*     --------------------------------
       do i=1,npo
          x(i)= xyz(1,i)
          y(i)= xyz(2,i)
@@ -58,19 +66,15 @@ c. Add by Zhili.Weng 2009-11-11
         dx(i)=dxyz(1,i)
         dy(i)=dxyz(2,i)
       enddo
-*     =================================================================
-*     WARNING:  Xi2 depends on Rini  !!! Try the best possible Rini
-*            OR do additional minimization loop with corrected Err.Matr.
-*            (works, but time consumming)!!!
+*     WARNING ========================================================
+*     Due to Error Matrix depends on Rini, pick the best possible Rini
+*     OR do final (additional) minimization loop with Rini~Rrec
       Rin=Rini
       if(abs(Rini).lt.0.3.or.abs(Rini).gt.333.)
      +                                 call R_init(npo,x,y,z,Rin)
-c      write(6,'(a3,8i8.2)')'np0',npo ! deb
-c      write(6,'(a3,8i8.2)')'npl',npl ! deb
-c      write(6,'(a3,8f8.2)')'  z',  z ! deb
-*     ==========================================================
-      call  rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rin,Xout,Eout,Chi2)
-*     ==========================================================
+*     =========================================================
+      call rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rin,Xout,Eout,Chi2)
+*     =========================================================
       R = dsqrt(Xout(1)**2+Xout(2)**2+Xout(3)**2)
       dR=dsqrt((Xout(1)*Eout(1))**2 + (Xout(2)*Eout(2))**2
      +        +(Xout(3)*Eout(3))**2)/R
@@ -85,19 +89,13 @@ c      write(6,'(a3,8f8.2)')'  z',  z ! deb
       Out(8) = 0.                                 ! Not Used
       Out(9) = dR/(R*R)                           ! err(1/Rig)
 *     =============================================
-      do i=1,NPma
-        xyz(1,i)=xt(i)
-        xyz(2,i)=yt(i)
-        dxyz(1,i)=wt(1,i)
-        dxyz(2,i)=wt(2,i)
-        dxyz(3,i)=wt(3,i)
-      enddo
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,Er,Chi2) ! MINUIT
+      subroutine rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,Er,Chi2)
 *   A.Chikanian, Yale, 2003
-*--------------------------------------------------------------------
+*   Fitting track parameters with MINUIT and Runge Kutta 
+*-------------------------------------------------------
 * Input:   npo   - # points
 *          npl   - plane #, associated with each point
 *          x(npl),y(npl),z(npl) - 3d coordinates
@@ -106,10 +104,10 @@ c      write(6,'(a3,8f8.2)')'  z',  z ! deb
 *          Rini  - initial Rigidity value
 * Output:  Xout  -  x, y, Rx, Ry, Rz
 *          Er    - dx,dy,dRx,dRy,dRz
-*          Chi2  - chi2/D.F.
+*          Chi2  - Chi2
 *-----------------------------------------
       implicit none !!! commenting helps with realy STUPID problem (see next).
-c      real     FunMi !!! Required by STUPID PAW, but doesn't like it !!!????
+c      real     FunMi !!! Required (but doesn't like it ???) by STUPID PAW. 
       External FunMi
       double precision Par(5),St(5),arglis(3),Xout(5),Er(5),bnd1,bnd2
       double precision                        Xbuf(5),Chi2B
@@ -126,34 +124,29 @@ c      real     FunMi !!! Required by STUPID PAW, but doesn't like it !!!????
       data                       na/0/,Npa/5/ ! # of parameters
       character*10 CHNAM
       data         CHNAM/' '/                 ! parameter names
-
-      integer npo,npl(npo),NitMa   ,iercou
-      data                 NitMa/3/,iercou/0/
-
+      integer npo,npl(npo),NitMa
+      data                 NitMa/3/
       integer ipa,iflag
       real x(npo),y(npo),z(npo),dx(npo),dy(npo)
       integer lun8
       data    lun8/67/
-*---------------------------------------------
+*----------------
 #include "rkms.h"
-c#include "geant321/iounit.inc"
-c there is no type definition (integer ...) in  iounit.inc
-*-------------------------
+*----------------
       double precision charge,sigcha ! for GRKUTA
-!$OMP threadprivate(/rktrk/)
       common/rktrk/    charge,sigcha
-
+!$OMP threadprivate(/rktrk/)
+*---------------------------
       real z1
       real Rini,Chi2,Rad
-*-------------------------------
+*     ------------------
       logical first
       data    first/.true./
-      logical veryfirst 
-      data veryfirst/.true./
-      save first,iercou,CHNAM,zero,npa,na,St,grad
-      !$OMP threadprivate (first,iercou,CHNAM,zero,npa,na,St,grad)
-
-      if(veryfirst) then ! ----------------- first
+      save first,CHNAM,zero,npa,na,St,grad
+      !$OMP threadprivate (first,CHNAM,zero,npa,na,St,grad)
+      logical veryfirst
+      data    veryfirst/.true./
+      if(veryfirst) then ! --------- veryfirst
         veryfirst = .false.
 #if defined __IFC ||  defined __INTEL_COMPILER
         open(unit=lun8,form='formatted',file='/dev/null',
@@ -166,12 +159,10 @@ c there is no type definition (integer ...) in  iounit.inc
       if(first) then ! ----------------- first
         first = .false.
  100    continue
-         lun8=6
         Call MNINIT(5,lun8,lun8) ! Read, Write, Save
         na = 1             ! # of arguments
         arglis(1)=-1.      ! suppr. output
         Call MNEXCM(FunMI,'SET PRINT',arglis,na,ierflg,0)
-        Call MNEXCM(FunMI,'SET NOWARN',arglis,na,ierflg,0)
         If(ierflg.ne.0) write(6,*)'MNEXCM: Print ierflg=',ierflg
         arglis(1)= 1.
         Call MNEXCM(FunMI,'SET GRAD',arglis,na,ierflg,0) ! Gradients
@@ -183,6 +174,7 @@ c there is no type definition (integer ...) in  iounit.inc
       endif          ! ----------------- end first
 
       if(npo.lt.3) return !!!
+c      if(npo.ne.9) write(6,*)' npo =',npo ! 2010
 
       z1=z(1) ! if so Par(4)=x(1), Par(5)=y(1)
       rad = sqrt((x(2)-x(1))**2+(y(2)-y(1))**2+(z(2)-z(1))**2)
@@ -200,9 +192,6 @@ c there is no type definition (integer ...) in  iounit.inc
           zc(i)=-999.
         endif
       enddo
-*=============================
-*#include "../RKMSFIT/debug1.h"
-*=============================
 * First TWO passes in loop below are sign of charge checking
 * Third pass is iteration with right MS-matrix (mostly for correct Xi2)
       rkstep=5. ! cm
@@ -222,87 +211,71 @@ c there is no type definition (integer ...) in  iounit.inc
             Par(j)=Xout(j)
           enddo
         endif
-*---------------------------- Initial values setup
-*----------------------------------------------- Minimization  
-*       ======================================+
-        call wxy_matr(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
-*       ======================================+
-*=============================
-*#include "../RKMSFIT/debug2.h"
-*=============================
-*       ================================================
+*       =======================================
+        call wxy_matr9(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
+c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
+*       =======================================
 #if defined (__LINUX24__ )
 !$OMP CRITICAL (RKMS)
 #endif
+*       --------------------- Initial values setup
         do i=1,Npa
           Call MNPARM(i,CHNAM,Par(i),St(i),zero,zero,IERFLG)! Init.Val.Setup
           If(ierflg.ne.0) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
         enddo
+*       ---------------------------------------- Minimization  
         na=0  ! # of arguments in arglis (MNEXCM)      !
         Call MNEXCM(FunMI,'MIGRAD',arglis,na,ierflg,0) !
+*       ####  ierflg is always 4 ### !!!???
 *       ================================================
-cer        if(ierflg.ne.0.and.iercou.le.1) then        !
-cer          write(6,*)'MNEXCM: ierflg=',ierflg,iercou ! always 4 !!!???
-cer          iercou=iercou+1                           !
-cer        endif                                       !
-
         do i=1,Npa                                          ! Parameters
           Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
         enddo
 #if defined (__LINUX24__ )
-!$OMP END CRITICAL (RKMS)
+!$OMP CRITICAL (RKMS)
 #endif
-        if(Dhi2.gt.1.e30)then
-          Chi2=1.e30
-        else
-         Chi2=Dhi2
-        endif
-c        if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
-
+        Chi2=1.e30
+        if(Dhi2.lt.1.e30) Chi2=Dhi2
         if(it.eq.1) then
           Chi2B=Chi2
           do i=1,Npa
             Xbuf(i)=Xout(i)
           enddo
         endif
-        if(it.eq.2.and.chi2.gt.Chi2B) then
+        if(it.eq.2.and.Chi2.gt.Chi2B) then
           sigcha=1.
           do i=1,Npa
             Xout(i)=Xbuf(i)
           enddo
         endif
-      ENDDO !                                          ! NitMa 
-*=============================
-*#include "../RKMSFIT/debug3.h"
-*=============================
+      ENDDO ! NitMa 
       end
 
 *--------1---------2---------3---------4---------5---------6---------7-- FCN
       Subroutine FunMI(Npa,grad,Fu,par,iflag) ! ,futil)
 *   A.Chikanian, Yale, Aug,2003
-*-----------------------------------
+*   Interface to between MINUIT and Fun
+*   -----------------------------------
       implicit none
       integer Npa,iflag,k
       double precision Fu,Fun,grad(npa),par(npa)
-*-------------------------------------------
-c      write(6,'(    a3,5f10.5)')'Par',par ! debug ###
+*     ------------------------------------------
       if(iflag.eq.2) call FunDer(Npa,par,grad)
       Fu = Fun(Npa,par)
-c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
       double precision Function Fun(Npa,par)
 *   A.Chikanian, Yale, Aug,2003
-*-----------------------------------
+*   Function for Minimization
+*------------------------------
       implicit none
       integer Npa,i
       double precision chi2su,par(Npa)
-*-------------------------
+*----------------
 #include "rkms.h"
-*-------------------------
-
-      double precision pin(3),xin(3) ! r8
+*----------------
+      double precision pin(3),xin(3),xt(NPma),yt(NPma)
 
       pin(1) = par(1) ! Px or cx
       pin(2) = par(2) ! Py or cy
@@ -310,32 +283,27 @@ c      write(6,*)'iflag,Fu',iflag,Fu       ! debug ###
       xin(1) = par(4) ! x
       xin(2) = par(5) ! y
       xin(3) = zc(1)  ! z
-
-      do i=1,Npma     !***   ???
-        xt(i)=-999.   !**************
-        yt(i)=-999.   !*** let it be !!!
-      enddo           !*****************
+      do i=1,Npma
+        xt(i)=-999.
+        yt(i)=-999.
+      enddo
 *     ==========================
-      call rk_trk(pin,xin,xt,yt,wt)
+      call rk_trk(pin,xin,xt,yt)
       Fun = chi2su(xt,yt)
-c       write(*,*)' rk',Fun,pin,xin
 *     ==========================
-*=============================
-*#include "../RKMSFIT/debug4.h"
-*=============================
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine FunDer(npa,par,der)
 *   A.Chikanian, Yale, Aug,2003
-*---   numerical calculation of Fun and derivatives.
-*--------------------------------------------------
+*---   numerical calculation of Fun and Fun's derivatives.
+*--------------------------------------------------------
       implicit none
       integer npa,j
       double precision f1,f2,x0,dp,Fun,par(npa),der(npa)
 *==================================================
       double precision dp0(5),xx(5)                !
-      data dp0/.000005,.000005,.000100,.0002,.0002/! Opt.Steps
+      data dp0/.000005,.000005,.000100,.0002,.0002/! Optimal Steps
 *                 GeV     GeV     GeV    cm    cm  !
 *==================================================
       do j=1,npa
@@ -351,86 +319,84 @@ c       write(*,*)' rk',Fun,pin,xin
         der(j) = .5*(f2-f1)/dp
         xx(j)=x0
       enddo
-c      write(6,'(a6,5(1pe12.4))')' der  ',der ! debug ###
-c      write(6,'(a6,5(1pe12.4))')'   x  ',xp  ! debug ###
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
       double precision function Chi2Su(x0,y0)
+*-------------------------------------------
 *   A.Chikanian, Yale, Feb,2003
-*---------------------------------------------
+*             Revised June,2010
+*-------------------------------------------------
 * Input    x0     - x-coord. for current iteration
 *          y0     - y-coord. for current iteration
 * Output:  Chi2Su - chi2 value
-*---------------------------------------------
+*-------------------------------------------------
       implicit none
       integer i,j
       double precision xi,yi
-*-------------------------
+*----------------
 #include "rkms.h"
-*-------------------------*  xc,yc - hits coordinates
+*----------------
+*  xc,yc - hits coordinates
       double precision x0(NPma),y0(NPma) ! r8
-      Chi2Su=wxy(1,1)*((xc(1)-x0(1))**2+(yc(1)-y0(1))**2)
+      Chi2Su=wx(1,1)*(xc(1)-x0(1))**2+wy(1,1)*(yc(1)-y0(1))**2
       do i=2,npoc
         xi=xc(i)-x0(i)
         yi=yc(i)-y0(i)
-        Chi2Su=Chi2Su+wxy(i,i)*(xi**2+yi**2)
+        Chi2Su = Chi2Su + wx(i,i)*xi**2 + wy(i,i)*yi**2
         if(i.lt.npoc) then
-        do j=i+1,npoc
-          Chi2Su=Chi2Su+2.*wxy(j,i)*(xi*(xc(j)-x0(j))+yi*(yc(j)-y0(j)))
-        enddo
+          do j=i+1,npoc
+            Chi2Su=Chi2Su+2.*(wx(j,i)*xi*(xc(j)-x0(j))
+     +                       +wy(j,i)*yi*(yc(j)-y0(j)))
+          enddo
         endif
       enddo
       Dhi2=Chi2Su
-      if(Chi2Su.ge.0.) return
-*=============================
-c#include "../RKMSFIT/debug5.h"
-*=============================
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine rk_trk(pin,xin,x0,y0,w0)
+      subroutine rk_trk(pin,xin,x0,y0)
 *---------------------------------------------------
 * Runge-Kutta integration for particle in Magn.field
 * A.Chikanian, Yale, Feb.,2003
-*----------------------------------------------------
-*  Input:  pin(3) - initial Rigidity Px,Py,Pz (GeV/c)
-*          xin(3) - initial position  x, y, z (cm)
-*  Output: pou(3) -   final Rigidity Px,Py,Pz (GeV/c)
-*          xou(3) -   final position  x, y, z (cm)
-*-------------------------------------------------
+*            Revised June,2010
+*-------------------------------------------------------------------
+*  Input:  pin(3)   - initial Rigidity Rx,Ry,Rz (GeV/c) for tracking
+*          xin(3)   - initial Position  x, y, z (cm)    for tracking
+*  Output: x0(NPma) - x,y (cm) coordinates of tragectory crossing
+*          y0(NPma) /          with tracking planes
+*--------------------------------------------------
       implicit none
       integer i,j,Nst,np
-*------------------------
+*----------------
 #include "rkms.h"
+*----------------
       double precision charge,sigcha ! for GRKUTA
-!$OMP threadprivate(/rktrk/)
       common/rktrk/    charge,sigcha
-*==================================
-*#include "../RKMSFIT/instedgeant.h"
-*==================================
-      double precision xm,pin(3),xin(3),x0(NPma),y0(NPma),w0(3,npma) ! r8
-      double precision step,vect(7),vout(7),Stot,vni      ! r8
+!$OMP threadprivate(/rktrk/)
+*---------------------------
+      double precision xm,pin(3),xin(3),x0(NPma),y0(NPma)
+      double precision step,vect(7),vout(7),Stot,vni
 *                           vect(7) is  x,y,z,px,py,pz,P
 *                                   or  x,y,z,cx,cy,cz,P
 *                                       1 2 3  4  5  6 7
-      data Stot/400./ ! Max.range(cm) in Path Length
-*-------------------------------------------------------
+      data Stot/350./ ! Track's Max.Path Length (cm) (2010)
+*     -----------------------------------------------------
       logical first
       data    first/.true./
       double precision w
-*-------------------------------------------------------
+*     -----------------------------------------------------
       step=rkstep
       Nst=int(Stot/step) ! Max.# of steps
       vni=1.d0
       if(zc(1).lt.zc(2)) vni=-1.d0 ! back tracking
 cxy3 ---
-      vect(7)=dsqrt(pin(1)**2+pin(2)**2+pin(3)**2)   ! r8
+      vect(7)=dsqrt(pin(1)**2+pin(2)**2+pin(3)**2)
       do i=1,3
         vect(i  )=xin(i)         !  xyz
         vect(i+3)=pin(i)/vect(7) ! cxyz
       enddo
-*----------------------------------------------- Runge Kutta
+*     --------------------------- Runge Kutta
       np = 1
       do i=1,Nst
         call DRKUTA(SigCha,STEP,VECT,VOUT)    ! r8
@@ -439,82 +405,65 @@ cxy3 ---
           w=(zc(np)-vout(3))/(vect(3)-vout(3))
           x0(np) = vect(1)*w + vout(1)*(1.d0-w)
           y0(np) = vect(2)*w + vout(2)*(1.d0-w)
-          w0(1,np)= vect(4)*w + vout(4)*(1.d0-w)   
-          w0(2,np)= vect(5)*w + vout(5)*(1.d0-w)   
-          w0(3,np)= vect(6)*w + vout(6)*(1.d0-w)   
-c          write(6,'(a3,i2,a3,8f10.5)')' np',np,' x0',x0 ! debug ###
-c          write(6,'(   5x,a3,8f10.5)')         ' y0',y0 ! debug ###
-          if(np.eq.npoc) return  !!!!!!!!! Done
+          if(np.eq.npoc) return  ! Done
           np = np+1
         endif
-          ENDDO  !### fixing closed planes probl.(or run with small STEP)
+          ENDDO  !### fixing closed planes problem.(small tracking STEP)
         do j=1,7 ! x,y,z,cx,cy,cz,P
           vect(j)=vout(j)
         enddo
       enddo ! Nst 
-*==============================
-*#include "../RKMSFIT/debug5a.h"
-*==============================
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine wxy_matr(npo,npl,dx,dy,ipa,R)   !
+      subroutine wxy_matr9(npo,npl,dx,dy,ipa,R)   !
 *-------------------------------------------------
 * Preparing Cov.Err.Matrix with Mult.Scattering
-* A.Chikanian Feb,2003.
-*------------------------------------------------------------
+* A.Chikanian Feb.,2003.
+*     Revised June,2010
+*--------------------------------------------------------
 * Missing planes carring by putting dX,dY --> INF.(~22cm)
 * COS(Th) - is INDIV. for each planes
 * Symmetry of all matrix assumed
-*===========================================================
+*========================================================
 * INP: npo      - # of x,y - hits
 *      npl(npo) - array with plane # associated with hits
 *    dx,dy(npo) - errors of x,y
 *          ipa  - particle ID (Geant)
 *            R  - Rigidity (gess)
-*===========================================================
+*========================================================
       implicit none
-*------------------------
+*----------------
 #include "rkms.h"
-c#include "w8test.h"
-!$OMP threadprivate(/rktrk/)
+*----------------
       double precision charge,sigcha ! for GRKUTA
       common/rktrk/    charge,sigcha
-*-------------------------------
+!$OMP threadprivate(/rktrk/)
+*     -------------------------------
       real dZ(NPma,NPma)
       real wzn(Npma),wzi(Npma)
       integer ipa
       real R,RR,Rmin
       data      Rmin/0.300/ ! GeV
 
-      real xHC
-      data xHC/1./ ! Amount of HanyComb mater.in Si-pl.r.l.units  
-
-      integer npo,i,j,k,ii,jj,is,ier,nmspl
+      integer npo,i,j,k,ii,jj,is,ier,NMSpl,np1
       integer ir(10),ifail,jfat
       integer npl(NPma),lw(NPma),mw(NPma)
       real dx(npo),dy(npo)
-      real dms(NPma,NPma),ww(NPma,NPma)
-      real dTh0,dTc2,oco2(NPma),E,be,P
+      real dms(NPma,NPma),vx(NPma,NPma),vy(NPma,NPma)
+      real dTh0,dTc2,oco(NPma),E,be,P
       integer itr,nw
       real ama,cha,tl,ub
       character*20 pname
-c      real det              !## MINV
-c      integer ll(10),mm(10) !## MINV
-
-      integer np3
-ccc      real w1,wfirst,sq2
-*-----------------------
+*     -----------------------
       logical first
       data    first/.true./
-      save    first,dz,dTh0,dms,NMSpl !ccc,sq2
-      !$OMP threadprivate (first,dz,dTh0,dms,NMSpl)
-
+      save    first,dz,dms,NMSpl
+      !$OMP threadprivate (first,dz,dms,NMSpl)
+*     ----------------------------------------
       if(first) then
         first=.false.
-*========
-*========
-        do i=1,NPma-1  ! ------------------------------  dZ
+        do i=1,NPma-1  ! -------  dZ
           dz(i,i)=0.
           do j=i+1,NPma
             dz(j,i)=trkZ0(j)-trkZ0(i)
@@ -522,207 +471,348 @@ ccc      real w1,wfirst,sq2
           enddo
         enddo
         dz(NPma,NPma)=0.
-        dTh0 = sqrt(2.)*13.6e-3*sqrt(zz0)*(1.+.038*alog(zz0))! KEEP IT
-ccc        sq2=sqrt(1.+xHC)*(1.+0.038*alog(1.+xHC)
-ccc     +                    /(1.+0.038*alog((1.+xHC)*zz0)))
-        write(6,*)'xHC,sq2',xHC !ccc,sq2 ! debug
       endif ! -------------------- first
- 
-*========================================= checkimg # of planes > 3 
+*     =================  # of planes > 3 checking 
       if(npo.lt.3) then
         write(6,*)'### wxy_matr: # of planes',npo
         return
       endif
-*================================== Initializatiob to 0
+*     ===================== Initialization to 0
       do i=1,NPma*NPma
         dms(i,1)=0.
-        ww (i,1)=0.
-        wxy(i,1)=0.
-        if(i.le.NPma) oco2(i)=0.
+        vx (i,1)=0.
+        vy (i,1)=0.
+        wx (i,1)=0.
+        wy (i,1)=0.
+        if(i.le.NPma) oco(i)=0.
       enddo
-
-*================================== MS-matrix building
-      if(npl(1).gt.npl(npo)) then
-        np3=-1
-ccc        wfirst=1.
-      else
-        np3=1
-cccc        wfirst=sq2
-ccc        wfirst=1.
+*     ============================ MS-matrix building
+      np1=npl(1)
+      if(npl(1).gt.npl(npo)) then ! Down --> Up
+        call matr_scatN1(np1,dms) ! Down --> Up
+      else                        !
+        call matr_scatN9(np1,dms) ! Up --> Down
       endif
-      ii=2
-      do i=npl(1)+np3,npl(npo),np3
-        jj=ii
-        do j=i,npl(npo),np3
-          do k=npl(1),i-np3,np3
-ccc            w1=1.
-ccc            if(k.eq.npl(1)) w1=wfirst
-            dms(jj,ii)=dms(jj,ii)+dz(k,i)*dz(k,j) !ccc*w1
-          enddo
-          jj=jj+1
-        enddo
-        ii=ii+1
-      enddo
-
-*====================================
-      call dmshc02(npo,npl,xHC,dZ,dMS) ! Honycomb contrib.in MS-matrix 
-c      call dmshc02(npo,npl,xHC) ! ,dZ,dMS) ! debug
-*===========================================
-      NMSpl = iabs(npl(npo)-npl(1)+np3) ! # Mult.Scatt.planes
+*     ============================
+      NMSpl = iabs(npl(npo)-npl(1))+1 ! # Mult.Scatt.planes
       call gfpart(ipa,pname,itr,ama,cha,tl,ub,nw)
       RR=max(R,Rmin)
       P  =  RR*cha
       E  =  sqrt(P**2+ama**2)
-      be =  P/E ! or be from TOF
-      dTc2 = (dTh0/(be*RR))**2 ! space factor 2 in dTh0
+      be =  P/E ! or from TOF
+      dTc2 = 1./(be*RR)**2 ! scatt.angle correction
       charge = cha
 c      sigcha = 1.D0
 c      if(cha.lt.0.) sigcha = -1.D0 ! for GRKUTA 
-*=============================
-*#include "../RKMSFIT/debug7.h"
-*=============================
-*     ________________________________ Diagonal elements
-
-      ww(1,1) = dY(1)**2 + dX(1)**2 ! dms(1,1)=0.
+*     ------------------------------  Full matrix forming
+      vx(1,1) = dx(1)**2
+      vy(1,1) = dy(1)**2
       ii=1
-      do i=2,npo !_____________________Diagonal elements
-        if(iabs(npl(i)-npl(i-1)).gt.1) then
+      do i=2,npo ! Diagonal elements
+        if(iabs(npl(i)-npl(i-1)).gt.1) then ! Missing plane
           do is=1,iabs(npl(i)-npl(i-1))-1
             ii=ii+1
-            oco2(ii)=1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
-     +                                     /dz(npl(i),npl(i-1))**2
-            ww(ii,ii)=dms(ii,ii)*dTc2 + 1000. ! dX,Y~22cm if missing plane
+            oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
+     +                                      /dz(npl(i),npl(i-1))**2)
+c     +                         /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
+            vx(ii,ii)=dms(ii,ii)*dTc2 + 1000. ! dX,Y~22cm if missing plane
+            vy(ii,ii)= vx(ii,ii)
           enddo
         endif
         ii=ii+1
-        oco2(ii)=1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
-     +                               /dz(npl(i),npl(i-1))**2
-        ww(ii,ii)=dms(ii,ii)*dTc2*oco2(ii)**2 + dY(i)**2 + dX(i)**2
+        oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
+     +                                  /dz(npl(i),npl(i-1))**2)
+c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
+        vx(ii,ii)=dms(ii,ii)*dTc2*oco(ii) + dx(i)**2
+        vy(ii,ii)=dms(ii,ii)*dTc2*oco(ii) + dy(i)**2
       enddo
-*=============================
-*#include "../RKMSFIT/debug8.h"
-*=============================
-      do i=3,NMSpl !___________________Nondiagonal elements
+      do i=3,NMSpl !  Nondiagonal elements
         do j=2,i-1
-          ww(i,j)=dms(i,j)*dTc2*oco2(i)*oco2(j)
-c          ww(j,i)=ww(i,j) !  ## MINV
+          vx(i,j)=dms(i,j)*dTc2*sqrt(oco(i)*oco(j))
+          vy(i,j)= vx(i,j)
         enddo
       enddo
-*=============================
-*#include "../RKMSFIT/debug9.h"
-*=============================
-
-      call rsinv(NMSpl,ww,NPma,ifail) ! F012 Symm.Matr.Inversion
-      if(ifail.ne.0) write(6,*)'### rsinv: ifail=',ifail
-c      call minv(ww,NMSpl,det,ll,mm)
-*==============================
-*#include "../RKMSFIT/debug10.h"
-*==============================
-*--------------------- Matr.Shrinking
-      wxy(1,1)=ww(1,1)
+*     -------------------------------- Inversion
+      call rsinv(NMSpl,vx,NPma,ifail) ! F012 Symm.Matr.Inversion
+      if(ifail.ne.0) write(6,*)'### rsinv x: ifail=',ifail
+      call rsinv(NMSpl,vy,NPma,ifail) ! F012 Symm.Matr.Inversion
+      if(ifail.ne.0) write(6,*)'### rsinv y: ifail=',ifail
+*     --------------------- Matrix Shrinking
+      wx(1,1)=vx(1,1)
+      wy(1,1)=vy(1,1)
       do j=2,npo
         jj=iabs(npl(j)-npl(1))+1
         do i=j,npo
-          wxy(i,j)=ww(iabs(npl(i)-npl(1)+np3),jj)
+          ii=iabs(npl(i)-npl(1))+1
+          wx(i,j)=vx(ii,jj)
+          wy(i,j)=vy(ii,jj)
         enddo
       enddo
-*==============================
-*#include "../RKMSFIT/debug11.h"
-*==============================
       end
 
-*--------1---------2---------3---------4---------5---------6---------7--
-      subroutine dmshc02(npo,npl,xHC,dZ,zz)
-c      subroutine dmshc02(npo,npl,xHC)    ! deb
-*-------------------------------------------------
-* Calculate contribution from HonyComb in Cov.Err.Matrix
-* A.Chikanian Aug,2004.
-*===========================================================
-* INP: npo      - # of x,y - hits
-*      npl(npo) - array with plane # associated with hits
-*      xHC      - thicknes of Honycomb (in r.l.of Si)
-*       dZ      - matrix dZ(i,j)=Z0(i)-Z0(j)
-* OUT:  zz      - Error metrix due to MS (1/2 if filed)
-*===========================================================
+*---------1---------2---------3---------4---------5---------6---------7--
+      subroutine matr_scatN9(npl1,dms)
+* Cov.Err.Matrix with Mult.Scattering for Up --> Down track
+* A.Chikanian May,2010.
+*---------------------------------
+* Input:  npl1 - first plane
+* Output: dms  - scattering matrix
+*---------------------------------
       implicit none
-*------------------------
+*----------------
 #include "rkms.h"
-c#include "w8test.h"
-*-------------------------------------------------------------------
-      integer np3,k1,k2,i1,npla,kk,mm,i0
-      real zz(NPma,NPma)
-*=========
-c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug1_zz8.h"
-*=========
-      real     dZ(NPma,NPma)
-c      save     dZ                    ! deb
-      integer npl(NPma)
-      integer npo,i,j,k,ii,jj
-      real xHC ! Honycomb thickness between planes (2-3,4-5,6-7) in Si r.l.
-cf         xHC - par. is not necessuary because =1 (but let it be).
-cf-- could be usefull in case xHC # 1
-cf      real Whc0,Wth(3)! HanyComb Thetta weight (see N.B. p.69)
-cf      save Whc0      
-cf      logical first
-cf      data    first/.true./
-cf      save    first
-*-------------------------
-cf      if(first) then
-cf        first=.false.
-cf        whc0=    xHC*(1.+0.038*alog(   xHC)/(1.+0.038*alog(zz0)))**2
-cf        write(6,*)'=== wHC0',wHC0 ! debug
-cf      endif ! first
-*------------------------------------------
-cf      do i=1,3 ! = (NPma-1)/2
-cf        Wth(i)=Whc0
-cf      enddo
-*=========
-c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug2_zz8.h"
-*=========
-
-      if(npl(1).lt.npl(npo)) then ! Down
-        np3=1
-        i0=0
-        i1=mod(npl(1),2)
-      else                        ! Up
-        np3=-1
-        i0=1
-        i1=mod(npl(1)+1,2)
-      endif
-      k1=(npl(1)+np3)/2
-      npla=iabs(npl(npo)-npl(1))+1
-
-*---------------------------------------------------------------
-*    (ik,lj)=dZ(i,k)/sqrt(3)+dZ(l,j)
-*    (2k,2k+1 , 2k+1,j) = (dZ(2*k  ,2*k+1)/sqrt(3.)+dZ(2*k+1,i))
-*                       w*(dZ(2*k+1,  j  )/sqrt(3.)+dZ(2*k+1,j))
-*---------------------------------------------------------------
-      do ii=2+i1,npla
-        i=npl(1)+(ii-1)*np3
-        k2=(i-1)/2+i0  ! 1,2 or 3
-c        write(6,*)'ii,i,k1,k2',ii,i,k1,k2          ! debug
-        do jj=ii,npla
-          j=npl(1)+(jj-1)*np3
-c          zz(jj,ii)=0.                             ! debug
-c          kkk=0                                    ! debug
-          do mm=k1,k2,np3
-            k=2*mm+i0
-            kk=k+np3
-            zz(jj,ii)=zz(jj,ii)+(dZ(k,kk)/sqrt(3.)+dZ(kk,i))
-     +                         *(dZ(k,kk)/sqrt(3.)+dZ(kk,j))
-cf     +               *Wth(mm)*(dZ(k,kk)/sqrt(3.)+dZ(kk,j))
-*=========
-c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug3_zz8.h"
-*=========
-          enddo ! k
-c          zz(ii,jj)=zz(jj,ii)
-        enddo  ! j
-      enddo   ! i
-*=========
-c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug4_zz8.h"
-*=========
+*----------------
+      real   dms(NPma,NPma)   ! Output MS matrix 
+*     ------------------------
+      real dmsN9(NPma,NPma,7) ! internal array
+      save dmsN9              ! keep it save
+*     ------------------------
+      integer npl,npl1,N,i,j,k,jj,ii
+      real sq3
+      parameter (sq3=1.73205078)
+*  --------------------------------------------------------- Geometry
+*  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
+*    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
+*  ---------------------------------------------------------
+      real       p(9)/ 156.15, 78.95  !  TRD  p1,p2
+     +               ,  65.5 , 61.0   !  TOF  p3,p4
+     +               ,  56.46         !  HC2  p5
+     +               , -61.0 ,-65.5   !  TOF2 p6,p7
+     +               , -74.5 ,-75.0/  !  RICH p8,p9
+      real       z(9)/ 166.92         !  z1   PL8 (1N)
+     +               ,  53.06         !  z2   PL1
+     +               ,  29.2          !  z3   PL2
+     +               ,  27.5          !  z4   PL3
+     +               ,   1.7          !  z5   PL4
+     +               ,  -1.7          !  z6   PL5
+     +               , -27.5          !  z7   PL6
+     +               , -29.2          !  z8   PL7
+     +               ,-135.48/        !  z9   PL9
+*   -----------------------------------------------------
+*   X_Si = X_HC = 0.32054%
+*   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
+*   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
+*   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
+*   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
+*   ----------------------------------------------------------------
+*                       Si      TRD    TOF   Si or HC     TOF   RICH
+      real  xRL(16)/0.0032054,0.0764,0.047,11*0.0032054,0.047,0.0335/
+      real   DT(16)/16*0./
+      real dz(9,16)/144*0./
+      integer IS(9)/0,4,5,7,8,10,11,13,16/ ! right
+      real beta/1./,rigid/1./ ! 1 GeV/c
+      logical first/.true./
+       save first,z,dz,dt
+      !$OMP threadprivate (first,z,dz,DT,dmsN9)
+*     ----------------------------------------
+      if(first) then ! calculating and storring dmsN9 array
+        do k=1,NPma
+          z(k)=trkZ0(k)
+        enddo
+        do k=1,7*NPma*NPma
+          dmsN9(k,1,1)=0.
+        enddo
+*       --------------- scattering angles
+        do i=1,16
+          if(xRL(i).gt.0.0001)
+     +     DT(i)=xRL(i)*(0.0136/(beta*rigid)*(1.+0.038*alog(xRL(i))))**2.
+        enddo
+*       ---------------  dz matrix
+        do i=2,9
+          dz(i,1)= z(i)-z(1)
+          dz(i,2)=(p(2)-p(1))/sq3+z(i)-p(2)
+          dz(i,3)=(p(4)-p(3))/sq3+z(i)-p(4)  !*
+          dz(i,4)=(z(2)-p(5))/sq3            !*
+          if(i.ge.3) then
+            dz(i,5)= z(i)-z(2)
+            if(i.ge.4) then
+              dz(i,6)= z(i)-z(3)
+              dz(i,7)=(z(4)-z(3))/sq3
+              if(i.ge.5) then
+                dz(i,8)= z(i)-z(4)
+                if(i.ge.6) then
+                  dz(i, 9)= z(i)-z(5)
+                  dz(i,10)=(z(6)-z(5))/sq3
+                  if(i.ge.7) then
+                    dz(i,11)= z(i)-z(6)
+                    if(i.ge.8) then
+                      dz(i,12)= z(i)-z(7)
+                      dz(i,13)=(z(8)-z(7))/sq3
+                      if(i.eq.9) then
+                        dz(i,14)= z(i)-z(8)
+                        dz(i,15)=(p(7)-p(6))/sq3+z(i)-p(7)
+                        dz(i,16)=(p(9)-p(8))/sq3+z(i)-p(9)
+                      endif
+                    endif
+                  endif
+                endif
+              endif
+            endif
+          endif
+        enddo
+*       -------------------- dmsN9 filling
+        do N=1,7
+          do i=N+1,NPma ! toge
+            ii=i-N+1
+            do j=i,NPma
+              jj=j-N+1
+              dmsN9(ii,jj,N)=0.
+              do k=IS(N)+1,IS(i)
+                dmsN9(ii,jj,N)=dmsN9(ii,jj,N)+dz(i,k)*dz(j,k)*DT(k)
+              enddo
+              if(ii .ne. jj)   dmsN9(jj,ii,N)=dmsN9(ii,jj,N)
+            enddo
+          enddo
+        enddo
+        write(6,*)'---- matr_scatN9 initialisation completed ----'
+        first=.false.
+      endif  !  -----------   end first
+*     ---------------------------------
+      if(npl1.lt.1.or.npl1.gt.7) return
+      do k=1,NPma*NPma
+        dms(k,1)=0.
+      enddo
+      npl=Npma-npl1+1
+      do i = 1,npl ! 2
+        do j=1,npl ! 2
+          dms(i,j)=dmsN9(i,j,npl1)
+        enddo
+      enddo
       end
 
+*---------1---------2---------3---------4---------5---------6---------7--
+      subroutine matr_scatN1(npl1,dms)
+* Cov.Err.Matrix with Mult.Scattering for Down -->Up track
+* A.Chikanian June,2010.
+*---------------------------------
+* Input:  npl1 - first plane
+* Output: dms  - scattering matrix
+*---------------------------------
+      implicit none
+*----------------
+#include "rkms.h"
+*----------------
+      real   dms(NPma,NPma)   ! Output MS matrix 
+*     ------------------------
+      real dmsN1(NPma,NPma,7) ! internal array
+      save dmsN1              ! keep it save
+*     ------------------------
+      integer npl,npl1,N,i,j,k,jj,ii
+      real sq3
+      parameter (sq3=1.73205078)
+*  --------------------------------------------------------- Geometry
+*  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
+*    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
+*  ---------------------------------------------------------
+      real       p(9)/ 156.15, 78.95  !  TRD  p1,p2
+     +               ,  65.5 , 61.0   !  TOF  p3,p4
+     +               ,  56.46         !  HC2  p5
+     +               , -61.0 ,-65.5   !  TOF2 p6,p7
+     +               , -74.5 ,-75.0/  !  RICH p8,p9
+      real       z(9)/ 166.92         !  z1   PL8 (1N)
+     +               ,  53.06         !  z2   PL1
+     +               ,  29.2          !  z3   PL2
+     +               ,  27.5          !  z4   PL3
+     +               ,   1.7          !  z5   PL4
+     +               ,  -1.7          !  z6   PL5
+     +               , -27.5          !  z7   PL6
+     +               , -29.2          !  z8   PL7
+     +               ,-135.48/        !  z9   PL9
+*   -----------------------------------------------------
+*   X_Si = X_HC = 0.32054%
+*   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
+*   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
+*   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
+*   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
+*   ----------------------------------------------------------------
+*                       Si      RICH   TOF   Si or HC     TOF    TRD
+      real  xRL(16)/0.0032054,0.0335,0.047,11*0.0032054,0.047,0.0764/
+      real   DT(16)/16*0./
+      real dz(9,16)/144*0./
+      integer IS(9)/0,3,5,6,8,9,11,12,16/
+      real beta/1./,rigid/1./ ! 1 GeV/c
+      logical first/.true./
+
+       save first,z,dz,dt
+      !$OMP threadprivate (first,z,dz,DT,dmsN1)
+*     -----------------------------------------
+      if(first) then ! calculating and storring dmsN9 array
+        do k=1,NPma
+          z(k)=trkZ0(k)
+        enddo
+        do k=1,7*NPma*NPma
+          dmsN1(k,1,1)=0.
+        enddo
+*       --------------- scattering angles
+        do i=1,16
+          if(xRL(i).gt.0.0001)
+     +     DT(i)=xRL(i)*(0.0136/(beta*rigid)*(1.+0.038*alog(xRL(i))))**2
+        enddo
+*       ---------------  dz(9,16) matrix
+        do i=2,9
+          j=9-i+1
+          dz(i,1)= z(j)-z(9)
+          dz(i,2)=(p(8)-p(9))/sq3+z(j)-p(8)
+          dz(i,3)=(p(6)-p(7))/sq3+z(j)-p(6)
+          if(i.ge.3) then
+            dz(i,4)= z(j)-z(8)
+            dz(i,5)=(z(7)-z(8))/sq3
+            if(i.ge.4) then
+              dz(i,6)= z(j)-z(7)
+              if(i.ge.5) then
+                dz(i,7)= z(j)-z(6)
+                dz(i,8)=(z(5)-z(6))/sq3
+                if(i.ge.6) then
+                  dz(i,9)= z(j)-z(5)
+                  if(i.ge.7) then
+                    dz(i,10)= z(j)-z(4)
+                    dz(i,11)=(z(3)-z(4))/sq3
+                    if(i.ge.8) then
+                      dz(i,12)= z(j)-z(3)
+                      if(i.eq.9) then
+                        dz(i,13)= z(1)-z(2)
+                        dz(i,14)=(p(5)-z(2))/sq3+z(1)-p(5)
+                        dz(i,15)=(p(3)-p(4))/sq3+z(1)-p(3)
+                        dz(i,16)=(p(1)-p(2))/sq3+z(1)-p(1)
+                      endif
+                    endif
+                  endif
+                endif
+              endif
+            endif
+          endif
+        enddo
+*       -------------------- dmsN1 filling
+        do N=1,7
+          do i=N+1,NPma
+            ii=i-N+1
+            do j=i,NPma
+              jj=j-N+1
+              dmsN1(ii,jj,N)=0.
+              do k=IS(N)+1,IS(i)
+                dmsN1(ii,jj,N)=dmsN1(ii,jj,N)+dz(i,k)*dz(j,k)*DT(k)
+              enddo
+              if(ii .ne. jj)   dmsN1(jj,ii,N)=dmsN1(ii,jj,N)
+            enddo
+          enddo
+        enddo
+        write(6,*)'---- matr_scatN1 initialisation completed ----'
+        first=.false.
+      endif  !  -----------   end first
+*     ---------------------------------
+      if(npl1.gt.9.or.npl1.lt.3) return
+      do k=1,NPma*NPma
+        dms(k,1)=0.
+      enddo
+      npl=npl1
+      do i = 1,npl ! 2
+        do j=1,npl ! 2
+          dms(i,j)=dmsN1(i,j,NPma-npl1+1)
+        enddo
+      enddo
+      end
+
+*============================ AMS/MYAMS/TRKRKRES/MSMATR/2010/rkmslib.F
 *------------ /group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/drkuta.f
 * modified by A.Chikanian Aug.26,2003
 * EVERYTHING switched to DOUBLE PRECISION
@@ -983,14 +1073,14 @@ C.
         write(6,*)'=== R_init: < Bx > =',Bx
       endif ! first
 
-      if(npo.lt.3) return                            !!!!
+      Rc=10000000.
+      if(Bx.eq.0.or.npo.lt.3) return                            !!!!
       cfit = utcfit(z,y,w1,npo,sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       if(cfit.ne.0) write(6,*)'### utcfit: cfit.ne.0 !!!'
       Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
       call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
       Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
-      if(bx.eq.0)rc=10000000
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
@@ -1091,12 +1181,15 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 * it is probably not right in case dX not eq. dY
 * for example Xav = Sum(Wx(i)*X(i))/Sum(Wx(i)),
 *     but not Xav = Sum( W(i)*X(i))/Sum( W(i)) !!!!!!!!!!!!!!! 
-* unic w(i) is only possible in case dX(i)=dY(i)
+* unique w(i) is only possible in case dX(i)=dY(i)
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
+* $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.16  2010/07/12 14:12:17  choutko
+* *** empty log message ***
+*
 * Revision 1.15  2010/06/24 11:13:35  zweng
 * Add #include "VMCrename.h"
 *
@@ -1286,8 +1379,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.15 2010/06/24 11:13:35 zweng Exp $
+* $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.16  2010/07/12 14:12:17  choutko
+* *** empty log message ***
+*
 * Revision 1.15  2010/06/24 11:13:35  zweng
 * Add #include "VMCrename.h"
 *
