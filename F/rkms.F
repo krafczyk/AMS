@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
+*  $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
 *-----------------------------------------------------------------------
@@ -232,7 +232,7 @@ c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
           Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
         enddo
 #if defined (__LINUX24__ )
-!$OMP CRITICAL (RKMS)
+!$OMP END CRITICAL (RKMS)
 #endif
         Chi2=1.e30
         if(Dhi2.lt.1.e30) Chi2=Dhi2
@@ -1185,8 +1185,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
+* $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.17  2010/07/12 15:35:56  choutko
+* *** empty log message ***
+*
 * Revision 1.16  2010/07/12 14:12:17  choutko
 * *** empty log message ***
 *
@@ -1379,8 +1382,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.16 2010/07/12 14:12:17 choutko Exp $
+* $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.17  2010/07/12 15:35:56  choutko
+* *** empty log message ***
+*
 * Revision 1.16  2010/07/12 14:12:17  choutko
 * *** empty log message ***
 *
