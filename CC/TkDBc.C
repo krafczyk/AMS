@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.23 2010/07/12 09:37:51 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.24 2010/07/12 13:05:07 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/07/12 09:37:51 $
+///$Date: 2010/07/12 13:05:07 $
 ///
-///$Revision: 1.23 $
+///$Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -368,7 +368,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
        {     0,    0,  503,  515,  516, -521, -509,    0,  706, -703,  715,  716,  721,    0,    0, },
        {     0,    0,  507,  519,  513, -517, -505,    0,  711, -707,  719,  713,  717,  701,    0, },
        {     0,    0,  502,  514,  512, -520, -508,    0,  710, -702,  714,  712,  720,  705,   -1, },
-       {     0,  202,  206,  203,  600,  604,  608,  609,  806,  805,  810,  818,  401,  404,    0, },
+       {     0,  202,  206,  203,  600,  604,  608,  609,  806,  811,  810,  818,  401,  404,    0, },
        {   801,  822,  823,  718,  722,  723,  504,  804,    0,    0,    0,    0,    0,    0,    0, },
       },
     };
@@ -388,7 +388,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       exit(-2);
     }
 
-
+    
     const float LadDeltaX[2][maxlay][maxlad]={{
 	//1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
 	{ -0.39,   20.31, -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39}, //1
@@ -531,8 +531,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
           for (int slot=0;slot<maxlad;slot++)
             if(filled_slot(side,lay,slot)){
               int oct=GetOctant(side,lay+1,slot+1);
-	      if  (_setup==3 && (lay+1)==9){
-		oct=_octid[side][lay][slot]/100;
+	      if  (_setup==3 ){
+		oct=abs(_octid[side][lay][slot])/100;
 	      }
               int hwid=0;
 	      if(_octid[side][lay][slot]) hwid=abs(_octid[side][lay][slot])-(100*(oct))+(_octant_crate[oct-1]*100);
