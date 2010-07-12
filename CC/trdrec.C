@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.48 2010/06/09 15:49:10 pzuccon Exp $
+//  $Id: trdrec.C,v 1.49 2010/07/12 09:37:51 pzuccon Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -850,7 +850,9 @@ else{
     number tol=2.99e-2;
     int i,j;
     _update=false;
+#ifndef NO_NAG    
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,(void*)this);
+#endif
     if(ifail==0){
      _update=true;
      _StrLine._Coo[0]=x[0];

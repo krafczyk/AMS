@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.104 2010/07/07 14:17:21 pzuccon Exp $
+#  $Id: Makefile,v 1.105 2010/07/12 09:37:52 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -191,10 +191,11 @@ COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
 
 #Utils
 COMMON_FILES +=  $(SCC)commons.C  $(SCC)cern.C    $(SFF)sgif.F   $(SCC)rnormx.C  $(SFF)geocoor.F     \
-		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f
+		 $(SCC)status.C   $(SCC)user.C    $(SCC)timelx.c $(SFF)e04ccf.f	 
+#
 
 ifndef PGTRACK
-COMMON_FILES +=		$(SFF)mtx2.F     $(SFF)fint_my.F 
+COMMON_FILES += $(SFF)mtx2.F     $(SFF)fint_my.F 
 endif
 
 
@@ -591,6 +592,11 @@ ifeq  "$(shell uname)"  "HP-UX"
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
 	f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
+endif
+ifeq  "$(shell uname)"  "Darwin" 
+
+$(BIN)mtx.o:                   $(SFF)mtx77.F
+	$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "Linux" 
 

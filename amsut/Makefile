@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.4 2009/12/15 14:06:35 pzuccon Exp $
+#  $Id: Makefile,v 1.5 2010/07/12 09:37:51 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -43,7 +43,7 @@ ROOTLIBS = $(shell $(ROOTCFG) --libs)
 ### C++ compiler flags ###
 ifeq ($(ARCH), Darwin)
 DEFINES  = -D__DARWIN__
-FC=gfortran
+FC=gfortran -m64
 else
 DEFINES  =
 endif
