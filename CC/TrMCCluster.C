@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.13 2010/06/25 21:18:09 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.14 2010/07/14 13:43:50 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/06/25 21:18:09 $
+///$Date: 2010/07/14 13:43:50 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -315,7 +315,7 @@ void TrMCClusterR::GenSimClusters(){
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
   double ip[2] = {_glo2loc.GetSensCoo().x(),  _glo2loc.GetSensCoo().y()};   // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
-  if (VERBOSE)
+  // if (VERBOSE)
     printf("TrSim::MCCluster:More - loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",ip[0],ip[1],ia[0],ia[1],nsensor);
   
   // Loop on two Sides of the ladder

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.56 2010/06/09 15:49:10 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.57 2010/07/14 13:44:05 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/06/09 15:49:10 $
+/// $Date: 2010/07/14 13:44:05 $
 ///
-/// $Revision: 1.56 $
+/// $Revision: 1.57 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -482,7 +482,7 @@ int TrRecon::BuildSeedListInSubBuffer(int first, int last, int cyclicity) {
     // 1. the strip has to be well defined
     // 2. a noisy strip can't be a seed strip
     // 3. the seed must exceed the ThrSeed S/N threshold
-    if (  (_sigbuf[ii]<=0.)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<RecPar.ThrSeed[side] )  ) continue;
+    if (  (_sigbuf[ii]<1.e-6)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<RecPar.ThrSeed[side] )  ) continue;
     // 4. if the next strip is good, above threeshold and with signal larger than this one continue
     if( ii<(last-1)&&(_adcbuf[ii+1]>_adcbuf[ii]))
       if ((_sigbuf[ii+1]>0.)&&(_stabuf[ii+1]==0)&&( (_adcbuf[ii+1]/_sigbuf[ii+1])>=RecPar.ThrSeed[side]))
@@ -527,6 +527,8 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
   // search for the left boundary
   int address = GetAddressInSubBuffer(leftaddress-1,first,last,cyclicity); 
   while (address!=left) { 
+    // the neighboring strip must be defined
+    if (_sigbuf[address]<1.e-6) break;
     // the neighboring strip must exceed the ThrNeig S/N threshold
     if (_adcbuf[address]/_sigbuf[address]<=RecPar.ThrNeig[side]) break;
     // the neighboring strip signal has to be smaller than the seed one
@@ -541,6 +543,8 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
   // search for the right boundary
   address = GetAddressInSubBuffer(rightaddress+1,first,last,cyclicity); 
   while (address!=right) { 
+    // the neighboring strip must be defined
+    if (_sigbuf[address]<1.e-6) break;
     // the neighboring strip must exceed the ThrNeig S/N threshold
     if (_adcbuf[address]/_sigbuf[address]<=RecPar.ThrNeig[side]) break;
     // the neighboring strip signal has to be smaller than the seed one
