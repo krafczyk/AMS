@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.715 2010/07/07 14:12:45 pzuccon Exp $
+// $Id: job.C,v 1.716 2010/07/14 15:13:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -210,7 +210,7 @@ void AMSJob::data(){
   AMSFFKEY.Update=0;
   VBLANK(AMSFFKEY.Jobname,40);//6
   VBLANK(AMSFFKEY.Setupname,40);//46
-  char amsetup[16]="AMS02";
+  char amsetup[16]="AMS02P";
   UCTOH(amsetup,AMSFFKEY.Setupname,4,16);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
@@ -559,8 +559,6 @@ for(i=0;i<8;i++){
   }
 }
 }
-TRMCFFKEY.pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
-TRMCFFKEY.pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.CalibProcedureNo=0;
@@ -732,8 +730,8 @@ CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=1012009;
-CCFFKEY.enddate=  1012012;
+CCFFKEY.begindate=1062009;
+CCFFKEY.enddate=  1012020;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
 CCFFKEY.oldformat=0;
@@ -3777,7 +3775,7 @@ if(MISCFFKEY.BeamTest>1){
   tm begin;
   tm end;
   AMSTrAligFit::InitDB();
-  if( TRALIG.UpdateDB || !strcmp(getsetup(),"AMS02P")){
+  if( TRALIG.UpdateDB ){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
@@ -3785,10 +3783,8 @@ if(MISCFFKEY.BeamTest>1){
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSTrAligFit::getTDVGLDB(),begin,end,AMSTrAligFit::gettraliggldbsize(),
-
-                          AMSTrAligFit::gettraliggldbp(),server));
-   if(TRALIG.ReWriteDB)ptdv->UpdateMe();
+   AMSTimeID * ptdv = (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVGLDB():AMSTrAligFit::getTDVGLDBP(),begin,end,AMSTrAligFit::gettraliggldbsize(),AMSTrAligFit::gettraliggldbp(),server));
+   if(TRALIG.ReWriteDB)ptdv->UpdateMe()=1;
 }
 
 
@@ -3798,7 +3794,7 @@ if(!isRealData()){
   tm begin;
   tm end;
   AMSTrAligFit::InitADB();
-  if(TRALIG.UpdateDB>1 || !strcmp(getsetup(),"AMS02P")){
+  if(TRALIG.UpdateDB>1 ){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
@@ -3807,10 +3803,10 @@ if(!isRealData()){
      end=AMSmceventg::Orbit.Begin;
   }
 
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSTrAligFit::getTDVAGLDB(),begin,end,AMSTrAligFit::gettraliggladbsize(),
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVAGLDB():AMSTrAligFit::getTDVAGLDBP(),begin,end,AMSTrAligFit::gettraliggladbsize(),AMSTrAligFit::gettraliggladbp(),server));
 
-                          AMSTrAligFit::gettraliggladbp(),server));
 }
+
 
 #endif
 
@@ -4233,6 +4229,27 @@ void AMSJob::_axendjob(){
 void AMSJob::_dbendjob(){
   //Status Stuff
 #ifndef __CORBA__
+  if(AMSFFKEY.Update==1001){
+/*
+    AMSTrAligFit::rewrite();
+      time_t begin,end,insert;
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSTrAligFit::getTDVGLDB());
+      ptdv->gettime(insert,begin,end);
+      
+      ptdv=AMSJob::gethead()->gettimestructure(AMSTrAligFit::getTDVGLDBP());
+    ptdv->UpdCRC();
+      ptdv->SetTime(insert,begin,end);
+      ptdv->UpdateMe()=1;
+     ptdv=AMSJob::gethead()->gettimestructure(AMSTrAligFit::getTDVAGLDB());
+     if(ptdv){
+     ptdv->gettime(insert,begin,end);
+     ptdv=AMSJob::gethead()->gettimestructure(AMSTrAligFit::getTDVAGLDBP());
+    ptdv->UpdCRC();
+      ptdv->SetTime(insert,begin,end);
+      ptdv->UpdateMe()=1;
+    }
+*/
+  }
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
       AMSJob::gethead()->getstatustable()->Sort();
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());

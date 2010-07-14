@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.28 2010/03/21 15:16:38 choutko Exp $
+//  $Id: tralig.h,v 1.29 2010/07/14 15:13:52 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -199,8 +199,10 @@ number chi2i[1000];
 number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
 static AMSTrAligPar _pPargl[trconst::maxsen][trconst::maxlad][2][trconst::maxlay];
-static gldb_def _gldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay-1];
-static gldb_def _antigldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay-1];
+static gldb_def _gldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _gldbP[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _antigldb[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
+static gldb_def _antigldbP[trconst::maxsen+1][trconst::maxlad+1][2][trconst::maxlay];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
@@ -213,17 +215,24 @@ public:
 AMSTrAligFit();
 AMSTrAligFit(uint128 _Address, integer pattern, integer data, integer alg, integer nodeno);
 static AMSTrAligPar * SearchAntiDBgl(AMSTrIdGeom*pid,bool anti=true);
+static void rewrite();
 static const char * GetAligString();
 static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0][0]);}
 static gldb_def * gettraliggladbp(){ return &(_antigldb[0][0][0][0]);}
+static gldb_def * gettraliggldbPp(){ return &(_gldbP[0][0][0][0]);}
+static gldb_def * gettraliggladbPp(){ return &(_antigldbP[0][0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
 static integer gettraliggladbsize(){return sizeof(_antigldb);}
+static integer gettraliggldbPsize(){return sizeof(_gldbP);}
+static integer gettraliggladbPsize(){return sizeof(_antigldbP);}
 static void InitDB();
 static void InitADB();
 static void Test(int i=0){};
 static void Testgl(int i=0){};
 static AMSID getTDVGLDB();
 static AMSID getTDVAGLDB();
+static AMSID getTDVGLDBP();
+static AMSID getTDVAGLDBP();
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uintl address, integer strict=0);
 void Fit();

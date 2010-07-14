@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.292 2010/07/07 14:12:53 pzuccon Exp $
+//  $Id: commons.h,v 1.293 2010/07/14 15:13:52 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -468,8 +468,6 @@ geant delta[2];
 geant gammaA[2];
 geant NonGaussianPart[2];
 geant BadCh[2];
-geant pl9zgap;
-geant pl9sthick;
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);

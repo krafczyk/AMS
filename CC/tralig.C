@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.62 2010/03/21 15:16:30 choutko Exp $
+//  $Id: tralig.C,v 1.63 2010/07/14 15:13:52 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -2018,11 +2018,19 @@ return AMSID("TrAligDB",AMSJob::gethead()->isRealData());
 
 }
 AMSID AMSTrAligFit::getTDVGLDB(){
-return AMSID("TrAligglDB03",AMSJob::gethead()->isRealData());
+return AMSID("TrAligglDB04",AMSJob::gethead()->isRealData());
 
 }
 AMSID AMSTrAligFit::getTDVAGLDB(){
-return AMSID("TrAligglADB03",AMSJob::gethead()->isRealData());
+return AMSID("TrAligglADB04",AMSJob::gethead()->isRealData());
+
+}
+AMSID AMSTrAligFit::getTDVGLDBP(){
+return AMSID("TrAligglDBP",AMSJob::gethead()->isRealData());
+
+}
+AMSID AMSTrAligFit::getTDVAGLDBP(){
+return AMSID("TrAligglADBP",AMSJob::gethead()->isRealData());
 
 }
 
@@ -2606,8 +2614,11 @@ void AMSTrAligFit::InitDB(){
  }
 }
 
-AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[trconst::maxsen+1][trconst::maxlad+1][2][maxlay-1];
-AMSTrAligFit::gldb_def AMSTrAligFit::_antigldb[trconst::maxsen+1][trconst::maxlad+1][2][maxlay-1];
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[trconst::maxsen+1][trconst::maxlad+1][2][maxlay];
+AMSTrAligFit::gldb_def AMSTrAligFit::_antigldb[trconst::maxsen+1][trconst::maxlad+1][2][maxlay];
+
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldbP[trconst::maxsen+1][trconst::maxlad+1][2][maxlay];
+AMSTrAligFit::gldb_def AMSTrAligFit::_antigldbP[trconst::maxsen+1][trconst::maxlad+1][2][maxlay];
 
 
 
@@ -2627,3 +2638,15 @@ if(_NEntries>0)_NEntries--;
 
 }
 
+void AMSTrAligFit::rewrite(){
+for(int i=0;i<trconst::maxsen+1;i++){
+  for(int j=0;j<trconst::maxlad+1;j++){
+   for(int k=0;k<2;k++){
+    for(int l=0;l<trconst::maxlay-1;l++){
+       _gldbP[i][j][k][l]=_gldb[i][j][k][l];
+       _antigldbP[i][j][k][l]=_antigldb[i][j][k][l];
+    }
+   }
+  }
+ }
+}

@@ -17,9 +17,16 @@ public:
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     if(ev && ev->nParticle() && ev->nTrTrack()){
-         cout <<ev->Particle(0).iEcalShower()<<endl;
-         return true;
+     if(ev && ev->nParticle() && ev->nTrTrack() && ev->nLevel1()){
+        int mem=ev->Level1(0).JMembPatt;
+        int b14=(mem>>14)&1;
+        float x=ev->Particle(0).TRDCoo[1][0];
+        float y=ev->Particle(0).TRDCoo[1][1];
+         if(b14 && fabs(x-17)>2. && fabs(y+17)>2. && ev->nTrdTrack()==1 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iTrTrack()>=0 && ev->nTofCluster()<6){
+           cout <<x<<" "<<y<<" "<<endl;
+           return true;
+         }
+         else return false;
      }
      else return false;
   

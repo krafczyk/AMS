@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.111 2009/11/27 10:43:38 choutko Exp $
+//  $Id: trrawcluster.C,v 1.112 2010/07/14 15:13:52 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -1052,7 +1052,9 @@ if(nerr>0){
    }
    }
    if(update){
-   for (int i=0;i<2;i++){
+   int maxi=2;
+   if(!strcmp(AMSJob::gethead()->getsetup(),"AMS02P"))maxi=1;
+   for (int i=0;i<maxi;i++){
    AMSTimeID * ptdv;
   for (int k=0;k<=TRCALIB.Method;k++){
     if(k==0)ptdv = AMSJob::gethead()->gettimestructure(getTDVped(i));

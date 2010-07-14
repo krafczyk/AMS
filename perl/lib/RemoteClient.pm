@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.583 2010/04/05 08:11:31 ams Exp $
+# $Id: RemoteClient.pm,v 1.584 2010/07/14 15:13:53 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7245,6 +7245,7 @@ print qq`
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
+      
 #
 # check here custom/generic
 #
@@ -7264,6 +7265,7 @@ print qq`
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
 
+         $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
          print FILE $buf;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
@@ -8430,6 +8432,7 @@ anyagain:
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
 
+         $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
          print FILE $buf;
 #  change tmpb to include pl1 dependence
          if($tmpb =~/15=0/){

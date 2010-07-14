@@ -78,7 +78,7 @@ C      Simul Debug    CpuLim  Read Write Jobname
 IOPA 1=1 2='/f2users/choutko/calib.hbk' 127=0  
 43=101
 45='TriggerLVL1   ' 
-AMSJOB 1=11   2=0      3=600.   4=1  5=0 46='AMS02'
+AMSJOB 1=11   2=0      3=600.   4=1  5=0 46='AMS02P'
 87=1 88=''
 C Special HP-UX
 TIME 3=100000000

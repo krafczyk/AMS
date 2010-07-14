@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.135 2009/12/08 11:24:15 choutko Exp $
+//  $Id: producer.C,v 1.136 2010/07/14 15:13:52 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1952,6 +1952,10 @@ else sprintf(tmpu,"%d",_pid.uid);
     }
     fbin.close();
     if(found)unlink((const char*)fout);
+    else {
+      cout << " AMSProducer-W-UsingAMSFSCRIPT "<<endl;
+      fscript=getenv("AMSFSCRIPT");
+    }
     ifstream f1;
     f1.open((const char *)fscript);
     if(f1){

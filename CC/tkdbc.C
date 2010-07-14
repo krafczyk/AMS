@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.71 2010/06/15 16:54:17 choutko Exp $
+//  $Id: tkdbc.C,v 1.72 2010/07/14 15:13:52 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2001,8 +2001,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    _zposl[7]+=-0.018;
    _zposl[8]+=0.;
    const number nrml[maxlay][3][3]={
-                                          1,0,0,
-                                          0,-1,0,
+                                          -1,0,0,
+                                          0,1,0,
                                           0,0,-1,
                                           1,0,0,
                                           0,-1,0,
