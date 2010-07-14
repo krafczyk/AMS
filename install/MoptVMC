@@ -1,4 +1,4 @@
-#  $Id: MoptVMC,v 1.6 2010/06/28 13:56:13 zweng Exp $
+#  $Id: MoptVMC,v 1.7 2010/07/14 14:26:40 zweng Exp $
 
 #P.Zuccon june 2005
 
@@ -192,7 +192,10 @@ COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
 #===========================AMS VMC Application
 COMMON_FILES += $(SCC)amsvmc.o $(SCC)amsvmc_MCApplication.o  $(SCC)amsvmc_DetectorConstruction.C   \
                 $(SCC)amsvmc_PrimaryGenerator.C   $(SCC)amsvmc_MCStack.C   $(SCC)amsvmc_RootManager.C \
-                $(SFF)trd_vmc.F $(SFF)readtrd_vmc.F  $(SCC)amsvmc_MagField.C  $(SCC)g4physics.C
+                $(SFF)trd_vmc.F $(SFF)readtrd_vmc.F  $(SCC)amsvmc_MagField.C  $(SCC)g4physics.C $(SCC)amsvmc_RunConfiguration.C\
+		$(SCC)TRD_TrdPhysics.C  $(SCC)TRD_PhysicsList.C $(SCC)TRD_PhysicsListMessenger.C $(SCC)TRD_VXTenergyLoss.C  \
+                $(SCC)TRD_StepMax.C $(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_EmStandardPhysics.C \
+		$(SCC)TrdSimUtil.C $(SCC)TRD_PAIModel.C
 
 ROOTLIBS = -L$(VMCLIB)/ -static -lRootVMC -lfreetype -lpcre
 
