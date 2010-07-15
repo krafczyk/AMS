@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.204 2010/07/09 12:14:09 mmilling Exp $
+//  $Id: particle.C,v 1.205 2010/07/15 11:21:45 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1131,12 +1131,12 @@ void AMSParticle::refit(int fast){
     // Changed - never use geanerigidity to build mom
 
 #ifndef _PGTRACK_
-    // PZ FIXME what is the purpose ?????
-    if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On){
-      AMSgObj::BookTimer.start("ReGeaneRefit");
-      _ptrack->Fit(beta>0?3:-3,_GPart);
-      AMSgObj::BookTimer.stop("ReGeaneRefit"); 
-    }
+//    // PZ FIXME what is the purpose ?????
+//    if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On){
+//      AMSgObj::BookTimer.start("ReGeaneRefit");
+//      _ptrack->Fit(beta>0?3:-3,_GPart);
+//      AMSgObj::BookTimer.stop("ReGeaneRefit"); 
+//    }
 #endif	
 #ifdef _PGTRACK_
     _build(_ptrack->GetRigidity(),_ptrack->GetErrRinv(),_Charge,

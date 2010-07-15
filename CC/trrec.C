@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.225 2010/05/13 13:53:27 choutko Exp $
+//  $Id: trrec.C,v 1.226 2010/07/15 11:21:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2321,8 +2321,8 @@ void AMSTrTrack::AdvancedFit(){
     for(int i=0;i<_NHits;i++){
       _Pthit[i]->updatecoo(force);
     }
-    if(!force[0] || !force[1])Fit(0); 
-  _AdvancedFitDone=1;
+    if(!force[0] || !force[1] || TRFITFFKEY.AddMS==1)Fit(0); 
+    _AdvancedFitDone=1;
     if(TKDBc::patpoints(_Pattern)>3){
       Fit(1);
       Fit(2);
@@ -2330,6 +2330,7 @@ void AMSTrTrack::AdvancedFit(){
     Fit(6);
     Fit(4);
     Fit(5);
+    Fit(3);
     if(TKDBc::patpoints(_Pattern)>5){
 
     Fit(10);
@@ -2917,6 +2918,8 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
     integer fit =abs(fits)%10;
     integer ie=abs(fits)/10;
     if(fit==1 || fit==2 || fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:(TRFITFFKEY.MainAlg/100)%10;        else if(fit==5)ialgo=(TRFITFFKEY.MainAlg/10)%10;
+    if(ialgo==5)_GeaneFitDone=-5;
+    else if (_GeaneFitDone<0)_GeaneFitDone=0;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
      normal[i][1]=0;
@@ -4255,7 +4258,7 @@ number AMSTrTrack::par[2][3];
 AMSPoint AMSTrTrack::getEHit(int i, int dir){
 int j=dir==0?i:_NHits-1-i;
 float const ze=100;
-if(_FastFitDone==1 && TRFITFFKEY.AddMS==1){
+if(_FastFitDone==1 && TRFITFFKEY.AddMS==1 && _GeaneFitDone>=0){
  if(_Hit[j][2]>ze){
   number dz=_Hit[j][2]-55;
   number ms=13.6e-3*sqrt(fabs(0.25/cos(_Theta)))/1.8/fabs(_Ridgidity)*dz;
