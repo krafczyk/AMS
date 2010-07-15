@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.717 2010/07/15 07:38:43 choutko Exp $
+// $Id: job.C,v 1.718 2010/07/15 14:33:56 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -497,7 +497,7 @@ void AMSJob::_sitrig2data(){
 //
 #ifndef _PGTRACK_
 void AMSJob::_sitkdata(){
-TKGEOMFFKEY.ReadGeomFromFile=0;
+TKGEOMFFKEY.ReadGeomFromFile=1;
 TKGEOMFFKEY.WriteGeomToFile=0;
 TKGEOMFFKEY.UpdateGeomFile=0;
 VBLANK(TKGEOMFFKEY.gfile,40);
@@ -730,7 +730,7 @@ CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=1062009;
+CCFFKEY.begindate=1062010;
 CCFFKEY.enddate=  1012020;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
