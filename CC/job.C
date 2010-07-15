@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.716 2010/07/14 15:13:52 choutko Exp $
+// $Id: job.C,v 1.717 2010/07/15 07:38:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2840,7 +2840,7 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
   tm etm;
   time_t begin,end;
   AMSTimeID *ptdv;
-  
+ if(strcmp(getsetup(),"AMS02P")){
   if(AMSFFKEY.Update==101){
     begin=MAGSFFKEY.begin;
     end=MAGSFFKEY.end>MAGSFFKEY.begin?MAGSFFKEY.end:MAGSFFKEY.begin+2e7;
@@ -2861,7 +2861,7 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
     TID.add(ptdv);
   }
  }
- 
+ }
 
 //PZMAG 
 #ifdef _PGTRACK_
