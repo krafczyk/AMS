@@ -1,4 +1,5 @@
-//amschain
+//  $Id: amschain.C,v 1.17 2010/07/15 09:18:28 choutko Exp $
+
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -66,30 +67,10 @@ Int_t AMSChain::ReadOneEvent(Int_t entry){
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
-  _getevent(entry, false);
-}
-
-AMSEventR* AMSChain::GetEventGlobal(Int_t entry){
-  GetEvent(entry);
-}
-
-AMSEventR* AMSChain::GetEventLocal(Int_t entry){
-  _getevent(entry, true);
-}
-
-AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
   Init();
-  if (!kLocal) {//The old/standard way to call this method...
-    if(entry>=GetEntries()) return _EVENT;
-    _ENTRY = entry;
-    m_tree_entry = LoadTree(_ENTRY);
-  }
-  else {// The "local" way to call this method.
-    if(entry>=(GetTree()->GetEntries())) return _EVENT;
-    _ENTRY = 0;//The "correct" setting of _EVENT is not supported in this mode...
-    m_tree_entry = entry;
-  }
-
+  if(entry>=GetEntries()) return _EVENT;
+  _ENTRY = entry;
+  m_tree_entry = LoadTree(_ENTRY);
   if (GetTreeNumber()!=_TREENUMBER) {
     _TREENUMBER = GetTreeNumber();
     _EVENT->Tree() = GetTree();
@@ -135,6 +116,7 @@ AMSEventR* AMSChain::GetEvent(){
   GetEvent(_ENTRY+1);
   return _EVENT;
 };
+
 
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
   Rewind();//Go to start of chain
@@ -224,22 +206,8 @@ int  AMSChain::LoadUF(char* fname){
 
 }
 
-Long64_t AMSChain::GetMCEvents(){
 
-  Long64_t nev=0;
-  TObjArray * list=GetListOfFiles();
-  for (int ii=0;ii<list->GetEntries();ii++){
-    TChainElement * gg=(TChainElement*)list->At(ii);
-    TFile f(gg->GetTitle());
-    TTree* tt=(TTree*) f.Get(gg->GetName());
-    RunHeader* hh=(RunHeader*)tt->GetUserInfo()->First();
-    nev+=hh->gevent;
-    f.Close();
-  }
-  return nev;
-}
 
-/*
 
 Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Long64_t firstentry){
 #ifndef __ROOTSHAREDLIBRARY__
@@ -370,7 +338,6 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
 #endif
 }
 
-*/
 
 //##################################################################
 //#####################    AMSEventList      #######################

@@ -1,3 +1,4 @@
+//  $Id: amschain.h,v 1.11 2010/07/15 09:18:32 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -26,7 +27,7 @@
 */
 
 class AMSChain : public TChain {
- private:
+private:
   int m_tree_entry;
   unsigned int fThreads;
   unsigned int fSize;
@@ -35,92 +36,83 @@ class AMSChain : public TChain {
   const char* _NAME;
   Int_t _TREENUMBER;
   TFile* _FILE;
-  
-  ///Get AMSEventR in entry number "entry", if kLocal is false the entry number is "global", if true the entry number is local w.r.t. curret tree
-  AMSEventR* _getevent(Int_t entry, Bool_t kLocal=false);
 
- public:
-  int get_tree_entry()const {return m_tree_entry;}
-  unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
+public:
+   int get_tree_entry()const {return m_tree_entry;}
+   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
     :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
-  char * getsetup();
-  
+     char * getsetup();
+
   /// alternative constructor (It requires an AMSEventR object to be passed)
   AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1, unsigned int fSize=sizeof(AMSEventR)); 
-  
+
   /// Destructor
   virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
-  
+
   ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 
-  
+
   ///Get next AMSEventR object in the chain
   AMSEventR* GetEvent(); 
-  
-  ///Get AMSEventR in entry number "entry" (the entry number is "global", i.e. along the chain)
-  AMSEventR* GetEvent(Int_t entry);
-  AMSEventR* GetEventGlobal(Int_t entry);
 
-  ///Get AMSEventR in entry number "entry" (the entry number is "local", i.e. along the curret tree)
-  AMSEventR* GetEventLocal(Int_t entry);
-  
+  ///Get AMSEventR in entry number "entry"
+  AMSEventR* GetEvent(Int_t entry); 
+
   ///Get AMSEventR in entry number "entry" appling the user selection function (if defined)
   /// Return 1 if the entry number "entry satisfies the  user selection function
   /// Return 0 otherwhise 
   /// Retrun -1 of eof
   Int_t ReadOneEvent(Int_t entry);
-  
+
   ///Get AMSEventR with run number "run" and event number "ev"
   AMSEventR* GetEvent(Int_t run, Int_t ev); 
-  //  bool   getevent(unsigned int run, unsigned int event);
-  
+//  bool   getevent(unsigned int run, unsigned int event);
+
   ///Rewind the chain (go back before first entry)
   void Rewind() {_ENTRY=-1;_TREENUMBER=-1;}; 
-  
+
   ///Get the current entry number
   Int_t Entry(){return _ENTRY;}
-  
+
   ///Get the current event pointer
   AMSEventR* pEvent() {return _EVENT;} 
-  
+
   ///Get the name of the tree
   const char* ChainName(){return _NAME;} 
-  
+
   ///Load the user event selection function compiling the selected ile
   int  LoadUF(char* fname="AMSNtupleSelect.C");
-  
+
   /// Generate a skeleton to be used as  user event selection function
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
-  
-  /// Returns the number of generated events in MC
-  Long64_t GetMCEvents();
-  //  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
-  
+
+
+   virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   ClassDef(AMSChain,5)       //AMSChain
 #pragma omp threadprivate(fgIsA)
-    };
-    
-    
-    //!  AMSEventList class
-    /*!
-      Utility class, to select a set of events and then having the possibility to write
-      them into a new files, possibly with just a set of selected branches. 
-      Example:
-      
-      \include select_entries.C
-      
-      \author juan.alcaraz@cern.ch
-      
-    */
-    
+};
+
+
+//!  AMSEventList class
+/*!
+  Utility class, to select a set of events and then having the possibility to write
+  them into a new files, possibly with just a set of selected branches. 
+  Example:
+
+  \include select_entries.C
+
+  \author juan.alcaraz@cern.ch
+
+*/
+
 class AMSEventList {
- private:
+private:
   vector<int> _RUNs;
   vector<int> _EVENTs;
-  
- public:
+
+public:
   AMSEventList(); ///< Default Constructor
   AMSEventList(const char* filename); ///< Constructor with an already existing list
   virtual ~AMSEventList(){};

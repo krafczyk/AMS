@@ -12,22 +12,16 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
     static int a=0;
+      cout << "qq "<<endl;
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     if(ev && ev->nParticle() && ev->nTrTrack() && ev->nLevel1()){
-        int mem=ev->Level1(0).JMembPatt;
-        int b14=(mem>>14)&1;
-        float x=ev->Particle(0).TRDCoo[1][0];
-        float y=ev->Particle(0).TRDCoo[1][1];
-         if(b14 && fabs(x-17)>2. && fabs(y+17)>2. && ev->nTrdTrack()==1 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iTrTrack()>=0 && ev->nTofCluster()<6){
-           cout <<x<<" "<<y<<" "<<endl;
+     if(ev   && ev->nParticle() && ev->nTrTrack() ){
+           cout << ev->NTrTrack()  << " "<<ev->nParticle()<<endl;
            return true;
          }
-         else return false;
-     }
      else return false;
   
   try{
