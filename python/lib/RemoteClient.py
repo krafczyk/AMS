@@ -2655,7 +2655,7 @@ class RemoteClient:
             if(run2p<0):
                 rund=" and runs.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
-        sql="select path,castortime from ntuples where path like '%%%s%%' and datamc=%d %s " %(dataset,datamc,runn) 
+        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc,runn) 
         files=self.sqlserver.Query(sql)
         datapath=dataset
         ds1=""
@@ -2681,7 +2681,7 @@ class RemoteClient:
             sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s%%' and datamc=%d %s " %(datapath,datamc,runn)
+            sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc,runn)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
