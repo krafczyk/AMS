@@ -9,8 +9,6 @@
 #include "TrdHRecon.h"
 
 
-
-
 void AMSTRDHSegment::_copyEl(){
 #ifdef __WRITEROOT__
   if(PointerNotSet())return;
@@ -80,8 +78,8 @@ AMSTRDHTrack *AMSTRDHTrack::gethead(uinteger i){
 
 void AMSTRDHSegment::_addnextR(uinteger iseg){
   // permanently add;
-  if(iseg>trdhrecon.hsegvec.size()&&iseg<10){
-    AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",iseg),new AMSTRDHSegment(&trdhrecon.hsegvec[iseg]));
+  if(iseg>TrdHReconR::getInstance()->nhsegvec&&iseg<10){
+    AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",iseg),new AMSTRDHSegment(TrdHReconR::getInstance()->hsegvec[iseg]));
   }
 }
 
@@ -148,6 +146,6 @@ void AMSTRDHTrack::_addnextR(uinteger itr){
   int i;
   // permanently add;
   if(itr<4)
-    AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",itr),new AMSTRDHTrack(&trdhrecon.htrvec[itr]));
+    AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",itr),new AMSTRDHTrack(TrdHReconR::getInstance()->htrvec[itr]));
 }
 

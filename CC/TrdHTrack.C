@@ -11,7 +11,6 @@ TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0)
     mag+=pow(Dir_[i],2);
   }
   for (int i=0;i!=3;i++)Dir[i]/=sqrt(mag);
-  
 };
 
 TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0){
@@ -30,36 +29,35 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
     Coo[i]=tr->Coo[i];
     Dir[i]=tr->Dir[i];
   }
-  for(int i=0;i!=2;i++){
+  for(int i=0;i!=2;i++)
     fTrdHSegment.push_back(tr->fTrdHSegment[i]);
-  }
 };
 
 int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();}
 int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
 int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<fTrdHSegment.size())?fTrdHSegment[i]:-1;}
-TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){return (i<trdhrecon.hsegvec.size())?&trdhrecon.hsegvec[iTrdHSegment(i)]:0;}
+TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){return (i<TrdHReconR::getInstance()->nhsegvec)?TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]:0;}
 
 
 float TrdHTrackR::Theta(){ return acos(Dir[2]);}
 
 float TrdHTrackR::ex(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->er;
+    if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==0)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::ey(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->er;
+    if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==1)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::emx(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->em;
+    if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==0)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->em;
   }
   return 1.e6;
 }
@@ -67,22 +65,22 @@ float TrdHTrackR::emx(){
 float TrdHTrackR::emy(int debug){
   if(debug)printf("TrdHTrackR::emy - ntrdhsegment %i\n",nTrdHSegment());
   for(int i=0;i!=nTrdHSegment();i++){
-    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",pTrdHSegment(i)->d,pTrdHSegment(i)->m,pTrdHSegment(i)->em);
-    if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->em;
+    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",i,TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d,TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->m,TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->em);
+    if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==1)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->em;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::mx(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->m;
+      if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==0)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->m;
     }
     return 1.e6;
   }
 
   float TrdHTrackR::my(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->m;
+      if(TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->d==1)return TrdHReconR::getInstance()->hsegvec[iTrdHSegment(i)]->m;
     }
     return 1.e6;
   }
@@ -117,14 +115,15 @@ float TrdHTrackR::mx(){
 
  void TrdHTrackR::SetSegment(TrdHSegmentR* segx, TrdHSegmentR* segy){
    int foundx=0,foundy=0;
-   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==*segx){fTrdHSegment.push_back(i);foundx=1;}
-   for(int i=0;i!=trdhrecon.hsegvec.size();i++)if(trdhrecon.hsegvec[i]==*segy){fTrdHSegment.push_back(i);foundy=1;}
+   for(int i=0;i!=TrdHReconR::getInstance()->nhsegvec;i++)if(TrdHReconR::getInstance()->hsegvec[i]==segx){fTrdHSegment.push_back(i);foundx=1;}
+   for(int i=0;i!=TrdHReconR::getInstance()->nhsegvec;i++)if(TrdHReconR::getInstance()->hsegvec[i]==segy){fTrdHSegment.push_back(i);foundy=1;}
    if(foundx!=1||foundy!=1){
      printf("segment found? x %i y %i\n",foundx,foundy);
+     exit(1);
    }
 
-   Nhits=(int)pTrdHSegment(0)->nTrdRawHit()+(int)pTrdHSegment(1)->nTrdRawHit();
-   Chi2=(int)pTrdHSegment(0)->Chi2+(int)pTrdHSegment(1)->Chi2;
+   Nhits=(int)TrdHReconR::getInstance()->hsegvec[iTrdHSegment(0)]->Nhits+(int)TrdHReconR::getInstance()->hsegvec[iTrdHSegment(1)]->Nhits;
+   Chi2=TrdHReconR::getInstance()->hsegvec[iTrdHSegment(0)]->Chi2+TrdHReconR::getInstance()->hsegvec[iTrdHSegment(1)]->Chi2;
  }
  
  void TrdHTrackR::setChi2(float Chi2_){Chi2=Chi2_;};
@@ -141,46 +140,47 @@ float TrdHTrackR::mx(){
 
 integer TrdHTrackR::build(int rerun){
   int debug=0; 
-  trdhrecon.htrvec.clear();
+  //  TrdHReconR::getInstance()->htrvec.clear();
+  TrdHReconR::getInstance()->nhtrvec=0;//.clear();
 
-  if(debug)printf("Entering TrdHTrackR::build - %i segments\n",trdhrecon.hsegvec.size());
+  if(debug)printf("Entering TrdHTrackR::build - %i segments\n",TrdHReconR::getInstance()->nhsegvec);
   
-  int nhseg=trdhrecon.hsegvec.size();
+  int nhseg=TrdHReconR::getInstance()->nhsegvec;
   if(nhseg==2||nhseg==3){
     int segiter_sel[2]={-1,-1};
     
     for(int s=0;s!=nhseg;s++){
-      int d=trdhrecon.hsegvec[s].d;
+      int d=TrdHReconR::getInstance()->hsegvec[s]->d;
       float chi2ndofs=1.e6;
-      if(trdhrecon.hsegvec[s].Nhits>2)
-	chi2ndofs=(float) trdhrecon.hsegvec[s].Chi2 / (float) trdhrecon.hsegvec[s].Nhits;
+      if(TrdHReconR::getInstance()->hsegvec[s]->Nhits>2)
+	chi2ndofs=(float) TrdHReconR::getInstance()->hsegvec[s]->Chi2 / (float) TrdHReconR::getInstance()->hsegvec[s]->Nhits;
 
       if(segiter_sel[d]>-1){
 	float chi2ndof=1.e6;
-	if(trdhrecon.hsegvec[segiter_sel[d]].Nhits>2)
-	  chi2ndof=(float) trdhrecon.hsegvec[segiter_sel[d]].Chi2 / (float) trdhrecon.hsegvec[segiter_sel[d]].Nhits;
+	if(TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Nhits>2)
+	  chi2ndof=(float) TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Chi2 / (float) TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Nhits;
 	
 	if(debug)printf("cand s %.2f < %.2f ?\n",chi2ndof,chi2ndofs);
-	if( ( trdhrecon.hsegvec[s].Nhits >  trdhrecon.hsegvec[segiter_sel[d]].Nhits) ||
-	    ((trdhrecon.hsegvec[s].Nhits == trdhrecon.hsegvec[segiter_sel[d]].Nhits) &&
+	if( ( TrdHReconR::getInstance()->hsegvec[s]->Nhits >  TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Nhits) ||
+	    ((TrdHReconR::getInstance()->hsegvec[s]->Nhits == TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Nhits) &&
 	     (chi2ndof < chi2ndofs))) segiter_sel[d]=s;
       }
-      else if(trdhrecon.hsegvec[s].Nhits>0)segiter_sel[d]=s;
+      else if(TrdHReconR::getInstance()->hsegvec[s]->Nhits>0)segiter_sel[d]=s;
       
-      if(debug)printf("sel %i d %i Nhits %i chi2ndof %.2f\n",s,d,trdhrecon.hsegvec[segiter_sel[d]].Nhits,chi2ndofs);
+      if(debug)printf("sel %i d %i Nhits %i chi2ndof %.2f\n",s,d,TrdHReconR::getInstance()->hsegvec[segiter_sel[d]]->Nhits,chi2ndofs);
     }
 
     if(debug) printf("segiter %i %i\n",segiter_sel[0],segiter_sel[1]);
     if(segiter_sel[0]>-1&&segiter_sel[1]>-1){
-      TrdHTrackR *tr=trdhrecon.SegToTrack(&trdhrecon.hsegvec[segiter_sel[0]],&trdhrecon.hsegvec[segiter_sel[1]]);
+      TrdHTrackR *tr=TrdHReconR::getInstance()->SegToTrack(TrdHReconR::getInstance()->hsegvec[segiter_sel[0]],TrdHReconR::getInstance()->hsegvec[segiter_sel[1]]);
       tr->status=1;
 
-      
-      trdhrecon.htrvec.push_back(*tr);
+
+      TrdHReconR::getInstance()->htrvec[TrdHReconR::getInstance()->nhtrvec++]=tr;
     }
   }
 
-  if(debug)printf("TrdHTrackR::build tracks %i\n",trdhrecon.htrvec.size());
+  if(debug)printf("TrdHTrackR::build tracks %i\n",TrdHReconR::getInstance()->nhtrvec);
   
-  return trdhrecon.htrvec.size();
+  return TrdHReconR::getInstance()->nhtrvec;
 }

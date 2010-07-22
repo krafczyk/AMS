@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.134 2010/06/04 18:04:02 pzuccon Exp $
+//  $Id: geant3.C,v 1.135 2010/07/22 13:31:23 mmilling Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1019,12 +1019,16 @@ static integer event=0;
   }
 #endif
 try{
+
+
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
+    TrdHReconR::Initialize();
     AMSgObj::BookTimer.start("GEANTTRACKING");
 	   if(IOPA.mode%10 !=1 ){
 	    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
+	    
     for(integer i=0;i<CCFFKEY.npat;i++){
      GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
      AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
@@ -1040,8 +1044,8 @@ try{
      //genp->_printEl(cout);
 
     }
-   }
-   }
+    }
+	   }
    else {
     AMSIO io;
     if(IOPA.mode/10?io.readA():io.read()){
@@ -1120,8 +1124,11 @@ nchunk=omp_get_num_procs()*10;
 #endif
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
-#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
+
+ TrdHReconR::Initialize();
+#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting,trdhreconarr), private(pdaq)
 {
+
    AMSEvent::ResetThreadWait(1);
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){

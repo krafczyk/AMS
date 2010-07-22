@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.476 2010/07/14 15:13:51 choutko Exp $
+//  $Id: event.C,v 1.477 2010/07/22 13:31:23 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2128,38 +2128,39 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
-    trdhrecon.rhits.clear();
+    TrdHReconR::getInstance()->reset();
 
     // fill reference hits - first TOF clusters (top layer) - then TKtop clusters
     AMSTOFCluster *Hi;int i;
     for (i=0;i<4;i++) {
       for (Hi=AMSTOFCluster::gethead(i); Hi!=NULL; Hi=Hi->next()){
 	if(Hi->getntof()<3){
-	  trdhrecon.refhits.push_back(Hi->getcoo());
-	  trdhrecon.referr.push_back(Hi->getecoo());}
+	  TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=Hi->getcoo();
+	  TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=Hi->getecoo();}	
       }
     }
     AMSTrRecHit *ttr;
-      for (i=0;i<2;i++) {
-	for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
-	  if(ttr->getHit()[2]<50)continue;
+    for (i=0;i<2;i++) {
+      for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
+	if(ttr->getHit()[2]<50)continue;
 #ifndef _PGTRACK_
-	  trdhrecon.refhits.push_back(ttr->getHit());
-	  trdhrecon.referr.push_back(ttr->getEHit());
+	TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=ttr->getHit();
+	TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=ttr->getEHit();
 #else
-	  trdhrecon.refhits.push_back(ttr->GetCoord());
-	  trdhrecon.referr.push_back(ttr->GetECoord());
+	TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=ttr->GetCoord();
+	TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=ttr->GetECoord();
 #endif
-	}
       }
-      
-      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()) trdhrecon.rhits.push_back(TrdRawHitR(Hi));
-      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) trdhrecon.rhits.push_back(TrdRawHitR(Hi));
+    }
+    
+    // fill array of TrdRawHits
+      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
+      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
     
     int nhseg=buildC("AMSTRDHSegment");
 
     for(int i=0;i<nhseg;i++){
-      AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",0),new AMSTRDHSegment(&trdhrecon.hsegvec[i]));
+      AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",0),new AMSTRDHSegment(TrdHReconR::getInstance()->hsegvec[i]));
 
 #ifdef __AMSDEBUG__
       AMSContainer *p =getC("AMSTRDHSegment",i);
@@ -2170,7 +2171,7 @@ void AMSEvent::_retrdevent(){
     if(nhseg>1){
       int nhtr=buildC("AMSTRDHTrack");
       for(int i=0;i<nhtr;i++){
-	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),new AMSTRDHTrack(&trdhrecon.htrvec[i]));
+	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),new AMSTRDHTrack(TrdHReconR::getInstance()->htrvec[i]));
 #ifdef __AMSDEBUG__
 	AMSContainer *p =getC("AMSTRDHTrack",i);
 	if(p && AMSEvent::debug)p->printC(cout);

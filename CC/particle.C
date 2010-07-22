@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.205 2010/07/15 11:21:45 choutko Exp $
+//  $Id: particle.C,v 1.206 2010/07/22 13:31:23 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -489,8 +489,8 @@ void AMSParticle::trd_Hlikelihood(){
     TrdHSegmentR* sptr[2]={0,0};
     
     //    while(seg){
-    for(int s=0;s!=trdhrecon.hsegvec.size();s++){
-      TrdHSegmentR* seg=&trdhrecon.hsegvec[s];
+    for(int s=0;s!=TrdHReconR::getInstance()->nhsegvec;s++){
+      TrdHSegmentR* seg=TrdHReconR::getInstance()->hsegvec[s];
       float dz=zpl-seg->z;
       float expos=seg->r+ seg->m*dz;
       if(debug)printf("seg d %i r %.2f m %.2f z %.2f\n",seg->d,seg->r,seg->m,seg->z);
@@ -506,14 +506,14 @@ void AMSParticle::trd_Hlikelihood(){
     }
     if(debug)printf("s1 %d s2 %d\n",sptr[0],sptr[1]);
     if(sptr[0]&&sptr[1]){
-      //      _phtrd=new AMSTRDHTrack(trdhrecon.SegToTrack(sptr[0],sptr[1]));
-      _phtrd=new AMSTRDHTrack(trdhrecon.SegToTrack(sptr[0],sptr[1]));
+      //      _phtrd=new AMSTRDHTrack(TrdHReconR::getInstance()->SegToTrack(sptr[0],sptr[1]));
+      _phtrd=new AMSTRDHTrack(TrdHReconR::getInstance()->SegToTrack(sptr[0],sptr[1]));
       if(_phtrd){
 	if(debug)printf("new TRDHTrack found\n");
 	_phtrd->status=3;
 	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
 
-	trdhrecon.htrvec.push_back(new TrdHTrackR(_phtrd));
+	TrdHReconR::getInstance()->htrvec[TrdHReconR::getInstance()->nhtrvec]=new TrdHTrackR(_phtrd);
       }
     }
   }

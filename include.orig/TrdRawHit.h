@@ -42,7 +42,7 @@ class TRDHitRZD{
  int d; 
  TRDHitRZD():r(0.),z(0.),d(0){};
  TRDHitRZD(double r_, double z_, int d_):r(r_),z(z_),d(d_){};
- TRDHitRZD(TrdRawHitR hit){
+ TRDHitRZD(TrdRawHitR &hit){
    //   if(hit==NULL) 
    int layer  = hit.Layer;
    int ladder = hit.Ladder;
