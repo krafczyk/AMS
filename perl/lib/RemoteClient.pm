@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.584 2010/07/14 15:13:53 choutko Exp $
+# $Id: RemoteClient.pm,v 1.585 2010/07/22 08:27:43 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6241,6 +6241,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n";
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"> <b>(it will take a while to tar DB and execs)</b></br><br>";
+           htmlFormEnd();
            print "<b><a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P </b>\n";
            htmlReturnToMain();
            htmlBottom();
