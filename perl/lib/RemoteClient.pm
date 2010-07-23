@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.585 2010/07/22 08:27:43 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.586 2010/07/23 16:10:08 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5836,7 +5836,7 @@ else {
                  }
               }
 DDTAB:         $self->htmlTemplateTable(" ");
-               print "<tr><td>\n";
+               print "    <tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
                print "</tr></td><td>\n";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -6202,6 +6202,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
              print "</b></font></td></tr>\n";
             htmlTableEnd();
            htmlTableEnd();
+#           htmlFormEnd();
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
                my $path='/MC';
@@ -6226,7 +6227,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
 #                   }
 #                 }
 #               }
-DDTAB:         $self->htmlTemplateTable(" ");
+DDTAB:         htmlTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
                print "</tr></td><td>\n";
@@ -6241,8 +6242,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n";
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"> <b>(it will take a while to tar DB and execs)</b></br><br>";
-           htmlFormEnd();
            print "<b><a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P </b>\n";
+           htmlFormEnd();
            htmlReturnToMain();
            htmlBottom();
              }
@@ -7212,11 +7213,13 @@ print qq`
           print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
           print "<BR><TR>";
          if($self->{CCT} eq "local"){
-          print "Password :  <input type=\"password\" name=\"password\" value=\"\">  ";
+          print "Password :  <input type=\"password\" name=\"password\" value=\"\"/>  ";
           print "<TR><BR>";
          }
          print $q->submit(-name=>$param, -value=>"Save");
-         print htmlBottom();
+         htmlFormEnd();
+	 print htmlBottom();
+	
          return 1;
         }
          my $adddst=$template; 
@@ -9283,7 +9286,7 @@ sub htmlTemplateTable {
 
 sub htmlTable {
    my ($text) = shift;
-   print "<TR><B><font color=green size= 5> $text </font>";
+   print "<TR><B><font color=green     size= 5> $text </font>";
    print "<p>\n";
    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
 }
