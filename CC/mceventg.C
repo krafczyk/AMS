@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.157 2010/07/09 14:55:50 zweng Exp $
+//  $Id: mceventg.C,v 1.158 2010/07/23 10:13:40 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -168,7 +168,7 @@ void AMSmceventg::gener(){
     } 
     // Generates uniformely on 13 Rig Points by PZ
     // documented in datacards.doc
-    else if(CCFFKEY.low=7){
+    else if(CCFFKEY.low==7){
       static int my_index=0;
       number mom_array[13]={0.5,1.,2.,5.,
 			    10.,20.,50.,
