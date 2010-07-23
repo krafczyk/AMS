@@ -3,11 +3,10 @@
 
 ClassImp(TrdHReconR);
 
-void TrdHReconR::Initialize(){
-  int maxnthr=1;
-#ifdef _OPENMP
-  maxnthr=omp_get_max_threads();
-#endif
+void TrdHReconR::Initialize(int maxnthr=1){
+  //#ifdef _OPENMP
+  //  maxnthr=omp_get_max_threads();
+  //#endif
   printf("TrdHReconR::Initialize %i instance(s)\n",maxnthr);
   trdhreconarr=(TrdHReconR**)malloc(sizeof(TrdHReconR*)*maxnthr);
   for(int i=0;i<maxnthr;i++)

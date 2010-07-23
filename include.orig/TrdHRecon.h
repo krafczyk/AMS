@@ -144,7 +144,7 @@ public:
 class TrdHReconR{
  public:
   static TrdHReconR* getInstance();
-  static void Initialize();
+  static void Initialize(int n);
 
   /// array of TrdRawHit pointers (used as input to reconstruction)
   TrdRawHitR** rhits;

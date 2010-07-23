@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.135 2010/07/22 13:31:23 mmilling Exp $
+//  $Id: geant3.C,v 1.136 2010/07/23 08:45:43 mmilling Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1023,7 +1023,6 @@ try{
 
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
-    TrdHReconR::Initialize();
     AMSgObj::BookTimer.start("GEANTTRACKING");
 	   if(IOPA.mode%10 !=1 ){
 	    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
@@ -1125,7 +1124,6 @@ nchunk=omp_get_num_procs()*10;
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
 
- TrdHReconR::Initialize();
 #pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting,trdhreconarr), private(pdaq)
 {
 
