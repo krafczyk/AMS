@@ -119,6 +119,7 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   // Assume that everything here is primary and decode
   int offset=0;
   if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
+  if(!AMSJob::gethead()->isRealData()) offset=-2;  // Take into account the added JINF-R MASK for MC data
   DecodeRich(length+offset,p,JINF,0);
   }
   catch(int){
@@ -186,6 +187,7 @@ void DAQRichBlock::buildrawnode(integer length,int16u *p){
 	  // Assume that everything here is primary and decode
 	  int offset=0;
 	  if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
+	  if(!AMSJob::gethead()->isRealData()) offset=-2;  // Take into account the added JINF-R MASK for MC data
 	  DecodeRich(length-1+offset,p+1,side,secondary);
 	  break;
 	}
