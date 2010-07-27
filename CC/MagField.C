@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.10 2010/04/30 15:00:10 pzuccon Exp $
+// $Id: MagField.C,v 1.11 2010/07/27 17:15:34 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,14 +11,15 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/04/30 15:00:10 $
+///$Date: 2010/07/27 17:15:34 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstdlib>
 
 #include "MagField.h"
 #ifdef _PGTRACK_
@@ -329,7 +330,7 @@ int magserv::getindex(int i,int j,int k){
     int i2 = 1 - _nx + i;
     int j2 = 1 - _ny + j;
     int k2 = 1 - _nz + k;
-    return abs(k2)*_nx*_ny+ abs(j2)*_nx + abs(i2);
+    return int(fabs(k2))*_nx*_ny+ int(fabs(j2))*_nx + int(fabs(i2));
   }
   else{
     return k*_nx*_ny+ j*_nx + i;

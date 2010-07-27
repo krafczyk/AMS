@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.10 2010/04/30 15:00:10 pzuccon Exp $
+//  $Id: MagField.h,v 1.11 2010/07/27 17:15:38 oliva Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -62,9 +62,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/04/30 15:00:10 $
+///$Date: 2010/07/27 17:15:38 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -114,9 +114,9 @@ public:
 
 
 
-  float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[abs(1-_nx+i)]:x[i];}
-  float _y(int j) {int sigx=((1-_ny+j)>=0)?1:-1;  return (_type==1)?sigx*y[abs(1-_ny+j)]:y[j];}
-  float _z(int k) {int sigx=((1-_nz+k)>=0)?1:-1;  return (_type==1)?sigx*z[abs(1-_nz+k)]:z[k];}
+  float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[int(fabs(1-_nx+i))]:x[i];}
+  float _y(int j) {int sigx=((1-_ny+j)>=0)?1:-1;  return (_type==1)?sigx*y[int(fabs(1-_ny+j))]:y[j];}
+  float _z(int k) {int sigx=((1-_nz+k)>=0)?1:-1;  return (_type==1)?sigx*z[int(fabs(1-_nz+k))]:z[k];}
 
   
   
