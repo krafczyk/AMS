@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.29 2009/12/12 17:55:22 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.30 2010/07/27 16:33:40 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -358,7 +358,7 @@ if(type==kall || type==kusedonly || type==ktrtracks){
     }
 #else
     if(!gAMSDisplay->DrawUsedOnly() || ((pTrTrack(i)->Status)/32)%2){
-      if(pTrTrack(i)->IsGood()){
+      if(pTrTrack(i)->IsGood()  ||  (pTrTrack(i)->Status/32)%2){
 	fTrTrackV.push_back( TrTrackV(this,i));
       }
     }

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.206 2010/07/22 13:31:23 mmilling Exp $
+//  $Id: particle.C,v 1.207 2010/07/27 16:33:38 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -222,7 +222,7 @@ integer AMSParticle::build(integer refit){
       AMSgObj::BookTimer.start("ReTRDRefit"); 
       ppart->trdfit();
       ppart->trd_likelihood();
-      ppart->trd_Hlikelihood();
+      if(TRDFITFFKEY.FitMethod)ppart->trd_Hlikelihood();
       AMSgObj::BookTimer.stop("ReTRDRefit"); 
       ppart=ppart->next();
     }
@@ -870,6 +870,8 @@ void AMSParticle::_copyEl(){
   else ptr.fTrdTrack=-1;
   if (_phtrd)   ptr.fTrdHTrack   =_phtrd   ->GetClonePointer();
   else ptr.fTrdHTrack=-1;
+
+  ptr.fTrdHTrack=-1; 
   if (_prich)   ptr.fRichRing  =_prich  ->GetClonePointer();
   else ptr.fRichRing=-1;
   if (_pShower) ptr.fEcalShower=_pShower->GetClonePointer();

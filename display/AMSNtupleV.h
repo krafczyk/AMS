@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.35 2010/03/23 17:22:52 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.36 2010/07/27 16:33:40 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -550,12 +550,14 @@ public:
       THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
       //      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
 #else
-      Double_t Bfield = -0.4;	// in minus-x direction of AMS
+      Double_t Bfield = -0.1;	// in minus-x direction of AMS
       Double_t P0[3];
       Double_t V0[3];
       Double_t Axis[3]={-1,0,0};
-      Double_t Range[2]={-75,75};
+//      Double_t Range[2]={-75,75};
       for(int i=0;i<3;i++)P0[i]=pcl->P0[i];
+      double span=pcl->Hit[0][2]-pcl->Hit[pcl->NTrRecHit()-1][2];
+      Double_t Range[2]={pcl->Hit[pcl->NTrRecHit()-1][2],pcl->Hit[0][2]};
      
       V0[0]=pcl->Rigidity * sin(pcl->Theta) * cos(pcl->Phi);
       V0[1]=pcl->Rigidity * sin(pcl->Theta) * sin(pcl->Phi);

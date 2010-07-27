@@ -19,6 +19,8 @@ public:
 //   else return false;
      if(ev   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
            cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
+           TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
+           cout <<" q "<<tr.Chi2FastFit<<" "<<tr.NTrRecHit()<<endl;
            return true;
          }
      else return false;

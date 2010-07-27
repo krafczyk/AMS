@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.153 2009/12/08 09:15:10 choutko Exp $
+//  $Id: server.C,v 1.154 2010/07/27 16:33:38 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2896,9 +2896,12 @@ if(li!=_tid.end()){
  tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
 time_t i,e;
 li->second->gettime(i,b,e);
+ if(i!=tdvname.Entry.Insert || b!=tdvname.Entry.Begin || e!=tdvname.Entry.End){
+ }
  tdvname.Entry.Insert=i;
  tdvname.Entry.Begin=b;
  tdvname.Entry.End=e;
+ if(
 }
  DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
  if(tdvname.Success){

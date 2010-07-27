@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.136 2010/07/14 15:13:52 choutko Exp $
+//  $Id: producer.C,v 1.137 2010/07/27 16:33:38 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -12,7 +12,8 @@
 #include <sys/statfs.h>
 #include <sys/timeb.h>
 #include <sys/stat.h>
-#include <sys/file.h>
+#include <sys/file.h>*trying to get 
+
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false),_FreeSpace(-1){
@@ -1576,7 +1577,7 @@ if(name.Success){
  int nb=tdv->CopyIn(vb2->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
-  cout <<"  gettdv success "<<endl;
+  cout <<"  gettdv success "<<" "<<name.Entry.Begin<<" "<<name.Entry.End<<endl;
   return true;
  }
 }

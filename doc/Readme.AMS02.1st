@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.57 2010/05/12 12:57:36 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.58 2010/07/27 16:33:40 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -45,12 +45,17 @@ VI. Access to AMS software
    setenv Offline   as:
    /afs/ams.cern.ch/Offline                computers at cern cite
                                            eg ams,pcamsf2,lxplus
+
                                            OR  (new)
                                            all others provided 
                                       they are using cern vpn, for linux see:
     http://linux.web.cern.ch/linux/documentation/other/vpn-pptp-pilot.shtml
 
-   /afs/cern.ch/exp/ams/Offline              all others 
+                                           OR (new)  ip(range) by demend  
+                                           provide ip address of the node(s)
+                                           to vitali.choutko@cern.ch
+                                           ro access to ams.cern.ch will be granted 
+
 
    source $Offline/vdev/install/amsvar
 
@@ -108,29 +113,8 @@ VII.  Standalone version
          
 
          Case ii: You don't have afs installed
-          copy (using tar+gzip+ftp/scp) ams.cern.ch:/afs/ams.cern.ch/Offline/vdev 
-          to somewhere on your computer.
-          login in ams.cern.ch          
-          setenv Offline /afs/ams.cern.ch/Offline
-          source $Offline/vdev/install/amsvar
-          cd $AMSDataDir
-          tar -cvf /tmp/ams.tar v4.00/*.dat 
-          tar -uvf /tmp/ams.tar v4.00/T*
-          tar -uvf /tmp/ams.tar v4.00/t*
-          tar -uvf /tmp/ams.tar DataBase/MagneticFieldMap/9*
-          tar -uvf /tmp/ams.tar DataBase/Tracker*.2*
-          tar -uvf /tmp/ams.tar DataBase/Tracker*2
-          tar -uvf /tmp/ams.tar DataBase/*of*/*/*.0.*
-          tar -uvf /tmp/ams.tar DataBase/.*0
-          tar -uvf /tmp/ams.tar DataBase/.TrA*1
-          tar -uvf /tmp/ams.tar DataBase/Ecal*
-          cp /tmp/ams.tar ~/
-          login in  your computer:
-           mkdir mydir
-           cd mydir
-           tar -xvf ~/ams.tar
-           setenv AMSDataDir mydir
-           rm $AMSDataDir/DataBase/.*.map
+          Binaries available to download from 
+          http://pcamss0.cern.ch/cgi-bin/mon/download.o.cgi 
              
           Third party libraries you may need to install
           i)   cernlib 

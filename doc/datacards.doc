@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.330 2010/07/15 14:33:56 choutko Exp $
+#  $Id: datacards.doc,v 1.331 2010/07/27 16:33:40 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -311,7 +311,7 @@ I43  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
 R44  Chi2FastFit(2000)              // Max  chi2 for tkhmd;
 R45  Chi2StrLine(10)              // The same for Straight line fit
-R46  Chi2WithoutMS(5)         // // The same for PI fit withut multiple scattering
+R46  Chi2WithoutMS(50)         // // The same for PI fit withut multiple scattering
 R47  ResCutFastFit(0.5)     // Max residual distance in cm between 
                                   // point and fitted curve (not yet impl)
 R48  ResCutStrLine(0.5)     // --- strline    (not yet impl)
