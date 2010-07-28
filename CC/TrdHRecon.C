@@ -4,11 +4,13 @@
 ClassImp(TrdHReconR);
 
 void TrdHReconR::Initialize(int maxnthr=1){
-  //#ifdef _OPENMP
-  //  maxnthr=omp_get_max_threads();
-  //#endif
+#ifdef _OPENMP
+  if(maxnthr<=0)
+    maxnthr=omp_get_max_threads();
+#endif
   printf("TrdHReconR::Initialize %i instance(s)\n",maxnthr);
   trdhreconarr=(TrdHReconR**)malloc(sizeof(TrdHReconR*)*maxnthr);
+  ntrdhrecon=maxnthr;
   for(int i=0;i<maxnthr;i++)
     trdhreconarr[i]=0;
 
@@ -20,6 +22,14 @@ TrdHReconR* TrdHReconR::getInstance(){
 #ifdef _OPENMP
   thr=omp_get_thread_num();
   nthr=omp_get_num_threads();
+  
+  if(nthr!=ntrdhrecon){
+    printf("nthr %i != size trdhrecon %i\n",nthr,ntrdhrecon);
+    trdhreconarr=(TrdHReconR**)realloc(trdhreconarr,sizeof(TrdHReconR*)*nthr);
+    for(int i=ntrdhrecon;i<nthr;i++)trdhreconarr[i]=0;
+    ntrdhrecon=nthr;
+  }
+
 #endif
   if(thr>=nthr){
     printf("TrdHReconR::getInstance - thread %i >= number of threads %i\n",thr,nthr);

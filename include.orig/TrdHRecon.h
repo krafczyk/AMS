@@ -248,6 +248,6 @@ class TrdHReconR{
 };
 
 static TrdHReconR **trdhreconarr=0;
-
+static int ntrdhrecon=0;
 #endif
 
