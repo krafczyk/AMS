@@ -249,17 +249,16 @@ integer TrdHSegmentR::build(int rerun){
   int prefit=TrdHReconR::getInstance()->DoPrefit(debug);
   if(debug)printf("TrdHSegmentR 1 NofSegments sum %i = %i?\n",TrdHReconR::getInstance()->npeak[0]+TrdHReconR::getInstance()->npeak[1],prefit);
 
-  if(prefit<=0){
+  if(prefit<=0||prefit>100){
     if(debug)printf("skipping \n");
     return 0;
   }
+
   //  vector<TrdHSegmentR> segments=
   TrdHReconR::getInstance()->DoLinReg(debug);
-  if(debug)printf("TrdHSegmentR 2 NofSegments sum %i = %i?\n",TrdHReconR::getInstance()->npeak[0]+TrdHReconR::getInstance()->npeak[1],prefit);
   
   //  vector<TrdHSegmentR> segments2=
   TrdHReconR::getInstance()->clean_segvec(debug);
-  if(debug)printf("TrdHSegmentR 3 NofSegments sum %i = %i?\n",TrdHReconR::getInstance()->npeak[0]+TrdHReconR::getInstance()->npeak[1],prefit);
   
   for(int i=0;i!=TrdHReconR::getInstance()->nhsegvec;i++)
     TrdHReconR::getInstance()->hsegvec[i]->calChi2();

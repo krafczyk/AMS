@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.477 2010/07/22 13:31:23 mmilling Exp $
+//  $Id: event.C,v 1.478 2010/07/28 15:43:13 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2154,8 +2154,8 @@ void AMSEvent::_retrdevent(){
     }
     
     // fill array of TrdRawHits
-      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
-      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next())if(TrdHReconR::getInstance()->nrhits<1023) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) if(TrdHReconR::getInstance()->nrhits<1023) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
     
     int nhseg=buildC("AMSTRDHSegment");
 
@@ -2170,6 +2170,7 @@ void AMSEvent::_retrdevent(){
     
     if(nhseg>1){
       int nhtr=buildC("AMSTRDHTrack");
+
       for(int i=0;i<nhtr;i++){
 	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),new AMSTRDHTrack(TrdHReconR::getInstance()->htrvec[i]));
 #ifdef __AMSDEBUG__

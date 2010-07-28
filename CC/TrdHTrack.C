@@ -176,9 +176,11 @@ integer TrdHTrackR::build(int rerun){
       tr->status=1;
 
 
-      TrdHReconR::getInstance()->htrvec[TrdHReconR::getInstance()->nhtrvec++]=tr;
+      if(TrdHReconR::getInstance()->nhtrvec<20)TrdHReconR::getInstance()->htrvec[TrdHReconR::getInstance()->nhtrvec++]=tr;
+      else delete tr;
     }
   }
+  else if( nhseg>2) TrdHReconR::getInstance()->combine_segments();
 
   if(debug)printf("TrdHTrackR::build tracks %i\n",TrdHReconR::getInstance()->nhtrvec);
   

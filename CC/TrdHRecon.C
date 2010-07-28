@@ -23,13 +23,16 @@ TrdHReconR* TrdHReconR::getInstance(){
   thr=omp_get_thread_num();
   nthr=omp_get_num_threads();
   
-  if(nthr!=ntrdhrecon){
-    printf("nthr %i != size trdhrecon %i\n",nthr,ntrdhrecon);
-    trdhreconarr=(TrdHReconR**)realloc(trdhreconarr,sizeof(TrdHReconR*)*nthr);
-    for(int i=ntrdhrecon;i<nthr;i++)trdhreconarr[i]=0;
-    ntrdhrecon=nthr;
+#pragma omp critical
+  { 
+    if(nthr>ntrdhrecon){
+      printf("nthr %i != size trdhrecon %i\n",nthr,ntrdhrecon);
+      trdhreconarr=(TrdHReconR**)realloc(trdhreconarr,sizeof(TrdHReconR*)*nthr);
+      for(int i=ntrdhrecon;i<nthr;i++)trdhreconarr[i]=0;
+      ntrdhrecon=nthr;
+    }
   }
-
+  
 #endif
   if(thr>=nthr){
     printf("TrdHReconR::getInstance - thread %i >= number of threads %i\n",thr,nthr);
@@ -130,62 +133,62 @@ int TrdHReconR::DoLinReg(int debug){
   for(int d=0;d<2;d++){
     for(int i=0;i<npeak[d];i++){
       PeakXYZW *peak=peakvec[d][i];
-      TrdHSegmentR *seg=new TrdHSegmentR(d,peak->y,0.,peak->x,0.,peak->z,peak->w);
-      seg->Nhits=0;
-      seg->em=0.6/(peak->zmax-peak->zmin);
+      TrdHSegmentR seg(d,peak->y,0.,peak->x,0.,peak->z,peak->w);
+      seg.Nhits=0;
+      seg.em=0.6/(peak->zmax-peak->zmin);
       
       for(int h=0;h!=nrh;h++){	
 	TRDHitRZD rzd=TRDHitRZD(*rhits[h]);
 	if(rzd.d!=d)continue;
 	
-	float dz=rzd.z-seg->z;
-	float expos=seg->r+ seg->m*dz;//*cos(atan(seg->m));
+	float dz=rzd.z-seg.z;
+	float expos=seg.r+ seg.m*dz;//*cos(atan(seg.m));
 	float resid=rzd.r - expos;
-	float maxresid=0.6+fabs(dz)* seg->em;
+	float maxresid=0.6+fabs(dz)* seg.em;
 	if(debug>0)printf("d %i hit %i r %.2f expos %.2f resid %f < %f ok %i\n",d,h,rzd.r,expos,resid,maxresid,fabs(resid)<maxresid);
 	
 	if(fabs(resid)<maxresid)
-	  seg->fTrdRawHit[seg->Nhits++]=h;
+	  seg.fTrdRawHit[seg.Nhits++]=h;
       }
-      seg->Nhits=seg->Nhits;
+      seg.Nhits=seg.Nhits;
       
-      if(debug>0)printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,seg->Nhits);
+      if(debug>0)printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg.m,seg.r,seg.z,seg.Nhits);
       
       int lr=1;
       while(lr>=0){
-	lr=seg->LinReg();
-	int n0=seg->Nhits;
-	seg->Nhits=0;
+	lr=seg.LinReg();
+	int n0=seg.Nhits;
+	seg.Nhits=0;
 
 	for(int h=0;h!=nrh;h++){	
 	  TRDHitRZD rzd=TRDHitRZD(*rhits[h]);
 	  if(rzd.d!=d)continue;
 	  
-	  float dz=rzd.z-seg->z;
-	  float resid=(rzd.r - (seg->r+ seg->m*dz));//*cos(atan(seg->m));
-	  float maxresid=0.6+fabs(dz)*seg->em;//0.6/(segvec->at(i).zmax-segvec->at(i).zmin);
+	  float dz=rzd.z-seg.z;
+	  float resid=(rzd.r - (seg.r+ seg.m*dz));//*cos(atan(seg.m));
+	  float maxresid=0.6+fabs(dz)*seg.em;//0.6/(segvec->at(i).zmax-segvec->at(i).zmin);
 	  
-	  if(debug>0)printf("Lin Reg residuals %.2f < %.2f %i (dz %.2f em %.2e)\n",resid,maxresid,fabs(resid)<maxresid,rzd.z-seg->z,seg->em);
+	  if(debug>0)printf("Lin Reg residuals %.2f < %.2f %i (dz %.2f em %.2e)\n",resid,maxresid,fabs(resid)<maxresid,rzd.z-seg.z,seg.em);
 	  if(fabs(resid)<maxresid)
-	    seg->fTrdRawHit[seg->Nhits++]=h;
+	    seg.fTrdRawHit[seg.Nhits++]=h;
 	  
 	}
 	
-	if(n0>=seg->Nhits){
+	if(n0>=seg.Nhits){
 	  if(debug)printf("no more hits - breaking loop\n");
 	  break;
 	}
-	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,seg->Nhits);
+	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,seg.Nhits);
       }
       
-      if(seg->Nhits>3){
-	seg->calChi2();
+      if(seg.Nhits>3){
+	seg.calChi2();
 	
 	if(debug>0){
-	  printf("d %i after linreg loop: segment %i hits %i\n",d,i,seg->Nhits);
-	  printf("After linreg: seg %i d %i m %.2f r %.2f z %.2f hits %i\n",i,d,seg->m,seg->r,seg->z,seg->Nhits);
+	  printf("d %i after linreg loop: segment %i hits %i\n",d,i,seg.Nhits);
+	  printf("After linreg: seg %i d %i m %.2f r %.2f z %.2f hits %i\n",i,d,seg.m,seg.r,seg.z,seg.Nhits);
 	}
-	hsegvec[nhsegvec++]=seg;
+	if(nhsegvec<99)hsegvec[nhsegvec++]=new TrdHSegmentR(seg);
       }
     }
   }
@@ -376,7 +379,7 @@ bool TrdHReconR::check_hits(TrdHSegmentR* s1,TrdHSegmentR* s2,int debug){
     float pos_y = tr->Coo[1]+tr->Dir[1]/tr->Dir[2]*dz;
 
     float ex   = fabs(dz)*tr->emx();
-    float ey   = fabs(dz)*tr->emy(1);
+    float ey   = fabs(dz)*tr->emy();
 
     float sig_x = (pos_x-refhits[i].x())/(referr[i].x()+ex); 
     float sig_y = (pos_y-refhits[i].y())/(referr[i].y()+ey);
@@ -529,8 +532,11 @@ int TrdHReconR::combine_segments(int debug){
 	if(s_done[i]==1||s_done[j]==1)continue;
 	TrdHTrackR *tr=SegToTrack(hsegvec[i],hsegvec[j]);
 	tr->status=1;
-	if(tr){htrvec[nhtrvec++]=tr;
-	  s_done[i]=1;s_done[j]=1;}
+	if(tr&&nhtrvec<20){
+	  htrvec[nhtrvec++]=tr;
+	  s_done[i]=1;s_done[j]=1;
+	}
+	else delete tr;
       }
     }
   }
@@ -540,7 +546,7 @@ int TrdHReconR::combine_segments(int debug){
   if(nhsegvec==n_done)return nhtrvec;
 
   // check for vertices
-  vector<pair<int,int> > check=check_secondaries();
+  /*  vector<pair<int,int> > check=check_secondaries();
 
   if(check.size()>0){
     // skip secondary vertices for now
@@ -554,7 +560,7 @@ int TrdHReconR::combine_segments(int debug){
       }
     }
   }
-
+  */
   n_done=0;
   for(int i=0;i!=nhsegvec;i++)if(s_done[i]==1)n_done++;
 
@@ -570,22 +576,14 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   nhsegvec=0;
   nhtrvec=0;
 
-  for(int i=0;i!=r.size();i++)rhits[nrhits++]=new TrdRawHitR(r[i]);
-  for(int i=0;i!=s.size();i++)hsegvec[nhsegvec++]=new TrdHSegmentR(s[i]);  
-  for(int i=0;i!=t.size();i++)htrvec[nhtrvec++]=new TrdHTrackR(t[i]);
+  for(int i=0;i!=r.size();i++)if(nrhits<1024)rhits[nrhits++]=new TrdRawHitR(r[i]);
+  for(int i=0;i!=s.size();i++)if(nhsegvec<100)hsegvec[nhsegvec++]=new TrdHSegmentR(s[i]);  
+  for(int i=0;i!=t.size();i++)if(nhtrvec<20)htrvec[nhtrvec++]=new TrdHTrackR(t[i]);
 }
 
 void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
-  nrhits=0;
-  nhsegvec=0;
-  nhtrvec=0;
-  
-  for(int i=0;i!=2;i++){
-    npeak[i]=0;
-    for(int j=0;j!=1024;j++)peakvec[i][j]=0;
-  }
-  
-  for(int i=0;i!=r.size();i++)rhits[nrhits++]=&r[i];
+  reset();
+  for(int i=0;i!=r.size();i++)if(nrhits<1024)rhits[nrhits++]=new TrdRawHitR(r[i]);
   
   int nhseg=TrdHSegmentR::build();
   int nhtr=0;
@@ -594,26 +592,24 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
 }
 
 void TrdHReconR::reset(){
-#ifndef __ICC__
-  memset(rhits, 0, sizeof(TrdRawHitR*)*1024); 
-  memset(hsegvec, 0, sizeof(TrdHSegmentR*)*100); 
-  memset(htrvec, 0, sizeof(TrdHTrackR*)*20); 
-  memset(refhits,0,sizeof(AMSPoint)*50);
-  memset(referr,0,sizeof(AMSPoint)*50);
-#else
-  __builtin_memset(rhits, 0, sizeof(TrdRawHitR*)*1024); 
-  __builtin_memset(hsegvec, 0, sizeof(TrdHSegmentR*)*100); 
-  __builtin_memset(htrvec, 0, sizeof(TrdHTrackR*)*20); 
-  __builtin_memset(refhits, 0, sizeof(AMSPoint)*50); 
-  __builtin_memset(referr, 0, sizeof(AMSPoint)*50); 
-#endif
+  for(int i=0;i<nrhits;i++)   delete rhits[i];
+  for(int i=0;i<nhsegvec;i++) delete hsegvec[i];
+  for(int i=0;i<nhtrvec;i++)  delete htrvec[i];
+  for(int i=0;i<2;i++){
+    delete H2A_mvr[i];
+    delete H2V_mvr[i];
+    for(int j=0;j<npeak[i];j++)   delete peakvec[i][j];
+  }
 
-  for(int i=0;i!=1024;i++)
-    rhits[i]=0;
-  
-  nrhits=0;
-  nhsegvec=0;
-  nhtrvec=0;
+  for(int i=0;i!=1024;i++)rhits[i]=0;nrhits=0;
+  for(int i=0;i!=100;i++)hsegvec[i]=0;nhsegvec=0;
+  for(int i=0;i!=20;i++)htrvec[i]=0;nhtrvec=0;
+  for(int i=0;i!=2;i++){
+    npeak[i]=0;
+    H2A_mvr[i]=0;
+    H2V_mvr[i]=0;
+    for(int j=0;j!=1024;j++)peakvec[i][j]=0;
+  }
   nref=0;
 }
 
@@ -684,7 +680,6 @@ void TH2V::FindPeaks(int d, int npeak)
 	  if(histo[i].zmax>zmax)zmax=histo[i].zmax;
 	}
       }
-
 
       if(debug)printf("maxima %i sw %.2f dz %.2f\n",j,sw,zmax-zmin);
       if(sw==0.||zmax-zmin==0.)continue;

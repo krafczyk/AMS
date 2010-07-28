@@ -147,25 +147,25 @@ class TrdHReconR{
   static void Initialize(int n);
 
   /// array of TrdRawHit pointers (used as input to reconstruction)
-  TrdRawHitR** rhits;
+  TrdRawHitR* rhits[1024];
   
   /// counter of TrdRawHit pointers
   int nrhits;
 
   /// array of peak pointers (peaks in internal 2D (slope/offset in xz and yz)  prefit )
-  PeakXYZW*** peakvec;
+  PeakXYZW* peakvec[2][1024];
 
   /// counter of peak pointers 
   int npeak[2];
 
   /// array of reconstructed TrdHSegment pointers
-  TrdHSegmentR** hsegvec;
+  TrdHSegmentR* hsegvec[100];
   
   /// counter of reconstructed TrdHSegment pointers
   int nhsegvec;
 
   /// array of reconstructed TrdHTrack pointers
-  TrdHTrackR** htrvec;
+  TrdHTrackR* htrvec[20];
   
   /// counter of reconstructed TrdHTrack pointers
   int nhtrvec;
@@ -188,25 +188,7 @@ class TrdHReconR{
 
   /// default ctor
   TrdHReconR(){
-    rhits=(TrdRawHitR**)malloc(sizeof(TrdRawHitR*)*1024);
-    hsegvec=(TrdHSegmentR**)malloc(sizeof(TrdHSegmentR*)*100);
-    htrvec=(TrdHTrackR**)malloc(sizeof(TrdHTrackR*)*20);
-    peakvec=(PeakXYZW***)malloc(sizeof(PeakXYZW**)*2048);
-    for(int i=0;i!=2;i++)peakvec[i]=(PeakXYZW**)malloc(sizeof(PeakXYZW*)*1024);
-
-    nref=0;
-
-    for(int i=0;i!=1024;i++)rhits[i]=0;nrhits=0;
-    for(int i=0;i!=50;i++)hsegvec[i]=0;nhsegvec=0;
-    for(int i=0;i!=10;i++)htrvec[i]=0;nhtrvec=0;
-
-    for(int i=0;i!=2;i++){
-      npeak[i]=0;
-      for(int j=0;j!=1024;j++)peakvec[i][j]=0;
-    }
-
-    H2A_mvr[0]=0;H2A_mvr[1]=0;
-    H2V_mvr[0]=0;H2V_mvr[1]=0;
+    reset();
   };
 
   /// reset all variables
@@ -244,7 +226,7 @@ class TrdHReconR{
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
   TrdHTrackR* SegToTrack(TrdHSegmentR *s1, TrdHSegmentR* s2, int debug=0);
 
-  ClassDef(TrdHReconR,2)
+  ClassDef(TrdHReconR,3)
 };
 
 static TrdHReconR **trdhreconarr=0;
