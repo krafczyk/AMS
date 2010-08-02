@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.193 2010/08/02 08:48:50 choutko Exp $
+//  $Id: daqevt.C,v 1.194 2010/08/02 09:59:17 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -815,7 +815,7 @@ integer DAQEvent::_EventOK(){
  
 
      ntot=preset;
-     for(_pcur=_pData+preset;_pcur<_pData+_Length;_pcur+=_cl(_pcur)) {
+     for(_pcur=_pData+preset;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=_cl(_pcur)) {
       ntot+=_cl(_pcur);
       if(_isddg(*(_pcur+_cll(_pcur))) && _iscompressed(*(_pcur+_cll(_pcur)))){
 //
@@ -1012,7 +1012,7 @@ again:
       // envelop header
      integer ntot=0;
      _pcur=_pData+2;
-     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL) {
+     for(_pcur=_pData+2;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=*(_pcur)+_OffsetL) {
       ntot+=*(_pcur)+_OffsetL;
       if (AMSJob::gethead() && AMSJob::gethead() -> isMonitoring()) {
         int l   = *(_pcur) + _OffsetL;
@@ -1058,7 +1058,7 @@ again:
          _Length<<" Blocks say length is "<<ntot+2<<endl;
        cerr <<" SubBlock dump follows"<<endl;
      _pcur=_pData+2;
-     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
+     for(_pcur=_pData+2;_pcur<_pData+_Length && _pcur>=_pData;_pcur+=*(_pcur)+_OffsetL)
        cerr <<" ID " <<*(_pcur+1)<<" Length "<< *(_pcur)+_OffsetL<<endl;
      //     int ic=0;
      //     for(_pcur=_pData;_pcur<_pData+_Length;_pcur++)
@@ -1509,7 +1509,7 @@ int16u* pc;
    for(pc=pd+getpreset(pd);pc < pd+_Length2;pc=pc+_cl(pc)){
     int16u id=*(pc+_cll(pc));
     if(_isjinj(id)){
-     for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2;pdown+=*pdown+1){
+     for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2 && pdown>=pc;pdown+=*pdown+1){
      int ic=DAQS2Block::checkblockid(_getportj(*(pdown+*pdown)))-1;
      if(ic>=0){
       int16u *psafe=pdown+1;
@@ -1531,7 +1531,7 @@ int16u* pc;
    for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length && _pcur>=_pData;_pcur=_pcur+_cl(_pcur)){
     int16u id=*(_pcur+_cll(_pcur));
     if(_isjinj(id)){
-     for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
+     for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
      int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
 
      if(ic>=0){
