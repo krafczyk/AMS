@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.192 2010/06/15 16:48:36 choutko Exp $
+//  $Id: daqevt.C,v 1.193 2010/08/02 08:48:50 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1528,7 +1528,7 @@ int16u* pc;
 
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
-   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length;_pcur=_pcur+_cl(_pcur)){
+   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length && _pcur>=_pData;_pcur=_pcur+_cl(_pcur)){
     int16u id=*(_pcur+_cll(_pcur));
     if(_isjinj(id)){
      for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2;pdown+=*pdown+1){
