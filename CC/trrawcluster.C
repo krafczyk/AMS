@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.112 2010/07/14 15:13:52 choutko Exp $
+//  $Id: trrawcluster.C,v 1.113 2010/08/02 12:33:45 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -478,6 +478,10 @@ void AMSTrRawCluster::buildraw(integer n, int16u *pbeg){
 //  have to split integer n; add crate number on the upper part...
   unsigned int leng=n&65535;
   uinteger ic=(n>>16);
+  if(ic>7){  
+      cerr<<" AMSTrRawCluster::buildraw-E-crateOutOfRange "<<ic<<endl;
+      return;
+  }
     int cmn=0;
    if(TRCALIB.Version==0)cmn=16;
 if(DAQCFFKEY.DAQVersion==1)cmn=2;
