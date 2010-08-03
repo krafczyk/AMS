@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.8 2010/05/14 14:02:28 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.9 2010/08/03 16:33:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/08/03 16:33:31 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -318,6 +318,16 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   if (GetLayer()!=lad->GetLayer()) return false; // AO Bug fix: otherwise takes the first plane column
   // XY check
 
+  int tkid = lad->GetTkId();
+  AMSPoint diff = GlobalCoo-TkCoo::GetLadderCenter(tkid);
+
+  if (abs(diff[0]) < TkCoo::GetLadderLength(tkid)/2 &&
+      abs(diff[1]) < TkDBc::Head->_ladder_Ypitch) return true;
+  return false;
+
+  // The following code doesn't work for Layer 8 (aka Layer 1N) for AMS02P
+  // i.e. in case the plane is rotated
+/*
   double X=GlobalCoo[0];
   double Y=GlobalCoo[1];
 
@@ -359,6 +369,7 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   }
   
   return (good>0);
+*/
 }
 
 

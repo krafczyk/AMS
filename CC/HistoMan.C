@@ -222,9 +222,9 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrClsSigN", "Amplitude(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
 
   // TrRecHit
-  Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 8, 0.5, 8.5));
-  Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 8, 0.5, 8.5));
-  Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 8, 0.5, 8.5));
+  Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 9, 0.5, 9.5));
+  Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 9, 0.5, 9.5));
+  Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 9, 0.5, 9.5));
 
   // TrTrack
   Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));

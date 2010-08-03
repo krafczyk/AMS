@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.22 2010/07/07 14:12:44 pzuccon Exp $
+//  $Id: TrFit.C,v 1.23 2010/08/03 16:33:31 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/07/07 14:12:44 $
+///$Date: 2010/08/03 16:33:31 $
 ///
-///$Revision: 1.22 $
+///$Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1182,8 +1182,8 @@ double TrFit::ChoutkoFit(void)
     }
 
     // Check parameter range
-    if (_param[4] <= -10) _param[4] = -10;
-    if (_param[4] >=  10) _param[4] =  10;
+    if (_param[4] <= -1e3) _param[4] = -1e3;
+    if (_param[4] >=  1e3) _param[4] =  1e3;
   }
 
   // A small tuning

@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.24 2010/06/23 17:40:51 pzuccon Exp $
+//  $Id: event_tk.C,v 1.25 2010/08/03 16:33:31 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -207,8 +207,8 @@ void AMSEvent::_retkevent(integer refit){
   AMSTrTrack *trk 
     = (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
   for (int i = 0; i < ntrk && trk; i++) {
-    double sigp[8], sign[8];
-    for (int j = 0; j < 8; j++) {
+    double sigp[9], sign[9];
+    for (int j = 0; j < TkDBc::Head->nlay(); j++) {
       sigp[j] = sign[j] = 0;
 
       TrRecHitR *hit = trk->GetHitL(j);
@@ -231,7 +231,9 @@ void AMSEvent::_retkevent(integer refit){
 	if (tks.LadFound()) {
 	  int slot  = tks.GetLadTkID()%100;
 	  int layer = abs(tks.GetLadTkID())/100;
-	  hman.Fill("TrLadTrk", slot, layer);
+	  hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
+		                abs(tks.GetLadTkID())/100);
+	  //slot, layer);
 	}
       }
     }
@@ -247,7 +249,7 @@ void AMSEvent::_retkevent(integer refit){
 
       double ssump = 0, ssumn = 0, smaxp = 0, smaxn = 0;
       int    nsump = 0, nsumn = 0;
-      for (int j = 0; j < 8; j++) {
+      for (int j = 0; j < TkDBc::Head->nlay(); j++) {
 	TrRecHitR *hit = trk->GetHitL(j);
 	AMSPoint   res = trk->GetResidual(j);
 	if (hit && !hit->OnlyY()) hman.Fill("TrResX", argt, res.x()*1e4);
@@ -269,10 +271,13 @@ void AMSEvent::_retkevent(integer refit){
       int mf9 = TrTrackR::kChoutko | TrTrackR::kFitLayer9;
       AMSPoint pl8 = trk->InterpolateLayer(7);
       AMSPoint pl9 = trk->InterpolateLayer(8);
+      AMSPoint p0;
+     if (pl8.dist(p0) > 1e-3 && pl9.dist(p0) > 1e-3) {
       hman.Fill("TrPtkL8", pl8.x(), pl8.y());
       hman.Fill("TrPtkL9", pl9.x(), pl9.y());
       if (trk->ParExists(mf8)) hman.Fill("TrPftL8", pl8.x(), pl8.y());
       if (trk->ParExists(mf9)) hman.Fill("TrPftL9", pl9.x(), pl9.y());
+     }
     }
     if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
 		    TRMCFFKEY.SimulationType==TrSim::kTrSim2010) 

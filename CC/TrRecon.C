@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.57 2010/07/14 13:44:05 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.58 2010/08/03 16:33:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/07/14 13:44:05 $
+/// $Date: 2010/08/03 16:33:31 $
 ///
-/// $Revision: 1.57 $
+/// $Revision: 1.58 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -330,6 +330,7 @@ int TrRecon::ExpandClusterInBuffer(TrRawClusterR* cluster) {
   int nelements = cluster->GetNelem();
   int firststripaddress = cluster->GetAddress();
   TrLadCal* cal = GetTrCalDB()->FindCal_TkId(cluster->GetTkId());
+  if (!cal) {printf ("TrRecon::ExpandClusterInBuffer, WARNING calibration not found!! TkId= %d\n", cluster->GetTkId()); return -9999;}
   for (int jj=0; jj<nelements; jj++) {
     int address = firststripaddress + jj;
     if ( (address<0)||(address>=1024) ) continue;
@@ -1926,8 +1927,9 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     if (il < 0) continue;
 
     int nc = 1+((hit->OnlyY()) ? 0 : 1);
-    if (std::fabs(hit->GetCoord().y()-ptrk[il].y()) > rymin[il] || 
-        nc < ncmin[il]) continue;
+    double dy = std::fabs(hit->GetCoord().y()-ptrk[il].y());
+    if (!(dy < rymin[il] || 
+	 (dy < rymin[il]+0.1 && nc < ncmin[il])) ) continue;
 
     int imult = -1;
     if (!hit->OnlyY()) {
