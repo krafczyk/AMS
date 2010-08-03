@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.25 2010/07/14 10:05:21 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.26 2010/08/03 06:03:41 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/07/14 10:05:21 $
+///$Date: 2010/08/03 06:03:41 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -546,7 +546,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	      // Special for k5/k7 on layer 9/plane6
 	      if((lay+1)==9 && side==1 ) aa->SetAsK7();
 	      if((lay+1)==9 && side==0 ) 
-		if((slot+1)==3 ||(slot+1)==6 || (slot+1)==7)
+		if((slot+1)!=3 &&(slot+1)!=6 && (slot+1)!=7)
 		  aa->SetAsK7();
               number posz= _layer_deltaZ[lay];
               number posy= GetSlotY(lay+1,slot+1,side);
