@@ -2965,7 +2965,7 @@ class RemoteClient:
                             type="CMD"
                         elif (t0=="8"):
                             type="HKD"
-                        elif (t0=="27" || t0=="896"):
+                        elif (t0=="27" or t0=="896"):
                             type="CAB"
                         bpath=runsdir+"/"+type
                         cmd="ln -sf "+outputpath+" "+bpath
