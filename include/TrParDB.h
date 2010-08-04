@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.7 2010/05/27 17:03:33 oliva Exp $
+// $Id: TrParDB.h,v 1.8 2010/08/04 13:32:06 shaino Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/05/27 17:03:33 $
+///$Date: 2010/08/04 13:32:06 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -31,8 +31,6 @@
 
 #include "TObject.h"
 #include "typedefs.h"
-
-#include "timeid.h"
 
 #define PARDBOFF 203
 #define CHLOSSARR 10
