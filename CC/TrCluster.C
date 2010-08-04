@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.14 2010/05/27 17:03:33 oliva Exp $ 
+/// $Id: TrCluster.C,v 1.15 2010/08/04 19:33:40 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,13 +17,12 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/05/27 17:03:33 $
+/// $Date: 2010/08/04 19:33:40 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
-#include "TkDBc.h"
 #include "TkCoo.h"
 #include "TrCluster.h"
 
@@ -68,13 +67,13 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind,
   Clear();
   _tkid    =  tkid;
   _address =  add;
-  if((add+nelem-1)>=1024){
+  if ( ((add+nelem-1)>=1024)&&(!TkDBc::Head->FindTkId(tkid)->IsK7()) ) {
     _nelem=1024-add;
     cerr<<"TrClusterR::TrClusterR -W- You are tring to create a Cluster with address "<< add<<" and length "<<nelem<<endl;
-    cerr<<"                            Cluster has been truncated to the physical limit"<<endl;
+    cerr<<"                           Cluster has been truncated to the physical limit"<<endl;
   }
   else
-    _nelem   =  nelem;
+  _nelem   =  nelem;
   _seedind =  seedind;
   _signal.reserve(_nelem);
   for (int i = 0; i<_nelem; i++) _signal.push_back(adc[i]);
@@ -201,6 +200,7 @@ float TrClusterR::GetSignal(int ii, int opt) {
 int TrClusterR::GetAddress(int ii) {
   int address = GetAddress() + ii;
   int side    = GetSide();
+  // cyclical definition, in order to avoid errors and manage the K7 clusters
   if ( (side==0)&&(address>1023) ) address = address - 384; //  640 + (address - 1024);
   if ( (side==0)&&(address< 640) ) address = address + 384; // 1024 - (640  - address);
   if ( (side==1)&&(address> 639) ) address = address - 640; //    0 + (address -  640);
