@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.26 2010/08/03 06:03:41 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.27 2010/08/04 13:31:24 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/03 06:03:41 $
+///$Date: 2010/08/04 13:31:24 $
 ///
-///$Revision: 1.26 $
+///$Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -555,7 +555,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	      aa->rot.Reset();
 	      
 	      // Rotation along X-axis
-	      if(lay%2==0) {
+	      if(lay%2==0 && (lay+1)!=9) {
 		aa->rot.YParity(); 
 		aa->rot.ZParity(); 
 	      }
@@ -630,9 +630,9 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   else            addspaces=central_gap/2.;
   if(layer==9){
     if(side==0) 
-      return  (distXF - ladder_Ygap/2 + ladpitch*(4-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2. ;
+      return  (distXF - ladder_Ygap/2 + ladpitch*(3-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2. ;
     else
-      return  (distXN - ladder_Ygap/2 + ladpitch*(4-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2.; 
+      return  (distXN - ladder_Ygap/2 + ladpitch*(5-slot) + addspaces); //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2.; 
   }
   if( layer==2||layer==4||layer==6){
     if(side==0){

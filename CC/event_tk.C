@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.25 2010/08/03 16:33:31 shaino Exp $
+//  $Id: event_tk.C,v 1.26 2010/08/04 13:31:24 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -186,8 +186,10 @@ void AMSEvent::_retkevent(integer refit){
 		   1.* TrRecon::RecPar.NcutCpu /nfill,
 		   trtime) << endl;
     }
-  }
+  } // #pragma omp critical (trtrstat)
 
+#pragma omp critical (trhist)
+ {
   // Fill histograms
   int nhit = AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
   int ntrk = AMSEvent::gethead()->getC("AMSTrTrack" )->getnelem();
@@ -228,13 +230,9 @@ void AMSEvent::_retkevent(integer refit){
       else {
 	AMSPoint play = trk->GetPlayer(j);
 	TkSens tks(play,0);
-	if (tks.LadFound()) {
-	  int slot  = tks.GetLadTkID()%100;
-	  int layer = abs(tks.GetLadTkID())/100;
+	if (tks.LadFound())
 	  hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
 		                abs(tks.GetLadTkID())/100);
-	  //slot, layer);
-	}
       }
     }
 
@@ -275,8 +273,12 @@ void AMSEvent::_retkevent(integer refit){
      if (pl8.dist(p0) > 1e-3 && pl9.dist(p0) > 1e-3) {
       hman.Fill("TrPtkL8", pl8.x(), pl8.y());
       hman.Fill("TrPtkL9", pl9.x(), pl9.y());
-      if (trk->ParExists(mf8)) hman.Fill("TrPftL8", pl8.x(), pl8.y());
-      if (trk->ParExists(mf9)) hman.Fill("TrPftL9", pl9.x(), pl9.y());
+      if (trk->ParExists(mf8) && 
+	  trk->GetChisqX(mf8) < 1e5 && 
+	  trk->GetChisqY(mf8) < 1e5) hman.Fill("TrPftL8", pl8.x(), pl8.y());
+      if (trk->ParExists(mf9) && 
+	  trk->GetChisqX(mf9) < 1e5 && 
+	  trk->GetChisqY(mf9) < 1e5) hman.Fill("TrPftL9", pl9.x(), pl9.y());
      }
     }
     if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
@@ -319,6 +321,7 @@ void AMSEvent::_retkevent(integer refit){
     }   
     trk = (AMSTrTrack *)trk->next();
   }
+ } // #pragma omp critical (trhist)
 
   if(rec) delete rec;
 }
