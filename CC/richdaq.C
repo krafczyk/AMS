@@ -72,6 +72,10 @@ integer DAQRichBlock::checkdaqidnode(int16u node_word){   // RICH AS NODE
 
 
 void DAQRichBlock::buildraw(integer length,int16u *p){
+  // The length integer includes the jinj id information in the hsb
+  unsigned int jinj=length>>24;
+  length&=(1<<24)-1;
+
   try{
   // Reset the status bits
   Status=kOk;
@@ -120,7 +124,10 @@ void DAQRichBlock::buildraw(integer length,int16u *p){
   int offset=0;
   if(DAQCFFKEY.DAQVersion==1) offset=-2;  // Take into account the JINF-R MASK
   if(!AMSJob::gethead()->isRealData()) offset=-2;  // Take into account the added JINF-R MASK for MC data
-  DecodeRich(length+offset,p,JINF,0);
+
+  bool secondary=0;
+  if(AMSJob::gethead()->isRealData()) if(jinj==0 || jinj==3) secondary=1;
+  DecodeRich(length+offset,p,JINF,secondary);
   }
   catch(int){
     static bool first_call=true;
