@@ -16,7 +16,10 @@ char * AMSChain::getsetup(){
     static char ams02p[]="AMS02P";
     TObjString s("");
    s.Read("AMS02Geometry");
-   if(s.String().Contains("STK9"))return ams02p;
+   if(
+      s.String().Contains("STK9")||
+      s.String().Contains("STK6")
+      )return ams02p;
    else return ams02; 
 }
 
