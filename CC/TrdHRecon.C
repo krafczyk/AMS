@@ -1,5 +1,7 @@
 #include "TrdHRecon.h"
+#ifdef __AMSP__
 #include <omp.h>
+#endif 
 
 ClassImp(TrdHReconR);
 
