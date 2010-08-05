@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.586 2010/07/23 16:10:08 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.587 2010/08/05 13:07:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4436,7 +4436,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            my @sqla=split 'where',$sql;
 #           $sqla[1]=~s/and ntuples.run=runs.run//;
 #           $sqla[1]=~s/and ntuples.path not like \'\%castor\%\'//;
-           $sql="select count(jobs.jid) from jobs,dataruns,ntuples,datasetsdesc where ".$sqla[1]." group by ntuples.run";
+           $sql="select count(jobs.jid) from jobs,dataruns,ntuples,datasetsdesc,datasets where ".$sqla[1]." group by ntuples.run";
           my $rsuma=$self->{sqlserver}->Query($sql);
           my $i=0;
           foreach my $p (@{$rsuma}){

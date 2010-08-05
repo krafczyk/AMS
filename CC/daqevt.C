@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.194 2010/08/02 09:59:17 choutko Exp $
+//  $Id: daqevt.C,v 1.195 2010/08/05 13:07:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -19,6 +19,7 @@
 #include <strstream>
 #include "daqs2block.h"
 #include "tofsim02.h"
+#include "richdaq.h"
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #include "MagField.h"
@@ -684,10 +685,10 @@ else return false;
 }
 
 
-bool    DAQEvent::_isjinj(int16u id){
+int    DAQEvent::_isjinj(int16u id){
 //if(((id&31) ==1 || (id&31)==4)&& ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
-if( ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return true;
-else return false;
+if( ((id>>5)&((1<<9)-1))>=128 && ((id>>5)&((1<<9)-1))<=135 && (id>>14)==2)return ((id>>5)&((1<<9)-1));
+else return 0;
 }
 
 bool    DAQEvent::_isjinf(int16u id){
@@ -1530,7 +1531,8 @@ int16u* pc;
    while(fpl){
    for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length && _pcur>=_pData;_pcur=_pcur+_cl(_pcur)){
     int16u id=*(_pcur+_cll(_pcur));
-    if(_isjinj(id)){
+    int jinj=_isjinj(id);
+    if(jinj){
      for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
      int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
 
@@ -1539,7 +1541,11 @@ int16u* pc;
       cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
 #endif
       int16u *psafe=pdown+1;
+      
       integer n=(ic<<16) | (*pdown);
+      if(DAQRichBlock::checkdaqid(_getportj(*(pdown+*pdown)))){
+        n|=(jinj-128)<<24;
+      }
       fpl->_pputdata(n,psafe);
      }
     }

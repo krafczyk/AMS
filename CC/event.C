@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.478 2010/07/28 15:43:13 mmilling Exp $
+//  $Id: event.C,v 1.479 2010/08/05 13:07:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3188,6 +3188,7 @@ void AMSEvent::Recovery(){
       int mresort=160000;
       int ntry;
       const int maxtry=10;
+      if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
 agains:
       try{
        UPool.SetLastResort(mresort);
@@ -4186,7 +4187,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                 if(rec==0){
                   AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("CCEBPar",AMSJob::gethead()->isRealData()));
                 int diff=ArrayC[sizeof(ArrayC)/sizeof(ArrayC[0])-1].Time-ArrayC[0].Time;
-                bool ok=diff>0 && diff<86400;
+                bool ok=diff>0 && diff<864000;
     for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
        cout<<" Time " <<i<< " "<<ArrayC[i].Time<<endl;
                 }
@@ -4212,6 +4213,10 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
                 ucopy_(&ArrayC[i],&TRCALIB,sizeof(TRCALIB)/sizeof(integer));
                 HFNT(CALIB.Ntuple);
                }
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("CCEB");
+
            }
        }
                else cerr<<"AMSEvent::buildcceb-E-NoTDVFoundOrBadRecord "<<AMSID("CCEBPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;

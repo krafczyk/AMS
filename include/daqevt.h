@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.78 2010/03/01 16:19:51 pzuccon Exp $
+//  $Id: daqevt.h,v 1.79 2010/08/05 13:07:04 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -147,7 +147,7 @@ static const char *  _getportnamej(int16u id) {
    return _PortNamesJ[(id&0x1F)];
 }
 bool    _isddg(int16u id);       //  identify the detector data group sub block
-bool    _isjinj(int16u id);       //  identify the detector data group sub block
+int    _isjinj(int16u id);       //  identify the detector data group sub block
 bool    _iscompressed(int16u id);       //  identify the compressed detector data group sub block
 bool    _isjinf(int16u id);       //  identify the detector data group sub block
 bool    _isjlvl1(int16u id);       //  identify the detector data group sub block
