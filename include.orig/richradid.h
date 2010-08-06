@@ -54,6 +54,8 @@ class RichRadiatorTile{
 
 class RichRadiatorTileManager{
  private:
+  static bool _IgnoreDB;
+
   int _current_tile;
   AMSPoint _p_direct;
   AMSPoint _p_reflected;

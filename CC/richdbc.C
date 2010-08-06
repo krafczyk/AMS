@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.69 2010/01/19 15:28:19 mdelgado Exp $
+//  $Id: richdbc.C,v 1.70 2010/08/06 09:25:44 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -636,6 +636,7 @@ extern "C" integer testradiator_(integer *numed){
 //
 
 
+bool      RichAlignment::_IgnoreDB=false;
 AMSPoint  RichAlignment::_a2rShift;
 AMSPoint  RichAlignment::_r2aShift;
 AMSRotMat RichAlignment::_a2rRot;
@@ -778,6 +779,7 @@ void RichAlignment::Init(){
        } 
        
        if(filename[0]!='\0'){
+	 RichAlignment::_IgnoreDB=1;
 	 LoadFile(filename,1);
 	 return;
        }
@@ -844,6 +846,7 @@ void RichAlignment:: SetMirrorShift(double Dx,double Dy,double Dz){
 
 
 void RichAlignment::GetFromTDV(){
+  if(RichAlignment::_IgnoreDB) return;
   double current[12];
   _a2rShift.getp(current[0],current[1],current[2]);
   _a2rRot.GetRotAngles(current[3],current[4],current[5]);

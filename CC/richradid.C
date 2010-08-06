@@ -27,7 +27,7 @@ geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
 
 /////////////////////////////////////////////////
 
-
+bool    RichRadiatorTileManager::_IgnoreDB=false;
 integer RichRadiatorTileManager::_number_of_rad_tiles=0;
 RichRadiatorTile **RichRadiatorTileManager::_tiles=0;
 
@@ -50,8 +50,10 @@ void RichRadiatorTileManager::Init(){  // Default initialization
       }
     } 
     
-    if(filename[0]!='\0') ReadFromFile(filename);
-    else{
+    if(filename[0]!='\0'){
+      RichRadiatorTileManager::_IgnoreDB=true;
+      ReadFromFile(filename);
+    }else{
       char name[801];
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       //      sprintf(name,"%s/%s/RichDefaultAGLTables.02.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
@@ -533,6 +535,7 @@ time_t RichRadiatorTileManager::_parameters_begin,
 
 
 void RichRadiatorTileManager::GetFromTDV(){
+  if(RichRadiatorTileManager::_IgnoreDB) return;
   // Go one by one with the current TDV, compare with current values used,
   // and if it is new, load and update
   time_t insert,begin,end;

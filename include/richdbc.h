@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.52 2010/01/19 15:28:19 mdelgado Exp $
+//  $Id: richdbc.h,v 1.53 2010/08/06 09:25:44 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -272,6 +272,7 @@ public:
 //    - A transformation from RICH to AMS
 class RichAlignment{
  private:
+  static bool      _IgnoreDB;       // Set to true to avoid reading the DB
   static AMSPoint  _a2rShift;
   static AMSRotMat _a2rRot;
   static AMSPoint  _r2aShift;
