@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.719 2010/07/23 08:45:43 mmilling Exp $
+// $Id: job.C,v 1.720 2010/08/06 14:12:11 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2932,7 +2932,7 @@ bool NeededByDefault=isSimulation();
    
    
     int need=1;
-    if(isMonitoring())need=0;
+    //if(isMonitoring())need=0;
     /// PZ NO !!! Calibrations must alwys be loaded !!!     if(isRealData())
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
