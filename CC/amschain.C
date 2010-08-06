@@ -169,10 +169,18 @@ int  AMSChain::LoadUF(char* fname){
   if(!CC){
     setenv("CC","g++",0);
   }
+ char *AMSSRC=getenv("AMSSRC");
+  if(!AMSSRC){
+    setenv("AMSSRC","..",0);
+  }
 
-  sprintf(cmd,"$CC -m32  -Wno-deprecated -I$ROOTSYS/include -I../include -c %s.C",nameonly.c_str());
-
-  int $i=system(cmd);
+ char *PGTRACK=getenv("PGTRACK");
+ if(PGTRACK)
+  sprintf(cmd,"$CC -m32 -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
+else
+  sprintf(cmd,"$CC -m32  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
+  
+int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
     sprintf(cmd1,"ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
