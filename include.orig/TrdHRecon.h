@@ -1,5 +1,6 @@
 #ifndef _TrdHRecon_
 #define _TrdHRecon_
+#include <cstring>
 #include <vector>
 #include "point.h"
 #include "TrdRawHit.h"

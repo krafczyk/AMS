@@ -1,4 +1,8 @@
 #include "TrdHRecon.h"
+#include <cstring>
+#include <cstdlib>
+#include <algorithm>
+
 #ifdef __AMSP__
 #include <omp.h>
 #endif 
