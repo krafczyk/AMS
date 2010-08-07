@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.6 2010/08/07 14:51:38 shaino Exp $
+// $Id: TrAlignFit.C,v 1.7 2010/08/07 18:58:31 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/08/07 14:51:38 $
+///$Date: 2010/08/07 18:58:31 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -782,13 +782,13 @@ Int_t TrAlignFit::FitPoints(void)
   TrFit fit;
   if (fFitM == kRgtFix) fit.SetRigidity(fFixR);
 
-  Long64_t idx[Nplan];
+  Int_t    idx[Nplan];
   Double_t zht[Nplan];
   for (Int_t i = 0; i < Nplan; i++) {
     Int_t slot = GetCrray(fIcase, i);
     zht[i] = (slot != 0) ? GetArray(fIcase, i, 2) : -200-i;
   }
-  TMath::Sort(Nplan, zht, idx);
+  TMath::Sort<Double_t,Int_t>(Nplan, zht, idx);
 
   for (Int_t i = 0; i < Nplan; i++) {
     Int_t slot = GetCrray(fIcase, idx[i]);
