@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.105 2010/07/12 09:37:52 pzuccon Exp $
+#  $Id: Makefile,v 1.106 2010/08/07 18:28:23 mmilling Exp $
 
 #P.Zuccon june 2005
 
@@ -211,8 +211,8 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	        $(SCC)TrAlignFit.C \
-	      $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)/HistoMan.C
-TRACK_ADD= $(SCC)VCon.C $(SCC)tkgeom.C   $(SCC)trdaq.C    $(SCC)VCon_gbatch.C \
+	      $(SCC)/HistoMan.C
+TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C
 
@@ -231,6 +231,7 @@ COMMON_FILES +=$(TRACK_BASE)
 
 TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
+COMMON_FILES += $(SCC)VCon_gbatch.C $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)VCon.C 
 
 #TRD 
 COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
@@ -283,7 +284,7 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrCalDB.h     \
 		../include/patt.h       ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	../include/TkDBc.h  ../include/MagField.h \
-		../include/TrLadCal.h   ../include/VCon.h  \
+		../include/TrLadCal.h   \
 		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
 		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
 		../include/TrTasCluster.h ../include/TrTasPar.h ../include/TrTasDB.h \
@@ -295,6 +296,8 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h
 endif
+
+ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h
 
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h
 
@@ -489,10 +492,10 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
 
 endif
 
@@ -544,7 +547,7 @@ $(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h   ../include/root_RVS.h ../include/root.h ../include/amschain.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $^ 
 	@echo "OK"
