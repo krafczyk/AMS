@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.5 2010/06/09 15:49:10 pzuccon Exp $
+// $Id: TrAlignFit.C,v 1.6 2010/08/07 14:51:38 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/06/09 15:49:10 $
+///$Date: 2010/08/07 14:51:38 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,14 +25,13 @@
 #include "TString.h"
 #include "TStopwatch.h"
 #include "TSystem.h"
-#include "MagField.h"
 
 #include <iostream>
 #include <fstream>
 
 TObjArray TrAlignObject::sharray;
 Int_t   TrAlignObject::ProfMode = 0;
-Bool_t  TrAlignObject::fLcommon = kFALSE;
+Int_t   TrAlignObject::fLcommon = 0;
 Float_t TrAlignObject::fRange   = 1;
 
 TrAlignObject::TrAlignObject(Int_t id) : tkid(id)
@@ -52,27 +51,43 @@ void TrAlignObject::Reset(void)
 
 void TrAlignObject::InitSHists(void)
 {
+  Int_t    nb = TrAlignFit::Nplan*32;
+  Double_t bx = nb+0.5;
+
   sharray.Clear();
-  sharray.Add(new TH1F("hist1", "Fitpar (X)",     256, 0.5, 256.5));
-  sharray.Add(new TH1F("hist2", "Fitpar (Y)",     256, 0.5, 256.5));
-  sharray.Add(new TH1F("hist3", "Fitpar (Z)",     256, 0.5, 256.5));
-  sharray.Add(new TH1F("hist4", "Fitpar (dY/dX)", 256, 0.5, 256.5));
-  sharray.Add(new TH1F("hist5", "Fitpar (dZ/dX)", 256, 0.5, 256.5));
-  sharray.Add(new TH1F("hist0", "X-Scale",        256, 0.5, 256.5));
+  sharray.Add(new TH1F("hist1", "Fitpar (X)",     nb, 0.5, bx));
+  sharray.Add(new TH1F("hist2", "Fitpar (Y)",     nb, 0.5, bx));
+  sharray.Add(new TH1F("hist3", "Fitpar (Z)",     nb, 0.5, bx));
+  sharray.Add(new TH1F("hist4", "Fitpar (dY/dX)", nb, 0.5, bx));
+  sharray.Add(new TH1F("hist5", "Fitpar (dZ/dX)", nb, 0.5, bx));
+  sharray.Add(new TH1F("hist0", "X-Scale",        nb, 0.5, bx));
   sharray.Add(new TH3F("histx", "Residual VS angle (X)", 
-		       256, 0.5, 256.5, 20, -1, 1, 100, -fRange, fRange));
+		       nb, 0.5, bx, 20, -1, 1, 100, -fRange, fRange));
   sharray.Add(new TH3F("histy", "Residual VS angle (Y)", 
-		       256, 0.5, 256.5, 20, -1, 1, 100, -fRange, fRange));
+		       nb, 0.5, bx, 20, -1, 1, 100, -fRange, fRange));
   sharray.Add(new TH3F("hists", "Residual (X) VS Sensor", 
-		       256, 0.5, 256.5, 15, 0, 15, 100, -fRange, fRange));
+		       nb, 0.5, bx, 15, 0, 15, 100, -fRange, fRange));
   sharray.Add(new TH3F("histp", "Residual (Y) VS Sensor", 
-		       256, 0.5, 256.5, 15, 0, 15, 100, -fRange, fRange));
+		       nb, 0.5, bx, 15, 0, 15, 100, -fRange, fRange));
 
   if (TrAlignFit::fFitM == TrAlignFit::kCurved) {
     sharray.Add(new TH2F("hfit1", "1/R VS X0", 100, -50, 50, 1000, -0.1, 0.1));
     sharray.Add(new TH2F("hfit2", "1/R VS Y0", 100, -50, 50, 1000, -0.1, 0.1));
     sharray.Add(new TH2F("hfit3", "1/R VS dX", 100,  -1,  1, 1000, -0.1, 0.1));
     sharray.Add(new TH2F("hfit4", "1/R VS dY", 100,  -1,  1, 1000, -0.1, 0.1));
+
+    Double_t bin[31];
+    Double_t rng = fRange*2;
+    for (Int_t i = 0; i <= 30; i++) bin[i] = TMath::Power(10, i*0.1);
+    sharray.Add(new TH2F("hfit5", "ResY8 VS Rfit", 30, bin, 100, -rng, rng));
+    sharray.Add(new TH2F("hfit6", "ResY9 VS Rfit", 30, bin, 100, -rng, rng));
+
+    if (TrAlignFit::fMode/10 == TrAlignFit::kMCSim/10) {
+     sharray.Add(new TH2F("hdfr1", "dR VS X0", 100, -50, 50, 1000, -0.3, 0.3));
+     sharray.Add(new TH2F("hdfr2", "dR VS Y0", 100, -50, 50, 1000, -0.3, 0.3));
+     sharray.Add(new TH2F("hdfr3", "dR VS dX", 100,  -1,  1, 1000, -0.3, 0.3));
+     sharray.Add(new TH2F("hdfr4", "dR VS dY", 100,  -1,  1, 1000, -0.3, 0.3));
+    }
   }
 }
 
@@ -130,6 +145,8 @@ void TrAlignObject::FillHist(Int_t i, Double_t x, Double_t y)
 
 void TrAlignObject::ProcHists(Int_t bits)
 {
+  if (TMath::Abs(cool[2]) > 60 && !fLcommon) return;
+
   cdir->cd();
 
   Double_t par[6], per[6];
@@ -143,13 +160,26 @@ void TrAlignObject::ProcHists(Int_t bits)
   for (Int_t i = 0; i < nh; i++) {
     if (i == 4 || i == 5) continue;
 
-    TH2F *hist = (TH2F *)harray.At(i);
-    if (fLcommon) {
+    TH2F  *hist = (TH2F *)harray.At(i);
+    Bool_t hdel = kFALSE;
+
+    if (fLcommon == 1) {
       if (i != 2 && i != 3) continue;
       Int_t lay = TMath::Abs(tkid)/100;
       Int_t ix1 = lay*32-31;
       Int_t ix2 = lay*32;
       hist = Project((TH3F *)sharray.At(4+i), ix1, ix2);
+      hdel = kTRUE;
+    }
+    if (fLcommon == 2) {
+      if (i != 0 && i != 1) continue;
+      Int_t lay = TMath::Abs(tkid)/100;
+      if (lay == 8 || lay == 9) {
+	Int_t ix1 = lay*32-31;
+	Int_t ix2 = lay*32;
+	hist = Project((TH3F *)sharray.At(6+i), ix1, ix2);
+	hdel = kTRUE;
+      }
     }
     if (hist->GetSumOfWeights() < 100) continue;
 
@@ -161,8 +191,6 @@ void TrAlignObject::ProcHists(Int_t bits)
 
     prof->Fit("pol1", "q0");
     TF1 *func = prof->GetFunction("pol1");
-
-    if (fLcommon) delete hist;
 
     if (i == 0) {
       if (bits & XYcorr1) {
@@ -218,6 +246,8 @@ void TrAlignObject::ProcHists(Int_t bits)
       hdz->SetBinError  ((i-6)/2+1, func->GetParError (1));
       if (i%2 == 1) nfit++;
     }
+
+    if (hdel) delete hist;
   }
 
   if (nfit > 2 && (bits & dZXcorr)) {
@@ -544,7 +574,8 @@ Int_t    TrAlignFit::fFitM    = TrAlignFit::kLinear;
 Double_t TrAlignFit::fFixR    = 0;
 
 Int_t    TrAlignFit::fMaxIter  = 20;
-Int_t    TrAlignFit::fMinIter  = 20;
+Int_t    TrAlignFit::fMinIter  =  5;
+Int_t    TrAlignFit::fFinIter  = 10;//15;
 Double_t TrAlignFit::fMaxChisq = 10;
 
 TrAlignFit::TrAlignFit(Int_t maxcases)
@@ -555,6 +586,11 @@ TrAlignFit::TrAlignFit(Int_t maxcases)
 
   fArray = new Float_t[fNbuf];
   fCrray = new char[fNcbf];
+  fPrray = 0;
+  
+  if (TrAlignFit::fMode/10 == TrAlignFit::kMCSim/10)
+    fPrray = new Float_t[fMaxCases];
+
   Init();
 
   fSigma[0] = 500e-4;
@@ -572,6 +608,7 @@ TrAlignFit::~TrAlignFit()
 
   delete [] fArray;
   delete [] fCrray;
+  delete [] fPrray;
 }
 
 void TrAlignFit::Init(void)
@@ -580,21 +617,22 @@ void TrAlignFit::Init(void)
 
   fFile = 0;
 
-  Float_t zdef[8] = { 53.03,  29.258,  25.182,  1.728,
-		     -2.348, -25.182, -29.258, -53.03 };
+  Float_t zdef[Nplan] = { 53.03,  29.258,  25.182,  1.728,
+			 -2.348, -25.182, -29.258, -53.03, -135 };
   if (TkDBc::Head) {
-    for (Int_t i = 0; i < 8; i++) {
+    for (Int_t i = 0; i < Nplan; i++) {
       zdef[i] = TkDBc::Head->GetZlayer(i+1);
     }
   }
 
   SfFill(0, 0, zdef);
-  for (Int_t i = 0; i < 8; i++) SfFill(i+1, 0, zdef);
-  for (Int_t i = 0; i < 8; i++) 
-    for (Int_t j = i+1; j < 8; j++) SfFill(i+1, j+1, zdef);
+  for (Int_t i = 0; i < Nplan; i++) SfFill(i+1, 0, zdef);
+  for (Int_t i = 0; i < Nplan; i++) 
+    for (Int_t j = i+1; j < Nplan; j++) SfFill(i+1, j+1, zdef);
 }
 
-void TrAlignFit::Set(Float_t arr[Ndim][Nplan], Int_t prm[Ndim][Nplan])
+void TrAlignFit::Set(Float_t arr[Ndim][Nplan], Int_t prm[Ndim][Nplan], 
+		     Float_t mcp)
 {
   if (fNcases >= fMaxCases) return;
 
@@ -624,6 +662,8 @@ void TrAlignFit::Set(Float_t arr[Ndim][Nplan], Int_t prm[Ndim][Nplan])
       if (j < 6) obj->fixp[j] = prm[j][i];
     }
   }
+
+  SetPrray(fNcases, mcp);
 
   fNcases++;
 }
@@ -701,7 +741,7 @@ void TrAlignFit::Fit(void)
   std::cout << "CpuTime " << timer.CpuTime() << std::endl;
 }
 
-void TrAlignFit::Get(Float_t arr[Ndim][8], Int_t what)
+void TrAlignFit::Get(Float_t arr[Ndim][Nplan], Int_t what)
 {
   for (Int_t j = what/2-1; j < Nlad; j++) {
     for (Int_t k = what%2; k < 2; k++) {
@@ -742,27 +782,35 @@ Int_t TrAlignFit::FitPoints(void)
   TrFit fit;
   if (fFitM == kRgtFix) fit.SetRigidity(fFixR);
 
+  Long64_t idx[Nplan];
+  Double_t zht[Nplan];
   for (Int_t i = 0; i < Nplan; i++) {
     Int_t slot = GetCrray(fIcase, i);
+    zht[i] = (slot != 0) ? GetArray(fIcase, i, 2) : -200-i;
+  }
+  TMath::Sort(Nplan, zht, idx);
+
+  for (Int_t i = 0; i < Nplan; i++) {
+    Int_t slot = GetCrray(fIcase, idx[i]);
     if (slot == 0) continue;
 
     Int_t sign = TMath::Sign(1, slot);
-    Int_t tkid = sign*((i+1)*100+TMath::Abs(slot));
+    Int_t tkid = sign*((idx[i]+1)*100+TMath::Abs(slot));
 
     TrAlignObject *algp = FindTkId(tkid);
     if (!algp) {
       std::cout << "WARNING algp not found: " << tkid << std::endl;
       continue;
     }
-    AMSPoint coord = algp->GetCoord(GetArray(fIcase,i,0), 
-				    GetArray(fIcase,i,1), 
-				    GetArray(fIcase,i,2));
-    
-    float bf[3]={0,0,0};
-    float pp[3];
-    pp[0]=coord.x();pp[1]=coord.y();pp[2]=coord.z();
-    GUFLD(pp, bf);
-    fit.Add(coord, fSigma[0], fSigma[1], 1,bf[0],bf[1],bf[2]);
+
+    AMSPoint coord = algp->GetCoord(GetArray(fIcase, idx[i], 0), 
+				    GetArray(fIcase, idx[i], 1), 
+				    GetArray(fIcase, idx[i], 2));
+    if (TMath::Abs(coord.z()) < 1e-3) continue;
+
+    AMSPoint sig(fSigma[0], fSigma[1], 1);
+    if (TMath::Abs(coord.z()) > 60) sig.setp(0, 0, 0);
+    fit.Add(coord, sig);
   }
 
   Double_t ret = 0;
@@ -775,9 +823,9 @@ Int_t TrAlignFit::FitPoints(void)
   if (fFitM == kCurved) fit.Propagate(0);
 
   for (Int_t i = 0, j = 0; i < Nplan; i++) {
-    if (GetCrray(fIcase, i) == 0) continue;
-    fResidual[0][i] = fit.GetXr(j);
-    fResidual[1][i] = fit.GetYr(j);
+    if (GetCrray(fIcase, idx[i]) == 0) continue;
+    fResidual[0][idx[i]] = fit.GetXr(j);
+    fResidual[1][idx[i]] = fit.GetYr(j);
     j++;
   }
   fChisq[0] = fit.GetChisqX();
@@ -791,6 +839,8 @@ Int_t TrAlignFit::FitPoints(void)
     TH2F *hist2 = (TH2F*)TrAlignObject::sharray.At(11);
     TH2F *hist3 = (TH2F*)TrAlignObject::sharray.At(12);
     TH2F *hist4 = (TH2F*)TrAlignObject::sharray.At(13);
+    TH2F *hist5 = (TH2F*)TrAlignObject::sharray.At(14);
+    TH2F *hist6 = (TH2F*)TrAlignObject::sharray.At(15);
 
     Double_t rgt = fit.GetRigidity();
     if (rgt != 0) {
@@ -798,6 +848,28 @@ Int_t TrAlignFit::FitPoints(void)
       if (hist2) hist2->Fill(fit.GetP0y (), 1/rgt);
       if (hist3) hist3->Fill(fit.GetDxDz(), 1/rgt);
       if (hist4) hist4->Fill(fit.GetDyDz(), 1/rgt);
+
+      for (Int_t i = 0; i < Nplan; i++) {
+	if (GetCrray(fIcase, i) == 0 || fResidual[1][i] == 0) continue;
+	if (i == 7 && hist5) hist5->Fill(TMath::Abs(rgt), fResidual[1][i]);
+	if (i == 8 && hist6) hist6->Fill(TMath::Abs(rgt), fResidual[1][i]);
+//	if ((i == 7 || i == 8) && TMath::Abs(rgt) < 5)
+//	  fResidual[0][i] = fResidual[1][i] = 0;
+      }
+
+      if (TrAlignFit::fMode/10 == TrAlignFit::kMCSim/10 && 
+	  GetPrray(fIcase) != 0) {
+	TH2F *hist1 = (TH2F*)TrAlignObject::sharray.At(16);
+	TH2F *hist2 = (TH2F*)TrAlignObject::sharray.At(17);
+	TH2F *hist3 = (TH2F*)TrAlignObject::sharray.At(18);
+	TH2F *hist4 = (TH2F*)TrAlignObject::sharray.At(19);
+
+	Float_t pref = GetPrray(fIcase);
+	if (hist1) hist1->Fill(fit.GetP0x (), 1/rgt-1/pref);
+	if (hist2) hist2->Fill(fit.GetP0y (), 1/rgt-1/pref);
+	if (hist3) hist3->Fill(fit.GetDxDz(), 1/rgt-1/pref);
+	if (hist4) hist4->Fill(fit.GetDyDz(), 1/rgt-1/pref);
+      }
     }
   }
 
@@ -847,7 +919,7 @@ void TrAlignFit::FillHists(Int_t i)
       std::cout << "WARNING algp not found: " << tkid << std::endl;
       continue;
     }
-    if (TMath::Abs(fResidual[i][j]) > rmax) continue;
+    if (TMath::Abs(fResidual[i][j]) > rmax || fResidual[i][j] == 0) continue;
 
     Double_t xh = GetArray(fIcase, j, 0);
     Int_t m = (Int_t)((xh+60)/60*15);
@@ -959,16 +1031,19 @@ void TrAlignFit::ProcHists(Int_t iter)
   if      (iter == 0) bits = bits0;
   else if (iter == 1) bits = bits1;
   else if (iter == 2) bits = bits2;
-  else if (iter < 15) bits = bits3;
+  else if (iter < fFinIter) bits = bits3;
   else bits = bits4;
 
-  TrAlignObject::fLcommon = kFALSE;
-  if (fMode == kTestBeam) {
+  TrAlignObject::fLcommon = 0;
+  if (fMode%10 == kTestBeam) {
     if (iter == 0 || iter == 2 || iter == 4) {
-      TrAlignObject::fLcommon = kTRUE;
+      TrAlignObject::fLcommon = 1;
       bits = TrAlignObject::Zcorr2;
     }
     else bits = TrAlignObject::XYcorr3;
+  }
+  else if (TkDBc::Head->GetSetup() == 3) {
+    if (iter == fMaxIter-1) TrAlignObject::fLcommon = 2;
   }
 
   TrAlignObject::ProfMode = 1;
@@ -985,12 +1060,28 @@ void TrAlignFit::ProcHists(Int_t iter)
       }
     }
   }
+
+  if (iter == 0 || iter == 1 || iter == fFinIter) {
+    TDirectory *sdir = gDirectory;
+
+    TString sfn = fNameOut.Data();
+    sfn.ReplaceAll(".root", Form("_%02d.root", iter));
+
+    TFile of(sfn, "recreate");
+    if (of.IsOpen()) {
+      for (Int_t i = 0; i < TrAlignObject::sharray.GetEntries(); i++)
+	if (TrAlignObject::sharray.At(i))
+	  TrAlignObject::sharray.At(i)->Write();
+    }
+
+    if (sdir) sdir->cd();
+  }
 }
 
 void TrAlignFit::ParmHists(void)
 {
-  TDirectory *dir1 = (TDirectory *)fFile->Get("iter14");
-  TDirectory *dir2 = (TDirectory *)fFile->Get("iter19");
+  TDirectory *dir1 = (TDirectory *)fFile->Get(Form("iter%d", fFinIter-1));
+  TDirectory *dir2 = (TDirectory *)fFile->Get(Form("iter%d", fMaxIter-1));
   if (!dir1 || !dir2) return;
 
   fFile->cd();
@@ -998,15 +1089,18 @@ void TrAlignFit::ParmHists(void)
   TDirectory *dir = new TDirectoryFile("params", "Parameters");
   dir->cd();
 
-  TH1F *hist01 = new TH1F("hist01", "NevtX", 256, 0.5, 8.5);
-  TH1F *hist02 = new TH1F("hist02", "NevtY", 256, 0.5, 8.5);
-  TH1F *hist11 = new TH1F("hist11", "dX",    256, 0.5, 8.5);
-  TH1F *hist12 = new TH1F("hist12", "dY",    256, 0.5, 8.5);
-  TH1F *hist13 = new TH1F("hist13", "dZ",    256, 0.5, 8.5);
-  TH1F *hist14 = new TH1F("hist14", "dY/dX", 256, 0.5, 8.5);
-  TH1F *hist15 = new TH1F("hist15", "dZ/dX", 256, 0.5, 8.5);
-  TH1F *hist22 = new TH1F("hist22", "dYc",   256, 0.5, 8.5);
-  TH1F *hist23 = new TH1F("hist23", "dZc",   256, 0.5, 8.5);
+  Int_t    nb = Nplan*32;
+  Double_t bx = Nplan+0.5;
+
+  TH1F *hist01 = new TH1F("hist01", "NevtX", nb, 0.5, bx);
+  TH1F *hist02 = new TH1F("hist02", "NevtY", nb, 0.5, bx);
+  TH1F *hist11 = new TH1F("hist11", "dX",    nb, 0.5, bx);
+  TH1F *hist12 = new TH1F("hist12", "dY",    nb, 0.5, bx);
+  TH1F *hist13 = new TH1F("hist13", "dZ",    nb, 0.5, bx);
+  TH1F *hist14 = new TH1F("hist14", "dY/dX", nb, 0.5, bx);
+  TH1F *hist15 = new TH1F("hist15", "dZ/dX", nb, 0.5, bx);
+  TH1F *hist22 = new TH1F("hist22", "dYc",   nb, 0.5, bx);
+  TH1F *hist23 = new TH1F("hist23", "dZc",   nb, 0.5, bx);
 
   TH1F *hist1 = (TH1F *)dir2->Get("hist1");
   TH1F *hist2 = (TH1F *)dir2->Get("hist2");

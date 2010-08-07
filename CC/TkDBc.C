@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.27 2010/08/04 13:31:24 shaino Exp $
+//  $Id: TkDBc.C,v 1.28 2010/08/07 14:51:38 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/04 13:31:24 $
+///$Date: 2010/08/07 14:51:38 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1103,10 +1103,10 @@ void TkDBc::Lin2Align(){
     int tkid= (int)linear[off];
     TkLadder* ll =FindTkId(tkid);
     if(!ll) {
-      fprintf(stderr,"TkDBc::Lin2Align()-ERROR tkid %+03d not found!!!!\n",tkid);
-      continue;
+      fprintf(stderr,"TkDBc::Lin2Align()-W tkid %+03d not found!!!!\n",tkid);
     }
-    ll->Lin2Align(&(linear[off+1]));
+    else
+      ll->Lin2Align(&(linear[off+1]));
     off+=7;
   }
 

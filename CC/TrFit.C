@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.24 2010/08/07 10:51:17 shaino Exp $
+//  $Id: TrFit.C,v 1.25 2010/08/07 14:51:38 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/08/07 10:51:17 $
+///$Date: 2010/08/07 14:51:38 $
 ///
-///$Revision: 1.24 $
+///$Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,16 +55,16 @@ void TrFit::Clear()
   _errrinv = 0;
 }
 
-// int TrFit::Add(double x,  double y,  double z,
-//  	       double ex, double ey, double ez, int at)
-// {
-//   float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
-//   if (MagFieldOn()) {
-//     //PZMAG MagField::GetPtr()->GuFld(pos, bf);
-//     GUFLD(pos, bf);
-//   }
-//   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
-// }
+int TrFit::Add(double x,  double y,  double z,
+  	       double ex, double ey, double ez, int at)
+{
+  float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
+  if (MagFieldOn()) {
+    //PZMAG MagField::GetPtr()->GuFld(pos, bf);
+     GUFLD(pos, bf);
+   }
+   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
+ }
 
 int TrFit::Add(double x,  double y,  double z,
 	       double ex, double ey, double ez, 

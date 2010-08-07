@@ -1,4 +1,4 @@
-//  $Id: TrAlignFit.h,v 1.3 2010/03/11 09:13:59 shaino Exp $
+//  $Id: TrAlignFit.h,v 1.4 2010/08/07 14:51:40 shaino Exp $
 #ifndef __TrAlignFit__
 #define __TrAlignFit__
 
@@ -12,9 +12,9 @@
 ///\ingroup gbint
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/03/11 09:13:59 $
+///$Date: 2010/08/07 14:51:40 $
 ///
-///$Revision: 1.3 $
+///$Revision: 1.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +52,7 @@ public:
   static TObjArray sharray;
 
   static Int_t   ProfMode;
-  static Bool_t  fLcommon;
+  static Int_t   fLcommon;
   static Float_t fRange;
 
 protected:
@@ -94,12 +94,12 @@ typedef std::map<int,TrAlignObject*>::const_iterator aligIT;
 class TrAlignFit : public TObject {
 
 public:
-  enum { Nplan = 8, Nlad = 15, Npar = 2, 
+  enum { Nplan = 9, Nlad = 15, Npar = 2, 
 	 Ndim = 11, Narr = 3 };
 
   static TString fNameOut;
 
-  enum { kCosmicRay = 1, kTestBeam = 2 };
+  enum { kCosmicRay = 1, kTestBeam = 2, kMCSim = 10 };
   static Int_t fMode;
 
   enum { kLinear = 1, kCurved = 2, kRgtFix = 3 };
@@ -108,6 +108,7 @@ public:
 
   static Int_t    fMinIter;
   static Int_t    fMaxIter;
+  static Int_t    fFinIter;
   static Double_t fMaxChisq;
 
 protected:
@@ -117,6 +118,7 @@ protected:
   Int_t    fNcases;       //!
   Float_t *fArray;        //!
   char    *fCrray;        //!
+  Float_t *fPrray;        //!
 
   Float_t  fSigma[Npar];  //!
 
@@ -137,9 +139,9 @@ public:
  ~TrAlignFit();
 
   void Init(void);
-  void Set (Float_t arr[Ndim][8], Int_t prm[Ndim][8]);
+  void Set (Float_t arr[Ndim][9], Int_t prm[Ndim][9], Float_t mcp = 0);
   void Fit (void);
-  void Get (Float_t arr[Ndim][8], Int_t what);
+  void Get (Float_t arr[Ndim][9], Int_t what);
 
 protected:
   Int_t FitPoints(void);
@@ -182,6 +184,14 @@ protected:
   void SetCrray(Int_t icase, Int_t ilayr, char data) {
     Int_t idx = CrrayIndex(icase, ilayr);
     if (fCrray && 0 <= idx && idx < fNcbf) fCrray[idx] = data;
+  }
+
+  Float_t GetPrray(Int_t icase) const {
+    return (fPrray && 0 <= icase && icase < fMaxCases) ? fPrray[icase] : 0;
+  }
+
+  void SetPrray(Int_t icase, Float_t data) {
+    if (fPrray && 0 <= icase && icase < fMaxCases) fPrray[icase] = data;
   }
 
   TrAlignObject *FindTkId(int tkid) const {

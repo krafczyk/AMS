@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.13 2010/07/07 14:12:53 pzuccon Exp $
+//  $Id: TrFit.h,v 1.14 2010/08/07 14:51:55 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/07/07 14:12:53 $
+///$Date: 2010/08/07 14:51:55 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -213,10 +213,12 @@ protected:
 
   /// Checks if the magfield is on
   bool _fieldon(){
-    double bb=0;
-    for(int ii=0;ii<_nhit;ii++) bb+=sqrt(_bx[ii]*_bx[ii]+_by[ii]*_by[ii]+_bz[ii]*_bz[ii]);
-    return (bb>0);
+    double bb = 0;
+    for(int i = 0; i <_nhit; i++)
+      bb += _bx[i]*_bx[i]+_by[i]*_by[i]+_bz[i]*_bz[i];
+    return (bb > 0);
   }
+
 public:
   /// Default constructor
   TrFit(void);
@@ -257,20 +259,20 @@ public:
   /// Clear data members
   void Clear();
 
-   /// Add a new hit with a position by AMSPoint and its error (ex,ey,ez)
-   int Add(AMSPoint pos, double ex, double ey, double ez,
-	   double bx, double by, double bz, int at = -1) {
-     return Add(pos.x(), pos.y(), pos.z(), ex, ey, ez, bx, by, bz,at);
-   }
+  /// Add a new hit with a position by AMSPoint and its error (ex,ey,ez)
+  int Add(AMSPoint pos, double ex, double ey, double ez,
+	  double bx, double by, double bz, int at = -1) {
+    return Add(pos.x(), pos.y(), pos.z(), ex, ey, ez, bx, by, bz,at);
+  }
 
-//   /// Add a new hit with a position and its error by AMSPoint
-//   int Add(AMSPoint pos, AMSPoint err, int at = -1) {
-//     return Add(pos.x(), pos.y(), pos.z(), err.x(), err.y(), err.z(), at);
-//   }
+  /// Add a new hit with a position and its error by AMSPoint
+  int Add(AMSPoint pos, AMSPoint err, int at = -1) {
+    return Add(pos.x(), pos.y(), pos.z(), err.x(), err.y(), err.z(), at);
+  }
 
-//   /// Add a new hit with a position (x,y,z) and its error (ex,ey,ez)
-//   int Add(double xh, double y,  double z,
-// 	  double ex, double ey, double ez, int at = -1);
+  /// Add a new hit with a position (x,y,z) and its error (ex,ey,ez)
+  int Add(double xh, double y,  double z,
+ 	  double ex, double ey, double ez, int at = -1);
 
   /// Add a new hit with a position, its error, and B field
   int Add(double x,  double y,  double z,

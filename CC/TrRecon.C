@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.59 2010/08/07 10:51:17 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.60 2010/08/07 14:51:38 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/07 10:51:17 $
+/// $Date: 2010/08/07 14:51:38 $
 ///
-/// $Revision: 1.59 $
+/// $Revision: 1.60 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2122,6 +2122,11 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 	       track->GetNhits(), track->GetNhitsXY());
     }
   }  
+
+  if (track->GetRigidity() == 0 || track->GetChisq() <= 0) {
+    delete track;
+    return 0;
+  }
 
   if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
       TRMCFFKEY.SimulationType==TrSim::kTrSim2010)

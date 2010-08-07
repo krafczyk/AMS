@@ -16,16 +16,19 @@
 
 #include "TrParDB.h"
 #include "TrRecon.h"
+#include "MagField.h"
 #include "TrAlignFit.h"
 
 #include <iostream>
 
 using namespace std;
 
-enum { PREINT = 1, FLIGHT = 2, TBEAM = 12 };
+enum { PREINT = 1, FLIGHT = 2, TBEAM = 12, AMS02P = 100, MCSIM = 1000 };
+
+enum { NLAY = 9 };
 
 void alignfit(const char *fname, const char *oname, const char *dbc,
-	      Double_t csqmax = 100, Int_t setup = FLIGHT, 
+	      Double_t csqmax = 100, Int_t setup = FLIGHT + AMS02P, 
 	      Int_t recalc = 0, Int_t nevt = 0)
 {
   AMSChain ch;
@@ -41,6 +44,22 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   ch.GetEvent(0);
   if (dbc) {
+    Int_t nlad = TkDBc::Head->GetEntries();
+    for (Int_t i = 0; i < nlad; i++) {
+      TkLadder *lad = TkDBc::Head->GetEntry(i);
+      if (!lad) continue;
+
+      Double_t a, b, c;
+      lad->rotA.GetRotAngles(a, b, c);
+      lad->rotA.SetRotAngles(a, 0, 0);
+
+      if (lad->GetLayer() == 8 ||
+	  lad->GetLayer() == 9) {
+	lad->posA = lad->posT;
+	lad->rotA = lad->rotT;
+      }
+    }
+
     std::ifstream ftmp(dbc);
     if (!ftmp) {
       if (!TkDBc::Head) {
@@ -59,7 +78,7 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   }
   TrClusterR::UsingTrParDB(TrParDB::Head);
 
-  Int_t initdbc = (dbc) ? 1 : 0;
+  Int_t initdbc = 0;//(dbc) ? 1 : 0;
 
   TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
@@ -67,11 +86,24 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   for (Int_t i = 0; i <= 120; i++) bin[i] = TMath::Power(10, -2+0.05*i);
   TH2F *hist0 = new TH2F("hist0", "Chisq", 120, bin, 120, bin);
 
-  TH2F *hist1 = new TH2F("hist1", "X shift", 256, 0.5, 8.5, 500, -50, 50);
-  TH2F *hist2 = new TH2F("hist2", "Y shift", 256, 0.5, 8.5, 500, -50, 50);
-  TH2F *hist3 = new TH2F("hist3", "X shift", 100, -1, 1, 500, -50, 50);
-  TH2F *hist4 = new TH2F("hist4", "Y shift", 100, -1, 1, 500, -50, 50);
+  Int_t nb = NLAY*32;
+  Double_t bx = NLAY+0.5;
 
+  TH2F *hist1 = new TH2F("hist1", "X shift", nb, 0.5, bx, 500, -50, 50);
+  TH2F *hist2 = new TH2F("hist2", "Y shift", nb, 0.5, bx, 500, -50, 50);
+  TH2F *hist3 = new TH2F("hist3", "X shift", 100, -1,  1, 500, -50, 50);
+  TH2F *hist4 = new TH2F("hist4", "Y shift", 100, -1,  1, 500, -50, 50);
+
+  TH2F *hist5 = 0;
+  TH2F *hist6 = 0;
+  TH2F *hist7 = 0;
+  TH2F *hist8 = 0;
+  if ((setup/100)%10 == AMS02P/100) {
+    hist5 = new TH2F("hist5", "ChisqY VS Rigidity(+)", 80, &bin[40], 120, bin);
+    hist6 = new TH2F("hist6", "ChisqY VS Rigidity(-)", 80, &bin[40], 120, bin);
+    hist7 = new TH2F("hist7", "ChisqY VS Rigidity(+)", 80, &bin[40], 120, bin);
+    hist8 = new TH2F("hist8", "ChisqY VS Rigidity(-)", 80, &bin[40], 120, bin);
+  }
 
   Int_t nent = ch.GetEntries();
   if (nevt <= 0 || nevt > nent) nevt = nent;
@@ -83,25 +115,32 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   Int_t nfill = 0;
   Int_t intv  = 10000;
+  Int_t nfmax = 1500000;
 
   Double_t cfx = 1;
   Double_t cfy = 1;
   if (setup%100 == FLIGHT || setup%100 == TBEAM) {
+
     cfx = 34.*34./300/300;
     cfy = 20.*20./300/300;
   }
 
+  Int_t nhitmin = 6;
+
+  recalc = 1;
+
   for (Int_t i = 0; i < nevt; i++) {
-    if (i > 0 && i%intv == 0) {
+    if ((i > 0 && i%intv == 0) || nfill == nfmax) {
       Double_t tm = timer.RealTime();
       timer.Continue();
       cout << Form("%7d %7d (%4.1f%%) %4.0f sec (%4.2f kHz)",
 		   nfill, i, 100.*i/nevt, tm, 1e-3*i/tm) << endl;
     }
+    if (nfill >= nfmax) break;
 
-    AMSEventR *evt = ch.GetEvent();
+    AMSEventR *evt = ch.GetEvent(i);
     if (evt->nTrTrack() != 1) continue;
-
+/*
     if (initdbc) {
       TkDBc::Head->init(setup%10, (char*)dbc);
       initdbc = 0;
@@ -113,7 +152,7 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 	  TkDBc::Head->readAlignmentSensor(tks);
       }
     }
-
+*/
 //  TrParDB::Head->_asymmetry[0] = 0.027;
 //  TrParDB::Head->_asymmetry[1] = 0.034;
 
@@ -122,14 +161,23 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
     if (trk->GetChisqX() <= 0 || trk->GetChisqY() <= 0) continue;
 
     hist0->Fill(trk->GetChisqX()*cfx, trk->GetChisqY()*cfy);
+
+    Double_t rgt = trk->GetRigidity();
+    if (hist5 && rgt > 0) hist5->Fill( rgt, trk->GetChisqY()*cfy);
+    if (hist6 && rgt < 0) hist6->Fill(-rgt, trk->GetChisqY()*cfy);
+    if ((setup/100)%10 == AMS02P/100 && TMath::Abs(rgt) < 1) continue;
+
     if (trk->GetChisqX()*cfx > csqmax || 
 	trk->GetChisqY()*cfy > csqmax) continue;
 
-    Float_t arr[7][8];
-    for (Int_t j = 0; j < 8*7; j++) arr[j/8][j%8] = 0;
+    Float_t arr[7][NLAY];
+    for (Int_t j = 0; j < NLAY*7; j++) arr[j/NLAY][j%NLAY] = 0;
 
     Int_t nhit = trk->GetNhits();
-    if (nhit < 6) continue;
+    if (nhit < nhitmin) continue;
+
+    if (hist7 && rgt > 0) hist7->Fill( rgt, trk->GetChisqY()*cfy);
+    if (hist8 && rgt < 0) hist8->Fill(-rgt, trk->GetChisqY()*cfy);
 
     if (recalc) {
       evt->NTrRecHit();
@@ -149,6 +197,8 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       Int_t ilyr = hit->GetLayer()-1;
       Int_t slot = TMath::Abs(tkid)%100;
       Int_t half = (tkid < 0) ? 1 : 2;
+
+    //if ((setup/100)%10 == AMS02P/100 && ilyr >= 7) continue;
 
       AMSPoint co0 = hit->GetCoord();
       AMSPoint coo = (recalc) 
@@ -183,6 +233,17 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
     if (nxy < 6) continue;
 
+    if (setup/1000 == MCSIM/1000) {
+      MCEventgR *mcg = evt->pMCEventg(0);
+      if (!mcg) {
+	cerr << "Error: MCEventg not found for MCSIM mode at ient= "
+	     << i << endl;
+	return ;
+      }
+      Float_t pref = mcg->Momentum;
+      fout.write((char*)&pref, sizeof(pref));
+    }
+
     fout.write((char*)arr, sizeof(arr));
     nfill++;
   }
@@ -209,14 +270,18 @@ void alignfit(const char *fname, const char *dbc,
   // Initialize TKDBc
   if (!TkDBc::Head) {
     TkDBc::CreateTkDBc();
-    if (dbc && dbc[0]) TkDBc::Head->init(setup%10, dbc);
+    if (dbc && dbc[0]) {
+      Int_t tksetup = setup%10;
+      if ((setup/100)%10 == AMS02P/100) tksetup = 3;
+      TkDBc::Head->init(tksetup, dbc);
+    }
     else TkDBc::Head->init();
   }
 
   TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
-  Int_t fix[7][8];
-  for (Int_t i = 0; i < 8; i++) {
+  Int_t fix[7][NLAY];
+  for (Int_t i = 0; i < NLAY; i++) {
     for (Int_t j = 0; j < 6; j++) 
       fix[j][i] = (j == 5) ? 0 : 1;
   }
@@ -224,7 +289,57 @@ void alignfit(const char *fname, const char *dbc,
   Long_t id, size, flags, modtime;
   gSystem->GetPathInfo(fname, &id, &size, &flags, &modtime);
 
-  Int_t maxcases = size/8/7/4;
+  TrAlignFit::fMaxIter  = 20;
+  TrAlignFit::fMaxChisq = 10;
+  if (setup%100 == TBEAM) {
+    TrAlignFit   ::fMaxIter = 10;
+    TrAlignFit   ::fMode    = TrAlignFit::kTestBeam;
+    TrAlignObject::fRange   = 0.1;
+
+    if ((setup/100)%10 == 1) {
+      TrAlignFit::fFitM = TrAlignFit::kCurved;
+      TrRecon::ReadMagField(
+	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
+				400./460, 1);
+    }
+    else if ((setup/100)%10 == 2) {
+      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
+      TrAlignFit::fFixR = 0;
+    }
+    else if ((setup/100)%10 == 4) {
+      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
+      TrAlignFit::fFixR = 400;
+      TrRecon::ReadMagField(
+	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
+				400./460, 1);
+    }
+/*  /// TO BE FIXED
+    else
+      TrAlignFit::fMaxIter = 6;
+    /// TO BE FIXED
+*/
+  }
+  else if (setup%100 == FLIGHT) {
+    if ((setup/100)%10 == AMS02P/100) {
+      TrAlignFit::fFitM = TrAlignFit::kCurved;
+      TrRecon::ReadMagField(
+	gSystem->ExpandPathName("$AMSDataDir/v5.00/"
+				"MagneticFieldMapPermanent_NEW.bin"), 1, 1);
+      MagField::GetPtr()->SetScale(1);
+    }
+  }
+
+  cout<<"setup= "<<setup<<" "<<(setup/100)%10<<" "
+      <<TrAlignFit::fFitM<<" "<<TrAlignFit::fFixR<<endl;
+
+
+  Int_t usize = NLAY*7*4;
+  if (setup/1000 == MCSIM/1000) {
+    usize += 4;
+    TrAlignFit::fMode += TrAlignFit::kMCSim;
+  }
+
+  Int_t maxcases = size/usize;
   TrAlignFit afit(maxcases);
 
   if (skip > 0) {
@@ -235,16 +350,20 @@ void alignfit(const char *fname, const char *dbc,
   }
 
   // Set hits
-  Float_t tmp[7][8];
-  Float_t arr[11][8];
+  Float_t tmp[7][NLAY];
+  Float_t arr[11][NLAY];
+  Float_t pref = 0;
   for (Int_t i = 0; nevt == 0 || i < nevt; i++) {
+    if (setup/1000 == MCSIM/1000)
+      fin.read((char*)&pref, sizeof(pref));
+
     fin.read((char*)tmp, sizeof(tmp));
     if (fin.eof()) break;
 
     if (skip > 0 && gRandom->Rndm() < skip) continue;
 
     Int_t nlay = 0;
-    for (Int_t j = 0; j < 8; j++) {
+    for (Int_t j = 0; j < NLAY; j++) {
       tmp[5][j] = 500e-4;
       tmp[6][j] = 200e-4;
       for (Int_t k = 0; k < 7; k++) arr[k][j] = tmp[k][j];
@@ -276,39 +395,9 @@ void alignfit(const char *fname, const char *dbc,
     }
     if (nlay < 6) continue;
 
-    afit.Set(arr, fix);
+    afit.Set(arr, fix, pref);
   }
 
-  TrAlignFit::fMaxIter  = 20;
-  TrAlignFit::fMaxChisq = 10;
-  if (setup%100 == TBEAM) {
-    TrAlignFit   ::fMaxIter = 10;
-    TrAlignFit   ::fMode    = TrAlignFit::kTestBeam;
-    TrAlignObject::fRange   = 0.1;
-
-    if (setup/100 == 1) {
-      TrAlignFit::fFitM = TrAlignFit::kCurved;
-      TrRecon::ReadMagField(
-	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
-				400./460, 1);
-    }
-    else if (setup/100 == 2) {
-      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
-      TrAlignFit::fFixR = 0;
-    }
-    else if (setup/100 == 4) {
-      TrAlignFit::fFitM = TrAlignFit::kRgtFix;
-      TrAlignFit::fFixR = 400;
-      TrRecon::ReadMagField(
-	gSystem->ExpandPathName("$AMSDataDir/v5.00/MagneticFieldMap07.bin"),
-				400./460, 1);
-    }
-/*  /// TO BE FIXED
-    else
-      TrAlignFit::fMaxIter = 6;
-    /// TO BE FIXED
-*/
-  }
   afit.Fit();
 
   TString ofn = fname;
@@ -348,7 +437,8 @@ void alignfit(const char *fname, const char *dbc,
   TkDBc::Head->write(dname.Data());
 }
 
-void alignfit(const char *fname, Int_t setup = FLIGHT, Int_t recalc = 0)
+void alignfit(const char *fname, 
+	      Int_t setup = FLIGHT + AMS02P, Int_t recalc = 0)
 {
   TString dbc = "tkdbc.dat";
   TString alf = "alignfit.dat";
