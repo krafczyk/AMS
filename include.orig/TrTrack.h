@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.25 2010/06/15 20:44:58 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.26 2010/08/07 10:51:26 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/06/15 20:44:58 $
+///$Date: 2010/08/07 10:51:26 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -446,7 +446,7 @@ public:
   int DoAdvancedFit(int add_flags=0);
 
   void GetMaxShift(int& left,int &right);
-  void Move(int shift);
+  void Move(int shift, int fit_flags=0);
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();

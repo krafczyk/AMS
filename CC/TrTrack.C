@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.35 2010/06/15 20:44:58 pzuccon Exp $
+// $Id: TrTrack.C,v 1.36 2010/08/07 10:51:17 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/06/15 20:44:58 $
+///$Date: 2010/08/07 10:51:17 $
 ///
-///$Revision: 1.35 $
+///$Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -318,7 +318,7 @@ void TrTrackR::GetMaxShift(int& left, int& right){
   return;
 }
 
-void TrTrackR::Move(int shift){
+void TrTrackR::Move(int shift, int fit_flags){
  for(int ii=0;ii<_Nhits;ii++){
     int tkid=_Hits[ii]->GetTkId();
     if(_Hits[ii]->OnlyY ()){
@@ -357,7 +357,10 @@ void TrTrackR::Move(int shift){
       else cerr<<"TrTrackR::Move-E- Very Bad problem moving the Track\n";
     }
  }
- ReFit();
+ if (fit_flags == 0)
+   ReFit();
+ else if (ParExists(fit_flags)) Fit(fit_flags);
+
  return;
 }
 

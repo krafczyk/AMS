@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.31 2010/05/26 11:46:02 shaino Exp $ 
+// $Id: TrRecon.h,v 1.32 2010/08/07 10:51:26 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/05/26 11:46:02 $
+/// $Date: 2010/08/07 10:51:26 $
 ///
-/// $Revision: 1.31 $
+/// $Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -540,7 +540,8 @@ public:
   /// [1] Y distance
   /// [2] Cos(angle)
   static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
-				  AMSPoint trdcoo, AMSDir trddir);
+				  AMSPoint trdcoo, AMSDir trddir, 
+				  int fit_id=0);
   /// Check the match Tracker and TRD tracks and shift TrTrack
   static bool TkTRDMatch(TrTrackR* ptrack, 
 			 AMSPoint trdcoo, AMSDir trddir);

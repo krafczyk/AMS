@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.11 2010/02/01 12:44:05 shaino Exp $ 
+/// $Id: TrRawCluster.C,v 1.12 2010/08/07 10:51:17 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/02/01 12:44:05 $
+/// $Date: 2010/08/07 10:51:17 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,7 +97,11 @@ float TrRawClusterR::GetNoise(int ii) {
   }
   int hwid = GetHwId();
   TrLadCal* ladcal = GetTrCalDB()->FindCal_HwId(hwid);
-  if (!ladcal) {printf ("TrRawClusterR::GetNoise, WARNING calibration not found!! HwID %+03d\n",hwid); return -9999;} 
+  if (!ladcal) {
+    static int nerr=0;
+    if (nerr++<100) printf ("TrRawClusterR::GetNoise, WARNING calibration not found!! HwID %+03d\n",hwid); 
+    return -9999;
+  } 
   int address = GetAddress()+ii;
   return (float) ladcal->GetSigma(address);
 }

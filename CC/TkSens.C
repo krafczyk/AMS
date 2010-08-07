@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.9 2010/08/03 16:33:31 shaino Exp $ 
+/// $Id: TkSens.C,v 1.10 2010/08/07 10:51:17 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/08/03 16:33:31 $
+///$Date: 2010/08/07 10:51:17 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -322,7 +322,7 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   AMSPoint diff = GlobalCoo-TkCoo::GetLadderCenter(tkid);
 
   if (abs(diff[0]) < TkCoo::GetLadderLength(tkid)/2 &&
-      abs(diff[1]) < TkDBc::Head->_ladder_Ypitch) return true;
+      abs(diff[1]) < TkDBc::Head->_ssize_active[1]/2) return true;
   return false;
 
   // The following code doesn't work for Layer 8 (aka Layer 1N) for AMS02P

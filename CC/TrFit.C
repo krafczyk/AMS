@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.23 2010/08/03 16:33:31 shaino Exp $
+//  $Id: TrFit.C,v 1.24 2010/08/07 10:51:17 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/08/03 16:33:31 $
+///$Date: 2010/08/07 10:51:17 $
 ///
-///$Revision: 1.23 $
+///$Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -448,7 +448,7 @@ double TrFit::PolynomialFit(int side, int ndim)
 
 int TrFit::ParLimits(void)
 {
-  static int nlim2 = 0;
+  static int nlim2 = 100;
   int nlim = 0;
   PAR_LIMITS(_p0x,      1e-9, 1e4);
   PAR_LIMITS(_p0y,      1e-9, 1e4);
@@ -879,11 +879,12 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 //        Support:   10mm Al Honeycomb: 1.67e-3 X0
   double WLEN[MaxHits] = { 0, 7.29e-3, 12.91e-3, 0,
 				   12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
+/*
   if(TkDBc::Head->GetSetup()==3 && count<50){
     count++;
     printf(" TrFit::JAFillVWmtx -W- For PLANB You still have to Optimize Radiation Lenght for fit!!!!\n");
   }
-
+*/
   int nel = _nhit-2;
   double mtx[(MaxHits-2)*(MaxHits-2)], mty[(MaxHits-2)*(MaxHits-2)];
 

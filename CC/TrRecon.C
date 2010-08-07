@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.58 2010/08/03 16:33:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.59 2010/08/07 10:51:17 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/03 16:33:31 $
+/// $Date: 2010/08/07 10:51:17 $
 ///
-/// $Revision: 1.58 $
+/// $Revision: 1.59 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -330,7 +330,11 @@ int TrRecon::ExpandClusterInBuffer(TrRawClusterR* cluster) {
   int nelements = cluster->GetNelem();
   int firststripaddress = cluster->GetAddress();
   TrLadCal* cal = GetTrCalDB()->FindCal_TkId(cluster->GetTkId());
-  if (!cal) {printf ("TrRecon::ExpandClusterInBuffer, WARNING calibration not found!! TkId= %d\n", cluster->GetTkId()); return -9999;}
+  if (!cal) {
+    static int nerr=0;
+    if (nerr++<100) printf ("TrRecon::ExpandClusterInBuffer, WARNING calibration not found!! TkId= %d\n", cluster->GetTkId());
+    return -9999;
+  }
   for (int jj=0; jj<nelements; jj++) {
     int address = firststripaddress + jj;
     if ( (address<0)||(address>=1024) ) continue;
@@ -2542,7 +2546,8 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 }
 
 AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
-				  AMSPoint trd_pnt0, AMSDir trd_dir)
+				  AMSPoint trd_pnt0, AMSDir trd_dir,
+				  int fit_id)
 {
   /// Check the Match between Tracker and TRD tracks
   /// Returns an AMSPoint with
@@ -2560,7 +2565,7 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
   // Tracker point and direction at Z= zpl
   AMSPoint tk_pnt;
   AMSDir   tk_dir;
-  ptrack->Interpolate(zpl, tk_pnt, tk_dir); 
+  ptrack->Interpolate(zpl, tk_pnt, tk_dir, fit_id); 
 
   // angle between the tracks
   number c=tk_dir.prod(trd_dir);
@@ -2582,10 +2587,13 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
 
 bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
 {
+  int mfit = TrTrackR::kSimple;
+  if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
+
   number SearchReg(1);
   number MaxCos(0.95);
-  AMSPoint dst=BasicTkTRDMatch(ptrack, trdcoo, trddir);
-  if( fabs(dst[1]) < SearchReg && dst[2]> MaxCos)
+  AMSPoint dst=BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+  if( fabs(dst[1]) < SearchReg && dst[2]> MaxCos) {
     if(fabs(dst[0])< SearchReg) return true;
     else{ //try to move TrTrack on X
       int left  = 0;
@@ -2597,8 +2605,8 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
       int moved=0;
       for(int mm=move[0];mm<move[1];mm++){
 	TrTrackR test(*ptrack);
-	test.Move(mm);
-	AMSPoint dd=BasicTkTRDMatch(&test, trdcoo, trddir);
+	test.Move(mm, mfit);
+	AMSPoint dd=BasicTkTRDMatch(&test, trdcoo, trddir, mfit);
 	if(fabs(dd[0]) < SearchReg&&fabs(dd[1]) < SearchReg && dd[2]> MaxCos){
 	  moved=mm;
 	  break;
@@ -2610,6 +2618,7 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
 	return true;
       }
     }
+  }
   else return false;
 }
 
