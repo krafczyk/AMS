@@ -3,9 +3,10 @@
 
 #include "TrdHSegment.h"
 #include "typedefs.h"
+#include "TrElem.h"
 
 /// class to store 3D TRD track
-class TrdHTrackR{
+class TrdHTrackR:public TrElem{
  public:
 
   /// Track coordinates
@@ -23,7 +24,9 @@ class TrdHTrackR{
   /// Track fit status (1 - only TRD, 2- only TRD & matching TKtrack found, 3 - TRD fitted according to TKtrack)
   int status;
 
-  vector<int> fTrdHSegment;
+  int           fTrdHSegment[2];
+  TrdHSegmentR* segments[2]; //!
+  float         elayer[20]; //!
   
   /// return number of segments (should be 2)
   int NTrdHSegment();
@@ -76,7 +79,8 @@ class TrdHTrackR{
   float ey ();
 
   /// set segment pointers
-  void SetSegment(TrdHSegmentR* segx, TrdHSegmentR* segy);
+  void SetSegments(TrdHSegmentR* segx, TrdHSegmentR* segy);
+  //  void AddSegment(TrdHSegmentR* seg);
 
   /// set chiquare
   void setChi2(float Chi2_);
@@ -84,17 +88,27 @@ class TrdHTrackR{
   /// return x and y for given z coordinate 
   void propagateToZ(float z, float &x , float& y);
 
-  /// printout
-  void Print();
-  
-  /// build global vector of TrdHTracks
-  static integer build(int rerun=0);
-
   /// virtual dtor
-  virtual ~TrdHTrackR(){};
+  virtual ~TrdHTrackR(){};//clear();};
+
+  void clear();
+
+  void   Print(int opt=0);
+
+  void _PrepareOutput(int opt=0){
+    sout.clear();
+    sout.append("TrdHTrack Info");
+  };
+
+  char* Info(int iRef=0){return "TrdHTrack::Info";};
+
+  std::ostream& putout(std::ostream &ostr = std::cout){
+    _PrepareOutput(1);
+    return ostr << sout  << std::endl; 
+  };
 
   /// ROOT definition
-  ClassDef(TrdHTrackR, 5);
+  ClassDef(TrdHTrackR, 6);
 };
 
 

@@ -14,6 +14,9 @@ VCon* VCon_root::GetCont(const char * name){
      strstr(name,"TrRawCluster")||
      strstr(name,"TrRecHit")||
      strstr(name,"TrTrack")||
+     strstr(name,"AMSTRDRawHit")||
+     strstr(name,"AMSTRDHSegment")||
+     strstr(name,"AMSTRDHTrack")||
      strstr(name,"Vtx")
      ){
     sprintf(contname,"%s",name);
@@ -27,6 +30,7 @@ void VCon_root::removeEl(TrElem* aa, integer res)
 {
   // remove next element !!!
   if(!ev)  return ;
+#ifdef _PGTRACK_
   if( strstr(contname,"TrMCCluster")){
     int index=(aa)?getindex(aa)+1:0;
     vector<TrMCClusterR>::iterator it=ev->TrMCCluster().begin();
@@ -69,12 +73,37 @@ void VCon_root::removeEl(TrElem* aa, integer res)
     ev->Vertex().erase(it);
   }
    
+#endif;
+
+  if( strstr(contname,"AMSTRDHSegment")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<TrdHSegmentR>::iterator it=ev->TrdHSegment().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->TrdHSegment().erase(it);
+  }
+   
+  if( strstr(contname,"AMSTRDHTrack")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<TrdHTrackR>::iterator it=ev->TrdHTrack().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->TrdHTrack().erase(it);
+  }
+   
+  if( strstr(contname,"AMSTRDRawHit")){
+    int index=(aa)?getindex(aa)+1:0;
+    vector<TrdRawHitR>::iterator it=ev->TrdRawHit().begin();
+    for(int ii=0;ii<index;ii++) it++;
+    ev->TrdRawHit().erase(it);
+  }
+   
   
 }
 
 
 int VCon_root::getnelem(){
   if(!ev)  return -1;
+
+#ifdef _PGTRACK_
   if( strstr(contname,"TrMCCluster"))
     return ev->NTrMCCluster();
   if( strstr(contname,"TrCluster"))
@@ -87,11 +116,20 @@ int VCon_root::getnelem(){
     return ev->NTrTrack();
   if( strstr(contname,"Vtx"))
     return ev->NVertex();
+#endif
+  if( strstr(contname,"AMSTRDHSegment"))
+    return ev->NTrdHSegment();
+  if( strstr(contname,"AMSTRDHTrack"))
+    return ev->NTrdHTrack();
+  if( strstr(contname,"AMSTRDRawHit"))
+    return ev->NTrdRawHit();
+
   return 0;
 }
 
 void VCon_root::eraseC(){
  if(!ev)  return ;
+#ifdef _PGTRACK_
   if( strstr(contname,"TrMCCluster")) {
     ev->fHeader.TrMCClusters = 0;
     ev->TrMCCluster().clear();
@@ -116,10 +154,25 @@ void VCon_root::eraseC(){
     ev->fHeader.Vertexs = 0;
     ev->Vertex().clear();
   }
+#endif
+
+  if( strstr(contname,"AMSTRDHSegment")) {
+    ev->fHeader.TrdHSegments = 0;
+    ev->TrdHSegment().clear();
+  }
+  if( strstr(contname,"AMSTRDHTrack")) {
+    ev->fHeader.TrdHTracks = 0;
+    ev->TrdHTrack().clear();
+  }
+  if( strstr(contname,"AMSTRDRawHit")) {
+    ev->fHeader.TrdRawHits = 0;
+    ev->TrdRawHit().clear();
+  }
 }
 
 TrElem* VCon_root::getelem(int ii){
  if(!ev)  return 0;
+#ifdef _PGTRACK_
   if( strstr(contname,"TrMCCluster"))
     return (TrElem*) ev->pTrMCCluster(ii);
   if( strstr(contname,"TrCluster"))
@@ -132,11 +185,19 @@ TrElem* VCon_root::getelem(int ii){
     return  (TrElem*) ev->pTrTrack(ii);
   if( strstr(contname,"Vtx"))
     return  (TrElem*) ev->pVertex(ii);
+
+#endif
+  if( strstr(contname,"AMSTRDHSegment"))
+    return  (TrElem*) ev->pTrdHSegment(ii);
+  if( strstr(contname,"AMSTRDHTrack"))
+    return  (TrElem*) ev->pTrdHTrack(ii);
   return 0;
 }
 
 void  VCon_root::addnext(TrElem* aa){
    if(!ev)  return ;
+
+#ifdef _PGTRACK_
   if( strstr(contname,"TrMCCluster"))
     ev->TrMCCluster().push_back(*(TrMCClusterR*)aa);
   if( strstr(contname,"TrCluster"))
@@ -149,15 +210,22 @@ void  VCon_root::addnext(TrElem* aa){
     ev->TrTrack().push_back(*(TrTrackR*)aa);
   if( strstr(contname,"Vtx"))
     ev->Vertex().push_back(*(VertexR*)aa);
+#endif
+  if( strstr(contname,"AMSTRDHSegment"))
+    ev->TrdHSegment().push_back(*(TrdHSegmentR*)aa);
+  if( strstr(contname,"AMSTRDHTrack"))
+    ev->TrdHTrack().push_back(*(TrdHTrackR*)aa);
+  if( strstr(contname,"AMSTRDRawHit"))
+    ev->TrdRawHit().push_back(*(TrdRawHitR*)aa);
 }
 
 
 int  VCon_root::getindex(TrElem* aa){
  if(!ev)  return 0;
+#ifdef _PGTRACK_
  if( strstr(contname,"TrMCCluster"))
    for(int ii=0;ii<ev->NTrMCCluster();ii++)
      if(ev->pTrMCCluster(ii)==aa) return ii;
-   
  
   if( strstr(contname,"TrCluster"))
     for(int ii=0;ii<ev->NTrCluster();ii++)
@@ -178,6 +246,19 @@ int  VCon_root::getindex(TrElem* aa){
   if( strstr(contname,"Vtx"))
    for(int ii=0;ii<ev->NVertex();ii++)
      if(ev->pVertex(ii)==aa) return ii;
+
+#endif
+  if( strstr(contname,"AMSTRDHSegment"))
+   for(int ii=0;ii<ev->NTrdHSegment();ii++)
+     if(ev->pTrdHSegment(ii)==aa) return ii;
+
+  if( strstr(contname,"AMSTRDHTrack"))
+   for(int ii=0;ii<ev->NTrdHTrack();ii++)
+     if(ev->pTrdHTrack(ii)==aa) return ii;
+
+  if( strstr(contname,"AMSTRDRawHit"))
+   for(int ii=0;ii<ev->NTrdRawHit();ii++)
+     if(ev->pTrdRawHit(ii)==aa) return ii;
 
   return 0;
 }

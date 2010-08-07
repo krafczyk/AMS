@@ -4,10 +4,12 @@
 #include "typedefs.h"
 #include "TrdRawHit.h"
 #include <cmath>
+#include "TrElem.h"
 
 using namespace std;
+
 /// Class to store 2D tracks in xz or yz plane
-class TrdHSegmentR{
+class TrdHSegmentR: public TrElem {
  public:
   /// Orientation (0=tube along y (measuring x), 1=tube along x (measuring y))  
   int    d;
@@ -29,7 +31,8 @@ class TrdHSegmentR{
   float      Chi2;
   
   /// pointer array of RawHits on segment
-  int fTrdRawHit[1024];
+  int         fTrdRawHit[100];
+  TrdRawHitR* hits[100]; //!
 
   /// return number of hits
   int NTrdRawHit();
@@ -64,9 +67,6 @@ class TrdHSegmentR{
   /// calculate chisqaure of hit array
   void calChi2();
 
-  /// build global array of TrdHSegments
-  static integer build(int rerun=0);
-  
   /// printout
   void Print(int level=0);
 
@@ -76,8 +76,14 @@ class TrdHSegmentR{
   /// refit segment 
   TrdHSegmentR* Refit(int debug=0);
 
+  void AddHit(TrdRawHitR* hit,int iter);
+
+  void RemoveHit(int iter);
+
   /// virtual dtor
-  virtual ~TrdHSegmentR(){};
+  virtual ~TrdHSegmentR(){clear();}
+
+  void clear();
 
   bool operator==(const TrdHSegmentR& other) const {
     if(d != other.d)return 0;
@@ -88,7 +94,19 @@ class TrdHSegmentR{
     return 1;
   }
 
+  void _PrepareOutput(int opt=0){
+    sout.clear();
+    sout.append("TrdHSegment Info");
+  };
+
+  char* Info(int iRef=0){return "TrdHSegment::Info";};
+
+  std::ostream& putout(std::ostream &ostr = std::cout){
+    _PrepareOutput(1);
+    return ostr << sout  << std::endl; 
+  };
+
   /// ROOT definition
-  ClassDef(TrdHSegmentR, 6);
+  ClassDef(TrdHSegmentR, 7);
 };
 #endif

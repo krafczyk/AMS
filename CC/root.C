@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.219 2010/07/07 14:12:45 pzuccon Exp $
+//  $Id: root.C,v 1.220 2010/08/07 18:20:23 mmilling Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1609,7 +1609,7 @@ void AMSEventR::clear(){
   fRichMCCluster.clear();
 
   fMCTrack.clear();
-  fMCEventg.clear();
+  //  fMCEventg.clear();
   fDaqEvent.clear();
 
 }

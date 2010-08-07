@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.479 2010/08/05 13:07:04 choutko Exp $
+//  $Id: event.C,v 1.480 2010/08/07 18:20:23 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1123,11 +1123,8 @@ void AMSEvent::_retrdinitevent(){
   }
 
   if(TRDFITFFKEY.FitMethod!=0){
-    for(int i=0;i<10;i++) add (
-    new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",i),&AMSTRDHSegment::build,0));
-
-    for(int i=0;i<4;i++) add (
-    new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",i),&AMSTRDHTrack::build,0));
+    AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",0),0));
+    AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",0),0));
   }
 
 }
@@ -1274,16 +1271,16 @@ void  AMSEvent::write(int trig){
     getheadC("AMSTRDSegment",il,2); 
   }
   }
-  if(TRDFITFFKEY.FitMethod!=0){
-    for(int il=0;il<10;il++){
-      getheadC("AMSTRDHSegment",il,2);
-    }
 
-    for(int il=0;il<4;il++){
-      getheadC("AMSTRDHTrack",il,2);
+  if(TRDFITFFKEY.FitMethod!=0){
+    for (AMSlink* pptr=getheadC("AMSTRDHSegment",0);pptr!=0;pptr=pptr->next()){
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTRDHSegment*)pptr);
+    }
+    for (AMSlink* pptr=getheadC("AMSTRDHTrack",0);pptr!=0;pptr=pptr->next()){
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject((AMSTRDHTrack*)pptr);
     }
   }
-
+  
   for(int il=0;il<2*ECALDBc::slstruc(3);il++){
     getheadC("AMSEcalHit",il,2); 
   }
@@ -2128,15 +2125,17 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
-    TrdHReconR::getInstance()->reset();
-
+#pragma omp critical (trdhreco)
+    {
+    TrdHReconR* trdhrecon=new TrdHReconR();
+    
     // fill reference hits - first TOF clusters (top layer) - then TKtop clusters
     AMSTOFCluster *Hi;int i;
     for (i=0;i<4;i++) {
       for (Hi=AMSTOFCluster::gethead(i); Hi!=NULL; Hi=Hi->next()){
 	if(Hi->getntof()<3){
-	  TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=Hi->getcoo();
-	  TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=Hi->getecoo();}	
+	  trdhrecon->refhits[trdhrecon->nref]=Hi->getcoo();
+	  trdhrecon->referr[trdhrecon->nref++]=Hi->getecoo();}	
       }
     }
     AMSTrRecHit *ttr;
@@ -2144,41 +2143,41 @@ void AMSEvent::_retrdevent(){
       for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
 	if(ttr->getHit()[2]<50)continue;
 #ifndef _PGTRACK_
-	TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=ttr->getHit();
-	TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=ttr->getEHit();
+	trdhrecon->refhits[trdhrecon->nref]=ttr->getHit();
+	trdhrecon->referr[trdhrecon->nref++]=ttr->getEHit();
 #else
-	TrdHReconR::getInstance()->refhits[TrdHReconR::getInstance()->nref]=ttr->GetCoord();
-	TrdHReconR::getInstance()->referr[TrdHReconR::getInstance()->nref++]=ttr->GetECoord();
+	trdhrecon->refhits[trdhrecon->nref]=ttr->GetCoord();
+	trdhrecon->referr[trdhrecon->nref++]=ttr->GetECoord();
 #endif
       }
     }
     
+  VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
     // fill array of TrdRawHits
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next())if(TrdHReconR::getInstance()->nrhits<1023) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) if(TrdHReconR::getInstance()->nrhits<1023) TrdHReconR::getInstance()->rhits[TrdHReconR::getInstance()->nrhits++]=new TrdRawHitR(Hi);
-    
-    int nhseg=buildC("AMSTRDHSegment");
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next())if(trdhrecon->nrhits<1023){
 
-    for(int i=0;i<nhseg;i++){
-      AMSEvent::gethead()->addnext(AMSID("AMSTRDHSegment",0),new AMSTRDHSegment(TrdHReconR::getInstance()->hsegvec[i]));
-
-#ifdef __AMSDEBUG__
-      AMSContainer *p =getC("AMSTRDHSegment",i);
-      if(p && AMSEvent::debug)p->printC(cout);
-#endif
+	AMSTRDIdSoft id(Hi->getidsoft());
+	TrdRawHitR* hit=new TrdRawHitR(id.getlayer(),id.getladder(),id.gettube(),Hi->Amp());
+	trdhrecon->rhits[trdhrecon->nrhits] = hit;
+	trdhrecon->irhits[trdhrecon->nrhits] = cont2->getindex((TrElem*)Hi);
+	trdhrecon->nrhits++;
     }
-    
-    if(nhseg>1){
-      int nhtr=buildC("AMSTRDHTrack");
 
-      for(int i=0;i<nhtr;i++){
-	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),new AMSTRDHTrack(TrdHReconR::getInstance()->htrvec[i]));
-#ifdef __AMSDEBUG__
-	AMSContainer *p =getC("AMSTRDHTrack",i);
-	if(p && AMSEvent::debug)p->printC(cout);
-#endif
+
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) if(trdhrecon->nrhits<1023) {
+	AMSTRDIdSoft id(Hi->getidsoft());
+	TrdRawHitR* hit=new TrdRawHitR(id.getlayer(),id.getladder(),id.gettube(),Hi->Amp());
+	trdhrecon->rhits[trdhrecon->nrhits] = hit;
+	trdhrecon->irhits[trdhrecon->nrhits] = cont2->getindex((TrElem*)Hi);
+	trdhrecon->nrhits++;
       }
-    }
+    
+    delete cont2;
+    
+    trdhrecon->retrdhevent();
+    
+    delete trdhrecon;
+    }    
   }
 
   AMSgObj::BookTimer.stop("RETRDEVENT");

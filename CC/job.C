@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.720 2010/08/06 14:12:11 pzuccon Exp $
+// $Id: job.C,v 1.721 2010/08/07 18:20:23 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -43,8 +43,6 @@
 #include "tralig.h"
 
 #endif
-
-#include "TrdHRecon.h"
 
 #include "mccluster.h"
 #include "job.h"
@@ -1808,8 +1806,6 @@ void AMSJob::udata(){
     AMSTrIdSoft::init();
 #endif
 
-
-    TrdHReconR::Initialize(MISCFFKEY.NumThreads);
 
     AMSTRDIdSoft::init();
 #ifndef __DARWIN__ 

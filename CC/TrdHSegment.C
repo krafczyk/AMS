@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include "TrdHRecon.h"
 
 ClassImp(TrdHSegmentR)
@@ -6,17 +5,41 @@ ClassImp(TrdHSegmentR)
 int TrdHSegmentR::NTrdRawHit(){return Nhits;};
 int TrdHSegmentR::nTrdRawHit(){return Nhits;};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<Nhits?fTrdRawHit[i]:-1;};
-TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ return ( i<TrdHReconR::getInstance()->nrhits)?TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]:0;};
+TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
+  TrdRawHitR* hit=0;
+  //  if ( i<Nhits ) hit = hits[i];
+  if (hits[i] == 0 && fTrdRawHit[i] >= 0) {
+    VCon* cont2 = GetVCon()->GetCont("AMSTRDRawHit");
+    hits[i] = (TrdRawHitR*)cont2->getelem(fTrdRawHit[i]);
+    delete cont2;
+  }
 
-TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){};
+  return hits[i];
+}
+
+TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){
+  for(int i=0;i<100;i++){
+    fTrdRawHit[i]=-1;
+    hits[i]=0;
+  }
+};
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
-{};
-  
+{
+  for(int i=0;i<100;i++){
+    fTrdRawHit[i]=-1;
+    hits[i]=0;
+  }
+};
+
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, float z_, float w_, int Nhits_, TrdRawHitR* pthit[])
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
 {
+  for(int i=0;i<100;i++){
+    fTrdRawHit[i]=-1;
+    hits[i]=0;
+  }
   SetHits(Nhits_,pthit);
 };
 
@@ -29,20 +52,24 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
   em=seg->em;
   er=seg->er;
   Nhits=seg->Nhits;
-  //  Chi2=seg->Chi2;
-  //  fTrdRawHit.clear();
-  for(int i=0;i<seg->Nhits;i++)
+  for(int i=0;i<100;i++){
     fTrdRawHit[i]=seg->fTrdRawHit[i];
-  
+    hits[i]=seg->hits[i];
+  }
   calChi2();
 };
 
 void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
+
   Nhits=0;
+  VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
   for(int i=0;i!=Nhits_;i++){
-    for(int j=0;j!=TrdHReconR::getInstance()->nrhits;j++)
-      if(pthit[i]&&pthit[i]==TrdHReconR::getInstance()->rhits[j])fTrdRawHit[Nhits++]=j;
+    if(pthit[i]){
+      hits [i] = pthit[i];
+      fTrdRawHit[i] = cont2->getindex(pthit[i]);
+    }
   }
+  delete cont2;
 }
   
 float TrdHSegmentR::resid(float r_, float z_, int d_){
@@ -53,11 +80,8 @@ float TrdHSegmentR::resid(float r_, float z_, int d_){
 void TrdHSegmentR::calChi2(){
   Chi2=0.;
   for(int i=0;i!=Nhits;i++){
-    if(fTrdRawHit[i]>TrdHReconR::getInstance()->nrhits)exit(1);
-
-    TRDHitRZD rzd=TRDHitRZD(*TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]);
+    TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(i));
     Chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12.)),2);
-
   }
 }
   
@@ -67,7 +91,7 @@ void TrdHSegmentR::Print(int level){
   printf("TrdHSegmentR d %i m %f r %f z %f w %f Nhits %i Chi2 %f\n", d, m,r,z,w,Nhits,Chi2);
   if(level>0){
     for(int i=0;i!=Nhits;i++){
-      printf("  RawHit %i LLT %i %i %i\n",i,TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]->Layer,TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]->Ladder,TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]->Tube);
+      printf("  RawHit %i LLT %i %i %i\n",i,pTrdRawHit(i)->Layer,pTrdRawHit(i)->Ladder,pTrdRawHit(i)->Tube);
     }
   }
 };
@@ -80,13 +104,13 @@ int TrdHSegmentR::LinReg(int debug)
   if(Nhits<3)return -1;
     
   for(int i=0; i<Nhits; i++){
-    TRDHitRZD rzdi=TRDHitRZD(*TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]);
+    TRDHitRZD rzdi=TRDHitRZD(*pTrdRawHit(i));
     int nz=1;
     float ri=rzdi.r;
     float zi=rzdi.z;
       
     for(int j=i+1; j<Nhits; j++){
-      TRDHitRZD rzdj=TRDHitRZD(*TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]);
+      TRDHitRZD rzdj=TRDHitRZD(*pTrdRawHit(j));
       if(rzdj.z!=zi)continue;
       ri+=rzdj.r;nz++;
     }
@@ -100,7 +124,7 @@ int TrdHSegmentR::LinReg(int debug)
     else if(nz>1){
       float rmean=ri/(float)nz;
       for(int j=0; j<Nhits; j++){
-	TRDHitRZD rzd=TRDHitRZD(*TrdHReconR::getInstance()->rhits[fTrdRawHit[i]]);
+	TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(j));
 	if(rzd.z==zi)sigma+=pow(rzd.r-rmean,2);
       }
 	
@@ -182,10 +206,7 @@ TrdHSegmentR* TrdHSegmentR::Refit(int debug){
   float zmax=0.,zmin=200.;
   int nhits=0;
   for(int h=0;h!=Nhits;h++){	
-    TRDHitRZD rzd=TRDHitRZD(*TrdHReconR::getInstance()->rhits[fTrdRawHit[h]]);
-    //  for(vector<int>::iterator i=fTrdRawHit.begin();i<fTrdRawHit.end();i++){
-    //    TRDHitRZD rzd=TRDHitRZD(TrdHReconR::getInstance()->TrdHReconR::getInstance()->rhits[*i]);
-
+    TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(h));
 
     if(rzd.d!=d)continue;
     if(rzd.z>zmax)zmax=rzd.z;
@@ -209,63 +230,28 @@ TrdHSegmentR* TrdHSegmentR::Refit(int debug){
   else return 0;
 }
 
-integer TrdHSegmentR::build(int rerun){
-  // This routine does the TRD 'H' Segment fitting based on TRDRawHits
-  // It reconstructs segments separately for the two TRD projections:
-  // in XZ plane (d=0) from TRD layers 5-16 
-  // in YZ plane (d=1) from TRD layers 1-4 and 17-20
-  int debug=0;
-  
-  if(debug)printf("Entering TrdHSegmentR::build\n");
-  if(debug)printf("trdhrecon hit size %i\n",TrdHReconR::getInstance()->nrhits);
-  TrdHReconR::getInstance()->nhsegvec=0;//clear();
-  TrdHReconR::getInstance()->npeak[0]=0;//clear();
-  TrdHReconR::getInstance()->npeak[1]=0;//clear();
-  
-  // skip arrays for now
-  int nhcut=1.e6; //  below 40 nTRDRawHits: vector-histo 
-  // above                 array-histo
-  
-  double Hcut=0.0;
-  //if(pev->nTRDRawHit()>500) Hcut=30.0;
-  
-  int nrh=TrdHReconR::getInstance()->nrhits;
-  if(debug)printf("RawHits %i\n",nrh);
-  if(nrh<4||nrh>100) return 0;
-
-  //  if(!TrdHReconR::getInstance()->H2A_mvr[0])TrdHReconR::getInstance()->H2A_mvr[0] = new TH2A ("ha_mvr_0", "m vs x", 314, -105.0, 105.0, 119, -3.0, 3.0);
-  //  if(!TrdHReconR::getInstance()->H2A_mvr[1])TrdHReconR::getInstance()->H2A_mvr[1] = new TH2A ("ha_mvr_1", "m vs y", 314, -105.0, 105.0, 119, -3.0, 3.0);
-		   
-  if(!TrdHReconR::getInstance()->H2V_mvr[0])TrdHReconR::getInstance()->H2V_mvr[0]=new TH2V ("hv_mvr_0", "m vs x", 314, -105.0, 105.0, 119, -3.0, 3.0);
-  if(!TrdHReconR::getInstance()->H2V_mvr[1])TrdHReconR::getInstance()->H2V_mvr[1]=new TH2V ("hv_mvr_1", "m vs y", 314, -105.0, 105.0, 119, -3.0, 3.0);
-  
-  //  if(nrh>nhcut){
-  //    TrdHReconR::getInstance()->H2A_mvr[0]->Reset();
-  //    TrdHReconR::getInstance()->H2A_mvr[1]->Reset();
-  //  }else{
-  TrdHReconR::getInstance()->H2V_mvr[0]->Reset();
-  TrdHReconR::getInstance()->H2V_mvr[1]->Reset();
-  //  }
-  
-  int prefit=TrdHReconR::getInstance()->DoPrefit(debug);
-  if(debug)printf("TrdHSegmentR 1 NofSegments sum %i = %i?\n",TrdHReconR::getInstance()->npeak[0]+TrdHReconR::getInstance()->npeak[1],prefit);
-
-  if(prefit<=0||prefit>100){
-    if(debug)printf("skipping \n");
-    return 0;
+void TrdHSegmentR::AddHit(TrdRawHitR* hit,int iter){
+  if(hit){
+    hits[Nhits] = hit;
+    fTrdRawHit[Nhits] = iter;
+    Nhits++;
   }
-
-  //  vector<TrdHSegmentR> segments=
-  TrdHReconR::getInstance()->DoLinReg(debug);
-  
-  //  vector<TrdHSegmentR> segments2=
-  TrdHReconR::getInstance()->clean_segvec(debug);
-  
-  for(int i=0;i!=TrdHReconR::getInstance()->nhsegvec;i++)
-    TrdHReconR::getInstance()->hsegvec[i]->calChi2();
-  
-  if(debug) printf("returning %i segments\n",TrdHReconR::getInstance()->nhsegvec);
-
-  return TrdHReconR::getInstance()->nhsegvec;
 }
 
+void TrdHSegmentR::RemoveHit(int iter){
+  for (int i = iter; i < Nhits; i++){
+    hits[i] = hits[i+1];
+    fTrdRawHit[i] = fTrdRawHit[i+1];
+  }
+  Nhits--;
+}
+
+
+void TrdHSegmentR::clear(){
+  for(int i=0;i<Nhits;i++){
+    //    delete hits[i];
+    hits[i]=0;
+    fTrdRawHit[i]=-1;
+  }
+  Nhits=0;
+}

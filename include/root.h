@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.278 2010/07/07 16:47:42 pzuccon Exp $
+//  $Id: root.h,v 1.279 2010/08/07 18:21:19 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -290,9 +290,9 @@ public:
 #endif
   friend class AMSEventR;
 
-#ifdef _PGTRACK_
+  //#ifdef _PGTRACK_
   friend class VCon_root;
-#endif
+  //#endif
    /*!
     \return human readable info about HeaderR
   */
