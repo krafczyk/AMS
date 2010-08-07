@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.28 2010/08/07 14:51:38 shaino Exp $
+//  $Id: TkDBc.C,v 1.29 2010/08/07 18:02:41 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/07 14:51:38 $
+///$Date: 2010/08/07 18:02:41 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -138,7 +138,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     memcpy(_zpos,zposl,nplanes*sizeof(zposl[0]));
     if(_setup==3){
       // TRD TOP
-      _zpos[4]=170.;
+      //_zpos[4]=170.;
+      _zpos[4]=162.;    // SH: coarse alignment with CR data
       //       former ECAL FACE
       _zpos[5]=        -134.3     - (Plane6EnvelopSize[2] - Plane6Size[2]/2) ;
       
