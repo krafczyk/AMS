@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.39 2010/06/06 08:12:40 choumilo Exp $
+//  $Id: tofuser02.C,v 1.40 2010/08/08 09:36:54 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -537,7 +537,8 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      HF1(1501,beta,1.);
+      if(beta<0)HF1(1501,beta,1.);
+      else HF1(11501,beta,1.);
       HF1(1520,beta,1.);
       if(beta>0)HF1(1280,bet,1.);//using implied mass amd measured mom.
       else HF1(1281,bet,1.);
@@ -742,7 +743,7 @@ Nextp:
 */
 //==================================================
 //    if(!TofRClMultOK)return; // remove events with bad mult. of Tof-RawClusters/layer 
-    if(!TofClMultOK)return;// remove events with bad mult. of Tof-Clusters/layer 
+        if(!TofClMultOK)return;// remove events with bad mult. of Tof-Clusters/layer 
     TOF2JobStat::addre(23);
 //
 // =================================>  find track crossing points/angles with Tof-counters:
@@ -847,10 +848,8 @@ Nextp:
 //==================================> Private Beta-fit using TofClusters and TRK-track length :
 //
   if(TofClOneMem){//only for all 4 TofClusters with 1memb/layer
+//cout<<" Trlen="<<trlr[0]<<" "<<trlr[1]<<" "<<trlr[2]<<" "<<trlr[3]<<endl;
     trle[0]=0.;
-//    trle[1]=fabs(trlr[0]-trlr[1]);//1->2
-//    trle[2]=fabs(trlr[0]-trlr[2]);//1->3
-//    trle[3]=fabs(trlr[0]-trlr[3]);//1->4
 //
     trle[1]=trlr[1]-trlr[0];//1->2, >0
     trle[2]=trlr[2]-trlr[0];//1->3
@@ -883,9 +882,11 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      if(betof>0)HF1(1502,fabs(betof),1.);
-      HF1(1208,chsq,1.);
-      HF1(1209,tzer,1.);
+      if(betof>0.85 && betof<1.15){//for beta-resol fit
+        HF1(1502,fabs(betof),1.);
+        HF1(1208,chsq,1.);
+        HF1(1209,tzer,1.);
+      }
       if(betof>0)HF1(1285,betof,1.);
       else HF1(1286,betof,1.);
 }
@@ -894,7 +895,7 @@ Nextp:
 //    if(chsq>20)return;//<==== cut on chi2/beta
 //
 //
-    geant td13,td24;
+    geant td13,td24,td14,td23;
     geant zpl1,zpl2,trlnor;
     zpl1=TOF2DBc::supstr(1)-
         (TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l1-middl
@@ -904,11 +905,22 @@ Nextp:
     trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
     td13=tdif[2]*trlnor/trle[2];//(1->3) normalized to fix(~127cm) distance
     td24=(cltim[1]-cltim[3])*trlnor/(trle[3]-trle[1]);//(2->4) normalized to fix(~127cm) distance
+    td14=tdif[3]*trlnor/trle[3];//(1->4) normalized to fix(~127cm) distance
+    td23=(cltim[1]-cltim[2])*trlnor/(trle[2]-trle[1]);//(2->3) normalized to fix(~127cm) distance
 //cout<<"---> T1-3/2-4:"<<td13<<" "<<td24<<endl;
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      if(betof>0)HF1(1504,(td13-td24),1.);
+      if(betof>0){
+        HF1(1504,(td13-td24),1.);
+        HF1(15041,td13,1.);
+        HF1(15042,td24,1.);
+        HF1(15043,td14,1.);
+        HF1(15044,td23,1.);
+//	if(td13<3 && td13>1.8){
+//	  cout<<"--->BadTd13:"<<td13<<" bars:"<<(brnl[0]+1)<<" "<<(brnl[1]+1)<<" "<<(brnl[2]+1)<<" "<<(brnl[3]+1)<<endl;
+//	}
+      }
 }
     }
   }//endof "Clust with 1memb/layer" check
@@ -1070,8 +1082,9 @@ void TOF2User::InitJob(){
   if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
     HBOOK1(1500,"TofUser:Particle Rigidity(gv),Beta>0",100,-10.,10.,0.);
-    HBOOK1(1501,"TofUser:Particle(Tof) Beta",100,-1.25,1.25,0.);
-    HBOOK1(1520,"TofUser:Particle(Tof) Beta",100,0.75,1.25,0.);
+    HBOOK1(1501,"TofUser:Particle(Tof) Beta(<0)",100,-2.4,-0.4,0.);
+    HBOOK1(11501,"TofUser:Particle(Tof) Beta(>0)",100,0.4,2.4,0.);
+    HBOOK1(1520,"TofUser:Particle(Tof) Beta",100,0.85,1.15,0.);
     HBOOK1(1280,"TofUser:Particle Beta>0(calc. as p/m)",100,0.2,1.2,0.);
     HBOOK1(1281,"TofUser:Particle Beta<0(calc. as p/m)",100,0.2,1.2,0.);
 //
@@ -1112,6 +1125,10 @@ void TOF2User::InitJob(){
     HBOOK1(1515,"TofUser:Number of AccSectors(FTCoinc,E>Thr,TOF/ANTImultOK,TrkOK)",20,0.,20.,0.);
     HBOOK1(1502,"TofUser:MyBeta(private beta-fit on TofClust, TRKmatchOK)",100,0.7,1.2,0.);
     HBOOK1(1504,"TofUser:TofClust T13-T24(ns, TRK-track matched,Beta>0)",80,-4.,4.,0.);
+    HBOOK1(15041,"TofUser:TofClust T13(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
+    HBOOK1(15042,"TofUser:TofClust T24(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
+    HBOOK1(15043,"TofUser:TofClust T14(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
+    HBOOK1(15044,"TofUser:TofClust T23(ns, TRK-track matched,Beta>0)",80,1.5,9.5,0.);
     HBOOK1(1503,"TofUser:AccSector energy(mev,FTCoinc)",80,0.,20.,0.);
     HBOOK1(1505,"TofUser:Number of AccSectors(FTCoinc,E>Thr)",20,0.,20.,0.);
     HBOOK1(1506,"TofUser:Part.charge(trapez.c <=1)",20,0.,20.,0.);
@@ -1279,12 +1296,17 @@ void TOF2User::EndJob(){
   cout<<endl<<endl;
   cout<<" TOFTresol-fit: Mp/resol="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(1504);
+  HPRINT(15041);
+  HPRINT(15043);
+  HPRINT(15044);
+  HPRINT(15042);
 //-----
   HPRINT(1518);
   HPRINT(1500);
   HPRINT(1516);
   HPRINT(11516);
   HPRINT(1501);
+  HPRINT(11501);
 //----
   par[0]=200.;
   par[1]=1.;

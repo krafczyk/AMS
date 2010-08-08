@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.48 2010/06/06 08:12:39 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.49 2010/08/08 09:36:54 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -261,6 +261,7 @@ if(TFCAFFKEY.hprintf>0){
 	   else stat[il][ib][ip]+=111;//no 3-Dynodes
 	 }
        }
+       if(s30[il][ib]<20.)stat[il][ib][0]+=1000000;//set bad BAR for timing (according to Tzslw-results) 
      }
    }
 //
@@ -482,7 +483,7 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       id=(il+1)*100+ib+1;
-      if(s30[il][ib]>=50.){
+      if(s30[il][ib]>=20.){
         if(TFCAFFKEY.idref[1]==0 
 	     || (TFCAFFKEY.idref[1]==1 && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
 	     || (TFCAFFKEY.idref[1]==2 && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
@@ -1038,7 +1039,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     if(!PMEQmode){//calib-mode
       if(!RelaxCut){
-        if(fabs(betof)<0.5 || fabs(betof)>1.3){
+        if(fabs(betof)<0.75 || fabs(betof)>1.3){
 //cout<<"<--- rejected due to PrimitiveBet:beta="<<betof<<endl; 
 	  return;
 	}
@@ -1516,7 +1517,7 @@ Nextp:
       }
       if(bad==1)goto SkipTzsl;//ignore events with trapez.counters, when requested
       if(IonEvent)goto SkipTzsl;
-      if(TOF2JobStat::getre(34)>60000)goto SkipTzsl;//to limit statistics
+      if(TOF2JobStat::getre(34)>80000)goto SkipTzsl;//to limit statistics
       TOF2JobStat::addre(34);
 //
 //---> measured track-lengthes:

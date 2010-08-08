@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.24 2009/12/30 12:20:41 choutko Exp $
+//  $Id: tofsim02.h,v 1.25 2010/08/08 09:37:01 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -416,7 +416,7 @@ private:
  
  geant _charge;         // for MC : tot. anode charge (pC)
  geant _tempT;       // SFET(A) event-by-event temperature (vs LBBS, filled at validation stage !!)
- geant _tempC;       // SFEC slow_control temperature (Dyn-related, vs LBBS, ....)
+ geant _tempC;       // SFEC slow_control temperature (Dyn-related, vs LS, ....)
  geant _tempP;       // Plane-envelop slow-control temperature (aver.over 1side PMTs, vs LS,  ....)
 //
 public:

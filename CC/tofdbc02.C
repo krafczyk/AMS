@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.79 2010/06/06 08:12:39 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.80 2010/08/08 09:36:54 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -359,18 +359,22 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
 //z-biases according old design:
 //
 //if(!AMSJob::gethead()->isRealData()){//tempor for MC to use old calibration
+
 //  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
 //  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
 //  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
 //  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
+
 //}
 //
 // z-biases inverted as follows from data:
 //else{
+
   if(il==0)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHC
   else if(il==1)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHc
   else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
   else if(il==3)zc=zc+((ib)%2)*_plnstr[2];//1st counter is close to botHC
+  
 //}
 //
   return(zc);
@@ -1550,6 +1554,7 @@ integer TOF2JobStat::rdcp2[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 integer TOF2JobStat::rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 integer TOF2JobStat::rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
 geant TOF2JobStat::tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];
+integer TOF2JobStat::tofstc[40];
 //---
   void TOF2JobStat::puttemp(int16u crt, int16u sen, geant t){
     assert(crt<TOF2GC::SCCRAT);
@@ -1560,6 +1565,12 @@ geant TOF2JobStat::tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];
     assert(crt<TOF2GC::SCCRAT);
     assert(sen<TOF2GC::SCFETA);
     return tofantemp[crt][sen];
+  }
+//
+  void TOF2JobStat::addtofst(int i){
+    assert(i>=0 && i< 40);
+#pragma omp critical (addtofst) 
+    tofstc[i]+=1;
   }
 //---
   void TOF2JobStat::addmc(int i){
@@ -1863,11 +1874,11 @@ void TOF2JobStat::printstat(){
   printf(" IllegSlotNumb in Q-block :    %7d %7d %7d %7d\n",cratp[0][10],cratp[1][10],cratp[2][10],cratp[3][10]);
   printf("\n");
   printf(" T-Blk: Raw->Comp TL-Err  :    %7d %7d %7d %7d\n",cratp[0][11],cratp[1][11],cratp[2][11],cratp[3][11]);
-  printf("  Raw->Comp FatalErrLink0 :    %7d %7d %7d %7d\n",cratp[0][12],cratp[1][12],cratp[2][12],cratp[3][12]);
-  printf("  Raw->Comp FatalErrLink1 :    %7d %7d %7d %7d\n",cratp[0][13],cratp[1][13],cratp[2][13],cratp[3][13]);
-  printf("  Raw->Comp FatalErrLink2 :    %7d %7d %7d %7d\n",cratp[0][14],cratp[1][14],cratp[2][14],cratp[3][14]);
-  printf("  Raw->Comp FatalErrLink3 :    %7d %7d %7d %7d\n",cratp[0][15],cratp[1][15],cratp[2][15],cratp[3][15]);
-  printf("  Raw->Comp FatalErrLink4 :    %7d %7d %7d %7d\n",cratp[0][16],cratp[1][16],cratp[2][16],cratp[3][16]);
+  printf("  Raw->Comp HTS_Err-Link0 :    %7d %7d %7d %7d\n",cratp[0][12],cratp[1][12],cratp[2][12],cratp[3][12]);
+  printf("  Raw->Comp HTS_Err-Link1 :    %7d %7d %7d %7d\n",cratp[0][13],cratp[1][13],cratp[2][13],cratp[3][13]);
+  printf("  Raw->Comp HTS_Err-Link2 :    %7d %7d %7d %7d\n",cratp[0][14],cratp[1][14],cratp[2][14],cratp[3][14]);
+  printf("  Raw->Comp HTS_Err-Link3 :    %7d %7d %7d %7d\n",cratp[0][15],cratp[1][15],cratp[2][15],cratp[3][15]);
+  printf("  Raw->Comp HTS_Err-Link4 :    %7d %7d %7d %7d\n",cratp[0][16],cratp[1][16],cratp[2][16],cratp[3][16]);
   printf("  Invalid slot number     :    %7d %7d %7d %7d\n",cratp[0][17],cratp[1][17],cratp[2][17],cratp[3][17]);
   printf("\n");
   printf("-----> Slots statistics(words counting) :\n\n");
@@ -2009,6 +2020,28 @@ void TOF2JobStat::printstat(){
   printf("\n");
   }
   if(MISCFFKEY.dbwrbeg>0)return;//dbwritwr job, don't need any statistics
+//--------------
+  if(tofstc[0]>0){
+  printf("\n");
+  printf("---------------> U/LTof Slow Temperatures Decoding statistics: \n\n");
+  printf("\n");
+  printf("Calls to STemp-decoding(Bus=2) : %7d,    USCM-ReplyStatus OK : %7d\n",tofstc[0],tofstc[1]);
+  printf("--> UTof Entries: %7d\n",tofstc[2]);
+  printf("    In ShortFmt : %7d\n",tofstc[3]);
+  printf("    In LongFmt  : %7d\n",tofstc[4]);
+  printf("    BlockLenOK  : %7d\n",tofstc[5]);
+  printf("    Side A(P)   : %7d\n",tofstc[6]);
+  printf("    Side B(s)   : %7d\n",tofstc[7]);
+  
+    
+  printf("--> LTof Entries: %7d\n",tofstc[22]);
+  printf("    In ShortFmt : %7d\n",tofstc[23]);
+  printf("    In LongFmt  : %7d\n",tofstc[24]);
+  printf("    BlockLenOK  : %7d\n",tofstc[25]);
+  printf("    Side A(P)   : %7d\n",tofstc[26]);
+  printf("    Side B(s)   : %7d\n",tofstc[27]);
+  }
+  printf("\n\n");
 //
   printf("    ====================== JOB TOF-statistics ======================\n");
   printf("\n");
@@ -2093,14 +2126,14 @@ void TOF2JobStat::printstat(){
     printf(" TOFUser entries                      : % 6d\n",recount[21]);
     printf("   with 4Layer of RawClusters/lay=1   : % 6d\n",recount[30]);
     printf("   with 4Layer of Clusters/layer=1    : % 6d\n",recount[31]);
-    printf("   Special TofPatt selection OK       : % 6d\n",recount[50]);
+    printf("   Special TofPatt(4 beta<0 puzzle) OK: % 6d\n",recount[50]);
     printf("   NofAccClSectors Low                : % 6d\n",recount[22]);
     printf("   Events with nonemp Part-envelop    : % 6d\n",recount[24]);
     printf("   Particle with AnyTrack             : % 6d\n",recount[25]);
     printf("   ........ with !=0 pTRD             : % 6d\n",recount[42]);
     printf("   Track status: TRDtrack             : % 6d\n",recount[26]);
     printf("   Track status: ECALtrack            : % 6d\n",recount[27]);
-    printf("   Track status: NOTrack              : % 6d\n",recount[28]);
+    printf("   Track status: NOTTrack             : % 6d\n",recount[28]);
     printf("   Track status: BadInterp            : % 6d\n",recount[29]);
     printf("   GoodTrackPart(intok,TRK|TRD)       : % 6d\n",recount[40]);
     printf("   TrkTrack Particle                  : % 6d\n",recount[41]);
@@ -3272,6 +3305,8 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
 	}
       }
     }
+//for slow temp:
+    for(int ie=0;ie<40;ie++)tofstc[ie]=0;
 //for calib-quality:
     for(i=0;i<4;i++)
                    for(j=0;j<5;j++)cquality[i][j]=0;

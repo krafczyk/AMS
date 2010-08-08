@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.76 2010/06/06 08:12:40 choumilo Exp $
+//  $Id: tofrec02.C,v 1.77 2010/08/08 09:36:54 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -57,6 +57,7 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   geant adca;
   geant adcd[TOF2GC::PMTSMX];
   integer ilay,last,ibar,isid,isds(0),pedrun(0);
+  int ill;
   integer i,j,im,tmfound,complm,chnum,brnum;
   int16u id,idd,idN,stat,idr;
   integer hisid;
@@ -124,13 +125,16 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
     return;//PedCalJob always exit here with status=1(bad) to bypass next reco-stages !!!
   }//<=== endof PedCalJob(Class/DS) processing
 //---------------------------------------------------------------
+  bool UTof;
 //
 // =============> check/combine adc/tdc/Ft data :
 //
   while(ptr){// <--- loop over TOF RawSide hits
     idd=ptr->getsid();//LBBS
     id=idd/10;// short id=LBB
-    ilay=id/100-1;
+    ilay=id/100-1;//0-3
+    UTof=(ilay<2);
+    ill=(ilay%2);//0/1->L1(3)/L2(4)
     ibar=id%100-1;
     isid=idd%10-1;
     stat=ptr->getstat();//upto now it is just ped-subtr flag(should be =0(PedSubtracted))
@@ -146,21 +150,27 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 #endif
 //---> set 3 temper.(SFET/PM/SFEC-sensors based) in RawSide-obj (def.values if don't exist for this event)
     if(AMSJob::gethead()->isRealData()){
-      if(TofSlowTemp::tofstemp.gettempP(ilay, isid, temp)==1)ptr->settempP(temp);//PM-sensors based
-//     (   if stat=0(bad sensors or...) default undefined (=999) value is kept in RawSide-obj)
+      if(UTof){
+        if(AMSEvent::gethead()->getUtoftp()>0){
+          temp=AMSEvent::gethead()->getUtoftp()->gettempP(ill, isid);//get PM aver.temper from UTof-TDV
+	  ptr->settempP(temp);//set temper
+          temp=AMSEvent::gethead()->getUtoftp()->gettempC(ill, isid);//get SFEC aver.temper from UTof-TDV
+	  ptr->settempC(temp);//set temper
+	}
+      }
+      else{
+        if(AMSEvent::gethead()->getLtoftp()>0){
+          temp=AMSEvent::gethead()->getLtoftp()->gettempP(ill, isid);//PM-temper from LTof-TDV
+          ptr->settempP(temp);//set temper
+          temp=AMSEvent::gethead()->getLtoftp()->gettempC(ill, isid);//get SFEC aver.temper from LTof-TDV
+	  ptr->settempC(temp);//set temper
+	}
+      }
     }
-    else ptr->settempP(TOF2Varp::tofvpar.Pdtemp());//set true(DataCard/TDV) def.value for MC
-//---
-    mtyp=1;
-    otyp=1;
-    AMSSCIds tofidd(ilay,ibar,isid,otyp,mtyp);//otyp=1(dynode),mtyp=1(Charge)
-    crat=tofidd.getcrate();//current crate#(0,1,2,3)
-    slot=tofidd.getslot();//sequential slot#(0,1,...10)(4 last are fictitious to identify SFECs)
-    if(AMSJob::gethead()->isRealData()){
-      if(TofSlowTemp::tofstemp.gettempC(crat, slot, temp)==1)ptr->settempC(temp);//SFEC-sensors based
-//    (if stat=0(bad sensors) default undefined (=999) value is kept in RawSide-obj)
+    else{
+      ptr->settempP(TOF2Varp::tofvpar.Pdtemp());//set def.value for MC
+      ptr->settempC(TOF2Varp::tofvpar.Cdtemp());
     }
-    else ptr->settempC(TOF2Varp::tofvpar.Cdtemp());//set true(DataCard/TDV) def.value for MC
 //---
     mtyp=0;
     otyp=0;
@@ -183,11 +193,11 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 //
     tmfound=0;
     complm=0;
+    TOF2JobStat::addch(chnum,12);//count channel entries
 //       fill working arrays for given channel:
       nstdc=ptr->getstdc(stdc);
       adca=ptr->getadca();
       nadcd=ptr->getadcd(adcd);
-      TOF2JobStat::addch(chnum,12);//count channel entries
 //---> check FTtime info in related crat/slot :
       ptr->updhwidt(FTSchan[crat][tsens-1]);//add to hwidt missing info on FT/sHT/sSHT inp.ch.numb
       nftdc=TOF2RawSide::FThits[crat][tsens-1];
@@ -220,7 +230,7 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
         HF1(1300+chnum,geant(nstdc+10),1.);
 }
       }
-      if(nstdc>0){
+      if(nstdc>0 && nstdc<8){
         if(nftdc==1 && TFREFFKEY.reprtf[1]>0 && TFREFFKEY.reprtf[4]>0){
 	  if(nstdc==1){
 #pragma omp critical (hf1)
@@ -242,12 +252,14 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
       }
       else{
         TOF2JobStat::addch(chnum,15);
-	stat+=10;;//mark missing LTtime(unrecoverable case)
+	stat+=10;;//mark missing/TooHighMult LTtime(unrecoverable case)
       }
       if(nftdc>0 && nstdc>0)tmfound=1;//found object with LTtime&FTtime OK
 //
 //---> check Anode-adc :
-      if(adca>0)im=1;
+      if(adca>0){
+        im=1;
+      }
       else{
         im=0;
         TOF2JobStat::addch(chnum,16);//miss Anode
@@ -707,7 +719,11 @@ void TOF2RawCluster::build(int &ostatus){
 // -> add status-bits for known(from DB) counter with time-measurement problem:
           if(!(TOF2Brcal::scbrcal[ilay][ibar].SchOK(0)&&TOF2Brcal::scbrcal[ilay][ibar].SchOK(1)))
 	                                sta|=TOFGC::SCBADB3;//mark bad for t-measurement according to DB
-
+          if(!TOF2Brcal::scbrcal[ilay][ibar].BarTimingDBOK()  //bad bar timing status in DB(acc.to Tzslw-results)
+	    && TFCAFFKEY.spares[3]==0                        //do not ignore above
+	    && !AMSJob::gethead()->isCalibration()            //is not calibration run (otherwise ignore)
+	                                          )sta|=TOFGC::SCBADB3;//bad BAR for timing usage
+	  
           if(isds==1){
             sta|=TOFGC::SCBADB2;// set bit for counter with only one-side measurements
             if(smty[1]==0)sta|=TOFGC::SCBADB4;// bad_side_number bit(s1->reset_bit,s2->set_bit)

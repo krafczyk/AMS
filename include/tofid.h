@@ -59,7 +59,7 @@ class AMSSCIds{
   static int16u tmpsln[TOF2GC::SCSLTM];//temp-sensors seq.numbers in slots(=T-meas slots sequential numbering)
   static int16u chrsln[TOF2GC::SCSLTM];//charge-meas slots sequential numbering
   static int trpatba[TOF2GC::SCCRAT][2*TOF2GC::SCMXBR];//LBBS<->TrigPattBits assignment
-  static int envsensid[TOF2GC::SCLRS][2][8];//tof-envelops temp.sensors IDs by layer/chain/sens#
+  static int envsensid[2][2][16];//tof-envelops temp.sensors IDs by U/LTOF|chain|sens#
  public:
   AMSSCIds():_dummy(1){};
   AMSSCIds(int16u crate, int16u slot, int16u rdch);//used for tof,anti
@@ -98,8 +98,8 @@ class AMSSCIds{
   static int16u sl2qsid(int16u slot){return chrsln[slot];}//abs.slot#->Q-slot id(sequential slot#)
   static int16u ich2rdch(int16u crate, int16u slot, int16u ich, int16u mtyp);
   static int16u rdch2ich(int16u crate, int16u slot, int16u rdch, int16u mtyp);
-  static int getenvsensid(int lay, int chain, int senn){return envsensid[lay][chain][senn];}
-//                            0-3,      0-1,       0-7
+  static int getenvsensid(int ult, int chain, int senn){return envsensid[ult][chain][senn];}
+//                            0/1,      0-1,       0-15
 };
 
 

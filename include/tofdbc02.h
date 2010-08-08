@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.47 2010/06/06 08:12:51 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.48 2010/08/08 09:37:01 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -398,6 +398,7 @@ private:
   static integer rdcp3[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static integer rdcp4[TOF2GC::SCSLTM][TOF2GC::SCRCHM][20];
   static geant cquality[4][5];//cal.quality 4 types X 5 params
+  static integer tofstc[40];
 //
   static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//temperatures(TempT) from SFET(A)-cards reading
 #pragma omp threadprivate(tofantemp) 
@@ -422,6 +423,7 @@ public:
   static void daqscr(int16u df, int16u crat, int16u ie);
   static void daqssl(int16u df, int16u crat, int16u slot, int16u ie);
   static void daqsch(int16u df, int16u crat, int16u slot, int16u rdch, int16u ie);
+  static void addtofst(int ie);
   static void printstat();
   static void bookhist();
   static void bookhistmc();
@@ -477,29 +479,45 @@ public:
     sta[0]=status[0];
     sta[1]=status[1];
   }
-// status(is)=F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
-//                              
+// status(is)=BA*1000000+F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
+//
+  bool BarTimingDBOK(){
+    integer sta;
+    sta=status[0]/1000000;
+    return(sta==0);// means Bar(both side) OK in DB for timing (according to Tzslw-calib)
+  }                              
   bool FchOK(int isd){
-    return(status[isd]/100000==0);// means good sumHT-chan(anode)
+    integer sta;
+    sta=status[isd]%1000000;
+    return(sta/100000==0);// means good sumHT-chan(anode)
   }
   bool SchOK(int isd){
-    return((status[isd]%100000)/10000==0);// means good LTtime-chan(anode)
+    integer sta;
+    sta=status[isd]%1000000;
+    return((sta%100000)/10000==0);// means good LTtime-chan(anode)
   }
   bool AchOK(int isd){
-    return((status[isd]%10000)/1000==0);// means good Anode-ampl channel
+    integer sta;
+    sta=status[isd]%1000000;
+    return((sta%10000)/1000==0);// means good Anode-ampl channel
   }
   bool DchOK(int isd, int ipm){//ipm=0-2
-    int nml=(status[isd]%1000);
+    integer sta;
+    sta=status[isd]%1000000;
+    int nml=(sta%1000);
     if(ipm==0)return(nml%10==0);// means good Dynode-ampl ipm-chan(1)
     if(ipm==1)return((nml%100)/10==0);// means good Dynode-ampl ipm-chan(2)
     if(ipm==2)return(nml/1000==0);// means good Dynode-ampl ipm-chan(3)
     return(0);
   }
-  bool SideOK(int isd){return(
-                     ((status[isd]/100000)==0 || TFREFFKEY.relogic[1]>=1)//sumHT
-                   && (status[isd]%100000)/10000==0 //LT
-		   && (status[isd]%10000)/1000==0   //Anode
-//		   && (status[isd]%1000)==0         //Dynodes        
+  bool SideOK(int isd){
+    integer sta;
+    sta=status[isd]%1000000;
+    return(
+                     ((sta/100000)==0 || TFREFFKEY.relogic[1]>=1)//sumHT
+                   && (sta%100000)/10000==0 //LT
+		   && (sta%10000)/1000==0   //Anode
+//		   && (sta%1000)==0         //Dynodes        
 		                         );}
 //
   void gtstrat(geant str[2][2]){
@@ -583,29 +601,43 @@ public:
     sta[1]=status[1];
   }
 //
-// status(is)=F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
+// status(is)=BA*1000000+F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
 //                              
+  bool BarTimingDBOk(){
+    return(status[0]/1000000==0);// means Bar(both side) OK in DB for timing (according to Tzslw-calib)
+  }                              
   bool FchOK(int isd){
-    return(status[isd]/100000==0);// means good FastTDC(->SumHT==Hist) chan(anode)
+    integer sta;
+    sta=status[isd]%1000000;
+    return(sta/100000==0);// means good sumHT-chan(anode)
   }
   bool SchOK(int isd){
-    return((status[isd]%100000)/10000==0);// means good SlowTDC(->LT) chan(anode)
+    integer sta;
+    sta=status[isd]%1000000;
+    return((sta%100000)/10000==0);// means good LTtime-chan(anode)
   }
   bool AchOK(int isd){
-    return((status[isd]%10000)/1000==0);// means good Anode(ampl) channel
+    integer sta;
+    sta=status[isd]%1000000;
+    return((sta%10000)/1000==0);// means good Anode-ampl channel
   }
   bool DchOK(int isd, int ipm){//ipm=0-2
-    int nml=(status[isd]%1000);
-    if(ipm==0)return(nml%10==0);// means good Dynode ipm-chan(1)
-    if(ipm==1)return((nml%100)/10==0);// means good Dynode ipm-chan(2)
-    if(ipm==2)return(nml/1000==0);// means good Dynode ipm-chan(3)
+    integer sta;
+    sta=status[isd]%1000000;
+    int nml=(sta%1000);
+    if(ipm==0)return(nml%10==0);// means good Dynode-ampl ipm-chan(1)
+    if(ipm==1)return((nml%100)/10==0);// means good Dynode-ampl ipm-chan(2)
+    if(ipm==2)return(nml/1000==0);// means good Dynode-ampl ipm-chan(3)
     return(0);
   }
-  bool SideOK(int isd){return(
-                     ((status[isd]/100000)==0 || TFREFFKEY.relogic[1]>=1)
-                   && (status[isd]%100000)/10000==0
-		   && (status[isd]%10000)/1000==0
-		   && (status[isd]%1000)==0
+  bool SideOK(int isd){
+    integer sta;
+    sta=status[isd]%1000000;
+    return(
+                     ((sta/100000)==0 || TFREFFKEY.relogic[1]>=1)//sumHT
+                   && (sta%100000)/10000==0 //LT
+		   && (sta%10000)/1000==0   //Anode
+//		   && (sta%1000)==0         //Dynodes        
 		                         );}
 //
   void gtstrat(geant str[2][2]){

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.480 2010/08/07 18:20:23 mmilling Exp $
+//  $Id: event.C,v 1.481 2010/08/08 09:36:54 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -36,6 +36,7 @@ extern "C" void setbcorr_(float *p);
 #include "tofcalib02.h"
 #include "anticalib02.h"
 #include "daqs2block.h"
+#include "tofid.h"
 #include "ntuple.h"
 #include "timeid.h"
 #include "trdcalib.h"
@@ -832,10 +833,47 @@ void AMSEvent::_regnevent(){
 #endif
 }
 
+//----> Get correct TofSTemp (U&L) blocks if exist:
+{
+    static integer utofc(0),ltofc(0);
+#pragma omp threadprivate (utofc,ltofc)
+//-> get pointer to the right UTof-record(for the moment start from scratch because array is short):
+    for(utofc=1;utofc<sizeof(UTofTemp)/sizeof(UTofTemp[0]);utofc++){
+      if(UTofTemp[utofc].Time>_time){
+        utofc--;
+        break;
+      }
+    }
+    if(utofc>=sizeof(UTofTemp)/sizeof(UTofTemp[0]))utofc=sizeof(UTofTemp)/sizeof(UTofTemp[0])-1;
+    integer utofp;
+    if(_time < UTofTemp[utofc].Time){//error
+     utofp=utofc-1;
+     if(utofp<0)cerr<<"<--- UTofSTemp-S-LogicError- utofp<0 "<<_time<<" "<< UTofTemp[utofc].Time<<endl;
+     if(utofp<0)utofp=0;
+    }
+    else utofp=utofc;
+    _Utoftp=&(UTofTemp[utofp]);//set the pointer for later usage in temper.extraction at Tof-validation stage
+//  
+//-> get pointer to the right LTof-record(for the moment start from scratch because array is short):
+    for(ltofc=1;ltofc<sizeof(LTofTemp)/sizeof(LTofTemp[0]);ltofc++){
+      if(LTofTemp[ltofc].Time>_time){
+        ltofc--;
+        break;
+      }
+    }
+    if(ltofc>=sizeof(LTofTemp)/sizeof(LTofTemp[0]))ltofc=sizeof(LTofTemp)/sizeof(LTofTemp[0])-1;
+    integer ltofp;
+    if(_time < LTofTemp[ltofc].Time){//error
+     ltofp=ltofc-1;
+     if(ltofp<0)cerr<<"<--- LTofSTemp-S-LogicError- ltofp<0 "<<_time<<" "<< LTofTemp[ltofc].Time<<endl;
+     if(ltofp<0)ltofp=0;
+    }
+    else ltofp=ltofc;
+    _Ltoftp=&(LTofTemp[ltofp]);//set the pointer for later usage in temper.extraction at Tof-validation stage
+}
 
 
-
-    // Add mceventg if BeamTest
+//---> Add mceventg if BeamTest
     if(MISCFFKEY.BeamTest>1  ){
 
 
@@ -3503,6 +3541,8 @@ void AMSEvent::SetShuttlePar(){
 AMSEvent::ShuttlePar AMSEvent::Array[60];
 AMSEvent::BeamPar AMSEvent::ArrayB[60];
 AMSEvent::CCEBPar AMSEvent::ArrayC[64];
+AMSEvent::TofSTemp AMSEvent::UTofTemp[32];
+AMSEvent::TofSTemp AMSEvent::LTofTemp[32];
 
 
 AMSID AMSEvent::getTDVStatus(){
@@ -4235,6 +4275,317 @@ integer AMSEvent::checkccebid(int16u id){
  return 0;
 }
 
+//-------- TofSlowTemp codes ---------
+//
+integer AMSEvent::checktofstid(int16u id){
+  int valid(0);
+  int16u addr=((id>>5)&(0x1FF));
+  int16u dtyp=(id&0x1F);
+//  cout<<"---> In AMSEvent::checktofstid:id="<<hex<<id<<dec<<" addr="<<addr<<" dtyp="<<dtyp<<endl;
+  if(!(dtyp==24 || dtyp==25))return 0;
+  char sstr[128];
+  char abps[]="ABPS";
+  for(int i=0;i<4;i++){
+    strcpy(sstr,"MPD-");
+    strncat(sstr,abps+i,1);
+    if(DAQEvent::ismynode(id,sstr)){//UTof
+      valid=i+1;
+      break;
+    } 
+  }
+  if(valid==0){
+    for(int i=0;i<4;i++){
+      strcpy(sstr,"JPD-");
+      strncat(sstr,abps+i,1);
+      if(DAQEvent::ismynode(id,sstr)){//LTof
+        valid=10+i+1;
+        break;
+      } 
+    }
+  }
+  if(valid!=0 && dtyp==25)valid+=100;
+//  cout<<"  return val="<<valid<<endl;
+  return valid;//Lftt=1|Ltof=1|Rdcy=1-4(a,b,p,s)
+//
+}
+void AMSEvent::buildtofst(integer leng, int16u* p){
+  int16u len,uls,abps,rdcy,side,bus,stat;
+  int16u word1,word2,word3,ams,als,age;
+  int16u tms,tls,tmp;
+  geant arr[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  int msta[2][2]={0,0,0,0};
+  int navp[2][2]={0,0,0,0};
+  geant avrp[2][2]={0,0,0,0};// aver. pm-temp [il][is]
+  geant avrc[2][2]={0,0,0,0};// aver. sfec-temp [il][is]
+  int id,il,ill,ib,is,ul; 
+  time_t dtst;
+  uinteger htime;
+  geant temp;
+  char ddate[30];
+  uchar tmps;
+  int16u* p2b=p+2;
+  int npairs,nwords;
+  int shift,itemp;
+  bool UTof(0);
+  bool LTof(0);
+  bool Lfmt(0);
+  bool sfec(0);
+  geant wtemp[2][4]={0,0,0,0,0,0,0,0};
+  int wstat[2][4]={0,0,0,0,0,0,0,0};
+//
+  static int recU=0;
+  static int recL=0;
+//
+  len=int16u(leng&(0xFFFFL));//block's length in 16b-words(not including length word itself)
+  uls=int16u((leng>>16)&(0x3FFFL));//U(L)|S(U=0,L=1|S=1-4=>a,b,p,s) as return by my "checkblockid"-1
+  Lfmt=((uls+1)/100==1);//long temper.format
+  UTof=(((uls+1)%100)/10==0);
+  LTof=(((uls+1)%100)/10==1);
+  rdcy=((uls+1)%10);//1/2/3/4->a,b,p,s
+  side=(rdcy+1)%2;//0/1->a(p)/b(s)
+  bus=(*(p+2)>>8);
+  stat=(*(p-1)>>12);
+  htime=(uinteger(*p)<<16 | uinteger(*(p+1)));
+  dtst=time_t(htime);
+  strcpy(ddate,asctime(localtime(&dtst)));
+  if(bus!=2)goto BadExit;
+  TOF2JobStat::addtofst(0);//entr(bus ok)
+  
+  cout<<"<------ Date of the USCM-reply : "<<ddate<<endl;
+//  cout<<"p-3="<<hex<<*(p-3)<<" p-2="<<*(p-2)<<"  p-1="<<*(p-1)<<"  p="<<*p<<" p+1="<<*(p+1)<<" p+2="<<*(p+2)<<dec<<endl;
+//  cout<<"   size(bytes)="<<*(p-3)<<" "<<*(p-4)<<endl;
+//  cout<<"   U/Ltof="<<UTof<<"/"<<LTof<<" side="<<side<<" Lfmt="<<Lfmt<<" length="<<len<<" bus="<<bus<<" stat="<<stat<<endl;
+  
+  if(stat!=0)goto BadExit;
+  TOF2JobStat::addtofst(1);//bus+stat ok
+  
+  TOF2JobStat::addtofst(2+20*int(LTof));//U/LTof entries
+  
+  if(UTof){
+    if(!Lfmt)TOF2JobStat::addtofst(3);//UTof-Sfmt
+    else TOF2JobStat::addtofst(4);//UTof-Lfmt
+  }
+  if(LTof){
+    if(!Lfmt)TOF2JobStat::addtofst(23);//LTof-Sfmt
+    else TOF2JobStat::addtofst(24);//LTof-Lfmt
+  }
+  
+  if((Lfmt && len==37) || (!Lfmt && len==13))TOF2JobStat::addtofst(5+20*int(LTof));//block length ok
+  else goto BadExit;
+  
+  if(side==0)TOF2JobStat::addtofst(6+20*int(LTof));//sideA(P)
+  else TOF2JobStat::addtofst(7+20*int(LTof));//sideB(S)
+//
+if(UTof)cout<<"---> Decoding UTof:"<<endl;
+if(LTof)cout<<"---> Decoding LTof:"<<endl;
+  if(Lfmt){//decode Lfmt
+    npairs=floor((len-4)/2);//temp+age pairs (-4 for header words)
+    shift=0;
+    itemp=0;
+    for(int ip=0;ip<npairs;ip++){
+      word1=*(p2b+shift);
+      word2=*(p2b+1+shift);
+      word3=*(p2b+2+shift);
+      tms=((word1&0xFF)<<8);//t-msb
+      tls=((word2&0xFF00)>>8);//t-lsb
+      ams=((word2&0xFF)<<8);//a-msb
+      als=((word3&0xFF00)>>8);//a-lsb
+      age=(ams|als);//int16u
+      tmp=(tms|tls);//int16u
+      if(tmp!=0x8000 && age<300){//ok (age<5min, otherwise too old = bad)
+        temp=float(int16(tmp))/256-0.25;//float
+      }
+      else temp=-273;
+      arr[itemp]=temp;
+      itemp+=1;
+      cout<<"LFmtIt="<<itemp<<"  temp="<<temp<<" age="<<age<<" tmp="<<tmp<<endl;
+      shift+=2;
+    }
+  }
+  else{
+    nwords=len-4;//9
+    itemp=0;
+    for(int ip=0;ip<nwords;ip++){
+      word1=*(p2b+ip);
+      if(ip<(nwords-1)){//lsb
+        tmps=uchar(word1&(0xFF));
+        if(tmps!=0x80){//ok 
+          temp=float(char(tmps))/2.;//float
+        }
+        else temp=-273;
+        arr[itemp]=temp;
+        itemp+=1;
+	cout<<"It="<<itemp<<"  temp="<<temp<<endl;
+      }
+//
+      if(ip>0){
+	tmps=uchar(word1>>8);//msb
+        if(tmps!=0x80){//ok 
+          temp=float(char(tmps))/2.;//float
+        }
+        else temp=-273;
+        arr[itemp]=temp;
+        itemp+=1;
+        cout<<"SFmtIt="<<itemp<<"  temp="<<temp<<endl;
+      }
+    }
+  }
+//  cout<<"<--- found Ntemps="<<itemp<<endl;
+  
+//--- make sens.average per /layer/side:
+  if(UTof)ul=0;
+  else ul=1;
+  for(int sen=0;sen<16;sen++){
+    id=AMSSCIds::getenvsensid(ul,int(side),sen);
+    sfec=!((id/1000)>0);
+    if((id/1000)>0){
+      il=(id/1000);//1-8(10)
+      ib=(id%1000)/10;
+    }
+    else il=id/10;
+    is=id%10;//1,2
+    ill=(il-1)%2;//0/1->L1(3)/L2(4)
+    cout<<"  sensID:"<<id<<" ul="<<ul<<" scec? "<<sfec<<" il/ib/is="<<il<<" "<<ib<<" "<<is<<" ill="<<ill<<" arr="<<arr[sen]<<endl;
+    if(sfec)avrc[ill][is-1]=arr[sen];// sfec (may be -273 if bad)
+    else{// pmt
+      if(arr[sen]>-273){
+        avrp[ill][is-1]+=arr[sen];
+        navp[ill][is-1]+=1;
+      }
+    }
+  }
+  
+  for(int i=0;i<2;i++){
+    for(int j=0;j<2;j++){
+      if(navp[i][j]>0)avrp[i][j]/=navp[i][j];
+      else avrp[i][j]=-273;//for bad average
+    }
+  }
+//--- fill TofSTemp-object(UTof or LTof):
+cout<<"SFEC-temp, L1(S1/S2)="<<avrc[0][0]<<"/"<<avrc[0][1]<<" L2(S1/S2)="<<avrc[1][0]<<"/"<<avrc[1][1]<<endl; 
+cout<<"PMTS-temp, L1(S1/S2)="<<avrp[0][0]<<"/"<<avrp[0][1]<<" L2(S1/S2)="<<avrp[1][0]<<"/"<<avrp[1][1]<<endl; 
+#pragma omp critical (recU)
+{
+  if(UTof){//<--- UTof               
+  for(int k=sizeof(UTofTemp)/sizeof(UTofTemp[0])-1;k>=recU;k--){
+    if(AMSEvent::gethead())UTofTemp[k].Time=AMSEvent::gethead()->gettime();
+    else UTofTemp[k].Time=htime;//tbfixed
+    UTofTemp[k].chain=side;
+    for(int i=0;i<2;i++){//layer
+    for(int j=0;j<2;j++){//tof-side
+      UTofTemp[k].temp[i][2*j]=avrc[i][j];//sfec
+      UTofTemp[k].temp[i][2*j+1]=avrp[i][j];//pmt
+    }
+    }             
+  }
+  cout <<"AMSEvent::buildtofst-I- UTof RecordFilled "<<recU<<" "<<UTofTemp[recU].Time<<endl;
+  recU=(recU+1)%(sizeof(UTofTemp)/sizeof(UTofTemp[0]));
+//
+  if(recU==0){
+    AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("UTofSTempPar",AMSJob::gethead()->isRealData()));
+    int diff=UTofTemp[sizeof(UTofTemp)/sizeof(UTofTemp[0])-1].Time-UTofTemp[0].Time;
+    bool ok=diff>0 && diff<86400;
+    for(int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
+       cout<<"Static array UTof Time " <<i<< " "<<UTofTemp[i].Time<<endl;
+    }
+    if(ptdv && ok){
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begin,end,insert;
+      time(&insert);
+      if(CALIB.InsertTimeProc)insert=UTofTemp[0].Time;
+   
+      ptdv->SetTime(insert,UTofTemp[0].Time,UTofTemp[sizeof(UTofTemp)/sizeof(UTofTemp[0])-1].Time+3600);
+      cout <<" TofSTemp info has been read for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+    }
+    else cerr<<"AMSEvent::buildtofst-E-NoTDVFoundOrBadRecord "<<AMSID("UTofSTempPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;
+  }
+  }//--->endof UTof
+//--
+  if(LTof){//<--- LTof               
+  for(int k=sizeof(LTofTemp)/sizeof(LTofTemp[0])-1;k>=recL;k--){
+    if(AMSEvent::gethead())LTofTemp[k].Time=AMSEvent::gethead()->gettime();
+    else LTofTemp[k].Time=htime;//tbfixed
+    LTofTemp[k].chain=side;
+    for(int i=0;i<2;i++){//layer
+    for(int j=0;j<2;j++){//tof-side
+      LTofTemp[k].temp[i][2*j]=avrc[i][j];//sfec
+      LTofTemp[k].temp[i][2*j+1]=avrp[i][j];//pmt
+    }
+    }             
+  }
+  cout <<"AMSEvent::buildtofst-I- LTof RecordFilled "<<recL<<" "<<LTofTemp[recL].Time<<endl;
+  recL=(recL+1)%(sizeof(LTofTemp)/sizeof(LTofTemp[0]));
+//
+  if(recL==0){
+    AMSTimeID * ptdv=AMSJob::gethead()->gettimestructure(AMSID("LTofSTempPar",AMSJob::gethead()->isRealData()));
+    int diff=LTofTemp[sizeof(LTofTemp)/sizeof(LTofTemp[0])-1].Time-LTofTemp[0].Time;
+    bool ok=diff>0 && diff<86400;
+    for(int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
+       cout<<"Static array LTof Time " <<i<< " "<<LTofTemp[i].Time<<endl;
+    }
+    if(ptdv && ok){
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begin,end,insert;
+      time(&insert);
+      if(CALIB.InsertTimeProc)insert=LTofTemp[0].Time;
+   
+      ptdv->SetTime(insert,LTofTemp[0].Time,LTofTemp[sizeof(LTofTemp)/sizeof(LTofTemp[0])-1].Time+3600);
+      cout <<" LTofSTemp info has been read for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+    }
+    else cerr<<"AMSEvent::buildtofst-E-NoTDVFoundOrBadRecord "<<AMSID("LTofSTempPar",AMSJob::gethead()->isRealData())<<" "<<diff<<endl;
+  }
+  }//--->endof LTof
+}
+//--- 
+BadExit:
+  return;
+}
+//-----
+geant AMSEvent::TofSTemp::gettempC(int lay, int side){
+  geant atemp=temp[lay][2*side];
+  return atemp;
+}
+geant AMSEvent::TofSTemp::gettempP(int lay, int side){
+  geant atemp=temp[lay][2*side+1];
+  return atemp;
+}  
+void AMSEvent::SetTofSTemp(){
+//create default TofSTemp records, called in _timeinitjob().
+  char frdate[30];
+  time_t data;
+  for(int i=0;i<sizeof(UTofTemp)/sizeof(UTofTemp[0]);i++){
+    for(int j=0;j<2;j++){//lay loop
+      for(int k=0;k<4;k++){
+        UTofTemp[i].temp[j][k]=1;//degr.C
+      }
+    }  
+    UTofTemp[i].Time=mktime(&AMSmceventg::Orbit.Begin);
+    data=mktime(&AMSmceventg::Orbit.Begin);
+    strcpy(frdate,asctime(localtime(&data)));
+//cout<<"<--- UTime="<<mktime(&AMSmceventg::Orbit.Begin)<<"  "<<frdate<<endl;
+    UTofTemp[i].chain=0;
+  }
+  for(int i=0;i<sizeof(LTofTemp)/sizeof(LTofTemp[0]);i++){
+    for(int j=0;j<2;j++){//lay loop
+      for(int k=0;k<4;k++){
+        LTofTemp[i].temp[j][k]=-1;//degr.C
+      }
+    }  
+    LTofTemp[i].Time=mktime(&AMSmceventg::Orbit.Begin);
+    LTofTemp[i].chain=0;
+  }
+} 
+//------------------------------------
 
 #ifdef _PGTRACK_
 #include "event_tk.C"

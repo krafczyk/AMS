@@ -86,11 +86,12 @@ c Time(Tdelv/Tzslw)-calibration:
 c
 c 1-2 -> low/high mom.cuts; 3->mean beta for space calibr.(prot)
 c 4-> default for T0's of ref.counters; 6->default for slope;
-c 7->mean beta for earth calibr.(mu); 8-> (104)LBB of ref.counter;
+c 7->mean beta for earth calibr.(mu); 8-> (104)LBB of ref.counter for Tzslw-calib;
 c 9->(0)/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
 c 11->(0)/1 to select space/earth calibr.
 c 12->1/0/-1(use TRK+MomLimits/TRK/TRKorTRD);
 c 18->(0)/1 not/relax selection cuts for TAUC-calibration(when starting from scratch)
+c 19->(0)/1 UseStrictLPatt(4of4)/not(3of4) for Tzslw-calib
 c 28=0/(1)22 -> no/print(hist.priority 1(hi),2(+low)) cal-related histograms
 c--------------  
 ATRE 1=0  

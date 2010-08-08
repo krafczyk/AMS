@@ -1393,7 +1393,7 @@ sub SetDefaultPars
 #
 $j=1;
 for($i=0;$i<5;$i++){
-  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
+  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use DB)
   $j=10*$j;
 }
 #
@@ -1549,13 +1549,18 @@ NextJob:
     elsif($CalRun1>1230764399 && $CalRun2<1262300400){#--->2009
       $jpar11="AMS02Ass1";
     }
-    elsif($CalRun1>1262300400 && $CalRun2>1262300400){#--->2010
+    elsif($CalRun1>1262300400 && $CalRun2>1262300400 && $CalRun1<1278775789){#--->beg.2010
+      $jpar11="AMS02";#  ="AMS02Ass1" as default
+    }
+    elsif($CalRun1>1278775789 && $CalRun2>1278775789){#--->jul.and later 2010 (AMS02P)
+      $jpar7=1;//olways "on" (perm.magnet)
       if($posstext eq "OnEarth"){#--->still on earth
-        $jpar11="AMS02";#  ="AMS02Ass1" as default
+        $jpar11="AMS02P";#  ="AMS02PAss1" as default
       }
       else{
         $jpar11="AMS02Space";
       }
+      
     } 
     else{
       show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");

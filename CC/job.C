@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.721 2010/08/07 18:20:23 mmilling Exp $
+// $Id: job.C,v 1.722 2010/08/08 09:36:54 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1373,7 +1373,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.spares[0]=0;//(17) if =1 -> special TofPMEquilization run
   TFCAFFKEY.spares[1]=0;//(18) if =1 -> ignore most of the cuts for calib.run(useful when starting from scratch)
   TFCAFFKEY.spares[2]=0;//(19) 0/1-> UseStrictLPatt(4of4)/not(3of4)
-  TFCAFFKEY.spares[3]=0;//(20)spare integers
+  TFCAFFKEY.spares[3]=0;//(20) 0/1->not/ignore BAR timing DB-status (set from Tzslw-results)
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.3;//(22)plow-cut for earth calibration
   TFCAFFKEY.plhec[1]=15.;//(23)phigh-cut ...................
@@ -1385,8 +1385,8 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.hprintf=1; // (28) calib.histogr. print-flag, =0/>=1 => noprint/print(prior=1,2(low))
 //
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
-//TOFPedsCalib:
   TFCAFFKEY.mcainc=0;// (30) spare
+//TOFPedsCalib:
   TFCAFFKEY.pedcpr[0]=0.01; // (31) PedCalibJobClass: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedcpr[1]=0.25;  // (32) PedCalibJobDScal: portion of highest adcs to remove for ped-calc
   TFCAFFKEY.pedoutf=2;      // (33)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
@@ -3715,6 +3715,8 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 
 if(isRealData()){
 
+// CCEB:
+
   tm begin;
   tm end;
   if(AMSFFKEY.Update==187){
@@ -3731,8 +3733,30 @@ if(isRealData()){
                          begin,end,
                          sizeof(AMSEvent::ArrayC),(void*)AMSEvent::ArrayC,server));
 //*/
-}
 
+
+// New TofSlowTemperature:
+///*
+  if(AMSFFKEY.Update==287){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+    AMSEvent::SetTofSTemp();
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+   begin=AMSmceventg::Orbit.Begin;//tempor to not read DB
+   end=AMSmceventg::Orbit.End;//tempor
+   AMSEvent::SetTofSTemp();
+  }
+  TID.add (new AMSTimeID(AMSID("UTofSTempPar",isRealData()),
+                         begin,end,
+                         sizeof(AMSEvent::UTofTemp),(void*)AMSEvent::UTofTemp,server));
+  TID.add (new AMSTimeID(AMSID("LTofSTempPar",isRealData()),
+                         begin,end,
+                         sizeof(AMSEvent::LTofTemp),(void*)AMSEvent::LTofTemp,server));
+//*/
+}
 
 
 
@@ -4311,6 +4335,21 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=27 && DAQCFFKEY.BTypeInDAQ[1]>=27){
 if(DAQCFFKEY.BTypeInDAQ[0]<=896 && DAQCFFKEY.BTypeInDAQ[1]>=896){    
  DAQEvent::addsubdetector(&AMSEvent::checkccebid,&AMSEvent::buildcceb,896);
 }
+
+//TofSlowTemp short/long data
+
+if(DAQCFFKEY.BTypeInDAQ[0]<=24 && DAQCFFKEY.BTypeInDAQ[1]>=24){//USCM TOF TEMP-SHORT
+ DAQEvent::addsubdetector(&AMSEvent::checktofstid,&AMSEvent::buildtofst,24);
+}
+if(DAQCFFKEY.BTypeInDAQ[0]<=25 && DAQCFFKEY.BTypeInDAQ[1]>=25){//USCM TOF TEMP-LONG
+ DAQEvent::addsubdetector(&AMSEvent::checktofstid,&AMSEvent::buildtofst,25);
+}
+//
+if(DAQCFFKEY.BTypeInDAQ[0]<=896 && DAQCFFKEY.BTypeInDAQ[1]>=896){// when in envelope
+ DAQEvent::addsubdetector(&AMSEvent::checktofstid,&AMSEvent::buildtofst,896);
+}
+//
+
 
 if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal 
 

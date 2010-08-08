@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.96 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: event.h,v 1.97 2010/08/08 09:37:01 choumilo Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -26,6 +26,7 @@
 const int maxthread=32;
 class AMSEvent: public AMSNode{
 private:
+
   class CCEBPar{
 public:
   time_t Time;
@@ -39,6 +40,16 @@ public:
   bool  BOK()const;
   bool  TOK()const;
 };
+
+  class TofSTemp{//TofSlowTemperatures(in Tof-Counters envelops)
+public:
+  time_t Time;
+  geant temp[2][4];//2->layers, 4->2Sides X 2Meas(SFEC + side-averaged PMs)-temperatures
+  int chain;//(redundancy index) 0/1->A/B(P/S)
+  geant gettempP(int lay, int side);//average(over 1 side) PMTs temper.  
+  geant gettempC(int lay, int side);// SFEC-card temper
+  };
+  
   class ShuttlePar{
   public:
    geant StationR;
@@ -58,6 +69,7 @@ public:
    geant VelPhi;
    time_t Time;
   };
+  
   class BeamPar{
    public:
     uinteger RunTag;   // runTag
@@ -73,6 +85,7 @@ public:
     uinteger  Cond;  //  Position no
     float BeamSize;  //beam size in cm;
  };
+ 
  class EventId{
     public:
     uinteger Run;
@@ -117,6 +130,8 @@ geant _VelPhi;
 time_t _time;
 uinteger _usec;
 CCEBPar * _ccebp;
+TofSTemp * _Utoftp;
+TofSTemp * _Ltoftp;
   integer trstat;
 static integer SRun;
 static integer PosInRun;
@@ -131,6 +146,8 @@ static AMSNodeMap  EventMap;
 static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
 static CCEBPar  ArrayC[64];
+static TofSTemp UTofTemp[32];
+static TofSTemp LTofTemp[32];
 static EventId * _SelectedEvents;
 void _copyEl();
 void _writeEl();
@@ -258,10 +275,9 @@ return 1;
 #endif
 }
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),
-  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_ccebp(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
+uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),_time(time),_usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_ccebp(0),_Utoftp(0),_Ltoftp(0),_StationEqAsc(0),_StationEqDec(0),_StationGalLat(0),_StationGalLong(0),_AMSEqAsc(0),_AMSEqDec(0),_AMSGalLat(0),_AMSGalLong(0){_Head[get_thread_num()]=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec),_Error(0),_ccebp(0){
+   _runtype(runtype), _time(time), _usec(usec),_Error(0),_ccebp(0),_Utoftp(0),_Ltoftp(0){
    _Head[get_thread_num()]=this;
     _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
@@ -276,6 +292,7 @@ static void setfile(const char file[]);
 static integer IsTest();
 static void SetShuttlePar();
 static void SetCCEBPar();
+static void SetTofSTemp();
 static AMSEvent * gethead()  {return _Head[get_thread_num()];}
 static int & ThreadWait()  {return _Wait[get_thread_num()];}
 static uinteger & ThreadSize()  {return _Size[get_thread_num()];}
@@ -354,6 +371,8 @@ uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
 time_t gettime()const {return _time;}
+TofSTemp * getUtoftp(){return _Utoftp;}
+TofSTemp * getLtoftp(){return _Ltoftp;}
 time_t getmtime()const;
  uinteger getmid()const;
   uinteger getmiid();
@@ -374,12 +393,14 @@ static AMSID getTDVStatus();
 // Interface with DAQ
 static integer checkdaqid(int16u id);
 static integer checkccebid(int16u id);
+static integer checktofstid(int16u id);
 static integer checkdaqid2009(int16u id);
 static int16u  getdaqidSh(){return 25;}
 static int16u  getdaqid(){return 7;}
 static integer checkdaqidSh(int16u id);
 static void buildrawSh(integer length, int16u *p);
 static void buildcceb(integer length, int16u *p);
+static void buildtofst(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static void buildraw2009(integer length, int16u *p, uinteger &run, uinteger &event,

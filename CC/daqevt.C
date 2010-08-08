@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.195 2010/08/05 13:07:04 choutko Exp $
+//  $Id: daqevt.C,v 1.196 2010/08/08 09:36:54 choumilo Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -720,10 +720,19 @@ else return false;
 }
 
 bool   DAQEvent::_iscceb(int16u id){  // cpied from udr
-if( ((id>>5)&((1<<9)-1))>=28 && ((id>>5)&((1<<9)-1))<=31 )return true;
+if( ((id>>5)&((1<<9)-1))>=28 && ((id>>5)&((1<<9)-1))<=31 ){
+  return true;
+}
 else return false;
 }
 
+bool   DAQEvent::_istofst(int16u id){  // cpied from udr
+if( ((id>>5)&((1<<9)-1))>=40 && ((id>>5)&((1<<9)-1))<=47 && ((id&0x1F)==24 || (id&0x1F)==25) ){
+//cout<<"<<--- In istofst, id="<<hex<<id<<" nadr(dec)="<<dec<<((id>>5)&((1<<9)-1))<<" dtyp(h/d)="<<hex<<(id&0x1F)<<" "<<dec<<(id&0x1F)<<endl;
+  return true;
+}
+else return false;
+}
 
 
 bool    DAQEvent::_isjlvl1(int16u id){
@@ -1483,7 +1492,7 @@ integer DAQEvent::_DDGSBOK(){
 
 
    }
-   else if(!_iscceb(*(_pcur+_cll(_pcur)))){
+   else if(!_iscceb(*(_pcur+_cll(_pcur))) || !_istofst(*(_pcur+_cll(_pcur)))){
         cerr<<"DAQEvent::_DDGSBOK-E-XDRModeNotYetImplemented "<<_getnodename(*(_pcur+_cll(_pcur)))<<endl;
         return 0;
    }
@@ -1566,7 +1575,7 @@ int16u* pc;
       fpl->_pputdata(n,psafe);
      }
     }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)|| _iscceb(id) ){
+    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)|| _iscceb(id) || _istofst(id) ){
      int ic=fpl->_pgetid(id)-1;
      if(ic>=0){
       int16u *pdown=_pcur+_cll(_pcur)+2;
@@ -1643,8 +1652,16 @@ void DAQEvent::buildRawStructuresEarly(){
       int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
       AMSEvent::buildcceb(n,psafe);
      }
-
-   }
+    }
+    else if(0 && _istofst(id)){
+     int ic=AMSEvent::checktofstid(id)-1; 
+     if(ic>=0){
+      int16u *pdown=_pcur+_cll(_pcur)+2;
+      int16u *psafe=pdown;
+      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
+      AMSEvent::buildtofst(n,psafe);
+     }
+    }
 }
 }
 

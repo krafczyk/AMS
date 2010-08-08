@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.79 2010/08/05 13:07:04 choutko Exp $
+//  $Id: daqevt.h,v 1.80 2010/08/08 09:37:01 choumilo Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -157,6 +157,7 @@ bool    _isedr(int16u id);       //  identify the detector data group sub block
 bool    _isudr(int16u id);       //  identify the detector data group sub block
 bool    _isrdr(int16u id);       //  identify the detector data group sub block
 bool    _iscceb(int16u id);       //  identify the detector data group sub block
+bool    _istofst(int16u id);       //  identify the detector data group sub block
 integer _HeaderOK();
 uinteger _GetBlType();
 bool _ComposedBlock();
