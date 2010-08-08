@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.36 2010/08/07 10:51:17 shaino Exp $
+// $Id: TrTrack.C,v 1.37 2010/08/08 08:32:29 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/07 10:51:17 $
+///$Date: 2010/08/08 08:32:29 $
 ///
-///$Revision: 1.36 $
+///$Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -514,7 +514,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
   int bhit[2] = { 0, 0 };
-  for (int i = 0; i < _Nhits; i++) {
+  for (int i = 0; i < _Nhits && nhit < trconst::maxlay; i++) {
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
 
@@ -563,9 +563,11 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Fill hit points
   _TrFit.Clear();
-  for (int i = i1; i < i2; i++) {
+  for (int i = i1; i < i2 && i < _Nhits; i++) {
     int j = idx[i]%10;
     TrRecHitR *hit = GetHit(j);
+    if (!hit) continue;
+
     AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
                                     : hit->GetCoord();
     double ery = erry;
@@ -590,13 +592,12 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
       }
     }
     // For AMS02P (AKA AMS-B)
-    float bf[3]={0,0,0};
-    float pp[3];
-    pp[0]=coo[0];pp[1]=coo[1];pp[2]=coo[2];
+    float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
     GUFLD(pp, bf);
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
-                    hit->OnlyX() ? 0 : ery,  errz
-	       ,bf[0],bf[1],bf[2]);
+                    hit->OnlyX() ? 0 : ery,  
+	                               errz, 
+	       bf[0], bf[1], bf[2]);
     
     hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
     if (id != kLinear && j == 0) zh0 = coo.z();
@@ -640,7 +641,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     }
     else {
       TrRecHitR *hit = GetHitL(i);
-      AMSPoint pint = InterpolateLayer(i, id);
+      AMSPoint pint  = InterpolateLayer(i, id);
       if (hit)
 	par.Residual[i] = hit->GetCoord()-pint;
       else
