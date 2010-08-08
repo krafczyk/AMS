@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.60 2010/08/07 14:51:38 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.61 2010/08/08 18:01:42 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/07 14:51:38 $
+/// $Date: 2010/08/08 18:01:42 $
 ///
-/// $Revision: 1.60 $
+/// $Revision: 1.61 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1911,6 +1911,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 
   int    lyext[2] = {  8,  9 };
   int    ihmin[2] = { -1, -1 };
+  int    icmin[2] = {  0,  0 };
   int    ncmin[2] = {  0,  0 };
   int    mlmin[2] = {  0,  0 };
   double rxmin[2] = { 10, 10 };
@@ -1923,50 +1924,42 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   int nhit = cont->getnelem();
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    if (!hit || hit->Used() || hit->OnlyX()) continue;
+    if (!hit || hit->OnlyX() || !hit->OnlyY()) continue;
 
     int il = -1;
     if (hit->GetLayer() == lyext[0]) il = 0;
     if (hit->GetLayer() == lyext[1]) il = 1;
     if (il < 0) continue;
 
-    int nc = 1+((hit->OnlyY()) ? 0 : 1);
     double dy = std::fabs(hit->GetCoord().y()-ptrk[il].y());
-    if (!(dy < rymin[il] || 
-	 (dy < rymin[il]+0.1 && nc < ncmin[il])) ) continue;
+    if (dy < rymin[il]) {
+      ihmin[il] = i;
+      icmin[il] = hit->GetYClusterIndex();
+      rymin[il] = dy;
+      ncmin[il] = 1;
+    }
+  }
 
-    int imult = -1;
-    if (!hit->OnlyY()) {
-      int    jmin = -1;
-      double dmin = rxmin[il];
-      for (int j = 0; j < hit->GetMultiplicity(); j++) {
-        double resx = std::fabs(hit->GetCoord(j).x()-ptrk[il].x());
-        if (resx < dmin) {
-          jmin = j;
-          dmin = resx;
-        }
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
+    if (!hit || hit->OnlyX() || hit->OnlyY()) continue;
+
+    int il = -1;
+    if (hit->GetLayer() == lyext[0]) il = 0;
+    if (hit->GetLayer() == lyext[1]) il = 1;
+    if (il < 0) continue;
+
+    if (hit->GetYClusterIndex() != icmin[il]) continue;
+
+    for (int j = 0; j < hit->GetMultiplicity(); j++) {
+      double dx = std::fabs(hit->GetCoord(j).x()-ptrk[il].x());
+      if (dx < rxmin[il]) {
+	ihmin[il] = i;
+	rxmin[il] = dx;
+	ncmin[il] = 2;
+	mlmin[il] = j;
       }
-      if (jmin < 0) continue;
-      if (std::fabs(hit->GetCoord(jmin).x()-ptrk[il].x()) > rxmin[il] ||
-          std::fabs(hit->GetCoord(jmin).y()-ptrk[il].y()) > rymin[il])
-        continue;
-      imult = jmin;
     }
-    else {
-      TkSens tks = EstimateXCoord(ptrk[il]);
-      if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
-      imult = tks.GetMultIndex();
-      hit->SetDummyX(tks.GetStripX());
-    }
-
-    double resx = (hit->OnlyY()) ? 0 : hit->GetCoord(imult).x()-ptrk[il].x();
-    double resy = hit->GetCoord(imult).y()-ptrk[il].y();
-
-    if (resx != 0) rxmin[il] = std::fabs(resx);
-    rymin[il] = std::fabs(resy);
-    ihmin[il] = i;
-    ncmin[il] = nc;
-    mlmin[il] = imult;
   }
 
   int nadd = 0;
@@ -1975,6 +1968,15 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(ihmin[i]);
     if (!hit) continue;
+
+    if (ncmin[i] == 1) {
+      TkSens tks = EstimateXCoord(ptrk[i]);
+      if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
+
+      mlmin[i] = tks.GetMultIndex();
+      hit->SetDummyX(tks.GetStripX());
+      hit->BuildCoordinates();
+    }
 
     int imult = mlmin[i];
     double resx = (hit->OnlyY()) ? 0 : hit->GetCoord(imult).x()-ptrk[i].x();
@@ -1987,18 +1989,18 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   }
   delete cont;
 
-
   if(ihmin[0]>=0) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8);
-    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer8);
+    if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kChoutko);
   }
   if(ihmin[1]>=0) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer9);
-    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer9);
+    if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(TrTrackR::kFitLayer9 | TrTrackR::kChoutko);
   }
   if(ihmin[0]>=0&&ihmin[1]>=0) {
-    track->DoAdvancedFit(TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
-    track->Settrdefaultfit(TrTrackR::kChoutko|TrTrackR::kFitLayer8|TrTrackR::kFitLayer9);
+    if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
+			                          | TrTrackR::kChoutko);
   }
 
   return nadd;

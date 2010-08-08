@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.37 2010/08/08 08:32:29 shaino Exp $
+// $Id: TrTrack.C,v 1.38 2010/08/08 18:01:42 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/08 08:32:29 $
+///$Date: 2010/08/08 18:01:42 $
 ///
-///$Revision: 1.37 $
+///$Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -211,7 +211,7 @@ TrTrackPar &TrTrackR::GetPar(int id)
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
   if (ParExists(id2)) return _TrackPar[id2];
   cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
-       << id << endl;
+       << id << " " << id2 << endl;
   static TrTrackPar parerr;
   return parerr;
 }
@@ -247,7 +247,8 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
 {
   int ihit = -1;
   for (int i = 0; i < _Nhits; i++){
-    if (GetHit(i)->GetLayer() == hit->GetLayer()) ihit = i;
+    TrRecHitR *hh = GetHit(i);
+    if (hh && hh->GetLayer() == hit->GetLayer()) ihit = i;
   }
   if (ihit < 0) {
     if (_Nhits >= trconst::maxlay) {
