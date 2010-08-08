@@ -40,36 +40,19 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
     return;
   }
 
-  TString tks = "tksens.dat";
-
-  ch.GetEvent(0);
-  if (dbc) {
-    Int_t nlad = TkDBc::Head->GetEntries();
-    for (Int_t i = 0; i < nlad; i++) {
-      TkLadder *lad = TkDBc::Head->GetEntry(i);
-      if (!lad) continue;
-
-      Double_t a, b, c;
-      lad->rotA.GetRotAngles(a, b, c);
-      lad->rotA.SetRotAngles(a, 0, 0);
-
-      if (lad->GetLayer() == 8 ||
-	  lad->GetLayer() == 9) {
-	lad->posA = lad->posT;
-	lad->rotA = lad->rotT;
-      }
-    }
-
-    std::ifstream ftmp(dbc);
-    if (!ftmp) {
-      if (!TkDBc::Head) {
-	std::cerr << "Error: TkDBc not found: " << dbc << std::endl;
-	return;
-      }
-      TkDBc::Head->write(dbc);
-      dbc = 0;
-    }
+  if (recalc && dbc) {
+    Int_t tksetup = ((setup/100)%10 == AMS02P/100) ? 3 : 2;
+    TkDBc::CreateTkDBc();
+    TkDBc::Head->init(tksetup, (char*)dbc);
   }
+  ch.GetEvent(0);
+
+  if (!TkDBc::Head) {
+    std::cerr << "Error: TkDBc not found: " << dbc << std::endl;
+    return;
+  }
+
+  if (!recalc && dbc) TkDBc::Head->write(dbc);
 
   if (!TrParDB::Head) TrParDB::Load("pardb.root");
   if (!TrParDB::Head) {
@@ -77,8 +60,6 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
     return;
   }
   TrClusterR::UsingTrParDB(TrParDB::Head);
-
-  Int_t initdbc = 0;//(dbc) ? 1 : 0;
 
   TrTrackR::DefaultFitID = TrTrackR::kLinear;
 
@@ -89,10 +70,10 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
   Int_t nb = NLAY*32;
   Double_t bx = NLAY+0.5;
 
-  TH2F *hist1 = new TH2F("hist1", "X shift", nb, 0.5, bx, 500, -50, 50);
-  TH2F *hist2 = new TH2F("hist2", "Y shift", nb, 0.5, bx, 500, -50, 50);
-  TH2F *hist3 = new TH2F("hist3", "X shift", 100, -1,  1, 500, -50, 50);
-  TH2F *hist4 = new TH2F("hist4", "Y shift", 100, -1,  1, 500, -50, 50);
+  TH2F *hist1 = new TH2F("hist1", "dX(um)", nb, 0.5, bx, 500, -250, 250);
+  TH2F *hist2 = new TH2F("hist2", "dY(um)", nb, 0.5, bx, 500, -250, 250);
+  TH2F *hist3 = new TH2F("hist3", "dX(um)", 100, -1,  1, 500, -250, 250);
+  TH2F *hist4 = new TH2F("hist4", "dY(um)", 100, -1,  1, 500, -250, 250);
 
   TH2F *hist5 = 0;
   TH2F *hist6 = 0;
@@ -127,8 +108,6 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
   Int_t nhitmin = 6;
 
-  recalc = 1;
-
   for (Int_t i = 0; i < nevt; i++) {
     if ((i > 0 && i%intv == 0) || nfill == nfmax) {
       Double_t tm = timer.RealTime();
@@ -140,21 +119,6 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
 
     AMSEventR *evt = ch.GetEvent(i);
     if (evt->nTrTrack() != 1) continue;
-/*
-    if (initdbc) {
-      TkDBc::Head->init(setup%10, (char*)dbc);
-      initdbc = 0;
-
-      // Sensor alignment
-      if (recalc && tks != "") {
-	ifstream ftmp(tks);
-	if (ftmp.good())
-	  TkDBc::Head->readAlignmentSensor(tks);
-      }
-    }
-*/
-//  TrParDB::Head->_asymmetry[0] = 0.027;
-//  TrParDB::Head->_asymmetry[1] = 0.034;
 
     TrTrackR *trk = evt->pTrTrack(0);
     if (!trk) continue;
@@ -198,12 +162,10 @@ void alignfit(const char *fname, const char *oname, const char *dbc,
       Int_t slot = TMath::Abs(tkid)%100;
       Int_t half = (tkid < 0) ? 1 : 2;
 
-    //if ((setup/100)%10 == AMS02P/100 && ilyr >= 7) continue;
-
       AMSPoint co0 = hit->GetCoord();
-      AMSPoint coo = (recalc) 
-	? hit->GetGlobalCoordinate(hit->GetResolvedMultiplicity())
-	: hit->GetCoord();
+      if (recalc) hit->BuildCoordinates();
+
+      AMSPoint coo = hit->GetCoord();
 
       if (recalc) {
 	Double_t xtk = hit->GetLayer()+(tkid%100+0.5)/32;
