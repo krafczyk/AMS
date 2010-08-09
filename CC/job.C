@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.722 2010/08/08 09:36:54 choumilo Exp $
+// $Id: job.C,v 1.723 2010/08/09 07:58:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3736,7 +3736,7 @@ if(isRealData()){
 
 
 // New TofSlowTemperature:
-///*
+/*
   if(AMSFFKEY.Update==287){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
@@ -3755,7 +3755,7 @@ if(isRealData()){
   TID.add (new AMSTimeID(AMSID("LTofSTempPar",isRealData()),
                          begin,end,
                          sizeof(AMSEvent::LTofTemp),(void*)AMSEvent::LTofTemp,server));
-//*/
+*/
 }
 
 
