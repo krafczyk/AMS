@@ -111,6 +111,8 @@ class RichRadiatorTileManager{
   static number get_refractive_index(int current_tile){
     if(current_tile<0) return 0;return _tiles[current_tile]->index;
   }
+  static number get_clarity(int current_tile){if(current_tile<0) return 0;return _tiles[current_tile]->clarity;}
+  static number get_height(int current_tile){if(current_tile<0) return 0;return fabs(_tiles[current_tile]->bounding_box[2][0]-_tiles[current_tile]->bounding_box[2][1]);};
 
   ////////////////////////////////////////////////////////////////////////
   // Given a tile object constructed with a track return a lot of stuff //  

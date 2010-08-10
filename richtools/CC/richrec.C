@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.10 2010/02/16 16:37:02 mdelgado Exp $
+//  $Id: richrec.C,v 1.11 2010/08/10 10:34:20 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -96,9 +96,11 @@ void RichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   integer time_out=0;
   geant delta=1,f,g;
 
+  // Artificially increase in the expansion length 
+  H+=RichRing::DeltaHeight; 
 
-  if(kind_of_tile==naf_kind)
-    H+=RICHDB::foil_height;
+  //  if(kind_of_tile==naf_kind)
+  //    H+=RICHDB::foil_height;
 
   while(fabs(delta)>1e-5 && time_out<5){
     f=R-h*u/sqrt(1-u*u)-
@@ -169,7 +171,9 @@ void RichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  dir[2]*direction_ref[2]);
 
     //CJD:  PROVISIONAL CORRECTION ON THE RADIATOR INDEX FOR REFLECTED
-    betas[j]*=1.0007624;
+    if(kind_of_tile==agl_kind) betas[j]/=0.9993;
+    if(kind_of_tile==naf_kind) betas[j]/=0.998;
+    //    betas[j]*=1.0007624;
 
 
     if(betas[j]<betamin) betas[j]=-2.;
@@ -218,6 +222,8 @@ integer RichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
                 (RICHDB::rich_height+RICHDB::foil_height
                    +RICradmirgap)
                 -RICHDB::foil_height; // Correction due to high index
+
+  z+=RichRing::DeltaHeight; 
 
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);
@@ -285,7 +291,8 @@ integer RichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 			     (ref_point[good])[1],
 			     (ref_point[good])[2]+false_height-
                               RICHDB::rich_height-RICHDB::foil_height-RICradmirgap-
-                              RICHDB::rad_height+RICHDB::RICradpos());
+                              RICHDB::rad_height+RICHDB::RICradpos()
+			     -RichRing::DeltaHeight);`
 
       // Put it again in Rich coordinates
       ref_point[good]=RichAlignment::MirrorToRich(ref_point[good]);
@@ -314,6 +321,7 @@ geant   *RichRing::_index_tbl=0;
 bool    RichRing::ComputeNpExp=true;
 bool    RichRing::UseDirect=true;
 bool    RichRing::UseReflected=true;
+double  RichRing::DeltaHeight=0;
 
 int     RichRing::_kind_of_tile=0;
 int     RichRing::_tile_index=0;
@@ -335,7 +343,7 @@ RichRing *RichRing::build(AMSEventR *event,TrTrackR *tr){
     if(!event->pParticle(0)) return 0;
     RichRingR *ring=event->pParticle(0)->pRichRing();
     if(!ring) return 0;
-    if(ring->AMSTrPars[0]!=0 && ring->AMSTrPars[1]!=0 && ring->AMSTrPars[2]!=0){
+    if(fabs(ring->AMSTrPars[0])>1e-9 && fabs(ring->AMSTrPars[1])>1e-9 && fabs(ring->AMSTrPars[2])>1e-9){
       track._r.setp(ring->AMSTrPars[0],
 		    ring->AMSTrPars[1],
 		    ring->AMSTrPars[2]);

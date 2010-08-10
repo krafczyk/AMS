@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.6 2010/02/09 16:13:27 mdelgado Exp $
+//  $Id: richrec.h,v 1.7 2010/08/10 10:34:20 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -123,6 +123,7 @@ public:
   static bool ComputeNpExp;
   static bool UseDirect;
   static bool UseReflected;
+  static double DeltaHeight;
 
   double photons_per_channel[680*16];  // Photons for each channel
 private:
