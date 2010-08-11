@@ -93,20 +93,15 @@ CONTRIB = ../contrib/
 
 GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
 
-contrib: test alignment manual_alignment tuning
 
-test: lib $(EXEPATH) $(CONTRIB)test/test.C
-	$(CC) $(GENERAL) -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
-
-alignment: lib $(EXEPATH) $(CONTRIB)alignment/analysis.C $(CONTRIB)alignment/analysis.h
-	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
-
+#####################
+# obsolete targets  #
+#####################
 
 manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C
 	$(CC) $(GENERAL) -lMinuit -I$(CONTRIB)manual_aligment $(CONTRIB)manual_aligment/*.C -o $(EXEPATH)manual_aligment.exe
 
-tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C
-	$(CC) $(GENERAL) -I$(CONTRIB)parameter_tuning $(CONTRIB)parameter_tuning/*.C -o $(EXEPATH)tuning.exe
+
 
 full_calibration_tool: lib $(CONTRIB)full_calibration_tool/analysis.C
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
@@ -116,5 +111,37 @@ lg_analysis: lib $(CONTRIB)lg_analysis/analysis.C
 
 
 amoeba: lib $(CONTRIB)amoeba/analysis.C $(CONTRIB)amoeba/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+
+
+################## NEW TARGETS
+
+# Alignment of rich using AGL 
+alignment: lib $(EXEPATH) $(CONTRIB)alignment/analysis.C $(CONTRIB)alignment/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Calibration of AGL indexes
+index_calibration: lib $(EXEPATH) $(CONTRIB)index_calibration/analysis.C $(CONTRIB)index_calibration/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Tuning of the window parameter 
+parameter_tuning: lib $(EXEPATH) $(CONTRIB)parameter_tuning/analysis.C $(CONTRIB)parameter_tuning/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Several test histograms
+test: lib $(EXEPATH) $(CONTRIB)test/test.C $(CONTRIB)test/test.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Fit expansion height using NaF events
+fit_naf_height: lib $(EXEPATH) $(CONTRIB)fit_naf_height/analysis.C $(CONTRIB)fit_naf_height/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Align the mirror using AGL events
+alignment_mirror: lib $(EXEPATH) $(CONTRIB)alignment_mirror/analysis.C $(CONTRIB)alignment_mirror/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Preslect events to be use in the analysis chain
+preselect: lib $(EXEPATH) $(CONTRIB)preselect/analysis.C $(CONTRIB)preselect/analysis.h
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 

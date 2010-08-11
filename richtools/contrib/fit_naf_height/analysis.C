@@ -5,7 +5,7 @@
 
 using namespace std;
 
-
+/*
 TF1 *Fita(TH1D *proyection,double &mean,double &mean_error,double &sigma,double &sigma_error){
   if(proyection->GetEntries()<50 || proyection->Integral(1,proyection->GetNbinsX())<50) return 0;
   if(proyection->Integral(
@@ -23,6 +23,55 @@ TF1 *Fita(TH1D *proyection,double &mean,double &mean_error,double &sigma,double 
 	proyection->SetBinError(bin,sqrt(proyection->GetBinContent(bin)));
 	if(proyection->GetBinContent(bin)!=0)
 	  proyection->SetBinContent(bin,proyection->GetBinContent(bin)-a-b*x);
+	if(proyection->GetBinContent(bin)<-3*proyection->GetBinError(bin)){
+	  proyection->SetBinContent(bin,0);
+	  proyection->SetBinError(bin,0);
+	}
+      }
+      proyection->Fit("gaus","","",0.98,1.02);
+      f=proyection->GetFunction("gaus");
+      if(!f) return 0;
+      mean=f->GetParameter(1);
+      sigma=fabs(f->GetParameter(2));
+      mean_error=f->GetParError(1);
+      sigma_error=f->GetParError(2);
+
+      if(mean<proyection->GetXaxis()->GetXmin() ||
+	 mean>proyection->GetXaxis()->GetXmax()) return 0;
+
+      //      proyection->Fit("gaus","","",mean-2.5*sigma,mean+2.5*sigma);
+      proyection->Fit("gaus","","",mean-1.5*sigma,mean+1.5*sigma);
+      f=proyection->GetFunction("gaus");
+      if(!f) return 0;
+      mean=f->GetParameter(1);
+      sigma=fabs(f->GetParameter(2));
+      mean_error=f->GetParError(1);
+      sigma_error=f->GetParError(2);
+
+      return f;
+}
+*/
+
+
+TF1 *Fita(TH1D *proyection,double &mean,double &mean_error,double &sigma,double &sigma_error){
+  if(proyection->GetEntries()<1000 || proyection->Integral(1,proyection->GetNbinsX())<1000) return 0;
+
+      proyection->Fit("pol0","","",1.025,1.035);
+      Double_t a2=proyection->GetFunction("pol0")->GetParameter(0);
+      proyection->Fit("pol0","","",0.95,0.98);
+
+      TF1 *f=proyection->GetFunction("pol0");
+      if(!f) return 0;
+      Double_t a=f->GetParameter(0);
+      Double_t b=0;//f->GetParameter(1);
+
+      for(int bin=1;bin<=proyection->GetNbinsX();bin++){
+	double x=proyection->GetXaxis()->GetBinCenter(bin);
+	proyection->SetBinError(bin,sqrt(proyection->GetBinContent(bin)));
+	if(proyection->GetBinContent(bin)!=0)
+
+	  proyection->SetBinContent(bin,proyection->GetBinContent(bin)-(x<1?a-b*x:a2));
+
 	if(proyection->GetBinContent(bin)<-3*proyection->GetBinError(bin)){
 	  proyection->SetBinContent(bin,0);
 	  proyection->SetBinError(bin,0);
@@ -119,7 +168,8 @@ bool Analysis::Select(AMSEventR *event){
   SELECT("With track particle",event->pParticle(0)->pRichRing()->pTrTrack());
   SELECT("Clean ring",(event->pParticle(0)->pRichRing()->Status&1)==0);
   SELECT("At most 1 hot spot",event->pParticle(0)->RichParticles<=1);
-  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>5);
+  //  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>5);
+  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>10);
 
   // NaF
   SELECT("NaF",(event->pParticle(0)->pRichRing()->Status&2)!=0);
