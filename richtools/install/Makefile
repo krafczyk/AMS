@@ -145,3 +145,7 @@ alignment_mirror: lib $(EXEPATH) $(CONTRIB)alignment_mirror/analysis.C $(CONTRIB
 preselect: lib $(EXEPATH) $(CONTRIB)preselect/analysis.C $(CONTRIB)preselect/analysis.h
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 
+# Preslect events to be use in the analysis chain
+tile_analysis: lib $(EXEPATH) $(CONTRIB)tile_analysis/analysis.C $(CONTRIB)tile_analysis/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
