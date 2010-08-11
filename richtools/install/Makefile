@@ -16,6 +16,8 @@ CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH_
 LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
 
 
+GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
+
 FF = g77 -O3
 CC = g++ -O3
 LD = g++ -O3
@@ -24,6 +26,33 @@ LD = g++ -O3
 C_FILES =   richdbc.C richid.C richradid.C richrec.C trrec.C
 COMMON_C_FILES=  id.C point.C root.C amschain.C TrdHTrack.C TrdHSegment.C TrdHRecon.C VCon.C VCon_root.C TrElem.C
 COMMON_F_FILES= cerenkov.F richpmtlib.F
+ROOTCINT_INCLUDES= $(AMSIPATH)root_RVS.h $(AMSIPATH)root.h $(AMSIPATH)amschain.h $(AMSIPATH)VCon_root.h 
+ROOTCINT_FLAGS=
+
+
+
+#################### PGTRACK STUF
+
+ifdef PGTRACK
+CFLAGS+= -D_PGTRACK_
+ROOTCINT_FLAGS+=  -D_PGTRACK_
+ROOTCINT_INCLUDES+= $(AMSIPATH)TkPlane.h $(AMSIPATH)TkSens.h $(AMSIPATH)TrCalDB.h $(AMSIPATH)patt.h $(AMSIPATH)TkCoo.h \
+		    $(AMSIPATH)TkSens.h  $(AMSIPATH)TrRecon.h $(AMSIPATH)TkDBc.h  $(AMSIPATH)MagField.h $(AMSIPATH)TrLadCal.h   \
+	  	    $(AMSIPATH)TkLadder.h   $(AMSIPATH)TkObject.h $(AMSIPATH)TrLadPar.h  $(AMSIPATH)TrAlignFit.h \
+		    $(AMSIPATH)TrCluster.h  $(AMSIPATH)TrRecHit.h $(AMSIPATH)TrTrack.h $(AMSIPATH)TrTasCluster.h \
+		    $(AMSIPATH)TrTasPar.h $(AMSIPATH)TrTasDB.h $(AMSIPATH)TrFit.h $(AMSIPATH)TrMCCluster.h $(AMSIPATH)trrec.h \
+	            $(AMSIPATH)TrSim.h $(AMSIPATH)TrSimSensor.h $(AMSIPATH)TrSimCluster.h 
+
+
+COMMON_C_FILES+=  rnormx.C TrFit.C TrRecon.C TrSim.C TrSimCluster.C TrSimSensor.C TrCalDB.C TrTasDB.C MagField.C \
+  	          TkCoo.C TkDBc.C tkdcards.C  TkLadder.C TkObject.C TkPlane.C  TkSens.C TrCluster.C \
+		  TrLadCal.C TrMCCluster.C TrRecHit.C TrTrack.C  Vertex.C  TrRawCluster.C patt.C \
+	          TrLadPar.C  TrParDB.C	TrTasCluster.C TrTasPar.C TrAlignFit.C HistoMan.C amsdbc.C
+GENERAL += -lMinuit
+
+GENERAL+= -D_PGTRACK_
+
+endif
 
 
 
@@ -52,7 +81,7 @@ $(COMMON_F_FILES:%.F=$(BINPATH)%.o): $(BINPATH)%.o: $(AMSFPATH)%.F
 
 
 $(CPATH)/rootcint.C: 
-	rootcint -f $(CPATH)rootcint.C -c $(AMSIPATH)point.h $(AMSIPATH)root_RVS.h $(AMSIPATH)root.h $(AMSIPATH)amschain.h $(AMSIPATH)VCon_root.h $(AMSIPATH)linkdef.h
+	rootcint -f $(CPATH)rootcint.C -c $(ROOTCINT_FLAGS) $(ROOTCINT_INCLUDES) $(AMSIPATH)linkdef.h
 
 
 $(BINPATH)rootcint.o: $(CPATH)/rootcint.C $(BINPATH)
@@ -72,7 +101,7 @@ methods: $(AMSIPATH)root_methods.h
 
 ########### CLEANING 
 clean: clean_dirs
-
+	rm $(CPATH)rootcint.*
 
 clean_dirs:
 	rm -rf $(BINPATH) $(LIBPATH)
@@ -91,7 +120,7 @@ lib: objects $(LIBPATH) | $(LIBPATH)
 
 CONTRIB = ../contrib/
 
-GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
+
 
 
 #####################
