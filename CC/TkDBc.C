@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.31 2010/08/11 09:26:46 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.32 2010/08/11 12:18:58 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,14 +12,18 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/11 09:26:46 $
+///$Date: 2010/08/11 12:18:58 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkDBc.h"
 #include <cstring>
+
+// Hard-coded sensor alignment parameters
+#include "TkDBcSalig.C"
+
 
 TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
@@ -447,25 +451,25 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
     //PZ FIXME fix the ladder names when the map for plane 6 is ready
     const char LadNameP[2][maxlay][maxlad][9]={
-      {{  "L10AO151", "L12SO181", "L13AO073", "L14AO123", "L14AO125", "L15SO180", "L15AN101", "L15AO173", "L15AN100", "L15AO093", "L14AO159", "L14AO160", "L13AO114", "L12AO107", "L10AO145", },
+      {{  "        ", "        ", "L13AO073", "L14AO123", "L14AO125", "L15SO180", "L15AN101", "L15AO173", "L15AN100", "L15AO093", "L14AO159", "L14AO160", "L13AO114", "        ", "        ", },
        {  "L07PI002", "L14AI031", "L09GI003", "L11GI004", "L11GI008", "L12AH024", "L12AI004", "        ", "L12AH029", "L12AI005", "L11GI009", "L11GI016", "L09GI010", "        ", "        ", },
        {  "        ", "L14AI032", "L09AI139", "L11AI127", "L11AI140", "L12AJ055", "L12AJ038", "        ", "L12AJ054", "L12SI182", "L11SI176", "L11AI126", "L09SI164", "        ", "        ", },
        {  "        ", "        ", "L09GI005", "L11GI017", "L11AI082", "L12AH060", "L12AI048", "        ", "L12AH059", "L12AI064", "L11AI083", "L11AI081", "L09AI076", "        ", "        ", },
        {  "        ", "        ", "L09AI090", "L11AI087", "L11AI085", "L12AJ034", "L12AI049", "        ", "L12AJ053", "L12AI017", "L11AI086", "L11AI143", "L09AI092", "        ", "        ", },
        {  "        ", "L14AI041", "L09AI089", "L11AI084", "L11GI001", "L12AH030", "L12AI067", "        ", "L12AH028", "L12SI170", "L11AI141", "L11AI104", "L09GI012", "        ", "        ", },
        {  "L07PI003", "L14AI040", "L09AI103", "L11AI128", "L11AI088", "L12AJ020", "L12AI007", "        ", "L12AJ056", "L12AI130", "L11AI134", "L11AI142", "L09PI010", "        ", "        ", },
-       {  "L10AO144", "L12AO105", "L13AO026", "L14AO119", "L14AO120", "L15AO175", "L15AP098", "L15AO097", "L15AP110", "L15AO095", "L14AO122", "L14AO124", "L13AO074", "L12AO106", "L10AO148", },
+       {  "        ", "L12AO105", "L13AO026", "L14AO119", "L14AO120", "L15AO175", "L15AP098", "L15AO097", "L15AP110", "L15AO095", "L14AO122", "L14AO124", "L13AO074", "L12AO106", "        ", },
        {  "L11AO153", "L12S0181", "L12AI070", "L12SO166", "L12AO107", "L12AI009", "L12AI002", "L11AO154", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
       },
-      {{  "L10AO149", "L11AO154", "L13AO071", "L14AO156", "L15AO163", "L15AN113", "L15AO177", "L15AP109", "L15AO174", "L15AP099", "L15AO115", "L14AO158", "L13AO025", "L11AO153", "L10AO150", },
+      {{  "        ", "        ", "L13AO071", "L14AO156", "L15AO163", "L15AN113", "L15AO177", "L15AP109", "L15AO174", "L15AP099", "L15AO115", "L14AO158", "L13AO025", "        ", "        ", },
        {  "        ", "        ", "L09GI006", "L10PI005", "L12AI001", "L12AH057", "L12AJ021", "        ", "L12AI006", "L12AJ051", "L12AI003", "L10GI014", "L09GI013", "L14AI042", "L07PI004", },
        {  "        ", "        ", "L09GI011", "L10PI001", "L12AI012", "L12AJ033", "L12SH169", "        ", "L12SI167", "L12AH058", "L12AI016", "L10PI008", "L09GI002", "L14AI044", "        ", },
        {  "        ", "        ", "L09AI075", "L10AI079", "L12AI015", "L12AH061", "L12AJ018", "        ", "L12AI063", "L12AJ019", "L12AI065", "L10GI015", "L09AI077", "        ", "        ", },
        {  "        ", "        ", "L09AI138", "L10PI009", "L12AI132", "L12AJ022", "L12AH035", "        ", "L12AI131", "L12AH036", "L12AI066", "L10PI013", "L09AI136", "        ", "        ", },
        {  "        ", "        ", "L09AI135", "L10AI080", "L12AH062", "L12AH037", "L12AJ023", "        ", "L12SI171", "L12AJ052", "L12SI168", "L10AI078", "L09PI012", "L14AI043", "        ", },
        {  "        ", "        ", "L09AI091", "L10PI011", "L12AI133", "L12AJ047", "L12AH045", "        ", "L12AI068", "L12AH046", "L12AI050", "L10PI007", "L09AI102", "L14AI039", "L07PI006", },
-       {  "L10AO147", "L11AO155", "L13AO072", "L14AO121", "L15AO116", "L15AP112", "L15AO162", "L15AN117", "L15AO096", "L15AN118", "L15SO178", "L14AO157", "L13AO111", "L11SO165", "L10AO146", },
-       {  "L10AO144", "L10AO145", "L10AO146", "L10AO147", "L10AO148", "L10AO149", "L15AO150", "L10AO151", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
+       {  "        ", "L11AO155", "L13AO072", "L14AO121", "L15AO116", "L15AP112", "L15AO162", "L15AN117", "L15AO096", "L15AN118", "L15SO178", "L14AO157", "L13AO111", "L11SO165", "        ", },
+       {  "L10AO144", "L10AO145", "L10AO146", "L10AO147", "L10AO148", "L10AO149", "L10AO150", "L10AO151", "        ", "        ", "        ", "        ", "        ", "        ", "        ", },
       },
     };
     
@@ -474,9 +478,12 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     }else{
       memcpy(_LadName,LadName,2*maxlay*maxlad*9*sizeof(LadName[0][0][0][0]));
     }
-    
-
-
+    //this is for Sensor alignment 
+     if(_setup==3)
+       memcpy(TkID,TkID_setup3,Ntk*sizeof(TkID[0]));
+     else if(_setup==2 || setup==1)
+       memcpy(TkID,TkID_setup2,Ntk*sizeof(TkID[0]));
+     
 
 //---------------- Crate to Octant to JinJ cable connection --------------
     
@@ -594,7 +601,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
     // Set sensor alignment data
     for (tkidIT lad=tkidmap.begin(); lad!=tkidmap.end();++lad){
-      if(lad->second->GetLayer()==9){ printf("TkDBC::init -W- PLANB No sensor alignement for layer 9! \n"); continue;}
+      //      if(lad->second->GetLayer()==9){ printf("TkDBC::init -W- PLANB No sensor alignement for layer 9! \n"); continue;}
       for (int i = 0; i < trconst::maxsen; i++) 
 	lad->second->_sensx[i] = GetSensAlignX(lad->second->GetTkId(), i);
 
@@ -1170,5 +1177,3 @@ void TkDBc::RebuildMap()
        << "JN= " << JMDCNumMap   .size() << endl;
 }
 
-// Hard-coded sensor alignment parameters
-#include "TkDBcSalig.C"
