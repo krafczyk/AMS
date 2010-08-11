@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.30 2010/08/08 08:32:29 shaino Exp $
+//  $Id: TkDBc.C,v 1.31 2010/08/11 09:26:46 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/08 08:32:29 $
+///$Date: 2010/08/11 09:26:46 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -542,7 +542,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
               if (side==0) tkid*=-1;
               sprintf(name,"%s",_LadName[side][lay][slot]);
               TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,_nsen[side][lay][slot]);
-              if(_octid[side][lay][slot]<0) aa->SetLaserFlag();
+              if(_octid[side][lay][slot]<0 && _octid[side][lay][slot]!=-1 ) aa->SetLaserFlag();
 	      if((lay+1)==1 || (lay+1) ==8) aa->SetAsK7();
 	      // Special for k5/k7 on layer 9/plane6
 	      if((lay+1)==9 && side==1 ) aa->SetAsK7();
