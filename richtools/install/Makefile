@@ -22,14 +22,9 @@ LD = g++ -O3
 
 ################### FILES SPECIFIC TO RICHTOOLS
 C_FILES =   richdbc.C richid.C richradid.C richrec.C trrec.C
-COMMON_C_FILES=  id.C point.C root.C amschain.C 
+COMMON_C_FILES=  id.C point.C root.C amschain.C TrdHTrack.C TrdHSegment.C TrdHRecon.C VCon.C VCon_root.C TrElem.C
 COMMON_F_FILES= cerenkov.F richpmtlib.F
 
-
-################### ADD THE RIGHT PREFIX
-CUSTOM_SOURCE = $(addprefix $(CPATH),$(C_FILES))
-COMMON_SOURCE = $(addprefix $(AMSCPATH),$(COMMON_C_FILES))
-COMMON_FORTRAN= $(addprefix $(AMSFPATH),$(COMMON_F_FILES))
 
 
 ################### FEW GENERAL RULES
@@ -47,15 +42,12 @@ $(LIBPATH)/:
 	mkdir $(LIBPATH)
 
 $(COMMON_C_FILES:%.C=$(BINPATH)%.o): $(BINPATH)%.o: $(AMSCPATH)%.C
-	@echo Compiling $@ from $<
 	$(CC) $< $(CFLAGS) -o $@
 
 $(C_FILES:%.C=$(BINPATH)%.o): $(BINPATH)%.o: $(CPATH)%.C
-	@echo Compiling $@ from $<
 	$(CC) $< $(CFLAGS) -o $@
 
 $(COMMON_F_FILES:%.F=$(BINPATH)%.o): $(BINPATH)%.o: $(AMSFPATH)%.F
-	@echo Compiling $@ from $<
 	$(FF) $< $(FFLAGS) -o $@
 
 
@@ -70,7 +62,7 @@ $(BINPATH)rootcint.o: $(CPATH)/rootcint.C $(BINPATH)
 rootcint: $(BINPATH)rootcint.o
 
 
-objects: methods $(BINPATH) $(COMMON_C_FILES:%.C=$(BINPATH)%.o)  $(C_FILES:%.C=$(BINPATH)%.o) $(CUSTOM_F_FILES:%.C=$(BINPATH)%.o) $(BINPATH)rootcint.o | $(BINPATH)
+objects: methods $(BINPATH) $(COMMON_C_FILES:%.C=$(BINPATH)%.o)  $(C_FILES:%.C=$(BINPATH)%.o) $(COMMON_F_FILES:%.F=$(BINPATH)%.o) $(BINPATH)rootcint.o | $(BINPATH)
 
 # Something that could be missing
 $(AMSIPATH)root_methods.h: ../../perl/root.perl
@@ -106,8 +98,8 @@ contrib: test alignment manual_alignment tuning
 test: lib $(EXEPATH) $(CONTRIB)test/test.C
 	$(CC) $(GENERAL) -I$(CONTRIB)test $(CONTRIB)test/test.C -o $(EXEPATH)test.exe
 
-alignment: lib $(EXEPATH) $(CONTRIB)alignment/align.C
-	$(CC) $(GENERAL) -lMinuit -I$(CONTRIB)alignment $(CONTRIB)alignment/*.C -o $(EXEPATH)alignment.exe
+alignment: lib $(EXEPATH) $(CONTRIB)alignment/analysis.C $(CONTRIB)alignment/analysis.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 
 
 manual_alignment: lib $(EXEPATH) $(CONTRIB)manual_aligment/align.C

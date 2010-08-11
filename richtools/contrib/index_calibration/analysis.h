@@ -14,7 +14,8 @@ const int max_tiles=121;
 const int max_cuts=100;
 const long int maxReconstructions=2300000;
 const int trials=3;
-const double indexes[3]={1.048,1.05,1.052};
+//const double indexes[3]={1.048,1.05,1.052};
+double indexes[max_tiles][3];
 
 
 class Analysis{//: public TObject{
@@ -29,6 +30,7 @@ class Analysis{//: public TObject{
 
   double alignmentParameters[6];
   TH1F betaHitHistograms[max_tiles][3];
+  TH1F summary;
 
   long int entries[max_tiles];
   long int total_entries;

@@ -6,6 +6,8 @@
 #include "time.h"
 #include<fstream>
 
+#define REALDATA
+
 using namespace std;
 const float window_size=3;
 const int analysis_bins=11;
@@ -29,6 +31,10 @@ void Analysis::Init(){
   RichRing::UseDirect=true;
   RichRing::UseReflected=false;
 
+  RichRing::DeltaHeight=-0.655608413971428550;  // THIS IS FOR REALDATA
+  RichAlignment::Set(0,0.15,0.5,0,0,0);
+  //  RichAlignment::SetMirrorShift(0,0,-0.5); //From C.D. paper
+
   // Initialize the cuts variables
   last_cut=0;
   for(int i=0;i<max_cuts;i++) selected[i]=0;
@@ -43,6 +49,18 @@ void Analysis::Init(){
     cout<<"INIT sample "<<i<<endl; 
     for(int j=0;j<max_tiles;j++) betaHitHistograms[j][i].SetBins(1000,0.95,1.05);
   }
+
+  summary=TH1F("summ","summ",1000,0.95,1.05);
+
+  // Initialize the refractive indexes table
+  for(int i=0;i<RichRadiatorTileManager::get_number_of_tiles();i++){
+    double current=RichRadiatorTileManager::get_refractive_index(i);
+    indexes[i][0]=1+(current-1)*0.8;
+    indexes[i][1]=current;
+    indexes[i][2]=1+(current-1)*1.2;
+  }
+
+
 }
 
 Analysis::Analysis(TString file){
@@ -74,7 +92,7 @@ bool Analysis::Select(AMSEventR *event){
   SELECT("At most 1 hot spot",event->pParticle(0)->RichParticles<=1);
   //  SELECT("Beta==1 (trtrack chi2 selection)",log10(event->pParticle(0)->pTrTrack()->Chi2WithoutMS)<-1);  // This cut is not fully understood
 
-  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>4);
+  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>5);
 
 
   return true;
@@ -127,7 +145,8 @@ void Analysis::Loop(){
     
     for(int i=0;i<trials;i++){
       // Set the refractive indexes
-      RichRadiatorTileManager::recompute_tables(tile_index,indexes[i]);
+      //      RichRadiatorTileManager::recompute_tables(tile_index,indexes[i]);
+      RichRadiatorTileManager::recompute_tables(tile_index,indexes[tile_index][i]);
 
       // Reconstruct the ring
       ring=RichRing::build(event,event->pParticle(0)->pRichRing()->pTrTrack());
@@ -136,6 +155,7 @@ void Analysis::Loop(){
       
       for(int j=0;j<ring->_beta_direct.size();j++){
 	betaHitHistograms[tile_index][i].Fill(ring->_beta_direct[j]);
+	if(i==1) summary.Fill(ring->_beta_direct[j]);
       }
       
       delete ring;
@@ -146,7 +166,11 @@ void Analysis::Loop(){
 
 
 TF1 *Fita(TH1F *proyection,double &mean,double &mean_error,double &sigma,double &sigma_error){
-  if(proyection->GetEntries()<1000 || proyection->Integral(1,proyection->GetNbinsX())<1000) return 0;
+  if(proyection->GetEntries()<50 || proyection->Integral(1,proyection->GetNbinsX())<50) return 0;
+  if(proyection->Integral(
+			  proyection->GetXaxis()->FindFixBin(0.962),
+			  proyection->GetXaxis()->FindFixBin(0.99))<50) return 0;
+
       proyection->Fit("pol0","","",0.962,0.99);
       TF1 *f=proyection->GetFunction("pol0");
       if(!f) return 0;
@@ -274,7 +298,7 @@ int main(int argc,char **argv){
   double means[max_tiles][trials];
 
   // Fit all distributions
-
+  TFile ffff("index_cal.root","RECREATE");
   for(int j=0;j<max_tiles;j++){    
     winner[j]=-1;
     if(analysis.entries[j]<100){
@@ -287,6 +311,7 @@ int main(int argc,char **argv){
       double mean,mean_error,sigma,sigma_error;
       
       if(Fita(&analysis.betaHitHistograms[j][i],mean,mean_error,sigma,sigma_error)){
+	//	if(i==1) analysis.betaHitHistograms[j][i].Write();
 	sigmas[j][i]=fabs(sigma);
 	means[j][i]=mean;
 	done++;
@@ -300,12 +325,19 @@ int main(int argc,char **argv){
     double b2=means[j][2];
     double b1=means[j][1];
     double b0=means[j][0];
+    /*
     double n2=indexes[2];
     double n1=indexes[1];
     double n0=indexes[0];
-    
+    */    
+    double n2=indexes[j][2];
+    double n1=indexes[j][1];
+    double n0=indexes[j][0];
+
     double n=(1-b1)/(b2-b0)*(n2-n0)+n1;
-    winner[j]=n;
+    //    winner[j]=n;
+    //    winner[j]=(n+indexes[j][1])/2; //approac slowly to aim for convergence
+    winner[j]=(0.75*n+0.25*indexes[j][1]); //approac slowly to aim for convergence
   }
   
 
@@ -318,21 +350,28 @@ int main(int argc,char **argv){
     double height=RichRadiatorTileManager::get_height(tile);
     if(winner[tile]>0){
       cout<<"TILE "<<i<<" "<<x<<" "<<y<<" "
-	  <<indexes[0]<<" "<<means[i][0]<<" "
-	  <<indexes[1]<<" "<<means[i][1]<<" "
-	  <<indexes[2]<<" "<<means[i][2]<<" "
+	//	  <<indexes[0]<<" "<<means[i][0]<<" "
+	//	  <<indexes[1]<<" "<<means[i][1]<<" "
+	//	  <<indexes[2]<<" "<<means[i][2]<<" "
+	  <<indexes[i][0]<<" "<<means[i][0]<<" "
+	  <<indexes[i][1]<<" "<<means[i][1]<<" "
+	  <<indexes[i][2]<<" "<<means[i][2]<<" "
 	  <<" -- "<<winner[i]<<endl;
       fprintf(fp,
 	      "%g %g %g %g %g\n",
 	      x,y,winner[tile],height,clarity);
     }else
       fprintf(fp,
-	      "---- NO FIT ---- %g %g %g %g %g -- tabulated as %g \n",
-	      x,y,winner[tile],height,clarity,RichRadiatorTileManager::get_refractive_index(tile));
+	      "%g %g %g %g %g\n",
+	      x,y,RichRadiatorTileManager::get_refractive_index(tile),height,clarity);
+    //      fprintf(fp,
+    //	      "---- NO FIT ---- %g %g %g %g %g -- tabulated as %g \n",
+    //	      x,y,winner[tile],height,clarity,RichRadiatorTileManager::get_refractive_index(tile));
     
   }
   fclose(fp);
-
+  analysis.summary.Write();
+  ffff.Close();
 
   // Output the selection efficiencies
   for(int i=1;analysis.selected[i]>0;i++){
