@@ -1,8 +1,3 @@
-FORTRAN= -lg2c -lgfortran
-FFLAGS = -m32 -fPIC -c
-CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__  -Wno-deprecated -I../include -I`root-config --incdir` -c 
-LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
-
 FPATH = ../F/
 CPATH = ../CC/
 IPATH = ../include/
@@ -15,61 +10,29 @@ AMSIPATH = ../../include/
 AMSFPATH = ../../F/
 AMSCPATH = ../../CC/
 
+FORTRAN= -lg2c -lgfortran
+FFLAGS = -m32 -fPIC -c
+CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__  -Wno-deprecated -I../include -I../../include -I`root-config --incdir` -c  
+LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
+
+
 FF = g77 -O3
 CC = g++ -O3
 LD = g++ -O3
 
-# This is the version with the debugger
-#FF = g77 -ggdb
-#CC = g++ -ggdb
-#LD = g++ -ggdb
+################### FILES SPECIFIC TO RICHTOOLS
+C_FILES =   richdbc.C richid.C richradid.C richrec.C trrec.C
+COMMON_C_FILES=  id.C point.C root.C amschain.C 
+COMMON_F_FILES= cerenkov.F richpmtlib.F
 
 
-
-####################### AMS SOURCE FILES ####################
-
-
-C_HEADERS = $(AMSIPATH)id.h $(AMSIPATH)linkdef.h $(AMSIPATH)ntuple.h $(AMSIPATH)point.h \
-            $(AMSIPATH)richid_default_values.h $(AMSIPATH)root.h   $(AMSIPATH)root_methods.h \
-            $(AMSIPATH)root_RVS.h  $(AMSIPATH)typedefs.h $(AMSIPATH)amschain.h $(AMSIPATH)AMSNtupleHelper.h
+################### ADD THE RIGHT PREFIX
+CUSTOM_SOURCE = $(addprefix $(CPATH),$(C_FILES))
+COMMON_SOURCE = $(addprefix $(AMSCPATH),$(COMMON_C_FILES))
+COMMON_FORTRAN= $(addprefix $(AMSFPATH),$(COMMON_F_FILES))
 
 
-C_FORTRAN = $(AMSFPATH)cerenkov.F $(AMSFPATH)richpmtlib.F
-
-C_C       = $(AMSCPATH)id.C   $(AMSCPATH)point.C  $(AMSCPATH)root.C $(AMSCPATH)amschain.C
-
-SOURCE = $(CPATH)richdbc.C  $(CPATH)richid.C  $(CPATH)richradid.C  $(CPATH)richrec.C  $(CPATH)trrec.C \
-	 $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F)
-
-
-main:
-	@echo Available targets:
-	@echo "lib              - Build the shared library"
-	@echo "contrib          - Build all the utilities in the contrib directory"
-	@echo "test             - Build the contrib/test utility"
-	@echo "alignment        - Build the contrib/alignment utility (not working properly yet)"
-	@echo "manual_alignment - Build the contrib/manual_alignment utility "
-	@echo "tuning           - Build the contrib/parameter_tuning utility, which tunes the CIEMAT beta reconstruction single parameter"
-	@echo "clean            - Clean up everything (expect the exe directory)"
-# Main target
-
-lib: $(BINPATH)rootcint.o $(SOURCE:$(CPATH)%.C=$(BINPATH)%.o) $(SOURCE:$(FPATH)%.F=$(BINPATH)%.o) $(LIBPATH)
-	@echo $(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
-	$(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
-	ar rv $(LIBPATH)libstatic.a $(BINPATH)*.o
-
-clean: $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) $(C_FORTRAN:$(AMSFPATH)%.F=$(FPATH)%.F) $(C_C:$(AMSCPATH)%.C=$(CPATH)%.C)
-	rm $^
-	rm -rf $(BINPATH) $(LIBPATH) $(TMPPATH) 
-
-
-
-# Dependencies
-
-$(AMSIPATH)root_methods.h: ../../perl/root.perl
-	cd ..;	perl ../perl/root.perl
-
-
+################### FEW GENERAL RULES
 #Directories
 $(BINPATH):
 	mkdir $(BINPATH)
@@ -83,49 +46,60 @@ $(TMPPATH):
 $(LIBPATH)/:
 	mkdir $(LIBPATH)
 
-# Object files
-
-$(BINPATH)%.o: $(CPATH)%.C
-	@echo Compiling $< ...
+$(COMMON_C_FILES:%.C=$(BINPATH)%.o): $(BINPATH)%.o: $(AMSCPATH)%.C
+	@echo Compiling $@ from $<
 	$(CC) $< $(CFLAGS) -o $@
 
-$(BINPATH)%.o: $(FPATH)%.F
-	@echo Compiling $< ...
-	$(FF) $< $(FFLAGS)  -o $@
+$(C_FILES:%.C=$(BINPATH)%.o): $(BINPATH)%.o: $(CPATH)%.C
+	@echo Compiling $@ from $<
+	$(CC) $< $(CFLAGS) -o $@
 
-$(IPATH)%.h: $(AMSIPATH)%.h
-	cp $< $@
-
-$(CPATH)%.C: $(AMSCPATH)%.C
-	cp $< $@
-
-$(FPATH)%.F: $(AMSFPATH)%.F
-	cp $< $@
+$(COMMON_F_FILES:%.F=$(BINPATH)%.o): $(BINPATH)%.o: $(AMSFPATH)%.F
+	@echo Compiling $@ from $<
+	$(FF) $< $(FFLAGS) -o $@
 
 
-# No dependencies 
-$(CPATH)richdbc.C:
+$(CPATH)/rootcint.C: 
+	rootcint -f $(CPATH)rootcint.C -c $(AMSIPATH)point.h $(AMSIPATH)root_RVS.h $(AMSIPATH)root.h $(AMSIPATH)amschain.h $(AMSIPATH)VCon_root.h $(AMSIPATH)linkdef.h
 
-$(CPATH)richid.C:  
 
-$(CPATH)richradid.C:
+$(BINPATH)rootcint.o: $(CPATH)/rootcint.C $(BINPATH)
+	$(CC) $(CPATH)rootcint.C  -I$(TMPPATH) $(CFLAGS) -o $(BINPATH)rootcint.o 
 
-$(CPATH)richrec.C:
 
-$(CPATH)trrec.C:
+rootcint: $(BINPATH)rootcint.o
 
-$(BINPATH)rootcint.o: $(TMPPATH) $(TMPPATH)/rootcint.C $(BINPATH)
-	$(CC) $(TMPPATH)rootcint.C $(CFLAGS) -I$(TMPPATH) -o $(BINPATH)rootcint.o 
 
-$(TMPPATH)/rootcint.C: $(TMPPATH) $(C_HEADERS:$(AMSIPATH)%.h=$(IPATH)%.h) 
-	rootcint -f $(TMPPATH)rootcint.C -c $(IPATH)point.h $(IPATH)root_RVS.h $(IPATH)root.h $(IPATH)amschain.h $(IPATH)linkdef.h
+objects: methods $(BINPATH) $(COMMON_C_FILES:%.C=$(BINPATH)%.o)  $(C_FILES:%.C=$(BINPATH)%.o) $(CUSTOM_F_FILES:%.C=$(BINPATH)%.o) $(BINPATH)rootcint.o | $(BINPATH)
+
+# Something that could be missing
+$(AMSIPATH)root_methods.h: ../../perl/root.perl
+	cd ..;	perl ../perl/root.perl
+
+methods: $(AMSIPATH)root_methods.h
+
+########### CLEANING 
+clean: clean_dirs
+
+
+clean_dirs:
+	rm -rf $(BINPATH) $(LIBPATH)
+
+########## LIBRARY
+
+lib: objects $(LIBPATH) | $(LIBPATH)
+	@echo $(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+	$(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+	ar rv $(LIBPATH)libstatic.a $(BINPATH)*.o
+
+
 
 
 # Contributions
 
 CONTRIB = ../contrib/
 
-GENERAL= -m32 -L../lib -lshared -I../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
+GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
 
 contrib: test alignment manual_alignment tuning
 
