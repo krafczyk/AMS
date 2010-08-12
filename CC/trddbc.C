@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.54 2008/07/28 13:40:00 choutko Exp $
+//  $Id: trddbc.C,v 1.55 2010/08/12 11:49:24 choutko Exp $
 #include "trddbc.h"
 #include "amsdbc.h"
 #include <math.h>
@@ -550,6 +550,7 @@ void TRDDBc::init(){
 // Top honeycomb cover
 
       OctagonDimensions(3,4)=-94./20.;   // z coord
+//      OctagonDimensions(3,4)=-74./20.;   // z coord
 
    // Bottom edge
       OctagonDimensions(3,5)=0;         // rmin
@@ -713,6 +714,7 @@ void TRDDBc::init(){
        switch(i){
        case 5:    // Ze Radiator octagon  (up from hc)
           coo[2]= (1476+94.+6.+35+11.9)/10.+OctagonDimensions(i,4);
+          coo[2]= (1476+74.+6.+35+11.9)/10.+OctagonDimensions(i,4);
           break;
        case 4:    // bottom honeycomb... starts 1.5 mm below carbon
 	 //  fiber ring
@@ -721,6 +723,7 @@ void TRDDBc::init(){
 
        case 3:   // top honeycomb...need to check this
           coo[2]= (1476+94.+6.)/10.+OctagonDimensions(i,4);
+          coo[2]= (1476+74.+6.)/10.+OctagonDimensions(i,4);
           break;
 
        case 2: // bottom carbon fiber cover
