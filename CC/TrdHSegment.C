@@ -8,11 +8,11 @@ int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<Nhits?fTrdRawHit[i]:-1;};
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
   TrdRawHitR* hit=0;
   //  if ( i<Nhits ) hit = hits[i];
-  if (hits[i] == 0 && fTrdRawHit[i] >= 0) {
     VCon* cont2 = GetVCon()->GetCont("AMSTRDRawHit");
+  if (hits[i] == 0 && fTrdRawHit[i] >= 0) {
     hits[i] = (TrdRawHitR*)cont2->getelem(fTrdRawHit[i]);
-    delete cont2;
   }
+    delete cont2;
 
   return hits[i];
 }

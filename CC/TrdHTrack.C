@@ -53,12 +53,12 @@ int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<2?fTrdHSegment[i]:-1);}
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
   TrdHSegmentR* seg=0;
   //  if ( fTrdHSegment[i] >= 0) seg = segments[i];
-  if (segments[i] == 0 && fTrdHSegment[i] >= 0) {
     VCon* cont2 = GetVCon()->GetCont("AMSTRDHSegment");
+  if (segments[i] == 0 && fTrdHSegment[i] >= 0) {
     segments[i] = (TrdHSegmentR*)cont2->getelem(fTrdHSegment[i]);
-    delete cont2;
   }
 
+    delete cont2;
   return segments[i];
 }
 
@@ -152,7 +152,8 @@ void TrdHTrackR::SetSegments(TrdHSegmentR* segx,TrdHSegmentR* segy){
   //  fTrdHSegment[segy->d] = cont2->getindex(segy);
   
   Nhits=(int)segx->Nhits+(int)segy->Nhits;
-  Chi2=segy->Chi2+segx->Chi2;
+  Chi2=segy->Chi2+segx->Chi2; 
+  delete cont2
 }
  
  void TrdHTrackR::setChi2(float Chi2_){Chi2=Chi2_;};
