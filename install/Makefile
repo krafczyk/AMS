@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.106 2010/08/07 18:28:23 mmilling Exp $
+#  $Id: Makefile,v 1.107 2010/08/12 11:03:19 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -231,7 +231,7 @@ COMMON_FILES +=$(TRACK_BASE)
 
 TRACK_BASEO=$(TRACK_BASE:$(SCC)%.C=$(BIN)%.o)
 
-COMMON_FILES += $(SCC)VCon_gbatch.C $(SCC)TrElem.C   $(SCC)VCon_root.C $(SCC)VCon.C 
+COMMON_FILES += $(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C 
 
 #TRD 
 COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
