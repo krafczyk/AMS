@@ -896,6 +896,9 @@ class RemoteClient:
                 self.sqlserver.Update("update runs set status='Failed' where run="+str(run.Run))
                 print "cannot find status, content in Jobs for JID=%d" %(run.Run)
                 output.write( "cannot find status, content in Jobs for JID=%d" %(run.Run))
+                sql="insert into jobs select jobs_deleted.* from jobs_deleted where jobs_deleted.jid=%d"  %(run.uid);
+                self.sqlserver.Update(sql);
+                self.sqlserver.Commit();
             else:
                 jobstatus=r1[0][0]
                 jobcontent=r1[0][1]
@@ -1173,6 +1176,9 @@ class RemoteClient:
                 self.sqlserver.Update("update dataruns set status='Failed' where jid="+str(run.uid))
                 print "cannot find status, content in Jobs for JID=%d" %(run.uid)
                 output.write( "cannot find status, content in Jobs for JID=%d" %(run.uid))
+                sql="insert into jobs select jobs_deleted.* from jobs_deleted where jobs_deleted.jid=%d"  %(run.uid);
+                self.sqlserver.Update(sql);
+                self.sqlserver.Commit();
             else:
                 jobstatus=r1[0][0]
                 jobcontent=r1[0][1]
