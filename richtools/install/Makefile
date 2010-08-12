@@ -1,3 +1,5 @@
+CERN_ROOT = /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
+
 FPATH = ../F/
 CPATH = ../CC/
 IPATH = ../include/
@@ -10,17 +12,29 @@ AMSIPATH = ../../include/
 AMSFPATH = ../../F/
 AMSCPATH = ../../CC/
 
-FORTRAN= -lg2c -lgfortran
+#CERNLIB = `cernlib mathlib`
+CERNLIB = -L/afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro/lib -Wl,-static -lmathlib -lpacklib -lkernlib -Wl,-dy -lm -lnsl -lcrypt -ldl 
+#FORTRAN= -lg2c -lgfortran
+FORTRAN=  -L/opt/intel//Compiler/11.0/069//lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s
 FFLAGS = -m32 -fPIC -c
 CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH__ -D__ROOTSHAREDLIBRARY__  -Wno-deprecated -I../include -I../../include -I`root-config --incdir` -c  
-LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
+#LDFLAGS =  -m32 -shared `cernlib mathlib` -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN)
+LDFLAGS =  -m32 -shared $(CERNLIB) -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
+
+#GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
+GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
 
 
-GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
+#FF = g77 -O3
+#CC = g++ -O3
+#LD = g++ -O3
 
-FF = g77 -O3
-CC = g++ -O3
-LD = g++ -O3
+FF = /opt/intel//Compiler/11.0/069//bin/ia32/ifort -O3
+CC = /opt/intel//Compiler/11.0/069//bin/ia32/icc -O3
+LD = /opt/intel//Compiler/11.0/069//bin/ia32/icpc -O3
+
+
+
 
 ################### FILES SPECIFIC TO RICHTOOLS
 C_FILES =   richdbc.C richid.C richradid.C richrec.C trrec.C
