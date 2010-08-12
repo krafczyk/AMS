@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.14 2010/07/07 16:48:39 pzuccon Exp $
+// $Id: TkDBc.h,v 1.15 2010/08/12 08:29:22 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -180,6 +180,11 @@ public:
 
   //! It returns the default (hard-coded) sensor alignment parameter 
   number GetSensAlignY(int tkid, int sens);
+
+  //! layer 9 Y pos from mtrology
+  float   _lay9Ypos[2][8];
+  //! layer 9 Z rot from mtrology
+  float   _lay9Zrot[2][8];
 
 
   // -------- CABLING ------------------------------
@@ -412,7 +417,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 4);
+  ClassDef(TkDBc, 5);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

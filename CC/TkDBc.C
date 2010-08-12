@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.32 2010/08/11 12:18:58 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.33 2010/08/12 08:27:22 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/11 12:18:58 $
+///$Date: 2010/08/12 08:27:22 $
 ///
-///$Revision: 1.32 $
+///$Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -144,8 +144,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       // TRD TOP
       //_zpos[4]=170.;
       _zpos[4]=162.;    // SH: coarse alignment with CR data (Aug/2010)
-      //       former ECAL FACE
-      _zpos[5]=        -134.3     - (Plane6EnvelopSize[2] - Plane6Size[2]/2) ;
+      //       former ECAL FACE (PZ Aug 2010 adjusted from CAD)
+      _zpos[5]=        -134.78     - (Plane6EnvelopSize[2] - Plane6Size[2]/2) ;
       
     }
     
@@ -203,7 +203,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     P1NSupportCoo[0]=0;
     P1NSupportCoo[1]=0;
     P1NSupportCoo[2]= _zpos[4]+_sup_hc_w[4]/2.+
-      P1NSupportSkinThickness+P1NSupportThickness/2.;
+      //                                              space between 1N and 1NS
+      P1NSupportSkinThickness+P1NSupportThickness/2.+0.12;
 
 //----------------------------------------------------------------------------------
 //            LAYERS
@@ -239,8 +240,26 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 //      {   0, 2.045,   0,    0, -2.095,   0,      0,    0,    0,     0, -2.095,      0,     0, +2.045,  0};
 // Estimated from alignment calibration (SH)
       {   0, 2.070,   0,    0, -2.070,   0,      0,    0,    0,     0, -2.070,      0,     0, +2.070,  0};
-
     memcpy(_ladder_offsetX_outer,ladder_offsetX_outer,maxlad*sizeof(ladder_offsetX_outer[0]));
+
+    // Layer 9 Y positions
+    float lay9Ypos[2][8]={
+      {22.3968, 15.1251, 7.8212, 0.5181, -7.4913, -14.7893, -22.0822, -29.3856},
+      {29.4498, 22.1581, 14.8487, 7.5590, -0.4561, -7.7611, -15.0452, -22.3457}
+    };
+
+    memcpy(_lay9Ypos,lay9Ypos,8*2*sizeof(lay9Ypos[0][0]));
+
+    // Layer 9 Z rotations
+    float lay9Zrot[2][8]={
+      { 0      ,  0.00031,  0.00062,  0.00037,  0.00013,  0.00036,  0.00053,  0.00033},
+      {M_PI + 0.00064, M_PI + 0.00017, M_PI + 0.00068, 
+       M_PI + 0.00035, M_PI + 0.00029, M_PI + 0.00051, 
+       M_PI + 0.00019, M_PI - 0.00006}
+    };
+
+    memcpy(_lay9Zrot,lay9Zrot,8*2*sizeof(lay9Zrot[0][0]));
+
 
     const integer nlad[2][maxlay]={{15,12,11,10,10,11,12,15,8},{15,12,11,10,10,11,12,15,8}};    
     memcpy(_nlad,nlad,2*maxlay*sizeof(nlad[0][0]));
@@ -404,7 +423,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	{  0.  , 289.55,  -0.39, 20.31,	-21.09,	-0.32,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//6
 	{144.88, 289.41,  -0.39, 20.31,	-21.09,	-0.25,	-0.39,	0.,	-0.25,	-0.39,	-21.09,	20.31,	-0.39,	0,	0},//7
 	{ -0.39,  20.31,  -0.39, -0.39,	-21.09,	-0.39,	-0.39,	-0.39,	-0.39,	-0.39,	-21.09,	-0.39,	-0.39,	20.31,	-0.39},//8
-	{+20.04, +40.14,+40.14, +40.14,   +40.14,+40.14,+40.14, +20.04 ,     0.,     0.,     0.,     0.,     0.,     0.,     0.},//9
+	{+20.04, +40.630,+40.700, +40.600,   +40.540,+40.700,+40.500, +19.900 ,     0.,     0.,     0.,     0.,     0.,     0.,     0.},//9
       },{
 	
 														
@@ -417,7 +436,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	{0.,	0,	0.39,	21.09,	-20.31,	0.39,	0.32,	0,	0.39,	0.39,	-20.31,	21.02,	0.39,	-289.41,    0.  },
 	{0.,	0,	0.39,	21.09,	-20.31,	0.25,	0.32,	0,	0.25,	0.32,	-20.31,	21.02,	0.39,	-289.41, -144.74},
 	{0.39,	21.09,	0.39,	0.39,	-20.31,	0.39,	0.39,	0.39,	0.39,	0.39,	-20.31,	0.39,	0.39,	  21.09,    0.39},
-	{+20.89, +40.99, +40.99,+40.99, +40.99,+40.99, +40.99, +20.89,     0.,     0.,     0.,     0.,     0.,     0.,    0.},//9
+	{+20.79, +41.49, +41.46,+41.42, +41.42,+41.38, +41.32, +20.59,     0.,     0.,     0.,     0.,     0.,     0.,    0.},//9
       }};
 
     // memcpy(_LadDeltaX,LadDeltaX,2*nlays*maxlad*sizeof(LadDeltaX[0][0][0]));
@@ -568,9 +587,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 		aa->rot.ZParity(); 
 	      }
 	      // Rotation along Z-axis
-	      if(side) {
+	      if(side && (lay+1)!=9   ) {
 		aa->rot.XParity(); 
 		aa->rot.YParity(); 
+	      }
+	      
+	      if(lay+1==9){
+		aa->SetRotAngles(_lay9Zrot[side][slot],0.,0.);
 	      }
 
 // 	      int pgid=aa->GetPgId();
@@ -637,13 +660,14 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   if(abs(slot)>4) addspaces=ladder_Ygap-central_gap/2.;
   else            addspaces=central_gap/2.;
   if(layer==9){
-    if(side==0) 
-      return  (distXF - ladder_Ygap/2 + ladpitch*(3-slot) + addspaces)
-	     +0.3;  // SH: coarse alignment with CR data (Aug/2010)
-           //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2. ;
-    else
-      return  (distXN - ladder_Ygap/2 + ladpitch*(5-slot) + addspaces)
-	     -0.1;  // SH: coarse alignment with CR data (Aug/2010)
+    return _lay9Ypos[side][slot-1];
+//     if(side==0) 
+//       return  (distXF - ladder_Ygap/2 + ladpitch*(3-slot) + addspaces)
+// 	     +0.3;  // SH: coarse alignment with CR data (Aug/2010)
+//            //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2. ;
+//     else
+//       return  (distXN - ladder_Ygap/2 + ladpitch*(5-slot) + addspaces)
+// 	     -0.1;  // SH: coarse alignment with CR data (Aug/2010)
            //+ (slot<5)?central_gap/2.: (ladder_Ygap-central_gap)/2.; 
   }
   if( layer==2||layer==4||layer==6){
