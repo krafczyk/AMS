@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.220 2010/08/07 18:20:23 mmilling Exp $
+//  $Id: root.C,v 1.221 2010/08/12 12:51:00 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2627,8 +2627,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
-  Address   = ptr->_Address(0);
-  AddressA   = ptr->_Address(1);
+  Addressl   = ptr->_Address;
   DBase[0]       = FLT_MAX;
   if(!isnan(ptr->_Dbase[0]))
   DBase[0]       = fabs(ptr->_Dbase[0])>FLT_MAX?FLT_MAX:ptr->_Dbase[0];

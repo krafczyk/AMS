@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
+* $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.39  2010/08/12 12:51:01  choutko
+* *** empty log message ***
+*
 * Revision 1.38  2010/06/24 11:10:31  zweng
 * Add #include "VMCrename.h"
 *
@@ -203,7 +206,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
+*  $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6694,7 +6697,7 @@ c         ENDIF
       integer nlad,nhalf,npar,iter,miter,nmin,maxcases
       parameter(nlad=15*15)
       parameter (nhalf=2)
-      parameter (nplan=8)
+      parameter (nplan=9)
       parameter (npar=2)
       integer prm(nplan,*)
 *
@@ -6719,9 +6722,9 @@ c         ENDIF
       integer fixpar(nplan,nlad,nhalf,6) ! -1 fixed 0 one for all ladders 1 free
       real sigma(nplan,2),z(nplan)
       integer ncases,i,j,k,l,ntot,npt,ialgo
-      real out(9),hits(3,nplan),xsigma(3,nplan),normal(3,nplan),
+      real out(9),hits(3,nplan),xsigma(3,2*nplan),normal(3,nplan),
      + outa(7,nplan),res(2,nplan)
-      integer layer(nplan),ilayer(nplan),ims,ialg,ifail
+      integer layer(nplan),ilayer(nplan),ims,ialg,ifail,l1
       double precision dd(nplan,nlad,nhalf,npar),ch(2)
       double precision ddxx(nplan,nlad,nhalf,npar)
       double precision ddxy(nplan,nlad,nhalf,npar) 
@@ -6767,6 +6770,15 @@ c         ENDIF
          enddo
          mcrig(ncases+1)=arr(1,11)
          ncases=ncases+1
+              npt=0
+              do j=1,nplan     
+               if(array(j,4,ncases).ne.0)then
+                npt=npt+1
+               endif
+              enddo
+              if(npt.le.3)then
+                 write(*,*)' npt!!!!!!',npt
+              endif
          return
        else if(what.gt.1)then
 *
@@ -6911,18 +6923,47 @@ c        enddo
             s3=array(j,3,i)-cool(3,j,array(j,4,i),array(j,5,i))+d3
             d(1)=mtx(1,1)*s1+mtx(2,1)*s2+mtx(3,1)*s3
             d(2)=mtx(1,2)*s1+mtx(2,2)*s2+mtx(3,2)*s3
+                 hits(3,npt)=array(j,3,i)+
+     +           param(j,array(j,4,i),array(j,5,i),3)+d3
+                 if(hits(3,npt).gt.100)then
+                    hits(3,npt)=hits(3,npt)-8
+                 endif
+                 xsigma(3,npt)=array(j,5,i)
                 do k=1,2
                  hits(k,npt)=d(k)+cool(k,j,array(j,4,i),array(j,5,i))+
      +           param(j,array(j,4,i),array(j,5,i),k)
                  xsigma(k,npt)=array(j,k+5,i)
+                 xsigma(k,npt+nplan)=array(j,k+5,i)
+                 if(abs(hits(3,npt)).gt.1000)then
+                  xsigma(k,npt)=sqrt(xsigma(k,npt)**2+
+     +         (13.6e-3*sqrt(0.25)/1.8*(abs(hits(3,npt))-55))**2)
+                 endif
                 enddo
-                 hits(3,npt)=array(j,3,i)+
-     +           param(j,array(j,4,i),array(j,5,i),3)+d3
-                 xsigma(3,npt)=xsigma(1,npt)
                endif
                enddo
               out(1)=1./1000000.
+              if(npt.lt.4)then
+               write(*,*)'npt',npt
+                out(7)=1.e38
+              else 
              call tkfitg(npt,hits,xsigma,normal,5,ialgo,ims,layer,out)
+c              rig=abs(out(6))
+c              if(rig.lt.1)rig=1
+c             do l1=1,2
+c             do j=1,npt
+c             do k=1,2
+c                 if(abs(hits(3,j)).gt.100)then
+c                  xsigma(k,j)=sqrt(xsigma(k,j+nplan)**2+
+c     +         (13.6e-3*sqrt(0.25)/1.8*(abs(hits(3,j))-55)/rig)**2)
+c                 endif
+c             enddo
+c             enddo
+c              out(1)=1./1000000.
+c             call tkfitg(npt,hits,xsigma,normal,5,ialgo,ims,layer,out)
+c              rig=abs(out(6))
+c              if(rig.lt.1)rig=1
+c             enddo
+              endif
 #ifdef  __AMSPARALLEL__
              if(out(7).ne.out(7))then
               write(*,*)' nan ',out
@@ -6984,7 +7025,7 @@ c        enddo
           x2=x2+z(j)**2
         endif
        enddo
-        if(nx.gt.nplan-3)then
+        if(nx.gt.4)then
          chi2=0
          x=x/nx
          y=y/nx
@@ -7010,6 +7051,7 @@ c        enddo
          if(mod(algo,2).eq.0)then
            chi2=out(7)
            rig=abs(out(6))
+           
           ch(1)=chi2
           ch(2)=chi2
         else
@@ -7818,9 +7860,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.38 2010/06/24 11:10:31 zweng Exp $
+* $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.39  2010/08/12 12:51:01  choutko
+* *** empty log message ***
+*
 * Revision 1.38  2010/06/24 11:10:31  zweng
 * Add #include "VMCrename.h"
 *

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.226 2010/07/15 11:21:45 choutko Exp $
+//  $Id: trrec.C,v 1.227 2010/08/12 12:51:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -4045,17 +4045,29 @@ void AMSTrTrack::_crHit(bool nodb=false){
 }
 
 void AMSTrTrack::_buildaddress(){
-  _Address(0)=0;
-  _Address(1)=0;
+  _Address=0;
   for(int i=0;i<_NHits;i++){
     AMSTrIdSoft id = _Pthit[i]->getClusterP(1)->getid();
     int layer=id.getlayer();
     int ladder=id.getdrp();
     int half=id.gethalf();
-     _Address(0)+=TKDBc::Cumulus(layer)*ladder;
-     _Address(1)+=TKDBc::Cumulus(layer)*(half);
-    }
-  } 
+     _Address+=TKDBc::Cumulus(layer)*(2*ladder+half);
+  }
+/*
+    integer ladder[2][trconst::maxlay];
+    decodeaddress(ladder,_Address);
+  for(int i=0;i<_NHits;i++){
+    AMSTrIdSoft id = _Pthit[i]->getClusterP(1)->getid();
+    int layer=id.getlayer();
+    int lad=id.getdrp();
+    int half=id.gethalf();
+     if(half!=ladder[1][layer-1] || lad!=ladder[0][layer-1]){
+       cout <<" TrTrack::_buildaddress-S-Error "<<_Address<<" "<<half<<" "<<layer<<" "<<lad<<" "<<ladder[0][layer-1]<<" "<<ladder[1][layer-1]<<endl;
+     }
+  }
+ */     
+
+} 
 
 
 
@@ -4067,30 +4079,31 @@ void AMSTrTrack::_buildaddressS(){
     int layer=id.getlayer();
     int ladder=id.getladder();
     int half=id.gethalf();
-     _AddressS(0)+=TKDBc::CumulusS(layer)*((ladder)*(trconst::maxsen+1)+id.getsensorR());
-     _AddressS(1)+=TKDBc::CumulusS(layer)*(half);
+     _AddressS(0)+=TKDBc::Cumulus(layer)*((ladder)*2+half);
+     _AddressS(1)+=TKDBc::CumulusS(layer)*(id.getsensorR());
     }
   } 
 
 
 
 
-void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uintl _Address){
+void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uint64 _Address){
    for(int i=0;i<TKDBc::nlay();i++){
-    uinteger lad=(_Address(0)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
-    uinteger half=(_Address(1)/TKDBc::Cumulus(i+1))%(TKDBc::nlad(i+1)+1);
-    ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
-    ladder[1][i]=half%(TKDBc::nlad(i+1)+1);
-    //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
+    uinteger lad=(_Address/TKDBc::Cumulus(i+1))%((TKDBc::nlad(i+1)+1)*2);
+    uinteger half=lad%2;
+    lad=lad/2;
+    ladder[0][i]=lad;
+    ladder[1][i]=half;
+//    cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
 void AMSTrTrack::decodeaddressS(integer ladder[3][trconst::maxlay], uint128 _Address){
    for(int i=0;i<TKDBc::nlay();i++){
-    uint64 sen=(_Address(0)/TKDBc::CumulusS(i+1))%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
-    uint64 half=(_Address(1)/TKDBc::CumulusS(i+1))%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
-    ladder[0][i]=(sen%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1))/(trconst::maxsen+1);
-    ladder[1][i]=half%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1);
-    ladder[2][i]=(sen%((TKDBc::nlad(i+1)+1)*(trconst::maxsen+1)+1))%(trconst::maxsen+1);
+    uint64 sen=(_Address(0)/TKDBc::Cumulus(i+1))%((TKDBc::nlad(i+1)+1)*2);
+    uint64 half=(_Address(1)/TKDBc::CumulusS(i+1))%(trconst::maxsen+1);
+    ladder[0][i]=sen/2;
+    ladder[1][i]=sen%2;
+    ladder[2][i]=half;
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
@@ -4107,7 +4120,8 @@ uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
     integer lad[2][trconst::maxlay];    
     integer lad1[2][trconst::maxlay];    
     integer npt=0;
-    decodeaddress(lad,address);
+    
+    //decodeaddress(lad,address);
     int xnpt=0;
     int i;
     for(i=0;i<TKDBc::nlay();i++){
@@ -4119,7 +4133,7 @@ uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
       if(lad[0][i]){
        int tmp=lad[0][i];
        lad[0][i]=0;
-       achld[nchild++]=encodeaddress(lad);     
+//       achld[nchild++]=encodeaddress(lad);     
        lad[0][i]=tmp;
       }
      }
@@ -4131,7 +4145,7 @@ uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
        for(int j=i+1;j<TKDBc::nlay();j++){
         int tmpj=lad[0][j];
         lad[0][j]=0;
-        achld[nchild++]=encodeaddress(lad);     
+//        achld[nchild++]=encodeaddress(lad);     
         lad[0][j]=tmpj;
         if(nchild>maxchld){
          cerr<< "AMSTrTrack::getchild-F-TooManyChilds "<<nchild<<endl;
@@ -4149,19 +4163,18 @@ uintl * AMSTrTrack::getchild(uintl address, uinteger & nchild){
 }
 
 
-uintl AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
-   uintl address(0,0);
+uint64 AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
+   uint64 address(0);
    for(int i=0;i<TKDBc::nlay();i++){
-     address(0)+= TKDBc::Cumulus(i+1)*(ladder[0][i]);
-     address(1)+= TKDBc::Cumulus(i+1)*(ladder[1][i]);
+     address+= TKDBc::Cumulus(i+1)*(2*ladder[0][i]+ladder[1][i]);
    }
    return address;
 }
 uint128 AMSTrTrack::encodeaddressS(integer ladder[3][trconst::maxlay]){
    uint128 address(0,0);
    for(int i=0;i<TKDBc::nlay();i++){
-      address(0)+= TKDBc::CumulusS(i+1)*((ladder[0][i])*(trconst::maxsen+1)+ladder[2][i]);
-      address(1)+= TKDBc::CumulusS(i+1)*(ladder[1][i]);
+      address(0)+= TKDBc::Cumulus(i+1)*((ladder[0][i])*2+ladder[1][i]);
+      address(1)+= TKDBc::CumulusS(i+1)*(ladder[2][i]);
    }
    return address;
 }
@@ -4337,7 +4350,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_RC(0),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0,0),_AddressS(0,0){
+_NHits(nht),_FastFitDone(FFD),_RC(0),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g),_Address(0),_AddressS(0,0){
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
 _Chi2WithoutMS=0;

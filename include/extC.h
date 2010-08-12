@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.22 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: extC.h,v 1.23 2010/08/12 12:51:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -45,7 +45,7 @@ extern "C" void tkfitparcyl_(geant init[7], geant & chrg, geant point[7],
 #endif
 
 
-extern "C" void fit_(geant arr[][8],integer fixpar[][8],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
+extern "C" void fit_(geant arr[][9],integer fixpar[][9],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
 #define FIT fit_
 extern "C" void fite_(geant arr[][20],integer fixpar[][20],geant &chi2m,integer &alg,integer &what, geant xf[],geant chi2[][2],geant &rigmin, integer &itermin);
 #define FITE fite_

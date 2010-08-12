@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.64 2010/07/15 14:33:56 choutko Exp $
+//  $Id: tralig.C,v 1.65 2010/08/12 12:51:00 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -486,6 +486,7 @@ while(offspring){
         AMSPoint hits[TKDBc::nlay()],ehits[TKDBc::nlay()],cooa[TKDBc::nlay()];
         geant hit[3],ehit[3],rig,mcrig;
         integer lay,lad,half,sen[TKDBc::nlay()],pattern,add1,add2;        
+         
         int ntot=0;
    if(ftxt && 0){
         while(ftxt.good() && !ftxt.eof()){
@@ -512,17 +513,24 @@ while(offspring){
         while(ftxt.good() && !ftxt.eof()){
           rig=10000;
           mcrig=10000;
+          uint64 address;
 //         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
          ftxt.read((char*)&nh,sizeof(nh));
          ftxt.read((char*)&chi2,sizeof(chi2));
          ftxt.read((char*)&pattern,sizeof(pattern));
-         ftxt.read((char*)&add1,sizeof(add1));
-         ftxt.read((char*)&add2,sizeof(add2));
+         ftxt.read((char*)&address,sizeof(add1));
+//         ftxt.read((char*)&add1,sizeof(add1));
+//         ftxt.read((char*)&add2,sizeof(add2));
          ftxt.read((char*)&rig,sizeof(rig));
          ftxt.read((char*)&mcrig,sizeof(mcrig));
          if(mcrig==0)mcrig=10000;
          //ftxt>>nh>>chi2>>pattern>>add1>>add2;
-         uintl address(add1,add2);
+//         uintl address(add1,add2);
+         int ilad[maxlay]={0,0,0,0,0,0,0,0,0};
+         int ihalf[maxlay]={0,0,0,0,0,0,0,0,0};
+         for(int i=0;i<TKDBc::nlay();i++){
+          sen[i]=0;
+         }
          for(int i=0;i<nh;i++){
            ftxt.read((char*)&(hit[0]),sizeof(hit[0]));
            ftxt.read((char*)&(hit[1]),sizeof(hit[1]));
@@ -533,6 +541,8 @@ while(offspring){
            ftxt.read((char*)&lay,sizeof(lay));
            ftxt.read((char*)&lad,sizeof(lad));
            ftxt.read((char*)&half,sizeof(half));
+           ilad[lay-1]=lad;
+           ihalf[lay-1]=half;
            ftxt.read((char*)&(sen[lay-1]),sizeof(sen[0]));
 //           cout <<" nh "<<i<<" "<<rig<<" "<<mcrig<<" "<<nh<<" "<<lay<<" "<<lad<<" "<<half<<" "<<sen<<endl;
 //          ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
@@ -586,6 +596,15 @@ while(offspring){
                 add+=_pPargl[ptr][ladder[0][i]-1][ladder[1][i]][i].AddOne();
               }
              }
+                    for(int i1=0;i1<maxlay;i1++){
+                        ladder[0][i1]=ilad[i1];
+                        ladder[1][i1]=ihalf[i1];
+                    }
+                    uint64 a1=AMSTrTrack::encodeaddress(ladder);
+                    if(a1!=address){
+                      cerr<<" a1 "<<a1<<" "<<address;
+                    }
+
              if(add){
                  int ll[3][maxlay];
                  for(int k=0;k<maxlay;k++){
@@ -596,6 +615,20 @@ while(offspring){
                  uint128 Address=AMSTrTrack::encodeaddressS(ll);
                  int lll[3][maxlay];
                 AMSTrTrack::decodeaddressS(lll,Address);
+                for(int k=0;k<maxlay;k++){
+                 for(int k3=0;k3<3;k3++){
+                   if(ll[k3][k]!=lll[k3][k]){
+                    cerr<< " decodeerro "<<ll[k3][k]<<" "<<lll[k3][k]<<" "<<k3<<k<<endl;
+                    uint128 a11=AMSTrTrack::encodeaddressS(ll);
+                    AMSTrTrack::decodeaddressS(lll,a11);
+//                    for(int i1=0;i1<maxlay;i1++){
+//                        ladder[0][i1]=ilad[i1];
+//                        ladder[1][i1]=ihalf[i1];
+//                    }
+//                   cerr <<"  kwa"<<endl;
+                   }
+                 }
+                }
 
                 (pal->_pData[(pal->_PositionData)++]).Init(pattern,Address,hits,ehits,cooa,mcrig);
                 if(rig>0)num[0]++;
@@ -630,8 +663,8 @@ while(offspring){
          bool alreadydone=false;
 again:
          int what=-2;
-         geant arr[11][8];
-         int fixpar[6][8];
+         geant arr[11][9];
+         int fixpar[6][9];
          int alg=TRALIG.Algorithm;
           geant chi2m=0;
           geant xf[2]; 
@@ -647,20 +680,30 @@ again:
              VZERO(arr,sizeof(arr)/sizeof(arr[0][0]));
              VZERO(fixpar,sizeof(fixpar)/sizeof(fixpar[0][0]));
              integer npt=TKDBc::patpoints((pal->_pData)[ip]._Pattern);
+             // cout <<" npt "<<npt<<endl;
+             if(npt<4){
+               cerr<<"  npt "<<npt<<endl;
+            }
              for(int i=0;i<npt;i++){
               int plane=TKDBc::patconf((pal->_pData)[ip]._Pattern,i)-1;
               lad=ladder[0][plane];
               half=ladder[1][plane];
               int sens=ladder[2][plane];
-              if(sens>trconst::maxsen){
+              if(sens>trconst::maxsen || sens==0){
                   cerr<<" sens out of range "<<sens<<endl;
+                  goto next;
               }
-                int ptr=TRALIG.LaddersOnly?0:sens-1;
+              if(lad==0 || lad>TKDBc::nlad(plane+1)){
+                  cerr<<" lad out of range "<<lad<<endl;
+                  goto next;
+              } 
+               int ptr=TRALIG.LaddersOnly?0:sens-1;
               for(int j=0;j<3;j++)arr[j][plane]=_pPargl[ptr][lad-1][half][plane].getcoo()[j]+_pPargl[ptr][lad-1][half][plane].getmtx(j).prod(((pal->_pData)[ip]._Hits[i]));
 //              for(int j=0;j<3;j++)arr[j][plane]=((pal->_pData)[ip]._Hits[i])[j];
               for(int j=0;j<3;j++)arr[j+5][plane]=((pal->_pData)[ip]._EHits[0])[j];
               for(int j=0;j<3;j++)arr[j+7][plane]=((pal->_pData)[ip]._CooA[i])[j];
               arr[3][plane]=TRALIG.LaddersOnly?lad:(lad-1)*(trconst::maxsen+1)+sens;
+            
               arr[4][plane]=half+1;
               arr[10][0]=1./(pal->_pData)[ip]._InvRigidity;
               for(int j=0;j<6;j++){
@@ -669,6 +712,7 @@ again:
               }
              }
              FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+next:
              if(ip<10){
               int ims=0;
               int ialgo=1;
@@ -740,7 +784,7 @@ again:
              AMSPoint coo;
              for(int i=0;i<TKDBc::nlay();i++){
 //              number addon[8]={-1e-2,0,-6e-3,0,0,0,4e-3,0};
-              number addon[8]={0,0,0,0,0,0,0,0};
+              number addon[9]={0,0,0,0,0,0,0,0,0};
               outc=AMSPoint(arr[0][i],arr[1][i],arr[2][i]+addon[i]);
               outa=AMSPoint(arr[3][i],arr[4][i],arr[5][i]); 
               coo=AMSPoint(arr[8][i],arr[9][i],arr[10][i]);

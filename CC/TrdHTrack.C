@@ -153,7 +153,7 @@ void TrdHTrackR::SetSegments(TrdHSegmentR* segx,TrdHSegmentR* segy){
   
   Nhits=(int)segx->Nhits+(int)segy->Nhits;
   Chi2=segy->Chi2+segx->Chi2; 
-  delete cont2
+  delete cont2;
 }
  
  void TrdHTrackR::setChi2(float Chi2_){Chi2=Chi2_;};

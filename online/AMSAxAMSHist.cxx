@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.15 2010/02/09 12:41:47 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.16 2010/08/12 12:51:01 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -86,6 +86,22 @@ _filled[_filled.size()-1]->SetXTitle("Q_{Measured}");
 _filled[_filled.size()-1]->SetYTitle("Q_{Generated}");
 _filled[_filled.size()-1]->SetFillColor(color++);
 
+
+_filled.push_back(new TH1F("AxAMS_2_15","XCoo  (cm) ",400,-40.,40.));
+_filled[_filled.size()-1]->SetXTitle("X Coo  (cm) at Z=65 cm");
+_filled[_filled.size()-1]->SetFillColor(color++);
+_filled.push_back(new TH1F("AxAMS_2_16","YCoo ",400,-40.,40.));
+_filled[_filled.size()-1]->SetXTitle("Y Coo  (cm) at Z=65 cm");
+_filled[_filled.size()-1]->SetFillColor(color++);
+_filled.push_back(new TH1F("AxAMS_2_17","Theta",720,0.,180.));
+_filled[_filled.size()-1]->SetXTitle("#Theta (deg)");
+_filled[_filled.size()-1]->SetFillColor(color++);
+_filled.push_back(new TH1F("AxAMS_2_18","Phi",720,0.,360.));
+_filled[_filled.size()-1]->SetXTitle("#Phi (deg)");
+_filled[_filled.size()-1]->SetFillColor(color++);
+
+
+
 }
 
 
@@ -162,6 +178,7 @@ for(i=0;i<4;i++){
  gPad->SetLogy(gAMSDisplay->IsLogY());
  gPad->SetLogz(gAMSDisplay->IsLogZ());
  _filled[i+7]->Draw();
+ _filled[i+15]->Draw("same");
 gPadSave->cd();
 }
 break;
@@ -216,8 +233,17 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
      if (fabs(ntuple->pParticle(0)->Momentum) !=0)err=err/fabs(ntuple->pParticle(0)->Momentum);
     } 
     ((TProfile*)_filled[6])->Fill(fabs(ntuple->pParticle(0)->Momentum),err,1.);
+    int membpat=ntuple->pLevel1(0)->JMembPatt;
+    int b15=(membpat>>15)&1;
+    int b14=(membpat>>14)&1;
     _filled[7]->Fill(ntuple->pParticle(0)->TOFCoo[0][0],1.);
     _filled[8]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
+     if(b14 && b15){
+    _filled[15]->Fill(ntuple->pParticle(0)->TOFCoo[0][0],1.);
+    _filled[16]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
+    _filled[17]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);
+    _filled[18]->Fill(ntuple->pParticle(0)->Phi*180./3.1415926,1.);
+    }
     //cout<<ntuple->pParticle(0)->TOFCoo[0][2] <<endl;
     _filled[9]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);
     _filled[10]->Fill(ntuple->pParticle(0)->Phi*180./3.1415926,1.);

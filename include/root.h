@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.279 2010/08/07 18:21:19 mmilling Exp $
+//  $Id: root.h,v 1.280 2010/08/12 12:51:01 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -964,8 +964,7 @@ public:
   ///
   int Pattern;  ///< see datacards.doc
   int Patternf(){return Pattern;}
-  int Address;  ///< ladders combination code (see trrec.C buildaddress)
-  int AddressA;  ///< ladders combination code (see trrec.C buildaddress)
+  unsigned long long Addressl;  ///< ladders combination code (see trrec.C buildaddress)
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
   float Chi2StrLine;  ///< chi2 sz fit
@@ -1027,7 +1026,7 @@ public:
   return _Info;
   } 
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,11)       //TrTrackR
+ClassDef(TrTrackR,13)       //TrTrackR
 #pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;
@@ -2703,8 +2702,11 @@ public:
    ///
 // Some functions for inter root
 //
-#if defined( __ROOTSHAREDLIBRARY__) && !defined(_PGTRACK_)
+#ifdef __ROOTSHAREDLIBRARY__
+#ifdef _PGTRACK_
+#else 
   #include "root_methods.h"
+#endif
 #endif
 
 

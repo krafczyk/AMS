@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.21 2010/05/13 13:53:30 choutko Exp $
+//  $Id: tkdbc.h,v 1.22 2010/08/12 12:47:34 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -75,7 +75,7 @@ private:
    static  number   _PlMarkerPos[trconst::maxlay][2][4][3];  // 1st wjb
                                                     // 2nd hasan
    static void InitPattern();
-   static uinteger * _Cumulus;
+   static uint64 * _Cumulus;
    static uint64 * _CumulusS;
 
 
@@ -193,7 +193,7 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
    inline static number zelec(integer i, integer j){return _zelec[i][j];}
 
    inline static integer nlay(){return _nlaysi;}
-   static uinteger Cumulus(integer ilay);
+   static uint64 Cumulus(integer ilay);
    static uint64 CumulusS(integer ilay);
 
    inline static integer nlad(integer ilay){

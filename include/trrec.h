@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.113 2010/05/13 13:53:31 choutko Exp $
+//  $Id: trrec.h,v 1.114 2010/08/12 12:51:01 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -275,7 +275,7 @@ public:
 class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[trconst::maxlay];
-uintl _Address;   // ladder comb address
+uint64 _Address;   // ladder comb address
 uint128 _AddressS;   // sensors comb address
 integer _Pattern;
 integer _NHits;
@@ -359,9 +359,9 @@ inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
   AMSPoint  getEHit(int i, int dir=0);
 void _buildaddress();
 void _buildaddressS();
-static void decodeaddress(integer ladder[2][trconst::maxlay], uintl address);
+static void decodeaddress(integer ladder[2][trconst::maxlay], uint64 address);
 static void decodeaddressS(integer sensor[3][trconst::maxlay], uint128 address);
-static uintl  encodeaddress(integer lad[2][trconst::maxlay]);
+static uint64  encodeaddress(integer lad[2][trconst::maxlay]);
 static uint128  encodeaddressS(integer lad[3][trconst::maxlay]);
 static uintl * getchild(uintl address, uinteger &nchild);
 public:
@@ -402,7 +402,7 @@ integer operator < (AMSlink & o) const {
   friend class AMSTrAligPar;
   friend class TOF2User;
 
-uintl getaddress(){return _Address;}
+uint64 getaddress(){return _Address;}
 uint128 getaddressS(){return _AddressS;}
 void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
