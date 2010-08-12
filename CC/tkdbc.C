@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.72 2010/07/14 15:13:52 choutko Exp $
+//  $Id: tkdbc.C,v 1.73 2010/08/12 11:49:35 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -48,7 +48,7 @@ integer TKDBc::_ReadOK=0;
      integer  TKDBc::_boundladshuttle[maxlay][2];
      number   TKDBc::_PlMarkerPos[maxlay][2][4][3];  // 1st wjb
                                                    // 2nd hasan
-    uinteger * TKDBc::_Cumulus;
+    uint64 * TKDBc::_Cumulus;
     uint64 * TKDBc::_CumulusS;
 
 
@@ -1971,7 +1971,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                384,640,384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
    const number layd[maxlay][5]={
-                               5.3,0.,75., 0.,75.,
+                               4.2,0.,75., 0.,75.,
                                5.3,0.,75. ,0.,70.,
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
@@ -1988,7 +1988,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    const number  yposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
 // const number  zposl[maxlay]={167.85,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.555};
- const number  zposl[maxlay]={167.92,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.7};
+ const number  zposl[maxlay]={159.94,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.7};
 
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    _zposl[0]+=0; 
@@ -3883,12 +3883,12 @@ integer TKDBc::activeladdshuttle(int i,int j, int s){
 }
 
 
-uinteger TKDBc::Cumulus(integer layer){
+uint64 TKDBc::Cumulus(integer layer){
 if(!_Cumulus){
- _Cumulus = new uinteger[nlay()];
+ _Cumulus = new uint64[nlay()];
  _Cumulus[0]=1;
   for(int i=1;i<nlay();i++){
-   _Cumulus[i]=_Cumulus[i-1]*(1+nlad(i));
+   _Cumulus[i]=_Cumulus[i-1]*(1+nlad(i))*2;
   }
 }
 return _Cumulus[layer-1];
@@ -3900,7 +3900,7 @@ if(!_CumulusS){
  _CumulusS = new uint64[nlay()];
  _CumulusS[0]=1;
   for(int i=1;i<nlay();i++){
-   _CumulusS[i]=_CumulusS[i-1]*((maxsen+1)*(nlad(i)+1)+1);
+   _CumulusS[i]=_CumulusS[i-1]*(trconst::maxsen+1);
   }
 }
 return _CumulusS[layer-1];

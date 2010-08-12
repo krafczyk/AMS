@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.213 2010/06/26 07:58:08 zweng Exp $
+//  $Id: amsgeom.C,v 1.214 2010/08/12 11:49:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1993,8 +1993,10 @@ AMSgvolume * daug4;
 AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
+int sub0=ZShift!=0?1:0;
+
 int i;
-for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
+for ( i=0;i<TRDDBc::PrimaryOctagonNo()-sub0;i++){
  ost.clear();
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
@@ -2052,6 +2054,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+
      if(po!=1){
        oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
