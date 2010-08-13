@@ -20,10 +20,6 @@ AMSEventList amsevents;
 void Analysis::Init(){
   // Init everything
   chain->Rewind();
-  RichPMTsManager::Init();
-  RichRadiatorTileManager::Init();   
-  RichAlignment::Init(false);        // We use the MC alignment: no alignment at all  
-
   // Initialize the cuts variables
   last_cut=0;
   for(int i=0;i<max_cuts;i++) selected[i]=0;
@@ -48,15 +44,15 @@ bool Analysis::Select(AMSEventR *event){
   SELECT("All events",true);
   SELECT("No antis",event->nAntiCluster()==0);
   SELECT("With 1 particle",event->nParticle()==1);
-  SELECT("With 1 TrTrack",event->nTrTrack()==1);
+  SELECT("With >0 TrTrack",event->nTrTrack()>0);
   SELECT("At most 1 TrdTrack",event->nTrdTrack()<=1);
   SELECT("At most 4 TofClusters",event->nTofCluster()<=4);
 
   SELECT("With rich particle",event->pParticle(0)->pRichRing());
   SELECT("With track particle",event->pParticle(0)->pRichRing()->iTrTrack()!=-1);
-  SELECT("Aerogel track and clean ring",(event->pParticle(0)->pRichRing()->Status&3)==0);
+  SELECT("Clean ring",(event->pParticle(0)->pRichRing()->Status&1)==0);
   SELECT("At most 1 hot spot",event->pParticle(0)->RichParticles<=1);
-  SELECT("Beta==1 (trtrack chi2 selection)",log10(event->pParticle(0)->pTrTrack()->Chi2WithoutMS)<-1);  // This cut is not fully understood
+  //  SELECT("Beta==1 (trtrack chi2 selection)",log10(event->pParticle(0)->pTrTrack()->Chi2WithoutMS)<-1);  // This cut is not fully understood
 
   //  SELECT("Beta==1 (momentum selection)",fabs(event->pParticle(0)->Momentum)>20);
 

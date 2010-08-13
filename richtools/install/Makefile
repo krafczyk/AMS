@@ -59,7 +59,7 @@ ROOTCINT_INCLUDES+= $(AMSIPATH)TkPlane.h $(AMSIPATH)TkSens.h $(AMSIPATH)TrCalDB.
 
 
 COMMON_C_FILES+=  rnormx.C TrFit.C TrRecon.C TrSim.C TrSimCluster.C TrSimSensor.C TrCalDB.C TrTasDB.C MagField.C \
-  	          TkCoo.C TkDBc.C tkdcards.C  TkLadder.C TkObject.C TkPlane.C  TkSens.C TrCluster.C \
+	          TkCoo.C TkDBc.C tkdcards.C  TkLadder.C TkObject.C TkPlane.C  TkSens.C TrCluster.C \
 		  TrLadCal.C TrMCCluster.C TrRecHit.C TrTrack.C  Vertex.C  TrRawCluster.C patt.C \
 	          TrLadPar.C  TrParDB.C	TrTasCluster.C TrTasPar.C TrAlignFit.C HistoMan.C amsdbc.C
 GENERAL += -lMinuit
@@ -115,7 +115,7 @@ methods: $(AMSIPATH)root_methods.h
 
 ########### CLEANING 
 clean: clean_dirs
-	rm $(CPATH)rootcint.*
+	rm -f $(CPATH)rootcint.*
 
 clean_dirs:
 	rm -rf $(BINPATH) $(LIBPATH)
