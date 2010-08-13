@@ -22,7 +22,7 @@ CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH_
 LDFLAGS =  -m32 -shared $(CERNLIB) -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
 
 #GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
-GENERAL= -m32 -L../lib -shared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
+GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
 
 
 #FF = g77 -O3
