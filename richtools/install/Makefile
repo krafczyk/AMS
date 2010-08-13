@@ -22,7 +22,7 @@ CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH_
 LDFLAGS =  -m32 -shared $(CERNLIB) -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
 
 #GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
-GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
+GENERAL= -m32 -L../lib -shared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
 
 
 #FF = g77 -O3
@@ -192,3 +192,13 @@ preselect: lib $(EXEPATH) $(CONTRIB)preselect/analysis.C $(CONTRIB)preselect/ana
 tile_analysis: lib $(EXEPATH) $(CONTRIB)tile_analysis/analysis.C $(CONTRIB)tile_analysis/analysis.h
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 
+
+####################### TESTS
+
+parametric_rec_build:
+	cd $(CONTRIB)$(@); rootcint -f libForest.cxx -c clasifier.h LinkDef.h
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` $(CONTRIB)$(@)/libForest.cxx $(CONTRIB)$(@)/clasifier.cc $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+# Preslect events to be use in the analysis chain
+check_rec: lib $(EXEPATH) 
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
