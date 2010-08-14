@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.7 2010/02/01 12:44:05 shaino Exp $
+//  $Id: TrCalDB.C,v 1.8 2010/08/14 17:18:50 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/02/01 12:44:05 $
+///$Date: 2010/08/14 17:18:50 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,11 +26,9 @@ float* TrCalDB::linear=0;
 
 
 void TrCalDB::init(){
-
   if(Head==0){
     Head=this;
     run=0;
-    
     for(int oct=0;oct<8;oct++){
       int crate=TkDBc::Head-> _octant_crate[oct];
       for(int tdr=0;tdr<24;tdr++){
@@ -67,9 +65,7 @@ void TrCalDB::Clear(const Option_t*aa){
 
 
 
-
 TrLadCal* TrCalDB::FindCal_TkAssemblyId( int tkassemblyid){
-
   TkLadder* ll=TkDBc::Head->FindTkAssemblyId(tkassemblyid);
   if(ll) return FindCal_HwId(ll->GetHwId());
   else return 0;
@@ -126,15 +122,14 @@ TrLadCal* TrCalDB::GetEntry(int ii){
 
 
 void TrCalDB::Load(char * filename){
-
   TFile* f=TFile::Open(filename);
   Head=(TrCalDB*) f->Get("TrCalDB");
   f->Close();
   return ;
 }
 
-void TrCalDB::CalDB2Lin(){
 
+void TrCalDB::CalDB2Lin(){
   if(! linear) {
     printf("TrCalDB::CalDB2Lin()-INFO the linear space is created NOW\n");
     linear= new float[GetLinearSize()/4];
@@ -147,13 +142,11 @@ void TrCalDB::CalDB2Lin(){
     int offset=1+(crate*24+tdr)*TrLadCal::GetSize();
     aa->second->Cal2Lin(&(linear[offset]));
   }
-
 }
 
 
 
 void TrCalDB::Lin2CalDB(){
-
   if(! linear){
     printf("TrCalDB::Lin2CalDB()- Error! the linear space pointer is NULL!\n");
     printf(" Calibration is NOT updated!!!\n");
@@ -170,7 +163,6 @@ void TrCalDB::Lin2CalDB(){
     aa->second->SetFilled();
   }
   return;
- 
 }
 
 
@@ -390,11 +382,25 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }
 
-  
- 
+  if (cpar&0x100){ //Occupancytable non-gaussian
+     if (pri>0) printf("Reading Occupancy table (non-gaussian channels)\n");
+     for (int ii=0;ii<1024;ii++){
+       cal.occupgaus[ii]=(unsigned short int)*(rr++);
+     }
+   }
+   else  
+     for (int ii=0;ii<1024;ii++) 
+       cal.occupgaus[ii] = 0;
+     
+   if(cpar&0x200){ //Sigmaraw
+     if (pri>0) printf("Reading Sigma\n");
+     for (int ii=0;ii<1024;ii++){
+       *(rr++);
+     }
+   }
+
   cal.dspver=*(rr++);
   if(pri>0) printf("Detector DSP version %hX\n",cal.dspver);
-  
 
   cal.S1_lowthres=*(rr++)/8.;
   if(pri>0) printf("Lowsigma factor S1 %f\n",cal.S1_lowthres);
@@ -407,7 +413,6 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     
   cal.S2_highthres=*(rr++)/8.;
   if(pri>0) printf("Highsigma factor S2 %f\n",cal.S2_highthres);
-  
 
   cal.K_lowthres=*(rr++)/8.;
   if(pri>0) printf("Lowsigma factor K %f\n",cal.K_lowthres);
@@ -417,7 +422,6 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   
   cal.sigrawthres=*(rr++);
   if(pri>0) printf("sigmaraw factor %f\n",cal.sigrawthres);
-  
 
   cal.Power_failureS=*(rr++);
   if(pri>0) printf("Power Failures on S %d\n",cal.Power_failureS);
@@ -447,8 +451,6 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   }else
     printf("TrCalDB-------------------> WARNING I CANT FIND The calibration object to be filled\n");
 
- 
-  
   return 1;
 }
 

@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.7 2010/05/21 10:33:22 shaino Exp $
+// $Id: TkLadder.h,v 1.8 2010/08/14 17:18:51 oliva Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/05/21 10:33:22 $
+///$Date: 2010/08/14 17:18:51 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -139,9 +139,11 @@ public:
 
   //! Check if it is K7
   bool IsK7() {return _isK7;}
-
   //! Set if it is K7
   void SetAsK7() {_isK7=true;}
+
+  //! Check if it is an active ladder
+  bool IsActive() { return (GetHwId()>=0); }
 
   void Print(Option_t* = "")const{ cout << putout(cout);}
   //! stream out the content of a the class

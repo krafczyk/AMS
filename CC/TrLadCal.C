@@ -23,23 +23,19 @@ using namespace std;
 ClassImp(TrLadCal);
 
 int TrLadCal::dead=0x2;
-// Default to 2009 format
-int TrLadCal::version=2;
+// Default to Aug2010 format
+int TrLadCal::version=3;
 
 void  TrLadCal::SetVersion(int ver){
-  if(ver==2){version=ver; printf("TrLadCal:: Set the Flight Cal Format %d\n",ver);}
-  else   if(ver==1){version=ver; printf("TrLadCal:: Set the Pre-Integration Cal Format %d\n",ver);}
-  else{printf("TrLadCal:: Unknown Cal Format %d\n I Give Up",ver);
-    exit(3);}
-  
+  if      (ver==2) { version=ver; printf("TrLadCal:: Set the Flight Cal Format %d\n",ver); }
+  else if (ver==1) { version=ver; printf("TrLadCal:: Set the Pre-Integration Cal Format %d\n",ver); }
+  else             { printf("TrLadCal:: Unknown Cal Format %d\n I Give Up",ver); exit(3); }
 }
-
 
 geant TrLadCal::_getnum(geant * pp, int ii){
   // if (!_filled||ii<0||ii>1023) return -9999;
   return pp[ii];
 }
-
 
 short int TrLadCal::_getnum(short int * pp, int ii){
   // if (!_filled||ii<0||ii>1023) return -9999;
@@ -51,7 +47,6 @@ unsigned short int TrLadCal::_getnum(unsigned short int * pp, int ii){
   return pp[ii];
 }
 
-
 void TrLadCal::_setnum(geant * pp, int ii,geant val){
   if (!_filled||ii<0||ii>1023) return;
   pp[ii]=val;
@@ -62,123 +57,121 @@ void TrLadCal::_setnum(short int * pp, int ii,short int val){
   pp[ii]=val;
 }
 
-
 TrLadCal::TrLadCal(short int hwid) {
   HwId=hwid;
   _filled=0;
   Clear();
 }
 
-
 void TrLadCal::Fill(CaloutDSP* cc) {
   for (int ii=0;ii<320;ii++){
-    _Pedestal[ii]  = cc->ped[ii]/8.;
-    _SigmaRaw[ii]  = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]     = cc->sig[ii]/8./(cc->S1_lowthres*1.);
-    _Status[ii]    = cc->status[ii];
-    _Occupancy[ii] = cc->occupancy[ii];
+    _Pedestal[ii]      = cc->ped[ii]/8.;
+    _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
+    _Sigma[ii]         = cc->sig[ii]/8./(cc->S1_lowthres*1.);
+    _Status[ii]        = cc->status[ii];
+    _Occupancy[ii]     = cc->occupancy[ii];
+    _OccupancyGaus[ii] = cc->occupgaus[ii];
   }
   for (int ii=320;ii<640;ii++){
-    _Pedestal[ii]  = cc->ped[ii]/8.;
-    _SigmaRaw[ii]  = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]     = cc->sig[ii]/8./(cc->S2_lowthres*1.);
-    _Status[ii]    = cc->status[ii];
-    _Occupancy[ii] = cc->occupancy[ii];
+    _Pedestal[ii]      = cc->ped[ii]/8.;
+    _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
+    _Sigma[ii]         = cc->sig[ii]/8./(cc->S2_lowthres*1.);
+    _Status[ii]        = cc->status[ii];
+    _Occupancy[ii]     = cc->occupancy[ii];
+    _OccupancyGaus[ii] = cc->occupgaus[ii];
   }
   for (int ii=640;ii<1024;ii++){
-    _Pedestal[ii]  = cc->ped[ii]/8.;
-    _SigmaRaw[ii]  = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]     = cc->sig[ii]/8./(cc->K_lowthres*1.);
-    _Status[ii]    = cc->status[ii];
-    _Occupancy[ii] = cc->occupancy[ii];
+    _Pedestal[ii]      = cc->ped[ii]/8.;
+    _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
+    _Sigma[ii]         = cc->sig[ii]/8./(cc->K_lowthres*1.);
+    _Status[ii]        = cc->status[ii];
+    _Occupancy[ii]     = cc->occupancy[ii];
+    _OccupancyGaus[ii] = cc->occupgaus[ii];
   }
-
   for(int ii=0;ii<16;ii++){
-
     _CNmean[ii]=cc->CNmean[ii];
     _CNrms[ii]=cc->CNrms[ii];
   }
-  
-  dspver=cc->dspver;
-  S1_lowthres=cc->S1_lowthres;
-  S1_highthres=cc->S1_highthres;
-  S2_lowthres=cc->S2_lowthres;
-  S2_highthres=cc->S2_highthres;
-  K_lowthres=cc->K_lowthres;
-  K_highthres=cc->K_highthres;
-  sigrawthres=cc->sigrawthres;
-  calstatus=cc->calstatus;    
-  Power_failureS=cc->Power_failureS;
-  Power_failureK=cc->Power_failureK;
+  dspver         = cc->dspver;
+  S1_lowthres    = cc->S1_lowthres;
+  S1_highthres   = cc->S1_highthres;
+  S2_lowthres    = cc->S2_lowthres;
+  S2_highthres   = cc->S2_highthres;
+  K_lowthres     = cc->K_lowthres;
+  K_highthres    = cc->K_highthres;
+  sigrawthres    = cc->sigrawthres;
+  calstatus      = cc->calstatus;    
+  Power_failureS = cc->Power_failureS;
+  Power_failureK = cc->Power_failureK;
   _filled=1;
 }
 
-
 void TrLadCal::CopyCont(TrLadCal& orig){
   for (int ii=0;ii<1024;ii++){
-    _Pedestal[ii]   = orig._Pedestal[ii];
-    _SigmaRaw[ii]   = orig._SigmaRaw[ii];
-    _Sigma[ii]      = orig._Sigma[ii];
-    _Status[ii]     = orig._Status[ii];
-    _Occupancy[ii]  = orig._Occupancy[ii];
+    _Pedestal[ii]      = orig._Pedestal[ii];
+    _SigmaRaw[ii]      = orig._SigmaRaw[ii];
+    _Sigma[ii]         = orig._Sigma[ii];
+    _Status[ii]        = orig._Status[ii];
+    _Occupancy[ii]     = orig._Occupancy[ii];
+    _OccupancyGaus[ii] = orig._OccupancyGaus[ii];
   }
   for(int ii=0;ii<16;ii++){
-
-    _CNmean[ii]=orig._CNmean[ii];
-    _CNrms[ii]=orig._CNrms[ii];
+    _CNmean[ii] = orig._CNmean[ii];
+    _CNrms[ii]  = orig._CNrms[ii];
   }
 }
+
 TrLadCal::TrLadCal(const TrLadCal& orig):TObject(orig){
   HwId  = orig.HwId;
   for (int ii=0;ii<1024;ii++){
-    _Pedestal[ii]   = orig._Pedestal[ii];
-    _SigmaRaw[ii]   = orig._SigmaRaw[ii];
-    _Sigma[ii]      = orig._Sigma[ii];
-    _Status[ii]     = orig._Status[ii];
-    _Occupancy[ii]  = orig._Occupancy[ii];
+    _Pedestal[ii]      = orig._Pedestal[ii];
+    _SigmaRaw[ii]      = orig._SigmaRaw[ii];
+    _Sigma[ii]         = orig._Sigma[ii];
+    _Status[ii]        = orig._Status[ii];
+    _Occupancy[ii]     = orig._Occupancy[ii];
+    _OccupancyGaus[ii] = orig._OccupancyGaus[ii];
   }
  for(int ii=0;ii<16;ii++){
-
-    _CNmean[ii]=orig._CNmean[ii];
-    _CNrms[ii]=orig._CNrms[ii];
+    _CNmean[ii] = orig._CNmean[ii];
+    _CNrms[ii]  = orig._CNrms[ii];
   }
-  dspver=orig.dspver;
-  S1_lowthres=orig.S1_lowthres;
-  S1_highthres=orig.S1_highthres;
-  S2_lowthres=orig.S2_lowthres;
-  S2_highthres=orig.S2_highthres;
-  K_lowthres=orig.K_lowthres;
-  K_highthres=orig.K_highthres;
-  sigrawthres=orig.sigrawthres;
-  calstatus=orig.calstatus;    
-  Power_failureS=orig.Power_failureS;
-  Power_failureK=orig.Power_failureK;
+  dspver         = orig.dspver;
+  S1_lowthres    = orig.S1_lowthres;
+  S1_highthres   = orig.S1_highthres;
+  S2_lowthres    = orig.S2_lowthres;
+  S2_highthres   = orig.S2_highthres;
+  K_lowthres     = orig.K_lowthres;
+  K_highthres    = orig.K_highthres;
+  sigrawthres    = orig.sigrawthres;
+  calstatus      = orig.calstatus;    
+  Power_failureS = orig.Power_failureS;
+  Power_failureK = orig.Power_failureK;
 }
-
 
 void TrLadCal::Clear(const Option_t*aa){
   TObject::Clear(aa);
-  _filled=0;
+  _filled = 0;
   memset(_Pedestal,0,sizeof(_Pedestal[0])*1024);
   memset(_SigmaRaw,0,sizeof(_SigmaRaw[0])*1024);
   memset(_Sigma   ,0,sizeof(_Sigma[0])*1024);
   memset(_Status  ,0,sizeof(_Status[0])*1024);
   memset(_Status  ,0,sizeof(_Occupancy[0])*1024);
+  memset(_Status  ,0,sizeof(_OccupancyGaus[0])*1024);
   for(int ii=0;ii<16;ii++){
-    _CNmean[ii]=0;
-    _CNrms[ii]=0;
+    _CNmean[ii] = 0;
+    _CNrms[ii]  = 0;
   }
-  dspver=0;
-  S1_lowthres=0.;
-  S1_highthres=0.;
-  S2_lowthres=0.;
-  S2_highthres=0.;
-  K_lowthres=0.;
-  K_highthres=0.;
-  sigrawthres=0.;
-  calstatus=0;
-  Power_failureS=0;
-  Power_failureK=0;
+  dspver         = 0;
+  S1_lowthres    = 0.;
+  S1_highthres   = 0.;
+  S2_lowthres    = 0.;
+  S2_highthres   = 0.;
+  K_lowthres     = 0.;
+  K_highthres    = 0.;
+  sigrawthres    = 0.;
+  calstatus      = 0;
+  Power_failureS = 0;
+  Power_failureK = 0;
 }
 
 void TrLadCal::PrintInfo(int long_format){
@@ -195,19 +188,16 @@ void TrLadCal::PrintInfo(int long_format){
          lad->GetCrate(),lad->GetTdr(),
          lad->GetPwGroup(),lad->GetPwgroupPos());
   if(long_format){
-    printf(" Chan     Ped  SigRaw  Sigma  Occ   Bit0 Bit1 Bit2 Bit3 Bit4 Bit5 Bit6 Bit7\n");
+    printf(" Chan     Ped  SigRaw  Sigma  Occ  OccG  Bit0 Bit1 Bit2 Bit3 Bit4 Bit5 Bit6 Bit7\n");
     for (int ii=0;ii<1024;ii++)
       // printf(" %4d %7.3f  %7.3f %7.3f  %4d \n",
       //             ii,Pedestal(ii),SigmaRaw(ii),Sigma(ii),Status(ii));
-      printf(" %4d %7.3f  %7.3f %7.3f  %4hd  %1d %1d %1d %1d %1d %1d %1d %1d \n",
-             ii,GetPedestal(ii),GetSigmaRaw(ii),GetSigma(ii),Occupancy(ii),
+      printf(" %4d %7.3f  %7.3f %7.3f  %4hd  %4hd %1d %1d %1d %1d %1d %1d %1d %1d \n",
+             ii,GetPedestal(ii),GetSigmaRaw(ii),GetSigma(ii),Occupancy(ii),OccupancyGaus(ii),
              GetStatus(ii)&1,GetStatus(ii)>>1&1,GetStatus(ii)>>2&1,GetStatus(ii)>>3&1,
              GetStatus(ii)>>4&1,GetStatus(ii)>>5&1,GetStatus(ii)>>6&1,GetStatus(ii)>>7&1);
-
     for(int ii=0;ii<16;ii++){
-      printf("VA#:  %2d Common noise mean   %f  rms:  %f\n",ii,
-             _CNmean[ii],
-             _CNrms[ii]);
+      printf("VA#:  %2d Common noise mean   %f  rms:  %f\n",ii,_CNmean[ii],_CNrms[ii]);
    }
   }  
 }
@@ -234,7 +224,6 @@ TrLadCal& TrLadCal::operator=(TrLadCal& orig){
   }
   return *this;
 }
-
 
 //Finds the kth smallest number 
 short int TrLadCal::DSPSmallest(short int a[], int n, int k){
@@ -284,7 +273,6 @@ geant TrLadCal::GetDSPSigmaOnMediane(int ii) {
   return 1.*sigma/mediane;
 }
 
-
 geant TrLadCal::GetSigmaMean(int side) {
   int first = (side==0) ? 640  : 0;
   int last  = (side==0) ? 1023 : 639;
@@ -297,7 +285,6 @@ geant TrLadCal::GetSigmaMean(int side) {
   }
   return mean/ngoodchannels;
 }
-
 
 geant TrLadCal::GetSigmaRMS(int side) {
   int first = (side==0) ? 640  : 0;
@@ -322,72 +309,65 @@ int TrLadCal::GetnChannelsByStatus(int statusbit) {
   return nchannels;
 } 
 
-
 int  TrLadCal::Cal2Lin(float* offset){
-
   if(!offset) return -1;
-
-  offset[0]= GetHwId();
-  offset[1]= (float) dspver;
-  offset[2]= S1_lowthres;
-  offset[3]= S1_highthres;
-  offset[4]= S2_lowthres;
-  offset[5]= S2_highthres;
-  offset[6]= K_lowthres;
-  offset[7]= K_highthres;
-  offset[8]= sigrawthres;
-  offset[9]=  (float)  calstatus;
-  offset[10]= (float) Power_failureS;
-  offset[11]= (float) Power_failureK;
-
+  offset[0]  = GetHwId();
+  offset[1]  = (float) dspver;
+  offset[2]  = S1_lowthres;
+  offset[3]  = S1_highthres;
+  offset[4]  = S2_lowthres;
+  offset[5]  = S2_highthres;
+  offset[6]  = K_lowthres;
+  offset[7]  = K_highthres;
+  offset[8]  = sigrawthres;
+  offset[9]  = (float)  calstatus;
+  offset[10] = (float) Power_failureS;
+  offset[11] = (float) Power_failureK;
   float* off2=&(offset[12]);
   for (int ii=0;ii<1024;ii++){
     off2[ii]          = _Pedestal[ii];
     off2[ii+  1024]   = _Sigma[ii];
     off2[ii+2*1024]   = _SigmaRaw[ii];
-    int aa=_Status[ii];
+    int aa = _Status[ii];
     off2[ii+3*1024]   = (float)aa;
-    int bb=_Occupancy[ii];
+    int bb = _Occupancy[ii];
     off2[ii+4*1024]   = (float)bb;
   }
   float* off3=&(off2[5*1024]);
   for (int ii=0;ii<16;ii++){
-    off3[ii]=_CNmean[ii];
-    off3[ii+16]=_CNrms[ii];
+    off3[ii]    = _CNmean[ii];
+    off3[ii+16] = _CNrms[ii];
   }
   return 0;
 }
 
-
-
 int  TrLadCal::Lin2Cal(float* offset){
-
-
   if(!offset) return -1;
-
   if(version==1){
-    HwId        = (int)offset[0];
-    dspver      = (int)offset[1];
+    HwId           = (int)offset[0];
+    dspver         = (int)offset[1];
     S1_lowthres    = offset[2];
     S2_highthres   = offset[3];
     S1_lowthres    = offset[2];
     S2_highthres   = offset[3];
     K_lowthres     = offset[2];
     K_highthres    = offset[3];
-    sigrawthres = offset[4];
-    calstatus   = (int)offset[5];
+    sigrawthres    = offset[4];
+    calstatus      = (int)offset[5];
     Power_failureS = 0;
     Power_failureK = 0;
-    
     float* off2=&(offset[6]);
     for (int ii=0;ii<1024;ii++){
-      _Pedestal[ii] =       off2[ii];
-      _Sigma[ii]    =       off2[ii+  1024];
-      _SigmaRaw[ii] =       off2[ii+2*1024];
-      int aa=(int)off2[ii+3*1024];
+      _Pedestal[ii] = off2[ii];
+      _Sigma[ii]    = off2[ii+  1024];
+      _SigmaRaw[ii] = off2[ii+2*1024];
+      int aa = (int)off2[ii+3*1024];
       _Status[ii]   = aa; 
+      _Occupancy[ii]     = 0;
+      _OccupancyGaus[ii] = 0;
     }
-  }else{
+  } 
+  else if (version==2) {
     HwId           = (int)offset[0];
     dspver         = (int)offset[1];
     S1_lowthres    = offset[2];
@@ -400,27 +380,25 @@ int  TrLadCal::Lin2Cal(float* offset){
     calstatus      = (int)offset[9];
     Power_failureS = (int)offset[10];
     Power_failureK = (int)offset[11];
-    
     float* off2=&(offset[12]);
     for (int ii=0;ii<1024;ii++){
-      _Pedestal[ii] =       off2[ii];
-      _Sigma[ii]    =       off2[ii+  1024];
-      _SigmaRaw[ii] =       off2[ii+2*1024];
-      int aa=(int)off2[ii+3*1024];
-      _Status[ii]   = aa;
-      int bb=(int) off2[ii+4*1024];
-      _Occupancy[ii]= bb;
+      _Pedestal[ii]  = off2[ii];
+      _Sigma[ii]     = off2[ii+  1024];
+      _SigmaRaw[ii]  = off2[ii+2*1024];
+      int aa = (int) off2[ii+3*1024];
+      _Status[ii]    = aa;
+      int bb = (int) off2[ii+4*1024];
+      _Occupancy[ii] = bb;
+      _OccupancyGaus[ii] = 0;
     }
     float* off3=&(off2[5*1024]);
     for (int ii=0;ii<16;ii++){
-      _CNmean[ii]=off3[ii];
-      _CNrms[ii]=off3[ii+16];
+      _CNmean[ii] = off3[ii];
+      _CNrms[ii]  = off3[ii+16];
     }
   }
   return 0;
-
 }
-
 
 TH1F* TrLadCal::DrawOccupancy(){
   TH1F* pp=new TH1F("occ","occ",1024,0,1024);
@@ -428,17 +406,13 @@ TH1F* TrLadCal::DrawOccupancy(){
     pp->SetBinContent(ii+1,_Occupancy[ii]*1.);
     
   }
-    pp->Draw();
-    return pp;
+  pp->Draw();
+  return pp;
 }
-
 
 TH1F* TrLadCal::DrawStatus(unsigned short  mask){
   TH1F* pp=new TH1F("occ","occ",1024,0,1024);
-  for (int ii=0;ii<1024;ii++){
-    pp->SetBinContent(ii+1,Status(ii)&mask);
-    
-  }
+  for (int ii=0;ii<1024;ii++) pp->SetBinContent(ii+1,Status(ii)&mask);
   pp->Draw();
   return pp;
 }

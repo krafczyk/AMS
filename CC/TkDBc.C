@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.33 2010/08/12 08:27:22 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.34 2010/08/14 17:18:50 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/12 08:27:22 $
+///$Date: 2010/08/14 17:18:50 $
 ///
-///$Revision: 1.33 $
+///$Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -830,7 +830,6 @@ int TkDBc::read(const char* filename, int pri){
 
 }
 
-
 // looping methods
 TkLadder* TkDBc::GetEntry(int ii) {
   tkidIT pp=tkidmap.begin();
@@ -852,7 +851,6 @@ int TkDBc::TkId2Entry(int TkId) {
   }
   return 0;
 }
-
 
 int TkDBc::GetOctant(int side,int layer,int slot){
 

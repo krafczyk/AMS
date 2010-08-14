@@ -13,6 +13,7 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 AO  Some methods are added 
+///\date  2010/08/14 AO  New occupancy table added (not written in the LinearDB)
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +27,7 @@ typedef struct CaloutDSP{
   float  rsig[1024];
   float  sig[1024];
   unsigned short int occupancy[1024];
+  unsigned short int occupgaus[1024];
   short int status[1024];
   float CNmean[16];
   float CNrms[16];
@@ -100,8 +102,10 @@ private:
      Bit 4 to 1 (0x16): non gaussian channel
   */
   short int _Status[1024];
-  /// Occupancy table
+  /// Occupancy table for double-trigger calibration step
   unsigned short int _Occupancy[1024]; 
+  /// Occupancy table for non-gaussianity calibration step
+  unsigned short int _OccupancyGaus[1024];
   /// Average CN value in CAL
   geant _CNmean[16];
   ///  CN RMS  value in CAL
@@ -139,8 +143,10 @@ public:
   geant SigmaRaw(int ii)   { return _getnum(_SigmaRaw,ii);}
   /// Get ii-th status 
   short int Status(int ii)  { return _getnum(_Status,ii);}
-  /// Get the occupancy table entry ii
+  /// Get ii-th occupancy value (double step calibration) 
   unsigned short int Occupancy(int ii) { return _getnum(_Occupancy,ii);}
+  /// Get ii-th occupancy value (non-gaussian strips)  
+  unsigned short int OccupancyGaus(int ii) { return _getnum(_OccupancyGaus,ii);}
   ///Get CN mean
   geant GetCNmean(int va){ return _CNmean[va];}
   ///Get CN rms
@@ -184,7 +190,6 @@ public:
   /// Get the number of channels for a given status
   int   GetnChannelsByStatus(int statusbit); 
 
-
   /// Print info (long format if long_format>0)
   void PrintInfo(int long_format = 0);
   /// Copy the data part from another calibration
@@ -200,23 +205,19 @@ public:
   ///  in memory starting at address offset
   int Cal2Lin(float* offset);
 
-
   /// It fill  the calibration from o a linear vector 
   ///  in memory starting at address offset
   int Lin2Cal(float* offset);
 
-  
   TH1F* DrawOccupancy();
   TH1F* DrawStatus(unsigned short  mask=0xffff);
-
 
   static int GetSize() {
     if(version==1) return (1024*4+6);
     else return (1024*5+12+32);
   }
   
-    ClassDef(TrLadCal,4);
-  
+  ClassDef(TrLadCal,5);
 };
 
 
