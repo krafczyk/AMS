@@ -2824,7 +2824,7 @@ class RemoteClient:
         else:
             sql = "SELECT myvalue from Environment where mykey='RunsDir'"
             ret=self.sqlserver.Query(sql)
-            if(len(ret)>=0):
+            if(len(ret)>0):
                 runsdir=ret[0][0]
             else:
                 runsdir="/Offline/RunsDir"
