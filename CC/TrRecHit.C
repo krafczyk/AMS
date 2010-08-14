@@ -142,9 +142,9 @@ void TrRecHitR::BuildCoordinates() {
   int xaddr =  640;
   if(clX!=0)
     xaddr =  clX->GetAddress();
-  else
+  else if(_dummyX>=0)
     xaddr += _dummyX;
-
+  
   _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
