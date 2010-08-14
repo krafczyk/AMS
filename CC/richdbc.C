@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.70 2010/08/06 09:25:44 mdelgado Exp $
+//  $Id: richdbc.C,v 1.71 2010/08/14 11:44:19 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -767,8 +767,7 @@ void RichAlignment::Init(){
     return;  // Ensure that it is finished
   }
 
-  if(AMSJob::gethead()->isRealData()  &&              // It is real data
-     !strstr(AMSJob::gethead()->getsetup(),"PreAss")){
+  if(!strstr(AMSJob::gethead()->getsetup(),"PreAss")){
        char filename[201];
        UHTOC(RICRADSETUPFFKEY.alignment_in,50,filename,200);
        for(int i=200;i>=0;i--){
@@ -784,21 +783,6 @@ void RichAlignment::Init(){
 	 return;
        }
      }
-#ifdef __SKIP__
-  if(AMSJob::gethead()->isRealData()  &&              // It is real data
-     !strstr(AMSJob::gethead()->getsetup(),"PreAss") &&
-     MISCFFKEY.BeamTest){
-    /*
-    sprintf(name,"%s/%s/RichAlignmentCosmic.1259051518.0.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
-    LoadFile(name,1);  // Version 1 alignment file includes mirror alignment
-    */
-    // Wired alignment by the  moment.
-    RichAlignment::Set(-2.43e-2,1.12e-1,2.66e-2,0,0,0);
-    RichAlignment::SetMirrorShift(2.14e-2,1.54e-1,0.0);
-    return;  // Ensure that it is finished
-  }
-#endif
-
 //#pragma omp barrier 
 
 }

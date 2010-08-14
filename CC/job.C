@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.723 2010/08/09 07:58:12 choutko Exp $
+// $Id: job.C,v 1.724 2010/08/14 11:44:19 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1820,10 +1820,12 @@ void AMSJob::udata(){
     }
 #endif       
     RichRadiatorTileManager::Init();	
+    RichAlignment::Init();
     AMSTRDIdSoft::inittable();
     AMSECIds::inittable();
-
-
+    if(RICRECFFKEY.recon[0]/10000){
+      AMSRichRing::SetWindow((RICRECFFKEY.recon[0]/10000)/10.0);
+    }
   }
   else {
     cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -2221,10 +2223,6 @@ void AMSJob::_rerichinitjob(){
   AMSgObj::BookTimer.book("RERICHZ");   
   AMSgObj::BookTimer.book("RERICHBETA");
   AMSgObj::BookTimer.book("RERICHHITS");
-  RichAlignment::Init();
-  if(RICRECFFKEY.recon[0]/10000){
-    AMSRichRing::SetWindow((RICRECFFKEY.recon[0]/10000)/10.0);
-  }
 }
 
 //-----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.38 2010/06/25 15:08:05 zweng Exp $
+//  $Id: richgeom.C,v 1.39 2010/08/14 11:44:19 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -715,10 +715,24 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[3]=0.;
   par[4]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
 
+
   coo[0]=0;
   coo[1]=0;
   RICHDB::RICradpos()+=ZShift;
   coo[2]=RICHDB::RICradpos()-RICHDB::total_height()/2;
+
+
+  // Misalignment
+  AMSPoint test_point(0,0,0);
+  test_point=RichAlignment::RichToAMS(test_point);
+  coo[0]+=test_point[0];
+  coo[1]+=test_point[1];
+  coo[2]+=test_point[2];
+  // Force angular parameters to zero
+  RichAlignment::Set(-test_point[0],-test_point[1],-test_point[2],0,0,0);
+  cout<<"amsgeom::richgeom02 -- MC misalignment set to "<<-test_point[0]<<" "<<-test_point[1]<<" "<<-test_point[2]<<endl;
+
+
 #ifdef __AMSVMC__
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("RICH VACUUM",
 #else

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.137 2010/08/07 18:20:23 mmilling Exp $
+//  $Id: geant3.C,v 1.138 2010/08/14 11:44:19 mdelgado Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -518,6 +518,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
     // RICH simulation code
     static int fscatcounter;
+    AMSPoint local_position;
     if(GCKINE.ipart==Cerenkov_photon){
 // Cut by hand 
      if(GCTRAK.nstep>6000) GCTRAK.istop=1;
@@ -549,17 +550,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	RICHDB::numrayl=0;
 	RICHDB::numrefm=0;
 	fscatcounter=0;
-#ifdef __AMSDEBUG__
-	//	static float max=-74.81;
-	//	if(GCTRAK.vect[2]>max){
-	//	  max=GCTRAK.vect[2];
-	//	  cout<<"Current upper limit at "<<max<<endl;
-	//	  cout<<"Interference "<<max-RICHDB::RICradpos()<<endl;
-	//	}
-#endif
-
-//        if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
-//          else RICHDB::nphgen++; 
          RICHDB::nphgen++;
       }          
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
@@ -568,7 +558,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
 }
 
-    // THIS IS A TEST
         if(GCTRAK.inwvol==2 && GCVOLU.names[lvl][0]=='F' &&
            GCVOLU.names[lvl][1]=='O' && GCVOLU.names[lvl][2]=='I' &&
            GCVOLU.names[lvl][3]=='L' && GCTRAK.nstep>1 && GCTRAK.vect[5]<0 && RICHDB::numrayl==0){
@@ -579,17 +568,6 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
            GCVOLU.names[lvl][3]=='C' && GCTRAK.nstep>1 && GCTRAK.vect[5]<0 && RICHDB::numrayl==0){
 	  RICHDB::nphbas++;
 	}
-
-#ifdef __AMSDEBUG__
-    //    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='S' &&
-    //       GCVOLU.names[lvl][1]=='L' && GCVOLU.names[lvl][2]=='G' &&
-    //       GCVOLU.names[lvl][3]=='C' && GCTRAK.nstep>1){
-    //      cout <<"Entering in LG at "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "
-    //	   <<GCTRAK.vect[2]<<endl;
-    //      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-    //      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-    //    }
-#endif
 
 
     if(GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
@@ -610,61 +588,45 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //          GCTRAK.istop=2;
 
 
-	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
-	//		  GCTRAK.vect[2])/GCTRAK.vect[5];
-	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+        local_position=AMSPoint(GCTRAK.vect);
+        local_position=RichAlignment::AMSToRich(local_position);
+	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-local_position[2])/GCTRAK.vect[5];
 
           geant vect[3];
           vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
           vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
           vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
 
-#ifdef __AMSDEBUG__
-/*
-    cout <<"************** vect vs orig vect "<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
-    cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
-           " "<<RICHDB::RICradpos()<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
-*/
-#endif
           AMSRichMCHit::sirichhits(GCKINE.ipart,
                                    GCVOLU.number[lvl-1]-1,
-//                                   GCTRAK.vect,
                                    vect,
                                    GCKINE.vert,
                                    GCKINE.pvert,
                                    Status_Window-
                                    (GCKINE.itra!=1?100:0));
-//        }
       }
 
 
 
       if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
         GCTRAK.istop=2; // Absorb it
-	//
-
-	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
-	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+        local_position=AMSPoint(GCTRAK.vect);
+        local_position=RichAlignment::AMSToRich(local_position);
+	//	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-GCTRAK.vect[2])/GCTRAK.vect[5];
+	geant xl=(RichPMTsManager::GetAMSPMTPos(GCVOLU.number[lvl-1]-1,2)-RICHDB::cato_pos()-RICotherthk/2-local_position[2])/GCTRAK.vect[5];
 
         geant vect[3];
         vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
         vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
         vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
 
-#ifdef __AMSDEBUG__
-/*
-    cout <<"************** vect vs orig vect"<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
-    cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
-           " "<<RICHDB::RICradpos()<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
-*/
-#endif
         if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
            || (GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height &&
                GCKINE.vert[2]>RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height))
 	  AMSRichMCHit::sirichhits(GCKINE.ipart,
 				   GCVOLU.number[lvl-1]-1,
-				   //GCTRAK.vect,
                                    vect,
 				   GCKINE.vert,
 				   GCKINE.pvert,

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.77 2009/07/08 07:53:35 choumilo Exp $
+//  $Id: mccluster.C,v 1.78 2010/08/14 11:44:19 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -183,7 +183,12 @@ void AMSRichMCHit::sirichhits(integer id,
     return;
   }
 
- RichPMTChannel channel(pmt,position[0],position[1]);
+ //
+
+ // Move the point ti RICH COORDINATES
+ AMSPoint local_position(position);
+ local_position=RichAlignment::AMSToRich(local_position);
+ RichPMTChannel channel(pmt,local_position[0],local_position[1]);
 
 
 #ifdef __AMSDEBUG__
