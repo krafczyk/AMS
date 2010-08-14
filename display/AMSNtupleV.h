@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.36 2010/07/27 16:33:40 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.37 2010/08/14 22:56:21 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -130,10 +130,12 @@ public:
     int size=gAMSDisplay->Focus()==0?2:1;
     //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
     if(pcl){
+      pcl->BuildCoordinates();
       float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
       float sizey=pcl->GetECoord()[1]*100;
       float sizez=(sqrt(pcl->Sum())<8)?sqrt(pcl->Sum()):8.;
       if (sizez<1) sizez=1;
+
       // sizex=sizey=sizez=10.;
       //printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
       //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
@@ -148,7 +150,7 @@ public:
 	if(pcl->GetYCluster()){
 	  int kmax=pcl->GetYCluster()->GetLength();
 	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
-	  for (int k=0;k<kmax;k++)x[k]=pcl->GetYCluster()->GetSignal(k)/50.;
+	  for (int k=0;k<kmax;k++)x[k]=pcl->GetYCluster()->GetSignal(k)/(pcl->GetYCluster()->GetTotSignal()+1e-20);
 	  //	    (pcl->Sum()+1.e-20);
 	  SetProfileY(kmax,x);
 	  SetShowProfileY(true);
@@ -157,8 +159,7 @@ public:
  	if(pcl->GetXCluster()){
  	  int kmax=pcl->GetXCluster()->GetLength();
  	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
- 	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/50.;
-	  // 	    (pcl->GetXCluster()->GetTotSignal()+1.e-20);
+ 	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/(pcl->GetXCluster()->GetTotSignal()+1.e-20);
  	  SetProfileX(kmax,x);
  	  SetShowProfileX(true);
  	}
@@ -173,7 +174,7 @@ public:
 	SetLineColor(3);             // green
 	SetFillColor(3);
       }else{
-	SetLineColor(2);             // blue
+	SetLineColor(2);             // red
 	SetFillColor(2);
       }
     }
@@ -365,7 +366,7 @@ public:
   ParticleV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
     ParticleR *pcl=ev->pParticle(ref);
     if(pcl){
-     if(pcl->TRDCoo[0][2]>pcl->TrCoo[0][2]){
+     if(pcl->TRDCoo[0][2]>pcl->TrCoo[7][2]){
        //ams02 setup
       const int npoint=2+2+8+2+2+3;
       float array[3*npoint];
@@ -404,13 +405,13 @@ public:
     }
     else{
        //ams02p setup
-//       cout <<" ams02p setup "<<endl;
+      //       cout <<" ams02p setup "<<endl;
       const int npoint=2+2+9+2+2+3;
       float array[3*npoint];
       int old=0;
       if(pcl->TRDCoo[1][2]>90 && pcl->TRDCoo[1][2]<150)old=1;
 //      cout <<pcl->TRDCoo[0][2]<<" "<<pcl->TRDCoo[1][2]<<" "<<endl;
-      for(int k=0;k<3;k++)array[k]=pcl->TrCoo[0][k];
+      for(int k=0;k<3;k++)array[k]=pcl->TrCoo[7][k];
       for(int k=0;k<3;k++)array[3+k]=pcl->TRDCoo[old][k];
       for(int k=0;k<3;k++)array[3+3+k]=pcl->TRDCoo[0][k];
       if(pcl->pTrdTrack()){
@@ -422,9 +423,10 @@ public:
       }
       for(int k=0;k<3;k++)array[3+3+3+k]=pcl->TOFCoo[0][k];
       for(int k=0;k<3;k++)array[3+3+3*2+k]=pcl->TOFCoo[1][k];
-      for(int i=1;i<8;i++){
+      for(int i=0;i<7;i++){
         for(int k=0;k<3;k++)array[3+3*3+3*i+k]=pcl->TrCoo[i][k];
       }
+      for(int k=0;k<3;k++)array[3*11+k]=pcl->TrCoo[6][k];
       for(int k=0;k<3;k++)array[3+3*11+k]=pcl->TOFCoo[2][k];
       for(int k=0;k<3;k++)array[3+3*12+k]=pcl->TOFCoo[3][k];
       for(int k=0;k<3;k++)array[3+3*13+k]=pcl->RichCoo[0][k];
@@ -523,6 +525,72 @@ public:
 
 
 
+#ifdef _PGTRACK_
+
+class TrTrackV: public TPolyLine3D, public AMSDrawI{
+protected:
+public:
+  TrTrackV():AMSDrawI(NULL,-1),TPolyLine3D(){};
+  TrTrackV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
+    if (ev==0) return;
+    TrTrackR *pcl=ev->pTrTrack(ref);
+    if(pcl){
+      Double_t Bfield = -0.4;	// in minus-x direction of AMS
+      Double_t P0[3];
+      Double_t V0[3];
+      Double_t Axis[3]={-1,0,0};
+      Double_t Range[2]={-60,60};
+      for(int i=0;i<3;i++)P0[i]=pcl->GetP0()[i];
+
+      //       V0[0]=pcl->GetRigidity() * sin(pcl->GetTheta()) * cos(pcl->GetPhi());
+      //       V0[1]=pcl->GetRigidity() * sin(pcl->GetTheta()) * sin(pcl->GetPhi());
+      //       V0[2]=pcl->GetRigidity() * cos(pcl->GetTheta());
+      int nh=pcl->GetNhits();
+      int bit=pcl->GetBitPattern();
+      SetPolyLine(-1);
+      int ind=0;
+      if((bit & (1<<7))>0){
+	if(TrRecHitR* hh=pcl->GetHitL(7)){
+	  AMSPoint aa=hh->GetCoord();
+	  SetPoint(ind++,aa[0],aa[1],aa[2]);
+	}
+      }
+      for (int ii=0;ii<7;ii++){
+	if((bit & (1<<ii))>0){
+	  if(TrRecHitR* hh=pcl->GetHitL(ii)){
+	    AMSPoint aa=hh->GetCoord();
+	    
+	    if (!(hh->OnlyY () && hh->GetDummyX()==-1))
+	      SetPoint(ind++,aa[0],aa[1],aa[2]);
+	  }
+	}
+      }
+      if((bit & (1<<8))>0){
+	if(TrRecHitR* hh=pcl->GetHitL(8)){
+	  AMSPoint aa=hh->GetCoord();
+	  SetPoint(ind++,aa[0],aa[1],aa[2]);
+	}
+       }
+       
+
+      V0[0]= -1*pcl->GetDir()[0]*pcl->GetRigidity() ;
+      V0[1]= -1*pcl->GetDir()[1]*pcl->GetRigidity() ;
+      V0[2]= -1*pcl->GetDir()[2]*pcl->GetRigidity() ;
+
+      //THelix::SetHelix(P0,V040.3*Bfield/100,Range,kHelixX,Axis);
+
+      //      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
+    }
+    SetLineColor(14);
+    SetLineWidth(1);
+    SetLineStyle(1);
+
+  }
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrTrack(fRef)->Info(fRef):0;}
+
+
+};
+#else
 
 class TrTrackV: public THelix, public AMSDrawI{
 protected:
@@ -532,24 +600,6 @@ public:
 
     TrTrackR *pcl=ev->pTrTrack(ref);
     if(pcl){
-#ifdef _PGTRACK_
-      Double_t Bfield = -0.8;	// in minus-x direction of AMS
-      Double_t P0[3];
-      Double_t V0[3];
-      Double_t Axis[3]={-1,0,0};
-      Double_t Range[2]={-60,60};
-      for(int i=0;i<3;i++)P0[i]=pcl->GetP0()[i];
-     
-//       V0[0]=pcl->GetRigidity() * sin(pcl->GetTheta()) * cos(pcl->GetPhi());
-//       V0[1]=pcl->GetRigidity() * sin(pcl->GetTheta()) * sin(pcl->GetPhi());
-//       V0[2]=pcl->GetRigidity() * cos(pcl->GetTheta());
-
-      V0[0]= -1*pcl->GetDir()[0]*pcl->GetRigidity() ;
-      V0[1]= -1*pcl->GetDir()[1]*pcl->GetRigidity() ;
-      V0[2]= -1*pcl->GetDir()[2]*pcl->GetRigidity() ;
-      THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
-      //      printf("=============> %f %f %f   %f %f %f\n",P0[0],P0[1],P0[2],V0[0],V0[1],V0[2]);
-#else
       Double_t Bfield = -0.1;	// in minus-x direction of AMS
       Double_t P0[3];
       Double_t V0[3];
@@ -563,7 +613,6 @@ public:
       V0[1]=pcl->Rigidity * sin(pcl->Theta) * sin(pcl->Phi);
       V0[2]=pcl->Rigidity * cos(pcl->Theta);
       THelix::SetHelix(P0,V0,0.3*Bfield/100,Range,kHelixX,Axis);
-#endif
     }
     SetLineColor(14);
     SetLineWidth(1);
@@ -575,7 +624,7 @@ public:
 
 };
 
-
+#endif
 
 
 class EcalShowerV: public TPolyLine3D, public AMSDrawI{
