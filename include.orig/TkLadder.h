@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.8 2010/08/14 17:18:51 oliva Exp $
+// $Id: TkLadder.h,v 1.9 2010/08/15 17:08:56 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/08/14 17:18:51 $
+///$Date: 2010/08/15 17:08:56 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -62,7 +62,7 @@ protected:
   //! function  needed  to guaarantee the virtual inheritance of the operator >> ( you can safely ignore)
   istream& putinS(istream& s);
 
-public:
+private:
   //! the layer the ladder belongs to [1-8]
   int _layer;
   //! the slot on the layer [1-15]
@@ -79,19 +79,16 @@ public:
   int _tdr;
   //! The number of sensors composing the ladder
   int _nsensors;
-  //! Flag determining if the ladder is used by the laser aligment
-  bool _laser_align;
-  //! Flag for kapton K7  type (special readour channel routing) 
-  bool _isK7;
   //! Pointer to the plane object the ladder is mounted to
   TkPlane* _plane;
+
+public:
 
   //! Sensor alignment correction (X in cm)
   float _sensx[trconst::maxsen];
 
   //! Sensor alignment correction (Y in cm)
   float _sensy[trconst::maxsen];
-
   //! Default constructor set all properties to zero
   TkLadder();
   //! explicit constructor
@@ -102,6 +99,13 @@ public:
 
   //! it returns the layer
   int GetLayer()const{return _layer;}
+
+  //! it returns the pointer to the plane object
+  TkPlane* GetPlane()const{return _plane;}
+
+
+  //! it returns the number of sensors
+  int GetNSensors() {return _nsensors & 0xff;}
   //! it returns the slot
   int GetSlot()const{return _slot;}
   //! it returns the side. +1 positive X side  0 negative X side
@@ -127,20 +131,25 @@ public:
   int GetHwId()const{return _crate*100+_tdr;}
   //! it returns PGid= pwgp*100+pwpos
   int GetPgId()const{return GetPwGroup()*100+GetPwgroupPos(); }
+
+  //! it Sets the pointer to the plane object
+  void SetPlane(TkPlane* pl) { _plane=pl;}
+
+
   //! it sets the Hwid
   void SetHwId(int HwId);
   //! it sets the TkId
   void SetTkId(int Tkid);
   //! returns true is the ladder is used in the laser alignment
-  bool IsAlignemnt()const{return _laser_align;}
-  bool IsLaser()const{return _laser_align;}
+  bool IsAlignemnt()const{return ((_nsensors  & 0x800)>0);}
+  bool IsLaser()const{return ((_nsensors  & 0x800)>0);}
   //! sets the laser alignment flag
-  void SetLaserFlag(){ _laser_align=1;}
+  void SetLaserFlag(){ _nsensors|=0x800;}
 
   //! Check if it is K7
-  bool IsK7() {return _isK7;}
+  bool IsK7() {return ((_nsensors &0x400)>0);}
   //! Set if it is K7
-  void SetAsK7() {_isK7=true;}
+  void SetAsK7() { _nsensors|=0x400;   }
 
   //! Check if it is an active ladder
   bool IsActive() { return (GetHwId()>=0); }
@@ -168,6 +177,6 @@ public:
   //! writes out the Alignement pars to file
   void WriteS(ostream &o){putoutS(o);}
 
-  ClassDef(TkLadder,2);
+  ClassDef(TkLadder,3);
 };
 #endif

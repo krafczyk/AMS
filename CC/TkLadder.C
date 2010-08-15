@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.6 2010/06/16 15:53:47 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.7 2010/08/15 17:08:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/06/16 15:53:47 $
+///$Date: 2010/08/15 17:08:55 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,8 +36,6 @@ TkLadder::TkLadder():TkObject()
   _tdr=0;
   _nsensors=0;
   _plane=NULL;
-  _laser_align=0;
-  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
@@ -49,8 +47,6 @@ TkLadder::TkLadder(TkPlane* plane,char* Name,int layer,int slot,int crate,int td
   _tdr=tdr;
   _nsensors=nsensors;
   _plane=plane;
-  _laser_align=0;
-  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 
@@ -61,8 +57,6 @@ TkLadder::TkLadder(TkPlane* plane,char* Name,int Trid,int HwId,  int nsensors):T
   _tdr=HwId-_crate*100;
   _nsensors=nsensors;
   _plane=plane;
-  _laser_align=0;
-  _isK7=false;
   for (int i = 0; i < trconst::maxsen; i++) _sensx[i] = _sensy[i] = 0;
 }
 

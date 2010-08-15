@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.10 2010/08/07 10:51:17 shaino Exp $ 
+/// $Id: TkSens.C,v 1.11 2010/08/15 17:08:55 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/08/07 10:51:17 $
+///$Date: 2010/08/15 17:08:55 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -177,7 +177,7 @@ int TkSens::GetSens(){
   if(!lad) return -1;
 
   //Get The Plane Pointer
-  TkPlane * pp=lad->_plane;
+  TkPlane * pp=lad->GetPlane();
 
   //Alignment corrected Plane postion
   AMSPoint PPosG=pp->GetPosA()+pp->GetPos();

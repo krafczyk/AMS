@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.34 2010/08/14 17:18:50 oliva Exp $
+//  $Id: TkDBc.C,v 1.35 2010/08/15 17:08:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/14 17:18:50 $
+///$Date: 2010/08/15 17:08:55 $
 ///
-///$Revision: 1.34 $
+///$Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -815,13 +815,14 @@ int TkDBc::read(const char* filename, int pri){
     tkassemblymap[aa->GetAssemblyId()]=aa;
     JMDCNumMap[aa->GetJMDCNum()]=aa;
 
-    aa->_plane=GetPlane(_plane_layer[aa->GetLayer()-1]);
+    aa->SetPlane(GetPlane(_plane_layer[aa->GetLayer()-1]));
 
     count++;
     if (pri) cout<<*aa<<endl;
 
 
   }
+
   cout << count <<" Ladders have been read from file "<<filename<<endl;
 
 

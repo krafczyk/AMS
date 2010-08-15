@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.38 2010/08/08 18:01:42 shaino Exp $
+// $Id: TrTrack.C,v 1.39 2010/08/15 17:08:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/08 18:01:42 $
+///$Date: 2010/08/15 17:08:55 $
 ///
-///$Revision: 1.38 $
+///$Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -733,7 +733,7 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
   if (!tks.LadFound()) return ret;
 
   TkLadder *lad = TkDBc::Head->FindTkId(tks.GetLadTkID());
-  TkPlane  *pla = lad->_plane;
+  TkPlane  *pla = lad->GetPlane();
   AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
   AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();
   dir.setp(0, 0, 1);

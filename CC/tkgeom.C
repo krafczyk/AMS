@@ -256,7 +256,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   //  printf("Ladder name %s\n",name);
   
   // Build sensors
-  for (int sensor = 0; sensor < lad->_nsensors; sensor++){
+  for (int sensor = 0; sensor < lad->GetNSensors(); sensor++){
     char nameS[5];
     std::ostrstream ost2(nameS,sizeof(nameS));
     ost2 << "S" << iname << std::ends;
@@ -354,7 +354,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   std::ostrstream ost(name,sizeof(name));
   ost << "FOA" << layer << std::ends;
   
-  int nsen = lad->_nsensors;
+  int nsen = lad->GetNSensors();
   double signp = (layer%2 == 1) ? -1 : 1;
 
   geant par[3];

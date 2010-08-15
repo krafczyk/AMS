@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.7 2010/05/14 14:02:28 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.8 2010/08/15 17:08:55 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2010/05/14 14:02:28 $
+///$Date: 2010/08/15 17:08:55 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -59,7 +59,7 @@ AMSPoint TkCoo::GetGlobalN(int tkid, AMSPoint& loc){
   AMSPoint  oo = ll->GetRotMat()*loc2+ll->GetPos();
   
   // Get The Plane Pointer
-  TkPlane*  pp = ll->_plane;
+  TkPlane*  pp = ll->GetPlane();
 
   // Convolute with the Plane pos in the space and Get the global Coo
   AMSPoint oo2 = pp->GetRotMat()*oo + pp->GetPos();
@@ -112,7 +112,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   AMSPoint  oo    = RotG*loc2+PosG;
 
   // Get The Plane Pointer
-  TkPlane*  pp    = ll->_plane;
+  TkPlane*  pp    = ll->GetPlane();
 
   // Alignment corrected Plane Rotation matrix
   AMSRotMat PRotG = pp->GetRotMatA()*pp->GetRotMat();
@@ -145,9 +145,9 @@ int TkCoo::GetMaxMult(int tkid, float readchann){
   int max = 1;
   if(readchann<=639.) return 0;
   if( (ll->IsK7()) ) 
-    max=(int) ceil((ll->_nsensors*TkDBc::Head->_NReadStripK7-readchann+640)/384.);
+    max=(int) ceil((ll->GetNSensors()*TkDBc::Head->_NReadStripK7-readchann+640)/384.);
   else
-    max=(int) ceil((ll->_nsensors*TkDBc::Head->_NReadStripK5-readchann+640)/384.);
+    max=(int) ceil((ll->GetNSensors()*TkDBc::Head->_NReadStripK5-readchann+640)/384.);
   
   return (max-1);
 }
@@ -294,7 +294,7 @@ double TkCoo::GetLadderLength(int tkid) {
   TkLadder* pp=TkDBc::Head->FindTkId(tkid);
   if(!pp) return -9999.;
   
-  return TkDBc::Head->_SensorPitchK*pp->_nsensors;
+  return TkDBc::Head->_SensorPitchK*pp->GetNSensors();
 }
 
 
