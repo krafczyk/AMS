@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.26 2010/08/07 10:51:26 shaino Exp $
+//  $Id: TrTrack.h,v 1.27 2010/08/15 13:19:26 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/08/07 10:51:26 $
+///$Date: 2010/08/15 13:19:26 $
 ///
-///$Revision: 1.26 $
+///$Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -540,14 +540,14 @@ public:
   geant Chi2FastFitf() {return GetChi2(kChoutko| kMultScat );}
 
   geant HChi2f(int half){ return (half==0)?
-      GetChi2(kChoutko| kMultScat|kUpperHalf):
-      GetChi2(kChoutko| kMultScat|kLowerHalf);}
+      GetChi2(kChoutko| kUpperHalf):
+      GetChi2(kChoutko| kLowerHalf);}
 
   geant FChi2MSf(){return  GetChi2(kChoutko);}
 
   geant HRigidityf(int half){ return (half==0)?
-      GetRigidity(kChoutko| kMultScat|kUpperHalf):
-      GetRigidity(kChoutko| kMultScat|kLowerHalf);}
+      GetRigidity(kChoutko|kUpperHalf):
+      GetRigidity(kChoutko|kLowerHalf);}
 
   
 

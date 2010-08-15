@@ -121,7 +121,7 @@ protected:
   /// Get the hit multiplicity 
   int   GetMultiplicity()      { return _mult; }
   /// Returns the computed global coordinate (if resolved)
-  AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : AMSPoint(0, 0, 0); }
+  AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) ? _coord[_imult] : _coord[0]; }
   /// Get the computed global coordinate by multiplicity index
   AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates(); return _coord[imult]; }
 

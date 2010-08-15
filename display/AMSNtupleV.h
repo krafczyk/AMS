@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.37 2010/08/14 22:56:21 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.38 2010/08/15 13:19:25 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -552,6 +552,10 @@ public:
       if((bit & (1<<7))>0){
 	if(TrRecHitR* hh=pcl->GetHitL(7)){
 	  AMSPoint aa=hh->GetCoord();
+	  if(hh->OnlyY () && hh->GetDummyX()==-1){
+	    hh->SetDummyX(0);
+	    hh->BuildCoordinates();
+	  }
 	  SetPoint(ind++,aa[0],aa[1],aa[2]);
 	}
       }
@@ -568,7 +572,9 @@ public:
       if((bit & (1<<8))>0){
 	if(TrRecHitR* hh=pcl->GetHitL(8)){
 	  AMSPoint aa=hh->GetCoord();
+	    if (!(hh->OnlyY () && hh->GetDummyX()==-1))
 	  SetPoint(ind++,aa[0],aa[1],aa[2]);
+
 	}
        }
        
