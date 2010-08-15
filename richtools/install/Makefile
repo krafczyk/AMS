@@ -22,7 +22,7 @@ CFLAGS =  -m32 -fPIC  -D__root_new -D__WRITEROOT__ -D__ROOTPOINTERS__ -D__BATCH_
 LDFLAGS =  -m32 -shared $(CERNLIB) -L`root-config --libdir`  -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix $(FORTRAN) 
 
 #GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` `cernlib mathlib` $(FORTRAN)
-GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN)
+GENERAL= -m32 -L../lib -lshared -I../include -I../../include -I`root-config --incdir` `root-config --libs` $(CERNLIB) $(FORTRAN) -lMinuit
 
 
 #FF = g77 -O3
@@ -62,7 +62,6 @@ COMMON_C_FILES+=  rnormx.C TrFit.C TrRecon.C TrSim.C TrSimCluster.C TrSimSensor.
 	          TkCoo.C TkDBc.C tkdcards.C  TkLadder.C TkObject.C TkPlane.C  TkSens.C TrCluster.C \
 		  TrLadCal.C TrMCCluster.C TrRecHit.C TrTrack.C  Vertex.C  TrRawCluster.C patt.C \
 	          TrLadPar.C  TrParDB.C	TrTasCluster.C TrTasPar.C TrAlignFit.C HistoMan.C amsdbc.C
-GENERAL += -lMinuit
 
 GENERAL+= -D_PGTRACK_
 
@@ -201,4 +200,9 @@ parametric_rec_build:
 
 # Preslect events to be use in the analysis chain
 check_rec: lib $(EXEPATH) 
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+
+# Preslect events to be use in the analysis chain
+tile_maps: lib $(EXEPATH) 
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
