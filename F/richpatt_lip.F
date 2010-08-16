@@ -3156,7 +3156,8 @@ C -----------------------------------------------------
       real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
       DATA FPHILMIR_BUF/1.E8/                                              
-                                                                           
+       !$OMP THREADPRIVATE (FPHILMIR_BUF)                
+                                                                 
                                                                            
 * --- init parameters
       cerang   = par(2)
@@ -3252,7 +3253,7 @@ C -----------------------------------------------------
       real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
       DATA FPHILMIR_BUF/1.E8/                                              
-                                                                           
+          !$OMP THREADPRIVATE (FPHILMIR_BUF)                                                                 
                                                                            
 * --- init parameters
       cerang   = par(2)
@@ -3340,7 +3341,8 @@ C -----------------------------------------------------
       real phpto_buf(3)                                                    
       SAVE FPHILMIR_BUF
       DATA FPHILMIR_BUF/1.E8/                                              
-                                                                           
+      !$OMP THREADPRIVATE (FPHILMIR_BUF)
+
 
 * --- init parameters
       cerang   = par(2)
