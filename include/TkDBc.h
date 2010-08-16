@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.15 2010/08/12 08:29:22 pzuccon Exp $
+// $Id: TkDBc.h,v 1.16 2010/08/16 20:11:29 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -392,7 +392,14 @@ public:
   //!interface to GBTACH TDV database
   static float* linear;
   //!interface to GBTACH TDV database
-  static int  GetLinearSize(){return ((192+5)*(1+TkObject::GetSize())*sizeof(float));}
+  static int  GetLinearSize(){
+    if(_setup==3)
+      return 
+	((192+5)*(1+TkObject::GetSize())*sizeof(float));
+    else
+      return 
+	((192+6)*(1+TkObject::GetSize())*sizeof(float));
+  }
 
   //!interface to GBTACH TDV database
   void Align2Lin();

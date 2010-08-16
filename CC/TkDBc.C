@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.35 2010/08/15 17:08:55 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.36 2010/08/16 20:11:29 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/15 17:08:55 $
+///$Date: 2010/08/16 20:11:29 $
 ///
-///$Revision: 1.35 $
+///$Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1104,7 +1104,7 @@ void TkDBc::Align2Lin(){
     memset(linear,0,GetLinearSize());
   }
   int off=0;
-  for (int pla=1;pla<6;pla++){
+  for (int pla=1;pla<(nplanes+1);pla++){
     linear[off]=(float)pla;
     TkPlane* pl=GetPlane(pla);
     pl->Align2Lin(&linear[off+1]);
@@ -1112,6 +1112,7 @@ void TkDBc::Align2Lin(){
   }
 
   for (tkidIT aa=tkidmap.begin(); aa!=tkidmap.end();aa++){
+    if(!aa->IsActive()) continue;
     linear[off]=(float)(aa->first);
     aa->second->Align2Lin(&(linear[off+1]));
     off+=7;
@@ -1127,7 +1128,7 @@ void TkDBc::Lin2Align(){
     return;
   }
   int off=0;
-  for (int pla=1;pla<6;pla++){
+  for (int pla=1;pla<(nplanes+1);pla++){
     int pll=(int)linear[off];
     TkPlane* pl=GetPlane(pll);
     pl->Lin2Align(&linear[off+1]);
