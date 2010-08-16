@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.16 2010/08/16 20:11:29 pzuccon Exp $
+// $Id: TkDBc.h,v 1.17 2010/08/16 21:22:58 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -66,7 +66,7 @@ class TkDBc : public TObject{
   
   private:
   //! the setup index 
-  int _setup;
+  static int _setup;
   static char _setupname[4][30];
   //! number of active planes in the setup
   int nplanes;
@@ -393,12 +393,10 @@ public:
   static float* linear;
   //!interface to GBTACH TDV database
   static int  GetLinearSize(){
-    if(_setup==3)
-      return 
-	((192+5)*(1+TkObject::GetSize())*sizeof(float));
-    else
-      return 
-	((192+6)*(1+TkObject::GetSize())*sizeof(float));
+//     if(_setup==3)
+//       return ((192+5)*(1+TkObject::GetSize())*sizeof(float));
+//     else
+      return ((192+6)*(1+TkObject::GetSize())*sizeof(float));
   }
 
   //!interface to GBTACH TDV database
@@ -424,7 +422,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 5);
+  ClassDef(TkDBc, 6);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

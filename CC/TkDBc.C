@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.36 2010/08/16 20:11:29 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.37 2010/08/16 21:22:57 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/16 20:11:29 $
+///$Date: 2010/08/16 21:22:57 $
 ///
-///$Revision: 1.36 $
+///$Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,9 +27,9 @@
 
 TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
-char   TkDBc::_setupname[4][30]={"Unkown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
-
-
+char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
+int    TkDBc::_setup=3;
+ 
 TkDBc::TkDBc(){
  for (int ii=0;ii<maxplanes;ii++)
       planes[ii]=0; 
@@ -1112,7 +1112,7 @@ void TkDBc::Align2Lin(){
   }
 
   for (tkidIT aa=tkidmap.begin(); aa!=tkidmap.end();aa++){
-    if(!aa->IsActive()) continue;
+    if(!aa->second->IsActive()) continue;
     linear[off]=(float)(aa->first);
     aa->second->Align2Lin(&(linear[off+1]));
     off+=7;
