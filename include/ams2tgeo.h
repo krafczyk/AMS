@@ -41,7 +41,7 @@
 #include "TGeoBoolNode.h"
 
 #include <vector>
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 class ams2tgeo{
