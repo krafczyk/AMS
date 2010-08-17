@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.724 2010/08/14 11:44:19 mdelgado Exp $
+// $Id: job.C,v 1.725 2010/08/17 20:51:46 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2952,10 +2952,16 @@ bool NeededByDefault=isSimulation();
      if (TKGEOMFFKEY.ReadGeomFromFile/10==1)
        cout << "AMSJob::timeinitjob-I-TrackerAlign is NOT added to TimeID"
             << endl;
-     else
-      TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
+     else{
+       if(TkDBc::Head->GetSetup()==3)
+	 TID.add (new AMSTimeID(AMSID("TrackerAlignPM",isRealData()),begin,end,
                              TkDBc::GetLinearSize(),TkDBc::linear,
-                             server,need,SLin2Align));
+				server,need,SLin2Align));
+       else
+	 TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
+				TkDBc::GetLinearSize(),TkDBc::linear,
+				server,need,SLin2Align));
+     }
     }
     
     begin.tm_isdst=0;

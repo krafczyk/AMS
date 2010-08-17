@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.19 2010/07/07 14:12:53 pzuccon Exp $
+//  $Id: beta.h,v 1.20 2010/08/17 20:51:47 pzuccon Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -23,6 +23,8 @@ protected:
   number _InvErrBetaC;
   number _Chi2;
   number _Chi2Space;
+  //! The signed distance along the track from the tof cluster to the plan Z=0
+  number _sleng[4];
   void _printEl(ostream & stream);
   void _copyEl();
   void _writeEl();
@@ -36,22 +38,32 @@ protected:
   static integer build_old(integer refit=0,int Master=1);
   
 #endif
-public:
+ public:
   ~AMSBeta();
-  AMSBeta(): AMSlink(),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}
-  AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack, number chi2s): 
+  AMSBeta(): AMSlink(),_ptrack(0)
+  { for(int i=0;i<4;i++){_pcluster[i]=0;_sleng[i]=0;} }
+  
+  AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack, number chi2s, number* sleng ): 
     AMSlink(),_Pattern(pattern),_Chi2Space(chi2s),_ptrack(ptrack)
-  {for(int i=0;i<4;i++)_pcluster[i]=pcluster[i];}
+  {for(int i=0;i<4;i++){_pcluster[i]=pcluster[i];  _sleng[i]=sleng[i];}}
+    
   AMSBeta(const AMSBeta & o): 
     AMSlink(o._status,o._next),_Pattern(o._Pattern),_Beta(o._Beta),
     _InvErrBeta(o._InvErrBeta),_Chi2(o._Chi2),_Chi2Space(o._Chi2Space),_ptrack(o._ptrack)
-  {for(int i=0;i<4;i++)_pcluster[i]=o._pcluster[i];}
+  {for(int i=0;i<4;i++){_pcluster[i]=o._pcluster[i];_sleng[i]=o._sleng[i]; }}
+      
   AMSBeta *  next(){return (AMSBeta*)_next;}
+  
+
   number getchi2()const{return _Chi2;}
   number getchi2S()const{return _Chi2Space;}
   number getbeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_Beta:_BetaC;}
   number getebeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_InvErrBeta:_InvErrBetaC;}
-  integer getpattern()const{return _Pattern;}
+  integer getpattern()const{return _Pattern&0x7ffff;}
+  void SetAlternateContainer(){_Pattern|0x80000;}
+  bool IsAlternateContainer(){return (_Pattern&0x80000)>0;}
+  //! The signed distance along the track from the tof cluster to the plan Z=0
+  number getlenght(int tofclusindex) {return (tofclusindex>=0 && tofclusindex<4 )? _sleng[tofclusindex]:0;}
   AMSTrTrack * getptrack()const {return _ptrack;}
   AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
   void SimpleFit(integer nhit, number sleng[]);

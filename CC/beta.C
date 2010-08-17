@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.84 2010/07/09 15:40:54 pzuccon Exp $
+//  $Id: beta.C,v 1.85 2010/08/17 20:51:46 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -36,6 +36,7 @@ integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2,2,2};
 
 
 #ifdef _PGTRACK_
+#define PZDEBUG 1
 integer AMSBeta::build(integer refit){
   int master_new=1;
   int master_old=0;
@@ -58,7 +59,7 @@ integer AMSBeta::build(integer refit){
       for ( ; ptrack ; ptrack=ptrack->next()) {   
 	bfound+=BuildBeta(ptrack,master_new);
       }
-      //PZ DEBUG   printf("Reconstructed %d Beta from tracks!\n",bfound);
+      if(PZDEBUG)    printf("Reconstructed %d Beta from tracks!\n",bfound);
     }
   
     // if no beta found with TrTracks try with (extrapolated) TRD tracks
@@ -72,7 +73,7 @@ integer AMSBeta::build(integer refit){
 	AMSTrTrack *ptrack = new AMSTrTrack(ptrackT->gettheta(),ptrackT->getphi(), ptrackT->getcoo());
 	ptrack->setstatus(AMSDBc::TRDTRACK); 
 	bfound+=BuildBeta(ptrack,master_new);
-	//PZDEBUG       printf("Reconstructed %d Beta from TRD track!\n",bfound);
+	if(PZDEBUG)        printf("Reconstructed %d Beta from TRD track!\n",bfound);
       }
     }
   
@@ -81,9 +82,9 @@ integer AMSBeta::build(integer refit){
 
       AMSTrTrack * ptrack=FindFalseTrackForBeta(refit);
       if(ptrack) bfound+=BuildBeta(ptrack,master_new);
-      //PZDEBUG      printf("Reconstructed Beta W/O track %d Beta!\n",bfound);
+      if(PZDEBUG)       printf("Reconstructed Beta W/O track %d Beta!\n",bfound);
     }
-    //PZDEBUG  printf("Reconstructed total %d Beta!\n",bfound);
+    if(PZDEBUG)   printf("Reconstructed total %d Beta!\n",bfound);
   }
 
   if(master_old && old_build )
@@ -1077,10 +1078,10 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 
      
 #ifdef __UPOOL__
-  AMSBeta beta(pat,  pthit, ptrackc, c2s);
+  AMSBeta beta(pat,  pthit, ptrackc, c2s,sleng);
   AMSBeta *pbeta=   &beta;
 #else
-  AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrackc,c2s);
+  AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrackc,c2s,sleng);
 #endif
 
 
@@ -1171,8 +1172,10 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     //    pbeta->type=0;
     if(Master)
       AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
-    else
+    else{
+      pbeta->SetAlternateContainer();
       AMSEvent::gethead()->addnext(AMSID("AMSBetaB",pat),pbeta);
+    }
     return 1;
   }
 #ifndef __UPOOL__
@@ -1187,10 +1190,10 @@ integer AMSBeta::_addnextP(integer pat, integer nhit, number sleng[],
   c2s=c2s/nhit;
   // The track has already been found !!!!! -->  drop find optimal ptrack
 #ifdef __UPOOL__
-  AMSBeta beta(pat,  pthit, ptrack, c2s);
+  AMSBeta beta(pat,  pthit, ptrack, c2s,sleng);
   AMSBeta *pbeta=   &beta;
 #else
-  AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
+  AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s,sleng);
 #endif
 
  
@@ -1270,8 +1273,10 @@ integer AMSBeta::_addnextP(integer pat, integer nhit, number sleng[],
     //    pbeta->type=1;
     if(Master)
       AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
-    else
+    else{
+      pbeta->SetAlternateContainer();
       AMSEvent::gethead()->addnext(AMSID("AMSBetaB",pat),pbeta);
+    }
     return 1;
   }
 #ifndef __UPOOL__
@@ -1289,10 +1294,10 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
         AMSTOFCluster* pthit[4],AMSTrTrack * ptrack, number c2s,int Master){
         c2s=c2s/nhit;
 #ifdef __UPOOL__
-    AMSBeta beta(pat,  pthit, ptrack, c2s);
+	AMSBeta beta(pat,  pthit, ptrack, c2s,sleng);
     AMSBeta *pbeta=   &beta;
 #else
-    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
+    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s,sleng);
 #endif
 
     pbeta->SimpleFit(nhit, sleng);
@@ -1328,8 +1333,10 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //	  pbeta->type=0;
 	  if(Master)
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
-	  else
-          AMSEvent::gethead()->addnext(AMSID("AMSBetaB",pat),pbeta);
+	  else{
+	    pbeta->SetAlternateContainer();
+	    AMSEvent::gethead()->addnext(AMSID("AMSBetaB",pat),pbeta);
+	  }
           return 1;
    }
 #ifndef __UPOOL__
@@ -1380,7 +1387,8 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
    _Beta=1/a;
 if(fabs(_Beta)>2){
  static int nerr=0;
- if(nhit>2 && nerr++<100)cerr<<" AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<endl;
+ if(nhit>2 && nerr++<100)
+cerr<<" AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<endl;
  if(_Beta>0)_Beta=2;
  else _Beta=-2;
 }
@@ -1425,13 +1433,16 @@ void AMSBeta::_writeEl(){
 
 void AMSBeta::_copyEl(){
 #ifdef __WRITEROOT__
- if(PointerNotSet())return;
- BetaR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Beta(_vpos);
-   if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
-   else ptr.fTrTrack=-1;
-for (int i=0; i<4; i++) {
-  if(_pcluster[i])ptr.fTofCluster.push_back(_pcluster[i]->GetClonePointer());
-}
+  if(PointerNotSet())return;
+  BetaR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Beta(_vpos);
+  if( IsAlternateContainer())
+    ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->BetaB(_vpos);
+  if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
+  else ptr.fTrTrack=-1;
+  ptr.fTofCluster.clear();
+  for (int i=0; i<4; i++) {
+    if(_pcluster[i])ptr.fTofCluster.push_back(_pcluster[i]->GetClonePointer());
+  }
 #endif
 }
 
@@ -1445,7 +1456,7 @@ for( i=0;i<npatb;i++){
 }
 
 
-void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Beta "<<_Beta<<" ErrBeta" <<_InvErrBeta<<" Chi2 "<<_Chi2<<" Chi2S "<<_Chi2Space<<endl;}
+void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << getpattern() << " Beta "<<_Beta<<" ErrBeta" <<_InvErrBeta<<" Chi2 "<<_Chi2<<" Chi2S "<<_Chi2Space<<endl;}
 
 
 number AMSBeta::betacorr(number zint,number z0,number part){

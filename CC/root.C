@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.221 2010/08/12 12:51:00 choutko Exp $
+//  $Id: root.C,v 1.222 2010/08/17 20:51:47 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2123,7 +2123,7 @@ AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 BetaR::BetaR(AMSBeta *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status   = ptr->_status;
-  Pattern  = ptr->_Pattern;
+  Pattern  = ptr->getpattern();
   Beta     = ptr->_Beta;
   BetaC    = ptr->_BetaC;
   Error    = ptr->_InvErrBeta;
