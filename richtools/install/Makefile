@@ -191,12 +191,22 @@ preselect: lib $(EXEPATH) $(CONTRIB)preselect/analysis.C $(CONTRIB)preselect/ana
 tile_analysis: lib $(EXEPATH) $(CONTRIB)tile_analysis/analysis.C $(CONTRIB)tile_analysis/analysis.h
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 
+Forest: 
+	cd $(CONTRIB)$(@); rootcint -f libForest.cxx -c clasifier.h LinkDef.h
+	$(CC) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/clasifier.cc $(CFLAGS) -o ../bin/clasifier.o
+	$(CC) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/libForest.cxx $(CFLAGS) -o ../bin/forest.o
+	$(LD) $(LDFLAGS) -o $(LIBPATH)libForest.so  $(BINPATH)clasifier.o $(BINPATH)forest.o
+	rm $(BINPATH)clasifier.o $(BINPATH)forest.o
+
+$(LIBPATH)/libForest.so: Forest
 
 ####################### TESTS
 
-parametric_rec_build:
-	cd $(CONTRIB)$(@); rootcint -f libForest.cxx -c clasifier.h LinkDef.h
-	$(CC) $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` $(CONTRIB)$(@)/libForest.cxx $(CONTRIB)$(@)/clasifier.cc $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+parametric_rec_build: $(LIBPATH)/libForest.so
+#	cd $(CONTRIB)$(@); rootcint -f libForest.cxx -c clasifier.h LinkDef.h
+#	@echo $(LD) $(LDFLAGS) -o $(LIBPATH)libshared.so  $(BINPATH)*.o
+#	$(CC) $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` $(CONTRIB)$(@)/libForest.cxx $(CONTRIB)$(@)/clasifier.cc $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` -lForest $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
 
 # Preslect events to be use in the analysis chain
 check_rec: lib $(EXEPATH) 
@@ -206,3 +216,6 @@ check_rec: lib $(EXEPATH)
 # Preslect events to be use in the analysis chain
 tile_maps: lib $(EXEPATH) 
 	$(CC) $(GENERAL) -I$(CONTRIB)$(@) $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
+
+beta_map: $(LIBPATH)/libForest.so
+	$(CC) $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` -lForest $(CONTRIB)$(@)/*.C -o $(EXEPATH)$(@).exe
