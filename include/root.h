@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.280 2010/08/12 12:51:01 choutko Exp $
+//  $Id: root.h,v 1.281 2010/08/18 17:20:39 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1724,6 +1724,7 @@ class BetaR {
   float     ErrorC;  ///< error (1/betac)
   float     Chi2;    ///<chi2 of beta fit(time)
   float     Chi2S;   ///<chi2 of beta fit(space)
+  float     Len[4];  ///<the signed distance along the track from plane Z=0 to the tof cluster 
 protected:
   int   fTrTrack;    ///< index to TrTrack used
   vector<int> fTofCluster; ///< indexes of TofClusterR's used
@@ -1750,7 +1751,7 @@ public:
    friend class AMSBeta;
    friend class AMSEventR;
    virtual ~BetaR(){};
-   ClassDef(BetaR,1)         //BetaR
+   ClassDef(BetaR,2)         //BetaR
 #pragma omp threadprivate(fgIsA)
 };
 

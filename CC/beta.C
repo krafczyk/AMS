@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.85 2010/08/17 20:51:46 pzuccon Exp $
+//  $Id: beta.C,v 1.86 2010/08/18 17:20:38 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -36,7 +36,7 @@ integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2,2,2};
 
 
 #ifdef _PGTRACK_
-#define PZDEBUG 1
+#define PZDEBUG 0 
 integer AMSBeta::build(integer refit){
   int master_new=1;
   int master_old=0;

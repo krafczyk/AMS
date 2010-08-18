@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.222 2010/08/17 20:51:47 pzuccon Exp $
+//  $Id: root.C,v 1.223 2010/08/18 17:20:38 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2130,6 +2130,8 @@ BetaR::BetaR(AMSBeta *ptr){
   ErrorC   = ptr->_InvErrBetaC;
   Chi2     = ptr->_Chi2;
   Chi2S    = ptr->_Chi2Space;
+  for(int ii=0;ii<4;ii++)
+  Len[ii]  = ptr->_sleng[ii];
   fTrTrack    = -1;
 #endif
 }
