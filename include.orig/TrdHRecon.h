@@ -44,7 +44,8 @@ class TH2A{
   double *Hxy;
 
  public:
-
+  TH2A(){Hxy=0;}
+ ~TH2A(){if(Hxy)delete Hxy;Hxy=0;} 
   TH2A(const char* name, const char* title, int nbx, double Xlo, double Xup, int nby, double Ylo, double Yup)
     : nbx(nbx), Xlo(Xlo), Xup(Xup), nby(nby), Ylo(Ylo), Yup(Yup)
     { Hxy  =  new double[nbx*nby]; 
