@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.39 2010/08/15 17:08:55 pzuccon Exp $
+// $Id: TrTrack.C,v 1.40 2010/08/19 02:25:55 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/15 17:08:55 $
+///$Date: 2010/08/19 02:25:55 $
 ///
-///$Revision: 1.39 $
+///$Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -132,6 +132,12 @@ TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
 {
   trdefaultfit=kDummy;
   TrTrackPar &par = _TrackPar[trdefaultfit];
+  AMSDir dir(theta,phi);
+  AMSPoint p0;
+  p0[0]=point[0]-dir[0]/dir[2]*point[2];
+  p0[1]=point[1]-dir[1]/dir[2]*point[2];
+  p0[2]=0;
+
   par.FitDone = true;
   par.P0      = point;
   par.Dir     = AMSDir(theta,phi); 
@@ -155,10 +161,16 @@ TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
 {
   trdefaultfit=kDummy;
   TrTrackPar &par = _TrackPar[trdefaultfit];
+  
+  AMSPoint p0;
+  p0[0]=point[0]-dir[0]/dir[2]*point[2];
+  p0[1]=point[1]-dir[1]/dir[2]*point[2];
+  p0[2]=0;
+
   par.FitDone  = true;
   par.Rigidity = rig;
   par.ErrRinv  = errig;
-  par.P0       = point;
+  par.P0       = p0;
   par.Dir      = dir;
 
   for(int i = 0; i < trconst::maxlay; i++) {
@@ -763,6 +775,19 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
   int id=id2;
   if (id2==0) id=trdefaultfit;
   if (!FitDone(id)) return;
+  if(trdefaultfit==kDummy){
+    AMSPoint pp=GetP0();
+    AMSDir  dd=GetDir();
+    P1[0]=pp[0]+dd[0]/dd[2]*pnt[2];
+    P1[1]=pp[1]+dd[1]/dd[2]*pnt[2];
+    P1[2]=pnt[2];
+    theta=dd.gettheta();
+    phi=dd.getphi();
+    AMSPoint P2=P1-pp;
+    length =P2.norm();
+    if(pnt[2]>0)length*=-1;
+    return;
+  }
 
   TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
   length = tprop.Interpolate(pnt, dir);
