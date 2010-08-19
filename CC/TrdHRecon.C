@@ -254,6 +254,7 @@ int TrdHReconR::DoPrefit(int debug){
 	if(nhsegvec<100)AddSegment(seg);
 	else delete seg;
       }
+      else delete seg;
     }
   }
 
