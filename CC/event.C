@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.481 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: event.C,v 1.482 2010/08/19 13:09:47 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2163,6 +2163,13 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
+  #ifdef __MLD__
+  cout << " trd before "<<endl;
+  TrdRawHitR::print();
+  TrdHSegmentR::print();
+  TrdHTrackR::print();
+  #endif
+
 #pragma omp critical (trdhreco)
     {
     TrdHReconR* trdhrecon=new TrdHReconR();
@@ -2216,6 +2223,12 @@ void AMSEvent::_retrdevent(){
     
     delete trdhrecon;
     }    
+  #ifdef __MLD__
+  cout << " trd after "<<endl;
+  TrdRawHitR::print();
+  TrdHSegmentR::print();
+  TrdHTrackR::print();
+  #endif
   }
 
   AMSgObj::BookTimer.stop("RETRDEVENT");

@@ -2,6 +2,11 @@
 
 ClassImp(TrdHSegmentR)
 
+#ifdef __MLD__
+int TrdRawHitR::num=0;
+//int TrsHSegmentR::num=0;
+#endif
+
 int TrdHSegmentR::NTrdRawHit(){return Nhits;};
 int TrdHSegmentR::nTrdRawHit(){return Nhits;};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<Nhits?fTrdRawHit[i]:-1;};
@@ -22,7 +27,10 @@ TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0
     fTrdRawHit[i]=-1;
     hits[i]=0;
   }
-};
+}
+
+
+
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
@@ -249,7 +257,6 @@ void TrdHSegmentR::RemoveHit(int iter){
 
 void TrdHSegmentR::clear(){
   for(int i=0;i<Nhits;i++){
-    //    delete hits[i];
     hits[i]=0;
     fTrdRawHit[i]=-1;
   }

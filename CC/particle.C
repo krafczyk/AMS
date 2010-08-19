@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.209 2010/08/19 06:40:59 choutko Exp $
+//  $Id: particle.C,v 1.210 2010/08/19 13:09:47 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -504,7 +504,11 @@ void AMSParticle::trd_Hlikelihood(){
 		      tk_dir[s->d]/tk_dir[2]-s->m,
 		      tk_pnt[s->d]-expos);
       if(fabs(tk_dir[s->d]/tk_dir[2]-s->m)<1-MaxCos&&
-	 fabs(tk_pnt[s->d]-expos)<SearchReg)sptr[s->d]=s;
+	 fabs(tk_pnt[s->d]-expos)<SearchReg){
+ //      change by vc
+            delete sptr[s->d];
+            sptr[s->d]=s;
+      }
       else delete s;
       seg=seg->next();
     }

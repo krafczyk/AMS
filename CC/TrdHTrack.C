@@ -18,6 +18,7 @@ TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0)
   }
 };
 
+
 TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0){
   for(int i=0;i!=3;i++){
     Coo[i]=0.;

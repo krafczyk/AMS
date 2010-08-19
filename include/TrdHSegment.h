@@ -29,6 +29,9 @@ class TrdHSegmentR: public TrElem {
   int    Nhits;
   /// Chi2 (not normalized to ndf)
   float      Chi2;
+
+
+  // must be removed ASAP  -  VC
   
   /// pointer array of RawHits on segment
   int         fTrdRawHit[100];
@@ -81,7 +84,7 @@ class TrdHSegmentR: public TrElem {
   void RemoveHit(int iter);
 
   /// virtual dtor
-  virtual ~TrdHSegmentR(){clear();}
+virtual ~TrdHSegmentR(){clear();}
 
   void clear();
 
@@ -107,6 +110,41 @@ class TrdHSegmentR: public TrElem {
   };
 
   /// ROOT definition
+#ifdef __MLD__
+static int num;
+static int numa;
+static void print(){cout<<" segs "<<num<<" arrays "<<numa<<endl;}
+
+void* operator new(size_t t) {
+  num++;
+  return ::operator new(t);
+}
+
+void operator delete(void *p){
+if(p){
+num--;
+::operator delete(p);
+p=0;
+}
+} 
+
+
+void* operator new[](size_t t) {
+  numa++;
+  return ::operator new(t);
+}
+
+void operator delete[](void *p){
+if(p){
+numa--;
+::operator delete[](p);
+p=0;
+}
+} 
+
+#endif
+
+
   ClassDef(TrdHSegmentR, 7);
 };
 #endif

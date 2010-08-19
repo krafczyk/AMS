@@ -1,6 +1,8 @@
+//  $Id: TrdRawHit.h,v 1.5 2010/08/19 13:09:51 choutko Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
-
+//  below is the gift from BVC to MM
+//#define __MLD__
 #include "TObject.h"
 #include "TrElem.h"
 
@@ -47,6 +49,39 @@ class TrdRawHitR: public TrElem{
 
 #ifdef __WRITEROOT__
   TrdRawHitR(AMSTRDRawHit *ptr);
+#endif
+#ifdef __MLD__
+static int num;
+static int numa;
+static void print(){cout<<" hits "<<num<<" arrays  "<<numa<<endl;}
+
+void* operator new(size_t t) {
+  num++;
+  return ::operator new(t);
+}
+
+void operator delete(void* p){
+if(p){
+num--;
+::operator delete(p);
+p=0;
+}
+} 
+
+
+void* operator new[](size_t t) {
+  numa++;
+  return ::operator new(t);
+}
+
+void operator delete[](void *p){
+if(p){
+numa--;
+::operator delete[](p);
+p=0;
+}
+} 
+
 #endif
   
   ClassDef(TrdRawHitR,3)       //TrdRawHitR

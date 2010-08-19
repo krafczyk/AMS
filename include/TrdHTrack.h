@@ -41,7 +41,7 @@ class TrdHTrackR:public TrElem{
 
   /// default ctor
   TrdHTrackR();
-  
+    
   /// ctor - position direction array
   TrdHTrackR(float Coo_[3],float Dir_[3]);
 
@@ -88,7 +88,7 @@ class TrdHTrackR:public TrElem{
   /// return x and y for given z coordinate 
   void propagateToZ(float z, float &x , float& y);
 
-  /// virtual dtor
+  /// virtual dtor 
   virtual ~TrdHTrackR(){};//clear();};
 
   void clear();
@@ -108,6 +108,38 @@ class TrdHTrackR:public TrElem{
   };
 
   /// ROOT definition
+#ifdef __MLD__
+static int num;
+static int numa;
+static void print(){cout<<" tracks "<<num<<" arrays "<<numa<<endl;}
+
+void* operator new(size_t t) {
+  num++;
+  return ::operator new(t);
+}
+
+void operator delete(void *p){
+if(p){
+num--;
+::operator delete(p);
+p=0;
+}
+} 
+
+
+void* operator new[](size_t t) {
+  numa++;
+  return ::operator new(t);
+}
+
+void operator delete[](void *p){
+if(p){
+numa--;
+::operator delete[](p);
+p=0;
+}
+} 
+#endif
   ClassDef(TrdHTrackR, 6);
 };
 

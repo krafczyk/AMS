@@ -12,7 +12,8 @@ class AMSTRDHSegment:public AMSlink,public TrdHSegmentR{
   void _printEl(ostream &o);//{}
   void _copyEl();//{}
   void _writeEl();//{}
-
+  void * operator new (size_t t){return AMSlink::operator new(t);}
+  void operator delete(void*p){return AMSlink::operator delete(p);}
   //  static integer _addnext(integer d, float m, float em, float r, float er,float z, float w, integer nhits, TrdRawHitR* pthit[]);
   //  void _addnextR(uinteger iseg);
 
@@ -51,6 +52,8 @@ class AMSTRDHTrack:public AMSlink, public TrdHTrackR{
   //  static integer _addnext(float pos[], float dir[], AMSTRDHSegment* pthit[]);
   //  void _addnextR(uinteger iseg);
 
+  void * operator new (size_t t){return AMSlink::operator new(t);}
+  void operator delete(void*p){return AMSlink::operator delete(p);}
  AMSTRDHTrack(TrdHTrackR *tr):AMSlink(),TrdHTrackR(tr){};
   ~AMSTRDHTrack(){};//:AMSlink(),TrdHTrackR(tr){};
   

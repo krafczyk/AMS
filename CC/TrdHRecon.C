@@ -7,6 +7,14 @@
 //#include "event.h"
 #include "trdhrec.h"
 #endif
+#ifdef __MLD__
+int TrdRawHitR::num=0;
+int TrdHSegmentR::num=0;
+int TrdHTrackR::num=0;
+int TrdRawHitR::numa=0;
+int TrdHSegmentR::numa=0;
+int TrdHTrackR::numa=0;
+#endif
 
 ClassImp(TrdHReconR);
 
@@ -373,8 +381,9 @@ int TrdHReconR::clean_segvec(int debug){
   if(debug)printf("segments size %i\n",nhsegvec);
   for(int it=0;it<nhsegvec;it++){
     if(debug)printf("keep segment %i? %i\n",it,keepseg[it]);
-    if(keepseg[it]==1)
-      tmparr[ntmp++]=hsegvec[it];
+// vc modified
+    if(keepseg[it]==1)tmparr[ntmp++]=hsegvec[it];
+    else delete hsegvec[it];
   }
   
   nhsegvec=0;
@@ -671,7 +680,15 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
 }
 
 void TrdHReconR::clear(){
+//changed by vc
+
+
+  for(int i=0;i<nrhits;i++){
+    if(rhits[i])delete rhits[i];
+    rhits[i]=0;
+  }
   nrhits=0;
+
   for(int i=0;i<nhsegvec;i++){
     if(hsegvec[i]!=0)delete hsegvec[i];
     hsegvec[i]=0;
@@ -684,10 +701,6 @@ void TrdHReconR::clear(){
   nhtrvec=0;
 
 
-  for(int i=0;i<nrhits;i++){
-    if(rhits[i])delete rhits[i];
-    rhits[i]=0;
-  }
 
   return;
 }
