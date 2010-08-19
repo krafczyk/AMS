@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.40 2010/08/19 02:25:55 pzuccon Exp $
+// $Id: TrTrack.C,v 1.41 2010/08/19 23:37:24 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/19 02:25:55 $
+///$Date: 2010/08/19 23:37:24 $
 ///
-///$Revision: 1.40 $
+///$Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -139,7 +139,7 @@ TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
   p0[2]=0;
 
   par.FitDone = true;
-  par.P0      = point;
+  par.P0      = p0;
   par.Dir     = AMSDir(theta,phi); 
   par.Rigidity=1e6;
   par.ErrRinv  = 1e7;
@@ -264,7 +264,7 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   }
   if (ihit < 0) {
     if (_Nhits >= trconst::maxlay) {
-      cerr << "Error in TrTrack::AddHit the hit vector is already full"
+      cerr << "Error in TrTrack:AddHit the hit vector is already full"
 	   << endl;
       return;
     }
@@ -778,6 +778,7 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
   if(trdefaultfit==kDummy){
     AMSPoint pp=GetP0();
     AMSDir  dd=GetDir();
+
     P1[0]=pp[0]+dd[0]/dd[2]*pnt[2];
     P1[1]=pp[1]+dd[1]/dd[2]*pnt[2];
     P1[2]=pnt[2];
@@ -786,6 +787,9 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
     AMSPoint P2=P1-pp;
     length =P2.norm();
     if(pnt[2]>0)length*=-1;
+ //    printf(" Z %f P0  %f %f %f \n",pnt[2],pp[0],pp[1],pp[2]);
+//     printf("       P1  %f %f %f \n",pnt[2],P1[0],P1[1],P1[2]);
+//     printf(" dist %f P2  %f %f %f \n",length,P2[0],P2[1],P2[2]);
     return;
   }
 
