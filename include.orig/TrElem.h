@@ -1,6 +1,5 @@
 #ifndef __trelem__
 #define __trelem__
-
 #include "TObject.h"
 #include <iostream>
 #include <string>
@@ -31,5 +30,4 @@ public:
   virtual std::ostream& putout(std::ostream &ostr = std::cout)=0;
   ClassDef(TrElem,1);
 };
-
 #endif

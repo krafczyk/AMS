@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.40  2010/08/19 06:41:00  choutko
+* *** empty log message ***
+*
 * Revision 1.39  2010/08/12 12:51:01  choutko
 * *** empty log message ***
 *
@@ -206,7 +209,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6925,16 +6928,13 @@ c        enddo
             d(2)=mtx(1,2)*s1+mtx(2,2)*s2+mtx(3,2)*s3
                  hits(3,npt)=array(j,3,i)+
      +           param(j,array(j,4,i),array(j,5,i),3)+d3
-                 if(hits(3,npt).gt.100)then
-                    hits(3,npt)=hits(3,npt)-8
-                 endif
                  xsigma(3,npt)=array(j,5,i)
                 do k=1,2
                  hits(k,npt)=d(k)+cool(k,j,array(j,4,i),array(j,5,i))+
      +           param(j,array(j,4,i),array(j,5,i),k)
                  xsigma(k,npt)=array(j,k+5,i)
                  xsigma(k,npt+nplan)=array(j,k+5,i)
-                 if(abs(hits(3,npt)).gt.1000)then
+                 if(abs(hits(3,npt)).gt.100)then
                   xsigma(k,npt)=sqrt(xsigma(k,npt)**2+
      +         (13.6e-3*sqrt(0.25)/1.8*(abs(hits(3,npt))-55))**2)
                  endif
@@ -7860,9 +7860,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.39 2010/08/12 12:51:01 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.40  2010/08/19 06:41:00  choutko
+* *** empty log message ***
+*
 * Revision 1.39  2010/08/12 12:51:01  choutko
 * *** empty log message ***
 *

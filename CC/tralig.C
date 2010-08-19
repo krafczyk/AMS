@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.65 2010/08/12 12:51:00 choutko Exp $
+//  $Id: tralig.C,v 1.66 2010/08/19 06:40:59 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -518,7 +518,7 @@ while(offspring){
          ftxt.read((char*)&nh,sizeof(nh));
          ftxt.read((char*)&chi2,sizeof(chi2));
          ftxt.read((char*)&pattern,sizeof(pattern));
-         ftxt.read((char*)&address,sizeof(add1));
+         ftxt.read((char*)&address,sizeof(address));
 //         ftxt.read((char*)&add1,sizeof(add1));
 //         ftxt.read((char*)&add2,sizeof(add2));
          ftxt.read((char*)&rig,sizeof(rig));

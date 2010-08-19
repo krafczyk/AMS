@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.30 2010/01/11 16:03:43 pzuccon Exp $
+//  $Id: uzstat.C,v 1.31 2010/08/19 06:40:59 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -69,7 +69,7 @@ thread=omp_get_thread_num();
   }
 #ifdef __LVL3ONLY__
 #else
-  else cerr<<"AMSStat-Start-E-Name "<<name<<" does not exist"<<endl;
+  else cerr<<"AMSStat-Start-E-Name "<<name<<" "<<thread<<" does not exist"<<endl;
 #endif
 }
 number AMSStat::check(char * name){

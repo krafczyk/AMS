@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.587 2010/08/05 13:07:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.588 2010/08/19 06:41:00 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2983,7 +2983,8 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $status=$r->[8];
              my $tag=$r->[9];
              my $runx=sprintf("%x",$run);
-             print "<td><b> $run / $runx / $tag </td></b>
+             my $tagx=sprintf("%04x",$tag);
+             print "<td><b> $run / $runx / $tagx </td></b>
                     <td><b> $paths  </td>
                     <td><b> $starttime </b></td>
                     <td align=middle><b> $nevents </b></td>

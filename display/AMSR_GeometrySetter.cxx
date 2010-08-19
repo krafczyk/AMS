@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.9 2008/09/01 11:55:32 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.10 2010/08/19 06:41:00 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -118,6 +118,11 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
           recur(lnk,"FOA");
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"AVR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"VC");
+         lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"MAGN");
+
 
 
 

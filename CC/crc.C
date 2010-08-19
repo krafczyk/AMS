@@ -101,7 +101,7 @@ extern "C" int _sorta(const dirent64 ** e1, const dirent64 ** e2);
          unsigned int data;
          unsigned int crc;
           long long  fsize=statdir_map.st_size;
-          unsigned int chunk[32000]; 
+          unsigned int chunk[320000]; 
          int i=0;
          for(;;){
            if(!fsize) break;

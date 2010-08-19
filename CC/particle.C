@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.208 2010/08/07 18:20:24 mmilling Exp $
+//  $Id: particle.C,v 1.209 2010/08/19 06:40:59 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -571,6 +571,7 @@ void AMSParticle::trd_Hlikelihood(){
   plik=pow(plik,(double)(1./(double)n));
   
   _TRDHLikelihood=-log(elik/(elik+plik));
+  //cout <<"  elik "<<elik<<" "<<plik<<endl;
   if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,_TRDHLikelihood);
 }
 
