@@ -430,6 +430,7 @@ bool TrdHReconR::check_hits(int is1,int is2,int debug){
   }
 
   if(debug)printf("return - all hits found? %i\n",nhitsok==nref);
+  if(tr)delete tr;
   return (nhitsok==nref);
 }
 
@@ -510,10 +511,10 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float side=320.+100./(rzd.z-132.);
     float line=720.+205./(rzd.z-132.);
 
-    if(fabs(x)>base)return 0;
-    if(fabs(y)>base)return 0;
-    if(fabs(y)>line)return 0;
-    if(fabs(x)+fabs(x)>side)return 0;
+    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(x)>side){
+     if(tr)delete tr;  
+     return 0;
+   } 
   }
   for(int i=0;i!=hsegvec[is2]->Nhits;i++){
     TRDHitRZD rzd=TRDHitRZD(*hsegvec[is2]->pTrdRawHit(i));
@@ -524,12 +525,12 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float side=320.+100./(rzd.z-132.);
     float line=720.+205./(rzd.z-132.);
 
-    if(fabs(x)>base)return 0;
-    if(fabs(y)>base)return 0;
-    if(fabs(y)>line)return 0;
-    if(fabs(x)+fabs(x)>side)return 0;
+    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(x)>side){
+     if(tr)delete tr;  
+     return 0;
+   } 
   }
-
+  if(tr)delete tr;
   return 1;
 }
 
