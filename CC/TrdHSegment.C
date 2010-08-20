@@ -64,7 +64,7 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
     fTrdRawHit[i]=seg->fTrdRawHit[i];
     hits[i]=seg->hits[i];
   }
-  calChi2();
+  Chi2=seg->Chi2;
 };
 
 void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
@@ -87,7 +87,7 @@ float TrdHSegmentR::resid(float r_, float z_, int d_){
   
 void TrdHSegmentR::calChi2(){
   Chi2=0.;
-  for(int i=0;i!=Nhits;i++){
+  for(int i=0;i<Nhits;i++){
     TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(i));
     Chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12.)),2);
   }
