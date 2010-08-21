@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.197 2010/07/07 14:12:45 pzuccon Exp $
+//  $Id: ntuple.C,v 1.198 2010/08/21 08:56:05 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -465,6 +465,10 @@ void AMSNtuple::writeR(){
       for(evmapi i=evmap.begin();i!=evmap.end();i++){
 	ssize+=i->second->Size();
       }  
+      if(ssize/1024/1024>1500){
+      cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
+	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
+      }
       _Size=evmap.size();
       if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
     }

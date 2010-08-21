@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.61 2010/08/08 18:01:42 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.62 2010/08/21 08:56:05 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/08 18:01:42 $
+/// $Date: 2010/08/21 08:56:05 $
 ///
-/// $Revision: 1.61 $
+/// $Revision: 1.62 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1316,7 +1316,8 @@ int TrRecon::BuildTrTracks(int rebuild)
     found = 0;
     // Scan Ladders for each pattern until a track found
     for (int pat = 0; !CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
-      TrHitIter itcand;
+static      TrHitIter itcand;
+#pragma omp threadprivate(itcand)
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
 	if (found = BuildATrTrack(itcand)) ntrack += found;
     }
@@ -1523,7 +1524,8 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
 
   // Define and fill iterator
-  TrHitIter it;
+  static TrHitIter it;
+#pragma omp threadprivate(it)
   it.mode = 1; it.pattern = pattern; 
   it.side = 1; it.psrange = RecPar.LadderScanRange;
 
@@ -1615,7 +1617,9 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
   TR_DEBUG_CODE_21;
 
   // Scan hits among the current ladder combination
-  TrHitIter itchit = it;
+static  TrHitIter itchit;
+#pragma omp threadprivate(itchit)
+ itchit = it;
   itchit.nhitc = itcand.nhitc;
   if (!ScanHits(it, itchit)) return 0;
   TR_DEBUG_CODE_22;
@@ -1639,7 +1643,9 @@ int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
     itcand.iscan[i][0] = itcand.iscan[i][1] = itcand.imult[i] = 0;
 
   // Define and fill iterator
-  TrHitIter it = itlad;
+static  TrHitIter it;
+#pragma omp threadprivate(it)
+it = itlad;
   it.mode = 2;
   it.chisq[0] = it.chisq[1] = RecPar.MaxChisqAllowed;
   it.psrange = RecPar.ClusterScanRange;
@@ -1750,8 +1756,9 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   TR_DEBUG_CODE_31;
   if (csq < 0 || csq > itcand.chisq[it.side]) return 0;
 
-  TrHitIter ittmp = it;
-
+  static TrHitIter ittmp;
+#pragma omp threadprivate(ittmp)
+ittmp=it;
   // Fill dummy multiplicity and coordinates for YONLY hits
   if (ittmp.side == 0) {
     int ndim = 1;
