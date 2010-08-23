@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.32 2010/08/07 10:51:26 shaino Exp $ 
+// $Id: TrRecon.h,v 1.33 2010/08/23 16:57:02 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/08/07 10:51:26 $
+/// $Date: 2010/08/23 16:57:02 $
 ///
-/// $Revision: 1.32 $
+/// $Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -527,6 +527,12 @@ public:
     int &Iscan(int i) { return iscan[i][side]; }
   } TrHitIter;
 
+  /// The best candidate found so far in ScanLadders
+  TrHitIter _itcand;
+
+  /// The best candidate found so far in ScanHits
+  TrHitIter _itchit;
+
 //========================================================
 // Track reconstruction methods
 //========================================================
@@ -572,29 +578,27 @@ public:
    *                    it.tkid, and it.ilay must be filled before calling. 
    *                    it.tkid can be like (layer)*100. 
    *                    The other elements to be filled during the recursion.
-   *
-   *\param[out] itcand Iterator containing the best candidate found so far
    */
-  int ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const;
+  int ScanRecursive(int idx, TrHitIter &it);
 
   /// Pre-selection (interpolation check) on the current scan
   bool PreScan(int nlay, TrHitIter &iter) const;
   /// Fill the order of scanning layers to make pre-selection most effectie
   int SetLayerOrder(TrHitIter &iter) const;
 
-  /// Scan ladders, returns 1 and itcand is filled if candidate found
-  int ScanLadders(int pattern, TrHitIter &itcand) const;
+  /// Scan ladders, returns 1 and _itcand is filled if candidate found
+  int ScanLadders(int pattern);
   /// Coord.manager for ladders scan to be put in ScanRecursive
   int LadderCoordMgr(int idx, TrHitIter &it, int mode) const;
   /// Evaluator for Ladder scan to be put in ScanRecursive
-  int LadderScanEval(TrHitIter &it, TrHitIter &cand) const;
+  int LadderScanEval(TrHitIter &it);
 
-  /// Scan X and Y hits, returns 1 and itcand is filled if candidate found
-  int ScanHits(TrHitIter &it, TrHitIter &itcand) const;
+  /// Scan X and Y hits, returns 1 and _itcand is filled if candidate found
+  int ScanHits(const TrHitIter &it);
   /// Coord.manager for hits scan to be put in ScanRecursive
   int HitCoordMgr(int idx, TrHitIter &it, int mode) const;
   /// Evaluator for hits scan to be put in ScanRecursive
-  int HitScanEval(const TrHitIter &it, TrHitIter &cand) const;
+  int HitScanEval(const TrHitIter &it);
 
   /// Estimate multiplicity and readout strip by interpolation
   TkSens EstimateXCoord(AMSPoint coo, int tkid = 0) const;

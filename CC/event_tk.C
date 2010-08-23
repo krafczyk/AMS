@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.26 2010/08/04 13:31:24 shaino Exp $
+//  $Id: event_tk.C,v 1.27 2010/08/23 16:57:01 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -114,7 +114,15 @@ void AMSEvent::_retkevent(integer refit){
       {
 	AMSgObj::BookTimer.start("TrTrack");
 	TrRecon::RecPar.NbuildTrack++;
-	int retr3=rec->BuildTrTracks();
+	try{
+	  rec->BuildTrTracks();
+	}
+	catch (...){
+	  static int nerr = 0;
+	  if (nerr++ < 100)
+	    cerr <<"TrRecon::BuildTrTracks: exception catched at Event "
+		 << getEvent() << endl;
+	}
 	rec->MatchTRDandExtend();
 	AMSgObj::BookTimer.stop("TrTrack");
 

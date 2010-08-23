@@ -110,13 +110,14 @@ void PATT::InitPattern(){
   integer vorder[maxlay]={1,2,3,4,5,6,7,8,9};
   int minc;
   int iq=0;
-  for(minc=0;minc<TkDBc::Head->nlay()-2;minc+=2){
+  ordermiss[TkDBc::Head->nlay()-3]=2;
+  ordermiss[TkDBc::Head->nlay()-2]=TkDBc::Head->nlay();
+  ordermiss[TkDBc::Head->nlay()-1]=1;
+  for(minc=0;minc<TkDBc::Head->nlay()-2-TkDBc::Head->nlay()%2;minc+=2){
     ordermiss[iq]=TkDBc::Head->nlay()-1-minc;
     ordermiss[iq+TkDBc::Head->nlay()/2-1]=TkDBc::Head->nlay()-2-minc;
     iq++;
   }
-  ordermiss[TkDBc::Head->nlay()-2]=TkDBc::Head->nlay();
-  ordermiss[TkDBc::Head->nlay()-1]=1;
 #ifdef __AMSDEBUG__
   for(minc=0;minc<TkDBc::Head->nlay();minc++)cout <<"ordermiss["<<minc<<"] "<<ordermiss[minc]<<endl;
 #endif
@@ -214,6 +215,29 @@ void PATT::InitPattern(){
 	    }
 	  }
           break;
+          case 6:        
+            for(i1=0;i1<TkDBc::Head->nlay();i1++){
+             for(i2=i1+1;i2<TkDBc::Head->nlay();i2++){
+              for(i3=i2+1;i3<TkDBc::Head->nlay();i3++){
+              for(i4=i3+1;i4<TkDBc::Head->nlay();i4++){
+               for(int i5=i4+1;i5<TkDBc::Head->nlay();i5++){
+               for(int i6=i5+1;i6<TkDBc::Head->nlay();i6++){
+               if(vmini==count){
+                vmiss[TkDBc::Head->nlay()-1]=ordermiss[i6];
+                vmiss[TkDBc::Head->nlay()-2]=ordermiss[i5];
+                vmiss[TkDBc::Head->nlay()-3]=ordermiss[i4];
+                vmiss[TkDBc::Head->nlay()-4]=ordermiss[i3];
+                vmiss[TkDBc::Head->nlay()-5]=ordermiss[i2];
+                vmiss[TkDBc::Head->nlay()-6]=ordermiss[i1];
+               }
+               count++;
+              }            
+              }            
+             } 
+            }
+           }
+           }
+           break;
         default:
           cerr<<"PATT::InitPattern -F-PatternLogicError"<<endl;
 	  // exit(1);

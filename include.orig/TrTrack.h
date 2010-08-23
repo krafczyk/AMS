@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.27 2010/08/15 13:19:26 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.28 2010/08/23 16:57:02 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/08/15 13:19:26 $
+///$Date: 2010/08/23 16:57:02 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -261,8 +261,9 @@ public:
   void AddHit(TrRecHitR *hit, int imult = -1);
 
   /// Set hit patterns
-  void SetPatterns(int patx, int paty, int patxy) {
+  void SetPatterns(int patx, int paty, int patxy, int pat = -1) {
     _PatternX = patx; _PatternY = paty; _PatternXY = patxy;
+    if (pat >= 0) _Pattern = pat;
   }
 
 
@@ -445,8 +446,14 @@ public:
   /// Do advanced fits specified in the default list and add in OR the add_flags
   int DoAdvancedFit(int add_flags=0);
 
-  void GetMaxShift(int& left,int &right);
-  void Move(int shift, int fit_flags=0);
+  /// Get range of maximum shift in multiplicity
+  void GetMaxShift(int &left, int &right);
+
+  /// Move the track in X direction
+  void Move(int shift, int fit_flags = 0);
+
+  /// Estimate dummyX and multiplicity for OnlyY hits
+  void EstimateDummyX(int fitid = 0);
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();

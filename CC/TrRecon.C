@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.62 2010/08/21 08:56:05 choutko Exp $ 
+/// $Id: TrRecon.C,v 1.63 2010/08/23 16:57:00 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/21 08:56:05 $
+/// $Date: 2010/08/23 16:57:00 $
 ///
-/// $Revision: 1.62 $
+/// $Revision: 1.63 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -829,15 +829,15 @@ if (TrDEBUG >= 1) {\
   cout << endl;\
   cout << "Ccand: ";\
   for (int i = 0; i < it.nlayer; i++) {\
-    if (itchit.iscan[i][0] >= 0)\
-      cout<< Form(" (%d,%d,",itchit.iscan[i][0], itchit.imult[i]);\
+    if (_itchit.iscan[i][0] >= 0)\
+      cout<< Form(" (%d,%d,",_itchit.iscan[i][0], _itchit.imult[i]);\
     else cout << " (-,-,";\
-    if (itchit.iscan[i][1] >= 0) cout<< itchit.iscan[i][1];\
+    if (_itchit.iscan[i][1] >= 0) cout<< _itchit.iscan[i][1];\
     else cout << "-";\
     cout << ") ";\
   }\
   cout << endl << "Chisq= "\
-       << itchit.chisq[0] << " " << itchit.chisq[1] << endl;\
+       << _itchit.chisq[0] << " " << _itchit.chisq[1] << endl;\
 }
 
 #define TR_DEBUG_CODE_30 \
@@ -849,7 +849,7 @@ if (TrDEBUG >= 4) {\
 #define TR_DEBUG_CODE_31 \
 if (TrDEBUG >= 3) {\
   cout << "EvalHit side= " << it.side << " nlay= " << it.nlayer \
-       << " csq= " << csq << " " << itcand.chisq[it.side] << endl;\
+       << " csq= " << csq << " " << _itcand.chisq[it.side] << endl;\
   if (TrDEBUG >= 4) {\
     for (int i = 0; i < it.nlayer && it.ilay[i] >= 0;i++)\
       cout << Form(" %4d-%d,%d", it.tkid[it.ilay[i]],\
@@ -861,9 +861,9 @@ if (TrDEBUG >= 3) {\
 #define TR_DEBUG_CODE_32 \
 if (TrDEBUG >= 4) {\
   cout << "Replaced: " << endl;\
-  for (int i = 0; i < itcand.nlayer; i++)\
-    cout << Form(" %4d-%d%d%d", itcand.tkid[i],\
-                 itcand.iscan[i][0], itcand.iscan[i][1], itcand.imult[i]);\
+  for (int i = 0; i < _itcand.nlayer; i++)\
+    cout << Form(" %4d-%d%d%d", _itcand.tkid[i],\
+                 _itcand.iscan[i][0], _itcand.iscan[i][1], _itcand.imult[i]);\
   cout << endl;\
 }
 
@@ -883,8 +883,8 @@ if (TrDEBUG >= 6) {\
 if (TrDEBUG >= 5) {\
   VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");\
   int ihit = cont2->getindex(hit);\
-  cout << "Removed hit " << itcand.tkid[i] << " " << ihit << endl;\
-  int tkid = itcand.tkid[i];\
+  cout << "Removed hit " << _itcand.tkid[i] << " " << ihit << endl;\
+  int tkid = _itcand.tkid[i];\
   int nclx = GetnTrRecHits(tkid, 0);\
   int ncly = GetnTrRecHits(tkid, 1);\
   cout << Form("TkId %4d Nclx= %2d Ncly= %2d", tkid, nclx, ncly) << endl;\
@@ -1316,11 +1316,19 @@ int TrRecon::BuildTrTracks(int rebuild)
     found = 0;
     // Scan Ladders for each pattern until a track found
     for (int pat = 0; !CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
-static      TrHitIter itcand;
-#pragma omp threadprivate(itcand)
-      if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat, itcand)))
-	if (found = BuildATrTrack(itcand)) ntrack += found;
+try{
+      if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat)))
+	if (found = BuildATrTrack(_itcand)) ntrack += found;
+}
+catch (...){
+  static int nerr = 0;
+  if (nerr++ < 100) 
+    cerr <<"TrRecon::BuildTrTracks-E- exception catched at ScanLadders("
+	 << pat << " " << NHitPatterns << ")" << endl;
+  throw 1;
+}
     }
+
   } while (!CpuTimeUp() && found && ntrack < RecPar.MaxNtrack);
 
   _CpuTime = _CheckTimer();
@@ -1477,20 +1485,20 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
   return 1;
 }
 
-int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
+int TrRecon::ScanRecursive(int idx, TrHitIter &it)
 {
   if (RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim)
-    (const_cast<TrRecon *>(this))->_CpuTimeUp = true;
+    _CpuTimeUp = true;
 
   if (CpuTimeUp()) return 0;
 
   // Evaluate current candidates if idx has reached to the end
-  if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it, itcand)
-                                              : HitScanEval   (it, itcand);
+  if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it)
+                                              : HitScanEval   (it);
 
   // Skip if current layer is disabled
   int il = it.ilay[idx];
-  if (il < 0) return ScanRecursive(idx+1, it, itcand);
+  if (il < 0) return ScanRecursive(idx+1, it);
 
   // Loop on hit candidates in the current layer
   int nscan = (it.mode == 1) ? LadderCoordMgr(idx, it, 1)
@@ -1509,7 +1517,7 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
       if (!PreScan(idx, it)) continue;
 
       // Go to the next layer
-      ScanRecursive(idx+1, it, itcand);
+      ScanRecursive(idx+1, it);
     }
     if (it.imult[il] > 0) it.imult[il]--;
   }
@@ -1517,15 +1525,14 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it, TrHitIter &itcand) const
 }
 
 
-int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
+int TrRecon::ScanLadders(int pattern)
 {
   // Clear the-best-candidate parameters
-  itcand.nlayer = 0; itcand.nhitc = _MinNhitXY; 
-  itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
+  _itcand.nlayer = 0; _itcand.nhitc = _MinNhitXY; 
+  _itcand.chisq[0] = _itcand.chisq[1] = RecPar.MaxChisqAllowed;
 
   // Define and fill iterator
-  static TrHitIter it;
-#pragma omp threadprivate(it)
+  TrHitIter it;
   it.mode = 1; it.pattern = pattern; 
   it.side = 1; it.psrange = RecPar.LadderScanRange;
 
@@ -1545,10 +1552,10 @@ int TrRecon::ScanLadders(int pattern, TrHitIter &itcand) const
   SetLayerOrder(it);
 
   // Scan ladder combination recursively
-  ScanRecursive(0, it, itcand);
+  ScanRecursive(0, it);
 
   // Return 1 if track has been found
-  return (!CpuTimeUp() && itcand.nlayer > 0);
+  return (!CpuTimeUp() && _itcand.nlayer > 0);
 }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
@@ -1578,7 +1585,7 @@ int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
   return 1;
 }
 
-int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
+int TrRecon::LadderScanEval(TrHitIter &it)
 {
   // Check CPU time limit
   if (CpuTimeUp()) return 0;
@@ -1591,17 +1598,13 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
     int nhitx = (GetnTrRecHits(it.tkid[i])-nhity)/nhity;
     if (nhitx > 0) nhitc++;
   }
-  if (nhitc < itcand.nhitc) return 0; 
+  if (nhitc < _itcand.nhitc) return 0; 
 
   // Obtain a track with linear/circle fitting
   TrFit fit;
-  for (int i = 0; i < it.nlayer; i++){
-    float bf[3]={0,0,0};
-    float pp[3];
-    pp[0]=it.coo[i].x();pp[1]=it.coo[i].y();pp[2]=it.coo[i].z();
-    GUFLD(pp, bf);
-    fit.Add(it.coo[i], 0, RecPar.LadderScanRange*0.75, 1,bf[0],bf[1],bf[2]);
-  }
+  for (int i = 0; i < it.nlayer; i++)
+    fit.Add(it.coo[i], 0, RecPar.LadderScanRange*0.75, 1);
+
   if (MagFieldOn())
     fit.CircleFit(2);
   else
@@ -1617,35 +1620,29 @@ int TrRecon::LadderScanEval(TrHitIter &it, TrHitIter &itcand) const
   TR_DEBUG_CODE_21;
 
   // Scan hits among the current ladder combination
-static  TrHitIter itchit;
-#pragma omp threadprivate(itchit)
- itchit = it;
-  itchit.nhitc = itcand.nhitc;
-  if (!ScanHits(it, itchit)) return 0;
+  _itchit = it;
+  _itchit.nhitc = _itcand.nhitc;
+  if (!ScanHits(it)) return 0;
   TR_DEBUG_CODE_22;
 
   // Replace the best candidate if better one found
-  if (itchit.nhitc > itcand.nhitc ||
-      itchit.chisq[0]+itchit.chisq[1] < itcand.chisq[0]+itcand.chisq[1])
-    itcand = itchit;
+  if (_itchit.nhitc > _itcand.nhitc ||
+      _itchit.chisq[0]+_itchit.chisq[1] < _itcand.chisq[0]+_itcand.chisq[1])
+    _itcand = _itchit;
 
   return 1;
 }
 
-
-
-
-int TrRecon::ScanHits(TrHitIter &itlad, TrHitIter &itcand) const
+int TrRecon::ScanHits(const TrHitIter &itlad)
 {
   // Reset the-best-candidate parameters
-  itcand.chisq[0] = itcand.chisq[1] = RecPar.MaxChisqAllowed;
+  _itchit.chisq[0] = _itchit.chisq[1] = RecPar.MaxChisqAllowed;
   for (int i = 0; i < SCANLAY; i++)
-    itcand.iscan[i][0] = itcand.iscan[i][1] = itcand.imult[i] = 0;
+    _itchit.iscan[i][0] = _itchit.iscan[i][1] = _itchit.imult[i] = 0;
 
   // Define and fill iterator
-static  TrHitIter it;
-#pragma omp threadprivate(it)
-it = itlad;
+  TrHitIter it = itlad;
+
   it.mode = 2;
   it.chisq[0] = it.chisq[1] = RecPar.MaxChisqAllowed;
   it.psrange = RecPar.ClusterScanRange;
@@ -1656,7 +1653,7 @@ it = itlad;
   for (it.side = 0; it.side <= 1; it.side++) {
     int maxpat = (it.side == 0) ? GetHitPatternFirst(1+SCANLAY-_MinNhitX) 
                                 : itlad.pattern+1;
-    itcand.side = it.side;
+    _itchit.side = it.side;
 
     int lmask = GetHitPatternMask(itlad.pattern);
 
@@ -1670,15 +1667,15 @@ it = itlad;
 
       // Hit scan
       TR_DEBUG_CODE_30;
-      ScanRecursive(0, it, itcand);
+      ScanRecursive(0, it);
 
       // Check chisquare
-      if (found = (itcand.chisq[it.side] < RecPar.MaxChisqAllowed)) break;
+      if (found = (_itchit.chisq[it.side] < RecPar.MaxChisqAllowed)) break;
     }
     if (!found) return 0;
 
-    if (it.side == 0) itcand.nhitc = SCANLAY-GetHitPatternNmask(it.pattern);
-    it = itcand;
+    if (it.side == 0) _itchit.nhitc = SCANLAY-GetHitPatternNmask(it.pattern);
+    it = _itchit;
   }
   return 1;
 }
@@ -1724,7 +1721,7 @@ int TrRecon::HitCoordMgr(int idx, TrHitIter &it, int mode) const
   return 1;
 }
 
-int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
+int TrRecon::HitScanEval(const TrHitIter &it)
 {
   // Evaluate the track candidate
   TrFit fit;
@@ -1754,11 +1751,10 @@ int TrRecon::HitScanEval(const TrHitIter &it, TrHitIter &itcand) const
   // Check chisquare
   double csq = (it.side == 0) ? fit.GetChisqX() : fit.GetChisqY();
   TR_DEBUG_CODE_31;
-  if (csq < 0 || csq > itcand.chisq[it.side]) return 0;
+  if (csq < 0 || csq > _itchit.chisq[it.side]) return 0;
 
-  static TrHitIter ittmp;
-#pragma omp threadprivate(ittmp)
-ittmp=it;
+  TrHitIter ittmp = it;
+
   // Fill dummy multiplicity and coordinates for YONLY hits
   if (ittmp.side == 0) {
     int ndim = 1;
@@ -1785,11 +1781,11 @@ ittmp=it;
 
   // Keep XZ fitting parameters
   if (ittmp.side == 1)
-    for (int i = 0; i < 4; i++) ittmp.param[i] = itcand.param[i];
+    for (int i = 0; i < 4; i++) ittmp.param[i] = _itchit.param[i];
 
   // Replace candidate iterator
-  itcand = ittmp;
-  itcand.chisq[ittmp.side] = csq;
+  _itchit = ittmp;
+  _itchit.chisq[ittmp.side] = csq;
   TR_DEBUG_CODE_32;
 
   return 1;
@@ -1828,6 +1824,10 @@ int TrRecon::EstimateXCoord(int il, TrHitIter &it) const
   // Estimate sensor number and strip position
   AMSPoint gcoo(px, ly, lz);
   TkSens tks = EstimateXCoord(gcoo, tkid);
+  if (!tks.LadFound() || tks.GetLadTkID() != tkid) return -1;
+  if (tks.GetMultIndex() >= 
+      TkCoo::GetMaxMult(tkid,tks.GetStripX()+640)) return -1;
+
   it.imult[il] = tks.GetMultIndex();
   TR_DEBUG_CODE_40;
 
@@ -2034,14 +2034,23 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 #endif
   // Loop for each layer
   int maskc = GetHitPatternMask(itcand.pattern);
+  int masky = GetHitPatternMask(itcand.pattern);
+
   for (int i = 0; i < itcand.nlayer; i++) {
     // Get clusters from candidate map
     TrRecHitR *hit = GetTrRecHit(itcand.tkid[i], itcand.iscan[i][0], 
                                                  itcand.iscan[i][1]);
     if (!hit) continue;
+
     if (hit->OnlyY()) {
       maskc |= (1 << (SCANLAY-hit->GetLayer()));
-      hit->SetDummyX(EstimateXCoord(i, itcand));
+      int dmx = EstimateXCoord(i, itcand);
+      if (dmx < 0) {
+	masky |= (1 << (SCANLAY-hit->GetLayer()));
+	continue;
+      }
+
+      hit->SetDummyX(dmx);
       hit->BuildCoordinates();
       track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
     }
@@ -2057,8 +2066,10 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
  }
   // Fill patterns
-  track->SetPatterns(TrRecon::GetHitPatternIndex(maskc), itcand.pattern,
-                     TrRecon::GetHitPatternIndex(maskc));
+  track->SetPatterns(TrRecon::GetHitPatternIndex(maskc),
+		     TrRecon::GetHitPatternIndex(masky),
+                     TrRecon::GetHitPatternIndex(maskc),
+		     TrRecon::GetHitPatternIndex(masky));
 
   // 1st. step Fit
   int fit_method = (MagFieldOn()) ? TrTrackR::kSimple : TrTrackR::kLinear;
@@ -2606,34 +2617,36 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
 
   number SearchReg(1);
   number MaxCos(0.95);
-  AMSPoint dst=BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
-  if( fabs(dst[1]) < SearchReg && dst[2]> MaxCos) {
-    if(fabs(dst[0])< SearchReg) return true;
-    else{ //try to move TrTrack on X
-      int left  = 0;
-      int right = 0;
-      int move[2];
-      ptrack->GetMaxShift(left,right);
-      if(dst[0]>0) {move[0]=left; move[1]=0;       } 
-      else         {move[0]=1;    move[1]=right+1; }     
-      int moved=0;
-      for(int mm=move[0];mm<move[1];mm++){
-	TrTrackR test(*ptrack);
-	test.Move(mm, mfit);
-	AMSPoint dd=BasicTkTRDMatch(&test, trdcoo, trddir, mfit);
-	if(fabs(dd[0]) < SearchReg&&fabs(dd[1]) < SearchReg && dd[2]> MaxCos){
-	  moved=mm;
-	  break;
-	}
-      }
-      if(moved==0) return false;
-      else{
-	ptrack->Move(moved);
-	return true;
-      }
+  AMSPoint dst = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+
+  // No match in Y-coo or angle between TrTrack-TRD tracks
+  if (fabs(dst[1]) > SearchReg || dst[2] < MaxCos) return false;
+
+  // Good match between TrTrack-TRD tracks; no need to move
+  if (fabs(dst[0]) < SearchReg) return true;
+
+  // Try to move TrTrack along X
+  int left = 0, right = 0;
+  ptrack->GetMaxShift(left, right);
+
+  int moved = 0;
+  for (int mm = left; mm <= right; mm++){
+    if (mm == 0) continue;
+
+    TrTrackR test(*ptrack);
+    test.Move(mm, mfit);
+    AMSPoint dd = BasicTkTRDMatch(&test, trdcoo, trddir, mfit);
+    if (fabs(dd[0]) < SearchReg && 
+	fabs(dd[1]) < SearchReg && dd[2]> MaxCos) {
+      moved = mm;
+      break;
     }
   }
-  else return false;
+  if (moved == 0) return false;
+
+  ptrack->Move(moved);
+  ptrack->EstimateDummyX();
+  return true;
 }
 
 void TrRecon::MatchTRDandExtend(){

@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.14 2010/08/07 14:51:55 shaino Exp $
+//  $Id: TrFit.h,v 1.15 2010/08/23 16:57:02 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/08/07 14:51:55 $
+///$Date: 2010/08/23 16:57:02 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -263,6 +263,11 @@ public:
   int Add(AMSPoint pos, double ex, double ey, double ez,
 	  double bx, double by, double bz, int at = -1) {
     return Add(pos.x(), pos.y(), pos.z(), ex, ey, ez, bx, by, bz,at);
+  }
+
+  /// Add a new hit with a position and its error (ex, ey, ez)
+  int Add(AMSPoint pos, double ex, double ey, double ez, int at = -1) {
+    return Add(pos.x(), pos.y(), pos.z(), ex, ey, ez, at);
   }
 
   /// Add a new hit with a position and its error by AMSPoint

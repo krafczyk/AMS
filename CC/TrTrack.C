@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.41 2010/08/19 23:37:24 pzuccon Exp $
+// $Id: TrTrack.C,v 1.42 2010/08/23 16:57:01 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/19 23:37:24 $
+///$Date: 2010/08/23 16:57:01 $
 ///
-///$Revision: 1.41 $
+///$Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -316,68 +316,118 @@ void TrTrackR::BuildHitsIndex()
 }
 
 
-void TrTrackR::GetMaxShift(int& left, int& right){
-  left=99; right=99;
-  for(int ii=0;ii<_Nhits;ii++){
-    int tkid=_Hits[ii]->GetTkId();
-    int mult=_Hits[ii]->GetMultiplicity();
-    int ll=0; int rr=0;
-    if(tkid>=0){ll=mult-_iMult[ii]; rr=_iMult[ii];}
-    else {rr=mult-_iMult[ii]; ll=_iMult[ii];}
-    if(ll<left)  left=ll;
-    if(rr<right) right=rr;
+void TrTrackR::GetMaxShift(int &left, int &right)
+{
+  left = right = 99;
+  for (int i = 0; i < _Nhits; i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (!hit) continue;
+
+    int tkid  = hit->GetTkId();
+    int nmult = hit->GetMultiplicity();
+    int imult = _iMult[i];
+    int ll = 0;
+    int rr = 0;
+
+    if (tkid >= 0) { ll = nmult-imult-1; rr = imult; }
+    else           { rr = nmult-imult-1; ll = imult; }
+    if (ll < left)  left  = ll;
+    if (rr < right) right = rr;
   }
-  left*=-1;
-  return;
+  left *= -1;
 }
 
-void TrTrackR::Move(int shift, int fit_flags){
- for(int ii=0;ii<_Nhits;ii++){
-    int tkid=_Hits[ii]->GetTkId();
-    if(_Hits[ii]->OnlyY ()){
-       int layer = std::abs(tkid)/100;
-       float ln  = TkCoo::GetLadderLength (tkid);
-       float lx  = TkCoo::GetLadderCenterX(tkid);
-       float ly  = TkCoo::GetLadderCenterY(tkid);
-       float lz  = TkDBc::Head->GetZlayer(layer);
-       float previousX=_Hits[ii]->GetCoord()[0];
-       if(tkid>0) previousX-=shift*TkDBc::Head->_SensorPitchK*2;
-       else previousX+=shift*TkDBc::Head->_SensorPitchK*2;
-       AMSPoint gcoo(previousX, ly, lz);
-       TkSens tks(tkid, gcoo,0);
-       if (tks.LadFound() && tks.GetStripX() < 0) {
-	 float sx = tks.GetSensCoo().x();
-	 float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
-	 if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
-	 if (sx > TkDBc::Head->_ssize_active[0])
-	   gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
-	 tks.SetGlobalCoo(gcoo);
-       }  
-       _Hits[ii]->SetResolvedMultiplicity(tks.GetMultIndex());
-       _Hits[ii]->SetDummyX(tks.GetStripX());
-       _Hits[ii]->BuildCoordinates();
-    }else{
+void TrTrackR::Move(int shift, int fit_flags)
+{
+  for (int i = 0; i < _Nhits; i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (!hit) continue;
+   
+    int tkid = hit->GetTkId();
+    if (!hit->OnlyY()) {
+      int nmult = hit->GetMultiplicity();
+      int imult = _iMult[i];
+      if (tkid >= 0) imult -= shift;
+      else           imult += shift;
 
-
-      int mult=_Hits[ii]->GetMultiplicity();
-      int nmult=_iMult[ii];
-      if(tkid>=0) nmult-=shift;
-      else nmult+=shift;
-      if(nmult>=0 && nmult<=mult) {
-	_iMult[ii]=nmult;
-	_Hits[ii]->SetResolvedMultiplicity(nmult);
+      if (imult >= 0 && imult < nmult) {
+	_iMult[i] = imult;
+	_Hits [i]->SetResolvedMultiplicity(imult);
       }
-      else cerr<<"TrTrackR::Move-E- Very Bad problem moving the Track\n";
+      else cerr
+	<< "TrTrackR::Move-E- Problem moving the Track "
+	<< hit->GetTkId() << " " << nmult << " " << imult << " " << shift
+	<< endl;
     }
- }
- if (fit_flags == 0)
-   ReFit();
- else if (ParExists(fit_flags)) Fit(fit_flags);
+  }
 
- return;
+  try{
+    if (fit_flags != 0 && ParExists(fit_flags)) Fit(fit_flags);
+    else ReFit();
+  }
+  catch (...){
+   static int nerr = 0;
+   if (nerr++ < 100) 
+     cerr <<"TrTrackR::MoveFit-E- exception catched at Refit("
+	  << fit_flags << ")" << endl;
+  }
 }
 
 
+void TrTrackR::EstimateDummyX(int fitid)
+{
+  for (int i = 0; i < _Nhits; i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (!hit || !hit->OnlyY()) continue;
+
+    int tkid = hit->GetTkId();
+    int ily  = hit->GetLayer()-1;
+    AMSPoint gcoo = InterpolateLayer(ily, fitid);
+    TkSens tks(tkid, gcoo, 0);
+
+    if (tks.LadFound()) {
+      float dy = TkDBc::Head->_ssize_active[1]/2;
+      float ly = TkCoo::GetLadderCenterY(tkid);
+
+      if (tks.GetStripX() < 0) {
+	float sx = tks.GetSensCoo().x();
+	float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
+	if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
+	if (sx > TkDBc::Head->_ssize_active[0])
+	  gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
+      }
+      if (fabs(gcoo.y()-ly) > dy) gcoo[1] = ly;
+      tks.SetGlobalCoo(gcoo);
+    }
+
+    if (!tks.LadFound() || tks.GetLadTkID() != tkid) {
+      static int nerr = 0;
+      if (nerr++ < 100) {
+	float dy = TkDBc::Head->_ssize_active[1]/2;
+	float dx = TkCoo::GetLadderLength (tkid)/2;
+	float lx = TkCoo::GetLadderCenterX(tkid);
+	float ly = TkCoo::GetLadderCenterY(tkid);
+	cerr << "TrTrackR::EstimateDummyX-W-Problem in X-coo estimation: "
+	     << "tkid= " << tkid << " " 
+	     << tks.GetLadTkID() << " " << tks.LadFound() << " "
+	     << "g=" << gcoo.x() << " " << gcoo.y() << " "
+	     << "dx=" << gcoo.x()-lx << " "
+	     << "dy=" << gcoo.y()-ly  << " "
+	     << "d=" << dx << " " << dy << endl;
+      }
+
+      _iMult[i] = 0;
+      hit->SetDummyX(0);
+    }
+    else {
+      _iMult[i] = tks.GetMultIndex();
+      hit->SetDummyX(tks.GetStripX());
+    }
+
+    hit->SetResolvedMultiplicity(_iMult[i]);
+    hit->BuildCoordinates();
+  }
+}
 
 void TrTrackR::ReFit( const float *err,
 		      float mass, float chrg){
@@ -581,10 +631,22 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
-    AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
-                                    : hit->GetCoord();
-    double ery = erry;
+    AMSPoint coo;
+    try{
+      coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
+	                     : hit->GetCoord();
+    }
+    catch (...){
+      static int nerr = 0;
+      if (nerr++ < 100) 
+	cerr << "TrTrackR::GetCoord-E- exception catched at GetCoord("
+	     << _iMult[i] << ") at j=" << j << " hit="
+	     << hit->GetTkId() << " "
+	     << hit->GetResolvedMultiplicity() << endl;
+    }
 
+    double ery = erry;
+    /*
     // For AMS02P (AKA AMS-B)
     if (TkDBc::Head->GetSetup() == 3) {
       int lyr = hit->GetLayer();
@@ -604,6 +666,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 	}
       }
     }
+    */
     // For AMS02P (AKA AMS-B)
     float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
     GUFLD(pp, bf);
@@ -857,7 +920,7 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 
 int TrTrackR::DoAdvancedFit(int add_flag)
 {
- if (!_MagFieldOn) return Fit(kLinear|add_flag);
+ if (!_MagFieldOn) return (int)Fit(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
    Fit(DefaultAdvancedFitFlags[ii]| add_flag);
 
