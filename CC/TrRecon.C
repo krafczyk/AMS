@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.64 2010/08/23 18:33:55 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.65 2010/08/23 22:43:18 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/23 18:33:55 $
+/// $Date: 2010/08/23 22:43:18 $
 ///
-/// $Revision: 1.64 $
+/// $Revision: 1.65 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -137,6 +137,11 @@ void TrReconPar::SetParFromDataCards()
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
 static double AMSgettime(){
+
+// For gcc3
+#ifndef RUSAGE_THREAD
+#define RUSAGE_THREAD RUSAGE_SELF
+#endif
 
   struct rusage r_usage;
   int aa=getrusage(RUSAGE_THREAD, &r_usage);
@@ -505,7 +510,7 @@ int TrRecon::BuildSeedListInSubBuffer(int first, int last, int cyclicity) {
     }
     // is not a local maximum
     if (!localmax) continue;
-    // A SEED IS CATCHED
+    // A SEED IS FOUND
     int seedaddress = ii;
     _seedaddresses.push_back(seedaddress);
   }
@@ -1316,17 +1321,8 @@ int TrRecon::BuildTrTracks(int rebuild)
     found = 0;
     // Scan Ladders for each pattern until a track found
     for (int pat = 0; !CpuTimeUp() && !found && pat < NHitPatterns; pat++) {
-try{
       if (HitPatternAttrib[pat] > 0 && (found = ScanLadders(pat)))
 	if (found = BuildATrTrack(_itcand)) ntrack += found;
-}
-catch (...){
-  static int nerr = 0;
-  if (nerr++ < 100) 
-    cerr <<"TrRecon::BuildTrTracks-E- exception catched at ScanLadders("
-	 << pat << " " << NHitPatterns << ")" << endl;
-  throw 1;
-}
     }
 
   } while (!CpuTimeUp() && found && ntrack < RecPar.MaxNtrack);
@@ -1487,8 +1483,12 @@ int TrRecon::SetLayerOrder(TrHitIter &it) const
 
 int TrRecon::ScanRecursive(int idx, TrHitIter &it)
 {
-  if (RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim)
+  if (RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim) {
     _CpuTimeUp = true;
+#ifndef __ROOTSHAREDLIBRARY__
+    throw AMSTrTrackError("TrRecon::BuildTrTracks Cpulimit Exceeded");
+#endif
+  }
 
   if (CpuTimeUp()) return 0;
 

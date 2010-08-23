@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.42 2010/08/23 16:57:01 shaino Exp $
+// $Id: TrTrack.C,v 1.43 2010/08/23 22:43:18 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/08/23 16:57:01 $
+///$Date: 2010/08/23 22:43:18 $
 ///
-///$Revision: 1.42 $
+///$Revision: 1.43 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -360,17 +360,8 @@ void TrTrackR::Move(int shift, int fit_flags)
 	<< endl;
     }
   }
-
-  try{
-    if (fit_flags != 0 && ParExists(fit_flags)) Fit(fit_flags);
-    else ReFit();
-  }
-  catch (...){
-   static int nerr = 0;
-   if (nerr++ < 100) 
-     cerr <<"TrTrackR::MoveFit-E- exception catched at Refit("
-	  << fit_flags << ")" << endl;
-  }
+  if (fit_flags != 0 && ParExists(fit_flags)) Fit(fit_flags);
+  else ReFit();
 }
 
 
@@ -631,19 +622,8 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
-    AMSPoint coo;
-    try{
-      coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
-	                     : hit->GetCoord();
-    }
-    catch (...){
-      static int nerr = 0;
-      if (nerr++ < 100) 
-	cerr << "TrTrackR::GetCoord-E- exception catched at GetCoord("
-	     << _iMult[i] << ") at j=" << j << " hit="
-	     << hit->GetTkId() << " "
-	     << hit->GetResolvedMultiplicity() << endl;
-    }
+    AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
+                                    : hit->GetCoord();
 
     double ery = erry;
     /*
