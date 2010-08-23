@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.63 2010/08/23 16:57:00 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.64 2010/08/23 18:33:55 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/23 16:57:00 $
+/// $Date: 2010/08/23 18:33:55 $
 ///
-/// $Revision: 1.63 $
+/// $Revision: 1.64 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -139,7 +139,7 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 static double AMSgettime(){
 
   struct rusage r_usage;
-  int aa=getrusage(RUSAGE_SELF, &r_usage);
+  int aa=getrusage(RUSAGE_THREAD, &r_usage);
   if (aa<0) return -1; //error
   double u=r_usage.ru_utime.tv_sec+ r_usage.ru_utime.tv_usec/1000000.;
   double s=r_usage.ru_stime.tv_sec+ r_usage.ru_stime.tv_usec/1000000.;
