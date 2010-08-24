@@ -131,7 +131,7 @@ p=0;
 
 void* operator new[](size_t t) {
   numa++;
-  return ::operator new(t);
+  return ::operator new[](t);
 }
 
 void operator delete[](void *p){

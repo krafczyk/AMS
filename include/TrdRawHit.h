@@ -1,7 +1,7 @@
-//  $Id: TrdRawHit.h,v 1.5 2010/08/19 13:09:51 choutko Exp $
+//  $Id: TrdRawHit.h,v 1.6 2010/08/24 08:16:20 choutko Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
-//  below is the gift from BVC to MM
+//  below is the gift from VC to MM
 //#define __MLD__
 #include "TObject.h"
 #include "TrElem.h"
@@ -71,7 +71,7 @@ p=0;
 
 void* operator new[](size_t t) {
   numa++;
-  return ::operator new(t);
+  return ::operator new[](t);
 }
 
 void operator delete[](void *p){

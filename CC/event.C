@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.485 2010/08/23 22:43:18 shaino Exp $
+//  $Id: event.C,v 1.486 2010/08/24 08:16:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -6,6 +6,7 @@
 //
 
 #include "typedefs.h" 
+#include <stdexcept>
 extern "C" void setbcorr_(float *p);
 #ifndef _PGTRACK_
 #include "trrawcluster.h"
@@ -1662,14 +1663,13 @@ void AMSEvent::_reamsevent(){
     if(calltrk){
     try{
       _retkevent();
-    }
-    catch (AMSTrTrackError e){
-      throw e;
-    }
-    catch (...){
-      static int nerr=0;
-      if(nerr++<100)cerr <<"_retkevent exception catched "<<endl;
-    }
+   }
+catch (std::out_of_range &re){
+     static int nerr=0;
+     if(nerr++<100)cerr <<"_retkevent range_error exception catched "<<re.what()<<endl;
+      seterror(2);
+    
+  }
   } 
     if(callrich)_rerichevent();
     if(callecal)_reecalevent();

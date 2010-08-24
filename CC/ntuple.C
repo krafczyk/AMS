@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.198 2010/08/21 08:56:05 choutko Exp $
+//  $Id: ntuple.C,v 1.199 2010/08/24 08:16:19 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -319,7 +319,8 @@ void AMSNtuple::endR(){
     _rfile->cd();
     TrRecon::RecPar.Write();
 #endif 
-    RunHeader runheader;
+    static RunHeader runheader;
+#pragma omp threadprivate (runheader);
     if(AMSJob::gethead()->isSimulation()) runheader.gevent=GCFLAG.IEVENT;
     _tree->GetUserInfo()->Add(&runheader);
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     

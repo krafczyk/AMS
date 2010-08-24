@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.65 2010/08/23 22:43:18 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.66 2010/08/24 08:16:19 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/23 22:43:18 $
+/// $Date: 2010/08/24 08:16:19 $
 ///
-/// $Revision: 1.65 $
+/// $Revision: 1.66 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1486,8 +1486,9 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it)
   if (RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim) {
     _CpuTimeUp = true;
 #ifndef __ROOTSHAREDLIBRARY__
-    throw AMSTrTrackError("TrRecon::BuildTrTracks Cpulimit Exceeded");
+//    throw AMSTrTrackError("TrRecon::BuildTrTracks Cpulimit Exceeded");
 #endif
+     AMSEvent::gethead()->seterror(2);
   }
 
   if (CpuTimeUp()) return 0;
