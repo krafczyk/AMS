@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.28 2010/08/23 22:43:18 shaino Exp $
+//  $Id: event_tk.C,v 1.29 2010/08/25 10:26:35 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -64,7 +64,7 @@ void AMSEvent::_retkevent(integer refit){
   static int countcerr=0;
   Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
     
-  TrRecon* rec= new TrRecon();
+  TrRecon rec;
 
   int nraw = AMSEvent::gethead()->getC("AMSTrRawCluster")->getnelem();
   AMSgObj::BookTimer.start("RETKEVENT");
@@ -81,7 +81,7 @@ void AMSEvent::_retkevent(integer refit){
      nraw <TrRecon::RecPar.MaxNrawCls) // Not too many RAW Clusters
   {
     AMSgObj::BookTimer.start("TrCluster");
-    int retr=rec->BuildTrClusters();
+    int retr=rec.BuildTrClusters();
     int ncls=AMSEvent::gethead()->getC("AMSTrCluster")->getnelem();
     AMSgObj::BookTimer.stop("TrCluster");
     hman.Fill((lowdt ? "TrNclsLt" : "TrNclsHt"), getEvent(), ncls);
@@ -96,7 +96,7 @@ void AMSEvent::_retkevent(integer refit){
 	(!lowdt && ncls<TrRecon::RecPar.MaxNtrCls)))     // at large dt
     {
       AMSgObj::BookTimer.start("TrRecHit");
-      int retr2=rec->BuildTrRecHits();
+      int retr2=rec.BuildTrRecHits();
       int nhit =AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
       AMSgObj::BookTimer.stop("TrRecHit");
       hman.Fill((lowdt ? "TrNhitLt" : "TrNhitHt"), getEvent(), nhit);
@@ -114,22 +114,22 @@ void AMSEvent::_retkevent(integer refit){
       {
 	AMSgObj::BookTimer.start("TrTrack");
 	TrRecon::RecPar.NbuildTrack++;
-	rec->BuildTrTracks();
-	rec->MatchTRDandExtend();
+	rec.BuildTrTracks();
+	rec.MatchTRDandExtend();
 	AMSgObj::BookTimer.stop("TrTrack");
 
 #pragma omp critical (trcpulim)
-	if (rec->CpuTimeUp() || TrRecon::SigTERM) {
+	if (rec.CpuTimeUp() || TrRecon::SigTERM) {
 	  trstat |= 16;
 	  cerr << "TrRecon::BuildTrTracks: "
 	       << ((TrRecon::SigTERM) ? "SIGTERM detected: "
 		                      : "Cpulimit Exceeded: ") << dec
-	       << rec->GetCpuTime() << " at Event: " << getEvent() << endl;
+	       << rec.GetCpuTime() << " at Event: " << getEvent() << endl;
 	}
       } // Hits --> Tracks
 
       // Purge "ghost" hits and assign hit index to tracks
-      rec->PurgeGhostHits();
+      rec.PurgeGhostHits();
 
     } // Clusters --> Hits
       
@@ -193,9 +193,9 @@ void AMSEvent::_retkevent(integer refit){
   // Fill histograms
   int nhit = AMSEvent::gethead()->getC("AMSTrRecHit")->getnelem();
   int ntrk = AMSEvent::gethead()->getC("AMSTrTrack" )->getnelem();
-  if(ptr1)  hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec->GetTrackerSize());
-  hman.Fill("TrTimH", nhit, rec->GetCpuTime());
-  hman.Fill("TrTimT", ntrk, rec->GetCpuTime());
+  if(ptr1)  hman.Fill("TrSizeDt", ptr1->gettrtime(4), rec.GetTrackerSize());
+  hman.Fill("TrTimH", nhit, rec.GetCpuTime());
+  hman.Fill("TrTimT", ntrk, rec.GetCpuTime());
   hman.Fill("TrRecon", trstat);
 
   AMSTrCluster *cls 
@@ -322,8 +322,6 @@ void AMSEvent::_retkevent(integer refit){
     trk = (AMSTrTrack *)trk->next();
   }
  } // #pragma omp critical (trhist)
-
-  if(rec) delete rec;
 }
 
 
