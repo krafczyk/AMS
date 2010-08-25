@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.37 2010/08/16 21:22:57 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.38 2010/08/25 10:27:08 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/16 21:22:57 $
+///$Date: 2010/08/25 10:27:08 $
 ///
-///$Revision: 1.37 $
+///$Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -497,11 +497,6 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     }else{
       memcpy(_LadName,LadName,2*maxlay*maxlad*9*sizeof(LadName[0][0][0][0]));
     }
-    //this is for Sensor alignment 
-     if(_setup==3)
-       memcpy(TkID,TkID_setup3,Ntk*sizeof(TkID[0]));
-     else if(_setup==2 || setup==1)
-       memcpy(TkID,TkID_setup2,Ntk*sizeof(TkID[0]));
      
 
 //---------------- Crate to Octant to JinJ cable connection --------------
