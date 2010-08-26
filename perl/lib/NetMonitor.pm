@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.24 2010/04/05 08:11:31 ams Exp $
+# $Id: NetMonitor.pm,v 1.25 2010/08/26 11:23:49 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -11,10 +11,18 @@ use POSIX  qw(strtod);
 sub new{
     my $type=shift;
 
+#
+#  host targets
+#
+#  ssh ams@pcamss0
+#  cd $AMSDataDir/DataManagement/prod
+#  ./ServerRestart
+#  ./ServerRestart_v5
+#
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcamsap','pcamsf8','pcamsvc','pcamsdt0','pcamsf9'], 
+  excluded=>['pcposc1','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3'], 
   dbhosts=>['pcamss0'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   hostsstat=>[],
@@ -43,6 +51,7 @@ push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
@@ -218,7 +227,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 	#
 	# dbhosts targets
 	#
-	    $mes="NetMonitor-W-DBHostsTergetsProblems";
+	    $mes="NetMonitor-W-DBHostsTargetsProblems";
 	      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 	   foreach my $host (@{$self->{dbhosts}}){
         my $gonext=0;
@@ -247,17 +256,23 @@ if(not open(FILE,"<".$self->{hostfile})){
             close FILE;
             unlink "/tmp/dbhosts";
              my $nt=-1;
+            my $twp="";
              foreach my $target (@{$self->{dbhoststargets}}){
+                 my $found=0;
               foreach my $word (@words) {
                 if($word=~/$target/){
                    $nt++;
+                   $found=1;
                    last;
                  }
-                }  
-               }
+                }
+                if($found==0){
+                 $twp=$twp."\_$target\_";  
+             }
+             }
                print " joptat $nt \n;";
                if($nt!=$#{@{$self->{dbhoststargets}}}){
- push @{$self->{bad}}, $host." NetMonitor-W-DBHostsTargetsProblems ".$nt;
+ push @{$self->{bad}}, $host." NetMonitor-W-DBHostsTargetsProblems".$nt."$twp";
 }
 else{
 #print " $host ok $nt \n ";

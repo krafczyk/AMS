@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.588 2010/08/19 06:41:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.589 2010/08/26 11:23:49 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14638,6 +14638,7 @@ sub getOutputPath {
     }
 #
 $self->CheckFS(1,60,0,$path);
+print "CheckFS ok \n";
 # get production set path
      my $tme=time();
      if($tme%2 ==0){ 

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.136 2010/02/27 17:33:55 ams Exp $
+# $Id: Monitor.pm,v 1.137 2010/08/26 11:23:49 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -2826,7 +2826,7 @@ sub FinishFailedRuns{
          $rdst{History}="Failed";
      }
  }
-       if($rdst{Status} eq "Failed" or $rdst{Status} eq "Allocated") {
+       if($rdst{Status} eq "Failed" or $rdst{Status} eq "Allocated" or $rdst{History} eq "Failedf") {
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
