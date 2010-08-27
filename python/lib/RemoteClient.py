@@ -1611,7 +1611,7 @@ class RemoteClient:
         #
         self.CheckFS(1,360,path)
         tme=int(time.time())
-        if(tme%2 ==0):
+        if(tme%2 ==0 and path!='/Data'):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         else:
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
@@ -2558,7 +2558,7 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
-        types=["0SCI","0LAS","0CAL","HKD"]
+        types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
         if(tab):
             print "<HR>"
             print "<table border=1>"
