@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.211 2010/08/30 19:15:09 mmilling Exp $
+//  $Id: particle.C,v 1.212 2010/08/30 19:21:19 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -439,8 +439,8 @@ double p_par(int p,float rig){
 void AMSParticle::trd_Hlikelihood(){
   int debug=0;
   _TRDHLikelihood=0.;
-  _TRDH_elik=0.;
-  _TRDH_plik=0.;
+  _TRDHElik=0.;
+  _TRDHPlik=0.;
   _phtrd=0;
 
   // TOF layers would probably make more sense (->mult.scatt.)
@@ -579,8 +579,8 @@ void AMSParticle::trd_Hlikelihood(){
   plik=pow(plik,(double)(1./(double)n));
 
   _TRDHLikelihood=-log(elik/(elik+plik));
-  _TRDH_elik=elik;
-  _TRDH_plik=plik;
+  _TRDHElik=elik;
+  _TRDHPlik=plik;
   //cout <<"  elik "<<elik<<" "<<plik<<endl;                                                                        
   if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,_TRDHLikelihood);
 }
