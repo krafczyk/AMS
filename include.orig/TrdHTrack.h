@@ -24,8 +24,10 @@ class TrdHTrackR:public TrElem{
   /// Track fit status (1 - only TRD, 2- only TRD & matching TKtrack found, 3 - TRD fitted according to TKtrack)
   int status;
 
-  int           fTrdHSegment[2];
-  TrdHSegmentR* segments[2]; //!
+  /// vector of TrdHSegment iterators
+  vector<int> fTrdHSegment;
+  vector<TrdHSegmentR> segments; //!'
+
   float         elayer[20]; //!
   
   /// return number of segments (should be 2)
@@ -89,7 +91,10 @@ class TrdHTrackR:public TrElem{
   void propagateToZ(float z, float &x , float& y);
 
   /// virtual dtor 
-  virtual ~TrdHTrackR(){};//clear();};
+  virtual ~TrdHTrackR(){
+    segments.clear();
+    fTrdHSegment.clear();
+    };//clear();};
 
   void clear();
 
@@ -140,7 +145,7 @@ p=0;
 }
 } 
 #endif
-  ClassDef(TrdHTrackR, 6);
+  ClassDef(TrdHTrackR, 7);
 };
 
 

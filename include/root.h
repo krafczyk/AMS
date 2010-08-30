@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.281 2010/08/18 17:20:39 pzuccon Exp $
+//  $Id: root.h,v 1.282 2010/08/30 19:14:40 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1942,7 +1942,9 @@ endif
   int   RichParticles; ///< Estimated number of particles crossing the RICH radiator
   float Local[9];  ///< contains the minimal distance to sensor edge in sensor length units ;
   float TRDLikelihood; ///< TRD likelihood  (whatever is it)
-  float TRDHLikelihood; ///< TRD likelihood  (whatever is it)
+  float TRDHLikelihood; ///< TRDH likelihood  (-log(elik/elik+plik))
+  float TRDHElik; ///< normalized product of single layer electron probability
+  float TRDHPlik; ///< normalized product of single layer proton probability
 protected: 
   int  fBeta;          ///<index of  BetaR used
   int  fCharge;        ///<index of  ChargeR used
@@ -2037,7 +2039,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,7)       //ParticleR
+  ClassDef(ParticleR,8)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -2762,9 +2764,9 @@ int   nTrdCluster()const { return fHeader.TrdClusters;} ///< \return number of T
 int   nTrdSegment()const { return fHeader.TrdSegments;} ///< \return number of TrdSegmentR elements (fast)
 ///
 int   nTrdTrack()const { return fHeader.TrdTracks;} ///< \return number of TrdTrackR elements (fast)
- int   nTrdHSegment()const { return fHeader.TrdHSegments;} ///< \return number of TrdSegmentR elements (fast)
+ int   nTrdHSegment()const { return fHeader.TrdHSegments;} ///< \return number of TrdHSegmentR elements (fast)
 ///
-   int   nTrdHTrack()const { return fHeader.TrdHTracks;} ///< \return number of TrdTrackR elements (fast)
+   int   nTrdHTrack()const { return fHeader.TrdHTracks;} ///< \return number of TrdHTrackR elements (fast)
 ///
 ///
 int   nLevel1()const { return fHeader.Level1s;} ///< \return number of Level1R elements (fast)

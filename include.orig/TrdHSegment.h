@@ -31,11 +31,10 @@ class TrdHSegmentR: public TrElem {
   float      Chi2;
 
 
-  // must be removed ASAP  -  VC
-  
-  /// pointer array of RawHits on segment
-  int         fTrdRawHit[100];
-  TrdRawHitR* hits[100]; //!
+  /// vector of TrdRawHit iterators
+  vector<int> fTrdRawHit;
+
+  vector<TrdRawHitR> hits; //!
 
   /// return number of hits
   int NTrdRawHit();
@@ -77,14 +76,17 @@ class TrdHSegmentR: public TrElem {
   int LinReg(int debug=0);
 
   /// refit segment 
-  TrdHSegmentR* Refit(int debug=0);
+  int Refit(int debug=0);
 
-  void AddHit(TrdRawHitR* hit,int iter);
+  void AddHit(TrdRawHitR hit,int iter);
 
   void RemoveHit(int iter);
 
   /// virtual dtor
-virtual ~TrdHSegmentR(){clear();}
+  virtual ~TrdHSegmentR(){
+    fTrdRawHit.clear();
+    hits.clear();
+    clear();}
 
   void clear();
 
@@ -145,6 +147,6 @@ p=0;
 #endif
 
 
-  ClassDef(TrdHSegmentR, 7);
+  ClassDef(TrdHSegmentR, 8);
 };
 #endif

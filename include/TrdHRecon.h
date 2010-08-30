@@ -60,7 +60,6 @@ class TH2A{
       if(Hxy[i]!=0)printf("bin %i entries %f\n",i,Hxy[i]);
     }
   }
-
   void Fill( double x, double y, double weight ){
     i = int((y-Ylo)*Fy)*nbx + int((x-Xlo)*Fx);
     if(i>0 && i<size) Hxy[i]+=weight;
@@ -139,56 +138,42 @@ public:
 };
 
 
-//namespace TRDHRECO{
-
 /// class to perform and store TRD H reconstruction
 class TrdHReconR{
  public:
 
-  /// array of TrdRawHit pointers (used as input to reconstruction)
-  int         irhits[1024];
-  TrdRawHitR* rhits[1024];
-
-  /// counter of TrdRawHit pointers
-  int nrhits;
-
-  /// array of reconstructed TrdHSegment pointers
-  int          ihsegvec[100];
-  TrdHSegmentR* hsegvec[100];
+  /// vector of TrdRawHit objects (used as input to reconstruction)
+  vector<TrdRawHitR> rhits;
   
-  /// counter of reconstructed TrdHSegment pointers
-  int nhsegvec;
+  /// vector of reconstructed TrdHSegment objects
+  vector<TrdHSegmentR> hsegvec;
 
-  /// array of reconstructed TrdHTrack pointers
-  int        ihtrvec[20];
-  TrdHTrackR* htrvec[20];
-  
-  /// counter of reconstructed TrdHTrack pointers
-  int nhtrvec;
+  /// vector of reconstructed TrdHTrack objects
+  vector<TrdHTrackR> htrvec;
 
-  // array of reference hits (optional)
-  AMSPoint refhits[50];
+  /// vector of reference hits (optional)
+  vector<AMSPoint> refhits;
 
-  // array of error on reference hits (optional)
-  AMSPoint referr[50];
+  /// vector of error on reference hits (optional)
+  vector<AMSPoint> referr;
 
-  // counter of reference hits (optional)
-  int nref;
-  
   /// default ctor
   TrdHReconR(){
-    for(int i=0;i<1024;i++){rhits[i]=0;irhits[i]=-1;}
-    for(int i=0;i<100;i++){hsegvec[i]=0;ihsegvec[i]=-1;}
-    for(int i=0;i<20;i++){htrvec[i]=0;ihtrvec[i]=-1;}
-    for(int i=0;i<50;i++)referr[i]=0;
-    for(int i=0;i<50;i++)refhits[i]=0;
-    nrhits=0;
-    nhsegvec=0;
-    nhtrvec=0;
-    nref=0;
+    rhits.clear();
+    hsegvec.clear();
+    htrvec.clear();
+    referr.clear();
+    refhits.clear();
   };
 
-  ~TrdHReconR(){clear();}
+  ~TrdHReconR(){
+
+    rhits.clear();
+    hsegvec.clear();
+    htrvec.clear();
+    referr.clear();
+    refhits.clear();
+    clear();}
 
   /// clear memory
   void clear();
@@ -230,9 +215,11 @@ class TrdHReconR{
   void AddHit(TrdRawHitR* hit);
 
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
-  static TrdHTrackR* SegToTrack(TrdHSegmentR *s1, TrdHSegmentR* s2, int debug=0);
+  static TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
 
-  ClassDef(TrdHReconR,4)
+  int build();
+
+  ClassDef(TrdHReconR,5)
 };
 #endif
 
