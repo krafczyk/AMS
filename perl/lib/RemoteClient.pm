@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.589 2010/08/26 11:23:49 ams Exp $
+# $Id: RemoteClient.pm,v 1.590 2010/08/30 15:39:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -461,7 +461,7 @@ my %mv=(
      $self->{AMSDataDir}=$dir;
  }
  else{
-     $self->{AMSDataDir}="/afs/ams.cern.ch/.../AMSDataDir";
+     $self->{AMSDataDir}="/afs/ams.cern.ch/Offline/AMSDataDir";
      $ENV{AMSDataDirRW}=$self->{AMSDataDir};
  }
 #sqlserver
