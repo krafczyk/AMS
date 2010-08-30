@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.486 2010/08/24 08:16:19 choutko Exp $
+//  $Id: event.C,v 1.487 2010/08/30 19:15:09 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2180,62 +2180,12 @@ void AMSEvent::_retrdevent(){
   TrdHSegmentR::print();
   TrdHTrackR::print();
   #endif
-  AMSgObj::BookTimer.start("REHTRDEVENT");
+  //  AMSgObj::BookTimer.start("RETRDHEVENT");
 
-//#pragma omp critical (trdhreco)
-    {
-    TrdHReconR* trdhrecon=new TrdHReconR();
-    
-    // fill reference hits - first TOF clusters (top layer) - then TKtop clusters
-    AMSTOFCluster *Hi;int i;
-    for (i=0;i<4;i++) {
-      for (Hi=AMSTOFCluster::gethead(i); Hi!=NULL; Hi=Hi->next()){
-	if(Hi->getntof()<3){
-	  trdhrecon->refhits[trdhrecon->nref]=Hi->getcoo();
-	  trdhrecon->referr[trdhrecon->nref++]=Hi->getecoo();}	
-      }
-    }
-    AMSTrRecHit *ttr;
-    for (i=0;i<2;i++) {
-      for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
-	if(ttr->getHit()[2]<50)continue;
-#ifndef _PGTRACK_
-	trdhrecon->refhits[trdhrecon->nref]=ttr->getHit();
-	trdhrecon->referr[trdhrecon->nref++]=ttr->getEHit();
-#else
-	trdhrecon->refhits[trdhrecon->nref]=ttr->GetCoord();
-	trdhrecon->referr[trdhrecon->nref++]=ttr->GetECoord();
-#endif
-      }
-    }
-    
-  VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-    // fill array of TrdRawHits
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next())if(trdhrecon->nrhits<1023){
+  TrdHReconR trdhrecon;
+  trdhrecon.build();
 
-	AMSTRDIdSoft id(Hi->getidsoft());
-	TrdRawHitR* hit=new TrdRawHitR(id.getlayer(),id.getladder(),id.gettube(),Hi->Amp());
-	trdhrecon->rhits[trdhrecon->nrhits] = hit;
-	trdhrecon->irhits[trdhrecon->nrhits] = cont2->getindex((TrElem*)Hi);
-	trdhrecon->nrhits++;
-    }
-
-
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()) if(trdhrecon->nrhits<1023) {
-	AMSTRDIdSoft id(Hi->getidsoft());
-	TrdRawHitR* hit=new TrdRawHitR(id.getlayer(),id.getladder(),id.gettube(),Hi->Amp());
-	trdhrecon->rhits[trdhrecon->nrhits] = hit;
-	trdhrecon->irhits[trdhrecon->nrhits] = cont2->getindex((TrElem*)Hi);
-	trdhrecon->nrhits++;
-      }
-    
-    delete cont2;
-    
-    trdhrecon->retrdhevent();
-    
-    delete trdhrecon;
-    }    
-  AMSgObj::BookTimer.stop("REHTRDEVENT");
+  //  AMSgObj::BookTimer.stop("RETRDHEVENT");
   #ifdef __MLD__
   cout << " trd after "<<endl;
   TrdRawHitR::print();

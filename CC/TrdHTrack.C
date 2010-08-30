@@ -12,10 +12,8 @@ TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0)
   }
   for(int i=0;i<20;i++)elayer[i]=0.;
   for (int i=0;i!=3;i++)Dir[i]/=sqrt(mag);
-  for(int i=0;i!=2;i++){
-    fTrdHSegment[i]=-1;
-    segments[i]=0;
-  }
+
+  clear();
 };
 
 
@@ -25,11 +23,7 @@ TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0){
     Dir[i]=0.;
   }
   for(int i=0;i<20;i++)elayer[i]=0.;
-  for(int i=0;i!=2;i++){
-    fTrdHSegment[i]=-1;
-    segments[i]=0;
-  }
-  
+  clear();
 };
 
 
@@ -42,46 +36,56 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
     Dir[i]=tr->Dir[i];
   }
   for(int i=0;i<20;i++)elayer[i]=tr->elayer[i];
-  for(int i=0;i!=2;i++){
-    fTrdHSegment[i]=tr->fTrdHSegment[i];
-    segments[i]=tr->segments[i];
-  }
+  clear();
+
+  for(vector<int>::iterator it=tr->fTrdHSegment.begin();it!=tr->fTrdHSegment.end();it++)
+    fTrdHSegment.push_back(*it);
+
+  for(vector<TrdHSegmentR>::iterator it=tr->segments.begin();it!=tr->segments.end();it++)
+    segments.push_back(*it);
+
 };
 
-int TrdHTrackR::NTrdHSegment() {return 2;}
-int TrdHTrackR::nTrdHSegment() {return 2;}
-int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<2?fTrdHSegment[i]:-1);}
+int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();;}
+int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
+int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<nTrdHSegment()?fTrdHSegment[i]:-1);}
+
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
-  TrdHSegmentR* seg=0;
-  //  if ( fTrdHSegment[i] >= 0) seg = segments[i];
-    VCon* cont2 = GetVCon()->GetCont("AMSTRDHSegment");
-  if (segments[i] == 0 && fTrdHSegment[i] >= 0) {
-    segments[i] = (TrdHSegmentR*)cont2->getelem(fTrdHSegment[i]);
+  if(segments.size()<i&&i<fTrdHSegment.size()){
+    segments.clear();
+    VCon* cont2=GetVCon()->GetCont("AMSTRDHSegment");
+    for(int i=0;i<cont2->getnelem();i++){
+      for(int n=0;n<fTrdHSegment.size();n++){
+        if(i==fTrdHSegment[i])
+          segments.push_back(TrdHSegmentR(*(TrdHSegmentR*)cont2->getelem(i)));
+      }
+    }
+    delete cont2;
   }
 
-    delete cont2;
-  return segments[i];
+  if(i<segments.size())return &segments[i];
+  return 0;
 }
 
 float TrdHTrackR::Theta(){ return acos(Dir[2]);}
 
 float TrdHTrackR::ex(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i]->d==0)return segments[i]->er;
+    if(segments[i].d==0)return segments[i].er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::ey(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i]->d==1)return segments[i]->er;
+    if(segments[i].d==1)return segments[i].er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::emx(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i]->d==0)return segments[i]->em;
+    if(segments[i].d==0)return segments[i].em;
   }
   return 1.e6;
 }
@@ -89,22 +93,22 @@ float TrdHTrackR::emx(){
 float TrdHTrackR::emy(int debug){
   if(debug)printf("TrdHTrackR::emy - ntrdhsegment %i\n",nTrdHSegment());
   for(int i=0;i!=nTrdHSegment();i++){
-    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",i,segments[i]->d,segments[i]->m,segments[i]->em);
-    if(segments[i]->d==1)return segments[i]->em;
+    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",i,segments[i].d,segments[i].m,segments[i].em);
+    if(segments[i].d==1)return segments[i].em;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::mx(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(segments[i]->d==0)return segments[i]->m;
+      if(segments[i].d==0)return segments[i].m;
     }
     return 1.e6;
   }
 
   float TrdHTrackR::my(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(segments[i]->d==1)return segments[i]->m;
+      if(segments[i].d==1)return segments[i].m;
     }
     return 1.e6;
   }
@@ -140,17 +144,15 @@ float TrdHTrackR::mx(){
 void TrdHTrackR::SetSegments(TrdHSegmentR* segx,TrdHSegmentR* segy){
   if(segx->d+segy->d!=1)return;
   VCon* cont2=GetVCon()->GetCont("AMSTRDHSegment");
-  //  if(segx->d==0){
-  segments[0]  = segx;
-  segments[1]  = segy;
+  segments.clear();
+  segments.push_back(segx);
+  segments.push_back(segy);
   
+  fTrdHSegment.clear();
   for(int i=0;i<cont2->getnelem();i++){
-    if(*segx==*((TrdHSegmentR*)cont2->getelem(i)))fTrdHSegment[0] = i;
-    if(*segy==*((TrdHSegmentR*)cont2->getelem(i)))fTrdHSegment[1] = i;
+    if(*segx==*((TrdHSegmentR*)cont2->getelem(i)))fTrdHSegment.push_back(i);
+    if(*segy==*((TrdHSegmentR*)cont2->getelem(i)))fTrdHSegment.push_back(i);
   }
-  
-  //  fTrdHSegment[segx->d] = cont2->getindex(segx);
-  //  fTrdHSegment[segy->d] = cont2->getindex(segy);
   
   Nhits=(int)segx->Nhits+(int)segy->Nhits;
   Chi2=segy->Chi2+segx->Chi2; 
@@ -169,9 +171,7 @@ void TrdHTrackR::Print(int opt){
 };
  
 void TrdHTrackR::clear(){
-  for(int i=0;i<2;i++){
-    delete segments[i];
-    segments[i]=0;//delete fTrdHSegment[i];
-    fTrdHSegment[i]=-1;
-  }
+  fTrdHSegment.clear();
+  segments.clear();
 }
+

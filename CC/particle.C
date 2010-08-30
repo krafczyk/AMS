@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.210 2010/08/19 13:09:47 choutko Exp $
+//  $Id: particle.C,v 1.211 2010/08/30 19:15:09 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -434,11 +434,13 @@ double p_par(int p,float rig){
   else return 0.;
 }
 
-// Find TrdHTrack matching TrTrack of ParticleR and get 
-// -loglikelihood of the event to be electron-like
+// Find TrdHTrack matching TrTrack of ParticleR and get                                                                                                                                                                                      
+// -loglikelihood of the event to be electron-like                                                                                                                                                                                           
 void AMSParticle::trd_Hlikelihood(){
   int debug=0;
   _TRDHLikelihood=0.;
+  _TRDH_elik=0.;
+  _TRDH_plik=0.;
   _phtrd=0;
 
   // TOF layers would probably make more sense (->mult.scatt.)
@@ -455,9 +457,6 @@ void AMSParticle::trd_Hlikelihood(){
 
   AMSTRDHTrack* ptr=(AMSTRDHTrack*)AMSEvent::gethead()->getheadC("AMSTRDHTrack",0);
   while(ptr){
-    //    printf("TrdHTrack found pos %.2f %.2f %.2f - dir %.2f %.2f %.2f\n",
-    //	   ptr->Coo[0],ptr->Coo[1],ptr->Coo[2],
-    //ptr->Dir[0],ptr->Dir[1],ptr->Dir[2]);
     AMSPoint trd_pnt=ptr->getCooStr();
     AMSDir trd_dir=AMSDir(ptr->Dir[0],ptr->Dir[1],ptr->Dir[2]);
     bool matched =0;
@@ -465,16 +464,16 @@ void AMSParticle::trd_Hlikelihood(){
     float dz=zpl-ptr->Coo[2];
     float x=ptr->Coo[0]+ ptr->Dir[0]/ptr->Dir[2]*dz;
     float y=ptr->Coo[1]+ ptr->Dir[1]/ptr->Dir[2]*dz;
-    
+
     // angle between the tracks
     number c=tk_dir.prod(trd_dir);
 
-    //distance 
+    //distance
     number d=sqrt(pow((tk_pnt.x()-x),2)+pow((tk_pnt.y()-y),2));
-    
+
     if(debug) printf(" TRDHTK MATCH  cos %f dist %f\n",c,d);
     if(fabs(c)>MaxCos && fabs(d) <SearchReg) matched=1;
-    
+
     if( matched ){
       _phtrd=ptr;
       _phtrd->status=2;
@@ -487,49 +486,54 @@ void AMSParticle::trd_Hlikelihood(){
     _phtrd->setstatus(AMSDBc::USED);
   }
   else{ // look for hsegments matching trtrack
-    
     if(debug)printf("looking for new track\n");
     AMSTRDHSegment* seg=(AMSTRDHSegment*)AMSEvent::gethead()->getheadC("AMSTRDHSegment",0);
-    TrdHSegmentR* sptr[2]={0,0};
+    
+    int sptr[2]={-1,-1};
+    int siter=0;
     
     while(seg){
-      TrdHSegmentR* s=new TrdHSegmentR(seg);
+      TrdHSegmentR* s=seg;
       float dz=zpl-s->z;
       float expos=s->r+ s->m*dz;
       if(debug)printf("seg d %i r %.2f m %.2f z %.2f\n",s->d,s->r,s->m,s->z);
       if(debug)printf("tk %.2f %.2f %.2f dir %.2f %.2f %.2f\n",
-		      tk_pnt[0],tk_pnt[1],tk_pnt[2],
-		      tk_dir[0],tk_dir[1],tk_dir[2]);
+                      tk_pnt[0],tk_pnt[1],tk_pnt[2],
+                      tk_dir[0],tk_dir[1],tk_dir[2]);
       if(debug)printf("dz %.2f expos %.2f c %.2f d %.2f\n",dz,expos,
-		      tk_dir[s->d]/tk_dir[2]-s->m,
-		      tk_pnt[s->d]-expos);
+                      tk_dir[s->d]/tk_dir[2]-s->m,
+                      tk_pnt[s->d]-expos);
       if(fabs(tk_dir[s->d]/tk_dir[2]-s->m)<1-MaxCos&&
-	 fabs(tk_pnt[s->d]-expos)<SearchReg){
- //      change by vc
-            delete sptr[s->d];
-            sptr[s->d]=s;
+         fabs(tk_pnt[s->d]-expos)<SearchReg){
+	//      change by vc
+        //            delete sptr[s->d];
+        sptr[s->d]=siter;
       }
-      else delete s;
+
+      siter++;
       seg=seg->next();
     }
-    
+
     if(debug)printf("s1 %d s2 %d\n",sptr[0],sptr[1]);
-    if(sptr[0]&&sptr[1]){
+
+    if(sptr[0]>=0&&sptr[1]>=0){
+      if(debug)printf("try to build new TrdHTrackR \n");
       TrdHTrackR* tr=TrdHReconR::SegToTrack(sptr[0],sptr[1]);
-      _phtrd=new AMSTRDHTrack(tr);
-      delete tr;
-      if(_phtrd){
-	if(debug)printf("new TRDHTrack found\n");
-	_phtrd->status=3;
-	AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
+      if(tr){
+	if(debug)printf("generate AMSTRDHTrack\n");
+	_phtrd=new AMSTRDHTrack(tr);
+	if(debug)printf("delete TrdHTrackR\n");
+	if(_phtrd){
+	  if(debug)printf("new TRDHTrack found\n");
+	  _phtrd->status=3;
+	  AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
+	}
       }
     }
-    delete sptr[0];
-    delete sptr[1];
   }
-  
+
   if(!_phtrd)return;
-  
+
   // get track rigidity
   float rig=0.;
 #ifdef _PGTRACK_
@@ -541,29 +545,29 @@ void AMSParticle::trd_Hlikelihood(){
   if(debug)printf("Rigidity: %.2f\n",rig);
   rig=fabs(rig);
   if(rig<=0.||isnan(rig)||isinf(rig)||rig>1.e4)return;
-  
-  // fill array of amplitudes on track per layer
+
   double elik=1., plik=1.;
   int l=0,n=0;
   for(l=0;l!=20;l++){
-    if(_phtrd->elayer[l]<=0.)continue;
+    float amp=_phtrd->elayer[l]/35.;
+    if(amp<=0.)continue;
     n++;
-
     // multiply single layer electron likelihoods
-    elik*=e_par(0,l)*TMath::Landau(_phtrd->elayer[l],e_par(1,l),e_par(2,l))+
-      e_par(3,l)*TMath::Landau(_phtrd->elayer[l],e_par(4,l),e_par(5,l));
-    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,_phtrd->elayer[l],e_par(0,l)*TMath::Landau(_phtrd->elayer[l],e_par(1,l),e_par(2,l))+e_par(3,l)*TMath::Landau(_phtrd->elayer[l],e_par(4,l),e_par(5,l)),elik);
+    elik*=e_par(0,l)*TMath::Landau(amp,e_par(1,l),e_par(2,l))+
+      e_par(3,l)*TMath::Landau(amp,e_par(4,l),e_par(5,l));
+    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0,l)*TMath::Landau(amp,e_par(1,l),e_par(2,l))+e_par(3,l)*TMath::Landau(amp,e_par(4,l),e_par(5,l)),elik);
     
     // multiply single layer proton likelihoods
-    double fac1=p_par(0,rig)*TMath::Landau(_phtrd->elayer[l],p_par(1,rig),p_par(2,rig));
+    double fac1=p_par(0,rig)*TMath::Landau(amp,p_par(1,rig),p_par(2,rig));
 
-    // currently set to zero - Attention have to account four highP TR
-    double fac2=p_par(3,rig)*TMath::Landau(_phtrd->elayer[l],p_par(4,rig),p_par(5,rig));
+
+    // currently set to zero - Attention have to account for highP TR
+    double fac2=p_par(3,rig)*TMath::Landau(amp,p_par(4,rig),p_par(5,rig));
     plik*=fac1+fac2;
-    
+
     if(debug)printf(" plik %.2e accum %.2e\n",fac1+fac2,plik);
   }
-  
+
   if(n==0||elik<=0.||plik<=0.){
     if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e (rig:%.2e)\n",n,elik,plik,rig);
     return;
@@ -573,9 +577,11 @@ void AMSParticle::trd_Hlikelihood(){
   // normalize probabilities to number of hits
   elik=pow(elik,(double)(1./(double)n));
   plik=pow(plik,(double)(1./(double)n));
-  
+
   _TRDHLikelihood=-log(elik/(elik+plik));
-  //cout <<"  elik "<<elik<<" "<<plik<<endl;
+  _TRDH_elik=elik;
+  _TRDH_plik=plik;
+  //cout <<"  elik "<<elik<<" "<<plik<<endl;                                                                        
   if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,_TRDHLikelihood);
 }
 
@@ -868,8 +874,6 @@ void AMSParticle::_copyEl(){
   else ptr.fTrdTrack=-1;
   if (_phtrd)   ptr.fTrdHTrack   =_phtrd   ->GetClonePointer();
   else ptr.fTrdHTrack=-1;
-
-  ptr.fTrdHTrack=-1; 
   if (_prich)   ptr.fRichRing  =_prich  ->GetClonePointer();
   else ptr.fRichRing=-1;
   if (_pShower) ptr.fEcalShower=_pShower->GetClonePointer();

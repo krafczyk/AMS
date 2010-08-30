@@ -7,26 +7,31 @@ int TrdRawHitR::num=0;
 //int TrsHSegmentR::num=0;
 #endif
 
-int TrdHSegmentR::NTrdRawHit(){return Nhits;};
-int TrdHSegmentR::nTrdRawHit(){return Nhits;};
-int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<Nhits?fTrdRawHit[i]:-1;};
-TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-  TrdRawHitR* hit=0;
-  //  if ( i<Nhits ) hit = hits[i];
-    VCon* cont2 = GetVCon()->GetCont("AMSTRDRawHit");
-  if (hits[i] == 0 && fTrdRawHit[i] >= 0) {
-    hits[i] = (TrdRawHitR*)cont2->getelem(fTrdRawHit[i]);
-  }
-    delete cont2;
+int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
+int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
+int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
-  return hits[i];
+TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
+  if(hits.size()<i&&i<fTrdRawHit.size()){
+    hits.clear();
+    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+    for(int i=0;i<cont2->getnelem();i++){
+      for(int n=0;n<fTrdRawHit.size();n++){
+        if(i==fTrdRawHit[i])
+          hits.push_back(TrdRawHitR(*(TrdRawHitR*)cont2->getelem(i)));
+      }
+    }
+    delete cont2;
+  }
+
+  if(i<hits.size())return &hits[i];
+  return 0;
+
 }
 
 TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){
-  for(int i=0;i<100;i++){
-    fTrdRawHit[i]=-1;
-    hits[i]=0;
-  }
+  fTrdRawHit.clear();
+  hits.clear();
 }
 
 
@@ -35,19 +40,15 @@ TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
 {
-  for(int i=0;i<100;i++){
-    fTrdRawHit[i]=-1;
-    hits[i]=0;
-  }
+  fTrdRawHit.clear();
+  hits.clear();
 };
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, float z_, float w_, int Nhits_, TrdRawHitR* pthit[])
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
 {
-  for(int i=0;i<100;i++){
-    fTrdRawHit[i]=-1;
-    hits[i]=0;
-  }
+  fTrdRawHit.clear();
+  hits.clear();
   SetHits(Nhits_,pthit);
 };
 
@@ -60,21 +61,25 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
   em=seg->em;
   er=seg->er;
   Nhits=seg->Nhits;
-  for(int i=0;i<100;i++){
-    fTrdRawHit[i]=seg->fTrdRawHit[i];
-    hits[i]=seg->hits[i];
-  }
+  fTrdRawHit.clear();
+  hits.clear();
+  for(int i=0;i<seg->fTrdRawHit.size();i++)
+    fTrdRawHit.push_back(seg->fTrdRawHit.at(i));
+  for(int i=0;i<seg->hits.size();i++)
+    hits.push_back(seg->hits.at(i));
+
   Chi2=seg->Chi2;
 };
 
 void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
 
   Nhits=0;
+  fTrdRawHit.clear();
   VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
   for(int i=0;i!=Nhits_;i++){
     if(pthit[i]){
-      hits [i] = pthit[i];
-      fTrdRawHit[i] = cont2->getindex(pthit[i]);
+      hits.push_back(*pthit[i]);
+      fTrdRawHit.push_back(cont2->getindex(pthit[i]));
     }
   }
   delete cont2;
@@ -87,7 +92,7 @@ float TrdHSegmentR::resid(float r_, float z_, int d_){
   
 void TrdHSegmentR::calChi2(){
   Chi2=0.;
-  for(int i=0;i<Nhits;i++){
+  for(int i=0;i<nTrdRawHit();i++){
     TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(i));
     Chi2+=pow(resid(rzd.r,rzd.z,rzd.d)/ (0.62/sqrt(12.)),2);
   }
@@ -98,7 +103,7 @@ void TrdHSegmentR::Print(int level){
   printf("TrdHSegmentR - Info\n");
   printf("TrdHSegmentR d %i m %f r %f z %f w %f Nhits %i Chi2 %f\n", d, m,r,z,w,Nhits,Chi2);
   if(level>0){
-    for(int i=0;i!=Nhits;i++){
+    for(int i=0;i!=nTrdRawHit();i++){
       printf("  RawHit %i LLT %i %i %i\n",i,pTrdRawHit(i)->Layer,pTrdRawHit(i)->Ladder,pTrdRawHit(i)->Tube);
     }
   }
@@ -107,17 +112,17 @@ void TrdHSegmentR::Print(int level){
 // fit  Hit.rz   with  r = A*z + B
 int TrdHSegmentR::LinReg(int debug)
 { 
-  if(debug>0)printf("Entering LinReg - %i RawHits\n",Nhits);
+  if(debug>0)printf("Entering LinReg - %i RawHits\n",nTrdRawHit());
   double WSr=0.,WSz=0.,WSrr=0.,WSzz=0.,WSrz=0.,WS=0.,W=1.;
-  if(Nhits<3)return -1;
+  if(nTrdRawHit()<3)return -1;
     
-  for(int i=0; i<Nhits; i++){
+  for(int i=0; i<nTrdRawHit(); i++){
     TRDHitRZD rzdi=TRDHitRZD(*pTrdRawHit(i));
     int nz=1;
     float ri=rzdi.r;
     float zi=rzdi.z;
       
-    for(int j=i+1; j<Nhits; j++){
+    for(int j=i+1; j<nTrdRawHit(); j++){
       TRDHitRZD rzdj=TRDHitRZD(*pTrdRawHit(j));
       if(rzdj.z!=zi)continue;
       ri+=rzdj.r;nz++;
@@ -131,7 +136,7 @@ int TrdHSegmentR::LinReg(int debug)
     }
     else if(nz>1){
       float rmean=ri/(float)nz;
-      for(int j=0; j<Nhits; j++){
+      for(int j=0; j<nTrdRawHit(); j++){
 	TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(j));
 	if(rzd.z==zi)sigma+=pow(rzd.r-rmean,2);
       }
@@ -205,15 +210,15 @@ int TrdHSegmentR::LinReg(int debug)
 }
 
 
-TrdHSegmentR* TrdHSegmentR::Refit(int debug){
-  if(debug>0)printf("Enter Refit - hit size %i\n",Nhits);
+int TrdHSegmentR::Refit(int debug){
+  if(debug>0)printf("Enter Refit - hit size %i\n",nTrdRawHit());
   int lr=LinReg(debug);
   
   int lay[20];for(int l=0;l!=20;l++)lay[l]=0;
   float sum=0.;
   float zmax=0.,zmin=200.;
   int nhits=0;
-  for(int h=0;h!=Nhits;h++){	
+  for(int h=0;h!=nTrdRawHit();h++){	
     TRDHitRZD rzd=TRDHitRZD(*pTrdRawHit(h));
 
     if(rzd.d!=d)continue;
@@ -231,34 +236,29 @@ TrdHSegmentR* TrdHSegmentR::Refit(int debug){
   for(int l=0;l!=20;l++)if(lay[l]>0)lsum++;
   if(debug)printf("linreg stat %i dz %.2f layers %i\n",lr,zmax-zmin,lsum);
   if(lr==1&&zmax-zmin>10.&&lsum>2){
-    Nhits=nhits;
     calChi2();
-    return this;
+    return 1;
   }
   else return 0;
 }
 
-void TrdHSegmentR::AddHit(TrdRawHitR* hit,int iter){
-  if(hit){
-    hits[Nhits] = hit;
-    fTrdRawHit[Nhits] = iter;
-    Nhits++;
-  }
+void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
+  hits.push_back(hit);
+  fTrdRawHit.push_back(iter);
+  Nhits=fTrdRawHit.size();
+
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
-  for (int i = iter; i < Nhits; i++){
-    hits[i] = hits[i+1];
-    fTrdRawHit[i] = fTrdRawHit[i+1];
-  }
-  Nhits--;
+  if(iter>hits.size())printf("trying to delete hit %i of %i hits\n",iter,hits.size()); if(iter>fTrdRawHit.size())printf("trying to delete hit %i of %i hits\n",iter,fTrdRawHit.size());
+  hits.erase(hits.begin()+iter);
+  fTrdRawHit.erase(fTrdRawHit.begin()+iter);
+  Nhits=fTrdRawHit.size();
+
 }
 
 
 void TrdHSegmentR::clear(){
-  for(int i=0;i<Nhits;i++){
-    hits[i]=0;
-    fTrdRawHit[i]=-1;
-  }
-  Nhits=0;
+  fTrdRawHit.clear();
+  hits.clear();
 }
