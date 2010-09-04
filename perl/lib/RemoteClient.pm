@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.590 2010/08/30 15:39:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.591 2010/09/04 16:27:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -975,7 +975,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -6584,6 +6584,7 @@ print qq`
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $templatehost=undef;
+        my $templateprio=undef;
          my $tmps="";
         my $template=undef;
         my $did=$q->param("DID");
@@ -6632,6 +6633,7 @@ print qq`
                 $q->param("QRunAList",$tmp->{RUNALIST});
                 $templatebuffer=$tmp->{filebody};
                 $templatehost=$tmp->{HOST};
+                $templateprio=$tmp->{PRIO};
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
@@ -7359,8 +7361,11 @@ print qq`
             }
          $ri->{SubmitTime}=time();
          $ri->{cinfo}={};
+          if(defined $templateprio and $templateprio>=0){
+            $ri->{Priority}=$templateprio;
+          }
          if(defined $templatehost and $templatehost=~/ams/){
-          $ri->{Priority}=2;
+          $ri->{Priority}=3;
           $ri->{cinfo}->{HostName}=$templatehost;
         }
         else{
@@ -15497,7 +15502,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.111 2010/03/09 08:35:13 pzuccon Exp $
+//  $Id: timeid.C,v 1.112 2010/09/04 16:27:17 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -668,7 +668,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     
   }
   else {
-    cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase"<<endl;
+    cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
     //    Check if is in new mode
     _checkcompatibility(dir);
     AString fnam(getname());

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.487 2010/08/30 19:15:09 mmilling Exp $
+//  $Id: event.C,v 1.488 2010/09/04 16:27:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -830,7 +830,7 @@ void AMSEvent::_regnevent(){
       else if(corr>=0){
         corr=-2;
       }
-      setbcorr_(&corr);  
+      //setbcorr_(&corr);  
 #endif
 }
 

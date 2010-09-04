@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.199 2010/08/24 08:16:19 choutko Exp $
+//  $Id: ntuple.C,v 1.200 2010/09/04 16:27:16 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -320,7 +320,7 @@ void AMSNtuple::endR(){
     TrRecon::RecPar.Write();
 #endif 
     static RunHeader runheader;
-#pragma omp threadprivate (runheader);
+#pragma omp threadprivate (runheader)
     if(AMSJob::gethead()->isSimulation()) runheader.gevent=GCFLAG.IEVENT;
     _tree->GetUserInfo()->Add(&runheader);
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
@@ -466,8 +466,8 @@ void AMSNtuple::writeR(){
       for(evmapi i=evmap.begin();i!=evmap.end();i++){
 	ssize+=i->second->Size();
       }  
-      if(ssize/1024/1024>1500){
-      cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
+      if(ssize/1024/1024>1000){
+      cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       }
       _Size=evmap.size();

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.139 2010/08/24 08:16:19 choutko Exp $
+//  $Id: producer.C,v 1.140 2010/09/04 16:27:16 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -651,7 +651,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
- if(!_Solo)sendid(1800);
+ if(!_Solo)sendid(2400);
  int ntry=5;
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
@@ -1845,7 +1845,7 @@ char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
 const char *nvr=AMSCommonsI::getosversion(); 
-int maxtries=7;
+int maxtries=1200;
 int delay=1;
 if(exedir && nve && AMSCommonsI::getosname()){
  char t1[1024];
@@ -1855,6 +1855,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
  for (int tries=0;tries<maxtries;tries++){
   sleep(delay);
   delay*=8;
+  if(delay>60)delay=60;
   AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();

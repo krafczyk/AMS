@@ -1780,7 +1780,7 @@ class RemoteClient:
         if(os.environ.has_key('AMSDataDirRW')):
             dir=os.environ['AMSDataDirRW']
         else:
-            dir="/afs/ams.cern.ch/.../AMSDataDir"
+            dir="/afs/ams.cern.ch/Offline/AMSDataDir"
             os.environ['AMSDataDirRW']=dir
         self.env['AMSDataDir']=dir
         key='AMSSoftwareDir'
@@ -2469,7 +2469,7 @@ class RemoteClient:
         if(os.environ.has_key('AMSDataDirRW')):
             amsdatadir=os.environ['AMSDataDirRW']
         else:
-            amsdatadir="/afs/ams.cern.ch/.../AMSDataDir"
+            amsdatadir="/afs/ams.cern.ch/Offline/AMSDataDir"
         dbdir=os.path.join(amsdatadir,"DataBase")
         ltdv=dbdir+"/ltdv"
         for file in os.listdir(dbdir):

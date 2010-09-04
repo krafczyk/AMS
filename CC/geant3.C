@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.138 2010/08/14 11:44:19 mdelgado Exp $
+//  $Id: geant3.C,v 1.139 2010/09/04 16:27:15 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -855,6 +855,24 @@ extern "C" void guout_(){
     AMSEvent::ThreadSize()=UPool.size();
       return;
     }
+    catch(std::bad_alloc a){
+     AMSgObj::BookTimer.stop("GUOUT");
+      cerr << "Event "<<AMSEvent::gethead()->getid()<<" Thread "<<AMSEvent::get_thread_num()<<" "<<"  memory exhausted "<<endl;
+      AMSEvent::gethead()->seterror(2);
+#ifdef __CORBA__
+//#pragma omp critical (g1)
+//      AMSProducer::gethead()->AddEvent();
+#endif
+#pragma omp critical (g1)
+      AMSEvent::gethead()->Recovery();
+    if(MISCFFKEY.NumThreads>2 || MISCFFKEY.NumThreads<0)MISCFFKEY.NumThreads=2;
+    else MISCFFKEY.NumThreads=1;
+    cerr<<"  AMSaPool-W-MemoryRecovered "<<AMSEvent::TotalSize()<<" Thread "<<AMSEvent::get_thread_num()<<" will be idled and number of thread will be reduced to "<<MISCFFKEY.NumThreads<<endl;
+   AMSEvent::ThreadWait()=1;
+    AMSEvent::ThreadSize()=UPool.size();
+      return;
+
+   }
     catch (AMSTrTrackError e){
       cerr << e.getmessage()<<endl;
       AMSEvent::gethead()->_printEl(cerr);

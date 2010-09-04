@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.154 2010/07/27 16:33:38 choutko Exp $
+//  $Id: server.C,v 1.155 2010/09/04 16:27:17 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2901,7 +2901,6 @@ li->second->gettime(i,b,e);
  tdvname.Entry.Insert=i;
  tdvname.Entry.Begin=b;
  tdvname.Entry.End=e;
- if(
 }
  DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
  if(tdvname.Success){
