@@ -1,4 +1,4 @@
-
+//#define _PGTRACK_
 #include "AMSNtupleHelper.h"
 
 static AMSNtupleHelper * fgHelper=0;
@@ -17,10 +17,14 @@ public:
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     if(ev   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
-           cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
+     if(ev && ev->nLevel1()   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
+    int          membpat=ev->pLevel1(0)->JMembPatt;
+    int b15=(membpat>>15)&1;
+    int b14=(membpat>>14)&1;
+          if(! (b14 && b15))return false; 
+          cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
            TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
-           cout <<" q "<<tr.Chi2FastFit<<" "<<tr.NTrRecHit()<<endl;
+           cout <<" q "<<tr.NTrRecHit()<<endl;
            return true;
          }
      else return false;

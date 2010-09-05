@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.50 2009/11/10 18:46:50 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.51 2010/09/05 14:50:15 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -693,7 +693,11 @@ int  AMSDisplay::ReLoad(){
 #ifdef __APPLE__
          char cmd1[]="ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
 #else
+#ifdef _PGTRACK_
+         char cmd1[]="ld -D_PGTRACK_ -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
+#else
          char cmd1[]="ld -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
+
 #endif
          $i=system(cmd1);
          if( !$i){  
