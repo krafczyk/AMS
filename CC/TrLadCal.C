@@ -24,7 +24,7 @@ ClassImp(TrLadCal);
 
 int TrLadCal::dead=0x2;
 // Default to Aug2010 format
-int TrLadCal::version=3;
+int TrLadCal::version=2;
 
 void  TrLadCal::SetVersion(int ver){
   if      (ver==2) { version=ver; printf("TrLadCal:: Set the Flight Cal Format %d\n",ver); }
