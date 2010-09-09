@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.9 2010/01/19 09:24:27 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.10 2010/09/09 19:16:10 choumilo Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -124,11 +124,11 @@ void AMSECALHist::Book(){
 //
   AddSet("EcalTotalHits time evolution");//set-3
   
-  _filled.push_back(new TProfile("emch8","TotalHits vs Time",120,0.,emctrange[0],0,1000.));
+  _filled.push_back(new TProfile("emch8","TotalHits vs Time",120,0.,emctrange[0],0,1300.));
   _filled[_filled.size()-1]->SetYTitle("Hits");
-  _filled.push_back(new TProfile("emch9","TotalHits vs Time",120,0.,emctrange[1],0,1000.));
+  _filled.push_back(new TProfile("emch9","TotalHits vs Time",120,0.,emctrange[1],0,1300.));
   _filled[_filled.size()-1]->SetYTitle("Hits");
-  _filled.push_back(new TProfile("emch10","TotalHits vs Time",120,0.,emctrange[2],0,1000.));
+  _filled.push_back(new TProfile("emch10","TotalHits vs Time",120,0.,emctrange[2],0,1300.));
   _filled[_filled.size()-1]->SetYTitle("Hits");
   
   AddSet("DynodeTriggerEfficiency");//set-4
@@ -251,7 +251,7 @@ case 3:
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
     _filled[i+8]->SetMinimum(0);
-    _filled[i+8]->SetMaximum(101);
+    _filled[i+8]->SetMaximum(201);
     _filled[i+8]->SetMarkerStyle(20);
     _filled[i+8]->SetMarkerColor(2);
     _filled[i+8]->SetMarkerSize(0.5);

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.727 2010/09/04 16:27:15 choutko Exp $
+// $Id: job.C,v 1.728 2010/09/09 19:14:59 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -429,7 +429,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity(FTE)
   TGL1FFKEY.ecprjmask=-99; //(16) proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
 //
-  TGL1FFKEY.Lvl1ConfMCVers=2;//(17)MC def.version number of "Lvl1ConfMC.*" -file
+  TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "Lvl1ConfMC.*" -file
   TGL1FFKEY.Lvl1ConfRDVers=1167606001;//(18)RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
   TGL1FFKEY.Lvl1ConfRead=1;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
 //                                      M=0/1->read Lvl1Config raw-file from official/private dir
@@ -451,7 +451,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=115;//(34)
+  TGL1FFKEY.year[1]=125;//(34)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -927,7 +927,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.mon[0]=0;//
   ECREFFKEY.mon[1]=0;//
   ECREFFKEY.year[0]=108;//64
-  ECREFFKEY.year[1]=112;//65
+  ECREFFKEY.year[1]=125;//65
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
@@ -1345,7 +1345,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
   TFREFFKEY.year[0]=101;//(since year 1900)
-  TFREFFKEY.year[1]=112;//(42)
+  TFREFFKEY.year[1]=125;//(42)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1430,7 +1430,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
   ATREFFKEY.year[0]=101;//(21)
-  ATREFFKEY.year[1]=112;//(22)
+  ATREFFKEY.year[1]=125;//(22)
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ATCAFFKEY.trackmode=0;// (1) 0/1-> use TRK/TRK+TRD for calib

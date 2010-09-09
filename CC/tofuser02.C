@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.40 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: tofuser02.C,v 1.41 2010/09/09 19:14:59 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -842,7 +842,10 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-      HF1(1287,beta,1.);
+      if(beta>=0)HF1(1287,beta,1.);
+      else{
+        HF1(11287,beta,1.);
+      }
 }
     }
 //==================================> Private Beta-fit using TofClusters and TRK-track length :
@@ -1073,6 +1076,46 @@ Nextp:
     }
 //
 //
+//----------------
+//  if((brnl[0]+1)==5 && (brnl[1]+1)==4 && (brnl[2]+1)==5 && (brnl[3]+1)==5){
+    plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    HF1(1524,0.,1.);//just count entries
+    for(i=0;i<16;i++){
+      if(plvl1->JMembPattBitSet(i)){
+        HF1(1524,geant(i+1),1.);//bit was set
+      }
+    }
+//  }
+//----------------    
+  AMSEcalHit * ptr1;
+  integer maxpl,nhtot(0);
+  geant padc[3];
+  integer cid,isl,pmt,sbc,cell,proj;
+  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes(18)
+  nhtot=0;
+  for(int ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
+    ptr1=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",ipl,0);
+
+    while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
+      cid=ptr1->getid();//LTTP(sLayer/pmTube/Pixel)
+      sbc=cid%10-1;//SubCell(0-3)
+      proj=ptr1->getproj();//0/1->X/Y (have to be corresponding to ipl)
+      cell=ptr1->getcell();// 0,...71
+      isl=ipl/2;//0-8
+      pmt=cell/2;//0-35
+      ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
+      if(padc[0]>0){
+        nhtot+=1;
+	if(ipl==0)HF1(5054,geant(cell+1),1.);
+	if(ipl==2)HF1(5055,geant(cell+1),1.);
+      }
+      ptr1=ptr1->next();  
+    } // ---> end of EcalHits loop in pixPlane
+  }//---> end of PixPlanes-loop
+  HF1(5053,geant(nhtot),1.);
+  
+//----------------
     return;
 //
 }
@@ -1082,15 +1125,16 @@ void TOF2User::InitJob(){
   if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
     HBOOK1(1500,"TofUser:Particle Rigidity(gv),Beta>0",100,-10.,10.,0.);
-    HBOOK1(1501,"TofUser:Particle(Tof) Beta(<0)",100,-2.4,-0.4,0.);
-    HBOOK1(11501,"TofUser:Particle(Tof) Beta(>0)",100,0.4,2.4,0.);
+    HBOOK1(1501,"TofUser:Particle(Tof) Beta(<0)",80,-1.4,-0.6,0.);
+    HBOOK1(11501,"TofUser:Particle(Tof) Beta(>0)",80,0.6,1.4,0.);
     HBOOK1(1520,"TofUser:Particle(Tof) Beta",100,0.85,1.15,0.);
     HBOOK1(1280,"TofUser:Particle Beta>0(calc. as p/m)",100,0.2,1.2,0.);
     HBOOK1(1281,"TofUser:Particle Beta<0(calc. as p/m)",100,0.2,1.2,0.);
 //
     HBOOK1(1285,"TofUser:MyBeta(>0,TRKmatchOK)",100,0.,1.25,0.);
     HBOOK1(1286,"TofUser:MyBeta(<0,TRKmatchOK)",100,-1.25,0.,0.);
-    HBOOK1(1287,"TofUser:Particle(Tof) Beta(TRKmatchOK)",100,0.7,1.2,0.);
+    HBOOK1(1287,"TofUser:Particle(Tof) Beta(>=0,TRKmatchOK)",80,0.6,1.4,0.);
+    HBOOK1(11287,"TofUser:Particle(Tof) Beta(<0,TRKmatchOK)",80,-1.4,-0.6,0.);
     
 //    HBOOK1(1282,"TofUser:t1-t2,beta>0,TRKmatchOK",100,-2.5,2.5,0.);
 //    HBOOK1(1283,"TofUser:t1-t2,beta<0,TRKmatchOK",100,-2.5,2.5,0.);
@@ -1144,6 +1188,7 @@ void TOF2User::InitJob(){
 //    HBOOK1(1521,"L1/L2 raw time diff(cos-corrected),B4/B4",60,0.,6.,0.);
 //    HBOOK1(1522,"L1/L2 raw time diff(cos-corrected),B4/B5",60,0.,6.,0.);
 //    HBOOK1(1523,"L1/L2 raw time diff(cos-corrected),B4/B6",60,0.,6.,0.);
+  HBOOK1(1524,"TrigPatt:ftc,cp0,cp1,ct0,ct1,ftz,fte,ac0,ac1,bz,ecfa,ecfo,ecaa,ecao,ex1,ex2",20,0.,20.,0.);
     
     HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",60,-15.,15.,0.);
     HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",60,-15.,15.,0.);
@@ -1246,6 +1291,9 @@ void TOF2User::InitJob(){
     HBOOK1(5050,"EcUser:ShowerEnergy(gev)",100,0.,1.,0.);
     HBOOK1(5051,"EcUser:ShowerEnergy(gev)",100,0.,100.,0.);
     HBOOK1(5052,"EcUser:ShowerEnergy(gev)",100,0.,400.,0.);
+    HBOOK1(5053,"Ecal TotHits(fired pixels)",100,1.,201.,0.);
+    HBOOK1(5054,"Ecal fired pixels,PixL1",72,1.,73.,0.);
+    HBOOK1(5055,"Ecal fired pixels,PixL3",72,1.,73.,0.);
   }
   return;
 }
@@ -1331,6 +1379,7 @@ void TOF2User::EndJob(){
   HPRINT(1280);
   HPRINT(1281);
   HPRINT(1287);
+  HPRINT(11287);
 //----
   HPRINT(1289);//ACC-patt
 //
@@ -1419,7 +1468,8 @@ void TOF2User::EndJob(){
   cout<<endl<<endl;
   cout<<" L1/L2-time fit: Mp/rms="<<par[1]<<" "<<par[2]<<" chi2="<<chi2<<endl;
   HPRINT(1523);
-*/  
+*/
+  HPRINT(1524);
   HPRINT(1519);
   HPRINT(1507);
   HPRINT(1508);
@@ -1489,6 +1539,9 @@ void TOF2User::EndJob(){
   HPRINT(5050);  
   HPRINT(5051);
   HPRINT(5052);
+  HPRINT(5053);
+  HPRINT(5054);
+  HPRINT(5055);
 //  
   return;
 }

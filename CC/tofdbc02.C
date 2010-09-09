@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.80 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.81 2010/09/09 19:14:59 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2080,6 +2080,7 @@ void TOF2JobStat::printstat(){
   printf("   RawSide-validation OK                    : % 6d\n",recount[2]);
   printf("   RawSide->RawCluster  OK                  : % 6d\n",recount[3]);
   printf("   RawCluster->Cluster OK                   : % 6d\n",recount[4]);
+  printf("   TofBeta 'OutOfRange' warnings            : % 6d\n",recount[7]);
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF){
     if(recount[10]>0){
     printf(" Entries to TofTimeAmpl-calibration     : % 6d\n",recount[10]);

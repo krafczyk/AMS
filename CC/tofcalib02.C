@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.49 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.50 2010/09/09 19:14:59 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -5049,6 +5049,8 @@ void TOFTdcCalib::outp(int flg){
       badbinch/=totgchan;//portion of channels having at least 1 bin with low statistics
       badbinch*=100;//in %
       gchanperc=100*(totchan-totgchan)/totchan;// % bad channels (connected but having too low aver. stat/bin)
+      cout<<endl<<"<--- TDCLcalSummary: TotNonEmptyCh="<<totchan<<" TotGoodCh(WithBinAverOK)="<<totgchan<<endl;
+      cout<<"     LowBinStatCh%="<<badbinch<<" TotBadCh(WithBinAverBad)="<<gchanperc<<endl<<endl; 
     }
 //-- fill 4th(->TDCL) line in CALIB results block:
     TOF2JobStat::cqual(3,0)=avstat;

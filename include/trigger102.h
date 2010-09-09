@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.33 2010/01/19 09:24:26 choumilo Exp $
+//  $Id: trigger102.h,v 1.34 2010/09/09 19:16:10 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -183,6 +183,7 @@ public:
  bool EcalFasTrigOK(){return ((_JMembPatt&(1<<6))>0);}
  bool ExternTrigOK(){return ((_JMembPatt&(1<<14))>0);}
  bool AuxTrigOK(int i){return ((_AuxTrigPatt&(1<<i))>0);}
+ bool JMembPattBitSet(int i){return ((_JMembPatt&(1<<i))>0);}
   static Scalers * getscalersp(){return &_scaler;}
   static integer getscalerssize(){return sizeof(_scaler);}
   geant getlivetime () const {return _LiveTime;}

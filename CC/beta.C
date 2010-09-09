@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.86 2010/08/18 17:20:38 pzuccon Exp $
+//  $Id: beta.C,v 1.87 2010/09/09 19:14:59 choumilo Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1387,8 +1387,13 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
    _Beta=1/a;
 if(fabs(_Beta)>2){
  static int nerr=0;
- if(nhit>2 && nerr++<100)
-cerr<<" AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<endl;
+ if(nhit>2 && nerr++<100){
+   TOF2JobStat::addre(7);    
+   cout<<"<--- AMSBeta::SimpleFit-W-BetaOutOfRange "<<_Beta<<
+     " run/event="<<AMSEvent::gethead()->getrun()<<" "<<AMSEvent::gethead()->getid()<<endl;
+   cout<<"     Nhits="<<nhit<<" LenArr:"<<x[0]<<" "<<x[1]<<" "<<x[2]<<" "<<x[3]<<endl;
+   cout<<"                 TimeArr(ns):"<<y[0]/c*1.e9<<" "<<y[1]/c*1.e9<<" "<<y[2]/c*1.e9<<" "<<y[3]/c*1.e9<<endl;
+ }
  if(_Beta>0)_Beta=2;
  else _Beta=-2;
 }
