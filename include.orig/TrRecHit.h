@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.17 2010/08/23 16:57:02 shaino Exp $
+//  $Id: TrRecHit.h,v 1.18 2010/09/09 17:43:19 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -111,6 +111,8 @@ protected:
   int   GetLayer()       const { return abs(_tkid/100); }
   /// Get ladder slot
   int   GetSlot()        const { return abs(_tkid%100); }
+  /// Get ladder slot Side (0 == negative X, 1== positive X)
+  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
   /// Get the pointer to X cluster
   TrClusterR* GetXCluster();
   /// Get the pointer to Y cluster

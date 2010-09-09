@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/08/04 19:33:41 $
+ $Date: 2010/09/09 17:43:19 $
 
- $Revision: 1.11 $
+ $Revision: 1.12 $
 
 */
 
@@ -141,6 +141,8 @@ public:
   int   IsK7()             const { return TkDBc::Head->FindTkId(GetTkId())->IsK7(); } 
   /// Get ladder slot
   int   GetSlot()          const { return abs(_tkid%100); }
+  /// Get ladder slot Side (0 == negative X, 1== positive X)
+  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
   /// Get cluster side (0: n-side, 1: p-side)
   int   GetSide()          const { return (_address<640)? 1 : 0; }
   /// Get the cluster first strip number (0, ..., 639 for p-side, 0, ..., 383 for n-side)  

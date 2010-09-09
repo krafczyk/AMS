@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.11 2010/02/01 12:44:12 shaino Exp $ 
+// $Id: TrRawCluster.h,v 1.12 2010/09/09 17:43:19 pzuccon Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2010/02/01 12:44:12 $
+/// $Date: 2010/09/09 17:43:19 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -81,6 +81,8 @@ class TrRawClusterR : public TrElem {
   int   GetLayerSide() const { return (GetTkId()>0)?1:-1; }
   /// Returns  the slot identifier of the ladder holding the cluster 
   int   GetSlot()      const { return (abs(GetTkId())-GetLayer()*100)*GetLayerSide(); }
+  /// Get ladder slot Side (0 == negative X, 1== positive X)
+  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
   /// Returns the silicon face on which the cluster is (0 -> p, 1 -> n)
   int   GetSide() { return (GetAddress()>639) ? 0 : 1; }
  
