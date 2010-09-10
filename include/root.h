@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.282 2010/08/30 19:14:40 mmilling Exp $
+//  $Id: root.h,v 1.283 2010/09/10 17:43:45 zweng Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -48,6 +48,7 @@
 #include "amsvmc_MCStack.h"
 #include "amsvmc_RootManager.h"
 #include "amsvmc_MagField.h"
+#include "amsvmc_RunConfiguration.h"
 #endif
 
 
@@ -66,6 +67,7 @@ class amsvmc_PrimaryGenerator;
 class amsvmc_MCStack;
 class amsvmc_MagField;
 class amsvmc_RootManager;
+class amsvmc_RunConfiguration;
 #endif
 
 
@@ -143,6 +145,7 @@ class amsvmc_DetectorConstruction{};
 class amsvmc_PrimaryGenerator{};
 class amsvmc_MCStack{};
 class amsvmc_RootManager{};
+class amsvmc_RunConfiguration{};
 class amsvmc_MagField{};
 #endif
 

@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.61 2010/08/07 18:21:19 mmilling Exp $
+//  $Id: linkdef.h,v 1.62 2010/09/10 17:43:44 zweng Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -96,6 +96,7 @@
 #pragma link C++ class amsvmc_MCStack+;
 #pragma link C++ class amsvmc_RootManager+;
 #pragma link C++ class amsvmc_MagField+;
+#pragma link C++ class amsvmc_RunConfiguration+;
 #endif
 
 
