@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.44 2010/09/10 17:27:35 pzuccon Exp $
+// $Id: TrTrack.C,v 1.45 2010/09/10 18:18:49 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/10 17:27:35 $
+///$Date: 2010/09/10 18:18:49 $
 ///
-///$Revision: 1.44 $
+///$Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -220,16 +220,16 @@ TrTrackPar &TrTrackR::GetPar(int id)
 {
   int id2 = (id == 0) ? trdefaultfit : id;
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
-  // PZ Workaround for error in TB Aug2010 production
-  int idT  = kChoutko | kFitLayer9;
-  int idB  = kChoutko | kFitLayer8;
-  int idTB = kChoutko | kFitLayer8 | kFitLayer9;
-  int id3=0;
-  if(ParExists(idTB)) id3=idTB;
-  else if (ParExists(idT)) id3=idT;
-  else if (ParExists(idB)) id3=idB;
-  else id3=id2;
-  if (ParExists(id3)) return _TrackPar[id3];
+  if(id==0 && id2!=kLinear){
+    // PZ Workaround for error in TB Aug2010 production
+    int idT  = kChoutko | kFitLayer9;
+    int idB  = kChoutko | kFitLayer8;
+    int idTB = kChoutko | kFitLayer8 | kFitLayer9;
+    if(ParExists(idTB)) id3=idTB;
+    else if (ParExists(idT)) id2=idT;
+    else if (ParExists(idB)) id2=idB;
+  }
+  if (ParExists(id2)) return _TrackPar[id2];
   cerr << "Warning in TrTrackR::GetPar, Parameter not exists "
     << id << endl;
   static TrTrackPar parerr;
