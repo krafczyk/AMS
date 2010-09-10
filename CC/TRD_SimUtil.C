@@ -1,4 +1,4 @@
-#include "TrdSimUtil.h"
+#include "TRD_SimUtil.h"
 
 TrdSimUtil trdSimUtil;
 #pragma omp threadprivate(trdSimUtil);
