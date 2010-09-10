@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.45 2010/09/10 18:18:49 pzuccon Exp $
+// $Id: TrTrack.C,v 1.46 2010/09/10 18:25:53 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/10 18:18:49 $
+///$Date: 2010/09/10 18:25:53 $
 ///
-///$Revision: 1.45 $
+///$Revision: 1.46 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -225,7 +225,7 @@ TrTrackPar &TrTrackR::GetPar(int id)
     int idT  = kChoutko | kFitLayer9;
     int idB  = kChoutko | kFitLayer8;
     int idTB = kChoutko | kFitLayer8 | kFitLayer9;
-    if(ParExists(idTB)) id3=idTB;
+    if(ParExists(idTB)) id2=idTB;
     else if (ParExists(idT)) id2=idT;
     else if (ParExists(idB)) id2=idB;
   }
