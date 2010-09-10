@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.41  2010/09/10 19:40:31  choutko
+* *** empty log message ***
+*
 * Revision 1.40  2010/08/19 06:41:00  choutko
 * *** empty log message ***
 *
@@ -209,7 +212,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6890,6 +6893,7 @@ c        enddo
         if(mod(algo,2).eq.0)then
               ims=0
               ialgo=1
+               if(algo/10.ne.0)ialgo=11
               do m=1,nplan
                normal(1,m)=0
                normal(2,m)=0
@@ -6934,10 +6938,10 @@ c        enddo
      +           param(j,array(j,4,i),array(j,5,i),k)
                  xsigma(k,npt)=array(j,k+5,i)
                  xsigma(k,npt+nplan)=array(j,k+5,i)
-                 if(abs(hits(3,npt)).gt.100)then
-                  xsigma(k,npt)=sqrt(xsigma(k,npt)**2+
-     +         (13.6e-3*sqrt(0.25)/1.8*(abs(hits(3,npt))-55))**2)
-                 endif
+c                 if(abs(hits(3,npt)).gt.100)then
+c                  xsigma(k,npt)=sqrt(xsigma(k,npt)**2+
+c     +         (13.6e-3*sqrt(0.25)/1.8*(abs(hits(3,npt))-55))**2)
+c                 endif
                 enddo
                endif
                enddo
@@ -6946,6 +6950,10 @@ c        enddo
                write(*,*)'npt',npt
                 out(7)=1.e38
               else 
+             if(ialgo/10.ne.0)then
+c                      out(1)=1./xf(1)
+                  out(1)=1/400.          
+                endif
              call tkfitg(npt,hits,xsigma,normal,5,ialgo,ims,layer,out)
 c              rig=abs(out(6))
 c              if(rig.lt.1)rig=1
@@ -7860,9 +7868,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.40 2010/08/19 06:41:00 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.41  2010/09/10 19:40:31  choutko
+* *** empty log message ***
+*
 * Revision 1.40  2010/08/19 06:41:00  choutko
 * *** empty log message ***
 *

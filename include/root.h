@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.283 2010/09/10 17:43:45 zweng Exp $
+//  $Id: root.h,v 1.284 2010/09/10 19:40:32 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2603,7 +2603,7 @@ protected:
    }
     catch (...)
     {
-     cout <<"  exception catched "<<endl;
+     cout <<"  exception caught "<<endl;
     return false;
     }
  }

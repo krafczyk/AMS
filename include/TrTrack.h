@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.28 2010/08/23 16:57:02 shaino Exp $
+//  $Id: TrTrack.h,v 1.29 2010/09/10 19:40:32 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,12 +37,14 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/08/23 16:57:02 $
+///$Date: 2010/09/10 19:40:32 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
+
+class AMSTrTrackError;
 #include "point.h"
 #include "TrFit.h"
 #include "TkDBc.h"
@@ -351,6 +353,38 @@ public:
 
   /// Get TrTrackPar with id
   TrTrackPar &GetPar(int id = 0);
+
+
+  
+/*!
+    Advanced TrTrackPar accessor
+    \param algo Fitting algorithm 
+                           1 Choutko
+                           2 Alcaraz
+                           3 Chikanian
+                        +10 mscattering off
+    \param pattern    Hit Pattern
+                       0   all hits
+                       1   upper half
+                       2   lower half
+                       3   -2 external hits
+                       4   2 + 2 external hits
+                       OR
+                       mmmmmmmmm    where m=0 or 1 for 
+                                    TrRecHit layer GetLayer()
+                                     from right to the left such as 
+                                     100110010  corresponds to layers
+                                     2,5,6,9
+     \param refit   ForceRefit 
+                    0   do not refit
+                    1    refit if not exists
+                     2  refit
+
+     \return  reference to TrTrackPar or throw an exception "TrTrackParNotFound" 
+!*/
+         
+   const TrTrackPar & gTrTrackPar(int algo=1, int pattern=0, int refit=0)throw (string);       
+
 
   /// Test HitBits
   bool TestHitBits(int layer, int id = 0) { 

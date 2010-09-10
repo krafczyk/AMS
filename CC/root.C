@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.225 2010/08/30 19:15:09 mmilling Exp $
+//  $Id: root.C,v 1.226 2010/09/10 19:40:31 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3094,6 +3094,19 @@ void AMSEventR::Begin(TTree *tree){
     for(int thr=fgThickMemory?fgThreads-1:0;thr>=0;thr--){
       if(thr==0){
 	if(option.Length()>1){
+        if(strstr((const char*)gWDir,".proof") &&strstr((const char*)gWDir,"worker-0."  )){
+          string fdir((const char*)gWDir);
+          int pos=fdir.find("worker-0");
+          string fupdir=fdir.substr(0,pos);
+          string fname(option.Data());
+          if(fname.find('/')==string::npos){
+            string ffull=fupdir+fname;
+            ffull+=fdir.substr(pos+8,fdir.length()-pos-7);
+            option=ffull.c_str();
+           }
+          } 
+
+
 	  (fService)._pOut=new TFile(option,"RECREATE");
 	  (fService)._pDir=gDirectory;
 //	      cout <<" gdir "<<gDirectory<<" "<< " "<<gROOT<<" "<<gDirectory->GetFile()->GetName()<<endl;
@@ -3170,10 +3183,11 @@ void AMSEventR::Terminate()
 	  string fname((*pService)._pOut->GetName());
 	  if(fname.find('/')==string::npos){
 	    string ffull=fupdir+fname;
+            string fsystem="mv "+fdir+"/" +fname+" ";
 	    ffull+=fdir.substr(pos+8,fdir.length()-pos-7);
-	    string fsystem="mv "+fname+" "+ffull;
+	    fsystem+=ffull;
 	    system(fsystem.c_str());
-	    cout <<" AMSEventR::Terminate-I-ProofLiteOutputFileMovedTo  "<<ffull<<endl;
+	    cout <<" AMSEventR::Terminate-I-ProofLiteOutputFileMovedTo  "<<fsystem<<endl;
 	  }
           else{
 	    cout <<" AMSEventR::Terminate-E-ProofLiteProblemToMoveOutputfile  "<<fname<<endl;

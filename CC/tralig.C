@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.66 2010/08/19 06:40:59 choutko Exp $
+//  $Id: tralig.C,v 1.67 2010/09/10 19:40:31 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -519,13 +519,14 @@ while(offspring){
          ftxt.read((char*)&chi2,sizeof(chi2));
          ftxt.read((char*)&pattern,sizeof(pattern));
          ftxt.read((char*)&address,sizeof(address));
-//         ftxt.read((char*)&add1,sizeof(add1));
-//         ftxt.read((char*)&add2,sizeof(add2));
+       //  ftxt.read((char*)&add1,sizeof(add1));
+      //   ftxt.read((char*)&add2,sizeof(add2));
          ftxt.read((char*)&rig,sizeof(rig));
          ftxt.read((char*)&mcrig,sizeof(mcrig));
-         if(mcrig==0)mcrig=10000;
+         if(mcrig==0)mcrig=400;
+            mcrig=400;
          //ftxt>>nh>>chi2>>pattern>>add1>>add2;
-//         uintl address(add1,add2);
+         //uintl address(add1,add2);
          int ilad[maxlay]={0,0,0,0,0,0,0,0,0};
          int ihalf[maxlay]={0,0,0,0,0,0,0,0,0};
          for(int i=0;i<TKDBc::nlay();i++){
@@ -569,8 +570,12 @@ while(offspring){
          if(TRALIG.Cuts[9][1]!=0)cut= (TRALIG.Cuts[9][1]*rig>0);
          bool smart=false;
           int nentries=100000000;
-             integer ladder[2][maxlay];
+             integer ladder[2][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
              AMSTrTrack::decodeaddress(ladder,address);
+             for(int k=0;k<TKDBc::nlay();k++){
+                  ladder[0][k]=ilad[k];
+                  ladder[1][k]=ihalf[k];
+             } 
              for(int i=0;i<TKDBc::nlay();i++){
               if(ladder[0][i]){
                 int ptr=TRALIG.LaddersOnly?0:sen[i]-1;
@@ -588,6 +593,11 @@ while(offspring){
           if(pal->_PositionData<pal->_NData){
             // UPdateGlobalParSpace;
              AMSTrTrack::decodeaddress(ladder,address);
+           for(int k=0;k<TKDBc::nlay();k++){
+                  ladder[0][k]=ilad[k];
+                  ladder[1][k]=ihalf[k];
+             }
+
              int add=0;
              int i;
              for(i=0;i<TKDBc::nlay();i++){
@@ -602,18 +612,19 @@ while(offspring){
                     }
                     uint64 a1=AMSTrTrack::encodeaddress(ladder);
                     if(a1!=address){
-                      cerr<<" a1 "<<a1<<" "<<address;
+                      address=a1;
+                      //cerr<<" a1 "<<a1<<" "<<address;
                     }
 
              if(add){
-                 int ll[3][maxlay];
+                 int ll[3][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                  for(int k=0;k<maxlay;k++){
                   ll[0][k]=ladder[0][k];
                   ll[1][k]=ladder[1][k];
                   ll[2][k]=sen[k];
                  }
                  uint128 Address=AMSTrTrack::encodeaddressS(ll);
-                 int lll[3][maxlay];
+                 int lll[3][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 AMSTrTrack::decodeaddressS(lll,Address);
                 for(int k=0;k<maxlay;k++){
                  for(int k3=0;k3<3;k3++){
@@ -671,6 +682,7 @@ again:
           geant chi2[1000][2];
           geant rigmin=0;
           int itermin=0;
+          xf[0]=mcrig;
          FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigmin,itermin);
          what=0;
          cout <<" Total "<<pal->_PositionData<<endl;
@@ -711,6 +723,8 @@ again:
                 if(_pPargl[ptr][lad-1][half][plane].NEntries()<TRALIG.MinEventsPerFit && TRALIG.LaddersOnly)fixpar[j][plane]=0;
               }
              }
+     xf[0]=mcrig;
+
              FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
 next:
              if(ip<10){
@@ -736,8 +750,9 @@ next:
               }
               geant out[9];
               int pid=5;
-              out[0]=1./1000000.;
-              TKFITG(npt,hits,sigma,normal,pid,ialgo,ims,layer,out);
+              out[0]=1./10000000.;
+                        int ialgg=ialgo%10;
+              TKFITG(npt,hits,sigma,normal,pid,ialgg,ims,layer,out);
               cout <<"  fit "<<" "<<npt<<" "<<out[6]<<endl;
              }      
             }
@@ -746,6 +761,7 @@ next:
             rigmin=TRALIG.Cuts[8][0];
             itermin=TRALIG.Cuts[8][1];
             cout <<" chi2m "<<chi2m<<"rigmin "<<rigmin<<" itermin "<<itermin<<endl;
+              xf[0]=mcrig;
             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
 
              number nchi2a=0;
@@ -772,6 +788,7 @@ next:
              cout <<"  Chi2 Changed "<<chi2a<<endl;
              what=-1;
              itermin=0;
+              xf[0]=mcrig;
              FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
 
             what=2;

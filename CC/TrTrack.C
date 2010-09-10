@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.46 2010/09/10 18:25:53 pzuccon Exp $
+// $Id: TrTrack.C,v 1.47 2010/09/10 19:40:31 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/10 18:25:53 $
+///$Date: 2010/09/10 19:40:31 $
 ///
-///$Revision: 1.46 $
+///$Revision: 1.47 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -230,8 +230,9 @@ TrTrackPar &TrTrackR::GetPar(int id)
     else if (ParExists(idB)) id2=idB;
   }
   if (ParExists(id2)) return _TrackPar[id2];
-  cerr << "Warning in TrTrackR::GetPar, Parameter not exists "
-    << id << endl;
+  static int i=0;
+   if(i++<100)cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
+       << id << " "  << endl;
   static TrTrackPar parerr;
   return parerr;
 }
@@ -742,9 +743,9 @@ std::ostream &TrTrackR::putout(std::ostream &ostr)  {
 void TrTrackR::_PrepareOutput(int full )
 {
   sout.clear();
-  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d, MOn: %d DefFit: %d ",
+  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d,   DefFit: %d, Chi2 %f Pirig %f",
 		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),
-		   _MagFieldOn,trdefaultfit));
+		   trdefaultfit,Chi2FastFitf(),GetRigidity(kAlcaraz)));
   TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
   if(!full) return;
@@ -966,3 +967,19 @@ void TrTrackR::PrintFitNames(){
   for(it=_TrackPar.begin();it!=_TrackPar.end();it++)
     printf("%s\n", GetFitNameFromID(it->first));
 }
+
+
+const TrTrackPar & TrTrackR::gTrTrackPar(int algo,int pattern, int refit)throw (string){
+if(1){
+
+}
+else{
+//  throw an exception
+char tbt[255];
+sprintf(tbt,"TrTrackPar-E-NotFound algo %d pattern %d refit %d ",algo,pattern,refit);
+throw string(tbt); 
+} 
+
+
+}
+
