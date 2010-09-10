@@ -10,7 +10,7 @@
 #include "G4PionMinus.hh"
 #include "G4RegionStore.hh"
 #include <sstream>
-#include "TrdSimUtil.h"
+#include "TRD_SimUtil.h"
 
 TRD_TrdPhysics::TRD_TrdPhysics(const G4String& name ) : G4VPhysicsConstructor(name) {
   fAlphaFiber = 5.;//100.;
