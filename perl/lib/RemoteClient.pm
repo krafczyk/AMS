@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.591 2010/09/04 16:27:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.592 2010/09/11 15:57:08 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -340,7 +340,7 @@ sub Init{
       }
       $self->{q}=new CGI;
 #cpu types
-      my $cachetime=600;
+      my $cachetime=60;
      if(defined $self->{initdone} ){
       if(time()-$self->{initdone}<$cachetime and $self->{initdone} >$self->dblupdate()){
         return 1;
@@ -970,7 +970,7 @@ if($#{$self->{DataSetsT}}==-1){
        my $full="$newfile/$job";
        my $buf;
        open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
-       read(FILE,$buf,1638400) or next;
+       read(FILE,$buf,16384000) or next;
        close FILE;
        $td[3] = time();
        $template->{filename}=$job;
@@ -988,7 +988,7 @@ if($#{$self->{DataSetsT}}==-1){
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO")){
                $template->{initok}=undef;
              }
            }
@@ -1074,7 +1074,9 @@ if($#{$self->{DataSetsT}}==-1){
                  else{
                      $template->{TOTALEVENTS}=0;
                  }
-#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
+               if($template->{filename} =~/el180/){
+#die "  $template->{TOTALEVENTS} $template->{TOTALRUNS} $dataset->{name} $template->{filename} $sql \n";
+          }
            if(not defined $template->{TOTALEVENTS}){
                $template->{TOTALEVENTS}=0;
             } 
@@ -4077,10 +4079,10 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 # Template 'Any', particle (dataset) is defined
 #
-      } elsif (defined $q->param("QPart") and
-                   ($q->param("QPart") ne "Any" and
-                    $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
-         $particle = $q->param("QPart");
+      } elsif (defined $q->param("QPartD") and
+                   ($q->param("QPartD") ne "Any" and
+                    $q->param("QPartD") ne "ANY" and $q->param("QPartD") ne "any"))  {
+         $particle = $q->param("QPartD");
          $qparticle = $particle;
          $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle'";
          my $r0=$self->{sqlserver}->Query($sql);
@@ -4089,7 +4091,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $did = $r->[0];
            $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, dataRuns.SUBMIT
                     FROM dataRuns, Jobs, datasetsdesc
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and
+                     WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID 
                              AND dataRuns.Status='Completed'";
       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
@@ -15515,7 +15517,7 @@ sub calculateMipsVC {
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO")){
                $template->{initok}=undef;
              }
            }
@@ -15578,7 +15580,7 @@ sub calculateMipsVC {
                  else{
                      $template->{TOTALEVENTS}=0;
                  }
-#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
+               #die "  $template->{TOTALEVENTS} $template->{TOTALRUNS} $dataset->{name} $template->{filename} \n";
         $totevt+=$template->{TOTALEVENTS};
         $totcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
         $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
