@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.56 2010/09/12 14:17:33 pzuccon Exp $
+#  $Id: Makefile,v 1.57 2010/09/12 14:49:00 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -21,6 +21,7 @@ PREFIX        = $(AMSWD)/bin/$(ARCH)/display/PG/
 AMSLIB        = ntuple_slc4_PG
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsedPG
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedcPG
+AMSPRGCC       = $(AMSWD)/exe/$(ARCH)/amseddPG
 endif
 
 
@@ -75,6 +76,7 @@ LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS)
 LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA)
 
 else
+
 CXX           =  g++ -m32 
 CPPFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
@@ -95,6 +97,8 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) /usr/lib/libshift.a -lm -Bdynamic -ldl
+
+LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) 
 LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm    -ldl 
 endif
 
@@ -203,6 +207,7 @@ ALLOBJS       = $(OBJS) $(OBJSN) $(DICTO)
 ##### TARGETS #####
 standalone:  amslib $(AMSPRG) 
 osdepend:  amslib $(AMSPRGC)
+dynamic:   amslib $(AMSPRGCC)
 
 amslib: $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a
 $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a:
@@ -219,6 +224,10 @@ $(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO)
 $(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  
 		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
 		@echo "$(AMSPRGC) done"
+
+$(AMSPRGCC):	$(OBJSN)  $(OBJS) $(DICTO)  
+		$(LDD)   $(LDFLAGS) $^  $(LIBSD) -o $(@) 
+		@echo "$(AMSPRGCC) done"
 
 
 
