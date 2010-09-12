@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.67 2010/09/10 19:40:31 choutko Exp $
+//  $Id: tralig.C,v 1.68 2010/09/12 17:01:36 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -617,14 +617,17 @@ while(offspring){
                     }
 
              if(add){
-                 int ll[3][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-                 for(int k=0;k<maxlay;k++){
+                 int ll[3][maxlay];
+                   for(int k=0;k<3;k++)for(int i=0;i<maxlay;i++)ll[k][i]=0; 
+                 for(int k=0;k<TKDBc::nlay();k++){
                   ll[0][k]=ladder[0][k];
                   ll[1][k]=ladder[1][k];
                   ll[2][k]=sen[k];
                  }
                  uint128 Address=AMSTrTrack::encodeaddressS(ll);
-                 int lll[3][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                 int lll[3][maxlay];
+        for(int k=0;k<3;k++)for(int i=0;i<maxlay;i++)lll[k][i]=0;
+
                 AMSTrTrack::decodeaddressS(lll,Address);
                 for(int k=0;k<maxlay;k++){
                  for(int k3=0;k3<3;k3++){

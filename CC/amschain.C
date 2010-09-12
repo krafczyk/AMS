@@ -306,7 +306,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
         TRegexp d("^root:",false);
         if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
         else file=new TFile(it->second.Data(),"READ");
-	tree=(TTree*)file->Get(_NAME);
+          tree=0;
+	if(file)tree=(TTree*)file->Get(_NAME);
         if(!tree){
           cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
 	}
@@ -337,9 +338,9 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
       }
 #pragma omp critical (cls)  
       {
-	if(AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
-	file->Close("R");
-        delete file;
+	if(tree && AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
+	if(file)file->Close("R");
+        if(file)delete file;
 	//        cout <<" finished "<<i<<" "<<endl;
       }
     }
