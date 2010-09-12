@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.196 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: daqevt.C,v 1.197 2010/09/12 17:08:47 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2191,19 +2191,19 @@ int DAQEvent::parser(char a[], char **& fname){
   if(kl==0 || kl==strlen(a)){
       // Whole directory  wanted
       AString fdir(a);
-      
-#ifdef __LINUXGNU__
-      dirent64 ** namelist;
-       ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
-#endif
-#ifdef __DARWIN__
-      dirent ** namelist;
-       ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
-#endif
 
-#if !defined(__DARWIN__) && !defined(__LINUXGNU__)
+#if defined(__DARWIN__)
+      dirent ** namelist;
+      ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+#elif defined(__LINUXNEW__)
       dirent64 ** namelist;
-       ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
+      ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
+#elif defined(__LINUXGNU__)
+      dirent64 ** namelist;
+      ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+#else
+      dirent64 ** namelist;
+      ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
 #endif
       int ngood=0;
       if(ntot==-1 && !(DAQCFFKEY.mode/10)){
@@ -2393,16 +2393,17 @@ again:
        for(int i=0;i<4;i++){
         *(result+i)=dir[i];
        }
-#ifdef __LINUXGNU__
-        dirent64 ** namelist;
-       int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
-#endif
 #ifdef __DARWIN__
-        dirent ** namelist;
+       dirent ** namelist;
        int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
-#endif
-#if !defined(__LINUXGNU__) & !defined(__DARWIN__)
-        dirent64 ** namelist;
+#elif defined( __LINUXNEW__)
+       dirent64 ** namelist;
+       int ntot=scandir64((const char *)newdir,&namelist,&_select,(&_sort));
+#elif defined( __LINUXGNU__)
+       dirent64 ** namelist;
+       int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+#else
+       dirent64 ** namelist;
        int ntot=scandir64((const char *)newdir,&namelist,&_select,&_sort);
 #endif
        if(ntot>0){

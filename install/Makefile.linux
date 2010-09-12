@@ -7,7 +7,9 @@
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version | grep 4.1)
+
+VERGCC       := $(shell gcc --version | grep 4.)
+VERGCCH       := $(shell gcc --version | grep 4.4)
 
 ifdef VER
 NEW = 
@@ -64,16 +66,18 @@ IDLCPP=orbit-idl-2 -l cpp
 ########################################################################
 # CERN & AMS Libraries
 ########################################################################
+CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
+
 ifndef CERN_LEVEL
 CERN_LEVEL = pro
 endif
-CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
-#CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
+
+ifndef CERNDIR
 CERNSRCDIR = /cern/$(CERN_LEVEL)
-
-
 CERNDIR = /cern/$(CERN_LEVEL)
-
+else
+CERNSRCDIR = $(CERNDIR)
+endif
 
 ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
@@ -105,10 +109,14 @@ ifdef TFADBW
 DEFINES+=  -D__TFADBW__
 endif
 
+
 ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
+ifdef VERGCCH
+DEFINES+=  -D__LINUXNEW__
+endif
 
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated  -march=i686 
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated  -march=i686 
