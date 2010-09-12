@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.55 2010/09/10 19:40:31 choutko Exp $
+#  $Id: Makefile,v 1.56 2010/09/12 14:17:33 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -53,6 +53,26 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
 
+else ifeq ($(ARCH),macosx64)
+
+
+CXX           =  g++  
+CPPFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include  -I/usr/X11R6/include/ -I/usr/X11R6/include/freetype2
+CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
+OPT           = -O3
+NOOPT         = -g
+
+LD            = g++ 
+LDFLAGS       = -g 
+LDS	= 	$(LD) 
+LDS	= 	$(LD) 
+LDD	= 	$(LD) 
+
+
+ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx 
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx 
+LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) 
+LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA)
 
 else
 CXX           =  g++ -m32 
@@ -77,6 +97,8 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) /usr/lib/libshift.a -lm -Bdynamic -ldl
 LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm    -ldl 
 endif
+
+
 
 
 ifdef PGTRACK

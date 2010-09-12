@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.43 2010/05/24 14:13:11 pzuccon Exp $
+//  $Id: main.cxx,v 1.44 2010/09/12 14:17:33 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -32,8 +32,9 @@ void OpenChain(AMSChain & chain, char * filename);
 
 #ifndef WIN32
 #ifdef __APPLE__
-static int Selectsdir(dirent64 *entry=0);
-static int Select(dirent64 *entry=0);
+static int Selectsdir(dirent *entry=0);
+static int Select(dirent *entry=0);
+static int Sort(dirent ** e1,  dirent ** e2);
 #else
 static int Selectsdir(const dirent64 *entry=0);
 static int Select(const dirent64 *entry=0);
@@ -328,9 +329,14 @@ void OpenChain(AMSChain & chain, char * filenam){
                    delete Selector;
                    Selector=0;
                 }
-                dirent64 ** namelistsubdir;
 //                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
+#ifdef __APPLE__
+                dirent ** namelistsubdir;
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#else
+                dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
                   strcpy(fsdir,ts.Data());
@@ -362,9 +368,14 @@ void OpenChain(AMSChain & chain, char * filenam){
                    Selectorf=0;
                 }
                  
-                dirent64 ** namelistsubdir;
                 cout <<"  scanning wild"<<ts<<endl;
+#ifdef __APPLE__
+                dirent ** namelistsubdir;
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#else
+                dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
                   strcpy(fsdir,ts.Data());
@@ -381,8 +392,13 @@ void OpenChain(AMSChain & chain, char * filenam){
     }
   }
 #endif
+#ifdef __APPLE__
+  struct stat statbuf;
+  stat((const char*)filename, &statbuf);
+#else
   struct stat64 statbuf;
   stat64((const char*)filename, &statbuf);
+#endif
      time_t t;
      time(&t);
   if(statbuf.st_mtime>=lasttime &&statbuf.st_size){
@@ -413,12 +429,13 @@ void OpenChain(AMSChain & chain, char * filenam){
 
 
 #ifndef WIN32
-int Selectsdir(
-#ifndef __APPLE__
-	       const dirent64 *entry){
+
+#ifdef __APPLE__
+int Selectsdir(	 dirent *entry)
 #else
-  dirent64 *entry){
+int Selectsdir(  const dirent64 *entry)
 #endif
+  {
   if(Selector){
     TString a(entry->d_name);
     TRegexp b(Selector->Data(),true);
@@ -431,12 +448,13 @@ int Selectsdir(
 
 
 #ifndef WIN32
-int Select(
-#ifndef __APPLE__
-	       const dirent64 *entry){
+
+#ifdef __APPLE__
+int Select(  dirent *entry)
 #else
-  dirent64 *entry){
+int Select( const dirent64 *entry)
 #endif
+  {
   if(Selectorf){
     TString a(entry->d_name);
     TRegexp b(Selectorf->Data(),true);
@@ -445,7 +463,12 @@ int Select(
   else return entry->d_name[0]!='.';
 }
 
-int Sort(dirent64 ** e1,  dirent64 ** e2){
+#ifdef __APPLE__
+int Sort(dirent ** e1,  dirent ** e2)
+#else
+int Sort(dirent64 ** e1,  dirent64 ** e2)
+#endif
+  {
 return strcmp((*e1)->d_name,(*e2)->d_name);
 }
 

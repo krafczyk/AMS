@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.47 2010/09/10 19:40:31 choutko Exp $
+// $Id: TrTrack.C,v 1.48 2010/09/12 14:17:33 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/10 19:40:31 $
+///$Date: 2010/09/12 14:17:33 $
 ///
-///$Revision: 1.47 $
+///$Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -970,15 +970,15 @@ void TrTrackR::PrintFitNames(){
 
 
 const TrTrackPar & TrTrackR::gTrTrackPar(int algo,int pattern, int refit)throw (string){
-if(1){
-
-}
-else{
-//  throw an exception
-char tbt[255];
-sprintf(tbt,"TrTrackPar-E-NotFound algo %d pattern %d refit %d ",algo,pattern,refit);
-throw string(tbt); 
-} 
+  
+  int fitcode= iTrTrackPar(algo, pattern, refit);
+  if(ParExists(fitcode)) return _TrackPar[fitcode];
+  else{
+    //  throw an exception
+    char tbt[255];
+    sprintf(tbt,"TrTrackPar-E-NotFound algo %d pattern %d refit %d ",algo,pattern,refit);
+    throw string(tbt); 
+  } 
 
 
 }

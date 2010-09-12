@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.30 2010/09/10 19:53:42 choutko Exp $
+//  $Id: TrTrack.h,v 1.31 2010/09/12 14:17:33 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/10 19:53:42 $
+///$Date: 2010/09/12 14:17:33 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -383,7 +383,45 @@ public:
      \return  reference to TrTrackPar or throw an exception "TrTrackParNotFound" 
 !*/
          
-   const TrTrackPar & gTrTrackPar(int algo=1, int pattern=0, int refit=0)throw (string);       
+  const TrTrackPar & gTrTrackPar(int algo=0, int pattern=0, int refit=0)throw (string);
+  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0){
+    int type=algo%10;
+    bool mscat=((algo/10)==1);
+    int fittype=0;
+    switch (type){
+    case 0 :
+      fittype|=trdefaultfit;
+      break;
+    case 1 :
+      fittype|=kChoutko;
+      break;
+    case 2 :
+      fittype|=kAlcaraz;
+      break;
+    case 3 :
+      fittype|=kChikanian;
+      break;
+    default :
+      fittype|=kChoutko;
+    }
+    if(!mscat) fittype|=kMultScat;
+    // Has1N 
+    if ((_bit_pattern & 0x80)>0) fittype|= kFitLayer8;
+    // Has9 
+    if ((_bit_pattern & 0x100)>0) fittype|= kFitLayer9;
+    
+    bool FitExists=ParExists(fittype);
+    if(refit==2 || (!FitExists && refit==1)) { 
+      //do the refit
+      // if (refit success) return fittype;
+      //  else 
+      return -2;
+    }
+    if(!FitExists && refit==0) return -1;
+    else if(FitExists) return fittype;
+  }    
+
+       
 
 
   /// Test HitBits
