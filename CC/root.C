@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.226 2010/09/10 19:40:31 choutko Exp $
+//  $Id: root.C,v 1.227 2010/09/13 21:09:40 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6,6 +6,7 @@
 #include "TSystem.h"
 #include "TXNetFile.h"
 #include <TChainElement.h>
+#include "TFile.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -3224,10 +3225,29 @@ Int_t AMSEventR::Fill()
   {
 //    cout <<"  cloned treee "<<_ClonedTree<<endl;
     if (_ClonedTree==NULL) {
-//    cout <<"  cloned treees "<<_ClonedTree<<_Tree<<" "<<_Tree->GetTree()<<endl;
+  TFile * input=_Tree->GetCurrentFile();
+  if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
+  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
+  TObject* obj[4]={0,0,0,0}; 
+  TObjString* obj2=0;
+  TObjString* obj3=0;
+  if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
+  else{
+       cout <<input->GetName()<<endl;
+   for(int ii=3;ii>=0;ii--){
+    obj[ii]=input->Get(objlist[ii]);
+     input->Get("TrParDB");
+   }
+   obj2=(TObjString*)input->Get("AMS02Geometry");
+   obj3=(TObjString*)input->Get("DataCards");
+  }
       _ClonedTree = _Tree->GetTree()->CloneTree(0);
 //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
       AMSEventR::_ClonedTree->SetDirectory(AMSEventR::OFD());
+      cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<endl;
+      if(obj2)obj2->Write("AMS02Geometry");
+           if(obj3)obj3->Write("DataCards");
+         for(int i=0;i<4;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
     }
 //    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
 //    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;

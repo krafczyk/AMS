@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.293 2010/07/14 15:13:52 choutko Exp $
+//  $Id: commons.h,v 1.294 2010/09/13 21:09:47 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -616,7 +616,7 @@ integer MinEventsPerFit;
 integer MaxPatternsPerJob;
 geant Cuts[10][2];  
 integer Algorithm;     
-integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
+integer ActiveParameters[9][6]; //   for each plane: x,y,z, pitch, yaw, roll
 integer GlobalFit;
 integer EventsPerRun;
 integer LayersOnly;

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.490 2010/09/12 17:01:36 choutko Exp $
+//  $Id: event.C,v 1.491 2010/09/13 21:09:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -825,7 +825,7 @@ void AMSEvent::_regnevent(){
      }
       if(corr>=0 && fabs(corr-1)>0.05){
         static int mess=0;
-         if(mess++<100)cout<<"AMSEvent::_regnevent-I-MagFieldCorrectionApplied "<<corr<<endl;
+        // if(mess++<100)cout<<"AMSEvent::_regnevent-I-MagFieldCorrectionApplied "<<corr<<endl;
       }
       else if(corr>=0){
         corr=-2;

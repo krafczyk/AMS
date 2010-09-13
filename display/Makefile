@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.59 2010/09/13 18:50:45 pzuccon Exp $
+#  $Id: Makefile,v 1.60 2010/09/13 21:09:46 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -36,7 +36,7 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version ) -lMinuit
 
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
-CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
+CPPFLAGS      =    -D__LINUXGNU__ -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
 OPT           = -O3
@@ -80,7 +80,7 @@ LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA)
 else
 
 CXX           =  g++ -m32 
-CPPFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
 NOOPT         = -g

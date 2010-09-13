@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.38 2010/08/15 13:19:25 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.39 2010/09/13 21:09:46 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -124,9 +124,9 @@ protected:
 public:
   TrRecHitV():AMSDrawI(NULL,-1),TMarker3DCl(){};
 #ifdef _PGTRACK_
-
   TrRecHitV(AMSEventR *ev,int ref,int mult=0):AMSDrawI(ev,ref),TMarker3DCl(){
-    TrRecHitR *pcl=ev->pTrRecHit(ref);
+  try{
+  TrRecHitR *pcl=ev->pTrRecHit(ref);
     int size=gAMSDisplay->Focus()==0?2:1;
     //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
     if(pcl){
@@ -178,6 +178,11 @@ public:
 	SetFillColor(2);
       }
     }
+}
+catch (...){
+cerr<<" TrRecHitV-E-exception catched "<<endl;
+throw;
+}
 #else
   TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     TrRecHitR *pcl=ev->pTrRecHit(ref);

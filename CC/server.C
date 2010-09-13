@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.155 2010/09/04 16:27:17 choutko Exp $
+//  $Id: server.C,v 1.156 2010/09/13 21:09:40 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2347,7 +2347,7 @@ if(pcur->InactiveClientExists(getType()))return;
         DPS::Producer::DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);     
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
-        if(reinfo->Priority>1 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
+        if(reinfo->Priority>2 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
            if((*i)->Status!=DPS::Server::NoResponse ){
     if(!(strstr((const char *)(*i)->HostName,(const char*)reinfo->cinfo.HostName)))continue;

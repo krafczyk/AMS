@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.729 2010/09/12 17:01:36 choutko Exp $
+// $Id: job.C,v 1.730 2010/09/13 21:09:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -658,7 +658,7 @@ for(i=0;i<6;i++){
   TRALIG.Cuts[9][0]=100000000; //diff between positive and negative rig
   TRALIG.Cuts[9][1]=0;   // 1 only pos rig -1 only neg rig
 TRALIG.Algorithm=0;
-for( i=0;i<8;i++){
+for( i=0;i<9;i++){
   int one=1;
   int zero=0;
 

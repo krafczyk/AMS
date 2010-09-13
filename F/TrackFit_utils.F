@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.42  2010/09/13 21:09:46  choutko
+* *** empty log message ***
+*
 * Revision 1.41  2010/09/10 19:40:31  choutko
 * *** empty log message ***
 *
@@ -212,7 +215,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6932,7 +6935,7 @@ c        enddo
             d(2)=mtx(1,2)*s1+mtx(2,2)*s2+mtx(3,2)*s3
                  hits(3,npt)=array(j,3,i)+
      +           param(j,array(j,4,i),array(j,5,i),3)+d3
-                 xsigma(3,npt)=array(j,5,i)
+                 xsigma(3,npt)=array(j,6,i)
                 do k=1,2
                  hits(k,npt)=d(k)+cool(k,j,array(j,4,i),array(j,5,i))+
      +           param(j,array(j,4,i),array(j,5,i),k)
@@ -7868,9 +7871,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.41 2010/09/10 19:40:31 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.42  2010/09/13 21:09:46  choutko
+* *** empty log message ***
+*
 * Revision 1.41  2010/09/10 19:40:31  choutko
 * *** empty log message ***
 *

@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.68 2010/09/12 17:01:36 choutko Exp $
+//  $Id: tralig.C,v 1.69 2010/09/13 21:09:40 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -275,10 +275,12 @@ _NoActivePar=0;
           _NoActivePar+=nprp;
          }
        }
-      }
+      
+}
+       cout <<"  lay "<<i<<" " <<_NoActivePar<<endl;
     }
 if(!TRALIG.LaddersOnly && !TRALIG.LayersOnly)_NoActivePar*=trconst::maxsen;
-cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<" "<<endl;
+cout <<"GplobalFit-I-NoActivePar "<<_NoActivePar<<" "<<endl;
 
 _PlaneNo= new integer[_NoActivePar];
 _ParNo= new integer[_NoActivePar];
@@ -568,6 +570,8 @@ while(offspring){
          }
          bool cut=abs(num[1]-num[0])<TRALIG.Cuts[9][0] || (num[1]-num[0])*rig>0;
          if(TRALIG.Cuts[9][1]!=0)cut= (TRALIG.Cuts[9][1]*rig>0);
+//changed for pr 400 gev only
+         cut=true;
          bool smart=false;
           int nentries=100000000;
              integer ladder[2][maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
