@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.44 2010/09/12 14:17:33 pzuccon Exp $
+//  $Id: main.cxx,v 1.45 2010/09/13 13:53:19 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -332,10 +332,16 @@ void OpenChain(AMSChain & chain, char * filenam){
 //                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
-#else
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
+#elif defined(__LINUXNEW__)
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+#elif defined(__LINUXGNU__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#else
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
 #endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
@@ -371,10 +377,16 @@ void OpenChain(AMSChain & chain, char * filenam){
                 cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
+#elif defined(__LINUXNEW__)
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+#elif defined(__LINUXGNU__)
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #else
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
 #endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
