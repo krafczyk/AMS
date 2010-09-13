@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.31 2010/09/12 14:17:33 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.32 2010/09/13 20:52:49 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/12 14:17:33 $
+///$Date: 2010/09/13 20:52:49 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -419,6 +419,7 @@ public:
     }
     if(!FitExists && refit==0) return -1;
     else if(FitExists) return fittype;
+    return -1;
   }    
 
        

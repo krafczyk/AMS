@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.107 2010/08/12 11:03:19 pzuccon Exp $
+#  $Id: Makefile,v 1.108 2010/09/13 20:52:49 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -135,25 +135,25 @@ CFLAGSB+= $(CPPFLAGS)
 $(BIN)%.o : $(SFF)%.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(CFLAGS) $< -o $@
+	@$(CXX) -c $(CFLAGS) $< -o $@
 
 
 $(BIN)%_s.o: $(SCC)%.C ../include/root_methods.h
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
+	@$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
 
 
 $(BIN)%.o : $(SCC)%.c
@@ -764,10 +764,11 @@ clean :
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+	rm -f $(NTLD) $(SHLD)
 
 cleanlibs:
-	rm -f $(BIN)/root*.o
 	rm -f $(NTLD) $(SHLD)
+	rm -f $(BIN)/root*.o
 	cd ../ruby; gmake clean
 	cd ../python; gmake clean
 	cd ../install
