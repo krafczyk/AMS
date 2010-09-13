@@ -26,7 +26,7 @@
 */
 
 class AMSChain : public TChain {
- private:
+private:
   int m_tree_entry;
   unsigned int fThreads;
   unsigned int fSize;
@@ -35,23 +35,26 @@ class AMSChain : public TChain {
   const char* _NAME;
   Int_t _TREENUMBER;
   TFile* _FILE;
-  
+  TTree* amsnew; ///used for cloned tree
+  TFile* fout;
+
   ///Get AMSEventR in entry number "entry", if kLocal is false the entry number is "global", if true the entry number is local w.r.t. curret tree
   AMSEventR* _getevent(Int_t entry, Bool_t kLocal=false);
 
- public:
+public:
   int get_tree_entry()const {return m_tree_entry;}
   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
+
   /// Default constructor (it builds automatically the AMSEventR object)
   AMSChain(const char* name="AMSRoot", unsigned int thr=1,unsigned int size=sizeof(AMSEventR))
-    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0){}
+    :TChain(name),fThreads(thr),fSize(size),_ENTRY(-1),m_tree_entry(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0),fout(0),amsnew(0){}
   char * getsetup();
   
   /// alternative constructor (It requires an AMSEventR object to be passed)
   AMSChain(AMSEventR* event ,const char* name="AMSRoot",unsigned int thr=1, unsigned int fSize=sizeof(AMSEventR)); 
   
   /// Destructor
-  virtual ~AMSChain(){ _FILE=0;if (_EVENT) delete _EVENT; };
+  virtual ~AMSChain(){ if(fout) CloseOutputFile(); fout=0;_FILE=0;if (_EVENT) delete _EVENT; };
   
   ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 
@@ -93,33 +96,39 @@ class AMSChain : public TChain {
   
   /// Generate a skeleton to be used as  user event selection function
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
+
+  /// Opens the file to output selected events
+  void OpenOutputFile(const char* filename);
+  /// Saves the current entry to the output file (if it is not open, it creates SelectedEvents.root)
+  void SaveCurrentEvent();
+  /// Properly closes the Output File for selected events
+  void CloseOutputFile();
+
+  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   
-  
-    virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
-  
-  ClassDef(AMSChain,5)       //AMSChain
+  ClassDef(AMSChain,5);       //AMSChain
 #pragma omp threadprivate(fgIsA)
-    };
+};
     
     
-    //!  AMSEventList class
-    /*!
-      Utility class, to select a set of events and then having the possibility to write
-      them into a new files, possibly with just a set of selected branches. 
-      Example:
+//!  AMSEventList class
+/*!
+  Utility class, to select a set of events and then having the possibility to write
+  them into a new files, possibly with just a set of selected branches. 
+  Example:
       
-      \include select_entries.C
+  \include select_entries.C
       
-      \author juan.alcaraz@cern.ch
+  \author juan.alcaraz@cern.ch
       
-    */
+*/
     
 class AMSEventList {
- private:
+private:
   vector<int> _RUNs;
   vector<int> _EVENTs;
   
- public:
+public:
   AMSEventList(); ///< Default Constructor
   AMSEventList(const char* filename); ///< Constructor with an already existing list
   virtual ~AMSEventList(){};
@@ -142,7 +151,7 @@ class AMSEventList {
 
   ClassDef(AMSEventList,2)       //AMSEventList
 #pragma omp threadprivate(fgIsA)
-};
+    };
 
 
 #endif

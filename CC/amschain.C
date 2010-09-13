@@ -25,13 +25,15 @@ char * AMSChain::getsetup(){
 
 AMSNtupleHelper *AMSNtupleHelper::fgHelper=0;
 
-ClassImp(AMSChain)
+ClassImp(AMSChain);
 
 
-  AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned int size)
-    :TChain(name),fThreads(thr),fSize(size),
-     _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
+AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned int size)
+  :TChain(name),fThreads(thr),fSize(size),
+   _ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1),_FILE(0)
 {
+  fout=0;
+  amsnew=0;
   Init(event);
 }
 
@@ -368,15 +370,63 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
 }
 
 
+
+void AMSChain::OpenOutputFile(const char* filename){
+  fout= TFile::Open(filename,"RECREATE");
+  if(!fout){
+    cout <<" AMSChain::OpenOutpuFile-E- Cannot open "<<filename<<" for output"<<endl;
+    return;
+  }
+  amsnew = CloneTree(0);
+  TFile * input=GetFile();
+  if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
+#ifdef _PGTRACK_
+  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
+  for(int ii=0;ii<4;ii++){
+    TObject* obj=input->Get(objlist[ii]);
+    if(obj) {fout->cd();obj->Write();}
+  }
+#endif
+  TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
+  if(obj2) {fout->cd();obj2->Write("AMS02Geometry");}
+  TObjString* obj3=(TObjString*)input->Get("DataCards");
+  if(obj3) {fout->cd();obj3->Write("DataCards");}
+  cout <<" AMSChain::OpenOutpuFile-I- The outputfile "<<filename<<" Has been opened"<<endl;
+  return;
+}  
+
+void AMSChain::SaveCurrentEvent(){
+  if(!fout) OpenOutputFile("SelectedEvents.root");
+  if(!fout){
+  cout <<" AMSChain::SaveCurrentEntry-E- Cannot open file  for output no events are saved"<<endl;
+    return;
+  }
+  if(_EVENT){ _EVENT->GetAllContents();
+  amsnew->Fill();
+  }
+  return;
+}
+ 
+void AMSChain::CloseOutputFile(){
+  if(!fout) return;
+  cout << "AMSChain::CloseOutputFile AMS ROOT file \"";
+  cout << fout->GetName() << "\" with " << this->GetEntries(); 
+  cout << " selected events" << endl;
+  fout->Write();
+  fout->Close();
+  fout=0;
+  return;
+}
+
 //##################################################################
 //#####################    AMSEventList      #######################
 //##################################################################
 
 
-ClassImp(AMSEventList)
+ClassImp(AMSEventList);
 
 
-  AMSEventList::AMSEventList(){
+AMSEventList::AMSEventList(){
   _RUNs.reserve(10000);
   _EVENTs.reserve(10000);
 };
@@ -461,11 +511,23 @@ void AMSEventList::Write(const char* filename){
   fclose(listfile);
 };
 
-
 void AMSEventList::Write(AMSChain* chain, TFile* file){
   TTree *amsnew = chain->CloneTree(0);
   chain->Rewind();
   AMSEventR* ev = NULL;
+  TFile * input=chain->GetFile();
+  if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
+#ifdef _PGTRACK_
+  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
+  for(int ii=0;ii<4;ii++){
+    TObject* obj=input->Get(objlist[ii]);
+    if(obj) {file->cd();obj->Write();}
+  }
+#endif
+  TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
+  if(obj2) {file->cd();obj2->Write("AMS02Geometry");}
+  TObjString* obj3=(TObjString*)input->Get("DataCards");
+  if(obj3) {file->cd();obj3->Write("DataCards");}
   
   // Required to solve a bug (or feature) in GetEvent: it never returns NULL 
   int current_run=-1;

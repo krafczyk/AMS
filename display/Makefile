@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.58 2010/09/13 13:53:18 pzuccon Exp $
+#  $Id: Makefile,v 1.59 2010/09/13 18:50:45 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -82,7 +82,7 @@ else
 CXX           =  g++ -m32 
 CPPFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
-OPT           = -O3
+OPT           = -g
 NOOPT         = -g
 
 LD            = g++ -m32
