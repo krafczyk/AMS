@@ -42,6 +42,8 @@ private:
   AMSEventR* _getevent(Int_t entry, Bool_t kLocal=false);
 
 public:
+   Long64_t ntree;
+   Long64_t nentries;
   int get_tree_entry()const {return m_tree_entry;}
   unsigned int get_run () const{return _EVENT?_EVENT->Run():0;}
 

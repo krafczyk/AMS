@@ -239,11 +239,12 @@ int $i=system(cmd);
 
 
 
-Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Long64_t firstentry){
+Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long64_t firstentry){
 #ifndef __ROOTSHAREDLIBRARY__
   return 0;
 #else
-  cout<<" nentires requested "<<nentries<<endl;
+  nentries=nentri;
+   cout<<" nentires requested "<<nentries<<endl;
   int nthreads=fThreads;
   //TStreamerInfo**ts =new TStreamerInfo*[nthreads];
   //for(int i=0;i<nthreads;i++)ts[i]=0;
@@ -252,7 +253,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
   AMSEventR::_NFiles=-fNtrees;
         
   //	#pragma omp parallel  default(none), shared(std::cout,option,nentries,firstentry,nentr,pev)
-  int ntree=fNtrees;
+  ntree=fNtrees;
   if(nentries<0){
     ntree=-nentries;
     if(ntree>fNtrees)ntree=fNtrees;
@@ -325,6 +326,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentries, Lon
       if(tree){
         curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
+           if(nentr>nentries)break;
 	  try{
 	    curp->Process(n);
 	  }
