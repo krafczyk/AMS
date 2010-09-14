@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.331 2010/07/27 16:33:40 choutko Exp $
+#  $Id: datacards.doc,v 1.332 2010/09/14 13:39:27 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -231,7 +231,7 @@ I21 earth(0)                      // Earth magnetic field modulation on (1) off(
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
 R24 pole(108.392)                 // Pole phi at begin 
-I25 begindate(01062010)           // start date (ddmmyyyy)
+I25 begindate(01072010)           // start date (ddmmyyyy)
 I26 begintime(170000)             // start time (hhmmss)
 I27 enddate(01012020)             // end date   (ddmmyyyy)
 I28 endtime(120000)               // end time   (hhmmss)

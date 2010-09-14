@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.41 2010/09/09 19:14:59 choumilo Exp $
+//  $Id: tofuser02.C,v 1.42 2010/09/14 13:38:16 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -1124,7 +1124,7 @@ void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[1]>0){
     HBOOK1(1518,"TofUser:MCBeta",100,0.8,1.,0.);
-    HBOOK1(1500,"TofUser:Particle Rigidity(gv),Beta>0",100,-10.,10.,0.);
+    HBOOK1(1500,"TofUser:Particle Rigidity(gv),Beta>0",90,-15.,15.,0.);
     HBOOK1(1501,"TofUser:Particle(Tof) Beta(<0)",80,-1.4,-0.6,0.);
     HBOOK1(11501,"TofUser:Particle(Tof) Beta(>0)",80,0.6,1.4,0.);
     HBOOK1(1520,"TofUser:Particle(Tof) Beta",100,0.85,1.15,0.);
@@ -1181,7 +1181,7 @@ void TOF2User::InitJob(){
     HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch(trapez.c <=1)",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
     HBOOK1(1516,"TofUser:Part.rigidity(gv),Beta<0",100,-10.,10.,0.);
-    HBOOK1(11516,"TofUser:Part.rigidity(gv)",100,-600.,600.,0.);
+    HBOOK1(11516,"TofUser:Part.rigidity(gv)",100,-500.,500.,0.);
     HBOOK1(1517,"TofUser:Number of AccSectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     

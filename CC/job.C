@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.730 2010/09/13 21:09:40 choutko Exp $
+// $Id: job.C,v 1.731 2010/09/14 13:38:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -730,7 +730,7 @@ CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=1062010;
+CCFFKEY.begindate=1072010;
 CCFFKEY.enddate=  1012020;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=0;
@@ -1344,7 +1344,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.day[1]=1;
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
-  TFREFFKEY.year[0]=101;//(since year 1900)
+  TFREFFKEY.year[0]=101;//(41)(since year 1900)
   TFREFFKEY.year[1]=125;//(42)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.197 2010/09/12 17:08:47 pzuccon Exp $
+//  $Id: daqevt.C,v 1.198 2010/09/14 13:38:16 choumilo Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1166,12 +1166,12 @@ integer DAQEvent::_HeaderOK(){
       cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
        time_t tmin=1180000000;
-       time_t tmax=1280000000;
+       time_t tmax=1980000000;
        static int rep=0;
        static int time=_Time;
        if(_Time<tmin ){
 
-         if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<ctime(&_Time)<<endl;
+         if(rep++<100)cerr <<"DAQEvent::_HeaderOK-E-TimeProblems-Resetting "<<_Time<<" "<<ctime(&_Time)<<endl;
          if(TRMFFKEY.TIME==0){
            _Time=tmin;
          }
