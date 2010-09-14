@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.45 2010/09/13 13:53:19 pzuccon Exp $
+//  $Id: main.cxx,v 1.46 2010/09/14 20:10:14 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -332,7 +332,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 //                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
@@ -377,7 +377,7 @@ void OpenChain(AMSChain & chain, char * filenam){
                 cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
                 int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
