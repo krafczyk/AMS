@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.12 2009/12/13 13:30:44 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.13 2010/09/14 19:05:58 pzuccon Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -759,6 +759,9 @@ void AMSDisplay::SetVisible(EAMSType type, bool visible){
    case ktrclustersM:
      d_trclusters=true;
      break;
+   case ktrclustersY:
+     d_trclusters=true;
+     break;
    case krichrings:
      d_richrings=visible;
      break;
@@ -803,6 +806,8 @@ switch (type){
    case ktrclusters:
      return d_trclusters;
    case ktrclustersM:
+     return d_trclusters;
+   case ktrclustersY:
      return d_trclusters;
    case krichrings:
      return d_richrings;

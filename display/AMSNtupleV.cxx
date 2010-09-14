@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.30 2010/07/27 16:33:40 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.31 2010/09/14 19:05:59 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -292,30 +292,32 @@ if(type==kall || type==kusedonly || type==ktofclusters){
 }
 
 
-if(type==kall || type==kusedonly || type==ktrclusters || type==ktrclustersM){
- fTrRecHitV.clear();
- if(gAMSDisplay->DrawObject(ktrclusters)){
-  for(int i=0;i<NTrRecHit();i++){
+ if(type==kall || type==kusedonly || type==ktrclusters || type==ktrclustersM|| type==ktrclustersY){
+   fTrRecHitV.clear();
+   if(gAMSDisplay->DrawObject(ktrclusters)){
+     for(int i=0;i<NTrRecHit();i++){
 #ifdef _PGTRACK_
-    bool Mult=GetTkMult();
-    bool Used=(pTrRecHit(i)->getstatus()/32)%2;
-    int rm=pTrRecHit(i)->GetResolvedMultiplicity();
-    if(!gAMSDisplay->DrawUsedOnly() || Used) {
-      if(Mult && !Used ){
-	for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
-	  fTrRecHitV.push_back( TrRecHitV(this,i,jj));
-      }else
-	fTrRecHitV.push_back( TrRecHitV(this,i,(rm>-1)?rm:0));
-    }
-	
+       bool Mult=GetTkMult();
+       bool Used=(pTrRecHit(i)->getstatus()/32)%2;
+       bool Yonly=pTrRecHit(i)->OnlyY();
+       int rm=pTrRecHit(i)->GetResolvedMultiplicity();
+       if(!gAMSDisplay->DrawUsedOnly() || Used) 
+ 	 if ((Yonly && GetTkDispY()) || (!Yonly)){
+	   if(Mult && !Used ){
+	     for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
+	       fTrRecHitV.push_back( TrRecHitV(this,i,jj));
+	       }else
+	     fTrRecHitV.push_back( TrRecHitV(this,i,(rm>-1)?rm:0));
+	 }
+       
 #else
-   if(!gAMSDisplay->DrawUsedOnly() || ((pTrRecHit(i)->Status)/32)%2)fTrRecHitV.push_back( TrRecHitV(this,i));
+       if(!gAMSDisplay->DrawUsedOnly() || ((pTrRecHit(i)->Status)/32)%2)fTrRecHitV.push_back( TrRecHitV(this,i));
 #endif
-  }
+       
+     }
+   }
  }
-}
-
-
+ 
 
 if(type==kall || type==kusedonly || type==krichhits){
  fRichHitV.clear();
@@ -851,3 +853,110 @@ for(int i=0;i<ev->nParticle();i++){
    if(drawplex)SetLineStyle(2);
    return;
 }
+
+
+
+#ifdef _PGTRACK_
+TrRecHitV::~TrRecHitV(){
+  //  cout << "TrRecHit destructor"<<endl;
+}
+TrRecHitV::TrRecHitV(AMSEventR *ev,int ref,int mult):AMSDrawI(ev,ref),TMarker3DCl(){
+  try{
+    //for (int ii=0;ii<1000;ii++) dummy_debug[ii]=ii*0.345;
+    TrRecHitR *pcl=ev->pTrRecHit(ref);
+    int size=gAMSDisplay->Focus()==0?2:1;
+    //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
+    if(pcl){
+      pcl->BuildCoordinates();
+      float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
+      float sizey=pcl->GetECoord()[1]*100;
+      float sizez=(sqrt(pcl->Sum())<4)?sqrt(pcl->Sum()):4.;
+      if (sizez<1) sizez=1;
+	
+    
+      //printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
+      //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
+      // 	      
+      // 	      (sqrt(pcl->Sum()/10.)<8)?sqrt(pcl->Sum()/10.):8.);
+      SetSize(sizex,sizey,sizez);
+      SetPosition(pcl->GetCoord(mult)[0],pcl->GetCoord(mult)[1],pcl->GetCoord(mult)[2]+fDz);
+      
+      SetDirection(0,0);
+      if(gAMSDisplay->ShowTrClProfile()){
+	float x[100];
+	if(pcl->GetYCluster()){
+	  int kmax=pcl->GetYCluster()->GetLength();
+	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+	  for (int k=0;k<kmax;k++)x[k]=pcl->GetYCluster()->GetSignal(k)/(pcl->GetYCluster()->GetTotSignal()+1e-20);
+	  //	    (pcl->Sum()+1.e-20);
+	  SetProfileY(kmax,x);
+	  SetShowProfileY(true);
+	}
+	
+	if(pcl->GetXCluster()){
+	  int kmax=pcl->GetXCluster()->GetLength();
+	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/(pcl->GetXCluster()->GetTotSignal()+1.e-20);
+	  SetProfileX(kmax,x);
+	  SetShowProfileX(true);
+	}
+      }
+
+      SetLineWidth(size);
+      if(pcl->GetYCluster()&&pcl->GetXCluster()){
+	SetLineColor(4);             // blue
+	SetFillColor(4);
+      }
+      else if(pcl->GetYCluster()){
+	SetLineColor(3);             // green
+	SetFillColor(3);
+      }else{
+	SetLineColor(2);             // red
+	SetFillColor(2);
+      }
+    }
+  }
+  catch (...){
+    cerr<<" TrRecHitV-E-exception catched "<<endl;
+    throw;
+ }
+  SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
+  SetFillStyle(1001);          // solid filling (not working now....)
+  
+}
+
+#else
+TrRecHitV::TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
+  TrRecHitR *pcl=ev->pTrRecHit(ref);
+  int size=gAMSDisplay->Focus()==0?2:1;
+  if(pcl){
+    SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100:pcl->EHit[0],pcl->EHit[1]*100,sqrt(pcl->Sum/10)<6?sqrt(pcl->Sum/10
+												     ):8);
+    SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]+fDz);
+    SetDirection(0,0);
+    if(gAMSDisplay->ShowTrClProfile()){
+      float x[100];
+      if(pcl->pTrCluster('y')){
+	int kmax=pcl->pTrCluster('y')->Amplitude.size();
+	if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+	for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('y')->Amplitude[k]/(pcl->pTrCluster('y')->Sum+1.e-20);
+	SetProfileY(pcl->pTrCluster('y')->Amplitude.size(),x);
+	SetShowProfileY(true);
+      }
+      if(pcl->pTrCluster('x')){
+	int kmax=pcl->pTrCluster('x')->Amplitude.size();
+	if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
+	for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('x')->Amplitude[k]/(pcl->pTrCluster('x')->Sum+1.e-20);
+	SetProfileX(pcl->pTrCluster('x')->Amplitude.size(),x);
+	SetShowProfileX(true);
+      }
+    }
+  }
+  SetLineWidth(size);
+  SetLineColor(4);             // blue
+  SetFillColor(4);
+  SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
+  SetFillStyle(1001);          // solid filling (not working now....)
+
+}
+#endif   

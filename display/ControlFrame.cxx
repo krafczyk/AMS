@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.12 2009/12/12 17:55:22 pzuccon Exp $
+//  $Id: ControlFrame.cxx,v 1.13 2010/09/14 19:05:59 pzuccon Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -69,30 +69,38 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
          type=ktrclustersM;
          break;
         case 7009:
-         type=krichrings;
+         type=ktrclustersY;
          break;
         case 7010:
-         type=krichhits;
+         type=krichrings;
          break;
         case 7011:
-         type=kecalshowers;
+         type=krichhits;
          break;
         case 7012:
-         type=kecalclusters;
+         type=kecalshowers;
          break;
         case 7013:
-         type=kparticles;
+         type=kecalclusters;
          break;
         case 7014:
-         type=kmcinfo;
+         type=kparticles;
          break;
         case 7015:
+         type=kmcinfo;
+         break;
+        case 7016:
          type=kgeometry;
           break;
       }
       if(parm1/1000==7){
-        gAMSDisplay->GetNtuple()->SetTkMult(_pvis[parm1%100-1]->GetState());
-        gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
+        if(parm1==7008)
+	  gAMSDisplay->GetNtuple()->SetTkMult(_pvis[parm1%100-1]->GetState());
+        else if(parm1==7009){
+	  gAMSDisplay->GetNtuple()->SetTkDispY(_pvis[parm1%100-1]->GetState());
+	}
+	else
+	  gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
         gAMSDisplay->GetNtuple()->Prepare(type);
         EAMSR_View mview=gAMSDisplay->GetView();
        if(type==kgeometry){
@@ -378,6 +386,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrTracks",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrClusters",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"  TrClusters N:Mult",marker++));
+    _pvis.push_back(new TGCheckButton(_pvisfr,"  TrClusters YOnly",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"RichRings",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"RichHits",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"EcalShowers",marker++));
@@ -395,6 +404,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     for(int i=1;i<_pvis.size();i++){
      _pvis[i]->SetState(kButtonDown);
     }
+    _pvis[8]->SetState(kButtonUp);
      gAMSDisplay->SetVisible(kusedonly,_pvis[0]->GetState());
      gAMSDisplay->SetVisible(ktrdtracks,_pvis[1]->GetState());
      gAMSDisplay->SetVisible(ktrdclusters,_pvis[2]->GetState());
@@ -402,13 +412,15 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
      gAMSDisplay->SetVisible(ktofclusters,_pvis[4]->GetState());
      gAMSDisplay->SetVisible(ktrtracks,_pvis[5]->GetState());
      gAMSDisplay->SetVisible(ktrclusters,_pvis[6]->GetState());
-     gAMSDisplay->SetVisible(krichrings,_pvis[7]->GetState());
-     gAMSDisplay->SetVisible(krichhits,_pvis[8]->GetState());
-     gAMSDisplay->SetVisible(kecalshowers,_pvis[9]->GetState());
-     gAMSDisplay->SetVisible(kecalclusters,_pvis[10]->GetState());
-     gAMSDisplay->SetVisible(kparticles,_pvis[11]->GetState());
-     gAMSDisplay->SetVisible(kmcinfo,_pvis[12]->GetState());
-     gAMSDisplay->SetVisible(kgeometry,_pvis[13]->GetState());
+     gAMSDisplay->GetNtuple()->SetTkMult(_pvis[7]->GetState());    //tkhit mult
+     gAMSDisplay->GetNtuple()->SetTkDispY(_pvis[8]->GetState());  //tkhit yonly
+     gAMSDisplay->SetVisible(krichrings,_pvis[9]->GetState());
+     gAMSDisplay->SetVisible(krichhits,_pvis[10]->GetState());
+     gAMSDisplay->SetVisible(kecalshowers,_pvis[11]->GetState());
+     gAMSDisplay->SetVisible(kecalclusters,_pvis[12]->GetState());
+     gAMSDisplay->SetVisible(kparticles,_pvis[13]->GetState());
+     gAMSDisplay->SetVisible(kmcinfo,_pvis[14]->GetState());
+     gAMSDisplay->SetVisible(kgeometry,_pvis[15]->GetState());
 
 //  Create FocusFrame
 

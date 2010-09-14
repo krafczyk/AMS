@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.39 2010/09/13 21:09:46 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.40 2010/09/14 19:05:59 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -121,105 +121,18 @@ public:
 
 class TrRecHitV: public TMarker3DCl, public AMSDrawI{
 protected:
+
 public:
   TrRecHitV():AMSDrawI(NULL,-1),TMarker3DCl(){};
 #ifdef _PGTRACK_
-  TrRecHitV(AMSEventR *ev,int ref,int mult=0):AMSDrawI(ev,ref),TMarker3DCl(){
-  try{
-  TrRecHitR *pcl=ev->pTrRecHit(ref);
-    int size=gAMSDisplay->Focus()==0?2:1;
-    //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
-    if(pcl){
-      pcl->BuildCoordinates();
-      float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
-      float sizey=pcl->GetECoord()[1]*100;
-      float sizez=(sqrt(pcl->Sum())<8)?sqrt(pcl->Sum()):8.;
-      if (sizez<1) sizez=1;
-
-      // sizex=sizey=sizez=10.;
-      //printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
-      //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
-      // 	      
-      // 	      (sqrt(pcl->Sum()/10.)<8)?sqrt(pcl->Sum()/10.):8.);
-      SetSize(sizex,sizey,sizez);
-      SetPosition(pcl->GetCoord(mult)[0],pcl->GetCoord(mult)[1],pcl->GetCoord(mult)[2]+fDz);
-      
-      SetDirection(0,0);
-      if(gAMSDisplay->ShowTrClProfile()){
-	float x[100];
-	if(pcl->GetYCluster()){
-	  int kmax=pcl->GetYCluster()->GetLength();
-	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
-	  for (int k=0;k<kmax;k++)x[k]=pcl->GetYCluster()->GetSignal(k)/(pcl->GetYCluster()->GetTotSignal()+1e-20);
-	  //	    (pcl->Sum()+1.e-20);
-	  SetProfileY(kmax,x);
-	  SetShowProfileY(true);
-	}
-	
- 	if(pcl->GetXCluster()){
- 	  int kmax=pcl->GetXCluster()->GetLength();
- 	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
- 	  for (int k=0;k<kmax;k++)x[k]=pcl->GetXCluster()->GetSignal(k)/(pcl->GetXCluster()->GetTotSignal()+1.e-20);
- 	  SetProfileX(kmax,x);
- 	  SetShowProfileX(true);
- 	}
-      }
-
-      SetLineWidth(size);
-      if(pcl->GetYCluster()&&pcl->GetXCluster()){
-	SetLineColor(4);             // blue
-	SetFillColor(4);
-      }
-      else if(pcl->GetYCluster()){
-	SetLineColor(3);             // green
-	SetFillColor(3);
-      }else{
-	SetLineColor(2);             // red
-	SetFillColor(2);
-      }
-    }
-}
-catch (...){
-cerr<<" TrRecHitV-E-exception catched "<<endl;
-throw;
-}
+  // float dummy_debug[1000];
+  TrRecHitV(AMSEventR *ev,int ref,int mult=0);
+  virtual ~TrRecHitV();
 #else
-  TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
-    TrRecHitR *pcl=ev->pTrRecHit(ref);
-    int size=gAMSDisplay->Focus()==0?2:1;
-    if(pcl){
-      SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100:pcl->EHit[0],pcl->EHit[1]*100,sqrt(pcl->Sum/10)<6?sqrt(pcl->Sum/10
-												       ):8);
-      SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]+fDz);
-      SetDirection(0,0);
-      if(gAMSDisplay->ShowTrClProfile()){
-	float x[100];
-	if(pcl->pTrCluster('y')){
-	  int kmax=pcl->pTrCluster('y')->Amplitude.size();
-	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
-	  for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('y')->Amplitude[k]/(pcl->pTrCluster('y')->Sum+1.e-20);
-	  SetProfileY(pcl->pTrCluster('y')->Amplitude.size(),x);
-	  SetShowProfileY(true);
-	}
-	if(pcl->pTrCluster('x')){
-	  int kmax=pcl->pTrCluster('x')->Amplitude.size();
-	  if(kmax>sizeof(x)/sizeof(x[0]))kmax=sizeof(x)/sizeof(x[0]);
-	  for (int k=0;k<kmax;k++)x[k]=pcl->pTrCluster('x')->Amplitude[k]/(pcl->pTrCluster('x')->Sum+1.e-20);
-	  SetProfileX(pcl->pTrCluster('x')->Amplitude.size(),x);
-	  SetShowProfileX(true);
-	}
-      }
-    }
-    SetLineWidth(size);
-    SetLineColor(4);             // blue
-    SetFillColor(4);
-#endif   
-    SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
-    SetFillStyle(1001);          // solid filling (not working now....)
-
-  }
+  TrRecHitV(AMSEventR *ev,int ref);
+#endif
   char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrRecHit(fRef)->Info(fRef):0;}
-
+  
 };
 
 
@@ -700,6 +613,7 @@ public:
 
 protected:
   int TkMult;
+  int TkDispY;
   // Drawable things 
   vector<AntiClusterV> fAntiClusterV;
   vector<TofClusterV> fTofClusterV;
@@ -721,13 +635,15 @@ protected:
 
 
 public:
-  AMSNtupleV():AMSEventR(){TkMult=1;};
+  AMSNtupleV():AMSEventR(){TkMult=1; TkDispY=1;};
   void Draw(EAMSType type=kall);
   void Prepare(EAMSType type=kall);
 bool GetEvent(unsigned int run, unsigned int event);
   char * GetObjInfo(int px,int py);
   void SetTkMult(int aa){TkMult=aa;}
   int GetTkMult(){return TkMult;}
-  ClassDef(AMSNtupleV,1)           // Ntuple Drawable
-    };
+  void SetTkDispY(int aa){TkDispY=aa;}
+  int  GetTkDispY(){return TkDispY;}
+  ClassDef(AMSNtupleV,1);           // Ntuple Drawable
+};
 #endif
