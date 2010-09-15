@@ -1692,9 +1692,9 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //
   ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ibl,0);
-  for(i=0;i<ECEDRS;i++){
+  for(i=0;i<ECEDRS;i++){// 6 EDRs(slots)
     nwslot[i]=0;
-    for(j=0;j<ECEDRC;j++){
+    for(j=0;j<ECEDRC;j++){//243 channels/EDR
       edrbuf[i][j]=0;
     }
   }
@@ -1715,7 +1715,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
       slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
       crate=ecid.getcrate();
       peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
-      edrbuf[slot][chan]=int16u(floor((padc[0]+peda-0.5)*16));
+//      edrbuf[slot][chan]=int16u(floor((padc[0]+peda-0.5)*16));
+      edrbuf[slot][chan]=int16u(floor((padc[0])*16));
       nwslot[slot]+=1;
     }
     if(padc[1]>0){//pix low-gain
@@ -1725,7 +1726,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
       slot=ecid.getslot();//0-5 -> EDRs, 6->ETRG
       crate=ecid.getcrate();
       peda=ECPMPeds::pmpeds[isl][pmt].ped(pix,gain);//current Aped
-      edrbuf[slot][chan]=int16u(floor((padc[1]+peda-0.5)*16));
+//      edrbuf[slot][chan]=int16u(floor((padc[1]+peda-0.5)*16));
+      edrbuf[slot][chan]=int16u(floor((padc[1])*16));
       nwslot[slot]+=1;
     }
     ptr=ptr->next();  
@@ -1744,7 +1746,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
         if(crate==ibl){
           nwslot[slot]+=1;
           pedd=ECPMPeds::pmpeds[isl][pmt].pedd();//current Dped
-          edrbuf[slot][chan]=int16u(floor((adcd+pedd-0.5)*16));
+//          edrbuf[slot][chan]=int16u(floor((adcd+pedd-0.5)*16));
+          edrbuf[slot][chan]=int16u(floor((adcd)*16));
         }
       }
     }
