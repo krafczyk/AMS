@@ -293,7 +293,7 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 			" COMPRESSED events",
 			" cumulative status",
 			"build errors (sequencer errors for event building",
-			"build conditions (FE power fault for event building",
+			"build conditions (FE power fault for event building)",
 			"NEXT bit / timeout (if DATA=1), set by master"	      ,
 			"ERROR bit / AMSW error (if DATA=1), set by master",
 			"ABORT bit / assembly error (if DATA=1), set by master",
@@ -308,8 +308,9 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 	printf("%02d: %s\n",count,errmess[count]);
   }
   
-  if((status>>9&0x3f)>0)    
-    // (status>>9&1) ||  (status>>10&1)||  (status>>11&1)||  (status>>12&1)|| (status>>13&1)|| (status>>14&1))      
+  // bit 10 is managed is sub-detector specific: ignore our (power failure)!
+  if( // (status>>9&0x3f)>0)    
+      (status>>9&1) || (status>>11&1) || (status>>12&1) || (status>>13&1) || (status>>14&1) )      
     {      
      if(pri>0)     printf("%s",name);
       count=5;
