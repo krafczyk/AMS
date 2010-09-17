@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.11 2010/08/15 17:08:55 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.12 2010/09/17 07:54:26 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/08/15 17:08:55 $
+///$Date: 2010/09/17 07:54:26 $
 ///
-/// $Revision: 1.11 $
+/// $Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -269,7 +269,7 @@ int TkSens::GetLayer() {
   
   // Estimate layer
   double z=GlobalCoo[2];
-  double toll=0.1; //1 mm
+  double toll=1.; // 1. cm 
   int layer;
   if      (  z < TkDBc::Head->GetZlayer(1)+toll  &&   
              z > TkDBc::Head->GetZlayer(1)-toll ) layer = 1; 
@@ -303,6 +303,7 @@ int TkSens::FindLadder(){
   bool found=0;
   for(int ii=0;ii<TkDBc::Head->GetEntries();ii++){
     lad=TkDBc::Head->GetEntry(ii);
+    if (!lad->IsActive()) continue;
     found=IsInsideLadder(lad);
     if(found) break;
   }
