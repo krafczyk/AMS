@@ -112,6 +112,7 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
 //}
   if (GetFile() && GetFile()!=_FILE){
     _FILE=GetFile();
+    if(TrCalDB::Head) delete TrCalDB::Head;
     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
@@ -120,6 +121,7 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
       }
     }
   
+    if(TrParDB::Head) delete TrParDB::Head;
     TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
     if (!TrParDB::Head) {
       TrParDB* cc = new TrParDB();
@@ -181,7 +183,7 @@ int  AMSChain::LoadUF(char* fname){
   sprintf(cmd,"$CC -m32 -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
 else
   sprintf(cmd,"$CC -m32  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
-  
+ cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
 int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
