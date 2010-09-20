@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.15 2010/08/04 19:33:40 oliva Exp $ 
+/// $Id: TrCluster.C,v 1.16 2010/09/20 17:39:58 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/08/04 19:33:40 $
+/// $Date: 2010/09/20 17:39:58 $
 ///
-/// $Revision: 1.15 $
+/// $Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -223,8 +223,8 @@ int TrClusterR::GetSeedIndex(int opt) {
 
 float TrClusterR::GetTotSignal(int opt) {
   float sum = 0.;
-  for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
-  if (kVAGain&opt) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(int(ii/64));
+  if (!(kVAGain&opt)) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
+  else                for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(int(ii/64));
   if (kAngle&opt)  sum = sum*(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
   if (kGain&opt)   sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
   if (kLoss&opt)   sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
