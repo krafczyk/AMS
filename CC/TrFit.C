@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.25 2010/08/07 14:51:38 shaino Exp $
+//  $Id: TrFit.C,v 1.26 2010/09/20 20:53:18 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/08/07 14:51:38 $
+///$Date: 2010/09/20 20:53:18 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,14 @@ double TrFit::Fit(int method)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
-
+  MagField * pp=MagField::GetPtr();
+  if(pp->GetMap()==0){
+    char name[200];
+    sprintf("%s/v5.00/MagneticFieldMapPermanent_NEW.bin",getenv("AMSDataDir"));
+    if((pp->Read(name)) <0 ) return -1;
+    pp->SetMagstat(1);
+    pp->SetScale(1.);
+  }
   double ret = 0;
   if (method ==    LINEAR) ret = LinearFit();
   if (method ==    CIRCLE) ret = CircleFit();

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.32 2010/09/13 20:52:49 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.33 2010/09/20 20:53:29 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/13 20:52:49 $
+///$Date: 2010/09/20 20:53:29 $
 ///
-///$Revision: 1.32 $
+///$Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -143,40 +143,58 @@ public:
     kUpperHalf  = 0x20,
     /// Lower half option
     kLowerHalf  = 0x40,
+    /// External 2 + 2 (1N + top internal) +( bottom internal + 9) 
+    kExternal   = 0x80,
     /// One drop option
     kOneDrop    = 0x100,
     /// Noise drop option
     kNoiseDrop  = 0x200,
     /// **AMS-B: fitting with layer 8**
-    kFitLayer8  = 0x400,
+    kFitLayer8  = 0x00400,
     /// **AMS-B: fitting with layer 9**
-    kFitLayer9  = 0x800
+    kFitLayer9  = 0x00800,
+    /// **AMS-B: fitting with layer 1**
+    kFitLayer1  = 0x01000,
+    /// **AMS-B: fitting with layer 2**
+    kFitLayer2  = 0x02000,
+    /// **AMS-B: fitting with layer 3**
+    kFitLayer3  = 0x04000,
+    /// **AMS-B: fitting with layer 4**
+    kFitLayer4  = 0x08000,
+    /// **AMS-B: fitting with layer 5**
+    kFitLayer5  = 0x10000,
+    /// **AMS-B: fitting with layer 6**
+    kFitLayer6  = 0x20000,
+    /// **AMS-B: fitting with layer 7**
+    kFitLayer7  = 0x40000,
+    /// Specific pattern selected
+    kPattern    = 0x80000
   };
 
   /// Advanced fit flags to be specified by TRCLFFKEY_DEF::AdvancedFitFlag
-  enum EAdvancedFitFlags {
-    kChoutkoFit   = 0x001, ///< Choutko fitting w/o scattering
-    kChoutkoMsct  = 0x002, ///< Choutko fitting w/  scattering
-    kChoutkoHalf  = 0x004, ///< Choutko fitting w/o scattering half layers
-    kChoutkoDef   = 0x007, ///< Default all Choutko fitting
+  /* enum EAdvancedFitFlags { */
+/*     kChoutkoFit   = 0x001, ///< Choutko fitting w/o scattering */
+/*     kChoutkoMsct  = 0x002, ///< Choutko fitting w/  scattering */
+/*     kChoutkoHalf  = 0x004, ///< Choutko fitting w/o scattering half layers */
+/*     kChoutkoDef   = 0x007, ///< Default all Choutko fitting */
 
-    kChoutkoDrop  = 0x008, ///< Choutko fitting w/o scattering with one drop
-    kChoutkoNdrp  = 0x010, ///< Choutko fitting w/o scattering with noise drop
-    kChoutkoAll   = 0x01F, ///< All Choutko fitting
+/*     kChoutkoDrop  = 0x008, ///< Choutko fitting w/o scattering with one drop */
+/*     kChoutkoNdrp  = 0x010, ///< Choutko fitting w/o scattering with noise drop */
+/*     kChoutkoAll   = 0x01F, ///< All Choutko fitting */
 
-    kAlcarazFit   = 0x020, ///< Alcaraz fitting w/o scattering
-    kAlcarazMsct  = 0x040, ///< Alcaraz fitting w/  scattering
-    kAlcarazAll   = 0x060, ///< All Alcaraz fitting
+/*     kAlcarazFit   = 0x020, ///< Alcaraz fitting w/o scattering */
+/*     kAlcarazMsct  = 0x040, ///< Alcaraz fitting w/  scattering */
+/*     kAlcarazAll   = 0x060, ///< All Alcaraz fitting */
 
-    kChikanianFit = 0x080, ///< Chikanian fitting w/ scattering
+/*     kChikanianFit = 0x080, ///< Chikanian fitting w/ scattering */
 
-    kLayer8Fit    = 0x100, ///< AMS-B fitting with layer 8
-    kLayer9Fit    = 0x200, ///< AMS-B fitting with layer 9
-    kLayer89Fit   = 0x400, ///< AMS-B fitting with layer 8 and 9
-    kLayer89All   = 0x700, ///< All AMS-B fitting
+/*     kLayer8Fit    = 0x100, ///< AMS-B fitting with layer 8 */
+/*     kLayer9Fit    = 0x200, ///< AMS-B fitting with layer 9 */
+/*     kLayer89Fit   = 0x400, ///< AMS-B fitting with layer 8 and 9 */
+/*     kLayer89All   = 0x700, ///< All AMS-B fitting */
 
-    kAllAdvanced  = 0x7FF  ///< All advanced fitting
-  };
+/*     kAllAdvanced  = 0x7FF  ///< All advanced fitting */
+/*   }; */
   /// Default advanced fit flags : keep it "thread-common"
 #define DEF_ADVFIT_NUM 8
   static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
@@ -234,8 +252,8 @@ protected:
 
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
-
-
+  /// Service function to check if a layer is included in a fit
+  bool CheckLayFit(int fittype,int lay);
 public:
   /// Default fit method ID to retrive parameters
   static int DefaultFitID;
@@ -381,46 +399,16 @@ public:
                     2  refit
 
      \return  reference to TrTrackPar or throw an exception "TrTrackParNotFound" 
+
+     To correctly perform the refit, the FieldMap file is needed.
+     If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
+     check to have this file on your disk.
 !*/
          
   const TrTrackPar & gTrTrackPar(int algo=0, int pattern=0, int refit=0)throw (string);
-  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0){
-    int type=algo%10;
-    bool mscat=((algo/10)==1);
-    int fittype=0;
-    switch (type){
-    case 0 :
-      fittype|=trdefaultfit;
-      break;
-    case 1 :
-      fittype|=kChoutko;
-      break;
-    case 2 :
-      fittype|=kAlcaraz;
-      break;
-    case 3 :
-      fittype|=kChikanian;
-      break;
-    default :
-      fittype|=kChoutko;
-    }
-    if(!mscat) fittype|=kMultScat;
-    // Has1N 
-    if ((_bit_pattern & 0x80)>0) fittype|= kFitLayer8;
-    // Has9 
-    if ((_bit_pattern & 0x100)>0) fittype|= kFitLayer9;
-    
-    bool FitExists=ParExists(fittype);
-    if(refit==2 || (!FitExists && refit==1)) { 
-      //do the refit
-      // if (refit success) return fittype;
-      //  else 
-      return -2;
-    }
-    if(!FitExists && refit==0) return -1;
-    else if(FitExists) return fittype;
-    return -1;
-  }    
+ 
+  /// Returns the fit index. Params are the same of gTrTrackPar
+    int   iTrTrackPar(int algo=0, int pattern=0, int refit=0);
 
        
 

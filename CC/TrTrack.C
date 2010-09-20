@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.48 2010/09/12 14:17:33 pzuccon Exp $
+// $Id: TrTrack.C,v 1.49 2010/09/20 20:53:18 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/12 14:17:33 $
+///$Date: 2010/09/20 20:53:18 $
 ///
-///$Revision: 1.48 $
+///$Revision: 1.49 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -534,11 +534,16 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   else if (idf == kCircle)    method = TrFit::CIRCLE;
   else if (idf == kSimple)    method = TrFit::SIMPLE;
 
+  _TrFit.Clear();
+  _TrFit.SetMassChrg(mass, chrg);
+
   // Set multiple scattering option and assumed mass
-  if (id & kMultScat) {
+  if (id & kMultScat) 
     TrFit::_mscat = 1;
-    _TrFit.SetMassChrg(mass, chrg);
-  }
+  else
+    TrFit::_mscat = 0;
+
+  // HIT Selection Section
 
   // One drop fitting
   if (id & kOneDrop) {
@@ -575,9 +580,14 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     layer = GetHit(ihmin)->GetLayer();
   }
 
+  
+
   // Sort hits in the ascending order of the layer number
   int idx[trconst::maxlay], nhit = 0;
   int bhit[2] = { 0, 0 };
+
+
+
   for (int i = 0; i < _Nhits && nhit < trconst::maxlay; i++) {
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
@@ -585,12 +595,14 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     // For AMS02P (AKA AMS-B)
     if (TkDBc::Head->GetSetup() == 3) {
       if (hit->GetLayer() == 8) { 
+	bhit[0] = 1;
 	if (!(id & kFitLayer8)) continue; 
-	else bhit[0] = 1;
+
       }
       if (hit->GetLayer() == 9) {
+	bhit[1] = 1;
 	if (!(id & kFitLayer9)) continue;
-	else bhit[1] = 1;
+	
       }
 
       int lyr = hit->GetLayer();
@@ -612,6 +624,28 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   // AMS02P
 
   std::sort(idx, &idx[nhit]);
+
+  // External fit
+  if (TkDBc::Head->GetSetup() == 3 && (id & kExternal) ){
+    int idx2[4];
+    if(!bhit[0] || !bhit[1]||nhit<4) return -1;
+    idx2[0]=idx[0];
+    idx2[1]=idx[1];
+    idx2[2]=idx[nhit-2];
+    idx2[3]=idx[nhit-1];
+    nhit=4;
+    for(int kk=0;kk<4;kk++)idx[kk]=idx2[kk];
+  }  
+
+  // Selected Pattern fit
+  if(id & kPattern){
+     int idx2[9];
+     int nhit2=0;
+     for (int kk=0;kk<nhit;kk++)
+       if(CheckLayFit(id,idx[kk]/10)) idx2[nhit2++]=idx[kk];
+     for(int kk=0;kk<nhit2;kk++)idx[kk]=idx2[kk];
+     nhit=nhit2;
+  }
 
   // For the half-fitting options
   int i1 = 0, i2 = nhit;
@@ -659,7 +693,11 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     */
     // For AMS02P (AKA AMS-B)
     float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
-    GUFLD(pp, bf);
+    
+    // pz the field is known from the class data member GUFLD(pp, bf);
+    bf[0]=_BField[j].x();
+    bf[1]=_BField[j].y();
+    bf[2]=_BField[j].z();
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
                     hit->OnlyX() ? 0 : ery,  
 	                               errz, 
@@ -723,6 +761,21 @@ void TrTrackR::Print(int opt){
   cout <<sout;
 
 }
+
+bool TrTrackR::CheckLayFit(int fittype,int lay){
+  if ( lay==0) return ((fittype & kFitLayer8)>0) ;
+  if ( lay==1) return ((fittype & kFitLayer1)>0) ; 
+  if ( lay==2) return ((fittype & kFitLayer2)>0) ;
+  if ( lay==3) return ((fittype & kFitLayer3)>0) ;
+  if ( lay==4) return ((fittype & kFitLayer4)>0) ;
+  if ( lay==5) return ((fittype & kFitLayer5)>0) ;
+  if ( lay==6) return ((fittype & kFitLayer6)>0) ;
+  if ( lay==7) return ((fittype & kFitLayer7)>0) ;
+  if ( lay==8) return ((fittype & kFitLayer8)>0) ;
+  if ( lay==9) return ((fittype & kFitLayer9)>0) ;
+  return false;
+}
+
 char *  TrTrackR::Info(int iRef){
   string aa;
   aa.append(Form("TrTrack #%d ",iRef));
@@ -983,3 +1036,66 @@ const TrTrackPar & TrTrackR::gTrTrackPar(int algo,int pattern, int refit)throw (
 
 }
 
+
+int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit){
+    int type=algo%10;
+    bool mscat=((algo/10)==1);
+    int fittype=0;
+    switch (type){
+    case 0 :
+      fittype|=trdefaultfit;
+      break;
+    case 1 :
+      fittype|=kChoutko;
+      break;
+    case 2 :
+      fittype|=kAlcaraz;
+      break;
+    case 3 :
+      fittype|=kChikanian;
+      break;
+    default :
+      fittype|=kChoutko;
+    }
+    if(!mscat) fittype|=kMultScat;
+    int basetype=fittype;
+    if(pattern==0){
+      // Has1N 
+      if ((_bit_pattern & 0x80)>0) fittype|= kFitLayer8;
+      // Has9 
+      if ((_bit_pattern & 0x100)>0) fittype|= kFitLayer9;
+    }
+    else if(pattern==1) fittype|= kUpperHalf;
+    else if(pattern==2) fittype|= kLowerHalf;
+    else if(pattern==3) fittype=basetype;
+    else if(pattern==4) fittype|= kExternal;
+    else if(pattern>9){ //it is a base10 hit pattern	
+      fittype|=kPattern;
+      if(((pattern/1         )%10)>0) fittype|=kFitLayer1;
+      if(((pattern/10        )%10)>0) fittype|=kFitLayer2;
+      if(((pattern/100       )%10)>0) fittype|=kFitLayer3;
+      if(((pattern/1000      )%10)>0) fittype|=kFitLayer4;
+      if(((pattern/10000     )%10)>0) fittype|=kFitLayer5;
+      if(((pattern/100000    )%10)>0) fittype|=kFitLayer6;
+      if(((pattern/1000000   )%10)>0) fittype|=kFitLayer7;
+      if(((pattern/10000000  )%10)>0) fittype|=kFitLayer8;
+      if(((pattern/100000000 )%10)>0) fittype|=kFitLayer9;
+    }
+    else
+      return -1;
+
+    
+    bool FitExists=ParExists(fittype);
+    if(refit==2 || (!FitExists && refit==1)) { 
+      int ret=Fit(fittype);
+      if (ret>0) 
+	return fittype;
+      else 
+	return -2;
+    }
+    FitExists=ParExists(fittype);
+    if(!FitExists && refit==0) return -1;
+    else if(FitExists) return fittype;
+    else
+      return -1;
+  }    

@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.11 2010/07/27 17:15:38 oliva Exp $
+//  $Id: MagField.h,v 1.12 2010/09/20 20:53:29 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -62,9 +62,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/07/27 17:15:38 $
+///$Date: 2010/09/20 20:53:29 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +188,7 @@ public:
   static MagField *GetPtr(void) {
     return (_ptr) ? _ptr : new MagField;
   }
-  
+  magserv* GetMap() {return mm;}
   int* GetPointerForDB(){
     return  isec;
   }
