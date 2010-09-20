@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.40 2010/09/14 19:05:59 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.41 2010/09/20 15:21:45 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -367,7 +367,7 @@ public:
 }
 
 
-  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pParticle(fRef)->Info(fRef):0;}
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pParticle(fRef)->Info(fRef,fEv):0;}
 
 
 };

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.108 2010/09/13 20:52:49 pzuccon Exp $
+#  $Id: Makefile,v 1.109 2010/09/20 15:21:45 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -135,25 +135,25 @@ CFLAGSB+= $(CPPFLAGS)
 $(BIN)%.o : $(SFF)%.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
 $(BIN)%.o : $(SCC)%.C
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(CXX) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 
 $(BIN)%_s.o: $(SCC)%.C ../include/root_methods.h
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
-	@$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
 
 
 $(BIN)%.o : $(SCC)%.c

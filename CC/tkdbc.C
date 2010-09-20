@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.73 2010/08/12 11:49:35 choutko Exp $
+//  $Id: tkdbc.C,v 1.74 2010/09/20 15:21:44 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -32,6 +32,8 @@ integer TKDBc::_ReadOK=0;
      number   TKDBc::_ssize_active[maxlay][2];
      number   TKDBc::_ssize_inactive[maxlay][2];
      integer  TKDBc::_nstripssen[maxlay][2];
+    integer  TKDBc::_nstripssenl[maxlay][maxlad][2][2];
+
      integer  TKDBc::_nstripssenR[maxlay][2];
      integer  TKDBc::_nstripsdrp[maxlay][2];
      number   TKDBc::_silicon_z[maxlay];
@@ -51,6 +53,25 @@ integer TKDBc::_ReadOK=0;
     uint64 * TKDBc::_Cumulus;
     uint64 * TKDBc::_CumulusS;
 
+void TKDBc::setNStripsSen(int setup){
+    for(int i=0;i<TKDBc::nlay();i++){
+     for (int j=0;j<2;j++){ 
+     for(int k=0;k<maxlad;k++){
+      for(int l=0;l<2;l++)_nstripssenl[i][k][l][j]=_nstripssen[i][j];
+     }
+    }
+   }
+  if(setup==1){
+    _nstripssenl[8][1][0][0]=192;
+   _nstripssenl[8][2][0][0]=192;
+   _nstripssenl[8][5][0][0]=192;
+
+
+  }
+
+ 
+
+}
 
 void TKDBc::init(float zshift ){
 // get setup
@@ -1988,7 +2009,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    const number  yposl[maxlay]={0,0,0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
 // const number  zposl[maxlay]={167.85,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.555};
- const number  zposl[maxlay]={159.94,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-135.7};
+ const number  zposl[maxlay]={160.,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-136.0};
 
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    _zposl[0]+=0; 
@@ -2054,7 +2075,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,0,
                                14,9,11,11,12,12,12,12,11,11,9,0,0,0,0,0,0,
                                0,0,9,11,11,12,12,12,12,11,11,9,14,7,0,0,0,
-                               10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0};
+                               11,12,12,12,12,12,12,11,0,0,0,0,0,0,0,0,0};
    UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
    const number  zpos[maxlay]={1,0,0,0,0,0,0,0,0};
    UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));

@@ -1,4 +1,4 @@
-//  $Id: trid.h,v 1.36 2009/02/20 14:12:20 choutko Exp $
+//  $Id: trid.h,v 1.37 2010/09/20 15:21:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
@@ -62,29 +62,32 @@ inline integer cmpt()const {return _layer+10*_ladder+1000*_sensor;}
 int cmptr()const;
 inline integer getstrip (integer i) const{if(i==0)return _stripx;else return _stripy;} 
 inline number getmaxsize(integer i)  {return TKDBc::ssize_active(_layer-1,i);}
-inline integer getmaxstrips(integer i) const
-{return AMSJob::gethead()->isRealData()? TKDBc::NStripsSenR(_layer,i):TKDBc::NStripsSen(_layer,i);}
+inline integer getmaxstrips(integer i) const{
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
+return AMSJob::gethead()->isRealData()?
+TKDBc::NStripsSenR(_layer,i):TKDBc::NStripsSen(_layer,i,_ladder,half);}
 integer size2strip(integer side, number size);
 
 
 inline number strip2size(integer side) const{
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
      #ifdef __AMSDEBUG__
        assert(side>=0 && side<2 && !AMSJob::gethead()->isRealData());
      #endif
-     if(side==0)return _swxyl[_layer-1][0][_stripx];
-     else       return _swxyl[_layer-1][1][_stripy];
+     if(side==0)return _swxyl[_layer-1][0][_ladder-1][half][_stripx];
+     else       return _swxyl[_layer-1][1][_ladder-1][half][_stripy];
 }
 
 static integer debug;
-static number *  _swxy[trconst::maxlay][2] ;  // strip size x,y
-static number *  _swxyl[trconst::maxlay][2];   // integral of strip size
+static number *  _swxy[trconst::maxlay][2][trconst::maxlad][2] ;  // strip size x,y
+static number *  _swxyl[trconst::maxlay][2][trconst::maxlad][2];   // integral of strip size
 //
 // we have to have yet different apporiach to real data
 //
 static number *  _swxyR[trconst::maxlay][2] ;  // strip size x,y
 static number *  _swxyRl[trconst::maxlay][2];   // integral of strip size
 
-static void init();
+static void init(int setup);
 };
 class AMSTrIdSoft{
 protected:
@@ -99,6 +102,7 @@ int16u _haddr;    // Hardware address
 int16u _crate;    // Crate no
 integer _VANumber; // from 0 to 5 (9)
 AMSTrIdGeom * _pid;
+static integer _setup;
 static uinteger _ncrates;
 static char *   _TSig[2];
 static char *   _TRSig[2];

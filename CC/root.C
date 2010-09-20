@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.227 2010/09/13 21:09:40 choutko Exp $
+//  $Id: root.C,v 1.228 2010/09/20 15:21:44 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3363,3 +3363,19 @@ long long AMSEventR::Size(){
   size+=sizeof(DaqEventR)*fDaqEvent.size();
   return size;
 }
+
+char * ParticleR::Info(int number, AMSEventR* pev){
+  double anti=AntiCoo[0][2];
+   float btof=0;
+   if(iBeta()>=0){
+    if(pev){
+     BetaR bta=pev->Beta(iBeta());
+    btof=bta.Beta;
+   }}
+   if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
+    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) AntiC=%5.2f ",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],anti);
+return _Info;
+
+
+ }
+

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.731 2010/09/14 13:38:16 choumilo Exp $
+// $Id: job.C,v 1.732 2010/09/20 15:21:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1764,12 +1764,6 @@ void AMSJob::udata(){
 #ifdef _PGTRACK_
   TkDBc::CreateTkDBc();
 #else
-  AMSTrIdGeom::init();
-  
-  float zpos[trconst::maxlad];
-  for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
-  for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
-  rkmsinit_(zpos); 
 #endif
   int pgtrack_DB_ver=2;
   int STD_DB_ver=2;
@@ -1802,6 +1796,11 @@ void AMSJob::udata(){
     else
       TkDBc::Head->init(pgtrack_DB_ver);
 #else
+  AMSTrIdGeom::init(STD_DB_ver);
+  float zpos[trconst::maxlad];
+  for(int k=0;k<sizeof(zpos)/sizeof(zpos[0]);k++)zpos[k]=0;
+  for(int k=0;k<TKDBc::nlay();k++)zpos[k]=TKDBc::zposl(k)-TKDBc::zpos(k);
+  rkmsinit_(zpos);
     AMSTrIdSoft::inittable(STD_DB_ver);
     AMSTrIdSoft::init();
 #endif

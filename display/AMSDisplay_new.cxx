@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.13 2010/09/14 19:05:58 pzuccon Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.14 2010/09/20 15:21:45 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -332,7 +332,7 @@ void AMSDisplay::AddParticleInfo(char * obj){
    static TLatex text;
    text.SetTextAlign(22);
    text.SetTextSize(0.4/sqrt(m_scale));
-   text.DrawLatex(0.5,0.75,m_ntuple->NParticle()?m_ntuple->pParticle(0)->Info(0):atext);
+   text.DrawLatex(0.5,0.75,m_ntuple->NParticle()?m_ntuple->pParticle(0)->Info(0,m_ntuple):atext);
 //   text.DrawLatex(0.5,0.75,m_ntuple->pParticle(0)?m_ntuple->pParticle(0)->Info(0):atext);
 
    

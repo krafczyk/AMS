@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.22 2010/08/12 12:47:34 choutko Exp $
+//  $Id: tkdbc.h,v 1.23 2010/09/20 15:21:45 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -58,6 +58,8 @@ private:
    static  number   _ssize_active[trconst::maxlay][2];
    static  number   _ssize_inactive[trconst::maxlay][2];
    static  integer  _nstripssen[trconst::maxlay][2];
+  static  integer  _nstripssenl[trconst::maxlay][trconst::maxlad][2][2];
+
    static  integer  _nstripssenR[trconst::maxlay][2];
    static  integer  _nstripsdrp[trconst::maxlay][2];
    static  number   _silicon_z[trconst::maxlay];
@@ -217,13 +219,14 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
      return _nhalf[ilay-1][ilayd-1];
    }
    static integer maxstripsdrp();
-   inline static integer NStripsSen(integer ilay, integer side){
+  static void setNStripsSen(int setup);;
+   inline static integer NStripsSen(integer ilay, integer side,integer lad,integer half){
      #ifdef __AMSDEBUG__
        assert(ilay>0 && ilay <= nlay()) ;
        assert(side >=0 && side < 2);
      #endif
-     return _nstripssen[ilay-1][side];
-   }
+return _nstripssenl[ilay-1][lad-1][half][side];  
+   }    
    inline static integer NStripsSenR(integer ilay, integer side){
      #ifdef __AMSDEBUG__
        assert(ilay>0 && ilay <= nlay()) ;

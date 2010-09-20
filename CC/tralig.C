@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.69 2010/09/13 21:09:40 choutko Exp $
+//  $Id: tralig.C,v 1.70 2010/09/20 15:21:44 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -2426,7 +2426,7 @@ for(i=0;i<TKDBc::nlay();i++){
      _gldb[trconst::maxsen][trconst::maxlad][1][0].nentries=1;
 
     if (AMSFFKEY.Update ){
-       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVGLDB());
+       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVGLDBP());
              ptdv->UpdCRC();
              time_t begin,end,insert;
             time(&insert);

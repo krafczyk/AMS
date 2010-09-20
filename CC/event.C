@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.492 2010/09/14 19:39:05 choutko Exp $
+//  $Id: event.C,v 1.493 2010/09/20 15:21:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1497,36 +1497,52 @@ void AMSEvent::event(){
   addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){
+
     if(_SelectedEvents->Run==0){
+#pragma omp critical (g4)
+{
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
+}
       return;
     }
     else{
       EventId o(getrun(),getid());
       if(_SelectedEvents->Run > o.Run){
+#pragma omp critical (g4)
+{
 	if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+}
 	return;
       }
       else if(*_SelectedEvents < o){
+#pragma omp critical (g4)
+{
 	while(*_SelectedEvents<o && _SelectedEvents->Run){
 	  if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
 	  _SelectedEvents++;
 	}
+}
 	if(_SelectedEvents->Run!=o.Run){
           return;
 	}
       }
       if(_SelectedEvents->Event){
 	if(o!=*_SelectedEvents){
+#pragma omp critical (g4)
+{
 	  if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
 	    SELECTFFKEY.Run=_SelectedEvents->Run;
 	    SELECTFFKEY.Event=_SelectedEvents->Event;
 	    DAQEvent::select();
 	  }
+}
 	  return;
 	}
+#pragma omp critical (g4)
+{
 	_SelectedEvents++;
+}
       }       
     }
   }

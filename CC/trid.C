@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.53 2010/07/14 15:13:52 choutko Exp $
+//  $Id: trid.C,v 1.54 2010/09/20 15:21:44 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -32,15 +32,16 @@ AMSID AMSTrIdGeom::crgid() const{
 }
 void AMSTrIdGeom::_check(){
 if(AMSTrIdGeom::debug){
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
   if(_layer <1 || _layer>TKDBc::nlay())
   cerr <<"AMSTrIdGeom-ctor-layer out of bounds "<<_layer<<endl; 
   else if(_ladder<1 || _ladder>TKDBc::nlad(_layer))
   cerr <<"AMSTrIdGeom-ctor-ladder out of bounds "<<_ladder<<endl; 
   else if(_sensor<1 || _sensor>TKDBc::nsen(_layer,_ladder))
   cerr <<"AMSTrIdGeom-ctor-sensor out of bounds "<<_sensor<<endl; 
-  else if(_stripx<0 || _stripx>TKDBc::NStripsSen(_layer,0)-1)
+  else if(_stripx<0 || _stripx>TKDBc::NStripsSen(_layer,0,_ladder,half)-1)
   cerr <<"AMSTrIdGeom-ctor-stripx out of bounds "<<_sensor<<endl; 
-  else if(_stripy<0 || _stripy>TKDBc::NStripsSen(_layer,1)-1)
+  else if(_stripy<0 || _stripy>TKDBc::NStripsSen(_layer,1,_ladder,half)-1)
   cerr <<"AMSTrIdGeom-ctor-stripy out of bounds "<<_sensor<<endl; 
 }
 }
@@ -77,12 +78,14 @@ _check();
 #endif
 }
 number AMSTrIdGeom::getsize(integer side) const{
-if(side==0)return _swxy[_layer-1][0][_stripx];
-else return _swxy[_layer-1][1][_stripy];
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
+if(side==0)return _swxy[_layer-1][0][_ladder-1][half][_stripx];
+else return _swxy[_layer-1][1][_ladder-1][half][_stripy];
 }
 
 number AMSTrIdGeom::getcofg(integer side,integer shift, integer readoutch, integer & error) const{
 if(side !=0)side=1;
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
 // get right strip
 #ifdef __AMSDEBUG__
 integer rch=readoutch;
@@ -98,8 +101,10 @@ if(side==1){
 else{
   integer isen=_sensor
   -(_sensor>TKDBc::nhalf(_layer,_ladder)? TKDBc::nhalf(_layer,_ladder):0);
-  integer alpha=(isen*TKDBc::NStripsSen(_layer,side)-readoutch)/TKDBc::NStripsDrp(_layer,side);
-  readoutch =(readoutch+alpha*TKDBc::NStripsDrp(_layer,side))%TKDBc::NStripsSen(_layer,side);
+  integer alpha=(isen*TKDBc::NStripsSen(_layer,side,_ladder,half)-readoutch)/TKDBc::NStripsDrp(_layer,side);
+  readoutch
+ 
+=(readoutch+alpha*TKDBc::NStripsDrp(_layer,side))%TKDBc::NStripsSen(_layer,side,_ladder,half);
 }
 
 integer strip = side==0?_R2Gx(readoutch):_R2Gy(readoutch);
@@ -120,13 +125,14 @@ else {
  error=0;
  return  AMSJob::gethead()->isRealData()?
    _swxyRl[_layer-1][side][strip]+_swxyR[_layer-1][side][strip]/2:
-  _swxyl[_layer-1][side][strip]+_swxy[_layer-1][side][strip]/2;
+ 
+_swxyl[_layer-1][side][_ladder-1][half][strip]+_swxy[_layer-1][side][_ladder-1][half][strip]/2;
 }
 }
 
 
-number * AMSTrIdGeom::_swxyl[maxlay][2];
-number * AMSTrIdGeom::_swxy[maxlay][2];
+number * AMSTrIdGeom::_swxyl[maxlay][2][maxlad][2];
+number * AMSTrIdGeom::_swxy[maxlay][2][maxlad][2];
 number * AMSTrIdGeom::_swxyRl[maxlay][2];
 number * AMSTrIdGeom::_swxyR[maxlay][2];
 geant AMSTrIdSoft::laser[maxlay][2]={   1.,  1.,
@@ -158,6 +164,8 @@ return iad;
 
 void AMSTrIdSoft::_check(){
 if(AMSTrIdSoft::debug){
+ 
+
   if(_dead)return;
   if(_layer <1 || _layer>TKDBc::nlay())
   cerr <<"AMSTrIdSoft-ctor-layer out of bounds "<<_layer<<endl; 
@@ -237,7 +245,7 @@ if(side==1){
 }
 else{
   integer tot=(idg._sensor-1-TKDBc::nhalf(_layer,_drp)*_half)*
-    TKDBc::NStripsSen(_layer,0)+idg._stripx;
+    TKDBc::NStripsSen(_layer,0,_drp,_half)+idg._stripx;
   _strip=tot%TKDBc::NStripsDrp(_layer,0);
 }
 _VANumber=_strip/_VAChannels;
@@ -326,10 +334,11 @@ _stripx=_R2Gx(stripx);
 }
 
 integer  AMSTrIdGeom::_R2Gy(integer stripy)const {
+int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
    integer __stripy;
    if(AMSJob::gethead()->isRealData()){
       if(stripy==0) __stripy=0;
-      else if(stripy== TKDBc::NStripsSen(_layer,1)-1)
+      else if(stripy== TKDBc::NStripsSen(_layer,1,_ladder,half)-1)
         __stripy=stripy*2+4;
       else  __stripy=stripy*2+2;
    }
@@ -341,7 +350,10 @@ integer AMSTrIdGeom::_R2Gx(integer stripx)const {
 //ams02 scheme
    integer __stripx;
    if(AMSJob::gethead()->isRealData()){
-     if(_layer == 1 || _layer ==TKDBc::nlay( ) || TKDBc::NStripsSen(_layer,0)==224){  // still old bonding scheme!!
+    int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
+    int lad=_ladder;
+    // if(_layer == 1 || _layer ==TKDBc::nlay( ) || TKDBc::NStripsSen(_layer,0)==224){  // still old bonding scheme!!
+      if(TKDBc::NStripsSen(_layer,0,lad,half)==224){
        //K5       //K7
 //      if(stripx<64)__stripx=3*stripx;
         if(stripx<64){
@@ -382,16 +394,16 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
     namb=0; 
     _pid=spid;
   if( _side==0 && o._side==1) {
-     integer isen=strip/TKDBc::NStripsSen(_layer,_side)+1;
+     integer isen=strip/TKDBc::NStripsSen(_layer,_side,_drp,_half)+1;
      do {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
       (_pid+namb)->_sensor=isen+(_half==0?0:TKDBc::nhalf(_layer,_drp));
       (_pid+namb)->R2Gy(o._strip);
-      stripx=strip%TKDBc::NStripsSen(_layer,_side);
+      stripx=strip%TKDBc::NStripsSen(_layer,_side,_drp,_half);
       (_pid+namb)->R2Gx(stripx);
       strip=strip+TKDBc::NStripsDrp(_layer,_side);
-      isen=strip/TKDBc::NStripsSen(_layer,_side)+1;
+      isen=strip/TKDBc::NStripsSen(_layer,_side,_drp,_half)+1;
       namb++;    
       
 #ifdef __AMSDEBUG__
@@ -479,11 +491,8 @@ void AMSTrIdSoft::init(){
      
 }
 
-
+integer AMSTrIdSoft::_setup=0;
 void AMSTrIdSoft::inittable(integer setup){
-
-
-
      //     integer AMSTrIdSoft::_GetGeo[ncrt][ntdr][2][3];
      //     integer AMSTrIdSoft::_GetHard[maxlay][maxlad][2][3];     
      int i,j,k;
@@ -2864,39 +2873,47 @@ else if(setup==2){
 }
 
 
-void AMSTrIdGeom::init(){
+void AMSTrIdGeom::init(int setup){
+
+AMSTrIdSoft::_setup=setup==4?1:0;
+TKDBc::setNStripsSen(AMSTrIdSoft::_setup);
+
     integer i,j,k;
+     for(int l=0;l<2;l++){
     for (i=0;i<TKDBc::nlay();i++){
+        for (int m=0;m<TKDBc::nlad(i+1);m++){
       for(j=0;j<2;j++){
-        _swxy[i][j]=new number[TKDBc::NStripsSen(i+1,j)];
+        _swxy[i][j][m][l]=new number[TKDBc::NStripsSen(i+1,j,m+1,l)];
         if(j==0){
-          if(i==0 || i==TKDBc::nlay()-1 || TKDBc::NStripsSen(i+1,j)==224){
+          if( TKDBc::NStripsSen(i+1,j,m+1,l)==224){
            number st=0.0052;
-           _swxy[i][j][0]=2*st;
-           for(k=1;k<63;k++)_swxy[i][j][k]=3*st;
-           _swxy[i][j][63]=3.5*st;
-           for(k=64;k<64+96;k++)_swxy[i][j][k]=4*st;
-           _swxy[i][j][160]=3.5*st;
-           for(k=161;k<161+62;k++)_swxy[i][j][k]=3*st;
-           _swxy[i][j][223]=2*st;
-          assert(TKDBc::NStripsSen(i+1,j)-1  == 223);
+           _swxy[i][j][m][l][0]=2*st;
+           for(k=1;k<63;k++)_swxy[i][j][m][l][k]=3*st;
+           _swxy[i][j][m][l][63]=3.5*st;
+           for(k=64;k<64+96;k++)_swxy[i][j][m][l][k]=4*st;
+           _swxy[i][j][m][l][160]=3.5*st;
+           for(k=161;k<161+62;k++)_swxy[i][j][m][l][k]=3*st;
+           _swxy[i][j][m][l][223]=2*st;
+          assert(TKDBc::NStripsSen(i+1,j,m+1,l)-1  == 223);
           }
           else{
-           for(k=1;k<TKDBc::NStripsSen(i+1,j)-2;k++)_swxy[i][j][k]=0.0208;
-           _swxy[i][j][0]=0.0052*2.5;
-           _swxy[i][j][TKDBc::NStripsSen(i+1,j)-2]=0.0052*5;
-           _swxy[i][j][TKDBc::NStripsSen(i+1,j)-1]=0.0052*3.5;
+           for(k=1;k<TKDBc::NStripsSen(i+1,j,m+1,l)-2;k++)_swxy[i][j][m][l][k]=0.0208;
+           _swxy[i][j][m][l][0]=0.0052*2.5;
+           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-2]=0.0052*5;
+           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-1]=0.0052*3.5;
           }
         }
         else{
-           for(k=2;k< TKDBc::NStripsSen(i+1,j)-2;k++)_swxy[i][j][k]=0.011;
-           _swxy[i][j][0]=2.5*0.0055; 
-           _swxy[i][j][1]=3*0.0055; 
-           _swxy[i][j][TKDBc::NStripsSen(i+1,j)-2]=3*0.0055; 
-           _swxy[i][j][TKDBc::NStripsSen(i+1,j)-1]=3.5*0.0055; 
+           for(k=2;k< TKDBc::NStripsSen(i+1,j,m+1,l)-2;k++)_swxy[i][j][m][l][k]=0.011;
+           _swxy[i][j][m][l][0]=2.5*0.0055; 
+           _swxy[i][j][m][l][1]=3*0.0055; 
+           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-2]=3*0.0055; 
+           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-1]=3.5*0.0055; 
         }
       }
     }
+}
+}
 
 
     for (i=0;i<TKDBc::nlay();i++){
@@ -2916,20 +2933,24 @@ void AMSTrIdGeom::init(){
 
 
      for(i=0;i<TKDBc::nlay();i++){
+       for(int m=0;m<TKDBc::nlad(i+1);m++){
+           for(int l=0;l<2;l++){
       for(j=0;j<2;j++){
-        _swxyl[i][j]=new number[TKDBc::NStripsSen(i+1,j)+1];
-        _swxyl[i][j][0]=0;
-       for(k=1;k<TKDBc::NStripsSen(i+1,j)+1;k++){
-        _swxyl[i][j][k]=_swxyl[i][j][k-1]+_swxy[i][j][k-1];
+        _swxyl[i][j][m][l]=new number[TKDBc::NStripsSen(i+1,j,m+1,l)+1];
+        _swxyl[i][j][m][l][0]=0;
+       for(k=1;k<TKDBc::NStripsSen(i+1,j,m+1,l)+1;k++){
+        _swxyl[i][j][m][l][k]=_swxyl[i][j][m][l][k-1]+_swxy[i][j][m][l][k-1];
        }
-       if(fabs(_swxyl[i][j][TKDBc::NStripsSen(i+1,j)] -_swxyl[i][j][0]-
+       if(fabs(_swxyl[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)] -_swxyl[i][j][m][l][0]-
           TKDBc::ssize_active(i,j)) > 1.e-4){
          cerr <<"AMSTrIdGeom::init-F-SizeDoesNotMatch "<<i<<" "<<j<<" "<<
-         _swxyl[i][j][TKDBc::NStripsSen(i+1,j)]<<" "<<
+         _swxyl[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)]<<" "<<
          TKDBc::ssize_active(i,j)<<endl;
          exit(1);
        }
       }
+     }
+     }
      }
      for(i=0;i<TKDBc::nlay();i++){
       for(j=0;j<2;j++){
@@ -2955,16 +2976,17 @@ integer AMSTrIdGeom::size2strip(integer side, number size){
        assert(side>=0 && side<2 &&  !AMSJob::gethead()->isRealData());
      #endif
        integer strip;
-       strip= AMSbiel( _swxyl[_layer-1][side],  size,  
-       TKDBc::NStripsSen(_layer,side)+1)-1;
+  int half=_sensor>TKDBc::nhalf(_layer,_ladder)?1:0;
+       strip= AMSbiel( _swxyl[_layer-1][side][_ladder-1][half],  size,  
+       TKDBc::NStripsSen(_layer,side,_ladder,half)+1)-1;
      #ifdef __AMSDEBUG__  
-       if(strip <0 || strip >= TKDBc::NStripsSen(_layer,side))
+       if(strip <0 || strip >= TKDBc::NStripsSen(_layer,side,_ladder,half))
          cerr<<"AMSTrIdGeom::size2strip-E-InvalidStrip "<<strip<<" "<<
            size<<endl;
      #endif       
      if(strip<0)strip=0;
-     if(strip>=TKDBc::NStripsSen(_layer,side))
-     strip=TKDBc::NStripsSen(_layer,side)-1;
+     if(strip>=TKDBc::NStripsSen(_layer,side,_ladder,half))
+     strip=TKDBc::NStripsSen(_layer,side,_ladder,half)-1;
      return strip;
 }
 

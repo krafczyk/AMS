@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.227 2010/08/12 12:51:00 choutko Exp $
+//  $Id: trrec.C,v 1.228 2010/09/20 15:21:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1274,6 +1274,9 @@ sethit();
     number s1=0,s2=0;
     number ss1,ss2;
     integer GOOD=1;
+    if(pid->getlayer()==9){
+       //cout <<" blia "<<endl;
+     }
     if(x){
       s1=x->getVal();
       x->setstatus(AMSDBc::USED);
