@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.6 2010/09/13 12:57:22 pzuccon Exp $
+#  $Id: Makefile,v 1.7 2010/09/20 20:54:52 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -51,7 +51,7 @@ ifndef CERNDIR
 CERNDIR=/cern/pro/
 endif
 CXXFLAGS = -g -O3   -fPIC -march=i686  -I. $(INC) $(DEFINES) $(ROOTFLGS)
-FFLAGS= -I. -I$(CERNDIR)include -I../F -I../include
+FFLAGS= -I. -I$(CERNDIR)/include -I../F -I../include
 
 ### LD flags ###
 ifeq ($(ARCH), Darwin)
