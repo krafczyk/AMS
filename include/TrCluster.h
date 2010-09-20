@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/09/09 17:43:19 $
+ $Date: 2010/09/20 17:22:23 $
 
- $Revision: 1.12 $
+ $Revision: 1.13 $
 
 */
 
@@ -58,7 +58,7 @@ class TrClusterR :public TrElem{
     /// Total Signal Corr.: Gain Correction
     kGain         = 0x04, 
     /// Total Signal Corr.: VA Gain Correction (appliable only with gain correction)
-    kVAGain       = (0x08 & 0x04), 
+    kVAGain       = (0x08 | 0x04), 
     /// Total Signal Corr.: Charge Loss Correction 
     kLoss         = 0x10,
     /// Total Signal Corr.: P/N Normalization Correction (normalizing to P)     
