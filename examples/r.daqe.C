@@ -13,7 +13,7 @@
 // Load AMS shared library
 // For Linux 2.6 load
 //      gSystem->Load("$AMSWD/lib/linux/icc2/ntuple.so");
-    gSystem->Load("$AMSWD/lib/linux/ntuple_slc4_icc.so");
+    gSystem->Load("$AMSWD/lib/linuxicc/ntuple_slc4.so");
 
        //gDebug=5;
 
