@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.18 2010/09/09 17:43:19 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.19 2010/09/24 14:55:14 choutko Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -204,6 +204,8 @@ protected:
 
   ///STD GBATCH compatibility layer
   int lay() const { return abs(_tkid/100); }
+  int lad() const {return GetSlot();}
+  int half() const{ int l = lay()==8?-1:1;return _tkid*l>0?1:0; }
   // Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
   float HitDist(TrRecHitR & B,int coo);
   /// ROOT definition

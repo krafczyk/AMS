@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.70 2010/09/20 15:21:44 choutko Exp $
+//  $Id: tralig.C,v 1.71 2010/09/24 14:55:11 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -291,7 +291,11 @@ _NoActivePar=0;
     for( i=0;i<TKDBc::nlay();i++){
       for(int l=0;l<trconst::maxlad;l++){
        for(int m=0;m<2;m++){
-         if(TKDBc::activeladdshuttle(i+1,l+1,m)){
+         bool bok=m==0?TKDBc::nhalf(i+1,l+1)>0 :TKDBc::nhalf(i+1,l+1)<TKDBc::nsen(i+1,l+1);
+
+
+
+         if(TKDBc::activeladdshuttle(i+1,l+1,m) && bok ){
           int nprp=0;
           for(int j=0;j<6;j++){
            if(TRALIG.ActiveParameters[i][j]){
@@ -547,6 +551,15 @@ while(offspring){
            ilad[lay-1]=lad;
            ihalf[lay-1]=half;
            ftxt.read((char*)&(sen[lay-1]),sizeof(sen[0]));
+           if(sen[lay-1]==0){
+            cerr<<"  sensor 0!!!"<<lay<<" "<<lad<<" "<<half<<endl;
+            continue;
+           }
+           bool ok0=false;
+if(lay==5 && half==1 && lad==3){
+               ok0=true; 
+           }
+  //if(lay==4 && half==1 && lad==2)cout<<" ok 1"<<endl;
 //           cout <<" nh "<<i<<" "<<rig<<" "<<mcrig<<" "<<nh<<" "<<lay<<" "<<lad<<" "<<half<<" "<<sen<<endl;
 //          ftxt>>hit[0]>>hit[1]>>hit[2]>>ehit[0]>>ehit[1]>>ehit[2]>>lay>>lad>>half>>sen;
           hits[i]=AMSPoint(hit);
@@ -2621,8 +2634,11 @@ else{
   for(int l=0;l<trconst::maxlad;l++){
   for(int k=0;k<trconst::maxsen;k++){
    for(int m=0;m<2;m++){
+        bool bok=m==0?TKDBc::nhalf(i+1,l+1)>0 :TKDBc::nhalf(i+1,l+1)<TKDBc::nsen(i+1,l+1);
+
+
     if(_pPargl[k][l][m][i].NEntries()>TRALIG.MinEventsPerFit/2){
-     //cout <<" "<<l<<" "<<m<<" "<<i<<" "<<_pPargl[k][l][m][i].NEntries()<<endl;
+     //cout <<"GLBAL "<<k<<" "<<l<<" "<<m<<" "<<i<<" "<<_pPargl[k][l][m][i].NEntries()<<endl;
      int nprp=0;
      for(int j=0;j<6;j++){ 
       if(TRALIG.ActiveParameters[i][j]){
@@ -2635,8 +2651,8 @@ else{
      }
      _NoActivePar+=nprp;
     }
-    else if(_pPargl[k][l][m][i].NEntries()>=0 && TKDBc::activeladdshuttle(i+1,l+1,m)){
-      cout <<" AMSTrAligFit::RebuildNoActivePar-I-TooFewEvents "<<_pPargl[k][l][m][i].NEntries()<<" "<<l<<" "<<m << " " <<i<<endl;
+    else if(_pPargl[k][l][m][i].NEntries()>=0 && TKDBc::activeladdshuttle(i+1,l+1,m)&& bok){
+      if(k==0)cout <<" AMSTrAligFit::RebuildNoActivePar-I-TooFewEvents "<<_pPargl[k][l][m][i].NEntries()<<" "<<l<<" "<<m << " " <<i<<endl;
       _pPargl[k][l][m][i].NEntries()=0;
     }
    }

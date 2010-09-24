@@ -21,13 +21,15 @@ public:
     int          membpat=ev->pLevel1(0)->JMembPatt;
     int b15=(membpat>>15)&1;
     int b14=(membpat>>14)&1;
-          if(! (b14 && b15))return false; 
+    //      if(! (b14 && b15))return false; 
           cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
            TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
            cout <<" q "<<tr.NTrRecHit()<<endl;
            for(int i=0;i<tr.NTrRecHit();i++){
               TrRecHitR rh=ev->TrRecHit(tr.iTrRecHit(i));
-              if(rh.lay()==9 && rh.half()==0 && (rh.lad()==2 || rh.lad()==3))  return true;
+              bool ok=rh.lay()==3 && rh.half()==0 && rh.lad()==2;
+//              ok =ok || (rh.lay()==5 && rh.half()==1 && rh.lad()==3);
+              if(ok)return true;
             }
             return false;           
            return true;

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.285 2010/09/20 15:21:45 choutko Exp $
+//  $Id: root.h,v 1.286 2010/09/24 14:55:14 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -871,9 +871,10 @@ static char _Info[255];
 public:
   unsigned int   Status;   ///< statusword \sa TrClusterR Status
   ///
-  int  Id;             ///<ssddhl ss sensor(1:xx) dd ladder(1:15) h half(0:1) l layer(1u:8d)
+  int  Id;             ///<ssddhl ss sensor(1:xx) dd ladder(1:15) h half(0:1) l layer(1u:9d)
   float Hit[3];            ///< cluster coordinates
   float Hitf(int k){return Hit[k];}
+   AMSPoint GetCoord(){return AMSPoint(Hit);}  ///< cluster coordinates
   float EHit[3];           ///< error to above
   float Sum;               ///< Amplitude (x+y)
   float DifoSum;           ///< (A_x-A_y)/(A_x+A_y)
@@ -982,6 +983,7 @@ public:
   float ErrRigidity;  ///<err to 1/above
   float Theta;      ///< theta (from fast)
   float Phi;        ///< phi (from fast) 
+  AMSDir GetDir(){return AMSDir(Theta,Phi);} ///< dir cos
   float P0[3];      ///< coo (from fast)
   float GChi2;     ///< geane chi2
   float GRigidity;  ///< geane rigidity
@@ -1001,6 +1003,7 @@ public:
   float PiRigidity;  ///<  PathInt rigidity
   float RigidityIE[3][2];  ///<Fast,PI,RK Rigidities with only internal or only external points 
   float Hit[9][3];   ///< Track Coordinate (after alignment)
+  AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);} 
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr);
   protected:

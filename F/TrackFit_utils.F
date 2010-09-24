@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.43  2010/09/24 14:55:13  choutko
+* *** empty log message ***
+*
 * Revision 1.42  2010/09/13 21:09:46  choutko
 * *** empty log message ***
 *
@@ -215,7 +218,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -7315,7 +7318,7 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
       endif
         xf(2)=chi2a
       if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
-     +  chi2a.le.chi2a)then
+     +  chi2a.le.chi2o)then
        iter=iter+1
        chi2o=chi2a
        goto 10
@@ -7871,9 +7874,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.42 2010/09/13 21:09:46 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.43  2010/09/24 14:55:13  choutko
+* *** empty log message ***
+*
 * Revision 1.42  2010/09/13 21:09:46  choutko
 * *** empty log message ***
 *

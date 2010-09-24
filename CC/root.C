@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.228 2010/09/20 15:21:44 choutko Exp $
+//  $Id: root.C,v 1.229 2010/09/24 14:55:11 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -195,10 +195,10 @@ void AMSEventR::hsub(int id1,int id2,int id3){
   }
 }
 void AMSEventR::hadd(int id1,int id2,int id3){
-  TH1F *h2p = h1(id2);
+  TH1F *h2p = h1(id1);
   if(h2p){
     h2p->Sumw2();
-    hcopy(id1,id3);
+    if(id2!=id3)hcopy(id2,id3);
     TH1F *h1p = h1(id3);
     if(h1p){
       h1p->Sumw2();
@@ -607,7 +607,12 @@ void AMSEventR::hf1(int idd, float a, float w){
       //*/
     }
   }
-  else cout << "id not found "<<id<<endl;
+  else{
+#pragma omp critical (cout)
+{ 
+cout << "id not found "<<id<<endl;
+}
+}
 }
 
 void AMSEventR::hfp(int idd, float a, float w=1){
