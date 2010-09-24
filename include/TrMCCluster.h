@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.8 2010/06/09 14:04:48 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.9 2010/09/24 14:12:01 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/06/09 14:04:48 $
+///$Date: 2010/09/24 14:12:01 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -141,7 +141,7 @@ public:
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
   char* Info(int iRef);
-
+	friend class TrDAQMC;
   /// ROOT definition
   ClassDef(TrMCClusterR,2);
 
