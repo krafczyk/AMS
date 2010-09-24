@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.229 2010/09/24 14:55:11 choutko Exp $
+//  $Id: root.C,v 1.230 2010/09/24 18:32:05 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3249,13 +3249,19 @@ Int_t AMSEventR::Fill()
       _ClonedTree = _Tree->GetTree()->CloneTree(0);
 //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
       AMSEventR::_ClonedTree->SetDirectory(AMSEventR::OFD());
-      cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<endl;
+      TDirectory *gdir=gDirectory;
+      gDirectory=AMSEventR::OFD();
+
+      cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
            if(obj3)obj3->Write("DataCards");
          for(int i=0;i<4;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
-    }
+        gDirectory=gdir;
 //    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
 //    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
+}
+//    cout <<"  cloned treeess "<<_ClonedTree<<endl;
+
     {
       _ClonedTree->SetBranchAddress(_Name,&Head());
       i= _ClonedTree->Fill();
