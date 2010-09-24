@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.733 2010/09/24 14:55:11 choutko Exp $
+// $Id: job.C,v 1.734 2010/09/24 18:46:41 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4368,31 +4368,34 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
     DAQEvent::addblocktype(&DAQRichBlock::getmaxblocks,&DAQRichBlock::calcdaqlength,&DAQRichBlock::builddaq);
 
 
-  {  // mc
-    if( !isRealData()){
+	{  // mc
+		if( !isRealData()){
 #ifndef __LVL3ONLY__
-    DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
-    DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
-    &AMSmceventg::builddaq);
-
-#ifndef _PGTRACK_
-        //PZ FIXME DAQ
-    DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
-    DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
-    &AMSTrMCCluster::builddaq);
+			DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
+			DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
+								   &AMSmceventg::builddaq);
+			
+#ifdef _PGTRACK_
+			DAQEvent::addsubdetector(&TrDAQMC::checkdaqid,&TrDAQMC::buildraw);
+			DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
+								   &TrDAQMC::builddaq);
+#else		
+			DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
+			DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
+								   &AMSTrMCCluster::builddaq);
 #endif
 #endif
-    DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
-    &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
-
-
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
-    &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
-
-
-    }
-}
+			DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
+			DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
+								   &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+			
+			
+			DAQEvent::addblocktype(&AMSEvent::getmaxblocks,
+								   &AMSEvent::calcdaqlength,&AMSEvent::builddaq);
+			
+			
+		}
+	}
   
 
 

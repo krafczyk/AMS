@@ -327,7 +327,7 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 //================================================================
 //================================================================
 //================================================================
-int TrDAQMC::fake_JINJ_PORT=32;
+int TrDAQMC::fake_JINJ_PORT=26;
 int TrDAQMC::onesize=57;
 
 void TrDAQMC::builddaq(integer i, integer n, int16u *p){
@@ -341,59 +341,58 @@ void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 	
 	int pindex=0;
 	p[pindex++]=((onesize+1) * ncl)+1; //size
-	for (ptr; ptr!=0;ptr=ptr->next()){
+	for (; ptr!=0;ptr=ptr->next()){
  		p[pindex++]=onesize; //size
 		int index0=pindex;
 		//_idsoft
-		p[pindex++]=(ptr->_idsoft>>16)&0xff;  //1
-		p[pindex++]=ptr->_idsoft&0xff;   
+		p[pindex++]=(ptr->_idsoft>>16)&0xffff;  //1
+		p[pindex++]=ptr->_idsoft&0xffff;   
 		//_itra
-		p[pindex++]=ptr->_itra;
+		p[pindex++]=(int16u)ptr->_itra;
 		p[pindex++]=ptr->_left[0];
 		p[pindex++]=ptr->_left[1];
 		p[pindex++]=ptr->_center[0];
 		p[pindex++]=ptr->_center[1];
 		p[pindex++]=ptr->_right[0];
 		p[pindex++]=ptr->_right[1];  //9
-		for(int kk=0;kk<5;kk++){
-			p[pindex++]=(((int)ptr->_ss[0][kk])>>16)&0xff;
-			p[pindex++]=((int)ptr->_ss[0][kk])&0xff;
-			p[pindex++]=(((int)ptr->_ss[1][kk])>>16)&0xff; //29
-			p[pindex++]=((int)ptr->_ss[1][kk])&0xff;
+		for(int kk=0;kk<5;kk++)
+			for(int ll=0;ll<2;ll++){
+				p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk],true);
+				p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk]);
 		}
-		p[pindex++]=((int)ptr->_xca.x())&0xff;          //30
-		p[pindex++]=(((int)ptr->_xca.x())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xca.y())&0xff;
-		p[pindex++]=(((int)ptr->_xca.y())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xca.z())&0xff;
-		p[pindex++]=(((int)ptr->_xca.z())>>16)&0xff;   //35
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.x(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.x());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.y(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.y());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.z(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xca.z());
 
-		p[pindex++]=((int)ptr->_xcb.x())&0xff;         //36
-		p[pindex++]=(((int)ptr->_xcb.x())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xcb.y())&0xff;
-		p[pindex++]=(((int)ptr->_xcb.y())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xcb.z())&0xff;
-		p[pindex++]=(((int)ptr->_xcb.z())>>16)&0xff;  //41
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z());
+		
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y());
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z());
 
-		p[pindex++]=((int)ptr->_xgl.x())&0xff;         //42
-		p[pindex++]=(((int)ptr->_xgl.x())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xgl.y())&0xff;
-		p[pindex++]=(((int)ptr->_xgl.y())>>16)&0xff;
-		p[pindex++]=((int)ptr->_xgl.z())&0xff;
-		p[pindex++]=(((int)ptr->_xgl.z())>>16)&0xff;    //47
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x());
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y());
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z(),true);         //30
+		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z());
+	
+		p[pindex++]=TrDAQMC::Pack(ptr->_sum,true);
+		p[pindex++]=TrDAQMC::Pack(ptr->_sum);   //55
 		
-		p[pindex++]=((int)ptr->_Momentum.x())&0xff;       //48
-		p[pindex++]=(((int)ptr->_Momentum.x())>>16)&0xff;
-		p[pindex++]=((int)ptr->_Momentum.y())&0xff;
-		p[pindex++]=(((int)ptr->_Momentum.y())>>16)&0xff;
-		p[pindex++]=((int)ptr->_Momentum.z())&0xff;
-		p[pindex++]=(((int)ptr->_Momentum.z())>>16)&0xff;   //53
-		float pp=ptr->_sum;
-		p[pindex++]=((int)pp)&0xff;
-		p[pindex++]=(((int)pp)>>16)&0xff;   //55
-		
-		p[pindex++]=ptr->Status&0xff;
-		p[pindex++]=(ptr->Status>>16)&0xff;   //57
+		p[pindex++]=ptr->Status&0xffff;
+		p[pindex++]=(ptr->Status>>16)&0xffff;   //57
 		if((pindex-index0)>onesize){
 			cerr<<"TrDAQ::builddaq-E-indext too big "<<pindex-index0<< " "<<onesize<<endl;       break; 
 		}
@@ -424,6 +423,12 @@ void TrDAQMC::buildraw(integer n, int16u *pbeg){
 		cerr << "TrDAQMC::buildraw -E-  The number of cluster is not an integer! Resto= "<<nclR<<endl;
 		return;
 	}
+    AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrMCCluster"));
+	if(!con){
+		cerr<<"TrDAQMC::buildraw -E- Cannot find the AMSTrMCCluster container "<<endl;
+		return;
+	}
+	
 	int pindex=0;
 	for (int cl=0;cl<ncl;cl++){
 	    int csize=pbeg[pindex++];
@@ -435,6 +440,7 @@ void TrDAQMC::buildraw(integer n, int16u *pbeg){
 		mccl->_idsoft  = pbeg[pindex++];
 		mccl->_idsoft  = mccl->_idsoft<<16;
 		mccl->_idsoft |= pbeg[pindex++];
+		
 		mccl->_itra    = pbeg[pindex++];
 
 		mccl->_left[0] = pbeg[pindex++];
@@ -450,42 +456,42 @@ void TrDAQMC::buildraw(integer n, int16u *pbeg){
 		       int aa= pbeg[pindex++];	
 		       aa  = aa <<16;
 		       aa |= pbeg[pindex++];
-			   mccl->_ss[ii][ss]=(float) aa;
+			   mccl->_ss[ii][ss]=*((float*)&aa);
 			}
 		float x[3];
 		for(int ii=0;ii<3;ii++){
 			int aa= pbeg[pindex++];	
 			aa  = aa <<16;
 			aa |= pbeg[pindex++];
-			x[ii]=(float) aa;
+			x[ii]=*((float*)&aa);
 		}
 		mccl->_xca.setp(x);
 		for(int ii=0;ii<3;ii++){
 			int aa= pbeg[pindex++];	
 			aa  = aa <<16;
 			aa |= pbeg[pindex++];
-			x[ii]=(float) aa;
+			x[ii]=*((float*)&aa);
 		}
 		mccl->_xcb.setp(x);
 		for(int ii=0;ii<3;ii++){
 			int aa= pbeg[pindex++];	
 			aa  = aa <<16;
 			aa |= pbeg[pindex++];
-			x[ii]=(float) aa;
+			x[ii]=*((float*)&aa);
 		}
 		mccl->_xgl.setp(x);
 		for(int ii=0;ii<3;ii++){
 			int aa= pbeg[pindex++];	
 			aa  = aa <<16;
 			aa |= pbeg[pindex++];
-			x[ii]=(float) aa;
+			x[ii]=*((float*)&aa);
 		}
 		mccl->_Momentum.setp(x);
 		
 		int aa= pbeg[pindex++];	
 		aa  = aa <<16;
 		aa |= pbeg[pindex++];
-		mccl->_sum=(float)aa;
+		mccl->_sum=*((float*)&aa);
 		
 		mccl->Status= pbeg[pindex++];	
 		mccl->Status  = mccl->Status <<16;
@@ -493,7 +499,7 @@ void TrDAQMC::buildraw(integer n, int16u *pbeg){
 		mccl->simcl[0]=0;
 		mccl->simcl[1]=0;
 		
-		AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrMCCluster"));
+
 		if(con)	con->addnext(mccl);
 		
 		else{
@@ -504,5 +510,14 @@ void TrDAQMC::buildraw(integer n, int16u *pbeg){
 	return;	
 }
 
+int TrDAQMC::calcdaqlength(int i){
+	AMSContainer *p = AMSEvent::gethead()->getC("AMSTrMCCluster");
+	int len=1; 
+	if(p){
+		int ncl=p->getnelem();
+		len+=(onesize+1)*ncl;
+	}
+	return -len;
+}
 
 
