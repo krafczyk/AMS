@@ -333,12 +333,14 @@ int TrDAQMC::onesize=57;
 void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 	int index=0;
 
-	
+
 	AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
-    getheadC("AMSMCRawCluster",0);
-	
-	int ncl=(AMSEvent::gethead()->getC("AMSTrMCluster",0))->getnelem();
-	
+		getheadC("AMSMCRawCluster",0);
+
+	int ncl=0;
+	AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSMCRawCluster",0);
+	if(ptr2)ncl= ptr2->getnelem();
+	else return;
 	int pindex=0;
 	p[pindex++]=((onesize+1) * ncl)+1; //size
 	for (; ptr!=0;ptr=ptr->next()){
