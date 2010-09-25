@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.33 2010/09/20 20:53:29 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.34 2010/09/25 15:17:36 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/20 20:53:29 $
+///$Date: 2010/09/25 15:17:36 $
 ///
-///$Revision: 1.33 $
+///$Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -404,13 +404,11 @@ public:
      If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
      check to have this file on your disk.
 !*/
-         
-  const TrTrackPar & gTrTrackPar(int algo=0, int pattern=0, int refit=0)throw (string);
- 
-  /// Returns the fit index. Params are the same of gTrTrackPar
     int   iTrTrackPar(int algo=0, int pattern=0, int refit=0);
 
-       
+  /// \return TrTrackPar object obtained by iTrTrackPar
+   const TrTrackPar & gTrTrackPar(int i)throw (string);
+ 
 
 
   /// Test HitBits
