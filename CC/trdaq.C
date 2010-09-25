@@ -335,12 +335,14 @@ void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 
 
 	AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
-		getheadC("AMSMCRawCluster",0);
+		getheadC("AMSTrMCCluster",0);
 
 	int ncl=0;
-	AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSMCRawCluster",0);
-	if(ptr2)ncl= ptr2->getnelem();
-	else return;
+	AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSTrMCCluster",0);
+	if(ptr2 && ptr)ncl= ptr2->getnelem();
+	else {
+cerr<< " TrDAQMC::builddaq -E- Cannot find the TrMCCluster container "<<endl;
+return;}
 	int pindex=0;
 	p[pindex++]=((onesize+1) * ncl)+1; //size
 	for (; ptr!=0;ptr=ptr->next()){
@@ -396,12 +398,13 @@ void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 		p[pindex++]=ptr->Status&0xffff;
 		p[pindex++]=(ptr->Status>>16)&0xffff;   //57
 		if((pindex-index0)>onesize){
-			cerr<<"TrDAQ::builddaq-E-indext too big "<<pindex-index0<< " "<<onesize<<endl;       break; 
+			cerr<<"TrDAQMC::builddaq-E-indext too big "<<pindex-index0<< " "<<onesize<<endl;       break; 
 		}
+        //cout << " aggiunto uno"<<endl;
 	}
 	p[pindex++]=1<<5| 1<<15|fake_JINJ_PORT ;
-	if(pindex!=((onesize+1) * ncl)+1){
-		cerr<<"TrDAQ::builddaq-E-indext wrong length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
+	if(pindex!=((onesize+1) * ncl)+2){
+		cerr<<"TrDAQMC::builddaq-E-indext wrong length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
 	}  
 	
 }
