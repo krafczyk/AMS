@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.41 2010/09/20 15:21:45 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.42 2010/09/26 17:15:26 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -424,7 +424,7 @@ public:
       array[2]=pcl->Coo[2];
       MCEventgR *pcln=ev->pMCEventg(ref+1);
       if(pcln && pcl->Particle>0)array[5]=pcln->Coo[2];
-      else array[5]=170;
+      else array[5]=array[2]+pcl->Dir[2]*50;
       array[3]=pcl->Coo[0]+pcl->Dir[0]/pcl->Dir[2]*(array[5]-pcl->Coo[2]);
       array[4]=pcl->Coo[1]+pcl->Dir[1]/pcl->Dir[2]*(array[5]-pcl->Coo[2]);
       SetPolyLine(npoint,array);
