@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.34 2010/09/25 15:17:36 choutko Exp $
+//  $Id: TrTrack.h,v 1.35 2010/09/28 18:45:43 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/25 15:17:36 $
+///$Date: 2010/09/28 18:45:43 $
 ///
-///$Revision: 1.34 $
+///$Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -375,30 +375,33 @@ public:
 
   
 /*!
+   \brief It gives you the integer number (fit code) to be used to access the fit results (TrTrackPar obj) 
     Advanced TrTrackPar accessor
-    \param algo Fitting algorithm 
-                           1 Choutko
-                           2 Alcaraz
-                           3 Chikanian
-                        +10 mscattering off
-    \param pattern    Hit Pattern
-                       0   all hits
-                       1   upper half
-                       2   lower half
-                       3   drop 2 external hits
-                       4   only 2 + 2 external hits
+    \param algo Fitting algorithm=  
+                           1 Choutko;
+                           2 Alcaraz;
+                           3 Chikanian;
+                        +10 mscattering off;
+    \param pattern    Hit Pattern= 
+                       0   all hits;
+                       1   upper half;
+                       2   lower half;
+                       3   drop 2 external hits;
+                       4   only 2 + 2 external hits;
+
                        OR
+
                        mmmmmmmmm    where m=0 or 1 for 
                                     TrRecHit layer GetLayer()
                                      from right to the left such as 
                                      100110010  corresponds to layers
                                      2,5,6,9
-     \param refit   ForceRefit 
+     \param refit    
                     0   do not refit
                     1    refit if does not exist
                     2  refit
 
-     \return  reference to TrTrackPar or throw an exception "TrTrackParNotFound" 
+     \return  the code to access the TrTrackPar object corresponding to the selected fit or -1 if not found  
 
      To correctly perform the refit, the FieldMap file is needed.
      If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
@@ -406,8 +409,11 @@ public:
 !*/
     int   iTrTrackPar(int algo=0, int pattern=0, int refit=0);
 
-  /// \return TrTrackPar object obtained by iTrTrackPar
-   const TrTrackPar & gTrTrackPar(int i)throw (string);
+  /*!\brief it returns the TrTrackPar object ( == fit type)  identified by the fit_code obtained with iTrTrackPar(...)
+ 
+     \return TrTrackPar object obtained by iTrTrackPar or trow an exception "Track Fit not Found"
+  !*/
+   const TrTrackPar & gTrTrackPar(int fit_code)throw (string);
  
 
 
