@@ -47,7 +47,8 @@ void TrDAQ::builddaq(integer i, integer n, int16u *p){
 
 
   map<int,vector<AMSTrRawCluster*> > mymap;
-  for(int tdr=0;tdr<trconst::ntdr;tdr++) mymap[tdr].push_back(0); 
+  map<int,vector<AMSTrRawCluster*> >::iterator it_mymap;
+  //  for(int tdr=0;tdr<trconst::ntdr;tdr++) mymap[tdr].push_back(0); 
   while (ptr){
     
     int tdrnum=ptr->GetHwId()%100;
@@ -57,22 +58,24 @@ void TrDAQ::builddaq(integer i, integer n, int16u *p){
   }
 
   int pindex=0;
-  for(int tdr=0;tdr<trconst::ntdr;tdr++){
-    int ncl=mymap[tdr].size();
-    if(ncl>1){
-     //  printf("Crate %d JINJ#: %02d TDR: %02d numclus: %3d\n",
-// 	     i,crate2JinJnum[i],tdr,ncl);
+  
+  for(it_mymap=mymap.begin();it_mymap!=mymap.end();it_mymap++){
+    
+    int ncl=it_mymap->second.size();
+    if(ncl>0){
+      //      printf("Crate %d JINJ#: %02d TDR: %02d numclus: %3d\n",
+      // 	     i,crate2JinJnum[i],it_mymap->first,ncl);
       int tdr_length_index=pindex++;
-      for(int icl=1;icl<ncl;icl++){
-	ptr=mymap[tdr].at(icl);
+      for(int icl=0;icl<ncl;icl++){
+	ptr=it_mymap->second.at(icl);
 
 	p[pindex++] = ptr->GetNelem()-1;
 	p[pindex++] = 	ptr->GetAddress();
 	for(int ii=0;ii<ptr->GetNelem();ii++)
 	  
-	  p[pindex++]=ptr->GetSignal(ii);
+	  p[pindex++]=ptr->GetSignal(ii)*8;
       }
-      p[pindex++]=1<<7|1<<15|1<<5|tdr;
+      p[pindex++]=1<<7|1<<15|1<<5|it_mymap->first;
       p[tdr_length_index]=pindex-tdr_length_index-1;
     }
     if(pindex>=n){
