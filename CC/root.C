@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.231 2010/09/29 17:30:10 choutko Exp $
+//  $Id: root.C,v 1.232 2010/09/29 19:50:16 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -16,8 +16,7 @@
 #include "ecalrec.h"
 #include "mceventg.h"
 #ifdef _PGTRACK_
-// #include "TrMCCluster.h"
-// #include "TrRawCluster.h"
+//#include "TrRecon.h"
 #else
 #include "trmccluster.h"
 #include "trrawcluster.h"
@@ -1444,7 +1443,10 @@ bool AMSEventR::ReadHeader(int entry){
   }
   clear();
   if(i>0){
-    if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+    if(_Entry==0){
+       InitDB(_Tree->GetCurrentFile());
+       cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+     }
     if(Version()<160){
       // Fix rich rings
       NRichHit();
@@ -3390,4 +3392,39 @@ return _Info;
 
 
  }
+#ifdef _PGTRACK_
+#include "TrRecon.h"
+#endif
 
+void AMSEventR::InitDB(TFile *_FILE){
+#ifdef _PGTRACK_
+//if(TkDBc::Head==0&& _EVENT!=0){
+//  TkDBc::CreateTkDBc();
+//  TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
+//}
+  if (_FILE){
+    if(TrCalDB::Head) delete TrCalDB::Head;
+    TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
+    if(!TkDBc::Head){
+      if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
+	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
+	TkDBc::Head->init((Run()>=1257416200)?2:1);
+      }
+    }
+  
+    if(TrParDB::Head) delete TrParDB::Head;
+    TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
+    if (!TrParDB::Head) {
+      TrParDB* cc = new TrParDB();
+      cc->init();
+    }
+    TrClusterR::UsingTrParDB(TrParDB::Head);
+ 
+    TrClusterR::UsingTrCalDB(TrCalDB::Head);
+    TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+    TrRecon::UsingTrCalDB(TrCalDB::Head);
+  }
+#endif
+  
+
+}

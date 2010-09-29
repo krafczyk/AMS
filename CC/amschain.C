@@ -138,6 +138,8 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
   return _EVENT;
 };
 
+
+
 AMSEventR* AMSChain::GetEvent(){ 
   GetEvent(_ENTRY+1);
   return _EVENT;
@@ -369,6 +371,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
   }
   AMSEventR::_NFiles=1;
   pev->Terminate();
+  delete[] ia;
   return nentr;
 #endif
 }

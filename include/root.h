@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.286 2010/09/24 14:55:14 choutko Exp $
+//  $Id: root.h,v 1.287 2010/09/29 19:50:16 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2323,6 +2323,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
 #include <map>
 class AMSEventR: public  TSelector {   
 protected:
+void InitDB(TFile *file); ///< Read db-like objects from file
 class Service{
 public:
  TFile *            _pOut;
