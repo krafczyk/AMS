@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.36 2010/09/29 15:12:47 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.37 2010/09/29 17:30:11 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/29 15:12:47 $
+///$Date: 2010/09/29 17:30:11 $
 ///
-///$Revision: 1.36 $
+///$Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -428,7 +428,7 @@ public:
   /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
   TrRecHitR *GetHitL(int ilay);
   /// Get areferemce to the i-th in the track
-  TrRecHitR& TrRecHit(int i);
+  TrRecHitR& TrRecHit(int i ); 
   /// Get the pointer to the i-th in the track
   TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
   /// Get the index of the i-th hit in the track within the hit vector
@@ -623,7 +623,7 @@ public:
       GetRigidity(kChoutko|kLowerHalf);}
 
   
-
+  int Pattern(int input=111111111) ; ///< \return full track  pattern hit suitable for iTrTrackPar
   /// ROOT definition
   ClassDef(TrTrackR, 2);
 };

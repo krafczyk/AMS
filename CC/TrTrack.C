@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.50 2010/09/25 15:17:36 choutko Exp $
+// $Id: TrTrack.C,v 1.51 2010/09/29 17:30:10 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/25 15:17:36 $
+///$Date: 2010/09/29 17:30:10 $
 ///
-///$Revision: 1.50 $
+///$Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -491,7 +491,7 @@ TrRecHitR *TrTrackR::GetHitL(int ilay)
   return 0;
 }
 
-TrRecHitR & TrTrackR::TrRecHit(int i) 
+TrRecHitR & TrTrackR::TrRecHit(int i)  
 {
   if (i < 0 || trconst::maxlay <= i) return *_Hits[0];
   if (_Hits[i] == 0 && _iHits[i] >= 0) {
@@ -1093,4 +1093,13 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit){
     else if(FitExists) return fittype;
     else
       return -1;
-  }    
+  }
+int TrTrackR::Pattern(int input) {
+int pat=0;
+int p=1;
+for(int k=0;k<maxlay;k++){
+ if((input/p)%10)pat+=((_bit_pattern>>k)&1)*p;
+p*=10;
+}
+return pat;
+}    
