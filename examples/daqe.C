@@ -243,6 +243,7 @@ bool daqe::UProcessCut(){
 
 void daqe::UProcessFill()
 {
+try{
     float tofcoo[4][6];
     float clcoo[20][3];
      const int nbadl=3;
@@ -676,6 +677,14 @@ void daqe::UProcessFill()
       }
      
 }
+}
+catch (...){
+cerr<< "Exception caught "<<Run()<<" "<<Event()<<endl;
+}
+
+
+
+
 }
 
 
