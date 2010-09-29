@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.35 2010/09/28 18:45:43 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.36 2010/09/29 15:12:47 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/28 18:45:43 $
+///$Date: 2010/09/29 15:12:47 $
 ///
-///$Revision: 1.35 $
+///$Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -377,7 +377,8 @@ public:
 /*!
    \brief It gives you the integer number (fit code) to be used to access the fit results (TrTrackPar obj) 
     Advanced TrTrackPar accessor
-    \param algo Fitting algorithm=  
+    \param algo Fitting algorithm= 
+                           0 The default algorithm choosen at recon stage 
                            1 Choutko;
                            2 Alcaraz;
                            3 Chikanian;
@@ -409,11 +410,11 @@ public:
 !*/
     int   iTrTrackPar(int algo=0, int pattern=0, int refit=0);
 
-  /*!\brief it returns the TrTrackPar object ( == fit type)  identified by the fit_code obtained with iTrTrackPar(...)
+  /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
-     \return TrTrackPar object obtained by iTrTrackPar or trow an exception "Track Fit not Found"
+     \return TrTrackPar object or  trow an exception "TrTrackPar-E-NotFound "
   !*/
-   const TrTrackPar & gTrTrackPar(int fit_code)throw (string);
+   const TrTrackPar & gTrTrackPar(int fit_type)throw (string);
  
 
 

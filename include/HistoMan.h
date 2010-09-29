@@ -52,7 +52,9 @@ public:
   void Enable(){enabled=true;}
   /// Disable this facility
   void Disable(){enabled=false;}
-
+  /// Clears all the histo from memory
+  void Clear(){fhist.SetOwner(); fhist.Clear();}
+  ClassDef(HistoMan,0);
 };
 
 extern HistoMan hman;
