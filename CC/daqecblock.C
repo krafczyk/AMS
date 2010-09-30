@@ -167,12 +167,10 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 //
   EcalJobStat::daqs1(0);//count entries
 //
-//  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-//    if(strstr(AMSJob::gethead()->getsetup(),"PreAss"))newdataf=false;
-//    else newdataf=true;
-//  }
   if(DAQCFFKEY.DAQVersion==1)newdataf=true;
   else newdataf=false;
+  if(!AMSJob::gethead()->isRealData())newdataf=true;//tempor fix
+//cout<<"====> newdataf="<<newdataf<<" DAQVersion="<<DAQCFFKEY.DAQVersion<<endl;
 //
   p=p-1;//to follow VC-convention
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
@@ -300,6 +298,8 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     }//--->endof datatype-ok, but nonData(peds ???)
 //
     else if(badtyp){
+//      cout<<"ECBlock::Error:bad slot-datatype, crate/slot/datyp="<<crat<<" "<<slot<<" "<<datyp<<endl;
+//      EventBitDump(eleng,p+jbias,"---> Bad slot datyp EvDump");
       EcalJobStat::daqs3(crat-1,slot,6);//<=== bad slot-datatype(not raw,comp,mixt) - take next block
       goto NextBlock;
     }
@@ -1612,6 +1612,7 @@ integer DAQECBlock::getmaxblocks(){return 2;}//only one JINF per crate is implie
 //---
 integer DAQECBlock::calcblocklength(integer ibl){
 //calc. JINF-block length from MC-data
+//cout<<"------> In calcblocklength, block="<<ibl<<endl;
   int i,j,k;
   integer id,idd;
   integer nqwords(0),nwords(0);
@@ -1625,6 +1626,7 @@ integer DAQECBlock::calcblocklength(integer ibl){
   bool newdataf(false);
   if(DAQCFFKEY.DAQVersion==1)newdataf=true;
   else newdataf=false;
+  if(!AMSJob::gethead()->isRealData())newdataf=true;//tempor fix
 //count anodes:
   while(ptr){ // <--- RawEvent-hits loop in crate ibl:
     isl=ptr->getslay();//suplayer:0,...8 
@@ -1656,6 +1658,7 @@ integer DAQECBlock::calcblocklength(integer ibl){
       }
     }
   }
+//cout<<"words/slot:"<<endl;
 //for(i=0;i<ECEDRS;i++)cout<<nwslot[i]<<" ";
 //cout<<endl;
 //
@@ -1675,6 +1678,7 @@ integer DAQECBlock::calcblocklength(integer ibl){
 //---
 void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
 //create JINF-block from MC-data
+//cout<<"------> In buildblock, block="<<ibl<<endl;
   int i,j,k;
   integer sta,id,idd;
   int16u isl,pmt,pix,gain,crate,slot,chan,stat;
@@ -1689,6 +1693,8 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   bool newdataf(false);
   if(DAQCFFKEY.DAQVersion==1)newdataf=true;
   else newdataf=false;
+  if(!AMSJob::gethead()->isRealData())newdataf=true;//tempor fix
+//cout<<"====> newdataf="<<newdataf<<" DAQVersion="<<DAQCFFKEY.DAQVersion<<endl;
 //
   ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ibl,0);
@@ -1841,6 +1847,7 @@ void DAQECBlock::buildblock(integer ibl, integer len, int16u *p){
   *(p+nwrite)=stat;//status word
   nwrite+=1;
 //
+//  cout<<"<--- exit: call/internal length="<<len<<" "<<nwrite<<endl;
   if(nwrite!=len){
     cout<<"<--- DAQECBlock::buildblock:length mismatch, call/intern length="<<len<<" "<<nwrite<<endl;
 //    exit(10);
