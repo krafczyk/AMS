@@ -5,7 +5,7 @@
 #include "TROOT.h"
 #include "TDirectoryFile.h"
 #include "tkdcards.h"
-
+ClassImp(HistoMan)
 HistoMan hman;
 
 HistoMan::HistoMan():enabled(false), booked(false) { 

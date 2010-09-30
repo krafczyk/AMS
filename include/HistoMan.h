@@ -19,7 +19,7 @@ TH1D* TH1D_L(const char *name,const char * title,int nbin, double low, double up
 /// Returns TH2D histogram with log/log or log/lin bins depending on logx/logy
 TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx = true, bool logy = true);
 
-class HistoMan : TObject{
+class HistoMan : public TObject{
 
 private:
   /// Enabled/disabled flag
@@ -54,6 +54,7 @@ public:
   void Disable(){enabled=false;}
   /// Clears all the histo from memory
   void Clear(){fhist.SetOwner(); fhist.Clear();}
+  ClassDef(HistoMan,0)
 };
 
 extern HistoMan hman;
