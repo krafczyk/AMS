@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.39 2010/08/14 11:44:19 mdelgado Exp $
+//  $Id: richgeom.C,v 1.40 2010/09/30 13:18:07 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -723,6 +723,12 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
 
   // Misalignment
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02P") && !RichAlignment::IgnoreDB()){
+    // Force the expected misalignment
+    RichAlignment::Set(-0.11,0.08,0.93,0,0,0);
+    RichAlignment::SetMirrorShift(0,0,0);
+  }
+
   AMSPoint test_point(0,0,0);
   test_point=RichAlignment::RichToAMS(test_point);
   coo[0]+=test_point[0];

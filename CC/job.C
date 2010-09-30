@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.734 2010/09/24 18:46:41 pzuccon Exp $
+// $Id: job.C,v 1.735 2010/09/30 13:18:07 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3501,7 +3501,7 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 
   AMSTimeID *pdtv;
 
-  pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
+  pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",1),
                          begin,end,
 			 RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
 			 (void*)&RichRadiatorTileManager::_optical_parameters[0],

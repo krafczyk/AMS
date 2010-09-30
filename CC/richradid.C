@@ -19,8 +19,8 @@ geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
       best_distance=d;
     }
   }
-  
-  return best_index;
+
+  return index+best_index;
 }
 
 
@@ -470,6 +470,11 @@ void RichRadiatorTileManager::_compute_mean_height(geant *index,
 
 
 geant RichRadiatorTileManager::get_refractive_index(geant x,geant y,geant wavelength){
+  // Correct the alignment
+  AMSPoint org(x,y,0);
+  AMSPoint local=RichAlignment::AMSToRich(org);
+  x=org[0]; y=org[1];
+
   int tile_number=get_tile_number(x,y);
 
   if(tile_number<0){
@@ -782,7 +787,6 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   float x,y,index;
   while(!data.eof()){
     data>> x >> y >> index;
-    if(index<1) continue;
 
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
@@ -810,7 +814,6 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   // Code to read all the stuff
   while(!data_.eof()){
     data_>> x >> y >> index;
-    if(index<1) continue;    
 
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
@@ -862,6 +865,10 @@ extern "C" void filltable_(geant *x,geant *y){
 
 
 void RichRadiatorTileManager::UpdateOpticalParametersTable(float x,float y){
+  AMSPoint org(x,y,0);
+  AMSPoint local=RichAlignment::AMSToRich(org);
+  x=org[0]; y=org[1];
+
   int tile_number=get_tile_number(x,y);
   if(tile_number<0){
     // Fill the default values
