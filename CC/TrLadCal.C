@@ -63,6 +63,15 @@ TrLadCal::TrLadCal(short int hwid) {
   Clear();
 }
 
+unsigned short int TrLadCal::OccupancyGaus(int ii) { 
+  if (GetDSPCodeVersion()<0xa902) {
+    // Occupancy from calibration 
+    return _getnum(_OccupancyGaus,ii);
+  }
+  // Occupancy table from data
+  return (_getnum(_OccupancyGaus,ii)&0x7fff);
+}
+
 void TrLadCal::Fill(CaloutDSP* cc) {
   for (int ii=0;ii<320;ii++){
     _Pedestal[ii]      = cc->ped[ii]/8.;

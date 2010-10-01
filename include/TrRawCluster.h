@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.12 2010/09/09 17:43:19 pzuccon Exp $ 
+// $Id: TrRawCluster.h,v 1.13 2010/10/01 01:49:52 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2010/09/09 17:43:19 $
+/// $Date: 2010/10/01 01:49:52 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -180,8 +180,6 @@ class TrRawClusterR : public TrElem {
   TrCalDB*    GetTrCalDB()    { return _trcaldb; }
   /// Get the current ladder calibration
   TrLadCal*   GetTrLadCal()   { return (GetTrCalDB()) ? TrCalDB::Head->FindCal_TkId(GetTkId()) : 0; } 
-  /// Get the current reduction software version (DSP code version) --> FIX ME 
-  int         GetDSPVersion() { return (GetTrLadCal()) ? (int) (unsigned short int) GetTrLadCal()->dspver : 0; }
 
   static void lvl3CompatibilityAddress(
 				       int16u address,

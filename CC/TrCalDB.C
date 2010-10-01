@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.8 2010/08/14 17:18:50 oliva Exp $
+//  $Id: TrCalDB.C,v 1.9 2010/10/01 01:49:52 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/08/14 17:18:50 $
+///$Date: 2010/10/01 01:49:52 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -81,7 +81,6 @@ TrLadCal* TrCalDB::FindCal_HwId( int hwid){
 }
 
 TrLadCal* TrCalDB::FindCal_TkId( int tkid){
-
   TkLadder* ll=TkDBc::Head->FindTkId(tkid);
   if(ll) 
     return FindCal_HwId(ll->GetHwId());
@@ -91,15 +90,12 @@ TrLadCal* TrCalDB::FindCal_TkId( int tkid){
 
 
 TrLadCal* TrCalDB::FindCal_LadName( string& name){
-
   TkLadder* ll=TkDBc::Head->FindLadName(name);
   if(ll) 
     return FindCal_HwId(ll->GetHwId());
   else 
     return 0;
 }
-
-
 
 
 TrLadCal* TrCalDB::FindCal_JMDC( int JMDCid){
@@ -109,6 +105,7 @@ TrLadCal* TrCalDB::FindCal_JMDC( int JMDCid){
   printf(" crate %d tdr %d hwid %d \n",crate, tdr, hwid);
   return FindCal_HwId( hwid);
 }
+
  
 TrLadCal* TrCalDB::GetEntry(int ii){
   int count=0;
@@ -118,7 +115,6 @@ TrLadCal* TrCalDB::GetEntry(int ii){
   }
   return 0;
 }
-
 
 
 void TrCalDB::Load(char * filename){
@@ -313,144 +309,158 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){
 
 
 int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
+
   CaloutDSP cal;
   ushort size;
   int16u* offset=rr;
   int cpar=*(rr++);
   if(pri>0) printf("Command parameter is: %X \n",cpar); 
 
-  if(cpar&0x1){ //pedestals
+  if(cpar&0x1){ // Pedestals (1/8 ADC units)
     if(pri>0) printf("Reading Pedestals\n");
     for (int ii=0;ii<1024;ii++){
       cal.ped[ii]=*(rr++)*1.;
     }
   }
+  else {
+    for (int ii=0;ii<1024;ii++){
+      cal.ped[ii]=0.; // default
+    }
+  }
 
-  if(cpar&0x2){ //flags
-    if(pri>0) printf("Reading flags\n");
+  if(cpar&0x2){ // Flags
+    if(pri>0) printf("Reading Flags\n");
     for (int ii=0;ii<1024;ii++){
       cal.status[ii]=*(rr++);
     }
   }
+  else {
+    for (int ii=0;ii<1024;ii++){
+      cal.status[ii]=0; // default
+    }
+  }
 
-  if(cpar&0x4){ //sigma (low)
-    if(pri>0) printf("Reading Sigmas\n");
+  if(cpar&0x4){ // Sigma low (1/8 ADC units)
+    if(pri>0) printf("Reading Low-Sigma\n");
     for (int ii=0;ii<1024;ii++){
       cal.sig[ii]=*(rr++)*1.;
     }
   }
+  else {
+    for (int ii=0;ii<1024;ii++){
+      cal.sig[ii]=-1000.; // default
+    }
+  }
 
-  if(cpar&0x8){ //rawsigma (multiplied by parameter 7)
-    if(pri>0) printf("Reading Raw Sigmas\n");
+  if(cpar&0x8){ // Raw Sigma (multiplied by parameter 7, 1/8 ADC units)
+    if(pri>0) printf("Reading Sigma-Raw\n");
     for (int ii=0;ii<1024;ii++){
       cal.rsig[ii]=*(rr++)*1.;
     }
   }
-  if(cpar&0x10){ // sigma high
-    if(pri>0) printf("Reading Sigma High \n");
+  else {
+    for (int ii=0;ii<1024;ii++){
+      cal.rsig[ii]=-1000.; // default
+    }
+  }
+
+  if(cpar&0x10){ // Sigma High (1/8 ADC units), DISCARDED
+    if(pri>0) printf("Reading Sigma-High\n");
     for (int ii=0;ii<1024;ii++){
       // if(pri>0) printf("Sigma High  %d  %d\n",ii,(short int)*rr));
       *(rr++);
     }
   }
 
-  if(cpar&0x20){ //Occupancytable double trigger
-    if(pri>0) printf("Reading Occupancy table \n");
+  if(cpar&0x20){ // Double-Trigger Occupancy Table
+    if(pri>0) printf("Reading Double-Trigger Occupancy Table\n");
     for (int ii=0;ii<1024;ii++){
       // if(pri>0) printf("Occupancy  %d  %d\n",ii,*rr));
       cal.occupancy[ii]=(unsigned short int)*(rr++);
     }
-  }else
+  }
+  else {
     for (int ii=0;ii<1024;ii++){
-      // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)*rr));
-      cal.occupancy[ii]=0;
+      cal.occupancy[ii]=0; // default  
     }
+  }
   
-  if(cpar&0x40){ //CN Sigma
-    if(pri>0) printf("Reading CN rms \n");
+  if(cpar&0x40){ // CN Sigma
+    if(pri>0) printf("Reading CN RMS\n");
     for (int ii=0;ii<16;ii++){ 
-      //     if(pri>0) printf("CN rms  %d  %d\n",ii,(short int)*rr));
+      // if(pri>0) printf("CN rms  %d  %d\n",ii,(short int)*rr));
       cal.CNrms[ii]=((short int)*(rr++))/8.;
     }
   }
+  else {
+    for (int ii=0;ii<16;ii++) { 
+      cal.CNrms[ii]=0; // default
+    }
+  }  
   
-  if(cpar&0x80){ //CN mean
-    if(pri>0) printf("Reading CN mean \n");
+  if(cpar&0x80){ // CN mean
+    if(pri>0) printf("Reading CN Mean\n");
     for (int ii=0;ii<16;ii++){
-      // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)*rr));
+      // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)*rr);
       cal.CNmean[ii]=((short int)*(rr++))/8.;
     }
   }
+  else {
+    for (int ii=0;ii<16;ii++) { 
+      cal.CNmean[ii]=0; // default
+    }
+  }  
 
-  if (cpar&0x100){ //Occupancytable non-gaussian
-     if (pri>0) printf("Reading Occupancy table (non-gaussian channels)\n");
-     for (int ii=0;ii<1024;ii++){
-       cal.occupgaus[ii]=(unsigned short int)*(rr++);
-     }
-   }
-   else  
-     for (int ii=0;ii<1024;ii++) 
-       cal.occupgaus[ii] = 0;
+  if (cpar&0x100){ // Non-Gaussian Occupancy Table 
+    // present from version a810 
+    // in version a810 calculated from calibration
+    // from version a903 calculated from data  
+    // if (pri>0) printf("Reading Occupancy table (non-gaussian channels)\n");
+    if(pri>0) printf("Reading Non-Gaussian Occupancy Table\n");
+    for (int ii=0;ii<1024;ii++){
+      cal.occupgaus[ii]=(unsigned short int)*(rr++);
+    }
+  }
+  else {   
+    for (int ii=0;ii<1024;ii++) { 
+      cal.occupgaus[ii] = 0; // default for versions before than a810
+    }
+  }
      
-   if(cpar&0x200){ //Sigmaraw
-     if (pri>0) printf("Reading Sigma\n");
-     for (int ii=0;ii<1024;ii++){
-       *(rr++);
-     }
-   }
+  if(cpar&0x200){ // Sigma (present from version a810), DISCARDED (backward comp.)
+    // if (pri>0) printf("Reading Sigma\n");
+    if(pri>0) printf("Reading Sigma\n");
+    for (int ii=0;ii<1024;ii++) {
+      *(rr++);
+    }
+  }
 
-  cal.dspver=*(rr++);
-  if(pri>0) printf("Detector DSP version %hX\n",cal.dspver);
-
-  cal.S1_lowthres=*(rr++)/8.;
-  if(pri>0) printf("Lowsigma factor S1 %f\n",cal.S1_lowthres);
-
-  cal.S1_highthres=*(rr++)/8.;
-  if(pri>0) printf("Highsigma factor S1 %f\n",cal.S1_highthres);
-  
-  cal.S2_lowthres=*(rr++)/8.;
-  if(pri>0) printf("Lowsigma factor S2 %f\n",cal.S2_lowthres);
-    
-  cal.S2_highthres=*(rr++)/8.;
-  if(pri>0) printf("Highsigma factor S2 %f\n",cal.S2_highthres);
-
-  cal.K_lowthres=*(rr++)/8.;
-  if(pri>0) printf("Lowsigma factor K %f\n",cal.K_lowthres);
-  
-  cal.K_highthres=*(rr++)/8.;
-  if(pri>0) printf("Highsigma factor K %f\n",cal.K_highthres);
-  
-  cal.sigrawthres=*(rr++);
-  if(pri>0) printf("sigmaraw factor %f\n",cal.sigrawthres);
-
-  cal.Power_failureS=*(rr++);
-  if(pri>0) printf("Power Failures on S %d\n",cal.Power_failureS);
-
-  cal.Power_failureK=*(rr++);
-  if(pri>0) printf("Power Failures on K %d\n",cal.Power_failureK);
-
-  cal.calnum=*(rr++);
-  if(pri>0) printf("Calibration Events %d\n",cal.calnum);
-
-  cal.usedev=*(rr++);
-  if(pri>0) printf("Used triggers %d\n",cal.usedev);
-  
-  cal.calstatus=*(rr++);
-  if(pri>0) printf("Calibration status 0x%04X\n",cal.calstatus);
-
-  int TDRStat=*(rr++);
-  if(pri>0) printf("TDR status 0x%04X\n",TDRStat);
-  
+  cal.dspver=*(rr++);          if(pri>0) printf("Detector DSP version %hX\n",cal.dspver);
+  cal.S1_lowthres=*(rr++)/8.;  if(pri>0) printf("Lowsigma factor S1 %f\n",cal.S1_lowthres);
+  cal.S1_highthres=*(rr++)/8.; if(pri>0) printf("Highsigma factor S1 %f\n",cal.S1_highthres);
+  cal.S2_lowthres=*(rr++)/8.;  if(pri>0) printf("Lowsigma factor S2 %f\n",cal.S2_lowthres);
+  cal.S2_highthres=*(rr++)/8.; if(pri>0) printf("Highsigma factor S2 %f\n",cal.S2_highthres);
+  cal.K_lowthres=*(rr++)/8.;   if(pri>0) printf("Lowsigma factor K %f\n",cal.K_lowthres);
+  cal.K_highthres=*(rr++)/8.;  if(pri>0) printf("Highsigma factor K %f\n",cal.K_highthres);
+  cal.sigrawthres=*(rr++);     if(pri>0) printf("SigmaRaw factor %f\n",cal.sigrawthres);
+  cal.Power_failureS=*(rr++);  if(pri>0) printf("Power Failures on S %d\n",cal.Power_failureS);
+  cal.Power_failureK=*(rr++);  if(pri>0) printf("Power Failures on K %d\n",cal.Power_failureK);
+  cal.calnum=*(rr++);          if(pri>0) printf("Calibration Events %d\n",cal.calnum);
+  cal.usedev=*(rr++);          if(pri>0) printf("Used triggers %d\n",cal.usedev);
+  cal.calstatus=*(rr++);       if(pri>0) printf("Calibration status 0x%04X\n",cal.calstatus);
+  int TDRStat=*(rr++);         if(pri>0) printf("TDR status 0x%04X\n",TDRStat);
   if(pri>0) printf("---------> READ   %d  word for this cal\n",rr-offset);
-  //Fill the Calibration object
-  //  int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;
+
+  // Fill the Calibration object
+  // int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;
   TrLadCal* ladcal=Head->FindCal_HwId(hwid);
   if(ladcal){
     ladcal->Fill(&cal);
     if(pri>0)ladcal->PrintInfo(pri-1);
-  }else
+  }
+  else {
     printf("TrCalDB-------------------> WARNING I CANT FIND The calibration object to be filled\n");
-
+  }
   return 1;
 }
 

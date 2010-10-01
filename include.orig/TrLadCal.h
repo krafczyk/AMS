@@ -51,7 +51,8 @@ typedef struct CaloutDSP{
 class TrLadCal :public TObject {
   
 public:  
-  static int dead;  //=0x2;
+
+  static int dead; // = 0x2;
 
   /// Hardware ID (HwId = iTDR + iCrate*100)
   short int HwId;
@@ -72,34 +73,41 @@ public:
   /// raw sigma parameter (i.e. the parameter to recover
   float sigrawthres;
   /// \brief The Calibration status
-  ///   0 calibration finished
-  ///   1 internal trigger is on
-  ///   2 error in step 1
-  ///   3 error in step 2
-  ///   4 error in step 3
-  ///   5 error in step 4
-  ///   6 internal trigger mode: an external trigger happened
-  ///   7 internal trigger mode: no event received
+  /*
+    0 calibration finished
+    1 internal trigger is on
+    2 error in step 1
+    3 error in step 2
+    4 error in step 3
+    5 error in step 4
+    6 internal trigger mode: an external trigger happened
+    7 internal trigger mode: no event received
+  */
   int calstatus;
-  
+  /// p-side Power Failure 
   short int Power_failureS;
+  /// n-side Power Failure
   short int Power_failureK;
-private:
-  static int version;
 
+private:
+
+  /// Database version 
+  static int version;
   /// Pedestals  
   geant     _Pedestal[1024];
   /// Pedestals sigma
   geant     _SigmaRaw[1024];
   /// Common noise subtracted pedestal sigma
   geant     _Sigma[1024];
-  /// Strip status 
+  /// Strip Status 
   /* 
-     Bit 0 to 1  (0x1): dead  channel (sigma raw < mediane sigma raw on VA/2)
-     Bit 1 to 1  (0x2): noisy channel (sigma raw > mediane sigma raw on VA*3)
-     Bit 2 to 1  (0x4): dead  channel (sigma < mediane sigma on ADC/2)
-     Bit 3 to 1  (0x8): noisy channel (sigma > mediane sigma on ADC*1.5)
-     Bit 4 to 1 (0x16): non gaussian channel
+     Bit  0 to 1 (0x0001): dead  channel (sigma raw < mediane sigma raw on VA/2)
+     Bit  1 to 1 (0x0002): noisy channel (sigma raw > mediane sigma raw on VA*3)
+     Bit  2 to 1 (0x0004): dead  channel (sigma < mediane sigma on ADC/2)
+     Bit  3 to 1 (0x0008): noisy channel (sigma > mediane sigma on ADC*1.5)
+     Bit  4 to 1 (0x0010): non gaussian channel (occupancy>?)
+     Bit  9 to 1 (0x0100): double-pulsed calibration bad channel
+     Bit 15 to 1 (0x8000): user defined bad region channel
   */
   short int _Status[1024];
   /// Occupancy table for double-trigger calibration step
@@ -113,13 +121,16 @@ private:
   /// 1 if the ladder calibration is acquired, 0 if not
   short int _filled;
 
-  /// Privete getting methods
+  /// Private getting method
   geant _getnum( geant *,int ii);
+  /// Private getting method
   short int _getnum( short int *,int ii);
+  /// Private getting method
   unsigned short int _getnum( unsigned short int *,int ii);
 
-  /// Privete setting methods
+  /// Private setting method
   void _setnum( geant *,int ii, geant val);
+  /// Private setting method
   void _setnum( short int *,int ii, short int val);
   
 public:
@@ -135,18 +146,20 @@ public:
   /// Fill the data members by the DSP block 
   void Fill(CaloutDSP* cc);
 
+  /// Get the DSP code version
+  int GetDSPCodeVersion()   { return dspver&0xFFFF; } 
   /// Get ii-th strip pedestal ADC value
-  geant Pedestal(int ii)   { return _getnum(_Pedestal,ii);}
+  geant Pedestal(int ii)    { return _getnum(_Pedestal,ii);}
   /// Get ii-th strip sigma (CN subtracted pedestal sigma) ADC value
-  geant Sigma(int ii)      { return _getnum(_Sigma,ii);}
+  geant Sigma(int ii)       { return _getnum(_Sigma,ii);}
   /// Get ii-th strip sigma-pedestal ADC value
-  geant SigmaRaw(int ii)   { return _getnum(_SigmaRaw,ii);}
+  geant SigmaRaw(int ii)    { return _getnum(_SigmaRaw,ii);}
   /// Get ii-th status 
   short int Status(int ii)  { return _getnum(_Status,ii);}
   /// Get ii-th occupancy value (double step calibration) 
   unsigned short int Occupancy(int ii) { return _getnum(_Occupancy,ii);}
   /// Get ii-th occupancy value (non-gaussian strips)  
-  unsigned short int OccupancyGaus(int ii) { return _getnum(_OccupancyGaus,ii);}
+  unsigned short int OccupancyGaus(int ii); 
   ///Get CN mean
   geant GetCNmean(int va){ return _CNmean[va];}
   ///Get CN rms

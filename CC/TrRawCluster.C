@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.12 2010/08/07 10:51:17 shaino Exp $ 
+/// $Id: TrRawCluster.C,v 1.13 2010/10/01 01:49:52 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/08/07 10:51:17 $
+/// $Date: 2010/10/01 01:49:52 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,22 +72,30 @@ int TrRawClusterR::GetHwId() const {
 
 
 float TrRawClusterR::GetDSPSeedSN() {
-  if (GetDSPVersion()>0x9a11) { 
-    if (GetTrLadCal()==0) {
-      printf("TrRawClusterR::GetDSPSeedSN, WARNING TrLadCal not found! HwId = %+03d\n",GetHwId());
-      return 0;
-    }
-    int seedadd = GetAddress(max_element(_signal.begin(),_signal.end()) - _signal.begin());
-    int ADC     = seedadd/320; // for K-side we will have 2 and 3 ... this is wrong but not important
-    if      (ADC==0) return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->S1_lowthres; // S1
-    else if (ADC==1) return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->S2_lowthres; // S2
-    else             return ((_lengthword>>7)&0x3ff)*GetTrLadCal()->K_lowthres;  // K
+  if (GetTrLadCal()==0) {
+    printf("TrRawClusterR::GetDSPSeedSN, WARNING TrLadCal not found! HwId = %+03d\n",GetHwId());
+    return 0;
   }
-  // else if ...
+  int dspver = GetTrLadCal()->GetDSPCodeVersion();
+
+  if      (dspver<=0x9a11) return -1; 
+  else if ( (dspver>0x9a11) && (dspver<=0xa810) ) { 
+    // this conversion is not exact, because a cluster could begin in S1 but the seed sould be on S2 ...
+    int seedadd = GetAddress(max_element(_signal.begin(),_signal.end()) - _signal.begin());
+    int ADC     = seedadd/320;
+    int value = (_lengthword>>7)&0x1ff;
+    if      (ADC==0) return value*GetTrLadCal()->S1_lowthres; // S1
+    else if (ADC==1) return value*GetTrLadCal()->S2_lowthres; // S2
+    else             return value*GetTrLadCal()->K_lowthres;  // K
+  }
+  else if (dspver>0xa810) {
+    int value = (_lengthword>>7)&0x1ff;
+    if (value<0x1ff) return value/4.;  
+    else             return 4000.; // overflow  
+  }
+
   return 0;
 }
-
-
 
 
 float TrRawClusterR::GetNoise(int ii) {
