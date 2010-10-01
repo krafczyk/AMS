@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.26 2010/09/20 20:53:18 pzuccon Exp $
+//  $Id: TrFit.C,v 1.27 2010/10/01 23:08:06 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/09/20 20:53:18 $
+///$Date: 2010/10/01 23:08:06 $
 ///
-///$Revision: 1.26 $
+///$Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -629,14 +629,14 @@ double TrFit::SimpleFit(void)
   }
         
   // cov^{-1}
-  if (Inv55(cov)) return -1;
+  if (Inv55(cov)) return -2;
 
   // Solution
   for (int k = 0; k < NDIM; k++) {
     _param[k] = 0;
     for (int i = 0; i < NDIM; i++) _param[k] += cov[k][i]*dx[i];
   }
-  if (_param[2]*_param[2]+_param[3]*_param[3] > 1) return -1;
+  if (_param[2]*_param[2]+_param[3]*_param[3] > 1) return -3;
 
   // Chisquare
   _chisqx = _chisqy = 0;
@@ -996,46 +996,47 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
    }
 
    // Fix par[4]
-   if (fix) {
-      vec[0] -= M[0][2]*_param[4]; M[0][2] = M[2][0] = 0;
-      vec[1] -= M[1][2]*_param[4]; M[1][2] = M[2][1] = 0;
-      vec[2]  =         _param[4]; M[2][2] = 1;
-   }
+     if (fix) {
+	vec[0] -= M[0][2]*_param[4]; M[0][2] = M[2][0] = 0;
+	vec[1] -= M[1][2]*_param[4]; M[1][2] = M[2][1] = 0;
+	vec[2]  =         _param[4]; M[2][2] = 1;
+     }
 
-   // Invert matrix
-   if (Inv33(M) < 0) return -1;
+     // Invert matrix
+     if (Inv33(M) < 0) return -1;
 
-   // Minimized parameters
-   double p1 = M[0][0]*vec[0]+M[0][1]*vec[1]+M[0][2]*vec[2];
-   double p2 = M[1][0]*vec[0]+M[1][1]*vec[1]+M[1][2]*vec[2];
+     // Minimized parameters
+     double p1 = M[0][0]*vec[0]+M[0][1]*vec[1]+M[0][2]*vec[2];
+     double p2 = M[1][0]*vec[0]+M[1][1]*vec[1]+M[1][2]*vec[2];
 
-   // Number of digrees of freedom
-   int ndof = (fix) ? -(3-1) : -3;
-   for (int i = 0; i < _nhit; i++) if (e[i] > 0) ndof++;
-   if (ndof < 0) ndof = 0;
+     // Number of digrees of freedom
+     int ndof = (fix) ? -(3-1) : -3;
+     for (int i = 0; i < _nhit; i++) if (e[i] > 0) ndof++;
+     if (ndof < 0) ndof = 0;
 
-   // Minimized parameters
-   if (side == 0) {
-      _param[0] = p1;
-      _param[2] = p2;
-      _ndofx    = ndof;
-   } else {
-      _param[1] = p1;
-      _param[3] = p2;
-      _param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
-      _ndofy    = ndof;
-   }
-   if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
+     // Minimized parameters
+     if (side == 0) {
+	_param[0] = p1;
+	_param[2] = p2;
+	_ndofx    = ndof;
+     } else {
+	_param[1] = p1;
+	_param[3] = p2;
+	_param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
+	_ndofy    = ndof;
+     }
+     if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
 
-   return 0;
-}
+     return 0;
+  }
 
-double TrFit::ChoutkoFit(void)
-{
-  if(_nhit > TkDBc::Head->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
+  double TrFit::ChoutkoFit(void)
+  {
+    if(_nhit > TkDBc::Head->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
 
-  // Set initial parameters with SimpleFit
-  if (SimpleFit() < 0) return -1;
+    // Set initial parameters with SimpleFit
+  int ssf=SimpleFit();
+  if (ssf < 0) return -20+ssf;
 
   _param[0] = _p0x; _param[1] = _dxdz;
   _param[2] = _p0y; _param[3] = _dydz;
@@ -1095,7 +1096,7 @@ double TrFit::ChoutkoFit(void)
 
       // Transportation
       if (i > 0) {
-        if (VCFitPar(init, out, point, mm, (i <= 1) ? 0 : 1) < 0) return -1;
+        if (VCFitPar(init, out, point, mm, (i <= 1) ? 0 : 1) < 0) return -3;
       }
       else for (int j = 0; j < 7; j++) out[j] = init[j];
 
@@ -1176,9 +1177,9 @@ double TrFit::ChoutkoFit(void)
     chisqb  = _chisq;
 
     // Invert covariance matrix
-    if (TrFit::Inv55(gg) < 0) return -1;
+    if (TrFit::Inv55(gg) < 0) return -4;
     //PZ FPE Fix
-    if(gg[4][4]<0) return -1;
+    if(gg[4][4]<0) return -5;
     // Error of rigidity
     _errrinv = std::sqrt(2*gg[4][4]);
 
@@ -1204,7 +1205,7 @@ double TrFit::ChoutkoFit(void)
     _yr[i] -= resmy;
   }
 
-  if (ifail) return -1;
+  if (ifail) return -6;
 
   _p0x = _param[0]; _dxdz = _param[1];
   _p0y = _param[2]; _dydz = _param[3];

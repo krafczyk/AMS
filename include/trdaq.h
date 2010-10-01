@@ -56,11 +56,11 @@ public:
 	
 	/// It Returns the JINJ slave port number for a 
 	/// given TCrate (0-7) or produce an error code (-1)
-	static integer getdaqid(int16u crt){return fake_JINJ_PORT;}
+	static integer getdaqid(){return fake_JINJ_PORT;}
 	
 	/// Service method to getdaqid
 	static integer checkdaqid(int16u id) {
-		if(id==fake_JINJ_PORT)return 1;
+		if(id== getdaqid())return 1;
 	    else return 0;
 	}	
 

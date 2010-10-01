@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.51 2010/09/29 17:30:10 choutko Exp $
+// $Id: TrTrack.C,v 1.52 2010/10/01 23:08:07 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/09/29 17:30:10 $
+///$Date: 2010/10/01 23:08:07 $
 ///
-///$Revision: 1.51 $
+///$Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -519,7 +519,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   }
   if (idf == kDummy) {
     cerr << "Warning in TrTrack::Fit Dummy fit is ignored " << endl;
-    return -1;
+    return -2;
   }
 
   // Force to use Linear fit if magnet is off
@@ -559,7 +559,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 	}
       }
     }
-    if (ihmin < 0) return -1;
+    if (ihmin < 0) return -4;
     layer = GetHit(ihmin)->GetLayer();
   }
 
@@ -576,7 +576,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 	}
       }
     }
-    if (ihmin < 0) return -1;
+    if (ihmin < 0) return -5;
     layer = GetHit(ihmin)->GetLayer();
   }
 
@@ -618,8 +618,8 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // AMS02P
   if (TkDBc::Head->GetSetup() == 3) {
-    if ((id & kFitLayer8) && !bhit[0]) return -1;
-    if ((id & kFitLayer9) && !bhit[1]) return -1;
+    if ((id & kFitLayer8) && !bhit[0]) return -6;
+    if ((id & kFitLayer9) && !bhit[1]) return -7;
   }
   // AMS02P
 
@@ -628,7 +628,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   // External fit
   if (TkDBc::Head->GetSetup() == 3 && (id & kExternal) ){
     int idx2[4];
-    if(!bhit[0] || !bhit[1]||nhit<4) return -1;
+    if(!bhit[0] || !bhit[1]||nhit<4) return -8;
     idx2[0]=idx[0];
     idx2[1]=idx[1];
     idx2[2]=idx[nhit-2];
@@ -711,14 +711,15 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     _TrFit.SetRigidity(GetRigidity(kChoutko));
 
   // Perform fitting
-  bool done = (_TrFit.Fit(method) > 0);
+  int idone = _TrFit.Fit(method);
+  bool done = (idone > 0);
 
   // Return if fitting values are not to be over written
   if (!update) return _TrFit.GetChisq();
 
   // Fill fittng parameters
   TrTrackPar &par = _TrackPar[id];
-  if (!done) return -1;
+  if (!done) return -90000+idone;
 
   par.FitDone  = true;
   par.HitBits  = hitbits;
@@ -1082,7 +1083,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit){
     
     bool FitExists=ParExists(fittype);
     if(refit==2 || (!FitExists && refit==1)) { 
-      int ret=Fit(fittype);
+       float ret=Fit(fittype);
       if (ret>0) 
 	return fittype;
       else 

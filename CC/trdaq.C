@@ -405,7 +405,7 @@ return;}
 		}
         //cout << " aggiunto uno"<<endl;
 	}
-	p[pindex++]=1<<5| 1<<15|fake_JINJ_PORT ;
+	p[pindex++]=getdaqid() ;
 	if(pindex!=((onesize+1) * ncl)+2){
 		cerr<<"TrDAQMC::builddaq-E-indext wrong length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
 	}  
