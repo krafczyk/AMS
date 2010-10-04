@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.11 2010/07/27 17:15:34 oliva Exp $
+// $Id: MagField.C,v 1.12 2010/10/04 21:54:48 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/07/27 17:15:34 $
+///$Date: 2010/10/04 21:54:48 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -85,6 +85,7 @@ MagField::MagField(void)
     isec[ii]=imin[ii]=ihour[ii]=iday[ii]=imon[ii]=iyear[ii]=0;
   na[0]=na[1]=na[2]=0;
   _ptr = this;
+  mm=0;
 }
 
 MagField::~MagField()

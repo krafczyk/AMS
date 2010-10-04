@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.52 2010/10/01 23:08:07 pzuccon Exp $
+// $Id: TrTrack.C,v 1.53 2010/10/04 21:54:48 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/01 23:08:07 $
+///$Date: 2010/10/04 21:54:48 $
 ///
-///$Revision: 1.52 $
+///$Revision: 1.53 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -41,12 +41,22 @@
 
 ClassImp(TrTrackPar)
 
+char* HitBitsString(int aa){
+  static char ss[10];
+  for (int ii=0;ii<9;ii++)
+    if(((aa)&1<<ii)>0) ss[ii]='X';
+    else ss[ii]='_';
+  ss[9]='\0';
+  return ss;
+}
+
+
 void TrTrackPar::Print(int full){
   printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
 	 Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   if(!full)return;
-  printf("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
-	 HitBits,ChisqX,NdofX,ChisqY,NdofY,Chisq);
+  printf("HitBits: %s, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
+	 HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq);
 }
 void  TrTrackPar::Print_stream(std::string &ostr,int full){
   ostr.append(Form("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
@@ -711,7 +721,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     _TrFit.SetRigidity(GetRigidity(kChoutko));
 
   // Perform fitting
-  int idone = _TrFit.Fit(method);
+  float idone = _TrFit.Fit(method);
   bool done = (idone > 0);
 
   // Return if fitting values are not to be over written
@@ -797,8 +807,8 @@ std::ostream &TrTrackR::putout(std::ostream &ostr)  {
 void TrTrackR::_PrepareOutput(int full )
 {
   sout.clear();
-  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d,   DefFit: %d, Chi2 %f Pirig %f",
-		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),
+  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %f Pirig %f",
+		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPattern()),
 		   trdefaultfit,Chi2FastFitf(),GetRigidity(kAlcaraz)));
   TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
@@ -1022,7 +1032,7 @@ void TrTrackR::PrintFitNames(){
     printf("%s\n", GetFitNameFromID(it->first));
 }
 
-const TrTrackPar & TrTrackR::gTrTrackPar(int fitcode)throw (string){
+ TrTrackPar  TrTrackR::gTrTrackPar(int fitcode)throw (string){
    if(ParExists(fitcode)) return _TrackPar[fitcode];
     //  throw an exception
     char tbt[255];

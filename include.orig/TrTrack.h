@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.37 2010/09/29 17:30:11 choutko Exp $
+//  $Id: TrTrack.h,v 1.38 2010/10/04 21:54:58 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/09/29 17:30:11 $
+///$Date: 2010/10/04 21:54:58 $
 ///
-///$Revision: 1.37 $
+///$Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -99,6 +99,7 @@ public:
   ~TrTrackPar(){}
   void Print(int full=0);
   void Print_stream(std::string &ostr,int full=0);
+
   ClassDef(TrTrackPar,1);
 } ; 
 
@@ -414,7 +415,7 @@ public:
  
      \return TrTrackPar object or  trow an exception "TrTrackPar-E-NotFound "
   !*/
-   const TrTrackPar & gTrTrackPar(int fit_type)throw (string);
+   TrTrackPar  gTrTrackPar(int fit_type)throw (string);
  
 
 
@@ -622,7 +623,6 @@ public:
       GetRigidity(kChoutko|kUpperHalf):
       GetRigidity(kChoutko|kLowerHalf);}
 
-  
   int Pattern(int input=111111111) ; ///< \return full track  pattern hit suitable for iTrTrackPar
   /// ROOT definition
   ClassDef(TrTrackR, 2);

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.27 2010/10/01 23:08:06 pzuccon Exp $
+//  $Id: TrFit.C,v 1.28 2010/10/04 21:54:48 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/01 23:08:06 $
+///$Date: 2010/10/04 21:54:48 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +92,7 @@ double TrFit::Fit(int method)
   MagField * pp=MagField::GetPtr();
   if(pp->GetMap()==0){
     char name[200];
-    sprintf("%s/v5.00/MagneticFieldMapPermanent_NEW.bin",getenv("AMSDataDir"));
+    sprintf(name,"%s/v5.00/MagneticFieldMapPermanent_NEW.bin",getenv("AMSDataDir"));
     if((pp->Read(name)) <0 ) return -1;
     pp->SetMagstat(1);
     pp->SetScale(1.);
