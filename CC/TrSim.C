@@ -186,8 +186,8 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
   float adc[2] = { 0, 0 };
 
   float dummy = 0;
-  float rndx  = RNDM(dummy);
-  float rndy  = RNDM(dummy);
+  float rndx  = (float)RNDM((int)dummy);
+  float rndy  = (float)RNDM((int)dummy);
   int  layer = abs(tkid)/100;
   float effx = (layer == 8) ? 0.87 : 0.90;
   float effy = 1;
@@ -573,7 +573,7 @@ void TrSim::sitknoise(int nsimladders) {
       bool ladderfound = false;
       int tkid = 0;
       while (!ladderfound) {
-	int ientry = int(192.*RNDM(dummyfloat));
+	int ientry = int(192.*RNDM((int)dummyfloat));
 	TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
 	tkid = ladder->GetTkId();
 	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
@@ -587,11 +587,11 @@ void TrSim::sitknoise(int nsimladders) {
       }
       
       // Extract seed position 
-      int seedadd = int(ncha[iside]*RNDM(dummyfloat));
+      int seedadd = int(ncha[iside]*RNDM((int)dummyfloat));
       int address = seedadd;
 
       // Extract seed value SN
-      float seedSN = 4+RNDM(dummyfloat)*2; // FIX ME: is not the right distribution  
+      float seedSN = 4+RNDM((int)dummyfloat)*2; // FIX ME: is not the right distribution  
       clusterSN.push_back(seedSN);
 
       // Left loop
