@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.53 2010/10/04 21:54:48 pzuccon Exp $
+// $Id: TrTrack.C,v 1.54 2010/10/05 10:58:07 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/04 21:54:48 $
+///$Date: 2010/10/05 10:58:07 $
 ///
-///$Revision: 1.53 $
+///$Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -606,12 +606,24 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     if (TkDBc::Head->GetSetup() == 3) {
       if (hit->GetLayer() == 8) { 
 	bhit[0] = 1;
-	if (!(id & kFitLayer8)) continue; 
+	if (!(
+	      (id & kFitLayer8)||
+	      (id & kExternal)||
+	      (id & kUpperHalf)||
+	      (id & kLowerHalf)
+	      )
+	    ) continue; 
 
       }
       if (hit->GetLayer() == 9) {
 	bhit[1] = 1;
-	if (!(id & kFitLayer9)) continue;
+	if (!(
+	      (id & kFitLayer9)||
+	      (id & kExternal)||
+	      (id & kUpperHalf)||
+	      (id & kLowerHalf)
+	      )
+	    ) continue; 
 	
       }
 
@@ -630,6 +642,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   if (TkDBc::Head->GetSetup() == 3) {
     if ((id & kFitLayer8) && !bhit[0]) return -6;
     if ((id & kFitLayer9) && !bhit[1]) return -7;
+    if ((id & kExternal) && !bhit[0] && !bhit[1]) return -17;
   }
   // AMS02P
 
