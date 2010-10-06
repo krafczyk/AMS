@@ -7,9 +7,17 @@
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
+GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
 
-VERGCC       := $(shell gcc --version | grep 4.)
-VERGCCH       := $(shell gcc --version | grep 4.4)
+ifeq ($(GCC_VER_MAJOR),4) 
+VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCH      := 1
+endif
+endif 
 
 ifdef VER
 NEW = 

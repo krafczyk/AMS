@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.28 2010/10/04 21:54:48 pzuccon Exp $
+//  $Id: TrFit.C,v 1.29 2010/10/06 16:47:11 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/04 21:54:48 $
+///$Date: 2010/10/06 16:47:11 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -760,7 +760,7 @@ double TrFit::AlcarazFit(int fixr)
 int TrFit::JAInitPar(int fixr)
 {
   // Check number of hits
-  if (_nhit < 5) return -(10+_nhit);
+  if (_nhit < 4) return -(10+_nhit);
 
   // MagField check
   bool magf = true;

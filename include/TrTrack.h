@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.38 2010/10/04 21:54:58 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.39 2010/10/06 16:47:12 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/04 21:54:58 $
+///$Date: 2010/10/06 16:47:12 $
 ///
-///$Revision: 1.38 $
+///$Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -415,7 +415,7 @@ public:
  
      \return TrTrackPar object or  trow an exception "TrTrackPar-E-NotFound "
   !*/
-   TrTrackPar  gTrTrackPar(int fit_type)throw (string);
+  const TrTrackPar&  gTrTrackPar(int fit_type)  throw (string);
  
 
 

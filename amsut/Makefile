@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.7 2010/09/20 20:54:52 pzuccon Exp $
+#  $Id: Makefile,v 1.8 2010/10/06 16:47:12 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -15,7 +15,7 @@
 ARCH     = $(shell uname)
 
 ### Compilers ###
-FC       = gfortran -m32
+FC       = g77 -m32
 CXX      = g++ -m32 
 LD       = g++  -m32
 

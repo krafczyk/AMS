@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.61 2010/09/14 20:10:14 pzuccon Exp $
+#  $Id: Makefile,v 1.62 2010/10/06 16:47:12 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -56,7 +56,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
 
-else ifeq ($(ARCH),macosx64)
+elifeq ($(ARCH),macosx64)
 
 
 CXX           =  g++  
