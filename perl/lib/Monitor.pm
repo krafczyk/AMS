@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.137 2010/08/26 11:23:49 ams Exp $
+# $Id: Monitor.pm,v 1.138 2010/10/07 20:24:54 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1659,7 +1659,7 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-     if($rdst{Status} eq "Alocated"){
+     if( $rdst{Status} eq "Alocated"){
 #     if($rdst{Status} eq "Finished"){
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
