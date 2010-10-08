@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.82 2009/07/29 11:30:54 choutko Exp $
+#  $Id: Moptg4,v 1.83 2010/10/08 16:31:32 mmilling Exp $
 #
 SHELL=/bin/sh
 #
@@ -31,7 +31,7 @@ FOUND = $(findstring $(OS),$(SUPPORTED))
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
-CPPFLAGS+= -std ansi
+CPPFLAGS+= -std ansi -m32
 ifdef AMSDEBUG
 CFLAGS4=        -D__BATCH__ --g -D__AMSDEBUG__    -I../include     $(CPPFLAGS)
 CFLAGS4P=        -D__BATCH__     -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
@@ -65,7 +65,7 @@ CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee   -use_std  -timplicit_local -D__USE_STD
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -use_std -timplicit_local -D__USE_STD_IOSTREAM
 endif
 endif
-XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib -lm
+XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L../lib/linux -lamsut -lkernlib -lm
 ifeq "$(shell cxx -V | grep -c 5.5)" "1"
 CC=cxx
 endif
@@ -98,7 +98,7 @@ endif
 DFLAGS=    -g  -I../include
 CERNDIR = /f2dat1/CERN/2002/icc
 NAGDIR  = /f2dat1/NagLib
-XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc  -lamsut -klernlib -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
+XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L../lib/linux  -lamsut -klernlib -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
 CC=icc  -D__NAMESPACE__ -D__G4AMS__
 FF=ifc
 LD=icc
@@ -132,7 +132,7 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 
-XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -pthread
+XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L../lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -pthread
 ifndef LinuxBUG
 CC=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=g77 -m32
@@ -164,6 +164,8 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C \
 	$(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
 	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C \
+	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
+	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
 	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C $(SCC)job.C $(SCC)event.C \
 	$(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C \
 	$(SCC)tofrec02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C \
@@ -188,7 +190,7 @@ FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)mtx2.F $(SFF)e04ccf.f $(SFF)gtckov.F $(SFF)graylc.F \
 	$(SFF)cerenkov.F $(SFF)mfield.F  $(SFF)egzav.F  $(SFF)tkfit.F  \
 	$(SFF)richrec_lip.F  $(SFF)richnodisp_lip.F $(SFF)richpatt_lip.F $(SFF)richbetalike_lip.F $(SFF)richbetastand_lip.F $(SFF)richchg_lip.F $(SFF)richutil_lip.F \
-	$(SFF)rkms.F
+	$(SFF)rkms.F $(SFF)rzerowrapper.F
 
 
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
@@ -198,10 +200,12 @@ MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 OBJECTS+=$(BIN)rootdict.o
 
-#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
+#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)rzerowrapper.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
 #$(BIN)G4LowEnergyPhotoElectric.o
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
+
+FFLAGS += -L/usr/lib -lgfortran
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
@@ -210,7 +214,7 @@ compile:= $(AMS_EXE)
 
 
 $(AMS_EXE):	$(OBJECTS)
-	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS)
+	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
 
 
@@ -224,7 +228,7 @@ $(BIN)rootdict.o:         $(BIN)rootdict.C
  
 
 $(BIN)gbatch.o:         $(SCC)gbatch.C
-	$(CC) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o
+	$(CC) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o 
 
 $(BIN)job.o:    	 $(SCC)job.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
@@ -333,6 +337,9 @@ $(BIN)tkfit.o:         $(SFF)tkfit.F
 
 $(BIN)rkms.o:         $(SFF)rkms.F
 	$(FF) -c $(FFLAGS) $(SFF)rkms.F -o $(BIN)rkms.o
+
+$(BIN)rzerowrapper.o:         $(SFF)rzerowrapper.F
+	$(FF) -c $(FFLAGS) $(SFF)rzerowrapper.F -o $(BIN)rzerowrapper.o
 
 
 $(BIN)richpatt_lip.o:         $(SFF)richpatt_lip.F
