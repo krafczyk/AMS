@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.232 2010/09/29 19:50:16 choutko Exp $
+//  $Id: root.C,v 1.233 2010/10/08 17:33:16 mmilling Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2398,6 +2398,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   TRDHLikelihood = ptr->_TRDHLikelihood;
   TRDHElik = ptr->_TRDHElik;
   TRDHPlik = ptr->_TRDHPlik;
+  TRDCCnhit = ptr->_TRDCCnhit;
 
 #endif
 }

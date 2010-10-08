@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.294 2010/09/13 21:09:47 choutko Exp $
+//  $Id: commons.h,v 1.295 2010/10/08 17:33:22 mmilling Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -253,6 +253,12 @@ integer day[2];
 integer mon[2];
 integer year[2];
 integer multiples;
+ geant  Gdens;
+ geant  Pecut;
+ geant  ntrcor;
+ geant  etrcor;
+ geant  ndecor;
+ geant  edecor;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
@@ -278,6 +284,7 @@ public:
   float Chi2StrLine;     //  fit max chi2
   float ResCutStrLine;   // Max acc distance between point and fitted curve 
   float SearchRegStrLine;  
+  float CCAmpCut;        // cut value for likelihood analysis
 };
 #define TRDRECFFKEY COMMON_BLOCK(TRDRECFFKEY,trdrecffkey)
 COMMON_BLOCK_DEF(TRDRECFFKEY_DEF,TRDRECFFKEY);

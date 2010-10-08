@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.62 2010/08/30 19:14:39 mmilling Exp $
+//  $Id: particle.h,v 1.63 2010/10/08 17:33:22 mmilling Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -77,6 +77,7 @@ protected:
   number _TRDHLikelihood;
   number _TRDHElik;
   number _TRDHPlik;
+  integer _TRDCCnhit;
 
   // new
    

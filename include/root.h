@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.287 2010/09/29 19:50:16 choutko Exp $
+//  $Id: root.h,v 1.288 2010/10/08 17:33:22 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1951,6 +1951,7 @@ endif
   float TRDHLikelihood; ///< TRDH likelihood  (-log(elik/elik+plik))
   float TRDHElik; ///< normalized product of single layer electron probability
   float TRDHPlik; ///< normalized product of single layer proton probability
+  float TRDCCnhit; ///< CC number of layers with edep above cut
 protected: 
   int  fBeta;          ///<index of  BetaR used
   int  fCharge;        ///<index of  ChargeR used

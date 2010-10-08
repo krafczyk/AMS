@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.212 2010/08/30 19:21:19 mmilling Exp $
+//  $Id: particle.C,v 1.213 2010/10/08 17:33:16 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -42,6 +42,18 @@ number AMSParticle::trdpspect[30]={
 
 number AMSParticle::trdespect[30]={
   0.065593,0.113031,0.120425,0.101903,0.072328,0.0493411,0.0367496,0.038287,0.0353587,0.0377013,0.0333089,0.0302343,0.0296486,0.025183,0.0237921,0.0173499,0.0167643,0.0169839,0.0127379,0.0140556,0.0122987,0.011347,0.00944363,0.00812592,0.00629575,0.00702782,0.00600293,0.00592972,0.00387994,0.00461201};
+
+Double_t pfun(Double_t x, Double_t *par) {
+Double_t mpshift  = -0.22278298;
+  if(x<par[1]){
+    Double_t mean= par[1] - mpshift * par[2];
+    return par[0]*TMath::Landau(x,par[1],par[2])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
+  }
+  else {
+    Double_t mean= par[1] - mpshift * par[3];
+    return par[0]*TMath::Landau(x,par[1],par[3])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
+  }
+}
 
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
@@ -408,39 +420,39 @@ void AMSParticle::ecalfit(){
 
 }
 
-
-// get conv landau fit param depending on layer
-double e_par(int p,int lay){
-  float layer=20.-(float)lay;
-
-  if(p==0)return 0.3435-layer*0.002777;
-  else if(p==1)return 1.808+layer*0.002998-layer*layer*0.0002922;
-  else if(p==2)return 0.7814-layer*0.001905;
-  else if(p==3)return 0.05661;
-  else if(p==4)return 9.415+layer*0.2251+lay*lay*-0.007557;
-  else if(p==5)return 1.633+layer*0.1644+layer*layer*-0.004787;
+double e_par(int p){
+  if(p==0)return 0.533941;
+  else if(p==1)return 2.04519;
+  else if(p==2)return 0.90618;
+  else if(p==3)return 0.177358;
+  else if(p==4)return 13.3248;
+  else if(p==5)return 4.80789;
+  else if(p==6)return 0.312408;
+  else if(p==7)return -0.0432751;
   else return 0.;
 }
+
 
 // get conv landau fit param depending on trtrack rigidity [GV] 
-double p_par(int p,float rig){
-  if(p==0)return 0.2354- 0.0721  * log(1.643e-5*rig);
-  else if(p==1)return 3.703 + 0.1251 * log(2.714e-10*rig);
-  else if(p==2)return 0.4067+ 3.744  * sqrt(9.537e-6*rig);
-  else if(p==3)return 0.;
-  //-14.89 +rig    * 0.08075-rig*rig*2.163e-4;
-  else if(p==4)return 0.7207  +0.2774 * log(rig*0.1917);
-  else if(p==5)return 3.477  +0.1147 * log(rig*1.152e-12);
+double p_par(int p){
+  if(p==0)return 1.32391;
+  else if(p==1)return 2.23676;
+  else if(p==2)return 1.02281;
+  else if(p==3)return 0.788797;
+  else if(p==4)return -0.0594475;
+  else if(p==5)return 0.00140946;
+  else if(p==6)return -2.07114e-05;
   else return 0.;
 }
 
-// Find TrdHTrack matching TrTrack of ParticleR and get                                                                                                                                                                                      
-// -loglikelihood of the event to be electron-like                                                                                                                                                                                           
+// Find TrdHTrack matching TrTrack of ParticleR and get
+// -loglikelihood of the event to be electron-like
 void AMSParticle::trd_Hlikelihood(){
   int debug=0;
   _TRDHLikelihood=0.;
   _TRDHElik=0.;
   _TRDHPlik=0.;
+  _TRDCCnhit=0;
   _phtrd=0;
 
   // TOF layers would probably make more sense (->mult.scatt.)
@@ -534,8 +546,8 @@ void AMSParticle::trd_Hlikelihood(){
 
   if(!_phtrd)return;
 
-  // get track rigidity
-  float rig=0.;
+  // get track rigidity - currently skipped
+  /*  float rig=0.;
 #ifdef _PGTRACK_
   rig=_ptrack->GetRigidity();
 #else
@@ -544,32 +556,34 @@ void AMSParticle::trd_Hlikelihood(){
 #endif
   if(debug)printf("Rigidity: %.2f\n",rig);
   rig=fabs(rig);
-  if(rig<=0.||isnan(rig)||isinf(rig)||rig>1.e4)return;
+  if(rig==0.||isnan(rig)||isinf(rig)||rig>1.e5)return;
+  */
+  double pars[7];
+  for(int i=0;i<7;i++)pars[i]=p_par(i);
 
   double elik=1., plik=1.;
   int l=0,n=0;
   for(l=0;l!=20;l++){
-    float amp=_phtrd->elayer[l]/35.;
+    float amp=_phtrd->elayer[l]/TRDMCFFKEY.GeV2ADC*1.e6;
+    //    TRDMCFFKEY.GeV2ADC/1.e6=1.e8/3;
+
+    if(amp>TRDRECFFKEY.CCAmpCut)_TRDCCnhit++;
     if(amp<=0.)continue;
     n++;
-    // multiply single layer electron likelihoods
-    elik*=e_par(0,l)*TMath::Landau(amp,e_par(1,l),e_par(2,l))+
-      e_par(3,l)*TMath::Landau(amp,e_par(4,l),e_par(5,l));
-    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0,l)*TMath::Landau(amp,e_par(1,l),e_par(2,l))+e_par(3,l)*TMath::Landau(amp,e_par(4,l),e_par(5,l)),elik);
+    // multiply electron likelihoods per layer
+    elik*=(e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+
+	   e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)))*exp(e_par(6)+e_par(7)*amp);
+
+    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)),elik);
     
-    // multiply single layer proton likelihoods
-    double fac1=p_par(0,rig)*TMath::Landau(amp,p_par(1,rig),p_par(2,rig));
+    // multiply proton likelihoods per layer
+    plik*=pfun(amp,pars);
 
-
-    // currently set to zero - Attention have to account for highP TR
-    double fac2=p_par(3,rig)*TMath::Landau(amp,p_par(4,rig),p_par(5,rig));
-    plik*=fac1+fac2;
-
-    if(debug)printf(" plik %.2e accum %.2e\n",fac1+fac2,plik);
+    if(debug)printf(" plik %.2e accum %.2e\n",pfun(amp,pars),plik);
   }
 
   if(n==0||elik<=0.||plik<=0.){
-    if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e (rig:%.2e)\n",n,elik,plik,rig);
+    if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e \n",n,elik,plik);
     return;
   }
   if(debug)printf("before norm: elik %.2e plik %.2e \n",elik,plik);

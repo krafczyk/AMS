@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.736 2010/09/30 15:34:52 mdelgado Exp $
+// $Id: job.C,v 1.737 2010/10/08 17:33:16 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1076,12 +1076,19 @@ TRDMCFFKEY.GenerateConst=0;
 TRDMCFFKEY.NoiseLevel=0.01;
 TRDMCFFKEY.DeadLevel=0.;
 TRDMCFFKEY.multiples=0;
+ TRDMCFFKEY.Gdens=0.00446;
+ TRDMCFFKEY.Pecut=-0.65;
+ TRDMCFFKEY.ntrcor=1.3;
+ TRDMCFFKEY.etrcor=1.2;
+ TRDMCFFKEY.ndecor=0.9;
+ TRDMCFFKEY.edecor=1.0;
 
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDRECFFKEY.Chi2StrLine=5;
 TRDRECFFKEY.ResCutStrLine=1;
 TRDRECFFKEY.SearchRegStrLine=3;
+ TRDRECFFKEY.CCAmpCut=6.;
 FFKEY("TRDRE",(float*)&TRDRECFFKEY,sizeof(TRDRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDFITFFKEY.Chi2StrLine=3;
