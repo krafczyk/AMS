@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.288 2010/10/08 17:33:22 mmilling Exp $
+//  $Id: root.h,v 1.289 2010/10/08 19:18:23 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2041,7 +2041,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,8)       //ParticleR
+  ClassDef(ParticleR,9)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
