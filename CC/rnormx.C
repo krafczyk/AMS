@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.13 2010/06/25 21:18:09 oliva Exp $
+//  $Id: rnormx.C,v 1.14 2010/10/08 17:27:59 mmilling Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -33,7 +33,7 @@ extern "C" void ROOTPoissn(float& mean, int& val, int& dummy) {
 }
 
 #include "typedefs.h"
-//#include  "commons.h"
+#include  "commons.h"
 extern "C" number rnormx(){
   double const pi=3.1415926;
   number qq,qq2;

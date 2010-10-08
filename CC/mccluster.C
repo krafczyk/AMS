@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.78 2010/08/14 11:44:19 mdelgado Exp $
+//  $Id: mccluster.C,v 1.79 2010/10/08 17:27:59 mmilling Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -77,9 +77,9 @@ stream <<"AMSTRDMCCluster "<<_idsoft<<" "
 void AMSTRDMCCluster::init(){
 // at the momenent : homemade trd also for g4
 
-//#ifdef __G4AMS__
-//if(MISCFFKEY.G3On){
-//#endif
+#ifdef __G4AMS__
+if(MISCFFKEY.G3On){
+#endif
 if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
 indetra_();
 cout<< "<---- AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl<<endl;
@@ -88,9 +88,9 @@ else if(TRDMCFFKEY.mode==3){
 cerr<< "<---- AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl<<endl;
 exit(1);
 }
-//#ifdef __G4AMS__
-//}
-//#endif
+#ifdef __G4AMS__
+}
+#endif
 }
 
 
