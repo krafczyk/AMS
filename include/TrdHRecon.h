@@ -82,7 +82,7 @@ class  BIN {
 public:
   int x,y;
   float c,z,zmin,zmax;
-  BIN(int x_,int y_,int z_, float c_):x(x_),y(y_),z(z_),c(c_),zmin(z_),zmax(z_){}
+  BIN(int x_,int y_,float z_, float c_):x(x_),y(y_),z(z_),c(c_),zmin(z_),zmax(z_){}
 
     bool operator<(const BIN& other) const {
       return c > other.c;
