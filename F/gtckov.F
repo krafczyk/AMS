@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.8 2010/06/24 11:13:35 zweng Exp $
+*  $Id: gtckov.F,v 1.9 2010/10/10 19:05:46 mdelgado Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -83,9 +83,13 @@ C.    ------------------------------------------------------------------
       data cvpwl /1.2398E-9/ /* convert photon energy in GeV to microm */
       integer testradiator
       real rrtmindex
+
+*      call uhtoc(names(nlevel),4,chname,4)
+*      print *,'PHOTON IN GTCKOV ',VECT(4),VECT(5),VECT(6),chname
+
 *
 *  <<<<<<<<<<<<<<<<<<< END: USER MODIFS >>>>>>>>>>>>>>>>>>>>>>>>>
-*
+
 
 *
 * *** Update local pointers if medium has changed
@@ -549,7 +553,42 @@ C
 *  case dielectric-dielectric:
 *
 
+C >>>>>>>>>>>> SIMULATE THE AEROGEL SURFACE EFFECT <<<<<<<<<<<<<<
+ 
+             if(testradiator(NUMED1).eq.0) goto 105
+             call grndm(myrndm,3)
+*             scatprob=1.0 ! test
+*             scatang=1e-1 ! test
+
+             if(myrndm(3).lt.scatprob) then
+                NMEC=NMEC+1
+                LMEC(NMEC)=2000
+                
+                ph=myrndm(1)*2.*3.141592
+                th=sqrt(-2*log(myrndm(2)))*scatang
+                D(1)=sin(th)*cos(ph)
+                D(2)=sin(th)*sin(ph)
+                D(3)=cos(th)
+                
+                CALL GVROT(VECT(4),D)                      
+
+*                print *,'ORIGINAL VECTOR ',VECT(4),VECT(5),VECT(6)
+                
+                VECT(4)=D(1)/sqrt(d(1)**2+d(2)**2+d(3)**2)
+                VECT(5)=D(2)/sqrt(d(1)**2+d(2)**2+d(3)**2)
+                VECT(6)=D(3)/sqrt(d(1)**2+d(2)**2+d(3)**2)
+*                print *,'FINAL VECTOR ',VECT(4),VECT(5),VECT(6)
+             endif
+
+
+ 105         continue
+
+C >>>>>>>>>>>>>>>>>>>>>>>>>> END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+
+
 	     CALL GLISUR(VECT,VBOU,NUMED1,NUMED2,U,PDOTU,IERR)
+
+
 	     IF (IERR.NE.0) THEN
 		WRITE(CHMAIL,10200) IERR
 		CALL GMAIL(0,0)
@@ -735,45 +774,6 @@ C
 		   STEPLA = ABSCO2
 		   EFFIC = EFFIC2
 		   RIN1 = RIN2
-
-
-C >>>>>>>>>>>> SIMULATE THE AEROGEL SURFACE EFFECT <<<<<<<<<<<<<<
- 
-                   call uhtoc(names(nlevel),4,chname,4)
-                   IF (chname(1:3).NE.'RAD') goto 105
-                   call grndm(myrndm,3)
-
-                   if(myrndm(3).lt.scatprob) then
-                      NMEC=NMEC+1
-                      LMEC(NMEC)=2000
-
-                      ph=myrndm(1)*2.*3.141592
-                      th=sqrt(-2*log(myrndm(2)))*scatang
-                      D(1)=sin(th)*cos(ph)
-                      D(2)=sin(th)*sin(ph)
-                      D(3)=cos(th)
-                      
-                      VECT(4)=D(1)/sqrt(d(1)**2+d(2)**2+d(3)**2)
-                      VECT(5)=D(2)/sqrt(d(1)**2+d(2)**2+d(3)**2)
-                      VECT(6)=D(3)/sqrt(d(1)**2+d(2)**2+d(3)**2)
-
-#ifdef __AMSDEBUG__
-                      call hf1(12345,1.1,1.)
-                      call hf1(12346,ph,1.)
-                      call hf1(12347,th,1.)
-                   else
-                      call hf1(12345,0.1,1.)
-                      
-#endif
-                   endif
-
-
- 105               continue
-
-C >>>>>>>>>>>>>>>>>>>>>>>>>> END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
-
-
-
 
 
 		END IF
