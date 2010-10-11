@@ -1,5 +1,7 @@
 #include "TrSimCluster.h"
 
+extern "C" double rnormx();
+
 TrSimCluster::TrSimCluster(vector<double> signal, int address, int seedind, double sigma) {
   _signal = signal; 
   _address = address;
@@ -55,7 +57,13 @@ double TrSimCluster::GetTotSignal() {
 
 void TrSimCluster::Multiply(double signal) {
   for (int i=0; i<GetWidth(); i++) {
-    _signal.at(i) *= signal; 
+    SetSignal(i,GetSignal(i)*signal);
+  } 
+}
+
+void TrSimCluster::Gaussianize(double fraction) {
+  for (int i=0; i<GetWidth(); i++) { 
+    SetSignal(i,GetSignal(i)*(1. + rnormx()*fraction));
   }
 }
 

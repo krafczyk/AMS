@@ -91,6 +91,8 @@ class TrSimSensor {
   TF1*   _mcfun;
   // EDep in real data (TB2003) for vertical tracks (LanGauExp): ONLY PROTONS
   TF1*   _refun;
+  // Interpolationg function for a fast conversion between MC and data: ONLY PROTONS 
+  // TGraph* _mctorefun; 
 
  public:
    
@@ -209,6 +211,8 @@ class TrSimSensor {
   static double LanGauFun(double *x, double *par);
   //! EDep description in Geant3 (mean,width,sigma,horizontal scaling,vertical scaling)
   static double LandauFun(double *x, double *par);
+  //| EDep from PDG Bethe-Block (300 um of Si) 
+  static double BetheBlock(double z, double betagamma);
   //! Return the pointer to the Geant3 Landau parametrization
   TF1* GetMonteCarloFun() { return _mcfun; }
   //! Return the pointer to the LanGauExp Real Data function 

@@ -40,6 +40,7 @@ float   TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,
 TrSimSensor* TrSim::_sensors[3]={0,0,0};
 
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
+  // PrintSimPars();
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkSimuAll"); // simulation counter
 #endif
@@ -683,3 +684,21 @@ void TrSim::PrintBuffer(double *_ladbuf) {
   }
 }
 
+
+void TrSim::PrintSimPars() {
+  cout << "SimulationType:           " << TRMCFFKEY.SimulationType << endl;
+  cout << "MinMCClusters:            " << TRMCFFKEY.MinMCClusters << endl;
+  cout << "NoiseType:                " << TRMCFFKEY.NoiseType << endl;
+  cout << "FakeClusterType:          " << TRMCFFKEY.FakeClusterType << endl;
+  cout << "DSPSeedThr(n,p):          " << TRMCFFKEY.DSPSeedThr[0] << " " << TRMCFFKEY.DSPSeedThr[1] << endl;
+  cout << "DSPNeigThr(n,p):          " << TRMCFFKEY.DSPNeigThr[0] << " " << TRMCFFKEY.DSPNeigThr[1] << endl;
+  cout << "TrSim2010_ADCConvType:    " << TRMCFFKEY.TrSim2010_ADCConvType << endl;
+  cout << "TrSim2010_EDepType:       " << TRMCFFKEY.TrSim2010_EDepType << endl;
+  cout << "TrSim2010_Cint(n,p):      " << TRMCFFKEY.TrSim2010_Cint[0] << " " << TRMCFFKEY.TrSim2010_Cint[1] << endl;
+  cout << "TrSim2010_Cbk(n,p):       " << TRMCFFKEY.TrSim2010_Cbk[0] << " " << TRMCFFKEY.TrSim2010_Cbk[1] << endl;
+  cout << "TrSim2010_Cdec(n,p):      " << TRMCFFKEY.TrSim2010_Cdec[0] << " " << TRMCFFKEY.TrSim2010_Cdec[1] << endl;
+  cout << "TrSim2010_DiffType(n,p):  " << TRMCFFKEY.TrSim2010_DiffType[0] << " " << TRMCFFKEY.TrSim2010_DiffType[1] << endl;
+  cout << "TrSim2010_DiffPars(n,p):  " << TRMCFFKEY.TrSim2010_DiffPars[0][0] << " " << TRMCFFKEY.TrSim2010_DiffPars[0][1] << "     "
+                                       << TRMCFFKEY.TrSim2010_DiffPars[1][0] << " " << TRMCFFKEY.TrSim2010_DiffPars[1][1] << endl;
+  cout << "TrSim2010_IntrNoise(n,p): " << TRMCFFKEY.TrSim2010_IntrNoise[0] << " " << TRMCFFKEY.TrSim2010_IntrNoise[1] << endl;
+}

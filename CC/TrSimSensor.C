@@ -73,18 +73,16 @@ void TrSimSensor::SetDefaults() {
   switch (GetSensorType()) {
     case 0: // S
       _mcfun->SetParameters(74.46,5.78,1,1);
-      if (TRMCFFKEY.TrSim2010_EDepType == 2)
-	_refun->SetParameters(1.00,27.0,0.942883,7.65,43.38); // TB2010 temporary
-      else
-	_refun->SetParameters(1.00,31.5,0.942883,7.65,43.38); // TB2003
+      if      (TRMCFFKEY.TrSim2010_EDepType==1) _refun->SetParameters(1.00,31.5,0.942883,7.65,43.38); // TB2003
+      else if (TRMCFFKEY.TrSim2010_EDepType==2) _refun->SetParameters(2.766,31.440,0.978,7.294,113.513); // CR2009
+      else if (TRMCFFKEY.TrSim2010_EDepType==3) _refun->SetParameters(2.897,29.393,0.976,5.855,108.803); // CR2010
       break;
     case 1: // K5
     case 2: // K7
       _mcfun->SetParameters(81.66,7.35,1,1);
-      if (TRMCFFKEY.TrSim2010_EDepType == 2)
-	_refun->SetParameters(3.31,26.0,1.03703,6.5,105.78); // TB2010 temporary
-      else
-	_refun->SetParameters(3.31,40.5,1.03703,6.5,105.78); // TB2003
+      if      (TRMCFFKEY.TrSim2010_EDepType==1) _refun->SetParameters(3.31,40.5,1.03703,6.5,105.78); // TB2003
+      else if (TRMCFFKEY.TrSim2010_EDepType==2) _refun->SetParameters(2.623,29.584,0.975,6.297,101.405); // CR2009
+      else if (TRMCFFKEY.TrSim2010_EDepType==3) _refun->SetParameters(3.145, 32.012,0.977,6.929,120.252); // CR2010
       break;
   }
   // MPV Normalization (horizontal scaling)
@@ -93,6 +91,7 @@ void TrSimSensor::SetDefaults() {
   // Height normalization (needed for inversion)
   float scale2 = _refun->GetMaximum(0,MAXADC)/_mcfun->GetMaximum(0,MAXADC); 
   _mcfun->SetParameter(3,scale2);
+  // inversion computation ..
 }
 
 
@@ -639,4 +638,11 @@ double TrSimSensor::fromMCtoRealData(double adc) {
   float value  = _mcfun->Eval(adc);
   float newadc = (adc<xmax) ? _refun->GetX(value,0.,xmax) : _refun->GetX(value,xmax,MAXADC);
   return newadc; 
+}
+
+double TrSimSensor::BetheBlock(double z, double bg) {
+  double z2 = z*z;
+  double bg2 = bg*bg;
+  double dEdx = 10.73 * z2 * ((1 + bg2)/bg2) * ( 8.68 + log(bg2) - bg2/(1+bg2) ); // keV
+  return dEdx; 
 }

@@ -105,6 +105,9 @@ class TrSim {
   //! Get charge from the particle list
   static float GetG3Charge(int id) { return _g3charge[id]; }
 
+  //! See simulation parameters
+  static void PrintSimPars();
+
 };
 
 #endif

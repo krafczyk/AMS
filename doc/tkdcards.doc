@@ -20,37 +20,45 @@ I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
 
 TRMC
-I 564        SimulationType        (def=0)    0 GBATCH old algorythm
-                                              1 SkipRawSim (no TrRawClusters, very fast) 
-                                              2 TrSim2010 (detailed simulation)
-I 565        MinMCClusters         (def=0)    Minimum number of MC Clusters in order to trigger digitization (=0, all events)  
-I 566        NoiseType             (def=1)    0 No Noise (only signal) 
-                                              1 Gaussian noise generation for every channel (full simulation, slow)
-                                              2 Gaussian noise generation only on ladders with signal + Fake clusters
-                                              3 Gaussian noise generation only around MC clusters + Fake cluster (not implemented)
-I 567        FakeClusterType       (def=1)    Meaningful only if NoiseType>1 
-                                              0 No fake clusters 
-                                              1 Random clusters on the gaussian tails
-                                              2 From test beam data 2010
-R [568,569]  DSPSeedThr            (def=4,4)  DSP Seed Threshold for (n/p sides)
-R [570,571]  DSPNeigThr            (def=1,1)  DSP Neig Threshold for (n/p sides)
-I 572        TrSim2010_ADCConvType (def=3)    0 No conversion between MeV and ADC
-                                              1 Only MPV scaling 
-                                              2 MPV and shape scaling 
-                                              3 MPV, shape and gain scaling (ladder,VA)
-I 573        TrSim2010_EDepType               1 TB2003
-                                              2 TB2010
-R [574,575]  TrSim2010_DSPSeedThr (def=4,4)   DSP Seed Threshold for (n/p sides)
-R [576,577]  TrSim2010_DSPNeigThr (def=1,1)   DSP Neig Threshold for (n/p sides)
-R [578,579]  TrSim2010_Cint (def=100,100)     Interstrip Capacitance (n/p sides)
-R [580,581]  TrSim2010_Cbk  (def= 10, 10)     Backplane + Guard-ring capacitance (n/p sides)
-R [582,583]  TrSim2010_Cdec (def=800,800)     Decoupling Capacitance (n/p sides)
-I [584,585]  TrSim2010_DiffType   (def=2,2)   0 Box
-                                              1 Gaussian
-                                              2 Gaussian Convoluted with Box
-                                              3 Traingular
-R [586,589]  TrSim2010_DiffPars[2][2]         Parameters for the selected diffusion type
-R [590,591]  TrSim2010_IntrNoise[2] (def=0.05,0.05) Intrisic Noise (from 0 to  1 scale)   
+I 564        SimulationType            0 GBATCH: old algorythm
+             (def=0)                   1 SkipRawSim: no TrRawClusters, very fast 
+                                       2 TrSim2010: a detailed simulation)
+I 565        MinMCClusters             Minimum number of MC Clusters needed  
+             (def=0)                   to trigger digitization (=0, all events)       
+I 566        NoiseType                 0 No Noise, only signal
+             (def=2)                   1 Gaussian noise generation for every channel: full simulation, slow
+                                       2 Gaussian noise generation only on ladders with signal + fake clusters
+                                       3 Gaussian noise generation only around MC clusters + fake cluster (not implemented)
+I 567        FakeClusterType           Meaningful only if NoiseType>1 
+             (def=1)                   0 No fake clusters 
+                                       1 Random clusters on the gaussian tails
+                                       2 From test beam data 2010 (not implemented)
+R [568,569]  DSPSeedThr                DSP Seed Threshold for (n/p sides)
+             (def=4,4) 
+R [570,571]  DSPNeigThr                DSP Neig Threshold for (n/p sides)
+             (def=1,1)
+I 572        TrSim2010_ADCConvType     0 No conversion between MeV and ADC
+             (def=1)                   1 Only MPV scaling 
+                                       2 MPV and gain scaling (ladder, VA)
+                                       3 MPV and shape scaling (approx implemented) 
+                                       4 MPV, shape and gain scaling (ladder,VA) (approx implemented)
+I 573        TrSim2010_EDepType        1 TB2003
+             (def=3)                   2 CR2009 
+                                       3 CR2010 (KSC) 
+R [574,575]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
+             (def=100,100)
+R [576,577]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
+             (def=10,10)
+R [578,579]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
+             (def=800,800)  
+I [580,581]  TrSim2010_DiffType        0 Box
+             (def=2,2)                 1 Gaussian
+                                       2 Gaussian Convoluted with Box
+                                       3 Traingular
+R [582,585]  TrSim2010_DiffPars[2][2]  Parameters for the selected diffusion type
+             (def=8,8,8,8)
+R [586,587]  TrSim2010_IntrNoise[2]    Percentage of intrisic noise
+             (def=0.3,0.3)  
 
 
 //==============================

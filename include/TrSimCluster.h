@@ -72,6 +72,8 @@ class TrSimCluster {
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 
   void   AddCluster(TrSimCluster* cluster);
+  //! Gaussianize each strip (intrinsic noise)
+  void   Gaussianize(double fraction);
 
 };
 
