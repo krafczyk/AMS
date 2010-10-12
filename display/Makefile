@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.65 2010/10/12 22:11:32 pzuccon Exp $
+#  $Id: Makefile,v 1.66 2010/10/12 23:22:49 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -67,7 +67,8 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
 
-else ifeq ($(ARCH),macosx64)
+endif
+ifeq ($(ARCH),macosx64)
 
 
 CXX           =  g++  
@@ -87,8 +88,8 @@ ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx 
 LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) 
 LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA)
-
-else
+endif
+ifeq ($(ARCH),linux)
 
 CXX           =  g++ -m32 
 CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
@@ -113,7 +114,6 @@ LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) /usr/
 
 LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) 
 LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm    -ldl 
-
 
 ifdef VERGCCH
 CPPFLAGS+= -D__LINUXNEW__
