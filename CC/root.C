@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.233 2010/10/08 17:33:16 mmilling Exp $
+//  $Id: root.C,v 1.234 2010/10/12 18:44:55 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -36,6 +36,7 @@
 #include "trrec.h"
 #ifndef _PGTRACK_
 #include "vtx.h"
+#else 
 #endif
 #include "astro.h"
 #include "amsdbc.h"
@@ -3085,7 +3086,9 @@ void AMSEventR::SlaveBegin(TTree *tree){
 void AMSEventR::SlaveTerminate(){
   Terminate();
 }
-
+#ifdef _PGTRACK_
+#include "tkdcards.h"
+#endif
 void AMSEventR::Begin(TTree *tree){
   // Function called before starting the event loop.
   // Initialize the tree branches.
@@ -3097,7 +3100,6 @@ void AMSEventR::Begin(TTree *tree){
 
 #pragma omp master
   if(!pService){
-    pService=&fService;
     (fService)._w.Start();
     _NFiles=-_NFiles;
     for(int thr=fgThickMemory?fgThreads-1:0;thr>=0;thr--){
@@ -3126,6 +3128,10 @@ void AMSEventR::Begin(TTree *tree){
       sprintf(dir,"thread_%d",thr);
       if(fgThickMemory)Dir=dir;
       UBegin();
+#ifdef _PGTRACK_
+         TRFITFFKEY.init();
+#endif;
+      pService=&fService; 
     }
   }
   while(!pService){
@@ -3398,11 +3404,14 @@ return _Info;
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
+static int master=0;
 #ifdef _PGTRACK_
 //if(TkDBc::Head==0&& _EVENT!=0){
 //  TkDBc::CreateTkDBc();
 //  TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
 //}
+#pragma omp master 
+{
   if (_FILE){
     if(TrCalDB::Head) delete TrCalDB::Head;
     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
@@ -3424,7 +3433,12 @@ void AMSEventR::InitDB(TFile *_FILE){
     TrClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRecon::UsingTrCalDB(TrCalDB::Head);
-  }
+}
+master=1;  
+}
+ while (master==0){
+   usleep(1);
+ }
 #endif
   
 

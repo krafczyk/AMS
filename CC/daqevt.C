@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.198 2010/09/14 13:38:16 choumilo Exp $
+//  $Id: daqevt.C,v 1.199 2010/10/12 18:44:55 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2439,12 +2439,20 @@ again:
           else{
           strcpy(rootdir,ifnam[KIFiles]);
           }
-          char *last=strstr(rootdir,"HRDL-B");
-          if(last){
-              *last='R';
-              *(last+1)='O';
-              *(last+2)='O';
-              *(last+3)='T';
+            const int cl=161;
+           char bd[cl];
+          UHTOC(DAQCFFKEY.BlocksDir,cl/sizeof(integer),bd,cl-1);
+  for (int i=cl-2; i>=0; i--) {
+    if(bd[i] == ' ') bd[i]='\0';
+    else break;
+  }
+          //cout <<"  BlocksDir "<<bd<<endl;
+          char *last=strstr(rootdir,bd);
+          if(last && strlen(bd)>0){
+              //*last='R';
+              //*(last+1)='O';
+              //*(last+2)='O';
+              //*(last+3)='T';
               char cmd[1025];
               strcpy(cmd,"mkdir -p ");
               last=strrchr(rootdir,'/');
@@ -2456,8 +2464,8 @@ again:
               }
              }
              else{
-            last=strstr(rootdir,"HRDL-A");
-          if(last){
+            last=strstr(rootdir,bd);
+          if(last && strlen(bd)>0){
               *last='R';
               *(last+1)='O';
               *(last+2)='O';

@@ -80,7 +80,6 @@ module DPS{
     void Exiting(in CID id, in string Error, in ClientExiting Status);
 
 
-
    struct NominalHost{
     string HostName;
     string Interface;
@@ -318,6 +317,7 @@ module DPS{
     void clearDST(in DSTType type)raises(DBProblem);
     void clearDSTI()raises(DBProblem);
     void clearRunEvInfo(in RunStatus status)raises(DBProblem);
+    void sendmessage(in string address,in string subject,in string message);
 
   };
 };

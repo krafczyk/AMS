@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.156 2010/09/13 21:09:40 choutko Exp $
+//  $Id: server.C,v 1.157 2010/10/12 18:44:55 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -497,6 +497,7 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
   if(check<1000)cout << "  start ok "<<endl;
   if(!force)Listening(count);
   pcur->CheckClients(_pid);
+  pcur->CheckRuns();
   if(check<1000)cout << "  check ok "<<endl;
   if(!force)Listening(count);
   pcur->KillClients(_pid);
@@ -1079,6 +1080,91 @@ _pser->Lock(pid,DPS::Server::ClearKillClient,getType(),_KillTimeOut);
 
 
 }
+
+void Producer_impl::CheckRuns(){
+vector <int>    bad;
+static vector <int> bad_checked;
+
+for(RLI li=_rl.begin();li!=_rl.end();++li){
+if( (*li)->Status==DPS::Producer::Failed){
+ bool found=false;
+ for(int i=0;i<bad_checked.size();i++){
+   if(bad_checked[i]==(*li)->uid){
+     found=true;
+     break;
+   }
+ }
+ if(!found)bad.push_back((*li)->uid);
+}
+}
+int minr=3;
+char *min_bad=getenv("AMSMaxRunFailRate");
+if(min_bad && strlen(min_bad)){
+ minr=atol(min_bad)+1;
+}
+
+
+
+if(bad.size()>=minr){
+char mes[4096]="";
+bad_checked.clear();
+for(RLI li=_rl.begin();li!=_rl.end();++li){
+if( (*li)->Status==DPS::Producer::Failed){
+bad_checked.push_back((*li)->uid);
+char tmp[96];
+sprintf(tmp," %u ",(*li)->uid);
+if(strlen(mes)<4000)strcat(mes,tmp);
+}
+} 
+char *a1="vitali.choutko@cern.ch";
+char *a2="41764870923@mail2sms.cern.ch";
+
+char *a3=getenv("AMSShifterMailAddress");
+char *a5=getenv("AMSShifterMobilePhoneNumber16xxxx");
+char *a4=0;
+char a44[1023]="";
+if(a5 && strlen(a5) && atol(a5)/10000==16){
+    strcpy(a44,"4176487");
+    strcat(a44,a5+2);
+    strcat(a44,"@mail2sms.cern.ch");
+    cout <<"  RunCheck-I-ShifterSMSAddress "<<a44<<endl;
+    a4=a44;
+}    
+char sub[255];
+sprintf(sub,"BadRunsemerged %d ",bad_checked.size());
+cerr<<" RUnCheck-W-BadRunsemerged "<<sub<<" "<<mes<<endl;
+
+
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+     dvar->sendmessage(a1,sub,mes);
+     dvar->sendmessage(a2,sub,mes);
+     if(a3 && strlen(a3) &&strcmp(a1,a3))dvar->sendmessage(a3,sub,mes);
+     if(a4 && strlen(a4)&& strcmp(a2,a4))dvar->sendmessage(a4,sub,mes);
+    }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during sendmessag" <<endl;
+      
+     }
+    }
+  }
+}
+}
+}
+
+
+
+
+}
+
 
 void Server_impl::CheckClients(const DPS::Client::CID & cid){
 {

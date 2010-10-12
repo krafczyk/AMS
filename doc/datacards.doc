@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.333 2010/09/20 15:21:45 choutko Exp $
+#  $Id: datacards.doc,v 1.334 2010/10/12 18:44:56 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -557,7 +557,7 @@ I84 DAQVersion                      // DaqFormatVersion /0: 2008; 1:2009/
 I85 Mode;
 I86 ReadAhead;                      // (1) to workaround bad tof runs
                                     // should be used with 83=6 datacard
-
+I87 BlocksDir[40]                       // Monitor only blocks dir (HRDL-A etc)
 BMAP   // Magnetic field control
 I  1  mfile                          // mag file name 'fld97int.txt'
 I 41 iniok(1)                       // 0 for update mag field

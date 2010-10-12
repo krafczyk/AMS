@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.56 2009/02/20 13:10:20 choutko Exp $
+//  $Id: server.h,v 1.57 2010/10/12 18:44:56 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -24,6 +24,7 @@ typedef list<DPS::Client::ActiveHost_var>::iterator AHLI;
 typedef list<DPS::Client::ActiveClient_var> ACL;
 typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
 
+virtual void CheckRuns(){};
 protected:
 uinteger _SubmitTime;
 uinteger _Submit;    // in fact active client ID
@@ -33,7 +34,6 @@ bool _ActivateQueue;
 uinteger _RecID;
 CORBA::ORB_ptr  _defaultorb;    
 AMSClient * _parent;
-
 COL _col;
 
 DPS::Client::ClientType _Type;
@@ -307,6 +307,7 @@ typedef list<DPS::Producer::DSTInfo_var> DSTIL;
 typedef list<DPS::Producer::DSTInfo_var>::iterator DSTILI;
 DSTIL _dstinfo;
 
+virtual void CheckRuns();
 bool LastTry(const DPS::Producer::RunEvInfo_var & rv){
  unsigned int maxtry=1;
   char* gtv=getenv("AMSMaxRunFailRate");

@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.36 2009/12/11 15:06:05 choutko Exp $
+#  $Id: POADBServer.pm,v 1.37 2010/10/12 18:44:56 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1349,3 +1349,18 @@ OUT:
               }
 }
 
+sub sendmessage{
+    my $self=shift;
+    my $add=shift;
+    my $sub=shift;
+    my $mes=shift;
+    open MAIL, "| /usr/lib/sendmail -t -i"
+        or warn "could not open sendmail: $!";
+     print MAIL <<END_OF_MESSAGE2;
+To:  $add
+Subject: $sub
+
+$mes
+END_OF_MESSAGE2
+    close MAIL or warn "Error closing sendmail: $!";
+}

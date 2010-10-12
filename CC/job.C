@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.737 2010/10/08 17:33:16 mmilling Exp $
+// $Id: job.C,v 1.738 2010/10/12 18:44:55 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1463,6 +1463,7 @@ DAQCFFKEY.BTypeInDAQ[0]=0;
 DAQCFFKEY.BTypeInDAQ[1]=6;  // 7 & 7 not implemented yet
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
+VBLANK(DAQCFFKEY.BlocksDir,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 }

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.63 2010/10/12 18:44:55 choutko Exp $
+#  $Id: Makefile,v 1.64 2010/10/12 18:47:57 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -224,11 +224,11 @@ $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a:
 
 
 
-$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO)  
+$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a
 		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  
+$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a 
 		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
 		@echo "$(AMSPRGC) done"
 

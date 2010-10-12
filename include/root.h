@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.289 2010/10/08 19:18:23 mmilling Exp $
+//  $Id: root.h,v 1.290 2010/10/12 18:44:56 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -955,7 +955,7 @@ ClassDef(TrRecHitR,3)       //TrRecHitR
 
 
 
-/// TrTrackR structure 
+/// /TrTrackR structure 
 /*!
  \author j.alcaraz@cern.ch vitali.choutko@cern.ch
 
@@ -1028,7 +1028,22 @@ public:
   /// \param number index in container
   /// \return human readable info about TrTrackR
   char * Info(int number=-1){
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Span=(%4.2f, %4.2f) HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),Hit[0][2],Hit[NTrRecHit()-1][2],HRigidity[0],HRigidity[1],Status);
+   const float  zposl[9]={159.,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-136.0};
+    int pk[9]={0,0,0,0,0,0,0,0,0};
+    for(int i=0;i<NTrRecHit();i++){
+     for(int k=0;k<9;k++){
+      if(fabs(Hit[i][2]-zposl[k])<1){
+       pk[k]=1;
+      }
+    }
+   }
+   int p=100000000;
+    int pattern=0;
+    for(int k=0;k<9;k++){
+      if(pk[k])pattern+=p;
+       p/=10;
+     }
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Pattern=%09d HRig=(%7.3g,%7.3g) IERig=(%7.3g,%7.3g) (%7.3g,%7.3g)",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),pattern,HRigidity[0],HRigidity[1],RigidityIE[0][0],RigidityIE[0][1],RigidityIE[2][0],RigidityIE[2][1]);
   return _Info;
   } 
   virtual ~TrTrackR(){};

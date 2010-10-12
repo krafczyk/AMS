@@ -58,7 +58,7 @@
       if(root){
 try{
        iflg=rootread(fname,nevents,iver,lastevent,jou);
-       if(nevents==0)iflg=0;
+//       if(nevents==0)iflg=0;
 }
 catch (std::bad_alloc aba){
       iflg=-5;
