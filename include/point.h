@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.31 2010/07/07 14:12:53 pzuccon Exp $
+//  $Id: point.h,v 1.32 2010/10/12 23:18:14 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -29,6 +29,8 @@ public:
   AMSPoint(number coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
   //! Explicit constructor
   AMSPoint(geant coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
+  //! Copy Constructor
+  AMSPoint(const AMSPoint& o){_x=o._x;_y=o._y;_z=o._z;}
   //! it sets the position
   void setp(number fx,number fy,number fz){_x=fx;_y=fy;_z=fz;}
   //! it sets the position
@@ -120,6 +122,8 @@ public:
   //! it returns an AMSPoint which is the vector cross product
   AMSPoint crossp(const AMSPoint & o);
 
+  //! do some printout
+  void Print(){printf("point: %f  %f %f\n",_x,_y,_z);}
 #ifdef __WRITEROOT__
     friend class AMSPointRoot;
 #endif
@@ -163,7 +167,7 @@ class AMSDir :public AMSPoint{
 
 
   //! copy constructor
-  AMSDir(const AMSDir& o):AMSPoint(){_copy(o._x,o._y,o._z);}
+  AMSDir(const AMSDir& o):AMSPoint(o){};
   //! explicit constructor from coo
   AMSDir(number fx, number fy,number fz){_copy(fx,fy,fz);}
   //! explicit constructor from an array
@@ -174,6 +178,8 @@ class AMSDir :public AMSPoint{
   void setd(number fx[]){_copy(fx[0],fx[1],fx[2]);}
   //! it does the vector cross product of two AMSDir
   AMSDir cross(const AMSDir & o);
+  //! do some printout
+  void Print(){AMSPoint::Print();}
     ClassDef(AMSDir,1);
 };
 
@@ -242,6 +248,8 @@ public:
   AMSRotMat& operator=(const AMSRotMat& orig);
   //! it requires that the two matrix are identical
   bool operator==(const AMSRotMat& orig);
+
+
 };
 
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.8 2010/10/06 16:47:12 pzuccon Exp $
+#  $Id: Makefile,v 1.9 2010/10/12 23:18:14 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -12,19 +12,53 @@
 #-------------------------------------
 
 ### Architecture ###
-ARCH     = $(shell uname)
+ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
 
+GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+
+ifeq ($(GCC_VER_MAJOR),4)
+VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4)
+VERGCCH      := 1
+endif
+endif
+
+
+
+LIB= ../lib/$(ARCH)/
+
+
+ifeq "$(ARCH)" "linux"
+DEFINES=
+ifdef VERGCC
+FC       = gfortran -m32
+else
 ### Compilers ###
 FC       = g77 -m32
-CXX      = g++ -m32 
-LD       = g++  -m32
-
-
-ifeq "$(ARCH)" "Linux"
-LIB= ../lib/linux/
-else
-LIB= ../lib/$(ARCH)/
 endif
+endif
+ifeq "$(ARCH)" "linuxicc"
+DEFINES=
+### Compilers ###
+  FC       = ifort  -m32
+  CXX      = icc -m32 
+  LD       = icc   -m32
+
+
+endif
+ifeq ($(ARCH), Darwin)
+DEFINES  = -D__DARWIN__
+FC=gfortran -m64
+CXX      = g++  
+LD       = g++ 
+
+
+
+endif
+
   
 SRC= .
 OBJ= ./tmp/$(ARCH)/
@@ -40,13 +74,6 @@ ROOTCFG  = $(ROOTSYS)/bin/root-config
 ROOTFLGS = $(shell $(ROOTCFG) --cflags)
 ROOTLIBS = $(shell $(ROOTCFG) --libs)
 
-### C++ compiler flags ###
-ifeq ($(ARCH), Darwin)
-DEFINES  = -D__DARWIN__
-FC=gfortran -m64
-else
-DEFINES  =
-endif
 ifndef CERNDIR
 CERNDIR=/cern/pro/
 endif
@@ -71,7 +98,7 @@ OBJS = $(patsubst %.F, $(OBJ)%.o, $(SRCS))
 $(OBJ)%.o : %.F
 	@echo Compiling  $< ...
 	@if ! [ -d $(OBJ) ] ; then mkdir -p $(OBJ); fi
-	@$(FC) $(FFLAGS) -c $< -o $@  
+	$(FC) $(FFLAGS) -c $< -o $@  
 
 
 

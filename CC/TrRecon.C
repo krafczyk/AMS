@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.67 2010/08/25 10:26:34 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.68 2010/10/12 23:18:13 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/08/25 10:26:34 $
+/// $Date: 2010/10/12 23:18:13 $
 ///
-/// $Revision: 1.67 $
+/// $Revision: 1.68 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2570,8 +2570,11 @@ int TrRecon::BuildTrTasTracks(int rebuild)
   return ntrk;
 }
 
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+
 AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
-				  AMSPoint trd_pnt0, AMSDir trd_dir,
+				  AMSPoint& trd_pnt0, AMSDir& trd_dir,
 				  int fit_id)
 {
   /// Check the Match between Tracker and TRD tracks
@@ -2599,18 +2602,18 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
   number d=bb.norm();
   number X=bb[0];
   number Y=bb[1];
-//   hman.Fill("TkTrd",c,d);
-//   hman.Fill("TkTrdXY",X,Y);
-//   hman.Fill("ntrdhit",ptrd->_Base._NHits,Y);
-//   if(ptrd->_Base._NHits>10)
-//     hman.Fill("Yresvsrig",ptrack->GetRigidity(),Y);
+  //   hman.Fill("TkTrd",c,d);
+  //   hman.Fill("TkTrdXY",X,Y);
+  //   hman.Fill("ntrdhit",ptrd->_Base._NHits,Y);
+  //   if(ptrd->_Base._NHits>10)
+  //     hman.Fill("Yresvsrig",ptrack->GetRigidity(),Y);
   bb[2]=fabs(c);
   return bb;
   
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
 }
 
-bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
+bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 {
   int mfit = TrTrackR::kSimple;
   if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
@@ -2624,45 +2627,112 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint trdcoo, AMSDir trddir)
 
   // Good match between TrTrack-TRD tracks; no need to move
   if (fabs(dst[0]) < SearchReg) return true;
+  printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
+  
+  return MoveTrTrack(ptrack, trdcoo, trddir,  3.);
 
-  // Try to move TrTrack along X
-  int left = 0, right = 0;
-  ptrack->GetMaxShift(left, right);
+}
 
-  int moved = 0;
-  for (int mm = left; mm <= right; mm++){
-    if (mm == 0) continue;
 
-    TrTrackR test(*ptrack);
-    test.Move(mm, mfit);
-    AMSPoint dd = BasicTkTRDMatch(&test, trdcoo, trddir, mfit);
-    if (fabs(dd[0]) < SearchReg && 
-	fabs(dd[1]) < SearchReg && dd[2]> MaxCos) {
-      moved = mm;
-      break;
+
+bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
+  // search if the XY hits are laying with the X road
+  int good_mult[9][2];
+  int ngood=0;
+  int nxy=0;
+  for(int jj=0;jj<ptr->getnhits();jj++){
+    TrRecHitR* phit=ptr->GetHit(jj);
+    if(phit->OnlyY()) continue;
+    nxy++;
+    float X=pp[0]+dir[0]/dir[2]*(phit->GetCoord().z()-pp[2]);
+    int mm=-1;
+    float max=9999.;
+    for(int ii=0;ii<phit->GetMultiplicity();ii++){
+      int layer=phit->GetLayer();
+      float diff=X- phit->GetCoord(ii).x();
+      if (fabs(diff)<max) max=fabs(diff);
+
+      if(fabs(diff) < (err*(1.+(layer-1)*0.017) )) 
+	{ mm=ii; break;}
+    }
+    float base=(err>3)?2:0;
+    hman.Fill("trdmatch",max,(mm>-1)?(base+1.):(base+2.));
+    if(mm>-1) {
+      good_mult[ngood][0]=jj;
+      good_mult[ngood++][1]=mm;
     }
   }
-  if (moved == 0) return false;
 
-  ptrack->Move(moved);
-  ptrack->EstimateDummyX();
-  return true;
+  // move the XY hits 
+  // and do a linear Fit on X
+  if(ngood==nxy && ngood>=3){
+    float alpha=0,beta=0,gamma=0,delta=0;
+    for (int ii=0;ii<ngood;ii++){
+      TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
+      phit->SetResolvedMultiplicity(good_mult[ii][1]);
+      float X=phit->GetCoord().x();
+      float Z=phit->GetCoord().z();
+      alpha+=Z*Z;
+      beta+=Z;
+      gamma+=X;
+      delta+=X*Z;
+    }
+    float q=(alpha*gamma-beta*delta)/(ngood*alpha-beta*beta);
+    float m=(ngood*delta-beta*gamma)/(ngood*alpha-beta*beta);
+
+    // Fix the X coo of the Y only hits
+    for(int jj=0;jj<ptr->getnhits();jj++){
+      TrRecHitR* phit=ptr->GetHit(jj);
+      if(phit && phit->OnlyY()){
+	AMSPoint gcoo=phit->GetCoord();
+	gcoo[0]=gcoo[2]*m+q;
+	int tkid=phit->GetTkId();
+	TkSens tks(tkid, gcoo, 0);
+	if(tks.LadFound() && tks.GetStripX()!=-1){
+	  phit->SetDummyX(tks.GetStripX());
+	  phit->SetResolvedMultiplicity(tks.GetMultIndex());
+	  phit->BuildCoordinates();	  
+	}
+      }
+    }
+    ptr->ReFit();
+    //printf("TrRecon-MoveTrTrack-I- Track Moved err: %f !!!\n",err);
+    return true;
+    
+  }
+  return false;
 }
+
+
+bool TkTOFMatch(TrTrackR* tr);
 
 void TrRecon::MatchTRDandExtend(){
- VCon* cont = GetVCon()->GetCont("AMSTrTrack");
- for(int ii=0;ii< cont->getnelem();ii++){
-   TrTrackR* tr=(TrTrackR*)cont->getelem(ii);
+  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
+  for(int ii=0;ii< cont->getnelem();ii++){
+    TrTrackR* tr=(TrTrackR*)cont->getelem(ii);
 #ifndef __ROOTSHAREDLIBRARY__
-   for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
-	  ;trd;trd=trd->next())
-     TkTRDMatch(tr, trd->getCooStr(), trd->getCooDirStr());
-#endif
-   if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
- }
- delete cont;
-}
+    bool TRDdone=false;
+    if((TRCLFFKEY.ExtMatch%10)>0){
+      for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
+	     ;trd;trd=trd->next())
+	{
+	  AMSPoint pp= trd->getCooStr();
+	  AMSDir dd=trd->getCooDirStr(); 
+	  TRDdone=TkTRDMatch(tr, pp,dd);; 
+	  if(TRDdone) 
+	    break;
+	}
+    }
+    if(!TRDdone &&(TRCLFFKEY.ExtMatch/10)>0)   TkTOFMatch(tr);
 
+#endif
+    if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
+  }
+  delete cont;
+}
+//-----------------------------------------------------------------------
+
+//-----------------------------------------------------------------------
 
 ///////////////////////////////////////////////////////////
 //                  VERTEX                     ////////////

@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.87 2010/09/09 19:14:59 choumilo Exp $
+//  $Id: beta.C,v 1.88 2010/10/12 23:18:14 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -17,6 +17,7 @@
 #include "trdrec.h"
 #ifdef _PGTRACK_
 #include "patt.h"
+#include "TrRecon.h"
 #endif
 
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
@@ -185,7 +186,7 @@ void mtof_hit::MatchCheck(){
   }
 }
 
-int FindCloserTOF(AMSTrTrack* ptrack,mtof_hit* tmhit){
+int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
 
   // 0 -- Search for the geometrically matching TOF Hits  
   int tofcoo[4]={1,0,0,1};
@@ -200,7 +201,7 @@ int FindCloserTOF(AMSTrTrack* ptrack,mtof_hit* tmhit){
       // it is a normalized distance with respect the TOF incertitude,
       // sleng is signed coo along the track
       AMSPoint dst=AMSBeta::Distance(tofhit->getcoo(),tofhit->getecoo(),
-				     ptrack,ssleng,td);
+				     (AMSTrTrack*)ptrack,ssleng,td);
       
       if (fabs(dst[tofcoo[TOFlay]]) <= tmhit[TOFlay].min_d[tofcoo[TOFlay]]){ 
 	//cout<<" The cluster "<<clnum-1<<" is good"<<endl; 
@@ -215,6 +216,49 @@ int FindCloserTOF(AMSTrTrack* ptrack,mtof_hit* tmhit){
 
   return 0;
 }
+
+
+bool TkTOFMatch(TrTrackR* tr);
+bool TkTOFMatch(TrTrackR* ptrack){
+  int mfit = TrTrackR::kSimple;
+  mtof_hit tofhit[4];  
+  FindCloserTOF( ptrack,tofhit);
+  bool g_YMatch=tofhit[0].Ymatch && tofhit[3].Ymatch;
+  bool g_XMatch=tofhit[1].Xmatch || tofhit[2].Xmatch;
+  if( g_YMatch && !g_XMatch ){ //try to move
+
+    AMSPoint p0(tofhit[0].phit->getcoo());
+    AMSPoint p1(tofhit[3].phit->getcoo());
+    AMSDir dir(p0-p1);
+    return TrRecon::MoveTrTrack(ptrack, p0, dir,  3.8);
+
+//     // Try to move TrTrack along X
+//     int left = 0, right = 0;
+//     ptrack->GetMaxShift(left, right);
+    
+//     int moved = 0;
+//     for (int mm = left; mm <= right; mm++){
+//       if (mm == 0) continue;      
+//       TrTrackR test(*ptrack);
+//       test.Move(mm, mfit);
+//       mtof_hit tofhit_test[4];
+//       FindCloserTOF(&test,tofhit);
+//       bool g_XMatch=tofhit[1].Xmatch && tofhit[2].Xmatch;
+//       if(g_XMatch) {moved=mm; break;}
+//     }
+//     if (moved != 0){
+//       ptrack->Move(moved);
+//       ptrack->EstimateDummyX();
+//       return true;
+//     }
+  }
+  return false;
+
+}
+
+
+
+
 
 
 int AMSBeta::BuildBeta(AMSTrTrack* ptrack, integer Master){
@@ -260,7 +304,7 @@ int AMSBeta::BuildBeta(AMSTrTrack* ptrack, integer Master){
 		       (1<<patconf[patb][1])|
 		       (1<<patconf[patb][2])|
 		       (1<<patconf[patb][3]));
-    if ((tofpatt&0x1e)==(testpatt&0x1e)){
+    if (((tofpatt<<1)&0x1e)==(testpatt&0x1e)){
       sel_patt=patb;
       break;
     }

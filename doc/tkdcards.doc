@@ -94,13 +94,14 @@ R 34 MaxChisqForLScan (Default: 2.2)
 R 35 ErrXForScan      (Default: 300e-4)
 R 36 ErrYForScan      (Default: 300e-4)
 R 37,38 TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 37:n(X) 38:p(Y) side
-I 39 TrDEBUG
-I 40 PZDEBUG
+I 39 Fit methods to be included for AdvancedFit see TrTrack.h for detail
+I 40 TrDEBUG
+I 41 PZDEBUG
 
-I 41 TAS reconstruction (1:ON 0:OFF, Default:0)
-I 42 TAS laser current intensity
-I 43 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
-
+I 42 TAS reconstruction (1:ON 0:OFF, Default:0)
+I 43 TAS laser current intensity
+I 44 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
+I 45 TRD TOF Matching  mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
 //==============================
 
 

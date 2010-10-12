@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.33 2010/08/23 16:57:02 shaino Exp $ 
+// $Id: TrRecon.h,v 1.34 2010/10/12 23:18:14 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/08/23 16:57:02 $
+/// $Date: 2010/10/12 23:18:14 $
 ///
-/// $Revision: 1.33 $
+/// $Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -540,20 +540,7 @@ public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
 
-  /// Check the Match between Tracker and TRD tracks
-  /// Returns an AMSPoint with
-  /// [0] X distance
-  /// [1] Y distance
-  /// [2] Cos(angle)
-  static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
-				  AMSPoint trdcoo, AMSDir trddir, 
-				  int fit_id=0);
-  /// Check the match Tracker and TRD tracks and shift TrTrack
-  static bool TkTRDMatch(TrTrackR* ptrack, 
-			 AMSPoint trdcoo, AMSDir trddir);
-
-  /// Try to extend to external planes for AMS-02P
-  void MatchTRDandExtend();
+ 
 
   /// Merge hits shared by two tracks
 //int MergeSharedHits(TrTrackR *track, int fit_method);
@@ -569,6 +556,33 @@ public:
 
   /// Purge "ghost" hits and assign hit index to tracks
   void PurgeGhostHits();
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+  /// Try to extend to external planes for AMS-02P
+  void MatchTRDandExtend();
+
+
+ /// Check the Match between Tracker and TRD tracks
+  /// Returns an AMSPoint with
+  /// [0] X distance
+  /// [1] Y distance
+  /// [2] Cos(angle)
+  static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
+				  AMSPoint& trdcoo, AMSDir& trddir, 
+				  int fit_id=0);
+
+  /// Check the match Tracker and TRD tracks and shift TrTrack
+  static bool TkTRDMatch(TrTrackR* ptrack, 
+			 AMSPoint& trdcoo, AMSDir& trddir);
+
+
+  /// Try to ajust the X multiplicity using a road from other detectors
+  static bool MoveTrTrack(TrTrackR* ptr, AMSPoint& pp, AMSDir& dir, float err);
+
+  
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
   /// General recursion function for Ladder/Hit scan
   /*!

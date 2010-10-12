@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.55 2010/10/06 16:47:11 pzuccon Exp $
+// $Id: TrTrack.C,v 1.56 2010/10/12 23:18:14 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/06 16:47:11 $
+///$Date: 2010/10/12 23:18:14 $
 ///
-///$Revision: 1.55 $
+///$Revision: 1.56 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +85,7 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
-    _iMult[i] = -1;
+    //    _iMult[i] = -1;
     _BField[i]=AMSPoint(0,0,0);
   }
   trdefaultfit=0;
@@ -113,7 +113,11 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
   _MagFieldOn=0;
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = (phit   && i < _Nhits) ? phit [i] :  0;
-    _iMult[i] = (imult  && i < _Nhits) ? imult[i] : -1;
+    //    _iMult[i] = (imult  && i < _Nhits) ? imult[i] : -1;
+
+    if (imult  && i < _Nhits && phit[i] ) 
+      phit[i]->SetResolvedMultiplicity(imult[i]);
+
     _BField[i]= (bfield && i < _Nhits) ? bfield[i]: AMSPoint(0,0,0);
     if(_BField[i].norm()!=0) _MagFieldOn=1;
     if (phit && i < _Nhits) {
@@ -155,7 +159,7 @@ TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
   par.ErrRinv  = 1e7;
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
-    _iHits[i] = _iMult[i] = -1;
+    _iHits[i] = -1; //_iMult[i] = -1;
     _BField[i]= AMSPoint(0,0,0);
     par.Residual[i] = 0;
   }
@@ -185,7 +189,7 @@ TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
 
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
-    _iHits[i] = _iMult[i] = -1;
+    _iHits[i] = -1; //_iMult[i] = -1;
     _BField[i]= AMSPoint(0,0,0);
     par.Residual[i] = 0;
   }
@@ -201,7 +205,7 @@ TrTrackR::TrTrackR(const TrTrackR& orig){
     _Hits[ii]=orig._Hits[ii] ;
     _BField[ii]=orig._BField[ii] ; 
     _iHits[ii]=orig._iHits[ii] ;
-    _iMult[ii]=orig._iMult[ii] ;
+    //    _iMult[ii]=orig._iMult[ii] ;
   }
   _bit_pattern=orig._bit_pattern ;
   _Pattern=orig._Pattern ;
@@ -267,8 +271,9 @@ AMSPoint TrTrackR::GetPlayer(int ilay, int id)
   for (int i = 0; i < GetNhits(); i++) {
     TrRecHitR *hit = GetHit(i);
     if (hit && hit->GetLayer() == ilay+1) {
-      AMSPoint coo = (_iMult[i] >= 0) ? hit->GetCoord(_iMult[i])
-                                      : hit->GetCoord();
+      //      AMSPoint coo = (_iMult[i] >= 0) ? hit->GetCoord(_iMult[i])
+      //                              : hit->GetCoord();
+      AMSPoint coo = hit->GetCoord();
       return coo-pres;
     }
   }
@@ -308,12 +313,12 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   _Hits [ihit] = hit;
   _iHits[ihit] = cont2->getindex(hit);
-  _iMult[ihit] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
+  //  _iMult[ihit] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
   delete cont2;
 
   if (MagFieldOn()){
     float coo[3], bf[3];
-    hit->GetCoord(_iMult[ihit]).getp(coo);
+    hit->GetCoord().getp(coo);
     GUFLD(coo, bf);
     _BField[ihit] = AMSPoint(bf);
     _MagFieldOn = 1;
@@ -345,7 +350,8 @@ void TrTrackR::GetMaxShift(int &left, int &right)
 
     int tkid  = hit->GetTkId();
     int nmult = hit->GetMultiplicity();
-    int imult = _iMult[i];
+    int imult =  hit->GetResolvedMultiplicity();
+    //    int imult = _iMult[i];
     int ll = 0;
     int rr = 0;
 
@@ -364,21 +370,23 @@ void TrTrackR::Move(int shift, int fit_flags)
     if (!hit) continue;
    
     int tkid = hit->GetTkId();
-    if (!hit->OnlyY()) {
+    //   if (!hit->OnlyY()) {
       int nmult = hit->GetMultiplicity();
-      int imult = _iMult[i];
+      int imult = hit->GetResolvedMultiplicity();
+      //int imult = _iMult[i];
+
       if (tkid >= 0) imult -= shift;
       else           imult += shift;
 
       if (imult >= 0 && imult < nmult) {
-	_iMult[i] = imult;
+	//	_iMult[i] = imult;
 	_Hits [i]->SetResolvedMultiplicity(imult);
       }
       else cerr
 	<< "TrTrackR::Move-E- Problem moving the Track "
 	<< hit->GetTkId() << " " << nmult << " " << imult << " " << shift
 	<< endl;
-    }
+      //  }
   }
   if (fit_flags != 0 && ParExists(fit_flags)) Fit(fit_flags);
   else ReFit();
@@ -427,15 +435,14 @@ void TrTrackR::EstimateDummyX(int fitid)
 	     << "d=" << dx << " " << dy << endl;
       }
 
-      _iMult[i] = 0;
+      //      _iMult[i] = 0;
       hit->SetDummyX(0);
     }
     else {
-      _iMult[i] = tks.GetMultIndex();
       hit->SetDummyX(tks.GetStripX());
+      hit->SetResolvedMultiplicity(tks.GetMultIndex());
     }
 
-    hit->SetResolvedMultiplicity(_iMult[i]);
     hit->BuildCoordinates();
   }
 }
@@ -689,8 +696,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
-    AMSPoint coo = (_iMult[j] >= 0) ? hit->GetCoord(_iMult[j])
-                                    : hit->GetCoord();
+    AMSPoint coo =  hit->GetCoord();
 
     double ery = erry;
     /*

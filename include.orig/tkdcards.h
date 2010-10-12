@@ -251,6 +251,8 @@ public:
   int TasCurr;
   //! I 44 TAS LDDR mode
   int TasLDDR;
+  //! I 45 mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
+  int ExtMatch;
 
   void init();
 };

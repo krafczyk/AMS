@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.39 2010/10/06 16:47:12 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.40 2010/10/12 23:18:14 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/06 16:47:12 $
+///$Date: 2010/10/12 23:18:14 $
 ///
-///$Revision: 1.39 $
+///$Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -213,8 +213,8 @@ protected:
   AMSPoint  _BField[trconst::maxlay]; 
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
   short int _iHits[trconst::maxlay];
-  /// Vector of multiplicty index (to fix x-coord) 
-  short int _iMult[trconst::maxlay];
+//   /// Vector of multiplicty index (to fix x-coord) 
+//   short int _iMult[trconst::maxlay];
   /// The real bitted Track Pattern
   unsigned short int _bit_pattern;
   /// Track pattern ID
@@ -625,7 +625,7 @@ public:
 
   int Pattern(int input=111111111) ; ///< \return full track  pattern hit suitable for iTrTrackPar
   /// ROOT definition
-  ClassDef(TrTrackR, 2);
+  ClassDef(TrTrackR, 3);
 };
 
 
