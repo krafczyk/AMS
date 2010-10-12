@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.64 2010/10/12 18:47:57 choutko Exp $
+#  $Id: Makefile,v 1.65 2010/10/12 22:11:32 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -15,7 +15,18 @@ AMSLIBSO        = ntuple_slc4.so
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/amsed
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/amsedc
 SLC4=y
-VERGCCH       := $(shell gcc --version | grep 4.4)
+
+GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+
+ifeq ($(GCC_VER_MAJOR),4) 
+ VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCH      := 1
+endif
+endif 
 
 
 ifdef PGTRACK

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.13 2010/09/14 19:05:59 pzuccon Exp $
+//  $Id: ControlFrame.cxx,v 1.14 2010/10/12 22:11:32 pzuccon Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -404,6 +404,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     for(int i=1;i<_pvis.size();i++){
      _pvis[i]->SetState(kButtonDown);
     }
+    _pvis[7]->SetState(kButtonUp);
     _pvis[8]->SetState(kButtonUp);
      gAMSDisplay->SetVisible(kusedonly,_pvis[0]->GetState());
      gAMSDisplay->SetVisible(ktrdtracks,_pvis[1]->GetState());

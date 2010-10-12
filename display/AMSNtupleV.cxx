@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.31 2010/09/14 19:05:59 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.32 2010/10/12 22:11:32 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -303,10 +303,11 @@ if(type==kall || type==kusedonly || type==ktofclusters){
        int rm=pTrRecHit(i)->GetResolvedMultiplicity();
        if(!gAMSDisplay->DrawUsedOnly() || Used) 
  	 if ((Yonly && GetTkDispY()) || (!Yonly)){
-	   if(Mult && !Used ){
+	   //	   if(Mult && !Used ){
+	   if(Mult ){
 	     for (int jj=0;jj<pTrRecHit(i)->GetMultiplicity();jj++)
 	       fTrRecHitV.push_back( TrRecHitV(this,i,jj));
-	       }else
+	   }else
 	     fTrRecHitV.push_back( TrRecHitV(this,i,(rm>-1)?rm:0));
 	 }
        
