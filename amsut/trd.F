@@ -1,7 +1,7 @@
 #ifndef CERNLIB_TYPE
 #define CERNLIB_TYPE
 #endif
-        SUBROUTINE SIMTRD(g3trd)
+        SUBROUTINE SIMTRD(g3trd,Gdens,ntrcor,etrcor)
         implicit none
 C
 C...TR-simulation main program
@@ -27,6 +27,7 @@ C
 *        DATA COR/0.48/                      !... for Polypr Foam (Airex)
 *         DATA COR/0.68/                      !... for Polypr Fibre (Fleece)
 C...
+      real Gdens,etrcor,ntrcor
 
 
 
@@ -61,7 +62,8 @@ C...
       if(Q(JTM+14+3).eq.3.and.inwvol.eq.1)then
        CALL GENTRDI(ABS(CHARGE),GAMMA,STEP,NTR,ETR,STR)
       else if(Q(JTM+14+3).eq.1)then
-       CALL GENTRD(ABS(CHARGE),GAMMA,Q(JTM+14+4),STEP,NTR,ETR,STR)
+         CALL GENTRD(ABS(CHARGE),GAMMA,Q(JTM+14+4),STEP,NTR,ETR,STR,
+     >        ntrcor,etrcor)
       else
        goto 99
       endif
@@ -198,7 +200,7 @@ C ************************************************************
 C *       PROGRAM FOR DE/DX-SIMULATION WITHIN STRAWS         *
 C ************************************************************
 C
-        SUBROUTINE SIMDE(g3trd)
+      SUBROUTINE SIMDE(g3trd,Gdens,Pecut,ndecor,edecor)
         implicit none
 C
 C... *** Simulation energy deposition within straw ***
@@ -213,7 +215,7 @@ C
 #include     "geant321/gcflag.inc"
 #include     "trdf.h"
       integer g3trd,nwbuf,jtm
-      real gamma,de,derand
+      real gamma,de,derand, Gdens, Pecut, ndecor, edecor
 
 *>>>> T.S. 2/2003  Variables for Delta-Rays
 #include    "geant321/gcking.inc"
@@ -259,7 +261,8 @@ C...
         GEKIN   = GEKIN+DESTEP
         GAMMA   = GETOT/AMASS
 C...
-        DE      = DERAND(GAMMA,DCUTE,STEP,Ndr,Edr,Sdr)
+        DE      = DERAND(Gdens,GAMMA,DCUTE,STEP,Ndr,Edr,Sdr,
+     >       ndecor,edecor)
        
 *>>>>>> T.S. 2/2003 ------------------
         if( Ndr.gt.0 ) 
@@ -327,7 +330,8 @@ c     &      i,Edr(i),PMODdr,THTdr,PHIdr,Sdr(i),VECT(1),VECT(2),VECT(3)
 *CMZ :          15/08/94  09.46.59  by  Valeri Saveliev
 *-- Author :
 C------------------------------------------------------------
-        FUNCTION DERAND (GAMMA,ECUT,STEP,Ndr,Edr,Sdr)
+        FUNCTION DERAND (Gdens,GAMMA,ECUT,STEP,Ndr,Edr,Sdr,
+     >       ndecor,edecor)
 C
 C... ***  Simulation of energy loss straggling within straw
 C         with energy smaller then ECUT ***
@@ -346,13 +350,13 @@ C CLESTEP(2,#) - coordinate of the # cluster.
 C
         DIMENSION ANGL(200),RNDM(2)
         real angl,rndm,gamma,ecut,step,gaml,derand,ec,dgg
-        real anmin,anmax,dan,amu,r,ee,e
+        real anmin,anmax,dan,amu,r,ee,e, edecor, ndecor
         integer i,k,n,ier,k1,k2
 
 *>>>> T.S. 2/2003  
 *     Generator Gas-Density     should be a DATA-CARD  !!!!!!!
       REAL        Gdens 
-      PARAMETER  (Gdens=0.00446)    !    default 4.46 g/cm**3
+*      PARAMETER  (Gdens=0.00446)    !    default 4.46 g/cm**3
 
 *     variables for Delta-Rays:
       INTEGER     Mdr,Ndr
@@ -434,7 +438,7 @@ C...
         DAN     = ANMAX-ANMIN
 
 *>>>>>  T.S. 2/2003
-        AMU     = DAN * STEP
+        AMU     = DAN * STEP * ndecor
      >                * Gdens/0.00446  ! dEdX density corr. (nominal: 0.00446 g/cm**3)
      >                * CHARGE**2   ! for charge<>1 particles
 *<<<<<  -------------------------
@@ -458,7 +462,7 @@ C...
 C...
         E       = WE(K2)+(R-ANGL(K2))*(WE  (K1)-WE  (K2))/
      +                                (ANGL(K1)-ANGL(K2))
-        EE      = EXP(E)
+        EE      = EXP(E) * edecor
 
 *>>>>>> T.S. 2/2003
  81     CALL GRNDM(RNDM,1)
@@ -611,7 +615,7 @@ C...
         IM=Q(JTM+14+3)
 
 *>>>>>> T.S. 2/2003
-        CALL DIFFSCAT(IM) !  DDIS process
+*        CALL DIFFSCAT(IM) !  DDIS process
 
 C       continue with TR-Photon-absorption...
 
@@ -696,7 +700,7 @@ C...
 *CMZ :          03/05/99  23.29.46  by  AMS TRD: Kirn,Raupach,Siedenburg
 *-- Author :
 C------------------------------------------------------------
-        SUBROUTINE GENTRD (QCH,GAMMA,COR,STEP,NTR,ETR,STR)
+        SUBROUTINE GENTRD (QCH,GAMMA,COR,STEP,NTR,ETR,STR,NTRCOR,ETRCOR)
 C
 C... *** Simulation TR-photon in STEP-length radiator ***
 C
@@ -713,7 +717,7 @@ C...
         DIMENSION ETR(1000),STR(1000),DNWMG(81)
         DIMENSION RNDM(2)
         real etr,str,dnwmg,step,cor,gamma
-        real rndm,qch
+        real rndm,qch,ntrcor,etrcor
         real gamtab,anmin,anmax,gl,dgg,dan,am
         integer ntr,jg,nfoil,i,jg1,n,jtab,ier
         integer k1,k2,k
@@ -807,7 +811,7 @@ C...
         ANMAX   = EXP(DNWMG(1 ))
 C...
 6       DAN     = ANMAX-ANMIN
-        AM      = COR*DAN*NFOIL*QCH**2
+        AM      = COR*DAN*NFOIL*QCH**2*NTRCOR
 C...
 C...... DANGER
 *       AM = 0.
@@ -835,7 +839,7 @@ C...
 C...
         E       = WTR(K2)+(R-DNWMG(K2))*(WTR  (K1)-WTR  (K2))/
      +                                  (DNWMG(K1)-DNWMG(K2))
-        E       = EXP(E)
+        E       = EXP(E) * ETRCOR
 C...
 9       NTR         = NTR+1
         ETR(NTR)    = E*1.E-6
@@ -1292,7 +1296,7 @@ C...
 *CMZ :          19/03/99  13.30.03  by  Valeri Saveliev
 *-- Author :
 C----------------------------------------------------------
-        SUBROUTINE INDETRA
+        SUBROUTINE INDETRA(Gdens)
         implicit none
 C
 C... *** Input information from DETRA1,DETRA2,DETRA3 files ***
@@ -1311,7 +1315,7 @@ C                 #include "mfield.h"
 
 *>>>>>>> T.S. 2/2003  Xe/CO2 Gas-Density should be DATA-CARD !!!! 
          REAL       Gdens
-         PARAMETER (Gdens=0.00446) ! Default 0.00446 g/cm**3
+*         PARAMETER (Gdens=0.00446) ! Default 0.00446 g/cm**3
 *<<<<<<< ---------------------------
 C
 C

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.79 2010/10/08 17:27:59 mmilling Exp $
+//  $Id: mccluster.C,v 1.80 2010/10/13 23:53:56 mmilling Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -18,7 +18,7 @@
 #include "g4util.h"
 #endif
 using namespace std;
-extern "C" void indetra_();
+extern "C" void indetra_(float&);
 
 number AMSEcalMCHit::impoint[2];
 number AMSEcalMCHit::leadedep[ecalconst::ECSLMX];
@@ -81,7 +81,7 @@ void AMSTRDMCCluster::init(){
 if(MISCFFKEY.G3On){
 #endif
 if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
-indetra_();
+  indetra_(TRDMCFFKEY.Gdens);
 cout<< "<---- AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl<<endl;
 }
 else if(TRDMCFFKEY.mode==3){

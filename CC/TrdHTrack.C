@@ -175,3 +175,51 @@ void TrdHTrackR::clear(){
   segments.clear();
 }
 
+ float TrdHTrackR::TubePath(int layer, int debug){ 
+   double dr=-1.;
+   if(layer>19||layer<0)return dr;
+   int d=-1;
+   if((layer>=16)||(layer<=3)) d = 1;
+   else                        d = 0;
+ 
+   int thistube=0;
+   int thisladder=0;
+   for(int ladder=0;ladder!=18;ladder++){
+     double z = 85.275 + 2.9*(double)layer;
+     if(ladder%2==0) z += 1.45;
+ 
+     float exp_x=0.,exp_y=0.;
+     propagateToZ(z,exp_x,exp_y);
+ 
+     for(int tube=0;tube!=16;tube++){
+       double x = 10.1*(double)(ladder-9);
+ 
+       if((d==1) && (ladder>=12)) x+=0.78;
+       if((d==1) && (ladder<= 5)) x-=0.78;
+ 
+       x += 0.31 + 0.62*(double)tube;
+       if(tube >=  1) x+=0.03;
+       if(tube >=  4) x+=0.03;
+       if(tube >=  7) x+=0.03;
+       if(tube >=  9) x+=0.03;
+       if(tube >= 12) x+=0.03;
+       if(tube >= 15) x+=0.03;
+ 
+       if(d==1&&fabs(exp_y-x)<dr){
+         dr=fabs(exp_y-x);
+         thistube=tube;
+         thisladder=ladder;
+       }
+       if(d==0&&fabs(exp_x-x)<dr){
+         dr=fabs(exp_x-x);
+         thistube=tube;
+         thisladder=ladder;
+       }
+     }
+   }
+ 
+   double path=2*sqrt(pow(0.6*0.6-dr*cos(Theta()),2));// planar distance -> track perp distance 
+   if(debug)printf("TubeDist L%i dx %.2f dr %.2f path %.2f (ladder %i tube %i)\n",layer,dr,dr*cos(Theta()),path,thisladder,thistube);
+   return  path;
+ }
+ 

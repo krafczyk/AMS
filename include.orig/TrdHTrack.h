@@ -90,6 +90,9 @@ class TrdHTrackR:public TrElem{
   /// return x and y for given z coordinate 
   void propagateToZ(float z, float &x , float& y);
 
+  /// return path length inside tube for layer [cm]
+  float TubePath(int layer, int debug=0);
+  
   /// virtual dtor 
   virtual ~TrdHTrackR(){
     segments.clear();
@@ -145,7 +148,7 @@ p=0;
 }
 } 
 #endif
-  ClassDef(TrdHTrackR, 7);
+  ClassDef(TrdHTrackR, 8);
 };
 
 

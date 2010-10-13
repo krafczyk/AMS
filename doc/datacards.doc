@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.334 2010/10/12 18:44:56 choutko Exp $
+#  $Id: datacards.doc,v 1.335 2010/10/13 23:54:05 mmilling Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -646,6 +646,12 @@ I25   day[2](1,1)           //
 I27   mon[2](0,0)           //
 I29   year[2](101,110)
 I31   multiples             // Generate multiples with delay
+R32   Gdens(0.00446)        // Tube Gas density (in g/cm3)
+R33   Pecut(-0.65)          // Pecut in amsut
+R34   ntrcor(1.4)           // correction factor to n tr gammas
+R35   etrcor(1.2)           // correction factor to mean energy of tr gammas
+R36   ndecor(0.85)           // correction factor to number of ion collisions
+R37   edecor(1.0)           // correction factor to mean energy loss per collision
 
 TRDCL   // TRD clustering
 

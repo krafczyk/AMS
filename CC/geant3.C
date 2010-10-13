@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.139 2010/09/04 16:27:15 choutko Exp $
+//  $Id: geant3.C,v 1.140 2010/10/13 23:53:56 mmilling Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -53,9 +53,9 @@ void DumpG3Commons(ostream & o){
 }
 #endif
 
-extern "C" void simde_(int&);
+extern "C" void simde_(int&,float&,float&,float&,float&);
 extern "C" void trphoton_(int&);
-extern "C" void simtrd_(int& );
+extern "C" void simtrd_(int& ,float&,float&,float&);
 extern "C" void getscanfl_(int &scan);
 extern "C" void gustep_(){
 if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
@@ -99,7 +99,7 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
   if(!scan){
   if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
     //saveliev
-    simtrd_(TRDMCFFKEY.g3trd);
+    simtrd_(TRDMCFFKEY.g3trd,TRDMCFFKEY.Gdens,TRDMCFFKEY.ntrcor,TRDMCFFKEY.etrcor);
     if(TRDMCFFKEY.mode<2){
          if(GCTRAK.gekin != GCTRAK.gekin){
           cerr <<"  gekin problem "<<endl;
@@ -108,7 +108,7 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
          }
          trphoton_(TRDMCFFKEY.g3trd);
     }
-    if(TRDMCFFKEY.mode==0)simde_(TRDMCFFKEY.g3trd);
+    if(TRDMCFFKEY.mode==0)simde_(TRDMCFFKEY.g3trd,TRDMCFFKEY.Gdens,TRDMCFFKEY.Pecut,TRDMCFFKEY.ndecor,TRDMCFFKEY.edecor);
   }
   else if(TRDMCFFKEY.mode ==3){
     // garibyan
