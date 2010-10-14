@@ -198,18 +198,30 @@ void  VCon_root::addnext(TrElem* aa){
    if(!ev)  return ;
 
 #ifdef _PGTRACK_
-  if( strstr(contname,"TrMCCluster"))
+  if( strstr(contname,"TrMCCluster")) {
     ev->TrMCCluster().push_back(*(TrMCClusterR*)aa);
-  if( strstr(contname,"TrCluster"))
+    delete (TrMCClusterR*)aa;
+  }
+  if( strstr(contname,"TrCluster")) {
     ev->TrCluster().push_back(*(TrClusterR*)aa);
-  if( strstr(contname,"TrRawCluster"))
+    delete (TrClusterR*)aa;
+  }
+  if( strstr(contname,"TrRawCluster")) {
     ev->TrRawCluster().push_back(*(TrRawClusterR*)aa);
-  if( strstr(contname,"TrRecHit"))
+    delete (TrRawClusterR*)aa;
+  }
+  if( strstr(contname,"TrRecHit")) {
     ev->TrRecHit().push_back(*(TrRecHitR*)aa);
-  if( strstr(contname,"TrTrack"))
+    delete (TrRecHitR*)aa;
+  }
+  if( strstr(contname,"TrTrack")) {
     ev->TrTrack().push_back(*(TrTrackR*)aa);
-  if( strstr(contname,"Vtx"))
+    delete (TrTrackR*)aa;
+  }
+  if( strstr(contname,"Vtx")) {
     ev->Vertex().push_back(*(VertexR*)aa);
+    delete (VertexR*)aa;
+  }
 #endif
   if( strstr(contname,"AMSTRDHSegment"))
     ev->TrdHSegment().push_back(*(TrdHSegmentR*)aa);

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.68 2010/10/12 23:18:13 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.69 2010/10/14 09:17:28 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/10/12 23:18:13 $
+/// $Date: 2010/10/14 09:17:28 $
 ///
-/// $Revision: 1.68 $
+/// $Revision: 1.69 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1825,7 +1825,8 @@ int TrRecon::EstimateXCoord(int il, TrHitIter &it) const
   AMSPoint gcoo(px, ly, lz);
   TkSens tks = EstimateXCoord(gcoo, tkid);
   if (!tks.LadFound() || tks.GetLadTkID() != tkid) return -1;
-  if (tks.GetMultIndex() >= 
+  if (tks.GetMultIndex() < 0 ||
+      tks.GetMultIndex() >= 
       TkCoo::GetMaxMult(tkid,tks.GetStripX()+640)) return -1;
 
   it.imult[il] = tks.GetMultIndex();
@@ -1899,6 +1900,9 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
       TkSens tks = EstimateXCoord(ptrk);
       if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
       imult = tks.GetMultIndex();
+      if (imult < 0) imult = 0;
+      if (imult >= hit->GetMultiplicity()) imult = hit->GetMultiplicity()-1;
+
       if (std::fabs(hit->GetCoord(imult).y()-ptrk.y()) > rthdy) continue;
       hit->SetDummyX(tks.GetStripX());
     }
@@ -1981,6 +1985,9 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
 
       mlmin[i] = tks.GetMultIndex();
+      int nmlt = hit->GetMultiplicity();
+      if (mlmin[i] >= nmlt) mlmin[i] = nmlt-1;
+      if (mlmin[i] <     0) mlmin[i] = 0;
       hit->SetDummyX(tks.GetStripX());
       hit->BuildCoordinates();
     }
@@ -2627,7 +2634,7 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 
   // Good match between TrTrack-TRD tracks; no need to move
   if (fabs(dst[0]) < SearchReg) return true;
-  printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
+//printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
   
   return MoveTrTrack(ptrack, trdcoo, trddir,  3.);
 

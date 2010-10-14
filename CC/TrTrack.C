@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.56 2010/10/12 23:18:14 pzuccon Exp $
+// $Id: TrTrack.C,v 1.57 2010/10/14 09:17:28 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/12 23:18:14 $
+///$Date: 2010/10/14 09:17:28 $
 ///
-///$Revision: 1.56 $
+///$Revision: 1.57 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -768,12 +768,15 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   par.Dir = dir;
 
   // Fill residuals
-  for (int i = 0, j = 0; i < trconst::maxlay; i++) {
-    if (hitbits & (1 << (trconst::maxlay-(i+1)))) {
-      par.Residual[i].setp(_TrFit.GetXr(j), _TrFit.GetYr(j), _TrFit.GetZr(j));
-      j++;
-    }
-    else {
+  for (int i = 0; i < _TrFit.GetNhit(); i++) {
+    int j = idx[i]%10;
+    TrRecHitR *hit = GetHit(j);
+
+    int il = hit->GetLayer()-1;
+    par.Residual[il].setp(_TrFit.GetXr(i), _TrFit.GetYr(i), _TrFit.GetZr(i));
+  }
+  for (int i = 0; i < trconst::maxlay; i++) {
+    if (par.Residual[i].norm() == 0) {
       TrRecHitR *hit = GetHitL(i);
       AMSPoint pint  = InterpolateLayer(i, id);
       if (hit)

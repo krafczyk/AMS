@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.19 2010/09/24 14:55:14 choutko Exp $
+//  $Id: TrRecHit.h,v 1.20 2010/10/14 09:17:29 shaino Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -127,13 +127,15 @@ protected:
   AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) 
 			  ? GetCoord(_imult) : _coord.at(0); }
   /// Get the computed global coordinate by multiplicity index
-  AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates(); return _coord.at(imult); }
+  AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates();
+    return (0<=imult && imult<_mult) ? _coord.at(imult) : AMSPoint(0,0,0); }
 
   /// Returns the computed global coordinate (if resolved)
   AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
 			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
   /// Get the computed global coordinate by multiplicity index
-  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates(); return _bfield.at(imult); }
+  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
+    return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
 
 
   /// Returns the errors on the computed global coordinate (if resolved)
@@ -145,7 +147,11 @@ protected:
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
   /// Set the resolved multiplicity index (-1 if not resolved)
-  void  SetResolvedMultiplicity(int im) { _imult = im; }
+  void  SetResolvedMultiplicity(int im) { 
+    if (im < 0) im = 0;
+    if (im >= _mult) im = _mult-1;
+    _imult = im; 
+  }
 
 
   /// Get dummy strip position

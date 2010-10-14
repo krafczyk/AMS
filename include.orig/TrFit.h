@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.15 2010/08/23 16:57:02 shaino Exp $
+//  $Id: TrFit.h,v 1.16 2010/10/14 09:17:28 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/08/23 16:57:02 $
+///$Date: 2010/10/14 09:17:28 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -250,6 +250,10 @@ public:
   double GetXr(int i) const { return (0 <= i && i < MaxHits)? _xr[i] : 0; }
   double GetYr(int i) const { return (0 <= i && i < MaxHits)? _yr[i] : 0; }
   double GetZr(int i) const { return (0 <= i && i < MaxHits)? _zr[i] : 0; }
+
+  void SetErr(int i, double xs, double ys, double zs) {
+    if (0 <= i && i < MaxHits) { _xs[i] = xs; _ys[i] = ys; _zs[i] = zs; }
+  }
 
   /// Recomended to use GetP0x(), GetDxDz(),. etc. instead of Getparam
   double GetParam(int i) const {
