@@ -520,6 +520,8 @@ FILE_PATTERNS          = root.h \
                          stlv.C \
                          ad.C    \
                          daqe.C  \
+                         daqePG.C \
+                         r.daqePG.C \
                          run.stlv.C \
                          r.daqe.C \
                          r.pl.daqe.C \

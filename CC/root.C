@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.234 2010/10/12 18:44:55 choutko Exp $
+//  $Id: root.C,v 1.235 2010/10/15 16:36:03 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3130,7 +3130,7 @@ void AMSEventR::Begin(TTree *tree){
       UBegin();
 #ifdef _PGTRACK_
          TRFITFFKEY.init();
-#endif;
+#endif
       pService=&fService; 
     }
   }

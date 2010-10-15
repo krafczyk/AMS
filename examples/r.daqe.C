@@ -1,4 +1,4 @@
-///   \example run.daqe.C
+///   \example r.daqe.C
 ///   This is an example of how to load daqe.C (to run: root;  .x run.daqe.C)   
 {
 // Global ROOT Reset

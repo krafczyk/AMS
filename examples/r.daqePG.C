@@ -1,5 +1,5 @@
-///   \example run.stlv.C
-///   This is an example of how to load stlv.C (to run: root;  .x run.stlv.C)   
+///   \example r.daqePG.C 
+///   This is an example of how to load daqePG.C (to run: root;  .x r.daqePG.C)   
 {
 // Global ROOT Reset
       gROOT->Reset();
