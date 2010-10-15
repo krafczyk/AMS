@@ -1,0 +1,30 @@
+///   \example run.stlv.C
+///   This is an example of how to load stlv.C (to run: root;  .x run.stlv.C)   
+{
+// Global ROOT Reset
+      gROOT->Reset();
+
+// Set AMSWD directory
+      gSystem->Setenv("AMSWD","/f2users/choutko/AMS");
+//     gSystem->Setenv("AMSWD","/Offline/vdev");
+
+// Set include path
+      gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSWD/include"));
+
+// Load AMS shared library
+// For Linux 2.6 load
+    gSystem->Load("$AMSWD/lib/linuxicc/ntuple_slc4_PG.so");
+
+       //gDebug=5;
+// For Linux 2.4
+
+// Add all AMS Root files to be analyzed 
+      TChain chain("AMSRoot");
+//chain.Add("/r0fc00//Data/AMS02/2009B/bt.aug2010.v5/pr400/1281704189.*.root");
+//chain.Add("/r0fc00//Data/AMS02/2009B/bt.aug2010.v5/pr400/1281372836.*.root");
+chain.Add("/r0fc00//Data/AMS02/2009B/bt.aug2010.v5/pr400/*.root");
+chain.Add("/fcdat1/Data/AMS02/2009B/bt.aug2010.v5/pr400/*.root"); 
+       chain.Process("daqePG.C+","daqePG_pr400.root");
+
+
+}
