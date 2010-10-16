@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
+*  $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
 *-----------------------------------------------------------------------
@@ -160,6 +160,9 @@ c      real     FunMi !!! Required (but doesn't like it ???) by STUPID PAW.
       !$OMP threadprivate (first,CHNAM,zero,npa,na,St,grad)
       logical veryfirst
       data    veryfirst/.true./
+      integer nerr
+      data nerr/0/
+      save nerr
       if(veryfirst) then ! --------- veryfirst
         veryfirst = .false.
 #if defined __IFC ||  defined __INTEL_COMPILER
@@ -235,7 +238,10 @@ c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
 *       --------------------- Initial values setup
         do i=1,Npa
           Call MNPARM(i,CHNAM,Par(i),St(i),zero,zero,IERFLG)! Init.Val.Setup
-          If(ierflg.ne.0) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
+          If(ierflg.ne.0) then
+             if (nerr.lt.100) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
+             nerr = nerr+1
+          endif
         enddo
 *       ---------------------------------------- Minimization  
         na=0  ! # of arguments in arglis (MNEXCM)      !
@@ -1199,8 +1205,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
+* $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.20  2010/10/16 17:24:03  shaino
+* Error message suppression
+*
 * Revision 1.19  2010/10/16 07:27:05  shaino
 * Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
 *
@@ -1402,8 +1411,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
+* $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.20  2010/10/16 17:24:03  shaino
+* Error message suppression
+*
 * Revision 1.19  2010/10/16 07:27:05  shaino
 * Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
 *
