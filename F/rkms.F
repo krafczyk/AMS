@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
+*  $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
 *-----------------------------------------------------------------------
@@ -25,6 +25,14 @@
       if (n.gt.0) then
          write(*,*)'RKMS-I-InitTo ',trkZ0
       endif
+      end
+
+
+      subroutine rkmsrig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
+      integer npo,npl(npo),ipa
+      real xyz(3,npo),dxyz(3,npo)
+      real Rini,Out(9)
+      call rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
       end
 
 
@@ -1191,8 +1199,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
+* $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.19  2010/10/16 07:27:05  shaino
+* Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
+*
 * Revision 1.18  2010/10/16 07:17:07  shaino
 * PGTRACK: Chikanian fit updated
 *
@@ -1391,8 +1402,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
+* $Id: rkms.F,v 1.19 2010/10/16 07:27:05 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.19  2010/10/16 07:27:05  shaino
+* Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
+*
 * Revision 1.18  2010/10/16 07:17:07  shaino
 * PGTRACK: Chikanian fit updated
 *

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.30 2010/10/16 07:17:07 shaino Exp $
+//  $Id: TrFit.C,v 1.31 2010/10/16 07:27:01 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/16 07:17:07 $
+///$Date: 2010/10/16 07:27:01 $
 ///
-///$Revision: 1.30 $
+///$Revision: 1.31 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1342,7 +1342,7 @@ double TrFit::ChikanianFit(void)
 }
 
 #ifndef __ROOTSHAREDLIBRARY__
-extern "C" void rkms_rig__(int*,int*,float*,float*,int*,float*,float*);
+extern "C" void rkmsrig_(int*,int*,float*,float*,int*,float*,float*);
 extern "C" void rkmsinit_(float*);
 
 void TrFit::RkmsFitF(double *out)
@@ -1382,7 +1382,7 @@ void TrFit::RkmsFitF(double *out)
 
   float rini = GetRigidity();
   float outf[9];
-  rkms_rig__(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
+  rkmsrig_(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
   for (int i = 0; i < 9; i++) out[i] = outf[i];
 }
 #else
