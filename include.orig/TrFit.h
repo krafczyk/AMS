@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.16 2010/10/14 09:17:28 shaino Exp $
+//  $Id: TrFit.h,v 1.17 2010/10/16 07:17:07 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/10/14 09:17:28 $
+///$Date: 2010/10/16 07:17:07 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -166,10 +166,9 @@ class TrFit : public TrProp {
 public:
   enum ENums{ 
     /// Maximum number of layer
-    // LMAX = 8, PZ Do not use this! 
+    LMAX = 20,
     /// Parameter buffer size
-    PMAX = 10,
-    MaxHits=20
+    PMAX = 10
   };
   enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN };
 
@@ -185,19 +184,19 @@ protected:
   int    _nhity;         ///< Number of hits in Y
   int    _nhitxy;        ///< Number of hits in X and Y
 
-  double _xh[MaxHits];      ///< Hit position in X
-  double _yh[MaxHits];      ///< Hit position in Y
-  double _zh[MaxHits];      ///< Hit position in Z
-  double _xs[MaxHits];      ///< Fitting error in X
-  double _ys[MaxHits];      ///< Fitting error in Y
-  double _zs[MaxHits];      ///< Fitting error in Z
-  double _xr[MaxHits];      ///< Fitting residual in X
-  double _yr[MaxHits];      ///< Fitting residual in Y
-  double _zr[MaxHits];      ///< Fitting residual in Z
+  double _xh[LMAX];      ///< Hit position in X
+  double _yh[LMAX];      ///< Hit position in Y
+  double _zh[LMAX];      ///< Hit position in Z
+  double _xs[LMAX];      ///< Fitting error in X
+  double _ys[LMAX];      ///< Fitting error in Y
+  double _zs[LMAX];      ///< Fitting error in Z
+  double _xr[LMAX];      ///< Fitting residual in X
+  double _yr[LMAX];      ///< Fitting residual in Y
+  double _zr[LMAX];      ///< Fitting residual in Z
 
-  double _bx[MaxHits];      ///< Magnetic field in X
-  double _by[MaxHits];      ///< Magnetic field in Y
-  double _bz[MaxHits];      ///< Magnetic field in Z
+  double _bx[LMAX];      ///< Magnetic field in X
+  double _by[LMAX];      ///< Magnetic field in Y
+  double _bz[LMAX];      ///< Magnetic field in Z
 
   double _chisqx;        ///< Fitting chisquare in X (Not normalized)
   double _chisqy;        ///< Fitting chisquare in Y (Not normalized)
@@ -239,20 +238,20 @@ public:
   double GetChisq   (void) const { return _chisq; }
   double GetErrRinv (void) const { return _errrinv;  }
 
-  double GetXh(int i) const { return (0 <= i && i < MaxHits)? _xh[i] : 0; }
-  double GetYh(int i) const { return (0 <= i && i < MaxHits)? _yh[i] : 0; }
-  double GetZh(int i) const { return (0 <= i && i < MaxHits)? _zh[i] : 0; }
+  double GetXh(int i) const { return (0 <= i && i < LMAX)? _xh[i] : 0; }
+  double GetYh(int i) const { return (0 <= i && i < LMAX)? _yh[i] : 0; }
+  double GetZh(int i) const { return (0 <= i && i < LMAX)? _zh[i] : 0; }
 
-  double GetXs(int i) const { return (0 <= i && i < MaxHits)? _xs[i] : 0; }
-  double GetYs(int i) const { return (0 <= i && i < MaxHits)? _ys[i] : 0; }
-  double GetZs(int i) const { return (0 <= i && i < MaxHits)? _zs[i] : 0; }
+  double GetXs(int i) const { return (0 <= i && i < LMAX)? _xs[i] : 0; }
+  double GetYs(int i) const { return (0 <= i && i < LMAX)? _ys[i] : 0; }
+  double GetZs(int i) const { return (0 <= i && i < LMAX)? _zs[i] : 0; }
 
-  double GetXr(int i) const { return (0 <= i && i < MaxHits)? _xr[i] : 0; }
-  double GetYr(int i) const { return (0 <= i && i < MaxHits)? _yr[i] : 0; }
-  double GetZr(int i) const { return (0 <= i && i < MaxHits)? _zr[i] : 0; }
+  double GetXr(int i) const { return (0 <= i && i < LMAX)? _xr[i] : 0; }
+  double GetYr(int i) const { return (0 <= i && i < LMAX)? _yr[i] : 0; }
+  double GetZr(int i) const { return (0 <= i && i < LMAX)? _zr[i] : 0; }
 
   void SetErr(int i, double xs, double ys, double zs) {
-    if (0 <= i && i < MaxHits) { _xs[i] = xs; _ys[i] = ys; _zs[i] = zs; }
+    if (0 <= i && i < LMAX) { _xs[i] = xs; _ys[i] = ys; _zs[i] = zs; }
   }
 
   /// Recomended to use GetP0x(), GetDxDz(),. etc. instead of Getparam
@@ -353,11 +352,27 @@ public:
   /// Startup routine (for Chikanian fit)
   void RkmsFit(double *out);
 
+  /// Startup routine (for Chikanian fit, Fortran version)
+  void RkmsFitF(double *out);
+
+  /// Maximum number of layers for Chikanian fit
+  enum { NPma = 9 };
+
   // Internal parameters for Chikanian fit
-  double _rkms_err[MaxHits][MaxHits]; ///< Error matrix
+  double _rkms_wx[NPma][NPma]; ///< Error matrix
+  double _rkms_wy[NPma][NPma]; ///< Error matrix
 
   /// Get error matrix (for Chikanian fit)
   void RkmsMtx(double rini);
+
+  double _rkms_dmsN1[NPma][NPma][7];
+  double _rkms_dmsN9[NPma][NPma][7];
+
+  /// Cov.Err.Matrix with Mult.Scattering for Up --> Down track
+  void RkmsMscN9(void);
+
+  /// Cov.Err.Matrix with Mult.Scattering for Down --> Up track
+  void RkmsMscN1(void);
 
   /// FCN function main part (for Chikanian fit)
   double RkmsFun(int npa, double *par, bool res = false);
@@ -369,6 +384,8 @@ public:
   /// Debug switch for ChikanianFit
   static int RkmsDebug;
 
+  /// Tracker Z position
+  double RkmsZ0[NPma];
 
 public:
   /// 3x3 Matrix inversion imported from ROOT
@@ -380,8 +397,7 @@ public:
   /// 5x5 Matrix inversion imported from ROOT
   static int Inv66(double mtx[6][6]);
 
-  ClassDef(TrFit,1);
-
+  ClassDef(TrFit, 1);
 };
 
 #endif

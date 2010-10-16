@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.29 2010/10/06 16:47:11 pzuccon Exp $
+//  $Id: TrFit.C,v 1.30 2010/10/16 07:17:07 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/06 16:47:11 $
+///$Date: 2010/10/16 07:17:07 $
 ///
-///$Revision: 1.29 $
+///$Revision: 1.30 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,10 +46,10 @@ void TrFit::Clear()
 {
   _nhit = _nhitx = _nhity = _nhitxy = 0;
   for (int i = 0; i < PMAX; i++) _param[i] = 0;
-  for (int i = 0; i < MaxHits; i++) _xh[i] = _yh[i] = _zh[i] = 0;
-  for (int i = 0; i < MaxHits; i++) _xs[i] = _ys[i] = _zs[i] = 0;
-  for (int i = 0; i < MaxHits; i++) _xr[i] = _yr[i] = _zr[i] = 0;
-  for (int i = 0; i < MaxHits; i++) _bx[i] = _by[i] = _bz[i] = 0;
+  for (int i = 0; i < LMAX; i++) _xh[i] = _yh[i] = _zh[i] = 0;
+  for (int i = 0; i < LMAX; i++) _xs[i] = _ys[i] = _zs[i] = 0;
+  for (int i = 0; i < LMAX; i++) _xr[i] = _yr[i] = _zr[i] = 0;
+  for (int i = 0; i < LMAX; i++) _bx[i] = _by[i] = _bz[i] = 0;
   _chisqx = _chisqy = _chisq = -1;
   _ndofx  = _ndofy  =  0;
   _errrinv = 0;
@@ -71,7 +71,7 @@ int TrFit::Add(double x,  double y,  double z,
 	       double bx, double by, double bz, int i)
 {
   if (i < 0) i = _nhit;
-  if (i < 0 || MaxHits <= i) return -1;
+  if (i < 0 || LMAX <= i) return -1;
 
   _xh[i] = x; _xs[i] = ex; _bx[i] = bx;
   _yh[i] = y; _ys[i] = ey; _by[i] = by;
@@ -89,14 +89,20 @@ double TrFit::Fit(int method)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
-  MagField * pp=MagField::GetPtr();
-  if(pp->GetMap()==0){
-    char name[200];
-    sprintf(name,"%s/v5.00/MagneticFieldMapPermanent_NEW.bin",getenv("AMSDataDir"));
-    if((pp->Read(name)) <0 ) return -1;
-    pp->SetMagstat(1);
-    pp->SetScale(1.);
+
+  // Check Magnetic field map
+  if (method != LINEAR) {
+    MagField *mfp = MagField::GetPtr();
+    if (mfp->GetMap() == 0) {
+      char name[200];
+      sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
+	      getenv("AMSDataDir"));
+      if ((mfp->Read(name)) < 0) return -1;
+      mfp->SetMagstat(1);
+      mfp->SetScale(1.);
+    }
   }
+
   double ret = 0;
   if (method ==    LINEAR) ret = LinearFit();
   if (method ==    CIRCLE) ret = CircleFit();
@@ -168,7 +174,7 @@ double TrFit::LinearFit(int side)
 {
   // Analytic linear fitting method
 
-  double sh[MaxHits];
+  double sh[LMAX];
   double *x   = (side == 2) ? _yh : _xh;
   double *sig = (side == 2) ? _ys : _xs;
   double *res = (side == 2) ? _yr : _xr;
@@ -250,7 +256,7 @@ double TrFit::CircleFit(int side)
   double *par = (side == 1) ? _param : _param+2;
   double *y   = _zh;
 
-  double r[MaxHits], w[MaxHits];
+  double r[LMAX], w[LMAX];
   double sw = 0;
   for (int i = 0; i < _nhit; i++) {
     r[i] = x[i]*x[i]+y[i]*y[i];
@@ -449,13 +455,15 @@ double TrFit::PolynomialFit(int side, int ndim)
 #define PAR_LIMITS(P, V1, V2) { \
     double pold = P;	        \
     bool r = ParLimits(P,V1,V2);\
-    if (r && nlim2<100) {nlim2++;std::cout << "TrFit::ParLimits applied to: "#P" "	\
-			      << pold << " -> " << P << std::endl;}	\
-    nlim += r; } \
+    if (r && nmsg++ < 100) {    \
+      std::cout << "TrFit::ParLimits applied to: "#P" "	\
+	        << pold << " -> " << P << std::endl;}	\
+    nlim += r; \
+}
 
 int TrFit::ParLimits(void)
 {
-  static int nlim2 = 100;
+  static int nmsg = 100;
   int nlim = 0;
   PAR_LIMITS(_p0x,      1e-9, 1e4);
   PAR_LIMITS(_p0y,      1e-9, 1e4);
@@ -489,9 +497,9 @@ int TrFit::GetLayer(double z)
   int ilay = 0;
   double dzmin = 2.5;
   for (int i = 0; i < TkDBc::Head->nlay(); i++) 
-    if (std::abs(z-TkDBc::Head->GetZlayer(i)) < dzmin) {
-      dzmin = std::abs(z-TkDBc::Head->GetZlayer(i));
-      ilay = i;
+    if (std::abs(z-TkDBc::Head->GetZlayer(i+1)) < dzmin) {
+      dzmin = std::abs(z-TkDBc::Head->GetZlayer(i+1));
+      ilay = i+1;
     }
 
   return ilay;
@@ -540,7 +548,7 @@ double TrFit::SimpleFit(void)
 {
   if (_nhitx < 2 || _nhity < 3) return -1;
 
-  double len[MaxHits];
+  double len[LMAX];
 
   // Length
   for (int i = 0; i < _nhit; i++) {
@@ -552,8 +560,8 @@ double TrFit::SimpleFit(void)
 				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
   }
 
-  double pintx[MaxHits][3];
-  double pintu[MaxHits][3];
+  double pintx[LMAX][3];
+  double pintu[LMAX][3];
 
   // Calculate path integrals
   for (int i = 0; i < _nhit; i++) {
@@ -581,7 +589,7 @@ double TrFit::SimpleFit(void)
   }
 
   // F and G matrices
-  double d[2*MaxHits][NDIM];
+  double d[2*LMAX][NDIM];
   for (int i = 0; i < _nhit; i++) {
     int ix = i, iy = i+_nhit;
 
@@ -662,8 +670,6 @@ double TrFit::SimpleFit(void)
   _ndofy -= 3;
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
-  
-
   double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
@@ -704,11 +710,11 @@ double TrFit::AlcarazFit(int fixr)
   int ret = JAInitPar(fixr);
   if (ret < 0) return (double)ret;
 
-  double fmtx[MaxHits*3],    gmtx[MaxHits*3];     // Transportation matrices
-  double vmtx[MaxHits*MaxHits], wmtx[MaxHits*MaxHits];  // Inv. of covariance matrices
-  double len [MaxHits];
-  double cosz[MaxHits];
-  int    ilay[MaxHits];
+  double fmtx[LMAX*3],    gmtx[LMAX*3];     // Transportation matrices
+  double vmtx[LMAX*LMAX], wmtx[LMAX*LMAX];  // Inv. of covariance matrices
+  double len [LMAX];
+  double cosz[LMAX];
+  int    ilay[LMAX];
 
   // Estimate layer number
   for (int i = 0; i < _nhit; i++) ilay[i] = GetLayer(_zh[i]);
@@ -739,8 +745,8 @@ double TrFit::AlcarazFit(int fixr)
   _chisqx = _chisqy = 0;
   for (int i = 0; i < _nhit; i++)
     for (int j = 0; j < _nhit; j++) {
-      _chisqx += _xr[i]*vmtx[i*MaxHits+j]*_xr[j];
-      _chisqy += _yr[i]*wmtx[i*MaxHits+j]*_yr[j];
+      _chisqx += _xr[i]*vmtx[i*LMAX+j]*_xr[j];
+      _chisqy += _yr[i]*wmtx[i*LMAX+j]*_yr[j];
     }
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
@@ -802,7 +808,7 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
   if (_nhit < 3) return -1;
 
   // Initialize F and G matrices
-  for (int i = 0; i < MaxHits; i++)
+  for (int i = 0; i < LMAX; i++)
     for (int j = 0; j < 3; j++)
       fmtx[i*3+j] = gmtx[i*3+j] = (j == 0) ? 1 : 0;
 
@@ -867,9 +873,8 @@ int TrFit::JAFillFGmtx(double *fmtx, double *gmtx,
 int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
                        double *len,  double *cosz, int *ilay)
 {
-  static int count=0;
   // Initialize V and W matrices
-  for (int i = 0; i < MaxHits*MaxHits; i++) vmtx[i] = wmtx[i] = 0;
+  for (int i = 0; i < LMAX*LMAX; i++) vmtx[i] = wmtx[i] = 0;
 
   // Calculate pbi2 = (pbeta)^(-2)
   double pbi2 = 0;
@@ -884,23 +889,24 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 //        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
 //        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
 //        Support:   10mm Al Honeycomb: 1.67e-3 X0
-  double WLEN[MaxHits] = { 0, 7.29e-3, 12.91e-3, 0,
+  double WLEN[LMAX] = { 0, 7.29e-3, 12.91e-3, 0,
 				   12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
 /*
+  static int count=0;
   if(TkDBc::Head->GetSetup()==3 && count<50){
     count++;
     printf(" TrFit::JAFillVWmtx -W- For PLANB You still have to Optimize Radiation Lenght for fit!!!!\n");
   }
 */
   int nel = _nhit-2;
-  double mtx[(MaxHits-2)*(MaxHits-2)], mty[(MaxHits-2)*(MaxHits-2)];
+  double mtx[(LMAX-2)*(LMAX-2)], mty[(LMAX-2)*(LMAX-2)];
 
   // Fill V and W matrices
   for (int i = 0; i < _nhit; i++) {
     for (int j = 0; j <= i; j++) {
       if (i == j) {
-        vmtx[i*MaxHits+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
-        wmtx[i*MaxHits+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
+        vmtx[i*LMAX+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
+        wmtx[i*LMAX+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
       }
 
       if (_mscat) {
@@ -912,14 +918,14 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
           for (int l = ilay[k-1]+1; l <= ilay[k]; l++) wl += WLEN[l];
 
           double dmsc = li*lj*0.0118*0.0118*pbi2*wl/cosz[k];
-          vmtx[i*MaxHits+j] += dmsc;
-          wmtx[i*MaxHits+j] += dmsc;
+          vmtx[i*LMAX+j] += dmsc;
+          wmtx[i*LMAX+j] += dmsc;
         }
       }
 
       if (i >= 2 && j >= 2) {
-        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*MaxHits+j]*1e+3;
-        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*MaxHits+j]*1e+3;
+        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*LMAX+j]*1e+3;
+        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*LMAX+j]*1e+3;
       }
     }
   }
@@ -954,13 +960,13 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   for (int i = 0; i < _nhit; i++)
     for (int j = 0; j < _nhit; j++) {
       if (i >= 2 && j >= 2 && _mscat) {
-        vmtx[i*MaxHits+j] = (_xs[i] > 0 && _xs[j] > 0) 
+        vmtx[i*LMAX+j] = (_xs[i] > 0 && _xs[j] > 0) 
                          ? mtx[(i-2)*nel+j-2]*1e+3 : 0;
-        wmtx[i*MaxHits+j] = (_ys[i] > 0 && _ys[j] > 0) 
+        wmtx[i*LMAX+j] = (_ys[i] > 0 && _ys[j] > 0) 
                          ? mty[(i-2)*nel+j-2]*1e+3 : 0;
       } else {
-        if (vmtx[i*MaxHits+j] != 0) vmtx[i*MaxHits+j] = 1/vmtx[i*MaxHits+j];
-        if (wmtx[i*MaxHits+j] != 0) wmtx[i*MaxHits+j] = 1/wmtx[i*MaxHits+j];
+        if (vmtx[i*LMAX+j] != 0) vmtx[i*LMAX+j] = 1/vmtx[i*LMAX+j];
+        if (wmtx[i*LMAX+j] != 0) wmtx[i*LMAX+j] = 1/wmtx[i*LMAX+j];
       }
     }
 
@@ -985,58 +991,58 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
       for (int k = 0; k < _nhit; k++)
         for (int l = 0; l < _nhit; l++) {
           if (j == 0)
-           vec[i] += F[k*3+i]*V[k*MaxHits+l]*x[l];
-          M[i][j] += F[k*3+i]*V[k*MaxHits+l]*F[l*3+j];
+           vec[i] += F[k*3+i]*V[k*LMAX+l]*x[l];
+          M[i][j] += F[k*3+i]*V[k*LMAX+l]*F[l*3+j];
         }
 
-   // For no magnetic field
-   if (!fix && vec[2] == 0 && M[2][2] == 0) {
-      fix = 1;
-      _param[4] = 0;
-   }
-
-   // Fix par[4]
-     if (fix) {
-	vec[0] -= M[0][2]*_param[4]; M[0][2] = M[2][0] = 0;
-	vec[1] -= M[1][2]*_param[4]; M[1][2] = M[2][1] = 0;
-	vec[2]  =         _param[4]; M[2][2] = 1;
-     }
-
-     // Invert matrix
-     if (Inv33(M) < 0) return -1;
-
-     // Minimized parameters
-     double p1 = M[0][0]*vec[0]+M[0][1]*vec[1]+M[0][2]*vec[2];
-     double p2 = M[1][0]*vec[0]+M[1][1]*vec[1]+M[1][2]*vec[2];
-
-     // Number of digrees of freedom
-     int ndof = (fix) ? -(3-1) : -3;
-     for (int i = 0; i < _nhit; i++) if (e[i] > 0) ndof++;
-     if (ndof < 0) ndof = 0;
-
-     // Minimized parameters
-     if (side == 0) {
-	_param[0] = p1;
-	_param[2] = p2;
-	_ndofx    = ndof;
-     } else {
-	_param[1] = p1;
-	_param[3] = p2;
-	_param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
-	_ndofy    = ndof;
-     }
-     if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
-
-     return 0;
+  // For no magnetic field
+  if (!fix && vec[2] == 0 && M[2][2] == 0) {
+    fix = 1;
+    _param[4] = 0;
   }
 
-  double TrFit::ChoutkoFit(void)
-  {
-    if(_nhit > TkDBc::Head->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
+  // Fix par[4]
+  if (fix) {
+    vec[0] -= M[0][2]*_param[4]; M[0][2] = M[2][0] = 0;
+    vec[1] -= M[1][2]*_param[4]; M[1][2] = M[2][1] = 0;
+    vec[2]  =         _param[4]; M[2][2] = 1;
+  }
 
-    // Set initial parameters with SimpleFit
-  int ssf=SimpleFit();
-  if (ssf < 0) return -20+ssf;
+  // Invert matrix
+  if (Inv33(M) < 0) return -1;
+
+  // Minimized parameters
+  double p1 = M[0][0]*vec[0]+M[0][1]*vec[1]+M[0][2]*vec[2];
+  double p2 = M[1][0]*vec[0]+M[1][1]*vec[1]+M[1][2]*vec[2];
+
+  // Number of digrees of freedom
+  int ndof = (fix) ? -(3-1) : -3;
+  for (int i = 0; i < _nhit; i++) if (e[i] > 0) ndof++;
+  if (ndof < 0) ndof = 0;
+
+  // Minimized parameters
+  if (side == 0) {
+    _param[0] = p1;
+    _param[2] = p2;
+    _ndofx    = ndof;
+  } else {
+    _param[1] = p1;
+    _param[3] = p2;
+    _param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
+    _ndofy    = ndof;
+  }
+  if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
+
+  return 0;
+}
+
+double TrFit::ChoutkoFit(void)
+{
+  if(_nhit > TkDBc::Head->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
+
+  // Set initial parameters with SimpleFit
+  double ssf = SimpleFit();
+  if (ssf < 0) return -20+(int)ssf;
 
   _param[0] = _p0x; _param[1] = _dxdz;
   _param[2] = _p0y; _param[3] = _dydz;
@@ -1086,7 +1092,7 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
     for (int i = 0; i < NDIM; i++) g[i] = 0;
     for (int i = 0; i < NDIM; i++) mm[i][i] = 1;
 
-    double fact[MaxHits], xmsr[MaxHits][MaxHits], xms[MaxHits], fckx[MaxHits], fcky[MaxHits];
+    double fact[LMAX], xmsr[LMAX][LMAX], xms[LMAX], fckx[LMAX], fcky[LMAX];
     resmy = 0;
 
     // Loop for each point
@@ -1263,16 +1269,25 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
 
 int TrFit::RkmsDebug = -1;
 
-//#include "rkms_debug.C"
+#ifndef __ROOTSHAREDLIBRARY__
+#include "amsgobj.h"
+#endif
 
 double TrFit::ChikanianFit(void)
 /*
-*---------------------------------------------------------------------
-* A.Chikanian, Yale, 2003
+*-----------------------------------------------------------------------
+* A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
+*-----------------------------------------------------------------------
+* Rigidity reconstruction program for AMS02 with permanet magnet
+* Taking care of the Multipole Scattering in AMS Tracking detector:
 * Reconstruct track's kinematical parameters with full (nondiagonal)
-* Covar.Error Metrix due to Multipole Scattering in Si tracking planes.
-* Supposed to be used when the Mult.Scatt. is dominate.
-*---------------------------------------------------------------------
+* Covar.Error Metrix due to Multipole Scattering in Si tracking planes
+* as well as in TRD, TOF and RICH.
+*------------------------------------------------------
+
+*     WARNING ========================================================
+*     Due to Error Matrix depends on Rini, pick the best possible Rini
+*     OR do final (additional) minimization loop with Rini~Rrec
 
    Imported to C++ by SH
 */
@@ -1288,11 +1303,24 @@ double TrFit::ChikanianFit(void)
   }
 
   double out[9];
-/*#ifndef __ROOTSHAREDLIBRARY__
-  if (RkmsDebug >= 1) rkms_debug(this, out);
-  else
-#endif*/
+
+#ifndef __ROOTSHAREDLIBRARY__
+  // Original Fortran version
+  if (_mscat) {
+    AMSgObj::BookTimer.start("TrFitRkmsF");
+    RkmsFitF(out);
+    AMSgObj::BookTimer.stop("TrFitRkmsF");
+  }
+
+  // Imported C++ version
+  else {
+    AMSgObj::BookTimer.start("TrFitRkmsT");
+    RkmsFit(out);
+    AMSgObj::BookTimer.stop("TrFitRkmsT");
+  }
+#else
   RkmsFit(out);
+#endif
 
   if (RkmsDebug >= 1)
     cout << "RkmsFit: rini,rgt,chi2= "
@@ -1312,6 +1340,60 @@ double TrFit::ChikanianFit(void)
 
   return _chisq;
 }
+
+#ifndef __ROOTSHAREDLIBRARY__
+extern "C" void rkms_rig__(int*,int*,float*,float*,int*,float*,float*);
+extern "C" void rkmsinit_(float*);
+
+void TrFit::RkmsFitF(double *out)
+{
+  int npo = 0, npl[NPma], ipa = 14;
+  float xyz[NPma*3], dxyz[NPma*3];
+  for (int i = 0; i < NPma; i++) {
+    xyz[i*3] =  xyz[i*3+1] =  xyz[i*3+2] = 0;
+    dxyz[i*3] = dxyz[i*3+1] = dxyz[i*3+2] = 0;
+    npl[i] = 0;
+  }
+
+  for (int i = 0; i < GetNhit(); i++) {
+     xyz[i*3  ] = GetXh(i);
+     xyz[i*3+1] = GetYh(i);
+     xyz[i*3+2] = GetZh(i);
+    dxyz[i*3  ] = GetXs(i);
+    dxyz[i*3+1] = GetYs(i);
+    dxyz[i*3+2] = GetZs(i);
+
+    if (dxyz[i*3  ] < 1e-4) dxyz[i*3  ] = 0.9999;
+    if (dxyz[i*3+1] < 1e-4) dxyz[i*3+1] = 0.9999;
+    if (dxyz[i*3+2] < 1e-4) dxyz[i*3+2] = 0.9999;
+
+    int layer = GetLayer(GetZh(i));
+    if (layer == 8) layer = 0;
+    if (layer == 9) layer = 8;
+    npl[i] = layer+1;
+    npo++;
+  }
+
+  float zpos[trconst::maxlay];
+  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
+  for (int i = 0; i < trconst::maxlay; i++)
+    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+  rkmsinit_(zpos); 
+
+  float rini = GetRigidity();
+  float outf[9];
+  rkms_rig__(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
+  for (int i = 0; i < 9; i++) out[i] = outf[i];
+}
+#else
+
+void TrFit::RkmsFitF(double *out)
+{
+  RkmsFit(out);
+}
+
+#endif
+
 
 namespace TrFit_RKMS {
   static TrFit *ptr = 0;
@@ -1345,7 +1427,7 @@ void TrFit::RkmsFit(double *out)
  *          Out(1-3)   - x, y, z 
  *          Out(4-5)   - Theta, Phi
  *          Out(6)     - Rigidity
- *          Out(7)     - Chi2/D.F.
+ *          Out(7)     - Chi2
  *          Out(8)     - not used
  *          Out(9)     - err(1/Rigidity)=err(R)/(R*R)
  *---------------------------------------------------
@@ -1357,7 +1439,8 @@ void TrFit::RkmsFit(double *out)
 
   // Set initial rigidity
   double rini = _rigidity;
-  if (std::fabs(rini) < 0.3 || std::fabs(rini) > 333) {
+
+  if (std::fabs(rini) < 0.3) {
     if (SimpleFit() < 0) return;
     rini = _rigidity;
   }
@@ -1461,6 +1544,7 @@ void TrFit::RkmsFit(double *out)
     if (RkmsDebug >= 2) cout <<" MIGRAD it= " << it << endl;
     minuit.mnexcm("MIGRAD", args, 0, ierr);
     if (RkmsDebug >= 2) cout <<" MIGRAD ierflg= " << ierr << endl;
+
 /*       ================================================
  cer        if(ierflg.ne.0.and.iercou.le.1) then        !
  cer          write(6,*)'MNEXCM: ierflg=',ierflg,iercou ! always 4 !!!???
@@ -1523,10 +1607,11 @@ void TrFit::RkmsFit(double *out)
 
 void TrFit::RkmsMtx(double rini)
 {
-/*    subroutine wxy_matr(npo,npl,dx,dy,ipa,R)   !
+/*    subroutine wxy_matr9(npo,npl,dx,dy,ipa,R)   !
  *-------------------------------------------------
  * Preparing Cov.Err.Matrix with Mult.Scattering
  * A.Chikanian Feb,2003.
+ *     Revised June,2010
  *------------------------------------------------------------
  * Missing planes carring by putting dX,dY --> INF.(~22cm)
  * COS(Th) - is INDIV. for each planes
@@ -1535,8 +1620,6 @@ void TrFit::RkmsMtx(double rini)
  *
    Imported to C++/ROOT by SH
  */
-
-  enum { NPma = MaxHits };
 
   double SiThick = 0.0300;    // ! plane thicknes in cm. (300mkm Si)
   double SiRlen  = 0.0032054; // ! plane thicknes in R.L.(300mkm Si) zz0
@@ -1550,8 +1633,11 @@ void TrFit::RkmsMtx(double rini)
  *   taken from MC (Sep.04)
  c      data trkZ0/54.51,29.18,25.32,1.68,-2.18,-25.32,-29.18,-54.51/
 */
+//  TrkZ0 (now as RkmsZ0) to be filled from outside
+/*
   double TrkZ0[NPma] = { 52.985, 29.185, 25.215,  1.685,
 			 -2.285,-25.215,-29.185,-52.985 };// -122. };
+*/
 /*-------------------------------------------------------
  *   pl#   1-2   2-3   3-4   4-5   5-6   6-7  7-8
  *   dZ   21.8  24.4  15.5  24.4  21.8   -    -    AMS01
@@ -1559,11 +1645,15 @@ void TrFit::RkmsMtx(double rini)
  *-------------------------------------------------------
  */
 
+  int lay[trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
+  for (int i = 0; i < trconst::maxlay; i++)
+    RkmsZ0[i] = TkDBc::Head->GetZlayer(lay[i]);
+
   double dZ[NPma][NPma];
   for (int i = 0; i < NPma-1; i++) {
     dZ[i][i] = 0.;
     for (int j = i+1; j < NPma; j++)
-      dZ[i][j] = dZ[j][i] = TrkZ0[j]-TrkZ0[i];
+      dZ[i][j] = dZ[j][i] = RkmsZ0[j]-RkmsZ0[i];
   }
   dZ[NPma-1][NPma-1] = 0.;
 
@@ -1579,9 +1669,13 @@ void TrFit::RkmsMtx(double rini)
   int   npl[NPma];
   double xc[NPma], yc[NPma];
   for (int i = 0; i < npo; i++) {
-    xc [i] = _xh[i];
-    yc [i] = _yh[i];
-    npl[i] = GetLayer(_zh[i])+1;
+    xc[i] = _xh[i];
+    yc[i] = _yh[i];
+
+    int layer = GetLayer(_zh[i]);
+    if (layer == 8) layer = 0;
+    if (layer == 9) layer = 8;
+    npl[i] = layer+1;
   }
 
   double dTh0 = std::sqrt(2.)*13.6e-3*std::sqrt(SiRlen)
@@ -1592,117 +1686,40 @@ void TrFit::RkmsMtx(double rini)
     cerr << "### wxy_matr: # of planes " << _nhit << endl;
     return;
   }
-/*================================== Initializatiob to 0 */
-  double dms [NPma][NPma];
-  double ww  [NPma][NPma];
-  double oco2[NPma];
+/*================================== Initialization to 0 */
+  double dms[NPma][NPma];
+  double vx [NPma][NPma];
+  double vy [NPma][NPma];
+  double oco[NPma];
   for (int i=0; i < NPma*NPma; i++) {
-    dms[i/NPma][i%NPma] = ww[i/NPma][i%NPma] = _rkms_err[i/NPma][i%NPma] = 0;
-    if (i < NPma) oco2[i]=0.;
+    dms[i/NPma][i%NPma] 
+      =       vx[i/NPma][i%NPma] =       vy[i/NPma][i%NPma]
+      = _rkms_wx[i/NPma][i%NPma] = _rkms_wy[i/NPma][i%NPma] = 0;
+    if (i < NPma) oco[i]=0.;
   }
 
-/*================================== MS-matrix building */
-  int np3 = (npl[0] > npl[npo-1]) ? -1 : 1;
-  int ii = 1;
-  for (int i = npl[0]+np3-1; i != npl[npo-1]-1+np3; i += np3) {
-    int jj = ii;;
-    for (int j = i; j != npl[npo-1]-1+np3; j += np3) {
-      for (int k = npl[0]-1; k != i-np3+np3; k += np3)
-	dms[jj][ii] += dZ[k][i]*dZ[k][j];
-      jj++;
-    }
-    ii++;
-  }
+  int np1 = npl[0];
 
-  if (RkmsDebug >= 3){
-    cout << "DMS" << endl;
-    for(int i=0;i<NPma;i++) {
-      for (int j=0;j<8;j++) cout<<Form("%10.2f",dms[i][j]);
-      cout<<endl;
+  if (np1 > npl[npo-1]) {      // ! Down --> Up
+    int np = np1;
+    RkmsMscN1();
+    if (3 <= np1 && np1 <= 9) {
+      for (int i = 0; i < np; i++)
+	for (int j = 0; j < np; j++)
+	  dms[i][j] = _rkms_dmsN1[i][j][NPma-np1];
     }
   }
-
-/*====================================*/
-// ! Honycomb contrib.in MS-matrix 
-//
-/*      subroutine dmshc02(npo,npl,xHC,dZ,zz)
- *-------------------------------------------------
- * Calculate contribution from HonyComb in Cov.Err.Matrix
- * A.Chikanian Aug,2004.
- *===========================================================
- * INP: npo      - # of x,y - hits
- *      npl(npo) - array with plane # associated with hits
- *      xHC      - thicknes of Honycomb (in r.l.of Si)
- *       dZ      - matrix dZ(i,j)=Z0(i)-Z0(j)
- * OUT:  zz      - Error metrix due to MS (1/2 if filed)
- *=========================================================== */
-
-/*=========
- c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug1_zz8.h"
- *========= */
-/*cf         xHC - par. is not necessuary because =1 (but let it be).
-  cf-- could be usefull in case xHC # 1
-  cf      real Whc0,Wth(3)! HanyComb Thetta weight (see N.B. p.69)
-  cf      save Whc0      
-  cf      logical first
-  cf      data    first/.true./
-  cf      save    first
-  *-------------------------
-  cf      if(first) then
-  cf        first=.false.
-  cf        whc0=    xHC*(1.+0.038*alog(   xHC)/(1.+0.038*alog(zz0)))**2
-  cf        write(6,*)'=== wHC0',wHC0 ! debug
-  cf      endif ! first
-  *------------------------------------------
-  cf      do i=1,3 ! = (NPma-1)/2
-  cf        Wth(i)=Whc0
-  cf      enddo
-  *=========
-  c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug2_zz8.h"
-  *=========*/
-
-  int i0, i1;
-  if (npl[0] < npl[npo-1]) { //! Down
-    np3 = 1;
-    i0  = 0;
-    i1  = npl[0]%2;
-  }
-  else {                    //! Up
-    np3 = -1;
-    i0  = 1;
-    i1  = (npl[0]+1)%2;
-  }
-  int k1   = (npl[0]+np3)/2;
-  int npla = std::abs(npl[npo-1]-npl[0])+1;
-
-/*---------------------------------------------------------------
- *    (ik,lj)=dZ(i,k)/sqrt(3)+dZ(l,j)
- *    (2k,2k+1 , 2k+1,j) = (dZ(2*k  ,2*k+1)/sqrt(3.)+dZ(2*k+1,i))
- *                       w*(dZ(2*k+1,  j  )/sqrt(3.)+dZ(2*k+1,j))
- *---------------------------------------------------------------*/
-  for (int ii = 2+i1; ii <= npla; ii++) {
-    int i  = npl[0]+(ii-1)*np3;
-    int k2 = (i-1)/2+i0;//  ! 1,2 or 3
-//c        write(6,*)'ii,i,k1,k2',ii,i,k1,k2          ! debug
-    for (int jj = ii; jj <= npla; jj++) {
-      int j = npl[0]+(jj-1)*np3;
-//c          zz(jj,ii)=0.                             ! debug
-//c          kkk=0                                    ! debug
-      for (int mm = k1; mm != k2+np3; mm += np3) {
-	int k  = 2*mm+i0;
-	int kk = k+np3;
-	dms[jj-1][ii-1] += (dZ[k-1][kk-1]/sqrt(3.)+dZ[kk-1][i-1])
-	                  *(dZ[k-1][kk-1]/sqrt(3.)+dZ[kk-1][j-1]);
-//cf     +                *Wth(mm)*(dZ(k,kk)/sqrt(3.)+dZ(kk,j))
-/*=========
- c#include "/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/debug3_zz8.h"
- *=========*/
-      }
-//c          zz(ii,jj)=zz(jj,ii)
+  else {                      //  ! Up --> Down
+    int np = NPma-np1+1;
+    RkmsMscN9();
+    if (1 <= np1 && np1 <= 7) {
+      for (int i = 0; i < np; i++)
+	for (int j = 0; j < np; j++)
+	  dms[i][j] = _rkms_dmsN9[i][j][np1-1];
     }
   }
 
-  if (RkmsDebug >= 3) {
+ if (RkmsDebug >= 3) {
     cout<<"ZZ"<<endl;
     for(int i=0;i<8;i++) {
       for (int j=0;j<8;j++) cout<<Form("%10.2f",dms[i][j]);
@@ -1711,7 +1728,8 @@ void TrFit::RkmsMtx(double rini)
   }
 
 /*===========================================*/
-  int NMSpl = abs(npl[npo-1]-npl[0]+np3);// ! # Mult.Scatt.planes
+//int NMSpl = abs(npl[npo-1]-npl[0]+np3);// ! # Mult.Scatt.planes
+  int NMSpl = abs(npl[npo-1]-npl[0]+1);// ! # Mult.Scatt.planes
   //gfpart(ipa,pname,itr,ama,cha,tl,ub,nw);
   double cha  = _chrg; 
   double ama  = _mass;
@@ -1719,7 +1737,8 @@ void TrFit::RkmsMtx(double rini)
   double P    =  RR*cha;
   double E    =  std::sqrt(P*P+ama*ama);
   double be   =  P/E;// ! or be from TOF
-  double dTc2 = (dTh0/(be*RR))*(dTh0/(be*RR));// ! space factor 2 in dTh0
+//double dTc2 = (dTh0/(be*RR))*(dTh0/(be*RR));// ! space factor 2 in dTh0
+  double dTc2 = 1/(be*RR)/(be*RR);  // ! scatt.angle correction
 
 //c      sigcha = 1.D0
 //c      if(cha.lt.0.) sigcha = -1.D0 ! for GRKUTA 
@@ -1733,35 +1752,38 @@ void TrFit::RkmsMtx(double rini)
     dz[i] = (_zs[i] > 0) ? _zs[i] : 300e-4;
     dx[i] = (_xs[i] > 0) ? _xs[i] : dz[i]*1e4;
     dy[i] = (_ys[i] > 0) ? _ys[i] : dz[i]*1e4;
-    if (RkmsDebug >= 3) 
-      cout<< "dx,dy= "<<i<<" "<<npl[i]<<" "<<dx[i]<<" "<<dy[i]<<endl;
   }
 
-  ww[0][0] = dy[0]*dy[0] + dx[0]*dx[0];// ! dms(1,1)=0.
-  ii = 0;
+  vx[0][0] = dx[0]*dx[0];
+  vy[0][0] = dy[0]*dy[0];
+  
+  int ii = 0;
   for (int i = 1; i < npo; i++) { // !_____________________Diagonal elements
     if (abs(npl[i]-npl[i-1]) > 1) {
       for (int is = 0; is < abs(npl[i]-npl[i-1])-1; is++) {
 	ii++;
-	oco2[ii] = 1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
-		       (yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
-	               /dZ[npl[i]-1][npl[i-1]-1]/dZ[npl[i]-1][npl[i-1]-1];
-	ww[ii][ii] = dms[ii][ii]*dTc2 + 1000.;// ! dX,Y~22cm if missing plane
+	oco[ii] = std::sqrt(1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
+				(yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
+			       /dZ[npl[i]-1][npl[i-1]-1]
+			       /dZ[npl[i]-1][npl[i-1]-1]);
+	vx[ii][ii] = 
+	vy[ii][ii] = dms[ii][ii]*dTc2 + 1000.;// ! dX,Y~22cm if missing plane
       }
     }
     ii++;
-    oco2[ii]=1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
-		 (yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
-	         /dZ[npl[i]-1][npl[i-1]-1]/dZ[npl[i]-1][npl[i-1]-1];
-    ww[ii][ii] = dms[ii][ii]*dTc2*oco2[ii]*oco2[ii] + dy[i]*dy[i] 
-	                                            + dx[i]*dx[i];
+    oco[ii]=std::sqrt(1.+((xc[i]-xc[i-1])*(xc[i]-xc[i-1])+
+			  (yc[i]-yc[i-1])*(yc[i]-yc[i-1]))
+		         /dZ[npl[i]-1][npl[i-1]-1]
+		         /dZ[npl[i]-1][npl[i-1]-1]);
+    vx[ii][ii] = dms[ii][ii]*dTc2*oco[ii] + dx[i]*dx[i];
+    vy[ii][ii] = dms[ii][ii]*dTc2*oco[ii] + dy[i]*dy[i];
   }
   if (RkmsDebug >= 3){
     cout << "WW" << endl;
     for(int i=0;i<NPma;i++) {
       for (int j=0;j<8;j++) {
-	if (std::abs(ww[i][j]) < 1) cout<<Form("%10.7f",ww[i][j]);
-	else                        cout<<Form("%10.2f",ww[i][j]);
+	if (std::abs(vy[i][j]) < 1) cout<<Form("%10.7f",vy[i][j]);
+	else                        cout<<Form("%10.2f",vy[i][j]);
       }
       cout<<endl;
     }
@@ -1770,16 +1792,12 @@ void TrFit::RkmsMtx(double rini)
 /*=============================
  *#include "../RKMSFIT/debug8.h"
  *=============================  */
-  for (int i = 2; i < NMSpl; i++) // !___________________Nondiagonal elements
-    for (int j = 1; j <= i-1; j++)
-      ww[i][j] = ww[j][i] = dms[i][j]*dTc2*oco2[i]*oco2[j];
-
   if (RkmsDebug >= 3){
-    cout << "WW"<<endl;
+    cout << "WW n= "<<NMSpl<<endl;
     for (int i = 0; i < NMSpl; i++) {
       for (int j=0;j<8;j++) {
-	if (std::abs(ww[i][j]) < 1) cout<<Form("%10.7f",ww[i][j]);
-	else                        cout<<Form("%10.2f",ww[i][j]);
+	if (std::abs(vy[i][j]) < 1) cout<<Form("%10.7f",vy[i][j]);
+	else                        cout<<Form("%10.1f",vy[i][j]);
       }
       cout<<endl;
     }
@@ -1791,22 +1809,31 @@ void TrFit::RkmsMtx(double rini)
 
   //rsinv(NMSpl,ww,NPma,ifail);// ! F012 Symm.Matr.Inversion
   TMatrixDSym mtx(NMSpl);
+  TMatrixDSym mty(NMSpl);
   for (int i = 0; i < NMSpl; i++) 
-    for (int j = 0; j < NMSpl; j++) mtx[i][j] = ww[i][j];
+    for (int j = 0; j <= i; j++) {
+      mtx[i][j] = vx[i][j];
+      mty[i][j] = vy[i][j];
+    }
 
-  double det;
-  mtx.Invert(&det);
-  if (det == 0) {
+  double detx, dety;
+  mtx.Invert(&detx);
+  mty.Invert(&dety);
+  if (detx == 0 || dety == 0) {
     cerr << "### rsinv: ifail= -1" << endl;
     return;
   }
+
   for (int i = 0; i < NMSpl; i++) 
-    for (int j = 0; j < NMSpl; j++) ww[i][j] = mtx[i][j];
+    for (int j = 0; j < NMSpl; j++) {
+      vx[i][j] = mtx[i][j];
+      vy[i][j] = mty[i][j];
+    }
 
   if (RkmsDebug >= 3){
     cout << "WW inv"<<endl;
     for (int i = 0; i < NMSpl; i++) {
-      for (int j = 0; j < 8; j++) cout<<Form("%10.3f",ww[i][j]);
+      for (int j = 0; j < 8; j++) cout<<Form("%9.1f",vy[i][j]);
       cout<<endl;
     }
   }
@@ -1815,18 +1842,23 @@ void TrFit::RkmsMtx(double rini)
  *#include "../RKMSFIT/debug10.h"
  *==============================
  *--------------------- Matr.Shrinking */
-  _rkms_err[0][0] = ww[0][0];
+  _rkms_wx[0][0] = vx[0][0];
+  _rkms_wy[0][0] = vy[0][0];
   for (int j = 1; j < npo; j++) {
     int jj = std::abs(npl[j]-npl[0]);
     for (int i = j; i < npo; i++) {
-      _rkms_err[i][j] = ww[abs(npl[i]-npl[0]+np3)-1][jj];
+//    _rkms_wx[i][j] = vx[abs(npl[i]-npl[0]+np3)-1][jj];
+//    _rkms_wy[i][j] = vy[abs(npl[i]-npl[0]+np3)-1][jj];
+      int ii = std::abs(npl[i]-npl[0]);//+np3)-1;
+      _rkms_wx[i][j] = vx[ii][jj];
+      _rkms_wy[i][j] = vy[ii][jj];
     }
   }
 
   if (RkmsDebug >= 3){
-    cout << "WXY"<<endl;
+    cout << "WY npo= "<<npo<<endl;
     for (int i = 0; i < npo; i++) {
-      for (int j = 0; j < 8; j++) cout<<Form("%10.3f",_rkms_err[i][j]);
+      for (int j = 0; j < 8; j++) cout<<Form("%9.1f",_rkms_wy[i][j]);
       cout<<endl;
     }
   }
@@ -1834,6 +1866,259 @@ void TrFit::RkmsMtx(double rini)
 /*==============================
  *#include "../RKMSFIT/debug11.h"
  *============================== */
+}
+
+extern "C" void getdmsn9_(int*,int*,int*,float*);
+extern "C" void getdmsn1_(int*,int*,int*,float*);
+
+void TrFit::RkmsMscN9(void)
+{
+/* Cov.Err.Matrix with Mult.Scattering for Up --> Down track
+ * A.Chikanian May,2010.
+ *---------------------------------
+ * Input:  npl1 - first plane
+ * Output: dms  - scattering matrix
+ *---------------------------------
+ */
+
+  static double dmsN9[NPma][NPma][7]; // ! internal array
+//  integer npl,npl1,N,i,j,k,jj,ii
+  double sq3 =1.73205078;
+/*  --------------------------------------------------------- Geometry
+ *  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
+ *    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
+ *  ---------------------------------------------------------
+ */
+  double p[9] = { 156.15, 78.95  //!  TRD  p1,p2
+	        ,  65.5 , 61.0   //!  TOF  p3,p4
+	        ,  56.46         //!  HC2  p5
+	        , -61.0 ,-65.5   //!  TOF2 p6,p7
+	        , -74.5 ,-75.0}; //!  RICH p8,p9
+
+  double z[9] = { 166.92         //!  z1   PL8 (1N)
+	        ,  53.06         //!  z2   PL1
+	        ,  29.2          //!  z3   PL2
+		,  27.5          //!  z4   PL3
+		,   1.7          //!  z5   PL4
+		,  -1.7          //!  z6   PL5
+		, -27.5          //!  z7   PL6
+	        , -29.2          //!  z8   PL7
+		,-135.48};       //!  z9   PL9
+
+/*   -----------------------------------------------------
+ *   X_Si = X_HC = 0.32054%
+ *   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
+ *   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
+ *   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
+ *   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
+ *   ----------------------------------------------------------------
+ */
+
+  double xRL[16] 
+    //     Si      TRD    TOF
+    = {0.0032054,0.0764,0.047,
+    //   Si or HC
+       0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054,
+       0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054,
+    //  TOF   RICH
+       0.047,0.0335};
+
+  double  DT[16] = {0, 0, 0, 0, 0, 0, 0, 0 };
+  double  dz[9][16];
+  int     IS[9] = {0,4,5,7,8,10,11,13,16}; // ! right
+  double  beta  = 1;
+  double  rigid = 1; // ! 1 GeV/c
+
+  for (int i = 0; i < 9; i++)
+    for (int j = 0; j < 16; j++) dz[i][j] = 0;
+		       
+  // ! calculating and storring dmsN9 array
+  for (int k = 0; k < NPma; k++) z[k] = RkmsZ0[k];
+
+  for (int i = 0; i < NPma; i++)
+    for (int j = 0; j < NPma; j++)
+      for (int k = 0; k < 7; k++) _rkms_dmsN9[i][j][k] = 0;
+
+  /*       --------------- scattering angles */
+  for (int i = 0; i < 16; i++) {
+    if(xRL[i] > 0.0001)
+      DT[i]=xRL[i]*(0.0136/(beta*rigid)*(1.+0.038*std::log(xRL[i])))*
+	           (0.0136/(beta*rigid)*(1.+0.038*std::log(xRL[i])));
+  }
+  /*       ---------------  dz matrix */
+  for (int i = 1; i < 9; i++) { // do i=2,9
+    dz[i][0] = z[i]-z[0];
+    dz[i][1] =(p[1]-p[0])/sq3+z[i]-p[1];
+    dz[i][2] =(p[3]-p[2])/sq3+z[i]-p[3];
+    dz[i][3] =(z[1]-p[4])/sq3;
+    if (i >= 2) {
+      dz[i][4] = z[i]-z[1];
+      if (i >= 3) {
+	dz[i][5] = z[i]-z[2];
+	dz[i][6] =(z[3]-z[2])/sq3;
+	if (i >= 4) {
+	  dz[i][7] = z[i]-z[3];
+	  if (i >= 5) {
+	    dz[i][8] = z[i]-z[4];
+	    dz[i][9] =(z[5]-z[4])/sq3;
+	    if (i >= 6) {
+	      dz[i][10] = z[i]-z[5];
+	      if (i >= 7) {
+		dz[i][11] = z[i]-z[6];
+		dz[i][12] =(z[7]-z[6])/sq3;
+		if (i >= 8) {
+		  dz[i][13]= z[i]-z[7];
+		  dz[i][14]=(p[6]-p[5])/sq3+z[i]-p[6];
+		  dz[i][15]=(p[8]-p[7])/sq3+z[i]-p[8];
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+  /*       -------------------- dmsN9 filling */
+
+  for (int N = 0; N < 7; N++) {  //  do N=1,7
+    for (int i = N+1; i < NPma; i++) { // do i=N+1,NPma ! toge
+      int ii=i-N;//+1;
+      for (int j = i; j < NPma; j++) { // do j=i,NPma
+	int jj=j-N;//+1;
+	_rkms_dmsN9[ii][jj][N]=0.;
+	for (int k = IS[N]; k < IS[i]; k++) //do k=IS(N)+1,IS(i)
+	  _rkms_dmsN9[ii][jj][N] += dz[i][k]*dz[j][k]*DT[k];
+	if(ii != jj) _rkms_dmsN9[jj][ii][N]=_rkms_dmsN9[ii][jj][N];
+      }
+    }
+  }
+
+//cout<<" ---- matr_scatN9 initialisation completed ----"<<endl;
+}
+
+void TrFit::RkmsMscN1(void)
+{
+/* Cov.Err.Matrix with Mult.Scattering for Down -->Up track
+ * A.Chikanian May,2010.
+ *---------------------------------
+ * Input:  npl1 - first plane
+ * Output: dms  - scattering matrix
+ *---------------------------------
+ */
+
+//static double dmsN1[NPma][NPma][7]; // ! internal array
+//  integer npl,npl1,N,i,j,k,jj,ii
+  double sq3 =1.73205078;
+/*  --------------------------------------------------------- Geometry
+ *  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
+ *    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
+ *  ---------------------------------------------------------
+ */
+  double p[9] = { 156.15, 78.95  //!  TRD  p1,p2
+	        ,  65.5 , 61.0   //!  TOF  p3,p4
+	        ,  56.46         //!  HC2  p5
+	        , -61.0 ,-65.5   //!  TOF2 p6,p7
+	        , -74.5 ,-75.0}; //!  RICH p8,p9
+
+  double z[9] = { 166.92         //!  z1   PL8 (1N)
+	        ,  53.06         //!  z2   PL1
+	        ,  29.2          //!  z3   PL2
+		,  27.5          //!  z4   PL3
+		,   1.7          //!  z5   PL4
+		,  -1.7          //!  z6   PL5
+		, -27.5          //!  z7   PL6
+	        , -29.2          //!  z8   PL7
+		,-135.48};       //!  z9   PL9
+
+/*   -----------------------------------------------------
+ *   X_Si = X_HC = 0.32054%
+ *   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
+ *   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
+ *   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
+ *   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
+ *   ----------------------------------------------------------------
+ */
+
+  double xRL[16] 
+    //       Si    RICH   TOF   
+    = {0.0032054,0.0335,0.047,
+    //   Si or HC
+       0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054,
+       0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054, 0.0032054,
+    //   TOF    TRD
+       0.047,0.0764};
+
+  double  DT[16] = {0, 0, 0, 0, 0, 0, 0, 0 };
+  double  dz[9][16];
+  int     IS[9] = {0,3,5,6,8,9,11,12,16};
+  double  beta  = 1;
+  double  rigid = 1; // ! 1 GeV/c
+
+  for (int i = 0; i < 9; i++)
+    for (int j = 0; j < 16; j++) dz[i][j] = 0;
+		       
+  // ! calculating and storring dmsN1 array
+  for (int k = 0; k < NPma; k++) z[k] = RkmsZ0[k];
+
+  for (int i = 0; i < NPma; i++)
+    for (int j = 0; j < NPma; j++)
+      for (int k = 0; k < 7; k++) _rkms_dmsN1[i][j][k] = 0;
+
+  /*       --------------- scattering angles */
+  for (int i = 0; i < 16; i++) {
+    if(xRL[i] > 0.0001)
+      DT[i]=xRL[i]*(0.0136/(beta*rigid)*(1.+0.038*std::log(xRL[i])))*
+	           (0.0136/(beta*rigid)*(1.+0.038*std::log(xRL[i])));
+  }
+  /*       ---------------  dz matrix */
+  for (int i = 1; i < 9; i++) { // do i=2,9
+    int j = 9-i-1;
+    dz[i][0] = z[j]-z[8];
+    dz[i][1] =(p[7]-p[8])/sq3+z[j]-p[7];
+    dz[i][2] =(p[5]-p[6])/sq3+z[j]-p[5];
+    if (i >= 2) {
+      dz[i][3] = z[j]-z[7];
+      dz[i][4] =(z[6]-z[7])/sq3;
+      if (i >= 3) {
+	dz[i][5] = z[j]-z[6];
+	if (i >= 4) {
+	  dz[i][6] = z[j]-z[5];
+	  dz[i][7] =(z[4]-z[5])/sq3;
+	  if (i >= 5) {
+	    dz[i][8] = z[j]-z[4];
+	    if (i >= 6) {
+	      dz[i][9]  = z[j]-z[3];
+	      dz[i][10] =(z[2]-z[3])/sq3;
+	      if (i >= 7) {
+		dz[i][11] = z[j]-z[2];
+		if (i == 8) {
+		  dz[i][12]= z[0]-z[1];
+		  dz[i][13]=(p[4]-z[1])/sq3+z[0]-p[4];
+		  dz[i][14]=(p[2]-p[3])/sq3+z[0]-p[2];
+		  dz[i][15]=(p[0]-p[1])/sq3+z[0]-p[0];
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+  /*       -------------------- dmsN1 filling */
+  for (int N = 0; N < 7; N++) {  //  do N=1,7
+    for (int i = N+1; i < NPma; i++) { // do i=N+1,NPma ! toge
+      int ii=i-N;//+1;
+      for (int j = i; j < NPma; j++) { // do j=i,NPma
+	int jj=j-N;//+1;
+	_rkms_dmsN1[ii][jj][N]=0.;
+	for (int k = IS[N]; k < IS[i]; k++) //do k=IS(N)+1,IS(i)
+	  _rkms_dmsN1[ii][jj][N] += dz[i][k]*dz[j][k]*DT[k];
+	if(ii != jj) _rkms_dmsN1[jj][ii][N]=_rkms_dmsN1[ii][jj][N];
+      }
+    }
+  }
+
+//cout<<" ---- matr_scatN1 initialisation completed ----"<<endl;
 }
 
 void TrFit::RkmsFCN(int &npa, double *grad, double &fu, double *par, int iflag)
@@ -1849,7 +2134,7 @@ void TrFit::RkmsFCN(int &npa, double *grad, double &fu, double *par, int iflag)
  *---   numerical calculation of Fun and derivatives.
  *-------------------------------------------------- */
 /*================================================== */
-    double dp0[5] = { .000005,.000005,.000100,.0002,.0002 }; //! Opt.Steps
+    double dp0[5] = { .000005,.000005,.000100,.0002,.0002 }; //! Optimal Steps
     /*                 GeV     GeV     GeV    cm    cm  !
      *================================================== */
 
@@ -1891,10 +2176,11 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 {
 /*    double precision Function Fun(Npa,par)
  *   A.Chikanian, Yale, Aug,2003
+ *   Function for Minimization
  */
-  enum { NPma = MaxHits };
+  enum { NPma = LMAX };
 
-  double pin[3], xin[3];
+  double pin[3], xin[3], x0[NPma], y0[NPma];
   pin[0] = par[0]; // ! Px or cx
   pin[1] = par[1]; // ! Py or cy
   pin[2] = par[2]; // ! Pz or R
@@ -1902,11 +2188,10 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
   xin[1] = par[4]; // ! y
   xin[2] = _zh[0]; // ! z
 
-  double x0[NPma], y0[NPma];
   for (int i = 0; i < NPma; i++) {
-    x0[i] = -999.; //   !**************
-    y0[i] = -999.; //   !*** let it be !!!
-  }                //   !*****************
+    x0[i] = -999.;
+    y0[i] = -999.;
+  }
 /*     ========================== */
 
 /*    subroutine rk_trk(pin,xin,x0,y0,w0)
@@ -1927,7 +2212,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*                           vect(7) is  x,y,z,px,py,pz,P
  *                                   or  x,y,z,cx,cy,cz,P
  *                                       1 2 3  4  5  6 7 */
-  double Stot = 150.; // ! Max.range(cm) in Path Length
+  double Stot = 350.; // ! Max.range(cm) in Path Length
 /*------------------------------------------------------- */
 
   double step = par[5];
@@ -1964,7 +2249,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
   int np = 1;
   for (int i = 0; i < Nst; i++) {
     if (RkmsDebug >= 3) 
-      cout<<Form(" %2d %9.4f%9.4f%9.4f%9.4f%9.4f%9.4f",
+      cout<<Form(" %2d %9.4f%9.4f%9.3f%9.4f%9.4f%9.4f",
 		 i, vect[0], vect[1], vect[2],
 		    vect[3], vect[4], vect[5])<<endl;
     TrFit::Rkuta(sign, step, vect, vout);
@@ -1981,11 +2266,11 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
 	if (RkmsDebug >= 3) {
 	  cout<<Form(" np %2d", np) << endl;
-	  cout<<Form("%9.4f%9.4f%9.4f%9.4f"
+	  cout<<Form("%9.4f%9.4f%9.4f%9.3f"
 		     "%9.4f%9.4f%9.4f%9.4f",
 		     x0[0], x0[1], x0[2], x0[3], x0[4], x0[5], x0[6], x0[7])
 	      <<endl;
-	  cout<<Form("%9.4f%9.4f%9.4f%9.4f"
+	  cout<<Form("%9.4f%9.4f%9.4f%9.3f"
 		     "%9.4f%9.4f%9.4f%9.4f",
 		     y0[0], y0[1], y0[2], y0[3], y0[4], y0[5], y0[6], y0[7])
 	      <<endl;
@@ -2016,6 +2301,7 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
 /*     double precision function Chi2Su(x0,y0)
  *   A.Chikanian, Yale, Feb,2003
+ *             Revised June,2010
  *---------------------------------------------
  * Input    x0     - x-coord. for current iteration
  *          y0     - y-coord. for current iteration
@@ -2023,20 +2309,26 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
  *--------------------------------------------- */
 
 /*-------------------------*  xc,yc - hits coordinates */
-  double chi2su = _rkms_err[0][0]*((xc[0]-x0[0])*(xc[0]-x0[0])+
-				   (yc[0]-y0[0])*(yc[0]-y0[0]));
+//double chi2su = _rkms_err[0][0]*((xc[0]-x0[0])*(xc[0]-x0[0])+
+//		   (yc[0]-y0[0])*(yc[0]-y0[0]));
+  double chi2su = _rkms_wx[0][0]*(xc[0]-x0[0])*(xc[0]-x0[0])+
+                  _rkms_wy[0][0]*(yc[0]-y0[0])*(yc[0]-y0[0]);
   if (RkmsDebug >= 3) cout<<"Chi2Su"<<endl;
   for (int i = 1; i < npoc; i++) {
     double xi = xc[i]-x0[i];
     double yi = yc[i]-y0[i];
     if (RkmsDebug >= 3) 
-      cout<<Form("%2d%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f",
-		 i, chi2su, _rkms_err[i][i], xi, yi,
+      cout<<Form("%2d%9.3f%9.1f%9.3f%9.3f%9.3f%9.3f%9.3f%9.3f",
+		 i, chi2su, _rkms_wx[i][i], xi, yi,
 		 xc[i], x0[i], yc[i], y0[i])<<endl;
-    chi2su += _rkms_err[i][i]*(xi*xi+yi*yi);
+  //chi2su += _rkms_err[i][i]*(xi*xi+yi*yi);
+    chi2su += _rkms_wx[i][i]*xi*xi+
+              _rkms_wx[i][i]*yi*yi;
     if (i < npoc-1) {
       for (int j = i+1; j < npoc; j++)
-	chi2su += 2.*_rkms_err[j][i]*(xi*(xc[j]-x0[j])+yi*(yc[j]-y0[j]));
+      //chi2su += 2.*_rkms_err[j][i]*(xi*(xc[j]-x0[j])+yi*(yc[j]-y0[j]));
+	chi2su += 2.*(_rkms_wx[j][i]*xi*(xc[j]-x0[j])+
+		      _rkms_wy[j][i]*yi*(yc[j]-y0[j]));
     }
   }
 
@@ -2048,14 +2340,19 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
       _xr[i] = xc[i]-x0[i];
       _yr[i] = yc[i]-y0[i];
 
-      _chisqx += _rkms_err[i][i]*_xr[i]*_xr[i];
-      _chisqy += _rkms_err[i][i]*_yr[i]*_yr[i];
+      _chisqx += _rkms_wx[i][i]*_xr[i]*_xr[i];
+      _chisqy += _rkms_wy[i][i]*_yr[i]*_yr[i];
 
       for (int j = i+1; j < npoc; j++) {
-	_chisqx += 2.*_rkms_err[j][i]*_xr[i]*(xc[j]-x0[j]);
-	_chisqy += 2.*_rkms_err[j][i]*_yr[i]*(yc[j]-y0[j]); 
+	_chisqx += 2.*_rkms_wx[j][i]*_xr[i]*(xc[j]-x0[j]);
+	_chisqy += 2.*_rkms_wy[j][i]*_yr[i]*(yc[j]-y0[j]); 
       }
+      if (RkmsDebug >= 2) 
+	cout<<Form("Residual %d %8.4f %8.4f %8.4f %8.4f %8.4f %8.4f",
+		   i, xc[i], x0[i], yc[i], y0[i], _xr[i], _yr[i])<<endl;
     }
+    if (RkmsDebug >= 2) 
+      cout<<"chisq= "<<_chisqx<<" "<<_chisqy<<endl;
   }
 
   return chi2su;

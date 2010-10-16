@@ -40,6 +40,8 @@ void AMSJob::_retkinitjob(){
   AMSgObj::BookTimer.book("TrRecHit_add");
   AMSgObj::BookTimer.book("TrTrack");
   AMSgObj::BookTimer.book("TrFalseX");
+  AMSgObj::BookTimer.book("TrFitRkmsF");
+  AMSgObj::BookTimer.book("TrFitRkmsT");
 //PZ FIXME CHARGE  if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files
 //     //
 //     TrkElosPDF::build();//create TrkElosPDF-objects from TRK raw ChargeCalibFile

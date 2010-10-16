@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.57 2010/10/14 09:17:28 shaino Exp $
+// $Id: TrTrack.C,v 1.58 2010/10/16 07:17:07 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/14 09:17:28 $
+///$Date: 2010/10/16 07:17:07 $
 ///
-///$Revision: 1.57 $
+///$Revision: 1.58 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -736,8 +736,15 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (method == TrFit::CHIKANIAN && ParExists(kChoutko))
-    _TrFit.SetRigidity(GetRigidity(kChoutko));
+  if (method == TrFit::CHIKANIAN) {
+    Double_t rini = 0;
+    Int_t idr = kChoutko;
+    Int_t idl = id & (kFitLayer8 | kFitLayer9);
+
+    if (ParExists(idr | idl)) idr = idr | idl;
+    if (ParExists(idr)) rini = GetRigidity(idr);
+    _TrFit.SetRigidity(rini);
+  }
 
   // Perform fitting
   float idone = _TrFit.Fit(method);

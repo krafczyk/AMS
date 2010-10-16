@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
+*  $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
 *-----------------------------------------------------------------------
@@ -14,11 +14,17 @@
 *----------------
       integer k
       real zposl(NPma)
-
+      integer n
+      n=0
       do k=1,NPma
-        trkZ0(k)=zposl(k)
+        if (trkZ0(k).ne.zposl(k)) then
+           trkZ0(k)=zposl(k)
+           n=n+1
+        endif
       enddo
-      write(*,*)'RKMS-I-InitTo ',trkZ0
+      if (n.gt.0) then
+         write(*,*)'RKMS-I-InitTo ',trkZ0
+      endif
       end
 
 
@@ -1185,8 +1191,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
+* $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.18  2010/10/16 07:17:07  shaino
+* PGTRACK: Chikanian fit updated
+*
 * Revision 1.17  2010/07/12 15:35:56  choutko
 * *** empty log message ***
 *
@@ -1382,8 +1391,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.17 2010/07/12 15:35:56 choutko Exp $
+* $Id: rkms.F,v 1.18 2010/10/16 07:17:07 shaino Exp $
 * $Log: rkms.F,v $
+* Revision 1.18  2010/10/16 07:17:07  shaino
+* PGTRACK: Chikanian fit updated
+*
 * Revision 1.17  2010/07/12 15:35:56  choutko
 * *** empty log message ***
 *
