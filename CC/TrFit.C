@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.31 2010/10/16 07:27:01 shaino Exp $
+//  $Id: TrFit.C,v 1.32 2010/10/16 17:22:34 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/16 07:27:01 $
+///$Date: 2010/10/16 17:22:34 $
 ///
-///$Revision: 1.31 $
+///$Revision: 1.32 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1378,6 +1378,8 @@ void TrFit::RkmsFitF(double *out)
   int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
   for (int i = 0; i < trconst::maxlay; i++)
     zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+
+#pragma omp critical (rkmsinit)
   rkmsinit_(zpos); 
 
   float rini = GetRigidity();
@@ -1395,17 +1397,20 @@ void TrFit::RkmsFitF(double *out)
 #endif
 
 
+#include "TMinuit.h"
+
 namespace TrFit_RKMS {
   static TrFit *ptr = 0;
 #pragma omp threadprivate(ptr)
+
+  static TMinuit *fMinuit = 0;
+#pragma omp threadprivate(fMinuit)
 
   void RkmsFCN(int &n, double *grad, double &chisq, double *par, int iflag)
   {
     if (ptr) ptr->RkmsFCN(n, grad, chisq, par, iflag);
   }
 };
-
-#include "TMinuit.h"
 
 void TrFit::RkmsFit(double *out)
 {
@@ -1461,22 +1466,29 @@ void TrFit::RkmsFit(double *out)
 
   TrFit_RKMS::ptr = this;
 
-  TMinuit minuit(NDIM+2);
-  minuit.mninit(5, 6, 7);
-  minuit.SetFCN(TrFit_RKMS::RkmsFCN);
+  if (!TrFit_RKMS::fMinuit) {
+#pragma omp critical (tminuit)
+    TrFit_RKMS::fMinuit = new TMinuit(NDIM+2);
+    std::cout << "TrFit::RkmsFit-I-TMinuit object created" << std::endl;
+  }
+
+//TMinuit minuit(NDIM+2);
+  TMinuit *minuit = TrFit_RKMS::fMinuit;
+  minuit->mninit(5, 6, 7);
+  minuit->SetFCN(TrFit_RKMS::RkmsFCN);
 
   double args[3] = { 0, 0, 0 };
   int narg = 1, ierr;
 
   //! suppr. output
-  args[0] = -1; minuit.mnexcm("SET PRINT",  args, narg, ierr);
-  args[0] = -1; minuit.mnexcm("SET NOWARN", args, narg, ierr);
+  args[0] = -1; minuit->mnexcm("SET PRINT",  args, narg, ierr);
+  args[0] = -1; minuit->mnexcm("SET NOWARN", args, narg, ierr);
   if (ierr) cerr << "MNEXCM: Print ierflg=" << ierr << endl;
 
-  args[0]= 1; minuit.mnexcm("SET GRAD", args, narg, ierr);
+  args[0]= 1; minuit->mnexcm("SET GRAD", args, narg, ierr);
   if (ierr) cerr << "MNEXCM: Grad ierflg=" << ierr << endl;
 
-  args[0]= 1; minuit.mnexcm("SET ERRo", args, narg, ierr);
+  args[0]= 1; minuit->mnexcm("SET ERRo", args, narg, ierr);
   if(ierr) cerr << "MNEXCM: ERRo ierflg=" << ierr << endl;
 
   double z1  = _zh[0]; // ! if so Par(4)=x(1), Par[5]=y(1)
@@ -1534,15 +1546,15 @@ void TrFit::RkmsFit(double *out)
 
 //!$OMP CRITICAL (RKMS)  // TMinuit is thread-safe
     for (int i = 0; i < npa; i++) {
-      minuit.mnparm(i, "par", par[i], St[i], 0, 0, ierr);//! Init.Val.Setup
+      minuit->mnparm(i, "par", par[i], St[i], 0, 0, ierr);//! Init.Val.Setup
       if(ierr) cerr << "### MNPARM: i,ierflg=" << i << " " << ierr << endl;
     }
     int np = npa;
-    minuit.mnparm(np++, "step", step, 0, 0, 0, ierr);
-    minuit.mnparm(np++, "sign", sign, 0, 0, 0, ierr);
+    minuit->mnparm(np++, "step", step, 0, 0, 0, ierr);
+    minuit->mnparm(np++, "sign", sign, 0, 0, 0, ierr);
 
     if (RkmsDebug >= 2) cout <<" MIGRAD it= " << it << endl;
-    minuit.mnexcm("MIGRAD", args, 0, ierr);
+    minuit->mnexcm("MIGRAD", args, 0, ierr);
     if (RkmsDebug >= 2) cout <<" MIGRAD ierflg= " << ierr << endl;
 
 /*       ================================================
@@ -1556,7 +1568,7 @@ void TrFit::RkmsFit(double *out)
     for (int i = 0; i < npa; i++) {
       double bnd1, bnd2;
       int ivar;
-      minuit.mnpout(i, str, out[i], err[i], bnd1, bnd2, ivar); //! Extraction
+      minuit->mnpout(i, str, out[i], err[i], bnd1, bnd2, ivar); //! Extraction
       par[i] = out[i];
     }
     par[npa]   = step;
@@ -1564,7 +1576,7 @@ void TrFit::RkmsFit(double *out)
 
 //!$OMP END CRITICAL (RKMS)  // TMinuit is thread-safe
 
-    double chi2 = minuit.fAmin;
+    double chi2 = minuit->fAmin;
     if (chi2 > 1.e30) chisq = 1.e30;
     else chisq = chi2;
 //c    if(2*npo-npa.gt.0) Chi2=Dhi2/(2.*npo-npa)      ! Chi2/d.f.
@@ -1881,7 +1893,6 @@ void TrFit::RkmsMscN9(void)
  *---------------------------------
  */
 
-  static double dmsN9[NPma][NPma][7]; // ! internal array
 //  integer npl,npl1,N,i,j,k,jj,ii
   double sq3 =1.73205078;
 /*  --------------------------------------------------------- Geometry
@@ -2006,7 +2017,6 @@ void TrFit::RkmsMscN1(void)
  *---------------------------------
  */
 
-//static double dmsN1[NPma][NPma][7]; // ! internal array
 //  integer npl,npl1,N,i,j,k,jj,ii
   double sq3 =1.73205078;
 /*  --------------------------------------------------------- Geometry
