@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.32 2010/10/16 17:22:34 shaino Exp $
+//  $Id: TrFit.C,v 1.33 2010/10/16 17:31:24 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/16 17:22:34 $
+///$Date: 2010/10/16 17:31:24 $
 ///
-///$Revision: 1.32 $
+///$Revision: 1.33 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -717,7 +717,11 @@ double TrFit::AlcarazFit(int fixr)
   int    ilay[LMAX];
 
   // Estimate layer number
-  for (int i = 0; i < _nhit; i++) ilay[i] = GetLayer(_zh[i]);
+  for (int i = 0; i < _nhit; i++) {
+    ilay[i] = GetLayer(_zh[i]);
+    if (ilay[i] == 8) ilay[i] = 0;
+    if (ilay[i] == 9) ilay[i] = 8;
+  }
 
   // Fill transportation matrices
   if (JAFillFGmtx(fmtx, gmtx, len, cosz, 20) < 0) return -1;
@@ -774,7 +778,7 @@ int TrFit::JAInitPar(int fixr)
     if (_bx[i]*_bx[i]+_by[i]*_by[i]+_bz[i]*_bz[i] == 0) magf = false;
 
   // Get initial paramters
-  if (!fixr && magf) {
+  if (!fixr && magf && _rigidity == 0) {
     if (SimpleFit() < 0) return -20;
   }
   else {
@@ -797,7 +801,7 @@ int TrFit::JAInitPar(int fixr)
       }
   }
 
-  _param[4] = (fixr && magf && _rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
+  _param[4] = (magf && _rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
 
   return 0;
 }
@@ -889,17 +893,47 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 //        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
 //        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
 //        Support:   10mm Al Honeycomb: 1.67e-3 X0
-  double WLEN[LMAX] = { 0, 7.29e-3, 12.91e-3, 0,
-				   12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
-/*
-  static int count=0;
-  if(TkDBc::Head->GetSetup()==3 && count<50){
-    count++;
-    printf(" TrFit::JAFillVWmtx -W- For PLANB You still have to Optimize Radiation Lenght for fit!!!!\n");
+//double WLEN[LMAX] = { 0, 7.29e-3, 12.91e-3, 0,
+// 				    12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
+
+  // Radiation length data for AMS-PM tuned with TB (60 GeV p/pi)
+  double WLEN[LMAX] = { 0.090,  // 1:L1N (HC+TRD+TOF)
+			0.005,  // 2:L1  (Si)
+			0.010,  // 3:L2  (Si+HC)
+			0.005,  // 4:L3  (Si)
+			0.005,  // 5:L4  (Si+HC)/2
+			0.005,  // 6:L5  (Si+HC)/2
+			0.005,  // 7:L6  (Si)
+			0.010,  // 8:L7  (Si+HC)
+			0.045   // 9:L9  (Si+TOF+RICH)
+                      };
+
+  static bool first = true;
+#pragma omp critical (jafillvwmtx)
+  if (first && _mscat) {
+    std::cout << "TrFit::JAFillVWmtx-I-WLEN(%)=";
+    for (int i = 0; i < 9; i++)
+      std::cout << Form(" %4.2f", WLEN[i]*100);
+    std::cout << endl;
+    first = false;
   }
-*/
+
   int nel = _nhit-2;
   double mtx[(LMAX-2)*(LMAX-2)], mty[(LMAX-2)*(LMAX-2)];
+
+  int mode = 1; 
+  for (int i = 0; i < _nhit; i++) if (WLEN[i] > 0.05) mode = 2;
+
+  double lref = 0;
+  int    kcen = 0;
+  for (int i = 1; i < _nhit; i++) {
+    if (_zh[i-1] > 0 && _zh[i] < 0) {
+      kcen = (_zh[i-1] < -_zh[i]) ? i-1 : i;
+      lref += len[i]/(_zh[i-1]-_zh[i])*_zh[i-1];
+      break;
+    }
+    lref += len[i];
+  }
 
   // Fill V and W matrices
   for (int i = 0; i < _nhit; i++) {
@@ -909,7 +943,8 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
         wmtx[i*LMAX+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
       }
 
-      if (_mscat) {
+      // No ext. layers
+      if (_mscat && mode == 1) {
         for (int k = 1; k < i && k < j; k++) {
           if (cosz[k] <= 0) continue;
           double li = 0, lj = 0, wl = 0;
@@ -921,6 +956,36 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
           vmtx[i*LMAX+j] += dmsc;
           wmtx[i*LMAX+j] += dmsc;
         }
+      }
+
+      // With ext. layers
+      if (_mscat && mode == 2 && i == j) {
+	if (i < kcen) {
+	  for (int k = i; k <= kcen; k++) {
+	    if (cosz[k] <= 0) continue;
+
+	    int l1 = ilay[k], l2 = ilay[kcen];
+	    double ls = 0; for (int l = k;  l < kcen; l++) ls += len[l];
+	    double wl = 0; for (int l = l1; l < l2;   l++) wl += WLEN[l];
+
+	    double dmsc = ls*ls*0.0118*0.0118*pbi2*wl/cosz[k];
+	    vmtx[i*LMAX+j] += dmsc;
+	    wmtx[i*LMAX+j] += dmsc;
+	  }
+	}
+	else {
+	  for (int k = kcen+1; k <= i && kcen+1 < _nhit; k++) {
+	    if (cosz[k] <= 0) continue;
+
+	    int l1 = ilay[kcen+1], l2 = ilay[k];
+	    double ls = 0; for (int l = kcen+1; l <= k;  l++) ls += len[l];
+	    double wl = 0; for (int l = l1  ;   l <= l2; l++) wl += WLEN[l];
+
+	    double dmsc = ls*ls*0.0118*0.0118*pbi2*wl/cosz[k];
+	    vmtx[i*LMAX+j] += dmsc;
+	    wmtx[i*LMAX+j] += dmsc;
+	  }
+	}
       }
 
       if (i >= 2 && j >= 2) {
@@ -943,23 +1008,25 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   }
 
   // Invert V and W matrices
-  if (_mscat) {
+  if (_mscat && mode == 1) {
     int ret = -1;
     if (nel == 3) ret = Inv33((double(*)[3])mtx);
     if (nel == 4) ret = Inv44((double(*)[4])mtx);
     if (nel == 5) ret = Inv55((double(*)[5])mtx);
     if (nel == 6) ret = Inv66((double(*)[6])mtx);
+    if (nel >= 7) ret = InvSM(mtx, nel);
     if (ret < 0) return -1;
 
     if (nel == 3) ret = Inv33((double(*)[3])mty);
     if (nel == 4) ret = Inv44((double(*)[4])mty);
     if (nel == 5) ret = Inv55((double(*)[5])mty);
     if (nel == 6) ret = Inv66((double(*)[6])mty);
+    if (nel >= 7) ret = InvSM(mty, nel);
     if (ret < 0) return -1;
   }
   for (int i = 0; i < _nhit; i++)
     for (int j = 0; j < _nhit; j++) {
-      if (i >= 2 && j >= 2 && _mscat) {
+      if (i >= 2 && j >= 2 && _mscat && mode == 1) {
         vmtx[i*LMAX+j] = (_xs[i] > 0 && _xs[j] > 0) 
                          ? mtx[(i-2)*nel+j-2]*1e+3 : 0;
         wmtx[i*LMAX+j] = (_ys[i] > 0 && _ys[j] > 0) 
@@ -2373,6 +2440,41 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 /*=============================
  *#include "../RKMSFIT/debug4.h"
  *============================= */
+}
+
+
+int TrFit::InvSM(double **M, int ndim)
+{
+  TMatrixDSym mtx(ndim);
+
+  for (int i = 0; i < ndim; i++) 
+    for (int j = 0; j <= i; j++) mtx[i][j] = M[i][j];
+
+  double det;
+  mtx.Invert(&det);
+  if (det == 0) return 0;
+
+  for (int i = 0; i < ndim; i++) 
+    for (int j = 0; j < ndim; j++) M[i][j] = M[j][i] = mtx[i][j];
+
+  return 1;
+}
+
+int TrFit::InvSM(double *M, int ndim)
+{
+  TMatrixDSym mtx(ndim);
+
+  for (int i = 0; i < ndim; i++) 
+    for (int j = 0; j <= i; j++) mtx[i][j] = M[i*ndim+j];
+
+  double det;
+  mtx.Invert(&det);
+  if (det == 0) return 0;
+
+  for (int i = 0; i < ndim; i++) 
+    for (int j = 0; j < ndim; j++) M[i*ndim+j] = M[j*ndim+i] = mtx[i][j];
+
+  return 1;
 }
 
 

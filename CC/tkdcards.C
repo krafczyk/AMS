@@ -307,9 +307,9 @@ void TRFITFFKEY_DEF::init(){
   MinNhit   = 5;
   SearchRegStrLine=1.5;
   SearchRegCircle=10.;
-  ErrX = 34.e-4;  
-  ErrY = 20.e-4;
-  ErrZ = 34.e-4;
+  ErrX = 40.e-4;  
+  ErrY = 15.e-4;
+  ErrZ = 40.e-4;
   MaxChisq[0] = 5;
   MaxChisq[1] =  2000;
 

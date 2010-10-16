@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.17 2010/10/16 07:17:07 shaino Exp $
+//  $Id: TrFit.h,v 1.18 2010/10/16 17:31:24 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/10/16 07:17:07 $
+///$Date: 2010/10/16 17:31:24 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -396,6 +396,12 @@ public:
   static int Inv55(double mtx[5][5]);
   /// 5x5 Matrix inversion imported from ROOT
   static int Inv66(double mtx[6][6]);
+
+  /// Symmetric Matrix inversion with TMatrixDSym
+  static int InvSM(double **mtx, int ndim);
+
+  /// Symmetric Matrix inversion with TMatrixDSym
+  static int InvSM(double *mtx, int ndim);
 
   ClassDef(TrFit, 1);
 };
