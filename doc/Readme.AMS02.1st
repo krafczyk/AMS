@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.58 2010/07/27 16:33:40 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.59 2010/10/19 15:36:33 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -42,23 +42,18 @@ e) AMS02 Software Status Report in
 VI. Access to AMS software
 
  i) Get an account on  some ams computer (see VIII)
-   setenv Offline   as:
-   /afs/ams.cern.ch/Offline                computers at cern cite
+   setenv Offline  /afs/ams.cern.ch/Offline 
+                                           for computers at cern cite
                                            eg ams,pcamsf2,lxplus
 
-                                           OR  (new)
-                                           all others provided 
-                                      they are using cern vpn, for linux see:
-    http://linux.web.cern.ch/linux/documentation/other/vpn-pptp-pilot.shtml
-
-                                           OR (new)  ip(range) by demend  
+                                           for all other computers 
                                            provide ip address of the node(s)
                                            to vitali.choutko@cern.ch
                                            ro access to ams.cern.ch will be granted 
 
-
    source $Offline/vdev/install/amsvar
-
+   
+   setenv AMSWD /f2users/`whoami`
 
 a) As a user:
 
