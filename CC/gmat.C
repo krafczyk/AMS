@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.103 2010/06/30 10:52:14 pzuccon Exp $
+//  $Id: gmat.C,v 1.104 2010/10/20 10:44:21 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -372,7 +372,10 @@ void AMSgmat::amsmat(){
 
   // NEW! Outer mirror
 
-  mat.add (new AMSgmat("RICH_MIRROR",29.98,13.,1.35,17.8,74.4));
+  //  mat.add (new AMSgmat("RICH_MIRROR",29.98,13.,1.35,17.8,74.4));
+  mat.add (new AMSgmat("RICH_MIRROR_S1",29.98,13.,1.35,17.8,74.4));
+  mat.add (new AMSgmat("RICH_MIRROR_S2",29.98,13.,1.35,17.8,74.4));
+  mat.add (new AMSgmat("RICH_MIRROR_S3",29.98,13.,1.35,17.8,74.4));
 }
 }
 //-------------------------------------------
@@ -841,13 +844,40 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   index[0]=0;          // This behaves like metal
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
   
+  /*
 // Outer mirror
-
 pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
   for(iw=0;iw<RICHDB::entries;iw++)
     abs_l[iw]=1.-RICmireff; // Reflectivity=85%   
   index[0]=0;          // The mirror is a metal
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+  */
+
+//Outer mirror S1
+
+  pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR S1","RICH_MIRROR_S1",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    abs_l[iw]=1.-RICmireffs1; // Reflectivity=80%   
+  index[0]=0;               // The mirror is a metal
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+//Outer mirror S2
+
+  pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR S2","RICH_MIRROR_S2",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    abs_l[iw]=1.-RICmireff; // Reflectivity=85%   
+  index[0]=0;               // The mirror is a metal
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+//Outer mirror S3
+
+  pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR S3","RICH_MIRROR_S3",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    abs_l[iw]=1.-RICmireff; // Reflectivity=85%   
+  index[0]=0;               // The mirror is a metal
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+
 
 
 // Aerogel support structure

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.71 2010/08/14 11:44:19 mdelgado Exp $
+//  $Id: richdbc.C,v 1.72 2010/10/20 10:44:21 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -146,7 +146,8 @@ geant RICHDB::hole_radius[2]={63.8/2.,64.3/2}; // half ECAL hole side length (it
 geant RICHDB::inner_mirror_height=50;          // UNUSED
 geant RICHDB::rad_clarity=0.0055;              // Radiator clarity: updated 10/28/04
 geant RICHDB::scatprob=.19;                    // Probability of surface scattering accroding to C. Delgado model
-geant RICHDB::scatang=14e-3;                   // Scattered angle (rad) according to C. Delgado model 
+//geant RICHDB::scatang=14e-3;                   // Scattered angle (rad) according to C. Delgado model 
+geant RICHDB::scatang=10e-3;                   // Scattered angle (rad) according to C. Delgado model 
 geant RICHDB::eff_rad_clarity=0.0055;          // clarity used in charge recosntruction
 
 geant RICHDB::rad_radius=60.0;                 // Radiator radius
@@ -171,6 +172,11 @@ geant RICHDB::sigma_ped=0.5335;               // Default pedestal width
 geant RICHDB::peak=23.04;                     // Default gain
 geant RICHDB::sigma_peak=12.10;               // Witdh of the single p.e.
 geant RICHDB::c_ped=2.;                       // N od ADC counts for detection threshold
+
+//mirror
+geant  RICHDB::RICmirrors3_s2=88; 
+geant  RICHDB::RICmirrors2_s1=208;
+geant  RICHDB::RICmirrors1_s3=328;
 
 // Measure in the prototype
 geant RICHDB::prob_noisy=8.e-5;

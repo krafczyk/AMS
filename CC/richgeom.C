@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.41 2010/10/10 19:10:08 mdelgado Exp $
+//  $Id: richgeom.C,v 1.42 2010/10/20 10:44:21 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -710,7 +710,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[1]=RICHDB::bottom_radius;
   par[2]=RICHDB::bottom_radius+RICmithk;
 
-    
+  /*    
   mirror->add(new AMSgvolume("RICH MIRROR",
                              0,          // No rotation
                              "OMI1",     // Name
@@ -723,6 +723,60 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
                              0,
                              1,
                              rel));
+  */
+
+ //SECTOR 1 less Refl
+ par[5]=RICHDB::RICmirrors2_s1;
+ par[6]=RICHDB::RICmirrors1_s3;
+ mirror->add(new AMSgvolume("RICH MIRROR S1",
+                             0,          // No rotation
+                             "OMI1",     // Name
+                             "CONS",    // Shape
+                             par,       // Geant parameters
+                             7,         // # of parameters
+                             coo,       // coordinates
+                             nrm,       // Matrix of normals  
+                             "ONLY",
+                              0,
+                             1,
+                             rel));
+
+
+ //SECTOR 2
+ par[5]=RICHDB::RICmirrors3_s2;
+ par[6]=RICHDB::RICmirrors2_s1;
+ mirror->add(new AMSgvolume("RICH MIRROR S2",
+                             0,          // No rotation
+                             "OMI2",     // Name
+                             "CONS",    // Shape
+                             par,       // Geant parameters
+                             7,         // # of parameters
+                             coo,       // coordinates
+                             nrm,       // Matrix of normals  
+                             "ONLY",
+                              0,
+                             1,
+                             rel));
+
+
+
+
+ //SECTOR 3   
+ par[5]=RICHDB::RICmirrors1_s3;
+ par[6]=RICHDB::RICmirrors3_s2;
+ mirror->add(new AMSgvolume("RICH MIRROR S3",
+                             0,          // No rotation
+                             "OMI3",     // Name
+                             "CONS",    // Shape
+                             par,       // Geant parameters
+                             7,         // # of parameters
+                             coo,       // coordinates
+                             nrm,       // Matrix of normals  
+                             "ONLY",
+                              0,
+                             1,
+                             rel));
+
 
 
 
