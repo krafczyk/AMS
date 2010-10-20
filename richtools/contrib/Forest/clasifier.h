@@ -57,7 +57,7 @@ class Tree: public TObject{
   void  grow_internal(lint *buffer,lint size,lint *scratch,
 		      int tries,int minSize,float maxRMS); 
 
-  // Get momentum is virtual to allow changing the fit function
+  // Get momentum allows changing the fit function
   // The function should return the best value for  the node as "mean"
   // the fit function value in "rms" and the number of elements in the
   // node in "weight".
@@ -84,6 +84,69 @@ class Forest: public TObject{
   float eval(float *point);
   ClassDef(Forest,1)
 };
+
+
+///// A geometrical hash useful for multidimensional studies
+#include<stdlib.h>
+const int nBuffers=4;
+
+// Each node is represented by a single entry in the vectors array                                                                                                                                                
+class GeomHash: public TObject{
+ public:
+  static int trials;
+  bool grown;
+  int dimension;
+  int numNodes;
+  vector<float> points[2];  // The two points per node                                                                                                                                                            
+  vector<double> limit;      // The limit to separate among them                                                                                                                                                  
+  vector<int>   nodes[2];   // If the node j is terminal, node[0][j]=-1, node[1][j]=entries in bin, point[0][j*dimension]=mean value, point[1][j*dimension]=rms                                                   
+  GeomHash(int d=1);
+
+  int offset(int which){return which*dimension;}
+
+  //Evaluating                                                                                                                                                                                                    
+  int hash(float *point);
+  int get(double x,...);
+
+  // Metric                                                                                                                                                                                                       
+  /*virtual*/ double metric(float *p1,float *p2);
+
+  // Distance                                                                                                                                                                                                     
+  double dist(float *r1,float *r2,float *point);  // Define the metric. If it is negative it means that point is closer to r2                                                                                     
+
+  // Growing                                                                                                                                                                                                      
+  vector<float> samples;  //! Vector storing all the samples with the format x0,x1,x2...xn,y,weight                                                                                                               
+  void push(float *x);
+  void fill(double x,...);
+
+  void grow(int min_size=0);
+
+  void grow(int *pointers,  // Buffer pointing to the points indexes                                                                                                                                              
+            double *scratch,int min_size=0);        // Scratch region to store the distances to the points                                                                                                                       
+
+
+  // grow a tree trying tries time for optimization, and with minSize minimum elements per node. size is the number of samples to be used                                                                           
+  // stored in buffer (as indexes to samples) and scratch is a temporary scratch space                                                                                                                              
+  void  grow_internal(int *pointers,
+                      int  size,
+                      double *scratch,
+		      int min_size=0,
+                      int parent=0);
+
+
+
+  // Some internal buffers                                                                                                                                                                                        
+  static float *buffer[nBuffers]; //!                                                                                                                                                                             
+  static int    bufferSize;       //!                                                                                                                                                                             
+
+  static int comparator(const void*,const void*);
+  static double *_distances; //!                                                                                                                                                                                  
+
+  ClassDef(GeomHash,1);
+};
+
+
+
 
 #endif
 

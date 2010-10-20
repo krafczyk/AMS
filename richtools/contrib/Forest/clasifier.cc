@@ -396,3 +396,202 @@ float Forest::eval(float *point){
 
 
 
+//////////////////////////////////////////////// GeomHash
+ClassImp(GeomHash);
+
+double *GeomHash::_distances=0;
+int GeomHash::trials=10;
+float *GeomHash::buffer[nBuffers]={0,0,0,0};
+int GeomHash::bufferSize=0;
+int GeomHash::comparator(const void* p1,const void *p2){
+  int index1=*((int*)p1);
+  int index2=*((int*)p2);
+  double d1=_distances[index1];
+  double d2=_distances[index2];
+  if(d1>d2) return -1; else return 1; // Check this: in principle this is sorted from closer to the first element in the pair (largest dist values) to closer to the second element (negative values)             
+}
+
+GeomHash::GeomHash(int d){
+  dimension=d;
+  numNodes=0;
+  points[0].reserve(1024*d);   points[1].reserve(1024*d);
+  nodes[0].reserve(1024);      nodes[1].reserve(1024);
+  limit.reserve(1024);
+  grown=false;
+
+  // Grow the buffers if needed                                                                                                                                                                                   
+  if(dimension>bufferSize){
+    bufferSize=dimension;
+    for(int i=0;i<nBuffers;i++){
+      if(buffer[i]) delete buffer[i];
+      buffer[i]=new float[dimension+1];
+    }
+  }
+}
+
+int GeomHash::hash(float *point){
+  if(numNodes==0) return 0;
+  int current=0;
+
+  for(;;){
+    // Copy the points to the buffers                                                                                                                                                                             
+    for(int i=0;i<dimension;i++) for(int which=0;which<2;which++) buffer[which][i]=points[which][offset(current)+i];
+
+    // Take the metric value                                                                                                                                                                                      
+    double d=dist(buffer[0],buffer[1],point);
+
+    int nodeNumber=d<limit[current]?1:0;
+
+    if(nodes[nodeNumber][current]<0) return -nodes[nodeNumber][current]-1;
+    current=nodes[nodeNumber][current];
+  }
+}
+
+
+double GeomHash::metric(float *p1,float *p2){
+  double d=0;
+  for(int i=0;i<dimension;i++) d+=(p1[i]-p2[i])*(p1[i]-p2[i]);
+  return d;
+}
+
+double GeomHash::dist(float *r1,float *r2,float *point){
+  double d1=0,d2=0;
+  d1=metric(r1,point);
+  d2=metric(r2,point);
+  //  for(int i=0;i<dimension;i++) d1+=(r1[i]-point[i])*(r1[i]-point[i]);
+  //  for(int i=0;i<dimension;i++) d2+=(r2[i]-point[i])*(r2[i]-point[i]);
+  return d2-d1;
+}
+
+void GeomHash::push(float *x){
+  // Set the minimum capacity                                                                                                                                                                                     
+  if(samples.capacity()<1024*dimension) samples.reserve(1024*dimension);
+
+  // Store the point                                                                                                                                                                                              
+  for(int i=0;i<dimension;i++)  samples.push_back(x[i]);
+}
+
+#include <stdarg.h>
+
+void GeomHash::fill(double x,...){
+  va_list ap;
+  va_start(ap, x);
+  buffer[2][0]=x;
+  for(int i=1;i<dimension;i++) buffer[2][i]=va_arg(ap, double);
+  va_end(ap);
+  push(buffer[2]);
+}
+
+int GeomHash::get(double x,...){
+  va_list ap;
+  va_start(ap, x);
+  buffer[2][0]=x;
+  for(int i=1;i<dimension;i++) buffer[2][i]=va_arg(ap, double);
+  va_end(ap);
+  return hash(buffer[2]);
+}
+
+void GeomHash::grow(int min_size){
+  int *pointers=new int[samples.size()];
+  double *scratch=new double[samples.size()];
+  grow(pointers,scratch,min_size);
+  delete[] pointers;
+  delete[] scratch;
+}
+
+void GeomHash::grow(int *pointers,double *scratch,int min_size){
+  if(grown) return;
+  grown=true;
+  int entries=samples.size()/dimension;
+
+  // Init the buffer                                                                                                                                                                                              
+  for(int i=0;i<entries;i++) pointers[i]=i;
+
+  // Start the real growing process                                                                                                                                                                               
+  grow_internal(pointers,entries,scratch,2*min_size); // Adjust the min_size to obtain a better approximation
+
+  samples.resize(0);
+  vector<float> empty; samples=empty; // liberates a lot of space                                                                                                                                                 
+}
+
+void GeomHash::grow_internal(int *pointers,int size, double *scratch,int min_size,int parent){
+  if(size==1 || size<min_size){
+    // Finished: get the parent link and update it                                                                                                                                                                
+    int currentHashNumber=numNodes++;
+    int trueParent=fabs(parent)-1;
+    int parentNode=parent<0?0:1;
+
+    // Update the values                                                                                                                                                                                          
+    nodes[parentNode][trueParent]=-currentHashNumber-1;
+    return;
+  }
+
+  int me=nodes[0].size();
+
+  // Pick randomly two different points                                                                                                                                                                           
+  int pair[2];
+  bool equals=true;
+  for(int trial=0;trial<trials;trial++){ // try 10 times (mode to a constant)                                                                                                                                     
+    pair[0]=pointers[int(size*(rand() / (RAND_MAX + 1.0)))];
+    do pair[1]=pointers[int(size*(rand() / (RAND_MAX + 1.0)))]; while(pair[1]==pair[0]);
+
+    for(int i=0;i<dimension;i++) if(samples[offset(pair[0])+i]!=samples[offset(pair[1])+i]){equals=false;break;}
+    if(!equals) break;
+  }
+
+  if(equals && parent==0) return; // Finished: is it not possible to grow with identical points                                                                                                                   
+
+  // Compute the metric for each point                                                                                                                                                                            
+  for(int i=0;i<dimension;i++) for(int which=0;which<2;which++) buffer[which][i]=samples[offset(pair[which])+i];
+  for(int index=0;index<size;index++){
+    int element=pointers[index];
+    for(int i=0;i<dimension;i++) buffer[2][i]=samples[offset(element)+i];
+    scratch[element]=dist(buffer[0],buffer[1],buffer[2]);
+  }
+
+  // Sort all of them using quick sort                                                                                                                                                                            
+  _distances=scratch;
+  qsort(pointers,size,sizeof(int),comparator);
+
+
+  // Check if the first and last value are the same                                                                                                                                                               
+  if(scratch[pointers[0]]==scratch[pointers[size-1]]){
+    // Finished: get the parent link and update it                                                                                                                                                                
+    int currentHashNumber=numNodes++;
+    int trueParent=fabs(parent)-1;
+    int parentNode=parent<0?0:1;
+
+    // Update the values                                                                                                                                                                                          
+    nodes[parentNode][trueParent]=-currentHashNumber-1;
+    return;
+  }
+
+  // Search for the best splitting point                                                                                                                                                                          
+  double bestValue=0;
+  int bestDiff=INT_MAX;
+  int bestPosition=-1;
+  for(int i=1;i<size;i++){
+    if(scratch[pointers[i-1]]==scratch[pointers[i]]) continue;
+    double value=0.5*(scratch[pointers[i-1]]+scratch[pointers[i]]);
+    int diff=fabs(2*i-size);
+
+    if(diff<bestDiff){
+      bestPosition=i;
+      bestValue=value;
+      bestDiff=diff;
+    }
+  }
+
+  // Store the current information                                                                                                                                                                                
+  limit.push_back(bestValue);
+  for(int i=0;i<dimension;i++){
+    points[0].push_back(buffer[0][i]);
+    points[1].push_back(buffer[1][i]);
+  }
+
+  nodes[0].push_back(0);  nodes[1].push_back(0);
+  nodes[0][me]=nodes[0].size();
+  grow_internal(pointers,bestPosition,scratch,min_size,-(me+1));
+  nodes[1][me]=nodes[1].size();
+  grow_internal(pointers+bestPosition,size-bestPosition,scratch,min_size,me+1);
+}

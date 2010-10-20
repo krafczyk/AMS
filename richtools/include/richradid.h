@@ -81,8 +81,8 @@ class RichRadiatorTileManager{
 
   static void _compute_tables();
   static void ReadFromFile(const char *filename);
-  static void ReadFineMeshFromFile(const char *filename);
  public:
+  static void ReadFineMeshFromFile(const char *filename);
   static void Init(char *filename="RichDefaultAGLTables.04.dat");                    // Init geometry and kinds and so on
   //  static void Init_File(char *filename);
   static void Init_Default();            // Init geometry and kinds and so on

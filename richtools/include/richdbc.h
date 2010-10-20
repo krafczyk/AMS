@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.4 2009/11/26 09:18:49 mdelgado Exp $
+//  $Id: richdbc.h,v 1.5 2010/10/20 10:47:39 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -31,8 +31,8 @@ const geant      RICmithk=0.2;         // Mirror thickness
 //const geant      RIClgdmirgap=0.4;
 
 /*********** updated numbers */
-const geant      RICradmirgap=0.6;
-const geant      RIClgdmirgap=0.6;
+const geant      RICradmirgap=0.6-0.5;
+const geant      RIClgdmirgap=0.6-0.1;
 /*****************************/
 
 const geant      RICotherthk=0.08;     // PMT window thickness

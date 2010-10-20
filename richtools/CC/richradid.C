@@ -19,8 +19,7 @@ geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
       best_distance=d;
     }
   }
-  
-  return best_index;
+  return index+best_index;
 }
 
 
@@ -220,10 +219,10 @@ void RichRadiatorTileManager::_compute_tables(){
 
     if(_tiles[current]->kind==agl_kind){
       _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+      _tiles[current]->mean_height=eff_height; // Corretion by hand
     }else if(_tiles[current]->kind==naf_kind){
       _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+      _tiles[current]->mean_height=eff_height; // Corretion by hand
     }
   }
   
@@ -354,7 +353,8 @@ RichRadiatorTileManager::RichRadiatorTileManager(TrTrack *track){
   double dx=_p_direct[0]-_tiles[_current_tile]->position[0];
   double dy=_p_direct[1]-_tiles[_current_tile]->position[1];
   
-  _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
+  if(_tiles[_current_tile]->kind==naf_kind) _local_index=_tiles[_current_tile]->mean_refractive_index;
+  else _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
     (_tiles[_current_tile]->index-1);
 
@@ -664,7 +664,6 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   float x,y,index;
   while(!data.eof()){
     data>> x >> y >> index;
-    if(index<1) continue;
 
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
@@ -692,7 +691,6 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
   // Code to read all the stuff
   while(!data_.eof()){
     data_>> x >> y >> index;
-    if(index<1) continue;    
 
     // Get the tile at the position x,y and 
     int tile_number=get_tile_number(x,y);
@@ -742,15 +740,16 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
 
   if(current<0 || current>=_number_of_rad_tiles) return;
 
-  if(new_index<=1.0) new_index=_tiles[current]->index;
+  if(new_index<=1.0) return;
+
 
   for(int ii=0;ii<RICmaxentries;ii++){
     if(_tiles[current]->kind==agl_kind){
       _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
     }else if(_tiles[current]->kind==naf_kind){
-      _tiles[current]->index_table[ii]=1+(new_index-1)/(RICHDB::naf_index-1)*(RICHDB::naf_index_table[ii]-1);
+      _tiles[current]->index_table[ii]=RICHDB::naf_index_table[ii];
     }
-    
+
   }
   // Now we compute the effective height and effective index calling the dedicated routine
   
@@ -763,11 +762,14 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
   
   if(_tiles[current]->kind==agl_kind){
     _tiles[current]->mean_refractive_index=eff_index;
-    _tiles[current]->mean_height=eff_height-0.1; // Corretion by hand
+    _tiles[current]->mean_height=eff_height;
   }else if(_tiles[current]->kind==naf_kind){
     _tiles[current]->mean_refractive_index=eff_index;
-    _tiles[current]->mean_height=eff_height-0.2; // Corretion by hand
+    _tiles[current]->mean_height=eff_height;
   }
+
+  // Update the index
+  _tiles[current]->index=new_index;
   
 }
 
