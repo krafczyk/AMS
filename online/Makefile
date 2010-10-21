@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.40 2009/08/25 14:01:27 pzuccon Exp $
+#  $Id: Makefile,v 1.41 2010/10/21 12:34:54 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -7,6 +7,9 @@
 #    LINUX arch supported is SLC4 with gcc or  icc
 
 
+ifndef AMSWD
+AMSWD := ..
+endif
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch )
 PLATFORM      =  Linux
