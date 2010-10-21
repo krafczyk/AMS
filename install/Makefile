@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.110 2010/10/16 07:17:07 shaino Exp $
+#  $Id: Makefile,v 1.111 2010/10/21 12:45:43 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -772,6 +772,20 @@ cleanlibs:
 	cd ../ruby; gmake clean
 	cd ../python; gmake clean
 	cd ../install
+all:
+	$(MAKE) -j
+	$(MAKE) -j shared
+	$(MAKE) -j gxint
+	$(MAKE) -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
+	$(MAKE)  -C../online
+	$(MAKE)  -C../online osdepend
+	$(MAKE)  -C../display
+	$(MAKE)  -C../display osdepend
+
 
 ##### DEPENDENCIES #####
 ifneq ($(MAKECMDGOALS),touch_depend)
