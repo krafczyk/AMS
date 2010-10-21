@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.51 2010/09/05 14:50:15 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.52 2010/10/21 09:27:26 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -691,12 +691,12 @@ int  AMSDisplay::ReLoad(){
         int $i=system(cmd);
         if(!$i){
 #ifdef __APPLE__
-         char cmd1[]="ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup AMSNtupleSelect.o -o ./libuser.so";
 #else
 #ifdef _PGTRACK_
-         char cmd1[]="ld -D_PGTRACK_ -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld -D_PGTRACK_ -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o ./libuser.so";
 #else
-         char cmd1[]="ld -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld -melf_i386  -init fgSelect  -shared AMSNtupleSelect.o -o ./libuser.so";
 
 #endif
          $i=system(cmd1);
@@ -704,7 +704,7 @@ int  AMSDisplay::ReLoad(){
            if(handle){
              dlclose(handle);
            }
-           if(handle=dlopen("libuser.so",RTLD_NOW)){
+           if(handle=dlopen("./libuser.so",RTLD_NOW)){
               return 0;
            }
            cout <<dlerror()<<endl;
@@ -721,7 +721,7 @@ int  AMSDisplay::ReLoad(){
        }
       int i=system("cl.exe -c AMSNtupleSelect.C -I%ROOTSYS%\\include  /EHsc /TP");
       if(!i){
-       i=system("cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper");
+       i=system("cl.exe AMSNtupleSelect.obj -o ./libuser.so /LD /link -nologo -export:gethelper");
       if(!i){
       handle=LoadLibrary(".\\libuser.so");
        if(!handle){
