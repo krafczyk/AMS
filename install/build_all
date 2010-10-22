@@ -1,0 +1,18 @@
+#!/bin/tcsh
+unsetenv PGTRACK
+source /Offline/vdev/install/amsvar
+gmake all
+source /Offline/vdev/install/amsvar.slc4
+gmake all
+source /Offline/vdev/install/amsvar.slc4icc
+setenv ARCH Linux.24
+gmake allold 
+setenv PGTRACK 1
+source /Offline/vdev/install/amsvar
+gmake all
+source /Offline/vdev/install/amsvar.slc4
+gmake all
+source /Offline/vdev/install/amsvar.slc4icc
+setenv ARCH Linux.24
+gmake allold
+

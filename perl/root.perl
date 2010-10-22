@@ -1,9 +1,13 @@
-# $Id: root.perl,v 1.4 2008/02/15 15:51:28 choutko Exp $
+# $Id: root.perl,v 1.5 2010/10/22 09:18:16 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
+
 my $input="../include/root.h";
 my $output="../include/root_methods.h";
+if (defined $ENV{PGTRACK}){
+    $output="../include/root_methodsPG.h";
+}
 open(FILEI,"<".$input) or die "Unable to open file $input\n";
 open(FILEO,">".$output) or die "Unable to open file $output\n";
 print FILEO "// \n";
@@ -29,6 +33,9 @@ while ( my $line = <FILEI>){
         }
     }
     while ($line=<FILEI>){
+        if(defined $ENV{PGTRACK} and ($Class=~/TrTra/ or $Class=~/TrRec/ or $Class=~/TrClu/ or $Class=~/TrMC/ or $Class=~/TrRaw/ or $Class=~/Vertex/)){
+            last;
+        }
         if($line=~/ClassDef/ or $line=~/^\}\;/){
             last;
         }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.290 2010/10/12 18:44:56 choutko Exp $
+//  $Id: root.h,v 1.291 2010/10/22 09:18:15 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2725,6 +2725,7 @@ public:
 //
 #ifdef __ROOTSHAREDLIBRARY__
 #ifdef _PGTRACK_
+  #include "root_methodsPG.h"
 #else 
   #include "root_methods.h"
 #endif

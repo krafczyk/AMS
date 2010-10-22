@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.41 2010/10/21 12:34:54 choutko Exp $
+#  $Id: Makefile,v 1.42 2010/10/22 09:18:16 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -26,6 +26,7 @@ PREFIX        = $(AMSWD)/bin/$(ARCH)/online/PG/
 AMSLIB        = ntuple_slc4_PG
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmonPG
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmoncPG
+else
 endif
 
 
@@ -55,7 +56,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS)  -lshift -lm    -ldl
+LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA)  /usr/lib/libshift.a  -lm    -ldl
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 else
@@ -79,7 +80,7 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 
 
 LIBSA          =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm -ldl
-LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBS) -lshift -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBSA) /usr/lib/libshift.a -lm -ldl
 endif
 
 
@@ -124,7 +125,10 @@ endif
 
 
 ifdef PGTRACK
+PG := PG
 CPPFLAGS += -D_PGTRACK_
+else
+PG :=
 endif
 
 ##### MACROS #####
@@ -135,7 +139,7 @@ SRCS          = AMSDisplay.cxx     AMSHist.cxx       AMSAntiHist.cxx \
                 AMSTrackerHist.cxx AMSRICHHist.cxx   AMSECALHist.cxx \
                 AMSTRDHist.cxx     AMSTOFHist.cxx    AMSLVL1Hist.cxx \
                 AMSLVL3Hist.cxx    AMSAxAMSHist.cxx  AMSGenHist.cxx \
-                AMSNtuple.cxx      ControlFrame.cxx  AMSEverything.cxx
+                AMSNtuple.cxx      ControlFrame.cxx  AMSEverything$(PG).cxx
 
 HDRS          = AMSDisplay.h       AMSHist.h         AMSAntiHist.h \
 		AMSTrackerHist.h   AMSRICHHist.h     AMSECALHist.h \
@@ -187,8 +191,8 @@ LDD	= 	$(LD) -rdynamic
 standalone:  amslib $(AMSPRG) 
 osdepend:  amslib $(AMSPRGC)
 
-amslib: $(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a
-$(AMSWD)/$(ARCH)/lib/lib$(AMSLIB).a:
+amslib: $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
+$(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
 	$(MAKE) -C ../install lib
 
   
@@ -211,10 +215,10 @@ $(DICT):        $(HDRS) LinkDef.h
 
 
 
-../include/root_methods.h:      ../perl/root.perl
+../include/root_methods$(PG).h:      ../perl/root.perl
 	perl ../perl/root.perl
 
-AMSEverything.cxx:      ../perl/online.perl ../include/root_methods.h
+AMSEverything$(PG).cxx:      ../perl/online.perl ../include/root_methods$(PG).h
 	perl ../perl/online.perl
 
 dist:
@@ -223,7 +227,7 @@ dist:
 		gzip $(AMSPRG).tar
 
 clean:
-		@rm -vf $(ALLOBJS) $(ALLDICT) $(DEPS) $(AMSPRG) $(AMSPRGC) AMSEverything.cxx
+		@rm -vf $(ALLOBJS) $(ALLDICT) $(DEPS) $(AMSPRG) $(AMSPRGC) AMSEverything$(PG).cxx
 
 
 

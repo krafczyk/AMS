@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.111 2010/10/21 12:45:43 choutko Exp $
+#  $Id: Makefile,v 1.112 2010/10/22 09:18:15 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -150,7 +150,7 @@ $(BIN)%.o : $(SCC)%.C
 	$(CXX) -c $(CFLAGS) $< -o $@
 
 
-$(BIN)%_s.o: $(SCC)%.C ../include/root_methods.h
+$(BIN)%_s.o: $(SCC)%.C ../include/root_methods$(PG).h
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__   $<  -o $@
@@ -184,7 +184,7 @@ COMMON_FILES+=$(GBATCH_BASE)
 COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F
 
 #Geant3 Interface
-COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  \
+COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  $(SFF)trd.F \
 		$(SCC)gmat.C    $(SCC)mceventg.C  $(SCC)mccluster.C     \
 		$(SFF)egzav.F    $(SFF)rzerowrapper.F
 
@@ -528,7 +528,7 @@ else
 endif
 
 
-../include/root_methods.h:      ../perl/root.perl
+../include/root_methods$(PG).h:      ../perl/root.perl
 	perl ../perl/root.perl
 
 ifdef PGTRACK
@@ -773,18 +773,25 @@ cleanlibs:
 	cd ../python; gmake clean
 	cd ../install
 all:
-	$(MAKE) -j
-	$(MAKE) -j shared
+	$(MAKE) -j -e
+	$(MAKE) -j lib 
 	$(MAKE) -j gxint
 	$(MAKE) -i producer
 	$(MAKE) -j -C../online
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
-	$(MAKE)  -C../online
-	$(MAKE)  -C../online osdepend
-	$(MAKE)  -C../display
-	$(MAKE)  -C../display osdepend
+
+SLC4system=
+
+allold:
+	$(MAKE) -j -e
+	$(MAKE) -j lib 
+	$(MAKE) -i producer
+ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
+	@echo "Please use SLC4 distribution to produce executables"
+	@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+endif
 
 
 ##### DEPENDENCIES #####

@@ -1,9 +1,13 @@
-# $Id: online.perl,v 1.6 2009/06/03 14:49:27 choutko Exp $
+# $Id: online.perl,v 1.7 2010/10/22 09:18:16 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
 my $output="../online/AMSEverything.cxx";
 my $input="../include/root_methods.h";
+if (defined $ENV{PGTRACK}){
+    $input="../include/root_methodsPG.h";
+    $output="../online/AMSEverythingPG.cxx";
+}
 open(FILEI,"<".$input) or die "Unable to open file $input\n";
 open(FILEO,">".$output) or die "Unable to open file $output\n";
 print FILEO "// \n";
