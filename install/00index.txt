@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.49 2010/10/22 09:18:15 choutko Exp $
+#  $Id: 00index.txt,v 1.50 2010/10/22 10:58:22 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
@@ -41,6 +41,8 @@ gmake producer        // builds gbatch-orbit (add -i flag for Intel Compilers mo
 gmake server          // builds server       (add -i flag for Intel Compilers mode)
 
 gmake all             //  build gbatch,gxint,lib,producer,display ,offmon
+gmake allold          //  build gbatch,lib producer for 2.4 kernels to bind(
+use slc 4 release) 
 build_all            //   build everything
 gmake -f Moptg4   //builds g4 batch (not supported at the moment)
 gmake -f Moptg4i  //builds g4 interactive (not supported at the moment)
