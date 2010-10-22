@@ -2,7 +2,7 @@
 #include "TNamed.h"
 #include "TFile.h"
 
-/// Class holding the pair timestamp,value for a given quantity
+/// Class holding the pairs timestamp,value for a given quantity
 class SlowControlEl: public TNamed{
  private:
   std::map<time_t,float> _table;
@@ -21,12 +21,13 @@ class SlowControlEl: public TNamed{
   void Clear(const Option_t* aa=0){_table.clear();}
 
   /// Find the value at a given time
-  /// \parameter timestamp  Unix time (sec from 1970)
-  /// \parameter frac       second fraction after the timestamp  
-  /// \parameter flag   0 = the closer in time
-  ///                  1 = linear interplolation
-  ///                  2 = polynomial interpolation (to be implemented)
-  /// On Error returns -99999
+  /*! \param timestamp  Unix time (sec from 1970)
+      \param frac       second fraction after the timestamp  
+      \param flag   0 = the closer in time
+					1 = linear interplolation
+                    2 = polynomial interpolation (to be implemented)
+    \return  The desired valu or On Error  -99999
+   */
   float Find(time_t timestamp,float frac, int flag){
     std::map<time_t,float>::iterator it=_table.lower_bound(timestamp);
     if(it==_table.end()) return -99999.;
@@ -119,11 +120,12 @@ class SlowControlEl: public TNamed{
 
 typedef  std::map<int,SlowControlEl>::iterator  tabit;
 
-/// Class holding a series of slow control data
-/// Class is a singleton and pointer to it can be obtained by the static funtion SlowControlDB::GetPointer()
-/// Data are retrieved by name and timestamp value
-/// The class can be written to a ROOT file by the inherited method Write() and can be loaded by its own methods Load(...)
-class SlowControlDB: public TObject{
+/// \brief Class holding a series of slow control data
+/*! Class is a singleton and pointer to it can be obtained by the static funtion SlowControlDB::GetPointer().
+ Data are retrieved by name and timestamp value.
+ The class can be written to a ROOT file by the inherited method Write() and can be loaded by its own methods Load(...)
+*/
+ class SlowControlDB: public TObject{
   
  private:
   std::map<int,SlowControlEl> _table;
@@ -196,13 +198,15 @@ class SlowControlDB: public TObject{
   }
 
   /// Returns the value of a quantity with a given name at a given timestamp
-  /// \parameter name       the name of the desired quantity
-  /// \parameter timestamp  Unix time (sec from 1970)
-  /// \parameter frac       second fraction after the timestamp  
-  /// \parameter flag   0 = the closer in time
-  ///                  1 = linear interplolation
-  ///                  2 = polynomial interpolation (to be implemented)
-  /// On Error returns -99999
+	/*! 
+	 \param name       the name of the desired quantity
+	 \param timestamp  Unix time (sec from 1970)
+	 \param frac       second fraction after the timestamp  
+	 \param flag   0 = the closer in time
+	 1 = linear interplolation
+	 2 = polynomial interpolation (to be implemented)
+	 \return  The desired value or On Error  -99999
+	 */
   float GetData(char* name,time_t timestamp,float frac,int flag){
     SlowControlEl* el=GetEl(name);
     return el->Find(timestamp,frac,flag);
