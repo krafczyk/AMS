@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.112 2010/10/22 09:18:15 choutko Exp $
+#  $Id: Makefile,v 1.113 2010/10/22 10:39:15 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -773,7 +773,7 @@ cleanlibs:
 	cd ../python; gmake clean
 	cd ../install
 all:
-	$(MAKE) -j -e
+	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -j gxint
 	$(MAKE) -i producer
@@ -782,14 +782,12 @@ all:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 
-SLC4system=
-
 allold:
-	$(MAKE) -j -e
+	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -i producer
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
-	@echo "Please use SLC4 distribution to produce executables"
+	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 endif
 

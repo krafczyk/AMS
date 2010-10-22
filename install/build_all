@@ -1,5 +1,9 @@
 #!/bin/tcsh
+if ( "$1" != "" )  then
+setenv AMSWD $1
+endif
 unsetenv PGTRACK
+unsetenv ARCH
 source /Offline/vdev/install/amsvar
 gmake all
 source /Offline/vdev/install/amsvar.slc4
@@ -7,6 +11,7 @@ gmake all
 source /Offline/vdev/install/amsvar.slc4icc
 setenv ARCH Linux.24
 gmake allold 
+unsetenv ARCH
 setenv PGTRACK 1
 source /Offline/vdev/install/amsvar
 gmake all
@@ -15,4 +20,4 @@ gmake all
 source /Offline/vdev/install/amsvar.slc4icc
 setenv ARCH Linux.24
 gmake allold
-
+unsetenv ARCH

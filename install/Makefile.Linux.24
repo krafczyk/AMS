@@ -38,7 +38,7 @@ RH9add=-pthread $(BIN)ctype.o
 ifdef AMSPARALLEL
   PARALLEL= -D__AMSPARALLEL__ -openmp 
 else
-  PARALLEL=
+  PARALLEL= -openmp
 endif
 ifdef AMSP
  PARALLEL=-D__AMSP__ -openmp  -D__LINUX24__ 
