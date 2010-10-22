@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.63 2009/02/20 14:12:20 choutko Exp $
+//  $Id: job.h,v 1.64 2010/10/22 14:50:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -259,6 +259,7 @@ void uhinit(integer run=0,integer pass=0, time_t tt=0) throw (amsglobalerror);
 void urinit(integer run=0,integer pass=0, time_t tt=0) throw (amsglobalerror);
 void urinit(char fname[]);
 void uhend(uinteger run=0,uinteger event=0, time_t time=0);
+void urend_immediate();
 AMSTimeID * gettimestructure();
 AMSNode * getaligstructure();
 AMSTimeID * gettimestructure(const AMSID & id);

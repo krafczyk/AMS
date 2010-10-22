@@ -2,6 +2,13 @@
 if ( "$1" != "" )  then
 setenv AMSWD $1
 endif
+
+if ( "$2" != "" )  then
+setenv ADDBUILDNO 1
+else
+unsetenv ADDBUILDNO
+endif
+
 unsetenv PGTRACK
 unsetenv ARCH
 source /Offline/vdev/install/amsvar

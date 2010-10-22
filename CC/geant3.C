@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.140 2010/10/13 23:53:56 mmilling Exp $
+//  $Id: geant3.C,v 1.141 2010/10/22 14:50:37 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1178,6 +1178,15 @@ try{
       cerr << "AMSEvent "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
       continue;
     }
+    catch(std::bad_alloc a){
+      cerr << "new Event "<<AMSEvent::gethead()->getid()<<" Thread "<<AMSEvent::get_thread_num()<<" "<<"  memory exhausted "<<endl;
+      AMSEvent::gethead()->seterror(2);
+#pragma omp critical (g1)
+      AMSEvent::gethead()->Recovery();
+      continue;
+
+   }
+
           AMSEvent::sethead(pn);
           pn->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq); 
 //#pragma omp critical

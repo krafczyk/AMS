@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.738 2010/10/12 18:44:55 choutko Exp $
+// $Id: job.C,v 1.739 2010/10/22 14:50:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3956,6 +3956,27 @@ abort();
 #endif
 }
 #include "producer.h"
+void AMSJob::urend_immediate(){
+
+
+if(IOPA.WriteRoot  && _NtupleActive ){
+  _NtupleActive=false;
+if(_pntuple)_pntuple->endR(false);
+#ifdef __CORBA__
+if(_pntuple){
+int root_entries=_pntuple->getentries();
+AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,_pntuple->lastev(),_pntuple->lasttime(),true);
+}
+cout <<"  AMSJob::urend_immediate-F-abort event "<<_pntuple->lastev()<<endl;
+AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-E-ImmediateShutdown",DPS::Client::CInAbort);
+
+#endif
+
+
+
+}
+}
+
 void AMSJob::uhend(uinteger r, uinteger e, time_t t){
 if(IOPA.hlun && _NtupleActive){
   _NtupleActive=false;

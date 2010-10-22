@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.121 2010/02/23 14:55:27 pzuccon Exp $
+//  $Id: ntuple.h,v 1.122 2010/10/22 14:50:38 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -874,6 +874,8 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   evmap_d evmap; 
   integer _lun;
   integer _Nentries;
+  uinteger _Lastev;
+  time_t   _Lasttime;
   static EventNtuple02 _event02;
 #pragma omp threadprivate (_event02)
 
@@ -942,10 +944,13 @@ public:
   uinteger getrun();
   void reset(int i=0);
   void write(integer addentry=0);
-  void writeR();
-  void endR();
+  uinteger writeR();
+  void endR(bool writecache=true);
   void initR(char* name);
+  
   integer getentries(){return _Nentries;}
+  uinteger lastev() const {return _Lastev;}
+  uinteger lasttime() const {return _Lasttime;}
   static EventNtuple02* Get_event02() {return &_event02;}
 
   TCanvas* TRDPlot(int mode=0);

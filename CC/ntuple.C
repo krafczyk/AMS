@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.200 2010/09/04 16:27:16 choutko Exp $
+//  $Id: ntuple.C,v 1.201 2010/10/22 14:50:37 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -101,6 +101,8 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
 
 void AMSNtuple::init(){
   _Nentries=0;
+  _Lasttime=0;
+  _Lastev=0;
   char *a=new char[strlen(getname())+1];
   strcpy(a,getname());
   HBNT(_lun, a," ");
@@ -283,16 +285,15 @@ void AMSNtuple::write(integer addentry){
   }
 }
 
-void AMSNtuple::endR(){
+void AMSNtuple::endR(bool cachewrite){
 
-  if(_rfile && evmap.size()){
-    cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<endl;
+  if(_rfile && evmap.size()  ){
+    cout<<"AMSNtuple::endR-I-WritingCache "<<evmap.size()<<" entries "<<cachewrite<<endl;
     for(evmapi i=evmap.begin();i!=evmap.end();i++){
-      
       if(_tree){
 	if(!_lun )_Nentries++;
 	AMSEventR::Head()=i->second;
-	_tree->Fill();
+	if(cachewrite)_tree->Fill();
       }
       delete i->second;
     }
@@ -365,6 +366,8 @@ void AMSNtuple::initR(char* fname){
   static TROOT _troot("S","S");
   cout << "Initializing tree...\n"<<endl;
   _Nentries=0;
+  _Lasttime=0;
+  _Lastev=0;
   if(_rfile){
     _rfile->Write();
     _rfile->Close();
@@ -425,7 +428,7 @@ void AMSNtuple::initR(char* fname){
 }
 
 
-void AMSNtuple::writeR(){
+uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
   vector<AMSEventR*> del;
 #pragma omp critical (wr1)
@@ -480,6 +483,8 @@ void AMSNtuple::writeR(){
       if(_tree){
 	if(!_lun )_Nentries++;
 	AMSEventR::Head()=del[k];
+        _Lastev=del[k]->Event();
+        _Lasttime=del[k]->UTime();
 	_tree->Fill();
       }
     }
@@ -500,10 +505,7 @@ void AMSNtuple::writeR(){
   }
   
 #endif
-#ifdef __MEMMONITOR__
-//  int NEVENTS = GCFLAG.NEVENT;
-//  MemMonitor(MEMUPD,NEVENTS);
-#endif
+  return _Lastev;
 }
 
 
