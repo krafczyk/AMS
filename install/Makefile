@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.113 2010/10/22 10:39:15 choutko Exp $
+#  $Id: Makefile,v 1.114 2010/10/25 11:47:24 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -569,7 +569,7 @@ $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
 	$(CXX) -c $(CFLAGS)  $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
 
 
-$(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
+$(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods$(PG).h
 	$(CXX) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
 
