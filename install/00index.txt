@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.50 2010/10/22 10:58:22 choutko Exp $
+#  $Id: 00index.txt,v 1.51 2010/10/25 16:44:34 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.linux    // OS dep -> Linux-gcc
@@ -62,5 +62,18 @@ setenv ARCH Linux.24
 gmake -j 2
 
 The executable  will be put in $AMSWD/exe/Linux.24/
+
+
+NBB Experimental:
+
+linux iccx8664 arch
+
+source /Offline/vdev/install/amsvar.icc64
+
+gmake lib
+gmake display
+
+gmake all doesn;t work pending cernlib port
+
 
 

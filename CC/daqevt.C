@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.199 2010/10/12 18:44:55 choutko Exp $
+//  $Id: daqevt.C,v 1.200 2010/10/25 16:44:33 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2481,7 +2481,7 @@ again:
               }
              }
              else{
-               cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<endl;
+               cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<" "<<bd<<" "<<strstr(rootdir,bd)<<endl;
                
                abort();
               }  
