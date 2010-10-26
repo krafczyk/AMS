@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.739 2010/10/22 14:50:37 choutko Exp $
+// $Id: job.C,v 1.740 2010/10/26 23:43:17 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2986,10 +2986,10 @@ bool NeededByDefault=isSimulation();
     end.tm_mday=0;
     end.tm_mon=0;
     end.tm_year=0;
-    if(isRealData())
-      TID.add (new AMSTimeID(AMSID("TrackerPars",isRealData()),begin,end,
-                             TrParDB::GetLinearSize(),TrParDB::linear,
-                             server,need,SLin2ParDB));
+    // if(isRealData()) 
+    TID.add (new AMSTimeID(AMSID("TrackerPars",isRealData()),begin,end,
+                           TrParDB::GetLinearSize(),TrParDB::linear,
+                           server,need,SLin2ParDB));
     
 
     if (isRealData() && TrRecon::TasRecon) {

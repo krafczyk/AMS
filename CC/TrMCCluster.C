@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.16 2010/10/11 03:05:38 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.17 2010/10/26 23:43:17 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/10/11 03:05:38 $
+///$Date: 2010/10/26 23:43:17 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +26,7 @@
 #include "TrSimCluster.h"
 #include "TrSim.h"
 #include "TrParDB.h"
+#include "HistoMan.h"
 
 #include <cmath>
 #include <iostream>
@@ -313,12 +314,11 @@ void TrMCClusterR::GenSimClusters(){
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
-  double ip[2] = {_glo2loc.GetSensCoo().x(),  _glo2loc.GetSensCoo().y()};   // sensor impact point
+  double ip[2] = {_glo2loc.GetSensCoo().x(),_glo2loc.GetSensCoo().y()};     // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
-
-  if (VERBOSE)
+  if (VERBOSE) { 
     printf("TrSim::MCCluster:More - loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",ip[0],ip[1],ia[0],ia[1],nsensor);
-  
+  }
   // Loop on two Sides of the ladder
   for (int iside=0; iside<2; iside++) {
     if ( (ip[iside]<0.)||(ip[iside]>TkDBc::Head->_ssize_active[iside]) ) {
@@ -330,45 +330,39 @@ void TrMCClusterR::GenSimClusters(){
     if (simcluster==0) continue; // it happens! 
     simcl[iside]=simcluster;
 
-    // 1. Adding some "intrinsic" noise
-    simcluster->Gaussianize(TRMCFFKEY.TrSim2010_IntrNoise[iside]);
-    // for (int ist=0; ist<simcluster->GetWidth(); ist++)
-    //   simcluster->SetSignal(ist,simcluster->GetSignal(ist)*(1. + rnormx()*TRMCFFKEY.TrSim2010_IntrNoise[iside]));
+    // Simulation tuning parameter 1: gaussianize a fraction of the strip signal
+    simcluster->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
 
-    // 2. dE/dx normalize: angle (normalized to 300 um), Z (normalized to 1), betagamma (normalized at 3.5 -> MIP)   
-    double dEdx     = TrSimSensor::BetheBlock(charge,momentum/mass);
-    double MIP      = TrSimSensor::BetheBlock(charge,3.16);
+    // dE/dx to ADC method 
+    // 1. Normalize dE/dx (angle = 0, Z = 1, betagamma = 3.16)   
+    double dEdx     = TrSimSensor::BetheBlock(1,momentum/mass);
+    double MIP      = TrSimSensor::BetheBlock(1,3.16);
     double CosTheta = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
-    double EDepNorm = edep*MIP*CosTheta/dEdx; 
- 
-    // 3. keV to ADC: MPV scaling or using measured pdfs
+    double EDepNorm = edep*MIP*CosTheta/(dEdx*pow(charge,2)); 
+    if (iside==1) hman.Fill("TrSigBaseX",EDepNorm);
+    else          hman.Fill("TrSigBaseY",EDepNorm);
+    // 2. From keV to ADC (MPV scaling using measured pdfs)
     double ADC = EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC();
-    if (TRMCFFKEY.TrSim2010_ADCConvType>2) ADC = TrSim::GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(ADC); // using pdf: 13/09/2010 too slow, deactivating it  
+    if (TRMCFFKEY.TrSim2010_ADCConvType[iside]>1) ADC = TrSim::GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(ADC); // using pdf: 13/09/2010 too slow, deactivating it  
+    // 3. Back to the real angle, betagamma 
+    ADC *= dEdx/(CosTheta*MIP);  
+    // 4. renormalize with respect to Z (test beam data) 
+    ADC *= TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(charge)/TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(1);
 
-    // 4. Decoupling of normalization
-    ADC = ADC*dEdx/(CosTheta*MIP);  
-  
-    /*  
-    printf("EDep=%7.4f keV   EDepNorm=%7.4f keV   ADC0=%7.4f  ADC1=%7.4f  ADC2=%7.4f\n",
-           edep,EDepNorm,EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(),
-           TrSim::GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC()),
-           ADC);
-    */
+    // Cluster strip values in ADC counts
+    simcluster->Multiply(ADC);
 
-    // 5. Normalization
-    if (TRMCFFKEY.TrSim2010_ADCConvType==0) simcluster->Multiply(edep);
-    else                                    simcluster->Multiply(ADC);
+    // Simulation tuning parameter 2: add more noise 
+    simcluster->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
 
-    // 6. Gain correction (VA by VA)
-    if ( (TRMCFFKEY.TrSim2010_ADCConvType==2)||(TRMCFFKEY.TrSim2010_ADCConvType==4) ) {
-      TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(GetTkId());
-      for (int ist=0; ist<simcluster->GetWidth(); ist++) {
-	int address = simcluster->GetAddress(ist);
-	int iva     = int(address/64);
-        if (ladpar->GetGain(iside)<0.02) simcluster->SetSignal(ist,0.); // VA with no gain!
-	else                             simcluster->SetSignal(ist,simcluster->GetSignal(ist)/ladpar->GetGain(iside)/ladpar->GetVAGain(iva));
-      }
-    }
+    // Gain correction (VA by VA)
+    if ((TRMCFFKEY.TrSim2010_ADCConvType[iside]==1)||(TRMCFFKEY.TrSim2010_ADCConvType[iside]==3)) simcluster->ApplyGain(iside,GetTkId());
+
+    // Apply saturation
+    simcluster->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
+
+    // if (iside==0) printf("012345 %7.3f %7.3f %7.3f %7.3f\n",
+    //                edep,EDepNorm,EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(),ADC);
     
     if (VERBOSE) { 
       printf("TrSim::SimCluster ADC=%f\n",ADC);

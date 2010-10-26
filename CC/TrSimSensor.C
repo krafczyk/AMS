@@ -21,7 +21,7 @@ void TrSimSensor::Clear() {
   _CL.clear();
   _CR.clear();
   _diff_type = 0;
-  for (int i=0; i<MAXDIFFPARS; i++) _diff_pars[i] = 0;
+  _diff_radius = 0;
   _Cint = 0;
   _Cbk = 0;
   _Cdec = 0;
@@ -37,63 +37,97 @@ void TrSimSensor::SetSensorType(int type) {
 
 
 void TrSimSensor::SetDefaults() {
-  _Cint = 100; // pF
-  _Cbk  =  10; // pF
-  _Cdec = 800; // pF
-  _diff_type = kGaussBox; // Gauss*Box
-  for (int i=0; i<MAXDIFFPARS; i++) _diff_pars[i] = 8; // um
-
   // Sensor parameters
   switch (GetSensorType()) {
     case 0: // S
+      _Cint = TRMCFFKEY.TrSim2010_Cint[1]; // pF
+      _Cbk  = TRMCFFKEY.TrSim2010_Cbk[1];  // pF
+      _Cdec = TRMCFFKEY.TrSim2010_Cdec[1]; // pF
+      _diff_type = TRMCFFKEY.TrSim2010_DiffType[1];
+      _diff_radius = TRMCFFKEY.TrSim2010_DiffRadius[1]; // um
       _nimplants = 2567;
       _nreadout = 640;
       _implant_pitch = 27.5;
       break; 
     case 1: // K5
+      _Cint = TRMCFFKEY.TrSim2010_Cint[0]; // pF
+      _Cbk  = TRMCFFKEY.TrSim2010_Cbk[0];  // pF
+      _Cdec = TRMCFFKEY.TrSim2010_Cdec[0]; // pF
+      _diff_type = TRMCFFKEY.TrSim2010_DiffType[0];
+      _diff_radius = TRMCFFKEY.TrSim2010_DiffRadius[0]; // um
       _nimplants = 384;
       _nreadout = 192;
       _implant_pitch = 104;
       break;
     case 2: // K7
+      _Cint = TRMCFFKEY.TrSim2010_Cint[0]; // pF
+      _Cbk  = TRMCFFKEY.TrSim2010_Cbk[0];  // pF
+      _Cdec = TRMCFFKEY.TrSim2010_Cdec[0]; // pF
+      _diff_type = TRMCFFKEY.TrSim2010_DiffType[0];
+      _diff_radius = TRMCFFKEY.TrSim2010_DiffRadius[0]; // um
       _nimplants = 384;
       _nreadout = 224;
       _implant_pitch = 104;
       break;
   }
-
   // Generalized Landau (with some scaling terms)
   char name[100];
   sprintf(name,"landau_model%1d",GetSensorType()); // diff. names needed by ROOT
   _mcfun = new TF1(name,LandauFun,0.,MAXADC,4); 
-  _mcfun->SetNpx(1000);
+  _mcfun->SetNpx(MAXADC);
   sprintf(name,"langauexp_model%1d",GetSensorType()); // diff. names needed by ROOT
   _refun = new TF1(name,LanGauExpFun,0.,MAXADC,5);
-  _refun->SetNpx(1000); // ATTENTION: THIS COULD BE A PROBLEM (TOO SLOW IN THE INVERSION PROCESS)
+  _refun->SetNpx(MAXADC); // ATTENTION: THIS COULD BE A PROBLEM (TOO SLOW IN THE INVERSION PROCESS)
   switch (GetSensorType()) {
     case 0: // S
-      _mcfun->SetParameters(74.46,5.78,1,1);
-      if      (TRMCFFKEY.TrSim2010_EDepType==1) _refun->SetParameters(1.00,31.5,0.942883,7.65,43.38); // TB2003
-      else if (TRMCFFKEY.TrSim2010_EDepType==2) _refun->SetParameters(2.766,31.440,0.978,7.294,113.513); // CR2009
-      else if (TRMCFFKEY.TrSim2010_EDepType==3) _refun->SetParameters(2.897,29.393,0.976,5.855,108.803); // CR2010
+      _mcfun->SetParameters(81.94,5.811,1,1);
+      if      (TRMCFFKEY.TrSim2010_EDepType[1]==1) _refun->SetParameters(1.00,31.500,0.943,7.650, 43.380); // TB2003
+      else if (TRMCFFKEY.TrSim2010_EDepType[1]==2) _refun->SetParameters(2.77,31.440,0.978,7.294,113.513); // CR2009
+      else if (TRMCFFKEY.TrSim2010_EDepType[1]==3) _refun->SetParameters(2.90,29.393,0.976,5.855,108.803); // CR2010
       break;
     case 1: // K5
     case 2: // K7
-      _mcfun->SetParameters(81.66,7.35,1,1);
-      if      (TRMCFFKEY.TrSim2010_EDepType==1) _refun->SetParameters(3.31,40.5,1.03703,6.5,105.78); // TB2003
-      else if (TRMCFFKEY.TrSim2010_EDepType==2) _refun->SetParameters(2.623,29.584,0.975,6.297,101.405); // CR2009
-      else if (TRMCFFKEY.TrSim2010_EDepType==3) _refun->SetParameters(3.145, 32.012,0.977,6.929,120.252); // CR2010
+      _mcfun->SetParameters(81.67,5.71,1,1);
+      if      (TRMCFFKEY.TrSim2010_EDepType[0]==1) _refun->SetParameters(3.31,40.500,1.037,6.500,105.780); // TB2003
+      else if (TRMCFFKEY.TrSim2010_EDepType[0]==2) _refun->SetParameters(2.62,29.584,0.975,6.297,101.405); // CR2009
+      else if (TRMCFFKEY.TrSim2010_EDepType[0]==3) _refun->SetParameters(3.15,32.012,0.977,6.929,120.252); // CR2010
       break;
   }
   // MPV Normalization (horizontal scaling)
+  // float scale1 = _refun->GetParameter(1)/_mcfun->GetParameter(0);
   float scale1 = _refun->GetMaximumX(0.,MAXADC)/_mcfun->GetMaximumX(0.,MAXADC);
   _mcfun->SetParameter(2,scale1);
   // Height normalization (needed for inversion)
+  // float scale2 = _refun->Eval(_refun->GetParameter(1))/_mcfun->Eval(_mcfun->GetParameter(0));
   float scale2 = _refun->GetMaximum(0,MAXADC)/_mcfun->GetMaximum(0,MAXADC); 
   _mcfun->SetParameter(3,scale2);
-  // inversion computation ..
+  // Inversion computation ...
 }
 
+double TrSimSensor::GetkeVtoADC()  { 
+  return _refun->GetParameter(1)/_mcfun->GetParameter(0); 
+}
+
+/*
+double TrSimSensor::GetkeVtoADC(double keV)  { 
+  double m = _refun->GetParameter(1)/_mcfun->GetParameter(0);
+  return m*(keV - _mcfun->GetParameter(0)) + _refun->GetParameter(1);
+}   
+*/
+
+double TrSimSensor::GetAdcMpvTb2003(int z) {
+  double value = 0.;
+  switch (GetSensorType()) {
+    case 0: // S
+      value = pow(-0.091538+6.63945*z,2.);
+      break;
+    case 1: // K5
+    case 2: // K7
+      value = pow(1.28205+4.34618*z,2.);
+      break;
+  }
+  return value; 
+}
 
 bool TrSimSensor::IsReadoutStrip(int implantadd) {
   if ( (GetSensorType()<0)||(GetSensorType()>2) ) {
@@ -188,6 +222,7 @@ int TrSimSensor::GetImplantAddressFromReadoutAddress(int readoutadd) {
   return impladd;
 }
 
+
 double TrSimSensor::GetImplantAddressFromReadoutAddress(double readoutadd) {
   int lowerread = (int) floor(readoutadd);
   int upperread = (int) ceil(readoutadd);
@@ -249,50 +284,51 @@ void TrSimSensor::SeeEquivalentCapacitances() {
 }
 
 
-
-
-/* Charge sharing dstribution:
-*         x1      x2
-* |-------|-------|-------|-------| strips
-*            a |----| b             width
-* 
-*/
 TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) {
+ /* Charge sharing distribution:
+  *
+  *         x1      x2
+  * |-------|-------|-------|-------| strips
+  *            a |----| b             width
+  * 
+  */
   double coordimpl = senscoo*1.e4/GetImplantPitch(); // coordinate [implant pitch]
   if ( (coordimpl<0)||(coordimpl>=GetNImplantStrips()) ) {
     if (WARNING) printf("TrSimSensor::MakeImplantCluster-Warning sensor coordinate out of the sensor (coord=%7.4f)\n",senscoo);
     return 0;
   }
-
   // charge sharing profile calculation
-  double tkproj  = fabs(tan(sensangle)*SUBSTRATEWIDTH);       // projection of the track [um] 
-  double diffrad = fabs(cos(sensangle)*GetDiffusionPar(0));   // diffusion radius [um] (additional quantity)
-  double width   = (tkproj + diffrad)/GetImplantPitch();      // global width at 0° [interstrip pitch] 
-  int    seedind = (int) ceil(coordimpl-0.5);                 // seed strip
-  double smear   = GetDiffusionPar(1)/GetImplantPitch();      // gaussian smear (useful only using gaus*box)
-  // printf("TrSimSensor::MakeImplantCluster-Verbose coorind=%7.2f seedind=%4d tkproj=%7.3f diffrad=%7.3f width=%7.3f\n",coordimpl,seedind,tkproj,diffrad,width);
-
+  double track_proj = fabs(tan(sensangle)*SUBSTRATEWIDTH)/GetImplantPitch();       // projection of the track [interstrip pitch] 
+  double diffu_proj = fabs(GetDiffusionRadius()/cos(sensangle))/GetImplantPitch(); // projection of the diffusion radius [interstrip pitch] 
+  double projection = track_proj + diffu_proj;                                     // global projection of ionization [interstrip pitch] 
+  double diffusion  = GetDiffusionRadius()/GetImplantPitch();                      // diffusion at 0 deg (for model 4)
+  double sign       = (sensangle>0) ? -1 : 1;                                      // FIX ME: CHECK DELLA DIREZIONE 
+  int    seedind    = (int) ceil(coordimpl-0.5);                                   // seed strip
+  // printf("TrSimSensor::MakeImplantCluster-Verbose senscoo=%7.3f sensangle=%7.3f coorind=%7.2f seedind=%4d track_proj=%7.3f diffu_proj=%7.3f projection=%7.3f diffusion=%7.3f\n",
+  //       senscoo,sensangle,coordimpl,seedind,track_proj*GetImplantPitch(),diffu_proj*GetImplantPitch(),projection*GetImplantPitch(),diffusion*GetImplantPitch());
   // tmp cluster vars
   double check = 0.;
   vector<double> acluster;
   acluster.clear();
   int address = seedind;                                   
-
   // create on the right
   for (int istrip=seedind; istrip<GetNImplantStrips(); istrip++) {
     double weight = 0.;
     switch (GetDiffusionType()) {
       case 0:
-        weight = TrSimSensor::GetWeightUniform(   coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightUniform(coordimpl,projection,istrip-0.5,istrip+0.5);
         break;
       case 1:
-        weight = TrSimSensor::GetWeightGauss(     coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightGauss(coordimpl,projection,istrip-0.5,istrip+0.5);
         break;
       case 2:
-        weight = TrSimSensor::GetWeightGaussBox(  coordimpl,width,smear,istrip-0.5,istrip+0.5);
+        weight = GetWeightGaussBox(coordimpl,projection,diffu_proj,istrip-0.5,istrip+0.5);
         break;
       case 3:
-        weight = TrSimSensor::GetWeightTriangular(coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightTriangular(coordimpl,projection,istrip-0.5,istrip+0.5);
+        break;
+      case 4:
+        weight = GetWeightGaussSum(coordimpl,sign*track_proj,diffusion,istrip-0.5,istrip+0.5);
         break;
       default:
         printf("TrSimSensor::MakeImplantCluster-Error invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
@@ -303,22 +339,24 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
     check += weight;
     acluster.push_back(weight);
   }
-
   // create on the left
   for (int istrip=seedind-1; istrip>=0; istrip--) {
     double weight = 0.;
     switch (GetDiffusionType()) {
       case 0:
-        weight = TrSimSensor::GetWeightUniform(   coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightUniform(coordimpl,projection,istrip-0.5,istrip+0.5);
         break;
       case 1:
-        weight = TrSimSensor::GetWeightGauss(     coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightGauss(coordimpl,projection,istrip-0.5,istrip+0.5);
         break;
       case 2:
-        weight = TrSimSensor::GetWeightGaussBox(  coordimpl,width,smear,istrip-0.5,istrip+0.5);
+        weight = GetWeightGaussBox(coordimpl,projection,diffu_proj,istrip-0.5,istrip+0.5);
         break;
       case 3:
-        weight = TrSimSensor::GetWeightTriangular(coordimpl,width,istrip-0.5,istrip+0.5);
+        weight = GetWeightTriangular(coordimpl,projection,istrip-0.5,istrip+0.5);
+        break;
+      case 4:
+        weight = GetWeightGaussSum(coordimpl,sign*track_proj,diffusion,istrip-0.5,istrip+0.5);
         break;
       default:
         printf("TrSimSensor::MakeImplantCluster-Error invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
@@ -330,7 +368,6 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
     check += weight;
     acluster.insert(acluster.begin(),weight);
   }
-
   // cluster signal is not 1, rounding error
   if (fabs(check-1.)>10.*TOLERANCE) {
     if (WARNING) printf("TrSimSensor::MakeModelizedCluster-Warning signal check failed (check=%7.4f, nstrips=%d), returning a null cluster!!!\n",check,(int)acluster.size());
@@ -338,13 +375,11 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
     // printf("\n");
     return 0;
   }
-
   // cluster size is 0 
   if ((int)acluster.size()==0) {
     if (WARNING) printf("TrSimSensor::MakeModelizedCluster-Warning a 0-lenght cluster, returning a null cluster!!!\n");
     return 0; 
   }
-
   // cluster creation
   TrSimCluster* cluster = new TrSimCluster(acluster,address,seedind-address);
   return cluster;
@@ -409,6 +444,19 @@ double TrSimSensor::CumulativeTriangular(double x, double t) {
 }
 
 
+double TrSimSensor::GetWeightGaussSum(double x, double width, double sigma, double x1, double x2) {
+  double erf = 0.;
+  for (int i=0; i<NSTEPSGAUSSSUM; i++) {
+    double mu = x - width/2 + (i+0.5)*width/NSTEPSGAUSSSUM;
+    double si = sqrt(2)*sigma*sqrt((i+0.5)/NSTEPSGAUSSSUM);
+    double X1 = (x1-mu)/si;
+    double X2 = (x2-mu)/si;
+    erf += 0.5*(TMath::Erf(X2)-TMath::Erf(X1))*(1./NSTEPSGAUSSSUM);
+  }
+  return erf;
+}
+
+
 TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens) {         
   // tmp cluster init
   vector<double> acluster;
@@ -424,7 +472,6 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   if (IsReadoutStrip(impladd)) { 
     address = GetReadoutAddressFromImplantAddress(impladd,nsens); 
     acluster.push_back(QU);
-    // cout << " A ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(impladd,nsens) + 640*(GetSensorType()>0) << endl;
   }
   // right loop
   for (int ii=impladd+1; ii<nimplants; ii++) {
@@ -437,7 +484,6 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
       if (QU2<TOLERANCE) break;
       if (address<0) address = GetReadoutAddressFromImplantAddress(ii,nsens);
       acluster.push_back(QU2);
-      // cout << " B ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(ii,nsens) + 640*(GetSensorType()>0) << endl;
     }
   }
   // left loop
@@ -451,7 +497,6 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
       if (QU2<TOLERANCE) break;
       address = GetReadoutAddressFromImplantAddress(ii,nsens); 
       acluster.insert(acluster.begin(),QU2);
-      // cout << " C ----> " << GetSensorType() << " " << GetReadoutAddressFromImplantAddress(ii,nsens) + 640*(GetSensorType()>0) << endl;
     }
   }
   // check
@@ -466,9 +511,8 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
 }
 
 
-
 TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus, int nsens) {
-  TrSimCluster cluster ; 
+  TrSimCluster cluster; 
   if ( (implclus==0)||(implclus->GetAddress()<0) ) { 
     if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning passing an invalid or null cluster\n");
     return cluster;
@@ -488,7 +532,6 @@ TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus, 
     else 
       cluster.AddCluster(addcluster);
     delete addcluster; // avoid memory leak
-    
   }
   if ( (first==1)&&(WARNING) ) 
     printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning returning a null cluster\n");
@@ -502,8 +545,8 @@ TrSimCluster* TrSimSensor::MakeCluster(double senscoo, double sensangle, int nse
     printf("TrSimSensor::MakeCluster-Verbose implant cluster\n");
     implclus->Info(10);
   }
-  TrSimCluster *readclus =new TrSimCluster(); 
-    *readclus=MakeClusterFromImplantCluster(implclus, nsens);
+  TrSimCluster *readclus = new TrSimCluster(); 
+  *readclus = MakeClusterFromImplantCluster(implclus, nsens);
   if (implclus!=0) delete implclus; // avoid memory leak 
   if ( (VERBOSE)&&(readclus!=0) ) {
     printf("TrSimSensor::MakeCluster-Verbose read cluster\n");
@@ -643,6 +686,6 @@ double TrSimSensor::fromMCtoRealData(double adc) {
 double TrSimSensor::BetheBlock(double z, double bg) {
   double z2 = z*z;
   double bg2 = bg*bg;
-  double dEdx = 10.73 * z2 * ((1 + bg2)/bg2) * ( 8.68 + log(bg2) - bg2/(1+bg2) ); // keV
+  double dEdx = 10.73*z2*((1+bg2)/bg2)*(8.68+log(bg2)-bg2/(1+bg2)); // keV
   return dEdx; 
 }

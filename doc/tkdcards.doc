@@ -21,49 +21,55 @@ I 406 disfname(400*'') Disalignment file name
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm
-             (def=0)                   1 SkipRawSim: no TrRawClusters, very fast 
-                                       2 TrSim2010: a detailed simulation)
+             (def=2)                   1 SkipRawSim: no TrRawClusters, very fast 
+                                       2 TrSim2010: a detailed simulation
 I 565        MinMCClusters             Minimum number of MC Clusters needed  
              (def=0)                   to trigger digitization (=0, all events)       
 I 566        NoiseType                 0 No Noise, only signal
              (def=2)                   1 Gaussian noise generation for every channel: full simulation, slow
                                        2 Gaussian noise generation only on ladders with signal + fake clusters
-                                       3 Gaussian noise generation only around MC clusters + fake cluster (not implemented)
 I 567        FakeClusterType           Meaningful only if NoiseType>1 
-             (def=1)                   0 No fake clusters 
-                                       1 Random clusters on the gaussian tails
-                                       2 From test beam data 2010 (not implemented)
-R [568,569]  DSPSeedThr                DSP Seed Threshold for (n/p sides)
-             (def=4,4) 
-R [570,571]  DSPNeigThr                DSP Neig Threshold for (n/p sides)
-             (def=1,1)
-I 572        TrSim2010_ADCConvType     0 No conversion between MeV and ADC
-             (def=1)                   1 Only MPV scaling 
-                                       2 MPV and gain scaling (ladder, VA)
-                                       3 MPV and shape scaling (approx implemented) 
-                                       4 MPV, shape and gain scaling (ladder,VA) (approx implemented)
-I 573        TrSim2010_EDepType        1 TB2003
-             (def=3)                   2 CR2009 
+             (def=2)                   0 No fake clusters 
+                                       1 Random clusters on the gaussian tails (theoric)
+                                       2 Random clusters (tuned on CR2010 data)
+R [568,569]  DSPSeedThr                DSP Seed Threshold for x and y sides (in future from calibration ...)
+             (def=3.5,3.5) 
+R [570,571]  DSPNeigThr                DSP Neig Threshold for x and y sides (in future from calibration ...)
+             (def=1.,1.)
+I [572,573]  TrSim2010_ADCConvType     0 MPV scaling 
+             (def=1,1)                 1 MPV and gain scaling (ladder, VA)
+                                       2 MPV and shape scaling (very slow) 
+                                       3 MPV, shape and gain scaling (very slow)
+I [574,575]  TrSim2010_EDepType        1 TB2003
+             (def=3,3)                 2 CR2009 
                                        3 CR2010 (KSC) 
-R [574,575]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
-             (def=100,100)
-R [576,577]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
-             (def=10,10)
-R [578,579]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
-             (def=800,800)  
-I [580,581]  TrSim2010_DiffType        0 Box
+R [576,577]  TrSim2010_ADCSat          ADC Saturation Limit (for each strip)
+             (def=3000.,3000.) 
+R [578,579]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
+             (def=100.,100.)
+R [580,581]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
+             (def=15.,15.)
+R [582,583]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
+             (def=800.,800.)  
+I [584,585]  TrSim2010_DiffType        0 Box
              (def=2,2)                 1 Gaussian
                                        2 Gaussian Convoluted with Box
-                                       3 Traingular
-R [582,585]  TrSim2010_DiffPars[2][2]  Parameters for the selected diffusion type
-             (def=8,8,8,8)
-R [586,587]  TrSim2010_IntrNoise[2]    Percentage of intrisic noise
-             (def=0.3,0.3)  
+                                       3 Triangular
+                                       4 Sum of Gauss distributions
+R [586,587]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
+             (def=8.,20.)
+R [588,589]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
+             (def=0.1,0.1)  
+R [590,591]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
+             (def=4.,3.)
+
 
 
 //==============================
 //  TRACKER RECONSTRUCTION
 //==============================
+R [586,587]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
+             (def=0.,0.)  
 TRCL
 I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
 R [2,3] Seed S/N Threshold for 2:n(X) 3:p(Y) side

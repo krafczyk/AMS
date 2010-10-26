@@ -156,37 +156,39 @@ void TRMCFFKEY_DEF::init(){
   }
   pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
   pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
-
   // (564) SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-  SimulationType=0;
+  SimulationType=2;
   // All digitization parameters
   MinMCClusters=0;
-  NoiseType=1; 
-  FakeClusterType=1;
-  DSPSeedThr[0]=4.;
-  DSPSeedThr[1]=4.;
+  NoiseType=2; 
+  FakeClusterType=2;
+  DSPSeedThr[0]=3.5;
+  DSPSeedThr[1]=3.5;
   DSPNeigThr[0]=1.;
   DSPNeigThr[1]=1.;
   // TrSim2010
-  TrSim2010_ADCConvType=3;
-  TrSim2010_EDepType=1; //  1:TB2003 2:TB2010
+  TrSim2010_ADCConvType[0]=1;
+  TrSim2010_ADCConvType[1]=1;
+  TrSim2010_EDepType[0]=3; 
+  TrSim2010_EDepType[1]=3; 
+  TrSim2010_ADCSat[0]=3000.;
+  TrSim2010_ADCSat[1]=3000.; 
   // Detailed Description
   TrSim2010_Cint[0]=100.;
   TrSim2010_Cint[1]=100.;
-  TrSim2010_Cbk[0]=10.;
-  TrSim2010_Cbk[1]=10.;
+  TrSim2010_Cbk[0]=15.;
+  TrSim2010_Cbk[1]=15.;
   TrSim2010_Cdec[0]=800.;
   TrSim2010_Cdec[1]=800.;
   // Diffusion Shape Type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
   TrSim2010_DiffType[0]=2;
   TrSim2010_DiffType[1]=2;
-  TrSim2010_DiffPars[0][0]=8;
-  TrSim2010_DiffPars[0][1]=8;
-  TrSim2010_DiffPars[1][0]=8;
-  TrSim2010_DiffPars[1][1]=8;
-  TrSim2010_IntrNoise[0]=0.05;
-  TrSim2010_IntrNoise[1]=0.05;
-  // landau x gaus x exp description?
+  TrSim2010_DiffRadius[0]=8.;
+  TrSim2010_DiffRadius[1]=20.;
+  TrSim2010_FracNoise[0]=0.1;
+  TrSim2010_FracNoise[1]=0.1;
+  TrSim2010_AddNoise[0]=4.;
+  TrSim2010_AddNoise[1]=3.;
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;

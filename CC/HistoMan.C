@@ -261,6 +261,10 @@ void HistoMan::BookHistos(){
     Add(TH2D_L("TrRres32", "dR/R (w/LEcal)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
     Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
+
+    Add(new TH1D("TrSigBaseX","Normalized Signal (keV)", 500, 0, 400));
+    Add(new TH1D("TrSigBaseY","Normalized Signal (keV)", 500, 0, 400));
+
   }
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   if (dsave) dsave->cd();

@@ -13,6 +13,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TMath.h"
+#include "TrParDB.h"
+#include "TrLadPar.h"
 
 #include <iostream>
 #include <cstdio>
@@ -32,7 +34,7 @@ class TrSimCluster {
   vector<double> _signal;
   // address of the first strip
   int _address;
-  // seed index (used in mdodelized clusters)
+  // seed index (used in modelized clusters)
   int _seedind;
 
  public:
@@ -72,9 +74,14 @@ class TrSimCluster {
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 
   void   AddCluster(TrSimCluster* cluster);
-  //! Gaussianize each strip (intrinsic noise)
-  void   Gaussianize(double fraction);
-
+  //! Gaussianize a fraction of signal of each strip 
+  void   GaussianizeFraction(double fraction);
+  //! Add gaussian noise to each strip 
+  void   AddNoise(double noise);
+  //! Apply a saturation value to the cluster
+  void   ApplySaturation(double maxvalue);
+  //! Apply the gain
+  void   ApplyGain(int side, int tkid);
 };
 
 #endif

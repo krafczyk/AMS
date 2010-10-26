@@ -61,12 +61,6 @@ void TrSimCluster::Multiply(double signal) {
   } 
 }
 
-void TrSimCluster::Gaussianize(double fraction) {
-  for (int i=0; i<GetWidth(); i++) { 
-    SetSignal(i,GetSignal(i)*(1. + rnormx()*fraction));
-  }
-}
-
 void TrSimCluster::AddCluster(TrSimCluster* cluster){ 
   if (cluster==0) return; // no error
   if (cluster->GetAddress()<0) {
@@ -87,3 +81,31 @@ void TrSimCluster::AddCluster(TrSimCluster* cluster){
   _seedind = -1;
 }
 
+void TrSimCluster::GaussianizeFraction(double fraction) {
+  for (int i=0; i<GetWidth(); i++) {
+    SetSignal(i,GetSignal(i)*(1. + rnormx()*fraction));
+  }
+}
+
+void TrSimCluster::AddNoise(double noise) {
+  for (int i=0; i<GetWidth(); i++) {
+    SetSignal(i,GetSignal(i) + noise*rnormx());
+  }
+} 
+
+void TrSimCluster::ApplySaturation(double maxvalue) {
+  for (int i=0; i<GetWidth(); i++) {
+    if (GetSignal(i)>=maxvalue) SetSignal(i,maxvalue); 
+  }
+}
+
+void TrSimCluster::ApplyGain(int side, int tkid) {
+  TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
+  for (int ist=0; ist<GetWidth(); ist++) {
+    int   address = GetAddress(ist) + 640*(1-side);
+    int   iva     = int(address/64);
+    float gain    = ladpar->GetGain(side)*ladpar->GetVAGain(iva);
+    if (ladpar->GetGain(side)<0.02) SetSignal(ist,0.); // VA with no gain!
+    else                            SetSignal(ist,GetSignal(ist)/gain);
+  }
+} 

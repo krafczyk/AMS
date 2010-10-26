@@ -22,12 +22,12 @@
 #define VERBOSE 0
 #define WARNING 0
 
-#define MAXDIFFPARS 2
-#define MAXCLUSTERWIDTH 5
+#define MAXCLUSTERWIDTH 20
 #define SUBSTRATEWIDTH 300
 #define DEGTORAD 0.0174533
 #define TOLERANCE 0.00001
-#define MAXADC 2000.
+#define MAXADC 5000
+#define NSTEPSGAUSSSUM 100
 
 using namespace std;
 
@@ -45,14 +45,16 @@ class TrSimSensor {
   };
 
   enum EDiffusionType {
-    /// Uniform distribution (par[0] = box width) 
+    /// Uniform distribution 
     kUniform  = 0,
-    /// Gauss distribution (par[0] = sigma)
+    /// Gauss distribution 
     kGauss = 1,
-    /// Gauss*Box distribution (par[0] = box width, par[1] = gaussian smearing)
+    /// Gauss*Box distribution 
     kGaussBox = 2,
-    /// Triangle distribution (par[0] = triangle base)
-    kTriangle = 3
+    /// Triangle distribution 
+    kTriangle = 3,
+    /// Sum of Gauss distributions 
+    kGaussSum = 4
   };
 
  public:
@@ -75,10 +77,10 @@ class TrSimSensor {
   // Equivalent capacitance (RIGHT)
   vector<double> _CR; 
 
-  // Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
+  // Diffusion shape type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, 4:GaussSum, ...)
   int    _diff_type;
-  // Diffusion parameters for the selected diffusion model
-  double _diff_pars[MAXDIFFPARS];
+  // Diffusion radius [um] 
+  double _diff_radius;
 
   // Interstrip capacitance [pF]
   double _Cint;    
@@ -121,15 +123,17 @@ class TrSimSensor {
   void   SetCint(double cint)        { _Cint = cint; }
   //! Set diffusion type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular)
   void   SetDiffusionType(int type)  { _diff_type = type; }
-  //! Set diffusion parameters
-  /* Diffusion parameters:
-     - type 0: par[0] = box width (at 0 deg)
-     - type 1: par[0] = gaussian sigma (at 0 deg)
-     - type 2: par[0] = box width (at 0 deg), par[1] = gaussian smearing
-     - type 3: par[0] = triangle base (at 0 deg)
+  //! Set diffusion radius
+  /* Diffusion radius meaning:
+     - type 0: box width (at 0 deg)
+     - type 1: gaussian sigma (at 0 deg)
+     - type 2: gaussian smearing (at 0 deg)
+     - type 3: triangle base (at 0 deg)
+     - type 4: maxima sigma value (at 0 deg)
   */
   //! Set diffusion radius [um]
-  void   SetDiffusionPars(double* pars) { for (int i=0; i<MAXDIFFPARS; i++) _diff_pars[i] = pars[i]; }
+  void   SetDiffusionRadius(double radius) { _diff_radius = radius; }
+
   //! Get sensor type (0:S, 1:K5, 2:K7)
   int    GetSensorType()        { return _sensor_type; }
   //! Get number of implantation strips
@@ -144,10 +148,10 @@ class TrSimSensor {
   double GetCbk()               { return _Cbk; }
   //! Get interstrip capacitance [pF]
   double GetCint()              { return _Cint; }
-  //! Get diffusion type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular)
+  //! Get diffusion type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, 4:GaussSum)
   int    GetDiffusionType()     { return _diff_type; }
   //! Get diffusion parameter 
-  double GetDiffusionPar(int i) { return _diff_pars[i]; }
+  double GetDiffusionRadius()   { return _diff_radius; }
 
   ////////////////
   // Readout/Implant Conversions
@@ -180,7 +184,7 @@ class TrSimSensor {
   //! Calculate readout-strip cluster from a charge injection Q on the i-nth implant (the sensor number is needed for K5 and K7 case)
   TrSimCluster* MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens = 0);
   //! Calculate readout-strip cluster from a implant-strip cluster (injects the modelized cluster in the capacitive net)
-  TrSimCluster MakeClusterFromImplantCluster(TrSimCluster* implclus, int nsens = 0);
+  TrSimCluster  MakeClusterFromImplantCluster(TrSimCluster* implclus, int nsens = 0);
   //! Calculate readout-strip cluster from coordinate [cm] and angle [rad] (the sensor number is needed for K5 and K7 case)
   TrSimCluster* MakeCluster(double senscoo, double sensangle, int nsens = 0); 
 
@@ -196,6 +200,9 @@ class TrSimSensor {
   static double GetWeightGaussBox(double x, double width, double sigma, double x1, double x2);
   //! Calculate weight for the implanted-strip model (using a triangular pdf distribution)
   static double GetWeightTriangular(double x, double width, double x1, double x2);
+  // Calculare weight for the implanted-strip model (using the best approximation, very slow) 
+  static double GetWeightGaussSum(double x, double width, double sigma, double x1, double x2);
+
   //! Gauss*Box distribution cumulative function (analytical)
   static double CumulativeGaussBox(double x, double t, double sigma);
   //! Triangular distribution cumulative function (analytical)
@@ -217,11 +224,13 @@ class TrSimSensor {
   TF1* GetMonteCarloFun() { return _mcfun; }
   //! Return the pointer to the LanGauExp Real Data function 
   TF1* GetRealDataFun()   { return _refun; }
-  //! keV to MPV factor
-  double GetkeVtoADC()    { return _mcfun->GetParameter(2); }
+  //! keV to MPV factor 
+  double GetkeVtoADC();  
+  //! ADC MPV value for each Z from Tb2003 (n-side and p-side) 
+  double GetAdcMpvTb2003(int z);
   //! EDep MC-Data ADC normalization (from ADC to ADC)
   double fromMCtoRealData(double adc);
-  
+
 };
 
 #endif

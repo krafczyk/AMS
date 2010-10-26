@@ -86,18 +86,17 @@ integer NoiseType;
 integer FakeClusterType;
 geant   DSPSeedThr[2];  
 geant   DSPNeigThr[2];
-// Main Parameters
-integer TrSim2010_ADCConvType;
-integer TrSim2010_EDepType;    
-// Detailed Description
+// TrSim2010 Parameters
+integer TrSim2010_ADCConvType[2];
+integer TrSim2010_EDepType[2];   
+geant   TrSim2010_ADCSat[2]; 
 geant   TrSim2010_Cint[2];        
 geant   TrSim2010_Cbk[2];  
 geant   TrSim2010_Cdec[2]; 
-// Diffusion Shape Type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
 integer TrSim2010_DiffType[2]; 
-geant   TrSim2010_DiffPars[2][2]; 
-geant   TrSim2010_IntrNoise[2]; 
-// landau x gaus x exp description?
+geant   TrSim2010_DiffRadius[2]; 
+geant   TrSim2010_FracNoise[2]; 
+geant   TrSim2010_AddNoise[2];     
 
 };
 
