@@ -17,17 +17,17 @@
 
 
 void VertexR::Clear(){
-  _Momentum=0;
-  _ErrMomentum=0;
-  _Theta=0;
-  _Phi=0;
-  _Mass=0;
-  _Charge=0;
-  _Chi2=0;
-  _Ndof=0;
-  _fTrTrack.clear();
-  _Ptrack.clear();
-  _Vertex.setp(0,0,0);
+  Momentum=0;
+  ErrMomentum=0;
+  Theta=0;
+   Phi=0;
+  Mass=0;
+  Charge=0;
+  Chi2=0;
+  Ndof=0;
+  fTrTrack.clear();
+  _pTrTrack.clear();
+  Vertex[0]=Vertex[1]=Vertex[2]=0;
   _filled=0;
 }
 
@@ -40,7 +40,7 @@ VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
   Clear();
   //Set the track number
 
-  for (int i=0; i<ntracks; i++) { _Ptrack.push_back(ptrack[i]); }
+  for (int i=0; i<ntracks; i++) { _pTrTrack.push_back(ptrack[i]); }
   BuildTracksIndex();
   number mom[3] = {0.0, 0.0, 0.0};
      
@@ -49,28 +49,28 @@ VertexR::VertexR(int ntracks, TrTrackR *ptrack[]) {
   // Most of the information
   number u[3];
   for (int i=0; i<NTrTrack(); i++) { 
-    _Ptrack[i]->setstatus(AMSDBc::USED);
-    number rig =  _Ptrack[i]->GetRigidity();
+    _pTrTrack[i]->setstatus(AMSDBc::USED);
+    number rig =  _pTrTrack[i]->GetRigidity();
     number en =  fabs(rig);
-    number erig =  _Ptrack[i]->GetErrRinv()*en*en;
-    _Momentum += en;
-    _Charge += (rig>=0.0)? 1:-1;
-    _ErrMomentum += erig*erig;
-    _Chi2 += _Ptrack[i]->GetChi2(); 
-    _Ndof += 2*_Ptrack[i]->GetNhits() - 5; 
-    AMSDir dir = AMSDir(_Ptrack[i]->GetTheta(),_Ptrack[i]->GetPhi());
+    number erig =  _pTrTrack[i]->GetErrRinv()*en*en;
+    Momentum += en;
+    Charge += (rig>=0.0)? 1:-1;
+    ErrMomentum += erig*erig;
+    Chi2 += _pTrTrack[i]->GetChi2(); 
+    Ndof += 2*_pTrTrack[i]->GetNhits() - 5; 
+    AMSDir dir = AMSDir(_pTrTrack[i]->GetTheta(),_pTrTrack[i]->GetPhi());
     dir.getp(u);
     mom[0] += en*u[0]; 
     mom[1] += en*u[1]; 
     mom[2] += en*u[2];
   }
 
-  _ErrMomentum = sqrt(_ErrMomentum)/_Momentum/_Momentum;
-  _Mass = _Momentum*_Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
-  if (_Mass>0.0) _Mass = sqrt(_Mass); else _Mass = 0.0; 
+  ErrMomentum = sqrt(ErrMomentum)/Momentum/Momentum;
+  Mass = Momentum*Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
+  if (Mass>0.0) Mass = sqrt(Mass); else Mass = 0.0; 
   AMSDir U = AMSDir(mom);
-  _Theta = U.gettheta();
-  _Phi = U.getphi();
+  Theta = U.gettheta();
+  Phi = U.getphi();
 
    set_vertex();
 
@@ -85,13 +85,13 @@ void VertexR::_PrepareOutput(int full){
 
                      
   sout.append(Form("Vtx: #tracks %d  Mom %f ErrMom  %f Chrg %d Coo: (%f, %f, %f)",
-		   NTrTrack(), _Momentum, _ErrMomentum, _Charge,_Vertex[0],_Vertex[1],_Vertex[2]));
+		   NTrTrack(), Momentum, ErrMomentum, Charge,Vertex[0],Vertex[1],Vertex[2]));
   
   if(!full)
     sout.append("\n");
   else
     sout.append(Form("Theta %f  Phi %f Chi2/Ndf %f/%d \n",
-		   _Theta,_Phi, _Chi2, _Ndof));
+		   Theta,Phi, Chi2, Ndof));
 }
 void VertexR::Print(int opt) { 
   _PrepareOutput(opt);
@@ -127,9 +127,9 @@ void VertexR::BuildTracksIndex()
 {
   VCon *cont2 = GetVCon()->GetCont("AMSTrTrack");
   if (!cont2) return;
-  _fTrTrack.clear();
+  fTrTrack.clear();
   for (int i = 0; i < NTrTrack(); i++) {
-    _fTrTrack.push_back(cont2->getindex(_Ptrack[i]));
+    fTrTrack.push_back(cont2->getindex(_pTrTrack[i]));
   }
   delete cont2;
 }
@@ -139,20 +139,20 @@ void VertexR::BuildTracksIndex()
 TrTrackR *VertexR::pTrTrack(unsigned int i) 
 {
 
-  if(i>=_fTrTrack.size()) return 0;
-  if (_Ptrack[i] == 0 && _fTrTrack[i] >= 0) {
+  if(i>=fTrTrack.size()) return 0;
+  if (_pTrTrack[i] == 0 && fTrTrack[i] >= 0) {
     VCon* cont2 = GetVCon()->GetCont("AMSTrTrack");
-    _Ptrack[i] = (TrTrackR*)cont2->getelem(_fTrTrack[i]);
+    _pTrTrack[i] = (TrTrackR*)cont2->getelem(fTrTrack[i]);
     delete cont2;
   }
 
-  return _Ptrack[i];
+  return _pTrTrack[i];
 }
 
 
 void VertexR::set_vertex(){
   
-  _Vertex = AMSPoint(0.0, 0.0, 0.0);
+  Vertex[0]=  Vertex[1]=  Vertex[2]=0.;
   if (NTrTrack()<2) return;
 
   // Find minimum distance in the case of 2 tracks
@@ -171,11 +171,11 @@ void VertexR::set_vertex(){
 
 	AMSDir dir[2];
 
-	dir[0] = AMSDir(_Ptrack[i0]->GetPdir().gettheta(),_Ptrack[i0]->GetPdir().getphi());
-	dir[1] = AMSDir(_Ptrack[i1]->GetPdir().gettheta(),_Ptrack[i1]->GetPdir().getphi());
+	dir[0] = AMSDir(_pTrTrack[i0]->GetPdir().gettheta(),_pTrTrack[i0]->GetPdir().getphi());
+	dir[1] = AMSDir(_pTrTrack[i1]->GetPdir().gettheta(),_pTrTrack[i1]->GetPdir().getphi());
 
 	number dirprod = dir[0].prod(dir[1]);
-	AMSPoint deltax =  _Ptrack[i0]->GetPentry() - _Ptrack[i1]->GetPentry();
+	AMSPoint deltax =  _pTrTrack[i0]->GetPentry() - _pTrTrack[i1]->GetPentry();
 
 	number lambda[2];
 	if (fabs(dirprod)<1.) {
@@ -184,16 +184,16 @@ void VertexR::set_vertex(){
 	  aux = dir[1] - dir[0]*dirprod;
 	  lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
 	  AMSPoint poi[2];
-	  poi[0] = AMSPoint(_Ptrack[i0]->GetPentry()+dir[0]*lambda[0]);
-	  poi[1] = AMSPoint(_Ptrack[i1]->GetPentry()+dir[1]*lambda[1]);
-	  number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
+	  poi[0] = AMSPoint(_pTrTrack[i0]->GetPentry()+dir[0]*lambda[0]);
+	  poi[1] = AMSPoint(_pTrTrack[i1]->GetPentry()+dir[1]*lambda[1]);
+	  number mom=fabs(_pTrTrack[i0]->GetRigidity())+fabs(_pTrTrack[i1]->GetRigidity());
 	  //       cout <<" poi0 "<<poi[0]<<endl;
 	  //       cout <<" poi1 "<<poi[1]<<endl;
 	  if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
 	    number_of_pairs++;
 	    for (int j=0; j<3; j++) {
-	      _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
-	      _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
+	      Vertex[j] += poi[0][j] * fabs(_pTrTrack[i0]->GetRigidity())/mom;
+	      Vertex[j] += poi[1][j] * fabs(_pTrTrack[i1]->GetRigidity())/mom;
 	    }
 	  }
 	  else{
@@ -207,10 +207,10 @@ void VertexR::set_vertex(){
       }
     }
     for (int j=0; j<3; j++) {
-      if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
+      if(number_of_pairs)Vertex[j] = Vertex[j]/(number_of_pairs);
     }
 #ifdef __AMSDEBUG__
-    if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
+    if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<Vertex[0]<<" "<<Vertex[1]<<" "<<Vertex[2]<<endl;
 #endif  
   }
   if(checkstatus(AMSDBc::BAD)){
@@ -222,11 +222,11 @@ void VertexR::set_vertex(){
 
 	AMSDir dir[2];
 
-	dir[0] = AMSDir(_Ptrack[i0]->GetPdir().gettheta(),_Ptrack[i0]->GetPdir().getphi());
-	dir[1] = AMSDir(_Ptrack[i1]->GetPdir().gettheta(),_Ptrack[i1]->GetPdir().getphi());
+	dir[0] = AMSDir(_pTrTrack[i0]->GetPdir().gettheta(),_pTrTrack[i0]->GetPdir().getphi());
+	dir[1] = AMSDir(_pTrTrack[i1]->GetPdir().gettheta(),_pTrTrack[i1]->GetPdir().getphi());
 
 	number dirprod = dir[0].prod(dir[1]);
-	AMSPoint deltax =  _Ptrack[i0]->GetPentry() - _Ptrack[i1]->GetPentry();
+	AMSPoint deltax =  _pTrTrack[i0]->GetPentry() - _pTrTrack[i1]->GetPentry();
 
 	number lambda[2];
 	if (fabs(dirprod)<1.) {
@@ -235,13 +235,13 @@ void VertexR::set_vertex(){
 	  aux = dir[1] - dir[0]*dirprod;
 	  lambda[1] = deltax.prod(aux) / (1.-dirprod*dirprod);
 	  AMSPoint poi[2];
-	  poi[0] = AMSPoint(_Ptrack[i0]->GetPentry()+dir[0]*lambda[0]);
-	  poi[1] = AMSPoint(_Ptrack[i1]->GetPentry()+dir[1]*lambda[1]);
-	  number mom=fabs(_Ptrack[i0]->GetRigidity())+fabs(_Ptrack[i1]->GetRigidity());
+	  poi[0] = AMSPoint(_pTrTrack[i0]->GetPentry()+dir[0]*lambda[0]);
+	  poi[1] = AMSPoint(_pTrTrack[i1]->GetPentry()+dir[1]*lambda[1]);
+	  number mom=fabs(_pTrTrack[i0]->GetRigidity())+fabs(_pTrTrack[i1]->GetRigidity());
 	  number_of_pairs++;
 	  for (int j=0; j<3; j++) {
-	    _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->GetRigidity())/mom;
-	    _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->GetRigidity())/mom;
+	    Vertex[j] += poi[0][j] * fabs(_pTrTrack[i0]->GetRigidity())/mom;
+	    Vertex[j] += poi[1][j] * fabs(_pTrTrack[i1]->GetRigidity())/mom;
 	  }
 	}
 
@@ -249,10 +249,10 @@ void VertexR::set_vertex(){
       }
     }
     for (int j=0; j<3; j++) {
-      if(number_of_pairs)_Vertex[j] = _Vertex[j]/(number_of_pairs);
+      if(number_of_pairs)Vertex[j] = Vertex[j]/(number_of_pairs);
     }
 #ifdef __AMSDEBUG__
-    if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
+    if(checkstatus(AMSDBc::BAD))cout <<" vertex "<< Vertex[0] <<" " << Vertex[1] <<" " << Vertex[2] <<endl;
 #endif  
   }
 

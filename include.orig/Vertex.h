@@ -13,33 +13,31 @@
 
 //! Class that implements a vertex made of two tracks
 class VertexR: public TrElem{
-
-protected:
-
-// VertexR Protected Data
-
-  number _Momentum;     ///< Total Momentum attached to the vertex (GeV)
-  number _ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
-  number _Theta;        ///< Theta (rad)
-  number _Phi;          ///< Phi  (rad)
-  number _Mass;         ///< Rec mass at vertex (GeV)
-  integer _Charge;      ///< Charge at vertex
-  number _Chi2;         ///< Chi2
-  integer _Ndof;        ///< Number of degrees of freedom
-  AMSPoint _Vertex;     ///< reconstructed vertex (cm)
+public:
   int Status;          ///< Status word
+  number Mass;         ///< Rec mass at vertex (GeV)
+  number Momentum;     ///< Total Momentum attached to the vertex (GeV)
+  number ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
+  number Theta;        ///< Theta (rad)
+  number Phi;          ///< Phi  (rad)
+  integer Charge;      ///< Charge at vertex
+  number Chi2;         ///< Chi2
+  integer Ndof;        ///< Number of degrees of freedom
+  float Vertex[3];     ///< reconstructed vertex (cm)
 
   /// Vector holding the index to tracks connected to the vertex
-  vector <int>          _fTrTrack;
-  /// Vector holding the pointer to tracks connected to the vertex
-  vector<TrTrackR *> _Ptrack; //!
-  /// 
-  int _filled;
+  vector <int>          fTrTrack;
   
 
-  /// Build index vector (_fTrTrack) from hits vector (_PTrack)
+  /// Build index vector (_fTrTrack) from hits vector (pTrTrack)
   void BuildTracksIndex();
+protected:
+  /// Vector holding the pointer to tracks connected to the vertex
+  vector<TrTrackR *> _pTrTrack; //!
+  /// 
+  int _filled;
   void _PrepareOutput(int full=0);
+
 public:
 
   // VertexR Public Creators, Destructor, Operators
@@ -54,11 +52,11 @@ public:
   
   /// access function to TrTrackR objects used
   /// \return number of TrTrackR used
-  int NTrTrack()const {return _Ptrack.size();}
+  int NTrTrack()const {return _pTrTrack.size();}
    /// access function to TrTrackR objects used
   /// \param i index of fTrTrackR vector
   /// \return index of TrTrackR object in collection or -1
-  int iTrTrack(unsigned int i)const {return i<_fTrTrack.size()? _fTrTrack[i]:-1;}
+  int iTrTrack(unsigned int i)const {return i<fTrTrack.size()? fTrTrack[i]:-1;}
   /// access function to TrTrackR objects   
   /// \param i index of fTrTrackR vector
   /// \return pointer to TrTrackR object  or 0
@@ -66,26 +64,25 @@ public:
 
   // VertexR Get data
   /// Return the Total Momentum (GeV)
-  number        getmom()     const  {return _Momentum;}
+  number        getmom()     const  {return Momentum;}
   /// Return the Error in 1 / Momentum Sum (1/GeV)
-  number        geterrmom()  const  {return _ErrMomentum;}
+  number        geterrmom()  const  {return ErrMomentum;}
   /// Return theta (rad)
-  number        gettheta()   const  {return _Theta;}
+  number        gettheta()   const  {return Theta;}
   /// Return phi (rad)
-  number        getphi()     const  {return _Phi;}
+  number        getphi()     const  {return Phi;}
   /// Return Rec mass at vertex (GeV)
-  number        getmass()    const  {return _Mass;}
+  number        getmass()    const  {return Mass;}
   /// Return Total Charge at vertex
-  integer       getcharge()  const  {return _Charge;}
+  integer       getcharge()  const  {return Charge;}
   /// Chi2
-  number        getchi2()    const  {return _Chi2;}
+  number        getchi2()    const  {return Chi2;}
   /// Number of degrees of freedom
-  integer       getndof()    const  {return _Ndof;}
-  /// Returns the Vertex Coo (cm) as AMSPoint
-  AMSPoint      getvert()    const  {return _Vertex;}
+  integer       getndof()    const  {return Ndof;}
   /// Return true if the vertex has been properly built 
   bool           IsFilled()   const  {return _filled!=0;}
-
+  /// Returns an AMSPoint with the vertex coo
+  AMSPoint      getvert()  const {return AMSPoint(Vertex[0],Vertex[1],Vertex[2]);}
 
   uinteger checkstatus(integer checker) const{return Status & checker;}
   uinteger getstatus() const{return Status;}
@@ -115,7 +112,7 @@ public:
   // Friends
   friend class AMSTrTrack;
 
-  ClassDef(VertexR,1);
+  ClassDef(VertexR,2);
 
 };
 // End VertexR CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
