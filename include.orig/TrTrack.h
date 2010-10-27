@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.40 2010/10/12 23:18:14 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.41 2010/10/27 16:43:50 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/12 23:18:14 $
+///$Date: 2010/10/27 16:43:50 $
 ///
-///$Revision: 1.40 $
+///$Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -125,8 +125,10 @@ public:
     kGEANE_Kalman  = 3, 
     /// Juan algo
     kAlcaraz       = 4,
-    /// A. Chikanian algo
+    /// A. Chikanian algo (C++ imported)
     kChikanian     = 5,
+    /// A. Chikanian algo (Original Fortran, available only with gbatch.exe)
+    kChikanianF    = 6,
     
     /// Linear fit for non-magnetic-field runs
     kLinear        = 10,

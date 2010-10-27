@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.18 2010/10/16 17:31:24 shaino Exp $
+//  $Id: TrFit.h,v 1.19 2010/10/27 16:43:48 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/10/16 17:31:24 $
+///$Date: 2010/10/27 16:43:48 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -170,7 +170,8 @@ public:
     /// Parameter buffer size
     PMAX = 10
   };
-  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN };
+  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN,
+		 CHIKANIANF };
 
   /// Multiple scattering switch
   static int _mscat;
@@ -305,8 +306,8 @@ public:
   /// Choutko fit
   double ChoutkoFit(void);
 
-  /// Chikanian fit
-  double ChikanianFit(void);
+  /// Chikanian fit  type= 1:C++  2:Fortan(only with gbatch.exe)
+  double ChikanianFit(int type = 1);
 
   /// Linear fitting for X-Z (side=1), Y-Z (side=2) or X-S (side=3)
   double LinearFit(int side);

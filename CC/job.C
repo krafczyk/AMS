@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.740 2010/10/26 23:43:17 oliva Exp $
+// $Id: job.C,v 1.741 2010/10/27 16:43:55 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1869,6 +1869,13 @@ void AMSJob::udata(){
     tasdb->CreateLinear();
     TrDAQ::MaxClusterLength = 640;
   }
+
+  float zpos[trconst::maxlay];
+  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
+  for (int i = 0; i < trconst::maxlay; i++)
+    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+
+  rkmsinit_(zpos); 
 
 #else
 

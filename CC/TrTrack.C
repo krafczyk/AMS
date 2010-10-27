@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.58 2010/10/16 07:17:07 shaino Exp $
+// $Id: TrTrack.C,v 1.59 2010/10/27 16:43:54 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/16 07:17:07 $
+///$Date: 2010/10/27 16:43:54 $
 ///
-///$Revision: 1.58 $
+///$Revision: 1.59 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -79,6 +79,7 @@ int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, kChoutko|kUpperHalf, kChoutko|kLowerHalf, 
     kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf 
+  //kChikanian, kChikanianF
   };
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
@@ -545,11 +546,12 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
   // Select fitting method
   int method = TrFit::CHOUTKO;
-  if      (idf == kAlcaraz)   method = TrFit::ALCARAZ;
-  else if (idf == kChikanian) method = TrFit::CHIKANIAN;
-  else if (idf == kLinear)    method = TrFit::LINEAR;
-  else if (idf == kCircle)    method = TrFit::CIRCLE;
-  else if (idf == kSimple)    method = TrFit::SIMPLE;
+  if      (idf == kAlcaraz)    method = TrFit::ALCARAZ;
+  else if (idf == kChikanian)  method = TrFit::CHIKANIAN;
+  else if (idf == kChikanianF) method = TrFit::CHIKANIANF;
+  else if (idf == kLinear)     method = TrFit::LINEAR;
+  else if (idf == kCircle)     method = TrFit::CIRCLE;
+  else if (idf == kSimple)     method = TrFit::SIMPLE;
 
   _TrFit.Clear();
   _TrFit.SetMassChrg(mass, chrg);
@@ -736,7 +738,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (method == TrFit::CHIKANIAN) {
+  if (method == TrFit::CHIKANIAN || method == TrFit::CHIKANIANF) {
     Double_t rini = 0;
     Int_t idr = kChoutko;
     Int_t idl = id & (kFitLayer8 | kFitLayer9);
@@ -1031,6 +1033,7 @@ char * TrTrackR::GetFitNameFromID(int fitnum){
   if(basefit ==  3)  strcat(out,"kGEANE_Kalman");
   if(basefit ==  4)  strcat(out,"kAlcaraz");
   if(basefit ==  5)  strcat(out,"kChikanian");
+  if(basefit ==  6)  strcat(out,"kChikanianF");
   if(basefit == 10)  strcat(out,"kLinear");
   if(basefit == 11)  strcat(out,"kCircle");
   if(basefit == 12)  strcat(out,"kSimple");

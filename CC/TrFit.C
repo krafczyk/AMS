@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.33 2010/10/16 17:31:24 shaino Exp $
+//  $Id: TrFit.C,v 1.34 2010/10/27 16:43:54 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/16 17:31:24 $
+///$Date: 2010/10/27 16:43:54 $
 ///
-///$Revision: 1.33 $
+///$Revision: 1.34 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -104,12 +104,13 @@ double TrFit::Fit(int method)
   }
 
   double ret = 0;
-  if (method ==    LINEAR) ret = LinearFit();
-  if (method ==    CIRCLE) ret = CircleFit();
-  if (method ==    SIMPLE) ret = SimpleFit();
-  if (method ==   ALCARAZ) ret = AlcarazFit();
-  if (method ==   CHOUTKO) ret = ChoutkoFit();
-  if (method == CHIKANIAN) ret = ChikanianFit();
+  if (method ==    LINEAR)  ret = LinearFit();
+  if (method ==    CIRCLE)  ret = CircleFit();
+  if (method ==    SIMPLE)  ret = SimpleFit();
+  if (method ==   ALCARAZ)  ret = AlcarazFit();
+  if (method ==   CHOUTKO)  ret = ChoutkoFit();
+  if (method == CHIKANIAN)  ret = ChikanianFit(1);
+  if (method == CHIKANIANF) ret = ChikanianFit(2);
 
   ParLimits();
   return ret;
@@ -1340,7 +1341,7 @@ int TrFit::RkmsDebug = -1;
 #include "amsgobj.h"
 #endif
 
-double TrFit::ChikanianFit(void)
+double TrFit::ChikanianFit(int type)
 /*
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
@@ -1373,17 +1374,29 @@ double TrFit::ChikanianFit(void)
 
 #ifndef __ROOTSHAREDLIBRARY__
   // Original Fortran version
-  if (_mscat) {
+  if (type == 2) {
     AMSgObj::BookTimer.start("TrFitRkmsF");
     RkmsFitF(out);
-    AMSgObj::BookTimer.stop("TrFitRkmsF");
+    double time = AMSgObj::BookTimer.stop("TrFitRkmsF");
+
+    if (RkmsDebug == -2) {
+#pragma omp critical (rkmsdebugf)
+      std::cout<<"TrFitRkmsF time= "<< time
+	       <<" rgt= "<<out[5]<<" "<<" rini= "<<_rigidity<<std::endl;
+    }
   }
 
   // Imported C++ version
   else {
     AMSgObj::BookTimer.start("TrFitRkmsT");
     RkmsFit(out);
-    AMSgObj::BookTimer.stop("TrFitRkmsT");
+    double time = AMSgObj::BookTimer.stop("TrFitRkmsT");
+
+    if (RkmsDebug == -2) {
+#pragma omp critical (rkmsdebugt)
+      std::cout<<"TrFitRkmsT time= "<< time
+	       <<" rgt= "<<out[5]<<" "<<" rini= "<<_rigidity<<std::endl;
+    }
   }
 #else
   RkmsFit(out);
@@ -1441,14 +1454,6 @@ void TrFit::RkmsFitF(double *out)
     npo++;
   }
 
-  float zpos[trconst::maxlay];
-  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
-  for (int i = 0; i < trconst::maxlay; i++)
-    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
-
-#pragma omp critical (rkmsinit)
-  rkmsinit_(zpos); 
-
   float rini = GetRigidity();
   float outf[9];
   rkmsrig_(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
@@ -1458,6 +1463,11 @@ void TrFit::RkmsFitF(double *out)
 
 void TrFit::RkmsFitF(double *out)
 {
+  static int nerr = 1;
+  if (nerr++ < 5)
+    std::cout << "TrFit::RkmsFitF-W-RkmsFit (C++ version) is called "
+                 "instead of Fortran version." << std::endl;
+
   RkmsFit(out);
 }
 
