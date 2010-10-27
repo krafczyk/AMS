@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.9 2010/10/12 23:18:14 pzuccon Exp $
+#  $Id: Makefile,v 1.10 2010/10/27 10:22:16 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -78,7 +78,7 @@ ifndef CERNDIR
 CERNDIR=/cern/pro/
 endif
 CXXFLAGS = -g -O3   -fPIC -march=i686  -I. $(INC) $(DEFINES) $(ROOTFLGS)
-FFLAGS= -I. -I$(CERNDIR)/include -I../F -I../include
+FFLAGS= -I.  -I$(CERNDIR)/include 
 
 ### LD flags ###
 ifeq ($(ARCH), Darwin)
@@ -89,7 +89,7 @@ endif
 ######### FILES #######################
 
 
-SRCS = call_rqmd.F rqmd.F call_fluka.F trd.F
+SRCS = call_rqmd.F rqmd.F call_fluka.F 
 OBJS = $(patsubst %.F, $(OBJ)%.o, $(SRCS))
 
 
