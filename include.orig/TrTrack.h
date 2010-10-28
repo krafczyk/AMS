@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.41 2010/10/27 16:43:50 shaino Exp $
+//  $Id: TrTrack.h,v 1.42 2010/10/28 11:28:59 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/27 16:43:50 $
+///$Date: 2010/10/28 11:28:59 $
 ///
-///$Revision: 1.41 $
+///$Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -199,7 +199,7 @@ public:
 /*     kAllAdvanced  = 0x7FF  ///< All advanced fitting */
 /*   }; */
   /// Default advanced fit flags : keep it "thread-common"
-#define DEF_ADVFIT_NUM 8
+#define DEF_ADVFIT_NUM 10
   static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
 
 
