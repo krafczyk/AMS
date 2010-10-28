@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.741 2010/10/27 16:43:55 shaino Exp $
+// $Id: job.C,v 1.742 2010/10/28 23:29:12 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1080,7 +1080,7 @@ TRDMCFFKEY.multiples=0;
  TRDMCFFKEY.Pecut=-0.65;
  TRDMCFFKEY.ntrcor=1.3;
  TRDMCFFKEY.etrcor=1.2;
- TRDMCFFKEY.ndecor=0.9;
+ TRDMCFFKEY.ndecor=1.0;
  TRDMCFFKEY.edecor=1.0;
 
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");

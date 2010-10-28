@@ -27,11 +27,10 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   if(cont){
     s1=(TrdHSegmentR*)cont->getelem(is1);
     s2=(TrdHSegmentR*)cont->getelem(is2);
+    delete cont;
   }
-  else return 0;
-  delete cont;
-
-  if(debug)printf("Entering TrdHReconR::SegToTrack\n");
+  else return 0;                                                                 
+  if(debug)printf("Entering TrdHReconR::SegToTrack s1 %d s2 %d\n",s1,s2);
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
   if(isnan(s1->m)||isnan(s2->m))return 0;
@@ -647,56 +646,15 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
 void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
   rhits.clear();
   htrvec.clear();
+  hsegvec.clear();
   refhits.clear();
   referr.clear();
 
-  
-  VCon* conts=GetVCon()->GetCont("AMSTRDHSegment");
-  if(conts){
-    conts->eraseC();
-  }
-  delete conts;
-
-  VCon* contt=GetVCon()->GetCont("AMSTRDHSegment");
-  if(contt){
-    contt->eraseC();
-  }
-  delete contt;
-
   if(r.size()<3)return;
-  VCon* cont=GetVCon()->GetCont("AMSTRDRawHit");
-  if(!cont) {
-    cerr << "TrRecon::Build  Cant Find AMSTrdRawHit" << endl;
-    return ;
-  }
-  cont->eraseC();
-
   for(int n=0;n<r.size();n++)AddHit(&r[n]);
 
-  /*  // Check number of TrRawClusters
-  int nraw = cont.getnelem();
-  printf("passed raw hits %i cont raw hits %i\n",r.size(),nraw);
-  for(int n=0;n<r.size();n++){
-    printf("passed hit %i\n",n);
-    for(int i=0;i!=nraw;i++)if(nrhits<1024){
-      printf("cont hit %i\n",i);
-      AMSTRDRawHit *thit=(AMSTRDRawHit*)cont.getelem(i);
-      printf("nrh %i LLT %02i%02i%02i\n",nrhits,thit.getlayer(),thit.getladder(),thit.gettube());
-
-      rhits[nrhits] = (TrdRawHitR*)cont.getelem(i);
-      printf("nrh %i LLT %02i%02i%02i\n",nrhits,rhits[nrhits].Layer,rhits[nrhits].Ladder,rhits[nrhits].Tube);
-      if(r[n]==*rhits[nrhits]){
-	printf("found iter %i\n",i);
-	irhits[nrhits] = i;//cont.getindex((TrElem*)i);
-	nrhits++;
-      }
-    }
-  }
-*/
-  delete cont;
-
   retrdhevent();
-  
+  r.clear();
 }
 
 int TrdHReconR::build(){
@@ -754,27 +712,30 @@ int TrdHReconR::build(){
 }    
 
 void TrdHReconR::clear(){
-//changed by vc
+#ifdef __ROOTSHAREDLIBRARY__
+  VCon* conth=GetVCon()->GetCont("AMSTRDRawHit");
+  if(conth){
+    for(int i=0;i<conth->getnelem();i++)conth->removeEl(conth->getelem(i)-1);
+    conth->eraseC();
+  }
+  delete conth;
+  
+  VCon* conts=GetVCon()->GetCont("AMSTRDHSegment");
+  if(conts){
+    for(int i=0;i<conts->getnelem();i++)conts->removeEl(conts->getelem(i)-1);
+    conts->eraseC();
+  }
+  delete conts;
+  
+  VCon* contt=GetVCon()->GetCont("AMSTRDHTrack");
+  if(contt){
+    for(int i=0;i<contt->getnelem();i++)contt->removeEl(contt->getelem(i)-1);
+    contt->eraseC();
+  }
+  delete contt;
 
-/*
-  for(int i=0;i<nrhits;i++){
-    if(rhits[i])delete rhits[i];
-    rhits[i]=0;
-  }
-  nrhits=0;
-
-  for(int i=0;i<nhsegvec;i++){
-    if(hsegvec[i]!=0)delete hsegvec[i];
-    hsegvec[i]=0;
-  }
-  nhsegvec=0;
-  for(int i=0;i<nhtrvec;i++){
-    if(htrvec[i]!=0)delete htrvec[i];
-    htrvec[i]=0;
-  }
-  nhtrvec=0;
-*/
   return;
+#endif
 }
 int TrdHReconR::retrdhevent(){
   int debug=0;
@@ -845,7 +806,7 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
 #else
-    TrdHTrackR* amstr=new TrdHTrackR(tr);
+    TrdHTrackR* amstr=tr;
 #endif
     
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");
@@ -862,7 +823,7 @@ void TrdHReconR::AddSegment(TrdHSegmentR* seg){
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHSegment* amsseg=new AMSTRDHSegment(seg);
 #else
-    TrdHSegmentR* amsseg=new TrdHSegmentR(seg);
+    TrdHSegmentR* amsseg=seg;
 #endif
     cont2->addnext(amsseg);
     hsegvec.push_back(*amsseg);
