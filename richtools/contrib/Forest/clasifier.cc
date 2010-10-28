@@ -493,15 +493,15 @@ int GeomHash::get(double x,...){
   return hash(buffer[2]);
 }
 
-void GeomHash::grow(int min_size){
+void GeomHash::grow(int min_size,int robust_trials,double robust_fraction){
   int *pointers=new int[samples.size()];
   double *scratch=new double[samples.size()];
-  grow(pointers,scratch,min_size);
+  grow(pointers,scratch,min_size,robust_trials,robust_fraction);
   delete[] pointers;
   delete[] scratch;
 }
 
-void GeomHash::grow(int *pointers,double *scratch,int min_size){
+void GeomHash::grow(int *pointers,double *scratch,int min_size,int robust_trials,double robust_fraction){
   if(grown) return;
   grown=true;
   int entries=samples.size()/dimension;
@@ -510,7 +510,10 @@ void GeomHash::grow(int *pointers,double *scratch,int min_size){
   for(int i=0;i<entries;i++) pointers[i]=i;
 
   // Start the real growing process
-  grow_internal(pointers,entries,scratch,2*min_size); // Adjust the min_size to obtain a better approximation
+  minSize=2*min_size;
+  robustFraction=robust_fraction;
+  robustTrials=robust_trials;
+  grow_internal(pointers,entries,scratch); // Adjust the min_size to obtain a better approximation
 
   samples.resize(0);
   vector<float> empty; samples=empty; // liberates a lot of space
@@ -519,12 +522,19 @@ void GeomHash::grow(int *pointers,double *scratch,int min_size){
 
 #define _STORE_								\
   for(int d=0;d<dimension;d++){						\
-    double sum=0;							\
-    double sum2=0;							\
-    for(int i=0;i<size;i++) {sum+=samples[offset(pointers[i])+d];sum2+=samples[offset(pointers[i])+d]*samples[offset(pointers[i])+d];} \
-    sum/=size;								\
-    sum2/=size; sum2-=sum*sum;						\
-    templates.push_back(sum); templatesRMS.push_back(sum2);		\
+    double best_sum=0;                                                  \
+    double best_rms=HUGE_VAL;						\
+    for(int trial=0;trial<robustTrials;trial++){			\
+      double sum=0;							\
+      double sum2=0;							\
+      int total=0;							\
+      for(int i=0;i<size;i++) {if((rand() / (RAND_MAX + 1.0))>robustFraction) continue;total++;sum+=samples[offset(pointers[i])+d];sum2+=samples[offset(pointers[i])+d]*samples[offset(pointers[i])+d];} \
+      if(total==0) continue;						\
+      sum/=total;							\
+      sum2/=total; sum2-=sum*sum;					\
+      if(sum2<best_rms){best_rms=sum2;best_sum=sum;}			\
+    }									\
+    templates.push_back(best_sum); templatesRMS.push_back(best_rms);	\
   }									\
   int currentHashNumber=numNodes++;					\
   int trueParent=fabs(parent)-1;					\
@@ -533,8 +543,8 @@ void GeomHash::grow(int *pointers,double *scratch,int min_size){
   return;
 
 
-void GeomHash::grow_internal(int *pointers,int size, double *scratch,int min_size,int parent){
-  if(size==1 || size<min_size) {_STORE_;}
+void GeomHash::grow_internal(int *pointers,int size, double *scratch,int parent){
+  if(size==1 || size<minSize) {_STORE_;}
 
   int me=nodes[0].size();
 
@@ -593,7 +603,7 @@ void GeomHash::grow_internal(int *pointers,int size, double *scratch,int min_siz
 
   nodes[0].push_back(0);  nodes[1].push_back(0);
   nodes[0][me]=nodes[0].size();
-  grow_internal(pointers,bestPosition,scratch,min_size,-(me+1));
+  grow_internal(pointers,bestPosition,scratch,-(me+1));
   nodes[1][me]=nodes[1].size();
-  grow_internal(pointers+bestPosition,size-bestPosition,scratch,min_size,me+1);
+  grow_internal(pointers+bestPosition,size-bestPosition,scratch,me+1);
 }

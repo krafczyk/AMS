@@ -124,10 +124,14 @@ class GeomHash: public TObject{
   void push(float *x);
   void fill(double x,...);
 
-  void grow(int min_size=0);
+  int minSize;
+  double robustFraction;
+  int robustTrials;
+
+  void grow(int min_size=0,int robust_trials=1,double robust_fraction=1.0);
 
   void grow(int *pointers,  // Buffer pointing to the points indexes
-	    double *scratch,int min_size=0);        // Scratch region to store the distances to the points
+	    double *scratch,int min_size=0,int robust_trials=1,double robust_fraction=1.0);        // Scratch region to store the distances to the points
 
 
   // grow a tree trying tries time for optimization, and with minSize minimum elements per node. size is the number of samples to be used
@@ -135,7 +139,6 @@ class GeomHash: public TObject{
   void  grow_internal(int *pointers,
                       int  size,
                       double *scratch,
-		      int min_size=0,
                       int parent=0);
 
 
