@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.69 2010/10/14 09:17:28 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.70 2010/10/28 15:14:05 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/10/14 09:17:28 $
+/// $Date: 2010/10/28 15:14:05 $
 ///
-/// $Revision: 1.69 $
+/// $Revision: 1.70 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -130,8 +130,8 @@ void TrReconPar::SetParFromDataCards()
   ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
   TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
   TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
-  // PZ FIXME this flag cannot be used that way must discuss about it!
-  //  TrTrackR::DefaultAdvancedFitFlags = TRCLFFKEY.AdvancedFitFlag; // 39
+
+  TrTrackR::AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag; // 39
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;

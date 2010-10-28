@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.42 2010/10/28 11:28:59 choutko Exp $
+//  $Id: TrTrack.h,v 1.43 2010/10/28 15:13:59 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/28 11:28:59 $
+///$Date: 2010/10/28 15:13:59 $
 ///
-///$Revision: 1.42 $
+///$Revision: 1.43 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -174,34 +174,10 @@ public:
     kPattern    = 0x80000
   };
 
-  /// Advanced fit flags to be specified by TRCLFFKEY_DEF::AdvancedFitFlag
-  /* enum EAdvancedFitFlags { */
-/*     kChoutkoFit   = 0x001, ///< Choutko fitting w/o scattering */
-/*     kChoutkoMsct  = 0x002, ///< Choutko fitting w/  scattering */
-/*     kChoutkoHalf  = 0x004, ///< Choutko fitting w/o scattering half layers */
-/*     kChoutkoDef   = 0x007, ///< Default all Choutko fitting */
-
-/*     kChoutkoDrop  = 0x008, ///< Choutko fitting w/o scattering with one drop */
-/*     kChoutkoNdrp  = 0x010, ///< Choutko fitting w/o scattering with noise drop */
-/*     kChoutkoAll   = 0x01F, ///< All Choutko fitting */
-
-/*     kAlcarazFit   = 0x020, ///< Alcaraz fitting w/o scattering */
-/*     kAlcarazMsct  = 0x040, ///< Alcaraz fitting w/  scattering */
-/*     kAlcarazAll   = 0x060, ///< All Alcaraz fitting */
-
-/*     kChikanianFit = 0x080, ///< Chikanian fitting w/ scattering */
-
-/*     kLayer8Fit    = 0x100, ///< AMS-B fitting with layer 8 */
-/*     kLayer9Fit    = 0x200, ///< AMS-B fitting with layer 9 */
-/*     kLayer89Fit   = 0x400, ///< AMS-B fitting with layer 8 and 9 */
-/*     kLayer89All   = 0x700, ///< All AMS-B fitting */
-
-/*     kAllAdvanced  = 0x7FF  ///< All advanced fitting */
-/*   }; */
-  /// Default advanced fit flags : keep it "thread-common"
 #define DEF_ADVFIT_NUM 10
   static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
-
+  /// Advanced fit bits
+  static int AdvancedFitBits;
 
   //==== Static members ===
 
@@ -353,7 +329,7 @@ public:
       ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
   }
   ///  Get back the string corresponding to a fit ID
-  char* GetFitNameFromID(int fitnum);
+  static char* GetFitNameFromID(int fitnum);
   /// Get the fit ID of the pos-th fit method or zero if pos is invalid
   int    GetFitID(int pos);
   /// Print the string IDs of all the performed fits

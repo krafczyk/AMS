@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.34 2010/10/27 16:43:54 shaino Exp $
+//  $Id: TrFit.C,v 1.35 2010/10/28 15:14:05 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/27 16:43:54 $
+///$Date: 2010/10/28 15:14:05 $
 ///
-///$Revision: 1.34 $
+///$Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1377,26 +1377,14 @@ double TrFit::ChikanianFit(int type)
   if (type == 2) {
     AMSgObj::BookTimer.start("TrFitRkmsF");
     RkmsFitF(out);
-    double time = AMSgObj::BookTimer.stop("TrFitRkmsF");
-
-    if (RkmsDebug == -2) {
-#pragma omp critical (rkmsdebugf)
-      std::cout<<"TrFitRkmsF time= "<< time
-	       <<" rgt= "<<out[5]<<" "<<" rini= "<<_rigidity<<std::endl;
-    }
+    AMSgObj::BookTimer.stop("TrFitRkmsF");
   }
 
   // Imported C++ version
   else {
     AMSgObj::BookTimer.start("TrFitRkmsT");
     RkmsFit(out);
-    double time = AMSgObj::BookTimer.stop("TrFitRkmsT");
-
-    if (RkmsDebug == -2) {
-#pragma omp critical (rkmsdebugt)
-      std::cout<<"TrFitRkmsT time= "<< time
-	       <<" rgt= "<<out[5]<<" "<<" rini= "<<_rigidity<<std::endl;
-    }
+    AMSgObj::BookTimer.stop("TrFitRkmsT");
   }
 #else
   RkmsFit(out);

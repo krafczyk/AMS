@@ -100,7 +100,7 @@ R 34 MaxChisqForLScan (Default: 2.2)
 R 35 ErrXForScan      (Default: 300e-4)
 R 36 ErrYForScan      (Default: 300e-4)
 R 37,38 TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 37:n(X) 38:p(Y) side
-I 39 Fit methods to be included for AdvancedFit see TrTrack.h for detail
+I 39 AdvancedFitFlag  (Default: 0xffff) Advanced fit bits
 I 40 TrDEBUG
 I 41 PZDEBUG
 

@@ -236,8 +236,8 @@ public:
   //! R [37,38] Seed S/N Threshold for 37:n(X) 38:p(Y) side
   geant TrackThrSeed[2] ;  
 
-  //! I 39 Fit methods to be included for AdvancedFit see TrTrack.h for detail
-  int AdvancedFitFlag;
+  //! I 39 Advanced fit bits
+  int AdvancedFitFlag;  // 0xffff
 
   //DEBUG
   //! I 40 TrDEBUG (DEBUG on Track finding)

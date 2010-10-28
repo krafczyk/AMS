@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.60 2010/10/28 11:28:58 choutko Exp $
+// $Id: TrTrack.C,v 1.61 2010/10/28 15:14:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/28 11:28:58 $
+///$Date: 2010/10/28 15:14:05 $
 ///
-///$Revision: 1.60 $
+///$Revision: 1.61 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -79,8 +79,9 @@ int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, kChoutko|kUpperHalf, kChoutko|kLowerHalf, 
     kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf, 
-  kChikanian, kChikanianF
-  };
+    kChikanian, kChikanianF };
+
+int TrTrackR::AdvancedFitBits = 0xffff;
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -101,9 +102,6 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   DBase[0]=0;
   DBase[1]=0;
   Status=0;
-//   if(TkDBc::Head && TkDBc::Head->GetSetup()==3)
-//     DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-//       TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], int *imult,int fitmethod)
@@ -137,9 +135,6 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
   BuildHitsIndex();
   trdefaultfit=fitmethod;
   if(trdefaultfit==0) trdefaultfit=DefaultFitID;
-//   if(TkDBc::Head->GetSetup()==3)
-//     DefaultAdvancedFitFlags = TrTrackR::kChoutkoDef | 
-//       TrTrackR::kAlcarazFit|TrTrackR::kLayer89All;
 }
 
 TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
@@ -1007,7 +1002,8 @@ int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)Fit(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
-   Fit(DefaultAdvancedFitFlags[ii]| add_flag);
+   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0)
+     Fit(DefaultAdvancedFitFlags[ii]| add_flag);
 
  return AdvancedFitDone(add_flag);
 }
@@ -1017,6 +1013,7 @@ int TrTrackR::AdvancedFitDone(int add_flag)
   if (!_MagFieldOn) return FitDone(kLinear|add_flag);
   bool done = true;
   for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
+   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0)
     done &=FitDone(DefaultAdvancedFitFlags[ii]| add_flag);
   return done;
 
