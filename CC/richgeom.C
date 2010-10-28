@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.42 2010/10/20 10:44:21 mdelgado Exp $
+//  $Id: richgeom.C,v 1.43 2010/10/28 09:07:58 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -763,7 +763,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
  //SECTOR 3   
  par[5]=RICHDB::RICmirrors1_s3;
- par[6]=RICHDB::RICmirrors3_s2;
+ par[6]=RICHDB::RICmirrors3_s2+360;
  mirror->add(new AMSgvolume("RICH MIRROR S3",
                              0,          // No rotation
                              "OMI3",     // Name
