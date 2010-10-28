@@ -82,6 +82,27 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
   _imult    = imult; 
 }
 
+const AMSPoint TrRecHitR::HitPointDist(const AMSPoint& aa,int& mult){
+
+
+  int mm=GetMultiplicity();
+  float max=999999.;
+  mult=-1;
+  for (int ii=0;ii<mm;ii++){
+    AMSPoint cc = aa - GetCoord(ii);
+    if(fabs(cc[0])<max){
+      mult=ii;
+      max=fabs(cc[0]);
+    }
+  }
+  
+  if (mult>-1&& mult <mm)
+    return aa-GetCoord(mult);
+  else
+    return aa-GetCoord(0); 
+
+}
+
 float TrRecHitR::HitDist(TrRecHitR& B,int coo){
 
   if(coo==1 || coo==2){

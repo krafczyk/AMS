@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.70 2010/10/28 15:14:05 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.71 2010/10/28 18:05:40 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/10/28 15:14:05 $
+/// $Date: 2010/10/28 18:05:40 $
 ///
-/// $Revision: 1.70 $
+/// $Revision: 1.71 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -130,8 +130,8 @@ void TrReconPar::SetParFromDataCards()
   ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
   TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
   TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
-
-  TrTrackR::AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag; // 39
+  // PZ FIXME this flag cannot be used that way must discuss about it!
+  //  TrTrackR::DefaultAdvancedFitFlags = TRCLFFKEY.AdvancedFitFlag; // 39
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -1919,99 +1919,115 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 {
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
+  int lyext[2] = {8, 9};
 
-  int    lyext[2] = {  8,  9 };
-  int    ihmin[2] = { -1, -1 };
-  int    icmin[2] = {  0,  0 };
-  int    ncmin[2] = {  0,  0 };
-  int    mlmin[2] = {  0,  0 };
-  double rxmin[2] = { 10, 10 };
-  double rymin[2] = { 10, 10 };
-
+  class ctest {
+  public:
+    int    ihmin;
+    int    icmin;
+    int    ncmin;
+    int    mlmin;
+    AMSPoint diff;
+    double rxmin;
+    double rymin;
+    ctest(){
+      ihmin = -1;
+      icmin =  0;
+      ncmin =  0;
+      mlmin =  0;
+      rxmin = 10;
+      rymin = 10;
+    }
+  };
+  ctest DXY[2];
+  ctest DY[2];
   AMSPoint ptrk[2];
-  ptrk[0] = track->GetPlayer(lyext[0]-1, mfit);
-  ptrk[1] = track->GetPlayer(lyext[1]-1, mfit);
+  ptrk[0] = track->InterpolateLayer(lyext[0]-1, mfit);
+  ptrk[1] = track->InterpolateLayer(lyext[1]-1, mfit);
 
   int nhit = cont->getnelem();
+
+  //1. Search the XY and Y-only hits closest to the track extrapolation on Y
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    if (!hit || hit->OnlyX() || !hit->OnlyY()) continue;
+    if (!hit || hit->OnlyX() ) continue;
+    int idx=0;
+    if(hit->OnlyY())idx=1;
 
     int il = -1;
     if (hit->GetLayer() == lyext[0]) il = 0;
     if (hit->GetLayer() == lyext[1]) il = 1;
     if (il < 0) continue;
-
-    double dy = std::fabs(hit->GetCoord().y()-ptrk[il].y());
-    if (dy < rymin[il]) {
-      ihmin[il] = i;
-      icmin[il] = hit->GetYClusterIndex();
-      rymin[il] = dy;
-      ncmin[il] = 1;
-    }
-  }
-
-  for (int i = 0; i < nhit; i++) {
-    TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    if (!hit || hit->OnlyX() || hit->OnlyY()) continue;
-
-    int il = -1;
-    if (hit->GetLayer() == lyext[0]) il = 0;
-    if (hit->GetLayer() == lyext[1]) il = 1;
-    if (il < 0) continue;
-
-    if (hit->GetYClusterIndex() != icmin[il]) continue;
-
-    for (int j = 0; j < hit->GetMultiplicity(); j++) {
-      double dx = std::fabs(hit->GetCoord(j).x()-ptrk[il].x());
-      if (dx < rxmin[il]) {
-	ihmin[il] = i;
-	rxmin[il] = dx;
-	ncmin[il] = 2;
-	mlmin[il] = j;
+    int mult;
+    AMSPoint DD = hit->HitPointDist(ptrk[il],mult);
+    float dxy=sqrt(DD[0]*DD[0]+DD[1]*DD[1]);
+    float dy=fabs(DD[1]);
+    
+    if(hit->OnlyY()){
+      if (dy < DXY[il].rymin) {
+	DY[il].ihmin = i;
+	DY[il].icmin = hit->GetYClusterIndex();
+	DY[il].rymin = dy;
+	DY[il].ncmin = 1;
+	DY[il].diff  = DD;
+      }
+    }else{
+      if (dxy < DXY[il].rymin) {
+	DXY[il].ihmin = i;
+	DXY[il].icmin = hit->GetYClusterIndex();
+	DXY[il].rymin = dxy;
+	DXY[il].ncmin = 1;
+	DXY[il].mlmin = mult;
+	DXY[il].diff  = DD;
       }
     }
   }
+  
+  //2. XY or Y
+  float diffY_max=0.2;
+  float diffX_max=0.2;
+  int nadd=0;
 
-  int nadd = 0;
-  for (int i = 0; i < 2; i++) {
-    if (ihmin[i] < 0) continue;
+  for (int il=0;il<2;il++){
+    if (DXY[il].ihmin<0 || DY[il].ihmin<0 ) continue;
 
-    TrRecHitR *hit = (TrRecHitR*)cont->getelem(ihmin[i]);
-    if (!hit) continue;
+    if(DXY[il].icmin != DY[il].icmin)
+      printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
 
-    if (ncmin[i] == 1) {
-      TkSens tks = EstimateXCoord(ptrk[i]);
+    if (fabs(DXY[il].diff.y()) > diffY_max) continue;
+    if (fabs(DXY[il].diff.x()) < diffX_max) {
+      TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
+      hit->SetResolvedMultiplicity(DXY[il].mlmin);
+      track->GetPar(mfit).Residual[lyext[il]-1].setp(DXY[il].diff.x(), DXY[il].diff.y(), 0);
+      track->AddHit(hit, DXY[il].ihmin);
+      nadd++;
+    }else{
+      TrRecHitR* hit=(TrRecHitR*)cont->getelem(DY[il].ihmin);
+      TkSens tks = EstimateXCoord(ptrk[il]);
       if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
-
-      mlmin[i] = tks.GetMultIndex();
+      DY[il].mlmin = tks.GetMultIndex();
       int nmlt = hit->GetMultiplicity();
-      if (mlmin[i] >= nmlt) mlmin[i] = nmlt-1;
-      if (mlmin[i] <     0) mlmin[i] = 0;
+      if (DY[il].mlmin >= nmlt) DY[il].mlmin = nmlt-1;
+      if (DY[il].mlmin <     0) DY[il].mlmin = 0;
       hit->SetDummyX(tks.GetStripX());
       hit->BuildCoordinates();
+      hit->SetResolvedMultiplicity(DY[il].mlmin);
+      track->GetPar(mfit).Residual[lyext[il]-1].setp(0, DY[il].diff.y(), 0);
+      track->AddHit(hit, DY[il].ihmin);
+      nadd++;
     }
-
-    int imult = mlmin[i];
-    double resx = (hit->OnlyY()) ? 0 : hit->GetCoord(imult).x()-ptrk[i].x();
-    double resy = hit->GetCoord(imult).y()-ptrk[i].y();
-
-    hit->SetResolvedMultiplicity(imult);
-    track->GetPar(mfit).Residual[lyext[i]-1].setp(resx, resy, 0);
-    track->AddHit(hit, imult);
-    nadd++;
   }
   delete cont;
 
-  if(ihmin[0]>=0) {
+  if(DY[0].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kChoutko);
   }
-  if(ihmin[1]>=0) {
+  if(DY[1].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer9 | TrTrackR::kChoutko);
   }
-  if(ihmin[0]>=0&&ihmin[1]>=0) {
+  if(DY[0].ihmin>=0&&DY[1].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
 			                          | TrTrackR::kChoutko);
@@ -2695,10 +2711,11 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 	gcoo[0]=gcoo[2]*m+q;
 	int tkid=phit->GetTkId();
 	TkSens tks(tkid, gcoo, 0);
-	if(tks.LadFound() && tks.GetStripX()!=-1){
-	  phit->SetDummyX(tks.GetStripX());
-	  phit->SetResolvedMultiplicity(tks.GetMultIndex());
+	if(tks.LadFound()){
+	  if(tks.GetStripX()!=-1) phit->SetDummyX(tks.GetStripX());
+	  else phit->SetDummyX(383);
 	  phit->BuildCoordinates();	  
+	  phit->SetResolvedMultiplicity(tks.GetMultIndex());
 	}
       }
     }

@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.20 2010/10/14 09:17:29 shaino Exp $
+//  $Id: TrRecHit.h,v 1.21 2010/10/28 18:05:40 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -124,10 +124,10 @@ protected:
   /// Get the hit multiplicity 
   int   GetMultiplicity()      { return _mult; }
   /// Returns the computed global coordinate (if resolved)
-  AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) 
+  const AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) 
 			  ? GetCoord(_imult) : _coord.at(0); }
   /// Get the computed global coordinate by multiplicity index
-  AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates();
+  const AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates();
     return (0<=imult && imult<_mult) ? _coord.at(imult) : AMSPoint(0,0,0); }
 
   /// Returns the computed global coordinate (if resolved)
@@ -214,6 +214,10 @@ protected:
   int half() const{ int l = lay()==8?-1:1;return _tkid*l>0?1:0; }
   // Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
   float HitDist(TrRecHitR & B,int coo);
+  const AMSPoint HitPointDist(const AMSPoint& coo,int & mult);
+  const AMSPoint HitPointDist(float* coo,int& mult){
+    return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
+  }
   /// ROOT definition
   ClassDef(TrRecHitR,1)
 };
