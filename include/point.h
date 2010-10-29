@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.33 2010/10/28 18:07:11 pzuccon Exp $
+//  $Id: point.h,v 1.34 2010/10/29 18:49:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -40,11 +40,11 @@ public:
   //! it gets the position to the three args
   void getp(number &fx, number &fy, number &fz)const{fx=_x;fy=_y;fz=_z;}
   //! it gets the position to the three args
-  void getp(geant &fx, geant &fy, geant &fz)const {fx=_x;fy=_y;fz=_z;}
+  void getp(geant &fx, geant &fy, geant &fz){fx=_x;fy=_y;fz=_z;}
   //! it gets the position to array arg
-  void getp(number fx[])const {fx[0]=_x;fx[1]=_y;fx[2]=_z;}
+  void getp(number fx[]){fx[0]=_x;fx[1]=_y;fx[2]=_z;}
   //! it gets the position to array arg
-  void getp(geant fx[])const {fx[0]=_x;fx[1]=_y;fx[2]=_z;}
+  void getp(geant fx[]){fx[0]=_x;fx[1]=_y;fx[2]=_z;}
   //! get x coordinate
   number x() const { return _x; } 
   //! get y coordinate
@@ -68,18 +68,18 @@ public:
   //! it returns a point in the positive octant
   AMSPoint abs(){return AMSPoint(fabs(_x),fabs(_y),fabs(_z));}
   //! it returns the vector sum of two AMSPoints
-  AMSPoint operator+ (const AMSPoint& o)
-      {return AMSPoint(_x+o._x,_y+o._y,_z+o._z);}
+  AMSPoint  operator+( AMSPoint o)
+    const{return AMSPoint(_x+o._x,_y+o._y,_z+o._z);}
   //! it returns the vector difference of two AMSPoints
-  AMSPoint  operator-(const AMSPoint& o)const
+  AMSPoint  operator-( AMSPoint o)const
     {return AMSPoint(_x-o._x,_y-o._y,_z-o._z);}
   //! it returns an AMSPoints whose mebers are the product member to member of the two AMSPoints
-  AMSPoint  operator*( const AMSPoint& o)const{
+  AMSPoint  operator*( AMSPoint o)const{
       return AMSPoint(_x*o._x,_y*o._y,_z*o._z);}
   //! it returns an AMSPoint scaled by the factor o
-  AMSPoint  operator*(const number o)const{return AMSPoint(_x*o,_y*o,_z*o);}
+  AMSPoint  operator*( number o)const{return AMSPoint(_x*o,_y*o,_z*o);}
   //! it returns an AMSPoints whose mebers are the division member to member of the two AMSPoints
-  AMSPoint  operator/( const AMSPoint& o)const{
+  AMSPoint  operator/( AMSPoint o)const{
       return AMSPoint(_x/o._x,_y/o._y,_z/o._z);}
   //! it returns an AMSPoint with all the coo incremented by o
   AMSPoint  operator+( number o)const{return AMSPoint(_x+o,_y+o,_z+o);}
