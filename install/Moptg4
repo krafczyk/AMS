@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.83 2010/10/08 16:31:32 mmilling Exp $
+#  $Id: Moptg4,v 1.84 2010/10/29 19:10:36 mmilling Exp $
 #
 SHELL=/bin/sh
 #
@@ -190,7 +190,7 @@ FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)mtx2.F $(SFF)e04ccf.f $(SFF)gtckov.F $(SFF)graylc.F \
 	$(SFF)cerenkov.F $(SFF)mfield.F  $(SFF)egzav.F  $(SFF)tkfit.F  \
 	$(SFF)richrec_lip.F  $(SFF)richnodisp_lip.F $(SFF)richpatt_lip.F $(SFF)richbetalike_lip.F $(SFF)richbetastand_lip.F $(SFF)richchg_lip.F $(SFF)richutil_lip.F \
-	$(SFF)rkms.F $(SFF)rzerowrapper.F
+	$(SFF)rkms.F $(SFF)rzerowrapper.F $(SFF)trd.F
 
 
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
@@ -205,7 +205,7 @@ OBJECTS+=$(BIN)rootdict.o
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
 
-FFLAGS += -L/usr/lib -lgfortran
+# FFLAGS += -L/usr/lib -lgfortran
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
@@ -340,6 +340,9 @@ $(BIN)rkms.o:         $(SFF)rkms.F
 
 $(BIN)rzerowrapper.o:         $(SFF)rzerowrapper.F
 	$(FF) -c $(FFLAGS) $(SFF)rzerowrapper.F -o $(BIN)rzerowrapper.o
+
+$(BIN)trd.o:         $(SFF)trd.F
+	$(FF) -c $(FFLAGS) $(SFF)trd.F -I/cern/pro/src/geant321 -o $(BIN)trd.o
 
 
 $(BIN)richpatt_lip.o:         $(SFF)richpatt_lip.F
