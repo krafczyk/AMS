@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.66 2010/03/22 15:32:20 mdelgado Exp $
+//  $Id: richrec.h,v 1.67 2010/10/29 09:40:15 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -93,7 +93,7 @@ public:
   integer inline getbit(int bit_number){return (_status&(1<<bit_number))>>bit_number;}
 
   // Get the channel information 
-  int getchannelstatus(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Status(pmt,channel);}
+  int getchannelstatus(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Status(pmt,channel) && RichPMTsManager::Mask(pmt,channel);}
   float getchannelpedestal(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Pedestal(pmt,channel,getbit(gain_mode_bit));}
   float getchannelsigmapedestal(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::PedestalSigma(pmt,channel,getbit(gain_mode_bit));}
   float getchannelgain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Gain(pmt,channel,getbit(gain_mode_bit));}

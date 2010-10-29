@@ -48,7 +48,7 @@ class RichPMT{
   geant _step[RICnwindows][2];                                      // Step size for the cumulative distribution   
   int _channel_id2geom_id[RICnwindows];       // Table to convert from channel id to geometric channel id
 
-  void compute_tables();
+
   int grid(){return _pos/1000;}
 
   //
@@ -64,6 +64,7 @@ class RichPMT{
   geant SimulateSinglePE(int channel,int mode);
   geant SimulateSinglePE(int mode){_assert(_filled);return SimulateSinglePE(_current_channel,mode);}
   geant SimulateSinglePE(){_assert(_filled);return SimulateSinglePE(_current_channel,_current_mode);}
+  void compute_tables(bool force=true);
 
   friend class RichPMTsManager;
   friend class RichPMTChannel;
@@ -97,9 +98,11 @@ class RichPMTsManager{
   //
 
   static int   _status[RICmaxpmts*RICnwindows];                  // Channel status word (this is (good?1:0)+10*other information) other information could include all the stuff related to the calibration process
+  static int   _mask[RICmaxpmts*RICnwindows];                    // Channel offline mask,if==0 the channel is not used in  the reconstruction although it was not masked out in the calibration
   static geant _pedestal[2*RICmaxpmts*RICnwindows];              // Pedestal position (x2 gains) high,low
   static geant _pedestal_sigma[2*RICmaxpmts*RICnwindows];        // Pedestal width (x2 gains)
   static geant _pedestal_threshold[2*RICmaxpmts*RICnwindows];    // Pedestal threshold width in pedestal sigma units (x2 gains)
+  static geant _sim_gain[2*RICmaxpmts*RICnwindows];                  // Gain (x2 gains) high,low
   static geant _gain[2*RICmaxpmts*RICnwindows];                  // Gain (x2 gains) high,low
   static geant _gain_sigma[2*RICmaxpmts*RICnwindows];            // Gain width (x2 gains)
   static int _gain_threshold[RICmaxpmts*RICnwindows];            // Gain threshold 
@@ -119,6 +122,7 @@ class RichPMTsManager{
   // Accessors
 
   static int& _Status(int Geom_id,int Geom_Channel);
+  static int& _Mask(int Geom_id,int Geom_Channel);
   static geant& _Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);
   static geant& _PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);
   static geant& _PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);
@@ -131,6 +135,8 @@ class RichPMTsManager{
   static void ReadFromFile(const char *filename); // Read calibration from file:  FIXME!
   static void SaveToFile(const char *filename); // Write calibration to file:  FIXME!
  public:
+  static geant& _GainSim(int Geom_id,int Geom_Channel,int high_gain=1); // Allows to update the simulated gain, although it should not be done it that way
+
   static void Init();                    // Init geometry and kinds and so on
   static void Init_Default();            // Init geometry and kinds and so on
   static void Finish();
@@ -138,6 +144,7 @@ class RichPMTsManager{
 
 
   static int Status(int Geom_id,int Geom_Channel);                                 // Return the status 
+  static int Mask(int Geom_id,int Geom_Channel);                                   // Return the offline mask
   static geant Pedestal(int Geom_id,int Geom_Channel,int high_gain=1);             // Return the pedestal
   static geant PedestalSigma(int Geom_id,int Geom_Channel,int high_gain=1);        // Return the pedestal sigma
   static geant PedestalThreshold(int Geom_id,int Geom_Channel,int high_gain=1);    // Return the pedestal threshold 
@@ -222,6 +229,7 @@ class RichPMTChannel{
   geant gain_threshold;
   geant pedestal_threshold[2];
   int status;
+  int mask;
 
   RichPMTChannel(int packed_id);
   RichPMTChannel(int geom_pmt,int geom_channel);

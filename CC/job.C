@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.742 2010/10/28 23:29:12 mmilling Exp $
+// $Id: job.C,v 1.743 2010/10/29 09:40:15 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3457,6 +3457,12 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 			 *sizeof(RichPMTsManager::_status[0]),
                          (void*)&RichPMTsManager::_status[0],server,1));
 
+  // A Mask to allow masking out few channels for the reconstruction
+  TID.add (new AMSTimeID(AMSID("RichPMTChannelMask",isRealData()),
+                         begin,end,RICmaxpmts*RICnwindows
+			 *sizeof(RichPMTsManager::_mask[0]),
+                         (void*)&RichPMTsManager::_mask[0],server,1));
+
   TID.add (new AMSTimeID(AMSID("RichPMTChannelPedestal",isRealData()),
                          begin,end,RICmaxpmts*RICnwindows*2
 			 *sizeof(RichPMTsManager::_pedestal[0]),
@@ -3516,7 +3522,7 @@ if(ATMCFFKEY.ReadConstFiles/10==0 &&
 
   AMSTimeID *pdtv;
 
-  pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",1),
+  pdtv=(AMSTimeID*) TID.add  (new AMSTimeID(AMSID("RichRadTilesParameters",isRealData()),
                          begin,end,
 			 RICmaxtiles*4*sizeof(RichRadiatorTileManager::_optical_parameters[0]),
 			 (void*)&RichRadiatorTileManager::_optical_parameters[0],

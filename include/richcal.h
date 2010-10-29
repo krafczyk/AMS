@@ -168,6 +168,8 @@ class AMSRichCal{
   static void process_event();  // Perform all the job
   static AMSRichRing *event_selection();
 
+  static int _occupancy[RICmaxpmts*RICnwindows];
+
 
   // Monitoring and calibration parameters
   static unsigned int _events_per_orbit;

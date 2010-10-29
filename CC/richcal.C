@@ -17,7 +17,7 @@ float        AMSRichCal::_charge_lower_threshold=0.5;   // Region in charge to m
 float        AMSRichCal::_charge_upper_threshold=1.5;  
 
 int          AMSRichCal::_low_stat_threshold=83;       // lower limit in hits to consider a channel for monitoring
-
+int          AMSRichCal::_occupancy[RICmaxpmts*RICnwindows];
 
 // Calibration status constants
 int AMSRichCalChannel::calibrated=1;
@@ -36,6 +36,7 @@ void AMSRichCal::init(int bins,float minx,float maxx){
   {
     _calibration=1;
     for(int i=0;i<_histos;i++){
+      _occupancy[i]=0;
       //      _channel[i]=new AMSRichCalChannel(bins,minx,maxx);
     }
   }
@@ -44,26 +45,89 @@ void AMSRichCal::init(int bins,float minx,float maxx){
 
 
 void AMSRichCal::finish(){
-    AMSTimeID *ptdv;
-    time_t begin,end,insert;
-    const int ntdv=2;
-    const char* TDV2Update[ntdv]={"RichPMTChannelGain",
-				  "RichPMTChannelGainSigma"};
-    begin=(_last+_first)/2;
-    end=_last+86400;  // +1 day
-    time(&insert);
-
-    for (int i=0;i<ntdv;i++){
-      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
-      ptdv->UpdateMe()=1;
-      ptdv->UpdCRC();
-      ptdv->SetTime(insert,begin,end);
-      cout <<" RICH info has been updated for "<<*ptdv;
-      ptdv->gettime(insert,begin,end);
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+  // Update the channel status
+  const int trials=100;
+  double bestmean=0,bestrms=HUGE_VAL;
+  
+  for(int i=0;i<trials;i++){
+    double sum=0;
+    double sum2=0;
+    int total=0;
+    for(int channel=0;channel<_histos;channel++){
+      if(AMSRichRawEvent::RichRandom()<0.5) continue;
+      sum+=_occupancy[channel];
+      sum2+=_occupancy[channel]*_occupancy[channel];
+      total++;
     }
+
+    double rms=sum2/total-sum*sum/total/total;
+    
+    if(rms<bestrms){
+      bestmean=sum/total;
+      bestrms=rms;
+    }
+  }
+
+  // Mask channels behaving wildy
+  const double threshold=5;
+  for(int channel=0;channel<_histos;channel++){
+    int pmt,window;
+    RichPMTsManager::UnpackGeom(channel,pmt,window);    
+    if(_occupancy[channel]<bestmean+threshold*sqrt(bestrms)) RichPMTsManager::_Mask(pmt,window)=1;
+    else RichPMTsManager::_Mask(pmt,window)=0; // 0 means it should be considered dead   
+  }
+
+
+  
+    AMSTimeID *ptdv;
+    time_t begin_time,end_time,insert_time;
+    const int ntdv=3;
+    const char* TDV2Update[ntdv]={"RichPMTChannelGain",
+				  "RichPMTChannelGainSigma",
+				  "RichPMTChannelMask"};
+
+
+    begin_time=_first;
+    end_time=_last+86400;
+    insert_time; time(&insert_time);
+
+    /*
+      tm begin;
+      tm end;
+      begin.tm_isdst=0;
+      end.tm_isdst=0;
+      
+      begin.tm_sec=RICDBFFKEY.sec[0];
+      begin.tm_min=RICDBFFKEY.min[0];
+      begin.tm_hour=RICDBFFKEY.hour[0];
+      begin.tm_mday=RICDBFFKEY.day[0];
+      begin.tm_mon=RICDBFFKEY.mon[0];
+      begin.tm_year=RICDBFFKEY.year[0];
+      
+      
+      end.tm_sec=RICDBFFKEY.sec[1];
+      end.tm_min=RICDBFFKEY.min[1];
+      end.tm_hour=RICDBFFKEY.hour[1];
+      end.tm_mday=RICDBFFKEY.day[1];
+      end.tm_mon=RICDBFFKEY.mon[1];
+      end.tm_year=RICDBFFKEY.year[1];
+      
+      begin_time=mktime(&begin);
+      end_time=mktime(&end);
+      time(&insert_time);
+    */
+    
+  for (int i=0;i<ntdv;i++){
+    ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+    ptdv->SetTime(insert_time,begin_time,end_time);
+    cout <<" RICH info has been updated for "<<*ptdv<<endl;
+    ptdv->gettime(insert_time,begin_time,end_time);
+    cout <<" Time Insert "<<ctime(&insert_time)<<endl;
+    cout <<" Time Begin "<<ctime(&begin_time)<<endl;
+    cout <<" Time End "<<ctime(&end_time)<<endl;
+  }
 }
 
 
@@ -143,6 +207,14 @@ void AMSRichCal::process_event(){
     
     // Increase counter of level 1 events
     _processed_events++;
+
+    // Increase the occuapncy plot
+    for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+      int id=hit->getchannel();
+      if(id<0 || id>=_histos){cout<<"AMSRichCal::process_event -- wrong id "<<id<<endl;continue;}
+      _occupancy[id]++;
+    }
+
     
     // If this is a good rich event, add the hits to the monitors
     AMSRichRing *ring=event_selection();
@@ -175,7 +247,7 @@ void AMSRichCal::process_event(){
 	  
 	  const float min_pe=0.01;
 	  const float max_pe=2.5; //roughly 3 sigmas
-	  const float step_fraction=0.01/(0.8*0.5); // This guarantees that the step size if a 1% of the gain rmw in mean
+	  const float step_fraction=0.01/(0.8*0.5); // This guarantees that the step size if a 1% of the gain rms in mean
 
 	  if(hit->getnpe()<min_pe || hit->getnpe()>max_pe) continue;	
 

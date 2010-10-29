@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.140 2010/06/01 16:35:53 mdelgado Exp $
+//  $Id: richrec.C,v 1.141 2010/10/29 09:40:15 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1336,7 +1336,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     }else{
       int pmt,channel;
       RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
-      int status=RichPMTsManager::Status(pmt,channel);
+      int status=RichPMTsManager::Status(pmt,channel) && RichPMTsManager::Mask(pmt,channel);
       if((status%10)!=Status_good_channel || AMSRichRawEvent::CrossedPMT(pmt)){
 	*beff=0;
       }else{
@@ -1401,7 +1401,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     }else{
       int pmt,channel;
       RichPMTsManager::UnpackGeom(channel_number,pmt,channel);
-      int status=RichPMTsManager::Status(pmt,channel);
+      int status=RichPMTsManager::Status(pmt,channel) && RichPMTsManager::Mask(pmt,channel);
       if((status%10)!=Status_good_channel || AMSRichRawEvent::CrossedPMT(pmt)){
 	*beff=0;
       }else{

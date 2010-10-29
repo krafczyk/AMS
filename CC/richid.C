@@ -83,6 +83,7 @@ void RichPMTChannel::Init(int geom_pmt,int channel_id){
   pedestal_threshold[0]=RichPMTsManager::PedestalThreshold(geom_pmt,channel_id,0);
   pedestal_threshold[1]=RichPMTsManager::PedestalThreshold(geom_pmt,channel_id,1);
   status=RichPMTsManager::Status(geom_pmt,channel_id);
+  mask=RichPMTsManager::Mask(geom_pmt,channel_id);
 
   position[0]=pmt._channel_position[channel_id][0];
   position[1]=pmt._channel_position[channel_id][1];
@@ -93,10 +94,12 @@ void RichPMTChannel::Init(int geom_pmt,int channel_id){
 /////////////////////////////////////////////////////////////////
 
 int   RichPMTsManager::_status[RICmaxpmts*RICnwindows];                  // Channel status word
+int   RichPMTsManager::_mask[RICmaxpmts*RICnwindows];                    // Channel offline mask
 geant RichPMTsManager::_pedestal[2*RICmaxpmts*RICnwindows];              // Pedestal position (x2 gains) high,low
 geant RichPMTsManager::_pedestal_sigma[2*RICmaxpmts*RICnwindows];        // Pedestal width (x2 gains)
 geant RichPMTsManager::_pedestal_threshold[2*RICmaxpmts*RICnwindows];             // Pedestal threshold width (x2 gains)
 geant RichPMTsManager::_gain[2*RICmaxpmts*RICnwindows];                  // Pedestal position (x2 gains) high,low
+geant RichPMTsManager::_sim_gain[2*RICmaxpmts*RICnwindows];                  // Pedestal position (x2 gains) high,low
 geant RichPMTsManager::_gain_sigma[2*RICmaxpmts*RICnwindows];            // Pedestal width (x2 gains)
 int RichPMTsManager::_gain_threshold[RICmaxpmts*RICnwindows];        // Pedestal threshold width (x2 gains)
 geant RichPMTsManager::_relative_efficiency[RICmaxpmts*RICnwindows];   // Pedestal threshold width (x2 gains)
@@ -182,7 +185,8 @@ void RichPMTsManager::Init(){
 	sprintf(filename,"%s/%s/RichDefaultPMTTables.dat",getenv("AMSDataDir"),AMSCommonsI::getversion());
       } 
       bool done=false;
-      geant table_gain[RICmaxpmts*RICnwindows*2];
+      geant *table_gain=_sim_gain;
+      //      geant table_gain[RICmaxpmts*RICnwindows*2];
       geant table_sigma_gain[RICmaxpmts*RICnwindows*2];
       int compute_table[RICmaxpmts]; 
       int fails_counter=0;
@@ -478,7 +482,8 @@ void RichPMTsManager::Finish(){
 //#pragma omp master
   {
     Finish_Default();
-    
+
+    // Save the information in a file if required    
     if(RICFFKEY.ReadFile/10){
       char name[801];
       
@@ -494,11 +499,6 @@ void RichPMTsManager::Finish(){
       SaveToFile(name);
     }
     //    cout<<" ---- IS CALIBRATION  "<<AMSRichCal::isCalibration()<<endl;
-    if(AMSRichCal::isCalibration()){
-      cout<<"CALLING AMSRichCal::finish()"<<endl;
-      AMSRichCal::finish();
-    }
-    
   }
 //#pragma omp barrier 
 }
@@ -579,6 +579,7 @@ void RichPMTsManager::Init_Default(){
       for(int cat=0;cat<RICnwindows;cat++){
 	// New PMT simulation
 	_Status(pmt,cat)=1;
+	_Mask(pmt,cat)=1;
 	_Pedestal(pmt,cat,0)=0;
 	_Pedestal(pmt,cat,1)=0;
 	_PedestalSigma(pmt,cat,0)=4.;
@@ -626,6 +627,9 @@ void RichPMTsManager::Init_Default(){
 
 
 void RichPMTsManager::Finish_Default(){
+    if(AMSRichCal::isCalibration()){
+      AMSRichCal::finish();
+    }
 }
 
 integer RichPMTsManager::detcer(geant photen)
@@ -739,6 +743,12 @@ int RichPMTsManager::Status(int Geom_id,int Geom_Channel){
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
+int RichPMTsManager::Mask(int Geom_id,int Geom_Channel){
+  if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows) return -1;
+  if(RichPMTsManager::Gain(Geom_id,Geom_Channel,1)<=0) return -1; // If no calibration for the channel is available, discard the channel
+  return _mask[RICnwindows*Geom_id+Geom_Channel];
+}
+
 geant RichPMTsManager::Pedestal(int Geom_id,int Geom_Channel,int high_gain){
   if(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1) return -1;
   return _pedestal[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
@@ -786,6 +796,11 @@ int& RichPMTsManager::_Status(int Geom_id,int Geom_Channel){
   return _status[RICnwindows*Geom_id+Geom_Channel];
 }
 
+int& RichPMTsManager::_Mask(int Geom_id,int Geom_Channel){
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows));
+  return _mask[RICnwindows*Geom_id+Geom_Channel];
+}
+
 geant& RichPMTsManager::_Pedestal(int Geom_id,int Geom_Channel,int high_gain){
   _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _pedestal[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
@@ -805,6 +820,12 @@ geant& RichPMTsManager::_PedestalThreshold(int Geom_id,int Geom_Channel,int high
 geant& RichPMTsManager::_Gain(int Geom_id,int Geom_Channel,int high_gain){
   _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
   return _gain[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
+}
+
+
+geant& RichPMTsManager::_GainSim(int Geom_id,int Geom_Channel,int high_gain){
+  _assert(!(Geom_id<0 || Geom_id>=RICmaxpmts || Geom_Channel<0 || Geom_Channel>=RICnwindows || high_gain<0 || high_gain>1));
+  return _sim_gain[2*RICnwindows*Geom_id+RICnwindows*high_gain+Geom_Channel];
 }
 
 
@@ -878,11 +899,13 @@ void RichPMTsManager::GetGeomID(int pos,int pixel,int &geom_pos,int &geom_pix){
 
 
 
-void RichPMT::compute_tables(){
+void RichPMT::compute_tables(bool force){
   for(int channel=0;channel<RICnwindows;channel++)
     for(int mode=0;mode<2;mode++){
+      if(!force && RichPMTsManager::_GainSim(_geom_id,channel,mode)==RichPMTsManager::Gain(_geom_id,channel,mode)) continue;
       geant gain=RichPMTsManager::Gain(_geom_id,channel,mode);
       geant gain_sigma=RichPMTsManager::GainSigma(_geom_id,channel,mode);
+      RichPMTsManager::_GainSim(_geom_id,channel,mode)=gain;  // Update the tables
 
       // Check that the table have not been previously computed
       // (save time if using the default calibration)
@@ -946,10 +969,12 @@ void RichPMT::compute_tables(){
 
 
 geant RichPMT::SimulateSinglePE(int channel,int mode){
+  compute_tables(false); // Update pdfs if some calibration has been updated
+
   // Sample from the _cumulative_prob for _address and mode
   geant dummy=0;
   geant value=RNDM(dummy);
-
+  
   //  return BSearch(channel,mode,value)*_step[channel][mode]; // Does not work!!! Fix!
   
   for(int i=0;i<RIC_prob_bins;i++){
