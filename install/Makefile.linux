@@ -1,5 +1,6 @@
 # P.Zuccon june 2005
 # General clean up and reorganization
+# F.Barao: gcc version numbering changed (Oct, 2010)
 #
 
 #   Architecture linux g++
@@ -7,9 +8,12 @@
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
-GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
-GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
 
 ifeq ($(GCC_VER_MAJOR),4) 
 VERGCC:=1
