@@ -1,3 +1,4 @@
+#  $Id: Makefile.linuxicc,v 1.11 2010/11/02 18:50:58 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -52,7 +53,7 @@ endif
 ########################################################################
 
   INTELDIR=/opt/intel/
-  INTELVER=Compiler/11.0/069/
+  INTELVER=Compiler/11.1/073/
   INTELOPT=-axsse4.2 
   FF=$(INTELDIR)/$(INTELVER)/bin/ia32/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/$(INTELVER)/bin/ia32/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
@@ -109,7 +110,7 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB= -Wno-deprecated  -mcpu=i686 
+CFLAGSB= -Wno-deprecated   
 DEFINES+= -D__root_$(NEW) -D__LINUXGNU__ -D__ICC__
 
 ifdef AMSPROFILE
@@ -214,7 +215,7 @@ LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
