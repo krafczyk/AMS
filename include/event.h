@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.97 2010/08/08 09:37:01 choumilo Exp $
+//  $Id: event.h,v 1.98 2010/11/02 22:53:05 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -29,7 +29,7 @@ private:
 
   class CCEBPar{
 public:
-  time_t Time;
+  time32 Time;
   geant B[3][4];
   geant T[4];
   geant getBAv() const;
@@ -43,7 +43,7 @@ public:
 
   class TofSTemp{//TofSlowTemperatures(in Tof-Counters envelops)
 public:
-  time_t Time;
+  time32 Time;
   geant temp[2][4];//2->layers, 4->2Sides X 2Meas(SFEC + side-averaged PMs)-temperatures
   int chain;//(redundancy index) 0/1->A/B(P/S)
   geant gettempP(int lay, int side);//average(over 1 side) PMTs temper.  
@@ -67,13 +67,13 @@ public:
    geant SunR;
    geant VelTheta;
    geant VelPhi;
-   time_t Time;
+   time32 Time;
   };
   
   class BeamPar{
    public:
     uinteger RunTag;   // runTag
-    time_t Time;     // UNIX sec, of the manipulator PC
+    time32 Time;     // UNIX sec, of the manipulator PC
     float X;     //cm, the beam cross in AMS coo system
     float Y;     //cm
     float Z;     //cm

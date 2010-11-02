@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.42 2010/10/22 09:18:16 choutko Exp $
+#  $Id: Makefile,v 1.43 2010/11/02 22:53:05 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -38,15 +38,15 @@ VER          := $(shell $(ROOTSYS)/bin/root-config --version )
 
 
 ifeq ($(ARCH),linuxicc)
-CXX           =  /opt/intel/Compiler/11.0/069/bin/ia32/icc 
-CPPFLAGS      =    -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
+CXX           =  /opt/intel/Compiler/11.1/073/bin/ia32/icc 
+CPPFLAGS      =   -m32  -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -I. \
 		 -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2   
 CXXFLAGS      = -Wno-deprecated -openmp -axssse3 $(OPT) $(CPPFLAGS)
 OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = /opt/intel/Compiler/11.0/069/bin/ia32/icpc -axssse3 -openmp
+LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -axssse3 -openmp
 LDFLAGS       = 
 LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic

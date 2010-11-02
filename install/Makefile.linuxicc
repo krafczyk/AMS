@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc,v 1.12 2010/11/02 18:53:16 choutko Exp $
+#  $Id: Makefile.linuxicc,v 1.13 2010/11/02 22:53:05 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -213,7 +213,7 @@ TIMEL=
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2 -lrt 
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 

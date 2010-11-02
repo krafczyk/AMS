@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.115 2010/11/02 18:50:58 choutko Exp $
+#  $Id: Makefile,v 1.116 2010/11/02 22:53:05 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -66,7 +66,7 @@ endif
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
 
 DEFINES  =    -D__WRITEROOT__ 
-INCDIRS  = -I../include  -I$(CERNDIR)/include -I$(ROOTSYS)/include
+INCDIRS  = -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
 CPPFLAGS = $(DEFINES)  $(INCDIRS)
 
 ROOTDICT_CPPFLAGS= $(CPPFLAGS) 

@@ -179,19 +179,25 @@ int  AMSChain::LoadUF(char* fname){
   if(!AMSSRC){
     setenv("AMSSRC","..",0);
   }
-
+#ifdef __X8664__
+char m32[6]="-fPIC";
+char elf[11]="";
+#else
+char m32[5]="-m32";
+char elf[11]="-melf_i386";
+#endif
  char *PGTRACK=getenv("PGTRACK");
  if(PGTRACK)
-  sprintf(cmd,"$CC -m32 -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
+  sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 else
-  sprintf(cmd,"$CC -m32  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",nameonly.c_str());
+  sprintf(cmd,"$CC %s  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
  cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
 int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
     sprintf(cmd1,"ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
 #else
-    sprintf(cmd1,"ld -melf_i386  -init fgSelect  -shared %s.o -o libuser.so",nameonly.c_str());
+    sprintf(cmd1,"ld %s  -init fgSelect  -shared %s.o -o libuser.so",elf,nameonly.c_str());
 #endif
     $i=system(cmd1);
     if( !$i){  

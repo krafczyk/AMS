@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.47 2010/04/02 10:34:51 pzuccon Exp $
+//  $Id: trigger302.C,v 1.48 2010/11/02 22:52:57 choutko Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -1534,12 +1534,17 @@ void TriggerLVL302::build(){
       }
       //---
       integer crate;
+       static int drpbug=0;
       for(crate=0;crate<trconst::ncrt;crate++){
 	ptr=aux[crate].readtracker(1);  
 	while(ptr){
 	  integer drp,va,strip,side;
 	  AMSTrRawCluster::lvl3CompatibilityAddress
 	    (ptr[1],strip,va,side,drp);
+             if(drp>=NTRHDRP){
+                if(drpbug++<100)cerr<<"AMStrRawCluster::lvl3compatibilityAddress-R-drpOutOfRange "<<drp<<endl;
+                 goto next;
+             }
 	  if(side == 0  && 
 	     _TrackerStatus[_TrackerOtherTDR[drp][crate]] == 0)
 	    _TrackerAux[drp][crate]=1;
@@ -1552,6 +1557,11 @@ void TriggerLVL302::build(){
 	  integer drp,va,strip,side;
 	  AMSTrRawCluster::lvl3CompatibilityAddress
 	    (ptr[1],strip,va,side,drp);
+             if(drp>=NTRHDRP){
+                if(drpbug++<100)cerr<<"AMStrRawCluster::lvl3compatibilityAddress-R-drpOutOfRange "<<drp<<endl;
+                 goto next;
+             }
+
 	  if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][crate])){
 	    TkLadder* lad= TkDBc::Head->FindHwId(crate*100+drp);
 	    integer layer=-1;
@@ -3622,12 +3632,17 @@ int TriggerLVL302::eccrosscheck(geant ect){
   }
 //---
   integer crate;
+  static int drpbug=0;
   for(crate=0;crate<AMSTrIdSoft::ncrates();crate++){
    ptr=aux[crate].readtracker(1);  
   while(ptr){
      integer drp,va,strip,side;
      AMSTrRawCluster::lvl3CompatibilityAddress
      (ptr[1],strip,va,side,drp);
+             if(drp>=NTRHDRP){
+                if(drpbug++<100)cerr<<"AMStrRawCluster::lvl3compatibilityAddress-R-drpOutOfRange "<<drp<<endl;
+                 goto next;
+             }
      if(side == 0  && 
          _TrackerStatus[_TrackerOtherTDR[drp][crate]+crate*NTRHDRP] == 0)
          _TrackerAux[_TrackerOtherTDR[drp][crate]][crate]=1;
@@ -3640,6 +3655,10 @@ int TriggerLVL302::eccrosscheck(geant ect){
      integer drp,va,strip,side;
      AMSTrRawCluster::lvl3CompatibilityAddress
       (ptr[1],strip,va,side,drp);
+             if(drp>=NTRHDRP){
+                if(drpbug++<100)cerr<<"AMStrRawCluster::lvl3compatibilityAddress-R-drpOutOfRange "<<drp<<endl;
+                 goto next;
+             }
      if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][crate])){
       integer layer=_TrackerDRP2Layer[drp][crate];
 #ifdef __AMSDEBUG__

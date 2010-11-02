@@ -21,7 +21,7 @@ fi
 
 $AMSWD/exe/$ARCH/gbatch$PG.exe <<!
 LIST
-KINE 5 
+KINE  14
 LOSS 1
 HADR 1
 MULS 1

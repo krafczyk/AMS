@@ -1,4 +1,4 @@
-//  $Id: typedefs.h,v 1.15 2009/08/19 14:36:04 pzuccon Exp $
+//  $Id: typedefs.h,v 1.16 2010/11/02 22:53:05 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __TYPEDEFS__
@@ -16,6 +16,7 @@ typedef long int_L;
 typedef unsigned int uinteger;
 typedef unsigned long int ulong;
 typedef unsigned long long uint64;
+typedef unsigned int time32;
 #include <assert.h>
 #include <iostream>
 #include <sstream>

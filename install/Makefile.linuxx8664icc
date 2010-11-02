@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.2 2010/11/02 18:50:58 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.3 2010/11/02 22:53:05 choutko Exp $
 # General clean up and reorganization
 #
 #   LINUX intel64 architecture ICC compiler
@@ -81,7 +81,7 @@ CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -l
 
 
 ifndef CERNDIR
-CERNDIR =/f2users/choutko/cernlib_64/$(CERN_LEVEL)
+CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
 ifdef DEBUGFLAG
 CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
 endif
@@ -215,10 +215,10 @@ LDFLAGS+= -lcxa -lcprts
 
 TIMEL=
 
-LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 
