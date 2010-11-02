@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.114 2010/10/25 11:47:24 choutko Exp $
+#  $Id: Makefile,v 1.115 2010/11/02 18:50:58 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -586,6 +586,10 @@ $(BIN)ntuple_c.o:   $(SCC)ntuple.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
 $(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
 	$(FF) -c $(FFLAGS) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
+$(BIN)Geant3_utils.o:   $(SFF)Geant3_utils.F
+	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) $(IDLFLAGS) $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
+$(BIN)trd.o:   $(SFF)trd.F
+	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) $(IDLFLAGS) $(SFF)trd.F -o $(BIN)trd.o                                                                                
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
