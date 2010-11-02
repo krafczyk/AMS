@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.61 2010/10/28 15:14:05 shaino Exp $
+// $Id: TrTrack.C,v 1.62 2010/11/02 16:27:23 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/10/28 15:14:05 $
+///$Date: 2010/11/02 16:27:23 $
 ///
-///$Revision: 1.61 $
+///$Revision: 1.62 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -314,7 +314,9 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
 
   if (MagFieldOn()){
     float coo[3], bf[3];
-    hit->GetCoord().getp(coo);
+    coo[0]=hit->GetCoord().x();
+    coo[1]=hit->GetCoord().y();
+    coo[2]=hit->GetCoord().z();
     GUFLD(coo, bf);
     _BField[ihit] = AMSPoint(bf);
     _MagFieldOn = 1;
