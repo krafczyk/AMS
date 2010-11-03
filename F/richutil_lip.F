@@ -14,8 +14,15 @@
 *  Subroutine probchg(chg0,sig0,chgm,prob0)
 *  subroutine richpkolm(dphistep,probkol)
 *  double precision function normg(x)
+*  
+*  added cernlib numerical libs on 23 Oct 2010
 *
-****************************************************************************************
+*  rzero
+*  dgmlt1
+*  dgmlt2
+*
+*  Function betaresLIP(Z)
+***************************************************************************************
 
 *****************************
 *** CODE FROM getpmtmax.F ***
@@ -1189,14 +1196,15 @@ C ----------------------------------------
 
       double precision avg,SIG
       common/NORMGC/avg,SIG
+      !$OMP THREADPRIVATE(/NORMGC/)
 
       double precision xlimlow,xlimup
 
       External normg
       double precision normg
 
-      External DGAUSS
-      Double precision DGAUSS
+cc      External DGAUSS
+cc      Double precision DGAUSS
 
       sig = dble(sig0)
       avg = dble(chg0)
@@ -1214,7 +1222,12 @@ C ----------------------------------------
 
       endif
 
-      prob0 = real(DGAUSS(normg,xlimlow,xlimup,1.D-6))
+cc DGAUSS is a routine not thread safe
+cc      prob0 = real(DGAUSS(normg,xlimlow,xlimup,
+cc     +             1.D-6))
+
+      prob0 = -999.
+
 
       return
       end
@@ -1230,6 +1243,7 @@ c NORMALIZED GAUSSIAN
       double precision x
       double precision avg,sig
       common/NORMGC/avg,SIG
+      !$OMP THREADPRIVATE(/NORMGC/)
       double precision xlimlow,xlimup,pi
       double precision K,dif
       PARAMETER (PI=3.14159265358979324D0)
@@ -1392,3 +1406,694 @@ c      print*,' prob ',prob
 * ... end
       return
       end
+
+
+
+********************************************************************
+*
+* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+*
+* $Log: richutil_lip.F,v $
+* Revision 1.4  2010/11/03 18:25:22  barao
+* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
+*
+* Revision 1.1.1.1  1996/04/01 15:02:15  mclareni
+* Mathlib gen
+*
+*
+
+#if defined(CERNLIB_IBMRT)
+#ifndef CERNLIB_IBMRS
+#define CERNLIB_IBMRS
+#endif
+#endif
+#if defined(CERNLIB_VAXVMS)||defined(CERNLIB_VAXULTRIX)
+#ifndef CERNLIB_VAX
+#define CERNLIB_VAX
+#endif
+#endif
+#if defined(CERNLIB_VAX)
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+#if (defined(CERNLIB_UNIX))&&(!defined(CERNLIB_SINGLE))
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+
+#if defined(CERNLIB_LINUX)||defined(CERNLIB_MSDOS) && !defined(CERNLIB_WINNT)
+#ifndef CERNLIB_NUMIB2
+#define CERNLIB_NUMIB2
+#endif
+#ifdef CERNLIB_NUMD38
+#undef CERNLIB_NUMD38
+#endif
+#ifndef CERNLIB_NUMD279
+#define CERNLIB_NUMD279
+#endif
+#endif
+
+#if defined(CERNLIB_VAXVMS)
+#ifndef CERNLIB_NUMDE
+#define CERNLIB_NUMDE
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#if (defined(CERNLIB_UNIX)) || defined(CERNLIB_WINNT) && (!defined(CERNLIB_QF2C))
+#ifndef CERNLIB_NUMAP
+#define CERNLIB_NUMAP
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#ifndef CERNLIB_NUMLOPRE
+#define CERNLIB_NUMLOPRE
+#endif
+#ifdef CERNLIB_NUMHIPRE
+#undef CERNLIB_NUMHIPRE
+#endif
+#ifndef CERNLIB_NUMRDBLE
+#define CERNLIB_NUMRDBLE
+#endif
+#ifndef CERNLIB_NUMCDBLE
+#define CERNLIB_NUMCDBLE
+#endif
+#ifndef CERNLIB_NUME38
+#define CERNLIB_NUME38
+#endif
+#ifdef CERNLIB_NUME75
+#undef CERNLIB_NUME75
+#endif
+#ifdef CERNLIB_NUME293
+#undef CERNLIB_NUME293
+#endif
+#ifdef CERNLIB_NUME2465
+#undef CERNLIB_NUME2465
+#endif
+#ifdef CERNLIB_NUMD75
+#undef CERNLIB_NUMD75
+#endif
+#ifdef CERNLIB_NUMD2465
+#undef CERNLIB_NUMD2465
+#endif
+
+C - history:
+C   cernlib routines were copied from source to overcome problem 
+C   arising on parallelization (LIP)
+
+
+
+      FUNCTION DGMLT1_ALT(FSUB1,A,B,NI,NG,X)
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+      CHARACTER NAME*(*)
+      CHARACTER*80 ERRTXT
+      PARAMETER (NAME = 'DGMLT1')
+      PARAMETER (Z1 = 1, HALF = Z1/2)
+
+      DOUBLE PRECISION X(6),W(14),T(14),V(64),U(64),F(64)
+
+      DATA (T(I),W(I),I=1,14)
+     1/-0.93246 95142 03152 028D0, 0.17132 44923 79170 345D0,
+     2 -0.66120 93864 66264 514D0, 0.36076 15730 48138 608D0,
+     3 -0.23861 91860 83196 909D0, 0.46791 39345 72691 047D0,
+     4     0.23861 91860 83196 909D0, 0.46791 39345 72691 047D0,
+     5     0.66120 93864 66264 514D0, 0.36076 15730 48138 608D0,
+     6     0.93246 95142 03152 028D0, 0.17132 44923 79170 345D0,
+     7 -0.96028 98564 97536 232D0, 0.10122 85362 90376 259D0,
+     8 -0.79666 64774 13626 740D0, 0.22238 10344 53374 471D0,
+     9 -0.52553 24099 16328 986D0, 0.31370 66458 77887 287D0,
+     A -0.18343 46424 95649 805D0, 0.36268 37833 78361 983D0,
+     B  0.18343 46424 95649 805D0, 0.36268 37833 78361 983D0,
+     C  0.52553 24099 16328 986D0, 0.31370 66458 77887 287D0,
+     D  0.79666 64774 13626 740D0, 0.22238 10344 53374 471D0,
+     E  0.96028 98564 97536 232D0, 0.10122 85362 90376 259D0/
+      SAVE T,W
+      !$OMP THREADPRIVATE (T,W)
+
+      IF(NI .LE. 0) THEN
+       WRITE(ERRTXT,101) NI
+       CALL MTLPRT(NAME,'D110.1',ERRTXT)
+       STOP
+      END IF
+      M0=NG
+      IF(M0 .NE. 8) M0=6
+      I0=0
+      IF(M0 .EQ. 8) I0=6
+      D=(B-A)/NI
+      R=HALF*D
+      RA=R+A
+      MV=MOD(M0*NI-1,64)+1
+      S=0
+      J=0
+      DO 1 I = 1+I0,M0+I0
+      RTA=R*T(I)+RA
+      DO 2 K = 1,NI
+      J=J+1
+      V(J)=W(I)
+      U(J)=RTA+(K-1)*D
+      IF(J .EQ. MV) THEN
+       CALL FSUB1(MV,U,F,X)
+       DO 3 J = 1,MV
+ 3          S=S+V(J)*F(J)
+       MV=64
+       J=0
+      END IF
+ 2     CONTINUE
+ 1      CONTINUE
+      DGMLT1_ALT=R*S
+      RETURN
+ 101   FORMAT('N1 = ',I4,' <= 0')
+      END
+
+******************************************************
+
+      FUNCTION DGMLT2_ALT(FSUB2,A,B,NI,NG,X)
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+      CHARACTER NAME*(*)
+      CHARACTER*80 ERRTXT
+      PARAMETER (NAME = 'DGMLT2')
+
+      PARAMETER (Z1 = 1, HALF = Z1/2)
+
+       DIMENSION X(6),W(14),T(14),V(64),U(64),F(64)
+
+      DATA (T(I),W(I),I=1,14)
+     1/-0.93246 95142 03152 028D0, 0.17132 44923 79170 345D0,
+     2 -0.66120 93864 66264 514D0, 0.36076 15730 48138 608D0,
+     3 -0.23861 91860 83196 909D0, 0.46791 39345 72691 047D0,
+     4      0.23861 91860 83196 909D0, 0.46791 39345 72691 047D0,
+     5      0.66120 93864 66264 514D0, 0.36076 15730 48138 608D0,
+     6      0.93246 95142 03152 028D0, 0.17132 44923 79170 345D0,
+     7 -0.96028 98564 97536 232D0, 0.10122 85362 90376 259D0,
+     8 -0.79666 64774 13626 740D0, 0.22238 10344 53374 471D0,
+     9 -0.52553 24099 16328 986D0, 0.31370 66458 77887 287D0,
+     A -0.18343 46424 95649 805D0, 0.36268 37833 78361 983D0,
+     B  0.18343 46424 95649 805D0, 0.36268 37833 78361 983D0,
+     C  0.52553 24099 16328 986D0, 0.31370 66458 77887 287D0,
+     D  0.79666 64774 13626 740D0, 0.22238 10344 53374 471D0,
+     E  0.96028 98564 97536 232D0, 0.10122 85362 90376 259D0/
+       SAVE T,W
+      !$OMP THREADPRIVATE (T,W)
+
+      IF(NI .LE. 0) THEN
+       WRITE(ERRTXT,101) NI
+       CALL MTLPRT(NAME,'D110.1',ERRTXT)
+      END IF
+      M0=NG
+      IF(M0 .NE. 8) M0=6
+      I0=0
+      IF(M0 .EQ. 8) I0=6
+      D=(B-A)/NI
+      R=HALF*D
+      RA=R+A
+      MV=MOD(M0*NI-1,64)+1
+      S=0
+      J=0
+      DO 1 I = 1+I0,M0+I0
+      RTA=R*T(I)+RA
+      DO 2 K = 1,NI
+      J=J+1
+      V(J)=W(I)
+      U(J)=RTA+(K-1)*D
+      IF(J .EQ. MV) THEN
+       CALL FSUB2(MV,U,F,X)
+       DO 3 J = 1,MV      
+ 3          S=S+V(J)*F(J)
+       MV=64
+       J=0
+      END IF
+ 2     CONTINUE
+ 1      CONTINUE
+
+      DGMLT2_ALT=R*S
+
+      RETURN
+ 101   FORMAT('N2 = ',I4,' <= 0')
+      END
+
+*********************************************************************+
+
+*
+* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+*
+* $Log: richutil_lip.F,v $
+* Revision 1.4  2010/11/03 18:25:22  barao
+* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
+*
+* Revision 1.1.1.1  1996/02/15 17:49:07  mclareni
+* Kernlib
+*
+*
+#if defined(CERNLIB_IBMRT)
+#ifndef CERNLIB_IBMRS
+#define CERNLIB_IBMRS
+#endif
+#endif
+#if defined(CERNLIB_VAXVMS)||defined(CERNLIB_VAXULTRIX)
+#ifndef CERNLIB_VAX
+#define CERNLIB_VAX
+#endif
+#endif
+#if defined(CERNLIB_VAX)
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+#if (defined(CERNLIB_UNIX))&&(!defined(CERNLIB_SINGLE))
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+
+#if defined(CERNLIB_LINUX)||defined(CERNLIB_MSDOS) && !defined(CERNLIB_WINNT)
+#ifndef CERNLIB_NUMIB2
+#define CERNLIB_NUMIB2
+#endif
+#ifdef CERNLIB_NUMD38
+#undef CERNLIB_NUMD38
+#endif
+#ifndef CERNLIB_NUMD279
+#define CERNLIB_NUMD279
+#endif
+#endif
+
+#if defined(CERNLIB_VAXVMS)
+#ifndef CERNLIB_NUMDE
+#define CERNLIB_NUMDE
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#if (defined(CERNLIB_UNIX)) || defined(CERNLIB_WINNT) && (!defined(CERNLIB_QF2C))
+#ifndef CERNLIB_NUMAP
+#define CERNLIB_NUMAP
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#ifndef CERNLIB_NUMLOPRE
+#define CERNLIB_NUMLOPRE
+#endif
+#ifdef CERNLIB_NUMHIPRE
+#undef CERNLIB_NUMHIPRE
+#endif
+#ifndef CERNLIB_NUMRDBLE
+#define CERNLIB_NUMRDBLE
+#endif
+#ifndef CERNLIB_NUMCDBLE
+#define CERNLIB_NUMCDBLE
+#endif
+#ifndef CERNLIB_NUME38
+#define CERNLIB_NUME38
+#endif
+#ifdef CERNLIB_NUME75
+#undef CERNLIB_NUME75
+#endif
+#ifdef CERNLIB_NUME293
+#undef CERNLIB_NUME293
+#endif
+#ifdef CERNLIB_NUME2465
+#undef CERNLIB_NUME2465
+#endif
+#ifdef CERNLIB_NUMD75
+#undef CERNLIB_NUMD75
+#endif
+#ifdef CERNLIB_NUMD2465
+#undef CERNLIB_NUMD2465
+#endif
+
+      SUBROUTINE RZERO_ALT(A,B,X0,R,EPS,MXF,F)
+      IMPLICIT REAL (A-H,O-Z)
+
+
+
+* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+*
+* $Log: richutil_lip.F,v $
+* Revision 1.4  2010/11/03 18:25:22  barao
+* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
+*
+* Revision 1.1.1.1  1996/02/15 17:49:07  mclareni
+* Kernlib
+*
+*
+#ifndef CERNLIB_KERNNUM_C205BODY_INC
+#define CERNLIB_KERNNUM_C205BODY_INC
+*
+*
+* c205body.inc
+*
+      LOGICAL MFLAG,RFLAG
+      EXTERNAL F
+ 
+      PARAMETER (ONE = 1, HALF = ONE/2)
+ 
+      XA=MIN(A,B)
+      XB=MAX(A,B)
+      FA=F(XA,1)
+      FB=F(XB,2)
+      IF(FA*FB .GT. 0) GO TO 5
+      MC=0
+ 
+ 1     X0=HALF*(XA+XB)
+      R=X0-XA
+      EE=EPS*(ABS(X0)+1)
+      IF(R .LE. EE) GO TO 4
+      F1=FA
+      X1=XA
+      F2=FB
+      X2=XB
+ 
+ 2     FX=F(X0,2)
+      MC=MC+1
+      IF(MC .GT. MXF) GO TO 6
+      IF(FX*FA .GT. 0) THEN
+       XA=X0
+       FA=FX
+      ELSE
+       XB=X0
+       FB=FX
+      END IF
+ 
+ 3     U1=F1-F2
+      U2=X1-X2
+      U3=F2-FX
+      U4=X2-X0
+      IF(U2 .EQ. 0 .OR. U4 .EQ. 0) GO TO 1
+      F3=FX
+      X3=X0
+      U1=U1/U2
+      U2=U3/U4
+      CA=U1-U2
+      CB=(X1+X2)*U2-(X2+X0)*U1
+      CC=(X1-X0)*F1-X1*(CA*X1+CB)
+      IF(CA .EQ. 0) THEN
+       IF(CB .EQ. 0) GO TO 1
+       X0=-CC/CB
+      ELSE
+       U3=CB/(2*CA)
+       U4=U3*U3-CC/CA
+       IF(U4 .LT. 0) GO TO 1
+       X0=-U3+SIGN(SQRT(U4),X0+U3)
+      END IF
+      IF(X0 .LT. XA .OR. X0 .GT. XB) GO TO 1
+ 
+      R=MIN(ABS(X0-X3),ABS(X0-X2))
+      EE=EPS*(ABS(X0)+1)
+      IF(R .GT. EE) THEN
+       F1=F2
+       X1=X2
+       F2=F3
+       X2=X3
+       GO TO 2
+      END IF
+ 
+      FX=F(X0,2)
+      IF(FX .EQ. 0) GO TO 4
+      IF(FX*FA .LT. 0) THEN
+       XX=X0-EE
+       IF(XX .LE. XA) GO TO 4
+       FF=F(XX,2)
+       FB=FF
+       XB=XX
+      ELSE
+       XX=X0+EE
+       IF(XX .GE. XB) GO TO 4
+       FF=F(XX,2)
+       FA=FF
+       XA=XX
+      END IF
+      IF(FX*FF .GT. 0) THEN
+       MC=MC+2
+       IF(MC .GT. MXF) GO TO 6
+       F1=F3
+       X1=X3
+       F2=FX
+       X2=X0
+       X0=XX
+       FX=FF
+       GO TO 3
+      END IF
+ 
+ 4     R=EE
+      FF=F(X0,3)
+      RETURN
+ 5     CALL KERMTR('C205.1',LGFILE,MFLAG,RFLAG)
+      IF(MFLAG) THEN
+       IF(LGFILE .EQ. 0) WRITE(*,100)
+       IF(LGFILE .NE. 0) WRITE(LGFILE,100)
+      END IF
+      IF(.NOT.RFLAG) CALL ABEND
+      R=-2*(XB-XA)
+      X0=0
+      RETURN
+ 6     CALL KERMTR('C205.2',LGFILE,MFLAG,RFLAG)
+      IF(MFLAG) THEN
+       IF(LGFILE .EQ. 0) WRITE(*,101)
+       IF(LGFILE .NE. 0) WRITE(LGFILE,101)
+      END IF
+      IF(.NOT.RFLAG) CALL ABEND
+      R=-HALF*ABS(XB-XA)
+      X0=0
+      RETURN
+
+#endif
+
+ 100  FORMAT(1X,'***** CERN C205 RZERO ... F(A) AND F(B)',
+     1     ' HAVE THE SAME SIGN')
+ 101  FORMAT(1X,'***** CERN C205 RZERO ... TOO MANY FUNCTION CALLS')
+      END
+
+***********************************************************************
+      real function betaresLIP(zch)
+#include "../include/richrec_lipf.h"
+      real zch
+
+      betaresLIP = 1.E-2*sqrt( (a_beta/zch)**2 + b_beta**2 )
+
+      return
+      end
+
+***********************************************************************
+*
+* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+*
+* $Log: richutil_lip.F,v $
+* Revision 1.4  2010/11/03 18:25:22  barao
+* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
+*
+* Revision 1.1.1.1  1996/02/15 17:48:36  mclareni
+* Kernlib
+*
+*
+
+#if defined(CERNLIB_IBMRT)
+#ifndef CERNLIB_IBMRS
+#define CERNLIB_IBMRS
+#endif
+#endif
+#if defined(CERNLIB_VAXVMS)||defined(CERNLIB_VAXULTRIX)
+#ifndef CERNLIB_VAX
+#define CERNLIB_VAX
+#endif
+#endif
+#if defined(CERNLIB_VAX)
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+#if (defined(CERNLIB_UNIX))&&(!defined(CERNLIB_SINGLE))
+#ifndef CERNLIB_DOUBLE
+#define CERNLIB_DOUBLE
+#endif
+#endif
+
+#if defined(CERNLIB_LINUX)||defined(CERNLIB_MSDOS) && !defined(CERNLIB_WINNT)
+#ifndef CERNLIB_NUMIB2
+#define CERNLIB_NUMIB2
+#endif
+#ifdef CERNLIB_NUMD38
+#undef CERNLIB_NUMD38
+#endif
+#ifndef CERNLIB_NUMD279
+#define CERNLIB_NUMD279
+#endif
+#endif
+
+#if defined(CERNLIB_VAXVMS)
+#ifndef CERNLIB_NUMDE
+#define CERNLIB_NUMDE
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#if (defined(CERNLIB_UNIX)) || defined(CERNLIB_WINNT) && (!defined(CERNLIB_QF2C))
+#ifndef CERNLIB_NUMAP
+#define CERNLIB_NUMAP
+#endif
+#ifndef CERNLIB_NUMD38
+#define CERNLIB_NUMD38
+#endif
+#ifdef CERNLIB_NUMD279
+#undef CERNLIB_NUMD279
+#endif
+#endif
+#ifndef CERNLIB_NUMLOPRE
+#define CERNLIB_NUMLOPRE
+#endif
+#ifdef CERNLIB_NUMHIPRE
+#undef CERNLIB_NUMHIPRE
+#endif
+#ifndef CERNLIB_NUMRDBLE
+#define CERNLIB_NUMRDBLE
+#endif
+#ifndef CERNLIB_NUMCDBLE
+#define CERNLIB_NUMCDBLE
+#endif
+#ifndef CERNLIB_NUME38
+#define CERNLIB_NUME38
+#endif
+#ifdef CERNLIB_NUME75
+#undef CERNLIB_NUME75
+#endif
+#ifdef CERNLIB_NUME293
+#undef CERNLIB_NUME293
+#endif
+#ifdef CERNLIB_NUME2465
+#undef CERNLIB_NUME2465
+#endif
+#ifdef CERNLIB_NUMD75
+#undef CERNLIB_NUMD75
+#endif
+#ifdef CERNLIB_NUMD2465
+#undef CERNLIB_NUMD2465
+#endif
+
+
+      FUNCTION DIVDIF_ALT(F,A,NN,X,MM)
+      DIMENSION A(NN),F(NN),T(20),D(20)
+      LOGICAL EXTRA
+      LOGICAL MFLAG,RFLAG
+      SAVE MMAX
+      DATA MMAX/10/
+      !$OMP THREADPRIVATE(MMAX)
+C
+C  TABULAR INTERPOLATION USING SYMMETRICALLY PLACED ARGUMENT POINTS.
+C
+C  START.  FIND SUBSCRIPT IX OF X IN ARRAY A.
+      IF( (NN.LT.2) .OR. (MM.LT.1) ) GO TO 20
+      N=NN
+      M=MIN0(MM,MMAX,N-1)
+      MPLUS=M+1
+      IX=0
+      IY=N+1
+      IF(A(1).GT.A(N)) GO TO 4
+C     (SEARCH INCREASING ARGUMENTS.)
+ 1        MID=(IX+IY)/2
+         IF(X.GE.A(MID)) GO TO 2
+            IY=MID
+            GO TO 3
+C        (IF TRUE.)
+ 2                 IX=MID
+ 3                     IF(IY-IX.GT.1) GO TO 1
+         GO TO 7
+C     (SEARCH DECREASING ARGUMENTS.)
+ 4           MID=(IX+IY)/2
+         IF(X.LE.A(MID)) GO TO 5
+            IY=MID
+            GO TO 6
+C        (IF TRUE.)
+ 5                 IX=MID
+ 6                     IF(IY-IX.GT.1) GO TO 4
+C
+C  COPY REORDERED INTERPOLATION POINTS INTO (T(I),D(I)), SETTING
+C  *EXTRA* TO TRUE IF M+2 POINTS TO BE USED.
+ 7                      NPTS=M+2-MOD(M,2)
+      IP=0
+      L=0
+      GO TO 9
+ 8        L=-L
+         IF(L.GE.0) L=L+1
+ 9           ISUB=IX+L
+         IF((1.LE.ISUB).AND.(ISUB.LE.N)) GO TO 10
+C        (SKIP POINT.)
+            NPTS=MPLUS
+            GO TO 11
+C        (INSERT POINT.)
+ 10                IP=IP+1
+            T(IP)=A(ISUB)
+            D(IP)=F(ISUB)
+ 11             IF(IP.LT.NPTS) GO TO 8
+      EXTRA=NPTS.NE.MPLUS
+C
+C  REPLACE D BY THE LEADING DIAGONAL OF A DIVIDED-DIFFERENCE TABLE, SUP-
+C  PLEMENTED BY AN EXTRA LINE IF *EXTRA* IS TRUE.
+      DO 14 L=1,M
+         IF(.NOT.EXTRA) GO TO 12
+            ISUB=MPLUS-L
+            D(M+2)=(D(M+2)-D(M))/(T(M+2)-T(ISUB))
+ 12             I=MPLUS
+         DO 13 J=L,M
+            ISUB=I-L
+            D(I)=(D(I)-D(I-1))/(T(I)-T(ISUB))
+            I=I-1
+ 13             CONTINUE
+ 14              CONTINUE
+C
+C  EVALUATE THE NEWTON INTERPOLATION FORMULA AT X, AVERAGING TWO VALUES
+C  OF LAST DIFFERENCE IF *EXTRA* IS TRUE.
+      SUM=D(MPLUS)
+      IF(EXTRA) SUM=0.5*(SUM+D(M+2))
+      J=M
+      DO 15 L=1,M
+         SUM=D(J)+(X-T(J))*SUM
+         J=J-1
+ 15       CONTINUE
+      DIVDIF_ALT=SUM
+      RETURN
+C
+ 20    CALL KERMTR('E105.1',LGFILE,MFLAG,RFLAG)
+      DIVDIF_ALT=0
+      IF(MFLAG) THEN
+         IF(LGFILE.EQ.0) THEN
+            IF(MM.LT.1) WRITE(*,101) MM
+            IF(NN.LT.2) WRITE(*,102) NN
+         ELSE
+            IF(MM.LT.1) WRITE(LGFILE,101) MM
+            IF(NN.LT.2) WRITE(LGFILE,102) NN
+         ENDIF
+      ENDIF
+      IF(.NOT.RFLAG) CALL ABEND
+      RETURN
+ 101  FORMAT( 7X, 'FUNCTION DIVDIF_ALT ... M =',I6,' IS LESS THAN 1')
+ 102  FORMAT( 7X, 'FUNCTION DIVDIF_ALT ... N =',I6,' IS LESS THAN 2')
+      END
+
+

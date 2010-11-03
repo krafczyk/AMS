@@ -47,13 +47,19 @@
        real accradwallmsec(nmaxmirsec)
 
        integer idummy
+       SAVE idummy
        data idummy /0/
+       !$OMP THREADPRIVATE (idummy)
 
 * **********< INIT
        real chgwin,d2minip,FNORM
+       SAVE d2minip,FNORM
        data d2minip /25./
 *       data FNORM /146.1/
        data FNORM /124.84/
+       !$OMP THREADPRIVATE (d2minip)
+       !$OMP THREADPRIVATE (FNORM)
+
 * **********>
 
        real accgap, accgapdir, accgapref
@@ -229,15 +235,15 @@
 
       endif
 
-*      print*,'In RICHCHGREC - post-correction values:'
-*      print*,'- richacca = ',(richacca(i),i=1,5)
-*      print*,'- richeffa = ',(richeffa(i),i=1,8)
-*      print*,'- richaccmseca = ',
-*     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
-*      print*,'- richeffmseca = ...'
-*      do j=1,nmirsec
-*         print*,(richeffmseca(j,i),i=1,8)
-*      enddo
+cc      print*,'In RICHCHGREC - post-correction values:'
+cc      print*,'- richacca = ',(richacca(i),i=1,5)
+cc      print*,'- richeffa = ',(richeffa(i),i=1,8)
+cc      print*,'- richaccmseca = ',
+cc     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
+cc      print*,'- richeffmseca = ...'
+cc      do j=1,nmirsec
+cc         print*,(richeffmseca(j,i),i=1,8)
+cc      enddo
 
       valma1 = richacca(3)*reflec
       valma1a = richacca(3)*reflec+richacca(4)*reflec**2.
@@ -262,19 +268,21 @@
 *      print*,'eff   mir1, mir1+2 (global):',valme1,valme1a
 *      print*,'eff   mir1, mir1+2 (msecs) :',valme2,valme2a
 
-      do i=1,8
-         if(richeffa(i).lt.-0.00001) then
-            print*,'STRANGE richeffa(',i,') = ',richeffa(i)
-         endif
-      enddo
-      do j=1,nmirsec
+      if(ldebug.ge.2)then
          do i=1,8
-            if(richeffmseca(j,i).lt.-0.00001) then
-               print*,'STRANGE richeffmseca(',j,',',i,') = ',
-     +              richeffmseca(j,i)
+            if(richeffa(i).lt.-0.00001) then
+               print*,'STRANGE richeffa(',i,') = ',richeffa(i)
             endif
          enddo
-      enddo
+         do j=1,nmirsec
+            do i=1,8
+               if(richeffmseca(j,i).lt.-0.00001) then
+                  print*,'STRANGE richeffmseca(',j,',',i,') = ',
+     +                 richeffmseca(j,i)
+               endif
+            enddo
+         enddo
+      endif
 
       richacc_inv  = richacca(1)   ! invisible acceptance
       richacc_dir  = richacca(2)   ! direct acceptance

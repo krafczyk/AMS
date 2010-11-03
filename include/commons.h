@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.296 2010/10/12 18:44:56 choutko Exp $
+//  $Id: commons.h,v 1.297 2010/11/03 18:25:22 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -26,6 +26,9 @@
 #include "geant3function_redefine.h"
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 class TRMFFKEY_DEF{
@@ -1256,6 +1259,8 @@ class LIPC2F_DEF{
 };
 #define LIPC2F COMMON_BLOCK(LIPC2F,lipc2f)
 COMMON_BLOCK_DEF(LIPC2F_DEF,LIPC2F);
+//LA 18Out10
+#pragma omp threadprivate(LIPC2F)
 
 // output data (see richrec_lipc.h for details)
 
@@ -1314,6 +1319,8 @@ class LIPF2C_DEF{
 };
 #define LIPF2C COMMON_BLOCK(LIPF2C,lipf2c)
 COMMON_BLOCK_DEF(LIPF2C_DEF,LIPF2C);
+//LA 18Out10
+#pragma omp threadprivate(LIPF2C)
 
 // output parameters, obsolete (FOR DEBUGGING ONLY!)
 
@@ -1329,6 +1336,8 @@ geant liprprob;
 };
 #define LIPVAR COMMON_BLOCK(LIPVAR,lipvar)
 COMMON_BLOCK_DEF(LIPVAR_DEF,LIPVAR);
+//LA 18Out10
+#pragma omp threadprivate(LIPVAR)
 
 // ENDofLIP
 

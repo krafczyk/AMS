@@ -42,13 +42,19 @@
       integer idobeta,idotof,idostd,idochg
 
       integer irecnumbini,irectot
-
+      integer OMP_GET_THREAD_NUM,iThread
+      
 * ... histogram booking
 
-      data idummy/0/
-      data idumdisp/0/
+* LA 14Out10
+*      SAVE idummy,idumdisp
 
-      if(idummy.eq.0)then
+*      data idummy/0/
+*      data idumdisp/0/
+*      !$OMP THREADPRIVATE (idummy)
+*      !$OMP THREADPRIVATE (idumdisp)
+
+/*      if(idummy.eq.0)then
 
          call hbook1(-110001,'5-par rec, top x error (cm)',
      +        400,-100.,100.,0.)
@@ -250,9 +256,12 @@
      +        501,-0.1,100.1,21,-0.025,1.025,0.)
 
          idummy=1
-      endif
+      endif */
 /*
-      print*,'INGOING VARIABLES'
+
+      iThread = OMP_GET_THREAD_NUM()
+      print*,'iThread =',iThread
+      print*,'INGOING VARIABLES for event ',ievt
       print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
       print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
       print*,'rcgeom_c2f         = ',rcgeom_c2f                          
@@ -357,10 +366,14 @@
       levacc = levacc_c2f
       levghit = levghit_c2f
 
+
 *      print*,'levgeom = ',levgeom
 *      print*,'levgrad = ',levgrad
 *      print*,'levacc = ',levacc
 *      print*,'levghit = ',levghit
+
+* --- define debug level
+      ldebug = 0
 
 * --- store detector and geometry data
       ztarg          = ztarg_c2f
@@ -432,7 +445,7 @@
       DX0   = PITCHX/2. - XPC
 
 * --- store event number
-      itevt = ievt
+      ievnumb = ievt
 
 * --- store hit data
 
@@ -1076,9 +1089,11 @@
 * --- OUTPUT
 ************
 /*
+
       do k=irecnumbini+2,irecnumb+1
          print*,' '
-         print*,'OUTGOING VARIABLES FOR RECONSTRUCTION ',k-1
+         print*,'iThread =',iThread
+         print*,'OUTGOING VARIABLES FOR EVENT/RECONSTRUCTION ',ievt,k-1
          print*,'resb_iflag    = ',resb_iflag(k)
          print*,'resb_itype    = ',resb_itype(k)
          print*,'resb_itrk     = ',resb_itrk(k)
@@ -1155,7 +1170,7 @@
 *====================
 * CONTROL HISTOGRAMS
 *====================
-
+/*
 * --- filling of control histograms (standalone)
 * ... In IF statement, itype 4 = standalone rec
 
@@ -1350,7 +1365,7 @@
 
          endif
       enddo
-
+*/
 * --- end of main LIP routine
 
       return
@@ -1394,8 +1409,11 @@
       double precision amsri
       integer amsrt
 
-      integer idummy
-      data idummy /0/
+*      integer idummy
+*     LA 14Out10
+*      SAVE idummy
+*      data idummy /0/
+*      !$OMP THREADPRIVATE (idummy)
 
 * --- init
       ipthetac = 0 !reset thetac rec pointer 
@@ -1419,43 +1437,43 @@
 * ------ Determination of radiator
 
 * ...... Old method
-c$$$         if (abs(pdum(1)).lt.(0.5*3.*radtile_pitch) .and.
-c$$$     +       abs(pdum(2)).lt.(0.5*3.*radtile_pitch)) then 
-c$$$            rad_kind = 1        !NAF
-c$$$         else
-c$$$            rad_kind = 0        !AGL
-c$$$         endif
+         if (abs(pdum(1)).lt.(0.5*3.*radtile_pitch) .and.
+     +       abs(pdum(2)).lt.(0.5*3.*radtile_pitch)) then 
+            rad_kind = 1        !NAF
+         else
+            rad_kind = 0        !AGL
+         endif
 
 * ...... New method using data from global simulation
-         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,
-     +   amsrk,amsri,amsrt)
-*         print*,'(A) amsrk = ',amsrk
-
-         if(amsrk.eq.0) then  ! no radiator
-            rad_kind = -1
-         endif
-
-         if(amsrk.eq.1) then  ! aerogel
-            rad_kind = 0
-            radix(1) = amsri
-         endif
-
-         if(amsrk.eq.2) then  ! NaF
-            rad_kind = 1
-            radix(2) = amsri
-         endif
-
-         if(amsrk.eq.0) then
-            call hf2(-140000,pimp(1),pimp(2),1.)
-         endif
-         if(amsrk.eq.1) then
-            call hf2(-140001,pimp(1),pimp(2),1.)
-*            call hf1(-150001,amsrad_entrance_p(3),1.)
-         endif
-         if(amsrk.eq.2) then
-            call hf2(-140002,pimp(1),pimp(2),1.)
-*            call hf1(-150002,amsrad_entrance_p(3),1.)
-         endif
+cc         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,
+cc     +   amsrk,amsri,amsrt)
+cc*         print*,'(A) amsrk = ',amsrk
+cc
+cc         if(amsrk.eq.0) then  ! no radiator
+cc            rad_kind = -1
+cc         endif
+cc
+cc         if(amsrk.eq.1) then  ! aerogel
+cc            rad_kind = 0
+cc            radix(1) = amsri
+cc         endif
+cc
+cc         if(amsrk.eq.2) then  ! NaF
+cc            rad_kind = 1
+cc            radix(2) = amsri
+cc         endif
+cc
+cc         if(amsrk.eq.0) then
+cc            call hf2(-140000,pimp(1),pimp(2),1.)
+cc         endif
+cc         if(amsrk.eq.1) then
+cc            call hf2(-140001,pimp(1),pimp(2),1.)
+cc*            call hf1(-150001,amsrad_entrance_p(3),1.)
+cc         endif
+cc         if(amsrk.eq.2) then
+cc            call hf2(-140002,pimp(1),pimp(2),1.)
+cc*            call hf1(-150002,amsrad_entrance_p(3),1.)
+cc         endif
 
       ELSEIF (RCGEOM(1).EQ.9) THEN !PROTOTYPE
 
@@ -1470,14 +1488,14 @@ c$$$         endif
          chradid  = 'AGL'
 *         ZPHEMI   = 0.55239
 *         ZPHEMI   = 0.59065
-*         ZPHEMI   = 0.60
-         call lipfzphemi(amsrt,ZPHEMI)
+         ZPHEMI   = 0.60
+cc         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+HRAD*ZPHEMI
       elseif (rad_kind.eq.1) then !particle inciding on NaF
          refindex = radix(2)
          chradid  = 'NAF'
-*         ZPHEMI   = 0.5
-         call lipfzphemi(amsrt,ZPHEMI)
+         ZPHEMI   = 0.5
+cc         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+(HRAD-HRNAF)+HRNAF*ZPHEMI
       else
 *         print*,'(richinitrec) rad_kind = ',rad_kind     

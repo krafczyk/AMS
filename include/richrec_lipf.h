@@ -34,14 +34,16 @@
 
 * --- simulation variables                  
       real cerang,pbeta,pchg
-      common /richsimc/ cerang,pbeta,pchg
 
+      common /richsimc/ cerang,pbeta,pchg
+      !$OMP THREADPRIVATE (/richsimc/)
 * --- nb counted photons
         integer nphb_nscat,nphb_nscat_ref,nphb_nscat_nref
         common /richphotc/ 
      +  nphb_nscat,     !nb photons at base (non-scatt and from primary)    
      +  nphb_nscat_ref, !nb photons at base reflected
      +  nphb_nscat_nref !nb photons at base non-reflected
+      !$OMP THREADPRIVATE (/richphotc/)
      
 * --- ratios 
         real rat_nphb_nscat_ref,
@@ -52,7 +54,7 @@
      +  rat_nphb_nscat_ref,
      +  rat_nphb_nscat_nref,
      +  xphnint,xphnint_frac
-
+      !$OMP THREADPRIVATE (/richphotr/)
 
 *****************************
 *** CODE FROM richgen.inc ***
@@ -60,10 +62,11 @@
 
 * --- statistics                                             
         integer icevt,itevt
+
         common /richwrkc/ icevt,        ! number of events read 
      +                    itevt         ! event number (nb trials)
 
-
+      !$OMP THREADPRIVATE (/richwrkc/)
 *****************************
 *** CODE FROM richcrd.inc ***
 *****************************
@@ -78,6 +81,7 @@
      +          lbdcut, phecut, radint,
      +          recbet, cerlim,
      +          reflec
+
 
         common /cardc/
      +                  nbrevt,         !nb events to read
@@ -101,6 +105,7 @@
      +                  cerlim(2),      !limits for bracketing
      +                  reflec          !mirror reflectivity
 
+      !$OMP THREADPRIVATE (/cardc/)
 *****************************
 *** CODE FROM richgeo.inc ***
 *****************************
@@ -124,7 +129,8 @@
 
 
 ! distances and coordinates of some pmts in the matrix (22/7/02)
-  
+
+
 	common /patgeomc/ RTMIR,         !Top mirror radius
      +                    RBMIR,         !bottom mirror radius
      +                    HMIR,          !mirror height (plutot expansion volume!!!!)
@@ -161,8 +167,10 @@
      +                    REFMIRS        !reflectivity of each mirror sector
 
 ! detection matrix
+      !$OMP THREADPRIVATE (/patgeomc/)  
 
         REAL PMTWX, PMTWY, SHIELDW, LG_PITCH, LG_TOP_WIDTH, LG_BOT_WIDTH
+
 
         common /pmtgenc/  PMTWX,         !pmt(lguide in fact) x dimension
      +                    PMTWY,         !pmt                 y dimension
@@ -171,18 +179,27 @@
      +                    LG_TOP_WIDTH,  !Light Guide Top Width (34mm)
      +                    LG_BOT_WIDTH   !Light Guide Bottom Width 
 
+       !$OMP THREADPRIVATE (/pmtgenc/)
+
         REAL XPC,XBC,XBD,YEF  
+
         COMMON /PMTPOS/XPC,XBC,XBD,YEF  
+        !$OMP THREADPRIVATE (/PMTPOS/)
 
         INTEGER LEVGEOM, LEVGRAD, LEVACC, LEVGHIT
+
+
         COMMON /CLEVEL/ LEVGEOM,         !detector matrix geometry level 
      +                  LEVGRAD,         !radiator geometry level (0=no walls, =1,2 walls)
      +                  LEVACC,		 !acceptance calculation 0/1 = ring line/ring width
      +                  LEVGHIT 	 !exclusion of ring near track zone 0/1 = off/on
+
+       !$OMP THREADPRIVATE (/CLEVEL/)
        
         real XCRAD,YCRAD,XDRAD,YDRAD,XCPMM,YCPMM,
      &       DIMXPROT,DIMYPROT,XLIMPROT,YLIMPROT,
      +       MIRPHILD,MIRPHILG
+
 
         common /patprotoc/
      +                    XCRAD,        !x-coord of the center of radiator   
@@ -198,9 +215,13 @@
      +                    MIRPHILD(2),   !mirror phi limits for DRAWING
      +                    MIRPHILG(2)   !mirror phi limits for GEOMETRY check
 
+        !$OMP THREADPRIVATE (/patprotoc/)
+
         INTEGER NBPMTX,NBPMTY
         PARAMETER(NBPMTX=10,NBPMTY=11)
         INTEGER iflpmt,INBPMT,IEXPMT,NEXPMT,NONPMT,IONPMT
+
+
         common /pmtprotoc/ 
      +                    iflpmt(nbpmtx,nbpmty),!pmt status flag (=0/=1,2)
      +                    inbpmt(nbpmtx,nbpmty),!pmt id
@@ -208,7 +229,7 @@
      +                    nexpmt,               !nb of non-working pmts
      +                    nonpmt,
      +                    ionpmt(110)
-
+       !$OMP THREADPRIVATE (/pmtprotoc/)
 
 *****************************
 *** CODE FROM richdat.inc ***
@@ -218,6 +239,7 @@
      +          hitspmt, hitstat, nbhitsmax_ntup
         real hitscoo, hitsnpe
 *
+
 	common /richdatc/ 
      +         nbhits,                ! number of hits
      +         nbhitsmax_ntup,        ! max number of hits in ntuple 
@@ -229,7 +251,7 @@
      +         hitstat(nbhitsmax)     ! hit status flag:
                                       !    0 = good
                                       !    1 = TB2002 bad 
-
+       !$OMP THREADPRIVATE (/richdatc/)
 *****************************
 *** CODE FROM richtrk.inc ***
 *****************************
@@ -245,6 +267,7 @@
 C ... Track information (be used in reconstructions)
 *     ----------------------------------
 
+
       common /richparc/ pimp(3),        ! impact point @radiator top
      +                  epimp(3),       ! error in impact point @radiator top
      +                  pmom,           ! particle momentum
@@ -259,16 +282,19 @@ C ... Track information (be used in reconstructions)
                                         ! to optimized depth (1.8cm below RP)
      +                  pcoopmtoptradius ! part point extrap@PMT radius
 
+       !$OMP THREADPRIVATE (/richparc/)
 C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 *     -------------------------------------------------------------------
       real pcoopmtopthint
       integer iflgrec5par
+
+
       common /rec5parc/
      +                  iflgrec5par,       ! flag =0, no hint established 
                                            !          in this common
      +                  pcoopmtopthint(3)  ! particle point hint @PMT from
                                            ! LG signals             
-
+       !$OMP THREADPRIVATE (/rec5parc/)
 
 *****************************
 *** CODE FROM richrec.inc ***
@@ -282,6 +308,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 
         integer ihit,nmirefhit,msechit
         real curhit,hypthc
+
         common /cerwrkc1/ 
      +         ihit,       ! hit number
      +         curhit(3),  ! coord of current hit
@@ -289,16 +316,20 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +         nmirefhit,  ! nb of mirror reflections of current hit
      +         msechit     ! mirror sector of reflected hit
 
+       !$OMP THREADPRIVATE (/cerwrkc1/)
         real pcervtx,refindex,clari
         character chradid*3
+
+
         common /cerwrkc2/ 
      +         pcervtx(3), ! cerenkov vertex
      +         refindex,   ! current refractive index 
      +         chradid     ! current radiator name           
 
-
+       !$OMP THREADPRIVATE (/cerwrkc2/)
         real cangrecup, cangreclow, cang1, cang2       
         INTEGER nhitscan, iphihintkind, iphihintflag
+
 
         common /cerlimc/ 
      +         cangrecup,   ! thetac search upper limit
@@ -311,7 +342,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
                             !                  = 2 phi geometrical at thcmax (once)
      +         iphihintflag ! hit phi finding flag: = 0 no phi hint scanned yet
                             !                       = 1 phi hint scanned
-
+       !$OMP THREADPRIVATE (/cerlimc/)
 * --------------------------------------------------------------------------
 * --- variables for cerenkov angle reconstruction (per event)             
 * --------------------------------------------------------------------------
@@ -320,13 +351,18 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 
 * --- auxiliary
       integer nbhits_nass, ip_nass
+
+
       common /richauxc/ nbhits_nass,      ! nb hits non-associated to particle  
      +                  ip_nass(nhitmax)  ! pointers to non-assoc to particle hits
 
+      !$OMP THREADPRIVATE (/richauxc/)
 * --- fit variables
       real chi2hit_fit,phihit_fit,chi2rec_fit
       integer nbushits_fit,ipushits_fit,nbminshit_fit,ireflechit_fit,
      +        imsechit_fit
+  
+
       common /richfitc/ 
      +                    chi2hit_fit(nhitmax),
      +                    phihit_fit(nhitmax),
@@ -337,6 +373,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +                    ireflechit_fit(nhitmax),
      +                    imsechit_fit(nhitmax)
 
+       !$OMP THREADPRIVATE (/richfitc/)
 * --- beta reconstruction: final results
  
       integer ipthetac,ntherec,nbushits, 
@@ -353,6 +390,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 * --- likelihood value
 
       real resvlike
+
 
       common /richbetc/ 
      +         ipthetac,                       ! pointer to best fit
@@ -375,18 +413,26 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +         phihit(ntherecmax,nhitmax),     ! hit phi from chosen minimum
      +         cangrecdif(ntherecmax)          ! quality of minimum
 
+       !$OMP THREADPRIVATE (/richbetc/)
+
       common /richbetauxc/
      +         pkolmog(ntherecmax),            ! kolmogorov estimator for the
                                                ! azimuthal hit uniformity
      +         flatevt(2)                      ! event flatness (sin,cos)
 
+       !$OMP THREADPRIVATE (/richbetauxc/)
+
       common /chgprobres/
      +         chgtest1,chgtest2,chgtest3,     ! test charge values
      +         chgprob1,chgprob2,chgprob3      ! test charge probabilities
 
+       !$OMP THREADPRIVATE (/chgprobres/)
+
+
       common /likeres/
      +         resvlike                        ! likelihood function value at minimum
 
+       !$OMP THREADPRIVATE (/likeres/)
 * -----------------------------------------------------------------------
 * --- variables for cerenkov charge reconstruction (per event)
 * -----------------------------------------------------------------------
@@ -398,6 +444,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       real chg_nphe, chg_nphe_sim, chg_nphe_dir, chg_nphe_ref,
      +     chgrec,   chgrec_dir,   chgrec_ref,   chgsim,
      +     chgrec_gap, chgrec_gapdir, chgrec_gapref
+
 
       common /richchgc/
      +        iflagchg,         ! charge rec flag (0/1)
@@ -413,7 +460,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        chgrec_gapdir,    ! 
      +        chgrec_gapref     ! 
 
-
+      !$OMP THREADPRIVATE (/richchgc/)
       integer nphirmax
       parameter(NPHIRMAX=100)
 
@@ -422,6 +469,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +     richacc_hol, richacc_vis, richacc_gap, richacc_gapdir,
      +     richacc_gapref, richacc_msec0, richacc_msec1,
      +     richacc_gapmsec
+
 
        common /richaccg/
      +        iflagacc,         ! flag=0/1	
@@ -438,10 +486,12 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richacc_msec1(nmaxmirsecc),  ! pattern acceptance by MIRROR SECTOR (2nd ref)
      +        richacc_gapmsec(nmaxmirsecc)  ! gap efficiency by MIRROR SECTOR
 
+       !$OMP THREADPRIVATE (/richaccg/)
        real richeff_rad, richeff_lg, richeff_dir, richeff_1rf,      
      +      richeff_2rf, richeff_tot,richeff_pni, richeff_avz,
      +      richeff_tot_gap, richeff_dir_gap, richeff_ref_gap,
      +      richeff_msec0, richeff_msec1, richeff_msec_gap
+
 
        common /richeffc/
      +        richeff_rad,      ! Eff(nint)*Eff(geom)
@@ -459,11 +509,14 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richeff_msec1(nmaxmirsecc),  ! efficiency for each mirror sector (2nd ref)
      +        richeff_msec_gap(nmaxmirsecc)  ! eff by mir sect with gap effect
 
+        !$OMP THREADPRIVATE (/richeffc/)
 	real a_beta, b_beta
+
+
 	common /richbetawidthc/
      +        a_beta,           ! statistical uncertainty for beta
      +        b_beta            ! systematic uncertainty for beta
-
+        !$OMP THREADPRIVATE (/richbetawidthc/)
 
 ****************************
 *** CODE FROM matrix.inc ***
@@ -471,8 +524,12 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 
       integer irotflg
       real figrotm(3,3)
-      common /matrixf/ irotflg        
+
+      common /matrixf/ irotflg      
+      !$OMP THREADPRIVATE (/matrixf/)
+
       common /matrixc/ figrotm  
+      !$OMP THREADPRIVATE (/matrixc/)  
 C      data irotflg /0/
 
 
@@ -487,6 +544,7 @@ C      data irotflg /0/
      +     chi2htcut, nsigcut,
      +     thcstep, phistep,
      +     trhitass2, hitresmax
+
 
       common /liprecparc/ 
                   !-----[LIP RECONSTRUCTION: LIKELIHOOD] 
@@ -505,12 +563,13 @@ C      data irotflg /0/
      + TRHITASS2, !Track hit association distance (squared)
      + HITRESMAX  !Residue cut to reject hits used in reconstruction
 
-
+      !$OMP THREADPRIVATE (/liprecparc/)
 *********************************
 *** CODE FROM richrec5par.inc ***
 *********************************
 
 	real vparin,vparer
+
 	common /richrec5parc/ vparin(5), !initial hint for 5 parameters fit (to be used 
      +                                   !in the likelihood funtion fliketot5parxypart.F) 
      +                                   !vparin(1)=thetac
@@ -526,7 +585,7 @@ C      data irotflg /0/
                                          !vparer(3)=error in y coord at matrix, correct LG depth
                                          !vparer(4)=error in x coord at top of radiator
                                          !vparer(5)=error in y coord at top of radiator
-
+       !$OMP THREADPRIVATE (/richrec5parc/)
 *******************************************
 *** NEW CODE: TOF reconstruction result ***
 *******************************************
@@ -536,6 +595,7 @@ C      data irotflg /0/
      +     chi2_rectof,phit_rectof,used_rectof,hres_rectof,
      +     invchi2_rectof,pimp_rectof,epimp_rectof,
      +     pthe_rectof,epthe_rectof,pphi_rectof,epphi_rectof
+
 
       common /rtofdata/ iflag_rectof,            ! flag for TOF reconstruction
                                                  ! (0=bad, 1=good)
@@ -554,7 +614,7 @@ C      data irotflg /0/
      +                  pphi_rectof,             ! rec phi
      +                  epphi_rectof             ! error in rec phi
 
-
+       !$OMP THREADPRIVATE (/rtofdata/)
 **************************************************
 *** NEW CODE: standalone reconstruction result ***
 **************************************************
@@ -584,12 +644,14 @@ C      data irotflg /0/
      +                  epphi_recstd             ! error in rec phi
 
 
+       !$OMP THREADPRIVATE (/rstddata/)
 ********************************************
 *** NEW CODE: standalone grid parameters ***
 ********************************************
 
        integer ngridtop,ngridbot,ngridthc,ntestcand
       real dmtop,steptop,stepbot,fracminthc,herrthc,herrtop,herrbot
+
 
       common /stdgridpar/ ngridtop,      ! x/y points at radiator to test
      +                    ngridbot,      ! x/y points at matrix to test
@@ -603,7 +665,7 @@ C      data irotflg /0/
      +                    herrtop,       ! initial perturbation in radiator x/y coords
      +                    herrbot        ! initial perturbation in matrix x/y coords
 
-
+       !$OMP THREADPRIVATE (/stdgridpar/)
 *****************************************
 *** NEW CODE: standalone hint details ***
 *****************************************
@@ -620,6 +682,7 @@ C      data irotflg /0/
      +     candrecthc(ncandmax),candrecbeta(ncandmax),
      +     candrecpkol(ncandmax)
       integer candrkhint(ncandmax),candrkfit(ncandmax)
+
 
       common /stdhint/ candstatus,      ! candidate status (0=unused,1=hint,2=hint+fit)
      +                 canduhits,       ! candidate hint used hits
@@ -642,7 +705,7 @@ C      data irotflg /0/
      +                 candrkhint,      ! rank of pointers to candidate hints
      +                 candrkfit        ! rank of pointers to candidate fits
 
-
+       !$OMP THREADPRIVATE (/stdhint/)
 **************************************************************
 *** NEW CODE: standalone reconstruction details for saving ***
 **************************************************************
@@ -654,6 +717,7 @@ C      data irotflg /0/
       real crecuhits(50)
       real crecpkol(50)
 
+
       common /rstddet/ creclike,       ! likelihood		
      +                 crecx0,	       ! x impact point	
      +                 crecy0,	       ! y impact point	
@@ -664,6 +728,6 @@ C      data irotflg /0/
      +                 crecpkol	       ! Kolmogorov probability
 
 
-
+      !$OMP THREADPRIVATE (/rstddet/)
 
 

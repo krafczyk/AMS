@@ -19,6 +19,7 @@
 * - subroutine zbrak1(func,x1,x2,n,xb1,xb2,yb1,yb2,nb) 
 * - subroutine minbrackthe(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
 * - subroutine minbrackphi(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
+* - FUNCTION rtflsp_alt(func,x1,x2,xacc) 
 * - FUNCTION brent1(ax,bx,cx,f,tol,xmin)                            
 * - FUNCTION brent2(ax,bx,cx,f,tol,xmin)                            
 * - FUNCTION golden1(ax,bx,cx,f,tol,xmin)
@@ -757,10 +758,12 @@ C -----------------------------------------------------
          vdetcopy(1) = vdet(1)
          vdetcopy(2) = vdet(2)
          vdetcopy(3) = vdet(3)
-         vdirinv(1) = -vdir(1)
-         vdirinv(2) = -vdir(2)
-         vdirinv(3) = -vdir(3)
-         call patints(vdetcopy,vdirinv,'MIRI',ierr)
+*         vdirinv(1) = -vdir(1)
+*         vdirinv(2) = -vdir(2)
+*         vdirinv(3) = -vdir(3)
+
+         call patints(vdetcopy,vdir,'MIRI',ierr)
+
          phimir = atan2(vdetcopy(2)-vtmir(2),vdetcopy(1)-vtmir(1))
          if(phimir.lt.0.) phimir = phimir+TWOPI
          call getmirsec(phimir,imsec)
@@ -801,6 +804,10 @@ C -----------------------------------------------------
 *      
 *                   zbrak
 *                   zbrak1
+*        -> Finding the zero of a function in an interval according
+*           to the false position method
+*                   RTFLSP_ALT
+*         
 *        -> Numerical Derivative by Ridders method 
 *                   dfridr 
 *
@@ -1334,6 +1341,71 @@ C=============================================================================
       end                                                      
 
 
+********************************************************************
+* False position method to find the root of a function 
+* in a given interval(9.2)
+********************************************************************
+* ==================================================================
+      FUNCTION rtflsp_alt(func,x1,x2,xacc)
+* ==================================================================
+      INTEGER MAXIT
+      DOUBLE PRECISION rtflsp_alt,x1,x2,xacc,func
+      EXTERNAL func
+      PARAMETER (MAXIT=30)
+      INTEGER j
+      DOUBLE PRECISION del,dx,f,fh,fl,swap,xh,xl
+      fl=func(x1)
+      fh=func(x2)
+      if(fl*fh.gt.0.d0) print*,
+     +     'root must be bracketed in rtflsp_alt'
+      if(fl.lt.0.d0)then
+        xl=x1
+        xh=x2
+      else
+        xl=x2
+        xh=x1
+        swap=fl
+        fl=fh
+        fh=swap
+      endif
+      dx=xh-xl
+      do 11 j=1,MAXIT
+        rtflsp_alt=xl+dx*fl/(fl-fh)
+        f=func(rtflsp_alt)
+        if(f.lt.0.d0) then
+          del=xl-rtflsp_alt
+          xl=rtflsp_alt
+          fl=f
+        else
+          del=xh-rtflsp_alt
+          xh=rtflsp_alt
+          fh=f
+        endif
+        dx=xh-xl
+        if(abs(del).lt.xacc.or.f.eq.0.d0)return
+ 11         continue
+      print*,'rtflsp_alt exceed maximum iterations'
+      END
+C  (C) Copr. 1986-92 Numerical Recipes Software 7L`2.d0
+
+
+* ======================================================
+*      subroutine rzero_alt(x1,x2,root,r,EPS,MAXF,func)
+* ======================================================
+*      real x1,x2,root,r,EPS,MAXF
+*      real func
+*      external func
+*      real rtflsp_alt
+*      external rtflsp_alt
+*      root = rtflsp_alt(func,x1,x2,EPS)
+*
+*      return
+*      END
+
+
+
+
+       
 
 ********************************************************************
 * numerical derivative by Ridders' method (5.7)
@@ -1809,3 +1881,4 @@ CU    USES func
 
       return
       END
+

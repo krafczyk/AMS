@@ -119,7 +119,9 @@
 
 #include "../include/richrec_lipf.h"
 
+
       common /quest/ rquest(100)
+      !$OMP THREADPRIVATE(/quest/)
       character*20 chtit,chmenu(10),chitem,chdef,chval
       character chopt*4, chdummy*10, chpsfile*80,chpname*10
       integer nwin
@@ -410,6 +412,7 @@ CCC                   goto 1
       real signalncol(ncolsignal+1)
 
       common /coordrawc/xzoom1,xzoom2,yzoom1,yzoom2     
+      !$OMP THREADPRIVATE(/coordrawc/)
 
       parameter(antilog=2.718282)
 
@@ -427,7 +430,9 @@ CCC                   goto 1
      +     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
      +     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0
      + /
+      SAVE boxes
 
+      !$OMP THREADPRIVATE (boxes)
       integer boxesn(8,8)     ! the same definition as in g_flight.F             
       data boxesn/
      +     0, 0, 1, 1, 1, 1, 0, 0,
@@ -439,8 +444,8 @@ CCC                   goto 1
      +     0, 1, 1, 1, 1, 1, 1, 0,
      +     0, 0, 1, 1, 1, 1, 0, 0
      + /
-
-
+      !$OMP THREADPRIVATE (boxesn)
+      SAVE boxesn
 
 * ... init (lazy???) variables
 c      if (ipthatc.ne.0) then  <--- replaced, was a typo? (RP, 01-Mar-2007)
