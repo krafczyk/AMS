@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.141 2010/10/29 09:40:15 mdelgado Exp $
+//  $Id: richrec.C,v 1.142 2010/11/03 17:43:02 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -11,6 +11,9 @@
 #include "root.h" 
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 ////////////////////////////////////////////////////////
 // Wrapper to call some member functions from FORTRAN //
