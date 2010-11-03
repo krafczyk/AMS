@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.117 2010/11/03 13:30:56 pzuccon Exp $
+#  $Id: Makefile,v 1.118 2010/11/03 18:46:16 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -792,7 +792,7 @@ allold:
 	$(MAKE) -i producer
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
-	@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
+	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 endif
 
 

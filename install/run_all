@@ -11,7 +11,7 @@ endif
 
 unsetenv PGTRACK
 unsetenv ARCH
-source /Offline/vdev/install/amsvar
+source /Offline/vdev/install/amsvar.icc32
 $AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4
 $AMSWD/examples/g3.root.test.job
@@ -22,7 +22,7 @@ setenv ARCH Linux.24
 $AMSWD/examples/g3.root.test.job
 unsetenv ARCH
 setenv PGTRACK 1
-source /Offline/vdev/install/amsvar
+source /Offline/vdev/install/amsvar.icc32
 $AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4
 $AMSWD/examples/g3.root.test.job

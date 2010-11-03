@@ -11,7 +11,7 @@ endif
 
 unsetenv PGTRACK
 unsetenv ARCH
-source /Offline/vdev/install/amsvar
+source /Offline/vdev/install/amsvar.icc32
 gmake all
 source /Offline/vdev/install/amsvar.slc4
 gmake all
@@ -23,7 +23,7 @@ setenv ARCH Linux.24
 gmake allold 
 unsetenv ARCH
 setenv PGTRACK 1
-source /Offline/vdev/install/amsvar
+source /Offline/vdev/install/amsvar.icc32
 gmake all
 source /Offline/vdev/install/amsvar.slc4
 gmake all
