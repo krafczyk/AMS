@@ -1,4 +1,4 @@
-/// $Id: TrRawCluster.C,v 1.13 2010/10/01 01:49:52 oliva Exp $ 
+/// $Id: TrRawCluster.C,v 1.14 2010/11/03 13:32:34 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -10,9 +10,9 @@
 ///\date  2008/01/18 AO  Some analysis methods 
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/10/01 01:49:52 $
+/// $Date: 2010/11/03 13:32:34 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -360,7 +360,12 @@ float TrRawClusterR::GetEtaAddress(float thseed, float thneig) {
 }
 
 integer TrRawClusterR::lvl3format(int16 * adc, integer nmax,int lvl3dcard_par  ,integer matchedonly){
-  //
+	// PZ FIXME level 3 format is not documented return an array of zeros
+	for (int ii=0;ii<nmax;ii++)
+		adc[ii]=0;
+	return nmax;
+/*
+ //
   // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)(vc)
   //
   int16 pos =0;
@@ -400,6 +405,7 @@ integer TrRawClusterR::lvl3format(int16 * adc, integer nmax,int lvl3dcard_par  ,
   
   pos+=2+GetNelem();
  return pos;
+ */
 }
 
 
