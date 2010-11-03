@@ -105,7 +105,7 @@ void TrSimCluster::ApplyGain(int side, int tkid) {
     int   address = GetAddress(ist) + 640*(1-side);
     int   iva     = int(address/64);
     float gain    = ladpar->GetGain(side)*ladpar->GetVAGain(iva);
-    if (ladpar->GetGain(side)<0.02) SetSignal(ist,0.); // VA with no gain!
-    else                            SetSignal(ist,GetSignal(ist)/gain);
+    if (ladpar->GetVAGain(iva)<0.02) SetSignal(ist,0.); // VA with no gain!
+    else                             SetSignal(ist,GetSignal(ist)/gain);
   }
 } 
