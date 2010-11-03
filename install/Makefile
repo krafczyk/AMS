@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.116 2010/11/02 22:53:05 choutko Exp $
+#  $Id: Makefile,v 1.117 2010/11/03 13:30:56 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -587,9 +587,9 @@ $(BIN)ntuple_c.o:   $(SCC)ntuple.C
 $(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
 	$(FF) -c $(FFLAGS) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
 $(BIN)Geant3_utils.o:   $(SFF)Geant3_utils.F
-	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) $(IDLFLAGS) $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
+	$(FF) -c $(FFLAGS) $(FFLAGSSAVE)  -I$(CERNDIR)/include $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
 $(BIN)trd.o:   $(SFF)trd.F
-	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) $(IDLFLAGS) $(SFF)trd.F -o $(BIN)trd.o                                                                                
+	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)trd.F -o $(BIN)trd.o                                                                                
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F
