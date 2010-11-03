@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.71 2010/10/28 18:05:40 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.72 2010/11/03 14:24:52 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/10/28 18:05:40 $
+/// $Date: 2010/11/03 14:24:52 $
 ///
-/// $Revision: 1.71 $
+/// $Revision: 1.72 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1991,9 +1991,10 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   for (int il=0;il<2;il++){
     if (DXY[il].ihmin<0 || DY[il].ihmin<0 ) continue;
 
-    if(DXY[il].icmin != DY[il].icmin)
-      printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
-
+    if(DXY[il].icmin != DY[il].icmin){
+       static int mprint=100; 
+      if(mprint++<100)printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
+     }
     if (fabs(DXY[il].diff.y()) > diffY_max) continue;
     if (fabs(DXY[il].diff.x()) < diffX_max) {
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
