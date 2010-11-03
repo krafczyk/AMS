@@ -344,8 +344,9 @@ void TrDAQMC::builddaq(integer i, integer n, int16u *p){
 	AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSTrMCCluster",0);
 	if(ptr2 && ptr)ncl= ptr2->getnelem();
 	else {
-cerr<< " TrDAQMC::builddaq -E- Cannot find the TrMCCluster container "<<endl;
-return;}
+           // cerr<< " TrDAQMC::builddaq -E- Cannot find the TrMCCluster container "<<endl;
+           return;
+        }
 	int pindex=0;
 	p[pindex++]=((onesize+1) * ncl)+1; //size
 	for (; ptr!=0;ptr=ptr->next()){

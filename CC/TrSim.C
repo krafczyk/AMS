@@ -575,8 +575,9 @@ void TrSim::sitknoise(int nsimladders) {
       bool ladderfound = false;
       int tkid = 0;
       while (!ladderfound) {
-	int ientry = int(192.*RNDM((int)dummyfloat));
-	TkLadder* ladder = TkDBc::Head->GetEntry(ientry);
+	int ientry = int(192.*RNDM(dummyint));
+        int hwid = int(ientry/24)*100 + (ientry%24);
+	TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
 	tkid = ladder->GetTkId();
 	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
       }
@@ -590,7 +591,6 @@ void TrSim::sitknoise(int nsimladders) {
       int seedadd = int(nstrips[iside]*RNDM((int)dummyfloat));
       int address = seedadd;
       // extract seed value SN
-      // float seedSN = 4+RNDM((int)dummyfloat)*2; // FIX ME: is not the right distribution  
       float aminim = 1-integral[iside];
       float amaxim = 1.;    
       float extrac = aminim + (amaxim-aminim)*RNDM(dummyint);

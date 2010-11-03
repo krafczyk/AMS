@@ -183,12 +183,12 @@ void TRMCFFKEY_DEF::init(){
   // Diffusion Shape Type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
   TrSim2010_DiffType[0]=2;
   TrSim2010_DiffType[1]=2;
-  TrSim2010_DiffRadius[0]=8.;
+  TrSim2010_DiffRadius[0]=10.;
   TrSim2010_DiffRadius[1]=20.;
   TrSim2010_FracNoise[0]=0.1;
   TrSim2010_FracNoise[1]=0.1;
   TrSim2010_AddNoise[0]=4.;
-  TrSim2010_AddNoise[1]=3.;
+  TrSim2010_AddNoise[1]=2.;
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;

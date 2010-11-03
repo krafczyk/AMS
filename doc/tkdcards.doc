@@ -57,11 +57,11 @@ I [584,585]  TrSim2010_DiffType        0 Box
                                        3 Triangular
                                        4 Sum of Gauss distributions
 R [586,587]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
-             (def=8.,20.)
+             (def=10.,20.)
 R [588,589]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
              (def=0.1,0.1)  
 R [590,591]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
-             (def=4.,3.)
+             (def=4.,2.)
 
 
 

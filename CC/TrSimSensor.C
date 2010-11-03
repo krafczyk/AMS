@@ -115,7 +115,7 @@ double TrSimSensor::GetkeVtoADC(double keV)  {
 }   
 */
 
-double TrSimSensor::GetAdcMpvTb2003(int z) {
+double TrSimSensor::GetAdcMpvTb2003(double z) {
   double value = 0.;
   switch (GetSensorType()) {
     case 0: // S

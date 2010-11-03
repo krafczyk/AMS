@@ -227,7 +227,7 @@ class TrSimSensor {
   //! keV to MPV factor 
   double GetkeVtoADC();  
   //! ADC MPV value for each Z from Tb2003 (n-side and p-side) 
-  double GetAdcMpvTb2003(int z);
+  double GetAdcMpvTb2003(double z);
   //! EDep MC-Data ADC normalization (from ADC to ADC)
   double fromMCtoRealData(double adc);
 

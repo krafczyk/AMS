@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.17 2010/10/26 23:43:17 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.18 2010/11/03 14:51:47 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/10/26 23:43:17 $
+///$Date: 2010/11/03 14:51:47 $
 ///
-///$Revision: 1.17 $
+///$Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -330,9 +330,6 @@ void TrMCClusterR::GenSimClusters(){
     if (simcluster==0) continue; // it happens! 
     simcl[iside]=simcluster;
 
-    // Simulation tuning parameter 1: gaussianize a fraction of the strip signal
-    simcluster->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
-
     // dE/dx to ADC method 
     // 1. Normalize dE/dx (angle = 0, Z = 1, betagamma = 3.16)   
     double dEdx     = TrSimSensor::BetheBlock(1,momentum/mass);
@@ -352,11 +349,26 @@ void TrMCClusterR::GenSimClusters(){
     // Cluster strip values in ADC counts
     simcluster->Multiply(ADC);
 
+    //cout << "A... side=" << iside << " " << endl;
+    //simcluster->Info(10);
+
+    // Simulation tuning parameter 1: gaussianize a fraction of the strip signal
+    simcluster->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
+
+    //cout << "B... fracnoise=" << TRMCFFKEY.TrSim2010_FracNoise[iside] << endl;
+    //simcluster->Info(10);
+
     // Simulation tuning parameter 2: add more noise 
     simcluster->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
 
+    //cout << "C... addnoise=" << TRMCFFKEY.TrSim2010_AddNoise[iside] << endl;
+    //simcluster->Info(10);
+
     // Gain correction (VA by VA)
     if ((TRMCFFKEY.TrSim2010_ADCConvType[iside]==1)||(TRMCFFKEY.TrSim2010_ADCConvType[iside]==3)) simcluster->ApplyGain(iside,GetTkId());
+
+    //cout << "D... ADCConvType=" << TRMCFFKEY.TrSim2010_ADCConvType[iside] << endl;
+    //simcluster->Info(10);
 
     // Apply saturation
     simcluster->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
