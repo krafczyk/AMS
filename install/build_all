@@ -14,7 +14,7 @@ unsetenv ARCH
 source /Offline/vdev/install/amsvar.icc32
 gmake all
 source /Offline/vdev/install/amsvar.slc4
-gmake all
+gmake allp
 source /Offline/vdev/install/amsvar.icc64
 gmake all
 source /Offline/vdev/install/amsvar.slc4icc

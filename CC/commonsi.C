@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.108 2010/11/02 22:52:57 choutko Exp $
+//  $Id: commonsi.C,v 1.109 2010/11/03 20:06:53 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -28,7 +28,7 @@ char AMSCommonsI::_version[]="v4.00";
 #else
 char AMSCommonsI::_version[]="v5.00";
 #endif
-uinteger AMSCommonsI::_build=445;
+uinteger AMSCommonsI::_build=446;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -130,8 +130,9 @@ void AMSCommonsI::init(){
          AMSDBc::BigEndian=1;
        }
        if(b64){
+         _os+=10;
          _MaxMem=4294967295;
-         if(pri)cout <<" 64 bit machine."<<_MaxMem<<endl;
+         if(pri)cout <<" 64 bit machine. "<<_MaxMem<<endl;
        }
        else {
         if(strstr(u.machine,"_64"))_MaxMem=3000000000;

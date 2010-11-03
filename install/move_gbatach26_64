@@ -1,0 +1,2 @@
+mv $AMSWD/exe/linuxx8664icc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.1
+cp $AMSWD/exe/linuxx8664icc/gbatch.exe $AMSDataDir/DataManagement/exe/linux

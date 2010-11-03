@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.118 2010/11/03 18:46:16 choutko Exp $
+#  $Id: Makefile,v 1.119 2010/11/03 20:06:53 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -785,7 +785,16 @@ all:
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
-
+allp:
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
+	$(MAKE) -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
+	$(MAKE) server
 allold:
 	$(MAKE) -j 
 	$(MAKE) -j lib 

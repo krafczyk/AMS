@@ -8,11 +8,12 @@ ii.You have increased by one _buildno in commons.C
 iii.
 
 ./build_all  shows no errors 
+./run_all
+./test_all    shows no errors
 
-a. builded gbatch.exe image works with $AMSDir/examples/g3.root.test.job
 
 
-b. AMS Event Display works on produced root file and shows meaningful pictures.
+b. AMS Event Display works on produced root fileis and shows meaningful pictures.
 
 
 
