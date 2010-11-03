@@ -83,12 +83,14 @@ SHLD=..$(LIB)/ntuple.so
 FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C
 OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o   $(BIN)TrdHTrack.o   $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o
 $(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o     $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  $(EXE)/fastntrd.exe 
 
 
 $(BIN)fastntrd.o:         $(SCC)fastntrd.C
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CC) -c $(CFLAGS) $(SCC)fastntrd.C -o $(BIN)fastntrd.o
 
 
