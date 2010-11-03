@@ -1,0 +1,67 @@
+#!/bin/tcsh
+if ( "$1" != "" )  then
+setenv AMSWD $1
+endif
+
+if ( "$2" != "" )  then
+setenv ADDBUILDNO 1
+else
+unsetenv ADDBUILDNO
+endif
+
+setenv ARCH linuxicc
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+
+setenv ARCH PGlinuxicc
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+
+
+
+setenv ARCH linux
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+
+
+setenv ARCH PGlinux
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+
+setenv ARCH linuxx8664icc
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+
+
+setenv ARCH PGlinuxx8664icc
+$AMSWD/exe/linuxicc/fastntrd/fastntrd.exe g3v1g3$ARCH.root 10 1 10
+set i=$?
+if ( "$i" < 0 ) then
+echo "$ARCH failed $i"
+endif
+
+unsetenv ARCH
+
+
+
+

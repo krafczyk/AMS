@@ -12,24 +12,24 @@ endif
 unsetenv PGTRACK
 unsetenv ARCH
 source /Offline/vdev/install/amsvar
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.icc64
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4icc
-gmake -f Makefastntrdicc
 setenv ARCH Linux.24
-gmake allold 
+$AMSWD/examples/g3.root.test.job
 unsetenv ARCH
 setenv PGTRACK 1
 source /Offline/vdev/install/amsvar
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.icc64
-gmake all
+$AMSWD/examples/g3.root.test.job
 source /Offline/vdev/install/amsvar.slc4icc
 setenv ARCH Linux.24
-gmake allold
+$AMSWD/examples/g3.root.test.job
 unsetenv ARCH
+unsetenv PGTRACK
