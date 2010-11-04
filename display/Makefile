@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.72 2010/11/03 13:31:42 pzuccon Exp $
+#  $Id: Makefile,v 1.73 2010/11/04 18:02:52 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -252,7 +252,7 @@ ALLOBJS       = $(OBJS) $(OBJSN) $(DICTO)
 
 ##### TARGETS #####
 standalone:  amslib $(AMSPRG) 
-osdepend:  amslib $(AMSPRGC)
+osdepend:  $(AMSPRGC)
 dynamic:   amslib $(AMSPRGCC)
 
 amslib: $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
@@ -263,12 +263,12 @@ $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
 
 
 
-$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO)  $(amslib)
+$(AMSPRG):    $(OBJSN)  $(OBJS) $(DICTO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
 		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(amslib) 
+$(AMSPRGC):	$(OBJSN)  $(OBJS) $(DICTO)  $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a 
 		@if ! [ -d $(AMSWD)/exe/$(ARCH) ] ; then mkdir -p $(AMSWD)/exe/$(ARCH); fi
 		$(LDD)   $(LDFLAGS) $^  $(LIBS) -o $(@) 
 		@echo "$(AMSPRGC) done"

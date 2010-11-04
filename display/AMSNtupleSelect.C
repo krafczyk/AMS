@@ -25,6 +25,7 @@ public:
           cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
            TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
            cout <<" q "<<tr.NTrRecHit()<<endl;
+           return true;
            for(int i=0;i<tr.NTrRecHit();i++){
               TrRecHitR rh=ev->TrRecHit(tr.iTrRecHit(i));
               bool ok=rh.lay()==3 && rh.half()==0 && rh.lad()==2;

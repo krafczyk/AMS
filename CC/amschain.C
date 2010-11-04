@@ -186,11 +186,11 @@ char elf[11]="";
 char m32[5]="-m32";
 char elf[11]="-melf_i386";
 #endif
- char *PGTRACK=getenv("PGTRACK");
- if(PGTRACK)
+#ifdef _PGTRACK_
   sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
-else
+#else
   sprintf(cmd,"$CC %s  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+#endif
  cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
 int $i=system(cmd);
   if(!$i){
