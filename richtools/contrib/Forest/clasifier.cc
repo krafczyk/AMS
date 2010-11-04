@@ -417,8 +417,6 @@ GeomHash::GeomHash(int d){
   points[0].reserve(1024*d);   points[1].reserve(1024*d);
   nodes[0].reserve(1024);      nodes[1].reserve(1024);
   limit.reserve(1024);
-  templates.reserve(1024);
-  templatesRMS.reserve(1024);
   grown=false;
 
   // Grow the buffers if needed
@@ -460,8 +458,6 @@ double GeomHash::dist(float *r1,float *r2,float *point){
   double d1=0,d2=0;
   d1=metric(r1,point);
   d2=metric(r2,point);
-  //  for(int i=0;i<dimension;i++) d1+=(r1[i]-point[i])*(r1[i]-point[i]);
-  //  for(int i=0;i<dimension;i++) d2+=(r2[i]-point[i])*(r2[i]-point[i]);
   return d2-d1;
 }
 
@@ -493,15 +489,15 @@ int GeomHash::get(double x,...){
   return hash(buffer[2]);
 }
 
-void GeomHash::grow(int min_size,int robust_trials,double robust_fraction){
-  int *pointers=new int[samples.size()];
-  double *scratch=new double[samples.size()];
-  grow(pointers,scratch,min_size,robust_trials,robust_fraction);
+void GeomHash::grow(int min_size){
+  int *pointers=new int[samples.size()/dimension];
+  double *scratch=new double[samples.size()/dimension];
+  grow(pointers,scratch,min_size);
   delete[] pointers;
   delete[] scratch;
 }
 
-void GeomHash::grow(int *pointers,double *scratch,int min_size,int robust_trials,double robust_fraction){
+void GeomHash::grow(int *pointers,double *scratch,int min_size){
   if(grown) return;
   grown=true;
   int entries=samples.size()/dimension;
@@ -511,36 +507,44 @@ void GeomHash::grow(int *pointers,double *scratch,int min_size,int robust_trials
 
   // Start the real growing process
   minSize=2*min_size;
-  robustFraction=robust_fraction;
-  robustTrials=robust_trials;
   grow_internal(pointers,entries,scratch); // Adjust the min_size to obtain a better approximation
-
   samples.resize(0);
   vector<float> empty; samples=empty; // liberates a lot of space
 }
 
 
-#define _STORE_								\
-  for(int d=0;d<dimension;d++){						\
-    double best_sum=0;                                                  \
-    double best_rms=HUGE_VAL;						\
-    for(int trial=0;trial<robustTrials;trial++){			\
-      double sum=0;							\
-      double sum2=0;							\
-      int total=0;							\
-      for(int i=0;i<size;i++) {if((rand() / (RAND_MAX + 1.0))>robustFraction) continue;total++;sum+=samples[offset(pointers[i])+d];sum2+=samples[offset(pointers[i])+d]*samples[offset(pointers[i])+d];} \
-      if(total==0) continue;						\
-      sum/=total;							\
-      sum2/=total; sum2-=sum*sum;					\
-      if(sum2<best_rms){best_rms=sum2;best_sum=sum;}			\
-    }									\
-    templates.push_back(best_sum); templatesRMS.push_back(best_rms);	\
-  }									\
-  int currentHashNumber=numNodes++;					\
-  int trueParent=fabs(parent)-1;					\
-  int parentNode=parent<0?0:1;						\
-  nodes[parentNode][trueParent]=-currentHashNumber-1;			\
-  return;
+void GeomHash::store(int *pointers,int size,int parent){
+  int currentHashNumber=numNodes++;					
+  int trueParent=fabs(parent)-1;					
+  int parentNode=parent<0?0:1;						
+  nodes[parentNode][trueParent]=-currentHashNumber-1;			  
+}
+
+#define _STORE_ {store(pointers,size,parent);return;}
+
+double GeomHash::bestSplit(int *pointers,int size,double *scratch,int &best_position,bool &fail)
+{
+  if(scratch[pointers[0]]==scratch[pointers[size-1]]){fail=true;return 0;}
+
+  // Search for the best splitting point
+  double bestValue=0;
+  int bestDiff=INT_MAX;
+  int bestPosition=-1;
+  for(int i=1;i<size;i++){
+    if(scratch[pointers[i-1]]==scratch[pointers[i]]) continue;
+    double value=0.5*(scratch[pointers[i-1]]+scratch[pointers[i]]);
+    int diff=fabs(2*i-size);
+
+    if(diff<bestDiff){
+      bestPosition=i;
+      bestValue=value;
+      bestDiff=diff;
+    }
+  }
+
+  best_position=bestPosition;
+  return bestValue;
+}
 
 
 void GeomHash::grow_internal(int *pointers,int size, double *scratch,int parent){
@@ -566,36 +570,22 @@ void GeomHash::grow_internal(int *pointers,int size, double *scratch,int parent)
   for(int index=0;index<size;index++){
     int element=pointers[index];
     for(int i=0;i<dimension;i++) buffer[2][i]=samples[offset(element)+i];
+
     scratch[element]=dist(buffer[0],buffer[1],buffer[2]);
   }
 
   // Sort all of them using quick sort
   _distances=scratch;
   qsort(pointers,size,sizeof(int),comparator);
-
-
-  // Check if the first and last value are the same
-  if(scratch[pointers[0]]==scratch[pointers[size-1]]) {_STORE_;}
-
-
-  // Search for the best splitting point
-  double bestValue=0;
-  int bestDiff=INT_MAX;
+  
+  bool fail=false;
   int bestPosition=-1;
-  for(int i=1;i<size;i++){
-    if(scratch[pointers[i-1]]==scratch[pointers[i]]) continue;
-    double value=0.5*(scratch[pointers[i-1]]+scratch[pointers[i]]);
-    int diff=fabs(2*i-size);
-
-    if(diff<bestDiff){
-      bestPosition=i;
-      bestValue=value;
-      bestDiff=diff;
-    }
-  }
+  double bestValue=bestSplit(pointers,size,scratch,bestPosition,fail);
+  if(fail) {_STORE_;}
 
   // Store the current information
   limit.push_back(bestValue);
+
   for(int i=0;i<dimension;i++){
     points[0].push_back(buffer[0][i]);
     points[1].push_back(buffer[1][i]);
@@ -606,4 +596,120 @@ void GeomHash::grow_internal(int *pointers,int size, double *scratch,int parent)
   grow_internal(pointers,bestPosition,scratch,-(me+1));
   nodes[1][me]=nodes[1].size();
   grow_internal(pointers+bestPosition,size-bestPosition,scratch,me+1);
+}
+ 
+ClassImp(TemplateGeomHash);
+
+TemplateGeomHash::TemplateGeomHash(int d):GeomHash(d){
+  templates.reserve(1024);
+  templatesRMS.reserve(1024);
+}
+
+
+void TemplateGeomHash::grow(int min_size,int robust_trials,double robust_fraction){
+  int *pointers=new int[samples.size()/dimension];
+  double *scratch=new double[samples.size()/dimension];
+  robustFraction=robust_fraction;
+  robustTrials=robust_trials;
+  GeomHash::grow(pointers,scratch,min_size);
+  delete[] pointers;
+  delete[] scratch;
+}
+
+
+void TemplateGeomHash::store(int *pointers,int size,int parent){
+  for(int d=0;d<dimension;d++){						
+    double best_sum=0;                                                  
+    double best_rms=HUGE_VAL;						
+    
+    // Compute the templates
+    for(int trial=0;trial<robustTrials;trial++){			
+      double sum=0;							
+      double sum2=0;							
+      int total=0;							
+      for(int i=0;i<size;i++){
+	if((rand() / (RAND_MAX + 1.0))>robustFraction) continue;
+	total++;
+	sum+=samples[offset(pointers[i])+d];
+	sum2+=samples[offset(pointers[i])+d]*samples[offset(pointers[i])+d];
+      } 
+      if(total==0) continue;						
+      sum/=total;							
+      sum2/=total; 
+      sum2-=sum*sum;					
+      if(sum2<best_rms){best_rms=sum2;best_sum=sum;}			
+    }									
+    templates.push_back(best_sum); templatesRMS.push_back(best_rms);	
+  }									
+  GeomHash::store(pointers,size,parent);
+}
+
+
+ClassImp(PurityHash);
+
+PurityHash::PurityHash(int d): GeomHash(d) {Kind.reserve(1024);}
+
+void PurityHash::push(float *x,bool kind){
+  GeomHash::push(x);
+  sample_kind.push_back(kind?1:0);
+}
+
+
+void PurityHash::grow(int min_size){
+  GeomHash::grow(min_size);
+  sample_kind.resize(0);
+  vector<bool> empty; sample_kind=empty;
+}
+
+void PurityHash::store(int *pointers,int size,int parent){
+  double sum=0;							
+  for(int i=0;i<size;i++) sum+=sample_kind[pointers[i]];
+  Kind.push_back(sum/size);
+  GeomHash::store(pointers,size,parent);
+}
+
+
+double  PurityHash::bestSplit(int *pointers,int size,double *scratch,int &best_position,bool &fail){
+  if(minSize/2>=size-minSize/2){fail=true; return 0;}
+
+  int n[2]={0,0};
+  int N[2];
+  int nfinal[2]={0,0};
+  double p[2];
+  for(int i=0;i<size;i++) nfinal[sample_kind[pointers[i]]]++;
+
+  double best_purity=HUGE_VAL;
+  best_position=-1;
+  double best_value;
+  for(int i=0;i<size-minSize/2;i++){
+    n[sample_kind[pointers[i]]]++;
+    if(i<minSize/2) continue;
+    
+    p[0]=double(n[0])/(n[0]+n[1]);
+    p[1]=double(n[1])/(n[0]+n[1]);
+
+    int N[2]; N[0]=nfinal[0]-n[0]; N[1]=nfinal[1]-n[1];
+
+    double purity=-(n[0]!=0?n[0]*log(p[0]):0)-(n[1]!=0?n[1]*log(p[1]):0);
+    
+    p[0]=double(N[0])/(N[0]+N[1]);
+    p[1]=double(N[1])/(N[0]+N[1]);
+    
+    purity-=(N[0]!=0?N[0]*log(p[0]):0)+(N[1]!=0?N[1]*log(p[1]):0);
+
+    if(purity<best_purity){
+      best_purity=purity;
+      best_position=i;
+      best_value=0.5*(scratch[pointers[i-1]]+scratch[pointers[i]]);
+    }
+    
+  }
+
+  //  if(best_position==-1) {fail=true;return 0;}
+
+  fail=false;
+
+  //  cout<<"RETURNING BEST VALUE "<<best_value<<" best position "<<best_position<<" purity "<<best_purity<<endl;
+
+  return best_value;
 }

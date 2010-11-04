@@ -92,6 +92,85 @@ class Forest: public TObject{
 
 const int nBuffers=4;
 
+
+class GeomHash: public TObject{
+ public:
+  static int trials;
+  bool grown;
+  int dimension;
+  int numNodes;
+  vector<float> points[2];  // The two points per node
+  vector<double> limit;      // The limit to separate among them
+  vector<int>   nodes[2];   // If the node j is terminal, node[0][j]=-1, node[1][j]=entries in bin, point[0][j*dimension]=mean value, point[1][j*dimension]=rms                                                   
+
+  GeomHash(int d=1);
+
+  inline int offset(int which){return which*dimension;}
+
+  //Evaluating
+  int hash(float *point);
+  int get(double x,...);
+
+  // Virtual function
+  virtual double metric(float *p1,float *p2);                                       // Metric definition
+  virtual void store(int *pointer,int size,int parent);                             // Storing information in the tree
+  virtual double bestSplit(int *pointers,int size,double *scratch,int &best_position,bool &fail); // Computation of the best splitting position 
+
+  // Distance
+  double dist(float *r1,float *r2,float *point);  // Define the distance using the metric. If it is negative it means that point is closer to r2
+
+  // Growing
+  vector<float> samples;  //! Vector storing all the samples with the format x0,x1,x2...xn,y,weight
+  void push(float *x);
+  void fill(double x,...);
+
+  int minSize;
+  void grow(int min_size=0);
+
+  void grow(int *pointers,                          // Buffer pointing to the points indexes
+	    double *scratch,int min_size=0);        // Scratch region to store the distances to the points
+
+
+  // grow a tree trying tries time for optimization, and with minSize minimum elements per node. size is the number of samples to be used
+  // stored in buffer (as indexes to samples) and scratch is a temporary scratch space
+  void  grow_internal(int *pointers,
+                      int  size,
+                      double *scratch,
+                      int parent=0);
+
+
+
+  // Some internal buffers
+  static float *buffer[nBuffers]; //!
+  static int    bufferSize;       //!
+
+  static int comparator(const void*,const void*);
+  static double *_distances; //!
+
+  ClassDef(GeomHash,1);
+};
+
+
+
+class TemplateGeomHash: public GeomHash{
+ public:
+  vector<float> templates;
+  vector<float> templatesRMS;
+
+  TemplateGeomHash(int d=1);
+
+  double robustFraction;
+  int robustTrials;
+
+  // Virtual function
+  void store(int *pointer,int size,int parent);                             // Storing information in the tree
+  void grow(int min_size=0,int robust_trials=1,double robust_fraction=1.0);
+  float templateVar(int node, int d){return templates.at(offset(node)+d);}
+  float templateVarRMS(int node, int d){float v=templatesRMS.at(offset(node)+d);return v<=0?0:sqrt(v);}
+  ClassDef(TemplateGeomHash,1);
+};
+
+/*
 // Each node is represented by a single entry in the vectors array
 class GeomHash: public TObject{
  public:
@@ -113,11 +192,13 @@ class GeomHash: public TObject{
   int hash(float *point);
   int get(double x,...);
 
-  // Metric
-  /*virtual*/ double metric(float *p1,float *p2);
+  // Virtual function
+  virtual double metric(float *p1,float *p2);                                       // Metric definition
+  virtual void store(int *pointer,int size,int parent);                             // Storing information in the tree
+  virtual double bestSplit(int *pointers,int size,double *scratch,int &best_position,bool &fail); // Computation of the best splitting position 
 
   // Distance
-  double dist(float *r1,float *r2,float *point);  // Define the metric. If it is negative it means that point is closer to r2
+  double dist(float *r1,float *r2,float *point);  // Define the distance using the metric. If it is negative it means that point is closer to r2
 
   // Growing
   vector<float> samples;  //! Vector storing all the samples with the format x0,x1,x2...xn,y,weight
@@ -155,8 +236,23 @@ class GeomHash: public TObject{
 
   ClassDef(GeomHash,1);
 };
+*/
 
 
+class PurityHash: public GeomHash{
+ public:
+
+  PurityHash(int d=1);
+  void grow(int min_size=0);
+  void push(float *x,bool kind);    
+  void store(int *pointer,int size,int parent);  
+  double bestSplit(int *pointers,int size,double *scratch,int &best_position,bool &fail);
+  vector<bool> sample_kind; //!
+  vector<float> Kind;
+  float templateKind(int node){return Kind.at(node);}
+
+  ClassDef(PurityHash,1);
+};
 
 
 #endif
