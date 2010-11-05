@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.46 2010/11/03 20:06:53 choutko Exp $
+//  $Id: client.C,v 1.47 2010/11/05 19:25:34 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -15,6 +15,12 @@ extern "C" void g_assert_warning         (const char *log_domain,
 		               const char *expression){
 }
 */
+extern "C" void malloc_printerr(int action, const char *str, void *ptr)
+{
+cout <<" malloc_printer-W-"<<str<<endl;
+
+}
+
 char AMSClient::_streambuffer[1024];
 std::ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 

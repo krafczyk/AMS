@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.200 2010/10/25 16:44:33 choutko Exp $
+//  $Id: daqevt.C,v 1.201 2010/11/05 19:25:34 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -311,8 +311,9 @@ int preset=ntotm?4+5:4;
 _Length=preset+ntot+_OffsetL;
 const int thr=32767;
 if((_Length-_OffsetL)*sizeof(*_pcur) > thr){
-  cout<<"DAQEvent::buildDAQ-W-lengthToobig "<<_Length<<endl;
+  cout<<"DAQEvent::buildDAQ-W-lengthToobig "<<_Length<<" "<<ntotm<<endl;
   _Length++;
+  if((ntotm+5-_OffsetL)*sizeof(*_pcur)>32767)_Length++;
 }
 #ifdef __AMSDEBUG__
  assert(sizeof(time_t) == sizeof(integer));
@@ -338,8 +339,8 @@ int16u * _pbeg=_pcur;
  }
  fpl=fpl->_next;
  }
-if(ntotm >32767-4){
-cerr<<"DAQEvent::buildDAQ-E-jinjBlovkLengthTooBigWillNotBeEncoded "<<ntotm<<endl; 
+if((ntotm+4)*2 >32767 && 0){
+cerr<<"DAQEvent::buildDAQ-E-jinjBlockLengthTooBigWillNotBeEncoded "<<ntotm<<endl; 
 }
 else if(ntotm){
 fpl=_pBT[btype];
@@ -347,9 +348,19 @@ fpl=_pBT[btype];
  for(int i=0;i<fpl->_maxbl;i++){
    if(*(fpl->_plength+i)<-1){
     if( ntotm){
-     *_pcur=(ntotm+5-_OffsetL)*2;
-      ntotm=0;
+     uint lntotm=(ntotm+5-_OffsetL)*2;
+if(lntotm <=32767){
+     *_pcur=lntotm;
       pjinj=_pcur;
+}
+else{
+    *_pcur=(lntotm>>16)&32767;
+    *(_pcur+1)=(lntotm)&65535;
+    *_pcur=*_pcur | (1<<15);
+      pjinj=_pcur++;
+}
+      ntotm=0;
+     
      *(_pcur+1)=1 | (128<<5) | (1<<15);
      *(_pcur+2)=AMSEvent::gethead()->getid()&65535;
      _pcur+=3; 

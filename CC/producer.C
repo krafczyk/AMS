@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.140 2010/09/04 16:27:16 choutko Exp $
+//  $Id: producer.C,v 1.141 2010/11/05 19:25:34 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -12,12 +12,15 @@
 #include <sys/statfs.h>
 #include <sys/timeb.h>
 #include <sys/stat.h>
-#include <sys/file.h>*trying to get 
+#include <sys/file.h> 
+#include <malloc.h>
 
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false),_FreeSpace(-1){
 DPS::Producer_var pnill=DPS::Producer::_nil();
+mallopt(M_CHECK_ACTION,1);
+
 _plist.push_back(pnill);
 if(_Head){
  FMessage("AMSProducer::AMSProducer-E-AMSProducerALreadyExists",DPS::Client::CInAbort);
@@ -1398,7 +1401,10 @@ _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000
 AMSProducer::~AMSProducer(){
 const char * a=0;
 cout <<" ams producer destructor called "<<endl;
+
 Exiting(_up?_up->getMessage():a);
+cout <<"  mallopt set "<<endl;
+mallopt(M_CHECK_ACTION,0);
 }
 
 

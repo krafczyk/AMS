@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.228 2010/09/20 15:21:44 choutko Exp $
+//  $Id: trrec.C,v 1.229 2010/11/05 19:25:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3632,6 +3632,10 @@ if(ntrd==1 && ptrd){
                    sensor = TKDBc::nsen(layer,ladder) - 5;
       AMSTrIdGeom idgeom(layer,ladder,sensor,0,0);
       AMSgSen *psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
+       if(!psensor){
+         cerr<<"AMSTrTrack::makeFalseTOFXHits-E-NoSensor "<<layer <<" "<<ladder<<" "<<sensor<<endl; 
+         return 0;
+       }
       idgeom.R2G(idsoft);
 // Get the approximate global y coordinate
       AMSPoint glopos = psensor->str2pnt(0.,py->getcofg(&idgeom));

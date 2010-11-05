@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.592 2010/09/11 15:57:08 choutko Exp $
+# $Id: RemoteClient.pm,v 1.593 2010/11/05 19:25:35 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7772,7 +7772,7 @@ anyagain:
         my $year=$timbeg%10000-1900;
         my $month=int($timbeg/10000)%100-1;
         my $date=int($timbeg/1000000)%100;
-        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
+        if($year < 96 or $year > 118 or $month<0 or $month>11 or $date<1 or $date>31){
              $self->ErrorPlus("TimeBegin $timbeg is out of range $date $month $year");
         }
          $timbegu=timelocal(1,0,8,$date,$month,$year);
@@ -7782,7 +7782,7 @@ anyagain:
         $year=$timend%10000-1900;
         $month=int($timend/10000)%100-1;
         $date=int($timend/1000000)%100;
-        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
+        if($year < 96 or $year > 128 or $month<0 or $month>11 or $date<1 or $date>31){
              $self->ErrorPlus("TimeEnd $timend is out of range $date $month $year");
         }
          $timendu=timelocal(1,0,8,$date,$month,$year);
