@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.62 2010/11/02 16:27:23 pzuccon Exp $
+// $Id: TrTrack.C,v 1.63 2010/11/05 10:25:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/02 16:27:23 $
+///$Date: 2010/11/05 10:25:35 $
 ///
-///$Revision: 1.62 $
+///$Revision: 1.63 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +34,7 @@
 #include "TrTrack.h"
 #include "TrRecHit.h"
 #include "TkSens.h"
-
+#include "TrRecon.h"
 #include <cmath>
 #include <algorithm>
 
@@ -325,6 +325,53 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
     _BField[ihit] = AMSPoint(0, 0, 0);
     _MagFieldOn = 0;
   }
+}
+
+
+bool TrTrackR::RemoveHitOnLayer( int layer){
+  if(layer <1 || layer >9) return false;
+  int idx=-1;
+  TrRecHitR* phit=0;
+  for (int ii=0; ii< _Nhits; ii++){
+    TrRecHitR* phit2=pTrRecHit(ii);
+    if( phit2->GetLayer() == layer)
+      {idx=ii; phit=phit2;}
+  }
+  if(idx==-1) return false;
+  // Remove the entry in the arrays
+  _Nhits--;
+  for (int kk=idx;kk<_Nhits;kk++){
+    _Hits   [kk] = _Hits   [kk+1];
+    _BField [kk] = _BField [kk+1];
+    _iHits  [kk] = _iHits  [kk+1];
+  }
+  // Update the number of projection hits
+  if (phit->GetXCluster()) _NhitsX--;
+  if (phit->GetYCluster()) _NhitsY--;
+  if (phit->GetXCluster() && phit->GetYCluster()) _NhitsXY--;
+  // Update the bitted pattern
+  ushort _bit=_bit_pattern ^ (1<<(phit->GetLayer()-1));  
+  _bit_pattern=_bit;
+  _bit=0;
+  ushort _bitX=0;
+  ushort _bitY=0;
+  ushort _bitXY=0;
+  for (int jj=0;jj<_Nhits;jj++){
+    _bit|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetXCluster()) _bitX|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetYCluster()) _bitY|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetYCluster()&&pTrRecHit(jj)->GetYCluster())
+      _bitXY|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+  }
+  _bit   = _bit>>1;
+  _bitX  = _bitX>>1;
+  _bitY  = _bitY>>1;
+  _bitXY = _bitXY>>1;
+  _Pattern   = TrRecon::GetHitPatternIndex(_bit);
+  _PatternX  = TrRecon::GetHitPatternIndex(_bitX);
+  _PatternY  = TrRecon::GetHitPatternIndex(_bitY);
+  _PatternXY = TrRecon::GetHitPatternIndex(_bitXY);
+  return true;
 }
 
 void TrTrackR::BuildHitsIndex()

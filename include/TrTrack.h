@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.43 2010/10/28 15:13:59 shaino Exp $
+//  $Id: TrTrack.h,v 1.44 2010/11/05 10:25:56 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/10/28 15:13:59 $
+///$Date: 2010/11/05 10:25:56 $
 ///
-///$Revision: 1.43 $
+///$Revision: 1.44 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -238,13 +238,13 @@ public:
   static int DefaultFitID;
 #pragma omp threadprivate(DefaultFitID)
 public:
-
-//############### CONSTRUCTORS & C. ############################
+  
+  //############### CONSTRUCTORS & C. ############################
   /// Default constructor
   TrTrackR();
   /// Constructor with hits
   TrTrackR(int pattern, 
-	     int nhits = 0, TrRecHitR *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0);
+	   int nhits = 0, TrRecHitR *phit[] = 0,AMSPoint bfield[]=0, int *imult = 0,int fithmethod=0);
 
   /// Dummy track for RICH compatibility (filled at [kDummy])
   TrTrackR(number theta, number phi, AMSPoint pref);
@@ -258,6 +258,9 @@ public:
 
   /// Add a hit with multiplicity index if specified, B-field is taken from coo
   void AddHit(TrRecHitR *hit, int imult = -1);
+  /// Remove the hit on the selected layer (1-9) 
+  bool RemoveHitOnLayer( int layer);
+
 
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy, int pat = -1) {

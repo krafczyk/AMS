@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.21 2010/10/28 18:05:40 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.22 2010/11/05 10:25:56 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -107,7 +107,7 @@ protected:
   
   /// Get ladder TkId identifier 
   int   GetTkId()        const { return _tkid; }
-  /// Get ladder layer
+  /// Get ladder layer (1-9)
   int   GetLayer()       const { return abs(_tkid/100); }
   /// Get ladder slot
   int   GetSlot()        const { return abs(_tkid%100); }
