@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.201 2010/11/05 19:25:34 choutko Exp $
+//  $Id: daqevt.C,v 1.202 2010/11/05 21:43:27 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -357,7 +357,7 @@ else{
     *_pcur=(lntotm>>16)&32767;
     *(_pcur+1)=(lntotm)&65535;
     *_pcur=*_pcur | (1<<15);
-      pjinj=_pcur++;
+      pjinj=++_pcur;
 }
       ntotm=0;
      

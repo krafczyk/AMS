@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
+*  $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
 *-----------------------------------------------------------------------
@@ -169,8 +169,8 @@ c      real     FunMi !!! Required (but doesn't like it ???) by STUPID PAW.
         open(unit=lun8,form='formatted',file='/dev/null',
      +  status='unknown',shared)
 #else
-       open(unit=lun8,form='formatted',file='/dev/null',
-     +  status='unknown')
+*       open(unit=lun8,form='formatted',file='/dev/null',
+*     +  status='new')
 #endif
       endif
       if(first) then ! ----------------- first
@@ -1205,8 +1205,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
+* $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.21  2010/11/05 21:43:27  choutko
+* *** empty log message ***
+*
 * Revision 1.20  2010/10/16 17:24:03  shaino
 * Error message suppression
 *
@@ -1411,8 +1414,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.20 2010/10/16 17:24:03 shaino Exp $
+* $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.21  2010/11/05 21:43:27  choutko
+* *** empty log message ***
+*
 * Revision 1.20  2010/10/16 17:24:03  shaino
 * Error message suppression
 *
