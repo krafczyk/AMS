@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.593 2010/11/05 19:25:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.594 2010/11/06 16:08:01 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect  Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns);
+@RemoteClient::EXPORT= qw(new  Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -13847,10 +13847,23 @@ sub insertNtuple {
         $fetime=$ret->[0][0];
         $letime=$ret->[0][1];
     }
-    
+   my $rj=$self->{sqlserver}->Query(" select content from jobs where jid=$jid");    my $part=0;
+    if(defined($rj->[0][0])){
+      my $content=$rj->[0][0];
+      my @junk=split "PART=",$content;
+      if($#junk>0){
+          my @junk1=split "\n",$junk[1];
+          if($#junk1>=0){
+             $part=$junk1[0];
+          }
+       }
+       
+    }
+
+ 
     $sql="delete from mcfiles where run=$run";
      $self->{sqlserver}->Update($sql);
-    $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,0,$fetime,$letime,'$paths$run')";
+    $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths$run')";
 }
   }
   else{
@@ -15134,8 +15147,8 @@ sub getDefByKey {
     my $self = shift;
     my $key  = shift;
     my $ret  = undef;
-
-    my $sql="select myvalue from Environment where mykey='".$key."'";
+    my $schema="amsdes";
+    my $sql="select myvalue from $schema.Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $ret = $ret->[0][0];
@@ -17159,8 +17172,8 @@ sub getTestCiteId() {
 
      my $self = shift;
      my $tid  = undef;
-
-     my $sql = "SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'";
+     my $schema="amsdes";
+     my $sql = "SELECT Cites.cid FROM $schema.Cites WHERE Cites.name = 'test'";
      my $ret=$self->{sqlserver}->Query($sql);
      if (defined $ret->[0][0]) {
       $tid = $ret->[0][0];
@@ -18841,3 +18854,23 @@ foreach my $thing (@result) {
 return  $buildnum_min, $buildnum_max;
 }
 ##############################################
+
+sub TestPerl{
+#test arb perl text
+
+    my $self=shift;
+    my $jid=shift;
+       my $rj=$self->{sqlserver}->Query(" select content from amsdes.jobs where jid=$jid");    my $part=0;
+    if(defined($rj->[0][0])){
+      my $content=$rj->[0][0];
+      my @junk=split "PART=",$content;
+      if($#junk>0){
+          my @junk1=split "\n",$junk[1];
+          if($#junk1>=0){
+             $part=$junk1[0];
+          }
+       }
+       
+    }
+    print "$part \n";
+}

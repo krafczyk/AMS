@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.84 2009/06/21 17:57:34 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.85 2010/11/06 16:08:00 choutko Exp $
 
 #
 #
@@ -667,6 +667,7 @@ my $sql;
 # INSERT INTO datasets
 #
     $cnt = 0;
+     my $schema="amsdes";
     if($self->{dbdriver} =~ m/Oracle/){
      $sql="SELECT COUNT(did) FROM Datasets";
      $cntr=$self->Query($sql);
@@ -679,13 +680,13 @@ my $sql;
      my $timestamp = time();    
      my $dir  => undef;
      my $key='AMSDataDir';
-     $sql="select myvalue from Environment where mykey='".$key."'";
+     $sql="select myvalue from $schema.Environment where mykey='".$key."'";
      my $ret = $self->Query($sql);
      if( defined $ret->[0][0]){
       $dir=$ret->[0][0];
      }
      $key='AMSSoftwareDir';
-     $sql="select myvalue from Environment where mykey='".$key."'";
+     $sql="select myvalue from $schema.Environment where mykey='".$key."'";
      $ret = $self->Query($sql);
      if( defined $ret->[0][0]){
       $dir=$dir."/".$ret->[0][0];
@@ -754,13 +755,13 @@ my $sql;
      my $timestamp = time();    
      my $dir  => undef;
      my $key='AMSDataDir';
-     $sql="select myvalue from environment where mykey='".$key."'";
+     $sql="select myvalue from $schema.environment where mykey='".$key."'";
      my $ret = $self->Query($sql);
      if( defined $ret->[0][0]){
       $dir=$ret->[0][0];
      }
      $key='AMSSoftwareDir';
-     $sql="select myvalue from environment where mykey='".$key."'";
+     $sql="select myvalue from $schema.environment where mykey='".$key."'";
      $ret = $self->Query($sql);
      if( defined $ret->[0][0]){
       $dir=$dir."/".$ret->[0][0];
