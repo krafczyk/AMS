@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.31 2010/11/04 09:18:57 mdelgado Exp $
+//  $Id: g4physics.C,v 1.32 2010/11/07 20:21:10 mmilling Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.31 2010/11/04 09:18:57 mdelgado Exp $
+// $Id: g4physics.C,v 1.32 2010/11/07 20:21:10 mmilling Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -40,6 +40,8 @@
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSC.hh"
 #include "G4IonPhysics.hh"
+
+#include "TRD_SimUtil.h"
 
 AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0)
 {
@@ -122,8 +124,9 @@ void AMSG4Physics::ConstructProcess()
     cout<<"QGSP Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
-     pem->ConstructProcess();
+      //     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
+      //     pem->ConstructProcess();
+      ConstructEM2();
     }
     if(GCPHYS.IHADR){
      HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
@@ -136,8 +139,9 @@ void AMSG4Physics::ConstructProcess()
     cout<<"QGSC Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
-     pem->ConstructProcess();
+      //     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
+      //     pem->ConstructProcess();
+      ConstructEM2();
     }
     if(GCPHYS.IHADR){
      HadronPhysicsQGSC* pqgsp=new HadronPhysicsQGSC();
@@ -151,7 +155,7 @@ void AMSG4Physics::ConstructProcess()
     abort();
    }
     ConstructGeneral();
-  if(TRDMCFFKEY.mode>=0)ConstructXRay();
+    //  if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV)ConstructOp();
 }
 
@@ -182,6 +186,8 @@ void AMSG4Physics::ConstructProcess()
 
 void AMSG4Physics::ConstructEM()
 {
+  G4Region *gasregion=trdSimUtil.gasregion;
+
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
@@ -189,7 +195,7 @@ void AMSG4Physics::ConstructEM()
     G4String particleName = particle->GetParticleName();
     //cout <<"  particle "<<particleName<<" "<<G4FFKEY.LowEMagProcUsed<<endl; 
     if (particleName == "gamma") {
-    // gamma
+      // gamma
     if(!G4FFKEY.LowEMagProcUsed){
       // Construct processes for gamma
       pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
@@ -215,8 +221,13 @@ void AMSG4Physics::ConstructEM()
 
       // Construct processes for electron
       G4VProcess* theeminusMultipleScattering = new G4MultipleScattering();
-      G4VProcess* theeminusIonisation = new G4eIonisation();
+      G4eIonisation* theeminusIonisation = new G4eIonisation();
       G4VProcess* theeminusBremsstrahlung = new G4eBremsstrahlung();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	theeminusIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
+
       // add processes
       pmanager->AddProcess(theeminusMultipleScattering);
       pmanager->AddProcess(theeminusIonisation);
@@ -239,8 +250,13 @@ void AMSG4Physics::ConstructEM()
     if(G4FFKEY.LowEMagProcUsed){
 
         G4MultipleScattering* aMultipleScattering = new G4MultipleScattering();
+	G4eIonisation* eIoni=new G4eIonisation();
+	if(TRDMCFFKEY.PAIModel){
+	  G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	  eIoni->AddEmModel(0,pai,pai,gasregion);
+	}
         pmanager->AddProcess(aMultipleScattering,     -1, 1, 1);
-        pmanager->AddProcess(new G4eIonisation(),     -1, 2, 2);
+        pmanager->AddProcess(eIoni              ,     -1, 2, 2);
         pmanager->AddProcess(new G4eBremsstrahlung(), -1,-1, 3);
         pmanager->AddProcess(new G4eplusAnnihilation(),0,-1, 4);
 
@@ -250,7 +266,11 @@ void AMSG4Physics::ConstructEM()
 
     
       G4VProcess* theeplusMultipleScattering = new G4MultipleScattering();
-      G4VProcess* theeplusIonisation = new G4eIonisation();
+      G4eIonisation* theeplusIonisation = new G4eIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	theeplusIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
       G4VProcess* theeplusBremsstrahlung = new G4eBremsstrahlung();
       G4VProcess* theeplusAnnihilation = new G4eplusAnnihilation();
       // add processes
@@ -280,7 +300,11 @@ void AMSG4Physics::ConstructEM()
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
      G4VProcess* aBremsstrahlung = new G4MuBremsstrahlung();
      G4VProcess* aPairProduction = new G4MuPairProduction();
-     G4VProcess* anIonisation = new G4MuIonisation();
+     G4MuIonisation* anIonisation = new G4MuIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	anIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
       // add processes
      pmanager->AddProcess(anIonisation);
      pmanager->AddProcess(aMultipleScattering);
@@ -297,7 +321,11 @@ void AMSG4Physics::ConstructEM()
      
     } else if( particleName == "GenericIon" ) {
 //     G4VProcess* aionIonization = new G4ionIonisation;
-     G4VProcess* aionIonization = new G4hIonisation;
+      G4hIonisation* aionIonization = new G4hIonisation;
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	aionIonization->AddEmModel(0,pai,pai,gasregion);
+      }
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
      pmanager->AddProcess(aionIonization);
      pmanager->AddProcess(aMultipleScattering);
@@ -313,8 +341,12 @@ void AMSG4Physics::ConstructEM()
 	      (particle->GetParticleName() != "chargedgeantino")) {
      // all others charged particles except geantino
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
-     G4VProcess* anIonisation = new G4hIonisation();
+     G4hIonisation* anIonisation = new G4hIonisation();
      // add processes
+     if(TRDMCFFKEY.PAIModel){
+       G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+       anIonisation->AddEmModel(0,pai,pai,gasregion);
+     }
      pmanager->AddProcess(anIonisation);
      pmanager->AddProcess(aMultipleScattering);
      // set ordering for AlongStepDoIt
@@ -792,7 +824,7 @@ void AMSG4Physics::ConstructOp()
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
       */
-      pmanager->AddContinuousProcess(theCerenkovProcess);
+      //      pmanager->AddContinuousProcess(theCerenkovProcess);
     }
     if (particleName == "opticalphoton") {
       G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;
@@ -855,11 +887,13 @@ void AMSG4Physics::SetCuts()
 {
   //  " G4VUserPhysicsList::SetCutsWithDefault" method sets 
   //   the default cut value for all particle types 
-         SetCutsWithDefault();   
-
-   G4double cut = defaultCutValue;
-   cout <<"AMSG4Physics::SetCuts-I-DefaultCut "<<cut<<endl;
-
+  //  (G4RegionStore::GetInstance())->Register(trdSimUtil.gasregion);
+  //  G4cout << "gasregion " << trdSimUtil.gasregion << G4endl;
+  SetCutsWithDefault();   
+  
+  G4double cut = defaultCutValue;
+  cout <<"AMSG4Physics::SetCuts-I-DefaultCut "<<cut<<endl;
+  
   // set cut values for gamma at first and for e- second and next for e+,
   // because some processes for e+/e- need cut values for gamma
   SetCutValue(cut/10., "gamma");
@@ -872,8 +906,13 @@ void AMSG4Physics::SetCuts()
   SetCutValue(cut, "proton");
   SetCutValue(cut, "anti_proton");
  
+  trdSimUtil.gasregion->SetProductionCuts(trdSimUtil.fTrdGasRegionCuts);
+  trdSimUtil.radregion->SetProductionCuts(trdSimUtil.fTrdRadRegionCuts);
 
-
+  //  G4VPersistencyManager *persM = G4VPersistencyManager::GetPersistencyManager() ;
+  //  G4VPhysicalVolume *theWorld= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()->GetWorldVolume() ;
+  //  persM->Store(theWorld);
+ 
 
 #ifdef __AMSDEBUG__
   theParticleIterator->reset();
@@ -1235,4 +1274,189 @@ G4VParticleChange* AMSUserSpecialCuts::PostStepDoIt(
    aParticleChange.ProposeLocalEnergyDeposit (aTrack.GetKineticEnergy()) ;
    aParticleChange.ProposeTrackStatus(fStopAndKill);
    return &aParticleChange;
+}
+
+void AMSG4Physics::ConstructEM2( void ){
+  int debug=TRDMCFFKEY.debug;
+  int verbose=(TRDMCFFKEY.debug>1);
+  if(debug)G4cout << "Enter TrdSimUtil::ConstructEM" << G4endl;
+  
+  std::stringstream name;
+  name << "GammaXTRadiator" ;
+
+  if(debug)G4cout<<"alpha fiber "<<trdSimUtil.GetAlphaFiber()
+	<<" alpha gas "<<trdSimUtil.GetAlphaGas()
+	<<" fleece material "<<trdSimUtil.GetG4FleeceMaterial()->GetName()
+	<<" gas material "<< trdSimUtil.GetG4TubeGasMaterial()->GetName()
+	<<" foil thickness "<< trdSimUtil.GetTrdFoilThickness()
+	<<" gas thickness "<<trdSimUtil.GetTrdGasThickness()
+	<< " nfoils "<<trdSimUtil.GetTrdFoilNumber()<<G4endl;
+  
+  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator(trdSimUtil.radregion,
+							 trdSimUtil.GetAlphaFiber(),
+							 trdSimUtil.GetAlphaGas(),
+							 trdSimUtil.GetG4FleeceMaterial(),
+							 trdSimUtil.GetG4FleeceGasMaterial(),
+							 
+							 trdSimUtil.GetTrdFoilThickness(),
+							 trdSimUtil.GetTrdGasThickness(),
+							 (G4int)trdSimUtil.GetTrdFoilNumber(),
+							 "GammaXTRadiator" );
+  
+  if( !processXTR ){
+    printf("not xtr process\n");
+  }
+  else{
+    processXTR->SetVerboseLevel(verbose);
+    processXTR->G4VProcess::SetVerboseLevel(verbose);
+  }
+  
+  /*  G4ProcessManager * pmanager = 0;
+  pmanager = G4PionPlus::PionPlus()->GetProcessManager();
+  pmanager->AddDiscreteProcess(processXTR);
+  
+  pmanager = G4PionMinus::PionMinus()->GetProcessManager();
+    pmanager->AddDiscreteProcess(processXTR);
+    
+    pmanager = G4Electron::Electron()->GetProcessManager();
+    pmanager->AddDiscreteProcess(processXTR);
+    
+    pmanager = G4Positron::Positron()->GetProcessManager();
+    pmanager->AddDiscreteProcess(processXTR);
+    
+    pmanager = G4Proton::Proton()->GetProcessManager();
+    pmanager->AddDiscreteProcess(processXTR);
+  */
+    G4Region *gasregion=trdSimUtil.gasregion;
+    gasregion->UpdateMaterialList();
+
+    if(debug)G4cout << "gasregion root volumes: " << gasregion->GetNumberOfRootVolumes() << " materials : " << gasregion->GetNumberOfMaterials() << G4endl;
+    
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String particleName = particle->GetParticleName();
+    if(debug > 1)
+      G4cout << "Construct Processes for "<< particleName << G4endl;
+    
+    if (particleName == "gamma") {
+      
+      pmanager->AddDiscreteProcess(new G4PhotoElectricEffect);
+      pmanager->AddDiscreteProcess(new G4ComptonScattering);
+      pmanager->AddDiscreteProcess(new G4GammaConversion);
+      pmanager->AddDiscreteProcess(processXTR);
+      
+    } else if (particleName == "e-") {
+
+      G4eIonisation* eioniPAI= new G4eIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	eioniPAI->AddEmModel(0,pai,pai,gasregion);
+      }
+      eioniPAI->SetVerboseLevel(debug);
+      pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddDiscreteProcess(processXTR);
+
+    } else if (particleName == "e+") {
+      G4eIonisation* eioniPAI= new G4eIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
+	eioniPAI->AddEmModel(0,pai,pai,gasregion);
+      }
+      pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
+      pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
+      pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
+      pmanager->AddDiscreteProcess(processXTR);
+
+    } else if (particleName == "mu+" ||
+               particleName == "mu-"    ) {
+      G4MuIonisation* muioni = new G4MuIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel*     pai    = new G4PAIModel(particle,"PAIModel");
+	muioni->AddEmModel(0,pai,pai,gasregion);
+      }
+      pmanager->AddProcess(new G4MultipleScattering,-1, 1, 1);
+      pmanager->AddProcess( muioni,                 -1, 2, 2);
+      pmanager->AddProcess(new G4MuBremsstrahlung,  -1, 3, 3);
+      pmanager->AddProcess(new G4MuPairProduction,  -1, 4, 4);
+      pmanager->AddDiscreteProcess(processXTR);
+      
+    } else if (particleName == "alpha" ||
+               particleName == "He3" ||
+               particleName == "GenericIon"){
+
+      G4ionIonisation* theIonIonisation = new G4ionIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
+	theIonIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
+      pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(theIonIonisation,         -1, 2, 2);
+      pmanager->AddDiscreteProcess(processXTR);
+
+    } else if (particleName == "pi+" ||
+               particleName == "pi-" ||
+               particleName == "proton" ) {
+
+      G4hIonisation* thehIonisation = new G4hIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
+	thehIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
+      pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+      pmanager->AddProcess(thehIonisation,            -1, 2, 2);
+      pmanager->AddDiscreteProcess(processXTR);
+      //      pmanager->AddProcess(new G4IonBremsstrahlung,     -1,-3, 3);
+      //      pmanager->AddProcess(new G4hPairProduction,     -1,-4, 4);
+
+
+    } else if (particleName == "B+" ||
+               particleName == "B-" ||
+               particleName == "D+" ||
+               particleName == "D-" ||
+               particleName == "Ds+" ||
+               particleName == "Ds-" ||
+               particleName == "anti_lambda_c+" ||
+               particleName == "anti_omega-" ||
+               particleName == "anti_proton" ||
+               particleName == "anti_sigma_c+" ||
+               particleName == "anti_sigma_c++" ||
+               particleName == "anti_sigma+" ||
+               particleName == "anti_sigma-" ||
+               particleName == "anti_xi_c+" ||
+               particleName == "anti_xi-" ||
+               particleName == "deuteron" ||
+               particleName == "kaon+" ||
+               particleName == "kaon-" ||
+               particleName == "lambda_c+" ||
+               particleName == "omega-" ||
+               particleName == "sigma_c+" ||
+               particleName == "sigma_c++" ||
+               particleName == "sigma+" ||
+               particleName == "sigma-" ||
+               particleName == "tau+" ||
+               particleName == "tau-" ||
+               particleName == "triton" ||
+               particleName == "xi_c+" ||
+               particleName == "xi-" ) {
+
+      G4hIonisation* thehIonisation = new G4hIonisation();
+      if(TRDMCFFKEY.PAIModel){
+	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
+	thehIonisation->AddEmModel(0,pai,pai,gasregion);
+      }
+      pmanager->AddProcess( new G4MultipleScattering,-1, 1, 1);
+      pmanager->AddProcess( thehIonisation,          -1, 2, 2);
+      pmanager->AddDiscreteProcess(processXTR);
+    }
+  }
+  G4EmProcessOptions opt;
+  opt.SetApplyCuts(true);
+  opt.SetVerbose(debug);
+
+  if(debug)G4cout << "Exit TrdSimUtil::ConstructEM" << G4endl;
 }

@@ -7,7 +7,7 @@ class TRD_GammaXTRadiator : public TRD_VXTenergyLoss
 {
 public:
 
-  TRD_GammaXTRadiator (G4String volName,
+  TRD_GammaXTRadiator (G4Region *anEnvelope,
 			G4double,G4double,
 			G4Material*,G4Material*,
                         G4double,G4double,G4int,

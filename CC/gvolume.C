@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.57 2010/06/25 15:00:04 zweng Exp $
+//  $Id: gvolume.C,v 1.58 2010/11/07 20:21:09 mmilling Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -37,6 +37,9 @@
 //#include "G4AssemblyCreator.hh"
 #include "G4OpBoundaryProcess.hh"
 #endif
+
+#include "TRD_SimUtil.h"
+
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
 AMSgvolume::_amsrm::_amsrm(){
@@ -438,9 +441,12 @@ integer AMSgvolume::_Norp=0;
      if(_pgtmed->IsSensitive()){
       _pg4l->SetUserLimits(new AMSUserLimits());
       if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
+	trdSimUtil.radregion->AddRootLogicalVolume(_pg4l);
+	trdSimUtil.radlv=_pg4l;
         _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
+        trdSimUtil.gasregion->AddRootLogicalVolume(_pg4l);
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
       }
       else{

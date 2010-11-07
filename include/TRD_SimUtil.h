@@ -1,11 +1,14 @@
 #ifndef _TRD_SimUtil_
 #define _TRD_SimUtil_
 
+#include "commons.h"
 #include "gmat.h"
 #include "globals.hh"
+
 #include "TRD_VXTenergyLoss.hh"
 #include "TRD_GammaXTRadiator.hh"
 #include "TRD_TrdPhysics.hh"
+
 #include "G4Gamma.hh"
 #include "G4Electron.hh"
 #include "G4Positron.hh"
@@ -13,10 +16,63 @@
 #include "G4PionPlus.hh"
 #include "G4PionMinus.hh"
 #include "G4VPhysicsConstructor.hh"
+#include "G4VPersistencyManager.hh"
+#include "G4ProcessManager.hh"
+#include "G4PAIModel.hh"
+#include "G4GeometryManager.hh"
+#include "G4LogicalVolumeStore.hh"
+#include <G4VModularPhysicsList.hh>
+#include "G4VPhysicalVolume.hh"
+#include "G4LogicalVolume.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ProcessManager.hh"
+#include "G4LossTableManager.hh"
+
+#include "G4ComptonScattering.hh"
+#include "G4GammaConversion.hh"
+#include "G4PhotoElectricEffect.hh"
+
+#include "G4MultipleScattering.hh"
+
+#include "G4eIonisation.hh"
+#include "G4eBremsstrahlung.hh"
+#include "G4eplusAnnihilation.hh"
+
+#include "G4MuIonisation.hh"
+#include "G4MuBremsstrahlung.hh"
+#include "G4MuPairProduction.hh"
+
+#include "G4hIonisation.hh"
+
+#include "G4ionIonisation.hh"
+
+
+#include "G4Gamma.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
+#include "G4MuonPlus.hh"
+#include "G4MuonMinus.hh"
+#include "G4PionPlus.hh"
+#include "G4PionMinus.hh"
+#include "G4KaonPlus.hh"
+#include "G4KaonMinus.hh"
+#include "G4Proton.hh"
+#include "G4AntiProton.hh"
+#include "G4Deuteron.hh"
+#include "G4Triton.hh"
+#include "G4He3.hh"
+#include "G4Alpha.hh"
+#include "G4GenericIon.hh"
+
+#include "G4Region.hh"
+#include "G4RegionStore.hh"
+
+#include "G4PAIModel.hh"
 
 extern AMSgmat mat;
 
-class TrdSimUtil{
+class TrdSimUtil
+{
  private:
   G4Material *trdTubeGasMaterial;
   G4Material *trdFleeceMaterial;
@@ -42,10 +98,7 @@ class TrdSimUtil{
   G4int trdFleeceGasConf;///< gas in radiator 0=AIR,1=VACUUM
 
  public:
-  TrdSimUtil():trdGasTemperature(290.),trdGasPressure(1.*atmosphere),trdFleeceFiberDiameter(12.0*um),trdRadiatorThickness(20.0*mm),fAlphaFiber(100.),fAlphaGas(100.),trdFleeceGasConf(0),fTrdNumberFractionXe(0.8),fTrdNumberFractionCO2(0.2),fTrdNumberFractionAr(0.){
-    //    DefineRadiator();
-    //    DefineTubeGas();
-  };
+  TrdSimUtil();
   
   void UpdateGas( void );
   
@@ -58,26 +111,29 @@ class TrdSimUtil{
   void SetTrdGasTemperature( G4double val ) {trdGasTemperature = val;}
   void SetTrdGasPressure( G4double val ) {trdGasPressure = val;}
 
-  //  AMSgmat *GetRadiatorFleeceMaterial( void );
   AMSgmat *GetTubeGasMaterial( void );
   AMSgmat *GetRadiatorArtificialMaterial( void );
 
   G4Material *GetG4TubeGasMaterial( void ){return trdTubeGasMaterial;}
   G4Material *GetG4FleeceMaterial( void ){return trdFleeceMaterial;}
   G4Material *GetG4FleeceGasMaterial( void ){return trdFleeceGasMaterial;}
-  //  AMSgmat *GetRadiatorGasMaterial( void );
   
   G4double GetTrdFoilThickness ( void ){return (trdFleeceFiberDiameter);}
   G4double GetTrdGasThickness ( void ){return (trdMeanGasGap);}
   G4double GetTrdFoilNumber ( void ){return (trdMeanFoilNumber);}
   G4double GetAlphaFiber ( void ){return fAlphaFiber;}
   G4double GetAlphaGas ( void ){return fAlphaGas;}
-  //  TRD_TrdPhysics *DefineGammaXTR( void );
   
   void DefineTubeGas( void );
   void DefineRadiator( void );
 
+  G4ProductionCuts *fTrdGasRegionCuts;
+  G4ProductionCuts *fTrdRadRegionCuts;
+  G4Region*        gasregion;
+  G4Region*        radregion;
+  G4LogicalVolume* radlv;
 };
+
 
 extern TrdSimUtil trdSimUtil;
 #endif

@@ -6,7 +6,7 @@ TrdSimUtil trdSimUtil;
 
 void TrdSimUtil::DefineTubeGas( void ) {
   if(trdTubeGasMaterial)delete trdTubeGasMaterial;
-  printf("Enter TrdSimUtil::DefineTubeGas\n");
+  if(TRDMCFFKEY.debug)printf("Enter TrdSimUtil::DefineTubeGas\n");
 
   G4String symbol;             //a=mass of a mole;
   G4double a, z, density;      //z=mean number of protons;
@@ -64,11 +64,11 @@ void TrdSimUtil::DefineTubeGas( void ) {
   trdTubeGasMaterial->AddMaterial( ArGas, massFractionAr );
   trdTubeGasMaterial->AddMaterial( CO2,   massFractionCO2 );
 
-  printf("Exit TrdSimUtil::DefineTubeGas\n");
+  if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::DefineTubeGas\n");
 }
 
 void TrdSimUtil::DefineRadiator( void ) {
-  printf("Enter TrdSimUtil::DefineRadiator\n");
+  if(TRDMCFFKEY.debug)printf("Enter TrdSimUtil::DefineRadiator\n");
   G4String symbol;             //a=mass of a mole;
   G4double a, z, density;      //z=mean number of protons;
   G4int ncomponents, natoms;
@@ -145,19 +145,19 @@ void TrdSimUtil::DefineRadiator( void ) {
     trdRadiatorArtificial->AddMaterial( trdFleeceMaterial, fractionFibre );
     trdRadiatorArtificial->AddMaterial( trdFleeceGasMaterial,      fractionGas  );
   }
-  printf("Exit TrdSimUtil::DefineRadiator\n");
+  if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::DefineRadiator\n");
 }
 
 AMSgmat *TrdSimUtil::GetTubeGasMaterial( void ){
-  printf("Enter TrdSimUtil::GetTubeGasMaterial\n");
+  if(TRDMCFFKEY.debug)printf("Enter TrdSimUtil::GetTubeGasMaterial\n");
   const int n=trdTubeGasMaterial->GetElementVector()->size();
 
   geant a[n],z[n],w[n];
   for(int i=0;i!=n;i++){
     a[i]=trdTubeGasMaterial->GetElementVector()->at(i)->GetA()/g*mole;
     z[i]=trdTubeGasMaterial->GetElementVector()->at(i)->GetZ();
-    w[i]=trdTubeGasMaterial->GetFractionVector()[i];
-    printf("comp %s - A %.2f Z %.2f W %.2f\n",trdTubeGasMaterial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
+    w[i]=trdTubeGasMaterial->GetFractionVector()[i]*1.e8;
+    if(TRDMCFFKEY.debug)printf("comp %s - A %.2f Z %.2f W %.2f\n",trdTubeGasMaterial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
   }
 
   geant density=trdTubeGasMaterial->GetDensity();
@@ -167,20 +167,20 @@ AMSgmat *TrdSimUtil::GetTubeGasMaterial( void ){
 
   AMSgmat *thismat=new AMSgmat ("TrdGasGmat", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin);
 
-  printf("Exit TrdSimUtil::GetTubeGasMaterial\n");
+  if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::GetTubeGasMaterial\n");
   return thismat;
 }
 
 AMSgmat *TrdSimUtil::GetRadiatorArtificialMaterial( void ){
-  printf("Enter TrdSimUtil::GetRadiatorArtificialMaterial\n");
+  if(TRDMCFFKEY.debug)printf("Enter TrdSimUtil::GetRadiatorArtificialMaterial\n");
   const int n=trdRadiatorArtificial->GetElementVector()->size();
 
   geant a[n],z[n],w[n];
   for(int i=0;i!=n;i++){
     a[i]=trdRadiatorArtificial->GetElementVector()->at(i)->GetA()/g*mole;
     z[i]=trdRadiatorArtificial->GetElementVector()->at(i)->GetZ();
-    w[i]=trdRadiatorArtificial->GetFractionVector()[i];
-    printf("comp %s - A %.2f Z %.2f W %.2f\n",trdRadiatorArtificial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
+    w[i]=trdRadiatorArtificial->GetFractionVector()[i]*1.e8;
+    if(TRDMCFFKEY.debug)printf("comp %s - A %.2f Z %.2f W %.2f\n",trdRadiatorArtificial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
   }
 
   geant density=trdRadiatorArtificial->GetDensity();
@@ -190,62 +190,89 @@ AMSgmat *TrdSimUtil::GetRadiatorArtificialMaterial( void ){
 
   AMSgmat *thismat=new AMSgmat ("TrdArtRadGmat", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin);
 
-  printf("Exit TrdSimUtil::GetRadiatorArtificialMaterial\n");
+  if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::GetRadiatorArtificialMaterial\n");
   return thismat;
 }
 
-/*TRD_TrdPhysics *TrdSimUtil::DefineGammaXTR( void ){
-  G4ProcessManager * pManager = 0;
-  
-  G4cout<<"Enter TrdSimUtil::DefineGammaXTR"<<G4endl;
+void TrdSimUtil::UpdateGas ( void ) {
+  G4double cut = TRDMCFFKEY.GasStep*mm;
+  trdGasTemperature=TRDMCFFKEY.Tmean*kelvin;
+  trdGasPressure=TRDMCFFKEY.Pmean/1000.*bar;
+  trdFleeceFiberDiameter=TRDMCFFKEY.FibreDiam*um;
+  trdRadiatorThickness=TRDMCFFKEY.RadThick*mm;
+  fAlphaFiber=TRDMCFFKEY.AlphaFibre;
+  fAlphaGas=TRDMCFFKEY.AlphaGas;
+  trdFleeceGasConf=TRDMCFFKEY.FleeceGas;
+  fTrdNumberFractionXe=TRDMCFFKEY.XenonFraction;
+  fTrdNumberFractionCO2=TRDMCFFKEY.ArgonFraction;
+  fTrdNumberFractionAr=TRDMCFFKEY.CO2Fraction;
 
-  std::stringstream name;
-  name << "GammaXTRadiator" ;
 
-  G4cout<<"In TRD_trdPhysics::ConstructProcess(), check A"<<G4endl;
-  G4cout<<"alpha fiber "<<GetAlphaFiber()
-	<<" alpha gas "<<GetAlphaGas()
-	<<" fleece material "<<GetG4FleeceMaterial()->GetName()
-	<<" gas material "<< GetG4TubeGasMaterial()->GetName()
-	<<" foil thickness "<< GetTrdFoilThickness()
-	<<" gas thickness "<<GetTrdGasThickness()
-	<< " nfoils "<<GetTrdFoilNumber()<<G4endl;
+  fTrdGasRegionCuts = new G4ProductionCuts();
+  fTrdGasRegionCuts->SetProductionCut(cut, idxG4GammaCut);
+  fTrdGasRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
+  fTrdGasRegionCuts->SetProductionCut(cut, idxG4PositronCut);
   
-  TRD_VXTenergyLoss *processXTR = new TRD_GammaXTRadiator( "TRDR",
-							   GetAlphaFiber(),
-							   GetAlphaGas(),
-							   GetG4FleeceMaterial(),
-							   GetG4TubeGasMaterial(),
-							   
-							   GetTrdFoilThickness(),
-							   GetTrdGasThickness(),
-							   GetTrdFoilNumber(),
-							   "GammaXTRadiator" );
+  fTrdRadRegionCuts = new G4ProductionCuts();
+  fTrdRadRegionCuts->SetProductionCut(cut, idxG4GammaCut);
+  fTrdRadRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
+  fTrdRadRegionCuts->SetProductionCut(cut, idxG4PositronCut);
   
-  if( !processXTR ){
-    printf("not xtr process\n");
+  gasregion=new G4Region("TrdGasRegion");
+  (G4RegionStore::GetInstance())->Register(gasregion);
+  radregion=new G4Region("TrdRadRegion");
+  (G4RegionStore::GetInstance())->Register(radregion);
+
+
+  if(TRDMCFFKEY.debug){
+    G4cout << "TRDMC datacards :" << G4endl;
+    G4cout << "PAIModel " << TRDMCFFKEY.PAIModel << G4endl;
+    G4cout << "debug " << TRDMCFFKEY.debug << G4endl;
+    G4cout << "GasStep " << TRDMCFFKEY.GasStep << G4endl;
+
+    G4cout << "Radiator Parameters:" << G4endl;
+    G4cout << " FibreDiam " << TRDMCFFKEY.FibreDiam << G4endl;
+    G4cout << " RadThick " << TRDMCFFKEY.RadThick << G4endl;
+    G4cout << " AlphaFibre " <<  TRDMCFFKEY.AlphaFibre << G4endl;
+    G4cout << " AlphaGas " << TRDMCFFKEY.AlphaGas << G4endl;
+    G4cout << " FleeceGas " << TRDMCFFKEY.FleeceGas << G4endl;
+    
+    G4cout << "Gas Parameters:"<<G4endl;
+    G4cout << " Tmean " << TRDMCFFKEY.Tmean << G4endl;
+    G4cout << " Pmean " << TRDMCFFKEY.Pmean << G4endl;
+    G4cout << " Xe/Ar/CO2 " << TRDMCFFKEY.XenonFraction << "/" << TRDMCFFKEY.ArgonFraction << "/" << TRDMCFFKEY.CO2Fraction << G4endl;
+    
+    
   }
-  else{
-    processXTR->SetVerboseLevel(2);
-    //       processXTR->G4VProcess::SetVerboseLevel(2);
-    
-    pManager = G4PionPlus::PionPlus()->GetProcessManager();
-    pManager->AddDiscreteProcess(processXTR);
-    
-    pManager = G4PionMinus::PionMinus()->GetProcessManager();
-    pManager->AddDiscreteProcess(processXTR);
-    
-    pManager = G4Electron::Electron()->GetProcessManager();
-    pManager->AddDiscreteProcess(processXTR);
-    
-    pManager = G4Positron::Positron()->GetProcessManager();
-    pManager->AddDiscreteProcess(processXTR);
-    
-    pManager = G4Proton::Proton()->GetProcessManager();
-    pManager->AddDiscreteProcess(processXTR);
-  }
 
-
-  return;
 }
-*/
+
+TrdSimUtil::TrdSimUtil(){
+  trdTubeGasMaterial=0;
+  trdFleeceMaterial=0;
+  trdFleeceGasMaterial=0;
+  trdRadiatorArtificial=0;
+
+  trdFleeceFiberDiameter=0.;
+  trdRadiatorThickness=0.;
+  trdGasTemperature=0.;
+  trdGasPressure=0.;
+  trdFoilThickness=0.;
+  trdMeanFoilNumber=0.;
+  trdMeanRadiatorFibreDensity=0.;
+  trdMeanGasGap=0.;
+
+  fTrdNumberFractionXe=0.;
+  fTrdNumberFractionAr=0.;
+  fTrdNumberFractionCO2=0.;
+
+  fAlphaFiber=0.;
+  fAlphaGas=0.;
+  
+  trdFleeceGasConf=0;
+  fTrdGasRegionCuts=0;
+  fTrdRadRegionCuts=0;
+  gasregion=0;
+  radregion=0;
+  radlv=0;
+}

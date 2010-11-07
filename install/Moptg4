@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.84 2010/10/29 19:10:36 mmilling Exp $
+#  $Id: Moptg4,v 1.85 2010/11/07 20:21:26 mmilling Exp $
 #
 SHELL=/bin/sh
 #
@@ -118,7 +118,7 @@ CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include    $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include   $(CFLAGSB)
 FFLAGS=   -fno-automatic -g -I../include
 FFLAGSn=   -fno-automatic -g -I../include
-CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include   
+CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include   $(CFLAGSB) 
 else 
 CFLAGS=      -D__BATCH__  -O2    -I../include   $(CFLAGSB)
 CFLAGS4=      -D__BATCH__ -O2     -pipe  -DGNU_GCC -I../include     $(CPPFLAGS) $(CFLAGSB)
@@ -163,7 +163,8 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
 	$(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C \
 	$(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
-	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C \
+	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
+	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
 	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
 	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C $(SCC)job.C $(SCC)event.C \
@@ -438,7 +439,7 @@ $(BIN)amsgeom.o: 	 $(SCC)amsgeom.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)amsgeom.C -o $(BIN)amsgeom.o
 
 $(BIN)geant.o: 	 $(SCC)geant.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)geant.C -o $(BIN)geant.o
+	$(CC) -c $(CP2F) -D__G4AMS__ $(CFLAGS4P) $(SCC)geant.C -o $(BIN)geant.o
 
 $(BIN)geant3.o: 	 $(SCC)geant3.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)geant3.C -o $(BIN)geant3.o
@@ -542,6 +543,18 @@ $(BIN)trdhrec.o: 	 $(SCC)trdhrec.C
 
 $(BIN)trdsim.o: 	 $(SCC)trdsim.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trdsim.C -o $(BIN)trdsim.o
+
+$(BIN)TRD_SimUtil.o: 	 $(SCC)TRD_SimUtil.C
+	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_SimUtil.C -o $(BIN)TRD_SimUtil.o
+
+$(BIN)G4PAIModel.o: 	 $(SCC)G4PAIModel.C
+	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)G4PAIModel.C -o $(BIN)G4PAIModel.o
+
+$(BIN)TRD_GammaXTRadiator.o: 	 $(SCC)TRD_GammaXTRadiator.C
+	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_GammaXTRadiator.C -o $(BIN)TRD_GammaXTRadiator.o
+
+$(BIN)TRD_VXTenergyLoss.o: 	 $(SCC)TRD_VXTenergyLoss.C
+	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_VXTenergyLoss.C -o $(BIN)TRD_VXTenergyLoss.o
 
 $(BIN)trcalib.o: 	 $(SCC)trcalib.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o

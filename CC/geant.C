@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.129 2010/10/08 17:27:59 mmilling Exp $
+//  $Id: geant.C,v 1.130 2010/11/07 20:21:09 mmilling Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -67,6 +67,9 @@
 #include "geantnamespace.h"
 #include "timeid.h"
 
+#ifdef __G4AMS__
+#include "TRD_SimUtil.h"
+#endif
 #ifdef __AMSVMC__
 #include <TROOT.h>
 #include <TChain.h>
@@ -203,6 +206,9 @@ void gams::UGINIT(int argc,  char * argv[]){
    readSetup();
    if ((AMSFFKEY.Read%2) == 1) lms -> CheckConstants();
 #else
+#ifdef __G4AMS__
+   trdSimUtil.UpdateGas();
+#endif
    AMSgmat::amsmat();
    AMSgtmed::amstmed();
    AMSgvolume::amsgeom();

@@ -1,4 +1,4 @@
-//  $Id: g4physics.h,v 1.9 2010/06/25 16:17:43 zweng Exp $
+//  $Id: g4physics.h,v 1.10 2010/11/07 20:20:31 mmilling Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
@@ -31,6 +31,7 @@ protected:
 #ifndef __AMSVMC__
   virtual void ConstructGeneral();
   virtual void ConstructEM();
+  virtual void ConstructEM2();
   virtual void ConstructHad();
   virtual void ConstructOp();
   void ConstructXRay();

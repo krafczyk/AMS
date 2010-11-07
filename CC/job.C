@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.744 2010/11/04 09:18:58 mdelgado Exp $
+// $Id: job.C,v 1.745 2010/11/07 20:21:10 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1082,6 +1082,19 @@ TRDMCFFKEY.multiples=0;
  TRDMCFFKEY.etrcor=1.2;
  TRDMCFFKEY.ndecor=1.0;
  TRDMCFFKEY.edecor=1.0;
+ TRDMCFFKEY.Tmean=293.15;
+ TRDMCFFKEY.Pmean=1080;
+ TRDMCFFKEY.FibreDiam=18.;
+ TRDMCFFKEY.RadThick=20.;
+ TRDMCFFKEY.AlphaFibre=100;
+ TRDMCFFKEY.AlphaGas=100;
+ TRDMCFFKEY.FleeceGas=0;
+ TRDMCFFKEY.XenonFraction=0.8;
+ TRDMCFFKEY.ArgonFraction=0.;
+ TRDMCFFKEY.CO2Fraction=0.2;
+ TRDMCFFKEY.GasStep=1.;
+ TRDMCFFKEY.PAIModel=1;
+ TRDMCFFKEY.debug=0;
 
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -2292,7 +2305,6 @@ void AMSJob::_sitrdinitjob(){
  if (CCFFKEY.npat>1){
    AMSTRDRawHit::init_delay_table();
  }
-
 }
 void AMSJob::_sisrdinitjob(){
 }

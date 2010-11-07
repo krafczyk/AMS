@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.297 2010/11/03 18:25:22 barao Exp $
+//  $Id: commons.h,v 1.298 2010/11/07 20:20:31 mmilling Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -263,6 +263,20 @@ integer multiples;
  geant  etrcor;
  geant  ndecor;
  geant  edecor;
+
+ geant Tmean;
+ geant Pmean;
+ geant FibreDiam;
+ geant RadThick;
+ geant AlphaFibre;
+ geant AlphaGas;
+ integer FleeceGas;
+ geant XenonFraction;
+ geant ArgonFraction;
+ geant CO2Fraction;
+ geant GasStep;
+ integer PAIModel;
+ integer debug;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);

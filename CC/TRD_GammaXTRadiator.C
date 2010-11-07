@@ -14,13 +14,13 @@ using namespace std;
 //
 // Constructor, destructor
 
-TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4String volName,
+TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
 					 G4double alphaPlate,
 					 G4double alphaGas,
 					 G4Material* foilMat,G4Material* gasMat, 
 					 G4double a, G4double b, G4int n,
 					 const G4String& processName) :
-  TRD_VXTenergyLoss(volName,foilMat,gasMat,a,b,n,processName)
+  TRD_VXTenergyLoss(anEnvelope,foilMat,gasMat,a,b,n,processName)
 {
   G4cout<<"Gammma distributed X-ray TR radiator model is called"<<G4endl ;
 
@@ -37,7 +37,7 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4String volName,
   // compose a more or less unique filename
   stringstream name;
   name << "table_" << processName << "_" 
-       << volName 
+       << anEnvelope->GetName()
        << "_" << alphaPlate << "_" 
        << alphaGas << "_"
        << foilMat->GetName() 

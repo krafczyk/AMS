@@ -1,4 +1,8 @@
 
+// $Id: TRD_VXTenergyLoss.hh,v 1.2 2010/11/07 20:20:30 mmilling Exp $
+
+ 
+
 #ifndef TRD_VXTenergyLoss_h
 #define TRD_VXTenergyLoss_h 1
 
@@ -6,6 +10,8 @@
 #include <complex>
 #include "globals.hh"
 #include "Randomize.hh"
+
+#include "G4LogicalVolume.hh"
 
 #include "G4PhysicsTable.hh"
 #include "G4PhysicsLogVector.hh"
@@ -24,14 +30,34 @@
 #include "G4Integrator.hh"
 #include "G4ParticleChange.hh"
 
+
+
 class G4VParticleChange;
 class G4PhysicsFreeVector;
 
-class TRD_VXTenergyLoss : public G4VDiscreteProcess  // G4VContinuousProcess
+/// \brief Base class for Transition Radiation processes.
+///
+/// "Hacked" version of G4XTRenergyLoss class. Added functionality for assignment
+///  of envelope and storage and retrieval of physics tables to speed up
+///  initialization phase.
+///
+/// G4 comments follow:
+///
+/// base class for 'fast' parametrisation model describing X-ray transition
+/// created in some G4Envelope. Anglur distribuiton is very rough !!! (see DoIt
+/// method
+/// 
+/// History:
+/// 06.10.05 V. Grichine first step to discrete process
+/// 15.01.02 V. Grichine first version
+/// 28.07.05, P.Gumplinger add G4ProcessType to constructor
+///
+class TRD_VXTenergyLoss : public G4VDiscreteProcess // G4VContinuousProcess
+
 {
 public:
 
-  TRD_VXTenergyLoss (G4String volName,G4Material*,G4Material*,
+  TRD_VXTenergyLoss (G4Region *anEnvelope,G4Material*,G4Material*,
                     G4double,G4double,G4int,
                     const G4String & processName = "XTRenergyLoss",
                     G4ProcessType type = fElectromagnetic);
@@ -141,11 +167,7 @@ public:
   G4PhysicsFreeVector* GetAngleVector(G4double energy, G4int n);
 
   /// Set logical volume inside which TR is generated.
-  //  void SetEnvelope( G4LogicalVolume* vol ) { fEnvelopeVec.push_back(vol); }
-  void SetEnvelopeByName( G4String volName ) { 
-    if(find(volNameVec.begin(),volNameVec.end(),volName)==volNameVec.end())
-      volNameVec.push_back(volName);
-  }
+  void SetEnvelope( G4Region* vol ) { fEnvelope = vol; }
 
   /// Try to get the physics table from a file, return success.
   G4bool GetPhysicsTable( void );
@@ -161,8 +183,7 @@ protected:
 
   G4double* fGammaCutInKineticEnergy ; // TR photon cut in energy array
   G4double  fGammaTkinCut ;            // Tkin cut of TR photon in current mat.
-  std::vector<G4String> volNameVec;
-
+  G4Region* fEnvelope ;
   G4PhysicsTable* fAngleDistrTable ;
   G4PhysicsTable* fEnergyDistrTable ;
 

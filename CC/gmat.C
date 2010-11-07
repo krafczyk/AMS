@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.104 2010/10/20 10:44:21 mdelgado Exp $
+//  $Id: gmat.C,v 1.105 2010/11/07 20:21:10 mmilling Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -35,6 +35,8 @@
 #ifdef _PGTRACK_
 #include "MagField.h"
 #endif
+
+#include "TRD_SimUtil.h"
 
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
@@ -97,7 +99,7 @@ if(MISCFFKEY.G4On){
    G4String name(namz);
    int natoms=int(_w[i]);
    _pamsg4m->AddElement(new G4Element(name," ",_z[i],_a[i]*g/mole),natoms);
-  }
+}
  }
 }
 #endif
@@ -489,10 +491,14 @@ mat.add (new AMSgmat("TRDRohaCell", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 // Gas (Xe/CO2) (80/20) 1.1% X0
 
 {
-   geant z[]={54.,6.,8.};
-   geant a[]={131.3,12.,16.};
-   geant w[]={8,2,4};
-   mat.add (new AMSgmat("XECO2_80/20",a,z,w,3,5.1e-3));
+  //   geant z[]={54.,6.,8.};
+  //   geant a[]={131.3,12.,16.};
+  //   geant w[]={8,2,4};
+  //   mat.add (new AMSgmat("XECO2_80/20",a,z,w,3,5.1e-3));
+
+   trdSimUtil.DefineTubeGas();
+   mat.add(trdSimUtil.GetTubeGasMaterial());
+
 }
 // TRDFoam
 //   just plain carbon with 0.08 0.4% X0
@@ -505,10 +511,12 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 //TRD Radiator (polypropylene )  6% X0
 
 {
-   geant z[]={6.,1.};
-   geant a[]={12.,1.};
-   geant w[]={1,2};
-   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.06));
+  //   geant z[]={6.,1.};
+  //   geant a[]={12.,1.};
+  //   geant w[]={1,2};
+  //   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.06));
+   trdSimUtil.DefineRadiator();
+   mat.add(trdSimUtil.GetRadiatorArtificialMaterial());
 }
 
 }
@@ -982,7 +990,8 @@ if(TRDMCFFKEY.mode<3){
  uwbuf[3]=1;   //dont really need it but...
 }
 
-AMSgtmed * pgas=new AMSgtmed("TRDGas","XECO2_80/20",1);
+//AMSgtmed * pgas=new AMSgtmed("TRDGas","XECO2_80/20",1);
+ AMSgtmed * pgas=new AMSgtmed("TRDGas","TrdGasGmat",1);
 pgas->setubuf(nwbuf,uwbuf);
 tmed.add (pgas);
 
@@ -1007,7 +1016,8 @@ else{
  uwbuf[3]=TRDMCFFKEY.alpha;
  uwbuf[4]=TRDMCFFKEY.beta;
 }
-AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",1);
+//AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",1);
+ AMSgtmed * prad=new AMSgtmed("TRDRadiator","TrdArtRadGmat",1);
 prad->setubuf(nwbuf,uwbuf);
 tmed.add (prad);
 
