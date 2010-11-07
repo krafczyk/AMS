@@ -330,193 +330,192 @@ int TrDAQ::TestBoardErrors(char *name,ushort status,int pri){
 //================================================================
 //================================================================
 //================================================================
-int TrDAQMC::fake_JINJ_PORT=26;
 int TrDAQMC::onesize=57;
 
 void TrDAQMC::builddaq(integer i, integer n, int16u *p){
-	int index=0;
+  int index=0;
 
 
-	AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
-		getheadC("AMSTrMCCluster",0);
+  AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrMCCluster",0);
 
-	int ncl=0;
-	AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSTrMCCluster",0);
-	if(ptr2 && ptr)ncl= ptr2->getnelem();
-	else {
-           // cerr<< " TrDAQMC::builddaq -E- Cannot find the TrMCCluster container "<<endl;
-           return;
-        }
-	int pindex=0;
-	p[pindex++]=((onesize+1) * ncl)+1; //size
-	for (; ptr!=0;ptr=ptr->next()){
- 		p[pindex++]=onesize; //size
-		int index0=pindex;
-		//_idsoft
-		p[pindex++]=(ptr->_idsoft>>16)&0xffff;  //1
-		p[pindex++]=ptr->_idsoft&0xffff;   
-		//_itra
-		p[pindex++]=(int16u)ptr->_itra;
-		p[pindex++]=ptr->_left[0];
-		p[pindex++]=ptr->_left[1];
-		p[pindex++]=ptr->_center[0];
-		p[pindex++]=ptr->_center[1];
-		p[pindex++]=ptr->_right[0];
-		p[pindex++]=ptr->_right[1];  //9
-		for(int kk=0;kk<5;kk++)
-			for(int ll=0;ll<2;ll++){
-				p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk],true);
-				p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk]);
-		}
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.x(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.x());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.y(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.y());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.z(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xca.z());
+  int ncl=0;
+  AMSContainer * ptr2= AMSEvent::gethead()->getC("AMSTrMCCluster",0);
+  if(ptr2 && ptr)ncl= ptr2->getnelem();
+  else {
+    // cerr<< " TrDAQMC::builddaq -E- Cannot find the TrMCCluster container "<<endl;
+    return;
+  }
+  int pindex=0;
+  p[pindex++]=((onesize+1) * ncl)+1; //size
+  for (; ptr!=0;ptr=ptr->next()){
+    p[pindex++]=onesize; //size
+    int index0=pindex;
+    //_idsoft
+    p[pindex++]=(ptr->_idsoft>>16)&0xffff;  //1
+    p[pindex++]=ptr->_idsoft&0xffff;   
+    //_itra
+    p[pindex++]=(int16u)ptr->_itra;
+    p[pindex++]=ptr->_left[0];
+    p[pindex++]=ptr->_left[1];
+    p[pindex++]=ptr->_center[0];
+    p[pindex++]=ptr->_center[1];
+    p[pindex++]=ptr->_right[0];
+    p[pindex++]=ptr->_right[1];  //9
+    for(int kk=0;kk<5;kk++)
+      for(int ll=0;ll<2;ll++){
+	p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk],true);
+	p[pindex++]=TrDAQMC::Pack(ptr->_ss[ll][kk]);
+      }
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.x(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.x());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.y(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.y());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.z(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xca.z());
 
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z());
-		
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y());
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.x());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.y());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xcb.z());
 
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x());
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y());
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z(),true);         //30
-		p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z());
-	
-		p[pindex++]=TrDAQMC::Pack(ptr->_sum,true);
-		p[pindex++]=TrDAQMC::Pack(ptr->_sum);   //55
-		
-		p[pindex++]=ptr->Status&0xffff;
-		p[pindex++]=(ptr->Status>>16)&0xffff;   //57
-		if((pindex-index0)>onesize){
-			cerr<<"TrDAQMC::builddaq-E-indext too big "<<pindex-index0<< " "<<onesize<<endl;       break; 
-		}
-        //cout << " aggiunto uno"<<endl;
-	}
-	p[pindex++]=getdaqid() ;
-	if(pindex!=((onesize+1) * ncl)+2){
-		cerr<<"TrDAQMC::builddaq-E-indext wrong length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
-	}  
-	
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.x());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.y());
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_xgl.z());
+
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.x());
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.y());
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z(),true);         //30
+    p[pindex++]=TrDAQMC::Pack(ptr->_Momentum.z());
+
+    p[pindex++]=TrDAQMC::Pack(ptr->_sum,true);
+    p[pindex++]=TrDAQMC::Pack(ptr->_sum);   //55
+
+    p[pindex++]=ptr->Status&0xffff;
+    p[pindex++]=(ptr->Status>>16)&0xffff;   //57
+    if((pindex-index0)>onesize){
+      cerr<<"TrDAQMC::builddaq-E-indext too big "<<pindex-index0<< " "<<onesize<<endl;       break; 
+    }
+    //cout << " aggiunto uno"<<endl;
+  }
+  p[pindex++]=getdaqid() ;
+  if(pindex!=((onesize+1) * ncl)+2){
+    cerr<<"TrDAQMC::builddaq-E-indext wrong length "<<pindex<< " "<<((onesize+1) * ncl)+1<<endl;
+  }  
+
 }
 
 
 void TrDAQMC::buildraw(integer n, int16u *pbeg){
-	//  have to split integer n; add crate number on the upper part...
-	unsigned int leng=n&0xFFFF;
-	uinteger ic=(n>>16);
-	int cmn=0;
-	int16u st=*(pbeg-1+leng);
-	int num=st&0x1F;
-	if(num!=fake_JINJ_PORT) {
-		cerr << "TrDAQMC::buildraw -E-  Called on a wrong segment!! Node id num="<<num<<endl;
-		return;
-	}
-	int ncl=(leng-1)/(onesize+1);
-	int nclR=(leng-1)%(onesize+1);
+  //  have to split integer n; add crate number on the upper part...
+  unsigned int leng=n&0xFFFF;
+  uinteger ic=(n>>16);
+  int cmn=0;
+  int16u st=*(pbeg-1+leng);
+  int num=st&0x1F;
+  if(num!=getdaqid()) {
+    cerr << "TrDAQMC::buildraw -E-  Called on a wrong segment!! Node id num="<<num<<endl;
+    return;
+  }
+  int ncl=(leng-2)/(onesize+1);
+  int nclR=(leng-2)%(onesize+1);
 
-	if(nclR!=0) {
-		cerr << "TrDAQMC::buildraw -E-  The number of cluster is not an integer! Resto= "<<nclR<<endl;
-		return;
-	}
-    AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrMCCluster"));
-	if(!con){
-		cerr<<"TrDAQMC::buildraw -E- Cannot find the AMSTrMCCluster container "<<endl;
-		return;
-	}
-	
-	int pindex=0;
-	for (int cl=0;cl<ncl;cl++){
-	    int csize=pbeg[pindex++];
-		if(csize!=onesize) {
-			cerr << "TrDAQMC::buildraw -E-  The size of cluster is notthe expexted one! Should be "<<onesize<<" and is "<<csize <<endl;
-			return;
-		}
-		AMSTrMCCluster* mccl=new AMSTrMCCluster();
-		mccl->_idsoft  = pbeg[pindex++];
-		mccl->_idsoft  = mccl->_idsoft<<16;
-		mccl->_idsoft |= pbeg[pindex++];
-		
-		mccl->_itra    = pbeg[pindex++];
+  if(nclR!=0) {
+    cerr << "TrDAQMC::buildraw -E-  The number of cluster is not an integer! Resto= "<<nclR<<endl;
+    return;
+  }
+  AMSContainer* con= AMSEvent::gethead()->getC(AMSID("AMSTrMCCluster"));
+  if(!con){
+    cerr<<"TrDAQMC::buildraw -E- Cannot find the AMSTrMCCluster container "<<endl;
+    return;
+  }
 
-		mccl->_left[0] = pbeg[pindex++];
-		mccl->_left[1] = pbeg[pindex++];
-		
-		mccl->_center[0] = pbeg[pindex++];
-		mccl->_center[1] = pbeg[pindex++];
+  int pindex=1;
+  for (int cl=0;cl<ncl;cl++){
+    int csize=pbeg[pindex++];
+    if(csize!=onesize) {
+      cerr << "TrDAQMC::buildraw -E-  The size of cluster is notthe expexted one! Should be "<<onesize<<" and is "<<csize <<endl;
+      return;
+    }
+    AMSTrMCCluster* mccl=new AMSTrMCCluster();
+    mccl->_idsoft  = pbeg[pindex++];
+    mccl->_idsoft  = mccl->_idsoft<<16;
+    mccl->_idsoft |= pbeg[pindex++];
 
-		mccl->_right[0] = pbeg[pindex++];
-		mccl->_right[1] = pbeg[pindex++];
-		for (int ss=0;ss<5;ss++)
-			for(int ii=0;ii<2;ii++){
-		       int aa= pbeg[pindex++];	
-		       aa  = aa <<16;
-		       aa |= pbeg[pindex++];
-			   mccl->_ss[ii][ss]=*((float*)&aa);
-			}
-		float x[3];
-		for(int ii=0;ii<3;ii++){
-			int aa= pbeg[pindex++];	
-			aa  = aa <<16;
-			aa |= pbeg[pindex++];
-			x[ii]=*((float*)&aa);
-		}
-		mccl->_xca.setp(x);
-		for(int ii=0;ii<3;ii++){
-			int aa= pbeg[pindex++];	
-			aa  = aa <<16;
-			aa |= pbeg[pindex++];
-			x[ii]=*((float*)&aa);
-		}
-		mccl->_xcb.setp(x);
-		for(int ii=0;ii<3;ii++){
-			int aa= pbeg[pindex++];	
-			aa  = aa <<16;
-			aa |= pbeg[pindex++];
-			x[ii]=*((float*)&aa);
-		}
-		mccl->_xgl.setp(x);
-		for(int ii=0;ii<3;ii++){
-			int aa= pbeg[pindex++];	
-			aa  = aa <<16;
-			aa |= pbeg[pindex++];
-			x[ii]=*((float*)&aa);
-		}
-		mccl->_Momentum.setp(x);
-		
-		int aa= pbeg[pindex++];	
-		aa  = aa <<16;
-		aa |= pbeg[pindex++];
-		mccl->_sum=*((float*)&aa);
-		
-		mccl->Status= pbeg[pindex++];	
-		mccl->Status  = mccl->Status <<16;
-		mccl->Status |= pbeg[pindex++];
-		mccl->simcl[0]=0;
-		mccl->simcl[1]=0;
-		
+    mccl->_itra    = pbeg[pindex++];
 
-		if(con)	con->addnext(mccl);
-		
-		else{
-			cerr<<" TrDAQMC::buildraw: ERROR --  Cant find the AMSTrMCCluster container!!!!"<<endl;
-			if(mccl) delete mccl;
-		}
-	}
-	return;	
+    mccl->_left[0] = pbeg[pindex++];
+    mccl->_left[1] = pbeg[pindex++];
+
+    mccl->_center[0] = pbeg[pindex++];
+    mccl->_center[1] = pbeg[pindex++];
+
+    mccl->_right[0] = pbeg[pindex++];
+    mccl->_right[1] = pbeg[pindex++];
+    for (int ss=0;ss<5;ss++)
+      for(int ii=0;ii<2;ii++){
+	int aa= pbeg[pindex++];	
+	aa  = aa <<16;
+	aa |= pbeg[pindex++];
+	mccl->_ss[ii][ss]=*((float*)&aa);
+      }
+    float x[3];
+    for(int ii=0;ii<3;ii++){
+      int aa= pbeg[pindex++];	
+      aa  = aa <<16;
+      aa |= pbeg[pindex++];
+      x[ii]=*((float*)&aa);
+    }
+    mccl->_xca.setp(x);
+    for(int ii=0;ii<3;ii++){
+      int aa= pbeg[pindex++];	
+      aa  = aa <<16;
+      aa |= pbeg[pindex++];
+      x[ii]=*((float*)&aa);
+    }
+    mccl->_xcb.setp(x);
+    for(int ii=0;ii<3;ii++){
+      int aa= pbeg[pindex++];	
+      aa  = aa <<16;
+      aa |= pbeg[pindex++];
+      x[ii]=*((float*)&aa);
+    }
+    mccl->_xgl.setp(x);
+    for(int ii=0;ii<3;ii++){
+      int aa= pbeg[pindex++];	
+      aa  = aa <<16;
+      aa |= pbeg[pindex++];
+      x[ii]=*((float*)&aa);
+    }
+    mccl->_Momentum.setp(x);
+
+    int aa= pbeg[pindex++];	
+    aa  = aa <<16;
+    aa |= pbeg[pindex++];
+    mccl->_sum=*((float*)&aa);
+
+    mccl->Status= pbeg[pindex++];	
+    mccl->Status  = mccl->Status <<16;
+    mccl->Status |= pbeg[pindex++];
+    mccl->simcl[0]=0;
+    mccl->simcl[1]=0;
+
+
+    if(con)	con->addnext(mccl);
+
+    else{
+      cerr<<" TrDAQMC::buildraw: ERROR --  Cant find the AMSTrMCCluster container!!!!"<<endl;
+      if(mccl) delete mccl;
+    }
+  }
+  return;	
 }
 
 int TrDAQMC::calcdaqlength(int i){
@@ -525,6 +524,7 @@ int TrDAQMC::calcdaqlength(int i){
 	if(p){
 		int ncl=p->getnelem();
 		len+=(onesize+1)*ncl;
+	        len++;
 	}
 	return -len;
 }

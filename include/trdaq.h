@@ -56,7 +56,7 @@ public:
 	
 	/// It Returns the JINJ slave port number for a 
 	/// given TCrate (0-7) or produce an error code (-1)
-	static integer getdaqid(){return fake_JINJ_PORT;}
+	static integer getdaqid(){return 26;}
 	
 	/// Service method to getdaqid
 	static integer checkdaqid(int16u id) {
@@ -85,7 +85,6 @@ public:
 	
 	
 private:
-	static int fake_JINJ_PORT;
 	static int onesize;
 	/// The Actual TDR decoding routine
 	static int ReadOneTDR(int16u* pp,int tsize,int cratenum,int pri);
