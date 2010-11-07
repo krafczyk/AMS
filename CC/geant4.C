@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.65 2008/03/07 16:23:04 pzuccon Exp $
+//  $Id: geant4.C,v 1.66 2010/11/07 20:55:11 mmilling Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -56,6 +56,7 @@ G4RunManager * pmgr = new G4RunManager();
     pmgr->SetUserInitialization(new AMSG4DetectorInterface(AMSJob::gethead()->getgeom()->pg4v())); 
    AMSG4Physics * pph = new AMSG4Physics();
 //   AMSJob::gethead()->addup(pph);
+    pph->SetCuts();
     AMSJob::gethead()->getg4physics()=pph;
     pmgr->SetUserInitialization(pph);
 
