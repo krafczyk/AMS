@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vr.py,v 1.2 2010/11/07 19:28:18 ams Exp $
+#  $Id: vrv5.py,v 1.1 2010/11/07 19:28:18 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -35,7 +35,7 @@ if(d==0):
     b=0   
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
-if(html.ServerConnect()):
+if(html.ServerConnect(1)):
     html.ValidateRuns(run2p,i,v,d,h,b,u,mt,0)
 
 

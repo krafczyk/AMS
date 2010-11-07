@@ -363,7 +363,7 @@ class RemoteClient:
                     self.sqlserver.Update(sql)
                     sql=" update jobs set realtriggers=realtriggers-"+str(ntuple[5])+"+"+str(ntuple[4])+"-1 where jid="+str(ntuple[3])
                     self.sqlserver.Update(sql)
-                    sql="select path from ntuples where run="+str(ntuple[3])
+                    sql="select path from ntuples where jid="+str(ntuple[3])
                     r2=self.sqlserver.Query(sql)
                     sql="select realtriggers from jobs where jid="+str(ntuple[3])
                     r3=self.sqlserver.Query(sql)
@@ -674,12 +674,13 @@ class RemoteClient:
             if( run.DataMC==datamc and mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
                 try:
-                    if(datamc==0 and run.DataMC==datamc):
+                    if(datamc==0 and run.DataMC==datamc and run.Run!=run.uid):
+                        thread.start_new(self.validatedatarun,(run,))
+                    elif(datamc==0 and run.DataMC==datamc):
                         thread.start_new(self.validaterun,(run,))
                     elif(datamc==run.DataMC and datamc==1): 
                         thread.start_new(self.validatedatarun,(run,))
                         print "thread started ",run.Run
-                    #self.validaterun(run)
                 except:
                     i=0
                     for key in exitmutexes.keys():
@@ -693,7 +694,9 @@ class RemoteClient:
                             if(not exitmutexes[key].locked()):
                                 cr=cr+1
                         time.sleep(1)
-                        if(datamc==0 and run.DataMC==datamc):
+                        if(datamc==0 and run.DataMC==datamc and run.Run != run.uid):
+                            thread.start_new(self.validatedatarun,(run,))
+                        elif(datamc==0 and run.DataMC==datamc):
                             thread.start_new(self.validaterun,(run,))
                         elif(datamc==run.DataMC and datamc==1): 
                             thread.start_new(self.validatedatarun,(run,))
@@ -707,6 +710,10 @@ class RemoteClient:
                         time.sleep(0.1)
             elif(datamc==run.DataMC and datamc==1):
                 self.validatedatarun(run)
+            elif(datamc==run.DataMC and datamc==0 and run.Run!=run.uid):
+                self.validatedatarun(run)
+            elif(datamc==run.DataMC and datamc==0):
+                self.validaterun(run)
         for key in exitmutexes.keys():
             while not exitmutexes[key].locked():
                 time.sleep(0.001)
@@ -865,7 +872,7 @@ class RemoteClient:
         
     def validaterun(self,run):
         mutex.acquire()
-        print "run started ",run.Run
+        print "run started ",run.Run,run.uid
         odisk=None
         rmcmd=[]
         rmbad=[]
@@ -923,7 +930,7 @@ class RemoteClient:
                         sql="update jobs set events=%d, errors=%d, cputime=%s,elapsed=%s,host='%s',mips=%d,timestamp=%d where jid=%d" %(events,errors,cputime,elapsed,host,int(mips),timestamp,run.Run)
                         self.sqlserver.Update(sql)
                         output.write(sql)
-                        self.sqlserver.Update("delete ntuples where run="+str(run.Run))
+                        self.sqlserver.Update("delete ntuples where jid="+str(run.uid))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
                             if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple"):
@@ -1080,7 +1087,7 @@ class RemoteClient:
                                  output.write("Validation failed "+cmd)
                                  self.failedcp=self.failedcp+1
                                  self.copied=self.copied-1
-                             sql="delete ntuples where run=%d" %(run.Run)
+                             sql="delete ntuples where jid=%d" %(run.uid)
                              self.sqlserver.Update(sql)
                              runupdate="update runs set "
                              
@@ -1142,7 +1149,8 @@ class RemoteClient:
         print "run finished ",run.Run
 	self.sqlserver.Commit()
         mutex.release()
-        exitmutexes[run.Run].acquire()
+        if(self.mt):
+              exitmutexes[run.Run].acquire()
 
     def validatedatarun(self,run):
         mutex.acquire()
@@ -2675,6 +2683,11 @@ class RemoteClient:
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
+        else:
+            sql="select did from datasets where name like '%s' " %(dataset)
+            ds=self.sqlserver.Query(sql)
+            if(len(ds)==1):
+                did=ds[0][0]
         if(did>0):
             runst=" and jobs.did=%d " %(did)
         else:
@@ -2692,7 +2705,8 @@ class RemoteClient:
             if(self.update):
                 for file in files:
                     cmd="rm "+file[0]
-                    i=os.system(cmd)
+                    i=0
+		    i=os.system(cmd)
                     if(i and self.force==0):
                         print " Command Failed ",cmd
                         self.sqlserver.Commit(0)
