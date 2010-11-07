@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.594 2010/11/06 16:08:01 choutko Exp $
+# $Id: RemoteClient.pm,v 1.595 2010/11/07 18:30:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -951,7 +951,10 @@ if($#{$self->{DataSetsT}}==-1){
      else{
 # here data type datasets
       #datamc==1
-
+         my $datafiles="datafiles";
+         if($dataset->{datamc}%10==1){
+             $datafiles="mcfiles";
+         }
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
@@ -975,7 +978,8 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
+          $template->{TAG}=-1;   
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -988,7 +992,7 @@ if($#{$self->{DataSetsT}}==-1){
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
                $template->{initok}=undef;
              }
            }
@@ -1061,11 +1065,14 @@ if($#{$self->{DataSetsT}}==-1){
                 }
                 $runalist=$runalist." run!=-1)";
             }
-           my $qtype="and  datafiles.type not like '%CAL%' ";
+           my $qtype="and  $datafiles.type not like '%CAL%' ";
            if($template->{QTYPE} ne ""){
-               $qtype="and datafiles.type like '$template->{QTYPE}%'";
+               $qtype="and $datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and datafiles.status='OK' $qtype $runlist  $runalist and datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and $datafiles.status='OK' $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+              if($template->{TAG}>=0){
+                  $sql=$sql." and $datafiles.tag=$template->{TAG} ";
+              }
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -1617,7 +1624,8 @@ sub ValidateRuns {
   }
      $sql   = "SELECT count(path)  FROM ntuples WHERE run=$run->{Run} and datamc=0";
      my $r1 = $self->{sqlserver}->Query($sql);
-     $sql   = "SELECT count(path)  FROM mcfiles WHERE run=$run->{Run}";
+#     $sql   = "SELECT count(path)  FROM mcfiles WHERE run=$run->{Run}";
+     $sql   = "SELECT count(path)  FROM datafiles WHERE run=$run->{Run} and type like 'MC%'";
      my $r2 = $self->{sqlserver}->Query($sql);
       my $status=$r0->[0][1];
       if(defined $status && $status eq 'Completed' && $r1->[0][0]==0 && $r2->[0][0]==0){
@@ -6626,11 +6634,12 @@ print qq`
           }
           $template=${$dataset->{jobs}}[$Any]->{filename};
         }
-       if(defined $dataset and $dataset->{datamc}==1){
+       if(defined $dataset and $dataset->{datamc}>0){
 #  Data type dataset
 #  03.12.2007 vc
          foreach my $tmp (@{$dataset->{jobs}}) {
             if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
+                $q->param("QTag",$tmp->{TAG});
                 $q->param("QRunList",$tmp->{RUNLIST});
                 $q->param("QRunAList",$tmp->{RUNALIST});
                 $templatebuffer=$tmp->{filebody};
@@ -6686,6 +6695,10 @@ print qq`
 #  get runs from database
 #
            my $runlist="";
+           my $tag="";
+            if(define $q->param("QTag") and $q->param("QTag")>=0){
+               $tag=" and tag=$q->param('QTag')";
+            }
             if(defined $q->param("QRunList")){
                 my @junk=split   ",",$q->param("QRunList");
                 $runlist=" and (";
@@ -6708,7 +6721,7 @@ print qq`
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') $tag order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -13847,7 +13860,11 @@ sub insertNtuple {
         $fetime=$ret->[0][0];
         $letime=$ret->[0][1];
     }
-   my $rj=$self->{sqlserver}->Query(" select content from jobs where jid=$jid");    my $part=0;
+   my $rj=$self->{sqlserver}->Query(" select content,jobname from jobs where jid=$jid");   
+     my $part=0;
+    my $ds="";
+    my $nick="";
+    my $ver="";
     if(defined($rj->[0][0])){
       my $content=$rj->[0][0];
       my @junk=split "PART=",$content;
@@ -13857,13 +13874,59 @@ sub insertNtuple {
              $part=$junk1[0];
           }
        }
+  }
+    if(defined($rj->[0][0])){
+      my $content=$rj->[0][0];
+      my @junk=split "DATASETNAME=",$content;
+      if($#junk>0){
+          my @junk1=split "\n",$junk[1];
+          if($#junk1>=0){
+             $ds=" ".$junk1[0]." ";
+          }
+       }
        
-    }
+  }
+    if(defined($rj->[0][0])){
+      my $content=$rj->[0][0];
+      my @junk=split "NICKNAME=",$content;
+      if($#junk>0){
+          my @junk1=split "\n",$junk[1];
+          if($#junk1>=0){
+             $nick=" ".$junk1[0]." ";
+          }
+       }
+       
+  }
+    if(defined($rj->[0][0])){
+      my $content=$rj->[0][0];
+      if($content =~/v4\.00/){
+          $ver="v4.00";
+      }
+      elsif($content =~/v5\.00/){
+          $ver="v5.00";
+      }
+   }    
+    if(defined($rj->[0][1])){
+      my $content=$rj->[0][1];
+      my @junk=split '\.',$content;
+    
+          for my $i (2...$#junk){
+             $ds=$ds.$junk[$i];
+             if($i<$#junk){
+                 $ds=$ds.'.';
+             }
+         }
+      if($#junk>=0){
+          $ds=$ds." ".$nick." ".$junk[0];
+      }
+       
+  }
+    my $stype='MC'." ".$ver." ".$ds;
 
- 
-    $sql="delete from mcfiles where run=$run";
+
+#    $sql="delete from mcfiles where run=$run";
      $self->{sqlserver}->Update($sql);
-    $sql=" insert into mcfiles values($run,'$version','$type',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths$run')";
+    $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths$run')";
 }
   }
   else{
@@ -15502,6 +15565,10 @@ sub calculateMipsVC {
 
    }
           else{
+         my $datafiles="datafiles";
+         if($dataset->{datamc}%10==1){
+             $datafiles="mcfiles";
+         }
        foreach my $job (@jobs){
         if($job =~ /\.job$/){
         if($job =~ /^\./){
@@ -15517,7 +15584,8 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
+          $template->{TAG}=-1;   
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -15530,7 +15598,7 @@ sub calculateMipsVC {
         }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
                $template->{initok}=undef;
              }
            }
@@ -15562,7 +15630,7 @@ sub calculateMipsVC {
                  $dataset->{did}=$ret->[0][0];
            my $qtype="";
            if($template->{QTYPE} ne ""){
-               $qtype="and datafiles.type like '$template->{QTYPE}%'";
+               $qtype="and $datafiles.type like '$template->{QTYPE}%'";
             }
 
            my $runlist="";
@@ -15583,8 +15651,8 @@ sub calculateMipsVC {
                 }
                 $runalist=$runalist." run!=-1)";
             }
-                 $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist $runalist";
-#                 my $sql="select sum(datafiles.nevents),count(datafiles.run) from datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                 $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist $runalist";
+#                 my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){
                   $template->{TOTALEVENTS}=$rtn->[0][0];
@@ -15631,10 +15699,10 @@ sub calculateMipsVC {
 #
 
               if($fast){
-                  $sql="select sum(datafiles.nevents/(datafiles.levent+1-datafiles.fevent)*jobs.realtriggers)  from jobs,dataruns,datafiles where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers>0".$pps;
+                  $sql="select sum($datafiles.nevents/($datafiles.levent+1-$datafiles.fevent)*jobs.realtriggers)  from jobs,dataruns,$datafiles where jobs.jid=dataruns.jid and $datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(datafiles.nevents)  from jobs,dataruns,datafiles where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers<0 and datafiles.status='OK'".$pps;
+                  $sql="select sum($datafiles.nevents)  from jobs,dataruns,$datafiles where jobs.jid=dataruns.jid and $datafiles.run=dataruns.run and jobs.did=$ret->[0][0] and  jobs.jobname like '%$template->{filename}' and jobs.realtriggers<0 and $datafiles.status='OK'".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
                   $completed+=$rtn1->[0][0];
                   $submitted+=$rtn2->[0][0];
@@ -15687,7 +15755,7 @@ sub calculateMipsVC {
 #                           die "qq \n";
                        }
                           $rtrig=$ntevt;
-                          $sql="select datafiles.nevents/(datafiles.levent-datafiles.fevent+1) from datafiles,dataruns,jobs where jobs.jid=dataruns.jid and datafiles.run=dataruns.run and jobs.jid=$job->[0]";
+                          $sql="select $datafiles.nevents/($datafiles.levent-$datafiles.fevent+1) from $datafiles,dataruns,jobs where jobs.jid=dataruns.jid and $datafiles.run=dataruns.run and jobs.jid=$job->[0]";
                           my $qq=$self->{sqlserver}->Query($sql);
                           if(defined $qq->[0][0]){
                           $rtrig*=$qq->[0][0];
@@ -15757,7 +15825,7 @@ sub calculateMipsVC {
     push @output,[@tmpa];
 return @output;
 
-    }
+}
 
 
 sub getEventsLeft {
@@ -17563,6 +17631,11 @@ sub CheckFS{
                  if(defined $sizemb->[0][0]){
                   $rused+=$sizemb->[0][0];
                  } 
+#                 $sql = "SELECT SUM(sizemb) FROM mcfiles WHERE  PATH like '$fs->[0]%' and path like '%$path%'";
+                 $sizemb=$self->{sqlserver}->Query($sql);
+                 if(defined $sizemb->[0][0]){
+                  $rused+=$sizemb->[0][0];
+                 } 
                  my $ava=$bavail*$fac;
                  my $ava1=$tot*$fs->[3]/100-$rused;
                  if($fs->[2]=~'Reserved'){
@@ -17917,7 +17990,7 @@ sub CheckCRC{
     if($datamc!=0){
         $delimiter='Data';
     }
-    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' and datamc=$datamc "; 
+    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.jid,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' and datamc=$datamc "; 
     if(!$force){
        $sql=$sql."  and ( ntuples.status='OK' or ntuples.status='Validated') ";
     }
@@ -17930,7 +18003,7 @@ sub CheckCRC{
     if(defined $nocastoronly and $nocastoronly == 1){
        $sql=$sql. " and ntuples.castortime=0 ";
     }
-    $sql=$sql." order by ntuples.run ";
+    $sql=$sql." order by ntuples.jid ";
       my $run=0;
      my $runs=0;
      my $ntp=0;
@@ -18108,7 +18181,7 @@ sub CheckCRC{
                               
                               $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
                               $self->{sqlserver}->Update($sql);
-                              $sql="select path from ntuples where run=$ntuple->[3]";
+                              $sql="select path from ntuples where jid=$ntuple->[3]";
                               my $r2=$self->{sqlserver}->Query($sql);
                               $sql="select realtriggers from jobs where jid=$ntuple->[3]";
                               my $r3=$self->{sqlserver}->Query($sql);
@@ -18859,18 +18932,14 @@ sub TestPerl{
 #test arb perl text
 
     my $self=shift;
+
     my $jid=shift;
-       my $rj=$self->{sqlserver}->Query(" select content from amsdes.jobs where jid=$jid");    my $part=0;
-    if(defined($rj->[0][0])){
-      my $content=$rj->[0][0];
-      my @junk=split "PART=",$content;
-      if($#junk>0){
-          my @junk1=split "\n",$junk[1];
-          if($#junk1>=0){
-             $part=$junk1[0];
-          }
-       }
-       
-    }
-    print "$part \n";
+        my     $sql="insert into datafiles select * from mcfiles where mcfiles.run=$jid";
+     $self->{sqlserver}->Update($sql);
+            $self->{sqlserver}->Commit();
+
+   my $ret=$self->{sqlserver}->Query(" select run from mcfiles");
+   foreach my $mcfile (@{$ret}){
+    my $jid=$mcfile->[0];   
+}
 }
