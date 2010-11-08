@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.56 2010/10/20 10:44:22 mdelgado Exp $
+//  $Id: richdbc.h,v 1.57 2010/11/08 18:53:46 barao Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -19,6 +19,7 @@
 #include"job.h"
 #include"commons.h" 
 #include "mceventg.h"
+
 
 class RichAlignment;
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.119 2010/11/03 20:06:53 choutko Exp $
+#  $Id: Makefile,v 1.120 2010/11/08 18:53:46 barao Exp $
 
 #P.Zuccon june 2005
 
@@ -250,7 +250,7 @@ COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
 
 #RICH
 COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C      $(SCC)richgeom.C  \
-		$(SFF)richpatt_lip.F      $(SFF)richrec_lip.F \
+		$(SCC)richlip.C           $(SFF)richpatt_lip.F      $(SFF)richrec_lip.F \
 		$(SFF)richpmtlib.F        $(SFF)gtckov.F         $(SFF)graylc.F      $(SFF)cerenkov.F \
 		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C \
 		$(SFF)richbetalike_lip.F \

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.67 2010/10/29 09:40:15 mdelgado Exp $
+//  $Id: richrec.h,v 1.68 2010/11/08 18:53:46 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -16,14 +16,8 @@ PROTOCCALLSFFUN1(FLOAT,PROBKL,probkl,FLOAT)
 
 PROTOCCALLSFSUB2(RICHRECLIP,richreclip,INT,INT)
 #define RICHRECLIP(I1,I2) CCALLSFSUB2(RICHRECLIP,richreclip,INT,INT,I1,I2)
-PROTOCCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
-#define RICHTOFTRACKINIT() CCALLSFSUB0(RICHTOFTRACKINIT,richtoftrackinit)
-PROTOCCALLSFSUB0(RICHTOFTRACKINIT2,richtoftrackinit2)
-#define RICHTOFTRACKINIT2() CCALLSFSUB0(RICHTOFTRACKINIT2,richtoftrackinit2)
-PROTOCCALLSFSUB0(RICHTOFTRACKINIT3,richtoftrackinit3)
-#define RICHTOFTRACKINIT3() CCALLSFSUB0(RICHTOFTRACKINIT3,richtoftrackinit3)
-PROTOCCALLSFSUB0(RICHTOFTRACKINIT4,richtoftrackinit4)
-#define RICHTOFTRACKINIT4() CCALLSFSUB0(RICHTOFTRACKINIT4,richtoftrackinit4)
+PROTOCCALLSFSUB1(RICHTOFTRACKINIT,richtoftrackinit,INT)
+#define RICHTOFTRACKINIT(I1) CCALLSFSUB1(RICHTOFTRACKINIT,richtoftrackinit,INT,I1)
 PROTOCCALLSFSUB3(RICHGETMATRIXHINT,richgetmatrixhint,PFLOAT,PFLOAT,PFLOAT)
 #define RICHGETMATRIXHINT(F1,F2,F3) CCALLSFSUB3(RICHGETMATRIXHINT,richgetmatrixhint,PFLOAT,PFLOAT,PFLOAT,F1,F2,F3)
 
@@ -447,19 +441,6 @@ class AMSRichRingNew: public AMSlink{
   friend class RichRingBR;
 #endif
 };
-
-// LIP functions prototype
-void richiniteventlip();
-void richinittracklip(AMSPoint, AMSDir);
-void coordams2lip(float pxams, float pyams, float pzams, float &pxlip, float &pylip, float &pzlip);
-void coordlip2ams(float pxlip, float pylip, float pzlip, float &pxams, float &pyams, float &pzams);
-void angleams2lip(float theams, float phiams, float &thelip, float &philip);
-void anglelip2ams(float thelip, float philip, float &theams, float &phiams);
-int goodLIPREC();
-void coordrich2lip(float pxrich, float pyrich, float pzrich, float &pxlip, float &pylip, float &pzlip);
-void coordlip2rich(float pxlip, float pylip, float pzlip, float &pxrich, float &pyrich, float &pzrich);
-void anglerich2lip(float therich, float phirich, float &thelip, float &philip);
-void anglelip2rich(float thelip, float philip, float &therich, float &phirich);
 
 
 // Container for LIP ring recs

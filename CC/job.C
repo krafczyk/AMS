@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.745 2010/11/07 20:21:10 mmilling Exp $
+// $Id: job.C,v 1.746 2010/11/08 18:53:46 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -72,6 +72,7 @@
 #include "richcal.h"
 #include "richradid.h"
 #include "richdaq.h"
+#include "richlip.h"
 #include "mccluster.h"
 #include <sys/stat.h>
 #include "producer.h"
@@ -1841,6 +1842,7 @@ void AMSJob::udata(){
 #endif       
     RichRadiatorTileManager::Init();	
     RichAlignment::Init();
+    RichLIPRec::InitGlobal();
     AMSTRDIdSoft::inittable();
     AMSECIds::inittable();
     if(RICRECFFKEY.recon[0]/10000){

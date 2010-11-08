@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.141 2010/10/22 14:50:37 choutko Exp $
+//  $Id: geant3.C,v 1.142 2010/11/08 18:53:46 barao Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1104,7 +1104,7 @@ nchunk=omp_get_num_procs()*10;
 for(int ik=0;ik<maxt;ik++)ia[ik*16]=0; 
 //cout <<"  new chunk "<<nchunk<<endl;
 
-#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq)
+#pragma omp parallel  default(none),shared(cpulimit,std::cout,std::cerr,amsffkey_,selectffkey_,gcflag_,run,event,tt,oldtime,count,nchunk,ia,Waiting), private(pdaq), copyin(LIPC2F) 
 {
 
    AMSEvent::ResetThreadWait(1);

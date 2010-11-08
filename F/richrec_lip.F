@@ -1,7 +1,6 @@
 #undef DEBUG
 #undef LIP_HISTOS
-#undef LIP_DEBUG2
-
+#undef LIP_IODEBUG
 *****************************************************************
 * In this file
 * ------------
@@ -19,7 +18,11 @@
       subroutine richreclip(ievt,irec2do)
 *****************************************************
 * IN: ievt    = event number
-*     irec2do = reconstruction to do
+*     irec2do = initialization or reconstruction to do
+*                INITIALIZATIONS
+*                   -1 = global (start of job)
+*                   -2 = event data (start of event)
+*                RECONSTRUCTIONS
 *                 velocity only:
 *                   1 = choose 2 or 3 from track error
 *                   2 = beta rec with fixed track
@@ -265,11 +268,11 @@
 
 #endif
 
-#ifdef LIP_DEBUG2 
+#ifdef LIP_IODEBUG
 
       iThread = OMP_GET_THREAD_NUM()
       print*,'iThread =',iThread
-      print*,'INGOING VARIABLES for event ',ievt
+      print*,'INGOING VARIABLES (FULL) for event ',ievt
       print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
       print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
       print*,'rcgeom_c2f         = ',rcgeom_c2f                          
@@ -328,6 +331,57 @@ C     init liprec geom variables
 C     -------------------------------------------------------------------------
 
       if (irec2do.eq.-1) then
+
+#ifdef LIP_IODEBUG
+
+         iThread = OMP_GET_THREAD_NUM()
+         print*,'iThread =',iThread
+         print*,'INGOING VARIABLES (global section) for event ',ievt
+         print*,'jobc_cp_c2f        = ',jobc_cp_c2f       
+         print*,'ztoprad_ams_c2f    = ',ztoprad_ams_c2f   
+         print*,'rcgeom_c2f         = ',rcgeom_c2f                          
+         print*,'levgeom_c2f        = ',levgeom_c2f       
+         print*,'levgrad_c2f        = ',levgrad_c2f       
+         print*,'levacc_c2f         = ',levacc_c2f        
+         print*,'levghit_c2f        = ',levghit_c2f       
+         print*,'ztarg_c2f          = ',ztarg_c2f         
+         print*,'nradts_c2f         = ',nradts_c2f        
+         print*,'hrad_c2f           = ',hrad_c2f          
+         print*,'hrnaf_c2f          = ',hrnaf_c2f         
+         print*,'radtile_pitch_c2f  = ',radtile_pitch_c2f 
+         print*,'radtile_supthk_c2f = ',radtile_supthk_c2f
+         print*,'radix_c2f          = ',radix_c2f         
+         print*,'radclarity_c2f     = ',radclarity_c2f    
+         print*,'hpgl_c2f	         = ',hpgl_c2f	         
+         print*,'ztmirgap_c2f	 = ',ztmirgap_c2f	         
+         print*,'zbmirgap_c2f       = ',zbmirgap_c2f                      
+         print*,'reflec_c2f	 = ',reflec_c2f	         
+         print*,'zlgsignal_c2f      = ',zlgsignal_c2f     
+         print*,'rtmir_c2f          = ',rtmir_c2f         
+         print*,'rbmir_c2f          = ',rbmir_c2f         
+         print*,'hmir_c2f           = ',hmir_c2f          
+         print*,'nmirsec_c2f        = ',nmirsec_c2f
+         print*,'idmirs_c2f         = ',
+     +       (idmirs_c2f(i),i=1,nmirsec_c2f)
+         print*,'phimirs_c2f        = ',
+     +       (phimirs_c2f(i),i=1,nmirsec_c2f)
+         print*,'refmirs_c2f        = ',
+     +       (refmirs_c2f(i),i=1,nmirsec_c2f)
+         print*,'pmtwx_c2f          = ',pmtwx_c2f         
+         print*,'pmtwy_c2f          = ',pmtwy_c2f         
+         print*,'shieldw_c2f        = ',shieldw_c2f       
+         print*,'pglix_c2f          = ',pglix_c2f         
+         print*,'emcxlim_c2f        = ',emcxlim_c2f       
+         print*,'emcylim_c2f        = ',emcylim_c2f       
+         print*,'lg_top_width_c2f   = ',lg_top_width_c2f  
+         print*,'lg_bot_width_c2f   = ',lg_bot_width_c2f  
+         print*,'lg_pitch_c2f       = ',lg_pitch_c2f      
+         print*,'xbc_c2f            = ',xbc_c2f           
+         print*,'xbd_c2f            = ',xbd_c2f           
+         print*,'yef_c2f            = ',yef_c2f           
+         print*,'xpc_c2f            = ',xpc_c2f           
+
+#endif
 
 * ------ store kind of data
          jobc_cp = jobc_cp_c2f
@@ -414,6 +468,16 @@ C     -------------------------------------------------------------------------
 
       if (irec2do.eq.-2) then
 
+#ifdef LIP_IODEBUG
+
+         iThread = OMP_GET_THREAD_NUM()
+         print*,'iThread =',iThread
+         print*,'INGOING VARIABLES (event section) for event ',ievt
+         print*,'nbhits_ev          = ',nbhits_ev              
+         print*,'nbhitsmax_ntup_ev  = ',nbhitsmax_ntup_ev      
+
+#endif
+
 * ------ store event number
          ievnumb = ievt
 
@@ -447,6 +511,18 @@ C     -------------------------------------------------------------------------
 C ------------------------------------------------------------------
 C     REC CODE
 C ------------------------------------------------------------------
+
+#ifdef LIP_IODEBUG
+
+      iThread = OMP_GET_THREAD_NUM()
+      print*,'iThread =',iThread
+      print*,'INGOING VARIABLES (track section) for event ',ievt
+      print*,'INGOING TRACK'
+      print*,'pimp_main          = ',pimp_main
+      print*,'pthe_main (deg)    = ',pthe_main*RADDEG
+      print*,'pphi_main (deg)    = ',pphi_main*RADDEG
+
+#endif
 
 * --- decode rec tasks
 
@@ -1105,7 +1181,7 @@ C ------------------------------------------------------------------
 * --- Total number of reconstructions performed
       irectot = irecnumb-irecnumbini
 
-#ifdef LIP_DEBUG2
+#ifdef LIP_IODEBUG
 
 ************
 * --- OUTPUT
@@ -1686,5 +1762,3 @@ C            FSIGMA2   =  0.7**2 ! likelihood function width
 * --- end
       return
       end
-
-

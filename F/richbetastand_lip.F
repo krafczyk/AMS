@@ -1,7 +1,8 @@
 ***************************************************************************************
 * In this file
 * ------------
-*      subroutine richtoftrackinit
+*      subroutine richtoftrackinit(itype)  //steering routine for tof track hints ("init" means hint tracks)  
+*      subroutine richtoftrackinit1
 *      subroutine richtoftrackinit2
 *      subroutine richtoftrackinit3
 *      subroutine richtoftrackinit4
@@ -107,18 +108,47 @@
       end
 
 
-*****************************************************
-*** RICHTOFTRACKINIT: initialization of TOF track ***
-*****************************************************
+***********************************************************
+*** RICHTOFTRACKINIT: initialization of TOF-based track ***
+***********************************************************
 
-      subroutine richtoftrackinit
+      subroutine richtoftrackinit(itype)
+
+      integer itype
+
+      if(itype.eq.1) then
+         call richtoftrackinit1
+         return
+      elseif(itype.eq.2) then
+         call richtoftrackinit2
+         return
+      elseif(itype.eq.3) then
+         call richtoftrackinit3
+         return
+      elseif(itype.eq.4) then
+         call richtoftrackinit4
+         return
+      endif
+
+      print*,'RICHTOFTRACKINIT: invalid TOF-based reconstruction type'
+
+      return
+
+      end
+
+
+***************************************************************
+*** RICHTOFTRACKINIT1: initialization of TOF track (type I) ***
+***************************************************************
+
+      subroutine richtoftrackinit1
 
 #include "../include/richrec_lipf.h"
 #include "../include/richrec_lipc.h"
 
       real tol
 
-      real ncand4p,ncand3p
+      integer ncand4p,ncand3p
       real cand4p(100,4)
       real cand3p(100,3)
       real currcand(4)
@@ -131,7 +161,7 @@
       real resax,resbx,resvarx
       real resay,resby,resvary
 
-*      print*,'Entering RICHTOFTRACKINIT'
+*      print*,'Entering RICHTOFTRACKINIT1'
 
 *      print*,'ntofclu = ',ntofclu
 *      do i=1,ntofclu
@@ -399,9 +429,9 @@
       end
 
 
-******************************************************
-*** RICHTOFTRACKINIT2: initialization of TOF track ***
-******************************************************
+****************************************************************
+*** RICHTOFTRACKINIT2: initialization of TOF track (type II) ***
+****************************************************************
 
       subroutine richtoftrackinit2
 
@@ -410,7 +440,7 @@
 
       real tol
 
-      real ncand4p,ncand3p
+      integer ncand4p,ncand3p
       real cand4p(100,5)
       real cand3p(100,4)
       real currcand(5)
@@ -721,9 +751,9 @@
       end
 
 
-******************************************************
-*** RICHTOFTRACKINIT3: initialization of TOF track ***
-******************************************************
+*****************************************************************
+*** RICHTOFTRACKINIT3: initialization of TOF track (type III) ***
+*****************************************************************
 
       subroutine richtoftrackinit3
 
@@ -732,7 +762,7 @@
 
       real tol
 
-      real ncand2p,ncand1p
+      integer ncand2p,ncand1p
       real cand2p(100,3)
       real cand1p(100,2)
       real currcand(3)
@@ -956,9 +986,9 @@
       end
 
 
-******************************************************
-*** RICHTOFTRACKINIT4: initialization of TOF track ***
-******************************************************
+****************************************************************
+*** RICHTOFTRACKINIT4: initialization of TOF track (type IV) ***
+****************************************************************
 
       subroutine richtoftrackinit4
 
@@ -967,7 +997,7 @@
 
       real tol
 
-      real ncand2p,ncand1p
+      integer ncand2p,ncand1p
       real cand2p(100,3)
       real cand1p(100,2)
       real currcand(3)

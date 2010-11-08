@@ -1,4 +1,4 @@
-#  $Id: MoptVMC,v 1.7 2010/07/14 14:26:40 zweng Exp $
+#  $Id: MoptVMC,v 1.8 2010/11/08 18:53:46 barao Exp $
 
 #P.Zuccon june 2005
 
@@ -304,7 +304,7 @@ COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
 
 #RICH
 COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C      $(SCC)richgeom.C  \
-		$(SFF)richpatt_lip.F      $(SFF)richrec_lip.F \
+		$(SCC)richlip.C           $(SFF)richpatt_lip.F      $(SFF)richrec_lip.F \
 		$(SFF)richpmtlib.F        $(SFF)gtckov.F         $(SFF)graylc.F      $(SFF)cerenkov.F \
 		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C \
 		$(SFF)richbetalike_lip.F \
