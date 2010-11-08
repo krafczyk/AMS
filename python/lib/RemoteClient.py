@@ -933,7 +933,7 @@ class RemoteClient:
                         self.sqlserver.Update("delete ntuples where jid="+str(run.uid))
                         ntuplelist=[]
                         for ntuple in self.dbclient.dsts:
-                            if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple"):
+                            if(self.dbclient.ct(ntuple.Type)!="RootFile" and self.dbclient.ct(ntuple.Type)!="Ntuple" and self.dbclient.ct(ntuple.Type)!="RawFile"):
                                 continue
                             #print ntuple.Run,run.Run,self.dbclient.cn(ntuple.Status)
                             if( (self.dbclient.cn(ntuple.Status) == "Success" or  self.dbclient.cn(ntuple.Status) == "Validated") and ntuple.Run == run.Run):
@@ -946,7 +946,8 @@ class RemoteClient:
                                 ntuple.EventNumber=-1
                                 print " problems with %d %s " %(run.Run,ntuple.Name)
                             else:
-                                fevt=ntuple.FirstEvent
+                                if(self.dbclient.ct(ntuple.Type)!="RawFile"):
+                                    fevt=ntuple.FirstEvent
                                 if(str(ntuple.Name).find(':/dat0')>=0):
                                     dat0=1
                         fevent=1
@@ -1769,6 +1770,59 @@ class RemoteClient:
     
               
     def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc):
+        if(type=="RawFile" and datamc==0):
+            paths="/Offline/RunsDir/MC/";
+            cmd="ln -s %s %s" %(path,paths)
+            os.system(cmd)
+            sql="select fetime,letime from runs where jid=%d" %(jid)
+            ret=self.sqlserver.Query(sql)
+            fetime=0
+            letime=0
+            if(len(ret)>0):
+                fetime=ret[0][0]
+                letime=ret[0][1]
+            sql=" select content,jobname from jobs where jid=%d " %(jid)
+            ret=self.sqlserver.Query(sql)
+            part="-1"
+            ds=""
+            nick=""
+            ver=""
+            if(len(ret)>0):
+                content=ret[0][0]
+                junk=content.split("PART=")
+                if(len(junk)>1):
+                    junk1=junk[1].split("\n")
+                    if(len(junk1)>0):
+                        part=junk1[0]
+                junk=content.split("DATASETNAME=")
+                if(len(junk)>1):
+                    junk1=junk[1].split("\n")
+                    if(len(junk1)>0):
+                        ds=junk1[0]+" "
+                junk=content.split("NICKNAME=")
+                if(len(junk)>0):
+                    junk1=junk[1].split("\n")
+                    if(len(junk1)>0):
+                        nick=junk1[0]+" "
+                if(content.find("v4.00")>=0):
+                    ver="v4.00"
+                elif(content.find("v5.00")>=0):
+                    ver="v5.00"
+                content=ret[0][1]
+                junk=content.split(".")
+                for i in range(2,len(junk)):
+                    ds=ds+junk[i]
+                    if(i<len(junk)-1):
+                        ds=ds+"."
+                if(len(junk)>0):
+                    ds=ds+" "+nick+" "+junk[0]
+            stype="MC "+ver+" "+ds
+            ntsize=float(size)
+            sizemb="%.f" %(ntsize)
+            sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s%d')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths,run)
+            self.sqlserver.Update(sql)
+            return
+        
         junk=path.split("/")
         filename=self.trimblanks(junk[len(junk)-1])
         sp1=version.split('build')
@@ -1803,7 +1857,8 @@ class RemoteClient:
    
     def validateDST(self,fname,nevents,ftype,levent):
         time0=time.time()
-        ret=0
+        ret=1
+        vcode=0
         dtype=None
         if(ftype == "Ntuple"):
             dtype=0
@@ -2831,7 +2886,9 @@ class RemoteClient:
                         filelist.append(o)
                     except:
                         print "problem get attributes ",pfile 
-            
+
+
+    
     def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace):
         if(os.environ.has_key('RunsDir')):
             runsdir=os.environ['RunsDir']
