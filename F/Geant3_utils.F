@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.12 2010/06/24 11:08:40 zweng Exp $
+* $Id: Geant3_utils.F,v 1.13 2010/11/08 16:30:03 oliva Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.13  2010/11/08 16:30:03  oliva
+* PFTRACK: fix hadronic interaction for Z>1 particles
+*
 * Revision 1.12  2010/06/24 11:08:40  zweng
 * Add #include "VMCrename.h"
 *
@@ -125,7 +128,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.12 2010/06/24 11:08:40 zweng Exp $
+*  $Id: Geant3_utils.F,v 1.13 2010/11/08 16:30:03 oliva Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -2311,6 +2314,12 @@ C.
       CHARACTER*4 DNAME,KCUT(10)
       CHARACTER*20 CHTITL
       LOGICAL NUCRIN
+
+C.    USER DEFINED DATACARD FOR HADRONIC INTERACTIONS 
+      COMMON /HVSEC/IHVSE(2)
+      DATA IHVSE/2,2/
+      CALL FFKEY('HISE',HIVSE,2,'MIXED' )
+
 C.
 C.    ------------------------------------------------------------------
 C.
