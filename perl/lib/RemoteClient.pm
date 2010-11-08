@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.595 2010/11/07 18:30:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.596 2010/11/08 16:11:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1407,6 +1407,7 @@ sub RestartServer{
 
 sub ValidateRuns {
    my $self = shift;
+   my $ver=shift;
 #ntuples
    my $validated=0;
    my $thrusted =0;
@@ -1474,7 +1475,7 @@ sub ValidateRuns {
 
     }
     if ($verbose && $webmode == 0) {print "ValidateRuns -I- Connect to Server \n";}
-    if (not $self->ServerConnect()){
+    if (not $self->ServerConnect($ver)){
         die "ValidateRuns -F- Unable To Connect To Server";
     }
     if ($verbose && $webmode==0) {print "ValidateRuns -I- Connected \n";}
@@ -7362,6 +7363,9 @@ print qq`
          $ri->{rndm1}=0;
          $ri->{rndm2}=0;
          $ri->{DataMC}=1;
+           if(defined $q->param("QType") and $q->param("QType")=~/MC/){
+         $ri->{DataMC}=0;
+           }
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
              $ri->{History}="Foreign";
@@ -13861,7 +13865,7 @@ sub insertNtuple {
         $letime=$ret->[0][1];
     }
    my $rj=$self->{sqlserver}->Query(" select content,jobname from jobs where jid=$jid");   
-     my $part=0;
+     my $part=-1;
     my $ds="";
     my $nick="";
     my $ver="";
@@ -13925,7 +13929,7 @@ sub insertNtuple {
 
 
 #    $sql="delete from mcfiles where run=$run";
-     $self->{sqlserver}->Update($sql);
+#     $self->{sqlserver}->Update($sql);
     $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths$run')";
 }
   }
