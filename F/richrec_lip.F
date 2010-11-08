@@ -1,5 +1,7 @@
-#define DEBUG
 #undef DEBUG
+#undef LIP_HISTOS
+#undef LIP_DEBUG2
+
 *****************************************************************
 * In this file
 * ------------
@@ -43,18 +45,21 @@
 
       integer irecnumbini,irectot
       integer OMP_GET_THREAD_NUM,iThread
-      
+     
+
+#ifdef LIP_HISTOS
+
 * ... histogram booking
 
 * LA 14Out10
-*      SAVE idummy,idumdisp
+      SAVE idummy,idumdisp
+      
+      data idummy/0/
+      data idumdisp/0/
+      !$OMP THREADPRIVATE (idummy)
+      !$OMP THREADPRIVATE (idumdisp)
 
-*      data idummy/0/
-*      data idumdisp/0/
-*      !$OMP THREADPRIVATE (idummy)
-*      !$OMP THREADPRIVATE (idumdisp)
-
-/*      if(idummy.eq.0)then
+      if(idummy.eq.0)then
 
          call hbook1(-110001,'5-par rec, top x error (cm)',
      +        400,-100.,100.,0.)
@@ -256,8 +261,11 @@
      +        501,-0.1,100.1,21,-0.025,1.025,0.)
 
          idummy=1
-      endif */
-/*
+      endif 
+
+#endif
+
+#ifdef LIP_DEBUG2 
 
       iThread = OMP_GET_THREAD_NUM()
       print*,'iThread =',iThread
@@ -311,7 +319,135 @@
       print*,'pimp_main          = ',pimp_main
       print*,'pthe_main (deg)    = ',pthe_main*RADDEG
       print*,'pphi_main (deg)    = ',pphi_main*RADDEG
-*/
+
+#endif
+
+C     -------------------------------------------------------------------------
+C     INIT geometry (once for all)
+C     init liprec geom variables 
+C     -------------------------------------------------------------------------
+
+      if (irec2do.eq.-1) then
+
+* ------ store kind of data
+         jobc_cp = jobc_cp_c2f
+
+* ------ store detector layout
+         rcgeom(1) = rcgeom_c2f(1)
+         rcgeom(2) = rcgeom_c2f(2)
+
+* ------ store geometry levels
+         levgeom = levgeom_c2f
+         levgrad = levgrad_c2f
+         levacc = levacc_c2f
+         levghit = levghit_c2f
+
+* ------ define debug level
+         ldebug = 0
+
+* ------ store detector and geometry data
+         ztarg          = ztarg_c2f
+         nradts         = nradts_c2f
+         hrad           = hrad_c2f
+         radtile_pitch  = radtile_pitch_c2f
+         radtile_supthk = radtile_supthk_c2f
+         radix(1)       = radix_c2f(1)
+         radix(2)       = radix_c2f(2)
+         radclarity     = radclarity_c2f
+         hpgl           = hpgl_c2f
+         ztmirgap       = ztmirgap_c2f
+         zbmirgap       = zbmirgap_c2f
+         reflec         = reflec_c2f
+         zlgsignal      = zlgsignal_c2f
+
+         hrnaf    = hrnaf_c2f
+         hmir     = hmir_c2f
+         rbmir    = rbmir_c2f
+         rtmir    = rtmir_c2f
+
+         zpmtdet = hrad+hpgl+ztmirgap+hmir+zbmirgap
+         
+         tgmir    = (rbmir-rtmir)/hmir
+         d0mir    = rtmir/(rbmir-rtmir)*hmir-hrad-hpgl-ZTMIRGAP      
+         vtmir(1) = 0.
+         vtmir(2) = 0.
+         vtmir(3) = -d0mir
+         
+         nmirsec  = nmirsec_c2f
+         do i=1,nmirsec_c2f
+            idmirs(i) = idmirs_c2f(i)
+            phimirs(i) = phimirs_c2f(i)
+            refmirs(i) = refmirs_c2f(i)
+         enddo
+         
+         pmtwx    = pmtwx_c2f
+         pmtwy    = pmtwy_c2f
+         shieldw  = shieldw_c2f
+         pglix    = pglix_c2f
+         emcxlim  = emcxlim_c2f
+         emcylim  = emcylim_c2f
+         
+         lg_bot_width = lg_bot_width_c2f
+         lg_top_width = lg_top_width_c2f
+         lg_pitch     = lg_pitch_c2f
+         
+         xbc = xbc_c2f
+         xbd = xbd_c2f
+         yef = yef_c2f
+         xpc = xpc_c2f
+         
+         pitchx   = pmtwx+shieldw
+         pitchy   = pmtwy+shieldw
+         
+         JUMP  = XBC - 8*PITCHX
+         DMECX = XBD - 17*PITCHX - JUMP
+         DMECY = YEF - 16*PITCHY   
+         DX0   = PITCHX/2. - XPC 
+         
+         return
+
+      endif
+
+C     -------------------------------------------------------------------------
+C     INIT event variables
+C     -------------------------------------------------------------------------
+
+      if (irec2do.eq.-2) then
+
+* ------ store event number
+         ievnumb = ievt
+
+* ------ store hit data
+
+         nbhits = 0
+         i = 0
+         
+         do while(i.lt.nbhits_ev)
+            i = i+1
+            if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
+               nbhits = nbhits+1
+               hitscoo(1,nbhits)   = hitscoo_ev(1,i)
+               hitscoo(2,nbhits)   = hitscoo_ev(2,i)
+               hitscoo(3,nbhits)   = hitscoo_ev(3,i)
+               hitsnpe(nbhits)     = hitsnpe_ev(i)
+               hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16) 
+                                                   ! pixel      : mod(int(bevent_hid(i)/10),16) 
+                                                   ! gain       : mod(bevent_hid(i),10) 
+               hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
+               hitstat(nbhits)     = 0 ! good hit
+            endif
+         enddo        
+         
+         nbhitsmax_ntup = nbhitsmax_ntup_ev !max nb hits in ntuple
+         
+         return
+
+      endif         
+
+C ------------------------------------------------------------------
+C     REC CODE
+C ------------------------------------------------------------------
+
 * --- decode rec tasks
 
       idobeta = 0
@@ -353,122 +489,6 @@
          idostd = 1
       endif
 
-* --- store kind of data
-      jobc_cp = jobc_cp_c2f
-
-* --- store detector layout
-      rcgeom(1) = rcgeom_c2f(1)
-      rcgeom(2) = rcgeom_c2f(2)
-
-* --- store geometry levels
-      levgeom = levgeom_c2f
-      levgrad = levgrad_c2f
-      levacc = levacc_c2f
-      levghit = levghit_c2f
-
-
-*      print*,'levgeom = ',levgeom
-*      print*,'levgrad = ',levgrad
-*      print*,'levacc = ',levacc
-*      print*,'levghit = ',levghit
-
-* --- define debug level
-      ldebug = 0
-
-* --- store detector and geometry data
-      ztarg          = ztarg_c2f
-      nradts         = nradts_c2f
-      hrad           = hrad_c2f
-      radtile_pitch  = radtile_pitch_c2f
-      radtile_supthk = radtile_supthk_c2f
-      radix(1)       = radix_c2f(1)
-      radix(2)       = radix_c2f(2)
-      radclarity     = radclarity_c2f
-      hpgl           = hpgl_c2f
-      ztmirgap       = ztmirgap_c2f
-      zbmirgap       = zbmirgap_c2f
-      reflec         = reflec_c2f
-      zlgsignal      = zlgsignal_c2f
-
-      hrnaf    = hrnaf_c2f
-      hmir     = hmir_c2f
-      rbmir    = rbmir_c2f
-      rtmir    = rtmir_c2f
-
-      zpmtdet = hrad+hpgl+ztmirgap+hmir+zbmirgap
-
-      tgmir    = (rbmir-rtmir)/hmir
-      d0mir    = rtmir/(rbmir-rtmir)*hmir-hrad-hpgl-ZTMIRGAP      
-      vtmir(1) = 0.
-      vtmir(2) = 0.
-      vtmir(3) = -d0mir
-
-      nmirsec  = nmirsec_c2f
-      do i=1,nmirsec_c2f
-         idmirs(i) = idmirs_c2f(i)
-         phimirs(i) = phimirs_c2f(i)
-         refmirs(i) = refmirs_c2f(i)
-      enddo
-
-      pmtwx    = pmtwx_c2f
-      pmtwy    = pmtwy_c2f
-      shieldw  = shieldw_c2f
-      pglix    = pglix_c2f
-      emcxlim  = emcxlim_c2f
-      emcylim  = emcylim_c2f
-
-      lg_bot_width = lg_bot_width_c2f
-      lg_top_width = lg_top_width_c2f
-      lg_pitch     = lg_pitch_c2f
-
-      xbc = xbc_c2f
-      xbd = xbd_c2f
-      yef = yef_c2f
-      xpc = xpc_c2f
-
-*      print*,'xbc_c2f = ',xbc_c2f
-*      print*,'xbd_c2f = ',xbd_c2f
-*      print*,'yef_c2f = ',yef_c2f
-*      print*,'xpc_c2f = ',xpc_c2f
-
-*      print*,'xbc = ',xbc
-*      print*,'xbd = ',xbd
-*      print*,'yef = ',yef
-*      print*,'xpc = ',xpc
-
-      pitchx   = pmtwx+shieldw
-      pitchy   = pmtwy+shieldw
-
-      JUMP  = XBC - 8*PITCHX
-      DMECX = XBD - 17*PITCHX - JUMP
-      DMECY = YEF - 16*PITCHY   
-      DX0   = PITCHX/2. - XPC
-
-* --- store event number
-      ievnumb = ievt
-
-* --- store hit data
-
-      nbhits = 0
-      i = 0
-
-      do while(i.lt.nbhits_ev)
-         i = i+1
-         if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
-            nbhits = nbhits+1
-            hitscoo(1,nbhits)   = hitscoo_ev(1,i)
-            hitscoo(2,nbhits)   = hitscoo_ev(2,i)
-            hitscoo(3,nbhits)   = hitscoo_ev(3,i)
-            hitsnpe(nbhits)     = hitsnpe_ev(i)
-            hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16) 
-                                                ! pixel      : mod(int(bevent_hid(i)/10),16) 
-                                                ! gain       : mod(bevent_hid(i),10) 
-            hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
-            hitstat(nbhits)     = 0 ! good hit
-         endif
-      enddo        
-
-      nbhitsmax_ntup = nbhitsmax_ntup_ev !max nb hits in ntuple
 
 * --- initialize simulated beta
       pbeta = pbeta_sim
@@ -1085,10 +1105,11 @@
 * --- Total number of reconstructions performed
       irectot = irecnumb-irecnumbini
 
+#ifdef LIP_DEBUG2
+
 ************
 * --- OUTPUT
 ************
-/*
 
       do k=irecnumbini+2,irecnumb+1
          print*,' '
@@ -1131,12 +1152,9 @@
          print*,'resb_epphi(d) = ',resb_epphi(k)*RADDEG
          print*,' '
       enddo
-*/
 
-*      do k=irecnumbini+2,irecnumb+1
-*         print*,'LIP flag/type/track/beta:',resb_iflag(k),
-*     +        resb_itype(k),resb_itrk(k),resb_beta(k)
-*      enddo
+#endif
+
 
 * --- FILL OBSOLETE VARIABLES FROM COMMON LIPVAR
 * ... In IF statement, itype 2 = standard LIP rec
@@ -1170,7 +1188,9 @@
 *====================
 * CONTROL HISTOGRAMS
 *====================
-/*
+
+#ifdef LIP_HISTOS
+
 * --- filling of control histograms (standalone)
 * ... In IF statement, itype 4 = standalone rec
 
@@ -1365,7 +1385,9 @@
 
          endif
       enddo
-*/
+
+#endif
+
 * --- end of main LIP routine
 
       return
