@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.202 2010/11/05 21:43:27 choutko Exp $
+//  $Id: daqevt.C,v 1.203 2010/11/08 16:56:53 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -360,7 +360,10 @@ else{
       pjinj=++_pcur;
 }
       ntotm=0;
-     
+      if(*(fpl->_plength+i)<=-32768){
+        cerr<<" DAQEvent::buildDaq-E-SubDLTooBigIgnoring "<<-*(fpl->_plength+i)<<endl;
+       continue;
+      }
      *(_pcur+1)=1 | (128<<5) | (1<<15);
      *(_pcur+2)=AMSEvent::gethead()->getid()&65535;
      _pcur+=3; 
