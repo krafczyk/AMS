@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.44  2010/11/08 20:42:02  choutko
+* *** empty log message ***
+*
 * Revision 1.43  2010/09/24 14:55:13  choutko
 * *** empty log message ***
 *
@@ -218,7 +221,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -4135,7 +4138,7 @@ C
 CDECK  ID>, TKFINI. 
           subroutine tkfini
               common /hvsec/ihvse(2)
-              data ihvse/2,2/
+c              data ihvse/2,2/
 
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
@@ -4187,7 +4190,7 @@ CDECK  ID>, TKFINI.
            xtol=1.e-2
 !$OMP MASTER
            call ffkey('TKFIT',tmaxf,20,'MIXED')
-           call ffkey('HISE',ihvse,2,'MIXED' )
+c           call ffkey('HISE',ihvse,2,'MIXED' )
 !$OMP END MASTER
 999          end
 CDECK  ID>, TKFITG. 
@@ -7874,9 +7877,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.43 2010/09/24 14:55:13 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.44  2010/11/08 20:42:02  choutko
+* *** empty log message ***
+*
 * Revision 1.43  2010/09/24 14:55:13  choutko
 * *** empty log message ***
 *
