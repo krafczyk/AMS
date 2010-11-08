@@ -72,6 +72,8 @@ class DBServer:
             return "EventTag"
         elif status==self.iorp.RootFile:
             return "RootFile"
+        elif status==self.iorp.RawFile:
+            return "RawFile"
         else:
             return None
         
