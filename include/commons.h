@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.298 2010/11/07 20:20:31 mmilling Exp $
+//  $Id: commons.h,v 1.299 2010/11/09 13:44:41 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -75,6 +75,14 @@ uinteger status[34];
 #define STATUSFFKEY COMMON_BLOCK(STATUSFFKEY,statusffkey)
 COMMON_BLOCK_DEF(STATUSFFKEY_DEF,STATUSFFKEY);
 
+
+class HVSEC_DEF {
+public:
+  int ihvse[2];
+};
+#define HVSEC COMMON_BLOCK(HVSEC,hvsec)
+COMMON_BLOCK_DEF(HVSEC_DEF,HVSEC);
+  
 
 class DAQCFFKEY_DEF {
 public:

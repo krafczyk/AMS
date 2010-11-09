@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.14 2010/11/08 20:42:02 choutko Exp $
+* $Id: Geant3_utils.F,v 1.15 2010/11/09 13:44:41 pzuccon Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.15  2010/11/09 13:44:41  pzuccon
+* fix HISE dcard and bring it to standard place
+*
 * Revision 1.14  2010/11/08 20:42:02  choutko
 * *** empty log message ***
 *
@@ -131,7 +134,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.14 2010/11/08 20:42:02 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.15 2010/11/09 13:44:41 pzuccon Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -2320,8 +2323,8 @@ C.
 
 C.    USER DEFINED DATACARD FOR HADRONIC INTERACTIONS 
       COMMON /HVSEC/IHVSE(2)
-      DATA IHVSE/2,2/
-      CALL FFKEY('HISE',IHVSE,2,'MIXED' )
+C      DATA IHVSE/2,2/
+C      CALL FFKEY('HISE',IHVSE,2,'MIXED' )
 
 C.
 C.    ------------------------------------------------------------------

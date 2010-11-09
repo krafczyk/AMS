@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.406 2010/06/23 15:40:35 pzuccon Exp $
+//  $Id: commons.C,v 1.407 2010/11/09 13:44:41 pzuccon Exp $
 
 
 #include "commons.h"
@@ -75,4 +75,5 @@ GCTMED_DEF GCTMED;
 GCTRAK_DEF GCTRAK;
 GCKINE_DEF GCKINE;
 
-
+HVSEC_DEF  HVSEC;
+          
