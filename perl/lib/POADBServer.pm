@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.37 2010/10/12 18:44:56 choutko Exp $
+#  $Id: POADBServer.pm,v 1.38 2010/11/09 19:39:19 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -149,11 +149,11 @@ OUT:
                 $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly" ){
                 
-                 my $compar=$rtb->{Run};
+                 my $compar=$rtb->{uid};
                  if($rtb->{DataMC}==1){
                      $compar=$rtb->{uid};
                  }
-                if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $compar and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+                if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or (($cid->{uid} eq $compar ) and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
@@ -197,7 +197,7 @@ else {
             foreach my $rtb (@sortedrtb){
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
-                 my $compar=$rtb->{Run};
+                 my $compar=$rtb->{uid};
                  if($rtb->{DataMC}==1){
                      $compar=$rtb->{uid};
                  }
@@ -245,7 +245,7 @@ else {
             foreach my $rtb (@sortedrtb){
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
-                 my $compar=$rtb->{Run};
+                 my $compar=$rtb->{uid};
                  if($rtb->{DataMC}==1){
                      $compar=$rtb->{uid};
                  }
@@ -289,7 +289,7 @@ else {
              }
              }
             foreach my $rtb (@sortedrtb){ 
-                 my $compar=$rtb->{Run};
+                 my $compar=$rtb->{uid};
                  if($rtb->{DataMC}==1){
                      $compar=$rtb->{uid};
                  }
@@ -300,6 +300,7 @@ else {
              }
                    $hash{rtb}=\@sortedrtb;
                    $dv->{DieHard}=1;
+    warn "dv->{DieHard} 1 !!! \n";
                     untie %hash;
                     close(LOCK);
                     return (${$ref->{rtb}}[0],$dv);

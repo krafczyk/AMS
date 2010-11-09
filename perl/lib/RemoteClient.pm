@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.597 2010/11/09 16:54:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.598 2010/11/09 19:39:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -803,6 +803,10 @@ if($#{$self->{DataSetsT}}==-1){
      foreach my $job (@jobs){
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
+#             $self->{DataMC}=1;
+         }
+         if($job=~/^mc=true/){
+             $dataset->{MC}=1;
 #             $self->{DataMC}=1;
          }
      }
@@ -6218,7 +6222,8 @@ DDTAB:          $self->htmlTemplateTable(" ");
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
                my $path='/MC';
-               if($dataset->{datamc} !=0 ){
+#          ugly take into account rawmc datasets
+               if($dataset->{datamc} !=0 and not defined $dataset->{MC}){
                  $path='/Data';
                }
                my $sqlfs="select disk,path,available from filesystems where status='Active' and isonline=1 and path='$path' ORDER BY priority DESC, available DESC";
