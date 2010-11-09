@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.56 2009/11/27 14:43:02 ams Exp $
+#  $Id: monitorUI.pm,v 1.57 2010/11/09 19:39:05 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1356,6 +1356,7 @@ sub show_sample{
 "History",
 "StType",
 "Fails",
+"DataMC",
 "TFevent",
 "TLEvent",
                  );

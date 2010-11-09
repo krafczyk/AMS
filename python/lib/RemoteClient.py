@@ -1154,6 +1154,7 @@ class RemoteClient:
               exitmutexes[run.Run].acquire()
 
     def validatedatarun(self,run):
+        datamc=run.DataMC
         mutex.acquire()
         print "run started ",run.Run,run.uid
         odisk=None
@@ -1320,7 +1321,11 @@ class RemoteClient:
                                                     events=ntuple.EventNumber
                                                     badevents=(i*events/100)
                                                     self.validated=self.validated+1
-                                                    (outputpatha,rstatus,odisk)=self.doCopy(run.uid,fpath,ntuple.crc,ntuple.Version,outputpath,"/Data")
+                                                    if(run.DataMC==0):
+                                                        mcpath="/MC"
+                                                    else:
+                                                        mcpath="/Data"
+                                                    (outputpatha,rstatus,odisk)=self.doCopy(run.uid,fpath,ntuple.crc,ntuple.Version,outputpath,mcpath)
 						    outputpath=outputpatha[:]
                                                     if(outputpath != None):
                                                         mvntuples.append(outputpath)
@@ -2705,7 +2710,14 @@ class RemoteClient:
         runn=""
         runst=" "
         runsname="" 
-        if(datamc==1):
+        if(datamc==0):
+            sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  " %(dataset,datamc) 
+            check=self.sqlserver.Query(sql)
+            if(len(check)>0):
+                if(check[0][0] != check[0][1]):
+                    print "Changing DataMC to 10 "
+                    datamc=10
+        if(datamc!=0):
             runsname="dataruns"
             if(self.force!=0):
                 runst=" and dataruns.status='Completed' "
@@ -2724,7 +2736,7 @@ class RemoteClient:
             if(run2p<0):
                 rund=" and runs.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
-        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc,runn) 
+        sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc%10,runn) 
         files=self.sqlserver.Query(sql)
         datapath=dataset
         ds1=""
@@ -2740,6 +2752,7 @@ class RemoteClient:
                 did=ds[0][0]
         else:
             sql="select did from datasets where name like '%s' " %(dataset)
+            dataset=""
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
@@ -2755,7 +2768,7 @@ class RemoteClient:
             sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc,runn)
+            sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:

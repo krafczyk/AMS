@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.139 2010/11/09 15:46:18 ams Exp $
+# $Id: Monitor.pm,v 1.140 2010/11/09 19:39:04 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1157,7 +1157,7 @@ sub PNtupleSort{
          }
          push @text,  $hash->{uid},$hash->{cuid},$hash->{cinfo}->{HostName},$hash->{Run},$hash->{FirstEvent}, 
         $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
-         $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},$hash->{TFEvent},$hash->{TLEvent},;
+         $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},$hash->{DataMC},$hash->{TFEvent},$hash->{TLEvent};
          push @output, [@text];
          if($hash->{TFEvent}<$hash->{Run} and $hash->{DataMC}!=0){
            warn "Run time problem  $hash->{Run} $hash->{TFEvent} \n";
@@ -1419,6 +1419,9 @@ warn " sent via arpref\n";
         $nc{History}=shift @data;
         shift @data;
         $nc{CounterFail}=shift @data;
+        $nc{DataMC}=shift @data;
+        $nc{TFEvent}=shift @data; 
+        $nc{TLEvent}=shift @data; 
         if($nc{History} eq "ToBeRerun"){
 #         my $rdstc=$nc{cinfo};
 #         $rdstc->{HostName}="      ";
