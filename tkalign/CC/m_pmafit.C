@@ -1,4 +1,4 @@
-// $Id: m_pmafit.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: m_pmafit.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #include "pmafit.C"
 #include <cstdlib>
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
   if (!sfn.Contains(".root")) sfn += "*.root";
 
   if (argc == 3) pmafit(sfn, argv[2]);
-  if (argc == 4) pmafit(sfn, argv[2], atoi(argv[3]));
+  if (argc == 4) pmafit(sfn, argv[2], atoixb(argv[3]));
   exit(0);
   return 0;
 }

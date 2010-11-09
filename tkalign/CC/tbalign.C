@@ -1,4 +1,4 @@
-// $Id: tbalign.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: tbalign.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #include "TStopwatch.h"
 #include "TSystem.h"
 #include "TMath.h"
@@ -9,7 +9,6 @@
 #include "MagField.h"
 
 #include "tbpos.C"
-//#include "exmerge.C"
 
 #include <iostream>
 
@@ -112,8 +111,7 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
     TkDBc::Head->init(setup, tkdbc);
     refit = 1;
 
-  //TString ssn = "/f2users/shaino/tracker/dat/tksens.dat";
-    TString ssn = "/amssw/haino/tracker/dat/tksens.dat";
+    TString ssn = "tksens.dat";
     ifstream ftmp(ssn);
     if (ftmp.good())
       TkDBc::Head->readAlignmentSensor(ssn);
@@ -247,7 +245,6 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
     if (!trk) continue;
     if (!trk->ParExists(mf0)) continue;
 
-    //if (exmerge(trk) < 0) continue;
     if (!trk->ParExists(mfc)) continue;
 
     Int_t ibp = tbpos.Find(trk->GetP0(mf0), trk->GetDir(mf0), ipos, fpos);
@@ -373,7 +370,6 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
     Int_t *tptr = &iptr[0];
     Int_t *mptr = &iptr[9];
 
-    //trk->SetMultiplicity();
     for (Int_t i = 0; i < trk->GetNhits(); i++) {
       TrRecHitR *hit = trk->GetHit(i);
       if (hit) {
@@ -448,11 +444,7 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
 
     Float_t *cgx = &fptr[0];
     Float_t *cgy = &fptr[9];
-/*
-    Float_t *htx = &fptr[18];
-    Float_t *hty = &fptr[27];
-    Float_t *htz = &fptr[36];
-*/
+
     for (Int_t i = 0; i < trk->GetNhits(); i++) {
       TrRecHitR *hit = trk->GetHit(i);
       if (!hit) continue;
@@ -472,22 +464,6 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
       cgx[ily] = (!xcls) ? -(hit->GetDummyX()+640)
 	       : xcls->GetCofG()+xcls->GetSeedAddress();
       cgy[ily] = ycls->GetCofG()+ycls->GetSeedAddress();
-/*
-      htx[ily] = hit->GetCoord().x();
-      hty[ily] = hit->GetCoord().y();
-      htz[ily] = hit->GetCoord().z();
-
-      Int_t imult = hit->GetResolvedMultiplicity();
-      AMSPoint loc  (TkCoo::GetLocalCoo(tkid, TMath::Abs(cgx[ily]), imult),
-		     TkCoo::GetLocalCoo(tkid,            cgy[ily],  imult), 0);
-      AMSPoint glo = TkCoo::GetGlobalA (tkid, loc);
-
-      cout << Form("%4d %6.1f %6.1f %6.1f",
-		   tkid, 
-		   (glo.x()-htx[ily])*1e4,
-		   (glo.y()-hty[ily])*1e4,
-		   (glo.z()-htz[ily])*1e4) << endl;
-*/
     }
     ((TH2F *)ofile.Get("hist31"))->Fill(tslot[1], tslot[0]);
     ((TH2F *)ofile.Get("hist32"))->Fill(tslot[1], tslot[2]);

@@ -1,6 +1,8 @@
-# $Id: Makefile,v 1.1 2010/10/14 09:28:03 shaino Exp $
+# $Id: Makefile,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
+#
+# libMinuit2.so is required (ROOT v5.22.00j or higher is recommended)
 #
 # bin/tbalign: Generate a TTree for TB alignment from AMSRoot files
 # bin/pmalign: Generate a TTree for CR alignment from AMSRoot files
@@ -10,16 +12,18 @@
 #
 # 2010/10/14 SH
 
-
+WDIR = $(AMSSRC)/tkalign
 ARCH = linux
-DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__
-FLGS = -I$(ROOTSYS)/include -I../include
+DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__ -D_WDIR_=\"$(WDIR)\"
+FLGS = -m32 -I$(ROOTSYS)/include -I../include
 OPTS = -O3
-LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a \
-       -L$(ROOTSYS)/lib -lRoot -lXrdPosix -lpcre
-MODS = tbalign tbafit tbaf tbafm tbafcp pmalign pmafit pmaf pmafcp
 
-BINS = $(addprefix bin/, $(MODS));
+LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
+
+MODS = tbalign tbafit tbaf tbafm tbafcp pmalign pmafit pmaf pmafcp pmrinv
+
+BINS = $(addprefix bin/, $(MODS))
 
 all: $(BINS)
 
@@ -40,3 +44,5 @@ bin/pmalign: CC/pmalign.C
 bin/pmafit : CC/pmafit.C CC/tkalign.C
 bin/pmaf   : CC/pmafit.C CC/tkalign.C
 bin/pmafcp : CC/pmafit.C CC/tkalign.C
+
+bin/pmrinv : CC/pmrinv.C

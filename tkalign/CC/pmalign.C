@@ -1,4 +1,4 @@
-// $Id: pmalign.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: pmalign.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #include "TStopwatch.h"
 #include "TSystem.h"
 #include "TMath.h"
@@ -7,8 +7,6 @@
 #include "amschain.h"
 #include "TrRecon.h"
 #include "MagField.h"
-
-//#include "exmerge.C"
 
 #include <iostream>
 
@@ -78,8 +76,7 @@ void pmalign(const char *fname, const char *oname,
     TkDBc::Head->init(setup, tkdbc);
     refit = 1;
 
-  //TString ssn = "/f2users/shaino/tracker/dat/tksens.dat";
-    TString ssn = "/amssw/haino/tracker/dat/tksens.dat";
+    TString ssn = "tksens.dat";
     ifstream ftmp(ssn);
     if (ftmp.good())
       TkDBc::Head->readAlignmentSensor(ssn);
@@ -126,7 +123,6 @@ void pmalign(const char *fname, const char *oname,
   if (nproc <= 10000) intv = 10;
 
   Int_t tref = 1282946400; // Sat Aug 28 00:00:00 2010
-             //1281308400; // Mon Aug  9 01:00:00 2010
 
   for (Int_t ient = 0; ient < nproc; ient++) {
     AMSEventR *evt = ch.GetEvent(ient);
@@ -158,8 +154,6 @@ void pmalign(const char *fname, const char *oname,
     TrTrackR *trk = evt->pTrTrack(0);
     if (!trk) continue;
     if (!trk->ParExists(mf0)) continue;
-
-    //if (exmerge(trk) < 0) continue;
 
     Float_t plx[9], ply[9];
     for (Int_t i = 0; i < 9; i++) plx[i] = ply[i] = 0;
@@ -208,32 +202,6 @@ void pmalign(const char *fname, const char *oname,
 
     if (csqx < 0 || csqy < 0 || trk->GetRigidity(mf0) == 0) continue;
 
-//BOKE
-    if (csqx < 1 && csqy < 1 && TMath::Abs(trk->GetRigidity(mf0)) < 1) {
-      static Int_t BOKE = 0;
-      if (BOKE++ < 5) {
-	cout << "BOKE "
-	     << csqx << " " << csqy << " " << trk->GetRigidity(mf0) << " "
-	     << csqx0 << " " << csqy0 << endl;
-/*
-	     << trk->GetChisqX(mf0) << " "
-	     << trk->GetChisqY(mf0) << " "
-	     << trk->GetNdofX(mf0) << " "
-	     << trk->GetNdofY(mf0) << endl;
-*/
-	for (Int_t i = 0; i < trk->GetNhits(); i++) {
-	  TrRecHitR *hit = trk->GetHit(i);
-	  if (!hit) continue;
-	  cout << Form("BOKE %d %4d %7.4f %7.4f",
-		       i, hit->GetTkId(),
-		       trk->GetResidual(hit->GetLayer()-1, mf0).x(),
-		       trk->GetResidual(hit->GetLayer()-1, mf0).y())
-	       << endl;
-	}
-      }
-    }
-//BOKE
-
     for (Int_t i = 0; i < NID; i++) idata[i] = 0;
     for (Int_t i = 0; i < NFD; i++) fdata[i] = 0;
 
@@ -258,7 +226,6 @@ void pmalign(const char *fname, const char *oname,
     Int_t *tptr = &iptr[0];
     Int_t *mptr = &iptr[9];
 
-    //trk->SetMultiplicity();
     for (Int_t i = 0; i < trk->GetNhits(); i++) {
       TrRecHitR *hit = trk->GetHit(i);
       if (hit) {

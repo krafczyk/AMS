@@ -1,4 +1,4 @@
-// $Id: pmafit.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: pmafit.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #include "tkalign.C"
 #include "MagField.h"
 
@@ -12,12 +12,47 @@
 
 #include <fstream>
 
-Int_t init(const char *tkdbc, Double_t rng)
+Int_t atoixb(TString str)
 {
-  if (tkdbc && tkdbc[0] != '0') {
-    TkDBc::CreateTkDBc();
-    TkDBc::Head->init(3, tkdbc);
+  Int_t sign = 1;
+  if (str.BeginsWith("-")) {
+    sign = -1;
+    str.ReplaceAll("-", "");
   }
+
+  str.ToLower();
+
+  if (str.BeginsWith("0b")) {
+    Int_t bits = 0;
+    for (Int_t i = 2; i < str.Length(); i++) {
+      bits = bits*2;
+      if (str[i] == '1') bits |= 1;
+    }
+
+    cout << str.Data() << " => " << bits << endl;
+    return sign*bits;
+  }
+
+  if (str.BeginsWith("0x")) {
+    Int_t bits = 0;
+    for (Int_t i = 2; i < str.Length(); i++) {
+      bits = bits*16;
+      if ('0' <= str[i] && str[i] <= '9') bits |= str[i]-'0';
+      if ('a' <= str[i] && str[i] <= 'a') bits |= str[i]-'a'+0xa;
+    }
+    return sign*bits;
+  }
+
+  return sign*str.Atoi();
+}
+
+Int_t init(const char *tkdbc, Double_t rng, Int_t bits = 0)
+{
+  if (tkdbc && tkdbc[0] == '0') tkdbc = 0;
+
+  TkDBc::CreateTkDBc();
+  TkDBc::Head->init(3, tkdbc);
+
   if (!TkDBc::Head) {
     cerr << "Error: TkDBc not found" << endl;
     return -1;
@@ -37,15 +72,39 @@ Int_t init(const char *tkdbc, Double_t rng)
   TkAlign::fRfix = 0;
   TkAlign::fRref = 1;
 
-  TkAlign::InitShists(rng);
-  TkAlign::InitMap(rng);
-  TkAlign::InitPar();
+  bits = TMath::Abs(bits);
 
-  TkAlign::fNmin = 5;
-  TkAlign::fErrX[7] = TkAlign::fErrX[8] = 0;
-  TkAlign::fErrY[7] = TkAlign::fErrY[8] = 0;
+  if (bits & TkAlign::kPlFit) {
+    TkAlign::fMsc  = 0;
+    TkAlign::fNmin = 5;
+    TkAlign::InitPar();
+
+    PlAlign::fRange = rng;
+    TkAlign::InitVec();
+    TkAlign::InitShists(rng);
+
+    TkAlign::fErrX[7] = TkAlign::fErrX[8] = 0;
+    TkAlign::fErrY[7] = TkAlign::fErrY[8] = 0;
+  }
+  else {
+    TkAlign::fMsc  = 1;
+    TkAlign::fNmin = 6;
+    TkAlign::InitPar();
+
+    TkAlign::InitShists(rng);
+    TkAlign::InitMap(rng);
+  }
 
   TkAlign::fProfMode = 3;
+
+  if (bits & TkAlign::kPlFit) {
+    for (Int_t i = 0; i < TkAlign::NLAY; i++) {
+      if ((1 << (TkDBc::Head->_plane_layer[i]-1)) & bits) {
+	TkAlign::fErrX[i] = TkAlign::fErrY[i] = 0;
+	cout << "Layer " << i+1 << " excluded from fitting" << endl;
+      }
+    }
+  }
 
   return 0;
 }
@@ -61,7 +120,9 @@ void copyproc(Int_t bits, const char *tkdbc,
   if (!f.IsOpen()) return;
 
   TFile of("pmafit.root.cp", "recreate");
-  if (init(tkdbc, rng) < 0) return;
+  if (init(tkdbc, rng, bits) < 0) return;
+
+  if (bits & TkAlign::kPlFit) TkAlign::CopyVec(f);
 
   TkAlign::CopyShists(f);
 
@@ -69,8 +130,11 @@ void copyproc(Int_t bits, const char *tkdbc,
     TkAlign::fCheckID = check;
     TkAlign::fFile    = &of;
   }
-  if (bits == TkAlign::kSensY)
+  if (bits == TkAlign::kSensY) {
+    of.cd();
     salig((TH3 *)of.Get("hist4"));
+  }
+
   else if (bits > 0)
     TkAlign::Proc(bits);
 
@@ -93,13 +157,7 @@ void pmafit(Int_t bits, const char *tkdbc,
   if (sfn == fname) sfn = "pmafit.root";
 
   TFile of(sfn, "recreate");
-  if (init(tkdbc, rng) < 0) return;
-
-  if (bits == 0) {
-    TkAlign::fNmin = 6;
-    TkAlign::fErrX[7] = TkAlign::fErrY[7] = TkAlign::fErrZ[7];
-    TkAlign::fErrX[8] = TkAlign::fErrY[8] = TkAlign::fErrZ[8];
-  }
+  if (init(tkdbc, rng, bits) < 0) return;
 
   enum { NL = TkAlign::NLAY };
 
@@ -132,6 +190,15 @@ void pmafit(Int_t bits, const char *tkdbc,
     for (Int_t i = 0; i < NL; i++) {
       tkid[i] = TMath::Sign(TMath::Abs(ibuf[i])/100, ibuf[i]);
       imlt[i] =             TMath::Abs(ibuf[i])%100;
+
+      if (tkid[i] == 405 || tkid[i] == -202) {
+	if (TMath::Abs(bits) & TkAlign::kPlFit) {
+	  tkid[i] = imlt[i] = 0;
+	  xcog[i] = ycog[i] = 0;
+	}
+	else
+	  ycog[i] = -ycog[i];
+      }
     }
 
     if (bits == 0 && (tkid[7] == 0 || tkid[8] == 0)) continue;
@@ -146,10 +213,14 @@ void pmafit(Int_t bits, const char *tkdbc,
   if (nf > 0) {
     cout << Form("%7d %7d %7.3f", nf, nr, csum/nf) << endl;
 
-    if (bits == TkAlign::kSensY)
-      salig((TH3 *)of.Get("hist4"));
-    else if (bits > 0)
-      TkAlign::Proc(bits);
+    if (bits > 0) {
+      if (bits & TkAlign::kSensY) {
+	of.cd();
+	salig((TH3 *)of.Get("hist4"));
+      }
+      else
+	TkAlign::Proc(bits);
+    }
   }
 
   of.Write();
@@ -212,7 +283,8 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
   Int_t   idata[NID];
   Float_t fdata[NFD];
 
-  Int_t brun = -1;
+  Int_t brun  = -1;
+  Int_t nsel  = 0;
   Int_t nfill = 0;
 
   sfn.ReplaceAll("root", "dat");
@@ -236,8 +308,14 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
       Double_t ct = timer.CpuTime();
       Double_t cs = (nfill > 0) ? csum/nfill : 0;
       timer.Continue();
-      cout << Form("%8d %8d (%5.1f %%) %d %7.3f %6.1f %6.1f",
-		   nfill, ient, 100.*ient/nent, brun, cs, rt, ct) << endl;
+
+      if (bits > 0) 
+	cout << Form("%8d %8d %8d (%5.1f %%) %d %7.3f %6.1f %6.1f",
+		     nfill, nsel, ient, 100.*ient/nent, 
+		     brun, cs, rt, ct) << endl;
+      else
+	cout << Form("%8d %8d (%5.1f %%) %d %6.1f %6.1f",
+		     nfill, ient, 100.*ient/nent, brun, rt, ct) << endl;
     }
     brun = run;
 
@@ -266,13 +344,17 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
     if (csqx < cmin || csqx > cmax || csqx > 20) continue;
     if (csqy < cmin || csqy > cmax || csqy > 20) continue;
 
-    hfill(&of, 13, argt, csqx);
-    hfill(&of, 14, argt, csqy);
+    nsel++;
 
-    Double_t csq = TkAlign::Fit(&idata[13], &idata[22], 
-				&fdata[41], &fdata[50]);
+    Double_t csq = 1;
+    if (bits > 0)
+      csq = TkAlign::Fit(&idata[13], &idata[22], &fdata[41], &fdata[50]);
+
     if (csq > 0) {
       csum += csq;
+
+      hfill(&of, 13, argt, csqx);
+      hfill(&of, 14, argt, csqy);
 
       Int_t run  = idata[0];
       Int_t ient = idata[2];
@@ -297,13 +379,14 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
       nfill++;
     }
   }
-  if (nfill > 0) {
+  if (nfill > 0 && bits > 0) {
     cout << Form("%8d %7.3f", nfill, csum/nfill) << endl;
     if (bits > 0) TkAlign::Proc(bits);
   }
 
   of.Write();
-  TkDBc::Head->write("tkdbc.dat.new");
+  if (bits > 0)
+    TkDBc::Head->write("tkdbc.dat.new");
 
   return;
 }
@@ -315,68 +398,21 @@ void salig(TH3 *hist)
     return;
   }
 
-  gROOT->cd();
-
-  Int_t nbx = hist->GetNbinsX();
-  Int_t nby = hist->GetNbinsY();
-  Int_t nbz = hist->GetNbinsZ();
-
-  TAxis *ax = hist->GetXaxis();
-  TAxis *ay = hist->GetYaxis();
-  TAxis *az = hist->GetZaxis();
-
-  TH1F *hprj = new TH1F("hprj", "Res(Y)", 
-			nbz, az->GetXmin(), az->GetXmax());
-  for (Int_t i = 0; i < nbz; i++)
-    hprj->SetBinContent(i+1, hist->Integral(1, nbx, 1, nby, i+1, i+1));
-
-  hprj->Fit("gaus", "q0");
-
-  TF1 *func = hprj->GetFunction("gaus");
-  Double_t sigma = func->GetParameter(2);
-  cout << "Sensor alignment: SigmaY= " << sigma*1e4 << endl;
-
-  Double_t range = sigma*2.5;
-
-  TH1F *htmp = new TH1F("htmp", "htmp", 
-			nbz, az->GetXmin(), az->GetXmax());
-
-  TH1F *hfit = new TH1F("hfit", "salig", 140, -35, 35);
-
-  Double_t nthd = 500;
+  TH2F *prof = TkAlign::Profile(hist);
+  TH1F *hprj = new TH1F("hprj", "salig", 200, -50, 50);
+  TH1F *hfit = new TH1F("hfit", "salig", 32*9*15, 0.5, 9.5);
 
   ofstream fout("salig.dat");
   if (!fout) return;
 
+  Int_t nbx = prof->GetNbinsX();
+  Int_t nby = prof->GetNbinsY();
+
   for (Int_t i = 0; i < nbx; i++)
     for (Int_t j = 0; j < nby; j++) {
-      for (Int_t k = 0; k < nbz; k++)
-	htmp->SetBinContent(k+1, hist->GetBinContent(i+1, j+1, k+1));
+      if (prof->GetBinError(i+1, j+1) <= 0) continue;
 
-      htmp->SetEntries(htmp->GetSumOfWeights());
-
-      if (htmp->GetSumOfWeights() < nthd) continue;
-
-      Double_t rng;
-      Double_t mean = 0, mtmp = 0;
-      for (Int_t k = 0; k < 10; k++) {
-	rng = range*k;
-	htmp->Fit("gaus", "q0", "", -rng, rng);
-	func = htmp->GetFunction("gaus");
-
-	if (TMath::Abs(func->GetParameter(1)) < rng/2) {
-	  mean = func->GetParameter(1);
-	  break;
-	}
-      }
-      if (rng > range*1.5) {
-	htmp->Fit("gaus", "q0", "", mean-range, mean+range);
-	func = htmp->GetFunction("gaus");
-
-	mtmp = mean;
-	mean = func->GetParameter(1);
-	if (mean < mtmp-range || mtmp+range < mean) mean = mtmp;
-      }
+      Double_t mean = prof->GetBinContent(i+1, j+1);
 
       Int_t layer = (i+1)/32+1;
       Int_t slot  =  i+1-(layer-1)*32-16;
@@ -395,11 +431,14 @@ void salig(TH3 *hist)
       }
       fout << Form("%3d %4d %2d %5.1f %5.1f %5.0f",
 		   i, tkid, j+1, mean*1e4, lad->_sensy[j]*1e4, 
-		   htmp->GetSumOfWeights())
+		   hprj->GetSumOfWeights())
 	   << endl;
       lad->_sensy[j] += mean;
 
-      hfit->Fill(mean*1e4);
+      hprj->Fill(mean*1e4);
+
+      hfit->SetBinContent(i*nby+j+1, mean);
+      hfit->SetBinError  (i*nby+j+1, prof->GetBinError(i+1, j+1));
     }
 
   ofstream fsen("tksens.dat.new");

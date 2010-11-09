@@ -1,4 +1,4 @@
-
+// $Id: tbpos.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
 #include "point.h"
 #include "TMath.h"
 #include "TString.h"
@@ -73,6 +73,9 @@ int TBpos::Read(int id, const char *fname)
     std::cerr << "File not found: " << fname << std::endl;
     return -1;
   }
+
+  std::cout << "TB position data (" << id << "): " << fname << std::endl;
+
   fPID = id;
   fin >> fNpos;
 
@@ -160,8 +163,7 @@ float TBpos::GetDth(int i, AMSDir dirt) const
   return (dth > 90) ? 180-dth : dth;
 }
 
-//TString TBpos::fWdir = "/f2users/shaino/tracker/dat/";
-TString TBpos::fWdir = "/amssw/haino/tracker/dat/";
+TString TBpos::fWdir = _WDIR_"/dat/";
 
 const char *TBpos::FileName(int id)
 {
