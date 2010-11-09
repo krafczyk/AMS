@@ -54,8 +54,8 @@ void TrdSimUtil::DefineTubeGas( void ) {
   
   std::stringstream trdGasName;
   trdGasName << "Xe/Ar/CO2 " << numberFractionXe*100 << ":" << numberFractionAr*100 << ":" << numberFractionCO2*100;
-  G4cout << "gas info: " << density /g*cm3 << " " << trdGasTemperature << " " << trdGasPressure/bar << G4endl;
-  G4cout << "composition: " << trdGasName.str().c_str() << G4endl;
+  if(TRDMCFFKEY.debug)G4cout << "gas info: " << density /g*cm3 << " " << trdGasTemperature << " " << trdGasPressure/bar << G4endl;
+  if(TRDMCFFKEY.debug)G4cout << "composition: " << trdGasName.str().c_str() << G4endl;
   
   
   trdTubeGasMaterial =
@@ -106,13 +106,13 @@ void TrdSimUtil::DefineRadiator( void ) {
   
   trdMeanGasGap = trdFleeceFiberDiameter * ( trdMeanRadiatorFibreDensity/LRP375BK->GetDensity() - 1.0 );
 
-  G4cout<<"mean gas gap in um:  "<<trdMeanGasGap/um<<G4endl;
+  if(TRDMCFFKEY.debug)G4cout<<"mean gas gap in um:  "<<trdMeanGasGap/um<<G4endl;
 
-  G4cout<<"foil thickness um:  "<<trdFleeceFiberDiameter/um<<G4endl;
+  if(TRDMCFFKEY.debug)G4cout<<"foil thickness um:  "<<trdFleeceFiberDiameter/um<<G4endl;
 
   trdMeanFoilNumber  = LRP375BK->GetDensity() / trdMeanRadiatorFibreDensity * trdRadiatorThickness  / trdFleeceFiberDiameter;
 
-  G4cout<<"foil number: "<< trdMeanFoilNumber<<G4endl; 
+  if(TRDMCFFKEY.debug)G4cout<<"foil number: "<< trdMeanFoilNumber<<G4endl; 
 
   // artificial radiator material (including gas)
   trdRadiatorArtificial = 0;

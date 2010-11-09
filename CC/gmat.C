@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.106 2010/11/07 23:31:01 mmilling Exp $
+//  $Id: gmat.C,v 1.107 2010/11/09 16:47:35 mmilling Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -513,7 +513,7 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 //TRD Radiator (polypropylene )  6% X0
 
 {
-#ifdef __G4AMS
+#ifdef __G4AMS__
    trdSimUtil.DefineRadiator();
    mat.add(trdSimUtil.GetRadiatorArtificialMaterial());
 #else

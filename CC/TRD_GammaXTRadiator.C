@@ -22,7 +22,7 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
 					 const G4String& processName) :
   TRD_VXTenergyLoss(anEnvelope,foilMat,gasMat,a,b,n,processName)
 {
-  G4cout<<"Gammma distributed X-ray TR radiator model is called"<<G4endl ;
+  if(fVerbose)G4cout<<"Gammma distributed X-ray TR radiator model is called"<<G4endl ;
 
   // Build energy and angular integral spectra of X-ray TR photons from
   // a radiator
@@ -30,7 +30,7 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
 
   fAlphaPlate = alphaPlate ;
   fAlphaGas   = alphaGas   ;
-  G4cout<<"fAlphaPlate = "<<fAlphaPlate<<" ; fAlphaGas = "<<fAlphaGas<<G4endl ;
+  if(fVerbose)G4cout<<"fAlphaPlate = "<<fAlphaPlate<<" ; fAlphaGas = "<<fAlphaGas<<G4endl ;
 
   // BuildTable() ;
 
@@ -45,7 +45,7 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
        << "_" << a << "_" 
        << b << "_" 
        << n << ".txt";
-  fFilename = name.str();
+  fFilename = "/scratch/mmilling/gbatch/g4/"+name.str();
 
 }
 
