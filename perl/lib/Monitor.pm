@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.138 2010/10/07 20:24:54 ams Exp $
+# $Id: Monitor.pm,v 1.139 2010/11/09 15:46:18 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -714,7 +714,7 @@ sub getactivehosts{
                      $chop=~/^(.*?)(\.|$)/;
                          if($1 eq $host ){
 #      if ( $chop eq $host){
-          if( $hdst->{Type} eq "Ntuple" or $hdst->{Type} eq "RootFile"){
+          if( $hdst->{Type} eq "Ntuple" or $hdst->{Type} eq "RootFile" or $hdst->{Type} eq "RawFile"){
               $ntp++;
           }elsif( $hdst->{Type} eq "EventTag"){
               $evtag++;
@@ -870,7 +870,7 @@ if ($producer eq "Producer"){
         my $ltime=0;
      for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
        my $rdst=$Monitor::Singleton->{dsts}[$j];
-       if( $rdst->{Type} eq "Ntuple" or $rdst->{Type} eq "RootFile"){
+       if( $rdst->{Type} eq "Ntuple" or $rdst->{Type} eq "RootFile" or $rdst->{Type} eq "RawFile"){
 #           warn "wasrun $run $rdst->{Run} \n";
            if ($rdst->{Run}==$run and $rdst->{Status} eq "InProgress"){
                my @host=split ":",$rdst->{Name};
@@ -1113,7 +1113,7 @@ int($hash->{CPUNeeded}*10)/10,
      my @houtput=();
      for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
          my $hash=$Monitor::Singleton->{dsts}[$i];
-         if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile"){
+         if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile" or $hash->{Type} eq "RawFile"){
           push @houtput, $hash;
          }
      }
@@ -1751,7 +1751,7 @@ sub ResetFailedRuns{
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "RawFile"){
          if($nc{Status} eq "InProgress"){
              my $Run=$nc{Run};
              for my $j (0 ... $#{$ref->{rtb}}){
@@ -2562,7 +2562,7 @@ sub DeleteFailedDST{
      my @nchost=();
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "RawFile"){
          if($nc{Status} eq "Failure"){
 #            warn " $nc{Name} \n";           
                 my @parser=split ':',$nc{Name};
@@ -2692,7 +2692,7 @@ sub DeleteFailedDST{
   warn "  in progress good $good \n";
          for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "RawFile"){
          if($nc{Status} eq "InProgress"){
           my $ifg=0;
           foreach my $ncg (@ncgood){
@@ -2758,7 +2758,7 @@ sub DeleteValidatedDst{
 #
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "EventTag"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "EventTag" or $nc{Type} eq "RawFile"){
          my $Run=$nc{Run};
          my $rfound=0;  
     foreach my $run (@{$Monitor::Singleton->{rtb}}){
@@ -2830,7 +2830,7 @@ sub FinishFailedRuns{
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile" or $nc{Type} eq "RawFile"){
          if($nc{Status} eq "Validated" or $nc{Status} eq "Success"){
              $rdst{Status}="Finished";
              last;
