@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.596 2010/11/08 16:11:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.597 2010/11/09 16:54:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -952,7 +952,7 @@ if($#{$self->{DataSetsT}}==-1){
 # here data type datasets
       #datamc==1
          my $datafiles="datafiles";
-         if($dataset->{datamc}%10==1){
+         if($dataset->{datamc}/10==1){
              $datafiles="mcfiles";
          }
      foreach my $job (@jobs){
@@ -6697,7 +6697,7 @@ print qq`
 #
            my $runlist="";
            my $tag="";
-            if(define $q->param("QTag") and $q->param("QTag")>=0){
+            if(defined $q->param("QTag") and $q->param("QTag")>=0){
                $tag=" and tag=$q->param('QTag')";
             }
             if(defined $q->param("QRunList")){
@@ -7349,7 +7349,7 @@ print qq`
                                'host',0,0,0,0,'$stalone',
                               -1, $pid,-1,0)";
 #creat corresponding runevinfo
-         $sql ="select fevent,levent,fetime,letime,nevents from datafiles where run=$run";
+         $sql ="select fevent,levent,fetime,letime,nevents,type from datafiles where run=$run";
          my $r1=$self->{sqlserver}->Query($sql);
          my $ri={};
          $ri->{uid}=$job;
@@ -7363,8 +7363,8 @@ print qq`
          $ri->{rndm1}=0;
          $ri->{rndm2}=0;
          $ri->{DataMC}=1;
-           if(defined $q->param("QType") and $q->param("QType")=~/MC/){
-         $ri->{DataMC}=0;
+           if($r1->[0][5]=~/^MC/){
+               $ri->{DataMC}=0;
            }
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
