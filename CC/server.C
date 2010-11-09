@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.157 2010/10/12 18:44:55 choutko Exp $
+//  $Id: server.C,v 1.158 2010/11/09 20:34:14 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3353,7 +3353,7 @@ if(li==_rl.end()){
 }
 else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient2(cid))!=_rl.end()){
  dv->DieHard=2;
- if(_parent->Debug()){
+ if(_parent->Debug() || 1 ){
   _parent->EMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
   RLI rvi=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient2(cid));
   _parent->EMessage(AMSClient::print(*li,"Run/Client Logic Problem: Found:"));

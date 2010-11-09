@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.747 2010/11/09 13:44:41 pzuccon Exp $
+// $Id: job.C,v 1.748 2010/11/09 20:34:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1485,6 +1485,7 @@ DAQCFFKEY.BTypeInDAQ[1]=6;  // 7 & 7 not implemented yet
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
 VBLANK(DAQCFFKEY.BlocksDir,40);
+DAQCFFKEY.SkipRec=0;
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 }
@@ -1560,6 +1561,16 @@ void AMSJob::_resrddata(){
 //-----------------------------
 
 void AMSJob::udata(){
+
+if(DAQCFFKEY.SkipRec){
+if(!(DAQCFFKEY.mode/10)%10)DAQCFFKEY.SkipRec=0;
+else{
+ IOPA.hlun=0;
+ IOPA.WriteRoot=0;
+}
+}
+
+
 #ifdef _WEBACCESS_
   if (char * pp=getenv("WEBACCESS")){
     cout<<"<---- AMSJob::udata TDV Web Access Enabled with dir "<<pp<<" !!! ;-) "<<endl;

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.336 2010/11/07 20:26:04 mmilling Exp $
+#  $Id: datacards.doc,v 1.337 2010/11/09 20:34:17 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -558,6 +558,7 @@ I85 Mode;
 I86 ReadAhead;                      // (1) to workaround bad tof runs
                                     // should be used with 83=6 datacard
 I87 BlocksDir[40]                       // Monitor only blocks dir (HRDL-A etc)
+I127SkipRec(0)                         //  SkipRec if (mode/10)%10>0
 BMAP   // Magnetic field control
 I  1  mfile                          // mag file name 'fld97int.txt'
 I 41 iniok(1)                       // 0 for update mag field

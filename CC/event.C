@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.494 2010/11/04 18:02:48 choutko Exp $
+//  $Id: event.C,v 1.495 2010/11/09 20:34:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1484,6 +1484,12 @@ void AMSEvent::_reamsevent(){
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
 // copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
+if(DAQCFFKEY.SkipRec && AMSJob::gethead()->isSimulation()){
+static int ist=0;
+   if(ist++<10)
+    cout <<"AMSEvent::_reamsevent-W-ReconstructionWillNotBeDoneBecauseofDAQCCFFKEY.SkipRecRequired"<<endl;
+    return;
+   }
 //
 //----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
   bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);

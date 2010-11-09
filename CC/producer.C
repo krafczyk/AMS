@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.141 2010/11/05 19:25:34 choutko Exp $
+//  $Id: producer.C,v 1.142 2010/11/09 20:34:14 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -201,7 +201,12 @@ if (_Solo){
      _dstinfo =new DPS::Producer::DSTInfo(); 
      _dstinfo->UpdateFreq=1000;
      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
-     else _dstinfo->type = DPS::Producer::Ntuple;
+     else if(IOPA.hlun) _dstinfo->type = DPS::Producer::Ntuple;
+     else if(DAQCFFKEY.mode/10>0)_dstinfo->type= DPS::Producer::RawFile;
+      else {
+         cerr<<" AMSProducer::getRuneventInfo-F-NoOutputMediaDefined "<<endl;
+         exit();
+       }
      _reinfo->uid=0;
      _reinfo->Priority=0;
      time_t ct;
@@ -266,7 +271,7 @@ again:
          
     if(_dstinfo->DieHard){
      if(!mtry){
-      cerr <<" problem with runevinfo sleep 20 sec "<<endl;
+      cerr <<" problem with runevinfo sleep 20 sec "<<_dstinfo->DieHard<<endl;
        sleep(20);
        mtry=true;
        goto again;
@@ -416,8 +421,13 @@ else{
 
    LMessage(AMSClient::print(_reinfo,"StartingRun"));
 
-      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
-      else _dstinfo->type = DPS::Producer::Ntuple;
+     if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
+     else if(IOPA.hlun) _dstinfo->type = DPS::Producer::Ntuple;
+     else if(DAQCFFKEY.mode/10>0)_dstinfo->type= DPS::Producer::RawFile;
+      else {
+         cerr<<" AMSProducer::getRuneventInfo-F-NoOutputMediaDefined "<<endl;
+         exit();
+       }
    if(IsLocal() && !writeable){
     cout <<"AMSProducer-getRunEvInfo-S-NtupleDir "<<getenv("NtupleDir")<<" IsNotWriteable"<<endl; 
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
