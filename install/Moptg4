@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.90 2010/11/10 19:36:17 choutko Exp $
+#  $Id: Moptg4,v 1.89 2010/11/10 19:33:19 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -331,10 +331,6 @@ CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/l
 
 # FFLAGS += -L/usr/lib -lgfortran
 
-STANDALONE:=$(EXE)gbatch$(PG).exe 
-
-gbatch:  $(STANDALONE)
-
 CLIENT=$(EXE)gbatch-orbit$(PG).exe
 
 producer: 	$(CLIENT)
@@ -344,6 +340,9 @@ $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
+STANDALONE:=$(EXE)gbatch$(PG).exe 
+
+gbatch:  $(STANDALONE)
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
