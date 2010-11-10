@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.10 2010/10/27 10:22:16 pzuccon Exp $
+#  $Id: Makefile,v 1.11 2010/11/10 16:37:53 pzuccon Exp $
 #
 # Makefile to build libamsut.a 
 #
@@ -26,9 +26,12 @@ VERGCCH      := 1
 endif
 endif
 
+ifndef AMSWD
+AMSWD := ..
+endif
 
 
-LIB= ../lib/$(ARCH)/
+LIB= $(AMSWD)/lib/$(ARCH)/
 
 
 ifeq "$(ARCH)" "linux"
