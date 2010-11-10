@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.749 2010/11/10 08:49:26 shaino Exp $
+// $Id: job.C,v 1.750 2010/11/10 18:06:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3997,9 +3997,9 @@ delete AMSProducer::gethead();
 if(MISCFFKEY.G4On){
 // due to infinite geant4 destructors
 #ifndef G4VIS_USE
-  //delete &(AMSgObj::BookTimer);
+//  delete &(AMSgObj::BookTimer);
 #endif
-abort();
+//abort();
 }
 #endif
 }

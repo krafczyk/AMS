@@ -1,7 +1,51 @@
-#  $Id: Moptg4,v 1.87 2010/11/09 20:56:20 choutko Exp $
+#  $Id: Moptg4,v 1.88 2010/11/10 18:06:46 choutko Exp $
 #
 SHELL=/bin/sh
 #
+
+
+########################################################################
+#Compilers
+########################################################################
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
+
+ifeq ($(GCC_VER_MAJOR),4) 
+VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCH      := 1
+endif
+endif 
+
+
+
+
+  CC  = gcc -m32 
+  CXX = g++ -m32
+ifdef VERGCC 
+  FF  = gfortran -m32 
+  FORTRAN_LIBS= -lg2c -lgfortran 
+else  
+  FF  = g77 -m32 
+  FORTRAN_LIBS=-lg2c 
+endif
+  FFOLD=$(FF)
+  LD  = g++ -m32
+  FORTRAN2_LIBS=
+
+
+
+ORBIT2DIR=/opt/Orbit2
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=orbit-idl-2 -l cpp
+
 
 include binmake.gmk
 SUPPORTED = AIX OSF1 HP-UX Linux
@@ -133,12 +177,13 @@ endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 
 XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -pthread
+CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
 ifndef LinuxBUG
-CC=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=g77 -m32
 LD=g++ -m32 
 else
-CC=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=/usr/local/bin/g77 -m32
 LD=/usr/local/bin/g++ -m32
 endif
@@ -167,10 +212,10 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
 	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
-	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C $(SCC)job.C $(SCC)event.C \
+	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C  \
 	$(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C \
 	$(SCC)tofrec02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C \
-	$(SCC)commons.C $(SCC)commonsi.C $(SCC)apool.C $(SCC)tofid.C $(SCC)timeid.C \
+	$(SCC)commons.C $(SCC)commonsi.C $(SCC)apool.C $(SCC)tofid.C  \
 	$(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C $(SCC)trigger302.C \
 	$(SCC)daqevt.C $(SCC)astring.C $(SCC)tkdbc.C $(SCC)trddbc.C  \
 	$(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
@@ -181,10 +226,45 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)daqecblock.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
-	$(SCC)richdaq.C	$(SCC)astro.C
+	$(SCC)richdaq.C	$(SCC)astro.C  $(SCC)job.C $(SCC)event.C $(SCC)timeid.C
 
 
 FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
+	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
+	$(SFF)tcircf.F $(SFF)tszfit.F $(SFF)txyfit.F $(SFF)fint_my.F \
+	$(SFF)richpmtlib.F $(SFF)rndm.F  $(SFF)sgif.F \
+	$(SFF)mtx2.F $(SFF)e04ccf.f $(SFF)gtckov.F $(SFF)graylc.F \
+	$(SFF)cerenkov.F $(SFF)mfield.F  $(SFF)egzav.F  $(SFF)tkfit.F  \
+	$(SFF)richrec_lip.F  $(SFF)richnodisp_lip.F $(SFF)richpatt_lip.F $(SFF)richbetalike_lip.F $(SFF)richbetastand_lip.F $(SFF)richchg_lip.F $(SFF)richutil_lip.F \
+	$(SFF)rkms.F $(SFF)rzerowrapper.F $(SFF)trd.F
+
+FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
+	$(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C \
+	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
+	$(SCC)amsgeom.C  \
+	$(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
+	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
+	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
+	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
+	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
+	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C \
+	$(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C \
+	$(SCC)tofrec02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C \
+	$(SCC)commons.C $(SCC)commonsi.C $(SCC)apool.C $(SCC)tofid.C  \
+	$(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C $(SCC)trigger302.C \
+	 $(SCC)astring.C $(SCC)tkdbc.C $(SCC)trddbc.C  \
+	 $(SCC)root.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
+	$(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C \
+	$(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richradid.C \
+	$(SCC)richgeom.C $(SCC)richlip.C $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C \
+	$(SCC)trigger102.C $(SCC)antidbc02.C $(SCC)tofuser02.C \
+	$(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)daqecblock.C \
+	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
+	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
+	$(SCC)richdaq.C	$(SCC)astro.C
+
+
+FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
 	$(SFF)tcircf.F $(SFF)tszfit.F $(SFF)txyfit.F $(SFF)fint_my.F \
 	$(SFF)richpmtlib.F $(SFF)rndm.F  $(SFF)sgif.F \
@@ -200,13 +280,68 @@ MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o)
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 OBJECTS+=$(BIN)rootdict.o
+MYOBJSC1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
+MYOBJSC:=$(MYOBJSC1:$(SCC)%.C=$(BIN)%.o) 
+OBJECTSC:=$(MYOBJSC:$(SFF)%.f=$(BIN)%.o) 
+OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o $(BIN)geant4_c.o \
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o
 
-#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)rzerowrapper.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)richlip.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
+ifndef PGTRACK
+OBJECTSC += $(BIN)TrackFit_utils_c.o
+endif
+#------------------------------------------------------------------------------
+#----   Files list for the ORBiT/CORBA client/server 
+#------------------------------------------------------------------------------
+
+SRC=$(BIN)
+INCLUDE=../include/
+
+INCSCPP= $(SRC)server-cpp-stubs.h $(SRC)server-cpp-skels.h $(SRC)server-cpp-common.h
+
+SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
+
+
+SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
+OBJECTCL= $(BIN)server-cpp-stubs.o                           $(BIN)server-cpp-common.o
+OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
+
+OBJECTSEAUX=    $(BIN)id.o         $(BIN)node.o     $(BIN)astring.o \
+		$(BIN)client.o     $(BIN)amsdbc.o   $(BIN)timeid_s.o \
+		$(BIN)apool.o      $(BIN)snode.o    $(BIN)dbserver.o  
+
+
+#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)rzerowrapper.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)trddbcntuple.o $(BIN)root.o  $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)richlip.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
 #$(BIN)G4LowEnergyPhotoElectric.o
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
 
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2 -lrt  
+
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+
+
+
+
 # FFLAGS += -L/usr/lib -lgfortran
+
+CLIENT=$(EXE)gbatch-orbit$(PG).exe
+
+producer: 	$(CLIENT)
+
+#                   Orbit-C      Orbit-C++   gbatch
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
+	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
+
+STANDALONE:=$(EXE)gbatch$(PG).exe 
+
+gbatch:  $(STANDALONE)
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
@@ -214,7 +349,7 @@ AMS_EXE       = $(EXE)gbatch.exe
 compile:= $(AMS_EXE)
 
 
-$(AMS_EXE):	$(OBJECTS)
+standalone:	$(OBJECTS)
 	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
 
@@ -225,67 +360,67 @@ $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
-	$(CC) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
  
 
 $(BIN)gbatch.o:         $(SCC)gbatch.C
-	$(CC) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o 
+	$(CXX) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o 
 
 $(BIN)job.o:    	 $(SCC)job.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
+	$(CXx) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
 
 
 $(BIN)astro.o: 	 $(SCC)astro.C
-	$(CC) -c $(CFLAGS) $(SCC)astro.C -o $(BIN)astro.o
+	$(CXX) -c $(CFLAGS) $(SCC)astro.C -o $(BIN)astro.o
 
 $(BIN)astring.o:    	 $(SCC)astring.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
 
 $(BIN)event.o:    	 $(SCC)event.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)event.C -o $(BIN)event.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)event.C -o $(BIN)event.o
 
 $(BIN)user.o:    	 $(SCC)user.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)user.C -o $(BIN)user.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)user.C -o $(BIN)user.o
 
 $(BIN)vtx.o:    	 $(SCC)vtx.C
-	$(CC) -c $(CFLAGS) $(SCC)vtx.C -o $(BIN)vtx.o
+	$(CXX) -c $(CFLAGS) $(SCC)vtx.C -o $(BIN)vtx.o
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 
 $(BIN)root.o:    	 $(SCC)root.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)root.C -o $(BIN)root.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)root.C -o $(BIN)root.o
 
 $(BIN)id.o:    	 $(SCC)id.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)id.C -o $(BIN)id.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)id.C -o $(BIN)id.o
 
 $(BIN)bcorr.o:    	 $(SCC)bcorr.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)bcorr.C -o $(BIN)bcorr.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)bcorr.C -o $(BIN)bcorr.o
 
 $(BIN)cont.o:    	 $(SCC)cont.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)cont.C -o $(BIN)cont.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)cont.C -o $(BIN)cont.o
 
 
 $(BIN)trigger302.o:    	 $(SCC)trigger302.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trigger302.C -o $(BIN)trigger302.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trigger302.C -o $(BIN)trigger302.o
 
 $(BIN)node.o:	         $(SCC)node.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)node.C -o $(BIN)node.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)node.C -o $(BIN)node.o
 
 $(BIN)snode.o:          $(SCC)snode.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)snode.C -o $(BIN)snode.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)snode.C -o $(BIN)snode.o
 
 $(BIN)gvolume.o:        $(SCC)gvolume.C
-	$(CC) -c $(CP1F) $(CFLAGS4) $(SCC)gvolume.C -o $(BIN)gvolume.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(SCC)gvolume.C -o $(BIN)gvolume.o
            
 $(BIN)timeid.o:        $(SCC)timeid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid.o
            
 $(BIN)tofid.o:        $(SCC)tofid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofid.C -o $(BIN)tofid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)tofid.C -o $(BIN)tofid.o
            
 $(BIN)status.o:        $(SCC)status.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)status.C -o $(BIN)status.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)status.C -o $(BIN)status.o
            
 $(BIN)tkmccl.o:         $(SFF)tkmccl.F
 	$(FF) -c $(FFLAGS) $(SFF)tkmccl.F -o $(BIN)tkmccl.o
@@ -371,7 +506,7 @@ $(BIN)mtx2.o:         $(SFF)mtx2.F
 	$(FF) -c $(FFLAGS) $(SFF)mtx2.F -o $(BIN)mtx2.o
 
 $(BIN)TrackFit_utils.o:            $(SFF)TrackFit_utils.F
-	$(FF) -c $(FFLAGS)  -I/cern/pro/include     $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils.o
+	$(FF) -c $(FFLAGSn)  -I/cern/pro/include     $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils.o
 
 
 $(BIN)Geant3_utils.o:            $(SFF)Geant3_utils.F
@@ -401,224 +536,224 @@ $(BIN)mtx.o:                   $(SFF)mtx.F
 endif
 
 $(BIN)cern.o:	         $(SCC)cern.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)cern.C -o $(BIN)cern.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)cern.C -o $(BIN)cern.o
 
 $(BIN)amsdbc.o:         $(SCC)amsdbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
 
 $(BIN)tkdbc.o:         $(SCC)tkdbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tkdbc.C -o $(BIN)tkdbc.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)tkdbc.C -o $(BIN)tkdbc.o
 
 $(BIN)trddbc.o:         $(SCC)trddbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trddbc.C -o $(BIN)trddbc.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trddbc.C -o $(BIN)trddbc.o
 
 
 $(BIN)gsen.o:	         $(SCC)gsen.C
-	$(CC) -c $(CP2F) $(CFLAGS)  $(SCC)gsen.C -o $(BIN)gsen.o
+	$(CXX) -c $(CP2F) $(CFLAGS)  $(SCC)gsen.C -o $(BIN)gsen.o
 
 $(BIN)rnormx.o:         $(SCC)rnormx.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)rnormx.C -o $(BIN)rnormx.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)rnormx.C -o $(BIN)rnormx.o
 
 
 $(BIN)point.o:	         $(SCC)point.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)point.C -o $(BIN)point.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)point.C -o $(BIN)point.o
 
 $(BIN)upool.o:	         $(SCC)upool.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)upool.C -o $(BIN)upool.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)upool.C -o $(BIN)upool.o
 
 $(BIN)apool.o:	         $(SCC)apool.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)apool.C -o $(BIN)apool.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)apool.C -o $(BIN)apool.o
 
 $(BIN)gmat.o:         	 $(SCC)gmat.C
-	$(CC) -c $(CP1F) $(CFLAGS4) $(SCC)gmat.C -o $(BIN)gmat.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(SCC)gmat.C -o $(BIN)gmat.o
 
 $(BIN)amsgobj.o: 	 $(SCC)amsgobj.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)amsgobj.C -o $(BIN)amsgobj.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)amsgobj.C -o $(BIN)amsgobj.o
 
 $(BIN)amsgeom.o: 	 $(SCC)amsgeom.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)amsgeom.C -o $(BIN)amsgeom.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)amsgeom.C -o $(BIN)amsgeom.o
 
 $(BIN)geant.o: 	 $(SCC)geant.C
-	$(CC) -c $(CP2F) -D__G4AMS__ $(CFLAGS4P) $(SCC)geant.C -o $(BIN)geant.o
+	$(CXX) -c $(CP2F) -D__G4AMS__ $(CFLAGS4P) $(SCC)geant.C -o $(BIN)geant.o
 
 $(BIN)geant3.o: 	 $(SCC)geant3.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)geant3.C -o $(BIN)geant3.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)geant3.C -o $(BIN)geant3.o
 
 $(BIN)geant4.o: 	 $(SCC)geant4.C
-	$(CC) -c $(CP1F) $(CFLAGS4) $(SCC)geant4.C -o $(BIN)geant4.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(SCC)geant4.C -o $(BIN)geant4.o
 
 $(BIN)g4util.o: 	 $(SCC)g4util.C
-	$(CC) -c $(CP1F) $(CFLAGS4) $(SCC)g4util.C -o $(BIN)g4util.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(SCC)g4util.C -o $(BIN)g4util.o
 
 $(BIN)G4PropagatorInField.o: 	 $(SCC)G4PropagatorInField.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4PropagatorInField.cc -o $(BIN)G4PropagatorInField.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4PropagatorInField.cc -o $(BIN)G4PropagatorInField.o
 
 $(BIN)G4Box.o: 	 $(SCC)G4Box.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Box.cc -o $(BIN)G4Box.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Box.cc -o $(BIN)G4Box.o
 
 $(BIN)G4Trap.o: 	 $(SCC)G4Trap.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Trap.cc -o $(BIN)G4Trap.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Trap.cc -o $(BIN)G4Trap.o
 
 $(BIN)G4Tubs.o: 	 $(SCC)G4Tubs.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Tubs.cc -o $(BIN)G4Tubs.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Tubs.cc -o $(BIN)G4Tubs.o
 
 $(BIN)G4RunManager.o: 	 $(SCC)G4RunManager.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4RunManager.cc -o $(BIN)G4RunManager.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4RunManager.cc -o $(BIN)G4RunManager.o
 
 $(BIN)G4EventManager.o: 	 $(SCC)G4EventManager.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4EventManager.cc -o $(BIN)G4EventManager.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4EventManager.cc -o $(BIN)G4EventManager.o
 
 $(BIN)G4UnionSolid.o: 	 $(SCC)G4UnionSolid.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4UnionSolid.cc -o $(BIN)G4UnionSolid.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4UnionSolid.cc -o $(BIN)G4UnionSolid.o
 
 $(BIN)G4SmartVoxelHeader.o: 	 $(SCC)G4SmartVoxelHeader.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4SmartVoxelHeader.cc -o $(BIN)G4SmartVoxelHeader.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4SmartVoxelHeader.cc -o $(BIN)G4SmartVoxelHeader.o
 
 $(BIN)G4LowEnergyPhotoElectric.o: 	 $(SCC)G4LowEnergyPhotoElectric.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4LowEnergyPhotoElectric.cc -o $(BIN)G4LowEnergyPhotoElectric.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4LowEnergyPhotoElectric.cc -o $(BIN)G4LowEnergyPhotoElectric.o
 
 $(BIN)G4BREPSolidPolyhedra.o: 	 $(SCC)G4BREPSolidPolyhedra.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4BREPSolidPolyhedra.cc -o $(BIN)G4BREPSolidPolyhedra.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4BREPSolidPolyhedra.cc -o $(BIN)G4BREPSolidPolyhedra.o
 
 $(BIN)G4eEnergyLoss.o: 	 $(SCC)G4eEnergyLoss.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4eEnergyLoss.cc -o $(BIN)G4eEnergyLoss.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4eEnergyLoss.cc -o $(BIN)G4eEnergyLoss.o
 
 $(BIN)G4MultipleScattering.o: 	 $(SCC)G4MultipleScattering.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4MultipleScattering.cc -o $(BIN)G4MultipleScattering.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4MultipleScattering.cc -o $(BIN)G4MultipleScattering.o
 
 $(BIN)G4VContinuousDiscreteProcess.o: 	 $(SCC)G4VContinuousDiscreteProcess.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4VContinuousDiscreteProcess.cc -o $(BIN)G4VContinuousDiscreteProcess.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4VContinuousDiscreteProcess.cc -o $(BIN)G4VContinuousDiscreteProcess.o
 
 $(BIN)G4SteppingManager.o: 	 $(SCC)G4SteppingManager.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) -DG4VERBOSE $(SCC)G4SteppingManager.cc -o $(BIN)G4SteppingManager.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) -DG4VERBOSE $(SCC)G4SteppingManager.cc -o $(BIN)G4SteppingManager.o
 
 $(BIN)G4Transportation.o: 	 $(SCC)G4Transportation.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Transportation.cc -o $(BIN)G4Transportation.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Transportation.cc -o $(BIN)G4Transportation.o
 
 $(BIN)G4NormalNavigation.o: 	 $(SCC)G4NormalNavigation.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4NormalNavigation.cc -o $(BIN)G4NormalNavigation.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4NormalNavigation.cc -o $(BIN)G4NormalNavigation.o
 
 $(BIN)G4Navigator.o: 	 $(SCC)G4Navigator.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Navigator.cc -o $(BIN)G4Navigator.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4Navigator.cc -o $(BIN)G4Navigator.o
 
 $(BIN)G4EnergyLossTables.o: 	 $(SCC)G4EnergyLossTables.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4EnergyLossTables.cc -o $(BIN)G4EnergyLossTables.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4EnergyLossTables.cc -o $(BIN)G4EnergyLossTables.o
 
 
 $(BIN)G4ChordFinder.o: 	 $(SCC)G4ChordFinder.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4ChordFinder.cc -o $(BIN)G4ChordFinder.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4ChordFinder.cc -o $(BIN)G4ChordFinder.o
 
 $(BIN)G4MagIntegratorDriver.o: 	 $(SCC)G4MagIntegratorDriver.cc
-	$(CC) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4MagIntegratorDriver.cc -o $(BIN)G4MagIntegratorDriver.o
+	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4MagIntegratorDriver.cc -o $(BIN)G4MagIntegratorDriver.o
 
 $(BIN)g4physics.o: 	 $(SCC)g4physics.C
-	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)g4physics.C -o $(BIN)g4physics.o
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)g4physics.C -o $(BIN)g4physics.o
 
 $(BIN)g4xray.o: 	 $(G4XRAY)
-	$(CC) -c $(CP1F) $(CFLAGS4) $(G4XRAY) -o $(BIN)g4xray.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(G4XRAY) -o $(BIN)g4xray.o
 
 $(BIN)mceventg.o: 	 $(SCC)mceventg.C
-	$(CC) -c $(CP1F) $(CFLAGS4) $(SCC)mceventg.C -o $(BIN)mceventg.o
+	$(CXX) -c $(CP1F) $(CFLAGS4) $(SCC)mceventg.C -o $(BIN)mceventg.o
 
 $(BIN)mccluster.o: 	 $(SCC)mccluster.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)mccluster.C -o $(BIN)mccluster.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)mccluster.C -o $(BIN)mccluster.o
 
 $(BIN)trrawcluster.o: 	 $(SCC)trrawcluster.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trrawcluster.C -o $(BIN)trrawcluster.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trrawcluster.C -o $(BIN)trrawcluster.o
 
 $(BIN)trid.o: 	         $(SCC)trid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trid.C -o $(BIN)trid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trid.C -o $(BIN)trid.o
 
 $(BIN)trdid.o: 	         $(SCC)trdid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trdid.C -o $(BIN)trdid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trdid.C -o $(BIN)trdid.o
 
 $(BIN)trrec.o: 	 $(SCC)trrec.C
-	$(CC) -c $(CP2F) $(CFLAGSn) $(SCC)trrec.C -o $(BIN)trrec.o
+	$(CXX) -c $(CP2F) $(CFLAGSn) $(SCC)trrec.C -o $(BIN)trrec.o
 
 $(BIN)trdrec.o: 	 $(SCC)trdrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trdrec.C -o $(BIN)trdrec.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trdrec.C -o $(BIN)trdrec.o
 
 $(BIN)trdhrec.o: 	 $(SCC)trdhrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trdhrec.C -o $(BIN)trdhrec.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trdhrec.C -o $(BIN)trdhrec.o
 
 $(BIN)trdsim.o: 	 $(SCC)trdsim.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trdsim.C -o $(BIN)trdsim.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trdsim.C -o $(BIN)trdsim.o
 
 $(BIN)TRD_SimUtil.o: 	 $(SCC)TRD_SimUtil.C
-	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_SimUtil.C -o $(BIN)TRD_SimUtil.o
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_SimUtil.C -o $(BIN)TRD_SimUtil.o
 
 $(BIN)G4PAIModel.o: 	 $(SCC)G4PAIModel.C
-	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)G4PAIModel.C -o $(BIN)G4PAIModel.o
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)G4PAIModel.C -o $(BIN)G4PAIModel.o
 
 $(BIN)TRD_GammaXTRadiator.o: 	 $(SCC)TRD_GammaXTRadiator.C
-	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_GammaXTRadiator.C -o $(BIN)TRD_GammaXTRadiator.o
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_GammaXTRadiator.C -o $(BIN)TRD_GammaXTRadiator.o
 
 $(BIN)TRD_VXTenergyLoss.o: 	 $(SCC)TRD_VXTenergyLoss.C
-	$(CC) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_VXTenergyLoss.C -o $(BIN)TRD_VXTenergyLoss.o
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)TRD_VXTenergyLoss.C -o $(BIN)TRD_VXTenergyLoss.o
 
 $(BIN)trcalib.o: 	 $(SCC)trcalib.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o
 
 $(BIN)tralig.o: 	 $(SCC)tralig.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tralig.C -o $(BIN)tralig.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)tralig.C -o $(BIN)tralig.o
 
 
 $(BIN)beta.o: 	         $(SCC)beta.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)beta.C -o $(BIN)beta.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)beta.C -o $(BIN)beta.o
 
 $(BIN)charge.o: 	         $(SCC)charge.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)charge.C -o $(BIN)charge.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)charge.C -o $(BIN)charge.o
 
 $(BIN)particle.o: 	         $(SCC)particle.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)particle.C -o $(BIN)particle.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)particle.C -o $(BIN)particle.o
 
 $(BIN)link.o: 	         $(SCC)link.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)link.C -o $(BIN)link.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)link.C -o $(BIN)link.o
 
 $(BIN)uzstat.o: 	 $(SCC)uzstat.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
 
 $(BIN)io.o: 	 $(SCC)io.C
-	$(CC) -c  $(CP2F) $(CFLAGSDAQ) $(SCC)io.C -o $(BIN)io.o
+	$(CXX) -c  $(CP2F) $(CFLAGSDAQ) $(SCC)io.C -o $(BIN)io.o
 
 $(BIN)daqevt.o: 	 $(SCC)daqevt.C
-	$(CC) -c $(CP2F) $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o
+	$(CXX) -c $(CP2F) $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o
 
 $(BIN)commons.o: 	 $(SCC)commons.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)commons.C -o $(BIN)commons.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)commons.C -o $(BIN)commons.o
 
 $(BIN)commonsi.o: 	 $(SCC)commonsi.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)commonsi.C -o $(BIN)commonsi.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)commonsi.C -o $(BIN)commonsi.o
 
 $(BIN)ecaldbc.o: 	 $(SCC)ecaldbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ecaldbc.C -o $(BIN)ecaldbc.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)ecaldbc.C -o $(BIN)ecaldbc.o
 
 $(BIN)ecalrec.o:        $(SCC)ecalrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ecalrec.C -o $(BIN)ecalrec.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)ecalrec.C -o $(BIN)ecalrec.o
 
 $(BIN)ecid.o:        $(SCC)ecid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ecid.C -o $(BIN)ecid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)ecid.C -o $(BIN)ecid.o
 
 $(BIN)ecalcalib.o:        $(SCC)ecalcalib.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ecalcalib.C -o $(BIN)ecalcalib.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)ecalcalib.C -o $(BIN)ecalcalib.o
 
 $(BIN)richdbc.o: 	 $(SCC)richdbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richdbc.C -o $(BIN)richdbc.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richdbc.C -o $(BIN)richdbc.o
 
 $(BIN)richrec.o: 	 $(SCC)richrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richrec.C -o $(BIN)richrec.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richrec.C -o $(BIN)richrec.o
 
 $(BIN)richid.o:		 $(SCC)richid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richid.C -o $(BIN)richid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richid.C -o $(BIN)richid.o
 
 $(BIN)richradid.o:		 $(SCC)richradid.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richradid.C -o $(BIN)richradid.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richradid.C -o $(BIN)richradid.o
 
 $(BIN)richgeom.o: 	 $(SCC)richgeom.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richgeom.C -o $(BIN)richgeom.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richgeom.C -o $(BIN)richgeom.o
 
 $(BIN)richlip.o: 	 $(SCC)richlip.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)richlip.C -o $(BIN)richlip.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)richlip.C -o $(BIN)richlip.o
 
 $(BIN)gtckov.o:		 $(SFF)gtckov.F
 	$(FF) -c $(FFLAGS) -I/cern/pro/include $(SFF)gtckov.F -o $(BIN)gtckov.o
@@ -630,38 +765,121 @@ $(BIN)cerenkov.o:	 $(SFF)cerenkov.F
 	$(FF) -c $(FFLAGS) -I/cern/pro/include $(SFF)cerenkov.F -o $(BIN)cerenkov.o
 
 $(BIN)trigger102.o:    	 $(SCC)trigger102.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)trigger102.C -o $(BIN)trigger102.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)trigger102.C -o $(BIN)trigger102.o
 
 $(BIN)tofdbc02.o:         $(SCC)tofdbc02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)tofdbc02.C -o $(BIN)tofdbc02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)tofdbc02.C -o $(BIN)tofdbc02.o
 
 $(BIN)tofcalib02.o:         $(SCC)tofcalib02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)tofcalib02.C -o $(BIN)tofcalib02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)tofcalib02.C -o $(BIN)tofcalib02.o
 
 $(BIN)tofrec02.o: 	         $(SCC)tofrec02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)tofrec02.C -o $(BIN)tofrec02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)tofrec02.C -o $(BIN)tofrec02.o
 
 $(BIN)tofuser02.o: 	         $(SCC)tofuser02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)tofuser02.C -o $(BIN)tofuser02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)tofuser02.C -o $(BIN)tofuser02.o
 
 $(BIN)antirec02.o: 	         $(SCC)antirec02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)antirec02.C -o $(BIN)antirec02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)antirec02.C -o $(BIN)antirec02.o
 
 $(BIN)anticalib02.o: 	         $(SCC)anticalib02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)anticalib02.C -o $(BIN)anticalib02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)anticalib02.C -o $(BIN)anticalib02.o
 
 $(BIN)antidbc02.o: 	         $(SCC)antidbc02.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)antidbc02.C -o $(BIN)antidbc02.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)antidbc02.C -o $(BIN)antidbc02.o
 
 $(BIN)tofsim02.o: 	         $(SCC)tofsim02.C
-	$(CC) $(CP2F) -c $(CFLAGSTOFSIM) $(SCC)tofsim02.C -o $(BIN)tofsim02.o
+	$(CXX) $(CP2F) -c $(CFLAGSTOFSIM) $(SCC)tofsim02.C -o $(BIN)tofsim02.o
 
 $(BIN)daqs2block.o:    	 $(SCC)daqs2block.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)daqs2block.C -o $(BIN)daqs2block.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)daqs2block.C -o $(BIN)daqs2block.o
 $(BIN)daqecblock.o:    	 $(SCC)daqecblock.C
-	$(CC) $(CP2F) -c $(CFLAGS) $(SCC)daqecblock.C -o $(BIN)daqecblock.o
+	$(CXX) $(CP2F) -c $(CFLAGS) $(SCC)daqecblock.C -o $(BIN)daqecblock.o
 $(BIN)%.o:    	 $(SCC)%.C
-	$(CC) $(CP2F) -c $(CFLAGS) $< -o $@ 
+	$(CXX) $(CP2F) -c $(CFLAGS) $< -o $@ 
+
+#---------------------------------------------------------------------------------
+# Additional Rules for client/server 
+
+$(OBJECTSE):         $(SRCSCPP)
+	$(CXX_ORBIT)  -c  $(SRCSCPP) 
+	mv *.o $(BIN)
+
+$(OBJECTCO):         $(SRCS)
+	$(CC_ORBIT)  -c  $(SRCS) 
+	mv *.o $(BIN)
+
+
+$(SRCS):    	 $(INCLUDE)server.idl
+	$(IDL) $(INCLUDE)server.idl
+	mv *.h $(SRC)
+	mv *.c $(SRC)
+
+
+
+$(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
+	$(IDLCPP) $(INCLUDE)server.idl
+	mv *.h $(SRC)
+	mv *.cc $(SRC)
+
+
+$(BIN)gbatch_c.o:         $(SCC)gbatch.C
+	$(CXX_ORBIT) -c $(CFLAGS) $(CP2F)  -D__USE_STD_IOSTREAM -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+
+$(BIN)geant_c.o: 	 $(SCC)geant.C
+	$(CXX_ORBIT) -c $(CP2F) -D__G4AMS__ $(CFLAGS4P) -D__BATCH__ $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+
+
+$(BIN)job_c.o: 	 $(SCC)job.C
+	$(CXX_ORBIT) -c $(CP2F) $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+
+$(BIN)geant3_c.o: 	 $(SCC)geant3.C
+	$(CXX_ORBIT) -c  -D__BATCH__ $(IDLFLAGS) $(CFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+
+$(BIN)geant4_c.o: 	 $(SCC)geant4.C
+	$(CXX_ORBIT) -c  -D__BATCH__ $(IDLFLAGS)   $(CP1F) $(CFLAGS4) $(SCC)geant4.C -o $(BIN)geant4_c.o
+
+
+$(BIN)event_c.o: 	 $(SCC)event.C
+	$(CXX_ORBIT) -c $(CP2F) $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+
+$(BIN)timeid_c.o:        $(SCC)timeid.C
+	$(CXX_ORBIT) -c (CP2F) $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+
+$(BIN)timeid_s.o:        $(SCC)timeid.C
+	$(CXX_ORBIT) -c (CP2F) $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
+
+$(BIN)daqevt_c.o:         $(SCC)daqevt.C
+	$(CXX_ORBIT) -c $(CFLAGSDAQ) $(CP2F) -D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
+
+$(BIN)ntuple_c.o:   $(SCC)ntuple.C
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
+$(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
+	$(FF) -c $(FFLAGSn) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
+$(BIN)producer.o: 	 $(SCC)producer.C
+	$(CXX_ORBIT) -c -w $(CFLAGS) (CP2F) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+
+$(BIN)client.o: 	 $(SCC)client.C
+	$(CXX_ORBIT) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+
+$(BIN)server.o: 	 $(SCC)server.C
+	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+
+$(BIN)dbserver.o: 	 $(SCC)dbserver.C
+	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+
+$(BIN)VCon_s.o: ../include/VCon_root.h
+
+$(BIN)ctype.o: $(SCC)ctype.c
+ifeq  "$(shell uname)"  "Linux" 
+	$(CC) -c $< -o$@
+else 
+	cp $(SCC)ctype.c $(BIN)ctype.o
+endif
+##################### ADDTIONAL (PHONY) TARGETS ##############################################
+#checks if the directory AMSWD exist 
+amswd:
+	@if ! [ -d $(AMSWD) ]; then echo FATAL: the directory pointer by AMSWD = $(AMSWD) is missing !!!; exit 1;fi
 
 clean:
 	rm -fv $(BIN)*.o
