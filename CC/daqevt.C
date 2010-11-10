@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.204 2010/11/10 16:53:32 choutko Exp $
+//  $Id: daqevt.C,v 1.205 2010/11/10 21:54:57 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -344,11 +344,11 @@ cerr<<"DAQEvent::buildDAQ-E-jinjBlockLengthTooBigWillNotBeEncoded "<<ntotm<<endl
 }
 else if(ntotm){
 fpl=_pBT[btype];
+uint lntotm=(ntotm+5-_OffsetL)*2;
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    if(*(fpl->_plength+i)<-1){
     if( ntotm){
-     uint lntotm=(ntotm+5-_OffsetL)*2;
 if(lntotm <=32767){
      *_pcur=lntotm;
       pjinj=_pcur;
@@ -378,7 +378,7 @@ else{
  }
  if(pjinj){
   *(_pcur)=0;
-  *(_pcur+1)=calculate_CRC16((pjinj+2),*(pjinj)/2-2);
+  *(_pcur+1)=calculate_CRC16((pjinj+2),lntotm/2-2);
  if(DAQCFFKEY.mode/100==9){
 //
 // special daqcdffkey.mode/100==9;
@@ -1208,7 +1208,7 @@ integer DAQEvent::_HeaderOK(){
          _PEvent=_Event;
          return 0;
        }
-         if(_Event-_PEvent>1){
+         if(_Event-_PEvent>1 && AMSJob::gethead() && AMSJob::gethead()->isRealData()){
            static int icerr=0;
            if(icerr++<100)cerr<<"DAQEvent::_HeaderOK-W-EventSequenceGap "<<_Run<<" "<<_Event<<" "<<_PEvent<<endl;
          }
