@@ -104,9 +104,9 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   VCon* aa = GetVCon()->GetCont("AMSTrMCCluster");
   if (aa)
 #ifndef __ROOTSHAREDLIBRARY__
-    aa->addnext(new AMSTrMCCluster(idsoft, pa, pb, pgl,pmom,edep , itra));
+    aa->addnext(new AMSTrMCCluster(idsoft,  pgl,pmom,edep , itra));
 #else
-    aa->addnext(new TrMCClusterR(idsoft, pa, pb, pgl,pmom,edep , itra));
+    aa->addnext(new TrMCClusterR(idsoft, pgl,pmom,edep , itra));
 #endif
   if (aa) delete aa;
 #ifndef __ROOTSHAREDLIBRARY__

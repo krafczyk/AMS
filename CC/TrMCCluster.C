@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.18 2010/11/03 14:51:47 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.19 2010/11/10 18:54:42 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/11/03 14:51:47 $
+///$Date: 2010/11/10 18:54:42 $
 ///
-///$Revision: 1.18 $
+///$Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -43,9 +43,9 @@ ClassImp(TrMCClusterR);
 
 int TrMCClusterR::_NoiseMarker(555);
 
-TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xca, 
-			   AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra)
-  : _idsoft(idsoft), _itra(itra), _xca(xca), _xcb(xcb), 
+TrMCClusterR::TrMCClusterR(int idsoft, 
+			   AMSPoint xgl,AMSPoint mom, float sum,int itra)
+  : _idsoft(idsoft), _itra(itra), 
     _xgl(xgl), _Momentum(mom), _sum(sum) 
 {
   for (int ii=0;ii<2;ii++){
@@ -71,9 +71,12 @@ void TrMCClusterR::_shower()
 {
 
 
-  AMSPoint entry  = (_xca+_xcb)/2.;
-  AMSPoint dentry = (_xcb-_xca)/2;
-  AMSDir   dir    =  _xcb-_xca;
+  AMSDir   dir(_Momentum);
+  AMSPoint entry  = _xgl;
+  AMSPoint dentry(dir[0]/dir[2]*0.0015,
+		  dir[0]/dir[2]*0.0015,
+		  0.0015);
+
 
   for (int i = 0; i < 5; i++) _ss[0][i] = _ss[1][i] = 0;
 
@@ -191,15 +194,14 @@ void TrMCClusterR::_PrepareOutput(int full)
   sout.clear();
   sout.append(Form("Part: %2d  tkid: %+04d  Sens: %2d    X:%f Y:%f Z:%f    Px: %f Py: %f Pz: %f\n",
 		   _itra,GetTkId(),GetSensor(),
-		   _xca[0],_xca[1],_xca[2],_Momentum[0],_Momentum[1],_Momentum[2]));
+		   _xgl[0],_xgl[1],_xgl[2],_Momentum[0],_Momentum[1],_Momentum[2]));
   
   if(!full) return;
   sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
 		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
   sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
 		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
- //  sout.append( "TrMCClusterR-Coo  %d  %d %d "<<tkid<<" "<<_idsoft<<" "<<layer<<" "
-// 	       <<_xca<<" "<<_xcb<<" "<<_xgl<< std::endl);
+
 }
 
 

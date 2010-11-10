@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.114 2010/08/12 12:51:01 choutko Exp $
+//  $Id: trrec.h,v 1.115 2010/11/10 18:54:54 pzuccon Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -518,9 +518,9 @@ public:
 
   AMSTrMCCluster():TrMCClusterR(),AMSlink(0,0){}
   
-  AMSTrMCCluster(int idsoft, AMSPoint xca, 
-		  AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra)
-    :TrMCClusterR(idsoft,xca,xcb,  xgl, mom, sum, itra),AMSlink(0,0){}
+  AMSTrMCCluster(int idsoft,  
+		   AMSPoint xgl,AMSPoint mom, float sum,int itra)
+    :TrMCClusterR(idsoft, xgl, mom, sum, itra),AMSlink(0,0){}
 
 
   ~AMSTrMCCluster(){}

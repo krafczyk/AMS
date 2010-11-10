@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.9 2010/09/24 14:12:01 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.10 2010/11/10 18:54:54 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/09/24 14:12:01 $
+///$Date: 2010/11/10 18:54:54 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -41,10 +41,6 @@ protected:
   short int _right [2];
   //! array containg the strip signals for p(=1) and n(=0) sides
   float    _ss[2][5];
-  //! impact point on silicon top
-  AMSPoint _xca;
-  //! impact point on silicon bottom
-  AMSPoint _xcb;
   //! Calculated impact point on silicon middle
   AMSPoint _xgl;
   //! Momentum vector of the impinging particle
@@ -66,8 +62,8 @@ public:
   //! Std constructor build a dummy cluster
   TrMCClusterR(){}
   //! Constructor for a digitized hit
-  TrMCClusterR(int idsoft, AMSPoint xca, 
-	       AMSPoint xcb, AMSPoint xgl,AMSPoint mom, float sum,int itra);
+  TrMCClusterR(int idsoft, 
+	       AMSPoint xgl,AMSPoint mom, float sum,int itra);
 
   virtual ~TrMCClusterR();
 
@@ -87,11 +83,6 @@ public:
   double Sum(){return _sum;}
   //! Checks the cluster type against the IsNoise flag
   int IsNoise(){ return _itra == _NoiseMarker; }
-  //! Returns the entry point in the silcon
-  AMSPoint GetXca(){return _xca;}
-  //! Returns the exit point in the silcon
-  AMSPoint GetXcb(){return _xcb;}
-  //! Returns the middle point in the silcon
   AMSPoint GetXgl(){return _xgl;}
   //! Returns the Momentum 
   AMSPoint GetMom(){return _Momentum;}
@@ -143,7 +134,7 @@ public:
   char* Info(int iRef);
 	friend class TrDAQMC;
   /// ROOT definition
-  ClassDef(TrMCClusterR,2);
+  ClassDef(TrMCClusterR,3);
 
 };
 

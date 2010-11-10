@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.750 2010/11/10 18:06:45 choutko Exp $
+// $Id: job.C,v 1.751 2010/11/10 18:54:42 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4453,8 +4453,8 @@ if(DAQCFFKEY.BTypeInDAQ[0]<=5 && DAQCFFKEY.BTypeInDAQ[1]>=5){   // normal
 								   &AMSmceventg::builddaq);
 			
 #ifdef _PGTRACK_
-			DAQEvent::addsubdetector(&TrDAQMC::checkdaqid,&TrDAQMC::buildraw);
-			DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
+		DAQEvent::addsubdetector(&TrDAQMC::checkdaqid,&TrDAQMC::buildraw);
+		DAQEvent::addblocktype(&TrDAQMC::getmaxblocks,&TrDAQMC::calcdaqlength,
 								   &TrDAQMC::builddaq);
 #else		
 			DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
