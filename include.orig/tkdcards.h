@@ -263,57 +263,14 @@ const integer npat=42;
 const integer npat02=218;
 
 
-//! Data Cards to drive the tracke fiting
+//! Data Cards to drive the track fiting
 class TRFITFFKEY_DEF {
 public:
-  integer patternp[npat];  //patterns  to fit (AMS-01); Priority decreases with number
-  // Pattern list for AMS-02 tracker is written at the bottom of this file
+  float ErrX;
+  float ErrY;
+  float ErrZ;
 
-  /// Number of maximum tracks
-  int MaxNtrack;
-  /// Minimum allowed number of hits
-  int MinNhit;
-  geant SearchRegFastFit;   //! Max distance between point and curve to include pint un the fit
-  geant SearchRegStrLine;  //! -------
-  geant SearchRegCircle;   //! ----------  
-  
-  double ErrX;
-  double ErrY;
-  double ErrZ;
-  /// Maximum allowed chisquare for 0:Simple and 1:Normal fitting
-  /// (was beforeChi2WithoutMS, Chi2FastFit of TRFITFFKEY)
-  double MaxChisq[2];
-
-  integer UseTOF;     //! Use(>=1)/Not use(0) 
-                      //! TOF info for pattern rec for pattern 16
-  geant Chi2StrLine; //! The same for Straight line fit
-  geant ResCutFastFit;   //! Max acceptible distance betgween point and fitted curve 
-  geant ResCutStrLine;    //! ---
-  geant ResCutCircle;     //! ---
-
-  geant RidgidityMin;
-  integer FullReco;
-  geant MinRefitCos[2];
-  integer FastTracking;
-  integer WeakTracking;
-  integer FalseXTracking;
-  geant Chi2FalseX;
-  integer ForceFalseTOFX;
-  integer FalseTOFXTracking;
-  integer TOFTracking;
-  integer ForceAdvancedFit;
-  geant ThrClA[2];
-  geant ThrClR[2];
-  integer MaxTrRecHitsPerLayer;
-  integer UseTRD;     //! Use(>=1)/Not use(0) 
-  integer LowMargin;
-  /// If !=0 limit the vertex creation to two tracks
-  integer OnlyGammaVtx;
-  integer UseGeaneFitting; //! Use Geane(1) or Yale (0) fitting method
-  integer OldTracking;  //!Use Old (VC) or new (JA) pattern recognition
-
-  integer patternp02[npat02];  //patterns  to fit (AMS-02); Priority decreases with number
-  // Pattern list for AMS-02 tracker is written at the bottom of TrRecon.C
+  float FitwMsc[9];
 
   void init();
 };

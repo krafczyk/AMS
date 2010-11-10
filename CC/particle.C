@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.213 2010/10/08 17:33:16 mmilling Exp $
+//  $Id: particle.C,v 1.214 2010/11/10 08:49:26 shaino Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1131,10 +1131,14 @@ void AMSParticle::refit(int fast){
     AMSgObj::BookTimer.stop("ReTKRefit");  
     return;
   }
-    
+
+#ifndef _PGTRACK_
   integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
     (TRFITFFKEY.ForceAdvancedFit==2  &&
      !TRFITFFKEY.FastTracking);
+#else
+  integer dorefit=0;
+#endif
   if(_GPart !=14 || dorefit){
     if(!_ptrack->AdvancedFitDone()){
 #ifdef _PGTRACK_

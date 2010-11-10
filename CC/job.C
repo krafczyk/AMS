@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.748 2010/11/09 20:34:14 choutko Exp $
+// $Id: job.C,v 1.749 2010/11/10 08:49:26 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1614,7 +1614,9 @@ else{
     GCPHYS.IPHOT=0;
     GCPHYS.IANNI=0;
     TRMCFFKEY.NoiseOn=0;
+#ifndef _PGTRACK_
     TRFITFFKEY.FastTracking=4;
+#endif
     LVL3FFKEY.Accept=32;
     cout <<"AMSJob::udata-W-FastSimSelectedSomeDatacardsWereRedefined"<<endl;
   }
@@ -1949,11 +1951,12 @@ else{
       TRDMCFFKEY.mode=0;
     }
   }
+
+#ifndef _PGTRACK_
   if(TRFITFFKEY.FastTracking==-1){
     TRFITFFKEY.FastTracking=1;
   }
 
-#ifndef _PGTRACK_
   //PZ FIXME
   // check delta etc
   if(TRMCFFKEY.gammaA[0]<0){

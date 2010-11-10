@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.64 2010/11/10 08:00:13 shaino Exp $
+// $Id: TrTrack.C,v 1.65 2010/11/10 08:49:25 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/10 08:00:13 $
+///$Date: 2010/11/10 08:49:25 $
 ///
-///$Revision: 1.64 $
+///$Revision: 1.65 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -735,6 +735,12 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
   double zh0  = 0;
   int hitbits = 0;
 
+  // Get the reference rigidity for weight tuning
+  double rrgt = 0;
+  int     id0 = kChoutko;
+  if      (ParExists(id )) rrgt = GetRigidity(id);
+  else if (ParExists(id0)) rrgt = GetRigidity(id0);
+
   // Fill hit points
   _TrFit.Clear();
   for (int i = i1; i < i2 && i < _Nhits; i++) {
@@ -744,37 +750,25 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 
     AMSPoint coo =  hit->GetCoord();
 
-    double ery = erry;
-    /*
-    // For AMS02P (AKA AMS-B)
-    if (TkDBc::Head->GetSetup() == 3) {
-      int lyr = hit->GetLayer();
-      if (lyr == 8 || lyr == 9) {
-	double rpar = (lyr == 8) ? 100 : 0.70; //  1.00 : 0.70;
-	ery = 1;
-	for (int k = 0; k < 2; k++) {
-	  int mfit = (k == 0) ? id : kChoutko;
-	  if (ParExists(mfit)) {
-	    double rini = std::fabs(GetRigidity(mfit));
-	    if (rini > 0) { 
-	      ery = (lyr == 8) ? rpar/rini/rini : rpar/rini;
-	      if (ery < erry) ery = erry;
-	      break;
-	    }
-	  }
-	}
-      }
+    double fmsc = 1;
+
+    // Tune fitting weight
+    if (!TrFit::_mscat) {
+      int    ily  = hit->GetLayer()-1;
+      double fitw = TRFITFFKEY.FitwMsc[ily];
+      if (rrgt != 0 && fitw > 0)
+	fmsc = std::sqrt(1+fitw*fitw/rrgt/rrgt);
     }
-    */
-    // For AMS02P (AKA AMS-B)
+
+
     float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
     
     // pz the field is known from the class data member GUFLD(pp, bf);
     bf[0]=_BField[j].x();
     bf[1]=_BField[j].y();
     bf[2]=_BField[j].z();
-    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx,
-                    hit->OnlyX() ? 0 : ery,  
+    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx*fmsc,
+	            hit->OnlyX() ? 0 : erry*fmsc,
 	                               errz, 
 	       bf[0], bf[1], bf[2]);
     

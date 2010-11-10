@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.73 2010/11/10 08:00:13 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.74 2010/11/10 08:49:25 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/10 08:00:13 $
+/// $Date: 2010/11/10 08:49:25 $
 ///
-/// $Revision: 1.73 $
+/// $Revision: 1.74 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1057,13 +1057,11 @@ void TrRecon::BuildHitPatterns(int nmask, int ilyr, int mask)
   HitPatternAttrib[PatternID] = atrb;
   HitPatternIndex[mask] = PatternID;
 
-  if (!TRFITFFKEY.patternp02[PatternID]) {
-    int palw = GetHitPatternAllow(PatternID);
-    if ( (!(RecPar.PatAllowOption & RecPar.NO_EXTP) && (palw & RecPar.NO_EXTP))
-      || (!(RecPar.PatAllowOption & RecPar.NO_INTP) && (palw & RecPar.NO_INTP))
-      || (!(RecPar.PatAllowOption & RecPar. ALL_5L) && (palw & RecPar.ALL_5L)))
-      HitPatternAttrib[PatternID] = -atrb;
-  }
+  int palw = GetHitPatternAllow(PatternID);
+  if ( (!(RecPar.PatAllowOption & RecPar.NO_EXTP) && (palw & RecPar.NO_EXTP))
+    || (!(RecPar.PatAllowOption & RecPar.NO_INTP) && (palw & RecPar.NO_INTP))
+    || (!(RecPar.PatAllowOption & RecPar. ALL_5L) && (palw & RecPar.ALL_5L)))
+    HitPatternAttrib[PatternID] = -atrb;
   PatternID++;
 }
 
@@ -2782,7 +2780,7 @@ int TrRecon::BuildVertex(integer refit){
 
   // Add up tracks
   int maxtracks=maxtr;
-  if (TRFITFFKEY.OnlyGammaVtx) maxtracks=2;
+//if (TRFITFFKEY.OnlyGammaVtx) maxtracks=2; // SH TRFITFFKEY is cleaned up
   
   // First pass (only tracks with beta)
   VCon* pctr=GetVCon()->GetCont("AMSTrTrack");

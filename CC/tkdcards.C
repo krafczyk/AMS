@@ -305,48 +305,11 @@ TRALIG_DEF TRALIG;
 void TRFITFFKEY_DEF::init(){
   // Fit Par
  
-  MaxNtrack = 7;
-  MinNhit   = 5;
-  SearchRegStrLine=1.5;
-  SearchRegCircle=10.;
   ErrX = 40.e-4;  
   ErrY = 15.e-4;
   ErrZ = 40.e-4;
-  MaxChisq[0] = 5;
-  MaxChisq[1] =  2000;
 
- {
-    for( int k=0;k<(int)(sizeof(patternp)/sizeof(patternp[0]));k++)patternp[k]=0;
-  }
-  UseTRD=1;
-  UseTOF=2;
-  Chi2StrLine=10;
-  ResCutFastFit=0.5;
-  ResCutStrLine=0.5;
-  ResCutCircle=0.5;
-  SearchRegFastFit=1;
-  RidgidityMin=0.02;
-  FullReco=0;
-  MinRefitCos[0]=0.7;
-  MinRefitCos[1]=0.5;
-  FastTracking=1;
-  WeakTracking=1;
-  FalseXTracking=1;
-  Chi2FalseX=3.;
-  ForceFalseTOFX=1;
-  FalseTOFXTracking=1;
-  TOFTracking=1;
-  ForceAdvancedFit=1;
-  ThrClA[0]=0.;
-  ThrClA[1]=0.;
-  ThrClR[0]=0.;
-  ThrClR[1]=0.;
-  MaxTrRecHitsPerLayer=250;
-  LowMargin=0;
-  OnlyGammaVtx=0;
-  UseGeaneFitting=0;
-  OldTracking=0;
-  for( int k=0;k<(int)(sizeof(patternp02)/sizeof(patternp02[0]));k++)patternp02[k]=0;
+  for (int i = 0; i < 9; i++) FitwMsc[i] = 0;
 }
 
 TRFITFFKEY_DEF TRFITFFKEY;

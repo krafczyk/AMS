@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.48 2010/11/02 22:52:57 choutko Exp $
+//  $Id: trigger302.C,v 1.49 2010/11/10 08:49:26 shaino Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -1931,10 +1931,12 @@ void TriggerLVL302::_printEl(ostream & stream){
 }
 
 integer TriggerLVL302::LVL3OK(){
-  if(_TrackerTrigger ==0  || _TrackerTrigger ==2 ||
-     (TRFITFFKEY.FastTracking>1 && _TrackerTrigger ==3) ||
+  if(_TrackerTrigger ==0  || _TrackerTrigger ==2
+#ifndef _PGTRACK_
+  || (TRFITFFKEY.FastTracking>1 && _TrackerTrigger ==3) ||
      (TRFITFFKEY.FastTracking>2 && _TrackerTrigger <8 )  ||
      (TRFITFFKEY.FastTracking>3 && _TrackerTrigger <32 ) 
+#endif
      )return 0;
   else return 1;
 }
