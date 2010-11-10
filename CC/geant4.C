@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.67 2010/11/10 20:42:35 choutko Exp $
+//  $Id: geant4.C,v 1.68 2010/11/10 22:26:33 mdelgado Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -654,6 +654,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //    if(GCKINE.ipart==51){
 //       cout <<" xray "<<PrePV->GetName()<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
 //    }
+/*
     if(GCKINE.ipart==Cerenkov_photon){
 //       cout <<" cerenkov "<<PrePV->GetName()<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
       if((PrePV->GetName())(0)=='R' && (PrePV->GetName())(1)=='I' &&
@@ -677,7 +678,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         }
       }
     }
-
+*/
         
 
     if(GCTMED.isvol){// <========== we are in sensitive volume !!!
@@ -993,135 +994,80 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        }
      }
 //------------------------------------------------------------------
-// CJM : RICH (preliminary and slow version)
+// CJM : RICH (G4 synchronized version)
 //
-
-     if(GCKINE.itra==1 && GCKINE.ipart!=Cerenkov_photon && GCTRAK.inwvol==1
-	&& RICCONTROLFFKEY.iflgk_flag){  // To be checked
-       
-       if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
-	  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)==' ')
-	 AMSRichMCHit::sirichhits(GCKINE.ipart,
-				  0,
-				  GCTRAK.vect,
-				  GCTRAK.vect,
-				  GCTRAK.vect+3,
-				  Status_primary_rad);
-       else
-	 
-	 if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
-	    PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='B')
-	   AMSRichMCHit::sirichhits(GCKINE.ipart,
-				    0,
-				    GCTRAK.vect,
-				    GCTRAK.vect,
-				    GCTRAK.vect+3,
-				    Status_primary_radb);
-       
-	 else
-	   
-	   if(PrePV->GetName()(0)=='S' && PrePV->GetName()(1)=='T' &&
-	      PrePV->GetName()(2)=='K' && PrePV->GetName()(3)==' ')
-	     AMSRichMCHit::sirichhits(GCKINE.ipart,
-				      0,
-				      GCTRAK.vect,
-				      GCTRAK.vect,
-				      GCTRAK.vect+3,
-				      Status_primary_tracker);
-       
-       
-	   else
-	     
-	     if(PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='O' &&
-		PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='H')
-	       AMSRichMCHit::sirichhits(GCKINE.ipart,
-					0,
-					GCTRAK.vect,
-					GCTRAK.vect,
-					GCTRAK.vect+3,
-					Status_primary_tof);
-	       
-
-
-     }
-
-
-//    if(PrePV->GetName()(0)=='C' && PrePV->GetName()(1)=='A' &&
-//       PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='O' && 
-//       GCTRAK.inwvol==1){
+    AMSPoint local_position;
+    int volume=PostPV->GetCopyNo()-1;
     if(PostPV->GetName()(0)=='C' && PostPV->GetName()(1)=='A' &&
        PostPV->GetName()(2)=='T' && PostPV->GetName()(3)=='O' && 
        GCTRAK.inwvol==1){
 
-      if(GCKINE.ipart==Cerenkov_photon){
-	geant xl=(RichPMTsManager::GetRichPMTPos(PostPV->GetMother()->GetCopyNo()-1,2)-RICHDB::cato_pos()-RICotherthk/2-
-		  GCTRAK.vect[2])/GCTRAK.vect[5];
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
+        GCTRAK.istop=1;
+
+        local_position=AMSPoint(GCTRAK.vect);
+        local_position=RichAlignment::AMSToRich(local_position);
+
+	geant xl=(RichPMTsManager::GetAMSPMTPos(volume,2)-RICHDB::cato_pos()-RICotherthk/2-local_position[2])/GCTRAK.vect[5];
+
+	geant vect[3];
+	vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
+	vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
+	vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
+	
+	AMSRichMCHit::sirichhits(GCKINE.ipart,
+				 volume,
+				 vect,
+				 GCKINE.vert,
+				 GCKINE.pvert,
+				 Status_Window-
+				 (GCKINE.itra!=1?100:0));
+      }
+      
+
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
+        GCTRAK.istop=2; // Absorb it
+        local_position=AMSPoint(GCTRAK.vect);
+        local_position=RichAlignment::AMSToRich(local_position);
+	geant xl=(RichPMTsManager::GetAMSPMTPos(volume,2)-RICHDB::cato_pos()-RICotherthk/2-local_position[2])/GCTRAK.vect[5];
+
         geant vect[3];
         vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
         vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
         vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
-        //cout <<" get ipart "<<GCKINE.ipart <<" "<<GCTRAK.nstep<<" "<<GCTRAK.istop<<endl;
-        if(!RICHDB::detcer(GCTRAK.vect[6])){
-           GCTRAK.istop=1;
-        }
-
-        if( GCTRAK.nstep==0 && GCTRAK.istop==0){
-         if(1 || RICHDB::detcer(GCTRAK.vect[6])) {
-          GCTRAK.istop=2;
-          AMSRichMCHit::sirichhits(GCKINE.ipart,
-                                   PostPV->GetMother()->GetCopyNo()-1,
-                                   //GCTRAK.vect,
-                                   vect,
-                                   GCKINE.vert,
-                                   GCKINE.pvert,
-                                   Status_Window-
-                                   (GCKINE.itra!=1?100:0));
-         }
-       }
-       else if(GCTRAK.istop==0 ){
-	         GCTRAK.istop=2; // Absorb it
-//	 if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::height)
-         if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::rich_height-
+	
+        if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
            || (GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height &&
                GCKINE.vert[2]>RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height))
-	   AMSRichMCHit::sirichhits(GCKINE.ipart,
-				    PostPV->GetMother()->GetCopyNo()-1,
-				    //GCTRAK.vect,
-                                    vect,
-				    GCKINE.vert,
-				    GCKINE.pvert,
-				    Status_LG_origin-
-				    (GCKINE.itra!=1?100:0));	  
-	 else
-	   AMSRichMCHit::sirichhits(GCKINE.ipart,
-				    PostPV->GetMother()->GetCopyNo()-1,
-				    //GCTRAK.vect,
-   				    vect,
-				    GCKINE.vert,
-				    GCKINE.pvert,
-				    (GCKINE.itra!=1?100:0)+
-				    RICHDB::numrefm*10+
-				    (RICHDB::numrayl>0?Status_Rayleigh:0));
-       }
-      }
-      else if(GCTRAK.nstep!=0){	 
+	  AMSRichMCHit::sirichhits(GCKINE.ipart,
+				   volume,
+                                   vect,
+				   GCKINE.vert,
+				   GCKINE.pvert,
+				   Status_LG_origin);
+        else
+	  AMSRichMCHit::sirichhits(GCKINE.ipart,
+				   volume,
+                                   vect,
+				   GCKINE.vert,
+				   GCKINE.pvert,
+				   0);
+      }else if(GCTRAK.nstep!=0){	 
         AMSRichMCHit::sirichhits(GCKINE.ipart,
-				 PostPV->GetMother()->GetCopyNo()-1,
+				 volume,
 				 GCTRAK.vect,
 				 GCKINE.vert,
 				 GCKINE.pvert,
-                                 Status_No_Cerenkov-
-                                 (GCKINE.itra!=1?100:0));
-      }				   
+                                 Status_No_Cerenkov);
+      }
     }
-
-
+  
 
 // end of RICH
 //----------------------------------------------------------------
 
-
+    
   } // <--- end of "try" ---
 //
    catch (AMSuPoolError e){
@@ -1149,17 +1095,14 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track * aTrack)
 { 
-   return fWaiting;
-   G4ParticleDefinition* particle =aTrack->GetDefinition();
-   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
-//  cerenkov photons should be properly stopped here (via detcer function)
-    if(0 &&GCKINE.ipart==Cerenkov_photon){
-     return fKill;
-    }
-    else if(GCKINE.ipart==51){
-      return fWaiting;
-    }
-    else return fWaiting;
+  G4ParticleDefinition* particle =aTrack->GetDefinition();
+  GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+  if(GCKINE.ipart==Cerenkov_photon){
+    double e=aTrack->GetTotalEnergy()/GeV;
+    if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
+  }
+  
+  return fWaiting;
 }
 
 
