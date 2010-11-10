@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.88 2010/11/10 18:06:46 choutko Exp $
+#  $Id: Moptg4,v 1.90 2010/11/10 19:36:17 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -57,6 +57,7 @@ endif
 BIN=$(AMSWD)/bin/$(G4SYSTEM)/
 EXE=$(AMSWD)/exe/$(G4SYSTEM)/
 LIB=$(AMSWD)/lib/$(G4SYSTEM)/
+IDLFLAGS=-D__CORBA__ -I$(BIN)
 
 ifneq "$(shell du -ks  $(BIN) | grep -c $(AMSWD))" "1"
 ifeq "$(shell mkdir $(BIN))" "Dummy"
@@ -261,7 +262,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)daqecblock.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
-	$(SCC)richdaq.C	$(SCC)astro.C
+	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
@@ -330,6 +331,10 @@ CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/l
 
 # FFLAGS += -L/usr/lib -lgfortran
 
+STANDALONE:=$(EXE)gbatch$(PG).exe 
+
+gbatch:  $(STANDALONE)
+
 CLIENT=$(EXE)gbatch-orbit$(PG).exe
 
 producer: 	$(CLIENT)
@@ -339,9 +344,6 @@ $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
-STANDALONE:=$(EXE)gbatch$(PG).exe 
-
-gbatch:  $(STANDALONE)
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
@@ -367,7 +369,7 @@ $(BIN)gbatch.o:         $(SCC)gbatch.C
 	$(CXX) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o 
 
 $(BIN)job.o:    	 $(SCC)job.C
-	$(CXx) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
 
 
 $(BIN)astro.o: 	 $(SCC)astro.C

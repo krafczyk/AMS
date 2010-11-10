@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.114 2010/09/20 20:53:18 pzuccon Exp $
+//  $Id: trrawcluster.C,v 1.115 2010/11/10 19:33:19 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -898,7 +898,7 @@ if(nerr>0){
     else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 */
    if(IOPA.hlun){
-   TrCalib_def TRCALIB;
+   static TrCalib_def TRCALIB;
    CALIB.Ntuple++;
    HBNT(CALIB.Ntuple,"Tracker Calibaration"," ");
    HBNAME(CALIB.Ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");
@@ -1099,7 +1099,7 @@ if(nerr>0){
     else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 */
    if(IOPA.hlun){
-   TrCalib_def TRCALIB;
+   static TrCalib_def TRCALIB;
    CALIB.Ntuple++;
    HBNT(CALIB.Ntuple,"Tracker Calibaration"," ");
    HBNAME(CALIB.Ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,RawSigma:R,BadCh:I,CmnNoise:R,Crate:I,Haddr:I");

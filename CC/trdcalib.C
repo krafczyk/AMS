@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.11 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trdcalib.C,v 1.12 2010/11/10 19:33:19 choutko Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -48,7 +48,7 @@ void AMSTRDIdCalib::ntuple(integer s){
     else cout <<"trdcalib ntuple file "<<filename<<" opened."<<endl;
 */
   if(IOPA.hlun){
-   TRDCalib_def TRDCALIB;
+   static TRDCalib_def TRDCALIB;
    CALIB.Ntuple++;
     cout <<  " CALIB " <<CALIB.Ntuple<<endl;
    HBNT(CALIB.Ntuple,"trd calibaration"," ");

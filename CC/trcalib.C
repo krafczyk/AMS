@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.61 2008/08/28 20:33:37 choutko Exp $
+//  $Id: trcalib.C,v 1.62 2010/11/10 19:33:19 choutko Exp $
 #include "trcalib.h"
 #include "event.h"
 #include <math.h>
@@ -749,7 +749,7 @@ void AMSTrIdCalib::ntuple(integer s){
     }
     else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 
-   TrCalib_def TRCALIB;
+   static TrCalib_def TRCALIB;
    HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
    HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R");
    int i,j,k,l,m;
@@ -813,7 +813,7 @@ void AMSTrIdCalib::_hist(){
   HBOOK1(400210+2,"Sigmas Calcs",200,0.,20.,0.);
   HBOOK1(400220+2,"Sigmas System",200,0.,20.,0.);
   HBOOK1(400200+3,"Ped Accuracy Estimated",200,0.,1.,0.);
-  PSStr_def PS;
+  static PSStr_def PS;
   HBNAME(IOPA.ntuple,"PedsSigmas",(int*)(&PS),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,SigmaRaw:R,Rho(64):R");
   int i,j,k,l,m;
    for(l=0;l<2;l++){
@@ -1685,7 +1685,7 @@ void AMSTrIdCalib::getaverage(){
     }
     else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
 
-   TrCalib_def TRCALIB;
+   static TrCalib_def TRCALIB;
    HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
    HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R");
    int i,j,k,l,m;

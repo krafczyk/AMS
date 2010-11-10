@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.74 2010/09/20 15:21:44 choutko Exp $
+//  $Id: tkdbc.C,v 1.75 2010/11/10 19:33:19 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2650,8 +2650,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
                    "  "," "};
 
     int rsize=1024;
-    TRLDGM_def TRLDGM;
-    TRLYGM_def TRLYGM;
+    static TRLDGM_def TRLDGM;
+    static TRLYGM_def TRLYGM;
     int iostat;
     HROPEN(IOPA.hlun+1,"geometry","trgeometry","N",rsize,iostat);
     HBNT(IOPA.ntuple,"Tracker Geometry Ladders"," ");

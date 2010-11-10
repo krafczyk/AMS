@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.598 2010/11/09 19:39:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.599 2010/11/10 19:33:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -800,6 +800,7 @@ if($#{$self->{DataSetsT}}==-1){
      closedir THISDIR;
 #     push @{$self->{DataSetsT}}, $dataset;
      $dataset->{datamc}=0;
+     $dataset->{g4}="";
      foreach my $job (@jobs){
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
@@ -809,6 +810,10 @@ if($#{$self->{DataSetsT}}==-1){
              $dataset->{MC}=1;
 #             $self->{DataMC}=1;
          }
+         if($job=~/^g4=true/){
+             $dataset->{g4}=".g4";
+         }
+        
      }
      if($dataset->{datamc}==0){
      foreach my $job (@jobs){
@@ -6799,7 +6804,7 @@ print qq`
         }
         #$dataset->{version}='v4.00';
 
-        my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+        my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".$dataset->{g4};
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
@@ -7949,7 +7954,7 @@ anyagain:
         }
     }
 
-        my $gbatch=$ret->[0][0].".$dataset->{version}";
+        my $gbatch=$ret->[0][0].".$dataset->{version}"."$dataset->{g4}";
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
