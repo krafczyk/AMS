@@ -173,84 +173,84 @@ class TRCLFFKEY_DEF {
 public:
   //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
   integer recflag;
-  //! R [2,3] Seed S/N Threshold for 2:n(X) 3:p(Y) side
-  geant     ThrSeed[2] ;  
-  //! R [4,5] expansion S/N Threshold for 4:n(X) 5:p(Y) side
+  //! R [2,19] Seed S/N Threshold per layer(1-9 -> 0-8)for 2-10:n(X) 11-19:p(Y) side
+  geant     ThrSeed[2][9];  
+  //! R [20,21] expansion S/N Threshold for 4:n(X) 5:p(Y) side
   geant     ThrNeig[2] ;
-  //! I [6,7] Min Distance between seeds for 6:n(X) 7:p(Y) side
+  //! I [22,23] Min Distance between seeds for 6:n(X) 7:p(Y) side
   integer   SeedDist[2] ;
   
-  //! R [8 - 13] hit signal correlation (only muons/protons)
+  //! R [24 - 29] hit signal correlation (only muons/protons)
   geant GGpars[6]  ;//! {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
-  //! R 14 hit signal correlation (only muons/protons)
+  //! R 30 hit signal correlation (only muons/protons)
   geant GGintegral ;//! 91765.;
-  //! R 15 Threshold on the S/K Correlation probability
+  //! R 31 Threshold on the S/K Correlation probability
   geant ThrProb    ;//! 0.00001;
 
-  //! I 16 TrClusterR::DefaultCorrOpt
+  //! I 32 TrClusterR::DefaultCorrOpt
   int ClusterSigCorrOpt;
-  //! I 17 TrClusterR::DefaultUsedStrips
+  //! I 33 TrClusterR::DefaultUsedStrips
   int ClusterCofGUsedStrips;
-  //! R 18 _dxdz threshold for 2/3-strip CofG
+  //! R 34 _dxdz threshold for 2/3-strip CofG
   geant TwoStripThresholdX;
-  //! R 19 _dydz threshold for 2/3-strip CofG
+  //! R 35 _dydz threshold for 2/3-strip CofG
   geant TwoStripThresholdY;
 
   // HIT PARS
   //PRE-SELECTION PARS
-  //! I 20 MaxNrawCls 
+  //! I 36 MaxNrawCls 
   int MaxNrawCls ;// 2000
-  //! I 21 Threeshold used to define a small dt event
+  //! I 37 Threeshold used to define a small dt event
   int lowdt    ;// 200
-  //! I 22 MaxNtrCls
+  //! I 38 MaxNtrCls
   int MaxNtrCls  ;// 1000
-  //! I 23 MaxNtrCls_ldt
+  //! I 39 MaxNtrCls_ldt
   int MaxNtrCls_ldt;// 150
-  //! I 24 MaxNtrHit
+  //! I 40 MaxNtrHit
   int MaxNtrHit  ;// 1000
-  //! F 25  Trackin time limit
+  //! F 41  Trackin time limit
   float TrTimeLim  ;// 1000
   //TRACK PARS
-  //! I 26 MaxNtrack 
+  //! I 42 MaxNtrack 
   int    MaxNtrack ;//4
-  //! I 27 MinNhitX
+  //! I 43 MinNhitX
   int    MinNhitX  ;//4
-  //! I 28 MinNhitY
+  //! I 44 MinNhitY
   int    MinNhitY  ;//5
-  //! I 29 MinNhitXY
+  //! I 45 MinNhitXY
   int    MinNhitXY ;//4
-  //! I 30 PatAllowOption
+  //! I 46 PatAllowOption
   int    PatAllowOption ;//0
-  //! R 31 MaxChisqAllowed
+  //! R 47 MaxChisqAllowed
   float MaxChisqAllowed   ;//300
-  //! R 32  LadderScanRange
+  //! R 48  LadderScanRange
   float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
-  //! R 33 ClusterScanRange
+  //! R 49 ClusterScanRange
   float ClusterScanRange  ;//0.5
-  //! R 34 MaxChisqForLScan
+  //! R 50 MaxChisqForLScan
   float MaxChisqForLScan  ;//2.2
-  //! R 35 ErrXForScan
+  //! R 51 ErrXForScan
   float ErrXForScan       ;//300e-4
-  //! R 36 ErrYForScan
+  //! R 52 ErrYForScan
   float ErrYForScan       ;//300e-4
-  //! R [37,38] Seed S/N Threshold for 37:n(X) 38:p(Y) side
+  //! R [53,54] Seed S/N Threshold for 37:n(X) 38:p(Y) side
   geant TrackThrSeed[2] ;  
 
-  //! I 39 Advanced fit bits
+  //! I 55 Advanced fit bits
   int AdvancedFitFlag;  // 0xffff
 
   //DEBUG
-  //! I 40 TrDEBUG (DEBUG on Track finding)
+  //! I 56 TrDEBUG (DEBUG on Track finding)
   int TrDEBUG ;
-  //! I 41 PZDEBUG
+  //! I 57 PZDEBUG
   int PZDEBUG ;
-  //! I 42 TAS reconstruction
+  //! I 58 TAS reconstruction
   int TasRecon;
-  //! I 43 TAS current intensity
+  //! I 59 TAS current intensity
   int TasCurr;
-  //! I 44 TAS LDDR mode
+  //! I 60 TAS LDDR mode
   int TasLDDR;
-  //! I 45 mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
+  //! I 61 mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
   int ExtMatch;
 
   void init();

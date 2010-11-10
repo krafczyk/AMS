@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.44 2010/11/05 10:25:56 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.45 2010/11/10 16:37:22 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/11/05 10:25:56 $
+///$Date: 2010/11/10 16:37:22 $
 ///
-///$Revision: 1.44 $
+///$Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +59,7 @@ class TrTrackPar {
 public:
   /// Fit done flag
   bool FitDone;
-  /// Bits of hits used for the fitting e.g. 0x7f: Layer1 missing
+  /// Bitsfield of layers used for the fitting; bit_num <==> layer-1
   short int HitBits;
   /// Chisquare in X (Not normalized)
   Double32_t ChisqX;
@@ -174,7 +174,7 @@ public:
     kPattern    = 0x80000
   };
 
-#define DEF_ADVFIT_NUM 10
+#define DEF_ADVFIT_NUM 8
   static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
   /// Advanced fit bits
   static int AdvancedFitBits;
@@ -274,7 +274,7 @@ public:
   // Access functions
   //! returns the pattern ID
   int getpattern() const { return _Pattern; }
-  //! returns the pattern BIT Mask
+  //! returns the BIT Mask of the layers (1-9) with hit. bit_num <==> layer_num-1
   unsigned short int GetBitPattern() const { return _bit_pattern; }
   //! returns the pattern
   int GetPattern() const { return _Pattern; }
@@ -302,31 +302,32 @@ public:
   // Get fitting parameter with a key as Fitting method ID 
   //! True if the fit was succeful (fit id from EFitMehthods
   bool     FitDone     (int id= 0) { return ParExists(id) &&
-                                            GetPar(id).FitDone;  }
+                                           GetPar(id).FitDone;  }
+  //! Returns the TrTrackPar HitBits
   int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
-  //! Returns Chi2 on X
+  //! Returns Chi2 on X from TrTrackPar corresponding to id
   double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }
-  //! Returns Chi2 on Y
+  //! Returns Chi2 on Y from TrTrackPar corresponding to id
   double   GetChisqY   (int id= 0) { return GetPar(id).ChisqY;   }
-  //! Returns Global Chi2 
+  //! Returns Global Chi2 from TrTrackPar corresponding to id
   double   GetChisq    (int id= 0) { return GetPar(id).Chisq;    }
-  //! returns Ndof on X
+  //! returns Ndof on X from TrTrackPar corresponding to id
   int      GetNdofX    (int id= 0) { return GetPar(id).NdofX;    }
-  //! returns Ndof on Y
+  //! returns Ndof on Y from TrTrackPar corresponding to id
   int      GetNdofY    (int id= 0) { return GetPar(id).NdofY;    }
-  //! Returnt the fitted Rigidity
+  //! Returnt the fitted Rigidity from TrTrackPar corresponding to id
   double   GetRigidity (int id= 0) { return GetPar(id).Rigidity; }
-  //! Returns the error on 1/R
+  //! Returns the error on 1/R from TrTrackPar corresponding to id
   double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
-  /// Get track entry point (first layer of the fitting)
+  /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
   AMSPoint GetPentry(int id = 0);
-  ///Returns the point of passage on the Z=0 XY plane
+  ///Returns the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   AMSPoint GetP0       (int id= 0) { return GetPar(id).P0;       }
-  /// Get track entry point direction (first layer of the fitting)
+  /// Get track entry point direction (first layer of the fitting) from TrTrackPar corresponding to id
   AMSDir GetPdir(int id = 0);
-  ///Returns the direction at the point of passage on the Z=0 XY plane
+  ///Returns the direction at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
-  /// Return the 3D residual at layer ilay (0-7)
+  /// Return the 3D residual at layer ilay (0-7) from TrTrackPar corresponding to id
   AMSPoint GetResidual (int ilay, int id= 0) { 
     return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
       ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
@@ -337,6 +338,7 @@ public:
   int    GetFitID(int pos);
   /// Print the string IDs of all the performed fits
   void   PrintFitNames();
+
   /// Get track position at layer ilay (0-7)
   AMSPoint GetPlayer(int ilay, int id = 0);
 
@@ -383,6 +385,9 @@ public:
                     0   do not refit
                     1    refit if does not exist
                     2  refit
+     \param mass (optional) the particle mass. (default= 0.938272297)
+     
+     \param chrg (optional) the particle charge. (default = 1)
 
      \return  the code to access the TrTrackPar object corresponding to the selected fit or -1 if not found  
 
@@ -390,7 +395,7 @@ public:
      If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
      check to have this file on your disk.
 !*/
-    int   iTrTrackPar(int algo=0, int pattern=0, int refit=0);
+  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = 0.938272297, float chrg = 1);
 
   /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
@@ -400,9 +405,9 @@ public:
  
 
 
-  /// Test HitBits
+  /// Checks if an it on layer(1-9) is used for the fit_type id
   bool TestHitBits(int layer, int id = 0) { 
-    return (GetHitBits(id) & (1 << (trconst::maxlay-layer)));
+    return (GetHitBits(id) & (1 << (layer-1)));
   }
 
   /// Get the pointer to the i-th in the track
@@ -469,7 +474,7 @@ public:
     
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
   */
-  float Fit(int id = 0,
+  float FitT(int id = 0,
 	    int layer = -1, bool update = true, const float *err = 0, 
 	    float mass = 0.938272297, float chrg = 1);
 
@@ -478,15 +483,15 @@ public:
 
 
   /// Perform simple fitting with a constant position error of 0.03 cm
-  float SimpleFit(void) {
-    static const float err[3] = { 0.03, 0.03, 0.03 };
-#pragma omp threadprivate(err)
-    return Fit(kSimple, -1, 0, err);
-  }
+  //  float SimpleFit(void) {
+  //    static const float err[3] = { 0.03, 0.03, 0.03 };
+  //#pragma omp threadprivate(err)
+  //    return Fit(kSimple, -1, 0, err);
+  //  }
   /// Perform simple fitting with a constant position error
-  float SimpleFit(float *err) {
-    return Fit(kSimple, -1, 0, err);
-  }
+  // float SimpleFit(float *err) {
+  //   return Fit(kSimple, -1, 0, err);
+  //  }
 
   /// Check if advanced fits specified by flag are done
   int AdvancedFitDone(int add_flags=0);

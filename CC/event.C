@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.495 2010/11/09 20:34:14 choutko Exp $
+//  $Id: event.C,v 1.496 2010/11/10 16:37:32 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1512,16 +1512,16 @@ static int ist=0;
     if(calltrd)_retrdevent();
     
     if(calltrk){
-    try{
-      _retkevent();
-   }
-catch (std::out_of_range &re){
-     static int nerr=0;
-     if(nerr++<100)cerr <<"_retkevent range_error exception catched "<<re.what()<<endl;
-      seterror(2);
-    
-  }
-  } 
+      try{
+	_retkevent();
+      }
+      catch (std::out_of_range &re){
+	static int nerr=0;
+	if(nerr++<100)cerr <<"_retkevent range_error exception catched "<<re.what()<<endl;
+	seterror(2);
+	
+      }
+    } 
     if(callrich)_rerichevent();
     if(callecal)_reecalevent();
   }
@@ -2108,25 +2108,19 @@ void AMSEvent::_reaxevent(){
   AMSTrTrack::flag_golden_tracks();
 #endif
 
+  // Vertexing
+  AMSgObj::BookTimer.start("Vtx");
 #ifdef _PGTRACK_
-  // Vertexing
-  AMSgObj::BookTimer.start("Vtx");
-  //   TrRecon::gethead()->BuildVertex();
-  AMSgObj::BookTimer.stop("Vtx");
   //PZ FIXME DEBUG 
-  AMSgObj::BookTimer.start("REAXPART");
-  buildC("AMSParticle");
-  AMSgObj::BookTimer.stop("REAXPART");
-#else  
-  // Vertexing
-  AMSgObj::BookTimer.start("Vtx");
+  //   TrRecon::gethead()->BuildVertex();
+#else
   buildC("AMSVtx");
+#endif
   AMSgObj::BookTimer.stop("Vtx");
+
   AMSgObj::BookTimer.start("REAXPART");
   buildC("AMSParticle");
   AMSgObj::BookTimer.stop("REAXPART");
-
-#endif
 
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSParticle::print();

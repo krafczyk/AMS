@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.74 2010/11/10 08:49:25 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.75 2010/11/10 16:37:32 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/10 08:49:25 $
+/// $Date: 2010/11/10 16:37:32 $
 ///
-/// $Revision: 1.74 $
+/// $Revision: 1.75 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,8 +46,10 @@ ClassImp(TrReconPar);
 TrReconPar::TrReconPar()
 {
   // clustering - parameters
-  ThrSeed[0]  = 3.50;
-  ThrSeed[1]  = 3.50;
+  for( int ii=0;ii<9;ii++){
+    ThrSeed[0][ii]  = 3.50;
+    ThrSeed[1][ii]  = 3.50;
+  }
   ThrNeig[0]  = 1.00;
   ThrNeig[1]  = 1.00;
   SeedDist[0] =  3;
@@ -93,8 +95,10 @@ TrReconPar::TrReconPar()
 
 void TrReconPar::SetParFromDataCards()
 {
-  ThrSeed[0]  = TRCLFFKEY.ThrSeed[0]  ;  // 2
-  ThrSeed[1]  = TRCLFFKEY.ThrSeed[1]  ;  // 3
+  for (int ii=0;ii<9;ii++){
+    ThrSeed[0][ii]  = TRCLFFKEY.ThrSeed[0][ii]  ;  // 2
+    ThrSeed[1][ii]  = TRCLFFKEY.ThrSeed[1][ii]  ;  // 3
+  }
   ThrNeig[0]  = TRCLFFKEY.ThrNeig[0]  ;  // 4
   ThrNeig[1]  = TRCLFFKEY.ThrNeig[1]  ;  // 5
   
@@ -207,7 +211,7 @@ TrRecon::~TrRecon() {
 void TrRecon::Clear(Option_t *option) {
   /*
   for(int ii=0;ii<2;ii++){
-    RecPar.ThrSeed[ii]=0;
+    for (int jj=0;jj<9;jj++)RecPar.ThrSeed[ii][jj]=0;
     RecPar.ThrNeig[ii]=0;
     RecPar.SeedDist[ii]=0;
   }
@@ -453,7 +457,7 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
   TrLadCal* cal = GetTrCalDB()->FindCal_TkId(tkid);
   if (!cal) {printf ("TrRecon::BuildTrClustersInSubBuffer, WARNING calibration not found!!\n"); return -9999;}
   // create a list of seeds 
-  int nseeds = BuildSeedListInSubBuffer(first, last, cyclicity);
+  int nseeds = BuildSeedListInSubBuffer(tkid,first, last, cyclicity);
 //   printf("Found %d seeds\n",nseeds);
 //   for (int jj=0;jj<nseeds;jj++) printf("seed %d  %d\n",jj,_seedaddresses.at(jj));
 
@@ -484,7 +488,8 @@ int TrRecon::BuildTrClustersInSubBuffer(int tkid, int first, int last, int cycli
   return ntrclusters;
 }
 
-int TrRecon::BuildSeedListInSubBuffer(int first, int last, int cyclicity) {
+int TrRecon::BuildSeedListInSubBuffer(int tkid, int first, int last, int cyclicity) {
+  int lay=abs(tkid)/100;
   _seedaddresses.clear();
   int side    = (first>639) ? 0 : 1;  // 0:n(X) 1:p(Y)
   int address = 0;
@@ -492,10 +497,10 @@ int TrRecon::BuildSeedListInSubBuffer(int first, int last, int cyclicity) {
     // 1. the strip has to be well defined
     // 2. a noisy strip can't be a seed strip
     // 3. the seed must exceed the ThrSeed S/N threshold
-    if (  (_sigbuf[ii]<1.e-6)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<RecPar.ThrSeed[side] )  ) continue;
+    if (  (_sigbuf[ii]<1.e-6)||(_stabuf[ii]!=0)||( (_adcbuf[ii]/_sigbuf[ii])<RecPar.ThrSeed[side][lay-1] )  ) continue;
     // 4. if the next strip is good, above threeshold and with signal larger than this one continue
     if( ii<(last-1)&&(_adcbuf[ii+1]>_adcbuf[ii]))
-      if ((_sigbuf[ii+1]>0.)&&(_stabuf[ii+1]==0)&&( (_adcbuf[ii+1]/_sigbuf[ii+1])>=RecPar.ThrSeed[side]))
+      if ((_sigbuf[ii+1]>0.)&&(_stabuf[ii+1]==0)&&( (_adcbuf[ii+1]/_sigbuf[ii+1])>=RecPar.ThrSeed[side][lay-1]))
 	continue;
 
     // 5. the seed has to be the local maximum among 2*SeedDist+1 good (with status==0) strips
@@ -952,7 +957,7 @@ if (TrDEBUG >= 1) {\
   int id;\
   if (MagFieldOn()) {				\
     id = TrTrackR::kSimple;\
-    track->Fit(id);\
+    track->FitT(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
                  id, track->GetChisq(id), \
                  track->GetChisqX(id), track->GetChisqY(id), \
@@ -961,7 +966,7 @@ if (TrDEBUG >= 1) {\
                  track->GetDir(id)[0]/track->GetDir(id)[2], \
                  track->GetDir(id)[1]/track->GetDir(id)[2]) << endl;\
     id = TrTrackR::kAlcaraz;\
-    track->Fit(id);\
+    track->FitT(id);\
     cout << Form("%2d: %8.2e %8.2e %8.2e %8.2e %6.2f %6.2f %6.2f %6.3f %6.3f",\
                  id, track->GetChisq(id), \
                  track->GetChisqX(id), track->GetChisqY(id), \
@@ -970,7 +975,7 @@ if (TrDEBUG >= 1) {\
                  track->GetDir(id)[0]/track->GetDir(id)[2], \
                  track->GetDir(id)[1]/track->GetDir(id)[2]) << endl;\
     id = TrTrackR::kChoutko;\
-    track->Fit(id);\
+    track->FitT(id);\
   }\
   else\
     id = TrTrackR::kLinear;\
@@ -1297,8 +1302,8 @@ int TrRecon::BuildTrTracks(int rebuild)
   _CpuTimeUp = false;
   _StartTimer();
 
-  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0] || 
-      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1]) {
+  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0][0] || 
+      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1][0]) {
     _MinNhitX  = RecPar.MinNhitX-1;
     _MinNhitY  = RecPar.MinNhitY-1;
     _MinNhitXY = RecPar.MinNhitXY-1;
@@ -2095,7 +2100,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // 1st. step Fit
   int fit_method = (MagFieldOn()) ? TrTrackR::kSimple : TrTrackR::kLinear;
-  float ret = track->Fit(fit_method);
+  float ret = track->FitT(fit_method);
   if (ret < 0 || 
       track->GetChisqX(fit_method) <= 0 || track->GetChisqY(fit_method) <= 0 ||
       track->GetNdofX (fit_method) <= 0 || track->GetNdofY (fit_method) <= 0) {
@@ -2104,8 +2109,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   }
 
   // Merge low seed SN hits
-  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0] || 
-      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1]) {
+  if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0][0] || 
+      RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1][0]) {
     MergeLowSNHits(track, fit_method);
     if (track->GetNhitsX () < RecPar.MinNhitX ||
 	track->GetNhitsY () < RecPar.MinNhitY ||
@@ -2146,7 +2151,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // 2nd. step Fit
   if (!MagFieldOn()) {
-    track->Fit(fit_method);
+    track->FitT(fit_method);
     track->Settrdefaultfit(fit_method);
   }
   else {
@@ -2580,7 +2585,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
     }
 
     int fit_method = TrTrackR::kLinear;
-    track->Fit(fit_method);
+    track->FitT(fit_method);
     cont2->addnext(track);
 
     ntrk++;

@@ -25,9 +25,11 @@ TKGEOMFFKEY_DEF TKGEOMFFKEY;
 //  TRACKER RECONSTRUCTION
 //==============================
 void TRCLFFKEY_DEF::init(){
+for (int ii=0;ii<9;ii++){
   recflag=111;
-  ThrSeed[0]  = 3.50;
-  ThrSeed[1]  = 3.50;
+  ThrSeed[0][ii]  = 3.50;
+  ThrSeed[1][ii]  = 3.50;
+}
   ThrNeig[0]  = 1.00;
   ThrNeig[1]  = 1.00;
 

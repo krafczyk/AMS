@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.65 2010/11/10 08:49:25 shaino Exp $
+// $Id: TrTrack.C,v 1.66 2010/11/10 16:37:32 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/10 08:49:25 $
+///$Date: 2010/11/10 16:37:32 $
 ///
-///$Revision: 1.65 $
+///$Revision: 1.66 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -44,8 +44,8 @@ ClassImp(TrTrackPar)
 char* HitBitsString(int aa){
   static char ss[10];
   for (int ii=0;ii<9;ii++)
-    if(((aa)&1<<ii)>0) ss[ii]='X';
-    else ss[ii]='_';
+    if(((aa)&1<<ii)>0) ss[8-ii]='X';
+    else ss[8-ii]='_';
   ss[9]='\0';
   return ss;
 }
@@ -78,8 +78,8 @@ int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, kChoutko|kUpperHalf, kChoutko|kLowerHalf, 
-    kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf, 
-    kChikanian, kChikanianF };
+    kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf};
+    //    kChikanian, kChikanianF };
 
 int TrTrackR::AdvancedFitBits = 0x00ff;
 
@@ -433,7 +433,7 @@ void TrTrackR::Move(int shift, int fit_flags)
 	<< endl;
       //  }
   }
-  if (fit_flags != 0 && ParExists(fit_flags)) Fit(fit_flags);
+  if (fit_flags != 0 && ParExists(fit_flags)) FitT(fit_flags);
   else ReFit();
 }
 
@@ -496,7 +496,7 @@ void TrTrackR::ReFit( const float *err,
 		      float mass, float chrg){
   map<int, TrTrackPar>::iterator it=_TrackPar.begin();
   for(;it!=_TrackPar.end();it++)
-    Fit(it->first,-1,1,err,mass,chrg);
+    FitT(it->first,-1,1,err,mass,chrg);
   return;
 }
 
@@ -565,7 +565,7 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
   return (*_Hits[i]);
 }
 
-float TrTrackR::Fit(int id2, int layer, bool update, const float *err, 
+float TrTrackR::FitT(int id2, int layer, bool update, const float *err, 
                       float mass, float chrg)
 {
   int id=id2;
@@ -614,7 +614,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
     int    ihmin  = -1;
     for (int i = 0; i < _Nhits; i++) {
       TrRecHitR *hit = GetHit(i);
-      if (hit && Fit(idf, hit->GetLayer(), false) > 0 && 
+      if (hit && FitT(idf, hit->GetLayer(), false) > 0 && 
 	  _TrFit.GetChisqY() > 0) {
 	if (ihmin < 0 || _TrFit.GetChisqY() < csymin) {
 	  ihmin  = i;
@@ -772,7 +772,7 @@ float TrTrackR::Fit(int id2, int layer, bool update, const float *err,
 	                               errz, 
 	       bf[0], bf[1], bf[2]);
     
-    hitbits |= (1 << (trconst::maxlay-hit->GetLayer()));
+    hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
@@ -1043,10 +1043,10 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 
 int TrTrackR::DoAdvancedFit(int add_flag)
 {
- if (!_MagFieldOn) return (int)Fit(kLinear|add_flag);
+ if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
    if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0)
-     Fit(DefaultAdvancedFitFlags[ii]| add_flag);
+     FitT(DefaultAdvancedFitFlags[ii]| add_flag);
 
  return AdvancedFitDone(add_flag);
 }
@@ -1115,7 +1115,7 @@ void TrTrackR::PrintFitNames(){
 }
 
 
-int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit){
+int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg){
     int type=algo%10;
     bool mscat=((algo/10)==1);
     int fittype=0;
@@ -1165,7 +1165,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit){
     
     bool FitExists=ParExists(fittype);
     if(refit==2 || (!FitExists && refit==1)) { 
-       float ret=Fit(fittype);
+      float ret=FitT(fittype,-1,true,0,mass,chrg);
       if (ret>0) 
 	return fittype;
       else 

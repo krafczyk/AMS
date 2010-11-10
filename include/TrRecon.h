@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.34 2010/10/12 23:18:14 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.35 2010/11/10 16:37:22 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/10/12 23:18:14 $
+/// $Date: 2010/11/10 16:37:22 $
 ///
-/// $Revision: 1.34 $
+/// $Revision: 1.35 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -53,7 +53,7 @@ public:
   // --- Parameters for reclusterization ---
 
   /// Clustering - Seed S/N threshold for 0:n(X) 1:p(Y) side
-  float ThrSeed[2];
+  float ThrSeed[2][9];
   /// Clustering - Neighboring S/N strips threshold for 0:n(X) 1:p(Y) side
   float ThrNeig[2];
   /// Clustering - Minimum distance between two seeds for 0:n(X) 1:p(Y) side
@@ -205,7 +205,7 @@ public:
   
   // --- Clustering Methods --- // 
   /// Set the seed S/N threshold
-  static void   SetThrSeed(int side, float thr) { RecPar.ThrSeed[side] = thr; }
+  static void   SetThrSeed(int side,int layer, float thr) { RecPar.ThrSeed[side][layer-1] = thr; }
   /// Set the neigtboring strips S/N threshold
   static void   SetThrNeig(int side, float thr) { RecPar.ThrNeig[side] = thr; }
   /// Set the mimnimum strip distance between two seeds
@@ -225,7 +225,7 @@ public:
   /// Builds the TrClusters in a buffer interval (cyclicity if !=0) 
   int  BuildTrClustersInSubBuffer(int tkid, int first, int last, int cyclicity = 0);
   /// Builds the seed list in the buffer interval (cyclicity if !=0) 
-  int  BuildSeedListInSubBuffer(int first, int last, int cyclicity = 0);
+  int  BuildSeedListInSubBuffer(int tkid, int first, int last, int cyclicity = 0);
   /// Search for the addresses of the boundaries (cyclicity if !=0), returns 10000*leftaddress+rightaddress 
   int  GetBoundariesInSubBuffer(int index, int first, int last, int cyclicity = 0);
   /// Get a well defined address inside an interval (imposing cyclicity if !=0) 
