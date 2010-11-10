@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.32 2010/11/07 20:21:10 mmilling Exp $
+//  $Id: g4physics.C,v 1.33 2010/11/10 19:17:26 mdelgado Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.32 2010/11/07 20:21:10 mmilling Exp $
+// $Id: g4physics.C,v 1.33 2010/11/10 19:17:26 mdelgado Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -824,7 +824,7 @@ void AMSG4Physics::ConstructOp()
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
       */
-      //      pmanager->AddContinuousProcess(theCerenkovProcess);
+      pmanager->AddContinuousProcess(theCerenkovProcess);
     }
     if (particleName == "opticalphoton") {
       G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;
