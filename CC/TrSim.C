@@ -505,8 +505,8 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
     }
 
     // at least 3 strips!
-    if(left >addmin[iside]) left--;
-    if(right<addmax[iside]) right++;
+    if(left >addmin[iside])     left--;
+    if(right<(addmax[iside]-1)) right++;
 
     // Preparing the cluster
     short int signal[128];
