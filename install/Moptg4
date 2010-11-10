@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.89 2010/11/10 19:33:19 choutko Exp $
+#  $Id: Moptg4,v 1.91 2010/11/10 20:42:36 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -331,6 +331,10 @@ CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/l
 
 # FFLAGS += -L/usr/lib -lgfortran
 
+STANDALONE:=$(EXE)gbatch$(PG).exe 
+
+gbatch:  $(STANDALONE)
+
 CLIENT=$(EXE)gbatch-orbit$(PG).exe
 
 producer: 	$(CLIENT)
@@ -340,9 +344,6 @@ $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
-STANDALONE:=$(EXE)gbatch$(PG).exe 
-
-gbatch:  $(STANDALONE)
 
 AMS_EXE       = $(EXE)gbatch.exe
 .PHONY :     compile depend 
@@ -845,7 +846,7 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 	$(CXX_ORBIT) -c $(CP2F) $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CXX_ORBIT) -c (CP2F) $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	$(CXX_ORBIT) -c  $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
 
 $(BIN)timeid_s.o:        $(SCC)timeid.C
 	$(CXX_ORBIT) -c (CP2F) $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
@@ -858,7 +859,7 @@ $(BIN)ntuple_c.o:   $(SCC)ntuple.C
 $(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
 	$(FF) -c $(FFLAGSn) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
 $(BIN)producer.o: 	 $(SCC)producer.C
-	$(CXX_ORBIT) -c -w $(CFLAGS) (CP2F) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CXX_ORBIT) -c -w $(CFLAGS)  $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
 	$(CXX_ORBIT) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
