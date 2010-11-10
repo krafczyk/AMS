@@ -72,7 +72,7 @@ void TRCLFFKEY_DEF::init(){
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;
-  AdvancedFitFlag = 0xffff;
+  AdvancedFitFlag = 0x00ff;
   //TAS
   TasRecon = 0;
   TasCurr  = 0;

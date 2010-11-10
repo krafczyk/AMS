@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.35 2010/10/28 15:14:05 shaino Exp $
+//  $Id: TrFit.C,v 1.36 2010/11/10 08:00:13 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/10/28 15:14:05 $
+///$Date: 2010/11/10 08:00:13 $
 ///
-///$Revision: 1.35 $
+///$Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -506,6 +506,28 @@ int TrFit::GetLayer(double z)
   return ilay;
 }
 
+void TrFit::PropagateFast(int ih0, int ih1, int ndiv)
+{
+  if (ih0 < 0 || _nhit <= ih0 ||
+      ih1 < 0 || _nhit <= ih1) return;
+
+  double dir[3] = { -GetD0x(), -GetD0y(), -GetD0z() };
+  double pos[3] = {  GetP0x(),  GetP0y(),  GetP0z() };
+
+  for (int i = ih0+1; i <= ih1; i++) {
+    double len[3] = { _xh[i]-_xr[i]-pos[0], 
+		      _yh[i]-_yr[i]-pos[1], _zh[i]-pos[2] };
+    Propagate(pos, len, dir, ndiv);
+  }
+  if (dir[2] == 0) dir[2] = 1;
+
+  _p0x  = pos[0];
+  _p0y  = pos[1];
+  _p0z  = pos[2];
+  _dxdz = dir[0]/dir[2];
+  _dydz = dir[1]/dir[2];
+}
+
 double TrFit::VKAverage(int n, double *x, double *y, double *w)
 {
    double s = 0, sw = 0;
@@ -756,9 +778,9 @@ double TrFit::AlcarazFit(int fixr)
   _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
 
   // Fill parameters
-  double dzarg=1-_param[2]*_param[2]-_param[3]*_param[3];
+  double dzarg = 1-_param[2]*_param[2]-_param[3]*_param[3];
   double dz = 1;
-  if(dzarg>=0) dz=std::sqrt(dzarg);
+  if (dzarg > 0) dz = std::sqrt(dzarg);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
   _p0z = _zh[0];
@@ -1524,7 +1546,9 @@ void TrFit::RkmsFit(double *out)
 /*--------------------------------------------------------------------------
  *                    
  * Initial MIGRAD steps dPx      dPy      dPz(GeV) dx     dy(cm) */
-  double St[NDIM]   = { .000100, .000100, .002000, .0005, .0005 }; //! 8.98*min
+//double St[NDIM]   = { .000100, .000100, .002000, .0005, .0005 }; //! 8.98*min
+// Initial MIGRAD steps dX/dZ  dY/dZ  1/R (1/GV)   dx     dy(cm)
+  double St[NDIM]   = { .01,   .01,   .01,         .0005, .0005 }; //! 8.98*min
 /* see:/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/RKMSFIT/derivstep.opt
  *--------------------------------------------------------------------------
  */
@@ -1578,7 +1602,7 @@ void TrFit::RkmsFit(double *out)
   double step = 5;// ! cm
   double sign = 1;
 
-  enum { NitMa = 3 };
+  enum { NitMa = 1 }; //3 };
   for (int it = 1; it <= NitMa; it++) {
 
     // Initial values
@@ -1586,9 +1610,9 @@ void TrFit::RkmsFit(double *out)
     if (it <= 2) {
                    sign =  1;
       if (it == 2) sign = -1;
-      par[0] = rini*(_xh[1]-_xh[0])/rad;                            // ! Px0
-      par[1] = rini*(_yh[1]-_yh[0])/rad;                            // ! Py0
-      par[2] = rini*(_zh[1]-_zh[0])/rad;                            // ! Pz0
+      par[0] = (_xh[1]-_xh[0])/(_zh[1]-_zh[0]);                     // ! Px0
+      par[1] = (_yh[1]-_yh[0])/(_zh[1]-_zh[0]);                     // ! Py0
+      par[2] = 1/rini;                                              // ! Pz0
       par[3] = _xh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_xh[1]-_xh[0]);// !  x0
       par[4] = _yh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_yh[1]-_yh[0]);// !  y0
     }
@@ -1661,13 +1685,16 @@ void TrFit::RkmsFit(double *out)
   RkmsFun(npa, par, true);
 
 /*     ========================================================== */
-  double rgt = std::sqrt(out[0]*out[0]+out[1]*out[1]+out[2]*out[2]);
-  double dr  = std::sqrt((out[0]*err[0])*(out[0]*err[0]) + 
-			 (out[1]*err[1])*(out[1]*err[1]) +
-			 (out[2]*err[2])*(out[2]*err[2]))/rgt;
+//double rgt = std::sqrt(out[0]*out[0]+out[1]*out[1]+out[2]*out[2]);
+//double dr  = std::sqrt((out[0]*err[0])*(out[0]*err[0]) + 
+//			 (out[1]*err[1])*(out[1]*err[1]) +
+//			 (out[2]*err[2])*(out[2]*err[2]))/rgt;
+  double rgt = 1/out[2];
+  double dr  = err[2]*rgt*rgt;
 
 /*     ============================================= */
-  double theta = std::acos (out[2]/rgt);
+  double dd    = std::sqrt(out[0]*out[0]+out[1]*out[1]+1);
+  double theta = std::acos (1/dd);
   double phi   = std::atan2(out[1], out[0]);
   out[0] = out[3];
   out[1] = out[4];
@@ -2256,9 +2283,11 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
   enum { NPma = LMAX };
 
   double pin[3], xin[3], x0[NPma], y0[NPma];
-  pin[0] = par[0]; // ! Px or cx
-  pin[1] = par[1]; // ! Py or cy
-  pin[2] = par[2]; // ! Pz or R
+  double dd = -std::sqrt(par[0]*par[0]+par[1]*par[1]+1); // down-going
+  double pp = (par[2] != 0) ? abs(1/par[2]) : 0;         // abs.momentum
+  pin[0] = par[0]/dd*pp; // ! Px
+  pin[1] = par[1]/dd*pp; // ! Py
+  pin[2] =      1/dd*pp; // ! Pz
   xin[0] = par[3]; // ! x
   xin[1] = par[4]; // ! y
   xin[2] = _zh[0]; // ! z
@@ -2306,12 +2335,17 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
 
   if (zc[0] < zc[1]) vni = -1.; // ! back tracking
 
-//cxy3 ---
+  sign = (par[2] > 0) ? 1 : -1;
   vect[6] = std::sqrt(pin[0]*pin[0]+pin[1]*pin[1]+pin[2]*pin[2]);
+
+//cxy3 ---
+/*
   if (pin[2] > 0) {
     vect[6] = -vect[6];
     sign    = -sign;
   }
+*/
+
   for (int i = 0; i < 3; i++) {
     vect[i  ] = xin[i];//         !  xyz
     vect[i+3] = pin[i]/vect[6];// ! cxyz
@@ -3666,6 +3700,13 @@ C *** ---------------------------------------------
   for (int i = 0; i < 25; i++) CC[i/5][i%5] = C[i];
 }
 
+void TrProp::Propagate(double *x, double *d, double *u, int ndiv)
+{
+  double par = (_rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
+  double mem[6] = { 1, 1, 0, 0, 0, 0 }, mel[4];
+  JAStepPin(x, d, u, mel, mem, par, ndiv);
+}
+
 int TrProp::JAStepPin(double *x, double *l, double *u,
                       double *mel, double *mem, double par, int ndiv)
 {
@@ -3695,10 +3736,14 @@ int TrProp::JAStepPin(double *x, double *l, double *u,
    }
    for (int i = 0; i < 4; i++) pint[i] /= 3*ndiv;
 
-   u[0] += par*pint[1];
-   u[1] += par*pint[3];
+   u[0] += par*pint[1]*dl;
+   u[1] += par*pint[3]*dl;
    double uu = u[0]*u[0]+u[1]*u[1];
    u[2] = (uu < 1) ? -std::sqrt(1-uu) : -1e-9;
+
+   x[0] += l[0];
+   x[1] += l[1];
+   x[2] += l[2];
 
    mel[0] = dl; mel[2] = dl*dl*pint[0]+dl*mem[2]; mem[2] += dl*pint[1];
    mel[1] = dl; mel[3] = dl*dl*pint[2]+dl*mem[3]; mem[3] += dl*pint[3];

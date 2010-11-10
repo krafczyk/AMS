@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.19 2010/10/27 16:43:48 shaino Exp $
+//  $Id: TrFit.h,v 1.20 2010/11/10 08:00:15 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/10/27 16:43:48 $
+///$Date: 2010/11/10 08:00:15 $
 ///
-///$Revision: 1.19 $
+///$Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -102,9 +102,12 @@ public:
   double GetP0z (void) const { return _p0z;  }
   double GetDxDz(void) const { return _dxdz; }
   double GetDyDz(void) const { return _dydz; }
-  // PZ BugFix NEVER use atan for phi angle use always atan2
-  double GetPhi  (void) const { return atan2(_dydz,_dxdz);}
 
+  double GetD0x (void) const { return _dxdz*GetD0z(); }
+  double GetD0y (void) const { return _dydz*GetD0z(); }
+  double GetD0z (void) const { return 1/sqrt(_dxdz*_dxdz+_dydz*_dydz+1); }
+
+  double GetPhi  (void) const { return atan2(_dydz, _dxdz);}
   double GetTheta(void) const { return atan(sqrt(_dydz*_dydz+_dxdz*_dxdz));}
 
   double GetRigidity(void) const { return _rigidity; }
@@ -137,6 +140,9 @@ public:
 
   /// Track interpolation (onto cylindrical surface)
   double InterpolateCyl(AMSPoint &pnt, AMSDir &dir, double radius, int idir);
+
+  /// Propagation with JAStepPin
+  void Propagate(double *x, double *d, double *u, int ndiv = 20);
 
 protected:
   /// Transportation (for VC's method)
@@ -323,6 +329,9 @@ public:
 
   /// Estimate layer number [0:trconst::maxlay-1] from the hit Z-coodinates
   int GetLayer(double z);
+
+  /// Fast propagation with JAStepPin
+  void PropagateFast(int ih0, int ih1, int ndiv = 20);
 
 protected:
   /// Apply limits as min<abs(par)<max

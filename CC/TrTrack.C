@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.63 2010/11/05 10:25:35 pzuccon Exp $
+// $Id: TrTrack.C,v 1.64 2010/11/10 08:00:13 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/05 10:25:35 $
+///$Date: 2010/11/10 08:00:13 $
 ///
-///$Revision: 1.63 $
+///$Revision: 1.64 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -81,7 +81,7 @@ const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
     kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf, 
     kChikanian, kChikanianF };
 
-int TrTrackR::AdvancedFitBits = 0xffff;
+int TrTrackR::AdvancedFitBits = 0x00ff;
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
