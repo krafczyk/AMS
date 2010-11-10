@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.142 2010/11/09 20:34:14 choutko Exp $
+//  $Id: producer.C,v 1.143 2010/11/10 16:53:32 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -205,7 +205,7 @@ if (_Solo){
      else if(DAQCFFKEY.mode/10>0)_dstinfo->type= DPS::Producer::RawFile;
       else {
          cerr<<" AMSProducer::getRuneventInfo-F-NoOutputMediaDefined "<<endl;
-         exit();
+         exit(1);
        }
      _reinfo->uid=0;
      _reinfo->Priority=0;
@@ -426,7 +426,7 @@ else{
      else if(DAQCFFKEY.mode/10>0)_dstinfo->type= DPS::Producer::RawFile;
       else {
          cerr<<" AMSProducer::getRuneventInfo-F-NoOutputMediaDefined "<<endl;
-         exit();
+         exit(1);
        }
    if(IsLocal() && !writeable){
     cout <<"AMSProducer-getRunEvInfo-S-NtupleDir "<<getenv("NtupleDir")<<" IsNotWriteable"<<endl; 

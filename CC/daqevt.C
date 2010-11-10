@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.203 2010/11/08 16:56:53 choutko Exp $
+//  $Id: daqevt.C,v 1.204 2010/11/10 16:53:32 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1958,7 +1958,7 @@ void DAQEvent::initO(integer run,integer eventno,time_t tt){
    if(ofnam){
      char name[255];
      ostrstream ost(name,sizeof(name));
-     if(ofnam[strlen(ofnam)-1]=='/')ost << ofnam<<run<<ends;
+     if(ofnam[strlen(ofnam)-1]=='/')ost << ofnam<<run<<".raw"<<ends;
      //next line gives compiler error on gcc
      // else ost << ofnam<<ends;
      if(fbout)fbout.close();
