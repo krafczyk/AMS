@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.29 2010/08/25 10:26:35 shaino Exp $
+//  $Id: event_tk.C,v 1.30 2010/11/11 17:48:24 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -130,6 +130,24 @@ void AMSEvent::_retkevent(integer refit){
 
       // Purge "ghost" hits and assign hit index to tracks
       rec.PurgeGhostHits();
+
+      // Check hit indexes
+      VCon* contT = GetVCon()->GetCont("AMSTrTrack");
+      int ntrack=contT->getnelem();
+      for (int i = 0; i < ntrack; i++) {
+	TrTrackR *track = (TrTrackR*)contT->getelem(i);
+
+	for(int j=0;j<track->GetNhits();j++)
+	  if (track->iTrRecHit(j) < 0) {
+	    static int nerr = 0;
+	    if (nerr++ < 100)
+	      cerr << "TrRecon::PurgeGhostHits-W- wrong hit index: "
+		   << "at Event " << getEvent() 
+		   << " track " << i << " hit " << j << " " << endl;
+	  }
+      }
+      delete contT;
+
 
     } // Clusters --> Hits
       

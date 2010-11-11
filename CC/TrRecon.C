@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.75 2010/11/10 16:37:32 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.76 2010/11/11 17:48:24 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/10 16:37:32 $
+/// $Date: 2010/11/11 17:48:24 $
 ///
-/// $Revision: 1.75 $
+/// $Revision: 1.76 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1368,7 +1368,7 @@ void TrRecon::PurgeGhostHits()
       int nhit = cont->getnelem();
       for (int i = 0; i < nhit; i++) {
 	TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-	if (!hit) continue;
+	if (!hit || hit->Used()) continue;
 	if(hit==thit) continue;
 	TrClusterR* yclus2= hit->GetYCluster();
 	if(yclus2==yclus){
@@ -1953,7 +1953,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   //1. Search the XY and Y-only hits closest to the track extrapolation on Y
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
-    if (!hit || hit->OnlyX() ) continue;
+    if (!hit || hit->OnlyX() || hit->Used()) continue;
     int idx=0;
     if(hit->OnlyY())idx=1;
 
@@ -2003,7 +2003,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
       hit->SetResolvedMultiplicity(DXY[il].mlmin);
       track->GetPar(mfit).Residual[lyext[il]-1].setp(DXY[il].diff.x(), DXY[il].diff.y(), 0);
-      track->AddHit(hit, DXY[il].ihmin);
+      hit->setstatus(AMSDBc::USED);
+      track->AddHit(hit);
       nadd++;
     }else{
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DY[il].ihmin);
@@ -2017,7 +2018,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       hit->BuildCoordinates();
       hit->SetResolvedMultiplicity(DY[il].mlmin);
       track->GetPar(mfit).Residual[lyext[il]-1].setp(0, DY[il].diff.y(), 0);
-      track->AddHit(hit, DY[il].ihmin);
+      track->AddHit(hit);
+      hit->setstatus(AMSDBc::USED);
       nadd++;
     }
   }
