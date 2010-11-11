@@ -744,11 +744,15 @@ class RemoteClient:
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
                     uid=run.uid;
                     sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
-                    if(datamc==0):
-                        uid=run.Run
-                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                     ret=self.sqlserver.Query(sql)
-                    if(len(ret)>0):
+                    ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
+                    if(datamc==0):
+                        uid=run.uid
+                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
+                        ret=self.sqlserver.Query(sql)
+                        sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
+                        ret2=self.sqlserver.Query(sql)
+                    if(len(ret)>0 or len(ret2)>0):
                         for ntuple in self.dbclient.dsts:
                             if(self.dbclient.cn(ntuple.Status)=="Validated"):
                                 if(ntuple.Run==run.Run):
@@ -888,8 +892,9 @@ class RemoteClient:
             self.InsertRun(run)
         ro=self.sqlserver.Query("select run, status from runs where run="+str(run.Run))
         r1=self.sqlserver.Query("select count(path)  from ntuples where run="+str(run.Run))
+        r2=self.sqlserver.Query("select count(path)  from datafiles where type like 'MC%' and run="+str(run.Run))
         status=ro[0][1]
-        if(status== 'Completed' and r1[0][0]==0):
+        if(status== 'Completed' and r1[0][0]==0 and r2[0][0]==0):
             status="Unchecked"
         if(status != 'Completed' and status != self.dbclient.cr(run.Status)):
             sql="update runs set status='%s' where run=%d" %(self.dbclient.cr(run.Status),run.Run)
@@ -1102,9 +1107,15 @@ class RemoteClient:
                         self.sqlserver.Update(sql)
                         sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run="+str(run.Run)
                         r4=self.sqlserver.Query(sql)
-                        if(len(r4)==0):
-                            ntevt=0
-                            fevt=0
+                        if(len(r4)==0 or r4[0][0]==None):
+                            sql="select sum(datafiles.levent-datafiles.fevent+1),min(datafiles.fevent)  from datafiles,runs where datafiles.run=runs.run and datafiles.type like 'MC%' and runs.run="+str(run.Run)
+                            r4=self.sqlserver.Query(sql)
+                            if(len(r4)==0):
+                                ntevt=0
+                                fevt=0
+                            else:
+                                ntevt=r4[0][0]
+                                fevt=r4[0][1]
                         else:
                             ntevt=r4[0][0]
                             fevt=r4[0][1]
@@ -1824,6 +1835,8 @@ class RemoteClient:
             stype="MC "+ver+" "+ds
             ntsize=float(size)
             sizemb="%.f" %(ntsize)
+            sql="delete from datafiles where run=%d and type like '%s'" %(run,stype)
+            self.sqlserver.Update(sql)
             sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s%d')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths,run)
             self.sqlserver.Update(sql)
             return
