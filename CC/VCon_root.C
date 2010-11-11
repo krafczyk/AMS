@@ -188,7 +188,7 @@ TrElem* VCon_root::getelem(int ii){
 
 #endif
   if( strstr(contname,"AMSTRDRawHit"))
-    return  (TrElem*) ev->pTrdHSegment(ii);
+    return  (TrElem*) ev->pTrdRawHit(ii);
   if( strstr(contname,"AMSTRDHSegment"))
     return  (TrElem*) ev->pTrdHSegment(ii);
   if( strstr(contname,"AMSTRDHTrack"))
