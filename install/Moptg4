@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.91 2010/11/10 20:42:36 choutko Exp $
+#  $Id: Moptg4,v 1.92 2010/11/11 18:43:08 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -331,6 +331,9 @@ CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/l
 
 # FFLAGS += -L/usr/lib -lgfortran
 
+standalone:	$(OBJECTS)
+	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
+
 STANDALONE:=$(EXE)gbatch$(PG).exe 
 
 gbatch:  $(STANDALONE)
@@ -351,8 +354,6 @@ AMS_EXE       = $(EXE)gbatch.exe
 compile:= $(AMS_EXE)
 
 
-standalone:	$(OBJECTS)
-	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
 
 
 
