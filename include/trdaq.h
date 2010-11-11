@@ -51,9 +51,6 @@ public:
 	/// Returns the number of DAQ blocks produced by the tracker
 	static integer getmaxblocks(){return 1;}
 	
-	/// Returns the number of DAQ blocks produced by the tracker
-	static integer getmaxblocksRaw(){return 1;}
-	
 	/// It Returns the JINJ slave port number for a 
 	/// given TCrate (0-7) or produce an error code (-1)
 	static integer getdaqid(){return 26;}
@@ -73,7 +70,6 @@ public:
 	/// It decodes the DAQ (binary) data and produces the TrRawClusters
 	static void buildraw(integer n, int16u *p);
 	
-	static int MaxClusterLength;
 
 	static int16u Pack( float xx, bool high_bits=false){
 		int * pp=(int*) &xx;
@@ -86,11 +82,6 @@ public:
 	
 private:
 	static int onesize;
-	/// The Actual TDR decoding routine
-	static int ReadOneTDR(int16u* pp,int tsize,int cratenum,int pri);
-	/// Checks the status word for errors
-	static int TestBoardErrors(char *name,int16u status,int pri=1);
-		
 	
 };
 #endif

@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.10 2010/11/10 18:54:54 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.11 2010/11/11 12:42:20 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/11/10 18:54:54 $
+///$Date: 2010/11/11 12:42:20 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -64,6 +64,8 @@ public:
   //! Constructor for a digitized hit
   TrMCClusterR(int idsoft, 
 	       AMSPoint xgl,AMSPoint mom, float sum,int itra);
+  // Constructor for daq
+  TrMCClusterR(AMSPoint xgl, integer itra,geant sum=0);
 
   virtual ~TrMCClusterR();
 
@@ -133,7 +135,8 @@ public:
   /// Return a string with some info (used for event display)
   char* Info(int iRef);
 	friend class TrDAQMC;
-  /// ROOT definition
+
+ /// ROOT definition
   ClassDef(TrMCClusterR,3);
 
 };

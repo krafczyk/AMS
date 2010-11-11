@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.19 2010/11/10 18:54:42 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.20 2010/11/11 12:42:36 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/11/10 18:54:42 $
+///$Date: 2010/11/11 12:42:36 $
 ///
-///$Revision: 1.19 $
+///$Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,13 +52,31 @@ TrMCClusterR::TrMCClusterR(int idsoft,
     _left  [ii]=0;
     _center[ii]=0;
     _right [ii]=0;
-    for(int kk=0;kk<5;kk++)_ss[ii][kk];
+    for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
     simcl[ii]=0;
   }
   Status=0;
 }
 
-
+// Constructor for daq
+TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
+  _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0)
+{
+  Status=0;
+  simcl[0]=simcl[1]=0;
+  for(int i=0;i<2;i++){
+    _left[i]=0;
+    _center[i]=0;
+    _right[i]=0;
+    for(int k=0;k<5;k++)_ss[i][k]=0;
+  }
+  TkSens pp(_xgl,1);
+  if(pp.LadFound()){
+    int tkid=pp.GetLadTkID();
+    int side=(tkid>0)?1:0;
+    _idsoft=abs(tkid)+1000*side+10000*pp.GetSensor();
+  }
+}
 
 TrMCClusterR::~TrMCClusterR(){
   for(int ss=0;ss<2;ss++){
@@ -385,3 +403,5 @@ void TrMCClusterR::GenSimClusters(){
   }
   return;
 }
+
+
