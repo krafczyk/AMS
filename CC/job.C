@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.751 2010/11/10 18:54:42 pzuccon Exp $
+// $Id: job.C,v 1.752 2010/11/11 19:08:43 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1100,7 +1100,7 @@ TRDMCFFKEY.multiples=0;
  TRDMCFFKEY.XenonFraction=0.8;
  TRDMCFFKEY.ArgonFraction=0.;
  TRDMCFFKEY.CO2Fraction=0.2;
- TRDMCFFKEY.GasStep=1.;
+ TRDMCFFKEY.GasStep=6.;
  TRDMCFFKEY.PAIModel=1;
  TRDMCFFKEY.debug=0;
 

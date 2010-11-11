@@ -5,7 +5,8 @@
 #include "TRD_GammaXTRadiator.hh"
 
 #include "Randomize.hh"
-
+#include "commonsi.h"
+#include "commons.h"
 #include "G4Gamma.hh"
 
 using namespace std;
@@ -36,16 +37,22 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
 
   // compose a more or less unique filename
   stringstream name;
-  name << "table_" << processName << "_" 
-       << anEnvelope->GetName()
-       << "_" << alphaPlate << "_" 
-       << alphaGas << "_"
-       << foilMat->GetName() 
-       << "_" << gasMat->GetName() 
-       << "_" << a << "_" 
-       << b << "_" 
-       << n << ".txt";
-  fFilename = "/scratch/mmilling/gbatch/g4/"+name.str();
+  if(TRDMCFFKEY.debug>0){
+    name << "table_" << processName << "_" 
+	 << anEnvelope->GetName()
+	 << "_" << alphaPlate << "_" 
+	 << alphaGas << "_"
+	 << foilMat->GetName() 
+	 << "_" << gasMat->GetName() 
+	 << "_" << a << "_" 
+	 << b << "_" 
+	 << n << ".txt";
+      fFilename = "/scratch/mmilling/gbatch/g4/"+name.str();
+  }
+  else{
+    name << "trd_gammaxtrad_table.txt";
+    fFilename = AMSDATADIR.amsdatadir+name.str();
+  }
 
 }
 
@@ -67,7 +74,7 @@ TRD_GammaXTRadiator::~TRD_GammaXTRadiator()
 /// mean absorption length of XTR photons in coresponding material.
 G4double 
 TRD_GammaXTRadiator::GetStackFactor( G4double energy, 
-                                         G4double gamma, G4double varAngle )
+				     G4double gamma, G4double varAngle )
 {
   G4double result, Za, Zb, Ma, Mb ;
   
@@ -86,10 +93,10 @@ TRD_GammaXTRadiator::GetStackFactor( G4double energy,
   G4complex H  = Ha*Hb ;
 
   G4complex F1 =   (1.0 - Ha)*(1.0 - Hb )/(1.0 - H)
-                 * G4double(fPlateNumber) ;
+    * G4double(fPlateNumber) ;
 
   G4complex F2 =   (1.0-Ha)*(1.0-Ha)*Hb/(1.0-H)/(1.0-H)
-                 * (1.0 - pow(H,fPlateNumber)) ;
+    * (1.0 - pow(H,fPlateNumber)) ;
 
   G4complex R  = (F1 + F2)*OneInterfaceXTRdEdx(energy,gamma,varAngle) ;
 
@@ -102,11 +109,3 @@ TRD_GammaXTRadiator::GetStackFactor( G4double energy,
 //
 //
 ////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-

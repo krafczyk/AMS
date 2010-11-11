@@ -1,6 +1,6 @@
 
 //
-// $Id: TRD_VXTenergyLoss.C,v 1.2 2010/11/07 20:21:10 mmilling Exp $
+// $Id: TRD_VXTenergyLoss.C,v 1.3 2010/11/11 19:08:43 mmilling Exp $
 //
 // History:
 // 2001-2002 R&D by V.Grichine// 19.06.03 V. Grichine, modifications in BuildTable for the integration 
@@ -299,8 +299,8 @@ G4bool TRD_VXTenergyLoss::GetPhysicsTable( void ) {
     G4cout << "TRD_VXTenergyLoss: Checking for physics table file \"" << file << "\" ..." << G4endl;
 
   if( !fEnergyDistrTable->ExistPhysicsTable( file ) ){
-    if( fVerbose )
-      G4cout << "TRD_VXTenergyLoss: Not found." << G4endl;
+    //    if( fVerbose )
+    G4cout << file << " not found " << G4endl;
     return( false );
   }
 
