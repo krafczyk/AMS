@@ -28,7 +28,7 @@ void AMSJob::_retkdata(){
   
   TRFITFFKEY.init();
   FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
-  //PZ FIXME OBSOLETE TKFINI();
+
 }
 
 void AMSJob::_retkinitjob(){

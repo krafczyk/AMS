@@ -207,6 +207,13 @@ void HistoMan::BookHistos(){
   dir->cd();
   printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
 
+
+  Add(new TH2D("1N_XY","1N_XY",200,-10,10,200,-10,10));
+  Add(new TH2D("1N_Y","1N_Y",200,-10,10,200,-10,10));
+
+  Add(new TH2D("P6_XY","1N_XY",200,-2,2,200,-2,2));
+  Add(new TH2D("P6_Y","1N_Y",200,-2,2,200,-2,2));
+
   // Tracker low level
   Add(new TH2D("TrSizeDt", "#DeltaT VS TrSize", 500, 0, 1000, 300, 0, 24000));
   Add(new TH2D("TrNrawLt", "nRaw VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));

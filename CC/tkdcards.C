@@ -312,6 +312,10 @@ void TRFITFFKEY_DEF::init(){
   ErrZ = 40.e-4;
 
   for (int i = 0; i < 9; i++) FitwMsc[i] = 0;
+  MergeExtLimX=0.5;
+  MergeExtLimY=0.5;
+  
+
 }
 
 TRFITFFKEY_DEF TRFITFFKEY;

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.76 2010/11/11 17:48:24 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.77 2010/11/12 15:33:15 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/11 17:48:24 $
+/// $Date: 2010/11/12 15:33:15 $
 ///
-/// $Revision: 1.76 $
+/// $Revision: 1.77 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1987,8 +1987,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   }
   
   //2. XY or Y
-  float diffY_max=0.2;
-  float diffX_max=0.2;
+  float diffY_max=TRFITFFKEY.MergeExtLimY;
+  float diffX_max=TRFITFFKEY.MergeExtLimX;
   int nadd=0;
 
   for (int il=0;il<2;il++){
@@ -1998,6 +1998,14 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
        static int mprint=100; 
       if(mprint++<100)printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
      }
+    if(il){
+      hman.Fill("1N_XY",DXY[il].diff.x(),DXY[il].diff.y());
+      hman.Fill("1N_Y",DY[il].diff.x(),DY[il].diff.y());
+    }
+    else{
+      hman.Fill("P6_XY",DXY[il].diff.x(),DXY[il].diff.y());
+      hman.Fill("P6_Y",DY[il].diff.x(),DY[il].diff.y());
+    }
     if (fabs(DXY[il].diff.y()) > diffY_max) continue;
     if (fabs(DXY[il].diff.x()) < diffX_max) {
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);

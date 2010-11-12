@@ -108,6 +108,15 @@ I 60 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
 I 61 TRD TOF Matching  mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
 //==============================
 
+//=============================
+void TRFITFFKEY_DEF::init(){
+F  1 	ErrX 		fit point error 
+F  2 	ErrY 		fit point error 
+F  3 	ErrZ 		fit point error 
+F  4-12 FitwMsc[9];	Error term for Multiple scattering per layer (1-9)
+F  13  	MergeExtLimX;	max dist to add external planes hits X
+F  14  	MergeExtLimY;	max dist to add external planes hits Y
+
 
 
 void TRMCFFKEY_DEF::init(){
@@ -294,53 +303,6 @@ TRALIG_DEF TRALIG;
 //=============================
 
 TRCLFFKEY_DEF TRCLFFKEY;
-//=============================
-void TRFITFFKEY_DEF::init(){
-  // Fit Par
- 
-  MaxNtrack = 7;
-  MinNhit   = 5;
-  SearchRegStrLine=1.5;
-  SearchRegCircle=10.;
-  ErrX = 34.e-4;  
-  ErrY = 20.e-4;
-  ErrZ = 34.e-4;
-  MaxChisq[0] = 5;
-  MaxChisq[1] =  2000;
-
- {
-    for( int k=0;k<(int)(sizeof(patternp)/sizeof(patternp[0]));k++)patternp[k]=0;
-  }
-  UseTRD=1;
-  UseTOF=2;
-  Chi2StrLine=10;
-  ResCutFastFit=0.5;
-  ResCutStrLine=0.5;
-  ResCutCircle=0.5;
-  SearchRegFastFit=1;
-  RidgidityMin=0.02;
-  FullReco=0;
-  MinRefitCos[0]=0.7;
-  MinRefitCos[1]=0.5;
-  FastTracking=1;
-  WeakTracking=1;
-  FalseXTracking=1;
-  Chi2FalseX=3.;
-  ForceFalseTOFX=1;
-  FalseTOFXTracking=1;
-  TOFTracking=1;
-  ForceAdvancedFit=1;
-  ThrClA[0]=0.;
-  ThrClA[1]=0.;
-  ThrClR[0]=0.;
-  ThrClR[1]=0.;
-  MaxTrRecHitsPerLayer=250;
-  LowMargin=0;
-  OnlyGammaVtx=0;
-  UseGeaneFitting=0;
-  OldTracking=0;
-  for( int k=0;k<(int)(sizeof(patternp02)/sizeof(patternp02[0]));k++)patternp02[k]=0;
-}
 
 TRFITFFKEY_DEF TRFITFFKEY;
 //=============================

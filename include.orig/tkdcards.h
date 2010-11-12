@@ -266,11 +266,20 @@ const integer npat02=218;
 //! Data Cards to drive the track fiting
 class TRFITFFKEY_DEF {
 public:
+  ///fit point error
   float ErrX;
+  ///fit point error
   float ErrY;
+  ///fit point error
   float ErrZ;
 
+  ///Error term for Multiple scattering per layer (1-9)
   float FitwMsc[9];
+
+  /// max dist to add external planes hits X
+  float MergeExtLimX;
+  /// max dist to add external planes hits Y
+  float MergeExtLimY;
 
   void init();
 };
