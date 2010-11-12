@@ -235,8 +235,8 @@ C
       IF(ISTOP      .NE.0 .OR.STEP         .LE.0.    ) RETURN
 
 *>>>> T.S. 2/2003   keep GEANT3 DESTEP for IONS !!!
-*      IF(ABS(CHARGE).EQ.0.)                            RETURN
-      IF(ABS(CHARGE).NE.1.)                            RETURN
+      IF(ABS(CHARGE).EQ.0.)                            RETURN
+*      IF(ABS(CHARGE).NE.1.)                            RETURN
 *<<<< -----------
 
 
