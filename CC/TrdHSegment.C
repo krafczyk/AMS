@@ -12,13 +12,13 @@ int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-  if(hits.size()<i&&i<fTrdRawHit.size()){
+  if(hits.size()<=i&&i<fTrdRawHit.size()){
     hits.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
     for(int i=0;i<cont2->getnelem();i++){
       for(int n=0;n<fTrdRawHit.size();n++){
-        if(i==fTrdRawHit[i])
-          hits.push_back(TrdRawHitR(*(TrdRawHitR*)cont2->getelem(i)));
+        if(i==fTrdRawHit[n])
+          hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
       }
     }
     delete cont2;
