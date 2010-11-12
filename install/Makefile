@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.120 2010/11/08 18:53:46 barao Exp $
+#  $Id: Makefile,v 1.121 2010/11/12 16:18:43 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -562,7 +562,7 @@ $(BIN)daqevt.o:         $(SCC)daqevt.C
 	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
 $(BIN)daqevt_c.o:         $(SCC)daqevt.C
-	$(CXX_ORBIT) -c $(CFLAGSDAQ)-D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
+	$(CXX_ORBIT) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(IDLFLAGS) $(SCC)daqevt.C -o $(BIN)daqevt_c.o 
 
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C

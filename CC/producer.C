@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.143 2010/11/10 16:53:32 choutko Exp $
+//  $Id: producer.C,v 1.144 2010/11/12 16:18:42 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1384,7 +1384,6 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
     double st=ft.time+ft.millitm/1000.;
 double cll=AMSFFKEY.CpuLimit;
 if(cll<20)cll=20;
-
 if(AMSEvent::gethead()->HasFatalErrors()){
  FMessage("AMSProducer::AddEvent-F-EventHasFatalError ",DPS::Client::CInAbort);
 }
@@ -1403,7 +1402,7 @@ else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpe
 _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
 
     _cinfo.TimeSpent=st-_ST0;
-
+  cout <<"  sending info "<<endl;
   sendCurrentRunInfo(true);
 }
 }

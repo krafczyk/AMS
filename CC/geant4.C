@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.68 2010/11/10 22:26:33 mdelgado Exp $
+//  $Id: geant4.C,v 1.69 2010/11/12 16:18:42 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -324,11 +324,19 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->Recovery();
+#ifdef __CORBA__
+#pragma omp critical (g1)
+    AMSProducer::gethead()->AddEvent();
+#endif
       return;
    }
    catch (AMSaPoolError e){
      cerr << e.getmessage()<<endl;
      AMSEvent::gethead()->Recovery();
+#ifdef __CORBA__
+#pragma omp critical (g1)
+    AMSProducer::gethead()->AddEvent();
+#endif
       return;
    }
    catch (AMSTrTrackError e){
@@ -340,6 +348,10 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(0);
+#ifdef __CORBA__
+#pragma omp critical (g1)
+    AMSProducer::gethead()->AddEvent();
+#endif
       return;
    }
    catch (amsglobalerror e){
@@ -351,8 +363,17 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(0);
+#ifdef __CORBA__
+#pragma omp critical (g1)
+    AMSProducer::gethead()->AddEvent();
+#endif
       return;
    }
+#ifdef __CORBA__
+#pragma omp critical (g1)
+    AMSProducer::gethead()->AddEvent();
+#endif
+#pragma omp critical (g3)
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT>=GCFLAG.NEVENT){
       AMSEvent::gethead()->printA(AMSEvent::debug);
@@ -988,8 +1009,16 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='C'){
        if(GCTRAK.destep>0.){
        dee=GCTRAK.destep;
-//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<endl;
-       GBIRK(dee);
+       //GBIRK(dee);
+//  
+//     birks law dirty way
+//
+
+      number rkb=0.0011;
+      number c=0.52;
+      number dedxcm=1000*dee/GCTRAK.step;
+      dee=dee/(1+c*atan(rkb/c*dedxcm));
+ static int np=0; if(np++<0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
        AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
        }
      }

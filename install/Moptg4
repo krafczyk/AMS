@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.92 2010/11/11 18:43:08 choutko Exp $
+#  $Id: Moptg4,v 1.93 2010/11/12 16:18:43 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -182,7 +182,7 @@ CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
 ifndef LinuxBUG
 CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=g77 -m32
-LD=g++ -m32 
+LD=g++ -m32 -static 
 else
 CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=/usr/local/bin/g77 -m32

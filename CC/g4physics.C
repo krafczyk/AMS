@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.33 2010/11/10 19:17:26 mdelgado Exp $
+//  $Id: g4physics.C,v 1.34 2010/11/12 16:18:42 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.33 2010/11/10 19:17:26 mdelgado Exp $
+// $Id: g4physics.C,v 1.34 2010/11/12 16:18:42 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1260,7 +1260,7 @@ G4VParticleChange* AMSUserSpecialCuts::PostStepDoIt(
 //
 // Stop the current particle, if requested by G4UserLimits
 //
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGG__
        G4ParticleDefinition* ParticleDef = aTrack.GetDefinition();
        G4double Ekine    = aTrack.GetKineticEnergy();
  const G4DynamicParticle* Particle = aTrack.GetDynamicParticle();

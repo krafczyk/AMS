@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.205 2010/11/10 21:54:57 choutko Exp $
+//  $Id: daqevt.C,v 1.206 2010/11/12 16:18:42 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1460,6 +1460,7 @@ integer DAQEvent::_DDGSBOK(){
         return 0;
       }
       int maxl[8]={8,2,8,2,2,2,2,2};
+//  tracker trd tof rich ecal lvl1 lvl3;
       static int nerr=0;
       for(int i=0;i<6;i++){
         if(getsubcount(i)>maxl[i]){
