@@ -101,7 +101,8 @@ class TrdSimUtil
   TrdSimUtil();
   
   void UpdateGas( void );
-  
+  void EndOfRun( void );
+
   void SetTrdNumberFractionXenon( G4double val ) { fTrdNumberFractionXe = val; }
   void SetTrdNumberFractionArgon( G4double val ) { fTrdNumberFractionAr = val; }
   void SetTrdNumberFractionCO2( G4double val ) { fTrdNumberFractionCO2 = val; }

@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.130 2010/11/07 20:21:09 mmilling Exp $
+//  $Id: geant.C,v 1.131 2010/11/13 01:21:41 mmilling Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -290,6 +290,7 @@ try{
 #endif
 if(message)AMSJob::gethead()->setMessage(message);
 #ifdef __G4AMS__
+   trdSimUtil.EndOfRun();
 if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif

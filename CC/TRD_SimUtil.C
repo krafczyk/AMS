@@ -218,11 +218,14 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdRadRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
   fTrdRadRegionCuts->SetProductionCut(cut, idxG4PositronCut);
   
-  gasregion=new G4Region("TrdGasRegion");
-  (G4RegionStore::GetInstance())->Register(gasregion);
-  radregion=new G4Region("TrdRadRegion");
-  (G4RegionStore::GetInstance())->Register(radregion);
-
+  if(!gasregion){
+    gasregion=new G4Region("TrdGasRegion");
+    (G4RegionStore::GetInstance())->Register(gasregion);
+  }
+  if(!radregion){
+    radregion=new G4Region("TrdRadRegion");
+    (G4RegionStore::GetInstance())->Register(radregion);
+  }
 
   if(TRDMCFFKEY.debug){
     G4cout << "TRDMC datacards :" << G4endl;
@@ -275,4 +278,9 @@ TrdSimUtil::TrdSimUtil(){
   gasregion=0;
   radregion=0;
   radlv=0;
+}
+
+void TrdSimUtil::EndOfRun( void ) {
+  (G4RegionStore::GetInstance())->DeRegister(gasregion);
+  (G4RegionStore::GetInstance())->DeRegister(radregion);
 }
