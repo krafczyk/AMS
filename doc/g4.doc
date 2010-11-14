@@ -1,16 +1,24 @@
-#  $Id: g4.doc,v 1.38 2009/07/29 13:07:35 choutko Exp $
+#  $Id: g4.doc,v 1.39 2010/11/14 20:30:30 mdelgado Exp $
 -------
 Platform:
 linux-gcc.3.x ($G4SYSTEM=Linux-g++) 
+linux-icc11.1 64bits   ($G4SYSTEM=Linux-icc) 
 
+CAUTION:  Support for linux-icc11.1 is in an experimental stage!!!!
 
 -------
 Installer:
 
-source /Offline/vdev/install/amsvar.slc4
-source AMS/install/g4i          (v4.8.1, Linux-g++, gcc.3.x)
+linux-gcc.3.x:
+   source /Offline/vdev/install/amsvar.slc4
+   source AMS/install/g4i          (v4.8.1, Linux-g++, gcc.3.x)
 
-see $G4INSTALL/ReleaseNotes.VC for ams specifics
+linux-icc11.1 64bits:
+   source /Offline/vdev/install/amsvar
+   source AMS/install/g4i.icc64    (v4.9.3, Linux-icc, icc.11.1)
+
+
+see $G4INSTALL/ReleaseNotes.{VC,CD} for ams specifics
 
 
 <recommended>
