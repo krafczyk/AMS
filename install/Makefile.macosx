@@ -72,6 +72,8 @@ endif
  FFLAGSn=      -fno-automatic 
  CFLAGSB+= -D__GNU__
 
+ CFLAGSB+= -D__DARWIN__
+
 ifdef AMSPROFILE 
   FFLAGS+=-pg
   FFLAGSn+=-pg
@@ -94,7 +96,7 @@ else
 endif
 
 #SOFLAGS = -shared
-SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 
  SHLDFLAGS=   
 
@@ -105,8 +107,8 @@ SOFLAGS = -dynamiclib -undefined dynamic_lookup -L/$(ROOTSYS)/lib   -lRIO -lTree
   BIN=$(AMSWD)/bin/macosx/
   EXE=$(AMSWD)/exe/macosx/
   LIB=$(AMSWD)/lib/macosx/
-  SHLD=$(LIB)/ntuple_slc4.so
-  NTLD=$(LIB)/libntuple_slc4.a
+  SHLD=$(LIB)/ntuple_slc4_PG.so
+  NTLD=$(LIB)/libntuple_slc4_PG.a
 
 
 

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.67 2010/11/12 15:33:15 pzuccon Exp $
+// $Id: TrTrack.C,v 1.68 2010/11/14 09:55:20 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/12 15:33:15 $
+///$Date: 2010/11/14 09:55:20 $
 ///
-///$Revision: 1.67 $
+///$Revision: 1.68 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -350,6 +350,10 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   if (phit->GetYCluster()) _NhitsY--;
   if (phit->GetXCluster() && phit->GetYCluster()) _NhitsXY--;
   // Update the bitted pattern
+
+#ifdef __DARWIN__
+  typedef unsigned short ushort;
+#endif
   ushort _bit=_bit_pattern ^ (1<<(phit->GetLayer()-1));  
   _bit_pattern=_bit;
   _bit=0;
