@@ -1,5 +1,5 @@
 
-// $Id: TRD_EmStandardPhysics.C,v 1.1 2010/07/14 14:23:01 zweng Exp $
+// $Id: TRD_EmStandardPhysics.C,v 1.2 2010/11/14 20:17:46 mdelgado Exp $
 
 #include "TRD_EmStandardPhysics.hh"
 
@@ -54,6 +54,14 @@
 
 #include "G4PAIModel.hh"
 #include "amsvmc_MCApplication.h"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER  > 899 
+#include "G4EmProcessOptions.hh"
+#include "G4eMultipleScattering.hh"
+#include "G4MuMultipleScattering.hh"
+#include "G4hMultipleScattering.hh"
+#endif
+
 //#include "TRD_PAIModel.hh"
 //#include "G4PAIPhotonModel.hh"
 
@@ -205,8 +213,11 @@ void TRD_EmStandardPhysics::ConstructProcess()
       G4eIonisation* eioniPAI= new G4eIonisation("eIoniPAI");
       G4PAIModel *pai=new G4PAIModel();
       eioniPAI->AddEmModel(0,pai,pai,gasregion);
-      
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
       pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
       //      pmanager->AddDiscreteProcess(theeminusStepCut);
@@ -223,7 +234,11 @@ void TRD_EmStandardPhysics::ConstructProcess()
       G4eIonisation* eioniPAI= new G4eIonisation("eIoniPAI");
       G4PAIModel *pai=new G4PAIModel();
       eioniPAI->AddEmModel(0,pai,pai,gasregion);
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
       pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
@@ -242,8 +257,11 @@ void TRD_EmStandardPhysics::ConstructProcess()
       G4MuIonisation* muioni = new G4MuIonisation("muIoniPAI") ;
       G4PAIModel*     pai    = new G4PAIModel(particle,"PAIModel");
       muioni->AddEmModel(0,pai,pai,gasregion);
-
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4MuMultipleScattering,-1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering,-1, 1, 1);
+#endif
       pmanager->AddProcess( muioni,                 -1, 2, 2);
       pmanager->AddProcess(new G4MuBremsstrahlung,  -1, 3, 3);
       pmanager->AddProcess(new G4MuPairProduction,  -1, 4, 4);
@@ -261,7 +279,11 @@ void TRD_EmStandardPhysics::ConstructProcess()
       if(verbose > 1)
         G4cout << "### EmStandard instantiates ionIoni and msc80 for " 
                << particleName << G4endl;
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(theIonIonisation,         -1, 2, 2);
 
     } else if (particleName == "anti_omega-" ||
@@ -294,7 +316,11 @@ void TRD_EmStandardPhysics::ConstructProcess()
       G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
       thehIonisation->AddEmModel(0,pai,pai,gasregion);
 
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess( new G4hMultipleScattering,-1, 1, 1);
+#else
       pmanager->AddProcess( new G4MultipleScattering,-1, 1, 1);
+#endif
       pmanager->AddProcess( thehIonisation,          -1, 2, 2);
       //      pmanager->AddProcess( new G4hIonisation,       -1, 2, 2);
       //      pmanager->AddProcess( thehadronStepCut,         -1,-1,3);

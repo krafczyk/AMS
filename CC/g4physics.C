@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.34 2010/11/12 16:18:42 choutko Exp $
+//  $Id: g4physics.C,v 1.35 2010/11/14 20:17:47 mdelgado Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.34 2010/11/12 16:18:42 choutko Exp $
+// $Id: g4physics.C,v 1.35 2010/11/14 20:17:47 mdelgado Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -40,6 +40,13 @@
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSC.hh"
 #include "G4IonPhysics.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER  > 899 
+#include "G4EmProcessOptions.hh"
+#include "G4eMultipleScattering.hh"
+#include "G4MuMultipleScattering.hh"
+#include "G4hMultipleScattering.hh"
+#endif
 
 #include "TRD_SimUtil.h"
 
@@ -212,7 +219,11 @@ void AMSG4Physics::ConstructEM()
     else if (particleName == "e-") {
     //electron
     if(G4FFKEY.LowEMagProcUsed){
+#if G4VERSION_NUMBER  > 899 
+      G4eMultipleScattering* aMultipleScattering = new G4eMultipleScattering();
+#else
       G4MultipleScattering* aMultipleScattering = new G4MultipleScattering();
+#endif
                 pmanager->AddProcess(aMultipleScattering,     -1, 1, 1);
                 pmanager->AddProcess(new G4LowEnergyIonisation(),-1,2,2);
                 pmanager->AddProcess(new G4LowEnergyBremsstrahlung(),-1,-1,3); 
@@ -220,7 +231,11 @@ void AMSG4Physics::ConstructEM()
     else{   
 
       // Construct processes for electron
+#if G4VERSION_NUMBER  > 899 
+      G4VProcess* theeminusMultipleScattering = new G4eMultipleScattering();
+#else
       G4VProcess* theeminusMultipleScattering = new G4MultipleScattering();
+#endif
       G4eIonisation* theeminusIonisation = new G4eIonisation();
       G4VProcess* theeminusBremsstrahlung = new G4eBremsstrahlung();
       if(TRDMCFFKEY.PAIModel){
@@ -248,8 +263,11 @@ void AMSG4Physics::ConstructEM()
 
 
     if(G4FFKEY.LowEMagProcUsed){
-
+#if G4VERSION_NUMBER  > 899
+        G4eMultipleScattering* aMultipleScattering = new G4eMultipleScattering();
+#else
         G4MultipleScattering* aMultipleScattering = new G4MultipleScattering();
+#endif
 	G4eIonisation* eIoni=new G4eIonisation();
 	if(TRDMCFFKEY.PAIModel){
 	  G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
@@ -264,8 +282,11 @@ void AMSG4Physics::ConstructEM()
     }
     else{   
 
-    
+#if G4VERSION_NUMBER  > 899
+      G4VProcess* theeplusMultipleScattering = new G4eMultipleScattering();
+#else    
       G4VProcess* theeplusMultipleScattering = new G4MultipleScattering();
+#endif
       G4eIonisation* theeplusIonisation = new G4eIonisation();
       if(TRDMCFFKEY.PAIModel){
 	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
@@ -297,7 +318,11 @@ void AMSG4Physics::ConstructEM()
                particleName == "mu-"    ) {
     //muon  
      // Construct processes for muon+
+#if G4VERSION_NUMBER  > 899 
+     G4VProcess* aMultipleScattering = new G4MuMultipleScattering();
+#else
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
+#endif
      G4VProcess* aBremsstrahlung = new G4MuBremsstrahlung();
      G4VProcess* aPairProduction = new G4MuPairProduction();
      G4MuIonisation* anIonisation = new G4MuIonisation();
@@ -326,7 +351,11 @@ void AMSG4Physics::ConstructEM()
 	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
 	aionIonization->AddEmModel(0,pai,pai,gasregion);
       }
+#if G4VERSION_NUMBER  > 899
+     G4VProcess* aMultipleScattering = new G4hMultipleScattering();
+#else
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
+#endif
      pmanager->AddProcess(aionIonization);
      pmanager->AddProcess(aMultipleScattering);
      // set ordering for AlongStepDoIt
@@ -340,7 +369,11 @@ void AMSG4Physics::ConstructEM()
 	      (particle->GetPDGCharge() != 0.0) && 
 	      (particle->GetParticleName() != "chargedgeantino")) {
      // all others charged particles except geantino
+#if G4VERSION_NUMBER  > 899
+     G4VProcess* aMultipleScattering = new G4hMultipleScattering();
+#else
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
+#endif
      G4hIonisation* anIonisation = new G4hIonisation();
      // add processes
      if(TRDMCFFKEY.PAIModel){
@@ -820,11 +853,12 @@ void AMSG4Physics::ConstructOp()
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
     if (theCerenkovProcess->IsApplicable(*particle) && !particle->IsShortLived()) {
-      /*
+#if G4VERSION_NUMBER  > 899 
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
-      */
+#else
       pmanager->AddContinuousProcess(theCerenkovProcess);
+#endif
     }
     if (particleName == "opticalphoton") {
       G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;
@@ -1355,7 +1389,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	eioniPAI->AddEmModel(0,pai,pai,gasregion);
       }
       eioniPAI->SetVerboseLevel(debug);
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
       pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
       pmanager->AddDiscreteProcess(processXTR);
@@ -1366,7 +1404,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel *pai=new G4PAIModel(particle,"PAIModel");
 	eioniPAI->AddEmModel(0,pai,pai,gasregion);
       }
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4eMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(eioniPAI,                 -1, 2, 2);
       pmanager->AddProcess(new G4eBremsstrahlung,    -1, 1, 3);
       pmanager->AddProcess(new G4eplusAnnihilation,   0,-1, 4);
@@ -1379,7 +1421,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai    = new G4PAIModel(particle,"PAIModel");
 	muioni->AddEmModel(0,pai,pai,gasregion);
       }
-      pmanager->AddProcess(new G4MultipleScattering,-1, 1, 1);
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4MuMultipleScattering, -1, 1, 1);
+#else
+      pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess( muioni,                 -1, 2, 2);
       pmanager->AddProcess(new G4MuBremsstrahlung,  -1, 3, 3);
       pmanager->AddProcess(new G4MuPairProduction,  -1, 4, 4);
@@ -1394,7 +1440,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	theIonIonisation->AddEmModel(0,pai,pai,gasregion);
       }
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(theIonIonisation,         -1, 2, 2);
       pmanager->AddDiscreteProcess(processXTR);
 
@@ -1407,7 +1457,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	thehIonisation->AddEmModel(0,pai,pai,gasregion);
       }
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess(new G4hMultipleScattering, -1, 1, 1);
+#else
       pmanager->AddProcess(new G4MultipleScattering, -1, 1, 1);
+#endif
       pmanager->AddProcess(thehIonisation,            -1, 2, 2);
       pmanager->AddDiscreteProcess(processXTR);
       //      pmanager->AddProcess(new G4IonBremsstrahlung,     -1,-3, 3);
@@ -1449,7 +1503,11 @@ void AMSG4Physics::ConstructEM2( void ){
 	G4PAIModel*     pai = new G4PAIModel(particle,"PAIModel");
 	thehIonisation->AddEmModel(0,pai,pai,gasregion);
       }
+#if G4VERSION_NUMBER  > 899
+      pmanager->AddProcess( new G4hMultipleScattering,-1, 1, 1);
+#else
       pmanager->AddProcess( new G4MultipleScattering,-1, 1, 1);
+#endif
       pmanager->AddProcess( thehIonisation,          -1, 2, 2);
       pmanager->AddDiscreteProcess(processXTR);
     }

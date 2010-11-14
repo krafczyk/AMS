@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.93 2010/11/12 16:18:43 choutko Exp $
+#  $Id: Moptg4,v 1.94 2010/11/14 20:17:47 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -46,8 +46,12 @@ ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
 IDLCPP=orbit-idl-2 -l cpp
 
-
+ifeq  "$(G4SYSTEM)"  "Linux-icc"
+include binmake.icc64.gmk
+else
 include binmake.gmk
+endif
+
 SUPPORTED = AIX OSF1 HP-UX Linux
 
 ifndef AMSWD
@@ -119,34 +123,81 @@ LD=cxx -v  -warning_unresolved
 TIMEL=
 endif
 ifeq  "$(G4SYSTEM)"  "Linux-icc"
+CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
 ifdef AMSDEBUG
-CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include -tpp6 -mp1 -xi  
-CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) 
-CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS)
-CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS)
-CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include  -tpp6 -mp1 -xi 
-CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include  -tpp6 -mp1 -xi 
-FFLAGS=   -tpp6 -mp1 -xi -g -I../include  -fp_port
-FFLAGSn=   -tpp6 -mp1 -xi -g -I../include  -fp_port -D__ICC__
-CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include  -D__ICC__ -tpp6 -mp1 -xi   
+CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
+CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS) $(CFLAGSB)
+CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include $(CFLAGSB)
+CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
+FFLAGS=   -I../include  -fp_port
+FFLAGSn=  -I../include  -fp_port -D__ICC__
+CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include  -D__ICC__ $(CFLAGSB)
 else
-CFLAGS=      -D__BATCH__  -O2    -I../include  -tpp6 -mp1 -xi 
-CFLAGS4=      -D__BATCH__ -O2      -I../include     $(CPPFLAGS)
-CFLAGS4P=      -D__BATCH__       -I../include     $(CPPFLAGS)
-CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS)
-CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  -tpp6 -mp1 -xi 
-CFLAGSDAQ=      -D__BATCH__    -D__LINUXGNU__   -I../include  -O2 -tpp6 -mp1 -xi -D__ICC__
-CFLAGSn=      -D__BATCH__  -O2    -I../include   -tpp6 -mp1 -xi
-FFLAGS=   -tpp6 -mp1 -xi -fp_port -O -I../include
-FFLAGSn=   -tpp6 -mp1 -xi -fp_port -I../include -D__ICC__
+CFLAGS=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
+CFLAGS4=      -D__BATCH__ -O2      -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4P=      -D__BATCH__       -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  $(CFLAGSB)
+CFLAGSDAQ=      -D__BATCH__    -D__LINUXGNU__   -I../include  -O2 -D__ICC__ $(CFLAGSB)
+CFLAGSn=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
+FFLAGS=   -fp_port -O -I../include
+FFLAGSn=  -fp_port -I../include -D__ICC__
 endif
 DFLAGS=    -g  -I../include
-CERNDIR = /f2dat1/CERN/2002/icc
-NAGDIR  = /f2dat1/NagLib
-XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut -klernlib -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
-CC=icc  -D__NAMESPACE__ -D__G4AMS__
-FF=ifc
-LD=icc
+
+
+INTELDIR=/opt/intel/
+INTELVER=Compiler/11.1/073/
+INTELOPT=-axsse4.2,ssse3 -D__G4AMS__ 
+PARALLEL=
+
+ifndef DEFINES
+DEFINES= 
+endif
+DEFINES += -D__NAMESPACE__ -D__G4AMS__ 
+
+FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL) 
+CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) -vec-report0  $(PARALLEL) $(DEFINES) -D__LINUXGNU__
+CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc    $(INTELOPT) $(PARALLEL) $(DEFINES) -D__LINUXGNU__
+LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc   $(INTELOPT)  $(PARALLEL) 
+FFOLD=$(FF)  -save
+FFLAGSSAVE= -save
+FORTRAN_LIBS=
+FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+
+# change defaults if intel compiler 
+CERN_LEVEL =2005
+
+CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+
+
+ifndef CERNDIR
+CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
+ifdef DEBUGFLAG
+CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
+endif
+endif
+
+
+CERNSRCDIR = $(CERNDIR)
+
+ifndef AMSLIB
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc64
+endif
+ifndef NAGDIR
+NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+endif
+XLDFLAGS=   -static  $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag64 \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot -lfreetype\
+ -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre   \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) -pthread
+
 TIMEL=
 
 endif

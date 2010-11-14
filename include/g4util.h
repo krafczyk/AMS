@@ -1,7 +1,9 @@
-//  $Id: g4util.h,v 1.3 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: g4util.h,v 1.4 2010/11/14 20:17:47 mdelgado Exp $
 #include "cern.h"
+#define ENABLE_BACKWARDS_COMPATIBILITY
 #include "CLHEP/Random/Random.h"
 #include "CLHEP/Random/RandGeneral.h"
+
 class AMSRandGeneral{
 class service{
 public:
@@ -37,3 +39,5 @@ static void book(integer hid);
 static void book(geant parray[], uinteger larray, geant xmi,geant xma, integer hid);
 static number hrndm1(integer hid);
 };
+
+

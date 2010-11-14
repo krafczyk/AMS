@@ -14,9 +14,8 @@ double ROOTRndm(int dummy);
 extern "C" void ROOTPoissn(float &, int &, int&);
 #define POISSN ROOTPoissn
 #else
-
 #ifdef __G4AMS__
-
+#define ENABLE_BACKWARDS_COMPATIBILITY
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoissonQ.h"
 extern "C" void poissn_(float &, int &, int&);
@@ -28,7 +27,6 @@ PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #else
 
 #ifdef __AMSVMC__
-#include "commons.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoissonQ.h"
 extern "C" void poissn_(float &, int &, int&);
