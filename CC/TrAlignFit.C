@@ -1,4 +1,4 @@
-// $Id: TrAlignFit.C,v 1.7 2010/08/07 18:58:31 shaino Exp $
+// $Id: TrAlignFit.C,v 1.8 2010/11/14 07:51:48 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrAlignFit
 ///
 ///\date  2007/04/02 SH  First test version
-///$Date: 2010/08/07 18:58:31 $
+///$Date: 2010/11/14 07:51:48 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1107,8 +1107,8 @@ void TrAlignFit::ParmHists(void)
   TH1F *hist3 = (TH1F *)dir2->Get("hist3");
   TH1F *hist4 = (TH1F *)dir1->Get("hist4");
   TH1F *hist5 = (TH1F *)dir1->Get("hist5");
-  TH1F *histx = (TH1F *)dir2->Get("histx");
-  TH1F *histy = (TH1F *)dir2->Get("histy");
+  TH3F *histx = (TH3F *)dir2->Get("histx");
+  TH3F *histy = (TH3F *)dir2->Get("histy");
 
   Int_t nby = histx->GetNbinsY();
   Int_t nbz = histx->GetNbinsZ();
