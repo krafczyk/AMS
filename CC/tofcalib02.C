@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.50 2010/09/09 19:14:59 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.51 2010/11/14 17:08:36 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -2521,12 +2521,12 @@ void TofTmAmCalib::filla2dg(int il, int ib, geant cin,
       dsum[is]=0;
       ngdp[is]=0;
       mina=5*TOFBPeds::scbrped[il][ib].asiga(is);//5sig
-      maxa=TOF2GC::SCADCMX-mina;//to avoid ovfls
-      mina=100;//by hands
+      maxa=TOF2GC::SCPUXMX-mina;//to avoid ovfls(anode saturation area)
+      mina=8*20;//tempor(to have(at def.a2d=6) Ad1,2>10 to avoid nonlin of beg.of D-signals scale)
       if(ain[is]>mina && ain[is]<maxa){// Ah ok
         for(ip=0;ip<npmts;ip++){
           mind=5*TOFBPeds::scbrped[il][ib].asigd(is,ip);//5sig
-	  maxd=TOF2GC::SCADCMX-mind;
+	  maxd=TOF2GC::SCPUXMX-mind;
           if(din[is][ip]>mind && din[is][ip]<maxd)ngdp[is]+=1;//Dh[ip] ok
         }
       }
@@ -3444,9 +3444,9 @@ void TofTmAmCalib::fitam(){
   for(il=0;il<TOF2DBc::getnplns();il++){
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
-        a2d[chan]=0;
+        a2d[chan]=6;//default value
         a2ds[chan]=0;
-        if(neva2d[chan]>5){
+        if(neva2d[chan]>=10){
 	  avr=a2dr[chan]/neva2d[chan];//aver x
 	  avr2=a2dr2[chan]/neva2d[chan];//aver x**2
 	  a2dsig=avr2-avr*avr;
@@ -3457,13 +3457,12 @@ void TofTmAmCalib::fitam(){
 	      HF1(1256,geant(avr),1.);
 	      HF1(1257,geant(rsig),1.);
 	    }
-	    if(rsig<2){//good measurement
+	    if(rsig<0.25){//good measurement, tempor
 	      a2d[chan]=avr;
 	      a2ds[chan]=a2dsig;
 	      gchan+=1;
 	    }
 	    else{
-	      a2d[chan]=0;
 	      a2ds[chan]=99;
 	    }
 	  }

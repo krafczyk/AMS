@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.46 2010/03/05 12:01:33 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.47 2010/11/14 17:08:52 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -27,7 +27,7 @@ const integer ECCONN=3;//number of connectors/EDR2
 const integer ECRCMX=ECSLMX*ECPMMX*(4*2+1);// max EC readout_channels(4->pixels,2->gains,1->dynode)
 const integer ECEDRC=243;//readout channels/EDR
 const integer ECFBLMX=500;// max. fibers per layer
-const integer ECADCMX[3]={3500,4095,4095};//max capacity of ADC(12bits)
+const integer ECADCMX[3]={3200,4095,4095};//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=100; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 

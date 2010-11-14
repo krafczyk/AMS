@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.138 2010/06/15 16:54:17 choutko Exp $
+//  $Id: ecalrec.C,v 1.139 2010/11/14 17:08:36 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -190,9 +190,9 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 	}
         ovfl[0]=0;
         ovfl[1]=0;
-        if(radc[0]>0)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow
-        if(radc[1]>0)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow
-        if(radc[0]>40*ECCAFFKEY.adcmin && ovfl[0]==0 && radc[1]>1.5*ECCAFFKEY.adcmin){
+        if(radc[0]>0)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow(hi)
+        if(radc[1]>0)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow(low)
+        if(radc[0]>(33.*3.*ECCAFFKEY.adcmin) && ovfl[0]==0 && radc[1]>ECCAFFKEY.adcmin){
 #pragma omp critical (ecval_fill2)
           ECREUNcalib::fill_2(isl,pmt,subc,radc);//<--fill
         }

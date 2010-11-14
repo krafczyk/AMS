@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.752 2010/11/11 19:08:43 mmilling Exp $
+// $Id: job.C,v 1.753 2010/11/14 17:08:36 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1392,7 +1392,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 //
-  TFCAFFKEY.truse=0;//(12)-1/0/1->(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
+  TFCAFFKEY.truse=1;//(12)-1/0/1->(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
 // AMPL-calibration:
   TFCAFFKEY.plhc[0]=0.5;// (13) track mom. low limit(gev/c) for space calibr
   TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............

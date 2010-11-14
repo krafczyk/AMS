@@ -71,6 +71,7 @@ integer ECREUNcalib::nbins;
 number ECREUNcalib::tevhlc[ECPMSL*4][ECCHBMX]; 
 number ECREUNcalib::sbchlc[ECPMSL*4][ECCHBMX]; 
 number ECREUNcalib::sbchlc2[ECPMSL*4][ECCHBMX];
+number ECREUNcalib::sbchlc3[ECPMSL*4][ECCHBMX];
 number ECREUNcalib::et2momr;
 integer ECREUNcalib::net2mom; 
 //-----------------------------
@@ -115,6 +116,7 @@ void ECREUNcalib::init(){
       tevhlc[i][j]=0;
       sbchlc[i][j]=0;
       sbchlc2[i][j]=0;
+      sbchlc3[i][j]=0;
     }
   }
   et2momr=0.;
@@ -170,7 +172,7 @@ void ECREUNcalib::select(){
   sta=1;
   cptr=AMSEvent::gethead()->getC("AMSParticle",0);// envelop 0
   if(cptr)ntrk+=cptr->getnelem();
-  if(ntrk!=1)return;// require events with 1 track.
+  if(ntrk!=1)return;// require events with 1 part.
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){
@@ -1673,6 +1675,7 @@ void ECREUNcalib::mfit(){
   number chi2[ECPMSL*4],slop[ECPMSL*4],offs[ECPMSL*4];
   integer hchok[ECPMSL*4],ibinw;
   int ngdbins[ECPMSL*4];
+  int gsbins,nevft;
   number offsf(0.5);//fixed offset for "fixed offset" fit
 //
   ibinw=integer(floor(number(ECCADCR)/ECCHBMX));
@@ -1695,10 +1698,17 @@ void ECREUNcalib::mfit(){
     chi2[i]=0.;
     hchok[i]=0;
     ngdbins[i]=0;
+    pmsl=i/4;
+    sc=i%4;
+    gsbins=0;
+    nevft=0;
     for(j=0;j<ECCHBMX;j++){//<-- HchADC bin loop
       nevf=number(tevhlc[i][j]);//events in LowGain channel for HiGain chan bin=j
-      co=(number(j)+0.5)*ibinw;// mid. of High-chan. bin
-      if(nevf>4){ // min. 5 events
+      if(nevf>=10){ // min. 10 events
+        gsbins+=1;
+	nevft+=nevf;
+//        co=(number(j)+0.5)*ibinw;// mid. of High-chan. bin
+        co=sbchlc3[i][j]/nevf;// aver. of High-chan. bin
         t=sbchlc[i][j]/nevf; // get mean
         tq=sbchlc2[i][j]/nevf; // mean square
         dis=tq-t*t;// rms**2
@@ -1714,7 +1724,7 @@ void ECREUNcalib::mfit(){
             sumc2+=(co*co/dis);
             sumt2+=(t*t/dis);
 	    ngdbins[i]+=1;
-//          if(ECCAFFKEY.hprintf>0)HF1(ECHISTC+23,geant(sqrt(dis)),1.);
+	  }
 //	  if(sqrt(dis)<2.5){
 //            bins+=1.;
 //            sumc+=(co/dis);//
@@ -1724,12 +1734,16 @@ void ECREUNcalib::mfit(){
 //            sumc2+=(co*co/dis);
 //            sumt2+=(t*t/dis);
 //	    ngdbins[i]+=1;
-	  }//--> end of sig-check
+//	  }//--> end of sig-check
         }//-->end of dis>0 check
-      }//--> end of min evs check
+      }//--> end of min evs/bin check
     }//--> end of bin loop
 //
-    if(bins>=20){
+    if(gsbins<10){
+      cout<<"----> Hi2LowR Warning : pmsl/pix="<<pmsl<<" "<<sc<<" have low NgoodStatBins="<<gsbins<<", Ntotevs="<<nevft<<endl;
+    }
+//
+    if(bins>=10){
 //-->complete fit:
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       slo=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
@@ -1766,6 +1780,9 @@ void ECREUNcalib::mfit(){
         HF1(ECHISTC+22,geant(chi2[i]),1.);
         HF1(ECHISTC+42,geant(bins),1.);
       }
+    }// endof Nbibs check
+    else if(bins<10 && gsbins>=10){
+      cout<<"----> Hi2LowR Warning : pmsl/pix="<<pmsl<<" "<<sc<<" have low NgoodBins="<<bins<<", Ntotevs="<<nevft<<endl;
     }
   }//--> end of chan. loop
 //
@@ -2111,6 +2128,7 @@ void ECREUNcalib::fill_2(integer sl, integer pm, integer sc, number adc[2]){
     tevhlc[slpmc][i]+=1.;
     sbchlc[slpmc][i]+=adc[1];
     sbchlc2[slpmc][i]+=(adc[1]*adc[1]);
+    sbchlc3[slpmc][i]+=adc[0];//to have bin aberage for hi-chan
   }
   if(ECCAFFKEY.hprintf>1 && slpmc==slpmcr)HF2(ECHISTC+19,geant(adc[0]),geant(adc[1]),1.);
 }

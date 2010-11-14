@@ -14,7 +14,7 @@ const integer ECCLBMX=10;// max. long. bins for uniformity study(should be even)
 //const integer ECLBMID=2;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECLBMID=3;// Area (+-bins) from fiber center, used for PM RelGain calibr.
 const integer ECCHBMX=100;// max. bins in hg-channel for h2lr study
-const integer ECCADCR=1000;//max. HGainADC range to use ..............
+const integer ECCADCR=1500;//max. HGainADC range to use ..............
 const integer ECEVBUF=500;//size of buf. to store ev-by-ev PM-resp vs Lbin (FIAT-calib)
 const integer ECEVEMX=1000;//max events/pm(pix,lbin)
 const integer ECAHBUF=100;//size of highest amplitudes buffer(1/10 of ECEVEMX) 
@@ -52,8 +52,9 @@ class ECREUNcalib {
     static number tevpmf[ecalconst::ECPMSL];// tot.events/pm_fired 
     static number tevpmm[ecalconst::ECPMSL];// tot.events/pm_crossed_at_2_central_long_bins 
     static number tevhlc[ecalconst::ECPMSL*4][ECCHBMX];// tot.events/cell/bin for Hb/Lg calibr 
-    static number sbchlc[ecalconst::ECPMSL*4][ECCHBMX];// cell-resp. for Hg/Lg calibr 
-    static number sbchlc2[ecalconst::ECPMSL*4][ECCHBMX];// cell-resp.**2 for Hgain/Lgain calibr 
+    static number sbchlc[ecalconst::ECPMSL*4][ECCHBMX];// cell-resp.(low-gain) for Hg/Lg calibr 
+    static number sbchlc2[ecalconst::ECPMSL*4][ECCHBMX];// cell-resp.**2(low-gain) for Hgain/Lgain calibr 
+    static number sbchlc3[ecalconst::ECPMSL*4][ECCHBMX];// cell-resp.(hi-gain) for Hgain/Lgain calibr 
     static number values[ECCLBMX];//working arrays for profile-fit 
     static number errors[ECCLBMX]; 
     static number coords[ECCLBMX];

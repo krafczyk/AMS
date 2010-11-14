@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.496 2010/11/10 16:37:32 pzuccon Exp $
+//  $Id: event.C,v 1.497 2010/11/14 17:08:36 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1504,7 +1504,7 @@ static int ist=0;
   callax   = (!(ecpedcal || tftdccal || tfpedcal));
   calluser = (!(ecpedcal || tftdccal || tfpedcal));
   callecal = (!tfcal);
-  //if((ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2) && (AMSEvent::gethead()->getid())>60000)return;
+  if((ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2) && (AMSEvent::gethead()->getid())>90000)return;
   //
   if(getC("TriggerLVL1",0)->getnelem() ){
     _retof2event();
