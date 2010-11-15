@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.35 2010/11/14 20:17:47 mdelgado Exp $
+//  $Id: g4physics.C,v 1.36 2010/11/15 00:57:20 mmilling Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.35 2010/11/14 20:17:47 mdelgado Exp $
+// $Id: g4physics.C,v 1.36 2010/11/15 00:57:20 mmilling Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -1379,7 +1379,7 @@ void AMSG4Physics::ConstructEM2( void ){
       pmanager->AddDiscreteProcess(new G4PhotoElectricEffect);
       pmanager->AddDiscreteProcess(new G4ComptonScattering);
       pmanager->AddDiscreteProcess(new G4GammaConversion);
-      pmanager->AddDiscreteProcess(processXTR);
+
       
     } else if (particleName == "e-") {
 
