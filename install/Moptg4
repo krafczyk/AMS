@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.97 2010/11/16 20:59:16 choutko Exp $
+#  $Id: Moptg4,v 1.98 2010/11/16 22:01:24 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -49,7 +49,8 @@ IDLCPP=orbit-idl-2 -l cpp
 ifeq  "$(G4SYSTEM)"  "Linux-icc"
 include binmake.icc64.gmk
 else
-include binmake.gmk
+include binmake.gcc32.gmk
+#include binmake.gmk
 endif
 
 SUPPORTED = AIX OSF1 HP-UX Linux
@@ -939,6 +940,7 @@ amswd:
 	@if ! [ -d $(AMSWD) ]; then echo FATAL: the directory pointer by AMSWD = $(AMSWD) is missing !!!; exit 1;fi
 
 clean:
+	rm -fv $(BIN)rootdict*
 	rm -fv $(BIN)*.o
 	rm -fv $(AMS_EXE)
 

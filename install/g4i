@@ -1,13 +1,15 @@
-#  $Id: g4i,v 1.41 2010/11/16 20:59:16 choutko Exp $
+#  $Id: g4i,v 1.42 2010/11/16 22:01:24 mdelgado Exp $
 setenv GEANT4NEW 1
 
 if `$ROOTSYS/bin/root-config --arch` == "linux" then
 setenv G4SYSTEM Linux-g++
 setenv G4USE_STL 1
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/1.9.4.2
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.5.gcc32
+#setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/1.9.4.2
 setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
-setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.8.1
+setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.9.3.p02.gcc32
+#setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.8.1
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
