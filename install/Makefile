@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.122 2010/11/16 16:47:20 choutko Exp $
+#  $Id: Makefile,v 1.123 2010/11/16 20:59:15 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -785,6 +785,17 @@ all:
 	$(MAKE) -j -C../online osdepend
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
+allg4:
+	$(MAKE) -j 
+	$(MAKE) -j lib 
+	$(MAKE) -j gxint
+	$(MAKE) -i producer
+	$(MAKE) -j -C../online
+	$(MAKE) -j -C../online osdepend
+	$(MAKE) -j -C../display
+	$(MAKE) -j -C../display osdepend
+	$(MAKE) -j -f Moptg4
+	$(MAKE) -j producer -f Moptg4 -i
 allp:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
@@ -799,7 +810,7 @@ allold:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
 	$(MAKE) -i producer
-	$MAKE) -f Makefastntrdicc
+	$(MAKE) -f Makefastntrdicc
 ifneq "$(shell cat /etc/redhat-release | grep -c 'Scientific Linux CERN SLC release 4')" "1"
 	@echo "Please use SLC4 distribution to produce Linux 2.4 executables"
 	#@rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)

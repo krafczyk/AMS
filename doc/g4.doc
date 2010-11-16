@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.39 2010/11/14 20:30:30 mdelgado Exp $
+#  $Id: g4.doc,v 1.40 2010/11/16 20:59:15 choutko Exp $
 -------
 Platform:
 linux-gcc.3.x ($G4SYSTEM=Linux-g++) 
@@ -15,7 +15,7 @@ linux-gcc.3.x:
 
 linux-icc11.1 64bits:
    source /Offline/vdev/install/amsvar
-   source AMS/install/g4i.icc64    (v4.9.3, Linux-icc, icc.11.1)
+   source AMS/install/g4i   (v4.9.3, Linux-icc, icc.11.1)
 
 
 see $G4INSTALL/ReleaseNotes.{VC,CD} for ams specifics

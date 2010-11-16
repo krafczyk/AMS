@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.47 2010/11/05 19:25:34 choutko Exp $
+//  $Id: client.C,v 1.48 2010/11/16 20:59:14 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -7,14 +7,14 @@
 #include <sys/time.h>
 #include <time.h>
 #include <netdb.h>
-/*
+#ifdef __LINUX24__
 extern "C" void g_assert_warning         (const char *log_domain,
 			       const char *file,
 			       const int   line,
 		               const char *pretty_function,
 		               const char *expression){
 }
-*/
+#endif
 extern "C" void malloc_printerr(int action, const char *str, void *ptr)
 {
 cout <<" malloc_printer-W-"<<str<<endl;

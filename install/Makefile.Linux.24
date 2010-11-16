@@ -58,7 +58,7 @@ endif
   CXX=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVERC)/bin/icc  -m32  $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVERC)/bin/icpc -m32  $(INTELOPT)  $(PARALLEL) 
-  FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -tpp6 -xi
+  FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -save -W0 -tpp6 -xi
 
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/lib/     -lifport -lifcoremt -limf  -lipgo -lirc_s 
