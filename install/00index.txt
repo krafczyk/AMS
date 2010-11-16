@@ -1,10 +1,13 @@
-#  $Id: 00index.txt,v 1.52 2010/11/04 20:36:59 choutko Exp $
+#  $Id: 00index.txt,v 1.53 2010/11/16 16:47:20 choutko Exp $
 
 Makefile //  General Makefile
-Makefile.linux    // OS dep -> Linux-gcc
-Makefile.linuxicc // OS dep -> Linux-icc
-Makefile.Linux.24 // OS dep -> Linux-OLD icc --> Special arch enabled maually  by: setenv  ARCH Linux.24 
-Makefile.OSf1     //  OS dep ( to be updated)
+source /Offline/vdev/install/amsvar.gcc64
+Makefile.linuxx8664gcc    // OS dep -> Linux-gcc64 
+source /Offline/vdev/install/amsvar.icc64
+Makefile.linuxicc64 // OS dep -> Linux-icc64  default one
+source /Offline/vdev/install/amsvar.icc32
+Makefile.linuxicc// OS dep -> Linux-icc32  
+Makefile.linux// OS dep -> Linux-gcc32  (!) old root for the moment  
           // setenv   DEBUGFLAG 1      sets the -g option in compiling; 
 	  // unsetenv DEBUGFLAG        turn on  optimizatio in compiling;
           // setenv   AMSPROFILE 1     adds gprof;
@@ -29,8 +32,6 @@ It then depends on the compiler type has been used for  your ROOT version.
 The new Perugia Tracker Software can be enabled at compile time with:
 setenv PGTRACK 1
 
-WARNING!!: Perugia Tracker Software is under developpement, 
-         and it is not yet full featured.
 
 gmake gbatch(default) // builds g3 gbatch 
 gmake gxint           // builds g3 gxint 
@@ -44,8 +45,8 @@ gmake all             //  build gbatch,gxint,lib,producer,display ,offmon
 gmake allold          //  build gbatch,lib producer for 2.4 kernels to bind(
 use slc 4 release) 
 build_all            //   build everything
-gmake -f Moptg4   //builds g4 batch (not supported at the moment)
-gmake -f Moptg4i  //builds g4 interactive (not supported at the moment)
+gmake -f Moptg4   //builds g4 batch 
+gmake -f Moptg4i  //builds g4 interactive 
 
 
 
@@ -57,23 +58,12 @@ doesn't work well with 2.4 kernels and/or  2002/2003 geant3 libraries compiled w
 therefore for 2.4 and/or mc related jobs using cernlib 2002/2003 :
 
 (on slc4 only, not slc5)  : ex:  from pcamsj1.cern.ch ssh 192.168.50.133
-source /Offline/vdev/install/amsvar.slc4icc
-setenv ARCH Linux.24
+source /Offline/vdev/install/amsvar.icc32
 gmake -j 2
 
-The executable  will be put in $AMSWD/exe/Linux.24/
 
 
-NBB Experimental:
 
-linux iccx8664 arch
-
-source /Offline/vdev/install/amsvar.icc64
-
-gmake all
-
-
-NBBB:  linux iccx8664 arch now default one
 
 
 

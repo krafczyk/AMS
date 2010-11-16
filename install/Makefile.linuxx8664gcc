@@ -1,11 +1,28 @@
-#  $Id: Makefile
+#  $Id: Makefile.linuxx8664gcc,v 1.1 2010/11/16 16:47:20 choutko Exp $
+# P.Zuccon june 2005
 # General clean up and reorganization
+# F.Barao: gcc version numbering changed (Oct, 2010)
 #
-#   LINUX architecture OLD ICC compiler - more compatible
+
+#   Architecture linux g++
+
 
 VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
 
-VERGCC       := $(shell gcc --version | grep 4.1)
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
+
+ifeq ($(GCC_VER_MAJOR),4) 
+VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCH      := 1
+endif
+endif 
 
 ifdef VER
 NEW = 
@@ -26,7 +43,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 endif
 
-
+SLC4system=1
 RH9=1
 RH9add=
 ifdef RH9
@@ -35,33 +52,23 @@ endif
 
 RH9add=-pthread $(BIN)ctype.o 
 
-ifdef AMSPARALLEL
-  PARALLEL= -D__AMSPARALLEL__ -openmp 
-else
-  PARALLEL= -openmp
-endif
-ifdef AMSP
- PARALLEL=-D__AMSP__ -openmp  -D__LINUX24__ 
-endif
-
 
 
 ########################################################################
 #Compilers
 ########################################################################
-
-  INTELDIR=/opt/intel/
-  INTELVERC=Compiler/11.1/073/bin/ia32
-  INTELVERF=Compiler/11.1/073/bin/ia32
-  INTELOPT=-axsse4.2,ssse3 
-  FF=$(INTELDIR)/$(INTELVERF)/ifort -W0 -m32 $(INTELOPT)  -vec-report0 $(PARALLEL)
-  CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 $(INTELOPT) -vec-report0  $(PARALLEL)
-  CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  $(INTELOPT) $(PARALLEL)
-  LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  $(INTELOPT)  $(PARALLEL) 
-  FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -save  -tpp6 -xi
-
-  FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/../../lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+  CC  = gcc  
+  CXX = g++ 
+ifdef VERGCC 
+  FF  = gfortran  
+  FORTRAN_LIBS=  -lgfortran 
+else  
+  FF  = g77  
+  FORTRAN_LIBS=
+endif
+  FFOLD=$(FF)
+  LD  = g++ 
+  FORTRAN2_LIBS=
 
 
 ORBIT2DIR=/opt/Orbit2
@@ -70,18 +77,30 @@ IDLCPP=orbit-idl-2 -l cpp
 
 
 ########################################################################
-# Libraries
+# CERN & AMS Libraries
 ########################################################################
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib
 
-# change defaults if intel compiler 
-CERN_LEVEL = pro
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
-CERNSRCDIR = /cern/$(CERN_LEVEL)
+CERN_LEVEL = 2005.gcc64
 
-CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
-AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-#NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
-NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+
+ifndef CERNDIR
+CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
+endif
+
+
+CERNSRCDIR = $(CERNDIR)
+
+ifndef AMSLIB
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/gcc64
+endif
+
+ifndef NAGDIR
+NAGDIR =  /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+endif
+
+
+
 ########################################################################
 # Compilers FLAGS
 ########################################################################
@@ -91,17 +110,27 @@ ifdef AMSDEBUG
 DEFINES+=  -D__AMSDEBUG__
 endif
 
+ifdef WEBACCESS
+DEFINES+=  -D_WEBACCESS_
+endif
+
 ifdef TFADBW
 DEFINES+=  -D__TFADBW__
 endif
+
 
 ifdef TFAPEDC
 DEFINES+=  -D__TFAPEDC__
 endif
 
+ifdef VERGCCH
+DEFINES+=  -D__LINUXNEW__
+endif
 
-CFLAGSB= -Wno-deprecated  -mcpu=i686 
-DEFINES+= -D__root_$(NEW) -D__LINUXGNU__ -D__ICC__
+#CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
+#CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
+CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC
+DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
@@ -112,10 +141,8 @@ CFLAGSTOFSIM= $(CFLAGSB)
 CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
-
-FFLAGS=    -D__ICC__  -mp1  -fp_port   
-FFLAGSn=   -D__ICC__  -mp1 -fp_port   
-
+FFLAGS=       -fno-automatic 
+FFLAGSn=      -fno-automatic 
 
 
 ifdef AMSPROFILE 
@@ -124,12 +151,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef DEBUGFLAG
-    CFLAGS       += -g      
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
+    CFLAGS       += -g
     CFLAGSTOFSIM += -g
-    CFLAGSn      += -g     
-    CFLAGSDAQ    += -g  
-    FFLAGS       += -g     
-    FFLAGSn      += -g    
+    CFLAGSn      += -g
+    CFLAGSDAQ    += -g
+    FFLAGS       += -g
+    FFLAGSn      += -g
 else
     CFLAGS       += -O3      
     CFLAGSTOFSIM += -O1
@@ -139,20 +167,17 @@ else
     FFLAGSn      += -O2  
 endif
 
-
-
-
 SOFLAGS = -shared
 
 
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 endif
 endif
 
- SHLDFLAGS=   
+SHLDFLAGS=   
 
 ########################################################################
 # Output dirs
@@ -162,33 +187,34 @@ endif
 
 
 # Library list 
-
+TIMEL=
 
 LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
--L$(NAGDIR) -lnag \
+-L$(NAGDIR) -lnaggcc64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
--L$(ROOTSYS)/lib -lRoot \
- -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN_LIBS) $(RH9add)
+-L$(ROOTSYS)/lib -lRoot -lfreetype\
+ -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lcom_err -lresolv  -lcrypto    \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=       \
--L$(NAGDIR) -lnag $(FORTRAN2_LIBS)  \
+LDFLAGS=      $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnaggcc64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
-$(FORTRAN_LIBS)  $(PFLAGS) 
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto -lkrb5support -lssl -lcrypto  -lcom_err -lfreetype  -ldl    -lpcre\
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg
 endif
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
-
-
-LDFLAGS+= -lcxa -lcprts
-
+ifdef WEBACCESS
+  LDFLAGS+= -lcurl
+LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
+else
+LDFLAGSSTATIC:=  -static  $(LDFLAGS) $(RH9add) 
+endif
 
 
 
@@ -201,7 +227,7 @@ TIMEL=
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2 -lrt  
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 
@@ -219,6 +245,6 @@ endif
 
 #endif
 
-# end of Linuxicc.24 case
+# end of Linux case
 
 #########################################################

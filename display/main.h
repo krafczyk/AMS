@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.8 2007/11/02 17:04:58 choutko Exp $
+//  $Id: main.h,v 1.9 2010/11/16 16:47:20 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -24,6 +24,10 @@ public:
  Myapp(const char *appClassName,int *argc, char **argv):TApplication(appClassName,argc, argv),fDisplay(0){
 }
  void SetStatic(){
+     if(gROOT->IsBatch()){
+       cerr<<"MyApp::SetStatic-F-RootIsInBatchMode,quitting"<<endl;
+       exit(1);
+     }
 #ifndef WIN32
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
    if(ttpath && !getenv("OffmonNoTTF")){

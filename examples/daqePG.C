@@ -756,7 +756,7 @@ try{
     cuts[1]=nTofCluster()<6;
 //    cuts[2]=nlay==3;
     cuts[3]=nTrTrack()>0;
-    cuts[5]=(tr.Status/8192)%2==0 ;
+//    cuts[5]=(tr.Status/8192)%2==0 ;
        cuts[5]=false;
     if(!cuts[5]){
     bool hfound=false;
@@ -771,7 +771,7 @@ try{
        number dy=Hit[1]-part.TrCoo[rh.lay()-1][1];
        number dz=Hit[2]-part.TrCoo[rh.lay()-1][2];
     }
-    cuts[5]=cuts[5] && (tr.Status/16384)%2==0 ;
+//    cuts[5]=cuts[5] && (tr.Status/16384)%2==0 ;
     cuts[7]=fabs(part.Momentum)>0;   
       cuts[5]=fabs(tr.Rigidityf())>10;
     Level1R lvl1=Level1(0);

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.201 2010/10/22 14:50:37 choutko Exp $
+//  $Id: ntuple.C,v 1.202 2010/11/16 16:47:19 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -323,7 +323,7 @@ void AMSNtuple::endR(bool cachewrite){
     static RunHeader runheader;
 #pragma omp threadprivate (runheader)
     if(AMSJob::gethead()->isSimulation()) runheader.gevent=GCFLAG.IEVENT;
-    _tree->GetUserInfo()->Add(&runheader);
+    //_tree->GetUserInfo()->Add(&runheader);
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
       TRDPlotInit();
       

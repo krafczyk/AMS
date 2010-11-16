@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.46 2010/09/14 20:10:14 pzuccon Exp $
+//  $Id: main.cxx,v 1.47 2010/11/16 16:47:20 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -166,14 +166,14 @@ pchain=&chain;
   Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
 
-  gVirtualX=new TGX11("X11","Root Interface to X11");
+  //gVirtualX=new TGX11("X11","Root Interface to X11");
   //gGuiFactory=new TRootGuiFactory();
+  //gDebug=6;
   TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
 
   theApp->SetStatic();
 #endif
-  //  gDebug=6; 
 
 
 

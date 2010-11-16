@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.13 2010/06/30 10:53:45 pzuccon Exp $
+*  $Id: egzav.F,v 1.14 2010/11/16 16:47:20 choutko Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2270,7 +2270,7 @@ C     DATA RT/615./,ZT/585./
        ifail=-1
        matv=.false.
 #ifndef NO_NAG
-#ifndef __ICC__
+#ifdef __ICCC__
        call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
 #else 
        call f02gjf(n,xma,n,ima,n,rdb,n,idb,n,eps,wr,wi,beta,

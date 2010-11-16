@@ -18,6 +18,7 @@ public:
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
      if(ev && ev->nLevel1()   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
+     cout <<ev->UTime()<<endl;
     int          membpat=ev->pLevel1(0)->JMembPatt;
     int b15=(membpat>>15)&1;
     int b14=(membpat>>14)&1;

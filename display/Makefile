@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.73 2010/11/04 18:02:52 choutko Exp $
+#  $Id: Makefile,v 1.74 2010/11/16 16:47:20 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -142,6 +142,37 @@ LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) /usr/
 
 LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) 
 LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm    -ldl 
+
+ifdef VERGCCH
+CPPFLAGS+= -D__LINUXNEW__
+endif
+endif
+
+ifeq ($(ARCH),linuxx8664gcc)
+
+CXX           =  g++ 
+CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
+OPT           = -g
+NOOPT         = -g
+
+LD            = g++ 
+LDFLAGS       = -g 
+LDS	= 	$(LD) -static
+LD            = g++ 
+LDFLAGS       = -g 
+LDS	= 	$(LD) -static
+LDD	= 	$(LD) -rdynamic
+
+
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+LIBS          =    -Bstatic $(ROOTLIBSA) /usr/lib64/libshift.a -lm -Bdynamic -ldl
+
+LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) 
+LIBSA         =   $(ROOTLIBSA) -lshift -lm    -ldl 
 
 ifdef VERGCCH
 CPPFLAGS+= -D__LINUXNEW__
