@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.95 2010/11/15 16:23:23 mdelgado Exp $
+#  $Id: Moptg4,v 1.96 2010/11/16 17:53:21 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -123,6 +123,7 @@ LD=cxx -v  -warning_unresolved
 TIMEL=
 endif
 ifeq  "$(G4SYSTEM)"  "Linux-icc"
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
 CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
@@ -150,7 +151,7 @@ DFLAGS=    -g  -I../include
 
 INTELDIR=/opt/intel/
 INTELVER=Compiler/11.1/073/
-INTELOPT=-axsse4.2,ssse3 -D__G4AMS__ 
+INTELOPT=-axsse4.2,ssse3 -openmp -D__G4AMS__ 
 PARALLEL=
 
 ifndef DEFINES
@@ -204,6 +205,7 @@ endif
 
 
 ifeq  "$(G4SYSTEM)"  "Linux-g++"
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
 CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include    $(CFLAGSB)
@@ -369,12 +371,11 @@ OBJECTSEAUX=    $(BIN)id.o         $(BIN)node.o     $(BIN)astring.o \
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
 
-LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2 -lrt  
 
-CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 
 CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
 
@@ -565,7 +566,7 @@ $(BIN)TrackFit_utils.o:            $(SFF)TrackFit_utils.F
 
 
 $(BIN)Geant3_utils.o:            $(SFF)Geant3_utils.F
-	$(FF) -c $(FFLAGS)  -I/cern/pro/include     $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o
+	$(FF) -c $(FFLAGS) -save -I/cern/pro/include     $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o
 
 
 ifeq  "$(shell uname)"  "HP-UX" 
