@@ -442,11 +442,13 @@ int TrSim::AddTrSimClustersOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
 
 
 int TrSim::AddOldSimulationSignalOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
-  int addK = cluster->GetAdd(0);
-  for (int jj=0;jj<cluster->GetSize(0);jj++) ladbuf[addK+jj] += cluster->GetSignal(jj,0);
-  int addS = cluster->GetAdd(1);
-  for (int jj=0;jj<cluster->GetSize(1);jj++) ladbuf[addS+jj] += cluster->GetSignal(jj,1);
-  return 2;
+  printf("TrSim::AddOldSimulationSignalOnBuffer-E OLD Simulation declared OBSOLETE!! I'm not doing anything\n");
+  return -1;
+//   int addK = cluster->GetAdd(0);
+//   for (int jj=0;jj<cluster->GetSize(0);jj++) ladbuf[addK+jj] += cluster->GetSignal(jj,0);
+//   int addS = cluster->GetAdd(1);
+//   for (int jj=0;jj<cluster->GetSize(1);jj++) ladbuf[addS+jj] += cluster->GetSignal(jj,1);
+//   return 2;
 }
 
 

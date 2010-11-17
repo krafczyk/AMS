@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.20 2010/11/11 12:42:36 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.21 2010/11/17 11:02:29 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/11/11 12:42:36 $
+///$Date: 2010/11/17 11:02:29 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -48,11 +48,11 @@ TrMCClusterR::TrMCClusterR(int idsoft,
   : _idsoft(idsoft), _itra(itra), 
     _xgl(xgl), _Momentum(mom), _sum(sum) 
 {
-  for (int ii=0;ii<2;ii++){
-    _left  [ii]=0;
-    _center[ii]=0;
-    _right [ii]=0;
-    for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
+   for (int ii=0;ii<2;ii++){
+//     _left  [ii]=0;
+//     _center[ii]=0;
+//     _right [ii]=0;
+//     for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
     simcl[ii]=0;
   }
   Status=0;
@@ -64,12 +64,12 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
 {
   Status=0;
   simcl[0]=simcl[1]=0;
-  for(int i=0;i<2;i++){
-    _left[i]=0;
-    _center[i]=0;
-    _right[i]=0;
-    for(int k=0;k<5;k++)_ss[i][k]=0;
-  }
+//   for(int i=0;i<2;i++){
+//     _left[i]=0;
+//     _center[i]=0;
+//     _right[i]=0;
+//     for(int k=0;k<5;k++)_ss[i][k]=0;
+//   }
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
     int tkid=pp.GetLadTkID();
@@ -88,6 +88,8 @@ TrMCClusterR::~TrMCClusterR(){
 void TrMCClusterR::_shower()
 {
 
+  printf(" TrMCClusterR::_shower-E- NO-DIGITIZATION!!  This method of digitizing the tracker has been declare OBSOLETE and commented out. \n");
+  /*
 
   AMSDir   dir(_Momentum);
   AMSPoint entry  = _xgl;
@@ -171,6 +173,7 @@ void TrMCClusterR::_shower()
 
   if (_right[0] > 1023) _right[0] = 1023;
   if (_left [0] < 0   ) _left [0] = 0;
+  */
 }
 
 
@@ -213,102 +216,103 @@ void TrMCClusterR::_PrepareOutput(int full)
   sout.append(Form("Part: %2d  tkid: %+04d  Sens: %2d    X:%f Y:%f Z:%f    Px: %f Py: %f Pz: %f\n",
 		   _itra,GetTkId(),GetSensor(),
 		   _xgl[0],_xgl[1],_xgl[2],_Momentum[0],_Momentum[1],_Momentum[2]));
+  return;
   
-  if(!full) return;
-  sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
-  sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
+ //  if(!full) return;
+//   sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+// 		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
+//   sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+// 		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
 
 }
 
 
-float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult)
-{
-  int layer = abs(tkid)/100;
-  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-  if(!ll){
-    printf("TrMCClusterR::strip2x: ERROR cant find ladder %d into the database\n",tkid);
-    return -1;
-  } 
-  int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
-    : (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
-    : TkDBc::Head->_NReadStripK5;
+// float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult)
+// {
+//   int layer = abs(tkid)/100;
+//   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+//   if(!ll){
+//     printf("TrMCClusterR::strip2x: ERROR cant find ladder %d into the database\n",tkid);
+//     return -1;
+//   } 
+//   int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
+//     : (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
+//     : TkDBc::Head->_NReadStripK5;
 
 
-  int ss = strip;
-  if (ss <=   0) ss = 1;
-  if (ss >= nch) ss = nch-1;
+//   int ss = strip;
+//   if (ss <=   0) ss = 1;
+//   if (ss >= nch) ss = nch-1;
 
-  ss += (side == 0) ? TkDBc::Head->_NReadoutChanS : 0;
-  float ss0 = TkCoo::GetLocalCoo(tkid, ss-1, mult);
-  float ss1 = TkCoo::GetLocalCoo(tkid, ss,   mult);
+//   ss += (side == 0) ? TkDBc::Head->_NReadoutChanS : 0;
+//   float ss0 = TkCoo::GetLocalCoo(tkid, ss-1, mult);
+//   float ss1 = TkCoo::GetLocalCoo(tkid, ss,   mult);
 
-  if (strip <=   0) return ss0-(ss0+ss1)/2;
-  if (strip >= nch) return ss1+(ss0+ss1)/2;
+//   if (strip <=   0) return ss0-(ss0+ss1)/2;
+//   if (strip >= nch) return ss1+(ss0+ss1)/2;
 
-  return (ss0+ss1)/2;
-}
+//   return (ss0+ss1)/2;
+// }
 
-double TrMCClusterR::fints(double a, double b)
-{
-  if      (a >  0 && b >  0) return fdiff(a, 0)-fdiff(b, 0);
-  else if (a <= 0 && b <= 0) return fdiff(b, 0)-fdiff(a, 0);
-  return 2*fdiff(0, 0)-fdiff(a, 0)-fdiff(b, 0);
-}
+// double TrMCClusterR::fints(double a, double b)
+// {
+//   if      (a >  0 && b >  0) return fdiff(a, 0)-fdiff(b, 0);
+//   else if (a <= 0 && b <= 0) return fdiff(b, 0)-fdiff(a, 0);
+//   return 2*fdiff(0, 0)-fdiff(a, 0)-fdiff(b, 0);
+// }
 
-double TrMCClusterR::fint2(double a, double b, 
-			  double av, double dav, double dix)
-{
-  if (std::abs(dav)/dix <= 0.01) return fints(a-av, b-av);
+// double TrMCClusterR::fint2(double a, double b, 
+// 			  double av, double dav, double dix)
+// {
+//   if (std::abs(dav)/dix <= 0.01) return fints(a-av, b-av);
 
-  double dlmin = av-std::abs(dav);
-  double dlmax = av+std::abs(dav);
-  if (a <= dlmin && b >= dlmax) return fintc(a, b, dlmin, dlmax);
-  if (a <= dlmin && b <= dlmin) return fintl(a, b, dlmin, dlmax);
-  if (a >= dlmax && b >= dlmax) return fintr(a, b, dlmin, dlmax);
+//   double dlmin = av-std::abs(dav);
+//   double dlmax = av+std::abs(dav);
+//   if (a <= dlmin && b >= dlmax) return fintc(a, b, dlmin, dlmax);
+//   if (a <= dlmin && b <= dlmin) return fintl(a, b, dlmin, dlmax);
+//   if (a >= dlmax && b >= dlmax) return fintr(a, b, dlmin, dlmax);
 
-  if (a <= dlmin && b <= dlmax)
-    return fintc(a, b, dlmin, b)*(b-dlmin)/(dlmax-dlmin)
-          +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
+//   if (a <= dlmin && b <= dlmax)
+//     return fintc(a, b, dlmin, b)*(b-dlmin)/(dlmax-dlmin)
+//           +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
 
-  if (a >= dlmin && b >= dlmax)
-    return fintc(a, b, a, dlmax)*(dlmax-a)/(dlmax-dlmin)
-          +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin);
+//   if (a >= dlmin && b >= dlmax)
+//     return fintc(a, b, a, dlmax)*(dlmax-a)/(dlmax-dlmin)
+//           +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin);
 
-  return fintc(a, b, a,     b)*    (b-a)/(dlmax-dlmin)
-        +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin)
-        +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
-}
+//   return fintc(a, b, a,     b)*    (b-a)/(dlmax-dlmin)
+//         +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin)
+//         +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
+// }
 
-double TrMCClusterR::fintc(double a, double b, double c, double d)
-{
-  return 2*fdiff(0,0)-(fdiff(b-d,1)-fdiff(b-c,1))/(d-c)
-                     +(fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-}
+// double TrMCClusterR::fintc(double a, double b, double c, double d)
+// {
+//   return 2*fdiff(0,0)-(fdiff(b-d,1)-fdiff(b-c,1))/(d-c)
+//                      +(fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+// }
 
-double TrMCClusterR::fintr(double a, double b, double c, double d)
-{
-  return (-fdiff(b-d,1)+fdiff(b-c,1)
-	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-}
+// double TrMCClusterR::fintr(double a, double b, double c, double d)
+// {
+//   return (-fdiff(b-d,1)+fdiff(b-c,1)
+// 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+// }
 
-double TrMCClusterR::fintl(double a, double b, double c, double d)
-{
-  return (-fdiff(b-d,1)+fdiff(b-c,1)
-	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-}
+// double TrMCClusterR::fintl(double a, double b, double c, double d)
+// {
+//   return (-fdiff(b-d,1)+fdiff(b-c,1)
+// 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+// }
 
-double TrMCClusterR::fdiff(double a, int ialpha)
-{
-  double xl = std::abs(a)*TRMCFFKEY.alpha;
-  if (xl > 70) return 0;
+// double TrMCClusterR::fdiff(double a, int ialpha)
+// {
+//   double xl = std::abs(a)*TRMCFFKEY.alpha;
+//   if (xl > 70) return 0;
 
-  double diff = TRMCFFKEY.beta*std::exp(-xl);
-  if (ialpha) diff /= TRMCFFKEY.alpha;
+//   double diff = TRMCFFKEY.beta*std::exp(-xl);
+//   if (ialpha) diff /= TRMCFFKEY.alpha;
 
-  return diff;
-}
+//   return diff;
+// }
 
 
 

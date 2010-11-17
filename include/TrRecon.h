@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.35 2010/11/10 16:37:22 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.36 2010/11/17 11:02:38 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/11/10 16:37:22 $
+/// $Date: 2010/11/17 11:02:38 $
 ///
-/// $Revision: 1.35 $
+/// $Revision: 1.36 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -237,12 +237,6 @@ public:
 
   /// Set the correlation probability threshold
   void  SetThrProb(float prob) { RecPar.ThrProb = prob; }
-  /// Get correlation between 2 signal (p/n) (protons)
-  float GetCorrelation(float n, float p) { return (p - n)/(p + n); }
-  float GetCorrelation(TrClusterR* cln, TrClusterR* clp);
-  /// Get probability of correlation between 2 signal (with all corrections p/n) (protons)
-  float GetProbToBeCorrelated(float n, float p);
-  float GetProbToBeCorrelated(TrClusterR* cln, TrClusterR* clp);
  
   /// Builds the Cluster TkId map (for the binary fast search of clusters)
   void  BuildClusterTkIdMap();
@@ -418,7 +412,7 @@ protected:
   /// A predicate to sort hits in descending order of prob.
   class CompProb {
   public:
-    bool operator() (const TrRecHitR* lhit, const TrRecHitR* rhit) const {
+    bool operator() ( TrRecHitR* lhit,  TrRecHitR* rhit) const {
       return lhit->GetProb() > rhit->GetProb();
     }
   };

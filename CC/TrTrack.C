@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.68 2010/11/14 09:55:20 shaino Exp $
+// $Id: TrTrack.C,v 1.69 2010/11/17 11:02:29 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/14 09:55:20 $
+///$Date: 2010/11/17 11:02:29 $
 ///
-///$Revision: 1.68 $
+///$Revision: 1.69 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,14 +52,15 @@ char* HitBitsString(int aa){
 
 
 void TrTrackPar::Print(int full){
-  printf("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
+  printf("Rigidity:  %6.3f Err(1/R):  %7.5f P0: %6.3f %6.3f %6.3f  Dir:  %6.4f %6.4f %6.4f\n",
 	 Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   if(!full)return;
   printf("HitBits: %s, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
 	 HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq);
 }
+
 void  TrTrackPar::Print_stream(std::string &ostr,int full){
-  ostr.append(Form("Rigidity:  %f Err(1/R):  %f P0: %f %f %f  Dir:  %f %f %f\n",
+  ostr.append(Form("Rigidity:  %6.3f Err(1/R):  %7.5f P0: %6.3f %6.3f %6.3f  Dir:  %6.4f %6.4f %6.4f\n",
 		   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]));
   if(!full)return;
   ostr.append(Form("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
@@ -880,7 +881,7 @@ std::ostream &TrTrackR::putout(std::ostream &ostr)  {
 void TrTrackR::_PrepareOutput(int full )
 {
   sout.clear();
-  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %f Pirig %f",
+  sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %6.3f Pirig %6.3f",
 		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPattern()),
 		   trdefaultfit,Chi2FastFitf(),GetRigidity(kAlcaraz)));
   TrTrackPar &bb=GetPar();

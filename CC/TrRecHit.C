@@ -19,14 +19,21 @@
 #include "TkDBc.h"
 #include "TrTasCluster.h"
 #include "MagField.h"
+#include "TMath.h"
+
+
 ClassImp(TrRecHitR);
 
 
 
 #include "VCon.h"
 
+float TrRecHitR::GGpars[6]={1428., 0.0000,
+			    0.1444, 1645.,
+			    0.0109, 0.0972};
 
 
+float TrRecHitR::GGintegral=91765.;
 
 TrRecHitR::TrRecHitR(void) {
   Clear();
@@ -40,18 +47,18 @@ TrRecHitR::TrRecHitR(const TrRecHitR& orig) {
 
   _iclusterX = orig._iclusterX;   
   _iclusterY = orig._iclusterY;  
-  _corr     = orig._corr;
-  _prob     = orig._prob;     
+  //  _corr     = orig._corr;
+  //  _prob     = orig._prob;     
   Status   = orig.Status;
   _mult     = orig._mult;
   _imult    = orig._imult;
   _coord    = orig._coord;
-  _bfield    = orig._bfield;
+  //  _bfield    = orig._bfield;
   _dummyX   = orig._dummyX;
 }
 
 
-TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult, int status) {
+TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY,  int imult, int status) {
   _tkid     = tkid;   
   if((clX&&clX->GetTkId()!=_tkid)|| (clY&&clY->GetTkId()!=_tkid)){
     printf("TrRecHitR::TrRecHitR--> BIG problems you are building ans hit on Ladder %d  \n",_tkid);
@@ -73,8 +80,6 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, flo
   Status    = status;
   if (!clX) Status |= YONLY;
   if (!clY) Status |= XONLY;
-  _corr     = corr;
-  _prob     = prob;     
   _dummyX   = 0;
 
   // coordinate construction
@@ -170,14 +175,14 @@ void TrRecHitR::BuildCoordinates() {
   _coord.clear();
   for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
 
-  for (int ii=0;ii<_coord.size();ii++){
-    float x[3],b[3];
-    x[0]=_coord[ii].x();
-    x[1]=_coord[ii].y();
-    x[2]=_coord[ii].z();
-      GUFLD(x,b);
-    _bfield.push_back(AMSPoint(b));
-  }
+//   for (int ii=0;ii<_coord.size();ii++){
+//     float x[3],b[3];
+//     x[0]=_coord[ii].x();
+//     x[1]=_coord[ii].y();
+//     x[2]=_coord[ii].z();
+//       GUFLD(x,b);
+//     _bfield.push_back(AMSPoint(b));
+//   }
 
 
   if (TasHit()) {
@@ -200,14 +205,29 @@ void TrRecHitR::Clear() {
   _clusterY = 0;
   _iclusterX = -1;
   _iclusterY = -1;
-  _prob     = 0;
   Status   = 0;
   _mult     = 0;
   _imult    = -1; 
   _dummyX   = 0;
   _coord.clear();
-  _bfield.clear();
+  //  _bfield.clear();
 }
+
+
+float TrRecHitR::GetCorrelation()   { 
+  if (!GetXCluster()) return -1.;
+  if (!GetYCluster()) return 1.;
+  float n = GetXCluster()->GetTotSignal();
+  float p = GetYCluster()->GetTotSignal();
+  return (p - n)/(p + n); 
+}
+
+float TrRecHitR::GetProb()   { 
+  float correlation = GetCorrelation();
+  return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
+	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
+}
+
 
 
 void TrRecHitR::Print(int opt){

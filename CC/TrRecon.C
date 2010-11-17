@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.77 2010/11/12 15:33:15 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.78 2010/11/17 11:02:29 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/12 15:33:15 $
+/// $Date: 2010/11/17 11:02:29 $
 ///
-/// $Revision: 1.77 $
+/// $Revision: 1.78 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -56,6 +56,7 @@ TrReconPar::TrReconPar()
   SeedDist[1] =  3;
 
   // hit signal correlation (only muons/protons)
+  // PZ warning the real values for GGpars are in TrRecHit
   GGpars[0]  = 1428.;
   GGpars[1]  = 0.0000;
   GGpars[2]  = 0.1444;
@@ -579,25 +580,6 @@ int TrRecon::GetBoundariesInSubBuffer(int index, int first, int last, int cyclic
 // --- HITS --- //
 //////////////////
 
-float TrRecon::GetCorrelation(TrClusterR* cln, TrClusterR* clp) { 
-  if (!cln) return -1.;
-  if (!clp) return  1.;
-  float n = cln->GetTotSignal();
-  float p = clp->GetTotSignal();
-  return (p - n)/(p + n); 
-}
-
-float  TrRecon::GetProbToBeCorrelated(float n, float p) {
-  float correlation = GetCorrelation(n,p);
-  return ( RecPar.GGpars[0]*TMath::Gaus(correlation,RecPar.GGpars[1],RecPar.GGpars[2],kFALSE) +
-	   RecPar.GGpars[3]*TMath::Gaus(correlation,RecPar.GGpars[4],RecPar.GGpars[5],kFALSE) ) / RecPar.GGintegral;
-}
-
-float  TrRecon::GetProbToBeCorrelated(TrClusterR* cln, TrClusterR* clp) {
-  float correlation = GetCorrelation(cln,clp);
-  return ( RecPar.GGpars[0]*TMath::Gaus(correlation,RecPar.GGpars[1],RecPar.GGpars[2],kFALSE) +
-	   RecPar.GGpars[3]*TMath::Gaus(correlation,RecPar.GGpars[4],RecPar.GGpars[5],kFALSE) ) / RecPar.GGintegral;
-}
 
 void TrRecon::BuildClusterTkIdMap() {
   _ClusterTkIdMap.clear();
@@ -668,23 +650,27 @@ int TrRecon::BuildTrRecHits(int rebuild)
       for (int ix=0; ix<nx; ix++) {
         TrClusterR* clX = lad->second.first.at(ix);
         TrClusterR* clY = lad->second.second.at(iy);
-        float     corr = GetCorrelation(clX,clY);
-        float     prob = GetProbToBeCorrelated(clX,clY);
-        if (prob<RecPar.ThrProb) continue;  
+        
 #ifndef __ROOTSHAREDLIBRARY__
-        cont2->addnext( new AMSTrRecHit(tkid,clX,clY,corr,prob,0));
+        AMSTrRecHit* hit= new AMSTrRecHit(tkid,clX,clY,0);
 #else
-        cont2->addnext( new TrRecHitR(tkid,clX,clY,corr,prob,0));
+        TrRecHitR* hit=new TrRecHitR(tkid,clX,clY,0);
 #endif
+
+	if (hit->GetProb()<RecPar.ThrProb){
+	  delete hit;
+	  continue;  
+	}
+	cont2->addnext(hit);
         ntrrechits++;
       }
 
       // "ghost" hits with only y-cluster
       TrClusterR *clY = GetTrCluster(tkid, 1, iy);
 #ifndef __ROOTSHAREDLIBRARY__
-      cont2->addnext( new AMSTrRecHit(tkid, 0, clY, 1, 0, 0));
+      cont2->addnext( new AMSTrRecHit(tkid, 0, clY,  0));
 #else
-      cont2->addnext( new TrRecHitR(tkid, 0, clY, 1, 0, 0));
+      cont2->addnext( new TrRecHitR(tkid, 0, clY,  0));
 #endif
       ntrrechits++;
     }    
@@ -2519,9 +2505,9 @@ int TrRecon::BuildTrTasHits(int rebuild)
 
     TrRecHitR *hit;
 #ifndef __ROOTSHAREDLIBRARY__
-    cont2->addnext((hit = new AMSTrRecHit(tkid, clx, cly, 1, 1, 0, TrRecHitR::TASHIT)));
+    cont2->addnext((hit = new AMSTrRecHit(tkid, clx, cly, 0, TrRecHitR::TASHIT)));
 #else
-    cont2->addnext((hit = new TrRecHitR  (tkid, clx, cly, 1, 1, 0, TrRecHitR::TASHIT)));
+    cont2->addnext((hit = new TrRecHitR  (tkid, clx, cly, 0, TrRecHitR::TASHIT)));
 #endif
     nhit++;
   }

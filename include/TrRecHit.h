@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.22 2010/11/05 10:25:56 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.23 2010/11/17 11:02:38 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -48,29 +48,27 @@ protected:
   TrClusterR*  _clusterY; //!
   /// TkLadder ID
   short int   _tkid;
-  /// Correlation between X and Y
-  float _corr;
-  /// Probability of correlation between the X and Y clusters 
-  float _prob;
+  
   /// Hit multiplicity 
-  short int   _mult;
+  int8  _mult;
   /// Multiplicity index (-1 means not yet resolved, >-1 resolved by tracking algorithm)
-  short int _imult;
+  int8 _imult;
   /// Dummy X-strip position for YONLY hit
   float _dummyX;
   /// Hit global coordinate (multiplicity vector) 
   vector<AMSPoint> _coord;
-  /// Hit global coordinate (multiplicity vector) 
-  vector<AMSPoint> _bfield;
+
 
   /// X Cluster index
-  int _iclusterX;
+  short int _iclusterX;
   /// Y Cluster index
-  int _iclusterY;
+  short int _iclusterY;
 
   /// Hit status (...)
   int   Status;
 
+  static float GGpars[6];
+  static float GGintegral;
 
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
@@ -83,7 +81,7 @@ protected:
   /// Copy constructor
   TrRecHitR(const TrRecHitR& orig);
   /// Constructor with clusters
-  TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1, int status = 0);
+  TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, int imult = -1, int status = 0);
   /// Destructor
   virtual ~TrRecHitR();
   /// Clear data members
@@ -130,22 +128,28 @@ protected:
   const AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates();
     return (0<=imult && imult<_mult) ? _coord.at(imult) : AMSPoint(0,0,0); }
 
-  /// Returns the computed global coordinate (if resolved)
-  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
-			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
+  //PZ removed to save space  /// Returns the computed global coordinate (if resolved)
+  //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
+  //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
   /// Get the computed global coordinate by multiplicity index
-  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
-    return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
+ //  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
+//     return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
 
 
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
+  
   /// Get correlation between the X and Y clusters
-  float GetCorrelation() const { return _corr;   }
+  float GetCorrelation();
+
   /// Get probability of correlation between the X and Y clusters 
-  float GetProb()        const { return _prob;   }
+  float GetProb();  
+
+
+
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
+
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;
@@ -156,18 +160,24 @@ protected:
 
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
+
   /// Set dummy strip position
   void SetDummyX(float dumx) { _dummyX = dumx; }
+
   /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
+
   /// Returns the signal sum of the X and Y clusters
   float GetTotSignal() { 
     return ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
            ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
+
   /// Get X local coordinate (ladder reference frame)
   float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
+
   /// Get Y local coordinate (ladder reference frame)
   float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
+
   /// Get local coordinate (ladder reference frame, Z is zero by definition)
   AMSPoint GetLocalCoordinate(int imult = 0, 
 			      int nstripsx = TrClusterR::DefaultUsedStrips,
@@ -219,7 +229,7 @@ protected:
     return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
   }
   /// ROOT definition
-  ClassDef(TrRecHitR,1)
+  ClassDef(TrRecHitR,2)
 };
 
 #endif

@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/09/20 17:22:23 $
+ $Date: 2010/11/17 11:02:38 $
 
- $Revision: 1.13 $
+ $Revision: 1.14 $
 
 */
 
@@ -87,11 +87,11 @@ class TrClusterR :public TrElem{
   float        _dydz;
 
   /// Multiplicity (on p side sould be 1 on n side it is ladder dependent)
-  short int     _mult;   
-  /// Local coordinate by multiplicity index 
-  vector<float> _coord;  
-  /// Global coordinate by multiplicity index
-  vector<float> _gcoord; 
+  int8     _mult;   
+//   /// Local coordinate by multiplicity index 
+//   vector<float> _coord;  
+//   /// Global coordinate by multiplicity index
+//   vector<float> _gcoord; 
  /// Cluster status 
   unsigned int Status;
 
@@ -191,7 +191,7 @@ public:
   /// Get multiplicity
   int   GetMultiplicity();
   /// Get global coordinate by multiplicity index
-  float GetCoord(int imult); 
+  float GetCoord(int imult) {return GetXCofG(DefaultUsedStrips,imult);}
   /// Get global coordinate by multiplicity index
   float GetGCoord(int imult);
 
@@ -208,7 +208,8 @@ public:
   /// Get the Center of Gravity with the n highest consecutive strips
   float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
-  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); }
+  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) 
+  { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); }
   /// Get Eta (center of gravity with the two higher strips)
   /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
    *      _                                    _ 
@@ -232,7 +233,7 @@ public:
 //################  SPECIAL METHODS  ########################################
 
   /// Build the coordinates (with multiplicity)
-  void  BuildCoordinates();
+  //  void  BuildCoordinates();
 
   /// Insert a strip in the cluster
   void push_back(float adc);
@@ -295,7 +296,7 @@ public:
 
 
   /// ROOT definition
-  ClassDef(TrClusterR, 1)
+  ClassDef(TrClusterR, 2)
 };
 
 

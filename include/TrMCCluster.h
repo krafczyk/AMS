@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.11 2010/11/11 12:42:20 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.12 2010/11/17 11:02:38 pzuccon Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/11/11 12:42:20 $
+///$Date: 2010/11/17 11:02:38 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -33,7 +33,7 @@ protected:
   int _idsoft; 
   //! Geant particle code of the particle originatig the cluster.
   short int _itra;
-  //!Address of the leftmost strip in the Sim CLuster
+/*  //!Address of the leftmost strip in the Sim CLuster
   short int _left  [2];
   //!Address of the  strip nearest to the particle in the Sim CLuster
   short int _center[2];
@@ -41,6 +41,7 @@ protected:
   short int _right [2];
   //! array containg the strip signals for p(=1) and n(=0) sides
   float    _ss[2][5];
+*/
   //! Calculated impact point on silicon middle
   AMSPoint _xgl;
   //! Momentum vector of the impinging particle
@@ -76,11 +77,11 @@ public:
   //! returns the sensor number for the hit
   int GetSensor() {return _idsoft/10000-1;}
   //! Returns the address of the first strip od the cluster
-  int GetAdd (int side){return (side==0||side==1) ?       _left[side]         :-1; }
+  //  int GetAdd (int side){return (side==0||side==1) ?       _left[side]         :-1; }
   //! Returns the size of the cluster
-  int GetSize(int side){return (side==0||side==1) ? (_right[side]-_left[side]+1):-1; }
+  //  int GetSize(int side){return (side==0||side==1) ? (_right[side]-_left[side]+1):-1; }
   //! Return the Signal for the strips of the generated cluster (X/n=0, Y/p=1) 
-  float GetSignal(int ii,int side)  {return (side==0||side==1) ? (_ss[side][ii]):-9999.; }
+  //  float GetSignal(int ii,int side)  {return (side==0||side==1) ? (_ss[side][ii]):-9999.; }
   //! Returns the Totale energy released in silicon (GeV)
   double Sum(){return _sum;}
   //! Checks the cluster type against the IsNoise flag
@@ -106,15 +107,15 @@ public:
   void _shower();
 
 protected:
-  static float strip2x(int tkid, int side, int strip, int mult);
+ //  static float strip2x(int tkid, int side, int strip, int mult);
 
-  // Functions imported from tkmccl.F
-  static double fints(double, double);
-  static double fint2(double, double, double, double, double);
-  static double fintc(double, double, double, double);
-  static double fintr(double, double, double, double);
-  static double fintl(double, double, double, double);
-  static double fdiff(double, int);
+//   // Functions imported from tkmccl.F
+//   static double fints(double, double);
+//   static double fint2(double, double, double, double, double);
+//   static double fintc(double, double, double, double);
+//   static double fintr(double, double, double, double);
+//   static double fintl(double, double, double, double);
+//   static double fdiff(double, int);
 
   void _PrepareOutput(int full);
 
@@ -137,7 +138,7 @@ public:
 	friend class TrDAQMC;
 
  /// ROOT definition
-  ClassDef(TrMCClusterR,3);
+  ClassDef(TrMCClusterR,4);
 
 };
 

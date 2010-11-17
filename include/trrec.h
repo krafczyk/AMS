@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.116 2010/11/11 12:42:20 pzuccon Exp $
+//  $Id: trrec.h,v 1.117 2010/11/17 11:02:38 pzuccon Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -651,8 +651,8 @@ public:
   /// Copy constructor
   AMSTrRecHit(const AMSTrRecHit& orig):TrRecHitR(orig),AMSlink(orig){}
   /// Constructor with clusters
-  AMSTrRecHit(int tkid, TrClusterR* clX, TrClusterR* clY, float corr, float prob, int imult = -1, int status = 0)
-    :TrRecHitR(tkid,clX,  clY,  corr,  prob, imult, status),AMSlink(){}
+  AMSTrRecHit(int tkid, TrClusterR* clX, TrClusterR* clY, int imult = -1, int status = 0)
+    :TrRecHitR(tkid,clX,  clY, imult, status),AMSlink(){}
   /// Destructor
   ~AMSTrRecHit(){}
  

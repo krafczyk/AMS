@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.16 2010/09/20 17:39:58 oliva Exp $ 
+/// $Id: TrCluster.C,v 1.17 2010/11/17 11:02:29 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/09/20 17:39:58 $
+/// $Date: 2010/11/17 11:02:29 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -50,8 +50,8 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
   _dydz    = orig._dydz;
-  _coord   = orig._coord;
-  _gcoord  = orig._gcoord;
+  //  _coord   = orig._coord;
+  //  _gcoord  = orig._gcoord;
 }
 
 TrClusterR::TrClusterR(int tkid, int side, int add, int seedind, unsigned int status) {
@@ -91,15 +91,7 @@ int TrClusterR::GetMultiplicity()  {
   return _mult;
 }
 
-float TrClusterR::GetCoord(int imult)  {
-  if (_coord.empty()) this->BuildCoordinates();
-  return (0 <= imult && imult < _coord.size()) ? _coord.at(imult) : 9999.;
-}
 
-float TrClusterR::GetGCoord(int imult)  {
-  if (_gcoord.empty()) this->BuildCoordinates();
-  return (0 <= imult && imult < _gcoord.size()) ? _gcoord.at(imult) : 9999.;
-}
 
 float TrClusterR::GetNoise(int ii) {
   if (_trcaldb==0) {
@@ -136,8 +128,8 @@ void TrClusterR::Clear() {
   _mult    =   0;
   _dxdz    =   0;  // vertical inclination by default 
   _dydz    =   0;  // vertical inclination by default 
-  _coord.clear();
-  _gcoord.clear();
+  //  _coord.clear();
+  //  _gcoord.clear();
 }
 
 void TrClusterR::push_back(float adc) {
@@ -145,16 +137,11 @@ void TrClusterR::push_back(float adc) {
   _nelem = (int) _signal.size();
 }
 
-void TrClusterR::BuildCoordinates() {
-  if (_mult > 0 && (int)_coord.size() == _mult && (int)_gcoord.size() == _mult) return;
-  // multiplicity calculation
-  _mult    = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
-  for (int imult=0; imult<_mult; imult++) {
-    float lcoo = GetXCofG(DefaultUsedStrips,imult);
-    _coord.push_back(lcoo);
-    if (GetSide() == 0) _gcoord.push_back(TkCoo::GetGlobalA(_tkid, lcoo, TkDBc::Head->_ssize_active[1]/2).x());
-    else                _gcoord.push_back(TkCoo::GetGlobalA(_tkid, TkDBc::Head->_ssize_active[0]/2, lcoo).y());
-  }
+
+float TrClusterR::GetGCoord(int imult)  {
+  float lcoo = GetXCofG(DefaultUsedStrips,imult);
+  if (GetSide() == 0) return TkCoo::GetGlobalA(_tkid, lcoo, TkDBc::Head->_ssize_active[1]/2).x();
+  else                return TkCoo::GetGlobalA(_tkid, TkDBc::Head->_ssize_active[0]/2, lcoo).y();
 }
 
 void TrClusterR::Print(int opt) { 
