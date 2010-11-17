@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.753 2010/11/14 17:08:36 choumilo Exp $
+// $Id: job.C,v 1.754 2010/11/17 20:12:25 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1384,7 +1384,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range
   TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
   TFCAFFKEY.tzref[1]=0.;//(5) spare
-  TFCAFFKEY.fixsl=7.15;// (6)def. slope
+  TFCAFFKEY.fixsl=7.0;// (6)def. slope
   TFCAFFKEY.bmeanmu=0.994;// (7)mean muon velocity at sea-level
   TFCAFFKEY.idref[0]=104;//(8)LBB for  ref. layer/counter(LBB, set L=2 if layer 1 is dead) 
   TFCAFFKEY.idref[1]=0;//(9)0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers

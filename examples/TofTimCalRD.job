@@ -1,0 +1,184 @@
+
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+
+cd /f2users/choumilo/ams02wrk
+
+/afs/cern.ch/user/c/choumilo/AMS/exe/linuxicc/gbatch.exe <<!
+
+LIST
+KINE 14
+MULS 1
+LOSS 1 
+CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
+HADR 1
+TRIG 500000
+DEBUG -1 10 10000
+c---
+TFRE 3=2 4=1 5=0 6=0 7=0 
+     8=23
+     28=101
+c    30=1279094732
+c  (14jul2010,MagPerm,first,sideA)
+c    30=1279206888
+c  (15jul2010,MagPerm,sideA)
+c    30=1280149756
+c  (26jul2010,MagPerm,TOF_sideA,LVL1_sideA)
+c    30=1280311549
+c  (28jul2010,MagPerm,TOF_sideA,LVL1_sideB)
+c    30=1280471012
+c  (30jul2010,MagPerm,TOF_sideA,LVL1_sideA)
+c    30=1280820450
+c  (3aug2010,MagPerm,BA-conf(TOF&LVL1-sideB),any2
+c    30=1280847344
+c  (3aug2010,MagPerm,BA-conf(TOF&LVL1-sideB),3of4
+c    30=1281034745
+c  (5aug2010,MagPerm,TOF&LVL1-sideA,3of4,newHV,Thr)
+    30=1283012890
+c  (30aug2010,TOF&LVL1-sideA,KSCstart)
+c    30=1284829772
+c  (18-21sept2010,TOF&LVL1-sideB)
+c
+c 3=2/1/(0)->print reco-statistics table big/small/No
+c 4=1/(0)->print/not rec0-histograms
+c 5=(0)/1->not/print channels hits multiplicity  histograms
+c 6=(0)/1->not/print debug info when error found
+c 7=(0)/1-> flag for detailed debug print(activate incl.low-priority hist if #4 is set, ev-by-ev debug if #6 is set)
+c 8=(0)/1/2/...=TofRunType(normal/diff.kind.calib)(=6-> "get peds from normal data in raw fmt)
+c 8=2(3)(4)->Tdlv(+Tzslw)(+Ampl)-calibration run
+c 9=(1)/0-> Require/not LT/SumHT hits matching)
+c 10=(1)/0-> use/not TDClincor at reco-stage                                    
+c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)[C->T/Acalib,100->DataCardsReadingON]
+c     L=1->read TDCcalib from file(=0 use DB), Q=1->read ChargePDFunctionsData from file(=0 use DB)
+c--- 
+TFCA 1=0.5 2=100. 9=0 11=1 12=1 19=1 28=2
+    29=1
+c Time(Tdelv/Tzslw)-calibration:
+c
+c 1-2 -> low/high mom.cuts; 3->mean beta for space calibr.(prot)
+c 4-> default for T0's of ref.counters; 6->default for slope;
+c 7->mean beta for earth calibr.(mu); 8-> (104)LBB of ref.counter;
+c 9->(0)/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
+c 10 ->0/(1) to fix/release slope param.;
+c 11->(0)/1 to select space/earth calibr.
+c 12->1/0/-1(use TRK+MomLimits/TRK/TRKorTRD);
+c 18->(0)/1 not/relax selection cuts for TAUC-calibration(when starting from scratch)
+c 19->(0)/1 UseStrictLPatt(4of4)/notStrict(3of4) for Tzslw-calib
+c 26->0/1 use transv/longit coord. from TOF
+c 28=0/(1),2 -> not/print(with priority 1(hi),2(+low)) calib-related histograms
+c 29=0/1=> flag selecting calib.files reading from official/user directories
+c--------------  
+ATRE 1=0  
+c      3=3
+c    9=11
+c 1=1/(0)->Print/Not RE-hist; 2->printDAQ(0/1/2->no/printDecoding/printEncoding&Decoding);
+c 3=(0)/1/2/3->norm/AmplCalib/PedClass(randTrig)Calib/PedDownScaled(inTrig)Calib
+c 4=(0.2mev)->ClustThresh;5=(10cm)->LongCooErr; 6=(3SigmPed)->DAQReadoutThr;
+c 7=(6pe)->HistDiscrThr; 8=(50ns)->HistHit CoincWindow(+-) wrt FT
+c 9=(111)->PVS(PedsReal/Variab/Stab-cal.params), P(V,S)=0/1->Read from DB/RawFiles
+ATCA 2=0 
+c 2=0/(1)->ReadCalFiles from Official/Private Directory
+c 3/4=(0.01/0.02)->Highest adcs to remove for ped-calculation(Class/DScaled)
+c-------------- 
+ECRE 1=0
+c--------------
+c TRFIT 63=0
+c 63->Filter out(1) or not(0) hits inconsistent with TOF
+c--------------
+BETAFIT 13=25. 14=25. 20=12
+c 13/14=(max deviation(x,y) in tof-coo sigmas)
+c 20=MN->N=0(NoBetaReco)/N=1(New method)/N=2(Old method)/N=3(Both)
+c M=0/1->MasteNew/MasterOld
+c--------------
+TKGEOM 1=10
+c ReadTRKGeomFromFile (1,10 if pgtrack)
+c--------------
+MISC 2=1
+  8=4
+  12=0
+c (2=0/1/2->not?/cosmics/testbeam)
+c 8=(1)/-1/n -> parall.proc. with Ncpu=1/all/n
+c 12=2/1/0->RaiseFPEsignal:enforce/raise/not
+c--------------
+TGL1  20=0 21=0 
+c 17=(1)-> MC def.version number of "Lvl1ConfMC.*" -file
+c 18=(1167606001)-> RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
+c 19=(01)-> MN, N=0/1->read Lvl1Config-data from DB/File
+c               M=0/1->read Lvl1Config raw-file from official/private dir
+c 20=(0)-> PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=2 ->max)
+
+c 21=(0)-> If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
+c
+c--------------
+IOPA 1=0 45='TriggerLVL1' 126=10000
+  127=0
+  128='/f2users/choumilo/ntuples/r1203502079.root' 43=101
+c---------------
+AMSJOB 
+  1=211
+c  (tof-calib)   
+c  1=311
+c  (acc-calib)   
+c  1=11   
+  2=0      3=5.   4=1  5=0 46='AMS02P'
+c--------------
+c ESTA 1=1110    
+c               4=10
+c                       6=10
+c                                9=11111000
+c   npart>0  trk_in_p  ec_in_p    ntofcl>=3
+c Use this card at stage when data was already processed by production and above
+c information is already in DB, this can essentially increase calib.processing speed
+c---------------
+DAQC 1=1 
+c 2='/Offline/RunsDir/SCI/1280149756,1280151518,1280153405,1280157182'
+c  (26.07.2010,new assembly AMS02P)
+c 2='/Offline/RunsDir/SCI/1280311549,1280312218,1280319254'
+c  (28.07.2010,new assembly AMS02P, LVL1-B)
+c 2='/Offline/RunsDir/SCI/1280325368-1280341962'
+c  (28.07.2010,new assembly AMS02P, Tof-A,again LVL1-A)
+c 2='/Offline/RunsDir/SCI/1280416993-1280428974'
+c  (29.07.2010,new assembly AMS02P, Tof-A,LVL1-A, other powerA+daqB )
+c 2='/Offline/RunsDir/SCI/1280471012-1280488796'
+c  (30.07.2010,new assembly AMS02P, Tof-A,LVL1-A, other powerA+daqB )
+c   2='/Offline/RunsDir/SCI/1280820451,1280822276,1280825925,1280830902'
+c  (3.08.2010,BA-conf,Tof/Tvl1_B, any2of4 )
+c 2='/Offline/RunsDir/SCI/1280847344,1280855308-1280862638'
+c  (3.08.2010,BA-conf,Tof/Tvl1_B, 3of4, newHV )
+c 2='/Offline/RunsDir/SCI/1281034745,1281036570,1281041965'
+c  (5.08.2010,BA-conf,Tof/Lvl1_A, 3of4, newHV,some thr. =10 )
+  2='/Offline/RunsDir/SCI/1281041965'
+c 2='SD/1283206206,1283268039,1283269864,1283271689-1283275339'
+c  (31.08.2010,KSC,Tof/Lvl1_A,newHV,some thr. =10 )
+c  2='/Offline/RunsDir/SCI/1284829772,1284906213,1285082673-1285086337'
+c   (18-23sept2010,KSC, Bside)
+c  2='/Offline/RunsDir/SCI/1286576633,1286580460-1286589585'
+c   (9oct2010,KSC, Aside)
+c
+83=5
+c 86=1
+c---------------
+c SELECT 1=1201279137
+TIME 3=10000000
+TERM 1=1234567890 2=1198173513
+END
+
+
+!
+
