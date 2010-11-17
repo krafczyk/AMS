@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.99 2010/11/17 00:57:33 choutko Exp $
+#  $Id: Moptg4,v 1.100 2010/11/17 15:10:51 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -46,12 +46,7 @@ ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
 IDLCPP=orbit-idl-2 -l cpp
 
-ifeq  "$(G4SYSTEM)"  "Linux-icc"
 include binmake.icc64.gmk
-else
-include binmake.gcc32.gmk
-#include binmake.gmk
-endif
 
 SUPPORTED = AIX OSF1 HP-UX Linux
 
