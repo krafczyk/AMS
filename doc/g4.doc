@@ -1,20 +1,20 @@
-#  $Id: g4.doc,v 1.40 2010/11/16 20:59:15 choutko Exp $
+#  $Id: g4.doc,v 1.41 2010/11/17 16:12:27 mdelgado Exp $
 -------
 Platform:
-linux-gcc.3.x ($G4SYSTEM=Linux-g++) 
+linux-gcc.4.x          ($G4SYSTEM=Linux-g++) 
 linux-icc11.1 64bits   ($G4SYSTEM=Linux-icc) 
 
-CAUTION:  Support for linux-icc11.1 is in an experimental stage!!!!
+CAUTION:  Support for Geant4.9.3 is in an experimental stage!!!!
 
 -------
 Installer:
 
-linux-gcc.3.x:
-   source /Offline/vdev/install/amsvar.slc4
-   source AMS/install/g4i          (v4.8.1, Linux-g++, gcc.3.x)
+linux-gcc.4.x:
+   source /Offline/vdev/install/amsvar.gcc32
+   source AMS/install/g4i          (v4.9.3, Linux-g++, gcc.4.x)
 
 linux-icc11.1 64bits:
-   source /Offline/vdev/install/amsvar
+   source /Offline/vdev/install/amsvar.icc64
    source AMS/install/g4i   (v4.9.3, Linux-icc, icc.11.1)
 
 
