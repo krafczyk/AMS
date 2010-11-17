@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.98 2010/11/16 22:01:24 mdelgado Exp $
+#  $Id: Moptg4,v 1.99 2010/11/17 00:57:33 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -342,8 +342,8 @@ OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o $(
 		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o 
 
 # PGTRACVK not supported by the moment
+OBJECTSC += $(BIN)TrackFit_utils_c.o
 #ifdef PGTRACK
-#OBJECTSC += $(BIN)TrackFit_utils_c.o
 #PG=PG
 #endif
 #------------------------------------------------------------------------------

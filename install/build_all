@@ -23,7 +23,8 @@ source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i
 gmake allg4
 source /Offline/vdev/install/amsvar.gcc32
-gmake allp
+source /Offline/vdev/install/g4i
+gmake allg4
 source /Offline/vdev/install/amsvar.gcc64
 gmake allp
 source /Offline/vdev/install/amsvar.icc32
