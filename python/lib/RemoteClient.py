@@ -932,6 +932,8 @@ class RemoteClient:
                         print "run events 0 "
                         self.sqlserver.Update("update runs set status='Unchecked' where run="+str(run.Run))
                     else:
+ 			if(cputime=="nan"):
+				cputime=elapsed
                         sql="update jobs set events=%d, errors=%d, cputime=%s,elapsed=%s,host='%s',mips=%d,timestamp=%d where jid=%d" %(events,errors,cputime,elapsed,host,int(mips),timestamp,run.Run)
                         self.sqlserver.Update(sql)
                         output.write(sql)
