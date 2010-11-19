@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.123 2010/11/16 20:59:15 choutko Exp $
+#  $Id: Makefile,v 1.124 2010/11/19 15:24:07 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -290,7 +290,7 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrTasCluster.h ../include/TrTasPar.h ../include/TrTasDB.h \
 		../include/TrFit.h \
 		../include/TrMCCluster.h \
-                ../include/trrec.h \
+                ../include/trrec.h ../include/tkdcards.h\
 		../include/point.h  ../include/root_RV.h ../include/root.h  \
 		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h
 else
@@ -534,12 +534,12 @@ endif
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $(ROOTDICT_CPPFLAGS) $^ 
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVS.h ../include/amschain.h $(ROOTDICTFILES)
+$(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/amschain.h $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $(ROOTDICT_CPPFLAGS) $^ 
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 else
 $(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h   ../include/linkdef.h

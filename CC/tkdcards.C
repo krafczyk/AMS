@@ -4,6 +4,14 @@
 #include <float.h>
 
 
+ClassImp(TKGEOMFFKEY_DEF);
+ClassImp(TRMCFFKEY_DEF);
+ClassImp(TRCALIB_DEF);
+ClassImp(TRALIG_DEF);
+ClassImp(TRCLFFKEY_DEF);
+ClassImp(TRFITFFKEY_DEF);
+
+
 //==============================
 //  TRACKER SIMULATION
 //==============================

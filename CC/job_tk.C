@@ -4,17 +4,17 @@
 void AMSJob::_sitkdata(){
 
   TKGEOMFFKEY.init();
-  FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
+  FFKEY("TKGE",(float*)&(TKGEOMFFKEY.ReadGeomFromFile),(sizeof(TKGEOMFFKEY_DEF)-4)/sizeof(integer),
 	"MIXED");
   
   TRMCFFKEY.init();
-  FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
+  FFKEY("TRMC",(float*)&(TRMCFFKEY.alpha),(sizeof(TRMCFFKEY_DEF)-4)/sizeof(integer),"MIXED");
 
   TRCALIB.init();
-  FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+  FFKEY("TRCALIB",(float*)&(TRCALIB.EventsPerCheck),(sizeof(TRCALIB_DEF)-4)/sizeof(integer),"MIXED");
 
   TRALIG.init();
-  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
+  FFKEY("TRALIG",(float*)&(TRALIG.InitDB),(sizeof(TRALIG_DEF)-4)/sizeof(integer),"MIXED");
 
 
 }
@@ -24,10 +24,10 @@ void AMSJob::_retkdata(){
 
   //number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
   TRCLFFKEY.init();
-  FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
+  FFKEY("TRCL",(float*)&(TRCLFFKEY.recflag),(sizeof(TRCLFFKEY_DEF)-4)/sizeof(integer),"MIXED");
   
   TRFITFFKEY.init();
-  FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
+  FFKEY("TRFIT",(float*)&(TRFITFFKEY.ErrX),(sizeof(TRFITFFKEY_DEF)-4)/sizeof(integer),"MIXED");
 
 }
 

@@ -97,7 +97,7 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
 
   if (GetTreeNumber()!=_TREENUMBER) {
     _TREENUMBER = GetTreeNumber();
-    _EVENT->Tree() = GetTree();
+    _EVENT->Init(GetTree());
     _EVENT->GetBranch(_EVENT->Tree());
   }
   
@@ -110,29 +110,30 @@ AMSEventR* AMSChain::_getevent(Int_t entry, Bool_t kLocal){
 //  TkDBc::CreateTkDBc();
 //  TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
 //}
-  if (GetFile() && GetFile()!=_FILE){
-    _FILE=GetFile();
-    if(TrCalDB::Head) delete TrCalDB::Head;
-    TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
-    if(!TkDBc::Head){
-      if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
-	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
-	TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
-      }
-    }
-  
-    if(TrParDB::Head) delete TrParDB::Head;
-    TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
-    if (!TrParDB::Head) {
-      TrParDB* cc = new TrParDB();
-      cc->init();
-    }
-    TrClusterR::UsingTrParDB(TrParDB::Head);
- 
-    TrClusterR::UsingTrCalDB(TrCalDB::Head);
-    TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
-    TrRecon::UsingTrCalDB(TrCalDB::Head);
-  }
+//   if (GetFile() && GetFile()!=_FILE){
+//     _FILE=GetFile();
+//     _EVENT->InitDB(_FILE);
+//     if(TrCalDB::Head) delete TrCalDB::Head;
+//     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
+//     if(!TkDBc::Head){
+//       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
+// 	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
+// 	TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
+//       }
+//     }
+    
+//     if(TrParDB::Head) delete TrParDB::Head;
+//     TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
+//     if (!TrParDB::Head) {
+//       TrParDB* cc = new TrParDB();
+//       cc->init();
+//     }
+//     TrClusterR::UsingTrParDB(TrParDB::Head);
+    
+//     TrClusterR::UsingTrCalDB(TrCalDB::Head);
+//     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+//     TrRecon::UsingTrCalDB(TrCalDB::Head);
+//  }
 #endif
   
   return _EVENT;

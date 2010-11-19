@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.202 2010/11/16 16:47:19 choutko Exp $
+//  $Id: ntuple.C,v 1.203 2010/11/19 15:24:07 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -319,6 +319,15 @@ void AMSNtuple::endR(bool cachewrite){
     if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
     _rfile->cd();
     TrRecon::RecPar.Write();
+    TDirectory* dd=_rfile->mkdir("datacards");
+    dd->cd();
+    TKGEOMFFKEY.Write();
+    TRMCFFKEY.Write();
+    TRCALIB.Write();
+    TRALIG.Write();
+    TRCLFFKEY.Write();
+    TRFITFFKEY.Write();
+    _rfile->cd();
 #endif 
     static RunHeader runheader;
 #pragma omp threadprivate (runheader)

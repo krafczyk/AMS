@@ -2,6 +2,7 @@
 #define tkcommons_h
 
 #include "typedefs.h"
+#include "TObject.h"
 
 #ifdef __ALPHA__
 #define DECFortran
@@ -10,13 +11,18 @@
 #endif
 #include "cfortran.h"
 
-
+//########################################################
+// WARNING do not touch the order od the variables unless 
+//         you understand all the consequences
+//         Never delete or move the first data meber of 
+//         each class (ask PZ)
+//########################################################
 
 //==============================================================
 
 
 //! Data card to drive the geometry generation
-class TKGEOMFFKEY_DEF{
+class TKGEOMFFKEY_DEF: public TObject{
 public:
   integer ReadGeomFromFile;
   integer WriteGeomToFile;
@@ -29,136 +35,159 @@ public:
   ///[406] Disalignment file name (PGTRACK)
   integer disfname[400];
   void init();
+  TKGEOMFFKEY_DEF():TObject(){init();}
+  ClassDef(TKGEOMFFKEY_DEF,1);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
 COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);
 
+//=============================================================
+
 //! Data Card to pilot the Tracker MC
-class TRMCFFKEY_DEF {
+class TRMCFFKEY_DEF: public TObject {
 public:
-geant alpha;
-geant beta;
-geant gamma;
-geant dedx2nprel;
-geant fastswitch;
+  geant alpha;
+  geant beta;
+  geant gamma;
+  geant dedx2nprel;
+  geant fastswitch;
 
-//! Seed Threshold (0=S 1=K) for the MC DSP like clusterization
-geant th1sim[2];
-//! Enlargement Threshold (0=S 1=K) for the MC DSP like clusterization
-geant th2sim[2];
+  //! Seed Threshold (0=S 1=K) for the MC DSP like clusterization
+  geant th1sim[2];
+  //! Enlargement Threshold (0=S 1=K) for the MC DSP like clusterization
+  geant th2sim[2];
 
-geant ped[2];
-geant sigma[2];
-geant gain[2];
-geant   cmn[2];
-integer adcoverflow;
-integer NoiseOn;
-integer sec[2];
-integer min[2];
-integer hour[2];
-integer day[2];
-integer mon[2];
-integer year[2];
-integer CalcCmnNoise[2];
-geant thr1R[2];
-geant thr2R[2];
-integer neib[2];
-integer GenerateConst;
-integer RawModeOn[8][2][32];
-integer WriteHK; 
-geant delta[2];
-geant gammaA[2];
-geant NonGaussianPart[2];
-geant BadCh[2];
-geant pl9zgap;
-geant pl9sthick;
-void init();
-number ADC2KeV(){
-  return 0.5e6/beta/dedx2nprel;
-}
+  geant ped[2];
+  geant sigma[2];
+  geant gain[2];
+  geant   cmn[2];
+  integer adcoverflow;
+  integer NoiseOn;
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+  integer CalcCmnNoise[2];
+  geant thr1R[2];
+  geant thr2R[2];
+  integer neib[2];
+  integer GenerateConst;
+  integer RawModeOn[8][2][32];
+  integer WriteHK; 
+  geant delta[2];
+  geant gammaA[2];
+  geant NonGaussianPart[2];
+  geant BadCh[2];
+  geant pl9zgap;
+  geant pl9sthick;
 
-// SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-integer SimulationType; 
-// Common Parameters
-integer MinMCClusters;
-integer NoiseType;    
-integer FakeClusterType;
-geant   DSPSeedThr[2];  
-geant   DSPNeigThr[2];
-// TrSim2010 Parameters
-integer TrSim2010_ADCConvType[2];
-integer TrSim2010_EDepType[2];   
-geant   TrSim2010_ADCSat[2]; 
-geant   TrSim2010_Cint[2];        
-geant   TrSim2010_Cbk[2];  
-geant   TrSim2010_Cdec[2]; 
-integer TrSim2010_DiffType[2]; 
-geant   TrSim2010_DiffRadius[2]; 
-geant   TrSim2010_FracNoise[2]; 
-geant   TrSim2010_AddNoise[2];     
+  // SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
+  integer SimulationType; 
+  // Common Parameters
+  integer MinMCClusters;
+  integer NoiseType;    
+  integer FakeClusterType;
+  geant   DSPSeedThr[2];  
+  geant   DSPNeigThr[2];
+  // TrSim2010 Parameters
+  integer TrSim2010_ADCConvType[2];
+  integer TrSim2010_EDepType[2];   
+  geant   TrSim2010_ADCSat[2]; 
+  geant   TrSim2010_Cint[2];        
+  geant   TrSim2010_Cbk[2];  
+  geant   TrSim2010_Cdec[2]; 
+  integer TrSim2010_DiffType[2]; 
+  geant   TrSim2010_DiffRadius[2]; 
+  geant   TrSim2010_FracNoise[2]; 
+  geant   TrSim2010_AddNoise[2];    
+ 
+  TRMCFFKEY_DEF():TObject(){init();}
+  void init();
+  number ADC2KeV(){
+    return 0.5e6/beta/dedx2nprel;
+  }
+
+  ClassDef(TRMCFFKEY_DEF,1);
+
 
 };
 
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
 
+
+
+//=============================================================
+
 const integer nalg=4;
-class TRCALIB_DEF{
+class TRCALIB_DEF: public TObject{
 public:
-integer CalibProcedureNo;
-                                // Proc # 1 starts here
-integer EventsPerCheck;
-geant PedAccRequired[2]; 
-integer Validity[2];
-geant RhoThrA; 
-geant RhoThrV; 
-integer Method;
-geant BadChanThr[2];
-integer Pass;
-integer DPS;
-integer UPDF;
-integer LaserRun;
-integer PrintBadChList;
-                                // Proc # 2 starts here
-integer EventsPerIteration[nalg];
-integer NumberOfIterations[nalg];
-                                 // Select Cut
-geant BetaCut[nalg][2];             // Beta limits
-geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
-                                 // Global fit cuts
-geant MomentumCut[nalg][2];         // momentum ----------
-geant Chi2Cut[nalg];                // chi2 --------------- 
-integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
-integer Ladder[8];            // ladder*10+half no for each plane 0 == all
-integer PatStart;
-integer MultiRun;
-integer EventsPerRun;
-integer Version;
-void init();
+  integer CalibProcedureNo;
+  // Proc # 1 starts here
+  integer EventsPerCheck;
+  geant PedAccRequired[2]; 
+  integer Validity[2];
+  geant RhoThrA; 
+  geant RhoThrV; 
+  integer Method;
+  geant BadChanThr[2];
+  integer Pass;
+  integer DPS;
+  integer UPDF;
+  integer LaserRun;
+  integer PrintBadChList;
+  // Proc # 2 starts here
+  integer EventsPerIteration[nalg];
+  integer NumberOfIterations[nalg];
+  // Select Cut
+  geant BetaCut[nalg][2];             // Beta limits
+  geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
+  // Global fit cuts
+  geant MomentumCut[nalg][2];         // momentum ----------
+  geant Chi2Cut[nalg];                // chi2 --------------- 
+  integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
+  integer Ladder[8];            // ladder*10+half no for each plane 0 == all
+  integer PatStart;
+  integer MultiRun;
+  integer EventsPerRun;
+  integer Version;
+  void init();
+  TRCALIB_DEF():TObject(){init();}
+
+  ClassDef(TRCALIB_DEF,1);
 
 };
+
+
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 
-class TRALIG_DEF{
+//=============================================================
+
+class TRALIG_DEF: public TObject{
 public:
-integer InitDB;    
-integer ReWriteDB;
-integer UpdateDB;
-integer MaxEventsPerFit;
-integer MinEventsPerFit;
-integer MaxPatternsPerJob;
-geant Cuts[10][2];  
-integer Algorithm;     
-integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
-integer GlobalFit;
-integer EventsPerRun;
-integer LayersOnly;
-geant GlobalGoodLimit;
-integer SingleLadderEntryLimit;
-geant One;
+  integer InitDB;    
+  integer ReWriteDB;
+  integer UpdateDB;
+  integer MaxEventsPerFit;
+  integer MinEventsPerFit;
+  integer MaxPatternsPerJob;
+  geant Cuts[10][2];  
+  integer Algorithm;     
+  integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
+  integer GlobalFit;
+  integer EventsPerRun;
+  integer LayersOnly;
+  geant GlobalGoodLimit;
+  integer SingleLadderEntryLimit;
+  geant One;
   void init();
+  
+  TRALIG_DEF():TObject(){init();}
+  ClassDef(TRALIG_DEF,1);
 
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
@@ -169,7 +198,7 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 //  TRACKER RECONSTRUCTION
 //==============================
 //! Data Cards to drive the Tracker reconstruction
-class TRCLFFKEY_DEF {
+class TRCLFFKEY_DEF : public TObject{
 public:
   //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
   integer recflag;
@@ -252,8 +281,10 @@ public:
   int TasLDDR;
   //! I 61 mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
   int ExtMatch;
-
+  TRCLFFKEY_DEF():TObject(){init();}
   void init();
+  ClassDef(TRCLFFKEY_DEF,1);
+
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
@@ -262,9 +293,10 @@ COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
 const integer npat=42;
 const integer npat02=218;
 
+//=============================================================
 
 //! Data Cards to drive the track fiting
-class TRFITFFKEY_DEF {
+class TRFITFFKEY_DEF: public TObject {
 public:
   ///fit point error
   float ErrX;
@@ -280,8 +312,10 @@ public:
   float MergeExtLimX;
   /// max dist to add external planes hits Y
   float MergeExtLimY;
-
+  TRFITFFKEY_DEF():TObject(){init();}
   void init();
+
+  ClassDef(TRFITFFKEY_DEF,1);
 };
 //
 

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.235 2010/10/15 16:36:03 choutko Exp $
+//  $Id: root.C,v 1.236 2010/11/19 15:24:07 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1443,10 +1443,14 @@ bool AMSEventR::ReadHeader(int entry){
     i=bHeader->GetEntry(entry);
   }
   clear();
+  static int local_first=1;
+  static TFile* local_pfile=0;
   if(i>0){
-    if(_Entry==0){
-       InitDB(_Tree->GetCurrentFile());
-       cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+    if(local_first || local_pfile!=_Tree->GetCurrentFile()){
+      local_first=0;
+      local_pfile=_Tree->GetCurrentFile();
+      InitDB(local_pfile);
+      cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
      }
     if(Version()<160){
       // Fix rich rings
@@ -3421,7 +3425,13 @@ static int master=0;
 	TkDBc::Head->init((Run()>=1257416200)?2:1);
       }
     }
-  
+    
+    TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
+    TRMCFFKEY   =*((TRMCFFKEY_DEF*)  _FILE->Get("datacards/TRMCFFKEY_DEF"));
+    TRCALIB     =*((TRCALIB_DEF*)    _FILE->Get("datacards/TRCALIB_DEF"));
+    TRCLFFKEY   =*((TRCLFFKEY_DEF*)  _FILE->Get("datacards/TRCLFFKEY_DEF"));
+    TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
+
     if(TrParDB::Head) delete TrParDB::Head;
     TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
     if (!TrParDB::Head) {
