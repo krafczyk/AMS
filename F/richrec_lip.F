@@ -565,11 +565,14 @@ C ------------------------------------------------------------------
          idostd = 1
       endif
 
+* --- re-initialize track dependent parameters: radiator thickness, n, clarity
+      hrad           = hrad_c2f
+      radix(1)       = radix_c2f(1)
+      radix(2)       = radix_c2f(2)
+      radclarity     = radclarity_c2f
 
 * --- initialize simulated beta
       pbeta = pbeta_sim
-
-* --- expected Cerenkov angle (requires determination of refindex through richinitrec)
 
 * --- set track parameters
       call ucopy(pimp_main,pimp,3)
@@ -597,6 +600,28 @@ C ------------------------------------------------------------------
 * --- set radiator parameters, photon vertex, init hit flags,
 *     transformation matrix (particle frame --> rich frame)
       call richinitrec
+
+* --- onther inits: radiator ID, etc
+* ... AEROGEL RADIATOR **************************************
+      if (chradid.eq.'AGL') then
+* ------> interaction length
+         /* clari   = usrcla     ! clarity : radint = lambda^4(micm)/clarity */
+         alambda = 377.E-3 ! mean wavelength (micm) no foil (higher with foil)
+         if (RADCLARITY.gt.0) then
+            alambda = (0.0327*RADCLARITY**(1.-0.867))**0.25
+            radint  = (alambda)**4/RADCLARITY   
+         else
+            print*,'[richreclip] clarity not defined...',
+     +             ' assumed radint=3cm!'
+            radint = 3.
+         endif
+* -----> signal window integration
+         chgwin = 2.1
+* ... NAF RADIATOR
+       elseif(chradid.eq.'NAF')then
+         radint = 1.E2
+         chgwin = 2.76
+       endif
 
 * --> init charge variables
       call richinitrechg
@@ -1542,37 +1567,6 @@ C ------------------------------------------------------------------
             rad_kind = 0        !AGL
          endif
 
-* ...... New method using data from global simulation
-cc         call lipgetrad(pdum(1),pdum(2),pdum(3),pthe,pphi,
-cc     +   amsrk,amsri,amsrt)
-cc*         print*,'(A) amsrk = ',amsrk
-cc
-cc         if(amsrk.eq.0) then  ! no radiator
-cc            rad_kind = -1
-cc         endif
-cc
-cc         if(amsrk.eq.1) then  ! aerogel
-cc            rad_kind = 0
-cc            radix(1) = amsri
-cc         endif
-cc
-cc         if(amsrk.eq.2) then  ! NaF
-cc            rad_kind = 1
-cc            radix(2) = amsri
-cc         endif
-cc
-cc         if(amsrk.eq.0) then
-cc            call hf2(-140000,pimp(1),pimp(2),1.)
-cc         endif
-cc         if(amsrk.eq.1) then
-cc            call hf2(-140001,pimp(1),pimp(2),1.)
-cc*            call hf1(-150001,amsrad_entrance_p(3),1.)
-cc         endif
-cc         if(amsrk.eq.2) then
-cc            call hf2(-140002,pimp(1),pimp(2),1.)
-cc*            call hf1(-150002,amsrad_entrance_p(3),1.)
-cc         endif
-
       ELSEIF (RCGEOM(1).EQ.9) THEN !PROTOTYPE
 
          rad_kind = 0
@@ -1584,8 +1578,6 @@ cc         endif
       if (rad_kind.eq.0) then !particle inciding on aerogel
          refindex = radix(1)
          chradid  = 'AGL'
-*         ZPHEMI   = 0.55239
-*         ZPHEMI   = 0.59065
          ZPHEMI   = 0.60
 cc         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+HRAD*ZPHEMI
@@ -1595,8 +1587,6 @@ cc         call lipfzphemi(amsrt,ZPHEMI)
          ZPHEMI   = 0.5
 cc         call lipfzphemi(amsrt,ZPHEMI)
          ZTRIAL   = ZTARG+(HRAD-HRNAF)+HRNAF*ZPHEMI
-      else
-*         print*,'(richinitrec) rad_kind = ',rad_kind     
       endif
 
 * --- set photon vertex                                         
@@ -1727,22 +1717,6 @@ C            FSIGMA2   =  0.7**2 ! likelihood function width
 * --- init
       nbhits_nass = 0
 
-* --- set RICH hits flags (associated to particle)
-*     remind: nbhitsmax      = nb hits event limit (richdat.inc)
-*             nhitmax        = nb hits rec limit (richrec.inc)
-*             nbhitsmax_ntup = nb hits limit stored in ntuple
-
-*      print*,'(richtrkhitassoc) pcoopmt = ',pcoopmt
-*      print*,'(richtrkhitassoc) pthe (deg) = ',pthe*RADDEG,
-*     +                       ', pphi (deg) = ',pphi*RADDEG
-
-*      print*,'(richtrkhitassoc) trhitass2 = ',trhitass2
-*      print*,'(richtrkhitassoc) pcoopmt = ',
-*     +             pcoopmt(1),pcoopmt(2),pcoopmt(3)
-*      print*,'(richtrkhitassoc) nbhits = ',nbhits
-*      print*,'(richtrkhitassoc) nbhitsmax_ntup = ',nbhitsmax_ntup
-*      print*,'(richtrkhitassoc) nhitmax = ',nhitmax
-
       do i=1,min(min(nbhits,nbhitsmax_ntup),nhitmax)
          difextrap2 = (hitscoo(1,i)-(pcoopmt(1)
      +        +ZLGSIGNAL*atan(pthe)*cos(pphi)))**2 +
@@ -1757,7 +1731,6 @@ C            FSIGMA2   =  0.7**2 ! likelihood function width
             if (nbhits_nass.le.nhitmax) ip_nass(nbhits_nass) = i
          endif    
       enddo
-*      print*,'(richtrkhitassoc) nbhits_nass = ',nbhits_nass
 
 * --- end
       return

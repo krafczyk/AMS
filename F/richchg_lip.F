@@ -78,27 +78,6 @@
       richeff_pni  = -1.
       richeff_avz  = -1.
 
-
-* ... AEROGEL RADIATOR **************************************
-      if (chradid.eq.'AGL') then
-* ------> interaction length
-         /* clari   = usrcla     ! clarity : radint = lambda^4(micm)/clarity */
-         alambda = 377.E-3 ! mean wavelength (micm) no foil (higher with foil)
-         if (RADCLARITY.gt.0) then
-            alambda = (0.0327*RADCLARITY**(1.-0.867))**0.25
-            radint  = (alambda)**4/RADCLARITY   
-         else
-            print*,'(richchgrec) clarity not defined...radint=3cm!'
-            radint = 3.
-         endif
-* -----> signal window integration
-         chgwin = 2.1
-* ... NAF RADIATOR
-       elseif(chradid.eq.'NAF')then
-         radint = 1.E2
-         chgwin = 2.76
-       endif
-
 * ... reconstruction criteria 
       if (ipthetac.eq.0)             return ! beta rec required 
       if (nbushits(ipthetac).le.2)   return ! beta rec with at least 3 hits
