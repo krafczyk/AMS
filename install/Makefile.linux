@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.18 2010/11/03 20:06:53 choutko Exp $
+#  $Id: Makefile.linux,v 1.19 2010/11/19 15:10:30 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -177,7 +177,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree   -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 endif
 endif
 
