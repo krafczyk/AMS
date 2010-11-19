@@ -1,6 +1,6 @@
-cp $AMSWD/exe/Linux.24/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.1.24
-cp $AMSWD/exe/Linux.24/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.0.24
-cp $AMSWD/exe/Linux.24/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00
-cp $AMSWD/exe/Linux.24/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.24
-mv $AMSWD/exe/Linux.24/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.0
-cp $AMSWD/exe/Linux.24/gbatch.exe $AMSDataDir/DataManagement/exe/linux/gbatch.exe.24
+cp $AMSWD/exe/linuxicc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.1.24
+cp $AMSWD/exe/linuxicc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.0.24
+cp $AMSWD/exe/linuxicc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00
+cp $AMSWD/exe/linuxicc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.24
+mv $AMSWD/exe/linuxicc/gbatch-orbit.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v4.00.0
+cp $AMSWD/exe/linuxicc/gbatch.exe $AMSDataDir/DataManagement/exe/linux/gbatch.exe.24

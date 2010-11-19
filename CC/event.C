@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.497 2010/11/14 17:08:36 choumilo Exp $
+//  $Id: event.C,v 1.498 2010/11/19 20:31:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4071,7 +4071,7 @@ static struct _CCBT CCBT_FM[32][2] = {                 // ===>>> CALIBRATED UR A
    if(IOPA.hlun){
    CALIB.Ntuple++;
    HBNT(CALIB.Ntuple,"CCEB"," ");
-   CCEBPar TRCALIB;
+   static CCEBPar TRCALIB;
    HBNAME(CALIB.Ntuple,"CCEB",(int*)(&TRCALIB),"Time:I,B(4,3):R,T(4):R");
                for(int i=0;i<sizeof(ArrayC)/sizeof(ArrayC[0]);i++){
                 ucopy_(&ArrayC[i],&TRCALIB,sizeof(TRCALIB)/sizeof(integer));

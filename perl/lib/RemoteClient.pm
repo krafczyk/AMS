@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.599 2010/11/10 19:33:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.600 2010/11/19 20:31:35 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2606,6 +2606,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               print "</tr>\n";
 
         my $ret=$self->{sqlserver}->Query($sql);
+             my $datarun="runs";
         if (defined $ret->[0][0]) {
          foreach my $r (@{$ret}){
              my $jobname =trimblanks($r->[0]);
@@ -2624,13 +2625,25 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $timestamp=$r->[9];
              my $jid      =$r->[10];
              my $status = "Submitted";
-             $sql = "SELECT status, submit FROM runs WHERE jid=$jid";
+             $sql = "SELECT status, submit FROM $datarun WHERE jid=$jid";
              $ret=$self->{sqlserver}->Query($sql);
              if (defined $ret->[0][0]) {
               foreach my $r (@{$ret}){
                   $status    = trimblanks($r->[0]);
                   $timestamp = $r->[1];
               }
+          }
+             else{
+             $datarun="dataruns";
+             $sql = "SELECT status, submit FROM $datarun WHERE jid=$jid";
+             $ret=$self->{sqlserver}->Query($sql);
+             if (defined $ret->[0][0]) {
+              foreach my $r (@{$ret}){
+                  $status    = trimblanks($r->[0]);
+                  $timestamp = $r->[1];
+              }
+          }
+
              }
              $color="black";
              if ($status eq 'Finished' or $status eq 'Completed') {
@@ -2661,7 +2674,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$content",-rows=>30,-columns=>80);
 # here run info
-        $sql = "SELECT run, fevent, levent, submit FROM runs WHERE run=$jobid";
+        $sql = "SELECT run, fevent, levent, submit FROM $datarun WHERE jid=$jobid";
         $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
               my $run = $ret->[0][0];
@@ -2679,7 +2692,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "</tr>\n";
               htmlTableEnd();
               $sql = "SELECT path, nevents, neventserr, sizemb, status FROM ntuples
-                       WHERE  run = $run";
+                       WHERE  run = $run and jid=$jobid";
               my $r0=$self->{sqlserver}->Query($sql);
               if (defined $r0->[0][0]) {
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -6805,6 +6818,10 @@ print qq`
         #$dataset->{version}='v4.00';
 
         my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".$dataset->{g4};
+        my $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".".g4";
+        if($dataset->{g4}=~/g4/){
+           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+        }
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
@@ -6873,6 +6890,10 @@ print qq`
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.bin $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.bin";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.txt $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.txt";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/L* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/L\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/A* $self->{UploadsDir}/$dbversion";
@@ -6893,7 +6914,11 @@ print qq`
          }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch  1>/dev/null 2>&1") ;
           if($i){
-              $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
+              $self->ErrorPlus("Unable to tar $gbatch to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatchcomp  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gbatchcomp to $filen");
           }
          $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat  1>/dev/null 2>&1") ;
           if($i){
@@ -7955,6 +7980,10 @@ anyagain:
     }
 
         my $gbatch=$ret->[0][0].".$dataset->{version}"."$dataset->{g4}";
+        my $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".".g4";
+        if($dataset->{g4}=~/g4/){
+           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+        }
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
@@ -8024,6 +8053,12 @@ anyagain:
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.bin $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.bin";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.txt $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.txt";
+      $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
            unlink "$self->{AMSDataDir}/$dbversion/t\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/L* $self->{UploadsDir}/$dbversion";
@@ -8044,7 +8079,11 @@ anyagain:
          }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch  1>/dev/null 2>&1") ;
           if($i){
-              $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
+              $self->ErrorPlus("Unable to tar $gbatch to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatchcomp  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gbatchcomp to $filen");
           }
          $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat  1>/dev/null 2>&1") ;
           if($i){

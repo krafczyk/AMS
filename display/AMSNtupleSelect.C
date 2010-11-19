@@ -22,6 +22,15 @@ public:
     int          membpat=ev->pLevel1(0)->JMembPatt;
     int b15=(membpat>>15)&1;
     int b14=(membpat>>14)&1;
+         if(!ev->nEcalShower() && ev->nEcalCluster()){
+           cout<<" "<<ev->nEcalCluster()<<" "<<ev->nEcal2DCluster()<<" "<<ev->nEcalHit()<<endl;
+           for(int i=0;i<ev->nEcalCluster();i++){
+                EcalClusterR ec=ev->EcalCluster(i);
+                cout <<" i "<<ec.Status<<" "<<ec.Plane<<" "<<ec.Coo[0]<<" "<<ec.Coo[1]<<" "<<ec.Coo[2]<<" "<<ec.Edep<<endl;
+            }
+           return true;
+        }
+           else return false;
     //      if(! (b14 && b15))return false; 
           cout <<ev->nTrTrack()<<" "<<ev->NTrTrack()<<endl;
            TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
