@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.42 2010/09/26 17:15:26 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.43 2010/11/19 20:54:34 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -224,22 +224,26 @@ public:
   EcalClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
   EcalClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
     EcalClusterR *pcl=ev->pEcalCluster(ref);
+    int color=7;
     if(pcl){
       SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]);
       float error[3];
       const float cellsize=0.9;
       error[pcl->Proj]=cellsize*pcl->NEcalHit();  //tmp
-      error[2]=cellsize/2;         //tmp;
-      error[1-pcl->Proj]=log(1.+pcl->Edep<0?0:pcl->Edep);
+      error[2]=cellsize/2;         //tmp
+      error[1-pcl->Proj]=log(1.+pcl->Edep<0?-pcl->Edep:pcl->Edep);
       if(error[1-pcl->Proj]<cellsize)error[1-pcl->Proj]=cellsize;
       //  cout <<pcl->Plane<<" "<<pcl->Coo[0]<<" "<<pcl->Coo[1]<<" "<<pcl->Coo[2]<<endl;
       //  cout <<pcl->Plane<<" "<<error[0]<<" "<<error[1]<<" "<<error[2]<<" "<<endl;
+      if(pcl->Edep<0){
+             color=8;
+      }
       SetSize(error[0],error[1],error[2]);
       SetDirection(0,0);
     }
     SetLineWidth(gAMSDisplay->Focus()==0?1:2);
-    SetLineColor(7);             // purple
-    SetFillColor(7);
+    SetLineColor(color);             // purple
+    SetFillColor(color);
     SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
   }

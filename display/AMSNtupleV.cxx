@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.32 2010/10/12 22:11:32 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.33 2010/11/19 20:54:34 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -344,7 +344,7 @@ if(type==kall || type==kusedonly || type==kecalclusters){
  if(gAMSDisplay->DrawObject(kecalclusters)){
   for(int i=0;i<NEcalCluster();i++){
    if(!gAMSDisplay->DrawUsedOnly() || ((pEcalCluster(i)->Status)/32)%2){
-     if(pEcalCluster(i)->Edep>0)fEcalClusterV.push_back( EcalClusterV(this,i));
+     fEcalClusterV.push_back( EcalClusterV(this,i));
    }
   }
  }
