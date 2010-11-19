@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.19 2010/11/19 15:10:30 pzuccon Exp $
+#  $Id: Makefile.linux,v 1.20 2010/11/19 15:16:37 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -199,14 +199,14 @@ LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
+-lcrypt -lcrypto -lncurses -ldl -lpcre   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -lncurses -ldl -lpcre\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
