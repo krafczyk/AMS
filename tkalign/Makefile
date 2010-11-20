@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2010/11/09 08:38:54 shaino Exp $
+# $Id: Makefile,v 1.3 2010/11/20 15:16:39 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -21,7 +21,8 @@ OPTS = -O3
 LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
 LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
 
-MODS = tbalign tbafit tbaf tbafm tbafcp pmalign pmafit pmaf pmafcp pmrinv
+MODS = tbalign tbafit tbaf tbafm tbafcp \
+       pmalign pmafit pmaf pmafcp pmrinv tkmerge
 
 BINS = $(addprefix bin/, $(MODS))
 
@@ -46,3 +47,5 @@ bin/pmaf   : CC/pmafit.C CC/tkalign.C
 bin/pmafcp : CC/pmafit.C CC/tkalign.C
 
 bin/pmrinv : CC/pmrinv.C
+
+bin/tkmerge: CC/tkmerge.C

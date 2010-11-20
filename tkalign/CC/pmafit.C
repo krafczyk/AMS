@@ -1,4 +1,4 @@
-// $Id: pmafit.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
+// $Id: pmafit.C,v 1.3 2010/11/20 15:16:39 shaino Exp $
 #include "tkalign.C"
 #include "MagField.h"
 
@@ -87,7 +87,7 @@ Int_t init(const char *tkdbc, Double_t rng, Int_t bits = 0)
     TkAlign::fErrY[7] = TkAlign::fErrY[8] = 0;
   }
   else {
-    TkAlign::fMsc  = 1;
+    TkAlign::fMsc  = (bits != TkAlign::kSensY) ? 1 : 0;
     TkAlign::fNmin = 6;
     TkAlign::InitPar();
 
@@ -391,6 +391,26 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
   return;
 }
 
+void writes(const char *fname = "tksens.dat.new")
+{
+  ofstream fsen(fname);
+  if (!fsen) return;
+
+  enum { maxsen = 15 };
+
+  Int_t nent = TkDBc::Head->GetEntries();
+  for (Int_t i = 0; i < nent; i++) {
+    TkLadder *lad = TkDBc::Head->GetEntry(i);
+    if (!lad) continue;
+
+    fsen << Form("%4d", lad->GetTkId());
+    for (Int_t j = 0; j < maxsen; j++) fsen << Form(" %8.5f", lad->_sensx[j]);
+    fsen << endl << "    ";
+    for (Int_t j = 0; j < maxsen; j++) fsen << Form(" %8.5f", lad->_sensy[j]);
+    fsen << endl;
+  }
+}
+
 void salig(TH3 *hist)
 {
   if (!TkDBc::Head) {
@@ -419,6 +439,8 @@ void salig(TH3 *hist)
       Int_t side  = (slot >= 0) ? 1 : 0;
       Int_t tkid  =  TMath::Sign(layer*100+TMath::Abs(slot+side), slot+side);
 
+      if (layer == 8 || layer == 9) continue;
+
       TkLadder *lad = TkDBc::Head->FindTkId(tkid);
       if (!lad) {
 	cout << "Error Ladder not exists: " << tkid << " "
@@ -441,22 +463,7 @@ void salig(TH3 *hist)
       hfit->SetBinError  (i*nby+j+1, prof->GetBinError(i+1, j+1));
     }
 
-  ofstream fsen("tksens.dat.new");
-  if (!fsen) return;
-
-  enum { maxsen = 15 };
-
-  Int_t nent = TkDBc::Head->GetEntries();
-  for (Int_t i = 0; i < nent; i++) {
-    TkLadder *lad = TkDBc::Head->GetEntry(i);
-    if (!lad) continue;
-
-    fsen << Form("%4d", lad->GetTkId());
-    for (Int_t j = 0; j < maxsen; j++) fsen << Form(" %8.5f", lad->_sensx[j]);
-    fsen << endl << "    ";
-    for (Int_t j = 0; j < maxsen; j++) fsen << Form(" %8.5f", lad->_sensy[j]);
-    fsen << endl;
-  }
+  writes();
 }
 
 /*

@@ -1,4 +1,4 @@
-// $Id: pmalign.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
+// $Id: pmalign.C,v 1.3 2010/11/20 15:16:39 shaino Exp $
 #include "TStopwatch.h"
 #include "TSystem.h"
 #include "TMath.h"
@@ -185,10 +185,10 @@ void pmalign(const char *fname, const char *oname,
 	if (!hit) continue;
 	hit->BuildCoordinates();
       }
-      if (trk->Fit(mf0) < 0) continue;
-      if (trk->ParExists(mfit[1])) trk->Fit(mfit[1]);
-      if (trk->ParExists(mfit[2])) trk->Fit(mfit[2]);
-      if (trk->ParExists(mfit[3])) trk->Fit(mfit[3]);
+      if (trk->FitT(mf0) < 0) continue;
+      if (trk->ParExists(mfit[1])) trk->FitT(mfit[1]);
+      if (trk->ParExists(mfit[2])) trk->FitT(mfit[2]);
+      if (trk->ParExists(mfit[3])) trk->FitT(mfit[3]);
     }
 
     Int_t fpat = 0;

@@ -1,4 +1,4 @@
-// $Id: tkalign.C,v 1.2 2010/11/09 08:38:54 shaino Exp $
+// $Id: tkalign.C,v 1.3 2010/11/20 15:16:39 shaino Exp $
 #include "TObjArray.h"
 #include "TDirectory.h"
 #include "TH3.h"
@@ -449,7 +449,7 @@ Double_t PlAlign::Chisq(const PVec &par, Bool_t pset) const
 	Double_t dtr = prof->GetYaxis()->GetBinCenter(k+1);
 	Double_t res = prof->GetBinContent(j+1, k+1);
 	Double_t rer = prof->GetBinError  (j+1, k+1);
-	Double_t ddz = (i%2 == 0) ? db*pos : dc*pos;
+	Double_t ddz = (i%2 == 0) ? db*pos : -dc*pos;
 	Double_t drs = (i/2 == 0) ? dx : dy;
       //Double_t drt = (i == 1) ?  da*pos 
       //            : ((i == 2) ? -da*pos : 0);
