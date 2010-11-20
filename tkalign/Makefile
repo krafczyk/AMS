@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2010/11/20 15:16:39 shaino Exp $
+# $Id: Makefile,v 1.4 2010/11/20 16:23:56 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -13,10 +13,26 @@
 # 2010/10/14 SH
 
 WDIR = $(AMSSRC)/tkalign
-ARCH = linux
+ARCH = $(shell $(ROOTSYS)/bin/root-config --arch)
 DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__ -D_WDIR_=\"$(WDIR)\"
-FLGS = -m32 -I$(ROOTSYS)/include -I../include
+FLGS = -I$(ROOTSYS)/include -I../include
 OPTS = -O3
+
+M32  = $(shell $(ROOTSYS)/bin/root-config --cflags | awk -F -m '{print $$2}' | awk '{print $$1}')
+ifeq ($(M32),32)
+  FLGS := $(FLGS) -m32
+endif
+
+ICC  = $(shell $(ROOTSYS)/bin/root-config --cxx | grep icc)
+ifeq ($(ICC),icc)
+  PARA = -D__X8664__ -D__AMSPARALLEL__ -openmp
+  IDIR = /opt/intel
+  IVER = Compiler/11.1/073
+  IOPT = -axsse4.2,ssse3
+  CXX  = $(IDIR)/$(IVER)/bin/intel64/icc  $(IOPT) -vec-report0 $(PARA)
+  LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT)
+endif
+
 
 LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
 LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
@@ -28,9 +44,13 @@ BINS = $(addprefix bin/, $(MODS))
 
 all: $(BINS)
 
-bin/%: CC/m_%.C
+%.o: CC/m_%.C
+	$(CXX) -c -o $@ $(DEFS) $(FLGS) $(OPTS) $<
+
+bin/%: %.o
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
-	$(CXX) -o $@ $(DEFS) $(FLGS) $(OPTS) $< $(LIBS)
+	$(LD) -o $@ $< $(LIBS)
+	rm -f $<
 
 clean:
 	rm -f bin/*
