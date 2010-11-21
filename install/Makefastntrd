@@ -53,10 +53,10 @@ FFLAGS=   -fno-automatic -O -I../include
 #FFLAGS=   -fno-automatic -g -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype -lpcre $(RH9add) -lnsl /usr/lib/nsswitch.o --start-group -lnss_files -lnss_dns -lresolv --end-group
-CC=g++
-FF=g77
-LD=g++
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype -lpcre $(RH9add)
+CC=g++ -m32 
+FF=g77 -m32
+LD=g++ -m32
 BIN=../bin/linux/
 EXE=/exe/linux
 LIB=/lib/linux
@@ -106,9 +106,9 @@ $(BIN)id.o:    	 $(SCC)id.C
 $(BIN)rootread.o:    	 $(SCC)rootread.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
 
-$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
+$(BIN)rootdict_s.C:    ../include/linkdefs.h  ../include/root_RVS.h ../include/root.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdefs.h
 	@echo "OK"
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C

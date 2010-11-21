@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.293 2010/11/15 15:53:33 choutko Exp $
+//  $Id: root.h,v 1.294 2010/11/21 00:58:24 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -854,7 +854,7 @@ public:
   TrClusterR(){};
   TrClusterR(AMSTrCluster *ptr);
   virtual ~TrClusterR(){};
-ClassDef(TrClusterR,2)       //TrClusterR
+ClassDef(TrClusterR,3)       //TrClusterR
 #pragma omp threadprivate(fgIsA)
 };
 

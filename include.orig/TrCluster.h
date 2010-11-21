@@ -37,9 +37,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/11/17 11:02:38 $
+ $Date: 2010/11/21 00:58:24 $
 
- $Revision: 1.14 $
+ $Revision: 1.15 $
 
 */
 
@@ -296,7 +296,7 @@ public:
 
 
   /// ROOT definition
-  ClassDef(TrClusterR, 2)
+  ClassDef(TrClusterR, 3)
 };
 
 

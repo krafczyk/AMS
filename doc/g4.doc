@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.41 2010/11/17 16:12:27 mdelgado Exp $
+#  $Id: g4.doc,v 1.42 2010/11/21 00:58:24 choutko Exp $
 -------
 Platform:
 linux-gcc.4.x          ($G4SYSTEM=Linux-g++) 
@@ -102,7 +102,6 @@ CC/gmat.C    << G4/G3  constructors
 
 Status (geant4.5.0 )
 
- initialization   45'' on amd-mp-1533
 
 
 run time g3g4 comparison AMS/examples/g4.test.job,(g4)g3.test.job :
@@ -118,7 +117,11 @@ CPU/Event(au)      0.78(ifc),1(g77)       25
 Problem in g4 total energy distribution detected, E_calorimeter(g4,50 gev, average) = 46 gev
 apparently ecal hit energy distribution is same as in g3, but number of hits is ~ 10% less
 
- 
+Status (geant 9.3)
+
+180 GeV electrons comparison
+                     G3                   G4
+CPU/Event(sec)       4.6                  47 
      
 
 

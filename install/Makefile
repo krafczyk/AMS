@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.124 2010/11/19 15:24:07 pzuccon Exp $
+#  $Id: Makefile,v 1.125 2010/11/21 00:58:25 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -795,7 +795,7 @@ allg4:
 	$(MAKE) -j -C../display
 	$(MAKE) -j -C../display osdepend
 	$(MAKE) -j -f Moptg4
-	$(MAKE) -j producer -f Moptg4 -i
+	$(MAKE)  producer -f Moptg4 -i
 allp:
 	$(MAKE) -j 
 	$(MAKE) -j lib 
