@@ -98,7 +98,7 @@ R 50 MaxChisqForLScan (Default: 2.2)
 R 51 ErrXForScan      (Default: 300e-4)
 R 52 ErrYForScan      (Default: 300e-4)
 R 53,54 TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 37:n(X) 38:p(Y) side
-I 55 AdvancedFitFlag  (Default: 0xffff) Advanced fit bits
+I 55 AdvancedFitFlag  (Default: 0x0f) TrTrackR::AdvancedFitFlags[i] is activated when (AdvancedFitFlag & (1<<i))!=0.
 I 56 TrDEBUG
 I 57 PZDEBUG
 

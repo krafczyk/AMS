@@ -82,7 +82,7 @@ for (int ii=0;ii<9;ii++){
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;
-  AdvancedFitFlag = 0x00ff;
+  AdvancedFitFlag = 0x0f;
   //TAS
   TasRecon = 0;
   TasCurr  = 0;

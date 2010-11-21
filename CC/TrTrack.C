@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.70 2010/11/19 16:28:00 pzuccon Exp $
+// $Id: TrTrack.C,v 1.71 2010/11/21 12:01:21 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/19 16:28:00 $
+///$Date: 2010/11/21 12:01:21 $
 ///
-///$Revision: 1.70 $
+///$Revision: 1.71 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,12 +78,11 @@ int TrTrackR::NhitHalf     = 4;
 int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
-  { kChoutko, kChoutko|kMultScat, kChoutko|kUpperHalf, kChoutko|kLowerHalf, 
-    kAlcaraz, kAlcaraz|kMultScat, kAlcaraz|kUpperHalf, kAlcaraz|kLowerHalf,
-    kChikanian};
-    //    kChikanian, kChikanianF };
+  { kChoutko, kChoutko|kMultScat, 
+    kAlcaraz, kAlcaraz|kMultScat,
+    kChikanian, 0, 0, 0 };
 
-int TrTrackR::AdvancedFitBits = 0x00ff;
+int TrTrackR::AdvancedFitBits = 0x0f;
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -1051,9 +1050,15 @@ int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
-   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0)
+   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
      FitT(DefaultAdvancedFitFlags[ii]| add_flag);
-
+     if (add_flag == 0) {
+       FitT(DefaultAdvancedFitFlags[ii]| kUpperHalf);
+       FitT(DefaultAdvancedFitFlags[ii]| kLowerHalf);
+     }
+     if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
+       FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
+   }
  return AdvancedFitDone(add_flag);
 }
 
@@ -1062,34 +1067,41 @@ int TrTrackR::AdvancedFitDone(int add_flag)
   if (!_MagFieldOn) return FitDone(kLinear|add_flag);
   bool done = true;
   for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
-   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0)
-    done &=FitDone(DefaultAdvancedFitFlags[ii]| add_flag);
+    if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
+      done &=FitDone(DefaultAdvancedFitFlags[ii]| add_flag);
+
+     if (add_flag == 0) {
+       done &= FitDone(DefaultAdvancedFitFlags[ii]| kUpperHalf);
+       done &= FitDone(DefaultAdvancedFitFlags[ii]| kLowerHalf);
+     }
+     if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
+       done &= FitDone(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
+    }
   return done;
-
 }
-
 
 char * TrTrackR::GetFitNameFromID(int fitnum){
   static char out[200];
   out[0]='\0';
   int basefit= fitnum & 0x000F;
-  if(basefit == -1)  strcat(out,"kDummy");
-  if(basefit ==  1)  strcat(out,"kChoutko");
-  if(basefit ==  2)  strcat(out,"kGEANE");
-  if(basefit ==  3)  strcat(out,"kGEANE_Kalman");
-  if(basefit ==  4)  strcat(out,"kAlcaraz");
-  if(basefit ==  5)  strcat(out,"kChikanian");
-  if(basefit ==  6)  strcat(out,"kChikanianF");
-  if(basefit == 10)  strcat(out,"kLinear");
-  if(basefit == 11)  strcat(out,"kCircle");
-  if(basefit == 12)  strcat(out,"kSimple");
-  if(fitnum & 0x10)  strcat(out,"kMultScat");
-  if(fitnum & 0x20)  strcat(out,"kUpperHalf");
-  if(fitnum & 0x40)  strcat(out,"kLowerHalf");
-  if(fitnum & 0x100)  strcat(out,"kOneDrop");
-  if(fitnum & 0x200)  strcat(out,"kNoiseDrop");
-  if(fitnum & 0x400)  strcat(out,"kFitLayer8");
-  if(fitnum & 0x800)  strcat(out,"kFitLayer9");
+  if(basefit == kDummy       ) strcat(out,"kDummy");
+  if(basefit == kChoutko     ) strcat(out,"kChoutko");
+  if(basefit == kGEANE       ) strcat(out,"kGEANE");
+  if(basefit == kGEANE_Kalman) strcat(out,"kGEANE_Kalman");
+  if(basefit == kAlcaraz     ) strcat(out,"kAlcaraz");
+  if(basefit == kChikanian   ) strcat(out,"kChikanian");
+  if(basefit == kChikanianF  ) strcat(out,"kChikanianF");
+  if(basefit == kLinear      ) strcat(out,"kLinear");
+  if(basefit == kCircle      ) strcat(out,"kCircle");
+  if(basefit == kSimple      ) strcat(out,"kSimple");
+  if(fitnum   & kMultScat    ) strcat(out," | kMultScat");
+  if(fitnum   & kUpperHalf   ) strcat(out," | kUpperHalf");
+  if(fitnum   & kLowerHalf   ) strcat(out," | kLowerHalf");
+  if(fitnum   & kExternal    ) strcat(out," | kExternal");
+  if(fitnum   & kOneDrop     ) strcat(out," | kOneDrop");
+  if(fitnum   & kNoiseDrop   ) strcat(out," | kNoiseDrop");
+  if(fitnum   & kFitLayer8   ) strcat(out," | kFitLayer8");
+  if(fitnum   & kFitLayer9   ) strcat(out," | kFitLayer9");
   return out;
 }
 
@@ -1107,7 +1119,7 @@ int TrTrackR::GetFitID(int pos){
 void TrTrackR::PrintFitNames(){
   map<int, TrTrackPar>::iterator it;
   for(it=_TrackPar.begin();it!=_TrackPar.end();it++)
-    printf("%s\n", GetFitNameFromID(it->first));
+    printf("[0x%04x] %s\n", it->first, GetFitNameFromID(it->first));
 }
 
  const TrTrackPar &  TrTrackR::gTrTrackPar(int fitcode)throw (string){

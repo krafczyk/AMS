@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.46 2010/11/19 16:28:01 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.47 2010/11/21 12:01:28 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/11/19 16:28:01 $
+///$Date: 2010/11/21 12:01:28 $
 ///
-///$Revision: 1.46 $
+///$Revision: 1.47 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -174,7 +174,7 @@ public:
     kPattern    = 0x80000
   };
 
-#define DEF_ADVFIT_NUM 9 
+#define DEF_ADVFIT_NUM 8
   static const int DefaultAdvancedFitFlags[DEF_ADVFIT_NUM];
   /// Advanced fit bits
   static int AdvancedFitBits;
