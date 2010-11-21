@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.12 2010/09/20 20:53:29 pzuccon Exp $
+//  $Id: MagField.h,v 1.13 2010/11/21 16:28:04 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -39,6 +39,9 @@ geant roll;
 integer rphi;    // use xyz (0) or rphiz (1) grid
 integer begin;    // begin time
 integer end;    //end time
+
+void init();
+MAGSFFKEY_DEF() { init(); }
 };
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -62,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/09/20 20:53:29 $
+///$Date: 2010/11/21 16:28:04 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.36 2010/11/10 08:00:13 shaino Exp $
+//  $Id: TrFit.C,v 1.37 2010/11/21 16:28:04 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,13 +15,14 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/11/10 08:00:13 $
+///$Date: 2010/11/21 16:28:04 $
 ///
-///$Revision: 1.36 $
+///$Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TrFit.h"
+#include "TkDBc.h"
 #include "MagField.h"
 
 #include <cmath>
@@ -58,13 +59,10 @@ void TrFit::Clear()
 int TrFit::Add(double x,  double y,  double z,
   	       double ex, double ey, double ez, int at)
 {
-  float pos[3] = { x, y, z }, bf[3] = { 0, 0, 0 };
-  if (MagFieldOn()) {
-    //PZMAG MagField::GetPtr()->GuFld(pos, bf);
-     GUFLD(pos, bf);
-   }
-   return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
- }
+  double bf[3] = { 0, 0, 0 };
+  GuFld(x, y, z, bf);
+  return Add(x, y, z, ex, ey, ez, bf[0], bf[1], bf[2], at);
+}
 
 int TrFit::Add(double x,  double y,  double z,
 	       double ex, double ey, double ez, 
@@ -89,19 +87,6 @@ double TrFit::Fit(int method)
 {
   // Check number of hits
   if (_nhit < 3) return -1;
-
-  // Check Magnetic field map
-  if (method != LINEAR) {
-    MagField *mfp = MagField::GetPtr();
-    if (mfp->GetMap() == 0) {
-      char name[200];
-      sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
-	      getenv("AMSDataDir"));
-      if ((mfp->Read(name)) < 0) return -1;
-      mfp->SetMagstat(1);
-      mfp->SetScale(1.);
-    }
-  }
 
   double ret = 0;
   if (method ==    LINEAR)  ret = LinearFit();
@@ -157,11 +142,8 @@ double TrFit::CircleFit(void)
   _dydz = 1/std::tan(phi0);
   _dxdz = -_param[1]/std::sin(phi0);
 
-  float p0[3] = { _p0x, _p0y, _p0z };
-  float bf[3];
-
-  //PZMAG  MagField::GetPtr()->GuFld(p0, bf);
-  GUFLD(p0, bf);
+  double bf[3];
+  GuFld(_p0x, _p0y, _p0z, bf);
 
   double cosd = -1/std::sqrt(1+_param[1]*_param[1]);
   _rigidity =             1e-12*Clight*0.5/kappa*bf[0]/cosd;
@@ -497,9 +479,9 @@ int TrFit::GetLayer(double z)
 {
   int ilay = 0;
   double dzmin = 2.5;
-  for (int i = 0; i < TkDBc::Head->nlay(); i++) 
-    if (std::abs(z-TkDBc::Head->GetZlayer(i+1)) < dzmin) {
-      dzmin = std::abs(z-TkDBc::Head->GetZlayer(i+1));
+  for (int i = 0; i < TkDBc()->nlay(); i++) 
+    if (std::abs(z-TkDBc()->GetZlayer(i+1)) < dzmin) {
+      dzmin = std::abs(z-TkDBc()->GetZlayer(i+1));
       ilay = i+1;
     }
 
@@ -921,13 +903,13 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
 
   // Radiation length data for AMS-PM tuned with TB (60 GeV p/pi)
   double WLEN[LMAX] = { 0.090,  // 1:L1N (HC+TRD+TOF)
-			0.005,  // 2:L1  (Si)
-			0.010,  // 3:L2  (Si+HC)
-			0.005,  // 4:L3  (Si)
-			0.005,  // 5:L4  (Si+HC)/2
-			0.005,  // 6:L5  (Si+HC)/2
-			0.005,  // 7:L6  (Si)
-			0.010,  // 8:L7  (Si+HC)
+			0.003,  // 2:L1  (Si)
+			0.007,  // 3:L2  (Si+HC)
+			0.003,  // 4:L3  (Si)
+			0.003,  // 5:L4  (Si+HC)/2
+			0.003,  // 6:L5  (Si+HC)/2
+			0.003,  // 7:L6  (Si)
+			0.007,  // 8:L7  (Si+HC)
 			0.045   // 9:L9  (Si+TOF+RICH)
                       };
 
@@ -945,7 +927,8 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   double mtx[(LMAX-2)*(LMAX-2)], mty[(LMAX-2)*(LMAX-2)];
 
   int mode = 1; 
-  for (int i = 0; i < _nhit; i++) if (WLEN[i] > 0.05) mode = 2;
+  for (int i = 0; i < _nhit; i++)
+    if (WLEN[i] > 0.05 && _mscat == 1) mode = 2;
 
   double lref = 0;
   int    kcen = 0;
@@ -1060,6 +1043,15 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
       }
     }
 
+  if (_mscat == 2) {
+    RkmsMtx(_rigidity);
+    for (int i = 0; i < _nhit; i++)
+      for (int j = 0; j < _nhit; j++) {
+        vmtx[i*LMAX+j] = _rkms_wx[i][j];
+        wmtx[i*LMAX+j] = _rkms_wy[i][j];
+      }
+  }
+
   return 0;
 }
 
@@ -1128,7 +1120,7 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
 
 double TrFit::ChoutkoFit(void)
 {
-  if(_nhit > TkDBc::Head->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
+  if(_nhit > TkDBc()->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
 
   // Set initial parameters with SimpleFit
   double ssf = SimpleFit();
@@ -1159,12 +1151,15 @@ double TrFit::ChoutkoFit(void)
 
   double chisqb  = -1;
   double chisqbb = -1;
-  double resmy;
 
   int ifail = 2;
 
   double init[7], out[7];
   for (int i = 0; i < 7; i++) out[i] = 0;
+
+  int mode = (_mscat) ? 1 : 0; 
+  for (int i = 0; i < _nhit; i++)
+    if (std::abs(_zh[i]) > 100) mode = 2;
 
   for (int kiter = 0; kiter < maxcal; kiter++) {
     double dnorm = 1./std::sqrt(1+_param[1]*_param[1]+_param[3]*_param[3]);
@@ -1183,7 +1178,10 @@ double TrFit::ChoutkoFit(void)
     for (int i = 0; i < NDIM; i++) mm[i][i] = 1;
 
     double fact[LMAX], xmsr[LMAX][LMAX], xms[LMAX], fckx[LMAX], fcky[LMAX];
-    resmy = 0;
+
+    double len [LMAX];
+    for (int i = 0; i < _nhit; i++)
+      len[i] = (i > 0) ? _zh[i]-_zh[i-1] : 0;
 
     // Loop for each point
     for (int i = 0; i < _nhit; i++) {
@@ -1199,27 +1197,56 @@ double TrFit::ChoutkoFit(void)
       // Multiple scattering factor
       double dnm = init[5];
       double mmt = init[6];
-      if (_mscat == 0 || i <= 1) fact[i] = 0;
+      if (_mscat == 0) fact[i] = 0;
       else {
         double beta = std::max(fabs(mmt/sqrt(mmt*mmt+_mass*_mass)), 0.1);
         fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm);
+	if (_zh[i] >  100) fact[i] *= 20; // Layer 1N
+	if (_zh[i] < -100) fact[i] *= 10; // Layer 9
       }
 
-      // Multiple scattering matrix
-      for (int im = i; im >= 0; im--) {
-	xmsr[i][im] = 0;
-	for (int il = 1; il <= std::min(i,im)-1; il++)
-	  xmsr[i][im] += (_zh[i]-_zh[il])*(_zh[im]-_zh[il])*fact[il+1];
+      for (int im = i; im >= 0; im--) xmsr[i][im] = 0;
 
-	if (im == i) xms[i] = xmsr[i][i];
+      // Multiple scattering matrix
+      if (mode == 1 || _mscat == 2) {
+	for (int im = i; im >= 0; im--) {
+	  for (int il = 1; il <= std::min(i,im)-1; il++)
+	    xmsr[i][im] += (_zh[i]-_zh[il])*(_zh[im]-_zh[il])*fact[il+1];
+
+	  if (im == i) xms[i] = xmsr[i][i];
+	  else {
+	    double tmp1 = 2*xms[i]+(_xs[i]*_xs[i]+
+				    _ys[i]*_ys[i])*dnm*dnm
+	      +(1-dnm*dnm)*_zs[i]*_zs[i]+1.e-10;
+	    double tmp2 = 2*xms[im]+(_xs[im]*_xs[im]+
+				     _ys[im]*_ys[im])*dnm*dnm
+	      +(1-dnm*dnm)*_zs[im]*_zs[im]+1.e-10;
+	    xmsr[i][im] = 2*xmsr[i][im]/std::sqrt(tmp1*tmp2);
+	  }
+	}
+      }
+      else if (_mscat && mode == 2) {
+	int kcen = 0;
+	for (int j = 1; j < _nhit; j++) {
+	  if (_zh[j-1] > 0 && _zh[j] < 0) {
+	    kcen = (_zh[j-1] < -_zh[j]) ? j-1 : j;
+	    break;
+	  }
+	}
+
+	xms[i] = 0;
+	if (i < kcen)
+	  for (int k = i; k <= kcen; k++) {
+	    double ls = 0; for (int l = k; l < kcen; l++) ls += len [l];
+	    double fc = 0; for (int l = k; l < kcen; l++) fc += fact[l];
+	    xms[i] += ls*ls*fc;
+	  }
 	else {
-	  double tmp1 = 2*xms[i]+(_xs[i]*_xs[i]+
-				  _ys[i]*_ys[i])*dnm*dnm
-	             +(1-dnm*dnm)*_zs[i]*_zs[i]+1.e-10;
-	  double tmp2 = 2*xms[im]+(_xs[im]*_xs[im]+
-				   _ys[im]*_ys[im])*dnm*dnm
-	              +(1-dnm*dnm)*_zs[im]*_zs[im]+1.e-10;
-	  xmsr[i][im] = 2*xmsr[i][im]/std::sqrt(tmp1*tmp2);
+	  for (int k = kcen+1; k <= i && kcen+1 < _nhit; k++) {
+	    double ls = 0; for (int l = kcen+1; l <= k; l++) ls += len [l];
+	    double fc = 0; for (int l = kcen+1; l <= k; l++) fc += fact[l];
+	    xms[i] += ls*ls*fc;
+	  }
 	}
       }
 
@@ -1230,7 +1257,6 @@ double TrFit::ChoutkoFit(void)
       // Fill residual
       _xr[i] = -aa[3];
       _yr[i] = -aa[4];
-      if (_ys[i] > 0) resmy += _yr[i]/_nhit;
 
       // Covariance matrix
       for (int j = 0; j < NDIM; j++) {
@@ -1289,16 +1315,6 @@ double TrFit::ChoutkoFit(void)
     // Check parameter range
     if (_param[4] <= -1e3) _param[4] = -1e3;
     if (_param[4] >=  1e3) _param[4] =  1e3;
-  }
-
-  // A small tuning
-  if (std::abs(resmy) < 0.01) _param[2] -= resmy;
-  for (int i = 0; i < _nhit; i++) {
-    if (!_mscat && _ys[i] > 0) {
-      _chisq  -= (_yr[i]*_yr[i]-(_yr[i]-resmy)*(_yr[i]-resmy))/_ys[i]/_ys[i];
-      _chisqy -= (_yr[i]*_yr[i]-(_yr[i]-resmy)*(_yr[i]-resmy))/_ys[i]/_ys[i];
-    }
-    _yr[i] -= resmy;
   }
 
   if (ifail) return -6;
@@ -1751,7 +1767,7 @@ void TrFit::RkmsMtx(double rini)
 
   int lay[trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
   for (int i = 0; i < trconst::maxlay; i++)
-    RkmsZ0[i] = TkDBc::Head->GetZlayer(lay[i]);
+    RkmsZ0[i] = TkDBc()->GetZlayer(lay[i]);
 
   double dZ[NPma][NPma];
   for (int i = 0; i < NPma-1; i++) {
@@ -3275,6 +3291,7 @@ int TrFit::Inv66(double M[6][6])
 //          TRPROP IMPLEMENTATION 
 //--------------------------------------------------------------------------
 double TrProp::Mproton = 0.938272297;     // Proton mass in GeV/c^2
+double TrProp::Mmuon   = 0.105658367;     // Muon   mass in GeV/c^2
 double TrProp::Clight  = 2.99792458e+08;  // Speed of light in m/s
 
 TrProp::TrProp(double p0x,   double p0y, double p0z, 
@@ -3623,7 +3640,7 @@ void TrProp::VCFuncXY(double *in, double *out, double *derl, int clear)
     for (int i = 0; i < 10; i++) der[0][i] = der[1][i];
   }
 
-  float xx[3], h[3], hxy[3][3], dx, dy;
+  double xx[3], h[3], hxy[3][3], dx, dy;
 
   for (int k = clear; k < 2; k++) {
     if (k == 0){
@@ -3638,10 +3655,9 @@ void TrProp::VCFuncXY(double *in, double *out, double *derl, int clear)
     }
 
     double s = std::sqrt(1+dx*dx+dy*dy);
-    //PZMAG    MagField::GetPtr()->GuFld(xx, h);
-    GUFLD(xx,h);
-    //PZMAG    MagField::GetPtr()->TkFld(xx, hxy);
-    TKFLD(xx,hxy);
+    GuFld(xx, h);
+    TkFld(xx, hxy);
+
     der[k][0] = s*(dx*dy*hxy[0][0]-(1+dx*dx)*hxy[0][1]+dy*hxy[0][2]);
     der[k][1] = s*(dx*dy*hxy[1][0]-(1+dx*dx)*hxy[1][1]+dy*hxy[1][2]);
 
@@ -3707,6 +3723,68 @@ void TrProp::Propagate(double *x, double *d, double *u, int ndiv)
   JAStepPin(x, d, u, mel, mem, par, ndiv);
 }
 
+TkDBc *TrProp::TkDBc()
+{
+#pragma omp critical (tkdbccheck)
+  if (!TkDBc::Head) {
+    TkDBc::CreateTkDBc();
+    TkDBc::Head->init(3);
+  }
+  return TkDBc::Head;
+}
+
+void TrProp::GuFld(double *p, double *b)
+{
+  b[0] = b[1] = b[2] = 0;
+
+  if (!MagFieldOn()) return;
+
+  static int magerr = 0;
+#pragma omp threadprivate(magerr)  
+
+  MagField *mfp = MagField::GetPtr();
+  if (mfp->GetMap() == 0 && !magerr) {
+    char name[200];
+    sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
+	    getenv("AMSDataDir"));
+    if ((mfp->Read(name)) < 0) {
+      std::cerr << "Magnetic Field map not found: " << name << std::endl;
+      magerr = -1;
+      return;
+    }
+    mfp->SetMagstat(1);
+    mfp->SetScale(1.);
+  }
+
+  float pp[3] = { p[0], p[1], p[2] };
+  float bb[3];
+  GUFLD(pp, bb);
+
+  b[0] = bb[0];
+  b[1] = bb[1];
+  b[2] = bb[2];
+}
+
+void TrProp::GuFld(double x, double y, double z, double *b)
+{
+  double pp[3] = { x, y, z };
+  GuFld(pp, b);
+}
+
+void TrProp::TkFld(double *p, double hxy[][3])
+{
+  float pp[3] = { p[0], p[1], p[2] };
+  float hh[2][3];
+  TKFLD(pp, hh);
+
+  hxy[0][0] = hh[0][0];
+  hxy[0][1] = hh[0][1];
+  hxy[0][2] = hh[0][2];
+  hxy[1][0] = hh[1][0];
+  hxy[1][1] = hh[1][1];
+  hxy[1][2] = hh[1][2];
+}
+
 int TrProp::JAStepPin(double *x, double *l, double *u,
                       double *mel, double *mem, double par, int ndiv)
 {
@@ -3724,10 +3802,8 @@ int TrProp::JAStepPin(double *x, double *l, double *u,
       if (j == 0 || j == ndiv) w = 1;
       else if (j%2 == 1) w = 4;
 
-      float p[3] = { x[0]+e*l[0], x[1]+e*l[1], x[2]+e*l[2] };
-      float b[3];
-      //PZMAG MagField::GetPtr()->GuFld(p, b);
-      GUFLD(p, b);
+      double b[3];
+      GuFld(x[0]+e*l[0], x[1]+e*l[1], x[2]+e*l[2], b);
 
       pint[0] += w*(l[1]*b[2]-l[2]*b[1])/dl*(1-e);
       pint[1] += w*(l[1]*b[2]-l[2]*b[1])/dl;
@@ -3780,7 +3856,7 @@ C.
 
    Imported to C++ by SH
 */
-  float F[4], X, Y, Z, XYZT[3];
+  double F[4], X, Y, Z, XYZT[3];
   double SECXS[4], SECYS[4], SECZS[4], HXP[3];
 
   int MAXIT = 1992, MAXCUT = 11;
@@ -3797,12 +3873,7 @@ C.
   do {
     double REST = step-TL;
     if (std::fabs(H) > std::fabs(REST)) H = REST;
-    float vvout[3];
-    vvout[0]=vout[0];
-    vvout[1]=vout[1];
-    vvout[2]=vout[2];
-    //PZMAG    MagField::GetPtr()->GuFld(vvout, F);
-    GUFLD(vvout, F);
+    GuFld(vout[0], vout[1], vout[2], F);
 //
 //             Start of integration
 //
@@ -3838,8 +3909,7 @@ C.
 //
     double EST = std::fabs(DXT)+std::fabs(DYT)+std::fabs(DZT);
     if (EST <= H) {
-      //PZMAG    MagField::GetPtr()->GuFld(XYZT, F);
-      GUFLD(XYZT, F);
+      GuFld(XYZT, F);
 
 
       double AT = A+SECXS[0];
@@ -3873,8 +3943,7 @@ C.
       EST = std::fabs(DXT)+std::fabs(DYT)+std::fabs(DZT);
 
       if (EST <= 2.*std::fabs(H)) {
-	//	MagField::GetPtr()->GuFld(XYZT, F);
-	GUFLD(XYZT, F);
+	GuFld(XYZT, F);
 
 	Z += (C+(SECZS[0]+SECZS[1]+SECZS[2])/3)*H;
 	Y += (B+(SECYS[0]+SECYS[1]+SECYS[2])/3)*H;

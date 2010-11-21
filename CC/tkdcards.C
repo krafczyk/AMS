@@ -319,7 +319,8 @@ void TRFITFFKEY_DEF::init(){
   ErrY = 15.e-4;
   ErrZ = 40.e-4;
 
-  for (int i = 0; i < 9; i++) FitwMsc[i] = 0;
+  float fwmsc[9] = { 122, 22.0, 1.7, 0.0, 1.7, 16.5, 32.3, 360, 274 };
+  for (int i = 0; i < 9; i++) FitwMsc[i] = fwmsc[i];
   MergeExtLimX=0.5;
   MergeExtLimY=0.5;
   

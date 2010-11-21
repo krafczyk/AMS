@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.71 2010/11/21 12:01:21 shaino Exp $
+// $Id: TrTrack.C,v 1.72 2010/11/21 16:28:04 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/21 12:01:21 $
+///$Date: 2010/11/21 16:28:04 $
 ///
-///$Revision: 1.71 $
+///$Revision: 1.72 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -755,14 +755,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     AMSPoint coo =  hit->GetCoord();
 
-    double fmsc = 1;
+    double fmscx = 1;
+    double fmscy = 1;
 
     // Tune fitting weight
     if (!TrFit::_mscat) {
       int    ily  = hit->GetLayer()-1;
       double fitw = TRFITFFKEY.FitwMsc[ily];
-      if (rrgt != 0 && fitw > 0)
-	fmsc = std::sqrt(1+fitw*fitw/rrgt/rrgt);
+      double fwxy = (errx > 0) ? erry/errx : 1;
+      if (rrgt != 0 && fitw > 0) {
+	fmscx = std::sqrt(1+fitw*fitw/rrgt/rrgt*fwxy*fwxy);
+	fmscy = std::sqrt(1+fitw*fitw/rrgt/rrgt);
+      }
     }
 
 
@@ -772,8 +776,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     bf[0]=_BField[j].x();
     bf[1]=_BField[j].y();
     bf[2]=_BField[j].z();
-    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx*fmsc,
-	            hit->OnlyX() ? 0 : erry*fmsc,
+    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx*fmscx,
+	            hit->OnlyX() ? 0 : erry*fmscy,
 	                               errz, 
 	       bf[0], bf[1], bf[2]);
     

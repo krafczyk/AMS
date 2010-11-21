@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.20 2010/11/10 08:00:15 shaino Exp $
+//  $Id: TrFit.h,v 1.21 2010/11/21 16:28:04 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,14 +49,14 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/11/10 08:00:15 $
+///$Date: 2010/11/21 16:28:04 $
 ///
-///$Revision: 1.20 $
+///$Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "point.h"
-#include "TkDBc.h"
+class TkDBc;
 
 /// Particle propagation manager
 /*!
@@ -71,7 +71,10 @@ public:
   };
 
   /// Proton mass in GeV
-  static double Mproton; 
+  static double Mproton;
+
+  /// Muon mass in GeV
+  static double Mmuon;
 
   /// Speed of light in m/s
   static double Clight;
@@ -143,6 +146,20 @@ public:
 
   /// Propagation with JAStepPin
   void Propagate(double *x, double *d, double *u, int ndiv = 20);
+
+public:
+  /// Wrapper to TkDBc, null pointer check included
+  static ::TkDBc *TkDBc();
+
+  /// Wrapper to MagField::GUFLD, field map check included
+  static void GuFld(double *p, double *b);
+
+  /// Wrapper to GuFld(double*, double*)
+  static void GuFld(double x, double y, double z, double *b);
+
+protected:
+  /// Wrapper to MagField::TKFLD
+  static void TkFld(double *p, double hxy[][3]);
 
 protected:
   /// Transportation (for VC's method)

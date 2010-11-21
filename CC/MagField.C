@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.12 2010/10/04 21:54:48 pzuccon Exp $
+// $Id: MagField.C,v 1.13 2010/11/21 16:28:04 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/10/04 21:54:48 $
+///$Date: 2010/11/21 16:28:04 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -35,18 +35,11 @@ bool MagFieldOn(){return MAGSFFKEY.magstat>0;}
 void uctoh (char* MS,int* MT,int npw, int NCHP);
 
 
-// void MAGSFFKEY_DEF::init(){
+void MAGSFFKEY_DEF::init(){
 
-//   magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
-//   fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
-//   ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
-
-//   BTempCorrection=0;
-//   BZCorr=1; 
-//   rphi=0;
-//   return;  
-
-// }
+   magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
+   fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
+}
 
 
 // void TKFIELD_DEF::init(){
