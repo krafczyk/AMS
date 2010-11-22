@@ -18,6 +18,7 @@ extern "C" void ROOTPoissn(float &, int &, int&);
 #define ENABLE_BACKWARDS_COMPATIBILITY
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoissonQ.h"
+#include "commons.h"
 extern "C" void poissn_(float &, int &, int&);
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDMG3(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)

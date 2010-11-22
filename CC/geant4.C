@@ -1,10 +1,15 @@
-//  $Id: geant4.C,v 1.70 2010/11/17 20:12:24 choumilo Exp $
+//  $Id: geant4.C,v 1.71 2010/11/22 10:52:31 pzuccon Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
 #include "richdbc.h"
 #include "richid.h"
+#ifdef _PGTRACK_
+#include "MagField.h"
+#include "TrSim.h"
+#else
 #include "trmccluster.h"
+#endif
 #include "mccluster.h"
 #include "daqevt.h"
 #include "mceventg.h"
@@ -27,6 +32,7 @@
 #include "G4PVPlacement.hh"
 #include "G4StateManager.hh"
 #include "G4ApplicationState.hh"
+#include "G4VPhysicalVolume.hh"
 #include "g4xray.h"
 #include "producer.h"
 #ifdef G4VIS_USE
@@ -818,8 +824,13 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
      &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K'){
 //       cout <<" tracker "<<endl;
+#ifdef _PGTRACK_
+      TrSim::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
+      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+#else
       AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+#endif
      }
 //------------------------------------------------------------
 //    TOF: (imply here that Pre or Post volume is sensitive as defined by above check !!!)
