@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.236 2010/11/19 15:24:07 pzuccon Exp $
+//  $Id: root.C,v 1.237 2010/11/22 20:51:59 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3425,11 +3425,16 @@ static int master=0;
 	TkDBc::Head->init((Run()>=1257416200)?2:1);
       }
     }
-    
+
+                                 if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
+				 if (_FILE->Get("datacards/TRMCFFKEY_DEF"))
     TRMCFFKEY   =*((TRMCFFKEY_DEF*)  _FILE->Get("datacards/TRMCFFKEY_DEF"));
+				 if (_FILE->Get("datacards/TRCALIB_DEF"))
     TRCALIB     =*((TRCALIB_DEF*)    _FILE->Get("datacards/TRCALIB_DEF"));
+				 if (_FILE->Get("datacards/TRCLFFKEY_DEF"))
     TRCLFFKEY   =*((TRCLFFKEY_DEF*)  _FILE->Get("datacards/TRCLFFKEY_DEF"));
+				 if (_FILE->Get("datacards/TRFITFFKEY_DEF"))
     TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
 
     if(TrParDB::Head) delete TrParDB::Head;
