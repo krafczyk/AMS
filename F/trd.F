@@ -1,7 +1,7 @@
 #ifndef CERNLIB_TYPE
 #define CERNLIB_TYPE
 #endif
-        SUBROUTINE SIMTRD(g3trd,Gdens,ntrcor,etrcor)
+        SUBROUTINE SIMTRD(g3trd,rho_xe,rho_co2,ntrcor,etrcor)
         implicit none
 C
 C...TR-simulation main program
@@ -24,11 +24,9 @@ C
       DIMENSION ETR(1000),STR(1000),VECTS(7)
       real etr,str,vects,gamma,eloss
       integer ntr,jtm,n
-*        DATA COR/0.48/                      !... for Polypr Foam (Airex)
-*         DATA COR/0.68/                      !... for Polypr Fibre (Fleece)
 C...
-      real Gdens,etrcor,ntrcor
-
+      real etrcor,ntrcor
+      real rho_xe,rho_co2
 
 
          integer nwbuf
@@ -200,7 +198,7 @@ C ************************************************************
 C *       PROGRAM FOR DE/DX-SIMULATION WITHIN STRAWS         *
 C ************************************************************
 C
-      SUBROUTINE SIMDE(g3trd,Gdens,Pecut,ndecor,edecor)
+      SUBROUTINE SIMDE(g3trd,rho_xe,rho_co2,Pecut,ndecor,edecor)
         implicit none
 C
 C... *** Simulation energy deposition within straw ***
@@ -215,8 +213,8 @@ C
 #include     "geant321/gcflag.inc"
 #include     "trdf.h"
       integer g3trd,nwbuf,jtm
-      real gamma,de,derand, Gdens, Pecut, ndecor, edecor
-
+      real gamma,de,derand, Pecut, ndecor, edecor
+      real rho_xe,rho_co2
 *>>>> T.S. 2/2003  Variables for Delta-Rays
 #include    "geant321/gcking.inc"
 #include     "geant321/gconsp.inc"
@@ -261,8 +259,8 @@ C...
         GEKIN   = GEKIN+DESTEP
         GAMMA   = GETOT/AMASS
 C...
-        DE      = DERAND(Gdens,GAMMA,DCUTE,STEP,Ndr,Edr,Sdr,
-     >       ndecor,edecor)
+        DE      = DERAND(GAMMA,DCUTE,STEP,Ndr,Edr,Sdr,
+     >       ndecor,edecor,rho_xe,rho_co2)
        
 *>>>>>> T.S. 2/2003 ------------------
         if( Ndr.gt.0 ) 
@@ -330,8 +328,8 @@ c     &      i,Edr(i),PMODdr,THTdr,PHIdr,Sdr(i),VECT(1),VECT(2),VECT(3)
 *CMZ :          15/08/94  09.46.59  by  Valeri Saveliev
 *-- Author :
 C------------------------------------------------------------
-        FUNCTION DERAND (Gdens,GAMMA,ECUT,STEP,Ndr,Edr,Sdr,
-     >       ndecor,edecor)
+        FUNCTION DERAND (GAMMA,ECUT,STEP,Ndr,Edr,Sdr,
+     >       ndecor,edecor,rho_xe,rho_co2)
 C
 C... ***  Simulation of energy loss straggling within straw
 C         with energy smaller then ECUT ***
@@ -349,23 +347,33 @@ C CLESTEP(1,#) - energy of the # cluster,
 C CLESTEP(2,#) - coordinate of the # cluster.
 C
         DIMENSION ANGL(200),RNDM(2)
-        real angl,rndm,gamma,ecut,step,gaml,derand,ec,dgg
-        real anmin,anmax,dan,amu,r,ee,e, edecor, ndecor
+        real angl,rndm,gamma,ecut,step,gaml,derand,derand0,ec,dgg
+        real anmin,anmax,dan,amu,amu0,r,ee,e,edecor,ndecor
         integer i,k,n,ier,k1,k2
 
-*>>>> T.S. 2/2003  
-*     Generator Gas-Density     should be a DATA-CARD  !!!!!!!
-      REAL        Gdens 
-*      PARAMETER  (Gdens=0.00446)    !    default 4.46 g/cm**3
+*>>>> MM 11/10
+*     partial gas pressures
+      REAL rho_xe,rho_co2
+      REAL rho_co2_0, rho_xe_0, dedx_co2, dedx_xe, scale
+      REAL wi_xe,wi_co2,dndx_xe,dndx_co2
+      PARAMETER (rho_xe_0 =4.37) !mg/cm3
+      PARAMETER (rho_co2_0=0.37) !mg/cm3
+      PARAMETER (wi_xe =22) !eV
+      PARAMETER (wi_co2=33)!eV
+      PARAMETER (dedx_xe =1.255)!MeV cm2/g
+      PARAMETER (dedx_co2=1.819 )!Mev cm2/g
+      PARAMETER (dndx_xe =334)!1/cm
+      PARAMETER (dndx_co2=109)!1/cm
+*<<<<
 
 *     variables for Delta-Rays:
       INTEGER     Mdr,Ndr
       PARAMETER  (Mdr=10)  ! max. number of delta-rays per step
       REAL        Edr(Mdr), Sdr(Mdr)
 
-      REAL        Pecut    ! should be DATA-CARD !!!!!
-      PARAMETER  (Pecut=-0.65) ! default 65% of ionisations above DCUTE are ignored
-*                       +0.73            73% of ... reappear as Dray on second.stack
+      REAL        Pecut   
+*     default 65% of ionisations above DCUTE are ignored
+*     +0.73            73% of ... reappear as Dray on second.stack
 
 *     variables for cubic interpolation:
       INTEGER     ifail,j,m,l,ir(4)    
@@ -375,7 +383,6 @@ C
 
 C...
         Ndr = 0
-*<<<< -----------------------------------------
 
         NCLESTEP = 0
         EC       = 1.E9*ECUT
@@ -437,11 +444,16 @@ C...
 C...
         DAN     = ANMAX-ANMIN
 
-*>>>>>  T.S. 2/2003
-        AMU     = DAN * STEP * ndecor
-     >                * Gdens/0.00446  ! dEdX density corr. (nominal: 0.00446 g/cm**3)
-     >                * CHARGE**2   ! for charge<>1 particles
-*<<<<<  -------------------------
+C       scaleB factor - mean dndx according to densities of Xenon and CO2
+        scale = (dndx_co2*rho_co2+dndx_xe*rho_xe) /
+     >       (dndx_co2*rho_co2_0+dndx_xe*rho_xe_0)
+
+*>>>>> rescaling mean number of ionizations
+        AMU0    = DAN * STEP * ndecor * CHARGE**2
+        AMU     = scale * AMU0
+*        write(*,*)'rhoxe rhoco2 ',rho_xe,rho_co2
+*        write(*,*)'AMU -> NEW:',AMU0,AMU
+*<<<<<-------------------------
 
 
         CALL POISSN(AMU,N,IER)
@@ -493,7 +505,19 @@ C
 8       CONTINUE
 
 C...
+        
         DERAND  = DERAND*1.E-9
+        
+*     scale factor - mean dedx according to pressures of Xenon and CO2
+        scale = (dedx_co2*rho_co2+dedx_xe*rho_xe) /
+     >       (dedx_co2*rho_co2_0+dedx_xe*rho_xe_0)
+
+*     rescaling dE
+        DERAND0 = DERAND 
+        DERAND  = DERAND * AMU/AMU0 * scale
+*        write(*,*)'DERAND -> NEW:',DERAND0,DERAND
+
+
         RETURN
         END
 *CMZ :          16/06/99  14.57.04  by  AMS TRD: Kirn,Raupach,Siedenburg
@@ -555,7 +579,7 @@ C *********************************************************
 C *      TR-photon absorbtion                             *
 C *********************************************************
 C
-        SUBROUTINE TRPHOTON(g3trd)
+        SUBROUTINE TRPHOTON(g3trd,rho_xe)
         implicit none
 C
 C... *** TR-photon absorbtion simulation ***
@@ -572,7 +596,7 @@ C
 
 C...
       integer nwbuf,jtm,im,g3trd
-      real stea,sabs
+      real stea,sabs,rho_xe
 C...
 
 
@@ -680,7 +704,7 @@ c         write(*,*)'photon absorbed in ',Q(JTM+14+3),GEKIN,DESTEP
         RETURN
 
 C... Absorbtion simulation
-4        STEA    = SABS(GEKIN,STEP,IM)
+4        STEA    = SABS(GEKIN,STEP,IM,rho_xe)
          IF(STEA.GT.STEP) then
 c         write(*,*)'passed  trd ',im,gekin,vect(1),vect(2),vect(3)
             RETURN
@@ -1080,14 +1104,15 @@ c        RETURN
 *CMZ :          28/04/99  18.59.14  by  AMS TRD: Kirn,Raupach,Siedenburg
 *-- Author :
 C---------------------------------------------------------
-        FUNCTION SABS (E0,STEP,IM)
+        FUNCTION SABS (E0,STEP,IM,rho_xe)
         implicit none
 C...
 #include "trdf.h"
 C...
-      
+        real rho_xe_0
+        PARAMETER (rho_xe_0 =4.37) !mg/cm3
         DIMENSION RNDM(1)
-        real rndm,sabs,e0,step,e,am,amuf
+        real rndm,sabs,e0,step,e,am,amuf,rho_xe
         integer im
 C...
         E      = E0*1.E6              ! E in keV
@@ -1096,7 +1121,7 @@ C...
         else IF(IM.EQ. 2)then
           AM = AMUF(E, 3)   ! Straw
         else IF(IM.EQ. 3)then
-          AM = AMUF(E, 4)   ! Gas
+          AM = AMUF(E, 4) * rho_xe/rho_xe_0 ! Gas
         else IF(IM.EQ. 5) then
           AM = AMUF(E, 2)   ! Air
         else IF(IM.EQ. 6) then

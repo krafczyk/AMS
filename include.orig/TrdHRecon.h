@@ -1,6 +1,7 @@
 #ifndef _TrdHRecon_
 #define _TrdHRecon_
 #include <vector>
+#include <map>
 #include "point.h"
 #include "TrdRawHit.h"
 #include "TrdHSegment.h"
@@ -8,9 +9,12 @@
 #include "VCon.h"
 #include <cstring>
 #include <algorithm>
+#include "TSpline.h"
+#include "TMath.h"
 
 const float TRDz0=113.5;
 const float RSDmax=0.6;
+using namespace std;
 
 /// internal class to store peaks in histogram prefit
 class PeakXYZW {
@@ -157,22 +161,35 @@ class TrdHReconR{
   /// vector of error on reference hits (optional)
   vector<AMSPoint> referr;
 
+  /// factor to convert from adc to kev (default 33.33)
+  float adc2kev;
+  
+  /// container to store tube energy spline fit for charges
+  map<int,TSpline5> pdfs;
+
+  /// container to store probability of charge for event
+  map<float,int> charge_probabilities;
+
   /// default ctor
-  TrdHReconR(){
+  TrdHReconR():adc2kev(100./3.){
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
     refhits.clear();
+    pdfs.clear();
+    charge_probabilities.clear();
+    BuildPDFs();
   };
 
   ~TrdHReconR(){
-
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
     refhits.clear();
+    pdfs.clear();
+    charge_probabilities.clear();
     clear();}
 
   /// clear memory
@@ -206,20 +223,33 @@ class TrdHReconR{
   /// reconstruct TRD event according to TrdRawHit selection
   void BuildTRDEvent(vector<TrdRawHitR> r);
 
+  /// reconstruct trd event
   int retrdhevent();
 
+  /// add segment to containers
   void AddSegment(TrdHSegmentR* hit);
 
+  /// add track to containers
   void AddTrack(TrdHTrackR* hit);
 
+  /// add hit to containers
   void AddHit(TrdRawHitR* hit);
+
+  /// build PDFs from database
+  int BuildPDFs(int force=0,int debug=0);
+
+  /// get weighted charge for event ( (c1st*p1st+c2nd*p2nd)/(p1st+p2nd) )
+  float GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
+
+  /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
+  float GetELikelihood(TrdHTrackR *tr,float beta=0., int debug=0);
 
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
   static TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
 
   int build();
 
-  ClassDef(TrdHReconR,5)
+  ClassDef(TrdHReconR,6)
 };
 #endif
 

@@ -204,8 +204,8 @@ void TrdSimUtil::UpdateGas ( void ) {
   fAlphaGas=TRDMCFFKEY.AlphaGas;
   trdFleeceGasConf=TRDMCFFKEY.FleeceGas;
   fTrdNumberFractionXe=TRDMCFFKEY.XenonFraction;
-  fTrdNumberFractionCO2=TRDMCFFKEY.ArgonFraction;
-  fTrdNumberFractionAr=TRDMCFFKEY.CO2Fraction;
+  fTrdNumberFractionCO2=TRDMCFFKEY.CO2Fraction;
+  fTrdNumberFractionAr=TRDMCFFKEY.ArgonFraction;
 
 
   fTrdGasRegionCuts = new G4ProductionCuts();

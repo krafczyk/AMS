@@ -12,7 +12,7 @@ int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-  if(hits.size()<=i&&i<fTrdRawHit.size()){
+  if(hits.size()<=i&&i<Nhits){
     hits.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
     for(int i=0;i<cont2->getnelem();i++){
@@ -33,8 +33,6 @@ TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0
   fTrdRawHit.clear();
   hits.clear();
 }
-
-
 
 
 TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,float z_, float w_)
@@ -63,8 +61,8 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
   Nhits=seg->Nhits;
   fTrdRawHit.clear();
   hits.clear();
-  for(int i=0;i<seg->fTrdRawHit.size();i++)
-    fTrdRawHit.push_back(seg->fTrdRawHit.at(i));
+  for(vector<int>::iterator it=seg->fTrdRawHit.begin();it!=seg->fTrdRawHit.end();it++)
+    fTrdRawHit.push_back(*it);
   for(int i=0;i<seg->hits.size();i++)
     hits.push_back(seg->hits.at(i));
 
@@ -75,8 +73,9 @@ void TrdHSegmentR::SetHits(int Nhits_, TrdRawHitR* pthit[]){
 
   Nhits=0;
   fTrdRawHit.clear();
+  hits.clear();
   VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-  for(int i=0;i!=Nhits_;i++){
+  for(int i=0;i<Nhits_;i++){
     if(pthit[i]){
       hits.push_back(*pthit[i]);
       fTrdRawHit.push_back(cont2->getindex(pthit[i]));
@@ -250,7 +249,7 @@ void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
-  if(iter>hits.size())printf("trying to delete hit %i of %i hits\n",iter,hits.size()); if(iter>fTrdRawHit.size())printf("trying to delete hit %i of %i hits\n",iter,fTrdRawHit.size());
+  if(iter>hits.size())printf("trying to delete hit %i of %i hits\n",iter,(int)hits.size()); if(iter>fTrdRawHit.size())printf("trying to delete hit %i of %i hits\n",iter,(int)fTrdRawHit.size());
   hits.erase(hits.begin()+iter);
   fTrdRawHit.erase(fTrdRawHit.begin()+iter);
   Nhits=fTrdRawHit.size();

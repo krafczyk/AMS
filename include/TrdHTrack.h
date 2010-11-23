@@ -21,6 +21,12 @@ class TrdHTrackR:public TrElem{
   /// Number of hits on track
   int Nhits;
 
+  /// reconstructed charge
+  float charge;
+
+  // reconstructed electron likelihood (-log(like/(like+likp)))
+  float elikelihood;
+
   /// Track fit status (1 - only TRD, 2- only TRD & matching TKtrack found, 3 - TRD fitted according to TKtrack)
   int status;
 
@@ -97,7 +103,7 @@ class TrdHTrackR:public TrElem{
   virtual ~TrdHTrackR(){
     segments.clear();
     fTrdHSegment.clear();
-    };//clear();};
+    };
 
   void clear();
 
@@ -148,7 +154,7 @@ p=0;
 }
 } 
 #endif
-  ClassDef(TrdHTrackR, 8);
+  ClassDef(TrdHTrackR, 9);
 };
 
 

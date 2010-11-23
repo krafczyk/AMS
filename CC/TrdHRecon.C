@@ -8,7 +8,9 @@
 #include "tofrec02.h"
 #include "event.h"
 #include "root.h"
+#include "commons.h"
 #endif
+
 
 #ifdef __MLD__
 int TrdRawHitR::num=0;
@@ -21,6 +23,44 @@ int TrdHTrackR::numa=0;
 
 ClassImp(TrdHReconR);
 
+Double_t pfun(Double_t x, Double_t *par) {
+Double_t mpshift  = -0.22278298;
+  if(x<par[1]){
+    Double_t mean= par[1] - mpshift * par[2];
+    return par[0]*TMath::Landau(x,par[1],par[2])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
+  }
+  else {
+    Double_t mean= par[1] - mpshift * par[3];
+    return par[0]*TMath::Landau(x,par[1],par[3])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
+  }
+}
+
+double e_par(int p){
+  if(p==0)return 0.533941;
+  else if(p==1)return 2.04519;
+  else if(p==2)return 0.90618;
+  else if(p==3)return 0.177358;
+  else if(p==4)return 13.3248;
+  else if(p==5)return 4.80789;
+  else if(p==6)return 0.312408;
+  else if(p==7)return -0.0432751;
+  else return 0.;
+}
+
+
+// get conv landau fit param depending on trtrack rigidity [GV] 
+double p_par(int p){
+  if(p==0)return 1.32391;
+  else if(p==1)return 2.23676;
+  else if(p==2)return 1.02281;
+  else if(p==3)return 0.788797;
+  else if(p==4)return -0.0594475;
+  else if(p==5)return 0.00140946;
+  else if(p==6)return -2.07114e-05;
+  else return 0.;
+}
+
+
 TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   TrdHSegmentR *s1=0,*s2=0;
   VCon* cont=GetVCon()->GetCont("AMSTRDHSegment");
@@ -29,7 +69,8 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
     s2=(TrdHSegmentR*)cont->getelem(is2);
     delete cont;
   }
-  else return 0;                                                                 
+  else return 0;
+
   if(debug)printf("Entering TrdHReconR::SegToTrack s1 %d s2 %d\n",s1,s2);
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
@@ -77,17 +118,10 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
     tr->segments.push_back(*s2);
     tr->segments.push_back(*s1);
   }
-  
+
   tr->Nhits=(int)s1->fTrdRawHit.size()+(int)s2->fTrdRawHit.size();
   tr->Chi2=s1->Chi2+s2->Chi2; 
 
-  for(int i=0;i<20;i++)tr->elayer[i]=0.;
-  for(int s=0;s<tr->fTrdHSegment.size();s++){
-    for(int h=0;h<tr->pTrdHSegment(s)->fTrdRawHit.size();h++){
-      tr->elayer[tr->pTrdHSegment(s)->pTrdRawHit(h)->Layer]+=tr->pTrdHSegment(s)->pTrdRawHit(h)->Amp;
-    }
-  }
-  
   if(debug)printf("Leaving SegToTrack - return AMSTRDHTrack\n");
   return tr;
 }
@@ -125,7 +159,7 @@ int TrdHReconR::DoPrefit(int debug){
     if(d==0)hist=&H2V_mvrx;
     if(d==1)hist=&H2V_mvry;
     
-    if(debug)printf("findpeaks d %i histo size %i\n",d,hist->bins.size());
+    if(debug)printf("findpeaks d %i histo size %i\n",d,(int)hist->bins.size());
     if(!hist||hist->bins.size()==0)continue;
     
     for(vector<BIN>::iterator i=hist->bins.begin(); i!=hist->bins.end(); i++){
@@ -159,7 +193,7 @@ int TrdHReconR::DoPrefit(int debug){
     // sort maxima in decreasing c (entries) order
     sort(maxima.begin(),maxima.end());
     
-    if(debug)printf("found %i maxima:\n",maxima.size());
+    if(debug)printf("found %i maxima:\n",(int)maxima.size());
     int miter1=0;
     if(debug)for(vector<BIN>::iterator i=maxima.begin();i!=maxima.end();i++,miter1++){
       float x=0.,y=0.;
@@ -206,7 +240,7 @@ int TrdHReconR::DoPrefit(int debug){
     }
   }
   
-  if(debug)printf("DoPrefit segx %i segy %i\n",peakvec[0].size(),peakvec[1].size());
+  if(debug)printf("DoPrefit segx %i segy %i\n",(int)peakvec[0].size(),(int)peakvec[1].size());
   
   int prefit=peakvec[0].size()+peakvec[1].size();
   if(prefit<=0||prefit>100){
@@ -237,12 +271,12 @@ int TrdHReconR::DoPrefit(int debug){
 	if(debug>0)printf("d %i hit %i r %.2f expos %.2f resid %f < %f ok %i\n",d,h,rzd.r,expos,resid,maxresid,fabs(resid)<maxresid);
 	
 	if(fabs(resid)<maxresid)
-	  seg->AddHit(rhits[h],h);
+	  seg->AddHit(rhits.at(h),h);
 
       }
       
       if(debug>0){
-	printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,seg->fTrdRawHit.size());
+	printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
 	for(int i=0;i<seg->fTrdRawHit.size();i++){
 	  printf("hit %i iter %i\n",i,seg->pTrdRawHit(i));
 	}
@@ -253,7 +287,8 @@ int TrdHReconR::DoPrefit(int debug){
 	lr=seg->LinReg(debug);
 	int n0=seg->fTrdRawHit.size();
 	seg->fTrdRawHit.clear();	
-
+	seg->hits.clear();	
+	
 	for(int h=0;h!=rhits.size();h++){	
 	  TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	  if(rzd.d!=d)continue;
@@ -271,15 +306,15 @@ int TrdHReconR::DoPrefit(int debug){
 	  if(debug)printf("no more hits - breaking loop\n");
 	  break;
 	}
-	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,seg->fTrdRawHit.size());
+	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,(int)seg->fTrdRawHit.size());
       }
       
       if(seg->fTrdRawHit.size()>3){
 	seg->calChi2();
 	
 	if(debug>0){
-	  printf("d %i after linreg loop: segment %i hits %i\n",d,i,seg->fTrdRawHit.size());
-	  printf("After linreg: seg %i d %i m %.2f r %.2f z %.2f hits %i\n",i,d,seg->m,seg->r,seg->z,seg->fTrdRawHit.size());
+	  printf("d %i after linreg loop: segment %i hits %i\n",d,i,(int)seg->fTrdRawHit.size());
+	  printf("After linreg: seg %i d %i m %.2f r %.2f z %.2f hits %i\n",i,d,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
 	}
 	
 	AddSegment(seg);
@@ -300,11 +335,11 @@ int TrdHReconR::DoLinReg(int debug){
 int TrdHReconR::clean_segvec(int debug){
   if(debug>0){
     printf("Enter clean_segvec\n");
-    printf("before clean %i\n",hsegvec.size());
+    printf("before clean %i\n",(int)hsegvec.size());
     int n=0;
     for(vector<TrdHSegmentR>::iterator s1=hsegvec.begin();s1!=hsegvec.end();s1++,n++){
       printf("segment %i d %i n %i m %.2f r %.2f z %.2f Chi2 %.2e\n",
-	     n,s1->d,s1->fTrdRawHit.size(),s1->m,s1->r,s1->z,s1->Chi2);
+	     n,s1->d,(int)s1->fTrdRawHit.size(),s1->m,s1->r,s1->z,s1->Chi2);
     }
   }
 
@@ -404,7 +439,7 @@ int TrdHReconR::clean_segvec(int debug){
     for(vector<TrdHSegmentR>::iterator i=hsegvec.begin();i!=hsegvec.end();i++,n++)
       printf("d %i s %i n %i m %.2f r %.2f Chi2 %.2f nhits %i \n",i->d,n,i->nTrdRawHit(),i->m,i->r,i->Chi2,i->nTrdRawHit());
     
-    printf("after clean %i\n",hsegvec.size());
+    printf("after clean %i\n",(int)hsegvec.size());
     printf("Exiting clean_hsegvec\n");
   } 
   return hsegvec.size();
@@ -626,7 +661,7 @@ int TrdHReconR::combine_segments(int debug){
   n_done=0;
   for(int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
 
-  if(debug)printf("%i segment(s) not done after sec. search \n",hsegvec.size()-n_done);
+  if(debug)printf("%i segment(s) not done after sec. search \n",(int)hsegvec.size()-n_done);
 
   return htrvec.size();
 }
@@ -650,11 +685,12 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
   refhits.clear();
   referr.clear();
 
+  clear();
   if(r.size()<3)return;
   for(int n=0;n<r.size();n++)AddHit(&r[n]);
 
   retrdhevent();
-  r.clear();
+  //  r.clear();
 }
 
 int TrdHReconR::build(){
@@ -747,7 +783,7 @@ int TrdHReconR::retrdhevent(){
   double Hcut=0.0;
   //if(pev->nTRDRawHit()>500) Hcut=30.0;
   
-  if(debug)printf("RawHits %i\n",rhits.size());
+  if(debug)printf("RawHits %i\n",(int)rhits.size());
   if(rhits.size()<4||rhits.size()>100) return 0;
   
   int prefit=DoPrefit(debug);
@@ -755,7 +791,7 @@ int TrdHReconR::retrdhevent(){
   if(!prefit)return 0;
   clean_segvec(debug);
   
-  if(debug) printf("got %i segment(s)\n",hsegvec.size());
+  if(debug) printf("got %i segment(s)\n",(int)hsegvec.size());
 
   int nhseg=hsegvec.size();
   
@@ -796,13 +832,24 @@ int TrdHReconR::retrdhevent(){
   }
   else if(nhseg>2) combine_segments();
 
-  if(debug)printf("TrdHTrackR::build tracks %i\n",htrvec.size());
+  if(debug)printf("TrdHTrackR::build tracks %i\n",(int)htrvec.size());
   
   return 1;
 }
 
 void TrdHReconR::AddTrack(TrdHTrackR* tr){
   if(tr){
+
+    for(int i=0;i<20;i++)tr->elayer[i]=0.;
+    for(int s=0;s<tr->fTrdHSegment.size();s++){
+      for(int h=0;h<tr->pTrdHSegment(s)->fTrdRawHit.size();h++){
+	tr->elayer[tr->pTrdHSegment(s)->pTrdRawHit(h)->Layer]+=tr->pTrdHSegment(s)->pTrdRawHit(h)->Amp;
+      }
+    }
+    
+    tr->charge=GetCharge(tr);
+    tr->elikelihood=GetELikelihood(tr);
+
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
 #else
@@ -825,6 +872,7 @@ void TrdHReconR::AddSegment(TrdHSegmentR* seg){
 #else
     TrdHSegmentR* amsseg=seg;
 #endif
+
     cont2->addnext(amsseg);
     hsegvec.push_back(*amsseg);
     delete cont2;
@@ -839,3 +887,184 @@ void TrdHReconR::AddHit(TrdRawHitR* hit){
     delete cont2;
   }
 }
+
+float TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
+  if(debug)printf("Enter TrdHReconR::GetCharge\n");
+  if(charge_probabilities.size()==0){
+    float ampcorr[20];
+    for(int i=0;i<20;i++)ampcorr[i]=0.;
+    for(int l=0;l<20;l++){
+      ampcorr[l]+=tr->elayer[l]/adc2kev;// calibration to be done
+    }
+    if(debug)
+      for(int i=0;i<20;i++)
+	printf(" L %i amp %.2f\n",i,ampcorr[i]);
+    
+    if(beta!=0.)// beta correction to be done
+      {
+      }
+    
+    double clik[10];
+    for(int i=0;i<10;i++)clik[i]=1.;
+    
+    int nhit=0;
+    vector<int> charges;
+    for(int i=0;i<20;i++){
+      for(int c=0;c<10;c++){
+	int chg=c+1;
+	map<int,TSpline5>::iterator it=pdfs.find(chg);
+	if(it==pdfs.end()||ampcorr[i]<=0.)continue;
+	
+	float prob=it->second.Eval(ampcorr[i]);
+	if(prob<=0)continue;
+	clik[chg]*=prob;
+	if(debug)printf(" c %i prob %.2e accum %.2e\n",chg,prob,clik[chg]);
+	if(chg==1)nhit++;
+	
+	int found=0;
+	for(int j=0;j<charges.size();j++)if(charges[j]==chg)found=1;
+	if(!found)charges.push_back(chg);
+      }
+    }
+
+    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++){
+      clik[*it]=pow(clik[*it],(double)(1./(double)nhit));
+      if(debug)printf("normalized prob %i: %.4e\n",*it,clik[*it]);
+    }
+    double totalprob=0.;
+    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++)
+      totalprob+=clik[*it];
+    
+    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++)
+      clik[*it]/=totalprob;
+    
+    charge_probabilities.clear();                                              
+    for(int i=0;i<charges.size();i++){
+      charge_probabilities.insert(pair<float,int>(clik[charges.at(i)],charges.at(i)));   
+      if(debug)printf("charge probs c %i %.2e\n",charges.at(i),clik[charges.at(i)]);
+    }
+    
+  }
+  
+  if(charge_probabilities.size()==0)return 0;
+
+  map<float,int>::const_iterator maxit=charge_probabilities.begin();
+  map<float,int>::const_iterator nextit=charge_probabilities.begin();
+
+  for(map<float,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
+    if(it->first>maxit->first)maxit=it;
+    if(it->first>nextit->first && it->first<maxit->first)nextit=it;
+  }
+  if(charge_probabilities.size()==1)return charge_probabilities.begin()->second;
+  
+  
+  // (c1*p1+c2*p2) / (p1+p2)
+  float toReturn= (maxit->second*maxit->first+nextit->second*nextit->first) / (maxit->first+nextit->first);
+  if(debug){
+    printf("max c %i prob %.2f - next c %i prob %.2f\n",maxit->second,maxit->first,nextit->second,nextit->first);
+    printf("returned charge %.2f\n",toReturn);
+  }
+  return toReturn;
+
+}
+
+int TrdHReconR::BuildPDFs(int force,int debug){
+  char hname[100];
+  FILE *f=0;
+  if (force)
+    pdfs.clear();
+  else if(pdfs.size()>0) return 1;
+
+  int toReturn=0;
+  for(int i=0;i<10;i++){
+#ifndef __ROOTSHAREDLIBRARY__
+    sprintf(hname,"%s/TrdChgPDF%i",AMSDATADIR.amsdatadir,i);
+#else
+    sprintf(hname,"pdf_charge_%i",i);
+#endif
+    f=fopen(hname,"r");
+    if(debug) printf("opening file - found %i\n",f!=NULL);
+    if(f == NULL)continue;
+    int bins=0;
+    float min,max;
+    //    float x,y;                                                             
+    int line=0;
+    vector<pair<float,float> > *pdf=new vector<pair<float,float> >;;
+
+    float x,y;
+    double xarr[1000];
+    double yarr[1000];
+    for(int n=0;n<1000;n++){xarr[n]=0.;yarr[n]=0.;}
+
+    int npnts=0;
+    while(!feof(f)&&line<bins+1){
+      if(line==0)
+        fscanf(f,"%i %f %f\n",&bins,&min,&max);
+      else{
+        fscanf(f,"%f %f\n",&x,&y);
+        pdf->push_back(make_pair<float,float>(x,y));
+
+        if(x>0.&&y>0.){
+          xarr[npnts]=x;
+          yarr[npnts]=y;
+          npnts++;
+        }
+      }
+      line++;
+    }
+    fclose(f);
+    if(debug)printf("vector size in retrieval %i %i\n",i,(int)pdf->size());
+    
+    sprintf(hname,"spline_charge_%i",i);
+    TSpline5 *spline=new TSpline5(hname,xarr,yarr,npnts);
+    spline->SetName(hname);
+    spline->SetTitle(hname);
+    
+    pdfs.insert(pair<int,TSpline5>(i,*spline));
+    
+    toReturn++;
+    delete spline;
+  }
+  return toReturn;
+}
+
+float TrdHReconR::GetELikelihood(TrdHTrackR *tr,float beta, int debug){
+  if(debug)printf("Enter TrdHReconR::GetELikelihood\n");
+  double elik=1., plik=1.;
+  
+  double pars[7];
+  for(int i=0;i<7;i++)pars[i]=p_par(i);
+
+  int l=0,n=0;
+  for(l=0;l!=20;l++){
+    float amp=tr->elayer[l]/adc2kev;
+    
+    if(amp<=0.)continue;
+    n++;
+    // multiply electron likelihoods per layer
+    elik*=(e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+
+	   e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)))*exp(e_par(6)+e_par(7)*amp);
+    
+    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)),elik);
+    
+    // multiply proton likelihoods per layer
+    plik*=pfun(amp,pars);
+    
+    if(debug)printf(" plik %.2e accum %.2e\n",pfun(amp,pars),plik);
+  }
+  
+  if(n==0||elik<=0.||plik<=0.){
+    if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e \n",n,elik,plik);
+    return 0.;
+  }
+  if(debug)printf("before norm: elik %.2e plik %.2e \n",elik,plik);
+  
+  // normalize probabilities to number of hits
+  elik=pow(elik,(double)(1./(double)n));
+  plik=pow(plik,(double)(1./(double)n));
+  
+  float loglik=-log(elik/(elik+plik));
+  if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,loglik);
+  return loglik;
+}
+

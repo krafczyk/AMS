@@ -2,7 +2,7 @@
 
 ClassImp(TrdHTrackR)
 
-TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0)
+  TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0),charge(0.),elikelihood(0.)
 {
   float mag=0.;
   for (int i=0;i!=3;i++){
@@ -17,7 +17,7 @@ TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0)
 };
 
 
-TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0){
+TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0),charge(0.),elikelihood(0.){
   for(int i=0;i!=3;i++){
     Coo[i]=0.;
     Dir[i]=0.;
@@ -31,6 +31,8 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
   Chi2=tr->Chi2;
   Nhits=tr->Nhits;
   status=tr->status;
+  charge=tr->charge;
+  elikelihood=tr->elikelihood;
   for(int i=0;i!=3;i++){
     Coo[i]=tr->Coo[i];
     Dir[i]=tr->Dir[i];
@@ -40,10 +42,10 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
 
   for(vector<int>::iterator it=tr->fTrdHSegment.begin();it!=tr->fTrdHSegment.end();it++)
     fTrdHSegment.push_back(*it);
-
+  
   for(vector<TrdHSegmentR>::iterator it=tr->segments.begin();it!=tr->segments.end();it++)
     segments.push_back(*it);
-
+  
 };
 
 int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();;}
@@ -51,19 +53,20 @@ int TrdHTrackR::nTrdHSegment() {return fTrdHSegment.size();}
 int TrdHTrackR::iTrdHSegment(unsigned int i){return (i<nTrdHSegment()?fTrdHSegment[i]:-1);}
 
 TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
-  if(segments.size()<i&&i<fTrdHSegment.size()){
+  if(segments.size()<=i&&i<2){
     segments.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDHSegment");
     for(int i=0;i<cont2->getnelem();i++){
       for(int n=0;n<fTrdHSegment.size();n++){
-        if(i==fTrdHSegment[i])
-          segments.push_back(TrdHSegmentR(*(TrdHSegmentR*)cont2->getelem(i)));
+        if(i==fTrdHSegment[n]){
+          segments.push_back(*(TrdHSegmentR*)cont2->getelem(i));
+	}
       }
     }
     delete cont2;
   }
-
-  if(i<segments.size())return &segments[i];
+  
+  if(i<segments.size())return &segments.at(i);
   return 0;
 }
 

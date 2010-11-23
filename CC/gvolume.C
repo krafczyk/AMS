@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.59 2010/11/07 23:31:01 mmilling Exp $
+//  $Id: gvolume.C,v 1.60 2010/11/23 17:14:15 mmilling Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -441,7 +441,7 @@ integer AMSgvolume::_Norp=0;
      if(_pgtmed->IsSensitive()){
       _pg4l->SetUserLimits(new AMSUserLimits());
       if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
-#ifdef __G4AMS
+#ifdef __G4AMS__
 	trdSimUtil.radregion->AddRootLogicalVolume(_pg4l);
 	trdSimUtil.radlv=_pg4l;
 #endif

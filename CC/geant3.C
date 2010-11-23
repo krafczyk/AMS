@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.142 2010/11/08 18:53:46 barao Exp $
+//  $Id: geant3.C,v 1.143 2010/11/23 17:14:15 mmilling Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -53,9 +53,9 @@ void DumpG3Commons(ostream & o){
 }
 #endif
 
-extern "C" void simde_(int&,float&,float&,float&,float&);
-extern "C" void trphoton_(int&);
-extern "C" void simtrd_(int& ,float&,float&,float&);
+extern "C" void simde_(int&,float&,float&,float&,float&,float&);
+extern "C" void trphoton_(int&,float&);
+extern "C" void simtrd_(int& ,float&,float&,float&,float&);
 extern "C" void getscanfl_(int &scan);
 extern "C" void gustep_(){
 if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
@@ -98,17 +98,24 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
    getscanfl_(scan);
   if(!scan){
   if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
+
+    double mmassCO2 =  44.0095; //! g/mol
+    double mmassXe  = 131.293;  //! g/mol
+    double Rgas     =   8.31447;//! J/mol/K
+
+    float rho_co2= TRDMCFFKEY.CO2Fraction * TRDMCFFKEY.Pmean * mmassCO2 / Rgas / TRDMCFFKEY.Tmean / 1.e1; //! mg/cm3                                             
+    float rho_xe = TRDMCFFKEY.XenonFraction * TRDMCFFKEY.Pmean * mmassXe  / Rgas / TRDMCFFKEY.Tmean / 1.e1; //! mg/cm3                                           
     //saveliev
-    simtrd_(TRDMCFFKEY.g3trd,TRDMCFFKEY.Gdens,TRDMCFFKEY.ntrcor,TRDMCFFKEY.etrcor);
+    simtrd_(TRDMCFFKEY.g3trd,rho_xe,rho_co2,TRDMCFFKEY.ntrcor,TRDMCFFKEY.etrcor);
     if(TRDMCFFKEY.mode<2){
          if(GCTRAK.gekin != GCTRAK.gekin){
           cerr <<"  gekin problem "<<endl;
           GCTRAK.istop =1;
           AMSEvent::gethead()->seterror(2);
          }
-         trphoton_(TRDMCFFKEY.g3trd);
+         trphoton_(TRDMCFFKEY.g3trd,rho_xe);
     }
-    if(TRDMCFFKEY.mode==0)simde_(TRDMCFFKEY.g3trd,TRDMCFFKEY.Gdens,TRDMCFFKEY.Pecut,TRDMCFFKEY.ndecor,TRDMCFFKEY.edecor);
+    if(TRDMCFFKEY.mode==0)simde_(TRDMCFFKEY.g3trd,rho_xe,rho_co2,TRDMCFFKEY.Pecut,TRDMCFFKEY.ndecor,TRDMCFFKEY.edecor);
   }
   else if(TRDMCFFKEY.mode ==3){
     // garibyan
