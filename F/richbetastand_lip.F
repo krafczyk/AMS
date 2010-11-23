@@ -1288,16 +1288,7 @@ cc    RECBET(1)  = 11   ! unused
       xrad_in = x0v_in+(x0m_in-x0v_in)*ZTEST/(ZPMTDET+ZLGSIGNAL)
       yrad_in = y0v_in+(y0m_in-y0v_in)*ZTEST/(ZPMTDET+ZLGSIGNAL)
 
-* ... Old method
-c$$$      if(abs(xrad_in).lt.(0.5*3.*radtile_pitch).and.
-c$$$     +     abs(yrad_in).lt.(0.5*3.*radtile_pitch)) then 
-c$$$         refind_in = radix(2) !NAF
-c$$$      else
-c$$$         refind_in = radix(1) !AGL
-c$$$      endif
-c$$$
-c$$$      thetac_in = acos(1./refind_in)
-
+#ifndef LIPRICHALONE
 * ... New method using data from global simulation
       call lipgetrad(xrad_in,yrad_in,ZTEST,0.,0.,
      +               amsrk,amsri,amsrt)
@@ -1318,6 +1309,18 @@ c$$$      thetac_in = acos(1./refind_in)
          refind_in = radix(2)
          thetac_in = acos(1./refind_in)
       endif
+#else
+* ... Old method
+      if(abs(xrad_in).lt.(0.5*3.*radtile_pitch).and.
+     +     abs(yrad_in).lt.(0.5*3.*radtile_pitch)) then 
+         refind_in = radix(2) !NAF
+      else
+         refind_in = radix(1) !AGL
+      endif
+
+      thetac_in = acos(1./refind_in)
+#endif
+
 
 *      print*,'INGOING DATA FOR TOF RECONSTRUCTION'
 *      print*,'-----------------------------------'
@@ -1349,10 +1352,19 @@ c$$$      thetac_in = acos(1./refind_in)
       if(ierr5p.eq.0) then ! successful 5-parameter reconstruction
          iflag_out = 1
 
+#ifndef LIPRICHALONE
 * ...... Get local ref index from global simulation
          call lipgetrad(x0v_out,y0v_out,0.,0.,0.,
      +                  amsrk,amsri,amsrt)
-
+#else
+* ...... Get local ref index from old method
+         if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
+     +        abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+            amsri = radix(2)    !NAF
+         else
+            amsri = radix(1)    !AGL
+         endif
+#endif
          beta_out = 1./(amsri*cos(thetac_out))
          x0_out = x0m_out-
      +            ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)*(x0m_out-x0v_out)
@@ -1671,19 +1683,7 @@ cc    RECBET(1)  = 11   ! unused
                         yrad_cand = y0v_cand+(y0m_cand-y0v_cand)
      +                                       *ZTEST/(ZPMTDET+ZLGSIGNAL)
 
-* ..................... Old method
-c$$$                        if(abs(xrad_cand).lt.(0.5*3.*radtile_pitch)
-c$$$     +                       .and.
-c$$$     +                       abs(yrad_cand).lt.(0.5*3.*radtile_pitch))
-c$$$     +                       then 
-c$$$                           refind_cand = radix(2) !NAF
-c$$$                        else
-c$$$                           refind_cand = radix(1) !AGL
-c$$$                        endif
-c$$$
-c$$$                        thetac_cand = acos(1./refind_cand)*(fracminthc
-c$$$     +                       +(1.-fracminthc)*(iz-1.)/(ngridthc-1.))
-
+#ifndef LIPRICHALONE
 * ..................... New method using data from global simulation
                         call lipgetrad(xrad_cand,yrad_cand,ZTEST,0.,0.,
      +                                 amsrk,amsri,amsrt)
@@ -1707,6 +1707,20 @@ c$$$     +                       +(1.-fracminthc)*(iz-1.)/(ngridthc-1.))
      +                          *(fracminthc+(1.-fracminthc)*(iz-1.)
      +                          /(ngridthc-1.))
                         endif
+#else
+* ..................... Old method
+                        if(abs(xrad_cand).lt.(0.5*3.*radtile_pitch)
+     +                       .and.
+     +                       abs(yrad_cand).lt.(0.5*3.*radtile_pitch))
+     +                       then 
+                           refind_cand = radix(2) !NAF
+                        else
+                           refind_cand = radix(1) !AGL
+                        endif
+
+                        thetac_cand = acos(1./refind_cand)*(fracminthc
+     +                       +(1.-fracminthc)*(iz-1.)/(ngridthc-1.))
+#endif
 
 * ..................... The following condition excludes combinations
 *                       corresponding to very inclined tracks (x-y distance
@@ -1884,10 +1898,19 @@ c$$$         nuhits_best = -999
 
                if(ierr5p.eq.0) then ! successful 5-parameter reconstruction
 
+#ifndef LIPRICHALONE
 * ............... Get local ref index from global simulation
                   call lipgetrad(x0v_out,y0v_out,0.,0.,0.,
      +                           amsrk,amsri,amsrt)
-
+#else
+* ............... Get local ref index from old method
+                  if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
+     +                 abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+                     amsri = radix(2) !NAF
+                  else
+                     amsri = radix(1) !AGL
+                  endif
+#endif
                   beta_out = 1./(amsri*cos(thetac_out))
                   x0_out = x0m_out-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
      +                 *(x0m_out-x0v_out)
@@ -2028,10 +2051,19 @@ c$$$         nuhits_best = -999
             call richlikemin5parxypart(thetac_best,x0m_best,y0m_best,
      +           x0v_best,y0v_best,errhint,vlike_best,ierr5p)
 
+#ifndef LIPRICHALONE
 * ......... Get local ref index from global simulation
             call lipgetrad(x0v_best,y0v_best,0.,0.,0.,
      +                     amsrk,amsri,amsrt)
-
+#else
+* ......... Get local ref index from old method
+            if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
+     +           abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+               amsri = radix(2) !NAF
+            else
+               amsri = radix(1) !AGL
+            endif
+#endif
             beta_best = 1./(amsri*cos(thetac_best))
             x0_best = x0m_best-ZLGSIGNAL/(ZPMTDET+ZLGSIGNAL)
      +           *(x0m_best-x0v_best)
@@ -2727,6 +2759,3 @@ CU    USES funk
       amotry=ytry
       return
       END
-
-
-
