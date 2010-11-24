@@ -890,43 +890,44 @@ void TrdHReconR::AddHit(TrdRawHitR* hit){
 
 float TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
   if(debug)printf("Enter TrdHReconR::GetCharge\n");
-  if(charge_probabilities.size()==0){
-    float ampcorr[20];
-    for(int i=0;i<20;i++)ampcorr[i]=0.;
-    for(int l=0;l<20;l++){
-      ampcorr[l]+=tr->elayer[l]/adc2kev;// calibration to be done
-    }
-    if(debug)
-      for(int i=0;i<20;i++)
-	printf(" L %i amp %.2f\n",i,ampcorr[i]);
-    
-    if(beta!=0.)// beta correction to be done
-      {
-      }
-    
-    double clik[10];
-    for(int i=0;i<10;i++)clik[i]=1.;
-    
-    int nhit=0;
-    vector<int> charges;
-    for(int i=0;i<20;i++){
-      for(int c=0;c<10;c++){
-	int chg=c+1;
-	map<int,TSpline5>::iterator it=pdfs.find(chg);
-	if(it==pdfs.end()||ampcorr[i]<=0.)continue;
-	
-	float prob=it->second.Eval(ampcorr[i]);
-	if(prob<=0)continue;
-	clik[chg]*=prob;
-	if(debug)printf(" c %i prob %.2e accum %.2e\n",chg,prob,clik[chg]);
-	if(chg==1)nhit++;
-	
-	int found=0;
-	for(int j=0;j<charges.size();j++)if(charges[j]==chg)found=1;
-	if(!found)charges.push_back(chg);
-      }
-    }
+  //  if(charge_probabilities.size()==0){
+  float ampcorr[20];
+  for(int i=0;i<20;i++)ampcorr[i]=0.;
 
+  for(int l=0;l<20;l++){
+    ampcorr[l]+=tr->elayer[l]/adc2kev;// calibration to be done
+  }
+  if(debug)
+    for(int i=0;i<20;i++)
+      printf(" L %i amp %.2f\n",i,ampcorr[i]);
+  
+  if(beta!=0.)// beta correction to be done
+    {
+    }
+  
+  double clik[10];
+  for(int i=0;i<10;i++)clik[i]=1.;
+  
+  int nhit=0;
+  vector<int> charges;
+  for(int i=0;i<20;i++){
+    for(int c=0;c<10;c++){
+      int chg=c+1;
+      map<int,TSpline5>::iterator it=pdfs.find(chg);
+      if(it==pdfs.end()||ampcorr[i]<=0.)continue;
+      
+      float prob=it->second.Eval(ampcorr[i]);
+      if(prob<=0)continue;
+      clik[chg]*=prob;
+      if(debug>1)printf(" c %i prob %.2e accum %.2e\n",chg,prob,clik[chg]);
+      if(chg==1)nhit++;
+      
+      int found=0;
+      for(int j=0;j<charges.size();j++)if(charges[j]==chg)found=1;
+      if(!found)charges.push_back(chg);
+    }
+  }
+    
     for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++){
       clik[*it]=pow(clik[*it],(double)(1./(double)nhit));
       if(debug)printf("normalized prob %i: %.4e\n",*it,clik[*it]);
@@ -941,31 +942,48 @@ float TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
     charge_probabilities.clear();                                              
     for(int i=0;i<charges.size();i++){
       charge_probabilities.insert(pair<float,int>(clik[charges.at(i)],charges.at(i)));   
-      if(debug)printf("charge probs c %i %.2e\n",charges.at(i),clik[charges.at(i)]);
     }
     
-  }
-  
-  if(charge_probabilities.size()==0)return 0;
-
-  map<float,int>::const_iterator maxit=charge_probabilities.begin();
-  map<float,int>::const_iterator nextit=charge_probabilities.begin();
-
-  for(map<float,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
-    if(it->first>maxit->first)maxit=it;
-    if(it->first>nextit->first && it->first<maxit->first)nextit=it;
-  }
-  if(charge_probabilities.size()==1)return charge_probabilities.begin()->second;
-  
-  
-  // (c1*p1+c2*p2) / (p1+p2)
-  float toReturn= (maxit->second*maxit->first+nextit->second*nextit->first) / (maxit->first+nextit->first);
-  if(debug){
-    printf("max c %i prob %.2f - next c %i prob %.2f\n",maxit->second,maxit->first,nextit->second,nextit->first);
-    printf("returned charge %.2f\n",toReturn);
-  }
-  return toReturn;
-
+    for(map<float,int>::reverse_iterator it=charge_probabilities.rbegin();it!=charge_probabilities.rend();it++)
+      if(debug)printf("charge probs c %i %.2e\n",it->second,it->first);
+    //  }
+    
+    if(charge_probabilities.size()==0)return 0;
+    
+    map<float,int>::const_iterator maxit=--charge_probabilities.end();
+    if(charge_probabilities.size()==1)return charge_probabilities.begin()->second;
+    
+    map<float,int>::const_iterator upit=--charge_probabilities.end();
+    map<float,int>::const_iterator lowit=--charge_probabilities.end();
+    
+    for(map<float,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
+      if((maxit->second)-1==it->second)lowit=it;
+      if((maxit->second)+1==it->second)upit=it;
+    }
+    
+    float toReturn=0;
+    if(lowit!=maxit&&upit!=maxit){
+      toReturn= (lowit->first*lowit->second
+		 +maxit->first*maxit->second
+		 +upit->first*upit->second) 
+	/ (lowit->first+maxit->first+upit->first);
+    }
+    else if(lowit!=maxit){
+      toReturn= (lowit->first*lowit->second
+		 +maxit->first*maxit->second)
+	/ (lowit->first+maxit->first);
+    }
+    else if(upit!=maxit){
+      toReturn= (maxit->first*maxit->second
+		 +upit->first*upit->second) 
+	/ (maxit->first+upit->first);
+    }
+    if(debug){
+      printf("max c %i prob %.2f - low c %i prob %.2f - up c %i prob %.2f\n",maxit->second,maxit->first,lowit->second,lowit->first,upit->second,upit->first);
+      printf("returned charge %.2f\n",toReturn);
+    }
+    return toReturn;
+    
 }
 
 int TrdHReconR::BuildPDFs(int force,int debug){
@@ -976,7 +994,7 @@ int TrdHReconR::BuildPDFs(int force,int debug){
   else if(pdfs.size()>0) return 1;
 
   int toReturn=0;
-  for(int i=0;i<10;i++){
+  for(int i=0;i<5;i++){
 #ifndef __ROOTSHAREDLIBRARY__
     sprintf(hname,"%s/TrdChgPDF%i",AMSDATADIR.amsdatadir,i);
 #else
