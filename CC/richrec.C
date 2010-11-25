@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.143 2010/11/08 18:53:46 barao Exp $
+//  $Id: richrec.C,v 1.144 2010/11/25 10:38:41 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1925,7 +1925,8 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   _beta_reflected.clear();
   _hit_pointer.clear();
   _hit_used.clear();
-  
+
+  if(RICRECFFKEY.store_rec_hits)
   for(int i=0;i<size;i++){
     int reflected=fabs(recs[i][1]-seed_beta)<=fabs(recs[i][2]-seed_beta)?1:2;
     int closest=AMSRichRing::closest(seed_beta,recs[i]);

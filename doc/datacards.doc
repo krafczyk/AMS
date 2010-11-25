@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.337 2010/11/09 20:34:17 choutko Exp $
+#  $Id: datacards.doc,v 1.338 2010/11/25 10:38:42 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -142,6 +142,9 @@ R 11  lipznorm[2]                   // LIP charge overall factors (aerogel, NaF)
 
 R 13  lipdisp(0)                    // LIP event display (interactive mode only):
                                     // 0=off, 1=on
+
+I 14  store_rec_hits(0)             // Set to 1 to store information about the reconstructed hits
+                                    // for each ring
 
 RICSET 
 I 1  setup(0)                    // 0 use coarse radiator tables.

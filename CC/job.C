@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.755 2010/11/19 20:31:00 choutko Exp $
+// $Id: job.C,v 1.756 2010/11/25 10:38:40 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -355,6 +355,8 @@ void AMSJob::_sirichdata(){
                                                       //(not yet implemented) 
 
   RICRECFFKEY.lipdisp=0;  // LIP RICH display
+
+  RICRECFFKEY.store_rec_hits=0;  // LIP RICH display
 
   FFKEY("RICREC",(float *)&RICRECFFKEY,sizeof(RICRECFFKEY_DEF)/sizeof(integer),"MIXED");
 

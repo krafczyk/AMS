@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.300 2010/11/09 20:34:17 choutko Exp $
+//  $Id: commons.h,v 1.301 2010/11/25 10:38:41 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1103,6 +1103,7 @@ float   lipsigma[4];  // LIP residuals sigmas
 float   lipdcut[2];   // LIP distance cut in sigmas
 float   lipznorm[2];  // LIP charge overall factors
 integer lipdisp;      // LIP display flag
+integer store_rec_hits;
 };
 #define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
 COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);
