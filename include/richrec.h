@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.68 2010/11/08 18:53:46 barao Exp $
+//  $Id: richrec.h,v 1.69 2010/11/26 11:38:39 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -197,7 +197,8 @@ static geant _Time;
   static geant *_index_tbl;
   static int _kind_of_tile;
   static int _tile_index;
-#pragma omp threadprivate(_index,_height,_entrance_p,_entrance_d,_emission_p,_emission_d,_clarity,_abs_len,_index_tbl,_kind_of_tile,_tile_index)
+  static geant _distance2border;
+#pragma omp threadprivate(_index,_height,_entrance_p,_entrance_d,_emission_p,_emission_d,_clarity,_abs_len,_index_tbl,_kind_of_tile,_tile_index,_distance2border)
 
   // Tables for light guide response
 // Some variables used in AMSRichRing::generated

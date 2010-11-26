@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.144 2010/11/25 10:38:41 mdelgado Exp $
+//  $Id: richrec.C,v 1.145 2010/11/26 11:38:39 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -537,6 +537,7 @@ geant   *AMSRichRing::_index_tbl=0;
 
 int     AMSRichRing::_kind_of_tile=0;
 int     AMSRichRing::_tile_index=0;
+geant AMSRichRing::_distance2border=0;
 
 void AMSRichRing::build(){
   _Start();
@@ -622,7 +623,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _index_tbl=crossed_tile.getindextable();
   _kind_of_tile=crossed_tile.getkind();
   _tile_index=crossed_tile.getcurrenttile();
-
+  _distance2border=crossed_tile.getdistance();
   
 #ifdef _OPENMP
   if(__DEBUGP__){
@@ -2004,6 +2005,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
     _pmtpos[2]=0;
   }
 
+  _status|=(int(_distance2border*100)&0x7fff)<<15;
 
 #ifdef _OPENMP
   if(__DEBUGP__){

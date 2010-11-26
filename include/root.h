@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.294 2010/11/21 00:58:24 choutko Exp $
+//  $Id: root.h,v 1.295 2010/11/26 11:38:39 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1116,6 +1116,11 @@ public:
   } 
 
   virtual ~RichHitR(){};
+
+  bool IsCrossed(){return (Status&(1<<30))!=0;}
+  bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
+  bool IsHighGain(int){return (Status&(1<<29))!=0;}
+
 ClassDef(RichHitR,4)       // RichHitR
 #pragma omp threadprivate(fgIsA)
 };
@@ -1143,6 +1148,8 @@ public:
 2- Ring reconstructed using the NaF radiator in the double radiator configuration
 
 14 - Associated to a particle
+
+16-30 reserved
 
 31 - Associated to a track used in a gamma reconstruction.
 
@@ -1208,6 +1215,12 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
+
+  
+  bool Rebuild(){return (Status&1)!=0;}
+  bool IsNaf(){return (Status&2)!=0;}
+  double DistanceTileBorder(){return double((Status>>15)&0x7fff)/100.;}
+
   virtual ~RichRingR(){};
   ClassDef(RichRingR,14)           // RichRingR
 #pragma omp threadprivate(fgIsA)
