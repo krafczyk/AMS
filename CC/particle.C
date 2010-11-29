@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.214 2010/11/10 08:49:26 shaino Exp $
+//  $Id: particle.C,v 1.215 2010/11/29 10:14:40 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -42,18 +42,6 @@ number AMSParticle::trdpspect[30]={
 
 number AMSParticle::trdespect[30]={
   0.065593,0.113031,0.120425,0.101903,0.072328,0.0493411,0.0367496,0.038287,0.0353587,0.0377013,0.0333089,0.0302343,0.0296486,0.025183,0.0237921,0.0173499,0.0167643,0.0169839,0.0127379,0.0140556,0.0122987,0.011347,0.00944363,0.00812592,0.00629575,0.00702782,0.00600293,0.00592972,0.00387994,0.00461201};
-
-Double_t pfun(Double_t x, Double_t *par) {
-Double_t mpshift  = -0.22278298;
-  if(x<par[1]){
-    Double_t mean= par[1] - mpshift * par[2];
-    return par[0]*TMath::Landau(x,par[1],par[2])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
-  }
-  else {
-    Double_t mean= par[1] - mpshift * par[3];
-    return par[0]*TMath::Landau(x,par[1],par[3])*TMath::Exp(par[4]*(x-mean)+par[5]*(x-mean)*(x-mean)+par[6]*(x-mean)*(x-mean)*(x-mean));
-  }
-}
 
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
@@ -420,31 +408,6 @@ void AMSParticle::ecalfit(){
 
 }
 
-double e_par(int p){
-  if(p==0)return 0.533941;
-  else if(p==1)return 2.04519;
-  else if(p==2)return 0.90618;
-  else if(p==3)return 0.177358;
-  else if(p==4)return 13.3248;
-  else if(p==5)return 4.80789;
-  else if(p==6)return 0.312408;
-  else if(p==7)return -0.0432751;
-  else return 0.;
-}
-
-
-// get conv landau fit param depending on trtrack rigidity [GV] 
-double p_par(int p){
-  if(p==0)return 1.32391;
-  else if(p==1)return 2.23676;
-  else if(p==2)return 1.02281;
-  else if(p==3)return 0.788797;
-  else if(p==4)return -0.0594475;
-  else if(p==5)return 0.00140946;
-  else if(p==6)return -2.07114e-05;
-  else return 0.;
-}
-
 // Find TrdHTrack matching TrTrack of ParticleR and get
 // -loglikelihood of the event to be electron-like
 void AMSParticle::trd_Hlikelihood(){
@@ -538,6 +501,9 @@ void AMSParticle::trd_Hlikelihood(){
 	if(_phtrd){
 	  if(debug)printf("new TRDHTrack found\n");
 	  _phtrd->status=3;
+	  TrdHReconR trdhrec;
+	  _phtrd->charge=trdhrec.GetCharge(_phtrd);
+	  _phtrd->elikelihood=trdhrec.GetELikelihood(_phtrd);
 	  AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
 	}
       }
@@ -545,58 +511,11 @@ void AMSParticle::trd_Hlikelihood(){
   }
 
   if(!_phtrd)return;
-
-  // get track rigidity - currently skipped
-  /*  float rig=0.;
-#ifdef _PGTRACK_
-  rig=_ptrack->GetRigidity();
-#else
-  rig=_ptrack->getgrid();
-  rig=_ptrack->getrid();
-#endif
-  if(debug)printf("Rigidity: %.2f\n",rig);
-  rig=fabs(rig);
-  if(rig==0.||isnan(rig)||isinf(rig)||rig>1.e5)return;
-  */
-  double pars[7];
-  for(int i=0;i<7;i++)pars[i]=p_par(i);
-
-  double elik=1., plik=1.;
-  int l=0,n=0;
-  for(l=0;l!=20;l++){
-    float amp=_phtrd->elayer[l]/TRDMCFFKEY.GeV2ADC*1.e6;
-    //    TRDMCFFKEY.GeV2ADC/1.e6=1.e8/3;
-
-    if(amp>TRDRECFFKEY.CCAmpCut)_TRDCCnhit++;
-    if(amp<=0.)continue;
-    n++;
-    // multiply electron likelihoods per layer
-    elik*=(e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+
-	   e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)))*exp(e_par(6)+e_par(7)*amp);
-
-    if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)),elik);
-    
-    // multiply proton likelihoods per layer
-    plik*=pfun(amp,pars);
-
-    if(debug)printf(" plik %.2e accum %.2e\n",pfun(amp,pars),plik);
-  }
-
-  if(n==0||elik<=0.||plik<=0.){
-    if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e \n",n,elik,plik);
-    return;
-  }
-  if(debug)printf("before norm: elik %.2e plik %.2e \n",elik,plik);
-
-  // normalize probabilities to number of hits
-  elik=pow(elik,(double)(1./(double)n));
-  plik=pow(plik,(double)(1./(double)n));
-
-  _TRDHLikelihood=-log(elik/(elik+plik));
-  _TRDHElik=elik;
-  _TRDHPlik=plik;
+  _TRDHLikelihood=_phtrd->elikelihood;
+  //  _TRDHElik=elik;
+  //  _TRDHPlik=plik;
   //cout <<"  elik "<<elik<<" "<<plik<<endl;                                                                        
-  if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,_TRDHLikelihood);
+  if(debug)printf("likelihood %.2f\n",_TRDHLikelihood);
 }
 
 void AMSParticle::trd_likelihood(){

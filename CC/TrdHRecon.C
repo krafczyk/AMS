@@ -121,7 +121,7 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
 
   tr->Nhits=(int)s1->fTrdRawHit.size()+(int)s2->fTrdRawHit.size();
   tr->Chi2=s1->Chi2+s2->Chi2; 
-
+  
   if(debug)printf("Leaving SegToTrack - return AMSTRDHTrack\n");
   return tr;
 }
@@ -847,15 +847,15 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
       }
     }
     
-    tr->charge=GetCharge(tr);
-    tr->elikelihood=GetELikelihood(tr);
-
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
 #else
     TrdHTrackR* amstr=tr;
 #endif
     
+    amstr->charge=GetCharge(amstr);
+    amstr->elikelihood=GetELikelihood(amstr);
+
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");
     if(amstr){
       cont2->addnext(amstr);
