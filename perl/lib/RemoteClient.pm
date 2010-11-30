@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.600 2010/11/19 20:31:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.601 2010/11/30 12:11:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -841,7 +841,8 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","OPENCLOSE");
+       $template->{OPENCLOSE}=undef;
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -852,6 +853,19 @@ if($#{$self->{DataSetsT}}==-1){
                }
             }
         }
+            if(defined $template->{OPENCLOSE}){
+                #die " $template->{OPENCLOSE} $template->{TOTALEVENTS} $full " ;
+           if($template->{OPENCLOSE}==0){
+               $template->{TOTALEVENTS}=0;
+           }
+       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
+           $template->{TOTALEVENTS}=0;
+         }
+       elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
+             $template->{TOTALEVENTS}=0;
+         }
+       }
+   
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
@@ -961,9 +975,9 @@ if($#{$self->{DataSetsT}}==-1){
 # here data type datasets
       #datamc==1
          my $datafiles="datafiles";
-         if($dataset->{datamc}/10==1){
-             $datafiles="mcfiles";
-         }
+#         if($dataset->{datamc}/10==1){
+#             $datafiles="mcfiles";
+#         }
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
@@ -989,6 +1003,8 @@ if($#{$self->{DataSetsT}}==-1){
        my @sbuf=split "\n",$buf;
        my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
           $template->{TAG}=-1;   
+          $template->{RUNMIN}=0;   
+          $template->{RUNMAX}=4000000000;   
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -4120,8 +4136,8 @@ CheckCite:            if (defined $q->param("QCite")) {
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
            my $did = $r->[0];
-           $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, dataRuns.SUBMIT
-                    FROM dataRuns, Jobs, datasetsdesc
+           $sql  = "SELECT dataRuns.Run, Jobs.JOBNAME, dataRuns.SUBMIT,dataruns.jid
+                    FROM dataRuns, Jobs
                      WHERE Jobs.DID=$did AND Jobs.JID=dataRuns.JID 
                              AND dataRuns.Status='Completed'";
       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
@@ -4163,6 +4179,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
+               push @jids,$r->[3];
                push @jobnames,$r->[1];
                push @submits,$r->[2];
               }
@@ -4170,7 +4187,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             }
       }
      } else {
-        $sql = "SELECT dataRuns.RUN, Jobs.JOBNAME, dataRuns.SUBMIT
+        $sql = "SELECT dataRuns.RUN, Jobs.JOBNAME, dataRuns.SUBMIT,dataruns.jid 
                     FROM dataRuns, Jobs
                      WHERE dataRuns.JID=Jobs.JID AND dataRuns.Status='Completed'  ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
@@ -4212,6 +4229,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
+               push @jids,$r->[3];
                push @jobnames,$r->[1];
                push @submits,$r->[2];
               }
@@ -4286,6 +4304,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "<BR><BR>\n";
        }
 # ....print 'ALL' information
+      #  die " $#runs $sql $sqlNT blia\n";
        if ($q->param("NTOUT") eq "ALL") {
               my $i       = 0;
               my $runold  = 0;
@@ -4366,6 +4385,7 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "</tr>\n";
      my $color="black";
      my $i =0;
+       #die "@runs"; 
        foreach my $run (@runs){
          my $jobname = $jobnames[$i];
          my $submit  = $submits[$i];
@@ -4393,6 +4413,7 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<td><b><font color=\"blue\" >File Path </font></b></td>";
     print "</tr>\n";
      my $i =0;
+       #die "$#jids\n";
        foreach my $run (@jids){
                if ($accessmode eq "REMOTE") {
                 $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
@@ -15619,7 +15640,7 @@ sub calculateMipsVC {
    }
           else{
          my $datafiles="datafiles";
-         if($dataset->{datamc}%10==1){
+         if($dataset->{datamc}/10==1){
              $datafiles="mcfiles";
          }
        foreach my $job (@jobs){
@@ -15639,6 +15660,8 @@ sub calculateMipsVC {
            my @sbuf=split "\n",$buf;
        my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
           $template->{TAG}=-1;   
+          $template->{RUNMIN}=0;   
+          $template->{RUNMAX}=4000000000;   
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){

@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.53 2010/11/16 16:47:20 choutko Exp $
+#  $Id: 00index.txt,v 1.54 2010/11/30 12:11:01 choutko Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
@@ -15,11 +15,10 @@ Makefile.linux// OS dep -> Linux-gcc32  (!) old root for the moment
 	  // setenv   AMSP 1           enable the parallel processing (Intel compilers only)
           // setenv   PGTRACK 1        enable the new tracker SW
 	  
-Moptg4    // makefile to gmake g4 batch ! Only RH7.3 is supported !!!
+Moptg4    // makefile to gmake g4 batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
-          // setenv O4 1   super-opt option (alpha only)
           // setenv AMSWD to some tmp dir is  recommended
-Moptg4i    // makefile to gmake geant interactive  g4
+Moptg4i    // makefile to gmake geant interactive  g4 (not yet supported)
 
 
 
