@@ -2,8 +2,7 @@
 ///
 #define stlv_cxx
 #define _PGTRACK_
-#include "../include/root_RVS.h"
-#include "../include/TrTrack.h"
+#include "../include/root_RVSP.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TStyle.h"
@@ -845,7 +844,7 @@ if(h6 && h1 &&h9){
      if(icomb<0){
        comb[ncomb++]=ic;
         //cout <<"  comb found "<<ncomb<<endl;;
-                  for(int  k=1;k<10;k++){
+//                  for(int  k=1;k<10;k++){
      unsigned long long p=1;
      //  for(int  kk=1;kk<k;kk++)p*=100;
      //              cout <<"  "<<(ic/p)%100;
@@ -1103,7 +1102,7 @@ float xytrd[2]={0,0};
 }
   catch (...)
     {
-     static i=0;
+     static int i=0;
      if(i++<100);cout <<"  daqe exception catched "<<Run()<< " " <<Event()<<endl;
       //abort();
     return ;
