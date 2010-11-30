@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.54 2010/11/30 12:11:01 choutko Exp $
+#  $Id: 00index.txt,v 1.55 2010/11/30 13:40:48 choutko Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
@@ -7,7 +7,7 @@ source /Offline/vdev/install/amsvar.icc64
 Makefile.linuxicc64 // OS dep -> Linux-icc64  default one
 source /Offline/vdev/install/amsvar.icc32
 Makefile.linuxicc// OS dep -> Linux-icc32  
-Makefile.linux// OS dep -> Linux-gcc32  (!) old root for the moment  
+Makefile.linux// OS dep -> Linux-gcc32   
           // setenv   DEBUGFLAG 1      sets the -g option in compiling; 
 	  // unsetenv DEBUGFLAG        turn on  optimizatio in compiling;
           // setenv   AMSPROFILE 1     adds gprof;

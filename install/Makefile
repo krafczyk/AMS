@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.125 2010/11/21 00:58:25 choutko Exp $
+#  $Id: Makefile,v 1.126 2010/11/30 13:40:48 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -769,6 +769,9 @@ clean :
 	rm -f $(BIN)*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 	rm -f $(NTLD) $(SHLD)
+
+cleanALL : 
+	rm -Rf $(AMSWD)/bin 
 
 cleanlibs:
 	rm -f $(NTLD) $(SHLD)
