@@ -17,7 +17,7 @@ void RichLIPRec::InitGlobal(){
   LIPC2F.rcgeom_c2f[1] = 0;
   LIPC2F.levgeom_c2f = 4;
   LIPC2F.levgrad_c2f = 2;
-  LIPC2F.levacc_c2f = 1;
+  LIPC2F.levacc_c2f = 0; // 0 = faster version (1 = slower)
   LIPC2F.levghit_c2f = 1;
   LIPC2F.ztarg_c2f = 0.;
   LIPC2F.nradts_c2f = 1;
