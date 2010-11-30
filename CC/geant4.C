@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.71 2010/11/22 10:52:31 pzuccon Exp $
+//  $Id: geant4.C,v 1.72 2010/11/30 10:27:53 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -907,7 +907,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       number c=0.52;
       number dedxcm=1000*dee/GCTRAK.step;
       dee=dee/(1+c*atan(rkb/c*dedxcm));
- static int np=0; if(np++<0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
+ static unsigned int np=0; if(np++<0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
        AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
        }
      }

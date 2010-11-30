@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.4 2010/01/22 11:34:26 pzuccon Exp $
+//  $Id: commonsi.h,v 1.5 2010/11/30 10:27:46 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -35,6 +35,7 @@ private:
  static integer _Count;
  static char _version[6];
  static uinteger _build;
+ static uinteger _buildtime;
  static uinteger _os;
  static char _osname[255];
  static char _osversion[255];

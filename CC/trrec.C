@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.229 2010/11/05 19:25:35 choutko Exp $
+//  $Id: trrec.C,v 1.230 2010/11/30 10:27:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2313,6 +2313,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 
 
 void AMSTrTrack::AdvancedFit(){
+AMSgObj::BookTimer.start("TrAdvancedFit");
 //  Recalculate center of gravity hits if corr angle > TRFITFFKEY.B23
     number nx=sin(_Theta)*cos(_Phi);
     number ny=sin(_Theta)*sin(_Phi);
@@ -2327,23 +2328,40 @@ void AMSTrTrack::AdvancedFit(){
     if(!force[0] || !force[1] || TRFITFFKEY.AddMS==1)Fit(0); 
     _AdvancedFitDone=1;
     if(TKDBc::patpoints(_Pattern)>3){
+AMSgObj::BookTimer.start("TrAdvancedFit_3");
       Fit(1);
       Fit(2);
-    }
+    AMSgObj::BookTimer.stop("TrAdvancedFit_3");
+}
     Fit(6);
     Fit(4);
     Fit(5);
+AMSgObj::BookTimer.start("TrAdvancedFit_3");
+
     Fit(3);
+AMSgObj::BookTimer.stop("TrAdvancedFit_3");
+
     if(TKDBc::patpoints(_Pattern)>5){
 
     Fit(10);
     Fit(15);
+AMSgObj::BookTimer.start("TrAdvancedFit_3");
+
     Fit(13);
+AMSgObj::BookTimer.stop("TrAdvancedFit_3");
+
     Fit(20);
     Fit(25);
+AMSgObj::BookTimer.start("TrAdvancedFit_3");
     Fit(23);
+AMSgObj::BookTimer.stop("TrAdvancedFit_3");
+
    }
+
+AMSgObj::BookTimer.stop("TrAdvancedFit");
+
 }
+
 
 integer AMSTrTrack::TOFOK(){
     if(TRFITFFKEY.UseTRD &&(TRFITFFKEY.UseTRD>1 || TKDBc::ambig(_Pattern) || 

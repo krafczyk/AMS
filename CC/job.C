@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.756 2010/11/25 10:38:40 mdelgado Exp $
+// $Id: job.C,v 1.757 2010/11/30 10:27:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2488,6 +2488,9 @@ AMSgObj::BookTimer.book("TrTrackSimpleFit");
 AMSgObj::BookTimer.book("TrTrackPathIA");
 AMSgObj::BookTimer.book("TrTrackFalseTOFX");
 AMSgObj::BookTimer.book("TrFalseX");
+AMSgObj::BookTimer.book("TrAdvancedFit");
+AMSgObj::BookTimer.book("TrAdvancedFit_3");
+
   if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files
 //
     TrkElosPDF::build();//create TrkElosPDF-objects from TRK raw ChargeCalibFile
