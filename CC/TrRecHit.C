@@ -81,10 +81,17 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY,  int imult, int
   if (!clX) Status |= YONLY;
   if (!clY) Status |= XONLY;
   _dummyX   = 0;
+  int xaddr =  640;
+  if(clX!=0)
+	xaddr =  clX->GetAddress();
+  else if(_dummyX>=0)
+	xaddr += _dummyX;
+	  
+  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
 
   // coordinate construction
-  BuildCoordinates();
   _imult    = imult; 
+  _coord=GetGlobalCoordinate(_imult);	
 }
 
 const AMSPoint TrRecHitR::HitPointDist(const AMSPoint& aa,int& mult){
@@ -162,34 +169,34 @@ TrClusterR* TrRecHitR::GetYCluster() {
   return _clusterY;
 }
 
-void TrRecHitR::BuildCoordinates() {
-  // coordinate construction
-  TrClusterR* clX= GetXCluster();
-  int xaddr =  640;
-  if(clX!=0)
-    xaddr =  clX->GetAddress();
-  else if(_dummyX>=0)
-    xaddr += _dummyX;
-  
-  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
-  _coord.clear();
-  for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
-
-//   for (int ii=0;ii<_coord.size();ii++){
-//     float x[3],b[3];
-//     x[0]=_coord[ii].x();
-//     x[1]=_coord[ii].y();
-//     x[2]=_coord[ii].z();
-//       GUFLD(x,b);
-//     _bfield.push_back(AMSPoint(b));
-//   }
-
-
-  if (TasHit()) {
-    if (!GetXCluster() || !GetXCluster()->TasCls() || 
-        !GetYCluster() || !GetYCluster()->TasCls()) Status &= ~TASHIT;
-  }
-}
+//void TrRecHitR::BuildCoordinates() {
+//  // coordinate construction
+//  TrClusterR* clX= GetXCluster();
+//  int xaddr =  640;
+//  if(clX!=0)
+//    xaddr =  clX->GetAddress();
+//  else if(_dummyX>=0)
+//    xaddr += _dummyX;
+//  
+//  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
+//  _coord.clear();
+//  for (int imult=0; imult<_mult; imult++) _coord.push_back(GetGlobalCoordinate(imult));
+//
+////   for (int ii=0;ii<_coord.size();ii++){
+////     float x[3],b[3];
+////     x[0]=_coord[ii].x();
+////     x[1]=_coord[ii].y();
+////     x[2]=_coord[ii].z();
+////       GUFLD(x,b);
+////     _bfield.push_back(AMSPoint(b));
+////   }
+//
+//
+//  if (TasHit()) {
+//    if (!GetXCluster() || !GetXCluster()->TasCls() || 
+//        !GetYCluster() || !GetYCluster()->TasCls()) Status &= ~TASHIT;
+//  }
+//}
 
 TrRecHitR::~TrRecHitR() {
   Clear();
@@ -209,7 +216,7 @@ void TrRecHitR::Clear() {
   _mult     = 0;
   _imult    = -1; 
   _dummyX   = 0;
-  _coord.clear();
+  _coord=AMSPoint(0,0,0);
   //  _bfield.clear();
 }
 

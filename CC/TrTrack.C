@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.72 2010/11/21 16:28:04 shaino Exp $
+// $Id: TrTrack.C,v 1.73 2010/11/30 18:42:31 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/21 16:28:04 $
+///$Date: 2010/11/30 18:42:31 $
 ///
-///$Revision: 1.72 $
+///$Revision: 1.73 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,7 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     //    _iMult[i] = -1;
-    _BField[i]=AMSPoint(0,0,0);
+    //    _BField[i]=AMSPoint(0,0,0);
   }
   trdefaultfit=0;
   _MagFieldOn=0;
@@ -118,8 +118,8 @@ TrTrackR::TrTrackR(int pattern, int nhits, TrRecHitR *phit[],AMSPoint bfield[], 
     if (imult  && i < _Nhits && phit[i] ) 
       phit[i]->SetResolvedMultiplicity(imult[i]);
 
-    _BField[i]= (bfield && i < _Nhits) ? bfield[i]: AMSPoint(0,0,0);
-    if(_BField[i].norm()!=0) _MagFieldOn=1;
+    //    _BField[i]= (bfield && i < _Nhits) ? bfield[i]: AMSPoint(0,0,0);
+    if(bfield && i < _Nhits && bfield[i].norm()!=0) _MagFieldOn=1;
     if (phit && i < _Nhits) {
       _bit_pattern|= 1<<(phit[i]->GetLayer()-1);
       if (phit[i]->GetXCluster()) _NhitsX++;
@@ -157,8 +157,9 @@ TrTrackR::TrTrackR(number theta, number phi, AMSPoint point)
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iHits[i] = -1; //_iMult[i] = -1;
-    _BField[i]= AMSPoint(0,0,0);
-    par.Residual[i] = 0;
+    //    _BField[i]= AMSPoint(0,0,0);
+    par.Residual[i][0] = 0;
+    par.Residual[i][1] = 0;
   }
   Status=0;
   _bit_pattern=_PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
@@ -187,8 +188,9 @@ TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
   for(int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
     _iHits[i] = -1; //_iMult[i] = -1;
-    _BField[i]= AMSPoint(0,0,0);
-    par.Residual[i] = 0;
+    //    _BField[i]= AMSPoint(0,0,0);
+    par.Residual[i][0] = 0;
+    par.Residual[i][1] = 0;
   }
   Status=0;
   _bit_pattern=_PatternX = _PatternY = _PatternXY = _NhitsX = _NhitsY = _NhitsXY = 0;
@@ -200,7 +202,7 @@ TrTrackR::TrTrackR(AMSDir dir, AMSPoint point, number rig, number errig)
 TrTrackR::TrTrackR(const TrTrackR& orig){
   for (int ii=0;ii<trconst::maxlay;ii++){
     _Hits[ii]=orig._Hits[ii] ;
-    _BField[ii]=orig._BField[ii] ; 
+    //    _BField[ii]=orig._BField[ii] ; 
     _iHits[ii]=orig._iHits[ii] ;
     //    _iMult[ii]=orig._iMult[ii] ;
   }
@@ -318,12 +320,12 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
     coo[0]=hit->GetCoord().x();
     coo[1]=hit->GetCoord().y();
     coo[2]=hit->GetCoord().z();
-    GUFLD(coo, bf);
-    _BField[ihit] = AMSPoint(bf);
+    //GUFLD(coo, bf);
+    //_BField[ihit] = AMSPoint(bf);
     _MagFieldOn = 1;
   }
   else {
-    _BField[ihit] = AMSPoint(0, 0, 0);
+    //    _BField[ihit] = AMSPoint(0, 0, 0);
     _MagFieldOn = 0;
   }
 }
@@ -343,7 +345,7 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   _Nhits--;
   for (int kk=idx;kk<_Nhits;kk++){
     _Hits   [kk] = _Hits   [kk+1];
-    _BField [kk] = _BField [kk+1];
+    //    _BField [kk] = _BField [kk+1];
     _iHits  [kk] = _iHits  [kk+1];
   }
   // Update the number of projection hits
@@ -493,7 +495,7 @@ void TrTrackR::EstimateDummyX(int fitid)
       hit->SetResolvedMultiplicity(tks.GetMultIndex());
     }
 
-    hit->BuildCoordinates();
+    //    hit->BuildCoordinates();
   }
 }
 
@@ -772,10 +774,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
     
-    // pz the field is known from the class data member GUFLD(pp, bf);
-    bf[0]=_BField[j].x();
-    bf[1]=_BField[j].y();
-    bf[2]=_BField[j].z();
+    
+    GUFLD(pp, bf);
+    // bf[0]=_BField[j].x();
+//     bf[1]=_BField[j].y();
+//     bf[2]=_BField[j].z();
     _TrFit.Add(coo, hit->OnlyY() ? 0 : errx*fmscx,
 	            hit->OnlyX() ? 0 : erry*fmscy,
 	                               errz, 
@@ -829,16 +832,20 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
 
     int il = hit->GetLayer()-1;
-    par.Residual[il].setp(_TrFit.GetXr(i), _TrFit.GetYr(i), _TrFit.GetZr(i));
+    par.Residual[il][0]=_TrFit.GetXr(i);
+    par.Residual[il][1]= _TrFit.GetYr(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
-    if (par.Residual[i].norm() == 0) {
+    if (GetResidual(i).norm() == 0) {
       TrRecHitR *hit = GetHitL(i);
       AMSPoint pint  = InterpolateLayer(i, id);
-      if (hit)
-	par.Residual[i] = hit->GetCoord()-pint;
-      else
-	par.Residual[i] = pint;
+      if (hit){
+	par.Residual[i][0] = (hit->GetCoord()-pint)[0];
+	par.Residual[i][1] = (hit->GetCoord()-pint)[1];
+      }else{
+	par.Residual[i][0] = pint[0];
+	par.Residual[i][1] = pint[1];
+      }
     }
   }
 

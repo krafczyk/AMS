@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.47 2010/11/21 12:01:28 shaino Exp $
+//  $Id: TrTrack.h,v 1.48 2010/11/30 18:42:47 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/11/21 12:01:28 $
+///$Date: 2010/11/30 18:42:47 $
 ///
-///$Revision: 1.47 $
+///$Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,7 +78,7 @@ public:
   /// Rigidity in GV
   Double32_t Rigidity;
   /// Fitting error on 1/rigidity in 1/GV
-  Double_t ErrRinv;
+  Double32_t ErrRinv;
   /// Track positon (normally defined at Z=0 plane)
   /*!
    * Note: Definition of P0 is different from original Gbatch 
@@ -88,8 +88,8 @@ public:
   /*!
    * Note: Theta and Phi can be obtained through AMSDir */
   AMSDir Dir;
-  /// Fitting residual at each layer
-  AMSPoint Residual[trconst::maxlay];
+  /// Fitting residual at each layer 0-X  1-Y
+  float Residual[trconst::maxlay][2];
 
   /// Default constructor to fill default values
   TrTrackPar()
@@ -100,7 +100,7 @@ public:
   void Print(int full=0);
   void Print_stream(std::string &ostr,int full=0);
 
-  ClassDef(TrTrackPar,1);
+  ClassDef(TrTrackPar,2);
 } ; 
 
 
@@ -187,8 +187,8 @@ public:
 protected:
   /// Vector of hit pointers, to be not stored in ROOT Tree
   TrRecHitR* _Hits[trconst::maxlay]; //!
-  /// Vector of hit values of magnetic field at track hits
-  AMSPoint  _BField[trconst::maxlay]; 
+//   /// Vector of hit values of magnetic field at track hits
+//   AMSPoint  _BField[trconst::maxlay]; 
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
   short int _iHits[trconst::maxlay];
 //   /// Vector of multiplicty index (to fix x-coord) 
@@ -327,10 +327,12 @@ public:
   AMSDir GetPdir(int id = 0);
   ///Returns the direction at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
-  /// Return the 3D residual at layer ilay (0-7) from TrTrackPar corresponding to id
-  AMSPoint GetResidual (int ilay, int id= 0) { 
-    return ((id == 0 || ParExists(id)) && 0 <= ilay && ilay < trconst::maxlay)
-      ? GetPar(id).Residual[ilay] : AMSPoint(0, 0, 0);
+  /// Return the  proj (0=X,1=Y) residual at layer ilay (0-8) from TrTrackPar corresponding to id
+  AMSPoint  GetResidual (int ilay, int id= 0) { 
+    if( ilay<0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
+    if(id == 0 || ParExists(id)) return AMSPoint(0,0,0);  
+      AMSPoint(GetPar(id).Residual[ilay][0],GetPar(id).Residual[ilay][1],TkDBc::Head->GetZlayer(ilay+1));
+      return AMSPoint(0,0,0);
   }
   ///  Get back the string corresponding to a fit ID
   static char* GetFitNameFromID(int fitnum);
@@ -574,7 +576,9 @@ public:
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		     number& Theta, number& Phi, AMSPoint& X0);
 
-  
+ //!Return the number of store fit results (TrTrackPar objects)
+	int nTrTrackPar(){return _TrackPar.size();}
+
   /// Print Track basic information on a given stream 
   std::ostream& putout(std::ostream &ostr = std::cout);
  
@@ -611,7 +615,7 @@ public:
 
   int Pattern(int input=111111111) ; ///< \return full track  pattern hit suitable for iTrTrackPar
   /// ROOT definition
-  ClassDef(TrTrackR, 3);
+  ClassDef(TrTrackR, 4);
 };
 
 

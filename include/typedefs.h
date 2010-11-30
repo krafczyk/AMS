@@ -1,4 +1,4 @@
-//  $Id: typedefs.h,v 1.17 2010/11/17 11:02:38 pzuccon Exp $
+//  $Id: typedefs.h,v 1.18 2010/11/30 18:42:47 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __TYPEDEFS__
@@ -11,6 +11,7 @@ typedef double float_d;
 typedef unsigned char uchar;
 typedef unsigned short int int16u;
 typedef unsigned short int uint16;
+typedef  unsigned char uint8;
 typedef  signed char int8;
 typedef  short int int16;
 typedef long int_L;

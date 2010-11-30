@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.33 2010/11/19 20:54:34 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.34 2010/11/30 18:42:58 pzuccon Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -868,7 +868,7 @@ TrRecHitV::TrRecHitV(AMSEventR *ev,int ref,int mult):AMSDrawI(ev,ref),TMarker3DC
     int size=gAMSDisplay->Focus()==0?2:1;
     //   cerr<<"--->Preparing TrRecHit "<<pcl->GetGlobalCoordinate(mult)<< endl;
     if(pcl){
-      pcl->BuildCoordinates();
+//      pcl->BuildCoordinates();
       float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
       float sizey=pcl->GetECoord()[1]*100;
       float sizez=(sqrt(pcl->Sum())<4)?sqrt(pcl->Sum()):4.;

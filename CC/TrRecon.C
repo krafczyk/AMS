@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.78 2010/11/17 11:02:29 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.79 2010/11/30 18:42:31 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/17 11:02:29 $
+/// $Date: 2010/11/30 18:42:31 $
 ///
-/// $Revision: 1.78 $
+/// $Revision: 1.79 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1996,7 +1996,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     if (fabs(DXY[il].diff.x()) < diffX_max) {
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
       hit->SetResolvedMultiplicity(DXY[il].mlmin);
-      track->GetPar(mfit).Residual[lyext[il]-1].setp(DXY[il].diff.x(), DXY[il].diff.y(), 0);
+      track->GetPar(mfit).Residual[lyext[il]-1][0]=DXY[il].diff.x();
+      track->GetPar(mfit).Residual[lyext[il]-1][1]=DXY[il].diff.y();
       hit->setstatus(AMSDBc::USED);
       track->AddHit(hit);
       nadd++;
@@ -2009,9 +2010,10 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       if (DY[il].mlmin >= nmlt) DY[il].mlmin = nmlt-1;
       if (DY[il].mlmin <     0) DY[il].mlmin = 0;
       hit->SetDummyX(tks.GetStripX());
-      hit->BuildCoordinates();
+     // hit->BuildCoordinates();
       hit->SetResolvedMultiplicity(DY[il].mlmin);
-      track->GetPar(mfit).Residual[lyext[il]-1].setp(0, DY[il].diff.y(), 0);
+      track->GetPar(mfit).Residual[lyext[il]-1][0]=0;
+      track->GetPar(mfit).Residual[lyext[il]-1][1]=DY[il].diff.y();
       track->AddHit(hit);
       hit->setstatus(AMSDBc::USED);
       nadd++;
@@ -2074,7 +2076,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
       }
 
       hit->SetDummyX(dmx);
-      hit->BuildCoordinates();
+      //hit->BuildCoordinates();
       track->setstatus(AMSDBc::FalseX); // AMSDBc::FalseX = 8192; (0x2000)
     }
     hit->SetResolvedMultiplicity(itcand.imult[i]);
@@ -2142,7 +2144,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
                 xcls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
     if (ycls) { ycls->SetDxDz(dtrk[i].x()/dtrk[i].z());
                 ycls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
-    hit->BuildCoordinates();
+  //  hit->BuildCoordinates();
   }
 
   // 2nd. step Fit
@@ -2714,7 +2716,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 	if(tks.LadFound()){
 	  if(tks.GetStripX()!=-1) phit->SetDummyX(tks.GetStripX());
 	  else phit->SetDummyX(383);
-	  phit->BuildCoordinates();	  
+	  //phit->BuildCoordinates();	  
 	  phit->SetResolvedMultiplicity(tks.GetMultIndex());
 	}
       }

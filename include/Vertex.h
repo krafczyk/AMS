@@ -20,13 +20,13 @@ public:
   number ErrMomentum;  ///< Error in 1 / Momentum Sum (1/GeV)
   number Theta;        ///< Theta (rad)
   number Phi;          ///< Phi  (rad)
-  integer Charge;      ///< Charge at vertex
+  int8   Charge;      ///< Charge at vertex
   number Chi2;         ///< Chi2
-  integer Ndof;        ///< Number of degrees of freedom
-  float Vertex[3];     ///< reconstructed vertex (cm)
+  uint8  Ndof;        ///< Number of degrees of freedom
+  float  Vertex[3];     ///< reconstructed vertex (cm)
 
   /// Vector holding the index to tracks connected to the vertex
-  vector <int>          fTrTrack;
+  vector <int16>          fTrTrack;
   
 
   /// Build index vector (_fTrTrack) from hits vector (pTrTrack)
@@ -35,7 +35,7 @@ protected:
   /// Vector holding the pointer to tracks connected to the vertex
   vector<TrTrackR *> _pTrTrack; //!
   /// 
-  int _filled;
+  int8 _filled;
   void _PrepareOutput(int full=0);
 
 public:
@@ -112,7 +112,7 @@ public:
   // Friends
   friend class AMSTrTrack;
 
-  ClassDef(VertexR,2);
+  ClassDef(VertexR,3);
 
 };
 // End VertexR CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.43 2010/11/19 20:54:34 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.44 2010/11/30 18:42:58 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -476,7 +476,7 @@ public:
 	  AMSPoint aa=hh->GetCoord();
 	  if(hh->OnlyY () && hh->GetDummyX()==-1){
 	    hh->SetDummyX(0);
-	    hh->BuildCoordinates();
+//	    hh->BuildCoordinates();
 	  }
 	  SetPoint(ind++,aa[0],aa[1],aa[2]);
 	}

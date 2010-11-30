@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.23 2010/11/17 11:02:38 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.24 2010/11/30 18:42:47 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -56,7 +56,7 @@ protected:
   /// Dummy X-strip position for YONLY hit
   float _dummyX;
   /// Hit global coordinate (multiplicity vector) 
-  vector<AMSPoint> _coord;
+  AMSPoint _coord;
 
 
   /// X Cluster index
@@ -86,9 +86,10 @@ protected:
   virtual ~TrRecHitR();
   /// Clear data members
   void Clear();
-  /// Build coordinates
-  void BuildCoordinates();
-
+  /*
+	/// Build coordinates
+ // void BuildCoordinates();
+*/
 //####################  ACCESSORS ##############################
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
@@ -122,12 +123,13 @@ protected:
   /// Get the hit multiplicity 
   int   GetMultiplicity()      { return _mult; }
   /// Returns the computed global coordinate (if resolved)
-  const AMSPoint GetCoord() { return ( (0<=_imult) && (_imult<_mult) ) 
-			  ? GetCoord(_imult) : _coord.at(0); }
+  const AMSPoint GetCoord() { return _coord; }
   /// Get the computed global coordinate by multiplicity index
-  const AMSPoint GetCoord(int imult) { if(_coord.empty()) BuildCoordinates();
-    return (0<=imult && imult<_mult) ? _coord.at(imult) : AMSPoint(0,0,0); }
-
+  const AMSPoint GetCoord(int imult){
+	if(imult<0||imult>=_mult) return AMSPoint(0,0,0);
+	else if(imult==_imult)    return _coord;
+	else                      return GetGlobalCoordinate(imult);
+  } 
   //PZ removed to save space  /// Returns the computed global coordinate (if resolved)
   //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
   //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
@@ -155,6 +157,7 @@ protected:
     if (im < 0) im = 0;
     if (im >= _mult) im = _mult-1;
     _imult = im; 
+	_coord=GetGlobalCoordinate(_imult);
   }
 
 
@@ -162,7 +165,17 @@ protected:
   float GetDummyX() { return _dummyX; }
 
   /// Set dummy strip position
-  void SetDummyX(float dumx) { _dummyX = dumx; }
+  void SetDummyX(float dumx) { 
+	  _dummyX = dumx; 
+	  float xaddr=640;
+	  TrClusterR* clX= GetXCluster();
+	  if(clX!=0)
+		  xaddr =  clX->GetAddress();
+	  else if(_dummyX>=0)
+		  xaddr += _dummyX;
+	  
+	  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
+  }
 
   /// Returns the signal of the Y cluster 
   float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
@@ -229,7 +242,7 @@ protected:
     return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
   }
   /// ROOT definition
-  ClassDef(TrRecHitR,2)
+  ClassDef(TrRecHitR,3)
 };
 
 #endif
