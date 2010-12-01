@@ -80,7 +80,7 @@ c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
 c 30=ref.cal_files set number (=run number)
 c----------- 
 TFCA 1=0.3 2=100. 3=$AVERBETA 7=$AVERBETA  9=0
-     11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 29=1
+     11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 19=0 29=1
 c 29=0/1 -> flag selecting cal.files reading from official/user directories
 c Time(Tdelv/Tzslw)-calibration:
 c
@@ -106,10 +106,12 @@ ECRE 1=0
 c--------------
 c TRFIT 63=0
 c 63->Filter out(1) or not(0) hits inconsistent with TOF
-c
-BETAFIT 13=20. 14=20.
+c--------------
+BETAFIT 13=20. 14=20.  20=12
 c 13,14->Max distance(x/y) between track & tof hit in sigma's
 c   (use this relaxed cuts when starting from scratch)
+c 20=MN->N=0(NoBetaReco)/N=1(New method)/N=2(Old method)/N=3(Both)
+c M=0/1->MasteNew/MasterOld
 c--------------
 MAGS 1=$MAGSTAT
 c--------------

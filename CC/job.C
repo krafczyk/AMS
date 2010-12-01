@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.757 2010/11/30 10:27:53 choutko Exp $
+// $Id: job.C,v 1.758 2010/12/01 16:57:30 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -830,7 +830,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
   ECMCFFKEY.adc2q=0.045;    //(11)Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)(used for satur.eff)
-  ECMCFFKEY.fendrf=0.3;     //(12) fiber end-cut reflection factor
+  ECMCFFKEY.fendrf=0.;      //(12) (0.3)fiber end-cut reflection factor(=0 since 2.12.10 on EC-group request)
   ECMCFFKEY.physa2d=6.;     //(13) physical(for trigger) an/dyn ratio(mv/mv) 
   ECMCFFKEY.hi2low=36.;     //(14) not used now 
   ECMCFFKEY.sbcgn=1.;       //(15) not used now 

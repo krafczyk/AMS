@@ -979,7 +979,7 @@ sub TAUC_Welcome{
   $SessTLabel=$year."-".$month."-".$day."_".$hour.":".$min;
   print "SessTLabel=",$SessTLabel,"\n";
 #
-  $line=" ------- WELCOME to TimeAmplitudeUniformity calibration !!! -------\n\n";
+  $line=" ----- WELCOME to TimeAmplitudeUniformity calibration !!! -----\n\n";
   $logtext->insert('end',$line,'BigAttention');
   $logtext->yview('end');
   show_messg("   <--- Session starts at : ".$SessTime."\n");
@@ -1553,12 +1553,12 @@ NextJob:
       $jpar11="AMS02";#  ="AMS02Ass1" as default
     }
     elsif($CalRun1>1278775789 && $CalRun2>1278775789){#--->jul.and later 2010 (AMS02P)
-      $jpar7=1;//olways "on" (perm.magnet)
+      $jpar7=1;#allways "on" (perm.magnet)
       if($posstext eq "OnEarth"){#--->still on earth
-        $jpar11="AMS02P";#  ="AMS02PAss1" as default
+        $jpar11="AMS02P";#  ="AMS02P" as default
       }
       else{
-        $jpar11="AMS02Space";
+        $jpar11="AMS02P";
       }
       
     } 
@@ -1903,12 +1903,12 @@ sub SubmitJob
   my $jobname=$SessName.$ext;
   if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
-#    $comm2run="bsub -q $Queue2run -n $jpar8 -o $logf -e $logef  -J $jobname $JobScriptN";
-    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar8 -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
   else{
-#    $comm2run="bsub -q $Queue2run -n $jpar8 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
-    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar8 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
 #
 TryAgain:
