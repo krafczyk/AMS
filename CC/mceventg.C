@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.159 2010/12/01 11:21:31 shaino Exp $
+//  $Id: mceventg.C,v 1.160 2010/12/01 11:33:34 shaino Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -13,7 +13,10 @@
 #include "ecaldbc.h"
 #include "tofdbc02.h"
 #include "astro.h" //ISN 
+
+#ifdef _PGTRACK_
 #include "HistoMan.h"
+#endif
 
 #ifdef __AMSVMC__
 
@@ -1213,9 +1216,15 @@ _charge=charge;
    integer nt=0;
    do{
       gener();
+#ifdef _PGTRACK_
       hman.Fill("Pgen", _mom);
+#endif
     }while(!accept());
+
+#ifdef _PGTRACK_
    hman.Fill("Pacc", _mom);
+#endif
+
     // Set seed
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){
