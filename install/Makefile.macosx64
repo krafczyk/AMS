@@ -1,0 +1,182 @@
+# P.Zuccon june 2005
+# General clean up and reorganization
+#
+
+#   Architecture linux g++
+
+
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+
+VERGCC       := $(shell gcc --version | grep 4.1)
+
+ifdef VER
+NEW = 
+else
+NEW = _new
+endif
+
+
+
+########################################################################
+#Compilers
+########################################################################
+  CC  = gcc  -m64
+  CXX = g++ -m64
+  FF  = gfortran -m64 
+  FFOLD=$(FF)
+  LD  = g++ -m64 -v
+  FORTRAN2_LIBS=
+  FORTRAN_LIBS+= -L/usr/local/gfortran/lib -lgfortran 
+
+
+ORBIT2DIR=/opt/Orbit2
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=orbit-idl-2 -l cpp
+
+
+########################################################################
+# CERN & AMS Libraries
+########################################################################
+
+CERN_LEVEL =2006
+CERNLIBS=  -lgeant321 -lpacklib -lmathlib    
+CERNSRCDIR = /cern/$(CERN_LEVEL)
+
+CERNDIR = /cern/$(CERN_LEVEL)
+AMSLIB =  ../lib/Darwin/
+NAGDIR = ../lib/Darwin/
+
+
+########################################################################
+# Compilers FLAGS
+########################################################################
+
+
+ifdef AMSDEBUG
+DEFINES+=  -D__AMSDEBUG__
+endif
+
+ifdef TFADBW
+DEFINES+=  -D__TFADBW__
+endif
+
+ifdef TFAPEDC
+DEFINES+=  -D__TFAPEDC__
+endif
+
+
+CFLAGSB= -Wall -Wno-pragmas -Wno-deprecated -Wno-write-strings   
+#CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
+DEFINES+= -DNO_NAG -D__DARWIN__  -D__root_$(NEW) 
+
+ifdef AMSPROFILE
+  CFLAGSB+=-pg
+endif
+
+CFLAGS=       $(CFLAGSB)   
+CFLAGSTOFSIM= $(CFLAGSB) 
+CFLAGSn=      $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB) 
+
+FFLAGS=       -fno-automatic -DNO_NAG 
+FFLAGSn=      -fno-automatic -DNO_NAG
+
+
+ifdef AMSPROFILE 
+  FFLAGS+=-pg
+  FFLAGSn+=-pg
+endif
+
+ifdef DEBUGFLAG
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
+    CFLAGS       += -g
+    CFLAGSTOFSIM += -g
+    CFLAGSn      += -g
+    CFLAGSDAQ    += -g
+    FFLAGS       += -g
+    FFLAGSn      += -g
+else
+    CFLAGS       += -O3      
+    CFLAGSTOFSIM += -O1
+    CFLAGSn      += -O2    
+    CFLAGSDAQ    += -O2 
+    FFLAGS       += -O3    
+    FFLAGSn      += -O2  
+endif
+
+SOFLAGS = -shared
+
+
+ifdef SLC4system
+ifdef VER
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lNetx -lHist -lHistPainter -lGraf -lMatrix 
+endif
+endif
+
+SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx
+
+########################################################################
+# Output dirs
+########################################################################
+
+#----------------------------------------------------
+
+
+# Library list 
+TIMEL=
+
+LDFLAGSI=      $(FORTRAN2_LIBS) \
+-L$(NAGDIR)  \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot -lMinuit -lfreetype\
+ -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre   \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+
+LDFLAGS=      $(FORTRAN2_LIBS) \
+-L$(NAGDIR)    \
+-L$(AMSLIB)  -lamsut   \
+-L$(CERNDIR)/lib   $(CERNLIBS) \
+`root-config --libs` -lMinuit -lGeom -lHistPainter\
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifdef AMSPROFILE
+  LDFLAGS+=-pg
+endif
+
+LDFLAGSSTATIC:=    $(LDFLAGS) $(RH9add) 
+
+
+
+#--------------------------------------------------------------------------------------------------
+#------- Client/server ORbIt/CORBA part
+#--------------------------------------------------------------------------------------------------
+
+TIMEL=
+
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
+
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+
+
+ifdef DEBUGFLAG
+CXX_ORBIT+= -g
+CCC_ORBIT+= -g
+else
+CXX_ORBIT+= -O3
+CCC_ORBIT+= -O3
+endif
+
+
+#endif
+
+# end of Linux case
+
+#########################################################
