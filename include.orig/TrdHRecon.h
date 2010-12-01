@@ -12,6 +12,8 @@
 #include "TSpline.h"
 #include "TMath.h"
 
+const int maxtrdhrecon=64;
+
 const float TRDz0=113.5;
 const float RSDmax=0.6;
 using namespace std;
@@ -142,9 +144,16 @@ public:
 };
 
 
+
 /// class to perform and store TRD H reconstruction
 class TrdHReconR{
  public:
+
+  static TrdHReconR * _trdhrecon[maxtrdhrecon];
+  static TrdHReconR * gethead(int i)  {
+    if(!_trdhrecon[i])_trdhrecon[i]=new TrdHReconR();
+    return _trdhrecon[i];
+  }
 
   /// vector of TrdRawHit objects (used as input to reconstruction)
   vector<TrdRawHitR> rhits;
@@ -164,6 +173,9 @@ class TrdHReconR{
   /// factor to convert from adc to kev (default 33.33)
   float adc2kev;
   
+  /// amplitude cut for cluster counting
+  float ccampcut;
+
   /// container to store tube energy spline fit for charges
   map<int,TSpline5> pdfs;
 
@@ -171,7 +183,7 @@ class TrdHReconR{
   map<float,int> charge_probabilities;
 
   /// default ctor
-  TrdHReconR():adc2kev(100./3.){
+  TrdHReconR():adc2kev(100./3.),ccampcut(6.){
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
@@ -215,16 +227,16 @@ class TrdHReconR{
   int  combine_segments(int debug=0);
 
   // check if there is a secondary track in TRD (vertex)
-  vector<pair<int,int> > check_secondaries();
+  vector<pair<int,int> > check_secondaries(int debug=0);
 
   /// read reconstructed TRD event from ROOT-file
   void ReadTRDEvent(vector<TrdRawHitR> r,vector<TrdHSegmentR> s,vector<TrdHTrackR> t);
 
   /// reconstruct TRD event according to TrdRawHit selection
-  void BuildTRDEvent(vector<TrdRawHitR> r);
+  void BuildTRDEvent(vector<TrdRawHitR> r,int debug=0);
 
   /// reconstruct trd event
-  int retrdhevent();
+  int retrdhevent(int debug=0);
 
   /// add segment to containers
   void AddSegment(TrdHSegmentR* hit);
@@ -242,10 +254,13 @@ class TrdHReconR{
   float GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
 
   /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
-  float GetELikelihood(TrdHTrackR *tr,float beta=0., int debug=0);
+  float GetELikelihood(TrdHTrackR *tr,float beta=0., int opt=0,int debug=0);
+
+  /// get numbr of hits above CC amplitude cut
+  int GetNCC(TrdHTrackR *tr,int debug=0);
 
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
-  static TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
+  TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
 
   int build();
 

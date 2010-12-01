@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.215 2010/11/29 10:14:40 mmilling Exp $
+//  $Id: particle.C,v 1.216 2010/12/01 18:12:55 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -493,28 +493,28 @@ void AMSParticle::trd_Hlikelihood(){
 
     if(sptr[0]>=0&&sptr[1]>=0){
       if(debug)printf("try to build new TrdHTrackR \n");
-      TrdHTrackR* tr=TrdHReconR::SegToTrack(sptr[0],sptr[1]);
+      TrdHTrackR* tr=TrdHReconR::gethead(AMSEvent::get_thread_num())->SegToTrack(sptr[0],sptr[1],2);
       if(tr){
 	if(debug)printf("generate AMSTRDHTrack\n");
-	_phtrd=new AMSTRDHTrack(tr);
-	if(debug)printf("delete TrdHTrackR\n");
-	if(_phtrd){
-	  if(debug)printf("new TRDHTrack found\n");
-	  _phtrd->status=3;
-	  TrdHReconR trdhrec;
-	  _phtrd->charge=trdhrec.GetCharge(_phtrd);
-	  _phtrd->elikelihood=trdhrec.GetELikelihood(_phtrd);
-	  AMSEvent::gethead()->addnext(AMSID("AMSTRDHTrack",0),_phtrd);
+	if(tr){
+	  tr->status=3;
+	  TrdHReconR::gethead(AMSEvent::get_thread_num())->AddTrack(tr);
+	  _TRDHLikelihood=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr);
+	  _TRDHElik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr,0.,1);
+	  _TRDHPlik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr,0.,2);
+	  _TRDCCnhit=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetNCC(tr);
+
 	}
       }
     }
   }
 
+
   if(!_phtrd)return;
   _TRDHLikelihood=_phtrd->elikelihood;
-  //  _TRDHElik=elik;
-  //  _TRDHPlik=plik;
-  //cout <<"  elik "<<elik<<" "<<plik<<endl;                                                                        
+  _TRDHElik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(_phtrd,0.,1);
+  _TRDHPlik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(_phtrd,0.,2);
+  _TRDCCnhit=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetNCC(_phtrd);
   if(debug)printf("likelihood %.2f\n",_TRDHLikelihood);
 }
 

@@ -1,8 +1,5 @@
 #include "TrdHRecon.h"
 #include "VCon.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trdsim.h"
 #include "tofrec02.h"
@@ -22,6 +19,15 @@ int TrdHTrackR::numa=0;
 #endif
 
 ClassImp(TrdHReconR);
+
+TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
+  {0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0};
 
 Double_t pfun(Double_t x, Double_t *par) {
 Double_t mpshift  = -0.22278298;
@@ -62,6 +68,7 @@ double p_par(int p){
 
 
 TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
+#ifndef __ROOTSHAREDLIBRARY__
   TrdHSegmentR *s1=0,*s2=0;
   VCon* cont=GetVCon()->GetCont("AMSTRDHSegment");
   if(cont){
@@ -70,8 +77,12 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
     delete cont;
   }
   else return 0;
+#else
+  TrdHSegmentR* s1=&hsegvec.at(is1);
+  TrdHSegmentR* s2=&hsegvec.at(is2);
+#endif
 
-  if(debug)printf("Entering TrdHReconR::SegToTrack s1 %d s2 %d\n",s1,s2);
+  if(debug)printf("Entering TrdHReconR::SegToTrack s1 %d (i %i) s2 %d (i %i)\n",s1,is1,s2,is2);
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
   if(isnan(s1->m)||isnan(s2->m))return 0;
@@ -487,8 +498,7 @@ bool TrdHReconR::check_hits(int is1,int is2,int debug){
   return (nhitsok==nref);
 }
 
-vector<pair<int,int> > TrdHReconR::check_secondaries(){
-  int debug=0;
+vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
   vector<pair<int, int> > toReturn;toReturn.clear();
 
   // rough division of TRD height in dm (0=0-10 cm, 6=60-70 cm)
@@ -678,7 +688,7 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   for(int i=0;i!=t.size();i++)htrvec.push_back(t[i]);
 }
 
-void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
+void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
   rhits.clear();
   htrvec.clear();
   hsegvec.clear();
@@ -689,7 +699,7 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r){
   if(r.size()<3)return;
   for(int n=0;n<r.size();n++)AddHit(&r[n]);
 
-  retrdhevent();
+  retrdhevent(debug);
   //  r.clear();
 }
 
@@ -773,8 +783,7 @@ void TrdHReconR::clear(){
   return;
 #endif
 }
-int TrdHReconR::retrdhevent(){
-  int debug=0;
+int TrdHReconR::retrdhevent(int debug){
   
   // skip arrays for now
   int nhcut=1.e6; //  below 40 nTRDRawHits: vector-histo 
@@ -1046,7 +1055,7 @@ int TrdHReconR::BuildPDFs(int force,int debug){
   return toReturn;
 }
 
-float TrdHReconR::GetELikelihood(TrdHTrackR *tr,float beta, int debug){
+float TrdHReconR::GetELikelihood(TrdHTrackR *tr,float beta, int opt,int debug){
   if(debug)printf("Enter TrdHReconR::GetELikelihood\n");
   double elik=1., plik=1.;
   
@@ -1083,6 +1092,22 @@ float TrdHReconR::GetELikelihood(TrdHTrackR *tr,float beta, int debug){
   
   float loglik=-log(elik/(elik+plik));
   if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,loglik);
-  return loglik;
+
+  if(opt==0)return loglik;
+  else if(opt==1)return elik;
+  else if(opt==2)return plik; 
+  else return 0.; 
 }
 
+int TrdHReconR::GetNCC(TrdHTrackR* tr,int debug){
+  int n=0;
+  for(int l=0;l!=20;l++){
+    float amp=tr->elayer[l]/adc2kev;
+#ifndef __ROOTSHAREDLIBRARY__
+    if(amp>TRDRECFFKEY.CCAmpCut)n++;
+#else
+    if(amp>ccampcut)n++;
+#endif
+  }
+  return n;
+}

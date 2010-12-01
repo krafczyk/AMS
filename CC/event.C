@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.499 2010/11/23 17:14:15 mmilling Exp $
+//  $Id: event.C,v 1.500 2010/12/01 18:12:55 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -82,10 +82,6 @@ extern LMS* lms;
 
 
 //#include "HistoMan.h"
-
-TrdHReconR *trdhrecon=0;
-#pragma omp threadprivate (trdhrecon)
-
 
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
@@ -2035,9 +2031,10 @@ void AMSEvent::_retrdevent(){
   #endif
   //  AMSgObj::BookTimer.start("RETRDHEVENT");
 
-  if(!trdhrecon)trdhrecon=new TrdHReconR();
-  else trdhrecon->clear();
-  trdhrecon->build();
+  //  if(!trdhrecon)trdhrecon=new TrdHReconR();
+  //  else trdhrecon->clear();
+  TrdHReconR::gethead(AMSEvent::get_thread_num())->clear();
+  TrdHReconR::gethead(AMSEvent::get_thread_num())->build();
 
   //  AMSgObj::BookTimer.stop("RETRDHEVENT");
   #ifdef __MLD__
