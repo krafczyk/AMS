@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.158 2010/07/23 10:13:40 pzuccon Exp $
+//  $Id: mceventg.C,v 1.159 2010/12/01 11:21:31 shaino Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -13,6 +13,7 @@
 #include "ecaldbc.h"
 #include "tofdbc02.h"
 #include "astro.h" //ISN 
+#include "HistoMan.h"
 
 #ifdef __AMSVMC__
 
@@ -363,6 +364,14 @@ again:
       number lz=zb-za;
       geant xin,yin;
      //
+
+      static int init = 0;
+      if (!init) {
+	init = 1;
+	cout<<"AMSmceventg::gener-I-coo= "
+	    <<xa<<" "<<xb<<" "<<ya<<" "<<yb<<" "<<za<<" "<<zb<<" "
+	    <<curp<<endl;
+      }
      
       switch(curp){
       case 1:
@@ -1012,11 +1021,15 @@ bool AMSmceventg::SpecialCuts(integer cut){
 	cout << "SpecialCut: " << cut 
 	     << " AMS-B full Tracker cut applied" << endl;
       }
-      geant z1 = 155, z2 = -135;
+      geant z1 = 155, z2 = -135, z0 = 0;
+      AMSPoint pnt0 = _coo+_dir*(z0-_coo.z())/_dir.z();
       AMSPoint pnt1 = _coo+_dir*(z1-_coo.z())/_dir.z();
       AMSPoint pnt2 = _coo+_dir*(z2-_coo.z())/_dir.z();
+      bool cut0 = (sqrt(pnt0.x()*pnt0.x()+pnt0.y()*pnt0.y()) < 55 && 
+		                               abs(pnt0.y()) < 40);
       bool cut1 = (sqrt(pnt1.x()*pnt1.x()+pnt1.y()*pnt1.y()) < 60);
       bool cut2 = (abs(pnt2.x()) < 45 && abs(pnt2.y()) < 30);
+      if (!cut0) return false;
       if (cut == 5 && (cut1 && cut2)) return true;
       if (cut == 6 && (cut1 || cut2)) return true;
     }
@@ -1200,7 +1213,9 @@ _charge=charge;
    integer nt=0;
    do{
       gener();
+      hman.Fill("Pgen", _mom);
     }while(!accept());
+   hman.Fill("Pacc", _mom);
     // Set seed
 #ifdef __G4AMS__
 if(!MISCFFKEY.G3On){

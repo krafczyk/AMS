@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.30 2010/11/11 17:48:24 shaino Exp $
+//  $Id: event_tk.C,v 1.31 2010/12/01 11:21:31 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -257,11 +257,13 @@ void AMSEvent::_retkevent(integer refit){
     hman.Fill("TrNhit", trk->GetNhitsY(), trk->GetNhitsXY());
 
     int pate = TrRecon::GetHitPatternAllow(trk->GetPattern());
-    if (i == 0 && pate == 0 && trk->GetNhitsY () >= 6 && 
-	                       trk->GetNhitsXY() >= 5) {
-      double argt = fabs(trk->GetRigidity());
-      hman.Fill("TrCsqX", argt, trk->GetNormChisqX());
-      hman.Fill("TrCsqY", argt, trk->GetNormChisqY());
+    int mfs  = TrTrackR::kChoutko | TrTrackR::kMultScat;
+    if (i == 0 && trk->ParExists(mfs) &&
+	pate == 0 && trk->GetNhitsY () >= 6 && 
+	             trk->GetNhitsXY() >= 5) {
+      double argt = fabs(trk->GetRigidity(mfs));
+      hman.Fill("TrCsqX", argt, trk->GetChisqX(mfs));
+      hman.Fill("TrCsqY", argt, trk->GetChisqY(mfs));
 
       double ssump = 0, ssumn = 0, smaxp = 0, smaxn = 0;
       int    nsump = 0, nsumn = 0;
@@ -282,21 +284,52 @@ void AMSEvent::_retkevent(integer refit){
       if (nsumn-1 > 0) hman.Fill("TrChgN", argt, (ssumn-smaxn)/(nsumn-1));
     }
 
-    if (i == 0&& TkDBc::Head->GetSetup()==3) {
-      int mf8 = TrTrackR::kChoutko | TrTrackR::kFitLayer8;
-      int mf9 = TrTrackR::kChoutko | TrTrackR::kFitLayer9;
-      AMSPoint pl8 = trk->InterpolateLayer(7);
-      AMSPoint pl9 = trk->InterpolateLayer(8);
+    if (i == 0 && TkDBc::Head->GetSetup()==3) {
+      int mf0 = TrTrackR::kChoutko;
+      int mfs = TrTrackR::kChoutko | TrTrackR::kMultScat;
+      int mf8 = mfs | TrTrackR::kFitLayer8;
+      int mf9 = mfs | TrTrackR::kFitLayer9;
+      AMSPoint pl8, pl9;
+      AMSDir   dr8, dr9;
+      trk->InterpolateLayer(7, pl8, dr8, mf0);
+      trk->InterpolateLayer(8, pl9, dr9, mf0);
       AMSPoint p0;
      if (pl8.dist(p0) > 1e-3 && pl9.dist(p0) > 1e-3) {
       hman.Fill("TrPtkL8", pl8.x(), pl8.y());
       hman.Fill("TrPtkL9", pl9.x(), pl9.y());
-      if (trk->ParExists(mf8) && 
-	  trk->GetChisqX(mf8) < 1e5 && 
-	  trk->GetChisqY(mf8) < 1e5) hman.Fill("TrPftL8", pl8.x(), pl8.y());
-      if (trk->ParExists(mf9) && 
-	  trk->GetChisqX(mf9) < 1e5 && 
-	  trk->GetChisqY(mf9) < 1e5) hman.Fill("TrPftL9", pl9.x(), pl9.y());
+
+      if (trk->ParExists(mf8) && trk->ParExists(mf0) && 
+	  trk->GetChisqX(mf8) < 100 && trk->GetChisqY(mf8) < 100) {
+	AMSPoint   res = trk->GetResidual(7, mf0);
+	TrRecHitR *hit = trk->GetHitL(7);
+	hman.Fill("TrPftL8", pl8.x(), pl8.y());
+
+	if (hit && !hit->OnlyY()) {
+	  hman.Fill("TrAlg81", pl8.x(), dr8.x()/dr8.z(), res.x());
+	  hman.Fill("TrAlg82", pl8.y(), dr8.x()/dr8.z(), res.x());
+	}
+	if (hit && !hit->OnlyX()) {
+	  hman.Fill("TrAlg83", pl8.x(), dr8.y()/dr8.z(), res.y());
+	  hman.Fill("TrAlg84", pl8.y(), dr8.y()/dr8.z(), res.y());
+	}
+      }
+
+      if (trk->ParExists(mf9) && trk->ParExists(mf0) && 
+	  trk->GetChisqX(mf9) < 100 && trk->GetChisqY(mf9) < 100) {
+	AMSPoint   res = trk->GetResidual(8, mf0);
+	TrRecHitR *hit = trk->GetHitL(8);
+	hman.Fill("TrPftL9", pl9.x(), pl9.y());
+
+	if (hit && !hit->OnlyY()) {
+	  hman.Fill("TrAlg91", pl9.x(), dr9.x()/dr9.z(), res.x());
+	  hman.Fill("TrAlg92", pl9.y(), dr9.x()/dr9.z(), res.x());
+	}
+	if (hit && !hit->OnlyX()) {
+	  hman.Fill("TrAlg93", pl9.x(), dr9.y()/dr9.z(), res.y());
+	  hman.Fill("TrAlg94", pl9.y(), dr9.y()/dr9.z(), res.y());
+	}
+      }
+
      }
     }
     if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||

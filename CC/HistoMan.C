@@ -249,6 +249,19 @@ void HistoMan::BookHistos(){
   Add(new TH2D("TrPtkL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPftL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
 
+  Add(new TH3D("TrAlg81", "rx VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg82", "rx VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg83", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg84", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+
+  Add(new TH3D("TrAlg91", "rx VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg92", "rx VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+  Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
+
+  Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
+  Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+
   // TrSim
   if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
       TRMCFFKEY.SimulationType==TrSim::kTrSim2010) {

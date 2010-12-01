@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.73 2010/11/30 18:42:31 pzuccon Exp $
+// $Id: TrTrack.C,v 1.74 2010/12/01 11:21:31 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/11/30 18:42:31 $
+///$Date: 2010/12/01 11:21:31 $
 ///
-///$Revision: 1.73 $
+///$Revision: 1.74 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1067,6 +1067,9 @@ int TrTrackR::DoAdvancedFit(int add_flag)
        FitT(DefaultAdvancedFitFlags[ii]| kUpperHalf);
        FitT(DefaultAdvancedFitFlags[ii]| kLowerHalf);
      }
+     else if (ii < 4)
+       FitT(DefaultAdvancedFitFlags[ii]| add_flag);
+
      if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
        FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
    }
