@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.216 2010/12/01 18:12:55 mmilling Exp $
+//  $Id: particle.C,v 1.217 2010/12/01 18:18:14 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -493,7 +493,7 @@ void AMSParticle::trd_Hlikelihood(){
 
     if(sptr[0]>=0&&sptr[1]>=0){
       if(debug)printf("try to build new TrdHTrackR \n");
-      TrdHTrackR* tr=TrdHReconR::gethead(AMSEvent::get_thread_num())->SegToTrack(sptr[0],sptr[1],2);
+      TrdHTrackR* tr=TrdHReconR::gethead(AMSEvent::get_thread_num())->SegToTrack(sptr[0],sptr[1]);
       if(tr){
 	if(debug)printf("generate AMSTRDHTrack\n");
 	if(tr){
