@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.4 2010/11/20 16:23:56 shaino Exp $
+# $Id: Makefile,v 1.5 2010/12/01 08:01:53 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
-# libMinuit2.so is required (ROOT v5.22.00j or higher is recommended)
+# Minuit2 component is required in libRoot.a
 #
 # bin/tbalign: Generate a TTree for TB alignment from AMSRoot files
 # bin/pmalign: Generate a TTree for CR alignment from AMSRoot files
@@ -10,7 +10,7 @@
 # bin/tbafit : Tracker alignment with tbalign.root files
 # bin/pmafit : Tracker alignment with pmalign.root files
 #
-# 2010/10/14 SH
+# 2010/12/1 SH
 
 WDIR = $(AMSSRC)/tkalign
 ARCH = $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -23,6 +23,7 @@ ifeq ($(M32),32)
   FLGS := $(FLGS) -m32
 endif
 
+
 ICC  = $(shell $(ROOTSYS)/bin/root-config --cxx | grep icc)
 ifeq ($(ICC),icc)
   PARA = -D__X8664__ -D__AMSPARALLEL__ -openmp
@@ -30,11 +31,14 @@ ifeq ($(ICC),icc)
   IVER = Compiler/11.1/073
   IOPT = -axsse4.2,ssse3
   CXX  = $(IDIR)/$(IVER)/bin/intel64/icc  $(IOPT) -vec-report0 $(PARA)
-  LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT)
+  LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT) $(PARA)
 endif
 
+# Dinamic library
+#LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
 
-LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+# Static library
+LIBR = -L$(ROOTSYS)/lib -lRoot -lXrdClient -lcrypt -lfreetype -ldl -lpcre
 LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
 
 MODS = tbalign tbafit tbaf tbafm tbafcp \
