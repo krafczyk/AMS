@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.79 2010/11/30 18:42:31 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.80 2010/12/02 10:56:28 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/11/30 18:42:31 $
+/// $Date: 2010/12/02 10:56:28 $
 ///
-/// $Revision: 1.79 $
+/// $Revision: 1.80 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1953,7 +1953,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     float dy=fabs(DD[1]);
     
     if(hit->OnlyY()){
-      if (dy < DXY[il].rymin) {
+      if (dy < DY[il].rymin) {
 	DY[il].ihmin = i;
 	DY[il].icmin = hit->GetYClusterIndex();
 	DY[il].rymin = dy;
@@ -1978,23 +1978,29 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   int nadd=0;
 
   for (int il=0;il<2;il++){
-    if (DXY[il].ihmin<0 || DY[il].ihmin<0 ) continue;
+    if (DY[il].ihmin < 0) continue;
 
     if(DXY[il].icmin != DY[il].icmin){
        static int mprint=100; 
       if(mprint++<100)printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
      }
-    if(il){
-      hman.Fill("1N_XY",DXY[il].diff.x(),DXY[il].diff.y());
+    if(il==0){
+      if (DXY[il].ihmin>=0)
+	hman.Fill("1N_XY",DXY[il].diff.x(),DXY[il].diff.y());
       hman.Fill("1N_Y",DY[il].diff.x(),DY[il].diff.y());
     }
     else{
-      hman.Fill("P6_XY",DXY[il].diff.x(),DXY[il].diff.y());
+      if (DXY[il].ihmin>=0)
+	hman.Fill("P6_XY",DXY[il].diff.x(),DXY[il].diff.y());
       hman.Fill("P6_Y",DY[il].diff.x(),DY[il].diff.y());
     }
-    if (fabs(DXY[il].diff.y()) > diffY_max) continue;
-    if (fabs(DXY[il].diff.x()) < diffX_max) {
+    if (DXY[il].ihmin>=0 && fabs(DXY[il].diff.y()) > diffY_max) continue;
+    if (DXY[il].ihmin< 0 && fabs(DY [il].diff.y()) > diffY_max) continue;
+    if (DXY[il].ihmin>=0 &&
+	fabs(DXY[il].diff.x()) < diffX_max) {
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
+      if (!hit) continue;
+
       hit->SetResolvedMultiplicity(DXY[il].mlmin);
       track->GetPar(mfit).Residual[lyext[il]-1][0]=DXY[il].diff.x();
       track->GetPar(mfit).Residual[lyext[il]-1][1]=DXY[il].diff.y();
@@ -2003,6 +2009,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       nadd++;
     }else{
       TrRecHitR* hit=(TrRecHitR*)cont->getelem(DY[il].ihmin);
+      if (!hit) continue;
+
       TkSens tks = EstimateXCoord(ptrk[il]);
       if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
       DY[il].mlmin = tks.GetMultIndex();
@@ -2029,7 +2037,16 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer9 | TrTrackR::kChoutko);
   }
-  if(DY[0].ihmin>=0&&DY[1].ihmin>=0) {
+  if(DY[0].ihmin>=0 && DY[1].ihmin>=0) {
+    if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
+			                          | TrTrackR::kChoutko);
+  }
+
+  else if ( track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8) &&
+	    track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer9) &&
+	   !track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
+			                        | TrTrackR::kFitLayer9)) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
 			                          | TrTrackR::kChoutko);
