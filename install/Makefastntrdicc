@@ -100,18 +100,6 @@ $(BIN)fntread.o:         ../F/fntread.F
 $(BIN)root_rs.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
-$(BIN)root_rs.o:    	 $(SCC)root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
-
-$(BIN)root_rs.o:    	 $(SCC)root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
-
-$(BIN)root_rs.o:    	 $(SCC)root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
-
-$(BIN)root_rs.o:    	 $(SCC)root.C
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
-
 $(BIN)root_setup.o:    	 $(SCC)root_setup.C
 	$(CC) -c $(CFLAGS) $(SCC)root_setup.C -o $(BIN)root_setup.o
 
