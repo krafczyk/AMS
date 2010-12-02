@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.126 2010/11/30 13:40:48 choutko Exp $
+#  $Id: Makefile,v 1.127 2010/12/02 23:28:56 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -277,7 +277,7 @@ endif
 #COMMON_FILES += $(SCC)ntuple.C
 
 #Root Interface
-COMMON_FILES += $(SCC)root.C   
+COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
@@ -292,9 +292,9 @@ ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
 		../include/TrMCCluster.h \
                 ../include/trrec.h ../include/tkdcards.h\
 		../include/point.h  ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/root_setup.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif
 
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h
@@ -467,6 +467,7 @@ producer: amswd	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+	rm $(BIN)commonsi_time.C
 
 
 #---------------------------------------------------------------------------------
@@ -492,10 +493,10 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-	$(BIN)root_rs.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
+	$(BIN)root_rs.o $(BIN)root_setup.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup.o
 
 endif
 
@@ -542,7 +543,7 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h   ../include/linkdef.h
+$(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h        ../include/root_setup.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
 	@echo "OK"
@@ -554,10 +555,14 @@ $(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_
 
 endif
 
+$(BIN)commonsi_time.C:      $(SCC)commonsi.C
+	sed "s_buildtime=[^buildtime=]*;_buildtime=$(shell date +%s);_" $(SCC)commonsi.C > $(BIN)commonsi_time.C
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
 	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
 
+$(BIN)commonsi.o:	$(BIN)commonsi_time.C
+	$(CXX) -c $(CFLAGS) $(BIN)commonsi_time.C -o $(BIN)commonsi.o 
 $(BIN)daqevt.o:         $(SCC)daqevt.C
 	$(CXX) -c $(CFLAGSDAQ) -D__AMS02DAQ__ $(SCC)daqevt.C -o $(BIN)daqevt.o 
 
@@ -626,6 +631,7 @@ ifeq  "$(shell uname)"  "OSF1"
 $(BIN)mtx.o:                   $(SFF)mtx.F
 	f90 -c -free $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
+
 
 #===============================================================================
 #  Rules to customize  and compile some  GEANT3 files
