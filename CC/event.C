@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.500 2010/12/01 18:12:55 mmilling Exp $
+//  $Id: event.C,v 1.501 2010/12/02 23:29:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -289,6 +289,7 @@ if(AMSJob::gethead()->isProduction() ){
  if(SRun){
   HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
+  
  }
  else if(AMSJob::gethead()->isRealData()){
    AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
@@ -2698,7 +2699,7 @@ void AMSEvent::_writeEl(){
   EN->Eventno=_id;
   EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
   EN->RawWords+=(AMSCommonsI::getosno())<<18;
-  EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
+  EN->RawWords+=(AMSCommonsI::getbuildno())<<22;
   EN->Run=_run;
   EN->RunType=_runtype;
   EN->Time[0]=_time;

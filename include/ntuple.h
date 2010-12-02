@@ -1,10 +1,9 @@
-//  $Id: ntuple.h,v 1.122 2010/10/22 14:50:38 choutko Exp $
+//  $Id: ntuple.h,v 1.123 2010/12/02 23:29:35 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
 const int NBRANCHES = 1;    // number of branches
 
 namespace root{
@@ -923,8 +922,12 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
 */
 #ifdef __WRITEROOT__
   static AMSEventR   _evroot02;
+  static AMSSetupR   _setup02;
 #pragma omp threadprivate(_evroot02)
+#pragma omp threadprivate(_setup02)
   static TTree* _tree;  
+  static TTree* _treesetup;   //   the one-per-run entree tree fulled with 
+                              //   maps of (time,{structure}) time==uint or uint64 mksec
   static TFile* _rfile;
   static TObjString _dc; 
   static TObjString _ta; 
@@ -946,7 +949,7 @@ public:
   void write(integer addentry=0);
   uinteger writeR();
   void endR(bool writecache=true);
-  void initR(char* name);
+  void initR(char* name,uinteger run);
   
   integer getentries(){return _Nentries;}
   uinteger lastev() const {return _Lastev;}
@@ -999,6 +1002,7 @@ public:
 
 #ifdef __WRITEROOT__
    AMSEventR* Get_evroot02() {return &_evroot02;}
+   AMSSetupR* Get_setup02() {return &_setup02;}
 #endif
 
 };

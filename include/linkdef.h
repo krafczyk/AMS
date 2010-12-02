@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.68 2010/11/19 15:24:07 pzuccon Exp $
+//  $Id: linkdef.h,v 1.69 2010/12/02 23:29:35 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -60,6 +60,7 @@
 #pragma link C++ class AMSDir+;
 #pragma link C++ class AMSRotMat+;
 #pragma link C++ class HeaderR+;
+#pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class EcalHitR+;
 #pragma link C++ class EcalClusterR+;
 #pragma link C++ class Ecal2DClusterR+;
@@ -96,7 +97,7 @@
 #pragma link C++ class DaqEventR+;
 #pragma link C++ class AMSEventR+;
 #pragma link C++ class AMSEventR::Service+;
-#pragma link C++ class RunHeader+;
+#pragma link C++ class AMSSetupR+;
 
 #ifdef __AMSVMC__
 #pragma link C++ class amsvmc_MCApplication+;

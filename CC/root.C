@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.237 2010/11/22 20:51:59 shaino Exp $
+//  $Id: root.C,v 1.238 2010/12/02 23:29:35 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -847,12 +847,16 @@ char HeaderR::_Info[255];
 
 
 TTree*     AMSEventR::_Tree=0;
+TTree*     AMSEventR::_TreeSetup=0;
 TTree*     AMSEventR::_ClonedTree=0;
+TTree*     AMSEventR::_ClonedTreeSetup=0;
 AMSEventR* AMSEventR::_Head=0;
+AMSSetupR* AMSEventR::_HeadSetup=0;
 AMSEventR::Service*    AMSEventR::pService=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_NFiles=-1;
 int AMSEventR::_Entry=-1;
+int AMSEventR::_EntrySetup=-1;
 char* AMSEventR::_Name="ev.";   
 
 
@@ -1443,14 +1447,20 @@ bool AMSEventR::ReadHeader(int entry){
     i=bHeader->GetEntry(entry);
   }
   clear();
-  static int local_first=1;
   static TFile* local_pfile=0;
+#pragma omp threadprivate (local_pfile)
   if(i>0){
-    if(local_first || local_pfile!=_Tree->GetCurrentFile()){
-      local_first=0;
+    if( local_pfile!=_Tree->GetCurrentFile()){
       local_pfile=_Tree->GetCurrentFile();
       InitDB(local_pfile);
+      
+      if(!InitSetup(local_pfile,"AMSRootSetup",UTime())){
       cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+      }
+      else{
+      cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+       
+      }     
      }
     if(Version()<160){
       // Fix rich rings
@@ -3075,7 +3085,7 @@ VertexR* ParticleR::pVertex(){
 void AMSEventR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
     _Head=this;
-    tree->Branch(BranchName(),"AMSEventR",&_Head,64000,branchSplit);
+    tree->Branch(BranchName(),"AMSEventR",&_Head,128000,branchSplit);
     TBranch * branch=tree->GetBranch(BranchName());
     branch->SetCompressionLevel(6);
     cout <<" CompressionLevel "<<branch->GetCompressionLevel()<<" "<<branch->GetSplitLevel()<<endl;
@@ -3457,4 +3467,39 @@ master=1;
 #endif
   
 
+}
+
+
+bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger time){
+static int master=0;
+bool suc=false;
+#pragma omp master 
+{
+  if (_FILE){
+    _TreeSetup=(TTree*)_FILE->Get(name);
+    if(_TreeSetup){
+      if(getsetup()){
+       
+      }
+      else{
+         getsetup()=new AMSSetupR();
+     }
+     getsetup()->Init(_TreeSetup);
+     
+     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.FEventTime>time || getsetup()->fHeader.LEventTime<time)) {
+      _TreeSetup->GetEntry(++_EntrySetup);
+     };
+     
+     suc=!(getsetup()->fHeader.FEventTime>time || getsetup()->fHeader.LEventTime<time);
+     
+}
+
+}
+master=1;  
+}
+ while (master==0){
+   usleep(1);
+ }
+  
+return suc;
 }

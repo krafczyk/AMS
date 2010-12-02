@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.203 2010/11/19 15:24:07 pzuccon Exp $
+//  $Id: ntuple.C,v 1.204 2010/12/02 23:29:35 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -51,9 +51,11 @@
 #include "HistoMan.h"
 
 AMSEventR AMSNtuple::_evroot02;
+AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;
 TRDInfoNtuple02 AMSNtuple::_trdinfo02;
 TTree* AMSNtuple::_tree=0;
+TTree* AMSNtuple::_treesetup=0;
 TFile* AMSNtuple::_rfile=0;
 TObjString AMSNtuple::_dc("");
 TObjString AMSNtuple::_ta("");
@@ -304,6 +306,7 @@ void AMSNtuple::endR(bool cachewrite){
   // write tracker alignment structure
   
   if(_rfile){
+    if(_treesetup)_treesetup->Fill();
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
@@ -329,10 +332,6 @@ void AMSNtuple::endR(bool cachewrite){
     TRFITFFKEY.Write();
     _rfile->cd();
 #endif 
-    static RunHeader runheader;
-#pragma omp threadprivate (runheader)
-    if(AMSJob::gethead()->isSimulation()) runheader.gevent=GCFLAG.IEVENT;
-    //_tree->GetUserInfo()->Add(&runheader);
     if(TRDFITFFKEY.FitMethod>0&&TRDFITFFKEY.SaveHistos>0){     
       TRDPlotInit();
       
@@ -369,7 +368,7 @@ void AMSNtuple::endR(bool cachewrite){
 
 
 
-void AMSNtuple::initR(char* fname){
+void AMSNtuple::initR(char* fname,uinteger run){
 #ifdef __WRITEROOT__
   TTree::SetMaxTreeSize(0xFFFFFFFFFFLL);
   static TROOT _troot("S","S");
@@ -411,12 +410,15 @@ void AMSNtuple::initR(char* fname){
     delete [] name;
   }
   _ag.Write("AMS02Geometry");
+  
   cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
   cout<<"Set Split Level ..."<<branchSplit<<endl;
 
   _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
   cout<<"AMSNtuple::initR -I- create branches"<<endl;
   _tree= new TTree("AMSRoot","AMS Ntuple Root");
+  _treesetup= new TTree("AMSRootSetup","AMS Setup Root");
+  Get_setup02()->CreateBranch(_treesetup,branchSplit);
   Get_evroot02()->CreateBranch(_tree,branchSplit);
   //    static void *pev1=(void*)_evroot02;
   //   TBranch *b1=_tree->Branch(AMSEventR::BranchName(),"AMSEventR",&pev1,64000,branchSplit);
@@ -424,6 +426,7 @@ void AMSNtuple::initR(char* fname){
   //    bhead+="Header";
   //     static void *pev2=(void*)_evroot02.fHeader;
   //   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
+   Get_setup02()->UpdateVersion(run,AMSCommonsI::getosno(),AMSCommonsI::getbuildno(),AMSCommonsI::getbuildtime());
 #endif
 #ifndef __WRITEROOT__
   cerr <<" RootFileOutput is Not supported in this version "<<endl;
@@ -495,6 +498,7 @@ uinteger AMSNtuple::writeR(){
         _Lastev=del[k]->Event();
         _Lasttime=del[k]->UTime();
 	_tree->Fill();
+         Get_setup02()->UpdateHeader(AMSEventR::Head());
       }
     }
 #pragma omp critical (wr1)

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.758 2010/12/01 16:57:30 choumilo Exp $
+// $Id: job.C,v 1.759 2010/12/02 23:29:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4066,10 +4066,10 @@ void AMSJob::urinit(char fnam[]){
   if(_pntuple)_pntuple->endR();
     strcpy(_rootfilename,fnam);
     strcat(_rootfilename,".root");
-    if(_pntuple)_pntuple->initR(_rootfilename);
+    if(_pntuple)_pntuple->initR(_rootfilename,0);
     else{
         _pntuple = new AMSNtuple(_rootfilename);
-        _pntuple->initR(_rootfilename);
+        _pntuple->initR(_rootfilename,0);
     }
     _NtupleActive=true;
 }
@@ -4102,10 +4102,10 @@ throw (amsglobalerror){
       strcat(_rootfilename,event);
       strcat(_rootfilename,".root");
      }
-    if(_pntuple)_pntuple->initR(_rootfilename);
+    if(_pntuple)_pntuple->initR(_rootfilename,run);
     else{
         _pntuple = new AMSNtuple(_rootfilename);
-        _pntuple->initR(_rootfilename);
+        _pntuple->initR(_rootfilename,run);
     }
     _NtupleActive=true;
 #ifdef __CORBA__

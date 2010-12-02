@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.101 2010/12/02 23:28:56 choutko Exp $
+#  $Id: Moptg4,v 1.102 2010/12/02 23:34:39 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -303,7 +303,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)commons.C $(SCC)commonsi.C $(SCC)apool.C $(SCC)tofid.C  \
 	$(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C $(SCC)trigger302.C \
 	 $(SCC)astring.C $(SCC)tkdbc.C $(SCC)trddbc.C  \
-	 $(SCC)root.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
+	 $(SCC)root.C $(SCC)root_setup.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
 	$(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C \
 	$(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richradid.C \
 	$(SCC)richgeom.C $(SCC)richlip.C $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C \

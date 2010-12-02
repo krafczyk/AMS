@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.295 2010/11/26 11:38:39 mdelgado Exp $
+//  $Id: root.h,v 1.296 2010/12/02 23:29:35 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -39,6 +39,7 @@
 #include "trrec.h"
 #endif
 #include "trdhrec.h"
+#include "root_setup.h"
 
 
 #ifdef __AMSVMC__
@@ -171,15 +172,6 @@ class EventNtuple02{};
 class DAQEvent{};
 #endif
 class AMSEventR;
-//! Run Header Class to be retrived with [tree_pointer]->GetUserInfo()->First();
-class RunHeader: public TObject {
-public:
-  //! Number of triggers in MC generation
-  int gevent;
-  //! constructor
-  RunHeader():gevent(0){}
-  ClassDef(RunHeader,1)
-};
 
 //!  Root Header class
 /*!
@@ -2353,6 +2345,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
 class AMSEventR: public  TSelector {   
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
+bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
 class Service{
 public:
  TFile *            _pOut;
@@ -2480,12 +2473,16 @@ static void*  vDaqEvent;
 static void*  vAux;
 
 static TTree     * _Tree;
+static TTree     * _TreeSetup;
 static TTree     * _ClonedTree;
+static TTree     * _ClonedTreeSetup;
 
 static AMSEventR * _Head;
+static AMSSetupR * _HeadSetup;
 static int         _Count;
 static int _NFiles;
 static int         _Entry;
+static int _EntrySetup;
 static char      * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(_Tree,_Entry,_Head)
@@ -2747,9 +2744,10 @@ public:
 
 bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set 
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group 
-int Version() const {return fHeader.Version/4;} ///< \return producer version number
+int Version() const {return fHeader.Version/16>465?fHeader.Version/16:fHeader.Version/4;} ///< \return producer version number
 ///
-int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
+static AMSSetupR *&  getsetup(){return _HeadSetup;} ///< \return RootSetup Tree Singleton
+int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
 ///
 unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///

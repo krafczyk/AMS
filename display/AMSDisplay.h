@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.27 2010/09/14 19:05:58 pzuccon Exp $
+//  $Id: AMSDisplay.h,v 1.28 2010/12/02 23:29:35 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -31,6 +31,7 @@ class AMSNtupleV;
 #include <TApplication.h>
 #include <TGeometry.h>
 #include "root.h"
+#include "root_setup.h"
 #include "amschain.h"
 
 class TCanvas;

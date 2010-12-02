@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.127 2010/12/02 23:28:56 choutko Exp $
+#  $Id: Makefile,v 1.128 2010/12/02 23:32:01 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -467,7 +467,6 @@ producer: amswd	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
-	rm $(BIN)commonsi_time.C
 
 
 #---------------------------------------------------------------------------------
