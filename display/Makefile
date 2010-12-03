@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.79 2010/12/03 12:40:05 pzuccon Exp $
+#  $Id: Makefile,v 1.80 2010/12/03 15:19:03 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -140,10 +140,10 @@ ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage 
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	           -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11    -lXrd -lXrdNet -lXrdOuc -lXrdSys
-GRAFLIB        = -L/usr/X11R6/lib -lXft -lfontconfig -lXrender    -lX11 -ljpeg -lpng -ltiff 
+GRAFLIB        = -L/usr/lib -lXft -lfontconfig -lXrender    -lX11 -ljpeg -lpng -ltiff 
 LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) -lRFIO  -Bdynamic $(GRAFLIB) -lm -ldl
 
-LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) $(GRAFLIB)
+LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS)  -lm -ldl
 LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) $(GRAFLIB) -lm    -ldl 
 
 ifdef VERGCCH
