@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.24 2010/11/30 18:42:47 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.25 2010/12/03 15:25:34 shaino Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -86,10 +86,9 @@ protected:
   virtual ~TrRecHitR();
   /// Clear data members
   void Clear();
-  /*
-	/// Build coordinates
- // void BuildCoordinates();
-*/
+  /// Rebuild the current coordinate; _coord
+  void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
+
 //####################  ACCESSORS ##############################
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
