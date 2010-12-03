@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.80 2010/12/03 15:19:03 pzuccon Exp $
+#  $Id: Makefile,v 1.81 2010/12/03 15:20:57 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -87,13 +87,15 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
-	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
+ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot  -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a \
+                  -lXrd -lXrdNet -lXrdOuc -lXrdSys -lpcre 
+GRAFLIB	      =   -L/usr/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  \
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff    
 
-LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
-LIBSA         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
+LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bdynamic -lRFIO $(GRAFLIB) -lm -ldl 
+LIBSA         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA) $(GRAFLIB) -lm   -ldl 
+LIBSD          =   -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBS) 
 
 endif
 ifeq ($(ARCH),macosx64)
