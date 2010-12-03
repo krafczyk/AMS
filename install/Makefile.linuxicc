@@ -58,9 +58,13 @@ endif
   CXX=$(INTELDIR)/$(INTELVERC)/icc  -m32 -gcc-version=340 $(INTELOPT) -vec-report0  $(PARALLEL)
   CC=$(INTELDIR)/$(INTELVERC)/icc  -m32  -gcc-version=340 $(INTELOPT) $(PARALLEL)
   LD=$(INTELDIR)/$(INTELVERC)/icpc -m32  -gcc-version=340 $(INTELOPT)  $(PARALLEL) 
+ifndef CERNDIR
   FFOLD=$(INTELDIR)/compiler70/ia32/bin/ifc -W0 -save  -tpp6 -xi
-
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
+else
+  FFOLD=$(FF)
+  FORTRAN_LIBS= -lg2c
+endif
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/../../lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 
 
@@ -75,13 +79,21 @@ IDLCPP=orbit-idl-2 -l cpp
 
 # change defaults if intel compiler 
 CERN_LEVEL = pro
-CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
-CERNSRCDIR = /cern/$(CERN_LEVEL)
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib 
 
+ifdef CERNDIR
+CERNSRCDIR = $(CERNDIR)
+else
 CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+CERNSRCDIR = /cern/$(CERN_LEVEL)
+endif
+ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
+endif
+ifndef NAGDIR
 #NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+endif
 ########################################################################
 # Compilers FLAGS
 ########################################################################
@@ -164,21 +176,21 @@ endif
 # Library list 
 
 
-LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
+LDFLAGSI=    -static  \
 -L$(NAGDIR) -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN_LIBS) $(RH9add)
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=       \
--L$(NAGDIR) -lnag $(FORTRAN2_LIBS)  \
+-L$(NAGDIR) -lnag  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
-$(FORTRAN_LIBS)  $(PFLAGS) 
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
   LDFLAGS+=-pg

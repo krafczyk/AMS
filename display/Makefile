@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.78 2010/12/03 10:53:28 pzuccon Exp $
+#  $Id: Makefile,v 1.79 2010/12/03 12:40:05 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -62,14 +62,16 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF -static-intel
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF -static-intel
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
-	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+	          -lfreetype  -lexpat   \
+                    -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+GRAFLIB       = -L/usr/lib -lXft -lfontconfig -lXrender  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff
 
-LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl  -static-intel
-LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
+LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic  -Bdynamic -lRFIO  $(GRAFLIB) -lm -ldl  -static-intel
 
+LIBSD          =   -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBS) $(GRAFLIB)
+LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) $(GRAFLIB) -lm    -ldl 
 endif
 ifeq ($(ARCH),linuxx8664icc)
 CXX           =  /opt/intel/Compiler/11.1/073/bin/intel64/icc 
@@ -136,12 +138,13 @@ LDD	= 	$(LD) -rdynamic
 
 ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
-	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
-LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) -lRFIO  -lm -Bdynamic -ldl
+	           -lfreetype  /usr/lib/libexpat.a   \
+                  -lXpm -lXmu -lXt -lXext -lX11    -lXrd -lXrdNet -lXrdOuc -lXrdSys
+GRAFLIB        = -L/usr/X11R6/lib -lXft -lfontconfig -lXrender    -lX11 -ljpeg -lpng -ltiff 
+LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  -Bstatic $(ROOTLIBSA) -lRFIO  -Bdynamic $(GRAFLIB) -lm -ldl
 
-LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) 
-LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm    -ldl 
+LIBSD          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBS) $(GRAFLIB)
+LIBSA         =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) $(GRAFLIB) -lm    -ldl 
 
 ifdef VERGCCH
 CPPFLAGS+= -D__LINUXNEW__
