@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.4 2010/11/06 17:16:18 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.5 2010/12/03 10:52:05 pzuccon Exp $
 
 # General clean up and reorganization
 #
@@ -78,7 +78,7 @@ IDLCPP=orbit-idl-2 -l cpp
 # change defaults if intel compiler 
 CERN_LEVEL =2005
 
-CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 
 
 ifndef CERNDIR
