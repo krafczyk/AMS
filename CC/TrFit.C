@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.38 2010/12/03 11:58:35 shaino Exp $
+//  $Id: TrFit.C,v 1.39 2010/12/03 13:58:16 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/12/03 11:58:35 $
+///$Date: 2010/12/03 13:58:16 $
 ///
-///$Revision: 1.38 $
+///$Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1444,6 +1444,9 @@ double TrFit::ChikanianFit(int type)
   _chisq    = (_ndofx+_ndofy > 0) ? out[6]/(_ndofx+_ndofy) : out[6];
   _errrinv  = out[8];
 
+  if (_chisqx < 0) _chisqx = out[6];
+  if (_chisqy < 0) _chisqy = out[6];
+
   return _chisq;
 }
 
@@ -1564,7 +1567,7 @@ void TrFit::RkmsFit(double *out)
  * Initial MIGRAD steps dPx      dPy      dPz(GeV) dx     dy(cm) */
 //double St[NDIM]   = { .000100, .000100, .002000, .0005, .0005 }; //! 8.98*min
 // Initial MIGRAD steps dX/dZ  dY/dZ  1/R (1/GV)   dx     dy(cm)  // SH
-  double St[NDIM]   = { .01,   .01,   .0001,       .0005, .0005 }; //! 8.98*min
+  double St[NDIM]   = { .0001,   .0001,   .00001,  .0005, .0005 }; //! 8.98*min
 /* see:/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/RKMSFIT/derivstep.opt
  *--------------------------------------------------------------------------
  */
