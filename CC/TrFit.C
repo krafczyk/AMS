@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.37 2010/11/21 16:28:04 shaino Exp $
+//  $Id: TrFit.C,v 1.38 2010/12/03 11:58:35 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/11/21 16:28:04 $
+///$Date: 2010/12/03 11:58:35 $
 ///
-///$Revision: 1.37 $
+///$Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1456,7 +1456,7 @@ void TrFit::RkmsFitF(double *out)
   int npo = 0, npl[NPma], ipa = 14;
   float xyz[NPma*3], dxyz[NPma*3];
   for (int i = 0; i < NPma; i++) {
-    xyz[i*3] =  xyz[i*3+1] =  xyz[i*3+2] = 0;
+     xyz[i*3] =  xyz[i*3+1] =  xyz[i*3+2] = 0;
     dxyz[i*3] = dxyz[i*3+1] = dxyz[i*3+2] = 0;
     npl[i] = 0;
   }
@@ -1480,7 +1480,7 @@ void TrFit::RkmsFitF(double *out)
     npo++;
   }
 
-  float rini = GetRigidity();
+  float rini = 10000.00;// GetRigidity(); // Compatible with TrackFit_Utils
   float outf[9];
   rkmsrig_(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
   for (int i = 0; i < 9; i++) out[i] = outf[i];
@@ -1563,8 +1563,8 @@ void TrFit::RkmsFit(double *out)
  *                    
  * Initial MIGRAD steps dPx      dPy      dPz(GeV) dx     dy(cm) */
 //double St[NDIM]   = { .000100, .000100, .002000, .0005, .0005 }; //! 8.98*min
-// Initial MIGRAD steps dX/dZ  dY/dZ  1/R (1/GV)   dx     dy(cm)
-  double St[NDIM]   = { .01,   .01,   .01,         .0005, .0005 }; //! 8.98*min
+// Initial MIGRAD steps dX/dZ  dY/dZ  1/R (1/GV)   dx     dy(cm)  // SH
+  double St[NDIM]   = { .01,   .01,   .0001,       .0005, .0005 }; //! 8.98*min
 /* see:/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/RKMSFIT/derivstep.opt
  *--------------------------------------------------------------------------
  */
@@ -1586,8 +1586,13 @@ void TrFit::RkmsFit(double *out)
   int narg = 1, ierr;
 
   //! suppr. output
-  args[0] = -1; minuit->mnexcm("SET PRINT",  args, narg, ierr);
-  args[0] = -1; minuit->mnexcm("SET NOWARN", args, narg, ierr);
+  if (RkmsDebug == -2) {
+    args[0] = 1; minuit->mnexcm("SET PRINT",  args, narg, ierr);
+  }
+  else {
+    args[0] = -1; minuit->mnexcm("SET PRINT",  args, narg, ierr);
+    args[0] = -1; minuit->mnexcm("SET NOWARN", args, narg, ierr);
+  }
   if (ierr) cerr << "MNEXCM: Print ierflg=" << ierr << endl;
 
   args[0]= 1; minuit->mnexcm("SET GRAD", args, narg, ierr);
@@ -1615,10 +1620,10 @@ void TrFit::RkmsFit(double *out)
 
   int    npa = NDIM;
   double par[NDIM+2];
-  double step = 5;// ! cm
+  double step = 10; //5;// ! cm // SH
   double sign = 1;
 
-  enum { NitMa = 1 }; //3 };
+  enum { NitMa = 1 }; //3 }; // SH
   for (int it = 1; it <= NitMa; it++) {
 
     // Initial values
@@ -1626,9 +1631,15 @@ void TrFit::RkmsFit(double *out)
     if (it <= 2) {
                    sign =  1;
       if (it == 2) sign = -1;
+// SH
       par[0] = (_xh[1]-_xh[0])/(_zh[1]-_zh[0]);                     // ! Px0
       par[1] = (_yh[1]-_yh[0])/(_zh[1]-_zh[0]);                     // ! Py0
       par[2] = 1/rini;                                              // ! Pz0
+/* SH
+      par[0] = rini*(_xh[1]-_xh[0])/rad;                            // ! Px0
+      par[1] = rini*(_yh[1]-_yh[0])/rad;                            // ! Py0
+      par[2] = rini*(_zh[1]-_zh[0])/rad;                            // ! Pz0
+*/
       par[3] = _xh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_xh[1]-_xh[0]);// !  x0
       par[4] = _yh[0] + (z1-_zh[0])/(_zh[1]-_zh[0])*(_yh[1]-_yh[0]);// !  y0
     }
@@ -1659,7 +1670,8 @@ void TrFit::RkmsFit(double *out)
     minuit->mnparm(np++, "sign", sign, 0, 0, 0, ierr);
 
     if (RkmsDebug >= 2) cout <<" MIGRAD it= " << it << endl;
-    minuit->mnexcm("MIGRAD", args, 0, ierr);
+    args[0] = 200;
+    minuit->mnexcm("MIGRAD", args, 1, ierr);
     if (RkmsDebug >= 2) cout <<" MIGRAD ierflg= " << ierr << endl;
 
 /*       ================================================
@@ -1701,16 +1713,20 @@ void TrFit::RkmsFit(double *out)
   RkmsFun(npa, par, true);
 
 /*     ========================================================== */
-//double rgt = std::sqrt(out[0]*out[0]+out[1]*out[1]+out[2]*out[2]);
-//double dr  = std::sqrt((out[0]*err[0])*(out[0]*err[0]) + 
-//			 (out[1]*err[1])*(out[1]*err[1]) +
-//			 (out[2]*err[2])*(out[2]*err[2]))/rgt;
+/* SH
+  double rgt = std::sqrt(out[0]*out[0]+out[1]*out[1]+out[2]*out[2]);
+  double dr  = std::sqrt((out[0]*err[0])*(out[0]*err[0]) + 
+			 (out[1]*err[1])*(out[1]*err[1]) +
+			 (out[2]*err[2])*(out[2]*err[2]))/rgt;
+*/
+// SH
   double rgt = 1/out[2];
   double dr  = err[2]*rgt*rgt;
 
 /*     ============================================= */
-  double dd    = std::sqrt(out[0]*out[0]+out[1]*out[1]+1);
-  double theta = std::acos (1/dd);
+  double dd    = std::sqrt(out[0]*out[0]+out[1]*out[1]+1); // SH
+  double theta = std::acos (1/dd);                         // SH
+//double theta = std::acos (out[2]/rgt);                   // SH
   double phi   = std::atan2(out[1], out[0]);
   out[0] = out[3];
   out[1] = out[4];
@@ -2299,11 +2315,18 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
   enum { NPma = LMAX };
 
   double pin[3], xin[3], x0[NPma], y0[NPma];
+
+// SH
   double dd = -std::sqrt(par[0]*par[0]+par[1]*par[1]+1); // down-going
   double pp = (par[2] != 0) ? abs(1/par[2]) : 0;         // abs.momentum
   pin[0] = par[0]/dd*pp; // ! Px
   pin[1] = par[1]/dd*pp; // ! Py
   pin[2] =      1/dd*pp; // ! Pz
+/* SH
+  pin[0] = par[0]; // ! Px or cx
+  pin[1] = par[1]; // ! Py or cy
+  pin[2] = par[2]; // ! Pz or R
+*/
   xin[0] = par[3]; // ! x
   xin[1] = par[4]; // ! y
   xin[2] = _zh[0]; // ! z
@@ -2352,10 +2375,10 @@ double TrFit::RkmsFun(int npa, double *par, bool res)
   if (zc[0] < zc[1]) vni = -1.; // ! back tracking
 
   sign = (par[2] > 0) ? 1 : -1;
-  vect[6] = std::sqrt(pin[0]*pin[0]+pin[1]*pin[1]+pin[2]*pin[2]);
+  vect[6] = std::sqrt(pin[0]*pin[0]+pin[1]*pin[1]+pin[2]*pin[2]); //SH
 
 //cxy3 ---
-/*
+/* SH
   if (pin[2] > 0) {
     vect[6] = -vect[6];
     sign    = -sign;

@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.13 2010/11/21 16:28:04 shaino Exp $
+//  $Id: MagField.h,v 1.14 2010/12/03 11:58:37 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -65,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/11/21 16:28:04 $
+///$Date: 2010/12/03 11:58:37 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,10 +97,10 @@ private:
   int _nx;
   int _ny;
   int _nz;
-  int getsign(int i,int j,int k,int oo, int ll=-1);
+  inline int getsign(int i,int j,int k,int oo, int ll=-1);
 
 public:
-  int getindex(int i,int j,int k);
+  inline int getindex(int i,int j,int k);
 
   int nx() { return (_type==1)?(_nx*2-1):_nx;}
   int ny() { return (_type==1)?(_ny*2-1):_ny;}
@@ -127,6 +127,9 @@ public:
   float _by(int i, int j, int k){ return getsign(i,j,k,1)*by[getindex(i,j,k)];}
   float _bz(int i, int j, int k){ return getsign(i,j,k,2)*bz[getindex(i,j,k)];}
 
+  inline void _bb(int i, int j, int k, 
+		  float &bbx, float &bby, float &bbz);
+
   float _bdx(int l,int i, int j, int k){ return getsign(i,j,k,0,l)*bdx[l*_nx*_ny*_nz+getindex(i,j,k)];}
   float _bdy(int l,int i, int j, int k){ return getsign(i,j,k,1,l)*bdy[l*_nx*_ny*_nz+getindex(i,j,k)];}
   float _bdz(int l,int i, int j, int k){ return getsign(i,j,k,2,l)*bdz[l*_nx*_ny*_nz+getindex(i,j,k)];}
@@ -141,6 +144,45 @@ public:
 
 
 };
+
+void magserv::_bb(int i, int j, int k, 
+		  float &bbx, float &bby, float &bbz)
+{
+  int idx = getindex(i,j,k);
+  bbx = getsign(i,j,k,0)*bx[idx];
+  bby = getsign(i,j,k,1)*by[idx];
+  bbz = getsign(i,j,k,2)*bz[idx];
+}
+
+#define SIGN(A) ((A>=0)?1:-1)
+
+int magserv::getindex(int i,int j,int k){
+  if (_type==1){
+    int i2 = 1 - _nx + i;
+    int j2 = 1 - _ny + j;
+    int k2 = 1 - _nz + k;
+    return int(fabs(k2))*_nx*_ny+ int(fabs(j2))*_nx + int(fabs(i2));
+  }
+  else{
+    return k*_nx*_ny+ j*_nx + i;
+    
+  }
+}
+int magserv::getsign(int i,int j,int k,int oo,int ll){
+  if (_type==1){
+    int ijk[3];
+    ijk[0] = 1 - _nx + i;
+    ijk[1] = 1 - _ny + j;
+    ijk[2] = 1 - _nz + k;
+    if(ll>-1)
+      return SIGN(ijk[0])*SIGN(ijk[oo])*SIGN(ll);
+    else
+      return SIGN(ijk[0])*SIGN(ijk[oo]);
+  }
+  else
+    return 1;
+}
+
 
 class MagField {
 public:

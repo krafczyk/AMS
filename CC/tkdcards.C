@@ -63,8 +63,8 @@ for (int ii=0;ii<9;ii++){
   lowdt          = 200;
   MaxNtrCls      = 500;
   MaxNtrCls_ldt  = 150;
-  MaxNtrHit      = 200;
-  TrTimeLim      = 500;
+  MaxNtrHit      = 250;
+  TrTimeLim      =   5;
   //Track
   MaxNtrack = 4;
   MinNhitX  = 4;
@@ -82,7 +82,7 @@ for (int ii=0;ii<9;ii++){
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;
-  AdvancedFitFlag = 0x1f;
+  AdvancedFitFlag = 0x3f;
   //TAS
   TasRecon = 0;
   TasCurr  = 0;

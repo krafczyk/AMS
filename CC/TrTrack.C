@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.74 2010/12/01 11:21:31 shaino Exp $
+// $Id: TrTrack.C,v 1.75 2010/12/03 11:58:35 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/01 11:21:31 $
+///$Date: 2010/12/03 11:58:35 $
 ///
-///$Revision: 1.74 $
+///$Revision: 1.75 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, 
     kAlcaraz, kAlcaraz|kMultScat,
-    kChikanian, 0, 0, 0 };
+    kChikanian, kChikanianF, 0, 0 };
 
 int TrTrackR::AdvancedFitBits = 0x0f;
 
@@ -788,7 +788,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (method == TrFit::CHIKANIAN || method == TrFit::CHIKANIANF) {
+  if (method == TrFit::CHIKANIAN  || 
+      method == TrFit::CHIKANIANF || TrFit::_mscat) {
     Double_t rini = 0;
     Int_t idr = kChoutko;
     Int_t idl = id & (kFitLayer8 | kFitLayer9);
@@ -1060,7 +1061,12 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
- for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
+ for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
+   if ((DefaultAdvancedFitFlags[ii] == kChikanian ||
+	DefaultAdvancedFitFlags[ii] == kChikanianF) && 
+       !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
+     continue;
+
    if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
      FitT(DefaultAdvancedFitFlags[ii]| add_flag);
      if (add_flag == 0) {
@@ -1073,6 +1079,7 @@ int TrTrackR::DoAdvancedFit(int add_flag)
      if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
        FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
    }
+ }
  return AdvancedFitDone(add_flag);
 }
 

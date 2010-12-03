@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.31 2010/12/01 11:21:31 shaino Exp $
+//  $Id: event_tk.C,v 1.32 2010/12/03 11:58:35 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -167,7 +167,7 @@ void AMSEvent::_retkevent(integer refit){
 	= (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
       if(TkDBc::Head->GetSetup()==3){
 	if (trk->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
-			   | TrTrackR::kFitLayer9)) 
+			                      | TrTrackR::kFitLayer9)) 
 	  ntful++;
       }else
 	if (trk->ParExists(TrTrackR::kChoutko )) 
@@ -187,17 +187,20 @@ void AMSEvent::_retkevent(integer refit){
       if (trstat &  8) TrRecon::RecPar.NcutHit++;
       if (trstat & 16) TrRecon::RecPar.NcutCpu++;
     }
-    if (nfill%10000 == 0) {
+    int intv = 10000;
+    if (nfill < 10000) intv = 1000;
+    if (nfill%intv == 0) {
       if (ifirst) {
-	cout << "AMSEvent::_retkevent-I-Report: "
-	     << "  Nfill  NevTrk  Rtrk  Rldt Rhcut  Rcpu TrTime" << endl;
+	cout << "_retkevent-I-Report: "
+	     << "  Nfill  NevTrk  NevT89  Rtrk  Rldt Rhcut  Rcpu TrTime"
+	     << endl;
 	ifirst = 0;
       }
       float trtime = (hman.Get("TrTimH"))
 	? ((TH2D *)hman.Get("TrTimH"))->GetMean(2) : 0;
-      cout << "AMSEvent::_retkevent-I-Report: "
-	   << Form("%7d %7d %5.3f %5.3f %5.3f %5.3f %6.4f",
-		   nfill, ntevt, 1.*ntevt/nfill,
+      cout << "_retkevent-I-Report: "
+	   << Form("%7d %7d %7d %5.3f %5.3f %5.3f %5.3f %6.4f",
+		   nfill, ntevt, ntful, 1.*ntevt/nfill,
 		   1.* TrRecon::RecPar.NcutLdt /nfill,
 		   1.*(TrRecon::RecPar.NcutCls+
 		       TrRecon::RecPar.NcutHit)/nfill,

@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.13 2010/11/21 16:28:04 shaino Exp $
+// $Id: MagField.C,v 1.14 2010/12/03 11:58:35 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/11/21 16:28:04 $
+///$Date: 2010/12/03 11:58:35 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -24,7 +24,6 @@
 #include "MagField.h"
 #ifdef _PGTRACK_
 
-#define SIGN(A) ((A>=0)?1:-1)
 
 
 MAGSFFKEY_DEF MAGSFFKEY;
@@ -138,9 +137,17 @@ void MagField::GuFld(float *xx, float *b)
   if(!_Fint(ax, ay, az, idx, ww)) return;;
 
   for (int i = 0; i < 8; i++) {
+/*
     b[0] += mm->_bx(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
     b[1] += mm->_by(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
     b[2] += mm->_bz(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
+*/
+    float bx,by,bz;
+    mm->_bb(idx[i][0],idx[i][1],idx[i][2],bx,by,bz);
+
+    b[0] += bx * ww[i];  
+    b[1] += by * ww[i];  
+    b[2] += bz * ww[i];  
   }
 
   //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
@@ -318,33 +325,6 @@ void MagField::Print(){
 //================================================================================
 //================================================================================
 
-
-int magserv::getindex(int i,int j,int k){
-  if (_type==1){
-    int i2 = 1 - _nx + i;
-    int j2 = 1 - _ny + j;
-    int k2 = 1 - _nz + k;
-    return int(fabs(k2))*_nx*_ny+ int(fabs(j2))*_nx + int(fabs(i2));
-  }
-  else{
-    return k*_nx*_ny+ j*_nx + i;
-    
-  }
-}
-int magserv::getsign(int i,int j,int k,int oo,int ll){
-  if (_type==1){
-    int ijk[3];
-    ijk[0] = 1 - _nx + i;
-    ijk[1] = 1 - _ny + j;
-    ijk[2] = 1 - _nz + k;
-    if(ll>-1)
-      return SIGN(ijk[0])*SIGN(ijk[oo])*SIGN(ll);
-    else
-      return SIGN(ijk[0])*SIGN(ijk[oo]);
-  }
-  else
-    return 1;
-}
 
 int magserv::Read(const char *fname, int skip){
   std::ifstream fin(fname);

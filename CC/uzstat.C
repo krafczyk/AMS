@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.31 2010/08/19 06:40:59 choutko Exp $
+//  $Id: uzstat.C,v 1.32 2010/12/03 11:58:35 shaino Exp $
 // Author V. Choutko 24-may-1996
 #ifdef _OPENMP
 #include <omp.h> 
@@ -24,8 +24,13 @@ ofstream fbin("/f2users/choutko/AMS/examples/lvl3.txt",ios::out);
 
 static double AMSgettime(){
 
+// For gcc3
+#ifndef RUSAGE_THREAD
+#define RUSAGE_THREAD RUSAGE_SELF
+#endif
+
   struct rusage r_usage;
-  int aa=getrusage(RUSAGE_SELF, &r_usage);
+  int aa=getrusage(RUSAGE_THREAD, &r_usage);
   if (aa<0) return -1; //error
   double u=r_usage.ru_utime.tv_sec+ r_usage.ru_utime.tv_usec/1000000.;
   double s=r_usage.ru_stime.tv_sec+ r_usage.ru_stime.tv_usec/1000000.;
