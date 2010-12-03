@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.36 2010/11/15 00:57:20 mmilling Exp $
+//  $Id: g4physics.C,v 1.37 2010/12/03 09:52:10 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.36 2010/11/15 00:57:20 mmilling Exp $
+// $Id: g4physics.C,v 1.37 2010/12/03 09:52:10 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -38,6 +38,7 @@
 #include "G4FastSimulationManagerProcess.hh"
 #include "G4EmStandardPhysics.hh"
 #include "HadronPhysicsQGSP.hh"
+#include "HadronPhysicsQGSP_BERT.hh"
 #include "HadronPhysicsQGSC.hh"
 #include "G4IonPhysics.hh"
 #include "G4Version.hh"
@@ -143,7 +144,7 @@ void AMSG4Physics::ConstructProcess()
     }
    }
    else if(G4FFKEY.PhysicsListUsed==2){
-    cout<<"QGSC Physics List will be used. "<<endl;
+    cout<<"QGSP_BERT Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
       //     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
@@ -151,7 +152,7 @@ void AMSG4Physics::ConstructProcess()
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
-     HadronPhysicsQGSC* pqgsp=new HadronPhysicsQGSC();
+     HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
      pqgsp->ConstructProcess();    
      G4IonPhysics *pion=new G4IonPhysics("ion");
      pion->ConstructProcess();
