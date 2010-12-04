@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.8 2008/09/02 14:34:47 choutko Exp $
+//  $Id: main.h,v 1.9 2010/12/04 19:10:53 choutko Exp $
 #include <TASImage.h>
 #include <THistPainter.h>
 #include <TGraphPainter.h>
@@ -28,6 +28,10 @@ public:
  Myapp(const char *appClassName,int *argc, char **argv):TApplication(appClassName,argc, argv),fDisplay(0){
 }
  void SetStatic(){
+     if(gROOT->IsBatch()){
+       cerr<<"MyApp::SetStatic-F-RootIsInBatchMode,quitting"<<endl;
+       exit(1);
+     }
   TASImage a;
   TVirtualHistPainter::fgPainter=(TClass*)new THistPainter() ;
   TVirtualGraphPainter::fgPainter= new TGraphPainter() ;

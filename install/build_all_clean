@@ -19,6 +19,9 @@ source /Offline/vdev/install/amsvar.gcc64
 gmake allp
 source /Offline/vdev/install/amsvar.icc32
 gmake allold 
+source /Offline/vdev/install/amsvar.gcc32
+source /Offline/vdev/install/g4i
+gmake allg4
 setenv PGTRACK 1
 source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i

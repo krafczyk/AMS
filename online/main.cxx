@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.31 2009/11/10 19:17:37 pzuccon Exp $
+//  $Id: main.cxx,v 1.32 2010/12/04 19:10:53 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
 #if defined(WIN32) || defined(__APPLE__)
   Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
-  gVirtualX=new TGX11("X11","Root Interface to X11");
-  TGuiFactory *p=new TGuiFactory("root");
+  //gVirtualX=new TGX11("X11","Root Interface to X11");
+  //TGuiFactory *p=new TGuiFactory("root");
 
   Myapp *theApp = new Myapp("App", &argcc, argv);
   //  gDebug=6; 
