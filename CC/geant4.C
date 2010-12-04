@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.72 2010/11/30 10:27:53 choutko Exp $
+//  $Id: geant4.C,v 1.73 2010/12/04 11:10:12 zweng Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -69,7 +69,8 @@ G4RunManager * pmgr = new G4RunManager();
 
      pmgr->Initialize();
 
-
+     cout<<"~~~~~~Dump All Geant4 range cut: "<<endl;
+     pph->DumpCutValuesTable();
 
 
 
