@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.82 2010/12/04 19:44:11 choutko Exp $
+#  $Id: Makefile,v 1.83 2010/12/04 19:56:28 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -57,7 +57,7 @@ OPT           = -O3
 OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
-LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -axsse4.2,ssse3 -openmp
+LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -axsse4.2,ssse3 -openmp -static-intel
 LDFLAGS       = 
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
@@ -67,7 +67,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
+LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
 
 endif
