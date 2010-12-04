@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.75 2010/12/03 11:58:35 shaino Exp $
+// $Id: TrTrack.C,v 1.76 2010/12/04 16:14:10 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/03 11:58:35 $
+///$Date: 2010/12/04 16:14:10 $
 ///
-///$Revision: 1.75 $
+///$Revision: 1.76 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -41,25 +41,15 @@
 
 ClassImp(TrTrackPar)
 
-char* HitBitsString(int aa){
-  static char ss[10];
-  for (int ii=0;ii<9;ii++)
-    if(((aa)&1<<ii)>0) ss[8-ii]='X';
-    else ss[8-ii]='_';
-  ss[9]='\0';
-  return ss;
-}
-
-
-void TrTrackPar::Print(int full){
+void TrTrackPar::Print(int full) const {
   printf("Rigidity:  %6.3f Err(1/R):  %7.5f P0: %6.3f %6.3f %6.3f  Dir:  %6.4f %6.4f %6.4f\n",
 	 Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]);
   if(!full)return;
   printf("HitBits: %s, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
-	 HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq);
+	 TrTrackR::HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq);
 }
 
-void  TrTrackPar::Print_stream(std::string &ostr,int full){
+void  TrTrackPar::Print_stream(std::string &ostr,int full) const {
   ostr.append(Form("Rigidity:  %6.3f Err(1/R):  %7.5f P0: %6.3f %6.3f %6.3f  Dir:  %6.4f %6.4f %6.4f\n",
 		   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]));
   if(!full)return;
@@ -229,7 +219,8 @@ TrTrackR::~TrTrackR()
 {
 }
 
-TrTrackPar &TrTrackR::GetPar(int id)
+
+const TrTrackPar &TrTrackR::GetPar(int id) const
 {
   int id2 = (id == 0) ? trdefaultfit : id;
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
@@ -242,10 +233,19 @@ TrTrackPar &TrTrackR::GetPar(int id)
     else if (ParExists(idT)) id2=idT;
     else if (ParExists(idB)) id2=idB;
   }
-  if (ParExists(id2)) return _TrackPar[id2];
+  if (ParExists(id2)) return _TrackPar.find(id2)->second;
+                           //_TrackPar[id2]; //SH Let's keep const
   static int i=0;
    if(i++<100)cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
        << id << " "  << endl;
+  static TrTrackPar parerr;
+  return parerr;
+}
+
+TrTrackPar &TrTrackR::GetPar(int id)
+{
+  int id2 = (id == 0) ? trdefaultfit : id;
+  if (ParExists(id2)) return _TrackPar[id2]; // Be careful of [] operator !
   static TrTrackPar parerr;
   return parerr;
 }
@@ -444,6 +444,23 @@ void TrTrackR::Move(int shift, int fit_flags)
   else ReFit();
 }
 
+void TrTrackR::FillExRes()
+{
+  map<int, TrTrackPar>::iterator it = _TrackPar.begin();
+  for(;it!=_TrackPar.end();it++) {
+    int id = it->first;
+    if (id & (kFitLayer8 | kFitLayer9)) continue;
+
+    for (int ily = 7; ily <= 8; ily++) {
+      TrRecHitR *hit = GetHitL(ily);
+      if (hit) {
+	AMSPoint pint = InterpolateLayer(ily, id);
+	GetPar(id).Residual[ily][0] = (hit->GetCoord()-pint)[0];
+	GetPar(id).Residual[ily][1] = (hit->GetCoord()-pint)[1];
+      }
+    }
+  }
+}
 
 void TrTrackR::EstimateDummyX(int fitid)
 {
@@ -551,7 +568,30 @@ TrRecHitR *TrTrackR::GetHit(int i)
   return _Hits[i];
 }
 
+TrRecHitR *TrTrackR::GetHit(int i) const
+{
+  if (i < 0 || trconst::maxlay <= i) return 0;
+  TrRecHitR *hh = _Hits[i];
+  
+  if (!hh && _iHits[i] >= 0) {
+    VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");
+    hh = (TrRecHitR*)cont2->getelem(_iHits[i]);
+    delete cont2;
+  }
+
+  return hh;
+}
+
 TrRecHitR *TrTrackR::GetHitL(int ilay)
+{
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (hit && hit->GetLayer() == ilay+1) return hit;
+  }
+  return 0;
+}
+
+TrRecHitR *TrTrackR::GetHitL(int ilay) const
 {
   for (int i = 0; i < GetNhits(); i++) {
     TrRecHitR *hit = GetHit(i);
@@ -571,6 +611,180 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
   return (*_Hits[i]);
 }
+
+//############## TRACK CLASSIFICATION ###############
+
+/// Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+float TrTrackR::StdMDR[4] = { 200, 600, 800, 2000 };
+
+/// Multiple scattering factor for (0:inner, 1:L1N, 2:L9, 3:full)
+float TrTrackR::ScatFact[4] = { 0.05, 0.10, 0.10, 0.10 };
+
+float TrTrackR::ErinvThres[2] = { 10, 3.0 };
+float TrTrackR::ChisqThres[2] = { 20, 2.0 };
+float TrTrackR::HalfRThres[2] = { 10, 2.0 };
+float TrTrackR::ExResThres[2] = { 10, 2.5 };
+float TrTrackR::ChisqTune [4] = { 1.0, 2.0, 2.0, 5.0 };
+float TrTrackR::HalfRTune [4] = { 1.0, 1.1, 1.1, 1.5 };
+
+/// Evaluate the classification flag
+int TrTrackR::GetTrackClass(int id, double *qpar) const
+{
+  if (id == 0) id = trdefaultfit;
+
+  // Pre-selection
+  if (!ParExists (id)      ||
+      GetChisq   (id)  < 0 ||
+      GetRigidity(id) == 0) return 0;
+
+  // Base fitting method
+  int idb  = (id & (0xfffff-kFitLayer8-kFitLayer9
+		           -kUpperHalf-kLowerHalf));
+
+  int idu  = idb | kUpperHalf;  // Upper half of inner tracker
+  int idl  = idb | kLowerHalf;  // Lower half of inner tracker
+  int id8  = idb | kFitLayer8;  // Inner + Layer 1N
+  int id9  = idb | kFitLayer9;  // Inner + Layer 9
+  int id89 = idb | kFitLayer8 
+                 | kFitLayer9;  // Full span
+
+  int    flag  =  0;            // Track classification flag
+  int    idx   = -1;            // Track type index (0:inner, 1:half, 2:full)
+  bool   hqsel = true;          // High quality flag
+  double hrig[2] = { 0, 0 };    // Half rigidities
+  double heri[2] = { 0, 0 };    // Half err-Rinv
+  double arig = 0;              // Reference rigidity
+
+  double qtmp[4];
+  if (!qpar) qpar = qtmp;
+  qpar[0] = qpar[1] = qpar[2] = qpar[3] = 0;
+
+  // kMaxExt (L1N && L9)
+  if ((id & id89) == id89    && 
+      TestHitBits(8, id)     && ParExists(id8) && // Layer 1N
+      TestHitBits(9, id)     && ParExists(id9) && // Layer 9
+      ParExists  (id89)      &&
+      GetChisq   (id89) >  0 &&
+      GetRigidity(id89) != 0)
+  {
+    flag |= kMaxExt;
+    hrig[0] = GetRigidity(id8); heri[0] = GetErrRinv(id8);
+    hrig[1] = GetRigidity(id9); heri[1] = GetErrRinv(id9);
+    arig    = GetRigidity(id89);
+    idx     = 3;
+  }
+
+  // kHalfExt (L1 && L9)
+  else
+  if ((id & id9) == id9     &&
+      TestHitBits(1, id)    &&     // Layer 1
+      TestHitBits(9, id)    &&     // Layer 9
+      ParExists  (id9)      && ParExists  (idu)      &&
+      GetChisq   (id9) >  0 && GetChisq   (idu) >  0 &&
+      GetRigidity(id9) != 0 && GetRigidity(idu) != 0)
+  {
+    flag |= kHalfExt;
+    hrig[0] = GetRigidity(idb); heri[0] = GetErrRinv(idb);
+    hrig[1] = GetRigidity(id9); heri[1] = GetErrRinv(id9);
+    arig    = GetRigidity(id9);
+    idx     = 2;
+  }
+
+  // kHalfExt (L1N && (L6 || L7))
+  else
+  if ((id & id8) == id8   &&
+       TestHitBits(8, id) &&                              // Layer 1N
+      (TestHitBits(6, id) || TestHitBits(7, id))      &&  // Layer 6 || 7
+       ParExists  (id8)      && ParExists  (idl)      &&
+       GetChisq   (id8) >  0 && GetChisq   (idl) >  0 &&
+       GetRigidity(id8) != 0 && GetRigidity(idl) != 0)
+  {
+    flag |= kHalfExt;
+    hrig[0] = GetRigidity(id8); heri[0] = GetErrRinv(id8);
+    hrig[1] = GetRigidity(idb); heri[1] = GetErrRinv(idb);
+    arig    = GetRigidity(id8);
+    idx     = 1;
+  }
+
+  // kMaxInt (L1 && (L6 || L7))
+  else
+  if ( TestHitBits(1, id)    &&                           // Layer 1
+      (TestHitBits(6, id)    || TestHitBits(7, id))   &&  // Layer 6 || 7
+       ParExists  (idu)      && ParExists  (idl)      &&
+       GetChisq   (idu) >  0 && GetChisq   (idl) >  0 &&
+       GetRigidity(idu) != 0 && GetRigidity(idl) != 0)
+  {
+    flag |= kMaxInt;
+    hrig[0] = GetRigidity(idu); heri[0] = GetErrRinv(idu);
+    hrig[1] = GetRigidity(idl); heri[1] = GetErrRinv(idl);
+    arig    = GetRigidity(idb);
+    idx     = 0;
+  }
+  arig = fabs(arig);
+
+  if (flag == 0 || idx < 0 || StdMDR[idx] == 0 || arig == 0) return 0;
+
+  // Err-Rinv selection
+  double err0 = 1/StdMDR[idx];
+  double err1 = ScatFact[idx]/fabs(arig);
+  double ecor = std::sqrt(err0*err0+err1*err1);
+  qpar[0] = GetErrRinv(id)*GetErrRinv(id)/ecor/ecor;
+  if (qpar[0] < ErinvThres[0]) flag |= kErinvOK;
+  if (qpar[0] > ErinvThres[1]) hqsel = false;
+
+  // Chisquare selection
+  qpar[1] = GetChisq(id)/ChisqTune[idx];
+  if (qpar[1] < ChisqThres[0]) flag |= kChisqOK;
+  if (qpar[1] > ChisqThres[1]) hqsel = false;
+
+  // Half rigidity selection
+  if (hrig[0] != 0 && hrig[1] != 0) {
+    double herinv = std::max(heri[0], heri[1]);    
+    qpar[2] = (1/hrig[0]-1/hrig[1])/herinv/HalfRTune[idx];
+    if (fabs(qpar[2]) < HalfRThres[0]) flag |= kHalfROK;
+    if (fabs(qpar[2]) > HalfRThres[1]) hqsel = false;
+  }
+  else hqsel = false;
+
+  // External residuals selection
+  if (flag & kHalfExt) {
+    int    ily = (idx == 1) ? 7 : 8;
+    double fms = TRFITFFKEY.FitwMsc[ily]/arig;
+    double fer = StdMDR[3]/StdMDR[0];
+    double err = std::sqrt(fer*fer+fms*fms)*TRFITFFKEY.ErrY;
+
+    if (err > 0) {
+      double res = GetPar(idb).Residual[ily][1];
+      qpar[3] = fabs(res/err)*1.7;
+    }
+  }
+  else if (flag & kMaxExt) {
+    double fms8 = TRFITFFKEY.FitwMsc[7]/arig;
+    double fms9 = TRFITFFKEY.FitwMsc[8]/arig;
+    double fer8 = StdMDR[3]/StdMDR[1];
+    double fer9 = StdMDR[3]/StdMDR[2];
+    double err8 = std::sqrt(fer8*fer8+fms8*fms8)*TRFITFFKEY.ErrY;
+    double err9 = std::sqrt(fer9*fer9+fms9*fms9)*TRFITFFKEY.ErrY;
+    
+    if (err8 > 0 && err9 > 0) {
+      double res8 = GetPar(id9).Residual[7][1]/err8;
+      double res9 = GetPar(id8).Residual[8][1]/err9;
+      qpar[3] = std::sqrt((res8*res8+res9*res9)/2);
+    }
+  }
+  else flag |= kExResOK;
+
+  if (qpar[3] > 0) {
+    if (qpar[3] < ExResThres[0]) flag |= kExResOK;
+    if (qpar[3] > ExResThres[1]) hqsel = false;
+  }
+
+  // High quality selection
+  if (hqsel) flag |= kHighQ;
+
+  return flag;
+}
+
 
 float TrTrackR::FitT(int id2, int layer, bool update, const float *err, 
                       float mass, float chrg)
@@ -656,42 +870,26 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   int idx[trconst::maxlay], nhit = 0;
   int bhit[2] = { 0, 0 };
 
-
-
   for (int i = 0; i < _Nhits && nhit < trconst::maxlay; i++) {
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
 
-    // For AMS02P (AKA AMS-B)
+    // For AMS02P
     if (TkDBc::Head->GetSetup() == 3) {
       if (hit->GetLayer() == 8) { 
 	bhit[0] = 1;
-	if (!(
-	      (id & kFitLayer8)||
-	      (id & kExternal)||
-	      (id & kUpperHalf)||
-	      (id & kLowerHalf)
-	      )
-	    ) continue; 
-
+	if (!(id & kFitLayer8)) continue; 
       }
       if (hit->GetLayer() == 9) {
 	bhit[1] = 1;
-	if (!(
-	      (id & kFitLayer9)||
-	      (id & kExternal)||
-	      (id & kUpperHalf)||
-	      (id & kLowerHalf)
-	      )
-	    ) continue; 
-	
+	if (!(id & kFitLayer9)) continue; 
       }
 
       int lyr = hit->GetLayer();
       if (lyr == 8) lyr = 0;
       idx[nhit++] = lyr*10+i;
     }
-    // For AMS02P (AKA AMS-B)
+    // For AMS02P
 
     // For AMS02-Ass1/PreInt with S.C. magnet
     else
@@ -702,7 +900,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if (TkDBc::Head->GetSetup() == 3) {
     if ((id & kFitLayer8) && !bhit[0]) return -6;
     if ((id & kFitLayer9) && !bhit[1]) return -7;
-    if ((id & kExternal) && !bhit[0] && !bhit[1]) return -17;
+    if ((id & kExternal)  && !bhit[0] && !bhit[1]) return -17;
   }
   // AMS02P
 
@@ -771,17 +969,13 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       }
     }
 
+    float ferx = (hit->OnlyY()) ? 0 : 1;
+    float fery = (hit->OnlyX()) ? 0 : 1;
+    if ((id & kUpperHalf) || (id & kLowerHalf)) ferx = fery = 1;
 
-    float bf[3] = { 0, 0, 0 }, pp[3] = { coo[0], coo[1], coo[2] };
-    
-    
-    GUFLD(pp, bf);
-    // bf[0]=_BField[j].x();
-//     bf[1]=_BField[j].y();
-//     bf[2]=_BField[j].z();
-    _TrFit.Add(coo, hit->OnlyY() ? 0 : errx*fmscx,
-	            hit->OnlyX() ? 0 : erry*fmscy,
-	                               errz, 
+    double bf[3] = { 0, 0, 0 };
+    TrFit::GuFld(coo[0], coo[1], coo[2], bf);
+    _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
 	       bf[0], bf[1], bf[2]);
     
     hitbits |= (1 << (hit->GetLayer()-1));
@@ -833,7 +1027,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
 
     int il = hit->GetLayer()-1;
-    par.Residual[il][0]=_TrFit.GetXr(i);
+    par.Residual[il][0]= _TrFit.GetXr(i);
     par.Residual[il][1]= _TrFit.GetYr(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
@@ -853,13 +1047,13 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   return GetChisq(id);
 }
 
-void TrTrackR::Print(int opt){
+void TrTrackR::Print(int opt) {
   _PrepareOutput(opt);
   cout <<sout;
 
 }
 
-bool TrTrackR::CheckLayFit(int fittype,int lay){
+bool TrTrackR::CheckLayFit(int fittype,int lay) const{
   if ( lay==0) return ((fittype & kFitLayer8)>0) ;
   if ( lay==1) return ((fittype & kFitLayer1)>0) ; 
   if ( lay==2) return ((fittype & kFitLayer2)>0) ;
@@ -873,7 +1067,7 @@ bool TrTrackR::CheckLayFit(int fittype,int lay){
   return false;
 }
 
-char *  TrTrackR::Info(int iRef){
+char *  TrTrackR::Info(int iRef) {
   string aa;
   aa.append(Form("TrTrack #%d ",iRef));
   _PrepareOutput(0);
@@ -883,7 +1077,7 @@ char *  TrTrackR::Info(int iRef){
   strncpy(_Info,aa.c_str(),len+1);
   return _Info;
 }
-std::ostream &TrTrackR::putout(std::ostream &ostr)  {
+std::ostream &TrTrackR::putout(std::ostream &ostr) {
   _PrepareOutput(1);
 
   return ostr << sout  << std::endl; 
@@ -896,10 +1090,10 @@ void TrTrackR::_PrepareOutput(int full )
   sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %6.3f Pirig %6.3f",
 		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPattern()),
 		   trdefaultfit,Chi2FastFitf(),GetRigidity(kAlcaraz)));
-  TrTrackPar &bb=GetPar();
+  const TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
   if(!full) return;
-  map<int, TrTrackPar>::iterator it=_TrackPar.begin();
+  map<int, TrTrackPar>::const_iterator it=_TrackPar.begin();
   for(;it!=_TrackPar.end();it++){
     sout.append(Form("\nFit mode %d ",it->first));
     it->second.Print_stream(sout,full);
@@ -910,7 +1104,7 @@ void TrTrackR::_PrepareOutput(int full )
 
 
 double TrTrackR::Interpolate(double zpl, AMSPoint &pnt, 
-                               AMSDir &dir, int id2)
+                               AMSDir &dir, int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
@@ -923,7 +1117,7 @@ double TrTrackR::Interpolate(double zpl, AMSPoint &pnt,
   return tprop.Interpolate(pnt, dir);
 }
 
-AMSPoint TrTrackR::InterpolateLayer(int ily, int id)
+AMSPoint TrTrackR::InterpolateLayer(int ily, int id) const
 {
   AMSPoint pnt;
   AMSDir   dir;
@@ -932,7 +1126,7 @@ AMSPoint TrTrackR::InterpolateLayer(int ily, int id)
 }
 
 double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt, 
-				  AMSDir &dir, int id2)
+				  AMSDir &dir, int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
@@ -961,7 +1155,7 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
 
 void TrTrackR::Interpolate(int nz, double *zpl, 
                              AMSPoint *pvec, AMSDir *dvec, double *lvec,
-                             int id2)
+                             int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
@@ -973,7 +1167,7 @@ void TrTrackR::Interpolate(int nz, double *zpl,
 
 void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1, 
 			   number &theta, number &phi, number &length, 
-			   int id2)
+			   int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.48 2010/11/30 18:42:47 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.49 2010/12/04 16:14:13 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/11/30 18:42:47 $
+///$Date: 2010/12/04 16:14:13 $
 ///
-///$Revision: 1.48 $
+///$Revision: 1.49 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,8 +97,8 @@ public:
       NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {}
   ~TrTrackPar(){}
-  void Print(int full=0);
-  void Print_stream(std::string &ostr,int full=0);
+  void Print(int full=0) const;
+  void Print_stream(std::string &ostr,int full=0) const;
 
   ClassDef(TrTrackPar,2);
 } ; 
@@ -159,6 +159,7 @@ public:
     /// **AMS-B: fitting with layer 1**
     kFitLayer1  = 0x01000,
     /// **AMS-B: fitting with layer 2**
+
     kFitLayer2  = 0x02000,
     /// **AMS-B: fitting with layer 3**
     kFitLayer3  = 0x04000,
@@ -232,7 +233,7 @@ protected:
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
   /// Service function to check if a layer is included in a fit
-  bool CheckLayFit(int fittype,int lay);
+  bool CheckLayFit(int fittype,int lay) const;
 public:
   /// Default fit method ID to retrive parameters
   static int DefaultFitID;
@@ -301,38 +302,38 @@ public:
 
   // Get fitting parameter with a key as Fitting method ID 
   //! True if the fit was succeful (fit id from EFitMehthods
-  bool     FitDone     (int id= 0) { return ParExists(id) &&
-                                           GetPar(id).FitDone;  }
+  bool     FitDone     (int id= 0) const { return ParExists(id) &&
+                                                  GetPar(id).FitDone;  }
   //! Returns the TrTrackPar HitBits
-  int      GetHitBits  (int id= 0) { return GetPar(id).HitBits;  }
+  int      GetHitBits  (int id= 0) const { return GetPar(id).HitBits;  }
   //! Returns Chi2 on X from TrTrackPar corresponding to id
-  double   GetChisqX   (int id= 0) { return GetPar(id).ChisqX;   }
+  double   GetChisqX   (int id= 0) const { return GetPar(id).ChisqX;   }
   //! Returns Chi2 on Y from TrTrackPar corresponding to id
-  double   GetChisqY   (int id= 0) { return GetPar(id).ChisqY;   }
+  double   GetChisqY   (int id= 0) const { return GetPar(id).ChisqY;   }
   //! Returns Global Chi2 from TrTrackPar corresponding to id
-  double   GetChisq    (int id= 0) { return GetPar(id).Chisq;    }
+  double   GetChisq    (int id= 0) const { return GetPar(id).Chisq;    }
   //! returns Ndof on X from TrTrackPar corresponding to id
-  int      GetNdofX    (int id= 0) { return GetPar(id).NdofX;    }
+  int      GetNdofX    (int id= 0) const { return GetPar(id).NdofX;    }
   //! returns Ndof on Y from TrTrackPar corresponding to id
-  int      GetNdofY    (int id= 0) { return GetPar(id).NdofY;    }
+  int      GetNdofY    (int id= 0) const { return GetPar(id).NdofY;    }
   //! Returnt the fitted Rigidity from TrTrackPar corresponding to id
-  double   GetRigidity (int id= 0) { return GetPar(id).Rigidity; }
+  double   GetRigidity (int id= 0) const { return GetPar(id).Rigidity; }
   //! Returns the error on 1/R from TrTrackPar corresponding to id
-  double   GetErrRinv  (int id= 0) { return GetPar(id).ErrRinv;  }
+  double   GetErrRinv  (int id= 0) const { return GetPar(id).ErrRinv;  }
   /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
   AMSPoint GetPentry(int id = 0);
   ///Returns the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
-  AMSPoint GetP0       (int id= 0) { return GetPar(id).P0;       }
+  AMSPoint GetP0       (int id= 0) const { return GetPar(id).P0;       }
   /// Get track entry point direction (first layer of the fitting) from TrTrackPar corresponding to id
   AMSDir GetPdir(int id = 0);
   ///Returns the direction at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
-  AMSDir   GetDir      (int id= 0) { return GetPar(id).Dir;      }
+  AMSDir   GetDir      (int id= 0) const { return GetPar(id).Dir;      }
   /// Return the  proj (0=X,1=Y) residual at layer ilay (0-8) from TrTrackPar corresponding to id
-  AMSPoint  GetResidual (int ilay, int id= 0) { 
-    if( ilay<0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
-    if(id == 0 || ParExists(id)) return AMSPoint(0,0,0);  
-      AMSPoint(GetPar(id).Residual[ilay][0],GetPar(id).Residual[ilay][1],TkDBc::Head->GetZlayer(ilay+1));
-      return AMSPoint(0,0,0);
+  AMSPoint  GetResidual (int ilay, int id= 0) const { 
+    if (ilay < 0 || ilay >= trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
+    return AMSPoint(GetPar(id).Residual[ilay][0],
+		    GetPar(id).Residual[ilay][1],
+		    TkDBc::Head->GetZlayer(ilay+1));
   }
   ///  Get back the string corresponding to a fit ID
   static char* GetFitNameFromID(int fitnum);
@@ -345,18 +346,21 @@ public:
   AMSPoint GetPlayer(int ilay, int id = 0);
 
   // Aliases
-  double   GetP0x      (int id= 0) { return GetP0(id).x(); }
-  double   GetP0y      (int id= 0) { return GetP0(id).y(); }
-  double   GetP0z      (int id= 0) { return GetP0(id).z(); }
-  double   GetChi2     (int id= 0) { return GetChisq(id);  }
-  double   GetTheta    (int id= 0) { return GetDir(id).gettheta();}
-  double   GetPhi      (int id= 0) { return GetDir(id).getphi();  }
+  double   GetP0x      (int id= 0) const { return GetP0(id).x(); }
+  double   GetP0y      (int id= 0) const { return GetP0(id).y(); }
+  double   GetP0z      (int id= 0) const { return GetP0(id).z(); }
+  double   GetChi2     (int id= 0) const { return GetChisq(id);  }
+  double   GetTheta    (int id= 0) const { return GetDir(id).gettheta();}
+  double   GetPhi      (int id= 0) const { return GetDir(id).getphi();  }
 
   /// Check if _TrackPar[id]
-  bool ParExists(int id) { return (_TrackPar.find(id) != _TrackPar.end()); }
+  bool ParExists(int id) const { return (_TrackPar.find(id) != _TrackPar.end()); }
 
-  /// Get TrTrackPar with id
-  TrTrackPar &GetPar(int id = 0);
+  /// Get TrTrackPar with id (const operator)
+  const TrTrackPar &GetPar(int id = 0) const;
+
+  /// Get TrTrackPar with id (non-const operator, only for experts)
+  TrTrackPar &GetPar(int id);
 
 
   
@@ -408,21 +412,33 @@ public:
 
 
   /// Checks if an it on layer(1-9) is used for the fit_type id
-  bool TestHitBits(int layer, int id = 0) { 
+  bool TestHitBits(int layer, int id = 0) const { 
     return (GetHitBits(id) & (1 << (layer-1)));
+  }
+
+  /// Get bit pattern as a string
+  static const char *HitBitsString(int aa, char con = 'X', char coff = '_')
+  {
+    static char ss[10];
+    for (int ii = 0; ii < 9; ii++) ss[8-ii] = (aa & (1<<ii)) ? con : coff;
+    ss[9]='\0';
+    return ss;
   }
 
   /// Get the pointer to the i-th in the track
   TrRecHitR *GetHit(int i);
+  /// Get the pointer to the i-th in the track (const version)
+  TrRecHitR *GetHit(int i) const;
   /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
   TrRecHitR *GetHitL(int ilay);
+  /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
+  TrRecHitR *GetHitL(int ilay) const;
   /// Get areferemce to the i-th in the track
   TrRecHitR& TrRecHit(int i ); 
   /// Get the pointer to the i-th in the track
   TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
   /// Get the index of the i-th hit in the track within the hit vector
   int iTrRecHit(int i){return _iHits[i];}
-  
 
   /// Get tan(theta) on XZ projection
   double GetThetaXZ(int id = 0) { 
@@ -449,6 +465,79 @@ public:
 
   //!Set the default fit method to be used for this track
   void Settrdefaultfit(int def ){trdefaultfit=def;}
+
+//############## TRACK CLASSIFICATION ###############
+/*
+  You can select tracks by the following classification flags:
+  kNotBadI :  Not-bad track with INNER-Tracker (L1 && (L6 || L7))
+  kGoldenI :  Golden  track with INNER-Tracker (L1 && (L6 || L7))
+  kNotBadH :  Not-bad track with HALF- Tracker (L1N || L9)
+  kGoldenH :  Golden  track with HALF- Tracker (L1N || L9)
+  kNotBadE :  Not-bad track with FULL- Tracker (L1N && L9)
+  kGoldenE :  Golden  track with FULL- Tracker (L1N && L9)
+
+  "Not-bad" means "Max  efficiency and minimum quality"
+  "Golden"  means "Good efficiency and high quality"
+  You may need to estimate the efficiency VS R when you select golden tracks
+*/
+  enum {
+    kMaxInt  = 0x001, ///< Max  span of internal tracker (L1 && (L6||L7))
+    kHalfExt = 0x002, ///< Half span of the full tracker (L1N || L9)
+    kMaxExt  = 0x004, ///< Max  span of the full tracker (L1N && L9)
+    kErinvOK = 0x010, ///< Minimum err-Rinv      selection OK
+    kChisqOK = 0x020, ///< Minimum chisquare     selection OK
+    kHalfROK = 0x040, ///< Minimum half-rigidity selection OK
+    kExResOK = 0x080, ///< Minimum ex-residual   selection OK
+    kHighQ   = 0x100, ///< High quality selection bit
+    kBaseQ            ///< Minimum quality selection bits
+             = kErinvOK | kChisqOK | kHalfROK | kExResOK
+  };
+
+  enum {
+    kNotBadI = kMaxInt  | kBaseQ,            ///< Not-bad track with inner
+    kGoldenI = kMaxInt  | kBaseQ | kHighQ,   ///< Golden  track with inner
+    kNotBadH = kHalfExt | kBaseQ,            ///< Not-bad track with half-ex.
+    kGoldenH = kHalfExt | kBaseQ | kHighQ,   ///< Golden  track with half-ex.
+    kNotBadE = kMaxExt  | kBaseQ,            ///< Not-bad track with full
+    kGoldenE = kMaxExt  | kBaseQ | kHighQ    ///< Golden  track with full
+  };
+
+  /// Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+  static float StdMDR[4];
+
+  /// Multiple scattering factor for (0:inner, 1:L1N, 2:L9, 3:full)
+  static float ScatFact[4];
+
+  /// Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
+  static float ErinvThres[2];
+
+  /// Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
+  static float ChisqThres[2];
+
+  /// Half rigidity compatibility threshold for [0]:kHalfROK and [1]:kHighQ
+  static float HalfRThres[2];
+
+  /// External residual threshold for [0]:kExResOK and [1]:kHighQ
+  static float ExResThres[2];
+
+  /// Chisquare tuning factor
+  static float ChisqTune[4];
+
+  /// Half rigidity tuning factor
+  static float HalfRTune[4];
+
+  /// Evaluate the classification flag, qpar is for experts (just ignore)
+  int GetTrackClass(int id= 0, double *qpar = 0) const;
+
+  /// Evaluate the classification flag with refit
+  int GetTrackClassRefit(int id= 0,
+			 double *qpar = 0,
+			 const float *err = 0, 
+			 float mass = 0.938272297, float chrg = 1) {
+    if (id == 0) id = trdefaultfit;
+    FitT(id,-1,1,err,mass,chrg);
+    return GetTrackClass(id, qpar);
+  }
 
 //############## VARIUOS METHODS ###############
 
@@ -510,6 +599,9 @@ public:
   /// Estimate dummyX and multiplicity for OnlyY hits
   void EstimateDummyX(int fitid = 0);
 
+  /// Fill residual of external layers and internal track
+  void FillExRes();
+
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();
   
@@ -522,7 +614,7 @@ public:
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
   double Interpolate(double zpl, AMSPoint &pnt, AMSDir &dir, 
-		     int id = 0);
+		     int id = 0) const;
 
   /// Interpolation onto Tracker layer with alignment correction 
   /*!
@@ -533,7 +625,7 @@ public:
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
   double InterpolateLayer(int ily, AMSPoint &pnt, AMSDir &dir, 
-			  int id = 0);
+			  int id = 0) const;
 
   /// Interpolation onto Tracker layer with alignment correction 
   /*!
@@ -541,7 +633,7 @@ public:
    * \param[in]  id   Fitting method ID
    * \return          Track position  at the layer
    */
-  AMSPoint InterpolateLayer(int ily, int id = 0);
+  AMSPoint InterpolateLayer(int ily, int id = 0) const;
 
   /// Build interpolation vectors onto Z=zpl[i] (0<=i<nz) planes
   /*!
@@ -556,12 +648,12 @@ public:
    */
   void Interpolate(int nz, double *zpl, 
 		   AMSPoint *pvec, AMSDir *dvec = 0, double *lvec = 0,
-		   int id = 0);
+		   int id = 0) const;
 
   /// General interpolation (for the compatibility with Gbatch)
   void interpolate(AMSPoint pnt, AMSDir dir,  AMSPoint &P1, 
 		   number &theta, number &phi, number &length, 
-		   int id = 0);
+		   int id = 0) const;
 
   /// Interpolation to cylindrical surface
   bool interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, number idir, 
@@ -599,17 +691,17 @@ public:
 
 
   /// --- Std gbatch compatibility functions
-  geant Rigidityf(){ return GetRigidity();}
+  geant Rigidityf() const { return GetRigidity();}
 
-  geant Chi2FastFitf() {return GetChi2(kChoutko| kMultScat );}
+  geant Chi2FastFitf() const {return GetChi2(kChoutko| kMultScat );}
 
-  geant HChi2f(int half){ return (half==0)?
+  geant HChi2f(int half) const { return (half==0)?
       GetChi2(kChoutko| kUpperHalf):
       GetChi2(kChoutko| kLowerHalf);}
 
-  geant FChi2MSf(){return  GetChi2(kChoutko);}
+  geant FChi2MSf() const {return  GetChi2(kChoutko);}
 
-  geant HRigidityf(int half){ return (half==0)?
+  geant HRigidityf(int half) const { return (half==0)?
       GetRigidity(kChoutko|kUpperHalf):
       GetRigidity(kChoutko|kLowerHalf);}
 

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.81 2010/12/03 11:58:35 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.82 2010/12/04 16:14:10 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/03 11:58:35 $
+/// $Date: 2010/12/04 16:14:10 $
 ///
-/// $Revision: 1.81 $
+/// $Revision: 1.82 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1997,38 +1997,34 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     }
     if (DXY[il].ihmin>=0 && fabs(DXY[il].diff.y()) > diffY_max) continue;
     if (DXY[il].ihmin< 0 && fabs(DY [il].diff.y()) > diffY_max) continue;
+
+    TrRecHitR *hit = 0;
+
     if (DXY[il].ihmin>=0 &&
-	fabs(DXY[il].diff.x()) < diffX_max) {
-      TrRecHitR* hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
-      if (!hit) continue;
+	fabs(DXY[il].diff.x()) < diffX_max)
+      hit=(TrRecHitR*)cont->getelem(DXY[il].ihmin);
+    else
+      hit=(TrRecHitR*)cont->getelem(DY[il].ihmin);
 
+    if (hit) {
+      if (hit->OnlyY()) {
+	TkSens tks = EstimateXCoord(ptrk[il]);
+	if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
+	DY[il].mlmin = tks.GetMultIndex();
+	int nmlt = hit->GetMultiplicity();
+	if (DY[il].mlmin >= nmlt) DY[il].mlmin = nmlt-1;
+	if (DY[il].mlmin <     0) DY[il].mlmin = 0;
+	hit->SetDummyX(tks.GetStripX());
+      }
       hit->SetResolvedMultiplicity(DXY[il].mlmin);
-      track->GetPar(mfit).Residual[lyext[il]-1][0]=DXY[il].diff.x();
-      track->GetPar(mfit).Residual[lyext[il]-1][1]=DXY[il].diff.y();
-      hit->setstatus(AMSDBc::USED);
-      track->AddHit(hit);
-      nadd++;
-    }else{
-      TrRecHitR* hit=(TrRecHitR*)cont->getelem(DY[il].ihmin);
-      if (!hit) continue;
-
-      TkSens tks = EstimateXCoord(ptrk[il]);
-      if (!tks.LadFound() || tks.GetLadTkID() != hit->GetTkId()) continue;
-      DY[il].mlmin = tks.GetMultIndex();
-      int nmlt = hit->GetMultiplicity();
-      if (DY[il].mlmin >= nmlt) DY[il].mlmin = nmlt-1;
-      if (DY[il].mlmin <     0) DY[il].mlmin = 0;
-      hit->SetDummyX(tks.GetStripX());
-     // hit->BuildCoordinates();
-      hit->SetResolvedMultiplicity(DY[il].mlmin);
-      track->GetPar(mfit).Residual[lyext[il]-1][0]=0;
-      track->GetPar(mfit).Residual[lyext[il]-1][1]=DY[il].diff.y();
       track->AddHit(hit);
       hit->setstatus(AMSDBc::USED);
       nadd++;
     }
   }
   delete cont;
+
+  if (nadd > 0) track->FillExRes();
 
   if(DY[0].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))

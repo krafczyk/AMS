@@ -259,8 +259,17 @@ void HistoMan::BookHistos(){
   Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
+  // mceventg
   Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
   Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+
+  // Track quality parameters VS Rigidity
+  TString stp[4] = {  "dRinv-",  "Chisq-",  "HalfR-", "Exres-" };
+  TString stt[4] = { "(inner)", "(half8)", "(half9)", "(full)" };
+  for (Int_t i = 0; i < 4; i++)
+    for (Int_t j = 0; j < 4; j++)
+      Add(TH2D_L(Form("TrQp%d%d", j+1, i),
+		 stp[i]+stt[j], 40, 1, 1e4, 80, 1e-2, 1e2, 1, 1));
 
   // TrSim
   if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
@@ -282,9 +291,15 @@ void HistoMan::BookHistos(){
     Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
 
+    // Track quality check
+    TString sdr[3] = {  "d1/R0-",  "d1/R1-",  "d1/R2-" };
+    for (Int_t i = 0; i < 3; i++)
+      for (Int_t j = 0; j < 4; j++)
+	Add(TH2D_L(Form("TrQr%d%d", j+1, i),
+		   sdr[i]+stt[j], 40, 1, 1e4, 400, -100, 100, 1, 0));
+
     Add(new TH1D("TrSigBaseX","Normalized Signal (keV)", 500, 0, 400));
     Add(new TH1D("TrSigBaseY","Normalized Signal (keV)", 500, 0, 400));
-
   }
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   if (dsave) dsave->cd();
