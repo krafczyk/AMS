@@ -218,14 +218,15 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdRadRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
   fTrdRadRegionCuts->SetProductionCut(cut, idxG4PositronCut);
   
-  if(!gasregion){
-    gasregion=new G4Region("TrdGasRegion");
-    (G4RegionStore::GetInstance())->Register(gasregion);
-  }
-  if(!radregion){
-    radregion=new G4Region("TrdRadRegion");
-    (G4RegionStore::GetInstance())->Register(radregion);
-  }
+  //Should not define region before "World" is created, "World" need to be the first instance in G4RegionStore
+//   if(!gasregion){
+//     gasregion=new G4Region("TrdGasRegion");
+//     (G4RegionStore::GetInstance())->Register(gasregion);
+//   }
+//   if(!radregion){
+//     radregion=new G4Region("TrdRadRegion");
+//     (G4RegionStore::GetInstance())->Register(radregion);
+//   }
 
   if(TRDMCFFKEY.debug){
     G4cout << "TRDMC datacards :" << G4endl;

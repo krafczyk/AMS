@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.60 2010/11/23 17:14:15 mmilling Exp $
+//  $Id: gvolume.C,v 1.61 2010/12/04 18:24:58 zweng Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -442,6 +442,7 @@ integer AMSgvolume::_Norp=0;
       _pg4l->SetUserLimits(new AMSUserLimits());
       if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
 #ifdef __G4AMS__
+	if(!trdSimUtil.radregion)    trdSimUtil.radregion=new G4Region("TrdRadRegion");      
 	trdSimUtil.radregion->AddRootLogicalVolume(_pg4l);
 	trdSimUtil.radlv=_pg4l;
 #endif
@@ -449,6 +450,7 @@ integer AMSgvolume::_Norp=0;
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
 #ifdef __G4AMS__
+	if(!trdSimUtil.gasregion)         trdSimUtil.gasregion=new G4Region("TrdGasRegion");
         trdSimUtil.gasregion->AddRootLogicalVolume(_pg4l);
 #endif
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
