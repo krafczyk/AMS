@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.6 2010/11/30 12:11:01 choutko Exp $
+//  $Id: commonsi.h,v 1.7 2010/12/04 19:44:11 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -54,6 +54,7 @@ static int  AB_catch;
  static const char * getversion(){return _version;}
  static integer getbuildno()  {return _build;}
  static uinteger getbuildtime(){return _buildtime;}
+ static char * getbuildctime(){ time_t t=_buildtime;return ctime(&t);}
  static integer getmips()  {return integer(_mips);}
  static integer getpid()  {return integer(_pid);}
  static uinteger MaxMem(){return _MaxMem;}

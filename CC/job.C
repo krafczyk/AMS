@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.759 2010/12/02 23:29:35 choutko Exp $
+// $Id: job.C,v 1.760 2010/12/04 19:44:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3949,7 +3949,7 @@ if(_Head){
  exit(1);
 }
 else _Head=this;
-cout <<"   AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<"/"<<AMSCommonsI::getosno()<<endl;
+cout <<"   AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<"/"<<AMSCommonsI::getosno()<<" build "<<AMSCommonsI::getbuildctime()<< endl;
 }
 
 AMSJob::~AMSJob(){
