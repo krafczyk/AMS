@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.38 2010/12/04 10:53:40 zweng Exp $
+//  $Id: g4physics.C,v 1.39 2010/12/04 18:41:16 zweng Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.38 2010/12/04 10:53:40 zweng Exp $
+// $Id: g4physics.C,v 1.39 2010/12/04 18:41:16 zweng Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -925,11 +925,6 @@ void AMSG4Physics::SetCuts()
   //  (G4RegionStore::GetInstance())->Register(trdSimUtil.gasregion);
   //  G4cout << "gasregion " << trdSimUtil.gasregion << G4endl;
 
- G4Region* WorldRegion
-   = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
- G4ProductionCuts* cuts = new G4ProductionCuts;
- cuts->SetProductionCut(1*mm);
- WorldRegion->SetProductionCuts(cuts);
 
 
 
