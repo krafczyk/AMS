@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.139 2010/11/14 17:08:36 choumilo Exp $
+//  $Id: ecalrec.C,v 1.140 2010/12/05 16:26:19 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -223,6 +223,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
   integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attfdir,attfrfl,ww[4],anen,dyen;
+  number attfdir0,attfrfl0;
+  geant attf,attf0;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   int dytmap[ECSLMX][ECPMSMX],dytrc[ECSLMX];
   int dycog[ECSLMX];//to work with integer as in real EC trigger
@@ -325,7 +327,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
           attfdir=(1.-ffr)*exp(-pmdis/lsl)+ffr*exp(-pmdis/lfs);//fiber att.factor(direct light)
 	  attfrfl=((1-ffr)*exp(-(2*hflen-pmdis)/lsl)+ffr*exp(-(2*hflen-pmdis)/lfs))
 	         *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl)
-          edepr=edep*0.5*(attfdir+attfrfl)*ww[j];//geant dE/dX(mev) + Attenuation for direct/refl
+          attf=0.5*(attfdir+attfrfl);
+//          attfdir0=(1.-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs);//fiber att.factor(direct light, center)
+//	  attfrfl0=((1-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs))
+//	         *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl, center)
+//          attf0=0.5*(attfdir0+attfrfl0);
+//          edepr=edep*0.5*(attfdir+attfrfl)*ww[j];//geant dE/dX(mev) + Attenuation for direct/refl
+          edepr=edep*attf*ww[j];//geant dE/dX(mev) + Attenuation for direct/refl light
+//	  edepr=edep*attf*ww[j]/attf0;
           sum[pm][sc]+=edepr;
           edeprt+=edepr;
 	}
