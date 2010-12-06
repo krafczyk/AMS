@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.23 2009/01/07 14:02:08 choutko Exp $
+#  $Id: 00index.txt,v 1.24 2010/12/06 09:49:14 pzuccon Exp $
 
 
 =========================================================================
@@ -48,6 +48,10 @@ of AMS event display into it.
         mkdir $AMSWD/display
 	gmake standalone  (static version of the program called amsed)
 	gmake osdepend    (using dynamic (shared) libraries called amsedc)
+        gmake dynamic     (uses the dynamic (shared) libraries for root and
+	                    graphics. It is the most compatible option but the
+			    obtained excutable may have problems on other
+			    systems)
 
         setenv AMSICC 1   will invoke icc compiler
         unsetenv AMSICC   will invoke g++ compiler
