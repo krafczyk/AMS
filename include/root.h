@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.296 2010/12/02 23:29:35 choutko Exp $
+//  $Id: root.h,v 1.297 2010/12/06 01:12:51 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -368,28 +368,27 @@ ClassDef(DaqEventR,1)       //DaqEventR
 class EcalHitR {
 public:
   unsigned int   Status;   ///< Statusword
-  int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4  
+  short   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4  
                /*!<
 Idsoft SubCells(pixels) numbering(+Z is top):\n
 ---------------|0|1|------------------\n
 pm1(at -x/y)>> ------>> pm36(at +x/y) \n
 ---------------|2|3|------------------\n
                 */
-  int   Proj;     ///< projection (0-x,1-y)
-  int   Plane;    ///< ECAL plane number (0,...17)
-  int   Cell;     ///< ECAL Cell number (0,...71)    
+  short   Proj;     ///< projection (0-x,1-y)
+  short   Plane;    ///< ECAL plane number (0,...17)
+  short   Cell;     ///< ECAL Cell number (0,...71)    
   float Edep;     ///< ECAL measured energy (MeV)
   float EdCorr;   ///< ECAL PMsaturation1-correction(MeV) added to Edep
   float AttCor;   ///<  Attenuation Correction applied (w/r  to center of ecal) (MeV)
   float Coo[3];   ///< ECAL Coo (cm)
   float ADC[3];   ///< ECAL (ADC-Ped) for Hi/Low/Dynode channels
-  float Ped[3];   ///< ECAL Pedestals   
   float Gain;     ///<  1/gain (!)
 
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
   virtual ~EcalHitR(){};
-ClassDef(EcalHitR,1)       //EcalHitR
+ClassDef(EcalHitR,4)       //EcalHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -941,7 +940,7 @@ public:
   friend class AMSTrRecHit;
   friend class AMSEventR;
   virtual ~TrRecHitR(){};
-ClassDef(TrRecHitR,3)       //TrRecHitR
+ClassDef(TrRecHitR,4)       //TrRecHitR
 #pragma omp threadprivate(fgIsA)
 };
 

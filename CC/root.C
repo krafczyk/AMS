@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.238 2010/12/02 23:29:35 choutko Exp $
+//  $Id: root.C,v 1.239 2010/12/06 01:12:50 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2941,9 +2941,6 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
   ADC[1] = ptr->_adc[1];
   ADC[2] = ptr->_adc[2];
 
-  Ped[0] = ic.getped(0);
-  Ped[1] = ic.getped(1);
-  Ped[2] = ic.getpedd();
   Gain   = ic.getgain();
 
 #endif

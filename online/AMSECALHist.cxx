@@ -1,4 +1,4 @@
-//  $Id: AMSECALHist.cxx,v 1.10 2010/09/09 19:16:10 choumilo Exp $
+//  $Id: AMSECALHist.cxx,v 1.11 2010/12/06 01:12:51 choutko Exp $
 //   E.Choumilov v1.0 12.03.2008 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -367,7 +367,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   etime[1]=ntuple->fHeader.Time[1];
   evnum=ntuple->fHeader.Event;
   runum=ntuple->fHeader.Run;
-  strcpy(date,ntuple->GetTime());
+  strcpy(date,ntuple->Time());
 //
   if(first==1){
     first=0;
@@ -380,9 +380,9 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     evnloc=0;
     tinpp=-9999;
     toutp=-9999;
-    EcalRunPar::setdat1(ntuple->GetTime());
-    EcalRunPar::setdat2(ntuple->GetTime());
-    EcalRunPar::setdat3(ntuple->GetTime());
+    EcalRunPar::setdat1(ntuple->Time());
+    EcalRunPar::setdat2(ntuple->Time());
+    EcalRunPar::setdat3(ntuple->Time());
   }
   time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
   time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
@@ -467,7 +467,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
     for(i=0;i<3;i++){
       adc[i]=p2echt->ADC[i];
       coo[i]=p2echt->Coo[i];
-      ped[i]=p2echt->Ped[i];
+      ped[i]=0;
     }
     if(adc[0]>ahthr0)nhtot+=1;
     dynamap[sl-1][pm-1]=adc[2];//save Dyn-ampl
@@ -524,7 +524,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   //cout<<"---->Reset"<<endl;
     ((TProfile*)_filled[8])->Reset("");
     timez[0]=time[0];
-    EcalRunPar::setdat1(ntuple->GetTime());
+    EcalRunPar::setdat1(ntuple->Time());
   }
   ((TProfile*)_filled[8])->Fill(time[0]-timez[0],nechts,1.);
 //
@@ -532,7 +532,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   if((time[1]-timez[1])>=emctrange[1]){
     ((TProfile*)_filled[9])->Reset("");
     timez[1]=time[1];
-    EcalRunPar::setdat2(ntuple->GetTime());
+    EcalRunPar::setdat2(ntuple->Time());
   }
   ((TProfile*)_filled[9])->Fill(time[1]-timez[1],nechts,1.);
 //
@@ -541,7 +541,7 @@ void AMSECALHist::Fill(AMSNtupleR *ntuple){
   if((time[2]-timez[2])>=emctrange[2]){
     ((TProfile*)_filled[10])->Reset("");
     timez[2]=time[2];
-    EcalRunPar::setdat3(ntuple->GetTime());
+    EcalRunPar::setdat3(ntuple->Time());
   }
   ((TProfile*)_filled[10])->Fill(time[2]-timez[2],nechts,1.);
 //

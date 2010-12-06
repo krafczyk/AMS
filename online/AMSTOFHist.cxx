@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.33 2010/06/06 08:12:52 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.34 2010/12/06 01:12:51 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -684,7 +684,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   etime[1]=ntuple->fHeader.Time[1];
   evnum=ntuple->fHeader.Event;
   runum=ntuple->fHeader.Run;
-  strcpy(date,ntuple->GetTime());
+  strcpy(date,ntuple->Time());
 //
   if(first==1){
     first=0;
@@ -697,9 +697,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     evnloc=0;
     tinpp=-9999;
     toutp=-9999;
-    RunPar::setdat1(ntuple->GetTime());
-    RunPar::setdat2(ntuple->GetTime());
-    RunPar::setdat3(ntuple->GetTime());
+    RunPar::setdat1(ntuple->Time());
+    RunPar::setdat2(ntuple->Time());
+    RunPar::setdat3(ntuple->Time());
   }
   time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
   time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
@@ -712,21 +712,21 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[25+i])->Reset("");
       timez[tofscales[i]-1]=time[tofscales[i]-1];
       time[tofscales[i]-1]+=0.001;
-      if(tofscales[i]==1)RunPar::setdat1(ntuple->GetTime());
-      if(tofscales[i]==2)RunPar::setdat2(ntuple->GetTime());
-      if(tofscales[i]==3)RunPar::setdat3(ntuple->GetTime());
+      if(tofscales[i]==1)RunPar::setdat1(ntuple->Time());
+      if(tofscales[i]==2)RunPar::setdat2(ntuple->Time());
+      if(tofscales[i]==3)RunPar::setdat3(ntuple->Time());
     }
   }
 //--->short Time-range histogr. resets:
 //  if((time[0]-timez[0])>=toftrange[0]){
 //    timez[0]=time[0];
-//    RunPar::setdat1(ntuple->GetTime());
+//    RunPar::setdat1(ntuple->Time());
 //  }
 //
 //--->mid Time-range histogr. resets:
 //  if((time[1]-timez[1])>=toftrange[1]){
 //    timez[1]=time[1];
-//    RunPar::setdat2(ntuple->GetTime());
+//    RunPar::setdat2(ntuple->Time());
 //  }
 //
 //--->long Time-range histogr. resets:
@@ -739,7 +739,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //    ((TProfile*)_filled[28])->Reset("");
 //    ((TProfile*)_filled[29])->Reset("");
 //    timez[2]=time[2];
-//    RunPar::setdat3(ntuple->GetTime());
+//    RunPar::setdat3(ntuple->Time());
  // }
 //<-------------
 //

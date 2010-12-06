@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.h,v 1.8 2009/08/17 12:59:36 pzuccon Exp $
+//  $Id: AMSNtuple.h,v 1.9 2010/12/06 01:12:51 choutko Exp $
 #ifndef __AMSNtuple__
 #define __AMSNtuple__
 #include <TChain.h>
@@ -32,7 +32,6 @@ public:
   AMSNtupleR():AMSEventR(){}
   Int_t EventNo()const {return fHeader.Event;}
   Int_t GetRun()const {return fHeader.Run;}
-  char* GetTime()const {return ctime((time_t*)&fHeader.Time[0]);}
   int CurrentEntry()const {return fCurrentEntry;}
   int & Entries() {return fEntries;} 
   friend class AMSTOFHist;

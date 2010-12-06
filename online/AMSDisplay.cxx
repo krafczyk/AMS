@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.33 2009/12/08 16:56:05 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.34 2010/12/06 01:12:51 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -209,7 +209,7 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    m_ObjInfoPad->Clear();
    atext[0]=0;
    int entr=m_chain->GetEntries();
-   sprintf(atext,"Run %d   EventsProcessed %d / %d / %d %s",m_ntuple->GetRun(),_Begin,entr,m_ntuple->EventNo(),m_ntuple->GetTime());
+   sprintf(atext,"Run %d   EventsProcessed %d / %d / %d %s",m_ntuple->GetRun(),_Begin,entr,m_ntuple->EventNo(),m_ntuple->Time());
 
    if (! text) {
 	text = new TText(0.5, 0.38, atext);

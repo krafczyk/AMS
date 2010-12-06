@@ -1,4 +1,4 @@
-//  $Id: AMSAntiHist.cxx,v 1.14 2010/06/06 08:12:52 choumilo Exp $
+//  $Id: AMSAntiHist.cxx,v 1.15 2010/12/06 01:12:51 choutko Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream>
@@ -393,7 +393,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   Int_t is,ih,i,j;
   Float_t ltime(1);
   Int_t etime[2],evnum,runum;
-  Char_t date[30];
+  Char_t date[300];
   static Float_t range[3],timez[3];
   static Int_t first(1),etime0(0),evnloc;
   Float_t time[3];
@@ -404,7 +404,7 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
   etime[1]=ntuple->fHeader.Time[1];
   evnum=ntuple->fHeader.Event;
   runum=ntuple->fHeader.Run;
-  strcpy(date,ntuple->GetTime());
+  strcpy(date,ntuple->Time());
 //
   if(first==1){
     first=0;
@@ -414,9 +414,9 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
       timez[i]=0;
     }
     evnloc=0;
-    AntiPars::setdat1(ntuple->GetTime());
-    AntiPars::setdat2(ntuple->GetTime());
-    AntiPars::setdat3(ntuple->GetTime());
+    AntiPars::setdat1(ntuple->Time());
+    AntiPars::setdat2(ntuple->Time());
+    AntiPars::setdat3(ntuple->Time());
   }
   time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
   time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
@@ -582,9 +582,9 @@ void AMSAntiHist::Fill(AMSNtupleR *ntuple){
     ((TProfile*)_filled[hbias[5]+3])->Reset("");
     timez[accscale-1]=time[accscale-1];
     time[accscale-1]+=0.001;
-    if(accscale==1)AntiPars::setdat1(ntuple->GetTime());
-    if(accscale==2)AntiPars::setdat2(ntuple->GetTime());
-    if(accscale==3)AntiPars::setdat3(ntuple->GetTime());
+    if(accscale==1)AntiPars::setdat1(ntuple->Time());
+    if(accscale==2)AntiPars::setdat2(ntuple->Time());
+    if(accscale==3)AntiPars::setdat3(ntuple->Time());
   }
  
   if(nhnonz>0)((TProfile*)_filled[hbias[5]])->Fill(time[accscale-1]-timez[accscale-1],nhavr,1.);//Aver RawSide-hits

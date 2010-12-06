@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.29 2010/06/21 16:15:53 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.30 2010/12/06 01:12:51 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -460,7 +460,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
   etime[1]=ntuple->fHeader.Time[1];
   evnum=ntuple->fHeader.Event;
   runum=ntuple->fHeader.Run;
-  strcpy(date,ntuple->GetTime());
+  strcpy(date,ntuple->Time());
 //
   if(first==1){
     first=0;
@@ -470,9 +470,9 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       timez[i]=0;
     }
     evnloc=0;
-    Lvl1Pars::setdat1(ntuple->GetTime());
-    Lvl1Pars::setdat2(ntuple->GetTime());
-    Lvl1Pars::setdat3(ntuple->GetTime());
+    Lvl1Pars::setdat1(ntuple->Time());
+    Lvl1Pars::setdat2(ntuple->Time());
+    Lvl1Pars::setdat3(ntuple->Time());
   }
   time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
   time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
@@ -633,7 +633,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[31])->Reset("");
       ((TProfile*)_filled[32])->Reset("");
       timez[0]=time[0];
-      Lvl1Pars::setdat1(ntuple->GetTime());
+      Lvl1Pars::setdat1(ntuple->Time());
     }
     ((TProfile*)_filled[26])->Fill(time[0]-timez[0],ltime,1.);
     ((TProfile*)_filled[29])->Fill(time[0]-timez[0],rates[1],1.);//FTC
@@ -644,14 +644,14 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     if((time[1]-timez[1])>=lev1trange[1]){
       ((TProfile*)_filled[27])->Reset("");
       timez[1]=time[1];
-      Lvl1Pars::setdat2(ntuple->GetTime());
+      Lvl1Pars::setdat2(ntuple->Time());
     }
     ((TProfile*)_filled[27])->Fill(time[1]-timez[1],ltime,1.);
 //
     if((time[2]-timez[2])>=lev1trange[2]){
       ((TProfile*)_filled[28])->Reset("");
       timez[2]=time[2];
-      Lvl1Pars::setdat3(ntuple->GetTime());
+      Lvl1Pars::setdat3(ntuple->Time());
     }
     ((TProfile*)_filled[28])->Fill(time[2]-timez[2],ltime,1.);
 //trig-time histogr: 
