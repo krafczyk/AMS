@@ -1,8 +1,8 @@
-//  $Id: MagField.h,v 1.14 2010/12/03 11:58:37 shaino Exp $
+//  $Id: MagField.h,v 1.15 2010/12/06 09:50:27 pzuccon Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
-
+#include <cstdlib>
 
 
 #ifndef _PGTRACK_
@@ -46,7 +46,7 @@ MAGSFFKEY_DEF() { init(); }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
-#define GUFLD(A1,A2)  MagField::GetPtr()->GuFld(A1,A2)
+#define GUFLD(A1,A2)  MagField::getptr2()->GuFld(A1,A2)
 #define TKFLD(A1,A2)  MagField::GetPtr()->TkFld(A1,A2)
 
 
@@ -65,14 +65,14 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/12/03 11:58:37 $
+///$Date: 2010/12/06 09:50:27 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 class magserv {
-private:
+public:
   // map type;  type=1 just one octant; type !=1 standard
   int _type;
   float*  x;
@@ -97,14 +97,21 @@ private:
   int _nx;
   int _ny;
   int _nz;
+  int _nx2;
+  int _ny2;
+  int _nz2;
   inline int getsign(int i,int j,int k,int oo, int ll=-1);
 
 public:
   inline int getindex(int i,int j,int k);
 
-  int nx() { return (_type==1)?(_nx*2-1):_nx;}
-  int ny() { return (_type==1)?(_ny*2-1):_ny;}
-  int nz() { return (_type==1)?(_nz*2-1):_nz;}
+  int nx() { return (_type==1)?_nx2:_nx;}
+  int ny() { return (_type==1)?_ny2:_ny;}
+  int nz() { return (_type==1)?_nz2:_nz;}
+
+//   int nx() { return (_type==1)?(_nx*2-1):_nx;}
+//   int ny() { return (_type==1)?(_ny*2-1):_ny;}
+//   int nz() { return (_type==1)?(_nz*2-1):_nz;}
 
   double  _dx;     ///< Element size in X (cm)
   double  _dy;     ///< Element size in Y (cm)
@@ -117,9 +124,13 @@ public:
 
 
 
-  float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[int(fabs(1-_nx+i))]:x[i];}
-  float _y(int j) {int sigx=((1-_ny+j)>=0)?1:-1;  return (_type==1)?sigx*y[int(fabs(1-_ny+j))]:y[j];}
-  float _z(int k) {int sigx=((1-_nz+k)>=0)?1:-1;  return (_type==1)?sigx*z[int(fabs(1-_nz+k))]:z[k];}
+  float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[abs(1-_nx+i)]:x[i];}
+  float _y(int j) {int sigx=((1-_ny+j)>=0)?1:-1;  return (_type==1)?sigx*y[abs(1-_ny+j)]:y[j];}
+  float _z(int k) {int sigx=((1-_nz+k)>=0)?1:-1;  return (_type==1)?sigx*z[abs(1-_nz+k)]:z[k];}
+
+  float _x0() { return (_type==1)?-x[_nx-1]:x[0];}
+  float _y0() { return (_type==1)?-y[_ny-1]:y[0];}
+  float _z0() { return (_type==1)?-z[_nz-1]:z[0];}
 
   
   
@@ -233,6 +244,10 @@ public:
   static MagField *GetPtr(void) {
     return (_ptr) ? _ptr : new MagField;
   }
+  static MagField *getptr2() {
+    return _ptr;
+
+  }
   magserv* GetMap() {return mm;}
   int* GetPointerForDB(){
     return  isec;
@@ -261,7 +276,7 @@ protected:
 
   /// Interpolation (for rphiz coordinate)
   void _FintRphi(double r, double ph, double z, int *index, double *weight);
-
+//  int  hh(int ix,int iy, int iz,double x, double y, double z, int index[][3], double *weight);
   /// Get index of the array from each index number at x,y,z
   int _Index(int i, int j, int k) const;
 

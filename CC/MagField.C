@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.14 2010/12/03 11:58:35 shaino Exp $
+// $Id: MagField.C,v 1.15 2010/12/06 09:50:27 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,15 +11,16 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/12/03 11:58:35 $
+///$Date: 2010/12/06 09:50:27 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
+
 
 #include "MagField.h"
 #ifdef _PGTRACK_
@@ -227,16 +228,16 @@ void MagField::TkFld(float *xx, float hxy[][3])
 
 int  MagField::_Fint(double x, double y, double z, int index[][3], double *weight)
 {
-  for (int i = 0; i < 8; i++) {
-    index [i][0] = 0;    index [i][1] = 0;    index [i][2] = 0;
-    weight[i] = 0;
-  }
-  if(!mm) return 0;
+//   for (int i = 0; i < 8; i++) {
+//     index [i][0] = 0;    index [i][1] = 0;    index [i][2] = 0;
+//     weight[i] = 0;
+//   }
+//   if(!mm) return 0;
 
   //Get the grid point near to the hit 
-  int ix = (int)((x-mm->_x(0))/mm->_dx);
-  int iy = (int)((y-mm->_y(0))/mm->_dy);
-  int iz = (int)((z-mm->_z(0))/mm->_dz);
+  int ix = (int)((x-mm->_x0())/mm->_dx);
+  int iy = (int)((y-mm->_y0())/mm->_dy);
+  int iz = (int)((z-mm->_z0())/mm->_dz);
   //  printf(" Point %f %f %f grid %d %d %d index %d\n",x,y,z,ix,iy,iz,mm->getindex(ix,iy,iz));
   // check if we are inside the map
 
@@ -245,7 +246,6 @@ int  MagField::_Fint(double x, double y, double z, int index[][3], double *weigh
      iy<0 || iy>=(mm->ny()-1) ||
      iz<0 || iz>=(mm->nz()-1) 
      ) return 0;
-
   double dx[2], dy[2], dz[2];
   dx[1] = (x-mm->_x(ix))/(mm->_x(ix+1)-mm->_x(ix)); dx[0] = 1-dx[1];
   dy[1] = (y-mm->_y(iy))/(mm->_y(iy+1)-mm->_y(iy)); dy[0] = 1-dy[1];
@@ -429,7 +429,9 @@ int magserv::Read(const char *fname, int skip){
 
 magserv::magserv(int inx, int iny, int inz,int type)
   :_type(type),_nx(inx),_ny(iny),_nz(inz){
-  
+  _nx2=_nx*2-1;  
+  _ny2=_ny*2-1;
+  _nz2=_nz*2-1;
   x   = new float[_nx];
   y   = new float[_ny];
   z   = new float[_nz];
