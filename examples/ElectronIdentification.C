@@ -51,9 +51,13 @@ public :
   bool select_Tracker(int debug=0);
   int nTRTrackLayer(TrTrackR* tr,bool& planesok, int& nseg);
    
-  bool Ecal_electron(int debug=0);
+  bool Ecal_electron(int version,int debug=0);
   bool Ecal_mip(int debug=0);
   bool Trd_electron(int debug=0);
+
+  //additional ecal routines
+  bool Ecal_EneMomMatch(float Enedep);
+  bool Ecal_StandAlone(float Enedep, float Frac);
  
   int triter;
   int trditer;
@@ -116,7 +120,7 @@ void ElectronIdentification::UProcessFill() {
   nmip.push_back(Ecal_mip());
 
   bool trde=Trd_electron();
-  bool ecale=Ecal_electron();
+  bool ecale=Ecal_electron(1);
   nelectron.push_back(trde+2*ecale);
   
   // Write out selected entries "as we go"
@@ -354,36 +358,88 @@ bool ElectronIdentification::Ecal_mip(int debug){
   return (energy_uncorr<1.);
 }
 
-bool ElectronIdentification::Ecal_electron(int debug){
+bool ElectronIdentification::Ecal_electron(int version,int debug){
   int ecand=0;
   if(debug)printf("ecaliter %i\n",ecaliter);
   if(ecaliter<0)return 0;
 
-  float energy=pEcalShower(ecaliter)->EnergyC;
-  float ecal_showermax=pEcalShower(ecaliter)->ParProfile[1];
-  float ecal_chi2=pEcalShower(ecaliter)->Chi2Profile;
-  float ecal_enratio_2cm=pEcalShower(ecaliter)->Energy3C[0];
-  float ecal_rearleak=pEcalShower(ecaliter)->RearLeak;       
-  
-  float energy_uncorr=0.;
-  for(int n=0;n<pEcalShower(ecaliter)->NEcal2DCluster();n++){
-    Ecal2DClusterR* cl=pEcalShower(ecaliter)->pEcal2DCluster(n);
-    if(cl)energy_uncorr+=cl->Edep/1000.;//energy to GeV
-    else printf("Ecal2DClusterR %i not found\n",n);
+  if(version==0){
+    float energy=pEcalShower(ecaliter)->EnergyC;
+    float ecal_showermax=pEcalShower(ecaliter)->ParProfile[1];
+    float ecal_chi2=pEcalShower(ecaliter)->Chi2Profile;
+    float ecal_enratio_2cm=pEcalShower(ecaliter)->Energy3C[0];
+    float ecal_rearleak=pEcalShower(ecaliter)->RearLeak;       
+    
+    float energy_uncorr=0.;
+    for(int n=0;n<pEcalShower(ecaliter)->NEcal2DCluster();n++){
+      Ecal2DClusterR* cl=pEcalShower(ecaliter)->pEcal2DCluster(n);
+      if(cl)energy_uncorr+=cl->Edep/1000.;//energy to GeV
+      else printf("Ecal2DClusterR %i not found\n",n);
+    }
+    
+    float rigidity=pTrTrack(triter)->GetRigidity();
+    
+    if(ecal_chi2>0.1 && ecal_chi2<2. &&
+       ecal_showermax>6. && ecal_showermax<11. &&
+       ecal_enratio_2cm>0.945  && ecal_enratio_2cm<0.975 &&
+       ecal_rearleak>0.05 && ecal_rearleak <0.2 &&
+       energy_uncorr / fabs(rigidity) > 0.9 ) ecand=1;
+    
+    if(debug){
+      printf("ECAND chi2 %.2f shmax %.2f E2cm %.2f rearleak %.2f E %.2f P %.2f EtoP %.2f - ok %i \n",ecal_chi2,ecal_showermax,ecal_enratio_2cm,ecal_rearleak,energy,rigidity,energy/fabs(rigidity),ecand);
+    }
   }
-  
-  float rigidity=pTrTrack(triter)->GetRigidity();
-  
-  if(ecal_chi2>0.1 && ecal_chi2<2. &&
-     ecal_showermax>6. && ecal_showermax<11. &&
-     ecal_enratio_2cm>0.945  && ecal_enratio_2cm<0.975 &&
-     ecal_rearleak>0.05 && ecal_rearleak <0.2 &&
-     energy_uncorr / fabs(rigidity) > 0.9 ) ecand=1;
-  
-  if(debug){
-    printf("ECAND chi2 %.2f shmax %.2f E2cm %.2f rearleak %.2f E %.2f P %.2f EtoP %.2f - ok %i \n",ecal_chi2,ecal_showermax,ecal_enratio_2cm,ecal_rearleak,energy,rigidity,energy/fabs(rigidity),ecand);
-  }
+  else if(version==1){
+    EcalShowerR *shower=pEcalShower(ecaliter);
+    
+    float Frac=0;
+    float Enedep=0;
+    
+    for(int icl2D=0; icl2D<shower->NEcal2DCluster(); icl2D++)
+      for(int icl=0; icl<shower->pEcal2DCluster(icl2D)->NEcalCluster(); icl++)
+	for(int ihit=0; ihit<shower->pEcal2DCluster(icl2D)->pEcalCluster(icl)->NEcalHit(); ihit++)
+	  {
+	    EcalHitR *hit = shower->pEcal2DCluster(icl2D)->pEcalCluster(icl)->pEcalHit(ihit);
+	    if(hit->ADC[0]>4)
+	      {
+		Enedep+=hit->Edep;
+		if(hit->Plane==16 || hit->Plane==17) Frac+=hit->Edep;
+	      }
+	  }
+    Frac=Frac/Enedep;
+    Enedep/=1000.;
+    if(Ecal_StandAlone(Enedep,Frac) && Ecal_EneMomMatch(Enedep)) ecand=1;
+     }
+
   return ecand;
+}
+
+bool ElectronIdentification::Ecal_StandAlone(float Enedep, float Frac){
+  bool LongCut = false;
+  bool LatCut = false;
+  
+  if((Enedep<5 && Frac<0.056419) || (Enedep>=5 && Frac<0.03544*TMath::Power(Enedep,0.2889))) LongCut=true;
+  if( (Enedep<10 && (pEcalShower(ecaliter)->Energy3C[0]>0.907862 && 
+		     pEcalShower(ecaliter)->Energy3C[0]<0.988989 ))    
+      ||    (Enedep>150 && (pEcalShower(ecaliter)->Energy3C[0]<0.969656 && 
+			    pEcalShower(ecaliter)->Energy3C[0]>0.955536 ))
+      ||    (Enedep<=150 && Enedep>=10 && 
+	     pEcalShower(ecaliter)->Energy3C[0]>0.8692*TMath::Power(Enedep,0.0189) 
+	     && pEcalShower(ecaliter)->Energy3C[0]<1.00573*TMath::Power(Enedep,-0.00729))
+      ) LatCut=true;
+  
+  if(LatCut) hLong->Fill(Enedep,Frac);
+
+  return(LongCut && LatCut);
+}
+
+bool ElectronIdentification::Ecal_EneMomMatch(float Enedep){
+  
+  float Rigidity=pTrTrack(triter)->GetRigidity();
+  
+  return((1./Rigidity > 0.5138*TMath::Power(Enedep, -0.8875)) || 
+	 (1./Rigidity < (-0.5138*TMath::Power(Enedep, -0.8875))) ) ;
+
 }
 
 bool ElectronIdentification::select_Tracker(int debug){
