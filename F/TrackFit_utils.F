@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.45  2010/12/06 14:31:21  zweng
+* Add ,der to tkhmd, solve the problem when no TrTrack using gcc
+*
 * Revision 1.44  2010/11/08 20:42:02  choutko
 * *** empty log message ***
 *
@@ -221,7 +224,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -4710,7 +4713,7 @@ c        print *,' Fit failed ',ifail
 #      include "mfield.h"
        !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/,/tkfrunC/)
        !$OMP THREADPRIVATE (/tkclearC/)
-          common /tkclearC/clear
+          common /tkclearC/clear,der
           integer clear
 
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
@@ -7877,9 +7880,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.44 2010/11/08 20:42:02 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.45  2010/12/06 14:31:21  zweng
+* Add ,der to tkhmd, solve the problem when no TrTrack using gcc
+*
 * Revision 1.44  2010/11/08 20:42:02  choutko
 * *** empty log message ***
 *
