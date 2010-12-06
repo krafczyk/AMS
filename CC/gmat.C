@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.107 2010/11/09 16:47:35 mmilling Exp $
+//  $Id: gmat.C,v 1.108 2010/12/06 09:17:14 mmilling Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -145,6 +145,13 @@ void AMSgtmed::_init(){
   }
 #endif
 
+#ifdef __G4AMS__
+  if( (_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd) || strncmp(_name,"TRD",3)==0){
+    CUTGAM(1.e-6);
+    if(IsSensitive())CUTELE(1.e-6);
+    printf("setting cuts for name %s\n",_name);
+  }
+#else
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>1){
     CUTGAM(1.01e-6);
 //   GSTPAR(_itmed,"CUTGAM",1.01e-6);
@@ -163,6 +170,7 @@ void AMSgtmed::_init(){
 //    GSTPAR(_itmed,"CUTELE",35.01e-6);
    }
   }
+#endif
 }      
 void AMSgtmed::setubuf(int nwbuf,geant ubuf[]){
  _nwbuf=nwbuf;
