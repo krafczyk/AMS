@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.14 2010/09/20 15:21:45 choutko Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.15 2010/12/06 20:39:47 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -6,6 +6,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
+#include <TPDF.h>
 #include <TROOT.h>
 #include <TRootCanvas.h>
 #include <TButton.h>
@@ -686,6 +687,7 @@ void AMSDisplay::DrawEvent()
 
 void AMSDisplay::SaveParticleCB(){
    char fnam[255];
+   TPDF b;
    sprintf(fnam, "%d.%d.pdf",m_ntuple->Run(),m_ntuple->Event());
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen

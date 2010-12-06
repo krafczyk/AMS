@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.47 2010/11/16 16:47:20 choutko Exp $
+//  $Id: main.cxx,v 1.48 2010/12/06 20:39:47 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -6,6 +6,7 @@
 #include <TTree.h>
 #include <TCanvas.h>
 #include <TGeometry.h>
+#include <TPDF.h>
 #include "AMSDisplay.h"
 #include <iostream>
 #include <fstream>
@@ -171,7 +172,6 @@ pchain=&chain;
   //gDebug=6;
   TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
-
   theApp->SetStatic();
 #endif
 
