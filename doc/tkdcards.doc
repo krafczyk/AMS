@@ -61,7 +61,7 @@ R [586,587]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion typ
 R [588,589]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
              (def=0.1,0.1)  
 R [590,591]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
-             (def=4.,2.)
+             (def=0.,0.)
 
 
 

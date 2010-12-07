@@ -197,8 +197,8 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_DiffRadius[1]=20.;
   TrSim2010_FracNoise[0]=0.1;
   TrSim2010_FracNoise[1]=0.1;
-  TrSim2010_AddNoise[0]=4.;
-  TrSim2010_AddNoise[1]=2.;
+  TrSim2010_AddNoise[0]=0.;
+  TrSim2010_AddNoise[1]=0.;
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;
