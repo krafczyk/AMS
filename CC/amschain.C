@@ -1,4 +1,4 @@
-//amschain
+//  $Id: amschain.C,v 1.29 2010/12/07 19:42:28 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"

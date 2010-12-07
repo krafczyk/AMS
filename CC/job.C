@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.762 2010/12/07 00:19:23 shaino Exp $
+// $Id: job.C,v 1.763 2010/12/07 19:42:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -903,7 +903,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.calutc=1199142001;//(35)(20080101 ~0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
 //
   ECREFFKEY.Thr1DSeed=3;//(36) this and below is for Vitali's clust. algorithm
-  ECREFFKEY.Thr1DRSeed=0.18;
+  ECREFFKEY.Thr1DRSeed=0.05;
   ECREFFKEY.Cl1DLeakSize=9;
   ECREFFKEY.Cl1DCoreSize=2;
   ECREFFKEY.Thr2DMax=1.2;  //max tan(theta)

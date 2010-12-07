@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.217 2010/12/01 18:18:14 mmilling Exp $
+//  $Id: particle.C,v 1.218 2010/12/07 19:42:28 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -11,6 +11,7 @@
 #endif
 #include <limits.h>
 #include "amsgobj.h"
+#include "trigger102.h"
 #include "extC.h"
 #include "upool.h"
 #include "charge.h"
@@ -170,11 +171,11 @@ integer AMSParticle::build(integer refit){
 	// make false tracks (+-)
 
 	//PZ FPE FIX often ecal ene is very large double > 1e209 or NAN
-        double ecal_ene=pecal->getEnergy();
+        double ecal_ene=pecal->getEnergyC();
         double ecal_ene_err=pecal->getEnergyErr();
 	if(!isfinite(ecal_ene)){
 	  //	  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result is Not a Good floating number "<< ecal_ene<<" !!!"<<endl;
-	  break;
+	  continue;
 	}
 	if(fabs(ecal_ene) > 1e6) ecal_ene=1e6;
 	if(fabs(ecal_ene_err) > 1e7) ecal_ene_err=1e7;
@@ -182,13 +183,16 @@ integer AMSParticle::build(integer refit){
 	
 	if(ecal_ene<=MINDOUBLE) {
 	  //  cerr<<" AMSParticle::build-W- ECAL ENE FIT Result small double near to Zero!!!"<<endl;
-	  break;
+	  continue;
 	}
 	
 	AMSTrTrack *ptrack=new AMSTrTrack(pecal->getDir(), pecal->getEntryPoint(),ecal_ene*i,ecal_ene_err);
+         Trigger2LVL1 *ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+         int charge=0;
+         if(ptr2 && ptr2->TofFasTrigOK())charge=1;
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
 	ppart=new AMSParticle(0, 0, ptrack,
-			      pecal->getDirection(),1,0,100000,ecal_ene*i*pecal->getDirection(),ecal_ene_err,1,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
+			      pecal->getDirection(),1,0,100000,ecal_ene*i*pecal->getDirection(),ecal_ene_err,charge,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
 	//          cout <<" ecal particle done "<<AMSEvent::gethead()->getid()<<endl;
 	AMSgObj::BookTimer.start("ReAxPid");
 	ppart->pid();
