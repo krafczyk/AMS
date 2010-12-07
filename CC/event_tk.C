@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.36 2010/12/07 11:18:18 shaino Exp $
+//  $Id: event_tk.C,v 1.37 2010/12/07 13:51:53 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -155,7 +155,7 @@ void AMSEvent::_retkevent(integer refit){
 
   // Track classification
   double hpar[TrTrackR::Nconf*TrTrackR::Nqpar];
-  int    tcls[TrTrackR::Nconf];
+  int    tcls[TrTrackR::Nconf+1];
   TrTrackR::DoTrackClass(TrTrackR::DefaultFitID, hpar, tcls);
 
   AMSgObj::BookTimer.stop("RETKEVENT");

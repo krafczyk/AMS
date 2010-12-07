@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.78 2010/12/07 11:18:18 shaino Exp $
+// $Id: TrTrack.C,v 1.79 2010/12/07 13:51:53 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/07 11:18:18 $
+///$Date: 2010/12/07 13:51:53 $
 ///
-///$Revision: 1.78 $
+///$Revision: 1.79 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -829,46 +829,72 @@ void TrTrackR::DoTrackClass(int id0, double *hpar, int *tcls)
       hpar[i] = 0;
   }
 
+  int ncls[NTrStat];
+  for (int i = 0; i < NTrStat; i++) ncls[i] = 0;
+
+  int ttmp[Nconf+1];
+  if (!tcls) tcls = ttmp;
+  for (int i = 0; i < Nconf+1; i++) tcls[i] = -1;
+
   VCon *cont = GetVCon()->GetCont("AMSTrTrack");
   if (!cont) return;
 
   int ntrk = cont->getnelem();
+  if (ntrk == 0) return;
 
-  int ncls[NTrStat];
-  for (int i = 0; i < NTrStat; i++) ncls[i] = 0;
-
-  int ttmp[Nconf];
-  if (!tcls) tcls = ttmp;
+  TrTrackR *track = 0;
 
   // Single track event
   if (ntrk == 1) {
     ncls[12]++;
-
-    TrTrackR *track = (TrTrackR*)cont->getelem(0);
-    if (track) {
-
-      // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
-      for (int i = 0; i < 4; i++) {
-	double qpar[Nqpar];
-	tcls[i] = track->GetTrackClass(ids[i], qpar);
-	if (!(tcls[i] & tcs[i])) continue;
-
-	// For the histogram filling
-	if (hpar) {
-	  for (int j = 0; j < Nqpar; j++)
-	    hpar[i*Nqpar+j] = ((tcls[i] & hpq[j]) == hpq[j]) ? qpar[j] : 0;
-	}
-
-	// Loop on 0:all, 1:BaseQ, 2:HighQ
-	for (int j = 0; j < 3; j++)
-	  if ((tcls[i] & trq[j]) == trq[j]) ncls[i*3+j]++;
-      }
-      // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
-    }
+    tcls[Nconf] = 0;
+    track = (TrTrackR*)cont->getelem(0);
   }
 
   // Multi track event
-  else if (ntrk > 1) ncls[13]++;
+  else if (ntrk > 1) {
+    ncls[13]++;
+
+    int isel = -1, csel = 0;
+    for (int i = 0; i < ntrk; i++) {
+      TrTrackR *trk = (TrTrackR*)cont->getelem(i);
+      int  cls = trk->GetTrackClass();
+      bool sel = false;
+
+      // Select longer span
+      if ((cls&0x07) > (csel&0x07) && 
+	  ((cls & kBaseQ) == kBaseQ || (csel & kBaseQ) != kBaseQ)) sel = true;
+      // Select better quality in case the span is same
+      else if ((csel & kBaseQ) != kBaseQ || (cls&0x07) == (csel&0x07)) {
+	if ((cls & kBaseQ) == kBaseQ && (csel & kBaseQ) != kBaseQ) sel = true;
+	if ((cls & kHighQ) == kHighQ && (csel & kHighQ) != kHighQ) sel = true;
+      }
+      if (sel) { isel = i; csel = cls; }
+    }
+    if (isel >= 0) track = (TrTrackR*)cont->getelem(isel);
+    tcls[Nconf] = isel;
+  }
+
+  if (track) {
+
+    // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
+    for (int i = 0; i < 4; i++) {
+      double qpar[Nqpar];
+      tcls[i] = track->GetTrackClass(ids[i], qpar);
+      if (!(tcls[i] & tcs[i])) continue;
+
+      // For the histogram filling
+      if (hpar) {
+	for (int j = 0; j < Nqpar; j++)
+	  hpar[i*Nqpar+j] = ((tcls[i] & hpq[j]) == hpq[j]) ? qpar[j] : 0;
+      }
+
+      // Loop on 0:all, 1:BaseQ, 2:HighQ
+      for (int j = 0; j < 3; j++)
+	if ((tcls[i] & trq[j]) == trq[j]) ncls[i*3+j]++;
+    }
+    // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
+  }
 
 #pragma omp critical (trclstat)
   {
