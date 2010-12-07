@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.297 2010/12/06 01:12:51 choutko Exp $
+//  $Id: root.h,v 1.298 2010/12/07 17:24:05 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1213,7 +1213,7 @@ public:
   double DistanceTileBorder(){return double((Status>>15)&0x7fff)/100.;}
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,14)           // RichRingR
+  ClassDef(RichRingR,15)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
