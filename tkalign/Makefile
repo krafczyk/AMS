@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2010/12/01 08:01:53 shaino Exp $
+# $Id: Makefile,v 1.6 2010/12/07 00:20:17 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -35,14 +35,14 @@ ifeq ($(ICC),icc)
 endif
 
 # Dinamic library
-#LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
 
 # Static library
-LIBR = -L$(ROOTSYS)/lib -lRoot -lXrdClient -lcrypt -lfreetype -ldl -lpcre
+#LIBR = -L$(ROOTSYS)/lib -lRoot -lXrdClient -lcrypt -lfreetype -ldl -lpcre
 LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
 
 MODS = tbalign tbafit tbaf tbafm tbafcp \
-       pmalign pmafit pmaf pmafcp pmrinv tkmerge
+       pmalign pmafit pmaf pmafcp pmrinv tkmerge trqpar
 
 BINS = $(addprefix bin/, $(MODS))
 
@@ -73,3 +73,5 @@ bin/pmafcp : CC/pmafit.C CC/tkalign.C
 bin/pmrinv : CC/pmrinv.C
 
 bin/tkmerge: CC/tkmerge.C
+
+bin/trqpar : CC/trqpar.C
