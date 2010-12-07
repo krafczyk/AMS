@@ -17,6 +17,10 @@
 #include <map>
 #include <bitset>
 
+/// Uncomment this to use SH's track selection
+///  (supported only with CVS as of 6/Dec/2010 or later)
+//#define sel_Tracker_SH
+
 using namespace std;
 class ElectronIdentification : public AMSEventR {
 public :
@@ -49,7 +53,7 @@ public :
   bool select_Trd(int debug=0);
   bool select_Ecal(int debug=0);
   bool select_Tracker(int debug=0);
-  int nTRTrackLayer(TrTrackR* tr,bool& planesok, int& nseg);
+  int nTRTrackLayer(TrTrackR* tr,int& planestype, int& nseg);
    
   bool Ecal_electron(int version,int debug=0);
   bool Ecal_mip(int debug=0);
@@ -169,6 +173,11 @@ void ElectronIdentification::UTerminate()
   //  if(Tree())printf("\n>>> We have processed %d events\n\n", (int)Tree()->GetEntries());
   //  if(outfile)printf("\n>>> Histograms saved in '%s'\n\n", outfile->GetName());
 
+
+#ifdef sel_Tracker_SH
+  // Show track statistics
+  TrTrackR::ShowTrackClass();
+#endif
 }
 
 bool ElectronIdentification::Trigger_Flag() {
@@ -428,7 +437,7 @@ bool ElectronIdentification::Ecal_StandAlone(float Enedep, float Frac){
 	     && pEcalShower(ecaliter)->Energy3C[0]<1.00573*TMath::Power(Enedep,-0.00729))
       ) LatCut=true;
   
-  if(LatCut) hLong->Fill(Enedep,Frac);
+//  if(LatCut) hLong->Fill(Enedep,Frac); // !! hLong is not defined !!
 
   return(LongCut && LatCut);
 }
@@ -443,6 +452,72 @@ bool ElectronIdentification::Ecal_EneMomMatch(float Enedep){
 }
 
 bool ElectronIdentification::select_Tracker(int debug){
+
+#ifdef sel_Tracker_SH
+  // SH: Tracker classification and statistics <= Recommended to use
+  // supported only with CVS as of 6/Dec/2010 or later
+  {
+    // Track selection and count statistics
+    int tcls[TrTrackR::Nconf+1];
+    TrTrackR::DoTrackClass(TrTrackR::DefaultFitID, 0, tcls);
+
+    // Selected track index
+    int itrk = tcls[TrTrackR::Nconf];
+    if (itrk < 0) {
+      if (debug) cout << "No track selected at event " << Event() << endl;
+      return false;
+    }
+
+    // Get track pointer
+    TrTrackR *track = pTrTrack(itrk);
+    if (!track) {
+      cerr << "Error: No track found: " << itrk << endl;
+      return false;
+    }
+
+    // Get track classification
+    int cls = track->GetTrackClass();
+
+    if (debug) {
+      cout << Form("track %d class: %04x", itrk, cls);
+      if      (cls & TrTrackR::kMaxExt)  cout << "  MaxSpan";
+      else if (cls & TrTrackR::kHalfExt) cout << " HalfSpan";
+      else if (cls & TrTrackR::kMaxInt)  cout << "  MinSpan";
+      if     ((cls & TrTrackR::kBaseQ) == TrTrackR::kBaseQ) cout << " BaseQ";
+      if     ((cls & TrTrackR::kHighQ) == TrTrackR::kHighQ) cout << " HighQ";
+      cout << endl;
+    }
+
+
+    // Span flags
+    int smin  = TrTrackR::kMaxExt | TrTrackR::kHalfExt | TrTrackR::kMaxInt;
+    int shalf = TrTrackR::kMaxExt | TrTrackR::kHalfExt;
+    int smax  = TrTrackR::kMaxExt;
+
+    // Uncomment the following lines as you want
+
+    // Minimum span request (Internal Tracker)
+    if (!(cls & smin)) return false;
+
+    // Half span request (with L1N or L9)
+    //if (!(cls & shalf)) return false;
+
+    // Max span request (with L1N and L9)
+    //if (!(cls & smax)) return false;
+
+    // Minimum quality request
+    if ((cls & TrTrackR::kBaseQ) != TrTrackR::kBaseQ) return false;
+
+    // Golden track request
+    //if ((cls & TrTrackR::kHighQ) != TrTrackR::kHighQ) return false;
+
+    // Set track index
+    triter = itrk;
+    return true;
+  }
+#endif
+
+  // MM: Simple track check
   int ngood=0;
   triter=-1;
   for(int i=0;i!=nTrTrack();i++){
@@ -452,10 +527,11 @@ bool ElectronIdentification::select_Tracker(int debug){
     if(tr_track->GetNhits()<=0)continue;
     recoP=tr_track->GetRigidity();
 
-    bool planesok=false;int ntrseg=0;
-    int ntrtracklay=nTRTrackLayer(tr_track,planesok,ntrseg);
-    if(debug)printf("track %i planes %i ok %i\n",i,ntrtracklay,planesok);
-    if(ntrtracklay<5||!planesok)continue;
+    int planestype=0;
+    int ntrseg=0;
+    int ntrtracklay=nTRTrackLayer(tr_track,planestype,ntrseg);
+    if(debug)printf("track %i planes %i type %i\n",i,ntrtracklay,planestype);
+    if(ntrtracklay<5||planestype==0)continue;
     
     ngood++;
     triter=i;
@@ -465,13 +541,18 @@ bool ElectronIdentification::select_Tracker(int debug){
   return (ngood==1);
 }
 
-int ElectronIdentification::nTRTrackLayer(TrTrackR* tr,bool& planesok, int& nseg){
+int ElectronIdentification::nTRTrackLayer(TrTrackR* tr,int& planestype, int& nseg){
   if(!tr)return 0;
-  int lay[8];
-  for(int i=0;i!=8;i++)lay[i]=0;
+
+  const int NL = 9;  // For AMS-PM 9 layers
+
+  int lay[NL];
+  for(int i=0;i!=NL;i++)lay[i]=0;
+/*
   int bits=tr->GetHitBits();
   int tmp=bits;
   for(int i=7;i>=0;i--){
+    if (tr->TestHitBits(i+1)
     while((double)tmp/pow((double)2.,(double)i)>=1.){
       lay[i]++;
       if(lay[i]>0)tmp-=(int)pow((double)2,(double)i);
@@ -483,10 +564,23 @@ int ElectronIdentification::nTRTrackLayer(TrTrackR* tr,bool& planesok, int& nseg
 	   lay[0],lay[1],lay[2],lay[3],lay[4],lay[5],lay[6],lay[7],tmp);
     exit(0);
   }
+*/
+  // SH: Use TrTrackR::TestHitBits instead of pow(2, i)
+  for(int i=0;i<NL;i++){
+    if (tr->TestHitBits(i+1)) lay[i]++;
+  }
 
-  if( lay[0]>0 || lay[7]>0 ) planesok=true;
+  // SH: In case you want FULL span (L1N and L9)
+  if(lay[7]>0 && lay[8]>0 )planestype=3;
+
+  // SH: In case you want Half span (L1N or L9)
+  else if(lay[7]>0 || lay[8]>0 )planestype=2;
+
+  // SH: In case you want Inner full (L1 and (L6 || L7))
+  else if(lay[0]>0 && (lay[5]>0 || lay[6]>0) )planestype=1;
+
   int n=0;
-  for(int i=0;i!=8;i++)if(lay[i]>0)n++;
+  for(int i=0;i!=NL;i++)if(lay[i]>0)n++;
   
   return n;
 }
