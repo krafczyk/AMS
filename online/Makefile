@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.45 2010/11/16 16:47:21 choutko Exp $
+#  $Id: Makefile,v 1.46 2010/12/07 16:03:47 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -88,8 +88,8 @@ ifeq ($(ARCH),linux)
 CXX           =  g++ -m32 
 CPPFLAGS      =   -D__root_$(NEW) -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
-OPT           = -O2
-OPTC          = -O0
+OPT           = -g
+OPTC          = -g
 NOOPT         = -g
 LD            = g++ -m32
 LDFLAGS       = -g 
@@ -247,7 +247,7 @@ $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
 
 
 
-$(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO)
+$(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
 		$(LDS)   $(LDFLAGS) $^  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 

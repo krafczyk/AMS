@@ -2,7 +2,7 @@
 ///
 #define stlv_cxx
 #define _PGTRACK_
-#include "../include/root_RVSP.h"
+#include "/afs/cern.ch/ams/Offline/KSC/AMS/include/root_RVSP.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TStyle.h"
@@ -468,7 +468,7 @@ try{
         TrTrackR trr=TrTrack(part.iTrTrack());
         double m2=trr.GetRigidity(TrTrackR::kAlcaraz)/rich.Beta/gamma; 
         hf1(3303,m2,1.);
-        double m3=trr.GetRigidity(3073)/rich.Beta/gamma; 
+        double m3=trr.GetRigidity(TrTrackR::kChikanian)/rich.Beta/gamma; 
        double b1=rich.Beta*1.0005;
         double g=1/sqrt(1-b1*b1);
         double m5=trr.GetRigidity(TrTrackR::kAlcaraz)/b1/g; 
@@ -865,7 +865,7 @@ if(h6 && h1 &&h9){
 }
    //cout <<" qwa "<<endl;
 double x1=mcmom/fabs(mccharge)/(tr.Rigidityf());
-      double x3=mcmom/fabs(mccharge)/(tr.GetRigidity(3073));
+      double x3=mcmom/fabs(mccharge)/(tr.GetRigidity(TrTrackR::kChikanian));
       double x2=mcmom/fabs(mccharge)/(tr.GetRigidity(TrTrackR::kAlcaraz));
       double xx[3][2];
    //cout <<" q1 "<<endl;
@@ -969,7 +969,7 @@ double x1=mcmom/fabs(mccharge)/(tr.Rigidityf());
      }
 
          if(0 && cut && h8 && h1 && h9 && h6){
-            cout<<"Run to Fill"<<Run()<<" "<<Event()<<" "<<part.Momentum<<" "<<TrTrack(part.iTrTrack()).Rigidityf()<<" "<<TrTrack(part.iTrTrack()).GetRigidity(3073)<<endl;
+            cout<<"Run to Fill"<<Run()<<" "<<Event()<<" "<<part.Momentum<<" "<<TrTrack(part.iTrTrack()).Rigidityf()<<" "<<TrTrack(part.iTrTrack()).GetRigidity(TrTrackR::kChikanian)<<endl;
               GetAllContents();
               Fill();
 

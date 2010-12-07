@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.32 2010/12/04 19:10:53 choutko Exp $
+//  $Id: main.cxx,v 1.33 2010/12/07 16:03:47 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
   
   AMSNtupleR *pntuple=new AMSNtupleR();
-  AMSChain chain(pntuple,"AMSRoot");
+    AMSChain chain(pntuple,"AMSRoot"); 
   if(filename){
     printf("opening file %s...\n", filename);
     OpenChain(chain,filename); 
@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
   //gVirtualX=new TGX11("X11","Root Interface to X11");
   //TGuiFactory *p=new TGuiFactory("root");
 
+  TASImage a;
   Myapp *theApp = new Myapp("App", &argcc, argv);
   //  gDebug=6; 
   theApp->SetStatic();
@@ -121,8 +122,8 @@ int main(int argc, char *argv[])
   AMSEverything  Everyh("E&verything","All Hists");
   amd->AddSubDet(Everyh);
 
-  amd->Init();
   amd->SetApplication(theApp);
+  amd->Init();
   amd->Begin()=0;
   amd->Sample()=999;
   theApp->SetIdleTimer(6,"");

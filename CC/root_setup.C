@@ -21,6 +21,7 @@ fHeader.Run=head->Run();
 if(fHeader.LEvent<head->Event()){
  fHeader.LEvent=head->Event();
  fHeader.LEventTime=head->UTime();
+ //fBValues.insert(make_pair(head->UTime(),BValues()));
 }
 if(fHeader.FEvent==0){
  fHeader.FEvent=head->Event();
@@ -39,14 +40,14 @@ if(run){
 return true;
 }
 AMSSetupR::AMSSetupR(){
-fGPSTime.clear();
-fTTCS.clear();
+//fGPSTime.clear();
+//fTTCS.clear();
 fBValues.clear();
-fISSData.clear();
+//fISSData.clear();
 }
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
-
+  ClassImp(AMSSetupR::BValues)
 
  void AMSSetupR::Init(TTree *tree){
   //   Set branch addresses

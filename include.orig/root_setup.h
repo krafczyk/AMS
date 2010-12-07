@@ -11,6 +11,7 @@ class BValues{
 public:
 float B[4][3];
 float T[4];
+ClassDef(BValues,1)
 }; 
 class TTCS{
 public:
@@ -43,12 +44,18 @@ public:
 };
 public:
   Header fHeader;
- typedef map <uinteger,BValues> BValues_m;
- typedef map <uinteger,BValues>::iterator BValues_i;
+ typedef map <unsigned int,BValues> BValues_m;
+ typedef map <unsigned int,BValues>::iterator BValues_i;
+ typedef map <unsigned int,GPSTime> GPSTime_m;
+ typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
+ typedef map <unsigned int,ISSData> ISSData_m;
+ typedef map <unsigned int,ISSData>::iterator ISSData_i;
+ typedef map <unsigned int,TTCS> TTCS_m;
+ typedef map <unsigned int,TTCS>::iterator TTCS_i;
   BValues_m   fBValues;
-  map <uint64,GPSTime> fGPSTime;
-  map <uinteger,AMSSetupR::ISSData> fISSData;
-  map <uinteger,AMSSetupR::TTCS> fTTCS;
+  GPSTime_m fGPSTime;
+  ISSData_m fISSData;
+  TTCS_m fTTCS;
   const char * BuildTime(){time_t tm=fHeader.BuildTime;return ctime(&tm);};
 protected:
 static AMSSetupR * _Head;
@@ -59,7 +66,7 @@ static    AMSSetupR * gethead(){return _Head;}
  void UpdateHeader(AMSEventR* ev);
  AMSSetupR();
  void Init(TTree *tree);
-ClassDef(AMSSetupR,1)       //AMSSetupR
+ClassDef(AMSSetupR,2)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

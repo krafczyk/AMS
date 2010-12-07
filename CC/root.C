@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.239 2010/12/06 01:12:50 choutko Exp $
+//  $Id: root.C,v 1.240 2010/12/07 16:03:46 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1453,13 +1453,17 @@ bool AMSEventR::ReadHeader(int entry){
     if( local_pfile!=_Tree->GetCurrentFile()){
       local_pfile=_Tree->GetCurrentFile();
       InitDB(local_pfile);
-      
+// workaround root static bug
+      if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
+          TFile *aa= new TFile(_Tree->GetCurrentFile()->GetName());
+          cout <<"AMSEventR::ReadHeader-I-SettinggDirectory "<<endl;
+      }
       if(!InitSetup(local_pfile,"AMSRootSetup",UTime())){
       cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       }
       else{
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
-       
+       cout <<" *******  map value "<<getsetup()->fBValues.size()<<" "<<getsetup()->fBValues.begin()->first<<endl; 
       }     
      }
     if(Version()<160){
