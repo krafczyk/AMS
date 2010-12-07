@@ -298,24 +298,50 @@ const integer npat02=218;
 //! Data Cards to drive the track fiting
 class TRFITFFKEY_DEF: public TObject {
 public:
-  ///fit point error
+  /// R 1 fit point error
   float ErrX;
-  ///fit point error
+  /// R 2 fit point error
   float ErrY;
-  ///fit point error
+  /// R 3 fit point error
   float ErrZ;
 
-  ///Error term for Multiple scattering per layer (1-9)
+  /// R [4,12] Error term for Multiple scattering per layer (1-9)
   float FitwMsc[9];
 
-  /// max dist to add external planes hits X
+  /// R 13 max dist to add external planes hits X
   float MergeExtLimX;
-  /// max dist to add external planes hits Y
+  /// R 14 max dist to add external planes hits Y
   float MergeExtLimY;
+
+//############## TRACK CLASSIFICATION ###############
+  /// R [15,18] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+  float StdMDR[4];
+
+  /// R [19,26] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
+  float ScatFact[8];
+
+  /// R [27,28] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
+  float ErinvThres[2];
+
+  /// R [29,30] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
+  float ChisqThres[2];
+
+  /// R [31,32] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
+  float HalfRThres[2];
+
+  /// R [33,34] External residual threshold for [0]:kExResOK and [1]:kHighQ
+  float ExResThres[2];
+
+  /// R [35,38] Chisquare tuning factor
+  float ChisqTune[4];
+
+  /// R [39,42] Half rigidity tuning factor
+  float HalfRTune[4];
+
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
 
-  ClassDef(TRFITFFKEY_DEF,1);
+  ClassDef(TRFITFFKEY_DEF,2);
 };
 //
 

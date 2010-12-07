@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.82 2010/12/04 16:14:10 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.83 2010/12/07 00:19:23 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/04 16:14:10 $
+/// $Date: 2010/12/07 00:19:23 $
 ///
-/// $Revision: 1.82 $
+/// $Revision: 1.83 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,46 +97,46 @@ TrReconPar::TrReconPar()
 void TrReconPar::SetParFromDataCards()
 {
   for (int ii=0;ii<9;ii++){
-    ThrSeed[0][ii]  = TRCLFFKEY.ThrSeed[0][ii]  ;  // 2
-    ThrSeed[1][ii]  = TRCLFFKEY.ThrSeed[1][ii]  ;  // 3
+    ThrSeed[0][ii]  = TRCLFFKEY.ThrSeed[0][ii]  ;
+    ThrSeed[1][ii]  = TRCLFFKEY.ThrSeed[1][ii]  ;
   }
-  ThrNeig[0]  = TRCLFFKEY.ThrNeig[0]  ;  // 4
-  ThrNeig[1]  = TRCLFFKEY.ThrNeig[1]  ;  // 5
+  ThrNeig[0]  = TRCLFFKEY.ThrNeig[0]  ;
+  ThrNeig[1]  = TRCLFFKEY.ThrNeig[1]  ;
   
-  SeedDist[0] = TRCLFFKEY.SeedDist[0] ;  // 6
-  SeedDist[1] = TRCLFFKEY.SeedDist[1] ;  // 7
+  SeedDist[0] = TRCLFFKEY.SeedDist[0] ;
+  SeedDist[1] = TRCLFFKEY.SeedDist[1] ;
   
-  GGpars[0]  = TRCLFFKEY.GGpars[0]    ;  // 8
-  GGpars[1]  = TRCLFFKEY.GGpars[1]    ;  // 9
-  GGpars[2]  = TRCLFFKEY.GGpars[2]    ;  // 10
-  GGpars[3]  = TRCLFFKEY.GGpars[3]    ;  // 11
-  GGpars[4]  = TRCLFFKEY.GGpars[4]    ;  // 12
-  GGpars[5]  = TRCLFFKEY.GGpars[5]    ;  // 13
-  GGintegral = TRCLFFKEY.GGintegral   ;  // 14
-  ThrProb    = TRCLFFKEY.ThrProb      ;  // 15
+  GGpars[0]  = TRCLFFKEY.GGpars[0]    ;
+  GGpars[1]  = TRCLFFKEY.GGpars[1]    ;
+  GGpars[2]  = TRCLFFKEY.GGpars[2]    ;
+  GGpars[3]  = TRCLFFKEY.GGpars[3]    ;
+  GGpars[4]  = TRCLFFKEY.GGpars[4]    ;
+  GGpars[5]  = TRCLFFKEY.GGpars[5]    ;
+  GGintegral = TRCLFFKEY.GGintegral   ;
+  ThrProb    = TRCLFFKEY.ThrProb      ;
 
-  MaxNrawCls = TRCLFFKEY.MaxNrawCls;      // 20
-  MaxNtrCls  = TRCLFFKEY.MaxNtrCls;       // 21
-  lowdt      = TRCLFFKEY.lowdt;           // 22
-  MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt; // 23
-  MaxNtrHit  = TRCLFFKEY.MaxNtrHit;       // 24
-  TrTimeLim  = TRCLFFKEY.TrTimeLim;       // 25
+  MaxNrawCls = TRCLFFKEY.MaxNrawCls;
+  MaxNtrCls  = TRCLFFKEY.MaxNtrCls;
+  lowdt      = TRCLFFKEY.lowdt;
+  MaxNtrCls_ldt= TRCLFFKEY.MaxNtrCls_ldt;
+  MaxNtrHit  = TRCLFFKEY.MaxNtrHit;
+  TrTimeLim  = TRCLFFKEY.TrTimeLim;
 
-  MaxNtrack         = TRCLFFKEY.MaxNtrack;        // 26
-  MinNhitX          = TRCLFFKEY.MinNhitX;         // 27
-  MinNhitY          = TRCLFFKEY.MinNhitY;         // 28
-  MinNhitXY         = TRCLFFKEY.MinNhitXY;        // 29
-  PatAllowOption    = TRCLFFKEY.PatAllowOption;   // 30
-  MaxChisqAllowed   = TRCLFFKEY.MaxChisqAllowed;  // 31
-  LadderScanRange   = TRCLFFKEY.LadderScanRange;  // 32
-  ClusterScanRange  = TRCLFFKEY.ClusterScanRange; // 33
-  MaxChisqForLScan  = TRCLFFKEY.MaxChisqForLScan; // 34
-  ErrXForScan       = TRCLFFKEY.ErrXForScan;      // 35
-  ErrYForScan       = TRCLFFKEY.ErrYForScan;      // 36
-  TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];  // 37
-  TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];  // 38
+  MaxNtrack         = TRCLFFKEY.MaxNtrack;
+  MinNhitX          = TRCLFFKEY.MinNhitX;
+  MinNhitY          = TRCLFFKEY.MinNhitY;
+  MinNhitXY         = TRCLFFKEY.MinNhitXY;
+  PatAllowOption    = TRCLFFKEY.PatAllowOption;
+  MaxChisqAllowed   = TRCLFFKEY.MaxChisqAllowed;
+  LadderScanRange   = TRCLFFKEY.LadderScanRange;
+  ClusterScanRange  = TRCLFFKEY.ClusterScanRange;
+  MaxChisqForLScan  = TRCLFFKEY.MaxChisqForLScan;
+  ErrXForScan       = TRCLFFKEY.ErrXForScan;
+  ErrYForScan       = TRCLFFKEY.ErrYForScan;
+  TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];
+  TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];
 
-  TrTrackR::AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag; // 39
+  TrTrackR::SetParFromDataCards();
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
@@ -1997,7 +1997,6 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     }
     if (DXY[il].ihmin>=0 && fabs(DXY[il].diff.y()) > diffY_max) continue;
     if (DXY[il].ihmin< 0 && fabs(DY [il].diff.y()) > diffY_max) continue;
-
     TrRecHitR *hit = 0;
 
     if (DXY[il].ihmin>=0 &&
@@ -2015,8 +2014,10 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 	if (DY[il].mlmin >= nmlt) DY[il].mlmin = nmlt-1;
 	if (DY[il].mlmin <     0) DY[il].mlmin = 0;
 	hit->SetDummyX(tks.GetStripX());
+	hit->SetResolvedMultiplicity(DY[il].mlmin);
       }
-      hit->SetResolvedMultiplicity(DXY[il].mlmin);
+      else
+	hit->SetResolvedMultiplicity(DXY[il].mlmin);
       track->AddHit(hit);
       hit->setstatus(AMSDBc::USED);
       nadd++;
@@ -2028,25 +2029,22 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 
   if(DY[0].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kChoutko);
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | mfit);
   }
   if(DY[1].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer9 | TrTrackR::kChoutko);
+      track->Settrdefaultfit(TrTrackR::kFitLayer9 | mfit);
   }
   if(DY[0].ihmin>=0 && DY[1].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
-			                          | TrTrackR::kChoutko);
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
   }
 
-  else if ( track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8) &&
-	    track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer9) &&
-	   !track->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
-			                        | TrTrackR::kFitLayer9)) {
+  else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
+	    track->ParExists(mfit | TrTrackR::kFitLayer9) &&
+	   !track->ParExists(mfit | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9
-			                          | TrTrackR::kChoutko);
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
   }
 
   return nadd;
@@ -2171,8 +2169,8 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     //    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
     if(track->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
-      if (track->ParExists(TrTrackR::kChoutko))
-	track->Settrdefaultfit(TrTrackR::kChoutko);
+      if (track->ParExists(TrTrackR::DefaultFitID))
+	track->Settrdefaultfit(TrTrackR::DefaultFitID);
       else
 	track->Settrdefaultfit(fit_method);
     } else {
@@ -2186,10 +2184,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     delete track;
     return 0;
   }
-
-  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
-      TRMCFFKEY.SimulationType==TrSim::kTrSim2010)
-    TrSim::fillreso(track);
 
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {

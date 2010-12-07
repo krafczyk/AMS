@@ -195,7 +195,7 @@ TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up
 #include "TrRecon.h"
 #include "TrSim.h"
 
-void HistoMan::BookHistos(){
+void HistoMan::BookHistos(bool issim){
   if (!enabled || booked) return;
 
   TDirectory *dsave = gDirectory;
@@ -259,9 +259,7 @@ void HistoMan::BookHistos(){
   Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
-  // mceventg
-  Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
-  Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+  Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
 
   // Track quality parameters VS Rigidity
   TString stp[4] = {  "dRinv-",  "Chisq-",  "HalfR-", "Exres-" };
@@ -271,9 +269,12 @@ void HistoMan::BookHistos(){
       Add(TH2D_L(Form("TrQp%d%d", j+1, i),
 		 stp[i]+stt[j], 40, 1, 1e4, 80, 1e-2, 1e2, 1, 1));
 
-  // TrSim
-  if (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
-      TRMCFFKEY.SimulationType==TrSim::kTrSim2010) {
+  // For simulation
+  if (issim) {
+    // mceventg
+    Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
+    Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+
     Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
     Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
@@ -301,7 +302,7 @@ void HistoMan::BookHistos(){
     Add(new TH1D("TrSigBaseX","Normalized Signal (keV)", 500, 0, 400));
     Add(new TH1D("TrSigBaseY","Normalized Signal (keV)", 500, 0, 400));
   }
-  Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
+
   if (dsave) dsave->cd();
   booked = true;
 }

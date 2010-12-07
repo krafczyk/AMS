@@ -47,7 +47,7 @@ public:
   /// Save histograms to a specified file
   void Save(TFile *file);
   /// Book default histograms
-  void BookHistos();
+  void BookHistos(bool issim = false);
   /// Enable this facility
   void Enable(){enabled=true;}
   /// Disable this facility

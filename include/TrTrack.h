@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.49 2010/12/04 16:14:13 shaino Exp $
+//  $Id: TrTrack.h,v 1.50 2010/12/07 00:19:18 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/12/04 16:14:13 $
+///$Date: 2010/12/07 00:19:18 $
 ///
-///$Revision: 1.49 $
+///$Revision: 1.50 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -480,16 +480,18 @@ public:
   "Golden"  means "Good efficiency and high quality"
   You may need to estimate the efficiency VS R when you select golden tracks
 */
+
+public:
   enum {
     kMaxInt  = 0x001, ///< Max  span of internal tracker (L1 && (L6||L7))
     kHalfExt = 0x002, ///< Half span of the full tracker (L1N || L9)
     kMaxExt  = 0x004, ///< Max  span of the full tracker (L1N && L9)
-    kErinvOK = 0x010, ///< Minimum err-Rinv      selection OK
-    kChisqOK = 0x020, ///< Minimum chisquare     selection OK
-    kHalfROK = 0x040, ///< Minimum half-rigidity selection OK
-    kExResOK = 0x080, ///< Minimum ex-residual   selection OK
-    kHighQ   = 0x100, ///< High quality selection bit
-    kBaseQ            ///< Minimum quality selection bits
+    kErinvOK = 0x010, ///< Err-Rinv        selection OK
+    kChisqOK = 0x020, ///< Chisquare       selection OK
+    kHalfROK = 0x040, ///< Half-rigidity   selection OK
+    kExResOK = 0x080, ///< Ex-residual     selection OK
+    kBaseQ   = 0x100, ///< Minimum quality selection OK
+    kHighQ            ///< High quality selection bit
              = kErinvOK | kChisqOK | kHalfROK | kExResOK
   };
 
@@ -502,11 +504,14 @@ public:
     kGoldenE = kMaxExt  | kBaseQ | kHighQ    ///< Golden  track with full
   };
 
-  /// Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
-  static float StdMDR[4];
+public:
+  enum { Nconf = 4, Nclass = 3, NTrStat = Nconf*Nclass+2, Nqpar = 5 };
 
-  /// Multiple scattering factor for (0:inner, 1:L1N, 2:L9, 3:full)
-  static float ScatFact[4];
+  /// Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+  static float StdMDR[Nconf];
+
+  /// Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
+  static float ScatFact[Nconf*2];
 
   /// Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
   static float ErinvThres[2];
@@ -521,10 +526,17 @@ public:
   static float ExResThres[2];
 
   /// Chisquare tuning factor
-  static float ChisqTune[4];
+  static float ChisqTune[Nconf];
 
   /// Half rigidity tuning factor
-  static float HalfRTune[4];
+  static float HalfRTune[Nconf];
+
+public:
+  /// Import parameters from TRFITFFKEY
+  static void SetParFromDataCards();
+
+  /// Get d(1/R) normalization factor for (0:inner, 2:L1N, 4:L9, 6:full)
+  static double GetErrRinvNorm(int i, double arig);
 
   /// Evaluate the classification flag, qpar is for experts (just ignore)
   int GetTrackClass(int id= 0, double *qpar = 0) const;
@@ -538,6 +550,17 @@ public:
     FitT(id,-1,1,err,mass,chrg);
     return GetTrackClass(id, qpar);
   }
+
+  /// Statistics of track classification
+  static int NTrackClass[NTrStat];
+
+
+  /// Track classification,  hpar/tcls is for experts (just ignore)
+  static void DoTrackClass(int id= DefaultFitID, double *hpar = 0, 
+			                            int *tcls = 0);
+
+  /// Show summary
+  static void ShowTrackClass();
 
 //############## VARIUOS METHODS ###############
 
@@ -600,7 +623,7 @@ public:
   void EstimateDummyX(int fitid = 0);
 
   /// Fill residual of external layers and internal track
-  void FillExRes();
+  void FillExRes(int idsel = -1);
 
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();

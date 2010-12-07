@@ -314,17 +314,53 @@ TRALIG_DEF TRALIG;
 //=============================
 void TRFITFFKEY_DEF::init(){
   // Fit Par
- 
+
+  /// R [1,3] fit point error 
   ErrX = 40.e-4;  
   ErrY = 15.e-4;
   ErrZ = 40.e-4;
 
+  /// R [4,12] Error term for Multiple scattering per layer (1-9)
   float fwmsc[9] = { 122, 22.0, 1.7, 0.0, 1.7, 16.5, 32.3, 360, 274 };
   for (int i = 0; i < 9; i++) FitwMsc[i] = fwmsc[i];
-  MergeExtLimX=0.5;
-  MergeExtLimY=0.5;
-  
 
+  /// R 13 max dist to add external planes hits X
+  MergeExtLimX=0.5;
+  /// R 14 max dist to add external planes hits Y
+  MergeExtLimY=0.5;
+
+//############## TRACK CLASSIFICATION ###############  
+  /// R [15,18] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+  StdMDR[0] =  220;
+  StdMDR[1] =  720;
+  StdMDR[2] =  860;
+  StdMDR[3] = 2190;
+
+  /// R [19,22] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
+  double sfact[8] = { 4.7, 1.4,  9.3, 1.6,  7.1, 1.1,  8.8, 0.5 };
+  for (int i = 0; i < 8; i++) ScatFact[i] = sfact[i];
+
+  /// R [23,24] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
+  ErinvThres[0] = 10; ErinvThres[1] = 3.0;
+
+  /// R [25,26] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
+  ChisqThres[0] = 20; ChisqThres[1] = 2.0;
+
+  /// R [27,28] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
+  HalfRThres[0] = 10; HalfRThres[1] = 2.0;
+
+  /// R [29,30] External residual threshold for [0]:kExResOK and [1]:kHighQ
+  ExResThres[0] = 10; ExResThres[1] = 2.5;
+
+  /// R [31,34] Chisquare tuning factor
+  ChisqTune [0] = 1.0;
+  ChisqTune [1] = ChisqTune [2] = 2.0;
+  ChisqTune [3] = 5.0;
+
+  /// R [35,38] Half rigidity tuning factor
+  HalfRTune [0] = 1.0;
+  HalfRTune [1] = HalfRTune [2] = 1.1;
+  HalfRTune [3] = 1.5;
 }
 
 TRFITFFKEY_DEF TRFITFFKEY;

@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.34 2010/12/04 16:14:10 shaino Exp $
+//  $Id: event_tk.C,v 1.35 2010/12/07 00:19:23 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -153,6 +153,10 @@ void AMSEvent::_retkevent(integer refit){
       
   } //RAW Clusters -->  Clusters
 
+  // Track classification
+  double hpar[TrTrackR::Nconf*TrTrackR::Nqpar];
+  int    tcls[TrTrackR::Nconf];
+  TrTrackR::DoTrackClass(TrTrackR::DefaultFitID, hpar, tcls);
 
   AMSgObj::BookTimer.stop("RETKEVENT");
 
@@ -230,8 +234,11 @@ void AMSEvent::_retkevent(integer refit){
   AMSTrTrack *trk 
     = (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
 
-  AMSmceventg *mcg
-    = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
+  AMSmceventg *mcg = 0;
+  if (AMSJob::gethead()->isSimulation()) {
+    mcg = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
+    if (mcg->getcharge() == 0) mcg = 0;
+  }
 
   for (int i = 0; i < ntrk && trk; i++) {
     double sigp[9], sign[9];
@@ -264,7 +271,7 @@ void AMSEvent::_retkevent(integer refit){
     hman.Fill("TrNhit", trk->GetNhitsY(), trk->GetNhitsXY());
 
     int pate = TrRecon::GetHitPatternAllow(trk->GetPattern());
-    int mfs  = TrTrackR::kChoutko | TrTrackR::kMultScat;
+    int mfs  = TrTrackR::DefaultFitID;
     if (i == 0 && trk->ParExists(mfs) &&
 	pate == 0 && trk->GetNhitsY () >= 6 && 
 	             trk->GetNhitsXY() >= 5) {
@@ -292,14 +299,11 @@ void AMSEvent::_retkevent(integer refit){
     }
 
     if (i == 0 && TkDBc::Head->GetSetup()==3) {
-      int mf0 = TrTrackR::kChoutko | TrTrackR::kMultScat;
-
+      int mf0 = TrTrackR::DefaultFitID;
       int mfs[4] = { mf0, mf0 | TrTrackR::kFitLayer8,
 		          mf0 | TrTrackR::kFitLayer9,
 		          mf0 | TrTrackR::kFitLayer8
 		              | TrTrackR::kFitLayer9 };
-      int tcs[4] = { TrTrackR::kMaxInt,  TrTrackR::kHalfExt,
-		     TrTrackR::kHalfExt, TrTrackR::kMaxExt };
       int mf8 = mfs[1];
       int mf9 = mfs[2];
 
@@ -309,33 +313,25 @@ void AMSEvent::_retkevent(integer refit){
       trk->InterpolateLayer(8, pl9, dr9, mf0);
       AMSPoint p0;
 
-      double rgt = trk->GetRigidity();
-      if (mcg && mcg->getcharge() != 0) rgt = mcg->getmom()/mcg->getcharge();
-      double argt = TMath::Abs(rgt);
+      double rrgt = (!mcg) ? trk->GetRigidity() 
+	                   : mcg->getmom()/mcg->getcharge();
+      double argt = TMath::Abs(rrgt);
 
-      for (int j = 0; j < 4; j++) {
-	double qpar[4];
-	Int_t    mq[4] = { 0, TrTrackR::kErinvOK,
-			      TrTrackR::kErinvOK | TrTrackR::kChisqOK,
-			      TrTrackR::kErinvOK | TrTrackR::kChisqOK |
-			                           TrTrackR::kHalfROK };
-	int tcls = trk->GetTrackClass(mfs[j], qpar);
-	if (tcls & tcs[j]) {
-	  for (int k = 0; k < 4; k++)
-	    if ((tcls & mq[k]) == mq[k])
-	      hman.Fill(Form("TrQp%d%d", j+1, k), argt, qpar[k]);
+      for (int j = 0; j < TrTrackR::Nconf; j++) {
+	for (int k = 0; k < TrTrackR::Nqpar-1; k++) {
+	  double hp = hpar[i*TrTrackR::Nqpar+j];
+	  if (hp > 0) hman.Fill(Form("TrQp%d%d", j+1, k), argt, hp);
 	}
-	if (mcg && mcg->getcharge() != 0 && rgt != 0) {
-	  double err0 = 1/TrTrackR::StdMDR[j];
-	  double err1 = TrTrackR::ScatFact[j]/argt;
-	  double ecor = TMath::Sqrt(err0*err0+err1*err1);
+	double rgt = hpar[i*TrTrackR::Nqpar+TrTrackR::Nqpar-1];
+	if (mcg && rgt != 0 && rrgt != 0) {
+	  double ecor = TrTrackR::GetErrRinvNorm(i, argt);
+	  double dr   = 1/rgt-1/rrgt;
 
-	  Double_t dr = 1/trk->GetRigidity()-1/rgt;
-
-	  Int_t mt[3] = { 0, TrTrackR::kBaseQ, 
-			     TrTrackR::kBaseQ | TrTrackR::kHighQ };
-	  for (Int_t k = 0; k < 3; k++) {
-	    if ((tcls & mt[k]) == mt[k])
+	  int mt[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
+				          TrTrackR::kBaseQ | 
+				          TrTrackR::kHighQ };
+	  for (int k = 0; k < TrTrackR::Nclass; k++) {
+	    if ((tcls[i] & mt[k]) == mt[k] && ecor > 0)
 	      hman.Fill(Form("TrQr%d%d", j+1, k), argt, dr/ecor);
 	  }
 	}
@@ -379,14 +375,16 @@ void AMSEvent::_retkevent(integer refit){
 
      }
     }
-    if ( (i==0) && (TRMCFFKEY.SimulationType==TrSim::kNoRawSim ||
-		    TRMCFFKEY.SimulationType==TrSim::kTrSim2010) 
+
+    if ( (i==0) && AMSJob::gethead()->isSimulation()
 	        && (TkDBc::Head->GetSetup()==3) ) {
-      int mfit[4] = { TrTrackR::kChoutko,
-		      TrTrackR::kChoutko | TrTrackR::kFitLayer8,
-		      TrTrackR::kChoutko | TrTrackR::kFitLayer9,
-		      TrTrackR::kChoutko | TrTrackR::kFitLayer8
-		                         | TrTrackR::kFitLayer9 };
+      TrSim::fillreso(trk);
+
+      int mf0 = TrTrackR::DefaultFitID;
+      int mfit[4] = { mf0, mf0 | TrTrackR::kFitLayer8,
+		           mf0 | TrTrackR::kFitLayer9,
+		           mf0 | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 };
+
       if (mcg && mcg->getcharge() != 0) {
 	double pmc = mcg->getmom();
 	double rmc = mcg->getmom()/mcg->getcharge();

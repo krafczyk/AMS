@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.76 2010/12/04 16:14:10 shaino Exp $
+// $Id: TrTrack.C,v 1.77 2010/12/07 00:19:23 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/04 16:14:10 $
+///$Date: 2010/12/07 00:19:23 $
 ///
-///$Revision: 1.76 $
+///$Revision: 1.77 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,7 +65,7 @@ ClassImp(TrTrackR);
 
 
 int TrTrackR::NhitHalf     = 4;
-int TrTrackR::DefaultFitID = TrTrackR::kChoutko;
+int TrTrackR::DefaultFitID = TrTrackR::kChoutko | TrTrackR::kMultScat;
 
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, 
@@ -224,17 +224,7 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
 {
   int id2 = (id == 0) ? trdefaultfit : id;
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
-  if(id==0 && id2!=kLinear){
-    // PZ Workaround for error in TB Aug2010 production
-    int idT  = kChoutko | kFitLayer9;
-    int idB  = kChoutko | kFitLayer8;
-    int idTB = kChoutko | kFitLayer8 | kFitLayer9;
-    if(ParExists(idTB)) id2=idTB;
-    else if (ParExists(idT)) id2=idT;
-    else if (ParExists(idB)) id2=idB;
-  }
   if (ParExists(id2)) return _TrackPar.find(id2)->second;
-                           //_TrackPar[id2]; //SH Let's keep const
   static int i=0;
    if(i++<100)cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
        << id << " "  << endl;
@@ -444,12 +434,13 @@ void TrTrackR::Move(int shift, int fit_flags)
   else ReFit();
 }
 
-void TrTrackR::FillExRes()
+void TrTrackR::FillExRes(int idsel)
 {
   map<int, TrTrackPar>::iterator it = _TrackPar.begin();
   for(;it!=_TrackPar.end();it++) {
     int id = it->first;
     if (id & (kFitLayer8 | kFitLayer9)) continue;
+    if (idsel > 0 && id != idsel) continue;
 
     for (int ily = 7; ily <= 8; ily++) {
       TrRecHitR *hit = GetHitL(ily);
@@ -614,23 +605,37 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
 //############## TRACK CLASSIFICATION ###############
 
-/// Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
-float TrTrackR::StdMDR[4] = { 200, 600, 800, 2000 };
+float TrTrackR::StdMDR[Nconf] = { 220, 720, 860, 2190 };
 
-/// Multiple scattering factor for (0:inner, 1:L1N, 2:L9, 3:full)
-float TrTrackR::ScatFact[4] = { 0.05, 0.10, 0.10, 0.10 };
+/// Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
+float TrTrackR::ScatFact[Nconf*2] = { 4.7, 1.4,  9.3, 1.6, 
+				      7.1, 1.1,  8.8, 0.5 };
 
-float TrTrackR::ErinvThres[2] = { 10, 3.0 };
-float TrTrackR::ChisqThres[2] = { 20, 2.0 };
-float TrTrackR::HalfRThres[2] = { 10, 2.0 };
+float TrTrackR::ChisqTune [Nconf] = { 1.0, 2.0, 2.0, 5.0 };
+float TrTrackR::HalfRTune [Nconf] = { 1.0, 1.1, 1.1, 1.5 };
+
+float TrTrackR::ErinvThres[2] = { 10, 2.5 };
+float TrTrackR::ChisqThres[2] = { 10, 2.5 };
+float TrTrackR::HalfRThres[2] = { 10, 2.5 };
 float TrTrackR::ExResThres[2] = { 10, 2.5 };
-float TrTrackR::ChisqTune [4] = { 1.0, 2.0, 2.0, 5.0 };
-float TrTrackR::HalfRTune [4] = { 1.0, 1.1, 1.1, 1.5 };
 
-/// Evaluate the classification flag
+double TrTrackR::GetErrRinvNorm(int i, double arig)
+{
+  if (arig == 0 || StdMDR[i] == 0) return 1;
+
+  double err0 = 1/StdMDR[i];
+  double err1 = 0.01*ScatFact[i*2  ]/fabs(arig);
+  double err2 = 0.01*ScatFact[i*2+1]/std::sqrt(fabs(arig));
+  return std::sqrt(err0*err0+err1*err1+err2*err2);
+}
+
 int TrTrackR::GetTrackClass(int id, double *qpar) const
 {
   if (id == 0) id = trdefaultfit;
+
+  double qtmp[Nqpar];
+  if (!qpar) qpar = qtmp;
+  for (int i = 0; i < Nqpar; i++) qpar[i] = 0;
 
   // Pre-selection
   if (!ParExists (id)      ||
@@ -650,14 +655,10 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
 
   int    flag  =  0;            // Track classification flag
   int    idx   = -1;            // Track type index (0:inner, 1:half, 2:full)
-  bool   hqsel = true;          // High quality flag
+  bool   nbsel = true;          // Not-bad selection flag
   double hrig[2] = { 0, 0 };    // Half rigidities
   double heri[2] = { 0, 0 };    // Half err-Rinv
-  double arig = 0;              // Reference rigidity
-
-  double qtmp[4];
-  if (!qpar) qpar = qtmp;
-  qpar[0] = qpar[1] = qpar[2] = qpar[3] = 0;
+  double rrig = 0;              // Reference rigidity
 
   // kMaxExt (L1N && L9)
   if ((id & id89) == id89    && 
@@ -670,7 +671,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     flag |= kMaxExt;
     hrig[0] = GetRigidity(id8); heri[0] = GetErrRinv(id8);
     hrig[1] = GetRigidity(id9); heri[1] = GetErrRinv(id9);
-    arig    = GetRigidity(id89);
+    rrig    = GetRigidity(id89);
     idx     = 3;
   }
 
@@ -686,7 +687,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     flag |= kHalfExt;
     hrig[0] = GetRigidity(idb); heri[0] = GetErrRinv(idb);
     hrig[1] = GetRigidity(id9); heri[1] = GetErrRinv(id9);
-    arig    = GetRigidity(id9);
+    rrig    = GetRigidity(id9);
     idx     = 2;
   }
 
@@ -702,7 +703,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     flag |= kHalfExt;
     hrig[0] = GetRigidity(id8); heri[0] = GetErrRinv(id8);
     hrig[1] = GetRigidity(idb); heri[1] = GetErrRinv(idb);
-    arig    = GetRigidity(id8);
+    rrig    = GetRigidity(id8);
     idx     = 1;
   }
 
@@ -717,34 +718,34 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     flag |= kMaxInt;
     hrig[0] = GetRigidity(idu); heri[0] = GetErrRinv(idu);
     hrig[1] = GetRigidity(idl); heri[1] = GetErrRinv(idl);
-    arig    = GetRigidity(idb);
+    rrig    = GetRigidity(idb);
     idx     = 0;
   }
-  arig = fabs(arig);
+
+  double arig = fabs(rrig);
+  qpar[4] = rrig;
 
   if (flag == 0 || idx < 0 || StdMDR[idx] == 0 || arig == 0) return 0;
 
   // Err-Rinv selection
-  double err0 = 1/StdMDR[idx];
-  double err1 = ScatFact[idx]/fabs(arig);
-  double ecor = std::sqrt(err0*err0+err1*err1);
+  double ecor = GetErrRinvNorm(idx, arig);
   qpar[0] = GetErrRinv(id)*GetErrRinv(id)/ecor/ecor;
-  if (qpar[0] < ErinvThres[0]) flag |= kErinvOK;
-  if (qpar[0] > ErinvThres[1]) hqsel = false;
+  if (qpar[0] > ErinvThres[0]) nbsel = false;
+  if (qpar[0] < ErinvThres[1]) flag |= kErinvOK;
 
   // Chisquare selection
   qpar[1] = GetChisq(id)/ChisqTune[idx];
-  if (qpar[1] < ChisqThres[0]) flag |= kChisqOK;
-  if (qpar[1] > ChisqThres[1]) hqsel = false;
+  if (qpar[1] > ChisqThres[0]) nbsel = false;
+  if (qpar[1] < ChisqThres[1]) flag |= kChisqOK;
 
   // Half rigidity selection
   if (hrig[0] != 0 && hrig[1] != 0) {
     double herinv = std::max(heri[0], heri[1]);    
     qpar[2] = (1/hrig[0]-1/hrig[1])/herinv/HalfRTune[idx];
-    if (fabs(qpar[2]) < HalfRThres[0]) flag |= kHalfROK;
-    if (fabs(qpar[2]) > HalfRThres[1]) hqsel = false;
+    if (fabs(qpar[2]) > HalfRThres[0]) nbsel = false;
+    if (fabs(qpar[2]) < HalfRThres[1]) flag |= kHalfROK;
   }
-  else hqsel = false;
+  else nbsel = false;
 
   // External residuals selection
   if (flag & kHalfExt) {
@@ -775,14 +776,140 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   else flag |= kExResOK;
 
   if (qpar[3] > 0) {
-    if (qpar[3] < ExResThres[0]) flag |= kExResOK;
-    if (qpar[3] > ExResThres[1]) hqsel = false;
+    if (qpar[3] > ExResThres[0]) nbsel = false;
+    if (qpar[3] < ExResThres[1]) flag |= kExResOK;
   }
 
   // High quality selection
-  if (hqsel) flag |= kHighQ;
+  if (nbsel) flag |= kBaseQ;
 
   return flag;
+}
+
+void TrTrackR::SetParFromDataCards()
+{
+  AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag;
+
+  for (int i = 0; i < Nconf; i++) {
+    StdMDR   [i] = TRFITFFKEY.StdMDR   [i];
+    ChisqTune[i] = TRFITFFKEY.ChisqTune[i];
+    HalfRTune[i] = TRFITFFKEY.HalfRTune[i];
+  }
+  for (int i = 0; i < Nconf*2; i++)
+    ScatFact [i] = TRFITFFKEY.ScatFact [i];
+
+  for (int i = 0; i < 2; i++) {
+    ErinvThres[i] = TRFITFFKEY.ErinvThres[i];
+    ChisqThres[i] = TRFITFFKEY.ChisqThres[i];
+    HalfRThres[i] = TRFITFFKEY.HalfRThres[i];
+    ExResThres[i] = TRFITFFKEY.ExResThres[i];
+  }
+}
+
+/// Statistics of track classification
+int TrTrackR::NTrackClass[NTrStat] = { 0, 0, 0,  0, 0, 0,  
+				       0, 0, 0,  0, 0, 0,  0, 0 };
+
+void TrTrackR::DoTrackClass(int id0, double *hpar, int *tcls)
+{
+  int ids[Nconf]  = { id0, id0 | kFitLayer8, id0 | kFitLayer9,
+		           id0 | kFitLayer8 | kFitLayer9 };
+  int tcs[Nconf]  = { kMaxInt, kHalfExt, kHalfExt, kMaxExt };
+  int trq[Nclass] = { 0, kBaseQ, kBaseQ | kHighQ };
+  int hpq[Nqpar]  = {            kChisqOK | kHalfROK | kExResOK,
+                      kErinvOK            | kHalfROK | kExResOK,
+		      kErinvOK | kChisqOK            | kExResOK,
+		      kErinvOK | kChisqOK | kHalfROK,  0 };
+  if (hpar) {
+    for (int i = 0; i < TrTrackR::Nconf*TrTrackR::Nqpar; i++)
+      hpar[i] = 0;
+  }
+
+  VCon *cont = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont) return;
+
+  int ntrk = cont->getnelem();
+
+  int ncls[NTrStat];
+  for (int i = 0; i < NTrStat; i++) ncls[i] = 0;
+
+  int ttmp[Nconf];
+  if (!tcls) tcls = ttmp;
+
+  // Single track event
+  if (ntrk == 1) {
+    ncls[12]++;
+
+    TrTrackR *track = (TrTrackR*)cont->getelem(0);
+    if (track) {
+
+      // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
+      for (int i = 0; i < 4; i++) {
+	double qpar[Nqpar];
+	tcls[i] = track->GetTrackClass(ids[i], qpar);
+	if (!(tcls[i] & tcs[i])) continue;
+
+	// For the histogram filling
+	if (hpar) {
+	  for (int j = 0; j < Nqpar; j++)
+	    hpar[i*Nqpar+j] = ((tcls[i] & hpq[j]) == hpq[j]) ? qpar[j] : 0;
+	}
+
+	// Loop on 0:all, 1:BaseQ, 2:HighQ
+	for (int j = 0; j < 3; j++)
+	  if ((tcls[i] & trq[j]) == trq[j]) ncls[i*3+j]++;
+      }
+      // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
+    }
+  }
+
+  // Multi track event
+  else if (ntrk > 1) ncls[13]++;
+
+#pragma omp critical (trclstat)
+  {
+    for (int i = 0; i < NTrStat; i++) NTrackClass [i] += ncls[i];
+  }
+
+  delete cont;
+}
+
+
+void TrTrackR::ShowTrackClass()
+{
+  const int *N = NTrackClass;
+
+  cout << endl;
+  cout
+    << "    ======================= TrTrack statistics ======================"
+    << endl;
+
+  cout << endl;
+  cout << Form(" Single track event (Ns)    :  %8d", N[12]) << endl;
+  cout << Form(" Multi  track event (Nm)    :  %8d", N[13]) << endl;
+  cout << endl;
+
+  int N0 = N[12];
+  if (N0 > 0) {
+    cout << " Span Type :     Total (Nt/Ns)  Not-bad (Nb/Nt)"
+                         "   Golden (Ng/Nt)"
+	 << endl;
+
+    const char name[Nconf][10]
+      = { "InnerMax", "Half+L1N", "Half +L9", "Full" };
+
+    for (int i = 0; i < Nconf; i++)
+      cout << Form("  %08s :  %8d (%4.1f%%) %8d (%4.1f%%) %8d (%4.1f%%)", 
+		   name[i],
+		   N[i*3],   100.*N[i*3]/N0,
+		   N[i*3+1], (N[i*3] > 0) ? 100.*N[i*3+1]/N[i*3] : 0,
+		   N[i*3+2], (N[i*3] > 0) ? 100.*N[i*3+2]/N[i*3] : 0) << endl;
+    cout << endl;
+  }
+  cout 
+    << "    ================================================================="
+    << endl;
+  cout << endl;
 }
 
 
