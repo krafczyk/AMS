@@ -311,6 +311,8 @@ void TRALIG_DEF::init(){
 
 TRALIG_DEF TRALIG;
 
+#include "TrTrack.h"
+
 //=============================
 void TRFITFFKEY_DEF::init(){
   // Fit Par
@@ -329,38 +331,27 @@ void TRFITFFKEY_DEF::init(){
   /// R 14 max dist to add external planes hits Y
   MergeExtLimY=0.5;
 
+  /// R 15 default mass for the fitting
+  DefaultMass    = TrTrackR::DefaultMass;
+
+  /// R 16 default charge for the fitting
+  DefaultCharge  = TrTrackR::DefaultCharge;
+
 //############## TRACK CLASSIFICATION ###############  
-  /// R [15,18] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
-  StdMDR[0] =  220;
-  StdMDR[1] =  720;
-  StdMDR[2] =  860;
-  StdMDR[3] = 2190;
+  for (int i = 0; i < TrTrackR::Nconf; i++) {
+    StdMDR   [i] = TrTrackR::StdMDR   [i];   // [17,20]
+    ChisqTune[i] = TrTrackR::ChisqTune[i];   // [37,40]
+    HalfRTune[i] = TrTrackR::HalfRTune[i];   // [41,44]
+  }
+  for (int i = 0; i < TrTrackR::Nconf*2; i++)
+    ScatFact [i] = TrTrackR::ScatFact [i];   // [21,28]
 
-  /// R [19,22] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
-  double sfact[8] = { 4.7, 1.4,  9.3, 1.6,  7.1, 1.1,  8.8, 0.5 };
-  for (int i = 0; i < 8; i++) ScatFact[i] = sfact[i];
-
-  /// R [23,24] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
-  ErinvThres[0] = 10; ErinvThres[1] = 3.0;
-
-  /// R [25,26] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
-  ChisqThres[0] = 20; ChisqThres[1] = 2.0;
-
-  /// R [27,28] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
-  HalfRThres[0] = 10; HalfRThres[1] = 2.0;
-
-  /// R [29,30] External residual threshold for [0]:kExResOK and [1]:kHighQ
-  ExResThres[0] = 10; ExResThres[1] = 2.5;
-
-  /// R [31,34] Chisquare tuning factor
-  ChisqTune [0] = 1.0;
-  ChisqTune [1] = ChisqTune [2] = 2.0;
-  ChisqTune [3] = 5.0;
-
-  /// R [35,38] Half rigidity tuning factor
-  HalfRTune [0] = 1.0;
-  HalfRTune [1] = HalfRTune [2] = 1.1;
-  HalfRTune [3] = 1.5;
+  for (int i = 0; i < 2; i++) {
+    ErinvThres[i] = TrTrackR::ErinvThres[i]; // [29,30]
+    ChisqThres[i] = TrTrackR::ChisqThres[i]; // [31,32]
+    HalfRThres[i] = TrTrackR::HalfRThres[i]; // [33,34]
+    ExResThres[i] = TrTrackR::ExResThres[i]; // [35,36]
+  }
 }
 
 TRFITFFKEY_DEF TRFITFFKEY;

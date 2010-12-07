@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.77 2010/12/07 00:19:23 shaino Exp $
+// $Id: TrTrack.C,v 1.78 2010/12/07 11:18:18 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/07 00:19:23 $
+///$Date: 2010/12/07 11:18:18 $
 ///
-///$Revision: 1.77 $
+///$Revision: 1.78 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -64,8 +64,10 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full) const {
 ClassImp(TrTrackR);
 
 
-int TrTrackR::NhitHalf     = 4;
-int TrTrackR::DefaultFitID = TrTrackR::kChoutko | TrTrackR::kMultScat;
+int   TrTrackR::NhitHalf      = 4;
+int   TrTrackR::DefaultFitID  = TrTrackR::kChoutko | TrTrackR::kMultScat;
+float TrTrackR::DefaultMass   = TrFit::Mmuon; // 0.938272297
+float TrTrackR::DefaultCharge = 1;
 
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, 
@@ -611,8 +613,8 @@ float TrTrackR::StdMDR[Nconf] = { 220, 720, 860, 2190 };
 float TrTrackR::ScatFact[Nconf*2] = { 4.7, 1.4,  9.3, 1.6, 
 				      7.1, 1.1,  8.8, 0.5 };
 
-float TrTrackR::ChisqTune [Nconf] = { 1.0, 2.0, 2.0, 5.0 };
-float TrTrackR::HalfRTune [Nconf] = { 1.0, 1.1, 1.1, 1.5 };
+float TrTrackR::ChisqTune [Nconf] = { 1.5, 2.0, 2.0, 5.0 };
+float TrTrackR::HalfRTune [Nconf] = { 1.5, 1.1, 1.1, 1.5 };
 
 float TrTrackR::ErinvThres[2] = { 10, 2.5 };
 float TrTrackR::ChisqThres[2] = { 10, 2.5 };
@@ -789,6 +791,8 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
 void TrTrackR::SetParFromDataCards()
 {
   AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag;
+  DefaultMass     = TRFITFFKEY.DefaultMass;
+  DefaultCharge   = TRFITFFKEY.DefaultCharge;
 
   for (int i = 0; i < Nconf; i++) {
     StdMDR   [i] = TRFITFFKEY.StdMDR   [i];

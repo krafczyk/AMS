@@ -267,7 +267,7 @@ void HistoMan::BookHistos(bool issim){
   for (Int_t i = 0; i < 4; i++)
     for (Int_t j = 0; j < 4; j++)
       Add(TH2D_L(Form("TrQp%d%d", j+1, i),
-		 stp[i]+stt[j], 40, 1, 1e4, 80, 1e-2, 1e2, 1, 1));
+		 stp[i]+stt[j], 50, 0.1, 1e4, 80, 1e-2, 1e2, 1, 1));
 
   // For simulation
   if (issim) {
@@ -297,7 +297,7 @@ void HistoMan::BookHistos(bool issim){
     for (Int_t i = 0; i < 3; i++)
       for (Int_t j = 0; j < 4; j++)
 	Add(TH2D_L(Form("TrQr%d%d", j+1, i),
-		   sdr[i]+stt[j], 40, 1, 1e4, 400, -100, 100, 1, 0));
+		   sdr[i]+stt[j], 50, 0.1, 1e4, 400, -100, 100, 1, 0));
 
     Add(new TH1D("TrSigBaseX","Normalized Signal (keV)", 500, 0, 400));
     Add(new TH1D("TrSigBaseY","Normalized Signal (keV)", 500, 0, 400));

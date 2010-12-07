@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.50 2010/12/07 00:19:18 shaino Exp $
+//  $Id: TrTrack.h,v 1.51 2010/12/07 11:18:20 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/12/07 00:19:18 $
+///$Date: 2010/12/07 11:18:20 $
 ///
-///$Revision: 1.50 $
+///$Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -237,7 +237,12 @@ protected:
 public:
   /// Default fit method ID to retrive parameters
   static int DefaultFitID;
-#pragma omp threadprivate(DefaultFitID)
+
+  /// Default mass for fitting
+  static float DefaultMass;
+
+  /// Default charge for fitting
+  static float DefaultCharge;
 public:
   
   //############### CONSTRUCTORS & C. ############################
@@ -401,7 +406,7 @@ public:
      If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
      check to have this file on your disk.
 !*/
-  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = 0.938272297, float chrg = 1);
+  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge);
 
   /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
@@ -545,7 +550,8 @@ public:
   int GetTrackClassRefit(int id= 0,
 			 double *qpar = 0,
 			 const float *err = 0, 
-			 float mass = 0.938272297, float chrg = 1) {
+			 float mass = DefaultMass,
+			 float chrg = DefaultCharge) {
     if (id == 0) id = trdefaultfit;
     FitT(id,-1,1,err,mass,chrg);
     return GetTrackClass(id, qpar);
@@ -590,10 +596,10 @@ public:
   */
   float FitT(int id = 0,
 	    int layer = -1, bool update = true, const float *err = 0, 
-	    float mass = 0.938272297, float chrg = 1);
+	    float mass = DefaultMass, float chrg = DefaultCharge);
 
   void ReFit( const float *err = 0, 
-	      float mass = 0.938272297, float chrg = 1);
+	      float mass = DefaultMass, float chrg = DefaultCharge);
 
 
   /// Perform simple fitting with a constant position error of 0.03 cm

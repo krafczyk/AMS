@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.35 2010/12/07 00:19:23 shaino Exp $
+//  $Id: event_tk.C,v 1.36 2010/12/07 11:18:18 shaino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -237,7 +237,7 @@ void AMSEvent::_retkevent(integer refit){
   AMSmceventg *mcg = 0;
   if (AMSJob::gethead()->isSimulation()) {
     mcg = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
-    if (mcg->getcharge() == 0) mcg = 0;
+    if (mcg && mcg->getcharge() == 0) mcg = 0;
   }
 
   for (int i = 0; i < ntrk && trk; i++) {
@@ -319,19 +319,19 @@ void AMSEvent::_retkevent(integer refit){
 
       for (int j = 0; j < TrTrackR::Nconf; j++) {
 	for (int k = 0; k < TrTrackR::Nqpar-1; k++) {
-	  double hp = hpar[i*TrTrackR::Nqpar+j];
+	  double hp = hpar[j*TrTrackR::Nqpar+k];
 	  if (hp > 0) hman.Fill(Form("TrQp%d%d", j+1, k), argt, hp);
 	}
-	double rgt = hpar[i*TrTrackR::Nqpar+TrTrackR::Nqpar-1];
+	double rgt = hpar[j*TrTrackR::Nqpar+TrTrackR::Nqpar-1];
 	if (mcg && rgt != 0 && rrgt != 0) {
-	  double ecor = TrTrackR::GetErrRinvNorm(i, argt);
+	  double ecor = TrTrackR::GetErrRinvNorm(j, argt);
 	  double dr   = 1/rgt-1/rrgt;
 
 	  int mt[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
 				          TrTrackR::kBaseQ | 
 				          TrTrackR::kHighQ };
 	  for (int k = 0; k < TrTrackR::Nclass; k++) {
-	    if ((tcls[i] & mt[k]) == mt[k] && ecor > 0)
+	    if ((tcls[j] & mt[k]) == mt[k] && ecor > 0)
 	      hman.Fill(Form("TrQr%d%d", j+1, k), argt, dr/ecor);
 	  }
 	}

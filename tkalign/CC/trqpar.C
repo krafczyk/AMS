@@ -1,4 +1,4 @@
-// $Id: trqpar.C,v 1.1 2010/12/07 00:20:22 shaino Exp $
+// $Id: trqpar.C,v 1.2 2010/12/07 11:18:24 shaino Exp $
 #include "TStopwatch.h"
 #include "TMath.h"
 #include "TH2.h"
@@ -24,8 +24,8 @@ void trqpar(const char *fname,
   cout << "Ntr,Nent= " << ntr << " " << nent << endl;
   if (nproc <= 0) nproc = nent;
 
-  Double_t bn1[41], bn2[61], bn3[81];
-  for (Int_t i = 0; i <= 40; i++) bn1[i] = TMath::Power(10, 0.10*i);
+  Double_t bn1[51], bn2[61], bn3[81];
+  for (Int_t i = 0; i <= 50; i++) bn1[i] = TMath::Power(10, 0.10*i-1);
   for (Int_t i = 0; i <= 60; i++) bn2[i] = TMath::Power(10, 0.10*i-3);
   for (Int_t i = 0; i <= 80; i++) bn3[i] = TMath::Power(10, 0.05*i-2);
 
@@ -34,13 +34,13 @@ void trqpar(const char *fname,
   gROOT->cd();
 
   for (Int_t i = 0; i < 4; i++) {
-    new TH2F(Form("hist%d0", i+1), "dRinv-"+stt[i], 40, bn1, 80, bn3);
-    new TH2F(Form("hist%d1", i+1), "Chisq-"+stt[i], 40, bn1, 60, bn2);
-    new TH2F(Form("hist%d2", i+1), "HalfR-"+stt[i], 40, bn1, 80, bn3);
-    new TH2F(Form("hist%d3", i+1), "Exres-"+stt[i], 40, bn1, 80, bn3);
-    new TH2F(Form("hist%d4", i+1), "d1/R0-"+stt[i], 40, bn1, 400, -100, 100);
-    new TH2F(Form("hist%d5", i+1), "d1/R1-"+stt[i], 40, bn1, 400, -100, 100);
-    new TH2F(Form("hist%d6", i+1), "d1/R2-"+stt[i], 40, bn1, 400, -100, 100);
+    new TH2F(Form("hist%d0", i+1), "dRinv-"+stt[i], 50, bn1, 80, bn3);
+    new TH2F(Form("hist%d1", i+1), "Chisq-"+stt[i], 50, bn1, 60, bn2);
+    new TH2F(Form("hist%d2", i+1), "HalfR-"+stt[i], 50, bn1, 80, bn3);
+    new TH2F(Form("hist%d3", i+1), "Exres-"+stt[i], 50, bn1, 80, bn3);
+    new TH2F(Form("hist%d4", i+1), "d1/R0-"+stt[i], 50, bn1, 400, -100, 100);
+    new TH2F(Form("hist%d5", i+1), "d1/R1-"+stt[i], 50, bn1, 400, -100, 100);
+    new TH2F(Form("hist%d6", i+1), "d1/R2-"+stt[i], 50, bn1, 400, -100, 100);
   }
 
   int trq[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
@@ -69,7 +69,7 @@ void trqpar(const char *fname,
     if (!trk) continue;
 
     MCEventgR *mcg = (evt->nMCEventg() > 0) ? evt->pMCEventg(0) : 0;
-    if (mcg->Charge == 0) mcg = 0;
+    if (mcg && mcg->Charge == 0) mcg = 0;
 
     double rgt = TMath::Abs(trk->GetRigidity());
     if (mcg) rgt = TMath::Abs(mcg->Momentum/mcg->Charge);
