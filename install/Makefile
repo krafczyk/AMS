@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.129 2010/12/04 19:56:28 choutko Exp $
+#  $Id: Makefile,v 1.130 2010/12/08 20:31:29 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -61,13 +61,21 @@ ifndef AMSWD
 AMSWD := ..
 endif
 #
-
-
+G4LIBS=
+G4=
+ifdef G4AMS
+G4:=G4
+include $(G4INSTALL)/config/architecture.gmk
+DEFINES  += -D__NAMESPACE__ -D__G4AMS__
+INCDIRS  += -I$(CLHEP_BASE_DIR)/include -I$(G4INSTALL)/include/geant4/ 
+G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_propagation -lG4readout -lG4physicslists -lG4run -lG4event -lG4tracking -lG4parmodels -lG4processes -lG4digits_hits -lG4track -lG4particles -lG4geometry -lG4materials -lG4graphics_reps -lG4intercoms -lG4global -lCLHEP
+AR=ar
+endif
 ############## PRE PROCESSOR FLAGS (non ARCH dependent) 
 
-DEFINES  =    -D__WRITEROOT__ 
-INCDIRS  = -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
-CPPFLAGS = $(DEFINES)  $(INCDIRS)
+DEFINES  +=    -D__WRITEROOT__    
+INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
+CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
 ROOTDICT_CPPFLAGS= $(CPPFLAGS) 
 
@@ -83,18 +91,18 @@ PG:=PG
 DEFINES+= -D_PGTRACK_ 
 ROOTDICT_CPPFLAGS+= -D_PGTRACK_ 
 
-BINMT=$(AMSWD)/bin/$(ARCH)/mt_PG/
-BIN=$(AMSWD)/bin/$(ARCH)/PG/
-EXE=$(AMSWD)/exe/$(ARCH)/
-LIB=$(AMSWD)/lib/$(ARCH)/
+BINMT=$(AMSWD)/bin/$(MARCH)/mt_PG/
+BIN=$(AMSWD)/bin/$(MARCH)/PG/
+EXE=$(AMSWD)/exe/$(MARCH)/
+LIB=$(AMSWD)/lib/$(MARCH)/
 SHLD=$(LIB)/ntuple_slc4_PG.so
 NTLD=$(LIB)/libntuple_slc4_PG.a
 else
 PG=
-BINMT=$(AMSWD)/bin/$(ARCH)/mt/
-BIN=$(AMSWD)/bin/$(ARCH)/
-EXE=$(AMSWD)/exe/$(ARCH)/
-LIB=$(AMSWD)/lib/$(ARCH)/
+BINMT=$(AMSWD)/bin/$(MARCH)/mt/
+BIN=$(AMSWD)/bin/$(MARCH)/
+EXE=$(AMSWD)/exe/$(MARCH)/
+LIB=$(AMSWD)/lib/$(MARCH)/
 SHLD=$(LIB)/ntuple_slc4.so
 NTLD=$(LIB)/libntuple_slc4.a
 endif
@@ -109,10 +117,10 @@ IDLFLAGS=-D__CORBA__ -I$(BIN)
 # ARCH comes from the ROOT arch 
 
 
-ifeq ($(origin ARCH), undefined) 
-  ARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
+ifeq ($(origin MARCH), undefined) 
+  MARCH   := $(shell $(ROOTSYS)/bin/root-config --arch)
 endif
-local_makefile = Makefile.$(ARCH)
+local_makefile = Makefile.$(MARCH)
 include $(local_makefile)
 
 # combine compiler flags with pre-processor flags
@@ -180,8 +188,17 @@ GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(S
 
 COMMON_FILES+=$(GBATCH_BASE)
 
+
+ifdef G4AMS
+#Geant 4 interface
+
+COMMON_FILES +=   $(SCC)TRD_SimUtil.C\
+	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
+	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C
+else
 #Geant3/AMS custom  files
 COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F
+endif
 
 #Geant3 Interface
 COMMON_FILES +=	$(SCC)gvolume.C $(SCC)amsgeom.C   $(SFF)Geant3_utils.F  $(SFF)trd.F \
@@ -425,7 +442,7 @@ OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
 #------------------------------------------------------------------------------
 #  Gbatch standalone batch processing
 
-STANDALONE:=$(EXE)gbatch$(PG).exe 
+STANDALONE:=$(EXE)gbatch$(G4)$(PG).exe 
 
 gbatch: amswd $(STANDALONE)
 
@@ -441,7 +458,7 @@ $(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
 #------------------------------------------------------------------------------
 #  Gbatch standalone interactive session
 
-INTERACTIVE:=$(EXE)gxint$(PG).exe 
+INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe 
 gxint :	amswd $(INTERACTIVE)
 
 
@@ -459,7 +476,7 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 #---------------------------------------------------------------------------------
 # Client TARGET (producer)
 
-CLIENT=$(EXE)gbatch-orbit$(PG).exe
+CLIENT=$(EXE)gbatch-orbit$(G4)$(PG).exe
 
 producer: amswd	$(CLIENT)
 
@@ -472,7 +489,7 @@ $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 #---------------------------------------------------------------------------------
 #  Server TARGET (server)
 
-SERVER=$(EXE)amsprodserver$(PG).exe
+SERVER=$(EXE)amsprodserver$(G4)$(PG).exe
 
 test: $(OBJECTCO)
 	echo $^
@@ -492,7 +509,7 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-	$(BIN)root_rs.o $(BIN)root_setup.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o
+	$(BIN)root_rs.o $(BIN)root_setup.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)commonsi.o
 
 else
 SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup.o

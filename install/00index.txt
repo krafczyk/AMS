@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.55 2010/11/30 13:40:48 choutko Exp $
+#  $Id: 00index.txt,v 1.56 2010/12/08 20:31:29 pzuccon Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
@@ -20,6 +20,21 @@ Moptg4    // makefile to gmake g4 batch
           // setenv AMSWD to some tmp dir is  recommended
 Moptg4i    // makefile to gmake geant interactive  g4 (not yet supported)
 
+
+(PZ) New experimental feature about GEANT4
+By using the new AMSsoft distribution (/scratch/pzuccon/AMSsoft or
+/scratch/pzuccon/tars/AMSsoft_v0.2.tar.bz2) it is possible to compile GBATCH
+GEANT4 by setting the variable G4AMS.
+It works on plain and PGTRACK flavours.
+
+simplified howto:
+1) use AMSsoft/generate_amsvar.sh to generate your amsvar.XX
+2) give the command: source amsvar.XX
+2) set the variable G4AMS (ex. setenv G4AMS 1)
+3) go to AMS/install and do the usual make
+5) You will get $AMSWD/exe/XXXXX/gbatchG4PG.exe
+
+The inteactive G4 target is not yet ready.
 
 
 Overall:

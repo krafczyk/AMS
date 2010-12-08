@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.5 2010/12/03 10:52:05 pzuccon Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.6 2010/12/08 20:31:29 pzuccon Exp $
 
 # General clean up and reorganization
 #
@@ -181,7 +181,7 @@ endif
 TIMEL=
 
 
-LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
+LDFLAGSI=    -static $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64 \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
@@ -190,7 +190,7 @@ LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=      $(FORTRAN2_LIBS) \
+LDFLAGS=     $(G4LIBS)  $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
@@ -218,7 +218,7 @@ TIMEL=
 
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
 
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+LDFLAGSSTATICIDL= -static  $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
 -lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I/usr/include/orbitcpp-2.0 -I$(BIN)

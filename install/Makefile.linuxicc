@@ -176,7 +176,7 @@ endif
 # Library list 
 
 
-LDFLAGSI=    -static  \
+LDFLAGSI=    -static $(G4LIBS) \
 -L$(NAGDIR) -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
@@ -185,7 +185,7 @@ LDFLAGSI=    -static  \
 -lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
-LDFLAGS=       \
+LDFLAGS=      $(G4LIBS)  \
 -L$(NAGDIR) -lnag  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
