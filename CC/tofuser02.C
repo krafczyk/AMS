@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.42 2010/09/14 13:38:16 choumilo Exp $
+//  $Id: tofuser02.C,v 1.43 2010/12/08 17:04:22 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -222,6 +222,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //======================================> Ecal-test:
   AMSEcalShower * ptsh;
   number ecshen,ecshener,efront,chi2dir,difosum,ecshsleak,ecshrleak,ecshdleak,ecsholeak;
+  AMSEcalHit * ptr1;
+  integer maxpl,nhtot(0);
+  geant padc[3];
+  integer cid,isl,pmt,sbc,cell,proj;
+  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes(18)
   int  ecshnum(0);
   ptsh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0);
   while(ptsh){ // <------- ecal shower
@@ -234,7 +239,30 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     HF1(5050,ecshen,1.);
     HF1(5051,ecshen,1.);
     HF1(5052,ecshen,1.);
-  }
+//----------------    
+    nhtot=0;
+    for(int ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
+      ptr1=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",ipl,0);
+
+      while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
+        cid=ptr1->getid();//LTTP(sLayer/pmTube/Pixel)
+        sbc=cid%10-1;//SubCell(0-3)
+        proj=ptr1->getproj();//0/1->X/Y (have to be corresponding to ipl)
+        cell=ptr1->getcell();// 0,...71
+        isl=ipl/2;//0-8
+        pmt=cell/2;//0-35
+        ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
+        if(padc[0]>0){
+          nhtot+=1;
+	  if(ipl==0)HF1(5054,geant(cell+1),1.);
+	  if(ipl==2)HF1(5055,geant(cell+1),1.);
+        }
+        ptr1=ptr1->next();  
+      } // ---> end of EcalHits loop in pixPlane
+    }//---> end of PixPlanes-loop
+    HF1(5053,geant(nhtot),1.);
+  }//--->endof Nshow=1 check
 //
 // ========================================> check Anti-counter :
 // -->RawEvent:
@@ -1086,35 +1114,6 @@ Nextp:
       }
     }
 //  }
-//----------------    
-  AMSEcalHit * ptr1;
-  integer maxpl,nhtot(0);
-  geant padc[3];
-  integer cid,isl,pmt,sbc,cell,proj;
-  maxpl=2*ECALDBc::slstruc(3);// SubCell(Pix) planes(18)
-  nhtot=0;
-  for(int ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
-    ptr1=(AMSEcalHit*)AMSEvent::gethead()->
-                               getheadC("AMSEcalHit",ipl,0);
-
-    while(ptr1){ // <--- EcalHits(fired subcells=pixels) loop in pix-plane:
-      cid=ptr1->getid();//LTTP(sLayer/pmTube/Pixel)
-      sbc=cid%10-1;//SubCell(0-3)
-      proj=ptr1->getproj();//0/1->X/Y (have to be corresponding to ipl)
-      cell=ptr1->getcell();// 0,...71
-      isl=ipl/2;//0-8
-      pmt=cell/2;//0-35
-      ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
-      if(padc[0]>0){
-        nhtot+=1;
-	if(ipl==0)HF1(5054,geant(cell+1),1.);
-	if(ipl==2)HF1(5055,geant(cell+1),1.);
-      }
-      ptr1=ptr1->next();  
-    } // ---> end of EcalHits loop in pixPlane
-  }//---> end of PixPlanes-loop
-  HF1(5053,geant(nhtot),1.);
-  
 //----------------
     return;
 //
@@ -1291,7 +1290,7 @@ void TOF2User::InitJob(){
     HBOOK1(5050,"EcUser:ShowerEnergy(gev)",100,0.,1.,0.);
     HBOOK1(5051,"EcUser:ShowerEnergy(gev)",100,0.,100.,0.);
     HBOOK1(5052,"EcUser:ShowerEnergy(gev)",100,0.,400.,0.);
-    HBOOK1(5053,"Ecal TotHits(fired pixels)",100,1.,201.,0.);
+    HBOOK1(5053,"Ecal TotHits(fired pixels)",100,1.,301.,0.);
     HBOOK1(5054,"Ecal fired pixels,PixL1",72,1.,73.,0.);
     HBOOK1(5055,"Ecal fired pixels,PixL3",72,1.,73.,0.);
   }

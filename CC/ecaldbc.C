@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.93 2010/04/27 08:04:18 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.94 2010/12/08 17:04:21 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -1131,7 +1131,7 @@ HBOOK1(ECHISTC+118,"ECCA: Dadc,SL6,PM18",100,0.,100.,0.);
 void EcalJobStat::bookhistmc(){
     if(ECMCFFKEY.mcprtf!=0){ // Book mc-hist
       HBOOK1(ECHIST+1,"Geant-hits number",100,0.,5000.,0.);
-      HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits Etot(MeV)",100,0.,500,0.);
+      HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits Etot(MeV)",100,0.,5000,0.);
       HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits Etot(+FiberAtt,MeV)",100,0.,500.,0.);
       HBOOK1(ECHIST+4,"ECMC: GeantEvisTot(after mev2mev+NpeFluct)",200,0.,200000.,0.);
       HBOOK1(ECHIST+5,"ECMC: Indiv.Dynode signals(FTinput, mev)",100,0.,50.,0.);

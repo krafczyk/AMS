@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.143 2010/11/23 17:14:15 mmilling Exp $
+//  $Id: geant3.C,v 1.144 2010/12/08 17:04:21 choumilo Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -315,7 +315,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             dee=GCTRAK.destep;
 //  if(tfprf)cout<<"-->WroSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<" tof="<<tof<<endl;
             if(TFMCFFKEY.birks){
-//	      cout<<"----->Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
+//	      cout<<"----->TOF-Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
 	      GBIRK(dee);
 //	      cout<<"----->Aft.Birks:Edep="<<dee<<endl;
 	    }
@@ -496,8 +496,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //    }
     if(GCTRAK.destep != 0.){
       if(lvl==6 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
-               ){
-//               && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='C'){
+               && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='C'){
 //       
 //       cout<<"lev/vol="<<numl<<" "<<numv<<" name="<<name<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
 //       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
@@ -505,7 +504,15 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
         if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
         dee=GCTRAK.destep;
 	if(GCTRAK.destep<0)cout<<"----> destep<0 "<<GCTRAK.destep<<endl;
-        if(TFMCFFKEY.birks)GBIRK(dee);
+//cout<<"--->  Ec-birkfl="<<TFMCFFKEY.birks<<"   dee="<<dee<<endl;
+//        if(TFMCFFKEY.birks)GBIRK(dee);
+//
+//      number rkb=0.0011;//Birks by hands
+//      number c=0.52;
+//      number dedxcm=1000*dee/GCTRAK.step;
+//      dee=dee/(1+c*atan(rkb/c*dedxcm));
+//cout<<"     aft.birk dee="<<dee<<endl;
+//
 	if(dee<=0)cout<<"---->Birks:dee<0 "<<dee<<" step="<<GCTRAK.step<<" destep="<<GCTRAK.destep
 	<<" ipart="<<GCKINE.ipart<<endl;
         //cout << GCVOLU.names[lvl][0]<< GCVOLU.names[lvl][1]<< GCVOLU.names[lvl][2]<< GCVOLU.names[lvl][3]<<endl;

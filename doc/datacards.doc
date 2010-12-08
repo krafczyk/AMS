@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.338 2010/11/25 10:38:42 mdelgado Exp $
+#  $Id: datacards.doc,v 1.339 2010/12/08 17:04:33 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -935,7 +935,8 @@ R 10   pmseres(0.8)              // PM single-elecrton ampl.resolution
 R 11   adc2q(0.045)              // Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)
 R 12   fendrf(0.3)               // fiber end-cut reflection factor
 R 13   physa2d(6.)               // physical(for trigger) an/dyn ratio(mv/mv)
-R 14-15                          // spares
+R 14                             // spare
+R 15   sbcgn(1.241)              // Temporary Etot-normalization factor for Geant4 to match with Geant3 responce 
 R 16   pedh(150)                 // Default Ped-HiCh    
 R 17   pedvh(30)                 // Default ch-to-ch variation(%)     
 R 18   pedl(150)                 // ........Ped-LoCh    

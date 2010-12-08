@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.763 2010/12/07 19:42:28 choutko Exp $
+// $Id: job.C,v 1.764 2010/12/08 17:04:21 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -784,7 +784,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.trlogic[1]=0; //(12) spare 
   TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC), Not For precise Accept.calc
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
-  TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
+  TFMCFFKEY.birks=1;      //(15) 0/1->  not/apply birks corrections
   TFMCFFKEY.mcseedo=0;    //(16) 1/0->Use RealDataCalib_Copy/MCCalib files as MCSeed
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
@@ -833,7 +833,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.fendrf=0.;      //(12) (0.3)fiber end-cut reflection factor(=0 since 2.12.10 on EC-group request)
   ECMCFFKEY.physa2d=6.;     //(13) physical(for trigger) an/dyn ratio(mv/mv) 
   ECMCFFKEY.hi2low=36.;     //(14) not used now 
-  ECMCFFKEY.sbcgn=1.;       //(15) not used now 
+  ECMCFFKEY.sbcgn=1.241;    //(15) corr.factor CF (EdepG4/CF) to correct too high signal in G4  
   ECMCFFKEY.pedh=150;       //(16)Ped-HiCh    
   ECMCFFKEY.pedvh=30;       //(17)ch-to-ch variation(%)     
   ECMCFFKEY.pedl=150;       //(18)Ped-LoCh    
