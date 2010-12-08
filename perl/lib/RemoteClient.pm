@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.601 2010/11/30 12:11:31 choutko Exp $
+# $Id: RemoteClient.pm,v 1.602 2010/12/08 20:46:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12244,6 +12244,21 @@ sub parseJournalFiles {
       my $logdir = $dir."/log";
       my $joudir = $dir."/jou";
       my $ntdir  = $dir."/nt";
+               my $stf="/tmp/$cite";
+               system("ls $dir 1>$stf 2>&1 &");
+               my @stat =stat("$stf");
+               unlink "$stf";
+               if($stat[7]==0){
+               system("ls $dir 1>$stf 2>&1 &");
+               sleep (3); 
+               my @stat =stat("$stf");
+               unlink "$stf";
+               if($stat[7]==0){
+                   warn "$dir cannot be opened \n";
+                   last;
+               }
+           }
+
       my $suc=opendir THISDIR ,$joudir; 
       if(!$suc){
        warn "unable to open $joudir\n";
