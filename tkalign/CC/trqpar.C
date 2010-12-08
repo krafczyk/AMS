@@ -1,4 +1,4 @@
-// $Id: trqpar.C,v 1.2 2010/12/07 11:18:24 shaino Exp $
+// $Id: trqpar.C,v 1.3 2010/12/08 16:06:32 shaino Exp $
 #include "TStopwatch.h"
 #include "TMath.h"
 #include "TH2.h"
@@ -75,7 +75,7 @@ void trqpar(const char *fname,
     if (mcg) rgt = TMath::Abs(mcg->Momentum/mcg->Charge);
 
     double hpar[TrTrackR::Nconf*TrTrackR::Nqpar];
-    int    tcls[TrTrackR::Nconf];
+    int    tcls[TrTrackR::Nconf+1];
     TrTrackR::DoTrackClass(mfs, hpar, tcls);
 
     for (Int_t i = 0; i < TrTrackR::Nconf; i++) {

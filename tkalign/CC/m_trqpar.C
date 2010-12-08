@@ -1,11 +1,11 @@
-// $Id: m_trqpar.C,v 1.1 2010/12/07 00:20:22 shaino Exp $
+// $Id: m_trqpar.C,v 1.2 2010/12/08 16:06:32 shaino Exp $
 #include "trqpar.C"
 #include <cstdlib>
 
 int main(int argc, char *argv[])
 {
   if (argc < 2) {
-    cout << "trqpar [fname] [oname=trqpar] [fit=17] [nproc=0]" << endl;
+    cout << "trqpar [fname] [oname=trqpar.root] [fit=17] [nproc=0]" << endl;
     cout << "fit=  1: kChoutko" << endl;
     cout << "fit=  4: kAlcaraz" << endl;
     cout << "fit= 17: kChoutko | kMultScat" << endl;
