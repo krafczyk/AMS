@@ -319,35 +319,38 @@ public:
   /// R 16 default charge for the fitting
   float DefaultCharge;
 
+  /// R [17,18] thresholds for TrRecon::TryDropX
+  float RthdDropX[2];
+
 //############## TRACK CLASSIFICATION ###############
-  /// R [17,20] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
+  /// R [19,22] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
   float StdMDR[4];
 
-  /// R [21,28] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
+  /// R [23,30] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
   float ScatFact[8];
 
-  /// R [29,30] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
+  /// R [31,32] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
   float ErinvThres[2];
 
-  /// R [31,32] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
+  /// R [33,34] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
   float ChisqThres[2];
 
-  /// R [33,34] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
+  /// R [35,36] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
   float HalfRThres[2];
 
-  /// R [35,36] External residual threshold for [0]:kExResOK and [1]:kHighQ
+  /// R [37,38] External residual threshold for [0]:kExResOK and [1]:kHighQ
   float ExResThres[2];
 
-  /// R [37,40] Chisquare tuning factor
+  /// R [39,42] Chisquare tuning factor
   float ChisqTune[4];
 
-  /// R [41,44] Half rigidity tuning factor
+  /// R [43,46] Half rigidity tuning factor
   float HalfRTune[4];
 
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
 
-  ClassDef(TRFITFFKEY_DEF,2);
+  ClassDef(TRFITFFKEY_DEF,3);
 };
 //
 

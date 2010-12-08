@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.36 2010/11/17 11:02:38 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.37 2010/12/08 16:04:24 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/11/17 11:02:38 $
+/// $Date: 2010/12/08 16:04:24 $
 ///
-/// $Revision: 1.36 $
+/// $Revision: 1.37 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -547,6 +547,9 @@ public:
 
   /// Build one track from the best candidate iterator
   int BuildATrTrack(TrHitIter &cand);
+
+  /// Try to drop one hit in case ChisqX is very large
+  int TryDropX(TrTrackR *track, int fit_method);
 
   /// Purge "ghost" hits and assign hit index to tracks
   void PurgeGhostHits();

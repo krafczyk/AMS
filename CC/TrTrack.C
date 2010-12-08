@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.79 2010/12/07 13:51:53 shaino Exp $
+// $Id: TrTrack.C,v 1.80 2010/12/08 16:04:28 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/07 13:51:53 $
+///$Date: 2010/12/08 16:04:28 $
 ///
-///$Revision: 1.79 $
+///$Revision: 1.80 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -607,27 +607,30 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
 //############## TRACK CLASSIFICATION ###############
 
-float TrTrackR::StdMDR[Nconf] = { 220, 720, 860, 2190 };
+float TrTrackR::StdMDR[Nconf] = { 210, 690, 840, 2140 };
 
 /// Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
-float TrTrackR::ScatFact[Nconf*2] = { 4.7, 1.4,  9.3, 1.6, 
-				      7.1, 1.1,  8.8, 0.5 };
+float TrTrackR::ScatFact[Nconf*2] = { 4.3, 4.7,  7.7, 6.6, 
+				      6.1, 4.6,  6.4, 7.9 };
 
-float TrTrackR::ChisqTune [Nconf] = { 1.5, 2.0, 2.0, 5.0 };
-float TrTrackR::HalfRTune [Nconf] = { 1.5, 1.1, 1.1, 1.5 };
+float TrTrackR::ChisqTune [Nconf] = { 1.5, 1.2, 1.5, 1.5 };
+float TrTrackR::HalfRTune [Nconf] = { 1.5, 1.2, 1.2, 1.2 };
 
-float TrTrackR::ErinvThres[2] = { 10, 2.5 };
-float TrTrackR::ChisqThres[2] = { 10, 2.5 };
+float TrTrackR::ErinvThres[2] = { 10, 3.0 };
+float TrTrackR::ChisqThres[2] = { 10, 3.0 };
 float TrTrackR::HalfRThres[2] = { 10, 2.5 };
 float TrTrackR::ExResThres[2] = { 10, 2.5 };
 
-double TrTrackR::GetErrRinvNorm(int i, double arig)
+double TrTrackR::GetErrRinvNorm(int i, double rrig)
 {
-  if (arig == 0 || StdMDR[i] == 0) return 1;
+  if (rrig == 0 || StdMDR[i] == 0) return 1;
 
+  double ridx[4] = { 1.00, 0.95, 0.95, 1.10 };
+
+  double arig = fabs(rrig);
   double err0 = 1/StdMDR[i];
-  double err1 = 0.01*ScatFact[i*2  ]/fabs(arig);
-  double err2 = 0.01*ScatFact[i*2+1]/std::sqrt(fabs(arig));
+  double err1 = 0.01*ScatFact[i*2  ]/arig;
+  double err2 = 0.01*ScatFact[i*2+1]*log10(arig)/pow(arig, ridx[i]);
   return std::sqrt(err0*err0+err1*err1+err2*err2);
 }
 
@@ -758,7 +761,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
 
     if (err > 0) {
       double res = GetPar(idb).Residual[ily][1];
-      qpar[3] = fabs(res/err)*1.7;
+      qpar[3] = fabs(res/err)*1.3;
     }
   }
   else if (flag & kMaxExt) {
@@ -1151,15 +1154,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }
 
   // Perform fitting
-  float idone = _TrFit.Fit(method);
-  bool done = (idone > 0);
+  float fdone = _TrFit.Fit(method);
+  bool done = (fdone > 0 && _TrFit.GetChisqX() > 0 && 
+	                    _TrFit.GetChisqY() > 0);
+  if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
+    done = false;
+  if (!done) return -90000+fdone;
 
   // Return if fitting values are not to be over written
   if (!update) return _TrFit.GetChisq();
 
   // Fill fittng parameters
   TrTrackPar &par = _TrackPar[id];
-  if (!done) return -90000+idone;
 
   par.FitDone  = true;
   par.HitBits  = hitbits;

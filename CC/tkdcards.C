@@ -337,20 +337,24 @@ void TRFITFFKEY_DEF::init(){
   /// R 16 default charge for the fitting
   DefaultCharge  = TrTrackR::DefaultCharge;
 
+  /// R [17,18] thresholds for TrRecon::TryDropX
+  RthdDropX[0] = 100;
+  RthdDropX[1] =  10;
+
 //############## TRACK CLASSIFICATION ###############  
   for (int i = 0; i < TrTrackR::Nconf; i++) {
-    StdMDR   [i] = TrTrackR::StdMDR   [i];   // [17,20]
-    ChisqTune[i] = TrTrackR::ChisqTune[i];   // [37,40]
-    HalfRTune[i] = TrTrackR::HalfRTune[i];   // [41,44]
+    StdMDR   [i] = TrTrackR::StdMDR   [i];
+    ChisqTune[i] = TrTrackR::ChisqTune[i];
+    HalfRTune[i] = TrTrackR::HalfRTune[i];
   }
   for (int i = 0; i < TrTrackR::Nconf*2; i++)
-    ScatFact [i] = TrTrackR::ScatFact [i];   // [21,28]
+    ScatFact [i] = TrTrackR::ScatFact [i];
 
   for (int i = 0; i < 2; i++) {
-    ErinvThres[i] = TrTrackR::ErinvThres[i]; // [29,30]
-    ChisqThres[i] = TrTrackR::ChisqThres[i]; // [31,32]
-    HalfRThres[i] = TrTrackR::HalfRThres[i]; // [33,34]
-    ExResThres[i] = TrTrackR::ExResThres[i]; // [35,36]
+    ErinvThres[i] = TrTrackR::ErinvThres[i];
+    ChisqThres[i] = TrTrackR::ChisqThres[i];
+    HalfRThres[i] = TrTrackR::HalfRThres[i];
+    ExResThres[i] = TrTrackR::ExResThres[i];
   }
 }
 

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.83 2010/12/07 00:19:23 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.84 2010/12/08 16:04:27 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/07 00:19:23 $
+/// $Date: 2010/12/08 16:04:27 $
 ///
-/// $Revision: 1.83 $
+/// $Revision: 1.84 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2109,11 +2109,11 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 		     TrRecon::GetHitPatternIndex(masky));
 
   // 1st. step Fit
-  int fit_method = (MagFieldOn()) ? TrTrackR::kSimple : TrTrackR::kLinear;
-  float ret = track->FitT(fit_method);
+  int mfit1 = (MagFieldOn()) ? TrTrackR::kChoutko : TrTrackR::kLinear;
+  float ret = track->FitT(mfit1);
   if (ret < 0 || 
-      track->GetChisqX(fit_method) <= 0 || track->GetChisqY(fit_method) <= 0 ||
-      track->GetNdofX (fit_method) <= 0 || track->GetNdofY (fit_method) <= 0) {
+      track->GetChisqX(mfit1) <= 0 || track->GetChisqY(mfit1) <= 0 ||
+      track->GetNdofX (mfit1) <= 0 || track->GetNdofY (mfit1) <= 0) {
     delete track;
     return 0;
   }
@@ -2121,7 +2121,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   // Merge low seed SN hits
   if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0][0] || 
       RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1][0]) {
-    MergeLowSNHits(track, fit_method);
+    MergeLowSNHits(track, mfit1);
     if (track->GetNhitsX () < RecPar.MinNhitX ||
 	track->GetNhitsY () < RecPar.MinNhitY ||
 	track->GetNhitsXY() < RecPar.MinNhitXY) {
@@ -2135,7 +2135,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   AMSDir dtrk[trconst::maxlay];
   for (int i = 0; i < track->GetNhits(); i++)
     zhit[i] = track->GetHit(i)->GetCoord().z();
-  track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, fit_method);
+  track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, mfit1);
 
   // Set cluster angles and re-build coordinates
   for (int i = 0; i < track->GetNhits(); i++) {
@@ -2145,8 +2145,6 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     hit->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
 
     // Remove hit pointer from _HitsTkIdMap
-    //RemoveHits(itcand.tkid[i], itcand.iscan[i][0], 0);
-    //RemoveHits(itcand.tkid[i], itcand.iscan[i][1], 1);
     RemoveHits(hit);
     TR_DEBUG_CODE_41;
 
@@ -2161,22 +2159,18 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // 2nd. step Fit
   if (!MagFieldOn()) {
-    track->FitT(fit_method);
-    track->Settrdefaultfit(fit_method);
+    track->FitT(mfit1);
+    track->Settrdefaultfit(mfit1);
   }
   else {
-    // PZ move this after the TOF or TRF matching
-    //    if(TkDBc::Head->GetSetup()==3) MergeExtHits(track, fit_method); // AMS-B
-    if(track->DoAdvancedFit()) {
-      if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
-      if (track->ParExists(TrTrackR::DefaultFitID))
-	track->Settrdefaultfit(TrTrackR::DefaultFitID);
-      else
-	track->Settrdefaultfit(fit_method);
-    } else {
-      if (TrDEBUG >= 1) 
-	printf(" Problems with Track Advanced Fits: %d %d\n",
-	       track->GetNhits(), track->GetNhitsXY());
+    track->EstimateDummyX(mfit1);
+
+    int mfit2 = TrTrackR::DefaultFitID;
+    track->FitT(mfit2);
+    if (track->ParExists(mfit2)) {
+      track->Settrdefaultfit(mfit2);
+      if (TryDropX(track, mfit2))
+	track->EstimateDummyX(mfit2);
     }
   }  
 
@@ -2194,6 +2188,62 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   return 1;
 }
 
+int TrRecon::TryDropX(TrTrackR *track, int mfit)
+{
+  double rthd1 = TRFITFFKEY.RthdDropX[0];
+  double rthd2 = TRFITFFKEY.RthdDropX[1];
+  double rcsq  = track->GetChisqX(mfit)/track->GetChisqY(mfit);
+
+  if (rcsq < rthd1) return 0;
+
+  // Try to drop one hit in case ChisqX is very large
+  int    imax[2] = { -1, -1 };
+  double rmax[2] = {  0,  0 };
+  int nhx = 0;
+  for (int i = 0; i < track->GetNhits(); i++) {
+    TrRecHitR *hit = track->GetHit(i);
+    if (!hit || hit->OnlyY()) continue;
+    int ily = hit->GetLayer()-1;
+    if (track->TestHitBits(ily+1, mfit)) {
+      double rx = fabs(track->GetResidual(ily, mfit).x());
+      if (imax[0] < 0 || rx > rmax[0]) { 
+	imax[1] = imax[0]; imax[0] = i;
+	rmax[1] = rmax[0]; rmax[0] = rx; 
+      }
+      else if (imax[1] < 0 || rx > rmax[1]) { 
+	imax[1] = i;
+	rmax[1] = rx; 
+      }
+      nhx++;
+    }
+  }
+
+  if (nhx <= 4) imax[1] = -1;
+  if (nhx == 4) rthd2 = 2;
+
+  for (int i = 0; i < 3; i++) {
+    TrRecHitR *hit1 = 0;
+    TrRecHitR *hit2 = 0;
+    if (i  < 2 && imax[i] >= 0)   hit1 = 
+                                  hit2 = track->GetHit(imax[i]);
+    if (i == 2 && imax[0] >= 0
+	       && imax[1] >= 0) { hit1 = track->GetHit(imax[0]);
+                                  hit2 = track->GetHit(imax[1]); }
+    if (hit1 && hit2) {
+      hit1->setstatus(TrRecHitR::YONLY);
+      hit2->setstatus(TrRecHitR::YONLY);
+
+      track->FitT(mfit);
+      if (track->GetChisqX(mfit)/
+	  track->GetChisqY(mfit)*rthd2 < rcsq) return i+1;
+
+      hit1->clearstatus(TrRecHitR::YONLY);
+      hit2->clearstatus(TrRecHitR::YONLY);
+    }
+  }
+
+  return 0;
+}
 
 
 
@@ -2648,7 +2698,7 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
 
 bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 {
-  int mfit = TrTrackR::kSimple;
+  int mfit = TrTrackR::DefaultFitID;
   if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
 
   number SearchReg(1);
@@ -2729,7 +2779,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 	}
       }
     }
-    ptr->ReFit();
+    //ptr->ReFit();
     //printf("TrRecon-MoveTrTrack-I- Track Moved err: %f !!!\n",err);
     return true;
     
@@ -2758,8 +2808,26 @@ void TrRecon::MatchTRDandExtend(){
 	}
     }
     if(!TRDdone &&(TRCLFFKEY.ExtMatch/10)>0)   TkTOFMatch(tr);
-
 #endif
+
+    if(tr->DoAdvancedFit()) {
+      if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
+/*
+      int mfs = TrTrackR::kChoutko | TrTrackR::kMultScat;
+      cout<<"BOKE adv done csq= "
+	  <<tr->GetChisq(mfs)<<" "<<tr->GetChisqX(mfs)<<" "
+	  <<tr->GetChisqY(mfs)<<" r= "
+	  <<tr->GetChisqX(mfs)/tr->GetChisqY(mfs)
+	  <<" rgt= "<<tr->GetRigidity(mfs)<<endl;
+*/
+      if (tr->ParExists(TrTrackR::DefaultFitID))
+	tr->Settrdefaultfit(TrTrackR::DefaultFitID);
+    } else {
+      if (TrDEBUG >= 1) 
+	printf(" Problems with Track Advanced Fits: %d %d\n",
+	       tr->GetNhits(), tr->GetNhitsXY());
+    }
+
     if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
   }
   delete cont;
