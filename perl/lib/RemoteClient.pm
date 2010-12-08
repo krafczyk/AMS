@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.602 2010/12/08 20:46:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.603 2010/12/08 20:50:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12255,7 +12255,7 @@ sub parseJournalFiles {
                unlink "$stf";
                if($stat[7]==0){
                    warn "$dir cannot be opened \n";
-                   last;
+                   next;
                }
            }
 
