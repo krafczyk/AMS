@@ -430,7 +430,7 @@ class RemoteClient:
                    continue
                res=""
                try:
-                   res=os.statvfs(fs[0])
+                   res=os.statvfs(os.path.realpath(fs[0]))
                except:
                    print fs[0]," Is Offline"
                if len(res) == 0:
