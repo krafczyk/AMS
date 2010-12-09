@@ -1,9 +1,14 @@
-# $Id: tkdisplay.pro,v 1.7 2010/05/10 21:55:45 shaino Exp $
+# $Id: tkdisplay.pro,v 1.8 2010/12/09 19:06:53 shaino Exp $
 #
 # Project file for TkDisplay on Qt4
 # Run qmake first to generate Makefile
 #
 #                     10/06/2009 by SH
+#
+# For Mac OSX users:
+#  You should set: DYLD_LIBRARY_PATH=$ROOTSYS/lib to avoid "bellenot" error
+# 
+
 
 CONFIG       += uitools warn_off
 
@@ -41,11 +46,11 @@ DEPENDPATH   += dep
 DEFINES      += _PGTRACK_ _ROOTSHAREDLIBRARY_
 
 macx {
-LIBS         += ../lib/macosx/libntuple_slc4.a \
-                -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet \
-                -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript \
-                -lMatrix -lPhysics -lMathCore -lThread -lfreetype -pthread \
-                -lNetx -lMinuit -lTreePlayer -lm -ldl
+LIBS         += ../lib/macosx64/libntuple_slc4_PG.a \
+                -L/amssw/root_v5.27.06/lib -lCore -lCint -lRIO \
+                -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint \
+                -lPostscript -lMatrix -lPhysics -lMathCore -lThread \
+                -pthread -Wl -lm -ldl -lMinuit -lTreePlayer -lNetx -lXrdClient
 }
 else {
 LIBS         += $(AMSWD)/lib/linux/libntuple_slc4_PG.a \

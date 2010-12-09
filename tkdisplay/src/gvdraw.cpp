@@ -1,4 +1,4 @@
-// $Id: gvdraw.cpp,v 1.1 2010/05/10 21:55:47 shaino Exp $
+// $Id: gvdraw.cpp,v 1.2 2010/12/09 19:06:54 shaino Exp $
 #include "gvconst.h"
 #include "gvdraw.h"
 #include "gvgeom.h"
@@ -273,7 +273,7 @@ void GVDraw::drawTrClusters()
     double dx = TkCoo::GetLadderLength(tkid)/2;
     double dy = TkDBc::Head->_ssize_inactive[1]/2;
 
-    cls->BuildCoordinates();
+    //cls->BuildCoordinates();
     double px[2], py[2], pz[4];
     for (int j = 0; j < cls->GetMultiplicity(); j++) {
       double coo = cls->GetGCoord(j);

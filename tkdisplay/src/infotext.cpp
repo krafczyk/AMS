@@ -1,4 +1,4 @@
-// $Id: infotext.cpp,v 1.3 2010/01/18 11:17:00 shaino Exp $
+// $Id: infotext.cpp,v 1.4 2010/12/09 19:06:54 shaino Exp $
 #include "infotext.h"
 
 #include "root.h"
@@ -98,7 +98,7 @@ QString &InfoText::LadderInfo(AMSEventR *event, int tkid)
   TkLadder *lad = TkDBc::Head->FindTkId(tkid);
   if (!lad) return str;
 
-  int nsen = lad->_nsensors;
+  int nsen = lad->GetNSensors();
   int nclx = 0, ncly = 0;
 
   for (int i = 0; i < event->nTrCluster(); i++) {

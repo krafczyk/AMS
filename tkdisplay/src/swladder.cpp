@@ -1,4 +1,4 @@
-// $Id: swladder.cpp,v 1.3 2010/05/17 10:12:14 shaino Exp $
+// $Id: swladder.cpp,v 1.4 2010/12/09 19:06:54 shaino Exp $
 #include <QtGui>
 
 #include "swladder.h"
@@ -295,7 +295,7 @@ void SWLadder::fillClsVec()
   TkLadder *lad = TkDBc::Head->FindTkId(tkID);
   if (!lad) return;
 
-  nSen = lad->_nsensors;
+  nSen = lad->GetNSensors();
 
   nClsX = nClsY = 0;
 
