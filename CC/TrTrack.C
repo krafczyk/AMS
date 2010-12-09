@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.80 2010/12/08 16:04:28 shaino Exp $
+// $Id: TrTrack.C,v 1.81 2010/12/09 00:54:58 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/08 16:04:28 $
+///$Date: 2010/12/09 00:54:58 $
 ///
-///$Revision: 1.80 $
+///$Revision: 1.81 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -607,17 +607,17 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
 //############## TRACK CLASSIFICATION ###############
 
-float TrTrackR::StdMDR[Nconf] = { 210, 690, 840, 2140 };
+float TrTrackR::StdMDR[Nconf] = { 220, 690, 830, 2140 };
 
 /// Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
-float TrTrackR::ScatFact[Nconf*2] = { 4.3, 4.7,  7.7, 6.6, 
-				      6.1, 4.6,  6.4, 7.9 };
+float TrTrackR::ScatFact[Nconf*2] = { 6.6, 6.1,  10.2, 4.4, 
+				      7.5, 3.1,   7.1, 5.0 };
 
-float TrTrackR::ChisqTune [Nconf] = { 1.5, 1.2, 1.5, 1.5 };
-float TrTrackR::HalfRTune [Nconf] = { 1.5, 1.2, 1.2, 1.2 };
+float TrTrackR::ChisqTune [Nconf] = { 0.8, 0.8, 1.0, 1.0 };
+float TrTrackR::HalfRTune [Nconf] = { 1.0, 0.8, 0.8, 1.0 };
 
-float TrTrackR::ErinvThres[2] = { 10, 3.0 };
-float TrTrackR::ChisqThres[2] = { 10, 3.0 };
+float TrTrackR::ErinvThres[2] = { 10, 2.5 };
+float TrTrackR::ChisqThres[2] = { 10, 2.5 };
 float TrTrackR::HalfRThres[2] = { 10, 2.5 };
 float TrTrackR::ExResThres[2] = { 10, 2.5 };
 
@@ -625,13 +625,15 @@ double TrTrackR::GetErrRinvNorm(int i, double rrig)
 {
   if (rrig == 0 || StdMDR[i] == 0) return 1;
 
-  double ridx[4] = { 1.00, 0.95, 0.95, 1.10 };
+  double ridx[4] = { 1.74, 0.92, 0.95, 1.10 };
+  double elcr = 1.82;
 
   double arig = fabs(rrig);
   double err0 = 1/StdMDR[i];
   double err1 = 0.01*ScatFact[i*2  ]/arig;
-  double err2 = 0.01*ScatFact[i*2+1]*log10(arig)/pow(arig, ridx[i]);
-  return std::sqrt(err0*err0+err1*err1+err2*err2);
+  double err2 = 0.01*ScatFact[i*2+1]*log10(arig)/std::pow(arig, ridx[i]);
+  double err3 = (i == 0) ? 0.01*elcr/std::sqrt(arig) : 0;
+  return std::sqrt(err0*err0 +err1*err1 +err2*err2 +err3*err3);
 }
 
 int TrTrackR::GetTrackClass(int id, double *qpar) const
@@ -745,7 +747,8 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
 
   // Half rigidity selection
   if (hrig[0] != 0 && hrig[1] != 0) {
-    double herinv = std::max(heri[0], heri[1]);    
+    double herinv = std::sqrt(heri[0]*heri[0]+heri[1]*heri[1]);
+    if (idx < 3) herinv *= 1+0.3/arig;
     qpar[2] = (1/hrig[0]-1/hrig[1])/herinv/HalfRTune[idx];
     if (fabs(qpar[2]) > HalfRThres[0]) nbsel = false;
     if (fabs(qpar[2]) < HalfRThres[1]) flag |= kHalfROK;
@@ -755,13 +758,13 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   // External residuals selection
   if (flag & kHalfExt) {
     int    ily = (idx == 1) ? 7 : 8;
-    double fms = TRFITFFKEY.FitwMsc[ily]/arig;
-    double fer = StdMDR[3]/StdMDR[0];
+    double fms = TRFITFFKEY.FitwMsc[ily]/arig/2;
+    double fer = StdMDR[idx]/StdMDR[0];
     double err = std::sqrt(fer*fer+fms*fms)*TRFITFFKEY.ErrY;
 
     if (err > 0) {
       double res = GetPar(idb).Residual[ily][1];
-      qpar[3] = fabs(res/err)*1.3;
+      qpar[3] = fabs(res/err)*0.7;
     }
   }
   else if (flag & kMaxExt) {
@@ -775,12 +778,13 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     if (err8 > 0 && err9 > 0) {
       double res8 = GetPar(id9).Residual[7][1]/err8;
       double res9 = GetPar(id8).Residual[8][1]/err9;
-      qpar[3] = std::sqrt((res8*res8+res9*res9)/2);
+      qpar[3] = std::sqrt(res8*res8+res9*res9/2);
     }
   }
   else flag |= kExResOK;
 
   if (qpar[3] > 0) {
+    qpar[3] *= 0.8;
     if (qpar[3] > ExResThres[0]) nbsel = false;
     if (qpar[3] < ExResThres[1]) flag |= kExResOK;
   }
@@ -819,6 +823,9 @@ int TrTrackR::NTrackClass[NTrStat] = { 0, 0, 0,  0, 0, 0,
 
 void TrTrackR::DoTrackClass(int id0, double *hpar, int *tcls)
 {
+  bool refit = false;
+  if (id0 < 0) { id0 = -id0; refit = true; }
+
   int ids[Nconf]  = { id0, id0 | kFitLayer8, id0 | kFitLayer9,
 		           id0 | kFitLayer8 | kFitLayer9 };
   int tcs[Nconf]  = { kMaxInt, kHalfExt, kHalfExt, kMaxExt };
@@ -883,7 +890,10 @@ void TrTrackR::DoTrackClass(int id0, double *hpar, int *tcls)
     // Loop on 0:Inner, 1:+L1, 2:+L9, 3:Full
     for (int i = 0; i < 4; i++) {
       double qpar[Nqpar];
-      tcls[i] = track->GetTrackClass(ids[i], qpar);
+      if (refit)
+	tcls[i] = track->GetTrackClassRefit(ids[i], qpar);
+      else
+	tcls[i] = track->GetTrackClass(ids[i], qpar);
       if (!(tcls[i] & tcs[i])) continue;
 
       // For the histogram filling

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.39 2010/12/03 13:58:16 shaino Exp $
+//  $Id: TrFit.C,v 1.40 2010/12/09 00:54:58 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/12/03 13:58:16 $
+///$Date: 2010/12/09 00:54:58 $
 ///
-///$Revision: 1.39 $
+///$Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1147,7 +1147,7 @@ double TrFit::ChoutkoFit(void)
   // Multiple scattering constant
   double xls = 300.e-4;
   double rls = 9.36;
-  double sms = 13.6e-3*std::sqrt(xls/rls);
+  double sms = 13.6e-3*std::sqrt(xls/rls)*1.5;
 
   double chisqb  = -1;
   double chisqbb = -1;
@@ -1200,9 +1200,10 @@ double TrFit::ChoutkoFit(void)
       if (_mscat == 0) fact[i] = 0;
       else {
         double beta = std::max(fabs(mmt/sqrt(mmt*mmt+_mass*_mass)), 0.1);
-        fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm);
-	if (_zh[i] >  100) fact[i] *= 20; // Layer 1N
-	if (_zh[i] < -100) fact[i] *= 10; // Layer 9
+	double corr = std::sqrt(1+0.2/mmt/mmt);
+        fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm)*corr;
+ 	if (_zh[i] >  100) fact[i] *= 2.0; // Layer 1N
+ 	if (_zh[i] < -100) fact[i] *= 1.0; // Layer 9
       }
 
       for (int im = i; im >= 0; im--) xmsr[i][im] = 0;
