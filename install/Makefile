@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.132 2010/12/09 19:13:58 pzuccon Exp $
+#  $Id: Makefile,v 1.133 2010/12/09 19:25:27 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -99,8 +99,8 @@ SHLD=$(LIB)/ntuple_slc4_PG.so
 NTLD=$(LIB)/libntuple_slc4_PG.a
 else
 PG=
-BINMT=$(AMSWD)/bin/$(MARCH)/mt/$(G4)
-BIN=$(AMSWD)/bin/$(MARCH)/$(G4)
+BINMT=$(AMSWD)/bin/$(MARCH)/mt/$(G4)/
+BIN=$(AMSWD)/bin/$(MARCH)/$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)/
 LIB=$(AMSWD)/lib/$(MARCH)/
 SHLD=$(LIB)/ntuple_slc4.so
