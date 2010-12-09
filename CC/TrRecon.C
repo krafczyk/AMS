@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.85 2010/12/09 10:23:30 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.86 2010/12/09 11:15:21 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/09 10:23:30 $
+/// $Date: 2010/12/09 11:15:21 $
 ///
-/// $Revision: 1.85 $
+/// $Revision: 1.86 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,8 +87,8 @@ TrReconPar::TrReconPar()
   ErrXForScan       = 300e-4;
   ErrYForScan       = 300e-4;
 
-  TrackThrSeed[0]   = 3.5;
-  TrackThrSeed[1]   = 4.0;
+  TrackThrSeed[0]   = -1;
+  TrackThrSeed[1]   = -1;
   NsigmaMerge       = 10.0;
 
   NbuildTrack = NcutRaw = NcutLdt = NcutCls = NcutHit = NcutCpu = 0;
@@ -1332,6 +1332,7 @@ void TrRecon::PurgeGhostHits()
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if(!cont) return;
 
+/*
   int nhit = cont->getnelem();
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
@@ -1344,6 +1345,7 @@ void TrRecon::PurgeGhostHits()
       i--;
     }
   }
+*/
 
   int ntrack=contT->getnelem();
   for(int itr=0;itr<ntrack;itr++){
