@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.131 2010/12/09 14:22:32 pzuccon Exp $
+#  $Id: Makefile,v 1.132 2010/12/09 19:13:58 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -91,16 +91,16 @@ PG:=PG
 DEFINES+= -D_PGTRACK_ 
 ROOTDICT_CPPFLAGS+= -D_PGTRACK_ 
 
-BINMT=$(AMSWD)/bin/$(MARCH)/mt_PG/
-BIN=$(AMSWD)/bin/$(MARCH)/PG/
+BINMT=$(AMSWD)/bin/$(MARCH)/mt_PG$(G4)/
+BIN=$(AMSWD)/bin/$(MARCH)/PG$(G4)/
 EXE=$(AMSWD)/exe/$(MARCH)/
 LIB=$(AMSWD)/lib/$(MARCH)/
 SHLD=$(LIB)/ntuple_slc4_PG.so
 NTLD=$(LIB)/libntuple_slc4_PG.a
 else
 PG=
-BINMT=$(AMSWD)/bin/$(MARCH)/mt/
-BIN=$(AMSWD)/bin/$(MARCH)/
+BINMT=$(AMSWD)/bin/$(MARCH)/mt/$(G4)
+BIN=$(AMSWD)/bin/$(MARCH)/$(G4)
 EXE=$(AMSWD)/exe/$(MARCH)/
 LIB=$(AMSWD)/lib/$(MARCH)/
 SHLD=$(LIB)/ntuple_slc4.so
