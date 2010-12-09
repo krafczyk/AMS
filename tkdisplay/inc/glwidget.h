@@ -1,4 +1,4 @@
-// $Id: glwidget.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: glwidget.h,v 1.3 2010/12/09 23:04:16 shaino Exp $
 //
 // GLWidget : a class to manage OpenGL functions on a QWidget framework
 //            by SH
@@ -61,6 +61,7 @@ protected:
   virtual bool pickObject(int x, int y);
   virtual void processSel(GLint nhit, GLuint *sbuf);
   virtual void processPick() {}
+  virtual void processZoom(int delta);
 
 protected:
   GLViewer *glView;

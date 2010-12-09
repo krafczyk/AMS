@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.6 2010/05/10 21:55:46 shaino Exp $
+// $Id: tkdisplay.h,v 1.7 2010/12/09 23:04:16 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -53,6 +53,7 @@ private slots:
   void actWindow() { activateWindow(); }
   void drawEvent();
   void updateFormula(QString scut);
+  void swipeEvent(int);
 
   void on_cbUSS_stateChanged (int sw) { ui.glDisp->setGeom(Geom_USS,  sw); }
   void on_cbMag_stateChanged (int sw) { ui.glDisp->setGeom(Geom_MAG,  sw); }

@@ -1,4 +1,4 @@
-// $Id: tkdisplay.cpp,v 1.7 2010/05/10 21:55:47 shaino Exp $
+// $Id: tkdisplay.cpp,v 1.8 2010/12/09 23:04:16 shaino Exp $
 #include <QtGui>
 #include <QFileDialog>
 
@@ -110,10 +110,13 @@ void TkDisplay::connectObjs()
 
   connect(dlEvSel, SIGNAL(updateFormula(QString)), 
 	  this,    SLOT  (updateFormula(QString)));
+
   connect(ui.glDisp, SIGNAL(drawCluster(int)),
 	  clWidget,  SLOT  (drawCluster(int)));
   connect(ui.glDisp, SIGNAL(drawCluster(int)),
 	  clWidget,  SLOT  (show()));
+  connect(ui.glDisp, SIGNAL(swipeEvent(int)),
+	  this,      SLOT  (swipeEvent(int)));
   connect(this,      SIGNAL(newEvent(AMSEventR *)),
 	  clWidget,  SLOT  (newEvent(AMSEventR *)));
   connect(clWidget,  SIGNAL(changeFocus()),
@@ -243,6 +246,14 @@ void TkDisplay::updateFormula(QString scut)
       tFormula = 0;
     }
   }
+}
+
+void TkDisplay::swipeEvent(int pevt)
+{
+  if      (pevt ==   1) Next();
+  else if (pevt ==  -1) Prev();
+  else if (pevt ==  10) ui.sbEvent->setValue(ui.sbEvent->value()+100);
+  else if (pevt == -10) ui.sbEvent->setValue(ui.sbEvent->value()-100);
 }
 
 int TkDisplay::scanEvent(int istep)
@@ -450,8 +461,8 @@ void TkDisplay::Info()
 		    "   event display</h3>"
 		    "<p>by S.Haino <br>"
 		    "   (Sadakazu.Haino@pg.infn.it)</p>"
-		    "<p>CVS $Revision: 1.7 $<br>"
-		    "   CVS $Date: 2010/05/10 21:55:47 $</p>"
+		    "<p>CVS $Revision: 1.8 $<br>"
+		    "   CVS $Date: 2010/12/09 23:04:16 $</p>"
 		    "<p>Compiled: <br> at %1 on %2</p>"
 		    "<p>Qt version: %3</p>"
 		    "<p>ROOT version: %4</p>").arg(

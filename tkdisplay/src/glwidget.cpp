@@ -1,4 +1,4 @@
-// $Id: glwidget.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
+// $Id: glwidget.cpp,v 1.3 2010/12/09 23:04:16 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -202,16 +202,17 @@ void GLWidget::leaveEvent(QEvent *event)
 
 void GLWidget::wheelEvent(QWheelEvent *event)
 {
-#ifdef Q_WS_MAC
-  cFov -= event->delta()/100;
+#ifdef Q_WS_MAC 
+  int dx = 0, dy = 0;
+  if (event->orientation() == Qt::Horizontal) dx = event->delta()/10;
+  if (event->orientation() == Qt::Vertical  ) dy = event->delta()/10;
+  if (dx != 0 || dy != 0) {
+    int redraw = glView->getCamera()->Truck(dx, dy, 0, 0);  
+    if (redraw) updateGL();
+  }
 #else
-  cFov -= event->delta()/10;
+  processZoom(event->delta());
 #endif
-  if (cFov < FOV_MIN) cFov = FOV_MIN;
-  if (cFov > FOV_MAX) cFov = FOV_MAX;
-
-  updateGL();
-  emit zChanged(cFov);
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
@@ -312,4 +313,18 @@ void GLWidget::processSel(GLint nhit, GLuint *sbuf)
     }
     j += nsel;
   }
+}
+
+void GLWidget::processZoom(int delta)
+{
+#ifdef Q_WS_MAC
+  cFov -= delta/100;
+#else
+  cFov -= delta/10;
+#endif
+  if (cFov < FOV_MIN) cFov = FOV_MIN;
+  if (cFov > FOV_MAX) cFov = FOV_MAX;
+
+  updateGL();
+  emit zChanged(cFov);
 }

@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.6 2010/05/10 21:55:47 shaino Exp $
+// $Id: gltdisp.cpp,v 1.7 2010/12/09 23:04:16 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -42,6 +42,14 @@ GLTDisp::GLTDisp(QWidget *parent) : GLWidget(parent)
   aTimer.start(LS_WAIT);
 
   setAnimeMode();
+
+#ifdef Q_WS_MAC
+  grabGesture(Qt::TapGesture,        0);  // 1
+  grabGesture(Qt::TapAndHoldGesture, 0);  // 2
+  grabGesture(Qt::PanGesture,        0);  // 3
+  grabGesture(Qt::PinchGesture,      0);  // 4
+  grabGesture(Qt::SwipeGesture,      0);  // 5
+#endif
 }
 
 GLTDisp::~GLTDisp()
@@ -164,6 +172,51 @@ void GLTDisp::paintLock(bool sw)
   }
   if (glLock && !sw) glLock = false;
 }
+
+bool GLTDisp::event(QEvent *event)
+{
+#ifdef Q_WS_MAC
+  if (event->type() == QEvent::Gesture)
+    gestureEvent(static_cast<QGestureEvent*>(event));
+#endif
+  return GLWidget::event(event);
+}
+
+#ifdef Q_WS_MAC 
+#include <QGestureEvent>
+
+void GLTDisp::gestureEvent(QGestureEvent *event)
+{
+  if (QGesture *gst = event->gesture(Qt::SwipeGesture)) {
+    QSwipeGesture *swipe = static_cast<QSwipeGesture *>(gst);
+
+    int pevt = 0;
+
+    if      (swipe->  verticalDirection() == QSwipeGesture::Up   ) pevt =  10;
+    else if (swipe->  verticalDirection() == QSwipeGesture::Down ) pevt = -10;
+    else if (swipe->horizontalDirection() == QSwipeGesture::Right) pevt =   1;
+    else if (swipe->horizontalDirection() == QSwipeGesture::Left ) pevt =  -1;
+
+    if (pevt != 0) emit swipeEvent(pevt);
+  }
+
+  else if (QGesture *gst = event->gesture(Qt::PinchGesture)) {
+    QPinchGesture *pinch = static_cast<QPinchGesture *>(gst);
+    if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged) {
+      if (lsStatus == LS_NONE && pinch->lastScaleFactor() > 0) {
+	float dsc = pinch->scaleFactor()/pinch->lastScaleFactor();
+	int delta = (int)(20000*(dsc-1));
+	processZoom(delta);
+	return;
+      }
+    }
+  }
+
+  else {
+    cout<<"Unknown gesture"<<endl;
+  }
+}
+#endif
 
 void GLTDisp::mousePressEvent(QMouseEvent *event)
 {
