@@ -1,4 +1,4 @@
-// $Id: trqpar.C,v 1.3 2010/12/08 16:06:32 shaino Exp $
+// $Id: trqpar.C,v 1.4 2010/12/09 00:55:46 shaino Exp $
 #include "TStopwatch.h"
 #include "TMath.h"
 #include "TH2.h"
@@ -7,9 +7,21 @@
 #include "root.h"
 #include "amschain.h"
 
+void purgehits(AMSEventR *evt)
+{
+  vector<TrRecHitR>::iterator it = evt->TrRecHit().begin();
+
+  int i = 0;
+  for (; it != evt->TrRecHit().end(); ) {
+    if (!(*it).Used()) it = evt->TrRecHit().erase(it);
+    else it++;
+  }
+}
+
 void trqpar(const char *fname,
 	    const char *oname = "trqpar.root",
 	    Int_t mfs = TrTrackR::kChoutko | TrTrackR::kMultScat, 
+	    const char *sname = 0,
 	    Int_t nproc = 0)
 {
   AMSChain ch;
@@ -24,23 +36,32 @@ void trqpar(const char *fname,
   cout << "Ntr,Nent= " << ntr << " " << nent << endl;
   if (nproc <= 0) nproc = nent;
 
-  Double_t bn1[51], bn2[61], bn3[81];
+  Double_t bn1[51], bn2[81];
   for (Int_t i = 0; i <= 50; i++) bn1[i] = TMath::Power(10, 0.10*i-1);
-  for (Int_t i = 0; i <= 60; i++) bn2[i] = TMath::Power(10, 0.10*i-3);
-  for (Int_t i = 0; i <= 80; i++) bn3[i] = TMath::Power(10, 0.05*i-2);
+  for (Int_t i = 0; i <= 80; i++) bn2[i] = TMath::Power(10, 0.05*i-2);
 
   TString stt[4] = { "inner", "half8", "half9", "full" };
 
   gROOT->cd();
 
   for (Int_t i = 0; i < 4; i++) {
-    new TH2F(Form("hist%d0", i+1), "dRinv-"+stt[i], 50, bn1, 80, bn3);
-    new TH2F(Form("hist%d1", i+1), "Chisq-"+stt[i], 50, bn1, 60, bn2);
-    new TH2F(Form("hist%d2", i+1), "HalfR-"+stt[i], 50, bn1, 80, bn3);
-    new TH2F(Form("hist%d3", i+1), "Exres-"+stt[i], 50, bn1, 80, bn3);
+    new TH2F(Form("hist%d0", i+1), "dRinv-"+stt[i], 50, bn1, 80, bn2);
+    new TH2F(Form("hist%d1", i+1), "Chisq-"+stt[i], 50, bn1, 80, bn2);
+    new TH2F(Form("hist%d2", i+1), "HalfR-"+stt[i], 50, bn1, 80, bn2);
+    new TH2F(Form("hist%d3", i+1), "Exres-"+stt[i], 50, bn1, 80, bn2);
     new TH2F(Form("hist%d4", i+1), "d1/R0-"+stt[i], 50, bn1, 400, -100, 100);
     new TH2F(Form("hist%d5", i+1), "d1/R1-"+stt[i], 50, bn1, 400, -100, 100);
     new TH2F(Form("hist%d6", i+1), "d1/R2-"+stt[i], 50, bn1, 400, -100, 100);
+  }
+
+  TFile *sfile = 0;
+  TTree *stree = 0;
+  if (sname) {
+    AMSEventR *evt = ch.GetEvent(0);
+    sfile = new TFile(sname, "recreate");
+    sfile->cd();
+    stree = new TTree("AMSRoot", "trqsel");
+    stree->Branch("ev.", "AMSEventR", &evt);
   }
 
   int trq[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
@@ -77,6 +98,11 @@ void trqpar(const char *fname,
     double hpar[TrTrackR::Nconf*TrTrackR::Nqpar];
     int    tcls[TrTrackR::Nconf+1];
     TrTrackR::DoTrackClass(mfs, hpar, tcls);
+
+    if (stree) {
+      purgehits(evt);
+      stree->Fill();
+    }
 
     for (Int_t i = 0; i < TrTrackR::Nconf; i++) {
       for (Int_t j = 0; j < TrTrackR::Nqpar-1; j++) {

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2010/12/08 16:06:14 shaino Exp $
+# $Id: Makefile,v 1.8 2010/12/09 00:55:43 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -27,18 +27,20 @@ endif
 ICC  = $(shell $(ROOTSYS)/bin/root-config --cxx | grep icc)
 ifeq ($(ICC),icc)
   PARA = -D__X8664__ -D__AMSPARALLEL__ -openmp
+  STAT = -static -static-intel
   IDIR = /opt/intel
   IVER = Compiler/11.1/073
   IOPT = -axsse4.2,ssse3
   CXX  = $(IDIR)/$(IVER)/bin/intel64/icc  $(IOPT) -vec-report0 $(PARA)
-  LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT) $(PARA)
+  LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT) $(PARA) $(STAT)
 endif
 
 # Dinamic library
 #LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
 
 # Static library
-LIBR = -L$(ROOTSYS)/lib -lRoot -lXrdClient -lcrypt -lfreetype -ldl -lpcre
+LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+LIBR = -L$(ROOTSYS)/lib -lRoot -pthread  -lpcre $(LIBX)
 LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
 
 MODS = tbalign tbafit tbaf tbafm tbafcp \
@@ -54,7 +56,7 @@ all: $(BINS)
 bin/%: %.o
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
 	$(LD) -o $@ $< $(LIBS)
-	rm -f $<
+	readelf -d $@
 
 clean:
 	rm -f bin/*
