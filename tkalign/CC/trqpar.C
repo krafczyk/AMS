@@ -1,4 +1,4 @@
-// $Id: trqpar.C,v 1.4 2010/12/09 00:55:46 shaino Exp $
+// $Id: trqpar.C,v 1.5 2010/12/09 10:23:41 shaino Exp $
 #include "TStopwatch.h"
 #include "TMath.h"
 #include "TH2.h"
@@ -6,17 +6,7 @@
 
 #include "root.h"
 #include "amschain.h"
-
-void purgehits(AMSEventR *evt)
-{
-  vector<TrRecHitR>::iterator it = evt->TrRecHit().begin();
-
-  int i = 0;
-  for (; it != evt->TrRecHit().end(); ) {
-    if (!(*it).Used()) it = evt->TrRecHit().erase(it);
-    else it++;
-  }
-}
+#include "TrRecon.h"
 
 void trqpar(const char *fname,
 	    const char *oname = "trqpar.root",
@@ -34,7 +24,7 @@ void trqpar(const char *fname,
   if (ntr <= 0 || nent <= 0) return;
 
   cout << "Ntr,Nent= " << ntr << " " << nent << endl;
-  if (nproc <= 0) nproc = nent;
+  if (nproc <= 0 || nproc > nent) nproc = nent;
 
   Double_t bn1[51], bn2[81];
   for (Int_t i = 0; i <= 50; i++) bn1[i] = TMath::Power(10, 0.10*i-1);
@@ -42,8 +32,12 @@ void trqpar(const char *fname,
 
   TString stt[4] = { "inner", "half8", "half9", "full" };
 
-  gROOT->cd();
+  if (oname && (oname[0] == 0 || oname[0] == '0')) oname = 0;
 
+  gROOT->cd();
+  if (sname) ch.OpenOutputFile(sname);
+
+  TDirectory *gdir = gDirectory;
   for (Int_t i = 0; i < 4; i++) {
     new TH2F(Form("hist%d0", i+1), "dRinv-"+stt[i], 50, bn1, 80, bn2);
     new TH2F(Form("hist%d1", i+1), "Chisq-"+stt[i], 50, bn1, 80, bn2);
@@ -52,16 +46,6 @@ void trqpar(const char *fname,
     new TH2F(Form("hist%d4", i+1), "d1/R0-"+stt[i], 50, bn1, 400, -100, 100);
     new TH2F(Form("hist%d5", i+1), "d1/R1-"+stt[i], 50, bn1, 400, -100, 100);
     new TH2F(Form("hist%d6", i+1), "d1/R2-"+stt[i], 50, bn1, 400, -100, 100);
-  }
-
-  TFile *sfile = 0;
-  TTree *stree = 0;
-  if (sname) {
-    AMSEventR *evt = ch.GetEvent(0);
-    sfile = new TFile(sname, "recreate");
-    sfile->cd();
-    stree = new TTree("AMSRoot", "trqsel");
-    stree->Branch("ev.", "AMSEventR", &evt);
   }
 
   int trq[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
@@ -99,9 +83,13 @@ void trqpar(const char *fname,
     int    tcls[TrTrackR::Nconf+1];
     TrTrackR::DoTrackClass(mfs, hpar, tcls);
 
-    if (stree) {
-      purgehits(evt);
-      stree->Fill();
+    if (sname) {
+      static Int_t nsel = 0;
+      if (hpar[1] > 50 && nsel++ < 100) {
+	TrRecon trec;
+	trec.PurgeUnusedHits();
+	ch.SaveCurrentEventCont();
+      }
     }
 
     for (Int_t i = 0; i < TrTrackR::Nconf; i++) {
@@ -114,7 +102,7 @@ void trqpar(const char *fname,
 	}
 
 	if (hp > 0) {
-	  TH2F *hist = (TH2F *)gROOT->Get(Form("hist%d%d", i+1, j));
+	  TH2F *hist = (TH2F *)gdir->Get(Form("hist%d%d", i+1, j));
 	  hist->Fill(rgt, hp);
 	}
       }
@@ -129,7 +117,7 @@ void trqpar(const char *fname,
 
 	  for (Int_t j = 0; j < TrTrackR::Nclass; j++) {
 	    if ((tcls[i] & trq[j]) == trq[j]) {
-	      TH2F *hist = (TH2F *)gROOT->Get(Form("hist%d%d", i+1, j+4));
+	      TH2F *hist = (TH2F *)gdir->Get(Form("hist%d%d", i+1, j+4));
 	      hist->Fill(ref, dr/ecr);
 	    }
 	  }
@@ -142,6 +130,8 @@ void trqpar(const char *fname,
 
   TrTrackR::ShowTrackClass();
 
-  TFile of(oname, "recreate");
-  gROOT->GetList()->Write();
+  if (oname) {
+    TFile of(oname, "recreate");
+    gdir->GetList()->Write();
+  }
 }

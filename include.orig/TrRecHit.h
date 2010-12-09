@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.25 2010/12/03 15:25:34 shaino Exp $
+//  $Id: TrRecHit.h,v 1.26 2010/12/09 10:23:34 shaino Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -201,13 +201,18 @@ protected:
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
 			       int nstripsy = TrClusterR::DefaultUsedStrips);
 
-  bool OnlyX () { return checkstatus(XONLY); }
-  bool OnlyY () { return checkstatus(YONLY); }
-  bool TasHit() { return checkstatus(TASHIT); }
+  bool OnlyX () const { return checkstatus(XONLY); }
+  bool OnlyY () const { return checkstatus(YONLY); }
+  bool TasHit() const { return checkstatus(TASHIT); }
   // AMSDBc::USED = 32; (0x0020)
-  bool Used  () { return checkstatus(AMSDBc::USED); }
+  bool Used  () const { return checkstatus(AMSDBc::USED); }
   // AMSDBc::FalseX = 8192; (0x2000)
-  bool FalseX() { return checkstatus(AMSDBc::FalseX); }
+  bool FalseX() const { return checkstatus(AMSDBc::FalseX); }
+
+  /// Set as used
+  void SetUsed();
+  /// Clear used status
+  void ClearUsed();
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const{return Status & checker;}

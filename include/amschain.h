@@ -71,7 +71,7 @@ public:
   AMSEventR* GetEventLocal(Int_t entry);
   
   ///Get AMSEventR in entry number "entry" appling the user selection function (if defined)
-  /// Return 1 if the entry number "entry satisfies the  user selection function
+  /// Return 1 if the entry number "entry" satisfies the  user selection function
   /// Return 0 otherwhise 
   /// Retrun -1 of eof
   Int_t ReadOneEvent(Int_t entry);
@@ -102,6 +102,8 @@ public:
   void OpenOutputFile(const char* filename);
   /// Saves the current entry to the output file (if it is not open, it creates SelectedEvents.root)
   void SaveCurrentEvent();
+  /// Saves the current entry to the output file without GetAllContents()
+  void SaveCurrentEventCont();
   /// Properly closes the Output File for selected events
   void CloseOutputFile();
 

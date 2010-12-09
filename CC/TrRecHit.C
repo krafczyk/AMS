@@ -302,6 +302,20 @@ float TrRecHitR::GetYloc(int nstrips)
   return cls->GetXCofG(nstrips);
 }
 
+void TrRecHitR::SetUsed()
+{
+  setstatus(AMSDBc::USED);
+  if (GetXCluster()) GetXCluster()->SetUsed();
+  if (GetYCluster()) GetYCluster()->SetUsed();
+}
+
+void TrRecHitR::ClearUsed()
+{
+  clearstatus(AMSDBc::USED);
+  if (GetXCluster()) GetXCluster()->ClearUsed();
+  if (GetYCluster()) GetYCluster()->ClearUsed();
+}
+
 AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
   // parsing options

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.84 2010/12/08 16:04:27 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.85 2010/12/09 10:23:30 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/08 16:04:27 $
+/// $Date: 2010/12/09 10:23:30 $
 ///
-/// $Revision: 1.84 $
+/// $Revision: 1.85 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1145,7 +1145,7 @@ void TrRecon::BuildHitsTkIdMap()
       // AMS-B; Layer 8(on Ecal) and 9(on TRD) excluded from trackfinding
     }
 
-    if (hit->Used()) hit->clearstatus(AMSDBc::USED);
+    if (hit->Used()) hit->ClearUsed();
     if (RecPar.TrackThrSeed[1] > 0) {
       if (RecPar.TrackThrSeed[0] > 0) {
 	if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
@@ -1379,6 +1379,68 @@ void TrRecon::PurgeGhostHits()
   delete contT;
 
 }
+
+void TrRecon::PurgeUnusedHits()
+{
+  VCon* cont1 = GetVCon()->GetCont("AMSTrTrack");
+  if (!cont1) return;
+
+  VCon *cont2 = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont2) return;
+
+  VCon *cont3 = GetVCon()->GetCont("AMSTrCluster");
+  if (!cont3) return;
+
+  // Clear used status
+  int nhit = cont2->getnelem();
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont2->getelem(i);
+    if (hit) hit->ClearUsed();
+  }
+
+  // Set used status
+  int ntrack = cont1->getnelem();
+  for (int i = 0; i < ntrack; i++) {
+    TrTrackR *track = (TrTrackR*)cont1->getelem(i);
+    for (int j = 0; j < track->GetNhits(); j++) {
+      TrRecHitR *hit = track->GetHit(j);
+      hit->SetUsed();
+    }
+  }
+
+  // Purge hits
+  for (int i = 0; i < nhit; i++) {
+    TrRecHitR *hit = (TrRecHitR*)cont2->getelem(i);
+    if (hit && !hit->Used()) {
+      if (i == 0) cont2->removeEl(0);
+      else  	  cont2->removeEl(cont2->getelem(i-1));
+      nhit--;
+      i--;
+    }
+  }
+
+  // Purge clusters
+  int ncls = cont3->getnelem();
+  for (int i = 0; i < ncls; i++) {
+    TrClusterR *cls = (TrClusterR*)cont3->getelem(i);
+    if (cls && !cls->Used()) {
+      if (i == 0) cont3->removeEl(0);
+      else  	  cont3->removeEl(cont3->getelem(i-1));
+      nhit--;
+      i--;
+    }
+  }
+
+  // create hits indexes
+  for (int i = 0; i < ntrack; i++) {
+    TrTrackR *track = (TrTrackR*)cont1->getelem(i);
+    track->BuildHitsIndex();
+  }
+
+  delete cont1;
+  delete cont2;
+}
+
 
 bool TrRecon::PreScan(int nlay, TrHitIter &it) const
 {
@@ -2019,7 +2081,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       else
 	hit->SetResolvedMultiplicity(DXY[il].mlmin);
       track->AddHit(hit);
-      hit->setstatus(AMSDBc::USED);
+      hit->SetUsed();
       nadd++;
     }
   }
@@ -2142,7 +2204,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     TrRecHitR  *hit  = track->GetHit(i);
 
     // Mark the hit as USED
-    hit->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
+    hit->SetUsed();
 
     // Remove hit pointer from _HitsTkIdMap
     RemoveHits(hit);
@@ -2636,7 +2698,7 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 #endif
 
     for (int j = 0; j < nhit; j++) {
-      hits[j]->setstatus(AMSDBc::USED);  // AMSDBc::USED = 32; (0x0020)
+      hits[j]->SetUsed();
       track->AddHit(hits[j]);
     }
 

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.81 2010/12/09 00:54:58 shaino Exp $
+// $Id: TrTrack.C,v 1.82 2010/12/09 10:23:30 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/09 00:54:58 $
+///$Date: 2010/12/09 10:23:30 $
 ///
-///$Revision: 1.81 $
+///$Revision: 1.82 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -292,9 +292,7 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
     if (hh->GetXCluster()) _NhitsX--;
     if (hh->GetYCluster()) _NhitsY--;
     if (hh->GetXCluster() && hh->GetYCluster()) _NhitsXY--;
-//  hh->clearstatus(AMSDBc::USED);
   }
-//hit->setstatus(AMSDBc::USED);
 
   if (hit->GetXCluster()) _NhitsX++;
   if (hit->GetYCluster()) _NhitsY++;

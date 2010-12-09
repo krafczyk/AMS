@@ -9,6 +9,8 @@
 #include "TrLadPar.h"
 #include "TkCoo.h"
 
+#include "amsdbc.h"
+
 #include <cmath>
 #include <vector>
 #include <string>
@@ -37,9 +39,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/11/21 00:58:24 $
+ $Date: 2010/12/09 10:23:34 $
 
- $Revision: 1.15 $
+ $Revision: 1.16 $
 
 */
 
@@ -186,7 +188,14 @@ public:
   short GetStatus(int ii);
 
   /// Is a TAS cluster? (check the status bit)
-  bool  TasCls() { return checkstatus(TASCLS);}
+  bool  TasCls() const { return checkstatus(TASCLS);}
+
+  /// Used for track AMSDBc::USED = 32; (0x0020)
+  bool  Used() const { return checkstatus(AMSDBc::USED); }
+  /// Set as used
+  void SetUsed() { setstatus(AMSDBc::USED); }
+  /// Clear used status
+  void ClearUsed() { clearstatus(AMSDBc::USED); }
 
   /// Get multiplicity
   int   GetMultiplicity();

@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.29 2010/12/07 19:42:28 choutko Exp $
+//  $Id: amschain.C,v 1.30 2010/12/09 10:23:30 shaino Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -395,10 +395,26 @@ void AMSChain::OpenOutputFile(const char* filename){
   TFile * input=GetFile();
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
+  // Parameters
   char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
   for(int ii=0;ii<4;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
+  }
+  // Datacards
+  TDirectory *dir = (TDirectory *)input->Get("datacards");
+  if (dir) {
+    fout->cd();
+    TDirectoryFile *dout = new TDirectoryFile(dir->GetName(),
+					      dir->GetTitle());
+    TList *klst = dir->GetListOfKeys();
+    for (int ii=0; ii<klst->GetSize(); ii++) {
+      if (klst->At(ii)) {
+	TObject* obj=dir->Get(klst->At(ii)->GetName());
+	if (obj) {dout->cd(); obj->Write();}
+      }
+    }
+    fout->cd();
   }
 #endif
   TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
@@ -420,11 +436,24 @@ void AMSChain::SaveCurrentEvent(){
   }
   return;
 }
+
+void AMSChain::SaveCurrentEventCont(){
+  if(!fout) OpenOutputFile("SelectedEvents.root");
+  if(!fout){
+  cout <<" AMSChain::SaveCurrentEntry-E- Cannot open file  for output no events are saved"<<endl;
+    return;
+  }
+  if(_EVENT){
+    _EVENT->SetCont();
+    amsnew->Fill();
+  }
+  return;
+}
  
 void AMSChain::CloseOutputFile(){
   if(!fout) return;
   cout << "AMSChain::CloseOutputFile AMS ROOT file \"";
-  cout << fout->GetName() << "\" with " << this->GetEntries(); 
+  cout << fout->GetName() << "\" with " << amsnew->GetEntries(); 
   cout << " selected events" << endl;
   fout->Write();
   fout->Close();

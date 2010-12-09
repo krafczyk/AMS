@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.37 2010/12/08 16:04:24 shaino Exp $ 
+// $Id: TrRecon.h,v 1.38 2010/12/09 10:23:34 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/12/08 16:04:24 $
+/// $Date: 2010/12/09 10:23:34 $
 ///
-/// $Revision: 1.37 $
+/// $Revision: 1.38 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -553,6 +553,9 @@ public:
 
   /// Purge "ghost" hits and assign hit index to tracks
   void PurgeGhostHits();
+
+  /// Purge unused hits and assign hit index to tracks
+  void PurgeUnusedHits();
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
