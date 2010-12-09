@@ -1,4 +1,4 @@
-//  $Id: rnormx.C,v 1.15 2010/10/08 20:32:00 mmilling Exp $
+//  $Id: rnormx.C,v 1.16 2010/12/09 14:22:32 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //                    8-jul-1996 
 
@@ -14,10 +14,10 @@
 //           end
 
 #include <math.h>
+#include "typedefs.h" 
 #include "random.h"
 #include "TRandom1.h"
 
-#include "typedefs.h" 
 static TRandom1 rr; 
 double ROOTRndm(int dummy){
 //  VC OMLY ONE RNDM ALLOWED
@@ -32,10 +32,6 @@ extern "C" void ROOTPoissn(float& mean, int& val, int& dummy) {
   val = rr.Poisson(mean);
 }
 
-#include "typedefs.h"
-#ifdef __G4AMS__
-#include  "commons.h"
-#endif
 extern "C" number rnormx(){
   double const pi=3.1415926;
   number qq,qq2;
