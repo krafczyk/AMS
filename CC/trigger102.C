@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.90 2010/12/10 14:25:55 choumilo Exp $
+//  $Id: trigger102.C,v 1.91 2010/12/10 17:42:00 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2512,6 +2512,10 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //
   lenoncall=(len&(0xFFFFL));
   TGL1JobStat::daqs1(40);//count entries
+//  
+  SetupIsChanged=false;// reset for each event (treadprivate val)
+  ScalerIsChanged=false;// reset for each event (treadprivate val)
+//
   p=p-1;//to follow VC-convention
   jleng=int16u(len&(0xFFFFL));
   csid=int16u((len>>16)&(0xFFFFL))+1;//S(s=1-4=>a,b,p,s) as return by my "checkblockid"
