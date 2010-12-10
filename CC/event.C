@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.502 2010/12/07 00:19:23 shaino Exp $
+//  $Id: event.C,v 1.503 2010/12/10 14:25:55 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -774,6 +774,9 @@ void AMSEvent::_retriginitevent(){
      new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
    add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
+     
+   Trigger2LVL1::SetupIsChanged=false;
+   Trigger2LVL1::ScalerIsChanged=false;
 }
 
 void AMSEvent::_siantiinitevent(){

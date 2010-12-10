@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.89 2010/06/30 10:52:43 pzuccon Exp $
+//  $Id: trigger102.C,v 1.90 2010/12/10 14:25:55 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -145,7 +145,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
         cout<<"============================================================================"<<endl;
 //---
         if(TGL1FFKEY.Lvl1ConfSave>0)l1trigconf.saveRD(TGL1FFKEY.Lvl1ConfSave);//save setup
-        SetupIsChanged=false;//reset flag
+//        SetupIsChanged=false;//reset flag (now reset in initevent)
 }//---> endof pragma critical 
       }//--->endof "setup changed" check
     }//--->endof "trig.obj exist ?" check
@@ -2382,7 +2382,7 @@ int cid=(len>>16)+1;
       cout<<"===================================================="<<endl;
 }//--->endof pragma
     }//---> endof "PrintSetupInfo"
-    ScalerIsChanged=false;//reset
+//    ScalerIsChanged=false;//reset (now reset in initevent)
   }//---> endof "ScalerIsChanged"
 //-------------------------------------------------------------------------------------------
 //
