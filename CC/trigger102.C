@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.91 2010/12/10 17:42:00 choumilo Exp $
+//  $Id: trigger102.C,v 1.92 2010/12/10 20:02:26 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2382,7 +2382,7 @@ int cid=(len>>16)+1;
       cout<<"===================================================="<<endl;
 }//--->endof pragma
     }//---> endof "PrintSetupInfo"
-//    ScalerIsChanged=false;//reset (now reset in initevent)
+//    ScalerIsChanged=false;//reset
   }//---> endof "ScalerIsChanged"
 //-------------------------------------------------------------------------------------------
 //
@@ -2400,12 +2400,12 @@ int cid=(len>>16)+1;
     LiveTime[1]=livetm[1];
     trtime[0]=timcal;
   }
-  if((TGL1FFKEY.printfl%10)>0){
-#pragma omp critical (hf1)
-{
-    HF1(1094,geant(LiveTime[0]),1.);
-}
-  } 
+//  if((TGL1FFKEY.printfl%10)>0){
+//#pragma omp critical (hf1)
+//{
+//    HF1(1094,geant(LiveTime[0]),1.);
+//}
+//  } 
 // 
   for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys)
     TrigRates[j]=scalmon.FTtrig(j);
@@ -2954,12 +2954,12 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         scalmon.LiveTime(j)=LiveTime[j];//copy to scalmon
         nw3+=2;
       }
-//      if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
-//#pragma omp critical (hf1)
-//{
-//        HF1(1094,geant(scalmon.LiveTime(0)),1.);
-//}
-//      } 
+      if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
+#pragma omp critical (hf1)
+{
+        HF1(1094,geant(scalmon.LiveTime(0)),1.);
+}
+      } 
     }
 //---
     bit=(1<<14);
@@ -3027,7 +3027,8 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
 //----
 //----------> check change of any scaler-block parameter
 //
-  if(rstatw3!=0 && rstatw3!=parbitpatt[2]){
+//  if(rstatw3!=0 && rstatw3!=parbitpatt[2]){
+  if(rstatw3!=0){
     TGL1JobStat::daqs1(65);//ScalersBlock changes
     if((TGL1FFKEY.printfl/10)>1)
        cout<<"<--- InBuildEarly :ScalersChanged:rstatw3/static="<<hex<<rstatw3<<" "<<parbitpatt[2]<<dec<<endl; 
