@@ -1,10 +1,13 @@
-$Id: README,v 1.1 2009/06/13 21:40:46 shaino Exp $
+$Id: README,v 1.2 2010/12/10 21:38:01 shaino Exp $
 
 TkDisplay - Tracker event display on Qt4/OpenGL/ROOT
 
                                     13/06/2009 by SH
 
-* The performance and the looking is optimized for Qt4.5 on Mac OSX Leopard
+            MacBook Touchpad supported
+                                    10/12/2010 by SH
+
+* The performance and the looking is optimized for Qt4.7 on Mac OSX SnowLeopard
 
 * It is recommended to run this application on the local machine.
   Running on a remote machine through X11 forwarding 
@@ -13,8 +16,9 @@ TkDisplay - Tracker event display on Qt4/OpenGL/ROOT
 
 
 Softwares needed:
-(1) Qt >= 4.3.0 (>= 4.5.1 recommended)
-(2) ROOT        (>= v5.21 recommended)
+(0) OS Linux/Max OSX (OSX Snow Lepoard recommended)
+(1) Qt >= 4.3.0 (>= 4.7.1 recommended)
+(2) ROOT        (>= v5.27 recommended)
 (3) Gbatch ntuple library made with "make lib" and "PGTRACK" option
 
  Qt4 is available at http://www.qtsoftware.com/downloads

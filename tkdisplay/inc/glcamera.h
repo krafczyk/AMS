@@ -1,4 +1,4 @@
-// $Id: glcamera.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: glcamera.h,v 1.3 2010/12/10 21:38:01 shaino Exp $
 //
 // GLCamera : a class to manage the view point of OpenGL display
 //            imported from ROOT:TGLPerspectiveCamera and arranged by SH
@@ -36,6 +36,12 @@ public:
 
   void SetViewport(double x, double y, double w, double h)
     { vpX = x; vpY = y; vpW = w; vpH = h; }
+
+  void SetCamBase(const GLVector3 &vax, const GLVector3 &hax) {
+    GLVertex3 org;
+    fCamBase.Set(org, vax, hax);
+  }
+  bool RotCamBase(double angle);
   
   GLVertex3 EyePoint();
   GLVector3 EyeDirection();
@@ -60,6 +66,9 @@ protected:
   double vpH;
 
   double sceneSize;
+
+  GLVector3 hAxis;
+  GLVector3 vAxis;
 
   GLMatrix fCamBase;
   GLMatrix fCamTrans;

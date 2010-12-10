@@ -1,4 +1,4 @@
-// $Id: glcamera.cpp,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: glcamera.cpp,v 1.3 2010/12/10 21:38:01 shaino Exp $
 #include "glcamera.h"
 
 #include <GL/gl.h>
@@ -13,17 +13,17 @@ double GLCamera::gFOVMax     = 120.0;
 unsigned int GLCamera::gFOVDeltaSens   = 500;
 unsigned int GLCamera::gDollyDeltaSens = 500;
 
-GLCamera::GLCamera(const GLVector3 & hAxis, const GLVector3 & vAxis,
+GLCamera::GLCamera(const GLVector3 & hax, const GLVector3 & vax,
 		   double ssize)
   : fieldOfView(gFOVDefault), nearClip(0), farClip(0),
     dollyDefault(1.0), dollyDistance(1.0), vAxisMinAngle(0.01f),
-    vpX(0), vpY(0), vpW(100), vpH(100), sceneSize(ssize)
+    vpX(0), vpY(0), vpW(100), vpH(100), sceneSize(ssize),
+    hAxis(hax), vAxis(vax)
 {
-   for (unsigned int i = 0; i < kPlanesPerFrustum; i++ )
-      fFrustumPlanes[i].Set(1.0, 0.0, 0.0, 0.0);
+  for (unsigned int i = 0; i < kPlanesPerFrustum; i++ )
+    fFrustumPlanes[i].Set(1.0, 0.0, 0.0, 0.0);
 
-   GLVertex3 origin;
-   fCamBase.Set(origin, vAxis, hAxis);
+  SetCamBase(vAxis, hAxis);
 
   Setup();
   fCamTrans.MoveLF(1, dollyDefault);
@@ -33,6 +33,7 @@ void GLCamera::Reset()
 {
   fieldOfView = gFOVDefault;
 
+  SetCamBase(vAxis, hAxis);
   fCamTrans.SetIdentity();
   fCamTrans.MoveLF(1, dollyDefault);
 }
@@ -149,8 +150,8 @@ void GLCamera::Apply(int pickx, int picky, int pickw, int pickh)
     double sy = (i&2) ? -1 : 1;
     double sz = (i&4) ? -1 : 1;
     double cdist = clipPlane.DistanceTo(GLVertex3(sceneSize*sx, 
-						   sceneSize*sy, 
-						   sceneSize*sz));
+						  sceneSize*sy, 
+						  sceneSize*sz));
     if (i == 0) farClip = nearClip = cdist;
     if (cdist < nearClip) nearClip = cdist;
     if (cdist >  farClip) farClip  = cdist;
@@ -225,6 +226,15 @@ void GLCamera::UpdateCache()
 			      clipm[11]-clipm[10], clipm[15]-clipm[14]);
   fFrustumPlanes[kNear]  .Set(clipm[ 3]+clipm[ 2], clipm[ 7]+clipm[ 6],
 			      clipm[11]+clipm[10], clipm[15]+clipm[14]);
+}
+
+bool GLCamera::RotCamBase(double angle)
+{
+  GLVertex3 org;
+  GLMatrix  mx  = fCamBase*fCamTrans;
+  GLVector3 fwd = mx.GetBaseVec(1);
+  fCamBase.Rotate(org, fwd, angle);
+  return (angle != 0);
 }
 
 GLVertex3 GLCamera::EyePoint()

@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.7 2010/12/09 23:04:16 shaino Exp $
+// $Id: gltdisp.cpp,v 1.8 2010/12/10 21:38:01 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -37,19 +37,13 @@ GLTDisp::GLTDisp(QWidget *parent) : GLWidget(parent)
   subWin   = 0;
   lsStatus = LS_NONE;
 
+  focusReset = 0;
+
   aTimer.setSingleShot(false);
   connect(&aTimer, SIGNAL(timeout()), this, SLOT(animate()));
   aTimer.start(LS_WAIT);
 
   setAnimeMode();
-
-#ifdef Q_WS_MAC
-  grabGesture(Qt::TapGesture,        0);  // 1
-  grabGesture(Qt::TapAndHoldGesture, 0);  // 2
-  grabGesture(Qt::PanGesture,        0);  // 3
-  grabGesture(Qt::PinchGesture,      0);  // 4
-  grabGesture(Qt::SwipeGesture,      0);  // 5
-#endif
 }
 
 GLTDisp::~GLTDisp()
@@ -173,47 +167,19 @@ void GLTDisp::paintLock(bool sw)
   if (glLock && !sw) glLock = false;
 }
 
-bool GLTDisp::event(QEvent *event)
-{
-#ifdef Q_WS_MAC
-  if (event->type() == QEvent::Gesture)
-    gestureEvent(static_cast<QGestureEvent*>(event));
-#endif
-  return GLWidget::event(event);
-}
-
 #ifdef Q_WS_MAC 
-#include <QGestureEvent>
+#include <QSwipeGesture>
 
-void GLTDisp::gestureEvent(QGestureEvent *event)
+void GLTDisp::swipeGesture(QSwipeGesture *swipe)
 {
-  if (QGesture *gst = event->gesture(Qt::SwipeGesture)) {
-    QSwipeGesture *swipe = static_cast<QSwipeGesture *>(gst);
-
+  if (swipe->state() == Qt::GestureFinished) {
     int pevt = 0;
-
     if      (swipe->  verticalDirection() == QSwipeGesture::Up   ) pevt =  10;
     else if (swipe->  verticalDirection() == QSwipeGesture::Down ) pevt = -10;
     else if (swipe->horizontalDirection() == QSwipeGesture::Right) pevt =   1;
     else if (swipe->horizontalDirection() == QSwipeGesture::Left ) pevt =  -1;
 
     if (pevt != 0) emit swipeEvent(pevt);
-  }
-
-  else if (QGesture *gst = event->gesture(Qt::PinchGesture)) {
-    QPinchGesture *pinch = static_cast<QPinchGesture *>(gst);
-    if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged) {
-      if (lsStatus == LS_NONE && pinch->lastScaleFactor() > 0) {
-	float dsc = pinch->scaleFactor()/pinch->lastScaleFactor();
-	int delta = (int)(20000*(dsc-1));
-	processZoom(delta);
-	return;
-      }
-    }
-  }
-
-  else {
-    cout<<"Unknown gesture"<<endl;
   }
 }
 #endif
@@ -225,6 +191,11 @@ void GLTDisp::mousePressEvent(QMouseEvent *event)
       moreInfo();
       return;
     }
+    if (focusReset) {
+      cReset();
+      return;
+    }
+
     GLWidget::mousePressEvent(event);
     return;
   }
@@ -317,6 +288,9 @@ void GLTDisp::mouseMoveEvent(QMouseEvent *event)
       update();
       return;
     }
+    int fold = focusReset;
+    resetButton(0, event->x(), event->y());
+    if (fold != focusReset) update();
 
     GLWidget::mouseMoveEvent(event);
     return;
@@ -365,6 +339,8 @@ void GLTDisp::paintEvent(QPaintEvent *)
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
 
+  painter.setRenderHint(QPainter::TextAntialiasing);
+
   if (glLock)
     painter.drawPixmap(0, 0, glPixmap);
   else {
@@ -379,12 +355,37 @@ void GLTDisp::paintEvent(QPaintEvent *)
   if (darkOpt)
     painter.fillRect(0, 0, vpWidth, vpHeight, QColor(0, 0, 0, 150));
 
+  resetButton(&painter);
+
   painter.end();
 }
 
 void GLTDisp::drawObject(GLenum mode)
 {
   glDraw->drawObject((mode == GL_RENDER), (mode == GL_SELECT), idSel);
+}
+
+void GLTDisp::resetButton(QPainter *pnt, int x, int y)
+{
+  // Camera reset button
+
+  int tx = 10, ty = vpHeight-20;
+  int tw = 40, th = 15;
+
+  if (!pnt) {
+    focusReset = (tx <= x && x <= tx+tw && ty <= y && y <= ty+th);
+    return;
+  }
+
+  pnt->setPen(QColor(180, 240, 220));
+  if (focusReset) {
+    pnt->setPen(Qt::red);
+    pnt->drawRect(tx, ty, tw, th);
+    pnt->fillRect(tx, ty, tw, th, QColor(255, 255, 255, 50));
+  }
+
+  int opt = Qt::AlignLeft | Qt::TextWordWrap;
+  pnt->drawText(tx+2, ty-1, 40, 15, opt, "Reset");
 }
 
 void GLTDisp::processPick()

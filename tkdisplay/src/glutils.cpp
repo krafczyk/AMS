@@ -1,4 +1,4 @@
-// $Id: glutils.cpp,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glutils.cpp,v 1.2 2010/12/10 21:38:01 shaino Exp $
 #include "glutils.h"
 
 #include <GL/gl.h>
@@ -666,7 +666,7 @@ double GLMatrix::Invert()
       M[8]*det3_123_013 - M[12]*det3_123_012;
 
    if(det == 0) {
-      Warning("GLMatrix::Invert", "matrix is singular.");
+    //Warning("GLMatrix::Invert", "matrix is singular.");
       return 0;
    }
 

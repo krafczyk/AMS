@@ -1,4 +1,4 @@
-// $Id: glutils.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: glutils.h,v 1.2 2010/12/10 21:38:01 shaino Exp $
 //
 // glutils : a set of classes to manage GLCamera
 //           imported from ROOT:TGLUtils and arranged by SH
@@ -441,18 +441,18 @@ public:
    void SetBaseVec(int b, const GLVector3& v);
    void SetBaseVec(int b, double* x);
 
-   GLVector3 GetBaseVec(int b) const;
+   GLVector3  GetBaseVec(int b) const;
    void       GetBaseVec(int b, GLVector3& v) const;
    void       GetBaseVec(int b, double* x) const;
 
    GLVector3 Multiply(const GLVector3& v, double w=1) const;
-   GLVector3 Rotate(const GLVector3& v) const;
-   void       MultiplyIP(GLVector3& v, double w=1) const;
-   void       RotateIP(GLVector3& v) const;
+   GLVector3 Rotate  (const GLVector3& v) const;
+   void      MultiplyIP    (GLVector3& v, double w=1) const;
+   void      RotateIP      (GLVector3& v) const;
 
    // Internal data accessors - for GL API
    const double * CArr() const { return fVals; }
-   double * Arr() { return fVals; }
+         double *  Arr()       { return fVals; }
 
    void Dump() const;
 };

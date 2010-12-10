@@ -1,4 +1,4 @@
-// $Id: glrender.cpp,v 1.1 2010/05/10 21:55:46 shaino Exp $
+// $Id: glrender.cpp,v 1.2 2010/12/10 21:38:01 shaino Exp $
 
 #include "glrender.h"
 #include <cmath>
@@ -216,9 +216,15 @@ void GLRender::buildGLPLines(int n, double *x, double *y, double *z)
   }
 }
 
-void GLRender::drawAll(bool render, bool select, int idsel)
+void GLRender::drawAll(bool render, bool select, int idsel, int order)
 {
-  for (int i = 0; i < svRender.size(); i++) {
+  int i1 = 0, i2 = svRender.size()-1, di = 1;
+  if (order < 0) {
+    i1 = svRender.size()-1;
+    i2 = 0;
+    di = -1;
+  }
+  for (int i = i1; i != i2; i += di) {
     GLRender *gobj = svRender.at(i);
     if (!gobj) continue;
 

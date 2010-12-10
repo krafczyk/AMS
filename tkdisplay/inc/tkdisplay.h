@@ -1,4 +1,4 @@
-// $Id: tkdisplay.h,v 1.7 2010/12/09 23:04:16 shaino Exp $
+// $Id: tkdisplay.h,v 1.8 2010/12/10 21:38:01 shaino Exp $
 //
 // TkDisplay : a class to manage main window of TkDisplay by SH
 //
@@ -114,8 +114,8 @@ private slots:
   void More() { ui.glDisp->moreInfo(); }
   void Call() { ui.glDisp->closeAll(); }
 
-#if (QT_VERSION == 0x040503) 
-  // for Qt 4.5.3
+#if (QT_VERSION >= 0x040503) 
+  // for Qt 4.5.3 or later
   void on_acOpen_triggered() { Open(); }
   void on_acNetf_triggered() { Netf(); }
   void on_acMagf_triggered() { Magf(); }

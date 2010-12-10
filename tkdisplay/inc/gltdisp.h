@@ -1,4 +1,4 @@
-// $Id: gltdisp.h,v 1.4 2010/12/09 23:04:16 shaino Exp $
+// $Id: gltdisp.h,v 1.5 2010/12/10 21:38:01 shaino Exp $
 //
 // GLTDisp : a class to manage 3D Tracker Display on OpenGL by SH
 //
@@ -11,8 +11,6 @@
 #include <QTimer>
 #include <QString>
 #include <QPixmap>
-
-class QGestureEvent;
 
 class AMSEventR;
 class GVDraw;
@@ -55,7 +53,6 @@ signals:
   void swipeEvent(int);
 
 protected:
-  bool event(QEvent *);
   virtual void mousePressEvent(QMouseEvent   *event);
   virtual void mouseMoveEvent (QMouseEvent   *event);
   virtual void leaveEvent     (QEvent        *event);
@@ -64,17 +61,17 @@ protected:
   virtual void paintEvent     (QPaintEvent   *event);
 
 #ifdef Q_WS_MAC
-  virtual void gestureEvent(QGestureEvent *event);
+  virtual void swipeGesture(QSwipeGesture *swipe);
 #endif
 
 protected:
   virtual void drawObject (GLenum mode);
   virtual void processPick();
 
-  TEWidget *openTEWidget(TEWidget *tew, int wtype = -1);
+protected:
+  virtual void resetButton(QPainter *pnt, int x = -1, int y = -1);
 
-//void buildLines();
-//void fillHitVec(int *vecx, int *vecy);
+  TEWidget *openTEWidget(TEWidget *tew, int wtype = -1);
 
 protected:
   GVDraw *glDraw;
@@ -108,6 +105,8 @@ protected:
   int lsWait;
   int lsStatus;
   int aStep;
+
+  bool focusReset;
 
 public:
   enum { AN_NORMAL, AN_LIGHT, AN_NONE };

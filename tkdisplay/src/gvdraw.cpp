@@ -1,4 +1,4 @@
-// $Id: gvdraw.cpp,v 1.2 2010/12/09 19:06:54 shaino Exp $
+// $Id: gvdraw.cpp,v 1.3 2010/12/10 21:38:02 shaino Exp $
 #include "gvconst.h"
 #include "gvdraw.h"
 #include "gvgeom.h"
@@ -33,6 +33,10 @@ TkLadder *GVDraw::getLadder(int sid) const
 void GVDraw::drawObject(bool render, bool select, int idsel)
 {
   glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_ALPHA_TEST);
+
+  glAlphaFunc(GL_GREATER, 0.1);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   if (render) {
@@ -49,6 +53,8 @@ void GVDraw::drawObject(bool render, bool select, int idsel)
   drawTrdTracks(render, select, idsel);
   drawTracker  (render, select, idsel);
   drawAMSgeom  (render, select, idsel);
+
+  glDisable(GL_ALPHA_TEST);
 }
 
 void GVDraw::drawAMSgeom(bool render, bool select, int idsel)

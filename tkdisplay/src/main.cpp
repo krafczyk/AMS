@@ -1,4 +1,4 @@
-// $Id: main.cpp,v 1.5 2010/05/10 21:55:47 shaino Exp $
+// $Id: main.cpp,v 1.6 2010/12/10 21:38:02 shaino Exp $
 #include <QApplication>
 #include <QString>
 
@@ -7,6 +7,8 @@
 #include "gvdraw.h"
 #include "TrRecon.h"
 #include "MagField.h"
+
+#include <QDebug>
 
 int main(int argc, char **argv)
 {
@@ -22,6 +24,8 @@ int main(int argc, char **argv)
   int   setup = GVDraw::tkSetup;
   float bfscl = 1;
 
+  int posx = -1, posy = -1;
+
   for (int i = 0; i < argc; i++) {
     QString str = argv[i];
     if (str.contains("entry:"))  entry = str.mid(str.indexOf(":")+1).toInt();
@@ -32,6 +36,10 @@ int main(int argc, char **argv)
     if (str.contains("magfn:"))  fnmag = str.mid(str.indexOf(":")+1);
     if (str.contains("magsc:"))  bfscl = str.mid(str.indexOf(":")+1).toFloat();
     if (str.contains("noanime")) anime = 0;
+    if (str.contains("pos:")) {  posx  = str.mid(str.indexOf(":")+1,
+						 str.indexOf(",")-
+						 str.indexOf(":")-1).toInt();
+                                 posy  = str.mid(str.indexOf(",")+1).toInt(); }
   }
 
   GVDraw::tkSetup = setup;
@@ -44,6 +52,8 @@ int main(int argc, char **argv)
   NetFileEngineHandler netf;
 
   TkDisplay *w = new TkDisplay;
+  if (posx >= 0 && posy >= 0) w->move(posx ,posy);
+
   if (fname != "") w->openFile(fname.toAscii().data(), entry);
   if (nfurl != "" && 
       nfdir != "") NetFileEngine::setUrl(nfurl, nfdir, false);

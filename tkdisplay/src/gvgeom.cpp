@@ -1,4 +1,4 @@
-// $Id: gvgeom.cpp,v 1.1 2010/05/10 21:55:47 shaino Exp $
+// $Id: gvgeom.cpp,v 1.2 2010/12/10 21:38:02 shaino Exp $
 
 #include "TFile.h"
 #include "TGeometry.h"
@@ -70,7 +70,7 @@ public:
   bool operator() (const GLRender *obj1, const GLRender *obj2) const {
     int ord1 = getGeomOrder(((GVGeom *)obj1)->getType());
     int ord2 = getGeomOrder(((GVGeom *)obj2)->getType());
-    return (ord1 < ord2 || 
+    return ( ord1 <  ord2 || 
 	    (ord1 == ord2 && obj1->getGLID() < obj2->getGLID()));
   }
 };

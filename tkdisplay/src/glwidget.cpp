@@ -1,4 +1,4 @@
-// $Id: glwidget.cpp,v 1.3 2010/12/09 23:04:16 shaino Exp $
+// $Id: glwidget.cpp,v 1.4 2010/12/10 21:38:01 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -23,6 +23,14 @@ GLWidget::GLWidget(QWidget *parent)
 
   setFocusPolicy(Qt::StrongFocus);
   setAutoFillBackground(false);
+
+#ifdef Q_WS_MAC
+  grabGesture(Qt::TapGesture,        0);  // 1
+  grabGesture(Qt::TapAndHoldGesture, 0);  // 2
+  grabGesture(Qt::PanGesture,        0);  // 3
+  grabGesture(Qt::PinchGesture,      0);  // 4
+  grabGesture(Qt::SwipeGesture,      0);  // 5
+#endif
 }
 
 GLWidget::~GLWidget()
@@ -71,19 +79,20 @@ void GLWidget::vRotate(int val, int update)
   }
 }
 
-void GLWidget::cReset(int update)
+void GLWidget::cReset(int update, int dfov,  int ddol, 
+		                  int drotv, int droth)
 {
-  cFov = FOV_DEF;
-  cDol = DOL_DEF;
-  vRot = ROTV_DEF;
-  hRot = ROTH_DEF;
+  cFov = dfov;
+  cDol = ddol;
+  vRot = drotv;
+  hRot = droth;
 
   double cen[3] = { 0, 0, 0 };
   double fov = bFov*std::pow(sFov, (double)cFov/FOV_SCALE);
   glView->getCamera()->Reset();
   glView->getCamera()->Configure(fov, (double)cDol/DOL_SCALE, cen,
-				 (double)hRot/ROT_SCALE*M_PI/180,
-				 (double)vRot/ROT_SCALE*M_PI/180);
+				      (double)hRot/ROT_SCALE*M_PI/180,
+				      (double)vRot/ROT_SCALE*M_PI/180);
 				    
   emit zChanged(cFov);
   emit dChanged(cDol);
@@ -107,7 +116,9 @@ void GLWidget::setLSize(int val, int update)
 
 void GLWidget::setLZpos(int val, int update)
 {
-  glView->setBCen(0, 0, val);
+  glView->setBCen(0, 0, val, 3);
+//glView->setBCen(0, val, 0, 2);
+//glView->setBCen(val, 0, 0, 1);
   if (update) updateGL();
 }
 
@@ -143,6 +154,15 @@ void GLWidget::resizeGL(int width, int height)
   }
 }
 
+bool GLWidget::event(QEvent *event)
+{
+#ifdef Q_WS_MAC
+  if (event->type() == QEvent::Gesture)
+    gestureEvent(static_cast<QGestureEvent*>(event));
+#endif
+  return QGLWidget::event(event);
+}
+
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
   if ((event->modifiers() & Qt::ShiftModifier) && 
@@ -156,7 +176,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-  if (event->modifiers() & Qt::ShiftModifier) {
+#ifdef Q_WS_MAC
+  bool modifire = true;
+#else
+  bool modifire = (event->modifiers() & Qt::ShiftModifier);
+#endif
+
+  if (modifire) {
     if (pickObject(event->x(), event->y()))
       updateGL();
     return;
@@ -167,27 +193,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     return;
   }
 
+#ifndef Q_WS_MAC
   int dx =   event->x()-lastMpos.x();
   int dy = -(event->y()-lastMpos.y());
-
-  if (event->buttons() & Qt::LeftButton) {
-    glView->getCamera()->Rotate(dx, dy, 0, 0);
-
-    vRot += ROT_SCALE*360*dx/vpWidth;
-    hRot += ROT_SCALE*180*dy/vpHeight;
-    while (vRot < 0)             vRot += 360*ROT_SCALE;
-    while (vRot > 360*ROT_SCALE) vRot -= 360*ROT_SCALE;
-    if    (hRot < -90*ROT_SCALE) hRot  = -90*ROT_SCALE;
-    if    (hRot >  90*ROT_SCALE) hRot  =  90*ROT_SCALE;
-
-    updateGL();
-    emit vRotated(vRot);
-    emit hRotated(hRot);
-  } 
-  else if (event->buttons() & Qt::RightButton) {
-    glView->getCamera()->Truck(dx, dy, 0, 0);
-    updateGL();
-  }
+  if      (event->buttons() & Qt::LeftButton)  processRot  (dx, dy);
+  else if (event->buttons() & Qt::RightButton) processTruck(dx, dy);
+#endif
 
   lastMpos = event->pos();
 }
@@ -204,12 +215,9 @@ void GLWidget::wheelEvent(QWheelEvent *event)
 {
 #ifdef Q_WS_MAC 
   int dx = 0, dy = 0;
-  if (event->orientation() == Qt::Horizontal) dx = event->delta()/10;
-  if (event->orientation() == Qt::Vertical  ) dy = event->delta()/10;
-  if (dx != 0 || dy != 0) {
-    int redraw = glView->getCamera()->Truck(dx, dy, 0, 0);  
-    if (redraw) updateGL();
-  }
+  if (event->orientation() == Qt::Horizontal) dx = -event->delta()/10;
+  if (event->orientation() == Qt::Vertical  ) dy =  event->delta()/10;
+  processTruck(dx, dy);
 #else
   processZoom(event->delta());
 #endif
@@ -244,29 +252,87 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
   if (redraw) updateGL();
 }
 
+#ifdef Q_WS_MAC 
+#include <QGestureEvent>
+
+void GLWidget::gestureEvent(QGestureEvent *event)
+{
+  if (QGesture *gst = event->gesture(Qt::SwipeGesture)) {
+    QSwipeGesture *swipe = static_cast<QSwipeGesture *>(gst);
+    swipeGesture(swipe);
+  }
+
+  else if (QGesture *gst = event->gesture(Qt::TapAndHoldGesture)) {
+    QTapAndHoldGesture *taph = static_cast<QTapAndHoldGesture *>(gst);
+    QPoint gp((int)(taph->position().x()+0.5),
+	      (int)(taph->position().y()+0.5));
+    QPoint lp = mapFromGlobal(gp);
+    pickObject(lp.x(), lp.y());
+    processPick();
+  }
+
+  else if (QGesture *gst = event->gesture(Qt::PinchGesture)) {
+    QPinchGesture *pinch = static_cast<QPinchGesture *>(gst);
+    if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged) {
+      if (pinch->lastScaleFactor() > 0) {
+	float dsc = pinch->scaleFactor()/pinch->lastScaleFactor();
+	int delta = (int)(20000*(dsc-1));
+	processZoom(delta);
+      }
+    }
+    if (pinch->changeFlags() & QPinchGesture::RotationAngleChanged) {
+      float nrot = pinch->rotationAngle();
+      float brot = pinch->lastRotationAngle();
+      processProt(nrot-brot);
+    }
+  }
+
+  else if (QGesture *gst = event->gesture(Qt::PanGesture)) {
+    QPanGesture *pan = static_cast<QPanGesture *>(gst);
+    processRot(pan->delta().x(), -pan->delta().y());
+  }
+
+/*
+  else {
+    QList<QGesture *> glst = event->activeGestures();
+    for (int i = 0; i < glst.size(); i++) {
+      QGesture *gst = glst.at(i);
+      qDebug() << "Unknown gesture " << gst->gestureType();
+    }
+  }
+*/
+}
+#endif
+
 void GLWidget::drawObject(GLenum mode)
 {
-  static const GLfloat par[4*4] = { 0.8, 0.1, 0.0, 1.0,
-				    0.0, 0.8, 0.2, 1.0,
-				    0.2, 0.2, 1.0, 1.0,
-				    0.8, 0.8, 0.8, 1.0 };
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  double xc[3] = { -0.3, 0,   0   };
-  double yc[3] = {  0,   0.3, 0   };
-  double zc[3] = {  0,   0,   0.3 };
+  static const double par[4*4] = { 0.8, 0.1, 0.0, 0.6,
+				   0.0, 0.8, 0.2, 0.6,
+				   0.0, 0.1, 0.8, 0.6,
+				   0.8, 0.8, 0.8, 1.0 };
+
+  double xc[3] = { -0, 0, 0 };
+  double yc[3] = {  0, 3, 0 };
+  double zc[3] = {  0, 0, 3 };
+
+  double scl = 20;
 
   for (int i = 0; i < 3; i++) {
     int id = i+1;
 
     if (mode == GL_RENDER) {
       if (idSel == id)
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &par[3*4]);
+	GLRender::glMatCol(&par[3*4]);
       else
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &par[i*4]);
+	GLRender::glMatCol(&par[i*4]);
     }
     else if (mode == GL_SELECT) glLoadName(id);
 
-    GLRender::glBox(xc[i], yc[i], zc[i], 0.1, 0.1, 0.1);
+    GLRender::glBox(xc[i]*scl, yc[i]*scl, zc[i]*scl, 
+		          scl,       scl,       scl);
   }
 }
 
@@ -327,4 +393,39 @@ void GLWidget::processZoom(int delta)
 
   updateGL();
   emit zChanged(cFov);
+}
+
+void GLWidget::processRot(int dx, int dy)
+{
+  if (dx == 0 && dy == 0) return;
+
+  glView->getCamera()->Rotate(dx, dy, 0, 0);
+
+  vRot += ROT_SCALE*360*dx/vpWidth;
+  hRot += ROT_SCALE*180*dy/vpHeight;
+  while (vRot < 0)             vRot += 360*ROT_SCALE;
+  while (vRot > 360*ROT_SCALE) vRot -= 360*ROT_SCALE;
+  if    (hRot < -90*ROT_SCALE) hRot  = -90*ROT_SCALE;
+  if    (hRot >  90*ROT_SCALE) hRot  =  90*ROT_SCALE;
+
+  updateGL();
+  emit vRotated(vRot);
+  emit hRotated(hRot);
+}
+
+void GLWidget::processTruck(int dx, int dy)
+{
+  if (dx == 0 && dy == 0) return;
+
+  int redraw = glView->getCamera()->Truck(dx, dy, 0, 0);  
+  if (redraw) updateGL();
+}
+
+void GLWidget::processProt(int angle)
+{
+  if (angle == 0) return;
+
+  int asign  = (angle > 0) ? 1 : -1;
+  int redraw = glView->getCamera()->RotCamBase(asign*angle*angle*M_PI/180);
+  if (redraw) updateGL();
 }

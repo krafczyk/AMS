@@ -1,4 +1,4 @@
-// $Id: glviewer.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: glviewer.h,v 1.3 2010/12/10 21:38:01 shaino Exp $
 //
 // GLViewer : a class to manage GLCamera and GLLight
 //            imported from ROOT:TGLViewer and arranged by SH
@@ -16,6 +16,7 @@ protected:
   double bX;
   double bY;
   double bZ;
+  int    bAx;
 
   double vpX;
   double vpY;
@@ -33,7 +34,8 @@ public:
   GLLight  *getLight()  const { return glLight; }
 
   void setBSize(double size) { bSize = size; }
-  void setBCen (double x, double y, double z) { bX = x; bY = y; bZ = z; }
+  void setBCen (double x, double y, double z, int ax = 3)
+    { bX = x; bY = y; bZ = z; bAx = ax; }
 
   void initGL    ();
   void preDraw   ();

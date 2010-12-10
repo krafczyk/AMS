@@ -1,4 +1,4 @@
-// $Id: glviewer.cpp,v 1.2 2010/05/10 21:55:47 shaino Exp $
+// $Id: glviewer.cpp,v 1.3 2010/12/10 21:38:01 shaino Exp $
 #include "glviewer.h"
 #include "glcamera.h"
 #include "gllight.h"
@@ -10,6 +10,7 @@ GLViewer::GLViewer(int x, int y, int width, int height, int ssize)
 {
   bSize = 150;
   bX = bY = bZ = 0;
+  bAx = 3;
 
   glLight  = new GLLight;
   glCamera = new GLCamera(GLVector3(-1.0, 0.0, 0.0), 
@@ -26,20 +27,21 @@ GLViewer::~GLViewer()
 void GLViewer::initGL()
 {
   // GL initialisation
-  glEnable(GL_LIGHTING);
-  glEnable(GL_DEPTH_TEST);
-
-//glEnable(GL_CULL_FACE);
-//glCullFace(GL_BACK);
+  glEnable (GL_LIGHTING);
+  glEnable (GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glEnable (GL_COLOR_MATERIAL);
+  glEnable (GL_BLEND);
+  glEnable (GL_MULTISAMPLE);
 
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glClearDepth(1.0);
-  glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-  glEnable(GL_COLOR_MATERIAL);
-  glMaterialf(GL_BACK, GL_SHININESS, 0.0);
-  glPolygonMode(GL_FRONT, GL_FILL);
-  glDisable(GL_BLEND);
 
+  glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+  glMaterialf(GL_BACK, GL_SHININESS, 0.0);
+
+  glPolygonMode(GL_FRONT, GL_FILL);
+  glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
   float lma[4] = {0.5f, 0.5f, 1.f, 1.f};
@@ -66,7 +68,9 @@ void GLViewer::preRender()
   glCamera->Apply();
 
   GLVector3 ev = glCamera->EyePoint()-glCamera->FrustumCenter();
-  glLight->setupLights(bX, bY, bZ-ev.Mag()*0.6, bSize);
+  if (bAx == 1) glLight->setupLights(bX-ev.Mag()*0.6, bY, bZ, bSize);
+  if (bAx == 2) glLight->setupLights(bX, bY-ev.Mag()*0.6, bZ, bSize);
+  if (bAx == 3) glLight->setupLights(bX, bY, bZ-ev.Mag()*0.6, bSize);
 }
 
 void GLViewer::pickObject(int x, int y, int width, int height)

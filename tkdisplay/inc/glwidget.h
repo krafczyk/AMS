@@ -1,4 +1,4 @@
-// $Id: glwidget.h,v 1.3 2010/12/09 23:04:16 shaino Exp $
+// $Id: glwidget.h,v 1.4 2010/12/10 21:38:01 shaino Exp $
 //
 // GLWidget : a class to manage OpenGL functions on a QWidget framework
 //            by SH
@@ -8,6 +8,11 @@
 
 #include <QGLWidget>
 #include "gllight.h"
+
+#ifdef Q_WS_MAC
+class QGestureEvent;
+class QSwipeGesture;
+#endif
 
 class GLViewer;
 
@@ -33,7 +38,9 @@ public slots:
   void cDolly (int val, int update = 1);
   void hRotate(int val, int update = 1);
   void vRotate(int val, int update = 1);
-  void cReset (int update = 1);
+  void cReset (int update = 1, int dfov  = FOV_DEF,  int ddol  = DOL_DEF, 
+                             //int drotv = ROTV_DEF, int droth = ROTH_DEF);
+	                       int drotv = 0, int droth = 0);
 
   void setLSet(ELight light, int sw, int update = 1);
 
@@ -51,17 +58,26 @@ protected:
   virtual void paintGL();
   virtual void resizeGL(int width, int height);
 
+  bool event(QEvent *);
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseMoveEvent (QMouseEvent *event);
   virtual void leaveEvent     (QEvent      *event);
   virtual void wheelEvent     (QWheelEvent *event);
   virtual void keyPressEvent  (QKeyEvent   *event);
 
+#ifdef Q_WS_MAC
+  virtual void gestureEvent(QGestureEvent *event);
+  virtual void swipeGesture(QSwipeGesture *swipe) {}
+#endif
+
   virtual void drawObject(GLenum mode);
   virtual bool pickObject(int x, int y);
   virtual void processSel(GLint nhit, GLuint *sbuf);
   virtual void processPick() {}
-  virtual void processZoom(int delta);
+  virtual void processZoom (int delta);
+  virtual void processRot  (int dx, int dy);
+  virtual void processTruck(int dx, int dy);
+  virtual void processProt (int angle);
 
 protected:
   GLViewer *glView;

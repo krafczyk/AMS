@@ -1,4 +1,4 @@
-// $Id: glrender.h,v 1.1 2010/05/10 21:55:46 shaino Exp $
+// $Id: glrender.h,v 1.2 2010/12/10 21:38:01 shaino Exp $
 //
 // GLRender : a class to manage 3D object defined as TBuffer3D format 
 //            (but independent of TBuffer3D)
@@ -43,7 +43,7 @@ public:
 
 public:
   static void addObject(GLRender *buf) { svRender.push_back(buf); }
-  static void drawAll(bool render, bool select, int idsel = -1);
+  static void drawAll(bool render, bool select, int idsel = -1, int order = 1);
   static GLRender *findObject(int id);
 
   static void glMatCol(const double *cpar);
