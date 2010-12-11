@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.504 2010/12/10 17:42:00 choumilo Exp $
+//  $Id: event.C,v 1.505 2010/12/11 18:30:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -226,6 +226,9 @@ if(AMSEvent::get_thread_num()==0)
        cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*offspring;
       offspring=(AMSTimeID*)offspring->next();
      }
+    }
+    if(SRun){
+       AMSNtuple::writeRSetup();
     }
 #ifndef _PGTRACK_
     //PZ FIXME CALIB

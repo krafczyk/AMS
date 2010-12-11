@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.92 2010/12/10 20:02:26 choumilo Exp $
+//  $Id: trigger102.C,v 1.93 2010/12/11 18:30:30 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -22,8 +22,8 @@ using namespace std;
 using namespace ecalconst;
 //
  Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
- Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
- Trigger2LVL1::ScalerMon Trigger2LVL1::scalmon;
+ Lvl1TrigConfig Trigger2LVL1::l1trigconf;
+ ScalerMon Trigger2LVL1::scalmon;
  integer Trigger2LVL1::PhysBranchCount[8]={0,0,0,0,0,0,0,0};
  integer TGL1JobStat::countev[20];
  integer TGL1JobStat::daqc1[80];
@@ -540,7 +540,7 @@ if((TGL1FFKEY.printfl%10)>0){
   ScalerIsChanged=false;//reset new_scalers flag
 }
 //--------------------
-void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
+void Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
   char fname[80];
   char name[80];
   char datt[3];
@@ -771,7 +771,7 @@ void Trigger2LVL1::Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(ma
 //
 }
 //--------------------
-void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
+void Lvl1TrigConfig::redefbydc(){
 //called from siamsinitevent(), redefine in memory some trigconfig settings by DataCards
   integer lut1,lut2,toflc,toflcz,toflcsz,cftmask,ftpatreq(0),sorand,ewcode;
   integer i,j,k,l,code1,code2,trtype;
@@ -779,7 +779,7 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
 //---
   trtype=TGL1FFKEY.trtype;
   if(trtype>=0){
-    if(trtype>0 && trtype<=128)l1trigconf.globl1mask()=trtype;//redef required PhysBrMembers
+    if(trtype>0 && trtype<=128)Trigger2LVL1::l1trigconf.globl1mask()=trtype;//redef required PhysBrMembers
     else{
       cout<<"<---L1TrigConfig:redefbydc: Error: bad PhysBranches requested by data card !!!"<<endl;
       exit(1);
@@ -811,8 +811,8 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad FTC-layers conf. requested by data card !!!"<<endl;
       exit(1);
     }
-    l1trigconf.toflut1()=lut1;
-    l1trigconf.toflut2()=lut2;
+    Trigger2LVL1::l1trigconf.toflut1()=lut1;
+    Trigger2LVL1::l1trigconf.toflut2()=lut2;
   }
 //---
   if(TGL1FFKEY.toflcz>=0){//redef BZ LUT setting by request from data card
@@ -830,7 +830,7 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad Lev1 BZ-layers conf. requested by data card !!!"<<endl;
       exit(1);
     }
-    l1trigconf.toflutbz()=lut1;
+    Trigger2LVL1::l1trigconf.toflutbz()=lut1;
   }
 //---
   if(TGL1FFKEY.toflcsz>=0){//redef FTZ(slowZ>=2) layers logic by request from DC
@@ -847,7 +847,7 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
     pwextt=geant(20*(1+(ewcode&31)));//ext.width for top-coinc. signal
     pwextb=geant(20*(1+(ewcode&(31<<5))>>5));//ext.width for bot-coins. signal
     if(pwextt>=260 && pwextb>=260 && pwextt<=640 && pwextb<=640) 
-                                                          l1trigconf.tofextwid()=ewcode;
+                                                          Trigger2LVL1::l1trigconf.tofextwid()=ewcode;
     else{
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad FTZ ext.width requested by data card !!!"<<endl;
       exit(1);
@@ -863,17 +863,17 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad glob.FTmemb.mask requested by data card !!!"<<endl;
       exit(1);
     }
-    l1trigconf.globftmask()=cftmask;// decimal IJK->FTE|FTZ|FTC
+    Trigger2LVL1::l1trigconf.globftmask()=cftmask;// decimal IJK->FTE|FTZ|FTC
   }
 //---
   if(TGL1FFKEY.tofsc>=0){//redef TofPlaneSidesOrAnd from data-card(FTC,BZ)
     sorand=TGL1FFKEY.tofsc;//MN (m(n)=0/1-> plane two-sides-AND/OR selection, n->FTC, m->BZ)
     if((sorand/10)<=1 && (sorand%10)<=1){
       for(int il=0;il<TOF2GC::SCLRS;il++){
-        if((sorand/10)==0)l1trigconf.tofoamask(il)=0;//and
-        else l1trigconf.tofoamask(il)=1;//or
-        if((sorand%10)==0)l1trigconf.tofoazmask(il)=0;//and
-        else l1trigconf.tofoazmask(il)=1;//or
+        if((sorand/10)==0)Trigger2LVL1::l1trigconf.tofoamask(il)=0;//and
+        else Trigger2LVL1::l1trigconf.tofoamask(il)=1;//or
+        if((sorand%10)==0)Trigger2LVL1::l1trigconf.tofoazmask(il)=0;//and
+        else Trigger2LVL1::l1trigconf.tofoazmask(il)=1;//or
       }
     }
     else{
@@ -883,12 +883,12 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
   }  
 //---
   if(TGL1FFKEY.antismx[0]>=0){//redef ACC multipl.thresh.settings
-    if(TGL1FFKEY.antismx[0]<=8)l1trigconf.antsectmx(0)=TGL1FFKEY.antismx[0];
+    if(TGL1FFKEY.antismx[0]<=8)Trigger2LVL1::l1trigconf.antsectmx(0)=TGL1FFKEY.antismx[0];
     else{
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad ACC mult.threshold1 requested by data card !!!"<<endl;
       exit(1);
     }
-    if(TGL1FFKEY.antismx[1]<=8)l1trigconf.antsectmx(1)=TGL1FFKEY.antismx[1];
+    if(TGL1FFKEY.antismx[1]<=8)Trigger2LVL1::l1trigconf.antsectmx(1)=TGL1FFKEY.antismx[1];
     else{
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad ACC mult.threshold2 requested by data card !!!"<<endl;
       exit(1);
@@ -899,8 +899,8 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
     sorand=TGL1FFKEY.antisc;
     if(sorand<=1){
       for(int is=0;is<ANTI2C::MAXANTI;is++){
-        if(sorand==0)l1trigconf.antoamask(is)=0;//And
-        else l1trigconf.antoamask(is)=1;//Or
+        if(sorand==0)Trigger2LVL1::l1trigconf.antoamask(is)=0;//And
+        else Trigger2LVL1::l1trigconf.antoamask(is)=1;//Or
       }
     }
     else{
@@ -912,9 +912,9 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
   integer orand;
   if(TGL1FFKEY.ecorand>=0){//redef ECproj or/and
     orand=TGL1FFKEY.ecorand;//proj-or/and(1/2) according to  data-card
-    if(orand>=1 && orand<=2)l1trigconf.ecorand()=orand;
+    if(orand>=1 && orand<=2)Trigger2LVL1::l1trigconf.ecorand()=orand;
     else{
-      cout<<"    Lvl1TrigConfig::redefbydc: Error:bad ECproj OR/AND requested by data card !!!"<<endl;
+      cout<<"    LvTrigger2LVL1::l1TrigConfig::redefbydc: Error:bad ECproj OR/AND requested by data card !!!"<<endl;
       exit(1);
     }
   }
@@ -928,7 +928,7 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
     k=(kl%10);//x
     l=(kl/10);//y
     if(i<2 && j<2 && k<2 && l<2){
-      l1trigconf.ecprjmask()=prjmsk;//proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
+      Trigger2LVL1::l1trigconf.ecprjmask()=prjmsk;//proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
     }
     else{
       cout<<"    Lvl1TrigConfig::redefbydc: Error:bad ECproj active-mask requested by data card !!!"<<endl;
@@ -937,7 +937,7 @@ void Trigger2LVL1::Lvl1TrigConfig::redefbydc(){
   }
 }
 //---------
-void Trigger2LVL1::Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,...) to def.file(+DB)
+void Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,...) to def.file(+DB)
 //
 //flg=1/2-> save2file/+DB
   integer endflab(12345);
@@ -1112,7 +1112,7 @@ void Trigger2LVL1::Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig
   }//--->endof file writing 
 }
 //---------
-void Trigger2LVL1::ScalerMon::setdefs(){
+void ScalerMon::setdefs(){
 // called by sitrig2initjob(for real data also)
 //
   if(AMSJob::gethead()->isMCData()){//arbitrary mc-values(just to debugg)

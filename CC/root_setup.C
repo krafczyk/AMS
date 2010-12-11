@@ -39,11 +39,19 @@ if(run){
 }
 return true;
 }
-AMSSetupR::AMSSetupR(){
-//fGPSTime.clear();
-//fTTCS.clear();
+void AMSSetupR::Reset(){
+fGPSTime.clear();
+fTTCS.clear();
 fBValues.clear();
-//fISSData.clear();
+fISSData.clear();
+fScalers.clear();
+fLVL1Setup.clear();
+Header a;
+fHeader=a;
+}
+
+AMSSetupR::AMSSetupR(){
+Reset();
 }
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)

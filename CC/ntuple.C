@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.204 2010/12/02 23:29:35 choutko Exp $
+//  $Id: ntuple.C,v 1.205 2010/12/11 18:30:30 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -49,7 +49,7 @@
 #include "TH2F.h"
 #include "TFitter.h"
 #include "HistoMan.h"
-
+#include"trigger102.h"
 AMSEventR AMSNtuple::_evroot02;
 AMSSetupR AMSNtuple::_setup02;
 EventNtuple02 AMSNtuple::_event02;
@@ -306,7 +306,7 @@ void AMSNtuple::endR(bool cachewrite){
   // write tracker alignment structure
   
   if(_rfile){
-    if(_treesetup)_treesetup->Fill();
+    writeRSetup();
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
@@ -442,6 +442,21 @@ void AMSNtuple::initR(char* fname,uinteger run){
 
 uinteger AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
+
+if(Trigger2LVL1::SetupIsChanged){
+#pragma omp critical (g4)
+Get_setup02()->fLVL1Setup.insert(make_pair(AMSEvent::gethead()->gettime(),Trigger2LVL1::l1trigconf));
+
+}
+if(Trigger2LVL1::ScalerIsChanged){
+#pragma omp critical (g4)
+{
+Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger2LVL1::scalmon));
+
+}
+}
+
+
   vector<AMSEventR*> del;
 #pragma omp critical (wr1)
   {
@@ -782,3 +797,10 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
 #endif
 }
 
+uinteger AMSNtuple::writeRSetup(){
+if( _treesetup){
+   _treesetup->Fill();
+   Get_setup02()->Reset();
+}
+return _treesetup!=NULL;
+}
