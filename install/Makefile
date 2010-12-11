@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.133 2010/12/09 19:25:27 choutko Exp $
+#  $Id: Makefile,v 1.134 2010/12/11 18:30:39 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -314,7 +314,7 @@ else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif
 
-ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h
+ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h  ../include/trigger102_setup.h
 
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h
 
@@ -513,7 +513,7 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o 
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup.o 
 
 endif
 
@@ -560,7 +560,7 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h        ../include/root_setup.h ../include/linkdef.h
+$(BIN)rootdict.C:    ../include/point.h   ../include/root_RV.h ../include/root.h        ../include/root_setup.h ../include/trigger102_setup.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
 	@echo "OK"

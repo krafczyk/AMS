@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.123 2010/12/02 23:29:35 choutko Exp $
+//  $Id: ntuple.h,v 1.124 2010/12/11 18:30:39 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -924,7 +924,6 @@ typedef map<uint64,AMSEventR*>::iterator evmapi;
   static AMSEventR   _evroot02;
   static AMSSetupR   _setup02;
 #pragma omp threadprivate(_evroot02)
-#pragma omp threadprivate(_setup02)
   static TTree* _tree;  
   static TTree* _treesetup;   //   the one-per-run entree tree fulled with 
                               //   maps of (time,{structure}) time==uint or uint64 mksec
@@ -948,6 +947,7 @@ public:
   void reset(int i=0);
   void write(integer addentry=0);
   uinteger writeR();
+  static uinteger writeRSetup();
   void endR(bool writecache=true);
   void initR(char* name,uinteger run);
   
@@ -1002,7 +1002,7 @@ public:
 
 #ifdef __WRITEROOT__
    AMSEventR* Get_evroot02() {return &_evroot02;}
-   AMSSetupR* Get_setup02() {return &_setup02;}
+   static AMSSetupR* Get_setup02() {return &_setup02;}
 #endif
 
 };

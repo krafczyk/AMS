@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.298 2010/12/07 17:24:05 mdelgado Exp $
+//  $Id: root.h,v 1.299 2010/12/11 18:30:39 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -515,7 +515,7 @@ public:
   float Chi2Dir;  ///<  chi2 direction fit
   float FirstLayerEdep; ///< front energy dep (Mev)
   float EnergyC; ///< shower energy (gev)
-  float Energy3C[3]; ///< energy(+-2,+-5, +-8 cm)/energy ratios
+  float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
   float ErEnergyC;   ///< energy error (gev)
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)

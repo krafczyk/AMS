@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.98 2010/11/02 22:53:05 choutko Exp $
+//  $Id: event.h,v 1.99 2010/12/11 18:30:38 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -371,6 +371,7 @@ uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
 time_t gettime()const {return _time;}
+unsigned long long getutime()const {unsigned long long t=_time;return (t<<32 | _usec);} 
 TofSTemp * getUtoftp(){return _Utoftp;}
 TofSTemp * getLtoftp(){return _Ltoftp;}
 time_t getmtime()const;

@@ -1,40 +1,11 @@
-//  $Id: antidbc02.h,v 1.16 2009/01/14 13:48:19 choumilo Exp $
+//  $Id: antidbc02.h,v 1.17 2010/12/11 18:30:38 choutko Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
 #define __ANTI2DBC__
 //
 #include "typedefs.h"
-//
-// Constants for Anti-Counters :
-namespace ANTI2C{
- const integer ANTISRS=16;// number of physical sectors 
- const integer MAXANTI=ANTISRS/2; // number of logical(readout) sectors(8)
- const integer ANCHMX=2*MAXANTI;// number of readout channels(inputs)
- const integer ANAMTS=2;// number of Anode measurements types for normal sectors(time/charge) 
- const integer ANAGMTS=1;// number of Anode measurements types for half-cylinder(FT) 
- const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
- const integer ANTHMX=16; // max. number of LTtime-hits per channel
- const integer ANFADC=2000;//Flash-ADC working channels(ovfl not included)
- const integer ANJSTA=35;// size of Job-statistics array 
- const integer ANCSTA=10;// size of Channel-statistics array
- const integer ANCRAT=4; // number of crates with SFEA cards
- const integer ANSFEA=1; // number of SFEA cards per crate
- const integer ANCHSF=16;// max. number of TDC-channels per SFEA (incl. FT-channel)
- const integer ANCHCH=4;// real number of Anti-channels per TDC-chip (impl. 2chip/SFEA)
- const integer ANSLOT=5; // SFEA card position in crate (sequential slot number(1-6))
-// calibr.const:
-//---> gain/attlen calib:
- const integer LongBins=20;//max longit.bins
- const integer BinEvsMX=2000;//max event/bin
- const integer CalChans=2*ANTI2C::ANTISRS;//max calib.channels, id=2*(2*logs+phys)+side
- 
-  const integer ANACMX=2000;// max. number of accum. events per channel(or bin)
-  const integer ANPRBM=11;//max.bins for Ampl-profile along the counter
-  const integer ANELFT=4;     // max. number of param. for Eloss-shape(landau) fit
-  const integer ANPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
-//
-}
+#include "tofanticonst.h"
 //
 class ANTI2DBc {  
 //
