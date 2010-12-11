@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.82 2010/12/09 10:23:30 shaino Exp $
+// $Id: TrTrack.C,v 1.83 2010/12/11 22:02:28 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/09 10:23:30 $
+///$Date: 2010/12/11 22:02:28 $
 ///
-///$Revision: 1.82 $
+///$Revision: 1.83 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1427,11 +1427,13 @@ int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
+/*
+   // Chikanian fit only with ext. layers
    if ((DefaultAdvancedFitFlags[ii] == kChikanian ||
 	DefaultAdvancedFitFlags[ii] == kChikanianF) && 
        !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
      continue;
-
+*/
    if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
      FitT(DefaultAdvancedFitFlags[ii]| add_flag);
      if (add_flag == 0) {
