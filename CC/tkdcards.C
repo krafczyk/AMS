@@ -77,8 +77,8 @@ for (int ii=0;ii<9;ii++){
   MaxChisqForLScan  = 2.2;
   ErrXForScan       = 300e-4;
   ErrYForScan       = 300e-4;
-  TrackThrSeed[0]   = -1;
-  TrackThrSeed[1]   = -1;
+  TrackThrSeed[0]   = 4.0;
+  TrackThrSeed[1]   = 4.0;
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;

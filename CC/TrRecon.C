@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.86 2010/12/09 11:15:21 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.87 2010/12/11 21:45:01 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/09 11:15:21 $
+/// $Date: 2010/12/11 21:45:01 $
 ///
-/// $Revision: 1.86 $
+/// $Revision: 1.87 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,7 @@ TrReconPar::TrReconPar()
 
   TrackThrSeed[0]   = -1;
   TrackThrSeed[1]   = -1;
-  NsigmaMerge       = 10.0;
+  NsigmaMerge       = 100;
 
   NbuildTrack = NcutRaw = NcutLdt = NcutCls = NcutHit = NcutCpu = 0;
 }
@@ -199,6 +199,10 @@ void TrRecon::SetParFromDataCards()
   TrClusterR::TwoStripThresholdY = TRCLFFKEY.TwoStripThresholdY;    // 19
 
   RecPar.SetParFromDataCards();
+
+  cout<<"TrRecon::SetParFromDataCards-I-TrackThrSeed= "
+      <<RecPar.TrackThrSeed[0]<<" "
+      <<RecPar.TrackThrSeed[1]<<endl;
 
   TrDEBUG  = TRCLFFKEY.TrDEBUG;  // 39
   PZDEBUG  = TRCLFFKEY.PZDEBUG;  // 40
@@ -1149,9 +1153,9 @@ void TrRecon::BuildHitsTkIdMap()
     if (RecPar.TrackThrSeed[1] > 0) {
       if (RecPar.TrackThrSeed[0] > 0) {
 	if ( clx && clx->GetSeedSN() < RecPar.TrackThrSeed[0] && 
-	     cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+	            cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
       }
-      if (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
+      if   (!clx && cly->GetSeedSN() < RecPar.TrackThrSeed[1]) continue;
     }
     
     int tkid = hit->GetTkId();
@@ -1894,12 +1898,8 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
 
-  double cfcx  = std::sqrt(track->GetChisqX(mfit)/track->GetNdofX(mfit));
-  double cfcy  = std::sqrt(track->GetChisqY(mfit)/track->GetNdofY(mfit));
-  if (cfcy < 1) cfcy = 1;
-  if (cfcx < 1) cfcx = cfcy;
-  double rthdx = cfcx*TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
-  double rthdy = cfcy*TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
+  double rthdx = TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
+  double rthdy = TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
 
   AMSPoint pltrk[SCANLAY];
   double   rymin[SCANLAY];
@@ -2181,6 +2181,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     delete track;
     return 0;
   }
+  track->Settrdefaultfit(mfit1);
 
   // Merge low seed SN hits
   if (RecPar.TrackThrSeed[0] > RecPar.ThrSeed[0][0] || 
@@ -2876,14 +2877,6 @@ void TrRecon::MatchTRDandExtend(){
 
     if(tr->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
-/*
-      int mfs = TrTrackR::kChoutko | TrTrackR::kMultScat;
-      cout<<"BOKE adv done csq= "
-	  <<tr->GetChisq(mfs)<<" "<<tr->GetChisqX(mfs)<<" "
-	  <<tr->GetChisqY(mfs)<<" r= "
-	  <<tr->GetChisqX(mfs)/tr->GetChisqY(mfs)
-	  <<" rgt= "<<tr->GetRigidity(mfs)<<endl;
-*/
       if (tr->ParExists(TrTrackR::DefaultFitID))
 	tr->Settrdefaultfit(TrTrackR::DefaultFitID);
     } else {
