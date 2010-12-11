@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.38 2010/08/25 10:27:08 shaino Exp $
+//  $Id: TkDBc.C,v 1.39 2010/12/11 11:46:39 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/08/25 10:27:08 $
+///$Date: 2010/12/11 11:46:39 $
 ///
-///$Revision: 1.38 $
+///$Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,6 +39,7 @@ void TkDBc::CreateTkDBc(int force_delete){
   
   if(force_delete&&TkDBc::Head){
     delete TkDBc::Head;
+    TkDBc::Head=0;
   }
   
   if(!TkDBc::Head){
