@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.83 2010/12/11 22:02:28 shaino Exp $
+// $Id: TrTrack.C,v 1.84 2010/12/13 11:19:09 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/11 22:02:28 $
+///$Date: 2010/12/13 11:19:09 $
 ///
-///$Revision: 1.83 $
+///$Revision: 1.84 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -642,11 +642,6 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   if (!qpar) qpar = qtmp;
   for (int i = 0; i < Nqpar; i++) qpar[i] = 0;
 
-  // Pre-selection
-  if (!ParExists (id)      ||
-      GetChisq   (id)  < 0 ||
-      GetRigidity(id) == 0) return 0;
-
   // Base fitting method
   int idb  = (id & (0xfffff-kFitLayer8-kFitLayer9
 		           -kUpperHalf-kLowerHalf));
@@ -657,6 +652,11 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   int id9  = idb | kFitLayer9;  // Inner + Layer 9
   int id89 = idb | kFitLayer8 
                  | kFitLayer9;  // Full span
+
+  // Pre-selection
+  if (!ParExists (id)      || !ParExists (idb)     ||
+      GetChisq   (id)  < 0 ||
+      GetRigidity(id) == 0) return 0;
 
   int    flag  =  0;            // Track classification flag
   int    idx   = -1;            // Track type index (0:inner, 1:half, 2:full)
@@ -686,6 +686,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
       TestHitBits(1, id)    &&     // Layer 1
       TestHitBits(9, id)    &&     // Layer 9
       ParExists  (id9)      && ParExists  (idu)      &&
+      ParExists  (idb)      && 
       GetChisq   (id9) >  0 && GetChisq   (idu) >  0 &&
       GetRigidity(id9) != 0 && GetRigidity(idu) != 0)
   {
@@ -702,6 +703,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
        TestHitBits(8, id) &&                              // Layer 1N
       (TestHitBits(6, id) || TestHitBits(7, id))      &&  // Layer 6 || 7
        ParExists  (id8)      && ParExists  (idl)      &&
+       ParExists  (idb)      && 
        GetChisq   (id8) >  0 && GetChisq   (idl) >  0 &&
        GetRigidity(id8) != 0 && GetRigidity(idl) != 0)
   {
@@ -716,6 +718,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   else
   if ( TestHitBits(1, id)    &&                           // Layer 1
       (TestHitBits(6, id)    || TestHitBits(7, id))   &&  // Layer 6 || 7
+       ParExists  (idb)      && 
        ParExists  (idu)      && ParExists  (idl)      &&
        GetChisq   (idu) >  0 && GetChisq   (idl) >  0 &&
        GetRigidity(idu) != 0 && GetRigidity(idl) != 0)
