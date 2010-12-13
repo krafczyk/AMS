@@ -1,4 +1,4 @@
-// $Id: swladder.h,v 1.1 2009/06/13 21:40:47 shaino Exp $
+// $Id: swladder.h,v 1.2 2010/12/13 21:43:08 shaino Exp $
 //
 // SWLadder : a class to manage ladder information sub window by SH
 //
@@ -23,8 +23,9 @@ public:
   virtual bool checkFocus(int x, int y);
 
 protected:
-  virtual void drawInfobar(QPainter *pnt);
-  virtual void drawObjects(QPainter *pnt);
+  virtual void drawInfobar(QPainter  *pnt);
+  virtual void drawObjects(QPainter  *pnt);
+  virtual void updateEvent(AMSEventR *event);
 
   void drawLadder(QPainter *pnt);
   void drawHits  (QPainter *pnt);

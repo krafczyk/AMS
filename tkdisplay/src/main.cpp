@@ -1,4 +1,4 @@
-// $Id: main.cpp,v 1.6 2010/12/10 21:38:02 shaino Exp $
+// $Id: main.cpp,v 1.7 2010/12/13 21:43:08 shaino Exp $
 #include <QApplication>
 #include <QString>
 
@@ -7,8 +7,6 @@
 #include "gvdraw.h"
 #include "TrRecon.h"
 #include "MagField.h"
-
-#include <QDebug>
 
 int main(int argc, char **argv)
 {

@@ -1,4 +1,4 @@
-// $Id: gltdisp.cpp,v 1.8 2010/12/10 21:38:01 shaino Exp $
+// $Id: gltdisp.cpp,v 1.9 2010/12/13 21:43:08 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -66,16 +66,25 @@ void GLTDisp::setGeom(int type, bool sw)
 
 void GLTDisp::drawOneEvent(AMSEventR *event)
 {
+  if (!event) return;
+
+  bool newevt = ((currEvent != event) || (event->Event() != currEvId));
   currEvent = event;
+  currEvId  = currEvent->Event();
   glDraw->setCurrEvent(event);
-  if (currEvent) {
-    updateGL();
-    if (twEvt) twEvt->setText(InfoText::EventInfo(currEvent));
-    if (twLad) twLad->clearText();
-    if (twCls) twCls->clearText();
-    if (twHit) twHit->clearText();
-    if (twTrk) twTrk->clearText();
+
+  if (twEvt) twEvt->setText(InfoText::EventInfo(currEvent));
+
+  if (newevt && subWin) {
+    int tid = subWin->getID();
+    if (twLad)  twLad->setText(InfoText::LadderInfo(currEvent, tid));
+    if (twTrk)  twTrk->setText(InfoText::TrackInfo (currEvent, tid));
+    if (subWin) subWin->updateEvent(currEvent);
+    //if (twCls) twCls->clearText();
+    //if (twHit) twHit->clearText();
   }
+
+  update();
 }
 
 void GLTDisp::moreInfo()
@@ -331,7 +340,7 @@ void GLTDisp::keyPressEvent(QKeyEvent *event)
 
 void GLTDisp::paintEvent(QPaintEvent *)
 {
-  makeCurrent();
+//makeCurrent();
 
   if (!glLock)
     paintGL();

@@ -1,4 +1,4 @@
-// $Id: gltdisp.h,v 1.5 2010/12/10 21:38:01 shaino Exp $
+// $Id: gltdisp.h,v 1.6 2010/12/13 21:43:07 shaino Exp $
 //
 // GLTDisp : a class to manage 3D Tracker Display on OpenGL by SH
 //
@@ -83,6 +83,7 @@ protected:
   QPixmap glPixmap;
 
   AMSEventR *currEvent;
+  int        currEvId;
 
   QString    styleSheet;
   int        wtEvt;

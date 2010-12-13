@@ -1,4 +1,4 @@
-// $Id: swtrack.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: swtrack.h,v 1.3 2010/12/13 21:43:08 shaino Exp $
 //
 // SWTrack : a class to manage track information sub window by SH
 //
@@ -24,8 +24,9 @@ public:
   virtual void procMpress();
 
 protected:
-  virtual void drawInfobar(QPainter *pnt);
-  virtual void drawObjects(QPainter *pnt);
+  virtual void drawInfobar(QPainter  *pnt);
+  virtual void drawObjects(QPainter  *pnt);
+  virtual void updateEvent(AMSEventR *event);
 
   void drawButtons (QPainter *pnt);
   void drawHits    (QPainter *pnt);

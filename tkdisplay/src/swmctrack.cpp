@@ -1,4 +1,4 @@
-// $Id: swmctrack.cpp,v 1.1 2010/05/10 21:55:47 shaino Exp $
+// $Id: swmctrack.cpp,v 1.2 2010/12/13 21:43:08 shaino Exp $
 #include <QtGui>
 
 #include "swmctrack.h"
@@ -32,10 +32,10 @@ void SWMCTrack::drawInfobar(QPainter *pnt)
   drawText(pnt,  28, 10, Form("MCEventg [%d]", tID));
   drawText(pnt, 130, 10, Form("Particle: %d", mct->Particle));
   drawText(pnt, 130, 30, Form("Momentum: %.2f GeV/c", mct->Momentum));
-  drawText(pnt, 320, 30, Form("Beta:     %.3f", beta));
+  drawText(pnt, 340, 30, Form("Beta:     %.3f", beta));
 
   drawText(pnt, 130, 50, (mct->Mass > 0.9) 
 	   ? Form("Mass:           %.3f GeV/c2", mct->Mass)
 	   : Form("Mass:           %.3f MeV/c2", mct->Mass*1e3));
-  drawText(pnt, 320, 50, Form("Charge: %.0f", mct->Charge));
+  drawText(pnt, 340, 50, Form("Charge: %.0f", mct->Charge));
 }

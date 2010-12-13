@@ -1,4 +1,4 @@
-// $Id: glwidget.cpp,v 1.4 2010/12/10 21:38:01 shaino Exp $
+// $Id: glwidget.cpp,v 1.5 2010/12/13 21:43:08 shaino Exp $
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -35,7 +35,6 @@ GLWidget::GLWidget(QWidget *parent)
 
 GLWidget::~GLWidget()
 {
-  makeCurrent();
 }
 
 void GLWidget::cZoom(int val, int update)

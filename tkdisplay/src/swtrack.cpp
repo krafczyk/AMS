@@ -1,4 +1,4 @@
-// $Id: swtrack.cpp,v 1.3 2010/05/17 10:12:14 shaino Exp $
+// $Id: swtrack.cpp,v 1.4 2010/12/13 21:43:08 shaino Exp $
 #include <QtGui>
 
 #include "swtrack.h"
@@ -28,46 +28,7 @@ int SWTrack::lyrConf = 3;
 SWTrack::SWTrack(AMSEventR *event, int tid) 
   : SubWindow(event, SW_TRACK, WIN_W, WIN_H, TBAR_H), tID(tid)
 {
-  int mfit[NPAR] = { TrTrackR::kChoutko,
-		     TrTrackR::kChoutko | TrTrackR::kFitLayer8,
-		     TrTrackR::kChoutko | TrTrackR::kFitLayer9,
-		     TrTrackR::kChoutko | TrTrackR::kFitLayer8 
-			                | TrTrackR::kFitLayer9 };
-
-  for (int i = 0; i < NLAY; i++) lyrSta[i] = 0;
-  for (int i = 0; i < NPAR; i++) fitPar[i] = 0;
-
-  TrTrackR *trk = rEvent->pTrTrack(tID);
-  if (!trk) return;
-
-  for (int i = 0; i < NPAR; i++)
-    if (trk->ParExists(mfit[i])) fitPar[i] = mfit[i];
-
-  if (fID < 0 || !trk->ParExists(mfit[fID])) {
-    for (int i = 0; i < NPAR; i++)
-      if (trk->ParExists(mfit[i])) {
-	fID = i;
-	break;
-      }
-  }
-  if (fID < 0) return;
-
-  for (int i = 0; i < trk->GetNhits(); i++) {
-    TrRecHitR *hit = trk->GetHit(i);
-    int ily = hit->GetLayer()-1;
-    if (hit->OnlyY()) lyrSta[ily] = LSTA_HITY;
-    else lyrSta[ily] = LSTA_HITT;
-  }
-
-  for (int i = 0; i < NLAY; i++) {
-    if (lyrSta[i] == 0) {
-      AMSPoint pnt;
-      AMSDir dir;
-      trk->Interpolate(TkDBc::Head->GetZlayer(i+1), pnt, dir);
-      TkSens sens(pnt, 0);
-      lyrSta[i] = sens.GetLadTkID();
-    }
-  }
+  updateEvent(event);
 }
 
 SWTrack::~SWTrack()
@@ -167,6 +128,7 @@ void SWTrack::drawInfobar(QPainter *pnt)
   drawText(pnt, 100, 10, Form("nHit: %d",    trk->GetNhits()));
   drawText(pnt, 170, 10, Form("nHitXY: %d",  trk->GetNhitsXY()));
   drawText(pnt, 270, 10, Form("fPat: %s",  hpat.Data()));
+  drawText(pnt,  28, 30, Form("Fit %d", fitPar[fID]));
   drawText(pnt, 100, 30, Form("chi2/Ndf (X): %.2f/%d", 
 			      trk->GetChisqX(mfit), trk->GetNdofX(mfit)));
   drawText(pnt, 270, 30, Form("chi2/Ndf (Y): %.2f/%d", 
@@ -234,6 +196,60 @@ void SWTrack::procMpress()
       else if (lyrConf == 1) lyrConf = 0;
       else if (lyrConf == 2) lyrConf = 3;
       else if (lyrConf == 3) lyrConf = 2;
+    }
+  }
+}
+
+
+void SWTrack::updateEvent(AMSEventR *event)
+{
+  rEvent = event;
+
+  int mf0 = TrTrackR::DefaultFitID;
+
+  int mfit[NPAR] = { mf0, mf0 | TrTrackR::kFitLayer8,
+		          mf0 | TrTrackR::kFitLayer9,
+		          mf0 | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 };
+
+  for (int i = 0; i < NLAY; i++) lyrSta[i] = 0;
+  for (int i = 0; i < NPAR; i++) fitPar[i] = 0;
+
+  TrTrackR *trk;
+  for (int t = tID; t >= 0; t--) {
+    trk = rEvent->pTrTrack(t);
+    if (trk) {
+      tID = t;
+      break;
+    }
+  }
+  if (!trk) return;
+
+  for (int i = 0; i < NPAR; i++)
+    if (trk->ParExists(mfit[i])) fitPar[i] = mfit[i];
+
+  if (fID < 0 || !trk->ParExists(mfit[fID])) {
+    for (int i = 0; i < NPAR; i++)
+      if (trk->ParExists(mfit[i])) {
+	fID = i;
+	break;
+      }
+  }
+  if (fID < 0) return;
+
+  for (int i = 0; i < trk->GetNhits(); i++) {
+    TrRecHitR *hit = trk->GetHit(i);
+    int ily = hit->GetLayer()-1;
+    if (hit->OnlyY()) lyrSta[ily] = LSTA_HITY;
+    else lyrSta[ily] = LSTA_HITT;
+  }
+
+  for (int i = 0; i < NLAY; i++) {
+    if (lyrSta[i] == 0) {
+      AMSPoint pnt;
+      AMSDir dir;
+      trk->Interpolate(TkDBc::Head->GetZlayer(i+1), pnt, dir);
+      TkSens sens(pnt, 0);
+      lyrSta[i] = sens.GetLadTkID();
     }
   }
 }

@@ -1,4 +1,4 @@
-// $Id: subwindow.h,v 1.2 2010/05/10 21:55:46 shaino Exp $
+// $Id: subwindow.h,v 1.3 2010/12/13 21:43:08 shaino Exp $
 //
 // SubWindow : a class to manage sub window on the main display by SH
 //
@@ -37,6 +37,7 @@ public:
   virtual bool checkFocus(int x, int y);
   virtual void drawWindow(QPainter *pnt, int wid, int hei, float scale = 1);
   virtual void procMpress() {}
+  virtual void updateEvent(AMSEventR *event) { rEvent = event; }
 
 protected:
   virtual void drawInfobar(QPainter *pnt);

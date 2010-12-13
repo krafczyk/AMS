@@ -1,4 +1,4 @@
-// $Id: swladder.cpp,v 1.4 2010/12/09 19:06:54 shaino Exp $
+// $Id: swladder.cpp,v 1.5 2010/12/13 21:43:08 shaino Exp $
 #include <QtGui>
 
 #include "swladder.h"
@@ -15,9 +15,7 @@
 SWLadder::SWLadder(AMSEventR *event, int tkid) 
   : SubWindow(event, SW_LADDER, WIN_W, WIN_H, TBAR_H), tkID(tkid)
 {
-  fillClsVec();
-  fillHitVec();
-  fillTrkVec();
+  updateEvent(event);
 }
 
 SWLadder::~SWLadder()
@@ -178,6 +176,16 @@ void SWLadder::drawObjects(QPainter *pnt)
 {
   drawLadder(pnt);
   drawHits  (pnt);
+}
+
+void SWLadder::updateEvent(AMSEventR *event)
+{
+  rEvent = event;
+
+  drawObj.clear();
+  fillClsVec();
+  fillHitVec();
+  fillTrkVec();
 }
 
 void SWLadder::drawLadder(QPainter *pnt)
