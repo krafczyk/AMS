@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.26 2010/12/09 10:23:34 shaino Exp $
+//  $Id: TrRecHit.h,v 1.27 2010/12/14 22:18:52 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -27,6 +27,7 @@
 ///\date  2009/08/16 PZ  General revison -- new inheritance scheme - std printout
 ///
 //////////////////////////////////////////////////////////////////////////
+
 #include <string>
 #include "TrCluster.h"
 #include "point.h"
@@ -48,25 +49,23 @@ protected:
   TrClusterR*  _clusterY; //!
   /// TkLadder ID
   short int   _tkid;
-  
   /// Hit multiplicity 
-  int8  _mult;
+  int8 _mult;
   /// Multiplicity index (-1 means not yet resolved, >-1 resolved by tracking algorithm)
   int8 _imult;
   /// Dummy X-strip position for YONLY hit
   float _dummyX;
   /// Hit global coordinate (multiplicity vector) 
   AMSPoint _coord;
-
-
+  
   /// X Cluster index
   short int _iclusterX;
   /// Y Cluster index
   short int _iclusterY;
-
-  /// Hit status (...)
+  /// Hit status 
   int   Status;
 
+  /// Correlation parameters
   static float GGpars[6];
   static float GGintegral;
 
@@ -75,7 +74,7 @@ protected:
 
  public:
 
-//################# CONSTRUCTOR & C ########################
+  //################# CONSTRUCTOR & C ########################
   /// Default constructor
   TrRecHitR(void);
   /// Copy constructor
@@ -89,7 +88,7 @@ protected:
   /// Rebuild the current coordinate; _coord
   void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
 
-//####################  ACCESSORS ##############################
+  //####################  ACCESSORS ##############################
   /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
   /// Returns index in TrClusterR collection or -1 
@@ -120,7 +119,7 @@ protected:
   /// Get the index of Y cluster
   int GetYClusterIndex() const { return _iclusterY; }
   /// Get the hit multiplicity 
-  int   GetMultiplicity()      { return _mult; }
+  int GetMultiplicity()      { return _mult; }
   /// Returns the computed global coordinate (if resolved)
   const AMSPoint GetCoord() { return _coord; }
   /// Get the computed global coordinate by multiplicity index
@@ -133,24 +132,23 @@ protected:
   //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
   //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
   /// Get the computed global coordinate by multiplicity index
- //  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
-//     return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
-
+  //  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
+  //     return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
 
   /// Returns the errors on the computed global coordinate (if resolved)
   AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
   
   /// Get correlation between the X and Y clusters
   float GetCorrelation();
-
   /// Get probability of correlation between the X and Y clusters 
   float GetProb();  
-
-
+  /// Returns the hit signal (average of normalized signals)    
+  float GetSignalCombination();
+  /// Returns the hit signal correlation
+  float GetSignalCorrelation();
 
   /// Get the resolved multiplicity index (-1 if not resolved)
   int   GetResolvedMultiplicity() { return _imult; }
-
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;
@@ -159,10 +157,8 @@ protected:
 	_coord=GetGlobalCoordinate(_imult);
   }
 
-
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
-
   /// Set dummy strip position
   void SetDummyX(float dumx) { 
 	  _dummyX = dumx; 
@@ -186,7 +182,6 @@ protected:
 
   /// Get X local coordinate (ladder reference frame)
   float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
-
   /// Get Y local coordinate (ladder reference frame)
   float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
 
@@ -233,7 +228,6 @@ protected:
     return hit.putout(ostr);}
   /// Print hit info (verbose if opt !=0 )
   void  Print(int opt=0);
-
 
   ///STD GBATCH compatibility layer
   int lay() const { return abs(_tkid/100); }

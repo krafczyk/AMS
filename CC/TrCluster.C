@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.17 2010/11/17 11:02:29 pzuccon Exp $ 
+/// $Id: TrCluster.C,v 1.18 2010/12/14 22:18:52 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,13 +17,12 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/11/17 11:02:29 $
+/// $Date: 2010/12/14 22:18:52 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
-#include "TkCoo.h"
 #include "TrCluster.h"
 
 ClassImp(TrClusterR);
@@ -31,14 +30,16 @@ ClassImp(TrClusterR);
 TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
-int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAsym|TrClusterR::kAngle);
+int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
 int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
 float    TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
 float    TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
 
+
 TrClusterR::TrClusterR(void) {
   Clear();
 }
+
 
 TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _tkid    = orig._tkid;
@@ -54,6 +55,7 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   //  _gcoord  = orig._gcoord;
 }
 
+
 TrClusterR::TrClusterR(int tkid, int side, int add, int seedind, unsigned int status) {
   Clear();
   _tkid    = tkid;
@@ -61,6 +63,7 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int seedind, unsigned int st
   _seedind = seedind;
   Status  = status;
 }
+
 
 TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind, 
                            float* adc, unsigned int status)  {
@@ -82,15 +85,16 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind,
   // BuilCoordinates();
 }
 
+
 TrClusterR::~TrClusterR() {
   Clear();
 }
+
 
 int TrClusterR::GetMultiplicity()  {
   if (_mult==0) _mult = TkCoo::GetMaxMult(GetTkId(),GetAddress())+1;
   return _mult;
 }
-
 
 
 float TrClusterR::GetNoise(int ii) {
@@ -105,6 +109,7 @@ float TrClusterR::GetNoise(int ii) {
   return (float) ladcal->GetSigma(address);
 }
 
+
 short TrClusterR::GetStatus(int ii) {
   if (_trcaldb==0) {
     printf("TrClusterRs::GetStatus Error, no _trcaldb specified.\n");
@@ -117,8 +122,8 @@ short TrClusterR::GetStatus(int ii) {
   return (short) ladcal->GetStatus(address);
 }
 
-void TrClusterR::Clear() {
 
+void TrClusterR::Clear() {
   _tkid    =   0;
   _address =  -1;
   _nelem   =   0;
@@ -144,10 +149,12 @@ float TrClusterR::GetGCoord(int imult)  {
   else                return TkCoo::GetGlobalA(_tkid, TkDBc::Head->_ssize_active[0]/2, lcoo).y();
 }
 
+
 void TrClusterR::Print(int opt) { 
   _PrepareOutput(opt);
   cout << sout;
 }
+
 
 void TrClusterR::_PrepareOutput(int opt){
   sout.clear();
@@ -162,6 +169,7 @@ void TrClusterR::_PrepareOutput(int opt){
   }
 }
 
+
 char* TrClusterR::Info(int iRef){
   string aa;
   aa.append(Form("TrCluster #%d ",iRef));
@@ -173,16 +181,19 @@ char* TrClusterR::Info(int iRef){
   return _Info;
 }
 
+
 std::ostream &TrClusterR::putout(std::ostream &ostr) {
   _PrepareOutput(1);
   return ostr << sout  << std::endl;
 }
+
 
 float TrClusterR::GetSignal(int ii, int opt) {
   float signal = _signal.at(ii);
   if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetTrParDB()->GetAsymmetry(GetSide());
   return signal;
 }
+
 
 int TrClusterR::GetAddress(int ii) {
   int address = GetAddress() + ii;
@@ -195,8 +206,9 @@ int TrClusterR::GetAddress(int ii) {
   return address;
 }
 
+
 int TrClusterR::GetSeedIndex(int opt) {
-  if (opt==0x00) return _seedind;  
+  if (opt==kNoCorr) return _seedind;  
   float maxadc  = -9999.;
   int   seedind = -1;
   for (int ii=0; ii<GetNelem(); ii++) { 
@@ -208,6 +220,7 @@ int TrClusterR::GetSeedIndex(int opt) {
   return seedind;
 }
 
+
 float TrClusterR::GetTotSignal(int opt) {
   float sum = 0.;
   if (!(kVAGain&opt)) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
@@ -215,12 +228,13 @@ float TrClusterR::GetTotSignal(int opt) {
   if (kAngle&opt)  sum = sum*(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
   if (kGain&opt)   sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
   if (kLoss&opt)   sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
-  if ( (kPN&opt)&&(GetSide()==0) ) sum = sum*GetTrParDB()->GetPNGain();
+  if ((kPN&opt)&&(GetSide()==0)) sum = sum*GetTrParDB()->GetPNGain();
   return sum;
 }
 
-void TrClusterR::GetBounds(int &leftindex, int &rightindex,int nstrips, int opt) {
-  // loop on strips (adding strips the greatest near strip)
+
+void TrClusterR::GetBounds(int &leftindex, int &rightindex, int nstrips, int opt) {
+  // loop on strips (adding asymmetrically the strips)
   int cstrip     = GetSeedIndex(opt);
   int nleft      = GetLeftLength(opt);
   int nright     = GetRightLength(opt);
@@ -235,6 +249,7 @@ void TrClusterR::GetBounds(int &leftindex, int &rightindex,int nstrips, int opt)
   leftindex  = cstrip - nleftused;
   rightindex = cstrip + nrightused;
 }
+
 
 float TrClusterR::GetCofG(int nstrips, int opt) {
   if (nstrips==-1) {
@@ -258,6 +273,7 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
   return CofG;
 }
 
+
 float TrClusterR::GetDHT(int nstrips, int opt) {
   if (nstrips==1) return 0.;
   int leftindex; 
@@ -266,6 +282,7 @@ float TrClusterR::GetDHT(int nstrips, int opt) {
   int cstrip = GetSeedIndex(opt);
   return (leftindex + rightindex)/2. - cstrip;
 }
+
 
 float TrClusterR::GetAHT(int nstrips, int opt) {
   if (nstrips==1) return 0.;

@@ -21,19 +21,15 @@
 #include "MagField.h"
 #include "TMath.h"
 
-
 ClassImp(TrRecHitR);
-
-
 
 #include "VCon.h"
 
 float TrRecHitR::GGpars[6]={1428., 0.0000,
 			    0.1444, 1645.,
 			    0.0109, 0.0972};
-
-
 float TrRecHitR::GGintegral=91765.;
+
 
 TrRecHitR::TrRecHitR(void) {
   Clear();
@@ -94,9 +90,8 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY,  int imult, int
   _coord=GetGlobalCoordinate(_imult);	
 }
 
+
 const AMSPoint TrRecHitR::HitPointDist(const AMSPoint& aa,int& mult){
-
-
   int mm=GetMultiplicity();
   float max=999999.;
   mult=-1;
@@ -112,11 +107,10 @@ const AMSPoint TrRecHitR::HitPointDist(const AMSPoint& aa,int& mult){
     return aa-GetCoord(mult);
   else
     return aa-GetCoord(0); 
-
 }
 
-float TrRecHitR::HitDist(TrRecHitR& B,int coo){
 
+float TrRecHitR::HitDist(TrRecHitR& B,int coo){
   if(coo==1 || coo==2){
     return (this->GetCoord()-B.GetCoord())[coo];
   }
@@ -143,11 +137,9 @@ float TrRecHitR::HitDist(TrRecHitR& B,int coo){
 	if(fabs(dist) < dmin) {dmin=fabs(dist) ; mind=dist;}
     }
     return mind;
-  }else 
+  } else 
     return -1;
-  
 }
-
 
 
 TrClusterR* TrRecHitR::GetXCluster() { 
@@ -203,9 +195,6 @@ TrRecHitR::~TrRecHitR() {
 }
 
 
-
-
-
 void TrRecHitR::Clear() {
   _tkid     = 0; 
   _clusterX = 0;
@@ -221,32 +210,14 @@ void TrRecHitR::Clear() {
 }
 
 
-float TrRecHitR::GetCorrelation()   { 
-  if (!GetXCluster()) return -1.;
-  if (!GetYCluster()) return 1.;
-  float n = GetXCluster()->GetTotSignal();
-  float p = GetYCluster()->GetTotSignal();
-  return (p - n)/(p + n); 
-}
-
-float TrRecHitR::GetProb()   { 
-  float correlation = GetCorrelation();
-  return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
-	   GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
-}
-
-
-
 void TrRecHitR::Print(int opt){
   _PrepareOutput(opt);
   cout <<sout;
-
 }
 
+
 void TrRecHitR::_PrepareOutput(int opt) { 
-
   sout.clear();
-
   if(_imult>0) 
     sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f) AmpP: %5.0f AmpN: %5.0f corr: %8.4f  prob: %7.5f  stat: %2d\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
@@ -259,13 +230,12 @@ void TrRecHitR::_PrepareOutput(int opt) {
 		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
 		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
 		     GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus()));
-  
   if(!opt) return;
-
   for(int ii=0;ii<_mult;ii++)
     sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
 		     ii,GetCoord(ii).x(),GetCoord(ii).y(),GetCoord(ii).z()));
 }
+
 
 char *  TrRecHitR::Info(int iRef){
   string aa;
@@ -278,43 +248,42 @@ char *  TrRecHitR::Info(int iRef){
   return _Info;
 }
 
+
 std::ostream &TrRecHitR::putout(std::ostream &ostr)  {
   _PrepareOutput(1);
-
   return ostr << sout  << std::endl; 
-    
 }
 
 
-float TrRecHitR::GetXloc(int imult, int nstrips)
-{
+float TrRecHitR::GetXloc(int imult, int nstrips) {
   TrClusterR *cls = GetXCluster();
   if (!cls) return TkCoo::GetLocalCoo(_tkid,_dummyX+640,imult);
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
   return cls->GetXCofG(nstrips, imult);
 }
 
-float TrRecHitR::GetYloc(int nstrips)
-{ 
+
+float TrRecHitR::GetYloc(int nstrips) { 
   TrClusterR *cls = GetYCluster();
   if (!cls) return -1000;
   if (TasHit()) return ((TrTasClusterR *)cls)->GetXCofGTas();
   return cls->GetXCofG(nstrips);
 }
 
-void TrRecHitR::SetUsed()
-{
+
+void TrRecHitR::SetUsed() {
   setstatus(AMSDBc::USED);
   if (GetXCluster()) GetXCluster()->SetUsed();
   if (GetYCluster()) GetYCluster()->SetUsed();
 }
 
-void TrRecHitR::ClearUsed()
-{
+
+void TrRecHitR::ClearUsed() {
   clearstatus(AMSDBc::USED);
   if (GetXCluster()) GetXCluster()->ClearUsed();
   if (GetYCluster()) GetYCluster()->ClearUsed();
 }
+
 
 AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
@@ -340,4 +309,57 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
   }
   return glo;
 }
+
+
+float TrRecHitR::GetCorrelation()   {
+  if (!GetXCluster()) return -1.;
+  if (!GetYCluster()) return 1.;
+  float n = GetXCluster()->GetTotSignal();
+  float p = GetYCluster()->GetTotSignal();
+  return (p - n)/(p + n);
+}
+
+
+float TrRecHitR::GetProb()   {
+  float correlation = GetCorrelation();
+  return ( GGpars[0]*TMath::Gaus(correlation,GGpars[1],GGpars[2],kFALSE) +
+           GGpars[3]*TMath::Gaus(correlation,GGpars[4],GGpars[5],kFALSE) ) / GGintegral;
+}
+
+
+float TrRecHitR::GetSignalCombination() {
+  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) { 
+    float sig_x = GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_y = GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    return (sig_x + sig_y)/2;     
+  }
+  else if (GetXCluster()!=0) { 
+    return GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+  }
+  else if (GetYCluster()!=0) {
+    return GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+  }
+  else { 
+    return 0;
+  }
+}
+
+
+float TrRecHitR::GetSignalCorrelation() {
+  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) {
+    float sig_x = GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_y = GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    return sig_x - sig_y;
+  }
+  else if (GetXCluster()!=0) {
+    return -1000;
+  }
+  else if (GetYCluster()!=0) {
+    return  1000; 
+  }
+  else {
+    return 10000;
+  }
+}
+
 

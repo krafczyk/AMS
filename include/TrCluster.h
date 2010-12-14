@@ -1,13 +1,14 @@
 #ifndef __TrClusterR__
 #define __TrClusterR__
+
 #include "TkDBc.h"
+#include "TkCoo.h"
 #include "TrRawCluster.h"
 #include "TrElem.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
 #include "TrParDB.h"
 #include "TrLadPar.h"
-#include "TkCoo.h"
 
 #include "amsdbc.h"
 
@@ -39,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/12/09 10:23:34 $
+ $Date: 2010/12/14 22:18:52 $
 
- $Revision: 1.16 $
+ $Revision: 1.17 $
 
 */
 
@@ -64,13 +65,14 @@ class TrClusterR :public TrElem{
     /// Total Signal Corr.: Charge Loss Correction 
     kLoss         = 0x10,
     /// Total Signal Corr.: P/N Normalization Correction (normalizing to P)     
-    kPN           = 0x20
+    kPN           = 0x20,
+    /// Total Signal Corr.: All Corrections
+    kAll          = 0xff
   };
 
   enum { TASCLS = 0x400 };
  
  protected:
-
   
   /// TkLadder ID (layer *100 + slot)*side 
   short int    _tkid;
@@ -82,19 +84,17 @@ class TrClusterR :public TrElem{
   short int    _seedind;
   /// ADC data array
   std::vector<float> _signal;
-  
   /// tan(ThetaXZ) of the incoming track (used for optimization of the track fitting)
   float        _dxdz;
   /// tan(ThetaYZ) of the incoming track (used for optimization of the track fitting)
   float        _dydz;
-
   /// Multiplicity (on p side sould be 1 on n side it is ladder dependent)
-  int8     _mult;   
-//   /// Local coordinate by multiplicity index 
-//   vector<float> _coord;  
-//   /// Global coordinate by multiplicity index
-//   vector<float> _gcoord; 
- /// Cluster status 
+  int8         _mult;   
+  //   /// Local coordinate by multiplicity index 
+  //   vector<float> _coord;  
+  //   /// Global coordinate by multiplicity index
+  //   vector<float> _gcoord; 
+  /// Cluster status 
   unsigned int Status;
 
  protected:
@@ -106,7 +106,8 @@ class TrClusterR :public TrElem{
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
   
-public:
+ public:
+
   /// Default signal correction option
   static int DefaultCorrOpt;
   /// Default number of strips used for CofG
@@ -116,10 +117,11 @@ public:
   static float TwoStripThresholdX;
   /// _dydz threshold for 2/3-steip CofG
   static float TwoStripThresholdY;
- 
+
  public:
   
-//################    CONSTRUCTORS & C.   ################################
+  //################    CONSTRUCTORS & C.   ################################
+
   /// Default constructor 
   TrClusterR(void);
   /// Constructor with data
@@ -134,7 +136,8 @@ public:
   /// Clear
   void Clear();
 
-//################    ACCESSORS  ########################################
+  //################    ACCESSORS  ########################################
+
   /// Get ladder TkId identifier 
   int   GetTkId()          const { return _tkid; }
   /// Get ladder layer
@@ -143,16 +146,18 @@ public:
   int   IsK7()             const { return TkDBc::Head->FindTkId(GetTkId())->IsK7(); } 
   /// Get ladder slot
   int   GetSlot()          const { return abs(_tkid%100); }
-  /// Get ladder slot Side (0 == negative X, 1== positive X)
-  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
+  /// Get ladder slot Side (0 == negative X, 1 == positive X)
+  int   GetSlotSide()      const { return (_tkid>=0) ? 1 : 0; }
   /// Get cluster side (0: n-side, 1: p-side)
-  int   GetSide()          const { return (_address<640)? 1 : 0; }
+  int   GetSide()          const { return (_address<640) ? 1 : 0; }
   /// Get the cluster first strip number (0, ..., 639 for p-side, 0, ..., 383 for n-side)  
   int   GetAddress()       const { return _address; }
   /// Get i-th strip address
   int   GetAddress(int ii);
   /// Get the local coordinate for i-th strip
-  float GetX(int ii, int imult = 0) { return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); }
+  float GetX(int ii, int imult = 0) { 
+    return TkCoo::GetLocalCoo(GetTkId(),GetAddress(ii),imult); 
+  }
   /// Get the cluster strip multiplicity
   int   GetNelem()         const { return _nelem; }
   /// Get the cluster strip multiplicity
@@ -183,7 +188,9 @@ public:
   /// Get i-th strip noise (from calibration)
   float GetNoise(int ii);   
   /// Get i-th signal to noise ratio 
-  float GetSN(int ii, int opt = DefaultCorrOpt) { return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); }
+  float GetSN(int ii, int opt = DefaultCorrOpt) { 
+    return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); 
+  } 
   /// Get i-th strip status (from calibration)
   short GetStatus(int ii);
 
@@ -193,14 +200,14 @@ public:
   /// Used for track AMSDBc::USED = 32; (0x0020)
   bool  Used() const { return checkstatus(AMSDBc::USED); }
   /// Set as used
-  void SetUsed() { setstatus(AMSDBc::USED); }
+  void  SetUsed()    { setstatus(AMSDBc::USED); }
   /// Clear used status
-  void ClearUsed() { clearstatus(AMSDBc::USED); }
+  void  ClearUsed()  { clearstatus(AMSDBc::USED); }
 
   /// Get multiplicity
   int   GetMultiplicity();
   /// Get global coordinate by multiplicity index
-  float GetCoord(int imult) {return GetXCofG(DefaultUsedStrips,imult);}
+  float GetCoord(int imult) { return GetXCofG(DefaultUsedStrips,imult); }
   /// Get global coordinate by multiplicity index
   float GetGCoord(int imult);
 
@@ -217,8 +224,9 @@ public:
   /// Get the Center of Gravity with the n highest consecutive strips
   float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
-  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) 
-  { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); }
+  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
+    return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); 
+  }  
   /// Get Eta (center of gravity with the two higher strips)
   /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
    *      _                                    _ 
@@ -229,17 +237,23 @@ public:
    *      0 1                                0 1
    *  Eta is 1 for particle near to the right strip,
    *  while is approx 0 when is near to the left strip (old definition) */
-  float GetEta(int opt=DefaultCorrOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
+  float GetEta(int opt = DefaultCorrOpt) { 
+    float eta = GetCofG(2,opt); 
+    return (eta>0.) ? eta : eta + 1.; 
+  }
   /// Digital Head-Tail method
   float GetDHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
-  float GetXDHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetDHT(nstrips,opt),imult); }
+  float GetXDHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
+    return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetDHT(nstrips,opt),imult); 
+  }
   /// Analog Head-Tail method
   float GetAHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); } 
+  float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
+    return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); 
+  }
 
-
-//################  SPECIAL METHODS  ########################################
+  //################  SPECIAL METHODS  ########################################
 
   /// Build the coordinates (with multiplicity)
   //  void  BuildCoordinates();
@@ -261,13 +275,13 @@ public:
   inline float GetImpactAngle() { return (GetSide()==0) ? atan(_dxdz)*180./3.14159265 : atan(_dydz)*180./3.14159265; }
 
   /// chek some bits into cluster status
-  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger checkstatus(integer checker) const { return Status & checker; }
   /// Get cluster status
-  uinteger getstatus() const{return Status;}
+  uinteger getstatus() const            { return Status; }
   /// Set cluster status
-  void     setstatus(uinteger status){Status=Status | status;}
+  void     setstatus(uinteger status)   { Status = Status | status; }
   /// Clear cluster status
-  void     clearstatus(uinteger status){Status=Status & ~status;}
+  void     clearstatus(uinteger status) { Status = Status & ~status; }
 
   /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
@@ -279,16 +293,16 @@ public:
   TrParDB*    GetTrParDB() { return _trpardb; }
 
   ///  Get DefaultCorrOpt
-  static int GetDefaultCorrOpt() {return DefaultCorrOpt;}
+  static int  GetDefaultCorrOpt()        { return DefaultCorrOpt; }
   /// Get DefaultUsedStrips
-  static int GetDefaultUsedStrips() {return DefaultUsedStrips;}
+  static int  GetDefaultUsedStrips()     { return DefaultUsedStrips; }
   /// Set DefaultCorrOpt
-  static void SetDefaultCorrOpt(int def)    {DefaultCorrOpt=def;}
+  static void SetDefaultCorrOpt(int def) { DefaultCorrOpt = def; }
   /// Set DefaultUsedStrips
   static void SetDefaultUsedStrips(int def) {DefaultUsedStrips=def;}
 
 
-//################ PRINTOUT  ########################################
+  //################ PRINTOUT  ########################################
 
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout);

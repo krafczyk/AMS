@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.135 2010/12/14 19:40:45 choutko Exp $
+#  $Id: Makefile,v 1.136 2010/12/14 22:18:52 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -223,14 +223,15 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TkPlane.C      $(SCC)TkSens.C \
 	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
-	$(SCC)TrRecHit.C $(SCC)TrTrack.C  $(SCC)Vertex.C   \
+	$(SCC)TrRecHit.C     $(SCC)TrTrack.C  $(SCC)Vertex.C \
 	$(SCC)TrRawCluster.C $(SCC)patt.C \
-        $(SCC)TrLadPar.C     $(SCC)TrParDB.C\
+        $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
-	        $(SCC)TrAlignFit.C \
-	      $(SCC)/HistoMan.C
+	$(SCC)TrAlignFit.C \
+	$(SCC)HistoMan.C
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
+           $(SCC)TrCharge.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C $(SFF)rkms.F
 
 else
@@ -297,19 +298,20 @@ endif
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES=  ../include/TkPlane.h    ../include/TkSens.h     \
-		../include/TrCalDB.h     \
-		../include/patt.h       ../include/TkCoo.h  ../include/TkSens.h \
-		../include/TrRecon.h 	../include/TkDBc.h  ../include/MagField.h \
-		../include/TrLadCal.h   \
-		../include/TkLadder.h   ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
-		../include/TrCluster.h  ../include/TrRecHit.h ../include/TrTrack.h \
+ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
+		../include/TrCalDB.h \
+		../include/patt.h         ../include/TkCoo.h  ../include/TkSens.h \
+		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
+		../include/TrLadCal.h \
+		../include/TkLadder.h     ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
+		../include/TrCluster.h    ../include/TrRecHit.h ../include/TrTrack.h \
 		../include/TrTasCluster.h ../include/TrTasPar.h ../include/TrTasDB.h \
 		../include/TrFit.h \
 		../include/TrMCCluster.h \
-                ../include/trrec.h ../include/tkdcards.h\
-		../include/point.h  ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/root_setup.h
+                ../include/trrec.h ../include/tkdcards.h \
+		../include/point.h ../include/root_RV.h ../include/root.h  \
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h \
+		../include/root_setup.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif
@@ -509,6 +511,7 @@ lib: shared static
 ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
+        $(BIN)TrCharge_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o 
 
