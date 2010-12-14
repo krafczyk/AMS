@@ -377,6 +377,8 @@ INPUT                  = ../doc \
 FILE_PATTERNS          = root.h \
                          amschain.h \
 			 Root_methods.h \
+                         tracking.h \
+                         tracking.C \
                          root.C \
                          stlv.h \
                          stlv.C \
