@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.231 2010/12/14 18:43:30 choutko Exp $
+//  $Id: trrec.C,v 1.232 2010/12/14 18:51:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1994,7 +1994,7 @@ next_pattern:
 
 }
 
-integer AMSTrTrack::addFalseX(AMSTrTrack *ptrack){
+integer AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
        int pointfound=0;
       if(   ptrack->TOFOK()){
         // First determine which planes are missed and interpolate to them,
@@ -2002,7 +2002,7 @@ integer AMSTrTrack::addFalseX(AMSTrTrack *ptrack){
         // Then make additional  hit(s)  
            int pat=ptrack->getpattern();
           integer pointfound=0;
-          for(int i=nhit;i<TKDBc::nlay();i++){
+          for(int i=0;i<TKDBc::nlay();i++){
             integer ladder=8;
             integer sensor=5;
              AMSTrIdGeom id(TKDBc::patmiss(pat,i),ladder,sensor,0,0);
@@ -2046,10 +2046,6 @@ integer AMSTrTrack::addFalseX(AMSTrTrack *ptrack){
                   while(py){
                     AMSTrIdSoft idy=py->getid();
                     if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
-//                      if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){   // This is sometimes  wrong and somewhen
-//                                                                                            //   should be replaced
-//                                                                                            // on something more robust 
-//                                                                                            //  but I am somewhere lazy
                         if(idy.gethalf()==id.gethalf()){
                         //  Create False RawHit and put it in the corr container 
                         AMSPoint loc=pls->gl2loc(P1);
@@ -2062,7 +2058,7 @@ integer AMSTrTrack::addFalseX(AMSTrTrack *ptrack){
                           AMSTrRecHit::_addnext(pls,&id,AMSDBc::FalseX,-1,-1,0,py,hit,
                                                 AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
                           pointfound++;
-                        } 
+                        }
                         
                       }
                     }
@@ -2073,7 +2069,7 @@ integer AMSTrTrack::addFalseX(AMSTrTrack *ptrack){
 }
 }
 }
-}
+
                    return pointfound;
 }
 

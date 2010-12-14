@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.118 2010/12/14 18:43:31 choutko Exp $
+//  $Id: trrec.h,v 1.119 2010/12/14 18:51:36 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -342,7 +342,7 @@ static number par[2][3];
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
-integer AddFalseX(AMSTrTrack *ptrack)'
+integer AddFalseX(AMSTrTrack *ptrack);
 static integer Distance(number par[2][3], AMSTrRecHit *ptr){
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
