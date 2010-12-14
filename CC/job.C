@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.765 2010/12/14 16:15:05 shaino Exp $
+// $Id: job.C,v 1.766 2010/12/14 18:43:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1894,13 +1894,6 @@ else{
   cc2->CreateLinear();
   TrClusterR::UsingTrParDB(TrParDB::Head);
 
-  if (TRCLFFKEY.TrTimeLim > 0 && 
-      TRCLFFKEY.TrTimeLim > AMSFFKEY.CpuLimit) {
-    TRCLFFKEY.TrTimeLim = AMSFFKEY.CpuLimit;
-    cout << "AMSJob::udata-I-TRCLFFKEY.TrTimeLim set as AMSFFKEY.CpuLimit= "
-	 << TRCLFFKEY.TrTimeLim << endl;
-  }
-
   TrRecon::Init();
   TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
@@ -1999,6 +1992,18 @@ else{
 
 void AMSJob::init(){
 AMSEvent::debug=AMSFFKEY.Debug;
+
+
+#ifdef _PGTRACK_
+  if (TRCLFFKEY.TrTimeLim > 0 && 
+      TRCLFFKEY.TrTimeLim > AMSFFKEY.CpuLimit) {
+    TRCLFFKEY.TrTimeLim = AMSFFKEY.CpuLimit;
+  }
+    cout << "AMSJob::init-I-TRCLFFKEY.TrTimeLim set as AMSFFKEY.CpuLimit= "
+	 << TRCLFFKEY.TrTimeLim<<"  "<<AMSFFKEY.CpuLimit<< endl;
+
+#endif
+
 
 //AMSgObj::BookTimer.book("AMSEvent::event");
 AMSgObj::BookTimer.book("GUOUT");

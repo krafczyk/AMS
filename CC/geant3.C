@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.144 2010/12/08 17:04:21 choumilo Exp $
+//  $Id: geant3.C,v 1.145 2010/12/14 18:43:30 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -809,7 +809,7 @@ extern "C" void guout_(){
 						  AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
 	number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
 #ifdef _PGTRACK_
-	//PZ FIXME	AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit-tt);
+//		AMSTrTrack::SetTimeLimit(AMSFFKEY.CpuLimit-tt);
 #else
 	AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
 #endif

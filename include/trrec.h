@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.117 2010/11/17 11:02:38 pzuccon Exp $
+//  $Id: trrec.h,v 1.118 2010/12/14 18:43:31 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -190,10 +190,7 @@ AMSTrRecHit* nextgood_WEAK();
 static AMSTrRecHit* firstgood_WEAK_path(integer pattern, integer index, number par[2][3]);
 AMSTrRecHit* nextgood_WEAK_path(number par[2][3]);
 static integer markAwayTOFHits();
-integer is_in_path(number par[2][3]){
-   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < TRFITFFKEY.SearchRegStrLine*par[0][2]
-       && fabs(par[1][1]+par[1][0]*_Hit[2]-_Hit[1]) < TRFITFFKEY.SearchRegCircle*par[1][2];
-}
+integer is_in_path(number par[2][3]);
 
 static void _markDouble(vector<double>& , integer );
 
@@ -345,6 +342,7 @@ static number par[2][3];
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
+integer AddFalseX(AMSTrTrack *ptrack)'
 static integer Distance(number par[2][3], AMSTrRecHit *ptr){
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
