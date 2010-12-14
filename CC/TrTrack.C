@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.84 2010/12/13 11:19:09 shaino Exp $
+// $Id: TrTrack.C,v 1.85 2010/12/14 16:15:05 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/13 11:19:09 $
+///$Date: 2010/12/14 16:15:05 $
 ///
-///$Revision: 1.84 $
+///$Revision: 1.85 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -611,13 +611,13 @@ float TrTrackR::StdMDR[Nconf] = { 220, 690, 830, 2140 };
 float TrTrackR::ScatFact[Nconf*2] = { 6.6, 6.1,  10.2, 4.4, 
 				      7.5, 3.1,   7.1, 5.0 };
 
-float TrTrackR::ChisqTune [Nconf] = { 0.8, 0.8, 1.0, 1.0 };
-float TrTrackR::HalfRTune [Nconf] = { 1.0, 0.8, 0.8, 1.0 };
+float TrTrackR::ChisqTune [Nconf] = { 0.7, 0.7, 0.7, 0.7 };
+float TrTrackR::HalfRTune [Nconf] = { 1.0, 1.0, 1.0, 0.6 };
 
-float TrTrackR::ErinvThres[2] = { 10, 2.5 };
-float TrTrackR::ChisqThres[2] = { 10, 2.5 };
-float TrTrackR::HalfRThres[2] = { 10, 2.5 };
-float TrTrackR::ExResThres[2] = { 10, 2.5 };
+float TrTrackR::ErinvThres[2] = { 6.0, 2.5 };
+float TrTrackR::ChisqThres[2] = { 6.0, 2.5 };
+float TrTrackR::HalfRThres[2] = { 6.0, 2.5 };
+float TrTrackR::ExResThres[2] = { 6.0, 2.5 };
 
 double TrTrackR::GetErrRinvNorm(int i, double rrig)
 {
@@ -742,7 +742,10 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   if (qpar[0] < ErinvThres[1]) flag |= kErinvOK;
 
   // Chisquare selection
-  qpar[1] = GetChisq(id)/ChisqTune[idx];
+//qpar[1] = GetChisq(id)/ChisqTune[idx];
+  double rcx = 1e-2;
+  qpar[1] = (rcx*GetChisqX(id)+GetChisqY(id))
+           /(rcx*GetNdofX (id)+GetNdofY (id))*ChisqTune[idx];
   if (qpar[1] > ChisqThres[0]) nbsel = false;
   if (qpar[1] < ChisqThres[1]) flag |= kChisqOK;
 
@@ -750,7 +753,7 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
   if (hrig[0] != 0 && hrig[1] != 0) {
     double herinv = std::sqrt(heri[0]*heri[0]+heri[1]*heri[1]);
     if (idx < 3) herinv *= 1+0.3/arig;
-    qpar[2] = (1/hrig[0]-1/hrig[1])/herinv/HalfRTune[idx];
+    qpar[2] = (1/hrig[0]-1/hrig[1])/herinv*HalfRTune[idx];
     if (fabs(qpar[2]) > HalfRThres[0]) nbsel = false;
     if (fabs(qpar[2]) < HalfRThres[1]) flag |= kHalfROK;
   }
@@ -761,11 +764,13 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     int    ily = (idx == 1) ? 7 : 8;
     double fms = TRFITFFKEY.FitwMsc[ily]/arig/2;
     double fer = StdMDR[idx]/StdMDR[0];
-    double err = std::sqrt(fer*fer+fms*fms)*TRFITFFKEY.ErrY;
+    double erx = std::sqrt(fer*fer+fms*fms)*TRFITFFKEY.ErrX;
+    double ery = std::sqrt(fer*fer+fms*fms)*TRFITFFKEY.ErrY;
 
-    if (err > 0) {
-      double res = GetPar(idb).Residual[ily][1];
-      qpar[3] = fabs(res/err)*0.7;
+    if (erx > 0 && ery > 0) {
+      double resx = GetPar(idb).Residual[ily][0]/erx;
+      double resy = GetPar(idb).Residual[ily][1]/ery;
+      qpar[3] = std::sqrt((resx*resx+resy*resy)/2)*0.7;
     }
   }
   else if (flag & kMaxExt) {
@@ -773,13 +778,18 @@ int TrTrackR::GetTrackClass(int id, double *qpar) const
     double fms9 = TRFITFFKEY.FitwMsc[8]/arig;
     double fer8 = StdMDR[3]/StdMDR[1];
     double fer9 = StdMDR[3]/StdMDR[2];
-    double err8 = std::sqrt(fer8*fer8+fms8*fms8)*TRFITFFKEY.ErrY;
-    double err9 = std::sqrt(fer9*fer9+fms9*fms9)*TRFITFFKEY.ErrY;
+    double erx8 = std::sqrt(fer8*fer8+fms8*fms8)*TRFITFFKEY.ErrX;
+    double ery8 = std::sqrt(fer8*fer8+fms8*fms8)*TRFITFFKEY.ErrY;
+    double erx9 = std::sqrt(fer9*fer9+fms9*fms9)*TRFITFFKEY.ErrX;
+    double ery9 = std::sqrt(fer9*fer9+fms9*fms9)*TRFITFFKEY.ErrY;
     
-    if (err8 > 0 && err9 > 0) {
-      double res8 = GetPar(id9).Residual[7][1]/err8;
-      double res9 = GetPar(id8).Residual[8][1]/err9;
-      qpar[3] = std::sqrt(res8*res8+res9*res9/2);
+    if (erx8 > 0 && ery8 > 0 && erx9 > 0 && ery9 > 0) {
+      double resx8 = GetPar(id9).Residual[7][0]/erx8;
+      double resy8 = GetPar(id9).Residual[7][1]/ery8;
+      double resx9 = GetPar(id8).Residual[8][0]/erx9;
+      double resy9 = GetPar(id8).Residual[8][1]/ery9;
+      qpar[3] = std::sqrt((resx8*resx8+resy8*resy8+
+			   resx9*resx9+resy9*resy9)/4)*0.8;
     }
   }
   else flag |= kExResOK;
@@ -839,6 +849,7 @@ void TrTrackR::DoTrackClass(int id0, double *hpar, int *tcls)
     for (int i = 0; i < TrTrackR::Nconf*TrTrackR::Nqpar; i++)
       hpar[i] = 0;
   }
+  for (int i = 0; i < TrTrackR::Nqpar; i++) hpq[i] = 0;
 
   int ncls[NTrStat];
   for (int i = 0; i < NTrStat; i++) ncls[i] = 0;
@@ -933,7 +944,7 @@ void TrTrackR::ShowTrackClass()
   cout << Form(" Multi  track event (Nm)    :  %8d", N[13]) << endl;
   cout << endl;
 
-  int N0 = N[12];
+  int N0 = N[12]+N[13];
   if (N0 > 0) {
     cout << " Span Type :     Total (Nt/Ns)  Not-bad (Nb/Nt)"
                          "   Golden (Ng/Nt)"
