@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.85 2010/12/14 16:15:05 shaino Exp $
+// $Id: TrTrack.C,v 1.86 2010/12/15 14:29:21 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/14 16:15:05 $
+///$Date: 2010/12/15 14:29:21 $
 ///
-///$Revision: 1.85 $
+///$Revision: 1.86 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -382,6 +382,18 @@ void TrTrackR::BuildHitsIndex()
   delete cont2;
 }
 
+void TrTrackR::SetHitsIndex(int *ihit)
+{
+  VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return;
+
+  for (int i = 0; i < _Nhits; i++) {
+    _iHits[i] = ihit[i];
+    _Hits[i] = (TrRecHitR *)cont->getelem(_iHits[i]);
+  }
+
+  delete cont;
+}
 
 void TrTrackR::GetMaxShift(int &left, int &right)
 {

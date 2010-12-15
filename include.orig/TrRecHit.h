@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.27 2010/12/14 22:18:52 oliva Exp $
+//  $Id: TrRecHit.h,v 1.28 2010/12/15 14:29:22 shaino Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -128,6 +128,9 @@ protected:
 	else if(imult==_imult)    return _coord;
 	else                      return GetGlobalCoordinate(imult);
   } 
+  /// Set clusters index
+  void SetiTrCluster(int iclsx, int iclsy);
+
   //PZ removed to save space  /// Returns the computed global coordinate (if resolved)
   //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
   //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }

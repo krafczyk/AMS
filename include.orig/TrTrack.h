@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.51 2010/12/07 11:18:20 shaino Exp $
+//  $Id: TrTrack.h,v 1.52 2010/12/15 14:29:22 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/12/07 11:18:20 $
+///$Date: 2010/12/15 14:29:22 $
 ///
-///$Revision: 1.51 $
+///$Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -634,6 +634,9 @@ public:
   /// Build index vector (_iHits) from hits vector (_Hits)
   void BuildHitsIndex();
   
+  /// Set index vector (_iHits)
+  void SetHitsIndex(int *ihit);
+
   /// Interpolation onto Z=const. plane
   /*!
    * \param[in]  zpl  Plane position (Z=zpl)

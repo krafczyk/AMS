@@ -310,6 +310,17 @@ AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
   return glo;
 }
 
+void TrRecHitR::SetiTrCluster(int iclsx, int iclsy)
+{
+  VCon *cont = GetVCon()->GetCont("AMSTrCluster");
+
+  _iclusterX = iclsx;
+  _iclusterY = iclsy;
+  _clusterX  = (!OnlyY()) ? (TrClusterR *)cont->getelem(iclsx) : 0;
+  _clusterY  = (!OnlyX()) ? (TrClusterR *)cont->getelem(iclsy) : 0;
+
+  delete cont;
+}
 
 float TrRecHitR::GetCorrelation()   {
   if (!GetXCluster()) return -1.;

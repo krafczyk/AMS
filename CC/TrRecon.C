@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.87 2010/12/11 21:45:01 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.88 2010/12/15 14:29:21 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2010/12/11 21:45:01 $
+/// $Date: 2010/12/15 14:29:21 $
 ///
-/// $Revision: 1.87 $
+/// $Revision: 1.88 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1404,6 +1404,10 @@ void TrRecon::PurgeUnusedHits()
     if (hit) hit->ClearUsed();
   }
 
+  enum { NT = 10, NL = trconst::maxlay };
+  int ihit[NT*NL], icls[NT*NL*2];
+  for (int i = 0; i < NT*NL; i++) ihit[i] = icls[i*2] = icls[i*2+1] = -1;
+
   // Set used status
   int ntrack = cont1->getnelem();
   for (int i = 0; i < ntrack; i++) {
@@ -1411,6 +1415,9 @@ void TrRecon::PurgeUnusedHits()
     for (int j = 0; j < track->GetNhits(); j++) {
       TrRecHitR *hit = track->GetHit(j);
       hit->SetUsed();
+      ihit[ i*NL+j]      = track->iTrRecHit(j);
+      icls[(i*NL+j)*2  ] = hit->iTrCluster('x');
+      icls[(i*NL+j)*2+1] = hit->iTrCluster('y');
     }
   }
 
@@ -1420,6 +1427,7 @@ void TrRecon::PurgeUnusedHits()
     if (hit && !hit->Used()) {
       if (i == 0) cont2->removeEl(0);
       else  	  cont2->removeEl(cont2->getelem(i-1));
+      for (int j = 0; j < NT*NL; j++) if (ihit[j] > i) ihit[j]--;
       nhit--;
       i--;
     }
@@ -1432,7 +1440,8 @@ void TrRecon::PurgeUnusedHits()
     if (cls && !cls->Used()) {
       if (i == 0) cont3->removeEl(0);
       else  	  cont3->removeEl(cont3->getelem(i-1));
-      nhit--;
+      for (int j = 0; j < NT*NL*2; j++) if (icls[j] > i) icls[j]--;
+      ncls--;
       i--;
     }
   }
@@ -1440,11 +1449,18 @@ void TrRecon::PurgeUnusedHits()
   // create hits indexes
   for (int i = 0; i < ntrack; i++) {
     TrTrackR *track = (TrTrackR*)cont1->getelem(i);
-    track->BuildHitsIndex();
+    track->SetHitsIndex(&ihit[i*NL]);
+    //track->BuildHitsIndex();
+
+    for (int j = 0; j < track->GetNhits(); j++) {
+      TrRecHitR *hit = track->GetHit(j);
+      hit->SetiTrCluster(icls[(i*NL+j)*2], icls[(i*NL+j)*2+1]);
+    }
   }
 
   delete cont1;
   delete cont2;
+  delete cont3;
 }
 
 
