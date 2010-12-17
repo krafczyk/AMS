@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.93 2010/12/11 18:30:30 choutko Exp $
+//  $Id: trigger102.C,v 1.94 2010/12/17 16:51:21 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -530,10 +530,10 @@ if((TGL1FFKEY.printfl%10)>0){
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
   HBOOK1(1294,"LVL1:TofPlaneSide-MaxRate(Hz)",100,0.,2000.,0.);
-  HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,3000.,0.);
-  HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,2000.,0.);
+  HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,1000.,0.);
+  HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,500.,0.);
   HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,500.,0.);
-  HBOOK1(1298,"LVL1:Lev1-rate(Hz)",100,0.,2000.,0.);
+  HBOOK1(1298,"LVL1:Lev1-rate(Hz)",100,0.,1000.,0.);
 }
   TGL1JobStat::resetstat();
   SetupIsChanged=false;//reset new_setup flag
@@ -2374,12 +2374,21 @@ int cid=(len>>16)+1;
     if((TGL1FFKEY.printfl%10)>=2){
 #pragma omp critical (print_scaler)
 { 
-      cout<<"===================================================="<<endl;
-      cout<<"|      Some Scalers changed for Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
+      cout<<"=============================================================="<<endl;
+      cout<<"|  ScalersBlock params changed, Run/Event="<<AMSEvent::gethead()->getrun()<<" "<<
                                                                   AMSEvent::gethead()->getid()<<endl;
-      cout<<"|        New ScalerWordsPatterns(hex): "<<hex<<rstatw3<<dec<<endl;
+      cout<<"|        New ScalersBlockWordsPatterns(hex): "<<hex<<rstatw3<<dec<<endl;
+   if((rstatw3&0xc000)!=0){
       cout<<"| Rates: Lvl1="<<scalmon.LVL1trig(0)<<"  FT="<<scalmon.FTtrig(0)<<" FTC="<<scalmon.FTtrig(1)<<endl;
-      cout<<"===================================================="<<endl;
+      cout<<"|        TofLSideMX="<<scalmon.DetMaxRate(0)<<" AccMX="<<scalmon.DetMaxRate(2)<<" EcMX="<<scalmon.DetMaxRate(3)<<endl;
+   }
+   if((rstatw3&0x2000)!=0){
+      cout<<"| LiveTime="<<scalmon.LiveTime(0)<<" "<<scalmon.LiveTime(1)<<endl;
+   }
+   if((rstatw3&0x1000)!=0){
+      cout<<"| TimeCalib="<<scalmon.TimeCalib()<<endl;
+   }
+      cout<<"=============================================================="<<endl;
 }//--->endof pragma
     }//---> endof "PrintSetupInfo"
 //    ScalerIsChanged=false;//reset

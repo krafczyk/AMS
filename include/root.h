@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.299 2010/12/11 18:30:39 choutko Exp $
+//  $Id: root.h,v 1.300 2010/12/17 16:51:37 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -621,13 +621,13 @@ public:
   int hwidq[4];///<array of CSII, where II is ADC InpChNumb for Anode and Dynodes charge-measurements(II=1-10)
   int stat;///< 0/1->ok/bad
   int nftdc;///<numb.of FTtime-hits
-  int ftdc[8];///<FTtime-hits(FastTrigger-channel time, TDC-ch)
+  vector<int> fftdc;///<FTtime-hits(FastTrigger-channel time, TDC-ch)
   int nstdc;///<numb.of LTtime-hits
-  int stdc[16];///<LTtime-hits(LowThreshold-channel time, TDC-ch)
+  vector<int> fstdc;///<LTtime-hits(LowThreshold-channel time, TDC-ch)
   int nsumh;///<numb.of SumHTtime-hits
-  int sumht[16];///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, TDC-ch)
+  vector<int> fsumht;///<SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, TDC-ch)
   int nsumsh;///<numb.of SumSHTtime-hits
-  int sumsht[16];///<SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, TDC-ch)
+  vector<int> fsumsht;///<SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, TDC-ch)
   float adca;///<Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
   int nadcd;///<number of Dynode nonzero(!) signals
   float adcd[3];///<Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
@@ -640,8 +640,12 @@ public:
   friend class TOF2RawSide;
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
+  int getftdc(int i){return i<fftdc.size()?fftdc[i]:0;}
+  int getstdc(int i){return i<fstdc.size()?fstdc[i]:0;}
+  int getsumht(int i){return i<fsumht.size()?fsumht[i]:0;}
+  int getsumsht(int i){return i<fsumsht.size()?fsumsht[i]:0;}
   
-  ClassDef(TofRawSideR ,5)       //TofRawSideR
+  ClassDef(TofRawSideR ,6)       //TofRawSideR
 #pragma omp threadprivate(fgIsA)
 };
 

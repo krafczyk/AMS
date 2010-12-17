@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.241 2010/12/11 18:30:30 choutko Exp $
+//  $Id: root.C,v 1.242 2010/12/17 16:51:20 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2475,19 +2475,23 @@ TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
 
 TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-
+  fftdc.clear();
+  fstdc.clear();
+  fsumht.clear();
+  fsumsht.clear();
   swid=ptr->_swid;
   hwidt=ptr->_hwidt;
   for(int i=0; i<4; i++)hwidq[i]=ptr->_hwidq[i];
   stat=ptr->_status;
   nftdc=ptr->_nftdc;
-  for(int i=0; i<nftdc && i<sizeof(ftdc)/sizeof(ftdc[0]); i++)ftdc[i]=ptr->_ftdc[i];
-  nstdc=ptr->_nstdc<sizeof(stdc)/sizeof(stdc[0])?ptr->_nstdc:sizeof(stdc)/sizeof(stdc[0]);
-  for(int i=0; i<nstdc; i++)stdc[i]=ptr->_stdc[i];
+//  for(int i=0; i<nftdc && i<sizeof(ftdc)/sizeof(ftdc[0]); i++)ftdc[i]=ptr->_ftdc[i];
+  for(int i=0; i<nftdc; i++)fftdc.push_back(ptr->_ftdc[i]);
+  nstdc=ptr->_nstdc;
+  for(int i=0; i<nstdc; i++)fstdc.push_back(ptr->_stdc[i]);
   nsumh=ptr->_nsumh;
-  for(int i=0; i<nsumh && i<sizeof(sumht)/sizeof(sumht[0]); i++)sumht[i]=ptr->_sumht[i];
+  for(int i=0; i<nsumh; i++)fsumht.push_back(ptr->_sumht[i]);
   nsumsh=ptr->_nsumsh;
-  for(int i=0; i<nsumsh&& i<sizeof(sumsht)/sizeof(sumsht[0]); i++)sumsht[i]=ptr->_sumsht[i];
+  for(int i=0; i<nsumsh; i++)fsumsht.push_back(ptr->_sumsht[i]);
   adca=ptr->_adca;
   nadcd=ptr->_nadcd;
   for(int ip=0;ip<TOF2GC::PMTSMX && ip<sizeof(adcd)/sizeof(adcd[0]);ip++)adcd[ip]=ptr->_adcd[ip];
