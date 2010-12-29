@@ -2917,7 +2917,7 @@ class RemoteClient:
 
 
     
-    def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace):
+    def TransferDataFiles(self,run2p,i,v,u,h,source,c,replace,disk):
         if(os.environ.has_key('RunsDir')):
             runsdir=os.environ['RunsDir']
         else:
@@ -2973,13 +2973,17 @@ class RemoteClient:
                 sql="select path,run from datafiles where path like '%"+file+"'"
                 ret=self.sqlserver.Query(sql);
                 if(len(ret)>0):
-                    if(replace and (run2p==0 or ret[0][1] == run2p)):
+                    if(replace and (run2p==0 or ret[0][1] == run2p) and (disk==None or fd.find(disk)>=0)):
                       fd=ret[0][0] 
                       cmd="rm -rf "+fd
                       i=os.system(cmd)
                       if(i):
                         print "command failed ",cmd
-                        continue
+                        if(replace>1):
+                            sql="delete from datafiles where path='"+fd+"'"  
+                            self.sqlserver.Update(sql)
+                        else:
+                            continue
                       else:
                         sql="delete from datafiles where path='"+fd+"'"  
                         self.sqlserver.Update(sql)
