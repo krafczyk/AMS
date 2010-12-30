@@ -178,7 +178,7 @@ c      parameter (Npa=5,NitMa=2)
           call C1toC2(npo) ! data transw. com->com
 *         ================
 #if defined (__LINUX24__ )
-!$OMP CRITICAL (RKMS)
+C !$OMP CRITICAL (RKMS)
 #endif
         endif ! mod(it,2)=1
 *       ============================ Minimization
@@ -198,7 +198,7 @@ ccc            endif
         endif
 *       ------------------
 #if defined (__LINUX24__ )
-!$OMP END CRITICAL (RKMS)
+C !$OMP END CRITICAL (RKMS)
 #endif
         Chi2B(it)=Dhi2
         if(ier.eq.0) then
