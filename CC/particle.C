@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.218 2010/12/07 19:42:28 choutko Exp $
+//  $Id: particle.C,v 1.219 2010/12/30 13:43:18 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -993,6 +993,15 @@ void AMSParticle::pid(){
 
 void AMSParticle::refit(int fast){
   AMSgObj::BookTimer.start("ReTKRefit");  
+  if(_ptrack->getpattern()>=0){
+    AMSTrTrack *pfalse= AMSTrTrack::AddFalseX(_ptrack);
+    if(pfalse){
+        _ptrack=pfalse;
+         cout <<_ptrack->getpattern()<<endl;
+        cout << " falsex added "<<endl; 
+   
+
+}}
   number beta=_pbeta?_pbeta->getbeta():_Beta;
 #ifdef _PGTRACK_
   for(int layer=0;layer<TkDBc::Head->nlay();layer++)

@@ -3,6 +3,9 @@
 #include "tofanticonst.h"
  class ScalerMon{
   public:
+#ifdef __ROOTINC__
+    void * dum;
+#endif
     number _FTtrig[5];//Glob,FTC,FTZ,FTE,NonPhys
     number _LVL1trig[9];//LVL1, sub1:sub8
     number _DetMaxRate[5];//CPmx,BZmx,ACmx,ECFTmx,ECL1(angle)mx
@@ -82,6 +85,9 @@ ClassDef(ScalerMon,1)       //ScalerMon
 //
  class Lvl1TrigConfig {
   public:
+#ifdef __ROOTINC__
+    void * dum;
+#endif
    integer _tofinmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1/2/3=>Not_in_trig/both/s1/s2, z>=1 trigger
    integer _tofinzmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1/2/3=>Not_in_trig/both/s1/s2, z>=2 trigger
    integer _tofoamask[TOF2GC::SCLRS];//=0/1=>And/Or of two Plane-sides, FTC(z>=1)

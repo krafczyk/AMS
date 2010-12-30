@@ -1,62 +1,48 @@
-*  $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
-*-----------------------------------------------------------------------
-* A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
-*-----------------------------------------------------------------------
+** rkms.F
+*--------1---------2---------3---------4---------5---------6---------7--
+* A.Chikanian, Yale, Dec.2010
+*---------------------------------------------------------------
 * Rigidity reconstruction program for AMS02 with permanet magnet
 * Taking care of the Multipole Scattering in AMS Tracking detector:
 * Reconstruct track's kinematical parameters with full (nondiagonal)
 * Covar.Error Metrix due to Multipole Scattering in Si tracking planes
 * as well as in TRD, TOF and RICH.
-*------------------------------------------------------
+*---------------------------------------------------------------------
       subroutine rkmsinit(zposl)
       implicit none
 #include "rkms.h"
 *----------------
       integer k
       real zposl(NPma)
-      integer n
-      n=0
       do k=1,NPma
-        if (trkZ0(k).ne.zposl(k)) then
-           trkZ0(k)=zposl(k)
-           n=n+1
-        endif
+        trkZ0(k)=zposl(k)
       enddo
-      if (n.gt.0) then
-         write(*,*)'RKMS-I-InitTo ',trkZ0
-      endif
+      write(*,*)'RKMS-I-InitTo ',trkZ0
       end
 
-
-      subroutine rkmsrig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
-      integer npo,npl(npo),ipa
-      real xyz(3,npo),dxyz(3,npo)
-      real Rini,Out(9)
-      call rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
-      end
-
-
+*------------------------------
 c. Add by Zhili.Weng 2009-11-11
 #ifdef __AMSVMC__
 #include "VMCrename.h"
 #endif
+
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *     interface to "rkms_fit"
-*----------------------------------------------------------------
+*--------------------------------------------------------
 * Input:   npo        - # points
 *          npl        - plane #, associated with each point
 *          xyz(3,npl) - 3d coordinates
 *          dxyz(npl)  - errors (intrinsic Si planes resolution)
 *          ipa        - particle Geant ID#
-*          Rini       - initial Rigidity value (try the best !!!)
+*          Rini       - initial Rigidity value (try the best guess !!!)
 *          --------------------------------------
 * Output:  Out(*)     - reconstructed parameters
 *          Out(1-3)   - x, y, z 
 *          Out(4-5)   - Theta, Phi
-*          Out(6)     - Rigidity
+*          Out(6)     - Rigidity * charge_sign
 *          Out(7)     - Chi2
-*          Out(8)     - not used
+*          Out(8)     - 0 is o'k, NO convergence if NOT 0
 *          Out(9)     - err(1/Rigidity)=err(R)/(R*R)
 *---------------------------------------------------
       implicit none
@@ -67,12 +53,14 @@ c. Add by Zhili.Weng 2009-11-11
       common/rktrk/    charge,sigcha
 !$OMP threadprivate(/rktrk/)
 *     ------------------------------
-      integer npo,npl(npo),ipa,i
+      integer npo,npl(npo),ipa,i,ier
       real xyz(3,npo),dxyz(3,npo)
       real x(NPma),y(NPma),z(NPma),dx(NPma),dy(NPma)
-      real Rini,Out(9),Chi2,R,dR,Rin
-      double precision Xout(5),Eout(5)
+      real Rini,Out(9),Chi2,R,Rin,doR
+      double precision Xout(5)
 *     --------------------------------
+      ier=0
+      Rin=Rini
       do i=1,npo
          x(i)= xyz(1,i)
          y(i)= xyz(2,i)
@@ -83,15 +71,11 @@ c. Add by Zhili.Weng 2009-11-11
 *     WARNING ========================================================
 *     Due to Error Matrix depends on Rini, pick the best possible Rini
 *     OR do final (additional) minimization loop with Rini~Rrec
-      Rin=Rini
-      if(abs(Rini).lt.0.3.or.abs(Rini).gt.333.)
-     +                                 call R_init(npo,x,y,z,Rin)
 *     =========================================================
-      call rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rin,Xout,Eout,Chi2)
-*     =========================================================
-      R = dsqrt(Xout(1)**2+Xout(2)**2+Xout(3)**2)
-      dR=dsqrt((Xout(1)*Eout(1))**2 + (Xout(2)*Eout(2))**2
-     +        +(Xout(3)*Eout(3))**2)/R
+      if(abs(Rin).lt.0.3.or.abs(Rin).gt.333.)
+     +                               call R_init(npo,x,y,z,Rin)
+      call rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rin,Xout,doR,Chi2,ier)
+      R = dsqrt(Xout(1)**2+Xout(2)**2+Xout(3)**2) ! Pz
 *     =============================================
       Out(1) = Xout(4)                            ! x
       Out(2) = Xout(5)                            ! y
@@ -100,16 +84,17 @@ c. Add by Zhili.Weng 2009-11-11
       Out(5) = atan2(sngl(Xout(2)),sngl(Xout(1))) ! Phi
       Out(6) = R*sigcha                           ! Rigidity*ChargeSign
       Out(7) = Chi2                               ! Chi2
-      Out(8) = 0.                                 ! Not Used
-      Out(9) = dR/(R*R)                           ! err(1/Rig)
+      Out(8) = ier                                ! No convergence, if NOT 0
+      Out(9) = doR                                ! err(1/Rig)
 *     =============================================
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,Er,Chi2)
-*   A.Chikanian, Yale, 2003
-*   Fitting track parameters with MINUIT and Runge Kutta 
-*-------------------------------------------------------
+      subroutine rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,doR,Chi2
+     +                                                          ,ier)
+*   A.Chikanian, Yale, Dec,2010
+*   Fitting track parameters with NDC2fit and Runge Kutta 
+*--------------------------------------------------------
 * Input:   npo   - # points
 *          npl   - plane #, associated with each point
 *          x(npl),y(npl),z(npl) - 3d coordinates
@@ -117,33 +102,22 @@ c. Add by Zhili.Weng 2009-11-11
 *          ipa   - particle Geant #
 *          Rini  - initial Rigidity value
 * Output:  Xout  -  x, y, Rx, Ry, Rz
-*          Er    - dx,dy,dRx,dRy,dRz
+*          doR   - error of 1/Rigidity
 *          Chi2  - Chi2
-*-----------------------------------------
-      implicit none !!! commenting helps with realy STUPID problem (see next).
-c      real     FunMi !!! Required (but doesn't like it ???) by STUPID PAW. 
-      External FunMi
-      double precision Par(5),St(5),arglis(3),Xout(5),Er(5),bnd1,bnd2
-      double precision                        Xbuf(5),Chi2B
-*--------------------------------------------------------------------------
-*               dPx     dPy    dPz(GeV) dx   dy(cm)  Initial MIGRAD steps 
-      data St/.000100,.000100,.002000,.0005,.0005/   ! 8.98*min
-* see:/group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/RKMSFIT/derivstep.opt
-*--------------------------------------------------------------------------
-      double precision zero
-      data             zero/0.d0/
-      double precision grad(5),A
-      data             grad/5*0.D0/
-      integer i,j,it,ivar,ierflg,na   ,Npa
-      data                       na/0/,Npa/5/ ! # of parameters
-      character*10 CHNAM
-      data         CHNAM/' '/                 ! parameter names
-      integer npo,npl(npo),NitMa
-      data                 NitMa/3/
-      integer ipa,iflag
+*-------------------------------------
+      implicit none
+      integer    Npa  ,NitMa
+      parameter (Npa=5,NitMa=3)
+c      parameter (Npa=5,NitMa=2)
+      double precision  Par(Npa),Xout(Npa)
+      double precision Xbuf(Npa,NitMa),Chi2B(NitMa),sig(NitMa)
+*     --------------------------------------------------------
+      integer jB,JR(3)
+      integer i,j,it,na/0/
+      integer ipa,ier,np2
+      integer npo,npl(npo)
       real x(npo),y(npo),z(npo),dx(npo),dy(npo)
-      integer lun8
-      data    lun8/67/
+      integer nerr/0/
 *----------------
 #include "rkms.h"
 *----------------
@@ -151,53 +125,19 @@ c      real     FunMi !!! Required (but doesn't like it ???) by STUPID PAW.
       common/rktrk/    charge,sigcha
 !$OMP threadprivate(/rktrk/)
 *---------------------------
-      real z1
-      real Rini,Chi2,Rad
-*     ------------------
-      logical first
-      data    first/.true./
-      save first,CHNAM,zero,npa,na,St,grad
-      !$OMP threadprivate (first,CHNAM,zero,npa,na,St,grad)
-      logical veryfirst
-      data    veryfirst/.true./
-      integer nerr
-      data nerr/0/
-      save nerr
-      if(veryfirst) then ! --------- veryfirst
-        veryfirst = .false.
-#if defined __IFC ||  defined __INTEL_COMPILER
-        open(unit=lun8,form='formatted',file='/dev/null',
-     +  status='unknown',shared)
-#else
-*       open(unit=lun8,form='formatted',file='/dev/null',
-*     +  status='new')
-#endif
-      endif
-      if(first) then ! ----------------- first
-        first = .false.
- 100    continue
-        Call MNINIT(5,lun8,lun8) ! Read, Write, Save
-        na = 1             ! # of arguments
-        arglis(1)=-1.      ! suppr. output
-        Call MNEXCM(FunMI,'SET PRINT',arglis,na,ierflg,0)
-        If(ierflg.ne.0) write(6,*)'MNEXCM: Print ierflg=',ierflg
-        arglis(1)= 1.
-        Call MNEXCM(FunMI,'SET GRAD',arglis,na,ierflg,0) ! Gradients
-        If(ierflg.ne.0) write(6,*)'MNEXCM: Grad ierflg=',ierflg
-*  Errors calculation !!!### Not sure that it works !!!???
-        arglis(1)=1.
-        Call MNEXCM(FunMI,'SET ERRo',arglis,na,ierflg,0)
-        If(ierflg.ne.0) write(6,*)'MNEXCM: ERRo ierflg=',ierflg
-      endif          ! ----------------- end first
-
+      real z1,Rini,Chi2,Rad,doR
+*     -------------------------
+      do i=1,3
+        JR(i)=i
+      enddo
+      ier=1
       if(npo.lt.3) return !!!
-c      if(npo.ne.9) write(6,*)' npo =',npo ! 2010
-
       z1=z(1) ! if so Par(4)=x(1), Par(5)=y(1)
       rad = sqrt((x(2)-x(1))**2+(y(2)-y(1))**2+(z(2)-z(1))**2)
 
 *--  refreshing hits information in common/rkms_1/...
       npoc=npo
+      np2=npo*2
       do i=1,NPma
         if(i.le.npo) then
           xc(i)=x(i)
@@ -209,93 +149,154 @@ c      if(npo.ne.9) write(6,*)' npo =',npo ! 2010
           zc(i)=-999.
         endif
       enddo
-* First TWO passes in loop below are sign of charge checking
-* Third pass is iteration with right MS-matrix (mostly for correct Xi2)
-      rkstep=5. ! cm
+*------------------------------------------------------------------
+* First TWO passes in the loop below are for charge sign defenition 
+* Third pass is the final iteration with better MS-matrix
+*------------------------------------------------------------------
+      Chi2=1.e35
+      Par(1)=Rini*(x(2)-x(1))/rad                     ! Px0
+      Par(2)=Rini*(y(2)-y(1))/rad                     ! Py0
+      Par(3)=Rini*(z(2)-z(1))/rad                     ! Pz0
+      Par(4)=x(1) + (z1-z(1))/(z(2)-z(1))*(x(2)-x(1)) !  x0
+      Par(5)=y(1) + (z1-z(1))/(z(2)-z(1))*(y(2)-y(1)) !  y0
+      rkstep=5.                                       ! R/K step(cm)
+      JB=0
       DO it=1,NitMa
-* Initial values
-        if(it.eq.NitMa) rkstep=2. ! cm
-        if(it.le.2) then
-                      sigcha= 1.
-          if(it.eq.2) sigcha=-1.
-          Par(1)=Rini*(x(2)-x(1))/rad                     ! Px0
-          Par(2)=Rini*(y(2)-y(1))/rad                     ! Py0
-          Par(3)=Rini*(z(2)-z(1))/rad                     ! Pz0
-          Par(4)=x(1) + (z1-z(1))/(z(2)-z(1))*(x(2)-x(1)) !  x0
-          Par(5)=y(1) + (z1-z(1))/(z(2)-z(1))*(y(2)-y(1)) !  y0
-        else
+        if(it.eq.1) sigcha= 1.                          ! for R/K
+        if(it.eq.2) sigcha=-1.                          ! for R/K
+        if(it.eq.3) then
+          sigcha=sig(jB)
           do j=1,Npa
-            Par(j)=Xout(j)
+            Par(j)=Xbuf(j,jB)
           enddo
+          Rini=dsqrt(Par(1)**2+Par(2)**2+Par(3)**2)
         endif
-*       =======================================
-        call wxy_matr9(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
-c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
-*       =======================================
+        sig(it)=sigcha
+        if(mod(it,2).eq.1) then
+*         --------------------------------------------------
+          call wxy_matr9(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
+          call C1toC2(npo) ! data transw. com->com
+*         ================
 #if defined (__LINUX24__ )
 !$OMP CRITICAL (RKMS)
 #endif
-*       --------------------- Initial values setup
-        do i=1,Npa
-          Call MNPARM(i,CHNAM,Par(i),St(i),zero,zero,IERFLG)! Init.Val.Setup
-          If(ierflg.ne.0) then
-             if (nerr.lt.100) write(6,*)'### MNPARM: i,ierflg=',i,ierflg
-             nerr = nerr+1
+        endif ! mod(it,2)=1
+*       ============================ Minimization
+        call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
+*       ------------------------------
+        if(Par(3)*Xout(3).lt.0.) then
+          Par(3)=Par(3)/3.
+          call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
+          if(Par(3)*Xout(3).lt.0.) then
+            Par(3)=Par(3)/3.
+            call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
+ccc            if(Par(3)*Xout(3).lt.0.) then
+ccc              Par(3)=Par(3)/3.
+ccc              call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
+ccc            endif
           endif
-        enddo
-*       ---------------------------------------- Minimization  
-        na=0  ! # of arguments in arglis (MNEXCM)      !
-        Call MNEXCM(FunMI,'MIGRAD',arglis,na,ierflg,0) !
-*       ####  ierflg is always 4 ### !!!???
-*       ================================================
-        do i=1,Npa                                          ! Parameters
-          Call MNPOUT(i,CHNAM,Xout(i),Er(i),bnd1,bnd2,ivar) ! Extraction
-        enddo
+        endif
+*       ------------------
 #if defined (__LINUX24__ )
 !$OMP END CRITICAL (RKMS)
 #endif
-        Chi2=1.e30
-        if(Dhi2.lt.1.e30) Chi2=Dhi2
-        if(it.eq.1) then
-          Chi2B=Chi2
+        Chi2B(it)=Dhi2
+        if(ier.eq.0) then
+          JB=it
+          JR(it)=0
           do i=1,Npa
-            Xbuf(i)=Xout(i)
+            Xbuf(i,it)=Xout(i)
           enddo
-        endif
-        if(it.eq.2.and.Chi2.gt.Chi2B) then
-          sigcha=1.
-          do i=1,Npa
-            Xout(i)=Xbuf(i)
-          enddo
+          if(it.eq.2.and.JR(1).eq.0.and.Chi2B(1).lt.chi2B(2)) jB=1
         endif
       ENDDO ! NitMa 
-      end
+      if(jB.eq.0) return
+*     ================================
+      ier=0  !  final IER redifinition 
+      if(NitMa.gt.2.and.JR(NitMa).eq.0) jB=NitMa
 
-*--------1---------2---------3---------4---------5---------6---------7-- FCN
-      Subroutine FunMI(Npa,grad,Fu,par,iflag) ! ,futil)
-*   A.Chikanian, Yale, Aug,2003
-*   Interface to between MINUIT and Fun
-*   -----------------------------------
-      implicit none
-      integer Npa,iflag,k
-      double precision Fu,Fun,grad(npa),par(npa)
-*     ------------------------------------------
-      if(iflag.eq.2) call FunDer(Npa,par,grad)
-      Fu = Fun(Npa,par)
+      if(jB.le.2) then
+        sigcha=sig(jB)
+        do i=1,Npa
+          Xout(i)=Xbuf(i,jB)
+        enddo
+      endif
+      if(Chi2B(jB).lt.Chi2) Chi2=Chi2B(jB) ! D2S final Chi2
+      if(Chi2.gt.1000.) ier=7
+      if(dabs(Xout(3)).gt.10.D6) ier=8  ! Pz
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      double precision Function Fun(Npa,par)
-*   A.Chikanian, Yale, Aug,2003
-*   Function for Minimization
+      subroutine C1toC2(npo) ! wxy -> w
+*   A.Chikanian, Yale, Dec,2010
 *------------------------------
       implicit none
-      integer Npa,i
-      double precision chi2su,par(Npa)
+      integer npo,np2,i,j
+*----------------
+#include "rkms.h"
+*----------------
+*     -------------------------- /MFit/
+      integer    NPm2   ,NpaM
+      parameter (NPm2=18,NpaM=5)
+      real*8      w           ,he      ,ht      ,der
+      common/MFit/w(NPm2,NPm2),he(NPm2),ht(NPm2),der(NpaM,NPm2)
+!$OMP threadprivate(/MFit/)
+*     ---------------------------------------------------------
+      np2=npo*2
+      do i=1,np2
+        if(i.le.npo) he(i)=xc(i)
+        if(i.gt.npo) he(i)=yc(i-npo)
+        do j=i,np2
+          w(j,i)=0.
+          if(i.le.npo.and.j.le.npo) w(j,i)=wx(j    ,i    )
+          if(i.gt.npo.and.j.gt.npo) w(j,i)=wy(j-npo,i-npo)
+          if(i.ne.j) w(i,j)=w(j,i)
+        enddo
+      enddo
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+      subroutine C2Fit(Par,Xout,doR,npa,np2,Dhi2,ier)
+*   A.Chikanian, Yale, Dec,2010
+*----------------------------------
+*  Input:  Par - initial parameters
+*         Xuot - fitted parameters
+*          doR - error of 1/R
+*          npa - number of parameters
+*          np2 - number of points for fit
+* Output: Dhi2 - Chi2 value
+*          ier - error flaf, ok if 0
+*-----------------------------------
+      integer npa,np2,ier,i
+      double precision Par(npa),Xout(npa),Er(npa),Dhi2
+      real doR
+      double precision DP(5,5)
+      double precision R2,rx,ry,rz
+*     ----------------------------
+      call NDC2Fit(Par,Xout,DP,npa,np2,Dhi2,ier)
+*     -------------------------------------
+      R2 = Xout(1)**2+Xout(2)**2+Xout(3)**2
+      rx = Xout(1)/R2
+      ry = Xout(2)/R2
+      rz = Xout(3)/R2
+
+      doR  =  DP(1,1)*rx*rx+DP(2,2)*ry*ry+DP(3,3)*rz*rz
+     +    +2.*DP(1,2)*rx*ry+DP(1,3)*rx*rz+DP(2,3)*ry*rz ! D(R)/R**2
+      doR  = dsqrt(doR/R2)     !   sqrt(D(R)/R**2/R**2) ! d(1/R)=d(R)/R**2 
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+      subroutine tracking(par,Npa,ht,np2)
+*   A.Chikanian, Yale, Dec,2010
+*------------------------------
+      implicit none
+      integer Npa,np2,np,i
+      double precision par(Npa)
 *----------------
 #include "rkms.h"
 *----------------
       double precision pin(3),xin(3),xt(NPma),yt(NPma)
+      double precision ht(NPma*2)
 
       pin(1) = par(1) ! Px or cx
       pin(2) = par(2) ! Py or cy
@@ -303,79 +304,25 @@ c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
       xin(1) = par(4) ! x
       xin(2) = par(5) ! y
       xin(3) = zc(1)  ! z
-      do i=1,Npma
-        xt(i)=-999.
-        yt(i)=-999.
+      do i=1,Npma*2
+        ht(i)=-999.
       enddo
-*     ==========================
-      call rk_trk(pin,xin,xt,yt)
-      Fun = chi2su(xt,yt)
-*     ==========================
-      end
-
-*--------1---------2---------3---------4---------5---------6---------7--
-      subroutine FunDer(npa,par,der)
-*   A.Chikanian, Yale, Aug,2003
-*---   numerical calculation of Fun and Fun's derivatives.
-*--------------------------------------------------------
-      implicit none
-      integer npa,j
-      double precision f1,f2,x0,dp,Fun,par(npa),der(npa)
-*==================================================
-      double precision dp0(5),xx(5)                !
-      data dp0/.000005,.000005,.000100,.0002,.0002/! Optimal Steps
-*                 GeV     GeV     GeV    cm    cm  !
-*==================================================
-      do j=1,npa
-        xx(j)=par(j)
-      enddo
-      do j=1,npa
-        dp=dp0(j) ! /2.
-        x0=xx(j)
-        xx(j)=x0-dp
-        f1=Fun(npa,xx)
-        xx(j)=x0+dp
-        f2=Fun(npa,xx)
-        der(j) = .5*(f2-f1)/dp
-        xx(j)=x0
+*     ============================
+      call rk_trk(pin,xin,xt,yt,np)
+      if(np.ne.npoc) then
+        np2=-np*2
+        return
+      endif
+*     ============================
+      np2=npoc*2
+      do i=1,npoc
+        ht(i     )=xt(i)
+        ht(i+npoc)=yt(i)
       enddo
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      double precision function Chi2Su(x0,y0)
-*-------------------------------------------
-*   A.Chikanian, Yale, Feb,2003
-*             Revised June,2010
-*-------------------------------------------------
-* Input    x0     - x-coord. for current iteration
-*          y0     - y-coord. for current iteration
-* Output:  Chi2Su - chi2 value
-*-------------------------------------------------
-      implicit none
-      integer i,j
-      double precision xi,yi
-*----------------
-#include "rkms.h"
-*----------------
-*  xc,yc - hits coordinates
-      double precision x0(NPma),y0(NPma) ! r8
-      Chi2Su=wx(1,1)*(xc(1)-x0(1))**2+wy(1,1)*(yc(1)-y0(1))**2
-      do i=2,npoc
-        xi=xc(i)-x0(i)
-        yi=yc(i)-y0(i)
-        Chi2Su = Chi2Su + wx(i,i)*xi**2 + wy(i,i)*yi**2
-        if(i.lt.npoc) then
-          do j=i+1,npoc
-            Chi2Su=Chi2Su+2.*(wx(j,i)*xi*(xc(j)-x0(j))
-     +                       +wy(j,i)*yi*(yc(j)-y0(j)))
-          enddo
-        endif
-      enddo
-      Dhi2=Chi2Su
-      end
-
-*--------1---------2---------3---------4---------5---------6---------7--
-      subroutine rk_trk(pin,xin,x0,y0)
+      subroutine rk_trk(pin,xin,x0,y0,np)
 *---------------------------------------------------
 * Runge-Kutta integration for particle in Magn.field
 * A.Chikanian, Yale, Feb.,2003
@@ -385,7 +332,8 @@ c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
 *          xin(3)   - initial Position  x, y, z (cm)    for tracking
 *  Output: x0(NPma) - x,y (cm) coordinates of tragectory crossing
 *          y0(NPma) /          with tracking planes
-*--------------------------------------------------
+*          np # of planes (should be the same as npo) 
+*---------------------------------------------------
       implicit none
       integer i,j,Nst,np
 *----------------
@@ -400,12 +348,15 @@ c        call w1_matr(npo,dx,dy)                ! Diagon.Matr
 *                           vect(7) is  x,y,z,px,py,pz,P
 *                                   or  x,y,z,cx,cy,cz,P
 *                                       1 2 3  4  5  6 7
-      data Stot/350./ ! Track's Max.Path Length (cm) (2010)
+      data Stot/350.D0/ ! Track's Max.Path Length (cm) (2010)
 *     -----------------------------------------------------
       logical first
       data    first/.true./
       double precision w
 *     -----------------------------------------------------
+      integer     ieie
+      common/iiii/ieie
+*     ----------------
       step=rkstep
       Nst=int(Stot/step) ! Max.# of steps
       vni=1.d0
@@ -429,10 +380,72 @@ cxy3 ---
           np = np+1
         endif
           ENDDO  !### fixing closed planes problem.(small tracking STEP)
+
         do j=1,7 ! x,y,z,cx,cy,cz,P
           vect(j)=vout(j)
         enddo
       enddo ! Nst 
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+      subroutine DerivNum(p0,npa,npo,IER)
+*-----------------------------------
+*  Numerical derivatives calculation
+*  A.Chikanian, Dec.7,2010
+*-----------------------------------
+*  Input:   p0 - initial parameters
+*          npa - number of parameters
+*          npo - number of points for fit
+* Output:  IER - error flaf, ok if 0
+*----------------------------------------
+*  der - derevatives go's in commom/Mfit/
+*----------------------------------------
+      implicit none
+      integer npa,npo,IER,i,j,np,nn
+*     ----------------------------- /MFit/
+      integer    NPm2   ,NpaM
+      parameter (NPm2=18,NpaM=5)
+      real*8      w           ,he      ,ht      ,der
+      common/MFit/w(NPm2,NPm2),he(NPm2),ht(NPm2),der(NpaM,NPm2)
+!$OMP threadprivate(/MFit/)
+*     ---------------------------------------------------------
+      real*8 x0,dp
+      real*8 p0(npa)
+      real*8 h1(Npm2),h2(NPm2)
+      real*8 dp0(NpaM),xx(NpaM)
+      data dp0/.000010,.000010,.001000,.0002,.0002/ ! Pz Optimal Steps
+*                 GeV     GeV     GeV    cm    cm
+*     ===============================================
+      ier=0
+      call tracking(p0,npa,ht,np)
+      if(np.le.0) then
+        ier=10
+        return
+      endif
+      do j=1,npa
+        xx(j)=p0(j)
+      enddo
+
+      do j=1,npa
+        dp=dp0(j)
+        x0=xx(j)
+        xx(j)=x0-dp
+        call tracking(xx,npa,h1,nn)
+        if(nn.ne.npo.or.nn.le.0) then
+          ier=11
+          return
+        endif
+        xx(j)=x0+dp
+        call tracking(xx,npa,h2,nn)
+        if(nn.ne.npo.or.nn.le.0) then
+          ier=12
+          return
+        endif
+        do i=1,npo
+          der(j,i) = 0.5*(h2(i)-h1(i))/dp
+        enddo
+        xx(j)=x0
+      enddo
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
@@ -459,7 +472,7 @@ cxy3 ---
       double precision charge,sigcha ! for GRKUTA
       common/rktrk/    charge,sigcha
 !$OMP threadprivate(/rktrk/)
-*     -------------------------------
+*     ------------------------------
       real dZ(NPma,NPma)
       real wzn(Npma),wzi(Npma)
       integer ipa
@@ -522,8 +535,6 @@ cxy3 ---
       be =  P/E ! or from TOF
       dTc2 = 1./(be*RR)**2 ! scatt.angle correction
       charge = cha
-c      sigcha = 1.D0
-c      if(cha.lt.0.) sigcha = -1.D0 ! for GRKUTA 
 *     ------------------------------  Full matrix forming
       vx(1,1) = dx(1)**2
       vy(1,1) = dy(1)**2
@@ -534,15 +545,13 @@ c      if(cha.lt.0.) sigcha = -1.D0 ! for GRKUTA
             ii=ii+1
             oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
      +                                      /dz(npl(i),npl(i-1))**2)
-c     +                         /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
-            vx(ii,ii)=dms(ii,ii)*dTc2 + 1000. ! dX,Y~22cm if missing plane
+            vx(ii,ii)=dms(ii,ii)*dTc2 + 1000. ! dX,Y~32cm if missing plane
             vy(ii,ii)= vx(ii,ii)
           enddo
         endif
         ii=ii+1
         oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
      +                                  /dz(npl(i),npl(i-1))**2)
-c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
         vx(ii,ii)=dms(ii,ii)*dTc2*oco(ii) + dx(i)**2
         vy(ii,ii)=dms(ii,ii)*dTc2*oco(ii) + dy(i)**2
       enddo
@@ -574,7 +583,8 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
       subroutine matr_scatN9(npl1,dms)
 * Cov.Err.Matrix with Mult.Scattering for Up --> Down track
 * A.Chikanian May,2010.
-*---------------------------------
+*   Revised: Oct.,2010 (consistent with ams02p geom.)
+*----------------------------------------------------
 * Input:  npl1 - first plane
 * Output: dms  - scattering matrix
 *---------------------------------
@@ -594,35 +604,43 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
 *  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
 *    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
 *  ---------------------------------------------------------
-      real       p(9)/ 156.15, 78.95  !  TRD  p1,p2
-     +               ,  65.5 , 61.0   !  TOF  p3,p4
-     +               ,  56.46         !  HC2  p5
-     +               , -61.0 ,-65.5   !  TOF2 p6,p7
-     +               , -74.5 ,-75.0/  !  RICH p8,p9
-      real       z(9)/ 166.92         !  z1   PL8 (1N)
-     +               ,  53.06         !  z2   PL1
-     +               ,  29.2          !  z3   PL2
-     +               ,  27.5          !  z4   PL3
-     +               ,   1.7          !  z5   PL4
-     +               ,  -1.7          !  z6   PL5
-     +               , -27.5          !  z7   PL6
-     +               , -29.2          !  z8   PL7
-     +               ,-135.48/        !  z9   PL9
-*   -----------------------------------------------------
-*   X_Si = X_HC = 0.32054%
-*   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
-*   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
-*   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
-*   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
+      real       p(9)/ 157.60, 79.26  !  TRD  p1,p2
+     +               ,  75.85, 60.0   !  TOF  p3,p4
+     +               ,  58.           !  HC2  p5
+     +               , -59.79,-70.53  !  TOF2 p6,p7
+     +               , -74.37,-74.92/ !  RICH p8,p9
+      real       z(9)/ 166.9          !  z1   PL8 (1N)
+     +               ,  52.96         !  z2   PL1
+     +               ,  29.15         !  z3   PL2
+     +               ,  25.19         !  z4   PL3
+     +               ,   1.69         !  z5   PL4
+     +               ,  -2.30         !  z6   PL5
+     +               , -25.23         !  z7   PL6
+     +               , -29.22         !  z8   PL7
+     +               ,-135.72/        !  z9   PL9
 *   ----------------------------------------------------------------
 *                       Si      TRD    TOF   Si or HC     TOF   RICH
-      real  xRL(16)/0.0032054,0.0764,0.047,11*0.0032054,0.047,0.0335/
+c      real  xRL(16)/0.0032054,0.0764,0.047,11*0.0032054,0.047,0.0335/
+c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
+*    ------------------------------------------------------------
+      real  xRL(16)/0.0032054,0.1624,0.1117 ! Si1,TRD,TOF2  1,2,3
+     +  ,  0.007841                         ! HC2           4,
+     +  ,2*0.0032054                        ! Si2,3         5,6
+     +  ,  0.0025                           ! HC34          7,
+     +  ,2*0.0032054                        ! Si4,5         8,9
+     +  ,  0.0052                           ! HC56         10,
+     +  ,2*0.0032054                        ! Si6,7        11,12
+     +  ,  0.0052                           ! HC78         13,
+     +  ,  0.0032054                        ! Si8          14,
+     +  ,  0.094                            ! TOF2         15,
+     +  ,  0.044/                           ! RICH         16
+*   -------------------------------------------------------------
       real   DT(16)/16*0./
       real dz(9,16)/144*0./
       integer IS(9)/0,4,5,7,8,10,11,13,16/ ! right
       real beta/1./,rigid/1./ ! 1 GeV/c
       logical first/.true./
-       save first,z,dz,dt
+      save first,z,dz,dt
       !$OMP threadprivate (first,z,dz,DT,dmsN9)
 *     ----------------------------------------
       if(first) then ! calculating and storring dmsN9 array
@@ -684,7 +702,7 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
             enddo
           enddo
         enddo
-        write(6,*)'---- matr_scatN9 initialisation completed ----'
+        write(6,*)'--- matr_scatN9 initialisation completed ----'
         first=.false.
       endif  !  -----------   end first
 *     ---------------------------------
@@ -704,7 +722,8 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
       subroutine matr_scatN1(npl1,dms)
 * Cov.Err.Matrix with Mult.Scattering for Down -->Up track
 * A.Chikanian June,2010.
-*---------------------------------
+*   Revised:  Oct.,2010 (consistent with ams02p geom.)
+*-----------------------------------------------------
 * Input:  npl1 - first plane
 * Output: dms  - scattering matrix
 *---------------------------------
@@ -724,36 +743,39 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
 *  L8(1N) TRD   TOF  HC2 L1 L2 L3 L4 L5 L6 L7  TOF  RICH  L9
 *    z1  p1-p2 p3-p4  p5 z2 z3-z4 z5-z6 z7-z8 p6-p7 p8-p9 z9
 *  ---------------------------------------------------------
-      real       p(9)/ 156.15, 78.95  !  TRD  p1,p2
-     +               ,  65.5 , 61.0   !  TOF  p3,p4
-     +               ,  56.46         !  HC2  p5
-     +               , -61.0 ,-65.5   !  TOF2 p6,p7
-     +               , -74.5 ,-75.0/  !  RICH p8,p9
-      real       z(9)/ 166.92         !  z1   PL8 (1N)
-     +               ,  53.06         !  z2   PL1
-     +               ,  29.2          !  z3   PL2
-     +               ,  27.5          !  z4   PL3
-     +               ,   1.7          !  z5   PL4
-     +               ,  -1.7          !  z6   PL5
-     +               , -27.5          !  z7   PL6
-     +               , -29.2          !  z8   PL7
-     +               ,-135.48/        !  z9   PL9
-*   -----------------------------------------------------
-*   X_Si = X_HC = 0.32054%
-*   X0_Rad = X_pl*den_pl/den_read=42.4*1.032/0.06=729cm
-*   X_TRD  = X_HC+X_rad+X_gaz=X_HC = 1.+ 6.+ 0.64 = 7.64%
-*   X_TOF  = 2cm/42.4cm =0.047 = 4.7%  (2cm of scintilator)
-*   X_RICH = 0.5cm/14.91cm = 0.0335 = 3.35%  (0.5cm of NaF)
-*   ----------------------------------------------------------------
-*                       Si      RICH   TOF   Si or HC     TOF    TRD
-      real  xRL(16)/0.0032054,0.0335,0.047,11*0.0032054,0.047,0.0764/
+      real       p(9)/ 157.60, 79.26  !  TRD  p1,p2
+     +               ,  75.85, 60.0   !  TOF  p3,p4
+     +               ,  58.           !  HC2  p5
+     +               , -59.79,-70.53  !  TOF2 p6,p7
+     +               , -74.37,-74.92/ !  RICH p8,p9
+      real       z(9)/ 166.9          !  z1   PL8 (1N)
+     +               ,  52.96         !  z2   PL1
+     +               ,  29.15         !  z3   PL2
+     +               ,  25.19         !  z4   PL3
+     +               ,   1.69         !  z5   PL4
+     +               ,  -2.30         !  z6   PL5
+     +               , -25.23         !  z7   PL6
+     +               , -29.22         !  z8   PL7
+     +               ,-135.72/        !  z9   PL9
+*    ------------------------------------------------------------
+      real  xRL(16)/0.0032054,0.1624,0.1117 ! Si1,TRD,TOF2  1,2,3
+     +  ,  0.007841                         ! HC2           4,
+     +  ,2*0.003205                         ! Si2,3         5,6
+     +  ,  0.0025                           ! HC34          7,
+     +  ,2*0.003205                         ! Si4,5         8,9
+     +  ,  0.0052                           ! HC56         10,
+     +  ,2*0.003205                         ! Si6,7        11,12
+     +  ,  0.0052                           ! HC78         13,
+     +  ,  0.003205                         ! Si8          14,
+     +  ,  0.094                            ! TOF2         15,
+     +  ,  0.044/                           ! RICH         16
+*   -------------------------------------------------------------
       real   DT(16)/16*0./
       real dz(9,16)/144*0./
       integer IS(9)/0,3,5,6,8,9,11,12,16/
       real beta/1./,rigid/1./ ! 1 GeV/c
       logical first/.true./
-
-       save first,z,dz,dt
+      save first,z,dz,dt
       !$OMP threadprivate (first,z,dz,DT,dmsN1)
 *     -----------------------------------------
       if(first) then ! calculating and storring dmsN9 array
@@ -816,7 +838,7 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
             enddo
           enddo
         enddo
-        write(6,*)'---- matr_scatN1 initialisation completed ----'
+        write(6,*)'--- matr_scatN1 initialisation completed ----'
         first=.false.
       endif  !  -----------   end first
 *     ---------------------------------
@@ -832,8 +854,240 @@ c     +                     /(trkZ0(npl(i))-trkZ0(npl(i-1)))**2)
       enddo
       end
 
-*============================ AMS/MYAMS/TRKRKRES/MSMATR/2010/rkmslib.F
-*------------ /group/yaug1/prj/shik/AMS/MYAMS/TRKRKRES/MSMATR/drkuta.f
+*--------1---------2---------3---------4---------5---------6---------7--
+      subroutine R_init(npo,x,y,z,Rc)
+*--- calculate Initial Rigidity by circular fit
+*----------------------------------------------
+* Input:   npo - # points
+*          x(npl),y(npl),z(npl) - 3d coordinates
+* Output:  Rc  - reconstructed Rigidity by fiting Circle
+*-------------------------------------------------------
+      implicit none
+      integer npo
+      integer cfit,utcfit
+      real x(npo),y(npo),z(npo)
+*----------------
+#include "rkms.h"
+*----------------
+      real gauss,Fu,Bx
+      external   Fu
+      real Chi2,Rc,sgn,Rad,Rx,Ry,w1(NPma)
+      data                       w1/NPma*1./
+      real Sl,dSl,AA,dAA,Cor,Ch2L  ! for linear fit
+
+      logical first
+      data    first/.true./
+      save first,w1,Bx
+      !OMP threadprivate(first,w1,bx)
+      if(first) then
+        first = .false.
+        Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
+        write(6,*)'=== R_init: < Bx > =',Bx
+      endif ! first
+
+      Rc=10000000.
+      if(Bx.eq.0.or.npo.lt.3) return                            !!!!
+      cfit = utcfit(z,y,w1,npo,sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
+c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
+      if(cfit.ne.0) write(6,*)'### utcfit: cfit.ne.0 !!!'
+      Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
+      call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
+      Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
+      end
+*           Chi2 -  m i n i m i z a t i o n
+*--------1---------2---------3---------4---------5---------6---------7--
+* A.Chikanian, Dec.7,2010
+      Subroutine NDC2Fit(p0,pf,DP,npa,npo,Chi2,ier)
+*--------------------------------------------------
+*  Chi2 minimization with non diagonal error matrix
+*--------------------------------------------------
+*  Input:   p0 - initial parameters
+*           pf - fitted  parameters
+*          npa - number of parameters
+*          npo - number of points for fit
+* Output: Chi2 - Chi2 value
+*           DP - error matrix for fitted parameters (pf)
+*          ier - error flaf, ok if 0
+*-----------------------------------------------
+      implicit none
+      integer npa,npo,ier,iter,i
+      real*8 p0(npa),pf(npa),DP(npa,npa)
+      real*8 Chi2,dpa,Chi2pr
+      real*8 eps/1.d-6/
+      real*8 pp(5)
+      integer Nit/1000/
+*     ------------------
+      do i=1,npa
+        pp(i)=p0(i)
+      enddo
+      ier=0
+      Chi2pr = 1.d35
+      iter=0
+ 10   call OneIter(pp,pf,npa,npo,Chi2,ier)
+      if(ier.ne.0) return
+      iter=iter+1
+      if(Chi2.gt.Chi2pr) go to 100
+      dpa=0.          
+      do i=1,npa
+        dpa = dpa + (pp(i)-pf(i))**2
+        pp(i)=pf(i)
+      enddo
+      if((dpa.gt.eps.or.dabs(Chi2pr-Chi2).gt.eps).and.iter.lt.Nit) then
+        Chi2pr=Chi2
+        go to 10
+      endif
+ 100  continue
+      call ParEM(npa,npo,DP,ier)
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+* A.Chikanian, Dec.7,2010
+      Subroutine OneIter(p0,pf,npa,npo,Chi2,IER)
+*----------------------------
+*  One minimization iteration
+*  Input:   p0 - initial parameters
+*           pf - fitted  parameters
+*          npa - number of parameters
+*          npo - number of points for fit
+* Output: Chi2 - Chi2 value
+*          IER - error flaf, ok if 0
+*-----------------------------------
+      implicit none
+*     ------------------------- /MFit/
+      integer    NPm2   ,NpaM
+      parameter (NPm2=18,NpaM=5)
+      real*8      w           ,he      ,ht      ,der
+      common/MFit/w(NPm2,NPm2),he(NPm2),ht(NPm2),der(NpaM,NPm2)
+!$OMP threadprivate(/MFit/)
+*     ---------------------------------------------------------
+      integer npa,npo,IER
+      real*8 p0(npa),pf(npa)
+      real*8 CN(NpaM,NpaM),BN(NpaM)
+      real*8 eps/1.d-6/
+      real*8 Chi2,Chi2Fun
+      integer i,j,k,m
+*     -----------------------------
+      Chi2=1.E35
+      call DerivNum(p0,npa,npo,IER)
+      if(ier.ne.0) return
+*     ---------- Normal equation preparing
+      do k=1,npa
+        BN(k)=0.
+        do i=1,npo
+          do j=1,npo
+            if(w(i,j).ne.0.) then
+              BN(k)=BN(k)+w(i,j)*2.*der(k,j)*(he(i)-ht(i))
+            endif
+          enddo
+        enddo
+        do m=k,npa
+          CN(m,k)=0.
+          do i=1,npo
+            do j=1,npo
+            if(w(i,j).ne.0.) then
+              CN(m,k) = CN(m,k) + 2.*w(i,j)*der(k,j)*der(m,i)
+              endif
+            enddo
+          enddo
+          if(m.ne.k) CN(k,m)=CN(m,k)
+        enddo
+      enddo
+*     ------------------------------- Solwing Normal Equation
+      Call DSEQN(npa,CN,NpaM,ier,1,BN)
+      if(ier.ne.0) return
+*     ---------------------------------------------
+      do m=1,npa
+        pf(m)=p0(m)+BN(m)
+      enddo
+      Chi2=Chi2Fun(npo)
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+* A.Chikanian, Dec.16,2010
+      subroutine ParEM(npa,npo,DP,ier)
+*-------------------------------------
+*  Error matrix of parameters
+*------------------------------------
+*  Input:  npa - number of parameters
+*          npo - number of points for fit
+* Output:   DP - error matrix
+*          ier - error flaf, ok if 0
+*-----------------------------------
+      implicit none
+*     -------------------------- /MFit/
+      integer    NPm2   ,NpaM
+      parameter (NPm2=18,NpaM=5)
+      real*8      w           ,he      ,ht      ,der
+      common/MFit/w(NPm2,NPm2),he(NPm2),ht(NPm2),der(NpaM,NPm2)
+!$OMP threadprivate(/MFit/)
+*     ---------------------------------------------------------
+      integer npa,npo,ier
+      real*8 DP(npa,npa)
+      integer i,j,k,m,ncou/0/
+*     ---------- Normal equation preparing
+      do k=1,npa
+        do m=k,npa
+          DP(m,k)=0.
+          do i=1,npo
+            do j=1,npo
+              if(w(i,j).ne.0.) DP(m,k) = DP(m,k)
+     +                                 + 2.*w(i,j)*der(k,j)*der(m,i)
+            enddo
+          enddo
+          if(m.ne.k) DP(k,m) = DP(m,k)
+        enddo
+      enddo
+*     ---------------------- Normal Equation Matrix Inversion
+      call dsinv(NpaM,DP,NpaM,ier) ! F012 Symm.Matr.Inversion
+*     ---------------------------
+      if(ier.eq.0) return
+      if(ncou.le.10) then
+        ncou=ncou+1
+        write(6,*)'### ParEM: dsinv: ier=',ier
+      endif
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+* A.Chikanian, Dec.7,2010
+      Real*8 Function Chi2Fun(npo)
+*----------------------------------------
+*  Calculate Chi2 with nondiagonal matrix
+*----------------------------------------
+*  Input:  npo - number of points for fit
+*          common/MFit/
+* Output:  Chi2Fun
+*----------------------------------------
+      implicit none
+      integer i,j,npo,nh,ih,jh
+      real*8 h1,h2
+*     ------------------------- /MFit/
+      integer    NPm2   ,NpaM
+      parameter (NPm2=18,NpaM=5)
+      real*8      w           ,he      ,ht      ,der
+      common/MFit/w(NPm2,NPm2),he(NPm2),ht(NPm2),der(NpaM,NPm2)
+!$OMP threadprivate(/MFit/)
+*     ---------------------------------------------------------
+*     --------- in case NO (x,y)-correlations
+      Chi2Fun=0.
+      do i=1,npo
+        Chi2Fun = Chi2Fun + w(i,i)*(he(i)-ht(i))**2
+      enddo
+      nh=npo/2
+      do i=2,nh-1
+        ih=i+nh
+        h1 = he(i )-ht(i )
+        h2 = he(ih)-ht(ih)
+        do j=i+1,nh
+          jh=j+nh
+          if(w(i,j).ne.0.)
+     +      Chi2Fun = Chi2Fun + 2.*w(i ,j )*h1*(he(j )-ht(j ))
+          if(w(ih,jh).ne.0.) 
+     +      Chi2Fun = Chi2Fun + 2.*w(ih,jh)*h2*(he(jh)-ht(jh))
+        enddo
+      enddo
+      end
+
+*======================================================================== Lib
 * modified by A.Chikanian Aug.26,2003
 * EVERYTHING switched to DOUBLE PRECISION
 *----------------------------------------------------------------------
@@ -1049,6 +1303,8 @@ C.
 
 *---------1---------2---------3---------4---------5---------6---------7--
       Subroutine DUFLD(xyz,Field)
+*--- interface Single(GUFLD) -> Double(DUFLD)
+*--------------------------------------------
       implicit none
       double precision xyz(3),Field(3)
       real   x(3),F(3)
@@ -1063,48 +1319,7 @@ C.
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine R_init(npo,x,y,z,Rc)
-*--- calculate Initial Rigidity by circular fit
-*----------------------------------------------
-* Input:   npo - # points
-*          x(npl),y(npl),z(npl) - 3d coordinates
-* Output:  Rc  - reconstructed Rigidity by fiting Circle
-*-------------------------------------------------------
-      implicit none
-      integer npo
-      integer cfit,utcfit
-      real x(npo),y(npo),z(npo)
-*-------------------------------------------
-#include "rkms.h"
-*-------------------------------------
-      real gauss,Fu,Bx
-      external   Fu
-      real Chi2,Rc,sgn,Rad,Rx,Ry,w1(NPma)
-      data                       w1/NPma*1./
-      real Sl,dSl,AA,dAA,Cor,Ch2L  ! for linear fit
-
-      logical first
-      data    first/.true./
-      save first,w1,Bx
-      !OMP threadprivate(first,w1,bx)
-      if(first) then
-        first = .false.
-        Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
-        write(6,*)'=== R_init: < Bx > =',Bx
-      endif ! first
-
-      Rc=10000000.
-      if(Bx.eq.0.or.npo.lt.3) return                            !!!!
-      cfit = utcfit(z,y,w1,npo,sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
-c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
-      if(cfit.ne.0) write(6,*)'### utcfit: cfit.ne.0 !!!'
-      Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
-      call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
-      Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
-      end
-
-*--------1---------2---------3---------4---------5---------6---------7--
-      Real function Fu(z) ! For integration Mag.Field by Gauss
+      Real function Fu(z) ! For Mag.Field integration by Gauss
 *     --------------------------------------------------------
       Implicit none
       real x,y,z
@@ -1197,81 +1412,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 * shik: SGN is not realyable !!! (Why?, see next line)
 *       ASSUMED ORIGIN OF TRACK in the (0,0), if so no problem with SIG !!!!
 *       But still: WHAT DOES mean SGN in case of full circle ?????
-
-* it is probably not right in case dX not eq. dY
+* also it is probably not right in case dX not eq. dY
 * for example Xav = Sum(Wx(i)*X(i))/Sum(Wx(i)),
 *     but not Xav = Sum( W(i)*X(i))/Sum( W(i)) !!!!!!!!!!!!!!! 
 * unique w(i) is only possible in case dX(i)=dY(i)
 *===========================================================================
-
-
-* $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
-* $Log: rkms.F,v $
-* Revision 1.21  2010/11/05 21:43:27  choutko
-* *** empty log message ***
-*
-* Revision 1.20  2010/10/16 17:24:03  shaino
-* Error message suppression
-*
-* Revision 1.19  2010/10/16 07:27:05  shaino
-* Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
-*
-* Revision 1.18  2010/10/16 07:17:07  shaino
-* PGTRACK: Chikanian fit updated
-*
-* Revision 1.17  2010/07/12 15:35:56  choutko
-* *** empty log message ***
-*
-* Revision 1.16  2010/07/12 14:12:17  choutko
-* *** empty log message ***
-*
-* Revision 1.15  2010/06/24 11:13:35  zweng
-* Add #include "VMCrename.h"
-*
-* Revision 1.14  2010/03/24 10:19:03  choutko
-* make rkms work with perm meg opt
-*
-* Revision 1.13  2010/03/22 22:18:05  pzuccon
-* keep compatibility with SLC4
-*
-* Revision 1.12  2010/03/21 15:16:38  choutko
-* add permanent magnet tracker option (9 layers) via "AMS02P" setup
-*
-* ----------------------------------------------------------------------
-*
-* Revision 1.11  2010/02/17 16:12:37  choutko
-* parallazing rkms
-*
-* Revision 1.10  2009/11/18 17:01:29  choutko
-* fpe
-*
-* Revision 1.9  2008/12/08 15:15:18  choutko
-* *** empty log message ***
-*
-* Revision 1.8  2008/04/04 08:49:38  choutko
-* *** empty log message ***
-*
-* Revision 1.7  2008/03/10 22:07:14  choutko
-* *** empty log message ***
-*
-* Revision 1.6  2008/02/28 16:14:54  choutko
-* *** empty log message ***
-*
-* Revision 1.5  2006/02/16 13:21:28  choutko
-* work around g77 shared
-*
-* Revision 1.4  2005/11/17 14:29:32  choutko
-* correct /dev/null statement
-*
-* Revision 1.3  2005/09/22 09:09:15  choutko
-* :
-*
-* Revision 1.2  2003/10/30 09:35:02  choutko
-* yale algo ++ ( start working)
-*
-* Revision 1.2  1998/01/27 00:35:54  fisyak
-* Split sources
-*
       INTEGER FUNCTION UTCFIT(XCIR,YCIR,WCIR,NCIR,
      >                           SGN,R0,ACENT,BCENT,CHISQ)
 *>-----------------------------------------------------------------
@@ -1413,73 +1558,6 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
 
         RETURN
         END
-
-* $Id: rkms.F,v 1.21 2010/11/05 21:43:27 choutko Exp $
-* $Log: rkms.F,v $
-* Revision 1.21  2010/11/05 21:43:27  choutko
-* *** empty log message ***
-*
-* Revision 1.20  2010/10/16 17:24:03  shaino
-* Error message suppression
-*
-* Revision 1.19  2010/10/16 07:27:05  shaino
-* Compatibility between gcc3 and gcc4 (conversion of fortran function with _)
-*
-* Revision 1.18  2010/10/16 07:17:07  shaino
-* PGTRACK: Chikanian fit updated
-*
-* Revision 1.17  2010/07/12 15:35:56  choutko
-* *** empty log message ***
-*
-* Revision 1.16  2010/07/12 14:12:17  choutko
-* *** empty log message ***
-*
-* Revision 1.15  2010/06/24 11:13:35  zweng
-* Add #include "VMCrename.h"
-*
-* Revision 1.14  2010/03/24 10:19:03  choutko
-* make rkms work with perm meg opt
-*
-* Revision 1.13  2010/03/22 22:18:05  pzuccon
-* keep compatibility with SLC4
-*
-* Revision 1.12  2010/03/21 15:16:38  choutko
-* add permanent magnet tracker option (9 layers) via "AMS02P" setup
-*
-* ----------------------------------------------------------------------
-*
-* Revision 1.11  2010/02/17 16:12:37  choutko
-* parallazing rkms
-*
-* Revision 1.10  2009/11/18 17:01:29  choutko
-* fpe
-*
-* Revision 1.9  2008/12/08 15:15:18  choutko
-* *** empty log message ***
-*
-* Revision 1.8  2008/04/04 08:49:38  choutko
-* *** empty log message ***
-*
-* Revision 1.7  2008/03/10 22:07:14  choutko
-* *** empty log message ***
-*
-* Revision 1.6  2008/02/28 16:14:54  choutko
-* *** empty log message ***
-*
-* Revision 1.5  2006/02/16 13:21:28  choutko
-* work around g77 shared
-*
-* Revision 1.4  2005/11/17 14:29:32  choutko
-* correct /dev/null statement
-*
-* Revision 1.3  2005/09/22 09:09:15  choutko
-* :
-*
-* Revision 1.2  2003/10/30 09:35:02  choutko
-* yale algo ++ ( start working)
-*
-* Revision 1.2  1998/01/27 00:35:54  fisyak
-* Split sources
 *
       SUBROUTINE UTCMAT(xcir,ycir,wcir,ncir)
 *>----------------------------------------------------------------------

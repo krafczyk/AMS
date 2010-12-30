@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.767 2010/12/14 19:04:15 shaino Exp $
+// $Id: job.C,v 1.768 2010/12/30 13:43:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1954,9 +1954,6 @@ else{
   }
 
 #ifndef _PGTRACK_
-  if(TRFITFFKEY.FastTracking==-1){
-    TRFITFFKEY.FastTracking=1;
-  }
 
   //PZ FIXME
   // check delta etc

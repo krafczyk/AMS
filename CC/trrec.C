@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.232 2010/12/14 18:51:36 choutko Exp $
+//  $Id: trrec.C,v 1.233 2010/12/30 13:43:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1268,7 +1268,7 @@ sethit();
 
 
 
- void AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
+ AMSTrRecHit* AMSTrRecHit::_addnext(AMSgSen * pSen, AMSTrIdGeom *pid,integer status,  number cofgx, number cofgy, AMSTrCluster *x,
                             AMSTrCluster * y,  const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
@@ -1314,6 +1314,7 @@ sethit();
     new     AMSTrRecHit(pSen, status,pid,cofgx,cofgy,x,y,hitN,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
 //    cout <<"cfgx  "<<cofgx<<" "<<ptr<<" "<<layer<<" "<<cofgy<<endl;
     if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
+    return (AMSTrRecHit*)ptr;  
 }
 
 
@@ -1326,68 +1327,6 @@ void AMSTrRecHit::_writeEl(){
 #ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-/*
-// Fill the ntuple 
- TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
-  if (THN->Ntrrh>=root::MAXTRRH02) return;
-
-    if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
-    else THN->pX[THN->Ntrrh]=-1;
-    THN->pY[THN->Ntrrh]=_Ycl->getpos();
-    int pat;
-    pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll%10==1)){
-      // Writeall
-      for(int i=0;i<pat;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
-           #ifdef __AMSDEBUG__
-            assert(pc != NULL);
-           #endif
-           THN->pY[THN->Ntrrh]+=pc->getnelem();
-      }
-    }                                                        
-    else if (AMSTrCluster::Out(IOPA.WriteAll%10==0)){
-      //Write only USED hits
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
-          THN->pY[THN->Ntrrh]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else if (AMSTrCluster::Out(IOPA.WriteAll%10==2)){
-      //Write only hits consistent with TOF
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
-          THN->pY[THN->Ntrrh]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else return;
-  
-    if(!checkstatus(AMSDBc::FalseX) && !checkstatus(AMSDBc::FalseTOFX) &&
-        ((_Xcl->getid()).getlayer() != _Layer) || 
-       ((_Ycl->getid()).getlayer() != _Layer) ){
-      cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
-        (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
-    }
-    THN->Status[THN->Ntrrh]=_status;
-    THN->Layer[THN->Ntrrh]=_Layer;
-    int i;
-    for(i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
-    for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
-    THN->Sum[THN->Ntrrh]=_Sum;
-    THN->DifoSum[THN->Ntrrh]=_DifoSum;
-//    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
-    THN->CofgX[THN->Ntrrh]=_cofgx;
-    THN->CofgY[THN->Ntrrh]=_cofgy;
-    for(i=0;i<3;i++)THN->Bfield[THN->Ntrrh][i]=_Bfield[i];
-    THN->Ntrrh++;
-  }
-*/
 }
 }
 
@@ -1716,7 +1655,8 @@ next_pattern:
             remove_track(ptrack); 
             return NTrackFound;
           }
-      } else {
+      }
+       else {
 
             // Get out if nothing has been found
             return NTrackFound;
@@ -1994,8 +1934,9 @@ next_pattern:
 
 }
 
-integer AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
-       int pointfound=0;
+AMSTrTrack* AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
+       vector<AMSTrRecHit *>phit;
+       phit.clear();
       if(   ptrack->TOFOK()){
         // First determine which planes are missed and interpolate to them,
         // find corresponding sensor ID
@@ -2043,6 +1984,7 @@ integer AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
                   
                   py=
                     (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+                   AMSPoint xmin(1.e10,1.e10,1.e10);
                   while(py){
                     AMSTrIdSoft idy=py->getid();
                     if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
@@ -2053,11 +1995,11 @@ integer AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
                         AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(&id)); 
                         AMSPoint Err(TRFITFFKEY.ResCutStrLine,
                                      TRFITFFKEY.ResCutStrLine,TRFITFFKEY.ResCutStrLine);
-                        if((hit-P1).abs() < Err){
+                        if((hit-P1).abs() < Err && (hit-P1).abs()<xmin){
+                             xmin=(hit-P1).abs();
 //                          cout <<id.getlayer()<<" "<<P1<<"  " <<hit<<" "<<idy.gethalf()<<endl;
-                          AMSTrRecHit::_addnext(pls,&id,AMSDBc::FalseX,-1,-1,0,py,hit,
-                                                AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
-                          pointfound++;
+                         phit.push_back( AMSTrRecHit::_addnext(pls,&id,AMSDBc::FalseX,-1,-1,0,py,hit,
+                                                AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ)));
                         }
                         
                       }
@@ -2069,8 +2011,51 @@ integer AMSTrTrack::AddFalseX(AMSTrTrack *ptrack){
 }
 }
 }
-
-                   return pointfound;
+                   while(phit.size()){
+                     int nhits=ptrack->_NHits;
+                      AMSTrRecHit* arr[trconst::maxlay]={0,0,0,0,0,0,0,0,0};
+                      for(int k=0;k<ptrack->_NHits;k++){
+                       arr[ptrack->_Pthit[k]->getLayer()-1]=  ptrack->_Pthit[k];
+                      }
+                      for(int k=phit.size()-1;k>=0;k--){
+                        int lay=phit[k]->getLayer()-1;
+                        if(arr[lay]!=0){
+                          cerr<<"AMSTrTracK::AddFalseX-E-HitALrdyExist "<<lay<<endl;
+                          continue; 
+                       }
+                       arr[lay]=phit[k];  
+                       nhits++;
+                      }
+                      int kmax=trconst::maxlay;
+                      int key=0;
+                      for(int k=0;k<kmax;k++){
+                       if(arr[k])key|=1<<k;
+                      }
+                      for(int k=0;k<kmax;k++){
+                        if(arr[k]==0){
+                          for(int j=k+1;j<kmax;j++)arr[j-1]=arr[j];
+                          k--;
+                          kmax--;
+                        }
+                      }
+                      
+                      int pat=TKDBc::getpattern(key);
+                      AMSTrTrack *ptrack=0;
+                      if(pat>=0){
+                            ptrack=_addnext(pat,nhits,arr);
+                            if(ptrack)return ptrack;
+                            else phit.erase(phit.begin());
+                      }                    
+                        else {
+                          cerr<<"AMSTrTrack::AddFalseX-E-PatternError "<<pat<<" "<<key<<endl;
+                         phit.clear();
+                      }
+                     }
+                         
+                      
+                   
+                   
+                   return 0;
 }
 
 integer AMSTrTrack::buildFalseX(integer nptmin){
@@ -2161,7 +2146,7 @@ trig=(trig+1)%freq;
 
 
 */
-integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trconst::maxlay]){
+AMSTrTrack* AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trconst::maxlay]){
 
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
@@ -2186,7 +2171,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
           ptrack=new AMSTrTrack(track);
 #endif
           _addnextR(ptrack, pat, nhit, pthit);
-          return 1;
+          return ptrack;
        }
        else{
         static int  iss=0;

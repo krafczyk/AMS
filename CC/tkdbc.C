@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.75 2010/11/10 19:33:19 choutko Exp $
+//  $Id: tkdbc.C,v 1.76 2010/12/30 13:43:18 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -18,7 +18,7 @@ integer TKDBc::_NumberMarkers=0;
 integer TKDBc::_NumberLayer=0;
 integer TKDBc::_NumberLadder=0;
 integer TKDBc::_ReadOK=0;
-
+map <int,int> TKDBc::fPat;
      integer TKDBc::_nlaysi;    // number of si layers
      number  TKDBc::_layd[maxlay][5]; // pointer to supp plane
      number   TKDBc::_xposl[maxlay];   // pointers to si layers pos
@@ -3944,7 +3944,7 @@ uinteger TKDBc::factorial(uinteger n){
 
 void TKDBc::InitPattern(){
 
-
+    fPat.clear();
     int k;
     integer ordermiss[maxlay]={0,0,0,0,0,0,0,0,0};
     integer vmiss[maxlay]={0,0,0,0,0,0,0,0,0};
@@ -4100,6 +4100,9 @@ void TKDBc::InitPattern(){
          break;
        }
      }
+     int key=0;
+     for(int kk=0;kk<_patpoints[cpat];kk++)key|= (1<<(_patconf[kk][cpat]-1));
+     fPat.insert(make_pair(key,cpat));
    }
 #ifdef __AMSDEBUG__
       for (int cpat=0;cpat<npat();cpat++){
@@ -4113,6 +4116,12 @@ void TKDBc::InitPattern(){
 
 }
 
+integer TKDBc::getpattern(integer key){
+typedef map <int,int>::iterator m_i;
+m_i i=fPat.find(key);
+if(i!=fPat.end())return i->second;
+else return -1;
+}
 
 integer TKDBc::ambig(uinteger pat){
  for(int i=0;i<patpoints(pat);i++){

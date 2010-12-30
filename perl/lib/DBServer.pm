@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.20 2008/08/25 07:03:47 choutko Exp $
+# $Id: DBServer.pm,v 1.21 2010/12/30 13:43:18 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -573,9 +573,9 @@ sub InitDBFile{
         sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
         my $ntry=0;
      until (flock LOCK, LOCK_EX|LOCK_NB){
-         sleep 2;
+         sleep 1;
          $ntry=$ntry+1;
-         if($ntry>10){
+         if($ntry>30){
            $ref->Exiting("Unable to get lock for $lock","CInAbort");
            close(LOCK);
           return 0;
@@ -614,7 +614,7 @@ sub InitDBFile{
 #     until (flock DBM, LOCK_EX|LOCK_NB){
 #         sleep 1;
 #         $ntry=$ntry+1;
-#         if($ntry>10){
+#         if($ntry>30){
 #           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
 #          close(LOCK);
 #          return 0;
@@ -702,9 +702,9 @@ sub OpenDBFile{
         sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
         my $ntry=0;
      until (flock LOCK, LOCK_EX|LOCK_NB){
-         sleep 2;
+         sleep 1;
          $ntry=$ntry+1;
-         if($ntry>10){
+         if($ntry>30){
            $ref->Exiting("Unable to get lock for $lock","CInAbort");
            close(LOCK);
           return 0;
@@ -761,9 +761,9 @@ sub sendRunEvInfo{
         sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
         my $ntry=0;
      until (flock LOCK, LOCK_EX|LOCK_NB){
-         sleep 2;
+         sleep 1;
          $ntry=$ntry+1;
-         if($ntry>10){
+         if($ntry>30){
            $ref->Exiting("Unable to get lock for $lock","CInAbort");
            close(LOCK);
            goto OUT;
@@ -878,9 +878,9 @@ sub InitDBFileNew{
         sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
         my $ntry=0;
      until (flock LOCK, LOCK_EX|LOCK_NB){
-         sleep 2;
+         sleep 1;
          $ntry=$ntry+1;
-         if($ntry>10){
+         if($ntry>30){
            $ref->Exiting("Unable to get lock for $lock","CInAbort");
            close(LOCK);
           return 0;
@@ -906,7 +906,7 @@ sub InitDBFileNew{
 #     until (flock DBM, LOCK_EX|LOCK_NB){
 #         sleep 1;
 #         $ntry=$ntry+1;
-#         if($ntry>10){
+#         if($ntry>30){
 #           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
 #          return 0;
 #         }

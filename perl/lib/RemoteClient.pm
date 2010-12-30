@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.603 2010/12/08 20:50:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.604 2010/12/30 13:43:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -774,6 +774,7 @@ if($#{$self->{DataSetsT}}==-1){
        }
 
 # scan all dataset dirs
+
   $#{$self->{DataSetsT}}=-1;
    foreach my $file (@allfiles){
     my $newfile="$dir/$file";
@@ -887,6 +888,7 @@ if($#{$self->{DataSetsT}}==-1){
                 my $datasetsDidDB  = $ds->[0];
                 my $datasetsNameDB = $ds->[1];
                if ($datasetsNameDB eq $dataset->{name}) {
+    
                  $dataset->{did}=$datasetsDidDB;
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
@@ -6662,13 +6664,13 @@ print qq`
         my $srunno=$q->param("QRun");
         if($qrunno<1){
            $qrunno=1;
-        }elsif($qrunno>200){
-         $qrunno=200;
+        }elsif($qrunno>500){
+         $qrunno=500;
         }
        if($srunno<1){
            $srunno=1;
-        }elsif($srunno>200){
-         $srunno=200;
+        }elsif($srunno>500){
+         $srunno=500;
         }
         my $runsave=undef;
         if($template eq "Any"){
@@ -6734,7 +6736,7 @@ print qq`
         my $runmi=$q->param("QRunMi");
         my $runma=$q->param("QRunMa");
         if(not $runno =~/^\d+$/ or $runno <1 or $runno>500){
-             $self->ErrorPlus("Runs no $runno is out of range (1,200)");
+             $self->ErrorPlus("Runs no $runno is out of range (1,500)");
         }
 #
 #  get runs from database
@@ -7823,8 +7825,8 @@ anyagain:
         if(not $evno =~/^\d+$/ or $evno <$a or $evno>$b){
              $self->ErrorPlus("Events no $evno is out of range ($a,$b)");
         }
-        if(not $runno =~/^\d+$/ or $runno <$a or $runno>100){
-             $self->ErrorPlus("Runs no $runno is out of range ($a,100)");
+        if(not $runno =~/^\d+$/ or $runno <$a or $runno>500){
+             $self->ErrorPlus("Runs no $runno is out of range ($a,500)");
         }
 
 
@@ -8587,6 +8589,9 @@ anyagain:
           my $stalone  = "CLIENT";
          }
          my $pid = $self->getProductionSetIdByDatasetId($did);
+         if($pid <=0){
+           die " Unable to find production period  for  $did  $pid \n";
+         }
 #check run alrdy exist
  $sql="select FEvent from Runs where jid=$run";
  $ret=$self->{sqlserver}->Query($sql);

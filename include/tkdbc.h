@@ -1,9 +1,9 @@
-//  $Id: tkdbc.h,v 1.23 2010/09/20 15:21:45 choutko Exp $
+//  $Id: tkdbc.h,v 1.24 2010/12/30 13:43:18 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
 #include "typedefs.h"
-
+#include <map>
 #include "amsdbc.h"
 
 namespace trid{
@@ -27,6 +27,7 @@ private:
  geant _coo[3];
  integer _status;
  integer _gid;
+ static map <int,int>fPat;
  static TKDBc * _HeadSensor;
  static TKDBc * _HeadLayer;
  static TKDBc * _HeadLadder[2];
@@ -118,6 +119,7 @@ public:
  static void write(integer update = 0);
  static void updatef();
  static void compileg();
+ static int getpattern(int key);
  static void fitting(int il, int nls, int nmeas, integer StaLadders[17][2],
           AMSPoint CooLadder[17][2][10], int CooStatus[17][2][10],
          number LadderNrm[17][2][3][3], TRLDGM_def & TRLDGM,

@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.119 2010/12/14 18:51:36 choutko Exp $
+//  $Id: trrec.h,v 1.120 2010/12/30 13:43:18 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -147,7 +147,7 @@ AMSPoint     _Bfield;
 
 static AMSTrRecHit* _Head[trconst::maxlay];
 #pragma omp threadprivate(_Head)
-static void _addnext(AMSgSen * p, AMSTrIdGeom* id, integer ,number, number, AMSTrCluster *, 
+static AMSTrRecHit* _addnext(AMSgSen * p, AMSTrIdGeom* id, integer ,number, number, AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
   void _copyEl();
   void _writeEl();
@@ -339,10 +339,9 @@ static integer pat;
 static AMSTrRecHit * phit[trconst::maxlay];
 static number par[2][3];
 #pragma omp threadprivate (pat,par,phit)
-static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
+static AMSTrTrack* _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
-integer AddFalseX(AMSTrTrack *ptrack);
 static integer Distance(number par[2][3], AMSTrRecHit *ptr){
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
@@ -365,6 +364,7 @@ static uintl * getchild(uintl address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
 static void cleanup();
+static AMSTrTrack* AddFalseX(AMSTrTrack *ptrack);
 bool TRDMatch(AMSTRDTrack *ptrd);
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local, integer icase=0);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}

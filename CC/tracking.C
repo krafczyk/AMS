@@ -462,7 +462,7 @@ double* TrTrackA::PredictionStraightLine(TrRecHitR* phit){
 double* TrTrackA::Prediction(int index){
 
     static double pred[7];
-
+#pragma omp threadprivate (pred)
     int _Nhit = _Hit.size();
 
   // Consistency check on the number of hits
@@ -571,6 +571,7 @@ double* TrTrackA::Prediction(int index){
 double* TrTrackA::PredictionStraightLine(int index){
 
     static double pred[7];
+#pragma omp threadprivate (pred)
 
     int _Nhit = _Hit.size();
 
