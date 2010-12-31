@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.220 2010/12/30 15:47:45 choutko Exp $
+//  $Id: particle.C,v 1.221 2010/12/31 12:43:22 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -999,8 +999,8 @@ void AMSParticle::refit(int fast){
     if(pfalse){
 
         _ptrack=pfalse;
-         cout <<_ptrack->getpattern()<<endl;
-        cout << " falsex added "<<endl; 
+         //cout <<_ptrack->getpattern()<<endl;
+        //cout << " falsex added "<<endl; 
    
 
 }}

@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.63 2010/10/08 17:33:22 mmilling Exp $
+//  $Id: particle.h,v 1.64 2010/12/31 12:43:22 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -220,7 +220,7 @@ public:
   uinteger contnumber() const {return _ptrack->getpattern()<0 && !_pvert?1:0;}
   //-
   ~AMSParticle(){
-    if(_ptrack && _ptrack->getpattern()<0){
+    if(_ptrack && _ptrack->getpattern()==-1){
       delete _ptrack;
       _ptrack=0;
     }
