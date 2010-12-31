@@ -2973,7 +2973,7 @@ class RemoteClient:
                 sql="select path,run from datafiles where path like '%"+file+"'"
                 ret=self.sqlserver.Query(sql);
                 if(len(ret)>0):
-                    if(replace and (run2p==0 or ret[0][1] == run2p) and (disk==None or fd.find(disk)>=0)):
+                    if(replace and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
                       fd=ret[0][0] 
                       cmd="rm -rf "+fd
                       i=os.system(cmd)
