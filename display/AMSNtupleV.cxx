@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.34 2010/11/30 18:42:58 pzuccon Exp $
+//  $Id: AMSNtupleV.cxx,v 1.35 2011/01/05 14:53:01 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -871,14 +871,8 @@ TrRecHitV::TrRecHitV(AMSEventR *ev,int ref,int mult):AMSDrawI(ev,ref),TMarker3DC
 //      pcl->BuildCoordinates();
       float sizex=pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0];
       float sizey=pcl->GetECoord()[1]*100;
-      float sizez=(sqrt(pcl->Sum())<4)?sqrt(pcl->Sum()):4.;
-      if (sizez<1) sizez=1;
-	
+      float sizez=(sqrt(pcl-> GetTotSignal())/10.<8)?sqrt(pcl-> GetTotSignal()/10.):8.;
     
-      //printf("Hit Size  %f %f %f\n",sizex,sizey,sizez);
-      //       SetSize(pcl->GetECoord()[0]<0.5?pcl->GetECoord()[0]*100:pcl->GetECoord()[0],
-      // 	      
-      // 	      (sqrt(pcl->Sum()/10.)<8)?sqrt(pcl->Sum()/10.):8.);
       SetSize(sizex,sizey,sizez);
       SetPosition(pcl->GetCoord(mult)[0],pcl->GetCoord(mult)[1],pcl->GetCoord(mult)[2]+fDz);
       
