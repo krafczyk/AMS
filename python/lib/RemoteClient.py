@@ -360,7 +360,7 @@ class RemoteClient:
                     timenow=int(time.time())
                     sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path='"+ntuple[0]+"'"
                     self.sqlserver.Update(sql)
-                    sql="delete from ntuples where ntuples.path='"+ntuple[0]+"' 
+                    sql="delete from ntuples where ntuples.path='"+ntuple[0]+"'" 
                     self.sqlserver.Update(sql)
                     self.linkdataset(ntuple[0],"/Offline/DataSetsDir",0)
                     sql=" update jobs set realtriggers=realtriggers-"+str(ntuple[5])+"+"+str(ntuple[4])+"-1 where jid="+str(ntuple[3])
@@ -2787,10 +2787,10 @@ class RemoteClient:
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
-            self.linkdataset(datapath,"/Offline/DataSetsDir",-1)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
+                    self.linkdataset(file[0],"/Offline/DataSetsDir",0)
                     cmd="rm "+file[0]
                     i=0
 		    i=os.system(cmd)
@@ -3136,13 +3136,13 @@ class RemoteClient:
 #                    else:
 #                        self.sqlserver.Commit(0)
 
-    def linkdastset(self,path,sdir,crdel):
+    def linkdataset(self,path,sdir,crdel):
         rmpath=path.split('/')
-        newdir=""
+        newdir=sdir
         dir=sdir      
-        for i in range (1,len(rmpath)-1):
+        for i in range (2,len(rmpath)):
                 dir=dir+"/"+rmpath[i]
-        for i in range (1,len(rmpath)-2):
+        for i in range (2,len(rmpath)-1):
                 newdir=newdir+"/"+rmpath[i]
 
         os.system("mkdir -p "+newdir)
@@ -3151,6 +3151,6 @@ class RemoteClient:
                 cmd="ln -sf "+path+" "+dir
         else:
                 cmd="rm "+dir
-        i=os.sytem(cmd)
+        i=os.system(cmd)
         if(i):
                 print "Problem with "+cmd

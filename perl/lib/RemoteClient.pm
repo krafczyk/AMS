@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.605 2011/01/06 20:19:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.606 2011/01/06 21:06:20 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19076,10 +19076,10 @@ sub linkdataset{
     system($mkdir);
     my $cp="";
     if($crdel==1){
-        cp=" ln -sf $path $newfile";
+        $cp=" ln -sf $path $newfile";
     }
     else{
-        cp="rm $newfile";
+        $cp="rm $newfile";
     }
     my $i=system($cp);
     if($i){

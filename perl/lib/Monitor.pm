@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.140 2010/11/09 19:39:04 ams Exp $
+# $Id: Monitor.pm,v 1.141 2011/01/06 21:06:20 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1699,7 +1699,7 @@ sub ResetFailedRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-
+ my $changed=0;
  if($rdst{Status} eq "Processing"){
      my $found=0;
      foreach my $ac (@{$ref->{acl}}){
@@ -1709,11 +1709,19 @@ sub ResetFailedRuns{
          }
      }
      if($found eq 0){
+         $changed=1;
          $rdst{Status} ="Failed";
          $rdst{History}="Failed";
      }
  }
+         if($rdst{Priority}>1){
+            if($rdst{History} eq "Failed"){
+               $rdst{History}="ToBeRerun";
+               $changed=1;
+           }
+         }
        if($rdst{Status} eq "Failed"){
+               $changed=1;
          $rdst{Status}="ToBeRerun";
          if($rdst{Priority}>1){
             $rdst{History}="ToBeRerun";
@@ -1724,10 +1732,12 @@ sub ResetFailedRuns{
      }
        if($rdst{Status} eq "Allocated"){
       
+               $changed=1;
          $rdst{Status}="Finished";
      }
 
         my $arsref;
+ if($changed==1){
         foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendRunEvInfo(\%rdst,"Update");
@@ -1748,7 +1758,7 @@ sub ResetFailedRuns{
         
         }
 
-
+    }
 
 }
 
