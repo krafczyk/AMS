@@ -333,6 +333,7 @@ class RemoteClient:
                                 sql="update ntuples set ntuples.crcflag=0 where ntuples.path='"+ntuple[0]+"' "
                                 self.sqlserver.Update(sql)
                                 sql="update ntuples set ntuples.path='"+castornt+"' where ntuples.path='"+ntuple[0]+"' ";
+                                self.linkdataset(ntuple[0],"/Offline/DataSetsDir",0)
                                 self.sqlserver.Update(sql)
                               
                                 sql=" update jobs set realtriggers=realtriggers-"+str(ntuple[5])+"+"+str(ntuple[4])+"-1 where jid="+str(ntuple[3])
@@ -359,8 +360,9 @@ class RemoteClient:
                     timenow=int(time.time())
                     sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path='"+ntuple[0]+"'"
                     self.sqlserver.Update(sql)
-                    sql="delete from ntuples where ntuples.path='"+ntuple[0]+"' "
+                    sql="delete from ntuples where ntuples.path='"+ntuple[0]+"' 
                     self.sqlserver.Update(sql)
+                    self.linkdataset(ntuple[0],"/Offline/DataSetsDir",0)
                     sql=" update jobs set realtriggers=realtriggers-"+str(ntuple[5])+"+"+str(ntuple[4])+"-1 where jid="+str(ntuple[3])
                     self.sqlserver.Update(sql)
                     sql="select path from ntuples where jid="+str(ntuple[3])
@@ -1856,6 +1858,7 @@ class RemoteClient:
         ntsize=float(size)
         sizemb="%.f" %(ntsize)
         sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
+        self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
    
     def setenv(self):
@@ -2784,6 +2787,7 @@ class RemoteClient:
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
+            self.linkdataset(datapath,"/Offline/DataSetsDir",-1)
             self.sqlserver.Update(sql)
             if(self.update):
                 for file in files:
@@ -3132,4 +3136,21 @@ class RemoteClient:
 #                    else:
 #                        self.sqlserver.Commit(0)
 
+    def linkdastset(self,path,sdir,crdel):
+        rmpath=path.split('/')
+        newdir=""
+        dir=sdir      
+        for i in range (1,len(rmpath)-1):
+                dir=dir+"/"+rmpath[i]
+        for i in range (1,len(rmpath)-2):
+                newdir=newdir+"/"+rmpath[i]
 
+        os.system("mkdir -p "+newdir)
+        cmd=""
+        if(crdel==1):
+                cmd="ln -sf "+path+" "+dir
+        else:
+                cmd="rm "+dir
+        i=os.sytem(cmd)
+        if(i):
+                print "Problem with "+cmd
