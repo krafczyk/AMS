@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.158 2010/11/09 20:34:14 choutko Exp $
+//  $Id: server.C,v 1.159 2011/01/06 21:07:08 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -237,7 +237,7 @@ if(!__MT){
 #ifdef __AMSDEBUG__
 #else
       cerr <<"AMSProdserver-F-FoundInstanceWhileNotInMT  "<<endl;
-      abort();
+      if(_debug<2)abort();
 #endif
     }
    }
@@ -481,26 +481,22 @@ check++;
 
     int count=AMSServer::Singleton()->MT()?-1:1;
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-/*
-  Listening(count);
-  if(!_GlobalError)pcur->StartClients(_pid);
-  Listening(count);
-  if(!_GlobalError) pcur->CheckClients(_pid);
-  Server_impl* pser=dynamic_cast<Server_impl*>(pcur);
-  if(pser)pser->AdvancedPing();
-  Listening(count);
- if(!_GlobalError)pcur->KillClients(_pid);
- else Listening(count);
-*/
-  if(!force)Listening(count);
-  pcur->StartClients(_pid);
+  bool server=dynamic_cast<Server_impl*>(pcur) != NULL;
+  bool producer=dynamic_cast<Producer_impl*>(pcur) != NULL;
+  bool fforce =!force && producer;
+  if(fforce)Listening(count);
+  if(check<1000)cout << "  list ok "<<endl;
+  if(!server)pcur->StartClients(_pid);
   if(check<1000)cout << "  start ok "<<endl;
-  if(!force)Listening(count);
-  pcur->CheckClients(_pid);
+  if(fforce)Listening(count);
+  if(check<1000)cout << "  list ok "<<endl;
+  if(!server)pcur->CheckClients(_pid);
+  if(check<1000)cout << "  check ok "<<endl;
   pcur->CheckRuns();
   if(check<1000)cout << "  check ok "<<endl;
-  if(!force)Listening(count);
-  pcur->KillClients(_pid);
+  if(fforce)Listening(count);
+  if(check<1000)cout << "  list ok "<<endl;
+  if(!server)pcur->KillClients(_pid);
   if(check<1000)cout << "  kill ok "<<endl;
   static int kinit=0;
   if((kinit++)%128==0){
@@ -665,7 +661,7 @@ if(_ActivateQueue){
 bool AMSServerI::InactiveClientExists(DPS::Client::ClientType ctype){
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
-//   if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
+   if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
    return true;
   }
 }
@@ -865,7 +861,6 @@ if(pcur->InactiveClientExists(getType()))return;
 
 
  _UpdateHosts();
-
  // Check if there are some hosts to run on
  DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
  bool suc=false;
@@ -2361,6 +2356,7 @@ if(pcur->InactiveClientExists(getType()))return;
 }
 
  _UpdateHosts();
+ cout <<"   starting clients "<<endl;
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
  // Check if there are some hosts to run on
  DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
@@ -3182,20 +3178,21 @@ cid=cvar._retn();
  
 DPS::Producer::RES_var acv= new DPS::Producer::RES();
 unsigned int length=0;
-maxrun=_RunID;
 length=_rl.size();
+if(length>maxrun && maxrun>0)length=maxrun;
 if(length==0){
 //acv->length(1);
 }
 else{
 acv->length(length);
 length=0;
-for(RLI li=_rl.begin();li!=_rl.end();++li){
+for(RLI li=_rl.begin();li!=_rl.end() && (maxrun<=0 || length<maxrun);++li){
  acv[length++]=*li;
 }
 }
 res=acv._retn();
 //         cout <<" exiting Producer_impl::getRunEvInfoS"<<endl;
+maxrun=_RunID;
 return length;
 }
 
@@ -4877,6 +4874,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       tcid.Type=getType();
       int ret=dvar->getFreeHostN(tcid);     
       if(ret){
+
       CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
       _parent->setdbfile(filepath);
       DPS::Client::AHS * pres;
@@ -4899,7 +4897,10 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        prv=pre;
        return ret;
       }
-      else return 0;
+      else {
+            cout <<" no free hosts from getfreehostn "<<endl;
+            return 0;
+      }
      }
      catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
@@ -4923,6 +4924,8 @@ return 0;
 bool Producer_impl::getRunEvInfoSDB(const DPS::Client::CID & cid, DPS::Producer::RunEvInfo_var & prv, DPS::Producer::DSTInfo_var & pdv){
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
  if(pcur->getType()==DPS::Client::DBServer){
+   static int count=0;
+   static int lentho=0;
    bool done=false;
    bool retry=false;
    pcur->getacl().sort(Less(_parent->getcid()));
@@ -4935,15 +4938,21 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
       _parent->setdbfile(filepath);
       DPS::Producer::RES * pres;
-      int length;
+      int length=0;
+      int mod=lentho/256;
+      if(mod<1)mod=1;
+      if(count++%mod==0){
+        cout <<" asking runs "<<mod<<endl;
       if(strstr(pcur->getname(),"Perl")){
        length=dvar->getRunEvInfoSPerl(_parent->getcid(), pres,_RunID,_RunID);
       }
       else{
        length=dvar->getRunEvInfoS(_parent->getcid(), pres,_RunID);
+
       }
       DPS::Producer::RES_var res=pres; 
       if(length){
+        lentho=length;
        _rl.clear();
        for(unsigned int i=0;i<length;i++){
         DPS::Producer::RunEvInfo_var vre= new DPS::Producer::RunEvInfo(res[i]);
@@ -4953,6 +4962,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       else{
        _parent->EMessage(" UpdateRunTable-UnableToUpdateInfoS"); 
         return 0;
+      }
       }
       DPS::Producer::RunEvInfo *pre;
       DPS::Producer::DSTInfo *pde;
