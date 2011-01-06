@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.604 2010/12/30 13:43:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.605 2011/01/06 20:19:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14061,6 +14061,7 @@ sub insertNtuple {
                                            $crc,
                                            $crctime,$crcflag,$castortime,$buildno,$datamc)";
 }
+  $self->datasetlink($path,"/Offline/DataSetsDir",1);
   $self->{sqlserver}->Update($sql);
 }
 
@@ -16594,6 +16595,8 @@ sub deleteDST {
        }
        my $newpath = "# ".$filename;
        $sql = "UPDATE ntuples SET PATH='$newpath', timestamp=$timenow WHERE PATH LIKE '$filename'";
+  $self->datasetlink($filename,"/Offline/DataSetsDir",0);
+  $self->datasetlink($newpath,"/Offline/DataSetsDir",1);
        if ($verbose) {
            print "$sql \n";
        }
@@ -16858,6 +16861,8 @@ sub updateDSTPath {
        $sql = $sql."WHERE PATH LIKE '%$dbpath'";
        if ($update == 1  && $skipfile==0) {
          $self->{sqlserver}->Update($sql);
+       $self->datasetlink($dbpath,"/Offline/DataSetsDir",0);
+  $self->datasetlink($filename,"/Offline/DataSetsDir",1);
          if ($verbose)  {print "$sql \n";}
         }
    } else {
@@ -16951,6 +16956,7 @@ sub castorPath {
            $nUpdated++;
            if ($update == 1) {
             $sql = "UPDATE ntuples SET PATH='$castorpath', timestamp=$timenow  WHERE path='$dst'";
+  $self->datasetlink($dst,"/Offline/DataSetsDir",0);
             $self->{sqlserver}->Update($sql);
            }
           } else {
@@ -17595,6 +17601,8 @@ sub ChangeFS{
               $line=~s/$oldfs/$newfs/;
               $sql="update ntuples set path='$line'  where path='$entry->[0]'";
               if($update >= 1){
+  $ref->datasetlink($entry->[0],"/Offline/DataSetsDir",0);
+  $ref->datasetlink($line,"/Offline/DataSetsDir",1);
                  $ref->{sqlserver}->Update($sql);
                  $upd++;
               }
@@ -18228,6 +18236,7 @@ sub CheckCRC{
                               $sql="update ntuples set ntuples.crcflag=0 where ntuples.path='$ntuple->[0]' ";
                               $self->{sqlserver}->Update($sql);
                               $sql="update ntuples set ntuples.path='$castornt' where ntuples.path='$ntuple->[0]' ";
+  $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
                               $self->{sqlserver}->Update($sql);
                               
                               $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
@@ -18274,6 +18283,7 @@ sub CheckCRC{
                $self->{sqlserver}->Update($sql);
                               $sql="delete from ntuples where ntuples.path='$ntuple->[0]' ";
                               $self->{sqlserver}->Update($sql);
+  $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
                               
                               $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
                               $self->{sqlserver}->Update($sql);
@@ -18479,6 +18489,8 @@ sub UploadToDisks{
          my @junk=split '\/',$ntuple->[0];
          my $local=$dir."/$junk[$#junk]";
                 $sql="update ntuples set path='$local', timestamp=$timenow where path='$ntuple->[0]'";
+  $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+  $self->datasetlink($local,"/Offline/DataSetsDir",1);
                 $self->{sqlserver}->Update($sql);
                }
                my $res=$self->{sqlserver}->Commit();
@@ -18646,6 +18658,8 @@ sub MoveBetweenDisks{
               if($update){
                my $timenow=time();
                 $sql="update ntuples set path='$newfile', timestamp=$timenow where path='$file'";
+  $self->datasetlink($file,"/Offline/DataSetsDir",0);
+  $self->datasetlink($newfile,"/Offline/DataSetsDir",1);
                 $self->{sqlserver}->Update($sql);
                }
                my $res=$self->{sqlserver}->Commit();
@@ -18834,6 +18848,8 @@ sub RemoveFromDisks{
                    }
                 $sql="update ntuples set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
+                $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                
                 $sys=$irm." $ntuple->[0]";
                 if($ntuple->[0]=~/^#/){
                  $sys="sleep 1";
@@ -18936,6 +18952,8 @@ sub GroupRuns{
             my $i=system($sys);
             if(!$i){
              $sql="update ntuples set path='$newfile' where path='$file->[0]'";
+  $self->datasetlink($file->[0],"/Offline/DataSetsDir",0);
+  $self->datasetlink($newfile,"/Offline/DataSetsDir",1);
              $self->{sqlserver}->Update($sql);
             }
             elsif($verbose){
@@ -19038,4 +19056,33 @@ sub TestPerl{
    foreach my $mcfile (@{$ret}){
     my $jid=$mcfile->[0];   
 }
+}
+sub linkdataset{
+    my $self=shift;
+    my $path=shift;
+    my $dir=shift;
+    my $crdel=shift;
+#split path
+           my @junk=split '\/',$path;
+           my $newfile=$dir;
+           my $newdir=$dir; 
+           for my $j (2...$#junk){
+               $newfile=$newfile.'/'.$junk[$j];
+           }
+           for my $j (2...$#junk-1){
+               $newdir=$newfile.'/'.$junk[$j];
+           }
+    my $mkdir="mkdir -p $newdir";
+    system($mkdir);
+    my $cp="";
+    if($crdel==1){
+        cp=" ln -sf $path $newfile";
+    }
+    else{
+        cp="rm $newfile";
+    }
+    my $i=system($cp);
+    if($i){
+        print "Problem with $cp \n";
+    }
 }

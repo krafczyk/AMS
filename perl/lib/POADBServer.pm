@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.38 2010/11/09 19:39:19 choutko Exp $
+#  $Id: POADBServer.pm,v 1.39 2011/01/06 20:19:50 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1295,7 +1295,9 @@ OUT:
 
 #    my $ref=$DBServer::Singleton;
     my ($class,$cid)=@_;
+        warn "getfreehostn   \n";
     if($cid->{Type} eq "Server"){
+        warn "getfreehostn  in server \n";
         getGeneric($cid,"ahls","nsl","asl");
         my $hash=$ref->{nsl}[0];
         if ($#{$ref->{asl}}+1 < $hash->{MaxClients}){
@@ -1309,12 +1311,12 @@ OUT:
                       }
                   }
               }
- }
+    }
         return 0;
 }elsif($cid->{Type} eq "Producer"){
         getGeneric($cid,"ahlp","ncl","acl","rtb");
         my $hash=$ref->{ncl}[0];
-#        warn "a getfreehost $#{$ref->{asl}}+1 $hash->{MaxClients}";
+        #warn "a getfreehost $#{$ref->{acl}}+1 $hash->{MaxClients}";
         if ($#{$ref->{acl}}+1 < $hash->{MaxClients}){
         my $runstotal=0;
         my $runstorerun=0;
@@ -1327,16 +1329,16 @@ OUT:
             $runstotal=$runstotal+1;
            }
          }
-#        warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
+        #warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
         if($#{$ref->{acl}}+1 <$runstotal and $runstorerun>0){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
               foreach my $ahl (@sortedahl){
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
-#                      warn "c getfreehost $ahl->{Name} $ahl->{ClientsRunning} $ahl->{ClientsAllowed}";
+                      #warn "c getfreehost  $ahl->{ClientsRunning} $ahl->{ClientsAllowed}";
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
 #                          $ahl->{Status}="InActive";
 #                           sendAH("Class",$cid,$ahl,"Update");
-#                          warn "d getfree host ok!!!!!!";
+                          warn "d getfree host ok!!!!!!";
                           return 1;
                       }
                   }
