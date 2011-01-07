@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.141 2011/01/06 21:06:20 ams Exp $
+# $Id: Monitor.pm,v 1.142 2011/01/07 23:10:16 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1697,9 +1697,14 @@ sub ResetFailedRuns{
  my $ref=shift;
 
 
+
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
  my $changed=0;
+ if($rdst{Status} eq "Finished"){
+#         $changed=1;
+#         $rdst{Status} ="ToBeRerun";
+     }
  if($rdst{Status} eq "Processing"){
      my $found=0;
      foreach my $ac (@{$ref->{acl}}){

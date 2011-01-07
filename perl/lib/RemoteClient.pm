@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.606 2011/01/06 21:06:20 ams Exp $
+# $Id: RemoteClient.pm,v 1.607 2011/01/07 23:10:16 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
+@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -19057,7 +19057,7 @@ sub TestPerl{
     my $jid=$mcfile->[0];   
 }
 }
-sub linkdataset{
+sub datasetlink{
     my $self=shift;
     my $path=shift;
     my $dir=shift;
