@@ -1184,6 +1184,9 @@ class RemoteClient:
         ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
         if(len(ro)==0):
             self.InsertDataRun(run)
+        rj=self.sqlserver.Query("select jid from jobs where jid="+str(run.uid))
+        if(len(rj)==0):
+            self.InsertJob(run.uid)
         ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
         r1=self.sqlserver.Query("select count(path)  from ntuples where jid="+str(run.uid))
         status=ro[0][1]
@@ -1935,7 +1938,12 @@ class RemoteClient:
                     if(self.v):
                         print "Update RunCatalog ",run
 
-       
+    def InsertJob(self,jid):
+        sql="insert into jobs select jobs_deleted.* from jobs_deleted where jid=%d  " %(jid)
+        self.sqlserver.Update(sql)
+        sql="delete from jobs_deleted where jid=%d "  %(jid)
+        self.sqlserver.Update(sql)
+        print "Job Restored ",jid
     def InsertDataRun(self,Run):
             run=Run.Run
             jid=Run.uid;
