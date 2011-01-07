@@ -19,6 +19,8 @@ public:
 //   else return false;
        cout <<" qwwww "<<endl;
      if(ev && ev->nLevel1()   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
+    cout <<" index "<< ev->Particle(0).iTrTrack()<<" "<<ev->Event()<<endl;
+ 
      cout <<ev->UTime()<<endl;
     int          membpat=ev->pLevel1(0)->JMembPatt;
     int b15=(membpat>>15)&1;

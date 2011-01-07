@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.221 2010/12/31 12:43:22 choutko Exp $
+//  $Id: particle.C,v 1.222 2011/01/07 14:53:37 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -212,10 +212,10 @@ integer AMSParticle::build(integer refit){
   for (int id=0;id<2;id++){
     AMSParticle *ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",id);
     while(ppart){
+      ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
       AMSgObj::BookTimer.start("ReRICHRefit"); 
       ppart->richfit();
       AMSgObj::BookTimer.stop("ReRICHRefit"); 
-      ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
       AMSgObj::BookTimer.start("ReTOFRefit"); 
       ppart->toffit();
       ppart->antifit();
@@ -997,7 +997,7 @@ void AMSParticle::refit(int fast){
   if(_ptrack->getpattern()>=0){
     AMSTrTrack *pfalse= AMSTrTrack::AddFalseX(_ptrack);
     if(pfalse){
-
+         pfalse->setstatus(AMSDBc::USED);
         _ptrack=pfalse;
          //cout <<_ptrack->getpattern()<<endl;
         //cout << " falsex added "<<endl; 
