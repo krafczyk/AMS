@@ -2737,7 +2737,7 @@ class RemoteClient:
                     datamc=10
         if(datamc!=0):
             runsname="dataruns"
-            if(self.force!=0):
+            if(self.force==0):
                 runst=" and dataruns.status='Completed' "
             if(run2p!=0):
                 rund=" and dataruns.run=%d " %(run2p)
@@ -2775,7 +2775,7 @@ class RemoteClient:
             if(len(ds)==1):
                 did=ds[0][0]
         if(did>0):
-            runst=" and jobs.did=%d " %(did)
+            runst=runst+" and jobs.did=%d " %(did)
         else:
             print " found / while did -1 , return "
             return
