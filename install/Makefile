@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.137 2010/12/30 16:12:48 choutko Exp $
+#  $Id: Makefile,v 1.138 2011/01/10 15:42:17 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -228,7 +228,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
-	$(SCC)HistoMan.C
+	$(SCC)TrHistoMan.C $(SCC)HistoMan.C
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
            $(SCC)TrCharge.C \
@@ -311,7 +311,7 @@ ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
                 ../include/trrec.h ../include/tkdcards.h \
 		../include/point.h ../include/root_RV.h ../include/root.h  \
 		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h \
-		../include/root_setup.h
+		../include/TrHistoMan.h ../include/root_setup.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif

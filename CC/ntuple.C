@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.205 2010/12/11 18:30:30 choutko Exp $
+//  $Id: ntuple.C,v 1.206 2011/01/10 15:42:17 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -18,6 +18,7 @@
 #include "TrRecon.h"
 #include "TrTasDB.h"
 #include "TrTasCluster.h"
+#include "TrHistoMan.h"
 #endif
 #include <signal.h>
 #include <iostream>
@@ -315,11 +316,12 @@ void AMSNtuple::endR(bool cachewrite){
     TrCalDB::Head->Write();
     TkDBc  ::Head->Write();
     TrParDB::Head->Write();
-    // if(TrCalDB::Head) TrCalDB::Head->Write();
     if (TrTasDB::Head) TrTasDB::Head->Write();
     if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
-    if(IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
-    if(IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
+    if (IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
+    if (IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
+    // if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Write(); // already done by _rfile->Write();
+
     _rfile->cd();
     TrRecon::RecPar.Write();
     TDirectory* dd=_rfile->mkdir("datacards");
@@ -357,12 +359,22 @@ void AMSNtuple::endR(bool cachewrite){
       
       if(tfr)delete tfr;
     }
-    
+   
     _rfile->Write();
+
+#ifdef _PGTRACK_
+     // deleting the tracker online monitor
+     if (AMSJob::gethead()->isMonitoring() && ptrman!=0) {
+       delete ptrman;
+       ptrman = 0;
+     }
+#endif
+
     _rfile->Close();
     delete _rfile;
   }
   _rfile=0;
+
 #endif
 }
 
@@ -431,6 +443,13 @@ void AMSNtuple::initR(char* fname,uinteger run){
 #ifndef __WRITEROOT__
   cerr <<" RootFileOutput is Not supported in this version "<<endl;
   exit(1);
+#endif
+
+#ifdef _PGTRACK_
+   if (AMSJob::gethead()->isMonitoring() && ptrman==0) { 
+     ptrman = new TrOnlineMonitor(AMSNtuple::_rfile,1,200);
+     ptrman->Book();
+   }
 #endif
 
 #ifdef __MEMMONITOR__
@@ -503,6 +522,12 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       _Size=evmap.size();
       if(_Size%1024==0)cout <<"AMSNtuple::writeR-I-Output Map Size Reached "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
     }
+
+#ifdef _PGTRACK_
+    // once the AMSEventR is created I fill the monitoring infos
+    if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Fill(evn); 
+#endif
+
   }
   if(del.size()){
 #pragma omp critical (wr2)

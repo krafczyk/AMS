@@ -1,0 +1,1350 @@
+#define __TrHistoMan_C__
+
+//////////////////////////////////////////////////////////////////////////
+///
+///\file  TrHistoMan.h
+///\brief Source file of TrHistoMan class
+///
+///\date  2008/02/16 AO  First version
+///
+//////////////////////////////////////////////////////////////////////////
+
+#include "TrHistoMan.h"
+
+#include <iostream>
+
+using namespace std;
+
+ClassImp(TrHistoManHeader);
+ClassImp(TrHistoMan);
+ClassImp(TrOnlineMonitor);
+
+
+/////////////////////////////////////////////////
+// TrOnlineMonitor 
+/////////////////////////////////////////////////
+
+TrOnlineMonitor* ptrman = 0;
+
+TrOnlineMonitor::TrOnlineMonitor(const TrOnlineMonitor &orig) : TrHistoMan(orig) {
+  fFlag = orig.fFlag; 
+  fDtMin = orig.fDtMin;
+}
+
+
+void TrOnlineMonitor::Book() {
+
+  char histoname[100];
+  char histotitle[100];
+
+  // Size and DT
+  DefineTracker("DT","; #Deltat (us)",1000,0,10000,0);
+  DefineTracker("Size","; Tracker size (byte)",2400,0.,24000.,0);
+  DefineTracker("Size_vs_DT","; #Deltat (us); Tracker Size (byte)",450,0.,500.,300,0.,24000.,0);   
+  DefineTracker("Size_vs_Crate","; Crate; Crate Segment Size (byte)",8,-0.5,7.5,1000,0.,24000.,0);      
+  for (int icrate=0; icrate<8; icrate++) {
+    sprintf(histoname,"T%1dSize_vs_DT",icrate);
+    sprintf(histotitle,"; #Deltat (us); Crate T\%1d Size (byte)",icrate);
+    DefineTracker(histoname,histotitle,450,50.,500.,400,0.,10000.,0);
+  }
+
+  // RawClusters
+  DefineTracker("nRawClusters","; n. of Raw Clusters",501,-0.5,500.5,0);
+  DefineTracker("nRawClusters_vs_Ladder","; iCrate*24 + iTDR; n. of Raw Clusters",192,-0.5,191.5,101,-0.5,100.5,1);
+  DefineTracker("nRawClusters_vs_DT","; #Deltat (us); n. of Raw Clusters",450,50.,500.,501,-0.5,500.5,0);
+
+  // Clusters
+  DefineTracker("nClusters","; n. of Clusters",401,-0.5,400.5,0);
+  DefineTracker("nClusters_vs_DT","; #Deltat (us); n. of Clusters",450,0.,500.,401,-0.5,400.5,0);
+
+  // Hits
+  DefineTracker("nRecHits","; n. of Rec. Hits",201,-0.5,200.5,0);
+  DefineTracker("nRecHits_vs_DT","; #Deltat (us); n. of Rec. Hits",450,0.,500.,201,-0.5,200.5,0);
+  
+  // Tracks
+  DefineTracker("nTracks","; n. of Tracks",11,-0.5,10.5,0);
+  DefineTracker("nTracks_vs_DT","; #Deltat (us); n. of Tracks",450,0.,500.,11,-0.5,10.5,0);
+
+  // Signal
+  DefineTracker("Signal","; Amplitude (ADC)",100,0.,250.,1);
+  DefineTracker("SignalOnTrack","; Amplitude (ADC)",100,0.,250.,1);
+
+  // Ladder Summary Plots  
+  DefineTracker("Size_vs_Ladder","; iCrate*24 + iTDR; Ladder Segment Size (byte)",192,-0.5,191.5,300,0.,600.,1);
+  DefineTracker("SizeLowDT_vs_Ladder","; iCrate*24 + iTDR; Ladder Segment Size for #Deltat<200 us (byte)",192,-0.5,191.5,300,0.,600.,1); 
+  DefineTracker("Signal_vs_Ladder","; iCrate*24 + iTDR; Amplitude (ADC)",192,-0.5,191.5,100,0.,250.,1);
+  DefineTracker("SignalLowDT_vs_Ladder","; iCrate*24 + iTDR; Amplitude for #Deltat<200 us (ADC)",192,-0.5,191.5,100,0.,250.,1);
+  DefineTracker("Width_vs_Ladder","; iCrate*24 + iTDR; n. of Strips",192,-0.5,191.5,100,0.,100.,1);
+  DefineTracker("WidthLowDT_vs_Ladder","; iCrate*24 + iTDR; n. of Strips for #Deltat<200 us",192,-0.5,191.5,100,0.,100.,1);
+
+  // Cluster and hit occupancy (raw beam profile)
+  DefineLayers("ClusterX","; 0-multiplicity X coordinate (cm)",200,-70.,70.,kFALSE);
+  DefineLayers("ClusterY","; Y coordinate (cm)",200,-70.,70.,kFALSE);
+  DefineLayers("RecHitY_vs_X","; 0-multiplicity X coordinate (cm); Y coordinate (cm)",200,-70.,70.,200,-70.,70.,kFALSE);
+  DefineTracker("RecHitLayer_vs_Slot","; Slot; Layer",31,-15.5,15.5,trconst::maxlay,0.5,trconst::maxlay+0.5,kFALSE);
+
+  // Layer track-occupancy
+  DefineLayers("Occupancy","; X (cm); Y (cm)",200,-70,70,200,-70,70,kFALSE);
+  DefineLayers("SeedAddress","; Channel",1024,0,1024,kFALSE); 
+  DefineTracker("SeedAddress_vs_Ladder","; iCrate*24 + iTDR; Channel",192,-0.5,191.5,1024,0,1024,kFALSE); 
+
+  // Track infos 
+  DefineTracker("Theta_vs_Phi","; #phi (rad); #theta (rad)",500,-3.2,3.2,200,-0.1,3.2,kFALSE);
+  DefineTracker("Y_vs_X","; X (cm); Y (cm)",500,-70.,70.,500,-70.,70.,kFALSE);
+  DefineTracker("logRigidityPlus","; log(R/GV)",100,-2,4.,kFALSE);
+  DefineTracker("logRigidityMinus","; log(-R/GV)",100,-2,4.,kFALSE);
+  DefineTracker("logChiSq_vs_logRigidity","; log(|R|/GV); log(#chi^{2})",100,-2.,4.,100,-3,5.,kFALSE);
+  DefineTracker("InvRigidity","; 1/R",500,-0.5,0.5,kFALSE);
+  DefineTracker("ErrInvRigidity","; #sigma_{1/R}",500,-0.5,0.5,kFALSE);
+  DefineTracker("nClustersOnTrack_vs_Ladder","; iCrate*24 + iTDR; n. of Clusters On Track",192,-0.5,191.5,11,-0.5,10.5,kTRUE);
+  DefineTracker("nClustersOnTrack","; n. of Clusters On Track",11,-0.5,10.5,kTRUE);
+  DefineTracker("nRecHitsOnTrack","; n. of Rec. Hits On Track",11,-0.5,10.5,kFALSE);
+
+  if (fFlag>0) {
+    // Full Output (Ladder by Ladder)
+    DefineLadders("Size","; fragment size (byte)",200,0.,400.,kTRUE); 
+    DefineLadders("Size","; fragment size (byte)",200,0.,400.,kFALSE);
+    DefineLadders("SeedAddress","; Channel",1024,0,1024,kFALSE); 
+    DefineLadders("Signal","; Amplitude (ADC)",100,0.,250.,kTRUE);
+    DefineLadders("SignalToNoise","; Seed S/N",100,0.,100.,kTRUE);
+    DefineLadders("Width","; n. of Strips",40,0.,40.,kTRUE);
+    DefineLadders("SizeLowDT","; fragment size (byte)",200,0.,400.,kTRUE);
+    DefineLadders("SizeLowDT","; fragment size (byte)",200,0.,400.,kFALSE); 
+    DefineLadders("SeedAddressLowDT","; Channel",1024,0,1024,kFALSE); 
+    DefineLadders("SignalLowDT","; Amplitude for #Deltat<200 us (ADC)",100,0.,500.,kTRUE);
+    DefineLadders("WidthLowDT","; n. of Strips for #Deltat<200 us",128,0.,128.,kTRUE);
+    DefineLadders("SignalToNoiseLowDT","; Seed S/N",100,0.,100.,kTRUE);
+  }
+  Sumw2();
+}
+
+
+void TrOnlineMonitor::Fill(AMSEventR* event){
+
+  char histoname[100];
+
+  if (event==0) { printf("TrOnlineMonitor::Fill-W void event, skipping!"); return; }
+  if (event->NLevel1()!=1) { printf("TrOnlineMonitor::Fill-W a good Level1 is not available, skipping!"); return; }
+  Level1R* lvl1 = event->pLevel1(0);
+
+  // global statistics
+  double dt   = lvl1->TrigTime[4]; // time diff in mksec
+  int    nraw = event->NTrRawCluster();
+  int    nclu = event->NTrCluster();
+  int    nhit = event->NTrRecHit();
+  int    ntrk = event->NTrTrack();
+
+  // global
+  FillTracker("DT",dt);  
+  FillTracker("nRawClusters",nraw);
+  FillTracker("nRawClusters_vs_DT",dt,nraw);
+  FillTracker("nClusters",nclu);
+  FillTracker("nClusters_vs_DT",dt,nclu);
+  FillTracker("nRecHits",nhit);
+  FillTracker("nRecHits_vs_DT",dt,nhit);
+  FillTracker("nTracks",ntrk);
+  FillTracker("nTracks_vs_DT",dt,ntrk);
+  
+  // init
+  int TrackerSize = 2; 
+  int CrateSize[8] = {2,2,2,2,2,2,2,2}; 
+  int TdrSize[8][24];
+  for (int icrate=0; icrate<8; icrate++) 
+    for (int itdr=0; itdr<24; itdr++) 
+      TdrSize[icrate][itdr] = 2;
+  int LadderSize[2][192]; 
+  int LadderClusters[2][192];
+  for (int iside=0; iside<2; iside++) { 
+    for (int iladder=0; iladder<192; iladder++) {
+      LadderSize[iside][iladder] = 0;
+      LadderClusters[iside][iladder] = 0;
+    }
+  }
+
+  // loop on raw
+  for (int iraw=0; iraw<nraw; iraw++) {
+    TrRawClusterR* cluster = event->pTrRawCluster(iraw);
+    int   iside  = cluster->GetSide();
+    int   tkid   = cluster->GetTkId();
+    TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
+    int   icrate = ladder->GetCrate();
+    int   itdr   = ladder->GetTdr();
+    int   entry  = icrate*24 + itdr;
+    int   clsize = cluster->GetNelem()+2;
+    // int   ncl    = cluster->GetNelem();
+    float seed   = cluster->GetSeedSN(3.);
+    int   width  = cluster->GetLength(3.);
+    float signal = cluster->GetTotSignal(3.,1.);
+    int   addr   = cluster->GetSeedAddress(3.);
+    LadderSize[iside][entry] += clsize;
+    LadderClusters[iside][entry]++;
+    TdrSize[icrate][itdr] += clsize;
+    FillTracker("SeedAddress_vs_Ladder",entry,addr);
+    FillLayer(kFALSE,cluster,"SeedAddress",addr);
+    FillTracker(iside,"Signal",signal);
+    FillTracker(iside,"Signal_vs_Ladder",entry,signal);
+    FillTracker(iside,"Width_vs_Ladder",entry,width);
+    if (dt<fDtMin) {
+      FillTracker(iside,"SignalLowDT_vs_Ladder",entry,signal);
+      FillTracker(iside,"WidthLowDT_vs_Ladder",entry,width);
+    }
+    if (fFlag>0) { 
+      FillLadder(kFALSE,cluster,"SeedAddress",addr);
+      FillLadder(kTRUE,cluster,"Signal",signal);
+      FillLadder(kTRUE,cluster,"Width",width);
+      FillLadder(kTRUE,cluster,"SignalToNoise",seed);
+      if (dt<fDtMin) {
+        FillLadder(kFALSE,cluster,"SeedAddressLowDT",addr);
+        FillLadder(kTRUE,cluster,"SignalLowDT",signal);
+        FillLadder(kTRUE,cluster,"WidthLowDT",width);
+        FillLadder(kTRUE,cluster,"SignalToNoiseLowDT",seed);
+      }
+    }
+  }
+
+  // loop on tdrs 
+  for (int icrate=0; icrate<8; icrate++)
+    for (int itdr=0; itdr<24; itdr++) 
+      if (TdrSize[icrate][itdr]>2) CrateSize[icrate] += TdrSize[icrate][itdr];
+  // loop on crates
+  for (int icrate=0; icrate<8; icrate++) {
+    TrackerSize += CrateSize[icrate];
+    FillTracker("Size_vs_Crate",icrate,(float)2*CrateSize[icrate]);
+    sprintf(histoname,"T%1dSize_vs_DT",icrate);
+    FillTracker(histoname,dt,(float)2*CrateSize[icrate]);
+    for (int itdr=0; itdr<24; itdr++) {
+      int hwid = icrate*100 + itdr;
+      int tkid = TkDBc::Head->FindHwId(hwid)->GetTkId();
+      FillLadder(tkid,"Size",(float)2*TdrSize[icrate][itdr]);
+      if (dt<fDtMin) FillLadder(tkid,"SizeLowDT",(float)2*TdrSize[icrate][itdr]);
+    }
+  }
+  FillTracker("Size",(float)2*TrackerSize);
+  FillTracker("Size_vs_DT",dt,(float)2*TrackerSize);
+
+  // two sides separated histograms
+  for (int iside=0; iside<2; iside++) {
+    for (int icrate=0; icrate<8; icrate++) {
+      for (int itdr=0; itdr<24; itdr++) {
+        int hwid = icrate*100 + itdr;
+        TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
+        if ( (ladder==0)||(ladder->GetHwId()<0) ) continue;
+        int entry = icrate*24 + itdr;
+        int tkid  = ladder->GetTkId();
+        FillTracker(iside,"Size_vs_Ladder",entry,(float)2*LadderSize[iside][entry]);
+        FillTracker(iside,"nRawClusters_vs_Ladder",entry,LadderClusters[iside][entry]);
+        if (dt<fDtMin) FillTracker(iside,"SizeLowDT_vs_Ladder",entry,(float)2*LadderSize[iside][entry]);
+        if (fFlag>0) {
+          FillLadder(iside,tkid,"Size",(float)2*LadderSize[iside][entry]);
+          if (dt<fDtMin) FillLadder(iside,tkid,"SizeLowDT",(float)2*LadderSize[iside][entry]);   
+        }
+      }
+    }
+  }
+  
+  // beam histograms
+  for (int iclus=0; iclus<event->NTrCluster(); iclus++) {
+    TrClusterR* cluster = event->pTrCluster(iclus);
+    int side = cluster->GetSide();
+    if      (side==0) FillLayer(kFALSE,cluster,"ClusterX",cluster->GetGCoord(0)); // max-multiplicity
+    else if (side==1) FillLayer(kFALSE,cluster,"ClusterY",cluster->GetGCoord(0));
+  }
+  for (int ihit=0; ihit<event->NTrRecHit(); ihit++) {
+    TrRecHitR* hit = event->pTrRecHit(ihit);
+    if ( (hit->GetXCluster()!=0)&&(hit->GetYCluster()!=0) ) {
+      AMSPoint point = hit->GetCoord(0); // max-multiplicity
+      FillLayer(0,hit->GetXCluster(),"RecHitY_vs_X",point.x(),point.y());
+      int layer = hit->GetLayer();
+      int slot = hit->GetSlot();
+      if (hit->GetTkId()<0) slot = -slot; 
+      FillTracker("RecHitLayer_vs_Slot",slot,layer);
+    } 
+  }
+
+  // track histogramms
+  if (event->NTrTrack()==1) { // no multi-track
+    TrTrackR* track = event->pTrTrack(0); 
+    if ( (track->GetPar(1).ErrRinv<1e6)&&(fabs(track->GetRigidity(1))>1e-6) ) {
+      TrTrackPar par = track->GetPar(1);
+      float rigidity = track->GetRigidity(1);
+      float chisq    = (par.ChisqX+par.ChisqY)/(par.NdofX+par.NdofY);
+      AMSPoint global(par.P0);
+      AMSDir   direction(par.Dir);
+
+      if (rigidity<0) FillTracker("logRigidityMinus",log10(-rigidity)); 
+      else            FillTracker("logRigidityPlus",log10(rigidity));
+      FillTracker("logChiSq_vs_logRigidity",log10(fabs(rigidity)),log10(chisq));
+      FillTracker("InvRigidity",1./rigidity);
+      FillTracker("ErrInvRigidity",track->GetErrRinv(1));
+ 
+      // track->InterpolateLayer(0,global,direction); // interpolation at layer 1
+      FillTracker("Y_vs_X",global.x(),global.y());
+      float phi = direction.getphi(); 
+      float theta = direction.gettheta();
+      FillTracker("Theta_vs_Phi",phi,theta);
+
+      // points on track 
+      int nclus[2] = {0,0};
+      for (int iside=0; iside<2; iside++)
+        for (int iladder=0; iladder<192; iladder++)
+          LadderClusters[iside][iladder] = 0;
+
+      int nhit = track->GetNhits();
+      FillTracker("nRecHitsOnTrack",nhit);
+
+      for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+        TrRecHitR* hit = track->GetHit(ihit);
+        TrClusterR* clx = hit->GetXCluster();
+        TrClusterR* cly = hit->GetYCluster();
+        TkLadder* ladder = TkDBc::Head->FindTkId(hit->GetTkId());
+        int ientry = ladder->GetCrate()*24 + ladder->GetTdr();
+        if (clx!=0) { 
+          nclus[0]++;
+          LadderClusters[0][ientry]++;
+          FillTracker(0,"SignalOnTrack",hit->GetXCluster()->GetTotSignal());
+        }
+        if (cly!=0) {
+          nclus[1]++;
+          LadderClusters[1][ientry]++;
+          FillTracker(1,"SignalOnTrack",hit->GetYCluster()->GetTotSignal());
+        }
+        FillLayer(hit->GetLayer(),"Occupancy",hit->GetCoord().x(),hit->GetCoord().y());
+      }
+      for (int iside=0; iside<2; iside++) {
+        FillTracker(iside,"nClustersOnTrack",nclus[iside]);
+        for (int ientry=0; ientry<192; ientry++) {
+          FillTracker(iside,"nClustersOnTrack_vs_Ladder",ientry,(float)LadderClusters[iside][ientry]);        
+        }
+      }
+    }
+  }
+}
+
+
+/////////////////////////////////////////////////
+// TrHistoMan 
+/////////////////////////////////////////////////
+
+
+TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) {
+  fType = orig.fType;
+  fRunNumber = orig.fType;
+  fFirstBlockNumber = orig.fFirstBlockNumber;
+  fLastBlockNumber = orig.fLastBlockNumber;
+}
+
+
+void TrHistoManHeader::Set(int type, int runnumber, char* path, int first, int last) { 
+  fType = type; 
+  fRunNumber = runnumber; 
+  strcpy(fBlockPath, path);
+  fFirstBlockNumber = first; 
+  fLastBlockNumber = last; 
+}
+
+
+void TrHistoManHeader::Clear() {
+  fType = 0; 
+  fRunNumber = 0; 
+  strcpy(fBlockPath,"");
+  fFirstBlockNumber = 0;
+  fLastBlockNumber = 0;
+}
+
+
+/////////////////////////////////////////////////
+// TrHistoMan 
+/////////////////////////////////////////////////
+
+
+TrHistoMan::TrHistoMan(TFile* file, char* name, char* title) {
+  // init
+  TDirectory* saveddir = gDirectory;
+  fHashTable.clear();
+  fFile = file;
+  if (fFile!=0) {
+    fFile->cd();  
+  }
+  else {
+    printf("TrHistoMan::Ctor-W-no output file specified, writing disabled.\n");
+  }     
+  fDir = gDirectory->mkdir(name,title);
+  fDir->cd();
+  fHeader = new TrHistoManHeader(Form("%sHeader",name),Form("%s Header",title));
+  fDir->Append(fHeader);
+
+  // Directory tree:
+  // |
+  // +-- layer 1 -+- ladder +103
+  // |            +- ladder +104
+  // |            +- ...
+  // ...
+
+  // layers
+  char dirname[80];
+  char dirtitle[80];
+  for (int ll=0; ll<trconst::maxlay; ll++) {
+    int layer = ll+1;
+    sprintf(dirname,"layer%1d",layer);
+    sprintf(dirtitle,"Layer %d",layer);
+    fDirLayers[ll] = fDir->mkdir(dirname,dirtitle);
+  }
+  // slot
+  char subdirname[80];
+  char subdirtitle[80];
+  char sidename[2] = {'M','P'};
+  for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
+    TkLadder* ladder = TkDBc::Head->GetEntry(ii);
+    if (ladder->GetHwId()<0) continue;
+    int ll = ladder->GetLayer() - 1;
+    sprintf(subdirname,"%+03d",ladder->GetTkId());
+    sprintf(subdirtitle,"Slot %d, Side %c",ladder->GetSlot(),sidename[ladder->GetSide()]);
+    fDirLayers[ll]->mkdir(subdirname,subdirtitle);
+  }
+  saveddir->cd();
+}
+
+
+TrHistoMan::TrHistoMan(const TrHistoMan &orig) : TObject(orig) {
+  fHeader = orig.fHeader;
+  fFile = orig.fFile;
+  fDir = orig.fDir;
+  if (orig.fHashTable.empty()) {
+    fHashTable.clear();
+    fHashTable.insert(orig.fHashTable.begin(),orig.fHashTable.end());
+  }
+}
+
+
+TrHistoMan::~TrHistoMan(){
+  // this destructor has to be executed befor the fFile->Close() ...
+  fDir->cd();
+  fDir->DeleteAll();
+  if (!fHashTable.empty()) fHashTable.clear();
+  fHeader = 0;
+  for (int ll=0; ll<trconst::maxlay; ll++) fDirLayers[ll] = 0;
+  fDir = 0;
+  fFile = 0;
+}
+
+
+void TrHistoMan::Write() {
+  if (fFile==0) {
+    printf("TrHistoMan::Write-E-no output file specified, skipping writing.\n");
+    return;
+  }
+  fDir->cd();
+  TList* list = fDir->GetList();
+  TIter next(list);
+  TObject *obj;
+  while (obj=next()) {
+    obj->Write(); 
+  }
+}
+
+
+void TrHistoMan::Sumw2(){
+  // Sets all histograms to have a correct statistic error calculation
+  map<int,TNamed*>::iterator it;
+  for (it=fHashTable.begin(); it!=fHashTable.end(); it++) {
+    TNamed* histo = it->second;
+    if      (strcmp(histo->ClassName(),"TH1D")!=0) ((TH1D*) histo)->Sumw2();
+    else if (strcmp(histo->ClassName(),"TH2D")!=0) ((TH2D*) histo)->Sumw2();
+    else if (strcmp(histo->ClassName(),"TH3D")!=0) ((TH3D*) histo)->Sumw2();
+  }
+}
+
+
+void TrHistoMan::Add(TNamed* obj) {
+  TString istring(obj->GetName());
+  int ihash = istring.Hash(); 
+  // cout << "Add: " << obj->ClassName() << " " << ihash << " " << obj->GetName() << endl;
+  fHashTable.insert(pair<int,TNamed*>(ihash,obj));
+}
+
+
+TNamed* TrHistoMan::Get(char* name){
+  // Return a pointer the the histogram with the reqired name.
+  // The output need a cast for the correct type.
+  // return fHlist->FindObject(name); // Requires a sequential scan
+  TString istring(name);
+  int ihash = istring.Hash();
+  // cout << "Get: " << fHashTable.find(ihash)->second->ClassName() << " " << ihash << " " << name << endl;
+  return fHashTable.find(ihash)->second;
+}
+
+
+void TrHistoMan::DefineTracker(char* name, char*title, Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
+  /* Appends 1 or 2 TH1F histos in the main directory */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH1D* histo;
+  fDir->cd();
+  if (!bothsides) {
+    sprintf(histoname,"%s_all",name);
+    histo = new TH1D(histoname,title, binx, lowx, upx);
+    Add(histo);
+  }
+  else {
+    sprintf(histoname,"%s_all_P",name);
+    histo = new TH1D(histoname, title, binx, lowx, upx);
+    Add(histo);
+    sprintf(histoname,"%s_all_N",name);
+    histo = new TH1D(histoname, title, binx, lowx, upx);
+    Add(histo);
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineTracker(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx, 
+		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides) {
+  /* Appends 1 or 2 TH1F histos in the main directory */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH2D* histo;
+  fDir->cd();
+  if (!bothsides) {
+    sprintf(histoname,"%s_all",name);
+    histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+    Add(histo);
+  }
+  else {
+    sprintf(histoname,"%s_all_P",name);
+    histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+    Add(histo);
+    sprintf(histoname,"%s_all_N",name);
+    histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+    Add(histo);
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineTracker(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, 
+		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides) {
+  /* Appends 1 or 2 TH1F histos in the main directory */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH3D* histo;
+  fDir->cd();
+  if (!bothsides) {
+    sprintf(histoname,"%s_all",name);
+    histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+    Add(histo);
+  }
+  else {
+    sprintf(histoname,"%s_all_P",name);
+    histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+    Add(histo);
+    sprintf(histoname,"%s_all_N",name);
+    histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+    Add(histo);
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLayers(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
+  /* Appends nlay or nlay*2 TH1F histos in the layer directories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH1D* histo;
+  char  dirname[80];
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) {
+    int layer = ll+1;
+    sprintf(dirname,"layer%1d",layer);
+    fDir->cd(dirname);
+    if (!bothsides) {
+      sprintf(histoname,"%s_layer%1d",name,layer);
+      histo = new TH1D(histoname,title, binx, lowx, upx);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_layer%1d_P",name,layer);
+      histo = new TH1D(histoname, title, binx, lowx, upx);
+      Add(histo);
+      sprintf(histoname,"%s_layer%1d_N",name,layer);
+      histo = new TH1D(histoname, title, binx, lowx, upx);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLayers(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides){
+  /* Appends nlay or nlay*2 TH2F histos in the layer directories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH2D* histo;
+  char  dirname[80];
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) {
+    int layer = ll+1;
+    sprintf(dirname,"layer%1d",layer);
+    fDir->cd(dirname);
+    if(!bothsides){
+      sprintf(histoname,"%s_layer%1d",name,layer);
+      histo = new TH2D (histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_layer%1d_P",name,layer);
+      histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+      sprintf(histoname,"%s_layer%1d_N",name,layer);
+      histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLayers(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, 
+		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides){
+  /* Appends nlay or nlay*2 TH2F histos in the layer directories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH3D* histo;
+  char  dirname[80];
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) {
+    int layer = ll+1;
+    sprintf(dirname,"layer%1d",layer);
+    fDir->cd(dirname);
+    if(!bothsides){
+      sprintf(histoname,"%s_layer%1d",name,layer);
+      histo = new TH3D (histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_layer%1d_P",name,layer);
+      histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+      sprintf(histoname,"%s_layer%1d_N",name,layer);
+      histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLadders(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
+  /* Appends 192 or 384 TH1F histos in the ladders subdirectories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH1D* histo;
+  char  subdirname[80];
+  for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
+    TkLadder* ladder = TkDBc::Head->GetEntry(ii);
+    if (ladder->GetHwId()<0) continue;
+    int TkId = ladder->GetTkId(); 
+    int ll   = ladder->GetLayer() - 1; 
+    sprintf(subdirname,"%+03d",TkId);
+    fDirLayers[ll]->cd(subdirname);
+    if(!bothsides){
+      sprintf(histoname,"%s_%+03d",name,TkId);
+      histo = new TH1D(histoname, title, binx, lowx, upx);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_%+03d_P",name,TkId);
+      histo = new TH1D(histoname, title, binx, lowx, upx);
+      Add(histo);
+      sprintf(histoname,"%s_%+03d_N",name,TkId);
+      histo = new TH1D(histoname, title, binx, lowx, upx);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLadders(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+ 		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides) {
+  /* Appends 192 or 384 TH1F histos in the ladders subdirectories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH2D* histo;
+  char  subdirname[80];
+  for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
+    TkLadder* ladder = TkDBc::Head->GetEntry(ii);
+    if (ladder->GetHwId()<0) continue;
+    int TkId = ladder->GetTkId(); 
+    int ll   = ladder->GetLayer() - 1; 
+    sprintf(subdirname,"%+03d",TkId);
+    fDirLayers[ll]->cd(subdirname);
+    if(!bothsides){
+      sprintf(histoname,"%s_%+03d",name,TkId);
+      histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_%+03d_P",name,TkId);
+      histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+      sprintf(histoname,"%s_%+03d_N",name,TkId);
+      histo = new TH2D(histoname, title, binx, lowx, upx, biny, lowy, upy);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineLadders(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, 
+		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides){
+  /* Appends 192 or 384 TH1F histos in the ladders subdirectories */
+  TDirectory* saveddir = gDirectory;
+  char  histoname[80];
+  TH3D* histo;
+  char  subdirname[80];
+  for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
+    TkLadder* ladder = TkDBc::Head->GetEntry(ii);
+    if (ladder->GetHwId()<0) continue;
+    int TkId = ladder->GetTkId(); 
+    int ll   = ladder->GetLayer() - 1; 
+    sprintf(subdirname,"%+03d",TkId);
+    fDirLayers[ll]->cd(subdirname);
+    if(!bothsides){
+      sprintf(histoname,"%s_%+03d",name,TkId);
+      histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+    }
+    else {
+      sprintf(histoname,"%s_%+03d_P",name,TkId);
+      histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+      sprintf(histoname,"%s_%+03d_N",name,TkId);
+      histo = new TH3D(histoname, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz);
+      Add(histo);
+    }
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::DefineEntries(char* name, Bool_t bothsides) { 
+  /* defines an entry histogram */
+  TDirectory* saveddir = gDirectory;
+  fDir->cd();
+  char  histoname[80];
+  TH2D* histo; 
+  if(!bothsides){
+    sprintf(histoname,"%s_entries",name);
+    histo = new TH2D(histoname,"; slot; layer",31,-15.5,15.5,TkDBc::Head->nlay(),0.5,TkDBc::Head->nlay()+0.5);
+    Add(histo);
+  }
+  else {
+    sprintf(histoname,"%s_entries_P",name);
+    histo = new TH2D(histoname,"; slot; layer",31,-15.5,15.5,TkDBc::Head->nlay(),0.5,TkDBc::Head->nlay()+0.5);
+    Add(histo);
+    sprintf(histoname,"%s_entries_N",name);
+    histo = new TH2D(histoname,"; slot; layer",31,-15.5,15.5,TkDBc::Head->nlay(),0.5,TkDBc::Head->nlay()+0.5);
+    Add(histo);
+  }
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::Define(char* name, char*title, 
+		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
+  TDirectory* saveddir = gDirectory;
+  DefineEntries(name, bothsides);
+  DefineTracker(name, title, binx, lowx, upx, bothsides);
+  DefineLayers (name, title, binx, lowx, upx, bothsides);
+  DefineLadders(name, title, binx, lowx, upx, bothsides);
+  saveddir->cd();
+  return;
+}
+
+
+void TrHistoMan::Define(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides){
+  TDirectory* saveddir = gDirectory;
+  DefineEntries(name, bothsides);
+  DefineTracker(name, title, binx, lowx, upx, biny, lowy, upy, bothsides);
+  DefineLayers (name, title, binx, lowx, upx, biny, lowy, upy, bothsides);
+  DefineLadders(name, title, binx, lowx, upx, biny, lowy, upy, bothsides);
+  saveddir->cd();
+  return;
+}
+ 
+
+void TrHistoMan::Define(char* name, char* title, 
+		Int_t binx, Double_t lowx, Double_t upx,
+		Int_t biny, Double_t lowy, Double_t upy, 
+		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides) {
+  TDirectory* saveddir = gDirectory;
+  DefineEntries(name, bothsides);
+  DefineTracker(name, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz, bothsides);
+  DefineLayers (name, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz, bothsides);
+  DefineLadders(name, title, binx, lowx, upx, biny, lowy, upy, binz, lowz, upz, bothsides);
+  saveddir->cd();
+  return;
+}
+ 
+
+void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  char histoname[80];
+  sprintf(histoname,"%s_all",name);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_all_P",name);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_all_N",name);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  char histoname[80];
+  sprintf(histoname,"%s_all",name);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_all_P",name);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_all_N",name);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillTracker(Int_t side, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  char histoname[80];
+  if (side==1) sprintf(histoname,"%s_all_P",name);
+  else         sprintf(histoname,"%s_all_N",name);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillTracker(char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  char histoname[80];
+  sprintf(histoname,"%s_all",name);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the layer histograms (p/n)
+  int TkId         = cluster->GetTkId(); 
+  TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
+  int layer        = ladder->GetLayer(); 
+  char histoname[80];
+  sprintf(histoname,"%s_layer%1d",name,layer);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_layer%1d_P",name,layer);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_layer%1d_N",name,layer);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the layer histograms (p/n)
+  int TkId         = cluster->GetTkId(); 
+  TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
+  int layer        = ladder->GetLayer(); 
+  char histoname[80];
+  sprintf(histoname,"%s_layer%1d",name,layer);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_layer%1d_P",name,layer);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_layer%1d_N",name,layer);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLayer(Int_t side, Int_t layer, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the layer histograms (p/n)
+  char histoname[80];
+  if (side==1) sprintf(histoname,"%s_layer%1d_P",name,layer);
+  else         sprintf(histoname,"%s_layer%1d_N",name,layer);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLayer(Int_t layer, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the layer histograms (p/n)
+  char histoname[80];
+  sprintf(histoname,"%s_layer%1d",name,layer);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the ladder histograms (p/n)
+  int  TkId = cluster->GetTkId(); 
+  char histoname[80];
+  sprintf(histoname,"%s_%+03d",name,TkId);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_%+03d_P",name,TkId);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_%+03d_N",name,TkId);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the ladder histograms (p/n)
+  int  TkId = cluster->GetTkId(); 
+  char histoname[80];
+  sprintf(histoname,"%s_%+03d",name,TkId);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_%+03d_P",name,TkId);
+    }
+    else  {  
+      sprintf(histoname,"%s_%+03d_N",name,TkId);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLadder(Int_t side, Int_t TkId, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the ladder histograms (p/n)
+  char histoname[80];
+  if (side==1) sprintf(histoname,"%s_%+03d_P",name,TkId);
+  else         sprintf(histoname,"%s_%+03d_N",name,TkId);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+     else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+   else {
+      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::FillLadder(Int_t TkId, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  // fill the ladder histograms (p/n)
+  char histoname[80];
+  sprintf(histoname,"%s_%+03d",name,TkId);
+  TNamed* tmp = Get(histoname);
+  if (!tmp) {
+    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+  }
+  else {
+    if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
+      TH1D* hh = (TH1D*) tmp;
+      hh->Fill(X1,X2);
+    }
+    else if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+      TH2D* hh = (TH2D*) tmp;
+      hh->Fill(X1,X2,X3);
+    }
+    else if (strcmp("TH3D",tmp->ClassName())==0) {     // is a TH3D
+      TH3D* hh = (TH3D*) tmp;
+      hh->Fill(X1,X2,X3,w);
+    }
+    else {
+      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    }
+  }
+}
+
+
+void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  FillEntry  (bothsides, cluster, name, X1, X2, X3, w); 
+  FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
+  FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
+  FillLadder (bothsides, cluster, name, X1, X2, X3, w);
+}
+
+
+void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  FillEntry  (bothsides, cluster, name, X1, X2, X3, w); 
+  FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
+  FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
+  FillLadder (bothsides, cluster, name, X1, X2, X3, w);
+}
+
+
+void TrHistoMan::Fill(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  FillEntry  (side, tkid, name, X1, X2, X3, w); 
+  FillTracker(side, name, X1, X2, X3, w); 
+  FillLayer  (side, abs(tkid/100), name, X1, X2, X3, w);
+  FillLadder (side, tkid, name, X1, X2, X3, w);
+}
+
+
+void TrHistoMan::Fill(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+  FillEntry  (tkid, name, X1, X2, X3, w); 
+  FillTracker(name, X1, X2, X3, w); 
+  FillLayer  (abs(tkid/100), name, X1, X2, X3, w);
+  FillLadder (tkid, name, X1, X2, X3, w);
+}
+
+
+void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+  char histoname[80];
+  int TkId         = cluster->GetTkId();
+  TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
+  int layer        = ladder->GetLayer();
+  int slot         = ladder->GetSlot();
+  sprintf(histoname,"%s_entries",name);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_entries_P",name);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_entries_N",name);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if(!tmp){
+    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " not found" << endl;
+    return;
+  }
+    
+  if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+    TH2D* hh = (TH2D*) tmp;
+    hh->Fill((float)slot,(float)layer,1.);
+  }
+  else {
+    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+  }
+}
+
+
+void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+  char histoname[80];
+  int TkId         = cluster->GetTkId();
+  TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
+  int layer        = ladder->GetLayer();
+  int slot         = ladder->GetSlot();
+  sprintf(histoname,"%s_entries",name);
+  if (bothsides) {
+    if (cluster->GetSide()==1) {
+      sprintf(histoname,"%s_entries_P",name);
+    }
+    else if (cluster->GetSide()==0) {  
+      sprintf(histoname,"%s_entries_N",name);
+    }
+  }
+  TNamed* tmp = Get(histoname);
+  if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+    TH2D* hh = (TH2D*) tmp;
+    hh->Fill((float)slot,(float)layer,1.);
+  }
+  else {
+    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+  }
+}
+
+
+void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+  char histoname[80];
+  TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
+  int layer        = ladder->GetLayer();
+  int slot         = ladder->GetSlot();
+  if (side==1) sprintf(histoname,"%s_entries_P",name);
+  if (side==0) sprintf(histoname,"%s_entries_N",name);
+  TNamed* tmp = Get(histoname);
+  if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+    TH2D* hh = (TH2D*) tmp;
+    hh->Fill((float)slot,(float)layer,1.);
+  }
+  else {
+    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+  }
+}
+
+
+void TrHistoMan::FillEntry(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+  char histoname[80];
+  TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
+  int layer        = ladder->GetLayer();
+  int slot         = ladder->GetSlot();
+  sprintf(histoname,"%s_entries",name);
+  TNamed* tmp = Get(histoname);
+  if (strcmp("TH2D",tmp->ClassName())==0) {     // is a TH2D
+    TH2D* hh = (TH2D*) tmp;
+    hh->Fill((float)slot,(float)layer,1.);
+  }
+  else {
+    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+  }
+}
+
+
+void TrHistoMan::ResetHisto(TNamed* object) {
+  if (!object->InheritsFrom("TH1")) return;
+  if      (strcmp("TH1D",object->ClassName())==0) {     // is a TH1D
+    TH1D* histogram = (TH1D*) object;
+    histogram->Reset();
+  }
+  else if (strcmp("TH2D",object->ClassName())==0) {     // is a TH2D
+    TH2D* histogram = (TH2D*) object;
+    histogram->Reset();
+  }
+  else if (strcmp("TH3D",object->ClassName())==0) {     // is a TH3D
+    TH3D* histogram = (TH3D*) object;
+    histogram->Reset();
+  }
+}
+
+
+void TrHistoMan::ResetTracker(char* name) {
+  char histoname[80];
+  sprintf(histoname,"%s_all",name);
+  TNamed* tmp = Get(histoname);
+  ResetHisto(tmp);
+}
+
