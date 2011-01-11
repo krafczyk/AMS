@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.206 2011/01/10 15:42:17 oliva Exp $
+//  $Id: ntuple.C,v 1.207 2011/01/11 17:28:15 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -449,6 +449,8 @@ void AMSNtuple::initR(char* fname,uinteger run){
    if (AMSJob::gethead()->isMonitoring() && ptrman==0) { 
      ptrman = new TrOnlineMonitor(AMSNtuple::_rfile,1,200);
      ptrman->Book();
+     ptrman->GetHeader()->AddFileName(fname);
+     ptrman->GetHeader()->SetRunNumber(0);
    }
 #endif
 

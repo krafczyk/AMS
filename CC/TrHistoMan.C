@@ -326,29 +326,16 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
 /////////////////////////////////////////////////
 
 
-TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) {
-  fType = orig.fType;
-  fRunNumber = orig.fType;
-  fFirstBlockNumber = orig.fFirstBlockNumber;
-  fLastBlockNumber = orig.fLastBlockNumber;
-}
-
-
-void TrHistoManHeader::Set(int type, int runnumber, char* path, int first, int last) { 
-  fType = type; 
-  fRunNumber = runnumber; 
-  strcpy(fBlockPath, path);
-  fFirstBlockNumber = first; 
-  fLastBlockNumber = last; 
-}
-
-
 void TrHistoManHeader::Clear() {
-  fType = 0; 
   fRunNumber = 0; 
-  strcpy(fBlockPath,"");
-  fFirstBlockNumber = 0;
-  fLastBlockNumber = 0;
+  fFileList.SetOwner(kTRUE);
+  fFileList.Clear();
+}
+
+
+TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) {
+  fRunNumber = orig.fRunNumber;
+  fFileList = orig.fFileList; // Clone ...
 }
 
 

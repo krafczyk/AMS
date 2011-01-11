@@ -29,7 +29,8 @@
 #include "TDirectory.h"
 #include "TDirectoryFile.h"
 #include "TFile.h"
-
+#include "TObjArray.h"
+#include "TObjString.h"
 
 //! Class TrHistoManHeader, the Tracker Histogram Manager Header
 /*!
@@ -43,20 +44,10 @@ class TrHistoManHeader : public TNamed {
 
  public:
 
-  enum EMonitoringType {
-    kData = 0,
-    kSimu = 1
-  };
-  //! Type of data 
-  int  fType;
   //! Run number
   int  fRunNumber;
-  //! Block directory path
-  char fBlockPath[20];
-  //! First block number 
-  int  fFirstBlockNumber;
-  //! Last block number
-  int  fLastBlockNumber;
+  //! File list 
+  TObjArray fFileList;
 
  public:
 
@@ -69,36 +60,24 @@ class TrHistoManHeader : public TNamed {
   //! Destructor 
   ~TrHistoManHeader() { Clear(); }
   //! Clear
-  void Clear();
+  void Clear(); 
   //! Adding
-  void Add(TrHistoManHeader* tobeadded) {} // ???
-  //! Merge 
-  void Merge() {} // ???
+  void Add(TrHistoManHeader* tobeadded) {} 
+  //! Merge ... 
 
-  //! Set all members
-  void  Set(int type, int runnumber, char* path, int first, int last);
-  //! Set type (0: data, 1: simu)
-  void  SetType(int type) { fType = type; }
+  //! Add file name to the list 
+  void        AddFileName(char* name) { fFileList.Add(new TObjString(name)); }
+  //! Get number of files used
+  int         GetNFileNames() { return fFileList.GetEntries(); }
+  //! Return the i-th file name
+  const char* GetFileName(int i) { return (i<GetNFileNames()) ? fFileList.At(i)->GetName() : 0; }
   //! Set run number
-  void  SetRunNumber(int runnumber) { fRunNumber = runnumber; } 
-  //! Set block directory path
-  void  SetBlockPath(char* path) { strcpy(fBlockPath, path); }
-  //! Set first block number
-  void  SetFirstBlockNumber(int first) { fFirstBlockNumber = first; }
-  //! Set last block number
-  void  SetLastBlockNumber(int last) { fLastBlockNumber = last; }
-
-  //! Get type (0: data, 1: simu)
-  int   GetType() { return fType; }
+  void        SetRunNumber(int runnumber) { fRunNumber = runnumber; } 
+  //! Get the file name list (TObjString objs)
+  TObjArray   GetFileNameList() { return fFileList; }
   //! Get run number
-  int   GetRunNumber() { return fRunNumber; }
-  //! Get block rirectory path
-  char* GetBlockPath() { return fBlockPath; }
-  //! Get first block number
-  int   GetFirstBlockNumber() { return fFirstBlockNumber; }  
-  //! Get last block number
-  int   GetLastBlockNumber() { return fLastBlockNumber; }
- 
+  int         GetRunNumber() { return fRunNumber; }
+
   ClassDef(TrHistoManHeader,1);
 };
 
