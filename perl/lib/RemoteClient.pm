@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.607 2011/01/07 23:10:16 ams Exp $
+# $Id: RemoteClient.pm,v 1.608 2011/01/11 18:33:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1096,7 +1096,7 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{QTYPE} ne ""){
                $qtype="and $datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and $datafiles.status='OK' $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and ($datafiles.status='OK' or $datafiles.status='Validated') $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
               if($template->{TAG}>=0){
                   $sql=$sql." and $datafiles.tag=$template->{TAG} ";
               }
@@ -6768,7 +6768,7 @@ print qq`
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and datafiles.status='OK' $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') $tag order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and (datafiles.status='OK' or datafiles.status='Validated')  $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') $tag order by datafiles.run ";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
@@ -13947,13 +13947,17 @@ sub insertNtuple {
     my $paths='/Offline/RunsDir/MC/';
     my $cmd="ln -s $path $paths";
     system($cmd);
+if(not defined $fetime or not defined $letime){ 
     my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
-    my $fetime=0;
-    my $letime=0;
     if(defined($ret->[0][0])){
         $fetime=$ret->[0][0];
         $letime=$ret->[0][1];
     }
+}
+    else{
+      $self->{sqlserver}->Update(" update runs set  fetime=$fetime  where jid=$jid");
+      $self->{sqlserver}->Update(" update runs set  letime=$letime  where jid=$jid");
+  }
    my $rj=$self->{sqlserver}->Query(" select content,jobname from jobs where jid=$jid");   
      my $part=-1;
     my $ds="";

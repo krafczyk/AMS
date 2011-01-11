@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.144 2010/11/12 16:18:42 choutko Exp $
+//  $Id: producer.C,v 1.145 2011/01/11 18:33:55 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1273,7 +1273,7 @@ void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
 if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
 unlink( DAQEvent::getfile());
 }
-     if(res!=DAQEvent::OK && (res!=DAQEvent::NoInputFile || _cinfo.LastEventProcessed==0)){
+     if(res!=DAQEvent::OK && (res!=DAQEvent::NoInputFile || _cinfo.LastEventProcessed==0) ){
  _cinfo.Status=DPS::Producer::Failed;
 if(_reinfo->Run!=0){
     FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
@@ -1285,10 +1285,17 @@ else{
 else _cinfo.Status=DPS::Producer::Finished;
 
 // check event numbers
-    if(-_cinfo.LastEventProcessed+_reinfo->LastEvent>1){
+   
+    int fail=1;
+    if(!AMSJob::gethead()->isRealData()){
+      fail=(_reinfo->LastEvent-_reinfo->FirstEvent+1)/(_cinfo.EventsProcessed+1)*10;      
+     if(fail<1)fail=1;
+    }
+    if(-_cinfo.LastEventProcessed+_reinfo->LastEvent>fail){
        _cinfo.Status=DPS::Producer::Failed;
         cerr<<"AMSProducer::sendRunEnd-S-NotAllEvetnsProcessed "<<_cinfo.LastEventProcessed<<" "<<_reinfo->LastEvent<<" "<<endl;
       FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
+
     }
     else if(_cinfo.LastEventProcessed-_reinfo->LastEvent>1){
         cerr<<"AMSProducer::sendRunEnd-W-TooManyEventsProcessed "<<_cinfo.LastEventProcessed<<" "<<_reinfo->LastEvent<<" "<<endl;
