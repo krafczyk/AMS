@@ -1,0 +1,250 @@
+#  $Id: Makefile.linuxia64gcc,v 1.1 2011/01/11 18:41:07 choutko Exp $
+# P.Zuccon june 2005
+# General clean up and reorganization
+# F.Barao: gcc version numbering changed (Oct, 2010)
+#
+
+#   Architecture linux g++
+
+
+VER          := $(shell $(ROOTSYS)/bin/root-config --version | grep 5.14)
+
+#GCC_VER_MAJOR=$(shell gcc --version | grep gcc | cut -b11 )
+#GCC_VER_MIDDLE=$(shell gcc --version | grep gcc |cut -b13 )
+#GCC_VER_MINOR=$(shell gcc --version | grep gcc |cut -b15 )
+GCC_VER_MAJOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c1 )
+GCC_VER_MIDDLE=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c3 )
+GCC_VER_MINOR=$(shell gcc --version | head -1 | cut '-d ' -f3 | cut -c5 )
+
+ifeq ($(GCC_VER_MAJOR),4) 
+VERGCC:=1
+
+ifeq ($(GCC_VER_MIDDLE),4) 
+VERGCCH      := 1
+endif
+endif 
+
+ifdef VER
+NEW = 
+else
+NEW = _new
+endif
+
+
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
+endif
+
+ifdef SLC4system
+else
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux SL release 4")
+endif
+endif
+
+SLC4system=1
+RH9=1
+RH9add=
+ifdef RH9
+ RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+endif
+
+RH9add=-pthread $(BIN)ctype.o 
+
+
+
+########################################################################
+#Compilers
+########################################################################
+  CC  = gcc  
+  CXX = g++ 
+ifdef VERGCC 
+  FF  = gfortran  
+  FORTRAN_LIBS=  -lgfortran 
+else  
+  FF  = g77  
+  FORTRAN_LIBS=
+endif
+  FFOLD=$(FF)
+  LD  = g++ 
+  FORTRAN2_LIBS=
+
+
+ORBIT2DIR=/usr/ORBit2
+IDL=$(ORBIT2DIR)/bin/orbit-idl-2
+IDLCPP=$(ORBIT2DIR)/bin/orbit-idl-2 --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl-backends -l cpp
+
+
+########################################################################
+# CERN & AMS Libraries
+########################################################################
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib
+
+CERN_LEVEL = 2005.ia64.gcc41
+
+
+ifndef CERNDIR
+CERNDIR =/Offline/CERN/$(CERN_LEVEL)
+endif
+
+
+CERNSRCDIR = $(CERNDIR)
+
+ifndef AMSLIB
+AMSLIB =  /Offline/lib/linux/gcc64
+endif
+
+ifndef NAGDIR
+NAGDIR =  /Offline/CERN/NagLib
+endif
+
+
+
+########################################################################
+# Compilers FLAGS
+########################################################################
+
+
+ifdef AMSDEBUG
+DEFINES+=  -D__AMSDEBUG__
+endif
+
+ifdef WEBACCESS
+DEFINES+=  -D_WEBACCESS_
+endif
+
+ifdef TFADBW
+DEFINES+=  -D__TFADBW__
+endif
+
+
+ifdef TFAPEDC
+DEFINES+=  -D__TFAPEDC__
+endif
+
+ifdef VERGCCH
+DEFINES+=  -D__LINUXNEW__
+endif
+
+#CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
+#CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
+CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC
+DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
+
+ifdef AMSPROFILE
+  CFLAGSB+=-pg
+endif
+
+CFLAGS=       $(CFLAGSB)   
+CFLAGSTOFSIM= $(CFLAGSB) 
+CFLAGSn=      $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB) 
+
+FFLAGS=       -fno-automatic -fno-second-underscore
+FFLAGSn=      -fno-automatic -fno-second-underscore
+
+
+ifdef AMSPROFILE 
+  FFLAGS+=-pg
+  FFLAGSn+=-pg
+endif
+
+ifdef DEBUGFLAG
+    DB= -ftrap-fpe=invalid,zero,overflow -fbacktrace -g    
+    CFLAGS       += -g
+    CFLAGSTOFSIM += -g
+    CFLAGSn      += -g
+    CFLAGSDAQ    += -g
+    FFLAGS       += -g
+    FFLAGSn      += -g
+else
+    CFLAGS       += -O3      
+    CFLAGSTOFSIM += -O1
+    CFLAGSn      += -O2    
+    CFLAGSDAQ    += -O2 
+    FFLAGS       += -O3    
+    FFLAGSn      +=   
+endif
+
+SOFLAGS = -shared
+
+
+ifdef SLC4system
+ifdef VER
+else
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+endif
+endif
+
+SHLDFLAGS=   
+
+########################################################################
+# Output dirs
+########################################################################
+
+#----------------------------------------------------
+
+
+# Library list 
+TIMEL=
+
+LDFLAGSI=    -static $(G4LIBS) $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnaggcc64 \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot -lfreetype\
+ -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lcom_err -lresolv  -lcrypto    \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
+
+LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnaggcc64   \
+-L$(AMSLIB)  -lamsut   \
+-L$(CERNDIR)/lib   $(CERNLIBS) \
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto  -lssl -lcrypto  -lcom_err -lfreetype  -ldl    -lpcre  \
+$(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
+
+ifdef AMSPROFILE
+  LDFLAGS+=-pg
+endif
+
+ifdef WEBACCESS
+  LDFLAGS+= -lcurl
+LDFLAGSSTATIC:=    $(LDFLAGS) -pthread 
+else
+LDFLAGSSTATIC:=  -static  $(LDFLAGS) $(RH9add) 
+endif
+
+
+
+#--------------------------------------------------------------------------------------------------
+#------- Client/server ORbIt/CORBA part
+#--------------------------------------------------------------------------------------------------
+
+TIMEL=
+
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
+
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -L/opt/gnome/lib -lgobject-2.0 -lgthread-2.0 \
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lrt 
+
+CXX_ORBIT=$(CXX)  -Wno-deprecated  -fpermissive -I/$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/lib/glib-2.0/include  -I$(ORBIT2DIR)/include/orbitcpp-2.0 -I$(BIN)
+
+CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I$(BIN)
+
+
+ifdef DEBUGFLAG
+CXX_ORBIT+= -g
+CCC_ORBIT+= -g
+else
+CXX_ORBIT+= -O3
+CCC_ORBIT+= -O3
+endif
+
+
+#endif
+
+# end of Linux case
+
+#########################################################
