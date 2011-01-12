@@ -3,6 +3,7 @@
 #include "typedefs.h"
 #include "TkDBc.h"
 
+
 class PATT{
 public:
   static uinteger _Npat;
@@ -37,5 +38,5 @@ private:
 
 };
 
-extern PATT* patt;
+extern PATT* Patt;
 #endif

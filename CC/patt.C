@@ -1,6 +1,6 @@
 #include "patt.h"
 
-PATT* patt=0;
+PATT* Patt=0;
 
 
 uinteger  PATT::_Npat;

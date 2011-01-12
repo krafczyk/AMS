@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.49 2010/11/10 08:49:26 shaino Exp $
+//  $Id: trigger302.C,v 1.50 2011/01/12 13:49:42 pzuccon Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -1776,22 +1776,22 @@ void TriggerLVL302::fit(integer idum){
   else ic=TkDBc::Head->nlay()-_NTrHits;
 
   for (i=ic;i<TkDBc::Head->nlay()-2;i++){      // Start from 4
-    for( j=patt->patd(i);j<patt->patd(i+1);j++){
-      if(patt->patallowFalseX(j)){ 
-	for(k=0;k<_nhits[patt->patconf3(j,0)];k++){
-	  coou=_coo[patt->patconf3(j,0)][k];
-	  amp[0]=_eloss[patt->patconf3(j,0)][k];
-	  for(l=0;l<_nhits[patt->patconf3(j,patt->patpoints(j)-1)];l++){
-            cood=_coo[patt->patconf3(j,patt->patpoints(j)-1)][l];
-            amp[patt->patpoints(j)-1]=_eloss[patt->patconf3(j,patt->patpoints(j)-1)][l];
-            b=TkDBc::Head->GetZlayer(patt->patconf3(j,patt->patpoints(j)-1)+1)-
-	      TkDBc::Head->GetZlayer(patt->patconf3(j,0)+1);
-            zmean=TkDBc::Head->GetZlayer(patt->patconf3(j,patt->patpoints(j)-1)+1)+
-	      TkDBc::Head->GetZlayer(patt->patconf3(j,0)+1);
+    for( j=Patt->patd(i);j<Patt->patd(i+1);j++){
+      if(Patt->patallowFalseX(j)){ 
+	for(k=0;k<_nhits[Patt->patconf3(j,0)];k++){
+	  coou=_coo[Patt->patconf3(j,0)][k];
+	  amp[0]=_eloss[Patt->patconf3(j,0)][k];
+	  for(l=0;l<_nhits[Patt->patconf3(j,Patt->patpoints(j)-1)];l++){
+            cood=_coo[Patt->patconf3(j,Patt->patpoints(j)-1)][l];
+            amp[Patt->patpoints(j)-1]=_eloss[Patt->patconf3(j,Patt->patpoints(j)-1)][l];
+            b=TkDBc::Head->GetZlayer(Patt->patconf3(j,Patt->patpoints(j)-1)+1)-
+	      TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
+            zmean=TkDBc::Head->GetZlayer(Patt->patconf3(j,Patt->patpoints(j)-1)+1)+
+	      TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1);
             factor=1/fabs(b);
             s=sqrt((cood-coou)*(cood-coou)+b*b);
             a=(cood-coou);
-            dscr=s*Discriminator(_NTrHits-patt->patpoints(j));
+            dscr=s*Discriminator(_NTrHits-Patt->patpoints(j));
             if(!_Level3Searcher(1,j))goto done;
 	  }
 	}
@@ -1836,17 +1836,17 @@ integer TriggerLVL302::_UpdateOK(geant s,  geant res[], geant amp[],integer pat)
     return 0;
   }
   else {
-    int n=(patt->patpoints(pat)-2);
+    int n=(Patt->patpoints(pat)-2);
     for(i=0;i<n;i++)_Residual[_NPatFound]+=res[i];
     _Residual[_NPatFound]=_Residual[_NPatFound]/n/s;     
     _Pattern[_NPatFound]=pat;
     if(_NPatFound++==0){
       maxa=0;
-      for(i=0;i<patt->patpoints(pat);i++){
+      for(i=0;i<Patt->patpoints(pat);i++){
         if(amp[i]>maxa)maxa=amp[i];
         _TrEnergyLoss+=amp[i];       
       }
-      _TrEnergyLoss=(_TrEnergyLoss-maxa)/(patt->patpoints(pat)-1);
+      _TrEnergyLoss=(_TrEnergyLoss-maxa)/(Patt->patpoints(pat)-1);
     }
     return 1;
   }
@@ -1952,14 +1952,14 @@ char * AMSLVL3Error::getmessage(){return msg;}
 
 
 integer TriggerLVL302::_Level3Searcher(int call, int j){
-  //              cout <<"Searcher "<<call<<" "<<patt->patconf3(j,call)<<" "<<_nhits[patt->patconf3(j,call)]<<" "<<j<<endl;
-  for(int n1=0;n1<_nhits[patt->patconf3(j,call)];n1++){
-    r=a*(TkDBc::Head->GetZlayer(patt->patconf3(j,call)+1)-TkDBc::Head->GetZlayer(patt->patconf3(j,0)+1))+
-      b*(coou-_coo[patt->patconf3(j,call)][n1]);
-    if(fabs(r) < (1-fabs(2*TkDBc::Head->GetZlayer(patt->patconf3(j,call)+1)-zmean)*factor)*dscr){
+  //              cout <<"Searcher "<<call<<" "<<Patt->patconf3(j,call)<<" "<<_nhits[Patt->patconf3(j,call)]<<" "<<j<<endl;
+  for(int n1=0;n1<_nhits[Patt->patconf3(j,call)];n1++){
+    r=a*(TkDBc::Head->GetZlayer(Patt->patconf3(j,call)+1)-TkDBc::Head->GetZlayer(Patt->patconf3(j,0)+1))+
+      b*(coou-_coo[Patt->patconf3(j,call)][n1]);
+    if(fabs(r) < (1-fabs(2*TkDBc::Head->GetZlayer(Patt->patconf3(j,call)+1)-zmean)*factor)*dscr){
       resid[call-1]=r;
-      amp[call]=_eloss[patt->patconf3(j,call)][n1];
-      if(patt->patpoints(j) > call+2){
+      amp[call]=_eloss[Patt->patconf3(j,call)][n1];
+      if(Patt->patpoints(j) > call+2){
 	return _Level3Searcher(++call,j);
       }
       else{

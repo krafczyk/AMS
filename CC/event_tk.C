@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.37 2010/12/07 13:51:53 shaino Exp $
+//  $Id: event_tk.C,v 1.38 2011/01/12 13:49:42 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -270,7 +270,7 @@ void AMSEvent::_retkevent(integer refit){
 
     hman.Fill("TrNhit", trk->GetNhitsY(), trk->GetNhitsXY());
 
-    int pate = TrRecon::GetHitPatternAllow(trk->GetPattern());
+    int pate = patt->GetHitPatternAllow(trk->GetPattern());
     int mfs  = TrTrackR::DefaultFitID;
     if (i == 0 && trk->ParExists(mfs) &&
 	pate == 0 && trk->GetNhitsY () >= 6 && 

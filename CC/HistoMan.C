@@ -260,7 +260,7 @@ void HistoMan::BookHistos(bool issim){
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
-
+  Add(new TH2F("Time","Time",1000,0,2.,500,0,500));
   // Track quality parameters VS Rigidity
   TString stp[4] = {  "dRinv-",  "Chisq-",  "HalfR-", "Exres-" };
   TString stt[4] = { "(inner)", "(half8)", "(half9)", "(full)" };

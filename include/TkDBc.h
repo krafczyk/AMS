@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.18 2010/09/09 17:43:18 pzuccon Exp $
+// $Id: TkDBc.h,v 1.19 2011/01/12 13:50:00 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -15,6 +15,7 @@
 #include "TkPlane.h"
 
 #include "TFile.h"
+#include "tkpatt.h"
 
 /*!\class TkDBc
 \brief The new AMS Tracker database class

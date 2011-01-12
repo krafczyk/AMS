@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.88 2010/10/12 23:18:14 pzuccon Exp $
+//  $Id: beta.C,v 1.89 2011/01/12 13:49:42 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -16,7 +16,7 @@
 #include "event.h"
 #include "trdrec.h"
 #ifdef _PGTRACK_
-#include "patt.h"
+#include "tkpatt.h"
 #include "TrRecon.h"
 #endif
 
@@ -1095,7 +1095,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
   for(;ptrack;ptrack=ptrack->next()){
 
 #ifdef _PGTRACK_
-    if(patt->patpoints(ptrack->getpattern())!=patt->patpoints(ptrackc->getpattern()))continue;    
+    if(patt->GetHitPatternNmask(ptrack->getpattern())!=patt->GetHitPatternNmask(ptrackc->getpattern()))continue;    
 #else
     if(TKDBc::patpoints(ptrack->getpattern())!=TKDBc::patpoints(ptrackc->getpattern()))continue;    
 #endif

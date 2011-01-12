@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.768 2010/12/30 13:43:18 choutko Exp $
+// $Id: job.C,v 1.769 2011/01/12 13:49:42 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1879,7 +1879,7 @@ else{
 
 #ifdef _PGTRACK_
   // SetUp the Tracker reconstruction infrastructure
-  patt= new PATT();
+  Patt= new PATT(); // PZ FIXME dummy pattern structure used ionly for the dummy trigger302
   //PZ FIXME must be simplified
   TrCalDB* cc=new TrCalDB();
   TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);

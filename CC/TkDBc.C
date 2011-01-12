@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.39 2010/12/11 11:46:39 oliva Exp $
+//  $Id: TkDBc.C,v 1.40 2011/01/12 13:49:41 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,15 +12,15 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2010/12/11 11:46:39 $
+///$Date: 2011/01/12 13:49:41 $
 ///
-///$Revision: 1.39 $
+///$Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkDBc.h"
 #include <cstring>
-
+#include "tkpatt.h"
 // Hard-coded sensor alignment parameters
 #include "TkDBcSalig.C"
 
@@ -73,6 +73,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     }
     
     printf("TkDBc::init -I- Selected Setup %d  %s\n",_setup,_setupname[_setup]);
+
+    printf("initializing track patterns\n");
+    if(patt) delete patt;
+    int nn=8;
+    if(setup==3)nn=7;
+    patt= new tkpatt(nn);
+    patt->Init(nn);
 
 //----------------------------------------------------------------------------------
 //       Ladder Electronics

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.86 2010/12/15 14:29:21 shaino Exp $
+// $Id: TrTrack.C,v 1.87 2011/01/12 13:49:41 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2010/12/15 14:29:21 $
+///$Date: 2011/01/12 13:49:41 $
 ///
-///$Revision: 1.86 $
+///$Revision: 1.87 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -364,10 +364,10 @@ bool TrTrackR::RemoveHitOnLayer( int layer){
   _bitX  = _bitX>>1;
   _bitY  = _bitY>>1;
   _bitXY = _bitXY>>1;
-  _Pattern   = TrRecon::GetHitPatternIndex(_bit);
-  _PatternX  = TrRecon::GetHitPatternIndex(_bitX);
-  _PatternY  = TrRecon::GetHitPatternIndex(_bitY);
-  _PatternXY = TrRecon::GetHitPatternIndex(_bitXY);
+  _Pattern   = patt->GetHitPatternIndex(_bit);
+  _PatternX  = patt->GetHitPatternIndex(_bitX);
+  _PatternY  = patt->GetHitPatternIndex(_bitY);
+  _PatternXY = patt->GetHitPatternIndex(_bitXY);
   return true;
 }
 

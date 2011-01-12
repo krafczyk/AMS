@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.38 2010/12/09 10:23:34 shaino Exp $ 
+// $Id: TrRecon.h,v 1.39 2011/01/12 13:50:00 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2010/12/09 10:23:34 $
+/// $Date: 2011/01/12 13:50:00 $
 ///
-/// $Revision: 1.38 $
+/// $Revision: 1.39 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -41,8 +41,9 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-
+#include "tkpatt.h"
 #include "TObject.h"
+#define SCANLAY_MAX 8
 
 
 
@@ -287,91 +288,20 @@ public:
 // Performance tuning parameters for track reconstruction
 //========================================================
 public:  
-  /// Number of layers for pattern scan (use this instead of trconst::maxlay)
-  enum { SCANLAY = 8 };
+
+
   /// Status bits (temporary)
   enum { AMBIG = 0x04, USED = 0x20 };
 
-//========================================================
-// HitPatterns
-//========================================================
-protected:
-  /// HitPatternAttrib bits
-  enum { O_NMASK = 100000, 
-         O_NP1 = 10000, O_NP2 = 1000, O_NP3 = 100, O_NP4 = 10, O_NP5 = 1 };
-  //
-  /// Number of hit patterns
-  static int NHitPatterns;
-  /// Hit pattern masked hit bits
-  static int *HitPatternMask;
-  /// Hit pattern attribute ( =Nm*100000 +N1*10000 +N2*1000 +N3*100 +N4*10 +N5)
-  static int *HitPatternAttrib;
-  /// Convert HitPattern number from mask bit
-  static int *HitPatternIndex;
-  /// First HitPattern number with n masks
-  static int *HitPatternFirst;
-
-//========================================================
-// HitPattern utilities
-//========================================================
-public:
-  /// Initialize hit patterns, recursively called
-  static void BuildHitPatterns(int n = -1, int i = 0, int mask = 0);
-
-  /// Get HitPatternMask
-  static int GetNHitPatterns(void) {
-    return NHitPatterns;
-  }
-  /// Test HitPatternMask
-  static bool TestHitPatternMask(int i, int layer) {
-    return (HitPatternMask && 0 <= i && i < NHitPatterns) 
-      ? (HitPatternMask[i] & (1 << (SCANLAY-layer))): 0;
-  }
-  /// Get HitPatternMask
-  static int GetHitPatternMask(int i) {
-    return (HitPatternMask && 0 <= i && i < NHitPatterns) ? HitPatternMask[i] : 0;
-  }
-  /// Get HitPatternAttrib
-  static int GetHitPatternAttrib(int i) {
-    return (HitPatternAttrib && 0 <= i && i < NHitPatterns) ? HitPatternAttrib[i] : 0;
-  }
-  /// Get allow option of HitPatternAttrib
-  static int GetHitPatternAllow(int i) {
-    int atrb = GetHitPatternAttrib(i), pate = 0;
-    if (atrb == 0) return 0;
-    // Not allowed (1): Both external layers are masked
-    if ((atrb/O_NP1)%10 == 0 && (atrb/O_NP5)%10 == 0) pate |= RecPar.NO_EXTP;
-    // Not allowed (2): Both layers on any of internal planes are masked
-    if ((atrb/O_NP2)%10 == 0 || (atrb/O_NP3)%10 == 0 || 
-	                        (atrb/O_NP4)%10 == 0) pate |= RecPar.NO_INTP;
-    // Not allowed (3): Any external layers are masked and Nmask >= 3
-    if ((atrb/O_NMASK >= 3  && ((atrb/O_NP1)%10 == 0 || 
-				(atrb/O_NP5)%10 == 0))) pate |= RecPar.ALL_5L;
-    return pate;
-  }
-  /// Get number of hits masked for the pattern i
-  static int GetHitPatternNmask(int i) {
-    return (HitPatternAttrib && 0 <= i && i < NHitPatterns) ? abs(HitPatternAttrib[i]/O_NMASK) : 0;
-  }
-  /// Get HitPatternIndex
-  static int GetHitPatternIndex(int mask) {
-    return (HitPatternIndex && 0 <= mask && mask < 256) ? HitPatternIndex[mask] : -1;
-  }
-  /// Get HitPatternFirst
-  static int GetHitPatternFirst(int nm) {
-    return (HitPatternFirst && 0 <= nm && nm < 6) ? HitPatternFirst[nm] : NHitPatterns;
-  }
-  /// Get HitPatternMask as a string
-  static const char *GetHitPatternStr(int i, char con = '1', char coff = '0');
 
 //========================================================
 // Temporary buffers for fast hit scanning
 //========================================================
 protected:
   /// Array of vectors of TkId at each layer
-  vector<int> _LadderHitMap[SCANLAY];
+  vector<int> _LadderHitMap[SCANLAY_MAX];
   /// Number of ladders with both p(X) and n(Y) clusters at each layer
-  int _NladderXY[SCANLAY];
+  int _NladderXY[SCANLAY_MAX];
 
   /// Virtual 2D array to store TrRecHits at [iclx][icly]
   class Hits2DArray : public vector<TrRecHitR*> {
@@ -472,7 +402,7 @@ public:
 
   /// Get number of ladders with cluster signals at the layer
   int GetNladder(int layer) const { 
-    return (0 < layer && layer <= SCANLAY) ? _LadderHitMap[layer-1].size() : 0;
+    return (0 < layer && layer <= patt->GetSCANLAY()) ? _LadderHitMap[layer-1].size() : 0;
   }
   /// Get tkid from _LadderHitMap
   int GetLadderHit(int layer, int i) const {
@@ -509,11 +439,11 @@ public:
     int    pattern;            ///< Hit pattern of current scan
     int    side;               ///< Side of current scan
     int    nlayer;             ///< Number of layers to be scanned
-    int    ilay [SCANLAY];     ///< Scanning order for effective pre-selection
-    int    tkid [SCANLAY];     ///< TkId list
-    int    iscan[SCANLAY][2];  ///< Current candidate hit index
-    int    imult[SCANLAY];     ///< Current candidate multiplicity index
-    AMSPoint coo[SCANLAY];     ///< Current candidate 3D-coordinate
+    int    ilay [SCANLAY_MAX];     ///< Scanning order for effective pre-selection
+    int    tkid [SCANLAY_MAX];     ///< TkId list
+    int    iscan[SCANLAY_MAX][2];  ///< Current candidate hit index
+    int    imult[SCANLAY_MAX];     ///< Current candidate multiplicity index
+    AMSPoint coo[SCANLAY_MAX];     ///< Current candidate 3D-coordinate
     double psrange;            ///< Pre-selection range
     double param[4];           ///< Pre-selection parameter
     double chisq[2];           ///< Chisquare in X and Y

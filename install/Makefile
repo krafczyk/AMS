@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.138 2011/01/10 15:42:17 oliva Exp $
+#  $Id: Makefile,v 1.139 2011/01/12 13:51:04 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -224,7 +224,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRecHit.C     $(SCC)TrTrack.C  $(SCC)Vertex.C \
-	$(SCC)TrRawCluster.C $(SCC)patt.C \
+	$(SCC)TrRawCluster.C $(SCC)tkpatt.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
@@ -300,7 +300,7 @@ COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
 		../include/TrCalDB.h \
-		../include/patt.h         ../include/TkCoo.h  ../include/TkSens.h \
+		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
 		../include/TrLadCal.h \
 		../include/TkLadder.h     ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
