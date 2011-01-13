@@ -358,8 +358,8 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   double dy=point[1]-_tiles[_current_tile]->position[1];
 
   // Compute the distance to the tile border
-  _distance2border=fmin(get_tile_boundingbox(_current_tile,0)-fabs(dx),
-			get_tile_boundingbox(_current_tile,1)-fabs(dy));
+  _distance2border=fmin(fabs(get_tile_boundingbox(_current_tile,0)-fabs(dx)),
+			fabs(get_tile_boundingbox(_current_tile,1)-fabs(dy)));
 
   
   if(_current_tile<0){
