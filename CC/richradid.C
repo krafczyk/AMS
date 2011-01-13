@@ -351,6 +351,16 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   point=RichAlignment::AMSToRich(point);
   
   _current_tile=get_tile_number(point[0],point[1]);
+
+  // Use the mean position for the direct photons to estimate the
+  // local mean index
+  double dx=point[0]-_tiles[_current_tile]->position[0];
+  double dy=point[1]-_tiles[_current_tile]->position[1];
+
+  // Compute the distance to the tile border
+  _distance2border=fmin(get_tile_boundingbox(_current_tile,0)-fabs(dx),
+			get_tile_boundingbox(_current_tile,1)-fabs(dy));
+
   
   if(_current_tile<0){
     _p_direct=AMSPoint(0.,0.,0.);
@@ -404,14 +414,6 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   d=AMSDir(theta,phi);
   _d_reflected=RichAlignment::AMSToRich(d);
   
-  // Use the mean position for the direct photons to estimate the
-  // local mean index
-  double dx=_p_direct[0]-_tiles[_current_tile]->position[0];
-  double dy=_p_direct[1]-_tiles[_current_tile]->position[1];
-
-  // Compute the distance to the tile border
-  _distance2border=fmin(get_tile_boundingbox(_current_tile,0)-fabs(dx),
-			get_tile_boundingbox(_current_tile,1)-fabs(dy));
 
   if(_tiles[_current_tile]->kind==naf_kind) _local_index=_tiles[_current_tile]->mean_refractive_index;
   else _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
