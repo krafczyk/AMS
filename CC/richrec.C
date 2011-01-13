@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.145 2010/11/26 11:38:39 mdelgado Exp $
+//  $Id: richrec.C,v 1.146 2011/01/13 17:44:50 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2005,7 +2005,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
     _pmtpos[2]=0;
   }
 
-  _status|=(int(_distance2border*100)&0x7fff)<<15;
+  _status|=(int(_distance2border*100)&0x3ff)<<15;
 
 #ifdef _OPENMP
   if(__DEBUGP__){
