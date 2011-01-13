@@ -32,6 +32,9 @@
 #include "TObjArray.h"
 #include "TObjString.h"
 
+#include <vector>
+#include <map>
+
 //! Class TrHistoManHeader, the Tracker Histogram Manager Header
 /*!
   The class TrHistoManHeader is used to store the histogram manager 
@@ -44,10 +47,10 @@ class TrHistoManHeader : public TNamed {
 
  public:
 
-  //! Run number
-  int  fRunNumber;
+  //! Run number list
+  vector<int> fRunList;
   //! File list 
-  TObjArray fFileList;
+  TObjArray   fFileList;
 
  public:
 
@@ -71,12 +74,14 @@ class TrHistoManHeader : public TNamed {
   int         GetNFileNames() { return fFileList.GetEntries(); }
   //! Return the i-th file name
   const char* GetFileName(int i) { return (i<GetNFileNames()) ? fFileList.At(i)->GetName() : 0; }
-  //! Set run number
-  void        SetRunNumber(int runnumber) { fRunNumber = runnumber; } 
   //! Get the file name list (TObjString objs)
   TObjArray   GetFileNameList() { return fFileList; }
+  //! Add run number
+  void        AddRunNumber(int runnumber) { fRunList.push_back(runnumber); } 
+  //! Get the number of runs used 
+  int         GetNRunNumber() { return int(fRunList.size()); }
   //! Get run number
-  int         GetRunNumber() { return fRunNumber; }
+  int         GetRunNumber(int i) { return fRunList.at(i); }
 
   ClassDef(TrHistoManHeader,1);
 };

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.207 2011/01/11 17:28:15 oliva Exp $
+//  $Id: ntuple.C,v 1.208 2011/01/13 09:56:17 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -321,6 +321,7 @@ void AMSNtuple::endR(bool cachewrite){
     if (IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
     if (IOPA.histoman%10==2 || IOPA.histoman%10==3) hman.Save();
     // if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->Write(); // already done by _rfile->Write();
+    if (AMSJob::gethead()->isMonitoring() && ptrman!=0) ptrman->GetHeader()->AddRunNumber(getrun());
 
     _rfile->cd();
     TrRecon::RecPar.Write();
@@ -450,7 +451,6 @@ void AMSNtuple::initR(char* fname,uinteger run){
      ptrman = new TrOnlineMonitor(AMSNtuple::_rfile,1,200);
      ptrman->Book();
      ptrman->GetHeader()->AddFileName(fname);
-     ptrman->GetHeader()->SetRunNumber(0);
    }
 #endif
 

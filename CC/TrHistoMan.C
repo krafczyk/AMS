@@ -327,14 +327,14 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
 
 
 void TrHistoManHeader::Clear() {
-  fRunNumber = 0; 
+  fRunList.clear();  
   fFileList.SetOwner(kTRUE);
   fFileList.Clear();
 }
 
 
 TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) {
-  fRunNumber = orig.fRunNumber;
+  fRunList = orig.fRunList;
   fFileList = orig.fFileList; // Clone ...
 }
 
