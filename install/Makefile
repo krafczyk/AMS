@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.139 2011/01/12 13:51:04 pzuccon Exp $
+#  $Id: Makefile,v 1.140 2011/01/13 14:31:53 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -793,6 +793,7 @@ clean :
 	rm -f $(BIN)*.c
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
+	rm -f ../include/root_methods*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 	rm -f $(NTLD) $(SHLD)
 
