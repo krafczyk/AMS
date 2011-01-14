@@ -381,7 +381,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   // Transform the point to RICH frame again to get X and Y
   point=RichAlignment::AMSToRich(point);
   
-  if(getkind()!=get_tile_kind(get_tile_number(point[0],point[1]))){
+  if(_current_tile!=get_tile_number(point[0],point[1])){
     _current_tile=-1;
     _p_direct=AMSPoint(0.,0.,0.);
     _p_reflected=AMSPoint(0.,0.,0.);
