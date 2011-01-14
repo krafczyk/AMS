@@ -268,6 +268,15 @@
 
 #endif
 
+C PROTECTION AGAINST EVENTS WITH TOO MANY HITS (OBSOLETE)
+C
+C      if(nbhits_ev.gt.nbhitsmax_ntup_ev) then
+C         iThread = OMP_GET_THREAD_NUM()
+C         print*,'MAX HITS EXCEEDED, RETURN: nbhits_ev,ievt,iThread = ',
+C     +        nbhits_ev,ievt,iThread
+C         return
+C      endif
+
 #ifdef LIP_IODEBUG
 
       iThread = OMP_GET_THREAD_NUM()
@@ -486,8 +495,10 @@ C     -------------------------------------------------------------------------
          nbhits = 0
          i = 0
          
-         do while(i.lt.nbhits_ev)
+         do while(i.lt.min(nbhits_ev,nhitmax))
             i = i+1
+*            print*,'iThread,ievt,i,nbhits_ev = ',
+*     +           iThread,ievt,i,nbhits_ev
             if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
                nbhits = nbhits+1
                hitscoo(1,nbhits)   = hitscoo_ev(1,i)
@@ -1212,6 +1223,13 @@ C ------------------------------------------------------------------
 * --- OUTPUT
 ************
 
+      print*,' '
+      print*,'iThread =',iThread
+      print*,'OUTGOING REC COUNT FOR EVENT ',ievt
+      print*,'irecnumb    = ',irecnumb
+      print*,'irecnumbini = ',irecnumbini
+      print*,'irectot     = ',irectot
+
       do k=irecnumbini+2,irecnumb+1
          print*,' '
          print*,'iThread =',iThread
@@ -1225,8 +1243,10 @@ C ------------------------------------------------------------------
          print*,'resb_like     = ',resb_like(k)     
          print*,'resb_nhit     = ',resb_nhit(k)      
          print*,'resb_phit     = ',(resb_phit(i,k),i=1,resb_nhit(k))
-         print*,'resb_used     = ',(resb_used(i,k),i=1,nbhits_ev)
-         print*,'resb_hres     = ',(resb_hres(i,k),i=1,nbhits_ev)
+         print*,'resb_used     = ',(resb_used(i,k),
+     +        i=1,min(min(nbhits_ev,nbhitsmax_ntup),nhitmax))
+         print*,'resb_hres     = ',(resb_hres(i,k),
+     +        i=1,min(min(nbhits_ev,nbhitsmax_ntup),nhitmax))
          print*,'resb_invchi2  = ',resb_invchi2(k)    
          print*,'resb_flatsin  = ',resb_flatsin(k)    
          print*,'resb_flatcos  = ',resb_flatcos(k)    

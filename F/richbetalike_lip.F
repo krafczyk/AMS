@@ -253,7 +253,7 @@ CC            prob_evt = fliketotall(cangrecmin)
                   ipushits(ipthetac,nn) = ipushits_fit(nn)
                   iflghit(ipushits_fit(nn)) = 2
                enddo                              
-               do nn=1,nbhits
+               do nn=1,min(nbhits,nhitmax)
                   chi2hit(ipthetac,nn)    = chi2hit_fit(nn)
                   nbminshit(ipthetac,nn)  = nbminshit_fit(nn)
                   phihit(ipthetac,nn)     = phihit_fit(nn)
@@ -291,7 +291,7 @@ CC            prob_evt = fliketotall(cangrecmin)
 * PRINT
 #ifdef DEBUGPRINT
       write(6,*) 'THETAC MINIMIZATION RESULTS'
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          if (iflghit(i).ne.1) then
             write(6,'(I3,1x,I1,1x,F5.2,1x,A,1x,F6.1,1x)')
      +           i,iflghit(i),phihit(ipthetac,i),'*',chi2hit(ipthetac,i)

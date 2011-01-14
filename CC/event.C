@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.505 2010/12/11 18:30:30 choutko Exp $
+//  $Id: event.C,v 1.506 2011/01/14 18:58:43 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2076,6 +2076,9 @@ void AMSEvent::_rerichevent(){
   }
   // LIP reconstruction
   if((RICRECFFKEY.recon[0]/10)%10)
+
+    //temporary critical statement
+    //while debug of parallelized LIP code is in progress
 #pragma omp critical (lipreconst)
  
 {

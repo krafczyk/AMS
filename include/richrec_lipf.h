@@ -3,7 +3,8 @@
 *** PARAMETERS
 *********************************
       integer nbhitsmax, nhitmax
-      PARAMETER (nbhitsmax = 11000,   ! nb of data hits to be read 
+*      PARAMETER (nbhitsmax = 11000,   ! nb of data hits to be read 
+      PARAMETER (nbhitsmax = 1000,   ! nb of data hits to be read (changed 13-Jan-2011)
      +           NHITMAX   = 1000     ! nb of data hits to be stored on reconstruction
      +          )
 

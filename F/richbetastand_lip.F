@@ -45,7 +45,7 @@
       nbhits = 0
       i = 0
 
-      do while(i.lt.nbhits_ev)
+      do while(i.lt.min(nbhits_ev,nhitmax))
          i = i+1
          if(hitsnpe_ev(i).ge.0.) then ! exclude bad hits
             nbhits = nbhits+1
@@ -78,7 +78,7 @@
       strpmtnpe = 0.
 
 * --- Filling of strongest hit data & strongest PMT barycentre
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          if(hitsnpe(i).gt.strhitnpe) then
             istrhit = i
             strhitnpe = hitsnpe(i)
@@ -2283,7 +2283,7 @@ c$$$         nuhits_best = -999
       strpmtnpe = 0.
 
 * --- Filling of strongest hit data & strongest PMT barycentre
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          if(hitsnpe(i).gt.strhitnpe) then
             istrhit = i
             strhitnpe = hitsnpe(i)
@@ -2482,7 +2482,7 @@ C -----------------------------------------------------------------
          nbushits(ipthetac) = nbushits_fit
          chi2rec(ipthetac)  = chi2rec_fit/real(nbushits_fit)
 *         print*,'(rlm5pxyp) nbhits = ',nbhits
-         do nn=1,nbhits
+         do nn=1,min(nbhits,nhitmax)
             chi2hit(ipthetac,nn)    = chi2hit_fit(nn)
             phihit(ipthetac,nn)     = phihit_fit(nn)
             ireflechit(ipthetac,nn) = ireflechit_fit(nn)
@@ -2592,7 +2592,7 @@ C      call richsetradvtx(pimp,pthe,pphi,chradout) !pcervtx,...
 * ... addition of terms for particle hits
 *     (notice that using a subset of hits is not supported here)
       if(fliketot5parxypart.lt.1.E7) then
-         do i=1,nbhits
+         do i=1,min(nbhits,nhitmax)
             if (iflghit(i).eq.1) then
                if (hitsnpe(i).lt.1.) then
                   fact_weight=1.

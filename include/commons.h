@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.301 2010/11/25 10:38:41 mdelgado Exp $
+//  $Id: commons.h,v 1.302 2011/01/14 18:58:45 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1169,7 +1169,9 @@ COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 
 // parameters used in array sizes below
 // (should match those in richrec_lipc.h, richrec_lipf.h, richrec.h)
-#define LIP_NBHITSMAX 11000
+// value of LIP_NBHITSMAX changed 13-Jan-2011
+//#define LIP_NBHITSMAX 11000
+#define LIP_NBHITSMAX 1000
 #define LIP_NHITMAX 1000
 #define LIP_NRMAX 2
 #define LIP_NMAXTOFCLU 100

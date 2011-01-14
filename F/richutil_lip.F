@@ -78,7 +78,7 @@
       if (nbhits.eq.0) return
 
 * --- get pmt signal
-      do i=1,nbhits         
+      do i=1,min(nbhits,nhitmax)         
 * ...... decode pmt number
          ipmt = hitspmt(i)/10/16 ! =0,...,98 (prototype,0...679 flight)      
 *         print*,'ipmt = ',ipmt
@@ -113,7 +113,7 @@
 
 * --- use highest pixel to define particle impact point
       hit_pmtmax=-999.
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          ipmt = (hitspmt(i)/10)/16 ! goes from 0 to (98)
 * ...... select pmt of maximum signal 
          if ((ipmt+1).eq.imax(1))then
@@ -1055,7 +1055,7 @@ C ----------------------------------------
          ringsignal= 0.0
          flatsin   = 0.0
          flatcos   = 0.0
-         do i=1,nbhits
+         do i=1,min(nbhits,nhitmax)
             if (iflghit(i).ne.1) then
                if (chi2hit(ipthetac,i).gt.0.) then
                   hits_res = sqrt(chi2hit(ipthetac,i))
@@ -1291,7 +1291,8 @@ c NORMALIZED GAUSSIAN
                                       !=0 doesn't enter the test
 *
       integer nbhits_ring_max
-      parameter(nbhits_ring_max=1000)
+*      parameter(nbhits_ring_max=1000)
+      parameter(nbhits_ring_max=nhitmax) ! R. Pereira 13-Jan-2011
       integer indexphi_meas(nbhits_ring_max)
       integer iflag_phimeas(nbhits_ring_max)!=1 enter the test        
                                             !=0 doesn't enter the test
@@ -1315,7 +1316,7 @@ c NORMALIZED GAUSSIAN
 
 * --- store phi values for ring data hits
       nbhits_ring=0
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          if (iflghit(i).ne.1) then
             if(chi2hit(ipthetac,i).lt.CHI2HTCUT)then
                nbhits_ring=nbhits_ring+1               
@@ -1411,9 +1412,12 @@ c      print*,' prob ',prob
 
 ********************************************************************
 *
-* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.5  2011/01/14 18:58:44  barao
+* bug fig in LIP RICH reconstruction
+*
 * Revision 1.4  2010/11/03 18:25:22  barao
 * LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
 *
@@ -1649,9 +1653,12 @@ C   arising on parallelization (LIP)
 *********************************************************************+
 
 *
-* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.5  2011/01/14 18:58:44  barao
+* bug fig in LIP RICH reconstruction
+*
 * Revision 1.4  2010/11/03 18:25:22  barao
 * LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
 *
@@ -1750,9 +1757,12 @@ C   arising on parallelization (LIP)
 
 
 
-* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.5  2011/01/14 18:58:44  barao
+* bug fig in LIP RICH reconstruction
+*
 * Revision 1.4  2010/11/03 18:25:22  barao
 * LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
 *
@@ -1899,9 +1909,12 @@ C   arising on parallelization (LIP)
 
 ***********************************************************************
 *
-* $Id: richutil_lip.F,v 1.4 2010/11/03 18:25:22 barao Exp $
+* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.5  2011/01/14 18:58:44  barao
+* bug fig in LIP RICH reconstruction
+*
 * Revision 1.4  2010/11/03 18:25:22  barao
 * LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
 *

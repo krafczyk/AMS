@@ -93,7 +93,7 @@
       if (d2point.lt.d2minip) ipartpat = 1
 
 * ... count nb photoelectrons close to pattern
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
 *         print*,'(richchgrec) Hit ',i,' has flag ',iflghit(i)
          if ( iflghit(i).ne.1 .and.                !hits not associated to particle
      +        sqrt(chi2hit(ipthetac,i)).lt.chgwin  !in the window

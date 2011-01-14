@@ -391,7 +391,7 @@ CCC                   goto 1
 
 #include "../include/richrec_lipf.h"
 
-      INTEGER index_npe(1000)
+      INTEGER index_npe(nhitmax)
 
       real pvertex(3) ! other vertex than pcervtx in richrec.inc
       integer nassh
@@ -977,7 +977,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 *--------------------------------------------------------------
 *         print*,'nbhits = ',nbhits
 *         print*,'hit coords:'
-*         do i=1,nbhits
+*         do i=1,min(nbhits,nhitmax)
 *            print*,hitscoo(1,i),hitscoo(2,i),hitscoo(3,i)
 *         enddo
 
@@ -1004,17 +1004,18 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             if(chcol.eq.'ADJUST')then  ! Adjusted scale
 *========================================================
             if(nbhits.ge.2)then
-               call sortzv(hitsnpe,index_npe,nbhits,+1,1,0)            
+               call sortzv(hitsnpe,index_npe,
+     +              min(nbhits,nhitmax),+1,1,0)
 *     
                sigmax=hitsnpe(index_npe(1))
-               sigmin=hitsnpe(index_npe(nbhits))
+               sigmin=hitsnpe(index_npe(min(nbhits,nhitmax)))
                amplitudelin=sigmax-sigmin
 *     
                sigmaxlog=log(sigmax)
                sigminlog=log(sigmin)
                amplitudelog=sigmax/sigmin
             endif
-            do i=1,nbhits
+            do i=1,min(nbhits,nhitmax)
                if(nbhits.gt.1)then
                   if (amplitudelog.gt.10.)then
                      step=(sigmaxlog-sigminlog)/7.0
@@ -1088,7 +1089,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 *====================================
             else  ! FIXED scale
 *====================================
-            do i=1,nbhits
+            do i=1,min(nbhits,nhitmax)
                if(hitsnpe(i).lt.1.)then
                   ncol=1
                elseif(hitsnpe(i).lt.3.)then
@@ -1167,7 +1168,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 *=======================================================
             call color(1,chcol,icol)         
             call igset('PMCI',real(icol))
-            do i=1,nbhits
+            do i=1,min(nbhits,nhitmax)
 *               call igset('PMCI',46.)
                call igset('MSCF',0.95)
                call igraph(1,hitscoo(1,i),hitscoo(2,i),'P')
@@ -1283,7 +1284,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')        
          else
             if(jobc_cp.ne.-9)then
-               call izitoc(nbhits,chdummy)
+               call izitoc(min(nbhits,nhitmax),chdummy)
                chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))      
                xtxt=xzoom2-2.5
                ytxt=yzoom2-3.5
@@ -1309,7 +1310,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             call igtext(70.,77.,chdummy,2.80,0.,'R')              
          else
             if(jobc_cp.ne.-9)then
-               call izitoc(nbhits,chdummy)
+               call izitoc(min(nbhits,nhitmax),chdummy)
                chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))      
                xtxt=xzoom2-2.5
                ytxt=yzoom2-12.5
@@ -1842,7 +1843,7 @@ CC      print*,'(photrace_rad) xdet,ydet=',xdet,ydet
       call igset('PLCI',float(icol))
 
 * ... reset associated hit flags set at richlikemin
-      do i=1,nbhits
+      do i=1,min(nbhits,nhitmax)
          if (iflghit(i).ne.1) iflghit(i)=0
       enddo
 

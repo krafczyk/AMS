@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.146 2011/01/13 17:44:50 mdelgado Exp $
+//  $Id: richrec.C,v 1.147 2011/01/14 18:58:43 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2216,6 +2216,7 @@ void AMSRichRingNew::fillresult(){
   }
 
   for(int i=0;i<LIPC2F.nbhits_ev;i++) {
+    if(i>=LIPC2F.nbhitsmax_ntup_ev) break; // bug fix added 13-Jan-2011
     _HitsResiduals.push_back(LIPF2C.resb_hres[nr][i]);
     _HitsStatus.push_back(LIPF2C.resb_used[nr][i]);
   }
