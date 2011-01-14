@@ -37,29 +37,27 @@ ifeq  "$(shell uname)"  "Linux"
 # DEFAULTS 
 RH9add=
 ifdef RH9
- RH9add=-pthread  /usr/lib/ctype-info.o
+ RH9add=-pthread 
 endif
 
 ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
- RH9add=-pthread  /usr/lib/ctype-info.o
+ RH9add=-pthread  
 endif
 
 ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 #CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
-CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O2
-FFLAGS=   -fno-automatic -O -I../include
-#FFLAGS=   -fno-automatic -g -I../include
-DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
+CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+FFLAGS=   -O -I../include
+DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype -lpcre $(RH9add)
-CC=g++ -m32 
-FF=g77 -m32
-LD=g++ -m32
-BIN=../bin/linux/
-EXE=/exe/linux
-LIB=/lib/linux
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib -lpacklib -lmathlib -lkernlib   -lnsl -L/usr/local/lib    -lm    -ldl -lfreetype -lpcre -pthread    -lgfortran 
+CC=g++
+FF=g77
+LD=g++
+BIN=$(AMSWD)/bin/linuxfastntrd/
+EXE=$(AMSWD)/exe/linux/fastntrd/
 TIMEL=
 endif
 
@@ -82,15 +80,17 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C $(SCC)id.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o
-..$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o
-	$(LD) -v -o ..$(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)root_setup.c $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C
+OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o   $(BIN)TrdHTrack.o   $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)root_setup.o
+$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o     $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o
+	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
+	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
-	chmod +x  ..$(EXE)/fastntrd.exe 
+	chmod +x  $(EXE)/fastntrd.exe 
 
 
 $(BIN)fastntrd.o:         $(SCC)fastntrd.C
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
 	$(CC) -c $(CFLAGS) $(SCC)fastntrd.C -o $(BIN)fastntrd.o
 
 
@@ -100,15 +100,40 @@ $(BIN)fntread.o:         ../F/fntread.F
 $(BIN)root_rs.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
+$(BIN)root_setup.o:    	 $(SCC)root_setup.C
+	$(CC) -c $(CFLAGS) $(SCC)root_setup.C -o $(BIN)root_setup.o
+
 $(BIN)id.o:    	 $(SCC)id.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)id.C -o $(BIN)id.o
+
+$(BIN)point.o:    	 $(SCC)point.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)point.C -o $(BIN)point.o
+
+$(BIN)TrdHSegment.o:    	 $(SCC)TrdHSegment.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHSegment.C -o $(BIN)TrdHSegment.o
+
+$(BIN)TrdHTrack.o:    	 $(SCC)TrdHTrack.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrdHTrack.C -o $(BIN)TrdHTrack.o
+
+$(BIN)TrElem.o:    	 $(SCC)TrElem.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)TrElem.C -o $(BIN)TrElem.o
+
+
+$(BIN)VCon.o:    	 $(SCC)VCon.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)VCon.C -o $(BIN)VCon.o
+
+$(BIN)VCon_root.o:    	 $(SCC)VCon_root.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)VCon_root.C -o $(BIN)VCon_root.o
+
+$(BIN)ctype.o:    	 $(SCC)ctype.c
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)ctype.c -o $(BIN)ctype.o
 
 $(BIN)rootread.o:    	 $(SCC)rootread.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
 
-$(BIN)rootdict_s.C:    ../include/linkdefs.h  ../include/root_RVS.h ../include/root.h
+$(BIN)rootdict_s.C:    ../include/point.h ../include/linkdefs.h  ../include/root_RVS.h ../include/root.h  ../include/TrElem.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdefs.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/linkdefs.h 
 	@echo "OK"
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C

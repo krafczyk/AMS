@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.140 2011/01/13 14:31:53 pzuccon Exp $
+#  $Id: Makefile,v 1.141 2011/01/14 12:52:42 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -224,11 +224,11 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrCluster.C \
 	$(SCC)TrLadCal.C     $(SCC)TrMCCluster.C \
 	$(SCC)TrRecHit.C     $(SCC)TrTrack.C  $(SCC)Vertex.C \
-	$(SCC)TrRawCluster.C $(SCC)tkpatt.C $(SCC)patt.C \
+	$(SCC)TrRawCluster.C $(SCC)patt.C \
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
-	$(SCC)TrHistoMan.C $(SCC)HistoMan.C
+	$(SCC)HistoMan.C
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
            $(SCC)TrCharge.C \
@@ -300,7 +300,7 @@ COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C
 ifdef PGTRACK
 ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
 		../include/TrCalDB.h \
-		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
+		../include/patt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
 		../include/TrLadCal.h \
 		../include/TkLadder.h     ../include/TkObject.h ../include/TrLadPar.h  ../include/TrAlignFit.h \
@@ -310,8 +310,8 @@ ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
 		../include/TrMCCluster.h \
                 ../include/trrec.h ../include/tkdcards.h \
 		../include/point.h ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h \
-		../include/TrHistoMan.h ../include/root_setup.h
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h ../include/TrHistoMan.h \
+		../include/root_setup.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif
@@ -343,6 +343,13 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTS+=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
+#########################################################################
+## please put those objs which need special command to generate here ####
+#########################################################################
+ifeq ($(MARCH),linuxia64ecc) 
+SPECIAL_OBJS=$(BIN)trigger302.o
+OBJECTS:=$(filter-out $(SPECIAL_OBJS),$(OBJECTS)) 
+endif
 
 #------------------------------------------------------------------------------
 # File list for readdaq  gbatch compilation
@@ -448,9 +455,12 @@ STANDALONE:=$(EXE)gbatch$(G4)$(PG).exe
 
 gbatch: amswd $(STANDALONE)
 
-$(STANDALONE): $(OBJECTS) $(BIN)ctype.o
+$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(TIMEL) $(LDFLAGSSTATIC)
+	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
+	
+$(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
+	 $(CXX) -c  $(CFLAGS)-O0  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
@@ -610,7 +620,12 @@ endif
 $(BIN)ntuple_c.o:   $(SCC)ntuple.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
 $(BIN)TrackFit_utils_c.o:   $(SFF)TrackFit_utils.F
-	$(FF) -c $(FFLAGS) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
+	$(FF) -c $(FFLAGSn) $(IDLFLAGS) $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils_c.o                                                                                
+$(BIN)TrackFit_utils.o:	$(SFF)TrackFit_utils.F
+	$(FF) -c $(FFLAGSn)  $(SFF)TrackFit_utils.F -o $(BIN)TrackFit_utils.o                                                                      
+
+
+
 $(BIN)Geant3_utils.o:   $(SFF)Geant3_utils.F
 	$(FF) -c $(FFLAGS) $(FFLAGSSAVE)  -I$(CERNDIR)/include $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
 $(BIN)trd.o:   $(SFF)trd.F
@@ -793,7 +808,6 @@ clean :
 	rm -f $(BIN)*.c
 	rm -f $(BIN)*.cc
 	rm -f $(BIN)*.h
-	rm -f ../include/root_methods*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 	rm -f $(NTLD) $(SHLD)
 

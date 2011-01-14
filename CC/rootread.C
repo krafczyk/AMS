@@ -7,7 +7,7 @@
 #include <TStreamerInfo.h>
 using namespace std;
 int rootread(char * fname, int nev, int iver,  int & lastevent,bool jou){
-TStreamerInfo::fgInfoFactory=new TStreamerInfo();
+//TStreamerInfo::fgInfoFactory=new TStreamerInfo();
 
  int LastEvent=lastevent;
  int diff=0;

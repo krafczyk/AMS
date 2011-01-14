@@ -1,7 +1,10 @@
 /*
- * $Id: timelx.c,v 1.3 2010/03/01 16:20:52 pzuccon Exp $
+ * $Id: timelx.c,v 1.4 2011/01/14 12:52:42 choutko Exp $
  *
  * $Log: timelx.c,v $
+ * Revision 1.4  2011/01/14 12:52:42  choutko
+ * *** empty log message ***
+ *
  * Revision 1.3  2010/03/01 16:20:52  pzuccon
  * osX 10.6 compatibility, first try
  *
@@ -59,7 +62,11 @@
 #define HZ 1./CLOCKS_PER_SEC
 #endif
 #endif
-
+#ifdef __ia64__
+#define HZ1 4
+#else
+#define HZ1 1
+#endif
 static struct tms tps;
 static float timlim;
 static time_t timstart, timlast;
@@ -133,7 +140,7 @@ float *tx;
    else {
        times(&tps);
        timnow = tps.tms_utime+tps.tms_cutime+tps.tms_stime+tps.tms_cstime;
-       *tx = (float) (timnow - timstart) / HZ;
+       *tx = (float) (timnow - timstart) / HZ*HZ1;
    }
    return;
 }
@@ -154,7 +161,7 @@ float *td;
    else {
        times(&tps);
        timnow = tps.tms_utime+tps.tms_cutime+tps.tms_stime+tps.tms_cstime;
-       *td = (float) (timnow - timlast) / HZ;
+       *td = (float) (timnow - timlast) / HZ*HZ1;
        timlast = timnow;
    }
    return;
@@ -177,7 +184,7 @@ float *tl;
    else {
        times(&tps);
        timnow = tps.tms_utime+tps.tms_cutime+tps.tms_stime+tps.tms_cstime;
-       *tl = timlim - (float) (timnow - timstart) / HZ;
+       *tl = timlim - (float) (timnow - timstart) / HZ*HZ1;
    }
    return;
 }

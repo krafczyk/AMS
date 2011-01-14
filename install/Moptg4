@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.102 2010/12/02 23:34:39 choutko Exp $
+#  $Id: Moptg4,v 1.103 2011/01/14 12:52:42 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -27,17 +27,17 @@ endif
 
 
 
-  CC  = gcc -m32 
-  CXX = g++ -m32
+  CC  = gcc  
+  CXX = g++ 
 ifdef VERGCC 
-  FF  = gfortran -m32 
+  FF  = gfortran  
   FORTRAN_LIBS= -lg2c -lgfortran 
 else  
-  FF  = g77 -m32 
+  FF  = g77  
   FORTRAN_LIBS=-lg2c 
 endif
   FFOLD=$(FF)
-  LD  = g++ -m32
+  LD  = g++ 
   FORTRAN2_LIBS=
 
 
@@ -76,7 +76,7 @@ FOUND = $(findstring $(OS),$(SUPPORTED))
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
-CPPFLAGS+= -std ansi -m32
+CPPFLAGS+= -std ansi 
 ifdef AMSDEBUG
 CFLAGS4=        -D__BATCH__ --g -D__AMSDEBUG__    -I../include     $(CPPFLAGS)
 CFLAGS4P=        -D__BATCH__     -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
@@ -226,16 +226,16 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 
-XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -pthread
-CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
+XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/Offline/CERN/NagLib -lnaggcc64 -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/Offline/lib/linux/gcc64 -lamsut -lkernlib  -ldl -lfreetype -pthread
+CC=gcc   -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  
 ifndef LinuxBUG
-CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
-FF=g77 -m32
-LD=g++ -m32 -static 
+CXX=g++   -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated 
+FF=g77 
+LD=g++  -static 
 else
-CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
-FF=/usr/local/bin/g77 -m32
-LD=/usr/local/bin/g++ -m32
+CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated
+FF=/usr/local/bin/g77 
+LD=/usr/local/bin/g++
 endif
 TIMEL=
 
