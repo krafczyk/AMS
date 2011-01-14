@@ -352,6 +352,14 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   
   _current_tile=get_tile_number(point[0],point[1]);
 
+  if(_current_tile<0){
+    _p_direct=AMSPoint(0.,0.,0.);
+    _p_reflected=AMSPoint(0.,0.,0.);
+    _d_direct=AMSDir(0.,0.);
+    _d_reflected=AMSDir(0.,0.);
+    return;
+  }
+
   // Use the mean position for the direct photons to estimate the
   // local mean index
   double dx=point[0]-_tiles[_current_tile]->position[0];
@@ -360,15 +368,6 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
   // Compute the distance to the tile border
   _distance2border=fmin(fabs(get_tile_boundingbox(_current_tile,0)-fabs(dx)),
 			fabs(get_tile_boundingbox(_current_tile,1)-fabs(dy)));
-
-  
-  if(_current_tile<0){
-    _p_direct=AMSPoint(0.,0.,0.);
-    _p_reflected=AMSPoint(0.,0.,0.);
-    _d_direct=AMSDir(0.,0.);
-    _d_reflected=AMSDir(0.,0.);
-    return;
-  }
 
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+getheight());
 
