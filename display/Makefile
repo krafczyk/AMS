@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.84 2010/12/08 14:27:52 pzuccon Exp $
+#  $Id: Makefile,v 1.85 2011/01/16 11:43:48 choutko Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -93,7 +93,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 
 LIBS          =  -Bdynamic -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) -Bstatic $(ROOTLIBSA)  -Bstatic -lshift -lm   -Bdynamic -ldl 
 LIBSA         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm             -ldl 
-LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA)
+LIBSD         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift
 
 endif
 ifeq ($(ARCH),macosx64)
@@ -171,10 +171,10 @@ ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage 
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
-LIBS          =    -Bstatic $(ROOTLIBSA) /usr/lib64/libshift.a -lm -Bdynamic -ldl
+LIBS          =    -Bstatic $(ROOTLIBSA)  -lm -Bdynamic -lshift -ldl
 
 LIBSA         =   $(ROOTLIBSA) -lshift -lm    -ldl 
-LIBSD          =   -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBSA) 
+LIBSD          =   -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift
 
 ifdef VERGCCH
 CPPFLAGS+= -D__LINUXNEW__

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.48 2010/12/06 20:39:47 choutko Exp $
+//  $Id: main.cxx,v 1.49 2011/01/16 11:43:48 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -18,6 +18,7 @@
 #endif
 #ifndef __APPLE__
 #include <TRFIOFile.h>
+#include <TCastorFile.h>
 #include <TXNetFile.h>
 #endif
 #include <stdlib.h>
@@ -273,6 +274,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 #if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
     TXNetFile g("");
+     TCastorFile h("");
 #endif
     strcpy(filename,filenam);
    }

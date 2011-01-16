@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.608 2011/01/11 18:33:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.609 2011/01/16 11:43:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7149,9 +7149,13 @@ print qq`
 # write readme file
         my $readme="$self->{UploadsDir}/README.$job";
         open(FILE,">".$readme) or die "Unable to open file $readme (specify the exact path and/or check dir protection)\n";
+         my $data="readmestandalone_data";
+          if(defined $dataset->{MC} and $dataset->{MC}==1){
+           $data=$data."mc";
+          }
         if($self->{dwldaddon}==1){
-         $self->{tsyntax}->{headers}->{readmestandalone_data}=~s/ams02/$dataset->{version}/g;
-         print FILE  $self->{tsyntax}->{headers}->{readmestandalone_data};
+          $self->{tsyntax}->{headers}->{$data}=~s/ams02/$dataset->{version}/g;
+         print FILE  $self->{tsyntax}->{headers}->{$data};
         }
         else{
          $self->{tsyntax}->{headers}->{readmecorba}=~s/ams02/$dataset->{version}/g;
@@ -7219,7 +7223,7 @@ print qq`
              #die " $subs $buf \n";
           }
           if($run<1000000000){
-         $buf=~ s/RUN=/RUN=0$run/;
+         $buf=~ s/RUN=/RUN=$run/;
           }
           else{
          $buf=~ s/RUN=/RUN=$run/;
@@ -7258,6 +7262,7 @@ print qq`
          }
          else{
           $buf=~ s/RUNDIR=/CRUNDIR=/;
+          $tmpb=~ s/\$RUNDIR/\$RUNDIR\/\$RUN/;
           $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
              my @gbc=split "\/", $gbatch;
 
@@ -7523,8 +7528,13 @@ print qq`
         my $lrun=$job-1;
         my $subject="AMS02 Data Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                  my $message;
+        my $data="readmestandalone_data";
+          if(defined $dataset->{MC} and $dataset->{MC}==1){
+           $data=$data."mc";
+          }
+
                  if($self->{dwldaddon}==1){
-                   $message=$self->{tsyntax}->{headers}->{readmestandalone_data};
+                   $message=$self->{tsyntax}->{headers}->{$data};
                  }
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};

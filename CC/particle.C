@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.222 2011/01/07 14:53:37 choutko Exp $
+//  $Id: particle.C,v 1.223 2011/01/16 11:43:47 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -998,6 +998,7 @@ void AMSParticle::refit(int fast){
     AMSTrTrack *pfalse= AMSTrTrack::AddFalseX(_ptrack);
     if(pfalse){
          pfalse->setstatus(AMSDBc::USED);
+         _ptrack->AdvancedFit();
         _ptrack=pfalse;
          //cout <<_ptrack->getpattern()<<endl;
         //cout << " falsex added "<<endl; 

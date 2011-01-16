@@ -73,7 +73,7 @@ public:
 public:
   void Init(int nlay=7){Clear(); SCANLAY=nlay;BuildHitPatterns();}
   
-  const int GetSCANLAY(){return SCANLAY;}
+   int GetSCANLAY(){return SCANLAY;}
   /// Get HitPatternMask
   int GetNHitPatterns(void) {
     return NHitPatterns;
