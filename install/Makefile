@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.142 2011/01/14 13:07:22 choutko Exp $
+#  $Id: Makefile,v 1.143 2011/01/16 13:00:05 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -349,7 +349,9 @@ OBJECTS+=$(MYOBJS:$(SFF)%.f=$(BIN)%.o)
 ifeq ($(MARCH),linuxia64ecc) 
 SPECIAL_OBJS=$(BIN)trigger302.o
 OBJECTS:=$(filter-out $(SPECIAL_OBJS),$(OBJECTS)) 
+SPOPT=-O0
 endif
+
 
 #------------------------------------------------------------------------------
 # File list for readdaq  gbatch compilation
@@ -460,7 +462,7 @@ $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
 	
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
-	 $(CXX) -c  $(CFLAGS)-O0  $(SCC)trigger302.C -o $(BIN)/trigger302.o
+	 $(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
@@ -630,6 +632,8 @@ $(BIN)Geant3_utils.o:   $(SFF)Geant3_utils.F
 	$(FF) -c $(FFLAGS) $(FFLAGSSAVE)  -I$(CERNDIR)/include $(SFF)Geant3_utils.F -o $(BIN)Geant3_utils.o                                                                                
 $(BIN)trd.o:   $(SFF)trd.F
 	$(FF) -c $(FFLAGS) $(FFLAGSSAVE) -I$(CERNDIR)/include $(SFF)trd.F -o $(BIN)trd.o                                                                                
+$(BIN)rkms.o:   $(SFF)rkms.F
+	$(FF) -c $(FFLAGS) $(FFLAGSOPT) -I$(CERNDIR)/include $(SFF)rkms.F -o $(BIN)rkms.o                                                                                
 ifeq  "$(shell uname)"  "SunOS" 
 
 $(BIN)mtx.o:                   $(SFF)mtx77.F

@@ -149,6 +149,7 @@ else
     CFLAGSDAQ    += -O2 
     FFLAGS       += -O2    
     FFLAGSn      += -O2  
+    FFLAGSOPT    =  -O1
 endif
 
 
