@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.6 2010/12/08 20:31:29 pzuccon Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.7 2011/01/16 11:41:34 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -150,7 +150,7 @@ else
     CFLAGSTOFSIM += -O1
     CFLAGSn      += -O2    
     CFLAGSDAQ    += -O2 
-    FFLAGS       += -O3    
+    FFLAGS       += -O2    
     FFLAGSn      += -O2  
 endif
 

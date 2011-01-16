@@ -147,7 +147,7 @@ else
     CFLAGSTOFSIM += -O1
     CFLAGSn      += -O2    
     CFLAGSDAQ    += -O2 
-    FFLAGS       += -O3    
+    FFLAGS       += -O2    
     FFLAGSn      += -O2  
 endif
 
