@@ -2752,18 +2752,22 @@ class RemoteClient:
             if(run2p!=0):
                 rund=" and dataruns.run=%d " %(run2p)
                 runn=" and ntuples.run=%d " %(run2p)
+                runnd=" and ntuples_deleted.run=%d " %(run2p)
             if(run2p<0):
                 rund=" and dataruns.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
+                runnd=" and ntuples_deleted.run>=%d " %(-run2p)
         else:
             runsname="runs"
             runst=" and runs.status='Completed' "
             if(run2p!=0):
                 rund=" and runs.run=%d " %(run2p)
                 runn=" and ntuples.run=%d " %(run2p)
+                runnd=" and ntuples_deleted.run=%d " %(run2p)
             if(run2p<0):
                 rund=" and runs.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
+                runnd=" and ntuples_deleted.run>=%d " %(-run2p)
         sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc%10,runn) 
         files=self.sqlserver.Query(sql)
         datapath=dataset
@@ -2805,7 +2809,7 @@ class RemoteClient:
             sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
             self.sqlserver.Update(sql)
             timenow=int(time.time())
-            sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
+            sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runnd)
             self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
             self.sqlserver.Update(sql)
