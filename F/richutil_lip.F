@@ -95,7 +95,7 @@
       enddo
 
 * --- sort signals (descendent order)
-      call sortzv(sig_pmt,index_pmt,npmtmax,+1,1,0) 
+      call sortzv_alt(sig_pmt,index_pmt,npmtmax,+1,1,0) 
       
 * --- count nb of pmts with hits
       ipmtc = 0
@@ -662,7 +662,7 @@ C ----------------------------------------
       radtile_radius(3) = sqrt(xright**2 + ydown**2)
       radtile_radius(4) = sqrt(xright**2 + yup**2)
 
-      call sortzv(radtile_radius,radtile_index,4,1,1,0) !descending order
+      call sortzv_alt(radtile_radius,radtile_index,4,1,1,0) !descending order
 
       if (radtile_radius(radtile_index(1)).gt.rtmir .and. 
      +    radtile_radius(radtile_index(4)).lt.rtmir) iflag=1 
@@ -1368,7 +1368,7 @@ c            print*,' dphi_vis',dphi_vis
       enddo
 
 * --- Sort measured phi array in ascending order
-      call sortzv(phimeas,indexphi_meas,nbhits_ring,1,0,0) ! ascending order 
+      call sortzv_alt(phimeas,indexphi_meas,nbhits_ring,1,0,0) ! ascending order 
 *     copy relevant values for kolmogorov test in ascending order
       nbmeas_test=0
       do i=1,nbhits_ring
@@ -1412,9 +1412,12 @@ c      print*,' prob ',prob
 
 ********************************************************************
 *
-* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
+* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.6  2011/01/17 17:57:23  barao
+* bug fix in RICH LIP reconstruction
+*
 * Revision 1.5  2011/01/14 18:58:44  barao
 * bug fig in LIP RICH reconstruction
 *
@@ -1653,9 +1656,12 @@ C   arising on parallelization (LIP)
 *********************************************************************+
 
 *
-* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
+* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.6  2011/01/17 17:57:23  barao
+* bug fix in RICH LIP reconstruction
+*
 * Revision 1.5  2011/01/14 18:58:44  barao
 * bug fig in LIP RICH reconstruction
 *
@@ -1757,9 +1763,12 @@ C   arising on parallelization (LIP)
 
 
 
-* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
+* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.6  2011/01/17 17:57:23  barao
+* bug fix in RICH LIP reconstruction
+*
 * Revision 1.5  2011/01/14 18:58:44  barao
 * bug fig in LIP RICH reconstruction
 *
@@ -1909,9 +1918,12 @@ C   arising on parallelization (LIP)
 
 ***********************************************************************
 *
-* $Id: richutil_lip.F,v 1.5 2011/01/14 18:58:44 barao Exp $
+* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.6  2011/01/17 17:57:23  barao
+* bug fix in RICH LIP reconstruction
+*
 * Revision 1.5  2011/01/14 18:58:44  barao
 * bug fig in LIP RICH reconstruction
 *
@@ -2109,4 +2121,91 @@ C
  102  FORMAT( 7X, 'FUNCTION DIVDIF_ALT ... N =',I6,' IS LESS THAN 2')
       END
 
+
+***********************************************************************
+
+* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+*
+* $Log: richutil_lip.F,v $
+* Revision 1.6  2011/01/17 17:57:23  barao
+* bug fix in RICH LIP reconstruction
+*
+* Revision 1.1.1.1  1996/02/15 17:49:50  mclareni
+* Kernlib
+*
+*
+#include "kerngen/pilot.h"
+      SUBROUTINE SORTZV_ALT (A,INDEX,N1,MODE,NWAY,NSORT)
+C
+C CERN PROGLIB# M101    SORTZV          .VERSION KERNFOR  3.15  820113
+C ORIG. 02/10/75
+C
+      DIMENSION A(N1),INDEX(N1)
+C
+C
+      N = N1
+      IF (N.LE.0)            RETURN
+      IF (NSORT.NE.0) GO TO 2
+      DO 1 I=1,N
+    1 INDEX(I)=I
+C
+    2 IF (N.EQ.1)            RETURN
+      IF (MODE)    10,20,30
+   10 CALL SORTTI (A,INDEX,N)
+      GO TO 40
+C
+   20 CALL SORTTC(A,INDEX,N)
+      GO TO 40
+C
+   30 CALL SORTTF_ALT (A,INDEX,N)
+C
+   40 IF (NWAY.EQ.0) GO TO 50
+      N2 = N/2
+      DO 41 I=1,N2
+      ISWAP = INDEX(I)
+      K = N+1-I
+      INDEX(I) = INDEX(K)
+   41 INDEX(K) = ISWAP
+   50 RETURN
+      END
+*     ========================================
+      SUBROUTINE SORTTF_ALT (A,INDEX,N1)
+C
+      DIMENSION A(N1),INDEX(N1)
+C
+      N = N1
+      DO 3 I1=2,N
+      I3 = I1
+      I33 = INDEX(I3)
+      AI = A(I33)
+    1 I2 = I3/2
+      IF (I2) 3,3,2
+    2 I22 = INDEX(I2)
+      IF (AI.LE.A (I22)) GO TO 3
+      INDEX (I3) = I22
+      I3 = I2
+      GO TO 1
+    3 INDEX (I3) = I33
+    4 I3 = INDEX (N)
+      INDEX (N) = INDEX (1)
+      AI = A(I3)
+      N = N-1
+      IF (N-1) 12,12,5
+    5 I1 = 1
+    6 I2 = I1 + I1
+      IF (I2.LE.N) I22= INDEX(I2)
+      IF (I2-N) 7,9,11
+    7 I222 = INDEX (I2+1)
+      IF (A(I22)-A(I222)) 8,9,9
+    8 I2 = I2+1
+      I22 = I222
+    9 IF (AI-A(I22)) 10,11,11
+   10 INDEX(I1) = I22
+      I1 = I2
+      GO TO 6
+   11 INDEX (I1) = I3
+      GO TO 4
+   12 INDEX (1) = I3
+      RETURN
+      END
 

@@ -2101,7 +2101,7 @@ cc         print*,'[richacc] npvis = ',npvis
             nrprot=int(vphiprot(1))
 *
             call ucopy(vphiprot(2),vphiprotint(1),nrprot)
-            call sortzv(vphiprotint,index,nrprot,1,0,0)
+            call sortzv_alt(vphiprotint,index,nrprot,1,0,0)
 
             do i=1,nrprot                                   
                vphiprot(i) = vphiprotint(index(i))
@@ -2189,7 +2189,7 @@ cc         print*,'[richacc] npvis = ',npvis
       if (nphitot.gt.nphmax)
      +   print*, '(set_phiroots) MAXIMUM NUMBER OF PHI ROOTS EXCEEDED'//
      +           ' nphitot=',nphitot
-      call sortzv(vphitot,index,nphitot,1,0,0)                          
+      call sortzv_alt(vphitot,index,nphitot,1,0,0)                          
 *      print*,'nphitot = ',nphitot
       do i=1,nphitot
          vphitotbuf(i) = vphitot(index(i))                              
@@ -6359,7 +6359,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
                root1 = root_minus
             endif
          else
-            print*,'(patints):MIRI Problem - no negative root!!!'       
+C            print*,'(patints):MIRI Problem - no negative root!!!'       
             ierr = 2 
             return
          endif

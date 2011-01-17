@@ -1004,7 +1004,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             if(chcol.eq.'ADJUST')then  ! Adjusted scale
 *========================================================
             if(nbhits.ge.2)then
-               call sortzv(hitsnpe,index_npe,
+               call sortzv_alt(hitsnpe,index_npe,
      +              min(nbhits,nhitmax),+1,1,0)
 *     
                sigmax=hitsnpe(index_npe(1))
@@ -1856,7 +1856,7 @@ CC      print*,'(photrace_rad) xdet,ydet=',xdet,ydet
          vf(np)   = fliketotall(x)
          IPHIHINTFLAG = 1
       enddo
-      call sortzv(vf,ind1,np,1,1,0)
+      call sortzv_alt(vf,ind1,np,1,1,0)
 *
       xlow = RADDEG*CANGRECLOW
       xup  = RADDEG*CANGRECUP

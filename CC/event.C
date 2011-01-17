@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.506 2011/01/14 18:58:43 barao Exp $
+//  $Id: event.C,v 1.507 2011/01/17 17:57:22 barao Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2079,7 +2079,7 @@ void AMSEvent::_rerichevent(){
 
     //temporary critical statement
     //while debug of parallelized LIP code is in progress
-#pragma omp critical (lipreconst)
+// #pragma omp critical (lipreconst)
  
 {
     AMSgObj::BookTimer.start("RERICHLIP");
