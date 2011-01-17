@@ -234,37 +234,7 @@ void RichRadiatorTileManager::Init_Default(){  // Default initialization
 void RichRadiatorTileManager::_compute_tables(){
   geant eff_index;
   geant eff_height;
-  for(int current=0;current<_number_of_rad_tiles;current++){
-    //
-    // Build refractive index vs wavelength tables
-    // 
-
-    for(int ii=0;ii<RICmaxentries;ii++){
-      if(_tiles[current]->kind==agl_kind){
-	_tiles[current]->index_table[ii]=1+(_tiles[current]->index-1)/(RICHDB::rad_index-1)*(RICHDB::index[ii]-1);
-      }else if(_tiles[current]->kind==naf_kind){
-	_tiles[current]->index_table[ii]=RICHDB::naf_index_table[ii];
-      }
-
-    }
-    // Now we compute the effective height and effective index calling the dedicated routine
-
-    _compute_mean_height(_tiles[current]->index_table,
-			 _tiles[current]->clarity,
-			 _tiles[current]->abs_length,
-			 _tiles[current]->bounding_box[2][1]-_tiles[current]->bounding_box[2][0],
-			 eff_index,
-			 eff_height);
-
-    if(_tiles[current]->kind==agl_kind){
-      _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height;
-    }else if(_tiles[current]->kind==naf_kind){
-      _tiles[current]->mean_refractive_index=eff_index;
-      _tiles[current]->mean_height=eff_height;
-    }
-  }
-  
+  for(int current=0;current<_number_of_rad_tiles;current++)     recompute_tables(current,_tiles[current]->index);
 }
 
 
@@ -826,6 +796,7 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
     _tiles[i]->node_y=new float[_tiles[i]->number_of_nodes];
     _tiles[i]->node_index=new float[_tiles[i]->number_of_nodes];
     _tiles[i]->number_of_nodes=0; // Reset it to use it as a counter
+    _tiles[i]->index_bias=0;
   }
 
   data.close();
@@ -845,6 +816,7 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
     _tiles[tile_number]->node_x[_tiles[tile_number]->number_of_nodes]=x;
     _tiles[tile_number]->node_y[_tiles[tile_number]->number_of_nodes]=y;
     _tiles[tile_number]->node_index[_tiles[tile_number]->number_of_nodes++]=index;
+    _tiles[tile_number]->index_bias+=index;
 
 #ifdef __AMSDEBUG__
     cout<<"Updating tile "<<tile_number<<" with "<< _tiles[tile_number]->number_of_nodes<<endl; 
@@ -854,6 +826,13 @@ void RichRadiatorTileManager::ReadFineMeshFromFile(const char *filename){
 
 
   data_.close();
+
+  // Compute the bias for the npexp computation
+  for(int i=0;i<_number_of_rad_tiles;i++){
+    if(_tiles[i]->number_of_nodes==0) continue;
+    _tiles[i]->index_bias/=_tiles[i]->number_of_nodes;
+  }
+
 
 #ifdef __AMSDEBUG__
   // Check tha the mean umbers are OK
@@ -899,13 +878,17 @@ void RichRadiatorTileManager::UpdateOpticalParametersTable(float x,float y){
 }
 
 
-void RichRadiatorTileManager::recompute_tables(int current,double new_index){  // Recompute the index for a given tile, assuming a new refractive index 
+void RichRadiatorTileManager::recompute_tables(int current,double my_index){  // Recompute the index for a given tile, assuming a new refractive index 
   geant eff_index;
   geant eff_height;
 
+
+
   if(current<0 || current>=_number_of_rad_tiles) return;
 
-  if(new_index<=1.0) return;
+  if(my_index<=1.0) return;
+
+  double new_index=my_index+_tiles[current]->index_bias;
 
   for(int ii=0;ii<RICmaxentries;ii++){
     if(_tiles[current]->kind==agl_kind){
@@ -933,7 +916,7 @@ void RichRadiatorTileManager::recompute_tables(int current,double new_index){  /
   }
 
   // Update the index
-  _tiles[current]->index=new_index;
+  _tiles[current]->index=my_index;
   
 }
 

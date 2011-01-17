@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.147 2011/01/14 18:58:43 barao Exp $
+//  $Id: richrec.C,v 1.148 2011/01/17 18:10:28 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1345,6 +1345,8 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
       return 0;}
     
     for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+
+    double sector=atan2(r2[1],r2[0])*180/M_PI+M_PI; // Sector of the mirror in deg between 0 and 2 PI
     
     f=1./sqrt(1+SQR(kc));
     n[0]=-f*r2[0]/sqrt(SQR(r2[0])+SQR(r2[1]));
@@ -1380,6 +1382,9 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 	*beff=0;
       }else{
 	*beff=RichPMTsManager::Eff(pmt,channel)*mir_eff;
+	// Take into account change in reflectivity
+	if(sector<RICHDB::RICmirrors1_s3 && sector>RICHDB::RICmirrors2_s1)
+	  *beff*=RICmireffs1/RICmireff;
       }
     }
     *tflag=*beff?4:5;

@@ -29,6 +29,7 @@ class RichRadiatorTile{
   float *node_x;
   float *node_y;
   float *node_index;
+  float index_bias;
 
   // These are computed a posteriori
   double mean_refractive_index;
@@ -39,7 +40,7 @@ class RichRadiatorTile{
   // Here we can add all the required histograms
 
  public:
-  RichRadiatorTile():number_of_nodes(0),node_x(0),node_y(0),node_index(0){};
+  RichRadiatorTile():number_of_nodes(0),node_x(0),node_y(0),node_index(0),index_bias(0){};
   ~RichRadiatorTile(){if(node_x) delete node_x;if(node_y) delete node_y;if(node_index) delete node_index;}
 
   geant getheight(){return fabs(bounding_box[2][0]-bounding_box[2][1]);}
