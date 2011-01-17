@@ -2783,6 +2783,7 @@ class RemoteClient:
 	        ds=self.sqlserver.Query(sql) 
                 if(len(ds)==1):
                        did=ds[0][0]
+                       dataset=""
         else:
             sql="select did from datasets where name like '%s' " %(dataset)
             dataset=""
@@ -2801,6 +2802,11 @@ class RemoteClient:
             sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
+            sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
+            self.sqlserver.Update(sql)
+            timenow=int(time.time())
+            sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
+            self.sqlserver.Update(sql)
             sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
             self.sqlserver.Update(sql)
             if(self.update):
