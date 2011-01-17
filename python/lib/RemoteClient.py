@@ -55,7 +55,7 @@ class RemoteClient:
         #   1 if ok  0 otherwise
         #
         # 
-
+        self.v=v 
         if irm==1: rm="rm -i "
         else: rm ="rm -f "
         # to be changed
@@ -91,7 +91,7 @@ class RemoteClient:
         times=time.time()
         #print len(ret_nt)
         run=0
-        self.CheckFS(1,60,'/')
+        self.CheckFS(1,600,"")
         for ntuple in ret_nt:
             if run != ntuple[3]:
                 if(ntuple[7]==1):
@@ -143,6 +143,8 @@ class RemoteClient:
                 else:
                     #no castor file found and bad crc remove ntuple
                     ntpf=ntpf+1
+                    if(ntuple[7]==1):
+                        self.DeleteDataSet(run,dir,upd,v,force,0,ntuple[7])
         if v and ntp>0:
             print "Total of ",runs,"  runs, ",ntp," ntuples  processed. \n ",ntpb," bad ntuples found. \n ",ntpf,"  ntuples could not be repared\n ",ntna," ntuples could not be verified"
 
@@ -2776,6 +2778,11 @@ class RemoteClient:
             ds=self.sqlserver.Query(sql)
             if(len(ds)==1):
                 did=ds[0][0]
+            else:
+                sql="select did from datasets where name like '%s' " %(dataset)
+	        ds=self.sqlserver.Query(sql) 
+                if(len(ds)==1):
+                       did=ds[0][0]
         else:
             sql="select did from datasets where name like '%s' " %(dataset)
             dataset=""
