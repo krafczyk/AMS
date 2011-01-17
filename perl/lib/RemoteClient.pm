@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.609 2011/01/16 11:43:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.610 2011/01/17 22:35:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17855,14 +17855,15 @@ sub UploadToCastor{
 #  output par:
 #   1 if ok  0 otherwise
 #
-
+# datamc==2 datafiles, not ntuples
+#
     my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc)= @_;
   if(not defined $datamc){
      $datamc=0;
   }  
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
-    if($datamc !=0){
+    if($datamc ==1 or $datamc==3){
     $castorPrefix = '/castor/cern.ch/ams/Data';
     }
     my $errors=0;
@@ -17872,7 +17873,7 @@ sub UploadToCastor{
   my $rfcp="/usr/bin/rfcp ";
 
   my $whoami = getlogin();
-  if ($whoami =~ 'casadmva' ) {
+  if ($whoami =~ 'ams'  ) {
   } elsif(defined $whoami) {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
@@ -17892,15 +17893,17 @@ sub UploadToCastor{
    }
   my $name_s=$name;
     $name_s=~s/\//\\\//g;
-    if($did<0){
+    if($did<0 ){
         if($verbose){
             print "No dasets found for $dir \n";
         }
         return 0;
     }
 
-     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
-     
+     $sql = "SELECT ntuples.run,ntuples.path from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+    if($datamc>1){
+     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  group by run";
+    }     
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
    foreach my $run (@{$ret}){
@@ -17911,7 +17914,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1,$datamc);
+        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$run->[1],1,$datamc);
         if(!$ok){
             $errors++;
             if($errors>=$maxer){
@@ -17920,12 +17923,16 @@ sub UploadToCastor{
             }
         }
         $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
+    if($datamc>1){
+        $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' ";
+    }
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
         next;
       }
       else{
+           
                my @junk=split $name_s,$ret_nt->[0][0];
                my @junk2=split '\/',$junk[1];
                my $dir=$castorPrefix."/$name";
@@ -17986,6 +17993,9 @@ sub UploadToCastor{
                 my $castor=$castorPrefix."/$name$junk[1]";
                 my $tms=time(); 
                 $sql="update ntuples set castortime=$timenow, timestamp=$tms where path='$ntuple->[0]'";
+                if($datamc>1){
+                $sql="update datafiles set castortime=$timenow, timestamp=$tms where path='$ntuple->[0]'";
+                }
                 $self->{sqlserver}->Update($sql);
               }
                my $res=$self->{sqlserver}->Commit();
@@ -18007,6 +18017,9 @@ sub UploadToCastor{
    if($cmp){
       $self->CheckFS(1,300,0,'/');
       $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
+      if($datamc>1){
+      $sql="select path from datafiles where   path like '%$dir%' and castortime>0 and path not like '/castor%' ";
+      } 
       my $ret_nt =$self->{sqlserver}->Query($sql);
        foreach my $ntuple (@{$ret_nt}){
          if($ntuple->[0]=~/^#/){
@@ -18063,9 +18076,13 @@ sub CheckCRC{
 #  check crc of files on disks
 #  copy from castor if bad crc found
 #  remove from disk if castor copy is eq damaged
-#  change ntuple status to 'Bad'
+# only if true mc otherwise do nothing /run checkcrc.py for other cases/
+#  change ntuple status to 'Bad' /see above/
 #  Updates catalogs
 #
+
+# in case $datamc>1  check (and only check) crc from rawfiles
+
 # input par: 
 #                                     /dir are optional ones
 #  $verbose   verbose if 1
@@ -18105,10 +18122,37 @@ sub CheckCRC{
     if(not defined $datamc){
         $datamc=0;
     }
+    if($datamc>1){
+        if($run2p<=0){
+            warn "CheckCRc withn datamc $datamc and run $run2p not supported \n";           
+        return 0;
+        }
+        my $sql = "select path,crc,sizemb from datafiles where run=$run2p  and path  like '$dir' and status not like '%BAD%'";
+    if(defined $nocastoronly and $nocastoronly == 1){
+       $sql=$sql. " and castortime=0 ";
+    }
+        my $ret_nt =$self->{sqlserver}->Query($sql);
+         
+      if(defined $ret_nt->[0][0]){
+          foreach my $ntuple (@{$ret_nt}){
+              my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0]  $ntuple->[1]";
+                        my $rstatus   = system($crccmd);
+                        $rstatus=($rstatus>>8);
+                        if($rstatus!=1 ){
+                         if($verbose){
+                                $self->sendmailmessage($address,"crc   failed $ntuple->[0]"," ");
+                          print "$ntuple->[0] crc error:  $rstatus \n";
+                            }
+            
+                     }
+              return $rstatus==1;
+          }
+      }
+    }
     if($datamc!=0){
         $delimiter='Data';
     }
-    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.jid,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' and datamc=$datamc "; 
+    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.jid,ntuples.fevent,ntuples.levent,ntuples.sizemb,ntuples.run from ntuples where  ntuples.path not like  '$castorPrefix%' and datamc=$datamc "; 
     if(!$force){
        $sql=$sql."  and ( ntuples.status='OK' or ntuples.status='Validated') ";
     }
@@ -18123,6 +18167,7 @@ sub CheckCRC{
     }
     $sql=$sql." order by ntuples.jid ";
       my $run=0;
+      my $jid=0;
      my $runs=0;
      my $ntp=0;
      my $ntpb=0;
@@ -18140,7 +18185,7 @@ sub CheckCRC{
           my $times=time();
           $self->CheckFS(1,60,0,"/$delimiter");
           foreach my $ntuple (@{$ret_nt}){
-              if($run ne $ntuple->[3]){
+              if($jid ne $ntuple->[3]){
                           my @junk=split $delimiter,$ntuple->[0];
                           if($#junk<=0){
                               print "fatal problem with $delimiter for $ntuple->[0]  do nothing \n";
@@ -18168,7 +18213,8 @@ sub CheckCRC{
                      $ntna++;
                      next;
                  }
-                  $run=$ntuple->[3];
+                  $run=$ntuple->[7];
+                  $jid=$ntuple->[3];
                   my $timec=(time()-$times);
                   my $speed=$cmb/($timec+1);
                    my $timest=($totmb-$cmb)/($speed+0.001)/3600;
@@ -18289,7 +18335,9 @@ sub CheckCRC{
 
 #
 #                               modify ntuple
-#                                
+#                       
+                              if($datamc==0 and $jid==$run){
+         
                $sql="insert into ntuples_deleted select * from ntuples where ntuples.path='$ntuple->[0]'";
                $self->{sqlserver}->Update($sql);
                               my $timenow=time();
@@ -18329,8 +18377,8 @@ sub CheckCRC{
                              $self->{sqlserver}->Commit(0);
                             }                                             
                         }     
+                          }
                      }
-
 
           }
       }
