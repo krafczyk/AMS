@@ -81,7 +81,7 @@ void TrOnlineMonitor::Book() {
   DefineLayers("ClusterX","; 0-multiplicity X coordinate (cm)",200,-70.,70.,kFALSE);
   DefineLayers("ClusterY","; Y coordinate (cm)",200,-70.,70.,kFALSE);
   DefineLayers("RecHitY_vs_X","; 0-multiplicity X coordinate (cm); Y coordinate (cm)",200,-70.,70.,200,-70.,70.,kFALSE);
-  DefineTracker("RecHitLayer_vs_Slot","; Slot; Layer",31,-15.5,15.5,trconst::maxlay,0.5,trconst::maxlay+0.5,kFALSE);
+  DefineTracker("RecHitLayer_vs_Slot","; Slot; Layer",31,-15.5,15.5,TkDBc::Head->nlay(),0.5,TkDBc::Head->nlay()+0.5,kFALSE);
 
   // Layer track-occupancy
   DefineLayers("Occupancy","; X (cm); Y (cm)",200,-70,70,200,-70,70,kFALSE);
@@ -370,7 +370,7 @@ TrHistoMan::TrHistoMan(TFile* file, char* name, char* title) {
   // layers
   char dirname[80];
   char dirtitle[80];
-  for (int ll=0; ll<trconst::maxlay; ll++) {
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) {
     int layer = ll+1;
     sprintf(dirname,"layer%1d",layer);
     sprintf(dirtitle,"Layer %d",layer);
@@ -409,7 +409,7 @@ TrHistoMan::~TrHistoMan(){
   fDir->DeleteAll();
   if (!fHashTable.empty()) fHashTable.clear();
   fHeader = 0;
-  for (int ll=0; ll<trconst::maxlay; ll++) fDirLayers[ll] = 0;
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) fDirLayers[ll] = 0;
   fDir = 0;
   fFile = 0;
 }
