@@ -6359,7 +6359,7 @@ CC      if (chradid.eq.'NAF') pardou(1) = dble(0.5)
                root1 = root_minus
             endif
          else
-C            print*,'(patints):MIRI Problem - no negative root!!!'       
+            print*,'(patints):MIRI Problem - no negative root!!!'       
             ierr = 2 
             return
          endif
