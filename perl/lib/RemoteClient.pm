@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.610 2011/01/17 22:35:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.611 2011/01/17 22:59:51 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17863,8 +17863,10 @@ sub UploadToCastor{
   }  
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
+    my $delim="MC";
     if($datamc ==1 or $datamc==3){
     $castorPrefix = '/castor/cern.ch/ams/Data';
+    $delim="";
     }
     my $errors=0;
     if(not defined $maxer){
@@ -17899,10 +17901,10 @@ sub UploadToCastor{
         }
         return 0;
     }
-
-     $sql = "SELECT ntuples.run,ntuples.path from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+    my $path=undef;
+     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
     if($datamc>1){
-     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  group by run";
+     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  and type like '$delim%'";
     }     
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
@@ -17924,7 +17926,7 @@ sub UploadToCastor{
         }
         $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
     if($datamc>1){
-        $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' ";
+        $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and type like '$delim%'";
     }
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -18018,7 +18020,7 @@ sub UploadToCastor{
       $self->CheckFS(1,300,0,'/');
       $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
       if($datamc>1){
-      $sql="select path from datafiles where   path like '%$dir%' and castortime>0 and path not like '/castor%' ";
+      $sql="select path from datafiles where   path like '%$dir%' and castortime>0 and path not like '/castor%' and type like '$delim%'";
       } 
       my $ret_nt =$self->{sqlserver}->Query($sql);
        foreach my $ntuple (@{$ret_nt}){
