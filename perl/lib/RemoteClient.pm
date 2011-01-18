@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.613 2011/01/18 19:40:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.614 2011/01/18 22:30:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17868,16 +17868,21 @@ sub UploadToCastor{
 #
 # datamc==2 datafiles, not ntuples
 #
-    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc)= @_;
+    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc,$force)= @_;
   if(not defined $datamc){
      $datamc=0;
+  }  
+ if(not defined $force){
+     $force=0;
   }  
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
     my $delim="MC";
+    my $adelim="HZC";
     if($datamc ==1 or $datamc==3){
     $castorPrefix = '/castor/cern.ch/ams/Data';
     $delim="";
+    $adelim="MC";
     }
     my $errors=0;
     if(not defined $maxer){
@@ -17912,11 +17917,15 @@ sub UploadToCastor{
         }
         return 0;
     }
+    my $castor="and castortime=0";
+    if($run2p!=0 and $force!=0){
+        $castor="";
+    }
     my $path=undef;
-#     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
-     $sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where  castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc order by ntuples.jid";
+#     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid $castor and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+     $sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where    ntuples.path like '%$dir%' $castor and ntuples.datamc=$datamc order by ntuples.jid";
     if($datamc>1){
-     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  and type like '$delim%' order by run";
+     $sql = "SELECT run,path from datafiles where path like '%$dir%'  $castor and type like '$delim%' and type not like '$adelim%' order by run";
     }     
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
@@ -17930,15 +17939,15 @@ sub UploadToCastor{
     }
         my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$dir,1,$datamc);
         if(!$ok){
-            $errors++;
+        $errors++;
             if($errors>=$maxer){
                 print " Too Many Errors, Exiting \n";
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
+        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' $castor and path not like '/castor%' and datamc=$datamc";
     if($datamc>1){
-        $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and type like '$delim%'";
+        $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' $castor and path not like '/castor%' and type like '$delim%'";
     }
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -18033,11 +18042,11 @@ sub UploadToCastor{
 #
 # now optionally compare castorfiles with data
 #
-   if($cmp){
+   if($cmp>0){
       $self->CheckFS(1,300,0,'/');
-      $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
+      $sql="select path,run from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
       if($datamc>1){
-      $sql="select path from datafiles where   path like '%$dir%' and castortime>0 and path not like '/castor%' and type like '$delim%'";
+      $sql="select path,run from datafiles where   path like '%$dir%' and castortime>0 and path not like '/castor%' and type like '$delim%' and type not like '$adelim%' ";
       } 
       my $ret_nt =$self->{sqlserver}->Query($sql);
        foreach my $ntuple (@{$ret_nt}){
@@ -18081,6 +18090,9 @@ again:
                  my @size_c= split ' ',$line_c;
                  if(($#size_c<4 or not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
                   print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor $line_c $line_l \n";
+                  if($cmp>1){
+                   $self->UploadToCastor($ntuple->[0],$verbose,$update,0,$ntuple->[1],$mb*10,$maxer,$datamc,1);
+                  }
                  }
 
          }
