@@ -2736,6 +2736,7 @@ class RemoteClient:
         self.force=f
         rund=""
         runn=""
+        runnd=""
         runst=" "
         runsname="" 
         if(datamc==0):
