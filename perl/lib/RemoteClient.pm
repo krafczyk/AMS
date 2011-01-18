@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.611 2011/01/17 22:59:51 ams Exp $
+# $Id: RemoteClient.pm,v 1.612 2011/01/18 10:31:22 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17902,9 +17902,10 @@ sub UploadToCastor{
         return 0;
     }
     my $path=undef;
-     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+#     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid and castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
+     $sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where  castortime=0 and ntuples.path like '%$dir%' and ntuples.datamc=$datamc order by ntuples.jid";
     if($datamc>1){
-     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  and type like '$delim%'";
+     $sql = "SELECT run,path from datafiles where castortime=0 and path like '%$dir%'  and type like '$delim%' order by run";
     }     
    $ret =$self->{sqlserver}->Query($sql);
    my $uplsize=0;
@@ -17916,7 +17917,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$run->[1],1,$datamc);
+        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$dir,1,$datamc);
         if(!$ok){
             $errors++;
             if($errors>=$maxer){
@@ -17924,7 +17925,7 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
+        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' and castortime=0 and path not like '/castor%' and datamc=$datamc";
     if($datamc>1){
         $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%' and type like '$delim%'";
     }
@@ -17975,6 +17976,11 @@ sub UploadToCastor{
             print " $sys failed \n";
           }
           last;
+         }
+         else{
+          if($verbose){
+            print " $sys copied \n";
+          }
          }
          $uplsize+=$ntuple->[1];
       }

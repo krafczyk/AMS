@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.13 2011/01/17 22:59:50 ams Exp $
+#  $Id: upload2castor.cgi,v 1.14 2011/01/18 10:31:22 ams Exp $
 use strict;
 use lib::RemoteClient;
 my $debug="-d";
@@ -65,9 +65,7 @@ my $mb=100000;
     }
  }
 
-$dir="AMS02/2009B";
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,4);
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,1);
 
 
 
