@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.75 2010/12/08 17:04:21 choumilo Exp $
+//  $Id: geant4.C,v 1.76 2011/01/18 14:55:01 choumilo Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -908,7 +908,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       number c=0.52;
       number dedxcm=1000*dee/GCTRAK.step;
 //      dee=dee/(1+c*atan(rkb/c*dedxcm));
-      dee=dee/ECMCFFKEY.sbcgn;//correction for too high signal
+      dee=dee/ECMCFFKEY.sbcgn;//correction for too high signal vrt g3
  static unsigned int np=0; if(np++<0)cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<" "<<GCTRAK.destep<<endl;
        AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
        }

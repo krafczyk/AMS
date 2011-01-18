@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.34 2010/12/06 01:12:51 choutko Exp $
+//  $Id: AMSTOFHist.cxx,v 1.35 2011/01/18 14:55:02 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -934,17 +934,18 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   if(p2trktr>0){//<---- TRKtrack in Particle presence check
     RunPar::addsev(11);//<--found TRKtrack in part
     Bool_t trkisGood=p2trktr->IsGood();//true,if track has true x-points, otherwise =false
-    UInt_t trksta=p2trktr->Status;
+    UInt_t trksta=p2trktr->Status;//
     Int_t id=(trksta%16384)/8192;//  bit 14
-    cutf[4]=(id==0);// --> NOt false X
+    cutf[4]=(id==0);// --> Not falseX
     id=(trksta%32768)/16384;//  bit 15
-    cutf[5]=(id==0);// --> NOt false TOFX
+    cutf[5]=(id==0);// --> Not falseTOFX
 
     Int_t trkafd=p2trktr->AdvancedFitDone;
     Int_t trkgfd=p2trktr->GeaneFitDone;
     
-    Int_t trkpat=p2trktr->Pattern;
+    Int_t trkpat=p2trktr->Patternf();
     //Int_t trladd=p2trktr->Address;//tempor by VC ???
+//cout<<"---> TrkAfd="<<trkafd<<" TrkIsGood="<<trkisGood<<" TrkGfd="<<trkgfd<<" C4/5="<<cutf[4]<<" "<<cutf[5]<<endl;
   
     Float_t PiRigErr=p2trktr->PiErrRig;//PiRigidity err (to 1/rig) (<0 means fit is failed)
     Float_t repirig=0;//dR/R
@@ -955,17 +956,17 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     
     if(trkgfd!=0)GRigid=p2trktr->GRigidity;
     
-    Float_t trkch2sz=p2trktr->Chi2StrLine;//str-line chi2
+    Float_t trkch2sz=p2trktr->Chi2StrLinef();//str-line chi2
     
-    Float_t trkch2cms=p2trktr->Chi2WithoutMS;//chi2 of circular-fit, MSattOff
+    Float_t trkch2cms=p2trktr->Chi2WithoutMSf();//chi2 of circular-fit, MSattOff
     Float_t trkrigcms=p2trktr->RigidityWithoutMS;//rigid ....................
     
-    Float_t trkch2=p2trktr->Chi2FastFit;//fast nonl. fit
-    Rigid=p2trktr->Rigidity;//fast nonl.fit Rigidity
+    Float_t trkch2=p2trktr->Chi2FastFitf();//fast nonl. fit
+    Rigid=p2trktr->Rigidityf();//fast nonl.fit Rigidity
     Float_t RigErr=p2trktr->ErrRigidity;//err to 1/above
     Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
     Float_t trkrigms=p2trktr->RigidityMS;//fast nonl. fit, MScattOff
-    Float_t trkch2ms=p2trktr->FChi2MS;//chi2 for above
+    Float_t trkch2ms=p2trktr->FChi2MSf();//chi2 for above
     trkthe=p2trktr->Theta;
     trkphi=p2trktr->Phi;
   
@@ -973,41 +974,111 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     Float_t trkhrig[2]={0.,0.}; //2 halves rigs
     Float_t hrigass=-999;
     if(trkafd!=0){
-      trkch2h[0]=p2trktr->HChi2[0];
-      trkch2h[1]=p2trktr->HChi2[1];
-      trkhrig[0]=p2trktr->HRigidity[0];
-      trkhrig[1]=p2trktr->HRigidity[1];
+      trkch2h[0]=p2trktr->HChi2f(0);
+      trkch2h[1]=p2trktr->HChi2f(1);
+      trkhrig[0]=p2trktr->HRigidityf(0);
+      trkhrig[1]=p2trktr->HRigidityf(1);
+      
+//cout<<"    Hrig="<<trkhrig[0]<<" "<<trkhrig[1]<<" Hchi2="<<trkch2h[0]<<" "<<trkch2h[1]<<endl;
       if((trkhrig[0]+trkhrig[1])!=0)hrigass=(trkhrig[0]-trkhrig[1])/(trkhrig[0]+trkhrig[1]);
       if(hrigass>1)hrigass=0.9999;
       if(hrigass<-1)hrigass=-1;
     }
 //
-    if(cutf[4] && cutf[5]){//<---- true X
+    if(cutf[5]){//<---- Not FalsTOFX
       RunPar::addsev(12);//<--passed "trueX" test
 //
-      _filled[9]->Fill(trkch2,1);
-      _filled[10]->Fill(trkch2sz,1);
-      _filled[11]->Fill(trkch2ms,1);
+      _filled[9]->Fill(trkch2,1);//V+PG
+      _filled[10]->Fill(trkch2sz,1);//V
+      _filled[11]->Fill(trkch2ms,1);//V+PG
       if(trkch2<120
                    && trkch2sz<20
                                  && trkch2ms<10000
 	                                        ){//<---- chi2's check
         RunPar::addsev(13);//<--passed "chi2's" test
-        if(trkafd){//<---- AdvFitDone check
-	  _filled[12]->Fill(hrigass,1);
+        if(trkafd!=0){//<---- AdvFitDone check
+	  _filled[12]->Fill(hrigass,1);//V+PG
           RunPar::addsev(14);//<--passed "AdvancFitDone" test
-	  if(fabs(hrigass)<0.5){
-            _filled[13]->Fill(rerig,1);
+//	  if(fabs(hrigass)<0.5){
+            _filled[13]->Fill(rerig,1);//V(ErrRig miss. in PG)
             TRKtrOK=1;
             RunPar::addsev(15);//<--passed "HalfRigAssim" test
-	  }
+//	  }
 	}
 //
       }//--- endof "chi2's" check --->
-    }//--- endof "trueX" check --->
+    }//--- endof "FalsTOFX check" check --->
   }// --- endof "TRKtr in Particle" check --->
 //-------------------------------------------------
 #endif
+//========================> PG-version:
+#ifdef _PGTRACK_
+//
+//cout<<"  itrktr="<<itrktr<<endl;
+  TrTrackR *p2trktr = ntuple->Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
+  Float_t trkthe(0);
+  Float_t trkphi(0);
+//
+  if(p2trktr>0){//<---- TRKtrack in Particle presence check
+    RunPar::addsev(11);//<--found TRKtrack in part
+    Bool_t trkisGood(1);
+    cutf[4]=true;// --> Not falseX
+    cutf[5]=true;// --> Not falseTOFX
+
+    Int_t trkafd=p2trktr->AdvancedFitDone(0);
+    
+    
+    Float_t trkch2sz=1;//str-line chi2
+    
+    
+    Float_t trkch2=p2trktr->Chi2FastFitf();//fast nonl. fit
+    Rigid=p2trktr->Rigidityf();//fast nonl.fit Rigidity
+    Float_t RigErr=0;//err to 1/above
+    Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
+    Float_t trkrigms=1;//fast nonl. fit, MScattOff
+    Float_t trkch2ms=p2trktr->FChi2MSf();//chi2 for above
+  
+    Float_t trkch2h[2]={999.,999.}; //chi2 for 2 halves
+    Float_t trkhrig[2]={0.,0.}; //2 halves rigs
+    Float_t hrigass=-999;
+    if(trkafd!=0){
+      trkch2h[0]=p2trktr->HChi2f(0);
+      trkch2h[1]=p2trktr->HChi2f(1);
+      trkhrig[0]=p2trktr->HRigidityf(0);
+      trkhrig[1]=p2trktr->HRigidityf(1);
+      
+//cout<<"    Hrig="<<trkhrig[0]<<" "<<trkhrig[1]<<" Hchi2="<<trkch2h[0]<<" "<<trkch2h[1]<<endl;
+      if((trkhrig[0]+trkhrig[1])!=0)hrigass=(trkhrig[0]-trkhrig[1])/(trkhrig[0]+trkhrig[1]);
+      if(hrigass>1)hrigass=0.9999;
+      if(hrigass<-1)hrigass=-1;
+    }
+//
+    if(cutf[5]){//<---- Not FalsTOFX
+      RunPar::addsev(12);//<--passed "trueX" test
+//
+      _filled[9]->Fill(trkch2,1);//V+PG
+      _filled[10]->Fill(trkch2sz,1);//V
+      _filled[11]->Fill(trkch2ms,1);//V+PG
+      if(trkch2<120
+                                 && trkch2ms<10000
+	                                        ){//<---- chi2's check
+        RunPar::addsev(13);//<--passed "chi2's" test
+        if(trkafd!=0){//<---- AdvFitDone check
+	  _filled[12]->Fill(hrigass,1);//V+PG
+          RunPar::addsev(14);//<--passed "AdvancFitDone" test
+//	  if(fabs(hrigass)<0.5){
+            _filled[13]->Fill(rerig,1);//V(ErrRig miss. in PG)
+            TRKtrOK=1;
+            RunPar::addsev(15);//<--passed "HalfRigAssim" test
+//	  }
+	}
+//
+      }//--- endof "chi2's" check --->
+    }//--- endof "FalsTOFX check" check --->
+  }// --- endof "TRKtr in Particle" check --->
+//-------------------------------------------------
+#endif
+//===========================
 //
 //                      <---- Check TOF-TRKtrack matching:
 //
