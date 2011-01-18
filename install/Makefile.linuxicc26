@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.1 2010/12/06 15:54:35 choutko Exp $
+#  $Id: Makefile.linuxicc26,v 1.2 2011/01/18 19:40:10 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -145,7 +145,8 @@ else
     CFLAGSn      += -O2    
     CFLAGSDAQ    += -O2 
     FFLAGS       += -O3    
-    FFLAGSn      += -O2  
+    FFLAGSn      += -O2 
+    FFLAGSOPT   = -O1 
 endif
 
 

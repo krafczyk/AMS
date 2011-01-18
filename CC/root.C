@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.242 2010/12/17 16:51:20 choumilo Exp $
+//  $Id: root.C,v 1.243 2011/01/18 19:40:09 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1455,7 +1455,8 @@ bool AMSEventR::ReadHeader(int entry){
       InitDB(local_pfile);
 // workaround root static bug
       if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
-          TFile *aa= new TFile(_Tree->GetCurrentFile()->GetName());
+          cout <<" Open "<<_Tree->GetCurrentFile()->GetName()<<endl;
+          TFile::Open(_Tree->GetCurrentFile()->GetName());
           cout <<"AMSEventR::ReadHeader-I-SettinggDirectory "<<endl;
       }
       if(!InitSetup(local_pfile,"AMSRootSetup",UTime())){

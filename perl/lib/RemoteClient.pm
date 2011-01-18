@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.612 2011/01/18 10:31:22 ams Exp $
+# $Id: RemoteClient.pm,v 1.613 2011/01/18 19:40:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -812,7 +812,7 @@ if($#{$self->{DataSetsT}}==-1){
 #             $self->{DataMC}=1;
          }
          if($job=~/^g4=true/){
-             $dataset->{g4}=".g4";
+             $dataset->{g4}="g4";
          }
         
      }
@@ -6840,11 +6840,17 @@ print qq`
         }
         #$dataset->{version}='v4.00';
 
-        my $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".$dataset->{g4};
-        my $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".".g4";
+        my $gbatch="";
+        my $gbatchcomp="";
         if($dataset->{g4}=~/g4/){
            $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatch=$gbatchcomp.".$dataset->{g4}";
         }
+        else{
+           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatchcomp=$gbatch.".$dataset->{g4}";
+        }
+        
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
@@ -8012,10 +8018,15 @@ anyagain:
         }
     }
 
-        my $gbatch=$ret->[0][0].".$dataset->{version}"."$dataset->{g4}";
-        my $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}".".g4";
+        my $gbatch="";
+        my $gbatchcomp="";
         if($dataset->{g4}=~/g4/){
            $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatch=$gbatchcomp.".$dataset->{g4}";
+        }
+        else{
+           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatchcomp=$gbatch.".$dataset->{g4}";
         }
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.49 2011/01/16 11:43:48 choutko Exp $
+//  $Id: main.cxx,v 1.50 2011/01/18 19:40:10 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -270,6 +270,7 @@ void OpenChain(AMSChain & chain, char * filenam){
   TRegexp f("^/castor",false);
   bool wildsubdir=false;
   bool wild=false;
+  bool remote=false;
    if(a.Contains(b)){
 #if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
@@ -277,19 +278,24 @@ void OpenChain(AMSChain & chain, char * filenam){
      TCastorFile h("");
 #endif
     strcpy(filename,filenam);
+    remote=true;
    }
    else if(a.Contains(c)){
     strcpy(filename,filenam);
+    remote=true;
   }
   else if(a.Contains(d)){
     strcpy(filename,filenam);
+    remote=true;
   }
   else if(a.Contains(e)){
     strcpy(filename,filenam);
+    remote=true;
   }
    else if(a.Contains(f)){
     strcpy(filename,"rfio:");
     strcat(filename,filenam);
+    remote=true;
    }
   else{ 
 #ifndef WIN32
@@ -415,7 +421,7 @@ void OpenChain(AMSChain & chain, char * filenam){
 #endif
      time_t t;
      time(&t);
-  if(statbuf.st_mtime>=lasttime &&statbuf.st_size){
+  if(remote || (statbuf.st_mtime>=lasttime &&statbuf.st_size)){
      if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename)| chain.GetNtrees()<1)){     
       strcpy(lastfile,filename);
       cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
@@ -426,9 +432,11 @@ void OpenChain(AMSChain & chain, char * filenam){
            if(init==0){
             init=1;
             TObjString s("");
-            TFile * rfile=new TFile(filename,"READ");
-            //s.Read("DataCards");
-            //cout <<s.String()<<endl; 
+            TFile * rfile=TFile::Open(filename,"READ");
+            if(rfile){
+              s.Read("DataCards");
+              cout <<s.String()<<endl; 
+            }
            }
     }
      }

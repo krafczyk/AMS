@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.46 2010/12/07 16:03:47 choutko Exp $
+#  $Id: Makefile,v 1.47 2011/01/18 19:40:10 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -56,7 +56,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA)  /usr/lib/libshift.a  -lm    -ldl
+LIBS          =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA)  -BDynamic -lshift  -lm    -ldl
 LIBSA         =  -L$(AMSWD)/lib/linuxicc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 endif
@@ -79,7 +79,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA)  /usr/lib64/libshift.a  -lm    -ldl
+LIBS          =  -Bstatic -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB)  $(ROOTLIBSA)  -lshift -lm  -Bdynamic  -ldl
 LIBSA         =  -L$(AMSWD)/lib/linuxx8664icc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm   -Bdynamic          -ldl 
 
 endif
@@ -104,7 +104,7 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 
 
 LIBSA          =  -L$(AMSWD)/lib/linux/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm -ldl
-LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBSA) /usr/lib/libshift.a -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linux/ -l$(AMSLIB)  $(ROOTLIBSA) -BDynamic -lshift -lm -ldl
 endif
 
 ifeq ($(ARCH),linuxx8664gcc)
@@ -128,7 +128,7 @@ ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 
 
 LIBSA          =  -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB) $(ROOTLIBSA) -lshift -lm -ldl
-LIBS          =   -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB)  $(ROOTLIBSA) /usr/lib64/libshift.a -lm -ldl
+LIBS          =   -L$(AMSWD)/lib/linuxx8664gcc/ -l$(AMSLIB)  $(ROOTLIBSA) -BDynamic -lshift -lm -ldl
 endif
 
 
