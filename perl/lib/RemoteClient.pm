@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.614 2011/01/18 22:30:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.615 2011/01/18 22:30:58 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17843,7 +17843,7 @@ my $self=shift;
 sub DiskIsOnline{
 my $self=shift;
 my $disk=shift;
-$self->CheckFS(1,300,0,'/');
+$self->CheckFS(1,3600,0,'/');
 my $sql="select disk from filesystems where isonline=1 and disk like '$disk'";
 my $ret=$self->{sqlserver}->Query($sql);
 if(defined $ret->[0][0]){
