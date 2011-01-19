@@ -42,8 +42,11 @@ gmake -j
 gmake producer -i
 unsetenv MARCH
 setenv PGTRACK 1
-setenv G4AMS
+setenv G4AMS 1
 source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i
-gmake 
+gmake  -j
 gmake producer -i
+unsetenv G4AMS
+unsetenv PGTRACK
+

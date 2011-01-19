@@ -24,5 +24,14 @@ not (yet?) working
 
 
 
+example of access via db:
+
+http://pcamss0.cern.ch/cgi-bin/mon/rc.o.cgi?QPartD=bt.aug2010.v5.p3&QPPer=-1&QTempDataset=Any&QBuildNum=0&NTOUT=ROOT&ROOT=&ROOTACCESS=CASTOR&DataMC=1&SQLQUERY=&queryDB04=DoQueryD
+
+
+change rfio:  -> root://castorpublic.cern.ch//
+
+
+
 please ask V. Choutko in case of problems
 

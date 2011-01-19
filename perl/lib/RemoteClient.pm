@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.615 2011/01/18 22:30:58 ams Exp $
+# $Id: RemoteClient.pm,v 1.616 2011/01/19 13:34:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3736,7 +3736,11 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $junk[1]=$prefix;
             }
             for (my $i=1; $i<$#junk; $i++) {
-             $tdir = $tdir."/".$junk[$i];
+                my $sp="/";
+                if($i==1){
+                    $sp="";
+                }
+             $tdir = $tdir.$sp.$junk[$i];
             }
             $tdir = trimblanks($tdir);
             my $dirfound = -1;
@@ -4637,7 +4641,11 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $junk[1]=$prefix;
             }
             for (my $i=1; $i<$#junk; $i++) {
-             $tdir = $tdir."/".$junk[$i];
+                my $sp="/";
+                if($i==1){
+                    $sp="";
+                }
+             $tdir = $tdir.$sp.$junk[$i];
             }
             $tdir = trimblanks($tdir);
 #            $tdir=$tdir."/";
@@ -4876,6 +4884,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 # skip it
           } else {
            #$dirs[$#dirs] = $tdir;
+           
            my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
            print "<tr><td> $s </tr></td>\n";
            $buff = $buff.$s."\n";
