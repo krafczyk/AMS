@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.49 2011/01/19 12:36:15 choutko Exp $
+#  $Id: Makefile,v 1.50 2011/01/19 12:38:00 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -252,7 +252,7 @@ $(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	  $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
-		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS)$(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  -o $(AMSPRGC) 
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS) LinkDef.h
