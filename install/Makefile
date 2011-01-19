@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.143 2011/01/16 13:00:05 choutko Exp $
+#  $Id: Makefile,v 1.144 2011/01/19 11:30:07 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -817,6 +817,8 @@ clean :
 
 cleanALL : 
 	rm -Rf $(AMSWD)/bin 
+	rm -Rf $(AMSWD)/lib
+	rm -Rf $(AMSWD)/exe 
 	rm ../include/root_methods*.h
 cleanlibs:
 	rm -f $(NTLD) $(SHLD)
