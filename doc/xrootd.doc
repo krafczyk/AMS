@@ -1,0 +1,28 @@
+access to ams disk pool via xrootd:
+
+
+
+
+all ams n(r)tuples are in /castor/cern.ch/ams  area
+
+use nsls list directory
+
+example of access
+
+/Offline/vdev/exe/linuxx8664icc/amsedcPG root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2009B/bt.aug2010.v5.p3/anti/1281828698.00000002.root
+
+
+/Offline/vdev/exe/linuxx8664icc/offmonc root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2009B/bt.aug2010.v5.p3/anti/1281828698.00000002.root
+
+dynamic linking to user analysis  add:
+ 
+nothing
+
+static linking add:
+ 
+not (yet?) working 
+
+
+
+please ask V. Choutko in case of problems
+

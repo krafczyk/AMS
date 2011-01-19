@@ -1,0 +1,38 @@
+access to ams disk pool via castor:
+
+export STAGE_HOST=castorpublic
+export RFIO_USE_CASTOR_V2=YES
+export STAGE_SVCCLASS=amscdr
+export CASTOR_INSTANCE=castorpublic
+
+/or equivalent/
+
+setenv STAGE_HOST castorpublic
+setenv RFIO_USE_CASTOR_V2 YES
+setenv STAGE_SVCCLASS amscdr
+setenv CASTOR_INSTANCE castorpublic
+
+
+
+All ams ntuples are in /castor/cern.ch/ams  area
+
+
+use nsls to list directory
+
+example of access
+
+/Offline/vdev/exe/linuxx8664icc/amsedcPG rfio:/castor/cern.ch/ams/Data/AMS02/2009B/bt.aug2010.v5.p3/anti/1281828698.00000002.root
+
+
+/Offline/vdev/exe/linuxx8664icc/offmonc rfio:/castor/cern.ch/ams/Data/AMS02/2009B/bt.aug2010.v5.p3/anti/1281828698.00000002.root
+
+dynamic linking to user analysis:  add
+ -lshift
+
+static linking add:
+  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  
+
+
+
+please ask D. Filippov in case of problems
+
