@@ -40,3 +40,9 @@ setenv MARCH linuxicc26
 gmake -j
 gmake producer -i
 unsetenv MARCH
+setenv PGTRACK 1
+setenv G4AMS
+source /Offline/vdev/install/amsvar.icc64
+source /Offline/vdev/install/g4i
+gmake 
+gmake producer -i

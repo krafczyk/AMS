@@ -9,7 +9,7 @@ else
 unsetenv ADDBUILDNO
 endif
 
-unsetenv ARCH
+unsetenv MARCH
 unsetenv PGTRACK
 source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i
@@ -19,10 +19,10 @@ source /Offline/vdev/install/amsvar.gcc64
 gmake allp
 source /Offline/vdev/install/amsvar.icc32
 gmake allold 
-setenv ARCH linuxicc26
+setenv MARCH linuxicc26
 gmake -j
 gmake producer -i
-unsetenv ARCH
+unsetenv MARCH
 source /Offline/vdev/install/amsvar.gcc32
 source /Offline/vdev/install/g4i
 gmake allg4
@@ -37,7 +37,13 @@ source /Offline/vdev/install/amsvar.gcc64
 gmake allp
 source /Offline/vdev/install/amsvar.icc32
 gmake allold 
-setenv ARCH linuxicc26
+setenv MARCH linuxicc26
 gmake -j
 gmake producer -i
-unsetenv ARCH
+unsetenv MARCH
+setenv PGTRACK 1
+setenv G4AMS
+source /Offline/vdev/install/amsvar.icc64
+source /Offline/vdev/install/g4i
+gmake 
+gmake producer -i

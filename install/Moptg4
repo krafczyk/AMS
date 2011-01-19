@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.104 2011/01/16 11:41:34 choutko Exp $
+#  $Id: Moptg4,v 1.105 2011/01/19 13:09:22 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -547,7 +547,7 @@ $(BIN)richrec_lip.o:         $(SFF)richrec_lip.F
 	$(FF) -c $(FFLAGS) $(SFF)richrec_lip.F -o $(BIN)richrec_lip.o
 
 $(BIN)richutil_lip.o:         $(SFF)richutil_lip.F
-	$(FF) -c $(FFLAGS) $(SFF)richutil_lip.F -o $(BIN)richutil_lip.o
+	$(FF) -c $(FFLAGS) $(SFF)richutil_lip.F -I/cern/pro/include -o $(BIN)richutil_lip.o
 
 $(BIN)richbetastand_lip.o:         $(SFF)richbetastand_lip.F
 	$(FF) -c $(FFLAGS) $(SFF)richbetastand_lip.F -o $(BIN)richbetastand_lip.o
