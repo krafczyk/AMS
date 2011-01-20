@@ -3,6 +3,7 @@ it displays calibrations, hmon files and one-minute ROOT-tples
 produced by GBATCH in the monitoring setting.
 
 You need a ROOT installation.
+You need the compiled GBATCH library.
 
 Compile with:
 
