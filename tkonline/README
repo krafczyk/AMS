@@ -1,0 +1,17 @@
+tkonline is a TApplication for the Tracker online monitoring,
+it displays calibrations, hmon files and one-minute ROOT-tples 
+produced by GBATCH in the monitoring setting.
+
+You need a ROOT installation.
+
+Compile with:
+
+> make
+
+In the directory bin will appear the executable tkonline.
+
+In the refs dir are presented some reference calibrations and
+histograms.
+
+> bin/tkonline refs/CalDB_1284918006.root
+
