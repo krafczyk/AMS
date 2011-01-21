@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.616 2011/01/19 13:34:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.617 2011/01/21 16:17:52 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12236,7 +12236,7 @@ sub parseJournalFiles {
 
 
  $sql = "SELECT dirpath,journals.timelast,name,journals.cid
-              FROM journals,cites WHERE journals.cid=cites.cid";
+              FROM journals,cites WHERE journals.cid=cites.cid order by cites.cid";
  $ret = $self->{sqlserver}->Query($sql);
 
 
