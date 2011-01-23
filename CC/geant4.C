@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.76 2011/01/18 14:55:01 choumilo Exp $
+//  $Id: geant4.C,v 1.77 2011/01/23 07:39:01 zweng Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -40,6 +40,8 @@
 #endif
  extern "C" void getfield_(geant& a);
 
+AMSG4Physics * pph = new AMSG4Physics();
+
 void g4ams::G4INIT(){
 
 // Initialize Random Number Generator
@@ -60,9 +62,10 @@ G4RunManager * pmgr = new G4RunManager();
 //   Detector
 
     pmgr->SetUserInitialization(new AMSG4DetectorInterface(AMSJob::gethead()->getgeom()->pg4v())); 
-   AMSG4Physics * pph = new AMSG4Physics();
-//   AMSJob::gethead()->addup(pph);
-//    pph->SetCuts();
+
+    //   AMSG4Physics * pph = new AMSG4Physics();
+    //   AMSJob::gethead()->addup(pph);
+    //    pph->SetCuts();
     AMSJob::gethead()->getg4physics()=pph;
     pmgr->SetUserInitialization(pph);
 
@@ -78,6 +81,7 @@ G4RunManager * pmgr = new G4RunManager();
      AMSJob::gethead()->getg4generator()=ppg;
      pmgr->SetUserAction(ppg);
      pmgr->SetUserAction(new AMSG4EventAction);
+     pmgr->SetUserAction(new AMSG4RunAction);
      pmgr->SetUserAction(new AMSG4SteppingAction);
      pmgr->SetUserAction(new AMSG4StackingAction);
 //    pmgr->SetUserAction(new AMSG4RunAction);
@@ -217,6 +221,26 @@ AMSJob::gethead()->getg4generator()->Reset();
 AMSG4GeneratorInterface::~AMSG4GeneratorInterface(){
 delete[] _particleGun;
 }
+
+
+
+void  AMSG4RunAction::BeginOfRunAction(const G4Run* anRun){
+
+
+  cout<<"~~~~~~~~~~~~~~~~Begin of Run Action, Construct G3G4 Tables here~~~~~~~~~~~~~~"<<endl;
+
+  pph->_init();
+
+}
+void  AMSG4RunAction::EndOfRunAction(const G4Run* anRun){
+
+  cout<<"~~~~~~~~~~~~~~~~End of Run Action~~~~~~~~~~~~~~"<<endl;
+
+
+
+}
+
+
 
 
 void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
