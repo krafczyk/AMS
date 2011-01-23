@@ -1,4 +1,4 @@
-//  $Id: geant4.h,v 1.11 2006/07/13 15:16:07 choutko Exp $
+//  $Id: geant4.h,v 1.12 2011/01/23 07:37:53 zweng Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 #include "cern.h"
@@ -62,6 +62,15 @@ public:
 
 };
 
+
+#include "G4UserRunAction.hh"
+class AMSG4RunAction: public G4UserRunAction{
+
+public:
+    virtual void BeginOfRunAction(const G4Run*);
+    virtual void EndOfRunAction(const G4Run*);
+
+};
 
 
 
