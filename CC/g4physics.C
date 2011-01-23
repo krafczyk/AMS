@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.39 2010/12/04 18:41:16 zweng Exp $
+//  $Id: g4physics.C,v 1.40 2011/01/23 07:40:21 zweng Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.39 2010/12/04 18:41:16 zweng Exp $
+// $Id: g4physics.C,v 1.40 2011/01/23 07:40:21 zweng Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -103,7 +103,7 @@ void AMSG4Physics::ConstructParticle()
    ConstructAllIons();
    ConstructAllShortLiveds();
    G4XRay::XRayDefinition();
-   _init();
+   //   _init();                // We now construct Tables in Begin of Run Action, to avoid conflict of "GenericIon" implementation in Geant4
 }
 
 void AMSG4Physics::ConstructProcess()
@@ -152,10 +152,10 @@ void AMSG4Physics::ConstructProcess()
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
-     HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
-     pqgsp->ConstructProcess();    
-     G4IonPhysics *pion=new G4IonPhysics("ion");
-     pion->ConstructProcess();
+      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
+      pqgsp->ConstructProcess();    
+      G4IonPhysics *pion=new G4IonPhysics("ion");
+      pion->ConstructProcess();
     }
    }
    else{
