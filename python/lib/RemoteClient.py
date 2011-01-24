@@ -347,6 +347,8 @@ class RemoteClient:
                                        if(self.v): print " commit failed for ",ntuple[0]
                                     else:
                                       sys=rm+" "+fname
+                                      if(fname.find('/castor/cern.ch')>=0):
+                                          sys="rfrm "+fname
                                       i=os.system(sys)
                                       if(i): self.sendmailmessage(address,"unable to "+sys," ")
                                 else: self.sqlserver.Commit(0)
@@ -378,6 +380,8 @@ class RemoteClient:
                                        if(self.v): print " commit failed for ",ntuple[0]
                                     else:
                                       sys=rm+" "+fname
+                                      if(fname.find('/castor/cern.ch')>=0):
+                                          sys="rfrm "+fname
                                       i=os.system(sys)
                                       if(i): self.sendmailmessage(address,"unable to "+sys," ")
                     else: self.sqlserver.Commit(0)
@@ -967,7 +971,10 @@ class RemoteClient:
                             if(ntuple.EventNumber==-1):
                                 fpatha=str(ntuple.Name).split(':')
                                 fpath=fpatha[len(fpatha)-1]
-                                rmbad.append("rm "+fpath)
+                                if(fpath.find('/castor/cern.ch')>=0):
+                                    rmbad.append("rfrm "+fpath)
+                                else:
+                                    rmbad.append("rm "+fpath)
                             else:
                                 if(str(ntuple.Name).find(':/dat0')>=0):
                                     ntuple.Status=self.dbclient.iorp.Success
@@ -979,7 +986,7 @@ class RemoteClient:
                                 events=ntuple.EventNumber
                                 status="OK"
                                 rcp=1
-                                if( not os.path.isfile(fpath)):
+                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
                                         # try to copy to local dir
                                         parser=str(ntuple.Name).split(':')
                                         if(len(parser)>1):
@@ -1012,7 +1019,7 @@ class RemoteClient:
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
                                                    rmcmd.append(cmd)
-                                        if(not os.path.isfile(fpath)):
+                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
                                             print "unable to open file ",fpath
                                 retcrc=self.calculateCRC(fpath,ntuple.crc)
                                 if(retcrc !=1):
@@ -1022,7 +1029,10 @@ class RemoteClient:
                                             self.BadDSTs[0]=self.BadDSTs[0]+1
                                             self.bad=self.bad+1
                                             levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
-                                            rmbad.append("rm "+fpath)
+                                            if(fpath.find('/castor/cern.ch')>=0):
+                                                rmbad.append("rfrm "+fpath)
+                                            else:
+                                                rmbad.append("rm "+fpath)
                                             mvntuples.append(fpath)
                                 else:
                                             (ret,i)=self.validateDST(fpath,ntuple.EventNumber,self.dbclient.ct(ntuple.Type),ntuple.LastEvent)
@@ -1042,7 +1052,10 @@ class RemoteClient:
                                                     status="Bad"+str(i-128)
                                                     self.bad=self.bad+1
                                                     levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
-                                                    rmbad.append("rm "+fpath)
+                                                    if(fpath.find('/castor/cern.ch')>=0):
+                                                        rmbad.append("rfrm "+fpath)
+                                                    else:
+                                                        rmbad.append("rm "+fpath)
                                                 else:
                                                     status="OK"
                                                     events=ntuple.EventNumber
@@ -1075,6 +1088,8 @@ class RemoteClient:
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
                                                             cmd="rm "+outputpath
+                                                            if(outputpath.find('/castor/cern.ch')>=0):
+                                                                cmd="rfrm "+outputpath
                                                             rstat=os.system(cmd)
                                                             output.write("remove bad file "+cmd)
 
@@ -1094,6 +1109,8 @@ class RemoteClient:
                              status="Unchecked"
                              for ntuple in mvntuples:
                                  cmd="rm "+ntuple
+                                 if(ntuple.find('/castor/cern.ch')>=0):
+                                     cmd="rfrm "+ntuple
                                  os.system(cmd)
                                  print "Validation failed "+cmd
                                  output.write("Validation failed "+cmd)
@@ -1136,6 +1153,9 @@ class RemoteClient:
                             cmd="rm "+ntuple
                             rmpath=ntuple.split('/')
                             rmdir="rm -r "
+                            if(ntuple.find('/castor/cern.ch')>=0):
+                                cmd="rfrm "+ntuple;
+                                rmdir="nsrmdir  "
                             for i in range (1,len(rmpath)-1):
                                 rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
@@ -1260,7 +1280,10 @@ class RemoteClient:
                             if(ntuple.EventNumber==-1):
                                 fpatha=str(ntuple.Name).split(':')
                                 fpath=fpatha[len(fpatha)-1]
-                                rmbad.append("rm "+fpath)
+                                if(fpath.find('/castor/cern.ch')>=0):
+                                    rmbad.append("rfrm "+fpath)
+                                else:
+                                    rmbad.append("rm "+fpath)
                             else:
                                 if(str(ntuple.Name).find(':/dat0')>=0):
                                     ntuple.Status=self.dbclient.iorp.Success
@@ -1272,7 +1295,7 @@ class RemoteClient:
                                 events=ntuple.EventNumber
                                 status="OK"
                                 rcp=1
-                                if( not os.path.isfile(fpath)):
+                                if( not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
                                         # try to copy to local dir
                                         parser=str(ntuple.Name).split(':')
                                         if(len(parser)>1):
@@ -1305,7 +1328,7 @@ class RemoteClient:
                                                else:
                                                    cmd="ssh -x -2 "+host+" rm "+fpath
                                                    rmcmd.append(cmd)
-                                        if(not os.path.isfile(fpath)):
+                                        if(not os.path.isfile(fpath) and fpath.find('/castor/cern.ch')<0):
                                             print "unable to open file ",fpath
                                 retcrc=self.calculateCRC(fpath,ntuple.crc)
                                 if(retcrc !=1):
@@ -1315,7 +1338,10 @@ class RemoteClient:
                                             self.BadDSTs[0]=self.BadDSTs[0]+1
                                             self.bad=self.bad+1
                                             levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
-                                            rmbad.append("rm "+fpath)
+                                            if(fpath.find('/castor/cern.ch')>=0):
+                                                rmbad.append("rfrm "+fpath)
+                                            else:
+                                                rmbad.append("rm "+fpath)
                                             mvntuples.append(fpath)
                                 else:
                                             (ret,i)=self.validateDST(fpath,ntuple.EventNumber,self.dbclient.ct(ntuple.Type),ntuple.LastEvent)
@@ -1335,7 +1361,10 @@ class RemoteClient:
                                                     status="Bad"+str(i-128)
                                                     self.bad=self.bad+1
                                                     levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
-                                                    rmbad.append("rm "+fpath)
+                                                    if(fpath.find('/castor/cern.ch')>=0):
+                                                        rmbad.append("rfrm "+fpath)
+                                                    else:
+                                                        rmbad.append("rm "+fpath)
                                                 else:
                                                     status="OK"
                                                     events=ntuple.EventNumber
@@ -1345,14 +1374,14 @@ class RemoteClient:
                                                         mcpath="/MC"
                                                     else:
                                                         mcpath="/Data"
-                                                    (outputpatha,rstatus,odisk)=self.doCopy(run.uid,fpath,ntuple.crc,ntuple.Version,outputpath,mcpath)
+                                                    (outputpatha,rstatus,odisk,castortime)=self.doCopy(run.uid,fpath,ntuple.crc,ntuple.Version,outputpath,mcpath)
 						    outputpath=outputpatha[:]
                                                     if(outputpath != None):
                                                         mvntuples.append(outputpath)
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
                                                         self.nBadCopiesInRow=0
-                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.uid,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,0,run.DataMC)
+                                                        self.InsertNtuple(run.Run,ntuple.Version,self.dbclient.ct(ntuple.Type),run.uid,ntuple.FirstEvent,ntuple.LastEvent,events,badevents,ntuple.Insert,ntuple.size,status,outputpath,ntuple.crc,ntuple.Insert,1,castortime,run.DataMC)
                                                         output.write("insert %d %s %s %d" %(run.Run, outputpath, status,int(ntuple.size)))
                                                         self.copied=self.copied+1
                                                         self.gbDST=self.gbDST+ntuple.size
@@ -1371,6 +1400,8 @@ class RemoteClient:
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
                                                             cmd="rm "+outputpath
+                                                            if(outputpath.find('/castor/cern.ch')>=0):
+                                                                cmd="rfrm "+outputpath
                                                             rstat=os.system(cmd)
                                                             output.write("remove bad file "+cmd)
 
@@ -1391,6 +1422,8 @@ class RemoteClient:
                              status="Unchecked"
                              for ntuple in mvntuples:
                                  cmd="rm "+ntuple
+                                 if(ntuple.find('/castor/cern.ch')>=0):
+                                     cmd="rfrm "+ntuple
                                  if(self.deleteuncnt):
                                      os.system(cmd)
                                  print "Validation failed "+cmd
@@ -1429,6 +1462,9 @@ class RemoteClient:
                             cmd="rm "+ntuple
                             rmpath=ntuple.split('/')
                             rmdir="rm -r "
+                            if(ntuple.find('/castor/cern.ch')>=0):
+                                cmd="rfrm "+ntuple;
+                                rmdir="nsrmdir  "
                             for i in range (1,len(rmpath)-1):
                                 rmdir=rmdir+"/"+rmpath[i]
                             for mn in mvntuples:
@@ -1490,7 +1526,9 @@ class RemoteClient:
        self.doCopyCalls=self.doCopyCalls+1
        junk=inputfile.split('/')
        file=junk[len(junk)-1]
-       filesize=os.stat(inputfile)[ST_SIZE]
+       filesize=1
+       if(inputfile.find('/castor/cern.ch')<0):
+           filesize=os.stat(inputfile)[ST_SIZE]
        if(filesize>0):
            #get output disk
            if(outputpath == None):
@@ -1541,14 +1579,15 @@ class RemoteClient:
                                else:
                                    rstatus=self.calculateCRC(outputpath,crc)
                                if(rstatus==1):
-                                   return outputpath,1,odisk
+                                   castortime=self.moveCastor(inputfile,outputpath)
+                                   return outputpath,1,odisk,castortime
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
                                    self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
                                    return outputpath,0,odisk
                            self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
                            print "docopy-E-cannot ",cmd
-                           return outputpath,0,odisk
+                           return outputpath,0,odisk,0
        else:
            print "doCopy-E-cannot stat",inputfile
            self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
@@ -1566,7 +1605,9 @@ class RemoteClient:
        self.doCopyCalls=self.doCopyCalls+1
        junk=inputfile.split('/')
        file=junk[len(junk)-1]
-       filesize=os.stat(inputfile)[ST_SIZE]
+       filesize=1
+       if(inputfile.find('/castor/cern.ch')<0):
+           filesize=os.stat(inputfile)[ST_SIZE]
        outputpath=None
        if(filesize>0):
            #get output disk
@@ -1707,7 +1748,19 @@ class RemoteClient:
         timew=time.time()
         return outputpath,gb,outputdisk,time.time()-timew
            
-           
+    def moveCastor(self,input,output):
+        junk=output.split('/')
+        cmove='/castor/cern.ch/ams'
+        if(input.find(cmove)<0):
+            return 0   
+        for i in range (2,len(junk)):
+            cmove=cmove+'/'+junk[i]
+        cmd="rfrename "+input+" "+cmove
+        i=os.system(cmd)
+        if(i==0):
+            return int(time.time())
+        else:
+            return 0  
     def copyFile(self,input,output):
         mutex.release()
         if(input == output):
@@ -1716,6 +1769,8 @@ class RemoteClient:
             return 0
         time0=time.time()
         cmd="cp -pi -d -v "+input+" "+output
+        if(input.find('/castor/cern.ch')>=0):
+            cmd="rfcp "+input+" "+output
 #
 #      check if same disk
 #
@@ -1862,6 +1917,8 @@ class RemoteClient:
             print sql,ret[0][1]
         ntsize=float(size)
         sizemb="%.f" %(ntsize)
+        sql="delete from ntuples where path='%s'" %(path)
+        self.sqlserver.Update(sql);
         sql = "INSERT INTO ntuples VALUES( %d, '%s','%s',%d,%d,%d,%d,%d,%d,%s,'%s','%s',%d,%d,%d,%d,%s,%d)" %(run,version,type,jid,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,crcflag,castortime,buildno,datamc)
         self.linkdataset(path,"/Offline/DataSetsDir",1)
         self.sqlserver.Update(sql)
@@ -1897,6 +1954,8 @@ class RemoteClient:
             validatecmd="/exe/linux/fastntrd.exe %s %d %d %d " %(fname,nevents,dtype,levent)
             validatecmd=self.env['AMSSoftwareDir']+validatecmd
             vcode=os.system(validatecmd)
+            if(fname.find('/castor/cern.ch')>=0):
+                vcode=0
             print "acquirung  mutex in validate", validatecmd
             mutex.acquire()
             print "got  mutex in validate", validatecmd
@@ -1986,6 +2045,8 @@ class RemoteClient:
         crccmd=self.env['AMSSoftwareDir']+"/exe/linux/crc "+filename+" "+str(crc)
         rstatus=os.system(crccmd)
         rstatus=rstatus>>8
+        if(filename.find('/castor/cern.ch')>=0):
+            rstatus=1
         print "acquirung  mutex in calccrc", filename
         mutex.acquire()
         print "got  mutex in calccrc", filename
