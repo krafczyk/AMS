@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.148 2011/01/17 18:10:28 mdelgado Exp $
+//  $Id: richrec.C,v 1.149 2011/01/24 15:14:35 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1965,7 +1965,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
       feenableexcept(env);        
     }
 #endif
-    if((RICHDB::scatprob)>0.){
+    if((RICHDB::scatprob)>0. && _kind_of_tile==agl_kind){
 #define SQR(x) ((x)*(x))
       float SigAng=_errorbeta*sqrt(geant(_used))/_beta/sqrt(SQR(_beta*_index)-1)/sqrt(SQR(_beta)-(SQR(_beta*_index)-1));
       float xmax=window_sigmas*SigAng/(RICHDB::scatang);
