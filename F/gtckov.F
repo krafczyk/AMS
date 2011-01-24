@@ -1,4 +1,4 @@
-*  $Id: gtckov.F,v 1.9 2010/10/10 19:05:46 mdelgado Exp $
+*  $Id: gtckov.F,v 1.10 2011/01/24 14:55:58 mdelgado Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV
@@ -555,7 +555,7 @@ C
 
 C >>>>>>>>>>>> SIMULATE THE AEROGEL SURFACE EFFECT <<<<<<<<<<<<<<
  
-             if(testradiator(NUMED1).eq.0) goto 105
+             if(testradiator(NUMED1).ne.1) goto 105
              call grndm(myrndm,3)
 *             scatprob=1.0 ! test
 *             scatang=1e-1 ! test
