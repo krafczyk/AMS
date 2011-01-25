@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.41 2010/12/30 15:47:45 choutko Exp $
+//  $Id: TrFit.C,v 1.42 2011/01/25 09:57:35 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2010/12/30 15:47:45 $
+///$Date: 2011/01/25 09:57:35 $
 ///
-///$Revision: 1.41 $
+///$Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -496,7 +496,11 @@ void TrFit::PropagateFast(int ih0, int ih1, int ndiv)
   double dir[3] = { -GetD0x(), -GetD0y(), -GetD0z() };
   double pos[3] = {  GetP0x(),  GetP0y(),  GetP0z() };
 
-  for (int i = ih0+1; i <= ih1; i++) {
+  int i1 = (ih0 < ih1) ? ih0+1 : ih0-1;
+  int i2 = (ih0 < ih1) ? ih1+1 : ih1-1;
+  int di = (ih0 < ih1) ? 1     : -1;
+
+  for (int i = i1; i != i2 && 0 <= i && i < _nhit; i += di) {
     double len[3] = { _xh[i]-_xr[i]-pos[0], 
 		      _yh[i]-_yr[i]-pos[1], _zh[i]-pos[2] };
     Propagate(pos, len, dir, ndiv);
@@ -549,63 +553,76 @@ double TrFit::VKResidual(double x, double y, double *par)
    return (rs[0] < rs[1]) ? rs[0]*sg[0] : rs[1]*sg[1];
 }
 
+
 double TrFit::SimpleFit(void)
 {
   if (_nhitx < 2 || _nhity < 3) return -1;
 
-  double len[LMAX];
+  double pc[3];
+  int ic = GetPcen(pc);
+  if (ic <= 0) return -1;
 
-  // Length
-  for (int i = 0; i < _nhit; i++) {
-    len[i] = -1;
+  double len  [LMAX];
+  double pintx[LMAX][2];
+  double pintu[LMAX][2];
+  double d  [2*LMAX][NDIM];
+
+  for (int s = 0; s <= 1; s++) {
+   int i1 = (s == 0) ? ic-1 :    ic;
+   int i2 = (s == 0) ?   -1 : _nhit;
+   int di = (s == 0) ?   -1 :     1;
+   if ((i2-i1)/di < 0) return -1;
+
+   for (int i = i1; i != i2; i += di) {
+
+    int ix = i, iy = i+_nhit;
+    for (int j = 0; j < NDIM; j++) d[ix][j] = d[iy][j] = 0;
+    d[ix][0] = d[iy][1] = 1;
+
     if (_xs[i] <= 0 && _ys[i] <= 0 && _zs[i] <= 0) continue;
 
-    len[i] = (i == 0) ? 0 : std::sqrt((_xh[i]-_xh[i-1])*(_xh[i]-_xh[i-1])
-				     +(_yh[i]-_yh[i-1])*(_yh[i]-_yh[i-1])
-				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
-  }
-
-  double pintx[LMAX][3];
-  double pintu[LMAX][3];
-
-  // Calculate path integrals
-  for (int i = 0; i < _nhit; i++) {
-    if (i == 0 || len[i] <= 0) {
-      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
-      continue;
+    double pos[3], dif[3], bbf[3];
+    if (i == i1) {
+      pos[0] = pc[0];
+      pos[1] = pc[1];
+      pos[2] = pc[2];
+      GuFld(pos[0], pos[1], pos[2], bbf);
     }
-     
+    else {
+      pos[0] = _xh[i-di];
+      pos[1] = _yh[i-di];
+      pos[2] = _zh[i-di];
+      bbf[0] = _bx[i-di];
+      bbf[1] = _by[i-di];
+      bbf[2] = _bz[i-di];
+    }
+    dif[0] = _xh[i]-pos[0];
+    dif[1] = _yh[i]-pos[1];
+    dif[2] = _zh[i]-pos[2];
+
+    len[i] = std::sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+    if (dif[2] > 0) len[i] = -len[i];
+
     double u[3];
-    u[0] = (_xh[i]-_xh[i-1])/len[i];
-    u[1] = (_yh[i]-_yh[i-1])/len[i];
-    u[2] = (_zh[i]-_zh[i-1])/len[i];
+    u[0] = dif[0]/len[i];
+    u[1] = dif[1]/len[i];
+    u[2] = dif[2]/len[i];
 
-    double bax = (_bx[i-1]+_bx[i])/2;
-    double bay = (_by[i-1]+_by[i])/2;
-    double baz = (_bz[i-1]+_bz[i])/2;
+    double bax = (bbf[0]+_bx[i])/2;
+    double bay = (bbf[1]+_by[i])/2;
+    double baz = (bbf[2]+_bz[i])/2;
 
-    pintx[i][0] = (u[1]*_bz[i-1]-u[2]*_by[i-1])/2;
-    pintx[i][1] = (u[2]*_bx[i-1]-u[0]*_bz[i-1])/2;
-    pintx[i][2] = (u[0]*_by[i-1]-u[1]*_bx[i-1])/2;
+    pintx[i][0] = (u[1]*bbf[2]-u[2]*bbf[1])/2;
+    pintx[i][1] = (u[2]*bbf[0]-u[0]*bbf[2])/2;
 
     pintu[i][0] = u[1]*baz-u[2]*bay;
     pintu[i][1] = u[2]*bax-u[0]*baz;
-    pintu[i][2] = u[0]*bay-u[1]*bax;
-  }
 
-  // F and G matrices
-  double d[2*LMAX][NDIM];
-  for (int i = 0; i < _nhit; i++) {
-    int ix = i, iy = i+_nhit;
-
-    for (int j = 0; j < NDIM; j++) d[ix][j] = d[iy][j] = 0;
-    d[ix][0] = d[iy][1] = 1;
-    
-    for (int j = 0; j <= i; j++) {
+    for (int j = i1; j != i+di; j += di) {
       d[ix][2] += len[j];
       d[iy][3] += len[j];
 
-      for (int k = 0; k <= j; k++) {
+      for (int k = i1; k != j+di; k += di) {
 	if (k == j) {
 	  d[ix][4] += len[j]*len[j]*pintx[j][0];
 	  d[iy][4] += len[j]*len[j]*pintx[j][1];
@@ -615,6 +632,8 @@ double TrFit::SimpleFit(void)
 	}
       }
     }
+
+   }
   }
 
   // dx = F*S_x*x + G*S_y*y
@@ -678,7 +697,7 @@ double TrFit::SimpleFit(void)
   double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
-  _p0z = _zh[0];
+  _p0z = 0;
 
   _rigidity = (_param[4] != 0) ? Clight*1e-12/_param[4] : 0;
 
@@ -765,11 +784,126 @@ double TrFit::AlcarazFit(int fixr)
   if (dzarg > 0) dz = std::sqrt(dzarg);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
-  _p0z = _zh[0];
+  _p0z = 0;
 
   _rigidity = (_param[4] != 0) ? 1e-12*Clight/_param[4] : 0;
 
   return _chisq;
+}
+
+int TrFit::GetPcen(double *pos, double *dir)
+{
+  int ic = -1;
+  for (int i = 1; i < _nhit; i++)
+    if (_zh[i-1]*_zh[i] < 0) { ic = i; break; }
+
+  if (ic <= 0) {
+    double zc = 0;
+    for (int i = 1; i < _nhit; i++) {
+      if (zc == 0 || std::abs(_zh[i]) < zc) {
+	zc = std::abs(_zh[i]);
+	ic = i;
+      }
+    }
+  }
+
+  if (ic <= 0 || _zh[ic]-_zh[ic-1] == 0) return -1;
+
+  if (pos) {
+    pos[0] = _xh[ic-1]-(_xh[ic]-_xh[ic-1])/(_zh[ic]-_zh[ic-1])*_zh[ic-1];
+    pos[1] = _yh[ic-1]-(_yh[ic]-_yh[ic-1])/(_zh[ic]-_zh[ic-1])*_zh[ic-1];
+    pos[2] = 0;
+  }
+  if (dir) {
+    dir[0] = (_xh[ic]-_xh[ic-1])/(_zh[ic]-_zh[ic-1]);
+    dir[1] = (_yh[ic]-_yh[ic-1])/(_zh[ic]-_zh[ic-1]);
+    dir[2] = 1;
+  }
+
+  return ic;
+}
+
+int TrFit::FillDmsc(double *dmsc, double fact, 
+		    double *len, double *cosz, int *ilay)
+{
+  // Radiation length data for AMS-PM tuned with muon MC
+  double WLEN[LMAX] = { 0.180,  // 1:L1N (Si+HC+TRD+TOF)
+			0.001,  // 2:L1  (Si)
+			0.002,  // 3:L2  (Si+HC)
+			0.001,  // 4:L3  (Si)
+			0.001,  // 5:L4  (Si+HC)/2
+			0.001,  // 6:L5  (Si+HC)/2
+			0.001,  // 7:L6  (Si)
+			0.002,  // 8:L7  (Si+HC)
+			0.100   // 9:L9  (Si+TOF+RICH)
+                      };
+
+  static bool first = true;
+#pragma omp critical (filldmsc)
+  if (first && _mscat) {
+    std::cout << "TrFit::FillDmsc-I-WLEN(%)=";
+    for (int i = 0; i < 9; i++)
+      std::cout << Form(" %4.2f", WLEN[i]*100);
+    std::cout << endl;
+    first = false;
+  }
+
+  for (int i = 0; i < _nhit; i++) dmsc[i] = 0;
+  for (int i = 1; i <     8; i++) WLEN[i] *= fact;
+
+  if (_rigidity == 0) return -1;
+  double rpar = 1e-12*Clight/_rigidity;
+
+  // Calculate pbi2 = (pbeta)^(-2)
+  double pbi2 = 0;
+  if (_mass > 0 && _chrg != 0) {
+    double r = rpar/(1e-12*Clight)/_chrg;
+    pbi2 = r*r*(1+_mass*_mass*r*r);
+  }
+  if (pbi2 <= 0) return -1;
+
+  int ic = GetPcen(0);
+  if (ic <= 0) return -1;
+
+  double ltmp[LMAX], ctmp[LMAX];
+  int    itmp[LMAX];
+
+  if (!len || !cosz) {
+    JAFillFGmtx(0, 0, ltmp, ctmp, 20);
+    if (!len)  len  = ltmp;
+    if (!cosz) cosz = ctmp;
+  }
+  if (!ilay) {
+    ilay = itmp;
+    for (int i = 0; i < _nhit; i++) {
+      ilay[i] = GetLayer(_zh[i]);
+      if (ilay[i] == 8) ilay[i] = 0;
+      if (ilay[i] == 9) ilay[i] = 8;
+    }
+  }
+
+  for (int i = 0; i < _nhit; i++) {
+    dmsc[i] = 0;
+
+    if (_mscat && pbi2 > 0) {
+      int k1 = (i < ic) ? ic-1 : ic;
+      int dk = (i < ic) ?   -1 :  1;
+      if (k1+dk < 0 || _nhit <= k1+dk) continue;
+
+      int l1 = ilay[k1+dk], l2 = ilay[i], dl = (l1 < l2) ? 1 : -1;
+      for (int k = k1+dk; k != i+dk; k += dk) {
+	double wl = 0, ln = 0;
+	l2 = ilay[k];
+	for (int l =  k; l !=  i+dk; l += dk) ln += len[l];
+	for (int l = l1; l != l2+dl; l += dl) wl += WLEN[l];
+
+	dmsc[i] += ln*ln*0.0118*0.0118*pbi2*wl/cosz[k];
+	l1 = l2+dl;
+      }
+    }
+  }
+
+  return 0;
 }
 
 int TrFit::JAInitPar(int fixr)
@@ -787,23 +921,12 @@ int TrFit::JAInitPar(int fixr)
     if (SimpleFit() < 0) return -20;
   }
   else {
-    double zmax = -999;
-    for (int i = 0; i < _nhit; i++)
-      if (_zh[i] > zmax) {
-	zmax = _zh[i];
-
-	double dzmin = 999;
-	for (int j = 0; j < _nhit; j++) {
-	  double dz = _zh[i]-_zh[j];
-	  if (i != j && dz != 0 && std::fabs(dz) < dzmin) {
-	    dzmin = std::fabs(dz);
-	    _param[0] = _xh[i];
-	    _param[1] = _yh[i];
-	    _param[2] = (_xh[i]-_xh[j])/dz;
-	    _param[3] = (_yh[i]-_yh[j])/dz;
-	  }
-	}
-      }
+    double pos[3], dir[3];
+    GetPcen(pos, dir);
+    _param[0] = pos[0];
+    _param[1] = pos[1];
+    _param[2] = dir[0];
+    _param[3] = dir[1];
   }
 
   _param[4] = (magf && _rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
@@ -811,73 +934,73 @@ int TrFit::JAInitPar(int fixr)
   return 0;
 }
 
+
 int TrFit::JAFillFGmtx(double *fmtx, double *gmtx, 
                        double *len,  double *cosz, int ndiv)
 {
   if (_nhit < 3) return -1;
 
   // Initialize F and G matrices
-  for (int i = 0; i < LMAX; i++)
-    for (int j = 0; j < 3; j++)
-      fmtx[i*3+j] = gmtx[i*3+j] = (j == 0) ? 1 : 0;
+  if (fmtx && gmtx) {
+    for (int i = 0; i < LMAX; i++)
+      for (int j = 0; j < 3; j++)
+	fmtx[i*3+j] = gmtx[i*3+j] = (j == 0) ? 1 : 0;
+  }
 
   double u0 = _dxdz, v0 = _dydz, uv = u0*u0+v0*v0;
   double w0 = (uv < 1) ? -std::sqrt(1-uv) : -1e-9;
 
-  double mem[6] = { 1, 1, 0, 0, 0, 0 }, mel[4];
   double dir[3] = { u0, v0, w0 };
 
-  double mom0 = (_param[4] != 0) ? std::abs(_chrg*1e-12*Clight/_param[4]) : 0;
-  double mom  = mom0;
+  double rpar = (_rigidity != 0) ? 1e-12*Clight/_rigidity : 0;
 
   len [0] = 0;
   cosz[0] = std::abs(w0);
 
+  double pc[3];
+  int ic = GetPcen(pc);
+  if (ic <= 0) return -1;
+
   // Fill F and G matrices
-  for (int i = 1; i < _nhit; i++) {
+  for (int s = 0; s <= 1; s++) {
+   int i1 = (s == 0) ? ic-1 :    ic;
+   int i2 = (s == 0) ?   -1 : _nhit;
+   int di = (s == 0) ?   -1 :     1;
+   if ((i2-i1)/di < 0) return -1;
 
-    // Energy loss correction
-    if (_eloss && _mass > 0 && mom > 0) {
-      double etot = std::sqrt(_mass*_mass+mom*mom);
-      double fact = 1;//(mode == PCOR) ? fPlos[3] : fPlos[4];
-      if (mom > 0 && cosz[i] > 0)
-        ;//etot -= fPlos[2]*(1+fact*_mass*_mass/mom/mom)/cosz[i];
+   double mem[6] = { 1, 1, 0, 0, 0, 0 }, mel[4];
 
-      if (etot < _mass) {
-        mom *= 0.5;
-        _param[4] *= 2;
-      } else {
-        mom = std::sqrt(etot*etot-_mass*_mass);
-        _param[4] = ((_param[4] > 0) ? 1 : -1)*1e-12*Clight*_chrg/mom;
-      }
-    }
+   for (int i = i1; i != i2; i += di) {
+    double pos[3];
+    pos[0] = (i == i1) ? pc[0] : _xh[i-di];
+    pos[1] = (i == i1) ? pc[1] : _yh[i-di];
+    pos[2] = (i == i1) ? pc[2] : _zh[i-di];
 
-    double pos[3], dif[3];
-    pos[0] = _xh[i-1]; dif[0] = _xh[i]-_xh[i-1];
-    pos[1] = _yh[i-1]; dif[1] = _yh[i]-_yh[i-1];
-    pos[2] = _zh[i-1]; dif[2] = _zh[i]-_zh[i-1];
+    double dif[3];
+    dif[0] = _xh[i]-pos[0];
+    dif[1] = _yh[i]-pos[1];
+    dif[2] = _zh[i]-pos[2];
 
     // Estimate path integral
-    JAStepPin(pos, dif, dir, mel, mem, _param[4], ndiv);
+    JAStepPin(pos, dif, dir, mel, mem, rpar, ndiv);
 
     len [i] = std::sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
     cosz[i] = std::abs(dir[2]);
 
-    if (mom > 0) {
-      mel[2] *= mom0/mom;
-      mel[3] *= mom0/mom;
+    if (fmtx && gmtx) {
+      for (int j = i; j != i2; j += di) {
+	fmtx[j*3+1] += mel[0];
+	gmtx[j*3+1] += mel[1];
+	fmtx[j*3+2] += mel[2];
+	gmtx[j*3+2] += mel[3];
+      }
     }
-
-    for (int j = i; j < _nhit; j++) {
-      fmtx[j*3+1] += mel[0];
-      gmtx[j*3+1] += mel[1];
-      fmtx[j*3+2] += mel[2];
-      gmtx[j*3+2] += mel[3];
-    }
+   }
   }
 
   return 0;
 }
+
 
 int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
                        double *len,  double *cosz, int *ilay)
@@ -885,172 +1008,28 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
   // Initialize V and W matrices
   for (int i = 0; i < LMAX*LMAX; i++) vmtx[i] = wmtx[i] = 0;
 
-  // Calculate pbi2 = (pbeta)^(-2)
-  double pbi2 = 0;
-  if (_mscat && _mass > 0 && _chrg != 0) {
-    double r = _param[4]/(1e-12*Clight)/_chrg;
-    pbi2 = r*r*(1+_mass*_mass*r*r);
-  }
-  if (pbi2 <= 0) _mscat = 0;
-
-// Radiation length data (copied from tkfit.F but TO_BE_CHECKED)
-// AMS02:
-//        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
-//        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
-//        Support:   10mm Al Honeycomb: 1.67e-3 X0
-//double WLEN[LMAX] = { 0, 7.29e-3, 12.91e-3, 0,
-// 				    12.91e-3, 0, 12.91e-3, 7.29e-3, 0};
-
-  // Radiation length data for AMS-PM tuned with TB (60 GeV p/pi)
-  double WLEN[LMAX] = { 0.090,  // 1:L1N (HC+TRD+TOF)
-			0.003,  // 2:L1  (Si)
-			0.007,  // 3:L2  (Si+HC)
-			0.003,  // 4:L3  (Si)
-			0.003,  // 5:L4  (Si+HC)/2
-			0.003,  // 6:L5  (Si+HC)/2
-			0.003,  // 7:L6  (Si)
-			0.007,  // 8:L7  (Si+HC)
-			0.045   // 9:L9  (Si+TOF+RICH)
-                      };
-
-  static bool first = true;
-#pragma omp critical (jafillvwmtx)
-  if (first && _mscat) {
-    std::cout << "TrFit::JAFillVWmtx-I-WLEN(%)=";
-    for (int i = 0; i < 9; i++)
-      std::cout << Form(" %4.2f", WLEN[i]*100);
-    std::cout << endl;
-    first = false;
-  }
-
-  int nel = _nhit-2;
-  double mtx[(LMAX-2)*(LMAX-2)], mty[(LMAX-2)*(LMAX-2)];
-
-  int mode = 1; 
-  for (int i = 0; i < _nhit; i++)
-    if (WLEN[i] > 0.05 && _mscat == 1) mode = 2;
-
-  double lref = 0;
-  int    kcen = 0;
-  for (int i = 1; i < _nhit; i++) {
-    if (_zh[i-1] > 0 && _zh[i] < 0) {
-      kcen = (_zh[i-1] < -_zh[i]) ? i-1 : i;
-      lref += len[i]/(_zh[i-1]-_zh[i])*_zh[i-1];
-      break;
-    }
-    lref += len[i];
-  }
+  double dmsc[LMAX];
+  if (_mscat && FillDmsc(dmsc, 1, len, cosz, ilay) < 0) return -1;
 
   // Fill V and W matrices
-  for (int i = 0; i < _nhit; i++) {
+  for (int i = 0; i < _nhit; i++)
     for (int j = 0; j <= i; j++) {
       if (i == j) {
         vmtx[i*LMAX+j] += (_xs[i] > 0) ? _xs[i]*_xs[i] : 0;
         wmtx[i*LMAX+j] += (_ys[i] > 0) ? _ys[i]*_ys[i] : 0;
       }
 
-      // No ext. layers
-      if (_mscat && mode == 1) {
-        for (int k = 1; k < i && k < j; k++) {
-          if (cosz[k] <= 0) continue;
-          double li = 0, lj = 0, wl = 0;
-          for (int l = k+1; l <= i; l++) li += len[l];
-          for (int l = k+1; l <= j; l++) lj += len[l];
-          for (int l = ilay[k-1]+1; l <= ilay[k]; l++) wl += WLEN[l];
-
-          double dmsc = li*lj*0.0118*0.0118*pbi2*wl/cosz[k];
-          vmtx[i*LMAX+j] += dmsc;
-          wmtx[i*LMAX+j] += dmsc;
-        }
-      }
-
-      // With ext. layers
-      if (_mscat && mode == 2 && i == j) {
-	if (i < kcen) {
-	  for (int k = i; k <= kcen; k++) {
-	    if (cosz[k] <= 0) continue;
-
-	    int l1 = ilay[k], l2 = ilay[kcen];
-	    double ls = 0; for (int l = k;  l < kcen; l++) ls += len[l];
-	    double wl = 0; for (int l = l1; l < l2;   l++) wl += WLEN[l];
-
-	    double dmsc = ls*ls*0.0118*0.0118*pbi2*wl/cosz[k];
-	    vmtx[i*LMAX+j] += dmsc;
-	    wmtx[i*LMAX+j] += dmsc;
-	  }
-	}
-	else {
-	  for (int k = kcen+1; k <= i && kcen+1 < _nhit; k++) {
-	    if (cosz[k] <= 0) continue;
-
-	    int l1 = ilay[kcen+1], l2 = ilay[k];
-	    double ls = 0; for (int l = kcen+1; l <= k;  l++) ls += len[l];
-	    double wl = 0; for (int l = l1  ;   l <= l2; l++) wl += WLEN[l];
-
-	    double dmsc = ls*ls*0.0118*0.0118*pbi2*wl/cosz[k];
-	    vmtx[i*LMAX+j] += dmsc;
-	    wmtx[i*LMAX+j] += dmsc;
-	  }
-	}
-      }
-
-      if (i >= 2 && j >= 2) {
-        mtx[(i-2)*nel+j-2] = mtx[(j-2)*nel+i-2] = vmtx[i*LMAX+j]*1e+3;
-        mty[(i-2)*nel+j-2] = mty[(j-2)*nel+i-2] = wmtx[i*LMAX+j]*1e+3;
-      }
-    }
-  }
-
-  // Avoid divergence in inverting matrices
-  for (int i = 0; i < _nhit-2; i++) {
-    if (_xs[i+2] <= 0) {
-      for (int j = 0; j < _nhit-2; j++) mtx[i*nel+j] = mtx[j*nel+i] = 0;
-      mtx[i*nel+i] = 1;
-    }
-    if (_ys[i+2] <= 0) {
-      for (int j = 0; j < _nhit-2; j++) mty[i*nel+j] = mty[j*nel+i] = 0;
-      mty[i*nel+i] = 1;
-    }
-  }
-
-  // Invert V and W matrices
-  if (_mscat && mode == 1) {
-    int ret = -1;
-    if (nel == 3) ret = Inv33((double(*)[3])mtx);
-    if (nel == 4) ret = Inv44((double(*)[4])mtx);
-    if (nel == 5) ret = Inv55((double(*)[5])mtx);
-    if (nel == 6) ret = Inv66((double(*)[6])mtx);
-    if (nel >= 7) ret = InvSM(mtx, nel);
-    if (ret < 0) return -1;
-
-    if (nel == 3) ret = Inv33((double(*)[3])mty);
-    if (nel == 4) ret = Inv44((double(*)[4])mty);
-    if (nel == 5) ret = Inv55((double(*)[5])mty);
-    if (nel == 6) ret = Inv66((double(*)[6])mty);
-    if (nel >= 7) ret = InvSM(mty, nel);
-    if (ret < 0) return -1;
-  }
-  for (int i = 0; i < _nhit; i++)
-    for (int j = 0; j < _nhit; j++) {
-      if (i >= 2 && j >= 2 && _mscat && mode == 1) {
-        vmtx[i*LMAX+j] = (_xs[i] > 0 && _xs[j] > 0) 
-                         ? mtx[(i-2)*nel+j-2]*1e+3 : 0;
-        wmtx[i*LMAX+j] = (_ys[i] > 0 && _ys[j] > 0) 
-                         ? mty[(i-2)*nel+j-2]*1e+3 : 0;
-      } else {
-        if (vmtx[i*LMAX+j] != 0) vmtx[i*LMAX+j] = 1/vmtx[i*LMAX+j];
-        if (wmtx[i*LMAX+j] != 0) wmtx[i*LMAX+j] = 1/wmtx[i*LMAX+j];
+      if (_mscat && i == j) {
+	vmtx[i*LMAX+j] += dmsc[i];
+	wmtx[i*LMAX+j] += dmsc[i];
       }
     }
 
-  if (_mscat == 2) {
-    RkmsMtx(_rigidity);
-    for (int i = 0; i < _nhit; i++)
-      for (int j = 0; j < _nhit; j++) {
-        vmtx[i*LMAX+j] = _rkms_wx[i][j];
-        wmtx[i*LMAX+j] = _rkms_wy[i][j];
-      }
-  }
+  for (int i = 0, k = 0; i < _nhit; i++)
+    for (int j = 0, l = 0; j < _nhit; j++) {
+      if (vmtx[i*LMAX+j] != 0) vmtx[i*LMAX+j] = 1/vmtx[i*LMAX+j];
+      if (wmtx[i*LMAX+j] != 0) wmtx[i*LMAX+j] = 1/wmtx[i*LMAX+j];
+    }
 
   return 0;
 }
@@ -1157,99 +1136,68 @@ double TrFit::ChoutkoFit(void)
   double init[7], out[7];
   for (int i = 0; i < 7; i++) out[i] = 0;
 
-  int mode = (_mscat) ? 1 : 0; 
-  for (int i = 0; i < _nhit; i++)
-    if (std::abs(_zh[i]) > 100) mode = 2;
-
   for (int kiter = 0; kiter < maxcal; kiter++) {
-    double dnorm = 1./std::sqrt(1+_param[1]*_param[1]+_param[3]*_param[3]);
-    init[0] =  _param[0];
-    init[1] =  _param[2];
-    init[2] =  _zh[0]+1e-4;
-    init[3] = -_param[1]*dnorm;
-    init[4] = -_param[3]*dnorm;
-    init[5] = -dnorm;
-    init[6] = (_param[4] != 0) ? _chrg/_param[4] : 1.e10;
-
     double mm[NDIM][NDIM], gg[NDIM][NDIM], g[NDIM];
     for (int i = 0; i < NDIM*NDIM; i++) mm[i/NDIM][i%NDIM] = 0;
     for (int i = 0; i < NDIM*NDIM; i++) gg[i/NDIM][i%NDIM] = 0;
     for (int i = 0; i < NDIM; i++) g[i] = 0;
     for (int i = 0; i < NDIM; i++) mm[i][i] = 1;
 
-    double fact[LMAX], xmsr[LMAX][LMAX], xms[LMAX], fckx[LMAX], fcky[LMAX];
+    double xms[LMAX], fckx[LMAX], fcky[LMAX];
+
+    double dmsc[LMAX];
+    for (int i = 0; i < _nhit; i++) dmsc[i] = 0;
+    if (_mscat && _param[4] != 0) {
+      _rigidity = 1/_param[4];
+      if (FillDmsc(dmsc) < 0) return -1;
+    }
 
     double len [LMAX];
     for (int i = 0; i < _nhit; i++)
       len[i] = (i > 0) ? _zh[i]-_zh[i-1] : 0;
 
     // Loop for each point
-    for (int i = 0; i < _nhit; i++) {
+    //for (int i = 0; i < _nhit; i++) {
 
+    double pc[3];
+    int ic = GetPcen(pc);
+    if (ic <= 0) return -1;
+
+    for (int s = 0; s <= 1; s++) {
+     int i1 = (s == 0) ? ic-1 :    ic;
+     int i2 = (s == 0) ?   -1 : _nhit;
+     int di = (s == 0) ?   -1 :     1;
+
+     double dnorm = 1./std::sqrt(1+_param[1]*_param[1]+_param[3]*_param[3]);
+     if (_zh[i1] < _zh[i2-di]) dnorm = -dnorm;
+
+     init[0] = _param[0];
+     init[1] = _param[2];
+     init[2] =  0;
+     init[3] = -_param[1]*dnorm;
+     init[4] = -_param[3]*dnorm;
+     init[5] = -dnorm;
+     init[6] = (_param[4] != 0) ? _chrg/_param[4] : 1.e10;
+     if (dnorm < 0) init[6] = -init[6];
+
+     for (int i = 0; i < NDIM*NDIM; i++) mm[i/NDIM][i%NDIM] = 0;
+     for (int i = 0; i < NDIM; i++) mm[i][i] = 1;
+
+     for (int i = i1; i != i2; i += di) {
       double point[6] = { 0, 0, _zh[i], 0, 0, -1 };
 
+      if (dnorm*init[5] > 0) {
+	init[3] = -init[3];
+	init[4] = -init[4];
+	init[5] = -init[5];
+      }
+
       // Transportation
-      if (i > 0) {
-        if (VCFitPar(init, out, point, mm, (i <= 1) ? 0 : 1) < 0) return -3;
-      }
-      else for (int j = 0; j < 7; j++) out[j] = init[j];
-
-      // Multiple scattering factor
-      double dnm = init[5];
-      double mmt = init[6];
-      if (_mscat == 0) fact[i] = 0;
-      else {
-        double beta = std::max(fabs(mmt/sqrt(mmt*mmt+_mass*_mass)), 0.1);
-	double corr = std::sqrt(1+0.2/mmt/mmt);
-        fact[i] = (sms*_chrg/mmt/beta)*(sms*_chrg/mmt/beta)/fabs(dnm)*corr;
- 	if (_zh[i] >  100) fact[i] *= 2.0; // Layer 1N
- 	if (_zh[i] < -100) fact[i] *= 1.0; // Layer 9
-      }
-
-      for (int im = i; im >= 0; im--) xmsr[i][im] = 0;
+      int clear = (i == i1 || i == i1+di) ? 0 : 1;
+      if (VCFitPar(init, out, point, mm, clear) < 0) return -3;
 
       // Multiple scattering matrix
-      if (mode == 1 || _mscat == 2) {
-	for (int im = i; im >= 0; im--) {
-	  for (int il = 1; il <= std::min(i,im)-1; il++)
-	    xmsr[i][im] += (_zh[i]-_zh[il])*(_zh[im]-_zh[il])*fact[il+1];
-
-	  if (im == i) xms[i] = xmsr[i][i];
-	  else {
-	    double tmp1 = 2*xms[i]+(_xs[i]*_xs[i]+
-				    _ys[i]*_ys[i])*dnm*dnm
-	      +(1-dnm*dnm)*_zs[i]*_zs[i]+1.e-10;
-	    double tmp2 = 2*xms[im]+(_xs[im]*_xs[im]+
-				     _ys[im]*_ys[im])*dnm*dnm
-	      +(1-dnm*dnm)*_zs[im]*_zs[im]+1.e-10;
-	    xmsr[i][im] = 2*xmsr[i][im]/std::sqrt(tmp1*tmp2);
-	  }
-	}
-      }
-      else if (_mscat && mode == 2) {
-	int kcen = 0;
-	for (int j = 1; j < _nhit; j++) {
-	  if (_zh[j-1] > 0 && _zh[j] < 0) {
-	    kcen = (_zh[j-1] < -_zh[j]) ? j-1 : j;
-	    break;
-	  }
-	}
-
-	xms[i] = 0;
-	if (i < kcen)
-	  for (int k = i; k <= kcen; k++) {
-	    double ls = 0; for (int l = k; l < kcen; l++) ls += len [l];
-	    double fc = 0; for (int l = k; l < kcen; l++) fc += fact[l];
-	    xms[i] += ls*ls*fc;
-	  }
-	else {
-	  for (int k = kcen+1; k <= i && kcen+1 < _nhit; k++) {
-	    double ls = 0; for (int l = kcen+1; l <= k; l++) ls += len [l];
-	    double fc = 0; for (int l = kcen+1; l <= k; l++) fc += fact[l];
-	    xms[i] += ls*ls*fc;
-	  }
-	}
-      }
+      xms[i] = (_mscat) ? dmsc[i] : 0;
 
       // Error matrix
       double aa[5];
@@ -1271,6 +1219,7 @@ double TrFit::ChoutkoFit(void)
       }
 
       for (int j = 0; j < 7; j++) init[j] = out[j];
+     }
     }
 
     // Chisquare and residual
@@ -1279,13 +1228,6 @@ double TrFit::ChoutkoFit(void)
       _chisqx += std::abs(fckx[i]);
       _chisqy += std::abs(fcky[i]);
       _chisq  += std::abs(fckx[i])+std::abs(fcky[i]);
-      for (int k = i+1; k < _nhit; k++) {
-	_chisqx += std::sqrt(fabs( fckx[i]*fckx[k]) )*xmsr[k][i];
-	_chisqy += std::sqrt(fabs( fcky[i]*fcky[k]) )*xmsr[k][i];
-	_chisq  += std::sqrt(fabs((fckx[i]+fcky[i])
-				 *(fckx[k]+fcky[k])))*xmsr[k][i];
-
-      }
     }
 
     // Check chisquare difference
@@ -1322,7 +1264,7 @@ double TrFit::ChoutkoFit(void)
 
   _p0x = _param[0]; _dxdz = _param[1];
   _p0y = _param[2]; _dydz = _param[3];
-  _p0z = _zh[0];
+  _p0z = 0;
 
   _param[4] = _param[4]*_chrg/std::fabs(_chrg);
   _rigidity = (_param[4] != 0) ? 1/_param[4] : 0;
@@ -1336,8 +1278,8 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
 		     double &fckx, double &fcky)
 {
   double mtmp[3];
-  mtmp[0] = _xs[ih]*_xs[ih]+out[3]*out[3]*_zs[ih]*_zs[ih]/out[5]/out[5];
-  mtmp[2] = _ys[ih]*_ys[ih]+out[4]*out[4]*_zs[ih]*_zs[ih]/out[5]/out[5];
+  mtmp[0] = _xs[ih]*_xs[ih];
+  mtmp[2] = _ys[ih]*_ys[ih];
   mtmp[1] = 0;
 
   if (_mscat != 0) {
@@ -1356,10 +1298,10 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
   else for (int i = 0; i < 3; i++) aa[i] = 0;
 
   double xperp[4];
-  xperp[0] = out[0]-out[3]/out[5]*out[2];
-  xperp[1] = out[1]-out[4]/out[5]*out[2];
-  xperp[2] = _xh[ih]-out[3]/out[5]*_zh[ih];
-  xperp[3] = _yh[ih]-out[4]/out[5]*_zh[ih];
+  xperp[0] = out[0];
+  xperp[1] = out[1];
+  xperp[2] = _xh[ih];
+  xperp[3] = _yh[ih];
 
   aa[3] = xperp[0]-xperp[2];
   aa[4] = xperp[1]-xperp[3];
@@ -3822,6 +3764,8 @@ int TrProp::JAStepPin(double *x, double *l, double *u,
 
    double pint[4];
    for (int i = 0; i < 4; i++) pint[i] = 0;
+
+   if (l[2] > 0) dl = -dl;
 
    if (ndiv < 4) ndiv = 4;
    for (int j = 0; j <= ndiv; j++) {

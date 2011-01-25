@@ -323,7 +323,8 @@ void TRFITFFKEY_DEF::init(){
   ErrZ = 40.e-4;
 
   /// R [4,12] Error term for Multiple scattering per layer (1-9)
-  float fwmsc[9] = { 122, 22.0, 1.7, 0.0, 1.7, 16.5, 32.3, 360, 274 };
+  float fwmsc[9] = { 17.2, 7.0, 5.8, 0.0, 0.0,  5.7,  6.8, 360, 270 };
+
   for (int i = 0; i < 9; i++) FitwMsc[i] = fwmsc[i];
 
   /// R 13 max dist to add external planes hits X

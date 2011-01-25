@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.21 2010/11/21 16:28:04 shaino Exp $
+//  $Id: TrFit.h,v 1.22 2011/01/25 09:57:35 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2010/11/21 16:28:04 $
+///$Date: 2011/01/25 09:57:35 $
 ///
-///$Revision: 1.21 $
+///$Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -359,6 +359,13 @@ protected:
 
   /// Fitting residual (for CircleFit)
   double VKResidual(double, double, double*);
+
+  /// Estimate track position and direction at z=0
+  int GetPcen(double *pos, double *dir = 0);
+
+  /// Fill multiple scattering factor, dmsc
+  int FillDmsc(double *dmsc, double fact = 1,
+	       double *len = 0, double *cosz = 0, int *ilay = 0);
 
   /// Initialize JA's method
   int JAInitPar(int);
