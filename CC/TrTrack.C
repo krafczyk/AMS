@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.87 2011/01/12 13:49:41 pzuccon Exp $
+// $Id: TrTrack.C,v 1.88 2011/01/25 16:27:08 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/01/12 13:49:41 $
+///$Date: 2011/01/25 16:27:08 $
 ///
-///$Revision: 1.87 $
+///$Revision: 1.88 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -245,13 +245,13 @@ TrTrackPar &TrTrackR::GetPar(int id)
 
 double TrTrackR::GetNormChisqX(int id)
 {
-  Double_t enorm = TRFITFFKEY.ErrX/50e-4;
+  Double_t enorm = 1;//TRFITFFKEY.ErrX/50e-4;
   return (GetNdofX(id) > 0) ? GetChisqX(id)/GetNdofX(id)*enorm*enorm : 0;
 }
 
 double TrTrackR::GetNormChisqY(int id)
 {
-  Double_t enorm = TRFITFFKEY.ErrY/30e-4;
+  Double_t enorm = 1;//TRFITFFKEY.ErrY/30e-4;
   return (GetNdofY(id) > 0) ? GetChisqY(id)/GetNdofY(id)*enorm*enorm : 0;
 }
 
@@ -1156,7 +1156,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (!TrFit::_mscat) {
       int    ily  = hit->GetLayer()-1;
       double fitw = TRFITFFKEY.FitwMsc[ily];
-      double fwxy = (errx > 0) ? erry/errx : 1;
+      double fwxy = (errx > 0) ? erry/errx*2 : 1;
       if (rrgt != 0 && fitw > 0) {
 	fmscx = std::sqrt(1+fitw*fitw/rrgt/rrgt*fwxy*fwxy);
 	fmscy = std::sqrt(1+fitw*fitw/rrgt/rrgt);
@@ -1568,6 +1568,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       fittype|=kChoutko;
     }
     if(!mscat) fittype|=kMultScat;
+    int ebpat = _bit_pattern & 0x180;
     int basetype=fittype;
     if(pattern==0){
       // Has1N 
@@ -1578,7 +1579,10 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     else if(pattern==1) fittype|= kUpperHalf;
     else if(pattern==2) fittype|= kLowerHalf;
     else if(pattern==3) fittype=basetype;
-    else if(pattern==4) fittype|= kExternal;
+    else if(pattern==4 && (ebpat == 0x180)) fittype|= kExternal;
+    else if(pattern==5 && (ebpat  & 0x080)) fittype|= kFitLayer8;
+    else if(pattern==6 && (ebpat  & 0x100)) fittype|= kFitLayer9;
+    else if(pattern==7 && (ebpat == 0x180)) fittype|= kFitLayer8|kFitLayer9;
     else if(pattern>9){ //it is a base10 hit pattern	
       fittype|=kPattern;
       if(((pattern/1         )%10)>0) fittype|=kFitLayer1;

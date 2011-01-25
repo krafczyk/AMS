@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.52 2010/12/15 14:29:22 shaino Exp $
+//  $Id: TrTrack.h,v 1.53 2011/01/25 16:27:08 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2010/12/15 14:29:22 $
+///$Date: 2011/01/25 16:27:08 $
 ///
-///$Revision: 1.52 $
+///$Revision: 1.53 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -379,11 +379,14 @@ public:
                            3 Chikanian;
                         +10 mscattering off;
     \param pattern    Hit Pattern= 
-                       0   all hits;
-                       1   upper half;
-                       2   lower half;
+                       0   all hits; (maximum span)
+                       1   inner upper half;
+                       2   inner lower half;
                        3   drop 2 external hits;
                        4   only 2 + 2 external hits;
+                       5   with Layer 1N (kFitLayer8)
+                       6   with Layer 9  (kFitLayer9)
+                       7   with Layer 1N and 9
 
                        OR
 
@@ -456,10 +459,10 @@ public:
     return (dir.z() != 0) ? dir.y()/dir.z() : 0;
   }
 
-  /// Get normalized chi2 on X with ErrX = 50 um
+  /// Get normalized chisquare in X
   double GetNormChisqX(int id= 0);
 
-  /// Get normalized chi2 on Y with ErrY = 30 um
+  /// Get normalized chisquare in Y
   double GetNormChisqY(int id= 0);
 
   /// Get TrFit object of the last fit (not to be used outside GBATCH)

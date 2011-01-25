@@ -350,6 +350,9 @@ public:
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
 
+  /// Read from AMSRoot file or not
+  static int ReadFromFile;
+
   ClassDef(TRFITFFKEY_DEF,3);
 };
 //

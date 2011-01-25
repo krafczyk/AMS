@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.243 2011/01/18 19:40:09 choutko Exp $
+//  $Id: root.C,v 1.244 2011/01/25 16:27:08 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3453,7 +3453,7 @@ static int master=0;
     TRCALIB     =*((TRCALIB_DEF*)    _FILE->Get("datacards/TRCALIB_DEF"));
 				 if (_FILE->Get("datacards/TRCLFFKEY_DEF"))
     TRCLFFKEY   =*((TRCLFFKEY_DEF*)  _FILE->Get("datacards/TRCLFFKEY_DEF"));
-				 if (_FILE->Get("datacards/TRFITFFKEY_DEF"))
+      if (TRFITFFKEY.ReadFromFile && _FILE->Get("datacards/TRFITFFKEY_DEF"))
     TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
 
     if(TrParDB::Head) delete TrParDB::Head;

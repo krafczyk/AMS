@@ -318,12 +318,13 @@ void TRFITFFKEY_DEF::init(){
   // Fit Par
 
   /// R [1,3] fit point error 
-  ErrX = 40.e-4;  
-  ErrY = 15.e-4;
-  ErrZ = 40.e-4;
+  ErrX =  25.e-4;  // Tuned with muon MC 25/Jan/2011 (SH)
+  ErrY =  13.e-4;  // Tuned with muon MC 25/Jan/2011 (SH)
+  ErrZ = 300.e-4;  // Not used
 
+  /// Tuned with muon MC 25/Jan/2011 (SH)
   /// R [4,12] Error term for Multiple scattering per layer (1-9)
-  float fwmsc[9] = { 17.2, 7.0, 5.8, 0.0, 0.0,  5.7,  6.8, 360, 270 };
+  float fwmsc[9] = { 15.5, 6.3, 5.2, 0.0, 0.0, 5.1, 6.1, 324, 243 };
 
   for (int i = 0; i < 9; i++) FitwMsc[i] = fwmsc[i];
 
@@ -358,6 +359,8 @@ void TRFITFFKEY_DEF::init(){
     ExResThres[i] = TrTrackR::ExResThres[i];
   }
 }
+
+int TRFITFFKEY_DEF::ReadFromFile = 1;
 
 TRFITFFKEY_DEF TRFITFFKEY;
 //=============================

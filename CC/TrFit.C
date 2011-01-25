@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.42 2011/01/25 09:57:35 shaino Exp $
+//  $Id: TrFit.C,v 1.43 2011/01/25 16:27:07 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/01/25 09:57:35 $
+///$Date: 2011/01/25 16:27:07 $
 ///
-///$Revision: 1.42 $
+///$Revision: 1.43 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -824,18 +824,18 @@ int TrFit::GetPcen(double *pos, double *dir)
 }
 
 int TrFit::FillDmsc(double *dmsc, double fact, 
-		    double *len, double *cosz, int *ilay)
+		    double *len,  double *cosz, int *ilay)
 {
-  // Radiation length data for AMS-PM tuned with muon MC
-  double WLEN[LMAX] = { 0.180,  // 1:L1N (Si+HC+TRD+TOF)
-			0.001,  // 2:L1  (Si)
-			0.002,  // 3:L2  (Si+HC)
-			0.001,  // 4:L3  (Si)
-			0.001,  // 5:L4  (Si+HC)/2
-			0.001,  // 6:L5  (Si+HC)/2
-			0.001,  // 7:L6  (Si)
-			0.002,  // 8:L7  (Si+HC)
-			0.100   // 9:L9  (Si+TOF+RICH)
+  // Scattering factor tuned with muon MC
+  double WLEN[LMAX] = { 0.1080,  // 1:L1N (Si+HC+TRD+TOF)
+			0.0006,  // 2:L1  (Si)
+			0.0012,  // 3:L2  (Si+HC)
+			0.0006,  // 4:L3  (Si)
+			0.0006,  // 5:L4  (Si+HC)/2
+			0.0006,  // 6:L5  (Si+HC)/2
+			0.0006,  // 7:L6  (Si)
+			0.0012,  // 8:L7  (Si+HC)
+			0.0600   // 9:L9  (Si+TOF+RICH)
                       };
 
   static bool first = true;
@@ -1020,8 +1020,8 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
       }
 
       if (_mscat && i == j) {
-	vmtx[i*LMAX+j] += dmsc[i];
-	wmtx[i*LMAX+j] += dmsc[i];
+	vmtx[i*LMAX+j] += (_xs[i] > 0) ? dmsc[i]*2.5 : 0;
+	wmtx[i*LMAX+j] += (_ys[i] > 0) ? dmsc[i]     : 0;
       }
     }
 
@@ -1284,7 +1284,7 @@ void TrFit::VCErrMtx(int ih, double xms, double *out, double *aa,
 
   if (_mscat != 0) {
     double vv = xms/out[5]/out[5]/out[5]/out[5];
-    mtmp[0] += vv*(1-out[4]*out[4]);
+    mtmp[0] += vv*(1-out[4]*out[4])*2.5;
     mtmp[2] += vv*(1-out[3]*out[3]);
     mtmp[1] += vv*out[3]*out[4];
   }
