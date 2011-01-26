@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.44 2010/11/05 13:19:07 mdelgado Exp $
+//  $Id: richgeom.C,v 1.45 2011/01/26 14:21:39 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -635,22 +635,23 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
 
   // Misalignment
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02P") && !RichAlignment::IgnoreDB()){
-    // Force the expected misalignment
-    RichAlignment::Set(-0.11,0.08,0.93,0,0,0);
-    RichAlignment::SetMirrorShift(0,0,0);
+  if(!(AMSJob::gethead()->isRealData())){
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02P") && !RichAlignment::IgnoreDB()){
+      // Force the expected misalignment
+      RichAlignment::Set(-0.11,0.08,0.93,0,0,0);
+      RichAlignment::SetMirrorShift(0,0,0);
+    }
+    
+    AMSPoint test_point(0,0,0);
+    test_point=RichAlignment::RichToAMS(test_point);
+    coo[0]+=test_point[0];
+    coo[1]+=test_point[1];
+    coo[2]+=test_point[2];
+    // Force angular parameters to zero
+    RichAlignment::Set(-test_point[0],-test_point[1],-test_point[2],0,0,0);
+    cout<<"amsgeom::richgeom02 -- MC misalignment set to "<<-test_point[0]<<" "<<-test_point[1]<<" "<<-test_point[2]<<endl;
   }
-
-  AMSPoint test_point(0,0,0);
-  test_point=RichAlignment::RichToAMS(test_point);
-  coo[0]+=test_point[0];
-  coo[1]+=test_point[1];
-  coo[2]+=test_point[2];
-  // Force angular parameters to zero
-  RichAlignment::Set(-test_point[0],-test_point[1],-test_point[2],0,0,0);
-  cout<<"amsgeom::richgeom02 -- MC misalignment set to "<<-test_point[0]<<" "<<-test_point[1]<<" "<<-test_point[2]<<endl;
-
-
+  
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume(_VACUUM_,
  							   0,
 							   "RICH",
