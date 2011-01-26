@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.105 2011/01/19 13:09:22 choutko Exp $
+#  $Id: Moptg4,v 1.106 2011/01/26 20:47:36 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -198,6 +198,90 @@ XLDFLAGS=   -static  $(FORTRAN2_LIBS) \
 TIMEL=
 
 endif
+
+
+ifeq  "$(G4SYSTEM)"  "Linux-icc.ia64"
+LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
+CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
+ifdef AMSDEBUG
+CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
+CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS) $(CFLAGSB)
+CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include $(CFLAGSB)
+CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
+FFLAGS=   -I../include  -fp_port
+FFLAGSn=  -I../include  -fp_port -D__ICC__
+CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include  -D__ICC__ $(CFLAGSB)
+else
+CFLAGS=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
+CFLAGS4=      -D__BATCH__ -O2      -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4P=      -D__BATCH__       -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS) $(CFLAGSB)
+CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  $(CFLAGSB)
+CFLAGSDAQ=      -D__BATCH__    -D__LINUXGNU__   -I../include  -O2 -D__ICC__ $(CFLAGSB)
+CFLAGSn=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
+FFLAGS=   -fp_port -O -I../include
+FFLAGSn=  -fp_port -I../include -D__ICC__
+endif
+DFLAGS=    -g  -I../include
+
+
+INTELDIR=/opt/intel/
+INTELVER=Compiler/11.1/075/
+INTELOPT= -openmp -D__G4AMS__ 
+PARALLEL=
+
+ifndef DEFINES
+DEFINES= 
+endif
+DEFINES += -D__NAMESPACE__ -D__G4AMS__ 
+
+FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL) 
+CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT) -vec-report0  $(PARALLEL) $(DEFINES) -D__LINUXGNU__
+CC=$(INTELDIR)/$(INTELVER)/bin/ia64/icc    $(INTELOPT) $(PARALLEL) $(DEFINES) -D__LINUXGNU__
+LD=$(INTELDIR)/$(INTELVER)/bin/ia64/icpc   $(INTELOPT)  $(PARALLEL) 
+FFOLD=$(FF)  -save
+FFLAGSSAVE= -save
+FORTRAN_LIBS=
+FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+
+# change defaults if intel compiler 
+CERN_LEVEL =2005.ia64.icc41
+
+CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
+
+
+ifndef CERNDIR
+CERNDIR =/afs/cern.ch/exp/ams/Offline/CERN/$(CERN_LEVEL)
+ifdef DEBUGFLAG
+CERNDIR =/f2users/choutko/cernlib_64g/$(CERN_LEVEL)
+endif
+endif
+
+
+CERNSRCDIR = $(CERNDIR)
+
+ifndef AMSLIB
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/ecc64
+endif
+ifndef NAGDIR
+NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib.icc64
+endif
+XLDFLAGS=   -static  $(FORTRAN2_LIBS) \
+-L$(NAGDIR) -lnag64 \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot -lfreetype\
+ -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl -lpcre   \
+ $(FORTRAN2_LIBS) $(FORTRAN_LIBS) -pthread
+
+TIMEL=
+
+endif
+
+
 
 
 ifeq  "$(G4SYSTEM)"  "Linux-g++"

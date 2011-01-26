@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.112 2010/09/04 16:27:17 choutko Exp $
+//  $Id: timeid.C,v 1.113 2011/01/26 20:46:57 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -1080,11 +1080,17 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
   fmap+=".";
   fmap+=getname();
   fmap+=getid()==0?".0.map":".1.map";
+  AString fmaptmp=fmap;
+  char utmp[80];
+  time_t timet;
+  time(&timet);
+  sprintf(utmp,".%d",timet);
+  fmaptmp+=utmp;
   fstream fbin;
-  unlink(fmap);
-  fbin.open(fmap,ios::out);
+  unlink(fmaptmp);
+  fbin.open(fmaptmp,ios::out);
   if(fbin){
-    cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<" "<<_DataBaseSize<<endl; 
+    cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
     fbin<<_DataBaseSize<<endl;
     for(int i=0;i<5;i++){
       for(int k=0;k<_DataBaseSize;k++){
@@ -1092,7 +1098,9 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
       }
     }
     fbin.close();
-    char cmd[255];
+    char cmd[1255];
+    sprintf(cmd,"mv %s %s",(const char *)fmaptmp,(const char*)fmap);
+       system(cmd);
     sprintf(cmd,"chmod g+w %s",(const char*)fmap);
     system(cmd);
     return true;

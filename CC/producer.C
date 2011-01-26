@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.145 2011/01/11 18:33:55 choutko Exp $
+//  $Id: producer.C,v 1.146 2011/01/26 20:46:57 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -72,7 +72,7 @@ else{
   if(!ior ){
     
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     if(!AMSJob::gethead()->isRealData())_openLogFile("MCProducer",_Solo);
      else _openLogFile("Producer",_Solo);
    }
 //   _Head=this;
@@ -89,13 +89,13 @@ else{
      _plist.push_front(_pvar);
   if(!_getpidhost(uid)){
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     if(!AMSJob::gethead()->isRealData())_openLogFile("MCProducer",_Solo);
      else _openLogFile("Producer",_Solo);
    }
       FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
  }
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     if(!AMSJob::gethead()->isRealData())_openLogFile("MCProducer",_Solo);
      else _openLogFile("Producer",_Solo);
    }
      _Head=this;
@@ -228,6 +228,9 @@ if (_Solo){
    }
    else{
    _reinfo->DataMC=1;
+   if(!AMSJob::gethead()->isRealData()){
+   _reinfo->DataMC=0;
+   }
    _reinfo->uid=_pid.uid;
     _reinfo->CounterFail=0;
     _reinfo->Status=DPS::Producer::Allocated;
@@ -634,139 +637,6 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 }
 
 
-// Move ntuple to the dest directory
-
-char *destdir=getenv("NtupleDestDir");
-if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
- char *means=getenv("TransferBy");
- AString fmake;
- AString fcopy;
- if(means && means[0]=='r' && means[1]=='f'){
-  fmake="rfmkdir -p -m 775 ";
-  fcopy=means;
-  fcopy+=" ";
- }
- else if(means){
-  fmake+="mkdir -p ";
-  fcopy=means;
-  fcopy+=" ";
- } 
- else{
-  fmake="mkdir -p ";
-  fcopy="cp ";
- }
- fmake+=destdir;
-// fmake+='/';
-// for (int k=bnt;k<bend;k++)fmake+=a[k];
- system((const char*)fmake);
- fcopy+=(const char*)a(bstart);
- fcopy+="  ";
- fcopy+=destdir; 
-// fcopy+='/';
-// for (int k=bnt;k<bend;k++)fcopy+=a[k];
- if(!_Solo)sendid(2400);
- int ntry=5;
- for(int j=0;j<ntry;j++){
-  sleep(1<<(j+1));
-  if(!_Solo)sendCurrentRunInfo();
-  cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
-  if(!system((const char*)fcopy)){
-   cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
-  if(!_Solo)sendCurrentRunInfo();
-   if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
-     !(means && means[0]=='r' && means[1]=='f')){
-    AString rm="rm -rf ";
-    rm+=a(bstart);
-    system((const char*)rm);
-    cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
-     struct statfs64 buffer;
-     int fail=statfs64((const char*)destdir, &buffer);
-    if(fail){
-      ntend->FreeSpace=-1;
-      ntend->TotalSpace=-1;
-    }
-    else{
-     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
-     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
-    }
-    _FreeSpace=ntend->FreeSpace;
-    AString b="";
-    for(int k=0;k<bstart;k++)b+=a[k];
-    b+=destdir;
-    b+="/";
-    //b+=a(bnt);
-    b+=a(bend);
-    a=b;
-    ntend->Name=(const char*)a;
-   }
-   break;
-  }
- }
-}
-
-  if(!_Solo)sendCurrentRunInfo();
-
-
-
-
-
-    struct stat64 statbuf;
-    stat64((const char*)a(bstart), &statbuf);
-    
-
-ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size/1024./1024.+0.5;
-ntend->ErrorNumber=0;
-
-  if(!_Solo)sendCurrentRunInfo();
-
-/*
-//add crc
-   if(!AMSTimeID::_Table){
-     AMSTimeID::_InitTable;
-   }
-   ifstream fbin;
-   sleep(1);
-   fbin.open((const char*)a(bstart));
-   uinteger crc=0;
-   if(fbin){
-         cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
-          unsigned int chunk[65536]; 
-         int i=0;
-          long long fsize=statbuf.st_size;
-         for(;;){
-           if(!fsize) break;
-           unsigned int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
-           fbin.read((char*)chunk,myread);
-           fsize-=myread;
-           if(fbin.good() && !fbin.eof()){
-           int beg;
-           if(i==0){
-            crc=~chunk[0];
-            beg=1;
-           }
-           else{
-            beg=0;
-           }
-           if(i%4096==0){
-               cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
-               if(!_Solo)sendCurrentRunInfo();
-           }
-           for(int m=beg;m<myread/sizeof(chunk[0]);m++){
-            for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
-            crc=crc^chunk[m];  
-           }
-           i++;
-          }
-          else break;
-         }
-         fbin.close();
-         ntend->crc=~crc;
-   }
-  if(!_Solo)sendCurrentRunInfo();
-
-*/
-
 
 // add validation
 if(type!=DPS::Producer::RawFile){
@@ -819,6 +689,148 @@ if(exedir && nve && AMSCommonsI::getosname()){
 else{
      ntend->Status=DPS::Producer::Validated;
 }
+
+
+// Move ntuple to the dest directory
+
+char *destdir=getenv("NtupleDestDir");
+if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
+ char *means=getenv("TransferBy");
+ AString fmake;
+ AString fcopy;
+ if(means && means[0]=='r' && means[1]=='f'){
+  fmake="rfmkdir -p -m 775 ";
+  fcopy=means;
+  fcopy+=" ";
+ }
+ else if(means){
+  fmake+="mkdir -p ";
+  fcopy=means;
+  fcopy+=" ";
+ } 
+ else{
+  fmake="mkdir -p ";
+  fcopy="cp ";
+ }
+ fmake+=destdir;
+// fmake+='/';
+// for (int k=bnt;k<bend;k++)fmake+=a[k];
+ system((const char*)fmake);
+ fcopy+=(const char*)a(bstart);
+ fcopy+="  ";
+ fcopy+=destdir; 
+// fcopy+='/';
+// for (int k=bnt;k<bend;k++)fcopy+=a[k];
+ if(!_Solo)sendid(2400);
+ int ntry=5;
+ for(int j=0;j<ntry;j++){
+  sleep(1<<(j+1));
+  if(!_Solo)sendCurrentRunInfo();
+  cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
+  if(!system((const char*)fcopy)){
+   cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
+  if(!_Solo)sendCurrentRunInfo();
+   if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
+    1){
+//     !(means && means[0]=='r' && means[1]=='f')){
+    AString rm="rm -rf ";
+    rm+=a(bstart);
+    system((const char*)rm);
+    cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
+     struct statfs64 buffer;
+     int fail=statfs64((const char*)destdir, &buffer);
+    if(fail){
+      ntend->FreeSpace=-1;
+      ntend->TotalSpace=-1;
+    }
+    else{
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.))/1024;
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.))/1024;
+    }
+
+    _FreeSpace=ntend->FreeSpace;
+    AString b="";
+    for(int k=0;k<bstart;k++)b+=a[k];
+    b+=destdir;
+    b+="/";
+    //b+=a(bnt);
+    b+=a(bend);
+    a=b;
+    ntend->Name=(const char*)a;
+   }
+   break;
+  }
+ }
+}
+
+  if(!_Solo)sendCurrentRunInfo();
+
+
+
+
+
+    struct stat64 statbuf;
+    stat64((const char*)a(bstart), &statbuf);
+char *means=getenv("TransferBy");
+
+ if(    !(means && means[0]=='r' && means[1]=='f')){
+ 
+
+ntend->Insert=statbuf.st_ctime;
+ntend->size=statbuf.st_size/1024./1024.+0.5;
+}
+ntend->ErrorNumber=0;
+
+  if(!_Solo)sendCurrentRunInfo();
+
+/*
+//add crc
+   if(!AMSTimeID::_Table){
+     AMSTimeID::_InitTable;
+   }
+   ifstream fbin;
+   sleep(1);
+   fbin.open((const char*)a(bstart));
+   uinteger crc=0;
+   if(fbin){
+         cout <<"SendNtupleEnd-I-AddingCRC "<<(const char*)a(bstart)<<endl;
+          unsigned int chunk[65536]; 
+         int i=0;
+          long long fsize=statbuf.st_size;
+         for(;;){
+           if(!fsize) break;
+           unsigned int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
+           fbin.read((char*)chunk,myread);
+           fsize-=myread;
+           if(fbin.good() && !fbin.eof()){
+           int beg;
+           if(i==0){
+            crc=~chunk[0];
+            beg=1;
+           }
+           else{
+            beg=0;
+           }
+           if(i%4096==0){
+               cout <<"SendNtupleEnd-I-AddingCRC "<<fsize/1024/1024<< " MB left"<<endl;
+               if(!_Solo)sendCurrentRunInfo();
+           }
+           for(int m=beg;m<myread/sizeof(chunk[0]);m++){
+            for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
+            crc=crc^chunk[m];  
+           }
+           i++;
+          }
+          else break;
+         }
+         fbin.close();
+         ntend->crc=~crc;
+   }
+  if(!_Solo)sendCurrentRunInfo();
+
+*/
+
+
 }
 
 
@@ -1064,7 +1076,7 @@ checkdd:
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
 
-
+castortry:
 
 // check if dd writeable 
 
@@ -1104,6 +1116,27 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
 
  if(system((const char*)fmake)){
+       cerr<<"Unable create dst dest  dir "<<fmake<<endl;
+        if(!strstr((const char*)destdir,"/castor/cern.ch/ams")){
+           int bstart=0;
+           for(int i=1;i<strlen(destdir);i++){
+            if(destdir[i]=='/'){
+                bstart=i;
+                break;
+            }
+           }
+           if(bstart){
+             AString newdd="/castor/cern.ch/ams";
+             newdd+=destdir+bstart;
+             setenv("NtupleDestDir",(const char*)newdd,1);
+             setenv("TransferBy","rfcp ",1);
+             setenv("STAGE_HOST","castorpublic",1);
+             setenv("RFIO_USE_CASTOR_V2","YES",1);
+             setenv("STAGE_SVCCLASS","amscdr",1);
+             setenv("CASTOR_INSTANCE","castorpublic",1);
+             goto castortry;
+            }
+          }
        FMessage("Unable create dst dest  dir ", DPS::Client::CInAbort); 
  }
 }

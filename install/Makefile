@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.144 2011/01/19 11:30:07 choutko Exp $
+#  $Id: Makefile,v 1.145 2011/01/26 20:47:36 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -567,22 +567,22 @@ endif
 ifdef PGTRACK
 $(BIN)rootdict.C:  $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) $^ 
+	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict.C -c  -p $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/amschain.h $(ROOTDICTFILES)
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) $^ 
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 else
 $(BIN)rootdict.C:    ../include/point.h     ../include/root_RV.h ../include/root.h         ../include/root_setup.h ../include/trigger102_setup.h  ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c $^ 
+	$(ROOTSYS)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
 $(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/linkdef.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c $^ 
+	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
 	@echo "OK"
 
 endif

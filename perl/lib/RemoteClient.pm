@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.617 2011/01/21 16:17:52 ams Exp $
+# $Id: RemoteClient.pm,v 1.618 2011/01/26 20:47:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3732,10 +3732,14 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $tdir ="";
             my @jrun=split '\.',$junk[$#junk];
             my $run=$jrun[0]; 
+            
             if($rootfileaccess eq "CASTOR"){
                 $junk[1]=$prefix;
             }
-            for (my $i=1; $i<$#junk; $i++) {
+            else{
+             $junk[1]="/".$junk[1];
+             }
+               for (my $i=1; $i<$#junk; $i++) {
                 my $sp="/";
                 if($i==1){
                     $sp="";
@@ -4640,7 +4644,10 @@ CheckCite:            if (defined $q->param("QCite")) {
             if($rootfileaccess eq "CASTOR"){
                 $junk[1]=$prefix;
             }
-            for (my $i=1; $i<$#junk; $i++) {
+                     else{
+             $junk[1]="/".$junk[1];
+             }
+           for (my $i=1; $i<$#junk; $i++) {
                 my $sp="/";
                 if($i==1){
                     $sp="";
@@ -6224,7 +6231,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
-              htmlTextField("CPU Time Limit Per Job","number",9,100000,"QCPUTime"," seconds (Native).");
+              htmlTextField("CPU Time Limit Per Job","number",9,300000,"QCPUTime"," seconds (Native).");
               htmlTextField("Total Jobs Requested","number",7,50,"QRun"," ");
                  if($self->{CCT} eq "local" or $dataset->{datamc}==1){
    print qq`
@@ -6378,7 +6385,7 @@ print qq`
           print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
-          print $q->textfield(-name=>"QEv",-default=>1000000);
+          print $q->textfield(-name=>"QEv",-default=>3000000);
                 print "Number of Runs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
             my ($rid,$rndm1,$rndm2) = $self->getrndm();
@@ -6431,7 +6438,7 @@ print qq`
           print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
-          print $q->textfield(-name=>"QEv",-default=>1000000);
+          print $q->textfield(-name=>"QEv",-default=>3000000);
                 print "Number of Jobs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
             my ($rid,$rndm1,$rndm2) = $self->getrndm();
@@ -6555,7 +6562,7 @@ print qq`
           print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
-          print $q->textfield(-name=>"QEv",-default=>1000000);
+          print $q->textfield(-name=>"QEv",-default=>3000000);
                 print "Number of Runs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
           print "<BR>";
@@ -7270,6 +7277,24 @@ print qq`
          $buf=~ s/JOB=/CLOCK=$clock \nJOB=/;
          my $ctime=time();
          $buf=~ s/JOB=/SUBMITTIME=$ctime\nJOB=/;
+#       add common template here
+{
+        my $dir="$self->{AMSSoftwareDir}/Templates";
+        my $full=$dir."/common.job";
+        open(FILE,"<".$full) or die "Unable to open file $full \n";
+        my $bufb;
+        read(FILE,$bufb,1638400) or next;
+        close FILE;
+       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+}
+        if($dataset->{g4}=~/g4/){
+        my $dir="$self->{AMSSoftwareDir}/Templates";
+        my $full=$dir."/commong4.job";
+        open(FILE,"<".$full) or die "Unable to open file $full \n";
+        my $bufb;
+        read(FILE,$bufb,1638400) or next;
+        close FILE;
+        }
          if($self->{CCT} eq "local"){
           $tmpb=~ s/\$RUNDIR\/\$RUN/\$RUNDIR/;
           $buf=~ s/RUNDIR=/RUNDIR=$path/;
@@ -7821,7 +7846,7 @@ anyagain:
         }
          my $cputime=$q->param("QCPUTime");
         if(not defined $cputime){
-           $cputime=100000
+           $cputime=300000
         }
         if($cputime < 86400  and $self->{CCA} ne 'test'){
              $self->ErrorPlus("CPU Time Limit Per Job $cputime is too low for the AMS02 MC (min 86400 sec) ");
@@ -17932,7 +17957,7 @@ sub UploadToCastor{
     }
     my $path=undef;
 #     $sql = "SELECT ntuples.run from jobs,ntuples where jobs.pid=$did and jobs.jid=ntuples.jid $castor and ntuples.path like '%$dir%' and ntuples.datamc=$datamc group by run";
-     $sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where    ntuples.path like '%$dir%' $castor and ntuples.datamc=$datamc order by ntuples.jid";
+     $sql = "SELECT ntuples.run,ntuples.path,ntuples.jid from ntuples where    ntuples.path like '%$dir%' $castor and ntuples.datamc=$datamc and ntuples.path not like '%.hbk' order by ntuples.jid";
     if($datamc>1){
      $sql = "SELECT run,path from datafiles where path like '%$dir%'  $castor and type like '$delim%' and type not like '$adelim%' order by run";
     }     
@@ -17954,7 +17979,7 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' $castor and path not like '/castor%' and datamc=$datamc";
+        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     if($datamc>1){
         $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' $castor and path not like '/castor%' and type like '$delim%'";
     }
@@ -17996,7 +18021,12 @@ sub UploadToCastor{
          }  
          @junk=split $name_s,$ntuple->[0];
          my $castor=$castorPrefix."/$name$junk[1]";
-         my @junk2=split /\//,$ntuple->[0];
+         my @junk2=split '\/',$castor;
+         my @junk3=split $junk2[$#junk2],$castor; 
+         if($#junk3>=0){
+         my $sys="/usr/bin/rfmkdir -p $junk3[0]";
+          system($sys);
+     }
          my $sys=$rfcp.$ntuple->[0]." $castor";
          my $i=system($sys);
          if($i){

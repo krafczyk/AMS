@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxia64ecc,v 1.1 2011/01/14 12:52:42 choutko Exp $
+#  $Id: Makefile.linuxia64ecc,v 1.2 2011/01/26 20:47:36 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -76,23 +76,23 @@ IDLCPP=$(ORBIT2DIR)/bin//orbit-idl-2 --backenddir=$(ORBIT2DIR)/lib/orbit-2.0/idl
 ########################################################################
 
 # change defaults if intel compiler 
-CERN_LEVEL =2005.icc64.11.1.038
+CERN_LEVEL =2005.icc64.11.1.075
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib 
 
 
 ifndef CERNDIR
-CERNDIR =/Offline/CERN/$(CERN_LEVEL)
+CERNDIR =$(Offline)/CERN/$(CERN_LEVEL)
 endif
 
 
 CERNSRCDIR = $(CERNDIR)
 
 ifndef AMSLIB
-AMSLIB =  /Offline/lib/linux/icc64
+AMSLIB =  $(Offline)/lib/linux/ecc64
 endif
 ifndef NAGDIR
-NAGDIR  = /Offline/CERN/NagLib.icc64
+NAGDIR  = $(Offline)/CERN/NagLib.icc64
 endif
 
 ########################################################################
