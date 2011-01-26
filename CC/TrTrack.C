@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.88 2011/01/25 16:27:08 shaino Exp $
+// $Id: TrTrack.C,v 1.89 2011/01/26 23:36:21 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/01/25 16:27:08 $
+///$Date: 2011/01/26 23:36:21 $
 ///
-///$Revision: 1.88 $
+///$Revision: 1.89 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +37,18 @@
 #include "TrRecon.h"
 #include <cmath>
 #include <algorithm>
+
+int my_int_pow(int base, int exp){
+  if (exp<0) return -1;
+  if (base==0) return 0;
+  int ss=1;
+  if (base<0 && exp%2==1)ss=-1;
+  int bb=abs(base);
+  int out=1;
+  for(int ii=0;ii<exp;ii++)
+    out*=bb;
+  return out*ss;
+}
 
 
 ClassImp(TrTrackPar)
@@ -1548,71 +1560,84 @@ void TrTrackR::PrintFitNames(){
 
 
 int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg){
-    int type=algo%10;
-    bool mscat=((algo/10)==1);
-    int fittype=0;
-    switch (type){
+  int type=algo%10;
+  bool mscat=((algo/10)==1);
+  int fittype=0;
+  switch (type){
     case 0 :
       fittype|=trdefaultfit;
       break;
-    case 1 :
-      fittype|=kChoutko;
-      break;
-    case 2 :
-      fittype|=kAlcaraz;
-      break;
-    case 3 :
-      fittype|=kChikanian;
-      break;
+  case 1 :
+    fittype|=kChoutko;
+    break;
+  case 2 :
+    fittype|=kAlcaraz;
+    break;
+  case 3 :
+    fittype|=kChikanian;
+    break;
     default :
       fittype|=kChoutko;
-    }
-    if(!mscat) fittype|=kMultScat;
-    int ebpat = _bit_pattern & 0x180;
-    int basetype=fittype;
-    if(pattern==0){
-      // Has1N 
-      if ((_bit_pattern & 0x80)>0) fittype|= kFitLayer8;
-      // Has9 
-      if ((_bit_pattern & 0x100)>0) fittype|= kFitLayer9;
-    }
-    else if(pattern==1) fittype|= kUpperHalf;
-    else if(pattern==2) fittype|= kLowerHalf;
-    else if(pattern==3) fittype=basetype;
-    else if(pattern==4 && (ebpat == 0x180)) fittype|= kExternal;
-    else if(pattern==5 && (ebpat  & 0x080)) fittype|= kFitLayer8;
-    else if(pattern==6 && (ebpat  & 0x100)) fittype|= kFitLayer9;
-    else if(pattern==7 && (ebpat == 0x180)) fittype|= kFitLayer8|kFitLayer9;
-    else if(pattern>9){ //it is a base10 hit pattern	
-      fittype|=kPattern;
-      if(((pattern/1         )%10)>0) fittype|=kFitLayer1;
-      if(((pattern/10        )%10)>0) fittype|=kFitLayer2;
-      if(((pattern/100       )%10)>0) fittype|=kFitLayer3;
-      if(((pattern/1000      )%10)>0) fittype|=kFitLayer4;
-      if(((pattern/10000     )%10)>0) fittype|=kFitLayer5;
-      if(((pattern/100000    )%10)>0) fittype|=kFitLayer6;
-      if(((pattern/1000000   )%10)>0) fittype|=kFitLayer7;
-      if(((pattern/10000000  )%10)>0) fittype|=kFitLayer8;
-      if(((pattern/100000000 )%10)>0) fittype|=kFitLayer9;
-    }
-    else
-      return -1;
-
-    
-    bool FitExists=ParExists(fittype);
-    if(refit==2 || (!FitExists && refit==1)) { 
-      float ret=FitT(fittype,-1,true,0,mass,chrg);
-      if (ret>0) 
-	return fittype; 
-     else 
-	return -2;
-    }
-    FitExists=ParExists(fittype);
-    if(!FitExists && refit==0) return -1;
-    else if(FitExists) return fittype;
-    else
-      return -1;
   }
+  if(!mscat) fittype|=kMultScat;
+  int ebpat = _bit_pattern & 0x180;
+  int basetype=fittype;
+  if(pattern==0){
+    // Has1N 
+    if ((_bit_pattern & 0x80)>0) fittype|= kFitLayer8;
+    // Has9 
+    if ((_bit_pattern & 0x100)>0) fittype|= kFitLayer9;
+  }
+  else if(pattern==1) fittype|= kUpperHalf;
+  else if(pattern==2) fittype|= kLowerHalf;
+  else if(pattern==3) fittype=basetype;
+  else if(pattern==4){ 
+    if (ebpat == 0x180) fittype|= kExternal;
+    else return -1;
+  }
+  else if(pattern==5){ 
+    if (ebpat  & 0x080) fittype|= kFitLayer8;
+      else return -1;
+  }
+  else if(pattern==6){
+    if (ebpat  & 0x100) fittype|= kFitLayer9;
+    else return -1;
+  }
+  else if(pattern==7){ 
+    if (ebpat == 0x180) fittype|= kFitLayer8|kFitLayer9;
+      else return -1;
+  }
+  else if(pattern>9){ //it is a base10 hit pattern	
+    fittype|=kPattern;
+    int fflayer[9]={
+      kFitLayer1, kFitLayer2,	kFitLayer3, kFitLayer4,	kFitLayer5,
+      kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
+    for(int kk=0;kk<9;kk++)
+      if(((pattern/my_int_pow(10,kk))%10)>0){
+	  if(_bit_pattern & (1<<kk))  fittype|=fflayer[kk];
+          else
+	    return -1;
+      }
+  }
+  else
+    return -1;
+
+  
+  bool FitExists=ParExists(fittype);
+  if(refit==2 || (!FitExists && refit==1)) { 
+    float ret=FitT(fittype,-1,true,0,mass,chrg);
+    if (ret>0) 
+      return fittype; 
+    else 
+       return -3;
+  }
+  FitExists=ParExists(fittype);
+  if(!FitExists && refit==0) return -2;
+  else if(FitExists) return fittype;
+  else
+    return -4;
+}
+
 int TrTrackR::Pattern(int input) {
 int pat=0;
 int p=1;

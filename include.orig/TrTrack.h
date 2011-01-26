@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.53 2011/01/25 16:27:08 shaino Exp $
+//  $Id: TrTrack.h,v 1.54 2011/01/26 23:36:21 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/01/25 16:27:08 $
+///$Date: 2011/01/26 23:36:21 $
 ///
-///$Revision: 1.53 $
+///$Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -403,7 +403,12 @@ public:
      
      \param chrg (optional) the particle charge. (default = 1)
 
-     \return  the code to access the TrTrackPar object corresponding to the selected fit or -1 if not found  
+     \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
+             \retval  >=0  --> The code corresponding to the requested fittype
+              \retval -1 --> The requested fit cannot be performed on this track
+              \retval -2 --> The requested fit it is not available without refitting    
+              \retval -3 --> The refit failed
+              \retval -4 --> Should not happen!! contact the developpers
 
      To correctly perform the refit, the FieldMap file is needed.
      If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
