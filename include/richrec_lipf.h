@@ -470,7 +470,7 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
 
       !$OMP THREADPRIVATE (/richchgc/)
       integer nphirmax
-      parameter(NPHIRMAX=100)
+      parameter(NPHIRMAX=500)
 
       integer iflagacc
       real richacc_inv, richacc_dir, richacc_mir0, richacc_mir1,     
