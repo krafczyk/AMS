@@ -52,7 +52,7 @@
        !$OMP THREADPRIVATE (idummy)
 
 * **********< INIT
-       real chgwin,d2minip,FNORM
+       real d2minip,FNORM
        SAVE d2minip,FNORM
        data d2minip /25./
 *       data FNORM /146.1/

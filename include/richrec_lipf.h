@@ -441,6 +441,13 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       integer nmaxmirsecc
       parameter(NMAXMIRSECC=10)
 
+      real chgwin
+
+      common /richchgw/
+     +        chgwin            ! charge integration window (cm)
+
+       !$OMP THREADPRIVATE (/richchgw/)
+
       integer iflagchg
       real chg_nphe, chg_nphe_sim, chg_nphe_dir, chg_nphe_ref,
      +     chgrec,   chgrec_dir,   chgrec_ref,   chgsim,
