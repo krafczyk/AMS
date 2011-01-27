@@ -120,7 +120,12 @@ void MonSlider::setRootFile(char *filename){
   }
   if (rootfile->FindObjectAny("TrOnlineMonHeader")!=0) {
     TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader"); 
-    // canvas->SetTitle(title);
+    if (header->GetNRunNumber()>0) { 
+      char title[100];
+      time_t pippo = (time_t) header->GetRunNumber(0);
+      sprintf(title,"Data from run %10d %s",header->GetRunNumber(0),ctime(&pippo));
+      canvas->SetTitle(title);
+    }
   }
   try2Draw(ladder);
 }
