@@ -182,7 +182,7 @@ class RichPMTsManager{
 
   static geant GetAMSPMTPos(int geom_id,int p){
     _assert(geom_id>-1 && geom_id<RICmaxpmts && p>-1 && p<3);
-    if(p!=3)
+    if(p==2)
     return _pmts[geom_id]._global_position[p]-RICHDB::total_height()/2+RICHDB::RICradpos();
     else return _pmts[geom_id]._global_position[p];
   }
