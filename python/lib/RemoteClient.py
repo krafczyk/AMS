@@ -1852,7 +1852,7 @@ class RemoteClient:
     def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc):
         if(type=="RawFile" and datamc==0):
             paths="/Offline/RunsDir/MC/";
-            cmd="ln -s %s %s" %(path,paths)
+            cmd="ln -sf %s %s" %(path,paths)
             os.system(cmd)
             sql="select fetime,letime from runs where jid=%d" %(jid)
             ret=self.sqlserver.Query(sql)
