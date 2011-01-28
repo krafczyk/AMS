@@ -1061,7 +1061,7 @@ class RemoteClient:
                                                     events=ntuple.EventNumber
                                                     badevents=(i*events/100)
                                                     self.validated=self.validated+1
-                                                    (outputpatha,rstatus,odisk)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
+                                                    (outputpatha,rstatus,odisk,castortime)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
 						    outputpath=outputpatha[:]
                                                     if(outputpath != None):
                                                         mvntuples.append(outputpath)
