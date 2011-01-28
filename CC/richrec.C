@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.149 2011/01/24 15:14:35 mdelgado Exp $
+//  $Id: richrec.C,v 1.150 2011/01/28 19:55:37 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2066,6 +2066,12 @@ int AMSRichRingNew::buildlip(){
     _abs_len=crossed_tile.getabstable();
     _index_tbl=crossed_tile.getindextable();
     _kind_of_tile=crossed_tile.getkind();
+
+    // local aerogel ref index and clarity values replaces global value
+    if(_index>1.02 && _index<1.1) {
+      LIPC2F.radix_c2f[0] = _index;
+      LIPC2F.radclarity_c2f = _clarity;
+    }
 
     RichLIPRec::InitTrack(_entrance_p,_entrance_d);
   }
