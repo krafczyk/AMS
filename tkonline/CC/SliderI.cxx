@@ -11,11 +11,9 @@ SliderI::SliderI(char *name, char *title, UInt_t w, UInt_t h) : TObject() {
 
 
 SliderI::~SliderI() { 
-  printf("IL DISTRUTTORE %d %d\n",canvas,frame);
   if (canvas!=0) delete canvas;
   canvas = 0;
   if (frame!=0) delete frame; 
   frame = 0;
-  printf("IL DISTRUTTORE %d %d\n",canvas,frame); 
 }
 

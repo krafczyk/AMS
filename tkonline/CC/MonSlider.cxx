@@ -622,7 +622,7 @@ void MonSlider::DrawLadder() {
   width_p->SetLineWidth(2);
   width_p->SetLineColor(kBlue);
   width_p->Draw("HIST");
-  width_n->Draw("HIST");
+  width_n->Draw("HIST SAME");
   // Occupancy
   cc = canvas->cd(3);
   cc->SetGridx();
@@ -633,11 +633,12 @@ void MonSlider::DrawLadder() {
   if ( (occupancy==0)||(rawcluste==0) ) { canvas->Update(); return; }
   int nentries = (int) rawcluste->GetEntries();
   occupancy->Scale(100./nentries); 
-  occupancy->SetFillColor(kRed);
+  // occupancy->SetFillColor(kRed);
   occupancy->SetStats(kFALSE);
   occupancy->GetXaxis()->SetNdivisions(516,kFALSE);
   occupancy->SetYTitle("Occupancy (%)");
-  occupancy->Draw("HIST"); 
+  occupancy->SetLineWidth(2);
+  occupancy->Draw("l"); 
   // Size
   cc = canvas->cd(4);
   cc->SetGridx();
@@ -645,7 +646,9 @@ void MonSlider::DrawLadder() {
   cc->SetGridy();
   TH1D* size = (TH1D*) GetHisto(rootfile,Form("Size_%+04d",tkid));
   if (size==0) { canvas->Update(); return; }
+  size->SetLineWidth(2);
   size->SetStats(kFALSE);
+  size->GetXaxis()->SetRangeUser(7.,400);
   size->Draw("HIST"); 
   canvas->cd(1);
   // Name
@@ -705,17 +708,18 @@ void MonSlider::DrawHitsOnTrack() {
   TText* text = new TText();
   int order[9] = {2,3,4,5,6,7,8,1,9};
   TVirtualPad* cc;
-  TH2D* occupancy[8];
+  TH2D* occupancy[9];
   for (int tt=0; tt<TkDBc::Head->nlay(); tt++) {
+    occupancy[tt] = (TH2D*) GetHisto(rootfile,Form("Occupancy_layer%1d",tt+1));
+    if (occupancy[tt]==0) { canvas->Update(); return; }
     if (TkDBc::Head->GetSetup()==3) cc = canvas->cd(order[tt]);
     else                            cc = canvas->cd(tt+1);
     cc->SetGridx();
     cc->SetGridy();
-    occupancy[tt] = (TH2D*) GetHisto(rootfile,Form("Occupancy_layer%1d",tt+1));
-    if (occupancy[tt]==0) { canvas->Update(); return; }
     occupancy[tt]->SetStats(kFALSE);
     occupancy[tt]->Draw("COLZ");
     text->DrawTextNDC(0.10,0.91,Form("Layer %1d",tt+1));
+    canvas->Update();
   }
   canvas->Update();
 }
@@ -753,7 +757,6 @@ void MonSlider::DrawTrack() {
   if (y_vs_x==0) { canvas->Update(); return; }
   y_vs_x->Draw("COLZ");
   // rigidity histogram
-  cc = canvas->cd(3);
   TH1D* rigplus  = (TH1D*) GetHisto(rootfile,"logRigidityPlus_all");
   TH1D* rigminus = (TH1D*) GetHisto(rootfile,"logRigidityMinus_all");
   if ( (rigplus==0)||(rigminus==0) ) { canvas->Update(); return; }
@@ -763,7 +766,7 @@ void MonSlider::DrawTrack() {
   int    nbins  = rigplus->GetXaxis()->GetNbins();
   float  step   = (logmax-logmin)/nbins;
   Double_t bins[100];
-  for (int ii=0; ii<=nbins; ii++) bins[ii] = powf(10.,logmin) * powf(10.,step*ii);
+  for (int ii=0; ii<=nbins; ii++) bins[ii] = pow(10.,logmin) * pow(10.,step*ii);
   ClearHistoFromMemory("RigidityPlus_all");
   ClearHistoFromMemory("RigidityMinus_all");
   gROOT->cd();
@@ -773,7 +776,7 @@ void MonSlider::DrawTrack() {
     rigplus2->SetBinContent(ii+1,rigplus->GetBinContent(ii+1));
     rigminus2->SetBinContent(ii+1,rigminus->GetBinContent(ii+1));
   }
-  // drawing
+  cc = canvas->cd(3);
   cc->SetLogx();
   cc->SetLogy();
   cc->SetGridy();
@@ -959,13 +962,13 @@ void MonSlider::DrawHits() {
   canvas->Draw();
   canvas->Clear();
   canvas->Divide(1,2,0.001,0.001);
-  TVirtualPad* cc0 = canvas->cd(1);
   TH1D* nhits_vs_events = (TH1D*) GetHisto(rootfile,"nRecHits_vs_Events_all");
   if (nhits_vs_events==0) { canvas->Update(); return; }
+  TVirtualPad* cc = canvas->cd(1);
   nhits_vs_events->Draw("COLZ");
-  cc0 = canvas->cd(2);
   TH1D* nhitsontrack_vs_events = (TH1D*) GetHisto(rootfile,"nRecHitsOnTrack_vs_Events_all");
   if (nhitsontrack_vs_events==0) { canvas->Update(); return; }
+  cc = canvas->cd(2);
   nhitsontrack_vs_events->Draw("COLZ");
   canvas->Update();
 }

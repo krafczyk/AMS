@@ -310,7 +310,6 @@ void CalSlider::OpenFile(){
 }
 
 CalSlider::~CalSlider(){
-  printf("IL DISTRUTTORE DI CALSLIDER\n");
   ClearHistograms();
   if (rootfile!=0) rootfile->Close();
   rootfile = 0;
