@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.302 2011/01/14 12:08:08 mdelgado Exp $
+//  $Id: root.h,v 1.303 2011/01/29 15:51:20 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -378,7 +378,7 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
   short   Proj;     ///< projection (0-x,1-y)
   short   Plane;    ///< ECAL plane number (0,...17)
   short   Cell;     ///< ECAL Cell number (0,...71)    
-  float Edep;     ///< ECAL measured energy (MeV)
+  float Edep;     ///< ECAL measured energy (MeV, includes all corrections)
   float EdCorr;   ///< ECAL PMsaturation1-correction(MeV) added to Edep
   float AttCor;   ///<  Attenuation Correction applied (w/r  to center of ecal) (MeV)
   float Coo[3];   ///< ECAL Coo (cm)

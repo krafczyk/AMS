@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.81 2010/09/09 19:14:59 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.82 2011/01/29 15:51:20 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -356,24 +356,25 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     zc=_supstr[1]+_plnstr[1]+dz/2.;//mid-plane of closest to botHC counters
   else if(il==3)
     zc=_supstr[1]+_plnstr[0]+dz/2.;//mid-plane of closest to botHC counters
-//z-biases according old design:
+//
+//z-biases according to official design:
 //
 //if(!AMSJob::gethead()->isRealData()){//tempor for MC to use old calibration
 
-//  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
-//  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
-//  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
-//  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
+  if(il==0)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHC
+  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];//1st counter is far from topHc
+  else if(il==2)zc=zc+(ib%2)*_plnstr[2];//1st counter is close botHC
+  else if(il==3)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
 
 //}
 //
 // z-biases inverted as follows from data:
 //else{
 
-  if(il==0)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHC
-  else if(il==1)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHc
-  else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
-  else if(il==3)zc=zc+((ib)%2)*_plnstr[2];//1st counter is close to botHC
+//  if(il==0)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHC
+//  else if(il==1)zc=zc-((ib)%2)*_plnstr[2];//1st counter is close to topHc
+//  else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//1st counter is far from botHC
+//  else if(il==3)zc=zc+((ib)%2)*_plnstr[2];//1st counter is close to botHC
   
 //}
 //
