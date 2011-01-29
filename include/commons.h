@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.302 2011/01/14 18:58:45 barao Exp $
+//  $Id: commons.h,v 1.303 2011/01/29 03:48:54 mmilling Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -302,6 +302,7 @@ public:
 
   int FitMethod;
   int SaveHistos;
+  float CalStartVal;
 };
 #define TRDFITFFKEY COMMON_BLOCK(TRDFITFFKEY,trdfitffkey)
 COMMON_BLOCK_DEF(TRDFITFFKEY_DEF,TRDFITFFKEY);

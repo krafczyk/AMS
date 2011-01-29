@@ -155,6 +155,21 @@ class TrdHReconR{
     return _trdhrecon[i];
   }
 
+  /// flag if calibration should be performed
+  static bool calibrate;
+
+  /// initialize calibration
+  void init_calibration(float start_value);
+
+  /// update tdv gain array
+  void update_tdv_array(int debug=0);
+
+  /// event quality selection  
+  int SelectEvent();
+
+  /// track quality selection  
+  int SelectTrack(int tr);
+
   /// vector of TrdRawHit objects (used as input to reconstruction)
   vector<TrdRawHitR> rhits;
   
@@ -181,6 +196,12 @@ class TrdHReconR{
 
   /// container to store probability of charge for event
   map<float,int> charge_probabilities;
+
+  /// container for channel medians
+  static float tube_medians[5248];
+
+  /// container for channel occupancy
+  static int tube_occupancy[5248];
 
   /// default ctor
   TrdHReconR():adc2kev(100./3.),ccampcut(6.){
@@ -235,6 +256,8 @@ class TrdHReconR{
   /// reconstruct TRD event according to TrdRawHit selection
   void BuildTRDEvent(vector<TrdRawHitR> r,int debug=0);
 
+  void update_medians(TrdHTrackR *track,int debug=0);
+
   /// reconstruct trd event
   int retrdhevent(int debug=0);
 
@@ -264,7 +287,9 @@ class TrdHReconR{
 
   int build();
 
-  ClassDef(TrdHReconR,6)
+  ClassDef(TrdHReconR,7)
 };
+//extern float tube_medians[5248];
+//extern int tube_occupancy[5248];
 #endif
 

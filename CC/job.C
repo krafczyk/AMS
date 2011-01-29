@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.769 2011/01/12 13:49:42 pzuccon Exp $
+// $Id: job.C,v 1.770 2011/01/29 03:48:38 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1120,8 +1120,9 @@ TRDFITFFKEY.SearchRegStrLine=3;
 TRDFITFFKEY.MinFitPoints=6;
 TRDFITFFKEY.TwoSegMatch=0.1;
 TRDFITFFKEY.MaxSegAllowed=50;
-TRDFITFFKEY.FitMethod=0;
+TRDFITFFKEY.FitMethod=2;
 TRDFITFFKEY.SaveHistos=0;
+TRDFITFFKEY.CalStartVal=0.;
 FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
@@ -4299,7 +4300,14 @@ cout<<"   EcalEndJob:noTFAskip="<<noTFAskip<<endl;
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){
-//   AMSTRDIdCalib::ntuple(AMSEvent::gethead()->getrun());
+
+#pragma omp master
+  {
+    if( AMSFFKEY.Update){// && (AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
+      TrdHReconR::gethead(AMSEvent::get_thread_num())->update_tdv_array();
+      AMSTRDRawHit::updtrdcalibSCI();
+    }
+  }
 
   if((isCalibration() & AMSJob::CTRD) ){
    if( TRDCALIB.CalibProcedureNo == 1){
@@ -4391,6 +4399,7 @@ void AMSJob::_dbendjob(){
   if( AMSFFKEY.Update && AMSStatus::isDBUpdateR()   ){
     AMSStatus::UpdateStatusTableDB();
   }
+
 
 
 #ifdef __DB__

@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.39 2009/11/13 12:17:34 choutko Exp $
+//  $Id: trdsim.C,v 1.40 2011/01/29 03:48:37 mmilling Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -185,6 +185,27 @@ integer AMSTRDRawHit::checkdaqidJ(int16u id){
 }
 
 
+void AMSTRDRawHit::updtrdcalibSCI(){
+  AMSTimeID *ptdv=0;
+  time_t begin,end,insert;
+  
+  
+  //  const char* TDV2Update={"TRDPedestals","TRDSigmas","TRDGains","TRDStatus"};
+  //  for (int i=0;i<ntrd;i++){
+  ptdv = AMSJob::gethead()->gettimestructure(AMSID("TRDGains",AMSJob::gethead()->isRealData()));
+  ptdv->UpdateMe()=1;
+  ptdv->UpdCRC();
+  time(&insert);
+  if(CALIB.InsertTimeProc)insert=AMSEvent::getSRun();//AMSEvent::gethead()->getrun();
+  // valid for 10 days
+  ptdv->SetTime(insert,AMSEvent::getSRun()-1,AMSEvent::getSRun()-1+864000);
+  cout <<" TRD SCI  info has been updated for "<<*ptdv;
+  ptdv->gettime(insert,begin,end);
+  cout <<" Time Insert "<<ctime(&insert);
+  cout <<" Time Begin "<<ctime(&begin);
+  cout <<" Time End "<<ctime(&end);
+}
+
 void AMSTRDRawHit::updtrdcalibJ(int n, int16u* pbeg){
  unsigned int length=n&65535;
  unsigned int ic=(n>>16);
@@ -223,7 +244,7 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
         int ute=cha/16;
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
        if(!id.dead()){
-         if(id.getgain()==0)id.setgain()=1;
+	 //         if(id.getgain()==0)id.setgain()=1;
          id.setped()=*(p+i)/TRDMCFFKEY.f2i;
          id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i;
          if(id.getsig()>TRDCALIB.BadChanThr){
@@ -314,7 +335,7 @@ void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
         int ute=cha/16;
         AMSTRDIdSoft id(ic,udr,ufe,ute,roch);
        if(!id.dead()){
-         if(id.getgain()==0)id.setgain()=1;
+	 //         if(id.getgain()==0)id.setgain()=1;
          id.setped()=*(p+i)/TRDMCFFKEY.f2i;
          id.setsig()=*(p+span+i)/TRDMCFFKEY.f2i/4;
          if(id.getsig()>TRDCALIB.BadChanThr){

@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.16 2009/11/13 11:33:38 choutko Exp $
+//  $Id: trdsim.h,v 1.17 2011/01/29 03:48:54 mmilling Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -75,6 +75,7 @@ static void buildrawJ(int n, int16u*p);
 static void updtrdcalib(int n, int16u*p);
 static void updtrdcalib2009(int n, int16u*p);
 static void updtrdcalibJ(int n, int16u*p);
+static void updtrdcalibSCI();
 #ifdef __WRITEROOT__
  friend class TrdRawHitR;
 #endif

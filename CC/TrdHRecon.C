@@ -20,6 +20,10 @@ int TrdHTrackR::numa=0;
 
 ClassImp(TrdHReconR);
 
+float TrdHReconR::tube_medians[5248];
+int TrdHReconR::tube_occupancy[5248];
+bool TrdHReconR::calibrate;
+
 TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
   {0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0,
@@ -700,7 +704,9 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
   for(int n=0;n<r.size();n++)AddHit(&r[n]);
 
   retrdhevent(debug);
+
   //  r.clear();
+  
 }
 
 int TrdHReconR::build(){
@@ -843,6 +849,15 @@ int TrdHReconR::retrdhevent(int debug){
 
   if(debug)printf("TrdHTrackR::build tracks %i\n",(int)htrvec.size());
   
+
+  if(calibrate)
+    if(SelectEvent())
+      for(int i=0;i<htrvec.size();i++)
+#pragma omp critical(updatemed)
+	  {
+	    if(SelectTrack(i))
+	      update_medians(&htrvec[i]);
+	  }
   return 1;
 }
 
@@ -1110,4 +1125,133 @@ int TrdHReconR::GetNCC(TrdHTrackR* tr,int debug){
 #endif
   }
   return n;
+}
+
+void TrdHReconR::update_medians(TrdHTrackR* track,int debug){
+  for(int seg=0;seg<2;seg++){
+    if(!track->pTrdHSegment(seg)) continue;
+    for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
+      TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
+      if(!hit)continue;
+      int layer=hit->Layer;      
+
+      int hvid=hit->Ladder;
+      if(layer>3)hvid+=14;
+      if(layer>7)hvid+=16;
+      if(layer>11)hvid+=16;
+      if(layer>15)hvid+=18;
+
+      int tubeid=(hvid*4+layer%4)*16+hit->Tube;
+#pragma omp critical (trdmed)
+      {
+	if(hit->Amp>tube_medians[tubeid])tube_medians[tubeid]+=0.04;
+	if(hit->Amp<tube_medians[tubeid])tube_medians[tubeid]-=0.1;
+	if(debug)
+	  printf("LLT %02i%02i%02i id %i med %.2f\n",hit->Layer,hit->Ladder,hit->Tube,tubeid,tube_medians[tubeid]);
+	tube_occupancy[tubeid]++;
+      }
+    }
+  }
+  
+}
+
+void TrdHReconR::init_calibration(float start_value){
+  calibrate=true;
+  for(int i=0;i<5248;i++)
+    if(tube_medians[i]==0)tube_medians[i]=start_value;
+}
+
+int TrdHReconR::SelectTrack(int tr){
+  TrdHTrackR* track=&htrvec[tr];
+
+  int ntracklay[20];
+  for(int i=0;i!=20;i++)ntracklay[i]=0;
+  
+  // loop over hits on both segments and calculate number hits on track per layer
+  for(int seg=0;seg<track->nTrdHSegment();seg++){
+    if(!track->pTrdHSegment(seg)) continue;
+    for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
+      TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
+      if(!hit)continue;
+      if(hit->Amp>5)ntracklay[hit->Layer]++;
+    }
+  }
+
+  int ok[3];
+  for(int i=0;i!=3;i++)ok[i]=0;
+
+  for(int i=0;i!=20;i++){
+    if(ntracklay[i]>0){
+      if(i<4)ok[0]++;
+      else if(i<16)ok[1]++;
+      else ok[2]++;
+    }
+  }
+
+  //  if(ok[0]<2||ok[1]<8||ok[2]<2||fraction<0.8)return 0;
+  if(ok[0]<2||ok[1]<8||ok[2]<2)return 0;
+  else return 1;
+}
+
+int TrdHReconR::SelectEvent(){
+  int nhit_ontrack=0;
+  for(int tr=0;tr<(int)htrvec.size();tr++)
+    for(int seg=0;seg<htrvec[tr].nTrdHSegment();seg++){
+      if(!htrvec[tr].pTrdHSegment(seg)) continue;
+      for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
+	TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
+	if(!hit)continue;
+	if(hit->Amp>5)nhit_ontrack++;
+      }
+    }
+
+  int nhit=0;
+  for(int i=0;i!=rhits.size();i++){
+    TrdRawHitR* rhit=&rhits.at(i);
+    if(!rhit)continue;
+    if(rhit->Amp>5)nhit++;
+  }
+
+  float fraction=float(nhit)/float(nhit_ontrack);
+  if(fraction>0.8) return 1;
+  else return 0;
+}
+
+
+
+
+void TrdHReconR::update_tdv_array(int debug){
+#ifndef __ROOTSHAREDLIBRARY__
+
+  for(int i=0;i<5248;i++){
+    if(tube_occupancy[i]>0){
+
+      int tube=i%16;
+      int hvid=i/64;
+      int layer=i%64/16;
+      int ladder=hvid;
+
+      if(hvid>13){layer+=4;ladder-=14;}
+      if(hvid>29){layer+=4;ladder-=16;}
+      if(hvid>45){layer+=4;ladder-=16;}
+      if(hvid>63){layer+=4;ladder-=18;}
+      AMSTRDIdGeom geom(layer,ladder,tube);
+      AMSTRDIdSoft id(geom);
+      if(!id.dead()){
+	id.setgain()=tube_medians[i]/TRDMCFFKEY.GeV2ADC*1.e6;
+
+	if(debug){
+#pragma omp critical (dbgfile)
+	  {
+	    printf("LLT %02i%02i%02i id %i median %.2f = %.2f occ %i -> gain %.2f\n",layer,ladder,tube,id.getchannel(),id.getgain(),tube_medians[i],tube_occupancy[i],id.getgain());
+	  }
+	}
+      }
+    }
+  }
+#else
+  printf("Entering TrdHReconR::update_tdv_array\n");
+  printf("Currently restricted to gbatch framework\n");
+#endif
+  return;
 }

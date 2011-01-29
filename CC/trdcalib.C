@@ -1,4 +1,4 @@
-//  $Id: trdcalib.C,v 1.12 2010/11/10 19:33:19 choutko Exp $
+//  $Id: trdcalib.C,v 1.13 2011/01/29 03:48:37 mmilling Exp $
 #include "trdcalib.h"
 #include "event.h"
 #include <math.h>
@@ -190,13 +190,14 @@ void AMSTRDIdCalib::_update(){
           int ch=cid.getchannel();
           cout <<cid.getped()<<" "<<_ADCRaw[ch]<<endl;
           cid.setped()=cid.getped()+_ADCRaw[ch];
-          cid.setgain()=1;
+	  //          cid.setgain()=1;
           cout <<"sig "<<cid.getsig()<<" "<<_ADC2[ch]<<endl;
           //cid.setsig()=_ADC2[ch];
          }
         }
        }
-      }
+     }
+     
     if (AMSFFKEY.Update){
     AMSTimeID *ptdv;
      time_t begin,end,insert;

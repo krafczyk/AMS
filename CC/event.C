@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.507 2011/01/17 17:57:22 barao Exp $
+//  $Id: event.C,v 1.508 2011/01/29 03:48:37 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -996,8 +996,14 @@ void AMSEvent::_retrdinitevent(){
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",0),0));
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",0),0));
   }
-
+  
+#pragma omp master
+  {
+    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::gethead(AMSEvent::get_thread_num())->calibrate)
+      TrdHReconR::gethead(AMSEvent::get_thread_num())->init_calibration(TRDFITFFKEY.CalStartVal);
+  }
 }
+
 void AMSEvent::_rerichinitevent(){
   AMSNode *ptr;
     ptr=add(
@@ -2037,6 +2043,7 @@ void AMSEvent::_retrdevent(){
 
   //  if(!trdhrecon)trdhrecon=new TrdHReconR();
   //  else trdhrecon->clear();
+  
   TrdHReconR::gethead(AMSEvent::get_thread_num())->clear();
   TrdHReconR::gethead(AMSEvent::get_thread_num())->build();
 
