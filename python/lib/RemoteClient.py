@@ -644,12 +644,12 @@ class RemoteClient:
         # first check evr is ok
         timenow=int(time.time())
         self.valStTime=timenow
-        sql = "SELECT flag, timestamp from FilesProcessing"
+        sql = "SELECT flaglocal, timestamplocal from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1):
+        if(ret[0][0]==1 && timenow-ret[0][1]<100000):
             print "ValidateRuns-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
-        else: self.setprocessingflag(1,timenow)
+        else: self.setprocessingflag(1,timenow,1)
         global vdir,vlog,output
         vdir=self.getValidationDir()
         vlog=vdir+"validateRuns.log."+str(timenow)
@@ -658,14 +658,14 @@ class RemoteClient:
             print "ValidateRuns-I-Open ",vlog
         except IOError,e:
             print e
-            self.setprocessingflag(0,timenow)
+            self.setprocessingflag(0,timenow,1)
             return 0
         global vst
         vst=timenow
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
         if (len(ret)==0):
             print "ValidateRuns=E-CannotFindActiveProductionSet"
-            self.setprocessingflag(0,timenow)
+            self.setprocessingflag(0,timenow,1)
             return 0
         firstjobtime=ret[0][0]-24*60*60
         global exitmutexes
@@ -743,7 +743,7 @@ class RemoteClient:
         output.close()
         self.printValidateStat()
         timenow=int(time.time())
-        self.setprocessingflag(0,timenow)
+        self.setprocessingflag(0,timenow,1)
         if(self.delete):
             for run in self.dbclient.rtb:
                 if(run2p!=0 and run2p!=run.Run):
@@ -1502,8 +1502,11 @@ class RemoteClient:
         if(self.mt):
               exitmutexes[run.Run].acquire()
 
-    def setprocessingflag(self,flag,timenow):
+    def setprocessingflag(self,flag,timenow,which):
         sql="Update FilesProcessing set flag="+str(flag)+",timestamp="+str(timenow)
+        if(which==1):
+            sql="Update FilesProcessing set flaglocal="+str(flag)+",timestamplocal="+str(timenow)
+
         self.sqlserver.Update(sql)
         self.sqlserver.Commit()
 
@@ -2116,14 +2119,14 @@ class RemoteClient:
         self.valStTime=timenow
         sql = "SELECT flag, timestamp from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1):
+        if(ret[0][0]==1 && timenow-ret[0][1]<100000):
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
-        else: self.setprocessingflag(1,timenow)
+        else: self.setprocessingflag(1,timenow,0)
         ret=self.sqlserver.Query("SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin")
         if (len(ret)==0):
             print "ValidateRuns=E-CannotFindActiveProductionSet"
-            self.setprocessingflag(0,timenow)
+            self.setprocessingflag(0,timenow,0)
             return 0
         firstjobtime=ret[0][0]-24*60*60
         lastjobtime=int(time.time())+24*60*60
