@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.206 2010/11/12 16:18:42 choutko Exp $
+//  $Id: daqevt.C,v 1.207 2011/01/29 17:37:43 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1864,6 +1864,11 @@ DAQEvent::InitResult DAQEvent::init(){
   enum open_mode{binary=0x80};
   integer Run,Event;
     char * fnam=_getNextFile(Run, Event);
+    if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
+       unlink(getenv("TMPRawFile"));
+       unsetenv("TMPRawFile");
+     }
+  castor:
     if(fnam){
 #ifdef __ALPHA__ 
  fbin.close();
@@ -1940,7 +1945,74 @@ DAQEvent::InitResult DAQEvent::init(){
     }
     }
     else{
-      cerr<<"DAQEvent::init-F-cannot open file "<<fnam<<" in mode input"<<endl;
+      cerr<<"DAQEvent::init-E-cannot open file "<<fnam<<" in mode input"<<endl;
+//    try castor
+             if(getenv("NtupleDir") && !strstr(fnam,getenv("NtupleDir"))){
+             setenv("STAGE_HOST","castorpublic",1);
+             setenv("RFIO_USE_CASTOR_V2","YES",1);
+             setenv("STAGE_SVCCLASS","amscdr",1);
+             setenv("CASTOR_INSTANCE","castorpublic",1);
+             char ln[1024];
+             char utmp[80];
+             sprintf(utmp,"/tmp/raw.%d",getpid());
+             sprintf(ln,"ls -l %s 1>%s 2>&1",fnam,utmp);
+             system(ln);
+             ifstream ftxt;                                          
+             ftxt.open(utmp);
+             if(ftxt){
+              string txt;
+              getline(ftxt,txt);
+              if(txt.find("->")!=string::npos){
+                string castor("/castor/cern.ch/ams");
+                string file(txt.c_str()+txt.rfind("/")+1);
+                castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
+again:
+                if(getenv("NtupleDir")){
+                string local(getenv("NtupleDir"));
+                setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
+                if(getenv("TransferSharedLib")){
+                 setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+                }
+                string cp(getenv("TransferRawBy")?getenv("TransferRawBy"):"rfcp ");
+                cp+=castor;
+                cp+=" ";
+                cp+=local;
+                int i=system(cp.c_str());
+                if(i){
+                 cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
+      if(getenv("NtupleDir2")){
+        setenv("NtupleDir",getenv("NtupleDir2"),1);
+        unsetenv("NtupleDir2");
+        goto again;
+      }    
+      else if(getenv("NtupleDir3")){
+        setenv("NtupleDir",getenv("NtupleDir3"),1);
+        unsetenv("NtupleDir3");
+        goto again;
+      }    
+               local+="/";
+               local+=file;
+               setenv("TMPRawFile",local.c_str(),1);
+               strcpy(fnam,local.c_str());
+
+                        }
+              else{
+               local+="/";
+               local+=file;
+               cout<<"DAQEvent::init-I-CopiedTo "<<local<<endl;
+               setenv("TMPRawFile",local.c_str(),1);
+               strcpy(fnam,local.c_str());
+              }
+              }
+              ftxt.close();
+              unlink(utmp);
+              goto castor;
+
+             }
+              ftxt.close();
+              unlink(utmp);
+             }
+              }
       return UnableToOpenFile;
     }
     }

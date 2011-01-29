@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.618 2011/01/26 20:47:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.619 2011/01/29 17:37:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -600,7 +600,15 @@ my %mv=(
     else{
      $self->{$key}="ams02crc.tar.gz";
     }
-
+     $key='afsroot';
+     $sql="select myvalue from Environment where mykey='".$key."'";
+     $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+ }
+    else{
+     $self->{$key}="/afs/cern.ch/ams";
+    }
 
      $key='AMSSoftwareDir';
      $sql="select myvalue from Environment where mykey='".$key."'";
@@ -7226,7 +7234,7 @@ print qq`
          my $path=$runsret->[$i-1][1];
          my $paths=$runsret->[$i-1][2];
          if($paths=~/$run/){
-           $path=$paths;
+           $path=$self->{afsroot}.$paths;
          }
          #find buffer and patch it accordingly
          my $evts=100000000;
@@ -7281,20 +7289,22 @@ print qq`
 {
         my $dir="$self->{AMSSoftwareDir}/Templates";
         my $full=$dir."/common.job";
-        open(FILE,"<".$full) or die "Unable to open file $full \n";
+        open(FILEI,"<".$full) or die "Unable to open file $full \n";
         my $bufb;
-        read(FILE,$bufb,1638400) or next;
-        close FILE;
+        read(FILEI,$bufb,1638400) or next;
+        close FILEI;
        $tmpb=~ s/END\n!/$bufb\nEND\n!/;
 }
         if($dataset->{g4}=~/g4/){
         my $dir="$self->{AMSSoftwareDir}/Templates";
         my $full=$dir."/commong4.job";
-        open(FILE,"<".$full) or die "Unable to open file $full \n";
+        open(FILEI,"<".$full) or die "Unable to open file $full \n";
         my $bufb;
-        read(FILE,$bufb,1638400) or next;
-        close FILE;
-        }
+        read(FILEI,$bufb,1638400) or next;
+        close FILEI;
+      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+
+    }
          if($self->{CCT} eq "local"){
           $tmpb=~ s/\$RUNDIR\/\$RUN/\$RUNDIR/;
           $buf=~ s/RUNDIR=/RUNDIR=$path/;
@@ -7375,10 +7385,15 @@ print qq`
 #
 # check here custom/generic
 #
-         if(defined $q->param("JST") and  $q->param("JST") eq 'C'){
+         if(defined $q->param("JST")){
              my $sdir="$self->{AMSSoftwareDir}/scripts/";
              my $newfile=$sdir."$self->{CCA}";
-             open(FILEI,"<".$newfile) or die " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
+             if(not open(FILEI,"<".$newfile)){
+              if(   $q->param("JST") eq 'C'){
+                 die  " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
+             }
+          }
+              else{
              my $sbuf;
              read(FILEI,$sbuf,16384);
              close FILEI;
@@ -7390,6 +7405,7 @@ print qq`
              $buf=~ s/export/$ssbuf[0]\nexport/;
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
+          }
 
          $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
          print FILE $buf;
@@ -8549,6 +8565,8 @@ anyagain:
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
  print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst/$run \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
+ print FILE "export NtupleDir2=/data/local/logs/nt \n";
+ print FILE "export NtupleDir3=/afs/cern.ch/ams/Offline/local/logs/nt \n";
 }
         my $key='ntuplevalidator';
         my $sql="select myvalue from Environment where mykey='".$key."'";
@@ -8608,6 +8626,26 @@ anyagain:
          $tmpb=~ s/168=500000000//;
          $tmpb=~ s/168=120000000//;
          $tmpb=~ s/126=50000/126=199999/;
+#       add common template here
+{
+        my $dir="$self->{AMSSoftwareDir}/Templates";
+        my $full=$dir."/common.job";
+        open(FILE1,"<".$full) or die "Unable to open file $full \n";
+        my $bufb;
+        read(FILE1,$bufb,1638400) or next;
+        close FILE1;
+       $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+}
+        if($dataset->{g4}=~/g4/){
+        my $dir="$self->{AMSSoftwareDir}/Templates";
+        my $full=$dir."/commong4.job";
+        open(FILE1,"<".$full) or die "Unable to open file $full \n";
+        my $bufb;
+        read(FILE1,$bufb,1638400) or next;
+        close FILE1;
+      $tmpb=~ s/END\n!/$bufb\nEND\n!/;
+
+    }
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
              print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
@@ -17979,7 +18017,7 @@ sub UploadToCastor{
                 return 0;
             }
         }
-        $sql="select path,sizemb from ntuples where  run=$run->[0]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
+        $sql="select path,sizemb from ntuples where  jid=$run->[2]  and path like '%$dir%' $castor and path not like '/castor%' and  path not like '%.hbk' and datamc=$datamc";
     if($datamc>1){
         $sql="select path,sizemb from datafiles where  run=$run->[0] and path like '%$dir%' $castor and path not like '/castor%' and type like '$delim%'";
     }
@@ -18025,7 +18063,7 @@ sub UploadToCastor{
          my @junk3=split $junk2[$#junk2],$castor; 
          if($#junk3>=0){
          my $sys="/usr/bin/rfmkdir -p $junk3[0]";
-          system($sys);
+        #  system($sys);
      }
          my $sys=$rfcp.$ntuple->[0]." $castor";
          my $i=system($sys);

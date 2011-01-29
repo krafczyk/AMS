@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.145 2011/01/26 20:47:36 choutko Exp $
+#  $Id: Makefile,v 1.146 2011/01/29 17:37:45 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -401,9 +401,12 @@ MYOBJS2:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 MYOBJS:=$(MYOBJS2:$(SCC)%.c=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
-OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
+OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o  $(BIN)job_c.o \
 		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o
-
+ifdef  G4AMS
+OBJECTSC +=$(BIN)geant4_c.o
+OBJECTSC:=$(filter-out $(BIN)geant4.o,$(OBJECTSC)) 
+endif
 ifndef PGTRACK
 OBJECTSC += $(BIN)TrackFit_utils_c.o
 endif
@@ -760,6 +763,10 @@ $(BIN)job_c.o: 	 $(SCC)job.C
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
 	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+
+
+$(BIN)geant4_c.o: 	 $(SCC)geant4.C
+	$(CXX_ORBIT) -c $(CFLAGS) -D__BATCH__ $(IDLFLAGS) $(SCC)geant4.C -o $(BIN)geant4_c.o
 
 
 $(BIN)event_c.o: 	 $(SCC)event.C

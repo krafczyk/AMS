@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.77 2011/01/23 07:39:01 zweng Exp $
+//  $Id: geant4.C,v 1.78 2011/01/29 17:37:43 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -374,31 +374,28 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
+      AMSEvent::gethead()->seterror(2);
+/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(0);
-#ifdef __CORBA__
-#pragma omp critical (g1)
-    AMSProducer::gethead()->AddEvent();
-#endif
-      return;
+*/
    }
    catch (amsglobalerror e){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
+      AMSEvent::gethead()->seterror(e.getlevel());
+      if(e.getlevel()>2)throw e; 
+/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(0);
-#ifdef __CORBA__
-#pragma omp critical (g1)
-    AMSProducer::gethead()->AddEvent();
-#endif
-      return;
+*/
    }
 #ifdef __CORBA__
 #pragma omp critical (g1)

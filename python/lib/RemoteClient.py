@@ -968,8 +968,11 @@ class RemoteClient:
                         fevent=1
                         levent=0
                         for ntuple in ntuplelist:
+                            delim=':'
+                            if(str(ntuple.Name).find('///')>=0):
+                                delim='//'
                             if(ntuple.EventNumber==-1):
-                                fpatha=str(ntuple.Name).split(':')
+                                fpatha=str(ntuple.Name).split(delim)
                                 fpath=fpatha[len(fpatha)-1]
                                 if(fpath.find('/castor/cern.ch')>=0):
                                     rmbad.append("rfrm "+fpath)
@@ -980,7 +983,7 @@ class RemoteClient:
                                     ntuple.Status=self.dbclient.iorp.Success
                                 self.CheckedDSTs[0]=self.CheckedDSTs[0]+1
                                 levent=levent+ntuple.LastEvent-ntuple.FirstEvent+1
-                                fpatha=str(ntuple.Name).split(':')
+                                fpatha=str(ntuple.Name).split(delim)
                                 fpath=fpatha[len(fpatha)-1]
                                 badevents=ntuple.ErrorNumber
                                 events=ntuple.EventNumber
@@ -1277,8 +1280,11 @@ class RemoteClient:
                         fevent=1
                         levent=0
                         for ntuple in ntuplelist:
+                            delim=':'
+                            if(str(ntuple.Name).find('///')>0):
+                                delim='//'
                             if(ntuple.EventNumber==-1):
-                                fpatha=str(ntuple.Name).split(':')
+                                fpatha=str(ntuple.Name).split(delim)
                                 fpath=fpatha[len(fpatha)-1]
                                 if(fpath.find('/castor/cern.ch')>=0):
                                     rmbad.append("rfrm "+fpath)
@@ -1289,7 +1295,7 @@ class RemoteClient:
                                     ntuple.Status=self.dbclient.iorp.Success
                                 self.CheckedDSTs[0]=self.CheckedDSTs[0]+1
                                 levent=levent+ntuple.LastEvent-ntuple.FirstEvent+1
-                                fpatha=str(ntuple.Name).split(':')
+                                fpatha=str(ntuple.Name).split(delim)
                                 fpath=fpatha[len(fpatha)-1]
                                 badevents=ntuple.ErrorNumber
                                 events=ntuple.EventNumber
@@ -1642,7 +1648,8 @@ class RemoteClient:
                if(cmdstatus==0):
                    rstatus=self.calculateCRC(outputpath,crc)
                    if(rstatus==1):
-                       return outputpath,1
+                       castortime=self.UploadtoCastor(outputpath)
+                       return outputpath,1,castortime
                    else:
                        print "doCopy-E-ErorrCRC ",rstatus
                        self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
@@ -1655,6 +1662,23 @@ class RemoteClient:
                    self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
                    return None,0
     
+    def uploadToCastor(self,input):
+#
+# only one file to uploads
+#
+        buf=input.split('/')
+        output='/castor/cern.ch/ams'
+        buf2=unput.split(buf[1])
+        output=output+buf2[1]
+        cmd="/usr/bin/rfcp "+input+" "+output
+        cmdstatus=os.system(cmd)
+        if(cmdstatus):
+            print "Error uploadToCastor ",input,output,cmdstatus
+            return 0
+        else:
+            return int(time.time())
+        
+
     def getActiveProductionPeriodByName(self,name):
        ret=self.sqlserver.Query("SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' and name like '%"+name+"%'")
        if(len(ret)>0):
@@ -3150,7 +3174,7 @@ class RemoteClient:
 			cmd="mv "+pfilej+" "+pfilej+".0"
                         os.system(cmd)
 		        continue 
-                    (outputpath,ret)=self.doCopyRaw(run,pfile,int(crc),'/Data')
+                    (outputpath,ret,castortime)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
                         type="UNK"
@@ -3196,7 +3220,7 @@ class RemoteClient:
                         orig=f2.split('/')
                         if(len(orig)>2):
                              origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
-                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,0,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),tag,tfevent,tlevent,bpath)
+                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile

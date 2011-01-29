@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.146 2011/01/26 20:46:57 choutko Exp $
+//  $Id: producer.C,v 1.147 2011/01/29 17:37:44 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -401,7 +401,7 @@ else{
       cerr<<"AMSPRoducer-W-CERN_ROOTNotDefined"<<endl;
       setenv("CERN_ROOT","/cern/2001",1);
    }
-  
+ndir:  
    if(char *ntd=getenv("NtupleDir")){
      AString cmd=" mkdir -p -v  ";
      cmd+=ntd;
@@ -419,9 +419,18 @@ else{
      }
      else{
       cerr<<"AMSProducer::getRunEventInfo-E-UnwritableDir "<<ntd<<endl;
-     }     
+      if(getenv("NtupleDir2")){
+        setenv("NtupleDir",getenv("NtupleDir2"),1);
+        unsetenv("NtupleDir2");
+        goto ndir;
+      }    
+      else if(getenv("NtupleDir3")){
+        setenv("NtupleDir",getenv("NtupleDir3"),1);
+        unsetenv("NtupleDir3");
+        goto ndir;
+      }    
    }
-
+   }
    LMessage(AMSClient::print(_reinfo,"StartingRun"));
 
      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
@@ -698,8 +707,12 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
- if(means && means[0]=='r' && means[1]=='f'){
+ if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp"))){
+                if(getenv("TransferSharedLib")){
+                 setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+                }
   fmake="rfmkdir -p -m 775 ";
+  if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   fcopy=means;
   fcopy+=" ";
  }
@@ -1101,22 +1114,28 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    int bnt=bstart+getenv("NtupleDir")?strlen(getenv("NtupleDir")):0;
    if(a.length()>bnt && a[bnt]=='/')bnt++;
    
-
  char *means=getenv("TransferBy");
  AString fmake;
- if(means && means[0]=='r' && means[1]=='f'){
+ if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp"))){
+                if(getenv("TransferSharedLib")){
+                 setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+                }
   fmake="rfmkdir -p -m 775 ";
+  if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
+  string rfio=destdir;
+  if(rfio.find("/castor/cern.ch")){
+    fmake+=rfio.c_str()+rfio.find("/castor/cern.ch");
+  }
+  else fmake+=rfio.c_str();
  }
  else{
   fmake="mkdir -p ";
+  fmake+=destdir;
  }
- fmake+=destdir;
-// fmake+='/';
-// for (int k=bnt;k<bend;k++)fmake+=a[k];
    cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
 
  if(system((const char*)fmake)){
-       cerr<<"Unable create dst dest  dir "<<fmake<<endl;
+       cerr<<"AMSProducer::sendNtupleStart-E-Unable create dst dest  dir "<<fmake<<endl;
         if(!strstr((const char*)destdir,"/castor/cern.ch/ams")){
            int bstart=0;
            for(int i=1;i<strlen(destdir);i++){
@@ -1126,10 +1145,19 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
             }
            }
            if(bstart){
-             AString newdd="/castor/cern.ch/ams";
+             setenv("TransferBy",getenv("TransferRawBy")?getenv("TransferRawBy"):"rfcp ",1);
+             AString newdd="";
+             if(strstr(getenv("TransferBy"),"root:")){
+             string cc=getenv("TransferBy");
+              newdd=cc.c_str()+cc.rfind("root:"); 
+
+              cc[cc.rfind("root:")]='\0'; 
+              setenv("TransferBy",cc.c_str(),1);
+              cout <<"AMSProducer::sendNtupleStart-I-TransferBy SetTo "<<getenv("TransferBy")<<endl;
+             }
+             newdd+="/castor/cern.ch/ams";
              newdd+=destdir+bstart;
              setenv("NtupleDestDir",(const char*)newdd,1);
-             setenv("TransferBy","rfcp ",1);
              setenv("STAGE_HOST","castorpublic",1);
              setenv("RFIO_USE_CASTOR_V2","YES",1);
              setenv("STAGE_SVCCLASS","amscdr",1);
@@ -1445,6 +1473,7 @@ _cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000
   cout <<"  sending info "<<endl;
   sendCurrentRunInfo(true);
 }
+//cout <<" _cinfo.EventsProcessed "<<_cinfo.EventsProcessed<<" "<<_dstinfo->UpdateFreq<<" "<<st<<" "<<_ST0<<" "<<_cinfo.TimeSpent<<" "<<cll<<endl;
 }
 
 AMSProducer::~AMSProducer(){

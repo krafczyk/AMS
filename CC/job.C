@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.770 2011/01/29 03:48:38 mmilling Exp $
+// $Id: job.C,v 1.771 2011/01/29 17:37:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4105,7 +4105,16 @@ throw (amsglobalerror){
     if(eventno){
       char event[80];  
       if(isProduction()){
-       system((const char*)mdir);
+       int i=system((const char*)mdir);
+       if(i){
+        cerr<<"AMSjob::urinit-E-UnableToWriteNtupleDir "<<(const char *)mdir<<endl;
+        if(getenv("NtupleDir") && !strstr((const char*)mdir,getenv("NtupleDir"))){
+        mdir="mkdir -p ";
+        strcpy(_rootfilename,getenv("NtupleDir"));
+        mdir+=_rootfilename;
+        system((const char*)mdir);
+ }
+       }
        strcat(_rootfilename,"/");
       }
       sprintf(event,"%d",run);
