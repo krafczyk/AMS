@@ -646,7 +646,7 @@ class RemoteClient:
         self.valStTime=timenow
         sql = "SELECT flaglocal, timestamplocal from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1 && timenow-ret[0][1]<100000):
+        if(ret[0][0]==1 and timenow-ret[0][1]<100000):
             print "ValidateRuns-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: self.setprocessingflag(1,timenow,1)
@@ -1665,13 +1665,13 @@ class RemoteClient:
                    self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
                    return None,0
     
-    def uploadToCastor(self,input):
+    def UploadtoCastor(self,input):
 #
 # only one file to uploads
 #
         buf=input.split('/')
         output='/castor/cern.ch/ams'
-        buf2=unput.split(buf[1])
+        buf2=input.split(buf[1])
         output=output+buf2[1]
         cmd="/usr/bin/rfcp "+input+" "+output
         cmdstatus=os.system(cmd)
@@ -2119,7 +2119,7 @@ class RemoteClient:
         self.valStTime=timenow
         sql = "SELECT flag, timestamp from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1 && timenow-ret[0][1]<100000):
+        if(ret[0][0]==1 and timenow-ret[0][1]<100000):
             print "ParseJournalFiles-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: self.setprocessingflag(1,timenow,0)
