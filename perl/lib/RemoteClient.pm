@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.619 2011/01/29 17:37:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.620 2011/01/30 15:18:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7234,7 +7234,12 @@ print qq`
          my $path=$runsret->[$i-1][1];
          my $paths=$runsret->[$i-1][2];
          if($paths=~/$run/){
-           $path=$self->{afsroot}.$paths;
+           if(index($paths,$self->{afsroot})>=0){
+            $path=$paths;
+           }
+           else{
+            $path=$self->{afsroot}.$paths;
+           }
          }
          #find buffer and patch it accordingly
          my $evts=100000000;
@@ -14889,9 +14894,9 @@ sub initFilesProcessingFlag {
 
     my $timenow = time();
 
-    my $sql = "delete FilesProcessing";
+    my $sql = "update  filesprocessing set flag=-1 ";
     $self->{sqlserver}->Update($sql);
-    $sql = "insert into FilesProcessing values(0,0,0,0,0,0,0,1,$timenow)";
+    $sql = "update filesprocessing set timestamp=$timenow";
     $self->{sqlserver}->Update($sql);
 }
 
