@@ -489,25 +489,22 @@ void MonSlider::DrawDtSummary() {
   TVirtualPad* cc = canvas2->cd(1);
   TH1D* dt = (TH1D*) GetHisto(rootfile,"DT_all");
   if (dt==0) { canvas->Update(); return; }
+  dt->Rebin(8);
   cc->SetLogy();
   cc->SetGridx();
   cc->SetGridy();
-  /*
   TF1 *f1 = new TF1("f1","expo",800,5000);
   dt->Fit("f1","QR");
   float inrate = -1000.*dt->GetFunction("f1")->GetParameter(1);
   float trrate = 1000./dt->GetMean();
-  */
   dt->SetStats(kFALSE);
-  dt->Draw("HIST");
-  /*
-  sprintf(testo,"Event Rate = %7.3f kHz",inrate);
+  dt->Draw("l");
+  sprintf(testo,"Est. Event Rate = %7.3f Hz",inrate*1000.);
   text->DrawTextNDC(0.5,0.80,testo);
-  sprintf(testo,"Trigger Rate = %7.3f kHz",trrate);
+  sprintf(testo,"Est. Trigger Rate = %7.3f Hz",trrate*1000.);
   text->DrawTextNDC(0.5,0.75,testo);
-  sprintf(testo,"Estimated Lifetime = %7.2f\%",100.*trrate/inrate);
+  sprintf(testo,"Est. Lifetime = %7.5f",trrate/inrate);
   text->DrawTextNDC(0.5,0.70,testo);
-  */
   // Size vs Dt
   cc = canvas2->cd(2);
   cc->SetGridx();
@@ -531,7 +528,7 @@ void MonSlider::DrawDtSummary() {
   cc->SetGridy();
   TH1F* frame = cc->DrawFrame(0.,0.,192.,250.);
   frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Approx. Mean Ladder Size @ #Deltat<200 #mus (words)");
+  frame->SetYTitle("Approx. Mean Ladder Size @ #Deltat<200 #mus (byte)");
   frame->SetXTitle("iCrate*24 + iTDR");
   sizelowdt_n_prof->Draw("SAME");
   sizelowdt_p_prof->Draw("SAME");
@@ -539,12 +536,12 @@ void MonSlider::DrawDtSummary() {
     int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
     float mean_p = sizelowdt_p_prof->GetBinContent(ii);
     float mean_n = sizelowdt_n_prof->GetBinContent(ii);
-    if ( (mean_n< 2.)||(mean_n>6.) ) {
+    if (mean_n>100.) {
       sprintf(testo,"%+03d",tkid);
       text->SetTextColor(kRed);
       text->DrawText(ii,mean_n,testo);
     }
-    if ( (mean_p< 2.)||(mean_p>6.) ) {
+    if (mean_p>100.) {
       sprintf(testo,"%+03d",tkid);
       text->SetTextColor(kBlue);
       text->DrawText(ii,mean_p,testo);
