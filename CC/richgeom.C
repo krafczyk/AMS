@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.45 2011/01/26 14:21:39 mdelgado Exp $
+//  $Id: richgeom.C,v 1.46 2011/02/03 06:20:49 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -675,7 +675,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[1]=RICHDB::bottom_radius;
   par[2]=RICHDB::bottom_radius+RICmithk+RICepsln;
 
-
+  coo[0]=coo[1]=0;
   coo[2]=RICHDB::total_height()/2.-RICHDB::mirror_pos();
 
   AMSgvolume *mirror=(AMSgvolume *)rich->add(new AMSgvolume(_VACUUM_,  // Material
