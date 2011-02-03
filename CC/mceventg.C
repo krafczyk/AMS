@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.160 2010/12/01 11:33:34 shaino Exp $
+//  $Id: mceventg.C,v 1.161 2011/02/03 16:07:24 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -93,6 +93,11 @@ const AMSDir & dir, integer nskip):_nskip(nskip),_mom(mom),_coo(coo),_dir(dir){
 init(ipart);
 }
 
+double extract(float m, float s){
+  if (s==0)  return m;
+  return (m+rnormx()*s);    
+}
+
 void AMSmceventg::gener(){
   char cdir[256];
   char *R="R";
@@ -100,10 +105,25 @@ void AMSmceventg::gener(){
   char hpawc[256]="//PAWC/GEN";
   char *BLANK=" ";
   HCDIR (hpawc,BLANK);
-  if(CCFFKEY.low==-2){
-//
-//  wrong method do not use  (VC)
-//
+  if(CCFFKEY.low==8){ // simple test beam mode
+    _coo[0]=extract(CCFFKEY.coo[0],CCFFKEY.coo[3]);
+    _coo[1]=extract(CCFFKEY.coo[1],CCFFKEY.coo[4]);
+    _coo[2]=extract(CCFFKEY.coo[2],CCFFKEY.coo[5]);
+    float Th  =extract(CCFFKEY.dir[0],CCFFKEY.dir[3]);
+    float Ph  =extract(CCFFKEY.dir[1],CCFFKEY.dir[2]);
+    _dir[0]=sin(Th)*cos(Ph);
+    _dir[1]=sin(Th)*sin(Ph);
+    _dir[2]=cos(Th);
+
+    _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[2]);
+ //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
+ //      _coo[0],_coo[1],_coo[2],
+ //      _dir[0],_dir[1],_dir[2]);
+  }
+  else if(CCFFKEY.low==-2){
+    //
+    //  wrong method do not use  (VC)
+    //
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     while(1){
       CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
@@ -130,15 +150,15 @@ void AMSmceventg::gener(){
     geant d(-1);
     if(_fixedmom)_mom=_momrange[0];
     else if(CCFFKEY.low==2){
-     geant mom,gamma,chmu;
+      geant mom,gamma,chmu;
       CMGENE2(mom,gamma,chmu);
       _mom=mom;
       _gamma=gamma; 
       if(chmu < 0)_ipart=6;
       else _ipart=5;
-//      cout <<"  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
+      //      cout <<"  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
       init(_ipart);
-  }
+    }
     else if(CCFFKEY.low==4){
       _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
       if(_momrange[1]>1000000){
@@ -156,19 +176,19 @@ void AMSmceventg::gener(){
     }
     
     else if(CCFFKEY.low==6){
-     //  get particle id
-     int xp=HRNDM1(_hid);
-     GCKINE.ikine=_particle[xp];
-     if(GCKINE.ikine<0){
-      cerr<<"  AMSmceventg::gener-F-WrongParticle "<<GCKINE.ikine<<endl;
-      abort();
-     }
-     GCKINE.ipart=GCKINE.ikine;
-     init(GCKINE.ikine);      
-     _mom=exp(HRNDM1(_hid+xp+1))/1000.;
-     number etot=_mom*_nucleons[xp]+_mass;
-     _mom=sqrt(etot*etot-_mass*_mass);
-//     if(_ipart>50)cout <<"  got "<<_ipart<<" "<<_charge<<" "<<_mom<<" "<<_nucleons[xp]<<" "<<xp<<endl;     
+      //  get particle id
+      int xp=HRNDM1(_hid);
+      GCKINE.ikine=_particle[xp];
+      if(GCKINE.ikine<0){
+	cerr<<"  AMSmceventg::gener-F-WrongParticle "<<GCKINE.ikine<<endl;
+	abort();
+      }
+      GCKINE.ipart=GCKINE.ikine;
+      init(GCKINE.ikine);      
+      _mom=exp(HRNDM1(_hid+xp+1))/1000.;
+      number etot=_mom*_nucleons[xp]+_mass;
+      _mom=sqrt(etot*etot-_mass*_mass);
+      //     if(_ipart>50)cout <<"  got "<<_ipart<<" "<<_charge<<" "<<_mom<<" "<<_nucleons[xp]<<" "<<xp<<endl;     
     } 
     // Generates uniformely on 13 Rig Points by PZ
     // documented in datacards.doc
@@ -192,14 +212,14 @@ void AMSmceventg::gener(){
       else
 #endif
         _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
-//cout<<"mom="<<_mom<<" hid="<<_hid<<endl;
+      //cout<<"mom="<<_mom<<" hid="<<_hid<<endl;
     }
-again:
+  again:
     geant th,ph; // photon incidence angle (normal to gamma source generation plane)
     if(_fixeddir && CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<=0){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
       if(!(GMFFKEY.GammaSource==0)){  
-    number ra,dec;  // AMS zenithal pointing direction
-    number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
+	number ra,dec;  // AMS zenithal pointing direction
+	number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
         AMSEvent::gethead()->GetISSCoo(rai,deci); //non-tilted case      
         AMSEvent::gethead()->GetAMSCoo(ra,dec);
         skyposition isspos(rai,deci); //non-tilted case
@@ -257,20 +277,20 @@ again:
           // generating plane has the orientation given by dir
           // transforming to AMS coordinates (coox,cooy,cooz) from generation plane local coordinates (x0+lx*RNDM(d),y0+ly*RNDM(d),0). z1=MCGEN[1][2] is the distance to the plane from AMS coordinate origin.
           //CAREFUL: MCGEN[0][2] is not used for gamma sources         
-         // MCGEN[1][2]=195 for std generation
-//            coox=(z+lz)*cos(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*cos(ph)-(y+ly*RNDM(d))*sin(ph);
-//            cooy=(z+lz)*sin(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*sin(ph)+(y+ly*RNDM(d))*cos(ph);
-//            cooz=(z+lz)*cos(th)-(x+lx*RNDM(d))*sin(th);
+	  // MCGEN[1][2]=195 for std generation
+	  //            coox=(z+lz)*cos(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*cos(ph)-(y+ly*RNDM(d))*sin(ph);
+	  //            cooy=(z+lz)*sin(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*sin(ph)+(y+ly*RNDM(d))*cos(ph);
+	  //            cooz=(z+lz)*cos(th)-(x+lx*RNDM(d))*sin(th);
           coox=z1*cos(ph)*sin(th)+(x0+lx*RNDM(d))*cos(th)*cos(ph)-(y0+ly*RNDM(d))*sin(ph);
           cooy=z1*sin(ph)*sin(th)+(x0+lx*RNDM(d))*cos(th)*sin(ph)+(y0+ly*RNDM(d))*cos(ph);
           cooz=z1*cos(th)-(x0+lx*RNDM(d))*sin(th);
           
           _coo=AMSPoint(coox,cooy,cooz);
       
-      // these transformations are obtained by adding:
-      // a translation in R=z1 cm 
-      // a rotation: theta around y; -phi around z
-      // the orientation was chosen so that cooy is coplanar with y
+	  // these transformations are obtained by adding:
+	  // a translation in R=z1 cm 
+	  // a rotation: theta around y; -phi around z
+	  // the orientation was chosen so that cooy is coplanar with y
 
       
           if(GMFFKEY.GammaBg==1){ //to generate a background photon around the source
@@ -307,7 +327,7 @@ again:
           }
         } // ISN
         else if(_fixedplane==1){// to VC: what about 2(bot.plane) ???
-//          cout << "fixed plane" << endl;
+	  //          cout << "fixed plane" << endl;
           _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz);
         }
         else{
@@ -316,18 +336,18 @@ again:
       }//--->endof fixeddir+rand.point
     }//--->endof fixeddir+no_dirs_from_file
     else if(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0){ //<---   Dir From files
-     int k=floor(RNDM(d)*(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1));
-     _coo=_r_c[k];
-//   add 1cm of normal distribution 
-//   
+      int k=floor(RNDM(d)*(CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1));
+      _coo=_r_c[k];
+      //   add 1cm of normal distribution 
+      //   
       float dummy;
       double t=2*3.1415926*RNDM(dummy);
       double r=sqrt(-0.2*log(RNDM(dummy)));
       _coo[0]+=r*cos(t);
       _coo[1]+=r*sin(t);
-     _dir=_dir_c[k];
-//     cout <<" k "<<k<<" "<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<endl;
-//     cout <<_coo<<" "<<_dir<<endl;
+      _dir=_dir_c[k];
+      //     cout <<" k "<<k<<" "<<CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1<<endl;
+      //     cout <<_coo<<" "<<_dir<<endl;
     }//--->endof dirs_from_file
     else {   // <--- random dir
       geant d(-1);
@@ -348,13 +368,13 @@ again:
       }
       else {
         geant r=RNDM(d)-1.e-5;
-       int i;
-       for ( i=0;i<6;i++){
-         if(r<_planesw[i]){
-           curp=i+1;
-           break;
-         }
-       }
+	int i;
+	for ( i=0;i<6;i++){
+	  if(r<_planesw[i]){
+	    curp=i+1;
+	    break;
+	  }
+	}
       }
       number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
       number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
@@ -366,7 +386,7 @@ again:
       number ly=yb-ya;
       number lz=zb-za;
       geant xin,yin;
-     //
+      //
 
       static int init = 0;
       if (!init) {
@@ -380,24 +400,24 @@ again:
       case 1:
         //
         // <-- try(if asked) to increas "from top" gener. effic.(Not for accept. calc.!!!)
-       if(TFMCFFKEY.fast>0){
-         while(1){
-           xin=xa+lx*RNDM(d);
-           yin=ya+ly*RNDM(d);
-           phi=2*AMSDBc::pi*RNDM(d);
-           theta=sqrt((double)RNDM(d));
-           theta=acos(theta);
-           if(fastcheck(xin,yin,zb,theta,phi))break;
-         }
-         _coo=AMSPoint(xin,yin,zb);
-       }
-       else{
-         _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
-//cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
-       }
-       //
-       _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-       break;
+	if(TFMCFFKEY.fast>0){
+	  while(1){
+	    xin=xa+lx*RNDM(d);
+	    yin=ya+ly*RNDM(d);
+	    phi=2*AMSDBc::pi*RNDM(d);
+	    theta=sqrt((double)RNDM(d));
+	    theta=acos(theta);
+	    if(fastcheck(xin,yin,zb,theta,phi))break;
+	  }
+	  _coo=AMSPoint(xin,yin,zb);
+	}
+	else{
+	  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
+	  //cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
+	}
+	//
+	_dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
+	break;
       case 2:  
         _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));
         _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),za);
@@ -409,7 +429,7 @@ again:
       case 4:  
         _dir=AMSDir(cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
         _coo=AMSPoint(xa,ya+ly*RNDM(d),za+lz*RNDM(d));
-       break;
+	break;
       case 5:  
         _dir=AMSDir(cos(phi)*sin(theta),-cos(theta),sin(phi)*sin(theta));
         _coo=AMSPoint(xa+lx*RNDM(d),yb,za+lz*RNDM(d));
@@ -423,21 +443,21 @@ again:
         abort();
       }//<--- end of switch
       //if(_fixedplane == 0)_coo=_coo/2;
-//
-// add cmuouns (low==2)
-//
-    if(CCFFKEY.low==2){//sea-level muons
-     if(_dir[2]>0)goto again;
-     geant dummy;
-     number u=RNDM(dummy);
-     if(u>=pow(fabs(_dir[2]),_gamma))goto again;
-//      cout <<"accepted  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
-//       cout << " _coo _dir "<< _dir <<" "<<_coo<<endl;
-       AMSDBc::transform(_dir);
-       AMSDBc::transform(_coo);
-//       cout << " _coo _dir trans"<< _dir <<" "<<_coo<<endl;
+      //
+      // add cmuouns (low==2)
+      //
+      if(CCFFKEY.low==2){//sea-level muons
+	if(_dir[2]>0)goto again;
+	geant dummy;
+	number u=RNDM(dummy);
+	if(u>=pow(fabs(_dir[2]),_gamma))goto again;
+	//      cout <<"accepted  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
+	//       cout << " _coo _dir "<< _dir <<" "<<_coo<<endl;
+	AMSDBc::transform(_dir);
+	AMSDBc::transform(_coo);
+	//       cout << " _coo _dir trans"<< _dir <<" "<<_coo<<endl;
 
-    }
+      }
     }//--->endof "random dir"
   }//--->endof "low!=2"
   char hp[9]="//PAWC";
@@ -1046,6 +1066,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
 
 integer AMSmceventg::accept(){
   _nskip=Orbit.Ntot;
+ if(CCFFKEY.low==8)  return 1;
   if(!(GMFFKEY.GammaSource==0) || CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0) return 1; //ISN
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
@@ -1209,42 +1230,45 @@ _charge=charge;
   }
 
 
-  void AMSmceventg::run(integer ipart){
-   init(ipart);
-   geant plab[3],vertex[3];
-   integer nvert=0;
-   integer nt=0;
-   do{
-      gener();
+void AMSmceventg::run(integer ipart){
+  init(ipart);
+  geant plab[3],vertex[3];
+  integer nvert=0;
+  integer nt=0;
+  do{
+    gener();
 #ifdef _PGTRACK_
-      hman.Fill("Pgen", _mom);
+    hman.Fill("Pgen", _mom);
 #endif
-    }while(!accept());
+  }while(!accept());
 
 #ifdef _PGTRACK_
-   hman.Fill("Pacc", _mom);
+  hman.Fill("Pacc", _mom);
 #endif
-
-    // Set seed
+  
+  // Set seed
 #ifdef __G4AMS__
-if(!MISCFFKEY.G3On){
-_seed[0]=HepRandom::getTheSeeds()[0];
-_seed[1]=HepRandom::getTheSeeds()[1];
-}
-else
+  if(!MISCFFKEY.G3On){
+    _seed[0]=HepRandom::getTheSeeds()[0];
+    _seed[1]=HepRandom::getTheSeeds()[1];
+  }
+  else
 #endif
-   GRNDMQ(_seed[0],_seed[1],0,"G");
-//   cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
-//   cout << "  direction "<<_dir/_dir[2]<<" coo "<<_coo<<endl;
-   vertex[0]=_coo[0];
-   vertex[1]=_coo[1];
-   vertex[2]=_coo[2];
+    GRNDMQ(_seed[0],_seed[1],0,"G");
+  //   cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
+  //   cout << "  direction "<<_dir/_dir[2]<<" coo "<<_coo<<endl;
+  vertex[0]=_coo[0];
+  vertex[1]=_coo[1];
+  vertex[2]=_coo[2];
    plab[0]=_mom*_dir[0];
    plab[1]=_mom*_dir[1];
    plab[2]=_mom*_dir[2];
+//   printf("firing mom %f from %f %f %f dir %f %f %f\n",_mom,
+//       _coo[0],_coo[1],_coo[2],
+//       _dir[0],_dir[1],_dir[2]);
    GSVERT(vertex,0,0,0,0,nvert);
    GSKINE(plab,_ipart,nvert,0,0,nt);
-  }
+}
 
   void AMSmceventg::run(){
    geant plab[3],vertex[3];

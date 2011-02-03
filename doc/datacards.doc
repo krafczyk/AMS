@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.339 2010/12/08 17:04:33 choumilo Exp $
+#  $Id: datacards.doc,v 1.340 2011/02/03 16:07:24 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -230,6 +230,12 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //from flux file(6)
                                   //(7) uniform on 13 Rigidity values 
 				  // [.5,1,2,5,10,20,50,100,200,500,1000,2000,5000] GV
+                                  //(8) Test Beam Mode, gaussian generation of parms:
+                                  //                    1 to 3 postion mean;  4 to 6 position sigma;  
+                                  //                    7 8 Theta,Phi  mean; 10 11 Theta,Phi sigma;  
+                                  //                    13     Mom     mean; 14 Mom sigma;
+				  //                    if sigma == 0  fixed value
+                                  //
 I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
