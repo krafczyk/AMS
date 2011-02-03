@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.89 2011/01/12 13:49:41 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.90 2011/02/03 16:07:58 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/01/12 13:49:41 $
+/// $Date: 2011/02/03 16:07:58 $
 ///
-/// $Revision: 1.89 $
+/// $Revision: 1.90 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -137,7 +137,7 @@ void TrReconPar::SetParFromDataCards()
   TrackThrSeed[0]   = TRCLFFKEY.TrackThrSeed[0];
   TrackThrSeed[1]   = TRCLFFKEY.TrackThrSeed[1];
 
-  TrTrackR::SetParFromDataCards();
+  TrTrackR::AdvancedFitBits = TRCLFFKEY.AdvancedFitFlag;
 }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;

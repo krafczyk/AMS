@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.38 2011/01/12 13:49:42 pzuccon Exp $
+//  $Id: event_tk.C,v 1.39 2011/02/03 16:07:59 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -152,11 +152,6 @@ void AMSEvent::_retkevent(integer refit){
     } // Clusters --> Hits
       
   } //RAW Clusters -->  Clusters
-
-  // Track classification
-  double hpar[TrTrackR::Nconf*TrTrackR::Nqpar];
-  int    tcls[TrTrackR::Nconf+1];
-  TrTrackR::DoTrackClass(TrTrackR::DefaultFitID, hpar, tcls);
 
   AMSgObj::BookTimer.stop("RETKEVENT");
 
@@ -317,25 +312,6 @@ void AMSEvent::_retkevent(integer refit){
 	                   : mcg->getmom()/mcg->getcharge();
       double argt = TMath::Abs(rrgt);
 
-      for (int j = 0; j < TrTrackR::Nconf; j++) {
-	for (int k = 0; k < TrTrackR::Nqpar-1; k++) {
-	  double hp = hpar[j*TrTrackR::Nqpar+k];
-	  if (hp > 0) hman.Fill(Form("TrQp%d%d", j+1, k), argt, hp);
-	}
-	double rgt = hpar[j*TrTrackR::Nqpar+TrTrackR::Nqpar-1];
-	if (mcg && rgt != 0 && rrgt != 0) {
-	  double ecor = TrTrackR::GetErrRinvNorm(j, argt);
-	  double dr   = 1/rgt-1/rrgt;
-
-	  int mt[TrTrackR::Nclass] = { 0, TrTrackR::kBaseQ, 
-				          TrTrackR::kBaseQ | 
-				          TrTrackR::kHighQ };
-	  for (int k = 0; k < TrTrackR::Nclass; k++) {
-	    if ((tcls[j] & mt[k]) == mt[k] && ecor > 0)
-	      hman.Fill(Form("TrQr%d%d", j+1, k), argt, dr/ecor);
-	  }
-	}
-      }
 
      if (pl8.dist(p0) > 1e-3 && pl9.dist(p0) > 1e-3) {
       hman.Fill("TrPtkL8", pl8.x(), pl8.y());

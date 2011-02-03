@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.771 2011/01/29 17:37:43 choutko Exp $
+// $Id: job.C,v 1.772 2011/02/03 16:07:59 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3996,9 +3996,6 @@ _axendjob();
 #ifndef __TFADBW__  
  TGL1JobStat::printstat();
  TriggerLVL302::printfc();
-#ifdef _PGTRACK_
- TrTrackR::ShowTrackClass();
-#endif
 #endif
  
 #ifdef __CORBA__

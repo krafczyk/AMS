@@ -343,7 +343,8 @@ void TRFITFFKEY_DEF::init(){
   RthdDropX[0] = 100;
   RthdDropX[1] =  10;
 
-//############## TRACK CLASSIFICATION ###############  
+/* PZ this is not the right place for such a thing
+   ///############## TRACK CLASSIFICATION ###############  
   for (int i = 0; i < TrTrackR::Nconf; i++) {
     StdMDR   [i] = TrTrackR::StdMDR   [i];
     ChisqTune[i] = TrTrackR::ChisqTune[i];
@@ -358,8 +359,8 @@ void TRFITFFKEY_DEF::init(){
     HalfRThres[i] = TrTrackR::HalfRThres[i];
     ExResThres[i] = TrTrackR::ExResThres[i];
   }
+*/
 }
-
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 
 TRFITFFKEY_DEF TRFITFFKEY;
