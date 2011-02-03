@@ -441,13 +441,6 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
       integer nmaxmirsecc
       parameter(NMAXMIRSECC=10)
 
-      real chgwin
-
-      common /richchgw/
-     +        chgwin            ! charge integration window (cm)
-
-       !$OMP THREADPRIVATE (/richchgw/)
-
       integer iflagchg
       real chg_nphe, chg_nphe_sim, chg_nphe_dir, chg_nphe_ref,
      +     chgrec,   chgrec_dir,   chgrec_ref,   chgsim,
@@ -545,13 +538,14 @@ C      data irotflg /0/
 *** CODE FROM liprecpar.inc ***
 *******************************
 
-* RICH METHOD FOR VELOCITY RECONSTRUCTION: PARAMETERS (LIP)
+* RICH METHOD FOR VELOCITY AND CHARGE RECONSTRUCTION: PARAMETERS (LIP)
 
       real 
      +     fbackgr, fdistan, f1norm, f1sigma2, f2sigma2,
      +     chi2htcut, nsigcut,
      +     thcstep, phistep,
-     +     trhitass2, hitresmax
+     +     trhitass2, hitresmax,
+     +     chgwin
 
 
       common /liprecparc/ 
@@ -569,7 +563,8 @@ C      data irotflg /0/
      + THCSTEP,   !thetac step for scanning and minimum finding
                   !-----[LIP RECONSTRUCTION: HIT ASSOCIATION] 
      + TRHITASS2, !Track hit association distance (squared)
-     + HITRESMAX  !Residue cut to reject hits used in reconstruction
+     + HITRESMAX, !Residue cut to reject hits used in reconstruction
+     + CHGWIN     !Charge window association width (cm)
 
       !$OMP THREADPRIVATE (/liprecparc/)
 *********************************
