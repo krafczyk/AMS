@@ -1,0 +1,29 @@
+Analysis framework
+-------------------
+
+Current directory contains an initial analysis framework for AMS root files
+containing AMSRoot trees.
+
+The framework itself consists in two include files: AnalysisFramework.h  simplify.h. 
+
+Provided is an example which reads the files and creates a dst for further analysis. This 
+examples consists in files RichMass.C and dst.C. In order to compile a standalone version
+of the analysis use the provided script "compila". To run it within root use the root macro
+start.C (by issuing .x start.C in root). 
+
+The example assumes that the PG shared library have been built, and that the AMS
+source code directory is pointed by the AMSWD environment variable. If this is not the
+case, it is possible to run them in ams machines by doing
+
+setenv AMSWD /Offline/vdev
+
+in csh kind of shells or
+
+export AMSWD=/Offline/vded
+
+in bash ones prior to run.
+
+
+
+  
+

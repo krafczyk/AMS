@@ -1,0 +1,3 @@
+{
+  gInterpreter->Load("dst.C+");
+}

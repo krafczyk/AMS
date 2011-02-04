@@ -1,0 +1,3 @@
+root -l -q createDict.C
+icc -DSTANDALONE RichMass.C -I$AMSWD/include -I`root-config --incdir --libs` $AMSWD/lib/linuxx8664icc/ntuple_slc4_PG.so dst_C.so -o test.exe
+
