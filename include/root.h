@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.303 2011/01/29 15:51:20 choumilo Exp $
+//  $Id: root.h,v 1.304 2011/02/04 18:34:34 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1168,13 +1168,13 @@ public:
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
   float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
 
-  int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
-  float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
-  float lipBeta;    ///< Beta from LIP beta rec.
-  float lipErrorBeta;///< Error in beta from LIP beta rec. 
-  float lipLikelihoodProb;///<Likelihood from LIP beta rec.
-  float lipChi2;     ///< Chi2 from LIP beta rec.
-  float lipRecProb;  ///< Probabbility from LIP beta rec. 
+  int   lipHitsUsed;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipThetaC;  ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipBeta;    ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipErrorBeta;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipLikelihoodProb;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipChi2;     ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
+  float lipRecProb;  ///<  Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
 
 
 
@@ -1314,12 +1314,15 @@ static char _Info[255];
     else
       tkStatus=Status;
     
-    sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",
+    sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s%s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",
 	    number,fTrTrack,
 	    Status>10?"velocity+charge":"velocity only",
 	    tkStatus==2?"standard rec.":"",
-	    tkStatus==3?"flexible rec.":"",
+	    tkStatus==3?"flexible rec., track from uTOF+lTOF":"",
 	    tkStatus==4?"standalone rec.":"",
+	    tkStatus==5?"flexible rec., track from uTOF+lTOF+RICH":"",
+	    tkStatus==6?"flexible rec., track from uTOF+RICH":"",
+	    tkStatus==7?"flexible rec., track from lTOF+RICH":"",
 	    Used,
 	    Beta,
 	    AngleRec*180./3.14159265);
