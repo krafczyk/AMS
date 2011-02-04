@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.620 2011/01/30 15:18:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.621 2011/02/04 18:05:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14894,7 +14894,7 @@ sub initFilesProcessingFlag {
 
     my $timenow = time();
 
-    my $sql = "update  filesprocessing set flag=-1 ";
+    my $sql = "update  filesprocessing set flag=1 ";
     $self->{sqlserver}->Update($sql);
     $sql = "update filesprocessing set timestamp=$timenow";
     $self->{sqlserver}->Update($sql);
@@ -18039,7 +18039,7 @@ sub UploadToCastor{
                for my $i (0...$#junk2-1) {
                 $dir=$dir."/$junk2[$i]";
                }
-               my $sys="/usr/bin/rfmkdir -p $dir";
+               my $sys="/usr/bin/nsmkdir -p $dir";
                my $i=system($sys);
 #               if($i){
 #                if($verbose){
@@ -18067,7 +18067,7 @@ sub UploadToCastor{
          my @junk2=split '\/',$castor;
          my @junk3=split $junk2[$#junk2],$castor; 
          if($#junk3>=0){
-         my $sys="/usr/bin/rfmkdir -p $junk3[0]";
+         my $sys="/usr/bin/nsmkdir -p $junk3[0]";
         #  system($sys);
      }
          my $sys=$rfcp.$ntuple->[0]." $castor";
