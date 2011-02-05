@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.13 2011/02/05 22:13:17 mdelgado Exp $
+//  $Id: richrec.C,v 1.14 2011/02/05 22:20:38 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -1096,6 +1096,8 @@ geant RichRing::trace(AMSPoint r, AMSDir u,
     
     for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
     
+    double sector=atan2(r2[1],r2[0])*180/M_PI+M_PI; // Sector of the mirror in deg between 0 and 2 PI
+
     f=1./sqrt(1+SQR(kc));
     n[0]=-f*r2[0]/sqrt(SQR(r2[0])+SQR(r2[1]));
     n[1]=-f*r2[1]/sqrt(SQR(r2[0])+SQR(r2[1]));
