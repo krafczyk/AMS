@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.5 2010/10/20 10:47:39 mdelgado Exp $
+//  $Id: richdbc.h,v 1.6 2011/02/05 22:13:18 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -53,8 +53,8 @@ const geant      pitch=3.7;
 const integer    RICradiator_box_sides=12;
 const geant      RICradiator_box_radius=118.5/2;
 const geant      RICradiator_box_thickness=5;
-const geant      RICmireff=0.85;     // Mirror reflectivity
-// const geant      RICmireff=0.00;     // Mirror reflectivity
+const geant      RICmireff=0.85;     // Mirror reflectivity sectors 2 and 3
+const geant      RICmireffs1=0.80;    // Mirror reflectivity Sector 1 
 
 // Entries in the tables of materials
 const integer RICmaxentries=44;
@@ -144,6 +144,9 @@ public: // To be migrated in the future
 
   // Inner mirror features
   static geant inner_mirror_height;
+  static geant  RICmirrors3_s2; // Sectors position
+  static geant  RICmirrors2_s1; // Sectors position
+  static geant  RICmirrors1_s3; // Sectors position
 
   // Radiator features
   static geant rad_clarity;

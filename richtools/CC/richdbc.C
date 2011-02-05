@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.3 2009/11/26 09:18:49 mdelgado Exp $
+//  $Id: richdbc.C,v 1.4 2011/02/05 22:13:18 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<fstream>
@@ -159,6 +159,11 @@ geant RICHDB::sigma_ped=0.5335;               // Default pedestal width
 geant RICHDB::peak=23.04;                     // Default gain
 geant RICHDB::sigma_peak=12.10;               // Witdh of the single p.e.
 geant RICHDB::c_ped=2.;                       // N od ADC counts for detection threshold
+
+//mirror
+geant  RICHDB::RICmirrors3_s2=88; 
+geant  RICHDB::RICmirrors2_s1=208;
+geant  RICHDB::RICmirrors1_s3=328;
 
 // Measure in the prototype
 geant RICHDB::prob_noisy=8.e-5;

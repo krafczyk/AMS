@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.12 2010/08/10 16:22:04 mdelgado Exp $
+//  $Id: richrec.C,v 1.13 2011/02/05 22:13:17 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -1134,6 +1134,9 @@ geant RichRing::trace(AMSPoint r, AMSDir u,
 	*beff=0;
       }else{
 	*beff=RichPMTsManager::Eff(pmt,channel)*mir_eff;
+	// Take into account change in reflectivity
+	if(sector<RICHDB::RICmirrors1_s3 && sector>RICHDB::RICmirrors2_s1)
+	  *beff*=RICmireffs1/RICmireff;
       }
     }
     *tflag=*beff?4:5;
