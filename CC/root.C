@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.244 2011/01/25 16:27:08 shaino Exp $
+//  $Id: root.C,v 1.245 2011/02/05 22:35:55 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2853,6 +2853,21 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
   }
 #endif
 }
+
+double RichRingR::RingWidth(bool usedInsteadNpCol){
+  double weight=0,sum=0;
+
+  for(int i=0;i<10;i++){
+    double w;
+    if(usedInsteadNpCol) w=UsedWindow[i]-(i>0?UsedWindow[i-1]:0);
+    else w=NpColWindow[i]-(i>0?NpColWindow[i-1]:0);
+    weight+=w;
+    sum+=(0.5+i)*(0.5+i)*w;
+  }
+  if(weight) return sqrt(2*sum/weight); else return -1;
+}
+
+
 
 //void RichRingBR::FillRichHits(int ringnew){
 //  fRichHit.clear();

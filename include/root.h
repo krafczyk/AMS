@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.304 2011/02/04 18:34:34 barao Exp $
+//  $Id: root.h,v 1.305 2011/02/05 22:35:55 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1215,9 +1215,10 @@ public:
   bool Rebuild(){return (Status&1)!=0;}
   bool IsNaf(){return (Status&2)!=0;}
   double DistanceTileBorder(){double value=double((Status>>15)&0x3ff)/100.;return value>8?0:value;}
+  double RingWidth(bool usedInsteadNpCol=false);
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,16)           // RichRingR
+  ClassDef(RichRingR,17)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
