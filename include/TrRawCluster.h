@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.13 2010/10/01 01:49:52 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.14 2011/02/06 12:56:35 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2010/10/01 01:49:52 $
+/// $Date: 2011/02/06 12:56:35 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -83,7 +83,7 @@ class TrRawClusterR : public TrElem {
   int   GetSlot()      const { return (abs(GetTkId())-GetLayer()*100)*GetLayerSide(); }
   /// Get ladder slot Side (0 == negative X, 1== positive X)
   int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
-  /// Returns the silicon face on which the cluster is (0 -> p, 1 -> n)
+  /// Returns the silicon face on which the cluster is (0: n-side, 1: p-side)
   int   GetSide() { return (GetAddress()>639) ? 0 : 1; }
  
   /// Returns the strip number of the cluster first strip   
