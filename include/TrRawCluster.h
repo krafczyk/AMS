@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.14 2011/02/06 12:56:35 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.15 2011/02/06 20:12:21 oliva Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2011/02/06 12:56:35 $
+/// $Date: 2011/02/06 20:12:21 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,12 +78,16 @@ class TrRawClusterR : public TrElem {
   /// Return the layer to which the cluster belong
   int   GetLayer()     const { return abs(GetTkId()/100); }
   /// Return +1 or -1 dependig on which side of the X plane is located the ladder holding the cluster
-  int   GetLayerSide() const { return (GetTkId()>0)?1:-1; }
+  int   GetLayerSide() const { return (GetTkId()>0) ? 1 : -1; }
   /// Returns  the slot identifier of the ladder holding the cluster 
   int   GetSlot()      const { return (abs(GetTkId())-GetLayer()*100)*GetLayerSide(); }
-  /// Get ladder slot Side (0 == negative X, 1== positive X)
-  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
-  /// Returns the silicon face on which the cluster is (0: n-side, 1: p-side)
+  /// Get ladder slot Side (0: negative X, 1: positive X)
+  int   GetSlotSide()  const { return (_tkid>=0) ? 1 : 0; }
+  /// Returns the silicon face on which the cluster is:
+  /*! 
+     - Value = 0: n-side aka K-side, X-coordinate 
+     - Value = 1: p-side aka S-side, Y-coordinate
+  */
   int   GetSide() { return (GetAddress()>639) ? 0 : 1; }
  
   /// Returns the strip number of the cluster first strip   

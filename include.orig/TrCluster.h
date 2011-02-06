@@ -40,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2010/12/14 22:18:52 $
+ $Date: 2011/02/06 20:12:21 $
 
- $Revision: 1.17 $
+ $Revision: 1.18 $
 
 */
 
@@ -88,7 +88,7 @@ class TrClusterR :public TrElem{
   float        _dxdz;
   /// tan(ThetaYZ) of the incoming track (used for optimization of the track fitting)
   float        _dydz;
-  /// Multiplicity (on p side sould be 1 on n side it is ladder dependent)
+  /// Multiplicity (on p side should be 1 on n side it is ladder dependent)
   int8         _mult;   
   //   /// Local coordinate by multiplicity index 
   //   vector<float> _coord;  
@@ -146,11 +146,15 @@ class TrClusterR :public TrElem{
   int   IsK7()             const { return TkDBc::Head->FindTkId(GetTkId())->IsK7(); } 
   /// Get ladder slot
   int   GetSlot()          const { return abs(_tkid%100); }
-  /// Get ladder slot Side (0 == negative X, 1 == positive X)
+  /// Get ladder slot Side (0: negative X, 1: positive X)
   int   GetSlotSide()      const { return (_tkid>=0) ? 1 : 0; }
-  /// Get cluster side (0: n-side, 1: p-side)
+  /// Returns the silicon face on which the cluster is:
+  /*! 
+    - Value = 0: n-side aka K-side, X-coordinate 
+    - Value = 1: p-side aka S-side, Y-coordinate
+  */
   int   GetSide()          const { return (_address<640) ? 1 : 0; }
-  /// Get the cluster first strip number (0, ..., 639 for p-side, 0, ..., 383 for n-side)  
+  /// Get the cluster first strip number   
   int   GetAddress()       const { return _address; }
   /// Get i-th strip address
   int   GetAddress(int ii);
