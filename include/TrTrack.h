@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.55 2011/02/03 16:09:39 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.56 2011/02/07 20:58:24 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/02/03 16:09:39 $
+///$Date: 2011/02/07 20:58:24 $
 ///
-///$Revision: 1.55 $
+///$Revision: 1.56 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -244,7 +244,9 @@ public:
   /// Default charge for fitting
   static float DefaultCharge;
 public:
-  
+	/** @name CONSTRUCTORS & C.
+	 */
+	/**@{*/ 
 //############### CONSTRUCTORS & C. ############################
   /// Default constructor
   TrTrackR();
@@ -261,67 +263,67 @@ public:
 
   /// Destructor
   virtual ~TrTrackR();
-/** @name A.A: TrRecHit Accessors
- */
-/**@{*/
-  // Access functions
-  //! returns the BIT Mask of the layers (1-9) with hit. bit_num <==> layer_num-1
-  unsigned short int GetBitPattern() const { return _bit_pattern; }
-  //! returns the Number of Hits
-  int GetNhits  () const { return _Nhits;   }
-  //! returns the Number of Hits
-  int getnhits  () const { return _Nhits;   }
-  //! returns the Number of Hits
-  int NTrRecHit  () const { return _Nhits;   }
 
-  //! Number of  X hits
-  int GetNhitsX   () const { return _NhitsX;    }
-  //! Number of  Y hits
-  int GetNhitsY   () const { return _NhitsY;    }
-  //! Number of  XY hits
-  int GetNhitsXY  () const { return _NhitsXY;   }
-
-  /// Get areferemce to the i-th in the track
-  TrRecHitR& TrRecHit(int i ); 
-  /// Get the index of the i-th hit in the track within the hit vector
-  int iTrRecHit(int i){return _iHits[i];}
-  /// Get the pointer to the i-th in the track
-  TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
-  /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
-  TrRecHitR *GetHitL(int ilay) const;
-  /// For Gbatch compatibility
-  uinteger checkstatus(integer checker) const{return Status & checker;}
-  uinteger getstatus() const{return Status;}
-  void     setstatus(uinteger status){Status=Status | status;}
-  void     clearstatus(uinteger status){Status=Status & ~status;} 
-/**@}*/
-
-/** @name A.B: Fit type Accessors
- */
-/**@{*/
+  /**@}*/
+	
+  /** @name Track Data Accessors	 */
+  /**@{*/
+	
+	//! returns the BIT Mask of the layers (1-9) with hit. bit_num <==> layer_num-1
+	unsigned short int GetBitPattern() const { return _bit_pattern; }
+	//! returns the Number of Hits
+	int GetNhits  () const { return _Nhits;   }
+	//! returns the Number of Hits
+	int getnhits  () const { return _Nhits;   }
+	//! returns the Number of Hits
+	int NTrRecHit  () const { return _Nhits;   }
+	
+	//! Number of  X hits
+	int GetNhitsX   () const { return _NhitsX;    }
+	//! Number of  Y hits
+	int GetNhitsY   () const { return _NhitsY;    }
+	//! Number of  XY hits
+	int GetNhitsXY  () const { return _NhitsXY;   }
+	
+	/// Get areferemce to the i-th in the track
+	TrRecHitR& TrRecHit(int i ); 
+	/// Get the index of the i-th hit in the track within the hit vector
+	int iTrRecHit(int i){return _iHits[i];}
+	/// Get the pointer to the i-th in the track
+	TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
+	/// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
+	TrRecHitR *GetHitL(int ilay) const;
+	/// For Gbatch compatibility
+	uinteger checkstatus(integer checker) const{return Status & checker;}
+	uinteger getstatus() const{return Status;}
+	void     setstatus(uinteger status){Status=Status | status;}
+	void     clearstatus(uinteger status){Status=Status & ~status;} 
+  /**@}*/
+	
+  /** @name Fit type Accessors
+  */
+ /**@{*/
 
 /*!
    \brief It gives you the integer number (fit code) to be used to access the fit results (TrTrackPar obj) 
     Advanced TrTrackPar accessor
     \param algo Fitting algorithm= 
-                           0 The default algorithm choosen at recon stage 
-                           1 Choutko;
-                           2 Alcaraz;
-                           3 Chikanian;
-                        +10 mscattering off;
+                          \li 0 The default algorithm choosen at recon stage (if you select this, you cannot use the other param)
+                          \li 1 Choutko;
+                          \li 2 Alcaraz;
+                          \li 3 Chikanian;
+                        \li +10 mscattering off;
     \param pattern    Hit Pattern= 
-                       0   all hits; (maximum span)
-                       1   inner upper half;
-                       2   inner lower half;
-                       3   drop 2 external hits;
-                       4   only 2 + 2 external hits;
-                       5   with Layer 1N (kFitLayer8)
-                       6   with Layer 9  (kFitLayer9)
-                       7   with Layer 1N and 9
-
-                       OR
-
-                       mmmmmmmmm    where m=0 or 1 for 
+                     \li  0   all hits belonginf to track; (maximum span)
+					 \li  1   inner upper half;
+					 \li  2   inner lower half;
+                     \li  3   Inner Tracker only (aka drop 2 external hits);
+					 \li  4   only 2 + 2 external hits;
+                     \li  5   inner + Layer 1N (kFitLayer8)
+                     \li  6   inner + Layer 9  (kFitLayer9)
+                     \li  7   inner + Layer 1N + layer 9 (kFitLayer8 & kFitLayer9)
+                     \li  OR
+					 \li mmmmmmmmm    where m=0 or 1 for 
                                     TrRecHit layer GetLayer()
                                      from right to the left such as 
                                      100110010  corresponds to layers
@@ -354,13 +356,11 @@ public:
   const TrTrackPar&  gTrTrackPar(int fit_type)  throw (string);
  //!Return the number of store fit results (TrTrackPar objects)
   int nTrTrackPar(){return _TrackPar.size();}
-  ///  Get back the string corresponding to a fit ID
-  static char* GetFitNameFromID(int fitnum);
   /// Print the string IDs of all the performed fits
   void   PrintFitNames();
 ///@}
-/** @name A.C: Accessors to features dependent on fit type
- */
+	
+/** @name Accessor to fit dependent quantiies */
 ///@{
 
   //! Returnt the fitted Rigidity from TrTrackPar corresponding to id
@@ -417,15 +417,7 @@ public:
     return (GetHitBits(id) & (1 << (layer-1)));
   }
 
-  /// Get bit pattern as a string
-  static const char *HitBitsString(int aa, char con = 'X', char coff = '_')
-  {
-    static char ss[10];
-    for (int ii = 0; ii < 9; ii++) ss[8-ii] = (aa & (1<<ii)) ? con : coff;
-    ss[9]='\0';
-    return ss;
-  }
-
+ 
 
 
   /// Get tan(theta) on XZ projection
@@ -508,9 +500,10 @@ public:
   char *Info(int iRef=0);
 /**@}*/
 
-/** @name A.D: Alternate and DEPRECATED Accessors
+/** @name Alternative and deprecated methods
  */
 ///@{
+	
   double   GetP0x      (int id= 0) const { return GetP0(id).x(); }
   double   GetP0y      (int id= 0) const { return GetP0(id).y(); }
   double   GetP0z      (int id= 0) const { return GetP0(id).z(); }
@@ -529,8 +522,7 @@ public:
   TrRecHitR *GetHit(int i);
   /// Get the pointer to the i-th in the track (const version)
   TrRecHitR *GetHit(int i) const;
-  /// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
-  TrRecHitR *GetHitL(int ilay);	/// ROOT definition
+  
 	
   //! returns the pattern ID
   int getpattern() const { return _Pattern; }
@@ -655,24 +647,37 @@ public:
   /// Remove the hit on the selected layer (1-9) 
   bool RemoveHitOnLayer( int layer);
   
-  
+
   /// Set hit patterns
   void SetPatterns(int patx, int paty, int patxy, int pat = -1) {
     _PatternX = patx; _PatternY = paty; _PatternXY = patxy;
     if (pat >= 0) _Pattern = pat;
   }
-  
+  ///@}  
+	
   /// Print Track basic information on a given stream 
   std::ostream& putout(std::ostream &ostr = std::cout);
-///\endinternal
- 
 
+	///  Get back the string corresponding to a fit ID
+	static char* GetFitNameFromID(int fitnum);
+
+	/// Get bit pattern as a string
+	static const char *HitBitsString(int aa, char con = 'X', char coff = '_')
+	{
+		static char ss[10];
+		for (int ii = 0; ii < 9; ii++) ss[8-ii] = (aa & (1<<ii)) ? con : coff;
+		ss[9]='\0';
+		return ss;
+	}
+	
   /// Stream out operator
   friend std::ostream &operator << (std::ostream &ostr,  TrTrackR &Tr){
     return Tr.putout(ostr);}
+	
+	
 ClassDef(TrTrackR, 4); 
 
-///@}  
+
   
 };
 
