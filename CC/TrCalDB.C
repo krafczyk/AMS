@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.9 2010/10/01 01:49:52 oliva Exp $
+//  $Id: TrCalDB.C,v 1.10 2011/02/07 12:28:12 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/10/01 01:49:52 $
+///$Date: 2011/02/07 12:28:12 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -227,8 +227,9 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){
   if(DAQEvent::CalibInit(0)){
     cout<<"AMSTrRawCluster::updtrcalib2009S-I-InitCalib "<<endl;
     Head->Clear();
-    //TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);
+      //TrLadCal::SetVersion(TKGEOMFFKEY.CalibVer);
     TrLadCal::SetVersion(2);
+    Head->run=AMSEvent::gethead()->getrun();
   }
 
   cout <<"  Crate TDR "<<ic<<"  "<<tdr<<endl;
