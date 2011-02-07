@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.90 2011/02/03 16:07:59 pzuccon Exp $
+// $Id: TrTrack.C,v 1.91 2011/02/07 21:07:33 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/03 16:07:59 $
+///$Date: 2011/02/07 21:07:33 $
 ///
-///$Revision: 1.90 $
+///$Revision: 1.91 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -595,15 +595,6 @@ TrRecHitR *TrTrackR::GetHit(int i) const
   }
 
   return hh;
-}
-
-TrRecHitR *TrTrackR::GetHitL(int ilay)
-{
-  for (int i = 0; i < GetNhits(); i++) {
-    TrRecHitR *hit = GetHit(i);
-    if (hit && hit->GetLayer() == ilay+1) return hit;
-  }
-  return 0;
 }
 
 TrRecHitR *TrTrackR::GetHitL(int ilay) const
