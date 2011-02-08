@@ -4,7 +4,6 @@
 #include <TText.h>
 #include <TH1F.h>
 #include <TFile.h>
-#include <TStyle.h>
 #include <TColor.h>
 #include <TCanvas.h>
 #include <TPaveLabel.h>
@@ -42,8 +41,6 @@ class CalSlider: public SliderI {
   void SetHistStyle2(TH1* hh);
   void SetHistStyle3(TH1* hh);
   
-  TStyle* myStyle;
-  
  public:
 
   TPaveLabel *label;
@@ -74,9 +71,6 @@ class CalSlider: public SliderI {
   void PrintThis();
   void PrintAll();
   void BuildMenu();
-
-  /* other */
-  void SetMyStyle();
 
   /* CalPainter methods */
   void FillLadderHistos();

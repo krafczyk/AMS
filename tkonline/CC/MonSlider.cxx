@@ -4,15 +4,13 @@ ClassImp(MonSlider);
 
 
 MonSlider::MonSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,title,xsize,ysize){
+  canvas->SetFillColor(0);
   rootfile = 0;
   reffile  = 0;  
   graphtype = 1;
   label = 0;
   BuildMenu();
-  TkDBc::CreateTkDBc();
-  TkDBc::Head->init(3); // init(2)? old configuration
   ladder = TkDBc::Head->FindHwId(0);
-  SetMyStyle();
 }
 
 
@@ -52,51 +50,6 @@ void MonSlider::BuildMenu() {
   frame->MoveResize(1200,800);
   frame->MapWindow();
   graphmenu->Connect("Selected(Int_t,Int_t)","MonSlider",this,"selectGraph(Int_t,Int_t)");
-}
-
-
-void MonSlider::SetMyStyle() {
-  // My graphic style 
-  myStyle = new TStyle("mystyle","my style");
-  // Colors
-  myStyle->SetFillColor(1);
-  myStyle->SetFillStyle(1001);
-  // Canvas & Pad (Title & Stat & Legend)
-  myStyle->SetCanvasColor(kWhite);
-  myStyle->SetCanvasBorderMode(0);
-  myStyle->SetCanvasBorderSize(1);
-  myStyle->SetPadColor(0);
-  myStyle->SetPadBorderMode(0);
-  myStyle->SetPadBorderSize(1);
-  myStyle->SetLegendBorderSize(1);
-  myStyle->SetTitleBorderSize(1);
-  myStyle->SetTitleFillColor(0);
-  myStyle->SetStatBorderSize(1);
-  myStyle->SetStatColor(0);
-  myStyle->SetTitleBorderSize(1);
-  myStyle->SetFrameFillColor(0);
-  myStyle->SetFrameFillStyle(0);
-  // Position and dimension
-  myStyle->SetTitleOffset(0.9,"xyz");
-  myStyle->SetTitleSize(0.05,"xyz");
-  myStyle->SetTitleSize(0.03," ");
-  // Stat option
-  myStyle->SetOptStat("ourme");
-  // Create linear gradient color table
-  TColor* Gradient = new TColor();
-  Gradient->InitializeColors();
-  const Int_t NRGBs = 5;
-  const Int_t NCont = 40;
-  Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-  Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-  Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-  Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-  Gradient->CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
-  myStyle->SetNumberContours(NCont);
-  canvas->SetFillColor(0);
-  // Set
-  gROOT->SetStyle("mystyle");
-  gROOT->ForceStyle(kTRUE);  
 }
 
 
@@ -763,7 +716,7 @@ void MonSlider::DrawTrack() {
   int    nbins  = rigplus->GetXaxis()->GetNbins();
   float  step   = (logmax-logmin)/nbins;
   Double_t bins[100];
-  for (int ii=0; ii<=nbins; ii++) bins[ii] = pow(10.,logmin) * pow(10.,step*ii);
+  for (int ii=0; ii<=nbins; ii++) bins[ii] = pow(10,logmin) * pow(10,step*ii);
   ClearHistoFromMemory("RigidityPlus_all");
   ClearHistoFromMemory("RigidityMinus_all");
   gROOT->cd();

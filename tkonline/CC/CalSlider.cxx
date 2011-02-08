@@ -14,6 +14,7 @@ ClassImp(CalSlider);
 char* CalSlider::filename=0;
 
 CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,title,xsize,ysize){
+  canvas->SetFillColor(0);
   // default graph
   graphtype = 1;
   // build menu
@@ -23,7 +24,7 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   fromdb    = 0;
   // default reffile
   char refname[200];
-  sprintf(refname,"%s/MonitorUI/rootfiles/CalDB_1284918006.root",getenv("TKDEV"));
+  sprintf(refname,"%s/tkonline/refs/CalDB_1284918006.root",getenv("AMSWD"));
   reffile = new TFile(refname);
   if (!reffile) printf("Warning: No reference file loaded\n");
   label = NULL;
@@ -58,10 +59,6 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   deltaped_vs_lad = 0;
   deltasig_vs_lad = 0;
   deltasigr_vs_lad = 0;
-  // DB init
-  TkDBc::CreateTkDBc();
-  TkDBc::Head->init(3);
-  SetMyStyle();
 }
 
 
@@ -84,51 +81,6 @@ void CalSlider::BuildMenu() {
   frame->MoveResize(1200,700);
   frame->MapWindow();
   graphmenu->Connect("Selected(Int_t,Int_t)","CalSlider",this,"selectGraph(Int_t,Int_t)");
-}
-
-
-void CalSlider::SetMyStyle() {
-  // My graphic style 
-  myStyle = new TStyle("mystyle","my style");
-  // Colors
-  myStyle->SetFillColor(1);
-  myStyle->SetFillStyle(1001);
-  // Canvas & Pad (Title & Stat & Legend)
-  myStyle->SetCanvasColor(kWhite);
-  myStyle->SetCanvasBorderMode(0);
-  myStyle->SetCanvasBorderSize(1);
-  myStyle->SetPadColor(0);
-  myStyle->SetPadBorderMode(0);
-  myStyle->SetPadBorderSize(1);
-  myStyle->SetLegendBorderSize(1);
-  myStyle->SetTitleBorderSize(1);
-  myStyle->SetTitleFillColor(0);
-  myStyle->SetStatBorderSize(1);
-  myStyle->SetStatColor(0);
-  myStyle->SetTitleBorderSize(1);
-  myStyle->SetFrameFillColor(0);
-  myStyle->SetFrameFillStyle(0);
-  // Position and dimension
-  myStyle->SetTitleOffset(0.9,"xyz");
-  myStyle->SetTitleSize(0.05,"xyz");
-  myStyle->SetTitleSize(0.03," ");
-  // Stat option
-  myStyle->SetOptStat("ourme");
-  // Create linear gradient color table
-  TColor* Gradient = new TColor();
-  Gradient->InitializeColors();
-  const Int_t NRGBs = 5;
-  const Int_t NCont = 40;
-  Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-  Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-  Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-  Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-  Gradient->CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
-  myStyle->SetNumberContours(NCont);
-  canvas->SetFillColor(0);
-  // Set
-  gROOT->SetStyle("mystyle");
-  gROOT->ForceStyle(kTRUE);  
 }
 
 

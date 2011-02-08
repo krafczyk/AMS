@@ -56,7 +56,7 @@ void TrackerPanel::updateSlot(Int_t id){
 }
 
 void TrackerPanel::Update(){
-	int tkid = ref->slider->GetTkId();
+	int tkid = ref->getSlider(0)->GetTkId();
 	slot = tkid%100;
 	layer = int(fabs(slot))/slot*(tkid/100);
 	for(int i=0;i<8;i++){

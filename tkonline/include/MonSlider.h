@@ -15,7 +15,6 @@
 #include <TH2.h>
 #include <TProfile.h>
 #include <TFile.h>
-#include <TStyle.h>
 #include <TColor.h>
 #include <TCanvas.h>
 #include <TPaveLabel.h>
@@ -40,8 +39,6 @@ class MonSlider : public SliderI {
   int         graphtype;
   /// Current ladder
   TkLadder*   ladder;
-  /// Style
-  TStyle*     myStyle;
   /// Labels
   TPaveLabel* label;
 
@@ -69,7 +66,6 @@ class MonSlider : public SliderI {
  
   /* Specific */ 
   void BuildMenu();
-  void SetMyStyle();
   int  try2Draw(TkLadder *lad);  
 
   void Draw();
