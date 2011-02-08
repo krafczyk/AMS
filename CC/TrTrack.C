@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.91 2011/02/07 21:07:33 pzuccon Exp $
+// $Id: TrTrack.C,v 1.92 2011/02/08 14:25:26 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/07 21:07:33 $
+///$Date: 2011/02/08 14:25:26 $
 ///
-///$Revision: 1.91 $
+///$Revision: 1.92 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,7 +78,7 @@ ClassImp(TrTrackR);
 
 int   TrTrackR::NhitHalf      = 4;
 int   TrTrackR::DefaultFitID  = TrTrackR::kChoutko | TrTrackR::kMultScat;
-float TrTrackR::DefaultMass   = TrFit::Mmuon; // 0.938272297
+float TrTrackR::DefaultMass   = 0.938272297;
 float TrTrackR::DefaultCharge = 1;
 
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
@@ -257,13 +257,13 @@ TrTrackPar &TrTrackR::GetPar(int id)
 
 double TrTrackR::GetNormChisqX(int id)
 {
-  Double_t enorm = 1;//TRFITFFKEY.ErrX/50e-4;
+  double enorm = 1;
   return (GetNdofX(id) > 0) ? GetChisqX(id)/GetNdofX(id)*enorm*enorm : 0;
 }
 
 double TrTrackR::GetNormChisqY(int id)
 {
-  Double_t enorm = 1;//TRFITFFKEY.ErrY/30e-4;
+  double enorm = 1;
   return (GetNdofY(id) > 0) ? GetChisqY(id)/GetNdofY(id)*enorm*enorm : 0;
 }
 
@@ -763,10 +763,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
      nhit=nhit2;
   }
 
-  // For the half-fitting options
   int i1 = 0, i2 = nhit;
-  if (id & kUpperHalf) { i1 = 0;    i2 = std::min(nhit, NhitHalf); }
-  if (id & kLowerHalf) { i2 = nhit; i1 = std::max(0, nhit-NhitHalf); }
 
   // Set fitting errors
   double errx = (err) ? err[0] : TRFITFFKEY.ErrX;
@@ -788,6 +785,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
 
+    int lyr = hit->GetLayer();
+    if ((id & kUpperHalf) && lyr >= 6) continue;
+    if ((id & kLowerHalf) && lyr == 1) continue;
+
     AMSPoint coo =  hit->GetCoord();
 
     double fmscx = 1;
@@ -806,7 +807,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
-    if ((id & kUpperHalf) || (id & kLowerHalf)) ferx = fery = 1;
 
     double bf[3] = { 0, 0, 0 };
     TrFit::GuFld(coo[0], coo[1], coo[2], bf);

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.43 2011/01/25 16:27:07 shaino Exp $
+//  $Id: TrFit.C,v 1.44 2011/02/08 14:25:26 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/01/25 16:27:07 $
+///$Date: 2011/02/08 14:25:26 $
 ///
-///$Revision: 1.43 $
+///$Revision: 1.44 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1092,7 +1092,7 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
     _param[4] = M[2][0]*vec[0]+M[2][1]*vec[1]+M[2][2]*vec[2];
     _ndofy    = ndof;
   }
-  if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2]);
+  if (!fix && M[2][2] > 0) _errrinv = std::sqrt(M[2][2])*1e12/Clight;
 
   return 0;
 }

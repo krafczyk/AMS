@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.90 2011/02/03 16:07:58 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.91 2011/02/08 14:25:26 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/02/03 16:07:58 $
+/// $Date: 2011/02/08 14:25:26 $
 ///
-/// $Revision: 1.90 $
+/// $Revision: 1.91 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1211,6 +1211,11 @@ int TrRecon::BuildTrTracks(int rebuild)
   if (rebuild) cont->eraseC();
   delete cont;
 
+  if (!patt) {
+    int nn = (TkDBc::Head->GetSetup()==3) ? 7 : 8;
+    patt = new tkpatt(nn);
+    patt->Init(nn);
+  }
 
   // Build _HitTkIdMap
   BuildHitsTkIdMap();

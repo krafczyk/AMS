@@ -1,3 +1,4 @@
+// $Id: tkdcards.h,v 1.36 2011/02/08 14:25:27 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -322,38 +323,13 @@ public:
   /// R [17,18] thresholds for TrRecon::TryDropX
   float RthdDropX[2];
 
-//############## TRACK CLASSIFICATION ###############
-  /// R [19,22] Standard MDR for (0:inner, 1:L1N, 2:L9, 3:full)
-  float StdMDR[4];
-
-  /// R [23,30] Multiple scattering factor for (0:inner, 2:L1N, 4:L9, 6:full)
-  float ScatFact[8];
-
-  /// R [31,32] Err-Rinv threshold for [0]:kErinvOK and [1]:kHighQ
-  float ErinvThres[2];
-
-  /// R [33,34] Chisquare threshold for [0]:kChisqOK and [1]:kHighQ
-  float ChisqThres[2];
-
-  /// R [35,36] Half rigidity threshold for [0]:kHalfROK and [1]:kHighQ
-  float HalfRThres[2];
-
-  /// R [37,38] External residual threshold for [0]:kExResOK and [1]:kHighQ
-  float ExResThres[2];
-
-  /// R [39,42] Chisquare tuning factor
-  float ChisqTune[4];
-
-  /// R [43,46] Half rigidity tuning factor
-  float HalfRTune[4];
-
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,3);
+  ClassDef(TRFITFFKEY_DEF,4);
 };
 //
 

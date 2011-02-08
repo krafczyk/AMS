@@ -1,3 +1,4 @@
+// $Id: tkdcards.C,v 1.48 2011/02/08 14:25:27 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -343,23 +344,6 @@ void TRFITFFKEY_DEF::init(){
   RthdDropX[0] = 100;
   RthdDropX[1] =  10;
 
-/* PZ this is not the right place for such a thing
-   ///############## TRACK CLASSIFICATION ###############  
-  for (int i = 0; i < TrTrackR::Nconf; i++) {
-    StdMDR   [i] = TrTrackR::StdMDR   [i];
-    ChisqTune[i] = TrTrackR::ChisqTune[i];
-    HalfRTune[i] = TrTrackR::HalfRTune[i];
-  }
-  for (int i = 0; i < TrTrackR::Nconf*2; i++)
-    ScatFact [i] = TrTrackR::ScatFact [i];
-
-  for (int i = 0; i < 2; i++) {
-    ErinvThres[i] = TrTrackR::ErinvThres[i];
-    ChisqThres[i] = TrTrackR::ChisqThres[i];
-    HalfRThres[i] = TrTrackR::HalfRThres[i];
-    ExResThres[i] = TrTrackR::ExResThres[i];
-  }
-*/
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 
