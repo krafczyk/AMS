@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.146 2011/01/29 17:37:45 choutko Exp $
+#  $Id: Makefile,v 1.147 2011/02/08 14:31:58 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -228,7 +228,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
-	 $(SCC)TrHistoMan.C $(SCC)HistoMan.C
+	 $(SCC)TrHistoMan.C $(SCC)HistoMan.C $(SCC)TrTrackSelection.C
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
            $(SCC)TrCharge.C \
@@ -311,6 +311,7 @@ ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
                 ../include/trrec.h ../include/tkdcards.h \
 		../include/point.h ../include/root_RV.h ../include/root.h  \
 		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h ../include/TrHistoMan.h \
+		../include/TrTrackSelection.h \
 		../include/root_setup.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
@@ -463,7 +464,7 @@ gbatch: amswd $(STANDALONE)
 $(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
-	
+
 $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C) 
 	 $(CXX) -c  $(CFLAGS) $(SPOPT)  $(SCC)trigger302.C -o $(BIN)/trigger302.o
 
