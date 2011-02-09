@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.305 2011/02/05 22:35:55 mdelgado Exp $
+//  $Id: root.h,v 1.306 2011/02/09 03:53:15 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -753,6 +753,7 @@ public:
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
   float Times[16];  ///<Time-hits(ns, wrt FT-time, "+" means younger hit)
   float Timese[16]; ///<Time-hits errors(ns)
+
   float Edep;    ///<Edep(mev)
   float Coo[3];   ///<R(cm),Phi(degr),Z(cm)-coordinates
   float ErrorCoo[3]; ///<Their errors
@@ -762,11 +763,18 @@ public:
   /// \param number index in container
   /// \return human readable info about AnticlusterR
   char * Info(int number=-1){
-    sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep);
+    float xm=1.e9;
+//    for(int i=0;i<Time.size();i++){
+//      if(fabs(Time[i])<fabs(xm))xm=Time[i];
+//    }
+    for(int i=0;i<Ntimes;i++){
+      if(fabs(Times[i])<fabs(xm))xm=Times[i];
+    }
+    sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g CTime(nsec)=%7.2f",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep,xm);
   return _Info;
   } 
   virtual ~AntiClusterR(){};
-ClassDef(AntiClusterR,1)       //AntiClusterR
+ClassDef(AntiClusterR,2)       //AntiClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1574,7 +1582,7 @@ public:
     double xtime=TrigTime[4]/1000.;
     int b15=(JMembPatt>>15)&1;
     int b14=(JMembPatt>>14)&1;
-    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %s, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f ExtBits %d%d",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",IsEcalLev1OK()?"Yes":"No",EcalTrSum,xtime,LiveTime,b15,b14);
+    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %d, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f ExtBits %d%d",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",EcalFlag,EcalTrSum,xtime,LiveTime,b15,b14);
   return _Info;
   }
   virtual ~Level1R(){};

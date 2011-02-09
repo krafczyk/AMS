@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.508 2011/01/29 03:48:37 mmilling Exp $
+//  $Id: event.C,v 1.509 2011/02/09 03:53:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -159,7 +159,7 @@ if(AMSEvent::get_thread_num()==0){
 }
 void AMSEvent::_init(){
   SetTimeCoo(IOPA.mode==1);
-   
+
 
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
@@ -381,7 +381,7 @@ void AMSEvent::_signinitevent(){
     geant dd; 
     int i;
     number xsec=0;
-    if(CCFFKEY.low==0&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
+    if((CCFFKEY.low==0|| CCFFKEY.low==6)&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
        xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
       }
       else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
@@ -392,11 +392,6 @@ void AMSEvent::_signinitevent(){
     }
 //    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
     GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
-//    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
-//      GCFLAG.IEORUN=1;
-//      GCFLAG.IEOTRI=1;
-//      return;
-//    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationEqAsc,_StationEqDec,_StationGalLat,_StationGalLong,_time);
 
@@ -602,7 +597,6 @@ void AMSEvent::_signinitevent(){
       _VelPhi=Array[0].VelPhi;
     }
   }
-
   AMSgObj::BookTimer.stop("SetTimeCoo");
 }
 

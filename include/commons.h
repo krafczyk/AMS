@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.303 2011/01/29 03:48:54 mmilling Exp $
+//  $Id: commons.h,v 1.304 2011/02/09 03:53:15 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -142,6 +142,19 @@ integer histprf;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);
+
+
+
+class LVTMFFKEY_DEF {
+public:
+integer BufSize;
+float MinFTime;
+float MinTime;
+float MeanTime;
+};
+#define LVTMFFKEY COMMON_BLOCK(LVTMFFKEY,lvtmffkey)
+COMMON_BLOCK_DEF(LVTMFFKEY_DEF,LVTMFFKEY);
+
 
 
 

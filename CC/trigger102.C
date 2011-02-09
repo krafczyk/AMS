@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.94 2010/12/17 16:51:21 choumilo Exp $
+//  $Id: trigger102.C,v 1.95 2011/02/09 03:53:10 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -150,46 +150,6 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       }//--->endof "setup changed" check
     }//--->endof "trig.obj exist ?" check
 //-------------------------------------------
-/*
-    if(TGL1FFKEY.RebuildLVL1==1){//<=== special RD: (Re)build lvl1 from subdet-reco objects only
-// TOF :
-//    (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
-      tofflag=1;
-      TOF2RawCluster *pcl=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
-      while(pcl){
-       int plane=pcl->getntof()-1;
-       int bar=pcl->getplane()-1;
-       ttrpatt[plane]=ttrpatt[plane] | ( 1 << bar);  
-       pcl=pcl->next();
-      }
-      for(i=0;i<TOF2GC::SCLRS;i++)if(ttrpatt[i]>0)ntof+=1;//counts coinc. planes
-// ANTI :
-      integer antip[2]={0,0};
-      for(int k=0;k<2;k++){
-        AMSAntiRawCluster *pcl=(AMSAntiRawCluster *)AMSEvent::gethead()->getheadC("AMSAntiRawCluster",k);
-        while(pcl){
-        int sector=pcl->getsector()-1;
-         int updown=pcl->getupdown();
-         antip[updown]=antip[updown] | ( 1 << sector);  
-         pcl=pcl->next();
-        }
-      }
-      antipatt=antip[0] & antip[1];
- 
-      integer cbt;
-      for(i=0;i<MAXANTI;i++){
-        cbt=1<<i;
-        if((antipatt&cbt)>0)nanti+=1;//counts paddles
-      }
-// ECAL :
-      ectrigfl=AMSEcalRawEvent::gettrfl();
-      ectrsum=AMSEcalRawEvent::gettrsum();
-//
-      AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(PhysBPatt,JMembPatt,toftrcode1,toftrcode2,tofpatt1,tofpatt2,
-	                         antipatt,ectrigfl,ectrpatt,ectrsum,livetime,rates));//new lvl1-object
-    }
-*/
     return;
   }
 //----------------------------------------------------------------------------------------
@@ -271,17 +231,20 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       cout<<"     MagLat/Phi="<<gmaglat<<" "<<gmagphi<<endl;
     }
 //------
-    if(ftpatt==0)return;// no global(FTC/FTZ/FTE) FastTrig, no ExtTrig
+    
+    if(ftpatt==0 || !AMSmceventg::CalcLiveTime(0))return;// no global(FTC/FTZ/F
+    
     TGL1JobStat::addev(1);
 //--> create event's LVL1 trig-time:
-    time_t EventTime=AMSEvent::gethead()->gettime();
-    uinteger ievtime=uinteger(EventTime);//event UTC-time (Geant "0"-time)
+    uinteger EventTime=AMSEvent::gethead()->gettime()-mktime(&AMSmceventg::Orbit.Begin);
+    uinteger utime=AMSEvent::gethead()->getutime();
     trtime[1]=0;//reset counter (24-bits coarse time register)
     number fttime=TOF2RawSide::gettrtime();//FTtime in Geant-ns(0.5ns accur)
-    uinteger ifttime=floor(fttime/640);//in 0.64mks-bin time_tap_counter units
-    trtime[2]=ifttime;//32 lsb
-    trtime[3]=0;//8 msb
-    trtime[4]=0;//delta trigtime (mks)
+    uint64 trtime64=uint64(EventTime)*1000000000+utime+fttime;
+    uint64 ifttime=trtime64/640;//in 0.64mks-bin time_tap_counter units
+
+    trtime[2]=(ifttime & 0xFFFFFFFF);//32 lsb
+    trtime[3]=(ifttime>>32);//8 msb
     trtime[0]=1562500;//1sec in 0.64mks units (calibration counter)
 //
     if(ftpatt&(1)){//was FTC
@@ -477,8 +440,10 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
       if(nbchk>0)comtrok=1;
     }
 //
-    if(comtrok){
+    if(comtrok && AMSmceventg::CalcLiveTime(1)){
 //
+      livetime=AMSmceventg::LiveTime();
+      trtime[4]=AMSmceventg::DT();
       TGL1JobStat::addev(9);
       if((ratemx<TGL1FFKEY.MaxScalersRate && livetime>TGL1FFKEY.MinLifeTime) || (auxtrpat > 0))
       {
@@ -1529,7 +1494,7 @@ void Trigger2LVL1::builddaq(integer ibl, integer n, int16u *p){
     }
 //now we have 32 setup words
 //=====================> Add LiveTime registers all_buzy/fe_buzy:
-    ltim=uinteger(tgate/(2.e-8));//ref.counter value for 20ns period and tgate
+    ltim=uinteger(tgate/(2.e-8))*AMSmceventg::LiveTime();//ref.counter value for 20ns period and tgate
     *(p+livetbs) = int16u(ltim&(0xFFFFL));//16 lsb of All_buzy LiveTime
     rrr=int16u((ltim&(0x7FF0000L))>>16);//11 msb
     rrr|=(2<<12);//time gate code (2->1sec)

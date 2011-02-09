@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.161 2011/02/03 16:07:24 pzuccon Exp $
+//  $Id: mceventg.C,v 1.162 2011/02/09 03:53:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -115,7 +115,7 @@ void AMSmceventg::gener(){
     _dir[1]=sin(Th)*sin(Ph);
     _dir[2]=cos(Th);
 
-    _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[2]);
+    _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[1]);
  //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
  //      _coo[0],_coo[1],_coo[2],
  //      _dir[0],_dir[1],_dir[2]);
@@ -470,29 +470,6 @@ void AMSmceventg::gener(){
 void AMSmceventg::setspectra(integer begindate, integer begintime, 
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
-
-  Orbit.Begin.tm_year  =  begindate%10000-1900;
-  Orbit.Begin.tm_mon = (begindate/10000)%100-1;
-  Orbit.Begin.tm_mday   = (begindate/1000000)%100;
-  Orbit.Begin.tm_hour  = (begintime/10000)%100;
-  Orbit.Begin.tm_min= (begintime/100)%100;
-  Orbit.Begin.tm_sec=(begintime)%100;
-  //  Orbit.Begin.tm_isdst =  Orbit.Begin.tm_mon>=3 &&  Orbit.Begin.tm_mon<=8;
-  Orbit.Begin.tm_isdst =  0;
-
-  Orbit.End.tm_year  =  enddate%10000-1900;
-  Orbit.End.tm_mon = (enddate/10000)%100-1;
-  Orbit.End.tm_mday   = (enddate/1000000)%100;
-  Orbit.End.tm_hour  = (endtime/10000)%100;
-  Orbit.End.tm_min=(endtime/100)%100;
-  Orbit.End.tm_sec=(endtime)%100;
-  //  Orbit.End.tm_isdst = Orbit.End.tm_mon>=3 &&  Orbit.End.tm_mon<=8;
-  Orbit.End.tm_isdst = 0;
-  Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
-  if(Orbit.FlightTime < 0){
-    cerr <<"AMSmceventg::setspectra-F-FlighTime < 0 "<<Orbit.FlightTime<<endl;
-    exit(1);
-  }  
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
   Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
   const number MIR=51.65;
@@ -511,6 +488,34 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.Nskip=0;
   Orbit.Nskip2=0;
   Orbit.Ntot=AMSIO::getntot();
+
+  
+  Orbit.Begin.tm_year  =  begindate%10000-1900;
+  Orbit.Begin.tm_mon = (begindate/10000)%100-1;
+  Orbit.Begin.tm_mday   = (begindate/1000000)%100;
+  Orbit.Begin.tm_hour  = (begintime/10000)%100;
+  Orbit.Begin.tm_min= (begintime/100)%100;
+  Orbit.Begin.tm_sec=(begintime)%100;
+  //  Orbit.Begin.tm_isdst =  Orbit.Begin.tm_mon>=3 &&  Orbit.Begin.tm_mon<=8;
+  Orbit.Begin.tm_isdst =  0;
+
+
+  Orbit.End.tm_year  =  enddate%10000-1900;
+  Orbit.End.tm_mon = (enddate/10000)%100-1;
+  Orbit.End.tm_mday   = (enddate/1000000)%100;
+  Orbit.End.tm_hour  = (endtime/10000)%100;
+  Orbit.End.tm_min=(endtime/100)%100;
+  Orbit.End.tm_sec=(endtime)%100;
+  //  Orbit.End.tm_isdst = Orbit.End.tm_mon>=3 &&  Orbit.End.tm_mon<=8;
+  Orbit.End.tm_isdst = 0;
+  Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
+  Orbit.InitTime=difftime(mktime(&Orbit.Begin),mktime(&Orbit.Init));
+
+
+  if(Orbit.FlightTime < 0){
+    cerr <<"AMSmceventg::setspectra-F-FlighTime < 0 "<<Orbit.FlightTime<<endl;
+    exit(1);
+  }  
 
   if(AMSJob::gethead()->isSimulation()){
   if(ipart==0){
@@ -1074,7 +1079,7 @@ integer AMSmceventg::accept(){
          geant d;
           if(SpecialCuts(CCFFKEY.SpecialCut%10)){
 //        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
-            if(!CCFFKEY.low  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+            if((CCFFKEY.low==0 || CCFFKEY.low==6)  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
             return EarthModulation();
            else return 1;
           }
@@ -1650,7 +1655,8 @@ void orbit::UpdateOrbit(number theta, number phi, integer sdir){
   }
 }
 
-integer orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS, geant & PolePhi, number & RaS, number & DecS, number & GLatS, number & GLongS, time_t & time){ 
+integer orbit::UpdateOrbit(number xsec2, geant & ThetaS, geant & PhiS, geant & PolePhiS, number & RaS, number & DecS, number & GLatS, number & GLongS, time_t & time){ 
+    double xsec=xsec2+InitTime;
     number t2=
       AlphaTanThetaMax*AlphaTanThetaMax; 
     number theta=ThetaI;
@@ -1669,7 +1675,7 @@ integer orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS, geant & Po
 
     time=integer(mktime(&Begin)+xsec); 
     ThetaS=theta;
-    PolePhi=pole;
+    PolePhiS=pole;
     PhiS=fmod(phi+PhiZero+NodeSpeed*xsec,AMSDBc::twopi);
      ///// NodeSpeed is  ascending node precession due to oblateness
     number alt = AlphaAltitude;
@@ -1678,7 +1684,7 @@ integer orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS, geant & Po
     //number correction=fmod(1.98694E-7*xsec,AMSDBc::twopi);
     //number correction=0;
     //number correction=fmod((6.27894582393474/(365*86400))*xsec,AMSDBc::twopi);
-    number truephi=fmod(PhiS-(PolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);  
+    number truephi=fmod(PhiS-(PolePhiS-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);  
    
     skyposition isspos(ThetaS,truephi,alt,time); // calculate celestial position 
 
@@ -1698,13 +1704,13 @@ ThetaI(Th),PolePhi(Pole){
   AlphaSpeed=AMSDBc::twopi/90.8/60.;
   EarthSpeed=AMSDBc::twopi/86164.091; //ISN rad/s
   NodeSpeed=9.88E-7; // ISN ascending node precession due to oblateness
-  Begin.tm_year  =  98;
-  Begin.tm_mon = 05;
-  Begin.tm_mday   = 2;
-  Begin.tm_hour  = 12;
-  Begin.tm_min= 0;
-  Begin.tm_sec=0;
-  Begin.tm_isdst =  0;
+  Init.tm_year  =  111;
+  Init.tm_mon = 04;
+  Init.tm_mday   = 1;
+  Init.tm_hour  = 12;
+  Init.tm_min= 0;
+  Init.tm_sec=0;
+  Init.tm_isdst =  0;
 
 }
 void orbit::UpdateAxis(number vt, number vp, number t, number p){
@@ -2061,7 +2067,77 @@ void AMSmctrack::_writeEl(){
 
 
 
+bool AMSmceventg::CalcLiveTime(int icase){
+static vector<double>daqbuffer;
+static number curtimeprev=0;  //last accepted event time
+static unsigned int inittime=0;
+static unsigned int DaqTotalLastSec[2]={0,0};
+static unsigned int DaqAcceptedLastSec[2]={0,0};
+static double ExposureTime=0;
+static number curtime=0;
+if(!CCFFKEY.earth)return true;
+if(AMSEvent::gethead()){
+unsigned int sec=AMSEvent::gethead()->gettime();
+if(curtime==0){
+inittime=sec;
+}
+unsigned int usec=AMSEvent::gethead()->getutime();
+curtime=sec-inittime+usec/1000000000.;
+}
+else {
+cerr <<"AMSmceventg::CalcLiveTime-E-NoEventDefined "<<endl;
+return false;
+}
+number dt=curtime-curtimeprev;
+DaqTotalLastSec[icase]++;
+if(icase==0){
+// fast trigger signal
+//
+  if( dt<LVTMFFKEY.MinFTime){
+     return false;
+  }
+  else{
+   DaqAcceptedLastSec[icase]++;
+   return true;
+  }
+}
+else if(icase==1){
+// lvl1 trigger signal
+//
+  if( dt<LVTMFFKEY.MinTime){
+     return false;
+  }
+ for(int i=daqbuffer.size()-1;i>=0;i--){
+  if(curtime-daqbuffer[i]>LVTMFFKEY.MeanTime){
+    daqbuffer.erase(daqbuffer.begin()+i);
+  }
+ }
+if(daqbuffer.size()>=LVTMFFKEY.BufSize){
+     return false;
+}
+else daqbuffer.push_back(curtime);
 
 
+DaqAcceptedLastSec[icase]++;
+ExposureTime+=dt;
+_DT=(curtime-curtimeprev)*1000000;
+curtimeprev=curtime;
+if(ExposureTime>1){
+ _Livetime=double(DaqAcceptedLastSec[0])/double(DaqTotalLastSec[0]+1);
+ _Livetime*=double(DaqAcceptedLastSec[1])/double(DaqTotalLastSec[1]+1);
+  for(int i=0;i<2;i++){
+   DaqTotalLastSec[i]=0;
+   DaqAcceptedLastSec[i]=0;
+  }
+  cout <<" AMSmceventg::CalcLiveTime-I- "<<_Livetime<<endl;
+  ExposureTime=0;
+}
+ return true;
+}
+else return true;
+}
+
+number AMSmceventg::_Livetime=1;
+number AMSmceventg::_DT=0;
 
 

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.3 2010/12/11 18:30:39 choutko Exp $
+//  $Id: root_setup.h,v 1.4 2011/02/09 03:53:15 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -74,9 +74,9 @@ public:
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
  typedef map <unsigned int,TTCS> TTCS_m;
  typedef map <unsigned int,TTCS>::iterator TTCS_i;
-  BValues_m   fBValues;
-  GPSTime_m fGPSTime;
-  ISSData_m fISSData;
+  BValues_m   fBValues; ///< Magnetic Field  from CCEB
+  GPSTime_m fGPSTime;    ///< GPS Time
+  ISSData_m fISSData;    ///< ISS Aux Data
   TTCS_m fTTCS;
 
    typedef map <unsigned long long ,ScalerMon> Scalers_m;

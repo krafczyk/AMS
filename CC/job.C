@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.772 2011/02/03 16:07:59 pzuccon Exp $
+// $Id: job.C,v 1.773 2011/02/09 03:53:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -278,9 +278,15 @@ PRODFFKEY.Job=-1;
 FFKEY("PROD",(float*)&PRODFFKEY,sizeof(PRODFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
+
+
+
  HVSEC.ihvse[0]=2;
  HVSEC.ihvse[1]=2;
 FFKEY("HISE",(float*)&HVSEC,sizeof(HVSEC_DEF)/sizeof(integer),"MIXED");
+
+
+
 
 
 
@@ -765,6 +771,14 @@ GMFFKEY.SourceVisib=0.873; //50 degrees
 GMFFKEY.GammaBg=0;
 GMFFKEY.BgAngle=0.087; //5 degrees
 FFKEY("GMSRC",(float*)&GMFFKEY,sizeof(GMFFKEY_DEF)/sizeof(integer),"MIXED");
+
+LVTMFFKEY.BufSize=12;
+LVTMFFKEY.MeanTime=333e-6;
+LVTMFFKEY.MinTime=140e-6;
+LVTMFFKEY.MinFTime=1e-6;
+
+FFKEY("LVTM",(float*)&LVTMFFKEY,sizeof(LVTMFFKEY_DEF)/sizeof(integer),"MIXED");
+
 }
 //=================================================================================
 //

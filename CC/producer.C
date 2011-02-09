@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.147 2011/01/29 17:37:44 choutko Exp $
+//  $Id: producer.C,v 1.148 2011/02/09 03:53:09 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -711,7 +711,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
-  fmake="rfmkdir -p -m 775 ";
+  fmake="nsmkdir -p ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   fcopy=means;
   fcopy+=" ";
@@ -1120,7 +1120,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
-  fmake="rfmkdir -p -m 775 ";
+  fmake="nsmkdir -p  ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   string rfio=destdir;
   if(rfio.find("/castor/cern.ch")){

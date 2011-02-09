@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.46 2010/06/24 10:49:59 zweng Exp $
+//  $Id: mceventg.h,v 1.47 2011/02/09 03:53:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -34,19 +34,20 @@ number PolePhiStatic;
 number PoleTheta;
 number EarthSpeed;
 number NodeSpeed; //ISN  
+number InitTime;
 number FlightTime;
 number EarthR;
 number DipoleR;
 number DipoleTheta;
 number DipolePhi;
 AMSDir Axis;
+tm Init;
 tm Begin;
 tm End;
 integer UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS, geant & PolePhi, number & RaS, number & DecS, number & GLatS, number & GLongS, time_t & time); 
 void UpdateOrbit(number theta,number phi, integer dir);
 void UpdateAxis(number veltheta, number velphi, number theta, number phi);
-orbit(geant ThetaI,geant PhiI, geant PolePhi, integer Dir);
-orbit(){};
+orbit(geant ThetaI=0,geant PhiI=0, geant PolePhi=0, integer Dir=1);
 ~orbit(){cout <<"Nskip "<<Nskip<<" Nskip2 "<<Nskip2<<endl;}
 };
 
@@ -88,6 +89,8 @@ static AMSDir *_dir_c;
 static AMSPoint _coorange[2];
 static AMSPoint _dirrange[2];
 static number _momrange[2];
+static number _Livetime;
+static number _DT;
 static integer _fixedpoint;
 static integer _fixedplane;
 static integer _fixeddir;
@@ -106,6 +109,9 @@ void _copyEl();
 void _writeEl();
 void _printEl(ostream & stream);
 public:
+static number LiveTime(){return _Livetime;}
+static number DT(){return _DT;}  // time difference in to cons events usec
+static bool CalcLiveTime(int icase);
 static void SaveSeeds();
 static void RestoreSeeds();
 static void PrintSeeds(ostream & o);

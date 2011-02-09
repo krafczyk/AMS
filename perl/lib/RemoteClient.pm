@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.621 2011/02/04 18:05:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.622 2011/02/09 03:53:15 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -810,6 +810,7 @@ if($#{$self->{DataSetsT}}==-1){
 #     push @{$self->{DataSetsT}}, $dataset;
      $dataset->{datamc}=0;
      $dataset->{g4}="";
+     $dataset->{singlejob}=0;
      foreach my $job (@jobs){
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
@@ -821,6 +822,9 @@ if($#{$self->{DataSetsT}}==-1){
          }
          if($job=~/^g4=true/){
              $dataset->{g4}="g4";
+         }
+         if($job=~/^singlejob=true/){
+             $dataset->{singlejob}=1;
          }
         
      }
@@ -874,7 +878,9 @@ if($#{$self->{DataSetsT}}==-1){
              $template->{TOTALEVENTS}=0;
          }
        }
-   
+       if($dataset->{singlejob}){
+           $template->{CPUPEREVENTPERGHZ}=1.e-9;
+       }
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
@@ -1046,6 +1052,9 @@ if($#{$self->{DataSetsT}}==-1){
            $dataset->{rootntuple}=$template->{ROOTNTUPLE};
        }
 
+       if($dataset->{singlejob}){
+           $template->{CPUPEREVENTPERGHZ}=1.e-9;
+       }
 #
 # get no of events
 #
@@ -6716,6 +6725,7 @@ print qq`
                 $templatebuffer=$tmp->{filebody};
                 $templatehost=$tmp->{HOST};
                 $templateprio=$tmp->{PRIO};
+                $q->param("QSINGLEJOB",$dataset->{singlejob});
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
@@ -6872,7 +6882,7 @@ print qq`
         }
         else{
            $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
-           $gbatchcomp=$gbatch.".$dataset->{g4}";
+           $gbatchcomp=$gbatch.".g4";
         }
         
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
@@ -7410,7 +7420,7 @@ print qq`
              $buf=~ s/export/$ssbuf[0]\nexport/;
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
-          }
+         }
 
          $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
          print FILE $buf;
@@ -7774,6 +7784,7 @@ anyagain:
                 if(not defined $q->param("QPart")){
                     $q->param("QPart",$tmp->{PART});
                 }
+                $q->param("QSINGLEJOB",$dataset->{singlejob});
                 if(not defined $q->param("QCPUPEREVENT")){
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
@@ -7792,11 +7803,17 @@ anyagain:
                         #  make runno correction
                         my $evperrun=$evno/$q->param("QRun");
                         $evno=$tmp->{TOTALEVENTS};
+                      
+                        if( $q->param("QSINGLEJOB")){
+                        }
+                        else{
                         my $runno=int($evno/$evperrun+0.5);
+                         
                         if($runno le 0){
                             $runno=1;
                         }
                        $q->param("QRun",$runno);
+                    }
                     }
                     if($evno<10000){
                       $evno=10000;
@@ -7882,7 +7899,7 @@ anyagain:
             if (defined $q->param("QCPUType")){
               $corr=$self->{cputypes}->{$q->param("QCPUType")};
             }
-        if($cputime*$cput*$corr < 100000000  and $self->{CCA} ne 'test'){
+        if($cputime*$cput*$corr < 100000000  and $self->{CCA} ne 'test' and $q->param("QSINGLEJOB")==0){
              $self->ErrorPlus("CPU Time Limit Per Job $cputime*$cput*$corr/1000 is too low for the AMS02 MC (min 100000 secGHz) ");
         }
 
@@ -8081,7 +8098,7 @@ anyagain:
         }
         else{
            $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
-           $gbatchcomp=$gbatch.".$dataset->{g4}";
+           $gbatchcomp=$gbatch.".g4";
         }
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
@@ -8441,11 +8458,13 @@ anyagain:
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
+              my $hstart=$s+100*$m+10000*$h;
          my $timstart=($year+1900)+10000*($mon+1)+1000000*($date);
          ($s,$m,$h,$date,$mon,$year)=localtime($end);
+              my $hfin=$s+100*$m+10000*$h;
          my $timfin=($year+1900)+10000*($mon+1)+1000000*($date);
-         $buf=~ s/TIMBEG=/TIMBEG=$timstart/;
-         $buf=~ s/TIMEND=/TIMEND=$timfin/;
+         $buf=~ s/TIMBEG=/TIMBEG=$timstart\nHRSBEG=$hstart/;
+         $buf=~ s/TIMEND=/TIMEND=$timfin\nHRSEND=$hfin/;
          $buf=~ s/PART=/PART=$particleid/;
          $buf=~ s/RUN=/RUN=$run/;
          if($self->{q}->param("AdvancedQuery")){
@@ -8595,10 +8614,15 @@ anyagain:
 #
 # check here custom/generic
 #
-         if(defined $q->param("JST") and  $q->param("JST") eq 'C'){
+         if(defined $q->param("JST")){
              my $sdir="$self->{AMSSoftwareDir}/scripts/";
              my $newfile=$sdir."$self->{CCA}";
-             open(FILEI,"<".$newfile) or die " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
+             if(not open(FILEI,"<".$newfile)){
+              if(   $q->param("JST") eq 'C'){
+                 die  " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
+             }
+          }
+              else{
              my $sbuf;
              read(FILEI,$sbuf,16384);
              close FILEI;
@@ -8610,6 +8634,7 @@ anyagain:
              $buf=~ s/export/$ssbuf[0]\nexport/;
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
+}
 
          $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
          print FILE $buf;

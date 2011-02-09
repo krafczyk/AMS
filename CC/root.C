@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.245 2011/02/05 22:35:55 mdelgado Exp $
+//  $Id: root.C,v 1.246 2011/02/09 03:53:10 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2129,10 +2129,18 @@ AntiClusterR::AntiClusterR(AMSAntiCluster *ptr)
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Sector = ptr->_sector;
+  //Npairs = ptr->_npairs;
+  //Time.clear();
+  //TimeE.clear();
+  //for(int i=0;i<ptr->_ntimes;i++){
+  //  Time.push_back(ptr->_times[i]);
+  //  TimeE.push_back(ptr->_etimes[i]);
+//  }
   Ntimes = ptr->_ntimes;
   Npairs = ptr->_npairs;
-  for(int i=0;i<Ntimes;i++)Times[i] = ptr->_times[i];
-  for(int i=0;i<Ntimes;i++)Timese[i] = ptr->_etimes[i];
+  for(int i=0;i<sizeof(Times)/sizeof(Times[0]);i++)Times[i] = i<Ntimes?ptr->_times[i]:0;
+  for(int i=0;i<sizeof(Timese)/sizeof(Timese[0]);i++)Timese[i] = i<Ntimes?ptr->_etimes[i]:0;
+
   Edep   = ptr->_edep;
   for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
   for (int i=0; i<3; i++) ErrorCoo[i] = ptr->_ecoo[i];
