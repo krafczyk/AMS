@@ -50,7 +50,7 @@ class CalSlider: public SliderI {
   trcalIT calit_begin,calit_end,calit_cur;
   int graphtype;
   
-  CalSlider(char *name,char *title,int xsize=1064, int ysize=600);
+  CalSlider(char *name,char *title,int xsize=1000, int ysize=400);
   ~CalSlider();
   
   int try2Draw(TrLadCal *cc);

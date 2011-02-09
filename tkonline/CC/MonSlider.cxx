@@ -44,10 +44,10 @@ void MonSlider::BuildMenu() {
   graphmenu->AddEntry("SeedOccupancyGlobal",11);
   graphmenu->AddEntry("ClustersSummary",12);
   graphmenu->Select(graphtype);
-  graphmenu->Resize(180,220);
+  graphmenu->Resize(180,300);
   frame->AddFrame(graphmenu,new TGLayoutHints(kLHintsRight | kLHintsTop,2,2,2,2));
   frame->MapSubwindows();
-  frame->MoveResize(1200,800);
+  frame->MoveResize(1200,600);
   frame->MapWindow();
   graphmenu->Connect("Selected(Int_t,Int_t)","MonSlider",this,"selectGraph(Int_t,Int_t)");
 }
@@ -127,6 +127,13 @@ TH1* MonSlider::GetHistoFromMemory(char* name) {
     return 0;
   }
   return (TH1*) obj;
+}
+
+
+TH1* MonSlider::GetHisto(TFile* file, char* name, char* oldname) {
+  TH1* histo = GetHistoFromFile(file,name);
+  if (histo==0) histo = GetHistoFromFile(file,oldname);
+  return histo;
 }
 
 
@@ -324,8 +331,8 @@ void MonSlider::DrawSignalSummary() {
     }
   }
   // Width Summary (all ladders)
-  TH2D* width_n = (TH2D*) GetHisto(rootfile,"Width_vs_Ladder_all_N");
-  TH2D* width_p = (TH2D*) GetHisto(rootfile,"Width_vs_Ladder_all_P");
+  TH2D* width_n = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_N","Width_vs_Ladder_all_N");
+  TH2D* width_p = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_P","Width_vs_Ladder_all_P");
   if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
   TProfile* width_n_prof = (TProfile*) GetProfileX(width_n);
   TProfile* width_p_prof = (TProfile*) GetProfileX(width_p);
@@ -562,8 +569,8 @@ void MonSlider::DrawLadder() {
   cc->SetGridx();
   cc->SetLogy();
   cc->SetGridy();
-  TH1D* width_n = (TH1D*) GetHisto(rootfile,Form("Width_%+04d_N",tkid));
-  TH1D* width_p = (TH1D*) GetHisto(rootfile,Form("Width_%+04d_P",tkid));
+  TH1D* width_n = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_N",tkid),Form("Width_%+04d_N",tkid));
+  TH1D* width_p = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_P",tkid),Form("Width_%+04d_P",tkid));
   if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
   width_n->SetStats(kFALSE);
   width_n->SetLineWidth(2);

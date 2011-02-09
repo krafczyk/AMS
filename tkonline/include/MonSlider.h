@@ -45,7 +45,7 @@ class MonSlider : public SliderI {
  public:
  
   /// Constructor
-  MonSlider(char *name,char *title,int xsize=1064, int ysize=600);
+  MonSlider(char *name,char *title,int xsize=1000, int ysize=400);
   /// Destructor
   ~MonSlider();
 
@@ -86,6 +86,7 @@ class MonSlider : public SliderI {
   // void DrawBeamTest3();
 
   // Check and store an histogram in a safe memory area 
+  TH1* GetHisto(TFile* file, char* name, char* oldname);
   TH1* GetHisto(TFile* file, char* name); 
   TH1* GetHistoFromFile(TFile* file, char* name);
   TH1* GetHistoFromMemory(char* name);

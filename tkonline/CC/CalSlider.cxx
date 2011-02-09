@@ -75,10 +75,10 @@ void CalSlider::BuildMenu() {
   graphmenu->AddEntry("CalFinder",7);
   graphmenu->AddEntry("CalFindSummary",8);
   graphmenu->Select(graphtype);
-  graphmenu->Resize(180,180);
+  graphmenu->Resize(180,300);
   frame->AddFrame(graphmenu,new TGLayoutHints(kLHintsRight | kLHintsTop,2,2,2,2));
   frame->MapSubwindows();
-  frame->MoveResize(1200,700);
+  frame->MoveResize(1200,600);
   frame->MapWindow();
   graphmenu->Connect("Selected(Int_t,Int_t)","CalSlider",this,"selectGraph(Int_t,Int_t)");
 }

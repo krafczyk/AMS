@@ -74,8 +74,8 @@ void TrOnlineMonitor::Book() {
   DefineTracker("SizeLowDT_vs_Ladder","; iCrate*24 + iTDR; Ladder Segment Size for #Deltat<200 us (byte)",192,-0.5,191.5,300,0.,600.,1); 
   DefineTracker("Signal_vs_Ladder","; iCrate*24 + iTDR; Amplitude (ADC)",192,-0.5,191.5,100,0.,250.,1);
   DefineTracker("SignalLowDT_vs_Ladder","; iCrate*24 + iTDR; Amplitude for #Deltat<200 us (ADC)",192,-0.5,191.5,100,0.,250.,1);
-  DefineTracker("Width_vs_Ladder","; iCrate*24 + iTDR; n. of Strips",192,-0.5,191.5,100,0.,100.,1);
-  DefineTracker("WidthLowDT_vs_Ladder","; iCrate*24 + iTDR; n. of Strips for #Deltat<200 us",192,-0.5,191.5,100,0.,100.,1);
+  DefineTracker("NElement_vs_Ladder","; iCrate*24 + iTDR; n. of Strips",192,-0.5,191.5,100,0.,100.,1);
+  DefineTracker("NElementLowDT_vs_Ladder","; iCrate*24 + iTDR; n. of Strips for #Deltat<200 us",192,-0.5,191.5,100,0.,100.,1);
 
   // Cluster and hit occupancy (raw beam profile)
   DefineLayers("ClusterX","; 0-multiplicity X coordinate (cm)",200,-70.,70.,kFALSE);
@@ -107,12 +107,12 @@ void TrOnlineMonitor::Book() {
     DefineLadders("SeedAddress","; Channel",1024,0,1024,kFALSE); 
     DefineLadders("Signal","; Amplitude (ADC)",100,0.,250.,kTRUE);
     DefineLadders("SignalToNoise","; Seed S/N",100,0.,100.,kTRUE);
-    DefineLadders("Width","; n. of Strips",40,0.,40.,kTRUE);
+    DefineLadders("NElement","; n. of Strips",40,0.,40.,kTRUE);
     DefineLadders("SizeLowDT","; fragment size (byte)",200,0.,400.,kTRUE);
     DefineLadders("SizeLowDT","; fragment size (byte)",200,0.,400.,kFALSE); 
     DefineLadders("SeedAddressLowDT","; Channel",1024,0,1024,kFALSE); 
     DefineLadders("SignalLowDT","; Amplitude for #Deltat<200 us (ADC)",100,0.,500.,kTRUE);
-    DefineLadders("WidthLowDT","; n. of Strips for #Deltat<200 us",128,0.,128.,kTRUE);
+    DefineLadders("NElementLowDT","; n. of Strips for #Deltat<200 us",128,0.,128.,kTRUE);
     DefineLadders("SignalToNoiseLowDT","; Seed S/N",100,0.,100.,kTRUE);
   }
   Sumw2();
@@ -183,20 +183,20 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     FillLayer(kFALSE,cluster,"SeedAddress",addr);
     FillTracker(iside,"Signal",signal);
     FillTracker(iside,"Signal_vs_Ladder",entry,signal);
-    FillTracker(iside,"Width_vs_Ladder",entry,width);
+    FillTracker(iside,"NElement_vs_Ladder",entry,width);
     if (dt<fDtMin) {
       FillTracker(iside,"SignalLowDT_vs_Ladder",entry,signal);
-      FillTracker(iside,"WidthLowDT_vs_Ladder",entry,width);
+      FillTracker(iside,"NElementLowDT_vs_Ladder",entry,width);
     }
     if (fFlag>0) { 
       FillLadder(kFALSE,cluster,"SeedAddress",addr);
       FillLadder(kTRUE,cluster,"Signal",signal);
-      FillLadder(kTRUE,cluster,"Width",width);
+      FillLadder(kTRUE,cluster,"NElement",width);
       FillLadder(kTRUE,cluster,"SignalToNoise",seed);
       if (dt<fDtMin) {
         FillLadder(kFALSE,cluster,"SeedAddressLowDT",addr);
         FillLadder(kTRUE,cluster,"SignalLowDT",signal);
-        FillLadder(kTRUE,cluster,"WidthLowDT",width);
+        FillLadder(kTRUE,cluster,"NElementLowDT",width);
         FillLadder(kTRUE,cluster,"SignalToNoiseLowDT",seed);
       }
     }
