@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.246 2011/02/09 03:53:10 choutko Exp $
+//  $Id: root.C,v 1.247 2011/02/10 11:01:01 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2872,7 +2872,7 @@ double RichRingR::RingWidth(bool usedInsteadNpCol){
     weight+=w;
     sum+=(0.5+i)*(0.5+i)*w;
   }
-  if(weight) return sqrt(2*sum/weight); else return -1;
+  if(weight) return sqrt(sum/weight); else return -1;
 }
 
 
