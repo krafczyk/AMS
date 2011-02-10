@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.21 2010/11/17 11:02:29 pzuccon Exp $
+//  $Id: TrMCCluster.C,v 1.22 2011/02/10 11:59:09 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2010/11/17 11:02:29 $
+///$Date: 2011/02/10 11:59:09 $
 ///
-///$Revision: 1.21 $
+///$Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -43,16 +43,13 @@ ClassImp(TrMCClusterR);
 
 int TrMCClusterR::_NoiseMarker(555);
 
-TrMCClusterR::TrMCClusterR(int idsoft, 
-			   AMSPoint xgl,AMSPoint mom, float sum,int itra)
-  : _idsoft(idsoft), _itra(itra), 
-    _xgl(xgl), _Momentum(mom), _sum(sum) 
-{
-   for (int ii=0;ii<2;ii++){
-//     _left  [ii]=0;
-//     _center[ii]=0;
-//     _right [ii]=0;
-//     for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
+TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, int itra)
+  : _idsoft(idsoft), _itra(itra), _xgl(xgl), _Momentum(mom), _sum(sum) {
+  for (int ii=0; ii<2; ii++){
+    // _left  [ii]=0;
+    // _center[ii]=0;
+    // _right [ii]=0;
+    // for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
     simcl[ii]=0;
   }
   Status=0;
@@ -60,16 +57,17 @@ TrMCClusterR::TrMCClusterR(int idsoft,
 
 // Constructor for daq
 TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
-  _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0)
-{
+  _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0) {
   Status=0;
-  simcl[0]=simcl[1]=0;
-//   for(int i=0;i<2;i++){
-//     _left[i]=0;
-//     _center[i]=0;
-//     _right[i]=0;
-//     for(int k=0;k<5;k++)_ss[i][k]=0;
-//   }
+  simcl[0] = 0; 
+  simcl[1]=0;
+  for(int ii=0; ii<2; ii++){
+    // _left[i]=0;
+    // _center[i]=0;
+    // _right[i]=0;
+    // for(int k=0;k<5;k++)_ss[i][k]=0;
+    simcl[ii]=0;
+  }
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
     int tkid=pp.GetLadTkID();
@@ -78,15 +76,16 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
   }
 }
 
-TrMCClusterR::~TrMCClusterR(){
+
+void  TrMCClusterR::Clear() { 
   for(int ss=0;ss<2;ss++){
-    if(simcl[ss]==0) delete simcl[ss];
+    if(simcl[ss]!=0) delete simcl[ss];
     simcl[ss]=0;
   }
 }
 
-void TrMCClusterR::_shower()
-{
+
+void TrMCClusterR::_shower() {
 
   printf(" TrMCClusterR::_shower-E- NO-DIGITIZATION!!  This method of digitizing the tracker has been declare OBSOLETE and commented out. \n");
   /*
@@ -318,10 +317,12 @@ void TrMCClusterR::_PrepareOutput(int full)
 
 
 void TrMCClusterR::GenSimClusters(){
-  if (simcl[0]) delete simcl[0];
-  if (simcl[1]) delete simcl[1];
-  simcl[0] = 0;
-  simcl[1] = 0;
+  // clear members
+  for (int iside=0; iside<2; iside++) {
+    if (simcl[iside]!=0) delete simcl[iside];
+    simcl[iside] = 0;
+  }
+  // MC truth
   char   sidename[2] = {'X','Y'};
   AMSPoint glo = GetXgl();                         // Coordinate [cm]
   AMSPoint mom = GetMom();                         // Momentum Vector [GeV/c]
@@ -350,9 +351,10 @@ void TrMCClusterR::GenSimClusters(){
 			  sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
       continue;
     }
-    TrSimCluster* simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
-    if (simcluster==0) continue; // it happens! 
-    simcl[iside]=simcluster;
+    TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
+    if (simcluster.GetWidth()==0) continue; // Empty! 
+
+    simcl[iside] = new TrSimCluster(simcluster);
 
     // dE/dx to ADC method 
     // 1. Normalize dE/dx (angle = 0, Z = 1, betagamma = 3.16)   
@@ -371,39 +373,21 @@ void TrMCClusterR::GenSimClusters(){
     ADC *= TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(charge)/TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(1);
 
     // Cluster strip values in ADC counts
-    simcluster->Multiply(ADC);
-
-    //cout << "A... side=" << iside << " " << endl;
-    //simcluster->Info(10);
+    simcl[iside]->Multiply(ADC);
 
     // Simulation tuning parameter 1: gaussianize a fraction of the strip signal
-    simcluster->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
-
-    //cout << "B... fracnoise=" << TRMCFFKEY.TrSim2010_FracNoise[iside] << endl;
-    //simcluster->Info(10);
+    simcl[iside]->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
 
     // Simulation tuning parameter 2: add more noise 
-    simcluster->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
-
-    //cout << "C... addnoise=" << TRMCFFKEY.TrSim2010_AddNoise[iside] << endl;
-    //simcluster->Info(10);
+    simcl[iside]->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
 
     // Gain correction (VA by VA)
-    if ((TRMCFFKEY.TrSim2010_ADCConvType[iside]==1)||(TRMCFFKEY.TrSim2010_ADCConvType[iside]==3)) simcluster->ApplyGain(iside,GetTkId());
-
-    //cout << "D... ADCConvType=" << TRMCFFKEY.TrSim2010_ADCConvType[iside] << endl;
-    //simcluster->Info(10);
+    if ((TRMCFFKEY.TrSim2010_ADCConvType[iside]==1)||(TRMCFFKEY.TrSim2010_ADCConvType[iside]==3)) simcl[iside]->ApplyGain(iside,GetTkId());
 
     // Apply saturation
-    simcluster->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
-
-    // if (iside==0) printf("012345 %7.3f %7.3f %7.3f %7.3f\n",
-    //                edep,EDepNorm,EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(),ADC);
+    simcl[iside]->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
     
-    if (VERBOSE) { 
-      printf("TrSim::SimCluster ADC=%f\n",ADC);
-      simcluster->Info(10);
-    }
+    if (VERBOSE) { printf("TrSim::SimCluster ADC=%f\n",ADC); simcl[iside]->Info(10);  }
   }
   return;
 }

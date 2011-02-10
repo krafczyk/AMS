@@ -41,8 +41,10 @@ class TrSimCluster {
 
   //! Constructor
   TrSimCluster() { Clear(); }
+  //! Copy
+  // TrSimCluster(TrSimCluster& orig); 
   //! Constructor
-  TrSimCluster(vector<double> signal, int address, int seedind, double sigma = 0.);
+  TrSimCluster(vector<double> signal, int address, int seedind = -1);
   //! Destructor
   ~TrSimCluster() { Clear(); }
   //! Clear data members
@@ -73,7 +75,7 @@ class TrSimCluster {
   //! Multiply a cluster by a number (signal rescaling)
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 
-  void   AddCluster(TrSimCluster* cluster);
+  void   AddCluster(TrSimCluster& cluster);
   //! Gaussianize a fraction of signal of each strip 
   void   GaussianizeFraction(double fraction);
   //! Add gaussian noise to each strip 

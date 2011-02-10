@@ -180,13 +180,13 @@ class TrSimSensor {
   ////////////////
 
   //! Calculate implant-strip cluster from coordinate [cm] and angle [rad]
-  TrSimCluster* MakeImplantCluster(double senscoo, double sensangle);
+  TrSimCluster MakeImplantCluster(double senscoo, double sensangle);
   //! Calculate readout-strip cluster from a charge injection Q on the i-nth implant (the sensor number is needed for K5 and K7 case)
-  TrSimCluster* MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens = 0);
+  TrSimCluster MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens = 0);
   //! Calculate readout-strip cluster from a implant-strip cluster (injects the modelized cluster in the capacitive net)
-  TrSimCluster  MakeClusterFromImplantCluster(TrSimCluster* implclus, int nsens = 0);
+  TrSimCluster MakeClusterFromImplantCluster(TrSimCluster& implclus, int nsens = 0);
   //! Calculate readout-strip cluster from coordinate [cm] and angle [rad] (the sensor number is needed for K5 and K7 case)
-  TrSimCluster* MakeCluster(double senscoo, double sensangle, int nsens = 0); 
+  TrSimCluster MakeCluster(double senscoo, double sensangle, int nsens = 0); 
 
   ////////////////
   // Cluster Sharing Pdf Library

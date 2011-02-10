@@ -131,11 +131,11 @@ double TrSimSensor::GetAdcMpvTb2003(double z) {
 
 bool TrSimSensor::IsReadoutStrip(int implantadd) {
   if ( (GetSensorType()<0)||(GetSensorType()>2) ) {
-    printf("TrSimSensor::IsReadoutStrip-Error no sensor type selected\n");
+    printf("TrSimSensor::IsReadoutStrip-E no sensor type selected\n");
     return false;
   }
   if ( (implantadd<0)||(implantadd>=GetNImplantStrips()) ) {
-    if (WARNING) printf("TrSimSensor::IsReadoutStrip-Warning invalid implant position (impl=%d) requested\n",implantadd);
+    if (WARNING) printf("TrSimSensor::IsReadoutStrip-W invalid implant position (impl=%d) requested\n",implantadd);
     return false;
   }
   switch (GetSensorType()) {
@@ -156,15 +156,15 @@ bool TrSimSensor::IsReadoutStrip(int implantadd) {
 
 int TrSimSensor::GetReadoutAddressFromImplantAddress(int implantadd, int nsens) {
   if ( (GetSensorType()<0)||(GetSensorType()>2) ) {
-    printf("TrSimSensor::GetReadoutAddressFromImplantAddress-Error no sensor type selected\n");
+    printf("TrSimSensor::GetReadoutAddressFromImplantAddress-E no sensor type selected\n");
     return -1;
   }
   if ( (implantadd<0)||(implantadd>=GetNImplantStrips()) ) {
-    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-Warning invalid implant address (add=%d) requested\n",implantadd);
+    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-W invalid implant address (add=%d) requested\n",implantadd);
     return -1;
   }
   if (!IsReadoutStrip(implantadd)) {
-    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-Warning requested implant strip is not a readout strip (add=%d)\n",implantadd);
+    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-W requested implant strip is not a readout strip (add=%d)\n",implantadd);
     return -1;
   }
   int readoutadd = -1;
@@ -195,11 +195,11 @@ int TrSimSensor::GetReadoutAddressFromImplantAddress(int implantadd, int nsens) 
 
 int TrSimSensor::GetImplantAddressFromReadoutAddress(int readoutadd) {
   if ( (GetSensorType()<0)||(GetSensorType()>2) ) {
-    printf("TrSimSensor::GetImplantAddressFromReadoutAddress-Error no sensor type selected\n");
+    printf("TrSimSensor::GetImplantAddressFromReadoutAddress-E no sensor type selected\n");
     return -1;
   }
   if ( (readoutadd<0)||(readoutadd>=GetNReadoutStrips()) ) {
-    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-Warning invalid readout address (add=%d) requested\n",readoutadd);
+    if (WARNING) printf("TrSimSensor::GetImplantAddressFromReadoutAddress-W invalid readout address (add=%d) requested\n",readoutadd);
     return -1;
   }
   int impladd = -1;
@@ -284,7 +284,7 @@ void TrSimSensor::SeeEquivalentCapacitances() {
 }
 
 
-TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) {
+TrSimCluster TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) {
  /* Charge sharing distribution:
   *
   *         x1      x2
@@ -294,8 +294,8 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
   */
   double coordimpl = senscoo*1.e4/GetImplantPitch(); // coordinate [implant pitch]
   if ( (coordimpl<0)||(coordimpl>=GetNImplantStrips()) ) {
-    if (WARNING) printf("TrSimSensor::MakeImplantCluster-Warning sensor coordinate out of the sensor (coord=%7.4f)\n",senscoo);
-    return 0;
+    if (WARNING) printf("TrSimSensor::MakeImplantCluster-W sensor coordinate out of the sensor (coord=%7.4f), returning an empty cluster.\n",senscoo);
+    return TrSimCluster();
   }
   // charge sharing profile calculation
   double track_proj = fabs(tan(sensangle)*SUBSTRATEWIDTH)/GetImplantPitch();       // projection of the track [interstrip pitch] 
@@ -304,7 +304,7 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
   double diffusion  = GetDiffusionRadius()/GetImplantPitch();                      // diffusion at 0 deg (for model 4)
   double sign       = (sensangle>0) ? -1 : 1;                                      // FIX ME: CHECK DELLA DIREZIONE 
   int    seedind    = (int) ceil(coordimpl-0.5);                                   // seed strip
-  // printf("TrSimSensor::MakeImplantCluster-Verbose senscoo=%7.3f sensangle=%7.3f coorind=%7.2f seedind=%4d track_proj=%7.3f diffu_proj=%7.3f projection=%7.3f diffusion=%7.3f\n",
+  // printf("TrSimSensor::MakeImplantCluster-V senscoo=%7.3f sensangle=%7.3f coorind=%7.2f seedind=%4d track_proj=%7.3f diffu_proj=%7.3f projection=%7.3f diffusion=%7.3f\n",
   //       senscoo,sensangle,coordimpl,seedind,track_proj*GetImplantPitch(),diffu_proj*GetImplantPitch(),projection*GetImplantPitch(),diffusion*GetImplantPitch());
   // tmp cluster vars
   double check = 0.;
@@ -331,8 +331,8 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
         weight = GetWeightGaussSum(coordimpl,sign*track_proj,diffusion,istrip-0.5,istrip+0.5);
         break;
       default:
-        printf("TrSimSensor::MakeImplantCluster-Error invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
-        return 0;
+        printf("TrSimSensor::MakeImplantCluster-E invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
+        return TrSimCluster();
         break;
     }
     if (weight<TOLERANCE) break;
@@ -359,8 +359,8 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
         weight = GetWeightGaussSum(coordimpl,sign*track_proj,diffusion,istrip-0.5,istrip+0.5);
         break;
       default:
-        printf("TrSimSensor::MakeImplantCluster-Error invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
-        return 0;
+        printf("TrSimSensor::MakeImplantCluster-E invalid diffusion model (model=%1d) selected\n",GetDiffusionType());
+        return TrSimCluster();
         break;
     }
     if (weight<TOLERANCE) break;
@@ -370,19 +370,16 @@ TrSimCluster* TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) 
   }
   // cluster signal is not 1, rounding error
   if (fabs(check-1.)>10.*TOLERANCE) {
-    if (WARNING) printf("TrSimSensor::MakeModelizedCluster-Warning signal check failed (check=%7.4f, nstrips=%d), returning a null cluster!!!\n",check,(int)acluster.size());
-    // for (int ii=0; ii<(int)acluster.size(); ii++) printf(" %7.5f ",acluster.at(ii));
-    // printf("\n");
-    return 0;
+    if (WARNING) printf("TrSimSensor::MakeModelizedCluster-W signal check failed (check=%7.4f, nstrips=%d), returning an empty cluster.\n",check,(int)acluster.size());
+    return TrSimCluster();
   }
   // cluster size is 0 
   if ((int)acluster.size()==0) {
-    if (WARNING) printf("TrSimSensor::MakeModelizedCluster-Warning a 0-lenght cluster, returning a null cluster!!!\n");
-    return 0; 
+    if (WARNING) printf("TrSimSensor::MakeModelizedCluster-W a 0-lenght cluster, returning an empty cluster.\n");
+    return TrSimCluster(); 
   }
-  // cluster creation
-  TrSimCluster* cluster = new TrSimCluster(acluster,address,seedind-address);
-  return cluster;
+  // returning cluster 
+  return TrSimCluster(acluster, address, seedind-address);
 }
 
  
@@ -457,7 +454,7 @@ double TrSimSensor::GetWeightGaussSum(double x, double width, double sigma, doub
 }
 
 
-TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens) {         
+TrSimCluster TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, int impladd, int nsens) {         
   // tmp cluster init
   vector<double> acluster;
   acluster.clear();
@@ -466,7 +463,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   int    nimplants = GetNImplantStrips();
   double Ctot = _CU.at(impladd) + _CD.at(impladd) + _CL.at(impladd) + _CR.at(impladd);
   double QU = Q*_CU.at(impladd)/Ctot;
-//double QD = Q*_CD.at(impladd)/Ctot; // unused
+  // double QD = Q*_CD.at(impladd)/Ctot; // unused
   double QL = Q*_CL.at(impladd)/Ctot;
   double QR = Q*_CR.at(impladd)/Ctot;
   if (IsReadoutStrip(impladd)) { 
@@ -477,7 +474,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   for (int ii=impladd+1; ii<nimplants; ii++) {
     double Ctot2 = _CU.at(ii) + _CD.at(ii) + _CR.at(ii);
     double QU2   = QR*_CU.at(ii)/Ctot2;
-//  double QD2   = QR*_CD.at(ii)/Ctot2; // unused
+    // double QD2   = QR*_CD.at(ii)/Ctot2; // unused
     double QR2   = QR*_CR.at(ii)/Ctot2;
     QR = QR2;
     if (IsReadoutStrip(ii)) {
@@ -490,7 +487,7 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   for (int ii=impladd-1; ii>=0; ii--) {
     double Ctot2 = _CU.at(ii) + _CD.at(ii) + _CL.at(ii);
     double QU2   = QL*_CU.at(ii)/Ctot2;
-//  double QD2   = QL*_CD.at(ii)/Ctot2; // unused 
+    // double QD2   = QL*_CD.at(ii)/Ctot2; // unused 
     double QL2   = QL*_CL.at(ii)/Ctot2;
     QL = QL2;
     if (IsReadoutStrip(ii)) { 
@@ -501,57 +498,41 @@ TrSimCluster* TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant(double Q, 
   }
   // check
   if ((int)acluster.size()==0) {
-    if (WARNING)
-      printf("TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant-Warning 0-lenght cluster, returning a null cluster (impladd=%4d,Q=%7.3f)\n",impladd,Q);
-    return 0; 
+    if (WARNING) printf("TrSimSensor::MakeClusterFromAChargeInjectionOnAnImplant-W 0-lenght cluster, returning an empty cluster (impladd=%4d,Q=%7.3f).\n",impladd,Q);
+    return TrSimCluster(); 
   }
-  // create TrSimCluster [readout strips units]
-  TrSimCluster* cluster = new TrSimCluster(acluster,address,-1);
+  // create TrSimCluster (readout strips units)
+  return TrSimCluster(acluster,address);
+}
+
+
+TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster& implclus, int nsens) {
+  if ( (implclus.GetAddress()<0)||(implclus.GetWidth()==0) ) { 
+    if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-W passing a null or empty cluster, returning an empty cluster.\n");
+    return TrSimCluster();
+  }
+  TrSimCluster cluster;
+  // loop on implantation strips
+  for (int ii=0; ii<implclus.GetWidth(); ii++) {
+    int    impladd = implclus.GetAddress() + ii;
+    double Q       = implclus.GetSignal(ii);
+    TrSimCluster addcluster = MakeClusterFromAChargeInjectionOnAnImplant(Q,impladd,nsens);
+    // if (VERBOSE) { printf("TrSimSensor::MakeClusterFromImplantCluster-V add cluster:\n"); addcluster.Info(10); }
+    cluster.AddCluster(addcluster);
+  }
+  if ( (cluster.GetWidth()==0) ) {
+    if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-W returning an empty cluster.\n");
+    return TrSimCluster();
+  }
   return cluster;
 }
 
 
-TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster* implclus, int nsens) {
-  TrSimCluster cluster; 
-  if ( (implclus==0)||(implclus->GetAddress()<0) ) { 
-    if (WARNING) printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning passing an invalid or null cluster\n");
-    return cluster;
-  }
-  int first=1;
-  for (int ii=0; ii<implclus->GetWidth(); ii++) {
-    int    impladd = implclus->GetAddress() + ii;
-    double Q       = implclus->GetSignal(ii);
-    TrSimCluster* addcluster = MakeClusterFromAChargeInjectionOnAnImplant(Q,impladd,nsens);
-    // cout << " --- Adding ... " << impladd << " " << Q << " " << addcluster << endl;
-    if ( (VERBOSE)&&(addcluster!=0) ) {
-      printf("TrSimSensor::MakeClusterFromImplantCluster add cluster\n");
-      addcluster->Info(10);
-    }
-    if (addcluster==0) continue; // it happens
-    if (first){first=0; cluster = *addcluster;}
-    else 
-      cluster.AddCluster(addcluster);
-    delete addcluster; // avoid memory leak
-  }
-  if ( (first==1)&&(WARNING) ) 
-    printf("TrSimSensor::MakeClusterFromModelizedCluster-Warning returning a null cluster\n");
-  return cluster;
-}
-
-
-TrSimCluster* TrSimSensor::MakeCluster(double senscoo, double sensangle, int nsens) { 
-  TrSimCluster* implclus = MakeImplantCluster(senscoo, sensangle); 
-  if ( (VERBOSE)&&(implclus!=0) ) {
-    printf("TrSimSensor::MakeCluster-Verbose implant cluster\n");
-    implclus->Info(10);
-  }
-  TrSimCluster *readclus = new TrSimCluster(); 
-  *readclus = MakeClusterFromImplantCluster(implclus, nsens);
-  if (implclus!=0) delete implclus; // avoid memory leak 
-  if ( (VERBOSE)&&(readclus!=0) ) {
-    printf("TrSimSensor::MakeCluster-Verbose read cluster\n");
-    readclus->Info(10);
-  }
+TrSimCluster TrSimSensor::MakeCluster(double senscoo, double sensangle, int nsens) { 
+  TrSimCluster implclus = MakeImplantCluster(senscoo, sensangle); 
+  if (VERBOSE) { printf("TrSimSensor::MakeCluster-V implant cluster:\n"); implclus.Info(10); }
+  TrSimCluster readclus = MakeClusterFromImplantCluster(implclus, nsens);
+  if (VERBOSE) { printf("TrSimSensor::MakeCluster-V read cluster:\n"); readclus.Info(10); }
   return readclus; 
 }
 

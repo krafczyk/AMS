@@ -247,6 +247,7 @@ void TrSim::fillreso(TrTrackR *track) {
 
 
 void TrSim::sitkdigi() {
+
   if (VERBOSE) printf("TrSim::sitkdigi() called\n");
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -300,7 +301,7 @@ void TrSim::sitkdigi() {
       // Take the right calibration
       TrLadCal* ladcal = TrCalDB::Head->FindCal_HwId(hwid);
       if (ladcal==0) {
-        if (WARNING) printf("TrSim::AddNoiseOnBuffer-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",tkid);
+        if (WARNING) printf("TrSim::AddNoiseOnBuffer-W no ladder calibration found, no noise for ladder tkid=%+04d\n",tkid);
         continue;
       }
 
@@ -378,12 +379,12 @@ void TrSim::CreateMCClusterTkIdMap() {
   MCClusterTkIdMap.Clear();
   // Get the pointer to the TrMCCluster container
   VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
-  if (!container) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-Warning no TrMCCluster container\n");
+  if (container==0) {
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container\n");
     return;
   }
   if (container->getnelem()==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-Warning TrMCCluster container is empty\n");
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty\n");
     delete container;
     return;
   }
@@ -426,7 +427,7 @@ int TrSim::AddTrSimClustersOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
   // Loop on the two sides
   for (int iside=0; iside<2; iside++) {
     TrSimCluster* simcluster = cluster->GetSimCluster(iside);
-    if(simcluster==0) continue;
+    if (simcluster==0) continue;
     // Putting cluster on the ladder buffer 
     for (int ist=0; ist<simcluster->GetWidth(); ist++) {
       // Take address on buffer
@@ -453,18 +454,18 @@ int TrSim::AddOldSimulationSignalOnBuffer(TrMCClusterR* cluster, double* ladbuf)
 
 
 int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* ladcal,double * ladbuf) {
+  // Does the calibration exist?
+  if (!ladcal) {
+    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-W no ladder calibration found, no noise for ladder tkid=%+04d\n",tkid);
+    return 0;
+  }
+
   // Does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if (!cont) {
-    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-Warning cannot find AMSTrRawCluster, no cluster produced\n");
+    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-W cannot find AMSTrRawCluster, no cluster produced\n");
     return 0;
   } 
-
-  // Does the calibration exist?
-  if (!ladcal) {
-    if (WARNING) printf("TrSim::BuildTrRawClustersOnSide-Warning no ladder calibration found, no noise for ladder tkid=%+04d\n",tkid);
-    return 0;
-  }
 
   // Init
   int nclusters = 0;
@@ -538,7 +539,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
       }
     }
   }
-  if (cont) delete cont;
+  if (cont!=0) delete cont;
   return nclusters;
 }
 
@@ -546,7 +547,7 @@ void TrSim::sitknoise(int nsimladders) {
   // does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
-    if (WARNING) printf("TrSim::sitknoise-Warning cannot find AMSTrRawCluster, no fake cluster produced\n");
+    if (WARNING) printf("TrSim::sitknoise-W cannot find AMSTrRawCluster, no fake cluster produced\n");
     return;
   } 
   // preliminary calculation
@@ -586,7 +587,7 @@ void TrSim::sitknoise(int nsimladders) {
       // take the right calibration
       TrLadCal* ladcal = TrCalDB::Head->FindCal_TkId(tkid);
       if (ladcal==0) {
-	if (WARNING) printf("TrSim::sitknoise-Warning no ladder calibration found, no noise for ladder tkid=%+04d skipping creation of fake clusters\n",tkid);
+	if (WARNING) printf("TrSim::sitknoise-W no ladder calibration found, no noise for ladder tkid=%+04d skipping creation of fake clusters\n",tkid);
 	continue;
       }
       // extract seed position 
@@ -664,7 +665,7 @@ TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
   int layer = (int) fabs(tkid%100);
   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
   if(!ll){
-    printf("TrSim::GetTrSimSensor-Error Cannot find ladder %d into the database\n",tkid);
+    printf("TrSim::GetTrSimSensor-E Cannot find ladder %d into the database\n",tkid);
     return 0;
   } 
   if (ll->IsK7()) return _sensors[2]; // K7

@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.12 2010/11/17 11:02:38 pzuccon Exp $
+//  $Id: TrMCCluster.h,v 1.13 2011/02/10 11:59:09 oliva Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2010/11/17 11:02:38 $
+///$Date: 2011/02/10 11:59:09 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -26,14 +26,17 @@
 
 class TrSimCluster;
 
-
 class TrMCClusterR: public TrElem {
-protected:
+
+ protected:
+
   //! abs(tkid)+1000*(lside)+10000*(sensor+1);
   int _idsoft; 
   //! Geant particle code of the particle originatig the cluster.
   short int _itra;
-/*  //!Address of the leftmost strip in the Sim CLuster
+
+  /* 
+  //!Address of the leftmost strip in the Sim CLuster
   short int _left  [2];
   //!Address of the  strip nearest to the particle in the Sim CLuster
   short int _center[2];
@@ -41,7 +44,8 @@ protected:
   short int _right [2];
   //! array containg the strip signals for p(=1) and n(=0) sides
   float    _ss[2][5];
-*/
+  */
+
   //! Calculated impact point on silicon middle
   AMSPoint _xgl;
   //! Momentum vector of the impinging particle
@@ -59,18 +63,19 @@ protected:
 
 public:
 
-//####################  CONSTRUCTORS & C. ###########################
+  // ####################  CONSTRUCTORS & C. ###########################
   //! Std constructor build a dummy cluster
-  TrMCClusterR(){}
+  TrMCClusterR() { Clear(); }
   //! Constructor for a digitized hit
-  TrMCClusterR(int idsoft, 
-	       AMSPoint xgl,AMSPoint mom, float sum,int itra);
+  TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, int itra);
   // Constructor for daq
   TrMCClusterR(AMSPoint xgl, integer itra,geant sum=0);
+  //! Destructor
+  virtual ~TrMCClusterR() { Clear(); }
+  //! Clear
+  void Clear();
 
-  virtual ~TrMCClusterR();
-
-//####################  ACCESSORS  ###########################
+  // ####################  ACCESSORS  ###########################
 
   //! Return the tkid of the hit ladder
   int GetTkId();
