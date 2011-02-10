@@ -179,7 +179,8 @@ void TrdHTrackR::clear(){
 }
 
 float TrdHTrackR::TubePath(int layer, int ladder, int tube,int opt,int debug){
-  double tuberad=0.6;
+  double tuberad=0.3;
+
   double dr=1.e6;
   if(layer>19||layer<0)return -1.;
   int d=-1;
@@ -210,30 +211,35 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int opt,int debug){
 
   if(d==1&&fabs(exp_y-x)<tuberad)
     dr=fabs(exp_y-x);
-
+  
   if(d==0&&fabs(exp_x-x)<tuberad)
     dr=fabs(exp_x-x);
-
+  
   if(opt==3)return dr;
-
+  
   double dradial=dr;
-  if(d==0)dradial*=cos(mx());
-  if(d==1)dradial*=cos(my());
-  if(dradial>0.3)return -1.;
+  //  if(d==0)dradial*=cos(mx());
+  //  if(d==1)dradial*=cos(my());
+  dradial*=cos(atan(Dir[d]/Dir[2]));
+  //  if(d==1)dradial*=cos(atan(Dir[1]/trdir.z()));
+  if(dradial>tuberad)return -1.;
   if(opt==2)return dradial;
-
-  double path2d=2*sqrt(pow(0.3,2)-pow(dradial,2));
+  
+  double path2d=2*sqrt(pow(tuberad,2)-pow(dradial,2));
   if(opt==1)return path2d;
+  
+  // angle between radial distance and track on plane defined by track and tub\e wire
+  double alphaplane=0;
+  // "unit" vector perpendicular to tube wire and on plane mentioned above
+  double dplane=0.;
 
+  // 3d path lentgh
   double path3d=path2d;
-  if(d==0)path3d/=cos(my());
-  if(d==1)path3d/=cos(mx());
+  dplane=(sqrt(pow(Dir[d],2)+pow(Dir[2],2)));
+  alphaplane=atan(Dir[1-d]/dplane);
+  path3d/=cos(alphaplane);
 
-  if(debug)printf("dplanar %.2f dradial %.2f path2d %.2f path3d %.2f\n",dr,dradial,path2d,path3d);
-  //   double path=0.;                                                                                                                                               
-  //   if(dr!=1.e6)path=2*sqrt(pow(0.6*0.6-dr*cos(M_PI-Theta()),2));// planar distance -> track perp distance                                                        
-
-  //   if(debug)printf("track theta %.2f\n",Theta());                                                                                                                
+  if(debug)printf("dplanar %.2f dradial %.2f path2d %.2f \n dplane %.2f alphaplane %.2f path3d %.2f\n",dr,dradial,path2d,dplane,alphaplane,path3d);
   //   if(debug)printf("TubeDist L%i dx %.2f dr %.2f path %.2f (ladder %i tube %i)\n",layer,dr,dr*cos(M_PI-Theta()),path,thisladder,thistube);                       
   return  path3d;
 }

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.509 2011/02/09 03:53:09 choutko Exp $
+//  $Id: event.C,v 1.510 2011/02/10 22:51:17 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -159,7 +159,7 @@ if(AMSEvent::get_thread_num()==0){
 }
 void AMSEvent::_init(){
   SetTimeCoo(IOPA.mode==1);
-
+   
 
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
@@ -381,7 +381,7 @@ void AMSEvent::_signinitevent(){
     geant dd; 
     int i;
     number xsec=0;
-    if((CCFFKEY.low==0|| CCFFKEY.low==6)&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
+    if(CCFFKEY.low==0&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
        xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
       }
       else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
@@ -392,6 +392,11 @@ void AMSEvent::_signinitevent(){
     }
 //    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
     GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+//    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
+//      GCFLAG.IEORUN=1;
+//      GCFLAG.IEOTRI=1;
+//      return;
+//    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationEqAsc,_StationEqDec,_StationGalLat,_StationGalLong,_time);
 
@@ -597,6 +602,7 @@ void AMSEvent::_signinitevent(){
       _VelPhi=Array[0].VelPhi;
     }
   }
+
   AMSgObj::BookTimer.stop("SetTimeCoo");
 }
 
@@ -989,13 +995,11 @@ void AMSEvent::_retrdinitevent(){
   if(TRDFITFFKEY.FitMethod!=0){
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",0),0));
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",0),0));
-  }
-  
-#pragma omp master
-  {
-    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::gethead(AMSEvent::get_thread_num())->calibrate)
+    
+    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::calibrate)
       TrdHReconR::gethead(AMSEvent::get_thread_num())->init_calibration(TRDFITFFKEY.CalStartVal);
   }
+  
 }
 
 void AMSEvent::_rerichinitevent(){
@@ -1404,6 +1408,8 @@ void AMSEvent::event(){
       if(_id<=IOPA.skip) return;
 	_reamsevent();
       if(AMSJob::gethead()->isCalibration())_caamsevent();
+
+      _trdgain();
       _collectstatus();
     }
   }
@@ -1551,6 +1557,7 @@ void AMSEvent::_caamsinitevent(){
 
 void AMSEvent::_catrdinitevent(){
 }
+
 #ifndef _PGTRACK_
 void AMSEvent::_catkinitevent(){
 
@@ -1617,8 +1624,73 @@ for(i=0;i<nalg;i++){
 }
 #endif
 
+void AMSEvent::_trdgain(){
+  if(!TrdHReconR::calibrate)return;
+  if(TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectEvent())
+    if(TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec.size()==1 &&
+       TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectTrack(0) &&
+       TrdHReconR::gethead(AMSEvent::get_thread_num())->hsegvec.size()==2){
+
+      printf("trdgain event selected\n");
+      // get event beta and charge
+      AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
+      AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
+      int npart=0;
+      AMSContainer *ptrc;
+      if(ptr){
+	ptrc=getC("AMSParticle",0);
+      }
+      else if(ptr1){
+	ptr=ptr1;     
+	ptrc=getC("AMSParticle",1);
+      }
+
+      if(ptr){
+	npart=ptrc->getnelem();
+	if(npart==1&&ptr->getpbeta()){
+	  float beta=ptr->getpbeta()->getbeta();
+	  
+	  printf("beta %.2f\n",beta);
+	  if(beta>0.98){
+	    geant elosc[TOF2GC::SCLRS];
+	    for(int ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (TofClus containers) ---
+	      AMSTOFCluster* ptrc=(AMSTOFCluster*)AMSEvent::gethead()->
+		getheadC("AMSTOFCluster",ilay,0);
+	      while(ptrc){ // <--- loop over AMSTofCluster hits in L=ilay
+		elosc[ilay]=ptrc->getedep();//continious
+		ptrc=ptrc->next();
+	      }
+	    }
+
+	    geant *pntr[TOF2GC::SCLRS];
+	    geant avera[4];
+	    for(int il=0;il<TOF2GC::SCLRS;il++)pntr[il]=&elosc[il];//pointers to layer edep's 
+	    AMSsortNAG(pntr,TOF2GC::SCLRS);//sort in increasing order
+	    avera[0]=(*pntr[0]);// lowest
+	    avera[1]=avera[0]+(*pntr[1]);// sum of 2 lowest
+	    avera[2]=avera[1]+(*pntr[2]);//        3 lowest
+	    avera[3]=avera[2]+(*pntr[3]);// average
+	    avera[1]/=2.;
+	    avera[2]/=3.;
+	    avera[3]/=4.;
+	    
+	    // select charge 1
+	    printf("charge %.2f < 3\n",avera[2]);
+	    if(avera[2]<3){
+	      //calibrate trd here
+#pragma omp critical
+	      TrdHReconR::gethead(AMSEvent::get_thread_num())->update_medians(&TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec[0]);
+	    }
+	  }
+	}
+      }
+    }
+}  
+
 void AMSEvent::_catrdevent(){
   AMSgObj::BookTimer.start("CalTRDFill");
+  
+  
   if(TRDCALIB.CalibProcedureNo == 1){
     AMSTRDIdCalib::check();
   }
@@ -2027,29 +2099,29 @@ void AMSEvent::_retrdevent(){
 #endif
 
   if(TRDFITFFKEY.FitMethod!=0){
-  #ifdef __MLD__
-  cout << " trd before "<<endl;
-  TrdRawHitR::print();
-  TrdHSegmentR::print();
-  TrdHTrackR::print();
-  #endif
-  //  AMSgObj::BookTimer.start("RETRDHEVENT");
+#ifdef __MLD__
+    cout << " trd before "<<endl;
+    TrdRawHitR::print();
+    TrdHSegmentR::print();
+    TrdHTrackR::print();
+#endif
 
-  //  if(!trdhrecon)trdhrecon=new TrdHReconR();
-  //  else trdhrecon->clear();
-  
-  TrdHReconR::gethead(AMSEvent::get_thread_num())->clear();
-  TrdHReconR::gethead(AMSEvent::get_thread_num())->build();
+    //    AMSgObj::BookTimer.start("RETRDHEVENT");
+    
 
-  //  AMSgObj::BookTimer.stop("RETRDHEVENT");
-  #ifdef __MLD__
-  cout << " trd after "<<endl;
-  TrdRawHitR::print();
-  TrdHSegmentR::print();
-  TrdHTrackR::print();
-  #endif
+    TrdHReconR::gethead(AMSEvent::get_thread_num())->clear();
+    TrdHReconR::gethead(AMSEvent::get_thread_num())->build();
+
+    //    AMSgObj::BookTimer.stop("RETRDHEVENT");
+
+#ifdef __MLD__
+    cout << " trd after "<<endl;
+    TrdRawHitR::print();
+    TrdHSegmentR::print();
+    TrdHTrackR::print();
+#endif
   }
-
+  
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){

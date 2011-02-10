@@ -850,7 +850,7 @@ int TrdHReconR::retrdhevent(int debug){
   if(debug)printf("TrdHTrackR::build tracks %i\n",(int)htrvec.size());
   
 
-  if(calibrate)
+  /*  if(calibrate)
     if(SelectEvent())
       for(int i=0;i<htrvec.size();i++)
 #pragma omp critical(updatemed)
@@ -858,9 +858,23 @@ int TrdHReconR::retrdhevent(int debug){
 	    if(SelectTrack(i))
 	      update_medians(&htrvec[i]);
 	  }
+  */
   return 1;
 }
 
+/*void TrdHReconR::DoCalibration(float beta, int charge){
+  if(calibrate)
+    if(beta>0.98&&charge==1)
+      if(SelectEvent())
+	//	for(int i=0;i<htrvec.size();i++)
+#pragma omp critical(updatemed)
+	{
+	if(SelectTrack(0)&&htrvec.size()==0&&hsegvec.size()==2)
+	  update_medians(&htrvec[0]);
+	}
+  return;
+}
+*/
 void TrdHReconR::AddTrack(TrdHTrackR* tr){
   if(tr){
 
@@ -1193,7 +1207,7 @@ int TrdHReconR::SelectTrack(int tr){
   else return 1;
 }
 
-int TrdHReconR::SelectEvent(){
+int TrdHReconR::SelectEvent(int level){
   int nhit_ontrack=0;
   for(int tr=0;tr<(int)htrvec.size();tr++)
     for(int seg=0;seg<htrvec[tr].nTrdHSegment();seg++){
@@ -1213,7 +1227,8 @@ int TrdHReconR::SelectEvent(){
   }
 
   float fraction=float(nhit)/float(nhit_ontrack);
-  if(fraction>0.8) return 1;
+  if(!level&&fraction>0.8) return 1;
+  else if(level==1&&fraction>0.8&&(int)hsegvec.size()==2&&(int)htrvec.size()==1)return 1;
   else return 0;
 }
 

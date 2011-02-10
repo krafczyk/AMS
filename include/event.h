@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.99 2010/12/11 18:30:38 choutko Exp $
+//  $Id: event.h,v 1.100 2011/02/10 22:51:26 mmilling Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -224,6 +224,7 @@ void _carichevent();
 void _caaxevent();
 void _validate(int i=0);
 void _collectstatus();
+ void _trdgain();
 
 void _startofrun();
 static void _endofrun();
