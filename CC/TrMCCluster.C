@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.22 2011/02/10 11:59:09 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.23 2011/02/10 20:45:12 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/02/10 11:59:09 $
+///$Date: 2011/02/10 20:45:12 $
 ///
-///$Revision: 1.22 $
+///$Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -38,10 +38,13 @@
 #define WARNING 0
 
 extern "C" double rnormx();
+ 
 
 ClassImp(TrMCClusterR);
 
+
 int TrMCClusterR::_NoiseMarker(555);
+
 
 TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, int itra)
   : _idsoft(idsoft), _itra(itra), _xgl(xgl), _Momentum(mom), _sum(sum) {
@@ -50,23 +53,22 @@ TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, in
     // _center[ii]=0;
     // _right [ii]=0;
     // for(int kk=0;kk<5;kk++)_ss[ii][kk]=0;
-    simcl[ii]=0;
+    simcl[ii] = 0;
   }
   Status=0;
 }
+
 
 // Constructor for daq
 TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
   _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0) {
   Status=0;
-  simcl[0] = 0; 
-  simcl[1]=0;
   for(int ii=0; ii<2; ii++){
     // _left[i]=0;
     // _center[i]=0;
     // _right[i]=0;
     // for(int k=0;k<5;k++)_ss[i][k]=0;
-    simcl[ii]=0;
+    simcl[ii] = 0;
   }
   TkSens pp(_xgl,1);
   if(pp.LadFound()){
@@ -77,16 +79,40 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
 }
 
 
-void  TrMCClusterR::Clear() { 
-  for(int ss=0;ss<2;ss++){
-    if(simcl[ss]!=0) delete simcl[ss];
-    simcl[ss]=0;
+TrMCClusterR::TrMCClusterR(const TrMCClusterR& orig) {
+  _idsoft = orig._idsoft;
+  _itra = orig._itra;
+  _xgl = orig._xgl;
+  _sum = orig._sum;
+  _Momentum = orig._Momentum;
+  Status = orig.Status;
+  for(int ii=0; ii<2; ii++){
+    if (orig.simcl[ii]!=0) 
+      simcl[ii] = new TrSimCluster(*orig.simcl[ii]);
+    else 
+      simcl[ii] = 0;        
+  }
+}
+
+
+void TrMCClusterR::Init() {
+  for(int ii=0; ii<2; ii++){
+    simcl[ii] = 0;
+  }
+}
+
+
+void TrMCClusterR::Clear() { 
+  for(int ii=0; ii<2; ii++){
+    if (simcl[ii]!=0) { 
+      delete simcl[ii];
+    }
+    simcl[ii] = 0; 
   }
 }
 
 
 void TrMCClusterR::_shower() {
-
   printf(" TrMCClusterR::_shower-E- NO-DIGITIZATION!!  This method of digitizing the tracker has been declare OBSOLETE and commented out. \n");
   /*
 
@@ -182,7 +208,7 @@ int TrMCClusterR::GetTkId(){
   int tkid   = abs(_idsoft)%1000;
   int ss     = abs(_idsoft)%10000-tkid;
   if(!ss) tkid*=-1;
-  
+ 
   return tkid;
 }
 
@@ -317,11 +343,6 @@ void TrMCClusterR::_PrepareOutput(int full)
 
 
 void TrMCClusterR::GenSimClusters(){
-  // clear members
-  for (int iside=0; iside<2; iside++) {
-    if (simcl[iside]!=0) delete simcl[iside];
-    simcl[iside] = 0;
-  }
   // MC truth
   char   sidename[2] = {'X','Y'};
   AMSPoint glo = GetXgl();                         // Coordinate [cm]
@@ -352,7 +373,7 @@ void TrMCClusterR::GenSimClusters(){
       continue;
     }
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
-    if (simcluster.GetWidth()==0) continue; // Empty! 
+    if (simcluster.GetWidth()==0) continue; // empty! 
 
     simcl[iside] = new TrSimCluster(simcluster);
 

@@ -42,11 +42,11 @@ class TrSimCluster {
   //! Constructor
   TrSimCluster() { Clear(); }
   //! Copy
-  // TrSimCluster(TrSimCluster& orig); 
+  TrSimCluster(const TrSimCluster& orig); 
   //! Constructor
   TrSimCluster(vector<double> signal, int address, int seedind = -1);
   //! Destructor
-  ~TrSimCluster() { Clear(); }
+  virtual ~TrSimCluster() { Clear(); }
   //! Clear data members
   void   Clear();
   //! Infos

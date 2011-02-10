@@ -71,7 +71,7 @@ class TrSim {
  public:
 
   //! Constructor (simulator initialization)
-  TrSim(){}
+  TrSim() {}
   //! Destructor 
   ~TrSim() { MCClusterTkIdMap.Clear(); }
 

@@ -39,6 +39,7 @@ float   TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,
 
 TrSimSensor* TrSim::_sensors[3]={0,0,0};
 
+
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
 
   // PrintSimPars();
@@ -102,13 +103,13 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
 
   // Create a new object
   VCon* aa = GetVCon()->GetCont("AMSTrMCCluster");
-  if (aa)
+  if (aa!=0)
 #ifndef __ROOTSHAREDLIBRARY__
     aa->addnext(new AMSTrMCCluster(idsoft,  pgl,pmom,edep , itra));
 #else
     aa->addnext(new TrMCClusterR(idsoft, pgl,pmom,edep , itra));
 #endif
-  if (aa) delete aa;
+  if (aa!=0) delete aa;
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("SiTkSimuAll");
 #endif
@@ -211,10 +212,10 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
     adc[0] = a1x;
     adc[1] = a2x;
 #ifndef __ROOTSHAREDLIBRARY__ 
-    if(cont) cont->addnext(new AMSTrCluster
+    if(cont!=0) cont->addnext(new AMSTrCluster
 			   (tkid, 0, stx+640, 2, seedx, adc, 0));
 #else
-    if(cont) cont->addnext(new TrClusterR
+    if(cont!=0) cont->addnext(new TrClusterR
 			   (tkid, 0, stx+640, 2, seedx, adc, 0));
 #endif
   }
@@ -227,8 +228,7 @@ void TrSim::gencluster(int idsoft, float vect[], float edep, float step, int itr
     if (cont) cont->addnext(new   TrClusterR(tkid, 0, sty, 2, seedy, adc, 0));
 #endif
   }
-
-  delete cont;
+  if (cont!=0) delete cont;
   return; 
 }
 
@@ -385,7 +385,7 @@ void TrSim::CreateMCClusterTkIdMap() {
   }
   if (container->getnelem()==0) {
     if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty\n");
-    delete container;
+    if (container!=0) delete container;
     return;
   }
   for (int ii=0; ii<container->getnelem(); ii++) {
@@ -397,7 +397,7 @@ void TrSim::CreateMCClusterTkIdMap() {
       MCClusterTkIdMap.Add(cluster);
     }
   }
-  delete container;
+  if (container!=0) delete container;
   return;
 }
 

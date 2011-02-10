@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.13 2011/02/10 11:59:09 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.14 2011/02/10 20:45:13 oliva Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2011/02/10 11:59:09 $
+///$Date: 2011/02/10 20:45:13 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -64,14 +64,19 @@ class TrMCClusterR: public TrElem {
 public:
 
   // ####################  CONSTRUCTORS & C. ###########################
+
   //! Std constructor build a dummy cluster
-  TrMCClusterR() { Clear(); }
+  TrMCClusterR() { Init(); }
   //! Constructor for a digitized hit
   TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, int itra);
-  // Constructor for daq
-  TrMCClusterR(AMSPoint xgl, integer itra,geant sum=0);
+  //! Constructor for daq
+  TrMCClusterR(AMSPoint xgl, integer itra, geant sum=0);
+  //! Copy constructor
+  TrMCClusterR(const TrMCClusterR& orig);
   //! Destructor
   virtual ~TrMCClusterR() { Clear(); }
+  //! Init
+  void Init();
   //! Clear
   void Clear();
 

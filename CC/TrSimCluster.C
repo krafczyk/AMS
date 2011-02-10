@@ -10,13 +10,13 @@ TrSimCluster::TrSimCluster(vector<double> signal, int address, int seedind) {
   _seedind = seedind;
 }
 
-/*
-TrSimCluster::TrSimCluster(TrSimCluster& orig) {
+
+TrSimCluster::TrSimCluster(const TrSimCluster& orig) {
   _signal = orig._signal;
   _address = orig._address;
   _seedind = orig._seedind;
 }
-*/
+
 
 void TrSimCluster::Clear() {
   _signal.clear();
