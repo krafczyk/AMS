@@ -758,7 +758,7 @@ class RemoteClient:
                         uid=run.uid
                         sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
                         ret=self.sqlserver.Query(sql)
-                        sql=" select datafiles.path from datafiles,dataruns where datafiles.run=dataruns.run and dataruns.status='Completed' and datafiles.type like 'MC%%' and dataruns.jid=%d " %(uid)
+                        sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
                         ret2=self.sqlserver.Query(sql)
                     if(len(ret)>0 or len(ret2)>0):
                         for ntuple in self.dbclient.dsts:
