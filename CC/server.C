@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.159 2011/01/06 21:07:08 choutko Exp $
+//  $Id: server.C,v 1.160 2011/02/11 14:58:01 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2581,9 +2581,11 @@ time_t tt;
 time(&tt);
   char* gtv=getenv("AMSICC");
   bool tstp=false;
+  bool tkill=false;
   if(gtv && strlen(gtv)){
    tstp=atol(gtv)<0;
-   if(tstp)cout<<" Server::CheckClients-I-TSTPWillBeSend "<<endl;
+   tkill=atol(gtv)==-2;
+   if(tstp && !tkill)cout<<" Server::CheckClients-I-TSTPWillBeSend "<<endl;
   }
   char amsicc[]="1";
   setenv("AMSICC",amsicc,1);
@@ -2599,8 +2601,8 @@ time(&tt);
    }     
  }     
     }
-    if(single){
-    int iret=_pser->Kill((*li),SIGTSTP,true);
+    if(single || tkill){
+    int iret=_pser->Kill((*li),tkill?SIGINT:SIGTSTP,true);
     stp++;
     }
   }

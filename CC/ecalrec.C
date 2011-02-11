@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.140 2010/12/05 16:26:19 choumilo Exp $
+//  $Id: ecalrec.C,v 1.141 2011/02/11 14:58:00 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -726,7 +726,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
 //-------> create ECAL fast trigger(FT)-time:
 //
-  if(trigfl>0){
+  if(trflen>=2){
     trigtm=timet/edept+100;//tempor: EC-crate signals eff.time(aver. over mc-hits)(ns) + EC-crates decision time
     trigtm+=ECALDBc::ftedel();//+ fix.delay EC-to-LVL1 + FTE-decision time in JLV1(FTE-time in AMSEcalRawEvent-obj)
     trsum=geant(dyrespt/1000.);//dynode signal (gev tempor)
@@ -736,7 +736,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
     HF1(ECHIST+10,geant(trigconf),1.);
     HF1(ECHIST+19,geant(trigfl),1.);
   }
-  if(trigfl>0)stat=0;
+  if(trflen>=2)stat=0;
   return;
 }
 

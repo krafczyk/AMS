@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.162 2011/02/09 03:53:09 choutko Exp $
+//  $Id: mceventg.C,v 1.163 2011/02/11 14:58:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -512,7 +512,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.InitTime=difftime(mktime(&Orbit.Begin),mktime(&Orbit.Init));
 
 
-  if(Orbit.FlightTime < 0){
+  if(Orbit.FlightTime <= 0){
     cerr <<"AMSmceventg::setspectra-F-FlighTime < 0 "<<Orbit.FlightTime<<endl;
     exit(1);
   }  
@@ -1656,6 +1656,8 @@ void orbit::UpdateOrbit(number theta, number phi, integer sdir){
 }
 
 integer orbit::UpdateOrbit(number xsec2, geant & ThetaS, geant & PhiS, geant & PolePhiS, number & RaS, number & DecS, number & GLatS, number & GLongS, time_t & time){ 
+    static int first=0;
+
     double xsec=xsec2+InitTime;
     number t2=
       AlphaTanThetaMax*AlphaTanThetaMax; 
@@ -1673,7 +1675,7 @@ integer orbit::UpdateOrbit(number xsec2, geant & ThetaS, geant & PhiS, geant & P
     if(phi < 0)phi=phi+AMSDBc::twopi;
     theta=asin(sin(atan(AlphaTanThetaMax))*sin(philocal));
 
-    time=integer(mktime(&Begin)+xsec); 
+    time=integer(mktime(&Begin)+xsec2); 
     ThetaS=theta;
     PolePhiS=pole;
     PhiS=fmod(phi+PhiZero+NodeSpeed*xsec,AMSDBc::twopi);
@@ -1692,6 +1694,11 @@ integer orbit::UpdateOrbit(number xsec2, geant & ThetaS, geant & PhiS, geant & P
     isspos.GetDec(DecS); 
     isspos.GetLat(GLatS); 
     isspos.GetLong(GLongS); 
+    if(first==0){
+        first=1;
+        float a=360/2/3.1415926;
+        cout <<"AMSmceventg-I-OrbitPar "<<"Theta "<<ThetaS*a<<" Phi "<<PhiS*a<<" Pole "<<PolePhiS*a<<endl;
+     }
     return cos(PhiS-PhiZero)>0?1:-1;
 }
 //ISN
@@ -1702,7 +1709,7 @@ ThetaI(Th),PolePhi(Pole){
   AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
   UpdateOrbit(ThetaI,PhiI,Dir);
   AlphaSpeed=AMSDBc::twopi/90.8/60.;
-  EarthSpeed=AMSDBc::twopi/86164.091; //ISN rad/s
+  EarthSpeed=AMSDBc::twopi/86400.; //ISN rad/s
   NodeSpeed=9.88E-7; // ISN ascending node precession due to oblateness
   Init.tm_year  =  111;
   Init.tm_mon = 04;
@@ -2107,16 +2114,24 @@ else if(icase==1){
   if( dt<LVTMFFKEY.MinTime){
      return false;
   }
+ int processed=0;
+ for(int i=0;i<daqbuffer.size();i++){
+  if(curtime-daqbuffer[i]>LVTMFFKEY.MeanTime*(i+1)){
+   processed=i+1;
+  }
+  else break;
+ }
  for(int i=daqbuffer.size()-1;i>=0;i--){
-  if(curtime-daqbuffer[i]>LVTMFFKEY.MeanTime){
+  if(i<processed){
     daqbuffer.erase(daqbuffer.begin()+i);
   }
+  else daqbuffer[i]+= LVTMFFKEY.MeanTime*processed;
  }
 if(daqbuffer.size()>=LVTMFFKEY.BufSize){
      return false;
 }
-else daqbuffer.push_back(curtime);
-
+else if(daqbuffer.size()==0)daqbuffer.push_back(curtime);
+else daqbuffer.push_back(daqbuffer[0]);
 
 DaqAcceptedLastSec[icase]++;
 ExposureTime+=dt;

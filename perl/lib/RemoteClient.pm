@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.622 2011/02/09 03:53:15 choutko Exp $
+# $Id: RemoteClient.pm,v 1.623 2011/02/11 14:59:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7910,7 +7910,7 @@ anyagain:
 
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
-        if(not $evno =~/^\d+$/ or $evno <$a or $evno>$b){
+        if(not $evno =~/^\d+$/ or $evno <$a ){
              $self->ErrorPlus("Events no $evno is out of range ($a,$b)");
         }
         if(not $runno =~/^\d+$/ or $runno <$a or $runno>500){
@@ -7938,7 +7938,7 @@ anyagain:
         if($year < 96 or $year > 118 or $month<0 or $month>11 or $date<1 or $date>31){
              $self->ErrorPlus("TimeBegin $timbeg is out of range $date $month $year");
         }
-         $timbegu=timelocal(1,0,8,$date,$month,$year);
+         $timbegu=timelocal(1,0,0,$date,$month,$year);
         if(not $timend =~/^\d+$/ ){
              $self->ErrorPlus("TimeEnd $timend is not an integer");
         }
@@ -7948,7 +7948,7 @@ anyagain:
         if($year < 96 or $year > 128 or $month<0 or $month>11 or $date<1 or $date>31){
              $self->ErrorPlus("TimeEnd $timend is out of range $date $month $year");
         }
-         $timendu=timelocal(1,0,8,$date,$month,$year);
+         $timendu=timelocal(1,0,0,$date,$month,$year);
         if($self->{q}->param("ProductionQuery") or $self->{q}->param("ProductionForm")  ){
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
