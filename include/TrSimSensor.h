@@ -97,15 +97,23 @@ class TrSimSensor {
   // TGraph* _mctorefun; 
 
  public:
-   
+ 
   //! Default constructor
-  TrSimSensor();
+  TrSimSensor() { Init(); }
   //! Constructor with sensor type
-  TrSimSensor(int type); 
+  TrSimSensor(int type) { Init(); SetSensorType(type); }
+  //! Copy constructor
+  TrSimSensor(const TrSimSensor& that) { Copy(that); }
+  //! Assignment operator
+  TrSimSensor& operator=(const TrSimSensor& that);
   //! Destructor
-  ~TrSimSensor() { Clear(); }
-  //! Clear model
+  virtual ~TrSimSensor() { Clear(); }
+  //! Initializer
+  void Init();
+  //! Clear 
   void Clear();
+  //! Copy  
+  void Copy(const TrSimSensor& that);
 
   ////////////////
   // Model Parameters 

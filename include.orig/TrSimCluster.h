@@ -45,6 +45,8 @@ class TrSimCluster {
   TrSimCluster(const TrSimCluster& orig); 
   //! Constructor
   TrSimCluster(vector<double> signal, int address, int seedind = -1);
+  //! Assignmnent operator  
+  TrSimCluster& operator=(const TrSimCluster& that); 
   //! Destructor
   virtual ~TrSimCluster() { Clear(); }
   //! Clear data members

@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.23 2011/02/10 20:45:12 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.24 2011/02/12 00:40:48 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/02/10 20:45:12 $
+///$Date: 2011/02/12 00:40:48 $
 ///
-///$Revision: 1.23 $
+///$Revision: 1.24 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +59,6 @@ TrMCClusterR::TrMCClusterR(int idsoft, AMSPoint xgl, AMSPoint mom, float sum, in
 }
 
 
-// Constructor for daq
 TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
   _idsoft(0),_itra(itra),_xgl(xgl),_sum(sum),_Momentum(0,0,0) {
   Status=0;
@@ -79,19 +78,11 @@ TrMCClusterR::TrMCClusterR(AMSPoint xgl, integer itra,geant sum):
 }
 
 
-TrMCClusterR::TrMCClusterR(const TrMCClusterR& orig) {
-  _idsoft = orig._idsoft;
-  _itra = orig._itra;
-  _xgl = orig._xgl;
-  _sum = orig._sum;
-  _Momentum = orig._Momentum;
-  Status = orig.Status;
-  for(int ii=0; ii<2; ii++){
-    if (orig.simcl[ii]!=0) 
-      simcl[ii] = new TrSimCluster(*orig.simcl[ii]);
-    else 
-      simcl[ii] = 0;        
-  }
+TrMCClusterR& TrMCClusterR::operator=(const TrMCClusterR& that) {
+  if (this!=&that) {
+    Copy(that);
+  } 
+  return *this;
 }
 
 
@@ -108,6 +99,22 @@ void TrMCClusterR::Clear() {
       delete simcl[ii];
     }
     simcl[ii] = 0; 
+  }
+}
+
+
+void TrMCClusterR::Copy(const TrMCClusterR& that) {
+  _idsoft = that._idsoft;
+  _itra = that._itra;
+  _xgl = that._xgl;
+  _sum = that._sum;
+  _Momentum = that._Momentum;
+  Status = that.Status;
+  for(int ii=0; ii<2; ii++){
+    if (that.simcl[ii]!=0)
+      simcl[ii] = new TrSimCluster(*that.simcl[ii]);
+    else
+      simcl[ii] = 0;
   }
 }
 

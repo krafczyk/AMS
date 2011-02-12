@@ -60,20 +60,19 @@ class TrSim {
 
   //! A map for the MC Cluster search
   static TrMap<TrMCClusterR> MCClusterTkIdMap;
- 
-  //! Geant3 masses (particle id index) [saved on 18/05/2010]
+   //! Geant3 masses (particle id index) [saved on 18/05/2010]
   static float _g3mass[213];
   //! Geant3 charges (particle id index) [saved on 18/05/2010]
   static float _g3charge[213];
-  //! Pointers to sensors 
-  static TrSimSensor* _sensors[3]; 
+  //! Sensors 
+  static TrSimSensor _sensors[3]; 
 
  public:
 
-  //! Constructor (simulator initialization)
+  //! Constructor  
   TrSim() {}
   //! Destructor 
-  ~TrSim() { MCClusterTkIdMap.Clear(); }
+  virtual ~TrSim() {}
 
   //! Build the TrMCClusters (one per side) 
   static void  sitkhits(int idsoft, float vect[], float edep, float step, int itra);

@@ -18,6 +18,8 @@ AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
 
 TrMap<TrMCClusterR> TrSim::MCClusterTkIdMap;
+TrSimSensor TrSim::_sensors[3] = {TrSimSensor(0), TrSimSensor(1), TrSimSensor(2)};
+
 
 // FIX ME: particle table. If is rootshared read it. If not write it (please put the writing date). Commit one. 
 //   // PARTICLE LIST
@@ -37,7 +39,6 @@ float  TrSim::_g3mass[213] = {0,0,0.000510999,0.000510999,0,0.105658,0.105658,0.
 // ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
 float   TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,-1,0,-1,-1,0,0,-1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,0,2,0,0,0,0,0,0,0,0,0,0,0,3,3,4,4,5,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,32,34,36,38,40,42,46,48,50,54,56,58,62,66,70,74,78,79,80,82,92,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-2,0,-2,0,0,0,0,0,0,0,0,0,0,0,-3,-3,-4,-4,-5,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-32,-34,-36,-38,-40,-42,-46,-48,-50,-54,-56,-58,-62,-66,-70,-74,-78,-79,-80,-82,-92};
 
-TrSimSensor* TrSim::_sensors[3]={0,0,0};
 
 
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
@@ -656,20 +657,16 @@ void TrSim::sitknoise(int nsimladders) {
 }
 
 
+
 TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
-  // Generate sensors (if not already did)
-  if (_sensors[0]==0 ) _sensors[0] = new TrSimSensor(0);
-  if (_sensors[1]==0 ) _sensors[1] = new TrSimSensor(1);
-  if (_sensors[2]==0 ) _sensors[2] = new TrSimSensor(2);
-  if (side==1)    return _sensors[0]; // S
-  int layer = (int) fabs(tkid%100);
   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-  if(!ll){
-    printf("TrSim::GetTrSimSensor-E Cannot find ladder %d into the database\n",tkid);
+  if(!ll) {
+    printf("TrSim::GetTrSimSensor-E cannot find ladder %d into the database, returning 0.\n",tkid);
     return 0;
-  } 
-  if (ll->IsK7()) return _sensors[2]; // K7
-  else            return _sensors[1]; // K5
+  }
+  if (side==1)    return &_sensors[0]; // S 
+  if (ll->IsK7()) return &_sensors[2]; // K7
+  else            return &_sensors[1]; // K5
   return 0; 
 } 
 

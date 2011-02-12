@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.14 2011/02/10 20:45:13 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.15 2011/02/12 00:40:49 oliva Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,9 +13,9 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2011/02/10 20:45:13 $
+///$Date: 2011/02/12 00:40:49 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -72,13 +72,17 @@ public:
   //! Constructor for daq
   TrMCClusterR(AMSPoint xgl, integer itra, geant sum=0);
   //! Copy constructor
-  TrMCClusterR(const TrMCClusterR& orig);
+  TrMCClusterR(const TrMCClusterR& that) { Copy(that); }
+  //! Assignment operator
+  TrMCClusterR& operator=(const TrMCClusterR& that);
   //! Destructor
   virtual ~TrMCClusterR() { Clear(); }
-  //! Init
+  //! Initializer
   void Init();
   //! Clear
   void Clear();
+  //! Copy
+  void Copy(const TrMCClusterR& that);
 
   // ####################  ACCESSORS  ###########################
 
@@ -107,8 +111,7 @@ public:
   void clearstatus(unsigned int s) { Status &= ~s; }
   //! Return a pointer to the simulated clusters (if TrSim2010 selected)
   TrSimCluster* GetSimCluster(int side) {
-    if(side!=0 && side!=1) return 0;
-    if (simcl[0]==0||simcl[1]==0) GenSimClusters();
+    if (side!=0 && side!=1) return 0;
     return simcl[side];
   }
   //! Creation of the simulated clusters objects (TrSimCluster) of TrSim2010

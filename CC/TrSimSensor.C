@@ -1,13 +1,28 @@
 #include "TrSimSensor.h"
 #include "tkdcards.h"
 
-TrSimSensor::TrSimSensor() {
-  Clear();
+
+TrSimSensor& TrSimSensor::operator=(const TrSimSensor& that) {
+  { if (this!=&that) Copy(that); return *this; }
 }
 
 
-TrSimSensor::TrSimSensor(int type) {
-  SetSensorType(type);
+void TrSimSensor::Init() {
+  _sensor_type = -1;
+  _nimplants = 0;
+  _nreadout = 0;
+  _implant_pitch = 0;
+  _CD.clear();
+  _CU.clear();
+  _CL.clear();
+  _CR.clear();
+  _diff_type = 0;
+  _diff_radius = 0;
+  _Cint = 0;
+  _Cbk = 0;
+  _Cdec = 0;
+  _mcfun = 0;
+  _refun = 0;
 }
 
 
@@ -25,6 +40,31 @@ void TrSimSensor::Clear() {
   _Cint = 0;
   _Cbk = 0;
   _Cdec = 0;
+  if (_mcfun!=0) delete _mcfun;
+  _mcfun = 0;
+  if (_refun!=0) delete _refun;
+  _refun = 0;
+}
+
+
+void TrSimSensor::Copy(const TrSimSensor& that) {
+  _sensor_type = that._sensor_type;
+  _nimplants = that._nimplants;
+  _nreadout = that._nreadout;
+  _implant_pitch = that._implant_pitch;
+  _CD = that._CD;
+  _CU = that._CU;
+  _CL = that._CL;
+  _CR = that._CR;
+  _diff_type = that._diff_type;
+  _diff_radius = that._diff_radius;
+  _Cint = that._Cint;
+  _Cbk = that._Cbk;
+  _Cdec = that._Cdec;
+  if (that._mcfun!=0) _mcfun = new TF1(*that._mcfun);
+  else _mcfun = 0;
+  if (that._refun!=0) _refun = new TF1(*that._refun);
+  else _refun = 0; 
 }
 
 
@@ -73,10 +113,10 @@ void TrSimSensor::SetDefaults() {
   // Generalized Landau (with some scaling terms)
   char name[100];
   sprintf(name,"landau_model%1d",GetSensorType()); // diff. names needed by ROOT
-  _mcfun = new TF1(name,LandauFun,0.,MAXADC,4); 
+  if (_mcfun==0) _mcfun = new TF1(name,LandauFun,0.,MAXADC,4); 
   _mcfun->SetNpx(MAXADC);
   sprintf(name,"langauexp_model%1d",GetSensorType()); // diff. names needed by ROOT
-  _refun = new TF1(name,LanGauExpFun,0.,MAXADC,5);
+  if (_refun==0) _refun = new TF1(name,LanGauExpFun,0.,MAXADC,5);
   _refun->SetNpx(MAXADC); // ATTENTION: THIS COULD BE A PROBLEM (TOO SLOW IN THE INVERSION PROCESS)
   switch (GetSensorType()) {
     case 0: // S

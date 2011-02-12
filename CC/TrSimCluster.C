@@ -11,11 +11,21 @@ TrSimCluster::TrSimCluster(vector<double> signal, int address, int seedind) {
 }
 
 
-TrSimCluster::TrSimCluster(const TrSimCluster& orig) {
-  _signal = orig._signal;
-  _address = orig._address;
-  _seedind = orig._seedind;
+TrSimCluster::TrSimCluster(const TrSimCluster& that) {
+  _signal = that._signal;
+  _address = that._address;
+  _seedind = that._seedind;
 }
+
+
+TrSimCluster& TrSimCluster::operator=(const TrSimCluster& that) {
+   if (this!=&that) {
+     _signal = that._signal;
+     _address = that._address;
+     _seedind = that._seedind;
+   }
+   return *this;
+}    
 
 
 void TrSimCluster::Clear() {
@@ -80,9 +90,13 @@ void TrSimCluster::Multiply(double signal) {
 
 
 void TrSimCluster::AddCluster(TrSimCluster& cluster) {  
+  if (this == &cluster) { // check auto-add
+    if (WARNING) { printf("TrSimCluster::AddCluster-W auto-adding, this could be an error... skipping.\n"); }
+    return;
+  }
   // an error message 
   if (cluster.GetAddress()<0) {
-    if (WARNING) { printf("TrSimCluster::AddCluster-E the cluster to be added has address < 0:\n"); cluster.Info(1); }
+    if (WARNING) { printf("TrSimCluster::AddCluster-W the cluster to be added has address < 0:\n"); cluster.Info(1); }
     return;
   }
   // if the "this" cluster is empty make a copy of the passed cluster 
