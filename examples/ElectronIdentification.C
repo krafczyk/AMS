@@ -5,8 +5,8 @@
 
 #ifndef _PGTRACK_
 #define _PGTRACK_
-#include "TrTrack.h"
 #endif
+#include "TrTrackSelection.h"
 
 #include "root.h"
 #include "amschain.h"
@@ -18,7 +18,7 @@
 #include <bitset>
 
 /// Uncomment this to use SH's track selection
-///  (supported only with CVS as of 6/Dec/2010 or later)
+///  (supported only with CVS as of 2/Feb/2011 or later)
 //#define sel_Tracker_SH
 
 using namespace std;
@@ -173,11 +173,6 @@ void ElectronIdentification::UTerminate()
   //  if(Tree())printf("\n>>> We have processed %d events\n\n", (int)Tree()->GetEntries());
   //  if(outfile)printf("\n>>> Histograms saved in '%s'\n\n", outfile->GetName());
 
-
-#ifdef sel_Tracker_SH
-  // Show track statistics
-  TrTrackR::ShowTrackClass();
-#endif
 }
 
 bool ElectronIdentification::Trigger_Flag() {
@@ -454,62 +449,61 @@ bool ElectronIdentification::Ecal_EneMomMatch(float Enedep){
 bool ElectronIdentification::select_Tracker(int debug){
 
 #ifdef sel_Tracker_SH
-  // SH: Tracker classification and statistics <= Recommended to use
-  // supported only with CVS as of 6/Dec/2010 or later
+  // SH: TrTrackSelection
+  // supported only with CVS as of 2/Feb/2011 or later
   {
-    // Track selection and count statistics
-    int tcls[TrTrackR::Nconf+1];
-    TrTrackR::DoTrackClass(TrTrackR::DefaultFitID, 0, tcls);
+    int algo  = 1; // 1:Choutko  2:Alcaraz  (+10 no multiple scattering)
+    int patt  = 7; // 3:Inner only 5:w/ L1N 6:w/ L9 7:Full span
+    int refit = 0; // Set 2 if you want to refit
 
-    // Selected track index
-    int itrk = tcls[TrTrackR::Nconf];
-    if (itrk < 0) {
-      if (debug) cout << "No track selected at event " << Event() << endl;
-      return false;
-    }
+    int span  = TrTrackSelection::kMaxSpan;  // Max span
+              //TrTrackSelection::kHalfL1N;  // Half span with L1N
+              //TrTrackSelection::kHalfL9;   // Half span with L9
+              //TrTrackSelection::kMaxInt;   // Inner only
 
-    // Get track pointer
+    // Select the first track for the moment
+    int itrk = 0;
     TrTrackR *track = pTrTrack(itrk);
-    if (!track) {
-      cerr << "Error: No track found: " << itrk << endl;
-      return false;
-    }
 
-    // Get track classification
-    int cls = track->GetTrackClass();
+    // Check if the requested fitting exists
+    int mfit = track->iTrTrackPar(algo, patt, refit);
+    if (mfit < 0) return false;
 
+    // Check span flag
+    int sflag = TrTrackSelection::GetSpanFlags(track);
     if (debug) {
-      cout << Form("track %d class: %04x", itrk, cls);
-      if      (cls & TrTrackR::kMaxExt)  cout << "  MaxSpan";
-      else if (cls & TrTrackR::kHalfExt) cout << " HalfSpan";
-      else if (cls & TrTrackR::kMaxInt)  cout << "  MinSpan";
-      if     ((cls & TrTrackR::kBaseQ) == TrTrackR::kBaseQ) cout << " BaseQ";
-      if     ((cls & TrTrackR::kHighQ) == TrTrackR::kHighQ) cout << " HighQ";
+      cout << Form("track %d span: %04x", itrk, sflag);
+      if      (sflag & TrTrackSelection::kMaxSpan ) cout << " MaxSpan";
+      else if (sflag & TrTrackSelection::kHalfL1N ) cout << " Half(L1N)";
+      else if (sflag & TrTrackSelection::kHalfL9  ) cout << " Half(L9)";
+      else if (sflag & TrTrackSelection::kMaxInt  ) cout << " MaxInt";
+      else if (sflag & TrTrackSelection::kAllPlane) cout << " AllPlane";
       cout << endl;
     }
 
+    // Request at least one hit in one plane
+    if (!(span & TrTrackSelection::kAllPlane)) return false;
 
-    // Span flags
-    int smin  = TrTrackR::kMaxExt | TrTrackR::kHalfExt | TrTrackR::kMaxInt;
-    int shalf = TrTrackR::kMaxExt | TrTrackR::kHalfExt;
-    int smax  = TrTrackR::kMaxExt;
+    // Span request
+    if (sflag & span) return false;
 
-    // Uncomment the following lines as you want
+    // Chisquare selection
+    // (ChisqY is more sensitive to wrong momentum events,
+    //  so to be applied more tightly)
+    if (track->GetNormChisqX(mfit) > 100) return false;
+    if (track->GetNormChisqY(mfit) >  20) return false;
 
-    // Minimum span request (Internal Tracker)
-    if (!(cls & smin)) return false;
+    // External residual (only for full span tracks)
+    if (span == 7) {
+      double rsy = TrTrackSelection::GetHalfRessq(track, span, algo, refit);
+      if (rsy > 20) return false;
+    }
 
-    // Half span request (with L1N or L9)
-    //if (!(cls & shalf)) return false;
-
-    // Max span request (with L1N and L9)
-    //if (!(cls & smax)) return false;
-
-    // Minimum quality request
-    if ((cls & TrTrackR::kBaseQ) != TrTrackR::kBaseQ) return false;
-
-    // Golden track request
-    //if ((cls & TrTrackR::kHighQ) != TrTrackR::kHighQ) return false;
+    // Half rigidity difference
+    else {
+      double dhr = TrTrackSelection::GetHalfRdiff(track, span, algo, refit);
+      if (dhr > 20) return false;
+    }
 
     // Set track index
     triter = itrk;
