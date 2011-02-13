@@ -67,7 +67,7 @@ class TrSimCluster {
   //! Get the address of a strip
   int    GetAddress(int i)   { return _address + i; }
   //! Get the address of a strip with cyclicity (K7 cluster could extend over 384)
-  int    GetAddressK7(int i) { return (_address + i)%384; }
+  int    GetAddressCycl(int i) { return (_address + i)%384; }
   //! Get the seed as setted by the constructor
   int    GetSeedIndex()      { return _seedind; } 
   //! Find a seed (...equal strips?)

@@ -178,15 +178,33 @@ bool TrSimSensor::IsReadoutStrip(int implantadd) {
     if (WARNING) printf("TrSimSensor::IsReadoutStrip-W invalid implant position (impl=%d) requested\n",implantadd);
     return false;
   }
+  /* 
+    Sensor Bonding Scheme
+    S: 
+      - 2567 implantation strips
+      -  640 readout strips (642 possible positions) 
+      implantation 0000 0001 0002 0003 0004 0005 0006 0007 0008 0009 0010 0011 0012 ... 2555 2556 2557 2558 2559 2560 2561 2562 2563 2564 2565 2566
+      readout       000                 xxx                 001                 002           638                 xxx                 639
+    K5 (one sensor):
+      - 384 implantation strips
+      - 192 readout strips
+      implantation  000 001 002 003 004 005 006 ... 378 379 380 381 382 383
+      readout         0       1       2       3     189     190         191
+    K7 (one sensor):
+      - 384 implantation strips
+      - 224 readout strips
+      implantation  000 001 002 003 004 005 006 ... 092 093 094 095 | 096 097 098 ... 286 | 287 288 289 290 291 ... 380 381 382 383
+      readout         0       1   2       3   4      61  62      63 |  64      65     159 |     160     161 162     221 222     223
+  */
   switch (GetSensorType()) {
     case kS: 
-      return ((implantadd%4)==0) && (implantadd!=4) && (implantadd!=2560);
+      return ((implantadd%4)==0) && (implantadd!=4) && (implantadd!=2560) && (implantadd<=2566);
       break;
     case kK5: 
       return ( ((implantadd%2)==0) && (implantadd<382) ) || (implantadd==383);
       break;
     case kK7:
-      return ( ((implantadd%3)!=1) && ((implantadd< 96)||(implantadd> 287)) ) || 
+      return ( ((implantadd%3)!=1) && ((implantadd< 96)||(implantadd> 287)) && (implantadd<=383) ) || 
              ( ((implantadd%2)==0) && ((implantadd>=96)&&(implantadd<=287)) );
       break;
   }
@@ -557,7 +575,7 @@ TrSimCluster TrSimSensor::MakeClusterFromImplantCluster(TrSimCluster& implclus, 
     int    impladd = implclus.GetAddress() + ii;
     double Q       = implclus.GetSignal(ii);
     TrSimCluster addcluster = MakeClusterFromAChargeInjectionOnAnImplant(Q,impladd,nsens);
-    // if (VERBOSE) { printf("TrSimSensor::MakeClusterFromImplantCluster-V add cluster:\n"); addcluster.Info(10); }
+    if (VERBOSE) { printf("TrSimSensor::MakeClusterFromImplantCluster-V add cluster:\n"); addcluster.Info(10); }
     cluster.AddCluster(addcluster);
   }
   if ( (cluster.GetWidth()==0) ) {

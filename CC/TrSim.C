@@ -57,7 +57,7 @@ void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra)
   //  printf("TrSim::sitkhits: tkid %d LAYER %d !!!\n",tkid,tkid/100);
   TkLadder* lad=TkDBc::Head->FindTkId(tkid);
   // skip unnown ladders! This should never happen!!!
-  if(!lad){ printf("TrSim::sitkhits: tkid %d unknown This sholud never happen!!!!\n",tkid);return;}
+  if(!lad) { printf("TrSim::sitkhits-E tkid %d unknown This sholud never happen!!!!\n",tkid);return;}
 
   // Skip not connected ladders 
   if(lad->GetHwId()<0) {
@@ -249,7 +249,7 @@ void TrSim::fillreso(TrTrackR *track) {
 
 void TrSim::sitkdigi() {
 
-  if (VERBOSE) printf("TrSim::sitkdigi() called\n");
+  if (VERBOSE) printf("TrSim::sitkdigi-V called\n");
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkDigiAll"); 
@@ -316,7 +316,6 @@ void TrSim::sitkdigi() {
       for(int icl=0; icl<MCClusterTkIdMap.GetNelem(tkid); icl++) {
         TrMCClusterR* cluster = (TrMCClusterR*) MCClusterTkIdMap.GetElem(tkid,icl);
         if (cluster==0) continue;  
-        if (VERBOSE) { printf("TrSim::MCCluster\n"); cluster->Print(); }
         // Add ideal clusters
         if      (TRMCFFKEY.SimulationType==kRawSim)    nclu += AddOldSimulationSignalOnBuffer(cluster,ladbuf);
         else if (TRMCFFKEY.SimulationType==kTrSim2010) nclu += AddTrSimClustersOnBuffer(cluster,ladbuf);
@@ -381,11 +380,11 @@ void TrSim::CreateMCClusterTkIdMap() {
   // Get the pointer to the TrMCCluster container
   VCon* container = GetVCon()->GetCont("AMSTrMCCluster");
   if (container==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container\n");
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W no TrMCCluster container, skip.\n");
     return;
   }
   if (container->getnelem()==0) {
-    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty\n");
+    if (WARNING) printf("TrSim::CreateMCClusterTkIdMap-W TrMCCluster container is empty, skip.\n");
     if (container!=0) delete container;
     return;
   }
@@ -433,9 +432,9 @@ int TrSim::AddTrSimClustersOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
     for (int ist=0; ist<simcluster->GetWidth(); ist++) {
       // Take address on buffer
       int address = simcluster->GetAddress(ist) + 640*(1-iside); 
-      if ( (isK7)&&(iside==0) ) address = simcluster->GetAddressK7(ist) + 640; // considerng cyclicity
+      if ( (isK7)&&(iside==0) ) address = simcluster->GetAddressCycl(ist) + 640; // considering cyclicity
       if ( (0<=address)&&(address<1024) ) ladbuf[address] += simcluster->GetSignal(ist);
-      else printf("TrSim::AddSimulatedClustersOnBuffer-E-Address out of bounds (%d)\n",address);
+      else printf("TrSim::AddSimulatedClustersOnBuffer-E address out of bounds (%d)\n",address);
     }
     nclusters++;
   }

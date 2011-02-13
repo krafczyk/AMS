@@ -91,7 +91,7 @@ void TrSimCluster::Multiply(double signal) {
 
 void TrSimCluster::AddCluster(TrSimCluster& cluster) {  
   if (this == &cluster) { // check auto-add
-    if (WARNING) { printf("TrSimCluster::AddCluster-W auto-adding, this could be an error... skipping.\n"); }
+    printf("TrSimCluster::AddCluster-E auto-adding, this could be an error... please check.\n");
     return;
   }
   // an error message 
@@ -149,8 +149,12 @@ void TrSimCluster::ApplySaturation(double maxvalue) {
 void TrSimCluster::ApplyGain(int side, int tkid) {
   TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
   for (int ist=0; ist<GetWidth(); ist++) {
-    int   address = GetAddress(ist) + 640*(1-side);
+    int   address = GetAddressCycl(ist) + 640*(1-side);
     int   iva     = int(address/64);
+    if ( (iva<0)||(iva>15) ) { 
+       printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,address);
+       return; 
+    }
     float gain    = ladpar->GetGain(side)*ladpar->GetVAGain(iva);
     if (ladpar->GetVAGain(iva)<0.02) SetSignal(ist,0.); // VA with no gain!
     else                             SetSignal(ist,GetSignal(ist)/gain);
