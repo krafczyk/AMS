@@ -2857,7 +2857,8 @@ class RemoteClient:
                 runnd=" and ntuples_deleted.run>=%d " %(-run2p)
         else:
             runsname="runs"
-            runst=" and runs.status='Completed' "
+            if(self.force==0):
+                    runst=" and runs.status='Completed' "
             if(run2p!=0):
                 rund=" and runs.run=%d " %(run2p)
                 runn=" and ntuples.run=%d " %(run2p)
