@@ -2906,10 +2906,10 @@ class RemoteClient:
                 files=self.sqlserver.Query(sql)
                 df=1
         if(len(files)>0 or self.force!=0):
-            sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job' and jobs.jid=%s.jid %s %s  " %(runsname,dataset,runsname,runst,rund)
+            sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job' and jobs.did=%d and jobs.jid=%s.jid %s %s  " %(runsname,dataset,did,runsname,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
-            sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,dataset,runst,rund)
+            sql=" delete from jobs where exists (select * from %s where %s.jid=jobs.jid and and jobs.did=%d and jobs.jobname like '%%%s.job' %s %s )" %(runsname,runsname,did,dataset,runst,rund)
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
