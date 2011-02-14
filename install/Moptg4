@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.106 2011/01/26 20:47:36 choutko Exp $
+#  $Id: Moptg4,v 1.107 2011/02/14 14:37:50 zweng Exp $
 #
 SHELL=/bin/sh
 #
@@ -341,7 +341,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C \
 	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
 	$(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C \
-	$(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
+	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
 	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
@@ -376,7 +376,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C \
 	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
 	$(SCC)amsgeom.C  \
-	$(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
+	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C \
 	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
@@ -788,6 +788,9 @@ $(BIN)G4MagIntegratorDriver.o: 	 $(SCC)G4MagIntegratorDriver.cc
 
 $(BIN)g4physics.o: 	 $(SCC)g4physics.C
 	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)g4physics.C -o $(BIN)g4physics.o
+
+$(BIN)AMSPhysicsList_HadronIon.o: 	 $(SCC)AMSPhysicsList_HadronIon.C
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)AMSPhysicsList_HadronIon.C -o $(BIN)AMSPhysicsList_HadronIon.o
 
 $(BIN)g4xray.o: 	 $(G4XRAY)
 	$(CXX) -c $(CP1F) $(CFLAGS4) $(G4XRAY) -o $(BIN)g4xray.o

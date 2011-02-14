@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.40 2011/01/23 07:40:21 zweng Exp $
+//  $Id: g4physics.C,v 1.41 2011/02/14 14:37:25 zweng Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.40 2011/01/23 07:40:21 zweng Exp $
+// $Id: g4physics.C,v 1.41 2011/02/14 14:37:25 zweng Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -50,7 +50,7 @@
 #endif
 
 #include "TRD_SimUtil.h"
-
+#include "G4HadronElasticPhysics.hh"
 AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0)
 {
   // default cut value  (1.0mm) 
@@ -137,10 +137,21 @@ void AMSG4Physics::ConstructProcess()
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
-     HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
-     pqgsp->ConstructProcess();    
-     G4IonPhysics *pion=new G4IonPhysics("ion");
-     pion->ConstructProcess();
+      //     HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+      //     pqgsp->ConstructProcess();    
+      //     G4IonPhysics *pion=new G4IonPhysics("ion");
+      //     pion->ConstructProcess();
+
+          cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
+	  G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
+	  HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+	  pqgsp->ConstructProcess();    
+	  hadronelastic->ConstructProcess();
+	  AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
+	  pamshi->ConstructProcess();
+
+
+
     }
    }
    else if(G4FFKEY.PhysicsListUsed==2){
@@ -152,10 +163,20 @@ void AMSG4Physics::ConstructProcess()
       ConstructEM2();
     }
     if(GCPHYS.IHADR){
-      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
-      pqgsp->ConstructProcess();    
-      G4IonPhysics *pion=new G4IonPhysics("ion");
-      pion->ConstructProcess();
+      //      HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
+      //      pqgsp->ConstructProcess();    
+      //      G4IonPhysics *pion=new G4IonPhysics("ion");
+      //      pion->ConstructProcess();
+
+          cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
+	  G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
+	  HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
+	  pqgsp->ConstructProcess();    
+	  hadronelastic->ConstructProcess();
+	  AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
+	  pamshi->ConstructProcess();
+
+
     }
    }
    else{
