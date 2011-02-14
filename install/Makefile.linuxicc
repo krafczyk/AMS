@@ -65,6 +65,7 @@ else
   FFOLD=$(FF)
   FORTRAN_LIBS= -lg2c
 endif
+  FFLAGSSAVE= -save
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/../../lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 
 

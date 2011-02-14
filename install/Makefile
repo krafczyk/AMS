@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.147 2011/02/08 14:31:58 shaino Exp $
+#  $Id: Makefile,v 1.148 2011/02/14 14:11:00 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -692,13 +692,22 @@ $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
 	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
 $(BIN)grfile.o:      $(SFF)grfile.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
 	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
 
 $(BIN)gskpho.o:      $(SFF)gskpho.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
+
+$(BIN)ggckov.o:      $(SFF)ggckov.F
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)ggckov.F -o $(BIN)ggckov.o
+
+$(BIN)graylc.o:      $(SFF)graylc.F
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)graylc.F -o $(BIN)graylc.o
+
+$(BIN)gtckov.o:      $(SFF)gtckov.F
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gtckov.F -o $(BIN)gtckov.o
 
 $(SFF)hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
 	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
@@ -824,9 +833,9 @@ clean :
 	rm -f $(NTLD) $(SHLD)
 
 cleanALL : 
-	rm -Rf $(AMSWD)/bin 
-	rm -Rf $(AMSWD)/lib
-	rm -Rf $(AMSWD)/exe 
+	rm -rf $(AMSWD)/bin 
+	rm -rf $(AMSWD)/lib
+	rm -rf $(AMSWD)/exe 
 	rm ../include/root_methods*.h
 cleanlibs:
 	rm -f $(NTLD) $(SHLD)
