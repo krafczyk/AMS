@@ -61,16 +61,16 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     G4ProcessManager* pManager = 0;
 
     G4BinaryLightIonReaction * theGenIonBC = new G4BinaryLightIonReaction;
-    theGenIonBC->SetMinEnergy(100.0*MeV);
+    theGenIonBC->SetMinEnergy(0.0*MeV);
     theGenIonBC->SetMaxEnergy(2000.0*GeV);
 
     G4WilsonAbrasionModel *theAM = new G4WilsonAbrasionModel(true);
-    theAM->SetMinEnergy(100.0*MeV);
+    theAM->SetMinEnergy(0.0*MeV);
     theAM->SetMaxEnergy(2000.0*GeV);
     theAM->SetVerboseLevel(2);
 
     G4EMDissociation *theEMD = new G4EMDissociation();
-    theEMD->SetMinEnergy(100.0*MeV);
+    theEMD->SetMinEnergy(0.0*MeV);
     theEMD->SetMaxEnergy(2000.0*GeV);
     theEMD->SetVerboseLevel(2);
 
