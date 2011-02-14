@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.148 2011/02/09 03:53:09 choutko Exp $
+//  $Id: producer.C,v 1.149 2011/02/14 14:10:32 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1928,6 +1928,7 @@ _OnAir=false;
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
+const char *version=AMSCommonsI::getversion(); 
 const char *nvr=AMSCommonsI::getosversion(); 
 int maxtries=1200;
 int delay=1;
@@ -1947,6 +1948,9 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=nve;
   if(strstr(nvr,"2.6")){
    systemc+=".6";
+  }
+  if(strstr(version,"v4.00")){
+    systemc+=" -m ";
   }
   systemc+=" > /tmp/getior.";
   char tmp[80];

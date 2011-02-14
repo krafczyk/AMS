@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.9 2008/05/06 15:47:56 choutko Exp $
+//  $Id: getior.pc,v 1.10 2011/02/14 14:10:32 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -87,7 +87,7 @@ void sql_notfound(char *msg)
 }
 
 
-unsigned int getior()
+unsigned int getior(int datamc)
 {
 //
 // return host id for given client id
@@ -95,8 +95,14 @@ unsigned int getior()
 
 
  EXEC SQL WHENEVER SQLERROR DO sql_nothing("ORACLE warning: AMSoracle::getIORP");
+if(datamc==0){
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=0 ORDER BY createtime DESC;
 
- EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' ORDER BY createtime DESC;
+}
+else
+{
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=1 ORDER BY createtime DESC;
+}
   int niorp  = sqlca.sqlerrd[2];
   if (verbose) {
    cout<<"getior -I- found "<<niorp<<" IORP"<<endl;
@@ -172,8 +178,12 @@ main(int argc, char* argv[])
     strcat(tns,"/prod");
     setenv("TNS_ADMIN",tns,0);
   }   
+  int datamc=1;
   if (argc > 1) {
    for (int i=0; i<argc; i++) {
+     if(strcmp(argv[i],"-m") ==0){
+       datamc=0;
+     }
      if (strcmp(argv[i],"-o") == 0) {
       if (i+1 < argc) {
        cout<<"output file "<<argv[i+1]<<endl;
@@ -192,6 +202,7 @@ main(int argc, char* argv[])
       cout<<"source ~/AMS/install/AMSoracle"<<endl;
       cout<<"./getior"<<endl;
       cout<<"-h : print help"<<endl;
+      cout<<"-m : version4.00 "<<endl;
       cout<<"-v : verbose mode"<<endl;
       cout<<"-o iorfile : write IOR to iorfile"<<endl;
       exit(0);  
@@ -200,7 +211,7 @@ main(int argc, char* argv[])
   }
    EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error:");
    if(oracle_connect() != 0) exit(1);
-    getior();
+    getior(datamc);
     suppressBlanks(iorp[0].name);
     if (!output) {
      cout<<iorp[0].name<<endl;
