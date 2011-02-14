@@ -774,11 +774,15 @@ class RemoteClient:
                 if(run2p!=0 and run2p!=run.Run):
                     continue
                 status=self.dbclient.cr(run.Status)
-                if(status=='Failed' and datamc==1):
+                dataruns="dataruns"
+                if(datamc==0):
+                        dataruns="runs"
+                if(status=='Failed' and (datamc==1 or datamc==0)):
                     uid=run.uid;
                     sql=" update datafiles set status='BAD' where run=%d " %(run.Run)
-                    self.sqlserver.Update(sql)
-                    sql="update dataruns set status='Failed' where jid=%d " %(uid)
+                    if(datamc==1):
+                        self.sqlserver.Update(sql)
+                    sql="update %s set status='Failed' where jid=%d " %(dataruns,uid)
                     self.sqlserver.Update(sql)
                     print " deleting ",run.Run
                     self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
