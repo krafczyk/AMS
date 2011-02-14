@@ -43,47 +43,17 @@ public:
 AMSPhysicsList_HadronIon(const G4String& name = "abrasion_ion"); 
 virtual ~AMSPhysicsList_HadronIon();
 public: 
-// This method will be invoked in the Construct() method. // each particle type will be instantiated 
-void ConstructParticle() ;
-// This method will be invoked in the Construct() method. // each physics process will be instantiated and // registered to the process manager of each particle type 
+void ConstructParticle(){}
 void ConstructProcess();
 private:
-/* G4DeuteronInelasticProcess* theIPdeuteron;  */
-/* G4TritonInelasticProcess* theIPtriton;  */
-/* G4AlphaInelasticProcess*  theIPalpha;  */
-/* G4HadronInelasticProcess*  theIPHe3;  */
-/* G4HadronInelasticProcess* theIPGenericIon; */
 
-
-
-
-// Elastic Process
  G4HadronElasticProcess theElasticProcess;
- G4LElastic   *theElasticModel;
- 
- // Generic Ion physics 
- // G4MultipleScattering fIonMultipleScattering;
- 
- // Deuteron physics 
- // G4MultipleScattering       fDeuteronMultipleScattering ;
+
  G4DeuteronInelasticProcess       fDeuteronProcess;
- G4LEDeuteronInelastic*       fDeuteronModel; 
- 
- // Triton physics 
- // G4MultipleScattering fTritonMultipleScattering;
+
  G4TritonInelasticProcess fTritonProcess;
- G4LETritonInelastic*   fTritonModel;
- 
- // Alpha physics 
- // G4MultipleScattering    fAlphaMultipleScattering;
+
  G4AlphaInelasticProcess    fAlphaProcess;
- G4LEAlphaInelastic*   fAlphaModel;
- 
- // He3 physics 
- // G4MultipleScattering   fHe3MultipleScattering;
- 
- 
- 
 
 
 }; //////////////////////////////////////////////////////////////////////////////// //
