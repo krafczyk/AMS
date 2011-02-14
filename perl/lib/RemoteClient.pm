@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.623 2011/02/11 14:59:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.624 2011/02/14 14:11:20 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9960,6 +9960,9 @@ sub checkJobsTimeout {
          if (defined $r4->[0][0]) {
             $owner   = $r4->[0][0];
             $address = $r4->[0][1].",".$address;
+            if($jobstimeout>1){
+                $address = $r4->[0][1];
+            }              
             $cite         = $r4->[0][2];
           }
          my $timenow    = time();
@@ -9994,6 +9997,9 @@ sub checkJobsTimeout {
  }
     if($verbose){
      print " jobstimeout $jobstimeout \n";
+    }
+    if($jobstimeout>1){
+          $self->sendmailmessage('vitali.choutko@cern.ch',"Jobs Expired: $jobstimeout"," ");
     }
  if ($webmode == 1) {
   $self->htmlTableEnd();
