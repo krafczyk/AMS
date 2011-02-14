@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.304 2011/02/09 03:53:15 choutko Exp $
+//  $Id: commons.h,v 1.305 2011/02/14 14:24:33 zweng Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1059,6 +1059,7 @@ int UniformMagField;
 int Geant3CutsOn;
 int PhysicsListUsed;
 int LowEMagProcUsed;
+int IonPhysicsModel;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
