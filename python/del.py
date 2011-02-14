@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: del.py,v 1.4 2010/04/28 08:46:57 ams Exp $
+#  $Id: del.py,v 1.5 2011/02/14 16:32:30 ams Exp $
 # this script suppose to delete datasets
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -19,6 +19,7 @@ datamc=1
 for x in sys.argv:
     if x == "-h": h=1
     elif x == "-v": v=1
+    elif x == "-M": datamc=0
     elif x == "-f": f=1
     elif x == "-u": u=1
     elif x == "-o": donly=1

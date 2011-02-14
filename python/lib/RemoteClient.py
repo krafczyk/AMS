@@ -813,8 +813,11 @@ class RemoteClient:
                 if(run2p!=0 and run2p!=run.Run):
                     continue
                 status=self.dbclient.cr(run.Status)
-                if(status=='Finished' and datamc==1):
-                    ro=self.sqlserver.Query("select run, status from dataruns where jid="+str(run.uid))
+                dataruns="dataruns"
+                if(datamc==0):
+                    dataruns="runs"
+                if(status=='Finished' and (datamc==0 or datamc==1)):
+                    ro=self.sqlserver.Query("select run, status from "+dataruns+" where jid="+str(run.uid))
                     rstatus=ro[0][1]
                     uid=run.uid;
                     if(rstatus == 'Unchecked'): 
@@ -1128,7 +1131,7 @@ class RemoteClient:
                              runupdate="update runs set "
                              
                         else:
-                            status="Completed"
+                            status="Unchecked"
                         if(status == "Completed"):
                             self.GoodRuns[0]=self.GoodRuns[0]+1
                         elif (status =="Failed"):
@@ -1883,8 +1886,9 @@ class RemoteClient:
     def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc):
         if(type=="RawFile" and datamc==0):
             paths="/Offline/RunsDir/MC/";
-            cmd="ln -sf %s %s" %(path,paths)
-            os.system(cmd)
+#            cmd="ln -sf %s %s" %(path,paths)
+#            os.system(cmd)
+            self.linkdataset(path,"/Offline/RunsDir",1)
             sql="select fetime,letime from runs where jid=%d" %(jid)
             ret=self.sqlserver.Query(sql)
             fetime=0
@@ -2830,6 +2834,7 @@ class RemoteClient:
         runn=""
         runnd=""
         runst=" "
+        runndf=" "
         runsname="" 
         if(datamc==0):
             sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  " %(dataset,datamc) 
@@ -2857,11 +2862,14 @@ class RemoteClient:
                 rund=" and runs.run=%d " %(run2p)
                 runn=" and ntuples.run=%d " %(run2p)
                 runnd=" and ntuples_deleted.run=%d " %(run2p)
+                runndf=" and run=%d " %(run2p)
             if(run2p<0):
                 rund=" and runs.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
                 runnd=" and ntuples_deleted.run>=%d " %(-run2p)
+                runndf=" and run>=%d " %(-run2p)
         sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc%10,runn) 
+        df=0
         files=self.sqlserver.Query(sql)
         datapath=dataset
         ds1=""
@@ -2892,6 +2900,11 @@ class RemoteClient:
         else:
             print " found / while did -1 , return "
             return
+        if(len(files)==0):
+            if(datamc==0):
+                sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
+                files=self.sqlserver.Query(sql)
+                df=1
         if(len(files)>0 or self.force!=0):
             sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job' and jobs.jid=%s.jid %s %s  " %(runsname,dataset,runsname,runst,rund)
             if(donly==0):
@@ -2900,15 +2913,23 @@ class RemoteClient:
             if(donly==0):
                 self.sqlserver.Update(sql)
             sql="insert into ntuples_deleted select * from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
-            self.sqlserver.Update(sql)
-            timenow=int(time.time())
-            sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runnd)
-            self.sqlserver.Update(sql)
-            sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
-            self.sqlserver.Update(sql)
+            if(df==0):
+                self.sqlserver.Update(sql)
+                timenow=int(time.time())
+                sql="update ntuples_deleted set timestamp="+str(timenow)+"  where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runnd)
+                self.sqlserver.Update(sql)
+                sql="DELETE from ntuples where path like '%%%s/%%' and datamc=%d %s " %(datapath,datamc%10,runn)
+                self.sqlserver.Update(sql)
+            else:
+                sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s " %(datapath,runndf)
+                self.sqlserver.Update(sql)
+                
             if(self.update):
                 for file in files:
-                    self.linkdataset(file[0],"/Offline/DataSetsDir",0)
+                    if(df==0):
+                        self.linkdataset(file[0],"/Offline/DataSetsDir",0)
+                    else:
+                        self.linkdataset(file[0],"/Offline/RunsDir",0)
                     cmd="rm "+file[0]
                     i=0
 		    i=os.system(cmd)
@@ -2922,6 +2943,8 @@ class RemoteClient:
                     if(file[1]>0):
                         castorPrefix='/castor/cern.ch/ams/'
                         delimiter='Data'
+                        if(datamc==0):
+                            delimiter='MC'
                         junk=file[0].split(delimiter)
                         if len(junk)>=2:
                             castorfile=castorPrefix+delimiter+junk[1]
