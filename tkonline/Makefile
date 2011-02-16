@@ -11,8 +11,8 @@ CXXFLAGS       := -g -D__LINUXGNU__ -D_PGTRACK_ -D_STANDALONE_ -D__ROOTSHAREDLIB
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I$(AMSWD)/include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
-LIBS           := $(shell $(ROOTCFG) --glibs)
-LIBS           += $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
+LIBS           := $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
+LIBS           += $(shell $(ROOTCFG) --glibs)
 
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI
