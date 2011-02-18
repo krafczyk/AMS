@@ -40,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2011/02/06 20:12:21 $
+ $Date: 2011/02/18 12:38:44 $
 
- $Revision: 1.18 $
+ $Revision: 1.19 $
 
 */
 
@@ -119,7 +119,8 @@ class TrClusterR :public TrElem{
   static float TwoStripThresholdY;
 
  public:
-  
+/** @name   CONSTRUCTORS & C. */
+/**@{*/	
   //################    CONSTRUCTORS & C.   ################################
 
   /// Default constructor 
@@ -135,7 +136,10 @@ class TrClusterR :public TrElem{
   virtual ~TrClusterR();
   /// Clear
   void Clear();
+/**@}*/
 
+/** @name   Cluster Structure  */
+/**@{*/	
   //################    ACCESSORS  ########################################
 
   /// Get ladder TkId identifier 
@@ -181,7 +185,19 @@ class TrClusterR :public TrElem{
   int   GetLeftLength(int opt = DefaultCorrOpt)  { return GetSeedIndex(opt); }
   /// Get the number of strips on the right of the seed strip
   int   GetRightLength(int opt = DefaultCorrOpt) { return GetNelem() - GetSeedIndex(opt) - 1; } 
-
+  /// Get i-th strip status (from calibration)
+  short GetStatus(int ii);
+	
+  /// Is a TAS cluster? (check the status bit)
+  bool  TasCls() const { return checkstatus(TASCLS);}
+	
+	/// Used for track AMSDBc::USED = 32; (0x0020)
+	bool  Used() const { return checkstatus(AMSDBc::USED); }
+	
+	
+	/**@}*/
+/** @name   SIGNALS & AMPLITUDE */
+/**@{*/	
   /// Get cluster amplitude
   float GetTotSignal(int opt = DefaultCorrOpt);
 
@@ -195,28 +211,19 @@ class TrClusterR :public TrElem{
   float GetSN(int ii, int opt = DefaultCorrOpt) { 
     return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); 
   } 
-  /// Get i-th strip status (from calibration)
-  short GetStatus(int ii);
-
-  /// Is a TAS cluster? (check the status bit)
-  bool  TasCls() const { return checkstatus(TASCLS);}
-
-  /// Used for track AMSDBc::USED = 32; (0x0020)
-  bool  Used() const { return checkstatus(AMSDBc::USED); }
-  /// Set as used
-  void  SetUsed()    { setstatus(AMSDBc::USED); }
-  /// Clear used status
-  void  ClearUsed()  { clearstatus(AMSDBc::USED); }
-
+/**@}*/	
+	/** @name  Coordinates */
+	/**@{*/	
+	
   /// Get multiplicity
   int   GetMultiplicity();
-  /// Get global coordinate by multiplicity index
+  /// Get local coordinate by multiplicity index
   float GetCoord(int imult) { return GetXCofG(DefaultUsedStrips,imult); }
   /// Get global coordinate by multiplicity index
   float GetGCoord(int imult);
 
 
-  /// Get cluster bounds for a given number of strips (gerarchic order...)  
+  /// Get cluster bounds for a given number of strips (gerarchic order...)  (Experts only)
   /*           _        
    *          | |_      
    *       _ _| | |     
@@ -225,13 +232,13 @@ class TrClusterR :public TrElem{
    *     5 3 2 0 1 4                       
    *  Seed is used as reference (position 0) */
   void  GetBounds(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  /// Get the Center of Gravity with the n highest consecutive strips
+  /// Get the Center of Gravity with the n highest consecutive strips (Experts only)
   float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  /// Get local coordinate with center of gravity on nstrips
+  /// Get local coordinate with center of gravity on nstrips (Experts only)
   float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); 
   }  
-  /// Get Eta (center of gravity with the two higher strips)
+  /// Get Eta (center of gravity with the two higher strips) (Experts only)
   /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
    *      _                                    _ 
    *    l|c|r          c*0 + r*1    r        l|c|r            l*0 + c*1    c
@@ -245,18 +252,21 @@ class TrClusterR :public TrElem{
     float eta = GetCofG(2,opt); 
     return (eta>0.) ? eta : eta + 1.; 
   }
-  /// Digital Head-Tail method
+  /// Digital Head-Tail method (Experts only)
   float GetDHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
   float GetXDHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetDHT(nstrips,opt),imult); 
   }
-  /// Analog Head-Tail method
+  /// Analog Head-Tail method (Experts only)
   float GetAHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); 
   }
-
+/**@}*/
+	
+/** @name Reconstruction & Special Methods (Experts only) */
+/**@{*/	
   //################  SPECIAL METHODS  ########################################
 
   /// Build the coordinates (with multiplicity)
@@ -286,15 +296,21 @@ class TrClusterR :public TrElem{
   void     setstatus(uinteger status)   { Status = Status | status; }
   /// Clear cluster status
   void     clearstatus(uinteger status) { Status = Status & ~status; }
+	/// Get the current parameter database
+	TrParDB*    GetTrParDB() { return _trpardb; }
+	/// Set as used
+	void  SetUsed()    { setstatus(AMSDBc::USED); }
+	/// Clear used status
+	void  ClearUsed()  { clearstatus(AMSDBc::USED); }
+	/// Get the current calibration database
+	TrCalDB*    GetTrCalDB() { return _trcaldb; }
 
+/**@}*/	
   /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
-  /// Get the current calibration database
-  TrCalDB*    GetTrCalDB() { return _trcaldb; }
-  /// Using this parameter database
+    /// Using this parameter database
   static void UsingTrParDB(TrParDB* trpardb) { _trpardb = trpardb; }
-  /// Get the current parameter database
-  TrParDB*    GetTrParDB() { return _trpardb; }
+ 	
 
   ///  Get DefaultCorrOpt
   static int  GetDefaultCorrOpt()        { return DefaultCorrOpt; }
@@ -304,8 +320,10 @@ class TrClusterR :public TrElem{
   static void SetDefaultCorrOpt(int def) { DefaultCorrOpt = def; }
   /// Set DefaultUsedStrips
   static void SetDefaultUsedStrips(int def) {DefaultUsedStrips=def;}
+		
 
-
+/** @name Printout */
+/**@{*/	
   //################ PRINTOUT  ########################################
 
   /// Print cluster basic information
@@ -324,6 +342,7 @@ class TrClusterR :public TrElem{
 
   /// ROOT definition
   ClassDef(TrClusterR, 3)
+/**@}*/
 };
 
 
