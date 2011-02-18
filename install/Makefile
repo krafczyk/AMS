@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.148 2011/02/14 14:11:00 choutko Exp $
+#  $Id: Makefile,v 1.149 2011/02/18 20:36:22 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -197,7 +197,7 @@ COMMON_FILES +=   $(SCC)TRD_SimUtil.C\
 	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C
 else
 #Geant3/AMS custom  files
-COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F
+COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F  $(SFF)gstord.F
 endif
 
 #Geant3 Interface
@@ -693,6 +693,12 @@ $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
 
 $(BIN)grfile.o:      $(SFF)grfile.F
 	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
+
+$(SFF)gstord.F:      $(CERNSRCDIR)/src/geant321/gtrak/gstord.F
+	sed  "s/DO 30/       if(jpolar.lt.jstak .and.jplast+NWPOLA.gt.jstak)then\n          write(*,*)' jpolar overwrite??? ',jplast,jstak\n           return\n            endif\n       DO 30/"   $(CERNSRCDIR)/src/geant321/gtrak/gstord.F > $(SFF)gstord.F
+
+$(BIN)gstord.o:      $(SFF)gstord.F
+	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gstord.F -o $(BIN)gstord.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
 	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F

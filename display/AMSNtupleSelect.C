@@ -17,11 +17,22 @@ public:
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-       cout <<" qwwww "<<endl;
-     if(ev && ev->nLevel1()   && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
-    cout <<" index "<< ev->Particle(0).iTrTrack()<<" "<<ev->Event()<<endl;
- 
-     cout <<ev->UTime()<<endl;
+     if(ev && ev->nLevel1()   && ev->nParticle() && ev->nTrdTrack() && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0){
+        a++;
+        if(ev->nMCTrack()){
+           double step=0;
+           for(int i=0;i<ev->nMCTrack();i++){
+            MCTrackR tr= ev->MCTrack(i);
+             step+=tr.RadL;
+          }
+         cout <<" got "<<step<<" "<<a<<endl;
+         return true;
+        }     
+  }
+  return false;
+     
+}
+/*
     int          membpat=ev->pLevel1(0)->JMembPatt;
     int b15=(membpat>>15)&1;
     int b14=(membpat>>14)&1;
@@ -75,7 +86,7 @@ return true;
 {
 return false;
 }
-  }
+*/
 };
 
 //

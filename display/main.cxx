@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.50 2011/01/18 19:40:10 choutko Exp $
+//  $Id: main.cxx,v 1.51 2011/02/18 20:36:21 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -191,7 +191,8 @@ pchain=&chain;
   strcpy(geoFile,geo_dir);
   char *geoFile_new = "ams02.geom";
   char *geofile_perm="ams02.pm.geom";
-  if(!strcmp(pchain->getsetup(),"AMS02P")){
+  cout <<" pchain->getsetup() "<<pchain->getsetup()<<endl; 
+ if(!strcmp(pchain->getsetup(),"AMS02P")){
    strcat(geoFile,geofile_perm);
   }
   else strcat(geoFile,geoFile_new);

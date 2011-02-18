@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.145 2010/12/14 18:43:30 choutko Exp $
+//  $Id: geant3.C,v 1.146 2011/02/18 20:36:14 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -59,6 +59,22 @@ extern "C" void simtrd_(int& ,float&,float&,float&,float&);
 extern "C" void getscanfl_(int &scan);
 extern "C" void gustep_(){
 if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
+
+
+
+//#define __BETACLOTH__
+#ifdef  __BETACLOTH__
+{
+int lvl=GCVOLU.nlevel-1;
+ if(GCVOLU.names[lvl][0]=='B' && GCVOLU.names[lvl][1]=='E'  && GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='A' ){
+        cout <<"***MCTRACK***"<<endl;
+       AMSmctrack* genp=new AMSmctrack(GCTRAK.step,GCKINE.ipart,GCTRAK.vect,GCVOLU.names[lvl]);
+       AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+
+}
+}
+#endif
+
 
 
 //AMSmceventg::SaveSeeds();
@@ -152,7 +168,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 }
 else  if(GCVOLU.names[lvl][0]=='R' &&
 GCVOLU.names[lvl][1]=='A'  && GCVOLU.names[lvl][3]=='T' && (
-GCVOLU.names[lvl][2]=='4' )){
+GCVOLUVOLU.names[lvl][2]=='4' )){
 static AMSgvolume *pvol4=0;
 if(!pvol4)pvol4=AMSJob::gethead()->getgeomvolume(AMSID("RA4T",1));
 AMSPoint loc=pvol4->gl2loc(AMSPoint(GCTRAK.vect));

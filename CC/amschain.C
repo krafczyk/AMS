@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.30 2010/12/09 10:23:30 shaino Exp $
+//  $Id: amschain.C,v 1.31 2011/02/18 20:36:13 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -16,11 +16,17 @@ char * AMSChain::getsetup(){
     static char ams02p[]="AMS02P";
     TObjString s("");
    s.Read("AMS02Geometry");
+   
+#ifdef _PGTRACK_
    if(
       s.String().Contains("STK9")||
       s.String().Contains("STK6")
       )return ams02p;
    else return ams02; 
+#else
+   if(s.String().Contains("STK9"))return ams02p;
+   else return ams02; 
+#endif
 }
 
 AMSNtupleHelper *AMSNtupleHelper::fgHelper=0;

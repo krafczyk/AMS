@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.108 2010/12/06 09:17:14 mmilling Exp $
+//  $Id: gmat.C,v 1.109 2011/02/18 20:36:14 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -233,6 +233,8 @@ void AMSgmat::amsmat(){
   a[0]=144.24;a[1]=55.85;a[2]=10.8;
   z[0]=60.;   z[1]=26.;  z[2]=5.;
   w[0]=30.;   w[1]=69.;  w[2]=1.;
+
+
   mat.add (new AMSgmat("MAGNET",a,z,w,3,7.45));
 
   // WLS for CTC (same polystiren as for TOF scint)
@@ -267,6 +269,15 @@ void AMSgmat::amsmat(){
   z[0]=14.; z[1]=8.;  z[2]=1.;
   w[0]=1.;  w[1]=4.;  w[2]=4.;
   mat.add (new AMSgmat( "SIAEROGEL",a,z,w,3, 0.24));
+
+  //
+  //  Beta Cloth
+  a[0]=28.; a[1]=16.; 
+  z[0]=14.; z[1]=8.;  
+  w[0]=1.;  w[1]=2.;  
+  mat.add (new AMSgmat( "BETACLOTH",a,z,w,2, 1.2));
+  
+
   //
   // Si-aerogel(SiO2(CH3)3) for CTC-MEW :
   a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
@@ -741,6 +752,8 @@ tmed.add (new AMSgtmed("CTC_WALL","TEFLON1",0));
 tmed.add (new AMSgtmed("CTC_SEP","TEFLON2",0));
 //
 tmed.add (new AMSgtmed("ATC_PTFE","TEFLON3",1));
+//
+tmed.add (new AMSgtmed("BETACLOTH","BETACLOTH",0));
 //
 tmed.add (new AMSgtmed("CTC_AEROGEL","SIAEROGEL",1));
 //

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.215 2010/10/08 18:20:11 mmilling Exp $
+//  $Id: amsgeom.C,v 1.216 2011/02/18 20:36:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1631,6 +1631,27 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
    dau=mother.add(new AMSgvolume(
      "MSBRMED",0,"MSBR","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//M-structure top-brackets
  }
+
+//
+//  BETACLOTH
+//
+//#define __BETACLOTH__
+#ifdef __BETACLOTH__
+{
+ gid=9999;
+ par[0]=25;
+ par[1]=25.2;
+ par[2]=5*2.54/2;
+ par[3]=67;
+ par[4]=113;
+ coo[0]=0;
+ coo[1]=0;
+ coo[2]=158.3+2*par[2];
+   dau=mother.add(new AMSgvolume(
+     "BETACLOTH",0,"BETACLOTH","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//BETACLOTH
+  
+}
+#endif
 //
 // ------> M-structure antivibration rods(22.09.03 RB) :
 //
