@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.340 2011/02/03 16:07:24 pzuccon Exp $
+#  $Id: datacards.doc,v 1.341 2011/02/19 11:27:25 zweng Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -620,6 +620,11 @@ I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead fiel
 I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
 I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSC, others not yet implemented, see also http://cmsdoc.cern.ch/~hpw/GHAD/HomePage/index.html)
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
+I 7 IonPhysicsModel(1)  // Physics Model for Ion:
+			// 1: Binary Light Ion Cascade model
+			// 2: Wilson abrasion model (Not working in high enegy (~100GeV)for the moment)
+			// 3: EM Dissociation model  (Not working in high enegy (~100GeV)for the moment)
+			
 
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
