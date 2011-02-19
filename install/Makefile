@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.149 2011/02/18 20:36:22 choutko Exp $
+#  $Id: Makefile,v 1.150 2011/02/19 11:13:27 zweng Exp $
 
 #P.Zuccon june 2005
 
@@ -194,7 +194,7 @@ ifdef G4AMS
 
 COMMON_FILES +=   $(SCC)TRD_SimUtil.C\
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
-	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C
+	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C	
 else
 #Geant3/AMS custom  files
 COMMON_FILES += $(SFF)sbcomp.F  $(SFF)gskpho.F  $(SFF)flinit.F  $(SFF)gbirk.F $(SFF)hadevv.F $(SFF)grfile.F  $(SFF)gstord.F
