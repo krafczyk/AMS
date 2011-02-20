@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.163 2011/02/11 14:58:00 choutko Exp $
+//  $Id: mceventg.C,v 1.164 2011/02/20 14:30:11 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -110,7 +110,7 @@ void AMSmceventg::gener(){
     _coo[1]=extract(CCFFKEY.coo[1],CCFFKEY.coo[4]);
     _coo[2]=extract(CCFFKEY.coo[2],CCFFKEY.coo[5]);
     float Th  =extract(CCFFKEY.dir[0],CCFFKEY.dir[3]);
-    float Ph  =extract(CCFFKEY.dir[1],CCFFKEY.dir[2]);
+    float Ph  =extract(CCFFKEY.dir[1],CCFFKEY.dir[4]);
     _dir[0]=sin(Th)*cos(Ph);
     _dir[1]=sin(Th)*sin(Ph);
     _dir[2]=cos(Th);

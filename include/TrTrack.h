@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.56 2011/02/07 20:58:24 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.57 2011/02/20 14:30:20 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/02/07 20:58:24 $
+///$Date: 2011/02/20 14:30:20 $
 ///
-///$Revision: 1.56 $
+///$Revision: 1.57 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -311,7 +311,8 @@ public:
                           \li 0 The default algorithm choosen at recon stage (if you select this, you cannot use the other param)
                           \li 1 Choutko;
                           \li 2 Alcaraz;
-                          \li 3 Chikanian;
+                          \li 3 ChikanianF (the original A. Chikanian algo not for refit);
+                          \li 4 ChikanianC (Chikanin C version, in development not for general use);
                         \li +10 mscattering off;
     \param pattern    Hit Pattern= 
                      \li  0   all hits belonginf to track; (maximum span)

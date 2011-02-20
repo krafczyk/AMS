@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.92 2011/02/08 14:25:26 shaino Exp $
+// $Id: TrTrack.C,v 1.93 2011/02/20 14:30:11 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/08 14:25:26 $
+///$Date: 2011/02/20 14:30:11 $
 ///
-///$Revision: 1.92 $
+///$Revision: 1.93 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1203,12 +1203,16 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     fittype|=kAlcaraz;
     break;
   case 3 :
+    fittype|=kChikanianF;
+    break;
+  case 4 :
     fittype|=kChikanian;
     break;
     default :
       fittype|=kChoutko;
   }
-  if(!mscat) fittype|=kMultScat;
+  if((!mscat) && (fittype!=kChikanianF && fittype!=kChikanian))
+    fittype|=kMultScat;
   int ebpat = _bit_pattern & 0x180;
   int basetype=fittype;
   if(pattern==0){

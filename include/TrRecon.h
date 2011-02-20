@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.39 2011/01/12 13:50:00 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.40 2011/02/20 14:30:19 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/01/12 13:50:00 $
+/// $Date: 2011/02/20 14:30:19 $
 ///
-/// $Revision: 1.39 $
+/// $Revision: 1.40 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -530,8 +530,8 @@ public:
   /// Fill the order of scanning layers to make pre-selection most effectie
   int SetLayerOrder(TrHitIter &iter) const;
 
-  /// Scan ladders, returns 1 and _itcand is filled if candidate found
-  int ScanLadders(int pattern);
+//   /// Scan ladders, returns 1 and _itcand is filled if candidate found
+//   int ScanLadders(int pattern);
   /// Coord.manager for ladders scan to be put in ScanRecursive
   int LadderCoordMgr(int idx, TrHitIter &it, int mode) const;
   /// Evaluator for Ladder scan to be put in ScanRecursive

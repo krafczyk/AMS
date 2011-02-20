@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.91 2011/02/08 14:25:26 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.92 2011/02/20 14:30:11 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/02/08 14:25:26 $
+/// $Date: 2011/02/20 14:30:11 $
 ///
-/// $Revision: 1.91 $
+/// $Revision: 1.92 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1197,9 +1197,9 @@ void TrRecon::BuildLadderClusterMap()
 
 int TrRecon::BuildTrTracks(int rebuild)
 {
-// #ifndef __ROOTSHAREDLIBRARY__
-//  AMSgObj::BookTimer.start("Track1");
-// #endif
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("Track1");
+#endif
   if (TasRecon) return BuildTrTasTracks(rebuild);
 
   VCon *cont = GetVCon()->GetCont("AMSTrTrack");
@@ -1240,14 +1240,16 @@ int TrRecon::BuildTrTracks(int rebuild)
   VCon* cont2 = GetVCon()->GetCont("AMSTrRecHit");
   int ntrrechit=cont2->getnelem();
   delete cont2;
-// #ifndef __ROOTSHAREDLIBRARY__
+#ifndef __ROOTSHAREDLIBRARY__
 
-//   AMSgObj::BookTimer.stop("Track1");
-//   AMSgObj::BookTimer.start("Track2");
-// #endif
+AMSgObj::BookTimer.stop("Track1");
+  AMSgObj::BookTimer.start("Track2");
+#endif
   
   // Main loop
   int ntrack = 0, found = 0;
+  TrHitIter it;
+  int nhitc =0;
   do {
     // Build LadderHitMap
     BuildLadderHitMap();
@@ -1255,22 +1257,46 @@ int TrRecon::BuildTrTracks(int rebuild)
     // Scan Ladders for each pattern until a track found
     for (int pat = 0; !CpuTimeUp() && !found && pat < patt->GetNHitPatterns(); pat++) {
       if (patt->GetHitPatternAttrib(pat) > 0 ){
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	AMSgObj::BookTimer.start("Track3");
-// #endif
-	found=ScanLadders(pat);
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	AMSgObj::BookTimer.stop("Track3");
-// 	hman.Fill("Time",AMSgObj::BookTimer.Get("Track3"),ntrrechit);
-// #endif
+
+	//	found=ScanLadders(pat);
+	{
+	  // Clear the-best-candidate parameters
+	  _itcand.nlayer = 0; _itcand.nhitc = _MinNhitXY; 
+	  _itcand.chisq[0] = _itcand.chisq[1] = RecPar.MaxChisqAllowed;
+	  
+	  // Define and fill iterator
+	  it.mode = 1; it.pattern = pat; 
+	  it.side = 1; it.psrange = RecPar.LadderScanRange;
+	  
+	  // Loop on layers to check for an empty layer and fill iterator
+	  nhitc = it.nlayer = 0;
+	  for (int i = 0; i < patt->GetSCANLAY(); i++) {
+	    if (!(patt->TestHitPatternMask(pat, i+1))) {
+	      if (_LadderHitMap[i].empty()) {found= 0;goto llexit;}
+	      if (_NladderXY[i]) nhitc++;
+	      it.tkid[it.nlayer++] = (i+1)*100;
+	    }
+	  }
+	  if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) found=0;
+	  else{
+#ifndef __ROOTSHAREDLIBRARY__
+	    AMSgObj::BookTimer.start("Track4");
+#endif
+	    SetLayerOrder(it);
+	    
+	    // Scan ladder combination recursively
+	    ScanRecursive(0, it);
+#ifndef __ROOTSHAREDLIBRARY__
+	    AMSgObj::BookTimer.stop("Track4");
+#endif
+	    // Return 1 if track has been found
+	    found=(!CpuTimeUp() && _itcand.nlayer > 0);
+	  }
+	llexit:;
+	}
 	if(found){
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	  AMSgObj::BookTimer.start("Track4");
-// #endif
 	  found = BuildATrTrack(_itcand);
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	  AMSgObj::BookTimer.stop("Track4");
-// #endif
+	  
 	  if (found ) ntrack += found;
 	}
       }
@@ -1283,9 +1309,9 @@ int TrRecon::BuildTrTracks(int rebuild)
 
 //PurgeGhostHits should be called at event_tk
 //PurgeGhostHits();
-// #ifndef __ROOTSHAREDLIBRARY__
-//   AMSgObj::BookTimer.stop("Track2");
-// #endif
+#ifndef __ROOTSHAREDLIBRARY__
+   AMSgObj::BookTimer.stop("Track2");
+#endif
   return ntrack;
 }
 
@@ -1521,15 +1547,24 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it)
     _CpuTimeUp = true;
 #ifndef __ROOTSHAREDLIBRARY__
     RecPar.NcutCpu++;
-    throw AMSTrTrackError("TrRecon::BuildTrTracks Cpulimit Exceeded");
+    char mex[255];
+    sprintf(mex,"TrRecon::BuildTrTracks Cpulimit(%f) Exceeded", RecPar.TrTimeLim );
+    throw AMSTrTrackError(mex);
 #endif
   }
 
   if (CpuTimeUp()) return 0;
+#ifndef __ROOTSHAREDLIBRARY__
+	AMSgObj::BookTimer.start("Track3");
+#endif
 
   // Evaluate current candidates if idx has reached to the end
   if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it)
                                               : HitScanEval   (it);
+#ifndef __ROOTSHAREDLIBRARY__
+	AMSgObj::BookTimer.stop("Track3");
+	//	hman.Fill("Time",AMSgObj::BookTimer.Get("Track3"),ntrrechit);
+#endif
 
   // Skip if current layer is disabled
   int il = it.ilay[idx];
@@ -1553,45 +1588,50 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it)
 
       // Go to the next layer
       ScanRecursive(idx+1, it);
-    }
+   }
     if (it.imult[il] > 0) it.imult[il]--;
   }
   return 0;
 }
 
+// PZ Comment out to speed up the code
+// int TrRecon::ScanLadders(int pattern)
+// {
+//   // Clear the-best-candidate parameters
+//   _itcand.nlayer = 0; _itcand.nhitc = _MinNhitXY; 
+//   _itcand.chisq[0] = _itcand.chisq[1] = RecPar.MaxChisqAllowed;
 
-int TrRecon::ScanLadders(int pattern)
-{
-  // Clear the-best-candidate parameters
-  _itcand.nlayer = 0; _itcand.nhitc = _MinNhitXY; 
-  _itcand.chisq[0] = _itcand.chisq[1] = RecPar.MaxChisqAllowed;
+//   // Define and fill iterator
+//   TrHitIter it;
+//   it.mode = 1; it.pattern = pattern; 
+//   it.side = 1; it.psrange = RecPar.LadderScanRange;
 
-  // Define and fill iterator
-  TrHitIter it;
-  it.mode = 1; it.pattern = pattern; 
-  it.side = 1; it.psrange = RecPar.LadderScanRange;
+//   // Loop on layers to check for an empty layer and fill iterator
+//   int nhitc = it.nlayer = 0;
+//   for (int i = 0; i < patt->GetSCANLAY(); i++) {
+//     if (!(patt->TestHitPatternMask(pattern, i+1))) {
+//       if (_LadderHitMap[i].empty()) return 0;
+//       if (_NladderXY[i]) nhitc++;
+//       it.tkid[it.nlayer++] = (i+1)*100;
+//     }
+//   }
+//   if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) return 0;
+//   TR_DEBUG_CODE_11;
 
-  // Loop on layers to check for an empty layer and fill iterator
-  int nhitc = it.nlayer = 0;
-  for (int i = 0; i < patt->GetSCANLAY(); i++) {
-    if (!(patt->TestHitPatternMask(pattern, i+1))) {
-      if (_LadderHitMap[i].empty()) return 0;
-      if (_NladderXY[i]) nhitc++;
-      it.tkid[it.nlayer++] = (i+1)*100;
-    }
-  }
-  if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) return 0;
-  TR_DEBUG_CODE_11;
+//   // Set the order of scanning layers
+//   SetLayerOrder(it);
+// #ifndef __ROOTSHAREDLIBRARY__
+// 	  AMSgObj::BookTimer.start("Track4");
+// #endif
 
-  // Set the order of scanning layers
-  SetLayerOrder(it);
-
-  // Scan ladder combination recursively
-  ScanRecursive(0, it);
-
-  // Return 1 if track has been found
-  return (!CpuTimeUp() && _itcand.nlayer > 0);
-}
+//   // Scan ladder combination recursively
+//   ScanRecursive(0, it);
+// #ifndef __ROOTSHAREDLIBRARY__
+// 	  AMSgObj::BookTimer.stop("Track4");
+// #endif
+//   // Return 1 if track has been found
+//   return (!CpuTimeUp() && _itcand.nlayer > 0);
+// }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
 {
@@ -1664,6 +1704,8 @@ int TrRecon::LadderScanEval(TrHitIter &it)
   if (_itchit.nhitc > _itcand.nhitc ||
       _itchit.chisq[0]+_itchit.chisq[1] < _itcand.chisq[0]+_itcand.chisq[1])
     _itcand = _itchit;
+	
+
 
   return 1;
 }
