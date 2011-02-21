@@ -575,7 +575,7 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0):
         self.crczero=0
         self.failedcp=0
         self.thrusted=0
@@ -646,7 +646,7 @@ class RemoteClient:
         self.valStTime=timenow
         sql = "SELECT flaglocal, timestamplocal from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1 and timenow-ret[0][1]<100000):
+        if(ret[0][0]==1 and timenow-ret[0][1]<100000 and force==0):
             print "ValidateRuns-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: self.setprocessingflag(1,timenow,1)
@@ -1072,8 +1072,9 @@ class RemoteClient:
                                                     badevents=(i*events/100)
                                                     self.validated=self.validated+1
                                                     (outputpatha,rstatus,odisk,castortime)=self.doCopy(run.Run,fpath,ntuple.crc,ntuple.Version,outputpath)
-						    outputpath=outputpatha[:]
-                                                    if(outputpath != None):
+                                                    outputpath=None
+                                                    if(outputpatha != None):
+                                                        outputpath=outputpatha[:]
                                                         mvntuples.append(outputpath)
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
@@ -1388,8 +1389,9 @@ class RemoteClient:
                                                     else:
                                                         mcpath="/Data"
                                                     (outputpatha,rstatus,odisk,castortime)=self.doCopy(run.uid,fpath,ntuple.crc,ntuple.Version,outputpath,mcpath)
-						    outputpath=outputpatha[:]
-                                                    if(outputpath != None):
+                                                    outputpath=None
+                                                    if(outputpatha != None):
+                                                        outputpath=outputpatha[:]
                                                         mvntuples.append(outputpath)
                                                     if(rstatus==1):
                                                         self.GoodDSTs[0]=self.GoodDSTs[0]+1
@@ -1545,6 +1547,7 @@ class RemoteClient:
        filesize=1
        if(inputfile.find('/castor/cern.ch')<0):
            filesize=os.stat(inputfile)[ST_SIZE]
+       odisk=None
        if(filesize>0):
            #get output disk
            if(outputpath == None):
@@ -1607,7 +1610,7 @@ class RemoteClient:
        else:
            print "doCopy-E-cannot stat",inputfile
            self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
-           return None,0,odisk
+           return None,0,odisk,0
 
 
 
