@@ -11,6 +11,7 @@ MonSlider::MonSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   label = 0;
   BuildMenu();
   ladder = TkDBc::Head->FindHwId(0);
+  text = new TText();
 }
 
 
@@ -23,26 +24,36 @@ MonSlider::~MonSlider() {
   ladder = 0;
   if (label!=0) label->Delete();
   label = 0;
-  if (graphmenu!=0) delete graphmenu;
+  if (graphmenu!=0) graphmenu->Delete();
   graphmenu = 0;
+  if (text!=0) text->Delete();
+  text = 0;
 }
 
 
 void MonSlider::BuildMenu() {
   frame->SetWindowName("DataMenu");
   graphmenu = new TGListBox(frame,10);
-  graphmenu->AddEntry("LadderSummary",1);
-  graphmenu->AddEntry("SizeSummary",2);
-  graphmenu->AddEntry("DtSummary",3);
-  graphmenu->AddEntry("CrateVsDt",4);
-  graphmenu->AddEntry("Ladder",5);
-  graphmenu->AddEntry("ReconStats",6);
-  graphmenu->AddEntry("Track",7);
-  graphmenu->AddEntry("HitsOnTrack",8);
-  graphmenu->AddEntry("Rigidity",9);
-  graphmenu->AddEntry("SeedOccupancyOnLayer",10);
-  graphmenu->AddEntry("SeedOccupancyGlobal",11);
-  graphmenu->AddEntry("ClustersSummary",12);
+  int index = 1;
+  graphmenu->AddEntry("RawEntries",index++);
+  graphmenu->AddEntry("TrackEntries",index++);
+  graphmenu->AddEntry("LadderSummary",index++);
+  graphmenu->AddEntry("LadderSummary (alt)",index++);
+  graphmenu->AddEntry("SizeSummary",index++);
+  graphmenu->AddEntry("SizeSummary (alt)",index++);
+  graphmenu->AddEntry("DtSummary",index++);
+  graphmenu->AddEntry("CrateVsDt",index++);
+  graphmenu->AddEntry("Ladder",index++);
+  graphmenu->AddEntry("ReconStats",index++);
+  graphmenu->AddEntry("Track",index++);
+  graphmenu->AddEntry("HitsOnTrack",index++);
+  graphmenu->AddEntry("Rigidity",index++);
+  graphmenu->AddEntry("SeedOccupancyOnLayer",index++);
+  graphmenu->AddEntry("SeedOccupancyGlobal",index++);
+  graphmenu->AddEntry("ClustersSummary",index++);
+  graphmenu->AddEntry("ClustersSummary (alt)",index++);
+  graphmenu->AddEntry("SizeVsEvent",index++);
+
   graphmenu->Select(graphtype);
   graphmenu->Resize(180,300);
   frame->AddFrame(graphmenu,new TGLayoutHints(kLHintsRight | kLHintsTop,2,2,2,2));
@@ -170,17 +181,28 @@ void MonSlider::ClearHistoFromMemory(char* name) {
 }
 
 
-TProfile* MonSlider::GetProfileX(TH2D* histo) {
+TH1D* MonSlider::GetProfileX(TH2D* histo) {
   if (histo==0) { 
     printf("MonSlider::GetProfileX-W the requested histogram (%s) doesn't exist, returning 0.\n",histo->GetName());
     return 0;
   }
-  // release memory
+  // check-and-release memory
   ClearHistoFromMemory(Form("%s_prof",histo->GetName()));
+  ClearHistoFromMemory(Form("%s_hprof",histo->GetName()));
   // write the object in a safe place
   gROOT->cd();
   TProfile* profile = (TProfile*) histo->ProfileX(Form("%s_prof",histo->GetName()));
-  return profile;
+  int    xbins = profile->GetXaxis()->GetNbins();
+  double xmin  = profile->GetXaxis()->GetXmin();
+  double xmax  = profile->GetXaxis()->GetXmax();
+  TH1D* hprofile = new TH1D(Form("%s_hprof",histo->GetName()),"",xbins,xmin,xmax);
+  for (int ibin=1; ibin<=xbins; ibin++) {
+    hprofile->SetBinContent(ibin,profile->GetBinContent(ibin));
+    hprofile->SetBinError(ibin,profile->GetBinError(ibin));
+  }
+  // delete tmp profile
+  ClearHistoFromMemory(Form("%s_prof",histo->GetName()));
+  return hprofile;
 }
 
 
@@ -248,442 +270,116 @@ int MonSlider::try2Draw(TkLadder *lad){
 void MonSlider::Draw() {
   switch(graphtype) {
   case 1:
-    DrawSignalSummary();
-    break;
+    DrawRawEntries();
+    break; 
   case 2:
-    DrawSizeSummary();
+    DrawTrackEntries();
     break;
   case 3:
-    DrawDtSummary();
-    break;    
+    DrawSignalSummary(0);
+    break;
   case 4:
-    DrawCrateVsDt();
+    DrawSignalSummary(1);
     break;
   case 5:
-    DrawLadder();
-    break;   
+    DrawSizeSummary(0);
+    break;
   case 6:
-    DrawReconStats();
+    DrawSizeSummary(1);
     break;
   case 7:
-    DrawTrack();
-    break;
+    DrawDtSummary();
+    break;    
   case 8:
-    DrawHitsOnTrack();
+    DrawCrateVsDt();
     break;
   case 9:
-    DrawRigidity();
-    break;
+    DrawLadder();
+    break;   
   case 10:
-    DrawSeedOccupancyOnLayer();
+    DrawReconStats();
     break;
   case 11:
-    DrawSeedOccupancyGlobal();
+    DrawTrack();
     break;
   case 12:
-    DrawClustersSummary();
+    DrawHitsOnTrack();
+    break;
+  case 13:
+    DrawRigidity();
+    break;
+  case 14:
+    DrawSeedOccupancyOnLayer();
+    break;
+  case 15:
+    DrawSeedOccupancyGlobal();
+    break;
+  case 16:
+    DrawClustersSummary(0);
+    break;
+  case 17:
+    DrawClustersSummary(1);
+    break;
+  case 18:
+    DrawSizeVsEvent();
     break;
   }
 }
 
 
-void MonSlider::DrawSignalSummary() {
-  // Prepare canvas
-  canvas->Draw();
-  canvas->Clear();  
-  canvas->Divide(2,1,0.001,0.001);  
-  TText* text = new TText();
-  // Signal summary
-  TH2D* signal_n = (TH2D*) GetHisto(rootfile,"Signal_vs_Ladder_all_N");
-  TH2D* signal_p = (TH2D*) GetHisto(rootfile,"Signal_vs_Ladder_all_P");
-  if ( (signal_n==0)||(signal_p==0) ) { canvas->Update(); return; }
-  TProfile* signal_n_prof = (TProfile*) GetProfileX(signal_n);;
-  TProfile* signal_p_prof = (TProfile*) GetProfileX(signal_p);
-  if ( (signal_n_prof==0)||(signal_p_prof==0) ) { canvas->Update(); return; }
-  SetHistSideStyle(0,signal_n_prof);
-  SetHistSideStyle(1,signal_p_prof);
-  // Draw
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetGridy();
-  cc->SetGridx();
-  TH1F* frame = cc->DrawFrame(0.,0.,192.,100.);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Average Amplitude (ADC)");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  SetHistSideStyle(0,frame);
-  signal_n_prof->Draw("SAME");
-  signal_p_prof->Draw("SAME");
-  // Test
-  char testo[100];
-  for (int ii=1; ii<=signal_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId(); 
-    float mean_p = signal_p_prof->GetBinContent(ii);
-    float mean_n = signal_n_prof->GetBinContent(ii);
-    if ( (mean_n< 5.)||(mean_n>40.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawText(ii,mean_n,testo);
-    }
-    if ( (mean_p< 5.)||(mean_p>40.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawText(ii,mean_p,testo);
+void MonSlider::TestAndDrawText(int side, TH1D* profile, float xmin, float xmax) {
+  for (int ibin=1; ibin<=profile->GetNbinsX(); ibin++) {
+    int hwid = int((ibin-1)/24)*100 + (ibin-1)%24;
+    TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
+    if (ladder==0) continue; 
+    int tkid = ladder->GetTkId();
+    float x = profile->GetBinContent(ibin);
+    if ( (x<xmin)||(x>xmax) ) {
+      if (side==0) text->SetTextColor(kRed);
+      else         text->SetTextColor(kBlue); 
+      text->DrawText(ibin,x,Form("%+03d",tkid));
     }
   }
-  // Width Summary (all ladders)
-  TH2D* width_n = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_N","Width_vs_Ladder_all_N");
-  TH2D* width_p = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_P","Width_vs_Ladder_all_P");
-  if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
-  TProfile* width_n_prof = (TProfile*) GetProfileX(width_n);
-  TProfile* width_p_prof = (TProfile*) GetProfileX(width_p);
-  if ( (width_n_prof==0)||(width_p_prof==0) ) { canvas->Update(); return; }
-  SetHistSideStyle(0,width_n_prof);
-  SetHistSideStyle(1,width_p_prof);
-  // Draw
-  cc = canvas->cd(2);
-  cc->SetLogy(kFALSE);
-  cc->SetGridy();
-  cc->SetGridx();
-  frame = cc->DrawFrame(0.,0.,192.,10.);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Average Cluster Width");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  SetHistSideStyle(0,frame);
-  width_n_prof->Draw("SAME");
-  width_p_prof->Draw("SAME");
-  // Test
-  for (int ii=1; ii<=width_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
-    float mean_p = width_p_prof->GetBinContent(ii);
-    float mean_n = width_n_prof->GetBinContent(ii);
-    if ( (mean_n< 1.)||(mean_n>4.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawText(ii,mean_n,testo);
-    }
-    if ( (mean_p< 1.)||(mean_p>4.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawText(ii,mean_p,testo);
-    }
-  }
-  canvas->Update();
 }
 
 
-void MonSlider::DrawSizeSummary() {
-  // prepare canvas
-  canvas->Draw();
-  canvas->Clear();  
-  canvas->Divide(1,2,0.001,0.001);  
-  TVirtualPad* cc = canvas->cd(1);
-  cc->Divide(2,1,0.001,0.001);  
-  TLatex* text = new TLatex();
-  char testo[100];
-  // Tracker size  
-  TH2D* size = (TH2D*) GetHisto(rootfile,"Size_all");
-  if (size==0) { canvas->Update(); return; }
-  size->GetXaxis()->SetRangeUser(0.,3000.); 
-  TVirtualPad* cc1 = cc->cd(1);
-  cc1->SetLogy();
-  cc1->SetGridx();
-  cc1->SetGridy();
-  size->SetStats(kFALSE);
-  size->Draw("HIST");
-  // Crate size   
-  TH2D* sizevscrate = (TH2D*) GetHisto(rootfile,"Size_vs_Crate_all");
-  TProfile* sizevscrate_prof = (TProfile*) GetProfileX(sizevscrate);
-  if ( (sizevscrate==0)||(sizevscrate_prof==0) ) { canvas->Update(); return; }
-  cc1 = cc->cd(2);
-  cc1->SetGridy();
-  TH1F* frame = cc1->DrawFrame(-0.5,0.,7.5,500.);
-  frame->SetYTitle("Crate Segment Size (byte)");
-  frame->SetXTitle("Crate");
-  sizevscrate_prof->Draw("SAME");
-  // Event Size Summary (all ladders separated by side)
-  TH2D* size_n = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_N");
-  TH2D* size_p = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_P");
-  if ( (size_n==0)||(size_p==0) ) { canvas->Update(); return; }
-  TProfile* size_n_prof = (TProfile*) GetProfileX(size_n);
-  TProfile* size_p_prof = (TProfile*) GetProfileX(size_p);
-  if ( (size_n_prof==0)||(size_p_prof==0) ) { canvas->Update(); return; }
-  SetHistSideStyle(0,size_n_prof);
-  SetHistSideStyle(1,size_p_prof);
-  cc1 = canvas->cd(2);
-  cc1->SetGridy();
-  frame = cc->DrawFrame(0.,0.,192.,70.);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Approx. Mean Ladder Size (byte)");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  size_n_prof->Draw("SAME");
-  size_p_prof->Draw("SAME");
-  for (int ii=1; ii<=size_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
-    float mean_p = size_p_prof->GetBinContent(ii);
-    float mean_n = size_n_prof->GetBinContent(ii);
-    if ( (mean_n< 2.)||(mean_n>6.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawLatex(ii,mean_n,testo);
-    }
-    if ( (mean_p< 2.)||(mean_p>6.) ) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawLatex(ii,mean_p,testo);
-    }
+void MonSlider::ChangeToLayerIndex(TH1D* histo) {
+  if (histo->GetNbinsX()!=192) {
+    printf("MonSlider::ChangeToLayerIndex-W the given histo has not the expected format, skipping\n");
+    return;
   }
-  canvas->Update();
-}
-
-
-void MonSlider::DrawDtSummary() {
-  char testo[100];
-  TText* text = new TText();
-  // prepare canvas
-  canvas->Draw();
-  canvas->Clear();  
-  canvas->Divide(1,2,0.001,0.001);  
-  TVirtualPad* canvas2 = canvas->cd(1);
-  canvas2->Divide(2,1,0.001,0.001);
-  // Delta t
-  TVirtualPad* cc = canvas2->cd(1);
-  TH1D* dt = (TH1D*) GetHisto(rootfile,"DT_all");
-  if (dt==0) { canvas->Update(); return; }
-  dt->Rebin(8);
-  cc->SetLogy();
-  cc->SetGridx();
-  cc->SetGridy();
-  TF1 *f1 = new TF1("f1","expo",800,5000);
-  dt->Fit("f1","QR");
-  float inrate = -1000.*dt->GetFunction("f1")->GetParameter(1);
-  float trrate = 1000./dt->GetMean();
-  dt->SetStats(kFALSE);
-  dt->Draw("l");
-  sprintf(testo,"Est. Event Rate = %7.3f Hz",inrate*1000.);
-  text->DrawTextNDC(0.5,0.80,testo);
-  sprintf(testo,"Est. Trigger Rate = %7.3f Hz",trrate*1000.);
-  text->DrawTextNDC(0.5,0.75,testo);
-  sprintf(testo,"Est. Lifetime = %7.5f",trrate/inrate);
-  text->DrawTextNDC(0.5,0.70,testo);
-  // Size vs Dt
-  cc = canvas2->cd(2);
-  cc->SetGridx();
-  cc->SetGridy();  
-  TH2D* sizeVSdt = (TH2D*) GetHisto(rootfile,"Size_vs_DT_all");
-  TProfile* sizeVSdt_prof = (TProfile*) GetProfileX(sizeVSdt);
-  if ( (sizeVSdt==0)||(sizeVSdt_prof==0) ) { canvas->Update(); return; }
-  sizeVSdt_prof->SetStats(kFALSE);
-  sizeVSdt_prof->Draw();
-  // Ladder sizes at low Dt
-  // Event Size Summary (all ladders separated by side)
-  TH2D* sizelowdt_n = (TH2D*) GetHisto(rootfile,"SizeLowDT_vs_Ladder_all_N");
-  TH2D* sizelowdt_p = (TH2D*) GetHisto(rootfile,"SizeLowDT_vs_Ladder_all_P");
-  if ( (sizelowdt_n==0)||(sizelowdt_p==0) ) { canvas->Update(); return; }
-  TProfile* sizelowdt_n_prof = (TProfile*) GetProfileX(sizelowdt_n);
-  TProfile* sizelowdt_p_prof = (TProfile*) GetProfileX(sizelowdt_p);
-  if ( (sizelowdt_n_prof==0)||(sizelowdt_p_prof==0) ) { canvas->Update(); return; }
-  SetHistSideStyle(0,sizelowdt_n_prof);
-  SetHistSideStyle(1,sizelowdt_p_prof);
-  cc = canvas->cd(2);
-  cc->SetGridy();
-  TH1F* frame = cc->DrawFrame(0.,0.,192.,250.);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Approx. Mean Ladder Size @ #Deltat<200 #mus (byte)");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  sizelowdt_n_prof->Draw("SAME");
-  sizelowdt_p_prof->Draw("SAME");
-  for (int ii=1; ii<=sizelowdt_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
-    float mean_p = sizelowdt_p_prof->GetBinContent(ii);
-    float mean_n = sizelowdt_n_prof->GetBinContent(ii);
-    if (mean_n>100.) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawText(ii,mean_n,testo);
-    }
-    if (mean_p>100.) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawText(ii,mean_p,testo);
-    }
+  // storing values
+  double value[192];
+  double evalue[192];
+  for (int ibin=1; ibin<=histo->GetNbinsX(); ibin++) {
+    value[ibin-1] = histo->GetBinContent(ibin);
+    evalue[ibin-1] = histo->GetBinError(ibin);
   }
-  canvas->Update();
-}
-
-
-void MonSlider::DrawCrateVsDt() {
-  canvas->Draw();
-  canvas->Clear();
-  canvas->Divide(4,2,0.001,0.001);
-  TText* text = new TText();
-  TVirtualPad* cc;
-  char histoname[100];
-  TH2D* cratevsdt[8]; 
-  for (int icrate=0; icrate<8; icrate++) { 
-    sprintf(histoname,"T%1dSize_vs_DT_all",icrate);
-    cratevsdt[icrate] = (TH2D*) GetHisto(rootfile,histoname);
-    sprintf(histoname,"T%1dSize_vs_DT_all_prof",icrate);
-    TProfile* cratevsdt_prof = (TProfile*) GetProfileX(cratevsdt[icrate]);
-    cc = canvas->cd(icrate+1);
-    cc->SetGridx();
-    cc->SetGridy();
-    cratevsdt[icrate]->GetYaxis()->SetRangeUser(0.,5000.);
-    cratevsdt[icrate]->SetStats(kFALSE);
-    cratevsdt[icrate]->SetMarkerStyle(20);
-    cratevsdt[icrate]->SetMarkerColor(kGray);
-    cratevsdt[icrate]->Draw();
-    cratevsdt_prof->SetMarkerStyle(1);
-    cratevsdt_prof->SetMarkerColor(kBlack);
-    cratevsdt_prof->Draw("SAME");   
-    sprintf(histoname,"T%1d",icrate);
-    text->DrawTextNDC(0.8,0.8,histoname);
+  // re-init
+  histo->SetBins(270,0.5,9.5);
+  histo->Reset();
+  for (int ibin=1; ibin<=270; ibin++) { 
+    histo->SetBinContent(ibin,-9999); 
+    histo->SetBinError(ibin,0); 
   }
-  canvas->Update();
-}
-
-
-void MonSlider::DrawLadder() {
-  TText* text = new TText();
-  canvas->Draw();
-  canvas->Clear();  
-  canvas->Divide(2,2,0.001,0.001);  
-  int tkid  = ladder->GetTkId();
-  // Signal
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetGridx();
-  cc->SetLogy();
-  cc->SetGridy();
-  TH1D* signal_n = (TH1D*) GetHisto(rootfile,Form("Signal_%+04d_N",tkid));
-  TH1D* signal_p = (TH1D*) GetHisto(rootfile,Form("Signal_%+04d_P",tkid));
-  if ( (signal_n==0)||(signal_p==0) ) { canvas->Update(); return; }  
-  signal_n->SetStats(kFALSE);
-  signal_n->SetLineWidth(2);
-  signal_n->SetLineColor(kRed);
-  signal_p->SetStats(kFALSE);
-  signal_p->SetLineWidth(2);
-  signal_p->SetLineColor(kBlue);
-  signal_p->Draw("HIST");
-  signal_n->Draw("HIST SAME");
-  // Width
-  cc = canvas->cd(2);
-  cc->SetGridx();
-  cc->SetLogy();
-  cc->SetGridy();
-  TH1D* width_n = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_N",tkid),Form("Width_%+04d_N",tkid));
-  TH1D* width_p = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_P",tkid),Form("Width_%+04d_P",tkid));
-  if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
-  width_n->SetStats(kFALSE);
-  width_n->SetLineWidth(2);
-  width_n->SetLineColor(kRed);
-  width_p->SetStats(kFALSE);
-  width_p->SetLineWidth(2);
-  width_p->SetLineColor(kBlue);
-  width_p->Draw("HIST");
-  width_n->Draw("HIST SAME");
-  // Occupancy
-  cc = canvas->cd(3);
-  cc->SetGridx();
-  cc->SetGridy();
-  cc->SetLogy(kFALSE);
-  TH1D* occupancy = (TH1D*) GetHisto(rootfile,Form("SeedAddress_%+04d",tkid));
-  TH1D* rawcluste = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
-  if ( (occupancy==0)||(rawcluste==0) ) { canvas->Update(); return; }
-  int nentries = (int) rawcluste->GetEntries();
-  occupancy->Scale(100./nentries); 
-  // occupancy->SetFillColor(kRed);
-  occupancy->SetStats(kFALSE);
-  occupancy->GetXaxis()->SetNdivisions(516,kFALSE);
-  occupancy->SetYTitle("Occupancy (%)");
-  occupancy->SetLineWidth(2);
-  occupancy->Draw("l"); 
-  // Size
-  cc = canvas->cd(4);
-  cc->SetGridx();
-  cc->SetLogy();
-  cc->SetGridy();
-  TH1D* size = (TH1D*) GetHisto(rootfile,Form("Size_%+04d",tkid));
-  if (size==0) { canvas->Update(); return; }
-  size->SetLineWidth(2);
-  size->SetStats(kFALSE);
-  size->GetXaxis()->SetRangeUser(7.,400);
-  size->Draw("HIST"); 
-  canvas->cd(1);
-  // Name
-  char namein[100];
-  sprintf(namein,"Ladder %s  Oct: %s Crate: %d TDR: %d Layer: %d Slot: %d Side: %d ",
-          ladder->name,GetOctName(ladder->GetOctant()),ladder->GetCrate(),ladder->GetTdr(),ladder->GetLayer(),ladder->GetSlot(),ladder->GetSide());
-  text->DrawTextNDC(0.1,0.91,namein);
-  canvas->Update();  
-}
-
-
-void MonSlider::DrawReconStats() {
-  canvas->Draw();
-  canvas->Clear();
-  canvas->Divide(3,2,0.001,0.001);
-  TVirtualPad* cc0 = canvas->cd(1); 
-  cc0->SetLogy();
-  TH1D* raw = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
-  if (raw==0) { canvas->Update(); return; }
-  raw->Draw("HIST");
-  cc0 = canvas->cd(2);
-  cc0->SetLogy();
-  TH1D* clu = (TH1D*) GetHisto(rootfile,"nClusters_all");
-  if (clu==0) { canvas->Update(); return; }
-  clu->Draw("HIST");
-  cc0 = canvas->cd(4);
-  cc0->SetLogy();
-  TH1D* hit = (TH1D*) GetHisto(rootfile,"nRecHits_all");
-  if (hit==0) { canvas->Update(); return; }
-  hit->Draw("HIST");
-  cc0 = canvas->cd(5);
-  cc0->SetLogy();
-  TH1D* trk = (TH1D*) GetHisto(rootfile,"nTracks_all");		
-  if (trk==0) { canvas->Update(); return; }
-  trk->Draw("HIST");
-  cc0 = canvas->cd(3);
-  cc0->SetLogy();
-  TH1D* cluontrkn = (TH1D*) GetHisto(rootfile,"nClustersOnTrack_all_N");
-  TH1D* cluontrkp = (TH1D*) GetHisto(rootfile,"nClustersOnTrack_all_P");
-  if ( (cluontrkn==0)||(cluontrkp==0) ) { canvas->Update(); return; } 
-  cluontrkp->SetLineColor(kBlue);
-  cluontrkn->SetLineColor(kRed);
-  cluontrkp->Draw("HIST");
-  cluontrkn->Draw("HIST SAME");
-  cc0 = canvas->cd(6);
-  cc0->SetLogy();
-  TH1D* hitontrk = (TH1D*) GetHisto(rootfile,"nRecHitsOnTrack_all");
-  hitontrk->Draw("HIST");
-  canvas->Update();
-}
-
-
-void MonSlider::DrawHitsOnTrack() {
-  canvas->Draw();
-  canvas->Clear();
-  canvas->Divide(3,3,0.001,0.001);
-  TText* text = new TText();
-  int order[9] = {2,3,4,5,6,7,8,1,9};
-  TVirtualPad* cc;
-  TH2D* occupancy[9];
-  for (int tt=0; tt<TkDBc::Head->nlay(); tt++) {
-    occupancy[tt] = (TH2D*) GetHisto(rootfile,Form("Occupancy_layer%1d",tt+1));
-    if (occupancy[tt]==0) { canvas->Update(); return; }
-    if (TkDBc::Head->GetSetup()==3) cc = canvas->cd(order[tt]);
-    else                            cc = canvas->cd(tt+1);
-    cc->SetGridx();
-    cc->SetGridy();
-    occupancy[tt]->SetStats(kFALSE);
-    occupancy[tt]->Draw("COLZ");
-    text->DrawTextNDC(0.10,0.91,Form("Layer %1d",tt+1));
-    canvas->Update();
+  // set
+  for (int ibin=1; ibin<=192; ibin++) {
+    int hwid = int((ibin-1)/24)*100 + (ibin-1)%24;
+    TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
+    int index = ladder->GetLayer()*30 + ladder->GetSlot() - 15;
+    histo->SetBinContent(index,value[ibin-1]);  
+    histo->SetBinError(index,evalue[ibin-1]);
   }
-  canvas->Update();
+  // setting
+  histo->SetStats(kFALSE);
+  histo->SetXTitle("iLayer + iSlot/30");
+  histo->SetNdivisions(510);
+  return;
 }
 
 
 void MonSlider::SetHistSideStyle(int side, TH1* histo) {
-  int col[2] = {kRed, kBlue}; 
+  int col[2] = {kRed, kBlue};
   int mark[2] = {20,21};
   histo->GetXaxis()->SetLabelSize(.04);
   histo->GetYaxis()->SetLabelSize(.04);
@@ -697,22 +393,474 @@ void MonSlider::SetHistSideStyle(int side, TH1* histo) {
 }
 
 
-void MonSlider::DrawTrack() {
+void MonSlider::DrawRawEntries(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(2,1,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // x-side
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetLogz(kFALSE);
+  pad1->SetGridy();
+  pad1->SetGridx();
+  TH2D* entries_n = (TH2D*) GetHisto(rootfile,"RawEntries_entries_N");
+  if (entries_n==0) { canvas->Update(); return; }
+  entries_n->SetStats(kFALSE);
+  entries_n->Draw("COLZ");
+  text->DrawTextNDC(0.1,0.91,"X-Side");
+
+  // y-side
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetLogz(kFALSE);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  TH2D* entries_p = (TH2D*) GetHisto(rootfile,"RawEntries_entries_P");
+  if (entries_p==0) { canvas->Update(); return; }
+  entries_p->SetStats(kFALSE);
+  entries_p->Draw("COLZ");
+  text->DrawTextNDC(0.1,0.91,"Y-Side");
+  canvas->Update();
+}
+
+
+void MonSlider::DrawTrackEntries(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(2,1,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // x-side
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetLogz(kFALSE);
+  pad1->SetGridy();
+  pad1->SetGridx();
+  TH2D* entries_n = (TH2D*) GetHisto(rootfile,"TrackEntries_entries_N");
+  if (entries_n==0) { canvas->Update(); return; }
+  entries_n->SetStats(kFALSE);
+  entries_n->Draw("COLZ");
+  text->DrawTextNDC(0.1,0.91,"X-Side");
+
+  // y-side
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetLogz(kFALSE);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  TH2D* entries_p = (TH2D*) GetHisto(rootfile,"TrackEntries_entries_P");
+  if (entries_p==0) { canvas->Update(); return; }
+  entries_p->SetStats(kFALSE);
+  entries_p->Draw("COLZ");
+  text->DrawTextNDC(0.1,0.91,"Y-Side");
+  canvas->Update();
+}
+
+
+void MonSlider::DrawSignalSummary(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();  
+  canvas->Divide(2,1,0.001,0.001);  
+  text->SetTextColor(kBlack);
+
+  // signal summary
+  TH2D* signal_n = (TH2D*) GetHisto(rootfile,"Signal_vs_Ladder_all_N");
+  TH2D* signal_p = (TH2D*) GetHisto(rootfile,"Signal_vs_Ladder_all_P");
+  if ( (signal_n==0)||(signal_p==0) ) { canvas->Update(); return; }
+  TH1D* signal_n_prof = (TH1D*) GetProfileX(signal_n);
+  TH1D* signal_p_prof = (TH1D*) GetProfileX(signal_p);
+  if ( (signal_n_prof==0)||(signal_p_prof==0) ) { canvas->Update(); return; }
+  SetHistSideStyle(0,signal_n_prof);
+  SetHistSideStyle(1,signal_p_prof);
+  signal_n_prof->SetYTitle("Average Amplitude (ADC)");
+  signal_p_prof->SetYTitle("Average Amplitude (ADC)");
+  signal_n_prof->SetXTitle("iCrate*24 + iTDR");
+  signal_p_prof->SetXTitle("iCrate*24 + iTDR");
+  if (alternative==1) {
+    ChangeToLayerIndex(signal_n_prof);
+    ChangeToLayerIndex(signal_p_prof);
+  }
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1); 
+  pad1->SetGridy();
+  pad1->SetGridx();
+  signal_n_prof->GetYaxis()->SetRangeUser(0.,100.);
+  signal_n_prof->Draw();
+  signal_p_prof->Draw("SAME");
+  if (alternative==0) { 
+    TestAndDrawText(0,signal_n_prof,10,60);
+    TestAndDrawText(1,signal_p_prof,10,60);
+  }
+
+  // width summary 
+  TH2D* width_n = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_N","Width_vs_Ladder_all_N");
+  TH2D* width_p = (TH2D*) GetHisto(rootfile,"NElement_vs_Ladder_all_P","Width_vs_Ladder_all_P");
+  if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
+  TH1D* width_n_prof = (TH1D*) GetProfileX(width_n);
+  TH1D* width_p_prof = (TH1D*) GetProfileX(width_p);
+  if ( (width_n_prof==0)||(width_p_prof==0) ) { canvas->Update(); return; }
+  SetHistSideStyle(0,width_n_prof);
+  SetHistSideStyle(1,width_p_prof);
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetLogy(kFALSE);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  SetHistSideStyle(0,signal_n_prof);
+  SetHistSideStyle(1,signal_p_prof);
+  width_n_prof->SetYTitle("Average Cluster Width");
+  width_p_prof->SetYTitle("Average Cluster Width");
+  width_n_prof->SetXTitle("iCrate*24 + iTDR");
+  width_p_prof->SetXTitle("iCrate*24 + iTDR");
+  if (alternative==1) {
+    ChangeToLayerIndex(width_n_prof);
+    ChangeToLayerIndex(width_p_prof);
+  }
+  width_n_prof->GetYaxis()->SetRangeUser(0.,20.);
+  width_n_prof->Draw();
+  width_p_prof->Draw("SAME");
+  if (alternative==0) { 
+    TestAndDrawText(0,width_n_prof,1,5);
+    TestAndDrawText(1,width_p_prof,1,5);
+  }
+
+  canvas->Update();
+}
+
+
+void MonSlider::DrawSizeSummary(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();  
+  canvas->Divide(1,2,0.001,0.001);  
+  text->SetTextColor(kBlack);
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->Divide(2,1,0.001,0.001);  
+
+  // tracker size  
+  TH2D* size = (TH2D*) GetHisto(rootfile,"Size_all");
+  if (size==0) { canvas->Update(); return; }
+  size->GetXaxis()->SetRangeUser(0.,3000.); 
+  TVirtualPad* subpad1 = (TVirtualPad*) pad1->cd(1);
+  subpad1->SetLogy();
+  subpad1->SetGridx();
+  subpad1->SetGridy();
+  size->SetStats(kFALSE);
+  size->Draw("HIST");
+
+  // crate size   
+  TH2D* sizevscrate = (TH2D*) GetHisto(rootfile,"Size_vs_Crate_all");
+  TH1D* sizevscrate_prof = (TH1D*) GetProfileX(sizevscrate);
+  if ( (sizevscrate==0)||(sizevscrate_prof==0) ) { canvas->Update(); return; }
+  TVirtualPad* subpad2 = (TVirtualPad*) pad1->cd(2);
+  subpad2->SetGridy();
+  TH1F* frame1 = (TH1F*) subpad2->DrawFrame(-0.5,0.,7.5,500.);
+  frame1->SetYTitle("Crate Segment Size (byte)");
+  frame1->SetXTitle("Crate");
+  sizevscrate_prof->Draw("SAME");
+
+  // ladder size 
+  TH2D* size_n = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_N");
+  TH2D* size_p = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_P");
+  if ( (size_n==0)||(size_p==0) ) { canvas->Update(); return; }
+  TH1D* size_n_prof = (TH1D*) GetProfileX(size_n);
+  TH1D* size_p_prof = (TH1D*) GetProfileX(size_p);
+  if ( (size_n_prof==0)||(size_p_prof==0) ) { canvas->Update(); return; }
+  SetHistSideStyle(0,size_n_prof);
+  SetHistSideStyle(1,size_p_prof);
+  TVirtualPad* pad2 = (TVirtualPad*)canvas->cd(2);
+  pad2->SetGridy();
+  TH1F* frame2 = (TH1F*) pad2->DrawFrame(0.,0.,192.,20.);
+  frame2->GetXaxis()->SetNdivisions(608,kFALSE);
+  frame2->SetYTitle("Approx. Mean Ladder Size (byte)");
+  frame2->SetXTitle("iCrate*24 + iTDR");
+  size_n_prof->Draw("SAME");
+  size_p_prof->Draw("SAME");
+  TestAndDrawText(0,size_n_prof,0.1,10);
+  TestAndDrawText(1,size_p_prof,0.1,10);
+  canvas->Update();
+}
+
+
+void MonSlider::DrawDtSummary(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();  
+  canvas->Divide(1,2,0.001,0.001);  
+  text->SetTextColor(kBlack);
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->Divide(2,1,0.001,0.001);
+
+  // interevent time distribution
+  TVirtualPad* subpad1 = (TVirtualPad*) pad1->cd(1);
+  TH1D* dt = (TH1D*) GetHisto(rootfile,"DT_all");
+  if (dt==0) { canvas->Update(); return; }
+  dt->Rebin(8);
+  subpad1->SetLogy();
+  subpad1->SetGridx();
+  subpad1->SetGridy();
+  TF1 *f1 = new TF1("f1","expo",800,5000);
+  dt->Fit("f1","QR");
+  float inrate = -1000.*dt->GetFunction("f1")->GetParameter(1);
+  float trrate = 1000./dt->GetMean();
+  dt->SetStats(kFALSE);
+  dt->Draw("l");
+  text->DrawTextNDC(0.5,0.80,Form("Est. Event Rate = %7.3f Hz",inrate*1000.));
+  text->DrawTextNDC(0.5,0.75,Form("Est. Trigger Rate = %7.3f Hz",trrate*1000.));
+  text->DrawTextNDC(0.5,0.70,Form("Est. Lifetime = %7.5f",trrate/inrate));
+
+  // size vs interevent time 
+  TVirtualPad* subpad2 = (TVirtualPad*) pad1->cd(2);
+  subpad2->SetGridx();
+  subpad2->SetGridy();  
+  TH2D* sizeVSdt = (TH2D*) GetHisto(rootfile,"Size_vs_DT_all");
+  TH1D* sizeVSdt_prof = (TH1D*) GetProfileX(sizeVSdt);
+  if ( (sizeVSdt==0)||(sizeVSdt_prof==0) ) { canvas->Update(); return; }
+  sizeVSdt_prof->SetStats(kFALSE);
+  sizeVSdt_prof->Draw();
+
+  // ladder size at low dt 
+  TH2D* sizelowdt_n = (TH2D*) GetHisto(rootfile,"SizeLowDT_vs_Ladder_all_N");
+  TH2D* sizelowdt_p = (TH2D*) GetHisto(rootfile,"SizeLowDT_vs_Ladder_all_P");
+  if ( (sizelowdt_n==0)||(sizelowdt_p==0) ) { canvas->Update(); return; }
+  TH1D* sizelowdt_n_prof = (TH1D*) GetProfileX(sizelowdt_n);
+  TH1D* sizelowdt_p_prof = (TH1D*) GetProfileX(sizelowdt_p);
+  if ( (sizelowdt_n_prof==0)||(sizelowdt_p_prof==0) ) { canvas->Update(); return; }
+  SetHistSideStyle(0,sizelowdt_n_prof);
+  SetHistSideStyle(1,sizelowdt_p_prof);
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridy();
+  TH1F* frame = (TH1F*) pad2->DrawFrame(0.,0.,192.,250.);
+  frame->GetXaxis()->SetNdivisions(608,kFALSE);
+  frame->SetYTitle("Approx. Mean Ladder Size @ #Deltat<200 #mus (byte)");
+  frame->SetXTitle("iCrate*24 + iTDR");
+  sizelowdt_n_prof->Draw("SAME");
+  sizelowdt_p_prof->Draw("SAME");
+  TestAndDrawText(0,sizelowdt_n_prof,0.1,100);
+  TestAndDrawText(1,sizelowdt_p_prof,0.1,100);
+  canvas->Update();
+}
+
+
+void MonSlider::DrawCrateVsDt(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(4,2,0.001,0.001);
+
+  // crate size vs interevent distribution
+  TVirtualPad* pad;
+  TH2D* cratevsdt[8]; 
+  for (int icrate=0; icrate<8; icrate++) { 
+    cratevsdt[icrate] = (TH2D*) GetHisto(rootfile,Form("T%1dSize_vs_DT_all",icrate));
+    TH1D* cratevsdt_prof = (TH1D*) GetProfileX(cratevsdt[icrate]);
+    pad = canvas->cd(icrate+1);
+    pad->SetGridx();
+    pad->SetGridy();
+    cratevsdt[icrate]->GetYaxis()->SetRangeUser(0.,5000.);
+    cratevsdt[icrate]->SetStats(kFALSE);
+    cratevsdt[icrate]->SetMarkerStyle(20);
+    cratevsdt[icrate]->SetMarkerColor(kGray);
+    cratevsdt[icrate]->Draw();
+    cratevsdt_prof->SetMarkerStyle(1);
+    cratevsdt_prof->SetMarkerColor(kBlack);
+    cratevsdt_prof->Draw("SAME");   
+    text->DrawTextNDC(0.8,0.8,Form("T%1d",icrate));
+  }
+  canvas->Update();
+}
+
+
+void MonSlider::DrawLadder(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();  
+  canvas->Divide(2,2,0.001,0.001);  
+  text->SetTextColor(kBlack); 
+  int tkid  = ladder->GetTkId();
+
+  // signal
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetGridx();
+  pad1->SetLogy();
+  pad1->SetGridy();
+  TH1D* signal_n = (TH1D*) GetHisto(rootfile,Form("Signal_%+04d_N",tkid));
+  TH1D* signal_p = (TH1D*) GetHisto(rootfile,Form("Signal_%+04d_P",tkid));
+  if ( (signal_n==0)||(signal_p==0) ) { canvas->Update(); return; }  
+  signal_n->SetStats(kFALSE);
+  signal_n->SetLineWidth(2);
+  signal_n->SetLineColor(kRed);
+  signal_p->SetStats(kFALSE);
+  signal_p->SetLineWidth(2);
+  signal_p->SetLineColor(kBlue);
+  signal_p->Draw("HIST");
+  signal_n->Draw("HIST SAME");
+
+  // width
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridx();
+  pad2->SetLogy();
+  pad2->SetGridy();
+  TH1D* width_n = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_N",tkid),Form("Width_%+04d_N",tkid));
+  TH1D* width_p = (TH1D*) GetHisto(rootfile,Form("NElement_%+04d_P",tkid),Form("Width_%+04d_P",tkid));
+  if ( (width_n==0)||(width_p==0) ) { canvas->Update(); return; }
+  width_n->SetStats(kFALSE);
+  width_n->SetLineWidth(2);
+  width_n->SetLineColor(kRed);
+  width_p->SetStats(kFALSE);
+  width_p->SetLineWidth(2);
+  width_p->SetLineColor(kBlue);
+  width_p->Draw("HIST");
+  width_n->Draw("HIST SAME");
+
+  // occupancy
+  TVirtualPad* pad3 = (TVirtualPad*) canvas->cd(3);
+  pad3->SetGridx();
+  pad3->SetGridy();
+  pad3->SetLogy(kFALSE);
+  TH1D* occupancy = (TH1D*) GetHisto(rootfile,Form("SeedAddress_%+04d",tkid));
+  TH1D* rawcluste = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
+  if ( (occupancy==0)||(rawcluste==0) ) { canvas->Update(); return; }
+  int nentries = (int) rawcluste->GetEntries();
+  occupancy->Scale(100./nentries); 
+  occupancy->SetStats(kFALSE);
+  occupancy->GetXaxis()->SetNdivisions(516,kFALSE);
+  occupancy->SetYTitle("Occupancy (%)");
+  occupancy->SetLineWidth(2);
+  occupancy->Draw(); 
+
+  // size
+  TVirtualPad* pad4 = (TVirtualPad*) canvas->cd(4);
+  pad4->SetGridx();
+  pad4->SetLogy();
+  pad4->SetGridy();
+  TH1D* size = (TH1D*) GetHisto(rootfile,Form("Size_%+04d",tkid));
+  if (size==0) { canvas->Update(); return; }
+  size->SetLineWidth(2);
+  size->SetStats(kFALSE);
+  size->GetXaxis()->SetRangeUser(7.,400);
+  size->Draw("HIST"); 
+  canvas->cd(1);
+
+  // name
+  canvas->cd(1);
+  text->DrawTextNDC(0.1,0.91,Form("Ladder %s  Oct: %s Crate: %d TDR: %d Layer: %d Slot: %d Side: %d ",
+     ladder->name,GetOctName(ladder->GetOctant()),
+     ladder->GetCrate(),ladder->GetTdr(),ladder->GetLayer(),
+     ladder->GetSlot(),ladder->GetSide()));
+  canvas->Update();  
+}
+
+
+void MonSlider::DrawReconStats(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(3,2,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // raw clusters
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1); 
+  pad1->SetLogy();
+  pad1->SetGridy();
+  TH1D* raw = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
+  if (raw==0) { canvas->Update(); return; }
+  raw->Draw("HIST");
+
+  // clusters
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetLogy();
+  pad2->SetGridy();
+  TH1D* clu = (TH1D*) GetHisto(rootfile,"nClusters_all");
+  if (clu==0) { canvas->Update(); return; }
+  clu->Draw("HIST");
+
+  // rec. hits 
+  TVirtualPad* pad3 = (TVirtualPad*) canvas->cd(4);
+  pad3->SetLogy();
+  pad3->SetGridy();
+  TH1D* hit = (TH1D*) GetHisto(rootfile,"nRecHits_all");
+  if (hit==0) { canvas->Update(); return; }
+  hit->Draw("HIST");
+
+  // tracks
+  TVirtualPad* pad4 = (TVirtualPad*) canvas->cd(5);
+  pad4->SetLogy();
+  pad4->SetGridy();
+  TH1D* trk = (TH1D*) GetHisto(rootfile,"nTracks_all");		
+  if (trk==0) { canvas->Update(); return; }
+  trk->Draw("HIST");
+
+  // clusters on track
+  TVirtualPad* pad5 = (TVirtualPad*) canvas->cd(3);
+  pad5->SetLogy();
+  pad5->SetGridy();
+  TH1D* cluontrkn = (TH1D*) GetHisto(rootfile,"nClustersOnTrack_all_N");
+  TH1D* cluontrkp = (TH1D*) GetHisto(rootfile,"nClustersOnTrack_all_P");
+  if ( (cluontrkn==0)||(cluontrkp==0) ) { canvas->Update(); return; } 
+  cluontrkp->SetLineColor(kBlue);
+  cluontrkn->SetLineColor(kRed);
+  cluontrkp->Draw("HIST");
+  cluontrkn->Draw("HIST SAME");
+
+  // rec. hits on track
+  TVirtualPad* pad6 = (TVirtualPad*) canvas->cd(6);
+  pad6->SetLogy();
+  pad6->SetGridy();
+  TH1D* hitontrk = (TH1D*) GetHisto(rootfile,"nRecHitsOnTrack_all");
+  hitontrk->Draw("HIST");
+  canvas->Update();
+}
+
+
+void MonSlider::DrawHitsOnTrack(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(3,3,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // hits on track
+  int order[9] = {2,3,4,5,6,7,8,1,9};
+  TVirtualPad* pad;
+  TH2D* occupancy[9];
+  for (int tt=0; tt<TkDBc::Head->nlay(); tt++) {
+    occupancy[tt] = (TH2D*) GetHisto(rootfile,Form("Occupancy_layer%1d",tt+1));
+    if (occupancy[tt]==0) { canvas->Update(); return; }
+    if (TkDBc::Head->GetSetup()==3) pad = canvas->cd(order[tt]);
+    else                            pad = canvas->cd(tt+1);
+    pad->SetGridx();
+    pad->SetGridy();
+    occupancy[tt]->SetStats(kFALSE);
+    occupancy[tt]->Draw("COLZ");
+    text->DrawTextNDC(0.10,0.91,Form("Layer %1d",tt+1));
+  }
+  canvas->Update();
+}
+
+
+void MonSlider::DrawTrack(int alternative) {
+  // clean
   canvas->Draw();
   canvas->Clear();
   canvas->Divide(2,2,0.001,0.001);
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetGridy();
-  cc->SetGridx();
+  text->SetTextColor(kBlack);
+
+  // theta vs phi
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetGridy();
+  pad1->SetGridx();
   TH2D* theta_vs_phi = (TH2D*) GetHisto(rootfile,"Theta_vs_Phi_all");
   if (theta_vs_phi==0) { canvas->Update(); return; }
   theta_vs_phi->Draw("COLZ");
-  cc = canvas->cd(2);
-  cc->SetGridy();
-  cc->SetGridx();
+
+  // y vs x
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridy();
+  pad2->SetGridx();
   TH2D* y_vs_x = (TH2D*) GetHisto(rootfile,"Y_vs_X_all"); 
   if (y_vs_x==0) { canvas->Update(); return; }
   y_vs_x->Draw("COLZ");
+
   // rigidity histogram
   TH1D* rigplus  = (TH1D*) GetHisto(rootfile,"logRigidityPlus_all");
   TH1D* rigminus = (TH1D*) GetHisto(rootfile,"logRigidityMinus_all");
@@ -722,7 +870,7 @@ void MonSlider::DrawTrack() {
   float  logmax = rigplus->GetXaxis()->GetXmax();
   int    nbins  = rigplus->GetXaxis()->GetNbins();
   float  step   = (logmax-logmin)/nbins;
-  Double_t bins[100];
+  double bins[100];
   for (int ii=0; ii<=nbins; ii++) bins[ii] = pow(10,logmin) * pow(10,step*ii);
   ClearHistoFromMemory("RigidityPlus_all");
   ClearHistoFromMemory("RigidityMinus_all");
@@ -733,19 +881,20 @@ void MonSlider::DrawTrack() {
     rigplus2->SetBinContent(ii+1,rigplus->GetBinContent(ii+1));
     rigminus2->SetBinContent(ii+1,rigminus->GetBinContent(ii+1));
   }
-  cc = canvas->cd(3);
-  cc->SetLogx();
-  cc->SetLogy();
-  cc->SetGridy();
-  cc->SetGridx(); 
+  TVirtualPad* pad3 = (TVirtualPad*) canvas->cd(3);
+  pad3->SetLogx();
+  pad3->SetLogy();
+  pad3->SetGridy();
+  pad3->SetGridx(); 
   rigplus2->SetLineColor(kBlue);
   rigminus2->SetLineColor(kRed);
   rigplus2->Draw();
   rigminus2->Draw("SAME");
-  // chisqared plot
-  cc = canvas->cd(4);
-  cc->SetGridy();
-  cc->SetGridx();
+
+  // chi-squared plot
+  TVirtualPad* pad4 = (TVirtualPad*) canvas->cd(4);
+  pad4->SetGridy();
+  pad4->SetGridx();
   TH2D* chisq_vs_rig = (TH2D*) GetHisto(rootfile,"logChiSq_vs_logRigidity_all");
   if (chisq_vs_rig==0) { canvas->Update(); return; }
   chisq_vs_rig->Draw("COLZ");  
@@ -753,36 +902,44 @@ void MonSlider::DrawTrack() {
 }
 
 
-void MonSlider::DrawRigidity() {
-  canvas->Clear();
-  canvas->Divide(1,2,0.001,0.001);
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetGridy();
-  cc->SetGridx();
+void MonSlider::DrawRigidity(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear(); 
+  canvas->Divide(2,1,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // rigidity
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetGridy();
+  pad1->SetGridx();
   TH2D* invrig = (TH2D*) GetHisto(rootfile,"InvRigidity_all");
   if (invrig==0) { canvas->Update(); return; }
   invrig->SetStats(kFALSE);
   invrig->Draw("HIST");
-  cc = canvas->cd(2);
-  cc->SetGridy();
-  cc->SetGridx();
-  TH2D* errinvrig = (TH2D*) rootfile->Get("ErrInvRigidity_all");
+
+  // error on rigidity
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  TH2D* errinvrig = (TH2D*) GetHisto(rootfile,"ErrInvRigidity_all");
   if (errinvrig==0) { canvas->Update(); return; }
   errinvrig->SetStats(kFALSE);
-  errinvrig->Draw("HIST");
+  errinvrig->GetYaxis()->SetRangeUser(0.,0.8);
+  errinvrig->Draw("COLZ");
   canvas->Update();
 }
 
 
-void MonSlider::DrawSeedOccupancyGlobal() {
-  /* Drawing */
-  canvas->cd(0);
+void MonSlider::DrawSeedOccupancyGlobal(int alternative) {
+  // clean
+  canvas->Draw();
   canvas->Clear(); 
   canvas->Divide(2,2,0.001,0.001);
-  TText* text = new TText();
+  text->SetTextColor(kBlack);
   text->SetTextSize(0.05);
-  char testo[100];
-  /* Occupancy Calculation */
+
+  // occupancy calculation 
   TH1D* rawcluste = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
   if (rawcluste==0) { canvas->Update(); return; }
   int nentries = (int) rawcluste->GetEntries();
@@ -795,7 +952,7 @@ void MonSlider::DrawSeedOccupancyGlobal() {
   ClearHistoFromMemory("occupancy_vs_ladder");
   ClearHistoFromMemory("occupancy_summary");
   gROOT->cd();
-  TH1D* occupancy_all = new TH1D("occupancy_all","; Occupancy (%)",630,-0.1,2.0);
+  TH1D* occupancy_all = new TH1D("occupancy_all","; Occupancy (%)",210,-0.1,2.0);
   TH2D* occupancy_vs_ladder = new TH2D("occupancy_vs_ladder","; iCrate*24 + iTdr; Occupancy (%)",192,0,192,105,-0.1,2.0);
   TH1D* occupancy_summary = new TH1D("occupancy_summary","; iCrate*24 + iTdr; number of strips",192,0,192);
   int occu[10] = {0,0,0,0,0,0,0,0,0,0};  
@@ -833,9 +990,10 @@ void MonSlider::DrawSeedOccupancyGlobal() {
     rms[ii] /= n[ii];
     rms[ii] = sqrt(fabs(mean[ii]*mean[ii] - rms[ii]));
   }
-  TProfile* occupancy_vs_ladder_prof = (TProfile*) GetProfileX(occupancy_vs_ladder);
+  TH1D* occupancy_vs_ladder_prof = (TH1D*) GetProfileX(occupancy_vs_ladder);
   if (occupancy_vs_ladder_prof==0) { canvas->Update(); return; }
-  /* Occupancy Threshold */
+
+  // occupancy threshold 
   int ntagged = 0;
   for (int ii=0; ii<192; ii++) {
     int hwid = int(ii/24)*100 + ii%24;
@@ -854,17 +1012,15 @@ void MonSlider::DrawSeedOccupancyGlobal() {
       }
     }
   }
-  // printf("n. of occupancy strips: %6d\n",ntagged);
-  /* Drawing */
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetLogy();
-  cc->SetGridx();  
-  // occupancy_all->SetStats(kFALSE);
+
+  // drawing 
+  TVirtualPad* pad = canvas->cd(1);
+  pad->SetLogy();
+  pad->SetGridx();  
   occupancy_all->Draw();
-  cc = canvas->cd(2);
+  canvas->cd(2);
   for (int jj=0; jj<10; jj++) {
-    sprintf(testo,"Occ. Thr. = %5.2f %%   n Tag. Strips = %10d",100.*pow(2.,jj)/2048.,occu[jj]);
-    text->DrawTextNDC(0.1,0.8-0.06*jj,testo);
+    text->DrawTextNDC(0.1,0.8-0.06*jj,Form("Occ. Thr. = %5.2f %%   n Tag. Strips = %10d",100.*pow(2.,jj)/2048.,occu[jj]));
   }
   canvas->cd(3);
   occupancy_summary->SetStats(kFALSE);
@@ -876,9 +1032,10 @@ void MonSlider::DrawSeedOccupancyGlobal() {
 }
 
 
-void MonSlider::DrawSeedOccupancyOnLayer() {
+void MonSlider::DrawSeedOccupancyOnLayer(int alternative) {
+  // clean
+  canvas->Draw();
   canvas->Clear();
-  TText* text = new TText();
   text->SetTextSize(0.5);
   text->SetTextColor(kRed);
   int layer = ladder->GetLayer(); 
@@ -890,7 +1047,7 @@ void MonSlider::DrawSeedOccupancyOnLayer() {
     nladders++;
   }
   canvas->Divide(2,int((nladders+1)/2),0.0001,0.0001,0);
-  TVirtualPad* cc;
+  TVirtualPad* pad;
   TH1D* occupancy;
   for (int iside=0; iside<2; iside++) {
     int ipad = 0;
@@ -899,8 +1056,8 @@ void MonSlider::DrawSeedOccupancyOnLayer() {
       if (iside==1) tkid = -tkid;
       TkLadder* ladd = TkDBc::Head->FindTkId(tkid);
       if (ladd==0) continue;
-      cc = canvas->cd(1 + 2*ipad + iside*1);
-      cc->SetGridx();
+      pad = (TVirtualPad*) canvas->cd(1 + 2*ipad + iside*1);
+      pad->SetGridx();
       occupancy = (TH1D*) GetHisto(rootfile,Form("SeedAddress_%+04d",tkid));
       if (occupancy==0) continue;
       occupancy->SetStats(kFALSE);
@@ -915,96 +1072,87 @@ void MonSlider::DrawSeedOccupancyOnLayer() {
 }
 
 
-void MonSlider::DrawHits() {
+void MonSlider::DrawClustersSummary(int alternative) {
+  // clean
   canvas->Draw();
   canvas->Clear();
   canvas->Divide(1,2,0.001,0.001);
-  TH1D* nhits_vs_events = (TH1D*) GetHisto(rootfile,"nRecHits_vs_Events_all");
-  if (nhits_vs_events==0) { canvas->Update(); return; }
-  TVirtualPad* cc = canvas->cd(1);
-  nhits_vs_events->Draw("COLZ");
-  TH1D* nhitsontrack_vs_events = (TH1D*) GetHisto(rootfile,"nRecHitsOnTrack_vs_Events_all");
-  if (nhitsontrack_vs_events==0) { canvas->Update(); return; }
-  cc = canvas->cd(2);
-  nhitsontrack_vs_events->Draw("COLZ");
-  canvas->Update();
-}
+  text->SetTextColor(kBlack);
 
-
-void MonSlider::DrawClustersSummary() {
-  // prepare canvas
-  canvas->Draw();
-  canvas->Clear();
-  canvas->Divide(1,2,0.001,0.001);
-  TText* text = new TText();
+  // number of raw cluster per ladder
   TH2D* nraw_vs_ladder_n = (TH2D*) GetHisto(rootfile,"nRawClusters_vs_Ladder_all_N");
   TH2D* nraw_vs_ladder_p = (TH2D*) GetHisto(rootfile,"nRawClusters_vs_Ladder_all_P");
   if ( (nraw_vs_ladder_n==0)||(nraw_vs_ladder_p==0) ) { canvas->Update(); return; }
-  TProfile* nraw_vs_ladder_n_prof = (TProfile*) GetProfileX(nraw_vs_ladder_n);
-  TProfile* nraw_vs_ladder_p_prof = (TProfile*) GetProfileX(nraw_vs_ladder_p);
+  TH1D* nraw_vs_ladder_n_prof = (TH1D*) GetProfileX(nraw_vs_ladder_n);
+  TH1D* nraw_vs_ladder_p_prof = (TH1D*) GetProfileX(nraw_vs_ladder_p);
   if ( (nraw_vs_ladder_n_prof==0)||(nraw_vs_ladder_p_prof==0) ) { canvas->Update(); return; }
   SetHistSideStyle(0,nraw_vs_ladder_n_prof);
   SetHistSideStyle(1,nraw_vs_ladder_p_prof);
-  TVirtualPad* cc = canvas->cd(1);
-  cc->SetGridy();
-  cc->SetGridx();
-  TH1F* frame = cc->DrawFrame(-0.05,0.,192.,1.);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Average Num. of RawClusters");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  SetHistSideStyle(0,frame);
-  nraw_vs_ladder_n_prof->Draw("SAME");
-  nraw_vs_ladder_p_prof->Draw("SAME");
-  char testo[100];
-  for (int ii=1; ii<=nraw_vs_ladder_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
-    float mean_p = nraw_vs_ladder_p_prof->GetBinContent(ii);
-    float mean_n = nraw_vs_ladder_n_prof->GetBinContent(ii);
-    if (mean_n>5.) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawText(ii,mean_n,testo);
-    }
-    if (mean_n>5.) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawText(ii,mean_p,testo);
-    }
+  nraw_vs_ladder_n_prof->SetYTitle("Average Num. of Raw Clusters");
+  nraw_vs_ladder_p_prof->SetYTitle("Average Num. of Raw Clusters");
+  nraw_vs_ladder_n_prof->SetXTitle("iCrate*24 + iTDR");
+  nraw_vs_ladder_p_prof->SetXTitle("iCrate*24 + iTDR");
+  if (alternative==1) {
+    ChangeToLayerIndex(nraw_vs_ladder_n_prof);
+    ChangeToLayerIndex(nraw_vs_ladder_p_prof);
   }
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetGridy();
+  pad1->SetGridx();
+  nraw_vs_ladder_n_prof->GetYaxis()->SetRangeUser(0.,0.5);
+  nraw_vs_ladder_n_prof->Draw();
+  nraw_vs_ladder_p_prof->Draw("SAME");
+  if (alternative==0) { 
+    TestAndDrawText(0,nraw_vs_ladder_n_prof,0.00001,0.2);
+    TestAndDrawText(1,nraw_vs_ladder_p_prof,0.00001,0.2);
+  }
+
+  // number of cluster per track on ladder
   TH2D* cluontrk_vs_ladder_n = (TH2D*) GetHisto(rootfile,"nClustersOnTrack_vs_Ladder_all_N");
   TH2D* cluontrk_vs_ladder_p = (TH2D*) GetHisto(rootfile,"nClustersOnTrack_vs_Ladder_all_P");
   if ( (cluontrk_vs_ladder_n==0)||(cluontrk_vs_ladder_p==0) ) { canvas->Update(); return; }
-  TProfile* cluontrk_vs_ladder_n_prof = (TProfile*) GetProfileX(cluontrk_vs_ladder_n);
-  TProfile* cluontrk_vs_ladder_p_prof = (TProfile*) GetProfileX(cluontrk_vs_ladder_p);
+  TH1D* cluontrk_vs_ladder_n_prof = (TH1D*) GetProfileX(cluontrk_vs_ladder_n);
+  TH1D* cluontrk_vs_ladder_p_prof = (TH1D*) GetProfileX(cluontrk_vs_ladder_p);
   if ( (cluontrk_vs_ladder_n_prof==0)||(cluontrk_vs_ladder_p_prof==0) ) { canvas->Update(); return; }
   SetHistSideStyle(0,cluontrk_vs_ladder_n_prof);
   SetHistSideStyle(1,cluontrk_vs_ladder_p_prof);
-  cc = canvas->cd(2);
-  cc->SetGridy();
-  cc->SetGridx();
-  frame = cc->DrawFrame(-0.05,0.,192.,0.1);
-  frame->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame->SetYTitle("Average Num. of Clusters On Track");
-  frame->SetXTitle("iCrate*24 + iTDR");
-  SetHistSideStyle(0,frame);
-  cluontrk_vs_ladder_n_prof->Draw("SAME");
+  cluontrk_vs_ladder_n_prof->SetYTitle("Average Num. of Clusters On Track");
+  cluontrk_vs_ladder_p_prof->SetYTitle("Average Num. of Clusters On Track");
+  cluontrk_vs_ladder_n_prof->SetXTitle("iCrate*24 + iTDR");
+  cluontrk_vs_ladder_p_prof->SetXTitle("iCrate*24 + iTDR");
+  if (alternative==1) {
+    ChangeToLayerIndex(cluontrk_vs_ladder_n_prof);
+    ChangeToLayerIndex(cluontrk_vs_ladder_p_prof);
+  }
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  cluontrk_vs_ladder_n_prof->GetYaxis()->SetRangeUser(0.,0.2);
+  cluontrk_vs_ladder_n_prof->Draw();
   cluontrk_vs_ladder_p_prof->Draw("SAME");
-  for (int ii=1; ii<=cluontrk_vs_ladder_n_prof->GetNbinsX(); ii++) {
-    int   tkid   = (TkDBc::Head->FindHwId(int((ii-1)/24)*100 + (ii-1)%24))->GetTkId();
-    float mean_p = cluontrk_vs_ladder_p_prof->GetBinContent(ii);
-    float mean_n = cluontrk_vs_ladder_n_prof->GetBinContent(ii);
-    if (mean_n<0.00005) {
-      sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kRed);
-      text->DrawText(ii,mean_n,testo);
-    }
-    if (mean_p<0.00005) {
-    sprintf(testo,"%+03d",tkid);
-      text->SetTextColor(kBlue);
-      text->DrawText(ii,mean_p,testo);
-    }
+  if (alternative==0) { 
+    TestAndDrawText(0,cluontrk_vs_ladder_n_prof,0.00001,0.1);
+    TestAndDrawText(1,cluontrk_vs_ladder_p_prof,0.00001,0.1);
   }
   canvas->Update();
 }
 
 
+void MonSlider::DrawSizeVsEvent(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(1,2,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  // clean histogram
+  canvas->SetGridx();
+  canvas->SetGridy();
+  ClearHistoFromMemory("SizeVsEvent");
+  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
+  gROOT->cd(); // safe area
+  ntuple->Draw(Form("Size:Entry$>>SizeVsEvent(100,0,%d,100,0,20000)",ntuple->GetEntries()),"","COLZ");
+  // TH2F* size_vs_event = (TH2F*) gDirectory->Get("SizeVsEvent"); 
+  // size_vs_event->Draw("COLZ"); 
+  canvas->Update();
+}

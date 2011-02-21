@@ -26,17 +26,16 @@ void GenericSlider::showHwId(int hwid){
   if (getnSlider()==0) return;
   for (int id=0; id<getnSlider(); id++) {
     int ret = slider.at(id)->showHwId(hwid);
-    printf("GenericSlider::showHwId calling slider->showHwId(hwid) returning %d\n",ret);
     switch(ret) {
     case 0:
       info->SetText("");
       Updated();
       break;
     case 1:
-      info->SetText("HwId NOT FOUND.");
+      info->SetText("HwId not found");
       break;
     case 2:
-      info->SetText("Open a file before.");
+      info->SetText("Open a file before");
       break;
     }
   }
@@ -48,17 +47,16 @@ void GenericSlider::showTkId(int tkid){
   if (getnSlider()==0) return;
   for (int id=0; id<getnSlider(); id++) {
     int ret = slider.at(id)->showTkId(tkid);
-    printf("GenericSlider::showHwId calling slider->showHwId(tkid) returning %d\n",ret);
     switch(ret) {
     case 0:
       info->SetText("");
       Updated();
       break;
     case 1:
-      info->SetText("TkId NOT FOUND.");
+      info->SetText("TkId not found");
       break;
     case 2:
-      info->SetText("Open a file before.");
+      info->SetText("Open a file before");
       break;
     }
   }
@@ -68,7 +66,7 @@ void GenericSlider::showTkId(int tkid){
 
 void GenericSlider::PrintThis(){
   if (getnSlider()==0) return;
-  info->SetText("This canvas has been printed.");
+  info->SetText("This canvas has been printed");
   Layout();
   for (int id=0; id<getnSlider(); id++) {
     slider.at(id)->PrintThis();
@@ -78,7 +76,7 @@ void GenericSlider::PrintThis(){
 
 void GenericSlider::PrintAll(){
   if (getnSlider()==0) return;
-  info->SetText("All canvas have been printed.");
+  info->SetText("All canvas have been printed");
   Layout();
   for (int id=0; id<getnSlider(); id++) {
     slider.at(id)->PrintAll();
@@ -154,7 +152,7 @@ void GenericSlider::setCalfromDB(time_t run){
 
 void GenericSlider::setRefFile(char *filename){
   if(getnSlider()==0){
-    info->SetText("Select a Calibration or Monitoring file before.");
+    info->SetText("Select a Calibration or Monitoring file before");
     Layout();
     return;
   }
