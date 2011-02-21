@@ -29,6 +29,7 @@
 #include "TDirectory.h"
 #include "TDirectoryFile.h"
 #include "TFile.h"
+#include "TNtuple.h"
 #include "TObjArray.h"
 #include "TObjString.h"
 
@@ -115,6 +116,8 @@ class TrHistoMan : public TObject {
   TDirectory* fDirLayers[maxlay];  
   //! TObject hash table containing the histos
   map<Int_t,TNamed*> fHashTable;
+  //! Who is the Owner?
+  Bool_t fOwnerItself;
 
  public:
 
@@ -231,12 +234,12 @@ class TrHistoMan : public TObject {
   void FillLadder(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   void FillLadder(Int_t tkid, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   //! Fills an Entries histogram 
-  void FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);  
-  void FillEntry(Bool_t bothsides, TrClusterR*    cluster, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillEntry(Bool_t bothsides, TrRecHitR*     hit,     char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillEntry(Bool_t bothsides, TrTrackR*      track,   char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}  
-  void FillEntry(Int_t side, Int_t tkid, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);  
-  void FillEntry(Int_t tkid, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);  
+  void FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char* name);  
+  void FillEntry(Bool_t bothsides, TrClusterR*    cluster, char* name);
+  void FillEntry(Bool_t bothsides, TrRecHitR*     hit,     char* name) {}
+  void FillEntry(Bool_t bothsides, TrTrackR*      track,   char* name) {}  
+  void FillEntry(Int_t side, Int_t tkid, char* name);  
+  void FillEntry(Int_t tkid, char* name);  
 
   /////////////////////////
   // Other methods
@@ -270,6 +273,8 @@ class TrOnlineMonitor : public TrHistoMan {
   int fFlag;  
   //! Low Dt definition
   float fDtMin;
+  //! TTree for time dependent quantities
+  TNtuple* fTimeNtuple;
 
  public:
 
@@ -280,7 +285,10 @@ class TrOnlineMonitor : public TrHistoMan {
   //! Copy constructor 
   TrOnlineMonitor(const TrOnlineMonitor &);
   //! Destructor
-  ~TrOnlineMonitor() { fFlag = 0; fDtMin = 0; }
+  virtual ~TrOnlineMonitor();
+
+  //! GetTree
+  TTree* GetTimeNtuple() { return fTimeNtuple; }
 
   //! Set level of detail (0 = high detailed, 1 = low detailed)
   void SetFlag(int flag) { fFlag = flag; }

@@ -356,8 +356,8 @@ int  TrLadCal::Lin2Cal(float* offset){
     HwId           = (int)offset[0];
     dspver         = (int)offset[1];
     S1_lowthres    = offset[2];
-    S2_highthres   = offset[3];
-    S1_lowthres    = offset[2];
+    S1_highthres   = offset[3];
+    S2_lowthres    = offset[2];
     S2_highthres   = offset[3];
     K_lowthres     = offset[2];
     K_highthres    = offset[3];
@@ -380,8 +380,8 @@ int  TrLadCal::Lin2Cal(float* offset){
     HwId           = (int)offset[0];
     dspver         = (int)offset[1];
     S1_lowthres    = offset[2];
-    S2_highthres   = offset[3];
-    S1_lowthres    = offset[4];
+    S1_highthres   = offset[3];
+    S2_lowthres    = offset[4];
     S2_highthres   = offset[5];
     K_lowthres     = offset[6];
     K_highthres    = offset[7];

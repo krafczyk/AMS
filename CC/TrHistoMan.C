@@ -26,6 +26,16 @@ ClassImp(TrOnlineMonitor);
 
 TrOnlineMonitor* ptrman = 0;
 
+TrOnlineMonitor::~TrOnlineMonitor() {
+   if (fOwnerItself) { 
+     if (fTimeNtuple) delete fTimeNtuple; 
+   }
+   fFlag = 0; 
+   fDtMin = 0; 
+   fTimeNtuple = 0;
+}
+
+
 TrOnlineMonitor::TrOnlineMonitor(const TrOnlineMonitor &orig) : TrHistoMan(orig) {
   fFlag = orig.fFlag; 
   fDtMin = orig.fDtMin;
@@ -70,6 +80,8 @@ void TrOnlineMonitor::Book() {
   DefineTracker("SignalOnTrack","; Amplitude (ADC)",100,0.,250.,1);
 
   // Ladder Summary Plots  
+  DefineEntries("RawEntries",kTRUE);
+  DefineEntries("TrackEntries",kTRUE);
   DefineTracker("Size_vs_Ladder","; iCrate*24 + iTDR; Ladder Segment Size (byte)",192,-0.5,191.5,300,0.,600.,1);
   DefineTracker("SizeLowDT_vs_Ladder","; iCrate*24 + iTDR; Ladder Segment Size for #Deltat<200 us (byte)",192,-0.5,191.5,300,0.,600.,1); 
   DefineTracker("Signal_vs_Ladder","; iCrate*24 + iTDR; Amplitude (ADC)",192,-0.5,191.5,100,0.,250.,1);
@@ -95,13 +107,13 @@ void TrOnlineMonitor::Book() {
   DefineTracker("logRigidityMinus","; log(-R/GV)",100,-2,4.,kFALSE);
   DefineTracker("logChiSq_vs_logRigidity","; log(|R|/GV); log(#chi^{2})",100,-2.,4.,100,-3,5.,kFALSE);
   DefineTracker("InvRigidity","; 1/R",500,-0.5,0.5,kFALSE);
-  DefineTracker("ErrInvRigidity","; #sigma_{1/R}",500,-0.5,0.5,kFALSE);
+  DefineTracker("ErrInvRigidity","; log(|R|/GV); #sigma_{1/R}*|R|",100,-2.,4.,200,-0.,2.,kFALSE);
   DefineTracker("nClustersOnTrack_vs_Ladder","; iCrate*24 + iTDR; n. of Clusters On Track",192,-0.5,191.5,11,-0.5,10.5,kTRUE);
   DefineTracker("nClustersOnTrack","; n. of Clusters On Track",11,-0.5,10.5,kTRUE);
   DefineTracker("nRecHitsOnTrack","; n. of Rec. Hits On Track",11,-0.5,10.5,kFALSE);
 
+  // Full Output: ladder-by-ladder 
   if (fFlag>0) {
-    // Full Output (Ladder by Ladder)
     DefineLadders("Size","; fragment size (byte)",200,0.,400.,kTRUE); 
     DefineLadders("Size","; fragment size (byte)",200,0.,400.,kFALSE);
     DefineLadders("SeedAddress","; Channel",1024,0,1024,kFALSE); 
@@ -115,7 +127,16 @@ void TrOnlineMonitor::Book() {
     DefineLadders("NElementLowDT","; n. of Strips for #Deltat<200 us",128,0.,128.,kTRUE);
     DefineLadders("SignalToNoiseLowDT","; Seed S/N",100,0.,100.,kTRUE);
   }
+
   Sumw2();
+
+  // Time ntuple
+  if (fFlag>1) {
+    TDirectory* saveddir = gDirectory;
+    fDir->cd();
+    fTimeNtuple = new TNtuple("timentuple","Time Dependent Quantities","Time:Size:nRaw:nClu:nHit:nTrk");
+    saveddir->cd();
+  }
 }
 
 
@@ -144,7 +165,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   FillTracker("nRecHits_vs_DT",dt,nhit);
   FillTracker("nTracks",ntrk);
   FillTracker("nTracks_vs_DT",dt,ntrk);
-  
+
   // init
   int TrackerSize = 2; 
   int CrateSize[8] = {2,2,2,2,2,2,2,2}; 
@@ -179,6 +200,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     LadderSize[iside][entry] += clsize;
     LadderClusters[iside][entry]++;
     TdrSize[icrate][itdr] += clsize;
+    FillEntry(iside,tkid,"RawEntries");
     FillTracker("SeedAddress_vs_Ladder",entry,addr);
     FillLayer(kFALSE,cluster,"SeedAddress",addr);
     FillTracker(iside,"Signal",signal);
@@ -275,7 +297,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
       else            FillTracker("logRigidityPlus",log10(rigidity));
       FillTracker("logChiSq_vs_logRigidity",log10(fabs(rigidity)),log10(chisq));
       FillTracker("InvRigidity",1./rigidity);
-      FillTracker("ErrInvRigidity",track->GetErrRinv(1));
+      FillTracker("ErrInvRigidity",log10(fabs(rigidity)),track->GetErrRinv(1)*fabs(rigidity));
  
       // track->InterpolateLayer(0,global,direction); // interpolation at layer 1
       FillTracker("Y_vs_X",global.x(),global.y());
@@ -296,16 +318,19 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
         TrRecHitR* hit = track->GetHit(ihit);
         TrClusterR* clx = hit->GetXCluster();
         TrClusterR* cly = hit->GetYCluster();
-        TkLadder* ladder = TkDBc::Head->FindTkId(hit->GetTkId());
+        int tkid = hit->GetTkId();
+        TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
         int ientry = ladder->GetCrate()*24 + ladder->GetTdr();
         if (clx!=0) { 
           nclus[0]++;
           LadderClusters[0][ientry]++;
+          FillEntry(0,tkid,"TrackEntries");
           FillTracker(0,"SignalOnTrack",hit->GetXCluster()->GetTotSignal());
         }
         if (cly!=0) {
           nclus[1]++;
           LadderClusters[1][ientry]++;
+          FillEntry(1,tkid,"TrackEntries");
           FillTracker(1,"SignalOnTrack",hit->GetYCluster()->GetTotSignal());
         }
         FillLayer(hit->GetLayer(),"Occupancy",hit->GetCoord().x(),hit->GetCoord().y());
@@ -317,6 +342,11 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
         }
       }
     }
+  }
+
+  // time ntuple
+  if (fFlag>1) {
+    fTimeNtuple->Fill(event->UTime(),2*TrackerSize,nraw,nclu,nhit,ntrk);
   }
 }
 
@@ -349,11 +379,13 @@ TrHistoMan::TrHistoMan(TFile* file, char* name, char* title) {
   TDirectory* saveddir = gDirectory;
   fHashTable.clear();
   fFile = file;
-  if (fFile!=0) {
-    fFile->cd();  
+  if ( (fFile!=0)&&(fFile->IsOpen()!=0) ) { // fFile is the owner
+    fFile->cd(); 
+    fOwnerItself = kFALSE;
   }
-  else {
-    printf("TrHistoMan::Ctor-W-no output file specified, writing disabled.\n");
+  else { // owner is itself
+    printf("TrHistoMan::Ctor-W invalid/absent output file specified, writing disabled\n");
+    fOwnerItself = kTRUE;
   }     
   fDir = gDirectory->mkdir(name,title);
   fDir->cd();
@@ -400,24 +432,34 @@ TrHistoMan::TrHistoMan(const TrHistoMan &orig) : TObject(orig) {
     fHashTable.clear();
     fHashTable.insert(orig.fHashTable.begin(),orig.fHashTable.end());
   }
+  fOwnerItself = orig.fOwnerItself;
 }
 
 
-TrHistoMan::~TrHistoMan(){
-  // this destructor has to be executed befor the fFile->Close() ...
-  fDir->cd();
-  fDir->DeleteAll();
-  if (!fHashTable.empty()) fHashTable.clear();
-  fHeader = 0;
-  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) fDirLayers[ll] = 0;
+TrHistoMan::~TrHistoMan() {
+  if (fOwnerItself) { // owner is itself, destroy members
+    if (fDir!=0) {
+      fDir->cd();
+      fDir->DeleteAll();
+    }
+    if (!fHashTable.empty()) fHashTable.clear();
+    if (!fHeader) fHeader->Clear();
+  }
+  // fFile is the owner, no deletion
+  map<Int_t,TNamed*>::iterator it;
+  for (it=fHashTable.begin(); it!=fHashTable.end(); it++) (*it).second = 0;
+  fHashTable.clear();
   fDir = 0;
+  for (int ll=0; ll<TkDBc::Head->nlay(); ll++) fDirLayers[ll] = 0;
+  fHeader = 0;
   fFile = 0;
+  
 }
 
 
 void TrHistoMan::Write() {
-  if (fFile==0) {
-    printf("TrHistoMan::Write-E-no output file specified, skipping writing.\n");
+  if ( (fFile==0)||(fFile->IsOpen()==0) ) {
+    printf("TrHistoMan::Write-W invalid/absent output file, writing disabled\n");
     return;
   }
   fDir->cd();
@@ -1188,7 +1230,7 @@ void TrHistoMan::FillLadder(Int_t TkId, char *name, Double_t X1, Double_t X2, Do
 
 
 void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
-  FillEntry  (bothsides, cluster, name, X1, X2, X3, w); 
+  FillEntry  (bothsides, cluster, name); 
   FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
   FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
   FillLadder (bothsides, cluster, name, X1, X2, X3, w);
@@ -1196,7 +1238,7 @@ void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, char *name, Doub
 
 
 void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
-  FillEntry  (bothsides, cluster, name, X1, X2, X3, w); 
+  FillEntry  (bothsides, cluster, name); 
   FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
   FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
   FillLadder (bothsides, cluster, name, X1, X2, X3, w);
@@ -1204,7 +1246,7 @@ void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, char *name, Double_
 
 
 void TrHistoMan::Fill(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
-  FillEntry  (side, tkid, name, X1, X2, X3, w); 
+  FillEntry  (side, tkid, name); 
   FillTracker(side, name, X1, X2, X3, w); 
   FillLayer  (side, abs(tkid/100), name, X1, X2, X3, w);
   FillLadder (side, tkid, name, X1, X2, X3, w);
@@ -1212,14 +1254,14 @@ void TrHistoMan::Fill(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t 
 
 
 void TrHistoMan::Fill(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
-  FillEntry  (tkid, name, X1, X2, X3, w); 
+  FillEntry  (tkid, name); 
   FillTracker(name, X1, X2, X3, w); 
   FillLayer  (abs(tkid/100), name, X1, X2, X3, w);
   FillLadder (tkid, name, X1, X2, X3, w);
 }
 
 
-void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name){
   char histoname[80];
   int TkId         = cluster->GetTkId();
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1250,7 +1292,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name,
 }
 
 
-void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name){
   char histoname[80];
   int TkId         = cluster->GetTkId();
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1276,7 +1318,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name, Do
 }
 
 
-void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name){
   char histoname[80];
   TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
   int layer        = ladder->GetLayer();
@@ -1294,7 +1336,7 @@ void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name, Double_t X1, Doub
 }
 
 
-void TrHistoMan::FillEntry(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w){
+void TrHistoMan::FillEntry(Int_t tkid, char *name){
   char histoname[80];
   TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
   int layer        = ladder->GetLayer();

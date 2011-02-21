@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.10 2011/02/07 12:28:12 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.11 2011/02/21 10:15:36 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/02/07 12:28:12 $
+///$Date: 2011/02/21 10:15:36 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -341,7 +341,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }
 
-  if(cpar&0x4){ // Sigma low (1/8 ADC units)
+  if(cpar&0x4){ // Sigma low (1/8 ADC units): USED TO CONSTRUCT SIGMA (see LadCal::Fill method)
     if(pri>0) printf("Reading Low-Sigma\n");
     for (int ii=0;ii<1024;ii++){
       cal.sig[ii]=*(rr++)*1.;
@@ -374,6 +374,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   }
 
   if(cpar&0x20){ // Double-Trigger Occupancy Table
+    // starting from version a810
     if(pri>0) printf("Reading Double-Trigger Occupancy Table\n");
     for (int ii=0;ii<1024;ii++){
       // if(pri>0) printf("Occupancy  %d  %d\n",ii,*rr));
@@ -387,6 +388,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   }
   
   if(cpar&0x40){ // CN Sigma
+    // starting from version a810
     if(pri>0) printf("Reading CN RMS\n");
     for (int ii=0;ii<16;ii++){ 
       // if(pri>0) printf("CN rms  %d  %d\n",ii,(short int)*rr));
@@ -400,6 +402,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   }  
   
   if(cpar&0x80){ // CN mean
+    // starting from version a810
     if(pri>0) printf("Reading CN Mean\n");
     for (int ii=0;ii<16;ii++){
       // if(pri>0) printf("CN mean  %d  %d\n",ii,(short int)*rr);
@@ -412,13 +415,15 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }  
 
-  if (cpar&0x100){ // Non-Gaussian Occupancy Table 
-    // present from version a810 
-    // in version a810 calculated from calibration
-    // from version a903 calculated from data  
+  if (cpar&0x100){ // Non-Gaussian Occupancy Table (from calibration)
+    // starting from version a810
+    // from a810: calculated from calibration
+    // from aa02: calculated from data  
+    // from aa1b: calculated from calibration
     // if (pri>0) printf("Reading Occupancy table (non-gaussian channels)\n");
     if(pri>0) printf("Reading Non-Gaussian Occupancy Table\n");
     for (int ii=0;ii<1024;ii++){
+      // this table is temporary, as the memory space used by this table is also used by reduction process 
       cal.occupgaus[ii]=(unsigned short int)*(rr++);
     }
   }
@@ -428,13 +433,25 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }
      
-  if(cpar&0x200){ // Sigma (present from version a810), DISCARDED (backward comp.)
+  if(cpar&0x200){ // Sigma, DISCARDED (backward comp.)
+    // starting from version a810
+    // if (pri>0) printf("Reading Sigma\n");
+    if(pri>0) printf("Reading Sigma\n");
+    for (int ii=0;ii<1024;ii++) {
+      // to get the real occupancy value you will have to mask the value with 0x7FFF
+      *(rr++);
+    }
+  }
+
+  if(cpar&0x400){ // Non-Gaussian Occupancy Table (from data), DISCARDED
+    // starting from version aa1b
     // if (pri>0) printf("Reading Sigma\n");
     if(pri>0) printf("Reading Sigma\n");
     for (int ii=0;ii<1024;ii++) {
       *(rr++);
     }
   }
+
 
   cal.dspver=*(rr++);          if(pri>0) printf("Detector DSP version %hX\n",cal.dspver);
   cal.S1_lowthres=*(rr++)/8.;  if(pri>0) printf("Lowsigma factor S1 %f\n",cal.S1_lowthres);
