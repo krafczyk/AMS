@@ -5,7 +5,7 @@
   gROOT->Reset();
 
   // Set AMSWD directory
-  //  gSystem->Setenv("AMSWD","/AMS");
+  gSystem->Setenv("AMSWD","/afs/cern.ch/ams/Offline/KSC/AMS");
   //     gSystem->Setenv("AMSWD","/Offline/vdev");
 
   // Set include path
@@ -13,12 +13,7 @@
 
   // Load AMS shared library
   // For Linux 2.6 load
-  gSystem->Load("$AMSWD/lib/linux/ntuple_slc4_PG.so");
-
-  TString cmd=gSystem->GetMakeSharedLib();
-  cmd.ReplaceAll("-m64","-m32");
-  gSystem->SetMakeSharedLib(cmd);
-
+  gSystem->Load("$AMSWD/lib/linuxicc/ntuple_slc4_PG.so");
 
   //gDebug=5;
   // For Linux 2.4
@@ -27,8 +22,9 @@
   TChain chain("AMSRoot");
   //chain.Add("/r0fc00//Data/AMS02/2009B/bt.aug2010.v5/pr400/1281704189.*.root");
   //chain.Add("/fcdat1/Data/AMS02/2009B/bt.aug2010.v5.p2/pr400.416/*.root");
-  chain.Add("/data7/DATA/bt.aug2010.v5.p3/pr400.416/*.root"); 
+  chain.Add("/fcdat1/Data/AMS02/2009B/data2010/cosmics.ksc/1289931*.root"); 
   chain.Process("daqePG.C+","daqePG_pr400.root");
 
 
 }
+
