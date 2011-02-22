@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.92 2011/02/20 14:30:11 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.93 2011/02/22 09:22:29 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/02/20 14:30:11 $
+/// $Date: 2011/02/22 09:22:29 $
 ///
-/// $Revision: 1.92 $
+/// $Revision: 1.93 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1554,17 +1554,17 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it)
   }
 
   if (CpuTimeUp()) return 0;
-#ifndef __ROOTSHAREDLIBRARY__
-	AMSgObj::BookTimer.start("Track3");
-#endif
+//#ifndef __ROOTSHAREDLIBRARY__
+//	AMSgObj::BookTimer.start("Track3");
+//#endif
 
   // Evaluate current candidates if idx has reached to the end
   if (idx == it.nlayer) return (it.mode == 1) ? LadderScanEval(it)
                                               : HitScanEval   (it);
-#ifndef __ROOTSHAREDLIBRARY__
-	AMSgObj::BookTimer.stop("Track3");
+//#ifndef __ROOTSHAREDLIBRARY__
+//	AMSgObj::BookTimer.stop("Track3");
 	//	hman.Fill("Time",AMSgObj::BookTimer.Get("Track3"),ntrrechit);
-#endif
+//#endif
 
   // Skip if current layer is disabled
   int il = it.ilay[idx];

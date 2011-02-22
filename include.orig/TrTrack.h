@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.57 2011/02/20 14:30:20 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.58 2011/02/22 09:22:29 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/02/20 14:30:20 $
+///$Date: 2011/02/22 09:22:29 $
 ///
-///$Revision: 1.57 $
+///$Revision: 1.58 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -142,6 +142,8 @@ public:
   enum EFitOptions { 
     /// Multiple scattering switch
     kMultScat   = 0x10,
+    /// Set the fitting weight of all the points same
+    kSameWeight = 0x100000,
     /// Upper half option
     kUpperHalf  = 0x20,
     /// Lower half option
@@ -314,6 +316,7 @@ public:
                           \li 3 ChikanianF (the original A. Chikanian algo not for refit);
                           \li 4 ChikanianC (Chikanin C version, in development not for general use);
                         \li +10 mscattering off;
+                        \li +20 same weight;
     \param pattern    Hit Pattern= 
                      \li  0   all hits belonginf to track; (maximum span)
 					 \li  1   inner upper half;

@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.93 2011/02/20 14:30:11 pzuccon Exp $
+// $Id: TrTrack.C,v 1.94 2011/02/22 09:22:29 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/20 14:30:11 $
+///$Date: 2011/02/22 09:22:29 $
 ///
-///$Revision: 1.93 $
+///$Revision: 1.94 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -84,9 +84,11 @@ float TrTrackR::DefaultCharge = 1;
 const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
   { kChoutko, kChoutko|kMultScat, 
     kAlcaraz, kAlcaraz|kMultScat,
-    kChikanian, kChikanianF, 0, 0 };
+    kChikanian, kChikanianF, 
+    kChoutko|kSameWeight, 
+    kAlcaraz|kSameWeight };
 
-int TrTrackR::AdvancedFitBits = 0x0f;
+int TrTrackR::AdvancedFitBits = 0xcf; // kChikanian and kChikanianF is off
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -657,7 +659,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   _TrFit.SetMassChrg(mass, chrg);
 
   // Set multiple scattering option and assumed mass
-  if (id & kMultScat) 
+  if ((id & kMultScat) && !(id & kSameWeight)) 
     TrFit::_mscat = 1;
   else
     TrFit::_mscat = 0;
@@ -795,7 +797,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     double fmscy = 1;
 
     // Tune fitting weight
-    if (!TrFit::_mscat) {
+    if (!TrFit::_mscat && !(id & kSameWeight)) {
       int    ily  = hit->GetLayer()-1;
       double fitw = TRFITFFKEY.FitwMsc[ily];
       double fwxy = (errx > 0) ? erry/errx*2 : 1;
@@ -819,9 +821,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   if (method == TrFit::CHIKANIAN  || 
       method == TrFit::CHIKANIANF || TrFit::_mscat) {
-    Double_t rini = 0;
-    Int_t idr = kChoutko;
-    Int_t idl = id & (kFitLayer8 | kFitLayer9);
+    double rini = 0;
+    int idr = kChoutko;
+    int idl = id & (kFitLayer8 | kFitLayer9);
 
     if (ParExists(idr | idl)) idr = idr | idl;
     if (ParExists(idr)) rini = GetRigidity(idr);
@@ -1094,13 +1096,12 @@ int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
-/*
-   // Chikanian fit only with ext. layers
-   if ((DefaultAdvancedFitFlags[ii] == kChikanian ||
-	DefaultAdvancedFitFlags[ii] == kChikanianF) && 
+
+   // SameWeight fit only with ext. layers
+   if ((DefaultAdvancedFitFlags[ii] & kSameWeight) &&
        !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
      continue;
-*/
+
    if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
      FitT(DefaultAdvancedFitFlags[ii]| add_flag);
      if (add_flag == 0) {
@@ -1191,6 +1192,7 @@ void TrTrackR::PrintFitNames(){
 int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg){
   int type=algo%10;
   bool mscat=((algo/10)==1);
+  bool wsame=((algo/20)==1);
   int fittype=0;
   switch (type){
     case 0 :
@@ -1211,8 +1213,11 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     default :
       fittype|=kChoutko;
   }
-  if((!mscat) && (fittype!=kChikanianF && fittype!=kChikanian))
-    fittype|=kMultScat;
+
+  if (fittype!=kChikanianF && fittype!=kChikanian) {
+    if (!mscat && !wsame) fittype|=kMultScat;
+    if (           wsame) fittype|=kSameWeight;
+  }
   int ebpat = _bit_pattern & 0x180;
   int basetype=fittype;
   if(pattern==0){

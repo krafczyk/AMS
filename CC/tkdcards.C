@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.49 2011/02/20 14:30:11 pzuccon Exp $
+// $Id: tkdcards.C,v 1.50 2011/02/22 09:22:29 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -83,7 +83,7 @@ for (int ii=0;ii<9;ii++){
   //debug
   TrDEBUG = 0;
   PZDEBUG = 0;
-  AdvancedFitFlag = 0x2f; //0x3f;
+  AdvancedFitFlag = 0xef; // kChikanian is off
   //TAS
   TasRecon = 0;
   TasCurr  = 0;
