@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.51 2011/02/18 20:36:21 choutko Exp $
+//  $Id: main.cxx,v 1.52 2011/02/22 09:58:18 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -273,11 +273,6 @@ void OpenChain(AMSChain & chain, char * filenam){
   bool wild=false;
   bool remote=false;
    if(a.Contains(b)){
-#if !defined(WIN32) && !defined(__APPLE__)
-    TRFIOFile f("");
-    TXNetFile g("");
-     TCastorFile h("");
-#endif
     strcpy(filename,filenam);
     remote=true;
    }

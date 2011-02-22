@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.94 2011/02/22 09:22:29 shaino Exp $
+// $Id: TrTrack.C,v 1.95 2011/02/22 09:58:18 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/22 09:22:29 $
+///$Date: 2011/02/22 09:58:18 $
 ///
-///$Revision: 1.94 $
+///$Revision: 1.95 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1214,10 +1214,17 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       fittype|=kChoutko;
   }
 
+
   if (fittype!=kChikanianF && fittype!=kChikanian) {
     if (!mscat && !wsame) fittype|=kMultScat;
     if (           wsame) fittype|=kSameWeight;
   }
+
+  if(fittype==kChikanianF &&refit>0){
+    printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
+    return -1;
+  }
+  
   int ebpat = _bit_pattern & 0x180;
   int basetype=fittype;
   if(pattern==0){

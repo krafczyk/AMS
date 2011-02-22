@@ -63,7 +63,7 @@ ifndef CERNDIR
   FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
 else
   FFOLD=$(FF)
-  FORTRAN_LIBS= -lg2c
+  FORTRAN_LIBS= 
 endif
   FFLAGSSAVE= -save
   FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVERF)/../../lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
