@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.48 2010/11/16 20:59:14 choutko Exp $
+//  $Id: client.C,v 1.49 2011/02/23 20:12:54 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -142,6 +142,7 @@ else{
    }
 */  
   _pid.HostName=(const char*)as;
+
   return true;
 }
 }

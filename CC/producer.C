@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.149 2011/02/14 14:10:32 choutko Exp $
+//  $Id: producer.C,v 1.150 2011/02/23 20:12:48 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2039,7 +2039,15 @@ else sprintf(tmpu,"%d",_pid.uid);
      fbin>>tmpbuf;
      if(strstr(tmpbuf,tmpu) && strstr(tmpbuf,".job")){
       cout <<"   Found job "<<tmpbuf<<endl;
-      fscript+=tmpbuf;
+      int beg=-1;
+      for(int k=0;k<strlen(tmpbuf);k++){
+         if(tmpbuf[k]=='('){  
+           beg=k;
+           break;
+         }
+      }
+        
+      fscript+=tmpbuf+beg+1;
       found=true;
       break;
      } 
@@ -2050,6 +2058,55 @@ else sprintf(tmpu,"%d",_pid.uid);
       cout << " AMSProducer-W-UsingAMSFSCRIPT "<<endl;
       fscript=getenv("AMSFSCRIPT");
     }
+
+{
+//
+// Check if submitted via lsf 
+// set up hostname  and pid as lxplus/ams job_entry
+//
+              char atmpu[80];
+              sprintf(atmpu,"%d",_pid.pid);
+              AString afout="/tmp/";
+              afout+=tmpu;
+              afout+=".bjobs";
+              int id=-1;
+              AString afscript="/afs/cern.ch/ams/local/lsf/bin/bjobs -J '";
+              afscript+=(const char *)fscript;
+              afscript+="*'     1>";
+              afscript+=(const char*)afout;
+              afscript+=" 2>&1";
+             cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
+              int i=system((const char*)afscript);
+              char line[1024];
+              if(i==0){
+                ifstream afbin;
+                afbin.open((const char*)afout);
+                afbin.getline(line,1023);
+                if(strstr(line,"JOBID")){
+                  afbin>>id;
+                  cout << "AMSClient-I-bsubDetected "<<id<<endl;
+                }
+                afbin.close();
+               }
+               unlink ( (const char*)afout); 
+              if(id>0){
+                  if(strstr(_pid.HostName,"lsb")){
+                    _pid.HostName="lxplus.cern.ch";
+                    _pid.pid=id;
+                    _pid.ppid=0;
+                  }
+                  else if(strstr(_pid.HostName,"ams")){
+                    _pid.HostName="pcamsf2.cern.ch";
+                    _pid.pid=id;
+                    _pid.ppid=0;
+                  }
+                 } 
+           }
+
+
+
+
+
     ifstream f1;
     f1.open((const char *)fscript);
     if(f1){
@@ -2066,7 +2123,7 @@ else sprintf(tmpu,"%d",_pid.uid);
     }
     }
     else{
-     cerr<<" AMSProducer::SetDatacards-S-UnableToOpenFile "<<(const char *)fscript<<endl;
+     cerr<<" AMSProducer::SetDatacards-S-UnableToOpenFile "<<(const char *)fscript<<"|"<<endl;
      return false; 
     }
   }
