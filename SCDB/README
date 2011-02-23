@@ -1,0 +1,17 @@
+To install you will have to set AMICLIB and XMLRPCLIB accordingly (->Makefile)
+
+examples:
+
+converts AMI data to ROOT format for given time [1291270000;1291280000]
+./ConvertAMI 1291270000 1291280000
+
+specify NA&DT combinations in a config file (e.g. test.config)
+./ConvertAMI 1291270000 1291280000 test.config
+
+dump the slow control database information for an existing root file
+./ScanDB SCDB.<begin>.<end>.root USCM_UG_A 1
+./ScanDB SCDB.<begin>.<end>.root USCM_TTCE_A 1
+./ScanDB SCDB.<begin>.<end>.root USCM_TTCE_A 1
+
+merge slow control database information of existing root files to one
+./MergeDB SCDB.<begin1>.<end1>.root SCDB.<begin2>.<end2>.root (...)
