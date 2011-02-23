@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.57 2010/11/08 18:53:46 barao Exp $
+//  $Id: richdbc.h,v 1.58 2011/02/23 13:42:38 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -255,7 +255,7 @@ public:
   static geant lg_mirror_angle(integer);
   static geant lg_mirror_pos(integer);
   static integer detcer(geant);
-  static geant max_step();
+  static geant max_step(double index=0);
   static geant mean_height();
   static integer _Nph;
 #pragma omp threadprivate(_Nph)

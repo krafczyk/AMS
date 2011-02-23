@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.109 2011/02/18 20:36:14 choutko Exp $
+//  $Id: gmat.C,v 1.110 2011/02/23 13:42:38 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -796,7 +796,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 
 // Radiator
 
-  geant my_step=RICHDB::max_step();
+  geant my_step=RICHDB::max_step()/2;
   AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD",
            "RICH_AEROGEL",0,'N',0,1,20,10,my_step));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
@@ -804,7 +804,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   
   // NaF (Secondary radiator)
   pgtmed=(AMSgtmed*)  tmed.add (new AMSgtmed("RICH NAF",
-					     "RICH_NaF",0));
+					     "RICH_NaF",0,'N',0,1,20,10,RICHDB::max_step(RICHDB::naf_index)/2));
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::naf_abs_length,dummy,
 		  RICHDB::naf_index_table,0.);
   RICHDB::naf_media=pgtmed->getmedia();  
@@ -813,7 +813,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   
 //  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
     pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS",
-    "PMT_WINDOW",1)); //35 
+						"PMT_WINDOW",1,'N',0,1,20,10,RICHDB::max_step(RICHDB::pmtw_index)/2)); //35 
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000
@@ -824,7 +824,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 
 // Solid light-guides. They only work if __HOLLOW__ is undefined in richdbc.h 
   pgtmed= (AMSgtmed*) tmed.add (new AMSgtmed("RICH SOLG",
-					     "RICH_SOLG",0));
+					     "RICH_SOLG",0,'N',0,1,20,10,RICHDB::max_step(1.49)/2));
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=RICHDB::lg_abs[iw];
@@ -835,7 +835,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 
   // Hesaglass for support foil and upper LG foil
   pgtmed= (AMSgtmed*) tmed.add (new AMSgtmed("HESAGLASS",
-					     "HESA_GLASS",0));
+					     "HESA_GLASS",0,'N',0,1,20,10,RICHDB::max_step(RICHDB::foil_index)/2));
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=RICHDB::support_foil_abs[iw];
