@@ -361,16 +361,24 @@ class SlowControlDB: public TChain{
 	/*! 
 	 \param name       the name of the desired quantity
 	 \param timestamp  Unix time (sec from 1970)
-	 \param frac       second fraction after the timestamp  
+	 \param frac       second fraction after the timestamp
+         \param val        return value  
 	 \param flag   0 = the closer in time
 	 1 = linear interplolation
 	 2 = polynomial interpolation (to be implemented)
-	 \return  The desired value or On Error  -99999
+	 \return  0   success
+                  1  no name found
+                  2  outside of bounds
+  
 	 */
-  //  float GetData(char* name,unsigned int timestamp,float frac,int flag){
-  //    SlowControlEl* el=GetEl(name);
-  //    return el->Find(timestamp,frac,flag);
-  //  }
+    int GetData(char* name,unsigned int timestamp,float frac,float &val,int flag=1){
+       SlowControlEl* el=GetElem(name);
+       if(!el)return 1;
+          
+       val= el->Find(timestamp,frac,flag);
+       if(val==-99999.)return 2;
+       else return 0;
+    }
   
   /// Print infos about all the members of the DB
   void Print(const Option_t* aa=0){
@@ -385,8 +393,6 @@ class SlowControlDB: public TChain{
 
     return;
   }
-
   ClassDef(SlowControlDB,1);
 };
 
-extern SlowControlDB* head;

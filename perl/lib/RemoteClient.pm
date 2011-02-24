@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.624 2011/02/14 14:11:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.625 2011/02/24 00:04:28 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3483,7 +3483,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                     print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
                     print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
-                    print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
+                    print "<td width=15%><b><font color=\"blue\" > Triggers </font></b></td>";
                     print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
                     print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
                     print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
@@ -3508,12 +3508,13 @@ CheckCite:            if (defined $q->param("QCite")) {
                   }
                  }
                  if ($printit == 1) {
+                     my $ntr=$nt->[8]-$nt->[9]+1;
                   my $timel =localtime($nt->[4]);
                   my ($wday,$mon,$day,$time,$year) = split " ",$timel;
                   my $status=$nt->[5];
                   my $color=statusColor($status);
                   print "<td width=50%><b> $path    </td></b><td><b> $nt->[2] </td>
-                        <td align=middle width=5%><b> $nt->[3] </b></td>
+                        <td align=middle width=5%><b> $ntr </b></td>
                         <td align=middle width=5%><b> $nt->[6] </b></td>
                         <td align=middle width=25%><b> $mon $day, $time, $year </b></td>
                         <td align=middle width=10%><b><font color=$color> $status </font></b></td> \n";
@@ -7421,8 +7422,11 @@ print qq`
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
          }
-
-         $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
+         my $path='./';
+         if($self->{CCT} eq "local"){
+             $path="$self->{AMSDataDir}/$self->{LocalClientsDir}/";
+         }
+         $buf=~s:export:export AMSFSCRIPT=$path$script \nexport:;
          print FILE $buf;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
@@ -8636,7 +8640,11 @@ anyagain:
          }
 }
 
-         $buf=~s/export/export AMSFSCRIPT=.\/$script \nexport/;
+         my $path='./';
+         if($self->{CCT} eq "local"){
+             $path="$self->{AMSDataDir}/$self->{LocalClientsDir}/";
+         }
+         $buf=~s:export:export AMSFSCRIPT=$path$script \nexport:;
          print FILE $buf;
 #  change tmpb to include pl1 dependence
          if($tmpb =~/15=0/){

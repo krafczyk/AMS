@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.209 2011/02/22 09:21:57 oliva Exp $
+//  $Id: ntuple.C,v 1.210 2011/02/24 00:04:27 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -831,3 +831,20 @@ if( _treesetup){
 }
 return _treesetup!=NULL;
 }
+
+
+
+
+void AMSNtuple::readRSetup(AMSEvent *ev){
+if(Get_setup02()){
+if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
+cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
+}
+}
+else cerr<<"AMSNtuple::readRSetup-E-UnableToGetRootSetup "<<endl;
+
+
+// Here read slowconroldb
+
+}
+

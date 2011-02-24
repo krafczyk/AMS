@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.4 2011/02/09 03:53:15 choutko Exp $
+//  $Id: root_setup.h,v 1.5 2011/02/24 00:04:28 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -72,12 +72,9 @@ public:
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
- typedef map <unsigned int,TTCS> TTCS_m;
- typedef map <unsigned int,TTCS>::iterator TTCS_i;
   BValues_m   fBValues; ///< Magnetic Field  from CCEB
   GPSTime_m fGPSTime;    ///< GPS Time
   ISSData_m fISSData;    ///< ISS Aux Data
-  TTCS_m fTTCS;
 
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
    typedef map <unsigned long long,ScalerMon>::iterator Scalers_i;
@@ -95,11 +92,12 @@ public:
 static    AMSSetupR * gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
+ bool FillHeader(uinteger run); //fillHeader at run start by database
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();
  void Init(TTree *tree);
-ClassDef(AMSSetupR,3)       //AMSSetupR
+ClassDef(AMSSetupR,4)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

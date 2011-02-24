@@ -1,5 +1,5 @@
 CC=gcc 
-CXX=g++
+CXX=g++ 
 
 CFLAGS          = -Wall -O2 -fPIC
 ROOTCFLAGS      = $(shell $(ROOTSYS)/bin/root-config --cflags)
@@ -15,10 +15,13 @@ ifeq ($(MODE), test)
 CFLAGS += -DTEST -Wall -Wno-write-strings
 endif
 
-all: ConvertAMI ScanDB MergeDB
+all: ConvertAMI ScanDB MergeDB ami2root
 
 ConvertAMI: src/ConvertAMI.cc $(AMICLIB)/libAMI.a  SCDBDict.o
-	$(CXX) $(CFLAGS) -o ConvertAMI src/ConvertAMI.cc $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) `$(ROOTSYS)/bin/root-config --cflags --libs` -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
+	$(CXX) $(CFLAGS) -o ConvertAMI src/ConvertAMI.cc $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB)  `$(ROOTSYS)/bin/root-config --cflags --libs` -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
+
+ami2root: src/ami2root.C $(AMICLIB)/libAMI.a  SCDBDict.o
+	$(CXX) $(CFLAGS) -o ami2root src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) -static -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
 
 ScanDB: src/ScanDB.cc  SCDBDict.o
 	$(CXX) $(CFLAGS) -o ScanDB src/ScanDB.cc `$(ROOTSYS)/bin/root-config --cflags --libs` -I$(PWD)/inc SCDBDict.o

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.160 2011/02/11 14:58:01 choutko Exp $
+//  $Id: server.C,v 1.161 2011/02/24 00:04:27 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3924,7 +3924,7 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
      submit+=".log ";
     }
     submit+=(const char*)((*cli)->WholeScriptPath);
-    submit+=" -";
+    submit+=" -s ";
     sprintf(tmp,"%d",signal);
     submit+=tmp;
     submit+=" ";

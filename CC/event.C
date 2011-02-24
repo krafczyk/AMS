@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.510 2011/02/10 22:51:17 mmilling Exp $
+//  $Id: event.C,v 1.511 2011/02/24 00:04:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -318,6 +318,11 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
   _endofrun();
  }
  _startofrun();
+}
+
+if(!AMSJob::gethead()->isSimulation()){
+AMSNtuple::readRSetup(this);
+
 }
 
 _retkinitrun();

@@ -1,5 +1,9 @@
 #include "root_setup.h"
 #include "root.h"
+#include <fstream.h>
+#ifndef __ROOTSHAREDLIBRARY__
+#include "commonsi.h"
+#endif
 AMSSetupR* AMSSetupR::_Head=0;
 void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
@@ -41,7 +45,6 @@ return true;
 }
 void AMSSetupR::Reset(){
 fGPSTime.clear();
-fTTCS.clear();
 fBValues.clear();
 fISSData.clear();
 fScalers.clear();
@@ -64,3 +67,89 @@ Reset();
   tree->SetBranchAddress("run.",&dummy);
    
 }
+#ifndef __ROOTSHAREDLIBRARY__
+bool AMSSetupR::FillHeader(uinteger run){
+// Fill Header from DB
+
+fHeader.Run=run;
+
+
+
+const char * nve=getenv("GetIorExec");
+char ior[]="getior.exe";
+if(! (nve && strlen(nve)))nve=ior;
+const char *exedir=getenv("ExeDir");
+const char *amsdatadir=getenv("AMSDataDir");
+char local[1024]="";
+
+if(! (exedir && strlen(exedir))){
+  if(amsdatadir && strlen(amsdatadir)){
+     strcpy(local,amsdatadir);
+     strcat(local,"/DataManagement/exe");
+   }
+   exedir=local;
+ }
+const char *version=AMSCommonsI::getversion(); 
+const char *nvr=AMSCommonsI::getosversion(); 
+if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
+ char t1[1024];
+ strcpy(t1,exedir);
+ strcat(t1,"/../prod");
+ setenv("TNS_ADMIN",t1,1);
+  AString systemc(exedir);
+  systemc+="/";
+  systemc+=AMSCommonsI::getosname();
+  systemc+="/";
+  systemc+=nve;
+  if(strstr(nvr,"2.6")){
+   systemc+=".6";
+  }
+  char u[128];
+  sprintf(u," -r %d",fHeader.Run);
+    systemc+=u;
+  systemc+="  > /tmp/getior.";
+  char tmp[80];
+  sprintf(tmp,"%d",getpid());
+  systemc+=tmp;
+  int i=system(systemc);
+  if(i){
+   cerr <<"  AMSSetupR::FillHeader-E-UnableTo "<<systemc<<endl;
+   systemc="rm /tmp/getior."; 
+   systemc+=tmp;
+   system(systemc);
+   return false; 
+  }
+  else{
+   systemc="/tmp/getior."; 
+   systemc+=tmp;
+   ifstream fbin;
+   fbin.open(systemc);
+   if(fbin){
+   fbin>>run;
+   if(run!=fHeader.Run){
+     cerr<<" AMSSetupR::FillHeader-E-WrongRun "<<run<<endl;
+      return false;
+    }
+    fbin>>fHeader.FEvent;
+    fbin>>fHeader.LEvent;
+    fbin>>fHeader.FEventTime;
+    fbin>>fHeader.LEventTime;
+    cout <<" AMSSetupR::FillHeader-I-"<<fHeader.Run<<" "<<fHeader.FEvent<<" "<<fHeader.LEvent<<" "<<fHeader.FEventTime<<" "<<fHeader.LEventTime<<endl;
+   fbin.close();
+   }
+   else cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
+   systemc="rm /tmp/getior."; 
+   systemc+=tmp;
+   system(systemc);
+   return true;
+   }
+}
+else{
+    cerr<<" AMSSetupR::FillHeader-E-UnableToTryToGetIORBecauseSomeVarAreNull"<<endl;
+return false;
+}
+}
+#else
+bool AMSSetupR::FillHeader(uinteger run){return true;}
+#endif
+

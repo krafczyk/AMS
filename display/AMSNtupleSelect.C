@@ -17,13 +17,15 @@ public:
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     if(ev && ev->nLevel1()   && ev->nParticle() && ev->nTrdTrack() && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0){
-        a++;
+     //if(ev && ev->nLevel1()   && ev->nParticle() && ev->nTrdTrack() && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0){
+      if(ev){
+   a++;
         if(ev->nMCTrack()){
            double step=0;
            for(int i=0;i<ev->nMCTrack();i++){
             MCTrackR tr= ev->MCTrack(i);
              step+=tr.RadL;
+             if(strstr(tr.VolName,"STK6"))cout <<tr.VolName<<" "<<tr.Pos[1]<<" "<<tr.Pos[2]<<" "<<tr.RadL<<endl;
           }
          cout <<" got "<<step<<" "<<a<<endl;
          return true;
