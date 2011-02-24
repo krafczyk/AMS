@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.1 2011/02/08 14:26:04 shaino Exp $
+// $Id: TrTrackSelection.C,v 1.2 2011/02/24 09:01:42 shaino Exp $
 #include "TrTrackSelection.h"
 #include "TMath.h"
 #include "tkdcards.h"
@@ -31,6 +31,11 @@ double TrTrackSelection::GetHalfRdiff(TrTrackR *track, int span,
 				                       int algo, int refit)
 {
   if (!track) return -1;
+
+  if (span == 3) span = kMaxInt;
+  if (span == 5) span = kHalfL1N;
+  if (span == 6) span = kHalfL9;
+  if (span == 7) span = kMaxSpan;
 
   int mfu = -1, mfl = -1, mfr = -1;
   double ehr = 0;
@@ -91,6 +96,11 @@ double TrTrackSelection::GetHalfRessq(TrTrackR *track, int span,
 				                       int algo, int refit)
 {
   if (!track) return -1;
+
+  if (span == 3) span = kMaxInt;
+  if (span == 5) span = kHalfL1N;
+  if (span == 6) span = kHalfL9;
+  if (span == 7) span = kMaxSpan;
 
   // For the moment only max span is supported
   if (span != kMaxSpan) return -1;

@@ -1,4 +1,4 @@
-//  $Id: TrTrackSelection.h,v 1.1 2011/02/08 14:26:04 shaino Exp $
+//  $Id: TrTrackSelection.h,v 1.2 2011/02/24 09:01:41 shaino Exp $
 #ifndef __TrTrackSelection__
 #define __TrTrackSelection__
 
@@ -8,11 +8,11 @@ class TrTrackSelection {
 
 public:
   enum ESpanFlags { 
-    kMaxInt   = 0x001, ///< Max  span of internal tracker (L1  && (L6||L7))
-    kHalfL1N  = 0x002, ///< Half span with Layer 1N       (L1N && (L6||L7))
-    kHalfL9   = 0x004, ///< Half span with Layer 9        (L1  && L9)
-    kMaxSpan  = 0x008, ///< Max  span of the full tracker (L1N && L9)
-    kAllPlane = 0x010  ///< Each plane has at least one hit
+    kMaxInt   = 0x101, ///< Max  span of internal tracker (L1  && (L6||L7))
+    kHalfL1N  = 0x102, ///< Half span with Layer 1N       (L1N && (L6||L7))
+    kHalfL9   = 0x104, ///< Half span with Layer 9        (L1  && L9)
+    kMaxSpan  = 0x108, ///< Max  span of the full tracker (L1N && L9)
+    kAllPlane = 0x110  ///< Each plane has at least one hit
   };
 
   /// It returns bits of ESpanFlags to give available span
@@ -21,7 +21,12 @@ public:
 /*!
   \brief It returns a normalized difference of upper/lower half rigidities
   \param span
-      Fitting span defined as ESpanFlags
+      Fitting span defined as ESpanFlags or
+      hit pattern digit
+      \li  3   Inner Tracker only (aka drop 2 external hits);
+      \li  5   inner + Layer 1N (kFitLayer8)
+      \li  6   inner + Layer 9  (kFitLayer9)
+      \li  7   inner + Layer 1N + layer 9 (kFitLayer8 & kFitLayer9)
 
   \param algo
       Fitting algorithm= 0 The default algorithm choosen at recon stage 
@@ -47,7 +52,12 @@ public:
     SH FIXME: For the moment only max span is supported
 
   \param span
-      Fitting span defined as ESpanFlags
+      Fitting span defined as ESpanFlags of
+      hit pattern digit
+      \li  3   Inner Tracker only (aka drop 2 external hits);
+      \li  5   inner + Layer 1N (kFitLayer8)
+      \li  6   inner + Layer 9  (kFitLayer9)
+      \li  7   inner + Layer 1N + layer 9 (kFitLayer8 & kFitLayer9)
 
   \param algo
       Fitting algorithm= 0 The default algorithm choosen at recon stage 
