@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.50 2011/02/22 09:22:29 shaino Exp $
+// $Id: tkdcards.C,v 1.51 2011/02/24 09:42:24 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -63,7 +63,7 @@ for (int ii=0;ii<9;ii++){
   MaxNrawCls     = 2000;
   lowdt          = 200;
   MaxNtrCls      = 500;
-  MaxNtrCls_ldt  = 150;
+  MaxNtrCls_ldt  = MaxNtrCls;
   MaxNtrHit      = 250;
   TrTimeLim      =   10;
   //Track

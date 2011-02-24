@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.93 2011/02/22 09:22:29 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.94 2011/02/24 09:42:24 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/02/22 09:22:29 $
+/// $Date: 2011/02/24 09:42:24 $
 ///
-/// $Revision: 1.93 $
+/// $Revision: 1.94 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +71,7 @@ TrReconPar::TrReconPar()
   MaxNrawCls    = 2000;
   lowdt         = 200;
   MaxNtrCls     = 1000;
-  MaxNtrCls_ldt = 150;
+  MaxNtrCls_ldt = MaxNtrCls;
   MaxNtrHit     = 100;
   TrTimeLim     = 1000;
 
