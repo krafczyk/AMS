@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.1 2011/02/24 00:02:37 choutko Exp $
+//  $Id: ami2root.C,v 1.2 2011/02/25 00:29:34 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -106,10 +106,9 @@ int main(int argc, char *argv[]){
   // set debub level
   int debug=0;
   if(argc==5)debug=atoi(argv[4]);
-  
   // map to specify which node address and which datatype should be taken into account
   map<int,vector<int> > select;
-    char * config=getenv("SLDBConfig");
+    char * config=getenv("SCDBConfig");
      char local[1024]="";
     if(!(config && strlen (config))){
       char * amsdatadir=getenv("AMSDataDir");
@@ -119,27 +118,34 @@ int main(int argc, char *argv[]){
       config=local;
      }
     }
+    cout <<" config debuf "<<config<<" "<<debug<<endl;
     if(config){
-      select=ParseConfigFile(argv[3],debug);
+      select=ParseConfigFile(config,debug);
        if(debug)PrintConfig(select);
     }  
 
   xmlrpcstr_t s;
   char amihost[80];
   char xmlurl[160];
-
-  //  sprintf(amihost, "ams.cern.ch:8081");
-  sprintf(amihost, "pcposk0:8081");
-  sprintf(xmlurl, "http://%s/AMI/insert/call/xmlrpc", amihost);
+  char *host=getenv("SCDBHost");
+  char hostlocal[]="ams.cern.ch:8081";
+//  sprintf(amihost, "pcposk0:8081");
+  if(! (host && strlen(host)))host=hostlocal;
+  sprintf(xmlurl, "http://%s/AMI/insert/call/xmlrpc", host);
+  cout <<xmlurl<<endl;
   // prepare xmlrpc environment
-  if (xmlrpc_init(&s, xmlurl, 0)) {
+  if (xmlrpc_init(&s, xmlurl, 1)) {
     /* xmlrpc already printd the problem */
+    cerr <<" unable to connect to "<<host<<endl;
     exit(3);
   }
 
   // initialize output file
   TFile *file=new TFile(argv[3],"update");
-  
+  if(!file || file->IsZombie()){
+    cerr<<" unable to open file "<<endl;
+    exit(2);
+  }
   // initialize output tree
   TTree *tree=0;
   tree=new TTree("SlowControlDB","SlowControlDB");
@@ -196,7 +202,8 @@ int main(int argc, char *argv[]){
 	  
 	// read values for selected NA/DT/ST in given time range from AMI
  	int nval=0;
-	data_vals** vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
+	data_vals** vals=0;
+         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
 	for(int ii=0;ii<nval;ii++)
 	  subtype->Add(vals[ii]->timestamp,vals[ii]->val);
 
@@ -216,6 +223,6 @@ int main(int argc, char *argv[]){
   // write file
   file->Write();
   file->Close();
-  
+  cout <<"ALLOK"<<endl;
   return 0;
 }

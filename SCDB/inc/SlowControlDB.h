@@ -287,6 +287,7 @@ class SlowControlDB: public TChain{
   /// Get the pointer to the DB
   static SlowControlDB* KillPointer(){
     delete head;
+    head=0;  //VC
     return new SlowControlDB(); 
   }
 
@@ -301,6 +302,7 @@ class SlowControlDB: public TChain{
     if(debug)printf("requesting time min %i max %i\n",minT,maxT);
     return Load(f,minT,maxT,debug);
   }
+
 
   /// Load the file from an already opened ROOT File 
   bool Load(TFile* f,unsigned int minT=0,unsigned int maxT=UINT_MAX,int debug=0){
@@ -372,10 +374,14 @@ class SlowControlDB: public TChain{
   
 	 */
     int GetData(char* name,unsigned int timestamp,float frac,float &val,int flag=1){
+
+//     completely wrong as GetElem read file
+
        SlowControlEl* el=GetElem(name);
        if(!el)return 1;
           
        val= el->Find(timestamp,frac,flag);
+       delete el;
        if(val==-99999.)return 2;
        else return 0;
     }
