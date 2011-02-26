@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.5 2011/02/24 00:04:28 choutko Exp $
+//  $Id: root_setup.h,v 1.6 2011/02/26 20:18:38 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -93,6 +93,7 @@ static    AMSSetupR * gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
+ bool FillSlowcontrolDB(const char * file);
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.625 2011/02/24 00:04:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.626 2011/02/26 20:18:38 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -874,9 +874,10 @@ if($#{$self->{DataSetsT}}==-1){
        elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
            $template->{TOTALEVENTS}=0;
          }
-       elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
+       elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{TOTALEVENTS}=0;
          }
+
        }
        if($dataset->{singlejob}){
            $template->{CPUPEREVENTPERGHZ}=1.e-9;
@@ -1045,6 +1046,9 @@ if($#{$self->{DataSetsT}}==-1){
              $template->{RUNMAX}=1;
          }
        elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
+             $template->{RUNMAX}=1;
+         }
+       elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{RUNMAX}=1;
          }
        }
@@ -3581,6 +3585,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
+#       die "nah";
         my @titles= (
         "Template",
         "Jobs",
@@ -3610,6 +3615,10 @@ CheckCite:            if (defined $q->param("QCite")) {
         }
          my $rquery=$self->{sqlserver}->Query($sql);
          my $nruns=0;
+        my $dsts=0;
+        my $gb=0;
+        my $evt=0;
+        my $trg=0;
          my $prev="";
          foreach my $templat (@{$rquery}){
           $#temp=-1;
@@ -3641,6 +3650,10 @@ CheckCite:            if (defined $q->param("QCite")) {
           push @temp,$like;
           push @temp,$i;
           $nruns+=$i;
+          $dsts+=$rsump->[0][0];
+          $gb+=int($rsump->[0][1]/100)/10; 
+          $evt+=$rsump->[0][2];
+          $trg+=$rsump->[0][3];
           push @temp,$rsump->[0][0];
           push @temp,int($rsump->[0][1]/100)/10; 
           push @temp,$rsump->[0][2];
@@ -3652,10 +3665,10 @@ CheckCite:            if (defined $q->param("QCite")) {
           $#temp=-1;
            push @temp,"Total of";
           push @temp,$nruns;
-          push @temp,$rsum->[0][0];
-         push @temp,int($rsum->[0][1]/100)/10;  
-          push @temp,$rsum->[0][2];
-           push @temp,$rsum->[0][3];
+        push @temp,$dsts;
+        push @temp,$gb;
+        push @temp,$evt;
+        push @temp,$trg;
            push @temp,"dum";
            push @output,[@temp];
 
@@ -7809,6 +7822,7 @@ anyagain:
                         $evno=$tmp->{TOTALEVENTS};
                       
                         if( $q->param("QSINGLEJOB")){
+                            my $runno=$q->param("QRun");
                         }
                         else{
                         my $runno=int($evno/$evperrun+0.5);
@@ -7927,7 +7941,7 @@ anyagain:
          }
         my $evperrun=int ($evno/$runno);
         if($evperrun > (1<<31)-1){
-            $self->ErrorPlus('EventsPerRun Exceeds 2^31-1 :'."$evperrun");
+            $self->ErrorPlus('EventsPerRun Exceeds 2^31-1 :'."$evperrun $runno");
         }
         my $lastrunev=$evno-$evperrun*($runno-1);
         my ($particleid,$timbeg,$timend,$timbegu,$timendu);

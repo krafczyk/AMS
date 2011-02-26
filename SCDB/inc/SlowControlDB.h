@@ -274,11 +274,12 @@ class SlowControlDB: public TChain{
   static SlowControlDB* head;
   unsigned int begin;
   unsigned int end;
-  //  int begin;
-  //  int end;
  public:
  SlowControlDB():TChain("SlowControlDB","SlowControlDB"){};
   
+typedef map <string,Node>::iterator  node_i;
+typedef map <string,Node>  node_m;
+node_m fNode;
   /// Get the pointer to the DB
   static SlowControlDB* GetPointer(){
     return (head)? head :new SlowControlDB(); 
@@ -399,6 +400,6 @@ class SlowControlDB: public TChain{
 
     return;
   }
-  ClassDef(SlowControlDB,1);
+  ClassDef(SlowControlDB,2);
 };
 

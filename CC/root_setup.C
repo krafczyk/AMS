@@ -153,3 +153,82 @@ return false;
 bool AMSSetupR::FillHeader(uinteger run){return true;}
 #endif
 
+
+#ifndef __ROOTSHAREDLIBRARY__
+bool AMSSetupR::FillSlowcontrolDB(const char * file){
+// Fill SlowcontrolDB via AMI interface
+
+
+return;
+
+const char * nve=getenv("Getami2rootxec");
+char ior[]="ami2root.exe";
+if(! (nve && strlen(nve)))nve=ior;
+const char *exedir=getenv("ExeDir");
+const char *amsdatadir=getenv("AMSDataDir");
+char local[1024]="";
+
+if(! (exedir && strlen(exedir))){
+  if(amsdatadir && strlen(amsdatadir)){
+     strcpy(local,amsdatadir);
+     strcat(local,"/DataManagement/exe");
+   }
+   exedir=local;
+ }
+const char *version=AMSCommonsI::getversion(); 
+const char *nvr=AMSCommonsI::getosversion(); 
+if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
+ char t1[1024];
+ strcpy(t1,exedir);
+ strcat(t1,"/../prod");
+ setenv("TNS_ADMIN",t1,1);
+  AString systemc(exedir);
+  systemc+="/";
+  systemc+=AMSCommonsI::getosname();
+  systemc+="/";
+  systemc+=nve;
+  char u[128];
+  sprintf(u,"  %d %d %s ",fHeader.FEventTime,fHeader.LEventTime,file);
+    systemc+=u;
+  systemc+="  > /tmp/getior.";
+  char tmp[80];
+  sprintf(tmp,"%d",getpid());
+  systemc+=tmp;
+  int i=system(systemc);
+  if(i){
+   cerr <<"  AMSSetupR::FillslowcontrolDB-E-UnableTo "<<systemc<<endl;
+   systemc="rm /tmp/getior."; 
+   systemc+=tmp;
+   system(systemc);
+   return false; 
+  }
+  else{
+   cout <<"  AMSSetupR::FillslowcontrolDB-I- "<<systemc<<endl;
+   int bad=1;
+   systemc="/tmp/getior."; 
+   systemc+=tmp;
+   ifstream fbin;
+   fbin.open(systemc);
+   if(fbin){
+   fbin>>bad;
+   if(bad){
+     cerr<<" AMSSetupR::FillSlowcontrolDB-EUnableToFill "<<file<<endl;
+      unlink(systemc);
+      return false;
+    }
+   fbin.close();
+   }
+   else cerr<<"AMSSetupR::FillSlowControlDB-E-UnableToOpenfile "<<systemc<<endl;
+   unlink(systemc);
+   return true;
+   }
+}
+else{
+    cerr<<" AMSSetupR::FillSlowcontrolDB-E-UnableToToGetami2rootBecauseSomeVarAreNull"<<endl;
+return false;
+}
+}
+#else
+bool AMSSetupR::FillSlowcontrolDB(const char*a){return true;}
+#endif
+

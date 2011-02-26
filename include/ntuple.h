@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.125 2011/02/24 00:04:28 choutko Exp $
+//  $Id: ntuple.h,v 1.126 2011/02/26 20:18:37 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -950,7 +950,7 @@ public:
   static uinteger writeRSetup();
   static void readRSetup(AMSEvent *ev);
   void endR(bool writecache=true);
-  void initR(char* name,uinteger run);
+  void initR(const char* name,uinteger run,bool update=false);
   
   integer getentries(){return _Nentries;}
   uinteger lastev() const {return _Lastev;}

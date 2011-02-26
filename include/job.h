@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.64 2010/10/22 14:50:38 choutko Exp $
+//  $Id: job.h,v 1.65 2011/02/26 20:18:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -167,7 +167,6 @@ const char*  GetRootPath(){return _rextname;}
 static AMSNodeMap JobMap;
 static long long GetNtupleFileSize();
 static time_t GetNtupleFileTime();
-
 #ifdef __DB__
 //+ ak, Oct 1, 1997
 static tdv_time*              _tdv;
