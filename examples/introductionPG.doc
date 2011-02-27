@@ -1,0 +1,62 @@
+/*! \mainpage AMS Data Access Manual
+
+The standard AMS reconstruction output is a 
+  <a href="http://root.cern.ch"> ROOT </a> file, in which
+  <a href="http://root.cern.ch/root/html/TTree.html#TTree:description"> 
+TTree </a>
+
+ We have identified several possible ways to analyze these data:
+
+<ul>
+      <li> A compiled analysis with static or shared  libraries.
+      You can find more at  \subpage  compsha 
+</ul>
+
+<ul>      <li> An interpreted analysis with the <a href="http://root.cern.ch/root/Cint.html">
+           CINT </a> 
+</ul>
+<ul>
+      <li> A compiled/interactive  analysis with the TSelector mode. You can find more at \subpage stlv
+                      
+</ul>
+
+<ul>
+      <li> (New) A compiled analysis with static libraries in a parallel mode  You can find more information in the link
+</ul>
+
+*/
+
+//-----------------------------------------------------------
+
+/*! \page intro Introduction
+This page introduces the user to the topic.
+Now you can proceed to the \ref advanced "advanced section".
+*/
+
+/*! \page compsha "Compiled Shared or Static"
+Here there is an example of a simple looper that scans the data
+it can be compiled versus static or dynamic AMS libraries
+
+
+This is an example of the code.
+\include analyze.C
+
+This is a Makefile that shows how to compile it
+\include Makefile
+*/
+
+//-----------------------------------------------------------
+
+/*! \page stlv TSelector Analysis 
+This page is devoted to an analysis example using the TSelector approach 
+
+This is an example of the code
+\include daqePG_simple.C
+
+and of a macro to run it
+
+
+This is an example of the code
+\include r.daqePG_simple.C
+
+*/
