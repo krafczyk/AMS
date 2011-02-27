@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.164 2011/02/20 14:30:11 pzuccon Exp $
+//  $Id: mceventg.C,v 1.165 2011/02/27 21:52:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1745,7 +1745,7 @@ else
    GRNDMQ(_seed[0],_seed[1],0,"G");
 // cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
 // cout <<_coo<<" "<<_dir<<endl;
-   AMSJob::gethead()->getg4generator()->SetParticleGun(ipart,_mom,_coo,_dir);
+   AMSJob::gethead()->getg4generator()->SetParticleGun(_ipart,_mom,_coo,_dir);
   }
   else{
    if(acceptio()){
