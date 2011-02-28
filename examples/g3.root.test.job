@@ -19,7 +19,7 @@ MULS 1
 CKOV 1
 RAYL 1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-TRIG 10 
+TRIG 1000 
 DEBUG -1 1 1
 C          Nparticles 
 MISC 4=1 5=0       

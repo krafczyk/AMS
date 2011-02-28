@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.39 2010/03/04 14:40:47 pzuccon Exp $
+//  $Id: timeid.h,v 1.40 2011/02/28 01:53:06 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -218,8 +218,9 @@ public:
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
   ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];_trigfun=0;}
-  
-  integer  GetNbytes() const { return _Nbytes;}
+  void     addmap(unsigned int time){};
+  void purge(){} ;
+integer  GetNbytes() const { return _Nbytes;}
   integer  CopyOut (void *pdataNew) const;
   integer  CopyIn( const void *pdataNew);
   uinteger getCRC()const {return _CRC;}

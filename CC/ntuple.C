@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.211 2011/02/26 20:18:18 choutko Exp $
+//  $Id: ntuple.C,v 1.212 2011/02/28 01:53:06 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -400,7 +400,7 @@ void AMSNtuple::initR(const char* fname,uinteger run,bool update){
 //    strcat(cmd,fname);
 //    system(cmd);
     _rfile=new TFile(fname,update?"UPDATE":"RECREATE");
-    if(!update)return;
+    //if(!update)return;
 #ifdef __CORBA__
   _dc.SetString(AMSProducer::GetDataCards());
   //   cout <<_dc.GetString()<<endl;
@@ -839,23 +839,23 @@ return _treesetup!=NULL;
 void AMSNtuple::readRSetup(AMSEvent *ev){
 if(!_rfile)return;
 string name=_rfile->GetName();
-_rfile->Write();
-_rfile->Close();
+//_rfile->Write();
+//_rfile->Close();
 if(Get_setup02() && !AMSJob::gethead()->isSimulation()){
 if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
 }
 else{
-if(!ev ||  !Get_setup02()->FillSlowcontrolDB(_rfile->GetName())){
+if(!ev ||  !Get_setup02()->FillSlowcontrolDB("dummy")){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillSlowControlDB "<<endl;
 }
 }
 }
 else cerr<<"AMSNtuple::readRSetup-E-UnableToGetRootSetup "<<endl;
 
-delete _rfile;
-_rfile=0;
-AMSJob::gethead()->getntuple()->initR(name.c_str(),ev?ev->getrun():0,true);
+//delete _rfile;
+//_rfile=0;
+//AMSJob::gethead()->getntuple()->initR(name.c_str(),ev?ev->getrun():0,true);
 if(!_rfile){
 cerr<<"AMSNtuple::readRSetup-F-UnableReopenFile "<<name.c_str()<<endl;
 #ifdef __CORBA__
