@@ -159,7 +159,7 @@ bool AMSSetupR::FillSlowcontrolDB(const char * file){
 // Fill SlowcontrolDB via AMI interface
 
 
-return;
+return false;
 
 const char * nve=getenv("Getami2rootxec");
 char ior[]="ami2root.exe";
