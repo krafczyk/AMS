@@ -58,7 +58,7 @@ class TrHistoManHeader : public TNamed {
   //! Default constructor
   TrHistoManHeader() {}  
   //! Constructor
-  TrHistoManHeader(char* name, char* title) : TNamed(name, title) {}
+  TrHistoManHeader(const char* name, const char* title) : TNamed(name, title) {}
   //! Copy constructor 
   TrHistoManHeader(const TrHistoManHeader &);
   //! Destructor 
@@ -70,7 +70,7 @@ class TrHistoManHeader : public TNamed {
   //! Merge ... 
 
   //! Add file name to the list 
-  void        AddFileName(char* name) { fFileList.Add(new TObjString(name)); }
+  void        AddFileName(const char* name) { fFileList.Add(new TObjString(name)); }
   //! Get number of files used
   int         GetNFileNames() { return fFileList.GetEntries(); }
   //! Return the i-th file name
@@ -122,7 +122,7 @@ class TrHistoMan : public TObject {
  public:
 
   //! Constructor (file, folder-name, folder-title)
-  TrHistoMan(TFile* file, char* name, char* title);
+  TrHistoMan(TFile* file, const char* name, const char* title);
   //! Copy constructor 
   TrHistoMan(const TrHistoMan &);
   //! Destructor 
@@ -133,7 +133,7 @@ class TrHistoMan : public TObject {
   //! Add an histogram to the manager
   void Add(TNamed* obj);
   //! Returns the pointer to the histogram with the required name
-  TNamed* Get(char* name);
+  TNamed* Get(const char* name);
 
   //! Returns the pointer to the histogram header
   inline TrHistoManHeader* GetHeader() const { return fHeader; } 
@@ -147,99 +147,99 @@ class TrHistoMan : public TObject {
   /////////////////////////
 
   //! Books 1d/2d/3d histo sets (tracker/layers/ladders)
-  void Define(char* name, char* title, 
+  void Define(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, 
 		Bool_t bothsides = kFALSE);
-  void Define(char* name, char* title, 
+  void Define(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Bool_t bothsides = kFALSE);
-  void Define(char* name, char* title, 
+  void Define(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy,
 		Int_t binz, Double_t lowz, Double_t upz, 
 		Bool_t bothsides = kFALSE);
   //! Books 1d/2d/3d tracker histo sets 
-  void DefineTracker(char* name, char* title, 
+  void DefineTracker(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, 
 		Bool_t bothsides = kFALSE);
-  void DefineTracker(char* name, char* title, 
+  void DefineTracker(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Bool_t bothsides = kFALSE);
-  void DefineTracker(char* name, char* title, 
+  void DefineTracker(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy,
 		Int_t binz, Double_t lowz, Double_t upz, 
 		Bool_t bothsides = kFALSE);
   //! Books 1d/2d/3d layers histo sets 
-  void DefineLayers(char* name, char*title, 
+  void DefineLayers(const char* name, const char*title, 
 		Int_t binx, Double_t lowx, Double_t upx, 
 		Bool_t bothsides = kFALSE);
-  void DefineLayers(char* name, char* title, 
+  void DefineLayers(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Bool_t bothsides = kFALSE);
-  void DefineLayers(char* name, char* title, 
+  void DefineLayers(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy,
 		Int_t binz, Double_t lowz, Double_t upz, 
 		Bool_t bothsides = kFALSE);
   //! Books 1d/2d/3d ladders histo sets (192 or 384!) 
-  void DefineLadders(char* name, char* title, 
+  void DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, 
 		Bool_t bothsides = kFALSE);
-  void DefineLadders(char* name, char* title, 
+  void DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Bool_t bothsides = kFALSE);
-  void DefineLadders(char* name, char* title, 
+  void DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy,
 		Int_t binz, Double_t lowz, Double_t upz, 
 		Bool_t bothsides = kFALSE);
   //! Books an entries histogram (entries for each ladder in a layer vs slot plot)
-  void DefineEntries(char* name, Bool_t bothsides = kFALSE);
+  void DefineEntries(const char* name, Bool_t bothsides = kFALSE);
 
   /////////////////////////
   // Filling methods
   /////////////////////////
 
   //! Fills a 1d/2d/3d histogram (entries/tracker/layers/ladders) 
-  void Fill(Bool_t bothsides, TrRawClusterR* cluster, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void Fill(Bool_t bothsides, TrClusterR*    cluster, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void Fill(Bool_t bothsides, TrRecHitR*     hit,     char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {} 
-  void Fill(Bool_t bothsides, TrTrackR*      track,   char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void Fill(Int_t side, Int_t tkid, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void Fill(Int_t tkid, char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void Fill(Bool_t bothsides, TrRawClusterR* cluster, const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void Fill(Bool_t bothsides, TrClusterR*    cluster, const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void Fill(Bool_t bothsides, TrRecHitR*     hit,     const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {} 
+  void Fill(Bool_t bothsides, TrTrackR*      track,   const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void Fill(Int_t side, Int_t tkid, const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void Fill(Int_t tkid, const char* name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   //! Fills 1d/2d/3d tracker histograms 
-  void FillTracker(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillTracker(Bool_t bothsides, TrClusterR*    cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillTracker(Bool_t bothsides, TrRecHitR*     hit,     char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {} 
-  void FillTracker(Bool_t bothsides, TrTrackR*      track,   char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillTracker(Int_t side, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillTracker(char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillTracker(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillTracker(Bool_t bothsides, TrClusterR*    cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillTracker(Bool_t bothsides, TrRecHitR*     hit,     const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {} 
+  void FillTracker(Bool_t bothsides, TrTrackR*      track,   const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void FillTracker(Int_t side, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillTracker(const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   //! Fills 1d/2d/3d layer histograms (by cluster) 
-  void FillLayer(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLayer(Bool_t bothsides, TrClusterR*    cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLayer(Bool_t bothsides, TrRecHitR*     hit,     char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillLayer(Bool_t bothsides, TrTrackR*      track,   char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillLayer(Int_t side, Int_t layer, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLayer(Int_t layer, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLayer(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLayer(Bool_t bothsides, TrClusterR*    cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLayer(Bool_t bothsides, TrRecHitR*     hit,     const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void FillLayer(Bool_t bothsides, TrTrackR*      track,   const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void FillLayer(Int_t side, Int_t layer, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLayer(Int_t layer, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   //! Fills 1d/2d/3d ladder histograms 
-  void FillLadder(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLadder(Bool_t bothsides, TrClusterR*    cluster, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLadder(Bool_t bothsides, TrRecHitR*     hit,     char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillLadder(Bool_t bothsides, TrTrackR*      track,   char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
-  void FillLadder(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
-  void FillLadder(Int_t tkid, char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLadder(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLadder(Bool_t bothsides, TrClusterR*    cluster, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLadder(Bool_t bothsides, TrRecHitR*     hit,     const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void FillLadder(Bool_t bothsides, TrTrackR*      track,   const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.) {}
+  void FillLadder(Int_t side, Int_t tkid, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
+  void FillLadder(Int_t tkid, const char *name, Double_t X1, Double_t X2 = 1., Double_t X3 = 1., Double_t w = 1.);
   //! Fills an Entries histogram 
-  void FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char* name);  
-  void FillEntry(Bool_t bothsides, TrClusterR*    cluster, char* name);
-  void FillEntry(Bool_t bothsides, TrRecHitR*     hit,     char* name) {}
-  void FillEntry(Bool_t bothsides, TrTrackR*      track,   char* name) {}  
-  void FillEntry(Int_t side, Int_t tkid, char* name);  
-  void FillEntry(Int_t tkid, char* name);  
+  void FillEntry(Bool_t bothsides, TrRawClusterR* cluster, const char* name);  
+  void FillEntry(Bool_t bothsides, TrClusterR*    cluster, const char* name);
+  void FillEntry(Bool_t bothsides, TrRecHitR*     hit,     const char* name) {}
+  void FillEntry(Bool_t bothsides, TrTrackR*      track,   const char* name) {}  
+  void FillEntry(Int_t side, Int_t tkid, const char* name);  
+  void FillEntry(Int_t tkid, const char* name);  
 
   /////////////////////////
   // Other methods
@@ -248,7 +248,7 @@ class TrHistoMan : public TObject {
   //! Resets an histogram (via TObject)
   void ResetHisto(TNamed* object); 
   //! Reset a Tracker histogram
-  void ResetTracker(char* name); 
+  void ResetTracker(const char* name); 
 
  protected:
 

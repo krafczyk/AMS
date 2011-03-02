@@ -374,7 +374,7 @@ TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) 
 /////////////////////////////////////////////////
 
 
-TrHistoMan::TrHistoMan(TFile* file, char* name, char* title) {
+TrHistoMan::TrHistoMan(TFile* file, const char* name, const char* title) {
   // init
   TDirectory* saveddir = gDirectory;
   fHashTable.clear();
@@ -492,7 +492,7 @@ void TrHistoMan::Add(TNamed* obj) {
 }
 
 
-TNamed* TrHistoMan::Get(char* name){
+TNamed* TrHistoMan::Get(const char* name){
   // Return a pointer the the histogram with the reqired name.
   // The output need a cast for the correct type.
   // return fHlist->FindObject(name); // Requires a sequential scan
@@ -503,7 +503,7 @@ TNamed* TrHistoMan::Get(char* name){
 }
 
 
-void TrHistoMan::DefineTracker(char* name, char*title, Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
+void TrHistoMan::DefineTracker(const char* name, const char*title, Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
   /* Appends 1 or 2 TH1F histos in the main directory */
   TDirectory* saveddir = gDirectory;
   char  histoname[80];
@@ -527,7 +527,7 @@ void TrHistoMan::DefineTracker(char* name, char*title, Int_t binx, Double_t lowx
 }
 
 
-void TrHistoMan::DefineTracker(char* name, char* title, 
+void TrHistoMan::DefineTracker(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, 
 		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides) {
   /* Appends 1 or 2 TH1F histos in the main directory */
@@ -553,7 +553,7 @@ void TrHistoMan::DefineTracker(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineTracker(char* name, char* title, 
+void TrHistoMan::DefineTracker(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides) {
@@ -580,7 +580,7 @@ void TrHistoMan::DefineTracker(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLayers(char* name, char* title, 
+void TrHistoMan::DefineLayers(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
   /* Appends nlay or nlay*2 TH1F histos in the layer directories */
   TDirectory* saveddir = gDirectory;
@@ -610,7 +610,7 @@ void TrHistoMan::DefineLayers(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLayers(char* name, char* title, 
+void TrHistoMan::DefineLayers(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides){
   /* Appends nlay or nlay*2 TH2F histos in the layer directories */
@@ -641,7 +641,7 @@ void TrHistoMan::DefineLayers(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLayers(char* name, char* title, 
+void TrHistoMan::DefineLayers(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides){
@@ -673,7 +673,7 @@ void TrHistoMan::DefineLayers(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLadders(char* name, char* title, 
+void TrHistoMan::DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
   /* Appends 192 or 384 TH1F histos in the ladders subdirectories */
   TDirectory* saveddir = gDirectory;
@@ -706,7 +706,7 @@ void TrHistoMan::DefineLadders(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLadders(char* name, char* title, 
+void TrHistoMan::DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
  		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides) {
   /* Appends 192 or 384 TH1F histos in the ladders subdirectories */
@@ -740,7 +740,7 @@ void TrHistoMan::DefineLadders(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineLadders(char* name, char* title, 
+void TrHistoMan::DefineLadders(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides){
@@ -775,7 +775,7 @@ void TrHistoMan::DefineLadders(char* name, char* title,
 }
 
 
-void TrHistoMan::DefineEntries(char* name, Bool_t bothsides) { 
+void TrHistoMan::DefineEntries(const char* name, Bool_t bothsides) { 
   /* defines an entry histogram */
   TDirectory* saveddir = gDirectory;
   fDir->cd();
@@ -799,7 +799,7 @@ void TrHistoMan::DefineEntries(char* name, Bool_t bothsides) {
 }
 
 
-void TrHistoMan::Define(char* name, char*title, 
+void TrHistoMan::Define(const char* name, const char*title, 
 		Int_t binx, Double_t lowx, Double_t upx, Bool_t bothsides) {
   TDirectory* saveddir = gDirectory;
   DefineEntries(name, bothsides);
@@ -811,7 +811,7 @@ void TrHistoMan::Define(char* name, char*title,
 }
 
 
-void TrHistoMan::Define(char* name, char* title, 
+void TrHistoMan::Define(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, Bool_t bothsides){
   TDirectory* saveddir = gDirectory;
@@ -824,7 +824,7 @@ void TrHistoMan::Define(char* name, char* title,
 }
  
 
-void TrHistoMan::Define(char* name, char* title, 
+void TrHistoMan::Define(const char* name, const char* title, 
 		Int_t binx, Double_t lowx, Double_t upx,
 		Int_t biny, Double_t lowy, Double_t upy, 
 		Int_t binz, Double_t lowz, Double_t upz, Bool_t bothsides) {
@@ -838,7 +838,7 @@ void TrHistoMan::Define(char* name, char* title,
 }
  
 
-void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   char histoname[80];
   sprintf(histoname,"%s_all",name);
   if (bothsides) {
@@ -873,7 +873,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, char *nam
 }
 
 
-void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   char histoname[80];
   sprintf(histoname,"%s_all",name);
   if (bothsides) {
@@ -908,7 +908,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, char *name, 
 }
 
 
-void TrHistoMan::FillTracker(Int_t side, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillTracker(Int_t side, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   char histoname[80];
   if (side==1) sprintf(histoname,"%s_all_P",name);
   else         sprintf(histoname,"%s_all_N",name);
@@ -936,7 +936,7 @@ void TrHistoMan::FillTracker(Int_t side, char *name, Double_t X1, Double_t X2, D
 }
 
 
-void TrHistoMan::FillTracker(char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillTracker(const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   char histoname[80];
   sprintf(histoname,"%s_all",name);
   TNamed* tmp = Get(histoname);
@@ -963,7 +963,7 @@ void TrHistoMan::FillTracker(char *name, Double_t X1, Double_t X2, Double_t X3, 
 }
 
 
-void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the layer histograms (p/n)
   int TkId         = cluster->GetTkId(); 
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1002,7 +1002,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, char *name,
 }
 
 
-void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the layer histograms (p/n)
   int TkId         = cluster->GetTkId(); 
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1041,7 +1041,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, char *name, Do
 }
 
 
-void TrHistoMan::FillLayer(Int_t side, Int_t layer, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLayer(Int_t side, Int_t layer, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the layer histograms (p/n)
   char histoname[80];
   if (side==1) sprintf(histoname,"%s_layer%1d_P",name,layer);
@@ -1070,7 +1070,7 @@ void TrHistoMan::FillLayer(Int_t side, Int_t layer, char *name, Double_t X1, Dou
 }
 
 
-void TrHistoMan::FillLayer(Int_t layer, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLayer(Int_t layer, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the layer histograms (p/n)
   char histoname[80];
   sprintf(histoname,"%s_layer%1d",name,layer);
@@ -1098,7 +1098,7 @@ void TrHistoMan::FillLayer(Int_t layer, char *name, Double_t X1, Double_t X2, Do
 }
 
 
-void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the ladder histograms (p/n)
   int  TkId = cluster->GetTkId(); 
   char histoname[80];
@@ -1135,7 +1135,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, char *name
 }
 
 
-void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the ladder histograms (p/n)
   int  TkId = cluster->GetTkId(); 
   char histoname[80];
@@ -1172,7 +1172,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, char *name, D
 }
 
 
-void TrHistoMan::FillLadder(Int_t side, Int_t TkId, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLadder(Int_t side, Int_t TkId, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the ladder histograms (p/n)
   char histoname[80];
   if (side==1) sprintf(histoname,"%s_%+03d_P",name,TkId);
@@ -1201,7 +1201,7 @@ void TrHistoMan::FillLadder(Int_t side, Int_t TkId, char *name, Double_t X1, Dou
 }
 
 
-void TrHistoMan::FillLadder(Int_t TkId, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::FillLadder(Int_t TkId, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   // fill the ladder histograms (p/n)
   char histoname[80];
   sprintf(histoname,"%s_%+03d",name,TkId);
@@ -1229,7 +1229,7 @@ void TrHistoMan::FillLadder(Int_t TkId, char *name, Double_t X1, Double_t X2, Do
 }
 
 
-void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   FillEntry  (bothsides, cluster, name); 
   FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
   FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
@@ -1237,7 +1237,7 @@ void TrHistoMan::Fill(Bool_t bothsides, TrRawClusterR* cluster, char *name, Doub
 }
 
 
-void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   FillEntry  (bothsides, cluster, name); 
   FillTracker(bothsides, cluster, name, X1, X2, X3, w); 
   FillLayer  (bothsides, cluster, name, X1, X2, X3, w);
@@ -1245,7 +1245,7 @@ void TrHistoMan::Fill(Bool_t bothsides, TrClusterR* cluster, char *name, Double_
 }
 
 
-void TrHistoMan::Fill(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::Fill(Int_t side, Int_t tkid, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   FillEntry  (side, tkid, name); 
   FillTracker(side, name, X1, X2, X3, w); 
   FillLayer  (side, abs(tkid/100), name, X1, X2, X3, w);
@@ -1253,7 +1253,7 @@ void TrHistoMan::Fill(Int_t side, Int_t tkid, char *name, Double_t X1, Double_t 
 }
 
 
-void TrHistoMan::Fill(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
+void TrHistoMan::Fill(Int_t tkid, const char *name, Double_t X1, Double_t X2, Double_t X3, Double_t w) {
   FillEntry  (tkid, name); 
   FillTracker(name, X1, X2, X3, w); 
   FillLayer  (abs(tkid/100), name, X1, X2, X3, w);
@@ -1261,7 +1261,7 @@ void TrHistoMan::Fill(Int_t tkid, char *name, Double_t X1, Double_t X2, Double_t
 }
 
 
-void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name){
+void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, const char *name){
   char histoname[80];
   int TkId         = cluster->GetTkId();
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1292,7 +1292,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, char *name)
 }
 
 
-void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name){
+void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, const char *name){
   char histoname[80];
   int TkId         = cluster->GetTkId();
   TkLadder* ladder = TkDBc::Head->FindTkId(TkId);
@@ -1318,7 +1318,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, char *name){
 }
 
 
-void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name){
+void TrHistoMan::FillEntry(Int_t side, Int_t tkid, const char *name){
   char histoname[80];
   TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
   int layer        = ladder->GetLayer();
@@ -1336,7 +1336,7 @@ void TrHistoMan::FillEntry(Int_t side, Int_t tkid, char *name){
 }
 
 
-void TrHistoMan::FillEntry(Int_t tkid, char *name){
+void TrHistoMan::FillEntry(Int_t tkid, const char *name){
   char histoname[80];
   TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
   int layer        = ladder->GetLayer();
@@ -1370,7 +1370,7 @@ void TrHistoMan::ResetHisto(TNamed* object) {
 }
 
 
-void TrHistoMan::ResetTracker(char* name) {
+void TrHistoMan::ResetTracker(const char* name) {
   char histoname[80];
   sprintf(histoname,"%s_all",name);
   TNamed* tmp = Get(histoname);
