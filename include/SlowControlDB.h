@@ -1,40 +1,31 @@
+#ifndef __SCDB__
+#define __SCDB__
 #include <map>
 #include "TNamed.h"
 #include "TFile.h"
+#include "TTree.h"
+#include <climits>
+#include <cstring>
 
-/// Class holding the pairs timestamp,value for a given quantity
-class SlowControlEl: public TNamed{
- private:
-  std::map<time_t,float> _table;
+class SubType{
+  std::map<unsigned int,float> _table;
  public:
- 
-  ///Default Constructor
-  SlowControlEl():TNamed("default","default"){};  
+  std::string tag;
+  SubType(){};
+ SubType(int i):number(i){};
+  int number;
 
-  ///Constructor
-  SlowControlEl(char *name):TNamed(name,name){};
+  void Add(unsigned int time, float val){
+    _table.insert(std::pair<unsigned int,float>(time,val));
+  }
 
-  ///Destructor
-  virtual ~SlowControlEl(){}
-
-  /// Clear all the data
-  void Clear(const Option_t* aa=0){_table.clear();}
-
-  /// Find the value at a given time
-  /*! \param timestamp  Unix time (sec from 1970)
-      \param frac       second fraction after the timestamp  
-      \param flag   0 = the closer in time
-					1 = linear interplolation
-                    2 = polynomial interpolation (to be implemented)
-    \return  The desired valu or On Error  -99999
-   */
-  float Find(time_t timestamp,float frac, int flag){
-    std::map<time_t,float>::iterator it=_table.lower_bound(timestamp);
+  float Find(unsigned int timestamp,float frac, int flag){
+    std::map<unsigned int,float>::iterator it=_table.lower_bound(timestamp);
     if(it==_table.end()) return -99999.;
-    time_t tmin=it->first;
+    unsigned int tmin=it->first;
     float min=it->second;
     it++;
-    time_t tmax=it->first;
+    unsigned int tmax=it->first;
     float max=it->second;
     float dtmin=(timestamp-tmin)+frac;
     float dtmax=(tmax-timestamp)-frac;
@@ -53,174 +44,228 @@ class SlowControlEl: public TNamed{
     }
     return -99999;      
   }
-
-  /// Adds a value to the list. If a value with the same timestamp alredy exist it is overwritten
-  bool  Add(time_t timestamp, float value){_table[timestamp]=value; return true;}
-  
-  /// Returns the Number of data available
-  int   getnelem(){return _table.size();}
-  
-  /// returns the  datum at postion order in the series
-  float getElem(int order){
-    if(order>=_table.size()) return -999999;
-    std::map<time_t,float>::iterator it=_table.begin();
-    for(int ii=0;ii<order;ii++) it++;
-    return it->second;
-  }
-
-  /// returns the timestamp of the datum at postion order in the series
-  time_t getElemTime(int order){
-    if(order>=_table.size()) return -999999;
-    std::map<time_t,float>::iterator it=_table.begin();
+  unsigned int GetTime(int order){
+    if(order>=(int)_table.size()) return -999999;
+    std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
     return it->first;
   }
 
-  ///Remove the element at position order
-  bool rmElem(int order){
-    if(order>=_table.size()) return false;
-    std::map<time_t,float>::iterator it=_table.begin();
+  float GetValue(int order){
+    if(order>=(int)_table.size()) return -999999;
+    std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
-    _table.erase(it);
+    return it->second;
+
+  }
+
+  int getnelem(){return (int)_table.size();}
+  ClassDef(SubType,1);
+};
+
+class DataType{
+  std::map<int,SubType> subtypes;
+ public:
+  DataType(){};
+ DataType(int i):number(i){};
+  int number;
+  
+  SubType* GetSubType(int i){
+    std::map<int,SubType>::iterator it;
+    it=subtypes.find(i);
+    if(it==subtypes.end())return NULL;
+    else return &it->second;
+  }
+  
+  
+  SubType* GetSubTypeN(int order){
+    if(order>=(int)subtypes.size()) return 0;
+    std::map<int,SubType>::iterator it=subtypes.begin();
+    for(int ii=0;ii<order;ii++) it++;
+    return &it->second;
+  }
+  
+  bool Add(SubType *st){
+    std::map<int,SubType>::iterator it;
+    it=subtypes.find(st->number);
+    if(it!=subtypes.end()){
+      //      printf("SubType %i already found\n",st->number);
+      return false;
+    }
+    subtypes.insert(std::pair<int,SubType>(st->number,*st));
+    return true;
+  }
+  
+  SubType* Append(SubType *st){
+    std::map<int,SubType>::iterator it;
+    it=subtypes.find(st->number);
+    if(it==subtypes.end()){
+      subtypes.insert(std::pair<int,SubType>(st->number,*st));
+      it=subtypes.find(st->number);
+    }
+    //    else delete st;
+    for(int i=0;i<st->getnelem();i++)
+      it->second.Add(st->GetTime(i),st->GetValue(i));
+    //    delete st;
+    //    }
+    return &it->second;
+  }
+
+  int getnelem(){return (int)subtypes.size();}
+  
+  ClassDef(DataType,1);
+};
+
+class Node:public TNamed{
+  std::map<int,DataType> datatypes;
+ public:
+ Node():TNamed("default","default"){};
+ Node(char *name):TNamed(name,name){};
+ Node(char *name1,char *name2):TNamed(name1,name2){};
+  int number;
+  
+  DataType* GetDataType(int i){
+    std::map<int,DataType>::iterator it;
+    it=datatypes.find(i);
+    if(it==datatypes.end())return NULL;
+    else return &it->second;
+  }
+
+  DataType* GetDataTypeN(int order){
+    if(order>=(int)datatypes.size()) return NULL;
+    std::map<int,DataType>::iterator it=datatypes.begin();
+    for(int ii=0;ii<order;ii++) it++;
+    return &it->second;
+  }
+
+  bool Add(DataType *dt){
+    std::map<int,DataType>::iterator it;
+    it=datatypes.find(dt->number);
+    if(it!=datatypes.end()){
+      //      printf("DataType %i already found\n",dt->number);
+      return false;
+    }
+    datatypes.insert(std::pair<int,DataType>(dt->number,*dt));
+
+    for(int i=0;i<dt->getnelem();i++)
+      dt->Add(dt->GetSubTypeN(i));
+    
     return true;
   }
 
-  /// Remove the element with a givent timestamp
-  bool rmElem(time_t timestamp){
-    std::map<time_t,float>::iterator it=_table.find(timestamp);
-    if(it!=_table.end()){
-      _table.erase(it);
-      return true;
-    }    
-    else
-      return false;
-  }
- 
-  /// Returns the begin timestamp of the serie
-  time_t GetBeginTime(){return _table.begin()->first;}
-
-  /// Returns the end timestamp of the serie
-  time_t GetEndTime(){return _table.end()->first;}
-  /// Print info about the quantity
-  void Print(const Option_t* aa=0){
-    TNamed::Print(aa);
-    time_t bg=GetBeginTime();
-    time_t en=GetEndTime();
-    printf("Name: %s Num Meas: %d\nVal Start: %d %s  Val Stop %d %s\n",GetName(),getnelem(),(int)bg,ctime(&bg),(int)en,ctime(&en));
-    std::map<time_t,float>::iterator it=_table.begin();
-    for(;it!=_table.end();it++){
-      time_t tt=it->first;
-      printf(" Val: %f %s",it->second,ctime(&tt));
+  DataType* Append(DataType *dt){
+    std::map<int,DataType>::iterator it;
+    it=datatypes.find(dt->number);
+    if(it==datatypes.end()){
+      datatypes.insert(std::pair<int,DataType>(dt->number,*dt));
+      it=datatypes.find(dt->number);
     }
-    return;
+
+    for(int i=0;i<dt->getnelem();i++)
+      it->second.Add(dt->GetSubTypeN(i));
+
+    return &it->second;
   }
 
-  ClassDef(SlowControlEl,1);
+  void AddNode(Node* node){
+    for(int i=0;i<(int)node->datatypes.size();i++){
+      DataType* dt=Append(node->GetDataTypeN(i));
+      for(int j=0;j<(int)node->GetDataTypeN(i)->getnelem();j++){
+	SubType *st=dt->Append(node->GetDataTypeN(i)->GetSubTypeN(j));
+	for(int k=0;k<node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++)
+	  st->Add(node->GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k),node->GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k));
+      }
+    }
+  }
+
+  int getnelem(){return (int)datatypes.size();}
+  ClassDef(Node,1);
 };
 
-typedef  std::map<int,SlowControlEl>::iterator  tabit;
 
-/// \brief Class holding a series of slow control data
-/*! Class is a singleton and pointer to it can be obtained by the static funtion SlowControlDB::GetPointer().
- Data are retrieved by name and timestamp value.
- The class can be written to a ROOT file by the inherited method Write() and can be loaded by its own methods Load(...)
-*/
- class SlowControlDB: public TObject{
-  
+class SlowControlDB: public TTree
+{  
  private:
-  std::map<int,SlowControlEl> _table;
   static SlowControlDB* head;
-  SlowControlDB():TObject(){};
-  unsigned long hash(const char *str)
-    {
-        unsigned long hash = 5381;
-        int c;
-        while (c = *str++)
-            hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-        return hash;
-    }
-
+  unsigned int begin;
+  unsigned int end;
  public:
+  SlowControlDB():TTree("SlowControlDB","SlowControlDB"){SetDirectory(0);};
+  
   /// Get the pointer to the DB
   static SlowControlDB* GetPointer(){
-	return (head)? head :new SlowControlDB(); 
+    if(!head)head=new SlowControlDB();
+    return head;
   }
 
+  /// Get the pointer to the DB
+  static SlowControlDB* KillPointer(){
+    delete head;
+    head=0;  //VC
+    head=new SlowControlDB();
+    return head;
+  }
 
   /// destructor
   virtual ~SlowControlDB(){}
 
-  /// Clear all the contents
-  void Clear(const Option_t* aa=0){ _table.clear();}
-
   /// Load the DB from a root file with name
-  bool Load(char* fname){
-    TFile *f=TFile::Open(fname);
-    return Load(f);
-  }
+  bool Load(char* fname,unsigned int minT=0,unsigned int maxT=UINT_MAX, int debug=0);
 
   /// Load the file from an already opened ROOT File 
-  bool Load(TFile* f){
-    if(!f) return false;
-    if(head) delete head;
-    head=(SlowControlDB*)f->Get("SlowControlDB");
-    return head!=0;
-  }
-
-  /// Returns the number of Object (slow control data) in the DB
-  int getnelem(){return _table.size();}
-
-  /// Add a new Element to the DB (by copy) you remain the owner of the object pointed by el
-  bool AddEl(SlowControlEl* el){
-    int indx=hash(el->GetName());
-    tabit it=_table.find(indx);
-    if(it!= _table.end()) return false;
-    _table[indx]=*el;
-    return true;
-  }
-
-  /// returns the pointer to the Object in the DB with name
-  SlowControlEl* GetEl(char* name){
-    int indx=hash(name);
-    tabit it=_table.find(indx);
-    if(it== _table.end()) return 0;
-    else
-      return &(it->second);
-  }
-  /// Remove one object from the DB
-
-  bool RemoveEl(char* name){
-    int indx=hash(name);
-    tabit it=_table.find(indx);
-    if(it== _table.end()) return false;
-    _table.erase(it);
-    return true;
+  bool Load(TFile* f,unsigned int minT=0,unsigned int maxT=UINT_MAX,int debug=0);
+  
+  Node GetNode(char* name){
+    Node toReturn(name,name);
+    Node *node=0;
+    SetBranchAddress(name,&node);
+    for(int i=0;i<GetEntries();i++){
+      GetEntry(i);
+      if(node)
+	toReturn.AddNode(node);
+    }
+    delete node;
+    return toReturn;
   }
 
   /// Returns the value of a quantity with a given name at a given timestamp
 	/*! 
 	 \param name       the name of the desired quantity
 	 \param timestamp  Unix time (sec from 1970)
-	 \param frac       second fraction after the timestamp  
+	 \param frac       second fraction after the timestamp
+         \param val        return value  
 	 \param flag   0 = the closer in time
 	 1 = linear interplolation
 	 2 = polynomial interpolation (to be implemented)
-	 \return  The desired value or On Error  -99999
+	 \return  0   success
+                  1  no name found
+                  2  outside of bounds
+  
 	 */
-  float GetData(char* name,time_t timestamp,float frac,int flag){
-    SlowControlEl* el=GetEl(name);
-    return el->Find(timestamp,frac,flag);
+  int GetData(char* nname,int dt, int st, unsigned int timestamp,float frac,float &val,int flag=1){
+    
+    SubType *subtype=GetNode(nname).GetDataType(dt)->GetSubType(st);
+    if(!st) return 1;
+
+    val=subtype->Find(timestamp,frac,flag);
+
+    if(val==-99999.)return 2;
+    else return 0;
   }
 
   /// Print infos about all the members of the DB
-  void Print(const Option_t* aa=0){
-    TObject::Print(aa);
-    for(tabit it=_table.begin();it!=_table.end();it++) it->second.Print();
+  void Print(const Option_t* aa=0, int debug=0){
+    if(debug)printf("looking for %s in %i entries\n",aa,(int)GetEntries());
+    Node *node=0;
+    SetBranchAddress(aa,&node);
+
+    for(int i=0;i<(int)GetEntries();i++){
+      GetEntry(i);
+      printf("Name %s - data entries %i\n",node->GetName(),node->getnelem());
+    }
     return;
   }
-
-  /// the hash map ( for experts only)
-  std::map<int,SlowControlEl>* GetMap(){return  &_table;}
-		
-  ClassDef(SlowControlDB,1);
+  ClassDef(SlowControlDB,2);
 };
+
+#endif

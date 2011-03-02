@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.76 2011/02/08 14:31:58 shaino Exp $
+//  $Id: linkdef.h,v 1.77 2011/03/02 19:22:11 mmilling Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -120,6 +120,21 @@
 #pragma link C++ class amsvmc_MagField+;
 #pragma link C++ class amsvmc_RunConfiguration+;
 #endif
+
+//#pragma link C++ class SlowControlEl+;
+#pragma link C++ class SlowControlDB+;
+#pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
+#pragma link C++ class std::map<unsigned int,std::vector<float> >+;
+//#pragma link C++ class std::pair<int,SlowControlEl>+;
+//#pragma link C++ class std::map<int,SlowControlEl>+;
+
+#pragma link C++ class SubType+;
+#pragma link C++ class std::pair<int,SubType>+;
+#pragma link C++ class std::map<int,SubType>+;
+#pragma link C++ class DataType+;
+#pragma link C++ class std::pair<int,DataType>+;
+#pragma link C++ class std::map<int,DataType>+;
+#pragma link C++ class Node+;
 
 
 #endif

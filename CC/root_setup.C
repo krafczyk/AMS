@@ -1,10 +1,12 @@
 #include "root_setup.h"
 #include "root.h"
 #include <fstream.h>
+#include "SlowControlDB.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "commonsi.h"
 #endif
 AMSSetupR* AMSSetupR::_Head=0;
+
 void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
   if(tree){
     _Head=this;
@@ -159,7 +161,7 @@ bool AMSSetupR::FillSlowcontrolDB(const char * file){
 // Fill SlowcontrolDB via AMI interface
 
 
-return false;
+return true;
 
 const char * nve=getenv("Getami2rootxec");
 char ior[]="ami2root.exe";
@@ -229,6 +231,17 @@ return false;
 }
 }
 #else
-bool AMSSetupR::FillSlowcontrolDB(const char*a){return true;}
+
+bool AMSSetupR::FillSlowcontrolDB(const char*a){
+
+  SlowControlDB* scdb=SlowControlDB::GetPointer();
+  scdb->Load((char*)a,0,1301290000);
+
+  //  TObjArray *branchlist=scdb->GetListOfBranches();
+  //  for(int i=0;i<branchlist->GetEntries();i++)
+  //    printf("branch name %s\n",branchlist->At(i)->GetName());
+
+  return true;
+}
 #endif
 
