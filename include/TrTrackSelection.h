@@ -1,4 +1,4 @@
-//  $Id: TrTrackSelection.h,v 1.2 2011/02/24 09:01:41 shaino Exp $
+//  $Id: TrTrackSelection.h,v 1.3 2011/03/02 09:04:09 shaino Exp $
 #ifndef __TrTrackSelection__
 #define __TrTrackSelection__
 
@@ -74,6 +74,30 @@ public:
   static double GetHalfRessq(TrTrackR *track, int span = kMaxSpan,
 			                      int algo = 0, int refit = 0);
 
+/*!
+  \brief It returns the minimum distance between track and noise hits
+         on each ladders where the track passes.
+  \param layerp
+         layer pattern digit as in TrTrackR::iTrTrackPar
+	 indicating which layers to be included.
+         1111110 corresponds to layers 2,3,4,5,6,7
+  \param nhmin
+         number of noise hits required in each ladder
+!*/
+  static AMSPoint GetMinDist(TrTrackR *track, int layerp = 1111110,
+			                      int nhmin = 1);
+
+  /// GetHalfRdiff with fitid obtained by TrTrackR::iTrTrackPar
+  static double GetHalfRdiff(int fitid, TrTrackR *track, int refit = 0);
+
+  /// GetHalfRessq with fitid obtained by TrTrackR::iTrTrackPar
+  static double GetHalfRessq(int fitid, TrTrackR *track, int refit = 0);
+
+  /// It converts fitid into ESpanFlags
+  static int FitidToSpan(int fitid);
+
+  /// It converts fitid into algo
+  static int FitidToAlgo(int fitid);
 
   ClassDef(TrTrackSelection, 1);
 };

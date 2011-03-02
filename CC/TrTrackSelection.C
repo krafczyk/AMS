@@ -1,7 +1,9 @@
-// $Id: TrTrackSelection.C,v 1.2 2011/02/24 09:01:42 shaino Exp $
+// $Id: TrTrackSelection.C,v 1.3 2011/03/02 09:04:09 shaino Exp $
 #include "TrTrackSelection.h"
-#include "TMath.h"
+#include "TrRecHit.h"
 #include "tkdcards.h"
+#include "VCon.h"
+#include "TMath.h"
 
 ClassImp(TrTrackSelection);
 
@@ -125,3 +127,105 @@ double TrTrackSelection::GetHalfRessq(TrTrackR *track, int span,
 
   return res8*res8/ery8/ery8+res9*res9/ery9/ery9;
 }
+
+AMSPoint TrTrackSelection::GetMinDist(TrTrackR *track, int layerp, int nhmin)
+{
+  AMSPoint mdist;
+
+  VCon *cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) return mdist;
+
+  bool  lsel[trconst::maxlay];
+  int   nhit[trconst::maxlay];
+  double hdx[trconst::maxlay];
+  double hdy[trconst::maxlay];
+  double hcz[trconst::maxlay];
+
+  int ltmp = 1;
+  for (int i = 0; i < trconst::maxlay; i++) {
+    lsel[i] = (layerp/ltmp)%10;
+    nhit[i] = 0; 
+    hdx [i] = hdy[i] = hcz[i] = 999;
+    ltmp *= 10;
+  }
+
+  for (int i = 0; i < track->GetNhits(); i++) {
+    TrRecHitR *hit = track->GetHit(i);
+    int layr = hit->GetLayer();
+    int ily  = layr-1;
+    int tkid = hit->GetTkId();
+    int iclx = hit->GetXClusterIndex();
+    int icly = hit->GetYClusterIndex();
+
+    if (!lsel[ily]) continue;
+
+    for (int j = 0; j < cont->getnelem(); j++) {
+      TrRecHitR *hh = (TrRecHitR *)cont->getelem(j);
+      if (hh == hit || hh->GetTkId() != tkid) continue;
+
+      nhit[ily]++;
+      int nmlt = hh->GetMultiplicity();
+      for (int k = 0; k < nmlt; k++) {
+	AMSPoint coo = hh->GetCoord(k);
+	double dx  = coo.x()-hit->GetCoord().x();
+	double dy  = coo.y()-hit->GetCoord().y();
+	if (hh->GetXClusterIndex() == iclx) dx = 999;
+	if (hh->GetYClusterIndex() == icly) dy = 999;
+	if (TMath::Abs(dy) < TMath::Abs(hdy[ily])) {
+	  hdx[ily] = dx;
+	  hdy[ily] = dy;
+	  hcz[ily] = hit->GetCoord().z();
+	}
+      }
+    }
+  }
+
+  double mdy = 999;
+  for (int i = 0; i < trconst::maxlay; i++) {
+    if (nhit[i] >= nhmin && TMath::Abs(hdy[i]) < mdy) {
+      mdist.setp(hdx[i], hdy[i], hcz[i]);
+      mdy = TMath::Abs(hdy[i]);
+    }
+  }
+
+  delete cont;
+
+  return mdist;
+}
+
+int TrTrackSelection::FitidToSpan(int fitid)
+{
+  int span = kMaxInt;
+  int k8   = TrTrackR::kFitLayer8;
+  int k9   = TrTrackR::kFitLayer8;
+  int k89  = k8 | k9;
+  if ((fitid & k8 ) == k8 ) span = kHalfL1N;
+  if ((fitid & k9 ) == k9 ) span = kHalfL9;
+  if ((fitid & k89) == k89) span = kMaxSpan;
+
+  return span;
+}
+
+int TrTrackSelection::FitidToAlgo(int fitid)
+{
+  int algo = 0;
+  if (fitid & TrTrackR::kChoutko)    algo  = 1;
+  if (fitid & TrTrackR::kAlcaraz)    algo  = 2;
+  if (fitid & TrTrackR::kChikanianF) algo  = 3;
+  if (fitid & TrTrackR::kChikanian)  algo  = 4;
+  if (fitid & TrTrackR::kMultScat)   algo += 10;
+  if (fitid & TrTrackR::kSameWeight) algo += 20;
+
+  return algo;
+}
+
+double TrTrackSelection::GetHalfRdiff(int fitid, TrTrackR *track, int refit)
+{
+  return GetHalfRdiff(track, FitidToSpan(fitid), FitidToAlgo(fitid), refit);
+}
+
+double TrTrackSelection::GetHalfRessq(int fitid, TrTrackR *track, int refit)
+{
+  return GetHalfRessq(track, FitidToSpan(fitid), FitidToAlgo(fitid), refit);
+}
+

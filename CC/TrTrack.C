@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.95 2011/02/22 09:58:18 pzuccon Exp $
+// $Id: TrTrack.C,v 1.96 2011/03/02 09:04:09 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/02/22 09:58:18 $
+///$Date: 2011/03/02 09:04:09 $
 ///
-///$Revision: 1.95 $
+///$Revision: 1.96 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -544,12 +544,14 @@ void TrTrackR::ReFit( const float *err,
 
 AMSPoint TrTrackR::GetPentry(int id)
 {
-  int ilay = 7;
+  int    ilay = 7;
+  double zmax = -999;
   for (int i = 0; i < _Nhits; i++) {
     TrRecHitR *hit = GetHit(i);
-    if (hit && TestHitBits(hit->GetLayer(), id)) {
+    if (hit && TestHitBits(hit->GetLayer(), id) && 
+	hit->GetCoord().z() > zmax) {
+      zmax = hit->GetCoord().z();
       ilay = hit->GetLayer()-1;
-      break;
     }
   }
 
@@ -558,18 +560,21 @@ AMSPoint TrTrackR::GetPentry(int id)
 
 AMSDir TrTrackR::GetPdir(int id)
 {
-  int ilay = 8;
+  int    ilay = 7;
+  double zmax = -999;
   for (int i = 0; i < _Nhits; i++) {
     TrRecHitR *hit = GetHit(i);
-    if (hit && TestHitBits(hit->GetLayer(), id)) {
+    if (hit && TestHitBits(hit->GetLayer(), id) && 
+	hit->GetCoord().z() > zmax) {
+      zmax = hit->GetCoord().z();
       ilay = hit->GetLayer()-1;
-      break;
     }
   }
 
   AMSPoint pnt;
   AMSDir   dir;
   InterpolateLayer(ilay, pnt, dir, id);
+  if (dir.z() < 0) dir = dir*(-1);
   return dir;
 }
 
