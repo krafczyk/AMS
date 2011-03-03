@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.107 2011/02/14 14:37:50 zweng Exp $
+#  $Id: Moptg4,v 1.108 2011/03/03 17:44:10 mmilling Exp $
 #
 SHELL=/bin/sh
 #
@@ -353,6 +353,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C $(SCC)trigger302.C \
 	$(SCC)daqevt.C $(SCC)astring.C $(SCC)tkdbc.C $(SCC)trddbc.C  \
 	$(SCC)ntuple.C $(SCC)root.C $(SCC)root_setup.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
+	$(SCC)SlowControlDB.C \
 	$(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C \
 	$(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richradid.C \
 	$(SCC)richgeom.C $(SCC)richlip.C $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C \
@@ -388,6 +389,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C $(SCC)trigger302.C \
 	 $(SCC)astring.C $(SCC)tkdbc.C $(SCC)trddbc.C  \
 	 $(SCC)root.C $(SCC)root_setup.C $(SCC)user.C $(SCC)vtx.C $(SCC)status.C \
+	$(SCC)SlowControlDB.C \
 	$(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C \
 	$(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richradid.C \
 	$(SCC)richgeom.C $(SCC)richlip.C $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C \
@@ -530,6 +532,9 @@ $(BIN)root.o:    	 $(SCC)root.C
 
 $(BIN)root_setup.o:    	 $(SCC)root_setup.C
 	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)root_setup.C -o $(BIN)root_setup.o
+
+$(BIN)SlowControlDB.o:    	 $(SCC)SlowControlDB.C
+	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)SlowControlDB.C -o $(BIN)SlowControlDB.o
 
 $(BIN)id.o:    	 $(SCC)id.C
 	$(CXX) -c $(CP2F) $(CFLAGS) $(SCC)id.C -o $(BIN)id.o
