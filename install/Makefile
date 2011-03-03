@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.151 2011/02/24 09:03:46 shaino Exp $
+#  $Id: Makefile,v 1.152 2011/03/03 11:17:38 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -286,6 +286,9 @@ COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C
 #DAQ Interface
 COMMON_FILES +=  $(SCC)daqs2block.C $(SCC)daqecblock.C 
 
+#SlowControlDB
+COMMON_FILES +=  $(SCC)SlowControlDB.C
+
 ifdef WEBACCESS
 #AMSDataDir Web access interface
 COMMON_FILES +=  $(SCC)fopen.c 
@@ -529,10 +532,10 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
         $(BIN)TrCharge_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o 
+        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)tracking.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o
 
 endif
 
