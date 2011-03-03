@@ -24,7 +24,7 @@ ConvertAMI2: src/ConvertAMI.cc $(AMICLIB)/libAMI.a  SCDBDict.o
 	$(CXX) $(CFLAGS) -o ConvertAMI src/ConvertAMI.cc $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB)  -L$(ROOTSYS)/lib -lRoot -lpcre -ldl  -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
 
 ami2root: src/ami2root.C $(AMICLIB)/libAMI.a  SCDBDict.o
-	$(CXX) $(CFLAGS) -o ami2root.exe src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB)  -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
+	$(CXX) $(CFLAGS) -static -o ami2root.exe src/ami2root.C $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB) -lpthread -lkrb5support `/usr/kerberos/bin/krb5-config --libs` -lselinux -lsepol -lkeyutils -lresolv `/usr/bin/libwww-config --libs` -lxmltok -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
 
 ScanDB: src/ScanDB.cc  SCDBDict.o
 	$(CXX) $(CFLAGS) -o ScanDB src/ScanDB.cc -L$(ROOTSYS)/lib -lRoot -lpcre -ldl -I$(PWD)/inc SCDBDict.o
@@ -32,8 +32,8 @@ ScanDB: src/ScanDB.cc  SCDBDict.o
 MergeDB: src/MergeDB.C SCDBDict.o
 	$(CC) -fPIC $(CFLAGS) $(ROOTLIBS) -o MergeDB src/MergeDB.C -I$(PWD)/inc SCDBDict.o
 
-SCDBDict.cc: inc/SlowControlDB.h
-	$(ROOTSYS)/bin/rootcint -f SCDBDict.cc -c inc/SlowControlDB.h inc/linkdef.h
+SCDBDict.cc: src/SlowControlDB.cc
+	$(ROOTSYS)/bin/rootcint -f SCDBDict.cc -c src/SlowControlDB.cc inc/linkdef.h
 
 SCDBDict.o: SCDBDict.cc SCDBDict.h
 	$(CXX) $(CFLAGS) -c $<
