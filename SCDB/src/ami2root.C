@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.2 2011/02/25 00:29:34 choutko Exp $
+//  $Id: ami2root.C,v 1.3 2011/03/03 18:55:36 mmilling Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -19,8 +19,8 @@ extern "C" {
 
 #include "SlowControlDB.h"
 
-SlowControlDB* SlowControlDB::head=0;
-ClassImp(SlowControlEl);
+//SlowControlDB* SlowControlDB::head=0;
+ClassImp(SlowControlDB);
 
 using namespace std;
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
   time_t start=atoi(argv[1]);
   time_t end=atoi(argv[2]);
 
-  // set debub level
+  // set debug level
   int debug=0;
   if(argc==5)debug=atoi(argv[4]);
   // map to specify which node address and which datatype should be taken into account
