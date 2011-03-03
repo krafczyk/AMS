@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.24 2011/02/12 00:40:48 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.25 2011/03/03 10:50:40 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/02/12 00:40:48 $
+///$Date: 2011/03/03 10:50:40 $
 ///
-///$Revision: 1.24 $
+///$Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -358,6 +358,7 @@ void TrMCClusterR::GenSimClusters(){
   double   momentum = mom.norm();                  // Momentum [GeV/C]
   double   mass = TrSim::GetG3Mass(GetPart());     // Mass [GeV/c2] 
   double   charge = TrSim::GetG3Charge(GetPart()); // Charge [unit of e]
+  if (charge < 0) charge *= -1;
   if ( (mass==0)||(charge==0) ) {
     if (WARNING) printf("TrMCClusterR::GenSimClusters() -Warning No Mass/Charge for particle %d, check _g3mass and _g3charge tables",GetPart());
     return; 

@@ -725,6 +725,8 @@ double TrSimSensor::fromMCtoRealData(double adc) {
 double TrSimSensor::BetheBlock(double z, double bg) {
   double z2 = z*z;
   double bg2 = bg*bg;
-  double dEdx = 10.73*z2*((1+bg2)/bg2)*(8.68+log(bg2)-bg2/(1+bg2)); // keV
+  double dd  = 2*log(1+bg/100); // Density effect (to be tuned)
+  double dEdx = 10.73*z2*((1+bg2)/bg2)*(8.68+log(bg2)-bg2/(1+bg2)-dd); // keV
+
   return dEdx; 
 }
