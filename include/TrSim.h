@@ -26,6 +26,8 @@
 #include "VCon.h"
 #include "HistoMan.h"
 
+#include "tkdcards.h"
+
 #include <cmath>
 #include <vector>
 #include <map>
@@ -73,6 +75,14 @@ class TrSim {
   TrSim() {}
   //! Destructor 
   virtual ~TrSim() {}
+
+  //! Initialize _sensors
+  static void InitSensors() {
+    for (int i = 0; i < 3; i++) _sensors[i] = TrSimSensor(i);
+  }
+
+  //! Get a pointer to datacard (to be used in ROOT CINT)
+  static TRMCFFKEY_DEF *GetFFKEY() { return &TRMCFFKEY; }
 
   //! Build the TrMCClusters (one per side) 
   static void  sitkhits(int idsoft, float vect[], float edep, float step, int itra);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.247 2011/02/10 11:01:01 mdelgado Exp $
+//  $Id: root.C,v 1.248 2011/03/04 11:51:52 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3489,6 +3489,8 @@ static int master=0;
  
     TrClusterR::UsingTrCalDB(TrCalDB::Head);
     TrRawClusterR::UsingTrCalDB(TrCalDB::Head);
+    TrRecon::Init();
+    TrRecon::SetParFromDataCards();
     TrRecon::UsingTrCalDB(TrCalDB::Head);
 }
 master=1;  

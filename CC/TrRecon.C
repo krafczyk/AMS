@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.94 2011/02/24 09:42:24 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.95 2011/03/04 11:51:52 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/02/24 09:42:24 $
+/// $Date: 2011/03/04 11:51:52 $
 ///
-/// $Revision: 1.94 $
+/// $Revision: 1.95 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -248,11 +248,11 @@ int TrRecon::Build(int option)
   int nraw = cont->getnelem();
   delete cont;
 
+  int rebuild = option/10;
+  option %= 10;
+
   if (option == 0) return nraw;
   if (nraw <= 0 || RecPar.MaxNrawCls <= nraw) return 0;
-
-  // temporary
-  int rebuild = 0;
 
   // Build TrClusters
   int ncls = BuildTrClusters(rebuild);

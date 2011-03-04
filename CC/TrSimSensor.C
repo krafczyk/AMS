@@ -123,23 +123,28 @@ void TrSimSensor::SetDefaults() {
       _mcfun->SetParameters(81.94,5.811,1,1);
       if      (TRMCFFKEY.TrSim2010_EDepType[1]==1) _refun->SetParameters(1.00,31.500,0.943,7.650, 43.380); // TB2003
       else if (TRMCFFKEY.TrSim2010_EDepType[1]==2) _refun->SetParameters(2.77,31.440,0.978,7.294,113.513); // CR2009
-      else if (TRMCFFKEY.TrSim2010_EDepType[1]==3) _refun->SetParameters(2.90,29.393,0.976,5.855,108.803); // CR2010
+      else                                         _refun->SetParameters(2.90,29.393,0.976,5.855,108.803); // CR2010
       break;
     case 1: // K5
     case 2: // K7
       _mcfun->SetParameters(81.67,5.71,1,1);
       if      (TRMCFFKEY.TrSim2010_EDepType[0]==1) _refun->SetParameters(3.31,40.500,1.037,6.500,105.780); // TB2003
       else if (TRMCFFKEY.TrSim2010_EDepType[0]==2) _refun->SetParameters(2.62,29.584,0.975,6.297,101.405); // CR2009
-      else if (TRMCFFKEY.TrSim2010_EDepType[0]==3) _refun->SetParameters(3.15,32.012,0.977,6.929,120.252); // CR2010
+      else                                         _refun->SetParameters(3.15,32.012,0.977,6.929,120.252); // CR2010
       break;
   }
+
+  // Avoid NAN
+  float mcmax = _mcfun->GetMaximumX(0.,MAXADC);
+  if (mcmax == 0) mcmax = 1;
+
   // MPV Normalization (horizontal scaling)
   // float scale1 = _refun->GetParameter(1)/_mcfun->GetParameter(0);
-  float scale1 = _refun->GetMaximumX(0.,MAXADC)/_mcfun->GetMaximumX(0.,MAXADC);
+  float scale1 = _refun->GetMaximumX(0.,MAXADC)/mcmax;
   _mcfun->SetParameter(2,scale1);
   // Height normalization (needed for inversion)
   // float scale2 = _refun->Eval(_refun->GetParameter(1))/_mcfun->Eval(_mcfun->GetParameter(0));
-  float scale2 = _refun->GetMaximum(0,MAXADC)/_mcfun->GetMaximum(0,MAXADC); 
+  float scale2 = _refun->GetMaximum(0,MAXADC)/mcmax;
   _mcfun->SetParameter(3,scale2);
   // Inversion computation ...
 }

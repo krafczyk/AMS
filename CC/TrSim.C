@@ -18,7 +18,9 @@ AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
 
 TrMap<TrMCClusterR> TrSim::MCClusterTkIdMap;
-TrSimSensor TrSim::_sensors[3] = {TrSimSensor(0), TrSimSensor(1), TrSimSensor(2)};
+//TrSimSensor TrSim::_sensors[3] = {TrSimSensor(0), TrSimSensor(1), TrSimSensor(2)};
+// Initialization afterward
+TrSimSensor TrSim::_sensors[3];
 
 
 // FIX ME: particle table. If is rootshared read it. If not write it (please put the writing date). Commit one. 
@@ -267,6 +269,14 @@ void TrSim::sitkdigi() {
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkDigiShow");
 #endif
+
+  // Initialize _sensor if not yet
+  if (_sensors[0].GetSensorType() < 0 ||
+      _sensors[1].GetSensorType() < 0 ||
+      _sensors[2].GetSensorType() < 0) {
+    cout << "TrSim::sitkdigi-I-Initialize TrSimSensors" << endl;
+    InitSensors();
+  }
 
   // Create the TrMCCluster map and make the simulated cluster (_shower(), GenSimCluster())
   CreateMCClusterTkIdMap();
