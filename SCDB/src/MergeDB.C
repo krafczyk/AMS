@@ -6,7 +6,7 @@
 #include "TTree.h"
 #include "SlowControlDB.h"
 
-SlowControlDB* SlowControlDB::head=0;
+//SlowControlDB* SlowControlDB::head=0;
 
 
 const char *TreeName = "SlowControlDB";

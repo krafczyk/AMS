@@ -12,9 +12,8 @@
 #include <algorithm>
 
 #include "SlowControlDB.h"
-SlowControlDB* SlowControlDB::head=0;
+//SlowControlDB* SlowControlDB::head=0;
 
-ClassImp(SlowControlEl);
 ClassImp(SlowControlDB);
 
 using namespace std;
@@ -33,7 +32,7 @@ int main(int argc, char *argv[]){
   int level=0;
   if(argc==4)level=atoi(argv[3]);
 
-  Node *node=scdb->GetNode(argv[2]);
+  Node *node=&scdb->GetNode(argv[2]);
 
   printf("node pointer %d got - datatypes %i\n",node,(int)node->getnelem());
   for(int i=0;i<(int)node->getnelem();i++){

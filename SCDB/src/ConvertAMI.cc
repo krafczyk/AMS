@@ -18,8 +18,8 @@ extern "C" {
 
 #include "SlowControlDB.h"
 
-SlowControlDB* SlowControlDB::head=0;
-ClassImp(SlowControlEl);
+//SlowControlDB* SlowControlDB::head=0;
+ClassImp(SlowControlDB);
 
 using namespace std;
 
