@@ -1,15 +1,45 @@
-//  $Id: root_setup.h,v 1.6 2011/02/26 20:18:38 choutko Exp $
+//  $Id: root_setup.h,v 1.7 2011/03/05 23:25:50 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
 #include <typedefs.h>
 #include <map>
+#include <vector>
 #include "TObject.h"
+#include "TString.h"
 #include "TTree.h"
 #include "trigger102_setup.h"
 class AMSEventR;
+class AMSTimeID;
 class AMSSetupR{
 public:
+
+//! AMSTimeID info used to create a given file
+/*!
+\sa AMSSetupR
+\author vitali.choutko@cern.ch
+*/
+class TDVR{
+public:
+unsigned int Begin;  ///<Begin Validity
+unsigned int End;  ///<Begin Validity
+unsigned int Insert;  ///<Begin Validity
+unsigned int Size; ///<Size in 32bit integers
+unsigned int CRC; ///<CRC
+vector<unsigned int> Data; ///<Data  (not filling by default)
+int DataMC; ///<0 MC 2: Data
+TString Name; ///< TDV Name; TString because of root can't properly handle string
+TString FilePath; ///<File Path
+TDVR():Begin(0),End(0),Insert(0),CRC(0),Size(0),DataMC(0),Name(""),FilePath(""),Data(){}
+TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),CRC(a.CRC),Size(a.Size),Name(a.Name),FilePath(a.FilePath),Data(a.Data){}
+  friend ostream &operator << (ostream &o, const TDVR &b );
+private:
+  virtual ostream & print(ostream &) const;
+ClassDef (TDVR,4) //TDVR
+};
+
+
+
 //! LVL1 Scalers
 /*!
 
@@ -66,6 +96,20 @@ public:
 };
 public:
   Header fHeader;
+
+ typedef map <unsigned int,TDVR> TDVR_m;
+ typedef map <unsigned int,TDVR>::iterator TDVR_i;
+ typedef map <unsigned int,TDVR>::reverse_iterator TDVR_ri;
+ typedef map <string,TDVR_m> TDVRC_m;
+ typedef map <string,TDVR_m>::iterator TDVRC_i;
+ TDVRC_m fTDVRC;
+ vector<TDVR> fTDV_Time; ///<Return of getAllTDV thanks to rootcint bug;
+ vector<TDVR> fTDV_Name; ///<Return of getAllTDV thanks to rootcint bug;
+ void printAllTDV_Time(){for( int i=0;i<fTDV_Time.size();i++){cout <<fTDV_Time[i]<<endl;}}
+ void printAllTDV_Name(){for (int i=0;i<fTDV_Name.size();i++){cout <<fTDV_Name[i]<<endl;}} 
+int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
+ int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
+ int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
  typedef map <unsigned int,BValues> BValues_m;
  typedef map <unsigned int,BValues>::iterator BValues_i;
  typedef map <unsigned int,GPSTime> GPSTime_m;
@@ -87,8 +131,12 @@ public:
   const char * BuildTime(){time_t tm=fHeader.BuildTime;return ctime(&tm);};
 
 protected:
+void TDVRC_Purge(); ///< Purge TDVRC map
+void TDVRC_Add(unsigned int time,AMSTimeID * tdv);
+friend class AMSTimeID;
 static AMSSetupR * _Head;
 public:
+void Purge();
 static    AMSSetupR * gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
@@ -98,7 +146,7 @@ static    AMSSetupR * gethead(){return _Head;}
  void Reset();
  AMSSetupR();
  void Init(TTree *tree);
-ClassDef(AMSSetupR,4)       //AMSSetupR
+ClassDef(AMSSetupR,5)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

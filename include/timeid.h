@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.40 2011/02/28 01:53:06 choutko Exp $
+//  $Id: timeid.h,v 1.41 2011/03/05 23:25:50 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -6,7 +6,7 @@
 #include "node.h"
 #include "astring.h"
 #include <list>
-
+#include <map>
 
 using namespace std;
 #ifdef __DARWIN__
@@ -156,7 +156,9 @@ public:
 protected:
   static uinteger * _Table;
   static AString *  _selectEntry;
-
+   typedef map <string,AMSTimeID> timeid_m;
+    typedef map <string,AMSTimeID>::iterator timeid_i;
+    static timeid_m timeid_f;
 
   IBE _ibe;
   time_t _Insert;    //! insert time
@@ -166,6 +168,7 @@ protected:
   uinteger _CRC;     //! Control Sum
   mutable integer _UpdateMe;
   bool _verify;
+  AString _fname;
   uinteger * _pData; //! pointer to data
   integer _DataBaseSize;
   CType _Type;
@@ -208,23 +211,23 @@ public:
 
   AMSTimeID():AMSNode(),_trigfun(0),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
 	      _CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;}
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_fname="";}
   
   AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone,trigfun_type fun=0):
     AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(nbytes),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),
     _DataBaseSize(0),_Type(server)
-  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;}
+  {for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();_trigfun=fun;_fname="";}
   
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
   ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];_trigfun=0;}
-  void     addmap(unsigned int time){};
-  void purge(){} ;
 integer  GetNbytes() const { return _Nbytes;}
   integer  CopyOut (void *pdataNew) const;
   integer  CopyIn( const void *pdataNew);
   uinteger getCRC()const {return _CRC;}
   void     UpdCRC();
+  const char * getfile(){return (const char*)_fname;}
+  void setfile(const char * a){_fname=a;}
   bool &   Verify() {return _verify;}
   IBE &    findsubtable(time_t begin, time_t end);
   void     checkupdate(const char * name);
@@ -248,7 +251,7 @@ integer  GetNbytes() const { return _Nbytes;}
 #ifdef __CORBA__
   friend class AMSProducer;
 #endif
-
+friend class AMSSetupR;
 #ifdef __DB__
   void     _fillfromDB();
   integer   readDB(integer reenter=0);
