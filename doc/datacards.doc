@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.341 2011/02/19 11:27:25 zweng Exp $
+#  $Id: datacards.doc,v 1.342 2011/03/05 23:25:46 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -80,7 +80,8 @@ I170 BuildMin(-1)                // min build version (production only)
 I171 HistoMan                    // Enables the HistoMan facility for histograms (1:written in AMSRoot file 2:written in Histos_$RUN.root 3:written in both)
 I172 Skip                        // Skip n events in the reconstruction
 I173 WriteTGeometry(0)           // Write TGeometry (0: no, 1: yes)
-I174 TGeoFileName('ams02.root')  // TGeometry file name
+I174 TGeometryFileName('ams02.root')  // TGeometry file name
+I214 WriteTDVDataInRoot(0)             // Write/NotWriote TDVData in Root (not to be mixed with names
 //-------------------------------------------------------------------------------
 
     RICH simulation
