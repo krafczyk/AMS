@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.161 2011/02/24 00:04:27 choutko Exp $
+//  $Id: server.C,v 1.162 2011/03/05 23:25:40 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2978,6 +2978,7 @@ tdvname.Success=false;
 if(li!=_tid.end()){
  time_t b=tdvname.Entry.Begin;
  tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
+ tdvname.File=li->second->getfile();
 time_t i,e;
 li->second->gettime(i,b,e);
  if(i!=tdvname.Entry.Insert || b!=tdvname.Entry.Begin || e!=tdvname.Entry.End){
@@ -3074,6 +3075,8 @@ time_t i,b,e;
 i=tdvname.Entry.Insert;
 b=tdvname.Entry.Begin;
 e=tdvname.Entry.End;
+cout << " TDV "<<tdvname.Name<<" File "<<tdvname.File<<endl;
+cout << " second "<<li->second->getname()<<endl;
 li->second->SetTime(i,b,e);
 try{
 li->second->updatedb();
@@ -3129,7 +3132,9 @@ else{
     sprintf(tmp,"%d",id);
     AString a("getTDVTable-S-TDVNameNotFound ");
     a+=(const char*)tmp;
-    _parent->EMessage((const char*)a);
+    a+=(const char*)tdvname.Name;
+    a+=(const char*)tdvname.File;
+  _parent->EMessage((const char*)a);
 }
 if(length==0){
  vtable->length(0);
@@ -3142,7 +3147,7 @@ return length;
 #include <new.h>
 Producer_impl::TIDI & Producer_impl::_findTDV(const DPS::Producer::TDVName & tdv){
 AMSID id((const char*)tdv.Name,tdv.DataMC);
-cout <<"findtdv "<<id<<endl;
+cout <<"findtdv "<<id<<" F "<<(const char*)tdv.File<<" S "<<tdv.Size<<endl;
 TIDI li=_tid.find(id);
 if(li==_tid.end()){
 try{

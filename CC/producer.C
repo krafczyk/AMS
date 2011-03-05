@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.150 2011/02/23 20:12:48 choutko Exp $
+//  $Id: producer.C,v 1.151 2011/03/05 23:25:40 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1494,6 +1494,7 @@ a.Name=pser->getname();
 a.DataMC=pser->getid();
 a.Size=pser->GetNbytes();
 a.CRC=pser->getCRC();
+a.File="";
 time_t i,b,e;
 pser->gettime(i,b,e);
 a.Entry.id=0;
@@ -1552,6 +1553,7 @@ name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
 name.Size=tdv->GetNbytes();
 name.Entry.id=id;
+name.File="";
 time_t i,b,e;
 tdv->gettime(i,b,e);
 name.Entry.Insert=i;
@@ -1613,6 +1615,7 @@ name.DataMC=tdv->getid();
 name.CRC=tdv->getCRC();
 name.Size=tdv->GetNbytes();
 name.Entry.id=id;
+name.File="";
 time_t i,b,e;
 tdv->gettime(i,b,e);
 name.Entry.Insert=i;
@@ -1663,6 +1666,8 @@ totallength+=length;
 }
 if(name.Success){
  int nb=tdv->CopyIn(vb2->get_buffer());
+tdv->setfile((const char*)name.File);
+cout <<"TDVFileNameRead "<<tdv->getfile()<<endl; 
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
   cout <<"  gettdv success "<<" "<<name.Entry.Begin<<" "<<name.Entry.End<<endl;
@@ -1670,6 +1675,7 @@ if(name.Success){
  }
 }
   cout <<"  gettdv failure "<<endl;
+FMessage("AMSProducer::sendTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
 return false;
 }
 
@@ -1690,6 +1696,7 @@ tdv->gettime(i,b,e);
 name.Entry.Insert=i;
 name.Entry.Begin=b;
 name.Entry.End=e;
+name.File="";
  int suc=0;
 DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
 vbody->length(name.Size/sizeof(integer));

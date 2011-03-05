@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.114 2011/02/28 01:53:06 choutko Exp $
+//  $Id: timeid.C,v 1.115 2011/03/05 23:25:40 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -27,7 +27,9 @@
 #ifdef __CORBA__
 #include "producer.h"
 #endif
-
+#ifndef __CORBASERVER__
+#include "ntuple.h"
+#endif
 #include <dirent.h>
 
 
@@ -43,19 +45,19 @@ extern LMS* lms;
 
 #endif
 
+
 #ifdef _WEBACCESS_
 #include "fopen.h"
 int AMSTimeID::_WebAccess=0;
 char AMSTimeID::_WebDir[200]="";
 #endif
-
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
   AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server){
-
-  _trigfun=fun;
+  _fname="";
+   _trigfun=fun;
 
   _Nbytes=nbytes;
 
@@ -305,7 +307,14 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 #pragma omp barrier 
   if( omp_get_thread_num()==0) {
     ok= read(dir,id,asktime,index)?1:0;
-    addmap(asktime);
+#ifndef __CORBASERVER__
+     if(AMSNtuple::Get_setup02()){
+        AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
+     }
+     else{
+       cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
+     }
+#endif
     if(ok && _trigfun)_trigfun();
     AMSEvent::Barrier()=false;
   }
@@ -314,7 +323,14 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   
   if( read(dir,id,asktime,index)){
     if(_trigfun)_trigfun();
-     addmap(asktime);
+#ifndef __CORBASERVER__
+     if(AMSNtuple::Get_setup02()){
+        AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
+     }
+     else{
+       cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
+     }
+#endif
     return 1;
   }
   else 
@@ -354,7 +370,8 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
     enum open_mode{binary=0x80};
     fstream fbin;
 
-    AString fnam("");
+    AString &fnam=_fname; 
+    fnam="";
 #ifdef _WEBACCESS_
     if(_WebAccess)
       fnam+=_WebDir;
@@ -1111,7 +1128,7 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
 }
 
 bool AMSTimeID::updatedb(){
-
+  cout <<"AMSTimeID::updatedb-I-Size "<<_DataBaseSize<<endl;
   uinteger *tmpa[5];
   int i;
   for( i=0;i<5;i++){

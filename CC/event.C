@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.512 2011/02/26 20:18:18 choutko Exp $
+//  $Id: event.C,v 1.513 2011/03/05 23:25:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1332,6 +1332,9 @@ void AMSEvent::copy(){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
+if(GCFLAG.IEVENT==1000){
+cout <<"qwa"<<endl;
+}
   addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){
@@ -3131,8 +3134,12 @@ void AMSEvent::Recovery(){
       UPool.erase(0);
       cerr <<"AMSEvent::Recovery-I-Memory pool released"<<endl;
       int mresort=160000;
-      int ntry;
+      int ntry=0;
       const int maxtry=10;
+      if(AMSJob::gethead()->isSimulation()){
+        ntry=maxtry;
+         mresort=1;
+       } 
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
 agains:
       try{

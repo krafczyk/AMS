@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.775 2011/02/27 17:39:56 zweng Exp $
+// $Id: job.C,v 1.776 2011/03/05 23:25:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -241,6 +241,7 @@ IOPA.histoman=1;//171
 IOPA.skip=0; //172
 IOPA.WriteRoot=0;//127
 IOPA.WriteTGeometry=0;//173
+IOPA.WriteTDVDataInRoot=0;
 VBLANK(IOPA.TGeometryFileName,40);//174
 char tgeofilename[16]="ams02.root";
 UCTOH(tgeofilename,IOPA.TGeometryFileName,4,16);

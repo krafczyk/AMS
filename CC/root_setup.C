@@ -3,7 +3,9 @@
 #include <fstream.h>
 #include "SlowControlDB.h"
 #ifndef __ROOTSHAREDLIBRARY__
+#include "commons.h"
 #include "commonsi.h"
+#include "timeid.h"
 #endif
 AMSSetupR* AMSSetupR::_Head=0;
 
@@ -53,11 +55,13 @@ fScalers.clear();
 fLVL1Setup.clear();
 Header a;
 fHeader=a;
+Purge();
 }
 
 AMSSetupR::AMSSetupR(){
 Reset();
 }
+  ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
   ClassImp(AMSSetupR::BValues)
@@ -68,6 +72,121 @@ Reset();
   AMSSetupR *dummy=this;
   tree->SetBranchAddress("run.",&dummy);
    
+}
+#ifndef __ROOTSHAREDLIBRARY__
+void AMSSetupR::TDVRC_Add(unsigned int time,AMSTimeID *tdv){
+TDVR a;
+a.Begin=tdv->_Begin;
+a.Insert=tdv->_Insert;
+a.End=tdv->_End;
+a.Size=tdv->_Nbytes;
+a.CRC=tdv->_CRC;
+a.DataMC=tdv->getid();
+a.Name=tdv->getname();
+a.FilePath=(const char*)tdv->_fname;
+if(IOPA.WriteTDVDataInRoot){
+a.Data.clear();
+a.Size/=sizeof(uinteger);
+a.Size--;
+for(int i=0;i<a.Size;i++){
+a.Data.push_back(*(tdv->_pData+i));
+}
+}
+string s=tdv->getname();
+fTDVRC[s];
+TDVRC_i i=fTDVRC.find(s);
+i->second.insert(make_pair(time,a));
+//cout <<"  inserting "<<a.Name<<" "<<a.FilePath<<" "<<time<<endl;
+
+}
+#else
+void AMSSetupR::TDVRC_Add(unsigned int time,AMSTimeID *tdv){
+}
+#endif
+
+ostream &operator << (ostream &o, const AMSSetupR::TDVR &b )
+{return b.print(o);}
+  
+ostream & AMSSetupR::TDVR::print(ostream &o)const{
+  return(o <<Name << "  " <<FilePath<<" Size "<<Size<<" RealSize "<<Data.size() );
+}
+
+
+int AMSSetupR::getTDV(const string & name, unsigned int time, AMSSetupR::TDVR & tdv){
+TDVRC_i i=fTDVRC.find(name);
+if(i!=fTDVRC.end()){
+TDVR_i j=i->second.lower_bound(time);
+if(i->second.size()>0){
+bool add=false;
+if(j==i->second.begin()){
+if(j->first==time)add=true;
+else add=false;
+}
+else if(j!=i->second.end()){
+if(j->first >time)j--;
+add=true;
+}
+else{
+j--;
+add=true;
+}
+if( add){
+tdv=j->second;
+return 0;
+}
+else return 2;
+}
+else return 2;
+}
+else return 1;
+}
+ int AMSSetupR::getAllTDV(unsigned int time){
+  vector<TDVR> &v= fTDV_Time;
+  v.clear();
+for(TDVRC_i i=fTDVRC.begin();i!=fTDVRC.end();i++){
+TDVR_i j=i->second.lower_bound(time);
+if(i->second.size()>0){
+bool add=false;
+if(j==i->second.begin()){
+if(j->first==time)add=true;
+else add=false;
+}
+else if(j!=i->second.end()){
+if(j->first >time)j--;
+add=true;
+}
+else{
+j--;
+add=true;
+}
+if( add){
+
+  v.push_back(j->second);
+}
+}}
+return v.size();
+}
+
+ int   AMSSetupR::getAllTDV(const string &name){
+  vector<TDVR> &v=fTDV_Name; 
+  v.clear();
+  TDVRC_i i=fTDVRC.find(name);
+  if(i!=fTDVRC.end()){
+    for( TDVR_i j=i->second.begin();j!=i->second.end();j++)v.push_back(j->second);
+  }
+return v.size();
+}
+
+void AMSSetupR::Purge(){
+TDVRC_Purge();
+}
+
+void AMSSetupR::TDVRC_Purge(){
+for(TDVRC_i i=fTDVRC.begin();i!=fTDVRC.end();i++){
+ cout<<"AMSSetupR::TDVRC_Purge-I-Purging "<<i->first<<" "<<i->second.size()<<endl;
+ i->second.erase(i->second.begin(),--(i->second.end()));
+ cout<<"AMSSetupR::TDVRC_Purge-I-Purged "<<i->first<<" "<<i->second.begin()->second.Size<<" "<<i->second.begin()->second.FilePath<<" "<<endl;
+}
 }
 #ifndef __ROOTSHAREDLIBRARY__
 bool AMSSetupR::FillHeader(uinteger run){
@@ -244,4 +363,5 @@ bool AMSSetupR::FillSlowcontrolDB(const char*a){
   return true;
 }
 #endif
+
 

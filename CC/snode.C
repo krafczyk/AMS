@@ -1,4 +1,4 @@
-//  $Id: snode.C,v 1.17 2008/12/08 15:15:18 choutko Exp $
+//  $Id: snode.C,v 1.18 2011/03/05 23:25:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #include <typeinfo> 
@@ -205,3 +205,25 @@ void AMSNodeMap::print (int init){
     else break;
   }
 }
+void cxout(int *i, float *r,int *i1,int *i2);
+extern "C" void cxout_(int & i, float & r, int & i1, int & i2){
+
+cxout(&i,&r,&i1,&i2);
+}
+
+void cxout(int * i, float * r, int *i1, int *i2){
+
+cout <<"rndm "<<*i<<" "<<*r<<" "<<i1<<" "<<i2<<endl;
+}
+
+void cxout2(int *i, int *len,float *ix, int *iseq,int *i1,int *i2);
+extern "C" void cxout2_(int & i, int & r, float & iz, int &iseq,int & i1, int & i2){
+
+cxout2(&i,&r,&iz,&iseq,&i1,&i2);
+}
+
+void cxout2(int * i, int * r, float *iz, int *iseq,int *i1, int *i2){
+
+cout <<"grndmm "<<*i<<" "<<*r<<" "<<*iz<<" "<<*iseq<<" "<<*i1<<" "<<*i2<<endl;
+}
+
