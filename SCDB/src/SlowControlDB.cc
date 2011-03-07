@@ -4,7 +4,7 @@ SlowControlDB* SlowControlDB::head=0;
 
 ClassImp(SlowControlDB);
 
-bool SlowControlDB::Load(char* fname,unsigned int minT,unsigned int maxT, int debug){
+bool SlowControlDB::Load(const char* fname,unsigned int minT,unsigned int maxT, int debug){
   TFile *f=TFile::Open(fname);
   if(debug)printf("opening file %s ptr\n",fname);
   if(debug)printf("requesting time min %i max %i\n",minT,maxT);

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.151 2011/03/05 23:25:40 choutko Exp $
+//  $Id: producer.C,v 1.152 2011/03/07 22:56:08 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -725,7 +725,11 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
   fmake="mkdir -p ";
   fcopy="cp ";
  }
- fmake+=destdir;
+  string rfio=destdir;
+  if(rfio.find("/castor/cern.ch")!=-1){
+    fmake+=rfio.c_str()+rfio.find("/castor/cern.ch");
+  }
+  else fmake+=rfio.c_str();
 // fmake+='/';
 // for (int k=bnt;k<bend;k++)fmake+=a[k];
  system((const char*)fmake);
@@ -1123,7 +1127,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
   fmake="nsmkdir -p  ";
   if(getenv("TransferMakeDir"))fmake=getenv("TransferMakeDir");
   string rfio=destdir;
-  if(rfio.find("/castor/cern.ch")){
+  if(rfio.find("/castor/cern.ch")!=-1){
     fmake+=rfio.c_str()+rfio.find("/castor/cern.ch");
   }
   else fmake+=rfio.c_str();
@@ -2071,12 +2075,12 @@ else sprintf(tmpu,"%d",_pid.uid);
 // Check if submitted via lsf 
 // set up hostname  and pid as lxplus/ams job_entry
 //
+              vector <int>id;
               char atmpu[80];
               sprintf(atmpu,"%d",_pid.pid);
               AString afout="/tmp/";
               afout+=tmpu;
               afout+=".bjobs";
-              int id=-1;
               AString afscript="/afs/cern.ch/ams/local/lsf/bin/bjobs -J '";
               afscript+=(const char *)fscript;
               afscript+="*'     1>";
@@ -2088,23 +2092,35 @@ else sprintf(tmpu,"%d",_pid.uid);
               if(i==0){
                 ifstream afbin;
                 afbin.open((const char*)afout);
+                while(afbin.good() && !afbin.eof()){
                 afbin.getline(line,1023);
                 if(strstr(line,"JOBID")){
-                  afbin>>id;
-                  cout << "AMSClient-I-bsubDetected "<<id<<endl;
+                  int idd;
+                  afbin>>idd;
+                  id.push_back(idd);
+                  cout << "AMSProducer-I-bsubDetected "<<idd<<endl;
                 }
+               }
                 afbin.close();
                }
                unlink ( (const char*)afout); 
-              if(id>0){
-                  if(strstr(_pid.HostName,"lsb")){
+                for(int i=0;i<id.size()-1;i++){
+                      cerr<<"AMSProducer-E-bsubduplicatediddetected "<<id[id.size()-1]<<" "<<id[i]<<endl;
+             }
+              if(id.size()>0){
+                  if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")){
                     _pid.HostName="lxplus.cern.ch";
-                    _pid.pid=id;
+                    _pid.pid=id[id.size()-1];
                     _pid.ppid=0;
                   }
+                  else if(strstr(_pid.HostName,"pcamss0")){
+                    _pid.HostName="pcamss0.cern.ch";
+                    _pid.pid=id[id.size()-1];
+                    _pid.ppid=0;
+}
                   else if(strstr(_pid.HostName,"ams")){
                     _pid.HostName="pcamsf2.cern.ch";
-                    _pid.pid=id;
+                    _pid.pid=id[id.size()-1];
                     _pid.ppid=0;
                   }
                  } 

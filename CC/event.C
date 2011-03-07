@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.513 2011/03/05 23:25:40 choutko Exp $
+//  $Id: event.C,v 1.514 2011/03/07 22:56:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3799,7 +3799,8 @@ void AMSEvent::_collectstatus(){
                else if(nht<6)z1=2;
                else if(nht<7)z1=3;
                else if(nht<8)z1=4;
-               else z1=5; 
+               else if(nht<9)z1=5;
+               else z1=6; 
               } 
              __status1|=(z1<<25);
       }

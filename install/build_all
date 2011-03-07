@@ -16,6 +16,7 @@ source /Offline/vdev/install/g4i
 gmake allg4
 source /Offline/vdev/install/amsvar.gcc64
 gmake allp
+gmake server
 source /Offline/vdev/install/amsvar.icc32
 gmake allold 
 setenv MARCH linuxicc26
@@ -25,6 +26,7 @@ unsetenv MARCH
 source /Offline/vdev/install/amsvar.gcc32
 source /Offline/vdev/install/g4i
 gmake allg4
+gmake server
 setenv PGTRACK 1
 source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i
@@ -32,6 +34,7 @@ gmake allg4
 source /Offline/vdev/install/amsvar.gcc32
 source /Offline/vdev/install/g4i
 gmake allg4
+gmake server
 source /Offline/vdev/install/amsvar.gcc64
 gmake allp
 source /Offline/vdev/install/amsvar.icc32

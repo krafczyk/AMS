@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.115 2011/03/05 23:25:40 choutko Exp $
+//  $Id: timeid.C,v 1.116 2011/03/07 22:56:08 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -151,8 +151,9 @@ integer AMSTimeID::validate(time_t & Time, integer reenter){
       return 1;
     }
     else {
-      cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
+      cerr<<"AMSTimeID::validate-F-CRC Error "<<getname()<<" Old CRC "
 	  <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
+      return 0; 
     }
     if(!reenter)return validate(Time,1);
     return 0;

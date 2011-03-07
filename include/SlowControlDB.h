@@ -210,7 +210,7 @@ class SlowControlDB: public TTree
   virtual ~SlowControlDB(){}
 
   /// Load the DB from a root file with name
-  bool Load(char* fname,unsigned int minT=0,unsigned int maxT=UINT_MAX, int debug=0);
+  bool Load(const char* fname,unsigned int minT=0,unsigned int maxT=UINT_MAX, int debug=0);
 
   /// Load the file from an already opened ROOT File 
   bool Load(TFile* f,unsigned int minT=0,unsigned int maxT=UINT_MAX,int debug=0);

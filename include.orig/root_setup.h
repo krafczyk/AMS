@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.7 2011/03/05 23:25:50 choutko Exp $
+//  $Id: root_setup.h,v 1.8 2011/03/07 22:56:09 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -9,10 +9,72 @@
 #include "TString.h"
 #include "TTree.h"
 #include "trigger102_setup.h"
+class SlowControlDB;
 class AMSEventR;
 class AMSTimeID;
 class AMSSetupR{
 public:
+
+//! SlowControlDB reimplementation
+/*!
+\sa AMSSetupR
+\author vitali.choutko@cern.ch
+*/
+class SlowControlR{
+public:
+class SubType{
+public:
+typedef map <unsigned int,float> table_m;
+typedef map <unsigned int,float>::iterator table_i;
+table_m fTable;
+ClassDef (SubType,1) //SubType
+};
+
+class DataType{
+typedef map <int,SubType> stable_m;
+typedef map <unsigned int,float>::iterator stable_i;
+public:
+stable_m fSTable;
+ClassDef (DataType,1) //DataType
+};
+
+class Node{
+public:
+typedef map <int,DataType> dtable_m;
+typedef map <int,DataType>::iterator dtable_i;
+int Number; ///<  ?
+dtable_m fDTable; ///< Map of Datatypes by int id ?
+ClassDef (Node,1) //Node
+};
+
+public:
+unsigned int fBegin; ///<Begin Validity
+unsigned int fEnd;  /// <End Validity
+typedef map <string,Node> ntable_m;
+typedef map <string,Node>::iterator ntable_i;
+ntable_m fNTable;
+SlowControlR():fBegin(0),fEnd(0){}
+ClassDef (SlowControlR,1) //slowcontrolR
+  /// Returns the value of a quantity with a given name at a given timestamp
+	/*! 
+	 \param name       the name of the desired quantity
+        \param dt
+         \param st
+	 \param timestamp  Unix time (sec from 1970)
+	 \param frac       second fraction after the timestamp
+         \param val        return value  
+	 \param imethod   0 = the closer in time
+	 1 = linear interplolation
+	 \return  0   success
+                  1  no name found
+                  2  no dt found
+                  3  no st found
+                  4  outside of bounds
+  
+	 */
+int GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value);
+
+};
 
 //! AMSTimeID info used to create a given file
 /*!
@@ -96,8 +158,8 @@ public:
 };
 public:
   Header fHeader;
-
- typedef map <unsigned int,TDVR> TDVR_m;
+  SlowControlR fSlowControl;
+  typedef map <unsigned int,TDVR> TDVR_m;
  typedef map <unsigned int,TDVR>::iterator TDVR_i;
  typedef map <unsigned int,TDVR>::reverse_iterator TDVR_ri;
  typedef map <string,TDVR_m> TDVRC_m;
@@ -133,6 +195,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
 protected:
 void TDVRC_Purge(); ///< Purge TDVRC map
 void TDVRC_Add(unsigned int time,AMSTimeID * tdv);
+void Add(SlowControlDB *s);
 friend class AMSTimeID;
 static AMSSetupR * _Head;
 public:
@@ -142,6 +205,7 @@ static    AMSSetupR * gethead(){return _Head;}
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
  bool FillSlowcontrolDB(const char * file);
+ bool LoadSlowcontrolDB(const char * file, unsigned int t1, unsigned int t2);
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();

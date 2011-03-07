@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.162 2011/03/05 23:25:40 choutko Exp $
+//  $Id: server.C,v 1.163 2011/03/07 22:56:08 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2423,11 +2423,15 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).Type=DPS::Client::Generic;
      ((ac.ars)[0]).uid=0;
      bool runmc=false;
+     bool singlethread=false;
     if(_parent->IsMC()){
       // find run from very beginning, as whole script path depend on it
         DPS::Producer::RunEvInfo_var   reinfo;
         DPS::Producer::DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);     
+if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
+        singlethread=true;
+}
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
         if(reinfo->Priority>2 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
@@ -2440,6 +2444,9 @@ if(pcur->InactiveClientExists(getType()))return;
      PropagateAH(cid,(ahlv),DPS::Client::Update);
      ahlv=*i;
      cout <<" host found "<<(const char*)(*i)->HostName<<endl;
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+    if(cli==_ncl.end())cli=_ncl.begin();
+
      break;
     }
    }
@@ -2535,6 +2542,26 @@ if(pcur->InactiveClientExists(getType()))return;
     }
     if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
+{
+      string s=(const char*)submit;
+      char pat[]="bsub -n ";
+      int pos=s.find(pat);
+      if(pos>=0){
+     ac.TimeOut=ac.TimeOut*1.5;
+      cout<<"AMSProducer::StartClients-I-bsubDetectedTimeoutchanged "<<ac.TimeOut<<endl;
+}
+}
+    if(singlethread){
+      cout<<"AMSProducer::StartClients-I-singleThreadDetected "<<submit<<endl;
+      string s=(const char*)submit;
+      char pat[]="bsub -n ";
+      int pos=s.find(pat);
+      if(pos>=0){
+        string s1=s.replace(pos,strlen(pat)+1,"bsub -n 1 ");
+        submit=s1.c_str();
+         cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
+      }
+    }
     int out=systemC(submit);
      time(&tt);
      (ahlv)->LastUpdate=tt;     
