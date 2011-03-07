@@ -7,5 +7,4 @@
   sprintf(libname,"$AMSWD/lib/%s/ntuple_slc4_PG.so",gSystem->GetBuildArch()); 
   // for loading AMSRoot libraries
   gSystem->Load(libname);
-  gROOT->ProcessLine(".L analyze.C");
 }

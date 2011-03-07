@@ -8,10 +8,10 @@ void ProcessEvent(AMSEventR* ev);
 void BookHistos();
  HistoMan hman;
 
-int analyze(AMSChain *ch, int num=9999999){
+int analyze_CINT(AMSChain *ch, int num=9999999){
  
   hman.Enable();
-//  hman.Setname("HistoOut.root");
+  hman.Setname("HistoOut.root");
 
   BookHistos();
  
@@ -22,7 +22,7 @@ int analyze(AMSChain *ch, int num=9999999){
    ProcessEvent(ev);
  }
  
-// hman.Save();
+ hman.Save();
 
  return 1;
 }
