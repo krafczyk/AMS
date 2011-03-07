@@ -75,15 +75,48 @@ if(!p){
  cerr<<"AMSSetupR::add-E-SlowcontrolPointerIsNull"<<endl;
 }
 else{
-  TObjArray *branchlist=p->GetListOfBranches();
-  if(branchlist->GetEntries()==0){
+  if(p->GetEntries()==0){
     cerr<<"AMSSetupR::add-E-SlowcontrolPointerHasNoEntries"<<endl;
+    return;
   }
   else{
-     if(branchlist->GetEntries()>1){
-    cerr<<"AMSSetupR::add-W-SlowcontrolPointerHasManyEntries"<<" "<<branchlist->GetEntries()<<endl;
+     if(p->GetEntries()>1){
+    cerr<<"AMSSetupR::add-W-SlowcontrolPointerHasManyEntries"<<" "<<p->GetEntries()<<endl;
      }
+     
   }
+
+  TObjArray *branchlist=p->GetListOfBranches();
+  for(int i=0;i<(int)branchlist->GetEntries();i++){
+    TObject* obj=(TObject*)branchlist->At(i);
+      ::Node *node=new ::Node();
+      AMSSetupR::SlowControlR::Node mynode;
+    if(strcmp(obj->ClassName(),"TBranchElement")==0){
+      string name=branchlist->At(i)->GetName();
+      p->SetBranchAddress(branchlist->At(i)->GetName(),&node);
+      TBranch*b=p->GetBranch(branchlist->At(i)->GetName());
+      if(b){
+        b->GetEntry(0);
+      }
+      for(std::map<int,DataType>::iterator dt=node->datatypes.begin();dt!=node->datatypes.end();dt++){
+      AMSSetupR::SlowControlR::DataType mydatatype;
+          for(std::map<int,SubType>::iterator st= dt->second.subtypes.begin();st!=dt->second.subtypes.end();st++){
+      AMSSetupR::SlowControlR::SubType mysubtype;
+           for(std::map<unsigned int,float>::iterator it=st->second._table.begin();it!=st->second._table.end();it++){
+               mysubtype.fTable[it->first]=it->second;
+           }
+           mydatatype.fSTable[st->first]=mysubtype;
+         }
+         mynode.Number=dt->second.number;
+         mynode.fDTable[dt->first]=mydatatype;
+        }
+        string anothername=node->GetName();
+        fSlowControl.fNTable[anothername]=mynode;
+        fSlowControl.fBegin=p->begin;
+        fSlowControl.fEnd=p->end;
+    }
+  }
+
 }
 }
 
