@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.73 2011/02/23 13:42:38 mdelgado Exp $
+//  $Id: richdbc.C,v 1.74 2011/03/07 14:02:41 mdelgado Exp $
 #include"richdbc.h"
 #include<math.h>
 #include"richid.h"
@@ -359,11 +359,12 @@ integer RICHDB::detcer(geant photen)
    
 
 geant RICHDB::max_step(double index){
-  AMSmceventg dummy(GCKINE.ikine,0.,AMSPoint(),AMSDir());
-  number charge=dummy.getcharge();
+  //  AMSmceventg dummy(GCKINE.ikine,0.,AMSPoint(),AMSDir());
+  //  number charge=dummy.getcharge();
+  //  if(charge==0) charge=1;
 
-  if(charge==0) charge=1;
   if(index<=1) index=RICHDB::rad_index;
+  number charge=26;
 
   geant dndl=370*(1-1/index/index)*
         197.327*6.28*(1/RICHDB::wave_length[RICmaxentries-1]
