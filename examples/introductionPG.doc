@@ -13,7 +13,7 @@ TTree </a>
 </ul>
 
 <ul>      <li> An interpreted analysis with the <a href="http://root.cern.ch/root/Cint.html">
-           CINT </a> 
+           CINT </a> is also possible as depicted in \subpage cintana
 </ul>
 <ul>
       <li> A compiled/interactive  analysis with the TSelector mode. You can find more at \subpage stlv
@@ -33,9 +33,11 @@ This page introduces the user to the topic.
 Now you can proceed to the \ref advanced "advanced section".
 */
 
+
 /*! \page compsha "Compiled Shared or Static"
 Here there is an example of a simple looper that scans the data
 it can be compiled versus static or dynamic AMS libraries
+The files are in the GBATCH source in the directory examples/verysimple
 
 
 This is an example of the code.
@@ -44,8 +46,21 @@ This is an example of the code.
 This is a Makefile that shows how to compile it
 \include Makefile
 */
-
 //-----------------------------------------------------------
+/*! \page cintana "Interactive analysis (CINT)"
+Here there is an example of a simple looper that scans the data
+it can be run from the ROOT propmt.
+The files are in the GBATCH source in the directory examples/verysimple_CINT
+
+This is the macro to pre-load the AMS libraries
+\include LoadAMSLibs.C
+
+This is an example of the code.
+\include analyze_CINT.C
+
+This is the macro that shows how to run it
+\include run.analyze_CINT.C
+*/
 
 /*! \page stlv TSelector Analysis 
 This page is devoted to an analysis example using the TSelector approach 
