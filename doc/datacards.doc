@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.342 2011/03/05 23:25:46 choutko Exp $
+#  $Id: datacards.doc,v 1.343 2011/03/07 16:57:59 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -840,8 +840,8 @@ I 9   relogic[1](1)       // (1)/0-> permit/not LT-SumHT hits matching criterion
 I 10  relogic[2](0)       // 1/0->use/not TDC NonLin-correction at RECO-stage(RawClust creation)
 I 11  relogic[3](0)       // do/not recovering of missing side 
 I 12  relogic[4](1)       // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 
-R 13  DAQ-thresh-1 (30)   // discr.thresh.(mv) for LT (low thresh) channel
-R 14  DAQ-thresh-2 (70)   // discr.thresh.(mv) for HT (hi thr, => z>=1-trig) channel
+R 13  DAQ-thresh-1 (50)   // discr.thresh.(mv) for LT (low thresh) channel
+R 14  DAQ-thresh-2 (80)   // discr.thresh.(mv) for HT (hi thr, => z>=1-trig) channel
 R 15  DAQ-thresh-3 (940)  // discr.thresh.(mv) for SHT (super hi thr => z>=2-trig)
 R 16  DAQ-thresh-4 (4)    // Anode-ADC readout threshold in DAQ(in ped's rms units) 
 R 17  DAQ-thresh-5 (4)    // Dynode-ADC readout threshold in DAQ(in ped's rms units) 

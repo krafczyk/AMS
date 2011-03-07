@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.82 2011/01/29 15:51:20 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.83 2011/03/07 16:56:56 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2753,6 +2753,8 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1113,"RawCluster:OneBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
     HBOOK1(1114,"RawCluster:One2SidedBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
     HBOOK1(1115,"RawCluster: BestMatch LT-SumHT time(all FTmatched LT-hits, ovfl=noSumHTmatch)",80,-6.,14.,0.);
+    HBOOK1(1118,"RawCluster:Side-1 time (allchan, noAcorr)",100,0.,400.,0.);
+    HBOOK1(1119,"RawCluster:Side-2 time (allchan, noAcorr)",100,0.,400.,0.);
 //
     if(TFREFFKEY.reprtf[4]>0){//more histograms
       HBOOK1(1120,"TofRawClBuild: LTime-SumHTtime(1-Hit case), L1S1",80,-6.,14.,0.);
@@ -2998,6 +3000,8 @@ void TOF2JobStat::outp(){
     HPRINT(1112);
     HPRINT(1113);
     HPRINT(1114);
+    HPRINT(1118);
+    HPRINT(1119);
     
     if(TFREFFKEY.reprtf[4]>0){
       for(int btyp=1;btyp<(TOF2GC::SCBTPN+1);btyp++){

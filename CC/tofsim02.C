@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.50 2010/03/26 14:59:55 choumilo Exp $
+//  $Id: tofsim02.C,v 1.51 2011/03/07 16:56:56 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -337,7 +337,7 @@ void TOF2Tovt::build()
 //      <--- prepare PM single electron pulse height distribution:
   static geant arr[19]={50.,20.,39.7,46.5,52.3,54.6,52.7,47.6,40.7,
                           32.5,23.9,16.7,11.,7.,4.5,3.,1.5,1.,0.5};
-  static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready
+  static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready (not used now ?)
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
   integer id,idN,idd,ibar,ilay,ibtyp,cnum,is;

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.25 2010/08/08 09:37:01 choumilo Exp $
+//  $Id: tofsim02.h,v 1.26 2011/03/07 16:58:18 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -488,7 +488,6 @@ static integer Out(integer);
  void putadcd(integer nelem, geant arr[]);
  integer lvl3format(int16 * ptr, integer rest);
  integer getnqhits(){return _nadcd+1;}
-
 
 
  static void setpatt(integer patt[]){

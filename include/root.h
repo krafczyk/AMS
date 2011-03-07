@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.307 2011/03/02 19:22:11 mmilling Exp $
+//  $Id: root.h,v 1.308 2011/03/07 16:58:17 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -591,9 +591,9 @@ public:
 					      // bit6(32)   -> used for TofCluster 
    */
   int   Layer;   ///< Tof plane 1(top)...4
-  int   Bar;     ///< Tof Bar number 1...14
+  int   Bar;     ///< Tof Bar number 1...10
   float adca[2]; ///< Anode raw signal(adc), side=1-2
-  float adcd[2]; ///< Dynode(equilized sum of pmts) raw signal(adc) 
+  float adcd[2]; ///< Dynode(equilized sum of pmts on each side) raw signal(adc) 
   float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc) 
   float sdtm[2];  ///< A-noncorrected side times
   float edepa;   ///< Anode Edep (mev)
@@ -701,8 +701,8 @@ public:
 						 // bit8 is ORed over cluster-members
    */
   int Layer;    ///<  Tof plane 1(top)...4
-  int Bar;      ///< Tof Bar number 1...14
-  float Edep;  ///< TOF energy loss (MeV) from anode
+  int Bar;      ///< Tof Bar number 1...10
+  float Edep;  ///< TOF energy loss (MeV, anode + dynode combined)
   float Edepd; ///< TOF energy loss (MeV) from dinode
   float Time;  ///<TOF time (sec, wrt FastTrig-time)
   float ErrTime;  ///< Error in TOF time
@@ -1530,7 +1530,7 @@ public:
 		    */
   int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
   int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
-  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):1,..4
+  int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,5:1+3,6:1+4,7:2+3,8:2+4,9:1+2,10:3+4,(11-14):1,..4
   int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 

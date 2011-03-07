@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.95 2011/02/09 03:53:10 choutko Exp $
+//  $Id: trigger102.C,v 1.96 2011/03/07 16:56:57 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -335,7 +335,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     integer brand[8];//ANDs of current and preset patterns of phys.branches
     integer brreq[8]; 
     for(i=0;i<8;i++){
-      brreq[i]=Trigger2LVL1::l1trigconf.physbrmemb(i);//16bits patt
+      brreq[i]=Trigger2LVL1::l1trigconf.physbrmemb(i);//16bits patt for each phys.branch
       brand[i]=((JMembPatt>>1) & brreq[i]);//">>1" due to extra FTC-bit0 in JMembPatt wrt Request 
     }
 //
@@ -432,6 +432,7 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     }
     else{
       for(i=0;i<8;i++){
+//        if(BranchOK[i])PhysBPatt|=(1<<i);//create fired-branch pattern
         if((trtype & 1<<i)>0 && BranchOK[i]){
           nbchk+=1;
 	  PhysBPatt|=(1<<i);//create (fired&requested=masked)-branch pattern

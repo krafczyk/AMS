@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.776 2011/03/05 23:25:40 choutko Exp $
+// $Id: job.C,v 1.777 2011/03/07 16:56:56 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -840,7 +840,8 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
-  ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
+  ECMCFFKEY.mev2mev=59.27/1.007*1.05;//(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
+//                                      1.05 to correct for true coupling(trap.PMeff.bug removed)
 //  ECMCFFKEY.mev2adc=1.707;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->17th channel)(...) (for fendr=0.3)
   ECMCFFKEY.mev2adc=2.042;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->17th channel)(...) (for fendr=0.0)
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
@@ -891,12 +892,12 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.thresh[3]=0.;     // (12) spare
   ECREFFKEY.thresh[4]=3.;     // (13) Dynode chan. readout thershold(in sigmas)
   ECREFFKEY.thresh[5]=1.;     // (14) Trig. PMDynThr sl1(y) (in mev from S. Di Falco)
-  ECREFFKEY.thresh[6]=70.;    // (15) Trig. PMDynThr sl2(x) ...
-  ECREFFKEY.thresh[7]=100.;   // (16) Trig. PMDynThr sl3(y)
-  ECREFFKEY.thresh[8]=80.;    // (17) Trig. PMDynThr sl4(x)
-  ECREFFKEY.thresh[9]=60.;    // (18) Trig. PMDynThr sl5(y)
-  ECREFFKEY.thresh[10]=40.;   // (19) Trig. PMDynThr sl6(x)
-  ECREFFKEY.thresh[11]=40.;   // (20) Trig. PMDynThr sl7(y)
+  ECREFFKEY.thresh[6]=80.;    // (15) (was 70)Trig. PMDynThr sl2(x) ...
+  ECREFFKEY.thresh[7]=180.;   // (16) (was 100)Trig. PMDynThr sl3(y)
+  ECREFFKEY.thresh[8]=140.;   // (17) (was 80)Trig. PMDynThr sl4(x)
+  ECREFFKEY.thresh[9]=60.;    // (18) (was 60)Trig. PMDynThr sl5(y)
+  ECREFFKEY.thresh[10]=100.;  // (19) (was 40)Trig. PMDynThr sl6(x)
+  ECREFFKEY.thresh[11]=100.;  // (20) (was 40)Trig. PMDynThr sl7(y)
   ECREFFKEY.thresh[12]=1.;    // (21) Trig. PMDynThr sl8(x) 
   ECREFFKEY.thresh[13]=1.;    // (22) Trig. PMDynThr sl9(y) 
   ECREFFKEY.thresh[14]=0.;    // (23) spare

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.94 2010/12/08 17:04:21 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.95 2011/03/07 16:56:55 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -301,20 +301,22 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
         break;
 //        
       case 3:  //<-- completely inside PM
-        bdis=pmdis-pxsiz;//<>0, f-center dist from vertical boundary of 1 cells of given PM
+        bdis=pmdis-pxsiz;//<>0, f-center dist from vertical boundary of 2 cells of given PM
         if(bdis<=-fr){// <-- completely in the left half of PM
           cell=0+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
-	  if(-bdis<deffmx)w[0]*=(effmn-slope*bdis);//corr.for pixel eff.uniformity
+	  if(-bdis<deffmx)w[0]*=(effmn-slope*bdis);//corr.for pixel eff.uniformity (at right side)
+	  else if((pxsiz+bdis)<deffmx)w[0]*=(effmn+slope*(pxsiz+bdis));//..........(at left side)
         }
         else if(bdis>=fr){//>0, <-- completely in the right half of PM
           cell=1+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
-	  if(bdis<deffmx)w[0]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity
+	  if(bdis<deffmx)w[0]*=(effmn+slope*bdis);//corr.for pixel eff.uniformity(at left side)	  
+	  else if((pxsiz-bdis)<deffmx)w[0]*=(effmn+slope*(pxsiz-bdis));//........(at rigth side)
         }
-        else{ // <-- lefr-right sharing (|bdis|<fr)
+        else{ // <-- left-right sharing (|bdis|<fr)
 	  ww=segarea(fr,bdis);
           cell=0+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);

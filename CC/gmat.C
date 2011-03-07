@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.110 2011/02/23 13:42:38 mdelgado Exp $
+//  $Id: gmat.C,v 1.111 2011/03/07 16:56:56 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -721,9 +721,10 @@ tmed.add (new AMSgtmed("TOF_VAC","VACUUMTOFA",0));// fill all gaps
 geant birks[]={0.,0.0011,0.52};//model "0" - pars from TOF test-beam; using atan
 //tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks));
 tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks,1,5,10,
-                       -0.25, -1, 0.001, -0.05));
+                       -0.25, -1, 0.001, -0.02));
+//                     stmax demax	  stmin   
 }
-//(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
+//(for tof_scint.: max_step=0.25cm/autom, min_step=0.025cm/autom )
 //
 {
 //geant birks[]={1.,0.013,9.6e-6};

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.77 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: tofrec02.C,v 1.78 2011/03/07 16:56:56 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -954,6 +954,7 @@ void TOF2RawCluster::build(int &ostatus){
             TOFBPeds::scbrped[ilay][ibar].getsiga(sigs);// get anode-adc sig(s1/2)
             if(smty[0]==1){// good S1(3-measurement) side, but matching/history may not be good
               tm[0]=tmbest[0];// s-1 time (ns,A-noncorr)
+	      if(TFREFFKEY.reprtf[1]>0)HF1(1118,geant(tm[0]),1.);
               tmf[0]=tm[0];
 	      if(nadca[0]>0){//Anode,s1
                 ama[0]=number(adca[0]);//ADC-counts(float)(anode s1)
@@ -974,6 +975,7 @@ void TOF2RawCluster::build(int &ostatus){
             ama[1]=0.;
             if(smty[1]==1){// good S2(3-measurement) side, but matching/hist may not be good
               tm[1]=tmbest[1];// s-2 time (ns,A-noncorr)
+	      if(TFREFFKEY.reprtf[1]>0)HF1(1119,geant(tm[1]),1.);
               tmf[1]=tm[1];
 	      if(nadca[1]>0){//Anode,s2
                 ama[1]=number(adca[1]);//ADC-counts(float)(anode s2)
