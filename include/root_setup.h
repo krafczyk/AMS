@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.8 2011/03/07 22:56:09 choutko Exp $
+//  $Id: root_setup.h,v 1.9 2011/03/07 23:55:38 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -54,7 +54,7 @@ typedef map <string,Node> ntable_m;
 typedef map <string,Node>::iterator ntable_i;
 ntable_m fNTable;
 SlowControlR():fBegin(0),fEnd(0){}
-ClassDef (SlowControlR,1) //slowcontrolR
+ClassDef (SlowControlR,1) //SlowControlR
   /// Returns the value of a quantity with a given name at a given timestamp
 	/*! 
 	 \param name       the name of the desired quantity
@@ -197,6 +197,7 @@ void TDVRC_Purge(); ///< Purge TDVRC map
 void TDVRC_Add(unsigned int time,AMSTimeID * tdv);
 void Add(SlowControlDB *s);
 friend class AMSTimeID;
+friend class SlowControlDB;
 static AMSSetupR * _Head;
 public:
 void Purge();

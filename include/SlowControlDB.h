@@ -61,6 +61,7 @@ class SubType{
 
   int getnelem(){return (int)_table.size();}
   ClassDef(SubType,1);
+  friend class AMSSetupR;
 };
 
 class DataType{
@@ -114,6 +115,7 @@ class DataType{
   int getnelem(){return (int)subtypes.size();}
   
   ClassDef(DataType,1);
+  friend class AMSSetupR;
 };
 
 class Node:public TNamed{
@@ -180,6 +182,7 @@ class Node:public TNamed{
 
   int getnelem(){return (int)datatypes.size();}
   ClassDef(Node,1);
+  friend class AMSSetupR;
 };
 
 
@@ -266,6 +269,7 @@ class SlowControlDB: public TTree
     return;
   }
   ClassDef(SlowControlDB,2);
+  friend class AMSSetupR;
 };
 
 #endif

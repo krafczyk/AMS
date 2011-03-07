@@ -115,8 +115,8 @@ else{
         fSlowControl.fBegin=p->begin;
         fSlowControl.fEnd=p->end;
     }
+  delete node;
   }
-
 }
 }
 
