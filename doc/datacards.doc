@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.343 2011/03/07 16:57:59 choumilo Exp $
+#  $Id: datacards.doc,v 1.344 2011/03/08 08:54:43 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -772,8 +772,10 @@ I 22 NoPrescalingInMC(0)   // disable prescaling in MC if set to 1 (in any case 
 			   // any combination of THESE two branches is requested in trtype (#1) !!!)
 			   // For normal physical trigger(127) presc.factors are set for these two branches
 			   // as 50:1 and 20:1 respectively.
+I 23 NoMaskingInMC(1)      // 1/0=> No/Yes Masking in PhysBrPatt(MC only, =1 to see all fired 
+//                                                                             branches, not only requested)
 
-I 23->                     // Begin/End dates for trigger TDVs
+I 24->                     // Begin/End dates for trigger TDVs
 
  *** <--- For these parameters the default values are recomendations in case of manual control.
      By default all these params. are set to -99 to use more detailed and up-to-date DB-settings :  

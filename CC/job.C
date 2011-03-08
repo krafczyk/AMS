@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.777 2011/03/07 16:56:56 choumilo Exp $
+// $Id: job.C,v 1.778 2011/03/08 08:54:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -459,7 +459,9 @@ void AMSJob::_sitrig2data(){
 //
   TGL1FFKEY.NoPrescalingInMC=0;// (22) disable prescaling in MC if set to 1
 //
-  TGL1FFKEY.sec[0]=0;//(23) 
+  TGL1FFKEY.NoMaskingInMC=1;// (23) 1/0=> No/Yes Masking in PhysBrPatt(MC, =1 to see all fired branches, not only requested)
+//
+  TGL1FFKEY.sec[0]=0;//(24) 
   TGL1FFKEY.sec[1]=0;
   TGL1FFKEY.min[0]=0;
   TGL1FFKEY.min[1]=0;
@@ -470,7 +472,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=125;//(34)
+  TGL1FFKEY.year[1]=125;//(35)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----

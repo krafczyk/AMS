@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.307 2011/03/05 23:25:50 choutko Exp $
+//  $Id: commons.h,v 1.308 2011/03/08 08:54:43 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -832,6 +832,7 @@ integer Lvl1ConfRead;
 integer printfl;
 integer Lvl1ConfSave;
 integer NoPrescalingInMC;
+integer NoMaskingInMC;
 //
 integer sec[2];
 integer min[2];

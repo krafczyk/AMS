@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.96 2011/03/07 16:56:57 choumilo Exp $
+//  $Id: trigger102.C,v 1.97 2011/03/08 08:54:33 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -432,10 +432,10 @@ void Trigger2LVL1::build(){//called by sitrigevent() AND retrigevent()
     }
     else{
       for(i=0;i<8;i++){
-//        if(BranchOK[i])PhysBPatt|=(1<<i);//create fired-branch pattern
+        if(TGL1FFKEY.NoMaskingInMC==1 && BranchOK[i])PhysBPatt|=(1<<i);//create fired-branch pattern(no masking)
         if((trtype & 1<<i)>0 && BranchOK[i]){
           nbchk+=1;
-	  PhysBPatt|=(1<<i);//create (fired&requested=masked)-branch pattern
+	  if(TGL1FFKEY.NoMaskingInMC==0)PhysBPatt|=(1<<i);//create (fired&requested=masked)-branch pattern
         }
       }
       if(nbchk>0)comtrok=1;
