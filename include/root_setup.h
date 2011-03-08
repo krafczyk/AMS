@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.9 2011/03/07 23:55:38 choutko Exp $
+//  $Id: root_setup.h,v 1.10 2011/03/08 23:21:58 mmilling Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -20,7 +20,8 @@ public:
 \sa AMSSetupR
 \author vitali.choutko@cern.ch
 */
-class SlowControlR{
+
+/*class SlowControlR{
 public:
 class SubType{
 public:
@@ -71,10 +72,10 @@ ClassDef (SlowControlR,1) //SlowControlR
                   3  no st found
                   4  outside of bounds
   
-	 */
+	 *
 int GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value);
 
-};
+};*/
 
 //! AMSTimeID info used to create a given file
 /*!
@@ -158,7 +159,7 @@ public:
 };
 public:
   Header fHeader;
-  SlowControlR fSlowControl;
+  //  SlowControlR fSlowControl;
   typedef map <unsigned int,TDVR> TDVR_m;
  typedef map <unsigned int,TDVR>::iterator TDVR_i;
  typedef map <unsigned int,TDVR>::reverse_iterator TDVR_ri;

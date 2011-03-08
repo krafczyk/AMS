@@ -65,10 +65,10 @@ Reset();
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
   ClassImp(AMSSetupR::BValues)
-  ClassImp(AMSSetupR::SlowControlR)
-  ClassImp(AMSSetupR::SlowControlR::Node)
-  ClassImp(AMSSetupR::SlowControlR::DataType)
-  ClassImp(AMSSetupR::SlowControlR::SubType)
+  //  ClassImp(AMSSetupR::SlowControlR)
+  //  ClassImp(AMSSetupR::SlowControlR::Node)
+  //  ClassImp(AMSSetupR::SlowControlR::DataType)
+  //  ClassImp(AMSSetupR::SlowControlR::SubType)
 
  void AMSSetupR::Add(SlowControlDB *p){
 if(!p){
@@ -86,7 +86,7 @@ else{
      
   }
 
-  TObjArray *branchlist=p->GetListOfBranches();
+  /*  TObjArray *branchlist=p->GetListOfBranches();
   for(int i=0;i<(int)branchlist->GetEntries();i++){
     TObject* obj=(TObject*)branchlist->At(i);
       ::Node *node=new ::Node();
@@ -117,12 +117,14 @@ else{
     }
   delete node;
   }
-}
-}
+  */
+ }
+  }
 
-int AMSSetupR::SlowControlR::GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value){
-return 1;
-}
+
+//int AMSSetupR::SlowControlR::GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value){
+//return 1;
+//}
 
  void AMSSetupR::Init(TTree *tree){
   //   Set branch addresses
@@ -414,9 +416,8 @@ return false;
 #endif
 
 bool AMSSetupR::LoadSlowcontrolDB(const char* file, unsigned int t1, unsigned int t2){
-
   SlowControlDB* scdb=SlowControlDB::GetPointer();
-  if(scdb)return scdb->Load(file,t1,t2);
+  if(scdb)return scdb->Load(file,t1,t2,1);
   else{
     cerr<<"AMSSetupR::LoadSlowcontrolDB-E-NoSingleton "<<endl;
     return false;

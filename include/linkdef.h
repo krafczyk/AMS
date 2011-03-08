@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.79 2011/03/07 22:56:08 choutko Exp $
+//  $Id: linkdef.h,v 1.80 2011/03/08 23:21:58 mmilling Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -71,10 +71,10 @@
 #pragma link C++ class AMSDir+;
 #pragma link C++ class AMSRotMat+;
 #pragma link C++ class HeaderR+;
-#pragma link C++ class AMSSetupR::SlowControlR+;
-#pragma link C++ class AMSSetupR::SlowControlR::Node+;
-#pragma link C++ class AMSSetupR::SlowControlR::DataType+;
-#pragma link C++ class AMSSetupR::SlowControlR::SubType+;
+//#pragma link C++ class AMSSetupR::SlowControlR+;
+//#pragma link C++ class AMSSetupR::SlowControlR::Node+;
+//#pragma link C++ class AMSSetupR::SlowControlR::DataType+;
+//#pragma link C++ class AMSSetupR::SlowControlR::SubType+;
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class EcalHitR+;
 #pragma link C++ class EcalClusterR+;
@@ -126,12 +126,9 @@
 #pragma link C++ class amsvmc_RunConfiguration+;
 #endif
 
-//#pragma link C++ class SlowControlEl+;
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
 #pragma link C++ class std::map<unsigned int,std::vector<float> >+;
-//#pragma link C++ class std::pair<int,SlowControlEl>+;
-//#pragma link C++ class std::map<int,SlowControlEl>+;
 
 #pragma link C++ class SubType+;
 #pragma link C++ class std::pair<int,SubType>+;
@@ -140,6 +137,8 @@
 #pragma link C++ class std::pair<int,DataType>+;
 #pragma link C++ class std::map<int,DataType>+;
 #pragma link C++ class Node+;
+#pragma link C++ class std::map<std::string,Node>+;
+#pragma link C++ class std::pair<std::string,Node>+;
 
 
 #endif

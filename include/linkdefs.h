@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.8 2011/03/05 23:25:50 choutko Exp $
+//  $Id: linkdefs.h,v 1.9 2011/03/08 23:21:58 mmilling Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -85,12 +85,9 @@
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class AMSSetupR::BValues+;
 
-//#pragma link C++ class SlowControlEl+;
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
 #pragma link C++ class std::map<unsigned int,std::vector<float> >+;
-//#pragma link C++ class std::pair<int,SlowControlEl>+;
-//#pragma link C++ class std::map<int,SlowControlEl>+;
 
 #pragma link C++ class SubType+;
 #pragma link C++ class std::pair<int,SubType>+;
@@ -99,5 +96,7 @@
 #pragma link C++ class std::pair<int,DataType>+;
 #pragma link C++ class std::map<int,DataType>+;
 #pragma link C++ class Node+;
+#pragma link C++ class std::map<std::string,Node>+;
+#pragma link C++ class std::pair<std::string,Node>+;
 
 #endif
