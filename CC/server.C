@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.163 2011/03/07 22:56:08 choutko Exp $
+//  $Id: server.C,v 1.164 2011/03/09 00:11:48 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -659,10 +659,11 @@ if(_ActivateQueue){
 }
 
 bool AMSServerI::InactiveClientExists(DPS::Client::ClientType ctype){
+int ina=0;
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
-   if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
-   return true;
+   //if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
+    if(++ina>1)return true;
   }
 }
 if(getType() == DPS::Client::DBServer && getType()!=ctype){
@@ -2547,7 +2548,7 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       if(pos>=0){
-     ac.TimeOut=ac.TimeOut*1.5;
+     ac.TimeOut=ac.TimeOut*2;
       cout<<"AMSProducer::StartClients-I-bsubDetectedTimeoutchanged "<<ac.TimeOut<<endl;
 }
 }

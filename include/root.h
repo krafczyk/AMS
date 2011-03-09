@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.308 2011/03/07 16:58:17 choumilo Exp $
+//  $Id: root.h,v 1.309 2011/03/09 00:11:52 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1512,7 +1512,9 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 */
 
 class Level1R {
+
 static char _Info[255];
+public:
  bool IsEcalFtrigOK()const {return (EcalFlag/10)>=2;}
  bool IsEcalLev1OK()const {return (EcalFlag%10)>1;}
 public:

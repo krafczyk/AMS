@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.3 2011/03/03 18:55:36 mmilling Exp $
+//  $Id: ami2root.C,v 1.4 2011/03/09 00:11:52 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]){
 
 	// check if datatype is in selection
 	if(!check_selection(select,node_numbers[num]->node_number,datatypes[data_type]->data_type,debug))continue;
-	printf("Processing %s %s ...\n",node_numbers[num]->name,datatypes[data_type]->name);
+	printf("Processing %s | %s | %s ...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name);
 
 	// create DataType object and link to Node
 	if(!datatype||datatype->number!=datatypes[data_type]->data_type){

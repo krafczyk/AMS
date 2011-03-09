@@ -65,28 +65,21 @@ Reset();
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
   ClassImp(AMSSetupR::BValues)
-  //  ClassImp(AMSSetupR::SlowControlR)
+  ClassImp(AMSSetupR::SlowControlR)
+  ClassImp(AMSSetupR::SlowControlR::Element)
+    ClassImp(AMSSetupR::SlowControlR)
   //  ClassImp(AMSSetupR::SlowControlR::Node)
   //  ClassImp(AMSSetupR::SlowControlR::DataType)
   //  ClassImp(AMSSetupR::SlowControlR::SubType)
 
+/*
  void AMSSetupR::Add(SlowControlDB *p){
 if(!p){
  cerr<<"AMSSetupR::add-E-SlowcontrolPointerIsNull"<<endl;
 }
 else{
-  if(p->GetEntries()==0){
-    cerr<<"AMSSetupR::add-E-SlowcontrolPointerHasNoEntries"<<endl;
-    return;
-  }
-  else{
-     if(p->GetEntries()>1){
-    cerr<<"AMSSetupR::add-W-SlowcontrolPointerHasManyEntries"<<" "<<p->GetEntries()<<endl;
-     }
-     
-  }
 
-  /*  TObjArray *branchlist=p->GetListOfBranches();
+    TObjArray *branchlist=p->GetListOfBranches();
   for(int i=0;i<(int)branchlist->GetEntries();i++){
     TObject* obj=(TObject*)branchlist->At(i);
       ::Node *node=new ::Node();
@@ -105,6 +98,10 @@ else{
            for(std::map<unsigned int,float>::iterator it=st->second._table.begin();it!=st->second._table.end();it++){
                mysubtype.fTable[it->first]=it->second;
            }
+           unsigned long long sd;
+           sd=(it->first)<<32;
+           sd+=(st->first);
+           mynode.fRTable[st->second.tag]=sd;
            mydatatype.fSTable[st->first]=mysubtype;
          }
          mynode.Number=dt->second.number;
@@ -117,14 +114,43 @@ else{
     }
   delete node;
   }
-  */
- }
-  }
+}
+}
+*/
+
+ void AMSSetupR::Add(SlowControlDB *p){
+if(!p){
+ cerr<<"AMSSetupR::add-E-SlowcontrolPointerIsNull"<<endl;
+}
+else{
+      for(map<string,::Node>::iterator mt=p->nodemap.begin();mt!=p->nodemap.end();mt++){
+      ::Node snode=mt->second;
+      ::Node *node=&snode;
+      AMSSetupR::SlowControlR::Element myelement;
+      string name=mt->first;
+      for(std::map<int,DataType>::iterator dt=node->datatypes.begin();dt!=node->datatypes.end();dt++){
+          for(std::map<int,SubType>::iterator st= dt->second.subtypes.begin();st!=dt->second.subtypes.end();st++){
+           for(std::map<unsigned int,float>::iterator it=st->second._table.begin();it!=st->second._table.end();it++){
+               myelement.fTable[it->first]=it->second;
+           }
+           myelement.datatype=dt->first;
+           myelement.subtype=st->first;
+           myelement.NodeName=node->GetName();
+           myelement.BranchName=name.c_str();
+           string s=st->second.tag;
+           fSlowControl.fETable.insert(make_pair(st->second.tag,myelement));
+         }
+        }
+        fSlowControl.fBegin=p->begin;
+        fSlowControl.fEnd=p->end;
+    }
+}
+}
 
 
-//int AMSSetupR::SlowControlR::GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value){
-//return 1;
-//}
+int AMSSetupR::SlowControlR::GetData(const char * elementname, unsigned int time, float frac,  vector<float> &value,int method , const char *nodename,int dt, int st){
+return 1;
+}
 
  void AMSSetupR::Init(TTree *tree){
   //   Set branch addresses

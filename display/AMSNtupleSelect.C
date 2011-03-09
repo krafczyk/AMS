@@ -18,6 +18,18 @@ public:
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
      //if(ev && ev->nLevel1()   && ev->nParticle() && ev->nTrdTrack() && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0){
+if(ev && ev->nLevel1()){
+  Level1R l1=ev->Level1(0);
+    if(1 || (l1.EcalFlag/10)>=2 || (l1.EcalFlag%10)>1){
+      cout << "EFlag "<<l1.EcalFlag<<endl;
+      cout <<ev->Run()<<" "<<ev->Event()<<endl;
+      for (int i=0;i<16;i++){
+        cout <<i<<" "<<(((l1.JMembPatt)>>i)&1)<<endl;
+}
+       return true;
+    }
+    else return false;
+}
       if(ev){
    a++;
         if(ev->nMCTrack()){

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.152 2011/03/07 22:56:08 choutko Exp $
+//  $Id: producer.C,v 1.153 2011/03/09 00:11:47 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2076,6 +2076,7 @@ else sprintf(tmpu,"%d",_pid.uid);
 // set up hostname  and pid as lxplus/ams job_entry
 //
               vector <int>id;
+               id.clear();
               char atmpu[80];
               sprintf(atmpu,"%d",_pid.pid);
               AString afout="/tmp/";
@@ -2104,7 +2105,7 @@ else sprintf(tmpu,"%d",_pid.uid);
                 afbin.close();
                }
                unlink ( (const char*)afout); 
-                for(int i=0;i<id.size()-1;i++){
+                for(int i=0;i<int(id.size())-1;i++){
                       cerr<<"AMSProducer-E-bsubduplicatediddetected "<<id[id.size()-1]<<" "<<id[i]<<endl;
              }
               if(id.size()>0){

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.10 2011/03/08 23:21:58 mmilling Exp $
+//  $Id: root_setup.h,v 1.11 2011/03/09 00:11:53 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -21,13 +21,23 @@ public:
 \author vitali.choutko@cern.ch
 */
 
-/*class SlowControlR{
+class SlowControlR{
 public:
-class SubType{
+
+class Element{
 public:
 typedef map <unsigned int,float> table_m;
 typedef map <unsigned int,float>::iterator table_i;
 table_m fTable;
+TString NodeName;  ///< Like TTCE
+TString BranchName; ///< Like TTCE-A
+int datatype; ///< DataType:
+int subtype; ///< SubType
+ClassDef (Element,1) //element
+};
+/*
+class SubType{
+public:
 ClassDef (SubType,1) //SubType
 };
 
@@ -44,26 +54,31 @@ public:
 typedef map <int,DataType> dtable_m;
 typedef map <int,DataType>::iterator dtable_i;
 int Number; ///<  ?
+typedef multimap<string,unsigned long long> rtable_m;
+typedef multimap<string,unsigned long long>::iterator rtable_i;
+rtable_m fRTable; ///< Fast Search of Datatypes table value = (subtype<<32) | datatype
 dtable_m fDTable; ///< Map of Datatypes by int id ?
 ClassDef (Node,1) //Node
 };
+*/
 
 public:
 unsigned int fBegin; ///<Begin Validity
 unsigned int fEnd;  /// <End Validity
-typedef map <string,Node> ntable_m;
-typedef map <string,Node>::iterator ntable_i;
-ntable_m fNTable;
+typedef multimap <string,Element> etable_m;
+typedef multimap <string,Element>::iterator etable_i;
+etable_m fETable;
 SlowControlR():fBegin(0),fEnd(0){}
 ClassDef (SlowControlR,1) //SlowControlR
   /// Returns the value of a quantity with a given name at a given timestamp
 	/*! 
-	 \param name       the name of the desired quantity
+	 \param elementname       the name of the desired quantity
+	 \param nodename       restrict to some node names only
         \param dt
          \param st
 	 \param timestamp  Unix time (sec from 1970)
 	 \param frac       second fraction after the timestamp
-         \param val        return value  
+         \param val        return array of values  
 	 \param imethod   0 = the closer in time
 	 1 = linear interplolation
 	 \return  0   success
@@ -72,10 +87,10 @@ ClassDef (SlowControlR,1) //SlowControlR
                   3  no st found
                   4  outside of bounds
   
-	 *
-int GetData(const char * name, int dt, int st, unsigned int time, float frac, int imethod, float &value);
+	 */
+int GetData(const char * elementname,unsigned int time, float frac, vector<float> &value , int imethod=1, const char *nodename="", int dt=-1, int st=-1);
 
-};*/
+};
 
 //! AMSTimeID info used to create a given file
 /*!
@@ -159,7 +174,7 @@ public:
 };
 public:
   Header fHeader;
-  //  SlowControlR fSlowControl;
+    SlowControlR fSlowControl;
   typedef map <unsigned int,TDVR> TDVR_m;
  typedef map <unsigned int,TDVR>::iterator TDVR_i;
  typedef map <unsigned int,TDVR>::reverse_iterator TDVR_ri;
