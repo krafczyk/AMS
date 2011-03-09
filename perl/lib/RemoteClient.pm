@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.626 2011/02/26 20:18:38 choutko Exp $
+# $Id: RemoteClient.pm,v 1.627 2011/03/09 20:01:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7435,7 +7435,7 @@ print qq`
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
          }
-         my $path='./';
+         $path='./';
          if($self->{CCT} eq "local"){
              $path="$self->{AMSDataDir}/$self->{LocalClientsDir}/";
          }
@@ -14092,6 +14092,22 @@ sub insertNtuple {
     $sizemb = sprintf("%.f",$ntsize);
 #  }
 #
+  if($ntsize > 20000){
+#
+# susp size
+#
+             print " Susp file size found $ntsize $path \n";
+             my $notfound = 0;
+             my $filesize    = (stat($path))[7] or $notfound=1;
+             if($notfound){
+                 print " $path not found \n";
+             }
+             else{
+                 $ntsize=$filesize/1000/1000;
+                 print "  file size corrected to $ntsize $path \n";
+
+             }
+         }
 
   if($type eq 'RawFile'){
       if($datamc==0){
@@ -14983,6 +14999,10 @@ print "CheckFS ok \n";
 
      }
      $ret = $self->{sqlserver}->Query($sql);
+    if(not defined $ret->[0][0]){
+       $sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE                    status='Full' and isonline=1 and path='$path' ORDER BY totalsize-occupied DESC";
+      $ret = $self->{sqlserver}->Query($sql);
+     }       
      foreach my $disk (@{$ret}) {
       $outputdisk = trimblanks($disk->[0]);
       $outputpath = trimblanks($disk->[1]);
@@ -17926,9 +17946,28 @@ offline:
 
           $sql="select disk from filesystems where isonline=1 and status='Active'  and path like '$path%' order by available $desc";
            $ret=$self->{sqlserver}->Query($sql);
+           if(not defined $ret->[0][0]){
+    my $address='vitali.choutko@cern.ch';
+        foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rserver}==1){
+                  $address=$chop->{address};
+                  last;
+               }
+         }
+         $self->sendmailmessage($address,"FileSystems are Full or Offline",$sql);                                                                                
+#        try to find online and not physicall phull system
+          $sql="select disk from filesystems where isonline=1 and status='Full'  and path like '$path%' order by totalsize-occupied $desc";
+           $ret=$self->{sqlserver}->Query($sql);
+           if(not defined $ret->[0][0]){
+           $self->sendmailmessage($address,"FileSystems are Offline",$sql);                                                                                
+       }
+    else{
+#        print "Got $ret->[0][0] \n";
+    }
+}
            return $ret->[0][0];
 
-}
+       }
 
 sub dblupdate{
 my $self=shift;
