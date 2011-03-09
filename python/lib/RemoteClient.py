@@ -461,17 +461,17 @@ class RemoteClient:
                 	status="Active"
                         occ=(blocks-bfree)*fac
                         if(path==""):
-                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and sizemb<100000 "
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"
                         else:
-                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"+ " and sizemb<100000 "
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
                  	sizemb=self.sqlserver.Query(sql)
                  	rused=0
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=sizemb[0][0]
                         if(path==""):
-                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+ " and sizemb <100000 "
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"
                         else:
-                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"+ " and sizemb < 100000 "
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
                         sizemb=self.sqlserver.Query(sql)
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=rused+sizemb[0][0]
@@ -496,7 +496,23 @@ class RemoteClient:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
         ret=self.sqlserver.Query(sql)
         if(len(ret)<=0):
-           self.sendmailmessage('vitali.choutko@cern.ch','FileSystem Full',sql)
+           self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Full or Offline Python',sql)
+           sql="select path from ntuples where sizemb>20000"
+           ret=self.sqlserver.Query(sql)
+           for disk in ret:
+               try:
+                   fs=os.stat(disk[0])[ST_SIZE]
+                   fs=int(fs/1000/1000+0.5)
+                   if(fs<20000):
+                       sql="update ntuples set sizemb=%d where path like '%s' " %(fs,disk[0])
+                       self.sqlserver.Update(sql)
+               except:
+                   print "enable to stat",disk[0]
+           sql="select disk from filesystems where isonline=1 and status='Full' and path='%s' order by totalsize-occupied desc" %(path)
+           ret=self.sqlserver.Query(sql)
+           if(len(ret)<=0):
+               self.sendmailmessage('vitali.choutko@cern.ch','FileSystems are  Offline: Exited!!!',sql)
+               return None
         return ret[0][0]
 
     def  dblupdate(self):
@@ -1723,13 +1739,18 @@ class RemoteClient:
         #
         # select disk to be used to store ntuples
         #
-        self.CheckFS(1,360,path)
+        gb=0
+        outputpath='xyz'
+        rescue=self.CheckFS(1,360,path)
         tme=int(time.time())
         if(tme%2 ==0 and path!='/Data'):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         else:
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
         ret=self.sqlserver.Query(sql)
+        if(len(ret)<=0):
+            sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE status='Full' and isonline=1 and path='%s' ORDER BY totalsize-occupied DESC" %(path)
+            ret=self.sqlserver.Query(sql)
         for disk in ret:
             outputdisk=self.trimblanks(disk[0])
             outputpath=self.trimblanks(disk[1])
@@ -1764,13 +1785,18 @@ class RemoteClient:
         #
         # select disk to be used to store ntuples
         #
-        self.CheckFS(1,300,path)
+        gb=0
+        outputpath='xyz'
+        rescue=self.CheckFS(1,300,path)
         tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         else:
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
         ret=self.sqlserver.Query(sql)
+        if(len(ret)<=0):
+            sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE status='Full' and isonline=1 and path='%s' ORDER BY totalsize-occupied DESC" %(path)
+            ret=self.sqlserver.Query(sql)
         for disk in ret:
             outputdisk=self.trimblanks(disk[0])
             outputpath=self.trimblanks(disk[1])
