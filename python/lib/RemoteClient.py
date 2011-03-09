@@ -1956,6 +1956,11 @@ class RemoteClient:
             sql="DELETE ntuples WHERE jid=%d AND path like  '%%%s%%'" %(jid,filename)
             print sql,ret[0][1]
         ntsize=float(size)
+        if(ntsize>20000):
+            print "Too Big size ",ntsize," for ",path
+            ossize=os.stat(path)[ST_SIZE]
+            ntsize=float(ossize)/1000/1000
+            print "size Changed To ",ntsize," for ",path
         sizemb="%.f" %(ntsize)
         sql="delete from ntuples where path='%s'" %(path)
         self.sqlserver.Update(sql);
@@ -3077,7 +3082,7 @@ class RemoteClient:
             if(len(ret)>0):
                 runsdir=ret[0][0]
             else:
-                runsdir="/Offline/RunsDir"
+                runsdir="/afs/ams.cern.ch/Offline/RunsDir"
         global mutex
         mutex=thread.allocate_lock()
         mutex.acquire()
