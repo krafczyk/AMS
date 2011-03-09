@@ -67,7 +67,7 @@ Reset();
   ClassImp(AMSSetupR::BValues)
   ClassImp(AMSSetupR::SlowControlR)
   ClassImp(AMSSetupR::SlowControlR::Element)
-    ClassImp(AMSSetupR::SlowControlR)
+  //    ClassImp(AMSSetupR::SlowControlR)
   //  ClassImp(AMSSetupR::SlowControlR::Node)
   //  ClassImp(AMSSetupR::SlowControlR::DataType)
   //  ClassImp(AMSSetupR::SlowControlR::SubType)

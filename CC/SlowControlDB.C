@@ -89,3 +89,36 @@ int SlowControlDB::AppendNode(Node* copynode)
     DataType* dt=it->second.Append(copynode->GetDataTypeN(i));
   return 0;
 }
+
+
+bool SlowControlDB::SaveToFile(const char* fname,int debug){
+  if(debug)std::cout<<"Enter SlowControlDB::SaveToFile "<<fname<<std::endl;
+  TFile *file=new TFile(fname,"update");
+  if(debug)std::cout<<"File ptr "<<file<<std::endl;
+
+  TTree *tree=new TTree("SlowControlDB","SlowControlDB");
+
+  if(debug)std::cout<<"nodes "<<nodemap.size()<<std::endl;
+  for(std::map<std::string,Node>::const_iterator nit=nodemap.begin();nit!=nodemap.end();nit++){
+    if(debug)std::cout<<"node "<<nit->first<<std::endl;
+    Node* node=(Node*)&nit->second;
+    TBranch* branch=tree->Branch(nit->first.c_str(),"Node",&node);
+    branch->Fill();
+  }
+  if(debug)std::cout<<"end of loop"<<std::endl;
+  
+  // fill tree
+  tree->Branch("begin", &begin,"start/i");
+  tree->Branch("end", &end,"end/i");
+  tree->Fill();
+  if(debug)std::cout<<"end of fill tree"<<std::endl;
+  
+  // write file
+  file->Write();
+  file->Close();
+  if(debug)std::cout<<"file closed"<<std::endl;
+  
+  //  delete tree;
+  //  delete file;
+  return true;
+}

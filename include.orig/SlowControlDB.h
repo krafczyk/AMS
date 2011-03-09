@@ -229,6 +229,8 @@ class SlowControlDB//: public TTree
 
   /// Load the file from an already opened ROOT File 
   bool Load(TFile* f,unsigned int minT=0,unsigned int maxT=UINT_MAX,int debug=0);
+
+  bool SaveToFile(const char* fname,int debug=0);
   
   int AppendNode(Node* copynode);
   
