@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.116 2011/03/07 22:56:08 choutko Exp $
+//  $Id: timeid.C,v 1.117 2011/03/09 23:46:51 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -665,7 +665,11 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
       if(fbin){
 	fbin>>_DataBaseSize;
 #endif
-
+      if(!_DataBaseSize){
+         fbin.close();
+         cout<<"AMSTimeID::_fillDB-W-MapHosZeroEnrtries "<<(const char *)fmap<<endl;
+         goto notrust;
+     }
       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
       for(i=0;i<5;i++)
 	for(int k=0;k<_DataBaseSize;k++){
@@ -688,6 +692,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     
   }
   else {
+    notrust:
     cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
     //    Check if is in new mode
     _checkcompatibility(dir);
@@ -808,7 +813,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     }
     // Rewrite map file;
 
-    if(!updatemap(dir))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+    if(!updatemap(dir),true)cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
 
 
 
@@ -1095,12 +1100,15 @@ AMSTimeID::IBE & AMSTimeID::findsubtable(time_t begin, time_t end){
 
 bool AMSTimeID::updatemap(const char *dir,bool slp){
   if(slp)sleep(1);
-    
   AString fmap(dir);
   fmap+=".";
   fmap+=getname();
   fmap+=getid()==0?".0.map":".1.map";
   AString fmaptmp=fmap;
+  if(!_DataBaseSize){
+    cout <<"AMSTimeID::_fillDB-W-CowardlyRefusesToupdate map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+   return false;
+  }
   char utmp[80];
   time_t timet;
   time(&timet);

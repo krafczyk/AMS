@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.153 2011/03/09 00:11:47 choutko Exp $
+//  $Id: producer.C,v 1.154 2011/03/09 23:46:51 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -597,6 +597,8 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
    struct stat64 statbuf;
     stat64((const char*)a(bstart), &statbuf);
+      ntend->Insert=statbuf.st_ctime;
+      ntend->size=statbuf.st_size/1024./1024.+0.5;
  
 
    if(!AMSTimeID::_Table){
@@ -749,7 +751,6 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
   if(!_Solo)sendCurrentRunInfo();
    if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
     1){
-//     !(means && means[0]=='r' && means[1]=='f')){
     AString rm="rm -rf ";
     rm+=a(bstart);
     system((const char*)rm);
@@ -786,12 +787,12 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
 
 
 
-    struct stat64 statbuf;
-    stat64((const char*)a(bstart), &statbuf);
 char *means=getenv("TransferBy");
 
- if(    !(means && means[0]=='r' && means[1]=='f')){
+ if(!means){
  
+    struct stat64 statbuf;
+    stat64((const char*)a(bstart), &statbuf);
 
 ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
