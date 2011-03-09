@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////
 ///
 ///\class TrSimClusterr
-///\brief TrSim2010: Class for the Tracker Cluster Simulation   
+///\brief TrSim2010: Class for the Tracker Cluster simulation   
 ///       
 /// Used to represent 2 type of clusters
 /// a) implant pitch clusters 
@@ -13,8 +13,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TMath.h"
-#include "TrParDB.h"
+#include "TkCoo.h"
 #include "TrLadPar.h"
+#include "TrParDB.h"
 
 #include <iostream>
 #include <cstdio>
@@ -34,7 +35,7 @@ class TrSimCluster {
   vector<double> _signal;
   // address of the first strip
   int _address;
-  // seed index (used in modelized clusters)
+  // seed index
   int _seedind;
 
  public:
@@ -69,11 +70,17 @@ class TrSimCluster {
   //! Get the address of a strip with cyclicity (K7 cluster could extend over 384)
   int    GetAddressCycl(int i) { return (_address + i)%384; }
   //! Get the seed as setted by the constructor
-  int    GetSeedIndex()      { return _seedind; } 
-  //! Find a seed (...equal strips?)
-  int    FindSeedIndex(double seed = 0.);
+  int    GetSeedIndex()    { return _seedind; } 
+  //! Find a seed 
+  int    FindSeedIndex(double seed = 0., int force = 0);
   //! Get seed signal
-  double GetSeedSignal()   { return (GetSeedIndex()>=0) ? _signal.at(GetSeedIndex()) : _signal.at(FindSeedIndex()); }
+  double GetSeedSignal()   { return _signal.at(FindSeedIndex()); }
+  //! Get eta
+  double GetEta();
+  //! Get 3 strips center of gravity
+  double GetCofG(int nstrips); 
+  //! Get coordinate
+  double GetX(int iside, int tkid, int nstrips, int imult = 0);
   //! Multiply a cluster by a number (signal rescaling)
   void   Multiply(double signal);
   //! It returns a Cluster summed with another 
@@ -82,10 +89,14 @@ class TrSimCluster {
   void   GaussianizeFraction(double fraction);
   //! Add gaussian noise to each strip 
   void   AddNoise(double noise);
-  //! Apply a saturation value to the cluster
+  //! Apply a saturation value to the cluster (from datacard)
   void   ApplySaturation(double maxvalue);
-  //! Apply the gain
+  //! Apply the gain (from TrParDB)
   void   ApplyGain(int side, int tkid);
+  //! Apply asymmetry factor (from TrParDB)
+  void   ApplyAsymmetry(int side);
+  //! Apply the non-linearity stretching function (p-side)
+  void   ApplyStripNonLinearity();
 };
 
 #endif

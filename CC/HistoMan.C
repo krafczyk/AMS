@@ -269,6 +269,10 @@ void HistoMan::BookHistos(bool issim){
       Add(TH2D_L(Form("TrQp%d%d", j+1, i),
 		 stp[i]+stt[j], 50, 0.1, 1e4, 80, 1e-2, 1e2, 1, 1));
 
+  // residuals vs ladder
+  Add(new TH2F("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
+  Add(new TH2F("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
+
   // For simulation
   if (issim) {
     // mceventg
@@ -299,8 +303,23 @@ void HistoMan::BookHistos(bool issim){
 	Add(TH2D_L(Form("TrQr%d%d", j+1, i),
 		   sdr[i]+stt[j], 50, 0.1, 1e4, 400, -100, 100, 1, 0));
 
-    Add(new TH1D("TrSigBaseX","Normalized Signal (keV)", 500, 0, 400));
-    Add(new TH1D("TrSigBaseY","Normalized Signal (keV)", 500, 0, 400));
+    // intrinsic resolution and signal checks
+    Add(new TH2D("TrSimSigx","raw charge vs eta; #eta; raw charge",100,0,1,100,0.5,1));
+    Add(new TH2D("TrSimSigy","raw charge vs eta; #eta; raw charge",100,0,1,100,0.5,1));
+    Add(new TH2D("TrSimEtax","eta vs angle x; #theta_{XZ} (degrees); #eta_{x}",50,0,1.6,100,0,1));
+    Add(new TH2D("TrSimEtay","eta vs angle y; #theta_{YZ} (degrees); #eta_{y}",50,0,1.6,100,0,1));
+    Add(new TH2D("TrSimResAx","intr. res. vs angle x; #theta_{XZ} (degrees); x intr. res. (#mum)",50,0,1.6,100,-100,100));
+    Add(new TH2D("TrSimResAy","intr. res. vs angle y; #theta_{YZ} (degrees); y intr. res. (#mum)",50,0,1.6,100,-100,100)); 
+    Add(new TH2D("TrSimResEx","intr. res. vs edep x; #sqrt{EDep} (#sqrt{keV}); x intr. res. (#mum)",250,0,250,100,-100,100));
+    Add(new TH2D("TrSimResEy","intr. res. vs edep y; #sqrt{EDep} (#sqrt{keV}); y intr. res. (#mum)",250,0,250,100,-100,100));
+    Add(new TH2D("TrSimEDepx","signal x vs edep; #sqrt{EDep} (#sqrt{keV}); #sqrt{S_{x}} (#sqrt{ADC})",300,0,150,250,0,250));
+    Add(new TH2D("TrSimEDepy","signal y vs edep; #sqrt{EDep} (#sqrt{keV}); #sqrt{S_{y}} (#sqrt{ADC})",300,0,150,250,0,250));
+
+    // counting simulated clusters
+    Add(new TH1D("TrSimClsx","fake clusters; ladder",192,0,192));
+    Add(new TH1D("TrSimClsy","fake clusters; ladder",192,0,192));
+    Add(new TH1D("TrSimFakex","fake clusters; ladder",192,0,192));
+    Add(new TH1D("TrSimFakey","fake clusters; ladder",192,0,192));
   }
 
   if (dsave) dsave->cd();

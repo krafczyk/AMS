@@ -54,13 +54,18 @@ void TrSimCluster::Info(int verbose) {
   printf("TrSimCluster - nStrips = %2d   SeedIndex = %2d   Address = %3d  TotSignal = %7.3f\n",
          GetWidth(),GetSeedIndex(),GetAddress(),GetTotSignal());
   if (verbose>0) {
-    for (int i=0; i<GetWidth(); i++)
-      printf("Address (p,n) %4d %4d  Signal %7.5f\n",i+GetAddress(),i+GetAddress()+640,GetSignal(i));
+    for (int i=0; i<GetWidth(); i++) {
+      printf("Address(p,n) %4d %4d   Signal %7.5f\n",i+GetAddress(),i+GetAddress()+640,GetSignal(i));
+    }
+  }
+  if (verbose>1) { 
+    printf("Eta %7.3f   CofG(2,3) %7.3f %7.3f\n",GetEta(),GetCofG(2),GetCofG(3));
   }
 }
 
 
-int TrSimCluster::FindSeedIndex(double seed) {
+int TrSimCluster::FindSeedIndex(double seed, int force) {
+  if ( (force==0)&&(GetSeedIndex()>=0) ) return GetSeedIndex(); 
   double signalmax = seed;
   int    seedind = -1;
   for (int i=0; i<GetWidth(); i++) {
@@ -70,6 +75,53 @@ int TrSimCluster::FindSeedIndex(double seed) {
     }
   }
   return seedind;
+}
+
+
+double TrSimCluster::GetEta(){
+  double eta    = 1.;
+  int    cindex = FindSeedIndex();
+  double left   = GetSignal(cindex-1);
+  double center = GetSignal(cindex);
+  double right  = GetSignal(cindex+1);
+  if      (cindex==0)               eta = right/(center+right); // nleft = 0
+  else if ((cindex-GetWidth())==0)  eta = center/(left+center); // nright = 0
+  else if (right>left)              eta = right/(center+right);
+  else                              eta = center/(left+center);
+  return eta;
+}
+
+
+double TrSimCluster::GetCofG(int nstrips) {
+  if (nstrips<=1) return 0.;
+  int index = FindSeedIndex();
+  if (index<0) return 0.;
+  // scan of the same number of strips to the right and to the left (seed is 0)
+  double numerator = 0.;
+  double denominator = GetSignal(index);
+  int n = (nstrips-1)/2;
+  for (int i=0; i<n; i++) {
+    numerator += (i+1)*GetSignal(index+i+1) - (i+1)*GetSignal(index-i-1);
+    denominator += GetSignal(index+i+1) + GetSignal(index-i-1);
+  }
+  // if nstrip is even I have to add one more strip
+  if (nstrips%2==0) {
+    if (GetSignal(index+n+1)>GetSignal(index-n-1)) {
+      numerator += (n+1)*GetSignal(index+n+1);
+      denominator += GetSignal(index+n+1);
+    }
+    else {
+      numerator += - (n+1)*GetSignal(index-n-1);
+      denominator += GetSignal(index-n-1);
+    } 
+  }
+  if (fabs(denominator)<1e-10) return 0.; // error!
+  return numerator/denominator;
+}
+
+
+double TrSimCluster::GetX(int iside, int tkid, int nstrips, int imult) {
+  return TkCoo::GetLocalCoo(tkid,float((1-iside)*640 + GetAddressCycl(FindSeedIndex()) + GetCofG(nstrips)),imult);
 }
 
 
@@ -159,4 +211,18 @@ void TrSimCluster::ApplyGain(int side, int tkid) {
     if (ladpar->GetVAGain(iva)<0.02) SetSignal(ist,0.); // VA with no gain!
     else                             SetSignal(ist,GetSignal(ist)/gain);
   }
-} 
+}
+
+
+void TrSimCluster::ApplyAsymmetry(int side) {
+  for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
+    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrParDB::Head->GetAsymmetry(side));
+  } 
+}
+
+
+void TrSimCluster::ApplyStripNonLinearity() {         
+  printf("TrSimCluster::ApplyStripNonLinearity-E p-strip non-linearity not yet implemented.\n"); 
+  return; 
+}
+

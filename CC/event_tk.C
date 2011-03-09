@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.39 2011/02/03 16:07:59 pzuccon Exp $
+//  $Id: event_tk.C,v 1.40 2011/03/09 09:00:18 oliva Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -20,7 +20,6 @@ void AMSEvent::_retkinitevent(){
 
 
 void AMSEvent::_catkinitevent(){
-
 //PZ FIXME CALIB  if(TRCALIB.CalibProcedureNo == 2){
 //     AMSEvent::gethead()->add (
 // 			      new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
@@ -350,6 +349,15 @@ void AMSEvent::_retkevent(integer refit){
       }
 
      }
+
+     // residual vs layer
+     for (int ilayer=0; ilayer<9; ilayer++) {
+       if (trk->GetHitL(ilayer)==0) continue;
+       if (trk->GetHitL(ilayer)->GetXCluster()!=0) 
+         hman.Fill("TrResLayx",ilayer,trk->GetResidual(ilayer,TrTrackR::DefaultFitID).x()*1.e+04);
+       if (trk->GetHitL(ilayer)->GetYCluster()!=0) 
+         hman.Fill("TrResLayy",ilayer,trk->GetResidual(ilayer,TrTrackR::DefaultFitID).y()*1.e+04);
+     }  
     }
 
     if ( (i==0) && AMSJob::gethead()->isSimulation()

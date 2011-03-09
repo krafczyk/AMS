@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.51 2011/02/24 09:42:24 shaino Exp $
+// $Id: tkdcards.C,v 1.52 2011/03/09 09:00:19 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -167,39 +167,61 @@ void TRMCFFKEY_DEF::init(){
   }
   pl9zgap=0.;//(558) PL9 supp.str. gap from EC front face Z (cm)
   pl9sthick=0.5;//(559)  PL9 supp.str.support thickness (cm)
-  // (564) SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-  SimulationType=2;
-  // All digitization parameters
-  MinMCClusters=0;
-  NoiseType=2; 
-  FakeClusterType=2;
-  DSPSeedThr[0]=3.5;
-  DSPSeedThr[1]=3.5;
-  DSPNeigThr[0]=1.;
-  DSPNeigThr[1]=1.;
-  // TrSim2010
-  TrSim2010_ADCConvType[0]=1;
-  TrSim2010_ADCConvType[1]=1;
-  TrSim2010_EDepType[0]=3; 
-  TrSim2010_EDepType[1]=3; 
-  TrSim2010_ADCSat[0]=3000.;
-  TrSim2010_ADCSat[1]=3000.; 
-  // Detailed Description
-  TrSim2010_Cint[0]=100.;
-  TrSim2010_Cint[1]=100.;
-  TrSim2010_Cbk[0]=15.;
-  TrSim2010_Cbk[1]=15.;
-  TrSim2010_Cdec[0]=800.;
-  TrSim2010_Cdec[1]=800.;
-  // Diffusion Shape Type (0:Uniform, 1:Gauss, 2:Box*Gauss, 3:Triangular, ...)
-  TrSim2010_DiffType[0]=2;
-  TrSim2010_DiffType[1]=2;
-  TrSim2010_DiffRadius[0]=10.;
-  TrSim2010_DiffRadius[1]=20.;
-  TrSim2010_FracNoise[0]=0.1;
-  TrSim2010_FracNoise[1]=0.1;
-  TrSim2010_AddNoise[0]=0.;
-  TrSim2010_AddNoise[1]=0.;
+
+  ////////////////////////////////
+  // New stuff
+  ////////////////////////////////
+
+  // Common Parameters
+
+  // Simulation type  
+  SimulationType = 2;
+  // Minimum number of MC cluster required to trigger digitization
+  MinMCClusters = 0;
+  // Noise type 
+  NoiseType = 3;
+  // DSP seed strip S/N threshold per layer (updated 03/03/2011)
+  DSPSeedThr[0][0] = 3.500; DSPSeedThr[0][7] = 3.500; DSPSeedThr[0][8] = 3.500; // x: single layer on plane
+  DSPSeedThr[0][1] = 3.875; DSPSeedThr[0][2] = 3.875; DSPSeedThr[0][3] = 3.875; // x: two layers on a single plane
+  DSPSeedThr[0][4] = 3.875; DSPSeedThr[0][5] = 3.875; DSPSeedThr[0][6] = 3.875; // x: two layers on a single plane
+  DSPSeedThr[1][0] = 3.625; DSPSeedThr[1][7] = 3.625; DSPSeedThr[1][8] = 3.625; // y: single layer on plane
+  DSPSeedThr[1][1] = 4.000; DSPSeedThr[1][2] = 4.000; DSPSeedThr[1][3] = 4.000; // y: two layers on a single plane
+  DSPSeedThr[1][4] = 4.000; DSPSeedThr[1][5] = 4.000; DSPSeedThr[1][6] = 4.000; // y: two layers on a single plane
+  // DSP neigboring strips S/N threshold (updated 03/03/2011)
+  DSPNeigThr[0] = 1.;
+  DSPNeigThr[1] = 1.;
+
+  // TrSim2010 Parameters
+
+  // ADC vertical MIP value
+  TrSim2010_ADCMipValue[0] = 32.012; // TO BE UPDATED/TUNED
+  TrSim2010_ADCMipValue[1] = 29.393; // TO BE UPDATED/TUNED
+  // Apply p-strip deformation?
+  TrSim2010_PStripCorr = 0; // TO BE CHECKED WITH REAL DATA
+  // Saturation limit for strips
+  TrSim2010_ADCSat[0] = 3500.;
+  TrSim2010_ADCSat[1] = 3500.;
+  // Interstrip capacitance (pF)
+  TrSim2010_Cint[0] = 100.;
+  TrSim2010_Cint[1] = 100.;  
+  // Backplane(+guardring) capacitance (pF)     
+  TrSim2010_Cbk[0] = 15.;
+  TrSim2010_Cbk[1] = 15.;
+  // Readout capacitance (pF)
+  TrSim2010_Cdec[0] = 800.;
+  TrSim2010_Cdec[1] = 800.;
+  // Charge diffusion model
+  TrSim2010_DiffType[0] = 2;
+  TrSim2010_DiffType[1] = 2;
+  // Diffusion radium (um)
+  TrSim2010_DiffRadius[0] = 10.;
+  TrSim2010_DiffRadius[1] = 20.; // TO BE CHEKED
+  // Tuning parameter: shaking a fraction
+  TrSim2010_FracNoise[0] = 0.1; // TO BE CHECKED WITH IONS
+  TrSim2010_FracNoise[1] = 0.1; // TO BE CHECKED WITH IONS
+  // Tuning parameter: adding noise
+  TrSim2010_AddNoise[0] = 0.;
+  TrSim2010_AddNoise[1] = 0.;
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;

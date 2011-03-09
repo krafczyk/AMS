@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.h,v 1.15 2011/02/12 00:40:49 oliva Exp $
+//  $Id: TrMCCluster.h,v 1.16 2011/03/09 09:00:21 oliva Exp $
 #ifndef __TrMCClusterR__
 #define __TrMCClusterR__
 
@@ -13,11 +13,12 @@
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
 ///\date  2008/07/08 PZ  Compatible with new GBATCH and move build to TrSim
-///$Date: 2011/02/12 00:40:49 $
+///$Date: 2011/03/09 09:00:21 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
+
 #include "typedefs.h"
 #include "point.h"
 #include "TrElem.h"
@@ -26,13 +27,13 @@
 
 class TrSimCluster;
 
-class TrMCClusterR: public TrElem {
+class TrMCClusterR : public TrElem {
 
  protected:
 
-  //! abs(tkid)+1000*(lside)+10000*(sensor+1);
+  //! abs(tkid)+1000*(lside)+10000*(sensor+1)
   int _idsoft; 
-  //! Geant particle code of the particle originatig the cluster.
+  //! Geant particle code of the particle originatig the cluster
   short int _itra;
 
   /* 
@@ -43,7 +44,7 @@ class TrMCClusterR: public TrElem {
   //!Address of the rightmost strip in the Sim CLuster
   short int _right [2];
   //! array containg the strip signals for p(=1) and n(=0) sides
-  float    _ss[2][5];
+  float     _ss[2][5];
   */
 
   //! Calculated impact point on silicon middle
@@ -90,24 +91,26 @@ public:
   int GetTkId();
   //! returns the sensor number for the hit
   int GetSensor() {return _idsoft/10000-1;}
-  //! Returns the address of the first strip od the cluster
   //  int GetAdd (int side){return (side==0||side==1) ?       _left[side]         :-1; }
-  //! Returns the size of the cluster
   //  int GetSize(int side){return (side==0||side==1) ? (_right[side]-_left[side]+1):-1; }
-  //! Return the Signal for the strips of the generated cluster (X/n=0, Y/p=1) 
   //  float GetSignal(int ii,int side)  {return (side==0||side==1) ? (_ss[side][ii]):-9999.; }
   //! Returns the Totale energy released in silicon (GeV)
-  double Sum(){return _sum;}
+  double Sum()      { return _sum; }
   //! Checks the cluster type against the IsNoise flag
-  int IsNoise(){ return _itra == _NoiseMarker; }
-  AMSPoint GetXgl(){return _xgl;}
+  int IsNoise()     { return _itra == _NoiseMarker; }
+  //! Return impact point on silicon middle
+  AMSPoint GetXgl() { return _xgl; }
   //! Returns the Momentum 
-  AMSPoint GetMom(){return _Momentum;}
-  //! Returns the part type
-  int GetPart(){return _itra;}
+  AMSPoint GetMom() { return _Momentum; }
+  //! Returns the part type (G3 pid)
+  int GetPart()     { return _itra; }
+  //! checkstatus
   unsigned int checkstatus(int c) const { return Status&c; }
+  //! getstatus
   unsigned int getstatus  (void)  const { return Status; }
+  //! setstatus
   void setstatus  (unsigned int s) { Status |=  s; }
+  //! clearstatus
   void clearstatus(unsigned int s) { Status &= ~s; }
   //! Return a pointer to the simulated clusters (if TrSim2010 selected)
   TrSimCluster* GetSimCluster(int side) {
@@ -119,42 +122,38 @@ public:
   //! Generates the strip distribution (old model)
   void _shower();
 
-protected:
- //  static float strip2x(int tkid, int side, int strip, int mult);
+ protected:
 
-//   // Functions imported from tkmccl.F
-//   static double fints(double, double);
-//   static double fint2(double, double, double, double, double);
-//   static double fintc(double, double, double, double);
-//   static double fintr(double, double, double, double);
-//   static double fintl(double, double, double, double);
-//   static double fdiff(double, int);
-
+  //  static float strip2x(int tkid, int side, int strip, int mult);
+  //   // Functions imported from tkmccl.F
+  //   static double fints(double, double);
+  //   static double fint2(double, double, double, double, double);
+  //   static double fintc(double, double, double, double);
+  //   static double fintr(double, double, double, double);
+  //   static double fintl(double, double, double, double);
+  //   static double fdiff(double, int);
   void _PrepareOutput(int full);
 
-public:
-//################ PRINTOUT  ########################################
+ public:
+
+  //################ PRINTOUT  ########################################
 
   /// Print MC cluster basic information on a given stream
   std::ostream& putout(std::ostream &ostr = std::cout);
-
   /// ostream operator
   friend std::ostream &operator << 
     (std::ostream &ostr,  TrMCClusterR &cls) { 
     return cls.putout(ostr); 
   }
-
   /// Print cluster strip variables 
   void Print(int printopt =0);
   /// Return a string with some info (used for event display)
   char* Info(int iRef);
-	friend class TrDAQMC;
 
- /// ROOT definition
+  friend class TrDAQMC;
+
+  /// ROOT definition
   ClassDef(TrMCClusterR,4);
-
 };
-
-
 
 #endif

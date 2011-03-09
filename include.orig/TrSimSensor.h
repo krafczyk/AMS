@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////
 ///
 ///\class TrSimSensor
-///\brief TrSim2010: class for the Tracker Ladder Electronics Simulation  
+///\brief TrSim2010: class for the Tracker Sensor simulation  
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -88,13 +88,6 @@ class TrSimSensor {
   double _Cbk;    
   // Decoupling capacitance [pF]
   double _Cdec;    
-
-  // EDep in Geant3 for vertical tracks (Landau distribution): ONLY PROTONS
-  TF1*   _mcfun;
-  // EDep in real data (TB2003) for vertical tracks (LanGauExp): ONLY PROTONS
-  TF1*   _refun;
-  // Interpolationg function for a fast conversion between MC and data: ONLY PROTONS 
-  // TGraph* _mctorefun; 
 
  public:
  
@@ -220,24 +213,17 @@ class TrSimSensor {
   // dE/dx Normalization 
   ////////////////
 
-  //! EDep description of real data (ADC units)
-  static double LanGauExpFun(double *x, double *par);
-  //! EDep description in Geant3 (mean,width,horizontal scaling,vertical scaling) 
-  static double LanGauFun(double *x, double *par);
-  //! EDep description in Geant3 (mean,width,sigma,horizontal scaling,vertical scaling)
-  static double LandauFun(double *x, double *par);
-  //| EDep from PDG Bethe-Block (300 um of Si) 
+  //! keV to ADC conversion
+  double GetkeVtoADC(float keV);
+  //! TB2003: n-side ADC vs Z^2 with no saturation (separately treated)
+  static double nside_nosat_charge_dependence_function(double *x, double *par);
+  //! TB2003: p-side ADC vs Z^2 with no p-strip correction
+  static double pside_uncorr_charge_dependence_function(double *x, double *par);
+  //! TB2003: p-side ADC vs Z^2 with p-strip correction
+  static double pside_corr_charge_dependence_function(double *x, double *par);
+
+  //! EDep from PDG Bethe-Block (300 um of Si) 
   static double BetheBlock(double z, double betagamma);
-  //! Return the pointer to the Geant3 Landau parametrization
-  TF1* GetMonteCarloFun() { return _mcfun; }
-  //! Return the pointer to the LanGauExp Real Data function 
-  TF1* GetRealDataFun()   { return _refun; }
-  //! keV to MPV factor 
-  double GetkeVtoADC();  
-  //! ADC MPV value for each Z from Tb2003 (n-side and p-side) 
-  double GetAdcMpvTb2003(double z);
-  //! EDep MC-Data ADC normalization (from ADC to ADC)
-  double fromMCtoRealData(double adc);
 
 };
 

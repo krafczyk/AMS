@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.25 2011/03/03 10:50:40 shaino Exp $
+//  $Id: TrMCCluster.C,v 1.26 2011/03/09 09:00:18 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/03/03 10:50:40 $
+///$Date: 2011/03/09 09:00:18 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -211,7 +211,7 @@ void TrMCClusterR::_shower() {
 
 
 int TrMCClusterR::GetTkId(){ 
-//int sensor = abs(_idsoft)/10000;
+  // int sensor = abs(_idsoft)/10000;
   int tkid   = abs(_idsoft)%1000;
   int ss     = abs(_idsoft)%10000-tkid;
   if(!ss) tkid*=-1;
@@ -241,184 +241,193 @@ char* TrMCClusterR::Info(int iRef){
   return _Info;
 }
 
-void TrMCClusterR::_PrepareOutput(int full)
-{
-
+void TrMCClusterR::_PrepareOutput(int full) {
   sout.clear();
   sout.append(Form("Part: %2d  tkid: %+04d  Sens: %2d    X:%f Y:%f Z:%f    Px: %f Py: %f Pz: %f\n",
 		   _itra,GetTkId(),GetSensor(),
 		   _xgl[0],_xgl[1],_xgl[2],_Momentum[0],_Momentum[1],_Momentum[2]));
   return;
-  
- //  if(!full) return;
-//   sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-// 		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
-//   sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
-// 		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
-
+  //  if(!full) return;
+  //   sout.append(Form("TrMCClusterR-Shower x l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+  // 		   _left[0],_center[0],_right[0],_ss[0][0],_ss[0][1],_ss[0][2],_ss[0][3],_ss[0][4]));
+  //   sout.append(Form("TrMCClusterR-Shower y l:%f c:%f r:%f  ss0:%f ss1:%f ss2:%f ss3:%f ss4:%f \n",
+  // 		   _left[1],_center[1],_right[1],_ss[1][0],_ss[1][1],_ss[1][2],_ss[1][3],_ss[1][4]));
 }
 
 
-// float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult)
-// {
-//   int layer = abs(tkid)/100;
-//   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
-//   if(!ll){
-//     printf("TrMCClusterR::strip2x: ERROR cant find ladder %d into the database\n",tkid);
-//     return -1;
-//   } 
-//   int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
-//     : (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
-//     : TkDBc::Head->_NReadStripK5;
-
-
-//   int ss = strip;
-//   if (ss <=   0) ss = 1;
-//   if (ss >= nch) ss = nch-1;
-
-//   ss += (side == 0) ? TkDBc::Head->_NReadoutChanS : 0;
-//   float ss0 = TkCoo::GetLocalCoo(tkid, ss-1, mult);
-//   float ss1 = TkCoo::GetLocalCoo(tkid, ss,   mult);
-
-//   if (strip <=   0) return ss0-(ss0+ss1)/2;
-//   if (strip >= nch) return ss1+(ss0+ss1)/2;
-
-//   return (ss0+ss1)/2;
-// }
-
-// double TrMCClusterR::fints(double a, double b)
-// {
-//   if      (a >  0 && b >  0) return fdiff(a, 0)-fdiff(b, 0);
-//   else if (a <= 0 && b <= 0) return fdiff(b, 0)-fdiff(a, 0);
-//   return 2*fdiff(0, 0)-fdiff(a, 0)-fdiff(b, 0);
-// }
-
-// double TrMCClusterR::fint2(double a, double b, 
-// 			  double av, double dav, double dix)
-// {
-//   if (std::abs(dav)/dix <= 0.01) return fints(a-av, b-av);
-
-//   double dlmin = av-std::abs(dav);
-//   double dlmax = av+std::abs(dav);
-//   if (a <= dlmin && b >= dlmax) return fintc(a, b, dlmin, dlmax);
-//   if (a <= dlmin && b <= dlmin) return fintl(a, b, dlmin, dlmax);
-//   if (a >= dlmax && b >= dlmax) return fintr(a, b, dlmin, dlmax);
-
-//   if (a <= dlmin && b <= dlmax)
-//     return fintc(a, b, dlmin, b)*(b-dlmin)/(dlmax-dlmin)
-//           +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
-
-//   if (a >= dlmin && b >= dlmax)
-//     return fintc(a, b, a, dlmax)*(dlmax-a)/(dlmax-dlmin)
-//           +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin);
-
-//   return fintc(a, b, a,     b)*    (b-a)/(dlmax-dlmin)
-//         +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin)
-//         +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
-// }
-
-// double TrMCClusterR::fintc(double a, double b, double c, double d)
-// {
-//   return 2*fdiff(0,0)-(fdiff(b-d,1)-fdiff(b-c,1))/(d-c)
-//                      +(fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-// }
-
-// double TrMCClusterR::fintr(double a, double b, double c, double d)
-// {
-//   return (-fdiff(b-d,1)+fdiff(b-c,1)
-// 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-// }
-
-// double TrMCClusterR::fintl(double a, double b, double c, double d)
-// {
-//   return (-fdiff(b-d,1)+fdiff(b-c,1)
-// 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
-// }
-
-// double TrMCClusterR::fdiff(double a, int ialpha)
-// {
-//   double xl = std::abs(a)*TRMCFFKEY.alpha;
-//   if (xl > 70) return 0;
-
-//   double diff = TRMCFFKEY.beta*std::exp(-xl);
-//   if (ialpha) diff /= TRMCFFKEY.alpha;
-
-//   return diff;
-// }
-
-
-
-
 void TrMCClusterR::GenSimClusters(){
-  // MC truth
-  char   sidename[2] = {'X','Y'};
-  AMSPoint glo = GetXgl();                         // Coordinate [cm]
-  AMSPoint mom = GetMom();                         // Momentum Vector [GeV/c]
-  double   edep = Sum()*1.e6;                      // Energy Deposition [keV] 
-  double   momentum = mom.norm();                  // Momentum [GeV/C]
-  double   mass = TrSim::GetG3Mass(GetPart());     // Mass [GeV/c2] 
-  double   charge = TrSim::GetG3Charge(GetPart()); // Charge [unit of e]
-  if (charge < 0) charge *= -1;
-  if ( (mass==0)||(charge==0) ) {
-    if (WARNING) printf("TrMCClusterR::GenSimClusters() -Warning No Mass/Charge for particle %d, check _g3mass and _g3charge tables",GetPart());
-    return; 
-  }
-  if (momentum<1e-9) return ; // if momentum < eV/c!
+
+  // montecarlo truth
+  char     sidename[2] = {'x','y'};
+  AMSPoint glo = GetXgl();        // Coordinate [cm]
+  AMSPoint mom = GetMom();        // Momentum Vector [GeV/c]
+  double   edep = Sum()*1.e6;     // Energy Deposition [keV] 
+  double   momentum = mom.norm(); // Momentum [GeV/C]
+  if (momentum<1e-9) return ;     // if momentum < eV/c!
   AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
   double ip[2] = {_glo2loc.GetSensCoo().x(),_glo2loc.GetSensCoo().y()};     // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
-  if (VERBOSE) { 
-    printf("TrSim::MCCluster:More - loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",ip[0],ip[1],ia[0],ia[1],nsensor);
+  int imult = _glo2loc.GetMultIndex();
+  if (VERBOSE) {
+    printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",
+           GetTkId(),ip[0],ip[1],ia[0],ia[1],nsensor);
+    printf("TrSim::GenSimClusters-V  laddcoo(x,y) = (%7.4f,%7.4f)   readout(x,y) = (%4d,%4d)   mult = %2d\n",
+           _glo2loc.GetLaddCoo().x(),_glo2loc.GetLaddCoo().y(),_glo2loc.GetStripX(),_glo2loc.GetStripY(),imult);
   }
-  // Loop on two Sides of the ladder
+
+  // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
     if ( (ip[iside]<0.)||(ip[iside]>TkDBc::Head->_ssize_active[iside]) ) {
-      if (WARNING) printf("TrSim::sitkhits()-Warning %c coordinate out of the sensor (min=0, max=%7.4f, coo=%7.4f)\n",
-			  sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
+      if (WARNING) printf("TrSim::GenSimClusters-W  %c coordinate out of the sensor (min=0, max=%7.4f, coo=%7.4f)\n",
+                          sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
       continue;
     }
+
+    // create the simulated cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
-    if (simcluster.GetWidth()==0) continue; // empty! 
-
+    // from time to time the cluster is empty
+    if (simcluster.GetWidth()==0) continue;
+    // put the cluster in the TrMCCluster object
     simcl[iside] = new TrSimCluster(simcluster);
-
-    // dE/dx to ADC method 
-    // 1. Normalize dE/dx (angle = 0, Z = 1, betagamma = 3.16)   
-    double dEdx     = TrSimSensor::BetheBlock(1,momentum/mass);
-    double MIP      = TrSimSensor::BetheBlock(1,3.16);
-    double CosTheta = sqrt( 1./(1 + pow(tan(ia[0]),2.) + pow(tan(ia[1]),2.)) );
-    double EDepNorm = edep*MIP*CosTheta/(dEdx*pow(charge,2)); 
-    if (iside==1) hman.Fill("TrSigBaseX",EDepNorm);
-    else          hman.Fill("TrSigBaseY",EDepNorm);
-    // 2. From keV to ADC (MPV scaling using measured pdfs)
-    double ADC = EDepNorm*TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC();
-    if (TRMCFFKEY.TrSim2010_ADCConvType[iside]>1) ADC = TrSim::GetTrSimSensor(iside,GetTkId())->fromMCtoRealData(ADC); // using pdf: 13/09/2010 too slow, deactivating it  
-    // 3. Back to the real angle, betagamma 
-    ADC *= dEdx/(CosTheta*MIP);  
-    // 4. renormalize with respect to Z (test beam data) 
-    ADC *= TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(charge)/TrSim::GetTrSimSensor(iside,GetTkId())->GetAdcMpvTb2003(1);
-
-    // Cluster strip values in ADC counts
+    // raw signal
+    hman.Fill(Form("TrSimSig%c",sidename[iside]),simcl[iside]->GetEta(),simcl[iside]->GetTotSignal());
+    // from keV to ADC (using tb2003 data normalized to datacard value)
+    double ADC = TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(edep);
+    // correct for the charge loss intrinsic in the simulation
+    if (iside==0) ADC /= 0.96; // TO BE CHECKED MORE
+    else          ADC /= 0.84; // TO BE CHECKED MORE
+    // cluster strip values in ADC counts
     simcl[iside]->Multiply(ADC);
-
-    // Simulation tuning parameter 1: gaussianize a fraction of the strip signal
+    // simulation tuning parameter 1: gaussianize a fraction of the strip signal
     simcl[iside]->GaussianizeFraction(TRMCFFKEY.TrSim2010_FracNoise[iside]);
-
-    // Simulation tuning parameter 2: add more noise 
+    // simulation tuning parameter 2: add more noise 
     simcl[iside]->AddNoise(TRMCFFKEY.TrSim2010_AddNoise[iside]);
-
-    // Gain correction (VA by VA)
-    if ((TRMCFFKEY.TrSim2010_ADCConvType[iside]==1)||(TRMCFFKEY.TrSim2010_ADCConvType[iside]==3)) simcl[iside]->ApplyGain(iside,GetTkId());
-
-    // Apply saturation
+    // apply asymmetry to strips
+    simcl[iside]->ApplyAsymmetry(iside);
+    // apply the p-strip saturation
+    if (TRMCFFKEY.TrSim2010_PStripCorr==1) simcl[iside]->ApplyStripNonLinearity();
+    // apply the gain table
+    simcl[iside]->ApplyGain(iside,GetTkId());
+    // apply saturation
     simcl[iside]->ApplySaturation(TRMCFFKEY.TrSim2010_ADCSat[iside]);
-    
-    if (VERBOSE) { printf("TrSim::SimCluster ADC=%f\n",ADC); simcl[iside]->Info(10);  }
+
+    // dump
+    if (VERBOSE) { printf("TrSim::GenSimClusters-V  ADC=%f\n",ADC); simcl[iside]->Info(10);  }
+    // histograms
+    double adc = simcl[iside]->GetTotSignal();
+    double eta = simcl[iside]->GetEta();
+    double intr_res = 0.;
+    // intrinsic resolution with only 2 strips
+    if (iside==0) {
+      intr_res = 1e+04*(_glo2loc.GetLaddCoo().x() - simcl[iside]->GetX(iside,GetTkId(),2,imult));
+    }
+    else {
+      intr_res = 1e+04*(_glo2loc.GetLaddCoo().y() - simcl[iside]->GetX(iside,GetTkId(),2,imult));
+    }
+    // check eta distribution
+    hman.Fill(Form("TrSimEta%c",sidename[iside]),fabs(ia[iside]),eta);
+    // dependence from angle 
+    hman.Fill(Form("TrSimResA%c",sidename[iside]),fabs(ia[iside]),intr_res);
+    // dependence from charge (edep)
+    hman.Fill(Form("TrSimResE%c",sidename[iside]),sqrt(edep),intr_res);
+    // energy deposition plot
+    hman.Fill(Form("TrSimEDep%c",sidename[iside]),sqrt(edep),sqrt(adc));
+
+    if (VERBOSE) printf("angle=%7.3f   eta=%7.3f   sqrt(edep)=%7.3f   intrres=%7.3f   totsig=%7.3f\n",
+                        ia[iside],simcl[iside]->GetEta(),sqrt(edep),intr_res,simcl[iside]->GetTotSignal());
   }
   return;
 }
 
+
+
+
+/*
+
+////////////////////////////////////////////////////////////////////////////////////
+// OLD GBATCH SIMULATION -> could be re-implemented using TrSimCluster middle class
+////////////////////////////////////////////////////////////////////////////////////
+
+float TrMCClusterR::strip2x(int tkid, int side, int strip, int mult) {
+   int layer = abs(tkid)/100;
+   TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+   if(!ll){
+     printf("TrMCClusterR::strip2x: ERROR cant find ladder %d into the database\n",tkid);
+     return -1;
+   } 
+   int nch   = (side  == 1) ? TkDBc::Head->_NReadoutChanS
+     : (ll->IsK7()) ? TkDBc::Head->_NReadStripK7 
+     : TkDBc::Head->_NReadStripK5;
+
+   int ss = strip;
+   if (ss <=   0) ss = 1;
+   if (ss >= nch) ss = nch-1;
+
+   ss += (side == 0) ? TkDBc::Head->_NReadoutChanS : 0;
+   float ss0 = TkCoo::GetLocalCoo(tkid, ss-1, mult);
+   float ss1 = TkCoo::GetLocalCoo(tkid, ss,   mult);
+
+   if (strip <=   0) return ss0-(ss0+ss1)/2;
+   if (strip >= nch) return ss1+(ss0+ss1)/2;
+
+   return (ss0+ss1)/2;
+}
+
+double TrMCClusterR::fints(double a, double b) {
+  if      (a >  0 && b >  0) return fdiff(a, 0)-fdiff(b, 0);
+  else if (a <= 0 && b <= 0) return fdiff(b, 0)-fdiff(a, 0);
+  return 2*fdiff(0, 0)-fdiff(a, 0)-fdiff(b, 0);
+}
+
+double TrMCClusterR::fint2(double a, double b, 
+ 			  double av, double dav, double dix) {
+  if (std::abs(dav)/dix <= 0.01) return fints(a-av, b-av);
+
+  double dlmin = av-std::abs(dav);
+  double dlmax = av+std::abs(dav);
+  if (a <= dlmin && b >= dlmax) return fintc(a, b, dlmin, dlmax);
+  if (a <= dlmin && b <= dlmin) return fintl(a, b, dlmin, dlmax);
+  if (a >= dlmax && b >= dlmax) return fintr(a, b, dlmin, dlmax);
+
+  if (a <= dlmin && b <= dlmax)
+    return fintc(a, b, dlmin, b)*(b-dlmin)/(dlmax-dlmin)
+          +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
+
+  if (a >= dlmin && b >= dlmax)
+    return fintc(a, b, a, dlmax)*(dlmax-a)/(dlmax-dlmin)
+          +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin);
+
+  return fintc(a, b, a,     b)*    (b-a)/(dlmax-dlmin)
+        +fintr(a, b, dlmin, a)*(a-dlmin)/(dlmax-dlmin)
+        +fintl(a, b, b, dlmax)*(dlmax-b)/(dlmax-dlmin);
+}
+
+double TrMCClusterR::fintc(double a, double b, double c, double d) {
+  return 2*fdiff(0,0)-(fdiff(b-d,1)-fdiff(b-c,1))/(d-c)
+                     +(fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+}
+
+double TrMCClusterR::fintr(double a, double b, double c, double d) {
+  return (-fdiff(b-d,1)+fdiff(b-c,1)
+          +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+}
+
+double TrMCClusterR::fintl(double a, double b, double c, double d) {
+  return (-fdiff(b-d,1)+fdiff(b-c,1)
+ 	  +fdiff(a-d,1)-fdiff(a-c,1))/(d-c);
+}
+
+double TrMCClusterR::fdiff(double a, int ialpha) {
+  double xl = std::abs(a)*TRMCFFKEY.alpha;
+  if (xl > 70) return 0;
+
+  double diff = TRMCFFKEY.beta*std::exp(-xl);
+  if (ialpha) diff /= TRMCFFKEY.alpha;
+
+  return diff;
+}
+*/
 

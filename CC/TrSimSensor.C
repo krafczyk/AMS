@@ -3,7 +3,8 @@
 
 
 TrSimSensor& TrSimSensor::operator=(const TrSimSensor& that) {
-  { if (this!=&that) Copy(that); return *this; }
+  if (this!=&that) Copy(that); 
+  return *this;
 }
 
 
@@ -21,8 +22,6 @@ void TrSimSensor::Init() {
   _Cint = 0;
   _Cbk = 0;
   _Cdec = 0;
-  _mcfun = 0;
-  _refun = 0;
 }
 
 
@@ -40,10 +39,6 @@ void TrSimSensor::Clear() {
   _Cint = 0;
   _Cbk = 0;
   _Cdec = 0;
-  if (_mcfun!=0) delete _mcfun;
-  _mcfun = 0;
-  if (_refun!=0) delete _refun;
-  _refun = 0;
 }
 
 
@@ -61,10 +56,6 @@ void TrSimSensor::Copy(const TrSimSensor& that) {
   _Cint = that._Cint;
   _Cbk = that._Cbk;
   _Cdec = that._Cdec;
-  if (that._mcfun!=0) _mcfun = new TF1(*that._mcfun);
-  else _mcfun = 0;
-  if (that._refun!=0) _refun = new TF1(*that._refun);
-  else _refun = 0; 
 }
 
 
@@ -79,7 +70,7 @@ void TrSimSensor::SetSensorType(int type) {
 void TrSimSensor::SetDefaults() {
   // Sensor parameters
   switch (GetSensorType()) {
-    case 0: // S
+    case kS:
       _Cint = TRMCFFKEY.TrSim2010_Cint[1]; // pF
       _Cbk  = TRMCFFKEY.TrSim2010_Cbk[1];  // pF
       _Cdec = TRMCFFKEY.TrSim2010_Cdec[1]; // pF
@@ -89,7 +80,7 @@ void TrSimSensor::SetDefaults() {
       _nreadout = 640;
       _implant_pitch = 27.5;
       break; 
-    case 1: // K5
+    case kK5:
       _Cint = TRMCFFKEY.TrSim2010_Cint[0]; // pF
       _Cbk  = TRMCFFKEY.TrSim2010_Cbk[0];  // pF
       _Cdec = TRMCFFKEY.TrSim2010_Cdec[0]; // pF
@@ -99,7 +90,7 @@ void TrSimSensor::SetDefaults() {
       _nreadout = 192;
       _implant_pitch = 104;
       break;
-    case 2: // K7
+    case kK7:
       _Cint = TRMCFFKEY.TrSim2010_Cint[0]; // pF
       _Cbk  = TRMCFFKEY.TrSim2010_Cbk[0];  // pF
       _Cdec = TRMCFFKEY.TrSim2010_Cdec[0]; // pF
@@ -110,69 +101,8 @@ void TrSimSensor::SetDefaults() {
       _implant_pitch = 104;
       break;
   }
-  // Generalized Landau (with some scaling terms)
-  char name[100];
-  sprintf(name,"landau_model%1d",GetSensorType()); // diff. names needed by ROOT
-  if (_mcfun==0) _mcfun = new TF1(name,LandauFun,0.,MAXADC,4); 
-  _mcfun->SetNpx(MAXADC);
-  sprintf(name,"langauexp_model%1d",GetSensorType()); // diff. names needed by ROOT
-  if (_refun==0) _refun = new TF1(name,LanGauExpFun,0.,MAXADC,5);
-  _refun->SetNpx(MAXADC); // ATTENTION: THIS COULD BE A PROBLEM (TOO SLOW IN THE INVERSION PROCESS)
-  switch (GetSensorType()) {
-    case 0: // S
-      _mcfun->SetParameters(81.94,5.811,1,1);
-      if      (TRMCFFKEY.TrSim2010_EDepType[1]==1) _refun->SetParameters(1.00,31.500,0.943,7.650, 43.380); // TB2003
-      else if (TRMCFFKEY.TrSim2010_EDepType[1]==2) _refun->SetParameters(2.77,31.440,0.978,7.294,113.513); // CR2009
-      else                                         _refun->SetParameters(2.90,29.393,0.976,5.855,108.803); // CR2010
-      break;
-    case 1: // K5
-    case 2: // K7
-      _mcfun->SetParameters(81.67,5.71,1,1);
-      if      (TRMCFFKEY.TrSim2010_EDepType[0]==1) _refun->SetParameters(3.31,40.500,1.037,6.500,105.780); // TB2003
-      else if (TRMCFFKEY.TrSim2010_EDepType[0]==2) _refun->SetParameters(2.62,29.584,0.975,6.297,101.405); // CR2009
-      else                                         _refun->SetParameters(3.15,32.012,0.977,6.929,120.252); // CR2010
-      break;
-  }
-
-  // Avoid NAN
-  float mcmax = _mcfun->GetMaximumX(0.,MAXADC);
-  if (mcmax == 0) mcmax = 1;
-
-  // MPV Normalization (horizontal scaling)
-  // float scale1 = _refun->GetParameter(1)/_mcfun->GetParameter(0);
-  float scale1 = _refun->GetMaximumX(0.,MAXADC)/mcmax;
-  _mcfun->SetParameter(2,scale1);
-  // Height normalization (needed for inversion)
-  // float scale2 = _refun->Eval(_refun->GetParameter(1))/_mcfun->Eval(_mcfun->GetParameter(0));
-  float scale2 = _refun->GetMaximum(0,MAXADC)/mcmax;
-  _mcfun->SetParameter(3,scale2);
-  // Inversion computation ...
 }
 
-double TrSimSensor::GetkeVtoADC()  { 
-  return _refun->GetParameter(1)/_mcfun->GetParameter(0); 
-}
-
-/*
-double TrSimSensor::GetkeVtoADC(double keV)  { 
-  double m = _refun->GetParameter(1)/_mcfun->GetParameter(0);
-  return m*(keV - _mcfun->GetParameter(0)) + _refun->GetParameter(1);
-}   
-*/
-
-double TrSimSensor::GetAdcMpvTb2003(double z) {
-  double value = 0.;
-  switch (GetSensorType()) {
-    case 0: // S
-      value = pow(-0.091538+6.63945*z,2.);
-      break;
-    case 1: // K5
-    case 2: // K7
-      value = pow(1.28205+4.34618*z,2.);
-      break;
-  }
-  return value; 
-}
 
 bool TrSimSensor::IsReadoutStrip(int implantadd) {
   if ( (GetSensorType()<0)||(GetSensorType()>2) ) {
@@ -599,139 +529,76 @@ TrSimCluster TrSimSensor::MakeCluster(double senscoo, double sensangle, int nsen
   return readclus; 
 }
 
-
-double TrSimSensor::LanGauExpFun(Double_t *x, Double_t *par) {
-  // Fit parameters:
-  //
-  // par[0] = Width (scale) parameter of Landau density
-  // par[1] = Most Probable (MP, location) parameter of Landau density
-  // par[2] = Total area (integral -inf to inf, normalization constant)
-  // par[3] = Width (sigma) of convoluted Gaussian function
-  // par[4] = Separation point between langaus and exp (connected by derivative and continuity)
-  //   
-  // In the Landau distribution (represented by the CERNLIB approximation), 
-  // the maximum is located at x=-0.22278298 with the location parameter=0.
-  // This shift is corrected within this function, so that the actual
-  // maximum is identical to the MP parameter.
-  //
-  // The additional exponential function is connected imposing 2 condition
-  // - continuity: LanGauss(sep) = k * exp(-xsep/slope)
-  // - derivative continuity: LanGauss'(xsep) = -k/slope * exp(-xsep/slope)
-  // slope = - LanGauss(xsep) / LanGauss'(xsep)
-  // k     =   LanGauss(xsep) * exp(xsep/slope)
-  if (x[0]<=par[4]){ //LanGauss    
-    // Numeric constants
-    Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
-    Double_t mpshift  = -0.22278298;       // Landau maximum location
-    // Control constants
-    Double_t np = 100.0;      // number of convolution steps
-    Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
-    // Variables
-    Double_t xx;
-    Double_t mpc;
-    Double_t fland;
-    Double_t sum = 0.0;
-    Double_t xlow,xupp;
-    Double_t step;
-    Double_t i;
-    // MP shift correction
-    mpc = par[1] - mpshift * par[0]; 
-    // Range of convolution integral
-    xlow = x[0] - sc * par[3];
-    xupp = x[0] + sc * par[3];
-    step = (xupp-xlow) / np;
-    // Convolution integral of Landau and Gaussian by sum
-    for(i=1.0; i<=np/2; i++) {
-      xx = xlow + (i-.5) * step;
-      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-      sum += fland * TMath::Gaus(x[0],xx,par[3]);
-      xx = xupp - (i-.5) * step;
-      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-      sum += fland * TMath::Gaus(x[0],xx,par[3]);
-    }
-    return (par[2] * step * sum * invsq2pi / par[3]);
+double TrSimSensor::GetkeVtoADC(float keV)  {
+  double x = keV/81; // energy loss in MIP units
+  double pside_uncorr_pars[6] = { 2.07483, 30.2233, -0.895041, 0.0125374, -5.89888e-05, 70.2948};
+  double pside_corr_pars[4]   = { 18.4885, 20.2601, 0.00336957, -0.00016007};
+  double nside_nosat_pars[2]  = {-4.42436, 44.6219};
+  double mip = 1; // mip in mip units!
+  double value = 0.;
+  switch (GetSensorType()) {
+    case kS: // S
+      if (TRMCFFKEY.TrSim2010_PStripCorr==0) {
+        value =  pside_uncorr_charge_dependence_function(&x,pside_uncorr_pars);
+        value /= pside_uncorr_charge_dependence_function(&mip,pside_uncorr_pars);
+      }
+      else {
+        printf("TrSimSensor::GetkeVtoADC-E p-strip non-linearity not yet implemented.\n");
+        // value =  pside_corr_charge_dependence_function(&x,pside_corr_pars);
+        // value /= pside_corr_charge_dependence_function(&mip,pside_corr_pars); 
+      }
+      value *= TRMCFFKEY.TrSim2010_ADCMipValue[1];
+      break;
+    case kK5: // K5
+    case kK7: // K7
+      value =  nside_nosat_charge_dependence_function(&x,nside_nosat_pars);
+      value /= nside_nosat_charge_dependence_function(&mip,nside_nosat_pars);
+      value *= TRMCFFKEY.TrSim2010_ADCMipValue[0];
+      break;
   }
-  else { // Exponential tail
-    // Control constants
-    Double_t dx = 10.;     // infinitesimal interval for derivative calculation 
-                           // must be longer than the bin width (how implement this check?)
-    // Variables   
-    Double_t xsep; 
-    Double_t xpre; 
-    Double_t fxsep;
-    Double_t fxpre;
-    Double_t deriv;
-    Double_t slope;
-    Double_t k;     
-    // Derivative calculation
-    xsep  = par[4];
-    xpre  = par[4] - dx;
-    fxsep = LanGauExpFun(&xsep,par);
-    fxpre = LanGauExpFun(&xpre,par);
-    deriv = (fxsep-fxpre)/dx;
-    // check of existence
-    if (deriv==0.) return -1e+06;  
-    slope = -fxsep/deriv; 
-    if (slope==0.) return -1e+06;  
-    if ((xsep/slope)>709.) return -1e+06;
-    k     = fxsep * exp(xsep/slope);
-    //   cout << k << " " << fxsep << " " << xsep << " " << slope << " " << xsep/slope << " " << exp(xsep/slope) << endl;
-    return k * exp(-x[0]/slope);
+  return value;
+}
+
+
+double TrSimSensor::nside_nosat_charge_dependence_function(double *x, double *par) {
+  double x1 = x[0];
+  return par[0] + par[1]*x1;
+}
+
+
+double TrSimSensor::pside_corr_charge_dependence_function(double *x, double *par) {
+  double x1 = x[0];
+  double x2 = x1*x1;
+  double x3 = x1*x2;
+  return par[0] + par[1]*x1 + par[2]*x2 + par[3]*x3;
+}
+
+
+double TrSimSensor::pside_uncorr_charge_dependence_function(double *x, double *par) {
+  double x1 = x[0];
+  double xs = par[5];
+  double x2 = x1*x1;
+  double x3 = x1*x2;
+  double x4 = x1*x3;
+  if (x1<xs) {
+    // y = ax + bx^2 + cx^3 + dx^4 
+    return par[0] + par[1]*x1 + par[2]*x2 + par[3]*x3 + par[4]*x4;
   }
+  // if x>x0, y = a + bx (continuos, with continuous derivative)
+  double xs1 = xs;
+  double xs2 = xs*xs;
+  double xs3 = xs*xs2;
+  double xs4 = xs*xs3;
+  double b   = par[1] + 2*par[2]*xs + 3*par[3]*xs2 + 4*par[4]*xs3;
+  double a   = par[0] + par[1]*xs + par[2]*xs2 + par[3]*xs3 + par[4]*xs4 - b*xs;
+  return a + b*x1;
 }
 
-double TrSimSensor::LandauFun(Double_t *x, Double_t *par) {
-  return par[3]*TMath::Landau(x[0]/par[2],par[0],par[1]);
-}
-
-double TrSimSensor::LanGauFun(double* x, double* par) {
-  Double_t x0 = x[0]/par[3];
-  // Numeric constants
-  Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
-  Double_t mpshift  = -0.22278298;       // Landau maximum location
-  // Control constants
-  Double_t np =  10.0;      // number of convolution steps
-  Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
-  // Variables
-  Double_t xx;
-  Double_t mpc;
-  Double_t fland;
-  Double_t sum = 0.0;
-  Double_t xlow,xupp;
-  Double_t step;
-  Double_t i;
-  // MP shift correction
-  mpc = par[1] - mpshift * par[0]; 
-  // Range of convolution integral
-  xlow = x0 - sc * par[2]/par[3];
-  xupp = x0 + sc * par[2]/par[3];
-  step = (xupp-xlow) / np;
-  // Convolution integral of Landau and Gaussian by sum
-  for(i=1.0; i<=np/2; i++) {
-    xx = xlow + (i-.5) * step;
-    fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-    sum += fland * TMath::Gaus(x0,xx,par[2]);
-    xx = xupp - (i-.5) * step;
-    fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-    sum += fland * TMath::Gaus(x0,xx,par[2]);
-  }
-  return (par[4] * step * sum * invsq2pi / par[2]);
-}
-
-
-double TrSimSensor::fromMCtoRealData(double adc) {
-  // adc has to be given for 300 um straight tracks
-  float xmax   = _refun->GetMaximumX(0.,MAXADC);
-  float value  = _mcfun->Eval(adc);
-  float newadc = (adc<xmax) ? _refun->GetX(value,0.,xmax) : _refun->GetX(value,xmax,MAXADC);
-  return newadc; 
-}
 
 double TrSimSensor::BetheBlock(double z, double bg) {
   double z2 = z*z;
   double bg2 = bg*bg;
   double dd  = 2*log(1+bg/100); // Density effect (to be tuned)
   double dEdx = 10.73*z2*((1+bg2)/bg2)*(8.68+log(bg2)-bg2/(1+bg2)-dd); // keV
-
   return dEdx; 
 }

@@ -1,9 +1,8 @@
-
-
-
 //==============================
-//  TRACKER SIMULATION
+//  TRACKER SIMULATION 
 //==============================
+
+
 TKGEOM
 I 1  ReadGeomFromFile =*00 init with default value, alignment filled by TimeID 
              (def 0)  =*01 read from file (fname),  alignment filled by TimeID 
@@ -19,50 +18,45 @@ I 5  Calib FormatVer =1 Pre-Integration
 I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
 
+
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm
              (def=2)                   1 SkipRawSim: no TrRawClusters, very fast 
                                        2 TrSim2010: a detailed simulation
 I 565        MinMCClusters             Minimum number of MC Clusters needed  
              (def=0)                   to trigger digitization (=0, all events)       
-I 566        NoiseType                 0 No Noise, only signal
-             (def=2)                   1 Gaussian noise generation for every channel: full simulation, slow
-                                       2 Gaussian noise generation only on ladders with signal + fake clusters
-I 567        FakeClusterType           Meaningful only if NoiseType>1 
-             (def=2)                   0 No fake clusters 
-                                       1 Random clusters on the gaussian tails (theoric)
-                                       2 Random clusters (tuned on CR2010 data)
-R [568,569]  DSPSeedThr                DSP Seed Threshold for x and y sides (in future from calibration ...)
-             (def=3.5,3.5) 
-R [570,571]  DSPNeigThr                DSP Neig Threshold for x and y sides (in future from calibration ...)
+I 566        NoiseType                 0 No noise
+             (def=3)                   1 Gaussian noise generation for every channel: full simulation, very slow 
+                                       2 Gaussian noise generation only on ladders with signal + fake clusters (th)
+                                       3 Gaussian noise generation only on ladders with signal + fake clusters (tuned)
+R [567,584]  DSPSeedThr[2][9]          DSP Seed Threshold for x and y sides per layer  
+             def(3.500,3.625,3.625,3.625,3.625,3.625,3.625,3.500,3.500,
+                 3.875,4.000,4.000,4.000,4.000,4.000,4.000,3.875,3.875) 
+R [585,586]  DSPNeigThr[2]             DSP Neig Threshold for x and y sides 
              (def=1.,1.)
-I [572,573]  TrSim2010_ADCConvType     0 MPV scaling 
-             (def=1,1)                 1 MPV and gain scaling (ladder, VA)
-                                       2 MPV and shape scaling (very slow) 
-                                       3 MPV, shape and gain scaling (very slow)
-I [574,575]  TrSim2010_EDepType        1 TB2003
-             (def=3,3)                 2 CR2009 
-                                       3 CR2010 (KSC) 
-R [576,577]  TrSim2010_ADCSat          ADC Saturation Limit (for each strip)
-             (def=3000.,3000.) 
-R [578,579]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
+I [587,588]  TrSim2010_ADCMipValue[2]  ADC Mip value 
+             (def=32.012,29.393)
+R [589,590]  TrSim2010_ADCSat[2]       ADC Saturation Limit (for each strip)
+             (def=3500.,3500.) 
+I [591]      PStripCorr                0 inactivate p-strip non-linearity
+             (def=0)                   1 activate p-strip non-linearity (to be checked with real data!)
+R [592,593]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
              (def=100.,100.)
-R [580,581]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
+R [594,595]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
              (def=15.,15.)
-R [582,583]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
+R [596,597]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
              (def=800.,800.)  
-I [584,585]  TrSim2010_DiffType        0 Box
+I [598,599]  TrSim2010_DiffType        0 Box
              (def=2,2)                 1 Gaussian
                                        2 Gaussian Convoluted with Box
                                        3 Triangular
                                        4 Sum of Gauss distributions
-R [586,587]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
+R [600,601]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
              (def=10.,20.)
-R [588,589]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
+R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
              (def=0.1,0.1)  
-R [590,591]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
+R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
              (def=0.,0.)
-
 
 
 //==============================

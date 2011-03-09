@@ -62,10 +62,6 @@ class TrSim {
 
   //! A map for the MC Cluster search
   static TrMap<TrMCClusterR> MCClusterTkIdMap;
-   //! Geant3 masses (particle id index) [saved on 18/05/2010]
-  static float _g3mass[213];
-  //! Geant3 charges (particle id index) [saved on 18/05/2010]
-  static float _g3charge[213];
   //! Sensors 
   static TrSimSensor _sensors[3]; 
 
@@ -75,12 +71,8 @@ class TrSim {
   TrSim() {}
   //! Destructor 
   virtual ~TrSim() {}
-
-  //! Initialize _sensors
-  static void InitSensors() {
-    for (int i = 0; i < 3; i++) _sensors[i] = TrSimSensor(i);
-  }
-
+  //! Initialize TrSimSensors
+  static void InitSensors() { for (int i = 0; i < 3; i++) _sensors[i] = TrSimSensor(i); }
   //! Get a pointer to datacard (to be used in ROOT CINT)
   static TRMCFFKEY_DEF *GetFFKEY() { return &TRMCFFKEY; }
 
@@ -109,10 +101,6 @@ class TrSim {
   static TrSimSensor* GetTrSimSensor(int side, int tkid); 
   //! Print buffer
   static void  PrintBuffer(double *_ladbuf);
-  //! Get mass from the particle list
-  static float GetG3Mass(int id)   { return _g3mass[id];   }
-  //! Get charge from the particle list
-  static float GetG3Charge(int id) { return _g3charge[id]; }
 
   //! See simulation parameters
   static void PrintSimPars();

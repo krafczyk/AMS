@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.36 2011/02/08 14:25:27 shaino Exp $
+// $Id: tkdcards.h,v 1.37 2011/03/09 09:00:21 oliva Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -85,24 +85,44 @@ public:
   geant pl9zgap;
   geant pl9sthick;
 
-  // SimulationType = 0:RawSimulation, 1:SkipRawSimulation, 2:TrSim2010 
-  integer SimulationType; 
+  ////////////////////////////////
+  // New stuff
+  ////////////////////////////////
+
   // Common Parameters
-  integer MinMCClusters;
+
+  // Simulation type  
+  integer SimulationType; 
+  // Minimum number of MC cluster required to trigger digitization
+  integer MinMCClusters; 
+  // Noise type 
   integer NoiseType;    
-  integer FakeClusterType;
-  geant   DSPSeedThr[2];  
+  // DSP seed strip S/N threshold per layer
+  geant   DSPSeedThr[2][9]; 
+  // DSP neigboring strips S/N threshold
   geant   DSPNeigThr[2];
+ 
   // TrSim2010 Parameters
-  integer TrSim2010_ADCConvType[2];
-  integer TrSim2010_EDepType[2];   
+
+  // ADC vertical MIP value
+  geant   TrSim2010_ADCMipValue[2];
+  // Apply p-strip deformation?
+  integer TrSim2010_PStripCorr; 
+  // Saturation limit for strips
   geant   TrSim2010_ADCSat[2]; 
-  geant   TrSim2010_Cint[2];        
+  // Interstrip capacitance (pF)
+  geant   TrSim2010_Cint[2];   
+  // Backplane(+guardring) capacitance (pF)     
   geant   TrSim2010_Cbk[2];  
+  // Readout capacitance (pF)
   geant   TrSim2010_Cdec[2]; 
+  // Charge diffusion model
   integer TrSim2010_DiffType[2]; 
+  // Diffusion radium (um)
   geant   TrSim2010_DiffRadius[2]; 
+  // Tuning parameter: shaking a fraction
   geant   TrSim2010_FracNoise[2]; 
+  // Tuning parameter: adding noise
   geant   TrSim2010_AddNoise[2];    
  
   TRMCFFKEY_DEF():TObject(){init();}
@@ -111,7 +131,7 @@ public:
     return 0.5e6/beta/dedx2nprel;
   }
 
-  ClassDef(TRMCFFKEY_DEF,1);
+  ClassDef(TRMCFFKEY_DEF,2);
 
 
 };

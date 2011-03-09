@@ -18,34 +18,10 @@ AMSPoint TrSim::sitkrefp[trconst::maxlay];
 AMSPoint TrSim::sitkangl[trconst::maxlay];
 
 TrMap<TrMCClusterR> TrSim::MCClusterTkIdMap;
-//TrSimSensor TrSim::_sensors[3] = {TrSimSensor(0), TrSimSensor(1), TrSimSensor(2)};
-// Initialization afterward
 TrSimSensor TrSim::_sensors[3];
 
 
-// FIX ME: particle table. If is rootshared read it. If not write it (please put the writing date). Commit one. 
-//   // PARTICLE LIST
-//   for(int ipart=0;ipart<1000;ipart++){
-//     char chp[22]="";
-//     integer itrtyp=0;
-//     geant mass=0;
-//     geant charge=0;
-//     geant tlife=0;
-//     geant ub[1];
-//     integer nwb=0;
-//     GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
-//     printf("%d %g %g\n",ipart,mass,charge);
-//   }
-// ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
-float  TrSim::_g3mass[213] = {0,0,0.000510999,0.000510999,0,0.105658,0.105658,0.134976,0.13957,0.13957,0.497672,0.493677,0.493677,0.939566,0.938272,0.938272,0.497672,0.54745,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0.939566,1.11568,1.18937,1.19255,1.19744,1.3149,1.32132,1.67245,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743,16.146,9.33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.87561,2.80925,3.72742,0,2.80923,0,0,0,0,0,0,0,0,0,0,0,5.60305,6.53536,6.53622,8.39479,9.32699,10.2551,11.1779,13.0438,14.8992,17.6969,18.6228,21.4148,22.3419,25.1331,26.0603,28.8519,29.7818,32.5733,33.5036,36.2945,37.2249,41.8762,44.6632,47.454,48.3823,51.1745,52.1031,54.8959,53.9664,58.6186,59.5496,68.8571,74.4418,78.1631,81.8836,83.7457,91.1983,98.65,106.11,111.688,122.868,128.458,130.321,141.512,152.699,162.022,171.349,180.675,183.473,188.135,193.729,221.743};
-// ATTENTION: this is the particle chart extracted from GBATCH (18/05/2010)  
-float   TrSim::_g3charge[213] = {0,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,0,0,1,0,-1,0,-1,-1,0,0,-1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,0,2,0,0,0,0,0,0,0,0,0,0,0,3,3,4,4,5,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,32,34,36,38,40,42,46,48,50,54,56,58,62,66,70,74,78,79,80,82,92,2,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-2,0,-2,0,0,0,0,0,0,0,0,0,0,0,-3,-3,-4,-4,-5,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-32,-34,-36,-38,-40,-42,-46,-48,-50,-54,-56,-58,-62,-66,-70,-74,-78,-79,-80,-82,-92};
-
-
-
 void TrSim::sitkhits(int idsoft, float vect[], float edep, float step, int itra) {
-
-  // PrintSimPars();
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("SiTkSimuAll"); // simulation counter
@@ -270,11 +246,13 @@ void TrSim::sitkdigi() {
   AMSgObj::BookTimer.start("SiTkDigiShow");
 #endif
 
-  // Initialize _sensor if not yet
+  // Initialize sensors if not yet
   if (_sensors[0].GetSensorType() < 0 ||
       _sensors[1].GetSensorType() < 0 ||
       _sensors[2].GetSensorType() < 0) {
     cout << "TrSim::sitkdigi-I-Initialize TrSimSensors" << endl;
+    // I profit of this for the displaying of simulation parameters
+    // PrintSimPars();
     InitSensors();
   }
 
@@ -302,7 +280,7 @@ void TrSim::sitkdigi() {
       int hwid = icrate*100 + itdr;
       int tkid = (TkDBc::Head->FindHwId(hwid))->GetTkId();
 
-      // Skip ladders if no simulation is forseen (is not full noise & there are no clusters)
+      // Skip ladders if no simulation is forseen (it is not full noise mode & there are no clusters)
       if ( (TRMCFFKEY.NoiseType!=1)&&(MCClusterTkIdMap.GetNelem(tkid)<=0) ) continue; // speed-up!
 
       // Initialize the ladder buffer  
@@ -335,8 +313,8 @@ void TrSim::sitkdigi() {
 #endif
 
       // Add noise simulation  
-      if ( (TRMCFFKEY.NoiseType==1) ||             // noise on all ladders
-  	   (TRMCFFKEY.NoiseType==2)&&(nclu>0) ) {  // noise on ladders with some cluster 
+      if ( (TRMCFFKEY.NoiseType==1) ||                 // noise on all ladders
+  	   ( (TRMCFFKEY.NoiseType>=2)&&(nclu>0) ) ) {  // noise on ladders with some cluster 
 #ifndef __ROOTSHAREDLIBRARY__
         AMSgObj::BookTimer.start("SiTkDigiNoise");
 #endif
@@ -366,7 +344,7 @@ void TrSim::sitkdigi() {
   }
 
   // Build fake noise clusters
-  if ( (TRMCFFKEY.NoiseType>1)&&(TRMCFFKEY.FakeClusterType>0) ) {
+  if (TRMCFFKEY.NoiseType>1) {
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("SiTkDigiFake");
 #endif
@@ -418,16 +396,6 @@ void TrSim::AddNoiseOnBuffer(double* ladbuf, TrLadCal* ladcal) {
     if (ladcal->GetStatus(ii)&TrLadCal::dead) ladbuf[ii] = DEADSTRIPADC; // dead strip    
     else                                      ladbuf[ii] += ladcal->Sigma(ii)*rnormx(); // normal/hot stri
   }
-  /* 
-     TMP: NO NOISE ONLY NEAR THE SIGNAL
-     for now just create noise only on ladders with signal
-     if (TRMCFFKEY.TrSim2010_NoiseType==2) {
-     if (ladbuf[ii] > 0 ||
-     (ii+1 < 1024 && ladbuf[ii+1] > 0) ||
-     (ii-1 >=   0 && ladbuf[ii-1] > 0))
-     ladbuf[ii] += ladcal->Sigma(ii)*rnormx();
-     }
-  */
 }
 
 
@@ -455,11 +423,11 @@ int TrSim::AddTrSimClustersOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
 int TrSim::AddOldSimulationSignalOnBuffer(TrMCClusterR* cluster, double* ladbuf) {
   printf("TrSim::AddOldSimulationSignalOnBuffer-E OLD Simulation declared OBSOLETE!! I'm not doing anything\n");
   return -1;
-//   int addK = cluster->GetAdd(0);
-//   for (int jj=0;jj<cluster->GetSize(0);jj++) ladbuf[addK+jj] += cluster->GetSignal(jj,0);
-//   int addS = cluster->GetAdd(1);
-//   for (int jj=0;jj<cluster->GetSize(1);jj++) ladbuf[addS+jj] += cluster->GetSignal(jj,1);
-//   return 2;
+  // int addK = cluster->GetAdd(0);
+  // for (int jj=0;jj<cluster->GetSize(0);jj++) ladbuf[addK+jj] += cluster->GetSignal(jj,0);
+  // int addS = cluster->GetAdd(1);
+  // for (int jj=0;jj<cluster->GetSize(1);jj++) ladbuf[addS+jj] += cluster->GetSignal(jj,1);
+  // return 2;
 }
 
 
@@ -478,17 +446,21 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
   } 
 
   // Init
+  char sidename[2] = {'x','y'};
   int nclusters = 0;
   int addmin[2] = {  0, 640};
   int addmax[2] = {640,1024};
   int used[1024]; memset(used,0,1024*sizeof(used[0]));
+  int ilayer = abs(tkid/100)-1;
+  int hwid = (TkDBc::Head->FindTkId(tkid))->GetHwId();
+  int ientry = int(hwid/100)*24 + hwid%24;
 
   // Loop on address (0 - 640, or 640 - 1024)
   for (int ii=addmin[iside]; ii<addmax[iside]; ii++) {
 
     if (used[ii]!=0)           continue; // a strip used in a cluster 
     if (ladcal->Status(ii)!=0) continue; // a strip with status different from 0
-    if ( (ladbuf[ii]/ladcal->Sigma(ii))<=TRMCFFKEY.DSPSeedThr[iside] ) continue; // a strip under seed threshold
+    if ( (ladbuf[ii]/ladcal->Sigma(ii))<=TRMCFFKEY.DSPSeedThr[iside][ilayer] ) continue; // a strip under seed threshold
 
     // "Seed" Found (not max)
     int seed = ii;
@@ -539,6 +511,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
 #else
         if (cont) cont->addnext(new TrRawClusterR(  tkid,clusaddraw,cluslenraw,signal));
 #endif
+        hman.Fill(Form("TrSimCls%c",sidename[iside]),ientry);
 	nclusters++;
         if (VERBOSE) {
           printf("TrSim::TrRawCluster\n");
@@ -553,91 +526,128 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
   return nclusters;
 }
 
+
 void TrSim::sitknoise(int nsimladders) {
+
   // does the AMSTrRawCluster container exist?
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if(!cont){
     if (WARNING) printf("TrSim::sitknoise-W cannot find AMSTrRawCluster, no fake cluster produced\n");
     return;
-  } 
-  // preliminary calculation
-  float dummyfloat=0;
-  int   dummyint=0;
-  int   nstrips[2] = {384, 640};
-  int   nchannel[2];
-  float integral[2];
-  int   ncluster[2];
-  for (int iside=0; iside<2; iside++) {
-    nchannel[iside] = (192-nsimladders)*nstrips[iside]; // simulate only the not-already-simulated ladders
-    integral[iside] = TMath::Erfc(TRMCFFKEY.DSPSeedThr[iside]/sqrt(2))/2.; // prob-to-be over threshold
-    // ncluster[iside] = nchannel[iside]*integral[iside]*(1 + rnormx()*(1-integral[iside])); // gaus as binomial approximation
-    float mean = nchannel[iside]*integral[iside];
-    if (TRMCFFKEY.FakeClusterType==2) mean*=2; // --> tuning on real data (KSC and TbAug2010, considering low thresholds)
-    POISSN(mean,ncluster[iside],dummyint);     // poissn as a binomial approximation (n>=20 and p<=0.05)
   }
-  // cluster
-  short int signal[128];
+
+  // init of some things
+  char  sidename[2] = {'x','y'};
+  float dummyfloat = 0;
+  int   dummyint = 0;
+  int   nstrips[2] = {384, 640};
+  int   nchannel[2]; 
+  int   ncluster[2]; // number of seed over 3.5 thresholds
+  short int signal[128]; 
   vector<float> clusterSN;
-  if (VERBOSE) printf("sitknoise::pclusters=%3d nclusters=%3d\n",ncluster[0],ncluster[1]);
-  // loop
+
+  // gaussian probability to be over 3.5 sigma threshold
+  // P(x>3.5) = \int_{3.5}^{\infty} g(x;0,1) dx
+  float integral = TMath::Erfc(3.5/sqrt(2))/2.; 
+  // upper and lower limit of the gaussian cumulative distributioni
+  /*
+   y ^          Gaussian      y  ^  
+     |\                        1 |.......____________
+     | \_  y = g(3.5;0,1)        |     _/
+     |...\__                     |..__/  y = int(-inf,3.5) g(x;0,1) dx
+     |   :  \____                | /  : 
+     |   :       \_____          |/   :
+    -+-------------------->     -+--------------------->
+     |  3.5             x        |   3.5              x
+  */
+  float aminim = 1 - integral;
+  float amaxim = 1.; 
+
+  /*
+    How many times the number will be over the 3.5 threshold?
+    This is a binomial experiment, but
+    - prob = Erfc(3.5/\sqrt{2})/2 < 0.01 (actually is close to 10^{-4})  
+    - extractions > 20 (lets say 10000)
+    and binomial became poissonian in this limit.
+  */ 
   for (int iside=0; iside<2; iside++) {
+    // considering only the not simulated ladders 
+    nchannel[iside] = (192-nsimladders)*nstrips[iside]; 
+    // poissonian average
+    float mean = nchannel[iside]*integral;
+    // tuning needed for the match on data
+    if (TRMCFFKEY.NoiseType==3) mean *= 2; 
+    // poisson extraction
+    POISSN(mean,ncluster[iside],dummyint); 
+  }
+  if (VERBOSE) printf("sitknoise::pclusters=%3d nclusters=%3d\n",ncluster[0],ncluster[1]);
+
+  // loop on the two sides
+  for (int iside=0; iside<2; iside++) {
+    // loop on the number of clusters
     for (int iclu=0; iclu<ncluster[iside]; iclu++) {
-      // creation of a SN cluster 
+
+      // re-creation of a SN cluster 
       clusterSN.clear();
-      // extract a not-already-simulated ladder
+
+      // extract ladder where the cluster has to be placed  
+      // (the ladder should not be already simulated)
       bool ladderfound = false;
-      int tkid = 0;
+      int  tkid = 0;
+      int  ientry = -1;
       while (!ladderfound) {
-	int ientry = int(192.*RNDM(dummyint));
+	ientry = int(192.*RNDM(dummyint));
         int hwid = int(ientry/24)*100 + (ientry%24);
 	TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
 	tkid = ladder->GetTkId();
 	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
       }
+      int ilayer = abs(tkid/100)-1;
+
+      // extract the seed signal-over-noise 
+      // using gaussian cumulative inverse function on a short interval
+      float extrac = aminim + (amaxim-aminim)*RNDM(dummyint);
+      float seedSN = sqrt(2)*TMath::ErfInverse(2*extrac-1);
+      if (VERBOSE) printf("TrSim::sitknoise-V extraction: min=%10.8g max=%10.8g extr=%7.3f seed=%7.3f\n",aminim,amaxim,extrac,seedSN);
+      
+      // check if the seed can exist on the extracted ladder 
+      // (threshold layer by layer)
+      if (seedSN<TRMCFFKEY.DSPSeedThr[iside][ilayer]) continue;
+
+      // extract the seed position 
+      int seedadd = int(nstrips[iside]*RNDM((int)dummyfloat));
+      int address = seedadd;
+
       // take the right calibration
       TrLadCal* ladcal = TrCalDB::Head->FindCal_TkId(tkid);
       if (ladcal==0) {
-	if (WARNING) printf("TrSim::sitknoise-W no ladder calibration found, no noise for ladder tkid=%+04d skipping creation of fake clusters\n",tkid);
-	continue;
+        if (WARNING) printf("TrSim::sitknoise-W no ladder calibration found, no noise for ladder tkid=%+04d skipping creation of fake clusters\n",tkid);
+        continue;
       }
-      // extract seed position 
-      int seedadd = int(nstrips[iside]*RNDM((int)dummyfloat));
-      int address = seedadd;
-      // extract seed value SN
-      float aminim = 1-integral[iside];
-      float amaxim = 1.;    
-      float extrac = aminim + (amaxim-aminim)*RNDM(dummyint);
-      float seedSN = sqrt(2)*TMath::ErfInverse(2*extrac-1);
-      // printf("min=%10.8g max=%10.8g extr=%7.3f seed=%7.3f\n",aminim,amaxim,extrac,seedSN);
+    
+      // put the seed on the cluster 
       clusterSN.push_back(seedSN);
+
       // left loop
       for (int add=seedadd-1; add>=0; add--) {
+        // if the extraction is over 3.5 should be discarded 
         float SN = rnormx();
-        while (SN>=TRMCFFKEY.DSPSeedThr[iside]) SN = rnormx();
+        while (SN>=3.5) SN = rnormx(); 
         // cout << "+- " << SN << " " << ladcal->Status(add) << endl;
-        if ( (SN>TRMCFFKEY.DSPNeigThr[iside])||(ladcal->Status(add)!=0) ) { 
-	  clusterSN.insert(clusterSN.begin(),SN);
-	  address = add;
-        }
-	else { 
-          clusterSN.insert(clusterSN.begin(),SN); // additional one
-          address = add;
-	  break;
-        }
+        clusterSN.insert(clusterSN.begin(),SN);
+        address = add;
+        if ( (SN<TRMCFFKEY.DSPNeigThr[iside])&&(ladcal->Status(add)==0) ) break;
       }	
       // right loop
       for (int add=seedadd+1; add<nstrips[iside]; add++) {
+        // if the extraction is over 3.5 should be discarded 
         float SN = rnormx();
-        while (SN>=TRMCFFKEY.DSPSeedThr[iside]) SN = rnormx();
+        while (SN>=3.5) SN = rnormx();
         // cout << "++ " << SN << " " << ladcal->Status(add) << endl;
-        if ( (SN>TRMCFFKEY.DSPNeigThr[iside])||(ladcal->Status(add)!=0) ) {
-          clusterSN.push_back(SN);
-        }
-        else {
-          clusterSN.push_back(SN); // additional one
-          break;
-        }
+        clusterSN.push_back(SN); 
+        if ( (SN<TRMCFFKEY.DSPNeigThr[iside])&&(ladcal->Status(add)==0) ) break;
       } 
+
       // normalizing to noise (no gain correction for pure noise clusters)
       address += (1-iside)*640;
       int nstrips = int(clusterSN.size());
@@ -645,7 +655,7 @@ void TrSim::sitknoise(int nsimladders) {
         if (ladcal->GetStatus(address+ii)&TrLadCal::dead) signal[ii] = int(8*DEADSTRIPADC);                               // dead strip    
 	else                                              signal[ii] = int(8*clusterSN.at(ii)*ladcal->Sigma(address+ii)); // normal strips
       }
-      // FIX ME: Check if is a good cluster? (no repetition of used strips, no under threshold strips, ...)
+      // Needed fix: no repetition of used strips! < (small effect) 
       int cluslenraw = (nstrips%128)-1;
       int clusaddraw = address;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -653,6 +663,7 @@ void TrSim::sitknoise(int nsimladders) {
 #else
       if (cont) cont->addnext(new TrRawClusterR(  tkid,clusaddraw,cluslenraw,signal));
 #endif	
+      hman.Fill(Form("TrSimFake%c",sidename[iside]),ientry); 
       if (VERBOSE) {
         printf("TrSim::TrRawCluster\n");
         TrRawClusterR* cluster = (TrRawClusterR*) cont->getelem((int)cont->getnelem()-1);
@@ -664,7 +675,6 @@ void TrSim::sitknoise(int nsimladders) {
   if(cont) delete cont; 
   return;
 }
-
 
 
 TrSimSensor* TrSim::GetTrSimSensor(int side, int tkid) {
@@ -694,11 +704,12 @@ void TrSim::PrintSimPars() {
   cout << "SimulationType:             " << TRMCFFKEY.SimulationType << endl;
   cout << "MinMCClusters:              " << TRMCFFKEY.MinMCClusters << endl;
   cout << "NoiseType:                  " << TRMCFFKEY.NoiseType << endl;
-  cout << "FakeClusterType:            " << TRMCFFKEY.FakeClusterType << endl;
-  cout << "DSPSeedThr(n,p):            " << TRMCFFKEY.DSPSeedThr[0] << " " << TRMCFFKEY.DSPSeedThr[1] << endl;
+  for (int ilayer=0; ilayer<9; ilayer++) {
+    cout << "DSPSeedThr(n,p) layer " << ilayer << "     " << TRMCFFKEY.DSPSeedThr[0][ilayer] << " " << TRMCFFKEY.DSPSeedThr[1][ilayer] << endl;
+  }
   cout << "DSPNeigThr(n,p):            " << TRMCFFKEY.DSPNeigThr[0] << " " << TRMCFFKEY.DSPNeigThr[1] << endl;
-  cout << "TrSim2010_ADCConvType(n,p): " << TRMCFFKEY.TrSim2010_ADCConvType[0] << " " << TRMCFFKEY.TrSim2010_ADCConvType[1] << endl;
-  cout << "TrSim2010_EDepType(n,p):    " << TRMCFFKEY.TrSim2010_EDepType[0] << " " << TRMCFFKEY.TrSim2010_EDepType[1] << endl;
+  cout << "TrSim2010_ADCMipValue(n,p): " << TRMCFFKEY.TrSim2010_ADCMipValue[0] << " " << TRMCFFKEY.TrSim2010_ADCMipValue[1] << endl;
+  cout << "TrSim2010_PStripCorr:       " << TRMCFFKEY.TrSim2010_PStripCorr << endl;
   cout << "TrSim2010_ADCSat(n,p):      " << TRMCFFKEY.TrSim2010_ADCSat[0] << " " << TRMCFFKEY.TrSim2010_ADCSat[1] << endl;
   cout << "TrSim2010_Cint(n,p):        " << TRMCFFKEY.TrSim2010_Cint[0] << " " << TRMCFFKEY.TrSim2010_Cint[1] << endl;
   cout << "TrSim2010_Cbk(n,p):         " << TRMCFFKEY.TrSim2010_Cbk[0] << " " << TRMCFFKEY.TrSim2010_Cbk[1] << endl;
