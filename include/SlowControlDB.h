@@ -62,14 +62,12 @@ class SubType{
     }
     return 3;      
   }
-
   unsigned int GetTime(int order){
-    if(order>=(int)_table.size()) return -999999;
+  //  if(order>=(int)_table.size()) return -999999;
     std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
     return it->first;
   }
-
   float GetValue(int order){
     if(order>=(int)_table.size()) return -999999;
     std::map<unsigned int,float>::iterator it=_table.begin();
