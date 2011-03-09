@@ -461,17 +461,17 @@ class RemoteClient:
                 	status="Active"
                         occ=(blocks-bfree)*fac
                         if(path==""):
-                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and sizemb<100000 "
                         else:
-                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
+                            sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"+ " and sizemb<100000 "
                  	sizemb=self.sqlserver.Query(sql)
                  	rused=0
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=sizemb[0][0]
                         if(path==""):
-                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+ " and sizemb <100000 "
                         else:
-                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"
+                            sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '"+fs[0]+"%'"+" and path like '%"+path+"%'"+ " and sizemb < 100000 "
                         sizemb=self.sqlserver.Query(sql)
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=rused+sizemb[0][0]
@@ -495,6 +495,8 @@ class RemoteClient:
         else:
            sql="select disk from filesystems where isonline=1 and status='Active' and path='%s' order by available desc" %(path)
         ret=self.sqlserver.Query(sql)
+        if(len(ret)<=0):
+           self.sendmailmessage('vitali.choutko@cern.ch','FileSystem Full',sql)
         return ret[0][0]
 
     def  dblupdate(self):
@@ -1666,14 +1668,14 @@ class RemoteClient:
                    else:
                        print "doCopy-E-ErorrCRC ",rstatus
                        self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
-                       return outputpath,0
+                       return outputpath,0,0
                    self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
                    print "docopy-E-cannot ",cmd
-                   return outputpath,0
+                   return outputpath,0,0
                else:
                    print "doCopy-E-cannot stat",inputfile
                    self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
-                   return None,0
+                   return None,0,0
     
     def UploadtoCastor(self,input):
 #
