@@ -375,7 +375,7 @@ void CalSlider::FillLadderHistos() {
     if(ST[ii]==0) ST[ii] = new TH1F(STname,"; channel",1024,0,1024); 
   }
   if(Cmn==0)  Cmn  = new TH1F("CommonNoise","; VA number; common noise (ADC)",16,0,16);
-  if(Occ==0)  Occ  = new TH1F("Occupancy","; channel; occupancy (%)",1024,0,1024); 
+  if(Occ==0)  Occ  = new TH1F("Occupancy","; channel; occupancy",1024,0,1024); 
 
   // Fill
   float bitvalue[16] = {-0.50,-0.75,-1.00,-1.25,-1.50,-2,-1,-2,-1,-1.75,-1,-2,-1,-2,-1,-2.00};
@@ -383,7 +383,7 @@ void CalSlider::FillLadderHistos() {
     Ped->SetBinContent(ii+1,cal->Pedestal(ii));
     Sig->SetBinContent(ii+1,cal->Sigma(ii));
     SigR->SetBinContent(ii+1,cal->SigmaRaw(ii));
-    Occ->SetBinContent(ii+1,100.*cal->OccupancyGaus(ii)/4096.);
+    Occ->SetBinContent(ii+1,cal->Occupancy(ii));
     for (int bb=0; bb<16; bb++) { 
       if (TESTBIT(cal->Status(ii),bb)==0) ST[bb]->SetBinContent(ii+1,0); 
       else                                ST[bb]->SetBinContent(ii+1,bitvalue[bb]);
@@ -1375,7 +1375,7 @@ void CalSlider::Draw4(const Option_t* aa,int flag){
   cc0 = canvas->cd(3);  
   SetHistStyle1(Occ);
   cc0->SetGrid(1,0);
-  Occ->GetYaxis()->SetRangeUser(-0.1,1.1);
+  // Occ->GetYaxis()->SetRangeUser(-0.1,1.1);
   Occ->Draw("l"); // "l": trick to avoid white strips on the display - temporary(?)
   ST[4]->SetFillColor(col[1]);
   ST[4]->SetFillStyle(3005);

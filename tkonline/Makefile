@@ -7,7 +7,7 @@ BINDIR         := bin
 ### Options
 CINT           := $(ROOTSYS)/bin/rootcint
 ROOTCFG        := $(ROOTSYS)/bin/root-config
-CXXFLAGS       := -g -D__LINUXGNU__ -D_PGTRACK_ -D_STANDALONE_ -D__ROOTSHAREDLIBRARY__
+CXXFLAGS       := -g -Wno-write-strings -D__LINUXGNU__ -D_PGTRACK_ -D_STANDALONE_ -D__ROOTSHAREDLIBRARY__ -D__CORBASERVER__
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I$(AMSWD)/include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
