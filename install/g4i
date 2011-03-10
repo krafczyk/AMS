@@ -1,15 +1,15 @@
-#  $Id: g4i,v 1.43 2010/11/17 15:10:51 mdelgado Exp $
+#  $Id: g4i,v 1.44 2011/03/10 14:07:03 mdelgado Exp $
 setenv GEANT4NEW 1
 
 if `$ROOTSYS/bin/root-config --arch` == "linux" then
 setenv G4SYSTEM Linux-g++
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.5.gcc32
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.1.0.1.gcc32
 endif
 
 
 if `$ROOTSYS/bin/root-config --arch` == "linuxx8664icc" then
 setenv G4SYSTEM Linux-icc
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.5.icc64
+setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.1.0.1.icc64
 endif
 
 setenv G4USE_STL 1
