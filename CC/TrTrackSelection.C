@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.3 2011/03/02 09:04:09 shaino Exp $
+// $Id: TrTrackSelection.C,v 1.4 2011/03/10 07:41:32 shaino Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -209,12 +209,13 @@ int TrTrackSelection::FitidToSpan(int fitid)
 int TrTrackSelection::FitidToAlgo(int fitid)
 {
   int algo = 0;
-  if (fitid & TrTrackR::kChoutko)    algo  = 1;
-  if (fitid & TrTrackR::kAlcaraz)    algo  = 2;
-  if (fitid & TrTrackR::kChikanianF) algo  = 3;
-  if (fitid & TrTrackR::kChikanian)  algo  = 4;
-  if (fitid & TrTrackR::kMultScat)   algo += 10;
-  if (fitid & TrTrackR::kSameWeight) algo += 20;
+  int fitm = fitid & 0x0f;
+  if (fitm == TrTrackR::kChoutko)    algo  = 1;
+  if (fitm == TrTrackR::kAlcaraz)    algo  = 2;
+  if (fitm == TrTrackR::kChikanianF) algo  = 3;
+  if (fitm == TrTrackR::kChikanian)  algo  = 4;
+  if (fitm == TrTrackR::kMultScat)   algo += 10;
+  if (fitm == TrTrackR::kSameWeight) algo += 20;
 
   return algo;
 }
