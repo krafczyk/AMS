@@ -51,7 +51,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
     
     n_add++;
     if(tree_end>end)end=tree_end;
-    if(begin=0||tree_begin<begin)begin=tree_begin;
+    if(begin==0||tree_begin<begin)begin=tree_begin;
     
     for(int j=0;j<(int)branchlist->GetEntries();j++){
       TObject* obj=(TObject*)branchlist->At(j);
@@ -108,7 +108,7 @@ bool SlowControlDB::SaveToFile(const char* fname,int debug){
   if(debug)std::cout<<"end of loop"<<std::endl;
   
   // fill tree
-  tree->Branch("begin", &begin,"start/i");
+  tree->Branch("begin", &begin,"begin/i");
   tree->Branch("end", &end,"end/i");
   tree->Fill();
   if(debug)std::cout<<"end of fill tree"<<std::endl;
