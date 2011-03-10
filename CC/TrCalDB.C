@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.11 2011/02/21 10:15:36 oliva Exp $
+//  $Id: TrCalDB.C,v 1.12 2011/03/10 13:00:09 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/02/21 10:15:36 $
+///$Date: 2011/03/10 13:00:09 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -341,7 +341,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }
 
-  if(cpar&0x4){ // Sigma low (1/8 ADC units): USED TO CONSTRUCT SIGMA (see LadCal::Fill method)
+  if(cpar&0x4){ // Sigma low (1/8 ADC units, used in see LadCal::Fill_old method to construct sigma)
     if(pri>0) printf("Reading Low-Sigma\n");
     for (int ii=0;ii<1024;ii++){
       cal.sig[ii]=*(rr++)*1.;
@@ -433,20 +433,18 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
     }
   }
      
-  if(cpar&0x200){ // Sigma, DISCARDED (backward comp.)
+  if(cpar&0x200){ // Sigma (1/8 ADC units, used in LadCal::Fill_new method)
     // starting from version a810
-    // if (pri>0) printf("Reading Sigma\n");
     if(pri>0) printf("Reading Sigma\n");
     for (int ii=0;ii<1024;ii++) {
-      // to get the real occupancy value you will have to mask the value with 0x7FFF
-      *(rr++);
+      cal.sig[ii]=*(rr++)*1.;
     }
   }
 
   if(cpar&0x400){ // Non-Gaussian Occupancy Table (from data), DISCARDED
     // starting from version aa1b
-    // if (pri>0) printf("Reading Sigma\n");
-    if(pri>0) printf("Reading Sigma\n");
+    // to get the real occupancy value you will have to mask the value with 0x7FFF
+    if(pri>0) printf("Reading Non-Gaussian Occupancy Table from data\n");
     for (int ii=0;ii<1024;ii++) {
       *(rr++);
     }
@@ -473,8 +471,15 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   // int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;
   TrLadCal* ladcal=Head->FindCal_HwId(hwid);
   if(ladcal){
-    ladcal->Fill(&cal);
-    if(pri>0)ladcal->PrintInfo(pri-1);
+    if ((cpar&0x4)&&((cpar&0x200)==0)) { 
+      if(pri>0) printf("Calling TrLadPar::Fill_old\n");
+      ladcal->Fill_old(&cal);
+    }
+    else if (cpar&0x200) { 
+      if(pri>0) printf("Calling TrLadPar::Fill_new\n");
+      ladcal->Fill_new(&cal);
+    }
+    if (pri>0) ladcal->PrintInfo(pri-1);
   }
   else {
     printf("TrCalDB-------------------> WARNING I CANT FIND The calibration object to be filled\n");

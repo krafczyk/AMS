@@ -72,27 +72,25 @@ unsigned short int TrLadCal::OccupancyGaus(int ii) {
   return (_getnum(_OccupancyGaus,ii)&0x7fff);
 }
 
-void TrLadCal::Fill(CaloutDSP* cc) {
-  for (int ii=0;ii<320;ii++){
+
+void TrLadCal::Fill_old(CaloutDSP* cc) {
+  for (int ii=0;ii<320;ii++)    _Sigma[ii] = cc->sig[ii]/8./(cc->S1_lowthres*1.); 
+  for (int ii=320;ii<640;ii++)  _Sigma[ii] = cc->sig[ii]/8./(cc->S2_lowthres*1.);
+  for (int ii=640;ii<1024;ii++) _Sigma[ii] = cc->sig[ii]/8./(cc->K_lowthres*1.);
+  Fill_same(cc);
+}
+
+
+void TrLadCal::Fill_new(CaloutDSP* cc) {
+  for (int ii=0;ii<1024;ii++)  _Sigma[ii] = cc->sig[ii]/8.;
+  Fill_same(cc);
+}
+
+
+void TrLadCal::Fill_same(CaloutDSP* cc) {
+  for (int ii=0;ii<1024;ii++){
     _Pedestal[ii]      = cc->ped[ii]/8.;
     _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]         = cc->sig[ii]/8./(cc->S1_lowthres*1.);
-    _Status[ii]        = cc->status[ii];
-    _Occupancy[ii]     = cc->occupancy[ii];
-    _OccupancyGaus[ii] = cc->occupgaus[ii];
-  }
-  for (int ii=320;ii<640;ii++){
-    _Pedestal[ii]      = cc->ped[ii]/8.;
-    _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]         = cc->sig[ii]/8./(cc->S2_lowthres*1.);
-    _Status[ii]        = cc->status[ii];
-    _Occupancy[ii]     = cc->occupancy[ii];
-    _OccupancyGaus[ii] = cc->occupgaus[ii];
-  }
-  for (int ii=640;ii<1024;ii++){
-    _Pedestal[ii]      = cc->ped[ii]/8.;
-    _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
-    _Sigma[ii]         = cc->sig[ii]/8./(cc->K_lowthres*1.);
     _Status[ii]        = cc->status[ii];
     _Occupancy[ii]     = cc->occupancy[ii];
     _OccupancyGaus[ii] = cc->occupgaus[ii];
@@ -114,6 +112,7 @@ void TrLadCal::Fill(CaloutDSP* cc) {
   Power_failureK = cc->Power_failureK;
   _filled=1;
 }
+
 
 void TrLadCal::CopyCont(TrLadCal& orig){
   for (int ii=0;ii<1024;ii++){

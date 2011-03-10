@@ -143,8 +143,12 @@ public:
   ~TrLadCal(){}
   /// Clear data members
   void Clear(const Option_t*aa=0);
-  /// Fill the data members by the DSP block 
-  void Fill(CaloutDSP* cc);
+  /// Fill the data members by the DSP block (all members - sigma)
+  void Fill_same(CaloutDSP* cc);
+  /// Fill the data members by the DSP block (sigma from sigmalow)
+  void Fill_old(CaloutDSP* cc);
+  /// Fill the data members by the DSP block (sigma from sigma table) 
+  void Fill_new(CaloutDSP* cc);
 
   /// Get the DSP code version
   int GetDSPCodeVersion()   { return dspver&0xFFFF; } 
