@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.627 2011/03/09 20:01:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.628 2011/03/10 15:23:39 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5185,10 +5185,14 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
  print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
-             print "<select name=\"QPPer\" >\n";
+             print "<select name=\"QPPer\" onchange='check_prodset(this.form.QPPer);'>\n";
              my $ii=0;
              foreach my  $template (@periodid) {
-              print "<option value=\"$template\">$period[$ii] </option>\n";
+                if($template == 0){
+                    print "<option selected='selected' value=\"$template\">$period[$ii] </option>\n";
+                }else{
+                    print "<option value=\"$template\">$period[$ii] </option>\n";
+                }
               $ii++;
             }
             print "</select>\n";
@@ -5218,11 +5222,104 @@ CheckCite:            if (defined $q->param("QCite")) {
                 if ($dsexist == 0) {push @datasets, $ds->[0];}
             }
            }
+            my $id=1;
            foreach my $dataset (@datasets) {
              print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset>$dataset<BR>\n";
+                     <INPUT TYPE=\"radio\" NAME=\"QPart\" ID=$id VALUE=$dataset><span id=b$id>$dataset</span><BR>\n";
+             $id++;
 #              print "</b></font></td></tr>\n";
            }
+        print "<script LANGUAGE=\"javascript\">\nvar dsets=[];\n";
+        foreach my  $template (@periodid) {
+            if($template != 0){
+                print "dsets.push([$template]);\n";
+            }
+        }
+        my $dcnt=1;
+        foreach my $dataset (@datasets) {
+            my $sqlq = "select did, nvl(cnt,0) cnt from productionset left outer join (select jobs.pid as did, count(jobs.did) as cnt
+                        FROM Runs, Jobs, datasets, productionset, datasetsdesc
+                        WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset' and datasetsdesc.did=datasets.did and
+                                Runs.Status='Completed' group by jobs.pid) using(did) union all select -1 as did, count(jobs.did) as cnt
+                    FROM Runs, Jobs, datasets, productionset, datasetsdesc
+                     WHERE Jobs.pid=productionset.did AND Jobs.JID=Runs.JID and datasets.did=jobs.did and datasetsdesc.dataset='$dataset' and productionset.status='Active' and datasetsdesc.did=datasets.did and
+                            Runs.Status='Completed' order by did";
+            my $res=$self->{sqlserver}->Query($sqlq);
+            my $i=0;
+            if(defined $res->[0][0]){
+                foreach my $resq (@{$res}) {
+                    print "dsets[$i][$dcnt]=$resq->[1];\n";
+                    $i++;
+                }
+            }
+            $dcnt++;
+        }
+        print "function check_prodset(dropdown){
+        var index  = dropdown.selectedIndex
+        var id = dropdown.options[index].value
+        if(id==0){
+            for(var j=1; j<dsets[0].length; j++){
+                element=document.getElementById(j);
+                element.style.display = 'inline';
+                element.disabled=false;
+                element=document.getElementById('b'+j);
+                element.style.color = 'black';
+                element.style.fontWeight = 'normal';
+            }
+            for(var j=1; j<dsetsmc[0].length; j++){
+                element=document.getElementById(j+1000);
+                element.style.display = 'inline';
+                element.disabled=false;
+                element=document.getElementById('b'+(j+1000));
+                element.style.color = 'black';
+                element.style.fontWeight = 'normal';
+            }
+        }else{
+            for(var i=0; i<dsets.length; i++){
+                if(dsets[i][0]==id){
+                    for(var j=1; j<dsets[i].length; j++){
+                        element=document.getElementById(j);
+                        if(dsets[i][j]>0){
+                            element.disabled=false;
+                            element.style.display = 'inline';
+                            element=document.getElementById('b'+j);
+                            element.style.color = 'black';
+                            element.style.fontWeight = 'normal';
+                        }else{
+                            element.disabled=true;
+                            element.style.display = 'none';
+                            element=document.getElementById('b'+j);
+                            element.style.color = \"tomato\";
+                            element.style.fontWeight = 'bold';
+                        }
+                    }
+                }
+                if(dsetsmc[i][0]==id){
+                    for(var j=1; j<dsetsmc[i].length; j++){
+                        element=document.getElementById(j+1000);
+                        if(dsetsmc[i][j]>0){
+                            element.disabled=false;
+                            element.style.display = 'inline';
+                            element=document.getElementById('b'+(j+1000));
+                            element.style.color = 'black';
+                            element.style.fontWeight = 'normal';
+                        }else{
+                            element.disabled=true;
+                            element.style.display = 'none';
+                            element=document.getElementById('b'+(j+1000));
+                            element.style.color = \"tomato\";
+                            element.style.fontWeight = 'bold';
+                        }
+                    }
+                }
+            }
+        }
+    }\n";
+        print "</script>\n";
+    
+        
+#js end
+
         htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
@@ -5247,11 +5344,50 @@ CheckCite:            if (defined $q->param("QCite")) {
                 push @datasets, $ds->[0];
             }
            }
+      my $id=1001;
            foreach my $dataset (@datasets) {
              print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=$dataset>$dataset<BR>\n";
+                     <INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR>\n";
+             $id++;
 #              print "</b></font></td></tr>\n";
            }
+#js start
+        my $sqlq = "select did ";
+        foreach my $dataset (@datasets) {
+            $sqlq = $sqlq.",nvl(\"$dataset\",0) \"$dataset\" ";
+        }
+        $sqlq = $sqlq."from productionset ";
+        foreach my $dataset (@datasets) {
+            $sqlq = $sqlq."left outer join (
+select jobs.pid as did, count(jobs.did) as \"$dataset\"
+                    FROM datasets, dataruns, productionset, jobs
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                            dataruns.Status='Completed' group by jobs.pid) using(did)";
+        }
+        $sqlq=$sqlq." union all (select * from (select -1 as did from dual) ";
+        foreach my $dataset (@datasets) {
+            $sqlq=$sqlq."left outer join (select -1 as did, count(jobs.did) as \"$dataset\"
+                    FROM datasets, dataruns, productionset, jobs
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                            dataruns.Status='Completed') using(did)"
+        }
+#        print($sqlq);
+        my $res=$self->{sqlserver}->Query($sqlq.") order by did");
+        if(defined $res->[0][0]){
+            print "<script LANGUAGE=\"javascript\">\nvar dsetsmc=[];\n";
+            foreach my $resq (@{$res}) {
+                my $jstr = "dsetsmc.push([";
+                foreach my $subres (@{$resq}) {
+                    $jstr = $jstr."$subres,";
+                }
+                $jstr = substr($jstr, 0, -1);
+                print $jstr."]);\n";
+            }
+            print "</script>\n";
+        }
+        
+#js end
+
         htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
