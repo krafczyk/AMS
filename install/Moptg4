@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.108 2011/03/03 17:44:10 mmilling Exp $
+#  $Id: Moptg4,v 1.109 2011/03/10 14:07:19 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -469,7 +469,8 @@ CC_ORBIT=$(CC) -I$(ORBIT2DIR)/include/orbit-2.0 -I/usr/include/glib-2.0 -I/usr/l
 STANDALONE:=$(EXE)gbatch$(PG).exe 
 
 $(STANDALONE):	$(OBJECTS)
-	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
+	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) 
+#-lgfortran
 
 
 gbatch:  $(STANDALONE)
@@ -481,7 +482,8 @@ producer: 	$(CLIENT)
 #                   Orbit-C      Orbit-C++   gbatch
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
-	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) -lgfortran
+	$(LD)  -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS) 
+#-lgfortran
 
 
 AMS_EXE       = $(EXE)gbatch.exe
