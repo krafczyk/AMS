@@ -3,6 +3,9 @@
 SlowControlDB* SlowControlDB::head=0;
 
 ClassImp(SlowControlDB);
+ClassImp(Node);
+ClassImp(DataType);
+ClassImp(SubType);
 
 bool SlowControlDB::Load(const char* fname,unsigned int minT,unsigned int maxT, int debug){
   TFile *f=TFile::Open(fname);
@@ -87,9 +90,35 @@ int SlowControlDB::AppendNode(Node* copynode)
     
   for(int i=0;i<(int)copynode->getnelem();i++)
     DataType* dt=it->second.Append(copynode->GetDataTypeN(i));
+  
   return 0;
 }
 
+bool SlowControlDB::BuildSearchIndex(int debug){
+  if(debug)std::cout<<"Enter SlowControlDB::BuildSearchIndex"<<std::endl;
+  searchmap.clear();
+  
+  if(debug)std::cout<<"Nodemap size"<<nodemap.size()<<std::endl;
+  for(std::map<std::string,Node>::iterator it=nodemap.begin();it!=nodemap.end();it++){
+    for(int i=0;i<(int)it->second.getnelem();i++)
+      for(int j=0;j<it->second.GetDataTypeN(i)->getnelem();j++){
+	unsigned int idx=100000*it->second.number+1000*it->second.GetDataTypeN(i)->number+it->second.GetDataTypeN(i)->GetSubTypeN(j)->number;
+	searchmap.insert(std::pair<std::string,unsigned int>((std::string)it->second.GetDataTypeN(i)->GetSubTypeN(j)->tag,idx));
+      }
+  }
+  if(debug)std::cout<<"SlowControlDB::BuildSearchIndex - map size"<<searchmap.size()<<std::endl;
+  if(debug)
+    for(std::map<std::string,unsigned int>::const_iterator it=searchmap.begin();it!=searchmap.end();it++){
+      unsigned int node=it->second/100000;
+      unsigned int dt=it->second%100000/1000;
+      unsigned int st=it->second%1000;
+      printf("subtype %s - NA 0x%03x DT 0x%02x ST %i \n",it->first.c_str(),node,dt,st);
+      std::cout<<"subtype "<<it->first<<" - NA 0x"<<std::hex<<node<<" DT 0x"<<std::hex<<dt<<" ST "<<st<<std::endl; 
+    }
+  
+  
+  return true;
+}
 
 bool SlowControlDB::SaveToFile(const char* fname,int debug){
   if(debug)std::cout<<"Enter SlowControlDB::SaveToFile "<<fname<<std::endl;

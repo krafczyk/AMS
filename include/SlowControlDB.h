@@ -199,9 +199,13 @@ class SlowControlDB//: public TTree
   unsigned int begin;
   unsigned int end;
   std::map<std::string,Node> nodemap;
-  
+  std::map<std::string,unsigned int> searchmap;
+
  public:
-  SlowControlDB(){};//:TTree("SlowControlDB","SlowControlDB"){SetDirectory(0);};
+  SlowControlDB(){
+    nodemap.clear();
+    searchmap.clear();
+  };//:TTree("SlowControlDB","SlowControlDB"){SetDirectory(0);};
 
   int GetEntries(){return (int)nodemap.size();}
 
@@ -232,6 +236,8 @@ class SlowControlDB//: public TTree
   
   int AppendNode(Node* copynode);
   
+  bool BuildSearchIndex(int debug=0);
+
   Node GetNode(char* name){
     std::map<std::string,Node>::iterator it=nodemap.find(std::string(name));
     if(it==nodemap.end())
@@ -286,6 +292,7 @@ class SlowControlDB//: public TTree
       return;
     }
   }
+
 
   ClassDef(SlowControlDB,2);
   friend class AMSSetupR;
