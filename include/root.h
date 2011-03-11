@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.310 2011/03/11 10:44:49 mdelgado Exp $
+//  $Id: root.h,v 1.311 2011/03/11 11:35:25 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1527,18 +1527,36 @@ public:
                     /*!<        LVL1 is (masked) OR of above branches.		         
 		           The list of predefined branches(preliminary):                                         \n                    \n
 		        bit1: unbiased TOF-trig(i.e. FTC= z>=1)  \n
-			bit2: Z>=1(FTC+anti)                     \n
-			bit3: Z>=2(FTC & BZ)                     \n
-			bit4: SlowZ>=2(FTZ)                      \n
-			bit5: electrons(FTC & FTE & ecFand)      \n
-			bit6: gammas(FTE & ecFand & ecAand)      \n
+			bit2: Z>=1(FTC+anti) "protons"           \n
+			bit3: Z>=2(FTC & BZ) ions                \n
+			bit4: SlowZ>=2 (FTZ) slow ions           \n
+			bit5: electrons(FTC & FTE)               \n
+			bit6: gammas(FTE & ECLVL1("shower angle")\n
 		        bit7: unbECAL(FTE)                       \n
 			bit8: External                           \n
 		    */
-  int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch
+  int   JMembPatt; ///< 16 lsbits -> pattern of trig.system members checked by particular physics branch decision logic.  
+                    /*!<        The bits assignment :                              \n
+		        bit0:  FTC (TOF FT z>=1)                                   \n
+			bit1:  LUT-1 decision (used by FTC as OR with LUT-2)       \n
+			bit2:  LUT-2 .......  (used by FTC as OR with LUT-1)       \n
+			bit3:  same as  LUT-1, but for subset of central counters  \n
+			bit4:  same as  LUT-2, but for subset of central counters  \n
+			bit5:  FTZ (TOF SlowFT z>=2)                               \n
+			bit6:  FTE (ECAL FT, OR or AND of desisions in 2 proj.)    \n
+			bit7:  ACC0 (bit set if Nacc < Nthr_1)                     \n
+			bit8:  ACC1 (bit set if Nacc < Nthr_2)                     \n
+			bit9:  BZ-flag (LUT-3 decision on z>=2 4-layers config.)   \n
+			bit10: ECAL FT using AND of 2 projections decisions        \n
+			bit11: ............. OR ...........................        \n
+			bit12: ECAL LVL1("shower angle") using AND ........        \n
+			bit13: ECAL LVL1...................... OR .........        \n
+			bit14: EXT-trigger_1                                       \n
+			bit15: EXT-trigger_2                                       \n 		         
+		    */
   int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
   int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,5:1+3,6:1+4,7:2+3,8:2+4,9:1+2,10:3+4,(11-14):1,..4
-  int   TofFlag2;   ///< FTZ(z>=2) LayersPatternCode, <0:noFTZ,=0:4L,(1-4):1missLnumb,...,9:1+2,10:3+4,(11-14):
+  int   TofFlag2;   ///< BZ(z>=2) LayersPatternCode, <0:noBZ,=0:4L,(1-4):1missLnumb,..... as above
   int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
   int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 
@@ -1593,6 +1611,8 @@ public:
     sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %d, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f ExtBits %d%d",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",EcalFlag,EcalTrSum,xtime,LiveTime,b15,b14);
   return _Info;
   }
+   
+  
   virtual ~Level1R(){};
 ClassDef(Level1R,7)       //Level1R
 #pragma omp threadprivate(fgIsA)

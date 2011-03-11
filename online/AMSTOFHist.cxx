@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.35 2011/01/18 14:55:02 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.36 2011/03/11 11:35:25 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -1016,21 +1016,58 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
 //cout<<"  itrktr="<<itrktr<<endl;
   TrTrackR *p2trktr = ntuple->Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
-  Float_t trkthe(0);
-  Float_t trkphi(0);
+  itrktr = ntuple->Particle(pindex).iTrTrack();//TRKtrack index used by Part(-1 if missing) 
+  TrTrackR trktr=ntuple->TrTrack(itrktr);//ref to TrkTrack object used by particle
+  TrTrackPar ref2MS,ref2HR;//refs to TRK-track params.objects
+  Int_t fitcodMS[2]={-1,-1}; 
+  Int_t fitcodHR[2]={-1,-1};
+  double RigErr(0),trkch2(0),trkch2ms(0);
+  Bool_t FitDone(0); 
+  Bool_t HRFitDone[2]={0,0}; 
+  Float_t trkhrig[2]={0.,0.}; //2 halves rigs
+  Int_t TrkFitMet(1);//
+// 1->Choutko,2->Geane,4->Alcaraz,5->Chicanian,6->ChicanianF,12->Simple
 //
   if(p2trktr>0){//<---- TRKtrack in Particle presence check
     RunPar::addsev(11);//<--found TRKtrack in part
-    Bool_t trkisGood(1);
+    for(int j=0;j<2;j++){//<---with/no MS (+10 ->MS off) || top/bot_halfs
+      fitcodMS[j]=trktr.iTrTrackPar(10*j+TrkFitMet,0,1);//w/nMS,0->all_hits, 1->refit_ifnotexist
+      fitcodHR[j]=trktr.iTrTrackPar(TrkFitMet,j+1,1);//wMS,top/bot_halfs,refit_ifnotexist
+      if(fitcodMS[j]>0){
+        ref2MS=trktr.gTrTrackPar(fitcodMS[j]);//ref.to TrTrackPar object
+	if(j==0){//incl.MS
+	  Rigid=ref2MS.Rigidity;
+	  RigErr=ref2MS.ErrRinv;
+	  trkch2=ref2MS.Chisq;
+	  FitDone=ref2MS.FitDone;
+	}
+	if(j==1){//noMS
+	  trkch2ms=ref2MS.Chisq;
+	}
+      }
+      if(fitcodHR[j]>0){
+        ref2HR=trktr.gTrTrackPar(fitcodHR[j]);//ref.to TrTrackPar object
+        trkhrig[j]=ref2HR.Rigidity;
+	HRFitDone[j]=ref2HR.FitDone;
+      }
+    }
+    
     cutf[4]=true;// --> Not falseX
     cutf[5]=true;// --> Not falseTOFX
-
+    
+    Float_t hrigass=-999;
+    Int_t trkafd(0);
+    if(HRFitDone[0] && HRFitDone[1]){
+      trkafd=1;
+      if((trkhrig[0]+trkhrig[1])!=0)hrigass=(trkhrig[0]-trkhrig[1])/(trkhrig[0]+trkhrig[1]);
+      if(hrigass>1)hrigass=0.9999;
+      if(hrigass<-1)hrigass=-1;
+    }  
+    Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
+    
+/*
     Int_t trkafd=p2trktr->AdvancedFitDone(0);
-    
-    
     Float_t trkch2sz=1;//str-line chi2
-    
-    
     Float_t trkch2=p2trktr->Chi2FastFitf();//fast nonl. fit
     Rigid=p2trktr->Rigidityf();//fast nonl.fit Rigidity
     Float_t RigErr=0;//err to 1/above
@@ -1052,12 +1089,12 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       if(hrigass>1)hrigass=0.9999;
       if(hrigass<-1)hrigass=-1;
     }
-//
+*/
     if(cutf[5]){//<---- Not FalsTOFX
       RunPar::addsev(12);//<--passed "trueX" test
 //
       _filled[9]->Fill(trkch2,1);//V+PG
-      _filled[10]->Fill(trkch2sz,1);//V
+//      _filled[10]->Fill(trkch2sz,1);//V
       _filled[11]->Fill(trkch2ms,1);//V+PG
       if(trkch2<120
                                  && trkch2ms<10000
@@ -1067,7 +1104,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 	  _filled[12]->Fill(hrigass,1);//V+PG
           RunPar::addsev(14);//<--passed "AdvancFitDone" test
 //	  if(fabs(hrigass)<0.5){
-            _filled[13]->Fill(rerig,1);//V(ErrRig miss. in PG)
+            _filled[13]->Fill(rerig,1);
             TRKtrOK=1;
             RunPar::addsev(15);//<--passed "HalfRigAssim" test
 //	  }
