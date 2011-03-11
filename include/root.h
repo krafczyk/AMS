@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.311 2011/03/11 11:35:25 choumilo Exp $
+//  $Id: root.h,v 1.312 2011/03/11 14:33:17 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1195,34 +1195,85 @@ public:
   /// access function to RichHitR objects used
   /// \return index of RichHitR object in collection or -1
   int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
+  /// access function to the reconstructed beta per hit
+  /// \param i index of the hit.
+  /// \return Reconstructed beta for the hit number i or 0 if no more reconstructed hits are available
   float BetaHit(unsigned int i){return (i<fBetaHit.size())?fBetaHit[i]:0;}
 
+  /// Class empty constructor (as required by root)
   RichRingR(){};
+
+  /// Class constructor
   RichRingR(AMSRichRing *ptr, int nhits);
   friend class AMSRichRing;
   friend class AMSEventR;
 
-  
+
+  /////////////////////////
+  /// Accesor utilities ///
+  /////////////////////////
+/** @name User accessor methods
+ *  These methods provide user level access to the necessary RICH reconstructed quantities.
+ * These are preferred to directly accessing the public attributes in the class and in some cases they provided further functionality.  
+ */
+  ///@{
+  /// Check if the ring has been rebuilt
+  /// \return true if the ring has been rebuilt
   bool Rebuild(){return (Status&1)!=0;}
+  /// Check if the ring is contaminated by charge particles crossing the RICH detection plane
+  /// \return true if the ring is contaminated 
   bool IsClean(){return (Status&1)==0;}
+  /// Bool set to true if the radiator used is NaF 
   bool IsNaF(){return (Status&2)!=0;}
+  /// Distance of the track impacto point in the radiator to the border of the radiator tile
   double DistanceTileBorder(){double value=double((Status>>15)&0x3ff)/100.;return value>8?0:value;}
+  /// Compute the width of the reconstructed ring measured in the expected width.
+  /// \param usedInsteadNpCol ignore the signal collected in the hits if set to true
   double RingWidth(bool usedInsteadNpCol=false);
 
   //
   // Brand new user interface
   //
+  /// Beta of the event
+  /// \return Beta
   float getBeta()          {return BetaRefit;}
+  /// Total number of photoelectrons in the ring. 
+  /// \param sigmaOverQ single photoelectron relative width assumed for single photon
+  /// \param signal Total charge in the ring. If it is -1 it uses the value given by NpCol
+  /// \return Likelihood estimate of the number of photoelectrons in the ring
   int   getPhotoElectrons(double sigmaOverQ=0.5,double signal=-1);
+  /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
+  float getExpectedPhotoelectrons() {return NpExp;}
+  /// Continuous Z^2 estimate for this ring
+  float getCharge2Estimate() {return getExpectedPhotoelectrons()>0?getPhotoElectrons()/getExpectedPhotoelectrons():0;}
+  /// Estimation of the error of the reconstructed beta
+  /// \return Estimate of the error of the reconstructed beta
   float getBetaError()     {return sqrt(2.5e-3*2.5e-3*(IsNaF()?9.0:1.0)/getPhotoElectrons()+1e-4*1e-4);}
+  /// Quality parameter, providing the probability result of applying a Kolmogorov test to the distribution of charge along the ring.
+  /// This quantity is almost uniformly distributed between 0 and 1 for rings correctly reconstructed, and peaks at 0 for incorrectly reconstructed ones. 
+  /// \return Kolmogorov test probability.
   float getProb()          {return Prob;}
+  /// Quality parameter providing the width of the distribution of charge around the ring over the expected one.
+  /// This quantity should be close to one from above for correctly reconstructed rings, and large otherwise.
+  /// \param usedInsteadNpCol Is the same parameter used in RingWidth
+  /// \return Width of the ring
   float getWidth(bool usedInsteadNpCol=false){return RingWidth(usedInsteadNpCol);}
+  /// Refractive index used in the reconstruction
+  /// \return Index associated to the track crossing point. 
   float getIndexUsed()     {return 1.0/Beta/cos(Theta);}
+  /// The track parameters extrapolated to the radiator as used in the reconstruction.
+  /// \return A pointer to an array of 5 floats, corresponding to x,y,z theta and phi of the track used in the reconstruction
   const float *getTrackEmissionPoint(){return AMSTrPars;}
   float getTrackTheta()               {return AMSTrPars[3];}
   float getTrackPhi()                 {return AMSTrPars[4];}
+  /// Compute the absolute value of the difference of the recontructed beta between the algorithm used in RichRingR class and the one used in RichRingBR
+  /// \return Difference in the reconstructed beta between the two RICH reconstruction algorithms
   float getBetaConsistency();
-
+  /// Number of hits in the ring
+  int   getHits()          {return Used;}
+  /// Number of hits which are consistent with reflected photons
+  int   getReflectedHits() {return UsedM;}
+  ///@}
   /// \param number index in container
   /// \return human readable info about RichRingR
   char * Info(int number=-1){
