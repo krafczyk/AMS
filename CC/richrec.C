@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.150 2011/01/28 19:55:37 barao Exp $
+//  $Id: richrec.C,v 1.151 2011/03/11 10:44:48 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -130,6 +130,22 @@ int AMSRichRawEvent::getHwAddress(){
   return  16*pmt_pos+hwPixel;
 }
 
+
+int AMSRichRawEvent::photoElectrons(double sigmaOverQ){
+  double Npe=getnpe();
+  int org=int(floor(Npe));
+  double maximum=-HUGE_VAL;
+  int best=0;
+  for(int n=max(org-3,1);n<=org+3;n++){
+    double rms=n*sigmaOverQ*sigmaOverQ;
+    double lkh=-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms);
+    if(lkh>maximum){
+      maximum=lkh;
+      best=n;
+    }
+  }
+  return best;
+}
 
 
 int AMSRichRawEvent::_npart=0;
@@ -576,6 +592,7 @@ void AMSRichRing::build(){
 
 float AMSRichRing::_window=9.0;
 
+
 AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
@@ -590,6 +607,8 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   geant probs[RICmaxpmts*RICnwindows][3];
   integer size[RICmaxpmts*RICnwindows][3];
   integer mirrored[RICmaxpmts*RICnwindows][3];
+  geant meanW[RICmaxpmts*RICnwindows][3];
+  int sizeW[RICmaxpmts*RICnwindows][3];
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
 
@@ -733,7 +752,12 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	if(recs[i][j]>0){
 	  mean[i][j]=recs[i][j];
 	  size[i][j]=1;mirrored[i][j]=j>0?1:0;
-	  probs[i][j]=0;}
+	  probs[i][j]=0;
+	  // Weighted reconstruction
+	  int npe=hitp[i]->photoElectrons();
+	  meanW[i][j]=recs[i][j]*npe;
+	  sizeW[i][j]=npe;
+	}
     
     
     
@@ -762,9 +786,15 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	    probs[i][k]+=exp(-.5*prob);
 	    mean[i][k]+=recs[j][better];
 	    if(better>0) mirrored[i][k]++;
-	  size[i][k]++;
+	    size[i][k]++;
+	    
+	    // Weighted reconstrution
+	    int pe=hitp[j]->photoElectrons();
+	    meanW[i][k]+=recs[j][better]*pe;
+	    sizeW[i][k]+=pe;
 	  }
 	}
+
 	if(best_prob<probs[i][k]){ 
 	  best_prob=probs[i][k];	
 	  best_cluster[0]=i;
@@ -801,30 +831,17 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	    (recs[i][closest]-beta_track)/
 	    AMSRichRing::Sigma(beta_track,A,B)/
 	    AMSRichRing::Sigma(beta_track,A,B);
-	  // Store resolution per hit
-#ifdef __AMSDEBUG__
-	  {
-/*
-	    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-	    number mass=pmcg->getmass();
-	    number mom=pmcg->getmom();
-	    number beta=mom/sqrt(mom*mom+mass*mass);
-	    HF1(123456+(closest>0),100.*(recs[i][closest]/beta-1),1.);
-*/
-	  }
-#endif
-
+	  
 	  if(prob>=_window) continue;
 	  hitp[i]->setbit(bit);
 	  if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
 	  chi2+=prob;
-	  wsum+=hitp[i]->getnpe();
-	  wbeta+=recs[i][closest]*hitp[i]->getnpe();
 	}
-	
 	beta_used=size[best_cluster[0]][best_cluster[1]];
 	mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
 	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
+	wsum=sizeW[best_cluster[0]][best_cluster[1]];
+	wbeta=meanW[best_cluster[0]][best_cluster[1]];
 	
 	if(wsum>0) wbeta/=wsum; else wbeta=0.;       
       }

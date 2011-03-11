@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.69 2010/11/26 11:38:39 mdelgado Exp $
+//  $Id: richrec.h,v 1.70 2011/03/11 10:44:49 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -93,6 +93,8 @@ public:
   float getchannelgain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::Gain(pmt,channel,getbit(gain_mode_bit));}
   float getchannelsigagain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::GainSigma(pmt,channel,getbit(gain_mode_bit));}
   int getchannelgainmode(){return getbit(gain_mode_bit);}
+
+  int photoElectrons(double sigmaOverQ=0.5);
 
   // Get betas from last call to reconstruct
   inline geant getbeta(integer i){

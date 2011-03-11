@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.249 2011/03/05 23:25:40 choutko Exp $
+//  $Id: root.C,v 1.250 2011/03/11 10:44:48 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2775,6 +2775,23 @@ RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y, float z){
 #endif
 }
 
+int RichHitR::PhotoElectrons(double sigmaOverQ){
+  int org=int(floor(Npe));
+  double maximum=-HUGE_VAL;
+  int best=0;
+  for(int n=max(org-3,1);n<=org+3;n++){
+    double rms=n*sigmaOverQ*sigmaOverQ;
+    double lkh=-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms);
+    if(lkh>maximum){
+      maximum=lkh;
+      best=n;
+    }
+  }
+  return best;
+}
+
+
+
 void RichRingR::FillRichHits(int ring){
   fRichHit.clear();
   for(int i=0;i<AMSEventR::Head()->NRichHit();i++){
@@ -2786,6 +2803,37 @@ void RichRingR::FillRichHits(int ring){
   if(Used!=fRichHit.size())cerr<<" problem hits for ring "<<ring<<" "<<Used<<" "<<fRichHit.size()<<endl;
 }
 
+float RichRingR::getBetaConsistency(){
+  AMSEventR *event=AMSEventR::Head();
+  if(event->nRichRingB()<=0) return -1;
+  for(int i=0;i<event->nRichRingB();i++){
+    RichRingBR *p=event->pRichRingB(i);
+    if(!p) continue;
+    if(pTrTrack()==p->pTrTrack()){
+      return fabs(getBeta()-p->Beta);
+    }
+  }
+  return -1;
+}
+
+int RichRingR::getPhotoElectrons(double sigmaOverQ,double signal){
+  double Npe=signal==-1?NpCol:signal;
+  int org=int(floor(Npe));
+  double maximum=-HUGE_VAL;
+  int best=0;
+  for(int n=max(org-3,1);n<=org+3;n++){
+    double rms=n*sigmaOverQ*sigmaOverQ;
+    double lkh=-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms);
+    if(lkh>maximum){
+      maximum=lkh;
+      best=n;
+    }
+  }
+  return best;
+}
+
+
+
 RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 #ifndef __ROOTSHAREDLIBRARY__
   fTrTrack = -1;
@@ -2794,14 +2842,11 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
     UsedM = ptr->_mused;
     Beta  = ptr->_beta;
     ErrorBeta = ptr->_errorbeta;
-    Chi2   = ptr->_quality;
     BetaRefit = ptr->_wbeta;
     Status    = ptr->_status;
     NpCol= ptr->_collected_npe;
     NpExp     = ptr->_npexp;
     Prob    = ptr->_probkl;
-    KDist   = ptr->_kdist;  
-    PhiSpread = ptr->_phi_spread;
     UDist = ptr->_unused_dist;
     Theta   =ptr->_theta;
     ErrorTheta  =ptr->_errortheta;
@@ -2811,14 +2856,6 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
     }
     for(int i=0;i<5;i++)
       AMSTrPars[i] = ptr->_crossingtrack[i];
-
-    lipHitsUsed           = 0;
-    lipThetaC             = 0;
-    lipBeta               = 0;
-    lipErrorBeta          = 0;
-    lipLikelihoodProb     = 0;
-    lipChi2               = 0;
-    lipRecProb            = 0;
 
     // Control variables
     int hits = (ptr->_hit_pointer).size();
@@ -2872,7 +2909,7 @@ double RichRingR::RingWidth(bool usedInsteadNpCol){
   for(int i=0;i<10;i++){
     double w;
     if(usedInsteadNpCol) w=UsedWindow[i]-(i>0?UsedWindow[i-1]:0);
-    else w=NpColWindow[i]-(i>0?NpColWindow[i-1]:0);
+    else w=getPhotoElectrons(0.5,NpColWindow[i])-(i>0?getPhotoElectrons(0.5,NpColWindow[i-1]):0);
     weight+=w;
     sum+=(0.5+i)*(0.5+i)*w;
   }

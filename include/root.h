@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.309 2011/03/09 00:11:52 choutko Exp $
+//  $Id: root.h,v 1.310 2011/03/11 10:44:49 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1124,8 +1124,9 @@ public:
   bool IsCrossed(){return (Status&(1<<30))!=0;}
   bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
   bool IsHighGain(int){return (Status&(1<<29))!=0;}
+  int  PhotoElectrons(double sigmaOverQ=0.5);
 
-ClassDef(RichHitR,4)       // RichHitR
+ClassDef(RichHitR,5)       // RichHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1159,35 +1160,22 @@ public:
 
 */
 
-  int   Used;  ///< Nb. of RICH hits in a ring 
-  int   UsedM; ///< Nb. of RICH mirrored hits in a ring 
-  float Beta;  ///< Reconstructed velocity
-  float ErrorBeta;  ///< Error in the velocity
-  float Chi2;       ///< chi2/ndof for the beta fit
-  float BetaRefit;  ///< Beta refitted
+  int   Used;       ///< Nb. of RICH hits in the ring cluster 
+  int   UsedM;      ///< Nb. of RICH reflected hits in the ring cluster 
+  float Beta;       ///< Reconstructed velocity using only hits (no charge) 
+  float ErrorBeta;  ///< Estimate error in the velocity
+  float BetaRefit;  ///< Beta estimate taking into account the number of photoelectrons for each hit
   float Prob;       ///< Kolmogorov test probability to be a good ring based on azimuthal distribution
-  float KDist;      ///< Kullback-Leibler distance between the expected azimuthal distribution of hits and the observed one. The smaller the closer are both  
-  float PhiSpread;  ///< Spread on the azimuthal emission angle of the hits associated to the reconstructed ring: (\sum_i (phi_i-\phi_0)^2)/N_{hits} 
   float UDist;      ///< (\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
-  float NpExp;      ///< number of expected photoelectrons for Z=1 charge
-  float NpCol;      ///< number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
+  float NpExp;      ///< Number of expected photoelectrons for Z=1 charge
+  float NpCol;      ///< Number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
   float Theta;      ///< Recontructed emission angle
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
   float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
 
-  int   lipHitsUsed;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipThetaC;  ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipBeta;    ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipErrorBeta;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipLikelihoodProb;///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipChi2;     ///< Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-  float lipRecProb;  ///<  Obsolete, kept for backward compatibility. See class RichRingBR for LIP reconstruction.
-
-
-
-  protected:
+ protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
    vector<int> fRichHit; ///< indexes of RichHitR in collection
    vector<float> fBetaHit;  ///<Beta Residues for each event hit. A negative value means it is reflected
@@ -1213,21 +1201,38 @@ public:
   RichRingR(AMSRichRing *ptr, int nhits);
   friend class AMSRichRing;
   friend class AMSEventR;
-  /// \param number index in container
-  /// \return human readable info about RichRingR
-  char * Info(int number=-1){
-    sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
-    return _Info;
-  } 
 
   
   bool Rebuild(){return (Status&1)!=0;}
-  bool IsNaf(){return (Status&2)!=0;}
+  bool IsClean(){return (Status&1)==0;}
+  bool IsNaF(){return (Status&2)!=0;}
   double DistanceTileBorder(){double value=double((Status>>15)&0x3ff)/100.;return value>8?0:value;}
   double RingWidth(bool usedInsteadNpCol=false);
 
+  //
+  // Brand new user interface
+  //
+  float getBeta()          {return BetaRefit;}
+  int   getPhotoElectrons(double sigmaOverQ=0.5,double signal=-1);
+  float getBetaError()     {return sqrt(2.5e-3*2.5e-3*(IsNaF()?9.0:1.0)/getPhotoElectrons()+1e-4*1e-4);}
+  float getProb()          {return Prob;}
+  float getWidth(bool usedInsteadNpCol=false){return RingWidth(usedInsteadNpCol);}
+  float getIndexUsed()     {return 1.0/Beta/cos(Theta);}
+  const float *getTrackEmissionPoint(){return AMSTrPars;}
+  float getTrackTheta()               {return AMSTrPars[3];}
+  float getTrackPhi()                 {return AMSTrPars[4];}
+  float getBetaConsistency();
+
+  /// \param number index in container
+  /// \return human readable info about RichRingR
+  char * Info(int number=-1){
+    sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Width=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Prob,RingWidth(),NpExp,NpCol);
+    return _Info;
+  } 
+  
+
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,17)           // RichRingR
+  ClassDef(RichRingR,18)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
