@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.250 2011/03/11 10:44:48 mdelgado Exp $
+//  $Id: root.C,v 1.251 2011/03/11 16:57:36 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -737,6 +737,212 @@ void AMSEventR::hjoin(){
 
 
 }
+//------------------------------- Other public functions:
+
+int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool &fastOR,bool &fastAND,bool &Level1OR,bool &Level1AND, bool debug){
+  EcalHitR *hit;
+  int nhits;
+  const int nPMTs=36;
+  const int nsuplayrs=6; // ECAL trigger uses superlayers X1,X3,X5 and Y2,Y4,Y6
+
+  float EneOnPMT[nPMTs][nsuplayrs]={0};
+
+  int layer,cell;
+  int PMT, trig_Superlayer;
+  
+  nhits=nEcalHit();
+  if (debug){
+    cout<<"---> Nhits="<<nhits<<endl;
+  }
+  
+  for (int ihit=0;ihit<nhits;ihit++){
+    hit=pEcalHit(ihit);
+    layer=hit->Plane;
+    // consider only hits in superlayers 1 to 6
+    if (layer>1 && layer<14){
+      cell=hit->Cell;
+      // add energy to its PMT
+      PMT=cell/2;
+      trig_Superlayer=(layer-2)/2;
+      EneOnPMT[PMT][trig_Superlayer] += hit->Edep;
+      //cout << "Layer=" << layer << " Cell=" << cell<< " Superlayer=" << trig_Superlayer << endl;
+    }
+  }
+  
+  
+  // Find number of PMTs over threshold and fill the bit pattern mask
+  int NumhitPMT[nsuplayrs]={0};
+  int hitPMT[nsuplayrs][nPMTs]={0};
+  for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr++){
+    // loop on PMTs
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){	  
+      hitPMT[isuplayr][ipmt]=0; // trigger but mask
+      if (EneOnPMT[ipmt][isuplayr] > ecut[isuplayr]){
+	hitPMT[isuplayr][ipmt] = 1;
+	NumhitPMT[isuplayr]   += 1;
+      }
+    }
+  }
+
+
+  //
+  // FAST TRIGGER
+  bool fastX=false;
+  bool fastY=false;
+  int sl_bit[nsuplayrs]={0};
+  // control of superlayer multiplicity  
+  for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr++){
+    if (NumhitPMT[isuplayr] > 0) sl_bit[isuplayr]=1;
+  }
+  // FAST TRIGGER X
+  switch (fastalgo){
+  case 0:
+    if ( (sl_bit[0] == 1 && sl_bit[2] == 1) || 
+	 (sl_bit[0] == 1 && sl_bit[4] == 1) || 
+	 (sl_bit[2] == 1 && sl_bit[4] == 1) ) fastX= true ;
+    // FAST TRIGGER Y
+    if ( (sl_bit[1] == 1 && sl_bit[3] == 1) || 
+	 (sl_bit[1] == 1 && sl_bit[5] == 1) || 
+	 (sl_bit[3] == 1 && sl_bit[5] == 1) ) fastY= true ;
+    break;
+  case 1:
+    if ( sl_bit[0] == 1 || sl_bit[2] == 1 || sl_bit[4] == 1) fastX= true ;
+    if ( sl_bit[1] == 1 || sl_bit[3] == 1 || sl_bit[5] == 1) fastY= true ;
+    break;
+  case 2:
+    if ( sl_bit[0] == 1 && sl_bit[2] == 1 && sl_bit[4] == 1) fastX= true ;
+    if ( sl_bit[1] == 1 && sl_bit[3] == 1 && sl_bit[5] == 1) fastY= true ;
+    break;
+  }
+  
+  // OR or AND logic
+  fastOR = fastX || fastY;
+  fastAND= fastX && fastY;
+  //
+  // ANGULAR TRIGGER
+  bool Level1X=false;
+  bool Level1Y=false;
+  int nhit;
+  //
+
+  // find average position
+  float bari[nsuplayrs]={0};
+  float bitsum[nsuplayrs]={0};
+  for (int isuplayr=0; isuplayr<nsuplayrs; isuplayr++){ 
+    for (int ipmt = 0; ipmt< nPMTs ; ipmt++){
+      bari[isuplayr] += hitPMT[isuplayr][ipmt]*ipmt;
+      bitsum[isuplayr] += hitPMT[isuplayr][ipmt];
+    }
+    if (bitsum[isuplayr] > 0){
+      bari[isuplayr] /=  bitsum[isuplayr];
+    }
+    else{
+      bari[isuplayr]= -1.;
+    }
+  }    
+  // centroids distance for far superlayers  
+  float dfar,dclose1,dclose2;
+  float dcut,dcut1,dcut2;
+  dcut1= anglecut[0]/64;
+  dcut2= anglecut[1]/64;
+  //
+  int suplayr1,suplayr2,suplayr3;
+  // X view
+  if (fastX){
+    suplayr1=0;
+    suplayr2=2;
+    suplayr3=4;
+    // try maximum superlayer distance
+    if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
+      dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
+      nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
+      dcut=nhit<5?dcut1:dcut2;
+      if (dfar < dcut) Level1X=true;
+    }
+    // if not try adiacent superlayers
+    else{
+      dclose1=0.;
+      dclose2=0.;
+      if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
+      if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
+      if (dclose1>dclose2){
+	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
+	dcut=nhit<5?dcut1:dcut2;
+	if (dclose1< dcut) Level1X=true;
+      }
+      else{      
+	nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
+	dcut=nhit<5?dcut1:dcut2;
+	if (dclose2< dcut) Level1X=true;
+      }
+    }
+  }
+  // Y view
+  if (fastY){
+    suplayr1=1;
+    suplayr2=3;
+    suplayr3=5;
+    // try maximum superlayer distance
+    if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
+      dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
+      nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
+      dcut=nhit<5?dcut1:dcut2;
+      if (dfar < dcut) Level1Y=true;
+    }
+    // if not try adiacent superlayers
+    else{
+      dclose1=0.;
+      dclose2=0.;
+      if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
+      if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
+      if (dclose1>dclose2){
+	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
+	dcut=nhit<5?dcut1:dcut2;
+	if (dclose1< dcut) Level1Y=true;
+      }
+      else{      
+	nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
+	dcut=nhit<5?dcut1:dcut2;
+	if (dclose2< dcut) Level1Y=true;
+      } 
+    }
+  }
+  //
+  Level1OR = Level1X || Level1Y;
+  Level1AND= Level1X && Level1Y;
+  if (debug){
+    cout << "X view" << endl;
+    cout << "SL";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){
+      cout << " " << ipmt%10 ;
+    }
+    cout << endl;
+    for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr+=2){  
+      cout << " " << isuplayr+1 << " ";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){	 
+      cout << hitPMT[isuplayr][ipmt] << " " ;
+    }
+    cout << "bit="<< sl_bit[isuplayr] << " " << bari[isuplayr] << endl;
+    }
+    cout << "Y view" << endl;   
+    cout << "SL";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){
+      cout << " " << ipmt%10 ;
+    }
+    cout << endl;
+    for (int isuplayr=1; isuplayr<nsuplayrs;isuplayr+=2){  
+      cout << " " << isuplayr+1 << " ";
+      for (int ipmt=0;ipmt<nPMTs;ipmt++){	 
+	cout << hitPMT[isuplayr][ipmt] << " " ;
+      }
+      cout << "bit="<< sl_bit[isuplayr] << " " << bari[isuplayr] << endl;
+    }
+  }
+
+  return 0;
+}
+
+//-----------------------------
 TBranch* AMSEventR::bStatus;
 TBranch* AMSEventR::bAll;
 TBranch* AMSEventR::bHeader;
@@ -2292,6 +2498,8 @@ Level1R::Level1R(Trigger2LVL1 *ptr){
   }
 #endif
 }
+
+
 
 Level3R::Level3R(TriggerLVL302 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__

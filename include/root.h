@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.312 2011/03/11 14:33:17 mdelgado Exp $
+//  $Id: root.h,v 1.313 2011/03/11 16:57:44 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1663,6 +1663,7 @@ public:
   return _Info;
   }
    
+
   
   virtual ~Level1R(){};
 ClassDef(Level1R,7)       //Level1R
@@ -2662,6 +2663,7 @@ static  void hfp(int id,float a, float w);
 /// fast fill for 2d histos
 static  void hf2(int id,float a, float b,float w);
 
+int GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool &fastOR,bool &fastAND,bool &Level1OR,bool &Level1AND, bool debug);
 
 
  void    Init(TTree *tree);   ///< InitTree
