@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.109 2011/03/10 14:07:19 mdelgado Exp $
+#  $Id: Moptg4,v 1.110 2011/03/11 15:54:39 zweng Exp $
 #
 SHELL=/bin/sh
 #
@@ -161,7 +161,7 @@ CC=$(INTELDIR)/$(INTELVER)/bin/intel64/icc    $(INTELOPT) $(PARALLEL) $(DEFINES)
 LD=$(INTELDIR)/$(INTELVER)/bin/intel64/icpc   $(INTELOPT)  $(PARALLEL) 
 FFOLD=$(FF)  -save
 FFLAGSSAVE= -save
-FORTRAN_LIBS=
+FORTRAN_LIBS+=
 FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 
 # change defaults if intel compiler 
@@ -243,7 +243,7 @@ CC=$(INTELDIR)/$(INTELVER)/bin/ia64/icc    $(INTELOPT) $(PARALLEL) $(DEFINES) -D
 LD=$(INTELDIR)/$(INTELVER)/bin/ia64/icpc   $(INTELOPT)  $(PARALLEL) 
 FFOLD=$(FF)  -save
 FFLAGSSAVE= -save
-FORTRAN_LIBS=
+FORTRAN_LIBS+=
 FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/ia64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
 
 # change defaults if intel compiler 
@@ -310,7 +310,7 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 
-XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -pthread
+XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -lgfortran -pthread
 CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
 ifndef LinuxBUG
 CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
