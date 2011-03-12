@@ -12,6 +12,12 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
     static int a=0;
+    cout <<ev->getsetup()<<endl;
+    vector<float> aa;
+    int k=ev->getsetup()->fSlowControl.GetData("B-Field P0 Component X",ev->UTime(),ev->Frac(),aa);
+    cout <<"size "<<aa.size()<<" res "<<k<<endl;
+     if(aa.size())cout <<"  ee "<<aa[0]<<endl;
+    return true;
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise

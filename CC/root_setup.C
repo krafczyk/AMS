@@ -55,6 +55,8 @@ fScalers.clear();
 fLVL1Setup.clear();
 Header a;
 fHeader=a;
+SlowControlR b;
+fSlowControl=b;
 Purge();
 }
 
@@ -137,19 +139,107 @@ else{
            myelement.subtype=st->first;
            myelement.NodeName=node->GetName();
            myelement.BranchName=name.c_str();
-           string s=st->second.tag;
-           fSlowControl.fETable.insert(make_pair(st->second.tag,myelement));
-         }
+           string s=(const char*)st->second.tag;
+           fSlowControl.fETable.insert(make_pair(s,myelement));
+           unsigned long long sd=(dt->first );
+           sd=sd<<32;
+           sd+=st->first;
+           fSlowControl.fRTable[sd]=s;
+        }
         }
         fSlowControl.fBegin=p->begin;
         fSlowControl.fEnd=p->end;
     }
 }
+fSlowControl.print();
 }
 
 
 int AMSSetupR::SlowControlR::GetData(const char * elementname, unsigned int time, float frac,  vector<float> &value,int method , const char *nodename,int dt, int st){
-return 1;
+const int le=-1;
+int retcode=le;
+value.clear();
+string elem;
+bool usenodename=false;
+if(nodename && strlen(nodename)){
+ usenodename=true;
+}
+
+
+if(elementname && strlen(elementname)>0){
+ elem=elementname;
+}
+else{
+ unsigned long long key=dt;
+ key=key<<32;
+ key+=st;
+ rtable_i it=fRTable.find(key);
+if(it!=fRTable.end())elem=it->second;
+else{
+ retcode=3;
+ return retcode;
+}
+}
+ pair<etable_i,etable_i> ret=fETable.equal_range(elem);
+ retcode=1;
+ for(etable_i i=ret.first;i!=ret.second;++i){
+  retcode=le;
+  for(Element::table_i j=i->second.fTable.begin();j!=i->second.fTable.end();j++){
+//cout <<time <<" "<<frac<<" "<<j->first<<" "<<j->second<<endl;
+} 
+  Element::table_i j=i->second.fTable.lower_bound(time);
+  if(i->second.fTable.size()>0){
+   bool add=false;
+   if(j==i->second.fTable.begin()){
+      if(j->first==time)add=true;
+      else {
+        add=false;
+        cout <<" error add "<<time<<" "<<j->first<<endl;
+      }
+   }
+   else if(j!=i->second.fTable.end()){
+    if(j->first>time)j--;
+    add=true;
+   }
+   else{
+     j--;
+     add=true;
+ } 
+ if(add){
+ if(method==0){
+if(usenodename){
+if(strstr((const char*)i->second.NodeName,nodename)){
+ value.push_back(j->second);
+}
+else retcode=2;
+}
+else  value.push_back(j->second);
+}
+else if(method==1){
+  Element::table_i k=j;
+ if(++k==i->second.fTable.end())retcode=4;
+ else{
+  float val=k->second*(time-j->first+frac)+j->second*(k->first-time-frac);
+  val=val/(k->first-j->first);
+if(usenodename){
+if(strstr((const char*)i->second.NodeName,nodename)){
+ value.push_back(val);
+}
+else retcode=2;
+}
+else  value.push_back(val);
+}
+
+}
+
+else retcode=7;
+ }
+ else retcode=5;
+}
+else retcode=6;
+}
+if(value.size()>0)retcode=0;
+return retcode;
 }
 
  void AMSSetupR::Init(TTree *tree){
@@ -360,14 +450,52 @@ return false;
 bool AMSSetupR::FillHeader(uinteger run){return true;}
 #endif
 
+void AMSSetupR::getSlowControlFilePath(string & slc){
 
+// check first if needed file exists in 
+//
+const char * local=getenv("SlowControlDir");
+if(local && strlen(local)){
+slc=local;
+}
+else{
+const char *amsdatadir=getenv("AMSDataDir");
+if(amsdatadir && strlen(amsdatadir)){
+slc=amsdatadir;
+slc+="/SlowControlDir";
+}
+}
+  char tmps[255];
+   time_t t1=fHeader.FEventTime;
+  tm * tm1=localtime(&t1);
+  int tzz=timezone;
+  tm * tmp=gmtime(&t1);
+  tmp->tm_hour=0;
+  tmp->tm_min=0;
+  tmp->tm_sec=0;
+
+sprintf(tmps,"/%d/SCDB.%d.%d.root",mktime(tmp)-3600-tzz,fHeader.FEventTime,fHeader.LEventTime);
+slc+=tmps;
+
+}
 #ifndef __ROOTSHAREDLIBRARY__
-bool AMSSetupR::FillSlowcontrolDB(const char * file){
+bool AMSSetupR::FillSlowcontrolDB(string & slc){
 // Fill SlowcontrolDB via AMI interface
 
 
-return true;
+ifstream fbin;
 
+getSlowControlFilePath(slc);
+
+
+fbin.open(slc.c_str());
+
+
+if(!fbin  || IOPA.ReadAMI==2){
+if(!IOPA.ReadAMI)return false;
+char tmps[255];
+sprintf(tmps,"/tmp/SCDB.%d.%d.root",fHeader.FEventTime,fHeader.LEventTime);
+slc=tmps;
 const char * nve=getenv("Getami2rootxec");
 char ior[]="ami2root.exe";
 if(! (nve && strlen(nve)))nve=ior;
@@ -395,7 +523,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
   systemc+="/";
   systemc+=nve;
   char u[128];
-  sprintf(u,"  %d %d %s ",fHeader.FEventTime,fHeader.LEventTime,file);
+  sprintf(u,"  %d %d %s ",fHeader.FEventTime,fHeader.LEventTime,slc.c_str());
     systemc+=u;
   systemc+="  > /tmp/getior.";
   char tmp[80];
@@ -411,22 +539,9 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
   }
   else{
    cout <<"  AMSSetupR::FillslowcontrolDB-I- "<<systemc<<endl;
-   int bad=1;
-   systemc="/tmp/getior."; 
+   systemc="rm /tmp/getior."; 
    systemc+=tmp;
-   ifstream fbin;
-   fbin.open(systemc);
-   if(fbin){
-   fbin>>bad;
-   if(bad){
-     cerr<<" AMSSetupR::FillSlowcontrolDB-EUnableToFill "<<file<<endl;
-      unlink(systemc);
-      return false;
-    }
-   fbin.close();
-   }
-   else cerr<<"AMSSetupR::FillSlowControlDB-E-UnableToOpenfile "<<systemc<<endl;
-   unlink(systemc);
+   system(systemc);
    return true;
    }
 }
@@ -435,20 +550,35 @@ else{
 return false;
 }
 }
+else{
+fbin.close();
+return true;
+}
+}
+
 #else
-bool AMSSetupR::FillSlowcontrolDB(const char * file){
+bool AMSSetupR::FillSlowcontrolDB( string & pfile){
 return false;
 }
 #endif
 
-bool AMSSetupR::LoadSlowcontrolDB(const char* file, unsigned int t1, unsigned int t2){
+bool AMSSetupR::LoadSlowcontrolDB(const char* file){
+  SlowControlDB::KillPointer();
   SlowControlDB* scdb=SlowControlDB::GetPointer();
-  if(scdb)return scdb->Load(file,t1,t2,1);
+  if(scdb && scdb->Load(file,fHeader.FEventTime,fHeader.LEventTime,1)){
+    scdb->BuildSearchIndex(0);
+    Add(scdb);
+  }
   else{
-    cerr<<"AMSSetupR::LoadSlowcontrolDB-E-NoSingleton "<<endl;
+    cerr<<"AMSSetupR::LoadSlowcontrolDB-E-UnabletoLoadFile "<<scdb<<" "<<file<<endl;
     return false;
   }
   return true;
 }
 
 
+void AMSSetupR::SlowControlR::print(){
+for( etable_i i=fETable.begin();i!=fETable.end();i++){
+if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
+}
+}

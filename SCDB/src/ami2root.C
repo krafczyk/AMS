@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.4 2011/03/09 00:11:52 choutko Exp $
+//  $Id: ami2root.C,v 1.5 2011/03/12 01:52:47 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -102,8 +102,12 @@ int main(int argc, char *argv[]){
   
   time_t start=atoi(argv[1]);
   time_t end=atoi(argv[2]);
-
-  // set debug level
+  int shift=0;
+   if(getenv("AMI2ROOTSHIFT")){
+     shift=atol(getenv("AMI2ROOTSHIFT"));
+   }
+    cout << "SHIFT "<<shift<<endl; 
+ // set debug level
   int debug=0;
   if(argc==5)debug=atoi(argv[4]);
   // map to specify which node address and which datatype should be taken into account
@@ -114,7 +118,7 @@ int main(int argc, char *argv[]){
       char * amsdatadir=getenv("AMSDataDir");
       if(amsdatadir && strlen(amsdatadir)){
       strcpy(local,amsdatadir);
-      strcat(local,"/v4.00/SLDBConfig.txt");
+      strcat(local,"/v5.00/SCDBConfig.txt");
       config=local;
      }
     }
@@ -141,7 +145,7 @@ int main(int argc, char *argv[]){
   }
 
   // initialize output file
-  TFile *file=new TFile(argv[3],"update");
+  TFile *file=new TFile(argv[3],"recreate");
   if(!file || file->IsZombie()){
     cerr<<" unable to open file "<<endl;
     exit(2);
@@ -185,8 +189,8 @@ int main(int argc, char *argv[]){
 
 	// check if datatype is in selection
 	if(!check_selection(select,node_numbers[num]->node_number,datatypes[data_type]->data_type,debug))continue;
-	printf("Processing %s | %s | %s ...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name);
 
+	printf("Processing %s | %s | %s ...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name);
 	// create DataType object and link to Node
 	if(!datatype||datatype->number!=datatypes[data_type]->data_type){
 	  datatype=new DataType(datatypes[data_type]->data_type);
@@ -199,14 +203,15 @@ int main(int argc, char *argv[]){
 	subtype->number=datatypes[data_type]->subtype;
 	subtype=datatype->Append(subtype);
 	subtype->tag=datatypes[data_type]->name;
-	  
 	// read values for selected NA/DT/ST in given time range from AMI
  	int nval=0;
 	data_vals** vals=0;
-         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
-	for(int ii=0;ii<nval;ii++)
-	  subtype->Add(vals[ii]->timestamp,vals[ii]->val);
-
+         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start+shift-600,end+shift+600, &nval);
+	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
+	for(int ii=0;ii<nval;ii++){
+	  subtype->Add(vals[ii]->timestamp-shift,vals[ii]->val);
+          cout <<" timestamp "<<vals[ii]->val<<" "<<datatypes[data_type]->warn_min[0]<<" "<<datatypes[data_type]->warn_min[1]<<" "<<datatypes[data_type]->warn_max[0]<<" "<<endl;
+         }
       }
       
       // create and fill node branch
@@ -214,7 +219,6 @@ int main(int argc, char *argv[]){
       branch->Fill();
     }
   }
-  
   // fill tree
   tree->Branch("begin", &start,"start/i");
   tree->Branch("end", &end,"end/i");

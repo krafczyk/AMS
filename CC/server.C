@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.164 2011/03/09 00:11:48 choutko Exp $
+//  $Id: server.C,v 1.165 2011/03/12 01:52:42 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -4303,9 +4303,26 @@ vrun->length(last);
 int Producer_impl::sendFile(const DPS::Client::CID &cid,  DPS::Producer::FPath & fpath ,const  DPS::Producer::RUN & run,DPS::Producer::TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp){
 const int maxs=2000000;
 _UpdateACT(cid,DPS::Client::Active);
-   AString fname;
+   AString fname="";
    char* gtv=getenv("AMSProdOutputDir");
+   int pos=-1;
+   if(strstr((const char*)fpath.fname,"/afs/")){
+      for(int i=strlen((const char*)fpath.fname)-1;i>=0;i--){
+       if (((const char*)fpath.fname)[i]=='/'){
+          pos=i;
+          break;
+       }
+      }
+      char tmp[1055];
+      strcpy(tmp,"mkdir -p ");
+      strncat(tmp,(const char *)fpath.fname,pos);
+      int i=system(tmp);
+     
+      cout <<" Producer_impl::sendFile-I-MakingDirectory "<<tmp<<" result "<<i<<endl;
+   }
+   else{
    if(gtv && strlen(gtv)>0){
+    
      fname=gtv;
      fname+="/";
      char tmp[80];
@@ -4320,6 +4337,7 @@ _UpdateACT(cid,DPS::Client::Active);
      fname+="/";
    }
    else throw DPS::Producer::FailedOp((const char*)"Server-F-AMSProdOutputDir NotDefined");
+   }
    fname+=(const char*)fpath.fname;
  ofstream fbin;
  fbin.open((const char*)fname,ios::out|ios::app);

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.308 2011/03/08 08:54:43 choumilo Exp $
+//  $Id: commons.h,v 1.309 2011/03/12 01:52:47 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -197,6 +197,7 @@ integer skip;
 integer WriteTGeometry;
 integer TGeometryFileName[40];
 integer WriteTDVDataInRoot;
+integer ReadAMI;
 #ifdef __AMSVMC__
 integer VMCVersion;
 integer VMCEventno;

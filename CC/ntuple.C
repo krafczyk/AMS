@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.212 2011/02/28 01:53:06 choutko Exp $
+//  $Id: ntuple.C,v 1.213 2011/03/12 01:52:42 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -838,31 +838,47 @@ return _treesetup!=NULL;
 
 void AMSNtuple::readRSetup(AMSEvent *ev){
 if(!_rfile)return;
+int tmout=0;
 string name=_rfile->GetName();
 //_rfile->Write();
 //_rfile->Close();
 if(Get_setup02() && !AMSJob::gethead()->isSimulation()){
+#ifdef __CORBA__
+AMSProducer::gethead()->SendTimeout(3600);
+#endif
 if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
 }
 else{
-if(!ev ||  !Get_setup02()->FillSlowcontrolDB("dummy")){
-cerr<<"AMSNtuple::readRSetup-E-UnableToFillSlowControlDB "<<endl;
+string slc;
+if(!ev ||  !Get_setup02()->FillSlowcontrolDB(slc)){
+cerr<<"AMSNtuple::readRSetup-E-UnableToFillSlowControlDB "<<slc<<endl;
+}
+else{
+if(!Get_setup02()->LoadSlowcontrolDB(slc.c_str())){
+cerr<<"AMSNtuple::readRSetup-E-UnableToLoadSlowControlDB "<<slc<<endl;
+}
+else{
+string slf;
+Get_setup02()->getSlowControlFilePath(slf);
+if(slf!=slc){
+cout<<"  transferring slow control "<<slf<<" "<<slc<<endl;
+#ifdef __CORBA__
+if(!AMSProducer::gethead()->SendFile(slf.c_str(),slc.c_str())){
+cerr<<"AMSNtuple::readRSetup-E-UnableToTransferFile "<<slf<<" "<<slc<<endl;
+}
+#endif
 }
 }
+}
+}
+#ifdef __CORBA__
+AMSProducer::gethead()->SendTimeout(600);
+#endif
+
 }
 else cerr<<"AMSNtuple::readRSetup-E-UnableToGetRootSetup "<<endl;
 
-//delete _rfile;
-//_rfile=0;
-//AMSJob::gethead()->getntuple()->initR(name.c_str(),ev?ev->getrun():0,true);
-if(!_rfile){
-cerr<<"AMSNtuple::readRSetup-F-UnableReopenFile "<<name.c_str()<<endl;
-#ifdef __CORBA__
-AMSProducer::gethead()->FMessage("AMSProducer::AMSProducer-E-AMSProducerUnabletoUseRootFile",DPS::Client::CInAbort);
-#endif
-exit(1);
-}
 
 }
 

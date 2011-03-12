@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.313 2011/03/11 16:57:44 choumilo Exp $
+//  $Id: root.h,v 1.314 2011/03/12 01:52:48 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2851,6 +2851,8 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
+///
+float Frac() const {return fHeader.Time[1]/1000000.;} ///< \return sec fraction
 ///
 int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
 ///

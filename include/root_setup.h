@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.11 2011/03/09 00:11:53 choutko Exp $
+//  $Id: root_setup.h,v 1.12 2011/03/12 01:52:48 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -54,8 +54,8 @@ public:
 typedef map <int,DataType> dtable_m;
 typedef map <int,DataType>::iterator dtable_i;
 int Number; ///<  ?
-typedef multimap<string,unsigned long long> rtable_m;
-typedef multimap<string,unsigned long long>::iterator rtable_i;
+typedef map<string,unsigned long long> rtable_m;
+typedef map<string,unsigned long long>::iterator rtable_i;
 rtable_m fRTable; ///< Fast Search of Datatypes table value = (subtype<<32) | datatype
 dtable_m fDTable; ///< Map of Datatypes by int id ?
 ClassDef (Node,1) //Node
@@ -67,12 +67,17 @@ unsigned int fBegin; ///<Begin Validity
 unsigned int fEnd;  /// <End Validity
 typedef multimap <string,Element> etable_m;
 typedef multimap <string,Element>::iterator etable_i;
-etable_m fETable;
+etable_m fETable;   ///< Main Map of subtype name : elements
+typedef map<unsigned long long,string> rtable_m;
+typedef map<unsigned long long,string>::iterator rtable_i;
+rtable_m fRTable;  ///< Conversion Map (To speed up the search)
+void print();
 SlowControlR():fBegin(0),fEnd(0){}
 ClassDef (SlowControlR,1) //SlowControlR
   /// Returns the value of a quantity with a given name at a given timestamp
 	/*! 
 	 \param elementname       the name of the desired quantity
+          OR  if elementname="" or NULL
 	 \param nodename       restrict to some node names only
         \param dt
          \param st
@@ -82,11 +87,15 @@ ClassDef (SlowControlR,1) //SlowControlR
 	 \param imethod   0 = the closer in time
 	 1 = linear interplolation
 	 \return  0   success
-                  1  no name found
-                  2  no dt found
-                  3  no st found
-                  4  outside of bounds
-  
+                  1  no elementname found
+                  2  no nodename found
+                  3  no dt and/or st found
+                  4  outside of bound method 1
+                  5  outside of bounds methods 0,1
+                  6  element table empty
+                  7  wrong method
+                 -1  internal error
+                 
 	 */
 int GetData(const char * elementname,unsigned int time, float frac, vector<float> &value , int imethod=1, const char *nodename="", int dt=-1, int st=-1);
 
@@ -221,8 +230,9 @@ static    AMSSetupR * gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
- bool FillSlowcontrolDB(const char * file);
- bool LoadSlowcontrolDB(const char * file, unsigned int t1, unsigned int t2);
+ bool FillSlowcontrolDB( string & file);
+ void getSlowControlFilePath( string & file);
+ bool LoadSlowcontrolDB(const char *file);
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();

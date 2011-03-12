@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.154 2011/03/09 23:46:51 choutko Exp $
+//  $Id: producer.C,v 1.155 2011/03/12 01:52:42 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -184,6 +184,7 @@ again:
    if(getior("GetIorExec"))goto again;
    else FMessage("AMSProducer::AMSProducer-F-CORBA::SystemError",DPS::Client::CInAbort);
   }
+
 }
 
 
@@ -2158,3 +2159,64 @@ else sprintf(tmpu,"%d",_pid.uid);
   }
   return true;
 } 
+void AMSProducer::SendTimeout(int tmout){
+if(_Solo)return;
+    sendid(tmout);
+}
+
+bool AMSProducer::SendFile(const char *Remote, const char *Local, bool erase){
+    if(_Solo)return;
+    sendCurrentRunInfo(true);
+    DPS::Producer::FPath fpath;
+    fpath.fname=Remote;
+    fpath.pos=0;
+   ifstream fbin;
+    struct stat64 statbuf;
+    int suc=stat64(Local, &statbuf);
+   if(suc){
+      EMessage("AMSProducer::SendFile-S-UnableToStatFile");
+      return false;
+    }
+   fbin.open(Local);
+   if(fbin){
+    DPS::Producer::TransferStatus st=DPS::Producer::Begin;
+    const int maxs=2000000;
+     DPS::Producer::RUN_var vrun=new DPS::Producer::RUN();
+    while(st !=DPS::Producer::End){
+     long long last=statbuf.st_size-fpath.pos;
+     if(last>maxs)last=maxs;
+     else st=DPS::Producer::End;
+     vrun->length(last);
+     fbin.read(( char*)vrun->get_buffer(),last);
+     if(!fbin.good()){
+      EMessage("AMSProducer::sendFile-F-UnableToReadNtuplein mode RO ");
+      return false;
+     }
+      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+      try{
+       _OnAir=true;
+       (*li)->sendFile(_pid,fpath,vrun,st);
+       _OnAir=false;
+        break;
+       }
+       catch (DPS::Producer::FailedOp & a){
+        _OnAir=false;
+        FMessage((const char *)a.message,DPS::Client::SInAbort);
+       }
+       catch  (CORBA::SystemException & a){
+       _OnAir=false;
+       FMessage("AMSProducer::sendFile-UnableToSendNtupleBody ",DPS::Client::CInAbort);
+       }
+     }
+     fpath.pos+=last;
+      if(st==DPS::Producer::Begin)st=DPS::Producer::Continue;
+    }
+     fbin.close();
+     if(erase)unlink(Local);
+     return true;
+}
+else {
+cerr<<"AMSProducer::SendFile-E-UnableToOpen "<<Local<<endl;
+return false;
+}
+}

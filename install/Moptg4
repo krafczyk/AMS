@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.110 2011/03/11 15:54:39 zweng Exp $
+#  $Id: Moptg4,v 1.111 2011/03/12 01:52:48 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -31,7 +31,7 @@ endif
   CXX = g++ -m32
 ifdef VERGCC 
   FF  = gfortran -m32 
-  FORTRAN_LIBS= -lg2c -lgfortran 
+  FORTRAN_LIBS=  -lgfortran 
 else  
   FF  = g77 -m32 
   FORTRAN_LIBS=-lg2c 

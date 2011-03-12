@@ -11,7 +11,7 @@
 class SubType{
   std::map<unsigned int,float> _table;
  public:
-  std::string tag;
+  TString tag;
   SubType(){};
 
   SubType(int i):number(i){};
@@ -282,7 +282,7 @@ class SlowControlDB//: public TTree
 	std::cout<<"node "<<i<<" " <<it->second.GetName()<< " dt "<<it->second.GetDataTypeN(i)->number<<" entries "<<it->second.GetDataTypeN(i)->getnelem()<<std::endl;
 	if(abs(level)<3)continue;
 	for(int j=0;j<it->second.GetDataTypeN(i)->getnelem();j++){
-	  std::cout <<it->second.GetDataTypeN(i)->GetSubTypeN(j)->getnelem()<<" values for entry "<<j<<" (dt "<<it->second.GetDataTypeN(i)->number<<") "<<it->second.GetDataTypeN(i)->GetSubType(j)->tag.c_str()<<std::endl;
+	  std::cout <<it->second.GetDataTypeN(i)->GetSubTypeN(j)->getnelem()<<" values for entry "<<j<<" (dt "<<it->second.GetDataTypeN(i)->number<<") "<<it->second.GetDataTypeN(i)->GetSubType(j)->tag<<std::endl;
 	  if(abs(level)<4)continue;
 	  for(int k=0;k<it->second.GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++){
 	    std::cout<<"time "<<it->second.GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k)<<" val "<<it->second.GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k)<<std::endl;

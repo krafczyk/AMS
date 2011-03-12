@@ -10,7 +10,7 @@
 class SubType{
   std::map<unsigned int,float> _table;
  public:
-  std::string tag;
+  TString tag;
   SubType(){};
  SubType(int i):number(i){};
   int number;

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.344 2011/03/08 08:54:43 choumilo Exp $
+#  $Id: datacards.doc,v 1.345 2011/03/12 01:52:47 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -81,7 +81,8 @@ I171 HistoMan                    // Enables the HistoMan facility for histograms
 I172 Skip                        // Skip n events in the reconstruction
 I173 WriteTGeometry(0)           // Write TGeometry (0: no, 1: yes)
 I174 TGeometryFileName('ams02.root')  // TGeometry file name
-I214 WriteTDVDataInRoot(0)             // Write/NotWriote TDVData in Root (not to be mixed with names
+I214 WriteTDVDataInRoot(0)             // Write/NotWrite TDVData in Root (not to be mixed with names
+I215 ReadAMI(0)                   //  0,1,2 not read/Read/force read AMI interface with standalone program
 //-------------------------------------------------------------------------------
 
     RICH simulation

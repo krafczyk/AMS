@@ -103,7 +103,7 @@ bool SlowControlDB::BuildSearchIndex(int debug){
     for(int i=0;i<(int)it->second.getnelem();i++)
       for(int j=0;j<it->second.GetDataTypeN(i)->getnelem();j++){
 	unsigned int idx=100000*it->second.number+1000*it->second.GetDataTypeN(i)->number+it->second.GetDataTypeN(i)->GetSubTypeN(j)->number;
-	searchmap.insert(std::pair<std::string,unsigned int>((std::string)it->second.GetDataTypeN(i)->GetSubTypeN(j)->tag,idx));
+	searchmap.insert(std::pair<std::string,unsigned int>((std::string)(const char*)it->second.GetDataTypeN(i)->GetSubTypeN(j)->tag,idx));
       }
   }
   if(debug)std::cout<<"SlowControlDB::BuildSearchIndex - map size"<<searchmap.size()<<std::endl;

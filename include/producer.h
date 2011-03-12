@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.25 2009/02/20 13:10:20 choutko Exp $
+//  $Id: producer.h,v 1.26 2011/03/12 01:52:47 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -48,7 +48,9 @@ void UpdateARS();
 void getRunEventInfo();
 void sendCurrentRunInfo(bool force=false);
 void getASL();
+bool SendFile(const char * Remote, const char *Local,bool erase=true);
 void sendid(int cpuf=0);
+void SendTimeout(int cpuf);
 void sendSelfId();
 void sendDSTInfo();
 bool Progressing();
