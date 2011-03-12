@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.514 2011/03/07 22:56:08 choutko Exp $
+//  $Id: event.C,v 1.515 2011/03/12 15:51:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -289,19 +289,13 @@ _sirichinitrun();
 
 void AMSEvent::_reamsinitrun(){
 if(AMSJob::gethead()->isProduction() ){
+if(AMSEvent::get_thread_num()==0){
  if(SRun){
   HDELET(0);
-  AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
-  
  }
- else if(AMSJob::gethead()->isRealData()){
-   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
- }
- else{
-//#ifdef __CORBA__
-  AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
-}
-//#endif
+  AMSJob::gethead()->uhinit(getrun(),getmiid(),getmitime());
+}  
+
 
 }
 else if(AMSJob::gethead()->isMonitoring()){
@@ -3975,6 +3969,19 @@ time_t AMSEvent::getmtime()const{
 time_t evt=0;
 for(int i=0;i<get_num_threads();i++){
  if(_Head[i] && _Head[i]->gettime()>evt)evt=_Head[i]->gettime();
+}
+return evt;
+#else
+return gettime();
+#endif
+}
+
+
+time_t AMSEvent::getmitime()const{
+#ifdef _OPENMP
+time_t evt=INT_MAX;
+for(int i=0;i<get_num_threads();i++){
+ if(_Head[i] && _Head[i]->gettime()<=evt && _Head[i]->getid()>0)evt=_Head[i]->gettime();
 }
 return evt;
 #else

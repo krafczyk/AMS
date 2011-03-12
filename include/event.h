@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.100 2011/02/10 22:51:26 mmilling Exp $
+//  $Id: event.h,v 1.101 2011/03/12 15:51:16 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -376,6 +376,7 @@ unsigned long long getutime()const {unsigned long long t=_time;return (t<<32 | _
 TofSTemp * getUtoftp(){return _Utoftp;}
 TofSTemp * getLtoftp(){return _Ltoftp;}
 time_t getmtime()const;
+time_t getmitime()const;
  uinteger getmid()const;
   uinteger getmiid();
 time_t getusec()const {return _usec;}
