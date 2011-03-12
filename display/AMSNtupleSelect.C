@@ -17,6 +17,7 @@ public:
     int k=ev->getsetup()->fSlowControl.GetData("B-Field P0 Component X",ev->UTime(),ev->Frac(),aa);
     cout <<"size "<<aa.size()<<" res "<<k<<endl;
      if(aa.size())cout <<"  ee "<<aa[0]<<endl;
+    k=ev->getsetup()->fSlowControl.GetData("Zenith PT1000 4-3B (outlet)",ev->UTime(),ev->Frac(),aa);
     return true;
     // 
     // This is a user function to be modified

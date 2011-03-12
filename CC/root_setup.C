@@ -125,13 +125,15 @@ if(!p){
  cerr<<"AMSSetupR::add-E-SlowcontrolPointerIsNull"<<endl;
 }
 else{
+      fSlowControl.fETable.clear();
+      fSlowControl.fRTable.clear();
       for(map<string,::Node>::iterator mt=p->nodemap.begin();mt!=p->nodemap.end();mt++){
       ::Node snode=mt->second;
       ::Node *node=&snode;
-      AMSSetupR::SlowControlR::Element myelement;
       string name=mt->first;
       for(std::map<int,DataType>::iterator dt=node->datatypes.begin();dt!=node->datatypes.end();dt++){
           for(std::map<int,SubType>::iterator st= dt->second.subtypes.begin();st!=dt->second.subtypes.end();st++){
+           AMSSetupR::SlowControlR::Element myelement;      
            for(std::map<unsigned int,float>::iterator it=st->second._table.begin();it!=st->second._table.end();it++){
                myelement.fTable[it->first]=it->second;
            }
@@ -552,6 +554,7 @@ return false;
 }
 else{
 fbin.close();
+cout <<" FillSlowControlDB-I-OPenedFile "<<slc<<endl;
 return true;
 }
 }

@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.5 2011/03/12 01:52:47 choutko Exp $
+//  $Id: ami2root.C,v 1.6 2011/03/12 02:46:23 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]){
 	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
 	for(int ii=0;ii<nval;ii++){
 	  subtype->Add(vals[ii]->timestamp-shift,vals[ii]->val);
-          cout <<" timestamp "<<vals[ii]->val<<" "<<datatypes[data_type]->warn_min[0]<<" "<<datatypes[data_type]->warn_min[1]<<" "<<datatypes[data_type]->warn_max[0]<<" "<<endl;
+      //    cout <<" timestamp "<<vals[ii]->val<<" "<<vals[ii]->timestamp-shift<<" "<<endl;
          }
       }
       
