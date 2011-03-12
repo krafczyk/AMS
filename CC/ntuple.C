@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.213 2011/03/12 01:52:42 choutko Exp $
+//  $Id: ntuple.C,v 1.214 2011/03/12 15:34:05 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -307,7 +307,9 @@ void AMSNtuple::endR(bool cachewrite){
   // write tracker alignment structure
   
   if(_rfile){
+
     writeRSetup();
+
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
@@ -857,8 +859,10 @@ cerr<<"AMSNtuple::readRSetup-E-UnableToFillSlowControlDB "<<slc<<endl;
 else{
 if(!Get_setup02()->LoadSlowcontrolDB(slc.c_str())){
 cerr<<"AMSNtuple::readRSetup-E-UnableToLoadSlowControlDB "<<slc<<endl;
+    if(_rfile)_rfile->cd();
 }
 else{
+    if(_rfile)_rfile->cd();
 string slf;
 Get_setup02()->getSlowControlFilePath(slf);
 if(slf!=slc){
