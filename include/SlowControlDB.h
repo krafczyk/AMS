@@ -4,6 +4,7 @@
 #include "TNamed.h"
 #include "TFile.h"
 #include "TTree.h"
+#include <stdlib.h>
 #include <climits>
 #include <cstring>
 #include <iostream>
