@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.7 2010/08/14 17:18:50 oliva Exp $
+//  $Id: TrParDB.C,v 1.8 2011/03/14 00:12:11 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/08/14 17:18:50 $
+///$Date: 2011/03/14 00:12:11 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -120,8 +120,8 @@ void TrParDB::PrintInfo() {
   }
   printf("Charge loss matrices (x = ia, y = ip):\n");
   for (int iside=0; iside<2; iside++) {
-    for (int ix=0; ix<CHLOSSARR; ix++) {
-      for (int iy=0; iy<CHLOSSARR; iy++) {  
+    for (int iy=0; iy<CHLOSSARR; iy++) { 
+      for (int ix=0; ix<CHLOSSARR; ix++) {
         printf("%7.3f ",GetChargeLossArrayElem(iside,ix,iy));
       }
       printf("\n");
@@ -147,7 +147,7 @@ float TrParDB::GetChargeLossArrayElem(int icoo, int ind_ip, int ind_ia) {
   if      (ind_ia<0)           ind_ia = 0;
   else if (ind_ia>CHLOSSARR-1) ind_ia = CHLOSSARR-1;
   if      (icoo==0) return _chargelossx[ind_ip][ind_ia];
-  else if (icoo==1) return _chargelossy[ind_ip][ind_ia];
+  else if (icoo==1) return _chargelossy[ind_ip][ind_ia]; 
   return 1.; // default
 }
 

@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.18 2010/12/14 22:18:52 oliva Exp $ 
+/// $Id: TrCluster.C,v 1.19 2011/03/14 00:12:11 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2010/12/14 22:18:52 $
+/// $Date: 2011/03/14 00:12:11 $
 ///
-/// $Revision: 1.18 $
+/// $Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +30,7 @@ ClassImp(TrClusterR);
 TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
-int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
 int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
 float    TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
 float    TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
@@ -223,13 +223,64 @@ int TrClusterR::GetSeedIndex(int opt) {
 
 float TrClusterR::GetTotSignal(int opt) {
   float sum = 0.;
-  if (!(kVAGain&opt)) for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt);
-  else                for (int ii=0; ii<GetNelem(); ii++) sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(int(ii/64));
-  if (kAngle&opt)  sum = sum*(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
+  if (!(kVAGain&opt)) {
+    for (int ii=0; ii<GetNelem(); ii++) {
+      sum += GetSignal(ii,opt);
+    }
+  }
+  else {
+    for (int ii=0; ii<GetNelem(); ii++) {
+       int iva = int(GetAddress(ii)/64);  
+       sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(iva); 
+    }
+  }
+  if (kAngle&opt)  sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
   if (kGain&opt)   sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
   if (kLoss&opt)   sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
   if ((kPN&opt)&&(GetSide()==0)) sum = sum*GetTrParDB()->GetPNGain();
   return sum;
+}
+
+
+float TrClusterR::GetNumberOfMIPs(int opt) {
+  // init
+  double adc_vs_z_tb03[3][12] = {
+    {  40.50, 167.92, 387.77, 713.61,1124.73,1615.55,2166.01,2734.12,3257.81,3671.87,4021.40,4290.52}, // n-side
+    {  31.50, 106.58, 214.47, 304.94, 368.64, 413.37, 472.73, 575.47, 702.39, 854.23,1039.92,1233.86}, // p-side
+    {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
+  };
+  double x = GetTotSignal(opt);
+  double y = 0.;
+  int iside = GetSide();
+  if ((kPStrip&opt)&&(GetSide()==0)) iside = 2;
+  // TMP: to be improved 
+  // interpolation 
+  for (int i=0; i<11; i++) {
+    if ((x>=adc_vs_z_tb03[iside][i])&&(x<adc_vs_z_tb03[iside][i+1])) {
+      double x0 = adc_vs_z_tb03[iside][i];
+      double x1 = adc_vs_z_tb03[iside][i+1];    
+      double y0 = i*i;
+      double y1 = (i+1)*(i+1);
+      y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0); 
+    }
+  }  
+  // lower extrapolation 
+  if (x<adc_vs_z_tb03[iside][0]) {
+    double x0 = adc_vs_z_tb03[iside][0];
+    double x1 = adc_vs_z_tb03[iside][1];
+    double y0 = 1*1;
+    double y1 = 2*2;
+    y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
+  }
+  // upper extrapolation
+  if (x>=adc_vs_z_tb03[iside][11]) {
+    double x0 = adc_vs_z_tb03[iside][10];
+    double x1 = adc_vs_z_tb03[iside][11];
+    double y0 = 11*11;
+    double y1 = 12*12;
+    y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
+  }
+  return y; 
 }
 
 
@@ -271,6 +322,27 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
   }
   float CofG = numerator/denominator;
   return CofG;
+}
+
+
+float TrClusterR::GetEta(int opt) {
+  if (GetNelem()<1) return -1;
+  int cstrip = GetSeedIndex(opt);
+  int nleft  = GetLeftLength(opt);
+  int nright = GetRightLength(opt);
+  // 1 strip
+  if ( (nleft==0)&&(nright==0) ) return 0.; 
+  // 2 strips
+  if (nleft==0)  return GetSignal(cstrip+1,opt)/(GetSignal(cstrip+1,opt) + GetSignal(cstrip,opt));
+  if (nright==0) return GetSignal(cstrip,  opt)/(GetSignal(cstrip-1,opt) + GetSignal(cstrip,opt));
+  // >2 strips
+  if ( GetSignal(cstrip+1,opt)>GetSignal(cstrip-1,opt) ) {
+    return GetSignal(cstrip+1,opt)/(GetSignal(cstrip+1,opt) + GetSignal(cstrip,opt));
+  }
+  else {                                           
+    return GetSignal(cstrip  ,opt)/(GetSignal(cstrip-1,opt) + GetSignal(cstrip,opt));
+  }
+  return -1.;
 }
 
 

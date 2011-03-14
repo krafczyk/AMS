@@ -40,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2011/02/18 12:38:44 $
+ $Date: 2011/03/14 00:12:09 $
 
- $Revision: 1.19 $
+ $Revision: 1.20 $
 
 */
 
@@ -56,18 +56,20 @@ class TrClusterR :public TrElem{
     kNoCorr       = 0x00,       
     /// Signal Corr.: Cluster Asymmetry Correction (left/right)
     kAsym         = 0x01, 
+    /// Signal Corr.: P-Strip Correction (inactive)
+    kPStrip       = 0x02,
     /// Total Signal Corr.: Energy Loss Normalization at 300 um [cos(Theta)^-1]
-    kAngle        = 0x02,
+    kAngle        = 0x04,
     /// Total Signal Corr.: Gain Correction
-    kGain         = 0x04, 
-    /// Total Signal Corr.: VA Gain Correction (appliable only with gain correction)
-    kVAGain       = (0x08 | 0x04), 
+    kGain         = 0x08, 
+    /// Total Signal Corr.: VA Gain Correction 
+    kVAGain       = 0x10, 
     /// Total Signal Corr.: Charge Loss Correction 
-    kLoss         = 0x10,
-    /// Total Signal Corr.: P/N Normalization Correction (normalizing to P)     
-    kPN           = 0x20,
-    /// Total Signal Corr.: All Corrections
-    kAll          = 0xff
+    kLoss         = 0x20,
+    /// Total Signal Corr.: Normalization to P-Side      
+    kPN           = 0x40,
+    /// Total Signal Corr.: Normalization to number of MIP
+    kMIP          = 0x80
   };
 
   enum { TASCLS = 0x400 };
@@ -119,8 +121,9 @@ class TrClusterR :public TrElem{
   static float TwoStripThresholdY;
 
  public:
-/** @name   CONSTRUCTORS & C. */
-/**@{*/	
+
+  /** @name   CONSTRUCTORS & C. */
+  /**@{*/	
   //################    CONSTRUCTORS & C.   ################################
 
   /// Default constructor 
@@ -136,10 +139,11 @@ class TrClusterR :public TrElem{
   virtual ~TrClusterR();
   /// Clear
   void Clear();
-/**@}*/
 
-/** @name   Cluster Structure  */
-/**@{*/	
+  /**@}*/
+  /** @name   Cluster Structure  */
+  /**@{*/	
+
   //################    ACCESSORS  ########################################
 
   /// Get ladder TkId identifier 
@@ -189,17 +193,18 @@ class TrClusterR :public TrElem{
   short GetStatus(int ii);
 	
   /// Is a TAS cluster? (check the status bit)
-  bool  TasCls() const { return checkstatus(TASCLS);}
+  bool  TasCls() const { return checkstatus(TASCLS); }
+  /// Used for track AMSDBc::USED = 32; (0x0020)
+  bool  Used() const { return checkstatus(AMSDBc::USED); }	
 	
-	/// Used for track AMSDBc::USED = 32; (0x0020)
-	bool  Used() const { return checkstatus(AMSDBc::USED); }
-	
-	
-	/**@}*/
-/** @name   SIGNALS & AMPLITUDE */
-/**@{*/	
+  /**@}*/
+  /** @name   SIGNALS & AMPLITUDE */
+  /**@{*/	
+
   /// Get cluster amplitude
   float GetTotSignal(int opt = DefaultCorrOpt);
+  /// Convert signal to number of MIPs (each MIP is approximately 81 keV)
+  float GetNumberOfMIPs(int opt = DefaultCorrOpt);
 
   /// Get i-th strip signal
   float GetSignal(int ii, int opt = DefaultCorrOpt);
@@ -210,10 +215,11 @@ class TrClusterR :public TrElem{
   /// Get i-th signal to noise ratio 
   float GetSN(int ii, int opt = DefaultCorrOpt) { 
     return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); 
-  } 
-/**@}*/	
-	/** @name  Coordinates */
-	/**@{*/	
+  }
+ 
+  /**@}*/	
+  /** @name  Coordinates */
+  /**@{*/	
 	
   /// Get multiplicity
   int   GetMultiplicity();
@@ -248,10 +254,7 @@ class TrClusterR :public TrElem{
    *      0 1                                0 1
    *  Eta is 1 for particle near to the right strip,
    *  while is approx 0 when is near to the left strip (old definition) */
-  float GetEta(int opt = DefaultCorrOpt) { 
-    float eta = GetCofG(2,opt); 
-    return (eta>0.) ? eta : eta + 1.; 
-  }
+  float GetEta(int opt = DefaultCorrOpt); // { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
   /// Digital Head-Tail method (Experts only)
   float GetDHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips
@@ -263,10 +266,11 @@ class TrClusterR :public TrElem{
   float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); 
   }
-/**@}*/
-	
-/** @name Reconstruction & Special Methods (Experts only) */
-/**@{*/	
+
+  /**@}*/ 
+  /** @name Reconstruction & Special Methods (Experts only) */
+  /**@{*/	
+
   //################  SPECIAL METHODS  ########################################
 
   /// Build the coordinates (with multiplicity)
@@ -305,13 +309,13 @@ class TrClusterR :public TrElem{
 	/// Get the current calibration database
 	TrCalDB*    GetTrCalDB() { return _trcaldb; }
 
-/**@}*/	
+  /**@}*/	
+
   /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
-    /// Using this parameter database
+  /// Using this parameter database
   static void UsingTrParDB(TrParDB* trpardb) { _trpardb = trpardb; }
  	
-
   ///  Get DefaultCorrOpt
   static int  GetDefaultCorrOpt()        { return DefaultCorrOpt; }
   /// Get DefaultUsedStrips
@@ -321,9 +325,9 @@ class TrClusterR :public TrElem{
   /// Set DefaultUsedStrips
   static void SetDefaultUsedStrips(int def) {DefaultUsedStrips=def;}
 		
+  /** @name Printout */
+  /**@{*/	
 
-/** @name Printout */
-/**@{*/	
   //################ PRINTOUT  ########################################
 
   /// Print cluster basic information
@@ -342,7 +346,8 @@ class TrClusterR :public TrElem{
 
   /// ROOT definition
   ClassDef(TrClusterR, 3)
-/**@}*/
+
+  /**@}*/
 };
 
 
