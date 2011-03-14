@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.252 2011/03/12 01:52:42 choutko Exp $
+//  $Id: root.C,v 1.253 2011/03/14 10:18:35 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -737,7 +737,7 @@ void AMSEventR::hjoin(){
 
 
 }
-//------------------------------- Other public functions:
+//------------------------------- Other public functions for root files analysis:
 
 int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool &fastOR,bool &fastAND,bool &Level1OR,bool &Level1AND, bool debug){
   EcalHitR *hit;
@@ -941,7 +941,249 @@ int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool
 
   return 0;
 }
+//-----------------------------
+bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max){
+/*
+ *  
+ *  Created by Andrea Contin on 06/03/2011.
+ *
+ * GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max, bool firsttime)
+ *
+ * 
+ *
+ * HT_factor = multiplicative factor w.r.t. real data HT thrershold
+ *
+ * HT_factor = multiplicative factor w.r.t. real data HT thrershold
+ *
+ * TOF_type = HT  --> TOF High Threshold (Z>=1)
+ *            SHT --> TOF Super High Threshold (Z>1)
+ *
+ * TOF_max  = 3   --> 3 out of 4 layers
+ *          = 4   --> 4 out of 4 layers
+ *
+ * ACC_max  = n   --> at most n ACC counters
+ *          = -1  --> ACC not in the trigger
+ *
+ * for each event:	bool FTC=GetTofTrigFlags(HT_factor,SHT_factor,"HT",3,0);
+ *               	bool BZ=GetTofTrigFlags(HT_factor,SHT_factor,"SHT",3,-1);
+ *              	if(FTC || BZ) accept event ....
+ */
+	
+	// values constant with time
+	
+	int counterside[68]={
+		1011,1012,1021,1022,1031,1032,1041,1042,1051,1052,
+		1061,1062,1071,1072,1081,1082,2011,2012,2021,2022,
+		2031,2032,2041,2042,2051,2052,2061,2062,2071,2072,
+		2081,2082,3011,3012,3021,3022,3031,3032,3041,3042,
+		3051,3052,3061,3062,3071,3072,3081,3082,3091,3092,
+		3101,3102,4011,4012,4021,4022,4031,4032,4041,4042,
+		4051,4052,4061,4062,4071,4072,4081,4082
+	};       // LBBS (L=layer 1-4, BB=bar 1-8(10), S=side 1-2)
+	int DAC[68]={
+		1,17,2,18,1,17,2,18,1,17,2,18,3,19,4,20,5,21,6,22,
+		5,21,6,22,5,21,6,22,7,23,8,24,9,25,10,26,9,25,10,26,
+		9,25,10,26,11,27,12,28,11,27,12,28,13,29,14,30,13,29,14,30,
+		13,29,14,30,15,31,16,32
+	};               // DAC number for each counter side
+	float peak_mc[68]={
+		51.96,51.92,55.26,55.47,55.05,55.04,55.13,54.59,54.63,54.83,
+		55.09,55.02,55.62,55.53,52.53,52.38,58.2,58.32,51.64,51.57,
+		51.56,51.29,51.61,51.4,51.57,51.35,51.7,51.7,51.95,51.44,
+		58.41,58.49,51.00,50.96,49.61,49.67,46.54,46.63,49.33,49.14,
+		49.22,49.16,49.16,48.91,49.29,49.12,46.44,46.59,49.17,49.26,
+		50.78,50.97,53.04,53.01,53.2,53.11,53.08,52.98,53.49,53.42,
+		53.08,53.22,53.27,53.37,54.1,53.91,52.39,52.39
+	};         // m.i.p. peak in mc (ADC ch.)
+	float a_ht[68]={
+		1.6,1.61,1.4,1.39,1.28,1.37,1.34,1.27,1.32,1.3,
+		1.28,1.31,1.3,1.37,1.63,1.69,1.41,1.39,1.33,1.24,
+		1.32,1.39,1.39,1.36,1.44,1.3,1.38,1.43,1.22,1.3,
+		1.53,1.58,1.41,1.4,1.33,1.45,1.28,1.32,1.26,1.06,
+		1.3,1.28,1.31,1.33,1.26,1.21,1.22,1.33,1.41,1.26,
+		1.52,1.52,1.77,1.75,1.29,1.43,1.25,1.25,1.35,1.35,
+		1.31,1.32,1.34,1.32,1.33,1.1,1.83,1.83
+	};   // HT threshold (ADC ch.)=a_ht*DAC+b_ht
+	float b_ht[68]={
+		6.62,3.68,2.22,1.43,3.87,2.72,1.9,1.02,5.06,2.26,
+		3.4,1.17,2.48,2.49,2.53,2.2,3.18,2.04,2.75,3.77,
+		2.43,-0.62,3,2.51,0.55,2.29,5.74,0.85,3.45,1.99,
+		3.45,1.83,3.68,2.4,2.35,2.73,3.74,1.68,2.02,13.35,
+		3.87,0.62,2.24,2.86,1.95,3.11,3.09,3.22,1.07,2.84,
+		2.38,3.45,3.65,3.45,2.51,3.04,4.29,3.07,1.28,3.01,
+		2.9,1.11,2.2,4.78,3.58,8.58,4.04,4.83
+	};   // HT threshold (ADC ch.)=a_ht*DAC+b_ht
+	float a_sht[68]={
+		1.4,1.42,1.18,1.24,1.13,1.22,1.24,1.13,1.07,1.11,
+		1.09,1.13,1.13,1.19,1.49,1.52,1.18,1.11,1.06,1.01,
+		1.14,1.03,1.17,1.12,1.08,1.15,1.17,1.22,1.15,1.02,
+		1.37,1.27,1.18,1.38,1.14,1.4,1.15,1.15,1.1,1.21,
+		1.13,1.3,1.1,1.22,1.09,1.26,1.09,1.28,1.34,1.3,
+		1.32,1.43,1.42,1.71,1.07,1.41,1.08,1.25,1.12,1.29,
+		1.07,1.36,1.16,1.31,1.04,1.07,1.53,1.74
+	}; // SHT threshold (ADC ch.)=a_sht*DAC+b_sht
+	float b_sht[68]={
+		17.69,14.07,17.35,16.85,12.33,9.19,10.04,14.58,13.31,8.66,
+		15.52,17.48,12.41,7.46,13.71,18.26,10.68,18.65,13.55,14.34,
+		7.44,14.01,9.94,14.29,8.12,13.37,11.81,12.61,8.79,15.14,
+		8.24,12.76,10.36,1.47,10.58,4.39,5.74,7.38,9.12,5.3,
+		7.48,-2.37,11.28,6.61,7.61,0.6,12.59,3.16,1.91,0.86,
+		15.23,4.46,20.31,4.86,15.01,0.3,13.66,3.12,15.66,2.63,
+		13.77,-0.51,14.25,4.03,16.59,9.45,20.36,6.71
+	}; // SHT threshold (ADC ch.)=a_sht*DAC+b_sht
+	int c_max[32]={
+		1011,1021,1071,1081,2011,2061,2071,2081,3051,3021,
+		3071,3101,4011,4021,4071,4081,1012,1062,1072,1082,
+		2032,2042,2072,2082,3012,3062,3092,3082,4012,4062,
+		4072,4082
+	};                         // LBBS of the counter side which has the maximum threshold in one DAC
 
+	// values dependent on time and/or setting of HV and thresholds
+	
+	float ht_data[68]={
+		0.69,0.71,0.6,0.5,0.46,0.37,0.34,0.6,0.73,0.57,
+		0.57,0.64,0.66,0.65,0.64,0.61,0.7,0.65,0.37,0.61,
+		0.39,0.69,0.53,0.7,0.57,0.45,0.77,0.34,0.6,0.58,
+		0.66,0.71,0.47,0.67,0.65,0.44,0.54,0.53,0.59,0.7,
+		0.68,0.36,0.44,0.68,0.65,0.56,0.53,0.71,0.43,0.62,
+		0.66,0.55,0.72,0.62,0.77,0.55,0.63,0.48,0.49,0.63,
+		0.67,0.32,0.55,0.63,0.58,0.64,0.73,0.73
+	};         // relative HT threshold (ADC ch.)
+	float sht_data[68]={
+		4.63,4.72,4.48,3.42,3.21,2.35,2.24,4.32,4.5,3.33,
+		3.87,4.46,4.18,4.0,4.56,4.76,4.36,4.5,2.31,4.03,
+		2.52,4.66,3.16,4.63,3.87,2.85,4.62,2.44,4.41,3.28,
+		4.13,4.46,3.25,4.01,4.56,2.64,3.82,3.24,4.12,4.37,
+		4.6,2.11,3.05,4.4,4.57,3.35,3.79,4.43,3.02,4.27,
+		4.92,3.67,4.63,4.02,4.63,3.05,4.19,3.06,2.97,3.73,
+		4.52,2.11,3.21,3.79,3.07,4.19,4.66,4.09
+	};        // relative SHT threshold (ADC ch.)
+	float peak_data[68]={
+		36.39,38.11,41.56,58.47,41.61,62.19,78.34,41.72,28.91,40.36,
+		44.00,42.49,47.04,50.92,42.19,47.6,36.17,35.56,61.53,44.17,
+		58.69,30.61,46.88,41.11,37.19,54.98,32.57,85.96,38.69,80.5,
+		59.14,32.24,69.47,46.1,47.65,75.73,53.99,54.21,49.55,41.53,
+		45.76,79.82,70.26,42.76,41.53,44.65,43.38,41.15,71.46,37.08,
+		41.1,56.09,56.56,50.17,37.71,56.47,46.34,47.79,59.35,46.12,
+		43.28,71.33,56.05,46.05,93.96,48.35,50.71,50.84
+	};       // m.i.p. peak in data (ADC ch.)
+	
+	Level1R *plvl1;      // pointer to Level1 trigger
+	TofRawSideR *ptofrs; // pointer to TofRawSide
+	
+	float DAC_value_HT[32];    // DAC values corresponding to the modified HT thresolds
+	float DAC_value_SHT[32];   // DAC values corresponding to the modified SHT thresolds
+	float ht_data_new[68];     // modified relative HT threshold (ADC ch.)
+	float sht_data_new[68];    // modified relative SHT threshold (ADC ch.)
+		
+	// check input variables
+	
+	if(HT_factor<0) {
+		printf("Sci_Trigger_init ERROR --> wrong HT factor: %f\n",HT_factor);
+		return false;
+	}
+	if(SHT_factor<0) {
+		printf("Sci_Trigger_init ERROR --> wrong SHT factor: %f\n",SHT_factor);
+		return false;
+	}
+	if(TOF_type!="HT" && TOF_type!="SHT") {
+		printf("Sci_Trigger ERROR --> wrong TOF_type: %s\n",TOF_type.c_str());
+		return false;
+	}
+	if(TOF_max!=3 && TOF_max!=4) {
+		printf("Sci_Trigger ERROR --> wrong TOF_max: %d\n",TOF_max);
+		return false;
+	}
+	if(ACC_max<-1 || ACC_max>8) {
+		printf("Sci_Trigger ERROR --> wrong ACC_max: %d\n",ACC_max);
+		return false;
+	}
+	
+	// find DAC values for new HT and SHT	
+	
+	float s;
+	for (int i_dac=0;i_dac<32;i_dac++){
+		for (int is=0;is<68;is++){
+			if(c_max[i_dac]==counterside[is]) {
+				s=HT_factor*peak_data[is]*ht_data[is];
+				DAC_value_HT[i_dac]=(s-b_ht[is])/a_ht[is];
+				if(DAC_value_HT[i_dac]>255) {
+					DAC_value_HT[i_dac]=255;
+				}else if(DAC_value_HT[i_dac]<0) {
+					DAC_value_HT[i_dac]=5;
+				}
+				s=SHT_factor*peak_data[is]*sht_data[is];
+				DAC_value_SHT[i_dac]=(s-b_sht[is])/a_sht[is];
+				if(DAC_value_SHT[i_dac]>255) {
+					DAC_value_SHT[i_dac]=255;
+				}else if(DAC_value_SHT[i_dac]<0) {
+					DAC_value_SHT[i_dac]=5;
+				}
+			}
+		}
+	}
+	
+	// find new SHT
+	
+	for (int i_dac=0;i_dac<32;i_dac++){
+		for (int is=0;is<68;is++){
+			if(DAC[is]==i_dac){
+				ht_data_new[is]=(DAC_value_HT[i_dac]*a_ht[is]+b_ht[is])/peak_data[is];
+				sht_data_new[is]=(DAC_value_SHT[i_dac]*a_sht[is]+b_sht[is])/peak_data[is];
+			}
+		}
+	}
+	
+	// event analysis	
+	
+	// compute the number of ACC counters hit and set ACC_OK
+	
+	bool ACC_OK;
+	plvl1 = pLevel1(0);
+	if(ACC_max>-1){
+		if(plvl1){
+			int nanti = 0;
+			unsigned int antipatt = plvl1->AntiPatt;
+			for(int i=0;i<8;i++){ 
+				if(((antipatt>>i)&1==1) || ((antipatt>>(i+8))&1==1)) nanti++;
+			}
+			ACC_OK=(nanti<=ACC_max);
+			if(!ACC_OK) return false; // more than the allowed number of ACC counters hit
+		}else{
+			return false;
+		}
+	}else{
+		ACC_OK=true; // ACC not in the trigger
+	}
+	
+	// look for any side in each TOF plane
+	
+	bool TOF_OK;
+	bool layer_ok[4]={false,false,false,false};
+	for(int irc=0; irc<NTofRawSide(); irc++) {
+		ptofrs = pTofRawSide(irc);
+		if (ptofrs->stat==0) { // check row cluster OK
+			int layer=ptofrs->swid/1000; 
+			float adc=ptofrs->adca;
+			for (int is=0;is<68;is++){
+				if(ptofrs->swid==counterside[is]){
+					if(TOF_type=="HT" && adc>ht_data_new[is]*peak_mc[is]) layer_ok[layer-1]=true;
+					if(TOF_type=="SHT" && adc>sht_data_new[is]*peak_mc[is]) layer_ok[layer-1]=true; 
+				}
+			}
+		}
+	}
+	if(TOF_max==3){
+		TOF_OK=((layer_ok[0]&&layer_ok[1]&&layer_ok[2]) ||
+				(layer_ok[0]&&layer_ok[1]&&layer_ok[3]) ||
+				(layer_ok[0]&&layer_ok[2]&&layer_ok[3]) ||
+				(layer_ok[1]&&layer_ok[2]&&layer_ok[3]) ||
+				(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]));
+	}else{
+		TOF_OK=(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]);
+	}
+	return TOF_OK && ACC_OK;
+}
 //-----------------------------
 TBranch* AMSEventR::bStatus;
 TBranch* AMSEventR::bAll;

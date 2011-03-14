@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.314 2011/03/12 01:52:48 choutko Exp $
+//  $Id: root.h,v 1.315 2011/03/14 10:18:43 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2662,9 +2662,10 @@ static  void hf1s(int id,float a, bool cuts[], int ncuts,int icut, int shift=100
 static  void hfp(int id,float a, float w);
 /// fast fill for 2d histos
 static  void hf2(int id,float a, float b,float w);
-
+//
+//----> user's functions for root files analysis:
 int GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool &fastOR,bool &fastAND,bool &Level1OR,bool &Level1AND, bool debug);
-
+bool GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max);
 
  void    Init(TTree *tree);   ///< InitTree
  void CreateBranch(TTree *tree, int brs);
