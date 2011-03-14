@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.253 2011/03/14 10:18:35 choumilo Exp $
+//  $Id: root.C,v 1.254 2011/03/14 17:05:35 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -967,7 +967,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
  * for each event:	bool FTC=GetTofTrigFlags(HT_factor,SHT_factor,"HT",3,0);
  *               	bool BZ=GetTofTrigFlags(HT_factor,SHT_factor,"SHT",3,-1);
  *              	if(FTC || BZ) accept event ....
- */
+*/
 	
 	// values constant with time
 	
@@ -1177,8 +1177,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 		TOF_OK=((layer_ok[0]&&layer_ok[1]&&layer_ok[2]) ||
 				(layer_ok[0]&&layer_ok[1]&&layer_ok[3]) ||
 				(layer_ok[0]&&layer_ok[2]&&layer_ok[3]) ||
-				(layer_ok[1]&&layer_ok[2]&&layer_ok[3]) ||
-				(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]));
+				(layer_ok[1]&&layer_ok[2]&&layer_ok[3]));
 	}else{
 		TOF_OK=(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]);
 	}
