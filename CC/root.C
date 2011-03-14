@@ -1,8 +1,9 @@
-//  $Id: root.C,v 1.254 2011/03/14 17:05:35 choumilo Exp $
+//  $Id: root.C,v 1.255 2011/03/14 18:07:15 sdifalco Exp $
 
 #include "TRegexp.h"
 #include "root.h"
 #include "ntuple.h"
+#include <TRandom.h>
 #include "TSystem.h"
 #include "TXNetFile.h"
 #include <TChainElement.h>
@@ -738,15 +739,70 @@ void AMSEventR::hjoin(){
 
 }
 //------------------------------- Other public functions for root files analysis:
-
-int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool &fastOR,bool &fastAND,bool &Level1OR,bool &Level1AND, bool debug){
+bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fastalgo,bool MCflag,bool debug,int flagtype){
+// *************************************************************************
+// Authors: S. Di Falco, S. Rosier
+// Date:    March 14, 2011
+//
+// Description: function to evaluate the ECAL trigger flags
+//
+// Inputs: pev          Pointer to the AMSEventR object in the root file  
+//         Thr_factor[6]   Multiplicative factors w.r.t. default thresholds 
+//                         in mV of the 6 ECAL trigger superlayers: 
+//                         ThresmV[6]={26.7,60.,46.7,20.,33.,33.}
+//         angle_factor[2] Multiplicative factor w.r.t. default max distance 
+//                         in PMT*64 of the PMT average position in adiacent 
+//                         superlayers: if the number of hits in the last 2 
+//                         superlayers of the view (X or Y) is less than 5, 
+//                         anglecut[0] applies; if not, anglecut[1] is applied.
+//                         Defaults: anglecut[2]={74,138}
+//         fastalgo     flag for the fast trigger logic in each view:  
+//                      0=2/3 superlayers with at least 1 PMT over threshold
+//                      1=1/3     "        "               "
+//                      2=3/3     "        "               "
+//                      Default: fastalgo=0
+//         MCflag       if true Montecarlo adc2mV conversion is used
+//                      Default: true
+//         debug        prints out the trigger bit pattern of each event
+//                      (not intended for efficiency evaluation on large number //                      of events)
+//                      Default: false
+//
+//         flagtype     define the the flag type
+//                      0: fastOR:    OR  of ECAL Fast Trigger in X and Y view
+//                      1: fastAND:   AND    "      "    "       "      "
+//                      2: Level1OR:  OR  of ECAL Level 1 Trigger in X and Y view
+//                      3: Level1AND: AND    "      "    "       "      "
+//
+// for each event:	
+//
+// bool ELECTRON = GetTofTrigFlags(HT_factor,SHT_factor,"HT",3,0) && 
+//                 GetEcalTriggerFlags(Thr_factor,angle_factor,0,MCflag,0,1)
+//
+// bool PHOTON   = GetEcalTriggerFlags(Thr_factor,angle_factor,0,MCflag,0,3)
+// 
+// **************************************************************************
   EcalHitR *hit;
   int nhits;
   const int nPMTs=36;
   const int nsuplayrs=6; // ECAL trigger uses superlayers X1,X3,X5 and Y2,Y4,Y6
 
-  float EneOnPMT[nPMTs][nsuplayrs]={0};
+  float ThresmV[nsuplayrs]={26.7,60.,46.7,20.,33.,33.};
+  float anglecut[2]={74,138};
 
+  float MvOnPMT[nPMTs][nsuplayrs]={0};
+
+  // Front end electronics parameters  
+  const float GainTrigger=10.; 
+  const float GainAnode=33.5; 
+  float ADC2mV=3000./4096.; 
+  if (MCflag) ADC2mV*=1.4; // temporary patch: ADC2MeV to be fixed in MC       
+  // threshold function parameter	
+  Double_t par[3], par0;
+  par0=1.4  ;  // factor to get the effective threshold from ADC in mV where efficiency=50% 
+  par[1]=3. ;  //rising step (mV)
+  par[2]=1. ;  // maximal efficiency 
+  float f, test, atrig;	
+  //
   int layer,cell;
   int PMT, trig_Superlayer;
   
@@ -763,9 +819,8 @@ int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool
       cell=hit->Cell;
       // add energy to its PMT
       PMT=cell/2;
-      trig_Superlayer=(layer-2)/2;
-      EneOnPMT[PMT][trig_Superlayer] += hit->Edep;
-      //cout << "Layer=" << layer << " Cell=" << cell<< " Superlayer=" << trig_Superlayer << endl;
+      trig_Superlayer=(layer-2)/2; 
+      MvOnPMT[PMT][trig_Superlayer] += hit->ADC[0]*ADC2mV*GainTrigger/GainAnode;
     }
   }
   
@@ -773,11 +828,17 @@ int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool
   // Find number of PMTs over threshold and fill the bit pattern mask
   int NumhitPMT[nsuplayrs]={0};
   int hitPMT[nsuplayrs][nPMTs]={0};
+  int dummyint=0;
   for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr++){
     // loop on PMTs
     for (int ipmt=0;ipmt<nPMTs;ipmt++){	  
       hitPMT[isuplayr][ipmt]=0; // trigger but mask
-      if (EneOnPMT[ipmt][isuplayr] > ecut[isuplayr]){
+      // include the threshold function, deduced from data (average value per layer from  KSC data
+      par[0]=ThresmV[isuplayr]*Thr_factor[isuplayr]*par0;
+      atrig=MvOnPMT[ipmt][isuplayr];
+      f=par[2]/(1+TMath::Exp(2*(-atrig+par[0])/par[1]));
+      test= gRandom->Uniform(0,1);
+      if (test<f) {
 	hitPMT[isuplayr][ipmt] = 1;
 	NumhitPMT[isuplayr]   += 1;
       }
@@ -816,100 +877,139 @@ int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool
   }
   
   // OR or AND logic
-  fastOR = fastX || fastY;
-  fastAND= fastX && fastY;
-  //
-  // ANGULAR TRIGGER
-  bool Level1X=false;
-  bool Level1Y=false;
-  int nhit;
-  //
+  bool fastOR;
+  fastOR= fastX || fastY;
+  bool fastAND;
+  fastAND=fastX && fastY;
 
-  // find average position
+  if (debug && flagtype<2){
+    cout << "X view" << endl;
+    cout << "SL";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){
+      cout << " " << ipmt%10 ;
+    }
+    cout << endl;
+    for (int isuplayr=0; isuplayr<nsuplayrs;isuplayr+=2){  
+      cout << " " << isuplayr+1 << " ";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){	 
+      cout << hitPMT[isuplayr][ipmt] << " " ;
+    }
+    cout << "bit="<< sl_bit[isuplayr] << endl;
+    }
+    cout << "Y view" << endl;   
+    cout << "SL";
+    for (int ipmt=0;ipmt<nPMTs;ipmt++){
+      cout << " " << ipmt%10 ;
+    }
+    cout << endl;
+    for (int isuplayr=1; isuplayr<nsuplayrs;isuplayr+=2){  
+      cout << " " << isuplayr+1 << " ";
+      for (int ipmt=0;ipmt<nPMTs;ipmt++){	 
+	cout << hitPMT[isuplayr][ipmt] << " " ;
+      }
+      cout << "bit="<< sl_bit[isuplayr] << endl;
+    }
+    cout << "fastOR=" << fastOR << " fastAND=" << fastAND << endl;
+  }
+  if (flagtype==0) return fastOR;
+  if (flagtype==1) return fastAND;
+  //
+  // proceed only if fast trigger is there
+  bool Level1OR=false;
+  bool Level1AND=false;
   float bari[nsuplayrs]={0};
   float bitsum[nsuplayrs]={0};
-  for (int isuplayr=0; isuplayr<nsuplayrs; isuplayr++){ 
-    for (int ipmt = 0; ipmt< nPMTs ; ipmt++){
-      bari[isuplayr] += hitPMT[isuplayr][ipmt]*ipmt;
-      bitsum[isuplayr] += hitPMT[isuplayr][ipmt];
-    }
-    if (bitsum[isuplayr] > 0){
-      bari[isuplayr] /=  bitsum[isuplayr];
-    }
-    else{
-      bari[isuplayr]= -1.;
-    }
-  }    
-  // centroids distance for far superlayers  
-  float dfar,dclose1,dclose2;
-  float dcut,dcut1,dcut2;
-  dcut1= anglecut[0]/64;
-  dcut2= anglecut[1]/64;
-  //
-  int suplayr1,suplayr2,suplayr3;
-  // X view
-  if (fastX){
-    suplayr1=0;
-    suplayr2=2;
-    suplayr3=4;
-    // try maximum superlayer distance
-    if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
-      dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
-      nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
-      dcut=nhit<5?dcut1:dcut2;
-      if (dfar < dcut) Level1X=true;
-    }
-    // if not try adiacent superlayers
-    else{
-      dclose1=0.;
-      dclose2=0.;
-      if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
-      if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
-      if (dclose1>dclose2){
-	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
-	dcut=nhit<5?dcut1:dcut2;
-	if (dclose1< dcut) Level1X=true;
+  if ((flagtype==2 && fastOR) ||
+      (flagtype==3 && fastAND)){
+    // ANGULAR TRIGGER
+    bool Level1X=false;
+    bool Level1Y=false;
+    int nhit;
+    //
+    // find average position
+    for (int isuplayr=0; isuplayr<nsuplayrs; isuplayr++){ 
+      for (int ipmt = 0; ipmt< nPMTs ; ipmt++){
+	bari[isuplayr] += hitPMT[isuplayr][ipmt]*ipmt;
+	bitsum[isuplayr] += hitPMT[isuplayr][ipmt];
       }
-      else{      
-	nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
+      if (bitsum[isuplayr] > 0){
+	bari[isuplayr] /=  bitsum[isuplayr];
+      }
+      else{
+	bari[isuplayr]= -1.;
+      }
+    }    
+    // centroids distance for far superlayers  
+    float dfar,dclose1,dclose2;
+    float dcut,dcut1,dcut2;
+    dcut1= anglecut[0]*angle_factor[0]/64;
+    dcut2= anglecut[1]*angle_factor[0]/64;
+    //
+    int suplayr1,suplayr2,suplayr3;
+    // X view
+    if (fastX){
+      suplayr1=0;
+      suplayr2=2;
+      suplayr3=4;
+      // try maximum superlayer distance
+      if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
+	dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
+	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
 	dcut=nhit<5?dcut1:dcut2;
-	if (dclose2< dcut) Level1X=true;
+	if (dfar < dcut) Level1X=true;
+      }
+      // if not try adiacent superlayers
+      else{
+	dclose1=0.;
+	dclose2=0.;
+	if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
+	if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
+	if (dclose1>dclose2){
+	  nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
+	  dcut=nhit<5?dcut1:dcut2;
+	  if (dclose1< dcut) Level1X=true;
+	}
+	else{      
+	  nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
+	  dcut=nhit<5?dcut1:dcut2;
+	  if (dclose2< dcut) Level1X=true;
+	}
       }
     }
+    // Y view
+    if (fastY){
+      suplayr1=1;
+      suplayr2=3;
+      suplayr3=5;
+      // try maximum superlayer distance
+      if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
+	dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
+	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
+	dcut=nhit<5?dcut1:dcut2;
+	if (dfar < dcut) Level1Y=true;
+      }
+      // if not try adiacent superlayers
+      else{
+	dclose1=0.;
+	dclose2=0.;
+	if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
+	if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
+	if (dclose1>dclose2){
+	  nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
+	  dcut=nhit<5?dcut1:dcut2;
+	  if (dclose1< dcut) Level1Y=true;
+	}
+	else{      
+	  nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
+	  dcut=nhit<5?dcut1:dcut2;
+	  if (dclose2< dcut) Level1Y=true;
+	} 
+      }
+    }
+    //
+    Level1OR = Level1X || Level1Y;
+    Level1AND= Level1X && Level1Y;
   }
-  // Y view
-  if (fastY){
-    suplayr1=1;
-    suplayr2=3;
-    suplayr3=5;
-    // try maximum superlayer distance
-    if (bari[suplayr1]>=0 && bari[suplayr3]>=0){
-      dfar=fabs(bari[suplayr1]-bari[suplayr3])/2.;
-      nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr3];
-      dcut=nhit<5?dcut1:dcut2;
-      if (dfar < dcut) Level1Y=true;
-    }
-    // if not try adiacent superlayers
-    else{
-      dclose1=0.;
-      dclose2=0.;
-      if (bari[suplayr1]>=0 && bari[suplayr2]>=0) dclose1=fabs(bari[suplayr1]-bari[suplayr2]);
-      if (bari[suplayr2]>=0 && bari[suplayr3]>=0) dclose2=fabs(bari[suplayr2]-bari[suplayr3]);
-      if (dclose1>dclose2){
-	nhit= NumhitPMT[suplayr1]+NumhitPMT[suplayr2];
-	dcut=nhit<5?dcut1:dcut2;
-	if (dclose1< dcut) Level1Y=true;
-      }
-      else{      
-	nhit= NumhitPMT[suplayr2]+NumhitPMT[suplayr3];
-	dcut=nhit<5?dcut1:dcut2;
-	if (dclose2< dcut) Level1Y=true;
-      } 
-    }
-  }
-  //
-  Level1OR = Level1X || Level1Y;
-  Level1AND= Level1X && Level1Y;
   if (debug){
     cout << "X view" << endl;
     cout << "SL";
@@ -937,10 +1037,15 @@ int AMSEventR::GetEcalTriggerFlags(float ecut[],int anglecut[],int fastalgo,bool
       }
       cout << "bit="<< sl_bit[isuplayr] << " " << bari[isuplayr] << endl;
     }
+    cout << "fastOR=" << fastOR << " fastAND=" << fastAND << endl;
+    cout << "Level1OR=" << Level1OR << " Level1AND=" << Level1AND << endl;
   }
+  if (flagtype==2) return Level1OR;
+  if (flagtype==3) return Level1AND;
 
-  return 0;
+  return false;
 }
+
 //-----------------------------
 bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max){
 /*
