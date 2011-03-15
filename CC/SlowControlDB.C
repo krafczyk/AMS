@@ -34,6 +34,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   unsigned int tree_begin,tree_end; 
   _tree->SetBranchAddress("begin",&tree_begin);
   _tree->SetBranchAddress("end",&tree_end);
+  _tree->SetBranchAddress("uncompleted",&uncompleted);
   
   TObjArray *branchlist=_tree->GetListOfBranches();
   Node* nodearr[branchlist->GetEntries()];

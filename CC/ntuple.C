@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.214 2011/03/12 15:34:05 choutko Exp $
+//  $Id: ntuple.C,v 1.215 2011/03/15 01:07:53 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -846,7 +846,7 @@ string name=_rfile->GetName();
 //_rfile->Close();
 if(Get_setup02() && !AMSJob::gethead()->isSimulation()){
 #ifdef __CORBA__
-AMSProducer::gethead()->SendTimeout(3600);
+AMSProducer::gethead()->SendTimeout(2500);
 #endif
 if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
@@ -884,5 +884,10 @@ AMSProducer::gethead()->SendTimeout(600);
 else cerr<<"AMSNtuple::readRSetup-E-UnableToGetRootSetup "<<endl;
 
 
+}
+void AMSNtuple::Bell(){
+#ifdef __CORBA__
+AMSProducer::gethead()->sendCurrentRunInfo();
+#endif
 }
 

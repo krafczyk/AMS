@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.126 2011/02/26 20:18:37 choutko Exp $
+//  $Id: ntuple.h,v 1.127 2011/03/15 01:08:02 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -941,6 +941,7 @@ public:
   AMSNtuple(char* name);
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
+  static void Bell();
   void init();
   static TString & DataCards()  {return _dc.String();}
   uinteger getrun();

@@ -10,8 +10,8 @@
 #include <iostream>
 
 class SubType{
-  std::map<unsigned int,float> _table;
  public:
+  std::map<unsigned int,float> _table;
   TString tag;
   SubType(){};
 
@@ -83,8 +83,8 @@ class SubType{
 };
 
 class DataType{
-  std::map<int,SubType> subtypes;
  public:
+  std::map<int,SubType> subtypes;
   DataType(){};
  DataType(int i):number(i){};
   int number;
@@ -137,8 +137,8 @@ class DataType{
 };
 
 class Node:public TNamed{
-  std::map<int,DataType> datatypes;
  public:
+  std::map<int,DataType> datatypes;
  Node():TNamed("default","default"){};
  Node(char *name):TNamed(name,name){};
  Node(char *name1,char *name2):TNamed(name1,name2){};
@@ -197,12 +197,13 @@ class SlowControlDB//: public TTree
 {  
  private:
   static SlowControlDB* head;
+ public:
   unsigned int begin;
   unsigned int end;
+  unsigned int uncompleted;
   std::map<std::string,Node> nodemap;
   std::map<std::string,unsigned int> searchmap;
 
- public:
   SlowControlDB(){
     nodemap.clear();
     searchmap.clear();
@@ -217,11 +218,9 @@ class SlowControlDB//: public TTree
   }
 
   /// Get the pointer to the DB
-  static SlowControlDB* KillPointer(){
+  static void  KillPointer(){
     delete head;
     head=0;  //VC
-    head=new SlowControlDB();
-    return head;
   }
 
   /// destructor
@@ -295,7 +294,7 @@ class SlowControlDB//: public TTree
   }
 
 
-  ClassDef(SlowControlDB,2);
+  ClassDef(SlowControlDB,3);
   friend class AMSSetupR;
 };
 

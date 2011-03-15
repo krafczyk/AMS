@@ -1,7 +1,8 @@
 #include "root_setup.h"
 #include "root.h"
-#include <fstream>
+#include <fstream.h>
 #include "SlowControlDB.h"
+#include "ntuple.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "commons.h"
 #include "commonsi.h"
@@ -485,15 +486,20 @@ bool AMSSetupR::FillSlowcontrolDB(string & slc){
 // Fill SlowcontrolDB via AMI interface
 
 
-ifstream fbin;
 
 getSlowControlFilePath(slc);
 
+ bool uncompleted=true;
+  SlowControlDB::KillPointer();
+  SlowControlDB* scdb=SlowControlDB::GetPointer();
+  if(scdb && scdb->Load(slc.c_str(),fHeader.FEventTime,fHeader.LEventTime)){
+    uncompleted=scdb->uncompleted==1;
+  }
+  SlowControlDB::KillPointer();
+  string slc_orig=slc;
 
-fbin.open(slc.c_str());
 
-
-if(!fbin  || IOPA.ReadAMI==2){
+if(uncompleted  || IOPA.ReadAMI==2){
 if(!IOPA.ReadAMI)return false;
 char tmps[255];
 sprintf(tmps,"/tmp/SCDB.%d.%d.root",fHeader.FEventTime,fHeader.LEventTime);
@@ -515,6 +521,8 @@ if(! (exedir && strlen(exedir))){
 const char *version=AMSCommonsI::getversion(); 
 const char *nvr=AMSCommonsI::getosversion(); 
 if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
+int maxtry=12;
+for (int ntry=0;ntry<maxtry;ntry++){
  char t1[1024];
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
@@ -525,19 +533,22 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
   systemc+="/";
   systemc+=nve;
   char u[128];
-  sprintf(u,"  %d %d %s ",fHeader.FEventTime,fHeader.LEventTime,slc.c_str());
+  sprintf(u,"  %d %d %s %s %d",fHeader.FEventTime,fHeader.LEventTime,slc_orig.c_str(),slc.c_str(),600);
+    slc_orig=slc;
     systemc+=u;
   systemc+="  > /tmp/getior.";
   char tmp[80];
   sprintf(tmp,"%d",getpid());
   systemc+=tmp;
   int i=system(systemc);
+   
   if(i){
-   cerr <<"  AMSSetupR::FillslowcontrolDB-E-UnableTo "<<systemc<<endl;
+   cerr <<"  AMSSetupR::FillslowcontrolDB-E-UnableTo "<<systemc<<" "<<i<<endl;
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
-   return false; 
+   if((i&255) || (i>>8)!=4)return false; 
+   AMSNtuple::Bell();
   }
   else{
    cout <<"  AMSSetupR::FillslowcontrolDB-I- "<<systemc<<endl;
@@ -547,13 +558,14 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    return true;
    }
 }
+return true;
+}
 else{
     cerr<<" AMSSetupR::FillSlowcontrolDB-E-UnableToToGetami2rootBecauseSomeVarAreNull"<<endl;
 return false;
 }
 }
 else{
-fbin.close();
 cout <<" FillSlowControlDB-I-OPenedFile "<<slc<<endl;
 return true;
 }

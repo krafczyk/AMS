@@ -4,24 +4,41 @@
 #include "TNamed.h"
 #include "TFile.h"
 #include "TTree.h"
+#include <stdlib.h>
 #include <climits>
 #include <cstring>
+#include <iostream>
 
 class SubType{
-  std::map<unsigned int,float> _table;
  public:
+  std::map<unsigned int,float> _table;
   TString tag;
   SubType(){};
- SubType(int i):number(i){};
+
+  SubType(int i):number(i){};
   int number;
-
-  void Add(unsigned int time, float val){
-    _table.insert(std::pair<unsigned int,float>(time,val));
+  
+  int Add(unsigned int time, float val){
+    std::map<unsigned int,float>::iterator it=_table.find(time);
+    
+    // appending data
+    if(it==_table.end()){
+      _table.insert(std::pair<unsigned int,float>(time,val));
+      return 0;
+    }
+    // replacing data
+    else{
+      it->second=val;
+      return 2;
+    }
+    
+    return 1;
   }
-
-  float Find(unsigned int timestamp,float frac, int flag){
+  
+  //  float Find(unsigned int timestamp,float frac, int flag){
+  int Find(unsigned int timestamp, float &val, float frac, int flag){
     std::map<unsigned int,float>::iterator it=_table.lower_bound(timestamp);
-    if(it==_table.end()) return -99999.;
+    if(it==_table.end()) return 1;
     unsigned int tmin=it->first;
     float min=it->second;
     it++;
@@ -30,27 +47,28 @@ class SubType{
     float dtmin=(timestamp-tmin)+frac;
     float dtmax=(tmax-timestamp)-frac;
     if(flag==2){
-      printf("SlowControlEl::Find-W- Polynomial fit not yet implemented, fall back to linear\n");
+      std::cerr<<"SubType::Find Polynomial fit not yet implemented, fall back to linear"<<std::endl;
       flag=1;
     }
     else if(flag==0){
-      if( dtmin < dtmax) return min;
-      else return max;
+      if( dtmin < dtmax)val=min;//  return min;
+      else val=max;
+      return 0;
     }else if(flag==1){
-      return (dtmin*min+dtmax*max)/(dtmin+dtmax);
+      val=(dtmin*min+dtmax*max)/(dtmin+dtmax);
+      return 0;
     }else{
-      printf("SlowControlEl::Find-W- Polynomial illegal value of flag %d\n",flag);
-      return -99999;      
+      std::cerr<<"SubType::Find illegal value of flag "<<flag<<std::endl;
+      return 2;      
     }
-    return -99999;      
+    return 3;      
   }
   unsigned int GetTime(int order){
-    if(order>=(int)_table.size()) return -999999;
+  //  if(order>=(int)_table.size()) return -999999;
     std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
     return it->first;
   }
-
   float GetValue(int order){
     if(order>=(int)_table.size()) return -999999;
     std::map<unsigned int,float>::iterator it=_table.begin();
@@ -61,11 +79,12 @@ class SubType{
 
   int getnelem(){return (int)_table.size();}
   ClassDef(SubType,1);
+  friend class AMSSetupR;
 };
 
 class DataType{
-  std::map<int,SubType> subtypes;
  public:
+  std::map<int,SubType> subtypes;
   DataType(){};
  DataType(int i):number(i){};
   int number;
@@ -114,11 +133,12 @@ class DataType{
   int getnelem(){return (int)subtypes.size();}
   
   ClassDef(DataType,1);
+  friend class AMSSetupR;
 };
 
 class Node:public TNamed{
-  std::map<int,DataType> datatypes;
  public:
+  std::map<int,DataType> datatypes;
  Node():TNamed("default","default"){};
  Node(char *name):TNamed(name,name){};
  Node(char *name1,char *name2):TNamed(name1,name2){};
@@ -167,31 +187,30 @@ class Node:public TNamed{
     return &it->second;
   }
 
-  void AddNode(Node* node){
-    for(int i=0;i<(int)node->datatypes.size();i++){
-      DataType* dt=Append(node->GetDataTypeN(i));
-      for(int j=0;j<(int)node->GetDataTypeN(i)->getnelem();j++){
-	SubType *st=dt->Append(node->GetDataTypeN(i)->GetSubTypeN(j));
-	for(int k=0;k<node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++)
-	  st->Add(node->GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k),node->GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k));
-      }
-    }
-  }
-
   int getnelem(){return (int)datatypes.size();}
   ClassDef(Node,1);
+  friend class AMSSetupR;
 };
 
 
-class SlowControlDB: public TTree
+class SlowControlDB//: public TTree
 {  
  private:
   static SlowControlDB* head;
+ public:
   unsigned int begin;
   unsigned int end;
- public:
-  SlowControlDB():TTree("SlowControlDB","SlowControlDB"){SetDirectory(0);};
-  
+  unsigned int uncompleted;
+  std::map<std::string,Node> nodemap;
+  std::map<std::string,unsigned int> searchmap;
+
+  SlowControlDB(){
+    nodemap.clear();
+    searchmap.clear();
+  };//:TTree("SlowControlDB","SlowControlDB"){SetDirectory(0);};
+
+  int GetEntries(){return (int)nodemap.size();}
+
   /// Get the pointer to the DB
   static SlowControlDB* GetPointer(){
     if(!head)head=new SlowControlDB();
@@ -199,11 +218,9 @@ class SlowControlDB: public TTree
   }
 
   /// Get the pointer to the DB
-  static SlowControlDB* KillPointer(){
+  static void  KillPointer(){
     delete head;
     head=0;  //VC
-    head=new SlowControlDB();
-    return head;
   }
 
   /// destructor
@@ -214,18 +231,19 @@ class SlowControlDB: public TTree
 
   /// Load the file from an already opened ROOT File 
   bool Load(TFile* f,unsigned int minT=0,unsigned int maxT=UINT_MAX,int debug=0);
+
+  bool SaveToFile(const char* fname,int debug=0);
   
+  int AppendNode(Node* copynode);
+  
+  bool BuildSearchIndex(int debug=0);
+
   Node GetNode(char* name){
-    Node toReturn(name,name);
-    Node *node=0;
-    SetBranchAddress(name,&node);
-    for(int i=0;i<GetEntries();i++){
-      GetEntry(i);
-      if(node)
-	toReturn.AddNode(node);
-    }
-    delete node;
-    return toReturn;
+    std::map<std::string,Node>::iterator it=nodemap.find(std::string(name));
+    if(it==nodemap.end())
+      std::cerr<<"node "<<name<<" not found"<<std::endl;
+
+    return it->second;
   }
 
   /// Returns the value of a quantity with a given name at a given timestamp
@@ -243,29 +261,41 @@ class SlowControlDB: public TTree
   
 	 */
   int GetData(char* nname,int dt, int st, unsigned int timestamp,float frac,float &val,int flag=1){
-    
     SubType *subtype=GetNode(nname).GetDataType(dt)->GetSubType(st);
-    if(!st) return 1;
+    if(!st){
+      std::cerr<<"SlowControlDB::GetData Node"<<nname<<" DT "<<dt<<" ST "<<st<<" not found"<<std::endl;
+      return 1;
+    }
 
-    val=subtype->Find(timestamp,frac,flag);
-
-    if(val==-99999.)return 2;
-    else return 0;
+    return subtype->Find(timestamp,val,frac,flag);
   }
 
   /// Print infos about all the members of the DB
-  void Print(const Option_t* aa=0, int debug=0){
-    if(debug)printf("looking for %s in %i entries\n",aa,(int)GetEntries());
-    Node *node=0;
-    SetBranchAddress(aa,&node);
-
-    for(int i=0;i<(int)GetEntries();i++){
-      GetEntry(i);
-      printf("Name %s - data entries %i\n",node->GetName(),node->getnelem());
+  void Print(const Option_t* aa=0, int level=0){
+    if(level<0)std::cout<<"looking for "<<aa<<std::endl;
+    
+    for(std::map<std::string,Node>::iterator it=nodemap.begin();it!=nodemap.end();it++){
+      std::cout<<"Name "<<it->second.GetName()<<" - data types "<<it->second.getnelem()<<std::endl;
+      
+      if(abs(level)<2)continue;
+      for(int i=0;i<(int)it->second.getnelem();i++){
+	std::cout<<"node "<<i<<" " <<it->second.GetName()<< " dt "<<it->second.GetDataTypeN(i)->number<<" entries "<<it->second.GetDataTypeN(i)->getnelem()<<std::endl;
+	if(abs(level)<3)continue;
+	for(int j=0;j<it->second.GetDataTypeN(i)->getnelem();j++){
+	  std::cout <<it->second.GetDataTypeN(i)->GetSubTypeN(j)->getnelem()<<" values for entry "<<j<<" (dt "<<it->second.GetDataTypeN(i)->number<<") "<<it->second.GetDataTypeN(i)->GetSubType(j)->tag<<std::endl;
+	  if(abs(level)<4)continue;
+	  for(int k=0;k<it->second.GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++){
+	    std::cout<<"time "<<it->second.GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k)<<" val "<<it->second.GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k)<<std::endl;
+	  }
+	}
+      }
+      return;
     }
-    return;
   }
-  ClassDef(SlowControlDB,2);
+
+
+  ClassDef(SlowControlDB,3);
+  friend class AMSSetupR;
 };
 
 #endif

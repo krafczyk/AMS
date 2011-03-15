@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.6 2011/03/12 02:46:23 choutko Exp $
+//  $Id: ami2root.C,v 1.7 2011/03/15 01:08:02 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -27,6 +27,7 @@ using namespace std;
 map<int,vector<int> > ParseConfigFile(const char* fnam, int debug){
   ifstream input(fnam,ios::in);
   map<int,vector<int> > toReturn;
+  
   
   char *p;
   string line;
@@ -95,13 +96,16 @@ bool check_selection(map<int,vector<int> > select,int node, int datatype, int de
 }
 
 int main(int argc, char *argv[]){
-  if(argc<3||argc>5){
-    printf("USAGE %s <begin> <end> <rootfile> (<debug>)\n",argv[0]);
-    exit(1);
+  if(argc<6||argc>7){
+    printf("USAGE %s <begin> <end> <rootfilei> <rootfileo> <timeout> (<debug>)\n",argv[0]);
+    return 1;
   }
-  
+  time_t timnow;
+  time(&timnow);  
+  unsigned int notcompleted=1;
   time_t start=atoi(argv[1]);
   time_t end=atoi(argv[2]);
+  time_t timeout =atol(argv[5]);
   int shift=0;
    if(getenv("AMI2ROOTSHIFT")){
      shift=atol(getenv("AMI2ROOTSHIFT"));
@@ -109,7 +113,7 @@ int main(int argc, char *argv[]){
     cout << "SHIFT "<<shift<<endl; 
  // set debug level
   int debug=0;
-  if(argc==5)debug=atoi(argv[4]);
+  if(argc==7)debug=atoi(argv[6]);
   // map to specify which node address and which datatype should be taken into account
   map<int,vector<int> > select;
     char * config=getenv("SCDBConfig");
@@ -141,19 +145,37 @@ int main(int argc, char *argv[]){
   if (xmlrpc_init(&s, xmlurl, 1)) {
     /* xmlrpc already printd the problem */
     cerr <<" unable to connect to "<<host<<endl;
-    exit(3);
-  }
-
-  // initialize output file
-  TFile *file=new TFile(argv[3],"recreate");
-  if(!file || file->IsZombie()){
-    cerr<<" unable to open file "<<endl;
     exit(2);
   }
+  SlowControlDB* scdb=SlowControlDB::GetPointer();
+  if(scdb && scdb->Load(argv[3],start,end,1)){
+     scdb->BuildSearchIndex(1);
+     cout <<"  input file "<<argv[3]<<endl;
+  }
+  else{
+   SlowControlDB::KillPointer();
+   scdb=0;
+}
+  if(scdb){
+     cout <<"   Uncompleted "<<scdb->uncompleted <<endl;
+  } 
+  TFile *file=new TFile(argv[4],"recreate");
+  if(!file || file->IsZombie()){
+    cerr<<" unable to open output file "<<argv[4]<<endl;
+    exit(3);
+  }
   // initialize output tree
+
+
+
+    
+
   TTree *tree=0;
   tree=new TTree("SlowControlDB","SlowControlDB");
 
+
+
+       bool tm=false;    
 
   // loop over node types available at AMI
   int nnodes=0;
@@ -185,8 +207,13 @@ int main(int argc, char *argv[]){
       data_types** datatypes=get_data_types(node_numbers[num]->node_type_name,&ndata_types);
 
       DataType *datatype=0;
-      for(int data_type=0;data_type<ndata_types;data_type++){
-
+        time_t t1=time(&t1);
+        if(t1-timnow>timeout){
+          cerr<< "  TimeOut "<<endl;
+          tm=true;
+          goto finish;
+        }
+       for(int data_type=0;data_type<ndata_types;data_type++){
 	// check if datatype is in selection
 	if(!check_selection(select,node_numbers[num]->node_number,datatypes[data_type]->data_type,debug))continue;
 
@@ -203,30 +230,68 @@ int main(int argc, char *argv[]){
 	subtype->number=datatypes[data_type]->subtype;
 	subtype=datatype->Append(subtype);
 	subtype->tag=datatypes[data_type]->name;
+        //  only read valuesfrom ami if not found in scdb
+        bool read=scdb==NULL;
+        std::map<std::string,Node>::iterator it;
+        if(!read){        
+            it=scdb->nodemap.find(std::string(nname));
+            if(it==scdb->nodemap.end())read=true;
+        }
+        if(!read){
+           std::map<int,DataType>::iterator itd;
+            itd=it->second.datatypes.find(datatype->number);
+            if(itd==it->second.datatypes.end())read=true;
+            else{
+              std::map<int,SubType>::iterator its;
+              its=itd->second.subtypes.find(subtype->number);
+              if(its==itd->second.subtypes.end())read=true;
+              else{
+    	if(its->second._table.size())cout <<" tag read from old file "<<subtype->tag<<" "<<its->second._table.size()<<endl;  
+                for(std::map<unsigned int,float>::iterator itv=its->second._table.begin();itv!=its->second._table.end();itv++){
+          	  subtype->Add(itv->first,itv->second);
+                 }
+              }
+            }
+
+          }
+        if(read){        
 	// read values for selected NA/DT/ST in given time range from AMI
  	int nval=0;
+
 	data_vals** vals=0;
          vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start+shift-600,end+shift+600, &nval);
+         if(!vals){
+           cerr<<"  Unable to get values "<<endl;
+           goto finish;
+         }      
 	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
 	for(int ii=0;ii<nval;ii++){
 	  subtype->Add(vals[ii]->timestamp-shift,vals[ii]->val);
-      //    cout <<" timestamp "<<vals[ii]->val<<" "<<vals[ii]->timestamp-shift<<" "<<endl;
          }
       }
-      
+      }
       // create and fill node branch
       TBranch* branch=tree->Branch(nname,"Node",&node);
       branch->Fill();
     }
   }
+finish:
   // fill tree
   tree->Branch("begin", &start,"start/i");
   tree->Branch("end", &end,"end/i");
+  if(!tm)notcompleted=0;
+  tree->Branch("uncompleted", &notcompleted,"uncompleted/i");
   tree->Fill();
   
   // write file
   file->Write();
   file->Close();
-  cout <<"ALLOK"<<endl;
-  return 0;
+  if(!tm){
+     cout <<"ALLOK"<<endl;
+      return 0;
+   }
+   else{
+     cout <<"TMOUT"<<endl;
+      return 4;
+   }
 }

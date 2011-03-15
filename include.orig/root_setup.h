@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.12 2011/03/12 01:52:48 choutko Exp $
+//  $Id: root_setup.h,v 1.13 2011/03/15 01:08:03 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -65,6 +65,7 @@ ClassDef (Node,1) //Node
 public:
 unsigned int fBegin; ///<Begin Validity
 unsigned int fEnd;  /// <End Validity
+unsigned int UnCompleted; ///< 0 if completed
 typedef multimap <string,Element> etable_m;
 typedef multimap <string,Element>::iterator etable_i;
 etable_m fETable;   ///< Main Map of subtype name : elements
@@ -73,7 +74,7 @@ typedef map<unsigned long long,string>::iterator rtable_i;
 rtable_m fRTable;  ///< Conversion Map (To speed up the search)
 void print();
 SlowControlR():fBegin(0),fEnd(0){}
-ClassDef (SlowControlR,1) //SlowControlR
+ClassDef (SlowControlR,2) //SlowControlR
   /// Returns the value of a quantity with a given name at a given timestamp
 	/*! 
 	 \param elementname       the name of the desired quantity
