@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.52 2011/03/09 09:00:19 oliva Exp $
+// $Id: tkdcards.C,v 1.53 2011/03/17 08:08:33 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -181,12 +181,21 @@ void TRMCFFKEY_DEF::init(){
   // Noise type 
   NoiseType = 3;
   // DSP seed strip S/N threshold per layer (updated 03/03/2011)
+  //* Settings for test beam */
+  DSPSeedThr[0][0] = 3.500; DSPSeedThr[0][7] = 3.500; DSPSeedThr[0][8] = 3.500; // x: single layer on plane
+  DSPSeedThr[0][1] = 3.500; DSPSeedThr[0][2] = 3.500; DSPSeedThr[0][3] = 3.500; // x: two layers on a single plane
+  DSPSeedThr[0][4] = 3.500; DSPSeedThr[0][5] = 3.500; DSPSeedThr[0][6] = 3.500; // x: two layers on a single plane
+  DSPSeedThr[1][0] = 3.500; DSPSeedThr[1][7] = 3.500; DSPSeedThr[1][8] = 3.500; // y: single layer on plane
+  DSPSeedThr[1][1] = 3.500; DSPSeedThr[1][2] = 3.500; DSPSeedThr[1][3] = 3.500; // y: two layers on a single plane
+  DSPSeedThr[1][4] = 3.500; DSPSeedThr[1][5] = 3.500; DSPSeedThr[1][6] = 3.500; // y: two layers on a single plane
+  /* Settings for "space" --> future use
   DSPSeedThr[0][0] = 3.500; DSPSeedThr[0][7] = 3.500; DSPSeedThr[0][8] = 3.500; // x: single layer on plane
   DSPSeedThr[0][1] = 3.875; DSPSeedThr[0][2] = 3.875; DSPSeedThr[0][3] = 3.875; // x: two layers on a single plane
   DSPSeedThr[0][4] = 3.875; DSPSeedThr[0][5] = 3.875; DSPSeedThr[0][6] = 3.875; // x: two layers on a single plane
   DSPSeedThr[1][0] = 3.625; DSPSeedThr[1][7] = 3.625; DSPSeedThr[1][8] = 3.625; // y: single layer on plane
   DSPSeedThr[1][1] = 4.000; DSPSeedThr[1][2] = 4.000; DSPSeedThr[1][3] = 4.000; // y: two layers on a single plane
   DSPSeedThr[1][4] = 4.000; DSPSeedThr[1][5] = 4.000; DSPSeedThr[1][6] = 4.000; // y: two layers on a single plane
+  */
   // DSP neigboring strips S/N threshold (updated 03/03/2011)
   DSPNeigThr[0] = 1.;
   DSPNeigThr[1] = 1.;
@@ -194,8 +203,8 @@ void TRMCFFKEY_DEF::init(){
   // TrSim2010 Parameters
 
   // ADC vertical MIP value
-  TrSim2010_ADCMipValue[0] = 32.012; // TO BE UPDATED/TUNED
-  TrSim2010_ADCMipValue[1] = 29.393; // TO BE UPDATED/TUNED
+  TrSim2010_ADCMipValue[0] = 30.9; // TUNING1
+  TrSim2010_ADCMipValue[1] = 30.4; // TUNING1
   // Apply p-strip deformation?
   TrSim2010_PStripCorr = 0; // TO BE CHECKED WITH REAL DATA
   // Saturation limit for strips

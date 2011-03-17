@@ -121,7 +121,10 @@ double TrSimCluster::GetCofG(int nstrips) {
 
 
 double TrSimCluster::GetX(int iside, int tkid, int nstrips, int imult) {
-  return TkCoo::GetLocalCoo(tkid,float((1-iside)*640 + GetAddressCycl(FindSeedIndex()) + GetCofG(nstrips)),imult);
+  double X = 0.;
+  if (iside==0) X = TkCoo::GetLocalCoo(tkid,float(640+GetAddressCycl(FindSeedIndex())+GetCofG(nstrips)),imult);
+  else          X = TkCoo::GetLocalCoo(tkid,float(GetAddress(FindSeedIndex())+GetCofG(nstrips)),imult);
+  return X;
 }
 
 
@@ -198,25 +201,25 @@ void TrSimCluster::ApplySaturation(double maxvalue) {
 }
 
 
-void TrSimCluster::ApplyGain(int side, int tkid) {
+void TrSimCluster::ApplyGain(int iside, int tkid) {
   TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
   for (int ist=0; ist<GetWidth(); ist++) {
-    int   address = GetAddressCycl(ist) + 640*(1-side);
+    int   address = (iside==0) ? GetAddressCycl(ist) + 640 : GetAddress(ist);
     int   iva     = int(address/64);
     if ( (iva<0)||(iva>15) ) { 
        printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,address);
        return; 
     }
-    float gain    = ladpar->GetGain(side)*ladpar->GetVAGain(iva);
+    float gain    = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
     if (ladpar->GetVAGain(iva)<0.02) SetSignal(ist,0.); // VA with no gain!
     else                             SetSignal(ist,GetSignal(ist)/gain);
   }
 }
 
 
-void TrSimCluster::ApplyAsymmetry(int side) {
+void TrSimCluster::ApplyAsymmetry(int iside) {
   for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
-    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrParDB::Head->GetAsymmetry(side));
+    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrParDB::Head->GetAsymmetry(iside));
   } 
 }
 

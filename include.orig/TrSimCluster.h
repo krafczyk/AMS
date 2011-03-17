@@ -92,9 +92,9 @@ class TrSimCluster {
   //! Apply a saturation value to the cluster (from datacard)
   void   ApplySaturation(double maxvalue);
   //! Apply the gain (from TrParDB)
-  void   ApplyGain(int side, int tkid);
+  void   ApplyGain(int iside, int tkid);
   //! Apply asymmetry factor (from TrParDB)
-  void   ApplyAsymmetry(int side);
+  void   ApplyAsymmetry(int iside);
   //! Apply the non-linearity stretching function (p-side)
   void   ApplyStripNonLinearity();
 };

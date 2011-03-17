@@ -339,27 +339,27 @@ float TrRecHitR::GetProb()   {
 
 
 float TrRecHitR::GetSignalCombination() {
-  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) { 
-    float sig_x = GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
-    float sig_y = GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN;
+  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) {
+    float sig_x = GetXCluster()->GetTotSignal(opt);
+    float sig_y = GetYCluster()->GetTotSignal(opt);
     return (sig_x + sig_y)/2;     
   }
   else if (GetXCluster()!=0) { 
-    return GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    return GetXCluster()->GetTotSignal(opt);
   }
   else if (GetYCluster()!=0) {
-    return GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    return GetYCluster()->GetTotSignal(opt);
   }
-  else { 
-    return 0;
-  }
+  return 0;
 }
 
 
 float TrRecHitR::GetSignalCorrelation() {
+  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN;
   if ((GetXCluster()!=0)&&(GetYCluster()!=0)) {
-    float sig_x = GetXCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
-    float sig_y = GetYCluster()->GetTotSignal(TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_x = GetXCluster()->GetTotSignal(opt);
+    float sig_y = GetYCluster()->GetTotSignal(opt);
     return sig_x - sig_y;
   }
   else if (GetXCluster()!=0) {
@@ -368,9 +368,7 @@ float TrRecHitR::GetSignalCorrelation() {
   else if (GetYCluster()!=0) {
     return  1000; 
   }
-  else {
-    return 10000;
-  }
+  return 10000;
 }
 
 
