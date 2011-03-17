@@ -6,7 +6,7 @@ ROOTCFLAGS      = $(shell $(ROOTSYS)/bin/root-config --cflags)
 ROOTLIBS        = $(shell $(ROOTSYS)/bin/root-config --libs)
 CFLAGS         += $(ROOTCFLAGS)
 
-AMICLIB=/f7dah1/aachen/users/mmilling/analysis/AMI/AMI_clib/
+AMICLIB=/afs/cern.ch/ams/Offline/AMI_clib
 XMLRPCLIB=$(AMICLIB)/xmlrpc_lib
 CFLAGS+=  -I$(XMLRPCLIB)/include
 XRPCC=$(XMLRPCLIB)/bin/xmlrpc-c-config

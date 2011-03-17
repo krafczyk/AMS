@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.7 2011/03/15 01:08:02 choutko Exp $
+//  $Id: ami2root.C,v 1.8 2011/03/17 15:34:37 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -262,6 +262,7 @@ int main(int argc, char *argv[]){
          vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start+shift-600,end+shift+600, &nval);
          if(!vals){
            cerr<<"  Unable to get values "<<endl;
+           tm=true;
            goto finish;
          }      
 	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
