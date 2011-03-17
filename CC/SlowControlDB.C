@@ -19,7 +19,6 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
     std::cerr<<"file not found"<<std::endl;
     return false;
   }
-  //    if(head) delete head;
   
   TTree* _tree=(TTree*)f->Get("SlowControlDB");
   if(!_tree){
@@ -90,7 +89,8 @@ int SlowControlDB::AppendNode(Node* copynode)
   }
     
   for(int i=0;i<(int)copynode->getnelem();i++)
-    DataType* dt=it->second.Append(copynode->GetDataTypeN(i));
+    //    DataType* dt=
+    it->second.Append(copynode->GetDataTypeN(i));
   
   return 0;
 }

@@ -43,7 +43,7 @@ map<int,vector<int> > ParseConfigFile(const char* fnam, int debug){
 	    n++;
 	    istr >> tmp;
 
-	    if(debug)printf("%s %i\n",tmp.c_str(),strtol( tmp.c_str(), & p, 16 ));
+	    if(debug)printf("%s %li\n",tmp.c_str(),strtol( tmp.c_str(), & p, 16 ));
 	    if(n==1){
 	      long n = strtol( tmp.c_str(), & p, 16 );
 	      node=n;
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
 
   // initialize output file
   char foutname[100];
-  sprintf(foutname,"SCDB.%i.%i.root",start,end);
+  sprintf(foutname,"SCDB.%i.%i.root",(int)start,(int)end);
   TFile *file=new TFile(foutname,"update");
   
   // initialize output tree

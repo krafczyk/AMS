@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
     printf("node %i %s entries %i\n",i,node->GetName(),node->GetDataTypeN(i)->getnelem());
     if(level==0)continue;
     for(int j=0;j<node->GetDataTypeN(i)->getnelem();j++){
-      printf("%i values for entry %i %s\n",node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem(),j,node->GetDataTypeN(i)->GetSubType(j)->tag.c_str());
+      printf("%i values for entry %i %s\n",node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem(),j,(const char*)node->GetDataTypeN(i)->GetSubType(j)->tag);
       if(level==1)continue;
       for(int k=0;k<node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++){
 	printf("time %i val %.2f\n",node->GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k),node->GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k));

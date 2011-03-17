@@ -580,7 +580,7 @@ return false;
 bool AMSSetupR::LoadSlowcontrolDB(const char* file){
   SlowControlDB::KillPointer();
   SlowControlDB* scdb=SlowControlDB::GetPointer();
-  if(scdb && scdb->Load(file,fHeader.FEventTime,fHeader.LEventTime,1)){
+  if(scdb && scdb->Load(file,fHeader.FEventTime,fHeader.LEventTime)){
     scdb->BuildSearchIndex(0);
     Add(scdb);
   }
@@ -593,7 +593,7 @@ bool AMSSetupR::LoadSlowcontrolDB(const char* file){
 
 
 void AMSSetupR::SlowControlR::print(){
-for( etable_i i=fETable.begin();i!=fETable.end();i++){
-if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
-}
+  for( etable_i i=fETable.begin();i!=fETable.end();i++){
+    if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
+  }
 }

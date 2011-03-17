@@ -18,6 +18,9 @@ class SubType{
   SubType(int i):number(i){};
   int number;
   
+  /// destructor
+  virtual ~SubType(){};
+
   int Add(unsigned int time, float val){
     std::map<unsigned int,float>::iterator it=_table.find(time);
     
@@ -37,47 +40,69 @@ class SubType{
   
   //  float Find(unsigned int timestamp,float frac, int flag){
   int Find(unsigned int timestamp, float &val, float frac, int flag){
+    // is no entries return error -1
+    if(_table.size()==0)return -1;
+
+    // try to find lower bound for given time
     std::map<unsigned int,float>::iterator it=_table.lower_bound(timestamp);
+    
+    // if no lower bound found (timestamp < lowest available time) return error 1
     if(it==_table.end()) return 1;
+
+    // get time and value of lower bound entry
     unsigned int tmin=it->first;
     float min=it->second;
+
+    // increment iterator to upper bound 
     it++;
+
+    // get time and value of upper bound entry
     unsigned int tmax=it->first;
     float max=it->second;
+    
+    // get dt of timestamp to lower/upper bound
     float dtmin=(timestamp-tmin)+frac;
     float dtmax=(tmax-timestamp)-frac;
+
     if(flag==2){
       std::cerr<<"SubType::Find Polynomial fit not yet implemented, fall back to linear"<<std::endl;
       flag=1;
     }
-    else if(flag==0){
-      if( dtmin < dtmax)val=min;//  return min;
+
+    // return lower/upper value based on smaller dt to timestamp
+    if(flag==0){
+      if( dtmin < dtmax)val=min;
       else val=max;
       return 0;
-    }else if(flag==1){
+    }
+
+    // return linear interpolation between lower/upper bound
+    if(flag==1){
       val=(dtmin*min+dtmax*max)/(dtmin+dtmax);
       return 0;
-    }else{
-      std::cerr<<"SubType::Find illegal value of flag "<<flag<<std::endl;
-      return 2;      
     }
-    return 3;      
+
+    // return error - fit method not found
+    std::cerr<<"SubType::Find illegal value of flag "<<flag<<std::endl;
+    return 2;      
   }
+  
   unsigned int GetTime(int order){
-  //  if(order>=(int)_table.size()) return -999999;
+    if(order>=(int)_table.size()) std::cerr<<"Warning! SubType::GetTime requested entry "<<order<<" larger than map size "<<_table.size()<<std::endl;
     std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
     return it->first;
   }
+
   float GetValue(int order){
-    if(order>=(int)_table.size()) return -999999;
+    if(order>=(int)_table.size()) std::cerr<<"Warning! SubType::GetValue requested entry "<<order<<" larger than map size "<<_table.size()<<std::endl;
     std::map<unsigned int,float>::iterator it=_table.begin();
     for(int ii=0;ii<order;ii++) it++;
     return it->second;
-
   }
 
   int getnelem(){return (int)_table.size();}
+
   ClassDef(SubType,1);
   friend class AMSSetupR;
 };
@@ -89,6 +114,9 @@ class DataType{
  DataType(int i):number(i){};
   int number;
   
+  /// destructor
+  virtual ~DataType(){};
+
   SubType* GetSubType(int i){
     std::map<int,SubType>::iterator it;
     it=subtypes.find(i);
@@ -122,11 +150,9 @@ class DataType{
       subtypes.insert(std::pair<int,SubType>(st->number,*st));
       it=subtypes.find(st->number);
     }
-    //    else delete st;
     for(int i=0;i<st->getnelem();i++)
       it->second.Add(st->GetTime(i),st->GetValue(i));
-    //    delete st;
-    //    }
+
     return &it->second;
   }
 
@@ -143,7 +169,10 @@ class Node:public TNamed{
  Node(char *name):TNamed(name,name){};
  Node(char *name1,char *name2):TNamed(name1,name2){};
   int number;
-  
+
+  //destructor
+  virtual ~Node(){};
+
   DataType* GetDataType(int i){
     std::map<int,DataType>::iterator it;
     it=datatypes.find(i);
@@ -162,7 +191,6 @@ class Node:public TNamed{
     std::map<int,DataType>::iterator it;
     it=datatypes.find(dt->number);
     if(it!=datatypes.end()){
-      //      printf("DataType %i already found\n",dt->number);
       return false;
     }
     datatypes.insert(std::pair<int,DataType>(dt->number,*dt));
@@ -266,7 +294,7 @@ class SlowControlDB//: public TTree
       std::cerr<<"SlowControlDB::GetData Node"<<nname<<" DT "<<dt<<" ST "<<st<<" not found"<<std::endl;
       return 1;
     }
-
+    
     return subtype->Find(timestamp,val,frac,flag);
   }
 

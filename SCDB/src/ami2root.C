@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.8 2011/03/17 15:34:37 choutko Exp $
+//  $Id: ami2root.C,v 1.9 2011/03/17 16:27:47 mmilling Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -45,7 +45,7 @@ map<int,vector<int> > ParseConfigFile(const char* fnam, int debug){
 	    n++;
 	    istr >> tmp;
 
-	    if(debug)printf("%s %i\n",tmp.c_str(),strtol( tmp.c_str(), & p, 16 ));
+	    if(debug)printf("%s %li\n",tmp.c_str(),strtol( tmp.c_str(), & p, 16 ));
 	    if(n==1){
 	      long n = strtol( tmp.c_str(), & p, 16 );
 	      node=n;
@@ -133,14 +133,14 @@ int main(int argc, char *argv[]){
     }  
 
   xmlrpcstr_t s;
-  char amihost[80];
+
   char xmlurl[160];
   char *host=getenv("SCDBHost");
   char hostlocal[]="ams.cern.ch:8081";
-//  sprintf(amihost, "pcposk0:8081");
+
   if(! (host && strlen(host)))host=hostlocal;
   sprintf(xmlurl, "http://%s/AMI/insert/call/xmlrpc", host);
-  cout <<xmlurl<<endl;
+
   // prepare xmlrpc environment
   if (xmlrpc_init(&s, xmlurl, 1)) {
     /* xmlrpc already printd the problem */
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
 
 
 
-       bool tm=false;    
+  bool tm=false;    
 
   // loop over node types available at AMI
   int nnodes=0;
