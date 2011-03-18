@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.255 2011/03/14 18:07:15 sdifalco Exp $
+//  $Id: root.C,v 1.256 2011/03/18 10:12:41 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1047,31 +1047,34 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fa
 }
 
 //-----------------------------
-bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max){
+bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_numb, int ACC_max){
 /*
- *  
- *  Created by Andrea Contin on 06/03/2011.
- *
- * GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max, bool firsttime)
- *
- * 
- *
- * HT_factor = multiplicative factor w.r.t. real data HT thrershold
- *
- * HT_factor = multiplicative factor w.r.t. real data HT thrershold
- *
- * TOF_type = HT  --> TOF High Threshold (Z>=1)
- *            SHT --> TOF Super High Threshold (Z>1)
- *
- * TOF_max  = 3   --> 3 out of 4 layers
- *          = 4   --> 4 out of 4 layers
- *
- * ACC_max  = n   --> at most n ACC counters
- *          = -1  --> ACC not in the trigger
- *
- * for each event:	bool FTC=GetTofTrigFlags(HT_factor,SHT_factor,"HT",3,0);
- *               	bool BZ=GetTofTrigFlags(HT_factor,SHT_factor,"SHT",3,-1);
- *              	if(FTC || BZ) accept event ....
+*  
+*  Created by Andrea Contin on 06/03/2011.
+*
+* GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_numb, int ACC_max)
+*
+* 
+*
+* HT_factor = multiplicative factor w.r.t. real data HT thrershold
+*
+* HT_factor = multiplicative factor w.r.t. real data HT thrershold
+*
+* TOF_type = HT  --> TOF High Threshold (Z>=1)
+*            SHT --> TOF Super High Threshold (Z>1)
+*            FTZ --> slow TOF Super High Threshold (Z>1)
+*
+* TOF_numb = 3   --> at least 3 out of 4 layers
+*          = 4   --> 4 out of 4 layers
+*          for FTZ: = 0 -> (1&2)&(3&4), = 1 -> (1&2)&(3|4), = 2 -> (1|2)&(3&4), = 3 -> (1|2)&(3|4)
+*
+* ACC_max  = n   --> at most n ACC counters
+*          = -1  --> ACC not in the trigger
+*
+* for each event:	bool FTC=GetTofTrigFlags(HT_factor,SHT_factor,"HT",3,0);
+*               	bool BZ=GetTofTrigFlags(HT_factor,SHT_factor,"SHT",3,-1);
+*               	bool FTZ=GetTofTrigFlags(HT_factor,SHT_factor,"FTZ",0,-1);
+*              	if(FTC || BZ || FTZ) accept event ....
 */
 	
 	// values constant with time
@@ -1142,7 +1145,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 		2032,2042,2072,2082,3012,3062,3092,3082,4012,4062,
 		4072,4082
 	};                         // LBBS of the counter side which has the maximum threshold in one DAC
-
+	
 	// values dependent on time and/or setting of HV and thresholds
 	
 	float ht_data[68]={
@@ -1180,27 +1183,31 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 	float DAC_value_SHT[32];   // DAC values corresponding to the modified SHT thresolds
 	float ht_data_new[68];     // modified relative HT threshold (ADC ch.)
 	float sht_data_new[68];    // modified relative SHT threshold (ADC ch.)
-		
+	
 	// check input variables
 	
 	if(HT_factor<0) {
-		printf("Sci_Trigger_init ERROR --> wrong HT factor: %f\n",HT_factor);
+		printf("GetTofTrigFlags ERROR --> wrong HT factor: %f\n",HT_factor);
 		return false;
 	}
 	if(SHT_factor<0) {
-		printf("Sci_Trigger_init ERROR --> wrong SHT factor: %f\n",SHT_factor);
+		printf("GetTofTrigFlags ERROR --> wrong SHT factor: %f\n",SHT_factor);
 		return false;
 	}
-	if(TOF_type!="HT" && TOF_type!="SHT") {
-		printf("Sci_Trigger ERROR --> wrong TOF_type: %s\n",TOF_type.c_str());
+	if(TOF_type!="HT" && TOF_type!="SHT" && TOF_type!="FTZ") {
+		printf("GetTofTrigFlags ERROR --> wrong TOF_type: %s\n",TOF_type.c_str());
 		return false;
 	}
-	if(TOF_max!=3 && TOF_max!=4) {
-		printf("Sci_Trigger ERROR --> wrong TOF_max: %d\n",TOF_max);
+	if((TOF_type=="HT" || TOF_type=="SHT") && TOF_numb!=3 && TOF_numb!=4) {
+		printf("GetTofTrigFlags ERROR --> TOF_type=%s, wrong TOF_numb: %d\n",TOF_type,TOF_numb);
+		return false;
+	}
+	if(TOF_type=="FTZ" && (TOF_numb<0 || TOF_numb>3)) {
+		printf("GetTofTrigFlags ERROR --> TOF_type=FTZ, wrong TOF_numb: %d\n",TOF_numb);
 		return false;
 	}
 	if(ACC_max<-1 || ACC_max>8) {
-		printf("Sci_Trigger ERROR --> wrong ACC_max: %d\n",ACC_max);
+		printf("GetTofTrigFlags ERROR --> wrong ACC_max: %d\n",ACC_max);
 		return false;
 	}
 	
@@ -1278,14 +1285,30 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 			}
 		}
 	}
-	if(TOF_max==3){
-		TOF_OK=((layer_ok[0]&&layer_ok[1]&&layer_ok[2]) ||
-				(layer_ok[0]&&layer_ok[1]&&layer_ok[3]) ||
-				(layer_ok[0]&&layer_ok[2]&&layer_ok[3]) ||
-				(layer_ok[1]&&layer_ok[2]&&layer_ok[3]));
-	}else{
-		TOF_OK=(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]);
+
+	if(TOF_type=="HT" || TOF_type=="SHT"){
+		if(TOF_numb==3){
+			TOF_OK=((layer_ok[0]&&layer_ok[1]&&layer_ok[2]) ||
+					(layer_ok[0]&&layer_ok[1]&&layer_ok[3]) ||
+					(layer_ok[0]&&layer_ok[2]&&layer_ok[3]) ||
+					(layer_ok[1]&&layer_ok[2]&&layer_ok[3]));
+		}else{
+			TOF_OK=(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]);
+		}
 	}
+
+	if(TOF_type=="FTZ"){
+		if(TOF_numb==0){
+			TOF_OK=(layer_ok[0]&&layer_ok[1]&&layer_ok[2]&&layer_ok[3]);
+		}else if(TOF_numb==1){
+			TOF_OK=((layer_ok[0]&&layer_ok[1])&&(layer_ok[2]||layer_ok[3]));
+		}else if(TOF_numb==2){
+			TOF_OK=((layer_ok[0]||layer_ok[1])&&(layer_ok[2]&&layer_ok[3]));
+		}else if(TOF_numb==3){
+			TOF_OK=((layer_ok[0]||layer_ok[1])&&(layer_ok[2]||layer_ok[3]));
+		}
+	}
+	
 	return TOF_OK && ACC_OK;
 }
 //-----------------------------
