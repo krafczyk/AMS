@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.151 2011/03/11 10:44:48 mdelgado Exp $
+//  $Id: richrec.C,v 1.152 2011/03/18 14:54:26 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -571,11 +571,9 @@ void AMSRichRing::build(){
     if(!track) break;
 
     for(;track;track=track->next()){
-      if(RICRECFFKEY.recon[0]%10==2)
-	{if(build(track,10))k++;j++;}
-      else
-	{if(build(track))k++;j++;}
-
+      AMSRichRing *ring=build(track,10);
+      if(!ring) {ring=build(track,0);if(ring) ring->setstatus(dirty_ring);}
+      if(ring) k++;j++;
       if(trig==0 && _NoMoreTime()){
 	throw amsglobalerror(" AMSRichRing::build-E-Cpulimit Exceeded ");
       }
@@ -891,7 +889,7 @@ AMSRichRing* AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
   AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   if(ring && ring->_ptrack && ring->_ptrack->getpattern()>=0)return 0;
-  ring=build(ptrack);
+  ring=build(ptrack,10);if(!ring) ring=build(ptrack,0);
   return ring;
 
 
