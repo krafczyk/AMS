@@ -76,7 +76,7 @@ void TrSimSensor::SetDefaults() {
       _Cdec = TRMCFFKEY.TrSim2010_Cdec[1]; // pF
       _diff_type = TRMCFFKEY.TrSim2010_DiffType[1];
       _diff_radius = TRMCFFKEY.TrSim2010_DiffRadius[1]; // um
-      _nimplants = 2567;
+      _nimplants = 2568;
       _nreadout = 640;
       _implant_pitch = 27.5;
       break; 
@@ -116,9 +116,9 @@ bool TrSimSensor::IsReadoutStrip(int implantadd) {
   /* 
     Sensor Bonding Scheme
     S: 
-      - 2567 implantation strips
+      - 2568 implantation strips
       -  640 readout strips (642 possible positions) 
-      implantation 0000 0001 0002 0003 0004 0005 0006 0007 0008 0009 0010 0011 0012 ... 2555 2556 2557 2558 2559 2560 2561 2562 2563 2564 2565 2566
+      implantation 0000 0001 0002 0003 0004 0005 0006 0007 0008 0009 0010 0011 0012 ... 2555 2556 2557 2558 2559 2560 2561 2562 2563 2564 2565 2566 2567
       readout       000                 xxx                 001                 002           638                 xxx                 639
     K5 (one sensor):
       - 384 implantation strips
@@ -133,7 +133,7 @@ bool TrSimSensor::IsReadoutStrip(int implantadd) {
   */
   switch (GetSensorType()) {
     case kS: 
-      return ((implantadd%4)==0) && (implantadd!=4) && (implantadd!=2560) && (implantadd<=2566);
+      return ((implantadd%4)==0) && (implantadd!=4) && (implantadd!=2560) && (implantadd<=2567);
       break;
     case kK5: 
       return ( ((implantadd%2)==0) && (implantadd<382) ) || (implantadd==383);
@@ -286,10 +286,12 @@ TrSimCluster TrSimSensor::MakeImplantCluster(double senscoo, double sensangle) {
   * 
   */
   double coordimpl = senscoo*1.e4/GetImplantPitch(); // coordinate [implant pitch]
-  if ( (coordimpl<0)||(coordimpl>=GetNImplantStrips()) ) {
+  /* not-strictly needed
+  if ( (coordimpl<-0.5)||(coordimpl>GetNImplantStrips()+0.5) ) {
     if (WARNING) printf("TrSimSensor::MakeImplantCluster-W sensor coordinate out of the sensor (coord=%7.4f), returning an empty cluster.\n",senscoo);
     return TrSimCluster();
   }
+  */
   // charge sharing profile calculation
   double track_proj = fabs(tan(sensangle)*SUBSTRATEWIDTH)/GetImplantPitch();       // projection of the track [interstrip pitch] 
   double diffu_proj = fabs(GetDiffusionRadius()/cos(sensangle))/GetImplantPitch(); // projection of the diffusion radius [interstrip pitch] 
