@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.83 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.84 2011/03/19 16:19:02 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1035,6 +1035,382 @@ void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
     uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
   }
   tdc=tdo+slope*uv;
+}
+//--------------------------
+void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CFversion
+//used for "on flight" DB update after calib.job finished
+//
+ int lsflg(1);//0/1->use common/individual values for Lspeed 
+ integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
+ geant scp[TOF2GC::SCANPNT];
+ geant rlo[TOF2GC::SCANPNT];// relat.(to Y=0) light output
+ integer lps=1000;
+ geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
+ integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2],npm;
+ geant r,eff1,eff2;
+ integer sid,brt,endflab(0);
+ geant gna[2],qath,qdth,a2dr[2],tth,strat[2][2],ah2l[2];
+ geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
+ geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
+ geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
+ geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
+ geant a2drf[TOF2GC::SCBLMX][2];
+ geant p1s1,p2s1,p3s1,p4s1,p5s1,p6s1,p1s2,p2s2,p3s2,p4s2,p5s2,p6s2,nom,denom; 
+ char fname[80];
+ char name[80];
+ geant a2q,td2p[2];
+ int mrfp;
+//
+ geant asatl=20.;//(mev,~20MIPs),if E-dinode(1-end) higher - use it instead
+//                                 of anode measurements
+//
+ geant gaind[TOF2GC::SCBLMX][2][TOF2GC::PMTSMX];//buff.for dyn.pmts relat.gains
+ geant gnd[2][TOF2GC::PMTSMX];
+ int ipm; 
+//------------------------------
+  int ctyp,ntypes;
+  char datt[3];
+  char ext[80];
+  int date[2],year,mon,day,hour,min,sec;
+  uinteger iutct;
+  tm begin;
+  time_t utct;
+  uinteger verids[11],verid;
+//
+  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  strcpy(datt,"RD");
+  sprintf(ext,"%d",cfvers);//CFvers-file
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+//
+  strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> TOF2Brcal::setpars: Opening Calib_vers_list-file "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
+  if(!vlfile){
+    cout <<"<---- Error: missing vers.list-file !!? "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];//
+  }
+  utct=time_t(cfvers);
+  printf("      TofCflistRD-file begin_date: %s",ctime(&utct)); 
+  vlfile.close();
+//------------------------------------------------
+//
+//   --->  Read tof-channels calib-status file :
+//
+  ctyp=1;
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"TofCStat");//generic name
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
+  strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening TofCalibStatus-file : "<<fname<<'\n';
+  ifstream stfile(fname,ios::in); // open file for reading
+  if(!stfile){
+    cout <<"<---- Error: missing TofCalibStatus-file: "<<fname<<endl;
+    exit(1);
+  }
+//------------------------------
+//   --->  Read TOF-channels status values:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+     for(int ipr=0;ipr<2;ipr++){
+       stfile >> stat[cnum][ipr];//stat(s1),stat(s2)
+     }
+     cnum+=1; // sequential counter numbering(0-...)
+   } // --- end of bar loop --->
+   } // --- end of layer loop --->
+//
+   stfile >> endflab;//read endfile-label
+//
+   stfile.close();
+//
+   if(endflab==12345){
+     cout<<"      TofCalibStatus-file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TofCalibStatus-file !!!"<<endl;
+     exit(1);
+   }
+//--------------------------------------------------
+//
+//   --->  Read SideTimeDifferences/LightSpeed calibration file :
+//
+ endflab=0;
+ ctyp=2;
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"TofTdelv");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
+ strcpy(fname,"");
+ strcat(fname,name);
+ cout<<"      Opening TimeDiff/LightVelosity-file : "<<fname<<'\n';
+ ifstream tdcfile(fname,ios::in); // open  file for reading
+ if(!tdcfile){
+   cout <<"<---- Error: missing TimeDiff/LightVelosity-file !!! "<<fname<<endl;
+   exit(1);
+ }
+//
+ if(lsflg){// read bar indiv.Lspeed
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  
+       tdcfile >> lspeeda[ila][ibr];
+     }
+   }
+ }
+ else tdcfile >> speedl;// read average Lspeed
+//
+ cnum=0;
+ for(ila=0;ila<TOF2DBc::getnplns();ila++){
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  
+     tdcfile >> tdiff[cnum];
+     cnum+=1; // sequential counters numbering(0-...)
+   }
+ }
+//
+   tdcfile >> endflab;//read endfile-label
+//
+   tdcfile.close();
+//
+   if(endflab==12345){
+     cout<<"      TOF TimeDiff/LightVelosity-file is successfully read !"<<endl;
+   }
+   else{cout<<"<---- Error: problems with TOF TimeDiff/LightVelosity-file !!!"<<endl;
+     exit(1);
+   }
+//-----------------------------------------------------
+//
+//   --->  Read Tzeros/SlewingCorrections calibration file :
+//
+ endflab=0;
+ ctyp=3;
+ verid=verids[ctyp-1];//MC-versn or RD-utc
+ strcpy(name,"TofTzslw");//generic name
+ strcat(name,datt);
+ strcat(name,".");
+ sprintf(ext,"%d",verid);
+ strcat(name,ext);
+ strcpy(fname,"");
+ strcat(fname,name);
+ cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
+ ifstream tzcfile(fname,ios::in); // open  file for reading
+ if(!tzcfile){
+   cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
+   exit(1);
+ }
+//
+ tzcfile >> slpf;
+ for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+     tzcfile >> tzerf[ila][ibr];
+   } 
+ }
+//
+   tzcfile >> endflab;//read endfile-label
+//
+   tzcfile.close();
+//
+   if(endflab==12345){
+     cout<<"      TOF Slewing/T0-params file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF Slewing/T0-params file !!!"<<endl;
+     exit(1);
+   }
+//-------------------------------------------------------
+//
+//   ---> Read anodes/dynode relat.gains, anode/dynode ratios,
+//       mip2q and A-profile param. calib.file :
+//
+  endflab=0;
+   ctyp=4;
+   verid=verids[ctyp-1];//MC-versn or RD-utc
+   strcpy(name,"TofAmplf");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF AmplificationParameters-file : "<<fname<<'\n';
+   ifstream gcfile(fname,ios::in); // open file for reading
+   if(!gcfile){
+     cout <<"<---- Error: missing TOF AmplificationParameters-file !!! "<<fname<<endl;
+     exit(1);
+   }
+//
+// ----------------> read anode relative(wrt ref.counter) gains:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> gaina[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> gaina[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read anode/dynode ratios:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> a2drf[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> a2drf[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read dynode-pmts gains(relat to side average):
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- layers-loop
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  //s1 padles-loop
+       for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++)gcfile >> gaind[cnum+ibr][0][ipm]; //pm-loop
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  //s2 padles-loop
+       for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++)gcfile >> gaind[cnum+ibr][1][ipm]; //pm-loop
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read mip2q's:
+//
+   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
+     gcfile >> m2q[ibt];
+   }
+//
+// ----------------> read A-prof. parameters:
+//
+   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
+     for(i=0;i<2*TOF2GC::SCPROFP;i++)gcfile >> aprofp[ibt][i];
+   }
+// ---------------->
+   gcfile >> endflab;//read endfile-label
+//
+   gcfile.close();
+//
+   if(endflab==12345){
+     cout<<"      TOF AmplificationParameters-file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF AmplificationParameters-file !!!"<<endl;
+     exit(1);
+   }
+//   
+//---------------------------------------------
+//   ===> fill TOFBrcal objects :
+//
+  a2q=TFCAFFKEY.adc2q;//from DC !(if variation are high - need special indiv.a2q's file)
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    brt=TOF2DBc::brtype(ila,ibr);//1->11
+    hblen=0.5*TOF2DBc::brlen(ila,ibr);
+    nsp=TOFWScan::scmcscan[brt-1].getnscp(0);//get scan-points number for wdiv=1(most long)
+    npm=TOFWScan::scmcscan[brt-1].getnpmts();//get pmts/side 
+    TOFWScan::scmcscan[brt-1].getscp(0,scp);//get scan-points for wdiv=1(most long)
+// read from file or DB:
+    gna[0]=gaina[cnum][0];
+    gna[1]=gaina[cnum][1];
+    tth=TOF2Varp::tofvpar.daqthr(0); // (mV), time-discr. threshold
+    mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
+    fstrd=0;//(ns),same hit(up-edge)delay in f/sTDC(don't need now !!!)
+//
+//-->prepare position correction array (valid for local !!! r.s.):
+//
+      for(i=0;i<2*TOF2GC::SCPROFP;i++)apr[i]=aprofp[brt-1][i];
+      p1s1=aprofp[brt-1][0];
+      p2s1=aprofp[brt-1][1];
+      p3s1=aprofp[brt-1][2];
+      p4s1=aprofp[brt-1][3];
+      p5s1=aprofp[brt-1][4];
+      p6s1=aprofp[brt-1][5];
+      p1s2=aprofp[brt-1][6];
+      p2s2=aprofp[brt-1][7];
+      p3s2=aprofp[brt-1][8];
+      p4s2=aprofp[brt-1][9];
+      p5s2=aprofp[brt-1][10];
+      p6s2=aprofp[brt-1][11];
+      mrfp=nsp/2;//central point (coo=0.)
+      if(brt==1 || brt==3 || brt==5 || brt==8){//trapez.counters
+        denom=p1s1*((1-p3s1)*exp(-(hblen+scp[mrfp])/p2s1)+p3s1*exp(-(hblen+scp[mrfp])/p4s1))
+	     +p5s1*exp(-(hblen-scp[mrfp])/p6s1)
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[mrfp])/p2s2)+p3s2*exp(-(hblen-scp[mrfp])/p4s2))
+	     +p5s2*exp(-(hblen+scp[mrfp])/p6s2);//s1+s2 signal at center(long.coo=0)
+        for(isp=0;isp<nsp;isp++){ // fill 2-ends rel. l.output at scan-points
+          nom=p1s1*((1-p3s1)*exp(-(hblen+scp[isp])/p2s1)+p3s1*exp(-(hblen+scp[isp])/p4s1))
+	     +p5s1*exp(-(hblen-scp[isp])/p6s1)
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[isp])/p2s2)+p3s2*exp(-(hblen-scp[isp])/p4s2))
+	     +p5s2*exp(-(hblen+scp[isp])/p6s2);//s1+s2 signal at long.coo=scp[isp] 
+          rlo[isp]=nom/denom;
+        }
+      }
+      else{//normal counters
+        denom=p1s1*((1-p3s1)*exp(-(hblen+scp[mrfp])/p2s1)+p3s1*exp(-(hblen+scp[mrfp])/p4s1))
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[mrfp])/p2s2)+p3s2*exp(-(hblen-scp[mrfp])/p4s2));
+        for(isp=0;isp<nsp;isp++){ // fill 2-ends rel. l.output at scan-points
+          nom=p1s1*((1-p3s1)*exp(-(hblen+scp[isp])/p2s1)+p3s1*exp(-(hblen+scp[isp])/p4s1))
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[isp])/p2s2)+p3s2*exp(-(hblen-scp[isp])/p4s2));
+          rlo[isp]=nom/denom;
+        }
+      }
+//
+    sid=100*(ila+1)+(ibr+1);
+//    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
+//    strat[1][0]=strf[cnum][1];
+    strat[0][0]=25;//tempor: put dummy pars(not used now, keep for possible future appl)
+    strat[1][0]=25;
+//    strat[0][1]=strof[cnum][0];
+//    strat[1][1]=strof[cnum][1];
+    strat[0][1]=1100;
+    strat[1][1]=1100;
+    sta[0]=stat[cnum][0];
+    sta[1]=stat[cnum][1];
+    slope=slpf;// common slope from ext. file
+//    slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
+//    slops[1]=slops2[ila][ibr];
+    slops[0]=1.;// default indiv.slopes
+    slops[1]=1.;
+    tzer=tzerf[ila][ibr];//was read from ext. file
+    tdif=tdiff[cnum];//was read from ext. file
+    if(lsflg){
+      td2p[0]=lspeeda[ila][ibr];//indiv.bar speed of the light from external file
+    } 
+    else td2p[0]=speedl;//average speed of the light from external file
+    td2p[1]=TOF2Varp::tofvpar.lcoerr();//error on longit. coord. measurement(cm)
+    a2dr[0]=a2drf[cnum][0];//an/dyn ratios from ext.file
+    a2dr[1]=a2drf[cnum][1];
+    for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
+      gnd[0][ipm]=gaind[cnum][0][ipm];// dyn-pms rel.gains from ext.file
+      gnd[1][ipm]=gaind[cnum][1][ipm];// dyn-pms rel.gains from ext.file
+    }
+    scbrcal[ila][ibr]=TOF2Brcal(sid,npm,sta,gna,gnd,a2dr,asatl,tth,strat,fstrd,tzer,
+                      slope,slops,tdif,td2p,mip2q,nsp,scp,rlo,apr,a2q);
+//
+    cnum+=1;// solid sequential numbering of all counter(0->33)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+  cout<<"<---- TOF2Brcal::setpars: succsessfully done !"<<endl<<endl;
 }
 //===============================================================================
   TOFBrcalMS::TOFBrcalMS(integer sid, integer sta[2], geant gna[2], 

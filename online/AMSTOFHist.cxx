@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.36 2011/03/11 11:35:25 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.37 2011/03/19 16:25:40 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -1014,7 +1014,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //========================> PG-version:
 #ifdef _PGTRACK_
 //
-//cout<<"  itrktr="<<itrktr<<endl;
+//cout<<"  pindex="<<pindex<<endl;
   TrTrackR *p2trktr = ntuple->Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
   itrktr = ntuple->Particle(pindex).iTrTrack();//TRKtrack index used by Part(-1 if missing) 
   TrTrackR trktr=ntuple->TrTrack(itrktr);//ref to TrkTrack object used by particle
@@ -1066,21 +1066,17 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
     
 /*
-    Int_t trkafd=p2trktr->AdvancedFitDone(0);
+    trkafd=p2trktr->AdvancedFitDone(0);
     Float_t trkch2sz=1;//str-line chi2
-    Float_t trkch2=p2trktr->Chi2FastFitf();//fast nonl. fit
+    trkch2=p2trktr->Chi2FastFitf();//fast nonl. fit
     Rigid=p2trktr->Rigidityf();//fast nonl.fit Rigidity
-    Float_t RigErr=0;//err to 1/above
-    Float_t rerig=RigErr*fabs(Rigid);//abs. dR/R
+    RigErr=0;//err to 1/above
+    rerig=RigErr*fabs(Rigid);//abs. dR/R
     Float_t trkrigms=1;//fast nonl. fit, MScattOff
-    Float_t trkch2ms=p2trktr->FChi2MSf();//chi2 for above
+    trkch2ms=p2trktr->FChi2MSf();//chi2 for above
   
-    Float_t trkch2h[2]={999.,999.}; //chi2 for 2 halves
-    Float_t trkhrig[2]={0.,0.}; //2 halves rigs
-    Float_t hrigass=-999;
+    hrigass=-999;
     if(trkafd!=0){
-      trkch2h[0]=p2trktr->HChi2f(0);
-      trkch2h[1]=p2trktr->HChi2f(1);
       trkhrig[0]=p2trktr->HRigidityf(0);
       trkhrig[1]=p2trktr->HRigidityf(1);
       

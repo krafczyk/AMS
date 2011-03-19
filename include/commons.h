@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.309 2011/03/12 01:52:47 choutko Exp $
+//  $Id: commons.h,v 1.310 2011/03/19 16:22:32 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -806,6 +806,8 @@ integer minstat;//min.stat/ch
 integer tdccum;//tdc-calib usage mode
 //
 integer onbpedspat;//bit-pattern for onboard ped-table sections
+//
+integer updbrcaldb;//update RD barcal DB "on flight"
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.48 2010/08/08 09:36:54 choumilo Exp $
+//  $Id: daqs2block.C,v 1.49 2011/03/19 16:13:35 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 // AMS02 version 7.11.06 by E.Choumilov : TOF/ANTI RawFormat preliminary decoding is provided
 // 
@@ -1502,13 +1502,12 @@ void DAQS2Block::EventBitDump(integer leng, int16u *p, char * message){
   datyp=(blid&(0x00C0))>>6;//0,1,2,3 (if dataf=0, datyp=2->OnbPed)
   if(dataf && datyp>0)noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
-  if(!dataf && datyp==2)noerr=(!dataf && !crcer && !asser && !amswer 
+  if(!dataf)noerr=(!dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
   else noerr=false;
   cout<<"----> DAQS2Block::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;
   cout<<" SlaveStatWord="<<hex<<blid<<dec<<" NoAsseblyErr="<<noerr<<endl; 
   cout<<" node_addr(link#)="<<naddr<<" DataFormat="<<datyp<<" BlLength(in this call)="<<len<<endl;
-  cout<<" Crate/Side="<<crat<<" "<<csid<<endl;
 //
   cout<<"  Block hex/binary dump follows :"<<endl<<endl;
   int16u tstw,tstb;
@@ -1686,11 +1685,11 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
   crsd=int16u((leng>>16)&(0xFFFFL));//CS(c=1-4,s=1-4=>a,b,p,s) as return by my "checkblockidP"-1
   crat=(crsd+1)/10;
   csid=(crsd+1)%10;
-//cout<<"<--- <<crat/side="<<crat<<" "<<csid<<" naddr="<<naddr<<endl;
   if(csid==3)csid=1;//tempor
   else if(csid==4)csid=2;
 //  node2crsP(naddr,crat,csid);//get crate#(1-4,=0 when wrong addr)),card_side(1-4<->a,b,p,s)
   if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug
+    cout<<"<--- <<crat/side="<<crat<<" "<<csid<<" naddr="<<naddr<<endl;
     cout<<"=======> In DAQS2Block::builOnbPed: BlLength="<<len<<" SDR_node:"<<naddr<<endl;
     EventBitDump(reflen-1,p,"OnbPed: Event-by-Event bitDump:");//debug
   }
@@ -1739,7 +1738,7 @@ void DAQS2Block::buildonbP(integer leng, int16u *p){
     dataf<<" "<<crcer<<" "<<asser<<" "<<amswer<<" "<<timoer<<" "<<fpower<<" "<<seqer<<" "<<cdpnod<<endl;
   }
 //---
-  ONBpedblk=(dataf==0 && datyp==2);
+  ONBpedblk=(dataf==0);//ignore datyp for ped-calibr.
   if(!ONBpedblk){
     if(TFREFFKEY.reprtf[3]>0)EventBitDump(reflen-1,p,"OnbPed: Bad DataType/Format bitDump:");//debug
     goto Exit;

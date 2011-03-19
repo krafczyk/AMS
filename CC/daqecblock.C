@@ -1170,7 +1170,7 @@ void DAQECBlock::buildonbP(integer leng, int16u *p){
     eaddr=(eblid&(0x001F));//slaveID(="NodeAddr"=ERD here) here =0(imply direct JMDC->EDR request)
     datyp=((eblid&(0x00C0))>>6);//0,1,2(only raw or compr)
     dataf=((eblid&(0x8000))>0);//data-fragment(=0 for OnBoardPed Table)
-    OnbFmtOK=(datyp==2 && dataf==0);// OnBoardFmt OK
+    OnbFmtOK=(dataf==0);// OnBoardFmt OK (ignore datyp for ped-calibr)
     if(!OnbFmtOK)goto Exit;
     EcalJobStat::daqs3(crat-1,slot,5);//format OK
     formt=0;
@@ -1581,7 +1581,7 @@ void DAQECBlock::EventBitDump(integer leng, int16u *p, char * message){
   datyp=(blid&(0x00C0))>>6;//0,1,2,3 (if dataf=0, datyp=2->OnbPed)
   if(dataf && datyp>0)noerr=(dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
-  if(!dataf && datyp==2)noerr=(!dataf && !crcer && !asser && !amswer 
+  if(!dataf)noerr=(!dataf && !crcer && !asser && !amswer 
                                        && !timoer && !fpower && !seqer && cdpnod);
   else noerr=false;
   cout<<"----> DAQECBlock::"<<message<<" for event:"<<AMSEvent::gethead()->getid()<<endl;

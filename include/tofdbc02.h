@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.49 2010/12/11 18:30:39 choutko Exp $
+//  $Id: tofdbc02.h,v 1.50 2011/03/19 16:25:17 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -488,6 +488,7 @@ public:
     etd2p=td2pos[1];
   }
   static void build();
+  static void setpars(integer cfvers);
 };
 //===================================================================
 // class to store another set of MC TOF2_bar calibration constants

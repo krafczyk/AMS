@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.51 2010/11/14 17:08:36 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.52 2011/03/19 16:16:53 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -373,7 +373,46 @@ if(TFCAFFKEY.hprintf>0){
     printf("\n");
   }
   printf("<==========End of Results\n\n");
-//---
+//
+//--- RD: update on flight if requested:
+//  
+  if(!AMSJob::gethead()->isMCData() && TFCAFFKEY.updbrcaldb==1
+                                                              && AMSFFKEY.Update>0
+							                          ){
+    int calresok(1);
+    time_t begin,end,insert;
+    if(mode==2 || mode==23 || mode==234){
+      if(!(TOF2JobStat::cqual(0,0)>0.8 && TOF2JobStat::cqual(0,1)>0.6))calresok=0;
+    }
+    if(mode==3 || mode==23 || mode==234 || mode==34){
+      if(!(TOF2JobStat::cqual(1,0)>0.8 && TOF2JobStat::cqual(1,1)<0.5))calresok=0;
+    }
+    if(mode==24 || mode==34 || mode==234){
+      if(!(TOF2JobStat::cqual(2,0)>0.8 && TOF2JobStat::cqual(2,1)>0.7 && TOF2JobStat::cqual(2,2)>0.1))calresok=0;
+    }
+    if(calresok==1){
+      TOF2Brcal::setpars(StartRun);
+//
+      AMSTimeID *ptdv;
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal2",AMSJob::gethead()->isRealData()));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
+      ptdv->SetTime(insert,StartRun,StartRun+86400*30);
+      cout <<"      <--- Tofbarcal2 DB-info has been updated for "<<*ptdv<<endl;
+      ptdv->gettime(insert,begin,end);
+      cout<<"           Time ins/beg/end: "<<endl;
+      cout<<"           "<<ctime(&insert);
+      cout<<"           "<<ctime(&begin);
+      cout<<"           "<<ctime(&end);
+//
+    }
+    else{
+      cout<<"<==== TofTimeAmplCalib::DB on-flight update was requested but not done : bad calib.quality !"<<endl;
+    }
+  }
+//
   cout <<"<==== TofTimeAmplCalib::endjob completed ==="<<endl;
 }
 //------------------------------

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.780 2011/03/12 01:52:42 choutko Exp $
+// $Id: job.C,v 1.781 2011/03/19 16:14:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1451,6 +1451,7 @@ void AMSJob::_retof2data(){
 //also for OnBoardPeds
   TFCAFFKEY.onbpedspat=47;//(40)ijklmn(bit-patt for peds|dynampeds|pretrs|statws|threshs|widths sections in table),
 //                           i(j,..)-bitset => section present (47-> dynam.peds section missing)
+  TFCAFFKEY.updbrcaldb=0;// (41) if=1 - update RD barcal DB "on flight"(just after new calib-file was written) 
 //
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
