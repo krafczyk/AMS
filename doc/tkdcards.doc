@@ -30,20 +30,19 @@ I 566        NoiseType                 0 No noise
                                        2 Gaussian noise generation only on ladders with signal + fake clusters (th)
                                        3 Gaussian noise generation only on ladders with signal + fake clusters (tuned)
 R [567,584]  DSPSeedThr[2][9]          DSP Seed Threshold for x and y sides per layer  
-             def(3.500,3.625,3.625,3.625,3.625,3.625,3.625,3.500,3.500,
-                 3.875,4.000,4.000,4.000,4.000,4.000,4.000,3.875,3.875) 
+             def(all=3.500)
 R [585,586]  DSPNeigThr[2]             DSP Neig Threshold for x and y sides 
              (def=1.,1.)
 I [587,588]  TrSim2010_ADCMipValue[2]  ADC Mip value 
-             (def=32.012,29.393)
+             (def=35.,28.)
 R [589,590]  TrSim2010_ADCSat[2]       ADC Saturation Limit (for each strip)
              (def=3500.,3500.) 
 I [591]      PStripCorr                0 inactivate p-strip non-linearity
              (def=0)                   1 activate p-strip non-linearity (to be checked with real data!)
 R [592,593]  TrSim2010_Cint            Interstrip Capacitance (n/p sides)
-             (def=100.,100.)
+             (def=80.,50.)
 R [594,595]  TrSim2010_Cbk             Backplane + Guard-ring capacitance (n/p sides)
-             (def=15.,15.)
+             (def=50.,5.)
 R [596,597]  TrSim2010_Cdec            Decoupling Capacitance (n/p sides)
              (def=800.,800.)  
 I [598,599]  TrSim2010_DiffType        0 Box
@@ -52,11 +51,11 @@ I [598,599]  TrSim2010_DiffType        0 Box
                                        3 Triangular
                                        4 Sum of Gauss distributions
 R [600,601]  TrSim2010_DiffRadius[2]   Parameters for the selected diffusion type
-             (def=10.,20.)
+             (def=8.,8.)
 R [602,603]  TrSim2010_FracNoise[2]    Percentage of intrisic noise
-             (def=0.1,0.1)  
+             (def=0.1,0.2)  
 R [604,605]  TrSim2010_AddNoise[2]     Additional noise (ADC counts)
-             (def=0.,0.)
+             (def=2.,2.)
 
 
 //==============================

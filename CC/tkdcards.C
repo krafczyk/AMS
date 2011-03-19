@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.53 2011/03/17 08:08:33 oliva Exp $
+// $Id: tkdcards.C,v 1.54 2011/03/19 17:27:03 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -203,19 +203,19 @@ void TRMCFFKEY_DEF::init(){
   // TrSim2010 Parameters
 
   // ADC vertical MIP value
-  TrSim2010_ADCMipValue[0] = 30.9; // TUNING1
-  TrSim2010_ADCMipValue[1] = 30.4; // TUNING1
+  TrSim2010_ADCMipValue[0] = 35.;
+  TrSim2010_ADCMipValue[1] = 28.; 
   // Apply p-strip deformation?
   TrSim2010_PStripCorr = 0; // TO BE CHECKED WITH REAL DATA
   // Saturation limit for strips
   TrSim2010_ADCSat[0] = 3500.;
   TrSim2010_ADCSat[1] = 3500.;
   // Interstrip capacitance (pF)
-  TrSim2010_Cint[0] = 100.;
-  TrSim2010_Cint[1] = 100.;  
+  TrSim2010_Cint[0] = 80.;
+  TrSim2010_Cint[1] = 50.;  
   // Backplane(+guardring) capacitance (pF)     
-  TrSim2010_Cbk[0] = 15.;
-  TrSim2010_Cbk[1] = 15.;
+  TrSim2010_Cbk[0] = 50.;
+  TrSim2010_Cbk[1] = 5.;
   // Readout capacitance (pF)
   TrSim2010_Cdec[0] = 800.;
   TrSim2010_Cdec[1] = 800.;
@@ -223,14 +223,14 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_DiffType[0] = 2;
   TrSim2010_DiffType[1] = 2;
   // Diffusion radium (um)
-  TrSim2010_DiffRadius[0] = 10.;
-  TrSim2010_DiffRadius[1] = 20.; // TO BE CHEKED
+  TrSim2010_DiffRadius[0] = 8.;
+  TrSim2010_DiffRadius[1] = 8.; 
   // Tuning parameter: shaking a fraction
   TrSim2010_FracNoise[0] = 0.1; // TO BE CHECKED WITH IONS
-  TrSim2010_FracNoise[1] = 0.1; // TO BE CHECKED WITH IONS
+  TrSim2010_FracNoise[1] = 0.2; // TO BE CHECKED WITH IONS
   // Tuning parameter: adding noise
-  TrSim2010_AddNoise[0] = 0.;
-  TrSim2010_AddNoise[1] = 0.;
+  TrSim2010_AddNoise[0] = 2.;
+  TrSim2010_AddNoise[1] = 2.;
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;

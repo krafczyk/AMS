@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.27 2011/03/17 08:08:33 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.28 2011/03/19 17:27:01 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/03/17 08:08:33 $
+///$Date: 2011/03/19 17:27:01 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -296,9 +296,6 @@ void TrMCClusterR::GenSimClusters(){
     hman.Fill(Form("TrSimSig%c",sidename[iside]),simcl[iside]->GetEta(),simcl[iside]->GetTotSignal());
     // from keV to ADC (using tb2003 data normalized to datacard value)
     double ADC = TrSim::GetTrSimSensor(iside,GetTkId())->GetkeVtoADC(edep);
-    // correct for the charge loss intrinsic in the simulation
-    if (iside==0) ADC /= 0.96; // approximately correct (adsorbed by the datacard signal parameter)
-    else          ADC /= 0.84; // approximately correct (adsorbed by the datacard signal parameter)
     // cluster strip values in ADC counts
     simcl[iside]->Multiply(ADC);
     // simulation tuning parameter 1: gaussianize a fraction of the strip signal
