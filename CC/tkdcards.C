@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.54 2011/03/19 17:27:03 oliva Exp $
+// $Id: tkdcards.C,v 1.55 2011/03/20 16:42:32 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -203,8 +203,8 @@ void TRMCFFKEY_DEF::init(){
   // TrSim2010 Parameters
 
   // ADC vertical MIP value
-  TrSim2010_ADCMipValue[0] = 35.;
-  TrSim2010_ADCMipValue[1] = 28.; 
+  TrSim2010_ADCMipValue[0] = 33.; 
+  TrSim2010_ADCMipValue[1] = 32.; 
   // Apply p-strip deformation?
   TrSim2010_PStripCorr = 0; // TO BE CHECKED WITH REAL DATA
   // Saturation limit for strips
@@ -229,8 +229,8 @@ void TRMCFFKEY_DEF::init(){
   TrSim2010_FracNoise[0] = 0.1; // TO BE CHECKED WITH IONS
   TrSim2010_FracNoise[1] = 0.2; // TO BE CHECKED WITH IONS
   // Tuning parameter: adding noise
-  TrSim2010_AddNoise[0] = 2.;
-  TrSim2010_AddNoise[1] = 2.;
+  TrSim2010_AddNoise[0] = 2.; // MAYBE TOO BIG
+  TrSim2010_AddNoise[1] = 2.; // MAYBE TOO BIG
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;
