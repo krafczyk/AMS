@@ -90,7 +90,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fDeuteronProcess.AddDataSet(generalCrossSection);
 	fDeuteronProcess.RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(&fDeuteronProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 
 	//======Triton
 	particle = G4Triton::Triton();
@@ -98,14 +98,14 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fTritonProcess.AddDataSet(generalCrossSection);
 	fTritonProcess.RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(&fTritonProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
 	fAlphaProcess.AddDataSet(generalCrossSection);
 	fAlphaProcess.RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(&fAlphaProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======He3
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
@@ -160,21 +160,21 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	fDeuteronProcess.AddDataSet(generalCrossSection);
 	fDeuteronProcess.RegisterMe(theAM);
 	pManager->AddDiscreteProcess(&fDeuteronProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
 	fTritonProcess.AddDataSet(generalCrossSection);
 	fTritonProcess.RegisterMe(theAM);
 	pManager->AddDiscreteProcess(&fTritonProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
 	fAlphaProcess.AddDataSet(generalCrossSection);
 	fAlphaProcess.RegisterMe(theAM);
 	pManager->AddDiscreteProcess(&fAlphaProcess);
-	pManager->AddDiscreteProcess(hadElastProc);
+	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======He3
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
