@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.9 2011/03/17 16:27:47 mmilling Exp $
+//  $Id: ami2root.C,v 1.10 2011/03/21 15:57:40 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -103,6 +103,8 @@ int main(int argc, char *argv[]){
   time_t timnow;
   time(&timnow);  
   unsigned int notcompleted=1;
+  time_t start_real=INT_MAX;
+  time_t end_real=0;
   time_t start=atoi(argv[1]);
   time_t end=atoi(argv[2]);
   time_t timeout =atol(argv[5]);
@@ -237,18 +239,21 @@ int main(int argc, char *argv[]){
             it=scdb->nodemap.find(std::string(nname));
             if(it==scdb->nodemap.end())read=true;
         }
+        int a;
         if(!read){
            std::map<int,DataType>::iterator itd;
             itd=it->second.datatypes.find(datatype->number);
-            if(itd==it->second.datatypes.end())read=true;
+            if(itd==it->second.datatypes.end())a=0;
             else{
               std::map<int,SubType>::iterator its;
               its=itd->second.subtypes.find(subtype->number);
-              if(its==itd->second.subtypes.end())read=true;
+              if(its==itd->second.subtypes.end())a=0;
               else{
     	if(its->second._table.size())cout <<" tag read from old file "<<subtype->tag<<" "<<its->second._table.size()<<endl;  
                 for(std::map<unsigned int,float>::iterator itv=its->second._table.begin();itv!=its->second._table.end();itv++){
           	  subtype->Add(itv->first,itv->second);
+                  if(itv->first<start_real)start_real=itv->first;
+                  if(itv->first>end_real)end_real=itv->first;
                  }
               }
             }
@@ -259,7 +264,7 @@ int main(int argc, char *argv[]){
  	int nval=0;
 
 	data_vals** vals=0;
-         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start+shift-600,end+shift+600, &nval);
+         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
          if(!vals){
            cerr<<"  Unable to get values "<<endl;
            tm=true;
@@ -267,7 +272,9 @@ int main(int argc, char *argv[]){
          }      
 	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
 	for(int ii=0;ii<nval;ii++){
-	  subtype->Add(vals[ii]->timestamp-shift,vals[ii]->val);
+	  subtype->Add(vals[ii]->timestamp,vals[ii]->val);
+                  if(vals[ii]->timestamp<start_real)start_real=vals[ii]->timestamp;
+                  if(vals[ii]->timestamp>end_real)end_real=vals[ii]->timestamp;
          }
       }
       }
@@ -278,9 +285,21 @@ int main(int argc, char *argv[]){
   }
 finish:
   // fill tree
+  cout <<" start,end real "<<start_real<<" "<<end_real<<endl;
+// change start_real end_real only if end>timnow-shift;
+
+if(!tm)notcompleted=0;
+if(end>timnow-shift){
+if(start_real<end_real ){
+  if(start_real>start)start=start_real;
+  if(end_real<end)end=end_real;
+}
+else{
+ notcompleted=2;
+}
+}
   tree->Branch("begin", &start,"start/i");
   tree->Branch("end", &end,"end/i");
-  if(!tm)notcompleted=0;
   tree->Branch("uncompleted", &notcompleted,"uncompleted/i");
   tree->Fill();
   
