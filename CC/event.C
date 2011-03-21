@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.515 2011/03/12 15:51:15 choutko Exp $
+//  $Id: event.C,v 1.516 2011/03/21 21:19:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2990,7 +2990,7 @@ AMSgObj::BookTimer.start("TDV");
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=dynamic_cast<AMSTimeID*>(ptid->down());
 while(offspring){
-  if(!offspring->Verify()){
+  if(!offspring->Verify()|| offspring->UpdateMe()){
     offspring=(AMSTimeID*)offspring->next();
     continue;
   }
