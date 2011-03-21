@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.117 2011/03/09 23:46:51 choutko Exp $
+//  $Id: timeid.C,v 1.118 2011/03/21 15:58:05 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -572,9 +572,9 @@ void AMSTimeID::rereaddb(bool force){
 }
 
 time_t AMSTimeID::_stat_adv(const char *dir){
-  struct stat statbuf_dir;
+  struct stat64 statbuf_dir;
   time_t tm=0;
-  if(stat (dir,&statbuf_dir)){
+  if(stat64 (dir,&statbuf_dir)){
     time(&tm);
     return tm;
   } 
@@ -593,7 +593,7 @@ time_t AMSTimeID::_stat_adv(const char *dir){
   for(int is=0;is<nptrdir;is++){
     AString fsdir(dir);
     fsdir+=namelistsubdir[is]->d_name;
-    if(namelistsubdir[is]->d_name[0]!= '.' && !stat ((const char*)fsdir,&statbuf_dir)){
+    if(namelistsubdir[is]->d_name[0]!= '.' && !stat64 ((const char*)fsdir,&statbuf_dir)){
       if(S_ISDIR(statbuf_dir.st_mode)){
 	//          cout <<"  dirs "<<fsdir<<endl;
 	if(statbuf_dir.st_mtime>tm){
@@ -633,8 +633,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
   fmap+=getname();
   fmap+=getid()==0?".0.map":".1.map";
   fstream fbin;
-  struct stat statbuf_map;
-  //    struct stat statbuf_dir;
+  struct stat64 statbuf_map;
   time_t mtime=0;
 #ifdef _WEBACCESS_
   if(!_WebAccess) 
@@ -657,7 +656,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
       url_fgets(buf,100,ffbin);
       _DataBaseSize=atoi(buf);
 #else
-    if((!stat((const char *)fmap,&statbuf_map)&&
+    if((!stat64((const char *)fmap,&statbuf_map)&&
 	mtime < statbuf_map.st_mtime) && !force){
     
       char buf[100];

@@ -1,9 +1,15 @@
-//  $Id: ntuple.h,v 1.127 2011/03/15 01:08:02 choutko Exp $
+//  $Id: ntuple.h,v 1.128 2011/03/21 15:58:10 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#ifdef __DARWIN__
+struct dirent;
+#else
+struct dirent64;
+#endif
+
 const int NBRANCHES = 1;    // number of branches
 
 namespace root{
@@ -868,6 +874,14 @@ friend class AMSNtuple;
 
 class AMSNtuple : public AMSNode{
 protected:
+        class trio{
+            public:
+           unsigned int tmod;
+           unsigned int tmout;
+           string filename;
+        };
+
+
 typedef map<uint64,AMSEventR*> evmap_d;
 typedef map<uint64,AMSEventR*>::iterator evmapi;
   evmap_d evmap; 
@@ -942,6 +956,9 @@ public:
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
   static void Bell();
+  static  int _select(  const dirent64 *entry);
+  static void UnLock();
+  static int Lock(unsigned int tmout);
   void init();
   static TString & DataCards()  {return _dc.String();}
   uinteger getrun();

@@ -7,7 +7,17 @@
 #include "commons.h"
 #include "commonsi.h"
 #include "timeid.h"
+        class trio{
+           public: 
+           unsigned int t1;
+           unsigned int t2;
+           unsigned int tmod;
+           string filename;
+        };
+#include "dirent.h"
+#include <sys/stat.h>
 #endif
+
 AMSSetupR* AMSSetupR::_Head=0;
 
 void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
@@ -99,7 +109,13 @@ else{
           for(std::map<int,SubType>::iterator st= dt->second.subtypes.begin();st!=dt->second.subtypes.end();st++){
       AMSSetupR::SlowControlR::SubType mysubtype;
            for(std::map<unsigned int,float>::iterator it=st->second._table.begin();it!=st->second._table.end();it++){
-               mysubtype.fTable[it->first]=it->second;
+                 std::map<unsigned int,float>::iterator itp=++it;
+                
+               bool addp=it->first>=fHeader.FEventTime || (itp!=st->second._table.end() && itp->first>fHeader.FEventtime);
+                 std::map<unsigned int,float>::iterator itm=--it;
+               bool addm=it->first<=fHeader.LEventTime || (itm!=st->second._table.begin() && itm->first<fHeader.LEventtime);
+
+               if(addp && addm )mysubtype.fTable[it->first]=it->second;
            }
            unsigned long long sd;
            sd=(it->first)<<32;
@@ -405,11 +421,11 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    systemc+=".6";
   }
   char u[128];
-  sprintf(u," -r %d",fHeader.Run);
+  sprintf(u," -r %u",fHeader.Run);
     systemc+=u;
   systemc+="  > /tmp/getior.";
   char tmp[80];
-  sprintf(tmp,"%d",getpid());
+  sprintf(tmp,"%u",getpid());
   systemc+=tmp;
   int i=system(systemc);
   if(i){
@@ -453,8 +469,73 @@ return false;
 bool AMSSetupR::FillHeader(uinteger run){return true;}
 #endif
 
-void AMSSetupR::getSlowControlFilePath(string & slc){
+void AMSSetupR::updateSlowControlFilePath(string & slc){
+#ifndef __ROOTSHAREDLIBRARY__
+	  int valid=0;
+	  int kvalid=-1;
+	  int kvalid1=-1;
+	  int kvalid2=-1;
+	  int kvalid3=-1;
+          unsigned int t1=0;
+          unsigned int t2=0;
+          size_t pos=slc.find("/SCDB");
+	  for(int k=pos;k<strlen(slc.c_str());k++){
+           
+            if(slc.c_str()[k]=='.'){
+                 valid++;
+                 kvalid=k;
 
+	  if(valid==1 ){
+            kvalid1=kvalid;
+          }
+	  if(valid==2 ){
+            kvalid2=kvalid;
+          }
+	  if(valid==3 ){
+            kvalid3=kvalid;
+          }
+          }
+          }
+	  if(valid>=3){
+          char tmp[80];
+          
+          strncpy(tmp,slc.c_str()+kvalid1+1,kvalid2-kvalid1+1);
+	  if(isdigit(tmp[0])){
+            t1=atol(tmp);
+          }
+          strncpy(tmp,slc.c_str()+kvalid2+1,kvalid3-kvalid2+1);
+	  if(isdigit(tmp[0])){
+            t2=atol(tmp);
+          }
+          }
+          
+         if(t1 && t2){
+            if(fSlowControl.fBegin>t1)t1=fSlowControl.fBegin;
+            if(fSlowControl.fEnd<t2)t2=fSlowControl.fEnd;
+            char ns[1024];
+            strncpy(ns,slc.c_str(),kvalid1+1);
+            ns[kvalid1+1]='\0';
+            char tmp[80];
+            sprintf(tmp,"%u",t1);
+            cout << " t1 "<<ns<<" "<<tmp<<" "<<slc.c_str()<<" "<<kvalid1<<endl;  
+          strcat(ns,tmp);
+            strcat(ns,".");
+            sprintf(tmp,"%u",t2);
+            strcat(ns,tmp);
+            strcat(ns,slc.c_str()+kvalid3);
+            slc=ns;             
+           cout<<"AMSSetupR::updateSlowcotrolFilePath-I-UpdatedTo "<<slc<<endl;
+         }
+         else{
+           cerr<<"AMSSetupR::updateSlowcotrolFilePath-E-UnableToDecodeFile "<<t1<<" "<<t2<<" "<<slc<<endl;
+        }
+#else
+#endif
+}
+
+
+void AMSSetupR::getSlowControlFilePath(string & slc){
+#ifndef __ROOTSHAREDLIBRARY__
 // check first if needed file exists in 
 //
 const char * local=getenv("SlowControlDir");
@@ -468,7 +549,7 @@ slc=amsdatadir;
 slc+="/SlowControlDir";
 }
 }
-  char tmps[255];
+  char tmps[512];
    time_t t1=fHeader.FEventTime;
   tm * tm1=localtime(&t1);
   int tzz=timezone;
@@ -477,15 +558,87 @@ slc+="/SlowControlDir";
   tmp->tm_min=0;
   tmp->tm_sec=0;
 
-sprintf(tmps,"/%d/SCDB.%d.%d.root",mktime(tmp)-3600-tzz,fHeader.FEventTime,fHeader.LEventTime);
-slc+=tmps;
+// run in this directory and find all files like SCDB.t1.t2.root 
+// with t1<feventtime<leventtime<t2
 
+//  no sub dir anymore
+//sprintf(tmps,"/%u",mktime(tmp)-3600-tzz);
+    string sdir=slc;
+      dirent64 ** namelist;
+    int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
+    bool found=false;
+        vector <trio> tv;
+	for(int i=0;i<nptr;i++) {
+	  int valid=0;
+	  int kvalid=-1;
+	  int kvalid1=-1;
+	  int kvalid2=-1;
+	  int kvalid3=-1;
+            trio t;
+            t.t1=0;
+            t.t2=0;
+           struct stat64 statbuf;
+            t.filename=sdir;
+            t.filename+="/";
+            t.filename+=namelist[i]->d_name;
+            stat64(t.filename.c_str(),&statbuf);
+            t.tmod=statbuf.st_mtime;
+            cout <<" slow "<<t.filename<<endl;
+	  for(int k=0;k<strlen(namelist[i]->d_name);k++){
+	    if((namelist[i]->d_name)[k]=='.' ){
+              valid++;
+	      kvalid=k;
+	      if(valid==1)kvalid1=k;
+	      if(valid==2)kvalid2=k;
+	      if(valid==3)kvalid3=k;
+            }
+          }
+          if(valid>=3){
+           char tmp[80];
+           strncpy(tmp,namelist[i]->d_name+kvalid1+1,kvalid2-kvalid1+1);
+  	   if(isdigit(tmp[0])){
+	     t.t1=atol(tmp);
+           }
+
+           strncpy(tmp,namelist[i]->d_name+kvalid2+1,kvalid3-kvalid2+1);
+  	   if(isdigit(tmp[0])){
+	     t.t2=atol(tmp);
+           }
+          }
+            free(namelist[i]);
+          tv.push_back(t);
+         cout << "slow "<<t.t1<<" "<<t.t2<<" "<<t.tmod<<endl;
+         }
+         
+ 	free(namelist);
+         int k=-1;
+         unsigned int maxt=0;
+         for(int i=0;i<tv.size();i++){
+           if(tv[i].t1<=fHeader.FEventTime && tv[i].t2>=fHeader.LEventTime && maxt<=tv[i].tmod){
+              maxt=tv[i].tmod;
+             k=i;
+           }
+         }
+         if(k>=0){          cout <<"AMSSetupR::getSlowControlFilePath-I-FoundFile "<<tv[k].filename<<endl;
+          slc=tv[k].filename;
+          }
+         else{
+          sprintf(tmps,"/SCDB.%u.%u.root",fHeader.FEventTime-86400,fHeader.LEventTime+86400);
+         slc+=tmps;
+         }
+
+//          sprintf(tmps,"/%u/SCDB.%u.%u.root",mktime(tmp)-3600-tzz,fHeader.FEventTime,fHeader.LEventTime);
+//         slc+=tmps;
+          cout <<"AMSSetupR::getslowcontrolfilepath-I-"<<slc<<endl;                    
+#endif
 }
 #ifndef __ROOTSHAREDLIBRARY__
 bool AMSSetupR::FillSlowcontrolDB(string & slc){
 // Fill SlowcontrolDB via AMI interface
 
 
+bool force=false;
+oncemore:
 
 getSlowControlFilePath(slc);
 
@@ -493,17 +646,21 @@ getSlowControlFilePath(slc);
   SlowControlDB::KillPointer();
   SlowControlDB* scdb=SlowControlDB::GetPointer();
   if(scdb && scdb->Load(slc.c_str(),fHeader.FEventTime,fHeader.LEventTime)){
-    uncompleted=scdb->uncompleted==1;
+    uncompleted=scdb->uncompleted==1 || (IOPA.ReadAMI>=2 && scdb->uncompleted==2);
+// uncompleted 2 no records in root files and root files is old enough (>week)    
   }
   SlowControlDB::KillPointer();
   string slc_orig=slc;
 
 
 if(uncompleted  || IOPA.ReadAMI==2){
-if(!IOPA.ReadAMI)return false;
+if(!IOPA.ReadAMI){
+AMSNtuple::UnLock();
+return false;
+}
 char tmps[255];
-sprintf(tmps,"/tmp/SCDB.%d.%d.root",fHeader.FEventTime,fHeader.LEventTime);
-slc=tmps;
+int delta=86400;
+sprintf(tmps,"/tmp/SCDB.%u.%u.root",fHeader.FEventTime-delta,fHeader.LEventTime+delta);
 const char * nve=getenv("Getami2rootxec");
 char ior[]="ami2root.exe";
 if(! (nve && strlen(nve)))nve=ior;
@@ -522,6 +679,27 @@ const char *version=AMSCommonsI::getversion();
 const char *nvr=AMSCommonsI::getosversion(); 
 if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
 int maxtry=12;
+    unsigned int tmout=600;
+   int slept=0;
+   bool wait=false;
+   for(;;){
+    int ok=AMSNtuple::Lock(tmout*4);
+    if(ok && !force)sleep(2);
+    else break;
+    wait=true;
+    slept+=2;
+    if(slept>tmout){
+        AMSNtuple::Bell();
+        slept=0;
+    }
+   }
+   if(!force  && wait){
+        AMSNtuple::Bell();
+      sleep(30);
+      force=true;
+      goto oncemore;
+    }
+slc=tmps;
 for (int ntry=0;ntry<maxtry;ntry++){
  char t1[1024];
  strcpy(t1,exedir);
@@ -533,13 +711,14 @@ for (int ntry=0;ntry<maxtry;ntry++){
   systemc+="/";
   systemc+=nve;
   char u[128];
-  sprintf(u,"  %d %d %s %s %d",fHeader.FEventTime,fHeader.LEventTime,slc_orig.c_str(),slc.c_str(),600);
+  sprintf(u,"  %u %u %s %s %u",fHeader.FEventTime-delta,fHeader.LEventTime+delta,slc_orig.c_str(),slc.c_str(),tmout);
     slc_orig=slc;
     systemc+=u;
   systemc+="  > /tmp/getior.";
   char tmp[80];
-  sprintf(tmp,"%d",getpid());
+  sprintf(tmp,"%u",getpid());
   systemc+=tmp;
+
   int i=system(systemc);
    
   if(i){
@@ -547,7 +726,11 @@ for (int ntry=0;ntry<maxtry;ntry++){
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
-   if((i&255) || (i>>8)!=4)return false; 
+   if((i&255) || (i>>8)!=4){
+      AMSNtuple::UnLock();
+      return false; 
+   }
+   else AMSNtuple::Lock(tmout*4);
    AMSNtuple::Bell();
   }
   else{
@@ -555,18 +738,22 @@ for (int ntry=0;ntry<maxtry;ntry++){
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
+   AMSNtuple::UnLock();
    return true;
    }
 }
+AMSNtuple::UnLock();
 return true;
 }
 else{
     cerr<<" AMSSetupR::FillSlowcontrolDB-E-UnableToToGetami2rootBecauseSomeVarAreNull"<<endl;
+AMSNtuple::UnLock();
 return false;
 }
 }
 else{
 cout <<" FillSlowControlDB-I-OPenedFile "<<slc<<endl;
+AMSNtuple::UnLock();
 return true;
 }
 }
@@ -576,6 +763,8 @@ bool AMSSetupR::FillSlowcontrolDB( string & pfile){
 return false;
 }
 #endif
+
+
 
 bool AMSSetupR::LoadSlowcontrolDB(const char* file){
   SlowControlDB::KillPointer();
@@ -597,3 +786,13 @@ void AMSSetupR::SlowControlR::print(){
     if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
   }
 }
+
+#ifndef __ROOTSHAREDLIBRARY__
+integer AMSSetupR::_select(  const dirent64 *entry){
+ return strstr(entry->d_name,"SCDB.")!=NULL;
+}
+#else
+integer AMSSetupR::_select(  const dirent64 *entry){
+ return 0;
+}
+#endif

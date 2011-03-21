@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.165 2011/03/12 01:52:42 choutko Exp $
+//  $Id: server.C,v 1.166 2011/03/21 15:58:05 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -660,10 +660,12 @@ if(_ActivateQueue){
 
 bool AMSServerI::InactiveClientExists(DPS::Client::ClientType ctype){
 int ina=0;
+bool lxplus=true;
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
    //if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
-    if(++ina>1)return true;
+    lxplus=strstr((const char*)((*li)->id.HostName),"lxplus");
+    if(++ina>1 || !lxplus)return true;
   }
 }
 if(getType() == DPS::Client::DBServer && getType()!=ctype){
@@ -2800,13 +2802,13 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, float Mips, uintege
 //       cout <<" exiting Producer_impl::sendId 1"<<endl;
        return true;
       }
-      else if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Active){
+      else if(((*j)->id).uid==cid.uid && cid.pid==((*j)->id).pid && (*j)->Status ==DPS::Client::Active){
        time_t tt;
        time(&tt);
        (*j)->LastUpdate=tt;
          if(timeout>_KillTimeOut)(*j)->TimeOut=timeout;
          else (*j)->TimeOut=_KillTimeOut;
-          cout <<"  timeout was  "<<(*j)->TimeOut<<" now "<<timeout<<endl;
+          cout <<"  timeout was  "<<(*j)->TimeOut<<" now "<<timeout<<" "<<cid.pid<<endl;
        DPS::Client::ActiveClient_var acv=*j;
        PropagateAC(acv, DPS::Client::Update);
        return true;

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.13 2011/03/15 01:08:03 choutko Exp $
+//  $Id: root_setup.h,v 1.14 2011/03/21 15:58:14 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -12,6 +12,7 @@
 class SlowControlDB;
 class AMSEventR;
 class AMSTimeID;
+struct dirent64;
 class AMSSetupR{
 public:
 
@@ -225,6 +226,7 @@ void Add(SlowControlDB *s);
 friend class AMSTimeID;
 friend class SlowControlDB;
 static AMSSetupR * _Head;
+static int _select (const dirent64 * entry);
 public:
 void Purge();
 static    AMSSetupR * gethead(){return _Head;}
@@ -233,6 +235,7 @@ static    AMSSetupR * gethead(){return _Head;}
  bool FillHeader(uinteger run); //fillHeader at run start by database
  bool FillSlowcontrolDB( string & file);
  void getSlowControlFilePath( string & file);
+ void updateSlowControlFilePath( string & file);
  bool LoadSlowcontrolDB(const char *file);
  void UpdateHeader(AMSEventR* ev);
  void Reset();

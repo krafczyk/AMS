@@ -41,7 +41,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   for(int i=0;i<(int)branchlist->GetEntries();i++){
     nodearr[i]=0;
     TObject* obj=(TObject*)branchlist->At(i);
-    std::cout << "name: "<< branchlist->At(i)->GetName() << std::endl;
+    std::cout << "namee: "<< branchlist->At(i)->GetName() << std::endl;
     if(strcmp(obj->ClassName(),"TBranchElement")==0)
       _tree->SetBranchAddress(branchlist->At(i)->GetName(),&nodearr[i]);
   }
@@ -50,7 +50,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   for(int i=0;i<(int)_tree->GetEntries();i++){
     _tree->GetEntry(i);
     if(debug)std::cout<<"entry "<<i<<" begin "<<tree_begin<<" end "<<tree_end <<" - add? "<<(tree_begin<maxT&&tree_end>minT)<<std::endl;
-    if(tree_begin>maxT||tree_end<minT)continue;
+    //if(tree_begin>maxT||tree_end<minT)continue;
     
     n_add++;
     if(tree_end>end)end=tree_end;

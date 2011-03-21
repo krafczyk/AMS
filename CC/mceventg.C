@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.165 2011/02/27 21:52:39 choutko Exp $
+//  $Id: mceventg.C,v 1.166 2011/03/21 15:58:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -727,6 +727,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
          for(int i=0;i<nbin;i++){
           ene[i]=exp(a+(b-a)*(float(i)/float(nbin-1)));
          }        
+         double sum=0;
          for(int i=0;i<zmax-zmin+1;i++){
           _spectra[i]=new float[nbin];
           HBOOK1(_hid+i+1,"Spectra",nbin-1,a,b,0.);
@@ -747,9 +748,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           double x=a+(b-a)/float(nbin-1)*float(j-1)+(b-a)/(nbin-1)/2.;
           double y=(_spectra[i][j]+_spectra[i][j-1])*0.5*(ene[j]-ene[j-1]);
           _flux[i]+=y;
+           sum+=y;
           HF1(_hid+i+1,float(x),float(y));
          }
-         cout <<"  AMSmceventg::setspectra-I-Charge "<<zmin+i<<" Flux "<<_flux[i]<<endl;
+         cout <<"  AMSmceventg::setspectra-I-Charge "<<zmin+i<<" Flux "<<_flux[i]<< " "<<sum<<endl;
          HF1(_hid,float(i)+0.5,float(_flux[i]));
          iftxt.ignore(1024,'\n');
         }

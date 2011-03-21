@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.215 2011/03/15 01:07:53 choutko Exp $
+//  $Id: ntuple.C,v 1.216 2011/03/21 15:58:05 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -26,6 +26,7 @@
 #ifndef __DARWIN__
 #include <malloc.h>
 #endif
+#include <netdb.h>
 #include <time.h>
 #include <strstream>
 #include <fstream>
@@ -142,7 +143,7 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,10],pstatus(npart):I,pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,pvertp(npart)[-1,7]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart),pathrich(2,npart):R,pathrichb(2,npart):R,lengthrich(npart):R,trdlikelihood(npart):R,local(8,npart):R");
+"npart[0,10],pstatus(npart):I,pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,pvertp(npart)[-1,7]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probgetpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart),pathrich(2,npart):R,pathrichb(2,npart):R,lengthrich(npart):R,trdlikelihood(npart):R,local(8,npart):R");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
  
@@ -865,6 +866,7 @@ else{
     if(_rfile)_rfile->cd();
 string slf;
 Get_setup02()->getSlowControlFilePath(slf);
+Get_setup02()->updateSlowControlFilePath(slf);
 if(slf!=slc){
 cout<<"  transferring slow control "<<slf<<" "<<slc<<endl;
 #ifdef __CORBA__
@@ -890,4 +892,90 @@ void AMSNtuple::Bell(){
 AMSProducer::gethead()->sendCurrentRunInfo();
 #endif
 }
+ int AMSNtuple::Lock(unsigned int tmout){
+ pid_t pid=getpid();
+char name[256]="";
+ int len=255;
+ if(!gethostname(name,len)){
+   struct hostent *hent;
+   hent=gethostbyname(name);
+   if(hent)strcpy(name,hent->h_name);
+   else cerr<<"AMSNtuple::Lock::_gethostname-E-UnableToGetHostbyName "<<name<<endl;
+  }
 
+  char tmp[255];
+ sprintf(tmp,"lock.%s.%d",name,pid);
+
+
+ string dir="/afs/cern.ch/ams/local/locks/";
+//  look for other locks
+        vector<AMSNtuple::trio> tv;
+
+      dirent64 ** namelist;
+      int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
+       time_t tnow;
+       time(&tnow);
+	for(int i=0;i<nptr;i++) {
+            trio t;
+            t.tmout=0;
+            t.filename=dir;
+            t.filename+=namelist[i]->d_name;
+            struct stat64 statbuf;
+            stat64(t.filename.c_str(),&statbuf);
+            t.tmod=statbuf.st_mtime;
+           ifstream fbin;
+            fbin.open(t.filename.c_str());
+            if(fbin){
+              fbin>>t.tmout;
+            }
+            fbin.close();
+//            cout << "lock " <<t.filename<<" "<<t.tmod<<" "<<t.tmout<<" "<<tnow<<" "<<tmp<<endl; 
+            free(namelist[i]);
+            if(!strstr(t.filename.c_str(),tmp))tv.push_back(t);
+	}
+	free(namelist);
+        int ok=0;
+        for(int i=0;i<tv.size();i++){
+          if(-tnow+tv[i].tmout+tv[i].tmod>ok){
+            ok=-tnow+tv[i].tmout+tv[i].tmod;
+          }
+          
+        }
+       
+
+
+
+//  set your own lock
+
+  dir+=tmp;
+if(!ok){
+ofstream fbin;
+ fbin.open(dir.c_str());
+ if(fbin){
+   fbin<<tmout<<endl;
+ }
+ fbin.close();
+}
+ cout <<"AMSNtuple::Lock-I-Returning "<<ok<<endl;
+ return ok;
+
+}
+void AMSNtuple::UnLock(){
+ string dir="/afs/cern.ch/ams/local/locks/";
+ char tmp[512];
+char name[256]="";
+ int len=255;
+ if(!gethostname(name,len)){
+   struct hostent *hent;
+   hent=gethostbyname(name);
+   if(hent)strcpy(name,hent->h_name);
+   else cerr<<"AMSNtuple::UnLock::_gethostname-E-UnableToGetHostbyName "<<name<<endl;
+ }
+ pid_t pid=getpid();
+ sprintf(tmp,"lock.%s.%d",name,pid);
+  dir+=tmp;
+ unlink(dir.c_str());
+}
+integer AMSNtuple::_select(  const dirent64 *entry){
+ return strstr(entry->d_name,"lock.")!=NULL;
+}
