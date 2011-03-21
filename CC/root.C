@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.256 2011/03/18 10:12:41 choumilo Exp $
+//  $Id: root.C,v 1.257 2011/03/21 22:53:31 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1199,7 +1199,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 		return false;
 	}
 	if((TOF_type=="HT" || TOF_type=="SHT") && TOF_numb!=3 && TOF_numb!=4) {
-		printf("GetTofTrigFlags ERROR --> TOF_type=%s, wrong TOF_numb: %d\n",TOF_type,TOF_numb);
+		printf("GetTofTrigFlags ERROR --> TOF_type=%s, wrong TOF_numb: %d\n",TOF_type.c_str(),TOF_numb);
 		return false;
 	}
 	if(TOF_type=="FTZ" && (TOF_numb<0 || TOF_numb>3)) {

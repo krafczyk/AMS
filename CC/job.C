@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.781 2011/03/19 16:14:12 choumilo Exp $
+// $Id: job.C,v 1.782 2011/03/21 22:53:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3998,8 +3998,6 @@ AMSJob::~AMSJob(){
     cout <<"   trdendjob finished"<<endl;
     _richendjob();
     cout <<"   richendjob finished"<<endl;
-    _srdendjob();
-    cout <<"   srdendjob finished"<<endl;
 
 _dbendjob();
   cout <<"   dbendjob finished"<<endl;
@@ -4383,6 +4381,14 @@ void AMSJob::_axendjob(){
 }
 
 void AMSJob::_dbendjob(){
+
+    if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
+       cout <<"AMSJob::_debendjob-I-Removing "<<getenv("TMPRawFile")<<endl;
+       unlink(getenv("TMPRawFile"));
+       unsetenv("TMPRawFile");
+     }
+
+
   //Status Stuff
 #ifndef __CORBA__
   if(AMSFFKEY.Update==1001){

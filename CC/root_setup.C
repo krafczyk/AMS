@@ -768,10 +768,15 @@ return false;
 
 bool AMSSetupR::LoadSlowcontrolDB(const char* file){
   SlowControlDB::KillPointer();
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-ResetSCDBPointer "<<file<<endl;
   SlowControlDB* scdb=SlowControlDB::GetPointer();
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-GetSCDBPointer "<<file<<endl;
   if(scdb && scdb->Load(file,fHeader.FEventTime,fHeader.LEventTime)){
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-LoadSCDBFile "<<file<<endl;
     scdb->BuildSearchIndex(0);
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-AddSearchIndex "<<file<<endl;
     Add(scdb);
+  cout <<"AMSSetupR::LoadSlowcontrolDB-I-fillSlowControl "<<file<<endl;
   }
   else{
     cerr<<"AMSSetupR::LoadSlowcontrolDB-E-UnabletoLoadFile "<<scdb<<" "<<file<<endl;

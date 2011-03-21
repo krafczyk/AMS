@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.628 2011/03/10 15:23:39 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.629 2011/03/21 22:50:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14247,9 +14247,10 @@ sub insertNtuple {
 
   if($type eq 'RawFile'){
       if($datamc==0){
-    my $paths='/Offline/RunsDir/MC/';
-    my $cmd="ln -s $path $paths";
-    system($cmd);
+#    my $paths='/Offline/RunsDir/MC/';
+#    my $cmd="ln -s $path $paths";
+#    system($cmd);
+          my $paths=self->datasetlink($path,'/Offline/RunsDir',1);
 if(not defined $fetime or not defined $letime){ 
     my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
     if(defined($ret->[0][0])){
@@ -14327,7 +14328,7 @@ if(not defined $fetime or not defined $letime){
 
 #    $sql="delete from mcfiles where run=$run";
 #     $self->{sqlserver}->Update($sql);
-    $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths$run')";
+    $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths')";
 }
   }
   else{
@@ -19488,4 +19489,5 @@ sub datasetlink{
     if($i){
         print "Problem with $cp \n";
     }
+    return $newfile;
 }

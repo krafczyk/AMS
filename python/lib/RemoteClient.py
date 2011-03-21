@@ -1916,10 +1916,10 @@ class RemoteClient:
               
     def InsertNtuple(self,run,version,type,jid,fevent,levent,events,errors,timestamp,size,status,path,crc,crctime,crcflag,castortime,datamc):
         if(type=="RawFile" and datamc==0):
-            paths="/Offline/RunsDir/MC/";
+#            paths="/Offline/RunsDir/MC/";
 #            cmd="ln -sf %s %s" %(path,paths)
 #            os.system(cmd)
-            self.linkdataset(path,"/Offline/RunsDir",1)
+            paths=self.linkdataset(path,"/Offline/RunsDir",1)
             sql="select fetime,letime from runs where jid=%d" %(jid)
             ret=self.sqlserver.Query(sql)
             fetime=0
@@ -1967,7 +1967,7 @@ class RemoteClient:
             sizemb="%.f" %(ntsize)
             sql="delete from datafiles where run=%d and type like '%s'" %(run,stype)
             self.sqlserver.Update(sql)
-            sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s%d')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths,run)
+            sql=" insert into datafiles values(%d,'%s','%s',%d,%d,%d,%d,%d,%s,'%s','%s',' ',%d,%d,%d,0,%s,%d,%d,'%s')" %(run,version,stype,fevent,levent,events,errors,timestamp,sizemb,status,path,crc,crctime,castortime,part,fetime,letime,paths)
             self.sqlserver.Update(sql)
             return
         
@@ -3332,3 +3332,4 @@ class RemoteClient:
         i=os.system(cmd)
         if(i):
                 print "Problem with "+cmd
+        return dir

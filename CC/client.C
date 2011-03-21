@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.49 2011/02/23 20:12:54 choutko Exp $
+//  $Id: client.C,v 1.50 2011/03/21 22:53:31 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -157,6 +157,12 @@ cerr<<message<<endl;
    }
    AMSClientError a(message,res);
    Error()=a;
+    if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
+       cout <<"AMSClient::FMessage-I-Removing "<<getenv("TMPRawFile")<<endl;
+       unlink(getenv("TMPRawFile"));
+       unsetenv("TMPRawFile");
+     }
+
    Exiting();
    throw a;
 }

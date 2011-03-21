@@ -3885,6 +3885,7 @@ void ECREUNcalib::mfite(){
      time(&insert);
      end=begin+86400*30;
      ptdv->SetTime(insert,begin,end);
+      cout <<" updating db 2"<<begin<<endl;
    }
    else{
      if(flg==1 && goodchp<0.5)cout<<" <-- GoogChsPortion is too small - block writing to DB !"<<endl;
@@ -4286,6 +4287,7 @@ void AMSECIdCalib::getaverage(){
       begin=_BeginTime;
       end=_BeginTime+86400*30;
       ptdv->SetTime(insert,begin,end);
+      cout <<" updating db 2"<<begin<<endl;
 }
 {
     AMSTimeID *ptdv;

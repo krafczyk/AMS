@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.166 2011/03/21 15:58:05 choutko Exp $
+//  $Id: server.C,v 1.167 2011/03/21 22:53:32 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2550,7 +2550,7 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       if(pos>=0){
-     ac.TimeOut=ac.TimeOut*2;
+     ac.TimeOut=ac.TimeOut*6;
       cout<<"AMSProducer::StartClients-I-bsubDetectedTimeoutchanged "<<ac.TimeOut<<endl;
 }
 }
