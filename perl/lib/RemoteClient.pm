@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.630 2011/03/22 10:49:29 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.631 2011/03/22 13:25:08 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3562,6 +3562,15 @@ CheckCite:            if (defined $q->param("QCite")) {
                 }
             }
          }
+#         if($path == ""){
+            $sql = "SELECT path From Datafiles WHERE Run=$run";
+            my $r2=$self->{sqlserver}->Query($sql);
+            if (defined $r2->[0]) {
+                foreach my $pathPart (@{$r2}) {
+                    $path="$path $pathPart->[0];";
+                }
+            }
+ #        }
          if ($printit == 1) {
             $i++;
             print "
