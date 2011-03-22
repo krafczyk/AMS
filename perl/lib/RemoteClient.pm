@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.631 2011/03/22 13:25:08 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.632 2011/03/22 14:55:01 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3544,33 +3544,32 @@ CheckCite:            if (defined $q->param("QCite")) {
         my $path="";
         my $printit = 1;
         if ($accessmode eq "REMOTE") {
-            $sql = "SELECT run,prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
-            my $r0=$self->{sqlserver}->Query($sql);
-            if (not defined $r0->[0]) {
-                $printit = 0;
-            }else{
-                foreach my $pathPart (@{$r0}) {
-                    $path="$path $r0->[1]/$r0->[2];";
-                }
-            }
-        }else{
-            $sql = "SELECT path From Ntuples WHERE Run=$run";
-            my $r1=$self->{sqlserver}->Query($sql);
-            if (defined $r1->[0]) {
-                foreach my $pathPart (@{$r1}) {
-                    $path="$path $pathPart->[0];";
-                }
-            }
+#        $sql = "SELECT run,prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+        $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+        my $r0=$self->{sqlserver}->Query($sql);
+        if (not defined $r0->[0]) {
+            $printit = 0;
+        }#else{
+#                foreach my $pathPart (@{$r0}) {
+#                    $path="$path $r0->[1]/$r0->[2];";
+#                }
+#            }
+#        }else{
+#            $sql = "SELECT path From Ntuples WHERE Run=$run";
+#            my $r1=$self->{sqlserver}->Query($sql);
+#            if (defined $r1->[0]) {
+#                foreach my $pathPart (@{$r1}) {
+#                    $path="$path $pathPart->[0];";
+#                }
+#            }
          }
-#         if($path == ""){
-            $sql = "SELECT path From Datafiles WHERE Run=$run";
-            my $r2=$self->{sqlserver}->Query($sql);
-            if (defined $r2->[0]) {
-                foreach my $pathPart (@{$r2}) {
-                    $path="$path $pathPart->[0];";
-                }
-            }
- #        }
+         $sql = "SELECT path From Datafiles WHERE Run=$run";
+         my $r2=$self->{sqlserver}->Query($sql);
+         if (defined $r2->[0]) {
+#             foreach my $pathPart (@{$r2}) {
+           $path="$r2->[0][0]";
+ #            }
+         }
          if ($printit == 1) {
             $i++;
             print "
@@ -3585,28 +3584,37 @@ CheckCite:            if (defined $q->param("QCite")) {
   } elsif ($q->param("NTOUT") eq "FILES") {
 # ... print DSTs
     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    print "<td><b><font color=\"blue\" >Job </font></b></td>";
+    print "<td><b><font color=\"blue\" >Run </font></b></td>";
+    print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
     print "<td><b><font color=\"blue\" >File Path </font></b></td>";
     print "</tr>\n";
-     my $i =0;
-       foreach my $run (@runs){
-               if ($accessmode eq "REMOTE") {
-                $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
-                my $r0=$self->{sqlserver}->Query($sql);
-                foreach my $path (@{$r0}) {
-                   print "<td><b><font color=$color> $path->[0]/$path->[1] </font></td></b></font></tr>\n";
-               }
-            } else {
-             my $jobname = $jobnames[$i];
-             my $submit  = localtime($submits[$i]);
-             $i++;
-             $sql = "SELECT path From Ntuples WHERE Run=$run";
-             my $r1=$self->{sqlserver}->Query($sql);
-             foreach my $path (@{$r1}) {
-             print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
-           }
-         }
-      }
-      htmlTableEnd();
+    my $i =0;
+    foreach my $run (@runs){
+        if ($accessmode eq "REMOTE") {
+            $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+            my $r0=$self->{sqlserver}->Query($sql);
+            foreach my $path (@{$r0}) {
+                print "<td><b><font color=$color> $path->[0]/$path->[1] </font></td></b></font></tr>\n";
+            }
+        } else {
+            my $jobname = $jobnames[$i];
+            my $submit  = $submits[$i];
+            $i++;
+            $sql = "SELECT path From Ntuples WHERE Run=$run";
+            my $r1=$self->{sqlserver}->Query($sql);
+            print "
+            <td><b><font color=$color> $jobname&nbsp;&nbsp;&nbsp; </font></td></b>
+            <td><b><font color=$color> $run&nbsp;&nbsp;&nbsp; </font></b></td>
+            <td><b><font color=$color> $submit&nbsp;&nbsp;&nbsp; </font></b></td>";
+            print "<td><b><font color=$color>";
+            foreach my $path (@{$r1}) {
+                print " $path->[0]  ";
+            }
+            print "</font></td></b></font></tr>\n";
+        }
+    }
+    htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
 #       die "nah";
@@ -5048,8 +5056,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 # Output format
    print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" > Full Listing\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Raw file names\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Root file names\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\" CHECKED> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
 
