@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.131 2010/11/13 01:21:41 mmilling Exp $
+//  $Id: geant.C,v 1.132 2011/03/22 22:17:51 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -294,12 +294,12 @@ if(message)AMSJob::gethead()->setMessage(message);
 if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif
+GLAST();
 
 
 int nevents= GCFLAG.IEVENT;
-GLAST();
        delete AMSJob::gethead();
-
+       
 #ifdef __CORBA__
 }
 catch (AMSClientError & ab){
