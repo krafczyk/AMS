@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.44 2011/02/08 14:25:26 shaino Exp $
+//  $Id: TrFit.C,v 1.45 2011/03/22 08:37:06 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/02/08 14:25:26 $
+///$Date: 2011/03/22 08:37:06 $
 ///
-///$Revision: 1.44 $
+///$Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3353,6 +3353,7 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
   double len = VCFitPar(init, out, point, 0, 1);
   pnt.setp(out[0], out[1], out[2]);
   dir.setp(out[3], out[4], out[5]);
+  if (dir.z() < 0) dir = dir*(-1);
   return len;
 }
 
@@ -3422,7 +3423,7 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
 			double m55[][NDIM], int clear)
 {
   double steps   = 0.03;
-  double smax    = 50;
+  double smax    = 20;
   double cconv   = 5.e-4;
   double fieldmm = 20;
   double tmaxf   = 0.2;
@@ -3465,6 +3466,11 @@ double TrProp::VCFitPar(double *init, double *out, double *point,
 
     double sd2 = out[3]*point[3]+out[4]*point[4]+out[5]*point[5];
     sdist = sdist/(sd2+1.e-10);
+
+    double bb[3];
+    GuFld(out[0], out[1], out[2], bb);
+    cfld    = 3333.*pii/180./(bb[0]+1.e-10)*tmaxf;
+    sfield  = fabs(cfld*init[6]/_chrg);
 
     if (std::min(sfield, smax) <= 0 || fabs(sdist) < cconv) {
       double h = out[2]-za;
