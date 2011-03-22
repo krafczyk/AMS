@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.52 2011/03/19 16:16:53 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.53 2011/03/22 11:20:41 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -220,7 +220,7 @@ if(TFCAFFKEY.hprintf>0){
   char datt[3];
   char ext[80];
   char name[80];
-  int date[2],year,mon,day,hour,min,sec;
+  int date[2],year,mon,day,hour,mins,sec;
   uinteger yyyymmdd,hhmmss;
   uinteger iutct;
   tm begin;
@@ -269,6 +269,7 @@ if(TFCAFFKEY.hprintf>0){
 //
   StartRun=AMSUser::JobFirstRunN();
   StartTime=time_t(StartRun);
+  uinteger StartTimeE=uinteger(AMSUser::JobFirstEventT());
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
   if(AMSJob::gethead()->isMCData()){
@@ -354,10 +355,10 @@ if(TFCAFFKEY.hprintf>0){
     mon=TFREFFKEY.mon[0]+1;
     day=TFREFFKEY.day[0];
     hour=TFREFFKEY.hour[0];
-    min=TFREFFKEY.min[0];
+    mins=TFREFFKEY.min[0];
     sec=1;
     yyyymmdd=year*10000+mon*100+day;
-    hhmmss=hour*10000+min*100+sec;
+    hhmmss=hour*10000+mins*100+sec;
     vlfile << yyyymmdd;//YYYYMMDD beg.validity of TofCflistMC.ext file
     vlfile << endl;
     vlfile << hhmmss;//HHMMSS 
@@ -391,21 +392,27 @@ if(TFCAFFKEY.hprintf>0){
       if(!(TOF2JobStat::cqual(2,0)>0.8 && TOF2JobStat::cqual(2,1)>0.7 && TOF2JobStat::cqual(2,2)>0.1))calresok=0;
     }
     if(calresok==1){
-      TOF2Brcal::setpars(StartRun);
+      int retstat=TOF2Brcal::setpars(StartRun);//bad if >0
 //
-      AMSTimeID *ptdv;
-      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal2",AMSJob::gethead()->isRealData()));
-      ptdv->UpdateMe()=1;
-      ptdv->UpdCRC();
-      time(&insert);
-      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
-      ptdv->SetTime(insert,StartRun,StartRun+86400*30);
-      cout <<"      <--- Tofbarcal2 DB-info has been updated for "<<*ptdv<<endl;
-      ptdv->gettime(insert,begin,end);
-      cout<<"           Time ins/beg/end: "<<endl;
-      cout<<"           "<<ctime(&insert);
-      cout<<"           "<<ctime(&begin);
-      cout<<"           "<<ctime(&end);
+      if(retstat==0){
+        AMSTimeID *ptdv;
+        ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal2",AMSJob::gethead()->isRealData()));
+        ptdv->UpdateMe()=1;
+        ptdv->UpdCRC();
+        time(&insert);
+        if(CALIB.InsertTimeProc)insert=StartRun;//redefine according to VC.
+//        ptdv->SetTime(insert,StartRun-1,StartRun-1+86400*30);
+        ptdv->SetTime(insert,min(StartRun-1,StartTimeE),StartRun-1+86400*30);
+        cout <<"      <--- Tofbarcal2 DB-info has been updated for "<<*ptdv<<endl;
+        ptdv->gettime(insert,begin,end);
+        cout<<"           Time ins/beg/end: "<<endl;
+        cout<<"           "<<ctime(&insert);
+        cout<<"           "<<ctime(&begin);
+        cout<<"           "<<ctime(&end);
+      }
+      else{
+        cout<<"<==== TofTimeAmplCalib::DB on-flight update was requested but not done : problems to read new calib-files ! "<<retstat<<endl;
+      }
 //
     }
     else{
@@ -4206,7 +4213,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
      ptdv->UpdCRC();
      time(&insert);
      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
-     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
+     ptdv->SetTime(insert,min(AMSEvent::gethead()->getrun()-1,uinteger(AMSEvent::gethead()->gettime())),AMSEvent::gethead()->getrun()-1+86400*30);
      cout <<"      <--- TofOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
      ptdv->gettime(insert,begin,end);
      cout<<"           Time ins/beg/end: "<<endl;

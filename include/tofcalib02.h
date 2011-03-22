@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.20 2010/06/06 08:12:51 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.21 2011/03/22 11:20:58 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -9,7 +9,6 @@
 class TofTmAmCalib {
 private:
 //common-part:
-//  static uinteger JobFirstRunN;
   //Tzslw-part:
   static geant slope;
   static geant tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];

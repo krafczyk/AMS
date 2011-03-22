@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.97 2011/03/08 08:54:33 choumilo Exp $
+//  $Id: trigger102.C,v 1.98 2011/03/22 11:20:41 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2517,6 +2517,7 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
     if(AMSUser::PreviousRunN()==0){
       AMSUser::JobFirstRunN()=runn;
       AMSUser::PreviousRunN()=runn;
+      AMSUser::JobFirstEventT()=evtime;
     }
     AMSUser::RunFirstEventT()=evtime;
   }

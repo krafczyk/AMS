@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.782 2011/03/21 22:53:31 choutko Exp $
+// $Id: job.C,v 1.783 2011/03/22 11:20:41 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1023,7 +1023,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.pedoutf=2;      // (57)  --//-- outp.flag: 0/1/2-> HistosOnly/PedWr2DB(if AMSJ 87=1)/PedWr2File+Hist
   ECCAFFKEY.pedlim[0]=2.;  // (58) Ped low-lim in PedCalibJobs
   ECCAFFKEY.pedlim[1]=800.; // (59)      hi-lim ...............
-  ECCAFFKEY.siglim[0]=0.1;  // (60) PedSig low-lim ............
+  ECCAFFKEY.siglim[0]=0.05;  // (60) PedSig low-lim ............
   ECCAFFKEY.siglim[1]=10.; //  (61)         hi-lim ............
 //g.chen
   ECCAFFKEY.ecshswit=0;        // (62) 0/1 switch to/(not to) use shower info in ANOR calibration

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.84 2011/03/19 16:19:02 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.85 2011/03/22 11:20:41 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -1037,7 +1037,7 @@ void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
   tdc=tdo+slope*uv;
 }
 //--------------------------
-void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CFversion
+int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CFversion
 //used for "on flight" DB update after calib.job finished
 //
  int lsflg(1);//0/1->use common/individual values for Lspeed 
@@ -1118,7 +1118,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
   ifstream stfile(fname,ios::in); // open file for reading
   if(!stfile){
     cout <<"<---- Error: missing TofCalibStatus-file: "<<fname<<endl;
-    exit(1);
+    return 1;
   }
 //------------------------------
 //   --->  Read TOF-channels status values:
@@ -1142,7 +1142,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
    }
    else{
      cout<<"<---- Error: problems with TofCalibStatus-file !!!"<<endl;
-     exit(1);
+     return 2;
    }
 //--------------------------------------------------
 //
@@ -1162,7 +1162,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
  ifstream tdcfile(fname,ios::in); // open  file for reading
  if(!tdcfile){
    cout <<"<---- Error: missing TimeDiff/LightVelosity-file !!! "<<fname<<endl;
-   exit(1);
+   return 1;
  }
 //
  if(lsflg){// read bar indiv.Lspeed
@@ -1190,7 +1190,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
      cout<<"      TOF TimeDiff/LightVelosity-file is successfully read !"<<endl;
    }
    else{cout<<"<---- Error: problems with TOF TimeDiff/LightVelosity-file !!!"<<endl;
-     exit(1);
+     return 2;
    }
 //-----------------------------------------------------
 //
@@ -1210,7 +1210,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
  ifstream tzcfile(fname,ios::in); // open  file for reading
  if(!tzcfile){
    cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
-   exit(1);
+   return 1;
  }
 //
  tzcfile >> slpf;
@@ -1229,7 +1229,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
    }
    else{
      cout<<"<---- Error: problems with TOF Slewing/T0-params file !!!"<<endl;
-     exit(1);
+     return 2;
    }
 //-------------------------------------------------------
 //
@@ -1250,7 +1250,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
    ifstream gcfile(fname,ios::in); // open file for reading
    if(!gcfile){
      cout <<"<---- Error: missing TOF AmplificationParameters-file !!! "<<fname<<endl;
-     exit(1);
+     return 1;
    }
 //
 // ----------------> read anode relative(wrt ref.counter) gains:
@@ -1313,7 +1313,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
    }
    else{
      cout<<"<---- Error: problems with TOF AmplificationParameters-file !!!"<<endl;
-     exit(1);
+     return 2;
    }
 //   
 //---------------------------------------------
@@ -1411,6 +1411,7 @@ void TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to C
   } // --- end of layer loop --->
 //
   cout<<"<---- TOF2Brcal::setpars: succsessfully done !"<<endl<<endl;
+  return 0;
 }
 //===============================================================================
   TOFBrcalMS::TOFBrcalMS(integer sid, integer sta[2], geant gna[2], 

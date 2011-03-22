@@ -3346,7 +3346,7 @@ void ECREUNcalib::mfite(){
      ptdv->UpdCRC();
      time(&insert);
      if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();//redefine according to VC.
-     ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+86400*30);
+     ptdv->SetTime(insert,min(AMSEvent::gethead()->getrun()-1,uinteger(AMSEvent::gethead()->gettime())),AMSEvent::gethead()->getrun()-1+86400*30);
      cout <<"      <--- EcalOnBoardPeds DB-info has been updated for "<<*ptdv<<endl;
      ptdv->gettime(insert,begin,end);
      cout<<"           Time ins/beg/end: "<<endl;
@@ -3885,7 +3885,6 @@ void ECREUNcalib::mfite(){
      time(&insert);
      end=begin+86400*30;
      ptdv->SetTime(insert,begin,end);
-      cout <<" updating db 2"<<begin<<endl;
    }
    else{
      if(flg==1 && goodchp<0.5)cout<<" <-- GoogChsPortion is too small - block writing to DB !"<<endl;

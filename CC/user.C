@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.22 2009/02/20 14:12:17 choutko Exp $
+//  $Id: user.C,v 1.23 2011/03/22 11:20:41 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include "cern.h"
@@ -15,11 +15,13 @@
 uinteger AMSUser::_JobFirstRunN=0;
 uinteger AMSUser::_PreviousRunN=0;
 time_t AMSUser::_RunFirstEventT=0;
+time_t AMSUser::_JobFirstEventT=0;
 //
 void AMSUser::InitJob(){//called after all other initjob's
   _JobFirstRunN=0;
   _PreviousRunN=0;
   _RunFirstEventT=0;
+  _JobFirstEventT=0;
 //
   if(TFREFFKEY.relogic[0]==0 && !(AMSJob::gethead()->isCalibration())){//if reco(noncalib) job
     TOF2User::InitJob();
