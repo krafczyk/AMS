@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.167 2011/03/21 22:53:32 choutko Exp $
+//  $Id: server.C,v 1.168 2011/03/22 21:18:27 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2544,16 +2544,23 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
      submit+=".log ";
     }
     if(_parent->Debug())_parent->IMessage(submit);
-    submit+=" &";
 {
       string s=(const char*)submit;
       char pat[]="bsub -n ";
       int pos=s.find(pat);
       if(pos>=0){
-     ac.TimeOut=ac.TimeOut*6;
-      cout<<"AMSProducer::StartClients-I-bsubDetectedTimeoutchanged "<<ac.TimeOut<<endl;
+       ac.TimeOut=ac.TimeOut*1.5;
+       //   try also to change submit string to get a job id in /afs/cern.ch/ams/local/bsubs/uid
+       AString badd=" 1>& /afs/cern.ch/ams/local/bsubs/";
+       badd+=uid;
+      if(!(*cli)->LogInTheEnd){
+       submit +=(const char*)badd;
+      }
+      cout<<"AMSProducer::StartClients-I-bsubDetectedTimeoutchanged "<<ac.TimeOut<<" "<<submit<<endl;
 }
 }
+    submit+=" &";
+
     if(singlethread){
       cout<<"AMSProducer::StartClients-I-singleThreadDetected "<<submit<<endl;
       string s=(const char*)submit;
@@ -2622,7 +2629,7 @@ time(&tt);
   if(tstp){
   int stp=0;
   for(ACLI li=_acl.begin();li!=_acl.end();++li){
-  bool single=true;
+  bool single=strstr((const char *)((*li)->id).HostName,"lxplus")==0;
     for(ACLI i=_acl.begin();i!=_acl.end();++i){
       if(i!=li){
       if(!strcmp((const char *)((*i)->id).HostName, (const char *)((*li)->id).HostName)){
@@ -2756,9 +2763,62 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Killed && ((*li)->LastUpdate+(*li)->TimeOut<tt && ((*li)->Status!=DPS::Client::Submitted || (*li)->LastUpdate+100<tt))){
    DPS::Client::ActiveClient_var acv=*li;
    if(acv->Status==DPS::Client::Submitted){
+    acv->Status=DPS::Client::TimeOut;
     acv->LastUpdate=(*li)->LastUpdate-2*((*li)->TimeOut);
-   } 
-   acv->Status=DPS::Client::TimeOut;
+    //check bsubs
+    const char add[]="/afs/cern.ch/ams/local/bsubs/";
+    AString badd=add;
+    char uid[80];
+     sprintf(uid,"%u",(*li)->id.uid);
+      badd+=uid;
+      ifstream fbin;
+      fbin.open((const char*)badd);
+         int kstart=-1;
+         int kend=-1;
+        char line[255]="";
+      if(fbin){
+        fbin.getline(line,254);
+        for(int i=0;i<strlen(line);i++){
+         if (line[i]=='<'){
+            kstart=i;
+         }
+         if(line[i]=='>' && kstart>=0){
+            kend=i;
+            break;
+         }
+      }
+      }  
+      fbin.close();
+      unsigned jid=0;
+      if(kstart>=0 && kend>=0 && kstart<kend && isdigit(line[kstart+1])){
+        jid=atol(line+kstart+1);
+        cout <<"  Check Client jid found "<<jid<<" "<<uid;         
+        char tmp[255];
+        sprintf(tmp,"ssh lxplus bjobs %u 1>& %s%s.bsub",jid,add,uid);
+        system(tmp);
+        sprintf(tmp,"%s%s.bsub",add,uid);
+        fbin.clear();
+        fbin.open(tmp);
+        if(fbin){
+         while(fbin.good() && !fbin.eof()){
+         fbin.getline(line,254);
+         if(strstr(line,"PEND")){
+           acv->Status=DPS::Client::Submitted;
+           acv->LastUpdate=tt;
+         }
+         }         
+        }
+      else{
+         cerr <<" unable to open "<<tmp<<endl;
+      }
+      fbin.close();
+      unlink(tmp);
+     }
+     else{
+       cerr <<" kstart kend problem "<<kstart<<" "<<kend<<" "<<line<<endl;
+     } 
+   }
+   else acv->Status=DPS::Client::TimeOut;
    if(_parent->Debug())_parent->EMessage(AMSClient::print(acv,"Client TIMEOUT"));
    PropagateAC(acv,DPS::Client::Update);
  }

@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.108 2010/06/25 14:55:29 zweng Exp $
+//  $Id: gbatch.C,v 1.109 2011/03/22 21:18:27 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -77,6 +77,7 @@ std::set_unexpected (my_unexpected);
      *signal(SIGUSR2, handler); 
      *signal(SIGHUP, handler); 
      *signal(SIGTSTP, handler); 
+    *signal(SIGURG, handler);
      *signal(SIGTTIN, handler); 
      *signal(SIGTTOU, handler); 
     GZEBRA(NWGEAN);
@@ -235,6 +236,7 @@ void (handler)(int sig){
 #endif
     }
     break;
+ case SIGURG:
   case SIGTSTP:
 #ifdef _OPENMP
 #pragma omp master
