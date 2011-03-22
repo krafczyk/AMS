@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.152 2011/03/03 11:17:38 shaino Exp $
+#  $Id: Makefile,v 1.153 2011/03/22 13:13:11 mmilling Exp $
 
 #P.Zuccon june 2005
 
@@ -322,7 +322,7 @@ endif
 
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h  ../include/trigger102_setup.h
 
-ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h
+ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/SlowControlDB.h
 
 ROOTDICTFILES += ../include/linkdef.h
 
