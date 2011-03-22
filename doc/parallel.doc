@@ -40,7 +40,7 @@ In case dynamic thread allocation with chunk_number=4096  elapsed performance is
 
 
 number of threads changeable with MISC 8=thread_number (default 1) 9=dynamic_update (!sometimes gives omp_abort , should be not switched on) (default 0) 10=chunk_number (default 8192)  
-changeable dynamically via openmp w/r host load or manually with signals TTOU (-1) or TTIN (+1) or TSTP (num_of_proc)
+changeable dynamically via openmp w/r host load or manually with signals TTOU (-1) or TTIN (+1) or TSTP/URG (num_of_proc)
 
 
 
