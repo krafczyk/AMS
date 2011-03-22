@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.14 2011/03/21 15:58:14 choutko Exp $
+//  $Id: root_setup.h,v 1.15 2011/03/22 17:01:25 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -65,7 +65,7 @@ ClassDef (Node,1) //Node
 
 public:
 unsigned int fBegin; ///<Begin Validity
-unsigned int fEnd;  /// <End Validity
+unsigned int fEnd;  ///<End Validity
 unsigned int UnCompleted; ///< 0 if completed
 typedef multimap <string,Element> etable_m;
 typedef multimap <string,Element>::iterator etable_i;
@@ -75,32 +75,40 @@ typedef map<unsigned long long,string>::iterator rtable_i;
 rtable_m fRTable;  ///< Conversion Map (To speed up the search)
 void print();
 SlowControlR():fBegin(0),fEnd(0){}
-ClassDef (SlowControlR,2) //SlowControlR
-  /// Returns the value of a quantity with a given name at a given timestamp
+
+         //! SlowControlElement Accessor
 	/*! 
-	 \param elementname       the name of the desired quantity
-          OR  if elementname="" or NULL
-	 \param nodename       restrict to some node names only
-        \param dt
-         \param st
+	 \param elementname       the name of the desired quantity or "" (any)
+	\param nodename           nodfe name or "" (any)
+         \param dt            datatype or -1  (any)
+         \param st            subtype  or -1  (any)
 	 \param timestamp  Unix time (sec from 1970)
 	 \param frac       second fraction after the timestamp
          \param val        return array of values  
 	 \param imethod   0 = the closer in time
 	 1 = linear interplolation
 	 \return  0   success
+
                   1  no elementname found
+
                   2  no nodename found
+
                   3  no dt and/or st found
+
                   4  outside of bound method 1
+
                   5  outside of bounds methods 0,1
+
                   6  element table empty
+
                   7  wrong method
+
                  -1  internal error
                  
 	 */
 int GetData(const char * elementname,unsigned int time, float frac, vector<float> &value , int imethod=1, const char *nodename="", int dt=-1, int st=-1);
 
+ClassDef (SlowControlR,2)  //slowControl
 };
 
 //! AMSTimeID info used to create a given file
