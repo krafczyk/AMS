@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.629 2011/03/21 22:50:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.630 2011/03/22 10:49:29 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3533,27 +3533,42 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<td><b><font color=\"blue\">Job </font></b></td>";
      print "<td><b><font color=\"blue\" >Run </font></b></td>";
-     print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
+     print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>";
+     print "<td><b><font color=\"blue\" >Path </font></b></td>\n";
      print "</tr>\n";
      my $color="black";
      my $i =0;
-       foreach my $run (@runs){
-         my $jobname = $jobnames[$i];
-         my $submit  = $submits[$i];
-         my $printit = 1;
-         if ($accessmode eq "REMOTE") {
-          $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
-          my $r0=$self->{sqlserver}->Query($sql);
-          if (not defined $r0->[0]) {
-           $printit = 0;
-           }
+     foreach my $run (@runs){
+        my $jobname = $jobnames[$i];
+        my $submit  = $submits[$i];
+        my $path="";
+        my $printit = 1;
+        if ($accessmode eq "REMOTE") {
+            $sql = "SELECT run,prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+            my $r0=$self->{sqlserver}->Query($sql);
+            if (not defined $r0->[0]) {
+                $printit = 0;
+            }else{
+                foreach my $pathPart (@{$r0}) {
+                    $path="$path $r0->[1]/$r0->[2];";
+                }
+            }
+        }else{
+            $sql = "SELECT path From Ntuples WHERE Run=$run";
+            my $r1=$self->{sqlserver}->Query($sql);
+            if (defined $r1->[0]) {
+                foreach my $pathPart (@{$r1}) {
+                    $path="$path $pathPart->[0];";
+                }
+            }
          }
          if ($printit == 1) {
-          $i++;
-          print "
-            <td><b><font color=$color> $jobname </font></td></b>
-            <td><b><font color=$color> $run </font></b></td>
-            <td><b><font color=$color> $submit </font></b></td>\n";
+            $i++;
+            print "
+            <td><b><font color=$color> $jobname&nbsp;&nbsp;&nbsp; </font></td></b>
+            <td><b><font color=$color> $run&nbsp;&nbsp;&nbsp; </font></b></td>
+            <td><b><font color=$color> $submit&nbsp;&nbsp;&nbsp; </font></b></td>
+            <td><b><font color=$color> $path </font></b></td>\n";
             print "</font></tr>\n";
         }
      }
@@ -5185,15 +5200,11 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
  print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
-             print "<select name=\"QPPer\" onchange='check_prodset(this.form.QPPer);'>\n";
-             my $ii=0;
-             foreach my  $template (@periodid) {
-                if($template == 0){
-                    print "<option selected='selected' value=\"$template\">$period[$ii] </option>\n";
-                }else{
-                    print "<option value=\"$template\">$period[$ii] </option>\n";
-                }
-              $ii++;
+            print "<select name=\"QPPer\" id=\"QPPerId\" onchange='check_prodset(this.form.QPPer);'>\n";
+            my $ii=0;
+            foreach my  $template (@periodid) {
+                 print "<option value=\"$template\">$period[$ii] </option>\n";
+                 $ii++;
             }
             print "</select>\n";
       print "</b></td></tr>\n";
@@ -5204,8 +5215,8 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "</td><td>\n";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
-           print "</b>
-                   <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANYMC<BR>\n";
+           print "</b><div id=\"sets\">
+                   <span id=\"pbany\"><INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANYMC<BR></span>\n";
            print "</b></font></td></tr>\n";
            my @datasets = ();
            my $sql = "SELECT datasetsdesc.dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=0 group by dataset";
@@ -5224,12 +5235,11 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
             my $id=1;
            foreach my $dataset (@datasets) {
-             print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"QPart\" ID=$id VALUE=$dataset><span id=b$id>$dataset</span><BR>\n";
+             print "<span id=\"pb$id\"><INPUT TYPE=\"radio\" NAME=\"QPart\" ID=$id VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
              $id++;
 #              print "</b></font></td></tr>\n";
            }
-        print "<script LANGUAGE=\"javascript\">\nvar dsets=[];\n";
+        print "</div><script LANGUAGE=\"javascript\">\nvar dsets=[];\n";
         foreach my  $template (@periodid) {
             if($template != 0){
                 print "dsets.push([$template]);\n";
@@ -5266,7 +5276,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                 element.style.color = 'black';
                 element.style.fontWeight = 'normal';
             }
-            for(var j=1; j<dsetsmc[0].length; j++){
+            for(var j=1; j<dsetsdata[0].length; j++){
                 element=document.getElementById(j+1000);
                 element.style.display = 'inline';
                 element.disabled=false;
@@ -5294,10 +5304,10 @@ CheckCite:            if (defined $q->param("QCite")) {
                         }
                     }
                 }
-                if(dsetsmc[i][0]==id){
-                    for(var j=1; j<dsetsmc[i].length; j++){
+                if(dsetsdata[i][0]==id){
+                    for(var j=1; j<dsetsdata[i].length; j++){
                         element=document.getElementById(j+1000);
-                        if(dsetsmc[i][j]>0){
+                        if(dsetsdata[i][j]>0){
                             element.disabled=false;
                             element.style.display = 'inline';
                             element=document.getElementById('b'+(j+1000));
@@ -5314,7 +5324,42 @@ CheckCite:            if (defined $q->param("QCite")) {
                 }
             }
         }
-    }\n";
+        sort_prodsets();
+    }
+function sort_prodsets() {
+    var disabled=[];
+    var disableddata=[];
+    var d = document.getElementById('sets');
+    for(var j=1; j<dsets[0].length; j++){
+        element=document.getElementById('pb'+j);
+        status=document.getElementById(j).disabled;
+        if(status==true){
+            disabled.push(element.id);
+        }else{
+            d.appendChild(element);
+        }
+    }
+    element=document.getElementById('pbany');
+    d.appendChild(element);
+    for(var j=0; j<disabled.length; j++){
+        d.appendChild(document.getElementById(disabled[j]));
+    }
+    var d = document.getElementById('setsdata');
+    for(var j=1; j<dsetsdata[0].length; j++){
+        element=document.getElementById('pb'+(j+1000));
+        status=document.getElementById(j+1000).disabled;
+        if(status==true){
+            disableddata.push(element);
+        }else{
+            d.appendChild(element);
+        }
+    }
+    element=document.getElementById('pbanydata');
+    d.appendChild(element);
+    for(var j=0; j<disableddata.length; j++){
+        d.appendChild(disableddata[j]);
+    }
+}\n";
         print "</script>\n";
     
         
@@ -5332,8 +5377,8 @@ CheckCite:            if (defined $q->param("QCite")) {
      print "</td><td>\n";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
-           print "</b>
-                   <INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR>\n";
+           print "</b><div id=\"setsdata\">
+                   <span id=\"pbanydata\"><INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR></span>\n";
            print "</b></font></td></tr>\n";
            $#datasets = -1;
            $sql = "SELECT name FROM datasets  where datamc=1 ";
@@ -5346,11 +5391,11 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
       my $id=1001;
            foreach my $dataset (@datasets) {
-             print "</b>
-                     <INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR>\n";
+             print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
              $id++;
 #              print "</b></font></td></tr>\n";
            }
+        print "</div>";
 #js start
         my $sqlq = "select did ";
         foreach my $dataset (@datasets) {
@@ -5374,9 +5419,9 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
 #        print($sqlq);
         my $res=$self->{sqlserver}->Query($sqlq.") order by did");
         if(defined $res->[0][0]){
-            print "<script LANGUAGE=\"javascript\">\nvar dsetsmc=[];\n";
+            print "<script LANGUAGE=\"javascript\">\nvar dsetsdata=[];\n";
             foreach my $resq (@{$res}) {
-                my $jstr = "dsetsmc.push([";
+                my $jstr = "dsetsdata.push([";
                 foreach my $subres (@{$resq}) {
                     $jstr = $jstr."$subres,";
                 }
@@ -5385,6 +5430,10 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
             }
             print "</script>\n";
         }
+        print "<script LANGUAGE=\"javascript\">";
+        print "document.getElementById('QPPerId').value = '-1';";
+        print "check_prodset(document.getElementById('QPPerId').form.QPPer);";
+        print "</script>";
         
 #js end
 
