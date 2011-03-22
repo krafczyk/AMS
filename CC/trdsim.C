@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.40 2011/01/29 03:48:37 mmilling Exp $
+//  $Id: trdsim.C,v 1.41 2011/03/22 14:01:16 mmilling Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -188,15 +188,13 @@ integer AMSTRDRawHit::checkdaqidJ(int16u id){
 void AMSTRDRawHit::updtrdcalibSCI(){
   AMSTimeID *ptdv=0;
   time_t begin,end,insert;
-  
-  
-  //  const char* TDV2Update={"TRDPedestals","TRDSigmas","TRDGains","TRDStatus"};
-  //  for (int i=0;i<ntrd;i++){
+
   ptdv = AMSJob::gethead()->gettimestructure(AMSID("TRDGains",AMSJob::gethead()->isRealData()));
   ptdv->UpdateMe()=1;
   ptdv->UpdCRC();
   time(&insert);
-  if(CALIB.InsertTimeProc)insert=AMSEvent::getSRun();//AMSEvent::gethead()->getrun();
+  if(CALIB.InsertTimeProc)insert=AMSEvent::getSRun();
+
   // valid for 10 days
   ptdv->SetTime(insert,AMSEvent::getSRun()-1,AMSEvent::getSRun()-1+864000);
   cout <<" TRD SCI  info has been updated for "<<*ptdv;

@@ -165,7 +165,7 @@ class TrdHReconR{
   //  void DoCalibration(int trackiter,float beta, float charge);
 
   /// update tdv gain array
-  void update_tdv_array(int debug=0);
+  bool update_tdv_array(int debug=0);
 
   /// event quality selection - level 0:basic 1:'golden'(exactly 1 track 2 segments)  
   int SelectEvent(int level=0);

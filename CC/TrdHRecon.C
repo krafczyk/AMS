@@ -1232,15 +1232,11 @@ int TrdHReconR::SelectEvent(int level){
   else return 0;
 }
 
-
-
-
-void TrdHReconR::update_tdv_array(int debug){
+bool TrdHReconR::update_tdv_array(int debug){
+  bool toReturn=false;
 #ifndef __ROOTSHAREDLIBRARY__
-
   for(int i=0;i<5248;i++){
     if(tube_occupancy[i]>0){
-
       int tube=i%16;
       int hvid=i/64;
       int layer=i%64/16;
@@ -1255,8 +1251,9 @@ void TrdHReconR::update_tdv_array(int debug){
       if(!id.dead()){
 	id.setgain()=tube_medians[i]/TRDMCFFKEY.GeV2ADC*1.e6;
 
+	if(!toReturn&&tube_occupancy[i]>100)toReturn=true;
 	if(debug){
-#pragma omp critical (dbgfile)
+#pragma omp critical (dbggains)
 	  {
 	    printf("LLT %02i%02i%02i id %i median %.2f = %.2f occ %i -> gain %.2f\n",layer,ladder,tube,id.getchannel(),id.getgain(),tube_medians[i],tube_occupancy[i],id.getgain());
 	  }
@@ -1268,5 +1265,5 @@ void TrdHReconR::update_tdv_array(int debug){
   printf("Entering TrdHReconR::update_tdv_array\n");
   printf("Currently restricted to gbatch framework\n");
 #endif
-  return;
+  return toReturn;;
 }

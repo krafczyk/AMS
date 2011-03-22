@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.516 2011/03/21 21:19:51 choutko Exp $
+//  $Id: event.C,v 1.517 2011/03/22 14:01:16 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1626,6 +1626,7 @@ for(i=0;i<nalg;i++){
 
 void AMSEvent::_trdgain(){
   if(!TrdHReconR::calibrate)return;
+
   if(TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectEvent())
     if(TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec.size()==1 &&
        TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectTrack(0) &&
