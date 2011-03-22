@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.216 2011/03/21 15:58:05 choutko Exp $
+//  $Id: ntuple.C,v 1.217 2011/03/22 14:57:27 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -845,7 +845,7 @@ int tmout=0;
 string name=_rfile->GetName();
 //_rfile->Write();
 //_rfile->Close();
-if(Get_setup02() && !AMSJob::gethead()->isSimulation()){
+if(Get_setup02() && AMSJob::gethead()->isRealData()){
 #ifdef __CORBA__
 AMSProducer::gethead()->SendTimeout(2500);
 #endif
