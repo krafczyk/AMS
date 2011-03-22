@@ -529,7 +529,9 @@ void DAQRichBlock::buildcal(integer length,int16u *p){
       ptdv->UpdCRC();
       time(&insert);
       if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
-      ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()-1+864000);
+#define min(x,y) ((x)<(y)?(x):(y))
+      ptdv->SetTime(insert,min(AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->gettime()),AMSEvent::gethead()->getrun()-1+864000);
+#undef min
       cout <<" RICH info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
