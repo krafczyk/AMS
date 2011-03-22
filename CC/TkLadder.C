@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.7 2010/08/15 17:08:55 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.8 2011/03/22 17:46:24 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/08/15 17:08:55 $
+///$Date: 2011/03/22 17:46:24 $
 ///
-///$Revision: 1.7 $
+///$Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -68,6 +68,11 @@ ostream& TkLadder::putout(ostream& s) const {
       GetHwId()<<"  "<<_nsensors<<endl;
 
 }
+
+int TkLadder::GetLayerJ()const{
+    return TkDBc::Head->GetJFromLayer(GetLayer());
+}
+
 
 void TkLadder::SetTkId(int Trid){
   _layer=abs(Trid)/100;

@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.9 2010/08/15 17:08:56 pzuccon Exp $
+// $Id: TkLadder.h,v 1.10 2011/03/22 17:46:24 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,14 +19,13 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2010/08/15 17:08:56 $
+///$Date: 2011/03/22 17:46:24 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
 #include "TkObject.h"
-
 class TkPlane;
 
 namespace trconst{
@@ -97,9 +96,10 @@ public:
   TkLadder(TkPlane* plane,char* name,int TkId,int HwId,int nsensors);
   ~TkLadder(){}
 
-  //! it returns the layer
+  //! it returns the layer OLD scheme
   int GetLayer()const{return _layer;}
-
+  //! it returns the layer J-scheme
+  int GetLayerJ()const;
   //! it returns the pointer to the plane object
   TkPlane* GetPlane()const{return _plane;}
 

@@ -40,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2011/03/14 00:12:09 $
+ $Date: 2011/03/22 17:46:24 $
 
- $Revision: 1.20 $
+ $Revision: 1.21 $
 
 */
 
@@ -148,8 +148,8 @@ class TrClusterR :public TrElem{
 
   /// Get ladder TkId identifier 
   int   GetTkId()          const { return _tkid; }
-  /// Get ladder layer
-  int   GetLayer()         const { return abs(_tkid/100); }
+  int   GetLayerJ()         const { return TkDBc::Head->GetJFromLayer(abs(_tkid/100)); }
+  /// Get ladder layer J number scheme
   /// Is a K7 cluster?
   int   IsK7()             const { return TkDBc::Head->FindTkId(GetTkId())->IsK7(); } 
   /// Get ladder slot
@@ -275,6 +275,8 @@ class TrClusterR :public TrElem{
 
   /// Build the coordinates (with multiplicity)
   //  void  BuildCoordinates();
+  /// Get ladder layer OLD Numbering
+  int   GetLayer()         const { return abs(_tkid/100); }
 
   /// Insert a strip in the cluster
   void push_back(float adc);
@@ -345,7 +347,7 @@ class TrClusterR :public TrElem{
 
 
   /// ROOT definition
-  ClassDef(TrClusterR, 3)
+  ClassDef(TrClusterR, 4)
 
   /**@}*/
 };

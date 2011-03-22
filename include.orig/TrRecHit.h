@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.29 2011/02/18 12:38:44 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.30 2011/03/22 17:46:24 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -72,9 +72,9 @@ protected:
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
 
- public:
-/**@name CONSTRUCTOR & C */
-/**@{*/
+public:
+  /**@name CONSTRUCTOR & C */
+  /**@{*/
   //################# CONSTRUCTOR & C ########################
   /// Default constructor
   TrRecHitR(void);
@@ -84,19 +84,19 @@ protected:
   TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY, int imult = -1, int status = 0);
   /// Destructor
   virtual ~TrRecHitR();
-/**@}*/	
-/**@name Accessors */	
-/**@{*/	
+  /**@}*/	
+  /**@name Accessors */	
+  /**@{*/	
   //####################  ACCESSORS ##############################
-	/// Get ladder TkId identifier 
-	int   GetTkId()        const { return _tkid; }
-	/// Get ladder layer (1-9)
-	int   GetLayer()       const { return abs(_tkid/100); }
-	/// Get ladder slot
-	int   GetSlot()        const { return abs(_tkid%100); }
-	/// Get ladder slot Side (0 == negative X, 1== positive X)
-	int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
-	/// Access function to TrClusterR Object used; 
+  /// Get ladder TkId identifier 
+  int   GetTkId()        const { return _tkid; }
+  /// Get ladder layer J Scheme (1-9)
+  int   GetLayerJ()       const { return TkDBc::Head->GetJFromLayer(abs(_tkid/100)); }
+  /// Get ladder slot
+  int   GetSlot()        const { return abs(_tkid%100); }
+  /// Get ladder slot Side (0 == negative X, 1== positive X)
+  int   GetSlotSide()        const { return (_tkid>=0)?1:0; }
+  /// Access function to TrClusterR Object used; 
   /// \param xy 'x' for x projection; any other for y projection;
   /// Returns index in TrClusterR collection or -1 
   int iTrCluster(char xy) const { return (xy=='x')?_iclusterX:_iclusterY; }
@@ -118,51 +118,51 @@ protected:
   /// Get the index of Y cluster
   int GetYClusterIndex() const { return _iclusterY; }
 	
-	bool OnlyX () const { return checkstatus(XONLY); }
-	bool OnlyY () const { return checkstatus(YONLY); }
-	bool TasHit() const { return checkstatus(TASHIT); }
-	// AMSDBc::USED = 32; (0x0020)
-	bool Used  () const { return checkstatus(AMSDBc::USED); }
-	// AMSDBc::FalseX = 8192; (0x2000)
-	bool FalseX() const { return checkstatus(AMSDBc::FalseX); }
-/**@}*/	
-/**@name Coordinates*/	
-/**@{*/	
+  bool OnlyX () const { return checkstatus(XONLY); }
+  bool OnlyY () const { return checkstatus(YONLY); }
+  bool TasHit() const { return checkstatus(TASHIT); }
+  // AMSDBc::USED = 32; (0x0020)
+  bool Used  () const { return checkstatus(AMSDBc::USED); }
+  // AMSDBc::FalseX = 8192; (0x2000)
+  bool FalseX() const { return checkstatus(AMSDBc::FalseX); }
+  /**@}*/	
+  /**@name Coordinates*/	
+  /**@{*/	
 	
   /// Get the hit multiplicity 
   int GetMultiplicity()      { return _mult; }
-	/// Get the resolved multiplicity index (-1 if not resolved)
-	int   GetResolvedMultiplicity() { return _imult; }
-/// Returns the computed global coordinate (if resolved)
+  /// Get the resolved multiplicity index (-1 if not resolved)
+  int   GetResolvedMultiplicity() { return _imult; }
+  /// Returns the computed global coordinate (if resolved)
   const AMSPoint GetCoord() { return _coord; }
   /// Get the computed global coordinate by multiplicity index
   const AMSPoint GetCoord(int imult){
-	if(imult<0||imult>=_mult) return AMSPoint(0,0,0);
-	else if(imult==_imult)    return _coord;
-	else                      return GetGlobalCoordinate(imult);
+    if(imult<0||imult>=_mult) return AMSPoint(0,0,0);
+    else if(imult==_imult)    return _coord;
+    else                      return GetGlobalCoordinate(imult);
   } 
-	/// Returns the errors on the computed global coordinate (if resolved)
-	AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
-	/// Get X local coordinate (ladder reference frame)
-	float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
-	/// Get Y local coordinate (ladder reference frame)
-	float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
+  /// Returns the errors on the computed global coordinate (if resolved)
+  AMSPoint GetECoord() {return AMSPoint(0.002,0.003,0.015);}
+  /// Get X local coordinate (ladder reference frame)
+  float GetXloc(int imult = 0, int nstrips = TrClusterR::DefaultUsedStrips);
+  /// Get Y local coordinate (ladder reference frame)
+  float GetYloc(int nstrips = TrClusterR::DefaultUsedStrips);
 	
-	/// Get local coordinate (ladder reference frame, Z is zero by definition)
-	AMSPoint GetLocalCoordinate(int imult = 0, 
-								int nstripsx = TrClusterR::DefaultUsedStrips,
-								int nstripsy = TrClusterR::DefaultUsedStrips) { 
-		return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
-	/// Get global coordinate (AMS reference system) 
-	/// default: nominal position, A: with alignement correction
-	AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
-								 int nstripsx = TrClusterR::DefaultUsedStrips,
-								 int nstripsy = TrClusterR::DefaultUsedStrips);
+  /// Get local coordinate (ladder reference frame, Z is zero by definition)
+  AMSPoint GetLocalCoordinate(int imult = 0, 
+			      int nstripsx = TrClusterR::DefaultUsedStrips,
+			      int nstripsy = TrClusterR::DefaultUsedStrips) { 
+    return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
+  /// Get global coordinate (AMS reference system) 
+  /// default: nominal position, A: with alignement correction
+  AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
+			       int nstripsx = TrClusterR::DefaultUsedStrips,
+			       int nstripsy = TrClusterR::DefaultUsedStrips);
 	
 	
-/**@}*/		
-	/**@name Signals */			
-	/**@{*/		
+  /**@}*/		
+  /**@name Signals */			
+  /**@{*/		
 	
 
 
@@ -175,54 +175,54 @@ protected:
   float GetSignalCombination();
   /// Returns the hit signal correlation
   float GetSignalCorrelation();
-	/// Returns the signal of the Y cluster 
-	float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
+  /// Returns the signal of the Y cluster 
+  float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
 	
-	/// Returns the signal sum of the X and Y clusters
-	float GetTotSignal() { 
-		return ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
-		((GetYCluster())? GetYCluster()->GetTotSignal():0); }
+  /// Returns the signal sum of the X and Y clusters
+  float GetTotSignal() { 
+    return ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
+      ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
 	
-	/**@}*/		
-	/**@name Reconstruction & Special methods */			
-	/**@{*/	
+  /**@}*/		
+  /**@name Reconstruction & Special methods */			
+  /**@{*/	
 	
 	
-    /// Set the resolved multiplicity index (-1 if not resolved)
+  /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;
     if (im >= _mult) im = _mult-1;
     _imult = im; 
-	_coord=GetGlobalCoordinate(_imult);
+    _coord=GetGlobalCoordinate(_imult);
   }
-	/// Set clusters index
-	void SetiTrCluster(int iclsx, int iclsy);
+  /// Set clusters index
+  void SetiTrCluster(int iclsx, int iclsy);
 	
-	//PZ removed to save space  /// Returns the computed global coordinate (if resolved)
-	//  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
-	//			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
-	/// Get the computed global coordinate by multiplicity index
-	//  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
-	//     return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
+  //PZ removed to save space  /// Returns the computed global coordinate (if resolved)
+  //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
+  //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
+  /// Get the computed global coordinate by multiplicity index
+  //  AMSPoint GetBField(int imult) { if(_coord.empty()) BuildCoordinates();
+  //     return (0<=imult && imult<_mult) ? _bfield.at(imult) : AMSPoint(0,0,0); }
 	
-	/// Clear data members
-	void Clear();
-	/// Rebuild the current coordinate; _coord
-	void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
+  /// Clear data members
+  void Clear();
+  /// Rebuild the current coordinate; _coord
+  void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
 	
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
   /// Set dummy strip position
   void SetDummyX(float dumx) { 
-	  _dummyX = dumx; 
-	  float xaddr=640;
-	  TrClusterR* clX= GetXCluster();
-	  if(clX!=0)
-		  xaddr =  clX->GetAddress();
-	  else if(_dummyX>=0)
-		  xaddr += _dummyX;
+    _dummyX = dumx; 
+    float xaddr=640;
+    TrClusterR* clX= GetXCluster();
+    if(clX!=0)
+      xaddr =  clX->GetAddress();
+    else if(_dummyX>=0)
+      xaddr += _dummyX;
 	  
-	  _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
+    _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
   }
 
   
@@ -241,41 +241,42 @@ protected:
   void     setstatus(uinteger status){Status=Status | status;}
   /// Clear cluster status
   void     clearstatus(uinteger status){Status=Status & ~status;}
-/**@}*/
+  /**@}*/
 	
-/**@name Alternative & deprecated accessors
-  STD GBATCH compatibility layer */
-/**@{*/
+  /**@name Alternative & deprecated accessors
+     STD GBATCH compatibility layer */
+  /**@{*/
+  /// Get ladder layer OLD Scheme (1-9)
+  int   GetLayer()       const { return abs(_tkid/100); }
  
   ///STD GBATCH compatibility layer
-  int lay() const { return abs(_tkid/100); }
   int lad() const {return GetSlot();}
-  int half() const{ int l = lay()==8?-1:1;return _tkid*l>0?1:0; }
+  
   // Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
   float HitDist(TrRecHitR & B,int coo);
   const AMSPoint HitPointDist(const AMSPoint& coo,int & mult);
   const AMSPoint HitPointDist(float* coo,int& mult){
     return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
   }
-	/// Compatibility with default Gbatch
-	AMSPoint getHit(bool = true) { return GetCoord(); }
-	number   getsum()            { return GetTotSignal(); }
-	/**@}*/
+  /// Compatibility with default Gbatch
+  AMSPoint getHit(bool = true) { return GetCoord(); }
+  number   getsum()            { return GetTotSignal(); }
+  /**@}*/
 	
-	/**@name Printout */
-	/**@{*/
+  /**@name Printout */
+  /**@{*/
 	
-	/// Print clusterRec hit  basic information  on a given stream 
-	std::ostream& putout(std::ostream &ostr = std::cout);
-	friend std::ostream &operator << (std::ostream &ostr,  TrRecHitR &hit){
-		return hit.putout(ostr);}
-	/// Print hit info (verbose if opt !=0 )
-	void  Print(int opt=0);
+  /// Print clusterRec hit  basic information  on a given stream 
+  std::ostream& putout(std::ostream &ostr = std::cout);
+  friend std::ostream &operator << (std::ostream &ostr,  TrRecHitR &hit){
+    return hit.putout(ostr);}
+  /// Print hit info (verbose if opt !=0 )
+  void  Print(int opt=0);
 	
 	
   /// ROOT definition
-  ClassDef(TrRecHitR,3)
-	/**@}*/
+  ClassDef(TrRecHitR,4)
+  /**@}*/
 };
 
 #endif

@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.40 2011/01/12 13:49:41 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.41 2011/03/22 17:46:24 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/01/12 13:49:41 $
+///$Date: 2011/03/22 17:46:24 $
 ///
-///$Revision: 1.40 $
+///$Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -81,6 +81,20 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     patt= new tkpatt(nn);
     patt->Init(nn);
 
+// J-layer numbering  
+    const integer J2lay_SC[10]={-1, 1, 2, 3, 4, 5, 6, 7, 8, -1};
+    const integer J2lay_PM[10]={-1, 8, 1, 2, 3, 4, 5, 6, 7,  9};
+    
+    const integer lay2J_SC[10]={-1, 1, 2, 3, 4, 5, 6, 7, 8, -1};
+    const integer lay2J_PM[10]={-1, 2, 3, 4, 5, 6, 7, 8, 1,  9};
+
+    if(setup==3){
+      memcpy(_J_to_lay, J2lay_PM, 10*sizeof(J2lay_PM[0]));
+      memcpy(_lay_to_J, lay2J_PM, 10*sizeof(lay2J_PM[0]));
+    }else{
+      memcpy(_J_to_lay, J2lay_SC, 10*sizeof(J2lay_SC[0]));
+      memcpy(_lay_to_J, lay2J_PM, 10*sizeof(lay2J_SC[0]));
+    }
 //----------------------------------------------------------------------------------
 //       Ladder Electronics
 //----------------------------------------------------------------------------------

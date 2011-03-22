@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.58 2011/02/22 09:22:29 shaino Exp $
+//  $Id: TrTrack.h,v 1.59 2011/03/22 17:46:24 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/02/22 09:22:29 $
+///$Date: 2011/03/22 17:46:24 $
 ///
-///$Revision: 1.58 $
+///$Revision: 1.59 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -56,11 +56,14 @@ class TrRecHitR;
 
 //! Class Used to represent the parameters coming as a result of a Track Fit
 class TrTrackPar {
+private:
+  /// Bitsfield of layers used for the fitting; bit_num <==> layerOLD-1
+  short int HitBits;
+  /// Fitting residual at each layer 0-X  1-Y
+  float Residual[trconst::maxlay][2];
 public:
   /// Fit done flag
   bool FitDone;
-  /// Bitsfield of layers used for the fitting; bit_num <==> layer-1
-  short int HitBits;
   /// Chisquare in X (Not normalized)
   Double32_t ChisqX;
   /// Chisquare in Y (Not normalized)
@@ -88,8 +91,38 @@ public:
   /*!
    * Note: Theta and Phi can be obtained through AMSDir */
   AMSDir Dir;
-  /// Fitting residual at each layer 0-X  1-Y
-  float Residual[trconst::maxlay][2];
+
+  /// Returns true if the Layer (J-scheme)(1-9) has an hit used in this fit
+  bool TestHitLayerJ(int layJ){
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    if(HitBits&(1<<(lay-1))) return true;
+    else  return false;
+  }
+  /// Returns the X residual on selected layer (J-scheme)
+  float GetResidualX_LayJ(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    return Residual[lay-1][0];
+  }
+  /// Returns the Y residual on selected layer (J-scheme)
+  float GetResidualY_LayJ(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    return Residual[lay-1][1];
+  }
+
+  /// DEPRECATED Returns true if the Layer (OLD scheme) has an hit used in this fit
+  bool TestHitLayer(int lay){
+    if(HitBits&(1<<(lay-1))) return true;
+    else  return false;
+  }
+
+  /// DEPRECATED Returns the X residual on selected layer (OLD scheme)
+  float GetResidualX_Lay(int lay) const {
+    return Residual[lay-1][0];
+  }
+  /// DEPRECATED Returns the Y residual on selected layer (OLD scheme)
+  float GetResidualY_Lay(int lay) const {
+    return Residual[lay-1][1];
+  }
 
   /// Default constructor to fill default values
   TrTrackPar()
@@ -99,8 +132,8 @@ public:
   ~TrTrackPar(){}
   void Print(int full=0) const;
   void Print_stream(std::string &ostr,int full=0) const;
-
-  ClassDef(TrTrackPar,2);
+  friend class TrTrackR;
+  ClassDef(TrTrackPar,3);
 } ; 
 
 
@@ -190,12 +223,12 @@ public:
 protected:
   /// Vector of hit pointers, to be not stored in ROOT Tree
   TrRecHitR* _Hits[trconst::maxlay]; //!
-//   /// Vector of hit values of magnetic field at track hits
-//   AMSPoint  _BField[trconst::maxlay]; 
+  //   /// Vector of hit values of magnetic field at track hits
+  //   AMSPoint  _BField[trconst::maxlay]; 
   /// Vector of hit index, to be stored in ROOT Tree instead of _Hits
   short int _iHits[trconst::maxlay];
-//   /// Vector of multiplicty index (to fix x-coord) 
-//   short int _iMult[trconst::maxlay];
+  //   /// Vector of multiplicty index (to fix x-coord) 
+  //   short int _iMult[trconst::maxlay];
   /// The real bitted Track Pattern
   unsigned short int _bit_pattern;
   /// Track pattern ID
@@ -246,10 +279,10 @@ public:
   /// Default charge for fitting
   static float DefaultCharge;
 public:
-	/** @name CONSTRUCTORS & C.
-	 */
-	/**@{*/ 
-//############### CONSTRUCTORS & C. ############################
+  /** @name CONSTRUCTORS & C.
+   */
+  /**@{*/ 
+  //############### CONSTRUCTORS & C. ############################
   /// Default constructor
   TrTrackR();
   /// Constructor with hits
@@ -271,101 +304,113 @@ public:
   /** @name Track Data Accessors	 */
   /**@{*/
 	
-	//! returns the BIT Mask of the layers (1-9) with hit. bit_num <==> layer_num-1
-	unsigned short int GetBitPattern() const { return _bit_pattern; }
-	//! returns the Number of Hits
-	int GetNhits  () const { return _Nhits;   }
-	//! returns the Number of Hits
-	int getnhits  () const { return _Nhits;   }
-	//! returns the Number of Hits
-	int NTrRecHit  () const { return _Nhits;   }
+  //! returns the BIT Mask of the layers J scheme (1-9) with hit. bit_num <==> layer_num-1
+  unsigned short int GetBitPatternJ() const { 
+    int aa=0;
+    for (int ii=0;ii<9;ii++){
+      int lay=TkDBc::Head->GetLayerFromJ(ii+1)-1;
+      if(_bit_pattern&(1<<lay))  aa|=(1<<ii);
+    }  
+    return aa; 
+  }
+  //! DEPRECATED returns the BIT Mask of the layers OLD  scheme (1-9) with hit. bit_num <==> layer_num-1
+  unsigned short int GetBitPattern() const { return _bit_pattern; }
+  //! returns the Number of Hits
+  int GetNhits  () const { return _Nhits;   }
+  //! returns the Number of Hits
+  int getnhits  () const { return _Nhits;   }
+  //! returns the Number of Hits
+  int NTrRecHit  () const { return _Nhits;   }
 	
-	//! Number of  X hits
-	int GetNhitsX   () const { return _NhitsX;    }
-	//! Number of  Y hits
-	int GetNhitsY   () const { return _NhitsY;    }
-	//! Number of  XY hits
-	int GetNhitsXY  () const { return _NhitsXY;   }
-	
-	/// Get areferemce to the i-th in the track
-	TrRecHitR& TrRecHit(int i ); 
-	/// Get the index of the i-th hit in the track within the hit vector
-	int iTrRecHit(int i){return _iHits[i];}
-	/// Get the pointer to the i-th in the track
-	TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
-	/// Get the pointer of hit at Layer, ilay(0-7), or returns 0 if not exists
-	TrRecHitR *GetHitL(int ilay) const;
-	/// For Gbatch compatibility
-	uinteger checkstatus(integer checker) const{return Status & checker;}
-	uinteger getstatus() const{return Status;}
-	void     setstatus(uinteger status){Status=Status | status;}
-	void     clearstatus(uinteger status){Status=Status & ~status;} 
+  //! Number of  X hits
+  int GetNhitsX   () const { return _NhitsX;    }
+  //! Number of  Y hits
+  int GetNhitsY   () const { return _NhitsY;    }
+  //! Number of  XY hits
+  int GetNhitsXY  () const { return _NhitsXY;   }
+  //! Check for the presence of external layers; returns 0- noext layer; 1 Layer 1; 2 Layer 9; 3 Layer 1& Layer 9
+  int HasExtLayers(){int aa=0;if(_bit_pattern&0x080) aa|=1;if(_bit_pattern&0x100) aa|=2;return aa;}
+  /// Get areferemce to the i-th in the track
+  TrRecHitR& TrRecHit(int i ); 
+  /// Get the index of the i-th hit in the track within the hit vector
+  int iTrRecHit(int i){return _iHits[i];}
+  /// Get the pointer to the i-th in the track
+  TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
+  /// Get the pointer of hit at Layer, ilay J-scheme  (1-9), or returns 0 if not exists
+  TrRecHitR *GetHitLJ(int ilay) const;
+  /// DEPRECATED - DO NOT USE  Get the pointer of hit at Layer OLD-scheme, ilay(0-7), or returns 0 if not exists
+  TrRecHitR *GetHitL(int ilay) const;
+  /// For Gbatch compatibility
+  uinteger checkstatus(integer checker) const{return Status & checker;}
+  uinteger getstatus() const{return Status;}
+  void     setstatus(uinteger status){Status=Status | status;}
+  void     clearstatus(uinteger status){Status=Status & ~status;} 
   /**@}*/
 	
   /** @name Fit type Accessors
-  */
- /**@{*/
+   */
+  /**@{*/
 
-/*!
-   \brief It gives you the integer number (fit code) to be used to access the fit results (TrTrackPar obj) 
+  /*!
+    \brief It gives you the integer number (fit code) to be used to access the fit results (TrTrackPar obj) 
     Advanced TrTrackPar accessor
     \param algo Fitting algorithm= 
-                          \li 0 The default algorithm choosen at recon stage (if you select this, you cannot use the other param)
-                          \li 1 Choutko;
-                          \li 2 Alcaraz;
-                          \li 3 ChikanianF (the original A. Chikanian algo not for refit);
-                          \li 4 ChikanianC (Chikanin C version, in development not for general use);
-                        \li +10 mscattering off;
-                        \li +20 same weight;
+    \li 0 The default algorithm choosen at recon stage (if you select this, you cannot use the other param)
+    \li 1 Choutko;
+    \li 2 Alcaraz;
+    \li 3 ChikanianF (the original A. Chikanian algo not for refit);
+    \li 4 ChikanianC (Chikanin C version, in development not for general use);
+    \li +10 mscattering off;
+    \li +20 same weight;
     \param pattern    Hit Pattern= 
-                     \li  0   all hits belonginf to track; (maximum span)
-					 \li  1   inner upper half;
-					 \li  2   inner lower half;
-                     \li  3   Inner Tracker only (aka drop 2 external hits);
-					 \li  4   only 2 + 2 external hits;
-                     \li  5   inner + Layer 1N (kFitLayer8)
-                     \li  6   inner + Layer 9  (kFitLayer9)
-                     \li  7   inner + Layer 1N + layer 9 (kFitLayer8 & kFitLayer9)
-                     \li  OR
-					 \li mmmmmmmmm    where m=0 or 1 for 
-                                    TrRecHit layer GetLayer()
-                                     from right to the left such as 
-                                     100110010  corresponds to layers
-                                     2,5,6,9
-     \param refit    
-                    0   do not refit
-                    1    refit if does not exist
-                    2  refit
-     \param mass (optional) the particle mass. (default= 0.938272297)
+    \li  0   all hits belonginf to track; (maximum span)
+    \li  1   inner upper half;
+    \li  2   inner lower half;
+    \li  3   Inner Tracker only (aka drop 2 external hits);
+    \li  4   only 2 + 2 external hits;
+    \li  5   inner + Layer 1N (kFitLayer8)
+    \li  6   inner + Layer 9  (kFitLayer9)
+    \li  7   inner + Layer 1N + layer 9 (kFitLayer8 & kFitLayer9)
+    \li  OR
+    \li mmmmmmmmm    where m=0 or 9 for 
+    TrRecHit layer GetLayerJ() J-scheme
+    from right to the left such as 
+    900990090  corresponds to layers
+    2,5,6,9 J-Scheme. (DEPRECATED) if you want to use OLD scheme replace everywhere 9 with 1)
+    \param refit    
+    0   do not refit
+    1    refit if does not exist
+    2  refit
+    \param mass (optional) the particle mass. (default= 0.938272297)
      
-     \param chrg (optional) the particle charge. (default = 1)
+    \param chrg (optional) the particle charge. (default = 1)
 
-     \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
-             \retval  >=0  --> The code corresponding to the requested fittype
-              \retval -1 --> The requested fit cannot be performed on this track
-              \retval -2 --> The requested fit it is not available without refitting    
-              \retval -3 --> The refit failed
-              \retval -4 --> Should not happen!! contact the developpers
+    \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
+    \retval  >=0  --> The code corresponding to the requested fittype
+    \retval -1 --> The requested fit cannot be performed on this track
+    \retval -2 --> The requested fit it is not available without refitting    
+    \retval -3 --> The refit failed
+    \retval -4 --> Should not happen!! contact the developpers
 
-     To correctly perform the refit, the FieldMap file is needed.
-     If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
-     check to have this file on your disk.
-!*/
+    To correctly perform the refit, the FieldMap file is needed.
+    If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
+    check to have this file on your disk.
+    !*/
   int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge);
 
   /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
-     \return TrTrackPar object or  trow an exception "TrTrackPar-E-NotFound "
+  \return TrTrackPar object or  trow an exception "TrTrackPar-E-NotFound "
   !*/
   const TrTrackPar&  gTrTrackPar(int fit_type)  throw (string);
- //!Return the number of store fit results (TrTrackPar objects)
+  //!Return the number of store fit results (TrTrackPar objects)
   int nTrTrackPar(){return _TrackPar.size();}
   /// Print the string IDs of all the performed fits
   void   PrintFitNames();
-///@}
+  ///@}
 	
-/** @name Accessor to fit dependent quantiies */
-///@{
+  /** @name Accessor to fit dependent quantiies */
+  ///@{
 
   //! Returnt the fitted Rigidity from TrTrackPar corresponding to id
   double   GetRigidity (int id= 0) const { return GetPar(id).Rigidity; }
@@ -399,17 +444,29 @@ public:
   /// Returns the Phi angle at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   double   GetPhi      (int id= 0) const { return GetDir(id).getphi();  }
 
-
-  /// Return the  proj (0=X,1=Y) residual at layer ilay (0-8) from TrTrackPar corresponding to id
-  AMSPoint  GetResidual (int ilay, int id= 0) const { 
-    if (ilay < 0 || ilay >= trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
-    return AMSPoint(GetPar(id).Residual[ilay][0],
-		    GetPar(id).Residual[ilay][1],
-		    TkDBc::Head->GetZlayer(ilay+1));
+  /// Return the  proj (0=X,1=Y) residual at layer ilay J-scheme (1-9) from TrTrackPar corresponding to id
+  AMSPoint  GetResidualJ (int ilayJ, int id= 0) const { 
+    if (ilayJ < 0 || ilayJ > trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
+    return AMSPoint(GetPar(id).GetResidualX_LayJ(ilayJ),
+		    GetPar(id).GetResidualY_LayJ(ilayJ),
+		    TkDBc::Head->GetZlayerJ(ilayJ));
   }
 
 
-  /// Get track position at layer ilay (0-7)
+  /// DEPRECATED DO NOT USE Return the  proj (0=X,1=Y) residual at layer ilay TOO OLD Scheme (0-8) from TrTrackPar corresponding to id
+  AMSPoint  GetResidual (int ilay, int id= 0) const { 
+    if (ilay <= 0 || ilay > trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
+    return AMSPoint(GetPar(id).GetResidualX_Lay(ilay),
+		    GetPar(id).GetResidualY_Lay(ilay),
+		    TkDBc::Head->GetZlayer(ilay));
+  }
+  
+
+  /// Get track position at layer ilay J-scheme  (1-9)
+  AMSPoint GetPlayerJ(int ilayJ, int id = 0);
+
+
+  ///  DEPRECATED DO NOT USE Get track position at layer ilay (0-7)
   AMSPoint GetPlayer(int ilay, int id = 0);
 
 
@@ -417,6 +474,11 @@ public:
 
 
   /// Checks if an it on layer(1-9) is used for the fit_type id
+  bool TestHitBitsJ(int layer, int id = 0) const { 
+    return (GetHitBitsJ(id) & (1 << (layer-1)));
+  }
+
+  ///DEPRECATED  Checks if an it on layer(1-9) is used for the fit_type id
   bool TestHitBits(int layer, int id = 0) const { 
     return (GetHitBits(id) & (1 << (layer-1)));
   }
@@ -455,7 +517,35 @@ public:
   double Interpolate(double zpl, AMSPoint &pnt, AMSDir &dir, 
 		     int id = 0) const;
 
+
+
   /// Interpolation onto Tracker layer with alignment correction 
+  /*!
+   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[out] pnt  Track position  at the layer
+   * \param[out] dif  Track direction at the layer
+   * \param[in]  id   Fitting method ID
+   * \return          Path length between Z=P0z(usually 0) and Z=zpl
+   */
+  double InterpolateLayerJ(int ilyJ, AMSPoint &pnt, AMSDir &dir, 
+			   int id = 0) const{
+    int ily=TkDBc::Head->GetLayerFromJ(ilyJ)-1;
+    return InterpolateLayer(ily, pnt,dir,id);
+  }
+
+  /// Interpolation onto Tracker layer with alignment correction 
+  /*!
+   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  id   Fitting method ID
+   * \return          Track position  at the layer
+   */
+  AMSPoint InterpolateLayerJ(int ilyJ, int id = 0) const{
+    int ily=TkDBc::Head->GetLayerFromJ(ilyJ)-1;
+    return InterpolateLayerJ(ily,id);
+  }
+
+
+  /// DEPRECATED  Interpolation onto Tracker layer with alignment correction 
   /*!
    * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
    * \param[out] pnt  Track position  at the layer
@@ -466,7 +556,7 @@ public:
   double InterpolateLayer(int ily, AMSPoint &pnt, AMSDir &dir, 
 			  int id = 0) const;
 
-  /// Interpolation onto Tracker layer with alignment correction 
+  /// DEPRECATED Interpolation onto Tracker layer with alignment correction 
   /*!
    * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
    * \param[in]  id   Fitting method ID
@@ -502,11 +592,11 @@ public:
   void  Print(int opt=0);
   /// Return a string with hit infos (used for the event display)
   char *Info(int iRef=0);
-/**@}*/
+  /**@}*/
 
-/** @name Alternative and deprecated methods
- */
-///@{
+  /** @name Alternative and deprecated methods
+   */
+  ///@{
 	
   double   GetP0x      (int id= 0) const { return GetP0(id).x(); }
   double   GetP0y      (int id= 0) const { return GetP0(id).y(); }
@@ -563,9 +653,27 @@ public:
   int GetPatternY () const { return _PatternY;  }
   //! Returns the pattern on XY
   int GetPatternXY() const { return _PatternXY; }
-  //! Returns the TrTrackPar HitBits
+
+
+  //! DEPRECATED Returns the TrTrackPar HitBits OLD scheme
   int      GetHitBits  (int id= 0) const { return GetPar(id).HitBits;  }
-  /// Get the fit ID of the pos-th fit method or zero if pos is invalid
+
+  //! Returns the TrTrackPar HitBits J-Scheme
+  int      GetHitBitsJ  (int id= 0) const { 
+
+    int bb= GetPar(id).HitBits;  
+    int aa=0;
+    for (int ii=0;ii<9;ii++){
+      int lay=TkDBc::Head->GetLayerFromJ(ii+1)-1;
+      if(bb&(1<<lay))  aa|=(1<<ii);
+    }  
+    return aa; 
+
+  }
+
+
+
+
   
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
@@ -574,10 +682,10 @@ public:
   /// Interception (for the compatibility with Gbatch)
   int intercept(AMSPoint &pnt, int layer, 
 		number &theta, number &phi, number &local, int id = 0);
-///@}
-/** @name A.F: RECONSTRUCTION  METHODS  
- */
-///@{
+  ///@}
+  /** @name A.F: RECONSTRUCTION  METHODS  
+   */
+  ///@{
 
 
   /// Perform 3D fitting with the method specified by ID
@@ -588,7 +696,7 @@ public:
     Fitting parameters will be overwritten on the map[ID] 
     unless trfit is specified. 
 
-    \param[in] layer Layer to be excluded in the fitting (if specified) 
+    \param[in] layer Layer to be excluded in the fitting OLD SCHEME Check with the code (if specified) 
 
     \param[in] update Track parameters are overwritten if update=true
 
@@ -605,8 +713,8 @@ public:
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
   */
   float FitT(int id = 0,
-	    int layer = -1, bool update = true, const float *err = 0, 
-	    float mass = DefaultMass, float chrg = DefaultCharge);
+	     int layer = -1, bool update = true, const float *err = 0, 
+	     float mass = DefaultMass, float chrg = DefaultCharge);
 
   void ReFit( const float *err = 0, 
 	      float mass = DefaultMass, float chrg = DefaultCharge);
@@ -648,7 +756,7 @@ public:
   void SetHitsIndex(int *ihit);
   /// Add a hit with multiplicity index if specified, B-field is taken from coo
   void AddHit(TrRecHitR *hit, int imult = -1);
-  /// Remove the hit on the selected layer (1-9) 
+  /// Remove the hit on the selected layer OLD scheme (1-9) 
   bool RemoveHitOnLayer( int layer);
   
 
@@ -662,24 +770,24 @@ public:
   /// Print Track basic information on a given stream 
   std::ostream& putout(std::ostream &ostr = std::cout);
 
-	///  Get back the string corresponding to a fit ID
-	static char* GetFitNameFromID(int fitnum);
+  ///  Get back the string corresponding to a fit ID
+  static char* GetFitNameFromID(int fitnum);
 
-	/// Get bit pattern as a string
-	static const char *HitBitsString(int aa, char con = 'X', char coff = '_')
-	{
-		static char ss[10];
-		for (int ii = 0; ii < 9; ii++) ss[8-ii] = (aa & (1<<ii)) ? con : coff;
-		ss[9]='\0';
-		return ss;
-	}
+  /// Get bit pattern as a string
+  static const char *HitBitsString(int aa, char con = 'X', char coff = '_')
+  {
+    static char ss[10];
+    for (int ii = 0; ii < 9; ii++) ss[8-ii] = (aa & (1<<ii)) ? con : coff;
+    ss[9]='\0';
+    return ss;
+  }
 	
   /// Stream out operator
   friend std::ostream &operator << (std::ostream &ostr,  TrTrackR &Tr){
     return Tr.putout(ostr);}
 	
 	
-ClassDef(TrTrackR, 4); 
+  ClassDef(TrTrackR, 4); 
 
 
   

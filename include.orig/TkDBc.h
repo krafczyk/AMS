@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.19 2011/01/12 13:50:00 pzuccon Exp $
+// $Id: TkDBc.h,v 1.20 2011/03/22 17:46:24 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -73,6 +73,9 @@ class TkDBc : public TObject{
   int nplanes;
   //! number of silicon layers in the setup
   int nlays;
+  //! renumbering of the tracker Layer J-style
+  int _J_to_lay[10];  
+  int _lay_to_J[10];
 public:
 
   //! static pointer to the TkDBc singleton
@@ -244,6 +247,12 @@ public:
   //! Dimension of the ladder electronics
   number  _zelec[3];
 
+  //! Return the internal layer number from the J-scheme one
+  int GetLayerFromJ(int aaJ) const {return _J_to_lay[aaJ];}
+
+  //! Return the J-layer number from the internal one
+  int GetJFromLayer(int aa) const {return _lay_to_J[aa];}
+
 
 
  //  //Silicon sensors
@@ -373,8 +382,13 @@ public:
   double GetYlayer(int i) {
     return (1 <= i && i <= nlays)
       ? GetPlane(_plane_layer[i-1])->pos[1]: -9999.;} 
-  
-  //! Get Z-coordinate of layer
+
+  //! Get Z-coordinate of layer J-scheme
+  double GetZlayerJ(int i) {
+    int lay=GetJFromLayer(i);
+    return GetZlayer(lay);
+  }
+  //! Get Z-coordinate of layer OLD scheme
   double GetZlayer(int i) {
     return (1 <= i && i <= nlays) 
       ? GetPlane(_plane_layer[i-1])->pos[2]+
@@ -423,7 +437,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 6);
+  ClassDef(TkDBc, 7);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

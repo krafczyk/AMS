@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.96 2011/03/02 09:04:09 shaino Exp $
+// $Id: TrTrack.C,v 1.97 2011/03/22 17:46:24 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/03/02 09:04:09 $
+///$Date: 2011/03/22 17:46:24 $
 ///
-///$Revision: 1.96 $
+///$Revision: 1.97 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -284,6 +284,24 @@ AMSPoint TrTrackR::GetPlayer(int ilay, int id)
   }
   return pres;
 }
+
+
+AMSPoint TrTrackR::GetPlayerJ(int ilayJ, int id)
+{
+  AMSPoint pres = GetResidualJ(ilayJ, id);
+
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (hit && hit->GetLayerJ() == ilayJ) {
+      //      AMSPoint coo = (_iMult[i] >= 0) ? hit->GetCoord(_iMult[i])
+      //                              : hit->GetCoord();
+      AMSPoint coo = hit->GetCoord();
+      return coo-pres;
+    }
+  }
+  return pres;
+}
+
 
 void TrTrackR::AddHit(TrRecHitR *hit, int imult)
 {
@@ -603,6 +621,18 @@ TrRecHitR *TrTrackR::GetHit(int i) const
 
   return hh;
 }
+
+
+TrRecHitR *TrTrackR::GetHitLJ(int ilayJ) const
+{
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR *hit = GetHit(i);
+    if (hit && hit->GetLayerJ() == ilayJ) return hit;
+  }
+  return 0;
+}
+
+
 
 TrRecHitR *TrTrackR::GetHitL(int ilay) const
 {
@@ -1262,12 +1292,22 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     int fflayer[9]={
       kFitLayer1, kFitLayer2,	kFitLayer3, kFitLayer4,	kFitLayer5,
       kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
-    for(int kk=0;kk<9;kk++)
-      if(((pattern/my_int_pow(10,kk))%10)>0){
-	  if(_bit_pattern & (1<<kk))  fittype|=fflayer[kk];
-          else
-	    return -1;
+    for(int kk=0;kk<9;kk++){
+      if(((pattern/my_int_pow(10,kk))%10)==1){  //OLD scheme
+	if(_bit_pattern & (1<<kk))  fittype|=fflayer[kk];
+	else
+	  return -1;
       }
+      else if(((pattern/my_int_pow(10,kk))%10)==9){ // J-Schemw
+	int lll=TkDBc::Head->GetLayerFromJ(kk+1)-1;
+	if(_bit_pattern & (1<<lll))  fittype|=fflayer[lll];
+	else
+	  return -1;
+      }
+      else
+	return -5;
+    }
+    
   }
   else
     return -1;

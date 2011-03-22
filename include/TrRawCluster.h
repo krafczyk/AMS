@@ -1,4 +1,4 @@
-// $Id: TrRawCluster.h,v 1.15 2011/02/06 20:12:21 oliva Exp $ 
+// $Id: TrRawCluster.h,v 1.16 2011/03/22 17:46:24 pzuccon Exp $ 
 #ifndef __TrRawClusterR__
 #define __TrRawClusterR__
 
@@ -18,9 +18,9 @@
 ///\date  2008/06/19 AO  Using TrCalDB instead of data member
 ///\date  2009/08/16 PZ  General revision --  modified inheritance, clean up docs 
 ///
-/// $Date: 2011/02/06 20:12:21 $
+/// $Date: 2011/03/22 17:46:24 $
 ///
-/// $Revision: 1.15 $
+/// $Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@
 #include "TrElem.h"
 #include "TrCalDB.h"
 #include "TrLadCal.h"
-
+#include "TkDBc.h"
 #include <iostream>
 #include <vector>
 #include <cstdlib>
@@ -57,7 +57,9 @@ class TrRawClusterR : public TrElem {
   void _PrepareOutput(int full=0);
 
  public:
-
+/** @name   CONSTRUCTORS & C. */
+  /**@{*/	
+  //################    CONSTRUCTORS & C.   ################################
   /// Default constructor
   TrRawClusterR(void);
   /// Copy constructor
@@ -70,13 +72,15 @@ class TrRawClusterR : public TrElem {
   virtual ~TrRawClusterR() { Clear(); }
   /// Clears the content of the class
   void Clear();
+ 
+/**@}*/	
 
-  /// Returns the ladder TkId identifier (LayerNumber*100 + SlotNumber)*SideSign[-1 or 1]
+  /// Returns the ladder TkId identifier (LayerNumber(OLD)*100 + SlotNumber)*SideSign[-1 or 1]
   int   GetTkId()      const { return _tkid; }
+  /// Return the layer (J Numbering) to which the cluster belong
+  int   GetLayerJ()     const { return TkDBc::Head->GetJFromLayer(abs(GetTkId()/100)); }
   /// Returns the ladder HwId identifier (CrateNumber*100 + TDRNumber)
   int   GetHwId()      const;
-  /// Return the layer to which the cluster belong
-  int   GetLayer()     const { return abs(GetTkId()/100); }
   /// Return +1 or -1 dependig on which side of the X plane is located the ladder holding the cluster
   int   GetLayerSide() const { return (GetTkId()>0) ? 1 : -1; }
   /// Returns  the slot identifier of the ladder holding the cluster 
@@ -164,6 +168,11 @@ class TrRawClusterR : public TrElem {
   /// For compatibility with trigger lvl3
   integer lvl3format(int16 * adc, integer nmax,int lvl3dcard_par=1  ,integer matchedonly=0);
 
+
+  /// Return the layer (OLD Numbering) to which the cluster belong
+  int   GetLayer()     const { return abs(GetTkId()/100); }
+
+
 	
   /// Print information
   std::ostream& putout(std::ostream &ostr = std::cout);
@@ -207,7 +216,7 @@ class TrRawClusterR : public TrElem {
   void     clearstatus(uinteger status){Status=Status & ~status;}
   
   /// ROOT definition
-  ClassDef(TrRawClusterR, 1)
+  ClassDef(TrRawClusterR, 2)
 };
 
 
