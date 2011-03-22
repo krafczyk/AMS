@@ -132,26 +132,52 @@ class DataType{
     return &it->second;
   }
   
-  bool Add(SubType *st){
+  bool Add(SubType *st,unsigned int minT=0,unsigned int maxT=UINT_MAX){
     std::map<int,SubType>::iterator it;
     it=subtypes.find(st->number);
     if(it!=subtypes.end()){
       //      printf("SubType %i already found\n",st->number);
       return false;
     }
+
+    if(minT>0||maxT<UINT_MAX){
+      std::map<unsigned int,float>::iterator begin_it=st->_table.begin();
+      std::map<unsigned int,float>::iterator end_it=st->_table.end();
+      
+      if(minT>0&&st->_table.lower_bound(minT)!=st->_table.end())begin_it=st->_table.lower_bound(minT); 
+      if(maxT<UINT_MAX&&st->_table.upper_bound(maxT)!=st->_table.end())end_it=st->_table.upper_bound(maxT);
+      
+      st->_table.erase(end_it,st->_table.end());
+      st->_table.erase(st->_table.begin(),begin_it);
+    }
+
     subtypes.insert(std::pair<int,SubType>(st->number,*st));
     return true;
   }
   
-  SubType* Append(SubType *st){
+  SubType* Append(SubType *st, unsigned int minT=0, unsigned int maxT=UINT_MAX){
     std::map<int,SubType>::iterator it;
     it=subtypes.find(st->number);
     if(it==subtypes.end()){
       subtypes.insert(std::pair<int,SubType>(st->number,*st));
       it=subtypes.find(st->number);
     }
-    for(int i=0;i<st->getnelem();i++)
-      it->second.Add(st->GetTime(i),st->GetValue(i));
+    it->second._table.clear();
+    
+    std::map<unsigned int,float>::iterator begin_it=st->_table.begin();
+    if(minT>0&&st->_table.lower_bound(minT)!=st->_table.end()){
+      begin_it=st->_table.lower_bound(minT);
+      if(begin_it!=st->_table.begin())begin_it--;
+    }
+    
+    std::map<unsigned int,float>::iterator end_it=st->_table.end();
+    if(maxT!=UINT_MAX&&st->_table.upper_bound(maxT)!=st->_table.end()){
+      end_it=st->_table.upper_bound(maxT);
+      if(end_it!=st->_table.end())end_it++;
+    }
+    
+    for(std::map<unsigned int,float>::iterator iter=begin_it;iter!=end_it;iter++)
+      it->second.Add(iter->first,iter->second);
 
     return &it->second;
   }
@@ -187,7 +213,7 @@ class Node:public TNamed{
     return &it->second;
   }
 
-  bool Add(DataType *dt){
+  bool Add(DataType *dt,unsigned int minT=0,unsigned int maxT=UINT_MAX){
     std::map<int,DataType>::iterator it;
     it=datatypes.find(dt->number);
     if(it!=datatypes.end()){
@@ -196,12 +222,12 @@ class Node:public TNamed{
     datatypes.insert(std::pair<int,DataType>(dt->number,*dt));
 
     for(int i=0;i<dt->getnelem();i++)
-      dt->Add(dt->GetSubTypeN(i));
+      dt->Add(dt->GetSubTypeN(i),minT,maxT);
     
     return true;
   }
 
-  DataType* Append(DataType *dt){
+  DataType* Append(DataType *dt,unsigned int minT=0,unsigned int maxT=UINT_MAX){
     std::map<int,DataType>::iterator it;
     it=datatypes.find(dt->number);
     if(it==datatypes.end()){
@@ -210,7 +236,7 @@ class Node:public TNamed{
     }
 
     for(int i=0;i<dt->getnelem();i++)
-      it->second.Add(dt->GetSubTypeN(i));
+      it->second.Append(dt->GetSubTypeN(i),minT,maxT);
 
     return &it->second;
   }
@@ -262,7 +288,7 @@ class SlowControlDB//: public TTree
 
   bool SaveToFile(const char* fname,int debug=0);
   
-  int AppendNode(Node* copynode);
+  int AppendNode(Node* copynode,unsigned int minT=0,unsigned int maxT=UINT_MAX);
   
   bool BuildSearchIndex(int debug=0);
 

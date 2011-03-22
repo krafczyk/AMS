@@ -41,7 +41,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   for(int i=0;i<(int)branchlist->GetEntries();i++){
     nodearr[i]=0;
     TObject* obj=(TObject*)branchlist->At(i);
-    std::cout << "namee: "<< branchlist->At(i)->GetName() << std::endl;
+    if(debug)std::cout << "name: "<< branchlist->At(i)->GetName() << std::endl;
     if(strcmp(obj->ClassName(),"TBranchElement")==0)
       _tree->SetBranchAddress(branchlist->At(i)->GetName(),&nodearr[i]);
   }
@@ -60,7 +60,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
       TObject* obj=(TObject*)branchlist->At(j);
       if(strcmp(obj->ClassName(),"TBranchElement")==0){
 	nodearr[j]->SetName(obj->GetName());
-	AppendNode((Node*)nodearr[j]);
+	AppendNode((Node*)nodearr[j],minT,maxT);
       }
     }
   }
@@ -70,7 +70,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   return n_add;
 }
 
-int SlowControlDB::AppendNode(Node* copynode)
+int SlowControlDB::AppendNode(Node* copynode,unsigned int minT,unsigned int maxT)
 {
   if(!copynode){
     std::cerr<<"AppendNode ptr "<<copynode<<" not found"<<std::endl;
@@ -90,7 +90,7 @@ int SlowControlDB::AppendNode(Node* copynode)
     
   for(int i=0;i<(int)copynode->getnelem();i++)
     //    DataType* dt=
-    it->second.Append(copynode->GetDataTypeN(i));
+    it->second.Append(copynode->GetDataTypeN(i),minT,maxT);
   
   return 0;
 }
@@ -113,7 +113,6 @@ bool SlowControlDB::BuildSearchIndex(int debug){
       unsigned int node=it->second/100000;
       unsigned int dt=it->second%100000/1000;
       unsigned int st=it->second%1000;
-      printf("subtype %s - NA 0x%03x DT 0x%02x ST %i \n",it->first.c_str(),node,dt,st);
       std::cout<<"subtype "<<it->first<<" - NA 0x"<<std::hex<<node<<" DT 0x"<<std::hex<<dt<<" ST "<<st<<std::endl; 
     }
   
@@ -152,3 +151,32 @@ bool SlowControlDB::SaveToFile(const char* fname,int debug){
   //  delete file;
   return true;
 }
+
+/*
+bool SlowControlDB::CleanUpToPeriod(unsigned int minT, unsigned int maxT, int debug){
+  for(std::map<std::string,Node>::iterator node=nodemap.begin();node!=nodemap.end();node++)
+    for(std::map<int,DataType>::iterator dt=node->second.datatypes.begin();dt!=node->second.datatypes.end();dt++)
+      for(std::map<int,SubType>::iterator st=dt->second.subtypes.begin();st!=dt->second.subtypes.end();st++){
+	
+	if(debug)printf("tag %s - min %ui max %ui\n",(const char*)st->second.tag,st->second._table.begin()->first,(st->second._table.end()--)->first);
+	
+	//	for(std::map<unsigned int,float>::reverse_iterator iter=st->second._table.rbegin()+1;iter!=st->second._table.rend();iter++)if((iter-1)->first>maxT)st->second._table.erase(iter);
+	
+	std::map<unsigned int,float>::iterator it;
+	
+	for(it=(st->second._table.end()--);it!=(st->second._table.begin()--);it--)
+	  if(it->first<maxT)break;
+	
+	st->second._table.erase(++it,st->second._table.end());
+	
+	for(it=st->second._table.begin();it!=st->second._table.end();it++)
+	  if(it->first>minT)break;
+
+	st->second._table.erase(st->second._table.begin(),--it);
+
+				//	for(std::map<unsigned int,float>::iterator iter=st->second._table.begin()+1;iter!=st->second._table.end();iter++)if((iter-1)->first<minT)st->second._table.erase(iter);
+	if(debug)printf("  cleaned to min %i max %i\n",st->second._table.begin()->first,(st->second._table.end()--)->first);
+      }
+  return true;
+}
+*/
