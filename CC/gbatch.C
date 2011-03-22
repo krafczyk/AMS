@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.109 2011/03/22 21:18:27 choutko Exp $
+//  $Id: gbatch.C,v 1.110 2011/03/22 21:52:45 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -113,7 +113,15 @@ catch (amsglobalerror & a){
     return 1;
 }
 catch (std::bad_alloc aba){
- cerr <<"catch-F-NoMemoryAvailable "<<endl;
+#ifdef __CORBA__
+  AMSClientError ab((const char*)a.getmessage(),DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+  cerr<<"setting errror"<< endl;
+  AMSProducer::gethead()->Error()=ab;
+ }
+#endif
+    cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
+    if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
     UGLAST("catch-F-NoMemoryAvailable ");
     return 1;
 }
