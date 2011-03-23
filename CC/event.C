@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.519 2011/03/23 15:01:48 choutko Exp $
+//  $Id: event.C,v 1.520 2011/03/23 16:40:47 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3694,7 +3694,7 @@ void AMSEvent::_collectstatus(){
        }
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
          int iz1=0;
-       if(ptr->_ptrack && getheadC("AMSParticle",0)){
+       if( ptr &&ptr->_ptrack ){
          iz1=ptr->_ptrack->HasExtLayers();
         if(iz1>3){
          cerr<<"AMSEvent::_collectstatus::-S-TooManyTrackerExtLayersFound "<<iz1<<endl;
