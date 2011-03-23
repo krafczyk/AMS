@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.784 2011/03/22 14:01:16 mmilling Exp $
+// $Id: job.C,v 1.785 2011/03/23 13:36:07 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4328,7 +4328,7 @@ void AMSJob::_trdendjob(){
 
 #pragma omp master
   {
-    if( AMSFFKEY.Update ){// && (AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
+    if( AMSFFKEY.Update && TrdHReconR::calibrate ){// && (AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
       bool update=TrdHReconR::gethead(AMSEvent::get_thread_num())->update_tdv_array();
       if(update) AMSTRDRawHit::updtrdcalibSCI();
     }

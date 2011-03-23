@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.517 2011/03/22 14:01:16 mmilling Exp $
+//  $Id: event.C,v 1.518 2011/03/23 13:36:07 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -993,7 +993,7 @@ void AMSEvent::_retrdinitevent(){
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",0),0));
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",0),0));
     
-    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::calibrate)
+    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::calibrate&&(CALIB.SubDetInCalib/10000)%10>0)
       TrdHReconR::gethead(AMSEvent::get_thread_num())->init_calibration(TRDFITFFKEY.CalStartVal);
   }
   
