@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.120 2010/12/30 13:43:18 choutko Exp $
+//  $Id: trrec.h,v 1.121 2011/03/23 15:01:52 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -363,6 +363,7 @@ static uint128  encodeaddressS(integer lad[3][trconst::maxlay]);
 static uintl * getchild(uintl address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
+int HasExtLayers();
 static void cleanup();
 static AMSTrTrack* AddFalseX(AMSTrTrack *ptrack);
 bool TRDMatch(AMSTRDTrack *ptrd);

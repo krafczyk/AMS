@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.518 2011/03/23 13:36:07 mmilling Exp $
+//  $Id: event.C,v 1.519 2011/03/23 15:01:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3692,7 +3692,21 @@ void AMSEvent::_collectstatus(){
         }
          __status1|=(z1<<5);
        }
-          
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
+         int iz1=0;
+       if(ptr->_ptrack && getheadC("AMSParticle",0)){
+         iz1=ptr->_ptrack->HasExtLayers();
+        if(iz1>3){
+         cerr<<"AMSEvent::_collectstatus::-S-TooManyTrackerExtLayersFound "<<iz1<<endl;
+        iz1=0;
+        }
+       }
+         __status1|=(iz1<<7);
+         
+
+
+}
+else{          
        if(_ccebp){
          if(MAGSFFKEY.magstat>0){
           geant b=_ccebp->getBAv();
@@ -3704,7 +3718,7 @@ void AMSEvent::_collectstatus(){
                
          }   
        }
-
+}
 
        if(ptrt){
          geant rate=ptrt->gettrrates(5);

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.233 2010/12/30 13:43:18 choutko Exp $
+//  $Id: trrec.C,v 1.234 2011/03/23 15:01:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -4902,6 +4902,23 @@ integer AMSTrRecHit::is_in_path(number par[2][3]){
 float fact=fabs(_Hit[2])>100?2:1;
    return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < fact*TRFITFFKEY.SearchRegStrLine*par[0][2]
        && fabs(par[1][1]+par[1][0]*_Hit[2]-_Hit[1]) < fact*TRFITFFKEY.SearchRegCircle*par[1][2];
+}
+
+
+
+int AMSTrTrack::HasExtLayers(){
+//  use just z info as version independent
+const float z=100;
+int ret=0;
+for(int i=0;i<_NHits;i++){
+ if(_Hit[i][2]>z)ret+=1;
+ else if(_Hit[i][2]<-z)ret+=2;
+}
+if(ret>3){
+cerr<<"AMSTrTrack::HasExtLayers-S-TooManyExtLayersFound "<<ret<<endl;
+ret=0;
+}
+return ret;
 }
 
 
