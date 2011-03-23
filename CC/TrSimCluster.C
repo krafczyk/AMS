@@ -205,14 +205,15 @@ void TrSimCluster::ApplyGain(int iside, int tkid) {
   TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
   for (int ist=0; ist<GetWidth(); ist++) {
     int   address = (iside==0) ? GetAddressCycl(ist) + 640 : GetAddress(ist);
-    int   iva     = int(address/64);
+    int   iva = int(address/64);
     if ( (iva<0)||(iva>15) ) { 
        printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,address);
        return; 
     }
-    float gain    = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
-    if (ladpar->GetVAGain(iva)<0.02) SetSignal(ist,0.); // VA with no gain!
-    else                             SetSignal(ist,GetSignal(ist)/gain);
+    float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
+    if      ( gain<0.02 )     SetSignal(ist,0.);                 // VA with no gain!
+    else if ( (1./gain)<0.5 ) SetSignal(ist,GetSignal(ist)/10.); // VA with bad gain!
+    else                      SetSignal(ist,GetSignal(ist)/gain);
   }
 }
 

@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.28 2011/03/19 17:27:01 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.29 2011/03/23 01:18:04 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/03/19 17:27:01 $
+///$Date: 2011/03/23 01:18:04 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -263,7 +263,8 @@ void TrMCClusterR::GenSimClusters(){
   AMSPoint mom = GetMom();        // Momentum Vector [GeV/c]
   double   edep = Sum()*1.e6;     // Energy Deposition [keV] 
   double   momentum = mom.norm(); // Momentum [GeV/C]
-  if (momentum<1e-9) return ;     // if momentum < eV/c!
+  if (edep<1) return;             // if energy deposition < 1 keV (less than 0.5 ADC counts)
+  if (momentum<1e-6) return;      // if momentum < keV/c
   AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
@@ -280,16 +281,20 @@ void TrMCClusterR::GenSimClusters(){
 
   // loop on two sides of the ladder
   for (int iside=0; iside<2; iside++) {
+
+    /*
     if ( (ip[iside]<0.)||(ip[iside]>TkDBc::Head->_ssize_active[iside]) ) {
       if (WARNING) printf("TrSim::GenSimClusters-W  %c coordinate out of the sensor (min=0, max=%7.4f, coo=%7.4f)\n",
                           sidename[iside],TkDBc::Head->_ssize_active[iside],ip[iside]);
       continue;
     }
+    */
 
     // create the simulated cluster
     TrSimCluster simcluster = TrSim::GetTrSimSensor(iside,GetTkId())->MakeCluster(ip[iside],ia[iside],nsensor);
     // from time to time the cluster is empty
     if (simcluster.GetWidth()==0) continue;
+
     // put the cluster in the TrMCCluster object
     simcl[iside] = new TrSimCluster(simcluster);
     // raw signal

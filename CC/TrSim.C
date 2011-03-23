@@ -451,7 +451,7 @@ int TrSim::BuildTrRawClustersWithDSP(const int iside, const int tkid, TrLadCal* 
   int addmin[2] = {  0, 640};
   int addmax[2] = {640,1024};
   int used[1024]; memset(used,0,1024*sizeof(used[0]));
-  int ilayer = abs(tkid/100)-1;
+  int ilayer = int(fabs(tkid/100))-1;
   int hwid = (TkDBc::Head->FindTkId(tkid))->GetHwId();
   int ientry = int(hwid/100)*24 + hwid%24;
 
@@ -602,7 +602,7 @@ void TrSim::sitknoise(int nsimladders) {
 	tkid = ladder->GetTkId();
 	if (MCClusterTkIdMap.GetNelem(tkid)<=0) ladderfound = true;
       }
-      int ilayer = abs(tkid/100)-1;
+      int ilayer = int(fabs(tkid/100))-1;
 
       // extract the seed signal-over-noise 
       // using gaussian cumulative inverse function on a short interval
