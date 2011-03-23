@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.153 2011/03/22 13:13:11 mmilling Exp $
+#  $Id: Makefile,v 1.154 2011/03/23 13:23:06 mdelgado Exp $
 
 #P.Zuccon june 2005
 
@@ -704,10 +704,10 @@ $(BIN)gstord.o:      $(SFF)gstord.F
 	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gstord.F -o $(BIN)gstord.o
 
 $(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
-	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
+	sed  "s/IQ(JSTAK+1)+N2-N1+1-IQ(JPOLAR-1)\/3/IQ(JSTAK+2)-IQ(JPOLAR-1)\/3/g;s/N2-N1/NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
 
-$(BIN)gskpho.o:      $(SFF)gskpho.F
-	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
+#$(BIN)gskpho.o:      $(SFF)gskpho.F
+#	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
 
 $(BIN)ggckov.o:      $(SFF)ggckov.F
 	$(FFOLD) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)ggckov.F -o $(BIN)ggckov.o
