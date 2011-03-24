@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.257 2011/03/21 22:53:31 choutko Exp $
+//  $Id: root.C,v 1.258 2011/03/24 14:38:07 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3393,23 +3393,6 @@ float RichRingR::getBetaConsistency(){
   return -1;
 }
 
-int RichRingR::getPhotoElectrons(double sigmaOverQ,double signal){
-  double Npe=signal==-1?NpCol:signal;
-  int org=int(floor(Npe));
-  double maximum=-HUGE_VAL;
-  int best=0;
-  for(int n=max(org-3,1);n<=org+3;n++){
-    double rms=n*sigmaOverQ*sigmaOverQ;
-    double lkh=-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms);
-    if(lkh>maximum){
-      maximum=lkh;
-      best=n;
-    }
-  }
-  return best;
-}
-
-
 
 RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 #ifndef __ROOTSHAREDLIBRARY__
@@ -3486,7 +3469,7 @@ double RichRingR::RingWidth(bool usedInsteadNpCol){
   for(int i=0;i<10;i++){
     double w;
     if(usedInsteadNpCol) w=UsedWindow[i]-(i>0?UsedWindow[i-1]:0);
-    else w=getPhotoElectrons(0.5,NpColWindow[i])-(i>0?getPhotoElectrons(0.5,NpColWindow[i-1]):0);
+    else w=NpColWindow[i]-(i>0?NpColWindow[i-1]:0);
     weight+=w;
     sum+=(0.5+i)*(0.5+i)*w;
   }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.316 2011/03/14 18:07:31 sdifalco Exp $
+//  $Id: root.h,v 1.317 2011/03/24 14:38:07 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1125,7 +1125,7 @@ public:
   bool IsCrossed(){return (Status&(1<<30))!=0;}
   bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
   bool IsHighGain(int){return (Status&(1<<29))!=0;}
-  int  PhotoElectrons(double sigmaOverQ=0.5);
+  int  PhotoElectrons(double sigmaOverQ=0.6);
 
 ClassDef(RichHitR,5)       // RichHitR
 #pragma omp threadprivate(fgIsA)
@@ -1239,10 +1239,7 @@ public:
   /// \return Beta
   float getBeta()          {return BetaRefit;}
   /// Total number of photoelectrons in the ring. 
-  /// \param sigmaOverQ single photoelectron relative width assumed for single photon
-  /// \param signal Total charge in the ring. If it is -1 it uses the value given by NpCol
-  /// \return Likelihood estimate of the number of photoelectrons in the ring
-  int   getPhotoElectrons(double sigmaOverQ=0.5,double signal=-1);
+  int   getPhotoElectrons(){return NpCol;}
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
   float getExpectedPhotoelectrons() {return NpExp;}
   /// Continuous Z^2 estimate for this ring
@@ -1284,7 +1281,7 @@ public:
   
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,18)           // RichRingR
+  ClassDef(RichRingR,19)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
