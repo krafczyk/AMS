@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.46 2011/02/03 06:20:49 mdelgado Exp $
+//  $Id: richgeom.C,v 1.47 2011/03/24 15:34:23 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -367,7 +367,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11, 
                                      coo,
                                      nrm,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia-3,
                                      rel));
@@ -388,7 +388,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm90,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia-2,
                                      rel));
@@ -411,7 +411,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,   
                                      nrm180, 
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,  
                                      4*copia-1,
                                      rel));
@@ -435,7 +435,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm270,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia,
                                      rel));
@@ -470,7 +470,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia-3,
                                      rel));
@@ -490,7 +490,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm90, 
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,  
                                      4*copia-2,
                                      rel));
@@ -513,7 +513,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,   
                                      nrm180,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0, 
                                      4*copia-1,
                                      rel));
@@ -536,7 +536,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm270,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0, 
                                      4*copia,
                                      rel));   
@@ -574,7 +574,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia-3,
                                      rel));
@@ -591,7 +591,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      11,
                                      coo,
                                      nrm90,
-                                     "ONLY", // This seems to be safe
+				     _MANY_,
                                      0,
                                      4*copia-2,
                                      rel));
