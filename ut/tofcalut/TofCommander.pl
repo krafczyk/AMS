@@ -47,6 +47,7 @@ $DaqfHistLen=();
 @SubmJobsList=();
 @LigFileList=();
 $AutoSessFlg="";
+$DBAutoUpdFlg="";
 $JobScriptN="";
 $KilledJobs=0;
 @KilledJobsPids=();
@@ -74,7 +75,7 @@ $CalfLboxFmt="A11 A9 A3";#for cal-files listbox-description(1strunn dd.hh:mm sta
 $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 #
 @AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
-@AMSHostsList=qw(Any ams pcamsr0 pcamsn0 pcamsf3 pcamsj1);
+@AMSHostsList=qw(Any scamsfs1 pcamsr0 pcamsr1 pcamsn0 pcamsf3 );
 @AMSQueuesList=qw(1nh 8nh 1nd 1nw 2nw);
 #
 @cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD); 
@@ -423,6 +424,7 @@ sub StartSess{
 #
     require 'TofTdcLinCalib.pl';
     $AutoSessFlg="ManualSess";
+    $DBAutoUpdFlg="DBAutoUpd_Off";
     TdcLinCalibration();
     $JOCReady=0;
 #
@@ -513,6 +515,7 @@ sub StartSess{
     require 'TofTimeAmplCalib.pl';
 #
     $AutoSessFlg="ManualSess";
+    $DBAutoUpdFlg="DBAutoUpd_Off";
     TmAmCalibration();
     $JOCReady=0;
 #

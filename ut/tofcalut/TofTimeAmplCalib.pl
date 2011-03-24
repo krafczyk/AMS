@@ -76,8 +76,8 @@ $lookar_bt->bind("<Button-3>", \&lookaround_help);
 $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
-			                 -foreground=>"yellow",
-			                 -background=>"red",
+			                 -foreground=>"black",
+			                 -background=>"orange",
                                          -borderwidth=>3,-relief=>'raised',
 			                 -cursor=>hand2,
                                          -command => \&ResetHistory)
@@ -85,19 +85,7 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
                                          -relwidth=>0.5, -relheight=>$drh1,  
                                          -relx=>0.5, -rely=>($shf1+3*$drh1));
 $clrhist_bt->bind("<Button-3>", \&resethist_help);
-#---
-$dir_fram->Button(-text=>"Browser", -font=>$font2, 
-                                         -activebackground=>"yellow",
-			                 -activeforeground=>"red",
-			                 -foreground=>"red",
-			                 -background=>"green",
-                                         -borderwidth=>3,-relief=>'raised',
-			                 -cursor=>hand2,
-                                         -command => \&open_browser_window)
-			                 ->place(
-                                         -relwidth=>0.25, -relheight=>$drh1,  
-                                         -relx=>0, -rely=>($shf1+4*$drh1));
-#---
+#-----------
 $dir_fram->Button(-text=>"Help", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -108,7 +96,7 @@ $dir_fram->Button(-text=>"Help", -font=>$font2,
                                          -command => \&open_help_window)
 			                 ->place(
                                          -relwidth=>0.15, -relheight=>$drh1,  
-                                         -relx=>0.25, -rely=>($shf1+4*$drh1));
+                                         -relx=>0., -rely=>($shf1+4*$drh1));
 #---
 $soundtext="Sound-ON";
 $dir_fram->Button(-text=>"Sound-ON", -font=>$font2, 
@@ -122,23 +110,49 @@ $dir_fram->Button(-text=>"Sound-ON", -font=>$font2,
                                      -command => sub{if($soundtext eq "Sound-ON"){$soundtext="Sound-OFF";}
 			                             else {$soundtext="Sound-ON";}})
 			             ->place(
-                                     -relwidth=>0.3, -relheight=>$drh1,
-				     -relx=>0.4, -rely=>($shf1+4*$drh1));
+                                     -relwidth=>0.25, -relheight=>$drh1,
+				     -relx=>0.15, -rely=>($shf1+4*$drh1));
 #---
 $manauto_bt=$dir_fram->Button(-text=>"ManualSess", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
-			             -foreground=>"darkgreen",
+			             -foreground=>"black",
 			             -background=>"orange",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$AutoSessFlg,
-                                     -command => sub{if($AutoSessFlg eq "ManualSess"){$AutoSessFlg="AutoSess";}
-			                             else {$AutoSessFlg="ManualSess";}})
+                                     -command => sub{if($AutoSessFlg eq "ManualSess"){
+				                             $AutoSessFlg="AutoSess";
+							     $manauto_bt->configure(-background=>"red");
+							                             }
+			                             else {
+						             $AutoSessFlg="ManualSess";
+							     $manauto_bt->configure(-background=>"orange");
+							                             }})
+			             ->place(
+                                     -relwidth=>0.3, -relheight=>$drh1,
+				     -relx=>0.4, -rely=>($shf1+4*$drh1));
+$manauto_bt->bind("<Button-3>", \&manauto_help);
+#---
+$dbautoupd_bt=$dir_fram->Button(-text=>"DBAutoUpd_Off", -font=>$font2, 
+                                     -activebackground=>"yellow",
+			             -activeforeground=>"red",
+			             -foreground=>"black",
+			             -background=>"orange",
+                                     -borderwidth=>3,-relief=>'raised',
+			             -cursor=>hand2,
+			             -textvariable=>\$DBAutoUpdFlg,
+                                     -command => sub{if($DBAutoUpdFlg eq "DBAutoUpd_Off"){
+				                            $DBAutoUpdFlg="DBAutoUpd_On";
+							    $dbautoupd_bt->configure(-background=>"red");
+							                                 }
+			                             else {
+						            $DBAutoUpdFlg="DBAutoUpd_Off";
+							    $dbautoupd_bt->configure(-background=>"orange");
+							                                 }})
 			             ->place(
                                      -relwidth=>0.3, -relheight=>$drh1,
 				     -relx=>0.7, -rely=>($shf1+4*$drh1));
-$manauto_bt->bind("<Button-3>", \&manauto_help);
 #-----------------
 sub ResetHistory
 {
@@ -1349,12 +1363,12 @@ sub SetDefaultPars
   }
   if($tm0slwcal==1){
      $jpar1=$jpar1*10+3;
-     if($Evs2Read<500000){$Evs2Read=500000;}
+     if($Evs2Read<400000){$Evs2Read=400000;}
      $CalCode+=10;
   }
   if($amnormcal==1){#AmplNorm
      $jpar1=$jpar1*10+4;
-     if($Evs2Read<5000000){$Evs2Read=5000000;}
+     if($Evs2Read<800000){$Evs2Read=800000;}
      $CalCode+=1;
   }
 # remove "0"s to use in job-script:
@@ -1459,6 +1473,14 @@ sub SetupJob
 #---
   $jpar12=$RelaxCut;
   if($jpar12==1){show_warn("   <--- You selected 'Relaxed Cuts' mode of TAUC running !");}
+#---
+  $jpar13=0;
+  $jpar14=0;
+  if($DBAutoUpdFlg eq "DBAutoUpd_On"){# 'OnFlight' DB update activated
+    show_warn("   <--- DB 'OnFlight' update is activated !!!");
+    $jpar13=1;
+    $jpar14=1;
+  }
 #------
 NextJob:
 #------>
@@ -1945,7 +1967,7 @@ TryAgain:
 #    return;
 #  }
 #---  
-  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 $jpar11 $jpar12 |") 
+  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 $jpar11 $jpar12 $jpar13 $jpar14 |") 
                                               or show_warn("   <-- Job-submit problem (at open), $! !!!");
   while(<BSUBM>){
     $output=$_;

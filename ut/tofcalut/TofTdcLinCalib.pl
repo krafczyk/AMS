@@ -86,18 +86,6 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
                                          -relx=>0.5, -rely=>($shf1+3*$drh1));
 $clrhist_bt->bind("<Button-3>", \&resethist_help);
 #---
-$dir_fram->Button(-text=>"Browser", -font=>$font2, 
-                                         -activebackground=>"yellow",
-			                 -activeforeground=>"red",
-			                 -foreground=>"red",
-			                 -background=>"green",
-                                         -borderwidth=>3,-relief=>'raised',
-			                 -cursor=>hand2,
-                                         -command => \&open_browser_window)
-			                 ->place(
-                                         -relwidth=>0.25, -relheight=>$drh1,  
-                                         -relx=>0, -rely=>($shf1+4*$drh1));
-#---
 $dir_fram->Button(-text=>"Help", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -108,7 +96,7 @@ $dir_fram->Button(-text=>"Help", -font=>$font2,
                                          -command => \&open_help_window)
 			                 ->place(
                                          -relwidth=>0.15, -relheight=>$drh1,  
-                                         -relx=>0.25, -rely=>($shf1+4*$drh1));
+                                         -relx=>0., -rely=>($shf1+4*$drh1));
 #---
 $soundtext="Sound-ON";
 $dir_fram->Button(-text=>"Sound-ON", -font=>$font2, 
@@ -122,8 +110,8 @@ $dir_fram->Button(-text=>"Sound-ON", -font=>$font2,
                                      -command => sub{if($soundtext eq "Sound-ON"){$soundtext="Sound-OFF";}
 			                             else {$soundtext="Sound-ON";}})
 			             ->place(
-                                     -relwidth=>0.3, -relheight=>$drh1,
-				     -relx=>0.4, -rely=>($shf1+4*$drh1));
+                                     -relwidth=>0.25, -relheight=>$drh1,
+				     -relx=>0.15, -rely=>($shf1+4*$drh1));
 #---
 $manauto_bt=$dir_fram->Button(-text=>"ManualSess", -font=>$font2, 
                                      -activebackground=>"yellow",
@@ -137,8 +125,22 @@ $manauto_bt=$dir_fram->Button(-text=>"ManualSess", -font=>$font2,
 			                             else {$AutoSessFlg="ManualSess";}})
 			             ->place(
                                      -relwidth=>0.3, -relheight=>$drh1,
-				     -relx=>0.7, -rely=>($shf1+4*$drh1));
+				     -relx=>0.4, -rely=>($shf1+4*$drh1));
 $manauto_bt->bind("<Button-3>", \&manauto_help);
+#---
+$dbautoupd_bt=$dir_fram->Button(-text=>"DBAutoUpd_Off", -font=>$font2, 
+                                     -activebackground=>"yellow",
+			             -activeforeground=>"red",
+			             -foreground=>"darkgreen",
+			             -background=>"orange",
+                                     -borderwidth=>3,-relief=>'raised',
+			             -cursor=>hand2,
+			             -textvariable=>\$DBAutoUpdFlg,
+                                     -command => sub{if($DBAutoUpdFlg eq "DBAutoUpd_Off"){$DBAutoUpdFlg="DBAutoUpd_On";}
+			                             else {$DBAutoUpdFlg="DBAutoUpd_Off";}})
+			             ->place(
+                                     -relwidth=>0.3, -relheight=>$drh1,
+				     -relx=>0.7, -rely=>($shf1+4*$drh1));
 #-----------------
 sub ResetHistory
 {

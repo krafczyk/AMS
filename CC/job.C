@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.785 2011/03/23 13:36:07 mmilling Exp $
+// $Id: job.C,v 1.786 2011/03/24 10:08:00 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1402,8 +1402,8 @@ void AMSJob::_retof2data(){
 
 //    defaults for calibration:
 // TZSL-calibration:
-  TFCAFFKEY.pcut[0]=5.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
-  TFCAFFKEY.pcut[1]=100.;// (2)track mom. high limit
+  TFCAFFKEY.pcut[0]=2.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
+  TFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
   TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range
   TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
   TFCAFFKEY.tzref[1]=0.;//(5) spare
@@ -1417,8 +1417,8 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.truse=1;//(12)-1/0/1->(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
 // AMPL-calibration:
-  TFCAFFKEY.plhc[0]=0.5;// (13) track mom. low limit(gev/c) for space calibr
-  TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............
+  TFCAFFKEY.plhc[0]=2.;// (13) track mom. low limit(gev/c) for space calibr
+  TFCAFFKEY.plhc[1]=50.;// (14) track mom. high limit(gev/c) ..............
   TFCAFFKEY.minev=80;// (15)min.events needed for measurement in channel or bin
   TFCAFFKEY.trcut=0.92;// (16) cut to use for "truncated average" calculation
   TFCAFFKEY.spares[0]=0;//(17) if =1 -> special TofPMEquilization run
@@ -3243,7 +3243,7 @@ end.tm_year=TRDMCFFKEY.year[1];
  end.tm_isdst=0;
  int needval=1;
 //
-if((isCalibration() && CTOF) && AMSFFKEY.Update>0){//only for RD 
+if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
   if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
   time_t bdbw=MISCFFKEY.dbwrbeg;
   time_t edbw=MISCFFKEY.dbwrend;

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.98 2011/03/22 11:20:41 choumilo Exp $
+//  $Id: trigger102.C,v 1.99 2011/03/24 10:08:00 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2518,8 +2518,10 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
       AMSUser::JobFirstRunN()=runn;
       AMSUser::PreviousRunN()=runn;
       AMSUser::JobFirstEventT()=evtime;
+      cout<<"--->Trigger2LVL1::buildrawearly:NewJob:Run/EvTime="<<AMSUser::JobFirstRunN()<<" "<<AMSUser::JobFirstEventT()<<endl;
     }
     AMSUser::RunFirstEventT()=evtime;
+    cout<<"--->Trigger2LVL1::buildrawearly:NewRun:Run/EvTime="<<runn<<" "<<AMSUser::RunFirstEventT()<<endl;
   }
 //
   jaddr=(jblid&(0x001F));//slaveID(="NodeAddr"=JLV1addr here)(one of 2 permitted(sides a/b))

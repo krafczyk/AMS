@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.53 2011/03/22 11:20:41 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.54 2011/03/24 10:08:00 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -402,8 +402,8 @@ if(TFCAFFKEY.hprintf>0){
         time(&insert);
         if(CALIB.InsertTimeProc)insert=StartRun;//redefine according to VC.
 //        ptdv->SetTime(insert,StartRun-1,StartRun-1+86400*30);
-        ptdv->SetTime(insert,min(StartRun-1,StartTimeE),StartRun-1+86400*30);
-        cout <<"      <--- Tofbarcal2 DB-info has been updated for "<<*ptdv<<endl;
+        ptdv->SetTime(insert,min(StartRun-1,StartTimeE),StartRun-1+86400*60);//beg+60days
+        cout <<"      <--- Tof Time/Ampl DB-info has been prepared for TDV "<<*ptdv<<endl;
         ptdv->gettime(insert,begin,end);
         cout<<"           Time ins/beg/end: "<<endl;
         cout<<"           "<<ctime(&insert);
@@ -850,7 +850,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
   number tmsd[TOF2GC::SCLRS],tmsdc[TOF2GC::SCLRS],t14,tmss[TOF2GC::SCLRS];
   geant slops[2],eacl;
   number shft,ftdel,qtotl[TOF2GC::SCLRS],qsd1[TOF2GC::SCLRS],qsd2[TOF2GC::SCLRS],eanti(0),meanq,rr,qmax;
-  number sigt[4]={0.15,0.15,0.15,0.15};// approx. time meas.accuracy in TOF-layers 
+  number sigt[4]={0.17,0.17,0.17,0.17};// approx. time meas.accuracy in TOF-layers 
   number betof,lflgt,cvel(29.979);
   number eacut=2.5;// cut on E-anti (mev). tempor 
   number qrcut=6.;// cut on max/mean-charge ratio
@@ -1085,7 +1085,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     if(!PMEQmode){//calib-mode
       if(!RelaxCut){
-        if(fabs(betof)<0.75 || fabs(betof)>1.3){
+        if(fabs(betof)<0.7 || fabs(betof)>1.3){
 //cout<<"<--- rejected due to PrimitiveBet:beta="<<betof<<endl; 
 	  return;
 	}

@@ -34,6 +34,8 @@ fi
    echo "LinksDir : ${10}"
    echo "SetupName: ${11}"
    echo "RelaxCuts: ${12}"
+   echo "UpdDBflag: ${13}"
+   echo "DBwractiv: ${14}"
    CALMODE=$1
    LQDPC=$2
    REFCFLN=$3
@@ -46,6 +48,8 @@ fi
    LINKDIR=${10}
    SETUPN=${11}
    RELAXCUT=${12}
+   UPDDBFLG=${13}
+   DBWRFLG=${14}
    
    echo " TofUserTopDir: $TofUserTopDir"
    echo " Start program ..."
@@ -79,8 +83,8 @@ c 10=(1)/0-> use/not TDClincor at reco-stage
 c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
 c 30=ref.cal_files set number (=run number)
 c----------- 
-TFCA 1=0.3 2=100. 3=$AVERBETA 7=$AVERBETA  9=0
-     11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 19=0 29=1
+TFCA 1=0.3 2=50. 3=$AVERBETA 7=$AVERBETA  9=0
+     11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 19=0 29=1 41=$UPDDBFLG
 c 29=0/1 -> flag selecting cal.files reading from official/user directories
 c Time(Tdelv/Tzslw)-calibration:
 c
@@ -93,6 +97,7 @@ c 12->1/0/-1(use TRK+MomLimits/TRK/TRKorTRD);
 c 18->(0)/1 not/relax selection cuts for TAUC-calibration(when starting from scratch)
 c 19->(0)/1 UseStrictLPatt(4of4)/not(3of4) for Tzslw-calib
 c 28=0/(1)22 -> no/print(hist.priority 1(hi),2(+low)) cal-related histograms
+c 41=(0)/1->Update TAUCalib in DB "on flight" (no/yes)
 c--------------  
 ATRE 1=0  
 c 1=1/(0)->Print/Not RE-hist;
@@ -107,7 +112,7 @@ c--------------
 c TRFIT 63=0
 c 63->Filter out(1) or not(0) hits inconsistent with TOF
 c--------------
-BETAFIT 13=20. 14=20.  20=12
+BETAFIT 13=15. 14=15.  20=12
 c 13,14->Max distance(x/y) between track & tof hit in sigma's
 c   (use this relaxed cuts when starting from scratch)
 c 20=MN->N=0(NoBetaReco)/N=1(New method)/N=2(Old method)/N=3(Both)
@@ -131,6 +136,7 @@ IOPA  43=101 45='TriggerLVL1' 126=10000
       127=0 128='/f2users/choumilo/ntuples/r1201279137.root'
 c--------------
 AMSJOB 1=211  2=0  4=1  5=0  46='$SETUPN'
+       87=$DBWRFLG 88='Tofbarcal2'
 c 2=0/(1)->debug off/on
 c 4=(0)/1/10/100/1000 -> Read (off)/setup/../rec_banks
 c 5=................. -> Write.........................
