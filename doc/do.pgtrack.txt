@@ -516,7 +516,7 @@ INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = root.h \
                          root_setup.h \
 			 amschain.h \
-                         root.C \
+                         root.C point.h HistoMan.h \
 			 introductionPG.doc \
 			 main.doc \
 			 TrElem.h TrRawCluster.h TrCluster.h \
