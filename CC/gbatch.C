@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.113 2011/03/25 13:50:56 zweng Exp $
+//  $Id: gbatch.C,v 1.114 2011/03/25 13:53:37 zweng Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -180,7 +180,7 @@ void (handler)(int sig){
       GCFLAG.IEOTRI=1;
       AMSStatus::setmode(0);
 
-      if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On=1){
+      if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
   delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
@@ -210,7 +210,7 @@ void (handler)(int sig){
   TrRecon::SigTERM=1;
 #endif
 
-if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On=1){
+if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
   delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
