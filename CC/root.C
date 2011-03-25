@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.258 2011/03/24 14:38:07 mdelgado Exp $
+//  $Id: root.C,v 1.259 2011/03/25 15:07:43 sdifalco Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -739,7 +739,7 @@ void AMSEventR::hjoin(){
 
 }
 //------------------------------- Other public functions for root files analysis:
-bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fastalgo,bool MCflag,bool debug,int flagtype){
+bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int fastalgo,bool MCflag,bool debug,int flagtype){
 // *************************************************************************
 // Authors: S. Di Falco, S. Rosier
 // Date:    March 14, 2011
@@ -756,6 +756,8 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fa
 //                         superlayers of the view (X or Y) is less than 5, 
 //                         anglecut[0] applies; if not, anglecut[1] is applied.
 //                         Defaults: anglecut[2]={74,138}
+//                         N.B.: angle_factor*anglecut is approximated to the 
+//                               closest integer
 //         fastalgo     flag for the fast trigger logic in each view:  
 //                      0=2/3 superlayers with at least 1 PMT over threshold
 //                      1=1/3     "        "               "
@@ -942,8 +944,8 @@ bool AMSEventR::GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fa
     // centroids distance for far superlayers  
     float dfar,dclose1,dclose2;
     float dcut,dcut1,dcut2;
-    dcut1= anglecut[0]*angle_factor[0]/64;
-    dcut2= anglecut[1]*angle_factor[0]/64;
+    dcut1= (int)(anglecut[0]*angle_factor[0]+0.5)/64.;
+    dcut2= (int)(anglecut[1]*angle_factor[0]+0.5)/64.;
     //
     int suplayr1,suplayr2,suplayr3;
     // X view

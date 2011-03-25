@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.317 2011/03/24 14:38:07 mdelgado Exp $
+//  $Id: root.h,v 1.318 2011/03/25 15:07:58 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2662,7 +2662,7 @@ static  void hfp(int id,float a, float w);
 static  void hf2(int id,float a, float b,float w);
 //
 //----> user's functions for root files analysis:
-bool GetEcalTriggerFlags(float Thr_factor[],int angle_factor[],int fastalgo,bool MCflag,bool debug,int flagtype);
+bool GetEcalTriggerFlags(float Thr_factor[],float angle_factor[],int fastalgo,bool MCflag,bool debug,int flagtype);
 bool GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_max, int ACC_max);
 
  void    Init(TTree *tree);   ///< InitTree
