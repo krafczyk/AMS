@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.259 2011/03/25 15:07:43 sdifalco Exp $
+//  $Id: root.C,v 1.260 2011/03/25 17:00:50 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1436,7 +1436,36 @@ int AMSEventR::_Entry=-1;
 int AMSEventR::_EntrySetup=-1;
 char* AMSEventR::_Name="ev.";   
 
+// Dynamic calibration
+bool RichRingR::_updateDynamicCalibration=false;
+double RichRingR::_pThreshold=50;
+int    RichRingR::_tileCalEvents=50;
+int    RichRingR::_tileCalWindow=6;
+double RichRingR::_tileLearningFactor=0.25;
+TH1F RichRingR::indexHistos[122];
+double RichRingR::indexCorrection[122]={1,1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1};
 
+int RichRingR::_lastUpdate[122]={1,1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1,
+				 1,1,1,1,1,1,1,1,1,1,1};
 
 void AMSEventR::GetBranch(TTree *fChain){
   char tmp[255];
@@ -2059,6 +2088,12 @@ bool AMSEventR::ReadHeader(int entry){
 	ring->FillRichHits(i);
       }
     }
+    // Rich Dynamic Calibration
+    if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
+#pragma omp critical (rd)
+	 RichRingR::updateCalibration(*this); 
+    }
+
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
       runo=fHeader.Run;
@@ -3370,6 +3405,97 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
 }
 
 
+bool RichRingR::calSelect(AMSEventR &event){
+#define SELECT(_name,_condition) {if(!(_condition)) return false;}
+  SELECT("1 Tracker, RICH particle",(event.fStatus&0b110011)==0b110001);
+  SELECT("No antis",!(event.fStatus&(0b11<<21)));
+  SELECT("At most 1 trd track",(event.fStatus&(0b11<<8))<=(0b1<<8));
+  SELECT("At most 4 tof clusters",(event.fStatus&(0b111<<10))<=(0b100<<10));
+  SELECT("At least 1 tr track",event.fStatus&(0b11<<13));
+  SELECT("At least 1 rich ring",event.fStatus&(0b11<<15));
+  SELECT("At most 1 crossing particle at rich",event.pParticle(0)->RichParticles<=1);
+  //  SELECT("Beta is one",fabs(ring.Particle(0).Momentum)>_pThreshold);
+  RichRingR *ring=event.Particle(0).pRichRing();
+  SELECT("PointersCheck",ring && ring->iTrTrack()>-1);
+  SELECT("Charge is one",ring->Used/ring->NpExp<1.5*1.5);
+  SELECT("Ring is clean",ring->IsClean());
+  return true;
+#undef SELECT
+}
+
+
+void RichRingR::switchDynCalibration(){
+  _updateDynamicCalibration=1-_updateDynamicCalibration;
+  if(_updateDynamicCalibration) cout<<"RichRingR Dynamic calibration activated"<<endl;
+  else{
+    cout<<"RichRingR Dynamic calibration de-activated"<<endl;
+    for(int i=0;i<122;i++) {indexCorrection[i]=_lastUpdate[i]=1;indexHistos[i].Reset();}
+  }
+}
+
+void RichRingR::updateCalibration(AMSEventR &event){
+  RichRingR *ring=event.Particle(0).pRichRing();
+  if(!ring) return;
+  int tile=ring->getTileIndex();
+  if(tile<0) return;                                // Reasonable tile
+  if(fabs(event.Particle(0).Momentum)<_pThreshold) return; // beta=1
+  if(ring->IsNaF()) tile=121;
+  
+  if(indexHistos[tile].GetNbinsX()==1){
+    if(!ring->IsNaF()) indexHistos[tile].SetBins(100,0.95,1.005); 
+    else indexHistos[tile].SetBins(200,1/1.33,1.015);
+  }
+  // Add the current event
+  indexHistos[tile].Fill(ring->Beta);
+  
+  // Check if we have to update the calibration constants
+  if(indexHistos[tile].GetEntries()<_tileCalEvents) return;
+
+  int peak_bin=indexHistos[tile].GetMaximumBin();
+
+  double weight=0,sum=0;
+  for(int i=-_tileCalWindow;i<=_tileCalWindow;i++){
+    weight+=indexHistos[tile].GetBinContent(peak_bin+i);
+    sum+=indexHistos[tile].GetBinContent(peak_bin+i)*indexHistos[tile].GetXaxis()->GetBinCenter(peak_bin+i);
+  }
+  
+  if(weight<_tileCalEvents) return;
+  sum/=weight;
+
+  //
+  // We  got the value, store it
+  //
+  int now=event.fHeader.Time[0];
+  if(now<_lastUpdate[tile]-30*60 || _lastUpdate[tile]==1)
+    indexCorrection[tile]=1.0/sum;
+  else
+    indexCorrection[tile]=1.0/sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+
+  _lastUpdate[tile]=now;
+
+  indexHistos[tile].Reset();
+}
+
+double RichRingR::betaCorrection(){
+  int t=getTileIndex();
+  if(t<0) return 1;
+  if(IsNaF()) t=121;
+  return indexCorrection[t];
+}
+
+int RichRingR::getTileIndex(){
+  const int grid_side_length=11;
+  const int n_tiles=grid_side_length*grid_side_length;
+  const double tile_width=0.1+11.5; 
+  float &x=TrRadPos[0];
+  float &y=TrRadPos[1];
+
+  int nx=int(x/tile_width+5.5);
+  int ny=int(y/tile_width+5.5);
+  int t=ny*grid_side_length+nx;
+  return t>n_tiles?-1:t;
+}
+
 
 void RichRingR::FillRichHits(int ring){
   fRichHit.clear();
@@ -3388,7 +3514,7 @@ float RichRingR::getBetaConsistency(){
   for(int i=0;i<event->nRichRingB();i++){
     RichRingBR *p=event->pRichRingB(i);
     if(!p) continue;
-    if(pTrTrack()==p->pTrTrack()){
+    if(pTrTrack()==p->pTrTrack() && (p->Status%10)==2){
       return fabs(getBeta()-p->Beta);
     }
   }
@@ -3407,6 +3533,7 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
     BetaRefit = ptr->_wbeta;
     Status    = ptr->_status;
     NpCol= ptr->_collected_npe;
+    NpColLkh= ptr->_collected_npe_lkh;
     NpExp     = ptr->_npexp;
     Prob    = ptr->_probkl;
     UDist = ptr->_unused_dist;

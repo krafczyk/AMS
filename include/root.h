@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.318 2011/03/25 15:07:58 sdifalco Exp $
+//  $Id: root.h,v 1.319 2011/03/25 17:00:50 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1134,13 +1134,58 @@ ClassDef(RichHitR,5)       // RichHitR
 
 //!  Rich Ring Structure
 
+#include "TH1F.h"
+
 /*!
  \author Carlos.Jose.Delgado.Mendez@cern.ch
 */
 
 class RichRingR {
+static bool _updateDynamicCalibration;
+static double _pThreshold;
+static int    _tileCalEvents;
+static int    _tileCalWindow;
+ static double _tileLearningFactor;
 static char _Info[255];
+/// Selection of events for the dynamic calibration
+static bool calSelect(AMSEventR &event);
+/// Returns an unique tile id for the tile crossed by the particle.
+/// This is is unrelated to the one used internally in the reconstruction 
+int getTileIndex();
+static void updateCalibration( AMSEventR &event);
+static TH1F indexHistos[122]; 
+static double indexCorrection[122];
+ static int _lastUpdate[122]; 
 public:
+
+/** @name Dynamic calibration utilities
+ *  These methods provide switchs to control the RICH dynamic calibration
+ */
+  ///@{
+  /// Activate (or deactivate) the dynamic calibration
+ static void switchDynCalibration();
+  /// Get the status of the dynamic calibration 
+  static bool isCalibrating(){return RichRingR::_updateDynamicCalibration;}
+  /// Set the momentum threshold to consider a Z=1 particle as a beta=1 one 
+  static void setPThreshold(double th){_pThreshold=th;}
+  /// Get the momentum threshold to consider a Z=1 particle as a beta=1 one 
+  static double getPThreshold(){return _pThreshold;}
+  /// Set the number of event required to update the tile calibration
+  static void setTileCalEvents(int n){_tileCalEvents=n;};
+  /// Get the number of event required to update the tile calibration
+  static int getTileCalEvents(){return _tileCalEvents;};
+  /// Set the window width for tile calibration
+  static void setTileCalWindow(int n){_tileCalWindow=n;};
+  /// Get the window width for tile calibration
+  static int getTileCalWindow(){return _tileCalWindow;};
+  /// Set the tile calibration learning factor
+  static void setTileLearning(double f){_tileLearningFactor=f;};
+  /// Get the tile calibration learning factor
+  static double getTileLearning(){return _tileLearningFactor;};
+  /// Get used multiplicative correction due to the dynamic calibration
+  double betaCorrection();
+  ///@}
+
 
  unsigned int Status;     ///< status word
                            /*!<
@@ -1170,6 +1215,7 @@ public:
   float UDist;      ///< (\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
   float NpExp;      ///< Number of expected photoelectrons for Z=1 charge
   float NpCol;      ///< Number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
+  float NpColLkh;   ///< Number of collected photoelectrons computed using a weighted mean (experts only)
   float Theta;      ///< Recontructed emission angle
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
@@ -1237,7 +1283,7 @@ public:
   //
   /// Beta of the event
   /// \return Beta
-  float getBeta()          {return BetaRefit;}
+  float getBeta()          {return BetaRefit*betaCorrection();}
   /// Total number of photoelectrons in the ring. 
   int   getPhotoElectrons(){return NpCol;}
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
@@ -1258,7 +1304,7 @@ public:
   float getWidth(bool usedInsteadNpCol=false){return RingWidth(usedInsteadNpCol);}
   /// Refractive index used in the reconstruction
   /// \return Index associated to the track crossing point. 
-  float getIndexUsed()     {return 1.0/Beta/cos(Theta);}
+  float getIndexUsed()     {return 1.0/Beta/betaCorrection()/cos(Theta);}
   /// The track parameters extrapolated to the radiator as used in the reconstruction.
   /// \return A pointer to an array of 5 floats, corresponding to x,y,z theta and phi of the track used in the reconstruction
   const float *getTrackEmissionPoint(){return AMSTrPars;}
@@ -1278,10 +1324,11 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Width=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Prob,RingWidth(),NpExp,NpCol);
     return _Info;
   } 
-  
+
+
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,19)           // RichRingR
+  ClassDef(RichRingR,20)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
