@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.111 2011/03/22 22:15:00 choutko Exp $
+//  $Id: gbatch.C,v 1.112 2011/03/25 12:30:13 zweng Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -26,6 +26,7 @@
 extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
 #endif
 
+int *Memory_reserved = new int[1000*320*1];
 
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
@@ -113,6 +114,8 @@ catch (amsglobalerror & a){
     return 1;
 }
 catch (std::bad_alloc aba){
+
+  delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("NoMemoryAvailable",DPS::Client::CInAbort);
  if(AMSProducer::gethead()){
@@ -176,7 +179,22 @@ void (handler)(int sig){
       GCFLAG.IEORUN=1;
       GCFLAG.IEOTRI=1;
       AMSStatus::setmode(0);
+
+  delete Memory_reserved;
+#ifdef __CORBA__
+  AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+   cerr<<"setting errror"<< endl;
+   AMSProducer::gethead()->Error()=ab;
+ }
+#endif
+  cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
+  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
+  gams::UGLAST("SIGXCPU");
+
+
     }
+
     break;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
@@ -189,6 +207,24 @@ void (handler)(int sig){
 #ifdef _PGTRACK_
   TrRecon::SigTERM=1;
 #endif
+
+  delete Memory_reserved;
+#ifdef __CORBA__
+  AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+   cerr<<"setting errror"<< endl;
+   AMSProducer::gethead()->Error()=ab;
+ }
+#endif
+  cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
+  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
+  gams::UGLAST("SIGTERMSIM ");
+
+
+
+
+
+
  }
  break;
   case SIGQUIT:
