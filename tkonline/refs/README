@@ -1,15 +1,15 @@
 Reference calibrations: 
-1204374329 Mar  1 2008
-1209054818 Apr 24 2008
-1213377129 Jun 13 2008
-1204217781 Feb 28 2008
-1256806708 Oct 29 2009 Full Cabling
-1261145156 Dec 18 2009 Magnetic Field On (first time)
-1265518094 Feb  7 2010 Test Beam  
-1266930520 Feb 24 2010 EMI Test 
-1271419633 Apr 16 2010 Just after thermo-vacuum test (T0 is in)
-1279201272 Jul 15 2010 Full Cabling (9 planes)
-1281610085 Aug 12 2010 Beam test (after replacing one board)
-1282132748 Aug 18 2010 Beam test (new DSP code)
-1284918006 Sep 19 2010 at KSC 
-1299751471 Mar  9 2010 at KSC (with second pass)
+1204374329 Mar  1 2008 Pre-integration
+1209054818 Apr 24 2008 Pre-integration
+1213377129 Jun 13 2008 Pre-integration
+1204217781 Feb 28 2008 Pre-integration
+1256806708 Oct 29 2009 SCM Full Cabling
+1261145156 Dec 18 2009 SCM Magnetic Field On (first time)
+1265518094 Feb  7 2010 SCM Test Beam  
+1266930520 Feb 24 2010 SCM EMI Test 
+1271419633 Apr 16 2010 SCM Just after thermo-vacuum test (T0 is in)
+1279201272 Jul 15 2010 PM Full Cabling (9 planes)
+1281610085 Aug 12 2010 PM Beam test (after replacing one board)
+1282132748 Aug 18 2010 PM Beam test (new DSP code)
+1284918006 Sep 19 2010 PM KSC 
+1299751471 Mar  9 2010 PM KSC (with second pass)
