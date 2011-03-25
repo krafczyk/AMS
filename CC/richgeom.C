@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.47 2011/03/24 15:34:23 mdelgado Exp $
+//  $Id: richgeom.C,v 1.48 2011/03/25 08:44:04 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -174,6 +174,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 {
   AMSNode *dummy;
   AMSgvolume *solid_lg;
+  AMSgvolume *wall;
   geant par[13],coo[3],fcoo[3],fpar[11];
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
   number nrm90[3][3]={0,-1,0,1,0,0,0,0,1};
@@ -323,7 +324,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[8]=0.;
   par[9]=RICHDB::lg_length/2.;
 
-
   solid_lg=(AMSgvolume*)lig->add(new AMSgvolume("RICH SOLG",
 				   0,
 				   "SLGC",
@@ -337,9 +337,65 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 				   copia,
 				   rel));
 
+
 #ifdef __G4AMS__
   solid_lg->Smartless()=-2;
 #endif
+
+  par[0]=RICHDB::lg_height/2.;
+  par[1]=0.;
+  par[2]=90;
+  par[3]=RIClgthk_bot/2.;
+  par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
+  par[5]=par[4];
+  par[6]=0;                          
+  par[7]=RIClgthk_top/2.;
+  par[8]=RICHDB::lg_length/2.;
+  par[9]=par[8];                     
+  par[10]=0;
+                                     
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=0;
+
+
+  wall=(AMSgvolume*)solid_lg->add(new AMSgvolume(_VACUUM_,
+						 0,
+						 "MIRC",
+						 "TRAP",
+						 par,
+						 11,
+						 coo,
+						 nrm,
+#ifdef _G4AMS_
+						 "BOOL",
+#else
+						 _MANY_,
+#endif
+						 0,
+						 4*copia-3,
+						 rel));
+#ifdef __G4AMS__
+  wall->Smartless()=-2;
+#endif
+
+#ifdef _G4AMS_
+  wall->addboolean("TRAP",par,11,coo,nrm90,'+');
+#else
+  dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
+                                     RICnrot,
+                                     "MIRC",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm90,
+				     _MANY_,
+                                     0,
+                                     4*copia-2,
+                                     rel));
+#endif
+
 
 
   par[0]=RICHDB::lg_height/2.;
@@ -359,6 +415,9 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[2]=0;
   
 
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      0,
                                      "MIRA",
@@ -371,15 +430,16 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0,
                                      4*copia-3,
                                      rel));
+#endif
 
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif  
 
   coo[0]=-RICHDB::lg_mirror_pos(1);
   coo[1]=0;
   
 
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm90,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot,     
                                      "MIRA",
@@ -392,17 +452,16 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0,
                                      4*copia-2,
                                      rel));
-  
+#endif  
  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
 
 
   coo[0]=0;
   coo[1]=-RICHDB::lg_mirror_pos(1); 
                                    
-
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm180,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot+2,
                                      "MIRA",
@@ -415,18 +474,16 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0,  
                                      4*copia-1,
                                      rel));
+#endif                                     
                                      
-                                     
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
 
 
   coo[0]=RICHDB::lg_mirror_pos(1);
   coo[1]=0;
 
-
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm270,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot+3,
                                      "MIRA",
@@ -439,12 +496,9 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0,
                                      4*copia,
                                      rel));
-                                        
+#endif                                        
                                      
                                      
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
   par[0]=RICHDB::lg_height/2.;
   par[1]=RICHDB::lg_mirror_angle(2);
   par[2]=90;                         
@@ -461,7 +515,9 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   coo[1]=RICHDB::lg_mirror_pos(2);
   coo[2]=0;
 
-
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      0,     
                                      "MIRB",
@@ -474,14 +530,14 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0,
                                      4*copia-3,
                                      rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
 
   coo[0]=-RICHDB::lg_mirror_pos(2);
   coo[1]=0;                          
 
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm90,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot,
                                      "MIRB",
@@ -495,16 +551,14 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      4*copia-2,
                                      rel));
 
-  
-                                       
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
 
   coo[0]=0;
   coo[1]=-RICHDB::lg_mirror_pos(2);  
 
-
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm180,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot+2,
                                      "MIRB",
@@ -517,17 +571,14 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
                                      0, 
                                      4*copia-1,
                                      rel));
-                                     
-                                       
-                                     
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
 
   coo[0]=RICHDB::lg_mirror_pos(2);
   coo[1]=0;
   
-
+#ifdef __G4AMS__
+  wall->addboolean("TRAP",par,11,coo,nrm270,'+');
+#else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
                                      RICnrot+3,
                                      "MIRB",
@@ -539,66 +590,10 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 				     _MANY_,
                                      0, 
                                      4*copia,
-                                     rel));   
+                                     rel));
+#endif   
                                        
-                                     
-                                     
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
 
-
-  par[0]=RICHDB::lg_height/2.;
-  par[1]=0.;
-  par[2]=90;
-  par[3]=RIClgthk_bot/2.;
-  par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
-  par[5]=par[4];
-  par[6]=0;                          
-  par[7]=RIClgthk_top/2.;
-  par[8]=RICHDB::lg_length/2.;
-  par[9]=par[8];                     
-  par[10]=0;
-                                     
-  coo[0]=0;
-  coo[1]=0;
-  coo[2]=0;
-
-
-
-  dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
-                                     0,
-                                     "MIRC",
-                                     "TRAP",
-                                     par,
-                                     11,
-                                     coo,
-                                     nrm,
-				     _MANY_,
-                                     0,
-                                     4*copia-3,
-                                     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
-                                     RICnrot,
-                                     "MIRC",
-                                     "TRAP",
-                                     par,
-                                     11,
-                                     coo,
-                                     nrm90,
-				     _MANY_,
-                                     0,
-                                     4*copia-2,
-                                     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
 }
 
 
