@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.223 2011/01/16 11:43:47 choutko Exp $
+//  $Id: particle.C,v 1.224 2011/03/25 09:07:02 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -736,7 +736,8 @@ void AMSParticle::richfit(){
 	AMSTrTrack *track=_pvert->gettrack(i);
 #endif
 	//       AMSRichRing *ring=AMSRichRing::rebuild(track);
-	AMSRichRing *ring=AMSRichRing::build(track);
+	AMSRichRing *ring=AMSRichRing::build(track,10);
+	if(!ring){ring=AMSRichRing::build(track,0);if(ring)ring->setstatus(dirty_ring);}
 	
 	if(ring){
 	  // Put a flag in this ring
