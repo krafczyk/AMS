@@ -1,8 +1,9 @@
-//  $Id: richrec.C,v 1.152 2011/03/18 14:54:26 mdelgado Exp $
+//  $Id: richrec.C,v 1.153 2011/03/25 14:15:06 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
 #include "richrec.h"
+#include "richid.h"
 #include "richradid.h"
 #include "richlip.h"
 #include "mccluster.h"
@@ -132,19 +133,36 @@ int AMSRichRawEvent::getHwAddress(){
 
 
 int AMSRichRawEvent::photoElectrons(double sigmaOverQ){
-  double Npe=getnpe();
+  const int maxComp=10;
+  static float rl[maxComp]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+  static float rs[maxComp]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+#pragma omp threadprivate(rl,rs)  
+
+  float Npe=getnpe();
   int org=int(floor(Npe));
   double maximum=-HUGE_VAL;
   int best=0;
+  double sum=0;
+  double weight=0;
   for(int n=max(org-3,1);n<=org+3;n++){
-    double rms=n*sigmaOverQ*sigmaOverQ;
-    double lkh=-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms);
-    if(lkh>maximum){
-      maximum=lkh;
-      best=n;
+    float mean=n;
+    float rms=n*sigmaOverQ*sigmaOverQ;
+    double lkh=0;
+    if(n>maxComp){
+      // Use gaussian approximation
+      lkh=exp(-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms));
+    }else{
+      // Compute the true pdf
+      if(rl[n-1]==-1){rms=sqrt(rms);GETRLRS(mean,rms,rl[n-1],rs[n-1]);}
+      lkh=PDENS(Npe,rl[n-1],rs[n-1]);
     }
+    sum+=n*lkh;
+    weight+=lkh;
   }
-  return best;
+#ifdef __AMSDEBUG__
+  cout<<"NPE="<<Npe<<" RETURNING "<<sum/weight<<endl;
+#endif
+  return sum/weight;
 }
 
 
@@ -1143,7 +1161,8 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   _npexpb=nexpb;
 
   _collected_npe=0.;
-  
+  _collected_npe_lkh=0;  
+
   geant A=(-2.81+13.5*(_index-1.)-18.*
 	   (_index-1.)*(_index-1.))*
     _height/(RICHDB::rich_height+RICHDB::foil_height+
@@ -1176,6 +1195,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
 
     if(value<window_size){
       _collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      _collected_npe_lkh+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->photoElectrons();
     }
   }
 

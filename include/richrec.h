@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.70 2011/03/11 10:44:49 mdelgado Exp $
+//  $Id: richrec.h,v 1.71 2011/03/25 14:15:06 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -94,7 +94,7 @@ public:
   float getchannelsigagain(){int pmt,channel;RichPMTsManager::UnpackGeom(_channel,pmt,channel);return RichPMTsManager::GainSigma(pmt,channel,getbit(gain_mode_bit));}
   int getchannelgainmode(){return getbit(gain_mode_bit);}
 
-  int photoElectrons(double sigmaOverQ=0.5);
+  int photoElectrons(double sigmaOverQ=0.6);
 
   // Get betas from last call to reconstruct
   inline geant getbeta(integer i){
@@ -156,6 +156,7 @@ static geant _Time;
   number  _quality;     // Chi2  
   number  _npexp;       // Number of expected photons for Z=1
   number  _collected_npe;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
+  number  _collected_npe_lkh;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
   number  _probkl;      // Kolgomorov test probability of the reconstructed ring azimuthal distribution being correct
   number  _kdist;       // Leibler-Kullback distance between the reconstructed ring and the hits for the azimuthal marginal distribution
   number _phi_spread;   //(\sum_i (phi_i-\phi_0)^2)/N_{hits} for used hits
