@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.96 2011/03/28 15:30:29 sdifalco Exp $
+//  $Id: ecaldbc.C,v 1.97 2011/03/28 15:31:33 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -228,7 +228,7 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
     ss=fidd/100;//super-layer number (0-8)
     fshift=_gendim[10+ss];//fibers shift from ideal(simmetric) position
     effmn=ECMCFFKEY.effmn;//pm eff. at the edge of pixel
-    deffmx=ECMCFFKEY.deffmx*_rdcell[4];//dist.from edge where the efficiency reach 1.
+    deffmx=ECMCFFKEY.deffw*_rdcell[4];//dist.from edge where the efficiency reach 1.
     slope=(1-effmn)/deffmx;
     ip=ll%2;
     if(ip==0)cleft=-(_nfibpl[0]-1)*pit/2.;//     fiber from 1st layer of s-layer
