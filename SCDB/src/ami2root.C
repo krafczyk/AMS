@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.10 2011/03/21 15:57:40 choutko Exp $
+//  $Id: ami2root.C,v 1.11 2011/03/28 12:36:54 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -137,7 +137,18 @@ int main(int argc, char *argv[]){
   xmlrpcstr_t s;
 
   char xmlurl[160];
+  char *server=getenv("AMISERVER");
   char *host=getenv("SCDBHost");
+  if(server && strlen(server)){
+      setenv("SCDBHost",server,1);
+   }
+  else{
+    if(host && strlen(host)){
+      setenv("AMISERVER",host,1);
+    }
+   }
+
+  host=getenv("SCDBHost");
   char hostlocal[]="ams.cern.ch:8081";
 
   if(! (host && strlen(host)))host=hostlocal;
@@ -182,6 +193,10 @@ int main(int argc, char *argv[]){
   // loop over node types available at AMI
   int nnodes=0;
   const char** nodetypes=get_node_types(&nnodes) ;
+  if(!nnodes){
+    cerr<<" unable to get node_types "<<endl;
+    exit(5);
+  }
   for(int inode=0;inode<nnodes;inode++){
     
     // loop over node numbers 
@@ -264,7 +279,8 @@ int main(int argc, char *argv[]){
  	int nval=0;
 
 	data_vals** vals=0;
-         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
+//         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
+         vals=get_real_valsN_fast(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
          if(!vals){
            cerr<<"  Unable to get values "<<endl;
            tm=true;
