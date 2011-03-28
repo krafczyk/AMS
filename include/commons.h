@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.310 2011/03/19 16:22:32 choumilo Exp $
+//  $Id: commons.h,v 1.311 2011/03/28 15:17:26 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -375,6 +375,16 @@ geant peddsv;//ch-to-ch variation(%)
 integer ReadConstFiles;
 integer calvern;
 integer mch2root;
+ float Sl_gap;
+ float HoneyRelDen;
+ float SbMassFrac; // Antimonium mass fraction in Lead
+ float effmn; // pixel efficiency correction
+ float deffw;
+ float cladgluex; // cladding+glue thickness(cm) horizontal
+ float cladgluey; // cladding+glue thickness(cm) vertical
+ float gap; // thickness of the gap from fiber to fiber 
+ integer endplate;// flag to insert Aluminum end plate (0=not inserted) 
+ float claddxy[36]; // clad+glue thick. horiz./vert. variation in layer
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.786 2011/03/24 10:08:00 choumilo Exp $
+// $Id: job.C,v 1.787 2011/03/28 15:19:32 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -872,7 +872,20 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.calvern=2;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
-  //
+  //  ECMCFFKEY.Sl_gap=0.01; // (31) gap on top/bottom of Superlayers
+  ECMCFFKEY.HoneyRelDen=1.; // (32) HoneyComb Relative Density 
+  ECMCFFKEY.SbMassFrac=0.0287; // (33) Antimonium mass fraction in Lead-Antimonium (corresponds to 98% Lead relative density);
+  ECMCFFKEY.effmn=0.6;//(34) efficiency at the anode edge
+  ECMCFFKEY.deffw=0.333; //(35) width of the anode inefficiency region from the anode edge 
+  ECMCFFKEY.cladgluex=0.01135; //(36) fiber clad+glue horizontal thickness (cm)  
+  ECMCFFKEY.cladgluey=0.01135; //(37) fiber clad+glue vertical thickness (cm) 
+  ECMCFFKEY.gap=0.; //(38) thickness (cm) of segments of glue between fibers of the same fiber layer
+  ECMCFFKEY.endplate=1; // (39) If <>0 insert an Aluminum plate at the end of last superlayer
+  
+  for (int ilayer=0;ilayer<18;ilayer++){
+    ECMCFFKEY.claddxy[2*ilayer]=0.; //(40-75)clad+glue additional horiz. th.  
+    ECMCFFKEY.claddxy[2*ilayer+1]=0.;//(40-75)clad+glue additional vert. th.  
+  }
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
