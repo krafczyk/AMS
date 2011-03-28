@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.111 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: gmat.C,v 1.112 2011/03/28 15:19:12 sdifalco Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -452,7 +452,7 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
   mat.add (new AMSgmat("LOW_DENS_AL_2",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
 //
 //---> AL honeycomb structure for ECAL:
-  relden=0.266/2.7;//relat(to true AL) density 
+  relden=0.266/2.7*ECMCFFKEY.HoneyRelDen;//relat(to true AL) density 
   mat.add (new AMSgmat("EC-AL-HONEYC",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
 //
 //---> Al-plates(NOW glue !) for ECAL superlayer structure:
@@ -462,8 +462,24 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 //should be glue, but for simplicity/speed reasons i use vacuum, because NOW thickness is small
 //
 //---> Eff.lead for ECAL(to compensate extra weight puzzle):
-  relden=0.98;//relat(to ideal Pb) density 
-  mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden));
+  geant a[]={207.19,121.757};
+  geant z[]={82.,51.};
+  geant A_ratio=a[1]/a[0];
+  geant m_ratio=ECMCFFKEY.SbMassFrac/(1.-ECMCFFKEY.SbMassFrac);
+
+  geant Sb_atoms,Pb_atoms;
+  Sb_atoms=m_ratio/(A_ratio+m_ratio); // number of atoms (normalized to 1 atom)
+  Pb_atoms=1.-Sb_atoms;
+  geant w[]={Pb_atoms,Sb_atoms};
+  geant Pb_rho=11.35;
+  geant Sb_rho=6.697;
+  geant SbVolumeFrac;
+  SbVolumeFrac=ECMCFFKEY.SbMassFrac*Pb_rho/(Sb_rho+ECMCFFKEY.SbMassFrac*(Pb_rho-Sb_rho));
+  relden=1.-SbVolumeFrac+SbVolumeFrac* Sb_rho/Pb_rho;
+  cout << ">>> LEAD-ANTIMONIUM relden=" << relden << endl;
+  //  relden=ECMCFFKEY.relden;//relat(to ideal Pb) density 
+  mat.add(new AMSgmat("ECLEAD",a,z,w,2,11.35*relden));
+  //mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden)); 
 }
 //--------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
@@ -474,8 +490,6 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
   mat.add(new AMSgmat("ECFPLEX",a,z,w,3,1.16));
 }
 //------------------------------------------
-
-
 {
  // TRD Materials by V. Choutko - probably wrong ones
 
