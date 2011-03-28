@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.311 2011/03/28 15:17:26 sdifalco Exp $
+//  $Id: commons.h,v 1.312 2011/03/28 16:32:31 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -409,11 +409,19 @@ public:
   float Chi2Change2D;
   float TransShowerSize2D;
   float SimpleRearLeak[4];
+
+  float ealpha0;
+  float ebeta;
+  float egamma;
+  float ealpha_par[2];
+
   float CalorTransSize;
   float EMDirCorrection;
   float HiEnThr;
   float HiEnCorFac;
   float S1S3[4];
+  float S1S3X[6];
+  float S1S3Y[6];
   integer sec[2];
   integer min[2];
   integer hour[2];

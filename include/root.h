@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.319 2011/03/25 17:00:50 mdelgado Exp $
+//  $Id: root.h,v 1.320 2011/03/28 16:32:17 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -527,6 +527,8 @@ public:
   float AttLeak;     ///< rel att length correction
   float NLinLeak;   ///<  rel non-lin correction
   float S13Leak;   ///<  s1/s3 ratio correction;
+  float S13LeakXPI;
+  float S13LeakYPI;
   float OrpLeak;   ///<  fraction of shower energy outside core.
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
