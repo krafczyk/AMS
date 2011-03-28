@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.787 2011/03/28 15:19:32 sdifalco Exp $
+// $Id: job.C,v 1.788 2011/03/28 15:25:07 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -872,7 +872,8 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.calvern=2;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
-  //  ECMCFFKEY.Sl_gap=0.01; // (31) gap on top/bottom of Superlayers
+  // 
+  ECMCFFKEY.Sl_gap=0.01; // (31) gap on top/bottom of Superlayers
   ECMCFFKEY.HoneyRelDen=1.; // (32) HoneyComb Relative Density 
   ECMCFFKEY.SbMassFrac=0.0287; // (33) Antimonium mass fraction in Lead-Antimonium (corresponds to 98% Lead relative density);
   ECMCFFKEY.effmn=0.6;//(34) efficiency at the anode edge
