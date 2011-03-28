@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.147 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: geant3.C,v 1.148 2011/03/28 14:46:13 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -640,8 +640,10 @@ GDCXYZ();
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
   AMSgObj::BookTimer.start("GUOUT");
+  //if(GCFLAG.IEVENT==10)new int[2000000000];
   if(    AMSEvent::gethead()->HasNoCriticalErrors()){
     RICHDB::Nph()=0;
+
     try{
       CCFFKEY.curtime=AMSEvent::gethead()->gettime();
       if(AMSJob::gethead()->isSimulation()){

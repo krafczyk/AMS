@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.18 2009/06/25 13:44:09 choutko Exp $
+//  $Id: apool.C,v 1.19 2011/03/28 14:46:13 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -239,7 +239,7 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
 #endif
   //   poolNode.setid(0);
   //   poolMap.map(poolNode);
-  SetLastResort(320000);
+  SetLastResort(1000000);
 }
 
 
@@ -289,7 +289,7 @@ void AMSaPool::dlink::_erase(integer &nbl ){
 }
 
 AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
- SetLastResort(320000);
+ SetLastResort(1000000);
   cout <<"  run "<<endl;
   dlink * curo=o._head;
   dlink *cur=_head;

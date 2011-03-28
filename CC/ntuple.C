@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.217 2011/03/22 14:57:27 choutko Exp $
+//  $Id: ntuple.C,v 1.218 2011/03/28 14:46:13 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -906,8 +906,12 @@ char name[256]="";
   char tmp[255];
  sprintf(tmp,"lock.%s.%d",name,pid);
 
-
- string dir="/afs/cern.ch/ams/local/locks/";
+ char *lockdir=getenv("AMSLockdir");
+ if(!(lockdir && strlen(lockdir))){
+  setenv("AMSLockdir","/afs/cern.ch/ams/local/locks/",1);
+ }
+ lockdir=getenv("AMSLockdir");
+ string dir=lockdir;
 //  look for other locks
         vector<AMSNtuple::trio> tv;
 
@@ -961,7 +965,12 @@ ofstream fbin;
 
 }
 void AMSNtuple::UnLock(){
- string dir="/afs/cern.ch/ams/local/locks/";
+ char *lockdir=getenv("AMSLockdir");
+ if(!(lockdir && strlen(lockdir))){
+  setenv("AMSLockdir","/afs/cern.ch/ams/local/locks/",1);
+ }
+ lockdir=getenv("AMSLockdir");
+ string dir=lockdir;
  char tmp[512];
 char name[256]="";
  int len=255;

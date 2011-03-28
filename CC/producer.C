@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.155 2011/03/12 01:52:42 choutko Exp $
+//  $Id: producer.C,v 1.156 2011/03/28 14:46:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -741,7 +741,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
- if(!_Solo)sendid(2400);
+ if(!_Solo)sendid(3600);
  int ntry=5;
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));

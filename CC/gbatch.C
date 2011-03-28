@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.114 2011/03/25 13:53:37 zweng Exp $
+//  $Id: gbatch.C,v 1.115 2011/03/28 14:46:13 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -26,7 +26,7 @@
 extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
 #endif
 
-int *Memory_reserved = new int[1000*320*1];
+//int *Memory_reserved = new int[1000*320*1];
 
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
@@ -115,7 +115,7 @@ catch (amsglobalerror & a){
 }
 catch (std::bad_alloc aba){
 
-  delete Memory_reserved;
+  //delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("NoMemoryAvailable",DPS::Client::CInAbort);
  if(AMSProducer::gethead()){
@@ -124,7 +124,7 @@ catch (std::bad_alloc aba){
  }
 #endif
     cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
-    if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
+    if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
     UGLAST("catch-F-NoMemoryAvailable ");
     return 1;
 }
@@ -181,7 +181,7 @@ void (handler)(int sig){
       AMSStatus::setmode(0);
 
       if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
-  delete Memory_reserved;
+//  delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
  if(AMSProducer::gethead()){
@@ -190,7 +190,7 @@ void (handler)(int sig){
  }
 #endif
   cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
-  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
+  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGXCPU");
       }
 
@@ -211,7 +211,7 @@ void (handler)(int sig){
 #endif
 
 if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
-  delete Memory_reserved;
+//  delete Memory_reserved;
 #ifdef __CORBA__
   AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
  if(AMSProducer::gethead()){
@@ -220,7 +220,7 @@ if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
  }
 #endif
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
-  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery();
+  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
   }
 

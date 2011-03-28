@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.632 2011/03/22 14:55:01 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.633 2011/03/28 14:46:20 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7116,6 +7116,19 @@ print qq`
         if($#stag2<0){
               $self->ErrorPlus("Unable to find $gr on the Server ");
         }
+
+        $key='ami2root';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive $key name from db");
+        }
+         my $am=$ret->[0][0];
+         my @stag2=stat "$self->{AMSSoftwareDir}/$am";
+        if($#stag2<0){
+              $self->ErrorPlus("Unable to find $am on the Server ");
+        }
+
         $key='ntuplevalidator';
         $sql="select myvalue from Environment where mykey='".$key."'";
         $ret=$self->{sqlserver}->Query($sql);
@@ -7211,6 +7224,10 @@ print qq`
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar $gr to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $am  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $am to $filen ");
           }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora  1>/dev/null 2>&1") ;
           if($i){
@@ -8335,6 +8352,17 @@ anyagain:
         if($#stag2<0){
               $self->ErrorPlus("Unable to find $gr on the Server ");
         }
+        $key='ami2root';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive $key name from db");
+        }
+         my $am=$ret->[0][0];
+         my @stag2=stat "$self->{AMSSoftwareDir}/$am";
+        if($#stag2<0){
+              $self->ErrorPlus("Unable to find $am on the Server ");
+        }
         $key='ntuplevalidator';
         $sql="select myvalue from Environment where mykey='".$key."'";
         $ret=$self->{sqlserver}->Query($sql);
@@ -8433,6 +8461,10 @@ anyagain:
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar $gr to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $am  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $am to $filen ");
           }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora  1>/dev/null 2>&1") ;
           if($i){

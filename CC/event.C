@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.520 2011/03/23 16:40:47 choutko Exp $
+//  $Id: event.C,v 1.521 2011/03/28 14:46:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3105,7 +3105,7 @@ for (i=0;;){
 return n;
 }
 
-void AMSEvent::Recovery(){
+void AMSEvent::Recovery(bool finish){
       cerr <<"AMSEvent::Recovery-I-Event dump follows"<<endl;
       printA(0);
       cerr <<"AMSEvent::Recovery-I-Cleanup started"<<endl;
@@ -3138,7 +3138,7 @@ void AMSEvent::Recovery(){
       if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
 agains:
       try{
-       UPool.SetLastResort(mresort);
+       if(!finish)UPool.SetLastResort(mresort);
       }
     catch (std::bad_alloc a){  
       cerr<<"AMSEvent::Recovery-E-UnableToSetLastResortTo "<<mresort<<" try "<<ntry<<endl;
