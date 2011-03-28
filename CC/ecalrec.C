@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.141 2011/02/11 14:58:00 choutko Exp $
+//  $Id: ecalrec.C,v 1.142 2011/03/28 16:05:47 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1897,7 +1897,7 @@ integer AMSEcalShower::build(int rerun){
          found=1;       
       }
       else break;
-     }
+   }
 
 
 
@@ -2178,14 +2178,25 @@ void AMSEcalShower::EnergyFit(){
 
   number energy=0;
  _EnergyC=0;
+ _EnergyPIC=0;
+
  _Energy3C=0;
  _Energy5C=0;
  _Energy9C=0;
+
  _SideLeak=0;
  _DeadLeak=0;
  _RearLeak=0;
  _OrpLeak=0;
  _S13Leak=0;
+
+ _SideLeakPI=0;
+ _DeadLeakPI=0;
+ _RearLeakPI=0;
+ _OrpLeakPI=0;
+ _S13LeakXPI=0;
+ _S13LeakYPI=0;
+
  _Nhits=0;
  
   Ecal1DCluster *p1cl;
@@ -2202,13 +2213,13 @@ void AMSEcalShower::EnergyFit(){
 
   for (int proj=0;proj<_N2dCl;proj++){
     energy+=_pCl[proj]->_Energy;   
-   _EnergyC+=_pCl[proj]->_EnergyC;   
+    //_EnergyC+=_pCl[proj]->_EnergyC;   
    _Energy3C+=_pCl[proj]->_Energy3C;   
    _Energy5C+=_pCl[proj]->_Energy5C;   
    _Energy9C+=_pCl[proj]->_Energy9C;   
 //   Very  primitive side leak estimation (just double it)
    _SideLeak+=2*_pCl[proj]->_SideLeak;
-   _EnergyC+=_pCl[proj]->_SideLeak;   
+   //_EnergyC+=_pCl[proj]->_SideLeak;   
 //
    _DeadLeak+=_pCl[proj]->_DeadLeak;
    _OrpLeak+=_pCl[proj]->_OrpLeak;
@@ -2237,10 +2248,28 @@ void AMSEcalShower::EnergyFit(){
   }
   float ss1=0;
   float ss3=0;
-  for(int k=0;k<Maxrow;k++){
-   ss1+=s1[k];
-   ss3+=s3[k];
-  }
+  float ss1p[2]={0};
+  float ss3p[2]={0};
+  int ksl=0;
+  int kpr=0;
+  for(int k=0;k<Maxrow;k++)
+    {
+      ss1+=s1[k];
+      ss3+=s3[k];
+
+      ksl = (int) k/2;
+      //if((ksl%2)==0) kpr= ECALDBc::slstruc(0);
+      //else kpr=1-ECALDBc::slstruc(0);
+      
+      if((ksl%2)==0) kpr=1;
+      else kpr=0; 
+      
+      ss1p[kpr] +=s1[k];
+      ss3p[kpr] +=s3[k];
+    }
+  
+  _S13Rpi[0]=ss1p[0]/ss3p[0];
+  _S13Rpi[1]=ss1p[1]/ss3p[1];
   _S13R=ss1/ss3;
 //
   if(energy){
@@ -2252,6 +2281,7 @@ void AMSEcalShower::EnergyFit(){
  _CofG=AMSPoint(0,0,0);
   for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
   number ec=0;
+  //float efinal=0;
   _ShowerMax=-1;
   number xmax=-1;
   AMSPoint ep(0,0,0);
@@ -2274,6 +2304,9 @@ void AMSEcalShower::EnergyFit(){
     ec+=p->getEnergy();
    }
   }
+
+  float efrac = _Edep[17]+_Edep[16];
+
   _ShowerMax=-1;
   if(ec){
    _CofG=_CofG/ep;
@@ -2330,7 +2363,51 @@ void AMSEcalShower::EnergyFit(){
      }
     }
    }
-   // Now Add RearLeak
+
+   // now add s13leak: Choutko version
+   _Energy= ec;
+   float _S13Leak=0;
+   if(_S13R>ECREFFKEY.S1S3[2] && _S13R<ECREFFKEY.S1S3[3]){
+     _S13Leak=-ECREFFKEY.S1S3[1]*(_S13R-ECREFFKEY.S1S3[0]);
+   }
+   //_EnergyC/=(1-_S13Leak);
+
+
+   //Pisa version
+   // float _S13LeakPI[2]={0.,0.};
+   // float nspar[2][6]={{0.529,0.753,0.922,47.25,-104.,-0.006},
+   // 		      {0.517,0.743,0.933,49.19,-7.23,-0.193}};
+
+   // for(int ip=0; ip<2; ip++)
+   //   {
+   //     if(_S13Rpi[ip]>nspar[ip][0] && _S13Rpi[ip]<nspar[ip][1])
+   // 	 {
+   // 	   _S13LeakPI[ip]=((1-nspar[ip][2])/(nspar[ip][1]-nspar[ip][0]))*(_S13Rpi[ip]-nspar[ip][1]);
+   // 	 }
+   //     else if(_S13Rpi[ip]<nspar[ip][0])
+   // 	 _S13LeakPI[ip]=nspar[ip][2] -1;
+   //   }
+
+   //_S13LeakXPI=_S13LeakPI[0];
+   //_S13LeakYPI=_S13LeakPI[1];
+
+   if(_S13Rpi[0]>ECREFFKEY.S1S3X[0] && _S13Rpi[0]<ECREFFKEY.S1S3X[1])
+     {
+       _S13LeakXPI=((1-ECREFFKEY.S1S3X[2])/(ECREFFKEY.S1S3X[1]-ECREFFKEY.S1S3X[0]))*(_S13Rpi[0]-ECREFFKEY.S1S3X[1]);
+     }
+   else if(_S13Rpi[0]<ECREFFKEY.S1S3X[0])
+     _S13LeakXPI=ECREFFKEY.S1S3X[2] -1;
+   
+   if(_S13Rpi[1]>ECREFFKEY.S1S3Y[0] && _S13Rpi[1]<ECREFFKEY.S1S3Y[1])
+     {
+       _S13LeakYPI=((1-ECREFFKEY.S1S3Y[2])/(ECREFFKEY.S1S3Y[1]-ECREFFKEY.S1S3Y[0]))*(_S13Rpi[1]-ECREFFKEY.S1S3Y[1]);
+     }
+   else if(_S13Rpi[1]<ECREFFKEY.S1S3Y[0])
+     _S13LeakYPI=ECREFFKEY.S1S3Y[2] -1; 
+
+   ec = ep[0]/(1+_S13LeakXPI) + ep[1]/(1+_S13LeakYPI);
+
+   // Now Add RearLeak : Choutko version
    if(_Edep[Maxrow-1]>ECREFFKEY.SimpleRearLeak[0]){
     number alpha=1-_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2];
     if(alpha<=0){
@@ -2339,11 +2416,11 @@ void AMSEcalShower::EnergyFit(){
 #ifdef __AMSDEBUG__
      cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<_Edep[Maxrow-1]<<endl;
 #endif
-     alpha=ECREFFKEY.SimpleRearLeak[1]*ec/FLT_MAX*100;
+     alpha=ECREFFKEY.SimpleRearLeak[1]*_Energy/FLT_MAX*100;
     }
-    _Energy= ec;
-    _EnergyC= ECREFFKEY.SimpleRearLeak[1]*ec/alpha;
-    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;
+    //_Energy= ec;
+    _EnergyC= ECREFFKEY.SimpleRearLeak[1]*_Energy/alpha;
+    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*_Energy;
 //    cout <<" case 1 "<<_EnergyC<<" "<<_RearLeak<<endl;
    }
    else{
@@ -2351,24 +2428,43 @@ void AMSEcalShower::EnergyFit(){
     _RearLeak= ECREFFKEY.SimpleRearLeak[1]*ec*(_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2]*_Edep[Maxrow-1]/ECREFFKEY.SimpleRearLeak[0]);
     _EnergyC= ECREFFKEY.SimpleRearLeak[3]*ec+_RearLeak;
 */
-    _EnergyC=ECREFFKEY.SimpleRearLeak[3]*ec;
-    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;
+    _EnergyC=ECREFFKEY.SimpleRearLeak[3]*_Energy;
+    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*_Energy;
    
 //    cout <<" case 2 "<<_EnergyC<<" "<<_RearLeak<<endl;
    }
-    _SideLeak=ECREFFKEY.SimpleRearLeak[3]*_SideLeak;
-    _OrpLeak=ECREFFKEY.SimpleRearLeak[3]*_OrpLeak;
-    _DeadLeak=ECREFFKEY.SimpleRearLeak[3]*_DeadLeak;
-    _AttLeak=ECREFFKEY.SimpleRearLeak[3]*_AttLeak;
-    _NLinLeak=ECREFFKEY.SimpleRearLeak[3]*_NLinLeak;
-  }
-// now add s13leak
 
-   float _S13Leak=0;
-   if(_S13R>ECREFFKEY.S1S3[2] && _S13R<ECREFFKEY.S1S3[3]){
-     _S13Leak=-ECREFFKEY.S1S3[1]*(_S13R-ECREFFKEY.S1S3[0]);
-   }
-   _EnergyC/=(1-_S13Leak);
+   _SideLeakPI=_SideLeak/1000;
+   _OrpLeakPI=_OrpLeak/1000;
+   _DeadLeakPI=_DeadLeak/1000;
+   _AttLeakPI=_AttLeak/1000;
+   _NLinLeakPI=_NLinLeak/1000;
+   
+   _SideLeak=ECREFFKEY.SimpleRearLeak[3]*_SideLeak;
+   _OrpLeak=ECREFFKEY.SimpleRearLeak[3]*_OrpLeak;
+   _DeadLeak=ECREFFKEY.SimpleRearLeak[3]*_DeadLeak;
+   _AttLeak=ECREFFKEY.SimpleRearLeak[3]*_AttLeak;
+   _NLinLeak=ECREFFKEY.SimpleRearLeak[3]*_NLinLeak;
+  
+    //Pisa version
+    efrac /= (1+_S13LeakYPI)*ec;
+    
+    //float EALPHA0=-3.0;
+    //float EBETA=75.2;
+    //float EGAMMA=563.3;
+    //float EALPHA_PAR[2]={-5.,0.0143};
+    
+    float EshiftInPercent= ECREFFKEY.ealpha0+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
+    float ecorr2ebeam=1.+EshiftInPercent/100.;
+    _EnergyPIC=ec*ecorr2ebeam;
+    
+    float alphae =  ECREFFKEY.ealpha_par[0]+ ECREFFKEY.ealpha_par[1]*_EnergyPIC/1000;
+    EshiftInPercent=alphae+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
+    ecorr2ebeam=1.+EshiftInPercent/100.;
+    _EnergyPIC=ec*ecorr2ebeam/1000;
+    _RearLeakPI= _EnergyPIC - ec/1000;
+  }
+
   if(_EnergyC){
    _RearLeak/=_EnergyC;
    _OrpLeak/=_EnergyC;
@@ -2376,11 +2472,17 @@ void AMSEcalShower::EnergyFit(){
    _SideLeak/=_EnergyC;
    _AttLeak/=_EnergyC;
    _NLinLeak/=_EnergyC;
-
   }
 
+  if(_EnergyPIC){
+    _RearLeakPI /=_EnergyPIC;
+    _OrpLeakPI/=_EnergyPIC;
+    _DeadLeakPI/=_EnergyPIC;
+    _SideLeakPI/=_EnergyPIC;
+    _AttLeakPI/=_EnergyPIC;
+    _NLinLeakPI/=_EnergyPIC;
+  }
 
-       
 // Final EnergyCorrection
 
    _EnergyCorr();
@@ -2758,9 +2860,14 @@ return (WriteAll || status);
 
 void AMSEcalShower::_AngleRes(){
 _Angle3DError=0;
+_Angle3DErrorPI=0;
 if(_EnergyC>0){
  _Angle3DError= 3.1415926/180.*sqrt(0.8*0.8+8.4*8.4/_EnergyC);
-}
+ }
+
+ if(_EnergyPIC>0){
+ _Angle3DErrorPI= 3.1415926/180.*sqrt(0.8*0.8+8.4*8.4/_EnergyPIC);
+ }
 }
 
 
@@ -2794,7 +2901,8 @@ if(_EnergyC){
 
 void AMSEcalShower::_EnergyRes(){
 
-_ErrEnergyC= fabs(_DifoSum)*_EnergyC/sqrt(2.);
+  _ErrEnergyC= fabs(_DifoSum)*_EnergyC/sqrt(2.);
+  _ErrEnergyPIC= fabs(_DifoSum)*_EnergyPIC/sqrt(2.);
 }
 
 number AMSEcalShower::getTrue3DChi2(number tantz[2],number t0[2],bool zcorr[2]){

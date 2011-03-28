@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.53 2010/02/22 15:14:25 choutko Exp $
+//  $Id: ecalrec.h,v 1.54 2011/03/28 16:05:23 sdifalco Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -381,16 +381,23 @@ AMSDir   _EMDir;
 number   _Angle3DChi2;
 number   _AngleTrue3DChi2;
 number   _Angle3DError;
-
+number   _Angle3DErrorPI;
 
 number  _FrontEnergyDep;
 number  _Energy;
+
 number  _EnergyC;
+number  _EnergyPIC;
+
 number  _Energy3C;
 number  _Energy5C;
 number  _Energy9C;
+
 number  _S13R;
+number  _S13Rpi[2];
+
 number  _DifoSum;
+
 number  _OrpLeak;
 number  _RearLeak;
 number  _S13Leak;
@@ -398,7 +405,19 @@ number  _SideLeak;
 number  _DeadLeak;
 number  _AttLeak;
 number  _NLinLeak;
+
+number  _OrpLeakPI;
+number  _RearLeakPI;
+number  _S13LeakXPI;
+number  _S13LeakYPI;
+number  _SideLeakPI;
+number  _DeadLeakPI;
+number  _AttLeakPI;
+number  _NLinLeakPI;
+
 number  _ErrEnergyC;
+number  _ErrEnergyPIC;
+
 number  _Orp2DEnergy;
 AMSPoint _CofG;
 number  _ProfilePar[10];
@@ -460,20 +479,29 @@ AMSPoint getCofG()const {return _CofG;}
 AMSDir getDir()const {return _Dir;}
 number getEnergy()const {return _Energy;}
 number getEnergyC()const {return _EnergyC;}
+number getEnergyPIC()const {return _EnergyPIC;}
 number getEnergyXY(int proj)const;
 number getEnergyErr()const{return _ErrEnergyC;}
+number getEnergyErrPI()const{return _ErrEnergyPIC;}
 integer getDirection() const{return _Direction==0?1:-1;}
 integer getNhits() const{return _Nhits;}
 //gchen
  number getDirChi2() const {return _AngleTrue3DChi2;}
  number getErDir() const {return _Angle3DError;}
+ number getErDirPI() const {return _Angle3DErrorPI;}
  number getEnFront() const {return _FrontEnergyDep;}
  number getDifoSum() const {return _DifoSum;}
  number getSLeak() const {return _SideLeak;}
+ number getSLeakPI() const {return _SideLeakPI;}
  number getRLeak() const {return _RearLeak;}
+ number getRLeakPI() const {return _RearLeakPI;}
  number getS13Leak() const {return _S13Leak;}
+ number getS13LeakXPI() const {return _S13LeakXPI;}
+ number getS13LeakYPI() const {return _S13LeakYPI;}
  number getDLeak() const {return _DeadLeak;}
+ number getDLeakPI() const {return _DeadLeakPI;}
  number getOLeak() const {return _OrpLeak;}
+ number getOLeakPI() const {return _OrpLeakPI;}
  number getProfChi2() const {return _ProfilePar[4+_Direction*5];}
  number getTransChi2() const {return _TransFitChi2;}
 #ifdef __WRITEROOT__
