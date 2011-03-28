@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.345 2011/03/12 01:52:47 choutko Exp $
+#  $Id: datacards.doc,v 1.346 2011/03/28 15:40:55 sdifalco Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -969,6 +969,17 @@ I 28   ReadConstFiles(00)        // CP=MCCalibSeeds|Peds:C=1/0->Read MCCalibSeed
 //                                                       P=1/0->GeneratePeds/ReadFromDB
 I 29   calvern(1) //EcalCflistMC-file vers.number(list of RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
 R 30   mch2root(0)// =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case 
+R 31   Sl_gap(0.01) // Air gap between superlayers in cm
+R 32   HoneyRelDen(1.) // Relative density of the Honeycomb wrt 0.266/2.7
+R 33   SbMassFraction(0.0287) // Percentage in mass of Antimonium (Sb) in Lead: 2.87% corresponds to the old 98% of relative density
+R 34   effmn(0.6) // efficiency at the anode edge
+R 35   deffw(0.333) // width in % (33.3%) of the inefficiency region
+R 36   cladgluex(0.01135) //   fiber clad+glue horizontal thickness (cm)  
+R 37   cladgluey(0.01135) //   fiber clad+glue vertical   thickness (cm)  
+R 38   gap(0.) // thickness (cm) of segments of glue between fibers of the same fiber layer
+I 39   endplate(1) // Flag for last Aluminum plane replacing last Lead plane in last superlayer : 0=Lead 1=aluminum
+R 40-75 claddxy[36](0.) // Difference of clad+glue thickness in x (even) or y (odd indices) for each layer to change single layer density and get ellyptical holes   
+
 
     ECAL reconstruction:
 
