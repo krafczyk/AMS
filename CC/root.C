@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.261 2011/03/28 12:04:41 mdelgado Exp $
+//  $Id: root.C,v 1.262 2011/03/28 14:46:39 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3408,7 +3408,7 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
 bool RichRingR::calSelect(AMSEventR &event){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}
   //  SELECT("1 Tracker, RICH particle",(event.fStatus&0b110011)==0b110001);
-  SELECT("1 Tracker, RICH particle",(event.fStatus&0x33)==0x33);
+  SELECT("1 Tracker, RICH particle",(event.fStatus&0x33)==0x31);
   //  SELECT("No antis",!(event.fStatus&(0b11<<21)));
   SELECT("No antis",!(event.fStatus&(0x3<<21)));
   //  SELECT("At most 1 trd track",(event.fStatus&(0b11<<8))<=(0b1<<8));
