@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.262 2011/03/28 14:46:39 mdelgado Exp $
+//  $Id: root.C,v 1.263 2011/03/28 16:47:03 sdifalco Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2846,7 +2846,7 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
 
 EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Status      = ptr->_status;
+ Status      = ptr->_status;
   for (int i=0; i<3; i++) {
     Dir[i]   = ptr->_Dir[i];
     EMDir[i] = ptr->_EMDir[i];
@@ -2854,23 +2854,27 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
     Exit[i]  = ptr->_ExitPoint[i];
     CofG[i]  = ptr->_CofG[i];
   }
-  ErDir   = ptr->_Angle3DError;
+  ErDir   = ptr->_Angle3DErrorPI;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
-  EnergyC   =   ptr->_EnergyC;
+  EnergyC   =   ptr->_EnergyPIC;
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
-  ErEnergyC   = ptr->_ErrEnergyC;
+  ErEnergyC   = ptr->_ErrEnergyPIC;
   DifoSum     = ptr->_DifoSum;
-  SideLeak    = ptr->_SideLeak;
-  RearLeak    = ptr->_RearLeak;
+  SideLeak    = ptr->_SideLeakPI;
+  RearLeak    = ptr->_RearLeakPI;
   S13Leak    = ptr->_S13Leak;
+  S13LeakXPI    = ptr->_S13LeakXPI;
+  S13LeakYPI    = ptr->_S13LeakYPI;
   NLinLeak=ptr->_NLinLeak;
   S13R    = ptr->_S13R;
-  DeadLeak    = ptr->_DeadLeak;
-  AttLeak     = ptr->_AttLeak;
-  OrpLeak     = ptr->_OrpLeak;
+  S13Rpi[0]    = ptr->_S13Rpi[0];
+  S13Rpi[1]    = ptr->_S13Rpi[1];
+  DeadLeak    = ptr->_DeadLeakPI;
+  AttLeak     = ptr->_AttLeakPI;
+  OrpLeak     = ptr->_OrpLeakPI;
   Orp2DEnergy = ptr->_Orp2DEnergy;
   Chi2Profile = ptr->_ProfilePar[4+ptr->_Direction*5];
   for (int i=0; i<4; i++) ParProfile[i] = fabs(ptr->_ProfilePar[i+ptr->_Direction*5])>FLT_MAX?FLT_MAX:ptr->_ProfilePar[i+ptr->_Direction*5];

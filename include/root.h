@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.320 2011/03/28 16:32:17 sdifalco Exp $
+//  $Id: root.h,v 1.321 2011/03/28 16:47:25 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -519,6 +519,7 @@ public:
   float EnergyC; ///< shower energy (gev)
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
+  float  S13Rpi[2];
   float ErEnergyC;   ///< energy error (gev)
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)
   float SideLeak;    ///< rel side leak

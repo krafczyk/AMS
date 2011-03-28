@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.788 2011/03/28 15:25:07 sdifalco Exp $
+// $Id: job.C,v 1.789 2011/03/28 16:47:09 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -950,6 +950,13 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.SimpleRearLeak[1]=0.952e-3;
   ECREFFKEY.SimpleRearLeak[2]=3.1;
   ECREFFKEY.SimpleRearLeak[3]=0.9984e-3;  //  ==  [1]/(1-abs([0])*[2])
+
+  ECREFFKEY.ealpha0=-3.0;
+  ECREFFKEY.ebeta=75.2;
+  ECREFFKEY.egamma=563.3;
+  ECREFFKEY.ealpha_par[0]=-5.;
+  ECREFFKEY.ealpha_par[1]=0.0143;
+
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.03;
   ECREFFKEY.HiEnThr=1650;
@@ -959,7 +966,22 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3[2]=0.4;
   ECREFFKEY.S1S3[3]=0.8;
 //
-//  
+//
+
+  ECREFFKEY.S1S3X[0]=0.529;
+  ECREFFKEY.S1S3X[1]=0.753;
+  ECREFFKEY.S1S3X[2]=0.922;
+  ECREFFKEY.S1S3X[3]=47.25;
+  ECREFFKEY.S1S3X[4]=-104.;
+  ECREFFKEY.S1S3X[5]=-0.006;
+ 
+  ECREFFKEY.S1S3Y[0]=0.517;
+  ECREFFKEY.S1S3Y[1]=0.743;
+  ECREFFKEY.S1S3Y[2]=0.933;
+  ECREFFKEY.S1S3Y[3]=49.19;
+  ECREFFKEY.S1S3Y[4]=-7.23;
+  ECREFFKEY.S1S3Y[5]=-0.193;
+
   ECREFFKEY.sec[0]=0;//54 
   ECREFFKEY.sec[1]=0;//
   ECREFFKEY.min[0]=0;//
