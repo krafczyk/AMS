@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.95 2011/03/04 11:51:52 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.96 2011/03/29 13:02:16 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/03/04 11:51:52 $
+/// $Date: 2011/03/29 13:02:16 $
 ///
-/// $Revision: 1.95 $
+/// $Revision: 1.96 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,6 +39,8 @@
 #include "trrec.h"
 #include "event.h"
 #include "trdrec.h"
+#else
+#include "root.h"
 #endif
 
 
@@ -270,6 +272,7 @@ int TrRecon::Build(int option)
   if (0 < nhit && nhit < RecPar.MaxNtrHit) {
     // Build TrTracks and TrRecHits associated with the track
     ret = BuildTrTracks(rebuild);
+    MatchTRDandExtend();
   }
 
   return ret;
@@ -2887,8 +2890,8 @@ void TrRecon::MatchTRDandExtend(){
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   for(int ii=0;ii< cont->getnelem();ii++){
     TrTrackR* tr=(TrTrackR*)cont->getelem(ii);
-#ifndef __ROOTSHAREDLIBRARY__
     bool TRDdone=false;
+#ifndef __ROOTSHAREDLIBRARY__
     if((TRCLFFKEY.ExtMatch%10)>0){
       for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
 	     ;trd;trd=trd->next())
@@ -2901,6 +2904,17 @@ void TrRecon::MatchTRDandExtend(){
 	}
     }
     if(!TRDdone &&(TRCLFFKEY.ExtMatch/10)>0)   TkTOFMatch(tr);
+#else
+    if((TRCLFFKEY.ExtMatch%10)>0){
+      AMSEventR *evt = AMSEventR::Head();
+      for (int i = 0; i < evt->nTrdTrack(); i++) {
+	TrdTrackR *trd = evt->pTrdTrack(i);
+	AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
+	AMSDir   dd(trd->Theta,  trd->Phi);
+	TRDdone = TkTRDMatch(tr, pp,dd);; 
+	if(TRDdone) break;
+      }
+    }
 #endif
 
     if(tr->DoAdvancedFit()) {

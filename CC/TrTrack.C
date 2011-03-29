@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.97 2011/03/22 17:46:24 pzuccon Exp $
+// $Id: TrTrack.C,v 1.98 2011/03/29 13:02:16 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/03/22 17:46:24 $
+///$Date: 2011/03/29 13:02:16 $
 ///
-///$Revision: 1.97 $
+///$Revision: 1.98 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -525,7 +525,7 @@ void TrTrackR::EstimateDummyX(int fitid)
 
     if (!tks.LadFound() || tks.GetLadTkID() != tkid) {
       static int nerr = 0;
-      if (nerr++ < 100) {
+      if (nerr++ < 0) {//100) {
 	float dy = TkDBc::Head->_ssize_active[1]/2;
 	float dx = TkCoo::GetLadderLength (tkid)/2;
 	float lx = TkCoo::GetLadderCenterX(tkid);
