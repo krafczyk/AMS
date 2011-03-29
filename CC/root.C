@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.263 2011/03/28 16:47:03 sdifalco Exp $
+//  $Id: root.C,v 1.264 2011/03/29 17:31:10 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2072,7 +2072,7 @@ bool AMSEventR::ReadHeader(int entry){
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
-        getsetup()->printAllTDV_Time();
+        //getsetup()->printAllTDV_Time();
         getsetup()->fSlowControl.print();
    for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
         
