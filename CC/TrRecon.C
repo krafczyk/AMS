@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.96 2011/03/29 13:02:16 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.97 2011/03/29 15:48:45 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/03/29 13:02:16 $
+/// $Date: 2011/03/29 15:48:45 $
 ///
-/// $Revision: 1.96 $
+/// $Revision: 1.97 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1307,6 +1307,9 @@ AMSgObj::BookTimer.stop("Track1");
     
 
   } while (!CpuTimeUp() && found && ntrack < RecPar.MaxNtrack);
+ 
+  // Check Track X and Find points on external Layers
+  MatchTRDandExtend();
 
   _CpuTime = _CheckTimer();
 
@@ -2244,7 +2247,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
                 xcls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
     if (ycls) { ycls->SetDxDz(dtrk[i].x()/dtrk[i].z());
                 ycls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
-  //  hit->BuildCoordinates();
+    hit->BuildCoordinate();
   }
 
   // 2nd. step Fit

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.8 2010/08/15 17:08:55 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.9 2011/03/29 15:48:45 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2010/08/15 17:08:55 $
+///$Date: 2011/03/29 15:48:45 $
 ///
-/// $Revision: 1.8 $
+/// $Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -20,6 +20,12 @@
 
 #include "TkDBc.h"
 #include "TkCoo.h"
+#include "tkdcards.h"
+
+
+
+
+
 void print_trace();
 //--------------------------------------------------
 AMSPoint TkCoo::GetGlobalN(int tkid,float X, float Y){
@@ -126,7 +132,8 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   // Sensor alignment correction
   double Ax= (TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   int sens = (int)(abs(loc[0]+Ax)/TkDBc::Head->_SensorPitchK);
-  if (0 <= sens && sens < trconst::maxsen) {
+  if (TRCLFFKEY.UseSensorAlign==1 && 
+      0 <= sens && sens < trconst::maxsen) {
     oo2[0] -= ll->_sensx[sens];
     oo2[1] -= ll->_sensy[sens];
   }
@@ -294,7 +301,7 @@ double TkCoo::GetLadderLength(int tkid) {
   TkLadder* pp=TkDBc::Head->FindTkId(tkid);
   if(!pp) return -9999.;
   
-  return TkDBc::Head->_SensorPitchK*pp->GetNSensors();
+  return (TkDBc::Head->_SensorPitchK*pp->GetNSensors()-0.004);
 }
 
 
@@ -305,7 +312,7 @@ AMSPoint TkCoo::GetLadderCenter(int tkid) {
   TkLadder* pp=TkDBc::Head->FindTkId(tkid);
   if(!pp) return AMSPoint(-9999.,-9999.,-9999.);
 
-  double hlen = GetLadderLength(tkid)/2-TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
+  double hlen = GetLadderLength(tkid)/2-(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
   return TkCoo::GetGlobalA(tkid, hlen, hwid);
 }

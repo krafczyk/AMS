@@ -1,4 +1,4 @@
-/// $Id: TrCluster.C,v 1.19 2011/03/14 00:12:11 oliva Exp $ 
+/// $Id: TrCluster.C,v 1.20 2011/03/29 15:48:45 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -17,9 +17,9 @@
 ///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
 ///\date  2008/06/19 AO  Using TrCalDB instead of data members 
 ///
-/// $Date: 2011/03/14 00:12:11 $
+/// $Date: 2011/03/29 15:48:45 $
 ///
-/// $Revision: 1.19 $
+/// $Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -325,6 +325,29 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
 }
 
 
+float TrClusterR::GetXCofG(int nstrips, int imult, const int opt) {
+  if (nstrips==-1) {
+    nstrips = 2;
+    if ((GetSide()==0)&&(fabs(_dxdz)>TwoStripThresholdX)) nstrips = 3;
+    if ((GetSide()==1)&&(fabs(_dydz)>TwoStripThresholdY)) nstrips = 3;
+  } 
+  if (nstrips==1) return 0.;
+  int leftindex;
+  int rightindex;
+  float numerator   = 0.;
+  float denominator = 0.;
+  GetBounds(leftindex,rightindex,nstrips,opt);
+  for (int index=leftindex; index<=rightindex; index++) {
+    float weight = GetSignal(index,opt);
+    numerator   += weight*GetX(index,imult);
+    denominator += weight;
+  }
+  float CofG = numerator/denominator;
+  //  if (fabs(GetXCofG_old(nstrips,imult,opt)-CofG)>0.0001) printf("CofG: %10.6f %10.6f %10.6f\n",GetXCofG_old(nstrips,imult,opt),CofG,GetXCofG_old(nstrips,imult,opt)-CofG); 
+  return CofG; 
+}
+
+
 float TrClusterR::GetEta(int opt) {
   if (GetNelem()<1) return -1;
   int cstrip = GetSeedIndex(opt);
@@ -341,7 +364,7 @@ float TrClusterR::GetEta(int opt) {
   }
   else {                                           
     return GetSignal(cstrip  ,opt)/(GetSignal(cstrip-1,opt) + GetSignal(cstrip,opt));
-  }
+  } 
   return -1.;
 }
 

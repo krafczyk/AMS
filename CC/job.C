@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.789 2011/03/28 16:47:09 sdifalco Exp $
+// $Id: job.C,v 1.790 2011/03/29 15:48:45 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1956,7 +1956,7 @@ else{
   TrRecon::SetParFromDataCards();
   TrRecon::UsingTrCalDB(TrCalDB::Head);
 
-
+  if(isMCData()) TRCLFFKEY.UseSensorAlign=0;
   if (TrRecon::TasRecon) {
     TrTasDB *tasdb = new TrTasDB;
     tasdb->Init(0);
@@ -3074,10 +3074,16 @@ bool NeededByDefault=isSimulation();
        cout << "AMSJob::timeinitjob-I-TrackerAlign is NOT added to TimeID"
             << endl;
      else{
-       if(TkDBc::Head->GetSetup()==3)
-	 TID.add (new AMSTimeID(AMSID("TrackerAlignPM",isRealData()),begin,end,
-                             TkDBc::GetLinearSize(),TkDBc::linear,
-				server,need,SLin2Align));
+       if(TkDBc::Head->GetSetup()==3){
+	 if(TKGEOMFFKEY.alignver==1)
+	   TID.add (new AMSTimeID(AMSID("TrackerAlignPM",isRealData()),begin,end,
+				  TkDBc::GetLinearSize(),TkDBc::linear,
+				  server,need,SLin2Align));
+	 else 
+	   TID.add (new AMSTimeID(AMSID("TrackerAlignPM2",isRealData()),begin,end,
+				  TkDBc::GetLinearSize(),TkDBc::linear,
+				  server,need,SLin2Align));
+       }
        else
 	 TID.add (new AMSTimeID(AMSID("TrackerAlign",isRealData()),begin,end,
 				TkDBc::GetLinearSize(),TkDBc::linear,

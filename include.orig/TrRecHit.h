@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.30 2011/03/22 17:46:24 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.31 2011/03/29 15:48:45 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -55,7 +55,7 @@ protected:
   int8 _imult;
   /// Dummy X-strip position for YONLY hit
   float _dummyX;
-  /// Hit global coordinate (multiplicity vector) 
+  /// Hit global coordinate  
   AMSPoint _coord;
   
   /// X Cluster index
@@ -136,9 +136,10 @@ public:
   /// Returns the computed global coordinate (if resolved)
   const AMSPoint GetCoord() { return _coord; }
   /// Get the computed global coordinate by multiplicity index
-  const AMSPoint GetCoord(int imult){
+  const AMSPoint GetCoord(int imult, int force=0){
     if(imult<0||imult>=_mult) return AMSPoint(0,0,0);
-    else if(imult==_imult)    return _coord;
+    if(force)                 return GetGlobalCoordinate(imult);
+    if(imult==_imult)         return _coord;
     else                      return GetGlobalCoordinate(imult);
   } 
   /// Returns the errors on the computed global coordinate (if resolved)
@@ -153,12 +154,16 @@ public:
 			      int nstripsx = TrClusterR::DefaultUsedStrips,
 			      int nstripsy = TrClusterR::DefaultUsedStrips) { 
     return AMSPoint(GetXloc(imult, nstripsx), GetYloc(nstripsy),0.); }
-  /// Get global coordinate (AMS reference system) 
-  /// default: nominal position, A: with alignement correction
-  AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
-			       int nstripsx = TrClusterR::DefaultUsedStrips,
-			       int nstripsy = TrClusterR::DefaultUsedStrips);
-	
+
+  /// Get global coordinate with ALIGNMENT (AMS reference system) 
+  AMSPoint GetGlobalCoordinateA(int imult = 0){
+    return GetGlobalCoordinate( imult, "A");
+  }
+  /// Get global coordinate without  ALIGNMENT (AMS reference system) 
+  AMSPoint GetGlobalCoordinateN(int imult = 0){
+    return GetGlobalCoordinate( imult, "");
+  }
+
 	
   /**@}*/		
   /**@name Signals */			
@@ -186,6 +191,13 @@ public:
   /**@}*/		
   /**@name Reconstruction & Special methods */			
   /**@{*/	
+	
+
+  /// Get global coordinate (AMS reference system) 
+  /// default: nominal position, A: with alignement correction
+  AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
+			       int nstripsx = TrClusterR::DefaultUsedStrips,
+			       int nstripsy = TrClusterR::DefaultUsedStrips);
 	
 	
   /// Set the resolved multiplicity index (-1 if not resolved)

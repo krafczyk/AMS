@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.41 2011/03/22 17:46:24 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.42 2011/03/29 15:48:45 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/03/22 17:46:24 $
+///$Date: 2011/03/29 15:48:45 $
 ///
-///$Revision: 1.41 $
+///$Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +110,8 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 //       Silicon Sensors
 //----------------------------------------------------------------------------------
 
-    const number  ssize_active[2]={3.9728,7.062};
+//    const number  ssize_active[2]={3.9728,7.062};
+    const number  ssize_active[2]={383*0.0104,641.5*0.0110};
     memcpy(_ssize_active,ssize_active,sizeof(ssize_active));
 
 
@@ -264,11 +265,18 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       {   0, 2.070,   0,    0, -2.070,   0,      0,    0,    0,     0, -2.070,      0,     0, +2.070,  0};
     memcpy(_ladder_offsetX_outer,ladder_offsetX_outer,maxlad*sizeof(ladder_offsetX_outer[0]));
 
+
     // Layer 9 Y positions
-    float lay9Ypos[2][8]={
-      {22.3968, 15.1251, 7.8212, 0.5181, -7.4913, -14.7893, -22.0822, -29.3856},
-      {29.4498, 22.1581, 14.8487, 7.5590, -0.4561, -7.7611, -15.0452, -22.3457}
+    float  lay9Ypos[2][8]={
+      { +22.32555, +15.05385,  +7.74995,  +0.44685,  -7.56255, -14.86055, -22.15345, -29.45685},
+      { +29.52105, +22.22935, +14.91995,  +7.63025,  -0.38485,  -7.68985, -14.97395, -22.27445}
     };
+
+
+    // float lay9Ypos[2][8]={
+    //   {22.3968, 15.1251, 7.8212, 0.5181, -7.4913, -14.7893, -22.0822, -29.3856},
+    //   {29.4498, 22.1581, 14.8487, 7.5590, -0.4561, -7.7611, -15.0452, -22.3457}
+    // };
 
     memcpy(_lay9Ypos,lay9Ypos,8*2*sizeof(lay9Ypos[0][0]));
 
@@ -677,7 +685,10 @@ number TkDBc::GetSlotY(int layer, int slot,int side){
   if(abs(slot)>4) addspaces=ladder_Ygap-central_gap/2.;
   else            addspaces=central_gap/2.;
   if(layer==9){
-    return _lay9Ypos[side][slot-1];
+    if(side==0)
+      return _lay9Ypos[side][slot-1]+(_ssize_inactive[1]-_ssize_active[1])/2;
+    else
+      return _lay9Ypos[side][slot-1]-(_ssize_inactive[1]-_ssize_active[1])/2;
 //     if(side==0) 
 //       return  (distXF - ladder_Ygap/2 + ladpitch*(3-slot) + addspaces)
 // 	     +0.3;  // SH: coarse alignment with CR data (Aug/2010)

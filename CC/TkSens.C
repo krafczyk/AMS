@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.12 2010/09/17 07:54:26 oliva Exp $ 
+/// $Id: TkSens.C,v 1.13 2011/03/29 15:48:45 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2010/09/17 07:54:26 $
+///$Date: 2011/03/29 15:48:45 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -19,6 +19,7 @@
 
 #include "TkSens.h"
 #include "TkCoo.h"
+#include "tkdcards.h"
 
 
 //--------------------------------------------------
@@ -242,8 +243,13 @@ int TkSens::GetSens(){
 
   AMSPoint gcoo = GlobalCoo;
 
+
   //Sensor alignment correction
-  if (0 <= nsens && nsens < trconst::maxsen) {
+  if(
+     (!IsMC())  // Sensor disalignement not in simulation
+     && (TRCLFFKEY.UseSensorAlign==1)  //explicity enabled in datacard
+     && (0 <= nsens && nsens < trconst::maxsen) // within the sensor range
+     ) {
     gcoo[0] += lad->_sensx[nsens];
     gcoo[1] += lad->_sensy[nsens];
 
@@ -260,6 +266,10 @@ int TkSens::GetSens(){
 }
 
 //--------------------------------------------------
+int  TkSens::GetLayerJ(){
+  return TkDBc::Head->GetJFromLayer(GetLayer());
+}
+
 int TkSens::GetLayer() {
 
 ///\param z  Z coordinate of global position (cm)
@@ -376,26 +386,38 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
 
 //--------------------------------------------------
 int TkSens::GetStripFromLocalCooS(number Y){
-  if( Y<0 ||Y > TkDBc::Head->_ssize_active[1])
+  if( Y<0. ||Y > TkDBc::Head->_ssize_active[1])
     return -1;
-
-  else if(Y >= 1.5*TkDBc::Head->_PitchS && 
-     Y < TkDBc::Head->_ssize_active[1] - 2.5*TkDBc::Head->_PitchS)
-    return 1+(int)round((Y-  2*TkDBc::Head->_PitchS)/TkDBc::Head->_PitchS);
   
-  else if( Y >= 0 && Y < 1.5*TkDBc::Head->_PitchS)
+  else if(Y >= 2.5*TkDBc::Head->_PitchS && 
+     Y < TkDBc::Head->_ssize_active[1] - 3.*TkDBc::Head->_PitchS)
+
+    return (int)round((Y-TkDBc::Head->_PitchS)/TkDBc::Head->_PitchS);
+  
+  else if( Y >= 0. && Y < 1.*TkDBc::Head->_PitchS)
     return 0;
+  else if( Y >= 1. && Y < 2.5*TkDBc::Head->_PitchS)
+    return 1;
+  else if( Y >= TkDBc::Head->_ssize_active[1] - 3.*TkDBc::Head->_PitchS
+	   && Y <TkDBc::Head->_ssize_active[1] - 1.5*TkDBc::Head->_PitchS )
+    return 638;
   else 
     return 639;
 }
 
 //--------------------------------------------------
 int TkSens::GetStripFromLocalCooK5(number X,int Sens){
-
+  int chan=-1;
   if( X<0 ||X > TkDBc::Head->_ssize_active[0])
     return -1;
-  
-  int chan=(int)round(X/TkDBc::Head->_PitchK5);
+  else if(X>=0 && X<  189.5*TkDBc::Head->_PitchK5)
+    chan=(int)round(X/TkDBc::Head->_PitchK5);
+  else if( X>=189.5*TkDBc::Head->_PitchK5 &&
+	   X< 191*TkDBc::Head->_PitchK5)
+    chan=190;
+  else
+    chan=191;
+    
   if(Sens%2==1)
     chan+=192;
   return chan;

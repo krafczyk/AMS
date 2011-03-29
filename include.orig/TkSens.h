@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.4 2010/05/15 10:12:47 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.5 2011/03/29 15:48:45 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2010/05/15 10:12:47 $
+///$Date: 2011/03/29 15:48:45 $
 ///
-/// $Revision: 1.4 $
+/// $Revision: 1.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -70,6 +70,8 @@ class TkSens {
 
   //! checks if the point is on a layer
   int  GetLayer();
+  //! checks if the point is on a layer J scheme
+  int  GetLayerJ();
   //! checks if it is inside the ladder pointed by lad
   bool IsInsideLadder(int tkid);
   //! checks if it is inside the ladder pointed by lad

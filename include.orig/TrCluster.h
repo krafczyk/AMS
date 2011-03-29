@@ -40,9 +40,9 @@
 \date  2008/06/19 AO  Using TrCalDB instead of data members 
 \date  2008/12/11 AO  Some method update
 
- $Date: 2011/03/22 17:46:24 $
+ $Date: 2011/03/29 15:48:45 $
 
- $Revision: 1.21 $
+ $Revision: 1.22 $
 
 */
 
@@ -241,7 +241,8 @@ class TrClusterR :public TrElem{
   /// Get the Center of Gravity with the n highest consecutive strips (Experts only)
   float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
   /// Get local coordinate with center of gravity on nstrips (Experts only)
-  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
+  float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt);
+  float GetXCofG_old(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); 
   }  
   /// Get Eta (center of gravity with the two higher strips) (Experts only)

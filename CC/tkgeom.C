@@ -224,7 +224,7 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   par[2] = TkDBc::Head->_silicon_z/2;
 
   double hlen = TkCoo::GetLadderLength(tkid)/2
-        -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
+    -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
   AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
@@ -271,6 +271,8 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
     coo[0] = -TkCoo::GetLadderLength(tkid)/2+ TkDBc::Head->_ssize_inactive[0]/2.+ sensor * TkDBc::Head->_SensorPitchK;
     coo[1] = coo[2] = 0;
 
+
+
     number nrm[3][3];
     VZERO(nrm, 9*sizeof(nrm[0][0])/4);
     nrm[0][0] = nrm[1][1] = nrm[2][2] = 1;
@@ -310,7 +312,7 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
     par[2] = TkDBc::Head->_zelec[2]/2;
   }
   double hlen = TkCoo::GetLadderLength(tkid)/2
-    -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
+    -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
   AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
@@ -364,7 +366,7 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
   
 
   double hlen = TkCoo::GetLadderLength(tkid)/2
-    -TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0];
+    -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
   
   AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();

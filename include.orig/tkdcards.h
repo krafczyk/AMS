@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.37 2011/03/09 09:00:21 oliva Exp $
+// $Id: tkdcards.h,v 1.38 2011/03/29 15:48:45 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -13,7 +13,7 @@
 #include "cfortran.h"
 
 //########################################################
-// WARNING do not touch the order od the variables unless 
+// WARNING do not touch the order of the variables unless 
 //         you understand all the consequences
 //         Never delete or move the first data meber of 
 //         each class (ask PZ)
@@ -35,9 +35,11 @@ public:
   integer fname[400];
   ///[406] Disalignment file name (PGTRACK)
   integer disfname[400];
+  ///[806] Alignment version; 1 :preflight, >1 flight
+  integer alignver;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,1);
+  ClassDef(TKGEOMFFKEY_DEF,2);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
@@ -302,9 +304,11 @@ public:
   int TasLDDR;
   //! I 61 mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
   int ExtMatch;
+  //! I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
+  int UseSensorAlign;
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,1);
+  ClassDef(TRCLFFKEY_DEF,2);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)

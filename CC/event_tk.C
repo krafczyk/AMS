@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.40 2011/03/09 09:00:18 oliva Exp $
+//  $Id: event_tk.C,v 1.41 2011/03/29 15:48:45 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -110,23 +110,22 @@ void AMSEvent::_retkevent(integer refit){
 	 nhit<TrRecon::RecPar.MaxNtrHit  // Not to many Hits
 	 &&	 tflg>=0&&tflg<9            // TOF trigger pattern at least 1U and 1L
 	 )
-      {
-	AMSgObj::BookTimer.start("TrTrack");
-	TrRecon::RecPar.NbuildTrack++;
-	rec.BuildTrTracks();
-	rec.MatchTRDandExtend();
-	AMSgObj::BookTimer.stop("TrTrack");
-
+	{
+	  AMSgObj::BookTimer.start("TrTrack");
+	  TrRecon::RecPar.NbuildTrack++;
+	  rec.BuildTrTracks();
+	  AMSgObj::BookTimer.stop("TrTrack");
+	  
 #pragma omp critical (trcpulim)
-	if (rec.CpuTimeUp() || TrRecon::SigTERM) {
-	  trstat |= 16;
-	  cerr << "TrRecon::BuildTrTracks: "
-	       << ((TrRecon::SigTERM) ? "SIGTERM detected: "
-		                      : "Cpulimit Exceeded: ") << dec
-	       << rec.GetCpuTime() << " at Event: " << getEvent() << endl;
-	}
-      } // Hits --> Tracks
-
+	  if (rec.CpuTimeUp() || TrRecon::SigTERM) {
+	    trstat |= 16;
+	    cerr << "TrRecon::BuildTrTracks: "
+		 << ((TrRecon::SigTERM) ? "SIGTERM detected: "
+		     : "Cpulimit Exceeded: ") << dec
+		 << rec.GetCpuTime() << " at Event: " << getEvent() << endl;
+	  }
+	} // Hits --> Tracks
+      
       // Purge "ghost" hits and assign hit index to tracks
       rec.PurgeGhostHits();
 
