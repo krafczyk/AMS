@@ -1,5 +1,5 @@
 
-//  $Id: root.h,v 1.323 2011/03/30 08:43:23 mdelgado Exp $
+//  $Id: root.h,v 1.324 2011/03/30 13:23:18 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -520,7 +520,7 @@ public:
   float EnergyC; ///< shower energy (gev)
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
-  float  S13Rpi[2];
+  float  S13Rpi[2];  ///< S1/S3 Ratio for X and Y view
   float ErEnergyC;   ///< energy error (gev)
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)
   float SideLeak;    ///< rel side leak
@@ -529,8 +529,8 @@ public:
   float AttLeak;     ///< rel att length correction
   float NLinLeak;   ///<  rel non-lin correction
   float S13Leak;   ///<  s1/s3 ratio correction;
-  float S13LeakXPI;
-  float S13LeakYPI;
+  float S13LeakXPI;  ///< s1/s3 ratio correction for X view
+  float S13LeakYPI;  ///< s1/s3 ratio correction for Y view
   float OrpLeak;   ///<  fraction of shower energy outside core.
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
@@ -542,6 +542,13 @@ public:
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
+ /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
+  /// lower values correspond to hadrons, higher to electromagnetic particles
+  /// Trained on August 2010 test beam data 
+  /// WARNING: by default this function is dummy, to have it you must compile 
+  /// with the ECALBDT defined but this take about 12 minutes with g++ and 
+  /// more than 1 hour with icc)
+  float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
   int NEcal2DCluster()const {return fEcal2DCluster.size();}
@@ -567,7 +574,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,4)       //EcalShowerR
+ClassDef(EcalShowerR,5)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
