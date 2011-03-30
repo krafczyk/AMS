@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.633 2011/03/28 14:46:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.634 2011/03/30 14:50:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12246,7 +12246,7 @@ sub ht_init{
    my $dbtime = $self->lastDBUpdate();
    my $oracle_version=$self->OracleVersion();
    $time= EpochToDDMMYYHHMMSS($dbtime);
-   print "<td align=right><font size=\"-1\"><b>Last $oracle_version Update : $time </b></td></tr>\n";
+   print "<td align=right><font size=\"-1\"><b> $oracle_version Last Update : $time </b></td></tr>\n";
    print "</TR></TABLE>\n";
    print "<p></p>\n";
 
@@ -12337,26 +12337,20 @@ sub OracleVersion {
  }
 
 sub lastDBUpdate {
+    my $timenow=time();
      my $self = shift;
      my $lastupd =0;
      my $sql;
      my $ret;
-      $sql="SELECT MAX(Cites.timestamp) FROM Cites";
+    my $clause=" where timestamp<$timenow";
+      $sql="SELECT MAX(Cites.timestamp) FROM Cites".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
           $lastupd=$ret->[0][0];
       }
     }
-      $sql="SELECT MAX(Mails.timestamp) FROM Mails";
-      $ret=$self->{sqlserver}->Query($sql);
-     if(defined $ret->[0][0]){
-        if($ret->[0][0]>$lastupd){
-          $lastupd=$ret->[0][0];
-      }
-    }
-
-      $sql="SELECT MAX(Servers.lastupdate) FROM Servers";
+      $sql="SELECT MAX(Mails.timestamp) FROM Mails".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -12364,7 +12358,8 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Jobs.time) FROM Jobs";
+      $clause=" where lastupdate<$timenow";
+      $sql="SELECT MAX(Servers.lastupdate) FROM Servers ".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -12372,7 +12367,8 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Runs.submit) FROM Runs";
+    my $clause=" where time<$timenow";
+      $sql="SELECT MAX(Jobs.time) FROM Jobs".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -12380,7 +12376,17 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples";
+    my $clause=" where submit<$timenow";
+      $sql="SELECT MAX(Runs.submit) FROM Runs".$clause;
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+    my $clause=" where timestamp<$timenow";
+      $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){

@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.82 2011/03/10 16:14:54 mmilling Exp $
+//  $Id: linkdef.h,v 1.83 2011/03/30 14:50:54 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -111,7 +111,6 @@
 #pragma link C++ class AMSEventR+;
 #pragma link C++ class AMSEventR::Service+;
 #pragma link C++ class AMSSetupR+;
-#pragma link C++ class AMSSetupR::BValues+;
 #pragma link C++  class AMSSetupR::TDVR+;
 
 #ifdef __AMSVMC__

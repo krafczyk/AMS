@@ -1,4 +1,4 @@
-//  $Id: getiorc.pc,v 1.2 2004/01/30 09:13:31 alexei Exp $
+//  $Id: getiorc.pc,v 1.3 2011/03/30 14:50:50 choutko Exp $
 //
 // Subroutines to get IORs from AMS ORACLE database
 //
@@ -156,8 +156,9 @@ int oracle_connect()
   strcpy(db,uline);
   strcat(uline,"ro");
   strcat(uline,"/");
+  strcat(uline,"eto_");
   strcat(uline,n);
-  strcat(uline,"MC02");
+  strcat(uline,"ro");
   strcat(uline,"@");
   strcat(uline,db);
   strcat(uline,"db");

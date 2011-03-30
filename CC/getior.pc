@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.13 2011/03/28 14:46:13 choutko Exp $
+//  $Id: getior.pc,v 1.14 2011/03/30 14:50:50 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -152,29 +152,30 @@ else
 int oracle_connect()
 {
   char line[256];
-  char n[4];
-  char db[7];
+  char n[255];
+  char db[255];
 
 
 //  EXEC SQL WHENEVER SQLERROR GOTO connect_error;
 //
   strcpy(uline,"ams");
-  strcpy(n,uline);
-  strcpy(db,uline);
+  strcpy(n,"ams");
+  strcpy(db,"pdb_");
+  strcat(db,uline);
   strcat(uline,"ro");
   strcat(uline,"/");
+  strcat(uline,"eto_");
   strcat(uline,n);
-  strcat(uline,"MC02");
+  strcat(uline,"ro");
   strcat(uline,"@");
   strcat(uline,db);
-  strcat(uline,"db");
 //
 //
 
 
   EXEC SQL CONNECT :uline;
   if (verbose) {
-   strcpy(line,"connected to amsdb");
+   strcpy(line,uline);
    Fmessage("oracle_connect ", line,"I");
  }
    return 0;
@@ -205,13 +206,9 @@ int suppressBlanks(char* string)
 int main(int argc, char* argv[]) 
 {
   unsetenv("NLS_LANG");
-  char tns[255];
-  char *ams=getenv("AMSDataDir");
-  if(ams){
-    strcpy(tns,ams);
-    strcat(tns,"/prod");
-    setenv("TNS_ADMIN",tns,0);
-  }   
+//  char tns[]="/afs/cern.ch/ams/Offline/oracle/admin";
+  char tns[]="/afs/cern.ch/project/oracle/admin";
+  setenv("TNS_ADMIN",tns,0);
   int datamc=1;
   bool brun=false;
    unsigned int run=0;

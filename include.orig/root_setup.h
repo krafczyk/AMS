@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.15 2011/03/22 17:01:25 choutko Exp $
+//  $Id: root_setup.h,v 1.16 2011/03/30 14:50:54 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -156,16 +156,6 @@ class LVL1Setup {
 };
 
 
-class BValues{
-public:
-float B[4][3];
-float T[4];
-ClassDef(BValues,1)
-}; 
-class TTCS{
-public:
-uinteger temp;
-};
 
 class GPSTime{
 public:
@@ -207,14 +197,11 @@ public:
 int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
- typedef map <unsigned int,BValues> BValues_m;
- typedef map <unsigned int,BValues>::iterator BValues_i;
  typedef map <unsigned int,GPSTime> GPSTime_m;
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
-  BValues_m   fBValues; ///< Magnetic Field  from CCEB
-  GPSTime_m fGPSTime;    ///< GPS Time
+    GPSTime_m fGPSTime;    ///< GPS Time
   ISSData_m fISSData;    ///< ISS Aux Data
 
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
@@ -249,7 +236,7 @@ static    AMSSetupR * gethead(){return _Head;}
  void Reset();
  AMSSetupR();
  void Init(TTree *tree);
-ClassDef(AMSSetupR,5)       //AMSSetupR
+ClassDef(AMSSetupR,6)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

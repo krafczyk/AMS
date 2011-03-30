@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.156 2011/03/28 14:46:13 choutko Exp $
+//  $Id: producer.C,v 1.157 2011/03/30 14:50:50 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1949,7 +1949,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
  char t1[1024];
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
- setenv("TNS_ADMIN",t1,1);
+ setenv("TNS_ADMIN",t1,0);
  for (int tries=0;tries<maxtries;tries++){
   sleep(delay);
   delay*=8;

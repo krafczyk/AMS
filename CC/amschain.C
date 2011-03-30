@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.31 2011/02/18 20:36:13 choutko Exp $
+//  $Id: amschain.C,v 1.32 2011/03/30 14:50:50 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -194,9 +194,9 @@ char m32[5]="-m32";
 char elf[11]="-melf_i386";
 #endif
 #ifdef _PGTRACK_
-  sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+  sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #else
-  sprintf(cmd,"$CC %s  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+  sprintf(cmd,"$CC %s  -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #endif
  cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
 int $i=system(cmd);

@@ -40,7 +40,6 @@ fHeader.Run=head->Run();
 if(fHeader.LEvent<head->Event()){
  fHeader.LEvent=head->Event();
  fHeader.LEventTime=head->UTime();
- //fBValues.insert(make_pair(head->UTime(),BValues()));
 }
 if(fHeader.FEvent==0){
  fHeader.FEvent=head->Event();
@@ -60,7 +59,6 @@ return true;
 }
 void AMSSetupR::Reset(){
 fGPSTime.clear();
-fBValues.clear();
 fISSData.clear();
 fScalers.clear();
 fLVL1Setup.clear();
@@ -77,7 +75,6 @@ Reset();
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
-  ClassImp(AMSSetupR::BValues)
   ClassImp(AMSSetupR::SlowControlR)
   ClassImp(AMSSetupR::SlowControlR::Element)
   //    ClassImp(AMSSetupR::SlowControlR)

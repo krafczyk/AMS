@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.168 2011/03/22 21:18:27 choutko Exp $
+//  $Id: server.C,v 1.169 2011/03/30 14:50:51 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1103,7 +1103,7 @@ if(min_bad && strlen(min_bad)){
 
 
 
-if(bad.size()>=minr){
+if(bad.size()>=minr*(1+bad_checked.size())){
 char mes[4096]="";
 bad_checked.clear();
 for(RLI li=_rl.begin();li!=_rl.end();++li){
