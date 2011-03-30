@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.14 2009/02/17 14:26:06 choutko Exp $
+//  $Id: apool.h,v 1.15 2011/03/30 08:27:55 zweng Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -114,6 +114,7 @@ private:
   void *_free;
   integer _lc;  // current length
   integer * _LRS;
+  integer * _LRS0;
   uinteger _size;  // size in bytes
   integer _Count;
   integer _Nblocks;
@@ -135,6 +136,8 @@ public:
   AMSaPool(integer blsize=524288);
   ~AMSaPool(){erase(0);};
   void erase(integer);
+  void ReleaseLastResort0();
+  void SetLastResort0(integer i);
   void ReleaseLastResort();
   void SetLastResort(integer i);
   void Release(integer r){ _Release=r;}
@@ -145,6 +148,10 @@ public:
 };
 
 
+
+#ifdef __G4AMS__
+extern AMSaPool OPool;
+#endif
 
 
 #ifndef __UPOOL__
