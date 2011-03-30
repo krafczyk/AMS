@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.28 2011/03/30 13:36:19 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.29 2011/03/30 13:50:41 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -40,7 +40,7 @@ my %sfields=(
      start=>undef,
      dbhandler=>undef,
      dbdriver=>'Oracle:',
-     dbfile=>'amsdb',
+     dbfile=>'pdb_ams',
      dbinit=>0,
      lastupdate=>0,
      repet=>3600,
