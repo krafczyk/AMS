@@ -35,7 +35,7 @@ class DBSQLServer:
     def set_oracle_env(self):
         if(not (os.environ.has_key('ORACLE_HOME'))):
             os.putenv('ORACLE_HOME','/afs/cern.ch/project/oracle/@sys/prod') 
-            os.putenv('TNS_ADMIN','/afs/cern.ch/exp/ams/Offline/oracle/admin')
+            os.putenv('TNS_ADMIN','/afs/cern.ch/project/oracle/admin')
     def Query(self,string):
         self.dbcursor.execute(string)
         return self.dbcursor.fetchall()

@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.26 2011/01/06 21:06:20 ams Exp $
+# $Id: NetMonitor.pm,v 1.27 2011/03/30 12:17:52 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -520,8 +520,8 @@ END_OF_MESSAGE2
 
 sub set_oracle_env {
     $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
-#    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
- $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
+    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+# $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
 #$ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
     1;

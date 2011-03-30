@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.85 2010/11/06 16:08:00 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.86 2011/03/30 12:18:11 dmitrif Exp $
 
 #
 #
@@ -981,8 +981,8 @@ sub Commit{
 # to be able to connect to Oracle
 sub set_oracle_env {
     $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
-#    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
- $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
+    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+# $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
 #$ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
     1;
