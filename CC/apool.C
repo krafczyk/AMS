@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.19 2011/03/28 14:46:13 choutko Exp $
+//  $Id: apool.C,v 1.20 2011/03/30 08:29:06 zweng Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -9,6 +9,11 @@
 AMSaPool APool(524288);
 #ifndef __UPOOL__
 AMSaPool UPool(524288);
+#endif
+
+
+#ifdef __G4AMS__
+AMSaPool OPool(524288);
 #endif
 
 
@@ -169,29 +174,41 @@ void AMSaPool::erase(integer tol){
   if(_MinNodes>poolMap.getnum())_MinNodes=poolMap.getnum();
   if(_MaxNodes<poolMap.getnum())_MaxNodes=poolMap.getnum();
 #endif
-  //     cout <<"  nblocks before "<<_Nblocks<<endl;
+
+
+  cerr<<" AMSaPool::erase(integer tol):   "<<endl;
+
+  cerr <<"  nblocks before "<<_Nblocks<<endl;
   poolMap.unmap();
   _Totalbl+=_Nreq;
   if(_Minbl>_Nreq)_Minbl=_Nreq;
   if(_Maxbl<_Nreq)_Maxbl=_Nreq;
+  cerr<<" AMSaPool::eraseTest 2  "<<endl;
   _Nreq=0;
   if(tol==0)_Count=0;
   if(_Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
   if(_head){
+    cerr<<" AMSaPool::eraseTest 3  "<<endl;
     tol=(tol+_size/2)/_size;
     //       cout <<" tol "<<tol<<endl;
     while(_head->_prev)_head=_head->_prev;       
     dlink *gl=_head;
     for(int i=0;i<tol;i++){
       if(_head){
+  cerr<<" AMSaPool::eraseTest 4  "<<endl;
+
 	//            cout <<" nu head "<<i<<endl;
 	_head=_head->_next;
       }
     }              
     if(_head==gl){
+  cerr<<" AMSaPool::eraseTest 5  "<<endl;
       _head->_erase(_Nblocks);
+
+  cerr<<" AMSaPool::eraseTest 5  A"<<endl;
       //         cout <<" erase called "<<endl;
       _head=0;
+  cerr<<" AMSaPool::eraseTest 5  B"<<endl;
       _free=0;
 #ifdef __AMSDEBUG__
       cout << "Apool Statistics: Min request # "<< _Minbl<<" Max "<<_Maxbl<<
@@ -200,16 +217,24 @@ void AMSaPool::erase(integer tol){
 	" Total "<<_TotalNodes<<endl; 
                
 #endif         
+  cerr<<" AMSaPool::eraseTest C  "<<endl;
     }
     else{
+  cerr<<" AMSaPool::eraseTest 6  "<<endl;
       //        if(_head)cout <<"erase called "<<endl;
       if(_head)_head->_erase(_Nblocks);
       _head=gl;
       _free=(void*)(_head->_address);
     }
+  cerr<<" AMSaPool::eraseTest 5 D "<<endl;
+
   }
+  cerr<<" AMSaPool::eraseTest 5 E "<<endl;
   _lc=0;
   //      cout << " nblovks after " <<_Nblocks<<endl;
+
+  cerr<<" AMSaPool::eraseTest 7  "<<endl;
+
 }
 
 void AMSaPool::udelete(void *p){
@@ -239,7 +264,17 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
 #endif
   //   poolNode.setid(0);
   //   poolMap.map(poolNode);
-  SetLastResort(1000000);
+
+
+
+#ifdef __G4AMS__
+   SetLastResort(100000*30);
+#else 
+  SetLastResort(100000);
+#endif
+
+
+
 }
 
 
@@ -282,10 +317,20 @@ ostream & AMSNodePool::print(ostream &o)const{
 
 void AMSaPool::dlink::_erase(integer &nbl ){
   nbl--;
-  //  cout <<" erase ... "<<nbl<<endl;
-  while(_next)_next->_erase(nbl);
+    cout <<" erase ... "<<nbl<<endl;
+  cerr <<" erase ... "<<nbl<<endl;
+  while(_next){
+    cout <<" next  erase ... "<<nbl<<endl;
+    _next->_erase(nbl);
+
+    cout <<" Finish next  erase ... "<<nbl<<endl;
+
+  }
+  cerr <<" before if(_prev)_prev->_next=0;... "<<nbl<<endl;
   if(_prev)_prev->_next=0;
+  cerr <<" after if(_prev)_prev->_next=0;... "<<nbl<<endl;
   delete this;
+  cerr <<" after delete this. "<<nbl<<endl;
 }
 
 AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
