@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.115 2011/03/28 14:46:13 choutko Exp $
+//  $Id: gbatch.C,v 1.116 2011/03/30 08:52:06 zweng Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -26,7 +26,6 @@
 extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
 #endif
 
-//int *Memory_reserved = new int[1000*320*1];
 
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
@@ -115,7 +114,7 @@ catch (amsglobalerror & a){
 }
 catch (std::bad_alloc aba){
 
-  //delete Memory_reserved;
+
 #ifdef __CORBA__
   AMSClientError ab("NoMemoryAvailable",DPS::Client::CInAbort);
  if(AMSProducer::gethead()){
@@ -123,6 +122,13 @@ catch (std::bad_alloc aba){
   AMSProducer::gethead()->Error()=ab;
  }
 #endif
+
+  #ifdef __G4AMS__
+   cerr<<"Preparing for OPool Released"<<endl;
+   OPool.ReleaseLastResort();
+   cerr<<"OPool Released"<<endl;
+  #endif
+
     cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
     if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
     UGLAST("catch-F-NoMemoryAvailable ");
@@ -180,23 +186,23 @@ void (handler)(int sig){
       GCFLAG.IEOTRI=1;
       AMSStatus::setmode(0);
 
-      if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
-//  delete Memory_reserved;
+#ifdef __G4AMS__
+	cerr<<"Preparing for OPool Released"<<endl;
+	OPool.ReleaseLastResort();
+	cerr<<"OPool Released"<<endl;
+	
 #ifdef __CORBA__
-  AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
- if(AMSProducer::gethead()){
-   cerr<<"setting errror"<< endl;
-   AMSProducer::gethead()->Error()=ab;
- }
+	AMSClientError ab("Job Cpu limit exceeded",DPS::Client::CInAbort);
+	if(AMSProducer::gethead()){
+	  cerr<<"setting errror"<< endl;
+	  AMSProducer::gethead()->Error()=ab;
+	}
 #endif
-  cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
-  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
-  gams::UGLAST("SIGXCPU");
-      }
-
-
+	cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
+	if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+	gams::UGLAST("SIGXCPU");
+#endif
     }
-
     break;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
@@ -210,19 +216,22 @@ void (handler)(int sig){
   TrRecon::SigTERM=1;
 #endif
 
-if(AMSJob::gethead()->isSimulation() && MISCFFKEY.G4On==1){
-//  delete Memory_reserved;
+#ifdef __G4AMS__
+  cerr<<"Preparing for OPool Released"<<endl;
+  OPool.ReleaseLastResort();
+  cerr<<"OPool Released"<<endl;
+  
 #ifdef __CORBA__
   AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
- if(AMSProducer::gethead()){
-   cerr<<"setting errror"<< endl;
-   AMSProducer::gethead()->Error()=ab;
- }
+  if(AMSProducer::gethead()){
+    cerr<<"setting errror"<< endl;
+    AMSProducer::gethead()->Error()=ab;
+  }
 #endif
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
   if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
-  }
+#endif
 
 
  }
