@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.61 2010/12/04 18:24:58 zweng Exp $
+//  $Id: gvolume.C,v 1.62 2011/03/30 15:02:38 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -20,6 +20,7 @@
 #include "G4IntersectionSolid.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
+#include "G4EllipticalTube.hh"
 #include "G4Cons.hh"
 #include "G4Para.hh"
 #include "G4Sphere.hh"
@@ -290,6 +291,12 @@ integer AMSgvolume::_Norp=0;
      }
      else if (shape =="TUBE"){
        psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,0*degree,360.*degree);
+       for(int par=0;par<_npar;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
+     }
+     else if (shape =="ELTU"){
+       psolid=new G4EllipticalTube(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm);
        for(int par=0;par<_npar;par++){
          if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
        }
