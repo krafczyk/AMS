@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.60 2011/03/30 13:19:17 oliva Exp $
+//  $Id: TrTrack.h,v 1.61 2011/03/30 17:17:14 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/03/30 13:19:17 $
+///$Date: 2011/03/30 17:17:14 $
 ///
-///$Revision: 1.60 $
+///$Revision: 1.61 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -519,9 +519,9 @@ public:
 
 
 
-  /// Interpolation onto Tracker layer with alignment correction 
+  /// Interpolation onto Tracker layer J-Scheme  with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  ilyJ Tracker layer index (Layer_number Jscheme, [1-9])
    * \param[out] pnt  Track position  at the layer
    * \param[out] dif  Track direction at the layer
    * \param[in]  id   Fitting method ID
@@ -535,19 +535,19 @@ public:
 
   /// Interpolation onto Tracker layer with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  ilyJ  Tracker layer index (Layer_number Jscheme, [1-9])
    * \param[in]  id   Fitting method ID
    * \return          Track position  at the layer
    */
   AMSPoint InterpolateLayerJ(int ilyJ, int id = 0) const{
     int ily=TkDBc::Head->GetLayerFromJ(ilyJ)-1;
-    return InterpolateLayerJ(ily,id);
+    return InterpolateLayer(ily,id);
   }
 
 
   /// DEPRECATED  Interpolation onto Tracker layer with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  ily  Tracker layer index -1 ; [0-8] (Layer_number Old Scheme - 1) 
    * \param[out] pnt  Track position  at the layer
    * \param[out] dif  Track direction at the layer
    * \param[in]  id   Fitting method ID
@@ -558,7 +558,7 @@ public:
 
   /// DEPRECATED Interpolation onto Tracker layer with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index (Layer_number-1, [0-7])
+   * \param[in]  ily  Tracker layer index -1 ; [0-8] (Layer_number Old Scheme - 1) 
    * \param[in]  id   Fitting method ID
    * \return          Track position  at the layer
    */
