@@ -1,5 +1,5 @@
 
-//  $Id: root.h,v 1.322 2011/03/29 16:16:11 sdifalco Exp $
+//  $Id: root.h,v 1.323 2011/03/30 08:43:23 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1289,7 +1289,7 @@ public:
   /// \return Beta
   float getBeta()          {return BetaRefit*betaCorrection();}
   /// Total number of photoelectrons in the ring. 
-  int   getPhotoElectrons(){return (int) NpCol;}
+  float   getPhotoElectrons(){return NpCol;}
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
   float getExpectedPhotoelectrons() {return NpExp;}
   /// Continuous Z^2 estimate for this ring
