@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.98 2011/03/29 13:02:16 shaino Exp $
+// $Id: TrTrack.C,v 1.99 2011/03/30 13:19:18 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/03/29 13:02:16 $
+///$Date: 2011/03/30 13:19:18 $
 ///
-///$Revision: 1.98 $
+///$Revision: 1.99 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1304,8 +1304,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 	else
 	  return -1;
       }
-      else
-	return -5;
     }
     
   }
@@ -1336,4 +1334,28 @@ for(int k=0;k<maxlay;k++){
 p*=10;
 }
 return pat;
-}    
+}
+
+
+void TrTrackR::RecalcHitCoordinates(int id) {
+  // Get interpolated positions/dirs
+  double   zhit[trconst::maxlay];
+  AMSPoint dpoi[trconst::maxlay];
+  AMSDir   dtrk[trconst::maxlay];
+  for (int i = 0; i < GetNhits(); i++)
+    zhit[i] = GetHit(i)->GetCoord().z();
+  Interpolate(GetNhits(), zhit, dpoi, dtrk, 0, id);
+  // Set cluster angles and re-build coordinates
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR  *hit  = GetHit(i);
+    TrClusterR *xcls = hit->GetXCluster();
+    TrClusterR *ycls = hit->GetYCluster();
+    TkSens sens(hit->GetTkId(),dpoi[i],dtrk[i],0);
+    if (xcls) { xcls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
+                xcls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
+    if (ycls) { ycls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
+                ycls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
+    hit->BuildCoordinate();
+  }
+}
+    

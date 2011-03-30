@@ -1,34 +1,12 @@
-/// $Id: TrCluster.C,v 1.20 2011/03/29 15:48:45 pzuccon Exp $ 
-
-//////////////////////////////////////////////////////////////////////////
-///
-///\file  TrCluster.C
-///\brief Source file of AMSTrCluster class
-///
-///\date  2007/12/03 SH  First import (just a copy of trrec.C in Gbatch)
-///\date  2008/01/14 SH  First stable vertion after a refinement
-///\date  2008/02/18 AO  New data format 
-///\date  2008/02/19 AO  Signal corrections
-///\date  2008/02/26 AO  Eta based local coordinate (see TkCoo.h)
-///\date  2008/03/01 AO  Added member _seedind
-///\data  2008/03/06 AO  Changing some data members and methods
-///\date  2008/03/06 AO  Changing some data members and methods
-///\date  2008/03/31 AO  Eta and CofG methods changing
-///\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
-///\date  2008/06/19 AO  Using TrCalDB instead of data members 
-///
-/// $Date: 2011/03/29 15:48:45 $
-///
-/// $Revision: 1.20 $
-///
-//////////////////////////////////////////////////////////////////////////
-
 #include "TrCluster.h"
+
 
 ClassImp(TrClusterR);
 
+
 TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
+
 
 int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
 int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
@@ -51,8 +29,6 @@ TrClusterR::TrClusterR(const TrClusterR &orig):TrElem(orig) {
   _mult    = orig._mult;
   _dxdz    = orig._dxdz;
   _dydz    = orig._dydz;
-  //  _coord   = orig._coord;
-  //  _gcoord  = orig._gcoord;
 }
 
 
@@ -72,8 +48,8 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind,
   _address =  add;
   if ( ((add+nelem-1)>=1024)&&(!TkDBc::Head->FindTkId(tkid)->IsK7()) ) {
     _nelem=1024-add;
-    cerr<<"TrClusterR::TrClusterR -W- You are tring to create a Cluster with address "<< add<<" and length "<<nelem<<endl;
-    cerr<<"                           Cluster has been truncated to the physical limit"<<endl;
+    cerr<<"TrClusterR::TrClusterR-W You are tring to create a Cluster with address "<< add<<" and length "<<nelem<<endl;
+    cerr<<"                         Cluster has been truncated to the physical limit"<<endl;
   }
   else
   _nelem   =  nelem;
@@ -82,7 +58,6 @@ TrClusterR::TrClusterR(int tkid, int side, int add, int nelem, int seedind,
   for (int i = 0; i<_nelem; i++) _signal.push_back(adc[i]);
   Status  = status;
   _mult    = 0;
-  // BuilCoordinates();
 }
 
 
@@ -133,8 +108,6 @@ void TrClusterR::Clear() {
   _mult    =   0;
   _dxdz    =   0;  // vertical inclination by default 
   _dydz    =   0;  // vertical inclination by default 
-  //  _coord.clear();
-  //  _gcoord.clear();
 }
 
 void TrClusterR::push_back(float adc) {
@@ -284,8 +257,48 @@ float TrClusterR::GetNumberOfMIPs(int opt) {
 }
 
 
-void TrClusterR::GetBounds(int &leftindex, int &rightindex, int nstrips, int opt) {
-  // loop on strips (adding asymmetrically the strips)
+void TrClusterR::GetBoundsSymm(int &leftindex, int &rightindex, int nstrips, int opt) {
+  /*               _        
+   *              | |_      
+   *           _ _| | |     
+   *     _ _ _| | | | |_    
+   *  __|_|_|_|_|_|_|_|_|__                   
+   *     X X 6 4 3 1 2 5
+   *     X X 6 5 2 1 3 4 (kFlip)          
+   *         
+   * Trying to contruct symmetrycally the bounds given the number of strips
+   * - n = min(int((nstrips-1)/2),min(nleft,nright)) to be used automatically on left an right (symmetry)
+   * - add one more strip if nstrips is odd or if the nleft and nright are dramatically different 
+   */
+  int cstrip     = GetSeedIndex(opt);
+  int nleft      = GetLeftLength(opt);
+  int nright     = GetRightLength(opt);
+  int n          = min(int((nstrips-1)/2),min(nleft,nright));
+  int nleftused  = min(n,nleft);
+  int nrightused = min(n,nright);
+  if ((nstrips-nleftused-nrightused-1)>0) { // add one more strip
+    if      ( (nleft==nleftused)&&(nright==nrightused) ) {}
+    else if (nleft  == nleftused)  nrightused++;
+    else if (nright == nrightused) nleftused++;
+    else    ( ( (GetSignal(cstrip-nleftused-1,opt)>GetSignal(cstrip+nrightused+1,opt))&&(!(opt&kFlip)) ) ||
+              ( (GetSignal(cstrip-nleftused-1,opt)<GetSignal(cstrip+nrightused+1,opt))&&(  opt&kFlip ) )  ) ? nleftused++ : nrightused++;
+  }
+  leftindex  = cstrip - nleftused;
+  rightindex = cstrip + nrightused;
+}
+
+
+void TrClusterR::GetBoundsAsym(int &leftindex, int &rightindex, int nstrips, int opt) {
+  /*               _        
+   *              | |_      
+   *           _ _| | |     
+   *     _ _ _| | | | |_ _   
+   *  __|_|_|_|_|_|_|_|_|_|__                   
+   *     8 7 5 4 3 1 2 5 6                      
+   *
+   * Trying to construct asymmetrycally the bounds given the number of strips
+   * - add strips in hierarchical order
+   */
   int cstrip     = GetSeedIndex(opt);
   int nleft      = GetLeftLength(opt);
   int nright     = GetRightLength(opt);
@@ -302,6 +315,69 @@ void TrClusterR::GetBounds(int &leftindex, int &rightindex, int nstrips, int opt
 }
 
 
+float TrClusterR::GetXCofG(int nstrips, int imult, int opt) {
+  if (nstrips==-1) {
+    nstrips = 2;
+    if (GetSide() == 0 && fabs(_dxdz) > TwoStripThresholdX) nstrips = 3;
+    if (GetSide() == 1 && fabs(_dydz) > TwoStripThresholdY) nstrips = 3;
+  } 
+  if (nstrips==1) return 0.;
+  int leftindex;  
+  int rightindex;
+  float numerator   = 0.;
+  float denominator = 0.;
+  GetBoundsSymm(leftindex,rightindex,nstrips,opt);
+  // GetBoundsAsym(leftindex,rightindex,nstrips,opt);
+  int cstrip = GetSeedIndex(opt);
+  float seedposition = GetX(cstrip,imult);
+  for (int index=leftindex; index<=rightindex; index++) {
+    // signal weight
+    float weight = GetSignal(index,opt);
+    if (opt&kCoupl) { // trying to eliminate coupling effect
+      if (index-1>0)          weight -= 0.04*GetSignal(index-1,opt);
+      if (index+1<GetNelem()) weight -= 0.04*GetSignal(index+1,opt);
+    }
+    // position
+    float position = GetX(index,imult);
+    int   mask = 1;
+    if (IsK7()!=0) { 
+      // special computation for K7 (cyclic clusters)
+      // - take seed strip as the strip with a fixed multiplicity
+      int address = GetAddress(index); 
+      int maxmult = TkCoo::GetMaxMult(GetTkId(),address);
+      if ( (index<cstrip)&&(position>seedposition) ) {
+        position = (imult>0) ? GetX(index,imult-1) : 0; 
+        mask     = (imult>0) ? 1 : 0;
+      }
+      else if ( (index>cstrip)&&(position<seedposition) ) {  
+        position = (imult<(maxmult-1)) ? GetX(index,imult+1) : 0;
+        mask     = (imult<(maxmult-1)) ? 1 : 0;
+      }
+    }
+    // weighted average
+    numerator   += weight*position*mask;
+    denominator += weight*mask;
+    // cout << "numerator: " << numerator << "  denominator: " << denominator << endl;
+  } 
+  float CofG = numerator/denominator;
+  /*
+  if (fabs(CofG-GetXCofG_old(nstrips,imult,opt))>0.001) {
+    cout << "THIS IS A WARNING NOT AN ERROR " << endl;
+    Print(10);
+    cout << "nstrips: " << nstrips << "   imult: " << imult << endl; 
+    cout << "CofGX: " << CofG << "   CofGX_old: " << GetXCofG_old(nstrips,imult,opt) << endl;
+    for (int index=leftindex; index<=rightindex; index++) {
+      cout << "index: " << index << "  address: " << GetAddress(index) << "  mult-1: " << GetX(index,imult-1) 
+           << "  mult: " << GetX(index,imult) << "   mult+1: " << GetX(index,imult+1) 
+           << "  maxmult: " << TkCoo::GetMaxMult(GetTkId(),GetAddress(index)) << endl;
+    }
+    cout << endl;
+  }
+  */
+  return CofG; 
+} 
+
+
 float TrClusterR::GetCofG(int nstrips, int opt) {
   if (nstrips==-1) {
     nstrips = 2;
@@ -313,7 +389,8 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
   int rightindex;
   float numerator   = 0.;
   float denominator = 0.;  
-  GetBounds(leftindex,rightindex,nstrips,opt);
+  // GetBoundsAsym(leftindex,rightindex,nstrips,opt);
+  GetBoundsSymm(leftindex,rightindex,nstrips,opt);
   int cstrip = GetSeedIndex(opt);
   for (int index=leftindex; index<=rightindex; index++) {
     float weight = GetSignal(index,opt);
@@ -325,30 +402,16 @@ float TrClusterR::GetCofG(int nstrips, int opt) {
 }
 
 
-float TrClusterR::GetXCofG(int nstrips, int imult, const int opt) {
-  if (nstrips==-1) {
-    nstrips = 2;
-    if ((GetSide()==0)&&(fabs(_dxdz)>TwoStripThresholdX)) nstrips = 3;
-    if ((GetSide()==1)&&(fabs(_dydz)>TwoStripThresholdY)) nstrips = 3;
-  } 
-  if (nstrips==1) return 0.;
-  int leftindex;
-  int rightindex;
-  float numerator   = 0.;
-  float denominator = 0.;
-  GetBounds(leftindex,rightindex,nstrips,opt);
-  for (int index=leftindex; index<=rightindex; index++) {
-    float weight = GetSignal(index,opt);
-    numerator   += weight*GetX(index,imult);
-    denominator += weight;
-  }
-  float CofG = numerator/denominator;
-  //  if (fabs(GetXCofG_old(nstrips,imult,opt)-CofG)>0.0001) printf("CofG: %10.6f %10.6f %10.6f\n",GetXCofG_old(nstrips,imult,opt),CofG,GetXCofG_old(nstrips,imult,opt)-CofG); 
-  return CofG; 
-}
-
-
 float TrClusterR::GetEta(int opt) {
+  /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
+   *      _                                    _ 
+   *    l|c|r          c*0 + r*1    r        l|c|r            l*0 + c*1    c
+   *     | |_    eta = --------- = ---       _| |       eta = --------- = ---
+   *    _| | |           c + r     c+r      | | |_              l + c     l+c
+   * __|_|_|_|__                          __|_|_|_|__
+   *      0 1                                0 1 
+   *  Eta is 1 for particle near to the right strip,
+   *  while is approx 0 when is near to the left strip (old definition) */
   if (GetNelem()<1) return -1;
   int cstrip = GetSeedIndex(opt);
   int nleft  = GetLeftLength(opt);
@@ -369,26 +432,3 @@ float TrClusterR::GetEta(int opt) {
 }
 
 
-float TrClusterR::GetDHT(int nstrips, int opt) {
-  if (nstrips==1) return 0.;
-  int leftindex; 
-  int rightindex;
-  GetBounds(leftindex,rightindex,nstrips,opt);
-  int cstrip = GetSeedIndex(opt);
-  return (leftindex + rightindex)/2. - cstrip;
-}
-
-
-float TrClusterR::GetAHT(int nstrips, int opt) {
-  if (nstrips==1) return 0.;
-  if (nstrips==2) return GetDHT(2,opt);
-  int leftindex; 
-  int rightindex;
-  GetBounds(leftindex,rightindex,nstrips,opt);
-  if (fabs(rightindex-leftindex+1)<3) return GetDHT(nstrips,opt);
-  int cstrip = GetSeedIndex(opt);
-  float mean = 0.;
-  for (int index=leftindex+1; index<=rightindex-1; index++) mean += GetSignal(index,opt);
-  mean /= (leftindex+rightindex+1-2);
-  return GetDHT(nstrips,opt) + (GetSignal(rightindex,opt) - GetSignal(leftindex,opt))/mean/2.;
-}

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.59 2011/03/22 17:46:24 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.60 2011/03/30 13:19:17 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/03/22 17:46:24 $
+///$Date: 2011/03/30 13:19:17 $
 ///
-///$Revision: 1.59 $
+///$Revision: 1.60 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -758,6 +758,9 @@ public:
   void AddHit(TrRecHitR *hit, int imult = -1);
   /// Remove the hit on the selected layer OLD scheme (1-9) 
   bool RemoveHitOnLayer( int layer);
+
+  /// Recalculate all the hit/cluster coordinates using the fit information
+  void RecalcHitCoordinates(int id = 0);
   
 
   /// Set hit patterns

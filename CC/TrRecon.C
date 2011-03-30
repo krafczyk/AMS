@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.97 2011/03/29 15:48:45 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.98 2011/03/30 13:19:17 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/03/29 15:48:45 $
+/// $Date: 2011/03/30 13:19:17 $
 ///
-/// $Revision: 1.97 $
+/// $Revision: 1.98 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2223,31 +2223,16 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     }
   }
 
-  // Get interpolated posisions/dirs
-  double zhit[trconst::maxlay];
-  AMSDir dtrk[trconst::maxlay];
-  for (int i = 0; i < track->GetNhits(); i++)
-    zhit[i] = track->GetHit(i)->GetCoord().z();
-  track->Interpolate(track->GetNhits(), zhit, 0, dtrk, 0, mfit1);
+  // recalc hit coordinates using the 1st fit information
+  track->RecalcHitCoordinates(mfit1);
 
-  // Set cluster angles and re-build coordinates
   for (int i = 0; i < track->GetNhits(); i++) {
-    TrRecHitR  *hit  = track->GetHit(i);
-
+    TrRecHitR  *hit = track->GetHit(i);
     // Mark the hit as USED
     hit->SetUsed();
-
-    // Remove hit pointer from _HitsTkIdMap
+    // Remove hit pointer from _HitsTkIdMap 
     RemoveHits(hit);
     TR_DEBUG_CODE_41;
-
-    TrClusterR *xcls = hit->GetXCluster();
-    TrClusterR *ycls = hit->GetYCluster();
-    if (xcls) { xcls->SetDxDz(dtrk[i].x()/dtrk[i].z());
-                xcls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
-    if (ycls) { ycls->SetDxDz(dtrk[i].x()/dtrk[i].z());
-                ycls->SetDyDz(dtrk[i].y()/dtrk[i].z()); }
-    hit->BuildCoordinate();
   }
 
   // 2nd. step Fit
@@ -2263,9 +2248,9 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
     if (track->ParExists(mfit2)) {
       track->Settrdefaultfit(mfit2);
       if (TryDropX(track, mfit2))
-	track->EstimateDummyX(mfit2);
+        track->EstimateDummyX(mfit2);
     }
-  }  
+  }
 
   if (track->GetRigidity() == 0 || track->GetChisq() <= 0) {
 #ifndef __ROOTSHAREDLIBRARY__
@@ -2286,6 +2271,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   delete cont;
   return 1;
 }
+
 
 int TrRecon::TryDropX(TrTrackR *track, int mfit)
 {

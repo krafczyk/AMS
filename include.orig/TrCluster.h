@@ -17,32 +17,18 @@
 #include <string>
 
 /*!
-\class TrClusterR
-\brief A class to manage reconstructed cluster in AMS Tracker
-\ingroup tkrec
+ \class TrClusterR
+ \brief A class to manage reconstructed cluster in AMS Tracker
+ \ingroup tkrec
 
- TrClusterR is the core of the Tracker reconstruction. 
- New ladder geometry (TKDBc) and calibration databases (TrCalDB) 
- and strip database (TkStrip) are used instead of 
- the original TKDBc, TrIdSoft, and TrIdGeom. 
+ TrClusterR, i.e. Tracker reconstructed cluster, is the core of the Tracker reconstruction. 
+ This class gives accessors and memebers to retrieve all the reconstructed cluster 
+ properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
+ coordinates (via TkCoo). 
 
-\date  2007/12/03 SH  First import (just a copy of trrec.C in Gbatch)
-\date  2008/01/14 SH  First stable vertion after a refinement
-\date  2008/01/20 SH  Imported to tkdev (test version)
-\date  2008/02/13 SH  _signal array is changed as vector
-\date  2008/02/16 AO  New data format 
-\date  2008/02/19 AO  Signal corrections
-\date  2008/02/26 AO  Eta based local coordinate (see TkCoo.h)
-\date  2008/03/01 AO  Added member _seedind
-\date  2008/03/06 AO  Changing some data members and methods
-\date  2008/03/31 AO  Eta and CofG methods changing
-\date  2008/04/11 AO  XEta and XCofG coordinate based on TkCoo
-\date  2008/06/19 AO  Using TrCalDB instead of data members 
-\date  2008/12/11 AO  Some method update
+ $Date: 2011/03/30 13:19:17 $
 
- $Date: 2011/03/29 15:48:45 $
-
- $Revision: 1.22 $
+ $Revision: 1.23 $
 
 */
 
@@ -69,7 +55,13 @@ class TrClusterR :public TrElem{
     /// Total Signal Corr.: Normalization to P-Side      
     kPN           = 0x40,
     /// Total Signal Corr.: Normalization to number of MIP
-    kMIP          = 0x80
+    kMIP          = 0x80,
+    /// Coordinate Corr.: Flip the eta used strips
+    kFlip         = 0x100,
+    /// Coordinate Corr.: Correct for the charge coupling (4%)
+    kCoupl        = 0x200,
+    /// Coordinate Corr.: Belau correction
+    kBelau        = 0x400
   };
 
   enum { TASCLS = 0x400 };
@@ -92,10 +84,6 @@ class TrClusterR :public TrElem{
   float        _dydz;
   /// Multiplicity (on p side should be 1 on n side it is ladder dependent)
   int8         _mult;   
-  //   /// Local coordinate by multiplicity index 
-  //   vector<float> _coord;  
-  //   /// Global coordinate by multiplicity index
-  //   vector<float> _gcoord; 
   /// Cluster status 
   unsigned int Status;
 
@@ -124,7 +112,6 @@ class TrClusterR :public TrElem{
 
   /** @name   CONSTRUCTORS & C. */
   /**@{*/	
-  //################    CONSTRUCTORS & C.   ################################
 
   /// Default constructor 
   TrClusterR(void);
@@ -141,17 +128,17 @@ class TrClusterR :public TrElem{
   void Clear();
 
   /**@}*/
+
+
   /** @name   Cluster Structure  */
   /**@{*/	
 
-  //################    ACCESSORS  ########################################
-
   /// Get ladder TkId identifier 
   int   GetTkId()          const { return _tkid; }
-  int   GetLayerJ()         const { return TkDBc::Head->GetJFromLayer(abs(_tkid/100)); }
   /// Get ladder layer J number scheme
+  int   GetLayerJ()        const { return TkDBc::Head->GetJFromLayer(abs(_tkid/100)); }
   /// Is a K7 cluster?
-  int   IsK7()             const { return TkDBc::Head->FindTkId(GetTkId())->IsK7(); } 
+  int   IsK7()             const { return ( (TkDBc::Head->FindTkId(GetTkId())->IsK7())&&(GetSide()==0) ); } 
   /// Get ladder slot
   int   GetSlot()          const { return abs(_tkid%100); }
   /// Get ladder slot Side (0: negative X, 1: positive X)
@@ -198,6 +185,8 @@ class TrClusterR :public TrElem{
   bool  Used() const { return checkstatus(AMSDBc::USED); }	
 	
   /**@}*/
+
+
   /** @name   SIGNALS & AMPLITUDE */
   /**@{*/	
 
@@ -218,6 +207,8 @@ class TrClusterR :public TrElem{
   }
  
   /**@}*/	
+
+
   /** @name  Coordinates */
   /**@{*/	
 	
@@ -228,59 +219,34 @@ class TrClusterR :public TrElem{
   /// Get global coordinate by multiplicity index
   float GetGCoord(int imult);
 
-
-  /// Get cluster bounds for a given number of strips (gerarchic order...)  (Experts only)
-  /*           _        
-   *          | |_      
-   *       _ _| | |     
-   *     _| | | | |_    
-   *  __|_|_|_|_|_|_|__                   
-   *     5 3 2 0 1 4                       
-   *  Seed is used as reference (position 0) */
-  void  GetBounds(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  /// Get the Center of Gravity with the n highest consecutive strips (Experts only)
+  /// Get cluster bounds for a given number of strips (gerarchic order)  
+  void  GetBoundsAsym(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  /// Get cluster bounds for a given number of strips (symmetric order)  
+  void  GetBoundsSymm(int &leftindex, int &rightindex, int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
+  /// Get the Center of Gravity with the n highest consecutive strips 
   float GetCofG(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  /// Get local coordinate with center of gravity on nstrips (Experts only)
+  /// Get local coordinate with center of gravity on nstrips 
   float GetXCofG(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt);
+  /// Get local coordinate with center of gravity on nstrips 
   float GetXCofG_old(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
     return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetCofG(nstrips,opt),imult); 
   }  
-  /// Get Eta (center of gravity with the two higher strips) (Experts only)
-  /*! Eta = center of gravity with the two higher strips = Q_{R} / ( Q_{L} + Q_{R} )
-   *      _                                    _ 
-   *    l|c|r          c*0 + r*1    r        l|c|r            l*0 + c*1    c
-   *     | |_    eta = --------- = ---       _| |       eta = --------- = ---
-   *    _| | |           c + r     c+r      | | |_              l + c     l+c
-   * __|_|_|_|__                          __|_|_|_|__
-   *      0 1                                0 1
-   *  Eta is 1 for particle near to the right strip,
-   *  while is approx 0 when is near to the left strip (old definition) */
-  float GetEta(int opt = DefaultCorrOpt); // { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
-  /// Digital Head-Tail method (Experts only)
-  float GetDHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  /// Get local coordinate with center of gravity on nstrips
-  float GetXDHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
-    return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetDHT(nstrips,opt),imult); 
-  }
-  /// Analog Head-Tail method (Experts only)
-  float GetAHT(int nstrips = DefaultUsedStrips, int opt = DefaultCorrOpt);
-  float GetXAHT(int nstrips = DefaultUsedStrips, int imult = 0, const int opt = DefaultCorrOpt) { 
-    return TkCoo::GetLocalCoo(GetTkId(),GetSeedAddress(opt)+GetAHT(nstrips,opt),imult); 
-  }
+  /// Get eta (center of gravity with the two higher strips) 
+  float GetEta(int opt = DefaultCorrOpt);
+  /// Get eta (center of gravity with the two higher strips) by CofG algorythm  
+  float GetEta_CofG(int opt = DefaultCorrOpt) { float eta = GetCofG(2,opt); return (eta>0.) ? eta : eta + 1.; }
 
   /**@}*/ 
+
+
   /** @name Reconstruction & Special Methods (Experts only) */
   /**@{*/	
 
-  //################  SPECIAL METHODS  ########################################
-
-  /// Build the coordinates (with multiplicity)
-  //  void  BuildCoordinates();
   /// Get ladder layer OLD Numbering
   int   GetLayer()         const { return abs(_tkid/100); }
 
   /// Insert a strip in the cluster
-  void push_back(float adc);
+  void  push_back(float adc);
 
   /// Set track interpolation angle tan(thetaXZ) (rad)
   inline void  SetDxDz(float dxdz) { _dxdz = dxdz; }
@@ -303,16 +269,18 @@ class TrClusterR :public TrElem{
   void     setstatus(uinteger status)   { Status = Status | status; }
   /// Clear cluster status
   void     clearstatus(uinteger status) { Status = Status & ~status; }
-	/// Get the current parameter database
-	TrParDB*    GetTrParDB() { return _trpardb; }
-	/// Set as used
-	void  SetUsed()    { setstatus(AMSDBc::USED); }
-	/// Clear used status
-	void  ClearUsed()  { clearstatus(AMSDBc::USED); }
-	/// Get the current calibration database
-	TrCalDB*    GetTrCalDB() { return _trcaldb; }
+  /// Set as used
+  void     SetUsed()    { setstatus(AMSDBc::USED); }
+  /// Clear used status
+  void     ClearUsed()  { clearstatus(AMSDBc::USED); }
+
+  /// Get the current parameter database
+  TrParDB* GetTrParDB() { return _trpardb; }
+  /// Get the current calibration database
+  TrCalDB* GetTrCalDB() { return _trcaldb; }
 
   /**@}*/	
+
 
   /// Using this calibration database
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
@@ -327,11 +295,10 @@ class TrClusterR :public TrElem{
   static void SetDefaultCorrOpt(int def) { DefaultCorrOpt = def; }
   /// Set DefaultUsedStrips
   static void SetDefaultUsedStrips(int def) {DefaultUsedStrips=def;}
+
 		
   /** @name Printout */
   /**@{*/	
-
-  //################ PRINTOUT  ########################################
 
   /// Print cluster basic information
   std::ostream& putout(std::ostream &ostr = std::cout);
@@ -346,11 +313,11 @@ class TrClusterR :public TrElem{
   /// Return a string with some info (used for event display)
   char* Info(int iRef);
 
+  /**@}*/
+
 
   /// ROOT definition
   ClassDef(TrClusterR, 4)
-
-  /**@}*/
 };
 
 
