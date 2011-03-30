@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.20 2011/03/30 08:29:06 zweng Exp $
+//  $Id: apool.C,v 1.21 2011/03/30 09:23:00 zweng Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -175,40 +175,29 @@ void AMSaPool::erase(integer tol){
   if(_MaxNodes<poolMap.getnum())_MaxNodes=poolMap.getnum();
 #endif
 
-
-  cerr<<" AMSaPool::erase(integer tol):   "<<endl;
-
-  cerr <<"  nblocks before "<<_Nblocks<<endl;
+  //  cerr <<"  nblocks before "<<_Nblocks<<endl;
   poolMap.unmap();
   _Totalbl+=_Nreq;
   if(_Minbl>_Nreq)_Minbl=_Nreq;
   if(_Maxbl<_Nreq)_Maxbl=_Nreq;
-  cerr<<" AMSaPool::eraseTest 2  "<<endl;
   _Nreq=0;
   if(tol==0)_Count=0;
   if(_Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
   if(_head){
-    cerr<<" AMSaPool::eraseTest 3  "<<endl;
     tol=(tol+_size/2)/_size;
     //       cout <<" tol "<<tol<<endl;
     while(_head->_prev)_head=_head->_prev;       
     dlink *gl=_head;
     for(int i=0;i<tol;i++){
       if(_head){
-  cerr<<" AMSaPool::eraseTest 4  "<<endl;
-
 	//            cout <<" nu head "<<i<<endl;
 	_head=_head->_next;
       }
     }              
     if(_head==gl){
-  cerr<<" AMSaPool::eraseTest 5  "<<endl;
       _head->_erase(_Nblocks);
-
-  cerr<<" AMSaPool::eraseTest 5  A"<<endl;
       //         cout <<" erase called "<<endl;
       _head=0;
-  cerr<<" AMSaPool::eraseTest 5  B"<<endl;
       _free=0;
 #ifdef __AMSDEBUG__
       cout << "Apool Statistics: Min request # "<< _Minbl<<" Max "<<_Maxbl<<
@@ -217,23 +206,16 @@ void AMSaPool::erase(integer tol){
 	" Total "<<_TotalNodes<<endl; 
                
 #endif         
-  cerr<<" AMSaPool::eraseTest C  "<<endl;
     }
     else{
-  cerr<<" AMSaPool::eraseTest 6  "<<endl;
       //        if(_head)cout <<"erase called "<<endl;
       if(_head)_head->_erase(_Nblocks);
       _head=gl;
       _free=(void*)(_head->_address);
     }
-  cerr<<" AMSaPool::eraseTest 5 D "<<endl;
-
   }
-  cerr<<" AMSaPool::eraseTest 5 E "<<endl;
   _lc=0;
   //      cout << " nblovks after " <<_Nblocks<<endl;
-
-  cerr<<" AMSaPool::eraseTest 7  "<<endl;
 
 }
 
