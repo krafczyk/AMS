@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.33 2010/12/07 16:03:47 choutko Exp $
+//  $Id: main.cxx,v 1.34 2011/03/30 14:53:17 mdelgado Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -78,7 +78,10 @@ int main(int argc, char *argv[])
 
   
   AMSNtupleR *pntuple=new AMSNtupleR();
-    AMSChain chain(pntuple,"AMSRoot"); 
+  AMSChain chain(pntuple,"AMSRoot"); 
+
+  if(!RichRingR::isCalibrating()) RichRingR::switchDynCalibration();
+
   if(filename){
     printf("opening file %s...\n", filename);
     OpenChain(chain,filename); 
