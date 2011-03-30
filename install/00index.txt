@@ -1,8 +1,9 @@
-#  $Id: 00index.txt,v 1.56 2010/12/08 20:31:29 pzuccon Exp $
+#  $Id: 00index.txt,v 1.57 2011/03/30 13:28:53 sdifalco Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
 Makefile.linuxx8664gcc    // OS dep -> Linux-gcc64 
+// WARNING: unsetenv ECALBDT if set otherwise it hangs in the compilation of ecalBDT.C 
 source /Offline/vdev/install/amsvar.icc64
 Makefile.linuxicc64 // OS dep -> Linux-icc64  default one
 source /Offline/vdev/install/amsvar.icc32
@@ -14,6 +15,10 @@ Makefile.linux// OS dep -> Linux-gcc32
 	  // setenv   AMSDEBUG         enable the debug code into the GBATCH source
 	  // setenv   AMSP 1           enable the parallel processing (Intel compilers only)
           // setenv   PGTRACK 1        enable the new tracker SW
+          // setenv   ECALBDT 1        enable ECAL electron classifier function
+          //                           WARNING: if set file ecalBDT.C need ~12 
+          //                           minutes to be compiled
+          //  
 	  
 Moptg4    // makefile to gmake g4 batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
