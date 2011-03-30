@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.48 2011/03/25 08:44:04 mdelgado Exp $
+//  $Id: richgeom.C,v 1.49 2011/03/30 10:11:29 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -367,7 +367,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 						 11,
 						 coo,
 						 nrm,
-#ifdef _G4AMS_
+#ifdef __G4AMS__
 						 "BOOL",
 #else
 						 _MANY_,
@@ -379,7 +379,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   wall->Smartless()=-2;
 #endif
 
-#ifdef _G4AMS_
+#ifdef __G4AMS__
   wall->addboolean("TRAP",par,11,coo,nrm90,'+');
 #else
   dummy=solid_lg->add(new AMSgvolume(_VACUUM_,
