@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: validate.o.cgi,v 1.2 2003/05/23 08:32:43 alexei Exp $
+#  $Id: validate.o.cgi,v 1.3 2011/03/30 12:48:35 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -9,7 +9,7 @@ use lib::RemoteClient;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/validate.o.cgi";
 
 

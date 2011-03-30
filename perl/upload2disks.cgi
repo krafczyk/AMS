@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
-#  $Id: upload2disks.cgi,v 1.1 2005/12/20 16:50:40 choutko Exp $
+#  $Id: upload2disks.cgi,v 1.2 2011/03/30 12:48:34 dmitrif Exp $
 use strict;
 use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
 unshift @ARGV,"-zero";
 

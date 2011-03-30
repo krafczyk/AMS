@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.14 2011/01/18 10:31:22 ams Exp $
+#  $Id: upload2castor.cgi,v 1.15 2011/03/30 12:48:35 dmitrif Exp $
 use strict;
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
 unshift @ARGV,"-zero";
 

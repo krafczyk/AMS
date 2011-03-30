@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: chfs.cgi,v 1.3 2008/09/05 13:06:29 choutko Exp $
+#  $Id: chfs.cgi,v 1.4 2011/03/30 12:48:34 dmitrif Exp $
 #use Gtk;
 use strict;
 
@@ -11,7 +11,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/checkfs.cgi";
 
 

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rd.perl,v 1.4 2008/04/10 15:52:32 choutko Exp $
+#  $Id: rd.perl,v 1.5 2011/03/30 12:48:34 dmitrif Exp $
 use strict;
 
 use lib::DBSQLServer;
@@ -7,7 +7,7 @@ use lib::DBSQLServer;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 
 # DESCRIBE DATAFILES
 # RUN                                       NOT NULL NUMBER(38)

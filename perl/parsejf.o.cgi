@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: parsejf.o.cgi,v 1.2 2011/01/07 23:10:15 ams Exp $
+#  $Id: parsejf.o.cgi,v 1.3 2011/03/30 12:48:35 dmitrif Exp $
 #use Gtk;
 use strict;
 use lib;
@@ -11,7 +11,7 @@ $SIG{QUIT}=sub{exit()};
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
 unshift @ARGV,"-m ";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/parseJournalRuns.o.cgi";
 
 

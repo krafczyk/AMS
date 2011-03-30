@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: updateHostClock.o.cgi,v 1.1 2003/10/02 10:10:23 alexei Exp $
+#  $Id: updateHostClock.o.cgi,v 1.2 2011/03/30 12:48:34 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -9,7 +9,7 @@ use lib::RemoteClient;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/updateHostClock.o.cgi";
 
 

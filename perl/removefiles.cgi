@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: removefiles.cgi,v 1.2 2005/11/22 10:58:32 ams Exp $
+#  $Id: removefiles.cgi,v 1.3 2011/03/30 12:48:35 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -9,7 +9,7 @@ use lib::RemoteClient;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
 unshift @ARGV,"-zero";
 

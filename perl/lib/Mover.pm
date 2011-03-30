@@ -979,7 +979,7 @@ sub connect_to_oracle {
 
     my $user   = "amsdes";
     my $pwd    =  shift;
-    my $dbname = "DBI:Oracle:amsdb";
+    my $dbname = "DBI:Oracle:pdb_ams";
 
     my $dbh = DBI->connect( $dbname,$user, $pwd, 
                       ) || die print "Can't connect : $DBI::errstr";

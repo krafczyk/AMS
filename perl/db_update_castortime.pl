@@ -143,7 +143,7 @@ use strict;
 use DBI;
 
 
-my $db = DBI->connect("DBI:Oracle:amsdb",
+my $db = DBI->connect("DBI:Oracle:pdb_ams",
 		      $uid,
 		      $pwd,
 		      ) || die "Database connection not made: $DBI::errstr";

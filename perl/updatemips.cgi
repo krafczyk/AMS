@@ -10,7 +10,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/rc.mon.cgi";
 
 

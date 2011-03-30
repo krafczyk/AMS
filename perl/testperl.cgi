@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: testperl.cgi,v 1.1 2010/11/07 18:30:01 choutko Exp $
+#  $Id: testperl.cgi,v 1.2 2011/03/30 12:48:35 dmitrif Exp $
 #use Gtk;
 # test any perl text in conn with db
 use strict;
@@ -12,7 +12,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 
 
 #activate CGI

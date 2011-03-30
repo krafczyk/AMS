@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: rc.dsp.cgi,v 1.4 2005/11/06 21:03:46 choutko Exp $
+#  $Id: rc.dsp.cgi,v 1.5 2011/03/30 12:48:34 dmitrif Exp $
 use Gtk;
 use strict;
 use lib::RemoteClient;
@@ -12,7 +12,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/rc.mon.cgi";
 
 

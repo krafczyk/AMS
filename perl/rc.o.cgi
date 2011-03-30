@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: rc.o.cgi,v 1.2 2005/11/06 21:03:46 choutko Exp $
+#  $Id: rc.o.cgi,v 1.3 2011/03/30 12:48:35 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -14,7 +14,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/rc.o.cgi";
 
 

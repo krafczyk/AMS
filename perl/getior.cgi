@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getior.cgi,v 1.5 2002/03/26 19:21:16 alexei Exp $
+#  $Id: getior.cgi,v 1.6 2011/03/30 12:48:35 dmitrif Exp $
 use Gtk;
 use strict;
 use DBI;
@@ -53,7 +53,7 @@ sub connect_to_oracle {
 
     my $user   = "amsro";
     my $pwd    = "amsMC02";
-    my $dbname = "DBI:Oracle:amsdb";
+    my $dbname = "DBI:Oracle:pdb_ams";
 
     $dbh = DBI->connect( $dbname,$user, $pwd, 
                       ) || die print "Can't connect : $DBI::errstr";

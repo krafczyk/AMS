@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-#  $Id: checkcrc.cgi,v 1.1 2007/02/05 14:09:27 ams Exp $
+#  $Id: checkcrc.cgi,v 1.2 2011/03/30 12:48:35 dmitrif Exp $
 use strict;
 #use lib qw(/var/www/cgi-bin/mon); 
 use lib qw(lib); 
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV,"-zero";
 
 my $force=0;

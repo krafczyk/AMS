@@ -5,7 +5,7 @@ class DBSQLServer:
     one=0
     dbinit=0
     dbdriver="Oracle"
-    dbfile="amsdb"
+    dbfile="pdb_ams"
     dbhandler=""
     dbcursor=""
     def __init__(self,argv,one=0):

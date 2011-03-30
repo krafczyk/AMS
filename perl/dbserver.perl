@@ -32,7 +32,7 @@ foreach my $chop  (@ARGV){
     $#ARGV=-1;
     if($oracle){
      unshift @ARGV, "-DOracle:";
-     unshift @ARGV, "-Famsdb";
+     unshift @ARGV, "-Fpdb_ams";
     
     
     my $sqls=new DBSQLServer();

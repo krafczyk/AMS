@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monmcdb.o.cgi,v 1.4 2005/10/19 13:33:52 choutko Exp $
+#  $Id: monmcdb.o.cgi,v 1.5 2011/03/30 12:48:34 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -14,7 +14,7 @@ unshift @ARGV, $mc;
 my $db="-d ";
 unshift @ARGV, $db;
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/monmcdb.o.cgi";
 
 

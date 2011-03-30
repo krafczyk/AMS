@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: calculateMips.o.cgi,v 1.6 2005/10/28 19:48:38 choutko Exp $
+#  $Id: calculateMips.o.cgi,v 1.7 2011/03/30 12:48:34 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -9,7 +9,7 @@ use lib::RemoteClient;
 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/calculateMips.o.cgi";
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: checkdb.cgi,v 1.2 2004/03/05 19:04:19 alexei Exp $
+#  $Id: checkdb.cgi,v 1.3 2011/03/30 12:48:34 dmitrif Exp $
 use Gtk;
 use strict;
 
@@ -11,7 +11,7 @@ my $debug="-d";
 #unshift @ARGV, $debug;
 
 unshift @ARGV, "-DOracle:";
-unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-Fpdb_ams";
 unshift @ARGV, "-N/cgi-bin/mon/checkdb.cgi";
 
 
