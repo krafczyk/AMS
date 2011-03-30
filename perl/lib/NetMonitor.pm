@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.27 2011/03/30 12:17:52 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.28 2011/03/30 13:36:19 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -22,7 +22,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3'], 
+  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus.cern.ch'], 
   dbhosts=>['pcamss0'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   hostsstat=>[],
@@ -175,54 +175,54 @@ if(not open(FILE,"<".$self->{hostfile})){
 # Now timing
 #
 
-    $mes="NetMonitor-W-SomeHostsHaveWrongTime";
+#    $mes="NetMonitor-W-SomeHostsHaveWrongTime";
     my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
-#    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
-    foreach my $host (@{$self->{hosts}}) {
-        my $gonext=0;
-        foreach my $bad (@{$self->{bad}}){
-		    my @sbad=split ' ',$bad;
-		    if($sbad[0] eq $host){
-			$gonext=1;
-			last;
-		    }
-		}
-		if($gonext){
-		    next;
-		}
-		unlink "/tmp/xtime";
-		my $i=system($command.$host.' date +%s > /tmp/xtime ');
-		my $curtime=time();
-		if(1 or not $i){
-		  if(not open(FILE,"<"."/tmp/xtime")){
-			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-		    next;
-		  }           
-		     my $buf;
-		     if(not read(FILE,$buf,16384)){
-			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-			 close FILE;
-		       next;
-		     }
-		     close FILE;
-		     unlink "/tmp/xtime";
-	#             my @sbuf= split ' ',$buf;
-	#             if($#sbuf>3){
-	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
-	#               my @ssbuf=split ':',$sbuf[3];
-	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
-		       if(abs($curtime-$buf)>360){
-			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
-		       }
-		       next;
-	#             }  
-			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
-		    }
-		else{
-		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
-		    next;
-		}
-	    }
+##    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
+#    foreach my $host (@{$self->{hosts}}) {
+#        my $gonext=0;
+#        foreach my $bad (@{$self->{bad}}){
+#		    my @sbad=split ' ',$bad;
+#		    if($sbad[0] eq $host){
+#			$gonext=1;
+#			last;
+#		    }
+#		}
+#		if($gonext){
+#		    next;
+#		}
+#		unlink "/tmp/xtime";
+#		my $i=system($command.$host.' date +%s > /tmp/xtime ');
+#		my $curtime=time();
+#		if(1 or not $i){
+#		  if(not open(FILE,"<"."/tmp/xtime")){
+#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+#		    next;
+#		  }           
+#		     my $buf;
+#		     if(not read(FILE,$buf,16384)){
+#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
+#			 close FILE;
+#		       next;
+#		     }
+#		     close FILE;
+#		     unlink "/tmp/xtime";
+#	#             my @sbuf= split ' ',$buf;
+#	#             if($#sbuf>3){
+#	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
+#	#               my @ssbuf=split ':',$sbuf[3];
+#	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
+#		       if(abs($curtime-$buf)>360){
+#			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
+#		       }
+#		       next;
+#	#             }  
+#			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
+#		    }
+#		else{
+#		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
+#		    next;
+#		}
+#	    }
 
 	#
 	# dbhosts targets
@@ -520,8 +520,8 @@ END_OF_MESSAGE2
 
 sub set_oracle_env {
     $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
-    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
-# $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
+#    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+ $ENV{"TNS_ADMIN"}='/afs/cern.ch/exp/ams/Offline/oracle/admin';
 #$ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
     1;
