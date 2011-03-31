@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.37 2011/03/19 16:25:40 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.38 2011/03/31 09:36:39 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -19,6 +19,7 @@ const Int_t kNtofb[4]={8,8,10,8};//TOF bars per layer
 const Float_t kTDCbin=0.024414;//TDC-bin(ns)
 const Int_t tofscales[5]={1,1,1,1,1};//(1-3)scale_type for 5 time-evolution graphs:
 //                                        TimeHits/HistHits/Temp_SFET/_SFEC/_PMT
+//                                     and tempor.used for trk/trd tracks/ftc graphs
 //--------------------------------
 class RunPar{ 
 //
@@ -119,15 +120,16 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("Clusters per event");
   _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("tofh9","TRKChi2(FastFit)",80,0.,80.));
+  _filled.push_back(new TH1F("tofh9","TRKChi2",80,0.,80.));
   _filled[_filled.size()-1]->SetXTitle("Chi2");
   _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("togh10","TRKChi2sz",50,0.,5.));
-  _filled[_filled.size()-1]->SetXTitle("chi2");
-  _filled[_filled.size()-1]->SetFillColor(9);
+  _filled.push_back(new TProfile("tofh10","TrkTracks/FTC vs Time",120,0,toftrange[tofscales[0]],0,1));
+  _filled[_filled.size()-1]->SetYTitle("TrkTracks/Ftc");
+ 
   
-  _filled.push_back(new TH1F("tofh11","TRKChi2(FastFit,NoMScat)",50,0.,500.));
+  
+  _filled.push_back(new TH1F("tofh11","TRKChi2(MultScattOff)",50,0.,500.));
   _filled[_filled.size()-1]->SetXTitle("chi2");
   _filled[_filled.size()-1]->SetFillColor(9);
   
@@ -135,9 +137,9 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("ass=r1-r2/r1+r2");
   _filled[_filled.size()-1]->SetFillColor(9);
   
-  _filled.push_back(new TH1F("tofh13","TRK dR/R(FastFit)",50,0.,0.2));
-  _filled[_filled.size()-1]->SetXTitle("RigidityErr/Rigidity");
-  _filled[_filled.size()-1]->SetFillColor(9);
+    _filled.push_back(new TProfile("tofh13","RigErr/Rig vs Rigidity(gv)",100,0,50,0,200));
+    _filled[_filled.size()-1]->SetYTitle("%");
+    _filled[_filled.size()-1]->SetXTitle("|Rigidity| (Gv)");
 //set-3  
   AddSet("LongitTofTrkMatching");
 
@@ -302,6 +304,16 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TofVelocity/C");
   _filled[_filled.size()-1]->SetFillColor(8);
   
+//set-11  
+  AddSet("TRD");
+  
+  _filled.push_back(new TProfile("tofh51","TrdTracks/FTC vs Time",120,0,toftrange[tofscales[0]],0,1));
+  _filled[_filled.size()-1]->SetYTitle("TrdTracks/Ftc");
+  
+  _filled.push_back(new TH1F("tofh52","TrdRawHits",100,0,100));
+  _filled[_filled.size()-1]->SetFillColor(8);
+  _filled.push_back(new TH1F("tofh53","TrdTrackChi2",50,0,5));
+  _filled[_filled.size()-1]->SetFillColor(8);
 }
 //------------------------------------
 
@@ -355,7 +367,35 @@ case 2:
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
-    _filled[i+8]->Draw();//TRK-tracks parameters
+    if(tofscales[i]==1){
+      strcpy(name,"Last 120 mins since ");
+      strcpy(dat,AntiPars::getdat1());
+    }
+    else if(tofscales[i]==2){
+      strcpy(name,"Last 120 hours since ");
+      strcpy(dat,AntiPars::getdat2());
+    }
+    else if(tofscales[i]==3){
+      strcpy(name,"Last 120 days since ");
+      strcpy(dat,AntiPars::getdat3());
+    }
+    if(i==2 || i==5){
+      if(i==2){
+        _filled[i+8]->SetMaximum(1.);
+        strcat(name,dat);
+        xax=_filled[i+8]->GetXaxis();
+        xax->SetTitle(name);
+        xax->SetTitleSize(0.05);
+      }
+      if(i==5)_filled[i+8]->SetMaximum(50.);
+      _filled[i+8]->SetMarkerStyle(20);
+      _filled[i+8]->SetMarkerSize(0.5);
+      _filled[i+8]->SetMarkerColor(9);
+      _filled[i+8]->Draw("P");//TRK-tracks parameters
+    }
+    else{
+      _filled[i+8]->Draw();//TRK-tracks parameters
+    }
     gPadSave->cd();
   }
   break;
@@ -658,6 +698,45 @@ case 10:
     gPadSave->cd();
   }
   break;
+case 11:
+  gPad->Divide(2,2);
+  for(i=0;i<3;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    if(i>0)gStyle->SetOptStat(110011);
+    else gStyle->SetOptStat(11);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(i==0){
+      if(tofscales[i]==1){
+        strcpy(name,"Last 120 mins since ");
+        strcpy(dat,AntiPars::getdat1());
+      }
+      else if(tofscales[i]==2){
+        strcpy(name,"Last 120 hours since ");
+        strcpy(dat,AntiPars::getdat2());
+      }
+      else if(tofscales[i]==3){
+        strcpy(name,"Last 120 days since ");
+        strcpy(dat,AntiPars::getdat3());
+      }
+      _filled[i+51]->SetMaximum(1.);
+      strcat(name,dat);
+      xax=_filled[i+51]->GetXaxis();
+      xax->SetTitle(name);
+      xax->SetTitleSize(0.05);
+      _filled[i+51]->SetMarkerStyle(20);
+      _filled[i+51]->SetMarkerSize(0.5);
+      _filled[i+51]->SetMarkerColor(8);
+      _filled[i+51]->Draw("P");//TRD/Ftc
+    }
+    else{
+      _filled[51+i]->Draw();//Trd rawhits, chi2
+    }
+    gPadSave->cd();
+  }
+  break;
 //
   }//--->endof switch
 //
@@ -675,6 +754,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   Float_t time[3];
   static Float_t tinpp,toutp;
   Float_t Rigid(0),GRigid(0),PiRigid(0);
+  Float_t trkin(0),trdin(0);
 //
   RunPar::addsev(0);//<--counts inputs
   if(ntuple->nMCEventg()>0)RunPar::SetMCF1();//MC data
@@ -710,6 +790,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   for(int i=0;i<5;i++){
     if((time[tofscales[i]-1]-timez[tofscales[i]-1])>=toftrange[tofscales[i]-1]){
       ((TProfile*)_filled[25+i])->Reset("");
+      ((TProfile*)_filled[10])->Reset("");//trk/ftc
+      ((TProfile*)_filled[51])->Reset("");//trd/ftc
       timez[tofscales[i]-1]=time[tofscales[i]-1];
       time[tofscales[i]-1]+=0.001;
       if(tofscales[i]==1)RunPar::setdat1(ntuple->Time());
@@ -839,17 +921,60 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   if(ntuple->NParticle()==0)return;//======> no Part
   RunPar::addsev(4);//<--passed Part check
 //  
-  Int_t itrktr(-1),itrdtr(-1),pindex(-1);
+  Int_t itrktr(-1),itrdtr(-1),iecshow(-1),ircring(-1),pindex(-1),pindextrd(-1);
+  Int_t PartMemb[4][5]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//[ipart][imemb]
+  Bool_t TRKtrPart(0),TRDtrPart(0),ECALshowPart(0),RICHringPart(0);
   for(int i=0;i<ntuple->NParticle();i++){//search for 1st Part. with trk-track
     itrktr = ntuple->Particle(i).iTrTrack();//TRKtrack index used by i-th Part. 
     itrdtr = ntuple->Particle(i).iTrdTrack();//TRDtrack index used by i-th Part.
-    if(itrktr>=0)pindex=i;//store index of 1st Part with trk-track 
-    if(itrktr>=0)break;
+    iecshow = ntuple->Particle(i).iEcalShower();//EcShower index used by i-th Part.
+    ircring = ntuple->Particle(i).iRichRing();//RichRing index used by i-th Part.
+    if(itrktr>=0)PartMemb[i][0]=1;
+    if(itrdtr>=0)PartMemb[i][1]=1;
+    if(iecshow>=0)PartMemb[i][2]=1;
+    if(ircring>=0)PartMemb[i][3]=1;
+//    if(itrktr>=0)pindex=i;//store index of 1st Part with trk-track 
+//    if(itrktr>=0)break;
+  }
+  for(int i=0;i<ntuple->NParticle();i++){//<=============select 1st particle with needed members
+    if(
+        PartMemb[i][0]==1
+                         || PartMemb[i][1]==1		                
+//                         || PartMemb[i][2]==1		                
+					      ){
+      TRKtrPart    = (PartMemb[i][0]==1);
+      TRDtrPart    = (PartMemb[i][1]==1);
+      ECALshowPart = (PartMemb[i][2]==1);
+      RICHringPart = (PartMemb[i][3]==1);
+      pindex=i;//store index of 1st Part with needed members
+      break;
+					       }
+  }
+//---> fill the TRK-acceptance vs time hist:
+//
+  if(TOFTrigFl1>=0 && TOFTrigFl1<5){//FTC with >=3of4
+    if(TRKtrPart)trkin=1.;
+    ((TProfile*)_filled[10])->Fill(time[tofscales[0]-1]-timez[tofscales[0]-1],trkin,1.);
+  }
+//
+//---> Fill the TRD-acceptance vs time and some other pars::
+//
+  Int_t ntrdrawh=ntuple->nTrdRawHit();
+  if(TOFTrigFl1>=0 && TOFTrigFl1<5){//FTC with >=3of4
+    _filled[52]->Fill(ntrdrawh,1);
+    if(TRDtrPart)trdin=1.;
+    ((TProfile*)_filled[51])->Fill(time[tofscales[0]-1]-timez[tofscales[0]-1],trdin,1.);
+  }
+  if(TRDtrPart){//<---- particle contains TRD-track
+    TrdTrackR *p2trdtr = ntuple->Particle(pindex).pTrdTrack();//pointer to part-used TRD-track
+    Float_t trdchi2=p2trdtr->Chi2;
+    _filled[53]->Fill(trdchi2,1);
   }
 //
 // <======= Select track(here TRK) based Particle :
 //
-  if(pindex<0)return;//======> no Part. with TRK-track
+//  if(pindex<0)return;//======> no Part. with TRK||TRD-track
+  if(!TRKtrPart)return;//======> no Part. with TRK-track
   RunPar::addsev(5);//<--- passed TRK-track check
 //
   ChargeR *p2charge=ntuple->Particle(pindex).pCharge();
@@ -989,7 +1114,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       RunPar::addsev(12);//<--passed "trueX" test
 //
       _filled[9]->Fill(trkch2,1);//V+PG
-      _filled[10]->Fill(trkch2sz,1);//V
+//      _filled[10]->Fill(trkch2sz,1);//V
       _filled[11]->Fill(trkch2ms,1);//V+PG
       if(trkch2<120
                    && trkch2sz<20
@@ -1000,7 +1125,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 	  _filled[12]->Fill(hrigass,1);//V+PG
           RunPar::addsev(14);//<--passed "AdvancFitDone" test
 //	  if(fabs(hrigass)<0.5){
-            _filled[13]->Fill(rerig,1);//V(ErrRig miss. in PG)
+//            _filled[13]->Fill(rerig,1);
+	    ((TProfile*)_filled[13])->Fill(fabs(Rigid),rerig*100,1.);
             TRKtrOK=1;
             RunPar::addsev(15);//<--passed "HalfRigAssim" test
 //	  }
@@ -1091,6 +1217,10 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
       _filled[9]->Fill(trkch2,1);//V+PG
 //      _filled[10]->Fill(trkch2sz,1);//V
+      if(TOFTrigFl1>=0 && TOFTrigFl1<5){
+        ((TProfile*)_filled[10])->Fill(time[tofscales[0]-1]-timez[tofscales[0]-1],1.,1.);
+      }
+      
       _filled[11]->Fill(trkch2ms,1);//V+PG
       if(trkch2<120
                                  && trkch2ms<10000

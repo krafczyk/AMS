@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.148 2011/03/28 14:46:13 choutko Exp $
+//  $Id: geant3.C,v 1.149 2011/03/31 09:36:38 choumilo Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -356,7 +356,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	<<" ipart="<<GCKINE.ipart<<endl;
         //cout << GCVOLU.names[lvl][0]<< GCVOLU.names[lvl][1]<< GCVOLU.names[lvl][2]<< GCVOLU.names[lvl][3]<<endl;
         //cout <<" ecal "<<GCVOLU.number[lvl-1]<< " "<<dee<<endl;
-//  if(!(GCKINE.ipart==1 || GCKINE.ipart==2 || GCKINE.ipart==3))dee=dee*0.81;//<-- crazy idea
+//  if(GCKINE.ipart==1 || GCKINE.ipart==2 || GCKINE.ipart==3)dee=dee*1.24;//<-- crazy idea
         AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
 
         if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
