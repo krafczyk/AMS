@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.636 2011/03/31 13:29:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.637 2011/03/31 14:06:36 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5406,7 +5406,7 @@ function sort_prodsets() {
                 push @datasets, $ds->[0];
             }
            }
-      my $id=1001;
+       $id=1001;
            foreach my $dataset (@datasets) {
              print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
              $id++;
@@ -7124,7 +7124,7 @@ print qq`
             $self->ErrorPlus("unable to retreive $key name from db");
         }
          my $am=$ret->[0][0];
-         my @stag2=stat "$self->{AMSSoftwareDir}/$am";
+         @stag2=stat "$self->{AMSSoftwareDir}/$am";
         if($#stag2<0){
               $self->ErrorPlus("Unable to find $am on the Server ");
         }
@@ -8359,7 +8359,7 @@ anyagain:
             $self->ErrorPlus("unable to retreive $key name from db");
         }
          my $am=$ret->[0][0];
-         my @stag2=stat "$self->{AMSSoftwareDir}/$am";
+         @stag2=stat "$self->{AMSSoftwareDir}/$am";
         if($#stag2<0){
               $self->ErrorPlus("Unable to find $am on the Server ");
         }
@@ -12367,7 +12367,7 @@ sub lastDBUpdate {
       }
     }
 
-    my $clause=" where time<$timenow";
+     $clause=" where time<$timenow";
       $sql="SELECT MAX(Jobs.time) FROM Jobs".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
@@ -12376,7 +12376,7 @@ sub lastDBUpdate {
       }
     }
 
-    my $clause=" where submit<$timenow";
+     $clause=" where submit<$timenow";
       $sql="SELECT MAX(Runs.submit) FROM Runs".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
@@ -12385,7 +12385,7 @@ sub lastDBUpdate {
       }
     }
 
-    my $clause=" where timestamp<$timenow";
+     $clause=" where timestamp<$timenow";
       $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples".$clause;
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
