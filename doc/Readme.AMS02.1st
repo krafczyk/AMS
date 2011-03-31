@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.59 2010/10/19 15:36:33 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.60 2011/03/31 08:04:44 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -42,14 +42,11 @@ e) AMS02 Software Status Report in
 VI. Access to AMS software
 
  i) Get an account on  some ams computer (see VIII)
-   setenv Offline  /afs/ams.cern.ch/Offline 
-                                           for computers at cern cite
-                                           eg ams,pcamsf2,lxplus
-
-                                           for all other computers 
-                                           provide ip address of the node(s)
+   setenv Offline  /afs/cern.ch/ams/Offline 
+                                           for computer with local (non-afs) users 
+                                           outside CERN 
+                                           please provide ip address of the node(s)
                                            to vitali.choutko@cern.ch
-                                           ro access to ams.cern.ch will be granted 
 
    source $Offline/vdev/install/amsvar
    
