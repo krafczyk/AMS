@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.637 2011/03/31 14:06:36 choutko Exp $
+# $Id: RemoteClient.pm,v 1.638 2011/03/31 15:17:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14354,7 +14354,7 @@ sub insertNtuple {
 #    my $paths='/Offline/RunsDir/MC/';
 #    my $cmd="ln -s $path $paths";
 #    system($cmd);
-          my $paths=self->datasetlink($path,'/Offline/RunsDir',1);
+     my $paths=$self->datasetlink($path,'/Offline/RunsDir',1);
 if(not defined $fetime or not defined $letime){ 
     my $ret=$self->{sqlserver}->Query(" select fetime,letime from runs where jid=$jid");
     if(defined($ret->[0][0])){
@@ -19578,7 +19578,7 @@ sub datasetlink{
                $newfile=$newfile.'/'.$junk[$j];
            }
            for my $j (2...$#junk-1){
-               $newdir=$newfile.'/'.$junk[$j];
+               $newdir=$newdir.'/'.$junk[$j];
            }
     my $mkdir="mkdir -p $newdir";
     system($mkdir);
