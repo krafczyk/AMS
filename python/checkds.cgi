@@ -1,11 +1,11 @@
 #!/usr/bin/env python2.4
-#  $Id: checkds.cgi,v 1.3 2008/09/16 19:12:05 choutko Exp $
+#  $Id: checkds.cgi,v 1.4 2011/03/31 08:01:52 choutko Exp $
 # this script suppose to check datasets
 #
 import sys, os
 import cgi
 import cgitb; cgitb.enable()
-sys.path.insert(0,'/afs/ams.cern.ch/AMSDataDir' + '/DataManagement/python/lib')
+sys.path.insert(0,'/afs/cern.ch/ams/Offline/AMSDataDir' + '/DataManagement/python/lib')
 sys.path.insert(0,'./lib')
 import RemoteClient
 body="""

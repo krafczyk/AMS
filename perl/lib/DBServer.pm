@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.21 2010/12/30 13:43:18 choutko Exp $
+# $Id: DBServer.pm,v 1.22 2011/03/31 08:01:49 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -871,7 +871,7 @@ sub InitDBFileNew{
      else{
          $ref=shift;
      }
-    $amsprodlogdir="/afs/ams.cern.ch/AMSDataDir/prod.log";
+    $amsprodlogdir="/afs/cern.ch/ams/AMSDataDir/prod.log";
         my $tmpname=tmpnam();
         $ref->{dbfile}=$amsprodlogdir."/".unpack("x5 A*",$tmpname);
         my $lock="$ref->{dbfile}.lock";

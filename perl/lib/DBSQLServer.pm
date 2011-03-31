@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.86 2011/03/30 12:18:11 dmitrif Exp $
+# $Id: DBSQLServer.pm,v 1.87 2011/03/31 08:01:49 choutko Exp $
 
 #
 #
@@ -496,7 +496,7 @@ my $sql;
     }
 }
     if ($cnt == 0) {
-     $dbh->do("insert into Environment values('AMSDataDir','/afs/ams.cern.ch/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('AMSDataDir','/afs/cern.ch/ams/Offline/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('UploadsDir','/var/www/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('UploadsHREF','AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
@@ -514,7 +514,7 @@ my $sql;
      my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
      $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ValidationDirPath','/f2users/scratch/MC/validate/')") or die "cannot do : ".$dbh->errstr();
-     $dbh->do("insert into Environment values('ROOTSYS','/afs/ams.cern.ch/Offline/root/Linux/pro/')") or die "cannot do : ".$dbh->errstr();
+     $dbh->do("insert into Environment values('ROOTSYS','/afs/cern.ch/ams/Offline/root/Linux/pro/')") or die "cannot do : ".$dbh->errstr();
      $dbh->do("insert into Environment values('HTTPserver','pcamsf0.cern.ch')") or die "cannot do : ".$dbh->errstr();
       
  } else {

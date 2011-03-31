@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.634 2011/03/30 14:50:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.635 2011/03/31 08:01:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -249,7 +249,7 @@ my %fields=(
         AMSProdDir=>undef,
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
-        ROOTSYS  =>'/afs/ams.cern.ch/Offline/root/Linux/pro/',
+        ROOTSYS  =>'/afs/cern.ch/ams/Offline/root/Linux/pro/',
         HTTPserver=>'pcamss0.cern.ch',
         HTTPhtml  =>'http://pcamss0.cern.ch/',
         HTTPcgi   =>'http://pcamss0.cern.ch/cgi-bin/mon',
@@ -461,7 +461,7 @@ my %mv=(
      $self->{AMSDataDir}=$dir;
  }
  else{
-     $self->{AMSDataDir}="/afs/ams.cern.ch/Offline/AMSDataDir";
+     $self->{AMSDataDir}="/afs/cern.ch/ams/Offline/AMSDataDir";
      $ENV{AMSDataDirRW}=$self->{AMSDataDir};
  }
 #sqlserver
@@ -510,7 +510,7 @@ my %mv=(
        $self->{ROOTSYS}=$ret->[0][0];
      }
      else{
-      $self->{ROOTSYS}="/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322/";
+      $self->{ROOTSYS}="/afs/cern.ch/ams/Offline/root/Linux/v3.05.05gcc322/";
   }
  }
 #
@@ -2511,7 +2511,7 @@ sub ConnectOnlyDB{
      $self->{AMSDataDir}=$dir;
    }
     else{
-     $self->{AMSDataDir}="/afs/ams.cern.ch/.../AMSDataDir";
+     $self->{AMSDataDir}="/afs/cern.ch/ams/Offline/AMSDataDir";
      $ENV{AMSDataDirRW}=$self->{AMSDataDir};
     }
      if (not defined $self->{AMSSoftwareDir}) {
@@ -14482,7 +14482,7 @@ sub printMC02GammaTest {
 
     my $buf;
 
-    my $mc02gammafile = "/afs/ams.cern.ch/AMS02/MC/mc02-gamma-test.datasets";
+    my $mc02gammafile = "/afs/cern.ch/ams/AMS02/MC/mc02-gamma-test.datasets";
 
     open(FILE,"<".$mc02gammafile) or die "Unable to open $mc02gammafile \n";
     read(FILE,$buf,1638400);
@@ -15828,7 +15828,7 @@ sub calculateMipsVC {
 
         my $totalcpu=0;
         my $restcpu=0;
-     my $dir="/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets";
+     my $dir="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/DataSets";
       if(defined $self->{AMSSoftwareDir}){
         $dir="$self->{AMSSoftwareDir}/DataSets";
       }
@@ -16396,7 +16396,7 @@ sub getEventsLeft {
 
     if ($verbose) {print "getTotalEvents -I- Connected \n";}
 
-# get names from /afs/ams.cern.ch/AMSDataDir/DataManagement/
+# get names from /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/
     my $dir="$self->{AMSSoftwareDir}/DataSets";
     opendir THISDIR ,$dir or die "unable to open $dir";
     my @allfiles= readdir THISDIR;
@@ -17501,14 +17501,14 @@ sub readDataSets() {
 #
 # Read and parse datasets from the predefined
 # directory
-# default path : /afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets
+# default path : /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/DataSets
 #
     my $self = shift;
 
     my $totalcpu=0;
     my $restcpu =0;
     my $verbose =0;
-    my $topdir     ='/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets';
+    my $topdir     ='/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/DataSets';
 
  my $HelpTxt = "
      scan dataset directory and estimate CPU/Elapsed time
