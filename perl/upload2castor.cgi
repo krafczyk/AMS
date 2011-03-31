@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.16 2011/03/31 14:21:21 choutko Exp $
+#  $Id: upload2castor.cgi,v 1.17 2011/03/31 14:30:27 ams Exp $
 use strict;
-use lib qw(/var/www/cgi-bin/mon);
+use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
@@ -18,7 +18,7 @@ my $upd=1;
 my $run2p=0;
 my $cmp=1;
 my $dir="AMS01/2006B";
-my $mb=100000;
+my $mb=2000000;
  my $HelpTxt = "
      RemoteClient::UploadToCastor
 #
@@ -66,7 +66,21 @@ my $mb=100000;
     }
  }
 
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,1);
+$dir="AMS02/2011B";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,2);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3);
+$dir="AMS02/2011A";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,2);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,2,3);
+
+
+$dir="AMS02/2011A";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,0);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,1);
+$dir="AMS02/2011B";
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,0);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb,20,1);
+
 
 
 
