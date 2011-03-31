@@ -8,7 +8,10 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  tkmerge(argv[1], argv[2]);
+  if (argc == 4)
+    tkadjst(argv[1], argv[2]);
+  else
+    tkmerge(argv[1], argv[2]);
 
   exit(0);
   return 0;

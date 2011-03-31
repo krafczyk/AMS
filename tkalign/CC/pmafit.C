@@ -1,4 +1,4 @@
-// $Id: pmafit.C,v 1.3 2010/11/20 15:16:39 shaino Exp $
+// $Id: pmafit.C,v 1.4 2011/03/31 10:10:04 haino Exp $
 #include "tkalign.C"
 #include "MagField.h"
 
@@ -76,18 +76,23 @@ Int_t init(const char *tkdbc, Double_t rng, Int_t bits = 0)
 
   if (bits & TkAlign::kPlFit) {
     TkAlign::fMsc  = 0;
-    TkAlign::fNmin = 5;
+    TkAlign::fNmin = 4;
     TkAlign::InitPar();
 
     PlAlign::fRange = rng;
     TkAlign::InitVec();
     TkAlign::InitShists(rng);
 
-    TkAlign::fErrX[7] = TkAlign::fErrX[8] = 0;
-    TkAlign::fErrY[7] = TkAlign::fErrY[8] = 0;
+    if ((bits & 0x3f) == 0) {
+      TkAlign::fErrX[7] = TkAlign::fErrX[8] = 0;
+      TkAlign::fErrY[7] = TkAlign::fErrY[8] = 0;
+      cout << "External planes set free"  << endl;
+    }
+    else
+      cout << "External planes used for the fitting"  << endl;
   }
   else {
-    TkAlign::fMsc  = (bits != TkAlign::kSensY) ? 1 : 0;
+    TkAlign::fMsc  = (bits != TkAlign::kSensY) ? 2 : 0;
     TkAlign::fNmin = 6;
     TkAlign::InitPar();
 
@@ -142,6 +147,13 @@ void copyproc(Int_t bits, const char *tkdbc,
   TkDBc::Head->write("tkdbc.dat.new");
 }
 
+Int_t hfill(TDirectory *dir, Int_t hid, Double_t x, Double_t y)
+{
+  TH2F *hist = (TH2F *)dir->Get(Form("hist%d", hid));
+  if (hist) return hist->Fill(x, y);
+  return 0;
+}
+
 void pmafit(Int_t bits, const char *tkdbc, 
 	    Float_t rng = 0.01,
 	    const char *fname = "pmafit.dat")
@@ -158,6 +170,18 @@ void pmafit(Int_t bits, const char *tkdbc,
 
   TFile of(sfn, "recreate");
   if (init(tkdbc, rng, bits) < 0) return;
+
+  enum { NBX = 80, NBY = 100, NBR = 32 };
+  Double_t bx[NBX+1], by[NBY+1], br[NBR+1];
+  for (Int_t i =  0; i <= NBX; i++) bx[i] = TMath::Power(10, -1+i*0.05);
+  for (Int_t i =  0; i <= NBY; i++) by[i] = TMath::Power(10, -3+i*0.05);
+  for (Int_t i =  0; i <   20; i++) br[i] = TMath::Power(10, 0.10*i-1);
+  for (Int_t i = 20; i <   30; i++) br[i] = TMath::Power(10, 0.10*i-1);
+  for (Int_t i = 30; i <=  32; i++) br[i] = TMath::Power(10, 0.50*i-13);
+
+  of.cd();
+  new TH2F("hist31", "Rgt+", NBR, br, NBY, by);
+  new TH2F("hist32", "Rgt-", NBR, br, NBY, by);
 
   enum { NL = TkAlign::NLAY };
 
@@ -199,6 +223,9 @@ void pmafit(Int_t bits, const char *tkdbc,
 	else
 	  ycog[i] = -ycog[i];
       }
+
+      //if (TMath::Abs(tkid[i])/100 == 8 ||
+      //    TMath::Abs(tkid[i])/100 == 9) ycog[i] = -ycog[i];
     }
 
     if (bits == 0 && (tkid[7] == 0 || tkid[8] == 0)) continue;
@@ -207,6 +234,10 @@ void pmafit(Int_t bits, const char *tkdbc,
     if (csq > 0) {
       nf++;
       csum += csq;
+
+      Double_t rfit = TkAlign::fRfit;
+      if (rfit > 0) hfill(&of, 31,  rfit, csq);
+      if (rfit < 0) hfill(&of, 32, -rfit, csq);
     }
   }
 
@@ -214,7 +245,7 @@ void pmafit(Int_t bits, const char *tkdbc,
     cout << Form("%7d %7d %7.3f", nf, nr, csum/nf) << endl;
 
     if (bits > 0) {
-      if (bits & TkAlign::kSensY) {
+      if (bits == TkAlign::kSensY) {
 	of.cd();
 	salig((TH3 *)of.Get("hist4"));
       }
@@ -227,13 +258,6 @@ void pmafit(Int_t bits, const char *tkdbc,
 
   if (bits > 0)
     TkDBc::Head->write("tkdbc.dat.new");
-}
-
-Int_t hfill(TDirectory *dir, Int_t hid, Double_t x, Double_t y)
-{
-  TH2F *hist = (TH2F *)dir->Get(Form("hist%d", hid));
-  if (hist) return hist->Fill(x, y);
-  return 0;
 }
 
 void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
@@ -262,10 +286,13 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
 
   of.cd();
 
-  enum { NBX = 80, NBY = 100 };
-  Double_t bx[NBX+1], by[NBY+1];
-  for (Int_t i = 0; i <= NBX; i++) bx[i] = TMath::Power(10, -1+i*0.05);
-  for (Int_t i = 0; i <= NBY; i++) by[i] = TMath::Power(10, -2+i*0.05);
+  enum { NBX = 80, NBY = 100, NBR = 32 };
+  Double_t bx[NBX+1], by[NBY+1], br[NBR+1];
+  for (Int_t i =  0; i <= NBX; i++) bx[i] = TMath::Power(10, -1+i*0.05);
+  for (Int_t i =  0; i <= NBY; i++) by[i] = TMath::Power(10, -2+i*0.05);
+  for (Int_t i =  0; i <   20; i++) br[i] = TMath::Power(10, 0.10*i-1);
+  for (Int_t i = 20; i <   30; i++) br[i] = TMath::Power(10, 0.10*i-1);
+  for (Int_t i = 30; i <=  32; i++) br[i] = TMath::Power(10, 0.50*i-13);
 
   new TH2F("hist11", "csqX VS Rgt", NBX, bx, NBY, by);
   new TH2F("hist12", "csqY VS Rgt", NBX, bx, NBY, by);
@@ -277,6 +304,9 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
   new TH2F("hist23", "Y7 VS X7", 280, -70, 70, 280, -70, 70);
   new TH2F("hist24", "Y8 VS X8", 280, -70, 70, 280, -70, 70);
   new TH2F("hist25", "Y9 VS X9", 280, -70, 70, 280, -70, 70);
+
+  new TH2F("hist31", "Rgt+", NBR, br, NBY, by);
+  new TH2F("hist32", "Rgt-", NBR, br, NBY, by);
 
   enum { NID = 31, NFD = 67 };
 
@@ -329,32 +359,32 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
     br2->SetAddress(&fdata);
     br2->GetEntry(ent);
 
-    Double_t argt = TMath::Abs(fdata[33]);
-    Double_t csqx = fdata[25];
-    Double_t csqy = fdata[29];
+    Double_t  argt = TMath::Abs(fdata[33]);
+    Double_t  csqx =  fdata[25];
+    Double_t  csqy =  fdata[29];
+    Float_t  *trkx = &fdata[ 7];
+    Float_t  *trky = &fdata[16];
 
     if (csqx < 0 || csqy < 0 || argt ==0) continue;
 
     hfill(&of, 11, argt, csqx);
     hfill(&of, 12, argt, csqy);
-
-    Double_t cmax = TMath::Power(10,  2-1.5*TMath::Log10(argt))+1;
-    Double_t cmin = TMath::Power(10, -1-2.0*TMath::Log10(argt))+0.01;
-    if (argt < 0.3) continue;
-    if (csqx < cmin || csqx > cmax || csqx > 20) continue;
-    if (csqy < cmin || csqy > cmax || csqy > 20) continue;
+    if (argt < 0.3 || csqx > 20 || csqy > 20) continue;
 
     nsel++;
 
-    Double_t csq = 1;
-    if (bits > 0)
-      csq = TkAlign::Fit(&idata[13], &idata[22], &fdata[41], &fdata[50]);
+    Double_t csq = TkAlign::Fit(&idata[13], &idata[22],
+				&fdata[41], &fdata[50]);
 
     if (csq > 0) {
       csum += csq;
 
       hfill(&of, 13, argt, csqx);
       hfill(&of, 14, argt, csqy);
+
+      Double_t rfit = TkAlign::fRfit;
+      if (rfit > 0) hfill(&of, 31,  rfit, csq);
+      if (rfit < 0) hfill(&of, 32, -rfit, csq);
 
       Int_t run  = idata[0];
       Int_t ient = idata[2];
@@ -364,6 +394,11 @@ void pmafit(const char *fname, const char *tkdbc, Int_t bits = -1)
 	Int_t tkid = idata[13+i];
 	Int_t imlt = idata[22+i];
 	ibuf[i] = TMath::Sign(TMath::Abs(tkid)*100+imlt, tkid);
+      }
+
+      if (TMath::Abs(trkx[8]) > 33 || TMath::Abs(trky[8]) > 33) {
+	ibuf[8] = 0;
+	fdata[41+8] = fdata[50+8] = 0;
       }
 
       fout.write((char *)&run,  sizeof(run));

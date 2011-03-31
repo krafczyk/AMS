@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2010/12/09 00:55:43 shaino Exp $
+# $Id: Makefile,v 1.9 2011/03/31 10:09:49 haino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -14,15 +14,21 @@
 
 WDIR = $(AMSSRC)/tkalign
 ARCH = $(shell $(ROOTSYS)/bin/root-config --arch)
+HOST = $(shell hostname --domain)
 DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__ -D_WDIR_=\"$(WDIR)\"
-FLGS = -I$(ROOTSYS)/include -I../include
+FLGS = -I$(ROOTSYS)/include -I../include -Iinclude
 OPTS = -O3
+
+
+# 32 bit and 64 bit specification
 
 M32  = $(shell $(ROOTSYS)/bin/root-config --cflags | awk -F -m '{print $$2}' | awk '{print $$1}')
 ifeq ($(M32),32)
   FLGS := $(FLGS) -m32
 endif
 
+
+# for icc compiler
 
 ICC  = $(shell $(ROOTSYS)/bin/root-config --cxx | grep icc)
 ifeq ($(ICC),icc)
@@ -35,16 +41,31 @@ ifeq ($(ICC),icc)
   LD   = $(IDIR)/$(IVER)/bin/intel64/icpc $(IOPT) $(PARA) $(STAT)
 endif
 
-# Dinamic library
-#LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+# for CNAF static binary with linuxx8664gcc
+ifeq ($(HOST),cr.cnaf.infn.it)
+  LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+  LIBR = lib/libMinuit2.a -L$(ROOTSYS)/lib -lRoot -pthread -lpcre -ldl $(LIBX)
+  LIBP = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a 
+  LD   = g++ -static
 
-# Static library
-LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
-LIBR = -L$(ROOTSYS)/lib -lRoot -pthread  -lpcre $(LIBX)
-LIBS = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a $(LIBR)
+# for CERN static binary with linuxx8664icc
+else
+ifeq ($(HOST),cern.ch)
+  LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
+  LIBR = -L$(ROOTSYS)/lib -lRoot -pthread  -lpcre $(LIBX)
+  LIBP = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
+
+# for dynamic binary
+else
+  LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+  LIBP = $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
+
+endif
+endif
+
 
 MODS = tbalign tbafit tbaf tbafm tbafcp \
-       pmalign pmafit pmaf pmafcp pmrinv tkmerge trqpar
+       pmalign pmafit pmaf pmafcp pmrinv tkmerge
 
 BINS = $(addprefix bin/, $(MODS))
 
@@ -53,10 +74,10 @@ all: $(BINS)
 %.o: CC/m_%.C
 	$(CXX) -c -o $@ $(DEFS) $(FLGS) $(OPTS) $<
 
-bin/%: %.o
+bin/%: %.o $(LIBP)
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
-	$(LD) -o $@ $< $(LIBS)
-	readelf -d $@
+	$(LD) -o $@ $< $(LIBP) $(LIBR)
+	#readelf -d $@
 
 clean:
 	rm -f bin/*

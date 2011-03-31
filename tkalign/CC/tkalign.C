@@ -1,4 +1,4 @@
-// $Id: tkalign.C,v 1.3 2010/11/20 15:16:39 shaino Exp $
+// $Id: tkalign.C,v 1.4 2011/03/31 10:10:06 haino Exp $
 #include "TObjArray.h"
 #include "TDirectory.h"
 #include "TH3.h"
@@ -776,8 +776,8 @@ void TkAlign::InitShists(Double_t rng)
   Double_t bx  = nbx+0.5;
   Double_t rgx = rng*2;
 
-  Double_t bin[51];
-  for (Int_t i = 0; i <= 50; i++) bin[i] = TMath::Power(10, -2+i*0.1);
+  Double_t bin[61];
+  for (Int_t i = 0; i <= 60; i++) bin[i] = TMath::Power(10, -3+i*0.1);
 
   fSarray.Clear();
   fSarray.Add(new TH3F("hist1", "Residual (X) VS dX/dZ", 
@@ -793,10 +793,10 @@ void TkAlign::InitShists(Double_t rng)
 
   fSarray.Add(new TH3F("hist0", "Track pos",
 		       280, -70, 70, 280, -70, 70, 9, 0.5, 9.5));
-  fSarray.Add(new TH3F("hist10", "Chisquare",
-		       30, &bin[20], 50, bin, 50, bin));
-  fSarray.Add(new TH3F("hist11", "Chisquare",
-		       30, &bin[20], 50, bin, 50, bin));
+  fSarray.Add(new TH3F("hist6", "Chisquare",
+		       30, &bin[30], 60, bin, 60, bin));
+  fSarray.Add(new TH3F("hist7", "Chisquare",
+		       30, &bin[30], 60, bin, 60, bin));
 
   Int_t npx = nbx;
   if (fTkMap.size() == 0 && fPlVec.size() == NPLA) npx = NPLA;
@@ -978,6 +978,8 @@ Double_t TkAlign::Fit(Int_t *tkid, Int_t *imlt, Float_t *xcog, Float_t *ycog)
   if (ttmp.LinearFit() <  0) return -1;
   if (ttmp.GetChisqX() > 50) return -1;
 
+  Int_t nfit = 0;
+
   ttmp.SetRigidity(0);
   for (Int_t i = 0; i < nhit; i++) {
     Int_t j = idx[i];
@@ -995,32 +997,31 @@ Double_t TkAlign::Fit(Int_t *tkid, Int_t *imlt, Float_t *xcog, Float_t *ycog)
     }
 
     trfit.Add(coo, err);
+    if (err.y() > 0) nfit++;
   }
   trfit._mscat = 0;
   if (trfit.AlcarazFit(fixr) < 0) return -1;
 
   if (!fixr && fMsc) {
-    trfit.SetRigidity(trfit.GetRigidity()*2);
+    trfit.SetRigidity(trfit.GetRigidity()*fMsc);
     trfit._mscat = 1;
     if (trfit.AlcarazFit() < 0) return -1;
   }
 
-  Double_t chisq = trfit.GetChisqY(); //trfit.GetChisqX()+trfit.GetChisqY();
+  Double_t chisq = trfit.GetChisqY()/trfit.GetNdofY();
   fRfit = 0;
 
   if (!fixr && trfit.GetRigidity() != 0) {
     Double_t argt = TMath::Abs(trfit.GetRigidity());
     Double_t logr = TMath::Log10(argt);
-    Double_t csqx = trfit.GetChisqX();
-    Double_t csqy = trfit.GetChisqY();
-    Double_t csrx = TMath::Power(10, 2.3-2.5*logr)+0.07;
-    Double_t csry = TMath::Power(10, 1.7-2.5*logr)+0.01;
+    Double_t csqx = trfit.GetChisqX()/trfit.GetNdofX();
+    Double_t csqy = trfit.GetChisqY()/trfit.GetNdofY();
 
-    TH3F *hist0 = (TH3F *)fSarray.FindObject("hist10");
-    TH3F *hist1 = (TH3F *)fSarray.FindObject("hist11");
+    TH3F *hist0 = (TH3F *)fSarray.FindObject("hist6");
+    TH3F *hist1 = (TH3F *)fSarray.FindObject("hist7");
     hist0->Fill(argt, csqx, csqy);
 
-    if (!fMsc && (csqx/csrx > 100 || csqy/csry > 100)) return -2;
+    if (!fMsc && (csqx > 100 || csqy > 100)) return -2;
     FillR(trfit, idx, tkid);
 
     if (chisq < fCmax) hist1->Fill(argt, csqx, csqy);
@@ -1108,6 +1109,8 @@ void TkAlign::FillR(TrFit &trfit, Int_t *idx, Int_t *tkid)
 
   else {
     TH3F *hist = (TH3F*)fSarray.FindObject("histr");
+
+    fRfit = trfit.GetRigidity();
 
     Int_t nhit = trfit.GetNhit();
     for (Int_t i = 0, k = 0; i < nhit; i++) {

@@ -1,4 +1,4 @@
-// $Id: m_tbaf.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: m_tbaf.C,v 1.2 2011/03/31 10:10:03 haino Exp $
 #include "tbafit.C"
 #include <cstdlib>
 
@@ -21,6 +21,8 @@ int main(int argc, char *argv[])
   if (argc == 5) tbafit(atoi(argv[1]), argv[2], atof(argv[3]), argv[4]);
   if (argc == 6) tbafit(atoi(argv[1]), argv[2], atof(argv[3]), argv[4],
 			                        atoi(argv[5]));
+  cout << "Done" << endl;
+
   exit(0);
   return 0;
 }

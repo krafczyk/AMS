@@ -1,4 +1,4 @@
-// $Id: tbafit.C,v 1.1 2010/10/14 09:28:04 shaino Exp $
+// $Id: tbafit.C,v 1.2 2011/03/31 10:10:04 haino Exp $
 #include "tkalign.C"
 #include "MagField.h"
 #include "TkSens.h"
@@ -314,7 +314,7 @@ void tbafit(const char *fname, const char *tkdbc, Int_t bits,
       if (tbs == 7) nmax = (Int_t)1e6;
 
       Int_t np = TBNpos[tbs-1];
-      hist1 = new TH2F(Form("hist1%d", tbs), Form("TR%d", np),
+      hist1 = new TH2F(Form("hist10%d", tbs), Form("TR%d", np),
 		       np+1, 0.5, np+1.5, 300, -20, 10);
       by1 = hist1->GetYaxis()->FindBin(0.);
       by2 = hist1->GetNbinsY();
@@ -333,6 +333,8 @@ void tbafit(const char *fname, const char *tkdbc, Int_t bits,
     br2->SetAddress(&fdata);
     br2->GetEntry(ent);
 
+    Bool_t sel = (bits == -405) ? kFALSE : kTRUE;
+
     Int_t tslot[7] = { 0, 0, 0, 0, 0, 0 };
     for (Int_t i = 0; i < TkAlign::NLAY; i++) {
       Int_t tkid  = idata[13+i];
@@ -344,7 +346,16 @@ void tbafit(const char *fname, const char *tkdbc, Int_t bits,
       if (layer == 7) tslot[3] = slot;
       if (layer == 4) tslot[4] = slot;
       if (layer == 5) tslot[5] = slot;
+
+      // For Ladder 405 alignment
+      Float_t *ycog = &fdata[58];
+      if (bits == -405 && tkid == 405 && ycog[i] > 0) {
+	ycog[i] *= -1;
+	sel = kTRUE;
+      }
     }
+
+    if (!sel) continue;
 
     Int_t npmax = nmax/2;
     Int_t nbchk = 0;
@@ -400,7 +411,7 @@ void tbafit(const char *fname, const char *tkdbc, Int_t bits,
   }
   if (nfill > 0) {
     cout << Form("%8d %7.3f", nfill, csum/nfill) << endl;
-    TkAlign::Proc(bits);
+    if (bits > 0) TkAlign::Proc(bits);
   }
 
   of.Write();

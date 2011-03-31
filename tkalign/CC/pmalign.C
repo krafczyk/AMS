@@ -1,12 +1,11 @@
-// $Id: pmalign.C,v 1.4 2010/12/03 15:25:40 shaino Exp $
+// $Id: pmalign.C,v 1.5 2011/03/31 10:10:04 haino Exp $
 #include "TStopwatch.h"
 #include "TSystem.h"
 #include "TMath.h"
 
 #include "root.h"
 #include "amschain.h"
-#include "TrRecon.h"
-#include "MagField.h"
+#include "TrTrackSelection.h"
 
 #include <iostream>
 
@@ -61,20 +60,12 @@ void pmalign(const char *fname, const char *oname,
 		                       | TrTrackR::kFitLayer9 };
   Int_t mf0 = mfit[0];
 
-  TString smf = gSystem->ExpandPathName("$AMSDataDir/v5.00"
-					"/MagneticFieldMapPermanent_NEW.bin");
-
-  TrRecon::InitFFKEYs(1);
-  MagField::GetPtr()->Read(smf);
-  MagField::GetPtr()->SetScale(1);
-  MagField::GetPtr()->SetMagstat(1);
-
-  Int_t refit = 0;
+  Int_t recal = 0;
   if (!TkDBc::Head && tkdbc) {
     Int_t setup = 3;
     TkDBc::CreateTkDBc();
     TkDBc::Head->init(setup, tkdbc);
-    refit = 1;
+    recal = 1;
 
     TString ssn = "tksens.dat";
     ifstream ftmp(ssn);
@@ -105,10 +96,19 @@ void pmalign(const char *fname, const char *oname,
   ofile.cd();
   Int_t ne = (nent/1000+1)*1000;
 
+  Double_t bn[101];
+  for (Int_t i = 0; i <= 100; i++) bn[i] = TMath::Power(10, 0.10*i-4);
+
   new TH2F("hist01", "nTrRawCluster", 100, 0, ne, 100, 0, 200);
   new TH2F("hist02", "nTrCluster",    100, 0, ne, 100, 0, 200);
   new TH2F("hist03", "nTrRecHit",     100, 0, ne, 100, 0, 200);
   new TH2F("hist04", "nTrTrack",      100, 0, ne,  10, 0,  10);
+  new TH2F("hist05", "ResYe VS 1/R",  100, bn, 201, -100.5, 100.5);
+
+  Int_t malg  = 2; // Alcaraz fit
+  Int_t mpat  = 7; // Full span
+  Int_t mspan = TrTrackSelection::kMaxSpan;
+  Int_t refit = 2;
 
   TStopwatch timer;
   timer.Start();
@@ -149,21 +149,44 @@ void pmalign(const char *fname, const char *oname,
     ((TH2F *)ofile.Get("hist04"))->Fill(ient, evt->nTrTrack());
 
     // Pre-selection
-    if (evt->nTrTrack() == 0) continue;
+    if (evt->nTrTrack () != 1) continue;
 
     TrTrackR *trk = evt->pTrTrack(0);
     if (!trk) continue;
     if (!trk->ParExists(mf0)) continue;
 
+  //Int_t span = TrTrackSelection::GetSpanFlags(trk) & 0xff;
+  //if (span != 0x1f) continue;
+
+    Int_t mf = trk->iTrTrackPar(malg, mpat, refit);
+  //if (mf < 0) continue;
+
+    if (evt->nTrdTrack() != 1) continue;
+    TrdTrackR *trd = evt->pTrdTrack(0);
+    if (!trd) continue;
+
+    AMSPoint pnt;
+    AMSDir   dir;
+    trk->Interpolate(trd->Coo[2], pnt, dir);
+    Double_t dtx = pnt[0]-trd->Coo[0];
+    Double_t dty = pnt[1]-trd->Coo[1];
+
+    if (TMath::Abs(dtx) > 1 || TMath::Abs(dty) > 1) continue;
+
+    Double_t rgt  = trk->GetRigidity();
+    Double_t eres = trk->GetNormChisqY();
+    if (mf > 0) {
+      rgt  = trk->GetRigidity(mf);
+      eres = TrTrackSelection::GetHalfRessq(mfit[3], trk, refit);
+      ((TH2F *)ofile.Get("hist05"))->Fill(eres, 1e3/rgt);
+      if (eres > 20) continue;
+    }
+
     Float_t plx[9], ply[9];
     for (Int_t i = 0; i < 9; i++) plx[i] = ply[i] = 0;
 
     for (Int_t i = 0; i < 9; i++) {
-      AMSPoint pl = trk->GetPlayer(i, mf0);
-
-      if ((i == 7 && trk->ParExists(mfit[1])) ||
-	  (i == 8 && trk->ParExists(mfit[2])))
-	pl = trk->InterpolateLayer(i, mf0);
+      AMSPoint pl = trk->InterpolateLayer(i, mf0);
 
       Double_t max = 200;
       if (TMath::Abs(pl.x()) < max &&
@@ -178,7 +201,7 @@ void pmalign(const char *fname, const char *oname,
 
     evt->NTrRecHit();
 
-    if (refit) {
+    if (recal) {
       evt->NTrCluster();
       for (Int_t i = 0; i < trk->GetNhits(); i++) {
 	TrRecHitR *hit = trk->GetHit(i);
@@ -269,13 +292,15 @@ void pmalign(const char *fname, const char *oname,
 	fptr[i]    = trk->GetNormChisqX(mfit[i]);
 	fptr[i+ 4] = trk->GetNormChisqY(mfit[i]);
 	fptr[i+ 8] = trk->GetRigidity  (mfit[i]);
-	fptr[i+12] = trk->GetErrRinv   (mfit[i]);
+      //fptr[i+12] = trk->GetErrRinv   (mfit[i]);
+	fptr[i+12] = (i < 3) ? TrTrackSelection::GetHalfRdiff(mfit[i], trk)
+	                     : eres;
 
 	if (i > 0) ntk[i-1]++;
       }
       else {
 	fptr[i]   = fptr[i+ 4] = -1;  // csqx, csqy
-	fptr[i+8] = fptr[i+12] =  0;  // rgt, erinv
+	fptr[i+8] = fptr[i+12] =  0;  // rgt, halfR
       }
     }
     fptr += 16;

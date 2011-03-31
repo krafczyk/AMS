@@ -1,4 +1,4 @@
-// $Id: tbalign.C,v 1.4 2010/12/03 15:25:40 shaino Exp $
+// $Id: tbalign.C,v 1.5 2011/03/31 10:10:05 haino Exp $
 #include "TStopwatch.h"
 #include "TSystem.h"
 #include "TMath.h"
@@ -72,11 +72,12 @@ void tbalign(const char *fname, const char *oname, const char *tkdbc,
   for (Int_t i = 0; i < ntr; i++)
     cout << ch.GetListOfFiles()->At(i)->GetTitle() << endl;
 
-  Int_t mfit[4] = { TrTrackR::kChoutko,
-		    TrTrackR::kChoutko | TrTrackR::kFitLayer8,
-		    TrTrackR::kChoutko | TrTrackR::kFitLayer9,
-		    TrTrackR::kChoutko | TrTrackR::kFitLayer8
-		                       | TrTrackR::kFitLayer9 };
+  Int_t mfd = TrTrackR::DefaultFitID;
+  Int_t mfit[4] = { mfd,
+		    mfd | TrTrackR::kFitLayer8,
+		    mfd | TrTrackR::kFitLayer9,
+		    mfd | TrTrackR::kFitLayer8
+		        | TrTrackR::kFitLayer9 };
   Int_t mf0 = mfit[0];
   Int_t mfc = mfit[0];
   if (posid == TBpos::T416) mfc = mfit[3]; // Layer 1N-9
