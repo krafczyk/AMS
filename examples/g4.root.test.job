@@ -14,7 +14,7 @@ echo $UNAME is not supported yet
 fi
 
 
-$AMSWD/exe/$MACHINE/gbatch.exe <<!
+$AMSWD/exe/linuxx8664icc/gbatchG4PG.exe <<!
 LIST
 KINE 3 
 LOSS 1
