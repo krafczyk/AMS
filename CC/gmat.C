@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.113 2011/03/30 22:36:41 sdifalco Exp $
+//  $Id: gmat.C,v 1.114 2011/03/31 17:15:35 sdifalco Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -463,7 +463,6 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 //
 //---> Eff.lead for ECAL(to compensate extra weight puzzle):
 
-#ifndef __G4AMS__
   geant a[]={207.19,121.757};
   geant z[]={82.,51.};
   geant A_ratio=a[1]/a[0];
@@ -472,18 +471,20 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
   geant Sb_atoms,Pb_atoms;
   Sb_atoms=m_ratio/(A_ratio+m_ratio); // number of atoms (normalized to 1 atom)
   Pb_atoms=1.-Sb_atoms;
+  Pb_atoms= (float)((int)(Pb_atoms*10./Sb_atoms+0.5));
+  Sb_atoms=10.;
   geant w[]={Pb_atoms,Sb_atoms};
   geant Pb_rho=11.35;
   geant Sb_rho=6.697;
   geant SbVolumeFrac;
   SbVolumeFrac=ECMCFFKEY.SbMassFrac*Pb_rho/(Sb_rho+ECMCFFKEY.SbMassFrac*(Pb_rho-Sb_rho));
   relden=1.-SbVolumeFrac+SbVolumeFrac* Sb_rho/Pb_rho;
-  cout << ">>> LEAD-ANTIMONIUM relden=" << relden << endl;
+  cout << ">>> LEAD-ANTIMONIUM Atoms:" << Pb_atoms <<","<< Sb_atoms<< " relden=" << relden << endl;
   mat.add(new AMSgmat("ECLEAD",a,z,w,2,11.35*relden));
-#else
-  relden=0.98;//relat(to ideal Pb) density 
-  mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden)); 
-#endif
+
+  //relden=0.98;//relat(to ideal Pb) density 
+  //mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden)); 
+
 }
 //--------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
