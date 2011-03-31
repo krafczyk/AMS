@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.790 2011/03/29 15:48:45 pzuccon Exp $
+// $Id: job.C,v 1.791 2011/03/31 16:06:20 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -843,9 +843,9 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
-  ECMCFFKEY.mev2mev=78.24;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
+  ECMCFFKEY.mev2mev=58.86;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
 //                                                   to have Tot.MCMeas=Einp(at center,at 500 kev geant3 cut)
-  ECMCFFKEY.mev2adc=1.613;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
+  ECMCFFKEY.mev2adc=2.042;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
