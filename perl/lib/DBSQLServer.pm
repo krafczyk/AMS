@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.87 2011/03/31 08:01:49 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.88 2011/03/31 12:19:50 dmitrif Exp $
 
 #
 #
@@ -155,7 +155,7 @@ sub Connect{
 sub ConnectRO{
     my $self=shift;
     my $user   = "amsro";
-    my $pwd="amsMC02";
+    my $pwd="eto_amsro";
      set_oracle_env();
     $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => $self->{one}}) or die "Cannot connect: ".$DBI::errstr;
         return 1;
