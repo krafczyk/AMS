@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.635 2011/03/31 08:01:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.636 2011/03/31 13:29:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12691,9 +12691,9 @@ sub parseJournalFiles {
        $fid  =~ s/.journal//;
        if ($fid < $minJobID) {
         if ($webmode == 0) {
-           $self->amsprint("ParseJournalFiles -W- skip $joudir/$file invalid JID \n",0);
+           $self->amsprint("ParseJournalFiles -W- skip $joudir/$file invalid JID $fid $minJobID \n",0);
         }
-        $BadRunID[$cite]++;
+        $BadRunID[$nCheckedCite]++;
         next;
        }
 
