@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.521 2011/03/28 14:46:13 choutko Exp $
+//  $Id: event.C,v 1.522 2011/03/31 13:02:42 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1747,6 +1747,7 @@ void AMSEvent::_caecevent(){
 
 //---------------------------------------------------------------------------
 void AMSEvent::_carichevent(){
+#pragma omp critical (richcalvent)
   AMSRichCal::process_event();
 }
 //--------------------------------------------------------------------------

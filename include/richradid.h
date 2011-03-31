@@ -5,6 +5,7 @@
 #include "job.h"
 #include "trrec.h"
 #include "richrec.h"
+#include "richcal.h"
 
 ///////////////////////////////////////////
 // This class contains all the information used in the reconstruction
@@ -151,6 +152,7 @@ class RichRadiatorTileManager{
   static void UpdateDB(AMSID my_id);
 
   friend class AMSJob;
+  friend class AMSRichCal;
 };
 
 

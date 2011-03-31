@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.71 2011/03/25 14:15:06 mdelgado Exp $
+//  $Id: richrec.h,v 1.72 2011/03/31 13:02:44 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -161,6 +161,7 @@ static geant _Time;
   number  _kdist;       // Leibler-Kullback distance between the reconstructed ring and the hits for the azimuthal marginal distribution
   number _phi_spread;   //(\sum_i (phi_i-\phi_0)^2)/N_{hits} for used hits
   number _unused_dist;   //(\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
+  int    _tile_id;
 
   number _theta;
   number _errortheta;
@@ -321,6 +322,7 @@ friend class RichRingR;
 #endif
 
 friend class  RichRadiatorTileManager; 
+friend class  AMSRichCal;
 };
 
 

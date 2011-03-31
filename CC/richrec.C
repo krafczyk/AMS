@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.153 2011/03/25 14:15:06 mdelgado Exp $
+//  $Id: richrec.C,v 1.154 2011/03/31 13:02:42 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1930,7 +1930,7 @@ AMSRichRing::AMSRichRing(AMSTrTrack* track,
   }
 #endif
 
-
+  _tile_id=_tile_index;
   CalcBetaError();
   
 #ifdef __AMSDEBUG__
