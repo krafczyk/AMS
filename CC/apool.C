@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.21 2011/03/30 09:23:00 zweng Exp $
+//  $Id: apool.C,v 1.22 2011/03/31 16:16:30 zweng Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -299,20 +299,14 @@ ostream & AMSNodePool::print(ostream &o)const{
 
 void AMSaPool::dlink::_erase(integer &nbl ){
   nbl--;
-    cout <<" erase ... "<<nbl<<endl;
-  cerr <<" erase ... "<<nbl<<endl;
   while(_next){
-    cout <<" next  erase ... "<<nbl<<endl;
     _next->_erase(nbl);
-
-    cout <<" Finish next  erase ... "<<nbl<<endl;
-
   }
-  cerr <<" before if(_prev)_prev->_next=0;... "<<nbl<<endl;
+  //  cerr <<" before if(_prev)_prev->_next=0;... "<<nbl<<endl;
   if(_prev)_prev->_next=0;
-  cerr <<" after if(_prev)_prev->_next=0;... "<<nbl<<endl;
+  //  cerr <<" after if(_prev)_prev->_next=0;... "<<nbl<<endl;
   delete this;
-  cerr <<" after delete this. "<<nbl<<endl;
+  //  cerr <<" after delete this. "<<nbl<<endl;
 }
 
 AMSaPool::AMSaPool(const AMSaPool & o):_size(o._size),_Count(o._Count),_Nblocks(o._Nblocks),_Minbl(o._Minbl),_Maxbl(o._Maxbl),_Totalbl(o._Totalbl),_Nreq(o._Nreq),_MinNodes(o._MinNodes),_MaxNodes(o._MaxNodes),_TotalNodes(o._TotalNodes),poolMap(),_head(0),_free(0),_lc(o._lc){
