@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.218 2011/03/30 22:37:08 sdifalco Exp $
+//  $Id: amsgeom.C,v 1.219 2011/03/31 16:53:30 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2646,10 +2646,10 @@ ECALDBc::readgconf();//
   char inum[11];
   char in[2]="0";
   char vname[5];
-#ifndef __G4AMS__
+
   AMSNode *pECgap;
   AMSNode *pECendp;
-#endif
+
   AMSNode * pECrad;
   AMSNode * pECfbl;
   AMSNode * pECfib;
@@ -2678,14 +2678,14 @@ ECALDBc::readgconf();//
   fpitz=ECALDBc::fpitch(2);
   fpitzz=dzrad1-(nflpsl-1)*fpitz+2.*alpth;
   cout<<"      EcalGeom: RadZfront="<<ECALDBc::gendim(7)<<" fpitchZZ "<<fpitzz<<" cm"<<endl;
-#ifndef __G4AMS__
+
   cout<<"      EcalGeom: Fiber Cladding+Glue Thickness=" <<  ECMCFFKEY.cladgluex << " " << ECMCFFKEY.cladgluey << endl;
   cout << "Cladding+Glue Thickness Modifications:" << endl;   
   for (int ilayer=0;ilayer<18;ilayer++){
     cout << "LAYER " << ilayer << " DX=" <<  ECMCFFKEY.claddxy[2*ilayer] << " DY=" << ECMCFFKEY.claddxy[2*ilayer+1] << endl;
   }
   cout<<"      EcalGeom: Gap Thickness=" <<  ECMCFFKEY.gap << " cm" << endl;
-#endif  
+  
 //------------------------------------
   par[0]=dx1/2.+dxe;
   par[1]=dy1/2.+dxe;
@@ -2785,33 +2785,25 @@ ECALDBc::readgconf();//
 //------> create/put fiber-layer(s) and individual fibers in EC_rad:
 //
       for(ifibl=0;ifibl<nflpsl;ifibl++){ // <--- fiber-layers loop in s-layer
-#ifndef __G4AMS__
+
 	if (ifibl<nflpsl/2) layer=2*isupl;
 	else  layer=2*isupl+1;
 	claddrx= ECMCFFKEY.cladgluex+ECMCFFKEY.claddxy[2*layer];
 	claddry= ECMCFFKEY.cladgluey+ECMCFFKEY.claddxy[2*layer+1];
-#endif
+
         ip=ifibl%2;//even(1)/odd(0) f-layer
 	nf=nfpl[ip];// total fibers in layer
 	cleft=-(nf-1)*fpitx/2.;// imply nfpl[1]=nfpl[0]-1 sceme !!!
 	cleft+=fshift;//no new position check because fibers do not leave lead volume even at max.shift !!!
 	if(iproj==0){ // X
           par[0]=dx1/2.;
-#ifndef __G4AMS__
-          par[1]=ECALDBc::rdcell(4)/2.+claddry+0.001;// fiber+glue+safety radious
-#else
-	  par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8)+0.001;// fiber+glue+safety radious
-#endif         
+          par[1]=ECALDBc::rdcell(4)/2.+claddry+0.001;// fiber+glue+safety radious       
           par[2]=dy1/2.;
 	  coo[0]=0.;
 	  coo[1]=-(nflpsl-1)*fpitz/2.+ifibl*fpitz;//f-layer pos along the local Y
 	}
 	else{ // Y
-#ifndef __G4AMS__
-          par[0]=ECALDBc::rdcell(4)/2.+claddry+0.001;// fiber+glue+safety radious
-#else
-	  par[0]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8)+0.001;// fiber+glue+safety radious
-#endif        
+          par[0]=ECALDBc::rdcell(4)/2.+claddry+0.001;// fiber+glue+safety radious       
           par[1]=dy1/2.;
           par[2]=dx1/2.;
 	  coo[0]=-(nflpsl-1)*fpitz/2.+ifibl*fpitz;//f-layer pos along the local X
@@ -2832,39 +2824,23 @@ ECALDBc::readgconf();//
 //-----------
         for(ifib=0;ifib<nf;ifib++){ // <--- fiber loop in layer
           if(iproj==0){
-#ifndef __G4AMS__
 	    par[0]=ECALDBc::rdcell(4)/2.+claddrx;// fiber radious(+glue) horizontal
 	    par[1]=ECALDBc::rdcell(4)/2.+claddry;// fiber radious(+glue) vertical
-#else
-	    par[0]=0.;
-	    par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8);// fiber radious(+glue)
-#endif
 	    coo[0]=cleft+ifib*fpitx;
 	    coo[1]=0.;
           }
           else{
-#ifndef __G4AMS__
 	    par[0]=ECALDBc::rdcell(4)/2.+claddry;// fiber radious(+glue) horizontal
 	    par[1]=ECALDBc::rdcell(4)/2.+claddrx;// fiber radious(+glue) vertical
-#else
-	    par[0]=0.;
-	    par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8);// fiber radious(+glue)
-#endif
   	    coo[0]=0.;
    	    coo[1]=cleft+ifib*fpitx;
           }
 	  par[2]=flen;
 	  coo[2]=0.;
 	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
-          //pECfib=pECfbl->add(new AMSgvolume(
-          //"EC_FWALL",0,"ECFW","TUBE",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
-
-#ifndef __G4AMS__
+          
           pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECFW","ELTU",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
-#else
-	  pECfib=pECfbl->add(new AMSgvolume(
-          "EC_FWALL",0,"ECFW","TUBE",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
-#endif
+
 //
 #ifndef __G4AMS__
           if(isupl==0 && ifibl==0 && ifib==0){
@@ -2882,7 +2858,6 @@ ECALDBc::readgconf();//
            ((AMSgvolume*)pECfsen )->Smartless()=-2;
 #endif            
 	  }
-#ifndef __G4AMS__
 	  // GAPS
 	  if (ECMCFFKEY.gap>0.){
 	    if(iproj==0){
@@ -2907,12 +2882,10 @@ ECALDBc::readgconf();//
 	    gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
 	    pECgap=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECGA","BOX",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
 	  }
-#endif            
 	} // ---> end of fiber loop
 //-----------
       } // ---> end of f-layer loop
 //------
-#ifndef __G4AMS__
       // Add aluminum end plate
       if (isupl==nsupl-1 && ECMCFFKEY.endplate>0){  
 	claddry= ECMCFFKEY.cladgluey+ECMCFFKEY.claddxy[35];
@@ -2929,7 +2902,6 @@ ECALDBc::readgconf();//
         pECendp=pECrad->add(new AMSgvolume(
                "EC_ELBOX",0,"ALEP","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. end plate in ECrad
       }
-#endif      
     } // ---> end of superlayer loop
 //
   cout<<"<---- Amsgeom::ecalgeom: ECAL-NewGeometry is successfully done!"<<endl<<endl;
