@@ -231,6 +231,15 @@ void RichLIPRec::InitTrack(AMSPoint entrance_p, AMSDir entrance_d) {
 
   // main track parameters (errors assumed to be zero for the moment)
   anglerich2lip(entrance_d.gettheta(),entrance_d.getphi(),LIPC2F.pthe_main,LIPC2F.pphi_main);
+  // swap theta/phi vector if it points upwards (added by R. Pereira 01-Apr-2011)
+  if(LIPC2F.pthe_main>3.14159265/2.) {
+    LIPC2F.pthe_main = 3.14159265-LIPC2F.pthe_main;
+    LIPC2F.pphi_main = LIPC2F.pphi_main+3.14159265;
+    if(LIPC2F.pphi_main>3.14159265) {
+      LIPC2F.pphi_main = LIPC2F.pphi_main-2.*3.14159265;
+    }
+  }
+
   LIPC2F.epthe_main = 0.;
   LIPC2F.epphi_main = 0.;
 
