@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.14 2011/02/05 22:20:38 mdelgado Exp $
+//  $Id: richrec.C,v 1.15 2011/04/01 11:04:59 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -327,6 +327,18 @@ int     RichRing::_kind_of_tile=0;
 int     RichRing::_tile_index=0;
 
 AMSEventR *RichRing::_event=0;
+
+
+RichRing *RichRing::build(AMSEventR *event,AMSPoint p,AMSDir d){
+  memset(RichRawEvent::_beta_hit,0,RICmaxpmts*RICnwindows*3*sizeof(geant));  // Reset the beta hit arrays 
+  RichRawEvent::build(event); // Indetify hot spots
+
+  // Build all the tracks 
+  _event=event;
+
+  TrTrack track(p,d);
+  return build(&track,10);
+}
 
 RichRing *RichRing::build(AMSEventR *event,TrTrackR *tr){
   memset(RichRawEvent::_beta_hit,0,RICmaxpmts*RICnwindows*3*sizeof(geant));  // Reset the beta hit arrays 

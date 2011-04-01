@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.7 2010/08/10 10:34:20 mdelgado Exp $
+//  $Id: richrec.h,v 1.8 2011/04/01 11:04:47 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -278,7 +278,8 @@ public:
 	      integer build_charge=0);
   ~RichRing(){};
 
-  static RichRing* build(AMSEventR *event,TrTrackR *tr);
+  static RichRing* build(AMSEventR *event,AMSPoint p,AMSDir d);
+  static RichRing* build(AMSEventR *event,TrTrackR *tr=0);
   static RichRing* build(TrTrack *track,int cleanup=1);
   static void SetWindow(float x){_window=x*x;cout<<"AMSRichRing::SetWindow -- Setting reconstruction window to "<<x<<endl;}
 
