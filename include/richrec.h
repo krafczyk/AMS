@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.72 2011/03/31 13:02:44 mdelgado Exp $
+//  $Id: richrec.h,v 1.73 2011/04/01 13:45:52 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -273,6 +273,8 @@ static geant _Time;
     if(b<c) {if(a<b) return 0; else return 1;}
     else    {if(a<c) return 0; else return 2;}
   }
+
+ static void getSobol(float &x,float &y,bool reset=false);
 
 protected:
   void _printEl(ostream &stream){stream<<" Beta "<<_beta<<" Error "<<_errorbeta<<endl;}

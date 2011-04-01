@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.154 2011/03/31 13:02:42 mdelgado Exp $
+//  $Id: richrec.C,v 1.155 2011/04/01 13:46:21 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -573,6 +573,72 @@ int     AMSRichRing::_kind_of_tile=0;
 int     AMSRichRing::_tile_index=0;
 geant AMSRichRing::_distance2border=0;
 
+void AMSRichRing::getSobol(float &x,float &y,bool reset){
+  const unsigned int MAXBIT=30;
+  // Returns two quasi-random numbers for a 2-dimensional Sobel
+  // sequence. Adapted from Numerical Recipies in C.
+
+  int j, k, l;
+  unsigned long i, im,ipp;
+
+  // The following variables are "static" since we want their
+  // values to remain stored after the function returns. These
+  // values represent the state of the quasi-random number generator.
+
+  static float fac;
+  static int init=0;
+  static unsigned long in, ix[3], *iu[2*MAXBIT+1];
+  static unsigned long mdeg[3]={0,1,2};
+  static unsigned long ip[3]={0,0,1};
+  static unsigned long oiv[2*MAXBIT+1]=
+    {0,1,1,1,1,1,1,3,1,3,3,1,1,5,7,7,3,3,5,15,11,5,15,13,9};
+  static unsigned long iv[2*MAXBIT+1];
+#pragma omp threadprivate(fac,init,in,ix,iu,mdeg,ip,oiv,iv)
+
+  if(reset) init=0;
+
+  // Initialise the generator the first time the function is called.
+
+  if (!init) {
+    init = 1;
+    for(j=0;j<2*MAXBIT+1;j++) iv[j]=oiv[j];
+    for (j = 1, k = 0; j <= MAXBIT; j++, k += 2) iu[j] = &iv[k];
+    for (k = 1; k <= 2; k++) {
+      for (j = 1; j <= mdeg[k]; j++) iu[j][k] <<= (MAXBIT-j);
+      for (j = mdeg[k]+1; j <= MAXBIT; j++) {
+        ipp = ip[k];
+        i = iu[j-mdeg[k]][k];
+        i ^= (i >> mdeg[k]);
+        for (l = mdeg[k]-1; l >= 1; l--) {
+          if (ipp & 1) i ^= iu[j-l][k];
+          ipp >>= 1;
+        }
+        iu[j][k] = i;
+      }
+    }
+    fac = 1.0/(1L << MAXBIT);
+    in = 0;
+    ix[0]=ix[1]=ix[2]=0;
+  }
+  // Now calculate the next pair of numbers in the 2-dimensional
+  // Sobel sequence.
+
+  im = in;
+  for (j = 1; j <= MAXBIT; j++) {
+    if (!(im & 1)) break;
+    im >>= 1;
+  }
+  assert(j <= MAXBIT);
+  im = (j-1)*2;
+  ix[1] ^= iv[im+1];
+  ix[2] ^= iv[im+2];
+  x = ix[1] * fac;
+  y = ix[2] * fac;
+  in++;
+}
+
+
+
 void AMSRichRing::build(){
   _Start();
   const integer freq=10;
@@ -1037,6 +1103,126 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   dL=l/NSTL;
   integer i,j,k;
 
+#define SOBOL
+#ifdef SOBOL
+  // COMPUTE THE NUMBER OF COLLECTED FOR A FIRST CHARGE ESTIMATE
+  _collected_npe=0.;
+  {
+    geant A=(-2.81+13.5*(_index-1.)-18.*
+	     (_index-1.)*(_index-1.))*
+      _height/(RICHDB::rich_height+RICHDB::foil_height+
+	       RICradmirgap+RIClgdmirgap)*40./2.;
+    
+    geant B=(2.90-11.3*(_index-1.)+18.*
+	     (_index-1.)*(_index-1.))*
+      _height/(RICHDB::rich_height+RICHDB::foil_height+
+	       RICradmirgap+RIClgdmirgap)*40./2.;
+    
+    if(_kind_of_tile==naf_kind) // For NaF they are understimated
+      {A*=3.44;B*=3.44;}
+    
+    geant sigma=Sigma(_beta,A,B);
+
+    for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	  getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){  
+      if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+      geant betas[3];
+      for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
+      geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
+
+      if(value<window_size){
+	_collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      }
+    }
+  }
+
+
+  double prev=-HUGE_VAL;
+  unsigned int counter=0;
+  getSobol(l,phi,true);  // The first is only for initialization 
+  nexp=nexpg=nexpr=nexpb=0;
+
+  int limit=4;
+  for(int step=0;step<1000 && step<limit;step++){
+    // Each computation step adds 100 points to the integral  
+    for(int i=0;i<100;i++){
+      l*=_height/local_dir[2];
+      phi*=2*M_PI;
+      r=local_pos+local_dir*l; // Move to the emission point
+      counter++;
+
+      efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
+		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag);
+
+#pragma omp critical (richrec1)
+      if(geftr){
+	float cnt=generated(lentr,lfoil,lguide,
+			    &ggen,&rgen,&bgen);
+	
+
+	int phistep=floor(phi*NSTP/2.0/M_PI);
+	if(phistep>=NSTP) {cout<<"BIG ERROR IN PHISTEP"<<endl;phistep=NSTP-1;}
+	dfphi[phistep]+=efftr*cnt;
+	
+	nexp+=efftr*cnt;
+	nexpg+=geftr*ggen;
+	nexpr+=reftr*rgen;
+	nexpb+=beftr*bgen;
+      }
+
+      for(k=0;k<nh_unused;k++){
+	geant d=sqrt(SQR(xb-unused_hits[k]->getpos(0))+
+		     SQR(yb-unused_hits[k]->getpos(1)));
+	if(d<unused_hitd[k])  unused_hitd[k]=d;
+      }
+
+
+      for(k=0;k<nh;k++){
+	geant d=sqrt(SQR(xb-used_hits[k]->getpos(0))+
+		     SQR(yb-used_hits[k]->getpos(1)));
+	if(d<hitd[k]){
+	  hitd[k]=d;
+	  hitp[k]=phi;
+	}
+      }
+      getSobol(l,phi);  
+    }
+
+    if(nexp==0) continue; // The computation failed miserably:try again
+
+    double currentValue=nexp*_height/local_dir[2]/counter;
+    double delta=fabs(currentValue-prev)*2/currentValue; // Overestimated error
+    double charge=_collected_npe/currentValue;
+    if(charge<1) charge=1;
+    double errorEstimate=(0.2*0.2*4-1.36/currentValue)/charge;
+    if(errorEstimate<1e-4/charge) errorEstimate=1e-4/charge;
+#ifdef __AMSDEBUG__
+    cout<<"SOBOL INTEGRATION STEP "<<step<<endl
+	<<"      NEXP "<<nexp*_height/local_dir[2]/counter<<" FOR NUMBER OF POINTS "<<counter<<endl
+	<<"      CURRENT VALUE "<<currentValue<<"   previous "<<prev<<" Error2 estimate "<<delta*delta<<endl
+	<<"      CURRENT CHARGE "<<charge<<endl
+	<<"      REQUIRED ERROR2 BOUND "<<errorEstimate<<endl 
+	<<"      CURRENT LIMIT "<<limit<<endl; 
+    
+    if(errorEstimate<0){
+      cout<<"BIG PROBLEM WITH THE ERROR ESTIMATE"<<endl;
+    }
+#endif
+
+    if(delta*delta>errorEstimate) limit=step+4;
+    prev=currentValue;
+  }
+
+  nexp*=_height/local_dir[2]/counter;
+  nexpg*=_height/local_dir[2]/counter;
+  nexpr*=_height/local_dir[2]/counter;
+  nexpb*=_height/local_dir[2]/counter;
+  for(phi=0,i=0;phi<2*PI;phi+=dphi,i++){
+    dfphi[i]*=_height/local_dir[2]/counter;
+  }
+
+#else
+
   for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
     l=(j+.5)*dL;
 
@@ -1079,6 +1265,8 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
       }
     }
   }
+
+#endif
 
 
 #ifdef __AMSDEBUG__
