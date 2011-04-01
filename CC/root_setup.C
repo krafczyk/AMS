@@ -408,7 +408,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
  char t1[1024];
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
- setenv("TNS_ADMIN",t1,1);
+ setenv("TNS_ADMIN",t1,0);
   AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
@@ -701,7 +701,7 @@ for (int ntry=0;ntry<maxtry;ntry++){
  char t1[1024];
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
- setenv("TNS_ADMIN",t1,1);
+ setenv("TNS_ADMIN",t1,0);
   AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();

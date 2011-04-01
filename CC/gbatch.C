@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.116 2011/03/30 08:52:06 zweng Exp $
+//  $Id: gbatch.C,v 1.117 2011/04/01 13:25:40 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -201,6 +201,7 @@ void (handler)(int sig){
 	cerr <<"gbatch-Job Cpu limit exceeded "<<endl;
 	if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
 	gams::UGLAST("SIGXCPU");
+        exit(1);
 #endif
     }
     break;
@@ -231,6 +232,7 @@ void (handler)(int sig){
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
   if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
+  exit(1);
 #endif
 
 

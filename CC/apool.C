@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.22 2011/03/31 16:16:30 zweng Exp $
+//  $Id: apool.C,v 1.23 2011/04/01 13:25:40 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -12,9 +12,7 @@ AMSaPool UPool(524288);
 #endif
 
 
-#ifdef __G4AMS__
 AMSaPool OPool(524288);
-#endif
 
 
 integer AMSaPool::_Mask=0xf0f0f0f0;

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.638 2011/03/31 15:17:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.639 2011/04/01 13:25:41 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -871,7 +871,10 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{OPENCLOSE}==0){
                $template->{TOTALEVENTS}=0;
            }
-       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
+       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote' and $self->{CCID}!=2){
+           $template->{TOTALEVENTS}=0;
+         }
+       elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
            $template->{TOTALEVENTS}=0;
          }
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
@@ -1042,7 +1045,7 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
-       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
+       elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote' and $self->{CCID}!=2){
              $template->{RUNMAX}=1;
          }
        elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
@@ -14473,7 +14476,9 @@ if(not defined $fetime or not defined $letime){
                                            $crc,
                                            $crctime,$crcflag,$castortime,$buildno,$datamc)";
 }
-  $self->datasetlink($path,"/Offline/DataSetsDir",1);
+  if($type ne 'RawFile'){
+      $self->datasetlink($path,"/Offline/DataSetsDir",1);
+  }
   $self->{sqlserver}->Update($sql);
 }
 
@@ -15096,7 +15101,7 @@ sub updateFilesProcessing {
     my $nBadDSTs      = 0;
     my $message=" ";
     for (my $i=0; $i<$nCites; $i++) {
-        my $cid=$i+2;
+        my $cid=$i+1;
         my $sql="select name from cites where cid=$cid";
         my $ret=$self->{sqlserver}->Query($sql);
         if($FailedRuns[$i] + $BadRuns[$i]+$GoodRuns[$i]>0){ 

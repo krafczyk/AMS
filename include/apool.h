@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.15 2011/03/30 08:27:55 zweng Exp $
+//  $Id: apool.h,v 1.16 2011/04/01 13:25:41 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -149,9 +149,7 @@ public:
 
 
 
-#ifdef __G4AMS__
 extern AMSaPool OPool;
-#endif
 
 
 #ifndef __UPOOL__
