@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.38 2011/03/31 09:36:39 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.39 2011/04/01 15:36:06 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -369,15 +369,15 @@ case 2:
     gPad->SetLogz(gAMSDisplay->IsLogZ());
     if(tofscales[i]==1){
       strcpy(name,"Last 120 mins since ");
-      strcpy(dat,AntiPars::getdat1());
+      strcpy(dat,RunPar::getdat1());
     }
     else if(tofscales[i]==2){
       strcpy(name,"Last 120 hours since ");
-      strcpy(dat,AntiPars::getdat2());
+      strcpy(dat,RunPar::getdat2());
     }
     else if(tofscales[i]==3){
       strcpy(name,"Last 120 days since ");
-      strcpy(dat,AntiPars::getdat3());
+      strcpy(dat,RunPar::getdat3());
     }
     if(i==2 || i==5){
       if(i==2){
@@ -570,15 +570,15 @@ case 6:
     
     if(tofscales[i]==1){
       strcpy(name,"Last 120 mins since ");
-      strcpy(dat,AntiPars::getdat1());
+      strcpy(dat,RunPar::getdat1());
     }
     else if(tofscales[i]==2){
       strcpy(name,"Last 120 hours since ");
-      strcpy(dat,AntiPars::getdat2());
+      strcpy(dat,RunPar::getdat2());
     }
     else if(tofscales[i]==3){
       strcpy(name,"Last 120 days since ");
-      strcpy(dat,AntiPars::getdat3());
+      strcpy(dat,RunPar::getdat3());
     }
     
     _filled[i+25]->SetMarkerStyle(20);
@@ -711,15 +711,15 @@ case 11:
     if(i==0){
       if(tofscales[i]==1){
         strcpy(name,"Last 120 mins since ");
-        strcpy(dat,AntiPars::getdat1());
+        strcpy(dat,RunPar::getdat1());
       }
       else if(tofscales[i]==2){
         strcpy(name,"Last 120 hours since ");
-        strcpy(dat,AntiPars::getdat2());
+        strcpy(dat,RunPar::getdat2());
       }
       else if(tofscales[i]==3){
         strcpy(name,"Last 120 days since ");
-        strcpy(dat,AntiPars::getdat3());
+        strcpy(dat,RunPar::getdat3());
       }
       _filled[i+51]->SetMaximum(1.);
       strcat(name,dat);
