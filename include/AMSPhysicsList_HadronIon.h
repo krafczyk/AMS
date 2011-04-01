@@ -47,13 +47,8 @@ void ConstructParticle(){}
 void ConstructProcess();
 private:
 
- G4HadronElasticProcess theElasticProcess;
 
- G4DeuteronInelasticProcess       fDeuteronProcess;
 
- G4TritonInelasticProcess fTritonProcess;
-
- G4AlphaInelasticProcess    fAlphaProcess;
 
 
 }; //////////////////////////////////////////////////////////////////////////////// //

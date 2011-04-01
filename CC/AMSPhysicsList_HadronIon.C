@@ -40,7 +40,15 @@ AMSPhysicsList_HadronIon::AMSPhysicsList_HadronIon(const G4String& name)
 //////////////////////////////////////////////////////////////////////////////// 
 // 
 AMSPhysicsList_HadronIon::~AMSPhysicsList_HadronIon() 
-{} 
+{
+
+  cout<<"~~~~~~~~~~~~~~~AMSPhysicsList_HadronIon::~AMSPhysicsList_HadronIon()~~~~~~~~~~~~~~"<<endl;
+
+
+
+
+
+} 
 //////////////////////////////////////////////////////////////////////////////// 
 // 
 
@@ -48,6 +56,8 @@ AMSPhysicsList_HadronIon::~AMSPhysicsList_HadronIon()
 void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     SetVerboseLevel(10);
+
+
 
     G4LElastic* elasticModel = new G4LElastic();
     G4HadronElasticProcess* hadElastProc = new G4HadronElasticProcess();
@@ -78,33 +88,45 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
    G4LEAlphaInelastic* fAlphaModel = new G4LEAlphaInelastic;
     fAlphaModel->SetMaxEnergy(100.0*MeV);
 
+	G4DeuteronInelasticProcess*       fDeuteronProcess = new G4DeuteronInelasticProcess();
+ 
+	G4TritonInelasticProcess* fTritonProcess = new G4TritonInelasticProcess();
+ 
+	G4AlphaInelasticProcess*    fAlphaProcess = new G4AlphaInelasticProcess();
+
 
 
     if(G4FFKEY.IonPhysicsModel==1){
 
 	cout<<"Use G4BinaryLightIonReaction for All the Ions"<<endl;
 
+
+	//	G4HadronElasticProcess* theElasticProcess = new G4HadronElasticProcess();
+ 
+
+
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
-	fDeuteronProcess.AddDataSet(generalCrossSection);
-	fDeuteronProcess.RegisterMe(theGenIonBC);
-	pManager->AddDiscreteProcess(&fDeuteronProcess);
+	fDeuteronProcess->AddDataSet(generalCrossSection);
+	fDeuteronProcess->RegisterMe(theGenIonBC);
+	pManager->AddDiscreteProcess(fDeuteronProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
-	fTritonProcess.AddDataSet(generalCrossSection);
-	fTritonProcess.RegisterMe(theGenIonBC);
-	pManager->AddDiscreteProcess(&fTritonProcess);
+	
+	fTritonProcess->AddDataSet(generalCrossSection);
+	fTritonProcess->RegisterMe(theGenIonBC);
+	pManager->AddDiscreteProcess(fTritonProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
-	fAlphaProcess.AddDataSet(generalCrossSection);
-	fAlphaProcess.RegisterMe(theGenIonBC);
-	pManager->AddDiscreteProcess(&fAlphaProcess);
+	fAlphaProcess->AddDataSet(generalCrossSection);
+	fAlphaProcess->RegisterMe(theGenIonBC);
+	pManager->AddDiscreteProcess(fAlphaProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======He3
 	particle = G4He3::He3();
@@ -157,23 +179,23 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
-	fDeuteronProcess.AddDataSet(generalCrossSection);
-	fDeuteronProcess.RegisterMe(theAM);
-	pManager->AddDiscreteProcess(&fDeuteronProcess);
+	fDeuteronProcess->AddDataSet(generalCrossSection);
+	fDeuteronProcess->RegisterMe(theAM);
+	pManager->AddDiscreteProcess(fDeuteronProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
-	fTritonProcess.AddDataSet(generalCrossSection);
-	fTritonProcess.RegisterMe(theAM);
-	pManager->AddDiscreteProcess(&fTritonProcess);
+	fTritonProcess->AddDataSet(generalCrossSection);
+	fTritonProcess->RegisterMe(theAM);
+	pManager->AddDiscreteProcess(fTritonProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
-	fAlphaProcess.AddDataSet(generalCrossSection);
-	fAlphaProcess.RegisterMe(theAM);
-	pManager->AddDiscreteProcess(&fAlphaProcess);
+	fAlphaProcess->AddDataSet(generalCrossSection);
+	fAlphaProcess->RegisterMe(theAM);
+	pManager->AddDiscreteProcess(fAlphaProcess);
 	//	pManager->AddDiscreteProcess(hadElastProc);
 	//======He3
 	particle = G4He3::He3();
@@ -212,6 +234,9 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     }
 
+
+    delete particle;
+    delete pManager;
 
 }
 #endif
