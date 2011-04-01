@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
-#  $Id: rdlast.perl,v 1.1 2011/04/01 15:57:46 choutko Exp $
+#  $Id: rdlast.perl,v 1.2 2011/04/01 16:06:20 amslocal Exp $
 use strict;
-
+use lib qw(../perl);
 use lib::DBSQLServer;
 
 
