@@ -65,8 +65,17 @@ c. Add by Zhili.Weng 2009-11-11
          x(i)= xyz(1,i)
          y(i)= xyz(2,i)
          z(i)= xyz(3,i)
-        dx(i)=dxyz(1,i)
-        dy(i)=dxyz(2,i)
+c        dx(i)=dxyz(1,i)
+c        dy(i)=dxyz(2,i)
+*-------------------------------------------------------------------
+*#### Due to Paolo never responds with explanation what is coming as
+*#### an input parameters in dxyz array, I just ignore it.
+        dx(i)=0.0030
+        dy(i)=0.0014
+*#### it solved the problem, reportet by me at KSC Feb.28
+*#### now it makes Choutko, Alkarz, Chikanian Rigidity resolution
+*#### the same at high rigidity. 
+*-------------------------------
       enddo
 *     WARNING ========================================================
 *     Due to Error Matrix depends on Rini, pick the best possible Rini
@@ -104,11 +113,11 @@ c. Add by Zhili.Weng 2009-11-11
 * Output:  Xout  -  x, y, Rx, Ry, Rz
 *          doR   - error of 1/Rigidity
 *          Chi2  - Chi2
+*          ier   - if not 0 no convergion
 *-------------------------------------
       implicit none
       integer    Npa  ,NitMa
       parameter (Npa=5,NitMa=3)
-c      parameter (Npa=5,NitMa=2)
       double precision  Par(Npa),Xout(Npa)
       double precision Xbuf(Npa,NitMa),Chi2B(NitMa),sig(NitMa)
 *     --------------------------------------------------------
@@ -149,21 +158,23 @@ c      parameter (Npa=5,NitMa=2)
           zc(i)=-999.
         endif
       enddo
+
 *------------------------------------------------------------------
 * First TWO passes in the loop below are for charge sign defenition 
 * Third pass is the final iteration with better MS-matrix
 *------------------------------------------------------------------
-      Chi2=1.e35
+      Chi2=1.e5
       Par(1)=Rini*(x(2)-x(1))/rad                     ! Px0
       Par(2)=Rini*(y(2)-y(1))/rad                     ! Py0
       Par(3)=Rini*(z(2)-z(1))/rad                     ! Pz0
       Par(4)=x(1) + (z1-z(1))/(z(2)-z(1))*(x(2)-x(1)) !  x0
       Par(5)=y(1) + (z1-z(1))/(z(2)-z(1))*(y(2)-y(1)) !  y0
+
       rkstep=5.                                       ! R/K step(cm)
       JB=0
       DO it=1,NitMa
-        if(it.eq.1) sigcha= 1.                          ! for R/K
-        if(it.eq.2) sigcha=-1.                          ! for R/K
+        if(it.eq.1) sigcha= 1.                        ! for R/K
+        if(it.eq.2) sigcha=-1.                        ! for R/K
         if(it.eq.3) then
           sigcha=sig(jB)
           do j=1,Npa
@@ -177,29 +188,32 @@ c      parameter (Npa=5,NitMa=2)
           call wxy_matr9(npo,npl,dx,dy,ipa,Rini) ! Full Matr.
           call C1toC2(npo) ! data transw. com->com
 *         ================
-#if defined (__LINUX24__ )
-C !$OMP CRITICAL (RKMS)
-#endif
+c #if defined (__LINUX24__ )
+c !$OMP CRITICAL (RKMS)
+c #endif
         endif ! mod(it,2)=1
-*       ============================ Minimization
+*       ========================================= Minimization
         call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
-*       ------------------------------
+*       -----------------------------------------
         if(Par(3)*Xout(3).lt.0.) then
-          Par(3)=Par(3)/3.
+c          Par(3)=Par(3)/3.
+          Par(3)=Par(3)*0.7
           call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
           if(Par(3)*Xout(3).lt.0.) then
-            Par(3)=Par(3)/3.
+c            Par(3)=Par(3)/3.
+            Par(3)=Par(3)*0.7
             call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
-ccc            if(Par(3)*Xout(3).lt.0.) then
-ccc              Par(3)=Par(3)/3.
-ccc              call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
-ccc            endif
+            if(Par(3)*Xout(3).lt.0.) then
+c              Par(3)=Par(3)/3.
+              Par(3)=Par(3)*0.7
+              call C2Fit(Par,Xout,doR,Npa,np2,Dhi2,ier)
+            endif
           endif
         endif
 *       ------------------
-#if defined (__LINUX24__ )
-C !$OMP END CRITICAL (RKMS)
-#endif
+c #if defined (__LINUX24__ )
+c !$OMP END CRITICAL (RKMS)
+c #endif
         Chi2B(it)=Dhi2
         if(ier.eq.0) then
           JB=it
@@ -223,11 +237,12 @@ C !$OMP END CRITICAL (RKMS)
       endif
       if(Chi2B(jB).lt.Chi2) Chi2=Chi2B(jB) ! D2S final Chi2
       if(Chi2.gt.1000.) ier=7
-      if(dabs(Xout(3)).gt.10.D6) ier=8  ! Pz
+      if(dabs(Xout(3)).gt.10.D6) ier=8  ! |Pz| < 10000 TeV
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-      subroutine C1toC2(npo) ! wxy -> w
+      subroutine C1toC2(npo)
+*   mooving data:   wxy -> w,  rkms.h -> /MFit/
 *   A.Chikanian, Yale, Dec,2010
 *------------------------------
       implicit none
@@ -297,6 +312,7 @@ C !$OMP END CRITICAL (RKMS)
 *----------------
       double precision pin(3),xin(3),xt(NPma),yt(NPma)
       double precision ht(NPma*2)
+      integer ico/0/ !###
 
       pin(1) = par(1) ! Px or cx
       pin(2) = par(2) ! Py or cy
@@ -307,6 +323,7 @@ C !$OMP END CRITICAL (RKMS)
       do i=1,Npma*2
         ht(i)=-999.
       enddo
+
 *     ============================
       call rk_trk(pin,xin,xt,yt,np)
       if(np.ne.npoc) then
@@ -371,6 +388,7 @@ cxy3 ---
       np = 1
       do i=1,Nst
         call DRKUTA(SigCha,STEP,VECT,VOUT)    ! r8
+c          if(vect(6)*vout(6).lt.0.) write(6,*)'ve,vo',vect(6),vout(6)
           DO j=1,2 !!!! fixed close planes problem(AMS02)
         if(vni*vect(3).ge.vni*zc(np).and.vni*vout(3).lt.vni*zc(np))then
           w=(zc(np)-vout(3))/(vect(3)-vout(3))
@@ -413,9 +431,9 @@ cxy3 ---
       real*8 p0(npa)
       real*8 h1(Npm2),h2(NPm2)
       real*8 dp0(NpaM),xx(NpaM)
-      data dp0/.000010,.000010,.001000,.0002,.0002/ ! Pz Optimal Steps
-*                 GeV     GeV     GeV    cm    cm
-*     ===============================================
+      data dp0/0.000002,0.000002,0.00002,0.0002,0.0002/
+*                 GeV      GeV      GeV     cm     cm
+*     ================================================
       ier=0
       call tracking(p0,npa,ht,np)
       if(np.le.0) then
@@ -432,13 +450,13 @@ cxy3 ---
         xx(j)=x0-dp
         call tracking(xx,npa,h1,nn)
         if(nn.ne.npo.or.nn.le.0) then
-          ier=11
+          ier=j*10+1
           return
         endif
         xx(j)=x0+dp
         call tracking(xx,npa,h2,nn)
         if(nn.ne.npo.or.nn.le.0) then
-          ier=12
+          ier=j*10+2
           return
         endif
         do i=1,npo
@@ -480,11 +498,11 @@ cxy3 ---
       data      Rmin/0.300/ ! GeV
 
       integer npo,i,j,k,ii,jj,is,ier,NMSpl,np1
-      integer ir(10),ifail,jfat
-      integer npl(NPma),lw(NPma),mw(NPma)
+      integer ir(10),ifail
+      integer npl(NPma)
       real dx(npo),dy(npo)
       real dms(NPma,NPma),vx(NPma,NPma),vy(NPma,NPma)
-      real dTh0,dTc2,oco(NPma),E,be,P
+      real dTc2,oco(NPma),E,be,P
       integer itr,nw
       real ama,cha,tl,ub
       character*20 pname
@@ -711,8 +729,8 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
         dms(k,1)=0.
       enddo
       npl=Npma-npl1+1
-      do i = 1,npl ! 2
-        do j=1,npl ! 2
+      do i = 2,npl
+        do j=2,npl
           dms(i,j)=dmsN9(i,j,npl1)
         enddo
       enddo
@@ -847,8 +865,8 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
         dms(k,1)=0.
       enddo
       npl=npl1
-      do i = 1,npl ! 2
-        do j=1,npl ! 2
+      do i = 2,npl
+        do j=2,npl
           dms(i,j)=dmsN1(i,j,NPma-npl1+1)
         enddo
       enddo
@@ -882,7 +900,7 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
       if(first) then
         first = .false.
         Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
-        write(6,*)'=== R_init: < Bx > =',Bx
+c        write(6,*)'=== R_init: < Bx > =',Bx
       endif ! first
 
       Rc=10000000.
@@ -894,12 +912,12 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
       Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
       end
+
 *           Chi2 -  m i n i m i z a t i o n
 *--------1---------2---------3---------4---------5---------6---------7--
-* A.Chikanian, Dec.7,2010
       Subroutine NDC2Fit(p0,pf,DP,npa,npo,Chi2,ier)
-*--------------------------------------------------
 *  Chi2 minimization with non diagonal error matrix
+* A.Chikanian, Dec.7,2010
 *--------------------------------------------------
 *  Input:   p0 - initial parameters
 *           pf - fitted  parameters
@@ -941,10 +959,10 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-* A.Chikanian, Dec.7,2010
       Subroutine OneIter(p0,pf,npa,npo,Chi2,IER)
-*----------------------------
-*  One minimization iteration
+*    One minimization iteration
+*    A.Chikanian, Dec.7,2010
+*----------------------------------
 *  Input:   p0 - initial parameters
 *           pf - fitted  parameters
 *          npa - number of parameters
@@ -1003,14 +1021,13 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-* A.Chikanian, Dec.16,2010
       subroutine ParEM(npa,npo,DP,ier)
+*    Calculate full Error matrix of parameters
+*    A.Chikanian, Dec.16,2010
 *-------------------------------------
-*  Error matrix of parameters
-*------------------------------------
 *  Input:  npa - number of parameters
 *          npo - number of points for fit
-* Output:   DP - error matrix
+* Output:   DP - full (5x5) error matrix
 *          ier - error flaf, ok if 0
 *-----------------------------------
       implicit none
@@ -1048,10 +1065,9 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
       end
 
 *--------1---------2---------3---------4---------5---------6---------7--
-* A.Chikanian, Dec.7,2010
       Real*8 Function Chi2Fun(npo)
-*----------------------------------------
-*  Calculate Chi2 with nondiagonal matrix
+*    Calculate Chi2 with nondiagonal matrix
+*   A.Chikanian, Dec.7,2010
 *----------------------------------------
 *  Input:  npo - number of points for fit
 *          common/MFit/
