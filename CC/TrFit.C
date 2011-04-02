@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.45 2011/03/22 08:37:06 shaino Exp $
+//  $Id: TrFit.C,v 1.46 2011/04/02 19:40:05 achikani Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/03/22 08:37:06 $
+///$Date: 2011/04/02 19:40:05 $
 ///
-///$Revision: 1.45 $
+///$Revision: 1.46 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1390,7 +1390,13 @@ double TrFit::ChikanianFit(int type)
   if (_chisqx < 0) _chisqx = out[6];
   if (_chisqy < 0) _chisqy = out[6];
 
-  return _chisq;
+  //  return _chisq;
+  //########### Apr.1,2011
+  //After dropping MINUIT rkms flagging over out[7] insted chisq
+  float flag=1.;
+  if(out[7]!=0.) flag=-1.;
+  return flag;
+  //#############
 }
 
 #ifndef __ROOTSHAREDLIBRARY__
