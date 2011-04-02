@@ -235,8 +235,6 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
     }
 
 
-    delete particle;
-    delete pManager;
 
 }
 #endif
