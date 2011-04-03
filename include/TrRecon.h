@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.40 2011/02/20 14:30:19 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.41 2011/04/03 12:03:57 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/02/20 14:30:19 $
+/// $Date: 2011/04/03 12:03:57 $
 ///
-/// $Revision: 1.40 $
+/// $Revision: 1.41 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -43,7 +43,7 @@
 #include <algorithm>
 #include "tkpatt.h"
 #include "TObject.h"
-#define SCANLAY_MAX 8
+#define SCANLAY 8
 
 
 
@@ -299,9 +299,9 @@ public:
 //========================================================
 protected:
   /// Array of vectors of TkId at each layer
-  vector<int> _LadderHitMap[SCANLAY_MAX];
+  vector<int> _LadderHitMap[SCANLAY];
   /// Number of ladders with both p(X) and n(Y) clusters at each layer
-  int _NladderXY[SCANLAY_MAX];
+  int _NladderXY[SCANLAY];
 
   /// Virtual 2D array to store TrRecHits at [iclx][icly]
   class Hits2DArray : public vector<TrRecHitR*> {
@@ -439,11 +439,11 @@ public:
     int    pattern;            ///< Hit pattern of current scan
     int    side;               ///< Side of current scan
     int    nlayer;             ///< Number of layers to be scanned
-    int    ilay [SCANLAY_MAX];     ///< Scanning order for effective pre-selection
-    int    tkid [SCANLAY_MAX];     ///< TkId list
-    int    iscan[SCANLAY_MAX][2];  ///< Current candidate hit index
-    int    imult[SCANLAY_MAX];     ///< Current candidate multiplicity index
-    AMSPoint coo[SCANLAY_MAX];     ///< Current candidate 3D-coordinate
+    int    ilay [SCANLAY];     ///< Scanning order for effective pre-selection
+    int    tkid [SCANLAY];     ///< TkId list
+    int    iscan[SCANLAY][2];  ///< Current candidate hit index
+    int    imult[SCANLAY];     ///< Current candidate multiplicity index
+    AMSPoint coo[SCANLAY];     ///< Current candidate 3D-coordinate
     double psrange;            ///< Pre-selection range
     double param[4];           ///< Pre-selection parameter
     double chisq[2];           ///< Chisquare in X and Y
@@ -464,8 +464,9 @@ public:
   /// Reconstruct tracks, returns number of tracks reconstructed
   int BuildTrTracks(int refit = 0);
 
+  /// Reconstruct tracks, simple version
+  int BuildTrTracksSimple(int refit = 0);
  
-
   /// Merge hits shared by two tracks
 //int MergeSharedHits(TrTrackR *track, int fit_method);
 
@@ -477,6 +478,9 @@ public:
 
   /// Build one track from the best candidate iterator
   int BuildATrTrack(TrHitIter &cand);
+
+  /// Process track
+  int ProcessTrack(TrTrackR *track, int merge_low = 1);
 
   /// Try to drop one hit in case ChisqX is very large
   int TryDropX(TrTrackR *track, int fit_method);
