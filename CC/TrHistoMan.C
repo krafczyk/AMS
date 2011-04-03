@@ -366,7 +366,6 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     }
   }
 
-  cout << time_event.Rigidity << " " << time_event.logChiSq << endl;
   // time ntuple storing
   if (fFlag>1) fTimeNtuple->Fill();
   
