@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.639 2011/04/01 13:25:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.640 2011/04/03 15:13:36 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -169,6 +169,7 @@ my     $rmprompt        = 1; # prompt before files removal
  my @BadCRCo      = [];  #                 dsts with crc error (after copying)
  my @gbDST        = [];
 
+ my $max_jobs = 0;
  my $doCopyTime   = 0;
  my $doCopyCalls  = 0;
  my $crcTime      = 0;
@@ -689,8 +690,38 @@ my %mv=(
               }
              }
             }
+        my $completed = 0;
+        my $total = 0;
+        my $capacity = 0;
+
+        my $ret = $self->{sqlserver}->Query("select capacity from cites where cid=".$self->{CCID});
+	if ( defined $ret->[0][0] ) {
+		$capacity = $ret->[0][0];
+	}
+
+        my $ret = $self->{sqlserver}->Query("select count(*) as total from
+(select cid as jcid, pid, time as jtime from jobs union all select cid
+as jcid, pid, time as jtime from jobs_deleted), productionset where
+jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
+	if ( defined $ret->[0][0] ) {
+		$total = $ret->[0][0];
+	}
+
+        my $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+jobs, productionset where 
+jobs.pid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+	if ( defined $ret->[0][0] ) {
+		$completed = $ret->[0][0];
+	}
+
+        $max_jobs = int(2.2*$capacity*($completed/($total+1))+1-($total-$completed));
+        if($max_jobs <= 0){
+            $max_jobs = 0;
+        }
           }
         }
+
+
 
 
 
@@ -866,6 +897,7 @@ if($#{$self->{DataSetsT}}==-1){
                }
             }
         }
+        
             if(defined $template->{OPENCLOSE}){
                 #die " $template->{OPENCLOSE} $template->{TOTALEVENTS} $full " ;
            if($template->{OPENCLOSE}==0){
@@ -879,6 +911,9 @@ if($#{$self->{DataSetsT}}==-1){
          }
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{TOTALEVENTS}=0;
+         }
+       elsif($max_jobs <= 0){
+            $template->{TOTALEVENTS}=0;
          }
 
        }
@@ -1053,6 +1088,9 @@ if($#{$self->{DataSetsT}}==-1){
          }
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{RUNMAX}=1;
+         }
+       elsif($max_jobs <= 0){
+            $template->{RUNMAX}=1;
          }
        }
        if(defined $template->{ROOTNTUPLE}  ){
@@ -5616,6 +5654,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<i><b>e-mail : </td><td><input type=\"text\" size=24 value=$cem name=\"CEM\" onFocus=\"this.blur()\" >
                    </i>\n";
+            print "<input type=\"hidden\" name=\"QMaxJobs\" value=\"$max_jobs\">";
             print "</b></font></td></tr>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
@@ -5645,7 +5684,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
                 if(not $self->{CCTP}=~/$dataset->{datamc}/){
                     $minsize=20000000000;
                 }
-                if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) < $minratio or  $dataset->{eventstodo}<$minsize){
+                if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) < $minratio or  $dataset->{eventstodo}<$minsize or $max_jobs <= 0){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
                   $firstdataset--;
@@ -6468,7 +6507,11 @@ DDTAB:          $self->htmlTemplateTable(" ");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,300000,"QCPUTime"," seconds (Native).");
-              htmlTextField("Total Jobs Requested","number",7,50,"QRun"," ");
+              my $jbs=50;
+              if($max_jobs<50){
+                $jbs=$max_jobs;
+              }
+              htmlTextField("Total Jobs Requested","number",7,$jbs,"QRun"," ");
                  if($self->{CCT} eq "local" or $dataset->{datamc}==1){
    print qq`
 <INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR>
@@ -6549,6 +6592,7 @@ DDTAB:         htmlTable(" ");
            htmlTableEnd();
            }
            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n";
+           print "<INPUT TYPE=\"hidden\" NAME=\"QMaxJobs\" VALUE=$max_jobs>\n";
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n";
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"> <b>(it will take a while to tar DB and execs)</b></br><br>";
@@ -6923,6 +6967,12 @@ print qq`
            $srunno=1;
         }elsif($srunno>500){
          $srunno=500;
+        }
+       if($max_jobs<$srunno){
+            $srunno=$max_jobs;
+        }
+       if($max_jobs<$qrunno){
+            $qrunno=$max_jobs;
         }
         my $runsave=undef;
         if($template eq "Any"){
