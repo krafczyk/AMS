@@ -29,6 +29,7 @@
 #include "TDirectory.h"
 #include "TDirectoryFile.h"
 #include "TFile.h"
+#include "TTree.h"
 #include "TNtuple.h"
 #include "TObjArray.h"
 #include "TObjString.h"
@@ -259,6 +260,37 @@ class TrHistoMan : public TObject {
 };
 
 
+//! Time event structure 
+/*! 
+    Time dependent information storing 
+*/
+
+typedef struct {
+  // Unix time
+  UInt_t   Time; 
+  // Fine time
+  Float_t  FineTime;
+  // Interevent distance (us)
+  Float_t  dT;
+  // Livetime
+  Float_t  LiveTime;
+  // Rigidity
+  Float_t  Rigidity;
+  // log10(ChiSq)
+  Float_t  logChiSq;
+  // Tracker Event Size (max 24000) 
+  UShort_t Size; 
+  // Number of Raw Clusters
+  UShort_t nRaw; 
+  // Number of Clusters
+  UShort_t nClu;  
+  // Number of Hits
+  UShort_t nHit; 
+  // Number of Tracks
+  UShort_t nTrk;
+} TIME_EVENT;
+
+
 //! Class TrOnlineMonitor, the Tracker Online Monitor
 /*!
   The class TrOnlineMonitor is a TrHistoMan used for the Online data
@@ -274,7 +306,9 @@ class TrOnlineMonitor : public TrHistoMan {
   //! Low Dt definition
   float fDtMin;
   //! TTree for time dependent quantities
-  TNtuple* fTimeNtuple;
+  TTree* fTimeNtuple;
+  //! Structure for the time dependent quantities storing
+  static TIME_EVENT time_event;
 
  public:
 

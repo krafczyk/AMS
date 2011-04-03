@@ -24,7 +24,10 @@ ClassImp(TrOnlineMonitor);
 // TrOnlineMonitor 
 /////////////////////////////////////////////////
 
+
+TIME_EVENT TrOnlineMonitor::time_event;
 TrOnlineMonitor* ptrman = 0;
+
 
 TrOnlineMonitor::~TrOnlineMonitor() {
    if (fOwnerItself) { 
@@ -134,7 +137,9 @@ void TrOnlineMonitor::Book() {
   if (fFlag>1) {
     TDirectory* saveddir = gDirectory;
     fDir->cd();
-    fTimeNtuple = new TNtuple("timentuple","Time Dependent Quantities","Time:Size:nRaw:nClu:nHit:nTrk");
+    fTimeNtuple = new TTree("timentuple","Time Dependent Quantities");
+    fTimeNtuple->Branch("timebranch",&time_event,
+      "Time/i:FineTime/F:dT/F:LiveTime/F:Rigidity/F:logChiSq/F:Size/s:nRaw/s:nClu/s:nHit/s:nTrk/s");
     saveddir->cd();
   }
 }
@@ -154,6 +159,18 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   int    nclu = event->NTrCluster();
   int    nhit = event->NTrRecHit();
   int    ntrk = event->NTrTrack();
+
+  // ntuple vars
+  time_event.Time = (UInt_t) event->UTime();
+  time_event.FineTime = (Float_t) 0.001*0.001*0.64*((float) lvl1->TrigTime[3]*pow(2.,32.) + (float) lvl1->TrigTime[2]);
+  time_event.dT = (Float_t) dt;
+  time_event.LiveTime = (Float_t) lvl1->LiveTime; 
+  time_event.nRaw = (UShort_t) nraw;
+  time_event.nClu = (UShort_t) nclu;
+  time_event.nHit = (UShort_t) nhit;
+  time_event.nTrk = (UShort_t) ntrk;
+  time_event.Rigidity = (Float_t) 0.;
+  time_event.logChiSq = (Float_t) 1000.;
 
   // global
   FillTracker("DT",dt);  
@@ -283,13 +300,18 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     } 
   }
 
-  // track histogramms
+
+  // track histograms
   if (event->NTrTrack()==1) { // no multi-track
     TrTrackR* track = event->pTrTrack(0); 
-    if ( (track->GetPar(1).ErrRinv<1e6)&&(fabs(track->GetRigidity(1))>1e-6) ) {
-      TrTrackPar par = track->GetPar(1);
-      float rigidity = track->GetRigidity(1);
+    if ( (track->GetPar().ErrRinv<1e6)&&(fabs(track->GetRigidity())>1e-6) ) {
+      TrTrackPar par = track->GetPar();
+      float rigidity = track->GetRigidity();
       float chisq    = (par.ChisqX+par.ChisqY)/(par.NdofX+par.NdofY);
+      // storing
+      time_event.Rigidity = (Float_t) rigidity;
+      time_event.logChiSq = (Float_t) log10(chisq);
+
       AMSPoint global(par.P0);
       AMSDir   direction(par.Dir);
 
@@ -344,10 +366,10 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     }
   }
 
-  // time ntuple
-  if (fFlag>1) {
-    fTimeNtuple->Fill(event->UTime(),2*TrackerSize,nraw,nclu,nhit,ntrk);
-  }
+  cout << time_event.Rigidity << " " << time_event.logChiSq << endl;
+  // time ntuple storing
+  if (fFlag>1) fTimeNtuple->Fill();
+  
 }
 
 
