@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.99 2011/04/03 12:03:57 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.100 2011/04/03 22:15:32 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/03 12:03:57 $
+/// $Date: 2011/04/03 22:15:32 $
 ///
-/// $Revision: 1.99 $
+/// $Revision: 1.100 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1235,13 +1235,12 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 //////////////////// Parameters definition ////////////////////
 
   // Parameters to be tuned
-  double pselx = 4;       // X-Pre-selection range in cm
+  double pselx = 6;       // X-Pre-selection range in cm
   double psely = 1;       // Y-Pre-selection range in cm
-  double mselx = 3;       // X-merge range in cm
+  double mselx = 0.5;     // X-merge range in cm
   double msely = 0.5;     // Y-merge range in cm
-  double err   = 500e-4;  // Fitting sigma       in cm
-  double cmax  = 100;     // Maximum chisquareY allowed
-
+  double err   = 500e-4;  // Fitting sigma in cm
+  double cmax  = 100;     // Maximum chisquare allowed
 
 //////////////////// Buffers definition ////////////////////
 
@@ -1436,7 +1435,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     int nx = 0;
     for (int j = 0; j < NP; j++) if (ih[j][i[j]] > 0) nx++;
-    if (nx < 2) continue;
+    if (nx <= 2) continue;
 
     TrFit trfit;
     for (int j = 0; j < NP; j++) {
@@ -1446,6 +1445,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (trfit.SimpleFit() < 0) continue;
 
     double csq = trfit.GetChisqX();
+
     if (csq > cmin[jc]) continue;
 
     cmin[jc] = csq;
@@ -2552,11 +2552,6 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
 #ifndef __ROOTSHAREDLIBRARY__
      AMSgObj::BookTimer.stop("Trackbuild");
 #endif
-     cout<<"BOKE1 "<<track->GetNhits()<<" "
-	 <<track->GetChisqX(mfit1)<<" "
-	 <<track->GetChisqY(mfit1)<<" "
-	 <<track->GetNdofX(mfit1)<<" "
-	 <<track->GetNdofY(mfit1)<<endl;
     delete track;
     return 0;
   }
@@ -2612,7 +2607,6 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
      AMSgObj::BookTimer.stop("Trackbuild");
 #endif
     delete track;
-cout<<"BOKE2"<<endl;
     return 0;
   }
 
