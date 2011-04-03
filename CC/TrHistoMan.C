@@ -367,6 +367,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   }
 
   // time ntuple storing
+  time_event.Size = (UShort_t) 2*TrackerSize;
   if (fFlag>1) fTimeNtuple->Fill();
   
 }
