@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.39 2011/04/01 15:36:06 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.40 2011/04/04 15:23:04 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -1230,7 +1230,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 	  _filled[12]->Fill(hrigass,1);//V+PG
           RunPar::addsev(14);//<--passed "AdvancFitDone" test
 //	  if(fabs(hrigass)<0.5){
-            _filled[13]->Fill(rerig,1);
+//            _filled[13]->Fill(rerig,1);
+	    ((TProfile*)_filled[13])->Fill(fabs(Rigid),rerig*100,1.);
             TRKtrOK=1;
             RunPar::addsev(15);//<--passed "HalfRigAssim" test
 //	  }
