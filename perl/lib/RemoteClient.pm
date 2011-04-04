@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.640 2011/04/03 15:13:36 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.641 2011/04/04 09:37:16 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -170,6 +170,9 @@ my     $rmprompt        = 1; # prompt before files removal
  my @gbDST        = [];
 
  my $max_jobs = 0;
+ my $capacity_jobs = 0;
+ my $total_jobs = 0;
+ my $completed_jobs = 0;
  my $doCopyTime   = 0;
  my $doCopyCalls  = 0;
  my $crcTime      = 0;
@@ -690,13 +693,10 @@ my %mv=(
               }
              }
             }
-        my $completed = 0;
-        my $total = 0;
-        my $capacity = 0;
 
         my $ret = $self->{sqlserver}->Query("select capacity from cites where cid=".$self->{CCID});
 	if ( defined $ret->[0][0] ) {
-		$capacity = $ret->[0][0];
+		$capacity_jobs = $ret->[0][0];
 	}
 
         my $ret = $self->{sqlserver}->Query("select count(*) as total from
@@ -704,25 +704,22 @@ my %mv=(
 as jcid, pid, time as jtime from jobs_deleted), productionset where
 jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
-		$total = $ret->[0][0];
+		$total_jobs = $ret->[0][0];
 	}
 
         my $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 jobs, productionset where 
 jobs.pid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
-		$completed = $ret->[0][0];
+		$completed_jobs = $ret->[0][0];
 	}
 
-        $max_jobs = int(2.2*$capacity*($completed/($total+1))+1-($total-$completed));
+        $max_jobs = int(2.2*$capacity_jobs*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs));
         if($max_jobs <= 0){
             $max_jobs = 0;
         }
           }
         }
-
-
-
 
 
 if($#{$self->{DataSetsT}}==-1){
@@ -6500,6 +6497,10 @@ DDTAB:          $self->htmlTemplateTable(" ");
               } else {
                htmlTextField("CPU clock","number",8,2000,"QCPU"," [MHz]");
               }
+            htmlText("<i>Capacity </i>",$capacity_jobs);
+            htmlText("<i>Completed jobs</i>",$completed_jobs);
+            htmlText("<i>Total jobs </i>",$total_jobs);
+            htmlText("<i>Allowed jobs </i>",$max_jobs);
             htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
