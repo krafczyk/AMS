@@ -33,6 +33,8 @@
 #include "TNtuple.h"
 #include "TObjArray.h"
 #include "TObjString.h"
+#include "TList.h"
+#include "TCollection.h"
 
 #include <vector>
 #include <map>
@@ -66,9 +68,8 @@ class TrHistoManHeader : public TNamed {
   ~TrHistoManHeader() { Clear(); }
   //! Clear
   void Clear(); 
-  //! Adding
-  void Add(TrHistoManHeader* tobeadded) {} 
-  //! Merge ... 
+  //! Merging (needed for hadd) 
+  Long64_t Merge(TCollection* list);
 
   //! Add file name to the list 
   void        AddFileName(const char* name) { fFileList.Add(new TObjString(name)); }
@@ -81,7 +82,7 @@ class TrHistoManHeader : public TNamed {
   //! Add run number
   void        AddRunNumber(int runnumber) { fRunList.push_back(runnumber); } 
   //! Get the number of runs used 
-  int         GetNRunNumber() { return int(fRunList.size()); }
+  int         GetNRunNumbers() { return int(fRunList.size()); }
   //! Get run number
   int         GetRunNumber(int i) { return fRunList.at(i); }
 

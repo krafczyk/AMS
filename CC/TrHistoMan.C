@@ -1,6 +1,6 @@
 #define __TrHistoMan_C__
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 ///
 ///\file  TrHistoMan.h
 ///\brief Source file of TrHistoMan class
@@ -391,6 +391,20 @@ TrHistoManHeader::TrHistoManHeader(const TrHistoManHeader &orig) : TNamed(orig) 
 }
 
 
+Long64_t TrHistoManHeader::Merge(TCollection* list) {
+  if (!list) return 0;
+  TList inlist;
+  inlist.AddAll(list);
+  TIter next(&inlist);
+  while (TObject *o = next()) {
+    TrHistoManHeader* header = (TrHistoManHeader*) o;
+    for (int ifile=0; ifile<header->GetNFileNames(); ifile++) AddFileName(header->GetFileName(ifile)); 
+    for (int irun=0;  irun<header->GetNRunNumbers(); irun++)  AddRunNumber(header->GetRunNumber(irun)); 
+  }
+  return 1;
+}
+
+ 
 /////////////////////////////////////////////////
 // TrHistoMan 
 /////////////////////////////////////////////////
@@ -488,7 +502,7 @@ void TrHistoMan::Write() {
   TList* list = fDir->GetList();
   TIter next(list);
   TObject *obj;
-  while (obj=next()) {
+  while ( (obj=next()) ) {
     obj->Write(); 
   }
 }
