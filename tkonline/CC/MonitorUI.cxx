@@ -142,17 +142,6 @@ void MonitorUI::CloseWindow() {
 }
 
 
-int main(int argc, char **argv){
-  char filename[200] = "";
-  if (argc>=2) strcpy(filename,argv[1]);
-  // main application
-  TApplication app("App",&argc,argv);
-  new MonitorUI(gClient->GetRoot(),200,200,filename);
-  app.Run();
-  return 0;
-}
-
-
 void MonitorUI::SetStyle() {
   // My graphic style 
   style = new TStyle("style","my style");

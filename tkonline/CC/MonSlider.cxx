@@ -7,7 +7,7 @@ MonSlider::MonSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   canvas->SetFillColor(0);
   rootfile = 0;
   reffile  = 0;  
-  graphtype = 1;
+  graphtype = 1; ///////// TMP
   label = 0;
   BuildMenu();
   ladder = TkDBc::Head->FindHwId(0);
@@ -1145,14 +1145,19 @@ void MonSlider::DrawSizeVsEvent(int alternative) {
   canvas->Divide(1,2,0.001,0.001);
   text->SetTextColor(kBlack);
 
-  // clean histogram
+  rootfile->cd();
+  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
   canvas->SetGridx();
   canvas->SetGridy();
   ClearHistoFromMemory("SizeVsEvent");
-  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
-  gROOT->cd(); // safe area
-  ntuple->Draw(Form("Size:Entry$>>SizeVsEvent(100,0,%d,100,0,20000)",ntuple->GetEntries()),"","COLZ");
-  // TH2F* size_vs_event = (TH2F*) gDirectory->Get("SizeVsEvent"); 
-  // size_vs_event->Draw("COLZ"); 
+  // ntuple->Draw(Form("Size:Entry$>>SizeVsEvent(100,0,%d,100,0,20000)",ntuple->GetEntries()),"","COLZ");
+
+  ntuple->Draw(Form("Size:Time-%f>>SizeVsTime(100,0,%f,1000,0,20000)",ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
+
+
+  //TH2F* size_vs_event = (TH2F*) gROOT->FindObjectAny("SizeVsEvent");
+  //size_vs_event->SetStats(kFALSE);
+  //size_vs_event->Draw("COLZ");
+  gROOT->ls();
   canvas->Update();
 }
