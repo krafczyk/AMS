@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.41 2011/04/03 12:03:57 shaino Exp $ 
+// $Id: TrRecon.h,v 1.42 2011/04/04 20:30:58 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/03 12:03:57 $
+/// $Date: 2011/04/04 20:30:58 $
 ///
-/// $Revision: 1.41 $
+/// $Revision: 1.42 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -43,7 +43,7 @@
 #include <algorithm>
 #include "tkpatt.h"
 #include "TObject.h"
-#define SCANLAY 8
+#define _SCANLAY 8
 
 
 
@@ -299,9 +299,9 @@ public:
 //========================================================
 protected:
   /// Array of vectors of TkId at each layer
-  vector<int> _LadderHitMap[SCANLAY];
+  vector<int> _LadderHitMap[_SCANLAY];
   /// Number of ladders with both p(X) and n(Y) clusters at each layer
-  int _NladderXY[SCANLAY];
+  int _NladderXY[_SCANLAY];
 
   /// Virtual 2D array to store TrRecHits at [iclx][icly]
   class Hits2DArray : public vector<TrRecHitR*> {
@@ -439,11 +439,11 @@ public:
     int    pattern;            ///< Hit pattern of current scan
     int    side;               ///< Side of current scan
     int    nlayer;             ///< Number of layers to be scanned
-    int    ilay [SCANLAY];     ///< Scanning order for effective pre-selection
-    int    tkid [SCANLAY];     ///< TkId list
-    int    iscan[SCANLAY][2];  ///< Current candidate hit index
-    int    imult[SCANLAY];     ///< Current candidate multiplicity index
-    AMSPoint coo[SCANLAY];     ///< Current candidate 3D-coordinate
+    int    ilay [_SCANLAY];     ///< Scanning order for effective pre-selection
+    int    tkid [_SCANLAY];     ///< TkId list
+    int    iscan[_SCANLAY][2];  ///< Current candidate hit index
+    int    imult[_SCANLAY];     ///< Current candidate multiplicity index
+    AMSPoint coo[_SCANLAY];     ///< Current candidate 3D-coordinate
     double psrange;            ///< Pre-selection range
     double param[4];           ///< Pre-selection parameter
     double chisq[2];           ///< Chisquare in X and Y

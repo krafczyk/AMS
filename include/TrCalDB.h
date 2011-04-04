@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.10 2010/02/01 12:44:12 shaino Exp $
+// $Id: TrCalDB.h,v 1.11 2011/04/04 20:30:58 oliva Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2010/02/01 12:44:12 $
+///$Date: 2011/04/04 20:30:58 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +32,8 @@
 #include "typedefs.h"
 #include "TrLadCal.h"
 #include "TFile.h"
+#include "TCollection.h"
+
 
 //! The AMS Tracker Calibration database class
 
@@ -57,6 +59,9 @@ public:
 
   //! The run number
   int run;
+
+  //! Merging (needed for hadd) 
+  Long64_t Merge(TCollection* list) { return 1; }
 
   //! Returns the run number;
   int GetRun(){return run;}
