@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.641 2011/04/04 09:37:16 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.642 2011/04/04 10:19:24 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -708,8 +708,8 @@ jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (selec
 	}
 
         my $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
-jobs, productionset where 
-jobs.pid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+(select cid, pid as jpid, realtriggers from jobs union all select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
+jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
@@ -909,7 +909,7 @@ if($#{$self->{DataSetsT}}==-1){
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{TOTALEVENTS}=0;
          }
-       elsif($max_jobs <= 0){
+       elsif($max_jobs <= 0 and $self->{CCID}!=1){
             $template->{TOTALEVENTS}=0;
          }
 
@@ -1086,7 +1086,7 @@ if($#{$self->{DataSetsT}}==-1){
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{RUNMAX}=1;
          }
-       elsif($max_jobs <= 0){
+       elsif($max_jobs <= 0 and $self->{CCID}!=1){
             $template->{RUNMAX}=1;
          }
        }
