@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.102 2011/04/04 20:30:58 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.100.2.1 2011/04/04 20:32:29 haino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/04 20:30:58 $
+/// $Date: 2011/04/04 20:32:29 $
 ///
-/// $Revision: 1.102 $
+/// $Revision: 1.100.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1174,7 +1174,7 @@ void TrRecon::BuildLadderHitMap()
 void TrRecon::BuildLadderClusterMap()
 {
   // Clear LadderHitMap
-  for (int i = 0; i < _SCANLAY; i++) {
+  for (int i = 0; i < SCANLAY; i++) {
     _NladderXY[i] = 0;
     _LadderHitMap[i].clear();
   }
@@ -2130,7 +2130,7 @@ int TrRecon::ScanHits(const TrHitIter &itlad)
 {
   // Reset the-best-candidate parameters
   _itchit.chisq[0] = _itchit.chisq[1] = RecPar.MaxChisqAllowed;
-  for (int i = 0; i < _SCANLAY; i++)
+  for (int i = 0; i < SCANLAY; i++)
     _itchit.iscan[i][0] = _itchit.iscan[i][1] = _itchit.imult[i] = 0;
 
   // Define and fill iterator
@@ -2336,10 +2336,10 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   double rthdx = TRFITFFKEY.ErrX*RecPar.NsigmaMerge;
   double rthdy = TRFITFFKEY.ErrY*RecPar.NsigmaMerge;
 
-  AMSPoint pltrk[_SCANLAY];
-  double   rymin[_SCANLAY];
-  int      ncmin[_SCANLAY];
-  for (int i = 0; i < _SCANLAY; i++) {
+  AMSPoint pltrk[SCANLAY];
+  double   rymin[SCANLAY];
+  int      ncmin[SCANLAY];
+  for (int i = 0; i < SCANLAY; i++) {
     pltrk[i] = track->GetPlayer(i, mfit);
     rymin[i] = rthdy*1.5;
     ncmin[i] = 0;
@@ -3113,10 +3113,10 @@ int TrRecon::BuildTrTasTracks(int rebuild)
 
   int ntrk = 0;
   for (int i = 0; i < TrTasPar::NLAS; i++) {
-    TrRecHitR *hits[_SCANLAY];
+    TrRecHitR *hits[SCANLAY];
     int nhit = 0;
     int hpat = 0xff;
-    for (int j = 0; j < _SCANLAY; j++) hits[j] = 0;
+    for (int j = 0; j < SCANLAY; j++) hits[j] = 0;
 
     for (int j = 0; j < cont->getnelem(); j++) {
       TrRecHitR *hit = (TrRecHitR *)cont->getelem(j);
