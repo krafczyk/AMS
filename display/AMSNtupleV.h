@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.44 2010/11/30 18:42:58 pzuccon Exp $
+//  $Id: AMSNtupleV.h,v 1.45 2011/04/04 17:57:17 barao Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -598,6 +598,15 @@ public:
 };
 
 
+class RichRingBV: public RichRingV{
+protected:
+public:
+  RichRingBV():RichRingV(){};
+  RichRingBV(AMSEventR *ev,int ref, bool drawplex=false);
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pRichRingB(fRef)->Info(fRef):0;}
+
+
+};
 
 
 

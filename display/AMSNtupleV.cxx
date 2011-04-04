@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.35 2011/01/05 14:53:01 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.36 2011/04/04 17:57:16 barao Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -399,6 +399,14 @@ if(type==kall || type==kusedonly || type==krichrings){
     if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
    }
   }
+
+    for(int i=0;i<NRichRingB();i++){
+      if( (!gAMSDisplay->DrawUsedOnly() && (pRichRingB(i)->Status)%10==2 )){
+	//if( !gAMSDisplay->DrawUsedOnly()){
+	fRichRingV.push_back( RichRingBV(this,i,false));
+        if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingBV(this,i,true));
+      }
+    }
  }
 }
 
@@ -729,8 +737,10 @@ for(int i=0;i<ev->nParticle();i++){
   }    
 
    double theta=pcl->Theta;
-    //cout <<" theta "<<pcl->Theta<<"  " <<refi<<endl;
+
     TVector3 z(pcl->TrPMTPos[0]-pcl->TrRadPos[0],pcl->TrPMTPos[1]-pcl->TrRadPos[1],pcl->TrPMTPos[2]-pcl->TrRadPos[2]);
+    //cout << "pcl->TrRadPos[0] = " << pcl->TrRadPos[0] << " pcl->TrRadPos[1] = " << pcl->TrRadPos[1] << " pcl->TrRadPos[2] = " << pcl->TrRadPos[2] << endl;
+    //cout << "pcl->TrPMTPos[0] = " << pcl->TrPMTPos[0] << " pcl->TrPMTPos[1] = " << pcl->TrPMTPos[1] << " pcl->TrPMTPos[2] = " << pcl->TrPMTPos[2] << endl;
     //cout << pcl->TrRadPos[2]<<"  "<<pcl->TrPMTPos[2]<<endl;
     double rcoo[3];
     TRotation r;
@@ -843,7 +853,7 @@ for(int i=0;i<ev->nParticle();i++){
       if(!(npoint--))break;
       else continue;
      }
-//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+     //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
 }
    SetPolyLine(npoint,array);
@@ -856,6 +866,396 @@ for(int i=0;i<ev->nParticle();i++){
 }
 
 
+RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex):RichRingV(ev,ref,drawplex){
+
+ RichRingBR *pcl=ev->pRichRingB(ref);
+//
+// at the moment only rich rings ass with particles will be drawn
+//
+//  This should go to RichRingR  as soon as the latter will be updated
+//  (added theta, radiator etc) by Carlos
+//
+static TNode *mirror=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
+static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
+           TCONE * pcone= (TCONE*)mirror->GetShape();
+           double r1=pcone->GetRmin2();
+           double r2=pcone->GetRmin();
+           double dz=pcone->GetDz();      
+           double xc=mirror->GetX();
+           double yc=mirror->GetY();
+           double zc=mirror->GetZ();
+           double tc=(r1-r2)/2/dz;
+           zc+=rich->GetZ();
+           double  z2=zc-dz;
+//            cout <<" tc "<<tc<<" "<<z2<<endl;
+//              cout <<r1<<endl;           
+//              cout <<r2<<endl;           
+//              cout <<dz<<endl;           
+//              cout <<xc<<endl;           
+//              cout <<yc<<endl;           
+//              cout <<zc<<endl;           
+//              cout <<tc<<endl;           
+//
+  const int npointm=360/5+1;
+  int npoint=npointm;
+  float array[3*npointm];
+  double rad_thick;
+  const double rad_length=-3;
+  double n_aero;
+  if(ev->Version()<130){
+    n_aero=1.02998;
+  }
+  else n_aero=1.0529;
+  const double n_naf=1.33;
+  const double n_naf_Spread=0.01; 
+
+   if(ev->Version() <89){
+   double refi;
+   double rad_posz;
+   //   //for(int i=0;i<ev->nParticle();i++){
+   //  // if( ev->pParticle(i)->iRichRing() == ref){
+
+   
+      for(int i=0;i<ev->nParticle();i++){
+	if(ev->pParticle(i)->pTrTrack()!=NULL){
+	  for (int nLIP=0; nLIP< (ev->nRichRingB()); nLIP++) {
+	    RichRingBR ringLIP = ev->RichRingB(nLIP);
+	    if( ((ringLIP.Status)%10) ==2 && (ringLIP.iTrTrack())==ref){
+	      //if( (ringLIP.iTrTrack())==ref){
+	 
+      
+ if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3*3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3*3/2){
+
+    refi=n_naf;
+    rad_posz=-2.5;
+    rad_thick=-0.5;
+ }
+  else {
+   refi=n_aero;
+   rad_posz=0;
+   rad_thick=-3;
+  }
+  double    cc=1./ev->pRichRingB(ref)->Beta/refi;
+//   cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->Beta<<endl;
+  if(cc<1){
+   double theta=acos(cc);
+   TVector3 z(ev->pParticle(i)->RichCoo[1][0]-ev->pParticle(i)->RichCoo[0][0],ev->pParticle(i)->RichCoo[1][1]-ev->pParticle(i)->RichCoo[0][1],ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]);
+
+
+    double rcoo[3];
+    TRotation r;
+    r.SetZAxis(z);
+   double dphi=2*3.1415926/(npoint-1);
+   double phi=-dphi;
+   for( int k=0;k<npoint;k++){
+   double posz=rad_posz+rad_thick*float(rand())/RAND_MAX;
+   double thick=rad_length-rad_posz;  
+    rcoo[0]=ev->pParticle(i)->RichCoo[0][0]+z.X()/z.Z()*posz;
+    rcoo[1]=ev->pParticle(i)->RichCoo[0][1]+z.Y()/z.Z()*posz;
+    rcoo[2]=ev->pParticle(i)->RichCoo[0][2]+posz;
+    phi+=dphi;
+    double u=sin(theta)*cos(phi);
+    double v=sin(theta)*sin(phi);
+    double w=cos(theta);
+    TVector3 ray(u,v,w);
+    ray.Transform(r);
+
+    rcoo[0]+=ray.X()/ray.Z()*thick;
+    rcoo[1]+=ray.Y()/ray.Z()*thick;
+    rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction to the plex
+    double plex_thick =0.1;
+    const double n_plex=1.49;
+    {
+     double st=refi*sin(ray.Theta())/n_plex;
+     double u1=st*cos(ray.Phi());
+     double v1=st*sin(ray.Phi());
+     double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     // propagate
+     rcoo[0]+=ray.X()/ray.Z()*plex_thick;
+     rcoo[1]+=ray.Y()/ray.Z()*plex_thick;
+     rcoo[2]+=ray.Z()/ray.Z()*plex_thick;
+    }
+//  Now refraction
+    double st=n_plex*sin(ray.Theta());
+    if(st>=1){
+//      cerr<< "full refl "<<st<<endl;
+      k=k-1;
+      if(!(npoint--))break;
+      continue;
+    }
+     
+    double u1=st*cos(ray.Phi());
+    double v1=st*sin(ray.Phi());
+    double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     double zl=ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2;
+//    cout <<" after "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<" "<<ray.Phi()<<" "<<ray.Theta()<<endl;
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*zl;
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*zl;
+    array[k*3+2]=ev->pParticle(i)->RichCoo[1][2]+3.2;
+    double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
+    while(rp>rc   && ray.Z()<0){
+ 
+      zl=ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2;
+      // take iterations
+       double rp2=rp;
+       double rc2=rc;
+       double eps=1.e-2;
+       while(fabs(rp2-rc2)>eps && fabs(zl)>eps){       
+        zl=zl/2;
+        rcoo[0]+=ray.X()/ray.Z()*zl;
+        rcoo[1]+=ray.Y()/ray.Z()*zl;
+        rcoo[2]+=zl;
+        rp2=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+        rc2=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+        if(rp2>rc2 && zl<0)zl=-zl;
+        else if(rp2<rc2 && zl>0)zl=-zl;
+      }           
+      cout <<"  got iteration "<<rcoo[0]<< " "<<rcoo[1]<<" "<<rcoo[2]<< " "<<rp2 <<" "<<rc2<<endl;
+     // get norm vector to cone
+     double cw=sin(atan(-tc));
+     double phin=atan2(rcoo[1],rcoo[0]);
+     double cu=cos(atan(-tc))*cos(phin);
+     double cv=cos(atan(-tc))*sin(phin);
+//     cout <<"  normal to cone "<<cu<<" "<<cv<<" "<<cw<<endl;
+     //  reflect
+     double cc=ray.X()*cu+ray.Y()*cv+ray.Z()*cw;
+     double ru=ray.X()-2*cc*cu;
+     double rv=ray.Y()-2*cc*cv;
+     double rw=ray.Z()-2*cc*cw;
+     ray=TVector3(ru,rv,rw);
+     array[k*3+0]=rcoo[0]+ru/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-rcoo[2]);
+     array[k*3+1]=rcoo[1]+rv/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-rcoo[2]);
+     rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    }
+     if(ray.Z()>0){
+      k--;
+      if(!(npoint--))break;
+//      cout <<"removing point point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+      continue;
+     }
+     const double hole=32;
+     if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
+       // in the hole
+      k--;
+      if(!(npoint--))break;
+      continue;
+     }
+    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
+    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+   }   
+
+   SetPolyLine(npoint,array);
+   SetLineColor(1);
+   int size=gAMSDisplay->Focus()==0?2:1;
+   SetLineWidth(size*2);
+   SetLineStyle(1);
+   return;
+  }
+	    }
+	  }
+	}
+      }
+   return;
+   }
+   else{
+    const double plex_thick =0.1;
+    const double n_plex=1.49;
+    double shift=0;
+    double refi=pcl->Beta*cos(pcl->AngleRec);
+    refi=1/refi;
+    float fracemission;
+  if(refi>1.1){
+    rad_thick=-0.5;
+    fracemission = 0.5;
+  }
+  else {
+  if(ev->Version()<130){
+   rad_thick=-3;
+    fracemission = 0.6;
+  }
+  else{
+    rad_thick=-2.5;
+    fracemission = 0.6;
+  }
+  }
+  if(drawplex){
+      refi=n_plex;
+      shift=-rad_thick/2; 
+      rad_thick=-0.1;
+      shift+=-rad_thick/2; 
+  }    
+
+  double theta=(double)(pcl->AngleRec);
+  //cout << " theta ck = " << pcl->AngleRec << "  " << refi << endl;
+
+  float HRAD      =  2.5; //cm
+  //float ZTMIRGAP  =  0.1;
+  //float HMIR      = 46.32;
+  //float ZBMIRGAP  =  0.5;
+  float HEXPANSION = 47.02;
+  //   float ZLGSIGNAL =  1.8;
+  float ZTOPRAD = -72.37;
+
+   float zdet = ZTOPRAD-(HRAD + HEXPANSION);
+   float ximp = pcl->TrackRec[0];
+   float yimp = pcl->TrackRec[2];
+   float zimp = ZTOPRAD - pcl->TrackRec[4];
+   //float zimp = pcl->TrackRec[4];
+
+   //float xemission = ximp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   //float yemission = yimp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   float deltaz = - (HRAD + rad_thick) + fracemission*rad_thick;
+   float xemission = ximp - deltaz*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   float yemission = yimp - deltaz*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   float zemission = ZTOPRAD + deltaz;
+   //cout << "xemission = " << xemission << " yemission = " << yemission << " zemission = " << zemission << endl;
+
+   float xdet = ximp - (zdet-zimp)*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   float ydet = yimp - (zdet-zimp)*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   //cout << "xdet = " << xdet << " ydet = " << ydet << " zdet = " << zdet << endl;
+   //   TVector3 z(pcl->TrPMTPos[0]-pcl->TrRadPos[0],pcl->TrPMTPos[1]-pcl->TrRadPos[1],pcl->TrPMTPos[2]-pcl->TrRadPos[2]);
+
+   TVector3 z(xdet-xemission,ydet-yemission,zdet-zemission);
+
+    //cout << pcl->TrRadPos[2]<<"  "<<pcl->TrPMTPos[2]<<endl;
+    double rcoo[3];
+    TRotation r;
+    r.SetZAxis(z);
+   double dphi=2*3.1415926/(npoint-1);
+   double phi=-dphi;
+   for( int k=0;k<npoint;k++){
+   //cout << "  k npoint "<<k<<" "<<npoint<<endl;
+   //double posz=rad_thick*(float(rand())/RAND_MAX-0.5);
+   double posz=0.0;
+   double thick=rad_thick*0.5 - posz;  
+   rcoo[0]=xemission+z.X()/z.Z()*posz;
+   rcoo[1]=yemission+z.Y()/z.Z()*posz;
+   rcoo[2]=zemission+posz;
+   //rcoo[0]=pcl->TrRadPos[0]+z.X()/z.Z()*posz;
+   //rcoo[1]=pcl->TrRadPos[1]+z.Y()/z.Z()*posz;
+   //rcoo[2]=pcl->TrRadPos[2]+posz;
+   phi+=dphi;
+   double u=sin(theta)*cos(phi);
+   double v=sin(theta)*sin(phi);
+   double w=cos(theta);
+   TVector3 ray(u,v,w);
+   ray.Transform(r);
+
+    rcoo[0]+=ray.X()/ray.Z()*thick;
+    rcoo[1]+=ray.Y()/ray.Z()*thick;
+    rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction to the plex
+    if( !drawplex){
+     double st=refi*sin(ray.Theta())/n_plex;
+     double u1=st*cos(ray.Phi());
+     double v1=st*sin(ray.Phi());
+     double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     // propagate
+     rcoo[0]+=ray.X()/ray.Z()*plex_thick;
+     rcoo[1]+=ray.Y()/ray.Z()*plex_thick;
+     rcoo[2]+=ray.Z()/ray.Z()*plex_thick;
+    }
+//  Now refraction
+    double st=n_plex*sin(ray.Theta());
+    if(st>=1){
+//      cerr<< "full refl "<<st<<endl;
+            k--;
+      if(!(npoint--))break;
+      else continue;
+    }
+     
+    double u1=st*cos(ray.Phi());
+    double v1=st*sin(ray.Phi());
+    double w1=-sqrt(1-st*st);
+    ray=TVector3(u1,v1,w1);
+    double addon=4.;
+    if(ev->Version()>160){
+      addon=0;
+    }
+    double rp=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+    double rc=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+    if(rp>rc){
+      k--;
+      if(!(npoint--))break;
+      else continue;
+    }
+    //    double zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+    double zl=zdet-rcoo[2]+addon;
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*zl;
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*zl;
+    //    array[k*3+2]=pcl->TrPMTPos[2]+addon;
+    array[k*3+2]=zdet+addon;
+    rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
+    const int miter=1000;
+    int iter=0;
+    while(rp>rc  && ray.Z()<0 && iter++<miter){
+      //zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+      zl=zdet-rcoo[2]+addon;
+      //cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<zl<<endl;
+      // take iterations
+       double rp2=rp;
+       double rc2=rc;
+       double eps=1.e-2;
+       while(fabs(rp2-rc2)>eps && fabs(zl)>eps){       
+        zl=zl/2;
+        rcoo[0]+=ray.X()/ray.Z()*zl;
+        rcoo[1]+=ray.Y()/ray.Z()*zl;
+        rcoo[2]+=zl;
+        rp2=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+        rc2=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+        if(rp2>rc2 && zl<0)zl=-zl;
+        else if(rp2<rc2 && zl>0)zl=-zl;
+        
+      }           
+     // get norm vector to cone
+     double cw=sin(atan(-tc));
+     double phin=atan2(rcoo[1],rcoo[0]);
+     double cu=cos(atan(-tc))*cos(phin);
+     double cv=cos(atan(-tc))*sin(phin);
+     //  reflect
+     double cc=ray.X()*cu+ray.Y()*cv+ray.Z()*cw;
+     double ru=ray.X()-2*cc*cu;
+     double rv=ray.Y()-2*cc*cv;
+     double rw=ray.Z()-2*cc*cw;
+     ray=TVector3(ru,rv,rw);
+     //     array[k*3+0]=rcoo[0]+ru/rw*(pcl->TrPMTPos[2]+addon-rcoo[2]);
+     //     array[k*3+1]=rcoo[1]+rv/rw*(pcl->TrPMTPos[2]+addon-rcoo[2]);
+     array[k*3+0]=rcoo[0]+ru/rw*(zdet+addon-rcoo[2]);
+     array[k*3+1]=rcoo[1]+rv/rw*(zdet+addon-rcoo[2]);
+     rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    }
+     if(ray.Z()>0){
+            k--;
+      if(!(npoint--))break;
+      else continue;
+     }
+     const double hole=32;
+     if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
+       // in the hole
+            k--;
+      if(!(npoint--))break;
+      else continue;
+     }
+//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+   }   
+}
+   SetPolyLine(npoint,array);
+   SetLineColor(4);
+   int size=gAMSDisplay->Focus()==0?2:1;
+   SetLineWidth(size*2);
+   SetLineStyle(1);
+   if(drawplex)SetLineStyle(2);
+
+
+
+   return;
+}
 
 #ifdef _PGTRACK_
 TrRecHitV::~TrRecHitV(){
