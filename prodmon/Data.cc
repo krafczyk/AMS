@@ -14,7 +14,7 @@ Data::Data(vector<string> hists_name,vector<string> hists_name_summary):_hists_n
 	for(i=0;i<hists_name_summary.size();i++){
 		_hists_summary[i]=NULL;
 	}
-	_hists_h=new TH1F("_hists_h","History Record",5,0,5);
+	_hists_h=new TH1F("_hists_h","History Record: nEvents",5,0,5);
 	_hists_h->SetBit(TH1::kCanRebin);
         _hists_h->SetStats(0);
         _hists_h->SetBarWidth(0.6);

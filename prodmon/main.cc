@@ -39,7 +39,7 @@ int main(int argc,char*argv[]){
 	sname[0]="Current file Summary";
 	
 	vector<string> hname(1);
-	hname[0]="History Infomation";
+	hname[0]="History Infomation: nEvents";
 	Data*data=new Data(str,sname);
 	Tab_Frame* tab=new Tab_Frame(fCompositeFrame_Main,str);
 	Tab_Frame* stab=new Tab_Frame(fCompositeFrame_Summary,sname);

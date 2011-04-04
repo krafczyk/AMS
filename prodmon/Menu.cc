@@ -22,6 +22,7 @@ void Menu::TimerDone1(){
 	FileStat_t fs;
 	struct stat sb;
 	int i=0;
+	static int m=0;
 	char temp[20];
 	gSystem->GetPathInfo(data1_dir.c_str(),fs);
 	i=0;
@@ -63,8 +64,9 @@ void Menu::TimerDone1(){
 		_fdata->_hists_h->SetMarkerStyle(3);
 		_fdata->_hists_h->SetMarkerColor(kRed);
 //		cout<<"min="<<_fdata->_hists_h->GetXaxis()->GetXmin()<<",max="<<_fdata->_hists_h->GetXaxis()->GetXmax()<<",nbinx="<<_fdata->_hists_h->GetNbinsX()<<endl;
-		_fdata->_hists_h->SetAxisRange(_fdata->_hists_h->GetNbinsX()-5,_fdata->_hists_h->GetNbinsX());	
+		_fdata->_hists_h->SetAxisRange(m-5<0?0:m-5,m+5>_fdata->_hists_h->GetNbinsX()?_fdata->_hists_h->GetNbinsX():m+5);	
 		gPad->SetGrid();
+		m++;
 		c->Update();
 	}
 	pbar->SetInfo(info);

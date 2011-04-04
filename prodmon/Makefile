@@ -21,6 +21,6 @@ main:$(OBJ)
 	rootcint -f $@  -c -I$(ROOTSYS)/include  -I$(AMSSRC)/include $?
 
 clean:
-	@rm -f *.o 
+	@rm -f *.o main
 
 
