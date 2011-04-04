@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.47 2011/04/04 19:33:49 achikani Exp $
+//  $Id: TrFit.C,v 1.48 2011/04/04 20:24:06 haino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/04/04 19:33:49 $
+///$Date: 2011/04/04 20:24:06 $
 ///
-///$Revision: 1.47 $
+///$Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -909,7 +909,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
 int TrFit::JAInitPar(int fixr)
 {
   // Check number of hits
-  if (_nhit < 4) return -(10+_nhit);
+  if (_nhitx < 2 || _nhity < 3) return -(10+_nhit);
 
   // MagField check
   bool magf = true;

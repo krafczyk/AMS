@@ -1,8 +1,8 @@
-//  $Id: event_tk.C,v 1.42 2011/04/03 12:03:57 shaino Exp $
+//  $Id: event_tk.C,v 1.43 2011/04/04 20:24:08 haino Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
-
+#include "TrTrackSelection.h"
 
 void AMSEvent::_sitkinitevent(){
   // printf("AMSEvent::_sitkinitevent()\n");
@@ -162,17 +162,20 @@ void AMSEvent::_retkevent(integer refit){
     nfill++;
     int ntrk = AMSEvent::gethead()->getC("AMSTrTrack")->getnelem();
     if (ntrk > 0) {
-      ntevt++;
       AMSTrTrack *trk 
 	= (AMSTrTrack *)AMSEvent::gethead()->getC("AMSTrTrack")->gethead();
       if(TkDBc::Head->GetSetup()==3){
-	if (trk->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
-			                      | TrTrackR::kFitLayer9)) 
-	  ntful++;
+	if (TrTrackSelection::GetSpanFlags(trk) & 0x110) {
+	  ntevt++;
+	  if (trk->ParExists(TrTrackR::kChoutko | TrTrackR::kFitLayer8
+			                        | TrTrackR::kFitLayer9)) 
+	    ntful++;
+	}
       }else
-	if (trk->ParExists(TrTrackR::kChoutko )) 
+	if (trk->ParExists(TrTrackR::kChoutko)) {
+	  ntevt++;
 	  ntful++;
-      
+	}
     }
     if (trstat > 0) {
          static int qprint=0;

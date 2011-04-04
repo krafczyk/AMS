@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.99 2011/03/30 13:19:18 oliva Exp $
+// $Id: TrTrack.C,v 1.100 2011/04/04 20:24:07 haino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/03/30 13:19:18 $
+///$Date: 2011/04/04 20:24:07 $
 ///
-///$Revision: 1.99 $
+///$Revision: 1.100 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1157,7 +1157,13 @@ int TrTrackR::AdvancedFitDone(int add_flag)
 { 
   if (!_MagFieldOn) return FitDone(kLinear|add_flag);
   bool done = true;
-  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++)
+  for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
+
+   // SameWeight fit only with ext. layers
+   if ((DefaultAdvancedFitFlags[ii] & kSameWeight) &&
+       !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
+     continue;
+
     if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
       done &=FitDone(DefaultAdvancedFitFlags[ii]| add_flag);
 
@@ -1168,6 +1174,7 @@ int TrTrackR::AdvancedFitDone(int add_flag)
      if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
        done &= FitDone(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
     }
+  }
   return done;
 }
 

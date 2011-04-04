@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2011/03/31 10:09:49 haino Exp $
+# $Id: Makefile,v 1.10 2011/04/04 20:24:22 haino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -98,3 +98,5 @@ bin/pmrinv : CC/pmrinv.C
 bin/tkmerge: CC/tkmerge.C
 
 bin/trqpar : CC/trqpar.C
+
+bin/mtree  : CC/mtree.C
