@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.169 2011/03/30 14:50:51 choutko Exp $
+//  $Id: server.C,v 1.170 2011/04/04 07:36:41 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2540,6 +2540,8 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
      submit+=(const char*)((*cli)->LogPath);  
      if(runmc)submit+="MC";
      submit+="Producer.";
+    submit+=(const char*)((ahlv)->HostName);
+     submit+=".";
      submit+=uid;
      submit+=".log ";
     }
