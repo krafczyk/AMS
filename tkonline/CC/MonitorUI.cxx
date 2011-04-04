@@ -23,6 +23,9 @@
 ClassImp(MonitorUI);
 
 
+TStyle* MonitorUI::style = 0;
+
+
 MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMainFrame(p,w,h) {
   // DB init
   TkDBc::CreateTkDBc();
@@ -144,7 +147,7 @@ void MonitorUI::CloseWindow() {
 
 void MonitorUI::SetStyle() {
   // My graphic style 
-  style = new TStyle("style","my style");
+  if (style==0) style = new TStyle("style","my style");
   // Colors 
   style->SetFillColor(1);
   style->SetFillStyle(1001);

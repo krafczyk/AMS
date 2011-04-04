@@ -18,7 +18,7 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   // default graph
   graphtype = 1;
   // build menu
-  BuildMenu();
+  if (!gROOT->IsBatch()) BuildMenu();
   // init
   rootfile  = NULL;
   fromdb    = 0;

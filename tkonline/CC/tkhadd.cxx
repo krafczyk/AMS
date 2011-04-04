@@ -241,14 +241,9 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
          if ( strcmp(obj->GetName(),"AMSRootSetup")==0) continue;  
          if ( strcmp(obj->GetName(),"datacards")==0) continue;
          if ( strcmp(obj->GetName(),"AMS02Geometry")==0) continue;
-         if ( strcmp(obj->GetName(),"TrCalDB")==0) continue;
          if ( strcmp(obj->GetName(),"TkDBc")==0) continue;
          if ( strcmp(obj->GetName(),"TrParDB")==0) continue;
          if ( strcmp(obj->GetName(),"TrReconPar")==0) continue;  
-         // if ( strcmp(obj->GetName(),"TrOnlineMonHeader")==0) continue;
-         // if ( strcmp(obj->GetName(),"timentuple")==0) continue;
-         // cout << obj->GetName() << endl; 
-         // continue; 
          /* AO end */
 
          if (obj->IsA()->InheritsFrom("TTree")!=0) {
@@ -261,9 +256,7 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
                   obj_name = obj->GetName();
                }
                globChain = new TChain(obj_name);
-               cout << "globChainName: " << globChain->GetName() << endl;
                globChain->Add(first_source->GetName());
-               cout << "FirstSourceName: " << first_source->GetName() << endl;
                TFile *nextsource = (TFile*)sourcelist->After( first_source );
                while ( nextsource ) {     	  
                   //do not add to the list a file that does not contain this Tree
@@ -366,7 +359,6 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
             } else if(obj->IsA()->InheritsFrom( "TTree" )) {
                if (!noTrees) {
                   globChain->ls();
-                  cout << "before real merging, globChainName: " << globChain->GetName() << endl;
                   if (fastMethod) globChain->Merge(target->GetFile(),0,"keep fast");
                   else            globChain->Merge(target->GetFile(),0,"keep");
                   delete globChain;

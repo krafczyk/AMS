@@ -8,21 +8,23 @@
 #include <TGFrame.h>
 
 class MonitorUI: public TGMainFrame {
-public:
+
+ public:
+
   TGMainFrame* fMain;
   GenericSlider *gs;
   TimerPanel *timer;
   InteractionPanel *intpan;
   SearchPanel *search;
   TrackerPanel *track;
-  TStyle *style; 
+  static TStyle *style; 
   
   MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename);
   ~MonitorUI() {}
   void HandleMenu(Int_t id);
   void HandleFile(char* filename, int ref = 0);
   void CloseWindow(); 
-  void SetStyle();
+  static void SetStyle();
   ClassDef(MonitorUI,0);
 };
 

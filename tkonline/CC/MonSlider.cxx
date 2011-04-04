@@ -7,9 +7,9 @@ MonSlider::MonSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   canvas->SetFillColor(0);
   rootfile = 0;
   reffile  = 0;  
-  graphtype = 1; ///////// TMP
+  graphtype = 1;
   label = 0;
-  BuildMenu();
+  if (!gROOT->IsBatch()) BuildMenu();
   ladder = TkDBc::Head->FindHwId(0);
   text = new TText();
 }
@@ -84,7 +84,7 @@ void MonSlider::setRootFile(char *filename){
   }
   if (rootfile->FindObjectAny("TrOnlineMonHeader")!=0) {
     TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader"); 
-    if (header->GetNRunNumber()>0) { 
+    if (header->GetNRunNumbers()>0) { 
       char title[100];
       time_t pippo = (time_t) header->GetRunNumber(0);
       sprintf(title,"Data from run %10d %s",header->GetRunNumber(0),ctime(&pippo));

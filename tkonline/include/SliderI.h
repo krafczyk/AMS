@@ -1,6 +1,7 @@
 #ifndef SliderI_h
 #define SliderI_h
 
+#include <TROOT.h>
 #include <TCanvas.h>
 #include <TGFrame.h>
 
@@ -17,6 +18,8 @@ class SliderI : public TObject {
 
  public:
 
+  /// Get canvas
+  TCanvas* GetCanvas() { return canvas; }
   /// Update
   virtual void Update() = 0;
   /// Set the root-file 

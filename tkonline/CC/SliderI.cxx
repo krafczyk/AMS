@@ -6,7 +6,7 @@ ClassImp(SliderI);
 
 SliderI::SliderI(char *name, char *title, UInt_t w, UInt_t h) : TObject() {
   canvas = new TCanvas(name,title,w,h);
-  frame  = new TGMainFrame(gClient->GetRoot(),200,200);
+  if (!gROOT->IsBatch()) frame  = new TGMainFrame(gClient->GetRoot(),200,200);
 }
 
 
