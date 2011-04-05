@@ -14,8 +14,12 @@ Tab_Frame::Tab_Frame(const TGWindow* p ,vector<string>& pads):TGVerticalFrame(p)
 	else {
 		if(_nPads==4)
 			fEcanvas->GetCanvas()->Divide(2,2);
-		else				
-			fEcanvas->GetCanvas()->Divide(w_div,h_div);
+		else{
+			_nPads=1;
+			fEcanvas->GetCanvas()->Divide(1,1);
+		}
+	//				
+	//		fEcanvas->GetCanvas()->Divide(w_div,h_div);
 	}
 	for(i=0;i<_nPads;i++)
 		fEcanvas->GetCanvas()->GetPad(i+1)->AddExec("zoom","myzoom()");

@@ -19,11 +19,11 @@ public:
 		map<string,Int_t>::iterator it; 
 		it=fpads.find(name); 
 		if(it==fpads.end()){
-			cout<<"-1";
+//			cout<<"-1";
 			return -1;
 		}
 		else{
-			cout<<it->second<<endl;
+//			cout<<it->second<<endl;
 			return it->second;
 		}
 	};

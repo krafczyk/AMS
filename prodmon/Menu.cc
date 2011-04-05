@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "InputDialog.h"
 #include "TLegend.h"
 #include <stdio.h>
 #include <sys/types.h>
@@ -22,7 +23,6 @@ void Menu::TimerDone1(){
 	FileStat_t fs;
 	struct stat sb;
 	int i=0;
-	static int m=0;
 	char temp[20];
 	gSystem->GetPathInfo(data1_dir.c_str(),fs);
 	i=0;
@@ -47,8 +47,6 @@ void Menu::TimerDone1(){
 		info+=temp;
 		info+=" new files";
 		if(i>0){
-			_fdata->data1_filename=data1_filename;	
-			_fdata->data2_filename=data2_filename;
 			timer2->Start(0,kTRUE);
 		}
 		pre_time=cur;
@@ -57,22 +55,20 @@ void Menu::TimerDone1(){
 	      info+="Message: No new files";
 	}
 	if(i==0){
-		TCanvas* c=_fhtab->GetCanvas();
-		c->cd();
-		_fdata->_hists_h->Fill(ctime(&cur),0);
-		_fdata->_hists_h->Draw("E1");
-		_fdata->_hists_h->SetMarkerStyle(3);
-		_fdata->_hists_h->SetMarkerColor(kRed);
-//		cout<<"min="<<_fdata->_hists_h->GetXaxis()->GetXmin()<<",max="<<_fdata->_hists_h->GetXaxis()->GetXmax()<<",nbinx="<<_fdata->_hists_h->GetNbinsX()<<endl;
-		_fdata->_hists_h->SetAxisRange(m-5<0?0:m-5,m+5>_fdata->_hists_h->GetNbinsX()?_fdata->_hists_h->GetNbinsX():m+5);	
-		gPad->SetGrid();
-		m++;
-		c->Update();
+		draw_history();
 	}
 	pbar->SetInfo(info);
 	
 }
 void Menu::TimerDone2(){
+	cout<<"n1="<<data1_filename<<endl;
+	cout<<"n2="<<data2_filename<<endl;
+	if(data1_filename!=_fdata->data1_filename){
+		_fdata->Set_data1_filename(data1_filename);
+	}	
+	if(data2_filename!=_fdata->data2_filename){
+		_fdata->Set_data2_filename(data2_filename);
+	}
 	_fdata->Generate_hist();
         draw();	
 }
@@ -85,6 +81,12 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	data1_dir="Data1/";
 	data2_dir="Data2/*.root";
 	data2_filename=data2_dir;
+	m=0;
+	if(getenv("AMSProdMonRefFile")==NULL){
+		printf("Please set env AMSProdMonRefFile\n");
+		exit(0);
+	}
+	data2_filename=getenv("AMSProdMonRefFile");
 	timer1=new TTimer();
 	timer2=new TTimer();
 	timer1->Connect("Timeout()", "Menu",this, "TimerDone1()");
@@ -99,9 +101,15 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuFile->AddEntry("Current Dir",5);
 	fMenuFile->AddEntry("Base line file",6);
 	fMenuFile->AddSeparator();
+	fMenuFile->AddEntry("Use cmd",7);
+        //fMenuFile->AddEntry("Set cmd",8);
+
+	fMenuFile->AddSeparator();
 	fMenuFile->AddEntry("Exit", 2);
 	//initially use manually mode 
 	mode=false;
+	//file=new TFile("History.root","RECREATE");
+	//file->cd();
 	fMenuFile->DisableEntry(5);
 	fMenuFile->DisableEntry(6);
 	fMenuFile->CheckEntry(3);
@@ -119,8 +127,55 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
                       "HandleMenu2(Int_t)");
 	fMenuPlot->DisableEntry(0);
 	AddPopup(new TGHotString("&Plot"), fMenuPlot, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
+	fMenuHS=new TGPopupMenu(gClient->GetRoot());
+	fMenuHS->AddEntry("nEvent",0);
+	fMenuHS->CheckEntry(0);
+	fMenuHS->AddEntry("nParticle",1);
+	fMenuHS->AddEntry("iTrdTrack",2);
+	fMenuHS->AddEntry("iTrdHTrack",3);
+	fMenuHS->AddEntry("iTrTrack",4);
+	fMenuHS->AddEntry("iRichRing",5);
+	fMenuHS->AddEntry("iEcalShower",6);
+	fMenuHS->AddEntry("iTrTrack_iTrdTrack",7);
+	fMenuHS->AddEntry("iTrTrack_iEcalShower",8);
+	fMenuHS->AddEntry("iTrTrack_iRichRing",9);
+	AddPopup(new TGHotString("&History"), fMenuHS, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
+	fMenuHS->Connect("Activated(Int_t)", "Menu", this,
+                      "HandleMenu3(Int_t)");
+	_fhs=1;	
+}
+void Menu::draw_history(){
+	m++;
+	TCanvas*c=_fhtab->GetCanvas();
+	c->cd(1);
+	Int_t i=0;
+	Int_t flag=0;
+	TLegend*l=new TLegend(0.6,0.7,0.9,0.9);
+	for(i=0;i<_fdata->_hists_h.size();i++){
+	//	cout<<_fhs<<","<<((_fhs>>i)&0x1)<<endl;
+		if(((_fhs>>i)&0x1)){
+			
+			if(flag==0){
+				_fdata->_hists_h[i]->Draw("E1");
+			        _fdata->_hists_h[i]->SetAxisRange(m-5<0?0:m-5,m+5>_fdata->_hists_h[i]->GetNbinsX()?_fdata->_hists_h[i]->GetNbinsX():m+5);	
+				flag=1;
+			}
+			else{	
+				_fdata->_hists_h[i]->Draw("E1 SAME");
+			}
+			_fdata->_hists_h[i]->SetMarkerStyle(i);
+			_fdata->_hists_h[i]->SetMarkerColor(i*10);
+			l->AddEntry(_fdata->_hists_h[i],_fdata->_hists_name_h[i].c_str(),"lp");
+		}
+	}
+	l->Draw();
+	gPad->SetGrid();
+	c->Update();
+	//for(i=0;i<10;i++)
+	//_fdata->_hists_h[i]->Write();
 }
 Menu::~Menu(){
+	//file->Close();
 	if(fMenuFile)
 		delete fMenuFile;
 	if(fMenuPlot)
@@ -134,12 +189,12 @@ void Menu::draw(){
 		c->cd(_ftab->Getpid(_fdata->_hists_name[i]));
 		_fdata->_hists_1[i]->Draw();
 		_fdata->_hists_1[i]->SetLineColor(kRed);
-		_fdata->_hists_2[i]->Draw("same");
+		_fdata->_hists_2[i]->Draw("SAME");
 		_fdata->_hists_2[i]->SetLineColor(kBlue);
 		if(i==0){
 			//TObject* old=gDirectory->GetList()->FindObject("lgr");
 			//if(old==NULL){
-				l=new TLegend(0.3,0.7,0.98,0.9);
+				l=new TLegend(0.1,0.7,0.98,0.9);
 				l->AddEntry(_fdata->_hists_1[0],data1_filename.c_str(),"l");
 				l->AddEntry(_fdata->_hists_2[0],data2_filename.c_str(),"l");				
 			//}
@@ -149,23 +204,127 @@ void Menu::draw(){
 	}
 	_ftab->GetCanvas()->Update();
 	c=_fstab->GetCanvas();
-	for(i=0;i<_fdata->_hists_name_summary.size();i++){
-		c->cd();
-		_fdata->_hists_summary[i]->Draw("bar2");
-		_fdata->_hists_summary[i]->SetFillColor(42);
-		gPad->SetGrid();
-	}
-		
-	c->Update();
-	c=_fhtab->GetCanvas();
-	c->cd();
-	_fdata->_hists_h->Draw("E1");
-	_fdata->_hists_h->SetMarkerStyle(3);
-	_fdata->_hists_h->SetMarkerColor(kRed);
-	
+	c->cd(1);
+	l=new TLegend(0.5,0.85,0.98,0.95);
+	_fdata->_hists_summary[0]->Draw("bar2");
+	_fdata->_hists_summary[0]->SetFillColor(42);
+	//_fdata->_hists_summary[0]->SetMarkerStyle(25);
+	//_fdata->_hists_summary[0]->SetMarkerColor(3);
+
+	_fdata->_hists_summary[1]->Draw("P SAME");
+	_fdata->_hists_summary[1]->SetMarkerStyle(26);
+	_fdata->_hists_summary[1]->SetMarkerColor(3);
+	l->AddEntry(_fdata->_hists_summary[0],_fdata->_hists_summary[0]->GetTitle(),"f");
+	l->AddEntry(_fdata->_hists_summary[1],_fdata->_hists_summary[1]->GetTitle(),"p");
+	l->Draw();
 	gPad->SetGrid();
-	
 	c->Update();
+	draw_history();
+}
+void Menu::HandleMenu3(Int_t i){
+	switch(i){
+		case 0:
+			if(!fMenuHS->IsEntryChecked(0)){
+				_fhs+=nEvent;
+				fMenuHS->CheckEntry(0);
+			}
+			else{
+				_fhs-=nEvent;
+				fMenuHS->UnCheckEntry(0);
+			}
+			break;
+		case 1:
+			if(!fMenuHS->IsEntryChecked(1)){
+				_fhs+=nParticle;
+				fMenuHS->CheckEntry(1);
+			}
+			else{
+				_fhs-=nParticle;
+				fMenuHS->UnCheckEntry(1);
+			}
+			break;
+		case 2:
+			if(!fMenuHS->IsEntryChecked(2)){
+				_fhs+=iTrdTrack;
+				fMenuHS->CheckEntry(2);
+			}
+			else{
+				_fhs-=iTrdTrack;
+				fMenuHS->UnCheckEntry(2);
+			}
+			break;
+		case 3:
+			if(!fMenuHS->IsEntryChecked(3)){
+				_fhs+=iTrdHTrack;
+				fMenuHS->CheckEntry(3);
+			}
+			else{
+				_fhs-=iTrdHTrack;
+				fMenuHS->UnCheckEntry(3);
+			}
+			break;
+		case 4:
+			if(!fMenuHS->IsEntryChecked(4)){
+				_fhs+=iTrTrack;
+				fMenuHS->CheckEntry(4);
+			}
+			else{
+				_fhs-=iTrTrack;
+				fMenuHS->UnCheckEntry(4);
+			}
+			break;
+		case 5:
+			if(!fMenuHS->IsEntryChecked(5)){
+				_fhs+=iRichRing;
+				fMenuHS->CheckEntry(5);
+			}
+			else{
+				_fhs-=iRichRing;
+				fMenuHS->UnCheckEntry(5);
+			}
+			break;
+		case 6:
+			if(!fMenuHS->IsEntryChecked(6)){
+				_fhs+=iEcalShower;
+				fMenuHS->CheckEntry(6);
+			}
+			else{
+				_fhs-=iEcalShower;
+				fMenuHS->UnCheckEntry(6);
+			}
+			break;
+		case 7:
+			if(!fMenuHS->IsEntryChecked(7)){
+				_fhs+=iTrTrack_iTrdTrack;
+				fMenuHS->CheckEntry(7);
+			}
+			else{
+				_fhs-=iTrTrack_iTrdTrack;
+				fMenuHS->UnCheckEntry(7);
+			}
+			break;
+		case 8:
+			if(!fMenuHS->IsEntryChecked(8)){
+				_fhs+=iTrTrack_iRichRing;
+				fMenuHS->CheckEntry(8);
+			}
+			else{
+				_fhs-=iTrTrack_iRichRing;
+				fMenuHS->UnCheckEntry(8);
+			}
+			break;
+		case 9:
+			if(!fMenuHS->IsEntryChecked(9)){
+				_fhs+=iTrTrack_iEcalShower;
+				fMenuHS->CheckEntry(9);
+			}
+			else{
+				_fhs-=iTrTrack_iEcalShower;
+				fMenuHS->UnCheckEntry(9);
+			}
+			break;	
+	}
+	draw_history();
 }
 void Menu::HandleMenu(Int_t i){
 	if(i==2)
@@ -213,6 +372,35 @@ void Menu::HandleMenu(Int_t i){
                 }
                 return;
         }
+        FILE *fp;
+        int status;
+        char path[1000];
+	if(i==7){
+                _fcmd+=">lastname.dat";
+                status= system(_fcmd.c_str());
+                if (status == -1) {
+                        printf("Failed to run command %s\n",_fcmd.c_str());
+                        return;
+                }
+                fp=fopen("lastname.dat","r");
+                if(fp==NULL){
+                        printf("Failed to open file lastname.dat\n");
+                        return;
+                }
+                fscanf(fp,"%s",path);
+                data1_filename=path;
+                fclose(fp);
+                //printf("%s find new file %s\n",_fcmd.c_str(),path);
+		timer2->Start(0,kTRUE);
+                return;
+        }
+        static char answer[128];
+	if(i==8){
+           // Prompt for string. The typed in string is returned.
+           new InputDialog("prompt", "defval", answer);
+           _fcmd=answer;
+           return;
+        }
 
 	static TString dir(".");
 	TGFileInfo fi;
@@ -252,8 +440,6 @@ void Menu::HandleMenu2(Int_t i){
 	switch(i){
 		case 0:
 	//Generate plots manually
-			_fdata->data1_filename=data1_filename;	
-			_fdata->data2_filename=data2_filename;
 			
 	//		_fdata->Generate_hist();
 	//		draw();

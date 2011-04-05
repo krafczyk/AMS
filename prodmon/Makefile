@@ -3,9 +3,9 @@ CXX:= $(shell root-config --cxx)
 
 ROOTLIBS:= $(shell root-config --cflags --libs) -lMinuit -lNetx -lGui
 #ROOTSYS:=`echo $ROOTSYS`
-AMSSRC:=/scratch/kaiwu/AMS
+AMSSRC:=/home/amslocal/AMS
 
-LIBS= -L$(AMSWD)/lib/$(MARCH)/ -lntuple_slc4_PG $(ROOTLIBS)
+LIBS= -L$(AMSSRC)/lib/$(MARCH)/ -lntuple_slc4_PG $(ROOTLIBS)
 #LIBS= $(ROOTLIBS)
 SRC:=$(wildcard *.cc)
 DictSrc:=MenuDict.cc

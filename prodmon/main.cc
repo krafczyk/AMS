@@ -38,15 +38,29 @@ int main(int argc,char*argv[]){
 	vector<string> sname(1);
 	sname[0]="Current file Summary";
 	
-	vector<string> hname(1);
-	hname[0]="History Infomation: nEvents";
-	Data*data=new Data(str,sname);
+	vector<string> hname(10);
+	hname[0]="nEvent";
+	hname[1]="nParticle";
+	hname[2]="iTrdTrack";
+	hname[3]="iTrdHTrack";
+	hname[4]="iTrTrack";
+	hname[5]="iRichRing";
+	hname[6]="iEcalShower";
+	hname[7]="iTrTrack_iTrdTrack";
+	hname[8]="iTrTrack_iEcalShower";
+	hname[9]="iTrTrack_iRichRing";
+	Data*data=new Data(str,sname,hname);
 	Tab_Frame* tab=new Tab_Frame(fCompositeFrame_Main,str);
 	Tab_Frame* stab=new Tab_Frame(fCompositeFrame_Summary,sname);
 	Tab_Frame* htab=new Tab_Frame(fCompositeFrame_h,hname);
 
 	Menu* fMenuBar=new Menu(hc,data,tab,stab,htab);
 	hc->AddFrame(fMenuBar, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+	if(app.Argc()!=2){
+		cout<<"Usage: ./main ../perl/rdlast.perl"<<endl;
+		exit(0);
+	}
+	fMenuBar->Set_Cmd(app.Argv()[1]);
 	hc->AddFrame(fTab, new TGLayoutHints(kLHintsLeft |kLHintsExpandX|kLHintsExpandY,2,2,2,2));
 	fCompositeFrame_Main->AddFrame(tab,new TGLayoutHints(kLHintsTop|kLHintsExpandX|kLHintsExpandY,2,2,2,2));
 	fCompositeFrame_Summary->AddFrame(stab,new TGLayoutHints(kLHintsTop|kLHintsExpandX|kLHintsExpandY,2,2,2,2));
