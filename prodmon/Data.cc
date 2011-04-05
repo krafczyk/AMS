@@ -74,6 +74,7 @@ Bool_t Data::Generate_hist(){
 	}
 	if(n1_changed||n2_changed)
 	for(i=0;i<2;i++){
+		if(i==0&&n1_changed){
 		if(_hists_summary[i]!=NULL){
 			TObject* old=gDirectory->GetList()->FindObject(Form("%s_%d",_hists_name_summary[i].c_str(),i));
                         gDirectory->GetList()->Remove(old);
@@ -83,6 +84,19 @@ Bool_t Data::Generate_hist(){
 		_hists_summary[i]=new TH1F(Form("%s_%d",_hists_name_summary[i].c_str(),i),_hists_name_summary[i].c_str(),10,0,10);
 		_hists_summary[i]->SetBit(TH1::kCanRebin);
 		_hists_summary[i]->SetStats(0);
+		}
+		if(i==1&&n2_changed){
+
+		if(_hists_summary[i]!=NULL){
+			TObject* old=gDirectory->GetList()->FindObject(Form("%s_%d",_hists_name_summary[i].c_str(),i));
+                        gDirectory->GetList()->Remove(old);
+			delete _hists_summary[i];
+			_hists_summary[i]=NULL;
+		}
+		_hists_summary[i]=new TH1F(Form("%s_%d",_hists_name_summary[i].c_str(),i),_hists_name_summary[i].c_str(),10,0,10);
+		_hists_summary[i]->SetBit(TH1::kCanRebin);
+		_hists_summary[i]->SetStats(0);
+		}
 		if(i==0){
 			_hists_summary[i]->SetBarWidth(0.5);
 			_hists_summary[i]->SetBarOffset(0.1);
@@ -104,16 +118,19 @@ Bool_t Data::Generate_hist(){
 	if(n2_changed){
 		ams2.Add(data2_filename.c_str());
 		nevt2=ams2.GetEntries();
+		
 	}
 	AMSEventR* evt;
 	pbar->Show();
 	cout<<"There are "<<nevt1<<" events in "<<data1_filename.c_str()<<endl;
+	cout<<"There are "<<nevt2<<" events in "<<data2_filename.c_str()<<endl;
 	static string runid;
 	time_t t=time(NULL);
 	int k=0,l;
 	if(n2_changed){
 	for(i=0;i<nevt2;i++){
 		evt=ams2.GetEvent(i);
+		//cout<<"Fill\n";
 		_hists_summary[1]->Fill("Number of Events",1);
 				
 		for(j=0;j<evt->nParticle();j++){
@@ -189,6 +206,7 @@ Bool_t Data::Generate_hist(){
 	_hists_summary[1]->SetTitle(Form("Reference Run: %d",evt->Run()));
 	n2_changed=false;
 	}
+	cout<<"test "<<_hists_summary[1]->GetBinContent(1)<<endl;
 	if(n1_changed){
 	for(i=0;i<nevt1;i++){
 		evt=ams1.GetEvent(i);
@@ -275,11 +293,12 @@ Bool_t Data::Generate_hist(){
 				_hists_h[k]->Fill(Form("No new file;%s",ctime(&t)),1);
 		}
 	}
-	cout<<"+++++++++++++++++++nref="<<nref<<endl;
+	cout<<"nref="<<nref<<endl;
 	if(nref){
 		temp2=_hists_summary[0]->GetBinContent(1);
 		//cout<<"temp2="<<temp2<<endl;
-		temp2/=_hists_summary[1]->GetBinContent(1);	
+		temp2/=_hists_summary[1]->GetBinContent(1);
+		cout<<"scale :"	<<temp2<<endl;
 		//cout<<"temp2="<<temp2<<endl;	
 		/*for(i=1;i<=10;i++){
 			temp=_hists_summary[1]->GetBinContent(i);

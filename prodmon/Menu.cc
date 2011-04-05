@@ -127,18 +127,27 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuHS->AddEntry("nEvent",0);
 	fMenuHS->CheckEntry(0);
 	fMenuHS->AddEntry("nParticle",1);
+	fMenuHS->CheckEntry(1);
 	fMenuHS->AddEntry("iTrdTrack",2);
+	fMenuHS->CheckEntry(2);
 	fMenuHS->AddEntry("iTrdHTrack",3);
+	fMenuHS->CheckEntry(3);
 	fMenuHS->AddEntry("iTrTrack",4);
+	fMenuHS->CheckEntry(4);
 	fMenuHS->AddEntry("iRichRing",5);
+	fMenuHS->CheckEntry(5);
 	fMenuHS->AddEntry("iEcalShower",6);
+	fMenuHS->CheckEntry(6);
 	fMenuHS->AddEntry("iTrTrack_iTrdTrack",7);
+	fMenuHS->CheckEntry(7);
 	fMenuHS->AddEntry("iTrTrack_iEcalShower",8);
+	fMenuHS->CheckEntry(8);
 	fMenuHS->AddEntry("iTrTrack_iRichRing",9);
+	fMenuHS->CheckEntry(9);
 	AddPopup(new TGHotString("&History"), fMenuHS, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
 	fMenuHS->Connect("Activated(Int_t)", "Menu", this,
                       "HandleMenu3(Int_t)");
-	_fhs=1;	
+	_fhs=1+2+4+8+16+32+64+128+256+512+1024;	
 }
 void Menu::draw_history(){
 	TCanvas*c=_fhtab->GetCanvas();
