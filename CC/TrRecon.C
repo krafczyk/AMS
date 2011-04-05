@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.102 2011/04/04 20:30:58 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.103 2011/04/05 08:42:04 haino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/04 20:30:58 $
+/// $Date: 2011/04/05 08:42:04 $
 ///
-/// $Revision: 1.102 $
+/// $Revision: 1.103 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -996,10 +996,83 @@ if (TrDEBUG >= 1) {\
   }\
 }
 
+#define TR_DEBUG_CODE_101 \
+if (TrDEBUG >= 4) {\
+  cout<<"C101 ";\
+  for (int j = 0; j < NP; j++)\
+    if (ic[j][i[j]] > 0) {\
+      TrClusterR *cls = (TrClusterR *)cont->getelem(ic[j][i[j]]/10);\
+      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), ic[j][i[j]]/10);\
+    }\
+  cout << ": " << csq << endl;\
+}
+
+#define TR_DEBUG_CODE_102 \
+if (TrDEBUG >= 3) {\
+  cout<<"C102 ";\
+  for (int k = 0; k < NP; k++)\
+    if (imin[jr][k] > 0) {\
+      TrClusterR *cls = (TrClusterR *)cont->getelem(imin[jr][k]/10);\
+      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), imin[jr][k]/10);\
+    }\
+  cout << ": " << cmin[jr] << " " << csq << " "\
+       << std::fabs(tmin[jr].GetP0x()-trfit.GetP0x()) << " "\
+       << std::fabs(tmin[jr].GetP0y()-trfit.GetP0y()) << " "\
+       << std::fabs(tmin[jr].GetD0x()-trfit.GetD0x())*30 << " "\
+       << std::fabs(tmin[jr].GetD0y()-trfit.GetD0y())*30 << endl;\
+}\
+
+#define TR_DEBUG_CODE_103 \
+if (TrDEBUG >= 3) {\
+  cout << "C103 ";\
+  for (int k = 0; k < NP; k++)\
+    if (ic[k][i[k]] > 0) {\
+      TrClusterR *cls = (TrClusterR *)cont->getelem(ic[k][i[k]]/10);\
+      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), ic[k][i[k]]/10);\
+    }\
+  cout << ": " << csq << " " << jr << endl;\
+}
+
+#define TR_DEBUG_CODE_104 \
+if (TrDEBUG >= 3) cout<<"Insert at " << jc <<" "<<jr<<endl;
+
+#define TR_DEBUG_CODE_105 \
+if (TrDEBUG >= 2) {\
+  VCon *cont2 = GetVCon()->GetCont("AMSTrCluster");\
+  if (cont2) {\
+    cout << Form("Y%02d: ", jc);\
+    for (int k = 0; k < NL; k++)\
+      if (imin[jc][k] > 0) {\
+	TrClusterR *cls = (TrClusterR *)cont2->getelem(imin[jc][k]/10);\
+	if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), imin[jc][k]/10);\
+      }\
+    cout << ": " << cmin[jc] << endl;\
+  }\
+}
+
+#define TR_DEBUG_CODE_106 \
+if (TrDEBUG >= 2) {\
+  cout << Form("X%02d: ", jc);\
+  for (int k = 0; k < NL; k++) cout << Form("%8d ", imin[jc][k]);\
+  cout << Form(":%d %5.3f", nx, cmin[jc]) << endl;\
+}
+
+#define TR_DEBUG_CODE_107 \
+if (TrDEBUG >= 1) cout << "TR" << jc << " " << ny;
+
+#define TR_DEBUG_CODE_108 \
+if (TrDEBUG >= 1)\
+  cout << Form("%4d:%03d%c", hit->GetTkId(), ihit/100,\
+	                   ((hit->OnlyY()) ? 'Y' : ' '));\
+
+#define TR_DEBUG_CODE_109 \
+if (TrDEBUG >= 1)\
+  cout << Form("%5.2f %5.2f", track->GetNormChisqX(),\
+		              track->GetNormChisqY()) << endl;\
+
+
 int TrRecon::TrDEBUG = 0;
 int TrRecon::PZDEBUG = 0;
-
-
 
 //========================================================
 // Maps for fast hit scanning
@@ -1202,6 +1275,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 {
 //////////////////// Check VCon ////////////////////
 
+  //TrDEBUG=1;//3;
+
   VCon *cont = GetVCon()->GetCont("AMSTrTrack");
   if (!cont) {
     printf("TrRecon::BuildTrTracks  Cant Find AMSTrTrack Container "
@@ -1264,7 +1339,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 //////////////////// Buffers definition ////////////////////
 
-  enum { NL = 7, NP = 4, NH = 200, NC = 5 };
+  enum { NL = 7, NP = 4, NH = 200, NC = 7 };
 
   AMSPoint cc[NP][NH];
   int      ic[NP][NH], nc[NP];
@@ -1281,13 +1356,14 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     TrClusterR *cls = (TrClusterR *)cont->getelem(j);
     if (!cls || cls->GetSide() != 1 || cls->GetLayer() >= 8) continue;
 
+    int tk = cls->GetTkId();
     int ly = cls->GetLayer();
     int ip = (ly == 1) ? 0 : ly/2;
     if (ip >= NP || nc[ip] >= NH) continue;
     ic[ip][nc[ip]] = j*10+ly;
-    cc[ip][nc[ip]++].setp(0, cls->GetGCoord(0), zlay[ly-1]);
+    cc[ip][nc[ip]++].setp(TkCoo::GetLadderCenterX(tk),
+			  cls->GetGCoord(0), zlay[ly-1]);
   }
-
 
   double cmin[NC];
   TrFit  tmin[NC];
@@ -1315,35 +1391,46 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (std::fabs(cc[2][i[2]].y()-(p0+p1*cc[2][i[2]].z())) > psely) continue;
 
     TrFit trfit;
-    for (int j = 0; j < NP; j++) trfit.Add(cc[j][i[j]], errx, erry, erry);
-    if (trfit.SimpleFit() < 0) continue;
+    for (int j = 0; j < NP; j++) {
+      Double_t erx = std::fabs(cc[j][i[j]].x())/2;
+      trfit.Add(cc[j][i[j]], erx, erry, erry);
+    }
+    //if (trfit.SimpleFit() < 0) continue;
+    if (trfit.CircleFit() < 0) continue;
 
     double csq = trfit.GetChisqY();
+    TR_DEBUG_CODE_101;
     if (csq <= 0 || csq > cmax) continue;
 
     int jr;
     for (jr = 0; jr < NC && cmin[jr] > 0; jr++) {
       int nshr = 0;
-      for (int k = 0; k < 4; k++) if (imin[jr][k] == ic[k][i[k]]) nshr++;
+      for (int k = 0; k < NP; k++) if (imin[jr][k] == ic[k][i[k]]) nshr++;
       if (nshr == 0) continue;
 
-      if (nshr >= 2 ||
-	  std::fabs(tmin[jr].GetP0y()-trfit.GetP0y()) < msely &&
-	  std::fabs(tmin[jr].GetD0y()-trfit.GetD0y()) < msely/30) {
+      if (nshr >= 3 ||
+	  (std::fabs(tmin[jr].GetP0x()-trfit.GetP0x()) < msely*10 &&
+	   std::fabs(tmin[jr].GetP0y()-trfit.GetP0y()) < msely    &&
+	   std::fabs(tmin[jr].GetD0x()-trfit.GetD0x()) < msely/3  &&
+	   std::fabs(tmin[jr].GetD0y()-trfit.GetD0y()) < msely/30)) {
+	TR_DEBUG_CODE_102;
 	if (csq > cmin[jr]) jr = -1;
 	break;
       }
     }
-    if (jr < 0 || jr == NC) continue;
+    TR_DEBUG_CODE_103;
+    if (jr < 0) continue;
 
     int jc;
     for (jc = 0; jc < jr && cmin[jc] > 0 && csq > cmin[jc]; jc++);
     if (jc >= NC) continue;
+    TR_DEBUG_CODE_104;
 
+    if (jr >= NC) jr = NC-1;
     for (int j = jr-1; j >= jc; j--) {
       cmin[j+1] = cmin[j];
       tmin[j+1] = tmin[j];
-      for (int k = 0; k < NL; k++) imin[j+1][k] = imin[j][k];
+      for (int k = 0; k < NP; k++) imin[j+1][k] = imin[j][k];
     }
 
     cmin[jc] = csq;
@@ -1355,10 +1442,19 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   AMSgObj::BookTimer.stop ("Track1");
 #endif
 
+  delete cont;
   if (imin[0][0] == 0) {
     _CpuTime = _CheckTimer();
-    delete cont;
     return 0;
+  }
+
+//////////////////// Now with TrRecHits ////////////////////
+
+  cont = GetVCon()->GetCont("AMSTrRecHit");
+  if(!cont) {
+    cerr << "TrRecon::BuildTrTrackesSimple:  "
+            "Can't Find AMSTrRecHit Container" << endl;
+    return -1;
   }
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -1397,27 +1493,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       }
     }
   }
-
-  if (TrDEBUG >= 2) {
-    cout << Form("Y%02d: ", jc);
-    for (int k = 0; k < NL; k++)
-      if (imin[jc][k] > 0) {
-	TrClusterR *cls = (TrClusterR *)cont->getelem(imin[jc][k]/10);
-	if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), imin[jc][k]/10);
-      }
-    cout << ": " << cmin[jc] << endl;
-  }
-
-//////////////////// Now with TrRecHits ////////////////////
-
-  delete cont;
-  cont = GetVCon()->GetCont("AMSTrRecHit");
-  if(!cont) {
-    cerr << "TrRecon::BuildTrTrackesSimple:  "
-            "Can't Find AMSTrRecHit Container" << endl;
-    return -1;
-  }
-
+  TR_DEBUG_CODE_105;
 
 //////////////////// Fill buffers with TrRecHits ////////////////////
 
@@ -1540,12 +1616,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (imin[jc][k] != 0) ny++;
     if (imin[jc][k] >  0) nx++;
   }
-
-  if (TrDEBUG >= 2) {
-    cout << Form("X%02d: ", jc);
-    for (int k = 0; k < NL; k++) cout << Form("%8d ", imin[jc][k]);
-    cout << Form(":%d %5.3f", nx, cmin[jc]) << endl;
-  }
+  TR_DEBUG_CODE_106;
   if (nx <= 2) continue;
 
 //////////////////// Create a new TrTrack ////////////////////
@@ -1556,7 +1627,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   TrTrackR *track = new TrTrackR(0);
 #endif
 
-  if (TrDEBUG >= 1) cout << "TR" << jc << " " << ny;
+  TR_DEBUG_CODE_107;
 
   int nl = 0;
   for (int j = 0; j < NL; j++) {
@@ -1570,22 +1641,15 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     TrRecHitR *hit = (TrRecHitR *)cont->getelem(ihit/100);
     if (!hit) continue;
 
-    if (TrDEBUG >= 1)
-      cout << Form("%4d:%03d%c", hit->GetTkId(), ihit/100,
-		               ((hit->OnlyY()) ? 'Y' : ' '));
-
+    TR_DEBUG_CODE_108;
     hit->SetResolvedMultiplicity(imlt);
     track->AddHit(hit, imlt);
   }
 
   if (ProcessTrack(track, 0) > 0) {
     ntrack++;
-    if (TrDEBUG >= 1)
-      cout << Form("%5.2f %5.2f", track->GetNormChisqX(),
-		                  track->GetNormChisqY()) << endl;
+    TR_DEBUG_CODE_109;
   }
-  else if (TrDEBUG >= 1)
-    cout << "ProcessTrack failed" << endl;
 
   if (ntrack >= RecPar.MaxNtrHit) break;
 
