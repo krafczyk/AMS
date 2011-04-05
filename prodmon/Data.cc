@@ -155,25 +155,37 @@ Bool_t Data::Generate_hist(){
                 }
 	}
 	l=_hists_2[0]->GetEntries();
+	/*
 	for(k=1;k<_hists_2[0]->GetNbinsX();k++){
 		temp=_hists_2[0]->GetBinContent(k);
 		_hists_2[0]->SetBinContent(k,temp/(Double_t)l);			
 	}
+	*/
+	 _hists_2[0]->Scale(1.0/(double)l);
 	l=_hists_2[1]->GetEntries();
+	/*
 	for(k=1;k<_hists_2[1]->GetNbinsX();k++){
 		temp=_hists_2[1]->GetBinContent(k);
 		_hists_2[1]->SetBinContent(k,temp/(Double_t)l);			
 	}
+	*/
+	_hists_2[1]->Scale(1.0/(double)l);
 	l=_hists_2[2]->GetEntries();
+	/*
 	for(k=1;k<_hists_2[2]->GetNbinsX();k++){
 		temp=_hists_2[2]->GetBinContent(k);
 		_hists_2[2]->SetBinContent(k,temp/(Double_t)l);			
 	}
+	*/
+	_hists_2[2]->Scale(1.0/(double)l);
 	l=_hists_1[3]->GetEntries();
+	/*
 	for(k=1;k<_hists_2[3]->GetNbinsX();k++){
 		temp=_hists_2[3]->GetBinContent(k);
 		_hists_2[3]->SetBinContent(k,temp/(Double_t)l);			
-	}
+
+	}*/
+	_hists_2[3]->Scale(1.0/(double)l);
 	_hists_summary[1]->SetTitle(Form("Reference Run: %d",evt->Run()));
 	n2_changed=false;
 	}
@@ -229,26 +241,29 @@ Bool_t Data::Generate_hist(){
 	}
 	
 		l=_hists_1[0]->GetEntries();
-		for(k=1;k<_hists_1[0]->GetNbinsX();k++){
+		_hists_1[0]->Scale(1.0/(double)l);
+		/*for(k=1;k<_hists_1[0]->GetNbinsX();k++){
 			temp=_hists_1[0]->GetBinContent(k);
 			_hists_1[0]->SetBinContent(k,temp/(Double_t)l);			
-		}
+		}*/
 		l=_hists_1[1]->GetEntries();
-		for(k=1;k<_hists_1[1]->GetNbinsX();k++){
+		/*for(k=1;k<_hists_1[1]->GetNbinsX();k++){
 			temp=_hists_1[1]->GetBinContent(k);
 			_hists_1[1]->SetBinContent(k,temp/(Double_t)l);			
-		}
+		}*/
+		_hists_1[1]->Scale(1.0/(double)l);
 		l=_hists_1[2]->GetEntries();
-		for(k=1;k<_hists_1[2]->GetNbinsX();k++){
+		/*for(k=1;k<_hists_1[2]->GetNbinsX();k++){
 			temp=_hists_1[2]->GetBinContent(k);
 			_hists_1[2]->SetBinContent(k,temp/(Double_t)l);			
-		}
+		}*/
+		_hists_1[2]->Scale(1.0/(double)l);
 		l=_hists_1[3]->GetEntries();
-		for(k=1;k<_hists_1[3]->GetNbinsX();k++){
+		/*for(k=1;k<_hists_1[3]->GetNbinsX();k++){
 			temp=_hists_1[3]->GetBinContent(k);
 			_hists_1[3]->SetBinContent(k,temp/(Double_t)l);			
-		}
-		
+		}*/
+		_hists_1[3]->Scale(1.0/(double)l);
 		n1_changed=false;
 		_hists_summary[0]->SetTitle(Form("Run: %d",evt->Run()));
 		for(k=0;k<_hists_h.size();k++){
@@ -266,11 +281,12 @@ Bool_t Data::Generate_hist(){
 		//cout<<"temp2="<<temp2<<endl;
 		temp2/=_hists_summary[1]->GetBinContent(1);	
 		//cout<<"temp2="<<temp2<<endl;	
-		for(i=1;i<=10;i++){
+		/*for(i=1;i<=10;i++){
 			temp=_hists_summary[1]->GetBinContent(i);
 			_hists_summary[1]->SetBinContent(i,temp2*temp);
 			//cout<<"i="<<i<<","<<_hists_summary[1]->GetBinContent(i)<<","<<_hists_summary[0]->GetBinContent(i)<<endl;
 			
-		}
+		}*/
+		_hists_summary[1]->Scale(temp2);
 	}
 }
