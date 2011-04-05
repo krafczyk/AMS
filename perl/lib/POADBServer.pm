@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.39 2011/01/06 20:19:50 choutko Exp $
+#  $Id: POADBServer.pm,v 1.40 2011/04/05 07:29:29 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1214,8 +1214,25 @@ OUT:
      }
 #        warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
         if($#{$ref->{acl}}+1 <$runstorerun){
-        my @sortedahl=sort Clock @{$ref->{ahlp}};
+            my @presortedahl=sort Clock @{$ref->{ahlp}};
+              foreach my $ahl (@presortedahl){
+#
+#         give host with notactive client a low prio
+#      
+            foreach my $acl (@{$ref->{acl}}){
+                if($acl->{Status} eq "Submitted" and $ahl->{Status} eq "OK" and $ahl->{HostName} eq $acl->{id}->{HostName}){
+                    print "Submitted found $acl->{id}->{Hostname} \n"; 
+                    $ahl->{Status}="NonActiveClientsExists";
+                    last;
+                }
+            }
+        }
+            my @sortedahl=sort Clock @presortedahl;
               foreach my $ahl (@sortedahl){
+                  if($ahl->{Status}="NonActiveClientsExists"){
+                    $ahl->{Status}="OK";
+                  }
+                  
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
 #                      warn "c getfreehost $ahl->{Name} $ahl->{ClientsRunning} $ahl->{ClientsAllowed}";
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
