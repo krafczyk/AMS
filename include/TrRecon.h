@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.42 2011/04/04 20:30:58 oliva Exp $ 
+// $Id: TrRecon.h,v 1.41.2.1 2011/04/05 14:08:53 haino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/04 20:30:58 $
+/// $Date: 2011/04/05 14:08:53 $
 ///
-/// $Revision: 1.42 $
+/// $Revision: 1.41.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
