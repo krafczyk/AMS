@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.264 2011/03/29 17:31:10 shaino Exp $
+//  $Id: root.C,v 1.265 2011/04/05 10:41:08 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3817,6 +3817,10 @@ RichRingR* ChargeR::pRichRing(){
 
 RichRingR* ParticleR::pRichRing(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pRichRing(fRichRing):0;
+}
+
+RichRingBR* ParticleR::pRichRingB(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pRichRingB(fRichRingB):0;
 }
 
 BetaR* ParticleR::pBeta(){

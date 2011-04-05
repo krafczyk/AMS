@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.224 2011/03/25 09:07:02 mdelgado Exp $
+//  $Id: particle.C,v 1.225 2011/04/05 10:41:08 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -750,8 +750,10 @@ void AMSParticle::richfit(){
     
     return;  // Do not try to assign a ring to the current particle
   }
+
+  // Deal with AMSRichRing
   {
-    //  Add more
+    //  Add more rings
     //AMSRichRing::rebuild(real_track);
     _prich=0;
     AMSRichRing* ptr=AMSRichRing::rebuild(real_track);
@@ -784,6 +786,19 @@ void AMSParticle::richfit(){
       _prich->setstatus(AMSDBc::USED);
     }
   }
+
+  // Deal with AMSRichRingNew
+  {
+    _prichB=0;
+    AMSRichRingNew* ptr=(AMSRichRingNew*)AMSEvent::gethead()->getheadC("AMSRichRingNew",0);
+    while(ptr){
+      if(ptr->gettrack()==real_track){
+	if((ptr->getStatus()%10)==2) {_prichB=ptr;break;}
+      }
+      ptr=ptr->next();
+    }
+  }
+
 }
 
 void AMSParticle::_writeEl(){
@@ -814,6 +829,8 @@ void AMSParticle::_copyEl(){
   else ptr.fTrdHTrack=-1;
   if (_prich)   ptr.fRichRing  =_prich  ->GetClonePointer();
   else ptr.fRichRing=-1;
+  if (_prichB)   ptr.fRichRingB  =_prichB  ->GetClonePointer();
+  else ptr.fRichRingB=-1;
   if (_pShower) ptr.fEcalShower=_pShower->GetClonePointer();
   else ptr.fEcalShower=-1;
   if (_pvert) ptr.fVertex=_pvert->GetClonePointer();
@@ -1256,7 +1273,7 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
  
  
 AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
-					_ptrd(0),_phtrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
+					_ptrd(0),_phtrd(0),_prich(0),_prichB(0),_pShower(0),_pcharge(0),_pbeta(0){
   int i;
   for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
   for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
