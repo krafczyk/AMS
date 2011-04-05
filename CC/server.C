@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.170 2011/04/04 07:36:41 choutko Exp $
+//  $Id: server.C,v 1.171 2011/04/05 16:08:49 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1128,6 +1128,12 @@ if(a5 && strlen(a5) && atol(a5)/10000==16){
     cout <<"  RunCheck-I-ShifterSMSAddress "<<a44<<endl;
     a4=a44;
 }    
+else if(a5 && strlen(a5)){
+strcpy(a44,a5);
+strcat(a44,"@mail2sms.cern.ch");
+cout <<"  RunCheck-I-ShifterSMSAddress "<<a44<<endl;
+ a4=a44;
+}
 char sub[255];
 sprintf(sub,"BadRunsemerged %d ",bad_checked.size());
 cerr<<" RUnCheck-W-BadRunsemerged "<<sub<<" "<<mes<<endl;
