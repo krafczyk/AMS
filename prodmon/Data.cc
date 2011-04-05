@@ -13,7 +13,7 @@ Data::Data(vector<string> hists_name,vector<string> hists_name_summary,vector<st
 		_hists_1[i]=NULL;
 		_hists_2[i]=NULL;
 	}
-	for(i=0;i<hists_name_summary.size();i++){
+	for(i=0;i<2;i++){
 		_hists_summary[i]=NULL;
 	}
 	_hists_h.resize(hists_name_h.size());
@@ -21,8 +21,8 @@ Data::Data(vector<string> hists_name,vector<string> hists_name_summary,vector<st
 		_hists_h[i]=new TH1F(hists_name_h[i].c_str(),"History Record",10,0,10);
 		_hists_h[i]->SetBit(TH1::kCanRebin);
         	_hists_h[i]->SetStats(0);
-       		_hists_h[i]->SetBarWidth(0.6);
-        	_hists_h[i]->SetBarOffset(0.1);
+       		//_hists_h[i]->SetBarWidth(0.6);
+        	//_hists_h[i]->SetBarOffset(0.1);
 	}
 }
 
@@ -84,9 +84,14 @@ Bool_t Data::Generate_hist(){
 		_hists_summary[i]->SetBit(TH1::kCanRebin);
 		_hists_summary[i]->SetStats(0);
 		if(i==0){
-			_hists_summary[i]->SetBarWidth(0.6);
+			_hists_summary[i]->SetBarWidth(0.5);
 			_hists_summary[i]->SetBarOffset(0.1);
 		}	
+		else{
+		
+			_hists_summary[i]->SetBarWidth(0.3);
+			_hists_summary[i]->SetBarOffset(0.6);
+		}
 	}
 	
 	Int_t j=0,nevt1,nevt2;

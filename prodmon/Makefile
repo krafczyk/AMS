@@ -3,7 +3,7 @@ CXX:= $(shell root-config --cxx)
 
 ROOTLIBS:= $(shell root-config --cflags --libs) -lMinuit -lNetx -lGui
 #ROOTSYS:=`echo $ROOTSYS`
-AMSSRC:=/home/amslocal/AMS
+AMSSRC:= /scratch/kaiwu/AMS
 
 LIBS= -L$(AMSSRC)/lib/$(MARCH)/ -lntuple_slc4_PG $(ROOTLIBS)
 #LIBS= $(ROOTLIBS)

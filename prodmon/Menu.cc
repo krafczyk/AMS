@@ -1,5 +1,5 @@
 #include "Menu.h"
-#include "InputDialog.h"
+//#include "InputDialog.h"
 #include "TLegend.h"
 #include <stdio.h>
 #include <sys/types.h>
@@ -16,6 +16,7 @@ void Menu::TimerDone1(){
 	time_t cur;
 	cur=time(NULL);
 	void *dirp;
+	m++;
 	string info="Time:  ";
 	info+=ctime(&cur);
 	dirp=gSystem->OpenDirectory(data1_dir.c_str());
@@ -45,20 +46,15 @@ void Menu::TimerDone1(){
 		sprintf(temp," %d ",i);
 		info+="Message: find";
 		info+=temp;
-		info+=" new files";
-		if(i>0){
-			timer2->Start(0,kTRUE);
-		}
+		
 		pre_time=cur;
+		info+=" new files";
 	}
 	else{
 	      info+="Message: No new files";
 	}
-	if(i==0){
-		draw_history();
-	}
+	timer2->Start(0,kTRUE);
 	pbar->SetInfo(info);
-	
 }
 void Menu::TimerDone2(){
 	cout<<"n1="<<data1_filename<<endl;
@@ -145,7 +141,6 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	_fhs=1;	
 }
 void Menu::draw_history(){
-	m++;
 	TCanvas*c=_fhtab->GetCanvas();
 	c->cd(1);
 	Int_t i=0;
@@ -163,8 +158,46 @@ void Menu::draw_history(){
 			else{	
 				_fdata->_hists_h[i]->Draw("E1 SAME");
 			}
-			_fdata->_hists_h[i]->SetMarkerStyle(i);
-			_fdata->_hists_h[i]->SetMarkerColor(i*10);
+			if(i==0){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(2);
+			}
+			if(i==1){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(3);
+			}
+			if(i==2){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(4);
+			}
+			if(i==3){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(5);
+			}
+			if(i==4){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(6);
+			}
+			if(i==5){
+				_fdata->_hists_h[i]->SetMarkerStyle(22);
+				_fdata->_hists_h[i]->SetMarkerColor(7);
+			}
+			if(i==6){
+				_fdata->_hists_h[i]->SetMarkerStyle(21);
+				_fdata->_hists_h[i]->SetMarkerColor(2);
+			}
+			if(i==7){
+				_fdata->_hists_h[i]->SetMarkerStyle(21);
+				_fdata->_hists_h[i]->SetMarkerColor(3);
+			}
+			if(i==8){
+				_fdata->_hists_h[i]->SetMarkerStyle(21);
+				_fdata->_hists_h[i]->SetMarkerColor(4);
+			}
+			if(i==9){
+				_fdata->_hists_h[i]->SetMarkerStyle(21);
+				_fdata->_hists_h[i]->SetMarkerColor(5);
+			}
 			l->AddEntry(_fdata->_hists_h[i],_fdata->_hists_name_h[i].c_str(),"lp");
 		}
 	}
@@ -194,7 +227,7 @@ void Menu::draw(){
 		if(i==0){
 			//TObject* old=gDirectory->GetList()->FindObject("lgr");
 			//if(old==NULL){
-				l=new TLegend(0.1,0.7,0.98,0.9);
+				l=new TLegend(0.05,0.8,0.99,0.95);
 				l->AddEntry(_fdata->_hists_1[0],data1_filename.c_str(),"l");
 				l->AddEntry(_fdata->_hists_2[0],data2_filename.c_str(),"l");				
 			//}
@@ -211,11 +244,11 @@ void Menu::draw(){
 	//_fdata->_hists_summary[0]->SetMarkerStyle(25);
 	//_fdata->_hists_summary[0]->SetMarkerColor(3);
 
-	_fdata->_hists_summary[1]->Draw("P SAME");
-	_fdata->_hists_summary[1]->SetMarkerStyle(26);
-	_fdata->_hists_summary[1]->SetMarkerColor(3);
+	_fdata->_hists_summary[1]->Draw("bar2 SAME");
+	//_fdata->_hists_summary[1]->SetMarkerStyle(26);
+	_fdata->_hists_summary[1]->SetFillColor(3);
 	l->AddEntry(_fdata->_hists_summary[0],_fdata->_hists_summary[0]->GetTitle(),"f");
-	l->AddEntry(_fdata->_hists_summary[1],_fdata->_hists_summary[1]->GetTitle(),"p");
+	l->AddEntry(_fdata->_hists_summary[1],_fdata->_hists_summary[1]->GetTitle(),"f");
 	l->Draw();
 	gPad->SetGrid();
 	c->Update();
@@ -390,6 +423,7 @@ void Menu::HandleMenu(Int_t i){
                 fscanf(fp,"%s",path);
                 data1_filename=path;
                 fclose(fp);
+		m++;
                 //printf("%s find new file %s\n",_fcmd.c_str(),path);
 		timer2->Start(0,kTRUE);
                 return;
@@ -397,7 +431,7 @@ void Menu::HandleMenu(Int_t i){
         static char answer[128];
 	if(i==8){
            // Prompt for string. The typed in string is returned.
-           new InputDialog("prompt", "defval", answer);
+          // new InputDialog("prompt", "defval", answer);
            _fcmd=answer;
            return;
         }
@@ -447,7 +481,7 @@ void Menu::HandleMenu2(Int_t i){
 			break;
 	//Start automatically generating plots
 		case 1:
-			timer1->Start(5000,kFALSE);	
+			timer1->Start(300000,kFALSE);	
 			fMenuPlot->DisableEntry(1);
 			fMenuPlot->EnableEntry(2);
 			break;
