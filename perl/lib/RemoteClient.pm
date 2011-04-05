@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.643 2011/04/05 10:00:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.644 2011/04/05 13:57:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -807,7 +807,7 @@ if($#{$self->{DataSetsT}}==-1){
        }
        else{
         $pps="";
-       }
+}
 
 # scan all dataset dirs
 
@@ -5054,11 +5054,22 @@ CheckCite:            if (defined $q->param("QCite")) {
       if ($query =~ "Any") {
          print "<option value=\"Any\">ANY </option>\n";
       } else {
-       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
+           my $qpp=$q->param("QPPer");
+           my $jobspid="";
+           if(defined $qpp){
+              if(  $qpp>0){
+               $jobspid="jobs.pid=$qpp and ";
+           }
+              elsif ($qpp==-1){
+                $jobspid=$self->getactiveppstring();
+              }
+          }
+          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc where $jobspid jobs.did=datasetsdesc.did and datasetsdesc.dataset='$query' and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
+#       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
        my $r5=$self->{sqlserver}->Query($sql);
        if(defined $r5->[0][0]){
         foreach my $template (@{$r5}){
-         print "<option value=\"$template->[0]\">$template->[0] </option>\n";
+         print "<option value=\"$template->[1]\">$template->[1] </option>\n";
         }
        } else {
          print "<option value=\"Any\">ANY </option>\n";
@@ -5170,11 +5181,22 @@ CheckCite:            if (defined $q->param("QCite")) {
       if ($query =~ "Any") {
          print "<option value=\"Any\">ANY </option>\n";
       } else {
-       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
+           my $qpp=$q->param("QPPer");
+           my $jobspid="";
+           if(defined $qpp){
+              if(  $qpp>0){
+               $jobspid="jobs.pid=$qpp and ";
+           }
+              elsif ($qpp==-1){
+                  $jobspid=$self->getactiveppstring();
+              }
+          }
+          my $sql="select count(jobs.jid),datasetsdesc.jobdesc from jobs,datasetsdesc where $jobspid jobs.did=datasetsdesc.did and datasetsdesc.dataset='$query' and datasetsdesc.jobname=split(jobs.jobname) group by  datasetsdesc.jobdesc";
+#       my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
        my $r5=$self->{sqlserver}->Query($sql);
        if(defined $r5->[0][0]){
         foreach my $template (@{$r5}){
-         print "<option value=\"$template->[0]\">$template->[0] </option>\n";
+         print "<option value=\"$template->[1]\">$template->[1] </option>\n";
         }
        } else {
          print "<option value=\"Any\">ANY </option>\n";
@@ -19650,4 +19672,27 @@ sub datasetlink{
         print "Problem with $cp \n";
     }
     return $newfile;
+}
+
+sub getactiveppstring{
+    my $self=shift;
+    my $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+    my $ret = $self->{sqlserver}->Query($sql);
+    my $jobspid=undef;
+     foreach my $pp  (@{$ret}){
+          if(defined $jobspid){
+            $jobspid=$jobspid." or jobs.pid =";
+          }
+          else{
+           $jobspid="  ( jobs.pid =";
+          }
+          $jobspid=$jobspid." $pp->[0] ";
+      }
+       if(defined $jobspid){
+        $jobspid=$jobspid." ) and ";
+       }
+       else{
+        $jobspid="";
+    }
+    return $jobspid;
 }
