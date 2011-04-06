@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.644 2011/04/05 13:57:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.645 2011/04/06 10:01:35 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -693,10 +693,11 @@ my %mv=(
               }
              }
             }
-
-        my $ret = $self->{sqlserver}->Query("select capacity from cites where cid=".$self->{CCID});
+        my $reputation=1;
+        my $ret = $self->{sqlserver}->Query("select capacity, reputation from cites where cid=".$self->{CCID});
 	if ( defined $ret->[0][0] ) {
 		$capacity_jobs = $ret->[0][0];
+                $reputation = $ret->[0][1];
 	}
 
         my $ret = $self->{sqlserver}->Query("select count(*) as total from
@@ -714,7 +715,7 @@ jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and producti
 		$completed_jobs = $ret->[0][0];
 	}
 
-        $max_jobs = int(2.2*$capacity_jobs*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs));
+        $max_jobs = int(2.2*$capacity_jobs*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs))*$reputation;
         if($max_jobs <= 0){
             $max_jobs = 0;
         }
@@ -7024,7 +7025,10 @@ print qq`
                 my $runno=$q->param("QRun");
                 if(not $runno =~/^\d+$/ or $runno <1 or $runno>500 ){
                     $runno=1;
-                }  
+                }
+                if($max_jobs<$runno){
+                    $runno=$max_jobs;
+                }
                 $q->param("QRun",$runno);
                 $q->param("QRunMi",$tmp->{RUNMIN});
                 $q->param("QRunMa",$tmp->{RUNMAX});
@@ -7059,6 +7063,9 @@ print qq`
         my $cput=5;
 
         my $runno=$q->param("QRun");
+        if($max_jobs<$runno){
+            $runno=$max_jobs;
+        }
         my $runmi=$q->param("QRunMi");
         my $runma=$q->param("QRunMa");
         if(not $runno =~/^\d+$/ or $runno <1 or $runno>500){
@@ -8225,6 +8232,9 @@ anyagain:
         my $runno=$q->param("QRun");
         if(not $evno =~/^\d+$/ or $evno <$a ){
              $self->ErrorPlus("Events no $evno is out of range ($a,$b)");
+        }
+        if($max_jobs<$runno){
+            $runno=$max_jobs;
         }
         if(not $runno =~/^\d+$/ or $runno <$a or $runno>500){
              $self->ErrorPlus("Runs no $runno is out of range ($a,500)");
