@@ -249,8 +249,8 @@ void Menu::draw(){
 			//TObject* old=gDirectory->GetList()->FindObject("lgr");
 			//if(old==NULL){
 				l=new TLegend(0.05,0.8,0.99,0.95);
-				l->AddEntry(_fdata->_hists_1[0],data1_filename.c_str(),"l");
-				l->AddEntry(_fdata->_hists_2[0],data2_filename.c_str(),"l");				
+				l->AddEntry(_fdata->_hists_1[0],Form("Current: %s",data1_filename.c_str()),"l");
+				l->AddEntry(_fdata->_hists_2[0],Form("Referen: %s",data2_filename.c_str()),"l");				
 			//}
 			l->Draw();
 		}	
