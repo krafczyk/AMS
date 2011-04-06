@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.40 2011/04/05 07:29:29 choutko Exp $
+#  $Id: POADBServer.pm,v 1.41 2011/04/06 06:16:31 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1229,7 +1229,7 @@ OUT:
         }
             my @sortedahl=sort Clock @presortedahl;
               foreach my $ahl (@sortedahl){
-                  if($ahl->{Status}="NonActiveClientsExists"){
+                  if($ahl->{Status} eq "NonActiveClientsExists"){
                     $ahl->{Status}="OK";
                   }
                   
