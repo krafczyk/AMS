@@ -4,7 +4,8 @@ CXX:= $(shell root-config --cxx)
 ROOTLIBS:= $(shell root-config --cflags --libs) -lMinuit -lNetx -lGui
 #ROOTSYS:=`echo $ROOTSYS`
 ifdef AMSSRC
-AMSSRC:=$(AMSSRC)
+#AMSSRC:=$(AMSSRC)
+AMSSRC:=/Offline/B500_patches/
 else 
 AMSSRC:=.. 
 endif

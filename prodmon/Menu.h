@@ -45,9 +45,10 @@ private:
 //2: data2 file has been selected 
 //3: both data1&data2 files have been selected or updated
 	Int_t flag;
-//false: Manually
-//true:  Automatically
-	Bool_t mode;
+//0: Manually
+//1: Directory Automatically
+//2: Cmd       Automatically
+ 	int mode;
 	Data* _fdata;
 	Tab_Frame* _ftab;
 	Tab_Frame* _fstab;

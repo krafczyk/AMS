@@ -24,35 +24,62 @@ void Menu::TimerDone1(){
 	struct stat sb;
 	int i=0;
 	char temp[20];
-	gSystem->GetPathInfo(data1_dir.c_str(),fs);
-	i=0;
-	if(fs.fMtime>pre_time){
-		//cout<<"pretime: "<<ctime(&pre_time);
-		//cout<<"curtime: "<<ctime(&cur);
-		while((name=gSystem->GetDirEntry(dirp))){
-			cout<<name<<endl;
-			if(strstr(name,"root")!=NULL){
-				data1_filename=data1_dir+"/";
-				data1_filename+=name;
-//				gSystem->GetPathInfo(data1_filename.c_str(),fs);
-			lstat(data1_filename.c_str(),&sb);	
-			if(sb.st_mtim.tv_sec>pre_time){
-					i++;
-					//cout<<"New file name: "<<data1_filename<<", modify time "<<ctime(&(fs.fMtime));
+	FILE *fp;
+        int status;
+        char path[1000];
+	if(mode==1){
+		gSystem->GetPathInfo(data1_dir.c_str(),fs);
+		i=0;
+		if(fs.fMtime>pre_time){
+			//cout<<"pretime: "<<ctime(&pre_time);
+			//cout<<"curtime: "<<ctime(&cur);
+			while((name=gSystem->GetDirEntry(dirp))){
+				cout<<name<<endl;
+				if(strstr(name,"root")!=NULL){
+					data1_filename=data1_dir+"/";
+					data1_filename+=name;
+//					gSystem->GetPathInfo(data1_filename.c_str(),fs);
+				lstat(data1_filename.c_str(),&sb);	
+				if(sb.st_mtim.tv_sec>pre_time){
+						i++;
+						//cout<<"New file name: "<<data1_filename<<", modify time "<<ctime(&(fs.fMtime));
+					}
 				}
 			}
+			sprintf(temp," %d ",i);
+			info+="Message: find";
+			info+=temp;
+			pre_time=cur;
+			info+=" new files";
 		}
-		sprintf(temp," %d ",i);
-		info+="Message: find";
-		info+=temp;
+		else{
+	    	  info+="Message: No new files";
+		}
+		timer2->Start(0,kTRUE);
+	}
+	else if(mode==2){
+		_fcmd+=">lastname.dat";
+                status= system(_fcmd.c_str());
+                if (status == -1) {
+                        printf("Failed to run command %s\n",_fcmd.c_str());
+                        exit(0);
+                }
+                fp=fopen("lastname.dat","r");
+                if(fp==NULL){
+                        printf("Failed to open file lastname.dat\n");
+                        return;
+                }
+                fscanf(fp,"%s",path);
+                data1_filename=path;
+                fclose(fp);
+
+                //printf("%s find new file %s\n",_fcmd.c_str(),path);
+                timer2->Start(0,kTRUE);
 		
+		info+="Message: find";
+		info+=path;
 		pre_time=cur;
-		info+=" new files";
 	}
-	else{
-	      info+="Message: No new files";
-	}
-	timer2->Start(0,kTRUE);
 	pbar->SetInfo(info);
 }
 void Menu::TimerDone2(){
@@ -78,6 +105,7 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	data2_dir="Data2/*.root";
 	data2_filename=data2_dir;
 	m=0;
+	mode=1;	
 	if(getenv("AMSProdMonRefFile")==NULL){
 		printf("Please setenv AMSProdMonRefFile, See https://twiki.cern.ch/twiki/bin/view/AMS/AMSProdMonRefFile \n");
 		exit(0);
@@ -96,14 +124,17 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuFile->AddSeparator();
 	fMenuFile->AddEntry("Current Dir",5);
 	fMenuFile->AddEntry("Base line file",6);
+	fMenuFile->DisableEntry(5);
+	fMenuFile->DisableEntry(6);
 	fMenuFile->AddSeparator();
 	fMenuFile->AddEntry("Use cmd",7);
+	fMenuFile->AddEntry("Automatically use cmd",9);
         //fMenuFile->AddEntry("Set cmd",8);
 
 	fMenuFile->AddSeparator();
 	fMenuFile->AddEntry("Exit", 2);
 	//initially use manually mode 
-	mode=false;
+	mode=0;
 	//file=new TFile("History.root","RECREATE");
 	//file->cd();
 	fMenuFile->DisableEntry(5);
@@ -152,6 +183,7 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 void Menu::draw_history(){
 	TCanvas*c=_fhtab->GetCanvas();
 	c->cd(1);
+	gPad->SetLogy();
 	Int_t i=0;
 	Int_t flag=0;
 	TLegend*l=new TLegend(0.6,0.7,0.9,0.9);
@@ -162,7 +194,8 @@ void Menu::draw_history(){
 			if(flag==0){
 				_fdata->_hists_h[i]->Draw("P0L");
 			        _fdata->_hists_h[i]->SetAxisRange(m-10<0?0:m-10,m);	
-				cout<<"m="<<m<<endl;
+			_fdata->_hists_h[i]->SetMinimum(1.0);	
+			//cout<<"m="<<m<<endl;
 				m++;
 				flag=1;
 			}
@@ -261,7 +294,7 @@ void Menu::draw(){
 	c->cd(1);
 	l=new TLegend(0.5,0.85,0.98,0.95);
 	_fdata->_hists_summary[0]->Draw("bar2");
-	//_fdata->_hists_summary[0]->SetMinimum(0.0);
+	_fdata->_hists_summary[0]->SetMinimum(1.0);
 	_fdata->_hists_summary[0]->SetFillColor(42);
 	//_fdata->_hists_summary[0]->SetMarkerStyle(25);
 	//_fdata->_hists_summary[0]->SetMarkerColor(3);
@@ -389,10 +422,10 @@ void Menu::HandleMenu(Int_t i){
 	if(i==3){
 		if(!fMenuFile->IsEntryChecked(3)){
 			fMenuFile->CheckEntry(3);
-			mode=false;
+			mode=0;
 			fMenuFile->EnableEntry(0);
 			fMenuFile->EnableEntry(1);
-			if(!fMenuPlot->IsEntryEnabled(0)&&flag==3)
+			if(!fMenuPlot->IsEntryEnabled(0)&&fMenuFile->IsEntryChecked(0)&&fMenuFile->IsEntryChecked(1))
 				fMenuPlot->EnableEntry(0);
 			if(fMenuPlot->IsEntryEnabled(1))
 				fMenuPlot->DisableEntry(1);
@@ -400,12 +433,15 @@ void Menu::HandleMenu(Int_t i){
 				timer1->Stop();
 				fMenuPlot->DisableEntry(2);
 			}
+			mode=0;
 		}
 		if(fMenuFile->IsEntryChecked(4)){
 			fMenuFile->UnCheckEntry(4);
 			fMenuFile->DisableEntry(5);
                         fMenuFile->DisableEntry(6);
 		}
+		if(fMenuFile->IsEntryChecked(9))
+			fMenuFile->UnCheckEntry(9);
 		return;
 	}
 	if(i==4){
@@ -416,12 +452,20 @@ void Menu::HandleMenu(Int_t i){
                         fMenuFile->EnableEntry(6);
 			if(fMenuPlot->IsEntryEnabled(0))
 				fMenuPlot->DisableEntry(0);
-			if(!fMenuPlot->IsEntryEnabled(1))
-                                fMenuPlot->EnableEntry(1);
-			if(fMenuPlot->IsEntryEnabled(2))
-                                fMenuPlot->DisableEntry(2);
-
+			else{
+				if(!fMenuPlot->IsEntryEnabled(1)){
+                                	fMenuPlot->EnableEntry(1);
+						
+				}
+				if(fMenuPlot->IsEntryEnabled(2)){
+                                	fMenuPlot->DisableEntry(2);
+					timer1->Stop();
+				}
+			}
+			mode=1;
                 }
+		if(fMenuFile->IsEntryEnabled(9))
+			fMenuFile->UnCheckEntry(9);
                 if(fMenuFile->IsEntryChecked(3)){
                         fMenuFile->UnCheckEntry(3);
                         fMenuFile->DisableEntry(0);
@@ -459,7 +503,20 @@ void Menu::HandleMenu(Int_t i){
            _fcmd=answer;
            return;
         }
-
+	if(i==9){
+		if(!fMenuFile->IsEntryChecked(9)){
+			if(fMenuFile->IsEntryChecked(1)){
+				fMenuFile->UnCheckEntry(1);
+				if(fMenuPlot->IsEntryEnabled(2)){
+					timer1->Stop();
+					fMenuPlot->DisableEntry(2);
+					fMenuPlot->EnableEntry(1);
+				}
+			}	
+				fMenuFile->CheckEntry(9);
+			mode=2;
+		}
+	}
 	static TString dir(".");
 	TGFileInfo fi;
 	fi.fFileTypes = filetypes;
