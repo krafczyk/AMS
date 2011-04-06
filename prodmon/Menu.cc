@@ -16,7 +16,6 @@ void Menu::TimerDone1(){
 	time_t cur;
 	cur=time(NULL);
 	void *dirp;
-	m++;
 	string info="Time:  ";
 	info+=ctime(&cur);
 	dirp=gSystem->OpenDirectory(data1_dir.c_str());
@@ -57,6 +56,7 @@ void Menu::TimerDone1(){
 	pbar->SetInfo(info);
 }
 void Menu::TimerDone2(){
+	//m++;
 	cout<<"n1="<<data1_filename<<endl;
 	cout<<"n2="<<data2_filename<<endl;
 	if(data1_filename!=_fdata->data1_filename){
@@ -140,9 +140,9 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuHS->CheckEntry(6);
 	fMenuHS->AddEntry("iTrTrack_iTrdTrack",7);
 	fMenuHS->CheckEntry(7);
-	fMenuHS->AddEntry("iTrTrack_iEcalShower",8);
+	fMenuHS->AddEntry("iTrTrack_RichRing",8);
 	fMenuHS->CheckEntry(8);
-	fMenuHS->AddEntry("iTrTrack_iRichRing",9);
+	fMenuHS->AddEntry("iTrTrack_iEcalShower",9);
 	fMenuHS->CheckEntry(9);
 	AddPopup(new TGHotString("&History"), fMenuHS, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
 	fMenuHS->Connect("Activated(Int_t)", "Menu", this,
@@ -160,52 +160,64 @@ void Menu::draw_history(){
 		if(((_fhs>>i)&0x1)){
 			
 			if(flag==0){
-				_fdata->_hists_h[i]->Draw("E1");
-			        _fdata->_hists_h[i]->SetAxisRange(m-5<0?0:m-5,m+5>_fdata->_hists_h[i]->GetNbinsX()?_fdata->_hists_h[i]->GetNbinsX():m+5);	
+				_fdata->_hists_h[i]->Draw("P0L");
+			        _fdata->_hists_h[i]->SetAxisRange(m-10<0?0:m-10,m);	
+				cout<<"m="<<m<<endl;
+				m++;
 				flag=1;
 			}
 			else{	
-				_fdata->_hists_h[i]->Draw("E1 SAME");
+				_fdata->_hists_h[i]->Draw("P0L SAME");
 			}
 			if(i==0){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(2);
+				_fdata->_hists_h[i]->SetLineColor(2);
 			}
 			if(i==1){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(3);
+				_fdata->_hists_h[i]->SetLineColor(3);
 			}
 			if(i==2){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(4);
+				_fdata->_hists_h[i]->SetLineColor(4);
 			}
 			if(i==3){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(5);
+				_fdata->_hists_h[i]->SetLineColor(5);
 			}
 			if(i==4){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(6);
+				_fdata->_hists_h[i]->SetLineColor(6);
 			}
 			if(i==5){
 				_fdata->_hists_h[i]->SetMarkerStyle(22);
 				_fdata->_hists_h[i]->SetMarkerColor(7);
+				_fdata->_hists_h[i]->SetLineColor(7);
 			}
 			if(i==6){
 				_fdata->_hists_h[i]->SetMarkerStyle(21);
 				_fdata->_hists_h[i]->SetMarkerColor(2);
+				_fdata->_hists_h[i]->SetLineColor(2);
 			}
 			if(i==7){
 				_fdata->_hists_h[i]->SetMarkerStyle(21);
 				_fdata->_hists_h[i]->SetMarkerColor(3);
+				_fdata->_hists_h[i]->SetLineColor(3);
 			}
 			if(i==8){
 				_fdata->_hists_h[i]->SetMarkerStyle(21);
 				_fdata->_hists_h[i]->SetMarkerColor(4);
+				_fdata->_hists_h[i]->SetLineColor(4);
 			}
 			if(i==9){
 				_fdata->_hists_h[i]->SetMarkerStyle(21);
 				_fdata->_hists_h[i]->SetMarkerColor(5);
+				_fdata->_hists_h[i]->SetLineColor(5);
 			}
 			l->AddEntry(_fdata->_hists_h[i],_fdata->_hists_name_h[i].c_str(),"lp");
 		}
@@ -249,6 +261,7 @@ void Menu::draw(){
 	c->cd(1);
 	l=new TLegend(0.5,0.85,0.98,0.95);
 	_fdata->_hists_summary[0]->Draw("bar2");
+	//_fdata->_hists_summary[0]->SetMinimum(0.0);
 	_fdata->_hists_summary[0]->SetFillColor(42);
 	//_fdata->_hists_summary[0]->SetMarkerStyle(25);
 	//_fdata->_hists_summary[0]->SetMarkerColor(3);
@@ -260,6 +273,7 @@ void Menu::draw(){
 	l->AddEntry(_fdata->_hists_summary[1],_fdata->_hists_summary[1]->GetTitle(),"f");
 	l->Draw();
 	gPad->SetGrid();
+	gPad->SetLogy();
 	c->Update();
 	draw_history();
 }
@@ -366,6 +380,7 @@ void Menu::HandleMenu3(Int_t i){
 			}
 			break;	
 	}
+	m--;
 	draw_history();
 }
 void Menu::HandleMenu(Int_t i){
@@ -432,7 +447,7 @@ void Menu::HandleMenu(Int_t i){
                 fscanf(fp,"%s",path);
                 data1_filename=path;
                 fclose(fp);
-		m++;
+		
                 //printf("%s find new file %s\n",_fcmd.c_str(),path);
 		timer2->Start(0,kTRUE);
                 return;

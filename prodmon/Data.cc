@@ -47,11 +47,11 @@ Bool_t Data::Generate_hist(){
 			_hists_1[i]=NULL;
 		}
 		if(i==0)
-		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-500,500);
+		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),1500,-15,15);
 		if(i==1)
-		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),50,0,50);
+		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),300,0,30);
 		if(i==2)
-		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-500,500);
+		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-1000,1000);
 		if(i==3)
 		_hists_1[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),50,0,50);
 	}
@@ -63,11 +63,11 @@ Bool_t Data::Generate_hist(){
 			_hists_2[i]=NULL;
 		}
 		if(i==0)
-		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-500,500);
+		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),1500,-15,15);
 		if(i==1)
-		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),50,0,50);
+		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),300,0,30);
 		if(i==2)
-		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-500,500);
+		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),2000,-1000,1000);
 		if(i==3)
 		_hists_2[i]=new TH1F(Form("%s_2",_hists_name[i].c_str()),_hists_name[i].c_str(),50,0,50);
 	}
@@ -94,7 +94,6 @@ Bool_t Data::Generate_hist(){
 			_hists_summary[i]=NULL;
 		}
 		_hists_summary[i]=new TH1F(Form("%s_%d",_hists_name_summary[i].c_str(),i),_hists_name_summary[i].c_str(),10,0,10);
-		_hists_summary[i]->SetBit(TH1::kCanRebin);
 		_hists_summary[i]->SetStats(0);
 		}
 		if(i==0){
@@ -131,7 +130,7 @@ Bool_t Data::Generate_hist(){
 	for(i=0;i<nevt2;i++){
 		evt=ams2.GetEvent(i);
 		//cout<<"Fill\n";
-		_hists_summary[1]->Fill("Number of Events",1);
+		_hists_summary[1]->Fill(0);
 				
 		for(j=0;j<evt->nParticle();j++){
 			_hists_2[0]->Fill(evt->pParticle(j)->Mass);
@@ -148,60 +147,37 @@ Bool_t Data::Generate_hist(){
 			//7: iTrTrack&iTrdTrack
 			//8: iTrTrack&iRichRing
 			//9: iTrTrack&iEcalShower	
-			_hists_summary[1]->Fill("nParticles ",1);
-			if(evt->pParticle(j)->iTrTrack()!=-1)
-				_hists_summary[1]->Fill("iTrTrack",1);
+			_hists_summary[1]->Fill(1);
 			if(evt->pParticle(j)->iTrdTrack()!=-1)
-                                _hists_summary[1]->Fill("iTrdTrack",1);
+				_hists_summary[1]->Fill(2);
 			if(evt->pParticle(j)->iTrdHTrack()!=-1)
-                                _hists_summary[1]->Fill("iTrHTrack",1);
+                                _hists_summary[1]->Fill(3);
+			if(evt->pParticle(j)->iTrTrack()!=-1)
+                                _hists_summary[1]->Fill(4);
 			if(evt->pParticle(j)->iRichRing()!=-1)
-                                _hists_summary[1]->Fill("iRichRing",1);
+                                _hists_summary[1]->Fill(5);
 			if(evt->pParticle(j)->iEcalShower()!=-1)
-                                _hists_summary[1]->Fill("iEcalShower",1);
+                                _hists_summary[1]->Fill(6);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iTrdTrack()!=-1)
-                                _hists_summary[1]->Fill("iTrTrack&iTrdTrack",1);
+                                _hists_summary[1]->Fill(7);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iRichRing()!=-1)                          
-                                _hists_summary[1]->Fill("iTrTrack&iRichRing",1);
+                                _hists_summary[1]->Fill(8);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iEcalShower()!=-1)                          
-                                _hists_summary[1]->Fill("iTrTrack&iEcalShower",1);
+                                _hists_summary[1]->Fill(9);
 		}
 		if(i%1000==0){
                         //pbar->SetPosition(110.0*(float)(nevt1+i)/(float)(nevt1+nevt2));
                         //pbar->ShowPosition();
-                }
+                }	
 	}
+	
 	l=_hists_2[0]->GetEntries();
-	/*
-	for(k=1;k<_hists_2[0]->GetNbinsX();k++){
-		temp=_hists_2[0]->GetBinContent(k);
-		_hists_2[0]->SetBinContent(k,temp/(Double_t)l);			
-	}
-	*/
 	 _hists_2[0]->Scale(1.0/(double)l);
 	l=_hists_2[1]->GetEntries();
-	/*
-	for(k=1;k<_hists_2[1]->GetNbinsX();k++){
-		temp=_hists_2[1]->GetBinContent(k);
-		_hists_2[1]->SetBinContent(k,temp/(Double_t)l);			
-	}
-	*/
 	_hists_2[1]->Scale(1.0/(double)l);
 	l=_hists_2[2]->GetEntries();
-	/*
-	for(k=1;k<_hists_2[2]->GetNbinsX();k++){
-		temp=_hists_2[2]->GetBinContent(k);
-		_hists_2[2]->SetBinContent(k,temp/(Double_t)l);			
-	}
-	*/
 	_hists_2[2]->Scale(1.0/(double)l);
 	l=_hists_1[3]->GetEntries();
-	/*
-	for(k=1;k<_hists_2[3]->GetNbinsX();k++){
-		temp=_hists_2[3]->GetBinContent(k);
-		_hists_2[3]->SetBinContent(k,temp/(Double_t)l);			
-
-	}*/
 	_hists_2[3]->Scale(1.0/(double)l);
 	_hists_summary[1]->SetTitle(Form("Reference Run: %d",evt->Run()));
 	n2_changed=false;
@@ -210,7 +186,7 @@ Bool_t Data::Generate_hist(){
 	if(n1_changed){
 	for(i=0;i<nevt1;i++){
 		evt=ams1.GetEvent(i);
-		_hists_summary[0]->Fill("Number of Events",1);
+		_hists_summary[0]->Fill(0);
 		for(j=0;j<evt->nParticle();j++){
 			_hists_1[0]->Fill(evt->pParticle(j)->Mass);
 			_hists_1[1]->Fill(evt->pParticle(j)->Charge);
@@ -226,24 +202,24 @@ Bool_t Data::Generate_hist(){
 			//7: iTrTrack&iTrdTrack
 			//8: iTrTrack&iRichRing
 			//9: iTrTrack&iEcalShower	
-			_hists_summary[0]->Fill("nParticles ",1);
-			if(evt->pParticle(j)->iTrTrack()!=-1){
-				_hists_summary[0]->Fill("iTrTrack",1);
+			_hists_summary[0]->Fill(1);
+			if(evt->pParticle(j)->iTrdTrack()!=-1){
+				_hists_summary[0]->Fill(2);
 			}
-			if(evt->pParticle(j)->iTrdTrack()!=-1)
-                                _hists_summary[0]->Fill("iTrdTrack",1);
 			if(evt->pParticle(j)->iTrdHTrack()!=-1)
-                                _hists_summary[0]->Fill("iTrHTrack",1);
+                                _hists_summary[0]->Fill(3);
+			if(evt->pParticle(j)->iTrTrack()!=-1)
+                               _hists_summary[0]->Fill(4);
 			if(evt->pParticle(j)->iRichRing()!=-1)
-                                _hists_summary[0]->Fill("iRichRing",1);
+                                _hists_summary[0]->Fill(5);
 			if(evt->pParticle(j)->iEcalShower()!=-1)
-                                _hists_summary[0]->Fill("iEcalShower",1);
+                                _hists_summary[0]->Fill(6);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iTrdTrack()!=-1)
-                                _hists_summary[0]->Fill("iTrTrack&iTrdTrack",1);
+                                _hists_summary[0]->Fill(7);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iRichRing()!=-1)                          
-                                _hists_summary[0]->Fill("iTrTrack&iRichRing",1);
+                                _hists_summary[0]->Fill(8);
 			if(evt->pParticle(j)->iTrTrack()!=-1&&evt->pParticle(j)->iEcalShower()!=-1)                          
-                                _hists_summary[0]->Fill("iTrTrack&iEcalShower",1);
+                                _hists_summary[0]->Fill(9);
 		}
 		
 		if(i%1000==0){
@@ -251,6 +227,8 @@ Bool_t Data::Generate_hist(){
 			//pbar->ShowPosition();
 		}
 	}
+	for(j=0;j<10;j++)
+		_hists_summary[0]->GetXaxis()->SetBinLabel(j+1,_hists_name_h[j].c_str());
 	for(j=0;j<evt->nParticle();j++){
 			_hists_1[0]->Fill(evt->pParticle(j)->Mass);
 			_hists_1[1]->Fill(evt->pParticle(j)->Charge);
@@ -260,27 +238,11 @@ Bool_t Data::Generate_hist(){
 	
 		l=_hists_1[0]->GetEntries();
 		_hists_1[0]->Scale(1.0/(double)l);
-		/*for(k=1;k<_hists_1[0]->GetNbinsX();k++){
-			temp=_hists_1[0]->GetBinContent(k);
-			_hists_1[0]->SetBinContent(k,temp/(Double_t)l);			
-		}*/
 		l=_hists_1[1]->GetEntries();
-		/*for(k=1;k<_hists_1[1]->GetNbinsX();k++){
-			temp=_hists_1[1]->GetBinContent(k);
-			_hists_1[1]->SetBinContent(k,temp/(Double_t)l);			
-		}*/
 		_hists_1[1]->Scale(1.0/(double)l);
 		l=_hists_1[2]->GetEntries();
-		/*for(k=1;k<_hists_1[2]->GetNbinsX();k++){
-			temp=_hists_1[2]->GetBinContent(k);
-			_hists_1[2]->SetBinContent(k,temp/(Double_t)l);			
-		}*/
 		_hists_1[2]->Scale(1.0/(double)l);
 		l=_hists_1[3]->GetEntries();
-		/*for(k=1;k<_hists_1[3]->GetNbinsX();k++){
-			temp=_hists_1[3]->GetBinContent(k);
-			_hists_1[3]->SetBinContent(k,temp/(Double_t)l);			
-		}*/
 		_hists_1[3]->Scale(1.0/(double)l);
 		n1_changed=false;
 		_hists_summary[0]->SetTitle(Form("Run: %d",evt->Run()));
@@ -293,19 +255,12 @@ Bool_t Data::Generate_hist(){
 				_hists_h[k]->Fill(Form("No new file;%s",ctime(&t)),1);
 		}
 	}
-	cout<<"nref="<<nref<<endl;
+	for(i=1;i<=10;i++)
+	cout<<"ref:"<<_hists_name_h[i-1]<<"="<<_hists_summary[1]->GetBinContent(i)<<endl;
 	if(nref){
 		temp2=_hists_summary[0]->GetBinContent(1);
-		//cout<<"temp2="<<temp2<<endl;
 		temp2/=_hists_summary[1]->GetBinContent(1);
 		cout<<"scale :"	<<temp2<<endl;
-		//cout<<"temp2="<<temp2<<endl;	
-		/*for(i=1;i<=10;i++){
-			temp=_hists_summary[1]->GetBinContent(i);
-			_hists_summary[1]->SetBinContent(i,temp2*temp);
-			//cout<<"i="<<i<<","<<_hists_summary[1]->GetBinContent(i)<<","<<_hists_summary[0]->GetBinContent(i)<<endl;
-			
-		}*/
 		_hists_summary[1]->Scale(temp2);
 	}
 }

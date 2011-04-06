@@ -47,8 +47,8 @@ int main(int argc,char*argv[]){
 	hname[5]="iRichRing";
 	hname[6]="iEcalShower";
 	hname[7]="iTrTrack_iTrdTrack";
-	hname[8]="iTrTrack_iEcalShower";
-	hname[9]="iTrTrack_iRichRing";
+	hname[8]="iTrTrack_RichRing";
+	hname[9]="iTrTrack_iEcalShower";
 	Data*data=new Data(str,sname,hname);
 	Tab_Frame* tab=new Tab_Frame(fCompositeFrame_Main,str);
 	Tab_Frame* stab=new Tab_Frame(fCompositeFrame_Summary,sname);
