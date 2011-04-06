@@ -505,17 +505,24 @@ void Menu::HandleMenu(Int_t i){
         }
 	if(i==9){
 		if(!fMenuFile->IsEntryChecked(9)){
-			if(fMenuFile->IsEntryChecked(1)){
-				fMenuFile->UnCheckEntry(1);
+			if(fMenuFile->IsEntryChecked(4)){
+				fMenuFile->UnCheckEntry(4);
 				if(fMenuPlot->IsEntryEnabled(2)){
 					timer1->Stop();
 					fMenuPlot->DisableEntry(2);
 					fMenuPlot->EnableEntry(1);
 				}
 			}	
-				fMenuFile->CheckEntry(9);
+			fMenuFile->CheckEntry(9);
 			mode=2;
 		}
+		if(fMenuFile->IsEntryChecked(3)){
+			fMenuFile->UnCheckEntry(3);
+			fMenuPlot->DisableEntry(0);
+			fMenuPlot->EnableEntry(1);
+		}
+		
+		return;
 	}
 	static TString dir(".");
 	TGFileInfo fi;
