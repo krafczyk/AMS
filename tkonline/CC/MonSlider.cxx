@@ -1,5 +1,6 @@
 #include "MonSlider.h"
 
+
 ClassImp(MonSlider);
 
 
@@ -52,10 +53,11 @@ void MonSlider::BuildMenu() {
   graphmenu->AddEntry("SeedOccupancyGlobal",index++);
   graphmenu->AddEntry("ClustersSummary",index++);
   graphmenu->AddEntry("ClustersSummary (alt)",index++);
-  graphmenu->AddEntry("SizeVsEvent",index++);
+  graphmenu->AddEntry("ReconVsTime",index++);
+  graphmenu->AddEntry("OrbitFromTime",index++);
 
   graphmenu->Select(graphtype);
-  graphmenu->Resize(180,300);
+  graphmenu->Resize(180,400);
   frame->AddFrame(graphmenu,new TGLayoutHints(kLHintsRight | kLHintsTop,2,2,2,2));
   frame->MapSubwindows();
   frame->MoveResize(1200,600);
@@ -181,7 +183,7 @@ void MonSlider::ClearHistoFromMemory(char* name) {
 }
 
 
-TH1D* MonSlider::GetProfileX(TH2D* histo) {
+TH1D* MonSlider::GetProfileX(TH2* histo) {
   if (histo==0) { 
     printf("MonSlider::GetProfileX-W the requested histogram (%s) doesn't exist, returning 0.\n",histo->GetName());
     return 0;
@@ -321,9 +323,12 @@ void MonSlider::Draw() {
     DrawClustersSummary(1);
     break;
   case 18:
-    DrawSizeVsEvent();
+    DrawReconVsTime();
     break;
-  }
+  case 19:
+    DrawOrbitFromTime();
+    break; 
+ }
 }
 
 
@@ -356,9 +361,9 @@ void MonSlider::ChangeToLayerIndex(TH1D* histo) {
     evalue[ibin-1] = histo->GetBinError(ibin);
   }
   // re-init
-  histo->SetBins(270,0.5,9.5);
+  histo->SetBins(450,0.5,9.5);
   histo->Reset();
-  for (int ibin=1; ibin<=270; ibin++) { 
+  for (int ibin=1; ibin<=450; ibin++) { 
     histo->SetBinContent(ibin,-9999); 
     histo->SetBinError(ibin,0); 
   }
@@ -366,13 +371,13 @@ void MonSlider::ChangeToLayerIndex(TH1D* histo) {
   for (int ibin=1; ibin<=192; ibin++) {
     int hwid = int((ibin-1)/24)*100 + (ibin-1)%24;
     TkLadder* ladder = TkDBc::Head->FindHwId(hwid);
-    int index = ladder->GetLayer()*30 + ladder->GetSlot() - 15;
+    int index = ladder->GetLayer()*50 + ladder->GetSlot() - 25;
     histo->SetBinContent(index,value[ibin-1]);  
     histo->SetBinError(index,evalue[ibin-1]);
   }
   // setting
   histo->SetStats(kFALSE);
-  histo->SetXTitle("iLayer + iSlot/30");
+  histo->SetXTitle("iLayer + iSlot/50");
   histo->SetNdivisions(510);
   return;
 }
@@ -505,8 +510,6 @@ void MonSlider::DrawSignalSummary(int alternative) {
   pad2->SetLogy(kFALSE);
   pad2->SetGridy();
   pad2->SetGridx();
-  SetHistSideStyle(0,signal_n_prof);
-  SetHistSideStyle(1,signal_p_prof);
   width_n_prof->SetYTitle("Average Cluster Width");
   width_p_prof->SetYTitle("Average Cluster Width");
   width_n_prof->SetXTitle("iCrate*24 + iTDR");
@@ -558,7 +561,7 @@ void MonSlider::DrawSizeSummary(int alternative) {
   frame1->SetXTitle("Crate");
   sizevscrate_prof->Draw("SAME");
 
-  // ladder size 
+  // ladder size
   TH2D* size_n = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_N");
   TH2D* size_p = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_P");
   if ( (size_n==0)||(size_p==0) ) { canvas->Update(); return; }
@@ -568,15 +571,24 @@ void MonSlider::DrawSizeSummary(int alternative) {
   SetHistSideStyle(0,size_n_prof);
   SetHistSideStyle(1,size_p_prof);
   TVirtualPad* pad2 = (TVirtualPad*)canvas->cd(2);
+  pad2->SetLogy(kFALSE);
   pad2->SetGridy();
-  TH1F* frame2 = (TH1F*) pad2->DrawFrame(0.,0.,192.,20.);
-  frame2->GetXaxis()->SetNdivisions(608,kFALSE);
-  frame2->SetYTitle("Approx. Mean Ladder Size (byte)");
-  frame2->SetXTitle("iCrate*24 + iTDR");
-  size_n_prof->Draw("SAME");
+  pad2->SetGridx();
+  size_n_prof->SetYTitle("Ladder Size (byte)");
+  size_p_prof->SetYTitle("Ladder Size (byte)");
+  size_n_prof->SetXTitle("iCrate*24 + iTDR");
+  size_p_prof->SetXTitle("iCrate*24 + iTDR");
+  if (alternative==1) {
+    ChangeToLayerIndex(size_n_prof);
+    ChangeToLayerIndex(size_p_prof);
+  }
+  size_n_prof->GetYaxis()->SetRangeUser(0.,20.);
+  size_n_prof->Draw();
   size_p_prof->Draw("SAME");
-  TestAndDrawText(0,size_n_prof,0.1,10);
-  TestAndDrawText(1,size_p_prof,0.1,10);
+  if (alternative==0) {
+    TestAndDrawText(0,size_n_prof,1,5);
+    TestAndDrawText(1,size_p_prof,1,5);
+  }
   canvas->Update();
 }
 
@@ -832,7 +844,7 @@ void MonSlider::DrawHitsOnTrack(int alternative) {
     pad->SetGridy();
     occupancy[tt]->SetStats(kFALSE);
     occupancy[tt]->Draw("COLZ");
-    text->DrawTextNDC(0.10,0.91,Form("Layer %1d",tt+1));
+    text->DrawTextNDC(0.10,0.91,Form("Layer %1d",order[tt]));
   }
   canvas->Update();
 }
@@ -1036,8 +1048,6 @@ void MonSlider::DrawSeedOccupancyOnLayer(int alternative) {
   // clean
   canvas->Draw();
   canvas->Clear();
-  text->SetTextSize(0.5);
-  text->SetTextColor(kRed);
   int layer = ladder->GetLayer(); 
   int nladders = 0; 
   for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
@@ -1103,8 +1113,8 @@ void MonSlider::DrawClustersSummary(int alternative) {
   nraw_vs_ladder_n_prof->Draw();
   nraw_vs_ladder_p_prof->Draw("SAME");
   if (alternative==0) { 
-    TestAndDrawText(0,nraw_vs_ladder_n_prof,0.00001,0.2);
-    TestAndDrawText(1,nraw_vs_ladder_p_prof,0.00001,0.2);
+    TestAndDrawText(0,nraw_vs_ladder_n_prof,0.00001,0.4);
+    TestAndDrawText(1,nraw_vs_ladder_p_prof,0.00001,0.4);
   }
 
   // number of cluster per track on ladder
@@ -1138,26 +1148,106 @@ void MonSlider::DrawClustersSummary(int alternative) {
 }
 
 
-void MonSlider::DrawSizeVsEvent(int alternative) {
+void MonSlider::DrawReconVsTime(int alternative) {
   // clean
   canvas->Draw();
   canvas->Clear();
-  canvas->Divide(1,2,0.001,0.001);
-  text->SetTextColor(kBlack);
-
+  canvas->Divide(1,3,0.001,0.001);
   rootfile->cd();
   TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
-  canvas->SetGridx();
-  canvas->SetGridy();
-  ClearHistoFromMemory("SizeVsEvent");
-  // ntuple->Draw(Form("Size:Entry$>>SizeVsEvent(100,0,%d,100,0,20000)",ntuple->GetEntries()),"","COLZ");
 
-  ntuple->Draw(Form("Size:Time-%f>>SizeVsTime(100,0,%f,1000,0,20000)",ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
+  // size vs time
+  TVirtualPad* pad1 = canvas->cd(1);
+  pad1->SetGridx();
+  pad1->SetGridy();
+  ClearHistoFromMemory("SizeVsTime");
+  rootfile->cd();
+  ntuple->Draw(Form("Size:Time-%f>>SizeVsTime(100,0,%f,1000,0,20000)",
+    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
+  TH2F* size_vs_time = (TH2F*) gROOT->FindObjectAny("SizeVsTime");
+  if (size_vs_time==0) { canvas->Update(); return; }
+  size_vs_time->SetStats(kFALSE);
+  TH1D* size_vs_time_prof = (TH1D*) GetProfileX(size_vs_time);
+  if (size_vs_time_prof==0) { canvas->Update(); return; }
+  size_vs_time->SetTitle("");
+  size_vs_time->SetYTitle("Tracker Size (byte)");
+  size_vs_time->SetXTitle("Time (sec)");
+  size_vs_time->SetMarkerStyle(20);
+  size_vs_time->SetMarkerColor(kGray);
+  size_vs_time->Draw();
+  size_vs_time_prof->SetMarkerStyle(1);
+  size_vs_time_prof->SetMarkerColor(kBlack);
+  size_vs_time_prof->Draw("SAME");
+   
+  // nraw vs time
+  TVirtualPad* pad2 = canvas->cd(2);
+  pad2->SetGridx();
+  pad2->SetGridy();
+  ClearHistoFromMemory("nRawVsTime");
+  rootfile->cd();
+  ntuple->Draw(Form("nRaw:Time-%f>>nRawVsTime(100,0,%f,500,-0.5,499.5)",
+    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
+  TH2F* nraw_vs_time = (TH2F*) gROOT->FindObjectAny("nRawVsTime");
+  if (nraw_vs_time==0) { canvas->Update(); return; }
+  nraw_vs_time->SetStats(kFALSE);
+  TH1D* nraw_vs_time_prof = (TH1D*) GetProfileX(nraw_vs_time);
+  if (nraw_vs_time_prof==0) { canvas->Update(); return; }
+  nraw_vs_time->SetTitle("");
+  nraw_vs_time->SetYTitle("Number of Raw Clusters");
+  nraw_vs_time->SetXTitle("Time (sec)");
+  nraw_vs_time->SetMarkerStyle(20);
+  nraw_vs_time->SetMarkerColor(kOrange);
+  nraw_vs_time->Draw();
+  nraw_vs_time_prof->SetMarkerStyle(1);
+  nraw_vs_time_prof->SetMarkerColor(kBlack);
+  nraw_vs_time_prof->Draw("SAME");
 
+  // ntrack vs time
+  TVirtualPad* pad3 = canvas->cd(3);
+  pad3->SetGridx();
+  pad3->SetGridy();
+  ClearHistoFromMemory("nTrkVsTime");
+  rootfile->cd();
+  ntuple->Draw(Form("nTrk:Time-%f>>nTrkVsTime(100,0,%f,10,-0.5,9.5)",
+    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
+  TH2F* ntrk_vs_time = (TH2F*) gROOT->FindObjectAny("nTrkVsTime");
+  if (ntrk_vs_time==0) { canvas->Update(); return; }
+  ntrk_vs_time->SetStats(kFALSE);
+  TH1D* ntrk_vs_time_prof = (TH1D*) GetProfileX(ntrk_vs_time);
+  if (ntrk_vs_time_prof==0) { canvas->Update(); return; }
+  ntrk_vs_time->SetTitle("");
+  ntrk_vs_time->SetYTitle("Number of Tracks");
+  ntrk_vs_time->SetXTitle("Time (sec)");
+  ntrk_vs_time->SetMarkerStyle(20);
+  ntrk_vs_time->SetMarkerColor(kViolet);
+  ntrk_vs_time->Draw();
+  ntrk_vs_time_prof->SetMarkerStyle(1);
+  ntrk_vs_time_prof->SetMarkerColor(kBlack);
+  ntrk_vs_time_prof->Draw("SAME");
 
-  //TH2F* size_vs_event = (TH2F*) gROOT->FindObjectAny("SizeVsEvent");
-  //size_vs_event->SetStats(kFALSE);
-  //size_vs_event->Draw("COLZ");
-  gROOT->ls();
   canvas->Update();
 }
+
+
+void MonSlider::DrawOrbitFromTime(int alternative) { 
+  rootfile->cd();
+  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
+  UInt_t  Time = 0;     ntuple->SetBranchAddress("Time",&Time);
+  Float_t FineTime = 0; ntuple->SetBranchAddress("FineTime",&FineTime); 
+  for (int i=0; i<ntuple->GetEntries(); i++) {
+    ntuple->GetEntry(i);
+    Float_t time = Time + FineTime;
+    GeoCoo pos;
+    ISSPosition(time-3651.0,pos); // chiedi a Matteo
+  }
+}
+
+
+// DrawRates
+
+
+void MonSlider::DrawIsGood(int alternative) {
+}
+
+
+

@@ -5,6 +5,7 @@
 #include "TkDBc.h"
 #include "TkSens.h"
 #include "TrHistoMan.h"
+#include "Predict.h"
 
 #include "SliderI.h"
 
@@ -117,8 +118,12 @@ class MonSlider : public SliderI {
   void DrawSeedOccupancyOnLayer(int alternative = 0);
   /// Draw Summary 
   void DrawClustersSummary(int alternative = 0);
-  /// Size vs event number
-  void DrawSizeVsEvent(int alternative = 0);
+  /// Draw reconstruction versus time
+  void DrawReconVsTime(int alternative = 0);
+  /// Draw some very rough estimation of orbits 
+  void DrawOrbitFromTime(int alternative = 0);
+  /// Draw a panel for data-goodness
+  void DrawIsGood(int alternative = 0);
   /// Test and draw a text
   void TestAndDrawText(int side, TH1D* histo, float xmin, float xmax);
 
@@ -133,7 +138,7 @@ class MonSlider : public SliderI {
   /// Clear an histogram from the safe memory area
   void  ClearHistoFromMemory(char* name);
   /// Make the X profile in a safe memory area
-  TH1D* GetProfileX(TH2D* histo);
+  TH1D* GetProfileX(TH2* histo);
   /// Changing X index 
   void  ChangeToLayerIndex(TH1D* histo);
   // Set histograms styles
