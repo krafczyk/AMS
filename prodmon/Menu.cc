@@ -79,7 +79,7 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	data2_filename=data2_dir;
 	m=0;
 	if(getenv("AMSProdMonRefFile")==NULL){
-		printf("Please set env AMSProdMonRefFile\n");
+		printf("Please setenv AMSProdMonRefFile, See https://twiki.cern.ch/twiki/bin/view/AMS/AMSProdMonRefFile \n");
 		exit(0);
 	}
 	data2_filename=getenv("AMSProdMonRefFile");
@@ -437,7 +437,7 @@ void Menu::HandleMenu(Int_t i){
                 status= system(_fcmd.c_str());
                 if (status == -1) {
                         printf("Failed to run command %s\n",_fcmd.c_str());
-                        return;
+                        exit(0);
                 }
                 fp=fopen("lastname.dat","r");
                 if(fp==NULL){
