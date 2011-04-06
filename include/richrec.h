@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.73 2011/04/01 13:45:52 mdelgado Exp $
+//  $Id: richrec.h,v 1.73.2.1 2011/04/06 13:54:23 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -412,7 +412,7 @@ class AMSRichRingNew: public AMSlink{
 
   AMSRichRingNew(AMSTrTrack* , int);
   ~AMSRichRingNew(){};
-  //AMSRichRingNew * next(){return (AMSRichRingNew*)_next;}
+  AMSRichRingNew * next(){return (AMSRichRingNew*)_next;}
 
   int buildlip();
   void fillresult();

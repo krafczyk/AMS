@@ -1,5 +1,5 @@
 
-//  $Id: root.h,v 1.324 2011/03/30 13:23:18 sdifalco Exp $
+//  $Id: root.h,v 1.324.2.1 2011/04/06 13:54:24 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2130,6 +2130,7 @@ protected:
   int  fTrdTrack;     ///<index of  TrdTrackR used
   int  fTrdHTrack;     ///<index of TrdHTrackR used
   int  fRichRing;     ///<index of  RichringR used
+  int  fRichRingB;     ///<index of  RichringBR used
   int  fEcalShower;   ///<index of  EcalShowerR used
   int  fVertex;       ///<index of  VertexR used
 public:
@@ -2175,6 +2176,13 @@ public:
   /// \return pointer to RichRingR object or 0
   RichRingR * pRichRing();
 
+  /// access function to RichRingBR object used
+  /// \return index of RichRingBR object in collection or -1
+  int iRichRingB()const {return fRichRingB;}
+  /// access function to RichRingBR object used
+  /// \return pointer to RichRingBR object or 0
+  RichRingBR * pRichRingB();
+
   /// access function to EcalShowerR object used
   /// \return index of EcalShowerR object in collection or -1
   int iEcalShower()const {return fEcalShower;}
@@ -2199,6 +2207,7 @@ public:
       if(iTrdTrack()>=0)strcat(type,"Trd");
       if(iTrdHTrack()>=0)strcat(type,"TrdH");
       if(iRichRing()>=0)strcat(type,"Rich");
+      if(iRichRingB()>=0)strcat(type,"RichB");
       if(iEcalShower()>=0)strcat(type,"Ecal");
       if(iVertex()>=0)strcat(type,"Vertex");
    return type;
@@ -2212,7 +2221,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,9)       //ParticleR
+  ClassDef(ParticleR,10)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
