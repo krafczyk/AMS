@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.522 2011/03/31 13:02:42 mdelgado Exp $
+//  $Id: event.C,v 1.523 2011/04/06 20:47:12 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1327,7 +1327,6 @@ void AMSEvent::copy(){
 //------------------------------------------------------------------
 void AMSEvent::event(){
 if(GCFLAG.IEVENT==1000){
-cout <<"qwa"<<endl;
 }
   addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
