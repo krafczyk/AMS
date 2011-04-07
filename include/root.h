@@ -1,5 +1,5 @@
 
-//  $Id: root.h,v 1.325 2011/04/05 10:41:09 mdelgado Exp $
+//  $Id: root.h,v 1.326 2011/04/07 08:54:52 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2079,7 +2079,12 @@ public:
   int   ParticleVice; ///< nect-to voted particle id a-la geant3 (not really reliable)
   float Prob[2];      ///< Probability to be a particle Particle [0] or ParticleVice [1]
   float FitMom;       ///< Fitted Momentum to particle Particle
-  float Mass;         ///< Mass (Gev/c2)
+  float Mass;         ///< Mass (Gev/c2),signed means particles with abs(beta)>1 will have negative mass
+                      /*!<
+pmass definition \n
+if(abs(beta)<1)mass = abs(momentum) * sqrt( 1/beta^2-1) \n
+else mass=  -abs(momentum)*sqrt(beta^2-1) \n
+*/
   float ErrMass;      ///< Error to Mass 
   float Momentum;     ///< Momentum (Gev/c) (signed), means particle with negative charge will have negative momentum
                       /*!<
@@ -2130,9 +2135,10 @@ protected:
   int  fTrdTrack;     ///<index of  TrdTrackR used
   int  fTrdHTrack;     ///<index of TrdHTrackR used
   int  fRichRing;     ///<index of  RichringR used
-  int  fRichRingB;     ///<index of  RichringBR used
   int  fEcalShower;   ///<index of  EcalShowerR used
   int  fVertex;       ///<index of  VertexR used
+  int  fRichRingB;     ///<index of  RichringBR used
+
 public:
   /// access function to BetaR object used
   /// \return index of BetaR object in collection or -1
@@ -2221,7 +2227,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,10)       //ParticleR
+  ClassDef(ParticleR,11)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
