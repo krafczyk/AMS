@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.11 2011/03/30 14:50:54 choutko Exp $
+//  $Id: linkdefs.h,v 1.12 2011/04/07 09:53:32 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -100,6 +100,5 @@
 #pragma link C++ class AMSSetupR::Header+;
 #pragma link C++ class std::map<std::string,Node>+;
 #pragma link C++ class std::pair<std::string,Node>+;
->>>>>>> 1.9
 
 #endif
