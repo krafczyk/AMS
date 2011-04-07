@@ -1,5 +1,5 @@
 
-//  $Id: root.h,v 1.324.2.1 2011/04/06 13:54:24 mdelgado Exp $
+//  $Id: root.h,v 1.324.2.2 2011/04/07 10:13:04 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2130,9 +2130,10 @@ protected:
   int  fTrdTrack;     ///<index of  TrdTrackR used
   int  fTrdHTrack;     ///<index of TrdHTrackR used
   int  fRichRing;     ///<index of  RichringR used
-  int  fRichRingB;     ///<index of  RichringBR used
   int  fEcalShower;   ///<index of  EcalShowerR used
   int  fVertex;       ///<index of  VertexR used
+  int  fRichRingB;     ///<index of  RichringBR used
+
 public:
   /// access function to BetaR object used
   /// \return index of BetaR object in collection or -1
@@ -2221,7 +2222,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,10)       //ParticleR
+  ClassDef(ParticleR,11)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 

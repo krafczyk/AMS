@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.85 2011/03/22 11:20:41 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.85.2.1 2011/04/07 10:12:47 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -152,7 +152,8 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char vers1[10]="PreAss";//pre-assembly in clean room
     char vers2[10]="Space";//in space
     char vers3[10]="Ass1";//in clean room final assembly-1
-    char vers4[10]="PMag";//perm.magnet
+//    char vers4[10]="PMag";//perm.magnet
+    char vers4[10]="PMagCorr";//perm.magnet, new TofHoneycombsPositions(+-66.62)
     geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
