@@ -1636,7 +1636,7 @@ class RemoteClient:
        time0=time.time()
        time00=0
 #       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName(path)
-       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName("2009A")
+       (period,prodstarttime,periodid)=self.getActiveProductionPeriodByName("2011A")
        if(period == None or prodstarttime==0):
            sys.exit("Cannot find Active Production Period for path "+str(path))
        self.doCopyCalls=self.doCopyCalls+1
