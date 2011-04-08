@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.646 2011/04/08 08:43:09 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.647 2011/04/08 09:18:54 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -113,6 +113,7 @@ use POSIX  qw(strtod);
 use File::Find;
 use Benchmark;
 use Class::Struct;
+use List::Util qw[min max];
 
 @RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
@@ -718,6 +719,9 @@ jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and producti
         $max_jobs = int(2.2*$capacity_jobs*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs))*$reputation;
         if($max_jobs <= 0){
             $max_jobs = 0;
+        }
+        if($completed_jobs > 0){
+            $max_jobs=max($max_jobs,$capacity_jobs-$total_jobs+$completed_jobs);
         }
           }
         }
