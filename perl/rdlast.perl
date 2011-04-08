@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rdlast.perl,v 1.4 2011/04/06 12:27:34 choutko Exp $
+#  $Id: rdlast.perl,v 1.5 2011/04/08 13:10:22 choutko Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -42,7 +42,7 @@ unshift @ARGV, "-Fpdb_ams";
     my $o=new DBSQLServer();
      my $ok=$o->ConnectRO();
 if($ok){
-    my $sql = "SELECT path fROM amsdes.ntuples  where datamc=1 and version like 'v5.00%' $run2p  ORDER BY timestamp desc";
+    my $sql = "SELECT path fROM amsdes.ntuples  where datamc=1 and version like 'v5.00%' and path not like '%hbk' $run2p  ORDER BY timestamp desc";
          my $ret=$o->Query($sql);
          if (defined $ret->[0][0]) {
              print "$ret->[0][0] \n";
