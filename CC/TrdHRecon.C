@@ -1176,25 +1176,25 @@ void TrdHReconR::init_calibration(float start_value){
 }
 
 int TrdHReconR::SelectTrack(int tr){
-  TrdHTrackR* track=&htrvec[tr];
+  if(tr>=htrvec.size())return 0;
 
   int ntracklay[20];
-  for(int i=0;i!=20;i++)ntracklay[i]=0;
+  for(int i=0;i<20;i++)ntracklay[i]=0;
   
   // loop over hits on both segments and calculate number hits on track per layer
-  for(int seg=0;seg<track->nTrdHSegment();seg++){
-    if(!track->pTrdHSegment(seg)) continue;
-    for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
-      TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
+  for(int seg=0;seg<htrvec[tr].nTrdHSegment();seg++){
+    if(!htrvec[tr].pTrdHSegment(seg)) continue;
+    for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
+      TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
       if(!hit)continue;
       if(hit->Amp>5)ntracklay[hit->Layer]++;
     }
   }
 
   int ok[3];
-  for(int i=0;i!=3;i++)ok[i]=0;
+  for(int i=0;i<3;i++)ok[i]=0;
 
-  for(int i=0;i!=20;i++){
+  for(int i=0;i<20;i++){
     if(ntracklay[i]>0){
       if(i<4)ok[0]++;
       else if(i<16)ok[1]++;
@@ -1210,25 +1210,25 @@ int TrdHReconR::SelectTrack(int tr){
 int TrdHReconR::SelectEvent(int level){
   int nhit_ontrack=0;
   for(int tr=0;tr<(int)htrvec.size();tr++)
-    for(int seg=0;seg<htrvec[tr].nTrdHSegment();seg++){
-      if(!htrvec[tr].pTrdHSegment(seg)) continue;
-      for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
-	TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
-	if(!hit)continue;
-	if(hit->Amp>5)nhit_ontrack++;
-      }
+  for(int seg=0;seg<2;seg++){
+    if(!htrvec[tr].pTrdHSegment(seg)) continue;
+    for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
+      TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
+      if(!hit)continue;
+      if(hit->Amp>5)nhit_ontrack++;
     }
-
+  }
+  
   int nhit=0;
   for(int i=0;i!=rhits.size();i++){
     TrdRawHitR* rhit=&rhits.at(i);
     if(!rhit)continue;
     if(rhit->Amp>5)nhit++;
   }
-
-  float fraction=float(nhit)/float(nhit_ontrack);
-  if(!level&&fraction>0.8) return 1;
-  else if(level==1&&fraction>0.8&&(int)hsegvec.size()==2&&(int)htrvec.size()==1)return 1;
+  
+  float fraction=float(nhit_ontrack)/float(nhit);
+  if(!level&&fraction>0.5) return 1;
+  else if(level==1&&fraction>0.5&&(int)hsegvec.size()==2&&(int)htrvec.size()==1)return 1;
   else return 0;
 }
 
