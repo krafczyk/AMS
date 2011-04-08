@@ -11,6 +11,7 @@ AMSSRC:=..
 endif
 
 LIBS= -L$(AMSSRC)/lib/$(MARCH)/ -lntuple_slc4_PG $(ROOTLIBS)
+#LIBS= -L/afs/cern.ch/ams/Offline/vdev/lib/linuxx8664icc/ -lntuple_slc4_PG $(ROOTLIBS)
 #LIBS= $(ROOTLIBS)
 SRC:=$(wildcard *.cc)
 DictSrc:=MenuDict.cc

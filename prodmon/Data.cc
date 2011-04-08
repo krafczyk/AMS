@@ -252,7 +252,7 @@ Bool_t Data::Generate_hist(){
 		}
 		else{
 			for(k=0;k<_hists_h.size();k++){
-				_hists_h[k]->Fill(Form("No new file;%s",ctime(&t)),1);
+				_hists_h[k]->Fill(Form("No new file;%s",ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
 		}
 	}
 	for(i=1;i<=10;i++)
