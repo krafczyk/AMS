@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.645 2011/04/06 10:01:35 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.646 2011/04/08 08:43:09 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5679,6 +5679,14 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
             print "</b></font></td></tr>\n";
+            htmlText("<i>Capacity </i>",$capacity_jobs);
+            htmlText("<i>Completed jobs</i>",$completed_jobs);
+            htmlText("<i>Total jobs </i>",$total_jobs);
+            if($max_jobs>0){
+                htmlText("<i>Allowed jobs </i>",$max_jobs);
+            }else{
+                print "<tr><td><font color=\"tomato\" size=\"2\"><b> <i>Allowed jobs </i> </td><td><font color=\"red\">$max_jobs</b></font></td></tr>";
+            }
             print "</TABLE>\n";
 # Datasets
             foreach my $mc (@productionPeriods) {
@@ -5733,7 +5741,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
     #        print "Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
             print "<TR><TD><font color=\"tomato\" size=\"3\">";
-            print "Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed";
+            print "Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed or you have reached maximum allowed job number";
             print " </font></TD></TR>\n";
              if ($benchmarking == 1) {
               print "<TR></TR>\n";
