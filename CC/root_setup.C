@@ -788,6 +788,11 @@ void AMSSetupR::SlowControlR::print(){
     if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
   }
 }
+void AMSSetupR::SlowControlR::printElementNames(){
+  for( etable_i i=fETable.begin();i!=fETable.end();i++){
+    cout <<i->first<<" "<<i->second.fTable.size()<<endl;
+  }
+}
 
 #ifndef __ROOTSHAREDLIBRARY__
 integer AMSSetupR::_select(  const dirent64 *entry){

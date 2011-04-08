@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.16 2011/03/30 14:50:54 choutko Exp $
+//  $Id: root_setup.h,v 1.17 2011/04/08 10:31:31 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -73,7 +73,8 @@ etable_m fETable;   ///< Main Map of subtype name : elements
 typedef map<unsigned long long,string> rtable_m;
 typedef map<unsigned long long,string>::iterator rtable_i;
 rtable_m fRTable;  ///< Conversion Map (To speed up the search)
-void print();
+void print(); ///< print element info for elements with non-zero entries
+void printElementNames(); ///< print element names using in GetData
 SlowControlR():fBegin(0),fEnd(0){}
 
          //! SlowControlElement Accessor

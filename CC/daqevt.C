@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.207 2011/01/29 17:37:43 choutko Exp $
+//  $Id: daqevt.C,v 1.208 2011/04/08 10:31:27 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2615,20 +2615,35 @@ again:
                 goto again;   
               }
               _Waiting=false;
-              return ifnam[KIFiles++];
+              int kb=0;
+              for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+                if( *(ifnam[KIFiles]+k)==' ')kb++;
+                else break;
+              }
+              return ifnam[KIFiles++]+kb;
         }
 else{
  if(!_NeventsPerRun || _NeventsPerRun>AMSEvent::get_num_threads()){
   if(KIFiles<InputFiles){
        _NeventsPerRun=0;
-      return ifnam[KIFiles++];
+              int kb=0;
+              for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+                if( *(ifnam[KIFiles]+k)==' ')kb++;
+                else break;
+              }
+      return ifnam[KIFiles++]+kb;
   }
   else return 0;
  }
  else{
   cerr<<"DAQEvent::_getNextFile-E-FileTooShort "<<_NeventsPerRun<<" "<<ifnam[KIFiles-1]<<endl;
  }
- return ifnam[KIFiles-1];
+              int kb=0;
+              for(int k=0;k<strlen(ifnam[KIFiles-1]);k++){
+                if( *(ifnam[KIFiles-1]+k)==' ')kb++;
+                else break;
+              }
+ return ifnam[KIFiles-1]+kb;
 }
 
 }

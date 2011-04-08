@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.265 2011/04/05 10:41:08 mdelgado Exp $
+//  $Id: root.C,v 1.266 2011/04/08 10:31:27 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4280,4 +4280,15 @@ master=1;
  }
   
 return suc;
+}
+
+int AMSEventR::GetSlowControlData(char *en, vector<float>&v, int method){
+if(!getsetup()) {
+  return -2;
+}
+if(en && strlen(en)){
+unsigned int time=UTime(); 
+return getsetup()->fSlowControl.GetData(en,time,Frac(),v,method);
+}
+else return 1;
 }

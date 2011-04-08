@@ -1,5 +1,4 @@
-
-//  $Id: root.h,v 1.326 2011/04/07 08:54:52 choutko Exp $
+//  $Id: root.h,v 1.327 2011/04/08 10:31:31 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2921,6 +2920,20 @@ unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
+
+         //! Yet Another SlowControlElement Accessor
+        /*!
+            based on AMSSetupR::SlowControlR::GetData
+
+            int GetData(const char * elementname,unsigned int time, float frac, vector<float> &value , int imethod=1, const char *nodename="", int dt=-1, int st=-1);
+
+         take time & frac from the current event; all others as defaults
+
+          return -2  if no instance of AMSSetupR found
+
+        */
+int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
+
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
 ///
