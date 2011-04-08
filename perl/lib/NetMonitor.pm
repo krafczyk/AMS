@@ -1,4 +1,4 @@
-/# $Id: NetMonitor.pm,v 1.32 2011/04/08 14:02:23 dmitrif Exp $
+/# $Id: NetMonitor.pm,v 1.33 2011/04/08 15:14:50 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -410,6 +410,7 @@ sub sendmailpolicy{
             $self->InitOracle();
             if(not $self->updateoracle($subj," ")){
              $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+             print time()." NetMonitor-E-UnableToConnectOracle \n";
            }
           }
        }
