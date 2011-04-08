@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.171 2011/04/05 16:08:49 choutko Exp $
+//  $Id: server.C,v 1.172 2011/04/08 12:58:54 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2442,7 +2442,7 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
         singlethread=true;
 }
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
-        if(reinfo->Priority>2 && strstr((const char*)reinfo->cinfo.HostName,"ams")){
+        if(reinfo->Priority>2 && (strstr((const char*)reinfo->cinfo.HostName,"ams") || strstr((const char*)reinfo->cinfo.HostName,"lx"))){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
            if((*i)->Status!=DPS::Server::NoResponse ){
     if(!(strstr((const char *)(*i)->HostName,(const char*)reinfo->cinfo.HostName)))continue;
@@ -2452,10 +2452,16 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
       (ahlv)->Status=DPS::Client::OK; 
      PropagateAH(cid,(ahlv),DPS::Client::Update);
      ahlv=*i;
-     cout <<" host found "<<(const char*)(*i)->HostName<<endl;
-    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+     cout <<" priority host found "<<(const char*)(*i)->HostName<<endl;
+     cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)ahlv->HostName)); 
     if(cli==_ncl.end())cli=_ncl.begin();
-
+      cout <<"  cli found "<<(*cli)->HostName<<" "<<(*cli)->LogPath<<" "<<" "<<(*cli)->SubmitCommand<<" "<<(*cli)->uid<<endl;
+     if(cli!=_ncl.begin()){
+      if( !strstr((const char *)ahlv->HostName,(*cli)->HostName)){
+        cerr<<"  problem with cli "<<(const char *)ahlv->HostName<<" "<<(*cli)->HostName<<" "<<(*cli)->SubmitCommand<<" "<<(*cli)->uid<<endl;
+        cli=_ncl.begin();
+       }
+      }
      break;
     }
    }
@@ -2493,6 +2499,8 @@ if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
      submit+=(const char*)((*cli)->LogPath);  
      if(runmc)submit+="MC";
      submit+="Producer.";
+    submit+=(const char*)((ahlv)->HostName);
+     submit+=".";
      submit+=uid;
      submit+=".log ";
     }
