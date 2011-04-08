@@ -1,4 +1,4 @@
-/# $Id: NetMonitor.pm,v 1.30 2011/03/31 08:01:49 choutko Exp $
+/# $Id: NetMonitor.pm,v 1.31 2011/04/08 12:58:56 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -22,7 +22,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus.cern.ch'], 
+  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   hostsstat=>[],
@@ -69,7 +69,8 @@ sub InitOracle{
     my $pwd="";
     my $user="amsdes";
     
-    my $oracle="/afs/cern.ch/user/a/ams/.oracle/.oracle.oracle";
+#    my $oracle="/afs/cern.ch/user/a/ams/.oracle/.oracle.oracle";
+  my $oracle="/var/www/cgi-bin/mon/lib/.oracle.oracle";
   aga2:
     if(not open(FILE,"<".$oracle)){
       $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n",0,1);
