@@ -1,4 +1,4 @@
-/# $Id: NetMonitor.pm,v 1.31 2011/04/08 12:58:56 ams Exp $
+/# $Id: NetMonitor.pm,v 1.32 2011/04/08 14:02:23 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -74,6 +74,7 @@ sub InitOracle{
   aga2:
     if(not open(FILE,"<".$oracle)){
       $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n",0,1);
+      print time()." NetMonitor-S-UnableToOpenFile $oracle \n;";
       sleep $self->{sleep};
       goto aga2;
                         }
@@ -83,6 +84,7 @@ sub InitOracle{
     close FILE;
       if(not $self->{sqlserver}->{dbhandler}=DBI->connect('DBI:'.$self->{sqlserver}->{dbdriver}.$self->{sqlserver}->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1})){
       $self->sendmailpolicy("NetMonitor-S-CannotConnectToOracle $DBI::errstr \n",0,1);
+      print time()." NetMonitor-S-CannotConnectToOracle \n";
       sleep $self->{sleep};
       goto aga2;
      
@@ -100,6 +102,7 @@ sub Run{
 
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
+    print time()." NetMonitor-I-Started \n";
 #     $self->{ping} = Net::Ping->new();
     $self->{ping} = Net::Ping->new("tcp");
     $self->{ping}->{port_num} =20001;
@@ -114,18 +117,22 @@ sub Run{
 again:
 if(not open(FILE,"<".$self->{hostfile})){
     $self->sendmailpolicy("NetMonitor-S-UnableToOpen File $self->{hostfile} \n",0);
+    print time()." NetMonitor-S-UnableToOpen File $self->{hostfile} \n";
     sleep $self->{sleep};
     goto again;
 }
        my $buf;
     $self->sendmailpolicy("NetMonitor-I-Opened File $self->{hostfile} \n",0);
+    print time()." NetMonitor-I-Opened File $self->{hostfile} \n";
     if(not read(FILE,$buf,1638400)){
       close FILE;
       $self->sendmailpolicy("NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n",0);
+      print time()." NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n";
       sleep $self->{sleep};
       goto again;
     }     
       $self->sendmailpolicy("NetMonitor-I-ReadFile $self->{hostfile} \n",0);
+      print time()." NetMonitor-I-ReadFile $self->{hostfile} \n";
     close FILE;
     my @sbuf=split "\n",$buf;
     $#{$self->{hosts}}=-1;
@@ -340,13 +347,15 @@ else{
           }
         }
               $self->sendmailpolicy("NetMonitor-W-SomeHostsAreDown",$#{$self->{bad}}+1-$found);
+              print time()." NetMonitor-W-SomeHostsAreDown \n";
               $#{$self->{badsave}}=-1;
                foreach my $bada (@{$self->{bad}}){
                  push @{$self->{badsave}}, $bada;
-               }                
+               }
     }
     else{
       $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
+      print time()." NetMonitor-I-AllHostsAreOK \n";
     }
      
     sleep($self->{sleep});
@@ -401,8 +410,8 @@ sub sendmailpolicy{
             $self->InitOracle();
             if(not $self->updateoracle($subj," ")){
              $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
-           }            
-          }    
+           }
+          }
        }
 
 
