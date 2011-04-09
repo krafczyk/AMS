@@ -236,7 +236,7 @@ void HistoMan::BookHistos(bool issim){
   // TrTrack
   Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
   Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,  140, 1e-3, 1e4, 0, 1));
-  Add(TH2D_L("TrNhit", "NhitXY VS NhitY", 9,   0,   9,    9,    0,   9, 0, 0));
+  Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,    9,    0,   9, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrResX", "ResX/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
@@ -259,15 +259,10 @@ void HistoMan::BookHistos(bool issim){
   Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
+  Add(new TH2F("TkTrdDf", "TkTRD diff", 1000, 0, 100, 100, 0, 2));
+
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   Add(new TH2F("Time","Time",1000,0,2.,500,0,500));
-  // Track quality parameters VS Rigidity
-  TString stp[4] = {  "dRinv-",  "Chisq-",  "HalfR-", "Exres-" };
-  TString stt[4] = { "(inner)", "(half8)", "(half9)", "(full)" };
-  for (Int_t i = 0; i < 4; i++)
-    for (Int_t j = 0; j < 4; j++)
-      Add(TH2D_L(Form("TrQp%d%d", j+1, i),
-		 stp[i]+stt[j], 50, 0.1, 1e4, 80, 1e-2, 1e2, 1, 1));
 
   // residuals vs ladder
   Add(new TH2F("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
@@ -295,13 +290,6 @@ void HistoMan::BookHistos(bool issim){
     Add(TH2D_L("TrRres32", "dR/R (w/LEcal)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
     Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
-
-    // Track quality check
-    TString sdr[3] = {  "d1/R0-",  "d1/R1-",  "d1/R2-" };
-    for (Int_t i = 0; i < 3; i++)
-      for (Int_t j = 0; j < 4; j++)
-	Add(TH2D_L(Form("TrQr%d%d", j+1, i),
-		   sdr[i]+stt[j], 50, 0.1, 1e4, 400, -100, 100, 1, 0));
 
     // intrinsic resolution and signal checks
     Add(new TH2D("TrSimSigx","raw charge vs eta; #eta; raw charge",100,0,1,100,0.5,1));
