@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.104 2011/04/09 10:09:43 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.105 2011/04/09 16:39:10 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/09 10:09:43 $
+/// $Date: 2011/04/09 16:39:10 $
 ///
-/// $Revision: 1.104 $
+/// $Revision: 1.105 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1819,7 +1819,9 @@ void TrRecon::PurgeGhostHits()
     TrTrackR *track = (TrTrackR*)contT->getelem(itr);
     for(int ithit=0;ithit<track->GetNhits();ithit++){
       TrRecHitR *thit=track->GetHit(ithit);
+      if (!thit) continue;
       TrClusterR* yclus= thit->GetYCluster();
+      if (!yclus) continue;
       int nhit = cont->getnelem();
       for (int i = 0; i < nhit; i++) {
 	TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
@@ -2009,16 +2011,16 @@ int TrRecon::Build(int flag, int rebuild, int hist)
 
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("TrTrack");
-    ntrk = (simple) ? BuildTrTracksSimple() : 
-                      BuildTrTracks();
+    ntrk = (simple) ? BuildTrTracksSimple(rebuild) : 
+                      BuildTrTracks(rebuild);
     AMSgObj::BookTimer.stop("TrTrack");
 #else
-    ntrk = (simple) ? BuildTrTracksSimple() : 
-                      BuildTrTracks();
+    ntrk = (simple) ? BuildTrTracksSimple(rebuild) : 
+                      BuildTrTracks(rebuild);
 #endif
 
   }
-  if (CpuTimeUp()) trstat |= 0x10;
+  if (CpuTimeUp() && !SigTERM) trstat |= 0x10;
 
 
   //////////////////// Post-rec. process ////////////////////
