@@ -398,8 +398,18 @@ Long64_t TrHistoManHeader::Merge(TCollection* list) {
   TIter next(&inlist);
   while (TObject *o = next()) {
     TrHistoManHeader* header = (TrHistoManHeader*) o;
+    // all files names
     for (int ifile=0; ifile<header->GetNFileNames(); ifile++) AddFileName(header->GetFileName(ifile)); 
-    for (int irun=0;  irun<header->GetNRunNumbers(); irun++)  AddRunNumber(header->GetRunNumber(irun)); 
+    // only not equal runs  
+    for (int irun=0;  irun<header->GetNRunNumbers(); irun++) {
+      int runnumber = header->GetRunNumber(irun);
+      bool alreadyin = false; 
+      for (int jrun=0; jrun<GetNRunNumbers(); jrun++) {  
+        int runcheck = GetRunNumber(jrun); 
+        if (runcheck==runnumber) alreadyin = true;
+      }
+      if (!alreadyin) AddRunNumber(runnumber);
+    }
   }
   return 1;
 }
