@@ -2,6 +2,8 @@
   This program is and edit of the original ROOT hadd routine.
 */
 
+#include "TrHistoMan.h"
+
 #include "RConfig.h"
 #include <string>
 #include "TChain.h"
@@ -22,6 +24,7 @@ Bool_t fastMethod;
 
 int AddFile(TList* sourcelist, std::string entry, int newcomp) ;
 int MergeRootfile( TDirectory *target, TList *sourcelist);
+int CompressTimeNtuple();
 
 //___________________________________________________________________________
 int main( int argc, char **argv ) 
@@ -82,8 +85,15 @@ int main( int argc, char **argv )
 
    int status = MergeRootfile( Target, FileList);
 
-   //must delete Target to avoid a problem with dictionaries in~ TROOT
+   // must delete Target to avoid a problem with dictionaries in~ TROOT
    delete Target;
+
+   /* DISABLED (WRITTEN ONCE, READ MANY ...)
+   Target = TFile::Open(argv[ffirst-1],"UPDATE");
+   // as last step reduce the timentuple size! 
+   CompressTimeNtuple(); 
+   delete Target; 
+   */
 
    return status;
 }
@@ -317,4 +327,30 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
    // save modifications to target file
    target->SaveSelf(kTRUE);
    return status;
+}
+
+//___________________________________________________________________________
+int CompressTimeNtuple() {
+  // no trees?
+  if (noTrees) return 0;
+  // old tree
+  TTree* ntuple = (TTree*) Target->FindObjectAny("timentuple");
+  if (ntuple==0) return 0;
+  TIME_EVENT time_event;
+  ntuple->SetBranchAddress("timebranch",&time_event);
+  int nentries = ntuple->GetEntries();
+  int step = 1 + nentries/100;
+  // new tree
+  TTree* ntuple2 = (TTree*) ntuple->CloneTree(0);
+  for (int i=0; i<nentries; i++) { 
+    if ((i%step)==0) { 
+      cout << i << endl;
+      ntuple->GetEntry(i);
+      ntuple2->Fill();
+    }   
+  }
+  Target->cd("TrOnlineMon");
+  Target->Delete("timentuple;*");
+  ntuple2->Write();
+  return 0;
 }

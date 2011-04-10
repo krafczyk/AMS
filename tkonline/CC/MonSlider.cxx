@@ -580,7 +580,8 @@ void MonSlider::DrawSizeSummary(int alternative) {
   TH1F* frame1 = (TH1F*) subpad2->DrawFrame(-0.5,0.,7.5,500.);
   frame1->SetYTitle("Crate Segment Size (byte)");
   frame1->SetXTitle("Crate");
-  sizevscrate_prof->Draw("SAME");
+  sizevscrate_prof->SetMarkerStyle(21);
+  sizevscrate_prof->Draw("P SAME");
 
   // ladder size
   TH2D* size_n = (TH2D*) GetHisto(rootfile,"Size_vs_Ladder_all_N");
@@ -970,7 +971,6 @@ void MonSlider::DrawSeedOccupancyGlobal(int alternative) {
   canvas->Clear(); 
   canvas->Divide(2,2,0.001,0.001);
   text->SetTextColor(kBlack);
-  text->SetTextSize(0.05);
 
   // occupancy calculation 
   TH1D* rawcluste = (TH1D*) GetHisto(rootfile,"nRawClusters_all");
@@ -1069,6 +1069,7 @@ void MonSlider::DrawSeedOccupancyOnLayer(int alternative) {
   // clean
   canvas->Draw();
   canvas->Clear();
+  text->SetTextSize(0.3);
   int layer = ladder->GetLayer(); 
   int nladders = 0; 
   for (int ii=0; ii<TkDBc::Head->GetEntries(); ii++) {
@@ -1100,6 +1101,7 @@ void MonSlider::DrawSeedOccupancyOnLayer(int alternative) {
     }
   }
   canvas->Update();
+  text->SetTextSize(0.05);
 }
 
 
@@ -1174,25 +1176,47 @@ void MonSlider::DrawReconVsTime(int alternative) {
   canvas->Draw();
   canvas->Clear();
   canvas->Divide(1,3,0.001,0.001);
+  
+  // ntuple check
   rootfile->cd();
   TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
+  if (ntuple==0) {
+    printf("MonSlider::DrawReconVsTime-W No time ntuple found, skipping.\n");
+    canvas->Update();
+    return;
+  }
+  float min_time = ntuple->GetMinimum("Time");
+  float max_time = ntuple->GetMaximum("Time");
+
+  // clear histograms and define them
+  ClearHistoFromMemory("SizeVsTime");
+  ClearHistoFromMemory("nRawVsTime");
+  ClearHistoFromMemory("nTrkVsTime");
+  gROOT->cd();
+  TH2D* size_vs_time = new TH2D("SizeVsTime","; Time (sec); Tracker Size (byte)",100,0,max_time-min_time,1000,0,20000);
+  TH2D* nraw_vs_time = new TH2D("nRawVsTime","; Time (sec); Number of Raw Clusters",100,0,max_time-min_time,500,-0.5,499.5); 
+  TH2D* ntrk_vs_time = new TH2D("nTrkVsTime","; Time (sec); Number of Tracks",100,0,max_time-min_time,10,-0.5,9.5);
+
+  // loop on ntuple for histogram filling
+  rootfile->cd();
+  TIME_EVENT time_event;
+  ntuple->SetBranchAddress("timebranch",&time_event);
+  int nentries = ntuple->GetEntries();
+  int step = 1 + nentries/10000;
+  for (int i=0; i<nentries; i += step) {
+    ntuple->GetEntry(i);
+    size_vs_time->Fill(time_event.Time - min_time,time_event.Size);
+    nraw_vs_time->Fill(time_event.Time - min_time,time_event.nRaw);
+    ntrk_vs_time->Fill(time_event.Time - min_time,time_event.nTrk);
+  }
 
   // size vs time
   TVirtualPad* pad1 = canvas->cd(1);
   pad1->SetGridx();
   pad1->SetGridy();
-  ClearHistoFromMemory("SizeVsTime");
-  rootfile->cd();
-  ntuple->Draw(Form("Size:Time-%f>>SizeVsTime(100,0,%f,1000,0,20000)",
-    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
-  TH2F* size_vs_time = (TH2F*) gROOT->FindObjectAny("SizeVsTime");
-  if (size_vs_time==0) { canvas->Update(); return; }
   size_vs_time->SetStats(kFALSE);
   TH1D* size_vs_time_prof = (TH1D*) GetProfileX(size_vs_time);
   if (size_vs_time_prof==0) { canvas->Update(); return; }
-  size_vs_time->SetTitle("");
-  size_vs_time->SetYTitle("Tracker Size (byte)");
-  size_vs_time->SetXTitle("Time (sec)");
   size_vs_time->SetMarkerStyle(20);
   size_vs_time->SetMarkerColor(kGray);
   size_vs_time->Draw();
@@ -1204,16 +1228,9 @@ void MonSlider::DrawReconVsTime(int alternative) {
   TVirtualPad* pad2 = canvas->cd(2);
   pad2->SetGridx();
   pad2->SetGridy();
-  ClearHistoFromMemory("nRawVsTime");
-  rootfile->cd();
-  ntuple->Draw(Form("nRaw:Time-%f>>nRawVsTime(100,0,%f,500,-0.5,499.5)",
-    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
-  TH2F* nraw_vs_time = (TH2F*) gROOT->FindObjectAny("nRawVsTime");
-  if (nraw_vs_time==0) { canvas->Update(); return; }
   nraw_vs_time->SetStats(kFALSE);
   TH1D* nraw_vs_time_prof = (TH1D*) GetProfileX(nraw_vs_time);
   if (nraw_vs_time_prof==0) { canvas->Update(); return; }
-  nraw_vs_time->SetTitle("");
   nraw_vs_time->SetYTitle("Number of Raw Clusters");
   nraw_vs_time->SetXTitle("Time (sec)");
   nraw_vs_time->SetMarkerStyle(20);
@@ -1227,12 +1244,6 @@ void MonSlider::DrawReconVsTime(int alternative) {
   TVirtualPad* pad3 = canvas->cd(3);
   pad3->SetGridx();
   pad3->SetGridy();
-  ClearHistoFromMemory("nTrkVsTime");
-  rootfile->cd();
-  ntuple->Draw(Form("nTrk:Time-%f>>nTrkVsTime(100,0,%f,10,-0.5,9.5)",
-    ntuple->GetMinimum("Time"),ntuple->GetMaximum("Time")-ntuple->GetMinimum("Time")),"","COLZ");
-  TH2F* ntrk_vs_time = (TH2F*) gROOT->FindObjectAny("nTrkVsTime");
-  if (ntrk_vs_time==0) { canvas->Update(); return; }
   ntrk_vs_time->SetStats(kFALSE);
   TH1D* ntrk_vs_time_prof = (TH1D*) GetProfileX(ntrk_vs_time);
   if (ntrk_vs_time_prof==0) { canvas->Update(); return; }
@@ -1261,17 +1272,17 @@ void MonSlider::DrawOrbitFromTime(int alternative) {
   TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
   TIME_EVENT time_event;
   ntuple->SetBranchAddress("timebranch",&time_event);
-  for (int i=0; i<ntuple->GetEntries(); i++) {
+  int nentries = ntuple->GetEntries();
+  int step = 1 + nentries/1000;
+  for (int i=0; i<nentries; i += step) {
     ntuple->GetEntry(i);
-    if (i%(ntuple->GetEntries()/10)==0) printf("%10d of %10d\n",i,ntuple->GetEntries());
-    Float_t time = time_event.Time + time_event.FineTime;
+    double = time_event.Time + time_event.FineTime;
     GeoCoo pos;
-    ISSPosition(time/60/60/24-3651,pos);
+    ISSPosition(time/60/60/24.-3651.,pos);
     double latitude  = pos.Lat; 
     double longitude = pos.Lon;
     trajectory->Fill(longitude,latitude);
   }
-
   // earth
   TH2F* earth = new TH2F("earth","; latitude; longitude",180,-180,180,161,-80.5,80.5);
   FILE* file = fopen(Form("%s/tkonline/data/earth.dat",getenv("AMSWD")),"read"); 
@@ -1331,4 +1342,5 @@ void MonSlider::DrawInfo(int alternative) {
 
   }
   canvas->Update();
-} 
+}
+
