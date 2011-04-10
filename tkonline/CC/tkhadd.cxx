@@ -1,63 +1,6 @@
 /*
-
-  This program will add histograms (see note) and Trees from a list of root files and write them
-  to a target root file. The target file is newly created and must not be
-  identical to one of the source files.
-         
-  Syntax:
-
-       hadd targetfile source1 source2 ...
-    or
-       hadd -f targetfile source1 source2 ...
-         (targetfile is overwritten if it exists)
-
-  When -the -f option is specified, one can also specify the compression
-  level of the target file. By default the compression level is 1, but
-  if "-f0" is specified, the target file will not be compressed.
-  if "-f6" is specified, the compression level 6 will be used.
-      
-  For example assume 3 files f1, f2, f3 containing histograms hn and Trees Tn
-    f1 with h1 h2 h3 T1
-    f2 with h1 h4 T1 T2
-    f3 with h5
-   the result of
-     hadd -f x.root f1.root f2.root f3.root
-   will be a file x.root with h1 h2 h3 h4 h5 T1 T2
-   where h1 will be the sum of the 2 histograms in f1 and f2
-         T1 will be the merge of the Trees in f1 and f2
-
-   The files may contain sub-directories.
-   
-  if the source files contains histograms and Trees, one can skip 
-  the Trees with
-       hadd -T targetfile source1 source2 ...
-  
-  Wildcarding and indirect files are also supported
-    hadd result.root  myfil*.root
-   will merge all files in myfil*.root
-    hadd result.root file1.root @list.txt file2. root myfil*.root
-    will merge file1. root, file2. root, all files in myfil*.root
-    and all files in the indirect text file list.txt ("@" as the first
-    character of the file indicates an indirect file. An indirect file
-    is a text file containing a list of other files, including other
-    indirect files, one line per file).
-    
-  If the sources and and target compression levels are identical (default),
-  the program uses the TChain::Merge function with option "fast", ie
-  the merge will be done without  unzipping or unstreaming the baskets 
-  (i.e. direct copy of the raw byte on disk). The "fast" mode is typically
-  5 times faster than the mode unzipping and unstreaming the baskets.
-   
-  NOTE1: By default histograms are added. However if histograms have their bit kIsAverage
-        set, the contents are averaged instead of being summed. See TH1::Add.
-        
-  NOTE2: hadd returns a status code: 0 if OK, -1 otherwise
-  
-  Authors: Rene Brun, Dirk Geppert, Sven A. Schmidt, sven.schmidt@cern.ch
-         : rewritten from scratch by Rene Brun (30 November 2005)
-            to support files with nested directories.
-           Toby Burnett implemented the possibility to use indirect files.
- */
+  This program is and edit of the original ROOT hadd routine.
+*/
 
 #include "RConfig.h"
 #include <string>
@@ -86,17 +29,10 @@ int main( int argc, char **argv )
 
    if ( argc < 3 || "-h" == string(argv[1]) || "--help" == string(argv[1]) ) {
       cout << "Usage: " << argv[0] << " [-f] [-T] targetfile source1 [source2 source3 ...]" << endl;
-      cout << "This program will add histograms from a list of root files and write them" << endl;
-      cout << "to a target root file. The target file is newly created and must not " << endl;
-      cout << "exist, or if -f (\"force\") is given, must not be one of the source files." << endl;
-      cout << "Supply at least two source files for this to make sense... ;-)" << endl;
-      cout << "If the first argument is -T, Trees are not merged" <<endl;
-      cout << "When -the -f option is specified, one can also specify the compression" <<endl;
-      cout << "level of the target file. By default the compression level is 1, but" <<endl;
-      cout << "if \"-f0\" is specified, the target file will not be compressed." <<endl;
-      cout << "if \"-f6\" is specified, the compression level 6 will be used." <<endl;
-      cout << "if Target and source files have different compression levels"<<endl;
-      cout << " a slower method is used"<<endl;
+      cout << "   This program will add monitoring files" << endl;
+      cout << "   If -f (\"force\") is given the outputfile is overridden." << endl;
+      cout << "   If the first argument is -T, Trees are not merged" <<endl;
+      cout << "   If  only one source file is indicated it will extract in the target file only the relevant monitoring infos." << endl; 
       return 1;
    }
    FileList = new TList();
@@ -176,9 +112,14 @@ int AddFile(TList* sourcelist, std::string entry, int newcomp)
    }
    cout << "Source file " << (++count) << ": " << entry << endl;
 
-   TFile* source = TFile::Open( entry.c_str());
-   if( source==0 ){
-      return 1;
+   TFile* source = TFile::Open(entry.c_str());
+   if (source==0) {
+     cout << "No file named " << entry.c_str() << " skipping." << endl;
+     return 0; 
+  }
+   if (source->TestBit(TFile::kRecovered)) {
+     cout << "The file " << entry.c_str() << " was not closed, skipping." << endl;
+     return 0;
    }
    sourcelist->Add(source);
    if (newcomp != source->GetCompressionLevel())  fastMethod = kFALSE;

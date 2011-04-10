@@ -144,7 +144,12 @@ void CalSlider::setRootFile(char *filename){
 void CalSlider::Update() {
   // simple check
   if (rootfile==0) {
-    printf("You must select a file before updating it!");
+    printf("CalSlider::Update-W You must select a file before updating it!\n");
+    return;
+  }
+  ifstream ifile(rootfile->GetName());
+  if (!ifile) {
+    printf("CalSlider::Update-W File doesn't exist, doing nothing!\n");
     return;
   }
   // histogram could be appended to the current rootfile

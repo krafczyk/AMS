@@ -55,6 +55,7 @@ void MonSlider::BuildMenu() {
   graphmenu->AddEntry("ClustersSummary (alt)",index++);
   graphmenu->AddEntry("ReconVsTime",index++);
   graphmenu->AddEntry("OrbitFromTime",index++);
+  graphmenu->AddEntry("Info",index++);
 
   graphmenu->Select(graphtype);
   graphmenu->Resize(180,400);
@@ -84,6 +85,17 @@ void MonSlider::setRootFile(char *filename){
     printf("MonSlider::setRootFile-W %s is not a valid filename.\n",filename);
     return; 
   }
+
+  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
+  if (ntuple!=0) { 
+    // first event time
+    TIME_EVENT time_event;
+    ntuple->SetBranchAddress("timebranch",&time_event);
+    ntuple->GetEntry(0);
+    time_t pippo = (time_t) time_event.Time;
+    canvas->SetTitle(Form("First event %10d %s",(int)pippo,ctime(&pippo)));
+  }
+  /*
   if (rootfile->FindObjectAny("TrOnlineMonHeader")!=0) {
     TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader"); 
     if (header->GetNRunNumbers()>0) { 
@@ -93,6 +105,7 @@ void MonSlider::setRootFile(char *filename){
       canvas->SetTitle(title);
     }
   }
+  */
   try2Draw(ladder);
 }
 
@@ -100,7 +113,12 @@ void MonSlider::setRootFile(char *filename){
 void MonSlider::Update() {
   // simple check
   if (rootfile==0) {
-    printf("MonSlider::Update-W you must select a file before updating it!\n");
+    printf("MonSlider::Update-W You must select a file before updating it!\n");
+    return;
+  }
+  ifstream ifile(rootfile->GetName());
+  if (!ifile) {
+    printf("MonSlider::Update-W File doesn't exist, doing nothing!\n");
     return;
   }
   // re-open
@@ -328,7 +346,10 @@ void MonSlider::Draw() {
   case 19:
     DrawOrbitFromTime();
     break; 
- }
+  case 20:
+    DrawInfo();
+    break;
+  }
 }
 
 
@@ -1230,17 +1251,42 @@ void MonSlider::DrawReconVsTime(int alternative) {
 
 
 void MonSlider::DrawOrbitFromTime(int alternative) { 
+  // clear
+  canvas->Clear();
+  canvas->cd(0);
+
+  // time event ntuple
+  TH2F* trajectory = new TH2F("traj","; latitude; longitude",180,-180,180,161,-80.5,80.5);
   rootfile->cd();
   TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
-  UInt_t  Time = 0;     ntuple->SetBranchAddress("Time",&Time);
-  Float_t FineTime = 0; ntuple->SetBranchAddress("FineTime",&FineTime); 
+  TIME_EVENT time_event;
+  ntuple->SetBranchAddress("timebranch",&time_event);
   for (int i=0; i<ntuple->GetEntries(); i++) {
     ntuple->GetEntry(i);
-    Float_t time = Time + FineTime;
+    if (i%(ntuple->GetEntries()/10)==0) printf("%10d of %10d\n",i,ntuple->GetEntries());
+    Float_t time = time_event.Time + time_event.FineTime;
     GeoCoo pos;
-    ISSPosition(time-3651.0,pos); // chiedi a Matteo
+    ISSPosition(time/60/60/24-3651,pos);
+    double latitude  = pos.Lat; 
+    double longitude = pos.Lon;
+    trajectory->Fill(longitude,latitude);
   }
+
+  // earth
+  TH2F* earth = new TH2F("earth","; latitude; longitude",180,-180,180,161,-80.5,80.5);
+  FILE* file = fopen(Form("%s/tkonline/data/earth.dat",getenv("AMSWD")),"read"); 
+  while (!feof(file)) {
+    float x,y;
+    fscanf(file,"%f%f",&x,&y);
+    earth->Fill(x,y);
+  } 
+  earth->SetStats(kFALSE);
+  earth->Draw();
+  trajectory->SetMarkerColor(kViolet);
+  trajectory->Draw("SAME");
+  canvas->Update();
 }
+
 
 
 // DrawRates
@@ -1250,4 +1296,39 @@ void MonSlider::DrawIsGood(int alternative) {
 }
 
 
+void MonSlider::DrawInfo(int alternative) {
+  // clear
+  canvas->Clear();
+  canvas->cd(0);
+  text->SetTextColor(kBlack);
 
+  // first-last event
+  TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
+  if (ntuple!=0) { 
+    TIME_EVENT time_event;
+    ntuple->SetBranchAddress("timebranch",&time_event);
+    ntuple->GetEntry(0);
+    time_t in = (time_t) time_event.Time;
+    ntuple->GetEntry(ntuple->GetEntries());
+    time_t fi = (time_t) time_event.Time;
+    text->DrawTextNDC(0.1,0.90,Form("First event %10d %s",(int)in,ctime(&in)));
+    text->DrawTextNDC(0.1,0.85,Form("Last event %10d %s",(int)fi,ctime(&fi)));
+  }  
+
+  // header infos 
+  TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader");
+  if (header!=0) {
+    // list
+    text->DrawTextNDC(0.1,0.75,Form("Number of files: %d",header->GetNFileNames()));
+    for (int i=0; i<header->GetNFileNames(); i++) {
+      text->DrawTextNDC(0.1,0.70-0.05*i,header->GetFileName(i));
+    }  
+    // list
+    text->DrawTextNDC(0.6,0.75,Form("Number of runs: %d",header->GetNRunNumbers()));
+    for (int i=0; i<header->GetNRunNumbers(); i++) {
+      text->DrawTextNDC(0.6,0.70-0.05*i,Form("Run: %10d",header->GetRunNumber(i)));
+    } 
+
+  }
+  canvas->Update();
+} 

@@ -124,6 +124,8 @@ class MonSlider : public SliderI {
   void DrawOrbitFromTime(int alternative = 0);
   /// Draw a panel for data-goodness
   void DrawIsGood(int alternative = 0);
+  /// Write monitoring file infos
+  void DrawInfo(int alternative = 0);
   /// Test and draw a text
   void TestAndDrawText(int side, TH1D* histo, float xmin, float xmax);
 
