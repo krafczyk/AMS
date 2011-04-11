@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.649 2011/04/11 10:27:21 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.650 2011/04/11 12:15:16 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -708,7 +708,7 @@ jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (selec
 		$total_jobs = $ret->[0][0];
 	}
 
-        my $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+        $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, realtriggers from jobs union all select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
 jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
@@ -19269,10 +19269,23 @@ sub MoveBetweenDisks{
 # update catalogs and remove files from old location
 #
               if($update){
+               my $preset=undef;
+               my $softlink='/Offline/DataSetsDir';
+               if($ntuples eq 'datafiles'){
+                   my $retpath=$self->{sqlserver}->Query("select paths from $ntuples where path='$file'");
+                   if($path eq '/Data'){
+                    $preset=$retpath->[0][0];
+                   }
+                   $softlink='/Offline/RunsDir';
+               }
                my $timenow=time();
                 $sql="update $ntuples set path='$newfile', timestamp=$timenow where path='$file'";
-  $self->datasetlink($file,"/Offline/DataSetsDir",0);
-  $self->datasetlink($newfile,"/Offline/DataSetsDir",1);
+  $self->datasetlink($file,$softlink,0);
+  my $netlink=$self->datasetlink($newfile,$softlink,1,$preset);
+               if($ntuples eq 'datafiles'){
+                   $sql="update $ntuples set path='$newfile', timestamp=$timenow ,paths='$netlink' where path='$file'";
+               }
+
                 $self->{sqlserver}->Update($sql);
                }
                my $res=$self->{sqlserver}->Commit();
@@ -19687,11 +19700,12 @@ sub datasetlink{
                $newdir=$newdir.'/'.$junk[$j];
            }
     if(defined $predefined){
-        $newdir=$dir.'/'.$predefined;
-        $newfile=$newdir.'/'.$junk[$#junk];
+        $newfile=$predefined;
     }
-    my $mkdir="mkdir -p $newdir";
-    system($mkdir);
+    else{
+     my $mkdir="mkdir -p $newdir";
+     system($mkdir);
+    }
     my $cp="";
     if($crdel==1){
         $cp=" ln -sf $path $newfile";
