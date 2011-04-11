@@ -28,7 +28,7 @@ def DrawFilesPlot(timewin):
 			if cdate > timewin - 60*60:
 				filesR_size.append(fsize)
 				filesR_cdate.append(cdate)
-			if cdate > timewin - 60*60*48:
+			if cdate > timewin - 60*60*24*7:
 				filesH_size.append(fsize)
 				filesH_cdate.append(cdate)
 	fileRlist=zip(filesR_cdate,filesR_size)
@@ -57,11 +57,6 @@ def DrawFilesPlot(timewin):
 	   x.append(c-3600)
 	   y.append(s/1024)
 	if n == 0:
-		x.append(timewin-7200)
-		y.append(0)
-		x.append(timewin-3600)
-		y.append(0)
-		n = 2
 		nofile=True		
 		pt= TPaveText(0.20,0.7,0.5,0.87, "NDC")
 		pt.SetFillColor(0) 
@@ -70,6 +65,11 @@ def DrawFilesPlot(timewin):
 		pt.AddText("No incoming frame in the past hour")
 	#   print ' i %i %f %f ' % (i,x[i],y[i])
 #	gSystem.Setenv("TZ","GMT+2")
+	x.append(timewin-7200)
+	y.append(0)
+	x.append(timewin-3600)
+	y.append(0)
+	n =n+2
 	gr2 = TGraph( n, x, y )
 	gr2.SetLineColor( 2 )
 	gr2.SetLineWidth( 4 )
@@ -105,21 +105,23 @@ def DrawFilesPlot(timewin):
 	   y1.append(s/1024)
 	nofileH = False
 	if n1 == 0:
-		x1.append(timewin-3600)
-		y1.append(0)
-		n1 = 1
 		nofileH=True		
 		pt2= TPaveText(0.20,0.7,0.5,0.87, "NDC")
 		pt2.SetFillColor(0) 
 		pt2.SetTextSize(0.04) 
 		pt2.SetTextAlign(12)
-		pt2.AddText("No incoming frame in the past 48 hours")
+		pt2.AddText("No incoming frame in the past week")
+	x1.append(timewin-3600*24*7-3600)
+	y1.append(0)
+	x1.append(timewin-3600)
+	y1.append(0)
+	n1 = n1 + 2
 	gr1 = TGraph( n1, x1, y1 )
 	gr1.SetLineColor( 2 )
 	gr1.SetLineWidth( 4 )
 	gr1.SetMarkerColor( 4 )
 	gr1.SetMarkerStyle( 21 )
-	gr1.SetTitle( '48-Hours Plot' )
+	gr1.SetTitle( '1-Week Plot' )
 	gr1.GetXaxis().SetTitle( 'Date' )
 	gr1.GetXaxis().SetTimeDisplay(1)
 	#gr.GetXaxis().SetNdivisions(-60)
