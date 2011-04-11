@@ -151,7 +151,8 @@
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
      +     resc_chgmir,resc_accgeom,resc_eff,
      +     resc_accmsec,resc_effmsec,resc_chgprob,
-     +     resb_pimp,resb_epimp,resb_pthe,resb_epthe,resb_pphi,resb_epphi
+     +     resb_pimp,resb_epimp,resb_pvtx,resb_epvtx,
+     +     resb_pthe,resb_epthe,resb_pphi,resb_epphi
 
       integer rstd_crecuhits
       real rstd_creclike,rstd_crecx0,rstd_crecy0,rstd_crectheta,
@@ -194,6 +195,8 @@
                      ! [ TRACK PARAMETERS ]
      +                 resb_pimp(3,nmaxliprec),         ! impact point at radiator top
      +                 resb_epimp(3,nmaxliprec),        ! error in impact point
+     +                 resb_pvtx(3,nmaxliprec),         ! average photon emission point
+     +                 resb_epvtx(3,nmaxliprec),        ! error in emission point
      +                 resb_pthe(nmaxliprec),           ! rec theta
      +                 resb_epthe(nmaxliprec),          ! error in rec theta
      +                 resb_pphi(nmaxliprec),           ! rec phi

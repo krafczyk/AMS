@@ -597,6 +597,7 @@ C      data irotflg /0/
       real beta_rectof,thc_rectof,
      +     chi2_rectof,phit_rectof,used_rectof,hres_rectof,
      +     invchi2_rectof,pimp_rectof,epimp_rectof,
+     +     pvtx_rectof,epvtx_rectof,
      +     pthe_rectof,epthe_rectof,pphi_rectof,epphi_rectof
 
 
@@ -612,6 +613,8 @@ C      data irotflg /0/
      +                  invchi2_rectof,          ! sum of inv chi2 for non-assoc hits
      +                  pimp_rectof(3),          ! impact point at radiator top
      +                  epimp_rectof(3),         ! error in impact point at radiator top
+     +                  pvtx_rectof(3),          ! average photon emission point
+     +                  epvtx_rectof(3),         ! error in average photon emission point
      +                  pthe_rectof,             ! rec theta
      +                  epthe_rectof,            ! error in rec theta
      +                  pphi_rectof,             ! rec phi
@@ -626,6 +629,7 @@ C      data irotflg /0/
       real beta_recstd,thc_recstd,
      +     chi2_recstd,phit_recstd,used_recstd,hres_recstd,
      +     invchi2_recstd,pimp_recstd,epimp_recstd,
+     +     pvtx_recstd,epvtx_recstd,
      +     pthe_recstd,epthe_recstd,pphi_recstd,epphi_recstd
 
 
@@ -641,6 +645,8 @@ C      data irotflg /0/
      +                  invchi2_recstd,          ! sum of inv chi2 for non-assoc hits
      +                  pimp_recstd(3),          ! impact point at radiator top
      +                  epimp_recstd(3),         ! error in impact point at radiator top
+     +                  pvtx_recstd(3),          ! average photon emission point
+     +                  epvtx_recstd(3),         ! error in average photon emission point
      +                  pthe_recstd,             ! rec theta
      +                  epthe_recstd,            ! error in rec theta
      +                  pphi_recstd,             ! rec phi

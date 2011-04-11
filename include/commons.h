@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.312 2011/03/28 16:32:31 sdifalco Exp $
+//  $Id: commons.h,v 1.313 2011/04/11 18:13:17 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1366,6 +1366,8 @@ class LIPF2C_DEF{
   //track parameters
   geant resb_pimp[LIP_NMAXLIPREC][3];
   geant resb_epimp[LIP_NMAXLIPREC][3];
+  geant resb_pvtx[LIP_NMAXLIPREC][3];
+  geant resb_epvtx[LIP_NMAXLIPREC][3];
   geant resb_pthe[LIP_NMAXLIPREC];           
   geant resb_epthe[LIP_NMAXLIPREC];           
   geant resb_pphi[LIP_NMAXLIPREC];           

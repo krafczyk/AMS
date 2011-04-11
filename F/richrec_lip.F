@@ -753,6 +753,8 @@ C ------------------------------------------------------------------
                do n=1,3
                   resb_pimp(n,irecnumb+1) = pimp(n)
                   resb_epimp(n,irecnumb+1) = 0.
+                  resb_pvtx(n,irecnumb+1) = pcervtx(n)
+                  resb_epvtx(n,irecnumb+1) = 0.
                enddo
                
                resb_pthe(irecnumb+1) = pthe
@@ -929,6 +931,8 @@ C ------------------------------------------------------------------
             do i=1,3
                resb_pimp(i,irecnumb+1) = pimp_rectof(i)
                resb_epimp(i,irecnumb+1) = epimp_rectof(i)
+               resb_pvtx(i,irecnumb+1) = pvtx_rectof(i)
+               resb_epvtx(i,irecnumb+1) = epvtx_rectof(i)
             enddo
             resb_pthe(irecnumb+1) = pthe_rectof
             resb_epthe(irecnumb+1) = epthe_rectof
@@ -1097,6 +1101,8 @@ C ------------------------------------------------------------------
             do i=1,3
                resb_pimp(i,irecnumb+1) = pimp_recstd(i)
                resb_epimp(i,irecnumb+1) = epimp_recstd(i)
+               resb_pvtx(i,irecnumb+1) = pvtx_recstd(i)
+               resb_epvtx(i,irecnumb+1) = epvtx_recstd(i)
             enddo
             resb_pthe(irecnumb+1) = pthe_recstd
             resb_epthe(irecnumb+1) = epthe_recstd
@@ -1267,6 +1273,8 @@ C ------------------------------------------------------------------
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
          print*,'resb_epimp    = ',(resb_epimp(i,k),i=1,3)
+         print*,'resb_pvtx     = ',(resb_pvtx(i,k),i=1,3)
+         print*,'resb_epvtx    = ',(resb_epvtx(i,k),i=1,3)
          print*,'resb_pthe(d)  = ',resb_pthe(k)*RADDEG 
          print*,'resb_epthe(d) = ',resb_epthe(k)*RADDEG 
          print*,'resb_pphi(d)  = ',resb_pphi(k)*RADDEG

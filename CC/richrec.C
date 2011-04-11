@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.155 2011/04/01 13:46:21 mdelgado Exp $
+//  $Id: richrec.C,v 1.156 2011/04/11 18:13:16 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2461,8 +2461,11 @@ void AMSRichRingNew::fillresult(){
 
   //if(LIPF2C.resb_itype[nr]==3 || LIPF2C.resb_itype[nr]==4) {  // store rec track data
     for(int i=0;i<3;i++) {
-      _TrackRec.push_back(LIPF2C.resb_pimp[nr][i]);
-      _TrackRec.push_back(LIPF2C.resb_epimp[nr][i]);
+      // pvtx replaces pimp as reference point - R. Pereira 11-Apr-2011
+      //_TrackRec.push_back(LIPF2C.resb_pimp[nr][i]);
+      //_TrackRec.push_back(LIPF2C.resb_epimp[nr][i]);
+      _TrackRec.push_back(LIPF2C.resb_pvtx[nr][i]);
+      _TrackRec.push_back(LIPF2C.resb_epvtx[nr][i]);
     }
     _TrackRec.push_back(LIPF2C.resb_pthe[nr]);
     _TrackRec.push_back(LIPF2C.resb_epthe[nr]);

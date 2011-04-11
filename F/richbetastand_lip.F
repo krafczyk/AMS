@@ -1256,6 +1256,8 @@
       double precision amsri
       integer amsrt
 
+      real ZEMI
+
 * --- set reconstruction options
 cc    RECBET(1)  = 11   ! unused
       RECBET(4)  = 1    ! minimum search with brent method
@@ -1389,6 +1391,12 @@ cc    RECBET(1)  = 11   ! unused
             enddo
          endif
 
+         if(amsri<1.1) then
+            ZEMI = HRAD*0.6  ! in the future replace 0.6 with formula
+         else
+            ZEMI = (HRAD-HRNAF)+HRNAF*0.5  ! in the future replace 0.5 with formula
+         endif
+
          resvlike = vlike
 
       else
@@ -1417,6 +1425,14 @@ cc    RECBET(1)  = 11   ! unused
          epimp_rectof(1) = 0.
          epimp_rectof(2) = 0.
          epimp_rectof(3) = 0.
+         pvtx_rectof(1) = pimp_rectof(1)+ZEMI*tan(theta_out)
+     +        *cos(phi_out)
+         pvtx_rectof(2) = pimp_rectof(2)+ZEMI*tan(theta_out)
+     +        *sin(phi_out)
+         pvtx_rectof(3) = ZEMI
+         epvtx_rectof(1) = 0.
+         epvtx_rectof(2) = 0.
+         epvtx_rectof(3) = 0.
       else
          pimp_rectof(1) = -999.
          pimp_rectof(2) = -999.
@@ -1424,11 +1440,23 @@ cc    RECBET(1)  = 11   ! unused
          epimp_rectof(1) = -999.
          epimp_rectof(2) = -999.
          epimp_rectof(3) = -999.
+         pvtx_rectof(1) = -999.
+         pvtx_rectof(2) = -999.
+         pvtx_rectof(3) = -999.
+         epvtx_rectof(1) = -999.
+         epvtx_rectof(2) = -999.
+         epvtx_rectof(3) = -999.
       endif
 
       pthe_rectof = theta_out
       epthe_rectof = 0.
       pphi_rectof = phi_out
+      if(pphi_rectof.gt.pi) then
+         pphi_rectof = pphi_rectof-twopi
+      endif
+      if(pphi_rectof.lt.-pi) then
+         pphi_rectof = pphi_rectof+twopi
+      endif
       epphi_rectof = 0.
 
       chi2_rectof = chi2_out
@@ -1458,6 +1486,7 @@ cc    RECBET(1)  = 11   ! unused
 *      print*,'beta_rectof = ',beta_rectof
 *      print*,'thc_rectof (deg) = ',thc_rectof*RADDEG
 *      print*,'pimp_rectof = ',pimp_rectof
+*      print*,'pvtx_rectof = ',pvtx_rectof
 *      print*,'pthe_rectof (deg) = ',pthe_rectof*RADDEG
 *      print*,'pphi_rectof (deg) = ',pphi_rectof*RADDEG
 *      print*,'nuhits_rectof = ',nuhits_rectof
@@ -1533,6 +1562,12 @@ cc    RECBET(1)  = 11   ! unused
          epimp_recstd(1) = -999.
          epimp_recstd(2) = -999.
          epimp_recstd(3) = -999.
+         pvtx_recstd(1) = -999.
+         pvtx_recstd(2) = -999.
+         pvtx_recstd(3) = -999.
+         epvtx_recstd(1) = -999.
+         epvtx_recstd(2) = -999.
+         epvtx_recstd(3) = -999.
          pthe_recstd = -999.
          epthe_recstd = -999.
          pphi_recstd = -999.
@@ -1548,6 +1583,7 @@ cc    RECBET(1)  = 11   ! unused
 *      print*,'beta_recstd = ',beta_recstd
 *      print*,'thc_recstd (deg) = ',thc_recstd*RADDEG
 *      print*,'pimp_recstd = ',pimp_recstd
+*      print*,'pvtx_recstd = ',pvtx_recstd
 *      print*,'pthe_recstd (deg) = ',pthe_recstd*RADDEG
 *      print*,'pphi_recstd (deg) = ',pphi_recstd*RADDEG
 *      print*,'nuhits_recstd = ',nuhits_recstd
@@ -1619,6 +1655,8 @@ cc    RECBET(1)  = 11   ! unused
       integer nuhits_best
       integer phit_best(nhitmax),used_best(nhitmax)
       real hres_best(nhitmax)
+
+      real ZEMI
 
       if(igridflag.eq.1) then  ! generate preliminary hint grid
 
@@ -2091,6 +2129,12 @@ c$$$         nuhits_best = -999
             dphistep=1.0
             call richpkolm(dphistep,pk) ! Kolmogorov probability
 
+            if(amsri<1.1) then
+               ZEMI = HRAD*0.6  ! in the future replace 0.6 with formula
+            else
+               ZEMI = (HRAD-HRNAF)+HRNAF*0.5 ! in the future replace 0.5 with formula
+            endif
+
          else
 
             ierr_best = 1
@@ -2103,6 +2147,8 @@ c$$$         nuhits_best = -999
             vlike_best = -999.
             chi2_best = -999.
             nuhits_best = -999
+
+            ZEMI = -999.
 
          endif
 
@@ -2179,6 +2225,14 @@ c$$$         nuhits_best = -999
             epimp_recstd(1) = 0.
             epimp_recstd(2) = 0.
             epimp_recstd(3) = 0.
+            pvtx_recstd(1) = pimp_recstd(1)+ZEMI*tan(theta_best)
+     +           *cos(phi_best)
+            pvtx_recstd(2) = pimp_recstd(2)+ZEMI*tan(theta_best)
+     +           *sin(phi_best)
+            pvtx_recstd(3) = ZEMI
+            epvtx_recstd(1) = 0.
+            epvtx_recstd(2) = 0.
+            epvtx_recstd(3) = 0.
          else
             pimp_recstd(1) = -999.
             pimp_recstd(2) = -999.
@@ -2186,11 +2240,23 @@ c$$$         nuhits_best = -999
             epimp_recstd(1) = -999.
             epimp_recstd(2) = -999.
             epimp_recstd(3) = -999.
+            pvtx_recstd(1) = -999.
+            pvtx_recstd(2) = -999.
+            pvtx_recstd(3) = -999.
+            epvtx_recstd(1) = -999.
+            epvtx_recstd(2) = -999.
+            epvtx_recstd(3) = -999.
          endif
 
          pthe_recstd = theta_best
          epthe_recstd = 0.
          pphi_recstd = phi_best
+         if(pphi_recstd.gt.pi) then
+            pphi_recstd = pphi_recstd-twopi
+         endif
+         if(pphi_recstd.lt.-pi) then
+            pphi_recstd = pphi_recstd+twopi
+         endif
          epphi_recstd = 0.
 
          chi2_recstd = chi2_best
