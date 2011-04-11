@@ -790,7 +790,7 @@ void AMSSetupR::SlowControlR::print(){
 }
 void AMSSetupR::SlowControlR::printElementNames(){
   for( etable_i i=fETable.begin();i!=fETable.end();i++){
-    cout <<i->first<<" "<<i->second.fTable.size()<<endl;
+    cout <<i->first<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.fTable.size()<<endl;
   }
 }
 
