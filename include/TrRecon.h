@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.41.2.1 2011/04/05 14:08:53 haino Exp $ 
+// $Id: TrRecon.h,v 1.41.2.2 2011/04/11 20:10:13 haino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/05 14:08:53 $
+/// $Date: 2011/04/11 20:10:13 $
 ///
-/// $Revision: 1.41.2.1 $
+/// $Revision: 1.41.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -200,9 +200,23 @@ public:
   static TrCalDB*    GetTrCalDB() { return _trcaldb; }
 
 
-  /// option is temporary, 0:No_reco 1:TrCluster 2:TrRecHit 3:Full
-  /// Start full reconstruction (TrCluster, TrRecHit and TrTrack)
-  int Build(int option = 3);
+  /*!
+    \brief Start full track reconstruction (TrCluster, TrRecHit and TrTrack)
+
+    \param flag reconstruction flag (as defined in TRCLFFKEY.recflag)
+    \li    0  No recon
+    \li    1  TrCluster
+    \li   11  TrCluster and TrRecHit
+    \li  111  TrCluster, TrRecHit and TrTrack
+    \li 1111  TrCluster, TrRecHit and TrTrack with BuildTrTracksSimple
+
+    \param rebuild existing Tr** objects are cleared
+
+    \param hist Histograms are filled
+
+    \return status of the reconstruction, to be passed to EventId::trstat 
+  */
+  int Build(int flag = 111, int rebuild = 0, int hist = 1);
   
   // --- Clustering Methods --- // 
   /// Set the seed S/N threshold
@@ -375,6 +389,9 @@ protected:
   /// CPU time consumption in the last BuildTrTracks
   float _CpuTime;
 
+  /// Total CPU time consumption
+  static float _CpuTimeTotal;
+
   /// Set _StartTime marker
   void  _StartTimer();
 
@@ -462,10 +479,10 @@ public:
 //========================================================
 public:
   /// Reconstruct tracks, returns number of tracks reconstructed
-  int BuildTrTracks(int refit = 0);
+  int BuildTrTracks(int rebuild = 0);
 
   /// Reconstruct tracks, simple version
-  int BuildTrTracksSimple(int refit = 0);
+  int BuildTrTracksSimple(int rebuild = 0);
  
   /// Merge hits shared by two tracks
 //int MergeSharedHits(TrTrackR *track, int fit_method);
@@ -490,6 +507,40 @@ public:
 
   /// Purge unused hits and assign hit index to tracks
   void PurgeUnusedHits();
+
+  /// Number of track counters
+  enum { NTrackCounter = 10 };
+
+  /// Track counters 0:total 1:anyT 2:allP 3:hL1N 4:hL9 5:full
+  static int fTrackCounter[NTrackCounter];
+
+  /// Reset track counters
+  void ResetTrackCounter() {
+    for (int i = 0; i < NTrackCounter; i++) fTrackCounter[i] = 0;
+  }
+
+  /// Check track quality and count events
+  int CountTracks(int trstat = 0);
+
+  /// Fill track histograms
+  int FillHistos(int trstat = 0, int refit = 0);
+
+  /// Print statics
+  static void PrintStats();
+
+  /// Get current event number
+  static int GetEventID();
+
+  /* [0]-Tcalib.counter
+     [1]-Treset.counter
+     [2]-[3]-0.64mks Tcounter(32lsb+8msb)
+     [4]-time_diff in mksec                    
+  */
+  /// Access to Trigger2LVL1/Level1R and get TrigTime[i], where 0<= i <5
+  static float GetTrigTime(int i);
+
+  /// Access to Trigger2LVL1/Level1R and get i=0:TofFlag1 or i=1:TofFlag2
+  static int GetTofFlag(int i = 0);
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
