@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.647 2011/04/08 09:18:54 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.648 2011/04/11 10:09:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -701,7 +701,7 @@ my %mv=(
                 $reputation = $ret->[0][1];
 	}
 
-        my $ret = $self->{sqlserver}->Query("select count(*) as total from
+        $ret = $self->{sqlserver}->Query("select count(*) as total from
 (select cid as jcid, pid, time as jtime from jobs union all select cid
 as jcid, pid, time as jtime from jobs_deleted), productionset where
 jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
@@ -19156,9 +19156,11 @@ sub MoveBetweenDisks{
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
+    my @filetypes=('ntuples','datafiles');
+    foreach my $ntuples (@filetypes){
    my $runs=0;
    my $bad_runs=0;
-    my $sql ="select run,sum(sizemb) from ntuples where path like '$dir%' group by run";
+    my $sql ="select run,sum(sizemb) from $ntuples where path like '$dir%' group by run";
    my $ret =$self->{sqlserver}->Query($sql);
    foreach my $ds (@{$ret}){
        my $run=$ds->[0];
@@ -19168,7 +19170,7 @@ sub MoveBetweenDisks{
        if($verbose){
          print "processing run $run... $ds->[1] mb \n";
        }
-       $sql=" select path,castortime from ntuples where run=$ds->[0]";
+       $sql=" select path,castortime from $ntuples where run=$ds->[0]";
        my $r1=$self->{sqlserver}->Query($sql);
        my $path='/MC';
        if(defined $r1->[0][0]){
@@ -19253,7 +19255,9 @@ sub MoveBetweenDisks{
 #
 # get the file from castor
 #   
-             if($ds1->[1]>0){
+# only for ntuples for the moment
+#
+             if($ds1->[1]>0 and $ntuples eq 'ntuples'){
                  my $ok1=$self->RemoveFromDisks($dir,$verbose,$update,$irm,$tmp,$run,1);
                  my $ok2=$self->UploadToDisks($dir,$verbose,$update,$run,$disk);
                  last;
@@ -19265,7 +19269,7 @@ sub MoveBetweenDisks{
 #
               if($update){
                my $timenow=time();
-                $sql="update ntuples set path='$newfile', timestamp=$timenow where path='$file'";
+                $sql="update $ntuples set path='$newfile', timestamp=$timenow where path='$file'";
   $self->datasetlink($file,"/Offline/DataSetsDir",0);
   $self->datasetlink($newfile,"/Offline/DataSetsDir",1);
                 $self->{sqlserver}->Update($sql);
@@ -19281,7 +19285,7 @@ sub MoveBetweenDisks{
 #
 # do final check
 #
-               $sql="select path from ntuples where path='$newfile'";
+               $sql="select path from $ntuples where path='$newfile'";
                my $fchk=$self->{sqlserver}->Query($sql);
                if(not defined $fchk->[0][0]){
                  if($verbose){
@@ -19300,7 +19304,7 @@ sub MoveBetweenDisks{
 }
              
              
-
+}
 
 
 sub RemoveFromDisks{
@@ -19670,6 +19674,7 @@ sub datasetlink{
     my $path=shift;
     my $dir=shift;
     my $crdel=shift;
+    my $predefined=shift;
 #split path
            my @junk=split '\/',$path;
            my $newfile=$dir;
@@ -19680,6 +19685,10 @@ sub datasetlink{
            for my $j (2...$#junk-1){
                $newdir=$newdir.'/'.$junk[$j];
            }
+    if(defined $predefined){
+        $newdir=$dir.'/'.$predefined;
+        $newfile=$newdir.'/'.$junk[$#junk];
+    }
     my $mkdir="mkdir -p $newdir";
     system($mkdir);
     my $cp="";
