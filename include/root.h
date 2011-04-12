@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.327 2011/04/08 10:31:31 choutko Exp $
+//  $Id: root.h,v 1.328 2011/04/12 12:05:08 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1426,6 +1426,18 @@ static char _Info[255];
   RichRingBR(AMSRichRingNew *ptr);
   friend class AMSRichRingNew;
   friend class AMSEventR;
+
+  //////////////////////////
+  /// Accessor utilities ///
+  //////////////////////////
+
+  /// Bool set to true if the radiator used is NaF 
+  bool IsNaF() {return 1./(Beta*cos(AngleRec))>1.1;}
+
+  /// Refractive index used in the reconstruction
+  /// \return Index associated to the track crossing point. 
+  float getIndexUsed() {return 1./(Beta*cos(AngleRec));}
+
   /// \param number index in container
   /// \return human readable info about RichRingBR
   char * Info(int number=-1){
