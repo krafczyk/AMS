@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.328 2011/04/12 12:05:08 barao Exp $
+//  $Id: root.h,v 1.329 2011/04/13 15:49:58 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1433,10 +1433,15 @@ static char _Info[255];
 
   /// Bool set to true if the radiator used is NaF 
   bool IsNaF() {return 1./(Beta*cos(AngleRec))>1.1;}
-
   /// Refractive index used in the reconstruction
   /// \return Index associated to the track crossing point. 
   float getIndexUsed() {return 1./(Beta*cos(AngleRec));}
+  /// Compute the absolute value of the difference of the recontructed beta between the algorithm used in RichRingR class and the one used in RichRingBR
+  /// \return Difference in the reconstructed beta between the two RICH reconstruction algorithms
+  float getBetaConsistency();
+  /// Compute the Difference of the recontructed beta between the algorithm used in RichRingR class and the one used in RichRingBR
+  /// \return Signed difference in the reconstructed beta between the two RICH reconstruction algorithms (positive means RichRingR has larger value than RichRingBR)
+  float getBetaConsistencySigned();
 
   /// \param number index in container
   /// \return human readable info about RichRingBR

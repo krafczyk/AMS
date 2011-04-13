@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.266 2011/04/08 10:31:27 choutko Exp $
+//  $Id: root.C,v 1.267 2011/04/13 15:49:17 barao Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3626,6 +3626,25 @@ double RichRingR::RingWidth(bool usedInsteadNpCol){
 //    }
 //  }
 //}
+
+float RichRingBR::getBetaConsistency(){
+  float signedval = getBetaConsistencySigned();
+  if(signedval>-1.01 && signedval<-0.99) return -1;
+  return fabs(signedval);
+}
+
+float RichRingBR::getBetaConsistencySigned(){
+  AMSEventR *event=AMSEventR::Head();
+  if(event->nRichRing()<=0) return -1;
+  for(int i=0;i<event->nRichRing();i++){
+    RichRingR *p=event->pRichRing(i);
+    if(!p) continue;
+    if(pTrTrack()==p->pTrTrack()){
+      return p->getBeta()-Beta;
+    }
+  }
+  return -1;
+}
 
 RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
