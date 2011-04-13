@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.118 2011/03/21 15:58:05 choutko Exp $
+//  $Id: timeid.C,v 1.119 2011/04/13 20:36:40 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -812,7 +812,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     }
     // Rewrite map file;
 
-    if(!updatemap(dir),true)cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+    if(!updatemap(dir,true))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
 
 
 
@@ -1132,7 +1132,10 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
     system(cmd);
     return true;
   }
-  return false;
+  else{
+    cerr <<"AMSTimeID::_fillDB-E-Unable to open  map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+     return false;
+  }
 }
 
 bool AMSTimeID::updatedb(){
