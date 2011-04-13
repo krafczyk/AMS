@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.45 2011/04/04 17:57:17 barao Exp $
+//  $Id: AMSNtupleV.h,v 1.46 2011/04/13 22:30:58 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -287,8 +287,10 @@ public:
   ParticleV():AMSDrawI(NULL,-1),TPolyLine3D(){};
   ParticleV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
     ParticleR *pcl=ev->pParticle(ref);
+      bool normal=pcl->TrCoo[0][2]>pcl->TrCoo[7][2];
+      int trup=normal?0:7;
     if(pcl){
-     if(pcl->TRDCoo[0][2]>pcl->TrCoo[7][2]){
+     if(pcl->TRDCoo[0][2]>pcl->TrCoo[trup][2]){
        //ams02 setup
       const int npoint=2+2+8+2+2+3;
       float array[3*npoint];
@@ -333,7 +335,10 @@ public:
       int old=0;
       if(pcl->TRDCoo[1][2]>90 && pcl->TRDCoo[1][2]<150)old=1;
 //      cout <<pcl->TRDCoo[0][2]<<" "<<pcl->TRDCoo[1][2]<<" "<<endl;
-      for(int k=0;k<3;k++)array[k]=pcl->TrCoo[7][k];
+//     tracker 012345678 schem determination
+      bool normal=pcl->TrCoo[0][2]>pcl->TrCoo[7][2];
+      int trup=normal?0:7;
+      for(int k=0;k<3;k++)array[k]=pcl->TrCoo[trup][k];
       for(int k=0;k<3;k++)array[3+k]=pcl->TRDCoo[old][k];
       for(int k=0;k<3;k++)array[3+3+k]=pcl->TRDCoo[0][k];
       if(pcl->pTrdTrack()){
@@ -345,10 +350,10 @@ public:
       }
       for(int k=0;k<3;k++)array[3+3+3+k]=pcl->TOFCoo[0][k];
       for(int k=0;k<3;k++)array[3+3+3*2+k]=pcl->TOFCoo[1][k];
-      for(int i=0;i<7;i++){
-        for(int k=0;k<3;k++)array[3+3*3+3*i+k]=pcl->TrCoo[i][k];
+      int tb=normal?1:0;
+      for(int i=tb;i<7+tb;i++){
+        for(int k=0;k<3;k++)array[3+3*4+3*(i-tb)+k]=pcl->TrCoo[i][k];
       }
-      for(int k=0;k<3;k++)array[3*11+k]=pcl->TrCoo[6][k];
       for(int k=0;k<3;k++)array[3+3*11+k]=pcl->TOFCoo[2][k];
       for(int k=0;k<3;k++)array[3+3*12+k]=pcl->TOFCoo[3][k];
       for(int k=0;k<3;k++)array[3+3*13+k]=pcl->RichCoo[0][k];
@@ -357,8 +362,9 @@ public:
       for(int i=0;i<3;i++){
         for(int k=0;k<3;k++)array[3+3+3*15+3*i+k]=pcl->EcalCoo[i][k];
       }
+//      cout <<" normal "<<normal<<endl;
       for(int i=0;i<npoint;i++){
-        //    cout <<" i "<<i<<array[3*i]<<" "<<array[3*i+1]<<" "<<array[3*i+2]<<" "<<endl;
+//            cout <<" i "<<i<<array[3*i]<<" "<<array[3*i+1]<<" "<<array[3*i+2]<<" "<<endl;
       }
       SetPolyLine(npoint,array);
       SetLineColor(2);
