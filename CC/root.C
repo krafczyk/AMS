@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.267 2011/04/13 15:49:17 barao Exp $
+//  $Id: root.C,v 1.268 2011/04/13 19:14:19 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1241,7 +1241,7 @@ bool AMSEventR::GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_typ
 	
 	for (int i_dac=0;i_dac<32;i_dac++){
 		for (int is=0;is<68;is++){
-			if(DAC[is]==i_dac){
+			if(DAC[is]==i_dac+1){
 				ht_data_new[is]=(DAC_value_HT[i_dac]*a_ht[is]+b_ht[is])/peak_data[is];
 				sht_data_new[is]=(DAC_value_SHT[i_dac]*a_sht[is]+b_sht[is])/peak_data[is];
 			}
