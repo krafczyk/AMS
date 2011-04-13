@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.107 2011/04/13 14:28:04 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.108 2011/04/13 14:36:36 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/13 14:28:04 $
+/// $Date: 2011/04/13 14:36:36 $
 ///
-/// $Revision: 1.107 $
+/// $Revision: 1.108 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1476,8 +1476,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   double csq = trfit.SimpleFit();
   TR_DEBUG_CODE_105;
   if (csq > cmaxy/20) continue;
-
-  cminf[jc] = csq;
 
 //////////////////// Fill buffers with TrRecHits ////////////////////
 
