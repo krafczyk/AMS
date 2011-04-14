@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.36 2011/04/04 17:57:16 barao Exp $
+//  $Id: AMSNtupleV.cxx,v 1.37 2011/04/14 16:44:24 barao Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -1100,18 +1100,37 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
   //   float ZLGSIGNAL =  1.8;
   float ZTOPRAD = -72.37;
 
+  float ximp,yimp,zimp;
+  float xemission,yemission, zemission;
+  float deltaz = - (HRAD + rad_thick) + fracemission*rad_thick;
+
+  if(pcl->TrackRec[4]==0){
+    ximp = pcl->TrackRec[0];
+    yimp = pcl->TrackRec[2];
+    zimp = ZTOPRAD - pcl->TrackRec[4];
+    xemission = ximp - deltaz*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+    yemission = yimp - deltaz*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+    zemission = ZTOPRAD + deltaz;
+  }else{
+    ximp = pcl->TrackRec[0]-pcl->TrackRec[4]*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+    yimp = pcl->TrackRec[2]-pcl->TrackRec[4]*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+    zimp = ZTOPRAD ;	
+    xemission = pcl->TrackRec[0];
+    yemission = pcl->TrackRec[2];
+    zemission = ZTOPRAD - pcl->TrackRec[4];
+  }
    float zdet = ZTOPRAD-(HRAD + HEXPANSION);
-   float ximp = pcl->TrackRec[0];
-   float yimp = pcl->TrackRec[2];
-   float zimp = ZTOPRAD - pcl->TrackRec[4];
+   //   float ximp = pcl->TrackRec[0];
+   //   float yimp = pcl->TrackRec[2];
+   //   float zimp = ZTOPRAD - pcl->TrackRec[4];
    //float zimp = pcl->TrackRec[4];
 
-   //float xemission = ximp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
-   //float yemission = yimp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
-   float deltaz = - (HRAD + rad_thick) + fracemission*rad_thick;
-   float xemission = ximp - deltaz*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
-   float yemission = yimp - deltaz*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
-   float zemission = ZTOPRAD + deltaz;
+   ////float xemission = ximp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   ////float yemission = yimp + 0.6*(HRAD-zimp)*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   //   float deltaz = - (HRAD + rad_thick) + fracemission*rad_thick;
+   //   float xemission = ximp - deltaz*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   //   float yemission = yimp - deltaz*sin(pcl->TrackRec[6])*sin(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
+   //   float zemission = ZTOPRAD + deltaz;
    //cout << "xemission = " << xemission << " yemission = " << yemission << " zemission = " << zemission << endl;
 
    float xdet = ximp - (zdet-zimp)*sin(pcl->TrackRec[6])*cos(pcl->TrackRec[8])/cos(pcl->TrackRec[6]);
@@ -1256,6 +1275,7 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
 
    return;
 }
+
 
 #ifdef _PGTRACK_
 TrRecHitV::~TrRecHitV(){
