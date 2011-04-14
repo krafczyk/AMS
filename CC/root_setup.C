@@ -580,7 +580,7 @@ slc+="/SlowControlDir";
             t.filename+=namelist[i]->d_name;
             stat64(t.filename.c_str(),&statbuf);
             t.tmod=statbuf.st_mtime;
-            cout <<" slow "<<t.filename<<endl;
+            //cout <<" slow "<<t.filename<<endl;
 	  for(int k=0;k<strlen(namelist[i]->d_name);k++){
 	    if((namelist[i]->d_name)[k]=='.' ){
               valid++;
@@ -604,7 +604,7 @@ slc+="/SlowControlDir";
           }
             free(namelist[i]);
           tv.push_back(t);
-         cout << "slow "<<t.t1<<" "<<t.t2<<" "<<t.tmod<<endl;
+         //cout << "slow "<<t.t1<<" "<<t.t2<<" "<<t.tmod<<endl;
          }
          
  	free(namelist);

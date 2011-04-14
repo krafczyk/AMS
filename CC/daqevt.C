@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.208 2011/04/08 10:31:27 choutko Exp $
+//  $Id: daqevt.C,v 1.209 2011/04/14 14:27:33 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1238,6 +1238,9 @@ integer DAQEvent::_HeaderOK(){
       }
 */
       if(_GetBlType()>=6 && _GetBlType()<=8){
+ #pragma omp critical (calibdata)
+{      
+
 //     set commands here
        int mask=(_Event & 65535);
        int seq=(_Event>>16);
@@ -1269,7 +1272,6 @@ integer DAQEvent::_HeaderOK(){
         }
         else{
 // must read next event, thanks to developers
- #pragma omp critical (secndpass)      
 {
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
@@ -1312,7 +1314,7 @@ integer DAQEvent::_HeaderOK(){
    }
 }
 } 
-
+}
 
 // level3 now inside  (should add smth here)
 
@@ -2518,7 +2520,7 @@ again:
   InputFiles=parser(_DirName,ifnam); 
  }
          
-          char rootdir[1025];
+          char rootdir[10250];
           if(strlen(ofnam)){
             strcpy(rootdir,ofnam);
             strcat(rootdir,ifnam[KIFiles]);
@@ -2528,19 +2530,27 @@ again:
           }
             const int cl=161;
            char bd[cl];
-          UHTOC(DAQCFFKEY.BlocksDir,cl/sizeof(integer),bd,cl-1);
+           bd[cl-1]='\0';
+          UHTOC(DAQCFFKEY.BlocksDir,(cl-1)/sizeof(integer),bd,cl-1);
   for (int i=cl-2; i>=0; i--) {
     if(bd[i] == ' ') bd[i]='\0';
     else break;
   }
-          //cout <<"  BlocksDir "<<bd<<endl;
+
+   for(int i=1;i<cl-1;i++){
+    if(bd[i]==' '){
+       bd[i]='\0';
+       break;
+    }
+    }    
+          cout <<"  BlocksDir "<<bd<<endl;
           char *last=strstr(rootdir,bd);
           if(last && strlen(bd)>0){
               //*last='R';
               //*(last+1)='O';
               //*(last+2)='O';
               //*(last+3)='T';
-              char cmd[1025];
+              char cmd[10250];
               strcpy(cmd,"mkdir -p ");
               last=strrchr(rootdir,'/');
               if(last){
