@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.142 2011/03/28 16:05:47 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.143 2011/04/14 19:27:01 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -869,22 +869,22 @@ void AMSEcalHit::build(int &stat){
 // ---> take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
-      if(radc[0]>0 && ovfl[0]==0){//<-use h-chan
+      if(radc[0]>0 && ovfl[0]==0 && !ids.HCHisBad()){//<-use h-chan
         fadc=radc[0];
       }
 //
-      else if(radc[1]>max(3.*sl,3.)  && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>max(3.*sl,3.)  && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl/bad -> use Lch
 //        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
         fadc=(radc[1]-h2lo)*h2lr;//rescale LowG-chain to HighG(h2lo(~0.5) is offset in Low-ch)
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
       }
 //
-      else if(ovfl[0]==1 && radc[1]<max(3.*sl,3.)){//Hch=ovfl but Lch=Miss, use Hch
+      else if(ovfl[0]==1 && !ids.HCHisBad() && (radc[1]<max(3.*sl,3.) || ids.LCHisBad())){//Hch=ovfl(good) but Lch=Miss/bad, use Hch
         fadc=radc[0];
 	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
       }
 //
-      else if(ovfl[1]==1){//<-use even overflowed Lgain-chan
+      else if(ovfl[1]==1 && !ids.LCHisBad()){//<-use even overflowed good Lgain-chan
 //        fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
         fadc=(radc[1]-h2lo)*h2lr;//rescale LowG-chain to HighG(h2lo(~0.5) is offset in Low-ch)
 	sta|=AMSDBc::AOVERFLOW;// set overflow status bit
@@ -892,7 +892,7 @@ void AMSEcalHit::build(int &stat){
 //
       }
       else {
-	sta|=AMSDBc::BAD;// 0 pixel amplitude (anode)
+	sta|=AMSDBc::BAD;// 0 pixel amplitude (anode) due bad Lch and Hch
       }
 //---> mark bad (according to calib-DB) pix-channels for possible use at later stages:
       if(ids.HCHisBad())sta|=AMSDBc::ECHCISBAD;
