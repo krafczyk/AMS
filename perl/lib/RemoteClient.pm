@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.651 2011/04/14 12:08:15 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.652 2011/04/14 12:11:13 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -714,15 +714,14 @@ jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and producti
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
-
         $max_jobs = int(2.2*$capacity_jobs*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs))*$reputation;
-        if($max_jobs <= 0){
-            $max_jobs = 0;
-        }
         if($completed_jobs > 0){
 	    if($max_jobs < ($capacity_jobs-$total_jobs+$completed_jobs)*$reputation){
 		$max_jobs = ($capacity_jobs-$total_jobs+$completed_jobs)*$reputation;
             }
+        }
+        if($max_jobs <= 0){
+            $max_jobs = 0;
         }
           }
         }
