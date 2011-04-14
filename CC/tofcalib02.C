@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.54 2011/03/24 10:08:00 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.55 2011/04/14 13:22:36 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -4206,7 +4206,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 //      
 // ---> prepare update of DB :
 //
-   if(goodchp>=0.5 && AMSFFKEY.Update>0 && flg==1){//Update DB "on flight"
+   if(goodchp>=0.5 && flg==1){//Update DB "on flight"
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofpeds",AMSJob::gethead()->isRealData()));
      ptdv->UpdateMe()=1;
@@ -4233,7 +4233,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 //     }
    }
    else{
-     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
+     if(goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
    }
 //
 // ---> write OnBoardPedTable to ped-file:

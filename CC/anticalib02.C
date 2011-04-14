@@ -961,7 +961,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
      cout<<"       GoodChan(Table/My)="<<goodtbch<<" "<<goodch<<" from total="<<totch<<" GoodChsPort="<<goodchp<<endl;  
 //   
 // ---> prepare update of DB :
-   if(goodchp>=0.5 && AMSFFKEY.Update>0 && flg==1){//Update DB "on flight"
+   if(goodchp>=0.5 && flg==1){//Update DB "on flight"
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSID("Antipeds",AMSJob::gethead()->isRealData()));
      ptdv->UpdateMe()=1;
@@ -988,7 +988,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 //     }
    }
    else{
-     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
+     if(goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
    }
 //
 // ---> write OnBoardPedTable to ped-file:

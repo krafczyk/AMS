@@ -3338,7 +3338,7 @@ void ECREUNcalib::mfite(){
     cout<<"     GoodChan(table/My):"<<goodtbch<<" "<<goodchs<<" from total="<<totchs<<" GoodChsPort="<<goodchp<<endl;  
 //   
 // ---> prepare update of DB if requested :
-   if(goodchp>=0.5 && AMSFFKEY.Update>0 && flg==1){// "on flight" DB-update
+   if(goodchp>=0.5 && flg==1){// "on flight" DB-update
 // 
      AMSTimeID *ptdv;
      ptdv = AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
@@ -3367,7 +3367,7 @@ void ECREUNcalib::mfite(){
 //     }
    }
    else{
-     if(AMSFFKEY.Update>0 && goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
+     if(goodchp<0.5)cout<<"      <--- GoodCh% is too low("<<goodchp<<") - No DB-writing !"<<endl;
    }
 // ---> write OnBoardPedTable to ped-file:
    if(flg==3 && AMSFFKEY.Update==0){
