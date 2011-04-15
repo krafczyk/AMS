@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.37 2011/04/14 16:44:24 barao Exp $
+//  $Id: AMSNtupleV.cxx,v 1.38 2011/04/15 21:09:51 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -399,7 +399,6 @@ if(type==kall || type==kusedonly || type==krichrings){
     if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
    }
   }
-
     for(int i=0;i<NRichRingB();i++){
       if( (!gAMSDisplay->DrawUsedOnly() && (pRichRingB(i)->Status)%10==2 )){
 	//if( !gAMSDisplay->DrawUsedOnly()){
@@ -409,6 +408,7 @@ if(type==kall || type==kusedonly || type==krichrings){
     }
  }
 }
+
 
 if(type==kall ||  type==kmcinfo){
  fTrMCClusterV.clear();
@@ -866,7 +866,7 @@ for(int i=0;i<ev->nParticle();i++){
 }
 
 
-RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex):RichRingV(ev,ref,drawplex){
+RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex){
 
  RichRingBR *pcl=ev->pRichRingB(ref);
 //
