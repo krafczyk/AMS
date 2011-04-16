@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.655 2011/04/16 17:20:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.656 2011/04/16 21:29:38 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4175,7 +4175,7 @@ CheckCite:            if (defined $q->param("QCite")) {
        my $qparticle="";
        my $qaparticle="";
        if (defined $q->param("QPartD") and
-                   ($q->param("QPartD") ne "Any" and
+                   ($q->param("QPartD") ne "AnyData" and
                     $q->param("QPartD") ne "ANY" and $q->param("QPartD") ne "any"))  {
          $particle = $q->param("QPartD");
          $qparticle = " and datasets.did=jobs.did and datasets.name like '$particle' ";
@@ -5138,14 +5138,20 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<TR></TR>\n";
 
      print "<p><br>\n";
-     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"0\">\n";
+#     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"0\">\n";
      print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"DoQuery\">        ";
      print "</form>\n";
 
      htmlReturnToQuery();
    htmlBottom();
-  } elsif ($self->{q}->param("queryDB04") eq "ContinueD" ) {
+  } elsif ($self->{q}->param("queryDB04") eq "ContinueD" or $self->{q}->param("queryDB04") eq "ContinueDMC" ) {
+      if($self->{q}->param("queryDB04") eq "ContinueD" ){
+          $self->{q}->param("DataMC",1);
+      }
+      else{
+          $self->{q}->param("DataMC",11);
+      }
      my $query=$q->param("QPartD");
      if(not defined $query){
          $query="AnyData";
@@ -5251,7 +5257,12 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<TR></TR>\n";
 
      print "<p><br>\n";
-     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"1\">\n";
+     my $dm=$self->{q}->param("DataMC");
+   #  die " $dm nah ";
+     if(not defined $dm){
+         $dm=1;
+     }
+     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"$dm\">\n";
      print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"DoQueryD\">        ";
      print "</form>\n";
@@ -5295,7 +5306,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 
     print "<TABLE BORDER=\"1\" WIDTH=\"50%\">";
-     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (Production)</font></b></tr>\n";
+     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (MC Raw Files and/or Root Files Production)</font></b></tr>\n";
      print "</td><td>\n";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
@@ -5452,12 +5463,13 @@ function sort_prodsets() {
         htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
+#     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"0\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"Continue\">        ";
      print "</form>\n";
       print "<tr></tr>\n";
 
     print "<TABLE BORDER=\"1\" WIDTH=\"50%\">";
-     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (Data Production)</font></b></tr>\n";
+     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (MC Root Files Only Production)</font></b></tr>\n";
      print "</td><td>\n";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
@@ -5466,7 +5478,7 @@ function sort_prodsets() {
            print "</b></font></td></tr>\n";
            $#datasets = -1;
            
-           $sql = "SELECT name FROM datasets  where datamc=1 or datamc=11";
+           $sql = "SELECT name FROM datasets  where datamc=11";
 #           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
            $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
@@ -5520,14 +5532,53 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
         print "check_prodset(document.getElementById('QPPerId').form.QPPer);";
         print "</script>";
         
-#js end
+# end
 
         htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
+#     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"11\">\n";
+     print "<input type=\"submit\" name=\"queryDB04\" value=\"ContinueDMC\">        ";
+     print "</form>\n";
+      print "<tr></tr>\n";
+
+
+
+
+    print "<TABLE BORDER=\"1\" WIDTH=\"50%\">";
+     print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (Data Root Files Production)</font></b></tr>\n";
+     print "</td><td>\n";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<tr><td><font size=\"-1\"<b>\n";
+           print "</b><div id=\"setsdata\">
+                   <span id=\"pbanydatadata\"><INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR></span>\n";
+           print "</b></font></td></tr>\n";
+           $#datasets = -1;
+           
+           $sql = "SELECT name FROM datasets  where datamc=1";
+#           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
+           $r5=$self->{sqlserver}->Query($sql);
+           if(defined $r5->[0][0]){
+            foreach my $ds (@{$r5}){
+                push @datasets, $ds->[0];
+            }
+           }
+       $id=1001;
+           foreach my $dataset (@datasets) {
+             print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
+             $id++;
+#              print "</b></font></td></tr>\n";
+           }
+        print "</div>";
+
+        htmlTableEnd();
+      htmlTableEnd();
+   print "<p><br>\n";
+#     print "<INPUT TYPE=\"hidden\" NAME=\"DataMC\" VALUE=\"1\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"ContinueD\">        ";
      print "</form>\n";
       print "<tr></tr>\n";
+
 
 
       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
