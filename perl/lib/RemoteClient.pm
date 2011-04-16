@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.653 2011/04/14 16:25:37 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.654 2011/04/16 16:30:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1004,7 +1004,8 @@ if($#{$self->{DataSetsT}}==-1){
                }
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dataset->{datamc})";
+               my $dmc=$dataset->{datamc}+$dataset->{MC}*10;
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dmc)";
                $self->{sqlserver}->Update($sql);
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
@@ -1133,7 +1134,8 @@ if($#{$self->{DataSetsT}}==-1){
                }
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dataset->{datamc})";
+               my $dmc=$dataset->{datamc}+$dataset->{MC}*10;
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}',$dmc)";
                $self->{sqlserver}->Update($sql);
                $sql="select did, name from DataSets";
                $datasetsDB =$self->{sqlserver}->Query($sql);
@@ -3421,7 +3423,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql = $sql.$pps." ORDER BY Runs.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
-            #die " $sql $#{$r1} ";
+           #die " $sql $#{$r1} ";
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -3702,7 +3704,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               next;
            }
            if($query eq "Any"){
-             $sql=$sqlsum." and (jobs.did=$templat->[1]) ";
+             $sql=$sqlsum." and (jobs.did=$templat->[1]) and (jobs.jid=ntuples.jid)";
            }
            else{
             $sql=$sqlsum." and (runcatalog.jobname LIKE '%$like%' AND runcatalog.run=runs.run)";
@@ -4131,7 +4133,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 #   vc   -  remove monstrous loop in summary
 #
-      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc,datasets where ntuples.datamc=$datamc";
+      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc,datasets where (ntuples.datamc=1 or ntuples.datamc=0) ";
       my $rsum=undef;
 #
 # Template is defined explicitly
@@ -4243,7 +4245,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 # Template 'Any', particle (dataset) is defined
 #
       } elsif (defined $q->param("QPartD") and
-                   ($q->param("QPartD") ne "Any" and
+                   ($q->param("QPartD") ne "AnyData" and
                     $q->param("QPartD") ne "ANY" and $q->param("QPartD") ne "any"))  {
          $particle = $q->param("QPartD");
          $qparticle = $particle;
@@ -4334,7 +4336,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and datasets.did=jobs.did and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
 #              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
@@ -4529,7 +4531,6 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<td><b><font color=\"blue\" >File Path </font></b></td>";
     print "</tr>\n";
      my $i =0;
-       #die "$#jids\n";
        foreach my $run (@jids){
                if ($accessmode eq "REMOTE") {
                 $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
@@ -4597,18 +4598,18 @@ CheckCite:            if (defined $q->param("QCite")) {
               next;
            }
            if($query eq "Any"){
-             $sql=$sqlsum." and (jobs.did=$templat->[1]) ";
+             $sql=$sqlsum." and (jobs.did=$templat->[1]) and (jobs.jid=ntuples.jid) and (dataruns.jid=ntuples.jid  ) and (datasetsdesc.did=jobs.did)";
            }
            else{
             $sql=$sqlsum." and datasetsdesc.did=jobs.did and datasetsdesc.jobname=split(jobs.jobname)  AND (datasetsdesc.jobdesc LIKE '$templat->[0]' ) ";
 #             die "2 $query $templat->[0] $sql ";
            }
-          my $rsump=$self->{sqlserver}->Query($sql);
+            my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
 #           $sqla[1]=~s/and ntuples.run=runs.run//;
 #           $sqla[1]=~s/and ntuples.path not like \'\%castor\%\'//;
            $sql="select count(jobs.jid) from jobs,dataruns,ntuples,datasetsdesc,datasets where ".$sqla[1]." group by ntuples.run";
-          my $rsuma=$self->{sqlserver}->Query($sql);
+            my $rsuma=$self->{sqlserver}->Query($sql);
           my $i=0;
           foreach my $p (@{$rsuma}){
               $i++;
@@ -4722,16 +4723,15 @@ CheckCite:            if (defined $q->param("QCite")) {
           else{
             my $qpartd=$q->param("QPartD");
             if(not defined $qpartd or $qpartd eq "AnyData"){
-                $qpartd="";
+                $qpartd=" and ntuples.datamc=$dmc ";
              }
              else{
               $qpartd="and path like '%".$qpartd."%'"; 
              }
-            $sql=~s/ORDER BY/ and ntuples.jid=jobs.jid and ntuples.DataMC=$dmc $qpartd ORDER BY/;
+            $sql=~s/ORDER BY/ and ntuples.jid=jobs.jid  $qpartd ORDER BY/;
 
 }
 
-#      die "$sql";
       my $r1=$self->{sqlserver}->Query($sql);
       if ($rootfileaccess=~/^NFS/ or $rootfileaccess eq "CASTOR") {
           my $oldrun=0;
@@ -4822,7 +4822,6 @@ CheckCite:            if (defined $q->param("QCite")) {
                     $ntd++;
                }
               }       
-
            my $offline=0; 
            if($ntd != $dirs_ntuples[$ind] and $sqlmom eq ""){
              $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
@@ -4863,7 +4862,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
                }
              }                  
-          }
+        }
           else{
           my $ok=0;
           my $patho="";
@@ -4905,13 +4904,13 @@ CheckCite:            if (defined $q->param("QCite")) {
           }
          }
          }
-         }
+           }
            $sqlmom=~s/dataruns\.run/ntuples\.run/;
            $sqlamom=~s/dataruns\.run/ntuples\.run/;
            if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
                $sqlamom=~s/not LIKE/LIKE/;
            }
-           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
+           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and and datasets.did=jobs.did and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
@@ -4929,7 +4928,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           $buff = $buff.$s."\n";
        }
           else{
-            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%'  and ntuples.jid=jobs.jid $sqlmom group by ntuples.run ";
+            my $positive= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%'  and datasets.did=jobs.did and ntuples.jid=jobs.jid $sqlmom group by ntuples.run ";
             my $r3=$self->{sqlserver}->Query($positive);
             foreach my $path (@{$r3}) {
                   my $pth =$path->[0];
@@ -4942,8 +4941,11 @@ CheckCite:            if (defined $q->param("QCite")) {
           print "<tr><td> $s </tr></td><br>";
           $buff = $buff.$s."\n";
 	   }
-          }
-          }
+        }
+           if($ind ==21){
+#             die " dirs $#dirs ";
+         }
+       }
             } elsif ($rootfileaccess eq "HTTP") {
           foreach my $nt (@{$r1}) {
           my $path=trimblanks($nt->[0]);
@@ -5010,7 +5012,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       if (defined $buff) {
        $self-> writetofile($rootfile,$buff);
       }
-    }
+  }
      htmlReturnToQuery();
     htmlBottom();
    }
@@ -5224,8 +5226,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 # Output format
    print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" > Full Listing\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Raw File Names\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Root File Names\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\" CHECKED> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
    print "<br><TR></TR>";
@@ -5463,7 +5465,8 @@ function sort_prodsets() {
                    <span id=\"pbanydata\"><INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR></span>\n";
            print "</b></font></td></tr>\n";
            $#datasets = -1;
-           $sql = "SELECT name FROM datasets  where datamc=1 ";
+           
+           $sql = "SELECT name FROM datasets  where datamc=1 or datamc=11";
 #           $sql = "SELECT dataset FROM DatasetsDesc,datasets  where datasets.did=datasetsdesc.did and datasets.datamc=1 group by dataset";
            $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
