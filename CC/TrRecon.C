@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.108 2011/04/13 14:36:36 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.109 2011/04/16 09:11:04 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/13 14:36:36 $
+/// $Date: 2011/04/16 09:11:04 $
 ///
-/// $Revision: 1.108 $
+/// $Revision: 1.109 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -915,70 +915,65 @@ if (TrDEBUG >= 1) {\
 
 #define TR_DEBUG_CODE_101 \
 if (TrDEBUG >= 4) {\
-  cout<<"C101 ";\
+  cout << "C101 ";\
   for (int j = 0; j < NP; j++)\
     if (ic[j][i[j]] > 0) {\
       TrClusterR *cls = (TrClusterR *)cont->getelem(ic[j][i[j]]/10);\
       if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), ic[j][i[j]]/10);\
     }\
-  cout << ": " << csq << endl;\
+  cout << Form(": %6.3f %6.3f %.2f", csq, cthd, rgt) << endl;\
 }
 
 #define TR_DEBUG_CODE_102 \
-if (TrDEBUG >= 5) {\
-  cout<<"C102 ";\
-  for (int k = 0; k < NP; k++)\
-    if (imin[jr][k] > 0) {\
-      TrClusterR *cls = (TrClusterR *)cont->getelem(imin[jr][k]/10);\
-      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), imin[jr][k]/10);\
-    }\
-  cout << ": " << cmin[jr] << " " << csq << " "\
-       << std::fabs(tmin[jr].GetP0x()-trfit.GetP0x()) << " "\
-       << std::fabs(tmin[jr].GetP0y()-trfit.GetP0y()) << " "\
-       << std::fabs(tmin[jr].GetD0x()-trfit.GetD0x())*30 << " "\
-       << std::fabs(tmin[jr].GetD0y()-trfit.GetD0y())*30 << endl;\
-}\
+if (TrDEBUG >= 3) {\
+  cout << "C102 ins.at " << jc << " ";\
+  for (int j = 0; j < NC && tmin[j].csq > 0; j++) cout << tmin[j].csq << " ";\
+  cout << endl;\
+}
 
 #define TR_DEBUG_CODE_103 \
-if (TrDEBUG >= 5) {\
-  cout << "C103 ";\
-  for (int k = 0; k < NP; k++)\
-    if (ic[k][i[k]] > 0) {\
-      TrClusterR *cls = (TrClusterR *)cont->getelem(ic[k][i[k]]/10);\
-      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), ic[k][i[k]]/10);\
+if (TrDEBUG >= 3) {\
+  cout << Form("Y%02d: ", jc);\
+  for (int k = 0; k < NL; k++)\
+    if (tmin[jc].ic[k] > 0) {\
+      TrClusterR *cls = (TrClusterR *)cont->getelem(tmin[jc].ic[k]/10);\
+      if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), tmin[jc].ic[k]/10);\
     }\
-  cout << ": " << csq << " " << jr << endl;\
+  cout << ": " << csq << " " << rgt << endl;\
 }
 
 #define TR_DEBUG_CODE_104 \
-if (TrDEBUG >= 5) cout<<"Insert at " << jc <<" "<<jr<<endl;
-
-#define TR_DEBUG_CODE_105 \
 if (TrDEBUG >= 2) {\
-  VCon *cont2 = GetVCon()->GetCont("AMSTrCluster");\
-  if (cont2) {\
+  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {\
     cout << Form("Y%02d: ", jc);\
     for (int k = 0; k < NL; k++)\
-      if (imin[jc][k] > 0) {\
-	TrClusterR *cls = (TrClusterR *)cont2->getelem(imin[jc][k]/10);\
-	if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), imin[jc][k]/10);\
+      if (tmin[jc].ic[k] > 0) {\
+	TrClusterR *cls = (TrClusterR *)cont->getelem(tmin[jc].ic[k]/10);\
+	if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), tmin[jc].ic[k]/10);\
       }\
-    cout << ": " << cmin[jc] << " " << csq << endl;\
+    cout << ": " << tmin[jc].csqf << endl;\
   }\
+}
+
+#define TR_DEBUG_CODE_105 \
+if (TrDEBUG >= 3) {\
+  TrClusterR *cls = (TrClusterR *)cont->getelem(ai/10);\
+  cout << Form("C105 %4d:%02d %7.3f %7.3f %7.3f", (cls) ? cls->GetTkId() : 0,\
+	       ai/10, r, rmin, rsig) << endl;\
 }
 
 #define TR_DEBUG_CODE_106 \
 if (TrDEBUG >= 2) {\
   cout << Form("X%02d: ", jc);\
   for (int j = 0; j < NL; j++) {\
-    if (imin[jc][j] == 0) continue;\
-    TrRecHitR *hit = (TrRecHitR *)cont->getelem(abs(imin[jc][j])/1000);\
+    if (imin[j] == 0) continue;\
+    TrRecHitR *hit = (TrRecHitR *)cont->getelem(abs(imin[j])/1000);\
     if (hit) cout << Form("%4d:%03d%02d ", hit->GetTkId(),\
-			  imin[jc][j]/1000, (abs(imin[jc][j])/10)%100);\
+			  imin[j]/1000, (abs(imin[j])/10)%100);\
     else     cout << Form("----:%03d%02d ",\
-			  imin[jc][j]/1000, (abs(imin[jc][j])/10)%100);\
+			  imin[j]/1000, (abs(imin[j])/10)%100);\
   }\
-  cout << ": " << cmin[jc] << endl;\
+  cout << ": " << cmin << endl;\
 }
 
 #define TR_DEBUG_CODE_107 \
@@ -996,8 +991,8 @@ if (TrDEBUG >= 1) {\
 }
 
 #define TR_DEBUG_CODE_108 \
-if (TrDEBUG >= 3) {\
-  cout << "C110 ";\
+if (TrDEBUG >= 4) {\
+  cout << "C108 ";\
   for (int j = 0; j < NP; j++) {\
     TrRecHitR *hit = (TrRecHitR *)cont->getelem(abs(ih[j%2][i[j]])/1000);\
     if (hit) cout << Form("%4d:%03d%02d ", hit->GetTkId(),\
@@ -1005,14 +1000,13 @@ if (TrDEBUG >= 3) {\
     else     cout << Form("----:%03d%02d ",\
 			  ih[j%2][i[j]]/1000, (abs(ih[j%2][i[j]])/10)%100);\
   }\
-  cout << Form(": %6.3f %6.3f %6.3f %d", trfit.GetChisqX(), csq,\
-	                                 cmin[jc], nmin[jc])\
+  cout << Form(": %6.3f %6.3f %6.3f %d", trfit.GetChisqX(), csq, cmin, nmin)\
        << endl;\
 }
 
 #define TR_DEBUG_CODE_109 \
-if (TrDEBUG >= 4) {\
-  cout << "C112 ";\
+if (TrDEBUG >= 5) {\
+  cout << "C109 ";\
   for (int j = 0; j < NP; j++) {\
     TrRecHitR *hit = (TrRecHitR *)cont->getelem(abs(ih[j%2][i[j]])/1000);\
     if (hit) cout << Form("%4d:%03d%d ", hit->GetTkId(),\
@@ -1020,12 +1014,8 @@ if (TrDEBUG >= 4) {\
     else     cout << Form("----:%03d%d ",\
 			  ih[j%2][i[j]]/1000, abs(ih[j%2][i[j]])%10);\
   }\
-  cout << Form(": %6.3f %6.3f",\
-	       std::fabs(ch[1][i[3]].x()-(p0+p1*ch[1][i[3]].z())), pslx)\
-       << endl;\
+  cout << Form(": %6.3f %6.3f %f", dps3, pslx, argt) << endl;\
 }
-
-
 
 int TrRecon::TrDEBUG = 0;
 int TrRecon::PZDEBUG = 0;
@@ -1229,6 +1219,7 @@ void TrRecon::BuildLadderClusterMap()
 
 int TrRecon::BuildTrTracksSimple(int rebuild)
 {
+//TrDEBUG=3;
 //////////////////// Check VCon ////////////////////
 
   VCon *cont = GetVCon()->GetCont("AMSTrTrack");
@@ -1264,8 +1255,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   // Parameters to be tuned
   double pselm = 4.00;    // X-Pre-selection range in cm (dummyX)
-  double pselx = 0.25;    // X-Pre-selection range in cm
-  double psely = 3.00;    // Y-Pre-selection range in cm
+  double pselx = 1.00;    // X-Pre-selection range in cm
+  double psely = 4.00;    // Y-Pre-selection range in cm
   double mselx = 0.25;    // X-merge range in cm
   double msely = 0.25;    // Y-merge range in cm
   double errx  = 300e-4;  // Fitting sigma in cm
@@ -1274,8 +1265,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   double cmaxy = 300;     // Maximum chisquare allowed
 
   pselm = RecPar.ClusterScanRange*8;  // 4.00
-  pselx = RecPar.ClusterScanRange/2;  // 0.25
-  psely = RecPar.ClusterScanRange*6;  // 3.00
+  pselx = RecPar.ClusterScanRange*2;  // 1.00
+  psely = RecPar.ClusterScanRange*8;  // 4.00
   mselx = RecPar.ClusterScanRange/2;  // 0.25
   msely = RecPar.ClusterScanRange/2;  // 0.25
   errx  = RecPar.ErrXForScan;         // 300e-4
@@ -1325,15 +1316,50 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     cc[ip][nc[ip]++].setp(0, cls->GetGCoord(0), zlay[ly-1]);
   }
 
-  double   cmin[NC];
-  TrFit    tmin[NC];
-  int      imin[NC][NL];
-  AMSPoint pmin[NC][NL];
-  int      nmin[NC];
-  for (int j = 0; j < NC; j++) {
-    cmin[j] = -1;
-    for (int k = 0; k < NL; k++) imin[j][k] = 0;
-  }
+  struct TrSeed {
+    TrProp fit;
+    double csq, csqf;
+    double rgtf;
+    int      ic[NL];
+    AMSPoint cc[NL];
+    double ps1, ps2;
+    double rmrg[6];
+
+    TrSeed() : csq(-1), csqf(-1) { for (int j = 0; j < NL; j++) ic[j] = 0; }
+
+    void Set(TrFit &f, double q, double p1, double p2,
+	     int *i, const int IC[NP][NH], const AMSPoint CC[NP][NH]) {
+      fit = f; csq = q; ps1 = p1; ps2 = p2;
+      for (int j = 0; j < NP; j++) { ic[j] = IC[j][i[j]];
+	                             cc[j] = CC[j][i[j]]; }
+    }
+
+    int GetN(void) const {
+      int n = 0; for (int j = 0; j < NL; j++) if (ic[j] != 0) n++;
+      return n;
+    }
+
+    int GetNshr(TrSeed &ts) const {
+      int n = 0;
+      for (int j = 0; j < NL; j++)
+	for (int k = 0; ic[j] > 0 && k < NL; k++) if (ic[j] == ts.ic[k]) n++;
+      return n;
+    }
+
+    void Intp(AMSPoint *pint, double *zlay) {
+      int p[3][3] = { { 0, 2, 3 }, { 0, 1, 3 }, { 0, 1, 2 } };
+      for (int j = 0; j < 3; j++) {
+	double z = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
+	double y = Intpol2(cc[p[j][0]].z(), cc[p[j][1]].z(), cc[p[j][2]].z(),
+			   cc[p[j][0]].y(), cc[p[j][1]].y(), cc[p[j][2]].y(),
+			   z);
+	pint[j].setp(0, y, z);
+      }
+      fit.InterpolateSimple(3, pint);
+    }
+
+  } tmin[NC];
+
 
 //////////////////// Search on Y-clusters ////////////////////
 
@@ -1349,74 +1375,120 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   for (i[1] = 0; i[1] < nc[1]; i[1]++) { // Plane 2 (Layer 2, 3)
     if (ic[1][i[1]] < 0) continue;
-    if (psely > 0 &&
-	std::fabs(cc[1][i[1]].y()-(p0+p1*cc[1][i[1]].z())) > psely) continue;
+
+    double dps1 = std::fabs(cc[1][i[1]].y()-(p0+p1*cc[1][i[1]].z()));
+    if (dps1 > psely*2.5) continue;
 
   for (i[2] = 0; i[2] < nc[2]; i[2]++) { // Plane 3 (Layer 4, 5)
     if (ic[2][i[2]] < 0) continue;
-    if (psely > 0 && 
-	std::fabs(cc[2][i[2]].y()-(p0+p1*cc[2][i[2]].z())) > psely) continue;
+
+    double y = Intpol2(cc[0][i[0]].z(), cc[1][i[1]].z(), cc[3][i[3]].z(),
+		       cc[0][i[0]].y(), cc[1][i[1]].y(), cc[3][i[3]].y(),
+		       cc[2][i[2]].z());
+    double dps2 = std::fabs(cc[2][i[2]].y()-y);
+    if (dps2 > dps1*0.5+0.01) continue;
 
     TrFit trfit;
-    for (int j = 0; j < NP; j++)
-      trfit.Add(cc[j][i[j]], errx, erry, erry);
-    if (trfit.SimpleFit() < 0) continue;
+    for (int j = 0; j < NP; j++) trfit.Add(cc[j][i[j]], errx, erry, erry);
+    if (trfit.SimpleFitTop() < 0) continue;
 
-    double csq = trfit.GetChisqY();
+    double csq  = trfit.GetChisqY();
+    double rgt  = trfit.GetRigidity();
+    double cthd = (rgt != 0) ? 0.1+10/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
-    if (csq <= 0 || csq > cmaxy) continue;
+    if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt == 0) continue;
 
     int jr;
-    for (jr = 0; jr < NC && cmin[jr] > 0; jr++) {
+    for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
       int nshr = 0;
-      for (int k = 0; k < NP; k++) if (imin[jr][k] == ic[k][i[k]]) nshr++;
-      if (nshr == 0) continue;
-
-      if (nshr >= 3 ||
-	  (std::fabs(tmin[jr].GetP0x()-trfit.GetP0x()) < msely*10 &&
-	   std::fabs(tmin[jr].GetP0y()-trfit.GetP0y()) < msely    &&
-	   std::fabs(tmin[jr].GetD0x()-trfit.GetD0x()) < msely/3  &&
-	   std::fabs(tmin[jr].GetD0y()-trfit.GetD0y()) < msely/30)) {
-	TR_DEBUG_CODE_102;
-	if (csq > cmin[jr]) jr = -1;
-	break;
-      }
+      for (int j = 0; j < NP; j++) if (tmin[jr].ic[j] == ic[j][i[j]]) nshr++;
+      if (nshr >= 2) { if (csq > tmin[jr].csq) jr = -1; break; }
     }
-    TR_DEBUG_CODE_103;
     if (jr < 0) continue;
 
     int jc;
-    for (jc = 0; jc < jr && cmin[jc] > 0 && csq > cmin[jc]; jc++);
+    for (jc = 0; jc < jr && tmin[jc].csq > 0 && csq > tmin[jc].csq; jc++);
     if (jc >= NC) continue;
-    TR_DEBUG_CODE_104;
 
     if (jr >= NC) jr = NC-1;
-    for (int j = jr-1; j >= jc; j--) {
-      cmin[j+1] = cmin[j];
-      tmin[j+1] = tmin[j];
-      for (int k = 0; k < NP; k++) {
-	imin[j+1][k] = imin[j][k];
-	pmin[j+1][k] = pmin[j][k];
+    for (int j = jr-1; j >= jc; j--) tmin[j+1] = tmin[j];
+    tmin[jc].Set(trfit, csq, dps1, dps2, i, ic, cc);
+
+    TR_DEBUG_CODE_102;
+  }}}}
+
+
+//////////////////// Merge Y-clusters ////////////////////
+
+  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {
+    AMSPoint pint[NP-1];
+    tmin[jc].Intp(pint, zlay);
+
+    double rsig = std::sqrt(tmin[jc].csq);
+    double rmax = msely*0.1+rsig*0.5;
+    if (rmax > msely*5) rmax = msely*5;
+
+    for (int j = 1; j < NP; j++) {
+      double rmin = rmax;
+      tmin[jc].rmrg[j-1] = 0;
+      for (int k = 0; k < nc[j]; k++) {
+	int ai = std::abs(ic[j][k]);
+	if (ai%10 == tmin[jc].ic[j]%10) continue;
+
+	double r = std::fabs(cc[j][k].y()-pint[j-1].y());
+	TR_DEBUG_CODE_105;
+	if (r < rmin) {
+	  tmin[jc].ic[j+NP-1] = ai;
+	  tmin[jc].cc[j+NP-1] = cc[j][k];
+	  tmin[jc].rmrg[j-1] = rmin = r;
+	}
       }
     }
 
-    cmin[jc] = csq;
-    tmin[jc] = trfit;
-    for (int j = 0; j < NP; j++) {
-      imin[jc][j] = ic[j][i[j]];
-      pmin[jc][j] = cc[j][i[j]];
+    TrFit trfit;
+    for (int j = 0; j < NL; j++) {
+      int k;
+      for (k = 0; k < NL && std::abs(tmin[jc].ic[k])%10 != j+1; k++);
+      if (k == NL) continue;
+      trfit.Add(tmin[jc].cc[k], errx, erry, erry);
     }
-  }}}}
+    if (trfit.SimpleFit() < 0) continue;
+
+    double csq  = trfit.GetChisqY();
+    double rgt  = trfit.GetRigidity();
+    double cthd = (rgt != 0) ? 1+10/rgt/rgt : 0;
+    TR_DEBUG_CODE_103;
+    if (csq > cthd || rgt == 0) continue;
+
+    int jr = 0;
+    for (jr = 0; jr < jc; jr++)
+      if (tmin[jr].csqf > 0 && tmin[jr].GetNshr(tmin[jc]) >= 3) {
+	int nr = tmin[jr].GetN();
+	int nc = tmin[jc].GetN();
+	if (nc > nr || (nc == nr && csq < tmin[jr].csqf))
+	  tmin[jr].csqf = -1;
+	else {
+	  jr = -1;
+	  break;
+	}
+      }
+
+    if (jr >= 0) {
+      tmin[jc].csqf = csq;
+      tmin[jc].rgtf = rgt;
+    }
+  }
+  TR_DEBUG_CODE_104;
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop ("Track1");
 #endif
-
   delete cont;
-  if (imin[0][0] == 0) {
+  if (tmin[0].csq < 0) {
     _CpuTime = _CheckTimer();
     return 0;
   }
+
 
 //////////////////// Now with TrRecHits ////////////////////
 
@@ -1434,48 +1506,14 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 //////////////////// Loop on pattern candidates ////////////////////
 
   int ntrack = 0;
-  for (int jc = 0; jc < NC && cmin[jc] > 0; jc++) {
+  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {
+    if (tmin[jc].csqf < 0) continue;
 
     // Check cpu time limit
     if ((RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim)|| SigTERM) {
       _CpuTimeUp = true;
       break;
     }
-
-//////////////////// Merge Y-clusters ////////////////////
-
-  AMSPoint pfit[NL];
-  tmin[jc].Interpolate(NL, zlay, pfit);
-
-  double rmax = msely;
-  double rthd = std::sqrt(tmin[jc].GetChisqY()/tmin[jc].GetNdofY())*5;
-  if (rmax > rthd) rmax = rthd;
-
-  for (int j = 1; j < NP; j++) {
-    double rmin = rmax;
-    for (int k = 0; k < nc[j]; k++) {
-      if (ic[j][k] <= 0) continue;
-      int ai = std::abs(ic[j][k]);
-      if (ai%10 == imin[jc][j]%10 || 
-	  ai/10 == imin[jc][j]/10) continue;
-      double r = std::fabs(cc[j][k].y()-pfit[ai%10-1].y());
-      if (r < rmin) {
-	imin[jc][j+NP-1] = ai;
-	pmin[jc][j+NP-1] = cc[j][k];
-	rmin = r;
-      }
-    }
-  }
-  TrFit trfit;
-  for (int j = 0; j < NL; j++) {
-    int k;
-    for (k = 0; k < NL && std::abs(imin[jc][k])%10 != j+1; k++);
-    if (k == NL) continue;
-    trfit.Add(pmin[jc][k], errx, erry, erry);
-  }
-  double csq = trfit.SimpleFit();
-  TR_DEBUG_CODE_105;
-  if (csq > cmaxy/20) continue;
 
 //////////////////// Fill buffers with TrRecHits ////////////////////
 
@@ -1492,8 +1530,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     int ip = (ly == 1) ? 0 : ly/2;
     int is = (ly <= 3) ? 0 : 1;
 
-    if ( hit->iTrCluster('y') != imin[jc][ip]/10 && 
-	(hit->iTrCluster('y') != imin[jc][ip+NP-1]/10 || ip == 0)) continue;
+    if ( hit->iTrCluster('y') != tmin[jc].ic[ip]/10 && 
+	(hit->iTrCluster('y') != tmin[jc].ic[ip+NP-1]/10 || ip == 0)) continue;
 
     TrClusterR *clx = hit->GetXCluster();
     TrClusterR *cly = hit->GetYCluster();
@@ -1526,9 +1564,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 //////////////////// Search on TrRecHits ////////////////////
 
-  cmin[jc] = cmaxx;
-  nmin[jc] = 3;
-  for (int k = 0; k < NL; k++) imin[jc][k] = 0;
+  double cmin = cmaxx;
+  int    nmin = 3;
+  int    imin[NL];
+  double smin[4];
+  for (int k = 0; k < NL; k++) imin[k] = 0;
 
   for (i[0] = 0; i[0] < nh[0]; i[0]++) { // Plane 1,2 (Layer 1,2,3)
     if ( ih[0][i[0]]         <=  0) continue; // OnlyY is skipped
@@ -1552,8 +1592,16 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 	std::abs(ih[0][i[2]])%10 != 1) continue;
 
     // Pre-selection
-    Double_t pslx = (ih[0][i[2]] > 0) ? pselx : pselm;
-    if (std::fabs(ch[0][i[2]].x()-(p0+p1*ch[0][i[2]].z())) > pslx) continue;
+    double pslx = pselm;
+    double argt = std::fabs(tmin[jc].rgtf);
+    if (ih[0][i[2]] > 0) {
+      pslx = 0.03+0.2/argt;
+      if (pslx > pselx) pslx = pselx;
+    }
+    double dps1 = std::fabs(ch[0][i[2]].x()-(p0+p1*ch[0][i[2]].z()));
+    double dps2 = 0;
+    if (dps1 > pslx) continue;
+    if (ih[0][i[2]] < 0) { dps2 = dps1; dps1 = 0; }
 
   for (i[3] = 0; i[3] < nh[1]; i[3]++) { // Plane 3,4 (Layer 4,5,6,7)
     // Same plane is skipped
@@ -1563,9 +1611,16 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     //if (ih[0][i[2]] <= 0 && ih[1][i[3]] <= 0) continue;
 
     // Pre-selection
-    Double_t pslx = (ih[1][i[3]] > 0) ? pselx : pselm;
+    double pslx = pselm;
+    if (ih[1][i[3]] > 0) {
+      pslx = 0.03+0.2/argt;
+      if (pslx > pselx) pslx = pselx;
+    }
+    double dps3 = std::fabs(ch[1][i[3]].x()-(p0+p1*ch[1][i[3]].z()));
+    double dps4 = 0;
     TR_DEBUG_CODE_109;
-    if (std::fabs(ch[1][i[3]].x()-(p0+p1*ch[1][i[3]].z())) > pslx) continue;
+    if (dps3 > pslx) continue;
+    if (ih[1][i[3]] < 0) { dps4 = dps3; dps3 = 0; }
 
     TrFit trfit;
     for (int j = 0; j < NP; j++) {
@@ -1594,33 +1649,41 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 //////////////////// Merge TrRecHits ////////////////////
 
+    AMSPoint pfit[NL];
     for(int j = 0; j < NL; j++) 
       pfit[j].setp(trfit.GetParam(1)*zlay[j]+trfit.GetParam(0), 0, 0);
 
+    double rsig = std::sqrt(tmin[jc].csqf);
+    double rmax = 0.03+rsig*0.1;
+    if (rmax > mselx) rmax = mselx;
+
     for (int j = 1; j < NP; j++) {
-      double rmin = mselx;
+      double rmin = rmax;
+      tmin[jc].rmrg[j-1+NP-1] = 0;
       for (int k = 0; k < nh[j/2]; k++) {
 	if (std::abs(ih[j/2][k])%10 == std::abs(isel[j])%10 ||
 	   (std::abs(ih[j/2][k])%10)/2 != j) continue;
 	double r = (ih[j/2][k] > 0)
-	  ? std::abs(ch[j/2][k].x()-pfit[ih[j/2][k]%10-1].x()) : mselx*0.99;
+	  ? std::abs(ch[j/2][k].x()-pfit[ih[j/2][k]%10-1].x()) : rmax*0.99;
 	if (r < rmin) {
 	  isel[j+NP-1] = ih[j/2][k];
 	  rmin = r;
+	  if (ih[j/2][k] > 0) tmin[jc].rmrg[j-1+NP-1] = r;
 	}
       }
     }
     int nx = 0;
     for (int j = 0; j < NL; j++) if (isel[j] > 0) nx++;
+    if (csq > cmin || nx < nmin) continue;
 
-    if (csq > cmin[jc] || nx <= nmin[jc]) continue;
-
-    cmin[jc] = csq;
-    nmin[jc] = nx;
-    for (int j = 0; j < NL; j++) imin[jc][j] = isel[j];
+    cmin = csq;
+    nmin = nx;
+    smin[0] = dps1; smin[1] = dps2;
+    smin[2] = dps3; smin[3] = dps4;
+    for (int j = 0; j < NL; j++) imin[j] = isel[j];
   }}}}
 
-  if (cmin[jc] >= cmaxx) continue;
+  if (cmin >= cmaxx) continue;
   TR_DEBUG_CODE_106;
 
 //////////////////// Create a new TrTrack ////////////////////
@@ -1635,10 +1698,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   int masky = 0x7f, maskc = 0x7f;
   for (int j = 0; j < NL; j++) {
     int k;
-    for (k = 0; k < NL && std::abs(imin[jc][k])%10 != j+1; k++);
+    for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
     if (k == NL) continue;
 
-    int ihit = std::abs(imin[jc][k])/10;
+    int ihit = std::abs(imin[k])/10;
     int imlt = ihit%100;
     if (imlt >= 50) imlt -= 50;
 
@@ -1647,13 +1710,12 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       static int nerr = 0;
       if (nerr++ < 20)
 	cout << "TrRecon::BuildTrTracksSimple-W-" 
-	     << "Null hit ptr: " << ihit/100 << " " << imin[jc][k] 
+	     << "Null hit ptr: " << ihit/100 << " " << imin[k] 
 	     << " at Event " << GetEventID()
 	     << " jc,j,k= " << jc << " " << j << " " << k << endl;
       continue;
     }
 
-    //TR_DEBUG_CODE_108;
     hit->SetResolvedMultiplicity(imlt);
     track->AddHit(hit, imlt);
 
@@ -1667,9 +1729,31 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
                      patt->GetHitPatternIndex(maskc),
 		     patt->GetHitPatternIndex(masky));
 
-  if (ProcessTrack(track, 1) > 0) {
+//if (ProcessTrack(track, 1) > 0) {
+  if (ProcessTrack(track, 0) > 0) {
     ntrack++;
     TR_DEBUG_CODE_107;
+
+    double csq1 = tmin[jc].csq;
+    double csq2 = tmin[jc].csqf;
+    double rgt1 = tmin[jc].fit.GetRigidity();
+    double rgt2 = tmin[jc].rgtf;
+    double rgtf = std::fabs(track->GetRigidity());
+    hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
+    hman.Fill("TfCsq1", rgt1, csq1);
+    hman.Fill("TfCsq2", rgt2, csq2);
+    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[0]);
+    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[1]);
+    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[2]);
+    hman.Fill("TfPsX1", rgt2, smin[0]);
+    hman.Fill("TfPsX2", rgt2, smin[1]);
+    hman.Fill("TfPsX1", rgt2, smin[2]);
+    hman.Fill("TfPsX2", rgt2, smin[3]);
+    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[3]);
+    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[4]);
+    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[5]);
+    hman.Fill("TfRgt1", rgtf, rgt1);
+    hman.Fill("TfRgt2", rgtf, rgt2);
   }
 
   if (ntrack >= RecPar.MaxNtrack) break;
@@ -3302,8 +3386,10 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
     // Mark the hit as USED
     hit->SetUsed();
     // Remove hit pointer from _HitsTkIdMap 
-    RemoveHits(hit);
-    TR_DEBUG_CODE_41;
+    if (!_HitsTkIdMap.empty()) {
+      RemoveHits(hit);
+      TR_DEBUG_CODE_41;
+    }
   }
 
   // 2nd. step Fit

@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.43 2011/04/09 10:09:43 shaino Exp $ 
+// $Id: TrRecon.h,v 1.44 2011/04/16 09:11:04 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/09 10:09:43 $
+/// $Date: 2011/04/16 09:11:04 $
 ///
-/// $Revision: 1.43 $
+/// $Revision: 1.44 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -603,6 +603,14 @@ public:
   TkSens EstimateXCoord(AMSPoint coo, int tkid = 0) const;
   /// Estimate multiplicity and readout strip by interpolation
   int EstimateXCoord(int il, TrHitIter &iter) const;
+
+  /// Polynomial interpolation (pol2)
+  static double Intpol2(double x1, double x2, double x3,
+			double y1, double y2, double y3, double x) {
+    return (x-x2)*(x-x3)/(x1-x2)/(x1-x3)*y1
+          +(x-x1)*(x-x3)/(x2-x1)/(x2-x3)*y2
+          +(x-x1)*(x-x2)/(x3-x1)/(x3-x2)*y3;
+  }
 
 //========================================================
 // Utilities for debugging

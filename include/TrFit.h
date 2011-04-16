@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.22 2011/01/25 09:57:35 shaino Exp $
+//  $Id: TrFit.h,v 1.23 2011/04/16 09:11:04 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2011/01/25 09:57:35 $
+///$Date: 2011/04/16 09:11:04 $
 ///
-///$Revision: 1.22 $
+///$Revision: 1.23 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -146,6 +146,9 @@ public:
 
   /// Propagation with JAStepPin
   void Propagate(double *x, double *d, double *u, int ndiv = 20);
+
+  /// Build interpolation lists onto Z=plist[i].z() (0<=i<nz) planes given
+  void InterpolateSimple(int nz, AMSPoint *plist, AMSDir *dlist = 0);
 
 public:
   /// Wrapper to TkDBc, null pointer check included
@@ -322,6 +325,9 @@ public:
 
   /// Simple fit (no scattering, coarse field)
   double SimpleFit(void);
+
+  /// Simple fit (no scattering, coarse field, parameter defined at 1st layer)
+  double SimpleFitTop(void);
 
   /// Alcaraz fit  fixr!=0 : fix rigidity as _rigidity
   double AlcarazFit(int fixr = 0);

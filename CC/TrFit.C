@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.48 2011/04/04 20:24:06 haino Exp $
+//  $Id: TrFit.C,v 1.49 2011/04/16 09:11:04 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/04/04 20:24:06 $
+///$Date: 2011/04/16 09:11:04 $
 ///
-///$Revision: 1.48 $
+///$Revision: 1.49 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -698,6 +698,142 @@ double TrFit::SimpleFit(void)
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
   _p0y = _param[1]; _dydz = -_param[3]/dz;
   _p0z = 0;
+
+  _rigidity = (_param[4] != 0) ? Clight*1e-12/_param[4] : 0;
+
+  return _chisq;
+}
+
+double TrFit::SimpleFitTop(void)
+{
+  if (_nhitx < 2 || _nhity < 3) return -1;
+
+  double len[LMAX];
+
+  // Length
+  for (int i = 0; i < _nhit; i++) {
+    len[i] = -1;
+    if (_xs[i] <= 0 && _ys[i] <= 0 && _zs[i] <= 0) continue;
+
+    len[i] = (i == 0) ? 0 : std::sqrt((_xh[i]-_xh[i-1])*(_xh[i]-_xh[i-1])
+				     +(_yh[i]-_yh[i-1])*(_yh[i]-_yh[i-1])
+				     +(_zh[i]-_zh[i-1])*(_zh[i]-_zh[i-1]));
+  }
+
+  double pintx[LMAX][3];
+  double pintu[LMAX][3];
+
+  // Calculate path integrals
+  for (int i = 0; i < _nhit; i++) {
+    if (i == 0 || len[i] <= 0) {
+      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
+      continue;
+    }
+     
+    double u[3];
+    u[0] = (_xh[i]-_xh[i-1])/len[i];
+    u[1] = (_yh[i]-_yh[i-1])/len[i];
+    u[2] = (_zh[i]-_zh[i-1])/len[i];
+
+    double bax = (_bx[i-1]+_bx[i])/2;
+    double bay = (_by[i-1]+_by[i])/2;
+    double baz = (_bz[i-1]+_bz[i])/2;
+
+    pintx[i][0] = (u[1]*_bz[i-1]-u[2]*_by[i-1])/2;
+    pintx[i][1] = (u[2]*_bx[i-1]-u[0]*_bz[i-1])/2;
+    pintx[i][2] = (u[0]*_by[i-1]-u[1]*_bx[i-1])/2;
+
+    pintu[i][0] = u[1]*baz-u[2]*bay;
+    pintu[i][1] = u[2]*bax-u[0]*baz;
+    pintu[i][2] = u[0]*bay-u[1]*bax;
+  }
+
+  // F and G matrices
+  double d[2*LMAX][NDIM];
+  for (int i = 0; i < _nhit; i++) {
+    int ix = i, iy = i+_nhit;
+
+    for (int j = 0; j < NDIM; j++) d[ix][j] = d[iy][j] = 0;
+    d[ix][0] = d[iy][1] = 1;
+    
+    for (int j = 0; j <= i; j++) {
+      d[ix][2] += len[j];
+      d[iy][3] += len[j];
+
+      for (int k = 0; k <= j; k++) {
+	if (k == j) {
+	  d[ix][4] += len[j]*len[j]*pintx[j][0];
+	  d[iy][4] += len[j]*len[j]*pintx[j][1];
+	} else {
+	  d[ix][4] += len[j]*len[k]*pintu[k][0];
+	  d[iy][4] += len[j]*len[k]*pintu[k][1];
+	}
+      }
+    }
+  }
+
+  // dx = F*S_x*x + G*S_y*y
+  double dx[NDIM];
+  for (int j = 0; j < NDIM; j++) {
+    dx[j] = 0;
+    for (int i = 0; i < _nhit; i++) {
+      int ix = i, iy = i+_nhit;
+      if (_xs[i] > 0) dx[j] += d[ix][j]/_xs[i]/_xs[i]*_xh[i]*1e-8;
+      if (_ys[i] > 0) dx[j] += d[iy][j]/_ys[i]/_ys[i]*_yh[i]*1e-8;
+    }
+  }
+
+  // cov = F*S_x*F + G*S_y*G
+  double cov[NDIM][NDIM];
+  for (int j = 0; j < NDIM; j++) {
+    for (int k = 0; k < NDIM; k++) {
+      cov[j][k] = 0.;
+      for (int i = 0; i < _nhit; i++) {
+	int ix = i, iy = i+_nhit;
+        if (_xs[i] > 0) cov[j][k] += d[ix][j]/_xs[i]/_xs[i]*d[ix][k]*1e-8;
+        if (_ys[i] > 0) cov[j][k] += d[iy][j]/_ys[i]/_ys[i]*d[iy][k]*1e-8;
+      } 
+    }
+  }
+        
+  // cov^{-1}
+  if (Inv55(cov)) return -2;
+
+  // Solution
+  for (int k = 0; k < NDIM; k++) {
+    _param[k] = 0;
+    for (int i = 0; i < NDIM; i++) _param[k] += cov[k][i]*dx[i];
+  }
+  if (_param[2]*_param[2]+_param[3]*_param[3] > 1) return -3;
+
+  // Chisquare
+  _chisqx = _chisqy = 0;
+  _ndofx = _ndofy = 0;
+  for (int i = 0; i <_nhit; i++) {
+    _xr[i] = _xh[i];
+    _yr[i] = _yh[i];
+
+    for (int k = 0; k < NDIM; k++) {
+      int ix = i, iy = i+_nhit;
+      _xr[i] -= d[ix][k]*_param[k];
+      _yr[i] -= d[iy][k]*_param[k];
+    }
+    if (_xs[i] > 0) {
+      _chisqx += _xr[i]*_xr[i]/_xs[i]/_xs[i]; _ndofx++;
+    }
+    if (_ys[i] > 0) {
+      _chisqy += _yr[i]*_yr[i]/_ys[i]/_ys[i]; _ndofy++;
+    }
+  }
+
+  _ndofx -= 2;
+  _ndofy -= 3;
+  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
+
+  double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
+  _p0x = _param[0]; _dxdz = -_param[2]/dz;
+  _p0y = _param[1]; _dydz = -_param[3]/dz;
+  _p0z = _zh[0];
 
   _rigidity = (_param[4] != 0) ? Clight*1e-12/_param[4] : 0;
 
@@ -3423,6 +3559,109 @@ double TrProp::InterpolateCyl(AMSPoint &pnt, AMSDir &dir,
   pnt[0] = out[0]; pnt[1] = out[1]; pnt[2] = out[2];
   dir[0] = out[3]; dir[1] = out[4]; dir[2] = out[5];
   return len;
+}
+
+void TrProp::InterpolateSimple(int nz, AMSPoint *pnt, AMSDir *dir)
+{
+  enum { LMAX = 100 };
+
+  if (_rigidity == 0) return;
+  if (nz+1 > LMAX) return;
+
+  double dd = std::sqrt(_dxdz*_dxdz+_dydz*_dydz+1);
+
+  double param[NDIM];
+  param[0] =  _p0x;
+  param[1] =  _p0y;
+  param[2] = -_dxdz/dd;
+  param[3] = -_dydz/dd;
+  param[4] = Clight*1e-12/_rigidity;
+
+  AMSPoint pnt0(_p0x, _p0y, _p0z);
+
+  // Length
+  double len[LMAX];
+  len[0] = 0;
+  for (int i = 0; i < nz; i++)
+    len[i+1] = (i > 0) ? (pnt[i]-pnt[i-1]).norm() : (pnt[i]-pnt0).norm();
+
+  double bx[LMAX], by[LMAX], bz[LMAX];
+  double xh[LMAX], yh[LMAX], zh[LMAX];
+
+  double bf[3];
+  GuFld(xh[0] = _p0x, yh[0] = _p0y, zh[0] = _p0z, bf);
+  bx[0] = bf[0]; by[0] = bf[1]; bz[0] = bf[2];
+
+  for (int i = 0; i < nz; i++) {
+    GuFld(xh[i+1] = pnt[i].x(), 
+	  yh[i+1] = pnt[i].y(), 
+	  zh[i+1] = pnt[i].z(), bf);
+    bx[i+1] = bf[0]; by[i+1] = bf[1]; bz[i+1] = bf[2];
+  }
+
+  double pintx[LMAX][3];
+  double pintu[LMAX][3];
+
+  // Calculate path integrals
+  for (int i = 0; i < nz+1; i++) {
+    if (i == 0) {
+      for (int j = 0; j < 3; j++) pintx[i][j] = pintu[i][j] = 0;
+      continue;
+    }
+
+    double u[3];
+    u[0] = (xh[i]-xh[i-1])/len[i];
+    u[1] = (yh[i]-yh[i-1])/len[i];
+    u[2] = (zh[i]-zh[i-1])/len[i];
+
+    double bax = (bx[i-1]+bx[i])/2;
+    double bay = (by[i-1]+by[i])/2;
+    double baz = (bz[i-1]+bz[i])/2;
+
+    pintx[i][0] = (u[1]*bz[i-1]-u[2]*by[i-1])/2;
+    pintx[i][1] = (u[2]*bx[i-1]-u[0]*bz[i-1])/2;
+    pintx[i][2] = (u[0]*by[i-1]-u[1]*bx[i-1])/2;
+
+    pintu[i][0] = u[1]*baz-u[2]*bay;
+    pintu[i][1] = u[2]*bax-u[0]*baz;
+    pintu[i][2] = u[0]*bay-u[1]*bax;
+  }
+
+  // F and G matrices
+  double d[2*LMAX][NDIM];
+  for (int i = 0; i < nz+1; i++) {
+    int ix = i, iy = i+nz;
+
+    for (int j = 0; j < NDIM; j++) d[ix][j] = d[iy][j] = 0;
+    d[ix][0] = d[iy][1] = 1;
+    
+    for (int j = 0; j <= i; j++) {
+      d[ix][2] += len[j];
+      d[iy][3] += len[j];
+
+      for (int k = 0; k <= j; k++) {
+	if (k == j) {
+	  d[ix][4] += len[j]*len[j]*pintx[j][0];
+	  d[iy][4] += len[j]*len[j]*pintx[j][1];
+	} else {
+	  d[ix][4] += len[j]*len[k]*pintu[k][0];
+	  d[iy][4] += len[j]*len[k]*pintu[k][1];
+	}
+      }
+    }
+  }
+
+  for (int i = 0; i < nz+1; i++) {
+    double x = 0, y = 0;
+
+    for (int k = 0; k < NDIM; k++) {
+      int ix = i, iy = i+nz;
+      x += d[ix][k]*param[k];
+      y += d[iy][k]*param[k];
+    }
+
+    if (i > 0) pnt[i-1].setp(x, y, zh[i]);
+  }
 }
 
 double TrProp::VCFitPar(double *init, double *out, double *point, 

@@ -264,6 +264,17 @@ void HistoMan::BookHistos(bool issim){
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   Add(new TH2F("Time","Time",1000,0,2.,500,0,500));
 
+  // Trackfinding
+  Add(TH2D_L("TfPsY1", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
+  Add(TH2D_L("TfCsq1", "CsqY1 VS Rgt1", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq2", "CsqY2 VS Rgt2", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfPsX1", "Pre-sel X(c)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfPsX2", "Pre-sel X(m)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfMrg2", "Rmrg VS CsqY2", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfRgt1", "Rgt1 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
+  Add(TH2D_L("TfRgt2", "Rgt2 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
+
   // residuals vs ladder
   Add(new TH2F("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
   Add(new TH2F("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
