@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.654 2011/04/16 16:30:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.655 2011/04/16 17:20:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4910,7 +4910,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
                $sqlamom=~s/not LIKE/LIKE/;
            }
-           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and and datasets.did=jobs.did and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
+           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and  datasets.did=jobs.did and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
