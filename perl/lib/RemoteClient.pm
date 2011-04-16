@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.656 2011/04/16 21:29:38 choutko Exp $
+# $Id: RemoteClient.pm,v 1.657 2011/04/16 22:53:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5379,6 +5379,14 @@ CheckCite:            if (defined $q->param("QCite")) {
                 element.style.color = 'black';
                 element.style.fontWeight = 'normal';
             }
+            for(var j=1; j<dsetsdata2[0].length; j++){
+                element=document.getElementById(j+2000);
+                element.style.display = 'inline';
+                element.disabled=false;
+                element=document.getElementById('b'+(j+2000));
+                element.style.color = 'black';
+                element.style.fontWeight = 'normal';
+            }
         }else{
             for(var i=0; i<dsets.length; i++){
                 if(dsets[i][0]==id){
@@ -5417,6 +5425,25 @@ CheckCite:            if (defined $q->param("QCite")) {
                         }
                     }
                 }
+                if(dsetsdata2[i][0]==id){
+                    for(var j=1; j<dsetsdata2[i].length; j++){
+                        element=document.getElementById(j+2000);
+                        if(dsetsdata2[i][j]>0){
+                            element.disabled=false;
+                            element.style.display = 'inline';
+                            element=document.getElementById('b'+(j+2000));
+                            element.style.color = 'black';
+                            element.style.fontWeight = 'normal';
+                        }else{
+                            element.disabled=true;
+                            element.style.display = 'none';
+                            element=document.getElementById('b'+(j+2000));
+                            element.style.color = \"tomato\";
+                            element.style.fontWeight = 'bold';
+                        }
+                    }
+                }
+
             }
         }
         sort_prodsets();
@@ -5424,6 +5451,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 function sort_prodsets() {
     var disabled=[];
     var disableddata=[];
+    var disableddata2=[];
     var d = document.getElementById('sets');
     for(var j=1; j<dsets[0].length; j++){
         element=document.getElementById('pb'+j);
@@ -5453,6 +5481,21 @@ function sort_prodsets() {
     d.appendChild(element);
     for(var j=0; j<disableddata.length; j++){
         d.appendChild(disableddata[j]);
+    }
+    var d = document.getElementById('setsdata2');
+    for(var j=1; j<dsetsdata2[0].length; j++){
+        element=document.getElementById('pb'+(j+2000));
+        status=document.getElementById(j+2000).disabled;
+        if(status==true){
+            disableddata2.push(element);
+        }else{
+            d.appendChild(element);
+        }
+    }
+    element=document.getElementById('pbanydata2');
+    d.appendChild(element);
+    for(var j=0; j<disableddata2.length; j++){
+        d.appendChild(disableddata2[j]);
     }
 }\n";
         print "</script>\n";
@@ -5510,7 +5553,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
         foreach my $dataset (@datasets) {
             $sqlq=$sqlq."left outer join (select -1 as did, count(jobs.did) as \"$dataset\"
                     FROM datasets, dataruns, productionset, jobs
-                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid  and datasets.name='$dataset' and
                             dataruns.Status='Completed') using(did)"
         }
 #        print($sqlq);
@@ -5550,8 +5593,8 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
      print "</td><td>\n";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
-           print "</b><div id=\"setsdata\">
-                   <span id=\"pbanydatadata\"><INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR></span>\n";
+           print "</b><div id=\"setsdata2\">
+                   <span id=\"pbanydata2\"><INPUT TYPE=\"radio\" NAME=\"QPartD\" VALUE=\"AnyData\" CHECKED>ANYDATA<BR></span>\n";
            print "</b></font></td></tr>\n";
            $#datasets = -1;
            
@@ -5563,13 +5606,53 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
                 push @datasets, $ds->[0];
             }
            }
-       $id=1001;
+       $id=2001;
            foreach my $dataset (@datasets) {
              print "<span id=pb$id><INPUT TYPE=\"radio\" ID=$id NAME=\"QPartD\" VALUE=$dataset><span id=b$id>$dataset</span><BR></span>\n";
              $id++;
 #              print "</b></font></td></tr>\n";
            }
         print "</div>";
+#js start
+        my $sqlq = "select did ";
+        foreach my $dataset (@datasets) {
+            $sqlq = $sqlq.",nvl(\"$dataset\",0) \"$dataset\" ";
+        }
+        $sqlq = $sqlq."from productionset ";
+        foreach my $dataset (@datasets) {
+            $sqlq = $sqlq."left outer join (
+select jobs.pid as did, count(jobs.did) as \"$dataset\"
+                    FROM datasets, dataruns, productionset, jobs
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                            dataruns.Status='Completed' group by jobs.pid) using(did)";
+        }
+        $sqlq=$sqlq." union all (select * from (select -1 as did from dual) ";
+        foreach my $dataset (@datasets) {
+            $sqlq=$sqlq."left outer join (select -1 as did, count(jobs.did) as \"$dataset\"
+                    FROM datasets, dataruns, productionset, jobs
+                     where productionset.did=jobs.pid and datasets.did=jobs.did and productionset.status='Active' and dataruns.jid=jobs.jid and datasets.name='$dataset' and
+                            dataruns.Status='Completed') using(did)"
+        }
+#        print($sqlq);
+        my $res=$self->{sqlserver}->Query($sqlq.") order by did");
+   #die "$res->[0][0]";
+        if(defined $res->[0][0]){
+            print "<script LANGUAGE=\"javascript\">\nvar dsetsdata2=[];\n";
+            foreach my $resq (@{$res}) {
+                my $jstr = "dsetsdata2.push([";
+                foreach my $subres (@{$resq}) {
+                    $jstr = $jstr."$subres,";
+                }
+                $jstr = substr($jstr, 0, -1);
+                print $jstr."]);\n";
+            }
+            print "</script>\n";
+        }
+        print "<script LANGUAGE=\"javascript\">";
+        print "document.getElementById('QPPerId').value = '-1';";
+        print "check_prodset(document.getElementById('QPPerId').form.QPPer);";
+        print "</script>";
+# end
 
         htmlTableEnd();
       htmlTableEnd();
