@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.268 2011/04/13 19:14:19 choumilo Exp $
+//  $Id: root.C,v 1.269 2011/04/18 17:01:34 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1438,6 +1438,7 @@ char* AMSEventR::_Name="ev.";
 
 // Dynamic calibration
 bool RichRingR::_updateDynamicCalibration=false;
+bool RichRingR::_isCalibrationEvent=false;
 double RichRingR::_pThreshold=50;
 int    RichRingR::_tileCalEvents=50;
 int    RichRingR::_tileCalWindow=6;
@@ -2089,10 +2090,12 @@ bool AMSEventR::ReadHeader(int entry){
       }
     }
     // Rich Dynamic Calibration
+
     if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
 #pragma omp critical (rd)
 	 RichRingR::updateCalibration(*this); 
-    }
+	 RichRingR::_isCalibrationEvent=true;
+    }else RichRingR::_isCalibrationEvent=false;
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
@@ -3057,7 +3060,31 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 }
 
 
+double ParticleR::RichBetasAverage(){
+  if(pRichRing() && pRichRingB()){
+    double beta=pRichRing()->getBeta();
+    double betaB=pRichRingB()->Beta;
+    double factor=1;
 
+    // Check if Dynamic Calibration is taking place
+    // If so compute the calibration factor for RichRingB  
+    if(RichRingR::isCalibrating()) factor=pRichRing()->betaCorrection();
+    return 0.5*(beta+factor*betaB);
+  }else return 0;
+}
+
+double ParticleR::RichBetasDiscrepancy(){
+  if(pRichRing() && pRichRingB()){
+    double beta=pRichRing()->getBeta();
+    double betaB=pRichRingB()->Beta;
+    double factor=1;
+    
+    // Check if Dynamic Calibration is taking place
+    // If so compute the calibration factor for RichRingB  
+    if(RichRingR::isCalibrating()) factor=pRichRing()->betaCorrection();
+    return pRichRing()->getBeta()-factor*betaB;
+  }else return HUGE_VAL;
+}
 
 TofClusterR::TofClusterR(AMSTOFCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__

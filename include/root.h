@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.329 2011/04/13 15:49:58 barao Exp $
+//  $Id: root.h,v 1.330 2011/04/18 17:01:35 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1155,8 +1155,9 @@ static bool _updateDynamicCalibration;
 static double _pThreshold;
 static int    _tileCalEvents;
 static int    _tileCalWindow;
- static double _tileLearningFactor;
+static double _tileLearningFactor;
 static char _Info[255];
+static bool _isCalibrationEvent; 
 /// Selection of events for the dynamic calibration
 static bool calSelect(AMSEventR &event);
 /// Returns an unique tile id for the tile crossed by the particle.
@@ -1176,6 +1177,8 @@ public:
  static void switchDynCalibration();
   /// Get the status of the dynamic calibration 
   static bool isCalibrating(){return RichRingR::_updateDynamicCalibration;}
+  /// Return if current event has been used for calibration
+  static bool isCalibrationEvent(){return _isCalibrationEvent;}
   /// Set the momentum threshold to consider a Z=1 particle as a beta=1 one 
   static void setPThreshold(double th){_pThreshold=th;}
   /// Get the momentum threshold to consider a Z=1 particle as a beta=1 one 
@@ -2243,7 +2246,15 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,11)       //ParticleR
+
+  /// \return the average of the two RICH beta reconstruction, or 0 if there is only one or zero reconstructions returning a value
+  double RichBetasAverage();
+  /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
+  double RichBetasDiscrepancy();
+
+
+
+  ClassDef(ParticleR,12)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
