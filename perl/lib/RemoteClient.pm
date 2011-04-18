@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.658 2011/04/18 16:22:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.659 2011/04/18 18:58:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12753,7 +12753,7 @@ sub parseJournalFiles {
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
          my $timenow = time();
-         if ($timenow - $procstarttime < 60*60*2) {
+         if ($timenow - $procstarttime < 3600*9) {
           $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
           return 1;
          } else {
@@ -18326,7 +18326,7 @@ sub CheckFS{
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){
               return $ret->[0][0];
             }
-            $sql="select disk,host,status,allowed  from filesystems where path like '$path%'";
+            $sql="select disk,host,status,allowed  from filesystems where path like '$path%' and allowed>0";
             $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
 #
