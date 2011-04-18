@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.661 2011/04/18 19:10:26 ams Exp $
+# $Id: RemoteClient.pm,v 1.662 2011/04/18 21:24:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12753,7 +12753,7 @@ sub parseJournalFiles {
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
          my $timenow = time();
-         if ($timenow - $procstarttime < 3600*9) {
+         if ($timenow - $procstarttime < 3600*6) {
           $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
           return 1;
          } else {
@@ -12936,7 +12936,11 @@ sub parseJournalFiles {
         $newfile=$joudir."/".$file;
         my $writetime = 0;
         $writetime = (stat($newfile)) [9];
-        if ($writetime > $writelast) {
+        if(not defined $writetime){
+            print "$newfile is not stateble \n";
+            $writetime=0; 
+         }
+         if ($writetime > $writelast) {
            $writelast = $writetime;
            $lastfile = $newfile;
        }

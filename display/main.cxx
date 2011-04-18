@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.53 2011/02/22 11:48:57 pzuccon Exp $
+//  $Id: main.cxx,v 1.54 2011/04/18 21:24:06 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -423,7 +423,7 @@ void OpenChain(AMSChain & chain, char * filenam){
      time_t t;
      time(&t);
   if(remote || (statbuf.st_mtime>=lasttime &&statbuf.st_size)){
-     if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename)| chain.GetNtrees()<1)){     
+     if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename))){     
       strcpy(lastfile,filename);
       cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
       if(add++<3000){
