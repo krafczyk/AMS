@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.657 2011/04/16 22:53:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.658 2011/04/18 16:22:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13061,7 +13061,14 @@ sub parseJournalFile {
  my $firstjobtime = shift;
  my $lastjobtime  = shift;
  my $logdir       = shift;
- my $inputfile    = shift;
+ my $inputjfile    = shift;
+ my $inputfile=$inputjfile.".work";
+    my $cmd="mv ".$inputjfile." ".$inputfile;
+    my $i=system($cmd);
+    if($i){
+        print " Unable to sys ",$cmd;
+        return 0," ";
+    }
  my $dirpath      = shift;
  my$cid=shift; 
  my $host         = "unknown";
@@ -13117,7 +13124,7 @@ my $jobmips = -1;
       my @sp2=split ' , ', $sp1[1]; 
       if(not $inputfile=~/$sp2[0]/){
        print "Fatal - Run $sp2[0] does not match file  $inputfile\n";
-         system("mv $inputfile $inputfile.0");
+         system("mv $inputfile $inputjfile.0");
         return 0;
       }
       else{
@@ -13233,7 +13240,7 @@ foreach my $block (@blocks) {
     if($#startingrun<20 or $startingrun[21]==1){
 #    data do not allow incomplete run
         warn "  Run $run incomplete while real data mode  do nothing \n";
-         system("mv $inputfile $inputfile.0");
+         system("mv $inputfile $inputjfile.0");
         return 0;
     }
     my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runincomplete[4]";
@@ -13316,7 +13323,7 @@ foreach my $block (@blocks) {
 
    if (not defined $startingjob[2]) {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
-       system("mv $inputfile $inputfile.0");
+       system("mv $inputfile $inputjfile.0");
        return 0;
    }
    if ($self->getRunStatus($jobid,0) eq 'Completed') {
@@ -13366,13 +13373,13 @@ foreach my $block (@blocks) {
     $jobid = $startingjob[2];
     if ($self->findJob($jobid,$buf,$dirpath,$cid) != $jobid) {
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
-       system("mv $inputfile $inputfile.0");
+       system("mv $inputfile $inputjfile.0");
        $BadRuns[$nCheckedCite]++;
        return 0;
     }
    } else {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
-       system("mv $inputfile $inputfile.0");
+       system("mv $inputfile $inputjfile.0");
        return 0;
    }
    if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) {
@@ -13424,7 +13431,7 @@ foreach my $block (@blocks) {
         my $rq=$self->{sqlserver}->Query($sql);
     if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
         warn "  Run $run already completed in database do nothing \n";
-         system("mv $inputfile $inputfile.1");
+         system("mv $inputfile $inputjfile.1");
         return 0;
     }
     $startingrunR   = 1;
@@ -13460,7 +13467,7 @@ foreach my $block (@blocks) {
     if( $startingrun[21]==1 and ($run_incompleted==1 or $run_finished==0)){
 #    data do not allow incomplete run
         warn "  Run $startingrun[2] incomplete or not finished while real data mode  do nothing \n";
-         system("mv $inputfile $inputfile.0");
+         system("mv $inputfile $inputjfile.0");
         return 0;
     }
 
@@ -13753,7 +13760,7 @@ foreach my $block (@blocks) {
   } else {
     $BadRuns[$nCheckedCite]++;
     print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
-    system("mv $inputfile $inputfile.0");
+    system("mv $inputfile $inputjfile.0");
     close FILE;
     return $jobid,$copylog;
    }
@@ -13763,12 +13770,12 @@ foreach my $block (@blocks) {
  if ($startingrunR == 1 || $runfinishedR == 1) {
   $status="Failed";
   my $cmd = undef;
-  my $inputfileLink = $inputfile.".0";
-  my $inputfileAdd=$inputfile.".2";
+  my $inputfileLink = $inputjfile.".0";
+  my $inputfileAdd=$inputjfile.".2";
   if ($copyfailed == 0) {
    if ($#cpntuples >= 0) {
     $status = 'Completed';
-    $inputfileLink = $inputfile.".1";
+    $inputfileLink = $inputjfile.".1";
     open (FILEO,">".$inputfileAdd) or die "Unable to open $inputfileAdd \n";
     my $t=time();
     my $tl=localtime($t);
