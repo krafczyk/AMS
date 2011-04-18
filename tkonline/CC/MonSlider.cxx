@@ -1276,7 +1276,7 @@ void MonSlider::DrawOrbitFromTime(int alternative) {
   int step = 1 + nentries/1000;
   for (int i=0; i<nentries; i += step) {
     ntuple->GetEntry(i);
-    double = time_event.Time + time_event.FineTime;
+    double time = time_event.Time + time_event.FineTime;
     GeoCoo pos;
     ISSPosition(time/60/60/24.-3651.,pos);
     double latitude  = pos.Lat; 
