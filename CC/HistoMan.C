@@ -262,7 +262,11 @@ void HistoMan::BookHistos(bool issim){
   Add(new TH2F("TkTrdDf", "TkTRD diff", 1000, 0, 100, 100, 0, 2));
 
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
-  Add(new TH2F("Time","Time",1000,0,2.,500,0,500));
+  Add(new TH2F("Time","Time",1000,0,50.,500,0,500));
+
+  Add(new TH2F("Time2","Time2",1000,-4,2.,500,0,500));
+
+  // Track quality parameters VS Rigidity
 
   // Trackfinding
   Add(TH2D_L("TfPsY1", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
