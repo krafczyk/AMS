@@ -1,5 +1,6 @@
-//  $Id: main.cxx,v 1.34 2011/03/30 14:53:17 mdelgado Exp $
+//  $Id: main.cxx,v 1.35 2011/04/18 21:24:17 choutko Exp $
 #include <TRegexp.h>
+#include <fstream.h>
 #include <TChain.h>
 #include <TRootApplication.h>
 #include <TFile.h>
@@ -13,8 +14,13 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #endif
+#include <TRFIOFile.h>
+#include <TCastorFile.h>
+#include <TXNetFile.h>
+
 #include <stdlib.h>
 #include <signal.h>
+#include <getopt.h>
 #include "AMSNtuple.h"
 #include "AMSAntiHist.h"
 #include "AMSTrackerHist.h"
@@ -37,17 +43,28 @@
 #include <TXNetFile.h>
 #endif
 TString * Selector;
+TString * Selectorf=0;
 extern void * gAMSUserFunction;
-void OpenChain(TChain & chain, char * filename);
+void OpenChain(AMSChain & chain, char * filename);
 #ifndef WIN32
-static int Selectsdir(
-#ifndef __APPLE__
-		      const dirent *entry
+#ifdef __APPLE__
+static int Selectsdir(dirent *entry=0);
+static int Select(dirent *entry=0);
+static int Sort(dirent ** e1,  dirent ** e2);
 #else
-		      dirent *entry
+static int Selectsdir(const dirent64 *entry=0);
+static int Select(const dirent64 *entry=0);
+static int Sort(dirent64 ** e1,  dirent64 ** e2);
+
 #endif
-		      =0);
 #endif
+  int add=0;
+    bool notlast=true;
+  bool monitor=false;
+  time_t lasttime=0;;
+  AMSChain *pchain;
+  char *filename=0;
+  char lastfile[32767]="\0";
 void Myapp::HandleIdleTimer(){
   StopIdleing();
   if(fDisplay)fDisplay->DispatchProcesses();
@@ -55,6 +72,25 @@ void Myapp::HandleIdleTimer(){
   StartIdleing(); 
   Terminate();
   cout <<"exiting handler"<<endl;
+     if(monitor){
+      add=0;
+       sleep(1);
+       for(int k=0;k<30;k++){
+        if(gSystem->ProcessEvents()){
+          cout <<"InteruptReceived"<<endl;
+        }        
+
+       }
+       char tmp[127];
+      ofstream fbout (".offmonc");
+      if(fbout){
+       fbout<<lasttime;
+       cout <<"AMSDisplay-I-LastTimeModified "<<lasttime<<endl;
+       fbout.close();
+      }
+       OpenChain(*pchain,filename);
+     }
+
 }
 
 void (handler)(int);
@@ -70,15 +106,57 @@ int main(int argc, char *argv[])
    *signal(SIGINT, handler);
    *signal(SIGQUIT, handler);
    */
-  char * filename = 0;		// default file name
+  int c;
+  int sec=10;
+  int option_index = 0;
+  static struct option long_options[] = {
+    {"title", 1, 0, 't'},
+    {"monitor", 1, 0, 'm'},
+    {"help",    0, 0, 'h'},
+    {"scan",  1, 0, 's'},
+    {0, 0, 0, 0}
+  };
 
   if ( argc > 1 ) {		// now take the file name
-    filename = *++argv;
+    filename = argv[1];
   }
 
+  fstream fbin;
+  while (1) {
+    c = getopt_long (argc, argv, "t:hHmMs:?", long_options, &option_index);
+    if (c == -1) break;
+
+    switch (c) {
+    case 'm':             
+      monitor=true;
+      break;
+    case 'M':             
+      monitor=true;
+      fbin.open(".offmonc");
+      if(fbin){
+       fbin>>lasttime;
+       cout <<"  LastTime Set "<<lasttime;
+       fbin.close();
+     }
+      fbin.open(".offmonc");
+      if(fbin){
+       fbin<<(lasttime-1000);
+       fbin.close();
+     }
+      break;
+    case 'h':
+    case 'H':
+    case '?':
+    default:            /* help */
+      cout<<"$offmon(c)(PG) file  -m(M)onitor"<<endl;
+      return 0;
+      break;
+    }
+  }
   
   AMSNtupleR *pntuple=new AMSNtupleR();
   AMSChain chain(pntuple,"AMSRoot"); 
+  pchain=&chain;
 
   if(!RichRingR::isCalibrating()) RichRingR::switchDynCalibration();
 
@@ -170,7 +248,7 @@ void (handler)(int sig){
   */
 }
 
-
+/*
 void OpenChain(TChain & chain, char * filenam){
   //  
   //  root can;t cope with multiple wild card so we must do it ourselves
@@ -240,7 +318,7 @@ void OpenChain(TChain & chain, char * filenam){
                 else Selector=0;
                 dirent ** namelistsubdir;
                 cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,NULL);
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,NULL);
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
                   strcpy(fsdir,ts.Data());
@@ -262,14 +340,206 @@ void OpenChain(TChain & chain, char * filenam){
 }
 
 
+*/
+
+void OpenChain(AMSChain & chain, char * filenam){
+  //  
+  //  root can;t cope with multiple wild card so we must do it ourselves
+  //
+  char filename[255];
+  if(!filenam || strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
+    cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
+    return;
+  }
+  TString a(filenam);
+  TRegexp b("^castor:",false);
+  TRegexp c("^http:",false);
+  TRegexp d("^root:",false);
+  TRegexp e("^rfio:",false);
+  TRegexp f("^/castor",false);
+  bool wildsubdir=false;
+  bool wild=false;
+  bool remote=false;
+   if(a.Contains(b)){
+#if !defined(WIN32) && !defined(__APPLE__) && !defined(__NOCASTOR__)
+     TRFIOFile f(""); 	 
+     TXNetFile g(""); 	 
+     TCastorFile h(""); 	 
+#endif
+    strcpy(filename,filenam);
+    remote=true;
+   }
+   else if(a.Contains(c)){
+    strcpy(filename,filenam);
+    remote=true;
+  }
+  else if(a.Contains(d)){
+    strcpy(filename,filenam);
+    remote=true;
+  }
+  else if(a.Contains(e)){
+    strcpy(filename,filenam);
+    remote=true;
+  }
+   else if(a.Contains(f)){
+    strcpy(filename,"rfio:");
+    strcat(filename,filenam);
+    remote=true;
+   }
+  else{ 
+#ifndef WIN32
+    if(filenam[0]!='/'){
+      strcpy(filename,"./");
+      strcat(filename,filenam);
+    }
+    else strcpy(filename,filenam); 
+#else
+    strcpy(filename,filenam); 
+#endif
+    bool go=false;
+    for(int i=strlen(filename)-1;i>=0;i--){
+      if(filename[i]=='/')go=true;
+      if(go && filename[i]=='*'){
+	wildsubdir=true;
+	break;
+      }
+      else if(filename[i]=='*'){
+       wild=true;
+      }
+    }
+  }
+#ifndef WIN32
+  if(wildsubdir){
+    for(int i=0;i<strlen(filename);i++){
+      if (filename[i]=='*'){
+        for(int k=i-1;k>=0;k--){
+	  if(filename[k]=='/'){
+	    TString ts(filename,k+1);
+	    for(int l=i+1;l<strlen(filename);l++){
+	      if(filename[l]=='/'){
+                
+                if(l-k-1>0){
+                   if(Selector)delete Selector;
+                   Selector= new TString(filename+k+1,l-k-1);
+                }
+                else if(Selector){
+                   delete Selector;
+                   Selector=0;
+                }
+//                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
+#ifdef __APPLE__
+                dirent ** namelistsubdir;
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#elif defined(__LINUXNEW__)
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+#else
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
+                for( int nsd=0;nsd<nptrdir;nsd++){
+                  char fsdir[1023];
+                  strcpy(fsdir,ts.Data());
+                  strcat(fsdir,namelistsubdir[nsd]->d_name);
+                  strcat(fsdir,filename+l);
+                  cout << "found dir "<<fsdir<<endl;
+                  OpenChain(chain,fsdir);
+                } 
+                return;               
+	      }
+	    }
+	  }
+	}                  
+      }
+    }
+  }
+  else if(wild){
+    for(int i=0;i<strlen(filename);i++){
+      if (filename[i]=='*'){
+        for(int k=i-1;k>=0;k--){
+	  if(filename[k]=='/'){
+	    TString ts(filename,k+1);
+                if(strlen(filename)-k-1>0){
+                   if(Selectorf)delete Selectorf;
+                   Selectorf= new TString(filename+k+1,strlen(filename)-k-1);
+                }
+                else if(Selectorf){
+                   delete Selectorf;
+                   Selectorf=0;
+                }
+                 
+                cout <<"  scanning wild"<<ts<<endl;
+#ifdef __APPLE__
+                dirent ** namelistsubdir;
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#elif defined(__LINUXNEW__)
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+#else
+                dirent64 ** namelistsubdir;
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+#endif
+                for( int nsd=0;nsd<nptrdir;nsd++){
+                  char fsdir[1023];
+                  strcpy(fsdir,ts.Data());
+                  strcat(fsdir,namelistsubdir[nsd]->d_name);
+                  if(nsd<nptrdir-1)notlast=false;
+                  else notlast=false;   
+                  OpenChain(chain,fsdir);
+               
+                } 
+                return;               
+           }
+	}
+      }
+    }
+  }
+#endif
+#ifdef __APPLE__
+  struct stat statbuf;
+  stat((const char*)filename, &statbuf);
+#else
+  struct stat64 statbuf;
+  stat64((const char*)filename, &statbuf);
+#endif
+     time_t t;
+     time(&t);
+  if(remote || (statbuf.st_mtime>=lasttime &&statbuf.st_size)){
+     if( (t-statbuf.st_mtime>6 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename) )){     
+      strcpy(lastfile,filename);
+      cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
+      if(add++<3000){
+           lasttime=statbuf.st_mtime;
+           chain.Add(filename);
+           static int init =0;
+           if(init==0){
+            init=1;
+            TObjString s("");
+            TFile * rfile=TFile::Open(filename,"READ");
+            if(rfile){
+            }
+           }
+    }
+     }
+     else {
+       cout<<"main-W-OpenChainFileNotAdded "<<filename<<t<<" "<<statbuf.st_mtime<<endl;
+       return;
+     }
+  }
+}
+
+
+
+
 
 #ifndef WIN32
-int Selectsdir(
-#ifndef __APPLE__
-	       const dirent *entry){
+
+#ifdef __APPLE__
+int Selectsdir(	 dirent *entry)
 #else
-  dirent *entry){
+int Selectsdir(  const dirent64 *entry)
 #endif
+  {
   if(Selector){
     TString a(entry->d_name);
     TRegexp b(Selector->Data(),true);
@@ -277,4 +547,34 @@ int Selectsdir(
   }
   else return entry->d_name[0]!='.';
 }
+#endif
+
+
+
+#ifndef WIN32
+
+#ifdef __APPLE__
+int Select(  dirent *entry)
+#else
+int Select( const dirent64 *entry)
+#endif
+  {
+  if(Selectorf){
+    TString a(entry->d_name);
+    TRegexp b(Selectorf->Data(),true);
+    return a.Contains(b) && entry->d_name[0]!='.';
+  }
+  else return entry->d_name[0]!='.';
+}
+
+#ifdef __APPLE__
+int Sort(dirent ** e1,  dirent ** e2)
+#else
+int Sort(dirent64 ** e1,  dirent64 ** e2)
+#endif
+  {
+return strcmp((*e1)->d_name,(*e2)->d_name);
+}
+
+
 #endif
