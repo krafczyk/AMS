@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.659 2011/04/18 18:58:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.660 2011/04/18 18:59:07 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5614,7 +5614,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
            }
         print "</div>";
 #js start
-        my $sqlq = "select did ";
+         $sqlq = "select did ";
         foreach my $dataset (@datasets) {
             $sqlq = $sqlq.",nvl(\"$dataset\",0) \"$dataset\" ";
         }
@@ -5634,7 +5634,7 @@ select jobs.pid as did, count(jobs.did) as \"$dataset\"
                             dataruns.Status='Completed') using(did)"
         }
 #        print($sqlq);
-        my $res=$self->{sqlserver}->Query($sqlq.") order by did");
+         $res=$self->{sqlserver}->Query($sqlq.") order by did");
    #die "$res->[0][0]";
         if(defined $res->[0][0]){
             print "<script LANGUAGE=\"javascript\">\nvar dsetsdata2=[];\n";
