@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.660 2011/04/18 18:59:07 ams Exp $
+# $Id: RemoteClient.pm,v 1.661 2011/04/18 19:10:26 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12908,7 +12908,7 @@ sub parseJournalFiles {
        if ($file =~/^\./){
          next;
        }
-       if ($file =~ m/journal/) {
+       if ($file =~ /journal$/) {
        } else {
            next;
        }
