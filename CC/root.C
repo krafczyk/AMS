@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.269 2011/04/18 17:01:34 mdelgado Exp $
+//  $Id: root.C,v 1.270 2011/04/19 06:15:38 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1467,6 +1467,18 @@ int RichRingR::_lastUpdate[122]={1,1,1,1,1,1,1,1,1,1,1,1,
 				 1,1,1,1,1,1,1,1,1,1,1,
 				 1,1,1,1,1,1,1,1,1,1,1,
 				 1,1,1,1,1,1,1,1,1,1,1};
+
+int RichRingR::_numberUpdates[122]={0,0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0,
+				    0,0,0,0,0,0,0,0,0,0,0};
 
 void AMSEventR::GetBranch(TTree *fChain){
   char tmp[255];
@@ -3509,8 +3521,27 @@ void RichRingR::updateCalibration(AMSEventR &event){
     indexCorrection[tile]=1.0/sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
 
   _lastUpdate[tile]=now;
-
+  _numberUpdates[tile]++;
   indexHistos[tile].Reset();
+}
+
+int RichRingR::updates(){
+  int t=getTileIndex();
+  if(t<0) return 0;
+  if(IsNaF()) t=121;
+  return _numberUpdates[t];
+}
+
+int RichRingR::updates(float x,float y){
+  int t=getTileIndex(x,y);
+  if(t<0) return 0;
+  return _numberUpdates[t];
+}
+
+double RichRingR::betaCorrection(float x,float y){
+  int t=getTileIndex(x,y);
+  if(t<0) return 1;
+  return indexCorrection[t];
 }
 
 double RichRingR::betaCorrection(){
@@ -3520,10 +3551,26 @@ double RichRingR::betaCorrection(){
   return indexCorrection[t];
 }
 
+int RichRingR::getTileIndex(float x,float y){
+  const int grid_side_length=11;
+  const int n_tiles=grid_side_length*grid_side_length;
+  const double tile_width=0.1+11.5; 
+
+  if(fabs(x)<tile_width*1.5 && fabs(y)<tile_width*1.5) return 121;
+
+  int nx=int(x/tile_width+5.5);
+  int ny=int(y/tile_width+5.5);
+  int t=ny*grid_side_length+nx;
+  return t>n_tiles?-1:t;
+}
+
+
+
 int RichRingR::getTileIndex(){
   const int grid_side_length=11;
   const int n_tiles=grid_side_length*grid_side_length;
   const double tile_width=0.1+11.5; 
+
   float &x=TrRadPos[0];
   float &y=TrRadPos[1];
 

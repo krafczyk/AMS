@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.330 2011/04/18 17:01:35 mdelgado Exp $
+//  $Id: root.h,v 1.331 2011/04/19 06:15:38 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1163,10 +1163,12 @@ static bool calSelect(AMSEventR &event);
 /// Returns an unique tile id for the tile crossed by the particle.
 /// This is is unrelated to the one used internally in the reconstruction 
 int getTileIndex();
+static int getTileIndex(float x,float y);
 static void updateCalibration( AMSEventR &event);
 static TH1F indexHistos[122]; 
 static double indexCorrection[122];
- static int _lastUpdate[122]; 
+static int _lastUpdate[122]; 
+static int _numberUpdates[122];
 public:
 
 /** @name Dynamic calibration utilities
@@ -1197,6 +1199,12 @@ public:
   static double getTileLearning(){return _tileLearningFactor;};
   /// Get used multiplicative correction due to the dynamic calibration
   double betaCorrection();
+  /// Get multiplicative correction for a crossing point in the radiator
+  static double betaCorrection(float x,float y);
+  /// Get number of time the calibration for the used tile has been updated
+  int updates();
+  /// Get number of time the calibration for the tile at the given crossing point has been updated
+  static int updates(float x,float y);
   ///@}
 
 
@@ -1341,7 +1349,7 @@ public:
 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,20)           // RichRingR
+  ClassDef(RichRingR,21)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
