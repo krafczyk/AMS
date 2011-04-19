@@ -738,8 +738,8 @@ for (int ntry=0;ntry<maxtry;ntry++){
    AMSNtuple::UnLock();
    return true;
    }
-}
-AMSNtuple::UnLock();
+
+if(IOPA.ReadAMI)AMSNtuple::UnLock();
 return true;
 }
 else{
