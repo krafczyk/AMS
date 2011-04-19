@@ -739,7 +739,8 @@ for (int ntry=0;ntry<maxtry;ntry++){
    return true;
    }
 
-if(IOPA.ReadAMI)AMSNtuple::UnLock();
+}
+AMSNtuple::UnLock();
 return true;
 }
 else{
@@ -750,7 +751,7 @@ return false;
 }
 else{
 cout <<" FillSlowControlDB-I-OPenedFile "<<slc<<endl;
-AMSNtuple::UnLock();
+if(IOPA.ReadAMI)AMSNtuple::UnLock();
 return true;
 }
 }
