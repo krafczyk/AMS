@@ -6,10 +6,10 @@
 *      subroutine rdisplay
 *     +     (CHOPT,CHCOL,thc,parthe,parphi,pvertex,xcoopmt,ycoopmt)
 *      subroutine color(itask,chcol,icol)
-*      SUBROUTINE PHOTRACE(thetac,parthe,parphi,pvertex,ICODL) 
+*      SUBROUTINE PHOTRACE(thetac,parthe,parphi,pvertex,ICODL)
 *      SUBROUTINE PHOTRACE_PROT
-*     ,     (thetac,parthe,parphi,pvertex,ICODL) 
-*      SUBROUTINE PHOTRACE_RAD(thetac,parthe,parphi,pvertex,ICODL) 
+*     ,     (thetac,parthe,parphi,pvertex,ICODL)
+*      SUBROUTINE PHOTRACE_RAD(thetac,parthe,parphi,pvertex,ICODL)
 *      subroutine patrace_rad
 *     ,     (phig,cerang,pthe,pphi,pvertex,xdet,ydet,nmiref,nerr,verr)
 *      subroutine rdisdrawlike(CHCOL,CHOPT)
@@ -38,7 +38,7 @@
 * --- CERENKOV REC
 
       if (ipthetac.gt.0) then
-         betadisp = betarec 
+         betadisp = betarec
          thetac   = cangrec(ipthetac)
       else
          betadisp=-999.
@@ -62,8 +62,8 @@
 * --- draw expected photon pattern
       call rdisplay('PATE','GREEN',18.*3.14159/180.,ptrkthe,
      +               ptrkphi,pcervtx_d,pimp_d(1),pimp_d(2))
-         
-* --- Draw chosen rec pattern 
+
+* --- Draw chosen rec pattern
       if (betadisp.gt.0) then
          call rdisplay('PATE','ORANGE',thetac,ptrkthe,ptrkphi,
      +        pcervtx_d,pimp_d(1),pimp_d(2))
@@ -72,8 +72,8 @@
 * --- draw particle crossing point at PMT matrix
       pdum(3) = ZPMTDET
       pdum(1) = pimp(1) + tan(pthe)*cos(pphi)*(ZPMTDET-pimp(3))
-      pdum(2) = pimp(2) + tan(pthe)*sin(pphi)*(ZPMTDET-pimp(3)) 
-      
+      pdum(2) = pimp(2) + tan(pthe)*sin(pphi)*(ZPMTDET-pimp(3))
+
       call rdisplay
      +        ('PPMT','ORANGE',0.,ptrkthe,ptrkphi,pcervtx_d,
      +     pdum(1),pdum(2))
@@ -86,7 +86,7 @@
       call rdisplay('PRIN',' ',thetac,0.,0.,pcervtx_d,
      +     pimp_d(1),pimp_d(2))
 
-* --- menu 
+* --- menu
       call richdsp(0,'MENU')
 
 * --- return
@@ -104,8 +104,8 @@
 *****************************************************************
 * AIMS: Displays rich events by using the HIGZ package
 *
-* IN  : 
-*      IFLG : 
+* IN  :
+*      IFLG :
 *             flag_main = -1 init
 *                       =  0 display
 *                       = +1 end
@@ -113,15 +113,14 @@
 *      CHOPT: option word
 *                       ='DET ' - draw detector
 *                       ='MENU' - draw menu
-*      NWIN : number of higz windows (or window number) 
+*      NWIN : number of higz windows (or window number)
 *
 *****************************************************************
 
 #include "../include/richrec_lipf.h"
 
 
-      common /quest/ rquest(100)
-      !$OMP THREADPRIVATE(/quest/)
+      real rquest(100)
       character*20 chtit,chmenu(10),chitem,chdef,chval
       character chopt*4, chdummy*10, chpsfile*80,chpname*10
       integer nwin
@@ -133,60 +132,60 @@
 *     ----------------------------------------------
       IF (IFLG.eq.-1) THEN
 *     ----------------------------------------------
-         
+
 * ...... HIGZ init
 CCCCC         call iginit(0)
 CC        call igwkty(kwtype)
 CC        call igsse(6,kwtype)
-         CALL IOPKS(6)             
-         CALL IOPWK(KWID1,10,2) 
-CC         CALL IOPWK(KWID2,11,4) 
+         CALL IOPKS(6)
+         CALL IOPWK(KWID1,10,2)
+CC         CALL IOPWK(KWID2,11,4)
 
          CALL IGZSET('GZ') ! initialize picture keeping in zebra and graphic mode
 
-* ...... clear workstation    
-CC        call iclrwk(0,0) !clear workstation  
+* ...... clear workstation
+CC        call iclrwk(0,0) !clear workstation
          xsize = 20.
-         ysize = 20.                          
-         xmargcm = 1.5                        
-         ymargcm = 1.5                        
-         call igrng(xsize,ysize)              
-         CV = rquest(11)                      
-         XL = rquest(12)                      
-         YB = rquest(13)                      
-         WD = rquest(14)    
+         ysize = 20.
+         xmargcm = 1.5
+         ymargcm = 1.5
+         call igrng(xsize,ysize)
+         CV = rquest(11)
+         XL = rquest(12)
+         YB = rquest(13)
+         WD = rquest(14)
          call igset('LTYP',1.)
          call igset('LWID',3.)
          call igset('BORD',1.)
          call igset('CHHE',0.5)
          call igset('TXAL',3.)
-         call istxal(2,2)                  
+         call istxal(2,2)
 *
          x1_0 = 1.5*xmargcm
          x2_0 = xsize-1.5*xmargcm
          y1_0 = 1.5*ymargcm
          y2_0 = ysize-1.5*ymargcm
-         call isvp(10,x1_0*CV,x2_0*CV,y1_0*CV,y2_0*CV)      
+         call isvp(10,x1_0*CV,x2_0*CV,y1_0*CV,y2_0*CV)
 *
-         x1_1 = 1.5*xmargcm    
-         x2_1 = xsize-1.5*xmargcm 
-         y1_1 = 1.5*ymargcm 
-         y2_1 = ysize-1.5*ymargcm    
+         x1_1 = 1.5*xmargcm
+         x2_1 = xsize-1.5*xmargcm
+         y1_1 = 1.5*ymargcm
+         y2_1 = ysize-1.5*ymargcm
 *
-         call isvp(11,x1_1*CV,x2_1*CV,y1_1*CV,y2_1*CV)      
+         call isvp(11,x1_1*CV,x2_1*CV,y1_1*CV,y2_1*CV)
 
 * ...... color definition
          call color(0,' ',icol)
-         
+
 *     ----------------------------------------------
       ELSEIF (IFLG.EQ.1) THEN
 *     ----------------------------------------------
-         
+
 * ...... end graphics
          call igmeta(0,0)
-         CALL IDAWK(KWID1)         
-         CALL ICLWK(KWID1)   
-         call igend          
+         CALL IDAWK(KWID1)
+         CALL ICLWK(KWID1)
+         call igend
 
 *     ----------------------------------------------
       ELSEIF (IFLG.EQ.0) THEN
@@ -203,7 +202,7 @@ CC        call iclrwk(0,0) !clear workstation
  1          continue
             call igset('CHHE',0.3)
 * --------> update display
-            call iuwk(KWID1,1) 
+            call iuwk(KWID1,1)
 * --------> menu
             call iselnt(0)
             chtit     = 'RICH Event Display'
@@ -237,13 +236,13 @@ C     +               chitem,chdef,chval,ichoice,'S C H')
                      print*,'(richdsp) HPGL=0.0 !!!!'
                   else
 * .................. photon emission point and radiator ID
-                     ZTARG      = 0.0            
-                     chradid    = 'PGL'              
+                     ZTARG      = 0.0
+                     chradid    = 'PGL'
                      ZTRIAL     = ZTARG+HRAD+HPGL*0.5
-                     pcervtx(3) = ZTRIAL 
-                     pcervtx(2) = pimp(2) + 
+                     pcervtx(3) = ZTRIAL
+                     pcervtx(2) = pimp(2) +
      +                            tan(pthe)*sin(pphi)*(ZTRIAL-pimp(3))
-                     pcervtx(1) = pimp(1) + 
+                     pcervtx(1) = pimp(1) +
      +                            tan(pthe)*cos(pphi)*(ZTRIAL-pimp(3))
                      refindex   = pglix
 * .................. display expected pattern
@@ -261,21 +260,21 @@ C     +               chitem,chdef,chval,ichoice,'S C H')
 	                 if(ipthetac.ne.0)then
                             print*,'  THETAC EXP ',cerang*RADDEG,
      +                           ' REC'  ,cangrec(ipthetac)*RADDEG
-                                 
+
                             thc=cangrec(ipthetac)
                             call rdisplay('PATE',' ',thc,pthe,pphi,
      +                                    pcervtx,0.,0.)
                          else
                             print*,'  THETAC EXP ',cerang*RADDEG
 	                 endif
-                      ENDIF      
+                      ENDIF
                       call rdisplay('HIT ',' ',0.,0.,0.,pcertvx,0.,0.)
                    endif
-                   goto 1 
+                   goto 1
 * ------------ Likelihood function
                 elseif (abs(ichoice).eq.3) then
                    print*,'(richdsp) Likelihood function display'
-                   CALL IOPWK(KWID2,11,10) 
+                   CALL IOPWK(KWID2,11,10)
                    CALL ICLRWK(KWID2,0)
                    call iacwk(KWID2)
                    call idawk(KWID1) !deactivate event display window
@@ -295,18 +294,18 @@ C     +               chitem,chdef,chval,ichoice,'S C H')
                    if (ichoice.eq.1) then
                       call idawk(KWID2)
                       call iclwk(KWID2)
-                      call iacwk(KWID1) !reactivate event display window  
+                      call iacwk(KWID1) !reactivate event display window
                    endif
                    goto 1
 * ------------ store event
-                elseif (abs(ichoice).eq.4) then                  
+                elseif (abs(ichoice).eq.4) then
 *                  CALL IZPICT(' ','L')
                    CALL IZPICT(CHPNAME,'R')
                    print*,'current picture: ',chpname
                    call iclrwk(KWID1,0)
                    call izitoc(ievnumb,chdummy)
                    chpsfile = 'event-'//
-     +                  chdummy(1:lenocc(chdummy))//'.eps' 
+     +                  chdummy(1:lenocc(chdummy))//'.eps'
                    open(unit=11,file=chpsfile,form='formatted',
      +                  status='unknown')
                    call igmeta(11,-113)
@@ -315,18 +314,18 @@ C     +               chitem,chdef,chval,ichoice,'S C H')
                    call igmeta(999,0)
                    print*,'saving event...'
                    call izpict(CHPNAME,'S')
-                   goto 1         
+                   goto 1
 * ------------ stop
                 elseif (abs(ichoice).eq.5) then
                    /* end graphics */
                    call igmeta(0,0)
-                   CALL IDAWK(KWID1)         
-                   CALL ICLWK(KWID1)   
+                   CALL IDAWK(KWID1)
+                   CALL ICLWK(KWID1)
                    if (nwin.eq.2) then
-                      CALL IDAWK(KWID2)   
+                      CALL IDAWK(KWID2)
                       CALL ICLWK(KWID2)
                    endif
-                   call igend          
+                   call igend
                    stop
 * ------------ 5 par fit
                 elseif (abs(ichoice).eq.6) then
@@ -338,7 +337,7 @@ CCC                      print*,'----------------------'
 CCC                      print*,'thc (deg)  = ',thc*RADDEG
 CCC                      print*,'pthe (deg) = ',pthe*RADDEG
 CCC                      print*,'pphi (deg) = ',pphi*RADDEG
-CCC                      print*,'pcervtx    = ',(pcervtx(i),i=1,3) 
+CCC                      print*,'pcervtx    = ',(pcervtx(i),i=1,3)
 CCC                      call rdisplay('PATE','GOLD',
 CCC     +                     thc,pthe,pphi,pcervtx,0.,0.)
 CCC                      call rdisplay('PPMT','GOLD',
@@ -353,9 +352,9 @@ CCC                   goto 1
          ENDIF
 
 *     ----------------------------------------------
-      ENDIF 
+      ENDIF
 *     ----------------------------------------------
-      
+
 * --- end
       return
       end
@@ -370,13 +369,13 @@ CCC                   goto 1
      +     (CHOPT,CHCOL,thc,parthe,parphi,pvertex,xcoopmt,ycoopmt)
 *==================================================================
 ********************************************************************
-* this subroutine calls HIGZ routine for: 
-* 
+* this subroutine calls HIGZ routine for:
+*
 * IN : CHOPT='DET '  detector drawing
 *            'PATE'  pattern drawing
 *            'HIT '  HIT drawing
 *            'PPMT'  track drawing
-*      CHCOL --> color ('RED','GREEN','BLUE',...) 
+*      CHCOL --> color ('RED','GREEN','BLUE',...)
 *                                  see color subroutine in richdsp.F
 *                                  for further choices
 *      thc  ---> Cherenkov angle ('PATE' option)
@@ -397,26 +396,25 @@ CCC                   goto 1
       integer nassh
       real probability
 
-      INTEGER IFLFL 
+      INTEGER IFLFL
       REAL X(41),Y(41),richacca(5),richeffa(8)
 
-      character*4 chopt 
+      character*4 chopt
       character*(*) chcol
       character*30 chdummy,chdummy2,chsignal
 *
       integer index_hits(1600)
-*     
+*
       integer ncolsignal
       parameter(icol0=10)
       parameter(ncolsignal=7)
       real signalncol(ncolsignal+1)
 
-      common /coordrawc/xzoom1,xzoom2,yzoom1,yzoom2     
-      !$OMP THREADPRIVATE(/coordrawc/)
+      real xzoom1,xzoom2,yzoom1,yzoom2
 
       parameter(antilog=2.718282)
 
-      integer boxes(11,11)     ! the same definition as in g_flight.F             
+      integer boxes(11,11)     ! the same definition as in g_flight.F
       data boxes/
      +     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
      +     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
@@ -424,16 +422,16 @@ CCC                   goto 1
      +     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
      +     1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1,
      +     1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1,
-     +     1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1,   
+     +     1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1,
      +     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
      +     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-     +     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
+     +     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
      +     0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0
      + /
       SAVE boxes
 
       !$OMP THREADPRIVATE (boxes)
-      integer boxesn(8,8)     ! the same definition as in g_flight.F             
+      integer boxesn(8,8)     ! the same definition as in g_flight.F
       data boxesn/
      +     0, 0, 1, 1, 1, 1, 0, 0,
      +     0, 1, 1, 1, 1, 1, 1, 0,
@@ -451,23 +449,23 @@ CCC                   goto 1
 c      if (ipthatc.ne.0) then  <--- replaced, was a typo? (RP, 01-Mar-2007)
       if (ipthetac.ne.0) then
          nassh = nbushits(ipthetac)
-         probability = pkolmog(ipthetac) 
+         probability = pkolmog(ipthetac)
       else
          probability =  -999.
          nassh = -999
       endif
-      
 
-      call vzero(richacca,5) 
+
+      call vzero(richacca,5)
       idum=0
       pitchx=pmtwx+shieldw
       pitchy=pmtwy+shieldw
 *
       XLIMV=(17*PITCHX + JUMP)/2.
-      XLIMH=XLIMV + DMECX 
+      XLIMH=XLIMV + DMECX
       YLIMH=(17*PITCHY)/2.
-      YLIMV= YLIMH + DMECY 
-      
+      YLIMV= YLIMH + DMECY
+
 *      call HPLSET('*fon',-60.)
 *      call HPLSET('*siz',12.5)
 **      call hplset('ksiz',0.4)
@@ -479,8 +477,8 @@ c      if (ipthatc.ne.0) then  <--- replaced, was a typo? (RP, 01-Mar-2007)
 *
 *--------------------------------------------------------------------
       if (CHOPT.eq.'DET ') then
-*--------------------------------------------------------------------        
-         
+*--------------------------------------------------------------------
+
          call igset('LWID',1.)
          call igset('PLCI',1.)
          call ischh(0.2)
@@ -494,18 +492,18 @@ c      if (ipthatc.ne.0) then  <--- replaced, was a typo? (RP, 01-Mar-2007)
          xzoom2=+70.
          yzoom1=-70.
          yzoom2=+70.
-         call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2) 
-         call iselnt(10)        
+         call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2)
+         call iselnt(10)
          ndiv = 5*10000+2*100+7
          call igaxis(xzoom1,xzoom2,yzoom1,yzoom1,xzoom1,xzoom2,ndiv,' ')
          call igaxis(xzoom1,xzoom1,yzoom1,yzoom2,yzoom1,yzoom2,ndiv,' ')
-         
-         
+
+
 
 *
 ************************************************************************
 *
-         call igbox(xzoom1,xzoom2,yzoom1,yzoom2) 
+         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)
          call igset('FAIS',0.)
          call igset('FACI',42.)
          call igset('BORD',0.)
@@ -523,24 +521,24 @@ C           -------------------------------
 C           -------------------------------
 
             do i=1,11
-               do j=1,11                                 
-                  xc=(i-6)*(RADTILE_PITCH) - RADTILE_PITCH/2.            
-                  yc=(j-6)*(RADTILE_PITCH) - RADTILE_PITCH/2.            
+               do j=1,11
+                  xc=(i-6)*(RADTILE_PITCH) - RADTILE_PITCH/2.
+                  yc=(j-6)*(RADTILE_PITCH) - RADTILE_PITCH/2.
                   X1=XC
                   X2=XC+(RADTILE_PITCH-RADTILE_SUPTHK)
                   Y1=YC
                   Y2=YC+(RADTILE_PITCH-RADTILE_SUPTHK)
                   if (boxes(i,j).eq.2) then  !NaF
                      call igset('FAIS',1.)
-                     call igset('PLCI',49.)             
-                  elseif (boxes(i,j).eq.1) then !AGL 
+                     call igset('PLCI',49.)
+                  elseif (boxes(i,j).eq.1) then !AGL
                      call igset('FAIS',0.)
                   elseif (boxes(i,j).eq.0) then !non-existent
                      call igset('FAIS',0.)
                      call igset('PLCI',0.)
                   endif
                   call igbox(x1,x2,y1,y2)
-                  call igset('PLCI',1.)                               
+                  call igset('PLCI',1.)
                enddo
             enddo
 
@@ -549,23 +547,23 @@ C           -------------------------------
 C           -------------------------------
 
             do i=1,8
-               do j=1,8  
-                  xleft  = - 4.*radtile_pitch + real(i-1)*radtile_pitch 
-                  xright =  xleft + (radtile_pitch-radtile_supthk)                               
-                  ydown  = - 4.*radtile_pitch + real(j-1)*radtile_pitch 
-                  yup    =  ydown + (radtile_pitch-radtile_supthk)                               
+               do j=1,8
+                  xleft  = - 4.*radtile_pitch + real(i-1)*radtile_pitch
+                  xright =  xleft + (radtile_pitch-radtile_supthk)
+                  ydown  = - 4.*radtile_pitch + real(j-1)*radtile_pitch
+                  yup    =  ydown + (radtile_pitch-radtile_supthk)
 
                   if (boxesn(i,j).eq.2) then  !NaF
                      call igset('FAIS',1.)
-                     call igset('PLCI',49.)             
-                  elseif (boxesn(i,j).eq.1) then !AGL 
+                     call igset('PLCI',49.)
+                  elseif (boxesn(i,j).eq.1) then !AGL
                      call igset('FAIS',0.)
                   elseif (boxesn(i,j).eq.0) then !non-existent
                      call igset('FAIS',0.)
                      call igset('PLCI',0.)
                   endif
                   call igbox(xleft,xright,ydown,yup)
-                  call igset('PLCI',1.)                               
+                  call igset('PLCI',1.)
                enddo
             enddo
 
@@ -577,7 +575,7 @@ C           -------------------------------
 
          endif
 
-* ...... MATRIX            
+* ...... MATRIX
          call igset('PLCI',1.)
          call igset('BORD',1.)
          call igset('FAIS',0.)
@@ -593,20 +591,20 @@ C           -------------------------------
 *-----> DRAW PMT BOXES (loop on pmt numbers)
          call igset('LWID',1.)
          do i=0,755
-           call pmtpos_flight(I,XL,XR,YU,YD,XC,YC,IFLFL)         
-           x(1)=xr             
-           x(2)=xl             
-           x(3)=xl             
-           x(4)=xr             
-           x(5)=x(1)             
-           y(1)=yd             
-           y(2)=yd             
-           y(3)=yu             
-           y(4)=yu             
-           y(5)=y(1)             
-           RC=SQRT(XC**2+YC**2)  
+           call pmtpos_flight(I,XL,XR,YU,YD,XC,YC,IFLFL)
+           x(1)=xr
+           x(2)=xl
+           x(3)=xl
+           x(4)=xr
+           x(5)=x(1)
+           y(1)=yd
+           y(2)=yd
+           y(3)=yu
+           y(4)=yu
+           y(5)=y(1)
+           RC=SQRT(XC**2+YC**2)
 *           IF (RC.LT.65.) then
-            IF(IFLFL.EQ.0) THEN 
+            IF(IFLFL.EQ.0) THEN
               CALL ISLN(3)
               CALL IPL(5,X,Y)
             ELSEIF(IFLFL.EQ.2) THEN
@@ -615,18 +613,18 @@ C           -------------------------------
              call igset('BORD',1.)
              call IFA(5,X,Y)
              call igset('FAIS',0.)
-            ENDIF  
-*           ENDIF  
-         ENDDO  
+            ENDIF
+*           ENDIF
+         ENDDO
 * -----> frame
          call igset('LWID',3.)
          x(1) = 0
          x(2) = 0
-         y(1) =  ylimv+9*pitchy  
+         y(1) =  ylimv+9*pitchy
          y(2) = -y(1)
          call isln(2) !dashed line
 c         call ipl(2,X,Y)
-         x(1) = xlimh + 9*pitchx 
+         x(1) = xlimh + 9*pitchx
          x(2) = -x(1)
          y(1) = 0
          y(2) = 0
@@ -666,14 +664,14 @@ c         call ipl(2,X,Y)
          y(14) =-  ylimh + 17*(pitchy)+YCPMM
          y(15) =-  ylimh + 16*(pitchy)+YCPMM
          y(16) =-  ylimh + 16*(pitchy)+YCPMM
-         y(17) =  y(1) 
+         y(17) =  y(1)
 *
          call isln(1) !full line
          call ipl(17,X,Y)
          do i=1,17
           x(i)= -x(i)+2*xcpmm
-          y(i)= -y(i)+2*ycpmm 
-         enddo 
+          y(i)= -y(i)+2*ycpmm
+         enddo
          call ipl(17,X,Y)
     /*planes 2 and 7 */
          x(1) =  xlimh + 1*(pitchx)+XCPMM
@@ -710,32 +708,32 @@ c         call ipl(2,X,Y)
          y(13) =  ylimv + 6*(pitchy)+YCPMM
          y(14) =  ylimv + 6*(pitchy)+YCPMM
          y(15) =  ylimv + 7*(pitchy)+YCPMM
-         y(16) =  ylimv + 7*(pitchy)+YCPMM                  
-         y(17) =  ylimv + 1*(pitchy)+YCPMM                  
-         y(18) =  ylimv + 1*(pitchy)+YCPMM                  
+         y(16) =  ylimv + 7*(pitchy)+YCPMM
+         y(17) =  ylimv + 1*(pitchy)+YCPMM
+         y(18) =  ylimv + 1*(pitchy)+YCPMM
          y(19) =  y(1)
          call isln(1) !full line
          call ipl(19,X,Y)
          do i=1,19
           x(i)= -x(i)+2*xcpmm
-          y(i)= -y(i)+2*ycpmm 
-         enddo 
+          y(i)= -y(i)+2*ycpmm
+         enddo
          call ipl(19,X,Y)
      /* planes 3 and 8*/
-         x(1)  = 0*(pitchx)+XCPMM 
-         X(2)  = 8*(PITCHX)+XCPMM 
-         X(3)  = 8*(PITCHX)+XCPMM 
-         X(4)  = 9*(PITCHX)+XCPMM 
-         X(5)  = 9*(PITCHX)+XCPMM 
-         X(6)  = 8*(PITCHX)+XCPMM 
-         X(7)  = 8*(PITCHX)+XCPMM 
-         X(8)  = 6*(PITCHX)+XCPMM 
-         X(9)  = 6*(PITCHX)+XCPMM 
-         X(10) = 0*(PITCHX)+XCPMM 
-         X(11) = 0*(PITCHX)+XCPMM 
+         x(1)  = 0*(pitchx)+XCPMM
+         X(2)  = 8*(PITCHX)+XCPMM
+         X(3)  = 8*(PITCHX)+XCPMM
+         X(4)  = 9*(PITCHX)+XCPMM
+         X(5)  = 9*(PITCHX)+XCPMM
+         X(6)  = 8*(PITCHX)+XCPMM
+         X(7)  = 8*(PITCHX)+XCPMM
+         X(8)  = 6*(PITCHX)+XCPMM
+         X(9)  = 6*(PITCHX)+XCPMM
+         X(10) = 0*(PITCHX)+XCPMM
+         X(11) = 0*(PITCHX)+XCPMM
          do i=1,11
           x(i)= x(i)-(DX0)
-         enddo 
+         enddo
          y(1)  =  ylimv + 0*(pitchy)+YCPMM
          y(2)  =  ylimv + 0*(pitchy)+YCPMM
          y(3)  =  ylimv + 1*(pitchy)+YCPMM
@@ -751,20 +749,20 @@ c         call ipl(2,X,Y)
          do i=1,11
           x(i)=-x(i)+2*xcpmm
           y(i)=-y(i)+2*ycpmm
-         enddo 
+         enddo
          call ipl(11,X,Y)
    /* planes 4 and 9*/
-         x(1)  =  0*(pitchx)+XCPMM  
-         x(2)  =  0*(pitchx)+XCPMM 
-         x(3)  =  5*(pitchx)+XCPMM 
-         x(4)  =  5*(pitchx)+XCPMM 
-         x(5)  =  7*(pitchx)+XCPMM 
-         x(6)  =  7*(pitchx)+XCPMM 
-         x(7)  =  8*(pitchx)+XCPMM 
-         x(8)  =  8*(pitchx)+XCPMM 
-         x(9)  =  7*(pitchx)+XCPMM 
-         x(10) =  7*(pitchx)+XCPMM 
-         x(11) =  0*(pitchx)+XCPMM 
+         x(1)  =  0*(pitchx)+XCPMM
+         x(2)  =  0*(pitchx)+XCPMM
+         x(3)  =  5*(pitchx)+XCPMM
+         x(4)  =  5*(pitchx)+XCPMM
+         x(5)  =  7*(pitchx)+XCPMM
+         x(6)  =  7*(pitchx)+XCPMM
+         x(7)  =  8*(pitchx)+XCPMM
+         x(8)  =  8*(pitchx)+XCPMM
+         x(9)  =  7*(pitchx)+XCPMM
+         x(10) =  7*(pitchx)+XCPMM
+         x(11) =  0*(pitchx)+XCPMM
          y(1)  =  ylimv +0*(pitchy)+YCPMM
          y(2)  =  ylimv +9*(pitchy)+YCPMM
          y(3)  =  ylimv +9*(pitchy)+YCPMM
@@ -779,15 +777,15 @@ c         call ipl(2,X,Y)
 
          do i=1,11
           x(i)= -dx0-jump-x(i)+2*xcpmm
-         enddo 
+         enddo
          call ipl(11,X,Y)
          do i=1,11
           x(i)=-x(i)+2*xcpmm
           y(i)=-y(i)+2*ycpmm
-         enddo 
+         enddo
          call ipl(11,X,Y)
   /* planes 5 and 10 */
-         x(1) =  xlimh + 0*(pitchx)+XCPMM 
+         x(1) =  xlimh + 0*(pitchx)+XCPMM
          x(2) =  xlimh + 0*(pitchx)+XCPMM
          x(3) =  xlimh + 1*(pitchx)+XCPMM
          x(4) =  xlimh + 1*(pitchx)+XCPMM
@@ -807,9 +805,9 @@ c         call ipl(2,X,Y)
          x(18) =  xlimh + 1*(pitchx)+XCPMM
          x(19) =  x(1)
          do i=1,19
-          x(i)=-x(i)+2*xcpmm 
-         enddo 
-         y(1) =  ylimv + 1*(pitchy)+YCPMM 
+          x(i)=-x(i)+2*xcpmm
+         enddo
+         y(1) =  ylimv + 1*(pitchy)+YCPMM
          y(2) =  ylimv + 7*(pitchy)+YCPMM
          y(3) =  ylimv + 7*(pitchy)+YCPMM
          y(4) =  ylimv + 6*(pitchy)+YCPMM
@@ -832,7 +830,7 @@ c         call ipl(2,X,Y)
          do i=1,19
           x(i)=-x(i)+2*xcpmm
           y(i)=-y(i)+2*ycpmm
-         enddo 
+         enddo
          call ipl(19,X,Y)
 *       -----------------
         else ! prototype
@@ -844,17 +842,17 @@ c         call ipl(2,X,Y)
          xzoom2=+a
          yzoom1=-a
          yzoom2=+a
-         call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2) 
-         call iselnt(10)                     
+         call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2)
+         call iselnt(10)
          ndiv = 5*100+10
          call igaxis(xzoom1,xzoom2,yzoom1,yzoom1,xzoom1,xzoom2,ndiv,' ')
          call igaxis(xzoom1,xzoom1,yzoom1,yzoom2,yzoom1,yzoom2,ndiv,' ')
          xtxt=xzoom2
          ytxt=yzoom1-4.0
-         call igtext(xtxt,ytxt,'Y (cm)',.80,0.,'R') 
+         call igtext(xtxt,ytxt,'Y (cm)',.80,0.,'R')
          xtxt=xzoom1-0.75
          ytxt=yzoom2-3.0
-         call igtext(xtxt,ytxt,'X (cm)',.80,0.,'R') 
+         call igtext(xtxt,ytxt,'X (cm)',.80,0.,'R')
 
 
 c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
@@ -863,7 +861,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          call igset('LWID',3.)
 *
          call igset('LTYP',1.)
-         call igset('LWID',1.)                              
+         call igset('LWID',1.)
 * ...... draw pmt matrix
 * -----> frame
          x(1)  = xlimprot - 10*(pmtwx+shieldw)+XCPMM
@@ -895,16 +893,16 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 *-----> DRAW PMT BOXES (loop on pmt numbers)
          do i=0,nbpmtx*nbpmty-1
            call PMTPOS_PROTN(I,ix,iy,XL,XR,YU,YD,XC,YC)
-           x(1)=xr             
-           x(2)=xl             
-           x(3)=xl             
-           x(4)=xr             
-           x(5)=x(1)             
-           y(1)=yd             
-           y(2)=yd             
-           y(3)=yu             
-           y(4)=yu             
-           y(5)=y(1)             
+           x(1)=xr
+           x(2)=xl
+           x(3)=xl
+           x(4)=xr
+           x(5)=x(1)
+           y(1)=yd
+           y(2)=yd
+           y(3)=yu
+           y(4)=yu
+           y(5)=y(1)
            IF (IFLPMT(IX,IY).EQ.0) THEN
               CALL ISLN(3)
               CALL IPL(5,Y,X)
@@ -917,8 +915,8 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 *             CALL ISFAIS(3)
 *             CALL IFA(5,Y,X)
 *             CALL ISFAIS(0)
-           ENDIF  
-         ENDDO  
+           ENDIF
+         ENDDO
 * -----> DRAW MIRROR
          if (RCGEOM(1).EQ.9 .and. RCGEOM(2).EQ.1) then
             call igset('PLCI',1.)
@@ -933,7 +931,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          endif
 *--------------------------------------------------------------
       elseif (chopt.eq.'PATE') then
-* ... draw full photon pattern 
+* ... draw full photon pattern
 *--------------------------------------------------------------
          call color(1,chcol,icol)
          ICODL = 10000*ICOL+100*1+7 !1000*PLCI+LTYP*100+LWID
@@ -950,26 +948,26 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             xzoom2=+70.
             yzoom1=-70.
             yzoom2=+70.
-            call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2) 
-            call iselnt(10)        
-            call photrace(thc,parthe,parphi,pvertex,ICODL) 
+            call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2)
+            call iselnt(10)
+            call photrace(thc,parthe,parphi,pvertex,ICODL)
          else
             xzoom1=-20.
             xzoom2=+20.
             yzoom1=-20.
             yzoom2=+20.
-            call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2) 
-            call iselnt(10)        
-            call photrace_prot(thc,parthe,parphi,pvertex,ICODL) 
+            call iswn(10,xzoom1,xzoom2,yzoom1,yzoom2)
+            call iselnt(10)
+            call photrace_prot(thc,parthe,parphi,pvertex,ICODL)
          endif
          call igset('LWID',1.)
 *--------------------------------------------------------------
       elseif (chopt.eq.'PATR') then
-* ... draw photon pattern at radiator bottom 
+* ... draw photon pattern at radiator bottom
 *--------------------------------------------------------------
          call color(1,chcol,icol)
          ICODL = 10000*ICOL+100*1+7 !1000*PLCI+LTYP*100+LWID
-         call photrace_rad(thc,parthe,parphi,pvertex,ICODL) 
+         call photrace_rad(thc,parthe,parphi,pvertex,ICODL)
          call igset('LWID',1.)
 *--------------------------------------------------------------
       elseif (chopt.eq.'HIT ') then
@@ -996,9 +994,9 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          endif
          call igset('LWID',1.)
          call igset('PLCI',1.)
-         CALL ISLN(1)            
+         CALL ISLN(1)
          call igset('MTYP',21.)
-         call iselnt(10)                                     
+         call iselnt(10)
          if(rcgeom(1).eq.9)then
 *========================================================
             if(chcol.eq.'ADJUST')then  ! Adjusted scale
@@ -1006,11 +1004,11 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             if(nbhits.ge.2)then
                call sortzv_alt(hitsnpe,index_npe,
      +              min(nbhits,nhitmax),+1,1,0)
-*     
+*
                sigmax=hitsnpe(index_npe(1))
                sigmin=hitsnpe(index_npe(min(nbhits,nhitmax)))
                amplitudelin=sigmax-sigmin
-*     
+*
                sigmaxlog=log(sigmax)
                sigminlog=log(sigmin)
                amplitudelog=sigmax/sigmin
@@ -1034,28 +1032,28 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                yd=hitscoo(1,i)-.3875
                yu=hitscoo(1,i)+.3875
                call igset('FAIS',1.)
-               call igset('BORD',1.)                 
+               call igset('BORD',1.)
                call igset('FACI',col)
                call igbox(xl,xr,yd,yu)
-*     
+*
                call igset('MTYP',5.)
                call igset('MSCF',1.8)
                call igset('PLCI',1.0)
                if(iflghit(i).eq.2)
      &         call igraph(1,hitscoo(2,i),hitscoo(1,i),'P')
-               call igset('MSCF',1.)                                 
+               call igset('MSCF',1.)
             enddo
 *  -----------------------------------------------------------------
-*  ---      print vertical COLOUR scale  (if defined-at least 2 hits)       
-*  -----------------------------------------------------------------            
-            if(nbhits.ge.2)then 
+*  ---      print vertical COLOUR scale  (if defined-at least 2 hits)
+*  -----------------------------------------------------------------
+            if(nbhits.ge.2)then
                signalncol(1)=sigmin
                signalncol(ncolsignal+1)=sigmax
                if (amplitudelog.gt.10.)then
                   step=(sigmaxlog-sigminlog)/7.0
                   do i=2,ncolsignal
                      signalncol(i)=ANTILOG**(sigminlog+(i-1)*step)
-                  enddo               
+                  enddo
                else
                   step=(sigmax-sigmin)/7.0
                   do i=2,ncolsignal
@@ -1064,27 +1062,27 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                endif
                call igset('PLCI',1.)
                call igset('FAIS',1.)
-               call igset('BORD',1.)  
+               call igset('BORD',1.)
                yd=-10.
                do j=1,ncolsignal
                   yu=yd+2.5
                   call igset('FACI',float(j+icol0))
-                  call igbox(xzoom2-2.,xzoom2,yd,yu) ! color scale box               
+                  call igbox(xzoom2-2.,xzoom2,yd,yu) ! color scale box
                   ytxt=(yu+yd)/2.-0.5
                   call izitoc(nint(signalncol(j)),chdummy)
-                  call izitoc(nint(signalncol(j+1)),chdummy2) 
+                  call izitoc(nint(signalncol(j+1)),chdummy2)
                   chdummy = chdummy(1:min(5,lenocc(chdummy)))//'-'
      .                 //chdummy2(1:min(5,lenocc(chdummy2)))
                   call igtext(xzoom2+0.25,ytxt,chdummy,0.7,0.,'L')
                   yd=yu
-               enddo            
+               enddo
                xtxt=xzoom2-2.
                ytxt=yd+2
                call igtext(xtxt,ytxt,'(p.e.)',0.9,0.,'L')
                ytxt=ytxt+2
                call igtext(xtxt,ytxt,'signal',0.9,0.,'L')
                call igset('FACI',1.)
-               call igset('FAIS',0.)            
+               call igset('FAIS',0.)
             endif
 *====================================
             else  ! FIXED scale
@@ -1111,23 +1109,23 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                yd=hitscoo(1,i)-.3875
                yu=hitscoo(1,i)+.3875
                call igset('FAIS',1.)
-               call igset('BORD',1.)                 
+               call igset('BORD',1.)
                call igset('FACI',col)
                call igbox(xl,xr,yd,yu)
-*     
+*
                call igset('MTYP',5.)
                call igset('MSCF',1.8)
                call igset('PLCI',1.0)
                if(iflghit(i).eq.2)
      &         call igraph(1,hitscoo(2,i),hitscoo(1,i),'P')
-               call igset('MSCF',1.)                                 
+               call igset('MSCF',1.)
             enddo
 *  -----------------------------------------------------------------
-*  ---      print vertical COLOUR scale  (if defined-at least 2 hits)       
-*  -----------------------------------------------------------------            
+*  ---      print vertical COLOUR scale  (if defined-at least 2 hits)
+*  -----------------------------------------------------------------
             call igset('PLCI',1.)
             call igset('FAIS',1.)
-            call igset('BORD',1.)  
+            call igset('BORD',1.)
             yd=-10.
             do j=1,ncolsignal
                if(j.eq.1)then
@@ -1147,26 +1145,26 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                endif
                yu=yd+2.5
                call igset('FACI',float(j+icol0))
-               call igbox(xzoom2-2.,xzoom2,yd,yu) ! color scale box               
+               call igbox(xzoom2-2.,xzoom2,yd,yu) ! color scale box
                ytxt=(yu+yd)/2.-0.5
                call igtext
      ,(xzoom2+0.25,ytxt,chsignal(1:lenocc(chsignal)),0.7,0.,'L')
                yd=yu
-            enddo            
+            enddo
             xtxt=xzoom2-2.
             ytxt=yd+2
             call igtext(xtxt,ytxt,'(p.e.)',0.9,0.,'L')
             ytxt=ytxt+2
             call igtext(xtxt,ytxt,'signal',0.9,0.,'L')
             call igset('FACI',1.)
-            call igset('FAIS',0.)            
+            call igset('FAIS',0.)
 *====================================
             endif ! matches if (chcol.eq.'ADJUST')
 *====================================
 *=======================================================
          else                   ! DRAW HITS IN THE FLIGHT MATRIX
 *=======================================================
-            call color(1,chcol,icol)         
+            call color(1,chcol,icol)
             call igset('PMCI',real(icol))
             do i=1,min(nbhits,nhitmax)
 *               call igset('PMCI',46.)
@@ -1174,22 +1172,22 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                call igraph(1,hitscoo(1,i),hitscoo(2,i),'P')
                col=4.
                call igset('FAIS',1.)
-               call igset('BORD',1.)                 
+               call igset('BORD',1.)
                call igset('FACI',col)
                xl=hitscoo(1,i)-.3875
                xr=hitscoo(1,i)+.3875
                yd=hitscoo(2,i)-.3875
-               yu=hitscoo(2,i)+.3875               
+               yu=hitscoo(2,i)+.3875
                call igbox(xl,xr,yd,yu)
                call igset('FAIS',0.)
-            enddo            
+            enddo
          endif
 *--------------------------------------------------------------
       elseif (chopt.eq.'PPMT') then
 * ... draw particle track projection
 *--------------------------------------------------------------
          if(abs(xcoopmt).lt.1.E3.and.abs(ycoopmt).lt.1.E3)then
-            call color(1,chcol,icol)         
+            call color(1,chcol,icol)
             call igset('PMCI',real(icol))
             call igset('MTYP',5.)
             call igset('MSCF',5.0)
@@ -1201,8 +1199,8 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
                call igraph(1,ycoopmt,xcoopmt,'P')
             endif
 
-*-----> DRAW DIRECTION OF INCOMING PARTICLE 
-            call igset('PLCI',real(icol)) 
+*-----> DRAW DIRECTION OF INCOMING PARTICLE
+            call igset('PLCI',real(icol))
             call igset('LWID',5.)
             x(1) = xcoopmt-abs(zpmtdet-pcervtx(3))
      ,           *tan(parthe)*cos(parphi)
@@ -1210,21 +1208,21 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             y(1) = ycoopmt-abs(zpmtdet-pcervtx(3))
      ,           *tan(parthe)*sin(parphi)
             y(2) = ycoopmt
-            CALL ISLN(2)            
+            CALL ISLN(2)
             if(rcgeom(1).eq.9)then
-               call ipl(2,Y,X) 
+               call ipl(2,Y,X)
             else
-               call ipl(2,X,Y) 
+               call ipl(2,X,Y)
             endif
-            CALL ISLN(1)            
+            CALL ISLN(1)
             x(2)=x(1)
             y(2)=y(1)
             x(1)=x(2)-100.*tan(parthe)*cos(parphi)
             y(1)=y(2)-100.*tan(parthe)*sin(parphi)
             if(rcgeom(1).eq.9)then
-               call ipl(2,Y,X) 
+               call ipl(2,Y,X)
             else
-               call ipl(2,X,Y) 
+               call ipl(2,X,Y)
             endif
             call igset('LWID',1.)
             call igset('MSCF',1.)
@@ -1235,7 +1233,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 
 *     printout
 *
-      call iselnt(10)                                     
+      call iselnt(10)
 *
       call izitoc(irun,chdummy)
       chdummy = 'RUN '//
@@ -1251,13 +1249,13 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          yzoom2=+a
          xtxt= xzoom1+2.5
          ytxt= yzoom2-2.5
-         call igtext(xtxt,ytxt,chdummy,1.0,0.,'L')        
+         call igtext(xtxt,ytxt,chdummy,1.0,0.,'L')
       else
          a=70.
          xzoom1=-a
          xzoom2=+a
          yzoom1=-a
-         yzoom2=+a         
+         yzoom2=+a
          xtxt=-65.
          ytxt=+65.
          call igtext(xtxt,ytxt,chdummy,2.5,0.,'L')
@@ -1270,25 +1268,25 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             chdummy='[Q]^rec!= '//chdummy(1:5)//' Deg'
             xtxt=xzoom2-2.5
             ytxt=yzoom2-1.5
-            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')        
+            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')
 *
             call izrtoc(probability,chdummy)
-            chdummy='Prob^Kol!= '//chdummy(1:lenocc(chdummy))      
+            chdummy='Prob^Kol!= '//chdummy(1:lenocc(chdummy))
             ytxt=yzoom2
-            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')              
+            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')
 *
 *            call izitoc(nbushits(ipthetac),chdummy)
             call izitoc(nassh,chdummy)
-            chdummy='Nb us hits= '//chdummy(1:lenocc(chdummy))      
+            chdummy='Nb us hits= '//chdummy(1:lenocc(chdummy))
             ytxt=yzoom2-3.5
-            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')        
+            call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')
          else
             if(jobc_cp.ne.-9)then
                call izitoc(min(nbhits,nhitmax),chdummy)
-               chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))      
+               chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))
                xtxt=xzoom2-2.5
                ytxt=yzoom2-3.5
-               call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')               
+               call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')
             endif
          endif
       else
@@ -1298,23 +1296,23 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             chdummy='[Q]^rec!= '//chdummy(1:5)//' Deg'
             xtxt=xzoom2-2.5
             ytxt=yzoom2-5.5
-            call igtext(xtxt,ytxt,chdummy,2.80,0.,'R')        
+            call igtext(xtxt,ytxt,chdummy,2.80,0.,'R')
 *            call izitoc(nbushits(ipthetac),chdummy)
             call izitoc(nassh,chdummy)
-            chdummy='Nb us hits= '//chdummy(1:lenocc(chdummy))      
+            chdummy='Nb us hits= '//chdummy(1:lenocc(chdummy))
             ytxt=yzoom2-12.5
-            call igtext(xtxt,ytxt,chdummy,2.80,0.,'R')        
-*     
+            call igtext(xtxt,ytxt,chdummy,2.80,0.,'R')
+*
             call izrtoc(probability,chdummy)
-            chdummy='Pkol= '//chdummy(1:lenocc(chdummy))      
-            call igtext(70.,77.,chdummy,2.80,0.,'R')              
+            chdummy='Pkol= '//chdummy(1:lenocc(chdummy))
+            call igtext(70.,77.,chdummy,2.80,0.,'R')
          else
             if(jobc_cp.ne.-9)then
                call izitoc(min(nbhits,nhitmax),chdummy)
-               chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))      
+               chdummy='Nb hits= '//chdummy(1:lenocc(chdummy))
                xtxt=xzoom2-2.5
                ytxt=yzoom2-12.5
-               call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')               
+               call igtext(xtxt,ytxt,chdummy,0.80,0.,'R')
             endif
          endif
       endif
@@ -1352,10 +1350,10 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          call iscr(kwid1, 9,1.00,1.00,0.90) !light pale yellow
          call iscr(kwid1,10,1.00,1.00,0.80) !light lemmon yellow
 
-         call iscr(kwid1,11,1.00,1.00,0.70) !lemmon yellow          
-         call iscr(kwid1,12,1.00,1.00,0.00) !yellow           
-         call iscr(kwid1,13,1.00,0.84,0.00) !pale orange           
-         call iscr(kwid1,14,1.00,0.64,0.31) !orange           
+         call iscr(kwid1,11,1.00,1.00,0.70) !lemmon yellow
+         call iscr(kwid1,12,1.00,1.00,0.00) !yellow
+         call iscr(kwid1,13,1.00,0.84,0.00) !pale orange
+         call iscr(kwid1,14,1.00,0.64,0.31) !orange
          call iscr(kwid1,15,1.00,0.00,0.00) !lighter red
          call iscr(kwid1,16,0.54,0.27,0.07) !dark brown
          call iscr(kwid1,17,0.00,0.00,0.00) !black
@@ -1366,7 +1364,7 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
          call iscr(kwid1,44,0.60,0.80,0.19) !yellow-green
          call iscr(kwid1,45,0.18,0.54,0.34) !seagreen
          call iscr(kwid1,46,0.00,0.00,0.60) !navyblue
-         call iscr(kwid1,47,0.60,0.19,0.80) !dark orchid           
+         call iscr(kwid1,47,0.60,0.19,0.80) !dark orchid
          call iscr(kwid1,48,0.85,0.64,0.13) !goldenrod
          call iscr(kwid1,49,0.70,0.13,0.13) !firebrick
       else
@@ -1399,9 +1397,9 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
             icol=46
          elseif(chcol.eq.'FIREBRICK')then
             icol=49
-         endif                        
+         endif
       endif
-      
+
       return
       end
 
@@ -1411,35 +1409,35 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
 ****************************
 
 ***************************************************************
-      SUBROUTINE PHOTRACE(thetac,parthe,parphi,pvertex,ICODL) 
+      SUBROUTINE PHOTRACE(thetac,parthe,parphi,pvertex,ICODL)
 ***************************************************************
-* TRACE PHOTON PATTERN 
-* (BOTTOM VIEW OF THE PMT MATRIX 
+* TRACE PHOTON PATTERN
+* (BOTTOM VIEW OF THE PMT MATRIX
 * x and y axes in the usual disposition)
 ***************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer nphmax  
+      integer nphmax
       parameter(nphmax=10)
       parameter(nphisteps=500)
       parameter(nhist_bin=2000)
-      real xhist(nhist_bin),yhist(nhist_bin)     
-      real xhistnr(nhist_bin),yhistnr(nhist_bin) 
-      real xhistr(nhist_bin),yhistr(nhist_bin)   
+      real xhist(nhist_bin),yhist(nhist_bin)
+      real xhistnr(nhist_bin),yhistnr(nhist_bin)
+      real xhistr(nhist_bin),yhistr(nhist_bin)
 
-      integer verr(nphmax),icodl    
+      integer verr(nphmax),icodl
       real vdet(3),vdir(3)
       real pvertex(3)
 
 * ----init
-      iuc   = 0                                                       
-      iucnr = 0                                                       
-      iucr  = 0                                                       
-                                                                   
-      ierrt = 0                                                       
-      phibuf1 = 0.                                                    
-      phibuf2 = 0.       
+      iuc   = 0
+      iucnr = 0
+      iucr  = 0
+
+      ierrt = 0
+      phibuf1 = 0.
+      phibuf2 = 0.
 
 * --- graphics definitions (ICODL = 10000*LCOL+100*LTYP+LWID)
       LCOL = icodl/10000
@@ -1448,66 +1446,66 @@ c         call igbox(xzoom1,xzoom2,yzoom1,yzoom2)  ! why do I need this ?
       call igset('LWID',float(LWID))
       call igset('PLCI',float(LCOL))
 
-* ----loop on photon phi                                              
+* ----loop on photon phi
       do xphi=0.,twopi,twopi/float(nphisteps)
-         /* find pattern at detector plane */                               
-         xdet = -999.                                                 
-         ydet = -999.                                                 
+         /* find pattern at detector plane */
+         xdet = -999.
+         ydet = -999.
          call patrace_fulln(xphi,thetac,parthe,parphi,pvertex,
-     +                      xdet,ydet,nmiref,nerr,verr) ! by arguments  
+     +                      xdet,ydet,nmiref,nerr,verr) ! by arguments
 cc         call patrace_full(xphi,thetac,xdet,ydet,nmiref,nerr,verr) ! by common
 *         print*,'xdet,ydet,nmiref,nerr = ',xdet,ydet,nmiref,nerr
          if (nerr.eq.0) then
             if (nmiref.eq.0) then !no reflected point
-               phidif  = abs(xphi - phibuf1)                          
-               phibuf1 = xphi                                         
+               phidif  = abs(xphi - phibuf1)
+               phibuf1 = xphi
                if (phidif.lt.1.1*twopi/float(nphisteps)) then
-                  iucnr = iucnr + 1                                   
-                  xhistnr(iucnr) = xdet                               
-                  yhistnr(iucnr) = ydet                               
-               else                                                   
-                  if (iucnr.ne.0) then                                
-CC                     call igset('LTYP',1.)                            
+                  iucnr = iucnr + 1
+                  xhistnr(iucnr) = xdet
+                  yhistnr(iucnr) = ydet
+               else
+                  if (iucnr.ne.0) then
+CC                     call igset('LTYP',1.)
 CC                     print*,ltyp
                      call igset('LTYP',float(LTYP))
-                     call igraph(iucnr,xhistnr,yhistnr,'L')          
-                     iucnr = 0                                        
-                  endif                                               
-               endif                                                  
-            elseif (nmiref.ne.0) then                                 
-               phidif = abs(xphi - phibuf2)                           
-               phibuf2 = xphi                                         
-               if (phidif.lt.1.1*twopi/float(nphisteps)) then                
-                  iucr = iucr + 1                                     
-                  xhistr(iucr) = xdet                                 
-                  yhistr(iucr) = ydet                                 
+                     call igraph(iucnr,xhistnr,yhistnr,'L')
+                     iucnr = 0
+                  endif
+               endif
+            elseif (nmiref.ne.0) then
+               phidif = abs(xphi - phibuf2)
+               phibuf2 = xphi
+               if (phidif.lt.1.1*twopi/float(nphisteps)) then
+                  iucr = iucr + 1
+                  xhistr(iucr) = xdet
+                  yhistr(iucr) = ydet
                else
-                  if (iucr.ne.0) then                
-                     call igset('LTYP',float(LTYP))                 
-CC                     call igset('LTYP',2.)                            
-                     call igraph(iucr,xhistr,yhistr,'L')             
-                     iucr = 0                                         
-                  endif                                               
-               endif                                                  
-            endif 
+                  if (iucr.ne.0) then
+                     call igset('LTYP',float(LTYP))
+CC                     call igset('LTYP',2.)
+                     call igraph(iucr,xhistr,yhistr,'L')
+                     iucr = 0
+                  endif
+               endif
+            endif
          endif
-      enddo                                                           
-      
-* ----Draw pattern                                   
-      if (iucnr.ne.0) then                            
+      enddo
+
+* ----Draw pattern
+      if (iucnr.ne.0) then
          call igset('LTYP',float(LTYP))
-CC         call igset('LTYP',1.)                        
-         call igraph(iucnr,xhistnr,yhistnr,'L')      
-      endif                                           
-      if (iucr.ne.0) then                            
+CC         call igset('LTYP',1.)
+         call igraph(iucnr,xhistnr,yhistnr,'L')
+      endif
+      if (iucr.ne.0) then
          call igset('LTYP',float(LTYP))
-CC           call igset('LTYP',2.)                       
-         call igraph(iucr,xhistr,yhistr,'L')        
-      endif                                          
+CC           call igset('LTYP',2.)
+         call igraph(iucr,xhistr,yhistr,'L')
+      endif
 
 * --- RETURN
       RETURN
-      END    
+      END
 
 
 *********************************
@@ -1515,34 +1513,34 @@ CC           call igset('LTYP',2.)
 *********************************
 
       SUBROUTINE PHOTRACE_PROT
-     ,     (thetac,parthe,parphi,pvertex,ICODL) 
+     ,     (thetac,parthe,parphi,pvertex,ICODL)
 ***************************************************************
-* TRACE PHOTON PATTERN 
+* TRACE PHOTON PATTERN
 * (TOP VIEW OF THE PMT MATRIX - x and y axes interchanged)
 ***************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer nphmax  
+      integer nphmax
       parameter(nphmax=10)
       parameter(nphisteps=500)
       parameter(nhist_bin=2000)
-      real xhist(nhist_bin),yhist(nhist_bin)     
-      real xhistnr(nhist_bin),yhistnr(nhist_bin) 
-      real xhistr(nhist_bin),yhistr(nhist_bin)   
+      real xhist(nhist_bin),yhist(nhist_bin)
+      real xhistnr(nhist_bin),yhistnr(nhist_bin)
+      real xhistr(nhist_bin),yhistr(nhist_bin)
 
-      integer verr(nphmax),icodl    
+      integer verr(nphmax),icodl
       real vdet(3),vdir(3)
       real pvertex(3)
 
 * ----init
-      iuc   = 0                                                       
-      iucnr = 0                                                       
-      iucr  = 0                                                       
-                                                                   
-      ierrt = 0                                                       
-      phibuf1 = 0.                                                    
-      phibuf2 = 0.       
+      iuc   = 0
+      iucnr = 0
+      iucr  = 0
+
+      ierrt = 0
+      phibuf1 = 0.
+      phibuf2 = 0.
 
 * --- graphics definitions (ICODL = 10000*LCOL+100*LTYP+LWID)
       LCOL = icodl/10000
@@ -1551,100 +1549,100 @@ CC           call igset('LTYP',2.)
       call igset('LWID',float(LWID))
       call igset('PLCI',float(LCOL))
 
-* ----loop on photon phi                                              
+* ----loop on photon phi
       do xphi=0.,twopi,twopi/float(nphisteps)
-         /* find pattern at detector plane */                               
-         xdet = -999.                                                 
-         ydet = -999.                                                 
+         /* find pattern at detector plane */
+         xdet = -999.
+         ydet = -999.
          call patrace_fulln
      ,        (xphi,thetac,parthe,parphi,pvertex,xdet,ydet,nmiref,nerr
-     ,        ,verr)                                                ! by arguments  
+     ,        ,verr)                                                ! by arguments
 cc        call patrace_full(xphi,thetac,xdet,ydet,nmiref,nerr,verr) ! by common
          if (nerr.eq.0) then
             if (nmiref.eq.0) then !no reflected point
-               phidif  = abs(xphi - phibuf1)                          
-               phibuf1 = xphi                                         
+               phidif  = abs(xphi - phibuf1)
+               phibuf1 = xphi
                if (phidif.lt.1.1*twopi/float(nphisteps)) then
-                  iucnr = iucnr + 1                                   
-                  xhistnr(iucnr) = xdet                               
-                  yhistnr(iucnr) = ydet                               
-               else                                                   
-                  if (iucnr.ne.0) then                                
-                     call igset('LTYP',1.)                            
+                  iucnr = iucnr + 1
+                  xhistnr(iucnr) = xdet
+                  yhistnr(iucnr) = ydet
+               else
+                  if (iucnr.ne.0) then
+                     call igset('LTYP',1.)
                      call igset('LTYP',float(LTYP))
-                     call igraph(iucnr,yhistnr,xhistnr,'L')          
-                     iucnr = 0                                        
-                  endif                                               
-               endif                                                  
-            elseif (nmiref.ne.0) then                                 
-              phidif = abs(xphi - phibuf2)                           
-              phibuf2 = xphi                                         
-              if (phidif.lt.1.1*twopi/float(nphisteps)) then                
-                iucr = iucr + 1                                     
-                xhistr(iucr) = xdet                                 
-                yhistr(iucr) = ydet                                 
+                     call igraph(iucnr,yhistnr,xhistnr,'L')
+                     iucnr = 0
+                  endif
+               endif
+            elseif (nmiref.ne.0) then
+              phidif = abs(xphi - phibuf2)
+              phibuf2 = xphi
+              if (phidif.lt.1.1*twopi/float(nphisteps)) then
+                iucr = iucr + 1
+                xhistr(iucr) = xdet
+                yhistr(iucr) = ydet
               else
-                if (iucr.ne.0) then                
-                   call igset('LTYP',float(LTYP))                 
-                   call igset('LTYP',2.)                            
-                  call igraph(iucr,yhistr,xhistr,'L')             
-                  iucr = 0                                         
-                endif                                               
-              endif                                                  
-            endif 
+                if (iucr.ne.0) then
+                   call igset('LTYP',float(LTYP))
+                   call igset('LTYP',2.)
+                  call igraph(iucr,yhistr,xhistr,'L')
+                  iucr = 0
+                endif
+              endif
+            endif
          endif
-      enddo                                                           
-      
-* ----Draw pattern                                   
-      if (iucnr.ne.0) then                            
+      enddo
+
+* ----Draw pattern
+      if (iucnr.ne.0) then
          call igset('LTYP',float(LTYP))
-         call igset('LTYP',1.)                        
-         call igraph(iucnr,yhistnr,xhistnr,'L')      
-      endif                                           
-      if (iucr.ne.0) then                            
+         call igset('LTYP',1.)
+         call igraph(iucnr,yhistnr,xhistnr,'L')
+      endif
+      if (iucr.ne.0) then
            call igset('LTYP',float(LTYP))
-           call igset('LTYP',2.)                       
-         call igraph(iucr,yhistr,xhistr,'L')        
-      endif                                          
+           call igset('LTYP',2.)
+         call igraph(iucr,yhistr,xhistr,'L')
+      endif
 
 * --- RETURN
       RETURN
-      END    
+      END
 
 
 ********************************
 *** CODE FROM photrace_rad.F ***
 ********************************
 
-      SUBROUTINE PHOTRACE_RAD(thetac,parthe,parphi,pvertex,ICODL) 
+      SUBROUTINE PHOTRACE_RAD(thetac,parthe,parphi,pvertex,ICODL)
 ***************************************************************
-* TRACE PHOTON PATTERN 
-* (BOTTOM VIEW OF THE PMT MATRIX 
+* TRACE PHOTON PATTERN
+* (BOTTOM VIEW OF THE PMT MATRIX
 * x and y axes in the usual disposition)
 ***************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer nphmax  
+      integer nphmax
       parameter(nphmax=10)
       parameter(nphisteps=500)
       parameter(nhist_bin=2000)
-      real xhist(nhist_bin),yhist(nhist_bin)     
-      real xhistnr(nhist_bin),yhistnr(nhist_bin) 
-      real xhistr(nhist_bin),yhistr(nhist_bin)   
+      real xhist(nhist_bin),yhist(nhist_bin)
+      real xhistnr(nhist_bin),yhistnr(nhist_bin)
+      real xhistr(nhist_bin),yhistr(nhist_bin)
 
-      integer verr(nphmax),icodl    
+      integer verr(nphmax),icodl
       real vdet(3),vdir(3)
       real pvertex(3)
 
 * ----init
-      iuc   = 0                                                       
-      iucnr = 0                                                       
-      iucr  = 0                                                       
-                                                                   
-      ierrt = 0                                                       
-      phibuf1 = 0.                                                    
-      phibuf2 = 0.       
+      iuc   = 0
+      iucnr = 0
+      iucr  = 0
+
+      ierrt = 0
+      phibuf1 = 0.
+      phibuf2 = 0.
 
 * --- graphics definitions (ICODL = 10000*LCOL+100*LTYP+LWID)
       LCOL = icodl/10000
@@ -1653,161 +1651,161 @@ cc        call patrace_full(xphi,thetac,xdet,ydet,nmiref,nerr,verr) ! by common
       call igset('LWID',float(LWID))
       call igset('PLCI',float(LCOL))
 
-* ----loop on photon phi                                              
+* ----loop on photon phi
       do xphi=0.,twopi,twopi/float(nphisteps)
-         /* find pattern at detector plane */                               
-         xdet = -999.                                                 
-         ydet = -999.   
+         /* find pattern at detector plane */
+         xdet = -999.
+         ydet = -999.
          call patrace_rad
      ,        (xphi,thetac,parthe,parphi,pvertex,xdet,ydet,nmiref,nerr
-     ,        ,verr)                                                ! by arguments  
+     ,        ,verr)                                                ! by arguments
          if (nerr.eq.0) then
             if (nmiref.eq.0) then !no reflected point
-               phidif  = abs(xphi - phibuf1)                          
-               phibuf1 = xphi                                         
+               phidif  = abs(xphi - phibuf1)
+               phibuf1 = xphi
                if (phidif.lt.1.1*twopi/float(nphisteps)) then
-                  iucnr = iucnr + 1                                   
-                  xhistnr(iucnr) = xdet                               
-                  yhistnr(iucnr) = ydet                               
+                  iucnr = iucnr + 1
+                  xhistnr(iucnr) = xdet
+                  yhistnr(iucnr) = ydet
                   if(rcgeom(1).eq.9)then
-                    xhistnr(iucnr) = ydet                               
-                    yhistnr(iucnr) = xdet 
+                    xhistnr(iucnr) = ydet
+                    yhistnr(iucnr) = xdet
                  endif
-               else                                                   
-                  if (iucnr.ne.0) then                                
-CC                     call igset('LTYP',1.)                            
+               else
+                  if (iucnr.ne.0) then
+CC                     call igset('LTYP',1.)
 CC                     print*,ltyp
                      call igset('LTYP',float(LTYP))
-                     call igraph(iucnr,xhistnr,yhistnr,'L')          
-                     iucnr = 0                                        
-                  endif                                               
-               endif                                                  
-            elseif (nmiref.ne.0) then                                 
-              phidif = abs(xphi - phibuf2)                           
-              phibuf2 = xphi                                         
-              if (phidif.lt.1.1*twopi/float(nphisteps)) then                
-                iucr = iucr + 1                                     
-                xhistr(iucr) = xdet                                 
-                yhistr(iucr) = ydet   
+                     call igraph(iucnr,xhistnr,yhistnr,'L')
+                     iucnr = 0
+                  endif
+               endif
+            elseif (nmiref.ne.0) then
+              phidif = abs(xphi - phibuf2)
+              phibuf2 = xphi
+              if (phidif.lt.1.1*twopi/float(nphisteps)) then
+                iucr = iucr + 1
+                xhistr(iucr) = xdet
+                yhistr(iucr) = ydet
                 if(rcgeom(1).eq.9)then
-                    xhistnr(iucnr) = ydet                               
-                    yhistnr(iucnr) = xdet 
+                    xhistnr(iucnr) = ydet
+                    yhistnr(iucnr) = xdet
                  endif
               else
-                if (iucr.ne.0) then                
-                   call igset('LTYP',float(LTYP))                 
-CC                  call igset('LTYP',2.)                            
-                  call igraph(iucr,xhistr,yhistr,'L')             
-                  iucr = 0                                         
-                endif                                               
-              endif                                                  
-            endif 
+                if (iucr.ne.0) then
+                   call igset('LTYP',float(LTYP))
+CC                  call igset('LTYP',2.)
+                  call igraph(iucr,xhistr,yhistr,'L')
+                  iucr = 0
+                endif
+              endif
+            endif
          endif
-      enddo                                                           
-      
-* ----Draw pattern                                   
-      if (iucnr.ne.0) then                            
+      enddo
+
+* ----Draw pattern
+      if (iucnr.ne.0) then
          call igset('LTYP',float(LTYP))
-CC         call igset('LTYP',1.)                        
-         call igraph(iucnr,xhistnr,yhistnr,'L')      
-      endif                                           
-      if (iucr.ne.0) then                            
+CC         call igset('LTYP',1.)
+         call igraph(iucnr,xhistnr,yhistnr,'L')
+      endif
+      if (iucr.ne.0) then
            call igset('LTYP',float(LTYP))
-CC           call igset('LTYP',2.)                       
-         call igraph(iucr,xhistr,yhistr,'L')        
-      endif                     
-     
+CC           call igset('LTYP',2.)
+         call igraph(iucr,xhistr,yhistr,'L')
+      endif
+
 
 * --- RETURN
       RETURN
-      END    
+      END
 
 
 
 
-* ================================================================         
+* ================================================================
       subroutine patrace_rad
      ,     (phig,cerang,pthe,pphi,pvertex,xdet,ydet,nmiref,nerr,verr)
-* ================================================================         
-******************************************************************         
-*       AIMS: Steering routine for pattern cerenkov drawing at the 
-*             radiator level                
-*                                                                          
-* PARAMETERS: IN - phig   = photon phi angle                               
-*                  cerang = cerenkov angle                                 
+* ================================================================
+******************************************************************
+*       AIMS: Steering routine for pattern cerenkov drawing at the
+*             radiator level
+*
+* PARAMETERS: IN - phig   = photon phi angle
+*                  cerang = cerenkov angle
 *            OUT - xdet   = x-coord of the photon at the radiator bottom
-*                  ydet   = y-coord of the photon at the radiator bottom         
-*                  nmiref = number of reflections on mirror                
-*                  ierr   = error flag                                     
+*                  ydet   = y-coord of the photon at the radiator bottom
+*                  nmiref = number of reflections on mirror
+*                  ierr   = error flag
 *
 *      verr(1:20) : photon error coding
 *              10  - backward photon
-*              11  - 
-*              12  - 
+*              11  -
+*              12  -
 *              13  - starts in plexiglas and leaving
-*              14  - 
-*              15  - 
+*              14  -
+*              15  -
 *              16  - starts in plexiglas and is reflected
-*              17  - 
-*              18  - 
-*              19  - ends in non-active detection region 
-*-----------------------------------------------------------------      
+*              17  -
+*              18  -
+*              19  - ends in non-active detection region
+*-----------------------------------------------------------------
 
-******************************************************************         
+******************************************************************
 
       integer nphmax
       parameter(nphmax=10)
       integer nerr,verr(nphmax)
       real vdet(3),vdir(3)
-      real pthe,pphi,pvertex(3)     
+      real pthe,pphi,pvertex(3)
       real phdir(3),phpto(3)
 
-* --- init                                                                 
-      nerr   = 0                                                           
+* --- init
+      nerr   = 0
       call vfill(verr,nphmax,0)
-      nmiref = 0 ! number of mirror reflections or out of prototype PMT matrix 
+      nmiref = 0 ! number of mirror reflections or out of prototype PMT matrix
 *
-      vdet(1) = -999.                                                         
-      vdet(2) = -999.     
+      vdet(1) = -999.
+      vdet(2) = -999.
 
 * --- set particle rotation matrix if not already done
-      if (irotflg.eq.0) then          
+      if (irotflg.eq.0) then
          call patmatrn(pthe,pphi)
-         irotflg = 1                  
-      endif                      
+         irotflg = 1
+      endif
 
-* --- function                                                             
-* ... photon emission point                                                
-      call ucopy(pvertex,phpto,3)                                          
-* ... generate photon on detector frame                                    
-      call patphot(phig,cerang,phdir)   
-* ... test photon direction: backward?                                     
-      if (phdir(3).lt.0.) then                                             
-         nerr = nerr + 1                                                   
-         verr(nerr) = 10                                                   
-         return                                                            
-      endif                 
-      call patints(phpto,phdir,'RADB',ierr) !intersection with rad bottom  
-         
-      if (ierr.ne.0) then                                             
-         nerr = nerr + 1                                              
-         verr(nerr) = 11        !photon going out of radiator 
-         return                                                       
+* --- function
+* ... photon emission point
+      call ucopy(pvertex,phpto,3)
+* ... generate photon on detector frame
+      call patphot(phig,cerang,phdir)
+* ... test photon direction: backward?
+      if (phdir(3).lt.0.) then
+         nerr = nerr + 1
+         verr(nerr) = 10
+         return
+      endif
+      call patints(phpto,phdir,'RADB',ierr) !intersection with rad bottom
+
+      if (ierr.ne.0) then
+         nerr = nerr + 1
+         verr(nerr) = 11        !photon going out of radiator
+         return
       endif
 
 
-* ... output coordinates                                                   
+* ... output coordinates
       call ucopy(phpto,vdet,3)
 
-* ... output coordinates                                                   
-      xdet = vdet(1)                                                      
-      ydet = vdet(2)  
+* ... output coordinates
+      xdet = vdet(1)
+      ydet = vdet(2)
 
 CC      print*,'(photrace_rad) xdet,ydet=',xdet,ydet
 
-* --- end                                                                  
-      return                                                               
-      end 
+* --- end
+      return
+      end
 
 
 ********************************
@@ -1818,10 +1816,10 @@ CC      print*,'(photrace_rad) xdet,ydet=',xdet,ydet
       subroutine rdisdrawlike(CHCOL,CHOPT)
 *==================================================================
 ********************************************************************
-* It draws the likelihood function L(thetac) 
-* 
-* IN : 
-*      CHCOL =  color ('RED','GREEN','BLUE',...) 
+* It draws the likelihood function L(thetac)
+*
+* IN :
+*      CHCOL =  color ('RED','GREEN','BLUE',...)
 *               see color subroutine in richdsp.F for further choices
 *      CHOPT = options (not yet implemented...)
 ********************************************************************
@@ -1852,7 +1850,7 @@ CC      print*,'(photrace_rad) xdet,ydet=',xdet,ydet
       np = 0
       do x=cangreclow,cangrecup,DEGRAD*0.1
          np       = np + 1
-         vx(np)   = raddeg*x 
+         vx(np)   = raddeg*x
          vf(np)   = fliketotall(x)
          IPHIHINTFLAG = 1
       enddo
@@ -1869,7 +1867,7 @@ C      print*,(vf(ind1(j)),j=1,10)
 
       call igaxis(xlow,xlow,ylow,yup,ylow,yup,10*100+7,'GA-')
       call igaxis(xlow,xup,ylow,ylow,xlow,xup,10*100+7,'A-')
-      call igraph(np,vx,vf,'L')          
+      call igraph(np,vx,vf,'L')
 
 * ... end
       return

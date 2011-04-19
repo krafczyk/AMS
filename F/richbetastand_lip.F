@@ -1,7 +1,7 @@
 ***************************************************************************************
 * In this file
 * ------------
-*      subroutine richtoftrackinit(itype)  //steering routine for tof track hints ("init" means hint tracks)  
+*      subroutine richtoftrackinit(itype)  //steering routine for tof track hints ("init" means hint tracks)
 *      subroutine richtoftrackinit1
 *      subroutine richtoftrackinit2
 *      subroutine richtoftrackinit3
@@ -53,13 +53,13 @@
             hitscoo(2,nbhits)   = hitscoo_ev(2,i)
             hitscoo(3,nbhits)   = hitscoo_ev(3,i)
             hitsnpe(nbhits)     = hitsnpe_ev(i)
-            hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16) 
-                                                ! pixel      : mod(int(bevent_hid(i)/10),16) 
-                                                ! gain       : mod(bevent_hid(i),10) 
+            hitspmt(nbhits)     = hitspmt_ev(i) ! pmt number : int(int(hitspmt(i)/10)/16)
+                                                ! pixel      : mod(int(bevent_hid(i)/10),16)
+                                                ! gain       : mod(bevent_hid(i),10)
             hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
             hitstat(nbhits)     = 0 ! good hit
          endif
-      enddo        
+      enddo
 
 * --- Find PMTs with strongest signals in detection matrix
       call getpmtmax(xmax,ymax,imax,sigmax,nhmax,fracmax,sigmed)
@@ -1262,7 +1262,7 @@
 cc    RECBET(1)  = 11   ! unused
       RECBET(4)  = 1    ! minimum search with brent method
 
-* ... phi hint mechanism 
+* ... phi hint mechanism
       IPHIHINTKIND = 0
       IPHIHINTFLAG = 0
 
@@ -1280,10 +1280,10 @@ cc    RECBET(1)  = 11   ! unused
 
       x0v_in = pimp(1)
       y0v_in = pimp(2)
-      x0m_in = pimp(1) + 
+      x0m_in = pimp(1) +
      +         tan(pthe)*cos(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3))
-      y0m_in = pimp(2) + 
-     +         tan(pthe)*sin(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3)) 
+      y0m_in = pimp(2) +
+     +         tan(pthe)*sin(pphi)*(ZPMTDET+ZLGSIGNAL-pimp(3))
 
 * ... determine radiator for track hint
       ZTEST = ZTARG+(HRAD-HRNAF)
@@ -1314,7 +1314,7 @@ cc    RECBET(1)  = 11   ! unused
 #else
 * ... Old method
       if(abs(xrad_in).lt.(0.5*3.*radtile_pitch).and.
-     +     abs(yrad_in).lt.(0.5*3.*radtile_pitch)) then 
+     +     abs(yrad_in).lt.(0.5*3.*radtile_pitch)) then
          refind_in = radix(2) !NAF
       else
          refind_in = radix(1) !AGL
@@ -1361,7 +1361,7 @@ cc    RECBET(1)  = 11   ! unused
 #else
 * ...... Get local ref index from old method
          if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
-     +        abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+     +        abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then
             amsri = radix(2)    !NAF
          else
             amsri = radix(1)    !AGL
@@ -1533,7 +1533,7 @@ cc    RECBET(1)  = 11   ! unused
 cc    RECBET(1)  = 11   ! unused
       RECBET(4)  = 1    ! minimum search with brent method
 
-* ... phi hint mechanism 
+* ... phi hint mechanism
       IPHIHINTKIND = 0
       IPHIHINTFLAG = 0
 
@@ -1549,8 +1549,8 @@ cc    RECBET(1)  = 11   ! unused
 *      print*,'PCOOPMTOPTHINT = ',pcoopmtopthint
 
       if(ierris.eq.0) then ! good initialization
-         call richgridstand(1)  ! generate preliminary hint grid         
-         call richgridstand(2)  ! perform minimization on selected hints 
+         call richgridstand(1)  ! generate preliminary hint grid
+         call richgridstand(2)  ! perform minimization on selected hints
          call richgridstand(3)  ! get final result from minimization data
       else
          iflag_recstd = 0
@@ -1750,7 +1750,7 @@ cc    RECBET(1)  = 11   ! unused
                         if(abs(xrad_cand).lt.(0.5*3.*radtile_pitch)
      +                       .and.
      +                       abs(yrad_cand).lt.(0.5*3.*radtile_pitch))
-     +                       then 
+     +                       then
                            refind_cand = radix(2) !NAF
                         else
                            refind_cand = radix(1) !AGL
@@ -1943,7 +1943,7 @@ c$$$         nuhits_best = -999
 #else
 * ............... Get local ref index from old method
                   if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
-     +                 abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+     +                 abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then
                      amsri = radix(2) !NAF
                   else
                      amsri = radix(1) !AGL
@@ -1960,7 +1960,7 @@ c$$$         nuhits_best = -999
                   if(phi_out.lt.0.) phi_out=phi_out+twopi
 
                   chi2_out = chi2rec_fit/real(nbushits_fit)
-                  nuhits_out = nbushits_fit                  
+                  nuhits_out = nbushits_fit
                   if(nuhits_out.gt.0) then
                      do j=1,min(nbhits,nhitmax)
                         hres_out(j) = chi2hit_fit(j)
@@ -2096,7 +2096,7 @@ c$$$         nuhits_best = -999
 #else
 * ......... Get local ref index from old method
             if(abs(x0v_out).lt.(0.5*3.*radtile_pitch).and.
-     +           abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then 
+     +           abs(y0v_out).lt.(0.5*3.*radtile_pitch)) then
                amsri = radix(2) !NAF
             else
                amsri = radix(1) !AGL
@@ -2113,7 +2113,7 @@ c$$$         nuhits_best = -999
             if(phi_best.lt.0.) phi_best=phi_best+twopi
 
             chi2_best = chi2rec_fit/real(nbushits_fit)
-            nuhits_best = nbushits_fit                  
+            nuhits_best = nbushits_fit
             if(nuhits_best.gt.0) then
                do j=1,min(nbhits,nhitmax)
                   hres_best(j) = chi2hit_fit(j)
@@ -2426,18 +2426,18 @@ C -----------------------------------------------------------------
 *******************************************************************
 * Steering routine for minimizing a likelihood function with
 * 5 parameters free:
-* - thetac 
+* - thetac
 * - (x0m,y0m) of particle impact in PMT matrix
-* - (x0v,y0v) of photon emission vertex 
+* - (x0v,y0v) of photon emission vertex
 *
-* IN/OUT : 
-*  thetac  = Cerenkov angle (rad)  
+* IN/OUT :
+*  thetac  = Cerenkov angle (rad)
 *  x0m,y0m = matrix particle impact point at correct LG depth
 *  x0v,y0v = top rad particle impact point
 *
 *  IN    :
 *  errhint(5) = uncertainties for hint parameters
-*               (1=thetac, 2=x0m, 3=y0m, 4=x0v, 5=y0v) 
+*               (1=thetac, 2=x0m, 3=y0m, 4=x0v, 5=y0v)
 *
 *  OUT   :
 *   vlike = likelihood function value
@@ -2518,7 +2518,7 @@ C -----------------------------------------------------------------
       do i=1,mpval
          do j = 1,5 !parameters
            vpreal(j) = pmatrix(i,j)
-         enddo  
+         enddo
          yvector(i) = fliketot5parxypart(vpreal)
       enddo
 * --> find minimum
@@ -2538,13 +2538,13 @@ C -----------------------------------------------------------------
 *         theta  = atan(radius/(ZPMTDET+ZLGSIGNAL))
 *         phi    = atan2((y0m-y0v),(x0m-x0v))
 *         if (phi.lt.0.) phi = phi + TWOPI
-* -----> load rec commons    
+* -----> load rec commons
          ipthetac=1
          cangrec(ipthetac) = thetac
          do nn=1,nbushits_fit
             ipushits(ipthetac,nn) = ipushits_fit(nn)
             iflghit(ipushits_fit(nn)) = 2
-         enddo   
+         enddo
          nbushits(ipthetac) = nbushits_fit
          chi2rec(ipthetac)  = chi2rec_fit/real(nbushits_fit)
 *         print*,'(rlm5pxyp) nbhits = ',nbhits
@@ -2612,8 +2612,8 @@ C -----------------------------------------------------------------
       endif
 
 * ... load track parameters
-* --> get pmt matrix point depth  
-* --> set track direction 
+* --> get pmt matrix point depth
+* --> set track direction
       radius = sqrt((vpar(2)-vpar(4))**2+(vpar(3)-vpar(5))**2)
       pthe   = atan2(radius,ZPMTDET+ZLGSIGNAL)
       pphi   = atan2((vpar(3)-vpar(5)),(vpar(2)-vpar(4)))
@@ -2625,7 +2625,7 @@ C -----------------------------------------------------------------
       pimp(2) = real(vpar(5))
 
       call richinitrec
-      call richlikemin(-1) 
+      call richlikemin(-1)
 
 * --> set pmt matrix impact point
       pcoopmt(3) = ZPMTDET
@@ -2641,7 +2641,7 @@ C -----------------------------------------------------------------
       pcoopmtoptradius = sqrt(pcoopmtopt(1)**2+pcoopmtopt(2)**2)
 
 * ... update rotation matrix and load REC parameters
-C      call patmatr                 
+C      call patmatr
 
 CCCCCC richsetradvtx appears unnecessary since richinitrec was called
 C      call richsetradvtx(pimp,pthe,pphi,chradout) !pcervtx,...
@@ -2703,8 +2703,8 @@ C      call richsetradvtx(pimp,pthe,pphi,chradout) !pcervtx,...
       SUBROUTINE amoeba(p,y,mp,np,ndim,ftol,funk,iter,ierr)
 **************************************************************************
 * Muldimensional minimum finding routine from numerical recipes
-* 
-* IN : P(MP,NP)  = coordinates of 6 points in the muldimensional 
+*
+* IN : P(MP,NP)  = coordinates of 6 points in the muldimensional
 *                  space (ndim)
 *      Y(MP)     = function values in the coordinates
 *      MP        = NP+1
@@ -2712,11 +2712,11 @@ C      call richsetradvtx(pimp,pthe,pphi,chradout) !pcervtx,...
 *      NDIM      = number of parameters of the function to minimize
 *      FTOL      = tolerance (1.E-3 typically)
 *      FUNK      = function to minimize
-*   
-* OUT: ITER      = number of iteractions     
+*
+* OUT: ITER      = number of iteractions
 *      IERR      = 0, normal end
 *                = 1, number max of iterations reached
-*    
+*
 **************************************************************************
       INTEGER iter,mp,ndim,np,NMAX,ITMAX
       REAL ftol,p(mp,np),y(mp),funk,TINY
@@ -2766,7 +2766,7 @@ CU    USES amotry,funk
       endif
       if (iter.ge.ITMAX) then
 CC         pause 'ITMAX exceeded in amoeba'
-*         print *,'(amoeba) ITMAX exceeded in amoeba' 
+*         print *,'(amoeba) ITMAX exceeded in amoeba'
          ierr = 1
          return
       endif

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.313 2011/04/11 18:13:17 barao Exp $
+//  $Id: commons.h,v 1.314 2011/04/19 15:45:36 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1215,6 +1215,7 @@ COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 #define LIP_NMAXTOFCLU 100
 #define LIP_NMAXLIPREC 10
 #define LIP_NMAXMIRSECCC 10
+#define LIP_NPMTLIP 756
 
 // input data (see richrec_lipc.h for details)
 
@@ -1254,6 +1255,7 @@ class LIPC2F_DEF{
   geant pmtwx_c2f;
   geant pmtwy_c2f;
   geant shieldw_c2f;
+  int ipmtstat_c2f[LIP_NPMTLIP];
   geant pglix_c2f;
   geant emcxlim_c2f;
   geant emcylim_c2f;

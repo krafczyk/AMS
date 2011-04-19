@@ -16,16 +16,16 @@
 * - subroutine minbrack1(ax,bx,cx,fa,fb,fc,func,ierr)
 * - subroutine minbrack(ax,bx,cx,fa,fb,fc,func,ierr)
 * - subroutine zbrak(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)
-* - subroutine zbrak1(func,x1,x2,n,xb1,xb2,yb1,yb2,nb) 
+* - subroutine zbrak1(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)
 * - subroutine minbrackthe(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
 * - subroutine minbrackphi(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
-* - FUNCTION rtflsp_alt(func,x1,x2,xacc) 
-* - FUNCTION brent1(ax,bx,cx,f,tol,xmin)                            
-* - FUNCTION brent2(ax,bx,cx,f,tol,xmin)                            
+* - FUNCTION rtflsp_alt(func,x1,x2,xacc)
+* - FUNCTION brent1(ax,bx,cx,f,tol,xmin)
+* - FUNCTION brent2(ax,bx,cx,f,tol,xmin)
 * - FUNCTION golden1(ax,bx,cx,f,tol,xmin)
 * - FUNCTION golden2(ax,bx,cx,f,tol,xmin)
 * - FUNCTION dfridr(func,x,h,err)
-* - FUNCTION brentmod1(ax,bx,cx,f,tol,xmin,iter)                      
+* - FUNCTION brentmod1(ax,bx,cx,f,tol,xmin,iter)
 * - FUNCTION brentmod2(ax,bx,cx,f,tol,xmin,iter)
 * - FUNCTION goldenmod1(ax,bx,cx,f,tol,xmin,nstep)
 * - FUNCTION goldenmod2(ax,bx,cx,f,tol,xmin,nstep)
@@ -58,7 +58,7 @@ cc    RECBET(1)  = 11   ! unused
       RECBET(4)  = 1    ! minimum search with brent method
 
 * --- LIP thetac reconstruction (minimization)
-      call richlikemin(0)   
+      call richlikemin(0)
 
       return
       end
@@ -71,12 +71,12 @@ cc    RECBET(1)  = 11   ! unused
       subroutine richlikemin(iproc)
 ***************************************************************
 * AIMS: This routine finds the minimal cerenkov angle; it steers
-*       the likelihood function minimization (fliketotall) 
-*                                 
+*       the likelihood function minimization (fliketotall)
+*
 * IN  : iproc
-*       <0 : only initialization of  variables directly 
+*       <0 : only initialization of  variables directly
 *            related to reconstruction is performed
-*            - set cerenkov angle boundaries      
+*            - set cerenkov angle boundaries
 *            - Likelihood probability parameters
 *            - signal/background weight
 *            - set particle frame matrix
@@ -92,21 +92,21 @@ cc    RECBET(1)  = 11   ! unused
 
       real brentmod1, goldenmod1
 
-      integer 
+      integer
      +        iproc, iter, nn,
      +        nscan
-      
+
       integer nscanmax,nthetachintmax
       parameter(nscanmax=200, nthetachintmax=10)
       integer
      +     nbushits_buf(nscanmax),
      +     nthetachint,
      +     nbushits_thetachint(nthetachintmax)
-      real 
-     +     fliketot_buf(nscanmax), thetac_buf(nscanmax), 
+      real
+     +     fliketot_buf(nscanmax), thetac_buf(nscanmax),
      +     fliketot_bufmin,
      +     xthet, thc_hint,
-     +     thetbrack1, thetbrack2, thetbrack3, 
+     +     thetbrack1, thetbrack2, thetbrack3,
      +     chi2_evt, prob_evt, cangrecmin,
      +     cangrectol,
      +     h, f1, f2, f3, df1, df2,
@@ -121,14 +121,14 @@ cc    RECBET(1)  = 11   ! unused
 * --- max number of hits to scan
       nhitscan     = 0 !number of hits to be used on likelihood evaluation
 
-* --- set particle rotation matrix    
-      if (irotflg.eq.0) then          
-         call patmatr                 
-         irotflg = 1                  
-      endif                           
+* --- set particle rotation matrix
+      if (irotflg.eq.0) then
+         call patmatr
+         irotflg = 1
+      endif
 
 * --- end of initialization
-      if (iproc.lt.0) return 
+      if (iproc.lt.0) return
 
 ***********************************************************************
 
@@ -137,14 +137,14 @@ cc    RECBET(1)  = 11   ! unused
 *     in routine richgetphihint.F once per event (and not for every thetac
 *     being tested);
 
-      IPHIHINTKIND = 1 !phi hint obtained by scanning at thc max 
+      IPHIHINTKIND = 1 !phi hint obtained by scanning at thc max
       if (rcgeom(1).eq.0) then !flight
-         if (pcoopmtradius.lt.50. .and. abs(refindex-1.03).lt.0.005) 
+         if (pcoopmtradius.lt.50. .and. abs(refindex-1.03).lt.0.005)
      +   IPHIHINTKIND = 2
-         if (pcoopmtradius.lt.40. .and. abs(refindex-1.05).lt.0.005) 
+         if (pcoopmtradius.lt.40. .and. abs(refindex-1.05).lt.0.005)
      +   IPHIHINTKIND = 2
       elseif (rcgeom(1).eq.9) then !prototype
-         if (rcgeom(2).ne.1) IPHIHINTKIND = 2 ! no mirror                
+         if (rcgeom(2).ne.1) IPHIHINTKIND = 2 ! no mirror
       endif
 CC      IPHIHINTKIND = 0
 
@@ -172,9 +172,9 @@ CC      nbushits_buf = 0
             ipmin = nscan
          endif
          if (IPHIHINTKIND.ne.0) IPHIHINTFLAG = 1 !phi hint just done once
-      enddo   
+      enddo
 
-* --> minimum 
+* --> minimum
       if (ipmin.eq.0) then
          nthetachint = 0
       else
@@ -184,11 +184,11 @@ CC      nbushits_buf = 0
          func_thetachint(nthetachint) = fliketot_buf(ipmin)
       endif
 
-/* commented 22/Feb/2007 (FB) 
+/* commented 22/Feb/2007 (FB)
 * --> find minima
       nthetachint = 0
       do i=3,nscan
-         der1 = (fliketot_buf(i-1)-fliketot_buf(i-2))/thcstep  
+         der1 = (fliketot_buf(i-1)-fliketot_buf(i-2))/thcstep
          der2 = (fliketot_buf(i)-fliketot_buf(i-1))/thcstep
          if (der1.lt.0..and.der2.gt.0.) then !minimum found
             nthetachint = nthetachint + 1
@@ -196,7 +196,7 @@ CC      nbushits_buf = 0
                thetachint(nthetachint) = thetac_buf(i-1)
                nbushits_thetachint(nthetachint) = nbushits_buf(i-1)
             endif
-         endif  
+         endif
       enddo
 */
 
@@ -210,7 +210,7 @@ CC      nbushits_buf = 0
       endif
 
 * PRINT
-#ifdef DEBUGPRINT1     
+#ifdef DEBUGPRINT1
       print*,'(richlikemin) nthetachint=',nthetachint
       print*,'(richlikemin)',(thetachint(j)*RADDEG,j=1,nthetachint)
       print*,'(richlikemin)',(func_thetachint(j),j=1,nthetachint)
@@ -226,16 +226,16 @@ CC      nbushits_buf = 0
          thetbrack2 = thc_hint
          thetbrack1 = thc_hint-THCSTEP*DEGRAD
          thetbrack3 = thc_hint+THCSTEP*DEGRAD
-         if (int(recbet(4)).eq.0) then        
+         if (int(recbet(4)).eq.0) then
             chi2_evt = goldenmod1(thetbrack1,thetbrack2,thetbrack3,
-     +           fliketotall,cangrectol,cangrecmin,iter)    
+     +           fliketotall,cangrectol,cangrecmin,iter)
 CC            prob_evt = fliketotall(cangrecmin)
          else
             chi2_evt = brentmod1(thetbrack1,thetbrack2,thetbrack3,
-     +           fliketotall,cangrectol,cangrecmin,iter)    
+     +           fliketotall,cangrectol,cangrecmin,iter)
 CC            prob_evt = fliketotall(cangrecmin)
          endif
-         if (chi2_evt.lt.chi2_evt_min .and. 
+         if (chi2_evt.lt.chi2_evt_min .and.
      +       nbushits_fit.gt.nbushits_min) then
             chi2_evt_min = chi2_evt
             nbushits_min = nbushits_fit
@@ -244,15 +244,15 @@ CC            prob_evt = fliketotall(cangrecmin)
                ipthetac = 1
                ntherec  = 1
                cangrec(ipthetac)    = cangrecmin
-               likerec(ipthetac)    = chi2_evt 
-               cangrecdif(ipthetac) = -999.     
+               likerec(ipthetac)    = chi2_evt
+               cangrecdif(ipthetac) = -999.
                chi2rec(ipthetac)    = chi2rec_fit/real(nbushits_fit)
                nbushits(ipthetac)   = nbushits_fit
 *               print*,'----> NBUSHITS(ipthetac) = ',nbushits(ipthetac)
                do nn=1,nbushits_fit
                   ipushits(ipthetac,nn) = ipushits_fit(nn)
                   iflghit(ipushits_fit(nn)) = 2
-               enddo                              
+               enddo
                do nn=1,min(nbhits,nhitmax)
                   chi2hit(ipthetac,nn)    = chi2hit_fit(nn)
                   nbminshit(ipthetac,nn)  = nbminshit_fit(nn)
@@ -275,7 +275,7 @@ CC            prob_evt = fliketotall(cangrecmin)
             endif
          endif
       enddo
-            
+
 * ... compute minimum second derivative
       h   = 1.E-3
       df2 = 0.0
@@ -312,10 +312,10 @@ CC            prob_evt = fliketotall(cangrecmin)
       real function fliketotall(cangrecx)
 *********************************************************************
 *
-* AIMS: likelihood function computed as the product of the hits 
+* AIMS: likelihood function computed as the product of the hits
 *       probability to belong to the tested pattern(cangrecx);
-*       
-*   IN: cangrecx = cerenkov angle 
+*
+*   IN: cangrecx = cerenkov angle
 *
 * DATE: Feb/2007
 *
@@ -353,7 +353,7 @@ CC            prob_evt = fliketotall(cangrecmin)
 * ... tolerance for determination minimum
       phitol = 0.01*degrad
       nmaxiter = 25
-      
+
 * --- pass variable
       hypthc = cangrecx
       if (hypthc.eq.0.0) hypthc = 0.001
@@ -362,7 +362,7 @@ CC            prob_evt = fliketotall(cangrecmin)
       if (nbhits.eq.0          .or.
      &    nbhits_nass.eq.0     .or.    ! added 06-Mar-2007 by R. Pereira
      &    hypthc.lt.cangreclow .or.
-     &    hypthc.gt.cangrecup   
+     &    hypthc.gt.cangrecup
      &    ) then
          fliketotall = 1.E8
 *         print*,'---> likelihood value set to 1E8 (1st exception)'
@@ -390,15 +390,15 @@ CC            prob_evt = fliketotall(cangrecmin)
 *         print*,'N=',n,', I=',i,', iflghit(I)=',iflghit(i)
 * ...... exclude associated hits to track (dummy!!!)
          if (iflghit(i).eq.1) goto 1 !next hit
-* ...... exclude hits already used by some reconstruction 
+* ...... exclude hits already used by some reconstruction
          if (iflghit(i).eq.2) goto 1 !next hit
 * ...... exclude hits farther than 10 cm for maximum cerenkov pattern
          if (iflghit(i).eq.3) goto 1 !next hit
-* ...... current hit              
-         ihit = i                 
-         curhit(1) = hitscoo(1,i) 
-         curhit(2) = hitscoo(2,i) 
-         curhit(3) = hitscoo(3,i) 
+* ...... current hit
+         ihit = i
+         curhit(1) = hitscoo(1,i)
+         curhit(2) = hitscoo(2,i)
+         curhit(3) = hitscoo(3,i)
 * ...... get phi hints for minimization
          if (iphihintflag.eq.0) then ! defined at richlikemin.F
             if (iphihintkind.eq.0) CHOPT='FULL'
@@ -417,25 +417,25 @@ CC            prob_evt = fliketotall(cangrecmin)
 * PRINT
             write(6,'(A,1x,I3,2X,I1,2x,$)') CHOPT,i,iflghit(i)
             do m=1,nphihints
-               write(6,'(2x,F4.2,1x,A,1x,F7.1,1x,A,1x$)') 
+               write(6,'(2x,F4.2,1x,A,1x,F7.1,1x,A,1x$)')
      +         phihintsbuf(m,i),'*',chi2hintsv(m),'|'
             enddo
             write(6,'(A)') ' '
 #endif
          endif
 * ...... reject hit if no minimum at the hint phase was found on phi
-         if (nphihintsbuf(i) .eq.0) goto 1  
+         if (nphihintsbuf(i) .eq.0) goto 1
 * ...... Choose minimal phi hint and perform phi minimization
          chi2hit_min = 1.E9
-         do 3 j=1,nphihintsbuf(i) 
+         do 3 j=1,nphihintsbuf(i)
             phibrack1 = phihintsbuf(j,i) - 1.0*degrad
             phibrack2 = phibrack1        + 2.0*degrad
 * --------> phi minimum brackecting
             call minbrackphi(phibrack1,phibrack2,phibrack3,
-     +                       funcphi1,funcphi2,funcphi3,            
-     +                       fchi2hit,nmaxiter,nsteps,ierr)     
+     +                       funcphi1,funcphi2,funcphi3,
+     +                       fchi2hit,nmaxiter,nsteps,ierr)
             if (ierr.ne.0) goto 3
-* --------> phi minimization             
+* --------> phi minimization
             chi2_hit = brentmod2(phibrack1,phibrack2,phibrack3,
      +                           fchi2hit,phitol,phphimin,iter)
 * --------> Get 0 < phphimin < 360 Degree
@@ -448,7 +448,7 @@ CC            prob_evt = fliketotall(cangrecmin)
 * --------> Keep minimum
             if (chi2_hit.lt.chi2hit_min) then
                chi2hit_min   = chi2_hit
-               phihit_min    = phphimin 
+               phihit_min    = phphimin
                nmirefhit_min = nmirefhit !from richrec.inc common
                msechit_min   = msechit !from richrec.inc common
             endif
@@ -465,13 +465,13 @@ CC            prob_evt = fliketotall(cangrecmin)
 *         print*,'Current pcoopmt:',pcoopmt
 * ...... Compute probability function (Gauss+constant) for the hit
 #ifdef DEBUGPRINT0
-         write(6,'(A,1x,6(F7.3,1x))') '(fliketotall) LIKELIHOOD FUNC',  
+         write(6,'(A,1x,6(F7.3,1x))') '(fliketotall) LIKELIHOOD FUNC',
      +   FBACKGR, FDISTAN, F1NORMG, F1SIGMA2, F2SIGMA2
 #endif
 * ----> DOUBLE GAUSSIAN
          gcte1   = F1NORMG/sqrt(twopi*F1SIGMA2)
          gcte2   = (1.-F1NORMG)/sqrt(twopi*F2SIGMA2)
-         fgaussct = -log( 
+         fgaussct = -log(
      +                   (1.-FBACKGR)*(
      +                   gcte1*exp(-0.5*chi2hit_fit(i)/F1SIGMA2)+
      +                   gcte2*exp(-0.5*chi2hit_fit(i)/F2SIGMA2))+
@@ -485,17 +485,17 @@ cc            fact_weight=nint(hitsnpe(i))
             fact_weight=hitsnpe(i)
          endif
          fgaussct = fgaussct*fact_weight
-*         fgaussct = fgaussct*hitsnpe(i) ! (weight with signal) 8 Jan 2004 
+*         fgaussct = fgaussct*hitsnpe(i) ! (weight with signal) 8 Jan 2004
 * -----> Compute likelihood function
          fliketotall = fliketotall + fgaussct
 * ...... tag hits associated to ring
 *         print*,'chi2hit_fit(',i,') = ',chi2hit_fit(i)
          if (chi2hit_fit(i).lt.CHI2HTCUT ) then
 *            print*,'Hit ',i,' counted for ring'
-            nbushits_fit               = nbushits_fit + 1 
+            nbushits_fit               = nbushits_fit + 1
             ipushits_fit(nbushits_fit) = i
-            chi2rec_fit                = chi2rec_fit + chi2hit_fit(i)   
-         endif 
+            chi2rec_fit                = chi2rec_fit + chi2hit_fit(i)
+         endif
 
 * --- loop on hits
  1    continue
@@ -513,7 +513,7 @@ cc            fact_weight=nint(hitsnpe(i))
 * ... no likelihood was calculated
       if (fliketotall.eq.0..and.nbushits_fit.eq.0) then
 CC        print*,'(fliketotall) nbushits=0!!!'
-         fliketotall = 1.E8        
+         fliketotall = 1.E8
 *         print*,'---> likelihood value set to 1E8 (2nd exception)'
          return
       endif
@@ -535,15 +535,15 @@ CC        print*,'(fliketotall) nbushits=0!!!'
 *
 *  This routine computes the phi hints for the current hit
 *  at common /cerwrkc/ (richrec.inc);
-* 
-*  IN : CHOPT = 'FULL' - full scan of phi for current thetac 
+*
+*  IN : CHOPT = 'FULL' - full scan of phi for current thetac
 *               'SCAN' - a scanning is performed over the
 *                        the phi values to get fast minimal values
 *                        for thetac max
-*               'GEOM' - the hit coordinates are converted are 
+*               'GEOM' - the hit coordinates are converted are
 *                        transformed to the particle frame and
 *                        converted in an azimuthal angle phi
-*  
+*
 *  OUT: nphihints      - number of phi hints obtained
 *       phihintsv      - values of phi hints
 *       chi2hintsv     - values of squared distances
@@ -594,7 +594,7 @@ C -----------------------------------------------------
          do xphi=0.,365.,phisteplocal ! phistep
            nscan=nscan+1
            if (nscan.gt.nscanmax) then
-              print*,' (richgetphihint) array dim overflow ' 
+              print*,' (richgetphihint) array dim overflow '
               ierr = 1
               goto 98
            endif
@@ -608,8 +608,8 @@ C -----------------------------------------------------
             ierr = 3
             goto 98
          endif
-                      
-* ...... search phi minimum's 
+
+* ...... search phi minimum's
          do i=3,nscan
            dif21=(funcbuf(i-1)-funcbuf(i-2))/phisteplocal
            dif32=(funcbuf(i)-funcbuf(i-1))/phisteplocal
@@ -617,7 +617,7 @@ C -----------------------------------------------------
              if (chradid.eq.'AGL') then
                 if (funcbuf(i-1).lt.250.) then !distance cut
                   nphihints=nphihints+1
-                  if (nphihints.le.nphihintsmax) then 
+                  if (nphihints.le.nphihintsmax) then
                      chi2hintsv(nphihints)=funcbuf(i-1)
                      phihintsv(nphihints)=phibuf(i-1)
                      if (phihintsv(nphihints)*RADDEG.gt.360.) then
@@ -629,7 +629,7 @@ C -----------------------------------------------------
                 endif
              elseif (chradid.eq.'NAF') then
                 nphihints=nphihints+1
-                if (nphihints.le.nphihintsmax) then 
+                if (nphihints.le.nphihintsmax) then
                    chi2hintsv(nphihints)=funcbuf(i-1)
                    phihintsv(nphihints)=phibuf(i-1)
                    if (phihintsv(nphihints)*RADDEG.gt.360.) then
@@ -648,7 +648,7 @@ C -----------------------------------------------------
 
 * ...... restore hypthc
  98      continue
-         hypthc = hypthcbuf 
+         hypthc = hypthcbuf
 
 C -----------------------------------------------------
       ELSEIF (CHOPT.eq.'GEOM') THEN
@@ -656,29 +656,29 @@ C -----------------------------------------------------
 
          nphihints = 1
 * ...... get phi hint
-         dxdet = curhit(1)-pcervtx(1)            
-         dydet = curhit(2)-pcervtx(2)            
+         dxdet = curhit(1)-pcervtx(1)
+         dydet = curhit(2)-pcervtx(2)
          dzdet = curhit(3)-pcervtx(3)
          if (pthe*RADDEG.ne.0.) then
-            dxpar = - cos(pthe)*cos(pphi)*dxdet 
-     +              - cos(pthe)*sin(pphi)*dydet 
+            dxpar = - cos(pthe)*cos(pphi)*dxdet
+     +              - cos(pthe)*sin(pphi)*dydet
      +              + sin(pthe)*dzdet
-            dypar =   sin(pphi)*dxdet 
-     +              - cos(pphi)*dydet 
+            dypar =   sin(pphi)*dxdet
+     +              - cos(pphi)*dydet
             phihintsv(nphihints) = atan2(dypar,dxpar)
-            if (phihintsv(nphihints).lt.0.) 
+            if (phihintsv(nphihints).lt.0.)
      +      phihintsv(nphihints)=phihintsv(nphihints)+twopi
          else
-            phihintsv(nphihints) = atan2(dydet,dxdet)            
+            phihintsv(nphihints) = atan2(dydet,dxdet)
             if(phihintsv(nphihints).lt.0.)
      +      phihintsv(nphihints)=phihintsv(nphihints)+twopi
          endif
 
-* ...... tag hits too far from thetac max ring 
+* ...... tag hits too far from thetac max ring
          hypthcbuf     = hypthc
          hypthc        = acos(1./refindex)
-         chi2hintsv(1) = fchi2hit(phihintsv(1))         
-         hypthc        = hypthcbuf 
+         chi2hintsv(1) = fchi2hit(phihintsv(1))
+         hypthc        = hypthcbuf
 
 * ...... distance cut
          if (chi2hintsv(1).gt.500.) nphihints = 0
@@ -692,10 +692,10 @@ C -----------------------------------------------------
          nscan = 0
          ipmin = 0
          funcbuf_min=1.e9
-         do xphi = 0.,360.,PHISTEP 
+         do xphi = 0.,360.,PHISTEP
            nscan = nscan + 1
            if (nscan.gt.nscanmax) then
-              print*,' (richgetphihint) array dim overflow ' 
+              print*,' (richgetphihint) array dim overflow '
               ierr = 1
               return
            endif
@@ -705,7 +705,7 @@ C -----------------------------------------------------
               funcbuf_min = funcbuf(nscan)
               ipmin       = nscan
            endif
-         enddo   
+         enddo
 
 * ....,. reject hit
          if (funcbuf_min.gt.1.e7 .or. ipmin.eq.0) then
@@ -736,7 +736,7 @@ C -----------------------------------------------------
 
 #include "../include/richrec_lipf.h"
 
-      integer nermax  
+      integer nermax
       parameter(nermax=10)
       integer verr(nermax)
       real vdet(3),vdir(3)
@@ -747,7 +747,7 @@ C -----------------------------------------------------
 *
       fchi2hit = 0.
       cangrecx = hypthc
-      CALL PATRACE(phphi,cangrecx,vdet,vdir,nmiref,nerr,verr) 
+      CALL PATRACE(phphi,cangrecx,vdet,vdir,nmiref,nerr,verr)
       nmirefhit = nmiref
 
 * ... mirror phi
@@ -786,13 +786,13 @@ C -----------------------------------------------------
 ****************************
 
 *******************************************************************************
-*    File with subroutines/ functions for numerical computation 
+*    File with subroutines/ functions for numerical computation
 *
 *
 *    INDEX (by apearing order):
 *
 *        -> Bracketing of minimum (for single-valued functions)
-* 
+*
 *                   minbrack1
 *                   minbrack
 *        -> Finding of a minimum in a minimum bracket
@@ -801,15 +801,15 @@ C -----------------------------------------------------
 *                   golden1
 *                   golden2
 *        -> Bracketing of zeros (for single-valued functions)
-*      
+*
 *                   zbrak
 *                   zbrak1
 *        -> Finding the zero of a function in an interval according
 *           to the false position method
 *                   RTFLSP_ALT
-*         
-*        -> Numerical Derivative by Ridders method 
-*                   dfridr 
+*
+*        -> Numerical Derivative by Ridders method
+*                   dfridr
 *
 *        -> Modified versions for some of previous routines/functions:
 *                   brentmod1
@@ -830,7 +830,7 @@ C -----------------------------------------------------
 *     extracted from NUMERICAL RECIPES in Fortran
 *     Chapter. 10: Function Minimization
 * -----------------------------------------------------------------------------
-* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx ) 
+* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx )
 * and f(ax)>f(bx) and f(cx)>f(bx)
 *
 *
@@ -921,7 +921,7 @@ C=============================================================================
 *
 *     extracted from NUMERICAL RECIPES in Fortran
 *     Chapter. 10: Function Minimization
-* 
+*
 ********************************************************************************
       implicit none
       REAL ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
@@ -944,7 +944,7 @@ C=============================================================================
       endif
       cx=bx+GOLD*(bx-ax)
       fc=func(cx)
-      nstep=nstep+1      
+      nstep=nstep+1
 1     if(fb.ge.fc)then
         nstep=nstep+1
         if(nstep.lt.nstepmax)then
@@ -1001,12 +1001,12 @@ C=============================================================================
       END
 
 * ====================================================================
-      FUNCTION brent1(ax,bx,cx,f,tol,xmin)                            
-* ====================================================================         
+      FUNCTION brent1(ax,bx,cx,f,tol,xmin)
+* ====================================================================
       implicit none
       INTEGER ITMAX
       REAL brent1,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
-      EXTERNAL f    
+      EXTERNAL f
       PARAMETER (ITMAX=100,CGOLD=.3819660,ZEPS=1.0e-10)
       INTEGER iter
       REAL a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
@@ -1015,7 +1015,7 @@ C=============================================================================
       v=bx
       w=v
       x=v
-      e=0.    
+      e=0.
       fx=f(x)
       fv=fx
       fw=fx
@@ -1090,12 +1090,12 @@ C=============================================================================
       return
       END
 * ====================================================================
-      FUNCTION brent2(ax,bx,cx,f,tol,xmin)                            
-* ====================================================================  
+      FUNCTION brent2(ax,bx,cx,f,tol,xmin)
+* ====================================================================
       implicit none
       INTEGER ITMAX
       REAL brent2,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
-      EXTERNAL f    
+      EXTERNAL f
       PARAMETER (ITMAX=100,CGOLD=.3819660,ZEPS=1.0e-10)
       INTEGER iter
       REAL a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
@@ -1104,7 +1104,7 @@ C=============================================================================
       v=bx
       w=v
       x=v
-      e=0.    
+      e=0.
       fx=f(x)
       fv=fx
       fw=fx
@@ -1278,71 +1278,71 @@ C=============================================================================
 
 * ===================================================================
 
-* ======================================================       
-      subroutine zbrak(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)               
-* ====================================================== 
+* ======================================================
+      subroutine zbrak(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)
+* ======================================================
       implicit none
-      external func                                            
-      integer n,nb                                             
-      real func,x1,x2,xb1(nb),xb2(nb),yb1(nb),yb2(nb)                  
-      integer i,nbb                                            
-      real dx,fc,fp,x                                          
-      nbb = 0                                                  
-      x = x1                                                   
-      dx = (x2-x1)/n                                           
-      fp = func(x)                                             
-      do i=1,n                                                 
-         x = x + dx                                            
-         fc = func(x)                                          
-         if (fc*fp.le.0.) then                                 
-            nbb = nbb + 1                                      
-            xb1(nbb) = x-dx                                    
-            xb2(nbb) = x                        
-            yb1(nbb) = fp
-            yb2(nbb) = fc               
-            if (nbb.eq.nb) goto 1                              
-         endif                                                 
-         fp = fc                                               
-      enddo                                                    
- 1    continue                                                 
-      nb = nbb                                                 
-      return                                                   
-      end                                                      
-
-* ======================================================       
-      subroutine zbrak1(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)               
-* ======================================================       
-      implicit none
-      external func                                            
-      integer n,nb                                             
+      external func
+      integer n,nb
       real func,x1,x2,xb1(nb),xb2(nb),yb1(nb),yb2(nb)
-      integer i,nbb                                            
-      real dx,fc,fp,x                                          
-      nbb = 0                                                  
-      x = x1                                                   
-      dx = (x2-x1)/n                                           
-      fp = func(x)                                             
-      do i=1,n                                                 
-         x = x + dx                                            
-         fc = func(x)                                          
-         if (fc*fp.le.0.) then                                 
-            nbb = nbb + 1                                      
-            xb1(nbb) = x-dx                                    
-            xb2(nbb) = x                
+      integer i,nbb
+      real dx,fc,fp,x
+      nbb = 0
+      x = x1
+      dx = (x2-x1)/n
+      fp = func(x)
+      do i=1,n
+         x = x + dx
+         fc = func(x)
+         if (fc*fp.le.0.) then
+            nbb = nbb + 1
+            xb1(nbb) = x-dx
+            xb2(nbb) = x
             yb1(nbb) = fp
-            yb2(nbb) = fc                                      
-            if (nbb.eq.nb) goto 1                              
-         endif                                                 
-         fp = fc                                               
-      enddo                                                    
- 1    continue                                                 
-      nb = nbb                                                 
-      return                                                   
-      end                                                      
+            yb2(nbb) = fc
+            if (nbb.eq.nb) goto 1
+         endif
+         fp = fc
+      enddo
+ 1    continue
+      nb = nbb
+      return
+      end
+
+* ======================================================
+      subroutine zbrak1(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)
+* ======================================================
+      implicit none
+      external func
+      integer n,nb
+      real func,x1,x2,xb1(nb),xb2(nb),yb1(nb),yb2(nb)
+      integer i,nbb
+      real dx,fc,fp,x
+      nbb = 0
+      x = x1
+      dx = (x2-x1)/n
+      fp = func(x)
+      do i=1,n
+         x = x + dx
+         fc = func(x)
+         if (fc*fp.le.0.) then
+            nbb = nbb + 1
+            xb1(nbb) = x-dx
+            xb2(nbb) = x
+            yb1(nbb) = fp
+            yb2(nbb) = fc
+            if (nbb.eq.nb) goto 1
+         endif
+         fp = fc
+      enddo
+ 1    continue
+      nb = nbb
+      return
+      end
 
 
 ********************************************************************
-* False position method to find the root of a function 
+* False position method to find the root of a function
 * in a given interval(9.2)
 ********************************************************************
 * ==================================================================
@@ -1405,7 +1405,7 @@ C  (C) Copr. 1986-92 Numerical Recipes Software 7L`2.d0
 
 
 
-       
+
 
 ********************************************************************
 * numerical derivative by Ridders' method (5.7)
@@ -1457,12 +1457,12 @@ CU    USES func
 
 
 * ====================================================================
-      FUNCTION brentmod1(ax,bx,cx,f,tol,xmin,iter)                      
-* ====================================================================         
+      FUNCTION brentmod1(ax,bx,cx,f,tol,xmin,iter)
+* ====================================================================
       implicit none
       INTEGER ITMAX
       REAL brentmod1,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
-      EXTERNAL f    
+      EXTERNAL f
       PARAMETER (ITMAX=100,CGOLD=.3819660,ZEPS=1.0e-10)
       INTEGER iter
       REAL a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
@@ -1471,7 +1471,7 @@ CU    USES func
       v=bx
       w=v
       x=v
-      e=0.    
+      e=0.
       fx=f(x)
       fv=fx
       fw=fx
@@ -1547,11 +1547,11 @@ CU    USES func
       END
 * ====================================================================
       FUNCTION brentmod2(ax,bx,cx,f,tol,xmin,iter)
-* ====================================================================  
+* ====================================================================
       implicit none
       INTEGER ITMAX
       REAL brentmod2,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
-      EXTERNAL f    
+      EXTERNAL f
       PARAMETER (ITMAX=100,CGOLD=.3819660,ZEPS=1.0e-10)
       INTEGER iter
       REAL a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
@@ -1560,7 +1560,7 @@ CU    USES func
       v=bx
       w=v
       x=v
-      e=0.    
+      e=0.
       fx=f(x)
       fv=fx
       fw=fx
@@ -1739,12 +1739,12 @@ CU    USES func
 
       subroutine minbrackthe(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
 *******************************************************************************
-*     this routine makes the bracketing of a minimum of the function 
+*     this routine makes the bracketing of a minimum of the function
 *
 *     extracted from NUMERICAL RECIPES in Fortran
 *     Chapter. 10: Function Minimization
 * -----------------------------------------------------------------------------
-* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx ) 
+* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx )
 * and f(ax)>f(bx) and f(cx)>f(bx)
 *
 *
@@ -1819,7 +1819,7 @@ CU    USES func
           ierr=1
           return
         endif
-        goto 1 
+        goto 1
       endif
 
       return
@@ -1837,7 +1837,7 @@ CU    USES func
 *
 * -----------------------------------------------------------------------------
 *     Here no quadratic interpolation is done
-* 
+*
 *     Borges 23/9/2002
 ********************************************************************************
       implicit none
@@ -1860,7 +1860,7 @@ CU    USES func
       endif
       cx=bx+GOLD*(bx-ax)
       fc=func(cx)
-      nstep=nstep+1      
+      nstep=nstep+1
 1     if(fb.ge.fc)then
         nstep=nstep+1
         if(nstep.lt.nmax)then
@@ -1881,4 +1881,3 @@ CU    USES func
 
       return
       END
-

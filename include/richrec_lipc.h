@@ -16,6 +16,9 @@
       integer NMAXMIRSECCC
       PARAMETER(NMAXMIRSECCC=10)
 
+      integer NPMTLIP
+      PARAMETER(NPMTLIP=756)
+
       real ztoprad_ams_c2f,
      +     ztarg_c2f,hrad_c2f,hrnaf_c2f,radtile_pitch_c2f,
      +     radtile_supthk_c2f,radix_c2f,radclarity_c2f,hpgl_c2f,
@@ -38,7 +41,7 @@
       integer jobc_cp_c2f,
      +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,levghit_c2f,
      +        nradts_c2f,
-     +        nmirsec_c2f,idmirs_c2f,
+     +        nmirsec_c2f,idmirs_c2f,ipmtstat_c2f,
      +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, 
      +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
      +        ibar_tof,irecnumb,itrknumb,idispflag
@@ -79,6 +82,7 @@
      +                  pmtwx_c2f,                 ! PMT (LG in fact) X dimension
      +                  pmtwy_c2f,	           ! PMT (LG in fact) Y dimension
      +                  shieldw_c2f,	           ! dead space between light guides
+     +                  ipmtstat_c2f(npmtlip),     ! PMT status
      +                  pglix_c2f,	           ! refractive index of foil
      +                  emcxlim_c2f,	           ! ECAL hole, X coord
      +                  emcylim_c2f,	           ! ECAL hole, Y coord

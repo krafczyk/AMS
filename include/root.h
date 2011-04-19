@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.331 2011/04/19 06:15:38 mdelgado Exp $
+//  $Id: root.h,v 1.332 2011/04/19 15:45:37 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1408,10 +1408,11 @@ static char _Info[255];
   float RingEffMsec2R[3];    ///< ring efficiency for mirror sectors, 2 reflection
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
   std::vector<int> HitsStatus;         ///< hit status:
+                                       ///<         -2 = not considered for reconstruction,
                                        ///<         -1 = not associated to ring,
                                        ///<          0 = direct,
-                                       ///<          1,2,etc reflexions.
-  std::vector<float> TrackRec;         ///< reconstructed track parameters (rec. Status i=3,4 only)
+                                       ///<          1,2,etc reflections.
+  std::vector<float> TrackRec;         ///< reconstructed track parameters (in LIP coord system)
                                        ///< TrackRec[0] = x                TrackRec[1] = error in x
                                        ///< TrackRec[2] = y                TrackRec[3] = error in y
                                        ///< TrackRec[4] = z                TrackRec[5] = error in z
@@ -1419,7 +1420,7 @@ static char _Info[255];
                                        ///< TrackRec[8] = phi (radians)    TrackRec[9] = error in phi
 
  protected:
-  int fTrTrack;   ///< index of  TrTrackR in collection or null if rec. i=3 from on ToF data or i=4
+  int fTrTrack;   ///< index of  TrTrackR in collection or null if rec. i=3,4,5,6,7
   vector<int> fRichHit; ///< indexes of RichHitR in collection
   //void FillRichHits(int ringnew);
  public:

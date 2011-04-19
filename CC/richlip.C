@@ -3,6 +3,8 @@
 // #include"richid.h"
 
 
+////////////////////////////////////////////////////////////////////////
+
 void RichLIPRec::InitGlobal(){
 
   // display flag
@@ -59,8 +61,84 @@ void RichLIPRec::InitGlobal(){
   LIPC2F.xbd_c2f = 64.5;
   LIPC2F.yef_c2f = 60.3;
   LIPC2F.xpc_c2f = 0.25;
+
+  // PMT and pixel status
+
+  int maxbadpix = 3;  // max no. bad pixels for PMT to be flagged as good
+
+  for(int i=0;i<680;i++) {
+    badpix_ams[i] = 0;
+    for(int j=0;j<16;j++) {
+      if(!(RichPMTsManager::Status(i,j)%10 && RichPMTsManager::Mask(i,j))) {
+	badpix_ams[i]++;
+	//cout << "Bad pixel detected: PMT " << i << ", pixel " << j << endl;
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // tips for additional PMT exclusion (R. Pereira 18-Apr-2011)
+  //
+  // additional PMTs may be excluded (i.e. their hits ignored
+  // and their surfface considered as dead for acceptance calculations)
+  // by adding, in this exact location, lines like:
+  //
+  // badpix_ams[###] = 16;
+  //
+  // where ### is the number of the PMT to flag.
+  // ------------------------------------------------------------------
+
+  //cout << "PMT bad pixels (AMS numbering): " << endl;
+  for(int i=0;i<680;i++) {
+    //cout << badpix_ams[i];
+    if(i<679) {
+      //cout << ",";
+    }
+    else {
+      //cout << endl;
+    }
+  }
+
+  //cout << "PMT bad pixels (LIP numbering): " << endl;
+  for(int i=0;i<756;i++) {
+    badpix_lip[i] = 16;
+    if(pmtconv_lip2ams[i]>=0) {
+      badpix_lip[i] = badpix_ams[pmtconv_lip2ams[i]];
+    }
+    //cout << badpix_lip[i];
+    if(i<755) {
+      //cout << ",";
+    }
+    else {
+      //cout << endl;
+    }
+  }
+
+  //cout << "PMT LIP status (LIP numbering): " << endl;
+  for(int i=0;i<756;i++) {
+    badpmt_lip[i] = 1;  // non-existing PMT
+    if(pmtconv_lip2ams[i]>=0) { // existing PMT
+      if(badpix_lip[i]>maxbadpix) {
+	badpmt_lip[i] = 3; // bad
+      }
+      else {
+	badpmt_lip[i] = 0; // good
+      }
+    }
+    LIPC2F.ipmtstat_c2f[i] = badpmt_lip[i];
+    //cout << badpmt_lip[i];
+    if(i<755) {
+      //cout << ",";
+    }
+    else {
+      //cout << endl;
+    }
+  }  
+
 }
 
+
+////////////////////////////////////////////////////////////////////////
 
 void RichLIPRec::InitEvent() {
 
@@ -73,15 +151,24 @@ void RichLIPRec::InitEvent() {
   int actual = 0;
   LIPC2F.nbhits_ev = 0;
 
+  totalhits = 0;
+
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
-    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+
+    totalhits++;
+    hitinlip[totalhits-1] = 0;
+
+    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;  // exclude hits in bad channels (from DB)
+    if(badpmt_lip[pmtconv_ams2lip[hit->getchannel()/16]]!=0) continue;  // exclude bad PMTs according to LIP criteria
 
     if(actual>=LIP_NBHITSMAX) {
       cout << "RichLIPRec::InitEvent : Event too long."<<endl;
-      break;
+      //break;
+      continue;  // instead of break, to allow flagging of all hits up to last one
     }
 
+    hitinlip[totalhits-1] = 1;
     LIPC2F.nbhits_ev++;
 
     LIPC2F.hitsnpe_ev[actual]=hit->getnpe();
@@ -194,6 +281,8 @@ void RichLIPRec::InitEvent() {
 }
 
 
+////////////////////////////////////////////////////////////////////////
+
 void RichLIPRec::InitTrack(AMSPoint entrance_p, AMSDir entrance_d) {
 
 #define PI 3.14159265359
@@ -270,6 +359,9 @@ int RichLIPRec::goodLIPREC() {
   int nr = LIPC2F.irecnumb;
   return (LIPF2C.resb_iflag[nr]==1);
 }
+
+
+////////////////////////////////////////////////////////////////////////
 
 
 // conversion between AMS and LIP coordinate systems

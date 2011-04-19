@@ -14,7 +14,7 @@
 *  Subroutine probchg(chg0,sig0,chgm,prob0)
 *  subroutine richpkolm(dphistep,probkol)
 *  double precision function normg(x)
-*  
+*
 *  added cernlib numerical libs on 23 Oct 2010
 *
 *  rzero
@@ -35,9 +35,9 @@
 *
 * Returns the information on max PMT
 *
-* OUT: 
+* OUT:
 *      xmax,ymax   = coordinates of strongest pixel inside PMT imax
-*      imax(5)     = PMT id sorted from signal 
+*      imax(5)     = PMT id sorted from signal
 *      sigmax(5)   = PMT signal sorted
 *      nhmax(5)    = NB HITS associated to max PMT
 *      fracmax     = hit max fraction within pmt max
@@ -55,8 +55,8 @@
 
       real xmax,ymax,sigtot,sigmax(5)
       integer imax(5),nhmax(5)
-      real hit_pmtmax,fracmax    
-      
+      real hit_pmtmax,fracmax
+
 * --- init
       xmax  = -999.
       ymax  = -999.
@@ -78,25 +78,25 @@
       if (nbhits.eq.0) return
 
 * --- get pmt signal
-      do i=1,min(nbhits,nhitmax)         
+      do i=1,min(nbhits,nhitmax)
 * ...... decode pmt number
-         ipmt = hitspmt(i)/10/16 ! =0,...,98 (prototype,0...679 flight)      
+         ipmt = hitspmt(i)/10/16 ! =0,...,98 (prototype,0...679 flight)
 *         print*,'ipmt = ',ipmt
-* ...... get signals per pmt         
+* ...... get signals per pmt
          sig_pmt(ipmt+1)=sig_pmt(ipmt+1)+hitsnpe(i)
 *         print*,'signal = ',hitsnpe(i)
-* ...... gravity center for each activated pmt 
+* ...... gravity center for each activated pmt
          coo_pmt(1,ipmt+1)=coo_pmt(1,ipmt+1)+hitscoo(1,i)*hitsnpe(i)
          coo_pmt(2,ipmt+1)=coo_pmt(2,ipmt+1)+hitscoo(2,i)*hitsnpe(i)
-* ...... occupancy of pmt            
+* ...... occupancy of pmt
          nbhits_pmt(ipmt+1)=nbhits_pmt(ipmt+1)+1
-* ...... total signal         
+* ...... total signal
          sigtot = sigtot + hitsnpe(i)
       enddo
 
 * --- sort signals (descendent order)
-      call sortzv_alt(sig_pmt,index_pmt,npmtmax,+1,1,0) 
-      
+      call sortzv_alt(sig_pmt,index_pmt,npmtmax,+1,1,0)
+
 * --- count nb of pmts with hits
       ipmtc = 0
       do i=1,npmtmax
@@ -115,23 +115,23 @@
       hit_pmtmax=-999.
       do i=1,min(nbhits,nhitmax)
          ipmt = (hitspmt(i)/10)/16 ! goes from 0 to (98)
-* ...... select pmt of maximum signal 
+* ...... select pmt of maximum signal
          if ((ipmt+1).eq.imax(1))then
             if (hitsnpe(i).gt.hit_pmtmax)then
                hit_pmtmax=hitsnpe(i)
-* ............ Take highest activated pixel inside highest activated PMT 
-*              to define alignment coordinates  
+* ............ Take highest activated pixel inside highest activated PMT
+*              to define alignment coordinates
                xmax=hitscoo(1,i)
                ymax=hitscoo(2,i)
                imaxx=i
             endif
          endif
       enddo
-      
+
 * ... max hit fraction
       fracmax = -999.
       if (sigmax(1).gt.0.) fracmax = hit_pmtmax/sigmax(1)
-      
+
 
 * --- end
  999  continue
@@ -147,12 +147,12 @@
 *****************************************************************************
 *
 *  uradtile: get tile number on x and y for a set of coordinates (x,y)
-*  
+*
 *  |.
 *  |(0,1)
 *  |(0,0) (1,0) (2,0) ...
 *  |--------
-* 
+*
 *  Tiles nb: -5...0...5
 *
 * last update: 25/05/2004 (F.Barao)
@@ -183,7 +183,7 @@
 */
 
 C ----------------------------------------
-      IF (RADTILE_PITCH.LT.12.) THEN 
+      IF (RADTILE_PITCH.LT.12.) THEN
 C ----------------------------------------
 
       half_tile = (radtile_pitch-radtile_supthk)/2.
@@ -201,7 +201,7 @@ C ----------------------------------------
          yy = y+sign(1.,y)*half_tile+sign(1.,y)*radtile_supthk/2.
          ny = int( yy/(radtile_pitch))
       endif
-      
+
 C ----------------------------------------
       ELSE
 C ----------------------------------------
@@ -233,19 +233,23 @@ C ----------------------------------------
 * PARAMS:
 *        IN - XPHOT,YPHOT
 *        OUT- IPM  PMT number
-*             IFLG  0 - valid PMT
-*                   1 - external contour -first out
-*                   2 - internal non existing PMT
-*                   3 - external non existing PMT (dead areas)
+*             IFLG  0 - good PMT
+*                   1 - no PMT at this position
+*                   3 - bad PMT (dead areas)
+*
+*     Updated: April 2011 (R. Pereira) - IFLG now comes from external array
+*                                        intermediate determinations of IFLAG
+*                                        maintained since they are used mid-code,
+*                                        but overriden by final change
 **************************************************************************
 
-#include "../include/richrec_lipf.h" 
+#include "../include/richrec_lipf.h"
 
       integer IPM,IFLG
       real XPHOT,YPHOT,RPHOT,dxp,dyp
 
-*      PITCH=3.7 
-      IP   = -1      
+*      PITCH=3.7
+      IP   = -1
       IPM  = -1
       IFLG =  3
 *
@@ -253,38 +257,38 @@ C ----------------------------------------
       PITCHY=PMTWY+SHIELDW
 
       XLIMV=(17*PITCHX + JUMP)/2.
-      XLIMH=XLIMV + DMECX 
+      XLIMH=XLIMV + DMECX
       YLIMH=(17*PITCHY)/2.
-      YLIMV= YLIMH + DMECY 
+      YLIMV= YLIMH + DMECY
 * move to matrix coordinates
 *      XPHOT=XPHOT - XCPMM
 *      YPHOT=YPHOT - YCPMM
 
       IF(ABS(YPHOT).LT.YLIMH) THEN  ! 1ST/6TH PLANES (153 PMTS EACH)
-       IF(ABS(XPHOT).GT.XLIMH.AND.ABS(XPHOT).LT.XLIMH+9*PITCHX)THEN 
-          IFLG =  0   
+       IF(ABS(XPHOT).GT.XLIMH.AND.ABS(XPHOT).LT.XLIMH+9*PITCHX)THEN
+          IFLG =  0
           DXP=ABS(ABS(XPHOT)-XLIMH)
           DYP=ABS(YPHOT+SIGN(YLIMH,XPHOT))
 
-          IX=(INT(DXP/PITCHX)+1)          
-          IY=(INT(DYP/PITCHY)+1)         
+          IX=(INT(DXP/PITCHX)+1)
+          IY=(INT(DYP/PITCHY)+1)
 
           IP= (IY-1)*9 + (IX-1)
-          IF (XPHOT.GT.0) THEN 
-           IPM  = IP  
+          IF (XPHOT.GT.0) THEN
+           IPM  = IP
           ELSE
            IPM  = IP + 2*(153+36)
-          ENDIF   
+          ENDIF
 
           IF(IP.EQ.  0.OR.IP.EQ.144.OR.
      &       IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
      &       IP.EQ.134.OR.IP.EQ.143.OR.IP.EQ.151.OR.IP.EQ.152) IFLG=1
-         ENDIF              
+         ENDIF
 
       ELSEIF(
-     & (ABS(XPHOT).LT.(XLIMV)).AND. 
+     & (ABS(XPHOT).LT.(XLIMV)).AND.
      &   ABS(YPHOT).GT.YLIMV.AND.
-     &   ABS(YPHOT).LT.YLIMV+9*PITCHY) THEN ! TOP/BOTTOM PLANES : 3RD/4th/8TH/9th 
+     &   ABS(YPHOT).LT.YLIMV+9*PITCHY) THEN ! TOP/BOTTOM PLANES : 3RD/4th/8TH/9th
              IF((XPHOT.LT.-DX0.AND.YPHOT.GT.0).OR.
      &          (XPHOT.GT. DX0.AND.YPHOT.LT.0))THEN
                DXP=ABS(XPHOT+SIGN(-JUMP+XLIMV,XPHOT))
@@ -293,19 +297,19 @@ C ----------------------------------------
      &         (XPHOT.LT.DX0-JUMP.AND.YPHOT.LT.0)) THEN
                DXP=ABS(ABS(XPHOT)-XLIMV)
                IFLG = 0
-             ENDIF  
+             ENDIF
              DYP=ABS(ABS(YPHOT)-YLIMV)
 *
              IF (IFLG.EQ.0) THEN
-               IX=(INT(DXP/PITCHX)+1)          
-               IY=(INT(DYP/PITCHY)+1)         
+               IX=(INT(DXP/PITCHX)+1)
+               IY=(INT(DYP/PITCHY)+1)
                IP=(IX-1)*9 + (IY-1)
 
                IF(YPHOT.GT.0) THEN
                  IPM= IP+153+36
-               ELSE  
+               ELSE
                  IPM= IP+3*(153+36)
-               ENDIF 
+               ENDIF
 
                IF(IP.EQ.  0.OR.IP.EQ.144.OR.
      &              IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
@@ -315,22 +319,22 @@ C ----------------------------------------
              ENDIF
 
       ELSEIF(ABS(XPHOT).gt.XLIMH.AND.
-     &       ABS(YPHOT).gt.YLIMV) THEN  ! CORNER PLANES 
+     &       ABS(YPHOT).gt.YLIMV) THEN  ! CORNER PLANES
 
         DXP=ABS(ABS(XPHOT)-XLIMH)
         DYP=ABS(ABS(YPHOT)-YLIMV)
 
-        IX=(INT(DXP/PITCHX)+1)          
-        IY=(INT(DYP/PITCHY)+1)         
+        IX=(INT(DXP/PITCHX)+1)
+        IY=(INT(DYP/PITCHY)+1)
         IP=0
 
 
         IF(XPHOT*YPHOT.GT.0) THEN ! 2nd/5th planes (36 each)
          DO I=1,IY-1
             IP=IP+(8-(I-1))
-         ENDDO 
-         IP=IP+(IX-1)        
-          IF(XPHOT.GT.0) THEN 
+         ENDDO
+         IP=IP+(IX-1)
+          IF(XPHOT.GT.0) THEN
            IPM= IP+153
           ELSE
            IPM= IP+3*153+2*36
@@ -339,8 +343,8 @@ C ----------------------------------------
         ELSEIF(XPHOT*YPHOT.LT.0)then    ! 7nd/10th planes (36 each)
          DO I=1,IX-1
             IP=IP+(8-(I-1))
-         ENDDO 
-         IP=IP+(IY-1)        
+         ENDDO
+         IP=IP+(IY-1)
          IF(XPHOT.GT.0) THEN
            IPM= IP+4*153+3*36
           ELSE
@@ -356,14 +360,16 @@ C ----------------------------------------
          IFLG=3
          IPM=-1
        ENDIF
- 
+
        IF(IP.EQ. 0.OR.IP.EQ. 7.OR.IP.EQ.14.OR.IP.EQ.20.OR.IP.EQ.25.OR.
      &     IP.EQ.29.OR.IP.EQ.32.OR.IP.EQ.34.OR.IP.EQ.35) IFLG=1
 
       ELSE
        IFLG=3
-      ENDIF 
+      ENDIF
 
+* --- Final change overrides all previous changes to IFLG
+      IFLG = IPMTSTAT(IPM+1)
 
 * --- END
       END
@@ -375,9 +381,9 @@ C ----------------------------------------
 
       subroutine pmtnmb_protn(xp,yp,xc,yc,ipm,iflg)
 **************************************************************************
-* AIMS  : get x and y position of pmt 
+* AIMS  : get x and y position of pmt
 * PARAMS:
-*        IN -  xp   = 
+*        IN -  xp   =
 *              yp   =
 *        OUT-  xc   = pmt x center
 *              yc   = pmt y center
@@ -398,21 +404,21 @@ C ----------------------------------------
 *                   |   34 23 12   1
 *       88 77 66 55 |44 33 22 11   0
 *                  \/ Y
-*         
-*                               
+*
+*
 *              ----------------------------> x
-*             |         Ydown  
-*             |      ---------- 
+*             |         Ydown
+*             |      ----------
 *             |     |          |
 *             |     |          |
-*             |     |Xleft     |Xright            
+*             |     |Xleft     |Xright
 *             |     |          |
-*             |     |          |  
-*             |      ---------- 
+*             |     |          |
+*             |      ----------
 *             |         Yup
 *             |
 *            \/ Y
-*               
+*
 **************************************************************************
 
 #include "../include/richrec_lipf.h"
@@ -425,28 +431,28 @@ C ----------------------------------------
       IFLG=3
       XC=0.
       YC=0.
-* 
+*
       PITCHX=PMTWX+SHIELDW
       PITCHY=PMTWY+SHIELDW
 *
       if(xp.gt.-xlimprot+xcpmm.and.xp.lt.xlimprot+xcpmm.and.
      &   yp.gt.-ylimprot+ycpmm.and.yp.lt.ylimprot+ycpmm )then
          dxp=xlimprot-xp+xcpmm
-         dyp=ylimprot-yp+ycpmm 
-         ix=int(dxp/pitchx)+1          
+         dyp=ylimprot-yp+ycpmm
+         ix=int(dxp/pitchx)+1
          if(dxp/pitchx.ge.10.)ix=10
-         iy=int(dyp/pitchy)+1         
+         iy=int(dyp/pitchy)+1
          if(dyp/pitchy.ge.11.)iy=11
 *
          XC =XLIMPROT - (IX+0.5)*(PITCHX+XCPMM)
          YC =YLIMPROT - (IY+0.5)*(PITCHY+YCPMM)
 *
          IPM  = (IX-1)*11 + (IY-1)
-*         write(*,*) 'ix,iy,ipm,iflg' 
-*         write(*,*) ix,iy,ipm,iflg 
+*         write(*,*) 'ix,iy,ipm,iflg'
+*         write(*,*) ix,iy,ipm,iflg
 *         print *,dxp,dxp/pitchx
 *         print *,dyp,dyp/pitchy
-         IFLG = IFLPMT(IX,IY) 
+         IFLG = IFLPMT(IX,IY)
       ENDIF
 * --- end
       return
@@ -460,11 +466,11 @@ C ----------------------------------------
       subroutine gridcoo(x,y,igrid,x0,y0)
 **************************************************************************************
 * Returns grid number according to J. Borges and corner (frame) coordinates
-* 
+*
 * IN :  x,y   - photon coordinates
 * OUT:  igrid - grid number (J.Borges numbering)
-*       x0    - corner coordinates 
-*       y0    - 
+*       x0    - corner coordinates
+*       y0    -
 *
 **************************************************************************************
 
@@ -493,7 +499,7 @@ C ----------------------------------------
       endif
 
 * --- module 3
-      if (x.gt.(XLIMV-9.*LG_PITCH) .and. x.lt. XLIMV 
+      if (x.gt.(XLIMV-9.*LG_PITCH) .and. x.lt. XLIMV
      +                             .and. y.gt. YLIMV) then
          igrid = 3
          x0 =  XLIMV-9.*LG_PITCH
@@ -501,7 +507,7 @@ C ----------------------------------------
       endif
 
 * --- module 4
-      if (x.lt.(-XLIMV+8.*LG_PITCH) .and. x.gt. -XLIMV 
+      if (x.lt.(-XLIMV+8.*LG_PITCH) .and. x.gt. -XLIMV
      +                              .and. y.gt.  YLIMV) then
          igrid = 4
          x0 = -XLIMV+8.*LG_PITCH
@@ -531,7 +537,7 @@ C ----------------------------------------
       endif
 
 * --- module 8
-      if (x.lt.(-XLIMV+9.*LG_PITCH) .and. x.gt. -XLIMV 
+      if (x.lt.(-XLIMV+9.*LG_PITCH) .and. x.gt. -XLIMV
      +                              .and. y.lt. -YLIMV) then
          igrid = 8
          x0 = -XLIMV+9.*LG_PITCH
@@ -539,7 +545,7 @@ C ----------------------------------------
       endif
 
 * --- module 9
-      if (x.gt.(XLIMV-8.*LG_PITCH) .and. x.lt. XLIMV 
+      if (x.gt.(XLIMV-8.*LG_PITCH) .and. x.lt. XLIMV
      +                             .and. y.lt.-YLIMV) then
          igrid = 9
          x0 =  XLIMV-8.*LG_PITCH
@@ -564,18 +570,18 @@ C ----------------------------------------
 *****************************************************************************
 *
 *  uradlim
-*  
+*
 *  get tile x and y limits
 *
 *  PARAMS:
 *      IN - nx,ny (tile indices -5...0...5)
 *     OUT - xleft, xright (tile x square limits)
 *         - yup, ydown (tile y square limits)
-*         - iflag 
-*                  =2 external tile; 
-*                  =1 boundary tile; 
+*         - iflag
+*                  =2 external tile;
+*                  =1 boundary tile;
 *                  =0 inner tile
-*  
+*
 * last update: 25/05/2004 (L.Arruda,F.Barao)
 *
 *****************************************************************************
@@ -593,10 +599,10 @@ C ----------------------------------------
       xleft  = -999.
       yup    = -999.
       ydown  = -999.
- 
+
 
 C ----------------------------------------
-      IF (RADTILE_PITCH.LT.12.) THEN 
+      IF (RADTILE_PITCH.LT.12.) THEN
 C ----------------------------------------
 
 
@@ -604,7 +610,7 @@ C ----------------------------------------
      +    abs(nx).eq.4.and.abs(ny).eq.5 .or.
      +    abs(nx).eq.3.and.abs(ny).eq.5 .or.
      +    abs(nx).eq.5.and.abs(ny).eq.4 .or.
-     +    abs(nx).eq.5.and.abs(ny).eq.3 
+     +    abs(nx).eq.5.and.abs(ny).eq.3
      +   ) then
          iflag = 2
          return
@@ -627,7 +633,7 @@ C ----------------------------------------
 C ----------------------------------------
 
 * ... get x limits
-      if (nx.gt.0) then 
+      if (nx.gt.0) then
          xright =  real(nx)*radtile_pitch
          xleft  =  real(nx-1)*radtile_pitch
       else
@@ -638,7 +644,7 @@ C ----------------------------------------
       xleft  =  xleft  - sign(1.,xleft)*radtile_supthk !correct for wall thickness
 
 * ... get y limits
-      if (ny.gt.0) then 
+      if (ny.gt.0) then
          yup    =  real(ny)*radtile_pitch
          ydown  =  real(ny-1)*radtile_pitch
       else
@@ -664,11 +670,11 @@ C ----------------------------------------
 
       call sortzv_alt(radtile_radius,radtile_index,4,1,1,0) !descending order
 
-      if (radtile_radius(radtile_index(1)).gt.rtmir .and. 
-     +    radtile_radius(radtile_index(4)).lt.rtmir) iflag=1 
+      if (radtile_radius(radtile_index(1)).gt.rtmir .and.
+     +    radtile_radius(radtile_index(4)).lt.rtmir) iflag=1
 
-      if (radtile_radius(radtile_index(1)).gt.rtmir .and. 
-     +    radtile_radius(radtile_index(4)).gt.rtmir) iflag=2 
+      if (radtile_radius(radtile_index(1)).gt.rtmir .and.
+     +    radtile_radius(radtile_index(4)).gt.rtmir) iflag=2
 
 
 
@@ -683,38 +689,38 @@ C ----------------------------------------
 
       subroutine pmtpos_flight(IPM,XL,XR,YU,YD,XC,YC,IFLG)
 **************************************************************************
-* AIMS  : get x and y position of pmt  (used by DISPLAY and by acceptance) 
+* AIMS  : get x and y position of pmt  (used by DISPLAY and by acceptance)
 * PARAMS:
 *        IN - pmtnb  = pmt number (0...755 - include virtual pmts)
 *
-*        OUT- xleft  = X left limit     
+*        OUT- xleft  = X left limit
 *             xright = X right limit
-*             yup    = Y up limit     
+*             yup    = Y up limit
 *             ydown  = Y down limit
 *             xcent  = X center
-*             ycent  = Y center     
+*             ycent  = Y center
 *        IFLG 1 - external contour -first out
 *             1 - internal non existing PMT
-*             3 - external non existing PMT 
+*             3 - external non existing PMT
 *
 * ****************************************************************************************
 *
-*         RICH PMT GRID SCHEME 
+*         RICH PMT GRID SCHEME
 *         --------------------
 *         (using mechanical frame)
 *
 *         GRIDS                                  | #REAL PMTS | #REAL+VIRTUAL PMTS
-*         ------------------------------------------------------------------------               
-*         module 1 (rectangular grid x>0)        | 143        | 153 
-*         module 2 (triangular grid x>0, y>0)    |  27        |  36  
-*         module 3 (rectangular grid x>0,y>0)    |  76        |  81 
-*         module 4 (rectangular grid x<0,y>0)    |  67        |  72 
-*         module 5 (triangular grid x<0, y>0)    |  27        |  36  
-*         module 6 (rectangular grid x<0)        | 143        | 153 
-*         module 7 (triangular grid x<0, y<0)    |  27        |  36 
-*         module 8 (rectangular grid x<0,y<0)    |  76        |  81 
-*         module 9 (rectangular grid x>0,y<0)    |  67        |  72 
-*         module 10 (triangular grid x>0, y<0)   |  27        |  36  
+*         ------------------------------------------------------------------------
+*         module 1 (rectangular grid x>0)        | 143        | 153
+*         module 2 (triangular grid x>0, y>0)    |  27        |  36
+*         module 3 (rectangular grid x>0,y>0)    |  76        |  81
+*         module 4 (rectangular grid x<0,y>0)    |  67        |  72
+*         module 5 (triangular grid x<0, y>0)    |  27        |  36
+*         module 6 (rectangular grid x<0)        | 143        | 153
+*         module 7 (triangular grid x<0, y<0)    |  27        |  36
+*         module 8 (rectangular grid x<0,y<0)    |  76        |  81
+*         module 9 (rectangular grid x>0,y<0)    |  67        |  72
+*         module 10 (triangular grid x>0, y<0)   |  27        |  36
 *                                                  ---          ---
 *                                                  680          756
 *
@@ -732,27 +738,27 @@ C ----------------------------------------
       IFLG=0
 *      XLIMV=(16*PITCHX + PMTWX + DMODX)/2.
       XLIMV=(17*PITCHX + JUMP)/2.
-      XLIMH=XLIMV + DMECX 
+      XLIMH=XLIMV + DMECX
 *      YLIMH=(16*PITCHY + PMTWY + SHIELDW)/2.
       YLIMH=(17*PITCHY)/2.
-      YLIMV= YLIMH + DMECY 
+      YLIMV= YLIMH + DMECY
 *
       IF(IPM.LT.153) THEN
-       IP=IPM 
+       IP=IPM
 
-       IX = MOD(IP,9) +1 
-       IY = INT(IP/9.)+1 
+       IX = MOD(IP,9) +1
+       IY = INT(IP/9.)+1
 
-       XL = (IX-1)*PITCHX 
-       XR = (IX)*PITCHX 
-       YD = (IY-1)*PITCHY 
+       XL = (IX-1)*PITCHX
+       XR = (IX)*PITCHX
+       YD = (IY-1)*PITCHY
        YU = (IY)*PITCHY
 
-       XL=  XL + XLIMH  
-       XR=  XR + XLIMH  
+       XL=  XL + XLIMH
+       XR=  XR + XLIMH
 *
-       YU= -YLIMH  +  YU 
-       YD= -YLIMH  +  YD 
+       YU= -YLIMH  +  YU
+       YD= -YLIMH  +  YD
 
        IF(IP.EQ.  0.OR.IP.EQ.144.OR.
      &       IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
@@ -760,51 +766,51 @@ C ----------------------------------------
 *
       ELSEIF(IPM.GE.153.AND.IPM.LT.189) THEN
 
-       IP=IPM-153 
-       IDIF=IP 
+       IP=IPM-153
+       IDIF=IP
        DO I=1,8
         K=(8-(I-1))
-        IF(IDIF.GE.K) THEN  
+        IF(IDIF.GE.K) THEN
           IDIF=IDIF-K
         ELSE
           IY=I
-          IX=IDIF+1 
+          IX=IDIF+1
           GOTO 11
-        ENDIF 
-       ENDDO 
+        ENDIF
+       ENDDO
 
  11    XL =  (IX-1)*PITCHX
        XR =  (IX)*PITCHX
        YD =  (IY-1)*PITCHY
        YU =  (IY)*PITCHY
 
-       XL=XL+XLIMH 
-       XR=XR+XLIMH 
-       YD=YD+YLIMV 
-       YU=YU+YLIMV 
+       XL=XL+XLIMH
+       XR=XR+XLIMH
+       YD=YD+YLIMV
+       YU=YU+YLIMV
 
         IF(IP.EQ. 0.OR.IP.EQ. 7.OR.IP.EQ.14.OR.IP.EQ.20.OR.IP.EQ.25.OR.
      &     IP.EQ.29.OR.IP.EQ.32.OR.IP.EQ.34.OR.IP.EQ.35) IFLG=1
 
       ELSEIF(IPM.GE.189.AND.IPM.LT.342) THEN
 * 3RD AND 4TH PLANE
-       IP=IPM-189         
-       IY = MOD(IP,9) + 1 
-       IX = INT(IP/9.)+ 1 
+       IP=IPM-189
+       IY = MOD(IP,9) + 1
+       IX = INT(IP/9.)+ 1
 
        XR =  -(IX-1)*PITCHX
        XL =  -(IX)*PITCHX
        YD =   (IY-1)*PITCHY
        YU =   (IY)*PITCHY
 
-       XL=XL + XLIMV 
-       XR=XR + XLIMV 
-       IF(IX.GE.10) THEN  
-        XL = XL - JUMP 
-        XR = XR - JUMP 
-       ENDIF 
-       YD=YD+YLIMV 
-       YU=YU+YLIMV 
+       XL=XL + XLIMV
+       XR=XR + XLIMV
+       IF(IX.GE.10) THEN
+        XL = XL - JUMP
+        XR = XR - JUMP
+       ENDIF
+       YD=YD+YLIMV
+       YU=YU+YLIMV
 
        IF(IP.EQ.  0.OR.IP.EQ.144.OR.
      &       IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
@@ -812,28 +818,28 @@ C ----------------------------------------
 
       ELSEIF(IPM.GE.342.AND.IPM.LT.378) THEN ! 5TH PLANE
 
-       IP=IPM-342         
-       IDIF=IP 
+       IP=IPM-342
+       IDIF=IP
        DO I=1,8
         K=(8-(I-1))
-        IF(IDIF.GE.K) THEN  
+        IF(IDIF.GE.K) THEN
          IDIF=IDIF-K
         ELSE
          IX=I
-         IY=IDIF+1 
+         IY=IDIF+1
          goto 12
-        endif 
-       enddo 
+        endif
+       enddo
 
  12    XR =  -(IX-1)*PITCHX
        XL =  -(IX)*PITCHX
        YD =   (IY-1)*PITCHY
        YU =   (IY)*PITCHY
 
-       XL=XL- XLIMH  
-       XR=XR- XLIMH  
-       YD=YD+ YLIMV  
-       YU=YU+ YLIMV  
+       XL=XL- XLIMH
+       XR=XR- XLIMH
+       YD=YD+ YLIMV
+       YU=YU+ YLIMV
 
         IF(IP.EQ. 0.OR.IP.EQ. 7.OR.IP.EQ.14.OR.IP.EQ.20.OR.IP.EQ.25.OR.
      &     IP.EQ.29.OR.IP.EQ.32.OR.IP.EQ.34.OR.IP.EQ.35) IFLG=1
@@ -842,18 +848,18 @@ C ----------------------------------------
 
        IP=IPM-378
 
-       IX = MOD(IP,9) +1 
-       IY = INT(IP/9.)+1 
+       IX = MOD(IP,9) +1
+       IY = INT(IP/9.)+1
 
        XR = -(IX-1)*PITCHX
        XL = -(IX)*PITCHX
        YU = -(IY-1)*PITCHY
        YD = -(IY)*PITCHY
 
-       XL= XL - XLIMH  
-       XR= XR - XLIMH 
-       YU= YU + YLIMH 
-       YD= YD + YLIMH 
+       XL= XL - XLIMH
+       XR= XR - XLIMH
+       YU= YU + YLIMH
+       YD= YD + YLIMH
 
           IF(IP.EQ.  0.OR.IP.EQ.144.OR.
      &       IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
@@ -862,27 +868,27 @@ C ----------------------------------------
       ELSEIF(IPM.GE.531.AND.IPM.LT.567) THEN ! 7TH PLANE(LOWER LEFT CORNER)
 
        IP=IPM-531
-       IDIF=IP 
+       IDIF=IP
        DO I=1,8
         K=(8-(I-1))
-        IF(IDIF.GE.K) THEN  
+        IF(IDIF.GE.K) THEN
           IDIF=IDIF-K
         ELSE
           IY=I
-          IX=IDIF+1 
+          IX=IDIF+1
           GOTO 13
-        ENDIF 
-       ENDDO 
+        ENDIF
+       ENDDO
 
  13    XR =  -(IX-1)*PITCHX
        XL =  -(IX)*PITCHX
        YU =  -(IY-1)*PITCHY
        YD =  -(IY)*PITCHY
 
-       XL=XL-XLIMH 
-       XR=XR-XLIMH     
-       YD=YD-YLIMV 
-       YU=YU-YLIMV 
+       XL=XL-XLIMH
+       XR=XR-XLIMH
+       YD=YD-YLIMV
+       YU=YU-YLIMV
 
         IF(IP.EQ. 0.OR.IP.EQ. 7.OR.IP.EQ.14.OR.IP.EQ.20.OR.IP.EQ.25.OR.
      &     IP.EQ.29.OR.IP.EQ.32.OR.IP.EQ.34.OR.IP.EQ.35) IFLG=1
@@ -891,20 +897,20 @@ C ----------------------------------------
 
        IP=IPM-567
 
-       IX = INT(IP/9.)+ 1 
-       IY = MOD(IP,9) + 1 
+       IX = INT(IP/9.)+ 1
+       IY = MOD(IP,9) + 1
 
        XL =  (IX-1)*PITCHX
        XR =  (IX)*PITCHX
        YU = -(IY-1)*PITCHY
        YD = -(IY)*PITCHY
 
-       XL=XL - XLIMV 
-       XR=XR - XLIMV 
-       IF(IX.GE.10) THEN  
-        XL = XL + JUMP 
-        XR = XR + JUMP 
-       ENDIF 
+       XL=XL - XLIMV
+       XR=XR - XLIMV
+       IF(IX.GE.10) THEN
+        XL = XL + JUMP
+        XR = XR + JUMP
+       ENDIF
        YD=YD - YLIMV
        YU=YU - YLIMV
 
@@ -917,38 +923,38 @@ C ----------------------------------------
        IDIF=IP
        DO I=1,8
         K=(8-(I-1))
-        IF(IDIF.GE.K) THEN  
+        IF(IDIF.GE.K) THEN
           IDIF=IDIF-K
         ELSE
           IX=I
-          IY=IDIF+1 
+          IY=IDIF+1
           GOTO 14
-        ENDIF 
-       ENDDO 
+        ENDIF
+       ENDDO
 
  14    XL =  (IX-1)*PITCHX
        XR =  (IX)*PITCHX
        YU =  -(IY-1)*PITCHY
        YD =  -(IY)*PITCHY
 
-       XL=XL + XLIMH 
-       XR=XR + XLIMH 
-       YD=YD - YLIMV 
-       YU=YU - YLIMV 
+       XL=XL + XLIMH
+       XR=XR + XLIMH
+       YD=YD - YLIMV
+       YU=YU - YLIMV
 
         IF(IP.EQ. 0.OR.IP.EQ. 7.OR.IP.EQ.14.OR.IP.EQ.20.OR.
      & IP.EQ.25.OR.IP.EQ.29.OR.IP.EQ.32.OR.IP.EQ.34.OR.IP.EQ.35)IFLG=1
-      ELSE 
+      ELSE
        IFLG=3
-      ENDIF 
+      ENDIF
 
       XR=XR+XCPMM
-      YU=YU+YCPMM 
+      YU=YU+YCPMM
       XL=XL+XCPMM
-      YD=YD+YCPMM 
+      YD=YD+YCPMM
 
-      XC =(XL+XR)/2. 
-      YC =(YU+YD)/2. 
+      XC =(XL+XR)/2.
+      YC =(YU+YD)/2.
 
 * --- end
       return
@@ -961,15 +967,15 @@ C ----------------------------------------
 
       subroutine pmtpos_protn(ipm,ix,iy,xl,xr,yu,yd,xc,yc)
 **************************************************************************
-* AIMS  : get x and y position of pmt 
+* AIMS  : get x and y position of pmt
 * PARAMS:
 *        IN - pmtnb  = pmt number
-*        OUT- xleft  = X left limit     
+*        OUT- xleft  = X left limit
 *             xright = X right limit
-*             yup    = Y up limit     
+*             yup    = Y up limit
 *             ydown  = Y down limit
 *             xcent  = X center
-*             ycent  = Y center     
+*             ycent  = Y center
 *
 * PROTOTYPE ISN PMT COUNTING
 *
@@ -985,21 +991,21 @@ C ----------------------------------------
 *                   |   34 23 12   1
 *              ...  |   33 22 11   0
 *                  \/ Y
-*         
-*                               
+*
+*
 *              ----------------------------> x
-*             |         Ydown  
-*             |      ---------- 
+*             |         Ydown
+*             |      ----------
 *             |     |          |
 *             |     |          |
-*             |     |Xleft     |Xright            
+*             |     |Xleft     |Xright
 *             |     |          |
-*             |     |          |  
-*             |      ---------- 
+*             |     |          |
+*             |      ----------
 *             |         Yup
 *             |
 *            \/ Y
-*               
+*
 **************************************************************************
 
 #include "../include/richrec_lipf.h"
@@ -1010,7 +1016,7 @@ C ----------------------------------------
      +     xc,yc
 * --- init
 * --- pointers
-      IX = INT(IPM/11) 
+      IX = INT(IPM/11)
       IY = MOD(IPM,11)
 * --- coordinates
       XR = XLIMPROT-(IX)  *(PMTWX+SHIELDW)+XCPMM
@@ -1036,7 +1042,7 @@ C ----------------------------------------
 *-------------------------------------------------------
 *     IN: iopt      = 0  (use signal to make a weighted average)
 *                   = 1  (simple average - Compare to Kolmogorov test)
-*         residcut 
+*         residcut
 *
 *     OUT: flatsin
 *          flatcos
@@ -1092,7 +1098,7 @@ C ----------------------------------------
          endif
 
       endif
-      
+
 
 * ... end
       return
@@ -1108,7 +1114,7 @@ C ----------------------------------------
      +                     d2point,phipoint,irefpoint)
 * ========================================================================
 ***************************************************************************
-*  get point from photon pattern closer to the given point (x,y) 
+*  get point from photon pattern closer to the given point (x,y)
 *
 *  PARAMETERS:
 *         IN : thetac = cerenkov angle
@@ -1117,22 +1123,22 @@ C ----------------------------------------
 *         OUT: d2point  = distance squared
 *              phipoint = phi
 *              irefpoint= reflection flag
-*                
+*
 ***************************************************************************
 
 #include "../include/richrec_lipf.h"
 
-      integer nstmax, irefpoint 
+      integer nstmax, irefpoint
       real d2point, xpoint,ypoint,phipoint
       real funcbuf, phibuf, phphin1, phphin2
-      
+
       real fchi2hit
       external fchi2hit
 
 * --- INIT
 * ... tolerances
       phitol = 0.01*degrad
-* ... photon phi 
+* ... photon phi
       phphi1 = 180.*degrad
       phphi2 = 181.*degrad
       phphi3 = 0.
@@ -1141,8 +1147,8 @@ C ----------------------------------------
       funcphi3 = 0.
 * ... hit coordinates
       hypthc   = thetac
-      curhit(1)= xpoint   
-      curhit(2)= ypoint   
+      curhit(1)= xpoint
+      curhit(2)= ypoint
 
 * --- sampling the distance function
       funcbuf = 1.E9
@@ -1151,34 +1157,34 @@ C ----------------------------------------
          xphi  = 0. + PHISTEP*(iv-1)
          funcval = fchi2hit(degrad*xphi)
          if (funcval.lt.funcbuf) then
-            funcbuf = funcval  
+            funcbuf = funcval
             phibuf  = degrad*xphi
          endif
-      enddo   
+      enddo
 
-* --- minimal bracketing 
+* --- minimal bracketing
       phphin1 = phibuf
       phphin2 = phphin1 + 0.5*degrad
-      call minbrack(phphin1,phphin2,phphin3,                  
-     +              funcphi1,funcphi2,funcphi3,            
-     +              fchi2hit,ierr)                         
-* ... find the minimal phi of the hit 
+      call minbrack(phphin1,phphin2,phphin3,
+     +              funcphi1,funcphi2,funcphi3,
+     +              fchi2hit,ierr)
+* ... find the minimal phi of the hit
       if (ierr.eq.0) then
          phphi1 = phphin1
          phphi3 = phphin2
          phphi2 = phphin3
          if (int(recbet(4)).eq.1) then
-            chi2_hit = brent2(phphi1,phphi3,phphi2,        
+            chi2_hit = brent2(phphi1,phphi3,phphi2,
      +                        fchi2hit,PHITOL,phphimin)
          else
-            chi2_hit = golden2(phphi1,phphi3,phphi2,    
+            chi2_hit = golden2(phphi1,phphi3,phphi2,
      +                         fchi2hit,PHITOL,phphimin)
          endif
          if (phphimin.gt.twopi) phphimin = phphimin - twopi
          if (phphimin.lt.0.)    phphimin = phphimin + twopi
          d2point   = chi2_hit
-         phipoint  = phphimin                  
-         irefpoint = nmirefhit                
+         phipoint  = phphimin
+         irefpoint = nmirefhit
         endif
 
 * ... end
@@ -1189,14 +1195,15 @@ C ----------------------------------------
 ***************************
 *** CODE FROM probchg.F ***
 ***************************
-      
-      Subroutine probchg(chg0,sig0,chgm,prob0)
 
-      real chg0,sig0,prob0,chgm
+      Subroutine probchg(chg0,sig0,chgm,prob0)
 
       double precision avg,SIG
       common/NORMGC/avg,SIG
+
       !$OMP THREADPRIVATE(/NORMGC/)
+
+      real chg0,sig0,prob0,chgm
 
       double precision xlimlow,xlimup
 
@@ -1236,14 +1243,16 @@ cc     +             1.D-6))
 *************************************************************************************
 
 
-c NORMALIZED GAUSSIAN 
+c NORMALIZED GAUSSIAN
 
       double precision function normg(x)
 
-      double precision x
-      double precision avg,sig
+      double precision avg,SIG
       common/NORMGC/avg,SIG
+
       !$OMP THREADPRIVATE(/NORMGC/)
+
+      double precision x
       double precision xlimlow,xlimup,pi
       double precision K,dif
       PARAMETER (PI=3.14159265358979324D0)
@@ -1253,7 +1262,7 @@ c NORMALIZED GAUSSIAN
       normg=k*dexp(-0.5D0*(dif**2))
       return
       end
-      
+
 
 *****************************
 *** CODE FROM richpkolm.F ***
@@ -1262,15 +1271,15 @@ c NORMALIZED GAUSSIAN
 * ======================================================================
       subroutine richpkolm(dphistep,probkol)
 * ======================================================================
-* 
-*  Kolmogorov test to the uniformity/nonuniformity 
-*  of the photons phi distribution 
-* 
-*  INP: 
-*      -> dphistep: delta phi step in degrees for generating 
-*                   the reference distribution (azimuthaly uniform)    
+*
+*  Kolmogorov test to the uniformity/nonuniformity
+*  of the photons phi distribution
+*
+*  INP:
+*      -> dphistep: delta phi step in degrees for generating
+*                   the reference distribution (azimuthaly uniform)
 *  OUT:
-*      -> probkol:  probability 
+*      -> probkol:  probability
 *
 * ======================================================================
 
@@ -1294,7 +1303,7 @@ c NORMALIZED GAUSSIAN
 *      parameter(nbhits_ring_max=1000)
       parameter(nbhits_ring_max=nhitmax) ! R. Pereira 13-Jan-2011
       integer indexphi_meas(nbhits_ring_max)
-      integer iflag_phimeas(nbhits_ring_max)!=1 enter the test        
+      integer iflag_phimeas(nbhits_ring_max)!=1 enter the test
                                             !=0 doesn't enter the test
       real phimeas(nbhits_ring_max)
       real phimeas_test(nbhits_ring_max)
@@ -1304,7 +1313,7 @@ c NORMALIZED GAUSSIAN
 
 * --- init ...
 
-      probkol=0.      
+      probkol=0.
       visacc=0.
 
 * --- cerenkov angle
@@ -1312,25 +1321,25 @@ c NORMALIZED GAUSSIAN
       thetac=cangrec(ipthetac)
 
 * --- visible paths: get phi limits
-      call getphivis(thetac,npvis,phimin,phimax)                      
+      call getphivis(thetac,npvis,phimin,phimax)
 
 * --- store phi values for ring data hits
       nbhits_ring=0
       do i=1,min(nbhits,nhitmax)
          if (iflghit(i).ne.1) then
             if(chi2hit(ipthetac,i).lt.CHI2HTCUT)then
-               nbhits_ring=nbhits_ring+1               
-               if (nbhits_ring.le.nbhits_ring_max) 
+               nbhits_ring=nbhits_ring+1
+               if (nbhits_ring.le.nbhits_ring_max)
      +          phimeas(nbhits_ring)=phihit(ipthetac,i)
             endif
          endif
-      enddo 
+      enddo
 
-* --- Generate expected uniform distribution for phi 
+* --- Generate expected uniform distribution for phi
       npoints_exp=int(twopi/(dphistep*DEGRAD))+1
       if (npoints_exp.gt.n_exp_max) npoints_exp = n_exp_max
       nbins_exp=npoints_exp-1
-*     
+*
       phiexp(1)=0.0
 * ... fill phiexp(2:npoints_exp)
       do ibin=1,nbins_exp
@@ -1348,7 +1357,7 @@ c NORMALIZED GAUSSIAN
 c            print*,' dphi_vis',dphi_vis
             if(phiexp(i).gt.phimin(j).and.phiexp(i).lt.phimax(j)) then
                if(dphi_vis.ge.dphistep*DEGRAD)then
-                  iflag_phiexp(i)=1 ! accept this point 
+                  iflag_phiexp(i)=1 ! accept this point
                endif
             endif
          enddo
@@ -1361,14 +1370,14 @@ c            print*,' dphi_vis',dphi_vis
             dphi_vis   = phimax(j) - phimin(j)
             if(phimin(j).lt.phimeas(i).and.phimeas(i).lt.phimax(j))then
                if(dphi_vis.ge.dphistep*DEGRAD)then
-                  iflag_phimeas(i)=1 ! accept this point 
+                  iflag_phimeas(i)=1 ! accept this point
                endif
             endif
          enddo
       enddo
 
 * --- Sort measured phi array in ascending order
-      call sortzv_alt(phimeas,indexphi_meas,nbhits_ring,1,0,0) ! ascending order 
+      call sortzv_alt(phimeas,indexphi_meas,nbhits_ring,1,0,0) ! ascending order
 *     copy relevant values for kolmogorov test in ascending order
       nbmeas_test=0
       do i=1,nbhits_ring
@@ -1378,7 +1387,7 @@ c            print*,' dphi_vis',dphi_vis
          endif
       enddo
 
-*     copy relevant values from expected array for kolmogorov test 
+*     copy relevant values from expected array for kolmogorov test
       nbexp_test=0
       do i=1,npoints_exp
          if(iflag_phiexp(i).eq.1)then
@@ -1412,9 +1421,12 @@ c      print*,' prob ',prob
 
 ********************************************************************
 *
-* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.7  2011/04/19 15:45:34  barao
+* Update of LIP RICH rec to support bad PMT/pixel flagging
+*
 * Revision 1.6  2011/01/17 17:57:23  barao
 * bug fix in RICH LIP reconstruction
 *
@@ -1516,7 +1528,7 @@ c      print*,' prob ',prob
 #endif
 
 C - history:
-C   cernlib routines were copied from source to overcome problem 
+C   cernlib routines were copied from source to overcome problem
 C   arising on parallelization (LIP)
 
 
@@ -1639,7 +1651,7 @@ C   arising on parallelization (LIP)
       U(J)=RTA+(K-1)*D
       IF(J .EQ. MV) THEN
        CALL FSUB2(MV,U,F,X)
-       DO 3 J = 1,MV      
+       DO 3 J = 1,MV
  3          S=S+V(J)*F(J)
        MV=64
        J=0
@@ -1656,9 +1668,12 @@ C   arising on parallelization (LIP)
 *********************************************************************+
 
 *
-* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.7  2011/04/19 15:45:34  barao
+* Update of LIP RICH rec to support bad PMT/pixel flagging
+*
 * Revision 1.6  2011/01/17 17:57:23  barao
 * bug fix in RICH LIP reconstruction
 *
@@ -1763,9 +1778,12 @@ C   arising on parallelization (LIP)
 
 
 
-* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.7  2011/04/19 15:45:34  barao
+* Update of LIP RICH rec to support bad PMT/pixel flagging
+*
 * Revision 1.6  2011/01/17 17:57:23  barao
 * bug fix in RICH LIP reconstruction
 *
@@ -1787,16 +1805,16 @@ C   arising on parallelization (LIP)
 *
       LOGICAL MFLAG,RFLAG
       EXTERNAL F
- 
+
       PARAMETER (ONE = 1, HALF = ONE/2)
- 
+
       XA=MIN(A,B)
       XB=MAX(A,B)
       FA=F(XA,1)
       FB=F(XB,2)
       IF(FA*FB .GT. 0) GO TO 5
       MC=0
- 
+
  1     X0=HALF*(XA+XB)
       R=X0-XA
       EE=EPS*(ABS(X0)+1)
@@ -1805,7 +1823,7 @@ C   arising on parallelization (LIP)
       X1=XA
       F2=FB
       X2=XB
- 
+
  2     FX=F(X0,2)
       MC=MC+1
       IF(MC .GT. MXF) GO TO 6
@@ -1816,7 +1834,7 @@ C   arising on parallelization (LIP)
        XB=X0
        FB=FX
       END IF
- 
+
  3     U1=F1-F2
       U2=X1-X2
       U3=F2-FX
@@ -1839,7 +1857,7 @@ C   arising on parallelization (LIP)
        X0=-U3+SIGN(SQRT(U4),X0+U3)
       END IF
       IF(X0 .LT. XA .OR. X0 .GT. XB) GO TO 1
- 
+
       R=MIN(ABS(X0-X3),ABS(X0-X2))
       EE=EPS*(ABS(X0)+1)
       IF(R .GT. EE) THEN
@@ -1849,7 +1867,7 @@ C   arising on parallelization (LIP)
        X2=X3
        GO TO 2
       END IF
- 
+
       FX=F(X0,2)
       IF(FX .EQ. 0) GO TO 4
       IF(FX*FA .LT. 0) THEN
@@ -1876,7 +1894,7 @@ C   arising on parallelization (LIP)
        FX=FF
        GO TO 3
       END IF
- 
+
  4     R=EE
       FF=F(X0,3)
       RETURN
@@ -1918,9 +1936,12 @@ C   arising on parallelization (LIP)
 
 ***********************************************************************
 *
-* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.7  2011/04/19 15:45:34  barao
+* Update of LIP RICH rec to support bad PMT/pixel flagging
+*
 * Revision 1.6  2011/01/17 17:57:23  barao
 * bug fix in RICH LIP reconstruction
 *
@@ -2124,9 +2145,12 @@ C
 
 ***********************************************************************
 
-* $Id: richutil_lip.F,v 1.6 2011/01/17 17:57:23 barao Exp $
+* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.7  2011/04/19 15:45:34  barao
+* Update of LIP RICH rec to support bad PMT/pixel flagging
+*
 * Revision 1.6  2011/01/17 17:57:23  barao
 * bug fix in RICH LIP reconstruction
 *
@@ -2208,4 +2232,3 @@ C
    12 INDEX (1) = I3
       RETURN
       END
-

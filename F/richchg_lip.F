@@ -14,7 +14,7 @@
       subroutine richchgrec(IEF)
 ****************************************************************
 * Charge reconstruction (LIP)
-* 
+*
 * IN: IEF - Flag to control the efficiency calculation
 *           = 10*PMT_Gap + Ring_Width
 *             PMT_Gap =0,1 (pmt gap taken or not into account)
@@ -39,9 +39,9 @@
 
        real sin2thc_rec, chgrec2
 
-       real richacca(5),richeffa(8) 
- 
-       real richaccmseca(nmaxmirsec,2),richeffmseca(nmaxmirsec,8) 
+       real richacca(5),richeffa(8)
+
+       real richaccmseca(nmaxmirsec,2),richeffmseca(nmaxmirsec,8)
 
        real accradwalldir,accradwallref
        real accradwallmsec(nmaxmirsec)
@@ -69,26 +69,26 @@
 
 * --> init local variables
 
-      call vzero(richacca,5) 
-      call vzero(richeffa,8) 
+      call vzero(richacca,5)
+      call vzero(richeffa,8)
 
-      call vzero(richaccmseca,nmaxmirsec*2) 
-      call vzero(richeffmseca,nmaxmirsec*8) 
+      call vzero(richaccmseca,nmaxmirsec*2)
+      call vzero(richeffmseca,nmaxmirsec*8)
 
       richeff_pni  = -1.
       richeff_avz  = -1.
 
-* ... reconstruction criteria 
-      if (ipthetac.eq.0)             return ! beta rec required 
+* ... reconstruction criteria
+      if (ipthetac.eq.0)             return ! beta rec required
       if (nbushits(ipthetac).le.2)   return ! beta rec with at least 3 hits
 
 * ... set cerenkov theta value
       thetac = cangrec(ipthetac)
-     
+
 * ... flag patterns too close to particle matrix crossing point
       ipartpat =   0
-* --> compute distance between particle matrix impact point and closest pattern point 
-      call dist2patt(thetac,pcoopmt(1),pcoopmt(2),d2point,phipoint,     
+* --> compute distance between particle matrix impact point and closest pattern point
+      call dist2patt(thetac,pcoopmt(1),pcoopmt(2),d2point,phipoint,
      &     irefpoint)
       if (d2point.lt.d2minip) ipartpat = 1
 
@@ -103,7 +103,7 @@
             if (ireflechit(1,i).eq.1)
      +         chg_nphe_ref = chg_nphe_ref + hitsnpe(i) ! ADC npe reflected
          endif
-      enddo 
+      enddo
       chg_nphe_dir = chg_nphe - chg_nphe_ref     ! ADC npe (direct)
 
 *      print*,'... chg_nphe = ',chg_nphe
@@ -154,7 +154,7 @@
          valme2 = valme2+richeffmseca(j,7)
          valme2a = valme2a+richeffmseca(j,7)+richeffmseca(j,8)
       enddo
-      
+
 *      print*,'MIRROR COMPONENT - pre-correction:'
 *      print*,'accep mir1, mir1+2 (global):',valma1,valma1a
 *      print*,'accep mir1         (msecs) :',valma2
@@ -240,7 +240,7 @@ cc      enddo
          valme2 = valme2+richeffmseca(j,7)
          valme2a = valme2a+richeffmseca(j,7)+richeffmseca(j,8)
       enddo
-      
+
 *      print*,'MIRROR COMPONENT - post-correction:'
 *      print*,'accep mir1, mir1+2 (global):',valma1,valma1a
 *      print*,'accep mir1         (msecs) :',valma2
@@ -267,11 +267,11 @@ cc      enddo
       richacc_dir  = richacca(2)   ! direct acceptance
       richacc_mir0 = richacca(3)   ! mirror acceptance 1ref
       richacc_mir1 = richacca(4)   ! mirror acceptance 2ref
-      richacc_hol  = richacca(5)   ! hole acceptance 
+      richacc_hol  = richacca(5)   ! hole acceptance
 *
-      richacc_vis = richacc_dir + 
-     +              reflec*richacc_mir0 + 
-     +              reflec**2*richacc_mir1 
+      richacc_vis = richacc_dir +
+     +              reflec*richacc_mir0 +
+     +              reflec**2*richacc_mir1
 *
       richacc_ref = reflec*richacc_mir0 + reflec**2*richacc_mir1
 
@@ -310,7 +310,7 @@ cc      enddo
 *------------------------
 * ... FLIGHT GEOMETRY
 *------------------------
-      if (rcgeom(1).eq.0) then  
+      if (rcgeom(1).eq.0) then
          call richaccpmtgap(accgap,accgapdir,accgapref,accgapmsec)
          richacc_gap    = accgap
          richacc_gapdir = accgapdir
@@ -319,7 +319,7 @@ cc      enddo
             richacc_gapmsec(i) = accgapmsec(i)
          enddo
       endif
-      
+
 *      print*,'pathrad     = ',pathrad
 *      print*,'richeff_tot = ',richeff_tot
 *      print*,'sin2thc_rec = ',sin2thc_rec
@@ -331,68 +331,68 @@ cc      enddo
        if (sin2thc_rec.eq.0.) return         !check thetac
 * =====> overall charge
          if (richeff_tot.gt.0.) then
-           chgrec2 = chg_nphe/pathrad/richeff_tot/sin2thc_rec ! from simulation ntuple        
-           chgrec  = sqrt(chgrec2/FNORM) 
+           chgrec2 = chg_nphe/pathrad/richeff_tot/sin2thc_rec ! from simulation ntuple
+           chgrec  = sqrt(chgrec2/FNORM)
 * ========> Gap correction for flight
            if (rcgeom(1).eq.0 .and.   ! Flight geometry
      +            accgap.gt.0) then   ! No null gap acceptance
-              chgrec2 = chg_nphe/pathrad/richeff_tot/accgap/sin2thc_rec 
-              chgrec_gap = sqrt(chgrec2/FNORM) 
+              chgrec2 = chg_nphe/pathrad/richeff_tot/accgap/sin2thc_rec
+              chgrec_gap = sqrt(chgrec2/FNORM)
            else
               chgrec_gap = -999.
            endif
         endif
 *        print*,'after richeff_tot.gt.0.--> chgrec_cor',chgrec_cor
 
-* =====> Direct charge        
+* =====> Direct charge
         if (richeff_dir.gt.0.) then
-           chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple        
-           chgrec_dir = sqrt(chgrec2/FNORM) 
+           chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple
+           chgrec_dir = sqrt(chgrec2/FNORM)
         endif
-* =====> Reflected charge   
+* =====> Reflected charge
         if (richeff_1rf.gt.0.) then
-           chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple        
+           chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple
            chgrec_ref = sqrt(chgrec2/FNORM)
         endif
-      
+
       else   ! FOR PARTICLES CLOSE TO RING
-     
- 
+
+
         if (sin2thc_rec.eq.0.) return
 
         if (irefpoint.ne.0) then ! nearest point is reflected
 
            if (richeff_dir.gt.0.) then
-              chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple        
-              chgrec_dir = sqrt(chgrec2/FNORM) 
+              chgrec2 = chg_nphe_dir/pathrad/richeff_dir/sin2thc_rec ! from simulation ntuple
+              chgrec_dir = sqrt(chgrec2/FNORM)
               chgrec     = chgrec_dir
            endif
 
         else
 
            if (richeff_1rf.gt.0.) then
-              chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple        
-              chgrec_ref = sqrt(chgrec2/FNORM) 
+              chgrec2 = chg_nphe_ref/pathrad/richeff_1rf/sin2thc_rec ! from simulation ntuple
+              chgrec_ref = sqrt(chgrec2/FNORM)
               chgrec     = chgrec_ref
            endif
 
         endif
 
-      endif       
+      endif
 
 * ... charge determinatiomn with gap correction
       if ( rcgeom(1).eq.0) then ! Flight geometry
 
 * ----->  direct
-         if (accgapdir.gt.0. ) then ! No null gap direct acceptance           
-            if (chgrec_dir.gt.0.) 
+         if (accgapdir.gt.0. ) then ! No null gap direct acceptance
+            if (chgrec_dir.gt.0.)
      +           chgrec_gapdir = chgrec_dir/sqrt(accgapdir)
          else
             chgrec_gapdir = -999.
          endif
 
 *     ----->  reflected
-         if (accgapref.gt.0. ) then ! No null gap reflected acceptance 
+         if (accgapref.gt.0. ) then ! No null gap reflected acceptance
              if (chgrec_ref.gt.0.)
      +           chgrec_gapref = chgrec_ref/sqrt(accgapref)
           else
@@ -424,13 +424,13 @@ cc      enddo
       chg_nphe_dir = 0.  !direct npe
       chg_nphe_ref = 0.  !reflected npe
 
-      chgrec       = -999. 
-      chgrec_dir   = -999. 
-      chgrec_ref   = -999. 
+      chgrec       = -999.
+      chgrec_dir   = -999.
+      chgrec_ref   = -999.
 
 *
-      chgrec_gap       = -999. 
-      chgrec_gapdir   = -999. 
+      chgrec_gap       = -999.
+      chgrec_gapdir   = -999.
       chgrec_gapref   = -999.
 
       richacc_inv  = -1.
@@ -445,7 +445,7 @@ cc      enddo
       richeff_tot  = -1.
       richeff_dir  = -1.
       richeff_1rf  = -1.
-      richeff_2rf  = -1.    
+      richeff_2rf  = -1.
 
       richeff_tot_gap  = -1.
       richeff_dir_gap  = -1.
@@ -464,4 +464,3 @@ cc      enddo
       b_beta = 0.02  !1E-2
       return
       end
-

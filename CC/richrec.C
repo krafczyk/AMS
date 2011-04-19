@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.156 2011/04/11 18:13:16 barao Exp $
+//  $Id: richrec.C,v 1.157 2011/04/19 15:45:34 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -6,6 +6,10 @@
 #include "richid.h"
 #include "richradid.h"
 #include "richlip.h"
+
+int RichLIPRec::totalhits;
+int RichLIPRec::hitinlip[11000];
+
 #include "mccluster.h"
 #include "tofrec02.h"
 #include <fenv.h>
@@ -2449,14 +2453,21 @@ void AMSRichRingNew::fillresult(){
     _RingEffMsec2R[i] = LIPF2C.resc_effmsec[nr][1][i];
   }
 
-  for(int i=0;i<LIPC2F.nbhits_ev;i++) {
-    if(i>=LIPC2F.nbhitsmax_ntup_ev) break; // bug fix added 13-Jan-2011
-    _HitsResiduals.push_back(LIPF2C.resb_hres[nr][i]);
-    _HitsStatus.push_back(LIPF2C.resb_used[nr][i]);
-  }
+  int icurr = 0;
 
-  for(int i=0;i<LIPF2C.resb_nhit[nr];i++) {
-    _HitsAssoc.push_back(LIPF2C.resb_phit[nr][i]);
+  for(int i=0;i<RichLIPRec::totalhits;i++) {
+    if(RichLIPRec::hitinlip[i]==0) {  // hit not carried to LIP rec
+      _HitsResiduals.push_back(1.e20);
+      _HitsStatus.push_back(-2);
+    }
+    else {
+      _HitsResiduals.push_back(LIPF2C.resb_hres[nr][icurr]);
+      _HitsStatus.push_back(LIPF2C.resb_used[nr][icurr]);
+      if(LIPF2C.resb_used[nr][icurr]>=0) {
+	_HitsAssoc.push_back(i);
+      }
+      icurr++;
+    }
   }
 
   //if(LIPF2C.resb_itype[nr]==3 || LIPF2C.resb_itype[nr]==4) {  // store rec track data
