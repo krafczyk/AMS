@@ -163,7 +163,7 @@ void RichLIPRec::InitEvent() {
     if(badpmt_lip[pmtconv_ams2lip[hit->getchannel()/16]]!=0) continue;  // exclude bad PMTs according to LIP criteria
 
     if(actual>=LIP_NBHITSMAX) {
-      cout << "RichLIPRec::InitEvent : Event too long."<<endl;
+      //cout << "RichLIPRec::InitEvent : Event too long."<<endl;
       //break;
       continue;  // instead of break, to allow flagging of all hits up to last one
     }
