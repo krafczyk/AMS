@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.78 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: tofrec02.C,v 1.79 2011/04/20 20:58:54 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -73,6 +73,7 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   TOF2RawSide::getpatt(trpat);
   TOF2RawSide::getpattz(trpatz);
   integer sumHTd(0);
+  int retval;
 //
   if(!AMSJob::gethead()->isRealData())
                 sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
@@ -127,8 +128,36 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 //---------------------------------------------------------------
   bool UTof;
 //
-// =============> check/combine adc/tdc/Ft data :
+// =============> check/combine adc/tdc/Ft/temper data :
 //
+//---> 1st try get TofEnvelops temperatures from DB:
+//
+  geant pmttemp[4][2];
+  geant sfctemp[4][2];
+  int nosfectemp,nopmttemp;
+#pragma omp critical (DBread)
+{ 
+//cout<<endl<<"============> TOF::validation: ReadTemperDB for event "<<(AMSEvent::gethead()->getid())<<endl;
+  nosfectemp=0;
+  nopmttemp=0;
+  for(int il=0;il<4;il++){
+    for(int is=0;is<2;is++){
+      sfctemp[il][is]=999;
+      retval=GetTofSensorTemper(il+1,is+1,1,temp);//SFECs
+      if(retval>=0)sfctemp[il][is]=temp;
+      else nosfectemp=1;
+//cout<<"<===== get SFEC-temper="<<temp<<" for il/is="<<il+1<<" "<<is+1<<" retval="<<retval<<endl;
+      pmttemp[il][is]=999;
+      retval=GetTofSensorTemper(il+1,is+1,0,temp);//PMTs(side aver)
+      if(retval>=0)pmttemp[il][is]=temp;
+      else nopmttemp=1;
+//cout<<"<===== get PMTs-temper="<<temp<<" for il/is="<<il+1<<" "<<is+1<<endl;
+    }
+  }
+  if(nosfectemp>0)TOF2JobStat::addre(55);
+  if(nopmttemp>0)TOF2JobStat::addre(56);
+}
+//---> 
   while(ptr){// <--- loop over TOF RawSide hits
     idd=ptr->getsid();//LBBS
     id=idd/10;// short id=LBB
@@ -150,22 +179,10 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
 #endif
 //---> set 3 temper.(SFET/PM/SFEC-sensors based) in RawSide-obj (def.values if don't exist for this event)
     if(AMSJob::gethead()->isRealData()){
-      if(UTof){
-        if(AMSEvent::gethead()->getUtoftp()>0){
-          temp=AMSEvent::gethead()->getUtoftp()->gettempP(ill, isid);//get PM aver.temper from UTof-TDV
-	  ptr->settempP(temp);//set temper
-          temp=AMSEvent::gethead()->getUtoftp()->gettempC(ill, isid);//get SFEC aver.temper from UTof-TDV
-	  ptr->settempC(temp);//set temper
-	}
-      }
-      else{
-        if(AMSEvent::gethead()->getLtoftp()>0){
-          temp=AMSEvent::gethead()->getLtoftp()->gettempP(ill, isid);//PM-temper from LTof-TDV
-          ptr->settempP(temp);//set temper
-          temp=AMSEvent::gethead()->getLtoftp()->gettempC(ill, isid);//get SFEC aver.temper from LTof-TDV
-	  ptr->settempC(temp);//set temper
-	}
-      }
+      temp=pmttemp[ilay][isid];
+      ptr->settempP(temp);//set PMtemper for current hit
+      temp=sfctemp[ilay][isid];
+      ptr->settempC(temp);//set SFECtemper for current hit
     }
     else{
       ptr->settempP(TOF2Varp::tofvpar.Pdtemp());//set def.value for MC

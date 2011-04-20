@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.43 2010/12/08 17:04:22 choumilo Exp $
+//  $Id: tofuser02.C,v 1.44 2011/04/20 20:58:54 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -236,9 +236,12 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   if(ecshnum==1){// only use event with one shower
     ptsh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0);
     ecshen=ptsh->getEnergyC();
+#pragma omp critical (hf1)
+{
     HF1(5050,ecshen,1.);
     HF1(5051,ecshen,1.);
     HF1(5052,ecshen,1.);
+}
 //----------------    
     nhtot=0;
     for(int ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell(pix)-Planes loop(0-17)
@@ -255,13 +258,19 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
         ptr1->getadc(padc);//get raw ampl (Ah,Al,Ad already ovfl-corrected)
         if(padc[0]>0){
           nhtot+=1;
+#pragma omp critical (hf1)
+{
 	  if(ipl==0)HF1(5054,geant(cell+1),1.);
 	  if(ipl==2)HF1(5055,geant(cell+1),1.);
+}
         }
         ptr1=ptr1->next();  
       } // ---> end of EcalHits loop in pixPlane
     }//---> end of PixPlanes-loop
+#pragma omp critical (hf1)
+{
     HF1(5053,geant(nhtot),1.);
+}
   }//--->endof Nshow=1 check
 //
 // ========================================> check Anti-counter :
@@ -1107,10 +1116,16 @@ Nextp:
 //----------------
 //  if((brnl[0]+1)==5 && (brnl[1]+1)==4 && (brnl[2]+1)==5 && (brnl[3]+1)==5){
     plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+#pragma omp critical (hf1)
+{
     HF1(1524,0.,1.);//just count entries
+}
     for(i=0;i<16;i++){
       if(plvl1->JMembPattBitSet(i)){
+#pragma omp critical (hf1)
+{
         HF1(1524,geant(i+1),1.);//bit was set
+}
       }
     }
 //  }

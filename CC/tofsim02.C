@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.51 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: tofsim02.C,v 1.52 2011/04/20 20:58:54 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -22,6 +22,8 @@
 #include "mceventg.h"
 #include "ecalrec.h"
 #include "tofid.h"
+#include "root.h"
+#include "ntuple.h"
 //
 using namespace std;
 //
@@ -3028,6 +3030,187 @@ integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
   }
   else return 0; 
 }
+//------------------------------------------------
+int TOF2RawSide::GetTofSensorTemper(int lay, int side, int mode, geant &temper){
+// lay=1-4, side=1-2, mode=0->SideAver, 1->SFEC
+// ret.values for GetData:
+//return  0   success
+//        1  no elementname found
+//        2  no nodename found
+//        3  no dt and/or st found
+//        4  outside of bound method 1
+//        5  outside of bounds methods 0,1
+//        6  element table empty
+//        7  wrong method
+//       -1  internal error
+//
+// Output retval=0(ok, both chains used); =1(ok, 1st chain used); =2(ok, 2nd chain used);
+//                       -1(bad, no measurement for SFEC); =-2(bad, no measurement for PM); =-3(bad input params)                                    
+//sens.numbers vs il,is,ipnt(1-3,4=sfec):
+  int SensNumber[4][2][4]={
+                       3, 2, 1, 0,   6, 5, 4, 7,   //<--L1(s1,s2)
+		      11,10, 8, 9,  15,13,12,14,   //<--L2(s1,s2)
+		       1, 2, 3, 0,   4, 5, 6, 7,   //<--L3(s1,s2)
+		       9,10,11, 8,  12,13,14,15};  //<--L4(s1,s2)
+// ElemNames [sens#] (+16 for JPD):
+  char ElemNames[32][22]={
+                          "M-2X:0:TOF-1 SFEC_00", //(0)<--- MPD
+			  "M-2X:1:TOF-1 106n1",   //(1)
+			  "M-2X:2:TOF-1 104n1",   //(2)
+			  "M-2X:3:TOF-1 102n1",   //(3)
+			  "M-2X:4:TOF-1 108p2",   //(4)
+			  "M-2X:5:TOF-1 106p2",   //(5)
+			  "M-2X:6:TOF-1 104p2",   //(6)
+			  "M-2X:7:TOF-1 SFEC_10", //(7)
+			  "M-2X:8:TOF-2 208n2",   //(8)
+			  "M-2X:9:TOF-2 SFEC_11", //(9)
+			  "M-2X:10:TOF-2 204n1",  //(10)
+			  "M-2X:11:TOF-2 201n1",  //(11)
+			  "M-2X:12:TOF-2 208p2",  //(12)
+			  "M-2X:13:TOF-2 204p1",  //(13)
+			  "M-2X:14:TOF-2 SFEC_01",//(14)
+			  "M-2X:15:TOF-2 201p1",  //(15)
+			  "TOF-3 SFEC_30",         //(0)<--- JPD
+			  "TOF-3 302n1",           //(1)
+			  "TOF-3 305n2",           //(2)
+			  "TOF-3 309n2",           //(3)
+			  "TOF-3 301p2",           //(4)
+			  "TOF-3 305p2",           //(5)
+			  "TOF-3 309p2",           //(6)
+			  "TOF-3 SFEC_20",         //(7)
+			  "TOF-4 SFEC_31",         //(8)
+			  "TOF-4 402n2",           //(9)
+			  "TOF-4 404n2",           //(10)
+			  "TOF-4 406n2",           //(11)
+			  "TOF-4 401p1",           //(12)
+			  "TOF-4 404p1",           //(13)
+			  "TOF-4 406p1",           //(14)
+			  "TOF-4 SFEC_21"          //(15)
+			                       };
+// NodeNames [chain]:
+  char NodeNames[4][9]={
+                        "USCM_M_A", //top
+			"USCM_M_B",
+			"JPD_A",    //bot
+			"JPD_B"
+                       };
+//
+  if(lay<=0 || lay>4 || side<1 || side>2 || mode<0 || mode>2){
+    cout<<"<--- GetTofSensorTemper::ErrorInInpParams: lay/side/mode="<<lay<<" "<<side<<" "<<mode<<endl;
+    return -3;
+  }
+//
+  int retval(-1);
+  int rvarr[3]={0,0,0};
+  geant temp(0),avtemp[2];
+  geant tmch[2],tmsd[3];
+  int retv[2];
+  int ngpnt[2];
+  int ngchn[2];
+  int pnt;
+  vector<float> var;
+  int methode(1);
+  char elemname[22];
+  char nodename[9];
+  int sensnum;
+  int bot(0);
+  if(lay>2)bot=1;
+  temper=-273;
+  uinteger utime=AMSEvent::gethead()->gettime();
+  float frac=float(AMSEvent::gethead()->getusec())/1000000.;
+//
+//  cout<<"<-- In Stemp:Request for lay/side="<<lay<<" "<<side<<" mode="<<mode<<" utime/frac="<<utime<<" "<<frac<<endl;
+//---
+  if(mode==1){//<---SFEC
+    pnt=4;
+    sensnum=SensNumber[lay-1][side-1][pnt-1];
+    strcpy(elemname,ElemNames[sensnum+16*bot]);
+    for(int chain=0;chain<2;chain++){//<-- chain loop
+      ngchn[chain]=0;
+      tmch[chain]=999;
+      retv[chain]=999;
+      strcpy(nodename,NodeNames[chain+2*bot]);
+      retval=AMSNtuple::Get_setup02()->fSlowControl.GetData(elemname,utime,frac,var,methode,nodename);
+//cout<<"  SFEC:sensnum="<<sensnum<<" elname="<<elemname<<" chain="<<chain<<" nodename="<<nodename<<" retval="<<retval<<endl;
+      retv[chain]=retval;
+      if(retval==0){
+        if(var.size()==1){
+//          cout<<" chain="<<chain<<"  var[0]= "<<var[0]<<endl;
+          tmch[chain]=var[0];
+	  ngchn[chain]+=1;
+        }
+      }
+    }//---> endof chain loop
+    if(ngchn[0]>0 && ngchn[1]>0){
+      temper=(tmch[0]+tmch[1])/(ngchn[0]+ngchn[1]);
+      return 0;
+    }
+    else if(ngchn[0]>0){
+      temper=tmch[0];
+      return 1;
+    }
+    else if(ngchn[1]>0){
+      temper=tmch[1];
+      return 2;
+    }
+    else{
+//      cout<<"<--- GetTofSensorTemper:SFEC_request:Error-no good data in chains: retvals="<<retv[0]<<" "<<retv[1]<<endl;
+      return -1;
+    }
+  }//---> endof SFEC
+//---
+//
+  else if(mode==0){//<--- side average
+    for(int chain=0;chain<2;chain++){//<-- chain loop
+      ngpnt[chain]=0;
+      avtemp[chain]=0;
+      for(int pt=0;pt<3;pt++){//<--- sensors positions loop
+        tmsd[pt]=0;
+        sensnum=SensNumber[lay-1][side-1][pt];
+        strcpy(elemname,ElemNames[sensnum+16*bot]);
+        strcpy(nodename,NodeNames[chain+2*bot]);
+        retval=AMSNtuple::Get_setup02()->fSlowControl.GetData(elemname,utime,frac,var,methode,nodename);
+//cout<<"  SideAver:sensnum="<<sensnum<<" elname="<<elemname<<" chain="<<chain<<" nodename="<<nodename<<" retval="<<retval<<endl;
+        rvarr[pt]=retval;
+        if(retval==0){
+          if(var.size()==1){
+//            cout <<"  var[0]= "<<var[0]<<endl;
+            tmsd[pt]=var[0];
+	    ngpnt[chain]+=1;
+            avtemp[chain]+=var[0];
+          }
+        }
+      }//---> endof positions loop
+      if(ngpnt[chain]>0){
+        avtemp[chain]/=ngpnt[chain];
+        if(ngpnt[chain]<3){
+          cout<<"<--- GetTofSensorTemper::SideAver:Warning-SomeMissPointsInChain="<<chain+1<<" retvals="<<rvarr[0]<<"/"<<rvarr[1]<<"/"<<rvarr[2]<<endl;
+	  cout<<"     temps="<<tmsd[0]<<"/"<<tmsd[1]<<"/"<<tmsd[2]<<endl;
+        }
+      }
+    }//--->endof chain loop
+    if(ngpnt[0]>0 && ngpnt[1]>0){
+      temper=(avtemp[0]+avtemp[1])/2;
+      return 0;
+    }
+    else if(ngpnt[0]>0){
+      temper=avtemp[0];
+      return 1;
+    }
+    else if(ngpnt[1]>0){
+      temper=avtemp[1];
+      return 2;
+    }
+    else{
+      temper=-273;
+      return -2;
+    }
+  }//---> endof side average
+//
+//---
+  return -3;
+}
+
 
 
 

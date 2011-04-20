@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.26 2011/03/07 16:58:18 choumilo Exp $
+//  $Id: tofsim02.h,v 1.27 2011/04/20 20:59:20 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -461,6 +461,7 @@ static integer Out(integer);
  void settempT(geant tmp){_tempT=tmp;}
  void settempC(geant tmp){_tempC=tmp;}
  void settempP(geant tmp){_tempP=tmp;}
+ static int GetTofSensorTemper(int lay, int side, int mode, geant &temper);
 
 
  integer getnztdc();

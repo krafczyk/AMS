@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.86 2011/04/06 16:52:28 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.87 2011/04/20 20:58:53 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2457,6 +2457,8 @@ void TOF2JobStat::printstat(){
   printf("   TOF_FT(FTC|FTZ) found ...............    : % 6d\n",recount[5]);
   printf("   NoTOF_FT but ECAL_FT(FTE) found .....    : % 6d\n",recount[6]);
   printf("   RawSide-validation OK                    : % 6d\n",recount[2]);
+  printf("   Validation:SFEC-tempMissing(on any side) : % 6d\n",recount[55]);
+  printf("   Validation:PMT -tempMissing(on any side) : % 6d\n",recount[56]);
   printf("   RawSide->RawCluster  OK                  : % 6d\n",recount[3]);
   printf("   RawCluster->Cluster OK                   : % 6d\n",recount[4]);
   printf("   TofBeta 'OutOfRange' warnings            : % 6d\n",recount[7]);

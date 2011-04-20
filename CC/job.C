@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.792 2011/04/09 10:09:43 shaino Exp $
+// $Id: job.C,v 1.793 2011/04/20 20:58:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1438,13 +1438,13 @@ void AMSJob::_retof2data(){
 
 //    defaults for calibration:
 // TZSL-calibration:
-  TFCAFFKEY.pcut[0]=2.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
+  TFCAFFKEY.pcut[0]=0.8;// (1)track mom. low limit (gev/c) (prot, put 0.3 for sea-level mu)
   TFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
-  TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range
+  TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in above range(not used now)
   TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
   TFCAFFKEY.tzref[1]=0.;//(5) spare
   TFCAFFKEY.fixsl=7.0;// (6)def. slope
-  TFCAFFKEY.bmeanmu=0.994;// (7)mean muon velocity at sea-level
+  TFCAFFKEY.bmeanmu=0.994;// (7)mean muon velocity at sea-level(not used now)
   TFCAFFKEY.idref[0]=104;//(8)LBB for  ref. layer/counter(LBB, set L=2 if layer 1 is dead) 
   TFCAFFKEY.idref[1]=0;//(9)0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
   TFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.

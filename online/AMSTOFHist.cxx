@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.40 2011/04/04 15:23:04 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.41 2011/04/20 20:59:20 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -888,10 +888,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     monval[0]=p2raws->nstdc;
     monval[1]=p2raws->nsumh;
     monval[2]=p2raws->temp;//SFET-temp
-//    monval[3]=p2raws->tempC;//SFEC-temp
-//    monval[4]=p2raws->tempP;//PMT-temp
-    monval[3]=10;//SFEC-temp
-    monval[4]=-5;//PMT-temp
+    monval[3]=p2raws->tempC;//SFEC-temp
+    monval[4]=p2raws->tempP;//PMT-temp
     if(swid==1041){
       for(int his=0;his<5;his++){
         if(his<2){
