@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.35 2011/04/18 21:24:17 choutko Exp $
+//  $Id: main.cxx,v 1.36 2011/04/21 22:53:06 choutko Exp $
 #include <TRegexp.h>
 #include <fstream.h>
 #include <TChain.h>
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
   //  gDebug=6; 
   theApp->SetStatic();
 #endif
-  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple,&chain);
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple,&chain,monitor);
   theApp->SetDisplay(amd);  
   AMSAntiHist  antih("&AntiCounters","Anti counter Hists");
   amd->AddSubDet(antih);

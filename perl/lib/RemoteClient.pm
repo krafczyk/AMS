@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.662 2011/04/18 21:24:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.663 2011/04/21 22:53:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7787,7 +7787,26 @@ print qq`
     }
          if($self->{CCT} eq "local"){
           $tmpb=~ s/\$RUNDIR\/\$RUN/\$RUNDIR/;
-          $buf=~ s/RUNDIR=/RUNDIR=$path/;
+          if(length($path)>76){
+              my $len=length($path);
+              my $add=$len%4;
+              if($add){
+                  $add=4-$add;
+              }
+              for my $i (0...$add-1){
+                  $path=$path." ";
+              }
+              $len=length($path);
+              my $i=$len-76;
+              while($i>0){
+                  substr($path,$i,0)="'\n'";
+                  $i=$i-76;
+              }         
+              $tmpb=~s/\$RUNDIR/$path/;
+          }
+          else{
+           $buf=~ s/RUNDIR=/RUNDIR=$path/;
+          }
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/g;
          }
          else{

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.332 2011/04/19 15:45:37 barao Exp $
+//  $Id: root.h,v 1.333 2011/04/21 22:53:06 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1535,6 +1535,9 @@ public:
   /// access function to TrdRawHitR object used
   /// \return pointer to TrdRawHitR object or 0
   TrdRawHitR * pTrdRawHit();
+  /// 
+  /// \return path length of the stright line in the trd tube
+  double Range(float coo[], float Theta, float Phi);
   TrdClusterR(){};
   TrdClusterR(AMSTRDCluster *ptr);
   friend class AMSTRDCluster;

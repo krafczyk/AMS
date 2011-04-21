@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.34 2010/12/06 01:12:51 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.35 2011/04/21 22:53:06 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -50,6 +50,7 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
    m_logy=kFALSE;
    m_logz=kFALSE;
    m_idle=false;
+   m_monitor=false;
    m_theapp=0;
    m_chain=0;
    m_ntuple=0;
@@ -66,7 +67,7 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
 
 
 //_____________________________________________________________________________
-AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm):TObject(){
+AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm,bool monitor):TObject(){
    m_scale=1;
    m_ControlFrame=0;
    m_chain=mm;
@@ -78,6 +79,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file,AMSChain* mm):TOb
    _Begin=0;
    _Sample=10000;
    m_idle=true;
+   m_monitor=monitor;
    _Head=this;
    _cursubdet=0;
    _cursubdetb=0;
@@ -436,7 +438,7 @@ void AMSOnDisplay::Reset(){
      for(int j=0;j<_subdet.size();j++){
       _subdet[j]->Reset();
      }
-     _Begin=0;
+     if(!m_monitor)_Begin=0;
 }
 
 

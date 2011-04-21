@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.270 2011/04/19 06:15:38 mdelgado Exp $
+//  $Id: root.C,v 1.271 2011/04/21 22:53:06 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3171,6 +3171,8 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
 #endif
 }
 
+
+
 TrdClusterR::TrdClusterR(AMSTRDCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
@@ -3874,6 +3876,27 @@ TrdRawHitR* TrdClusterR::pTrdRawHit(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdRawHit(fTrdRawHit):0;
 }
 
+double TrdClusterR::Range(float coo[], float theta,float phi){
+double R=0.3;
+AMSPoint  c1(Coo);
+AMSPoint c2(coo);
+double xdir=Direction==0?1:0;
+double ydir=1-xdir;
+AMSDir n(xdir,ydir,0);
+AMSDir l(theta,phi);
+AMSPoint delta=c1-c2;
+double nl=n.prod(l);
+double dn=delta.prod(n);
+double dl=delta.prod(l);
+double d2=delta.prod(delta);
+double a=1-nl*nl;
+double b=dn*nl-dl;
+double c=d2-dn*dn-R*R;
+double rmin2=-b*b/a+(d2-dn*dn);
+double d=b*b-a*c;
+double ret=d<0?0:2*sqrt(d)/a;
+return ret; 
+}
 
 TrdClusterR* TrdSegmentR::pTrdCluster(unsigned int i){
   return (AMSEventR::Head() && i<fTrdCluster.size())?AMSEventR::Head()->pTrdCluster(fTrdCluster[i]):0;

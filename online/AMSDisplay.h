@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.18 2009/11/10 19:17:36 pzuccon Exp $
+//  $Id: AMSDisplay.h,v 1.19 2011/04/21 22:53:06 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -33,7 +33,8 @@ protected:
   Bool_t           m_logy;
   Bool_t           m_logz;
   bool             m_idle;
-  double           m_scale;
+  bool m_monitor; 
+ double           m_scale;
   AMSControlFrame        *m_ControlFrame;               //Pointer to the display canvas
   TCanvas        *m_Canvas;               //Pointer to the display canvas
   TPad             *m_TrigPad;              //Pointer to the trigger pad 
@@ -54,7 +55,7 @@ protected:
 public:
       bool &              IsIdleing(){return m_idle;} 
                     AMSOnDisplay();
-  AMSOnDisplay(const char *title,AMSNtupleR *file,AMSChain* mm=0);
+  AMSOnDisplay(const char *title,AMSNtupleR *file,AMSChain* mm, bool monitor);
   virtual void              SetApplication(TApplication* papp){m_theapp=papp;}
   virtual          ~AMSOnDisplay(){_Head=0;}
   virtual void      Draw(Option_t *option="");
