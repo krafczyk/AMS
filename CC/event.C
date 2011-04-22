@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.523 2011/04/06 20:47:12 shaino Exp $
+//  $Id: event.C,v 1.524 2011/04/22 09:08:36 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -209,7 +209,9 @@ if(AMSEvent::get_thread_num()==0)
        }
        else if(IOPA.histoman%10 == 1) hman.Setname("");
 
-       hman.BookHistos(AMSJob::gethead()->isSimulation());
+       int mcmode = (AMSJob::gethead()->isSimulation()) ? 1 : 0;
+       if (AMSJob::gethead()->isMCData()) mcmode += 2;
+       hman.BookHistos(mcmode);
      }
    }
 #endif

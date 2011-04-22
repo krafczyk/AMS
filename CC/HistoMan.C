@@ -22,7 +22,10 @@ void HistoMan::Save(){
   TDirectory *dsave = gDirectory;
   TFile* pp=TFile::Open(fname,"RECREATE");
   pp->cd();
-  fhist.Write();
+  for (int i = 0; i < fhist.GetEntries(); i++) {
+    TH1 *obj = (TH1 *)fhist.At(i);
+    if (obj && obj->GetEntries() > 0) obj->Write();
+  }
   pp->Write();
   pp->Close();
   printf(" ..... done\n");
@@ -40,7 +43,10 @@ void HistoMan::Save(TFile *file){
   file->cd();
   TDirectoryFile *dir = new TDirectoryFile("HistoMan", "HistoMan");
   dir->cd();
-  fhist.Write();
+  for (int i = 0; i < fhist.GetEntries(); i++) {
+    TH1 *obj = (TH1 *)fhist.At(i);
+    if (obj && obj->GetEntries() > 0) obj->Write();
+  }
   printf(" ..... done\n");
   if (dsave) dsave->cd();
 
@@ -51,7 +57,9 @@ void HistoMan::Fill(const char * name, double a,double  b,double w){
   if(!enabled) return;
   TH1*hist = (TH1*) fhist.FindObject(name);
   if(!hist){
-    printf("HistoMan::Fill: Error Unknown histo %s\n",name);
+    static int nerr = 0;
+    if (nerr++ < 20)
+      printf("HistoMan::Fill: Error Unknown histo %s\n",name);
     return;
   }
 #pragma omp critical (hmanfill)
@@ -195,7 +203,7 @@ TH2D* TH2D_L(const char *name,const char * title,int nbin, double low, double up
 #include "TrRecon.h"
 #include "TrSim.h"
 
-void HistoMan::BookHistos(bool issim){
+void HistoMan::BookHistos(int simmode){
   if (!enabled || booked) return;
 
   TDirectory *dsave = gDirectory;
@@ -206,7 +214,6 @@ void HistoMan::BookHistos(bool issim){
   TDirectory *dir = new TDirectory("HistoMan", "HistoMan");
   dir->cd();
   printf("HistoMan::BookHistos: Directroy HistoMan created in memory\n");
-
 
   Add(new TH2D("1N_XY","1N_XY",200,-10,10,200,-10,10));
   Add(new TH2D("1N_Y","1N_Y",200,-10,10,200,-10,10));
@@ -272,26 +279,22 @@ void HistoMan::BookHistos(bool issim){
   Add(TH2D_L("TfPsY1", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
   Add(TH2D_L("TfCsq1", "CsqY1 VS Rgt1", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq2", "CsqY2 VS Rgt2", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq3", "CsqY1 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq4", "CsqY2 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX1", "Pre-sel X(c)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX2", "Pre-sel X(m)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfMrg2", "Rmrg VS CsqY2", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfRgt1", "Rgt1 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfRgt2", "Rgt2 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
+  Add(TH2D_L("TfCsqf", "CsqY VS CsqY2", 100, 1e-7, 1e3, 140, 1e-3, 1e4));
 
   // residuals vs ladder
   Add(new TH2F("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
   Add(new TH2F("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
 
-  // For simulation
-  if (issim) {
-    // mceventg
-    Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
-    Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
-
-    Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
-    Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
-
+  // Sim. reconstruction
+  if (simmode & 2) {
     Add(TH2D_L("TrDtyL81", "dyL81 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
     Add(TH2D_L("TrDtyL82", "dyL82 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
     Add(TH2D_L("TrDtyL91", "dyL91 VS Rsim", 40, 1, 1e4, 2000, -5, 5, 1, 0));
@@ -305,6 +308,18 @@ void HistoMan::BookHistos(bool issim){
     Add(TH2D_L("TrRres32", "dR/R (w/LEcal)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
     Add(TH2D_L("TrRres41", "d1/R (9-Layer)", 20, 1, 1e4, 500, -25, 25, 1, 0));
     Add(TH2D_L("TrRres42", "dR/R (9-Layer)", 20, 1, 1e4, 500,  -1,  1, 1, 0));
+
+    printf("HistoMan::BookHistos: histograms for MC-rec booked\n");
+  }
+
+  // Sim. generation
+  if (simmode & 1) {
+    // mceventg
+    Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
+    Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
+
+    Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
+    Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
     // intrinsic resolution and signal checks
     Add(new TH2D("TrSimSigx","raw charge vs eta; #eta; raw charge",100,0,1,100,0.5,1));
@@ -323,6 +338,8 @@ void HistoMan::BookHistos(bool issim){
     Add(new TH1D("TrSimClsy","fake clusters; ladder",192,0,192));
     Add(new TH1D("TrSimFakex","fake clusters; ladder",192,0,192));
     Add(new TH1D("TrSimFakey","fake clusters; ladder",192,0,192));
+
+    printf("HistoMan::BookHistos: histograms for MC-gen booked\n");
   }
 
   if (dsave) dsave->cd();

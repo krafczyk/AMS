@@ -46,8 +46,10 @@ public:
   void Save();
   /// Save histograms to a specified file
   void Save(TFile *file);
-  /// Book default histograms
-  void BookHistos(bool issim = false);
+  /// Book default histograms (simmode 0: real data, 1: MC gen,  2: MC rec)
+  void BookHistos(int simmode = 0);
+  /// Is enabled or not
+  bool IsEnabled() const { return enabled; }
   /// Enable this facility
   void Enable(){enabled=true;}
   /// Disable this facility

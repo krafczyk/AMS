@@ -217,9 +217,11 @@ void TrSim::fillreso(TrTrackR *track) {
   for (int i = 0; i < track->GetNhits(); i++) {
     TrRecHitR *hit = track->GetHit(i);
     int        ily = hit->GetLayer()-1;
-    AMSPoint   dpc = hit->GetCoord()-sitkrefp[ily];
-    hman.Fill("TrSimRx", sitkangl[ily].x(), dpc.x()*1e4);
-    hman.Fill("TrSimRy", sitkangl[ily].y(), dpc.y()*1e4);
+    if (sitkrefp[ily].norm() > 0) {
+      AMSPoint   dpc = hit->GetCoord()-sitkrefp[ily];
+      hman.Fill("TrSimRx", sitkangl[ily].x(), dpc.x()*1e4);
+      hman.Fill("TrSimRy", sitkangl[ily].y(), dpc.y()*1e4);
+    }
   }
 }
 
@@ -239,6 +241,12 @@ void TrSim::sitkdigi() {
     AMSgObj::BookTimer.stop("SiTkDigiAll");
 #endif
     return;
+  }
+
+  // Book histograms (MC gen+rec mode) if not yet
+  if (!hman.IsEnabled()) {
+    hman.Enable();
+    hman.BookHistos(3);
   }
 
   // Beginning of other digitizations (GBATCH, TrSim2010)
