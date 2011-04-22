@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.15 2010/12/06 09:50:27 pzuccon Exp $
+// $Id: MagField.C,v 1.16 2011/04/22 21:33:37 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/12/06 09:50:27 $
+///$Date: 2011/04/22 21:33:37 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -42,30 +42,6 @@ void MAGSFFKEY_DEF::init(){
 }
 
 
-// void TKFIELD_DEF::init(){
-
-
-//   iniok=1;
-
-//   char mapfilename[160]="fld97int.txt";
-//   uctoh(mapfilename,mfile,4,160);
-//   //  memset(mfile,40,sizeof(mfile[0]));
-//   isec[0]=0;
-//   isec[1]=0;
-//   imin[0]=0;
-//   imin[1]=0;
-//   ihour[0]=0;
-//   ihour[1]=0;
-//   imon[0]=0;
-//   imon[1]=0;
-//   iyear[0]=0;
-//   iyear[1]=0;
-  
-//   return;  
-
-// }
-
-// TKFIELD_DEF TKFIELD;
 
 
 MagField *MagField::_ptr = 0;
@@ -111,89 +87,43 @@ int MagField::Read(const char *fname)
   
 }
 
+
 void MagField::GuFld(float *xx, float *b)
 {
   b[0] = b[1] = b[2] = 0;
-  if (MAGSFFKEY.magstat <= 0 ) {
-    //  printf("No magfield\n");
-    return;
-  }
-  if(!mm) return;
-
-// PZ FORCE RECTANGULAR  if (MAGSFFKEY.rphi) {
-//     GuFldRphi(xx, b);
-//     return;
-//   }
-
+  if (MAGSFFKEY.magstat <= 0 || !mm) return;
   
   double ax = xx[0];
   double ay = xx[1];
   double az = xx[2];
-  //az *= MISCFFKEY.BZCorr;
 
-  int idx[8][3];
-  double ww[8];
-  // Get the point for the interpolation
-  // if outside the grid return 0 field
-  if(!_Fint(ax, ay, az, idx, ww)) return;;
+  //Get the grid point near to the hit 
+  int ix = (int)((ax-mm->_x0())/mm->_dx);
+  int iy = (int)((ay-mm->_y0())/mm->_dy);
+  int iz = (int)((az-mm->_z0())/mm->_dz);
 
-  for (int i = 0; i < 8; i++) {
-/*
-    b[0] += mm->_bx(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
-    b[1] += mm->_by(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
-    b[2] += mm->_bz(idx[i][0],idx[i][1],idx[i][2]) * ww[i];  
-*/
-    float bx,by,bz;
-    mm->_bb(idx[i][0],idx[i][1],idx[i][2],bx,by,bz);
+  if (ix < 0 || ix >= (mm->nx()-1) ||
+      iy < 0 || iy >= (mm->ny()-1) ||
+      iz < 0 || iz >= (mm->nz()-1)) return;
 
-    b[0] += bx * ww[i];  
-    b[1] += by * ww[i];  
-    b[2] += bz * ww[i];  
-  }
+  double dx[2], dy[2], dz[2];
+  dx[1] = (ax-mm->_x(ix))/(mm->_x(ix+1)-mm->_x(ix)); dx[0] = 1-dx[1];
+  dy[1] = (ay-mm->_y(iy))/(mm->_y(iy+1)-mm->_y(iy)); dy[0] = 1-dy[1];
+  dz[1] = (az-mm->_z(iz))/(mm->_z(iz+1)-mm->_z(iz)); dz[0] = 1-dz[1];
 
-  //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
-  for (int i = 0; i < 3; i++) b[i] *= fscale;
+  for (int k = 0; k < 2; k++)
+    for (int j = 0; j < 2; j++)
+      for (int i = 0; i < 2; i++) {
 
-  //printf ("X: %+7.3f %+7.3f %+7.3f B: %f  \n",xx[0],xx[1],xx[2],
-  //	  sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]));
-  
+	float bx, by, bz;
+	mm->_bb(ix+i, iy+j, iz+k, bx, by, bz);
+
+	float ww = dx[i]*dy[j]*dz[k];
+	b[0] += bx*ww;
+	b[1] += by*ww;
+	b[2] += bz*ww;
+      }
 }
-
-// void MagField::GuFldRphi(float *xx, float *b)
-// {
-//   b[0] = b[1] = b[2] = 0;
-//   if (MAGSFFKEY.magstat <= 0) return;
-
-//   double rr = std::sqrt(xx[0]*xx[0]+xx[1]*xx[1]);
-//   double ph = std::atan2(xx[1], xx[0]);
-//   double zz = xx[2];
-
-//   geant *_rad = &mm->_x[0];
-//   geant *_phi = &mm->_x[_nr];
-//   if (ph < _phi[0]) ph += 2*M_PI;
-//   if (rr > _rad[_nr-1] || std::fabs(ph) > _phi[_nph-1] || 
-//                           std::fabs(zz) > mm->_z  [_nzr-1]) return;
-
-//   int   idx[8];
-//   double ww[8];
-//   _FintRphi(rr, ph, zz, idx, ww);
-
-//   float *mbx = &(mm->_bx[0][0][0]);
-//   float *mby = &(mm->_by[0][0][0]);
-//   float *mbz = &(mm->_bz[0][0][0]);
-
-//   for (int i = 0; i < 8; i++) {
-//     b[0] += mbx[idx[i]]*ww[i];
-//     b[1] += mby[idx[i]]*ww[i];
-//     b[2] += mbz[idx[i]]*ww[i];
-//   }
-
-//   //  for (int i = 0; i < 3; i++) b[i] *= MAGSFFKEY.fscale;
-//   for (int i = 0; i < 3; i++) b[i] *= fscale;
-
-// //printf ("X: %+7.3f %+7.3f %+7.3f B: %+7.3f %+7.3f %+7.3f \n",
-// //        xx[0],xx[1],xx[2],b[0],b[1],b[2]);
-// }
 
 void MagField::TkFld(float *xx, float hxy[][3])
 {
@@ -263,45 +193,6 @@ int  MagField::_Fint(double x, double y, double z, int index[][3], double *weigh
       }
   return 1;
 }
-
-// void MagField::_FintRphi(double r, double ph, double z, 
-// 			 int *index, double *weight)
-// {
-//   for (int i = 0; i < 8; i++) {
-//     index [i] = 0;
-//     weight[i] = 0;
-//   }
-
-//   geant *_rad = &_x[0];
-//   geant *_phi = &mm->_x[_nr];
-
-//   int ir, ip, iz;
-//   for (ir = 0; ir < _nr -1 && r  > _rad[ir+1]; ir++);
-//   for (ip = 0; ip < _nph-1 && ph > _phi[ip+1]; ip++);
-//   for (iz = 0; iz < mm->_nz -1 && z  > mm->_z  [iz+1]; iz++);
-
-//   int idx0 = (iz*_nph+ip)*_nr+ir;
-//   if (idx0 < 0 || _nr*_nph*_nzr <= idx0) return;
-
-//   double dr[2], dp[2], dz[2];
-//   dr[1] = (r -_rad[ir])/(_rad[ir+1]-_rad[ir]); dr[0] = 1-dr[1];
-//   dp[1] = (ph-_phi[ip])/(_phi[ip+1]-_phi[ip]); dp[0] = 1-dp[1];
-//   dz[1] = (z -_z  [iz])/(mm->_z  [iz+1]-mm->_z  [iz]); dz[0] = 1-dz[1];
-
-//   int l = 0;
-//   for (int k = 0; k < 2; k++)
-//     for (int j = 0; j < 2; j++)
-//       for (int i = 0; i < 2; i++) {
-// 	index [l] = ((iz+k)*_nph+(ip+j))*_nr+ir+i;
-// 	weight[l] = dr[i]*dp[j]*dz[k];
-// 	l++;
-//       }
-//  }
-
-
-
-
-
 
 
 void MagField::Print(){
@@ -468,25 +359,7 @@ magserv::~magserv(){
   if(bdx) delete[] bdx;
   if(bdy) delete[] bdy;
   if(bdz) delete[] bdz;
-  
-  
-//   if(bxc) delete[] bxc;
-//   if(byc) delete[] byc;
-//   if(bzc) delete[] bzc;
-  
 }
-
-// float magserv::_x(int i){
-//   float aa;
-//   if(_type==1){
-//     int sigx=((1-_nx+i)>=0)?1:-1;
-//     aa=x[abs(1-_nx+i)]*sigx;
-//   }
-//   else aa=x[i];
-  
-//   return aa;
-// }
-
 
 
 void uctoh (char* MS,int* MT,int npw, int NCHP){

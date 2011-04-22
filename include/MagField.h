@@ -1,4 +1,4 @@
-//  $Id: MagField.h,v 1.15 2010/12/06 09:50:27 pzuccon Exp $
+//  $Id: MagField.h,v 1.16 2011/04/22 21:33:37 shaino Exp $
 #ifndef __MagField__
 #define __MagField__
 #include "typedefs.h"
@@ -46,7 +46,7 @@ MAGSFFKEY_DEF() { init(); }
 
 extern MAGSFFKEY_DEF MAGSFFKEY;
 
-#define GUFLD(A1,A2)  MagField::getptr2()->GuFld(A1,A2)
+#define GUFLD(A1,A2)  MagField::GetPtr()->GuFld(A1,A2)
 #define TKFLD(A1,A2)  MagField::GetPtr()->TkFld(A1,A2)
 
 
@@ -65,9 +65,9 @@ extern MAGSFFKEY_DEF MAGSFFKEY;
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2010/12/06 09:50:27 $
+///$Date: 2011/04/22 21:33:37 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,10 +89,6 @@ public:
   float* bdz;
 
 
- //  float* bxc;
-//   float* byc;
-//   float* bzc;
-
   // the real map size
   int _nx;
   int _ny;
@@ -109,10 +105,6 @@ public:
   int ny() { return (_type==1)?_ny2:_ny;}
   int nz() { return (_type==1)?_nz2:_nz;}
 
-//   int nx() { return (_type==1)?(_nx*2-1):_nx;}
-//   int ny() { return (_type==1)?(_ny*2-1):_ny;}
-//   int nz() { return (_type==1)?(_nz*2-1):_nz;}
-
   double  _dx;     ///< Element size in X (cm)
   double  _dy;     ///< Element size in Y (cm)
   double  _dz;     ///< Element size in Z (cm)
@@ -120,8 +112,6 @@ public:
 
   magserv(int nx, int ny, int nz,int type);
   ~magserv();
-
-
 
 
   float _x(int i) {int sigx=((1-_nx+i)>=0)?1:-1;  return (_type==1)?sigx*x[abs(1-_nx+i)]:x[i];}
@@ -145,15 +135,8 @@ public:
   float _bdy(int l,int i, int j, int k){ return getsign(i,j,k,1,l)*bdy[l*_nx*_ny*_nz+getindex(i,j,k)];}
   float _bdz(int l,int i, int j, int k){ return getsign(i,j,k,2,l)*bdz[l*_nx*_ny*_nz+getindex(i,j,k)];}
 
-//   float _bxc(int i, int j, int k){ return bxc[i*_nx*_ny+ j*_nx + k];}
-//   float _byc(int i, int j, int k){ return byc[i*_nx*_ny+ j*_nx + k];}
-//   float _bzc(int i, int j, int k){ return bzc[i*_nx*_ny+ j*_nx + k];}
-
    /// Read field map file
    int Read(const char* fname,int skip);
-
-
-
 };
 
 void magserv::_bb(int i, int j, int k, 
@@ -172,7 +155,7 @@ int magserv::getindex(int i,int j,int k){
     int i2 = 1 - _nx + i;
     int j2 = 1 - _ny + j;
     int k2 = 1 - _nz + k;
-    return int(fabs(k2))*_nx*_ny+ int(fabs(j2))*_nx + int(fabs(i2));
+    return abs(k2)*_nx*_ny+ abs(j2)*_nx + abs(i2);
   }
   else{
     return k*_nx*_ny+ j*_nx + i;
@@ -194,7 +177,6 @@ int magserv::getsign(int i,int j,int k,int oo,int ll){
     return 1;
 }
 
-
 class MagField {
 public:
   enum { _header_size = 15 };
@@ -210,8 +192,6 @@ protected:
   integer na   [3];
 
   magserv* mm;
-
-
 
   static MagField* _ptr;  ///< Self pointer
   double fscale;
@@ -239,15 +219,11 @@ public:
   /// Get field derivative
   void TkFld(float *x, float hxy[][3]);
 
-
   /// Get self pointer
   static MagField *GetPtr(void) {
     return (_ptr) ? _ptr : new MagField;
   }
-  static MagField *getptr2() {
-    return _ptr;
 
-  }
   magserv* GetMap() {return mm;}
   int* GetPointerForDB(){
     return  isec;
@@ -276,26 +252,13 @@ protected:
 
   /// Interpolation (for rphiz coordinate)
   void _FintRphi(double r, double ph, double z, int *index, double *weight);
-//  int  hh(int ix,int iy, int iz,double x, double y, double z, int index[][3], double *weight);
+
   /// Get index of the array from each index number at x,y,z
   int _Index(int i, int j, int k) const;
 
   /// Get index of the array from position (x,y,z)
   int _GetIndex(double x, double y, double z) const;
 };
-
-// class TKFIELD_DEF{
-// public:
-//   integer mfile[40];
-//   integer iniok;
-//   integer isec[2];
-//   integer imin[2];
-//   integer ihour[2];
-//   integer iday[2];
-//   integer imon[2];
-//   integer iyear[2];
-//   void init();
-// };
 
 bool MagFieldOn();
 
