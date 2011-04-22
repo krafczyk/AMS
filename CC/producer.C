@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.157 2011/03/30 14:50:50 choutko Exp $
+//  $Id: producer.C,v 1.158 2011/04/22 21:05:25 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -550,10 +550,13 @@ cout <<" sendntupleend start "<<endl;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 ntend->crc=0;
-if(success){
+if(success && end>0){
  ntend->Status=DPS::Producer::Success;
 }
-else ntend->Status=DPS::Producer::Failure;
+else {
+  if(!end)cerr<<"AMSProducer::sendNtupleEnd-E-LastEventTimeZero "<<endl;
+  ntend->Status=DPS::Producer::Failure;
+}
 //ntend->Status=success?(DPS::Producer::Success):(DPS::Producer::Failure);
 ntend->EventNumber=entries;
 if(last){

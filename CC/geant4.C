@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.79 2011/03/07 16:56:56 choumilo Exp $
+//  $Id: geant4.C,v 1.80 2011/04/22 21:05:24 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -349,6 +349,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
    if(AMSJob::gethead()->isSimulation())
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
+      CCFFKEY.curtime=AMSEvent::gethead()->gettime();
    try{
           if(anEvent && AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
    }
