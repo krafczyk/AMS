@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.102 2011/04/18 12:15:07 pzuccon Exp $
+// $Id: TrTrack.C,v 1.103 2011/04/22 14:57:51 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/18 12:15:07 $
+///$Date: 2011/04/22 14:57:51 $
 ///
-///$Revision: 1.102 $
+///$Revision: 1.103 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -694,7 +694,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   _TrFit.SetMassChrg(mass, chrg);
 
   // Set multiple scattering option and assumed mass
-  if ((id & kMultScat) && !(id & kSameWeight)) 
+  if (((id & kMultScat) && !(id & kSameWeight)) || idf == kChikanian ||
+                                                   idf == kChikanianF)
     TrFit::_mscat = 1;
   else
     TrFit::_mscat = 0;
@@ -849,13 +850,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrFit::GuFld(coo[0], coo[1], coo[2], bf);
     _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
 	       bf[0], bf[1], bf[2]);
-    
+
     hitbits |= (1 << (hit->GetLayer()-1));
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (method == TrFit::CHIKANIAN  || 
-      method == TrFit::CHIKANIANF || TrFit::_mscat) {
+  if (TrFit::_mscat) {
     double rini = 0;
     int idr = kChoutko;
     int idl = id & (kFitLayer8 | kFitLayer9);
