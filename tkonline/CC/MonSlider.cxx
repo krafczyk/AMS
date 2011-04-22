@@ -1265,7 +1265,6 @@ void MonSlider::DrawOrbitFromTime(int alternative) {
   // clear
   canvas->Clear();
   canvas->cd(0);
-
   // time event ntuple
   TH2F* trajectory = new TH2F("traj","; latitude; longitude",180,-180,180,161,-80.5,80.5);
   rootfile->cd();
@@ -1286,6 +1285,13 @@ void MonSlider::DrawOrbitFromTime(int alternative) {
   // earth
   TH2F* earth = new TH2F("earth","; latitude; longitude",180,-180,180,161,-80.5,80.5);
   FILE* file = fopen(Form("%s/tkonline/data/earth.dat",getenv("AMSWD")),"read"); 
+  if (!file) {
+    printf("MonSlider::DrawOrbitFromTime()-W file tkonline/data/earth.dat not present. No Earth drawing!\n");
+    trajectory->SetMarkerColor(kViolet);
+    trajectory->Draw();
+    canvas->Update();
+    return;
+  }
   while (!feof(file)) {
     float x,y;
     fscanf(file,"%f%f",&x,&y);
@@ -1312,7 +1318,7 @@ void MonSlider::DrawInfo(int alternative) {
   canvas->Clear();
   canvas->cd(0);
   text->SetTextColor(kBlack);
-
+  text->SetTextSize(0.03);
   // first-last event
   TNtuple* ntuple = (TNtuple*) rootfile->FindObjectAny("timentuple");
   if (ntuple!=0) { 
@@ -1322,25 +1328,24 @@ void MonSlider::DrawInfo(int alternative) {
     time_t in = (time_t) time_event.Time;
     ntuple->GetEntry(ntuple->GetEntries());
     time_t fi = (time_t) time_event.Time;
-    text->DrawTextNDC(0.1,0.90,Form("First event %10d %s",(int)in,ctime(&in)));
-    text->DrawTextNDC(0.1,0.85,Form("Last event %10d %s",(int)fi,ctime(&fi)));
+    text->DrawTextNDC(0.1,0.95,Form("First event %10d %s",(int)in,ctime(&in)));
+    text->DrawTextNDC(0.1,0.90,Form("Last event %10d %s",(int)fi,ctime(&fi)));
   }  
-
   // header infos 
   TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader");
   if (header!=0) {
     // list
-    text->DrawTextNDC(0.1,0.75,Form("Number of files: %d",header->GetNFileNames()));
+    text->DrawTextNDC(0.1,0.83,Form("Number of files: %d",header->GetNFileNames()));
     for (int i=0; i<header->GetNFileNames(); i++) {
-      text->DrawTextNDC(0.1,0.70-0.05*i,header->GetFileName(i));
+      text->DrawTextNDC(0.1,0.80-0.03*i,header->GetFileName(i));
     }  
     // list
-    text->DrawTextNDC(0.6,0.75,Form("Number of runs: %d",header->GetNRunNumbers()));
+    text->DrawTextNDC(0.6,0.83,Form("Number of runs: %d",header->GetNRunNumbers()));
     for (int i=0; i<header->GetNRunNumbers(); i++) {
-      text->DrawTextNDC(0.6,0.70-0.05*i,Form("Run: %10d",header->GetRunNumber(i)));
+      text->DrawTextNDC(0.6,0.80-0.03*i,Form("Run: %10d",header->GetRunNumber(i)));
     } 
-
   }
   canvas->Update();
+  text->SetTextSize(0.05);
 }
 
