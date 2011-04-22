@@ -22,7 +22,7 @@ using namespace std;
 
 ClassImp(TrLadCal);
 
-int TrLadCal::dead=0x2;
+int TrLadCal::dead=0x5;
 // Default to Aug2010 format
 int TrLadCal::version=2;
 

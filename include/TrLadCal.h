@@ -52,7 +52,7 @@ class TrLadCal :public TObject {
   
 public:  
 
-  static int dead; // = 0x2;
+  static int dead; // = 0x1 | 0x4 = 0x5;
 
   /// Hardware ID (HwId = iTDR + iCrate*100)
   short int HwId;
