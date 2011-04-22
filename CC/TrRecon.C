@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.109 2011/04/16 09:11:04 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.110 2011/04/22 09:09:52 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/16 09:11:04 $
+/// $Date: 2011/04/22 09:09:52 $
 ///
-/// $Revision: 1.109 $
+/// $Revision: 1.110 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,6 @@
 #include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
-#include "cern.h"
 #include "trrec.h"
 #include "event.h"
 #include "trdrec.h"
@@ -569,6 +568,8 @@ int TrRecon::BuildTrRecHits(int rebuild)
     int tkid = lad->first;
     int nx   = lad->second.first.size();
     int ny   = lad->second.second.size();
+    int ilay = std::abs(tkid)/100-1;
+    if (RecPar.ThrSeed[1][ilay] < 0) continue;
 
     // all combinations
     for (int iy=0; iy<ny; iy++) {
@@ -939,24 +940,28 @@ if (TrDEBUG >= 3) {\
       TrClusterR *cls = (TrClusterR *)cont->getelem(tmin[jc].ic[k]/10);\
       if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), tmin[jc].ic[k]/10);\
     }\
-  cout << ": " << csq << " " << rgt << endl;\
+  cout << ": " << csq << " " << cthd << " " << rgt << " "\
+       << tmin[jc].csq << endl;\
 }
 
 #define TR_DEBUG_CODE_104 \
 if (TrDEBUG >= 2) {\
-  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {\
+  cout << "Sorted" << endl;\
+  for (int jj = 0; jj < NC*2; jj++) {\
+    int jc = jci[jj];\
+    if (tmin[jc].csq < 0) continue;\
     cout << Form("Y%02d: ", jc);\
     for (int k = 0; k < NL; k++)\
       if (tmin[jc].ic[k] > 0) {\
 	TrClusterR *cls = (TrClusterR *)cont->getelem(tmin[jc].ic[k]/10);\
 	if (cls) cout << Form("%4d:%02d ", cls->GetTkId(), tmin[jc].ic[k]/10);\
       }\
-    cout << ": " << tmin[jc].csqf << endl;\
+    cout << ": " << tmin[jc].csqf << " " << tmin[jc].rgtf << endl;\
   }\
 }
 
 #define TR_DEBUG_CODE_105 \
-if (TrDEBUG >= 3) {\
+if (TrDEBUG >= 4) {\
   TrClusterR *cls = (TrClusterR *)cont->getelem(ai/10);\
   cout << Form("C105 %4d:%02d %7.3f %7.3f %7.3f", (cls) ? cls->GetTkId() : 0,\
 	       ai/10, r, rmin, rsig) << endl;\
@@ -986,8 +991,9 @@ if (TrDEBUG >= 1) {\
     cout << Form("%4d:%03d%c", hit->GetTkId(), track->iTrRecHit(j),\
 		 ((hit->OnlyY()) ? 'Y' : ' '));\
   }\
-  cout << Form("%5.2f %5.2f", track->GetNormChisqX(),\
-		              track->GetNormChisqY()) << endl;\
+  cout << Form("%5.2f %5.2f %.2f", track->GetNormChisqX(),\
+	                           track->GetNormChisqY(),\
+	                           track->GetRigidity  ()) << endl;\
 }
 
 #define TR_DEBUG_CODE_108 \
@@ -1219,7 +1225,6 @@ void TrRecon::BuildLadderClusterMap()
 
 int TrRecon::BuildTrTracksSimple(int rebuild)
 {
-//TrDEBUG=3;
 //////////////////// Check VCon ////////////////////
 
   VCon *cont = GetVCon()->GetCont("AMSTrTrack");
@@ -1317,7 +1322,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   }
 
   struct TrSeed {
-    TrProp fit;
+    TrProp prop;
     double csq, csqf;
     double rgtf;
     int      ic[NL];
@@ -1329,8 +1334,15 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     void Set(TrFit &f, double q, double p1, double p2,
 	     int *i, const int IC[NP][NH], const AMSPoint CC[NP][NH]) {
-      fit = f; csq = q; ps1 = p1; ps2 = p2;
+      prop = f; csq = q; ps1 = p1; ps2 = p2;
       for (int j = 0; j < NP; j++) { ic[j] = IC[j][i[j]];
+	                             cc[j] = CC[j][i[j]]; }
+    }
+
+    void Set(double q, 
+	     int *i, const int IC[NP][NH], const AMSPoint CC[NP][NH]) {
+      csq = q;
+      for (int j = 1; j < NP; j++) { ic[j] = IC[j][i[j]];
 	                             cc[j] = CC[j][i[j]]; }
     }
 
@@ -1348,55 +1360,111 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     void Intp(AMSPoint *pint, double *zlay) {
       int p[3][3] = { { 0, 2, 3 }, { 0, 1, 3 }, { 0, 1, 2 } };
-      for (int j = 0; j < 3; j++) {
-	double z = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
-	double y = Intpol2(cc[p[j][0]].z(), cc[p[j][1]].z(), cc[p[j][2]].z(),
-			   cc[p[j][0]].y(), cc[p[j][1]].y(), cc[p[j][2]].y(),
-			   z);
-	pint[j].setp(0, y, z);
+
+      // No Layer 1
+      if (ic[0] == 0) {
+	for (int j = 0; j < 3; j++) {
+	  double z = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
+	  pint[j].setp(0, Intpol1(cc[1].z(), cc[3].z(), 
+				  cc[1].y(), cc[3].y(), z), z);
+	}
       }
-      fit.InterpolateSimple(3, pint);
+
+      // SimpleFit
+      else if (std::fabs(prop.GetP0z()) < 0.1) {
+	double z[3];
+	for (int j = 0; j < 3; j++)
+	  z[j] = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
+	prop.Interpolate(3, z, pint);
+      }
+
+      // SimpleFitTop
+      else {
+	for (int j = 0; j < 3; j++) {
+	  double z = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
+	  double y = Intpol2(cc[p[j][0]].z(), cc[p[j][1]].z(), cc[p[j][2]].z(),
+			     cc[p[j][0]].y(), cc[p[j][1]].y(), cc[p[j][2]].y(),
+			     z);
+	  pint[j].setp(0, y, z);
+	}
+	prop.InterpolateSimple(3, pint);
+      }
     }
 
-  } tmin[NC];
-
+  } tmin[NC*2];
 
 //////////////////// Search on Y-clusters ////////////////////
 
+#define CY(I) cc[I][i[I]].y()
+#define CZ(I) cc[I][i[I]].z()
+
   int i[NP];
-  for (i[0] = 0; i[0] < nc[0]; i[0]++) { // Plane 1 (Layer 1)
-  for (i[3] = 0; i[3] < nc[3]; i[3]++) { // Plane 4 (Layer 6, 7)
-    if (ic[3][i[3]] < 0) continue;
-
-  // pre-selection parameters
-  double p1 = (cc[0][i[0]].y()-cc[3][i[3]].y())
-             /(cc[0][i[0]].z()-cc[3][i[3]].z());
-  double p0 =  cc[0][i[0]].y()-cc[0][i[0]].z()*p1;
-
   for (i[1] = 0; i[1] < nc[1]; i[1]++) { // Plane 2 (Layer 2, 3)
     if (ic[1][i[1]] < 0) continue;
 
-    double dps1 = std::fabs(cc[1][i[1]].y()-(p0+p1*cc[1][i[1]].z()));
-    if (dps1 > psely*2.5) continue;
+  for (i[3] = 0; i[3] < nc[3]; i[3]++) { // Plane 4 (Layer 6, 7)
+    if (ic[3][i[3]] < 0) continue;
+
+  for (i[0] = 0; i[0] <= nc[0]; i[0]++) { // Plane 1 (Layer 1)
+    double dps1 = 0;
+    if (i[0] < nc[0]) {
+      dps1 = std::fabs(CY(1)-Intpol1(CZ(0), CZ(3), CY(0), CY(3), CZ(1)));
+      if (dps1 > psely*2.5) continue;
+    }
 
   for (i[2] = 0; i[2] < nc[2]; i[2]++) { // Plane 3 (Layer 4, 5)
-    if (ic[2][i[2]] < 0) continue;
+    if (i[0] == nc[0]) {
+      double dps = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), 
+					   CY(1), CY(3), CZ(2)));
+      if (dps > 0.2) continue;
 
-    double y = Intpol2(cc[0][i[0]].z(), cc[1][i[1]].z(), cc[3][i[3]].z(),
-		       cc[0][i[0]].y(), cc[1][i[1]].y(), cc[3][i[3]].y(),
-		       cc[2][i[2]].z());
-    double dps2 = std::fabs(cc[2][i[2]].y()-y);
+      int jr;
+      for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
+	if (tmin[jr].ic[1] == ic[1][i[1]] && 
+	    tmin[jr].ic[3] == ic[3][i[3]]) { jr = -1; break; }
+      }
+      if (jr < 0) continue;
+
+      for (jr = NC; jr < NC*2 && tmin[jr].csq > 0; jr++) {
+	int nshr = 0;
+	for (int j = 1; j < NP; j++) if (tmin[jr].ic[j] == ic[j][i[j]]) nshr++;
+	if (nshr >= 2) { if (dps > tmin[jr].csq) jr = -1; break; }
+      }
+      if (jr < 0) continue;
+
+      int jc;
+      for (jc = NC; jc < jr && tmin[jc].csq > 0 && dps > tmin[jc].csq; jc++);
+      if (jc >= NC*2) continue;
+
+      if (jr >= NC*2) jr = NC*2-1;
+      for (int j = jr-1; j >= jc; j--) tmin[j+1] = tmin[j];
+      tmin[jc].Set(dps, i, ic, cc);
+
+      TR_DEBUG_CODE_102;
+      continue;
+    }
+
+    if (ic[2][i[2]] < 0) continue;
+    double dps2 = std::fabs(CY(2)-Intpol2(CZ(0), CZ(1), CZ(3), 
+					  CY(0), CY(1), CY(3), CZ(2)));
     if (dps2 > dps1*0.5+0.01) continue;
+
+
+    double dps3 = std::fabs(CY(0)-Intpol1(CZ(1), CZ(3), CY(1), CY(3), CZ(0)));
+    double dps4 = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), CY(1), CY(3), CZ(2)));
 
     TrFit trfit;
     for (int j = 0; j < NP; j++) trfit.Add(cc[j][i[j]], errx, erry, erry);
+
     if (trfit.SimpleFitTop() < 0) continue;
+  //if (trfit.SimpleFit() < 0) continue;
 
     double csq  = trfit.GetChisqY();
     double rgt  = trfit.GetRigidity();
-    double cthd = (rgt != 0) ? 0.1+10/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.03+3/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
-    if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt == 0) continue;
+    if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || 
+	std::fabs(rgt) < 0.05) continue;
 
     int jr;
     for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
@@ -1420,12 +1488,15 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 //////////////////// Merge Y-clusters ////////////////////
 
-  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {
+  for (int jc = 0; jc < NC*2; jc++) {
+    if (tmin[jc].csq < 0) continue;
+
     AMSPoint pint[NP-1];
     tmin[jc].Intp(pint, zlay);
 
     double rsig = std::sqrt(tmin[jc].csq);
-    double rmax = msely*0.1+rsig*0.5;
+    double rmax = (msely/2+rsig)*0.1;
+    if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
 
     for (int j = 1; j < NP; j++) {
@@ -1456,39 +1527,40 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = trfit.GetRigidity();
-    double cthd = (rgt != 0) ? 1+10/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.2+10/rgt/rgt : 0;
+    if (cthd > 1e3) cthd = 1e3;
+    if (tmin[jc].ic[0] == 0) cthd = 1;
     TR_DEBUG_CODE_103;
     if (csq > cthd || rgt == 0) continue;
 
-    int jr = 0;
-    for (jr = 0; jr < jc; jr++)
-      if (tmin[jr].csqf > 0 && tmin[jr].GetNshr(tmin[jc]) >= 3) {
-	int nr = tmin[jr].GetN();
-	int nc = tmin[jc].GetN();
-	if (nc > nr || (nc == nr && csq < tmin[jr].csqf))
-	  tmin[jr].csqf = -1;
-	else {
-	  jr = -1;
-	  break;
-	}
-      }
-
-    if (jr >= 0) {
-      tmin[jc].csqf = csq;
-      tmin[jc].rgtf = rgt;
-    }
+    tmin[jc].csqf = csq;
+    tmin[jc].rgtf = rgt;
   }
+
+  // Sort TrSeeds
+  double tc[NC*2];
+  int nt = 0;
+  for (int j = 0; j < NC*2; j++) {
+    if (tmin[j].csqf > 0) {
+      tc[j] = tmin[j].csqf+(NL-tmin[j].GetN())*1e4; 
+      if (tmin[j].ic[0] == 0) tc[j] += 1e5;
+      nt++; 
+    }
+    else tc[j] = 1e5;
+  }
+
+  int jci[NC*2];
+  TMath::Sort(NC*2, tc, jci, kFALSE);
   TR_DEBUG_CODE_104;
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop ("Track1");
 #endif
   delete cont;
-  if (tmin[0].csq < 0) {
+  if (nt == 0) {
     _CpuTime = _CheckTimer();
     return 0;
   }
-
 
 //////////////////// Now with TrRecHits ////////////////////
 
@@ -1506,8 +1578,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 //////////////////// Loop on pattern candidates ////////////////////
 
   int ntrack = 0;
-  for (int jc = 0; jc < NC && tmin[jc].csq > 0; jc++) {
-    if (tmin[jc].csqf < 0) continue;
+  for (int j = 0; j < 4*9; j++) BTSdebug[j] = 0; 
+
+  for (int jj = 0; jj < NC*2; jj++) {
+    int jc = jci[jj];
+    if (tmin[jc].csq < 0 || tmin[jc].csqf < 0) continue;
 
     // Check cpu time limit
     if ((RecPar.TrTimeLim > 0 && _CheckTimer() > RecPar.TrTimeLim)|| SigTERM) {
@@ -1562,7 +1637,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     }
   }
 
+
 //////////////////// Search on TrRecHits ////////////////////
+
+#define TX(I) ch[I%2][i[I]].x()
+#define HZ(I) ch[I%2][i[I]].z()
 
   double cmin = cmaxx;
   int    nmin = 3;
@@ -1578,17 +1657,13 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if ( ih[1][i[1]]         <=  0) continue; // OnlyY is skipped
     if ((ih[1][i[1]]/10%100) >= 50) continue; // Low S/N is skipped
 
-    // Get pre-selection parameters
-    double p1 = (ch[0][i[0]].x()-ch[1][i[1]].x())
-               /(ch[0][i[0]].z()-ch[1][i[1]].z());
-    double p0 =  ch[0][i[0]].x()-ch[0][i[0]].z()*p1;
-
   for (i[2] = 0; i[2] < nh[0]; i[2]++) { // Plane 1,2 (Layer 1,2,3)
     // Same layer is skipped
     if (std::abs(ih[0][i[0]])%10 == std::abs(ih[0][i[2]])%10) continue;
 
     // Layer 1 needed
-    if (std::abs(ih[0][i[0]])%10 != 1 &&
+    if (tmin[jc].ic[0] > 0 &&
+	std::abs(ih[0][i[0]])%10 != 1 &&
 	std::abs(ih[0][i[2]])%10 != 1) continue;
 
     // Pre-selection
@@ -1598,7 +1673,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       pslx = 0.03+0.2/argt;
       if (pslx > pselx) pslx = pselx;
     }
-    double dps1 = std::fabs(ch[0][i[2]].x()-(p0+p1*ch[0][i[2]].z()));
+    double dps1 = std::fabs(TX(2)-Intpol1(HZ(0), HZ(1), TX(0), TX(1), HZ(2)));
     double dps2 = 0;
     if (dps1 > pslx) continue;
     if (ih[0][i[2]] < 0) { dps2 = dps1; dps1 = 0; }
@@ -1616,7 +1691,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       pslx = 0.03+0.2/argt;
       if (pslx > pselx) pslx = pselx;
     }
-    double dps3 = std::fabs(ch[1][i[3]].x()-(p0+p1*ch[1][i[3]].z()));
+    double dps3 = std::fabs(TX(3)-Intpol1(HZ(0), HZ(1), TX(0), TX(1), HZ(3)));
     double dps4 = 0;
     TR_DEBUG_CODE_109;
     if (dps3 > pslx) continue;
@@ -1731,29 +1806,60 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 //if (ProcessTrack(track, 1) > 0) {
   if (ProcessTrack(track, 0) > 0) {
+#ifdef __ROOTSHAREDLIBRARY__
+    VCon *contt = GetVCon()->GetCont("AMSTrTrack");
+    track = (TrTrackR *)contt->getelem(contt->getnelem()-1);
+#endif
+
     ntrack++;
     TR_DEBUG_CODE_107;
 
     double csq1 = tmin[jc].csq;
     double csq2 = tmin[jc].csqf;
-    double rgt1 = tmin[jc].fit.GetRigidity();
+    double rgt1 = tmin[jc].prop.GetRigidity();
     double rgt2 = tmin[jc].rgtf;
     double rgtf = std::fabs(track->GetRigidity());
-    hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
-    hman.Fill("TfCsq1", rgt1, csq1);
-    hman.Fill("TfCsq2", rgt2, csq2);
-    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[0]);
-    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[1]);
-    hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[2]);
-    hman.Fill("TfPsX1", rgt2, smin[0]);
-    hman.Fill("TfPsX2", rgt2, smin[1]);
-    hman.Fill("TfPsX1", rgt2, smin[2]);
-    hman.Fill("TfPsX2", rgt2, smin[3]);
-    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[3]);
-    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[4]);
-    hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[5]);
-    hman.Fill("TfRgt1", rgtf, rgt1);
-    hman.Fill("TfRgt2", rgtf, rgt2);
+    double csqf = track->GetNormChisqY();
+
+    if (jj < 4) {
+      float *par = &BTSdebug[jj*9];
+      *(par++) = tmin[jc].ps1;       // 0
+      *(par++) = tmin[jc].ps2;       // 1
+      *(par++) = csq1;               // 2
+      *(par++) = csq2;               // 3
+      *(par++) = rgt1;               // 4
+      *(par++) = rgt2;               // 5
+      *(par++) = tmin[jc].rmrg[0];   // 6
+      *(par++) = tmin[jc].rmrg[1];   // 7
+      *(par++) = tmin[jc].rmrg[2];   // 8
+    }
+
+    if (!hman.IsEnabled()) {
+      hman.Enable();
+      hman.BookHistos(0);
+    }
+    if (tmin[jc].ic[0] == 0) {
+      hman.Fill("TfCsq3", rgt2, csq1);
+      hman.Fill("TfCsq4", rgt2, csq2);
+    }
+    else {
+      hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
+      hman.Fill("TfCsq1", rgt1, csq1);
+      hman.Fill("TfCsq2", rgt2, csq2);
+      hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[0]);
+      hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[1]);
+      hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[2]);
+      hman.Fill("TfPsX1", rgt2, smin[0]);
+      hman.Fill("TfPsX2", rgt2, smin[1]);
+      hman.Fill("TfPsX1", rgt2, smin[2]);
+      hman.Fill("TfPsX2", rgt2, smin[3]);
+      hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[3]);
+      hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[4]);
+      hman.Fill("TfMrg2", csq2, tmin[jc].rmrg[5]);
+      hman.Fill("TfRgt1", rgtf, rgt1);
+      hman.Fill("TfRgt2", rgtf, rgt2);
+      hman.Fill("TfCsqf", csq2, csqf);
+    }
   }
 
   if (ntrack >= RecPar.MaxNtrack) break;
@@ -2199,9 +2305,12 @@ int TrRecon::CountTracks(int trstat)
 
     // Look for a track with at least one hit at all the INNER PLANES
     int span = (TrTrackSelection::GetSpanFlags(trk) & 0xff);
-    if (!(span & TrTrackSelection::kAllPlane)) continue;
+    if (!(trk->GetBitPattern() & 0x006) ||
+	!(trk->GetBitPattern() & 0x018) ||
+	!(trk->GetBitPattern() & 0x060)) continue;
 
-    int spflag[3] = { TrTrackSelection::kHalfL1N,
+    int spflag[4] = { TrTrackSelection::kAllPlane,
+		      TrTrackSelection::kHalfL1N,
 		      TrTrackSelection::kHalfL9,
 		      TrTrackSelection::kMaxSpan };
 
@@ -2209,17 +2318,18 @@ int TrRecon::CountTracks(int trstat)
     if (span & spflag[0]) { fTrackCounter[2]++; trstat |= 0x040; }
     if (span & spflag[1]) { fTrackCounter[3]++; trstat |= 0x080; }
     if (span & spflag[2]) { fTrackCounter[4]++; trstat |= 0x100; }
+    if (span & spflag[3]) { fTrackCounter[5]++; trstat |= 0x200; }
 
-    if (csqx < 20 && csqy < 20) {
-      fTrackCounter[5]++;
-      trstat |= 0x200;
+    if ((span & spflag[0]) && csqx < 20 && csqy < 20) {
+      fTrackCounter[6]++;
+      trstat |= 0x400;
 
       int mff = trk->iTrTrackPar(malgo, 7, 0); // Full span
-      if ((span & TrTrackSelection::kMaxSpan) && mff > 0) {
+      if ((span & spflag[3]) && mff > 0) {
 	double ersq = TrTrackSelection::GetHalfRessq(mff, trk);
 	if (ersq < 20) {
-	  fTrackCounter[6]++;
-	  trstat |= 0x400;
+	  fTrackCounter[7]++;
+	  trstat |= 0x800;
 	}
       }
     }
@@ -2228,7 +2338,7 @@ int TrRecon::CountTracks(int trstat)
   }
 
   // Multitracks
-  if (ntrk >= 2) fTrackCounter[7]++;
+  if (ntrk >= 2) fTrackCounter[8]++;
 
   delete cont;
 
@@ -2254,12 +2364,13 @@ int TrRecon::CountTracks(int trstat)
   float trtime = _CpuTimeTotal/fTrackCounter[0];
 
   int ntevt = fTrackCounter[1];
-  int ntful = fTrackCounter[4];
+  int ntful = fTrackCounter[5];
   cout << Form("TrRecon-I-Report: %7d %7d %7d "
 	       ".%03.0f(.%2.0f) .%03.0f(.%2.0f) .%03.0f .%03.0f %6.4f",
 	       nfill, ntevt, ntful, 
-	       1000.*ntevt/nfill, 100.*fTrackCounter[5]/ntevt,
-	       1000.*ntful/nfill, 100.*fTrackCounter[6]/ntful,
+	       1000.*ntevt/nfill, 100.*fTrackCounter[6]/ntevt,
+	       1000.*ntful/nfill, 
+	       (ntful > 0) ? 100.*fTrackCounter[7]/ntful : 0,
 	       1000.*(RecPar.NcutCls+RecPar.NcutHit)/nfill,
 	       1000.* RecPar.NcutCpu /nfill, trtime) << endl;
 
@@ -2291,7 +2402,7 @@ int TrRecon::FillHistos(int trstat, int refit)
   bool ismc = false;
   double pmc = 0, rmc = 0;
 #ifndef __ROOTSHAREDLIBRARY__
-  if (AMSJob::gethead()->isSimulation()) {
+  if (AMSJob::gethead()->isMCData()) {
     AMSmceventg *mcg 
       = (AMSmceventg *)AMSEvent::gethead()->getC("AMSmceventg")->gethead();
     if (mcg) {
@@ -2311,8 +2422,10 @@ int TrRecon::FillHistos(int trstat, int refit)
 #endif
 
   // Book histos if not yet
-  hman.Enable();
-  hman.BookHistos(ismc);
+  if (!hman.IsEnabled()) {
+    hman.Enable();
+    hman.BookHistos(ismc);
+  }
 
   ////////// CPU time and Tracker data size //////////
   float dlt = GetTrigTime(4); // delta-T
@@ -2532,14 +2645,16 @@ void TrRecon::PrintStats()
 
   cout << Form(" Events with >0 track        :  %8d (%5.3f)",
 	       nc[1], 1.*nc[1]/nc[0]) << endl;
-  cout << Form("  with half-L1N track        :  %8d (%5.3f)",
+  cout << Form("  with all-plI  track        :  %8d (%5.3f)",
 	       nc[2], 1.*nc[2]/nc[1]) << endl;
-  cout << Form("  with half-L9  track        :  %8d (%5.3f)",
+  cout << Form("  with half-L1N track        :  %8d (%5.3f)",
 	       nc[3], 1.*nc[3]/nc[1]) << endl;
-  cout << Form("  with fullspan track        :  %8d (%5.3f)",
+  cout << Form("  with half-L9  track        :  %8d (%5.3f)",
 	       nc[4], 1.*nc[4]/nc[1]) << endl;
+  cout << Form("  with fullspan track        :  %8d (%5.3f)",
+	       nc[5], 1.*nc[5]/nc[1]) << endl;
   cout << Form(" Events with >1 track        :  %8d (%5.3f)",
-	       nc[7], 1.*nc[7]/nc[0]) << endl;
+	       nc[8], 1.*nc[8]/nc[0]) << endl;
 
   cout 
     << "    ================================================================="
@@ -2571,6 +2686,12 @@ int TrRecon::GetEventID(void)
   return AMSEvent::gethead()->getEvent();
 }
 
+bool TrRecon::IsMC(void)
+{
+  return (AMSJob::gethead()->isMCData() && 
+	  AMSEvent::gethead()->getC("AMSmceventg")->gethead());
+}
+
 #else
 
 float TrRecon::GetTrigTime(int i)
@@ -2593,7 +2714,13 @@ int TrRecon::GetTofFlag(int i)
 int TrRecon::GetEventID(void)
 {
   AMSEventR *evt = AMSEventR::Head();
-  int evid = (evt) ? evt->Event() : 0;
+  return (evt) ? evt->Event() : 0;
+}
+
+bool TrRecon::IsMC(void)
+{
+  AMSEventR *evt = AMSEventR::Head();
+  return (evt && evt->pMCEventg(0));
 }
 
 #endif

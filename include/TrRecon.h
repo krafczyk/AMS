@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.44 2011/04/16 09:11:04 shaino Exp $ 
+// $Id: TrRecon.h,v 1.45 2011/04/22 09:09:52 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/16 09:11:04 $
+/// $Date: 2011/04/22 09:09:52 $
 ///
-/// $Revision: 1.44 $
+/// $Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -373,9 +373,6 @@ protected:
   int Ntrials1;
   /// For debug - number of trials in ScanClusters
   int Ntrials2;
-  /// Debug switch
-  static int TrDEBUG;
-  static int PZDEBUG;
 
   // Tools for CPU time consumption
   // Note: it works only without __ROOTSHAREDLIBRARY__
@@ -399,6 +396,10 @@ protected:
   float _CheckTimer() const;
 
 public:
+  /// Debug switch
+  static int TrDEBUG;
+  static int PZDEBUG;
+
   /// Flag for SIGTERM/SIGINT;
   static bool SigTERM;
   
@@ -474,6 +475,9 @@ public:
   /// The best candidate found so far in ScanHits
   TrHitIter _itchit;
 
+  /// Debug parameters for BuildTrTracksSimple
+  float BTSdebug[100];
+
 //========================================================
 // Track reconstruction methods
 //========================================================
@@ -530,6 +534,9 @@ public:
 
   /// Get current event number
   static int GetEventID();
+
+  /// Check MC or not
+  static bool IsMC();
 
   /* [0]-Tcalib.counter
      [1]-Treset.counter
@@ -603,6 +610,13 @@ public:
   TkSens EstimateXCoord(AMSPoint coo, int tkid = 0) const;
   /// Estimate multiplicity and readout strip by interpolation
   int EstimateXCoord(int il, TrHitIter &iter) const;
+
+  /// Linear interpolation (pol1)
+  static double Intpol1(double x1, double x2, 
+			double y1, double y2, double x) {
+    return (x-x2)/(x1-x2)*y1
+          +(x-x1)/(x2-x1)*y2;
+  }
 
   /// Polynomial interpolation (pol2)
   static double Intpol2(double x1, double x2, double x3,
