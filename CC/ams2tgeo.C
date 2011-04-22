@@ -110,6 +110,21 @@ TGeoShape* ams2tgeo::AMSgvolume2TGeoShape(AMSgvolume* amsvol) {
     tshape->SetTransform(0);
     if (amsvol->getnpar()!=5) cout << "AMSgvolume2TGeoShape-E-Wrong npars CONE (" << amsvol->getnpar() << ")" << endl;
   }
+  else if (strcmp(amsvol->getshape(),"CONS")==0) {
+    Double_t dz    = amsvol->getpar(0);
+    Double_t rmin1 = amsvol->getpar(1);
+    Double_t rmax1 = amsvol->getpar(2);
+    Double_t rmin2 = amsvol->getpar(3);
+    Double_t rmax2 = amsvol->getpar(4);
+    Double_t phi1  = amsvol->getpar(5);
+    Double_t phi2  = amsvol->getpar(6);
+    tshape = new TGeoConeSeg(shaname,dz,rmin1,rmax1,rmin2,rmax2,phi1,phi2);
+    if (debug_geo)
+      cout << "AMSgvolume2TGeoShape::Transformation from CONE to TGeoCone: "
+           << "  dZ " << dz << "  Rmin1 " << rmin1 << "  Rmax1 " << rmax1 << "  Rmin2 " << rmin2 << "  Rmax2 " << rmax2 << "  Phi1 " << phi1 << "  Phi2 " << phi2 << endl;
+    tshape->SetTransform(0);
+    if (amsvol->getnpar()!=7) cout << "AMSgvolume2TGeoShape-E-Wrong npars CONS (" << amsvol->getnpar() << ")" << endl;
+  }
   else if (strcmp(amsvol->getshape(),"PARA")==0) {
     Double_t dx    = amsvol->getpar(0);
     Double_t dy    = amsvol->getpar(1);
@@ -164,6 +179,17 @@ TGeoShape* ams2tgeo::AMSgvolume2TGeoShape(AMSgvolume* amsvol) {
     }
     tshape->SetTransform(0);
     if (amsvol->getnpar()!=3+(nz*3)) cout << "AMSgvolume2TGeoShape-E-Wrong npars PCON (" << amsvol->getnpar() << " expected " << 3+(nz*3) << ")" << endl;
+  }
+  else if (strcmp(amsvol->getshape(),"ELTU")==0) {
+    Double_t a   = amsvol->getpar(0);
+    Double_t b   = amsvol->getpar(1);
+    Double_t dz  = amsvol->getpar(2);
+    tshape = new TGeoEltu(shaname,a,b,dz);
+    if (debug_geo)
+      cout << "AMSgvolume2TGeoShape::Transformation from ELTU to TGeoEltu: "
+           << "  A " << a << "  B " << b << "  DZ " << dz << endl;
+    tshape->SetTransform(0);
+    if (amsvol->getnpar()!=3) cout << "AMSgvolume2TGeoShape-E-Wrong npars ELTU (" << amsvol->getnpar() << ")" << endl;
   }
   else {
     cout << "AMSgvolume2TGeoShape-E-Shape " << amsvol->getshape() << " not implemented" << endl;

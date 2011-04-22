@@ -35,6 +35,7 @@
 #include "TGeoPara.h"
 #include "TGeoPgon.h"
 #include "TGeoPcon.h"
+#include "TGeoEltu.h"
 #include "TRotMatrix.h"
 #include "TGeoMatrix.h"
 #include "TGeoCompositeShape.h"
