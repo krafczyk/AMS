@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.99.2.1 2011/04/04 20:32:29 haino Exp $
+// $Id: TrTrack.C,v 1.99.2.2 2011/04/23 10:15:53 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/04 20:32:29 $
+///$Date: 2011/04/23 10:15:53 $
 ///
-///$Revision: 1.99.2.1 $
+///$Revision: 1.99.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -694,7 +694,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   _TrFit.SetMassChrg(mass, chrg);
 
   // Set multiple scattering option and assumed mass
-  if ((id & kMultScat) && !(id & kSameWeight)) 
+  if (((id & kMultScat) && !(id & kSameWeight)) || idf == kChikanian ||
+                                                   idf == kChikanianF)
     TrFit::_mscat = 1;
   else
     TrFit::_mscat = 0;
@@ -854,8 +855,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (method == TrFit::CHIKANIAN  || 
-      method == TrFit::CHIKANIANF || TrFit::_mscat) {
+  if (TrFit::_mscat) {
     double rini = 0;
     int idr = kChoutko;
     int idl = id & (kFitLayer8 | kFitLayer9);
@@ -906,7 +906,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     par.Residual[il][1]= _TrFit.GetYr(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
-    if (GetResidual(i).norm() == 0) {
+    if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitL(i);
       AMSPoint pint  = InterpolateLayer(i, id);
       if (hit){

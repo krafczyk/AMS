@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.62 2011/04/03 12:03:57 shaino Exp $
+//  $Id: TrTrack.h,v 1.62.2.1 2011/04/23 10:19:30 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/04/03 12:03:57 $
+///$Date: 2011/04/23 10:19:30 $
 ///
-///$Revision: 1.62 $
+///$Revision: 1.62.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -128,7 +128,10 @@ public:
   TrTrackPar()
     : FitDone(false), HitBits(0), ChisqX(-1), ChisqY(-1), 
       NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
-      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {}
+      P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {
+    for (int i = 0; i < trconst::maxlay; i++)
+      Residual[i][0] = Residual[i][1] = 0;
+  }
   ~TrTrackPar(){}
   void Print(int full=0) const;
   void Print_stream(std::string &ostr,int full=0) const;
@@ -446,7 +449,7 @@ public:
 
   /// Return the  proj (0=X,1=Y) residual at layer ilay J-scheme (1-9) from TrTrackPar corresponding to id
   AMSPoint  GetResidualJ (int ilayJ, int id= 0) const { 
-    if (ilayJ < 0 || ilayJ > trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
+    if (ilayJ <= 0 || ilayJ > trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_LayJ(ilayJ),
 		    GetPar(id).GetResidualY_LayJ(ilayJ),
 		    TkDBc::Head->GetZlayerJ(ilayJ));
@@ -455,12 +458,12 @@ public:
 
   /// DEPRECATED DO NOT USE Return the  proj (0=X,1=Y) residual at layer ilay TOO OLD Scheme (0-8) from TrTrackPar corresponding to id
   AMSPoint  GetResidual (int ilay, int id= 0) const { 
-    if (ilay <= 0 || ilay > trconst::maxlay || !ParExists(id)) return AMSPoint(0,0,0);
+    if (ilay < 0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_Lay(ilay+1),
 		    GetPar(id).GetResidualY_Lay(ilay+1),
 		    TkDBc::Head->GetZlayer(ilay+1));
   }
-  
+
 
   /// Get track position at layer ilay J-scheme  (1-9)
   AMSPoint GetPlayerJ(int ilayJ, int id = 0);
