@@ -266,7 +266,9 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
-  Add(new TH2F("TkTrdDf", "TkTRD diff", 1000, 0, 100, 100, 0, 2));
+  Add(new TH2F("TkTrdD0", "TkTRD dy VS dx bef.",   300, 0, 60, 100, 0,  2));
+  Add(new TH2F("TkTrdDD", "TkTRD dx aft. VS bef.", 300, 0, 60, 300, 0, 60));
+  Add(TH2D_L  ("TkMoveC", "CsqX 2 VS 1", 120, 1e-5, 1e7, 120, 1e-5, 1e7));
 
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   Add(new TH2F("Time","Time",1000,0,50.,500,0,500));

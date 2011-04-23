@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.110 2011/04/22 09:09:52 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.111 2011/04/23 11:43:22 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/22 09:09:52 $
+/// $Date: 2011/04/23 11:43:22 $
 ///
-/// $Revision: 1.110 $
+/// $Revision: 1.111 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4070,20 +4070,22 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 
   number SearchReg(1);
   number MaxCos(0.95);
-  AMSPoint dst = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+  AMSPoint dst0 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
 
-  if (dst[2] > MaxCos)
-    hman.Fill("TkTrdDf", dst[0], dst[1]);
+  if (dst0[2] > MaxCos)
+    hman.Fill("TkTrdD0", dst0[0], dst0[1]);
 
   // No match in Y-coo or angle between TrTrack-TRD tracks
-  if (fabs(dst[1]) > SearchReg || dst[2] < MaxCos) return false;
+  if (fabs(dst0[1]) > SearchReg || dst0[2] < MaxCos) return false;
 
   // Good match between TrTrack-TRD tracks; no need to move
-  if (fabs(dst[0]) < SearchReg) return true;
-//printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
-  
-  return MoveTrTrack(ptrack, trdcoo, trddir,  3.);
+  if (fabs(dst0[0]) < SearchReg) return true;
 
+  bool moved = MoveTrTrack(ptrack, trdcoo, trddir,  3.);
+  if (moved) ptrack->FitT(mfit);
+
+  AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+  hman.Fill("TkTrdDD", dst0[0], dst1[0]);
 }
 
 
@@ -4115,46 +4117,48 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
       good_mult[ngood++][1]=mm;
     }
   }
+  if(ngood!=nxy || ngood<3) return false;
+
+  TrFit fit1, fit2;
+  double ferr = 300e-4;
+  for (int ii=0;ii<ngood;ii++){
+    TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
+    AMSPoint coo1 = phit->GetCoord();
+    AMSPoint coo2 = phit->GetCoord(good_mult[ii][1]);
+    fit1.Add(coo1, ferr, ferr, ferr);
+    fit2.Add(coo2, ferr, ferr, ferr);
+  }
+  if (fit1.SimpleFit() < 0 || fit2.SimpleFit() < 0) return false;
+  hman.Fill("TkMoveC", fit1.GetChisqX(), fit2.GetChisqX());
+
+  if (fit2.GetChisqX() > fit1.GetChisqX()*10+1) return false;
 
   // move the XY hits 
-  // and do a linear Fit on X
-  if(ngood==nxy && ngood>=3){
-    float alpha=0,beta=0,gamma=0,delta=0;
-    for (int ii=0;ii<ngood;ii++){
-      TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
-      phit->SetResolvedMultiplicity(good_mult[ii][1]);
-      float X=phit->GetCoord().x();
-      float Z=phit->GetCoord().z();
-      alpha+=Z*Z;
-      beta+=Z;
-      gamma+=X;
-      delta+=X*Z;
-    }
-    float q=(alpha*gamma-beta*delta)/(ngood*alpha-beta*beta);
-    float m=(ngood*delta-beta*gamma)/(ngood*alpha-beta*beta);
+  for (int ii=0;ii<ngood;ii++){
+    TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
+    phit->SetResolvedMultiplicity(good_mult[ii][1]);
+  }
+  float q=fit2.GetP0x();
+  float m=fit2.GetDxDz();
 
-    // Fix the X coo of the Y only hits
-    for(int jj=0;jj<ptr->getnhits();jj++){
-      TrRecHitR* phit=ptr->GetHit(jj);
-      if(phit && phit->OnlyY()){
-	AMSPoint gcoo=phit->GetCoord();
-	gcoo[0]=gcoo[2]*m+q;
-	int tkid=phit->GetTkId();
-	TkSens tks(tkid, gcoo, 0);
-	if(tks.LadFound()){
-	  if(tks.GetStripX()!=-1) phit->SetDummyX(tks.GetStripX());
-	  else phit->SetDummyX(383);
-	  //phit->BuildCoordinates();	  
-	  phit->SetResolvedMultiplicity(tks.GetMultIndex());
-	}
+  // Fix the X coo of the Y only hits
+  for(int jj=0;jj<ptr->getnhits();jj++){
+    TrRecHitR* phit=ptr->GetHit(jj);
+    if(phit && phit->OnlyY()){
+      AMSPoint gcoo=phit->GetCoord();
+      gcoo[0]=gcoo[2]*m+q;
+      int tkid=phit->GetTkId();
+      TkSens tks(tkid, gcoo, 0);
+      if(tks.LadFound()){
+	if(tks.GetStripX()!=-1) phit->SetDummyX(tks.GetStripX());
+	else phit->SetDummyX(383);
+	//phit->BuildCoordinates();	  
+	phit->SetResolvedMultiplicity(tks.GetMultIndex());
       }
     }
-    //ptr->ReFit();
-    //printf("TrRecon-MoveTrTrack-I- Track Moved err: %f !!!\n",err);
-    return true;
-    
   }
-  return false;
+
+  return true;
 }
 
 
