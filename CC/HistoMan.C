@@ -278,7 +278,10 @@ void HistoMan::BookHistos(int simmode){
   // Track quality parameters VS Rigidity
 
   // Trackfinding
+  Add(TH2D_L("TfPsY0", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
+  Add(TH2D_L("TfPsY2", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
   Add(TH2D_L("TfPsY1", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
+  Add(TH2D_L("TfCsq0", "CsqY1 VS Rgt1", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq1", "CsqY1 VS Rgt1", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq2", "CsqY2 VS Rgt2", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq3", "CsqY1 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));

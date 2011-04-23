@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.111 2011/04/23 11:43:22 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.112 2011/04/23 15:06:07 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/23 11:43:22 $
+/// $Date: 2011/04/23 15:06:07 $
 ///
-/// $Revision: 1.111 $
+/// $Revision: 1.112 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1398,6 +1398,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 #define CY(I) cc[I][i[I]].y()
 #define CZ(I) cc[I][i[I]].z()
 
+  int hskip = 0;
+
   int i[NP];
   for (i[1] = 0; i[1] < nc[1]; i[1]++) { // Plane 2 (Layer 2, 3)
     if (ic[1][i[1]] < 0) continue;
@@ -1447,11 +1449,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (ic[2][i[2]] < 0) continue;
     double dps2 = std::fabs(CY(2)-Intpol2(CZ(0), CZ(1), CZ(3), 
 					  CY(0), CY(1), CY(3), CZ(2)));
-    if (dps2 > dps1*0.5+0.01) continue;
+    if (++hskip == 20) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
 
+    if (dps2 > dps1*0.3+0.01) continue;
 
-    double dps3 = std::fabs(CY(0)-Intpol1(CZ(1), CZ(3), CY(1), CY(3), CZ(0)));
-    double dps4 = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), CY(1), CY(3), CZ(2)));
+    if (hskip == 0) hman.Fill("TfPsY2", dps1, dps2);
 
     TrFit trfit;
     for (int j = 0; j < NP; j++) trfit.Add(cc[j][i[j]], errx, erry, erry);
@@ -1463,6 +1465,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     double rgt  = trfit.GetRigidity();
     double cthd = (rgt != 0) ? 0.03+3/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
+    if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
     if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || 
 	std::fabs(rgt) < 0.05) continue;
 
