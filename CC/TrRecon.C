@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.112 2011/04/23 15:06:07 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.113 2011/04/23 15:30:59 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/23 15:06:07 $
+/// $Date: 2011/04/23 15:30:59 $
 ///
-/// $Revision: 1.112 $
+/// $Revision: 1.113 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +35,7 @@
 #include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
+#include "cern.h"
 #include "trrec.h"
 #include "event.h"
 #include "trdrec.h"
@@ -243,6 +244,153 @@ void TrRecon::Init(){
 
   InitBuffer();
 }
+    
+///////////////////////////////////////////////////////////
+// ---      MAIN RECONSTRUCTION FUNCTION            --- //
+//////////////////////////////////////////////////////////
+
+
+int TrRecon::Build(int flag, int rebuild, int hist)
+{
+  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
+  if (!cont) return 0;
+
+  int nraw = cont->getnelem();
+  delete cont;
+
+  int trstat = 0;
+  int ncls   = 0;
+  int nhit   = 0;
+  int ntrk   = 0;
+  if (nraw >= RecPar.MaxNrawCls) trstat |= 1;
+
+  // No reconstruction
+  if (flag == 0) return trstat;
+
+  // Check small-deltaT event
+  bool lowdt = (GetTrigTime(4) <= RecPar.lowdt);
+
+
+  //////////////////// TrCluster reconstruction ////////////////////
+  if (flag%10 >= 1 && nraw < RecPar.MaxNrawCls) {
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("TrCluster");
+#endif
+    
+    ncls = BuildTrClusters(rebuild);
+    
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("TrCluster");
+#endif
+  }
+  if (ncls > 0) {
+    if ( lowdt && ncls >= RecPar.MaxNtrCls_ldt) trstat |= 2;
+    if (!lowdt && ncls >= RecPar.MaxNtrCls)     trstat |= 4;
+  }
+
+
+  //////////////////// TrRecHit reconstruction ////////////////////
+  if (flag%100 >= 10 &&
+      ncls >  0  &&
+      (( lowdt && ncls < RecPar.MaxNtrCls_ldt) || // at small dt
+       (!lowdt && ncls < RecPar.MaxNtrCls)))      // at large dt
+    {
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("TrRecHit");
+#endif
+
+    nhit = BuildTrRecHits(rebuild);
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("TrRecHit");
+#endif
+  }
+  if (nhit >= RecPar.MaxNtrHit) trstat |= 8;
+
+
+
+  //////////////////// TrTrack reconstruction ////////////////////
+  int tofflag = GetTofFlag();
+  
+  if (flag%1000 >= 100 &&
+      nhit > 0 && nhit < RecPar.MaxNtrHit &&
+      tofflag >= 0 && tofflag < 9)  // TOF trigger pattern at least 1U/1L //PZ FIXME do we really need this?? 
+  {
+
+    int simple = (flag%10000 >= 1000) ? 1 : 0;
+    RecPar.NbuildTrack++;
+
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("TrTrack");
+#endif
+      
+    ntrk = (simple) ? BuildTrTracksSimple(rebuild) : 
+                      BuildTrTracks(rebuild);
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("TrTrack3Extension");
+#endif
+      VCon* cont = GetVCon()->GetCont("AMSTrTrack");
+      
+      // extend the tracks to the external planes
+      if (cont){
+        int ntks = cont->getnelem();
+        for (int itr=0;itr<ntks;itr++){
+          TrTrackR* tr=(TrTrackR*) cont->getelem(itr);
+          MergeExtHits(tr, tr->Gettrdefaultfit());        
+        }
+        delete cont;
+      }
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("TrTrack3Extension");
+#endif
+      
+      
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("TrTrack");
+#endif
+
+
+  }
+  if (CpuTimeUp() && !SigTERM) trstat |= 0x10;
+
+  //////////////////// Post-rec. process ////////////////////
+
+  // Purge "ghost" hits and assign hit index to tracks
+  PurgeGhostHits();
+
+  // Fill histograms
+  if (hist > 0) {
+#pragma omp critical (trhist)
+    {
+      trstat = CountTracks(trstat);
+      trstat = FillHistos (trstat);
+    }
+  }
+
+  if (CpuTimeUp()) {
+    if (SigTERM)
+      cout << "TrRecon::Build: SIGTERM detected: TrTime= "
+	   << GetCpuTime() << " at Event: " <<  GetEventID() << endl;
+    else {
+#ifndef __ROOTSHAREDLIBRARY__
+      // Throw cpulimit here
+      char mex[255];
+      sprintf(mex,"TrRecon::BuildTrTracks Cpulimit(%.1f) Exceeded: %.1f", 
+	      RecPar.TrTimeLim, GetCpuTime());
+      throw AMSTrTrackError(mex);
+#endif
+    }
+  }
+
+  return trstat;
+}
+
+
+
     
 //////////////////////
 // --- CLUSTERS --- //
@@ -1253,7 +1401,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   _StartTimer();
 
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("Track1");
+  AMSgObj::BookTimer.start("TrTrack0Find");
 #endif
 
 //////////////////// Parameters definition ////////////////////
@@ -1556,9 +1704,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   TMath::Sort(NC*2, tc, jci, kFALSE);
   TR_DEBUG_CODE_104;
 
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop ("Track1");
-#endif
   delete cont;
   if (nt == 0) {
     _CpuTime = _CheckTimer();
@@ -1575,15 +1720,21 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   }
 
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("Track2");
+  AMSgObj::BookTimer.stop ("TrTrack0Find");
 #endif
 
+
 //////////////////// Loop on pattern candidates ////////////////////
+
 
   int ntrack = 0;
   for (int j = 0; j < 4*9; j++) BTSdebug[j] = 0; 
 
   for (int jj = 0; jj < NC*2; jj++) {
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("TrTrack1Eval");
+#endif
+
     int jc = jci[jj];
     if (tmin[jc].csq < 0 || tmin[jc].csqf < 0) continue;
 
@@ -1763,11 +1914,13 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   if (cmin >= cmaxx) continue;
   TR_DEBUG_CODE_106;
-
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("TrTrack1Eval");
+#endif
 //////////////////// Create a new TrTrack ////////////////////
 
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("Trackbuild"); 
+  AMSgObj::BookTimer.start("TrTrack2build"); 
   AMSTrTrack *track = new AMSTrTrack(0);
 #else
   TrTrackR *track = new TrTrackR(0);
@@ -1867,21 +2020,19 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   if (ntrack >= RecPar.MaxNtrack) break;
 
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop ("TrTrack2build");
+#endif
+
   } // ENDOF: for (int jc = 0; jc < NC; jc++)
 
   _CpuTime = _CheckTimer();
 
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop ("Track2");
-  AMSgObj::BookTimer.start("Track3");
-#endif
 
-  // Check Track X and Find points on external Layers
-  if (!CpuTimeUp()) MatchTRDandExtend();
 
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop("Track3");
-#endif
+  //PZ MOVED TO TrRecon::Build Check Track X and Find points on external Layers
+  //  if (!CpuTimeUp()) MatchTRDandExtend();
+
 
   delete cont;
   return ntrack;
@@ -1890,7 +2041,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 int TrRecon::BuildTrTracks(int rebuild)
 {
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("Track1");
+  AMSgObj::BookTimer.start("TrTrack0Find");
 #endif
   if (TasRecon) return BuildTrTasTracks(rebuild);
 
@@ -1934,8 +2085,8 @@ int TrRecon::BuildTrTracks(int rebuild)
   delete cont2;
 #ifndef __ROOTSHAREDLIBRARY__
 
-AMSgObj::BookTimer.stop("Track1");
-  AMSgObj::BookTimer.start("Track2");
+AMSgObj::BookTimer.stop("TrTrack0Find");
+  AMSgObj::BookTimer.start("TrTrack1Eval");
 #endif
   
   // Main loop
@@ -1999,13 +2150,13 @@ AMSgObj::BookTimer.stop("Track1");
  
   _CpuTime = _CheckTimer();
 
-  // Check Track X and Find points on external Layers
-  if (!CpuTimeUp()) MatchTRDandExtend();
+  //PZ MOVED to TrRecon::Build  Check Track X and Find points on external Layers
+  //  if (!CpuTimeUp()) MatchTRDandExtend();
 
 //PurgeGhostHits should be called at event_tk
 //PurgeGhostHits();
 #ifndef __ROOTSHAREDLIBRARY__
-   AMSgObj::BookTimer.stop("Track2");
+   AMSgObj::BookTimer.stop("TrTrack1Eval");
 #endif
   return ntrack;
 }
@@ -2163,116 +2314,6 @@ void TrRecon::PurgeUnusedHits()
 
 
 
-int TrRecon::Build(int flag, int rebuild, int hist)
-{
-  VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
-  if (!cont) return 0;
-
-  int nraw = cont->getnelem();
-  delete cont;
-
-  int trstat = 0;
-  int ncls   = 0;
-  int nhit   = 0;
-  int ntrk   = 0;
-  if (nraw >= RecPar.MaxNrawCls) trstat |= 1;
-
-  // No reconstruction
-  if (flag == 0) return trstat;
-
-  // Check small-deltaT event
-  bool lowdt = (GetTrigTime(4) <= RecPar.lowdt);
-
-
-  //////////////////// TrCluster reconstruction ////////////////////
-  if (flag%10 >= 1 && nraw < RecPar.MaxNrawCls) {
-
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.start("TrCluster");
-    ncls = BuildTrClusters(rebuild);
-    AMSgObj::BookTimer.stop("TrCluster");
-#else
-    ncls = BuildTrClusters(rebuild);
-#endif
-  }
-  if (ncls > 0) {
-    if ( lowdt && ncls >= RecPar.MaxNtrCls_ldt) trstat |= 2;
-    if (!lowdt && ncls >= RecPar.MaxNtrCls)     trstat |= 4;
-  }
-
-
-  //////////////////// TrRecHit reconstruction ////////////////////
-  if (flag%100 >= 10 &&
-      ncls >  0  &&
-      (( lowdt && ncls < RecPar.MaxNtrCls_ldt) || // at small dt
-       (!lowdt && ncls < RecPar.MaxNtrCls)))      // at large dt
-    {
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.start("TrRecHit");
-    nhit = BuildTrRecHits(rebuild);
-    AMSgObj::BookTimer.stop("TrRecHit");
-#else
-    nhit = BuildTrRecHits(rebuild);
-#endif
-  }
-  if (nhit >= RecPar.MaxNtrHit) trstat |= 8;
-
-
-
-  //////////////////// TrTrack reconstruction ////////////////////
-  int tofflag = GetTofFlag();
-  if (flag%1000 >= 100 &&
-      nhit > 0 && nhit < RecPar.MaxNtrHit &&
-      tofflag >= 0 && tofflag < 9)  // TOF trigger pattern at least 1U/1L
-  {
-    int simple = (flag%10000 >= 1000) ? 1 : 0;
-    RecPar.NbuildTrack++;
-
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.start("TrTrack");
-    ntrk = (simple) ? BuildTrTracksSimple(rebuild) : 
-                      BuildTrTracks(rebuild);
-    AMSgObj::BookTimer.stop("TrTrack");
-#else
-    ntrk = (simple) ? BuildTrTracksSimple(rebuild) : 
-                      BuildTrTracks(rebuild);
-#endif
-
-  }
-  if (CpuTimeUp() && !SigTERM) trstat |= 0x10;
-
-
-  //////////////////// Post-rec. process ////////////////////
-
-  // Purge "ghost" hits and assign hit index to tracks
-  PurgeGhostHits();
-
-  // Fill histograms
-  if (hist > 0) {
-#pragma omp critical (trhist)
-    {
-      trstat = CountTracks(trstat);
-      trstat = FillHistos (trstat);
-    }
-  }
-
-  if (CpuTimeUp()) {
-    if (SigTERM)
-      cout << "TrRecon::Build: SIGTERM detected: TrTime= "
-	   << GetCpuTime() << " at Event: " <<  GetEventID() << endl;
-    else {
-#ifndef __ROOTSHAREDLIBRARY__
-      // Throw cpulimit here
-      char mex[255];
-      sprintf(mex,"TrRecon::BuildTrTracks Cpulimit(%.1f) Exceeded: %.1f", 
-	      RecPar.TrTimeLim, GetCpuTime());
-      throw AMSTrTrackError(mex);
-#endif
-    }
-  }
-
-  return trstat;
-}
 
 #include "TrTrackSelection.h"
 
@@ -3297,7 +3338,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   AMSPoint ptrk[2];
   ptrk[0] = track->InterpolateLayer(lyext[0]-1, mfit);
   ptrk[1] = track->InterpolateLayer(lyext[1]-1, mfit);
-
+  float rig= track->GetRigidity(mfit);
   int nhit = cont->getnelem();
 
   //1. Search the XY and Y-only hits closest to the track extrapolation on Y
@@ -3339,6 +3380,11 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   //2. XY or Y
   float diffY_max=TRFITFFKEY.MergeExtLimY;
   float diffX_max=TRFITFFKEY.MergeExtLimX;
+
+  if(rig<10){
+    diffY_max =diffY_max *(11-rig) ;
+    diffX_max =diffX_max *(11-rig) ;
+  }    
   int nadd=0;
 
   for (int il=0;il<2;il++){
@@ -3388,26 +3434,65 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   }
   delete cont;
 
-  if (nadd > 0) track->FillExRes();
+  if (nadd > 0) {
+    track->FillExRes();
+    int fitid=track->Gettrdefaultfit();
+    if(DY[0].ihmin>=0 && DY[1].ihmin>=0) 
+      fitid|=TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9;
+    else if (DY[0].ihmin>=0) 
+      fitid|=TrTrackR::kFitLayer8;
+    else if (DY[1].ihmin>=0) 
+      fitid|=TrTrackR::kFitLayer9;
+    track->FitT(fitid);
+    track->RecalcHitCoordinates(fitid);
+  }
 
   if(DY[0].ihmin>=0) {
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("TrTrack4Fit");
+#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | mfit);
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack4Fit");
+#endif
   }
+
+
   if(DY[1].ihmin>=0) {
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("TrTrack4Fit");
+#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer9 | mfit);
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack4Fit");
+#endif
   }
+
+
   if(DY[0].ihmin>=0 && DY[1].ihmin>=0) {
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("TrTrack4Fit");
+#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack4Fit");
+#endif
   }
 
   else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
-	    track->ParExists(mfit | TrTrackR::kFitLayer9) &&
-	   !track->ParExists(mfit | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) {
+            track->ParExists(mfit | TrTrackR::kFitLayer9) &&
+           !track->ParExists(mfit | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) {
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.start("TrTrack4Fit");
+#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack4Fit");
+#endif
   }
 
   return nadd;
@@ -3428,7 +3513,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // Create a new track
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("Trackbuild"); 
+  AMSgObj::BookTimer.start("TrTrack2build"); 
   AMSTrTrack *track = new AMSTrTrack(itcand.pattern);
 #else
   TrTrackR *track = new TrTrackR(itcand.pattern);
@@ -3463,9 +3548,13 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   track->SetPatterns(patt->GetHitPatternIndex(maskc),
 		     patt->GetHitPatternIndex(masky),
                      patt->GetHitPatternIndex(maskc),
-		     patt->GetHitPatternIndex(masky));
+                     patt->GetHitPatternIndex(masky));
 
-  return ProcessTrack(track);
+  int bb=ProcessTrack(track);
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("TrTrack2build"); 
+#endif
+  return bb;
 }
 
 int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
@@ -3484,9 +3573,9 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
   if (ret < 0 || 
       track->GetChisqX(mfit1) <= 0 || track->GetChisqY(mfit1) <= 0 ||
       track->GetNdofX (mfit1) <= 0 || track->GetNdofY (mfit1) <= 0) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("Trackbuild");
-#endif
+// #ifndef __ROOTSHAREDLIBRARY__
+//      AMSgObj::BookTimer.stop("Trackbuild");
+// #endif
     delete track;
     return 0;
   }
@@ -3498,11 +3587,11 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
        RecPar.TrackThrSeed[1] > RecPar.ThrSeed[1][0])) {
     MergeLowSNHits(track, mfit1);
     if (track->GetNhitsX () < RecPar.MinNhitX ||
-	track->GetNhitsY () < RecPar.MinNhitY ||
-	track->GetNhitsXY() < RecPar.MinNhitXY) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("Trackbuild");
-#endif
+        track->GetNhitsY () < RecPar.MinNhitY ||
+        track->GetNhitsXY() < RecPar.MinNhitXY) {
+// #ifndef __ROOTSHAREDLIBRARY__
+//      AMSgObj::BookTimer.stop("Trackbuild");
+// #endif
       delete track;
       return 0;
     }
@@ -3537,22 +3626,28 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
         track->EstimateDummyX(mfit2);
     }
   }
+
+  // Check it the X matching with the TRD and/or TOF direction
+  int ret3=MatchTOF_TRD(track);
+
   if (track->GetRigidity() == 0 || track->GetChisq() <= 0) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("Trackbuild");
-#endif
+// #ifndef __ROOTSHAREDLIBRARY__
+//      AMSgObj::BookTimer.stop("Trackbuild");
+// #endif
     delete track;
     return 0;
   }
 
+
+  // Add the track to the collection
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {
     cont->addnext(track);
     //TR_DEBUG_CODE_42;
   }
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("Trackbuild");
-#endif
+// #ifndef __ROOTSHAREDLIBRARY__
+//      AMSgObj::BookTimer.stop("Trackbuild");
+// #endif
   delete cont;
   return 1;
 }
@@ -4066,7 +4161,7 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
 }
 
-bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
+int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 {
   int mfit = TrTrackR::DefaultFitID;
   if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
@@ -4079,16 +4174,23 @@ bool TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
     hman.Fill("TkTrdD0", dst0[0], dst0[1]);
 
   // No match in Y-coo or angle between TrTrack-TRD tracks
-  if (fabs(dst0[1]) > SearchReg || dst0[2] < MaxCos) return false;
+  if (fabs(dst0[1]) > SearchReg || dst0[2] < MaxCos) return -1;
 
   // Good match between TrTrack-TRD tracks; no need to move
-  if (fabs(dst0[0]) < SearchReg) return true;
+  if (fabs(dst0[0]) < SearchReg) return 1;
+//printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
 
-  bool moved = MoveTrTrack(ptrack, trdcoo, trddir,  3.);
-  if (moved) ptrack->FitT(mfit);
-
-  AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
-  hman.Fill("TkTrdDD", dst0[0], dst1[0]);
+  bool moved=MoveTrTrack(ptrack, trdcoo, trddir,  3.);
+  if(moved){
+    ptrack->FitT(mfit);
+    AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+    hman.Fill("TkTrdDD", dst0[0], dst1[0]);
+    return 10;
+  }else{
+    AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
+    hman.Fill("TkTrdDD", dst0[0], dst1[0]);
+    return 3;
+  }
 }
 
 
@@ -4167,51 +4269,57 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 
 bool TkTOFMatch(TrTrackR* tr);
 
-void TrRecon::MatchTRDandExtend(){
-  VCon* cont = GetVCon()->GetCont("AMSTrTrack");
-  for(int ii=0;ii< cont->getnelem();ii++){
-    TrTrackR* tr=(TrTrackR*)cont->getelem(ii);
-    bool TRDdone=false;
+int TrRecon::MatchTOF_TRD(TrTrackR* tr){
+  int  TRDdone = -10;
+  bool TOFdone = false;
 #ifndef __ROOTSHAREDLIBRARY__
     if((TRCLFFKEY.ExtMatch%10)>0){
       for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
 	     ;trd;trd=trd->next())
 	{
-	  AMSPoint pp= trd->getCooStr();
-	  AMSDir dd=trd->getCooDirStr(); 
-	  TRDdone=TkTRDMatch(tr, pp,dd);; 
-	  if(TRDdone) 
-	    break;
-	}
+          AMSPoint pp= trd->getCooStr();
+          AMSDir dd=trd->getCooDirStr(); 
+          TRDdone=TkTRDMatch(tr, pp,dd);; 
+        if(TRDdone>0) 
+            break;
+        }
     }
-    if(!TRDdone &&(TRCLFFKEY.ExtMatch/10)>0)   TkTOFMatch(tr);
+  if(!TRDdone &&(TRCLFFKEY.ExtMatch/10)>0)   TOFdone=TkTOFMatch(tr);
 #else
     if((TRCLFFKEY.ExtMatch%10)>0){
       AMSEventR *evt = AMSEventR::Head();
       for (int i = 0; evt && i < evt->nTrdTrack(); i++) {
 	TrdTrackR *trd = evt->pTrdTrack(i);
-	AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
-	AMSDir   dd(trd->Theta,  trd->Phi);
-	TRDdone = TkTRDMatch(tr, pp,dd);; 
-	if(TRDdone) break;
+        AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
+        AMSDir   dd(trd->Theta,  trd->Phi);
+        TRDdone = TkTRDMatch(tr, pp,dd);; 
+      if(TRDdone>0) break;
       }
     }
+#endif
+  if(TRDdone/10>0||TOFdone) {
+    tr->FitT(tr->Gettrdefaultfit());
+    tr->RecalcHitCoordinates(tr->Gettrdefaultfit());
+  }
+  
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("TrTrack4Fit");
 #endif
 
     if(tr->DoAdvancedFit()) {
       if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
-      if (tr->ParExists(TrTrackR::DefaultFitID))
-	tr->Settrdefaultfit(TrTrackR::DefaultFitID);
     } else {
       if (TrDEBUG >= 1) {
-	printf(" Problems with Track Advanced Fits: %d %d\n",
-	       tr->GetNhits(), tr->GetNhitsXY());
+        printf(" Problems with Track Advanced Fits: %d %d\n",
+               tr->GetNhits(), tr->GetNhitsXY());
       }
     }
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack4Fit");
+#endif
 
-    if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
-  }
-  delete cont;
+  return 0;
+  //  if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
 }
 //-----------------------------------------------------------------------
 

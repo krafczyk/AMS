@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.31 2011/03/29 15:48:45 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.32 2011/04/23 15:30:59 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -164,6 +164,18 @@ public:
     return GetGlobalCoordinate( imult, "");
   }
 
+  /// Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
+  float HitDist(TrRecHitR & B,int coo);
+  /// Returns an AMSPoint with the minimal distance between an Hit and a  given point
+  /// \param coo the input point in form of AMSPoint
+  /// \param mult gives back the closest hit multiplicity
+  const AMSPoint HitPointDist(const AMSPoint& coo,int & mult);
+  /// Returns an AMSPoint with the minimal distance between an Hit and a  given point
+  /// \param coo the input pointin form of float vector
+  /// \param mult gives back the closest hit multiplicity
+  const AMSPoint HitPointDist(float* coo,int& mult){
+    return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
+  }
 	
   /**@}*/		
   /**@name Signals */			
@@ -264,12 +276,6 @@ public:
   ///STD GBATCH compatibility layer
   int lad() const {return GetSlot();}
   
-  // Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
-  float HitDist(TrRecHitR & B,int coo);
-  const AMSPoint HitPointDist(const AMSPoint& coo,int & mult);
-  const AMSPoint HitPointDist(float* coo,int& mult){
-    return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
-  }
   /// Compatibility with default Gbatch
   AMSPoint getHit(bool = true) { return GetCoord(); }
   number   getsum()            { return GetTotSignal(); }

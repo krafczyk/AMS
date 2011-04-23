@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.45 2011/04/22 09:09:52 shaino Exp $ 
+// $Id: TrRecon.h,v 1.46 2011/04/23 15:31:00 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/22 09:09:52 $
+/// $Date: 2011/04/23 15:31:00 $
 ///
-/// $Revision: 1.45 $
+/// $Revision: 1.46 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -552,7 +552,7 @@ public:
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
   /// Try to extend to external planes for AMS-02P
-  void MatchTRDandExtend();
+  int  MatchTOF_TRD(TrTrackR* tr);
 
 
  /// Check the Match between Tracker and TRD tracks
@@ -562,11 +562,11 @@ public:
   /// [2] Cos(angle)
   static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
 				  AMSPoint& trdcoo, AMSDir& trddir, 
-				  int fit_id=0);
+                                  int fit_id=0);
 
   /// Check the match Tracker and TRD tracks and shift TrTrack
-  static bool TkTRDMatch(TrTrackR* ptrack, 
-			 AMSPoint& trdcoo, AMSDir& trddir);
+  static int TkTRDMatch(TrTrackR* ptrack, 
+                         AMSPoint& trdcoo, AMSDir& trddir);
 
 
   /// Try to ajust the X multiplicity using a road from other detectors
@@ -613,14 +613,14 @@ public:
 
   /// Linear interpolation (pol1)
   static double Intpol1(double x1, double x2, 
-			double y1, double y2, double x) {
+                        double y1, double y2, double x) {
     return (x-x2)/(x1-x2)*y1
           +(x-x1)/(x2-x1)*y2;
   }
 
   /// Polynomial interpolation (pol2)
   static double Intpol2(double x1, double x2, double x3,
-			double y1, double y2, double y3, double x) {
+                        double y1, double y2, double y3, double x) {
     return (x-x2)*(x-x3)/(x1-x2)/(x1-x3)*y1
           +(x-x1)*(x-x3)/(x2-x1)/(x2-x3)*y2
           +(x-x1)*(x-x2)/(x3-x1)/(x3-x2)*y3;
