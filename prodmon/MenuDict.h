@@ -34,6 +34,7 @@ extern void G__set_cpp_environmentMenuDict();
 #include "Menu.h"
 #include "ProgBar.h"
 #include "myzoom.h"
+#include "InputDialog.h"
 #include <algorithm>
 namespace std { }
 using namespace std;
@@ -49,6 +50,7 @@ extern G__linked_taginfo G__MenuDictLN_vectorlEunsignedsPintcOallocatorlEunsigne
 extern G__linked_taginfo G__MenuDictLN_string;
 extern G__linked_taginfo G__MenuDictLN_vectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgR;
 extern G__linked_taginfo G__MenuDictLN_reverse_iteratorlEvectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgRcLcLiteratorgR;
+extern G__linked_taginfo G__MenuDictLN_TList;
 extern G__linked_taginfo G__MenuDictLN_TTimer;
 extern G__linked_taginfo G__MenuDictLN_vectorlETVirtualArraymUcOallocatorlETVirtualArraymUgRsPgR;
 extern G__linked_taginfo G__MenuDictLN_reverse_iteratorlEvectorlETVirtualArraymUcOallocatorlETVirtualArraymUgRsPgRcLcLiteratorgR;
@@ -63,6 +65,7 @@ extern G__linked_taginfo G__MenuDictLN_TGMainFrame;
 extern G__linked_taginfo G__MenuDictLN_TGTransientFrame;
 extern G__linked_taginfo G__MenuDictLN_TGPopupMenu;
 extern G__linked_taginfo G__MenuDictLN_TGMenuBar;
+extern G__linked_taginfo G__MenuDictLN_TGTextEntry;
 extern G__linked_taginfo G__MenuDictLN_maplEstringcOintcOlesslEstringgRcOallocatorlEpairlEconstsPstringcOintgRsPgRsPgR;
 extern G__linked_taginfo G__MenuDictLN_Tab_Frame;
 extern G__linked_taginfo G__MenuDictLN_vectorlEstringcOallocatorlEstringgRsPgR;
@@ -200,5 +203,6 @@ extern G__linked_taginfo G__MenuDictLN_reverse_iteratorlEvectorlETH1FmUcOallocat
 extern G__linked_taginfo G__MenuDictLN_vectorlETStringcOallocatorlETStringgRsPgR;
 extern G__linked_taginfo G__MenuDictLN_reverse_iteratorlEvectorlETStringcOallocatorlETStringgRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__MenuDictLN_Menu;
+extern G__linked_taginfo G__MenuDictLN_InputDialog;
 
 /* STUB derived class for protected member access */

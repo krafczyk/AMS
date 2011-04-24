@@ -34,6 +34,8 @@ private:
 	int  _fhs;
 	//TFile* file;
 	TTimer* timer1,*timer2;
+	Bool_t timer1_on,timer2_on;
+	Int_t time_val;
 	string data1_filename;
 	string data2_filename;
 	string data1_dir;

@@ -7,6 +7,7 @@
 
 #pragma link C++ class ProgBar;
 #pragma link C++ class Menu;
+#pragma link C++ class InputDialog;
 #pragma link C++ function myzoom;
 
 

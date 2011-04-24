@@ -12,6 +12,7 @@
 #include "TGTab.h"
 #include "TGLayout.h"
 #include "TObject.h"
+#include "InputDialog.h"
 
 #include "TVirtualPad.h"
 #include "TH1F.h"
@@ -70,6 +71,7 @@ int main(int argc,char*argv[]){
 	hc->MapSubwindows();
 	hc->Resize(hc->GetDefaultSize());
 	hc->MapWindow();
+
 	app.Run();
 	return 0;
 }

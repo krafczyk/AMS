@@ -1,5 +1,6 @@
 #include "Menu.h"
-//#include "InputDialog.h"
+#include "InputDialog.h"
+#include "TGMsgBox.h"
 #include "TLegend.h"
 #include <stdio.h>
 #include <sys/types.h>
@@ -100,7 +101,10 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	_ftab=tab;
 	_fstab=stab;
 	_fhtab=htab;
+	timer1_on=false;
+	timer2_on=false;
 	pre_time=time(NULL);
+	time_val=60000;
 	data1_dir="Data1/";
 	data2_dir="Data2/*.root";
 	data2_filename=data2_dir;
@@ -150,6 +154,7 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuPlot->AddEntry("Stop",2);
 	fMenuPlot->DisableEntry(1);
 	fMenuPlot->DisableEntry(2);
+	fMenuPlot->AddEntry("Set Time Interval",3);
 	fMenuPlot->Connect("Activated(Int_t)", "Menu", this,
                       "HandleMenu2(Int_t)");
 	fMenuPlot->DisableEntry(0);
@@ -494,6 +499,7 @@ void Menu::HandleMenu(Int_t i){
 		
                 //printf("%s find new file %s\n",_fcmd.c_str(),path);
 		timer2->Start(0,kTRUE);
+		
                 return;
         }
         static char answer[128];
@@ -569,15 +575,31 @@ void Menu::HandleMenu2(Int_t i){
 			break;
 	//Start automatically generating plots
 		case 1:
-			timer1->Start(300000,kFALSE);	
+			timer1->Start(time_val,kFALSE);	
+			timer1_on=true;
 			fMenuPlot->DisableEntry(1);
 			fMenuPlot->EnableEntry(2);
 			break;
 	//Stop automaticall generating plots
 		case 2:
 			timer1->Stop();
+			timer1_on=false;
 			fMenuPlot->DisableEntry(2);
                         fMenuPlot->EnableEntry(1);
+			break;
+		case 3:
+			char answer[128];
+			new InputDialog("Time interval (ms)","60000",answer);
+			time_val=atoi(answer);
+			if(time_val==0){
+				new TGMsgBox(gClient->GetRoot(),this,"Error","Please input integer");	
+			}
+			else{
+				if(timer1_on){
+					timer1->Stop();
+					timer1->Start(time_val,kFALSE);
+				}
+			}
 			break;
 	}
 }
