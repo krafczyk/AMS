@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.207.2.1 2011/04/22 15:57:06 choutko Exp $
+//  $Id: daqevt.C,v 1.207.2.2 2011/04/25 15:11:02 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1238,6 +1238,9 @@ integer DAQEvent::_HeaderOK(){
       }
 */
       if(_GetBlType()>=6 && _GetBlType()<=8){
+ #pragma omp critical (calibdata)
+{      
+
 //     set commands here
        int mask=(_Event & 65535);
        int seq=(_Event>>16);
@@ -1269,7 +1272,6 @@ integer DAQEvent::_HeaderOK(){
         }
         else{
 // must read next event, thanks to developers
- #pragma omp critical (secndpass)      
 {
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
@@ -1312,7 +1314,7 @@ integer DAQEvent::_HeaderOK(){
    }
 }
 } 
-
+}
 
 // level3 now inside  (should add smth here)
 
@@ -2027,10 +2029,12 @@ again:
 void DAQEvent::initO(integer run,integer eventno,time_t tt){
   enum open_mode{binary=0x80};
   integer mode=DAQCFFKEY.mode;
+again:
   if(mode/10 ){
    if(ofnam){
      char name[255];
      ostrstream ost(name,sizeof(name));
+     ost.clear();
      if(ofnam[strlen(ofnam)-1]=='/')ost << ofnam<<run<<".raw"<<ends;
      //next line gives compiler error on gcc
      // else ost << ofnam<<ends;
@@ -2055,6 +2059,43 @@ void DAQEvent::initO(integer run,integer eventno,time_t tt){
      }
      else{
       cerr<<"DAQEvent::initO-F-cannot open file "<<name<<" in mode "<<mode<<endl;
+#ifdef __CORBA__
+     bool writeable=false;
+ndir:  
+   if(char *ntd=getenv("NtupleDir")){
+     AString cmd=" mkdir -p -v  ";
+     cmd+=ntd;
+     system(cmd);
+     cmd=" touch ";
+     cmd+=ntd;
+     cmd+="/qq";
+     int i=system(cmd);
+     if(i==0){
+      writeable=true;
+      cmd=ntd;
+      cmd+="/qq";
+      unlink((const char*)cmd);
+     }
+     else{
+      if(getenv("NtupleDir2")){
+        setenv("NtupleDir",getenv("NtupleDir2"),1);
+        unsetenv("NtupleDir2");
+        goto ndir;
+      }    
+      else if(getenv("NtupleDir3")){
+        setenv("NtupleDir",getenv("NtupleDir3"),1);
+        unsetenv("NtupleDir3");
+        goto ndir;
+      }    
+   }
+   } 
+
+     if(writeable){
+       strcpy(ofnam,getenv("NtupleDir"));
+      if(ofnam[strlen(ofnam)-1]!='/')strcat(ofnam,"/");
+      goto again;
+      }
+#endif
      throw amsglobalerror("UnableToOpenOutputRawFile",3);
      }
    }
@@ -2518,7 +2559,7 @@ again:
   InputFiles=parser(_DirName,ifnam); 
  }
          
-          char rootdir[1025];
+          char rootdir[10250];
           if(strlen(ofnam)){
             strcpy(rootdir,ofnam);
             strcat(rootdir,ifnam[KIFiles]);
@@ -2528,19 +2569,27 @@ again:
           }
             const int cl=161;
            char bd[cl];
-          UHTOC(DAQCFFKEY.BlocksDir,cl/sizeof(integer),bd,cl-1);
+           bd[cl-1]='\0';
+          UHTOC(DAQCFFKEY.BlocksDir,(cl-1)/sizeof(integer),bd,cl-1);
   for (int i=cl-2; i>=0; i--) {
     if(bd[i] == ' ') bd[i]='\0';
     else break;
   }
-          //cout <<"  BlocksDir "<<bd<<endl;
+
+   for(int i=1;i<cl-1;i++){
+    if(bd[i]==' '){
+       bd[i]='\0';
+       break;
+    }
+    }    
+          cout <<"  BlocksDir "<<bd<<endl;
           char *last=strstr(rootdir,bd);
           if(last && strlen(bd)>0){
               //*last='R';
               //*(last+1)='O';
               //*(last+2)='O';
               //*(last+3)='T';
-              char cmd[1025];
+              char cmd[10250];
               strcpy(cmd,"mkdir -p ");
               last=strrchr(rootdir,'/');
               if(last){
