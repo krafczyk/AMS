@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.55 2011/04/14 13:22:36 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.56 2011/04/25 22:09:55 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -378,7 +378,7 @@ if(TFCAFFKEY.hprintf>0){
 //--- RD: update on flight if requested:
 //  
   if(!AMSJob::gethead()->isMCData() && TFCAFFKEY.updbrcaldb==1
-                                                              && AMSFFKEY.Update>0
+//                                                              && AMSFFKEY.Update>0
 							                          ){
     int calresok(1);
     time_t begin,end,insert;
@@ -400,7 +400,7 @@ if(TFCAFFKEY.hprintf>0){
         ptdv->UpdateMe()=1;
         ptdv->UpdCRC();
         time(&insert);
-        if(CALIB.InsertTimeProc)insert=StartRun;//redefine according to VC.
+        if(CALIB.InsertTimeProc)insert=StartRun;//redefine insert time as runNumber
 //        ptdv->SetTime(insert,StartRun-1,StartRun-1+86400*30);
         ptdv->SetTime(insert,min(StartRun-1,StartTimeE),StartRun-1+86400*60);//beg+60days
         cout <<"      <--- Tof Time/Ampl DB-info has been prepared for TDV "<<*ptdv<<endl;

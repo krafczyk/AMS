@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.348 2011/04/25 19:01:25 choutko Exp $
+#  $Id: datacards.doc,v 1.349 2011/04/25 22:09:56 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1225,7 +1225,7 @@ I12 end
  SubDetector's calibration common flags:
  
 CALIB
-I 1 InsertTimeProc (1)   //DB-insert time setting: 1/0-> job_time/daq_time 
+I 1 InsertTimeProc (1)   //DB-insert time setting: 0/1-> job_time/daq_time 
 I 2 Ntuple         (0)   //
 I 3 SubDetInCalib (11111) //(ijklm) 5 digits pattern to select SubDets for 
 //                        OnBoardPedestals(or other calib) processing job 
