@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.333 2011/04/21 22:53:06 choutko Exp $
+//  $Id: root.h,v 1.334 2011/04/25 14:02:58 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1609,6 +1609,7 @@ public:
   float Theta;   ///< Theta
   float Chi2;   ///<  Chi2
   int   Pattern;  ///< pattern no
+  float Q;   ///< Chatge Magnitude (0 if not calculated)
   protected:
   vector<int> fTrdSegment;
   public:
@@ -1636,13 +1637,13 @@ public:
        if(pTrdSegment(i)->pTrdCluster(k)->HMultip)nph++;
      }
     }
-    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph);
+    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d Q=%7.2g ",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph,Q);
   return _Info;
   } 
   friend class AMSTRDTrack;
   friend class AMSEventR;
   virtual ~TrdTrackR(){};
-ClassDef(TrdTrackR,1)       //TrdTrackR
+ClassDef(TrdTrackR,2)       //TrdTrackR
 #pragma omp threadprivate(fgIsA)
 };
 

@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.20 2010/08/17 20:51:47 pzuccon Exp $
+//  $Id: beta.h,v 1.21 2011/04/25 14:02:58 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -47,6 +47,7 @@ protected:
     AMSlink(),_Pattern(pattern),_Chi2Space(chi2s),_ptrack(ptrack)
   {for(int i=0;i<4;i++){_pcluster[i]=pcluster[i];  _sleng[i]=sleng[i];}}
     
+  double GetTRDBetaCorr();
   AMSBeta(const AMSBeta & o): 
     AMSlink(o._status,o._next),_Pattern(o._Pattern),_Beta(o._Beta),
     _InvErrBeta(o._InvErrBeta),_Chi2(o._Chi2),_Chi2Space(o._Chi2Space),_ptrack(o._ptrack)

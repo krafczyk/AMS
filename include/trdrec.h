@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.19 2009/11/16 09:36:40 choutko Exp $
+//  $Id: trdrec.h,v 1.20 2011/04/25 14:02:58 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -28,6 +28,7 @@ public:
 AMSTRDCluster(uinteger status, uinteger layer,AMSPoint coo, number hsr, number hdz,AMSDir dir, float edep,int multip, int hmultip, AMSTRDRawHit* pmaxhit):AMSlink(status,0),_Coo(coo),_ClSizeR(hsr),_ClSizeZ(hdz),_CooDir(dir),_Edep(edep),_Multiplicity(multip),_HighMultiplicity(hmultip),_pmaxhit(pmaxhit),_layer(layer){};
 static integer build(int rerun=0);
 static integer Out(integer status);
+static double RangeCorr(double range,double norm);
 number getEdep() const {return _Edep;}
 integer operator < (AMSlink & o) const {
  
@@ -193,6 +194,14 @@ TrackBase():_NHits(0),_Pattern(-1){
  }
 }
 };
+class TrackCharge{
+public:
+
+float Q;
+
+TrackCharge():Q(0){}
+};
+
 class TrackBaseS{
 public:
 integer _NSeg;
@@ -219,6 +228,7 @@ TrackPar _StrLine;
 TrackPar _Real;
 TrackBase _Base;
 TrackBaseS _BaseS;
+TrackCharge _Charge;
 static integer _case;
 #pragma omp threadprivate (_case)
 bool _update;
@@ -235,11 +245,12 @@ static integer _TrSearcher(int icall);
 static integer _addnext(integer pat, integer nhit, AMSTRDSegment* pthit[]);
 void _addnextR();
 public:
-AMSTRDTrack():AMSlink(),_Base(),_BaseS(),_StrLine(),_Real(),_update(false){};
-AMSTRDTrack(const AMSTRDTrack::TrackBase & Base, const AMSTRDTrack::TrackBaseS & BaseS, const AMSTRDTrack::TrackPar & StrLine):AMSlink(),_Base(Base),_BaseS(BaseS),_StrLine(StrLine),_Real(),_update(false){};
-AMSTRDTrack(const AMSTRDTrack::TrackBaseS & BaseS):AMSlink(),_Base(),_BaseS(BaseS),_StrLine(),_Real(),_update(false){};
+AMSTRDTrack():AMSlink(),_Base(),_Charge(),_BaseS(),_StrLine(),_Real(),_update(false){};
+AMSTRDTrack(const AMSTRDTrack::TrackBase & Base, const AMSTRDTrack::TrackBaseS & BaseS, const AMSTRDTrack::TrackPar & StrLine):AMSlink(),_Charge(),_Base(Base),_BaseS(BaseS),_StrLine(StrLine),_Real(),_update(false){};
+AMSTRDTrack(const AMSTRDTrack::TrackBaseS & BaseS):AMSlink(),_Base(),_BaseS(BaseS),_StrLine(),_Real(),_update(false),_Charge(){};
 static integer build(int rerun=0);
 void StrLineFit();
+void ComputeCharge(double bc);
 void RealFit();
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall){};
 static void alfun(integer & n, number xc[], number & fc, AMSTRDTrack * ptr);

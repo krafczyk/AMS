@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.346 2011/03/28 15:40:55 sdifalco Exp $
+#  $Id: datacards.doc,v 1.347 2011/04/25 14:02:57 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -412,6 +412,9 @@ I19 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
 I20  OldNew(1)            // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ; 
                           // N==3 Beta Old & New; M==0 Master New, M==1 Master old
 
+R21 TRDNorm       trd charge  beta norm factor
+R22 TRDP          beta extrapolation to trd region
+
 CHARGEFIT
 I 1 NmembMax(3)          // maximum number of members for TOF clusters
 I 2 Tracker(1)           // tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
@@ -691,7 +694,8 @@ R3 Thr1S(0.11)           // cluster threshold sigma kev
 R4 Thr1R(6)           // cluster threshold ratio kev
 R5 Thr1H(5)           // cluster threshold high amp kev
 I6 MaxHitsInCluster(3)  //
-
+R7 RNGP            //  trd path de/dx correction 
+R10 RNGB(0.3,0.75) //  ----                       range
 
 TRDREC   // TRD Segment Reconstruction
 

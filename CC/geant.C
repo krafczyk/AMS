@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.133 2011/04/22 08:58:28 oliva Exp $
+//  $Id: geant.C,v 1.134 2011/04/25 14:02:52 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -263,7 +263,9 @@ if (IOPA.WriteTGeometry) {
   char tgeofilename[40];
   UHTOC(IOPA.TGeometryFileName,40/sizeof(integer),tgeofilename,40-1);
   cout << "gams::UGINIT-Create Root TGeoManager, output file is " << tgeofilename << endl;
+#ifdef _PGTRACK_
   ams2tgeo::Build("TGeoAMS02","The AMS-02 Geometry",tgeofilename);
+#endif
 }
 
 

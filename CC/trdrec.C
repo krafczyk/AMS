@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.49 2010/07/12 09:37:51 pzuccon Exp $
+//  $Id: trdrec.C,v 1.50 2011/04/25 14:02:52 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1044,3 +1044,67 @@ bool AMSTRDTrack::Veto(int last){
 }
 
 
+void AMSTRDTrack::ComputeCharge(double beta){
+ vector <double> edepc;
+ if(_StrLine._FitDone){
+ for (int i=0;i<_Base._NHits;i++){
+   AMSTRDCluster *pcl=_Base._PCluster[i];
+   if(pcl->getmult()<3){
+      double R=TRDDBc::TubeInnerDiameter()/2;
+      AMSPoint  c1=pcl->getCoo();
+AMSPoint c2=_StrLine._Coo;
+AMSPoint delta=c1-c2;
+AMSDir n=pcl->getCooDir();
+AMSDir l(_StrLine._Theta,_StrLine._Phi);
+double corr1=n[1]>0?l[1]:l[0];
+corr1=fabs(l[2])/sqrt(l[2]*l[2]+corr1*corr1);
+double nl=n.prod(l);
+double dn=delta.prod(n);
+double dl=delta.prod(l);
+double d2=delta.prod(delta);
+double a=1-nl*nl;
+double b=dn*nl-dl;
+double c=d2-dn*dn-R*R;
+double rmin2=-b*b/a+(d2-dn*dn);
+double d=b*b-a*c;
+double range=d<0?0:2*sqrt(d)/a;
+            double norm=AMSTRDCluster::RangeCorr(0.57,1.);        
+            double e=pcl->getEdep()/AMSTRDCluster::RangeCorr(range,norm);
+            edepc.push_back(e);         
+
+   }
+ }
+ 
+ if(edepc.size()>TRDFITFFKEY.MinFitPoints){
+
+   sort(edepc.begin(),edepc.end());
+   double medianc=0;            
+   if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
+   else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
+   _Charge.Q=sqrt(medianc/beta);
+   
+
+ }
+
+
+}
+
+
+
+ 
+
+}
+
+double AMSTRDCluster::RangeCorr(double range, double norm){
+//  double p[3]={2.83105,-2.56767,+4.53374};
+//  double b[2]={0.3,0.75};
+   double corr=1;
+    double rng=range;
+  if(rng<TRDCLFFKEY.RNGB[0])rng=TRDCLFFKEY.RNGB[0];
+  if(rng>TRDCLFFKEY.RNGB[1])rng=TRDCLFFKEY.RNGB[1];
+  
+  for(int i=0;i<sizeof(TRDCLFFKEY.RNGP)/sizeof(TRDCLFFKEY.RNGP[0]);i++){
+    corr+=TRDCLFFKEY.RNGP[i]*pow(rng,double(i));
+  }
+  return corr/norm;
+}

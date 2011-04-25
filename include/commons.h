@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.314 2011/04/19 15:45:36 barao Exp $
+//  $Id: commons.h,v 1.315 2011/04/25 14:02:58 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -338,6 +338,8 @@ public:
   float Thr1R;           // cluster threshold ratio kev
   float Thr1H;           // cluster threshold high amp kev
   int   MaxHitsInCluster; 
+  float RNGP[3];    //  de/dx vs range correctionf function 
+  float RNGB[2];    //  correction range   ---
 };
 #define TRDCLFFKEY COMMON_BLOCK(TRDCLFFKEY,trdclffkey)
 COMMON_BLOCK_DEF(TRDCLFFKEY_DEF,TRDCLFFKEY);
@@ -892,6 +894,8 @@ public:
   geant Chi2S;  // Max acceptable chi2 for space fit
   integer MassFromBetaRaw;
   integer OldNew; // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ; N==3 Beta Old & New; M==0 Master New, M==1 Master old
+  float TRDNorm;  //  Trd beta charge normaqization factor
+  float TRDP[3];  //  tof beta to trd extrapolation
 };
 //
 

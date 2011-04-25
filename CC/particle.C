@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.226 2011/04/05 17:45:34 barao Exp $
+//  $Id: particle.C,v 1.227 2011/04/25 14:02:52 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -558,9 +558,9 @@ void AMSParticle::trd_likelihood(){
   _TRDLikelihood=loglikelihood;
 }
 
-#ifdef _PGTRACK_
 
 void AMSParticle::trdfit(){
+#ifdef _PGTRACK_
   _ptrd=0;
   AMSDir dir(0,0,1.);
   number theta, phi, sleng;
@@ -614,11 +614,8 @@ void AMSParticle::trdfit(){
     _TRDCoo[1]=AMSPoint(0,0,0);
   }
   
-}
+
 #else
-
-
-void AMSParticle::trdfit(){
   _ptrd=0;
   AMSDir dir(0,0,1.);
   number theta, phi, sleng;
@@ -653,7 +650,6 @@ void AMSParticle::trdfit(){
       d3=5*sqrt(error.prod(error)+tofe.prod(tofe)); 
     }
     else d3=5*error.norm();
-    //    if(d2<d3){
     if(_ptrack->TRDMatch(ptr) && d2<d3)
       {
 	if(d2<dist){
@@ -698,9 +694,16 @@ void AMSParticle::trdfit(){
     _TRDCoo[1]=AMSPoint(0,0,0);
   }
   
-}
+
 #endif
 
+if(_ptrd && _pbeta){
+// Calculate trdcharge 
+
+_ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr());
+
+}
+}
 
 
 void AMSParticle::richfit(){

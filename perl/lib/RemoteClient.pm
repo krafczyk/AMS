@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.663 2011/04/21 22:53:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.664 2011/04/25 14:02:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7979,6 +7979,10 @@ print qq`
          $ri->{LastEvent}=$r1->[0][1];
          $ri->{TFEvent}=$r1->[0][2];
          $ri->{TLEvent}=$r1->[0][3];
+if($ri->{TLEvent}==0){
+    $ri->{TLEvent}=$ri->{TFEvent}+30e7;
+}
+     
          $ri->{Priority}=1;
          $ri->{FilePath}=$script;
          $ri->{rndm1}=0;

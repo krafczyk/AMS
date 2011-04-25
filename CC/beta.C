@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.89 2011/01/12 13:49:42 pzuccon Exp $
+//  $Id: beta.C,v 1.90 2011/04/25 14:02:51 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -1555,6 +1555,17 @@ bool AMSBeta::BadBetaAlreadyExists(int patb){
    }
  }
 
+double AMSBeta::GetTRDBetaCorr(){
+//              double p[3]={0.522677,-0.16927,0.676221};
+              double betamc1=0;
+              for(int k=0;k<sizeof(BETAFITFFKEY.TRDP)/sizeof(BETAFITFFKEY.TRDP[0]);k++)betamc1+=BETAFITFFKEY.TRDP[k]*pow(fabs(_Beta),k);
+              double x=(betamc1+fabs(_Beta))/2;
+              if(x>0.96)x=0.96;
+//              double norm=1.8377e-1;
+              double norm=BETAFITFFKEY.TRDNorm;
+              double corr=norm/x/x*(log(x*x/(1-x*x))-x*x+(8*log(0.511e6*2/10/54)+2*log(0.511e6*2/10/6)+4*log(0.511e6*2/10/8))/14.);
+              return corr;
+}
 
 
 

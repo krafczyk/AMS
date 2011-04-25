@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.271 2011/04/21 22:53:06 choutko Exp $
+//  $Id: root.C,v 1.272 2011/04/25 14:02:52 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3236,6 +3236,7 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
   Theta = ptr->_StrLine._Theta;
   Chi2  = ptr->_StrLine._Chi2;
   Pattern = ptr->_BaseS._Pattern;
+  Q=ptr->_Charge.Q;
 #endif
 }
 

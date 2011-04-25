@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.172 2011/04/08 12:58:54 choutko Exp $
+//  $Id: server.C,v 1.173 2011/04/25 14:02:52 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1066,7 +1066,7 @@ if(li!=_acl.end()){
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Update,DPS::Client::AnyButSelf,acv->id.uid);
-//    _pser->Kill((*li),SIGTERM,true);
+    _pser->Kill((*li),SIGTERM,true);
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
@@ -4052,7 +4052,7 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
     cout << "  kill: " <<submit<<endl;
     int i=systemC(submit);
     if(signal != SIGKILL and !i){
-       system("sleep 10");
+       system("sleep 20");
      }
 
     return i;

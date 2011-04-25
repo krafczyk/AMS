@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.158 2011/04/22 21:05:25 choutko Exp $
+//  $Id: producer.C,v 1.159 2011/04/25 14:02:52 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2093,7 +2093,8 @@ else sprintf(tmpu,"%d",_pid.uid);
               afscript+=(const char*)afout;
               afscript+=" 2>&1";
              cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
-              int i=system((const char*)afscript);
+               //  not if pcamsf4
+              int i=strstr(_pid.HostName,"pcamsf4")?1:system((const char*)afscript);
               char line[1024];
               if(i==0){
                 ifstream afbin;
