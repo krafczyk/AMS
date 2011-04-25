@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.44 2011/04/09 10:09:43 shaino Exp $
+//  $Id: event_tk.C,v 1.45 2011/04/25 20:19:15 choutko Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -32,10 +32,14 @@ void AMSEvent::_retkinitrun(){
 void AMSEvent::_retkevent(integer refit){
     
   AMSgObj::BookTimer.start("RETKEVENT");
-
+try{
   TrRecon rec;
   trstat = rec.Build(TRCLFFKEY.recflag, 0, 1);
-
+}
+catch (AMSTrTrackError e){
+cerr<<"AMSEvent::_retkevent-E-"<<e.getmessage()<<endl;
+seterror();
+}
   AMSgObj::BookTimer.stop("RETKEVENT");
 }
 
