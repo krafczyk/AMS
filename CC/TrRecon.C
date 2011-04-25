@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.113 2011/04/23 15:30:59 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.114 2011/04/25 16:03:41 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/23 15:30:59 $
+/// $Date: 2011/04/25 16:03:41 $
 ///
-/// $Revision: 1.113 $
+/// $Revision: 1.114 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -312,16 +312,13 @@ int TrRecon::Build(int flag, int rebuild, int hist)
 
 
   //////////////////// TrTrack reconstruction ////////////////////
-  int tofflag = GetTofFlag();
   
   if (flag%1000 >= 100 &&
-      nhit > 0 && nhit < RecPar.MaxNtrHit &&
-      tofflag >= 0 && tofflag < 9)  // TOF trigger pattern at least 1U/1L //PZ FIXME do we really need this?? 
+      nhit > 0 && nhit < RecPar.MaxNtrHit)
   {
 
     int simple = (flag%10000 >= 1000) ? 1 : 0;
     RecPar.NbuildTrack++;
-
 
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("TrTrack");
@@ -1600,6 +1597,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (++hskip == 20) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
 
     if (dps2 > dps1*0.3+0.01) continue;
+    if (dps2 >  50/dps1/dps1) continue;
 
     if (hskip == 0) hman.Fill("TfPsY2", dps1, dps2);
 
@@ -1610,12 +1608,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   //if (trfit.SimpleFit() < 0) continue;
 
     double csq  = trfit.GetChisqY();
-    double rgt  = trfit.GetRigidity();
+    double rgt  = std::fabs(trfit.GetRigidity());
     double cthd = (rgt != 0) ? 0.03+3/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
     if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
-    if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || 
-	std::fabs(rgt) < 0.05) continue;
+    if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt < 0.05) continue;
 
     int jr;
     for (jr = 0; jr < NC && tmin[jr].csq > 0; jr++) {
@@ -1677,7 +1674,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (trfit.SimpleFit() < 0) continue;
 
     double csq  = trfit.GetChisqY();
-    double rgt  = trfit.GetRigidity();
+    double rgt  = std::fabs(trfit.GetRigidity());
     double cthd = (rgt != 0) ? 0.2+10/rgt/rgt : 0;
     if (cthd > 1e3) cthd = 1e3;
     if (tmin[jc].ic[0] == 0) cthd = 1;
@@ -1920,7 +1917,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 //////////////////// Create a new TrTrack ////////////////////
 
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("TrTrack2build"); 
+  AMSgObj::BookTimer.start("TrTrack2Build"); 
   AMSTrTrack *track = new AMSTrTrack(0);
 #else
   TrTrackR *track = new TrTrackR(0);
@@ -1960,7 +1957,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
                      patt->GetHitPatternIndex(maskc),
 		     patt->GetHitPatternIndex(masky));
 
-//if (ProcessTrack(track, 1) > 0) {
   if (ProcessTrack(track, 0) > 0) {
 #ifdef __ROOTSHAREDLIBRARY__
     VCon *contt = GetVCon()->GetCont("AMSTrTrack");
@@ -1972,8 +1968,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq1 = tmin[jc].csq;
     double csq2 = tmin[jc].csqf;
-    double rgt1 = tmin[jc].prop.GetRigidity();
-    double rgt2 = tmin[jc].rgtf;
+    double rgt1 = std::fabs(tmin[jc].prop.GetRigidity());
+    double rgt2 = std::fabs(tmin[jc].rgtf);
     double rgtf = std::fabs(track->GetRigidity());
     double csqf = track->GetNormChisqY();
 
@@ -2002,6 +1998,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
       hman.Fill("TfCsq1", rgt1, csq1);
       hman.Fill("TfCsq2", rgt2, csq2);
+      if (rgt2 > 10) {
+	hman.Fill("TfCsq5", track->GetP0x(), csq2);
+	hman.Fill("TfCsq6", track->GetDir().x()/track->GetDir().z(), csq2);
+      }
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[0]);
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[1]);
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[2]);
@@ -2021,18 +2021,12 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   if (ntrack >= RecPar.MaxNtrack) break;
 
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop ("TrTrack2build");
+  AMSgObj::BookTimer.stop ("TrTrack2Build");
 #endif
 
   } // ENDOF: for (int jc = 0; jc < NC; jc++)
 
   _CpuTime = _CheckTimer();
-
-
-
-  //PZ MOVED TO TrRecon::Build Check Track X and Find points on external Layers
-  //  if (!CpuTimeUp()) MatchTRDandExtend();
-
 
   delete cont;
   return ntrack;
@@ -2122,16 +2116,9 @@ AMSgObj::BookTimer.stop("TrTrack0Find");
 	  }
 	  if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) found=0;
 	  else{
-#ifndef __ROOTSHAREDLIBRARY__
-	    AMSgObj::BookTimer.start("Track4");
-#endif
 	    SetLayerOrder(it);
-	    
 	    // Scan ladder combination recursively
 	    ScanRecursive(0, it);
-#ifndef __ROOTSHAREDLIBRARY__
-	    AMSgObj::BookTimer.stop("Track4");
-#endif
 	    // Return 1 if track has been found
 	    found=(!CpuTimeUp() && _itcand.nlayer > 0);
 	  }
@@ -2150,11 +2137,6 @@ AMSgObj::BookTimer.stop("TrTrack0Find");
  
   _CpuTime = _CheckTimer();
 
-  //PZ MOVED to TrRecon::Build  Check Track X and Find points on external Layers
-  //  if (!CpuTimeUp()) MatchTRDandExtend();
-
-//PurgeGhostHits should be called at event_tk
-//PurgeGhostHits();
 #ifndef __ROOTSHAREDLIBRARY__
    AMSgObj::BookTimer.stop("TrTrack1Eval");
 #endif
@@ -2907,44 +2889,6 @@ int TrRecon::ScanRecursive(int idx, TrHitIter &it)
   return 0;
 }
 
-// PZ Comment out to speed up the code
-// int TrRecon::ScanLadders(int pattern)
-// {
-//   // Clear the-best-candidate parameters
-//   _itcand.nlayer = 0; _itcand.nhitc = _MinNhitXY; 
-//   _itcand.chisq[0] = _itcand.chisq[1] = RecPar.MaxChisqAllowed;
-
-//   // Define and fill iterator
-//   TrHitIter it;
-//   it.mode = 1; it.pattern = pattern; 
-//   it.side = 1; it.psrange = RecPar.LadderScanRange;
-
-//   // Loop on layers to check for an empty layer and fill iterator
-//   int nhitc = it.nlayer = 0;
-//   for (int i = 0; i < patt->GetSCANLAY(); i++) {
-//     if (!(patt->TestHitPatternMask(pattern, i+1))) {
-//       if (_LadderHitMap[i].empty()) return 0;
-//       if (_NladderXY[i]) nhitc++;
-//       it.tkid[it.nlayer++] = (i+1)*100;
-//     }
-//   }
-//   if (it.nlayer < _MinNhitY || nhitc < _MinNhitXY) return 0;
-//   TR_DEBUG_CODE_11;
-
-//   // Set the order of scanning layers
-//   SetLayerOrder(it);
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	  AMSgObj::BookTimer.start("Track4");
-// #endif
-
-//   // Scan ladder combination recursively
-//   ScanRecursive(0, it);
-// #ifndef __ROOTSHAREDLIBRARY__
-// 	  AMSgObj::BookTimer.stop("Track4");
-// #endif
-//   // Return 1 if track has been found
-//   return (!CpuTimeUp() && _itcand.nlayer > 0);
-// }
 
 int TrRecon::LadderCoordMgr(int idx, TrHitIter &it, int mode) const
 {
@@ -3338,7 +3282,9 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   AMSPoint ptrk[2];
   ptrk[0] = track->InterpolateLayer(lyext[0]-1, mfit);
   ptrk[1] = track->InterpolateLayer(lyext[1]-1, mfit);
-  float rig= track->GetRigidity(mfit);
+  float rig= std::fabs(track->GetRigidity(mfit));
+  if (rig == 0) return -2;
+
   int nhit = cont->getnelem();
 
   //1. Search the XY and Y-only hits closest to the track extrapolation on Y
@@ -3378,13 +3324,20 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   }
   
   //2. XY or Y
-  float diffY_max=TRFITFFKEY.MergeExtLimY;
-  float diffX_max=TRFITFFKEY.MergeExtLimX;
+  float limx = TRFITFFKEY.MergeExtLimX;
+  float limy = TRFITFFKEY.MergeExtLimY;
 
-  if(rig<10){
-    diffY_max =diffY_max *(11-rig) ;
-    diffX_max =diffX_max *(11-rig) ;
-  }    
+  float sp0  = 0.02;
+  float sp1  = 1;
+  float rcor = std::sqrt(sp0*sp0+sp1*sp1/rig/rig);
+  float sigx = limx*rcor;
+  float sigy = limy*rcor;
+
+  float diffX_max = sigx*4;
+  float diffY_max = sigy*4;
+  if (diffX_max > limx*10) diffX_max = limx*10;
+  if (diffY_max > limy*10) diffY_max = limy*10;
+
   int nadd=0;
 
   for (int il=0;il<2;il++){
@@ -3395,14 +3348,20 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
       if(mprint++<100)printf("TrRecon::MergeExtHits -W- XY and Y cluster do not share the Y cluster!!!!!\n");
      }
     if(il==0){
-      if (DXY[il].ihmin>=0)
+      if (DXY[il].ihmin>=0) {
 	hman.Fill("1N_XY",DXY[il].diff.x(),DXY[il].diff.y());
+	hman.Fill("TrEdx1",rig, DXY[il].diff.x()/sigx);
+      }
       hman.Fill("1N_Y",DY[il].diff.x(),DY[il].diff.y());
+      hman.Fill("TrEdy1",rig, DY[il].diff.y()/sigy);
     }
     else{
-      if (DXY[il].ihmin>=0)
+      if (DXY[il].ihmin>=0) {
 	hman.Fill("P6_XY",DXY[il].diff.x(),DXY[il].diff.y());
+	hman.Fill("TrEdx9",rig, DXY[il].diff.x()/sigx);
+      }
       hman.Fill("P6_Y",DY[il].diff.x(),DY[il].diff.y());
+      hman.Fill("TrEdy9",rig, DY[il].diff.y()/sigy);
     }
     if (DXY[il].ihmin>=0 && fabs(DXY[il].diff.y()) > diffY_max) continue;
     if (DXY[il].ihmin< 0 && fabs(DY [il].diff.y()) > diffY_max) continue;
@@ -3447,53 +3406,36 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     track->RecalcHitCoordinates(fitid);
   }
 
-  if(DY[0].ihmin>=0) {
 #ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("TrTrack4Fit");
+  AMSgObj::BookTimer.start("TrTrack6FitE");
 #endif
+
+  if(DY[0].ihmin>=0) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | mfit);
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("TrTrack4Fit");
-#endif
   }
-
-
   if(DY[1].ihmin>=0) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("TrTrack4Fit");
-#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer9 | mfit);
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("TrTrack4Fit");
-#endif
   }
-
 
   if(DY[0].ihmin>=0 && DY[1].ihmin>=0) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("TrTrack4Fit");
-#endif
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("TrTrack4Fit");
-#endif
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 |
+			     TrTrackR::kFitLayer9 | mfit);
   }
-
   else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
             track->ParExists(mfit | TrTrackR::kFitLayer9) &&
-           !track->ParExists(mfit | TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) {
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.start("TrTrack4Fit");
-#endif
+           !track->ParExists(mfit | TrTrackR::kFitLayer8 |
+			            TrTrackR::kFitLayer9)) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9 | mfit);
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("TrTrack4Fit");
-#endif
+      track->Settrdefaultfit(TrTrackR::kFitLayer8 |
+			     TrTrackR::kFitLayer9 | mfit);
   }
+
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack6FitE");
+#endif
 
   return nadd;
 }
@@ -3513,7 +3455,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   // Create a new track
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("TrTrack2build"); 
+  AMSgObj::BookTimer.start("TrTrack2Build"); 
   AMSTrTrack *track = new AMSTrTrack(itcand.pattern);
 #else
   TrTrackR *track = new TrTrackR(itcand.pattern);
@@ -3552,7 +3494,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
 
   int bb=ProcessTrack(track);
 #ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop("TrTrack2build"); 
+  AMSgObj::BookTimer.stop("TrTrack2Build"); 
 #endif
   return bb;
 }
@@ -3573,9 +3515,6 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
   if (ret < 0 || 
       track->GetChisqX(mfit1) <= 0 || track->GetChisqY(mfit1) <= 0 ||
       track->GetNdofX (mfit1) <= 0 || track->GetNdofY (mfit1) <= 0) {
-// #ifndef __ROOTSHAREDLIBRARY__
-//      AMSgObj::BookTimer.stop("Trackbuild");
-// #endif
     delete track;
     return 0;
   }
@@ -3589,9 +3528,6 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
     if (track->GetNhitsX () < RecPar.MinNhitX ||
         track->GetNhitsY () < RecPar.MinNhitY ||
         track->GetNhitsXY() < RecPar.MinNhitXY) {
-// #ifndef __ROOTSHAREDLIBRARY__
-//      AMSgObj::BookTimer.stop("Trackbuild");
-// #endif
       delete track;
       return 0;
     }
@@ -3627,27 +3563,41 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
     }
   }
 
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("TrTrack4Match"); 
+#endif
+
   // Check it the X matching with the TRD and/or TOF direction
   int ret3=MatchTOF_TRD(track);
 
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("TrTrack4Match"); 
+  AMSgObj::BookTimer.start("TrTrack5Fit");
+#endif
+
+    if(track->DoAdvancedFit()) {
+      if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
+    } else {
+      if (TrDEBUG >= 1) {
+        printf(" Problems with Track Advanced Fits: %d %d\n",
+               track->GetNhits(), track->GetNhitsXY());
+      }
+    }
+#ifndef __ROOTSHAREDLIBRARY__
+     AMSgObj::BookTimer.stop("TrTrack5Fit");
+#endif
+
   if (track->GetRigidity() == 0 || track->GetChisq() <= 0) {
-// #ifndef __ROOTSHAREDLIBRARY__
-//      AMSgObj::BookTimer.stop("Trackbuild");
-// #endif
     delete track;
     return 0;
   }
-
-
   // Add the track to the collection
   VCon* cont = GetVCon()->GetCont("AMSTrTrack");
   if (cont) {
     cont->addnext(track);
     //TR_DEBUG_CODE_42;
   }
-// #ifndef __ROOTSHAREDLIBRARY__
-//      AMSgObj::BookTimer.stop("Trackbuild");
-// #endif
+
   delete cont;
   return 1;
 }
@@ -4302,24 +4252,7 @@ int TrRecon::MatchTOF_TRD(TrTrackR* tr){
     tr->RecalcHitCoordinates(tr->Gettrdefaultfit());
   }
   
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.start("TrTrack4Fit");
-#endif
-
-    if(tr->DoAdvancedFit()) {
-      if (TrDEBUG >= 1) printf(" Track Advanced Fits Done!\n");
-    } else {
-      if (TrDEBUG >= 1) {
-        printf(" Problems with Track Advanced Fits: %d %d\n",
-               tr->GetNhits(), tr->GetNhitsXY());
-      }
-    }
-#ifndef __ROOTSHAREDLIBRARY__
-     AMSgObj::BookTimer.stop("TrTrack4Fit");
-#endif
-
   return 0;
-  //  if(TkDBc::Head->GetSetup()==3) MergeExtHits(tr, tr->Gettrdefaultfit());
 }
 //-----------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.50 2011/04/18 12:15:07 pzuccon Exp $
+//  $Id: TrFit.C,v 1.51 2011/04/25 16:03:41 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/04/18 12:15:07 $
+///$Date: 2011/04/25 16:03:41 $
 ///
-///$Revision: 1.50 $
+///$Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1233,6 +1233,8 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
   return 0;
 }
 
+#include "HistoMan.h"
+
 double TrFit::ChoutkoFit(void)
 {
   if(_nhit > TkDBc()->nlay() || 2*_nhit <= 5 || _chrg == 0) return -1;
@@ -1255,9 +1257,9 @@ double TrFit::ChoutkoFit(void)
     if (_ys[i] <= 0) _ys[i] = _zs[i]*1e8;
   }
 
-  int maxcal = 100;
+  int maxcal = 20;
 
-  double tol = 1.e-2;
+  double tol = 0.1;
 
   // Multiple scattering constant
   double xls = 300.e-4;
@@ -1367,10 +1369,13 @@ double TrFit::ChoutkoFit(void)
     }
 
     // Check chisquare difference
-    double dlt  = (_chisq-chisqb )/(chisqb +2*_nhit-5+1.e-3);
-    double dltb = (_chisq-chisqbb)/(chisqbb+2*_nhit-5+1.e-3);
+    double dlt  = std::fabs((_chisq-chisqb )/(_chisq+1.e-3));
+    double dltb = std::fabs((_chisq-chisqbb)/(_chisq+1.e-3));
 
-    if (fabs(dlt) <= tol || fabs(dltb) <= tol) {
+    if (kiter >= 5) tol = 0.5;
+
+    if (kiter > 0) hman.Fill("TrChfit", kiter, dlt);
+    if (kiter >= 2 && (dlt <= tol || dltb <= tol)) {
       ifail = 0;
       break;
     }

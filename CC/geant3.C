@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.149 2011/03/31 09:36:38 choumilo Exp $
+//  $Id: geant3.C,v 1.150 2011/04/25 16:03:42 shaino Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -631,7 +631,7 @@ GDCXYZ();
     }
    catch (AMSTrTrackError e){
     cerr << "GUSTEP  "<< e.getmessage()<<endl;
-     AMSEvent::gethead()->seterror(2);
+     AMSEvent::gethead()->seterror();
    }
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;
@@ -732,7 +732,7 @@ extern "C" void guout_(){
     catch (AMSTrTrackError e){
       cerr << e.getmessage()<<endl;
       AMSEvent::gethead()->_printEl(cerr);
-      AMSEvent::gethead()->seterror(2);
+      AMSEvent::gethead()->seterror();
       /*
 	#ifdef __CORBA__
 	#pragma omp critical (g1)

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.80 2011/04/22 21:05:24 choutko Exp $
+//  $Id: geant4.C,v 1.81 2011/04/25 16:03:42 shaino Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -375,7 +375,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
-      AMSEvent::gethead()->seterror(2);
+      AMSEvent::gethead()->seterror();
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();

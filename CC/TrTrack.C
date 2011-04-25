@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.103 2011/04/22 14:57:51 shaino Exp $
+// $Id: TrTrack.C,v 1.104 2011/04/25 16:03:42 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/22 14:57:51 $
+///$Date: 2011/04/25 16:03:42 $
 ///
-///$Revision: 1.103 $
+///$Revision: 1.104 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -867,6 +867,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   // Perform fitting
   float fdone = _TrFit.Fit(method);
+
   bool done = (fdone > 0 && _TrFit.GetChisqX() > 0 && 
 	                    _TrFit.GetChisqY() > 0);
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
@@ -1012,15 +1013,24 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
   if(id==kDummy) linear=1;
 
   TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
-  dir.setp(0, 0, 1);
-  pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily+1));
 
-  double ret = tprop.Interpolate(pnt, dir);
+  int tkid = 0;
+  TrRecHitR *hit = GetHitL(ily);
+  if (hit)
+    tkid = hit->GetTkId();
 
-  TkSens tks(pnt,0);
-  if (!tks.LadFound()) return ret;
+  else {
+    dir.setp(0, 0, 1);
+    pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily+1));
 
-  TkLadder *lad = TkDBc::Head->FindTkId(tks.GetLadTkID());
+    double ret = tprop.Interpolate(pnt, dir);
+
+    TkSens tks(pnt,0);
+    if (!tks.LadFound()) return ret;
+    tkid = tks.GetLadTkID();
+  }
+
+  TkLadder *lad = TkDBc::Head->FindTkId(tkid);
   TkPlane  *pla = lad->GetPlane();
   AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
   AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();

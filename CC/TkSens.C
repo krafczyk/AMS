@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.13 2011/03/29 15:48:45 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.14 2011/04/25 16:03:41 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2011/03/29 15:48:45 $
+///$Date: 2011/04/25 16:03:41 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -107,7 +107,7 @@ void TkSens::Recalc(){
   if( lad_tkid==0) {
     lay=GetLayer();
     if(lay)
-      lad_tkid=FindLadder();
+      lad_tkid=FindLadder(lay);
     if(!IsInsideLadder(lad_tkid)) return;
   }
   
@@ -320,6 +320,24 @@ int TkSens::FindLadder(){
   if(!found) return 0;
   else return lad->GetTkId();
   
+}
+
+
+//--------------------------------------------------
+//! It takes a point in global coo and chek if it is inside the ladder pointed by the tkid
+int TkSens::FindLadder(int lay){
+  TkLadder* lad=0;
+  bool found=0;
+
+  int nslot = (lay == 9) ? 8 : 15;
+  for (int slot = -nslot; slot <= nslot; slot++) {
+    if (slot == 0) continue;
+    int tkid = (slot > 0) ? lay*100+slot : -(lay*100-slot);
+    lad=TkDBc::Head->FindTkId(tkid);
+    if (!lad || !lad->IsActive()) continue;
+    if (IsInsideLadder(lad)) return tkid;
+  }
+  return 0;
 }
 
 

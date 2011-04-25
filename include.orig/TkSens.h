@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.5 2011/03/29 15:48:45 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.6 2011/04/25 16:03:42 shaino Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2011/03/29 15:48:45 $
+///$Date: 2011/04/25 16:03:42 $
 ///
-/// $Revision: 1.5 $
+/// $Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,6 +78,8 @@ class TkSens {
   bool IsInsideLadder(TkLadder* lad);
   //! Determines on which ladder (if any) is the point
   int  FindLadder();
+  //! Determines on which ladder (if any) is the point on a layer
+  int  FindLadder(int lay);
   //! find the sensor number on the ladder(0-n) and the local coo on it
   int  GetSens();
   //! find the nearest readout channel from sensor S local coo

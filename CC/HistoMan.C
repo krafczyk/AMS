@@ -243,7 +243,7 @@ void HistoMan::BookHistos(int simmode){
   // TrTrack
   Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
   Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,  140, 1e-3, 1e4, 0, 1));
-  Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,    9,    0,   9, 0, 0));
+  Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,   10,    0,  10, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrResX", "ResX/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
@@ -270,6 +270,13 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2F("TkTrdDD", "TkTRD dx aft. VS bef.", 300, 0, 60, 300, 0, 60));
   Add(TH2D_L  ("TkMoveC", "CsqX 2 VS 1", 120, 1e-5, 1e7, 120, 1e-5, 1e7));
 
+  Add(TH2D_L("TrEdx1", "dX VS R L1N", 80, 0.1, 1e3, 200, -10, 10, 1, 0));
+  Add(TH2D_L("TrEdy1", "dY VS R L1N", 80, 0.1, 1e3, 200, -10, 10, 1, 0));
+  Add(TH2D_L("TrEdx9", "dX VS R L9",  80, 0.1, 1e3, 200, -10, 10, 1, 0));
+  Add(TH2D_L("TrEdy9", "dY VS R L9",  80, 0.1, 1e3, 200, -10, 10, 1, 0));
+
+  Add(TH2D_L("TrChfit", "Choutko Fit", 20, 0, 20, 100, 1e-9, 1e1, 0, 1));
+
   Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
   Add(new TH2F("Time","Time",1000,0,50.,500,0,500));
 
@@ -286,6 +293,8 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsq2", "CsqY2 VS Rgt2", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq3", "CsqY1 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq4", "CsqY2 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq5", "CsqY2 VS X0",   100, -50,   50, 100, 1e-7, 1e3, 0));
+  Add(TH2D_L("TfCsq6", "CsqY2 VS dX",   100,  -1,    1, 100, 1e-7, 1e3, 0));
   Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX1", "Pre-sel X(c)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX2", "Pre-sel X(m)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
