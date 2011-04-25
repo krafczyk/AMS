@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.50 2011/04/25 14:02:52 choutko Exp $
+//  $Id: trdrec.C,v 1.51 2011/04/25 19:01:23 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1081,7 +1081,7 @@ double range=d<0?0:2*sqrt(d)/a;
    double medianc=0;            
    if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
    else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
-   _Charge.Q=sqrt(medianc/beta);
+   _Charge.Q=sqrt(medianc/beta)*TRDFITFFKEY.QP[0]+TRDFITFFKEY.QP[1];
    
 
  }

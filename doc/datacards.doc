@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.347 2011/04/25 14:02:57 choutko Exp $
+#  $Id: datacards.doc,v 1.348 2011/04/25 19:01:25 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -714,7 +714,7 @@ R5 TwoSegMatch(0.05);  // max ang diff allowed while matching segments
 R6 MaxSegAllowed(50)   // max seg allowed
 I7 FitMethod(0)       // old (0) or new (1) or both (2) method
 I8 SaveHistos(0)      // save single tube amplitude spectra (1) or not (0)
-
+R9 QP                 //  trd charge correction
 
 TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 

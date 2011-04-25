@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.209 2011/04/14 14:27:33 choutko Exp $
+//  $Id: daqevt.C,v 1.210 2011/04/25 19:01:22 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2029,10 +2029,12 @@ again:
 void DAQEvent::initO(integer run,integer eventno,time_t tt){
   enum open_mode{binary=0x80};
   integer mode=DAQCFFKEY.mode;
+again:
   if(mode/10 ){
    if(ofnam){
      char name[255];
      ostrstream ost(name,sizeof(name));
+     ost.clear();
      if(ofnam[strlen(ofnam)-1]=='/')ost << ofnam<<run<<".raw"<<ends;
      //next line gives compiler error on gcc
      // else ost << ofnam<<ends;
@@ -2057,6 +2059,43 @@ void DAQEvent::initO(integer run,integer eventno,time_t tt){
      }
      else{
       cerr<<"DAQEvent::initO-F-cannot open file "<<name<<" in mode "<<mode<<endl;
+#ifdef __CORBA__
+     bool writeable=false;
+ndir:  
+   if(char *ntd=getenv("NtupleDir")){
+     AString cmd=" mkdir -p -v  ";
+     cmd+=ntd;
+     system(cmd);
+     cmd=" touch ";
+     cmd+=ntd;
+     cmd+="/qq";
+     int i=system(cmd);
+     if(i==0){
+      writeable=true;
+      cmd=ntd;
+      cmd+="/qq";
+      unlink((const char*)cmd);
+     }
+     else{
+      if(getenv("NtupleDir2")){
+        setenv("NtupleDir",getenv("NtupleDir2"),1);
+        unsetenv("NtupleDir2");
+        goto ndir;
+      }    
+      else if(getenv("NtupleDir3")){
+        setenv("NtupleDir",getenv("NtupleDir3"),1);
+        unsetenv("NtupleDir3");
+        goto ndir;
+      }    
+   }
+   } 
+
+     if(writeable){
+       strcpy(ofnam,getenv("NtupleDir"));
+      if(ofnam[strlen(ofnam)-1]!='/')strcat(ofnam,"/");
+      goto again;
+      }
+#endif
      throw amsglobalerror("UnableToOpenOutputRawFile",3);
      }
    }

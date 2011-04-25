@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.794 2011/04/25 14:02:52 choutko Exp $
+// $Id: job.C,v 1.795 2011/04/25 19:01:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -225,7 +225,7 @@ void AMSJob::_siamsdata(){
 IOPA.hlun=0;//1
 VBLANK(IOPA.hfile,40);//2
 IOPA.ntuple=1;//42
-IOPA.WriteAll=102;//43
+IOPA.WriteAll=101;//43
 IOPA.Portion=.2;//44
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
@@ -1179,6 +1179,8 @@ TRDFITFFKEY.MaxSegAllowed=50;
 TRDFITFFKEY.FitMethod=2;
 TRDFITFFKEY.SaveHistos=0;
 TRDFITFFKEY.CalStartVal=0.;
+TRDFITFFKEY.QP[0]=1/1.0925;
+TRDFITFFKEY.QP[1]=0.115/1.0925;
 FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;

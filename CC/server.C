@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.173 2011/04/25 14:02:52 choutko Exp $
+//  $Id: server.C,v 1.174 2011/04/25 19:01:23 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2438,7 +2438,7 @@ if(pcur->InactiveClientExists(getType()))return;
         DPS::Producer::RunEvInfo_var   reinfo;
         DPS::Producer::DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);     
-if(reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed){
+if(reinfo->DataMC==0 || (reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed)){
         singlethread=true;
 }
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
