@@ -4,6 +4,7 @@
 #include "SlowControlDB.h"
 #include "ntuple.h"
 #ifndef __ROOTSHAREDLIBRARY__
+#include "job.h"
 #include "commons.h"
 #include "commonsi.h"
 #include "timeid.h"
@@ -276,7 +277,7 @@ a.CRC=tdv->_CRC;
 a.DataMC=tdv->getid();
 a.Name=tdv->getname();
 a.FilePath=(const char*)tdv->_fname;
-if(IOPA.WriteTDVDataInRoot){
+if(AMSJob::gethead()->isProduction() || IOPA.WriteTDVDataInRoot){
 a.Data.clear();
 a.Size/=sizeof(uinteger);
 a.Size--;

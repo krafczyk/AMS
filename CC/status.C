@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.51 2010/01/04 10:25:54 choutko Exp $
+//  $Id: status.C,v 1.52 2011/04/26 16:03:28 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -222,7 +222,8 @@ void AMSStatus::init(){
     for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
       if( strcmp(AMSJob::gethead()->gettdvc(i),ptdv->getname())==0 ){
        AMSJob::gethead()->getstatustable()->_init();
-       if(!STATUSFFKEY.status[32]){   
+        const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
+       if(!STATUSFFKEY.status[size-2]){   
          _Mode=2;
          
          cout <<"AMSStatus::init-I-WriteStatusDBRequested"<<endl;
@@ -258,7 +259,7 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 integer AMSStatus::_statusok(statusI status){
     uinteger one=1;
     if(!(status[0] & (one<<31))){    // Status exists
-      const int nsta=33;
+    const int nsta=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0])-2;
       uinteger Status[nsta];
       Status[0]=((status[0] & ((1<<2)-1)));
       Status[1]=((status[0]>>2) & ((1<<1)-1));
@@ -293,15 +294,16 @@ integer AMSStatus::_statusok(statusI status){
       Status[30]=((status[1]>>21) & ((1<<2)-1));
       Status[31]=((status[1]>>23) & ((1<<2)-1));
       Status[32]=((status[1]>>25) & ((1<<3)-1));
+      Status[33]=((status[1]>>28) & ((1<<4)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
         if(STATUSFFKEY.status[i]==0)continue;
         else {
           uinteger st=STATUSFFKEY.status[i];
-          uinteger nbit=32.*log(2.)/log(number(STATUSFFKEY.status[33]))+0.5;
+          uinteger nbit=32.*log(2.)/log(number(STATUSFFKEY.status[nsta+1]))+0.5;
           for (int j=0;j<nbit;j++){
-            uinteger stbit=(st%STATUSFFKEY.status[33])>0?1:0;
+            uinteger stbit=(st%STATUSFFKEY.status[nsta+1])>0?1:0;
             if((stbit<<j) & (1<<Status[i])){
           //    if(i==15){
           //     cout <<" got it "<<j<<" "<<stbit<<" "<<Status[i]<<endl;

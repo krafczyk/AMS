@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.797 2011/04/26 15:49:51 barao Exp $
+// $Id: job.C,v 1.798 2011/04/26 16:03:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -194,10 +194,11 @@ void AMSJob::data(){
   FFKEY(SELECT,(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),MIXED);
 
   { 
-    for(int i=0;i<33;i++){
+    const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
+    for(int i=0;i<size-1;i++){
       STATUSFFKEY.status[i]=0;
     }
-        STATUSFFKEY.status[33]=10;
+        STATUSFFKEY.status[size-1]=10;
   }
   FFKEY("ESTATUS",(float*)&STATUSFFKEY,sizeof(STATUSFFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -1697,9 +1698,10 @@ else{
 
   {
 
-    STATUSFFKEY.status[32]=0;
-    for(int i=0;i<32;i++){
-      STATUSFFKEY.status[32]=STATUSFFKEY.status[32] | 
+    const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
+    STATUSFFKEY.status[size-2]=0;
+    for(int i=0;i<size-2;i++){
+      STATUSFFKEY.status[size-2]=STATUSFFKEY.status[size-2] | 
 	STATUSFFKEY.status[i];
     }
   }

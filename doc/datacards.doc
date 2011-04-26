@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.349 2011/04/25 22:09:56 choumilo Exp $
+#  $Id: datacards.doc,v 1.350 2011/04/26 16:03:29 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -585,8 +585,8 @@ I 2 WriteGeomToFile(0)
 I 3 UpdateGeomFile(0)
 I 4 gfile[40](" ")                    // geometry file
 
-ESTATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status.doc for details)
-I 1  status[32](32*0)    // 
+ESTATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status02.doc for details)
+I 1  status[34](34*0)    // 
                              [0] npart
                              [1-6] trd/tof/tr/rich/ecal/vtx  presented in particles
                              [7] ntrd tr 
@@ -599,8 +599,8 @@ I 1  status[32](32*0)    //
                              [14] ncharge 
                              [15] error bit        
 
-I33  sword                   // service word
-I34  base(10)                base to calculate bit<->status correspondance
+I35  sword                   // service word
+I36  base(10)                base to calculate bit<->status correspondance
 
 
 MISC   // misc

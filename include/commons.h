@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.316 2011/04/25 19:01:25 choutko Exp $
+//  $Id: commons.h,v 1.317 2011/04/26 16:03:29 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -70,7 +70,7 @@ COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
 class STATUSFFKEY_DEF {
 public:
-uinteger status[34];
+uinteger status[36];
 };
 #define STATUSFFKEY COMMON_BLOCK(STATUSFFKEY,statusffkey)
 COMMON_BLOCK_DEF(STATUSFFKEY_DEF,STATUSFFKEY);
