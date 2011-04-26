@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.525 2011/04/26 16:03:28 choutko Exp $
+//  $Id: event.C,v 1.526 2011/04/26 20:24:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3325,8 +3325,8 @@ void AMSEvent::buildraw(
 
 
 void AMSEvent::buildraw2009(
-              integer length, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time, uinteger &usec){
+              integer type, int16u *p, uinteger & run, uinteger &id,
+              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[2]){
 
 
     id=(*(p+6)) |  (*(p+5))<<16;
@@ -3338,11 +3338,14 @@ void AMSEvent::buildraw2009(
     if(run<1000000000 && AMSJob::gethead()->isRealData()){
         run+=_OffsetT;
     }
+    
    if(time<1000000000 && AMSJob::gethead()->isRealData()){
         time+=_OffsetT;
     }
+    // lvl3
+    for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
 }
-
+    
 
 
 void AMSEvent::buildrawSh(integer length, int16u *p){
@@ -3382,9 +3385,10 @@ else return 0;
 
 
 integer AMSEvent::checkdaqid2009(int16u id){
+
 int16u type=id&31;
 int16u node=(id>>5)&1023;
-if(type>=16 && type <=19 && node<16)return node+1;
+if(type>=16 && type <=19 && node<16)return type;
 else return 0;
 }
 

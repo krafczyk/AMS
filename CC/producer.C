@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.159 2011/04/25 14:02:52 choutko Exp $
+//  $Id: producer.C,v 1.160 2011/04/26 20:24:04 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -713,7 +713,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
- if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp"))){
+ if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }
@@ -1125,7 +1125,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    
  char *means=getenv("TransferBy");
  AString fmake;
- if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp"))){
+ if(means && ((means[0]=='r' && means[1]=='f') || strstr(means,"xrdcp")|| strstr(means,"rfcp"))){
                 if(getenv("TransferSharedLib")){
                  setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
                 }

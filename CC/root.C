@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.273 2011/04/26 15:24:24 mdelgado Exp $
+//  $Id: root.C,v 1.274 2011/04/26 20:24:04 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3818,7 +3818,8 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
   Rdr=ptr->getsublength(3);
   Edr=ptr->getsublength(4);
   L1dr=ptr->getsublength(5);
-  L3dr=ptr->getsublength(6);
+  L3dr=ptr->_lvl3[0] | (ptr->_lvl3[1]<<16);
+
 #endif
 }   
 
@@ -4343,7 +4344,29 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 return _Info;
 
 
+
+
+
  }
+
+char * DaqEventR::Info(int number){
+    int sc=L3dr&1;
+    int sa1=(L3dr>>1)&1;
+    int sa2=(L3dr>>2)&1;
+    int sa3=(L3dr>>3)&1;
+    int sa4=(L3dr>>4)&1;
+    int status=(L3dr>>5)&7;
+    int len=(L3dr>>8)&31;
+    int e=(L3dr>>13)&1;
+    int p=(L3dr>>14)&1;
+    int a=(L3dr>>15)&1;
+    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d ",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767);
+  return _Info;
+  } 
+
+
+
+
 #ifdef _PGTRACK_
 #include "TrRecon.h"
 #endif

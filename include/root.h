@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.335 2011/04/26 15:24:24 mdelgado Exp $
+//  $Id: root.h,v 1.336 2011/04/26 20:24:11 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -346,17 +346,14 @@ public:
   unsigned int Rdr;  ///< RICH  length in bytes 
   unsigned int Edr;  ///< Ecal length in bytes 
   unsigned int L1dr;  ///< Lvl1  length in bytes
-  unsigned int L3dr;  ///< Lvl3  length in bytes
+  unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
   DaqEventR(DAQEvent *ptr);
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
   /// \return human readable info about DaqEventR
-  char * Info(int number=-1){
-    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d LVL3 %d",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,L3dr);
-  return _Info;
-  } 
-ClassDef(DaqEventR,1)       //DaqEventR
+  char * Info(int number=-1);
+ClassDef(DaqEventR,2)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 

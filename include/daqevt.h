@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.80 2010/08/08 09:37:01 choumilo Exp $
+//  $Id: daqevt.h,v 1.81 2011/04/26 20:24:10 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -109,6 +109,9 @@ uinteger _JinjSlaveMask;
 int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
 uinteger _usec;
+public:
+int16u _lvl3[2];
+protected:
 int16u *  _pcur;
 int16u * _pData;
 
