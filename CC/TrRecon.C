@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.114 2011/04/25 16:03:41 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.115 2011/04/26 16:02:41 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/25 16:03:41 $
+/// $Date: 2011/04/26 16:02:41 $
 ///
-/// $Revision: 1.114 $
+/// $Revision: 1.115 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,7 @@
 #include <sys/resource.h>
 
 #ifndef __ROOTSHAREDLIBRARY__
-#include "cern.h"
+#include "beta.h"
 #include "trrec.h"
 #include "event.h"
 #include "trdrec.h"
@@ -1596,7 +1596,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 					  CY(0), CY(1), CY(3), CZ(2)));
     if (++hskip == 20) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
 
-    if (dps2 > dps1*0.3+0.01) continue;
+    if (dps2 > dps1*0.3+0.03) continue;
     if (dps2 >  50/dps1/dps1) continue;
 
     if (hskip == 0) hman.Fill("TfPsY2", dps1, dps2);
@@ -1609,7 +1609,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 0.03+3/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.1+3/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
     if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
     if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt < 0.05) continue;
@@ -1675,7 +1675,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 0.2+10/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.5+30/rgt/rgt : 0;
     if (cthd > 1e3) cthd = 1e3;
     if (tmin[jc].ic[0] == 0) cthd = 1;
     TR_DEBUG_CODE_103;
@@ -2546,8 +2546,12 @@ int TrRecon::FillHistos(int trstat, int refit)
     }
 
     // Fill truncated mean of charge
-    if (nsump-1 > 0) hman.Fill("TrChgP", argt, (ssump-smaxp)/(nsump-1));
-    if (nsumn-1 > 0) hman.Fill("TrChgN", argt, (ssumn-smaxn)/(nsumn-1));
+    double chgp = (nsump-1 > 0) ? (ssump-smaxp)/(nsump-1) : 0;
+    double chgn = (nsumn-1 > 0) ? (ssumn-smaxn)/(nsumn-1) : 0;
+    double chg  = (chgp > 0 && chgn > 0) ? (chgp/32+chgn/34)/2
+                                         : ((chgp > 0) ? chgp : chgn);
+    if (nsump-1 > 0) hman.Fill("TrChgP", argt, chgp);
+    if (nsumn-1 > 0) hman.Fill("TrChgN", argt, chgn);
 
     ////////// Track position at external planes //////////
     AMSPoint pl8, pl9;
@@ -2588,6 +2592,56 @@ int TrRecon::FillHistos(int trstat, int refit)
       if (hit9 && !hit9->OnlyX()) {
 	hman.Fill("TrAlg93", pl9.x(), dr9.y()/dr9.z(), res9.y());
 	hman.Fill("TrAlg94", pl9.y(), dr9.y()/dr9.z(), res9.y());
+      }
+    }
+
+    double beta = 0;
+#ifndef __ROOTSHAREDLIBRARY__
+    double ttm[4], sln[4];
+    for (int j = 0; j < 4; j++) {
+      double dmin = 100;
+      ttm[j] = sln[j] = 0;
+      int itc = (j == 0 || j == 3) ? 1 : 0;
+      int jj  = (j == 0 || j == 2) ? j+1 : j-1;
+      for (AMSTOFCluster *tofcls
+	     = AMSTOFCluster::gethead(j); tofcls; tofcls = tofcls->next()) {
+	if (tofcls->getetime() > 2.5e-10) continue;
+	double td, ssleng;
+	AMSPoint dst = AMSBeta::Distance(tofcls->getcoo(), tofcls->getecoo(),
+					 (AMSTrTrack *)trk, ssleng, td);
+	double dd = std::fabs(dst[itc]);
+	if (dd < dmin) {
+	  dmin = dd;
+	  ttm[j] = tofcls->gettime();
+	  sln[j] = ssleng;
+	  if (ttm[jj] == 0) { ttm[jj] = ttm[j]; sln[jj] = sln[j]; }
+	}
+      }
+    }
+    if (ttm[0] < 0 && ttm[1] < 0 && ttm[2] < 0 && ttm[3] < 0) {
+      double dtof = (ttm[2]+ttm[3])/2-(ttm[0]+ttm[1])/2;
+      double dlen = (sln[2]+sln[3])/2-(sln[0]+sln[1])/2;
+      beta = 0.01*dlen/dtof/TrProp::Clight;
+    }
+#else
+    AMSEventR *evt = AMSEventR::Head();
+    if (evt && evt->pBeta(0)) beta = evt->pBeta(0)->Beta;
+#endif
+    if (beta != 0) {
+      double schg = (beta > 0) ? chg : -chg;
+
+      if (mfi > 0) {
+	double rgt = trk->GetRigidity(mfi);
+	hman.Fill("TrRiIBi", 1/rgt, 1/beta);
+	if (schg != 0) hman.Fill("TrRiICs", 1/rgt, schg);
+      }
+      if (mff > 0) {
+	double ersq = TrTrackSelection::GetHalfRessq(mff, trk);
+	if (ersq < 20) {
+	  double rgt = trk->GetRigidity(mff);
+	  hman.Fill("TrRiFBi", 1/rgt, 1/beta);
+	  if (schg != 0) hman.Fill("TrRiFCs", 1/rgt, schg);
+	}
       }
     }
 

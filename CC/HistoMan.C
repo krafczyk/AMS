@@ -282,7 +282,11 @@ void HistoMan::BookHistos(int simmode){
 
   Add(new TH2F("Time2","Time2",1000,-4,2.,500,0,500));
 
-  // Track quality parameters VS Rigidity
+  // 1/Rigidity
+  Add(new TH2F("TrRiIBi", "binv VS 1/R(I)", 4000, -1, 1, 150, -3, 3));
+  Add(new TH2F("TrRiFBi", "binv VS 1/R(F)", 4000, -1, 1, 100, -3, 3));
+  Add(new TH2F("TrRiICs", "sChg VS 1/R(I)", 4000, -1, 1, 200, -20, 20));
+  Add(new TH2F("TrRiFCs", "sChg VS 1/R(F)", 4000, -1, 1, 200, -20, 20));
 
   // Trackfinding
   Add(TH2D_L("TfPsY0", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
