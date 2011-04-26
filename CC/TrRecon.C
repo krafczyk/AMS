@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.116 2011/04/26 18:31:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.117 2011/04/26 23:57:35 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/26 18:31:31 $
+/// $Date: 2011/04/26 23:57:35 $
 ///
-/// $Revision: 1.116 $
+/// $Revision: 1.117 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3393,7 +3393,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   if (diffY_max > limy*10) diffY_max = limy*10;
 
   int nadd=0;
-
+  int iadd[2]={0,0};
   for (int il=0;il<2;il++){
     if (DY[il].ihmin < 0) continue;
 
@@ -3442,6 +3442,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 	hit->SetResolvedMultiplicity(DXY[il].mlmin);
       track->AddHit(hit);
       hit->SetUsed();
+      iadd[il]=1;
       nadd++;
     }
   }
@@ -3450,30 +3451,31 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   if (nadd > 0) {
     track->FillExRes();
     int fitid=track->Gettrdefaultfit();
-    if(DY[0].ihmin>=0 && DY[1].ihmin>=0) 
+    if(iadd[0]==1 && iadd[1]==1) 
       fitid|=TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9;
-    else if (DY[0].ihmin>=0) 
+    else     if(iadd[0]==1) 
       fitid|=TrTrackR::kFitLayer8;
-    else if (DY[1].ihmin>=0) 
+    else     if(iadd[1]==1) 
       fitid|=TrTrackR::kFitLayer9;
     track->FitT(fitid);
     track->RecalcHitCoordinates(fitid);
-  }
+
+}
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack6FitE");
 #endif
 
-  if(DY[0].ihmin>=0) {
+  if(iadd[0]==1) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 | mfit);
   }
-  if(DY[1].ihmin>=0) {
+  if(iadd[1]==1) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer9 | mfit);
   }
 
-  if(DY[0].ihmin>=0 && DY[1].ihmin>=0) {
+  if(iadd[0]==1 && iadd[1]==1) {
     if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
       track->Settrdefaultfit(TrTrackR::kFitLayer8 |
 			     TrTrackR::kFitLayer9 | mfit);
