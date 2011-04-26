@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.272 2011/04/25 14:02:52 choutko Exp $
+//  $Id: root.C,v 1.273 2011/04/26 15:24:24 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3450,6 +3450,44 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
   return best;
 }
 
+
+void RichRingR::calPush(double beta,float x,float y){
+  if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}
+
+
+  int tile=getTileIndex(x,y);
+  if(tile<0) return;                                // Reasonable tile
+  indexHistos[tile].SetBins(100,0.95,1.005); 
+
+  // Add the current event
+  indexHistos[tile].Fill(beta);
+  
+  // Check if we have to update the calibration constants
+  if(indexHistos[tile].GetEntries()<_tileCalEvents) return;
+
+  int peak_bin=indexHistos[tile].GetMaximumBin();
+
+  double weight=0,sum=0;
+  for(int i=-_tileCalWindow;i<=_tileCalWindow;i++){
+    weight+=indexHistos[tile].GetBinContent(peak_bin+i);
+    sum+=indexHistos[tile].GetBinContent(peak_bin+i)*indexHistos[tile].GetXaxis()->GetBinCenter(peak_bin+i);
+  }
+  
+  if(weight<_tileCalEvents) return;
+  sum/=weight;
+
+  //
+  // We  got the value, store it
+  //
+  if(_lastUpdate[tile]==1)
+    indexCorrection[tile]=1.0/sum;
+  else
+    indexCorrection[tile]=1.0/sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+
+  _lastUpdate[tile]=2;
+  _numberUpdates[tile]++;
+  indexHistos[tile].Reset();  
+}
 
 bool RichRingR::calSelect(AMSEventR &event){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}

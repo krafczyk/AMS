@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.334 2011/04/25 14:02:58 choutko Exp $
+//  $Id: root.h,v 1.335 2011/04/26 15:24:24 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1205,6 +1205,8 @@ public:
   int updates();
   /// Get number of time the calibration for the tile at the given crossing point has been updated
   static int updates(float x,float y);
+  /// Push a value into the syn calibration manually
+  static void calPush(double beta,float x,float y);
   ///@}
 
 
