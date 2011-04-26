@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.81 2011/04/25 16:03:42 shaino Exp $
+//  $Id: geant4.C,v 1.82 2011/04/26 18:41:49 choumilo Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -894,6 +894,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      if(tbegtof==1 && GCTRAK.destep>0.){
        if(pstep!=0)tdedx=1000*dee/pstep;
        else tdedx=0;
+       number rkb=0.0011;
+       number c=0.52;
+       number dedxcm=1000*dee/GCTRAK.step;
+       dee=dee/(1+c*atan(rkb/c*dedxcm));
 //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
        AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
      }
@@ -906,6 +910,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        dee=GCTRAK.destep;
        isphys=PrePV->GetCopyNo();
        islog=floor(0.5*(isphys-1))+1;//not used now
+       number rkb=0.0011;
+       number c=0.52;
+       number dedxcm=1000*dee/GCTRAK.step;
+       dee=dee/(1+c*atan(rkb/c*dedxcm));
        AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,
                                                    dee,GCTRAK.tofg);
      }// <--- end of "in ANTS"
