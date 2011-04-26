@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.115 2011/04/26 16:02:41 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.116 2011/04/26 18:31:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/26 16:02:41 $
+/// $Date: 2011/04/26 18:31:31 $
 ///
-/// $Revision: 1.115 $
+/// $Revision: 1.116 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1609,7 +1609,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 0.1+3/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.5+3/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
     if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
     if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt < 0.05) continue;
@@ -1643,7 +1643,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     tmin[jc].Intp(pint, zlay);
 
     double rsig = std::sqrt(tmin[jc].csq);
-    double rmax = (msely/2+rsig)*0.1;
+    double rmax = (msely*2+rsig)*0.1;
     if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
 
@@ -1675,7 +1675,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 0.5+30/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 1+30/rgt/rgt : 0;
     if (cthd > 1e3) cthd = 1e3;
     if (tmin[jc].ic[0] == 0) cthd = 1;
     TR_DEBUG_CODE_103;
