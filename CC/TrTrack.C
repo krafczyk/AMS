@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.104 2011/04/25 16:03:42 shaino Exp $
+// $Id: TrTrack.C,v 1.105 2011/04/26 16:11:19 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/25 16:03:42 $
+///$Date: 2011/04/26 16:11:19 $
 ///
-///$Revision: 1.104 $
+///$Revision: 1.105 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -986,10 +986,10 @@ double TrTrackR::Interpolate(double zpl, AMSPoint &pnt,
   if (id2==0) id=trdefaultfit;
 
   if (!FitDone(id)) return -1;
-  int linear=0;
-  if(id==kDummy) linear=1;
 
-  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  if (id == kDummy) tprop.SetChrg(0);
+
   dir.setp(0, 0,   1);
   pnt.setp(0, 0, zpl);
   return tprop.Interpolate(pnt, dir);
@@ -1009,10 +1009,9 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
   int id=id2;
   if (id2==0) id=trdefaultfit;
   if (!FitDone(id)) return -1;
-  int linear=0;
-  if(id==kDummy) linear=1;
 
-  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  if (id == kDummy) tprop.SetChrg(0);
 
   int tkid = 0;
   TrRecHitR *hit = GetHitL(ily);
@@ -1049,9 +1048,9 @@ void TrTrackR::Interpolate(int nz, double *zpl,
   int id=id2;
   if (id2==0) id=trdefaultfit;
   if (!FitDone(id)) return;
-  int linear=0;
-  if(id==kDummy) linear=1;
-  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
+
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  if (id == kDummy) tprop.SetChrg(0);
   tprop.Interpolate(nz, zpl, pvec, dvec, lvec);
 }
 
@@ -1079,9 +1078,10 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
 //     printf(" dist %f P2  %f %f %f \n",length,P2[0],P2[1],P2[2]);
     return;
   }
-  int linear=0;
-  if(id==kDummy) linear=1;
-  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
+
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  if (id == kDummy) tprop.SetChrg(0);
+
   length = tprop.Interpolate(pnt, dir);
   //PZ bugfix lenght must be signed for beta calculation.
   if(pnt[2]>0)length*=-1;
@@ -1100,10 +1100,10 @@ bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad,
   if (!FitDone(id)) return false;
 
   int sdir = (idir < 0) ? -1 : 1;
-  int linear=0;
-  if(id==kDummy) linear=1;
 
-  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id),linear);
+  TrProp tprop(GetP0(id), GetDir(id), GetRigidity(id));
+  if (id == kDummy) tprop.SetChrg(0);
+
   if ((length = tprop.InterpolateCyl(pnt, dir, rad, sdir)) < 0) return false;
   P1     = pnt;
   theta  = dir.gettheta();

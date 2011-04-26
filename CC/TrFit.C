@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.51 2011/04/25 16:03:41 shaino Exp $
+//  $Id: TrFit.C,v 1.52 2011/04/26 16:11:19 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/04/25 16:03:41 $
+///$Date: 2011/04/26 16:11:19 $
 ///
-///$Revision: 1.51 $
+///$Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3411,8 +3411,8 @@ double TrProp::Mmuon   = 0.105658367;     // Muon   mass in GeV/c^2
 double TrProp::Clight  = 2.99792458e+08;  // Speed of light in m/s
 
 TrProp::TrProp(double p0x,   double p0y, double p0z, 
-               double theta, double phi, double rigidity, int linear)
-  : _p0x(p0x), _p0y(p0y), _p0z(p0z), _rigidity(rigidity),_linear_flag(linear)
+               double theta, double phi, double rigidity)
+  : _p0x(p0x), _p0y(p0y), _p0z(p0z), _rigidity(rigidity)
 {
   _mass = Mproton;
   _chrg = 1;
@@ -3422,8 +3422,8 @@ TrProp::TrProp(double p0x,   double p0y, double p0z,
   _dydz = dir.y();
 }
 
-TrProp::TrProp(AMSPoint p0, AMSDir dir, double rigidity,int linear)
-  : _p0x(p0.x()), _p0y(p0.y()), _p0z(p0.z()), _rigidity(rigidity),_linear_flag(linear)
+TrProp::TrProp(AMSPoint p0, AMSDir dir, double rigidity)
+  : _p0x(p0.x()), _p0y(p0.y()), _p0z(p0.z()), _rigidity(rigidity)
 {
   _mass = Mproton;
   _chrg = 1;
@@ -3477,9 +3477,7 @@ double TrProp::Interpolate(AMSPoint &pnt, AMSDir &dir)
   if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) return -1;
 
   // Linear track case
-  
-
-  if ( _chrg*_rigidity == 0||_linear_flag) {
+  if ( _chrg*_rigidity == 0) {
     double z = (dir[0]*(pnt[0]-_p0x)+dir[1]*(pnt[1]-_p0y)+dir[2]*(pnt[2]-_p0z))
               /(dir[0]*_dxdz        +dir[1]*_dydz        +dir[2]);
     AMSPoint pnt0 = pnt;

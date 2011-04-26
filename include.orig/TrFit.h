@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.24 2011/04/18 12:15:07 pzuccon Exp $
+//  $Id: TrFit.h,v 1.25 2011/04/26 16:11:23 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2011/04/18 12:15:07 $
+///$Date: 2011/04/26 16:11:23 $
 ///
-///$Revision: 1.24 $
+///$Revision: 1.25 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +87,6 @@ protected:
   double _dxdz;          ///< Track direction (dX/dZ) at P0
   double _dydz;          ///< Track direction (dY/dZ) at P0
   double _rigidity;      ///< Rigidity (GV)
-  int    _linear_flag;   ///< force the use of linear propagation
   // Particle information used for propagation and multiple scattering
   double _mass;          ///< Particle mass (GeV/c2)
   double _chrg;          ///< Particle charge (e)
@@ -95,9 +94,9 @@ protected:
 public:
   /// Constructor with default values
   TrProp(double p0x   = 0, double p0y = 0, double p0z = 0, 
-	 double theta = 0, double phi = 0, double rigidity = 0,int linear=0);
+	 double theta = 0, double phi = 0, double rigidity = 0);
   /// Constructor with AMSPoint and AMSDir
-  TrProp(AMSPoint p0, AMSDir dir, double rigidity = 0,int linear=0);
+  TrProp(AMSPoint p0, AMSDir dir, double rigidity = 0);
 
   // Access functions
   double GetP0x (void) const { return _p0x;  }
@@ -119,6 +118,8 @@ public:
   AMSDir   GetDir(void) const { return AMSDir(_dxdz, _dydz, 1); }
 
   /// Set particle mass and charge (Z)
+  void SetMass    (double mass) { _mass = mass; }
+  void SetChrg    (double chrg) { _chrg = chrg; }
   void SetMassChrg(double mass, double chrg) { _mass = mass; _chrg = chrg; }
   void SetRigidity(double rigidity)          { _rigidity = rigidity; }
 
