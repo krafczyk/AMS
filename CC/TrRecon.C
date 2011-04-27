@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.117 2011/04/26 23:57:35 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.118 2011/04/27 15:50:55 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/26 23:57:35 $
+/// $Date: 2011/04/27 15:50:55 $
 ///
-/// $Revision: 1.117 $
+/// $Revision: 1.118 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1596,7 +1596,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 					  CY(0), CY(1), CY(3), CZ(2)));
     if (++hskip == 20) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
 
-    if (dps2 > dps1*0.3+0.03) continue;
+    if (dps2 > dps1*0.5+0.03) continue;
     if (dps2 >  50/dps1/dps1) continue;
 
     if (hskip == 0) hman.Fill("TfPsY2", dps1, dps2);
@@ -1609,7 +1609,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 0.5+3/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 0.5+5/rgt/rgt : 0;
     TR_DEBUG_CODE_101;
     if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
     if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt < 0.05) continue;
@@ -1643,7 +1643,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     tmin[jc].Intp(pint, zlay);
 
     double rsig = std::sqrt(tmin[jc].csq);
-    double rmax = (msely*2+rsig)*0.1;
+  //double rmax = (msely*2+rsig)*0.1;
+  //double rmax = (msely/2+rsig)*0.1;
+    double rmax = (msely+rsig)*0.1;
     if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
 
@@ -1675,7 +1677,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq  = trfit.GetChisqY();
     double rgt  = std::fabs(trfit.GetRigidity());
-    double cthd = (rgt != 0) ? 1+30/rgt/rgt : 0;
+    double cthd = (rgt != 0) ? 3+30/rgt/rgt : 0;
     if (cthd > 1e3) cthd = 1e3;
     if (tmin[jc].ic[0] == 0) cthd = 1;
     TR_DEBUG_CODE_103;
@@ -1690,7 +1692,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   int nt = 0;
   for (int j = 0; j < NC*2; j++) {
     if (tmin[j].csqf > 0) {
-      tc[j] = tmin[j].csqf+(NL-tmin[j].GetN())*1e4; 
+      tc[j] = tmin[j].csqf*(1+(NL-tmin[j].GetN())*0.5); 
       if (tmin[j].ic[0] == 0) tc[j] += 1e5;
       nt++; 
     }
@@ -1700,6 +1702,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   int jci[NC*2];
   TMath::Sort(NC*2, tc, jci, kFALSE);
   TR_DEBUG_CODE_104;
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop ("TrTrack0Find");
+#endif
 
   delete cont;
   if (nt == 0) {
@@ -1715,11 +1721,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
             "Can't Find AMSTrRecHit Container" << endl;
     return -1;
   }
-
-#ifndef __ROOTSHAREDLIBRARY__
-  AMSgObj::BookTimer.stop ("TrTrack0Find");
-#endif
-
 
 //////////////////// Loop on pattern candidates ////////////////////
 
@@ -1796,8 +1797,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   double cmin = cmaxx;
   int    nmin = 3;
-  int    imin[NL];
-  double smin[4];
+  int      imin[NL];
+  AMSPoint hmin[NL];
+  double   smin[4];
+  double   pmin[2];
+  
   for (int k = 0; k < NL; k++) imin[k] = 0;
 
   for (i[0] = 0; i[0] < nh[0]; i[0]++) { // Plane 1,2 (Layer 1,2,3)
@@ -1865,12 +1869,14 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     if (csq > cmaxx) continue;
 
-    int isel[NL];
+    int      isel[NL];
+    AMSPoint hsel[NL];
     for (int j = 0; j < NL; j++) isel[j] = 0;
     for (int j = 0; j < NP; j++) {
       int ly = std::abs(ih[j%2][i[j]])%10;
       int jp = (ly == 1) ? 0 : ly/2;
       isel[jp] = ih[j%2][i[j]];
+      hsel[jp] = ch[j%2][i[j]];
     }
 
 //////////////////// Merge TrRecHits ////////////////////
@@ -1889,10 +1895,12 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       for (int k = 0; k < nh[j/2]; k++) {
 	if (std::abs(ih[j/2][k])%10 == std::abs(isel[j])%10 ||
 	   (std::abs(ih[j/2][k])%10)/2 != j) continue;
-	double r = (ih[j/2][k] > 0)
-	  ? std::abs(ch[j/2][k].x()-pfit[ih[j/2][k]%10-1].x()) : rmax*0.99;
+	double r = std::fabs(ch[j/2][k].x()
+			     -pfit[std::abs(ih[j/2][k])%10-1].x());
+	if (ih[j/2][k] < 0) r = rmax*(0.95+0.02*r/pselm);
 	if (r < rmin) {
 	  isel[j+NP-1] = ih[j/2][k];
+	  hsel[j+NP-1] = ch[j/2][k];
 	  rmin = r;
 	  if (ih[j/2][k] > 0) tmin[jc].rmrg[j-1+NP-1] = r;
 	}
@@ -1906,7 +1914,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     nmin = nx;
     smin[0] = dps1; smin[1] = dps2;
     smin[2] = dps3; smin[3] = dps4;
-    for (int j = 0; j < NL; j++) imin[j] = isel[j];
+    pmin[0] = trfit.GetParam(0);
+    pmin[1] = trfit.GetParam(1);
+    for (int j = 0; j < NL; j++) { imin[j] = isel[j]; hmin[j] = hsel[j]; }
   }}}}
 
   if (cmin >= cmaxx) continue;
@@ -1914,6 +1924,104 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("TrTrack1Eval");
 #endif
+
+
+//////////////////// Merge again ////////////////////
+
+  TrFit trfit;
+  for (int j = 0; j < NL; j++) {
+    int k;
+    for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
+    if (k == NL) continue;
+
+    if (imin[k] > 0)
+      trfit.Add(hmin[k], errx, erry, erry);
+    else {
+      AMSPoint hh = hmin[k];
+      hh[0] = pmin[0]+pmin[1]*hh[2];
+      trfit.Add(hh, pselm, erry, erry);
+    }
+  }
+  if (trfit.SimpleFit() < 0) continue;
+
+  double csqx = trfit.GetChisqX();
+  double csqy = trfit.GetChisqY();
+  double rgt3 = std::fabs(trfit.GetRigidity());
+  double mmxx = mselx*(0.05+0.2*std::sqrt(csqx));
+  double mmxy = msely*(0.03+0.2*std::sqrt(csqy));
+
+  double dxmrg[NL], dymrg[NL];
+  int nmrg = 0;
+
+  TrFit trfit2;
+  for (int j = 0; j < NL; j++) {
+    int k;
+    for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
+    if (k < NL) {
+      double erx = (imin[k] > 0) ? errx : pselm;
+      trfit2.Add(hmin[k], erx, erry, erry);
+      continue;
+    }
+
+    AMSPoint pnt;
+    trfit.Interpolate(1, &zlay[j], &pnt);
+
+    AMSPoint hc;
+    double xmin = mmxx;
+    double ymin = mmxy;
+    int    kmin = -1;
+    int    icym = -1;
+
+    for (int k = 0; k < nhit; k++) {
+      TrRecHitR *hit = (TrRecHitR *)cont->getelem(k);
+      if (!hit || hit->Used () || 
+	         !hit->OnlyY() || hit->GetLayer() != j+1) continue;
+
+      double dy = std::fabs(hit->GetCoord().y()-pnt.y());
+      if (dy < ymin) { 
+	double xm = 50;
+	int    mm =  0;
+	for (int m = 0; m < hit->GetMultiplicity(); m++) {
+	  double dx = std::fabs(hit->GetCoord(m).x()-pnt.x());
+	  if (dx < xm) { xm = dx; mm = m; }
+	}
+	ymin = dy;
+	kmin = k*100+mm;
+	icym = hit->iTrCluster('y');
+	hc   = hit->GetCoord(mm);
+      }
+    }
+    if (kmin < 0) continue;
+
+    bool xmrg = false;
+    for (int k = 0; k < nhit; k++) {
+      TrRecHitR *hit = (TrRecHitR *)cont->getelem(k);
+      if (!hit || hit->Used () || 
+	          hit->OnlyY() || hit->GetLayer() != j+1) continue;
+      if (hit->iTrCluster('y') != icym) continue;
+
+      for (int m = 0; m < hit->GetMultiplicity(); m++) {
+	double dx = std::fabs(hit->GetCoord(m).x()-pnt.x());
+	if (dx < xmin) { 
+	  xmin = dx;
+	  kmin = k*100+m;
+	  hc   = hit->GetCoord(m);
+	  xmrg = true;
+	}
+      }
+    }
+
+    dxmrg[nmrg  ] = (xmrg) ? xmin : 0;
+    dymrg[nmrg++] = ymin;
+
+    for (int k = 0; k < NL; k++)
+      if (imin[k] == 0) { imin[k] = kmin*10+j+1; hmin[k] = hc; break; }
+
+    double erx = (xmrg) ? errx : pselm;
+    trfit2.Add(hc, erx, erry, erry);
+  }
+  if (nmrg > 0) trfit2.SimpleFit();
+
 //////////////////// Create a new TrTrack ////////////////////
 
 #ifndef __ROOTSHAREDLIBRARY__
@@ -1998,6 +2106,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
       hman.Fill("TfCsq1", rgt1, csq1);
       hman.Fill("TfCsq2", rgt2, csq2);
+      hman.Fill("TfCsq7", rgt3, csqy);
       if (rgt2 > 10) {
 	hman.Fill("TfCsq5", track->GetP0x(), csq2);
 	hman.Fill("TfCsq6", track->GetDir().x()/track->GetDir().z(), csq2);
@@ -2015,14 +2124,24 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       hman.Fill("TfRgt1", rgtf, rgt1);
       hman.Fill("TfRgt2", rgtf, rgt2);
       hman.Fill("TfCsqf", csq2, csqf);
+
+      if (nmrg > 0) {
+	hman.Fill("TfCsq8", csqx, trfit2.GetChisqX());
+	hman.Fill("TfCsq9", csqy, trfit2.GetChisqY());
+      }
+
+      for (int j = 0; j < nmrg; j++) {
+	hman.Fill("TfMrg3", csqx, dxmrg[j]);
+	hman.Fill("TfMrg4", csqy, dymrg[j]);
+      }
     }
   }
-
-  if (ntrack >= RecPar.MaxNtrack) break;
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop ("TrTrack2Build");
 #endif
+
+  if (ntrack >= RecPar.MaxNtrack) break;
 
   } // ENDOF: for (int jc = 0; jc < NC; jc++)
 
@@ -3460,7 +3579,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     track->FitT(fitid);
     track->RecalcHitCoordinates(fitid);
 
-}
+  }
+  else return nadd;
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack6FitE");

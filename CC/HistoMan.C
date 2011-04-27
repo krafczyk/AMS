@@ -299,10 +299,15 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsq4", "CsqY2 (No L1)", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfCsq5", "CsqY2 VS X0",   100, -50,   50, 100, 1e-7, 1e3, 0));
   Add(TH2D_L("TfCsq6", "CsqY2 VS dX",   100,  -1,    1, 100, 1e-7, 1e3, 0));
-  Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq7", "CsqY3 VS Rgt3", 100, 1e-2, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfMrg1", "Rmrg VS CsqY1", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
   Add(TH2D_L("TfPsX1", "Pre-sel X(c)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
   Add(TH2D_L("TfPsX2", "Pre-sel X(m)",  120, 1e-2, 1e4, 100, 1e-7, 1e3));
-  Add(TH2D_L("TfMrg2", "Rmrg VS CsqY2", 100, 1e-7, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfMrg2", "Rmrg VS CsqY2", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
+  Add(TH2D_L("TfMrg3", "Rmrg VS CsqX3", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
+  Add(TH2D_L("TfMrg4", "Rmrg VS CsqY3", 100, 1e-7, 1e3, 120, 1e-5, 1e1));
+  Add(TH2D_L("TfCsq8", "CsqX 4 VS 3",   100, 1e-7, 1e3, 100, 1e-7, 1e3));
+  Add(TH2D_L("TfCsq9", "CsqY 4 VS 3",   100, 1e-7, 1e3, 100, 1e-7, 1e3));
   Add(TH2D_L("TfRgt1", "Rgt1 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfRgt2", "Rgt2 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfCsqf", "CsqY VS CsqY2", 100, 1e-7, 1e3, 140, 1e-3, 1e4));
