@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.118 2011/04/01 14:47:30 zweng Exp $
+//  $Id: gbatch.C,v 1.119 2011/04/27 16:13:47 zweng Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -26,6 +26,7 @@
 extern amsvmc_MCApplication*  appl = new amsvmc_MCApplication("AMSVMC", "AMS VirtualMC application");
 #endif
 
+#include "ams_g4exception.h"
 
 const int NWGEAN=15000000;
 const int NWPAW=1300000;
@@ -132,6 +133,20 @@ catch (std::bad_alloc aba){
     cerr <<"gbatch-catch-F-NoMemoryAvailable "<<endl;
     if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
     UGLAST("catch-F-NoMemoryAvailable ");
+    exit(1);
+    return 1;
+}
+catch (ams_g4exception &){
+#ifdef __CORBA__
+  AMSClientError ab("G4ExceptionRaised",DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+  cerr<<"setting errror"<< endl;
+  AMSProducer::gethead()->Error()=ab;
+ }
+#endif
+    cerr <<"gbatch-catch-F-G4ExceptionRaised "<<endl;
+    if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+    UGLAST("catch-F-G4ExceptionRaised");
     exit(1);
     return 1;
 }
