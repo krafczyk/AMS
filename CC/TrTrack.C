@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.105 2011/04/26 16:11:19 shaino Exp $
+// $Id: TrTrack.C,v 1.106 2011/04/27 16:02:12 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/26 16:11:19 $
+///$Date: 2011/04/27 16:02:12 $
 ///
-///$Revision: 1.105 $
+///$Revision: 1.106 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -271,18 +271,13 @@ double TrTrackR::GetNormChisqY(int id)
 
 AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 {
-  AMSPoint pres = GetResidual(ilay, id);
-
-  for (int i = 0; i < GetNhits(); i++) {
-    TrRecHitR *hit = GetHit(i);
-    if (hit && hit->GetLayer() == ilay+1) {
-      //      AMSPoint coo = (_iMult[i] >= 0) ? hit->GetCoord(_iMult[i])
-      //                              : hit->GetCoord();
-      AMSPoint coo = hit->GetCoord();
-      return coo-pres;
-    }
+  TrRecHitR *hit = GetHitL(ilay);
+  if (hit) {
+    AMSPoint pres = GetResidual(ilay, id);
+    AMSPoint coo  = hit->GetCoord();
+    return coo-pres;
   }
-  return pres;
+  return InterpolateLayer(ilay, id);
 }
 
 
