@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.118 2011/04/27 15:50:55 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.119 2011/04/27 23:16:21 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/27 15:50:55 $
+/// $Date: 2011/04/27 23:16:21 $
 ///
-/// $Revision: 1.118 $
+/// $Revision: 1.119 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1643,8 +1643,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     tmin[jc].Intp(pint, zlay);
 
     double rsig = std::sqrt(tmin[jc].csq);
-  //double rmax = (msely*2+rsig)*0.1;
-  //double rmax = (msely/2+rsig)*0.1;
     double rmax = (msely+rsig)*0.1;
     if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
@@ -1934,13 +1932,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
     if (k == NL) continue;
 
-    if (imin[k] > 0)
-      trfit.Add(hmin[k], errx, erry, erry);
-    else {
-      AMSPoint hh = hmin[k];
-      hh[0] = pmin[0]+pmin[1]*hh[2];
-      trfit.Add(hh, pselm, erry, erry);
-    }
+    if (imin[k] < 0) hmin[k][0] = pmin[0]+pmin[1]*hmin[k].z();
+    trfit.Add(hmin[k], errx, erry, erry);
   }
   if (trfit.SimpleFit() < 0) continue;
 
