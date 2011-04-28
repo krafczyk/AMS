@@ -207,53 +207,55 @@ float TrClusterR::GetTotSignal(int opt) {
        sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(iva); 
     }
   }
-  if (kAngle&opt)  sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
-  if (kGain&opt)   sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
-  if (kLoss&opt)   sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
+  if (kAngle&opt) sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
+  if (kGain&opt)  sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
+  if (kLoss&opt)  sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
+  if (kMIP&opt)   sum = GetNumberOfMIPs(GetSide(),sum);
   if ((kPN&opt)&&(GetSide()==0)) sum = sum*GetTrParDB()->GetPNGain();
   return sum;
 }
 
 
-float TrClusterR::GetNumberOfMIPs(int opt) {
-  // init
-  double adc_vs_z_tb03[3][12] = {
+float TrClusterR::GetNumberOfMIPs(int iside, float adc) {
+  /*
+    These parameters are extracted from TB2003.
+    - straight tracks 
+    - readout strip 
+    - no p-strip correction
+  */
+  double x = adc;
+  double adc_vs_z_tb03[2][12] = {
     {  40.50, 167.92, 387.77, 713.61,1124.73,1615.55,2166.01,2734.12,3257.81,3671.87,4021.40,4290.52}, // n-side
-    {  31.50, 106.58, 214.47, 304.94, 368.64, 413.37, 472.73, 575.47, 702.39, 854.23,1039.92,1233.86}, // p-side
-    {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
+    {  31.50, 106.58, 214.47, 304.94, 368.64, 413.37, 472.73, 575.47, 702.39, 854.23,1039.92,1233.86}  // p-side
+    // {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
   };
-  double x = GetTotSignal(opt);
-  double y = 0.;
-  int iside = GetSide();
-  if ((kPStrip&opt)&&(GetSide()==0)) iside = 2;
-  // TMP: to be improved 
-  // interpolation 
-  for (int i=0; i<11; i++) {
-    if ((x>=adc_vs_z_tb03[iside][i])&&(x<adc_vs_z_tb03[iside][i+1])) {
-      double x0 = adc_vs_z_tb03[iside][i];
-      double x1 = adc_vs_z_tb03[iside][i+1];    
-      double y0 = i*i;
-      double y1 = (i+1)*(i+1);
-      y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0); 
-    }
-  }  
   // lower extrapolation 
-  if (x<adc_vs_z_tb03[iside][0]) {
+  if (adc<adc_vs_z_tb03[iside][0]) {
     double x0 = adc_vs_z_tb03[iside][0];
     double x1 = adc_vs_z_tb03[iside][1];
     double y0 = 1*1;
     double y1 = 2*2;
-    y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
+    return ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
   }
   // upper extrapolation
-  if (x>=adc_vs_z_tb03[iside][11]) {
+  if (adc>=adc_vs_z_tb03[iside][11]) {
     double x0 = adc_vs_z_tb03[iside][10];
     double x1 = adc_vs_z_tb03[iside][11];
     double y0 = 11*11;
     double y1 = 12*12;
-    y = ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
+    return ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0);
   }
-  return y; 
+  // inside range
+  for (int i=0; i<11; i++) {
+    if ((adc>=adc_vs_z_tb03[iside][i])&&(adc<adc_vs_z_tb03[iside][i+1])) {
+      double x0 = adc_vs_z_tb03[iside][i];
+      double x1 = adc_vs_z_tb03[iside][i+1];    
+      double y0 = (i+1)*(i+1);
+      double y1 = (i+2)*(i+2);
+      return ( (x-x0)*y1 + (x1-x)*y0 ) / (x1-x0); 
+    }
+  }  
+  return -100; 
 }
 
 

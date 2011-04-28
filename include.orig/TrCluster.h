@@ -26,9 +26,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2011/03/30 13:19:17 $
+ $Date: 2011/04/28 11:19:04 $
 
- $Revision: 1.23 $
+ $Revision: 1.24 $
 
 */
 
@@ -192,8 +192,8 @@ class TrClusterR :public TrElem{
 
   /// Get cluster amplitude
   float GetTotSignal(int opt = DefaultCorrOpt);
-  /// Convert signal to number of MIPs (each MIP is approximately 81 keV)
-  float GetNumberOfMIPs(int opt = DefaultCorrOpt);
+  /// Convert an ADC signal to a number of MIPs (each MIP is approximately 81 keV)
+  static float GetNumberOfMIPs(int iside, float adc);
 
   /// Get i-th strip signal
   float GetSignal(int ii, int opt = DefaultCorrOpt);
@@ -256,9 +256,7 @@ class TrClusterR :public TrElem{
   inline float GetDxDz()  { return _dxdz; }
   /// Get track interpolation angle tan(thetaYZ) (rad)
   inline float GetDyDz()  { return _dydz; }
-  /// Get track interpolation angle theta
-  inline float GetTheta() { return acos(1./(1.+_dxdz*_dxdz+_dydz*_dydz)); }
-  /// Get track impact angle XZ (degrees) 
+  /// Get track impact angle (degrees) 
   inline float GetImpactAngle() { return (GetSide()==0) ? atan(_dxdz)*180./3.14159265 : atan(_dydz)*180./3.14159265; }
 
   /// chek some bits into cluster status

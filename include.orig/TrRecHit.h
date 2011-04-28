@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.32 2011/04/23 15:30:59 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.33 2011/04/28 11:19:05 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -39,10 +39,12 @@
 
 class TrRecHitR : public TrElem {
 
-public:
+ public:
+
   enum { XONLY = 0x100, YONLY = 0x200, TASHIT = 0x400 };
 
-protected:
+ protected:
+
   /// Pointer to the X (n-side) TrClusterR in the fTrClusterR collection
   TrClusterR*  _clusterX; //!
   /// Pointer to the Y (p-side) TrClusterR in the fTrClusterR collection
@@ -73,6 +75,7 @@ protected:
   void _PrepareOutput(int full=0);
 
 public:
+
   /**@name CONSTRUCTOR & C */
   /**@{*/
   //################# CONSTRUCTOR & C ########################
@@ -85,6 +88,8 @@ public:
   /// Destructor
   virtual ~TrRecHitR();
   /**@}*/	
+
+
   /**@name Accessors */	
   /**@{*/	
   //####################  ACCESSORS ##############################
@@ -117,7 +122,7 @@ public:
   int GetXClusterIndex() const { return _iclusterX; }
   /// Get the index of Y cluster
   int GetYClusterIndex() const { return _iclusterY; }
-	
+
   bool OnlyX () const { return checkstatus(XONLY); }
   bool OnlyY () const { return checkstatus(YONLY); }
   bool TasHit() const { return checkstatus(TASHIT); }
@@ -126,9 +131,10 @@ public:
   // AMSDBc::FalseX = 8192; (0x2000)
   bool FalseX() const { return checkstatus(AMSDBc::FalseX); }
   /**@}*/	
+
+
   /**@name Coordinates*/	
-  /**@{*/	
-	
+  /**@{*/		
   /// Get the hit multiplicity 
   int GetMultiplicity()      { return _mult; }
   /// Get the resolved multiplicity index (-1 if not resolved)
@@ -163,7 +169,6 @@ public:
   AMSPoint GetGlobalCoordinateN(int imult = 0){
     return GetGlobalCoordinate( imult, "");
   }
-
   /// Returns the (minimal) distance between two hits on the selcted coo (x 0, y 1, z 2)
   float HitDist(TrRecHitR & B,int coo);
   /// Returns an AMSPoint with the minimal distance between an Hit and a  given point
@@ -176,42 +181,37 @@ public:
   const AMSPoint HitPointDist(float* coo,int& mult){
     return HitPointDist(AMSPoint(coo[0],coo[1],coo[2]),mult);
   }
-	
   /**@}*/		
+
+
   /**@name Signals */			
-  /**@{*/		
-	
-
-
-  
-  /// Get correlation between the X and Y clusters
-  float GetCorrelation();
-  /// Get probability of correlation between the X and Y clusters 
-  float GetProb();  
-  /// Returns the hit signal (average of normalized signals)    
-  float GetSignalCombination();
-  /// Returns the hit signal correlation
-  float GetSignalCorrelation();
+  /**@{*/			
   /// Returns the signal of the Y cluster 
-  float Sum(){return (GetYCluster())? GetYCluster()->GetTotSignal():0;}
-	
-  /// Returns the signal sum of the X and Y clusters
-  float GetTotSignal() { 
-    return ((GetXCluster())? GetXCluster()->GetTotSignal():0)+
-      ((GetYCluster())? GetYCluster()->GetTotSignal():0); }
-	
-  /**@}*/		
-  /**@name Reconstruction & Special methods */			
-  /**@{*/	
-	
+  float Sum() { return (GetYCluster()) ? GetYCluster()->GetTotSignal() : 0; }
+  /// Returns the signal sum of the X and Y clusters when they exist (or only X or only Y, or in the worse case 0)
+  float GetTotSignal() {
+    return
+      ((GetXCluster())? GetXCluster()->GetTotSignal():0) +
+      ((GetYCluster())? GetYCluster()->GetTotSignal():0);
+  }
+  /// Returns the hit signal (0: x, 1: y, 2: weighted mean, 3: simple mean)
+  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt);
+  /// Returns the hit signal correlation (OLD)
+  float GetSignalDifference(int opt = TrClusterR::DefaultCorrOpt);
+  /// Get correlation between the X and Y clusters (DEPRECATED)
+  float GetCorrelation();
+  /// Get probability of correlation between the X and Y clusters (DEPRECATED)
+  float GetProb();
+  /**@}*/	
 
+	
+  /**@name Reconstruction & Special methods */			
+  /**@{*/		
   /// Get global coordinate (AMS reference system) 
   /// default: nominal position, A: with alignement correction
   AMSPoint GetGlobalCoordinate(int imult = 0, const char* options = "A",
 			       int nstripsx = TrClusterR::DefaultUsedStrips,
 			       int nstripsy = TrClusterR::DefaultUsedStrips);
-	
-	
   /// Set the resolved multiplicity index (-1 if not resolved)
   void  SetResolvedMultiplicity(int im) { 
     if (im < 0) im = 0;
@@ -221,7 +221,6 @@ public:
   }
   /// Set clusters index
   void SetiTrCluster(int iclsx, int iclsy);
-	
   //PZ removed to save space  /// Returns the computed global coordinate (if resolved)
   //  AMSPoint GetBField() { return ( (0<=_imult) && (_imult<_mult) ) 
   //			   ? GetBField(_imult) : AMSPoint(0, 0, 0); }
@@ -244,13 +243,9 @@ public:
     if(clX!=0)
       xaddr =  clX->GetAddress();
     else if(_dummyX>=0)
-      xaddr += _dummyX;
-	  
+      xaddr += _dummyX;	  
     _mult = (TasHit()) ? 1 : TkCoo::GetMaxMult(GetTkId(), xaddr)+1;
-  }
-
-  
- 
+  } 
 
   /// Set as used
   void SetUsed();
@@ -266,6 +261,7 @@ public:
   /// Clear cluster status
   void     clearstatus(uinteger status){Status=Status & ~status;}
   /**@}*/
+
 	
   /**@name Alternative & deprecated accessors
      STD GBATCH compatibility layer */
@@ -281,17 +277,15 @@ public:
   number   getsum()            { return GetTotSignal(); }
   /**@}*/
 	
+
   /**@name Printout */
-  /**@{*/
-	
+  /**@{*/	
   /// Print clusterRec hit  basic information  on a given stream 
   std::ostream& putout(std::ostream &ostr = std::cout);
   friend std::ostream &operator << (std::ostream &ostr,  TrRecHitR &hit){
     return hit.putout(ostr);}
   /// Print hit info (verbose if opt !=0 )
-  void  Print(int opt=0);
-	
-	
+  void  Print(int opt=0);	
   /// ROOT definition
   ClassDef(TrRecHitR,4)
   /**@}*/

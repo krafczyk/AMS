@@ -322,6 +322,7 @@ void TrRecHitR::SetiTrCluster(int iclsx, int iclsy)
   delete cont;
 }
 
+
 float TrRecHitR::GetCorrelation()   {
   if (!GetXCluster()) return -1.;
   if (!GetYCluster()) return 1.;
@@ -338,37 +339,32 @@ float TrRecHitR::GetProb()   {
 }
 
 
-float TrRecHitR::GetSignalCombination() {
-  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN;
-  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) {
-    float sig_x = GetXCluster()->GetTotSignal(opt);
-    float sig_y = GetYCluster()->GetTotSignal(opt);
-    return (sig_x + sig_y)/2;     
-  }
-  else if (GetXCluster()!=0) { 
-    return GetXCluster()->GetTotSignal(opt);
-  }
-  else if (GetYCluster()!=0) {
-    return GetYCluster()->GetTotSignal(opt);
-  }
-  return 0;
+float TrRecHitR::GetSignalCombination(int iside, int opt) {
+  TrClusterR* clx = GetXCluster();
+  TrClusterR* cly = GetYCluster();
+  float sig_x = (clx!=0) ? clx->GetTotSignal(opt) : 0;
+  float sig_y = (cly!=0) ? cly->GetTotSignal(opt) : 0;
+  float wei_x = 1; // to be tuned (wei(adc) ...)
+  float wei_y = 1; // to be tuned (wei(adc) ...)
+  if      (iside==0) return sig_x;
+  else if (iside==1) return sig_y; 
+  else if (iside==2) return (sig_x*wei_x + sig_y*wei_y)/(wei_x + wei_y);
+  else if (iside==3) return (sig_x + sig_y)/2;
+  return 0.;
 }
 
 
-float TrRecHitR::GetSignalCorrelation() {
-  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN;
-  if ((GetXCluster()!=0)&&(GetYCluster()!=0)) {
-    float sig_x = GetXCluster()->GetTotSignal(opt);
-    float sig_y = GetYCluster()->GetTotSignal(opt);
+float TrRecHitR::GetSignalDifference(int opt) {
+  TrClusterR* clx = GetXCluster();
+  TrClusterR* cly = GetYCluster();
+  if ( (clx!=0)&&(cly!=0) ) {
+    float sig_x = clx->GetTotSignal(opt);
+    float sig_y = cly->GetTotSignal(opt);
     return sig_x - sig_y;
   }
-  else if (GetXCluster()!=0) {
-    return -1000;
-  }
-  else if (GetYCluster()!=0) {
-    return  1000; 
-  }
-  return 10000;
+  else if (clx!=0) return -10000;
+  else if (cly!=0) return  10000;
+  return -1000000;
 }
 
 

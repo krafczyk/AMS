@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.155 2011/03/30 13:31:27 sdifalco Exp $
+#  $Id: Makefile,v 1.156 2011/04/28 11:19:07 oliva Exp $
 
 #P.Zuccon june 2005
 
@@ -232,10 +232,10 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
         $(SCC)TrLadPar.C     $(SCC)TrParDB.C \
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
-	 $(SCC)TrHistoMan.C $(SCC)HistoMan.C $(SCC)TrTrackSelection.C
+	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
+        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C 
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
-           $(SCC)TrCharge.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C $(SFF)rkms.F
 
 else
@@ -305,7 +305,7 @@ endif
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
+ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrCalDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
@@ -317,7 +317,9 @@ ROOTDICTFILES=  ../include/TkPlane.h      ../include/TkSens.h \
 		../include/TrMCCluster.h \
                 ../include/trrec.h ../include/tkdcards.h \
 		../include/point.h ../include/root_RV.h ../include/root.h  \
-		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h ../include/TrCharge.h ../include/TrHistoMan.h \
+		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h \
+		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
+		../include/TrHistoMan.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h
 else
@@ -535,7 +537,6 @@ ifdef PGTRACK
 
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
-        $(BIN)TrCharge_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o
 
