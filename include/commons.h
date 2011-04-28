@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.317 2011/04/26 16:03:29 choutko Exp $
+//  $Id: commons.h,v 1.318 2011/04/28 02:06:32 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -300,6 +300,7 @@ integer multiples;
  geant GasStep;
  integer PAIModel;
  integer debug;
+ int CreatePDF;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);

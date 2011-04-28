@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.350 2011/04/26 16:03:29 choutko Exp $
+#  $Id: datacards.doc,v 1.351 2011/04/28 02:06:31 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -685,7 +685,7 @@ R47   CO2Fraction(0.2);	    // volume fraction of CO2 gas
 R48   GasStep(1.);	    // gas medium step size in mm
 I49   PAIModel(1);	    // enable PAI Model
 I50   debug(0); 	    // debug flag
-
+I51   CreatePDF(0)          // create or not pdf function
 TRDCL   // TRD clustering
 
 R1 ADC2KeV;         //

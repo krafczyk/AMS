@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.798 2011/04/26 16:03:28 choutko Exp $
+// $Id: job.C,v 1.799 2011/04/28 02:06:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -527,7 +527,6 @@ TKGEOMFFKEY.UpdateGeomFile=0;
 VBLANK(TKGEOMFFKEY.gfile,40);
 FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
-
 
 TRMCFFKEY.alpha=250;
 TRMCFFKEY.beta=0.46;
@@ -1111,6 +1110,7 @@ void AMSJob::_sianti2data(){
 //================================================================================
 
 void AMSJob::_sitrddata(){
+TRDMCFFKEY.CreatePDF=0;
 TRDMCFFKEY.mode=-1;
 TRDMCFFKEY.g3trd=123654;
 TRDMCFFKEY.cor=0.68;
@@ -1196,7 +1196,6 @@ TRDCLFFKEY.RNGB[1]=0.75;
 TRDCLFFKEY.RNGP[0]=2.83105;
 TRDCLFFKEY.RNGP[1]=-2.56767;
 TRDCLFFKEY.RNGP[2]=4.53374;
-TRDCLFFKEY.RNGP[5]=4.53374;
 
 LVL3FFKEY.TRDHMulThr=TRDCLFFKEY.Thr1H/TRDCLFFKEY.ADC2KeV*TRDMCFFKEY.f2i;
 LVL3FFKEY.TRDHMulPart=0.249;
@@ -2404,7 +2403,7 @@ void AMSJob::_sitrdinitjob(){
          }
        }
     }
-    else TRDMCFFKEY.year[1]=TRDMCFFKEY.year[0]-1;
+    else if(!TRDMCFFKEY.CreatePDF)TRDMCFFKEY.year[1]=TRDMCFFKEY.year[0]-1;
 
  AMSTRDMCCluster::init();
  AMSgObj::BookTimer.book("SITRDDigi");
@@ -3272,6 +3271,14 @@ end.tm_hour=TRDMCFFKEY.hour[1];
 end.tm_mday=TRDMCFFKEY.day[1];
 end.tm_mon=TRDMCFFKEY.mon[1];
 end.tm_year=TRDMCFFKEY.year[1];
+AMSTimeID *ptdv=(AMSTimeID*) TID.add (new AMSTimeID(AMSID("TRDPDF",isRealData()),
+    begin,end,AMSTRDTrack::TrackCharge::getTRDPDFsize(),
+    (void*)AMSTRDTrack::TrackCharge::getTRDPDF(),server,1));
+if(TRDMCFFKEY.CreatePDF && AMSTRDTrack::CreatePDF()){
+    ptdv->UpdateMe()=1;
+    ptdv->UpdCRC();
+} 
+
  TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
     (void*)AMSTRDIdSoft::_ped,server,1));

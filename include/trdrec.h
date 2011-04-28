@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.20 2011/04/25 14:02:58 choutko Exp $
+//  $Id: trdrec.h,v 1.21 2011/04/28 02:06:32 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -194,12 +194,20 @@ TrackBase():_NHits(0),_Pattern(-1){
  }
 }
 };
+public:
 class TrackCharge{
 public:
-
 float Q;
+short int Charge[10];
+float ChargeP[10];
+TrackCharge():Q(0){
+for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
+for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=0;
+}
+static float ChargePDF[10030]; //0-100 kev; [1000]=0.1  [1001] charge [1002] not set
 
-TrackCharge():Q(0){}
+static float* getTRDPDF(){return ChargePDF;}
+static int  getTRDPDFsize(){return sizeof(ChargePDF);}
 };
 
 class TrackBaseS{
@@ -252,6 +260,7 @@ static integer build(int rerun=0);
 void StrLineFit();
 void ComputeCharge(double bc);
 void RealFit();
+static bool CreatePDF( char *fnam=0);
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall){};
 static void alfun(integer & n, number xc[], number & fc, AMSTRDTrack * ptr);
 static integer Out(integer status);

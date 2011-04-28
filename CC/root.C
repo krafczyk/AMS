@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.274 2011/04/26 20:24:04 choutko Exp $
+//  $Id: root.C,v 1.275 2011/04/28 02:06:26 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3237,6 +3237,8 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
   Chi2  = ptr->_StrLine._Chi2;
   Pattern = ptr->_BaseS._Pattern;
   Q=ptr->_Charge.Q;
+  for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=ptr->_Charge.Charge[k];
+  for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=ptr->_Charge.ChargeP[k];
 #endif
 }
 

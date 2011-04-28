@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.119 2011/04/13 20:36:40 choutko Exp $
+//  $Id: timeid.C,v 1.120 2011/04/28 02:06:27 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -1013,7 +1013,7 @@ void AMSTimeID::checkupdate(const char * tdvc){
 
   if( (
        strcmp(tdvc,getname())==0 ||
-       strcmp(tdvc,"UpdateAllTDV")==0  || strstr(getname(),tdvc)!=0) &&
+       strcmp(tdvc,"UpdateAllTDV")==0  || (strstr(getname(),tdvc)!=0 && strlen(tdvc)>1)) &&
       (_Begin < _End) ){
     _UpdateMe=1;
     time(&_Insert);

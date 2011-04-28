@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.32 2011/03/30 14:50:50 choutko Exp $
+//  $Id: amschain.C,v 1.33 2011/04/28 02:06:26 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -369,7 +369,12 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     //  this clause is because intel throutput mode deoesn;t work
     //   so simulating it
     ia[thr]=1;
-    for(;;){
+      int nt=0;
+      for(int j=0;j<nthreads;j++){
+        if(!ia[j])nt++;
+      } 
+    cout <<" Thread "<<thr<<" Deactivated "<<nt <<" Threads Left"<<endl;
+  for(;;){
       bool work=false;
       for(int j=0;j<nthreads;j++){
 	if(!ia[j]){

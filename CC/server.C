@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.174 2011/04/25 19:01:23 choutko Exp $
+//  $Id: server.C,v 1.175 2011/04/28 02:06:27 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -4018,6 +4018,7 @@ return _pser->Master(advanced);
 
 integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool self){
   //start  killer here
+   
    if(ac.id.pid==0)return 0;
    AString submit;
     NCLI cli=find_if(_nki.begin(),_nki.end(),NCL_find((const char *)(ac.id.HostName))); 
@@ -4037,6 +4038,7 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
     submit+=(const char*)((*cli)->WholeScriptPath);
     submit+=" -s ";
     sprintf(tmp,"%d",signal);
+    if(signal==SIGKILL)strcpy(tmp,"KILL");
     submit+=tmp;
     submit+=" ";
     sprintf(tmp,"%d",(self?ac.id.pid:ac.id.ppid));

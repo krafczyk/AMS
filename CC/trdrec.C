@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.51 2011/04/25 19:01:23 choutko Exp $
+//  $Id: trdrec.C,v 1.52 2011/04/28 02:06:27 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1082,10 +1082,48 @@ double range=d<0?0:2*sqrt(d)/a;
    if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
    else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
    _Charge.Q=sqrt(medianc/beta)*TRDFITFFKEY.QP[0]+TRDFITFFKEY.QP[1];
-   
-
  }
 
+
+   //lkhd
+   const int span =sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])/(sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]));
+   for (int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+    if(TrackCharge::ChargePDF[k*span+span-1]){
+    _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
+    for(int i=0;i<edepc.size();i++){
+      int ch=edepc[i]/beta/TrackCharge::ChargePDF[k*span+span-3];
+      if(ch<0)ch=0;
+      if(ch>span-3)ch=span-3;
+      _Charge.ChargeP[k]+=-log(TrackCharge::ChargePDF[k*span+ch]);
+    }
+    }
+    else{
+      for(int l=k;l>0;l--){
+        if(TrackCharge::ChargePDF[l*span+span-1]){
+         _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
+         float factor=_Charge.Charge[l]/_Charge.Charge[k];
+          for(int i=0;i<edepc.size();i++){
+            int ch=edepc[i]*factor*factor/beta/TrackCharge::ChargePDF[l*span+span-3];
+            if(ch<0)ch=0;
+            if(ch>span-3)ch=span-3;
+              _Charge.ChargeP[k]+=-log(TrackCharge::ChargePDF[l*span+ch]);
+          }
+         break;
+        }
+      }
+    }
+    
+   }
+
+   multimap<float,short int> chmap;
+   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+     chmap.insert(make_pair(_Charge.ChargeP[k],_Charge.Charge[k]));
+   }
+   int l=0;
+   for(multimap<float,short int>::iterator k=chmap.begin();k!=chmap.end();k++){
+        _Charge.Charge[l]=k->second;
+        _Charge.ChargeP[l++]=k->first;
+   }
 
 }
 
@@ -1107,4 +1145,66 @@ double AMSTRDCluster::RangeCorr(double range, double norm){
     corr+=TRDCLFFKEY.RNGP[i]*pow(rng,double(i));
   }
   return corr/norm;
+}
+float AMSTRDTrack::TrackCharge::ChargePDF[10030];
+bool AMSTRDTrack::CreatePDF(char *fnam){
+
+ifstream file;
+
+if(fnam)file.open(fnam);
+else if(getenv("TRDChargePDFFile")){
+file.open(getenv("TRDChargePDFFile"));
+}
+else{
+ cerr<<"AMSTRDTrack::Charge::ChargePDF-E-FileNotDefined"<<endl;
+return false;
+}
+if(!file){
+ cerr<<"AMSTRDTrack::Charge::ChargePDF-E-UnableToOpen "<<fnam <<" "<<getenv("TRDChargePDFFile")<<endl;
+return false;
+}
+for(int k=0;k<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0]);k++)TrackCharge::ChargePDF[k]=0;
+int ptr=0;
+const int span=1003;
+while(file.good() && !file.eof()){
+
+file>>TrackCharge::ChargePDF[ptr*span+span-3];  //e2c
+file>>TrackCharge::ChargePDF[ptr*span+span-2];  //id
+file>>TrackCharge::ChargePDF[ptr*span+span-1];  //ok
+for(int k=0;k<span-3;k++)file>>TrackCharge::ChargePDF[ptr*span+k];
+double smax=0;
+for(int k=0;k<span-3;k++){
+  float a=TrackCharge::ChargePDF[ptr*span+k];
+  if(a<=0){
+    for(int j=k+1;j<span-3;j++){
+      if(TrackCharge::ChargePDF[ptr*span+j] || j==span-4){
+        for(int l=k;l<j;l++){
+         TrackCharge::ChargePDF[ptr*span+l]=0.5;
+        }
+        break;
+      }
+    }
+  }
+ }
+for(int k=0;k<span-3;k++){
+smax+=TrackCharge::ChargePDF[ptr*span+k];
+}
+for(int k=0;k<span-3;k++)TrackCharge::ChargePDF[ptr*span+k]/=smax;
+if(TrackCharge::ChargePDF[ptr*span+span-1])ptr++;
+
+
+}
+
+cout <<"AMSTRDTrack::Charge::ChargePDF-I- "<<ptr<<" pdf loaded for ";
+for(int k=0;k<ptr;k++)cout<<TrackCharge::ChargePDF[k*span+span-2]<<" ";
+cout <<endl;
+if(ptr<3){
+ cerr<<"AMSTRDTrack::Charge::ChargePDF-E-minimal 3 PDF Needed "<<endl;
+ return false;
+}
+for(int i=ptr;i<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])/span;i++){
+  TrackCharge::ChargePDF[i*span+span-2]=i;
+}
+
+return true;
 }
