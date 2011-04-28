@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.338 2011/04/28 13:41:13 afiasson Exp $
+//  $Id: root.h,v 1.339 2011/04/28 16:40:28 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -548,7 +548,6 @@ public:
   float ShowerLongDisp;  
   float ShowerDepth;	  
   float ShowerFootprint[3]; 
-//  float Zmax[2];
   float ZprofileChi2; 
   float Zprofile[4]; 
 

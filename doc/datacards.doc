@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.351 2011/04/28 02:06:31 choutko Exp $
+#  $Id: datacards.doc,v 1.352 2011/04/28 16:40:28 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -630,7 +630,7 @@ I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 2: Wilson abrasion model (Not working in high enegy (~100GeV)for the moment)
 			// 3: EM Dissociation model  (Not working in high enegy (~100GeV)for the moment)
 			
-
+I 8 SIGTERM   (0)      //  1 immediate sigterm
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd

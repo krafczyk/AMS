@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.119 2011/04/27 16:13:47 zweng Exp $
+//  $Id: gbatch.C,v 1.120 2011/04/28 16:40:27 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -229,10 +229,11 @@ void (handler)(int sig){
   GCFLAG.IEOTRI=1;
   //AMSStatus::setmode(0);
   AMSFFKEY.CpuLimit=10;
+  
 #ifdef _PGTRACK_
   TrRecon::SigTERM=1;
 #endif
-
+if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
 #ifdef __G4AMS__
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
@@ -250,7 +251,7 @@ void (handler)(int sig){
   gams::UGLAST("SIGTERMSIM ");
   exit(1);
 #endif
-
+}
 
  }
  break;
@@ -259,6 +260,7 @@ void (handler)(int sig){
     pause();
     break;
   case SIGCONT:
+    G4FFKEY.SigTerm=2;
     cerr <<" Process resumed"<<endl;
     break;
   case SIGHUP:
