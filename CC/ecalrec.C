@@ -1,6 +1,7 @@
-//  $Id: ecalrec.C,v 1.143 2011/04/14 19:27:01 choumilo Exp $
+//  $Id: ecalrec.C,v 1.144 2011/04/28 13:41:12 afiasson Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
+//
 //
 #include <stdio.h>
 #include "typedefs.h"
@@ -22,6 +23,10 @@
 #include "trigger302.h"
 #include "timeid.h"
 #include <fenv.h>
+#include "TF1.h"
+#include "TH1F.h"
+#include "TMath.h"
+#include "TMinuit.h"
 
 using namespace std;
 using namespace ecalconst;
@@ -1945,9 +1950,11 @@ integer AMSEcalShower::build(int rerun){
             pes->SphFit();
            }
            else pes->_AttCorr();
-           
+           // LAPP
+	   pes->LAPPVariables();    
+	   pes->ZProfile();    
           }
-return found;
+	  return found;
 }
 
 
@@ -2173,6 +2180,8 @@ number AMSEcal2DCluster::_ZCorr(Ecal1DCluster * p1c[],integer ipl, integer iplma
 
 
 }
+
+
 
 void AMSEcalShower::EnergyFit(){
 
@@ -2497,6 +2506,341 @@ void AMSEcalShower::EnergyFit(){
   _EnergyRes(); 
 
 }
+
+
+
+float z[18],x[18],errorz[18];
+//______________________________________________________________________________
+Double_t func(float x,Double_t *par)
+{	
+	Double_t value= par[0]*par[1]*TMath::Exp(-par[1]*x)*pow(par[1]*x,par[1]*par[2])/TMath::Gamma(par[1]*par[2]+1.);;
+	return value;
+}
+//______________________________________________________________________________
+void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+{
+	const Int_t nbins = 18;
+	Int_t i;
+	//calculate chisquare
+	Double_t chisq = 0.;
+	Double_t delta;
+	for (i=0;i<nbins; i++) {
+		delta = (z[i]-func(x[i],par))/errorz[i]; 
+		chisq += delta*delta;	
+	}
+	f = chisq;
+}
+
+
+//______________________________________________________________________________
+void AMSEcalShower::ZProfile()
+{
+  _Zprofile[0]=-1.;
+  _Zprofile[1]=-1.;
+  _Zprofile[2]=-1.;
+  _Zprofile[3]=-1.;
+  _ZprofileChi2=-1.;
+  int necalcl=0;
+  int ihit,cell,plane,proj;
+  int nhits_cl;
+  float etot;
+  float err;
+  float par0,par1,par2;
+  float xmin, xmax; 
+  float par[3];
+  float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
+  float frac[18]={0.};
+  float ECalEdepFrac[18]={0.};
+  if(_Nhits>50){
+    // Loop over 2d clusters
+    for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
+      // Number of 1d cluster in 2D cluster
+      necalcl=_pCl[cl2]->getNClust();
+      // Loop over 1d clusters in cluster 2d
+      for (int cl=0; cl<necalcl; cl++){
+	nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
+	// Loop over hits in cluster 1d
+	for (int ie=0; ie<nhits_cl; ie++){ 
+	  plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
+	  if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
+	    ECalEdepFrac[plane] += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  etot += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	}
+      }
+    }
+  }
+  int nbpt=0;
+  if(etot>0. && etot<1000000. &&_EnergyPIC>0. && _EnergyPIC<5000000. && _Nhits>50 && _N2dCl>=2){
+//     std::cout << "EShower " <<  _EnergyPIC << std::endl;
+    for(int a=0;a<18;a++){
+      frac[a] = ECalEdepFrac[a]/(_EnergyPIC*1000.);
+//       std::cout << " ECalEdepFrac " <<  ECalEdepFrac[a] << std::endl;
+//       std::cout << " Etot " <<  etot << std::endl;
+//       std::cout << " ECalEdepFrac " << ECalEdepFrac[a] << std::endl;
+//       std::cout << " frac " << (ECalEdepFrac[a]/(1000.*_EnergyPIC)) << std::endl
+	;
+      err=(ECalEdepFrac[a]/(_EnergyPIC*1000.))*0.10; 
+      if (err<.009&&_EnergyPIC<1000.) err=0.009;
+      if (err<.004&&_EnergyPIC>1000.) err=0.004;
+      if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
+	z[a] = frac[a];
+	errorz[a] = err;
+	x[a]=(float) a;
+	nbpt++;
+      }
+    }
+    if(nbpt==18){
+	 
+      // The z values	
+      Double_t par0, par1,par2; 
+      Double_t zprof[3],errprof[3];
+      float xx=-1.;
+      int ix=-1;  
+      float zint=0.;
+      par0=1.;
+      par1=0.48; 
+      float erec0=1000.; 
+      // par2==zmax if the shower is an electromagnetic shower 
+      par2= 1.05*(log(_EnergyPIC*10000./(8.*67.4))-0.5);
+      // Minuit
+      TMinuit *gMinuit = new TMinuit(3); //initialize TMinuit with a maximum of 3 params
+      //Set Minuit print Options
+      gMinuit->SetPrintLevel(-1); 
+      gMinuit->SetFCN(fcn);
+      Double_t arglist[10];
+      Double_t a1,erra1;
+      Int_t ierflg = 0;
+      arglist[0]   = 1;
+      gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
+      // Set starting values and step sizes for parameters
+      Double_t vstart[3] = {.2, 0.48 , 6. };
+      Double_t step[3]   = {0.001 , 0.01 , .02};
+      gMinuit->mnparm(0, "a1", vstart[0], step[0], 0.,1.2,ierflg);
+      gMinuit->mnparm(1, "a2", vstart[1], step[1], 0.44,0.52,ierflg);
+      gMinuit->mnparm(2, "a3", vstart[2], step[2], 0.,17.,ierflg);
+      // Now ready for minimization step
+      arglist[0] = 500;
+      arglist[1] = 1;
+      gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+      // Print results
+      gMinuit->GetParameter(0,zprof[0],errprof[0]);
+      gMinuit->GetParameter(1,zprof[1],errprof[1]);
+      gMinuit->GetParameter(2,zprof[2],errprof[2]);
+      Double_t amin,edm,errdef;
+      Int_t nvpar,nparx,icstat;
+      gMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+      _Zprofile[0] = zprof[0];
+      _Zprofile[2] = zprof[2];
+      _Zprofile[3] = par2;
+      _Zprofile[1] = zprof[1];
+      _ZprofileChi2 = amin;
+//       std::cout << _Zprofile[0] << " " << _Zprofile[1] << " " << _Zprofile[2] << " " << _Zprofile[3] << " " <<	_ZprofileChi2 << std::endl;
+    delete gMinuit;
+    }
+  }
+}
+
+
+void AMSEcalShower::LAPPVariables(){
+  float bcell_lat[18]={0.};
+  float bcell2_lat[18]={0.};
+  float bcell_latx[18]={0.};
+  float bcell_laty[18]={0.};
+  float s_cell_w[18]={0.};
+  float s_cell2_w[18]={0.};
+  float edep_cell[18][72]={0.};
+  float edep_layer[18]={0.};
+  int nhitcell[18]={0.};
+  int necalcl=0;
+  int ihit,cell,plane,proj;
+  int nhits_cl;
+
+  if(_Nhits>50){
+    // Loop over 2d clusters
+    for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
+      // Number of 1d cluster in 2D cluster
+      necalcl=_pCl[cl2]->getNClust();
+      // Loop over 1d clusters in cluster 2d
+      for (int cl=0; cl<necalcl; cl++){
+	nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
+	// Loop over hits in cluster 1d
+	for (int ie=0; ie<nhits_cl; ie++){ 
+	  cell = _pCl[cl2]->getpClust(cl)->getphit(ie)->getcell();
+	  plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
+	  proj = _pCl[cl2]->getpClust(cl)->getphit(ie)->getproj();
+	  if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
+	    edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  s_cell_w[plane]        += (cell+1)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	  s_cell2_w[plane]       += pow((cell+1),2.)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();          
+	  nhitcell[plane]++;
+	}
+      }
+    }
+  }
+   
+   _ShowerLatDisp=0.;
+   _ShowerLatDispx=0.;
+   _ShowerLatDispy=0.;
+   _ShowerLongDisp=0.;
+   float bplane=0;
+   float bplane2=0;
+   float bcell_latmx=0, bcell_latmy=0;
+  _S1tot=0; _S1totx=0; _S1toty=0;
+  _S3tot=0; _S3totx=0; _S3toty=0;
+  _S5tot=0; _S5totx=0; _S5toty=0; 
+  float edep_tot=0, edep_totx=0, edep_toty=0;
+  int contained_flag=1;
+  float shower_depth_op=0;
+  float S1=0;
+  float S3=0;
+  float S5=0; 
+  int bcell_i=0.;
+  int nbcellx=0,nbcelly=0;
+  for (int jj=0; jj<18; jj++){
+    S1=0;S3=0;S5=0; 
+    if (edep_layer[jj]!=0){
+      edep_tot+=edep_layer[jj];
+      // Calculate shower longitudinal dispersion
+      bplane2+=pow((jj+1),2.)*edep_layer[jj];  
+      bplane+=(jj+1)*edep_layer[jj]; 
+      // Calculate shower lateral dispersion  
+      bcell_lat[jj]=s_cell_w[jj]/edep_layer[jj];
+      bcell2_lat[jj]=s_cell2_w[jj]/edep_layer[jj];
+      _ShowerLatDisp += bcell2_lat[jj] - (bcell_lat[jj]*bcell_lat[jj]);
+      // Calculate shower depth term  
+      shower_depth_op+=(jj+1)*(1./pow(edep_layer[jj],2));
+      if (((jj/2)%2)==0){
+	_ShowerLatDispy+=bcell2_lat[jj]-pow((bcell_lat[jj]),2);
+	bcell_latmy+=bcell_lat[jj]*edep_layer[jj];
+	edep_toty+=edep_layer[jj];
+	nbcelly++;
+      }
+      else{
+	_ShowerLatDispx+=bcell2_lat[jj]-pow((bcell_lat[jj]),2);
+	bcell_latmx+=bcell_lat[jj]*edep_layer[jj];
+	edep_totx+=edep_layer[jj];
+	nbcellx++;      
+      }
+
+      bcell_i=(int) (bcell_lat[jj]-1.);
+      if ((bcell_lat[jj]-1-bcell_i)>0.5)  bcell_i++;
+   
+      //Require at least CofG+-2 cells being included in ECAL
+      // TO BE DONE: not contained showers treatment
+      if (((bcell_i-2)>=0)&&((bcell_i+2)<=71)) 
+	{
+	  
+	  S1=edep_cell[jj][bcell_i];	     
+	  S3=edep_cell[jj][bcell_i-1]+edep_cell[jj][bcell_i]+edep_cell[jj][bcell_i+1];	    
+	  S5=edep_cell[jj][bcell_i-2]+edep_cell[jj][bcell_i-1]+edep_cell[jj][bcell_i]+edep_cell[jj][bcell_i+1]+edep_cell[jj][bcell_i+2];
+	  
+	  if (((jj/2)%2)==0){
+	    _S1toty+=S1;
+	    _S3toty+=S3;
+	    _S5toty+=S5;               
+	  }
+	  else{
+	    _S1totx+=S1;
+	    _S3totx+=S3;
+	    _S5totx+=S5;
+	  }
+	}
+      else{
+	contained_flag=0;
+      }
+    }
+  }
+  _NbLayerX = nbcellx;
+  _NbLayerY = nbcelly;
+  _ShowerLatDispx=_ShowerLatDispx;
+  _ShowerLatDispy=_ShowerLatDispy;
+  
+  //Calculate longitudinal dispersions
+  _ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
+  
+  if (contained_flag==1)
+    {
+      _S1tot=_S1totx+_S1toty;
+      _S3tot=_S3totx+_S3toty;
+      _S5tot=_S5totx+_S5toty;
+      edep_tot=edep_totx+edep_toty;
+    }
+
+  //Calculate shower depth
+  _ShowerDepth = TMath::Log(shower_depth_op);
+
+  //Calculate shower shower Cofg_z
+  bplane=bplane/edep_tot;
+
+  //Calculate shower CofG x,y 
+  if (edep_totx>0){
+    bcell_latmx=bcell_latmx/edep_totx;
+    _S1totx=_S1totx/edep_totx;
+    _S3totx=_S3totx/edep_totx; 
+    _S5totx=_S5totx/edep_totx;
+  }
+  if (edep_toty>0){
+    bcell_latmy=bcell_latmy/edep_toty;
+    _S1toty=_S1toty/edep_toty;
+    _S3toty=_S3toty/edep_toty; 
+    _S5toty=_S5toty/edep_toty;
+  }
+  if (edep_tot>0){
+    _S1tot=_S1tot/edep_tot;
+    _S3tot=_S3tot/edep_tot; 
+    _S5tot=_S5tot/edep_tot;
+  }
+  //Calculate shower footprint
+  float sigmax2=0., sigmaxz=0., sigmay2=0., sigmayz=0., sigmaz2_x=0., sigmaz2_y=0.;
+  for (int jj=0; jj<18; jj++)
+    {
+
+      if (edep_layer[jj]!=0)
+	{
+	  if (((jj/2)%2)==0)
+	    {
+              for (int cc=0; cc<72; cc++)
+		{
+                  if (edep_cell[jj][cc]>0) 
+		    {
+		      sigmay2+=pow(((cc+1)-bcell_latmy),2)*edep_cell[jj][cc];
+		      sigmayz+=((cc+1)-bcell_latmy)*((jj+1)-bplane)*edep_cell[jj][cc];
+		      sigmaz2_y+=pow(((jj+1)-bplane),2)*edep_cell[jj][cc];
+		    }		     
+		}
+	    }
+	  else
+	    {
+              for (int cc=0; cc<72; cc++)
+		{
+                  if (edep_cell[jj][cc]>0) 
+		    {
+		      sigmax2+=pow(((cc+1)-bcell_latmx),2)*edep_cell[jj][cc];
+		      sigmaxz+=((cc+1)-bcell_latmx)*((jj+1)-bplane)*edep_cell[jj][cc];
+		      sigmaz2_x+=pow(((jj+1)-bplane),2)*edep_cell[jj][cc];	
+		    }
+		}
+
+	    }
+	}
+    }
+  
+  sigmax2=sigmax2/edep_totx;
+  sigmaxz=sigmaxz/edep_totx;
+  sigmaz2_x=sigmaz2_x/edep_totx;
+  
+  sigmay2=sigmay2/edep_toty;
+  sigmayz=sigmayz/edep_toty;
+  sigmaz2_y=sigmaz2_y/edep_toty;
+
+  _ShowerFootprintx=TMath::Sqrt(TMath::Abs(sigmax2*sigmaz2_x-pow(sigmaxz,2)));
+  _ShowerFootprinty=TMath::Sqrt(TMath::Abs(sigmay2*sigmaz2_y-pow(sigmayz,2)));
+  _ShowerFootprint= _ShowerFootprintx + _ShowerFootprinty;	 
+
+  return;
+}
+
 
 extern "C" void e04ccf_(int &n, number x[], number &f, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void * alfun, void * monit, int & maxcal, int &ifail, void * p);
 

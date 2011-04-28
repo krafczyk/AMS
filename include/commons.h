@@ -1,8 +1,9 @@
-//  $Id: commons.h,v 1.318 2011/04/28 02:06:32 choutko Exp $
+//  $Id: commons.h,v 1.319 2011/04/28 13:41:13 afiasson Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
 //  All new vars to cblocks defs: only at the very end !!!
+//
 ///
 
 #ifndef __AMSCOMMONS__
@@ -413,7 +414,7 @@ public:
   float Chi2Change2D;
   float TransShowerSize2D;
   float SimpleRearLeak[4];
-
+ 
   float ealpha0;
   float ebeta;
   float egamma;
@@ -426,6 +427,7 @@ public:
   float S1S3[4];
   float S1S3X[6];
   float S1S3Y[6];
+
   integer sec[2];
   integer min[2];
   integer hour[2];

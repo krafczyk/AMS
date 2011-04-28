@@ -1,7 +1,8 @@
-//  $Id: ecalrec.h,v 1.54 2011/03/28 16:05:23 sdifalco Exp $
+//  $Id: ecalrec.h,v 1.55 2011/04/28 13:41:13 afiasson Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
+//
 #ifndef __AMSECALREC__
 #define __AMSECALREC__
 #include "typedefs.h"
@@ -437,6 +438,37 @@ number _SphericityEV[3];
 number _TransFitPar[3];
 number _TransFitChi2;
 
+// LAPP
+ number _S1tot;		  
+ number _S1totx;	  
+ number _S1toty;	  
+ number _S3tot;		  
+ number _S3totx;	  
+ number _S3toty;	  
+ number _S5tot;		  
+ number _S5totx;	  
+ number _S5toty;	  
+ number _ShowerLatDisp;	  
+ number _ShowerLatDispx;  
+ number _ShowerLatDispy;  
+ number _ShowerLongDisp;  
+ number _ShowerDepth;	  
+ number _ShowerFootprint; 
+ number _ShowerFootprintx;
+ number _ShowerFootprinty;
+ number _ShowerFootprint_b; 
+ number _ShowerFootprintx_b;
+ number _ShowerFootprinty_b;
+// number _Zmax[2];
+ number _Zprofile[4];
+ number _ZprofileChi2;
+integer _NbLayerX;
+integer _NbLayerY;
+
+
+ void LAPPVariables();
+ void ZProfile();
+
 void _AttCorr();
 void _writeEl();
 void _printEl(ostream &stream){
@@ -504,6 +536,26 @@ integer getNhits() const{return _Nhits;}
  number getOLeakPI() const {return _OrpLeakPI;}
  number getProfChi2() const {return _ProfilePar[4+_Direction*5];}
  number getTransChi2() const {return _TransFitChi2;}
+
+ // LAPP
+ number getS1tot(){return _S1tot;}
+ number getS1totx(){return _S1totx;}
+ number getS1toty(){return _S1toty;}
+ number getS3tot(){return _S3tot;}
+ number getS3totx(){return _S3totx;}
+ number getS3toty(){return _S3toty;}
+ number getS5tot(){return _S3tot;}
+ number getS5totx(){return _S3totx;}
+ number getS5toty(){return _S3toty;}
+ number getShowerLatDisp(){return _ShowerLatDisp;}
+ number getShowerLatDispx(){return _ShowerLatDispx;}
+ number getShowerLatDispy(){return _ShowerLatDispy;}
+ number getShowerLongDisp(){return _ShowerLongDisp;}
+ number getShowerDepth(){return _ShowerDepth;}
+ number getShowerFootprint(){return _ShowerFootprint;}
+ number getShowerFootprintx(){return _ShowerFootprintx;}
+ number getShowerFootprinty(){return _ShowerFootprinty;}
+
 #ifdef __WRITEROOT__
  friend class EcalShowerR;
 #endif

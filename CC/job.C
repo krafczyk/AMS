@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.799 2011/04/28 02:06:26 choutko Exp $
+// $Id: job.C,v 1.800 2011/04/28 13:41:12 afiasson Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -966,8 +966,6 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3[1]=0.25;
   ECREFFKEY.S1S3[2]=0.4;
   ECREFFKEY.S1S3[3]=0.8;
-//
-//
 
   ECREFFKEY.S1S3X[0]=0.529;
   ECREFFKEY.S1S3X[1]=0.753;

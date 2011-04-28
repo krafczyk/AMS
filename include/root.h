@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.337 2011/04/28 02:06:32 choutko Exp $
+//  $Id: root.h,v 1.338 2011/04/28 13:41:13 afiasson Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -539,6 +539,19 @@ protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
+  int NbLayerX;
+  int NbLayerY;
+  float S1tot[3];		  
+  float S3tot[3];		  
+  float S5tot[3];		  
+  float ShowerLatDisp[3];	  
+  float ShowerLongDisp;  
+  float ShowerDepth;	  
+  float ShowerFootprint[3]; 
+//  float Zmax[2];
+  float ZprofileChi2; 
+  float Zprofile[4]; 
+
   /// lower values correspond to hadrons, higher to electromagnetic particles
   /// Trained on August 2010 test beam data 
   /// WARNING: by default this function is dummy, to have it you must compile 

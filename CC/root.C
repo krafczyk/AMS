@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.275 2011/04/28 02:06:26 choutko Exp $
+//  $Id: root.C,v 1.276 2011/04/28 13:41:13 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2881,6 +2881,34 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   SideLeak    = ptr->_SideLeakPI;
   RearLeak    = ptr->_RearLeakPI;
   S13Leak    = ptr->_S13Leak;
+
+ // LAPP
+  S1tot[0] = ptr->_S1tot;		  
+  S1tot[1] = ptr->_S1totx;		  
+  S1tot[2] = ptr->_S1toty;		  
+  S3tot[0] = ptr->_S3tot;		  
+  S3tot[1] = ptr->_S3totx;		  
+  S3tot[2] = ptr->_S3toty;		  
+  S5tot[0] = ptr->_S5tot;		  
+  S5tot[1] = ptr->_S5totx;		  
+  S5tot[2] = ptr->_S5toty;		  
+  ShowerLatDisp[0] = ptr->_ShowerLatDisp;	  
+  ShowerLatDisp[1] = ptr->_ShowerLatDispx;	  
+  ShowerLatDisp[2] = ptr->_ShowerLatDispy;	  
+  ShowerLongDisp = ptr->_ShowerLongDisp;  
+  ShowerDepth = ptr->_ShowerDepth;	  
+  ShowerFootprint[0] = ptr->_ShowerFootprint; 
+  ShowerFootprint[1] = ptr->_ShowerFootprintx; 
+  ShowerFootprint[2] = ptr->_ShowerFootprinty; 
+
+//  Zmax[0] = ptr->_Zmax[0];
+//  Zmax[1] = ptr->_Zmax[1];
+  ZprofileChi2 = ptr->_ZprofileChi2;
+  Zprofile[0] = ptr->_Zprofile[0];
+  Zprofile[1] = ptr->_Zprofile[1];
+  Zprofile[2] = ptr->_Zprofile[2];
+  Zprofile[3] = ptr->_Zprofile[3];
+
   S13LeakXPI    = ptr->_S13LeakXPI;
   S13LeakYPI    = ptr->_S13LeakYPI;
   NLinLeak=ptr->_NLinLeak;
