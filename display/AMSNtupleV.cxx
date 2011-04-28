@@ -1,10 +1,15 @@
-//  $Id: AMSNtupleV.cxx,v 1.38 2011/04/15 21:09:51 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.39 2011/04/28 23:18:01 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
 #include "amschain.h"
 ClassImp(AMSNtupleV)       
 void* gAMSUserFunction;
+
+  char * RichRingBV::GetObjectInfo(Int_t px, Int_t py) const{
+   return fRef>=0 && fEv->pRichRingB(fRef)?fEv->pRichRingB(fRef)->Info(fRef):0;
+}
+
 
 char * AMSNtupleV::GetObjInfo(int px, int py){
 static char* info=0;
@@ -216,6 +221,24 @@ else dist=1000000;
  }
  if(dist<7 && cand>=0)info=fRichRingV[cand].GetObjectInfo(px,py);
 }
+
+{
+ int cand=-1;
+ for(int i=0;i<fRichRingBV.size();i++){
+   int current=fRichRingBV[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+ if(dist<7 && cand>=0){
+   
+   info=fRichRingBV[cand].GetObjectInfo(px,py);
+   //cout <<" cand "<<cand<<info<<endl;
+ } 
+}
+
+
 {
  int cand=-1;
  for(int i=0;i<fMCEventgV.size();i++){
@@ -392,23 +415,23 @@ if(type==kall || type==kusedonly || type==kecalshowers){
 
 if(type==kall || type==kusedonly || type==krichrings){
  fRichRingV.clear();
+ fRichRingBV.clear();
  if(gAMSDisplay->DrawObject(krichrings)){
   for(int i=0;i<NRichRing();i++){
    if( (!gAMSDisplay->DrawUsedOnly() || ((pRichRing(i)->Status)/32)%2)){
     fRichRingV.push_back( RichRingV(this,i,false));
     if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
    }
-  }
     for(int i=0;i<NRichRingB();i++){
       if( (!gAMSDisplay->DrawUsedOnly() && (pRichRingB(i)->Status)%10==2 )){
 	//if( !gAMSDisplay->DrawUsedOnly()){
-	fRichRingV.push_back( RichRingBV(this,i,false));
-        if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingBV(this,i,true));
+	fRichRingBV.push_back( RichRingBV(this,i,false));
+        if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingBV.push_back( RichRingBV(this,i,true));
       }
     }
  }
 }
-
+}
 
 if(type==kall ||  type==kmcinfo){
  fTrMCClusterV.clear();
@@ -482,6 +505,10 @@ for(int i=0;i<fDaqV.size();i++){
 
  for(int i=0;i<fRichRingV.size();i++){
    fRichRingV[i].AppendPad();
+  }
+
+ for(int i=0;i<fRichRingBV.size();i++){
+   fRichRingBV[i].AppendPad();
   }
 
  for(int i=0;i<fEcalShowerV.size();i++){
@@ -866,7 +893,7 @@ for(int i=0;i<ev->nParticle();i++){
 }
 
 
-RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex){
+RichRingBV::RichRingBV(AMSEventR *ev,int ref, bool drawplex):AMSDrawI(ev,ref),TPolyLine3D(){
 
  RichRingBR *pcl=ev->pRichRingB(ref);
 //

@@ -18,13 +18,14 @@ public:
     cout <<"size "<<aa.size()<<" res "<<k<<endl;
      if(aa.size())cout <<"  ee "<<aa[0]<<endl;
     k=ev->getsetup()->fSlowControl.GetData("Zenith PT1000 4-3B (outlet)",ev->UTime(),ev->Frac(),aa);
-    return true;
+ //   return true;
     // 
     // This is a user function to be modified
     //  return true if event has to be drawn false otherwise
 //   if(ev && (ev->fStatus &3) &&( (ev->fStatus>>4 &1)))return true;
 //   else return false;
-     //if(ev && ev->nLevel1()   && ev->nParticle() && ev->nTrdTrack() && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0){
+     if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->Particle(0).iTrTrack()>=0 && ev->nBeta() && fabs(ev->Beta(0).Beta)==1)return true;
+else return false;
 if(ev && ev->nLevel1()){
   Level1R l1=ev->Level1(0);
     if(1 || (l1.EcalFlag/10)>=2 || (l1.EcalFlag%10)>1){
