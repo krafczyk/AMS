@@ -223,12 +223,12 @@ void HistoMan::BookHistos(int simmode){
 
   // Tracker low level
   Add(new TH2D("TrSizeDt", "#DeltaT VS TrSize", 500, 0, 1000, 300, 0, 24000));
-  Add(new TH2D("TrNrawLt", "nRaw VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNclsLt", "nCls VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNhitLt", "nHit VS Evt LoDt", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNrawHt", "nRaw VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNclsHt", "nCls VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
-  Add(new TH2D("TrNhitHt", "nHit VS Evt HiDt", 1000, 0,  1e6, 500, 0,  1000));
+  Add(new TH2D("TrNrawLt", "nRaw VS Evt LoDt", 1000, 0,  1e6, 500, 0,  2000));
+  Add(new TH2D("TrNclsLt", "nCls VS Evt LoDt", 1000, 0,  1e6, 500, 0,  2000));
+  Add(new TH2D("TrNhitLt", "nHit VS Evt LoDt", 1000, 0,  1e6, 500, 0,  2000));
+  Add(new TH2D("TrNrawHt", "nRaw VS Evt HiDt", 1000, 0,  1e6, 500, 0,  2000));
+  Add(new TH2D("TrNclsHt", "nCls VS Evt HiDt", 1000, 0,  1e6, 500, 0,  2000));
+  Add(new TH2D("TrNhitHt", "nHit VS Evt HiDt", 1000, 0,  1e6, 500, 0,  2000));
   Add(new TH1D("TrRecon",  "TrRecon status", 32, 0, 32));
 
   // TrCluster
@@ -241,8 +241,8 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 9, 0.5, 9.5));
 
   // TrTrack
-  Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 1e3,  140, 1e-3, 1e4, 0, 1));
-  Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,  140, 1e-3, 1e4, 0, 1));
+  Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 2e3,   80, 1e-2, 1e2, 0, 1));
+  Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,   80, 1e-2, 1e2, 0, 1));
   Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,   10,    0,  10, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.120 2011/04/28 08:06:44 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.121 2011/04/28 12:08:41 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/28 08:06:44 $
+/// $Date: 2011/04/28 12:08:41 $
 ///
-/// $Revision: 1.120 $
+/// $Revision: 1.121 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1467,9 +1467,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
   }
 
   struct TrSeed {
-    TrProp prop;
     double csq, csqf;
-    double rgtf;
+    double rgt, rgtf;
     int      ic[NL];
     AMSPoint cc[NL];
     double ps1, ps2;
@@ -1477,9 +1476,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     TrSeed() : csq(-1), csqf(-1) { for (int j = 0; j < NL; j++) ic[j] = 0; }
 
-    void Set(TrFit &f, double q, double p1, double p2,
+    void Set(double q, double r, double p1, double p2,
 	     int *i, const int IC[NP][NH], const AMSPoint CC[NP][NH]) {
-      prop = f; csq = q; ps1 = p1; ps2 = p2;
+      csq = q; rgt = r; ps1 = p1; ps2 = p2;
       for (int j = 0; j < NP; j++) { ic[j] = IC[j][i[j]];
 	                             cc[j] = CC[j][i[j]]; }
     }
@@ -1503,7 +1502,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       return n;
     }
 
-    void Intp(AMSPoint *pint, double *zlay) {
+    int Intp(AMSPoint *pint, double *zlay) {
       int p[3][3] = { { 0, 2, 3 }, { 0, 1, 3 }, { 0, 1, 2 } };
 
       // No Layer 1
@@ -1514,17 +1513,13 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 				  cc[1].y(), cc[3].y(), z), z);
 	}
       }
-
-      // SimpleFit
-      else if (std::fabs(prop.GetP0z()) < 0.1) {
-	double z[3];
-	for (int j = 0; j < 3; j++)
-	  z[j] = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
-	prop.Interpolate(3, z, pint);
-      }
-
       // SimpleFitTop
       else {
+	TrFit trfit;
+	double err = 300e-4;
+	for (int j = 0; j < NP; j++) trfit.Add(cc[j], err, err, err);
+	if (trfit.SimpleFitTop() < 0) return -1;
+
 	for (int j = 0; j < 3; j++) {
 	  double z = (ic[j+1]%10 == 2) ? zlay[(j+1)*2] : zlay[(j+1)*2-1];
 	  double y = Intpol2(cc[p[j][0]].z(), cc[p[j][1]].z(), cc[p[j][2]].z(),
@@ -1532,8 +1527,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 			     z);
 	  pint[j].setp(0, y, z);
 	}
-	prop.InterpolateSimple(3, pint);
+	trfit.InterpolateSimple(3, pint);
       }
+
+      return 1;
     }
 
   } tmin[NC*2];
@@ -1594,22 +1591,21 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (ic[2][i[2]] < 0) continue;
     double dps2 = std::fabs(CY(2)-Intpol2(CZ(0), CZ(1), CZ(3), 
 					  CY(0), CY(1), CY(3), CZ(2)));
-    if (++hskip == 20) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
+    if (++hskip == 100) { hman.Fill("TfPsY0", dps1, dps2); hskip = 0; }
 
     if (dps2 > dps1*0.5+0.03) continue;
     if (dps2 >  50/dps1/dps1) continue;
 
     if (hskip == 0) hman.Fill("TfPsY2", dps1, dps2);
 
-    TrFit trfit;
-    for (int j = 0; j < NP; j++) trfit.Add(cc[j][i[j]], errx, erry, erry);
-
-    if (trfit.SimpleFitTop() < 0) continue;
-  //if (trfit.SimpleFit() < 0) continue;
-
-    double csq  = trfit.GetChisqY();
-    double rgt  = std::fabs(trfit.GetRigidity());
+    double sg[2] = { CY(1)-Intpol1(CZ(0), CZ(3), CY(0), CY(3), CZ(1)),
+		     CY(2)-Intpol1(CZ(0), CZ(3), CY(0), CY(3), CZ(2)) };
+    double dsgm = (sg[0]+sg[1])/2;
+    double dsgr = ((sg[0]-dsgm)*(sg[0]-dsgm)+(sg[1]-dsgm)*(sg[1]-dsgm));
+    double csq  = dsgr/erry/erry;
+    double rgt  = 0.3/std::fabs(dsgm);
     double cthd = (rgt != 0) ? 0.5+5/rgt/rgt : 0;
+
     TR_DEBUG_CODE_101;
     if (hskip == 0) hman.Fill("TfCsq0", rgt, csq);
     if (csq <= 0 || csq > cthd || csq < cthd*1e-6 || rgt < 0.05) continue;
@@ -1628,11 +1624,10 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     if (jr >= NC) jr = NC-1;
     for (int j = jr-1; j >= jc; j--) tmin[j+1] = tmin[j];
-    tmin[jc].Set(trfit, csq, dps1, dps2, i, ic, cc);
+    tmin[jc].Set(csq, rgt, dps1, dps2, i, ic, cc);
 
     TR_DEBUG_CODE_102;
   }}}}
-
 
 //////////////////// Merge Y-clusters ////////////////////
 
@@ -1640,7 +1635,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (tmin[jc].csq < 0) continue;
 
     AMSPoint pint[NP-1];
-    tmin[jc].Intp(pint, zlay);
+    if (tmin[jc].Intp(pint, zlay) < 0) continue;
 
     double rsig = std::sqrt(tmin[jc].csq);
     double rmax = (msely+rsig*0.7)*0.1;
@@ -1821,7 +1816,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     // Pre-selection
     double pslx = pselm;
-    double argt = std::fabs(tmin[jc].rgtf);
+    double argt = tmin[jc].rgtf;
     if (ih[0][i[2]] > 0) {
       pslx = 0.03+0.2/argt;
       if (pslx > pselx) pslx = pselx;
@@ -2095,8 +2090,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double csq1 = tmin[jc].csq;
     double csq2 = tmin[jc].csqf;
-    double rgt1 = std::fabs(tmin[jc].prop.GetRigidity());
-    double rgt2 = std::fabs(tmin[jc].rgtf);
+    double rgt1 = tmin[jc].rgt;
+    double rgt2 = tmin[jc].rgtf;
     double rgtf = std::fabs(track->GetRigidity());
     double csqf = track->GetNormChisqY();
 
@@ -2589,9 +2584,10 @@ int TrRecon::FillHistos(int trstat, int refit)
 
   ////////// CPU time and Tracker data size //////////
   float dlt = GetTrigTime(4); // delta-T
+  float tcp = GetCpuTime()+(evid%100)*1e-4;
   hman.Fill("TrSizeDt", dlt, GetTrackerSize());
-  hman.Fill("TrTimH",  nhit, GetCpuTime());
-  hman.Fill("TrTimT",  ntrk, GetCpuTime());
+  hman.Fill("TrTimH",  nhit, tcp);
+  hman.Fill("TrTimT",  ntrk, tcp);
   hman.Fill("TrRecon", trstat);
 
   ////////// Cluster signal //////////
