@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.119 2011/04/27 23:16:21 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.120 2011/04/28 08:06:44 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/27 23:16:21 $
+/// $Date: 2011/04/28 08:06:44 $
 ///
-/// $Revision: 1.119 $
+/// $Revision: 1.120 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1643,7 +1643,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     tmin[jc].Intp(pint, zlay);
 
     double rsig = std::sqrt(tmin[jc].csq);
-    double rmax = (msely+rsig)*0.1;
+    double rmax = (msely+rsig*0.7)*0.1;
     if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
 
@@ -1884,7 +1884,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       pfit[j].setp(trfit.GetParam(1)*zlay[j]+trfit.GetParam(0), 0, 0);
 
     double rsig = std::sqrt(tmin[jc].csqf);
-    double rmax = 0.03+rsig*0.1;
+    double rmax = (mselx+rsig*0.7)*0.1;
     if (rmax > mselx) rmax = mselx;
 
     for (int j = 1; j < NP; j++) {
@@ -1924,7 +1924,11 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 #endif
 
 
-//////////////////// Merge again ////////////////////
+//////////////////// Fit again ////////////////////
+
+  int      ifit[NL], iadd[NL];
+  AMSPoint hfit[NL], hadd[NL];
+  for (int j = 0; j < NL; j++) ifit[j] = iadd[j] = 0;
 
   TrFit trfit;
   for (int j = 0; j < NL; j++) {
@@ -1933,37 +1937,33 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (k == NL) continue;
 
     if (imin[k] < 0) hmin[k][0] = pmin[0]+pmin[1]*hmin[k].z();
-    trfit.Add(hmin[k], errx, erry, erry);
+    ifit[j] = imin[k]; hfit[j] = hmin[k];
+    trfit.Add(hfit[j], errx, erry, erry);
   }
   if (trfit.SimpleFit() < 0) continue;
 
   double csqx = trfit.GetChisqX();
   double csqy = trfit.GetChisqY();
   double rgt3 = std::fabs(trfit.GetRigidity());
-  double mmxx = mselx*(0.05+0.2*std::sqrt(csqx));
-  double mmxy = msely*(0.03+0.2*std::sqrt(csqy));
+  if (rgt3 == 0 || csqx <= 0 || csqy <= 0) continue;
+
+//////////////////// Merge again ////////////////////
+
+  double mmxx = mselx*(0.1+0.2*std::sqrt(csqx));
+  double mmxy = msely*(0.1+0.2*std::sqrt(csqy));
 
   double dxmrg[NL], dymrg[NL];
   int nmrg = 0;
 
-  TrFit trfit2;
   for (int j = 0; j < NL; j++) {
-    int k;
-    for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
-    if (k < NL) {
-      double erx = (imin[k] > 0) ? errx : pselm;
-      trfit2.Add(hmin[k], erx, erry, erry);
-      continue;
-    }
+    if (ifit[j] != 0) continue;
 
     AMSPoint pnt;
     trfit.Interpolate(1, &zlay[j], &pnt);
 
     AMSPoint hc;
-    double xmin = mmxx;
-    double ymin = mmxy;
-    int    kmin = -1;
-    int    icym = -1;
+    double xmin = mmxx, ymin = mmxy;
+    int    kmin =   -1, icym =   -1;
 
     for (int k = 0; k < nhit; k++) {
       TrRecHitR *hit = (TrRecHitR *)cont->getelem(k);
@@ -2007,13 +2007,31 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     dxmrg[nmrg  ] = (xmrg) ? xmin : 0;
     dymrg[nmrg++] = ymin;
 
-    for (int k = 0; k < NL; k++)
-      if (imin[k] == 0) { imin[k] = kmin*10+j+1; hmin[k] = hc; break; }
-
-    double erx = (xmrg) ? errx : pselm;
-    trfit2.Add(hc, erx, erry, erry);
+    iadd[j] = ((xmrg) ? 1 : -1)*(kmin*10+j+1);
+    hadd[j] = hc;
   }
-  if (nmrg > 0) trfit2.SimpleFit();
+
+  TrFit trfit2;
+  if (nmrg > 0) {
+    for (int j = 0; j < NL; j++) {
+      if (iadd[j] == 0) continue;
+
+      trfit2.Clear();
+      for (int k = 0; k < NL; k++) {
+	if (k != j && ifit[k] == 0) continue;
+	int      *ii = (k == j) ? iadd : ifit;
+	AMSPoint *pp = (k == j) ? hadd : hfit;
+	double erx = (ii[k] > 0) ? errx : pselm;
+	trfit2.Add(pp[k], erx, erry, erry);
+      }
+      if (trfit2.SimpleFit() < 0) continue;
+      if (trfit2.GetChisqY()/csqy > 10) continue;
+      if (trfit2.GetChisqX()/csqx > 10 && iadd[j] > 0) iadd[j] *= -1;
+
+      ifit[j] = iadd[j]; iadd[j] = 0;
+      hfit[j] = hadd[j];
+    }
+  }
 
 //////////////////// Create a new TrTrack ////////////////////
 
@@ -2026,11 +2044,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
   int masky = 0x7f, maskc = 0x7f;
   for (int j = 0; j < NL; j++) {
-    int k;
-    for (k = 0; k < NL && std::abs(imin[k])%10 != j+1; k++);
-    if (k == NL) continue;
+    if (ifit[j] == 0) continue;
 
-    int ihit = std::abs(imin[k])/10;
+    int ihit = std::abs(ifit[j])/10;
     int imlt = ihit%100;
     if (imlt >= 50) imlt -= 50;
 
@@ -2039,10 +2055,20 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       static int nerr = 0;
       if (nerr++ < 20)
 	cout << "TrRecon::BuildTrTracksSimple-W-" 
-	     << "Null hit ptr: " << ihit/100 << " " << imin[k] 
+	     << "Null hit ptr: " << ihit/100 << " " << ifit[j] 
 	     << " at Event " << GetEventID()
-	     << " jc,j,k= " << jc << " " << j << " " << k << endl;
+	     << " jc,j= " << jc << " " << j << endl;
       continue;
+    }
+
+    if (!hit->OnlyY() && ifit[j] < 0) {
+      for (int k = 0; k < nhit; k++) {
+	TrRecHitR *hh = (TrRecHitR *)cont->getelem(k);
+	if (hh && hh->OnlyY() && hh->iTrCluster('y') == hit->iTrCluster('y')) {
+	  hit = hh;
+	  break;
+	}
+      }
     }
 
     hit->SetResolvedMultiplicity(imlt);
@@ -2099,11 +2125,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       hman.Fill("TfPsY1", tmin[jc].ps1, tmin[jc].ps2);
       hman.Fill("TfCsq1", rgt1, csq1);
       hman.Fill("TfCsq2", rgt2, csq2);
-      hman.Fill("TfCsq7", rgt3, csqy);
-      if (rgt2 > 10) {
-	hman.Fill("TfCsq5", track->GetP0x(), csq2);
-	hman.Fill("TfCsq6", track->GetDir().x()/track->GetDir().z(), csq2);
-      }
+      hman.Fill("TfCsq5", rgt3, csqy);
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[0]);
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[1]);
       hman.Fill("TfMrg1", csq1, tmin[jc].rmrg[2]);
@@ -2119,8 +2141,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       hman.Fill("TfCsqf", csq2, csqf);
 
       if (nmrg > 0) {
-	hman.Fill("TfCsq8", csqx, trfit2.GetChisqX());
-	hman.Fill("TfCsq9", csqy, trfit2.GetChisqY());
+	hman.Fill("TfCsq6", csqx, trfit2.GetChisqX());
+	hman.Fill("TfCsq7", csqy, trfit2.GetChisqY());
       }
 
       for (int j = 0; j < nmrg; j++) {
