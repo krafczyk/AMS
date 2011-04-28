@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.57 2011/03/29 15:48:45 pzuccon Exp $
+// $Id: tkdcards.C,v 1.58 2011/04/28 22:58:53 choutko Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -36,7 +36,7 @@ TKGEOMFFKEY_DEF TKGEOMFFKEY;
 //==============================
 void TRCLFFKEY_DEF::init(){
 for (int ii=0;ii<9;ii++){
-  recflag=111;
+  recflag=1111;
   ThrSeed[0][ii]  = 3.50;
   ThrSeed[1][ii]  = 3.50;
 }
@@ -63,9 +63,9 @@ for (int ii=0;ii<9;ii++){
 
   MaxNrawCls     = 2000;
   lowdt          = 200;
-  MaxNtrCls      = 500;
+  MaxNtrCls      = 2000;
   MaxNtrCls_ldt  = MaxNtrCls;
-  MaxNtrHit      = 250;
+  MaxNtrHit      = 2000;
   TrTimeLim      =   10;
   //Track
   MaxNtrack = 4;
