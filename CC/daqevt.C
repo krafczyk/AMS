@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.211 2011/04/26 20:24:04 choutko Exp $
+//  $Id: daqevt.C,v 1.211.2.1 2011/04/29 16:51:42 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2681,6 +2681,10 @@ else{
                 if( *(ifnam[KIFiles]+k)==' ')kb++;
                 else break;
               }
+              for(int k=strlen(ifnam[KIFiles])-1;k>kb;k--){
+                if( *(ifnam[KIFiles]+k)==' ')*(ifnam[KIFiles]+k)='\0';
+              }
+
       return ifnam[KIFiles++]+kb;
   }
   else return 0;
