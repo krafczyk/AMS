@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.120 2011/04/28 02:06:27 choutko Exp $
+//  $Id: timeid.C,v 1.121 2011/04/29 18:05:11 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -17,17 +17,19 @@
 #include "amsstl.h"
 #include <cstdio>
 #include <strstream>
-#include <limits.h>
-#ifndef __CORBASERVER__
+
+#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "commonsi.h"
 #ifdef _OPENMP
 #include "event.h"
 #endif
 #endif
+
 #ifdef __CORBA__
 #include "producer.h"
 #endif
-#ifndef __CORBASERVER__
+
+#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "ntuple.h"
 #endif
 #include <dirent.h>
@@ -324,7 +326,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   
   if( read(dir,id,asktime,index)){
     if(_trigfun)_trigfun();
-#ifndef __CORBASERVER__
+#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
      if(AMSNtuple::Get_setup02()){
         AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
      }
@@ -345,7 +347,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 }
 
 bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
-#ifndef __CORBASERVER__
+#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
   //   Add check remote client here
   ifstream fbin;
   fbin.open("/proc/self/where");
@@ -430,11 +432,12 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 	    }
 	  }
 	  cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
-#ifdef __AMSDEBUG__
+//#ifdef __AMSDEBUG__
+	  cout <<"AMSTimeID::read-I-ask  "<<ctime(&begin)<<endl;
 	  cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
 	  cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
 	  cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
-#endif
+//#endif
 #ifdef _WEBACCESS_
 	  url_fclose(ffbin);
 #else

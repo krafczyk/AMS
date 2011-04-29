@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.352 2011/04/28 16:40:28 choutko Exp $
+#  $Id: datacards.doc,v 1.353 2011/04/29 18:07:16 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -232,7 +232,7 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //from flux file(6)
                                   //(7) uniform on 13 Rigidity values 
 				  // [.5,1,2,5,10,20,50,100,200,500,1000,2000,5000] GV
-                                  //(8) Test Beam Mode, gaussian generation of parms:
+                                  //(8) Test Beam Mode, uniform generation of parms:
                                   //                    1 to 3 postion mean;  4 to 6 position sigma;  
                                   //                    7 8 Theta,Phi  mean; 10 11 Theta,Phi sigma;  
                                   //                    13     Mom     mean; 14 Mom sigma;

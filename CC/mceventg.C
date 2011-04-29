@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.166 2011/03/21 15:58:05 choutko Exp $
+//  $Id: mceventg.C,v 1.167 2011/04/29 18:05:11 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -95,7 +95,9 @@ init(ipart);
 
 double extract(float m, float s){
   if (s==0)  return m;
-  return (m+rnormx()*s);    
+  int d=1;
+  return (m+(2*RNDM(d)-1)*s);    
+  //  return (m+rnormx()*s);    
 }
 
 void AMSmceventg::gener(){
