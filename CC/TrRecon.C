@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.121 2011/04/28 12:08:41 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.122 2011/04/29 07:19:58 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/28 12:08:41 $
+/// $Date: 2011/04/29 07:19:58 $
 ///
-/// $Revision: 1.121 $
+/// $Revision: 1.122 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4371,9 +4371,32 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
     fit2.Add(coo2, ferr, ferr, ferr);
   }
   if (fit1.SimpleFit() < 0 || fit2.SimpleFit() < 0) return false;
-  hman.Fill("TkMoveC", fit1.GetChisqX(), fit2.GetChisqX());
 
-  if (fit2.GetChisqX() > fit1.GetChisqX()*10+1) return false;
+  double cthd = fit1.GetChisqX()*10+1;
+  if (fit2.GetChisqX() > cthd) {
+    double    snmin = 5;
+    TrRecHitR *hmin = 0;
+    for (int i = 0; i < ptr->GetNhits(); i++) {
+      TrRecHitR *hit = ptr->GetHit(i);
+      if (hit->GetLayer() >= 8 || hit->OnlyY()) continue;
+      TrClusterR *cls = hit->GetXCluster();
+      double sn = (cls) ? cls->GetSeedSN() : 99;
+      if (sn < snmin) { snmin = sn; hmin = hit; }
+    }
+    if (!hmin) return false;
+
+    fit2.Clear();
+    for (int i = 0; i < ngood; i++){
+      TrRecHitR* phit = ptr->GetHit(good_mult[i][0]);
+      if (phit != hmin) 
+	fit2.Add(phit->GetCoord(good_mult[i][1]), ferr, ferr, ferr);
+    }
+    if (fit2.SimpleFit() < 0) return false;
+    if (fit2.GetChisqX() < cthd) hmin->setstatus(TrRecHitR::YONLY);
+  }
+
+  hman.Fill("TkMoveC", fit1.GetChisqX(), fit2.GetChisqX());
+  if (fit2.GetChisqX() > cthd) return false;
 
   // move the XY hits 
   for (int ii=0;ii<ngood;ii++){
