@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.42 2011/03/29 15:48:45 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.43 2011/04/30 22:22:48 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/03/29 15:48:45 $
+///$Date: 2011/04/30 22:22:48 $
 ///
-///$Revision: 1.42 $
+///$Revision: 1.43 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -859,26 +859,24 @@ int TkDBc::read(const char* filename, int pri){
 
 }
 
-// looping methods
 TkLadder* TkDBc::GetEntry(int ii) {
-  tkidIT pp=tkidmap.begin();
-  advance(pp,ii);
-  return &(*pp->second);
+  int icrate = int(ii/24);
+  int itdr   = ii%24;
+  return FindHwId(icrate*100 + itdr);
 }
 
 int TkDBc::Entry2TkId(int ii) {
-  tkidIT pp=tkidmap.begin();
-  advance(pp,ii);
-  return pp->first;
+  int icrate = int(ii/24);
+  int itdr   = ii%24;
+  TkLadder* ladder = FindHwId(icrate*100 + itdr);
+  if (ladder!=0) return ladder->GetTkId();
+  return 0;
 }
 
 int TkDBc::TkId2Entry(int TkId) {
-  int count = 0;
-  for(tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); pp++) {
-    if (TkId==(pp->first)) return count;
-    count++;
-  }
-  return 0;
+  TkLadder* ladder = FindTkId(TkId);
+  if (ladder!=0) return ladder->GetCrate()*24 + ladder->GetTdr();
+  return -1;
 }
 
 int TkDBc::GetOctant(int side,int layer,int slot){

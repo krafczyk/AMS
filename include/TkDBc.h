@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.20 2011/03/22 17:46:24 pzuccon Exp $
+// $Id: TkDBc.h,v 1.21 2011/04/30 22:22:48 oliva Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -349,7 +349,7 @@ public:
   TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return planes[ii-1]; else return 0;}
 
   //! TkId map number of elements
-  int GetEntries() { return tkidmap.size(); }
+  int GetEntries() { return 192; }
   //! TkId map element by iterator index
   TkLadder* GetEntry(int ii);
   //! TkId for the ii entry in the TkId map (0-191)
