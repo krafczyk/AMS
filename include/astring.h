@@ -1,4 +1,4 @@
-//  $Id: astring.h,v 1.8 2009/02/13 11:47:37 choutko Exp $
+//  $Id: astring.h,v 1.9 2011/04/30 20:36:29 pzuccon Exp $
 #ifndef __ASTRING___
 #define __ASTRING___
 
@@ -54,12 +54,12 @@ public:
     // Assignments
     AString		&operator=(const AString &);
     AString		&operator=(const char *);
-
+  
     // Conversions
     inline		operator char *() ;
     inline		operator const char *() ;
     inline		operator const char *() const;
-
+  char *              getchar();
     // Operators
     friend inline ostream	&operator<<(ostream &, const AString &);
     friend istream		&operator>>(istream &, AString &);

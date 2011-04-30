@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.41 2011/03/05 23:25:50 choutko Exp $
+//  $Id: timeid.h,v 1.42 2011/04/30 20:36:29 pzuccon Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -15,120 +15,120 @@ struct dirent;
 struct dirent64;
 #endif
 /*! \class AMSTimeID
- \brief Invented to manipulate time or "run" dependent variables : calibration const,
- pedestals etc etc etc.
+  \brief Invented to manipulate time or "run" dependent variables : calibration const,
+  pedestals etc etc etc.
 
 
- Initialization
+  Initialization
 
- For each set of such variables (e.g. array or class instance) 
- the following instance of timeid class should be set up in 
+  For each set of such variables (e.g. array or class instance) 
+  the following instance of timeid class should be set up in 
  
- AMSJob::_timeinitjob()
+  AMSJob::_timeinitjob()
  
- TID.add( new AMSTimeID(AMSID id, tm begin, tm end, int nbytes, void* pdata));
+  TID.add( new AMSTimeID(AMSID id, tm begin, tm end, int nbytes, void* pdata));
  
- where id is unique identifier (char * part is arbitary string with length < 256,
- integer part is equal to AMSJob::getjobtype()  )
+  where id is unique identifier (char * part is arbitary string with length < 256,
+  integer part is equal to AMSJob::getjobtype()  )
  
- tm begin - start validity time
+  tm begin - start validity time
  
- tm end   - end   validity time
+  tm end   - end   validity time
  
- nbytes   - sizeof data in bytes
+  nbytes   - sizeof data in bytes
  
- pdata     - pointer to first element of the data 
-             data should consist of 32 bit words ( so no double please) 
-             to be portable between bend/lend machines
+  pdata     - pointer to first element of the data 
+  data should consist of 32 bit words ( so no double please) 
+  to be portable between bend/lend machines
 
- tm structure is defined in sys <time.h>
+  tm structure is defined in sys <time.h>
 
-relevant elements:
+  relevant elements:
 
-structure tm{
+  structure tm{
 
-...
+  ...
 
-int tm_sec;    // seconds 0-59
+  int tm_sec;    // seconds 0-59
 
-int tm_min;    // minutes 0-59
+  int tm_min;    // minutes 0-59
 
-int tm_hour   //  hours   0-23
+  int tm_hour   //  hours   0-23
 
-int tm_mday   //  day in month 1-31
+  int tm_mday   //  day in month 1-31
 
-int tm_mon    //  month   0-11
+  int tm_mon    //  month   0-11
 
-int tm_year   //  year from 1900 (96 for 1996)
+  int tm_year   //  year from 1900 (96 for 1996)
 
-...
+  ...
 
-}
-
-
-
-The following methods exist to exchange dbase<->timeid
-------------
-
-access :
-
-AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();       
-
-AMSTimeID * offspring=(AMSTimeID*)ptid->down();  // get first timeid instance
-
-while(offspring){
-
-.........
-
-    offspring=(AMSTimeID*)offspring->next();   // get one by one
-
-}
-
-
-public methods:
-
-integer UpdateMe()      // update(!=0) or not update dbase
-
-integer GetNbytes()     // get number of bytes
-
-integer CopyOut(void *pdataNew) // copy timeid-> pdatanew
-
-integer CopyIn(void *pdataNew)  // copy pdatanew->timeid
-
-void gettime(time_t & insert, time_t & begin, time_t & end) // get times
-
-void SetTime (time_t insert, time_t begin, time_t end) // set times
-
-methods from AMSNode & AMSID class (getname, getid etc)
+  }
 
 
 
+  The following methods exist to exchange dbase<->timeid
+  ------------
 
-DataBase Engine
------------------
+  access :
 
-Provides search the relevant record by event time key, i.e.
+  AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();       
 
-Max(Insert){Begin < Time < End}
+  AMSTimeID * offspring=(AMSTimeID*)ptid->down();  // get first timeid instance
+
+  while(offspring){
+
+  .........
+
+  offspring=(AMSTimeID*)offspring->next();   // get one by one
+
+  }
+
+
+  public methods:
+
+  integer UpdateMe()      // update(!=0) or not update dbase
+
+  integer GetNbytes()     // get number of bytes
+
+  integer CopyOut(void *pdataNew) // copy timeid-> pdatanew
+
+  integer CopyIn(void *pdataNew)  // copy pdatanew->timeid
+
+  void gettime(time_t & insert, time_t & begin, time_t & end) // get times
+
+  void SetTime (time_t insert, time_t begin, time_t end) // set times
+
+  methods from AMSNode & AMSID class (getname, getid etc)
 
 
 
-Implementation I 
------------------
 
-Every record correspond the file with name  getname().{0,1}.uid
+  DataBase Engine
+  -----------------
 
-     0 - MC
+  Provides search the relevant record by event time key, i.e.
 
-     1 - Data
+  Max(Insert){Begin < Time < End}
 
-     uid- unique integer identifier
+
+
+  Implementation I 
+  -----------------
+
+  Every record correspond the file with name  getname().{0,1}.uid
+
+  0 - MC
+
+  1 - Data
+
+  uid- unique integer identifier
    
-File content:
+  File content:
 
-uinteger array[GetNbytes] | CRC | InsertTime | BeginTime | EndTime
+  uinteger array[GetNbytes] | CRC | InsertTime | BeginTime | EndTime
 
-CRC is calculated by _CalcCRC() function
+  CRC is calculated by _CalcCRC() function
 
 */
 
@@ -156,9 +156,9 @@ public:
 protected:
   static uinteger * _Table;
   static AString *  _selectEntry;
-   typedef map <string,AMSTimeID> timeid_m;
-    typedef map <string,AMSTimeID>::iterator timeid_i;
-    static timeid_m timeid_f;
+  typedef map <string,AMSTimeID> timeid_m;
+  typedef map <string,AMSTimeID>::iterator timeid_i;
+  static timeid_m timeid_f;
 
   IBE _ibe;
   time_t _Insert;    //! insert time
@@ -221,7 +221,20 @@ public:
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
   ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];_trigfun=0;}
-integer  GetNbytes() const { return _Nbytes;}
+
+  /// Returns the number of records in the database 
+  integer  GetDataBaseSize(){return _DataBaseSize;}
+  /// Returns the begin validity and the times of the record ii-th (insert, begin ,end)
+  uinteger GetDBRecordTimes(int ii,uinteger* times)
+  {if (ii>=0 && ii<_DataBaseSize){ 
+      times[0]=_pDataBaseEntries[1][ii]; //insert 
+      times[1]=_pDataBaseEntries[2][ii]; // begin
+      times[2]=_pDataBaseEntries[3][ii]; //end
+      return _pDataBaseEntries[2][ii];   //begin
+    }
+    else return -1;
+  }
+      integer  GetNbytes() const { return _Nbytes;}
   integer  CopyOut (void *pdataNew) const;
   integer  CopyIn( const void *pdataNew);
   uinteger getCRC()const {return _CRC;}
@@ -251,7 +264,7 @@ integer  GetNbytes() const { return _Nbytes;}
 #ifdef __CORBA__
   friend class AMSProducer;
 #endif
-friend class AMSSetupR;
+  friend class AMSSetupR;
 #ifdef __DB__
   void     _fillfromDB();
   integer   readDB(integer reenter=0);

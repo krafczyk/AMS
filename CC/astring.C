@@ -1,6 +1,7 @@
-//  $Id: astring.C,v 1.7 2008/08/28 20:33:36 choutko Exp $
+//  $Id: astring.C,v 1.8 2011/04/30 20:36:19 pzuccon Exp $
 #include "astring.h"
 
+char *   AString::getchar(){return pData->pString;}
 
 
 AString::Data::Data(){

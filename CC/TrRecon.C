@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.122 2011/04/29 07:19:58 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.123 2011/04/30 20:36:19 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/29 07:19:58 $
+/// $Date: 2011/04/30 20:36:19 $
 ///
-/// $Revision: 1.122 $
+/// $Revision: 1.123 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2755,7 +2755,11 @@ int TrRecon::FillHistos(int trstat, int refit)
     }
 #else
     AMSEventR *evt = AMSEventR::Head();
+#ifdef _STANDALONE_
+    beta=0;
+#else
     if (evt && evt->pBeta(0)) beta = evt->pBeta(0)->Beta;
+#endif
 #endif
     if (beta != 0) {
       double schg = (beta > 0) ? chg : -chg;
