@@ -1,6 +1,6 @@
 #include "root_setup.h"
 #include "root.h"
-#include <fstream.h>
+#include <fstream>
 #include "SlowControlDB.h"
 #include "ntuple.h"
 #ifndef __ROOTSHAREDLIBRARY__
