@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.123 2011/04/30 20:36:19 pzuccon Exp $
+//  $Id: timeid.C,v 1.124 2011/04/30 20:56:09 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -17,6 +17,7 @@
 #include "amsstl.h"
 #include <cstdio>
 #include <strstream>
+#include <limits.h>
 
 #if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "commonsi.h"
