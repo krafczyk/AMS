@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.42 2011/04/21 22:53:06 choutko Exp $
+//  $Id: trdsim.C,v 1.43 2011/05/01 14:45:28 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -516,7 +516,7 @@ void AMSTRDRawHit::builddaq(int i, int length,int16u*p){
       break; 
     }
     }
-    p[index++]=(getdaqid(i)); 
+    p[index++]=(getdaqid(i)) | (1<<5) | (1<<15); 
     if(index!=length){
       cerr<<"AMSTRDRawHit-E-builddaq-WrongLength "<<length<<" "<<index<<endl;
     }
