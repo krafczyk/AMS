@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.124 2011/04/30 20:56:09 pzuccon Exp $
+//  $Id: timeid.C,v 1.125 2011/05/01 15:56:54 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -18,19 +18,16 @@
 #include <cstdio>
 #include <strstream>
 #include <limits.h>
-
-#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
+#ifndef __CORBASERVER__
 #include "commonsi.h"
 #ifdef _OPENMP
 #include "event.h"
 #endif
 #endif
-
 #ifdef __CORBA__
 #include "producer.h"
 #endif
-
-#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
+#ifndef __CORBASERVER__
 #include "ntuple.h"
 #endif
 #include <dirent.h>
@@ -54,16 +51,13 @@ extern LMS* lms;
 int AMSTimeID::_WebAccess=0;
 char AMSTimeID::_WebDir[200]="";
 #endif
-
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
-
-
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
                      void *pdata, AMSTimeID::CType server,bool verify,trigfun_type fun):
   AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server){
   _fname="";
-  _trigfun=fun;
+   _trigfun=fun;
 
   _Nbytes=nbytes;
 
@@ -204,7 +198,7 @@ bool AMSTimeID::write(const char * dir, int slp){
   if(_Type!=Client){
     enum open_mode{binary=0x80};
     fstream fbin;
-  again:
+again:
     AString fnam=dir;
     fnam+=getname();
     fnam+="/";
@@ -223,10 +217,10 @@ bool AMSTimeID::write(const char * dir, int slp){
     fbin.clear();
     fbin.open((const char *)fnam,ios::in);
     if(fbin){
-      cerr <<"AMSTimeId::write-E-"<<fnam<<" exists "<<endl;
-      _Insert++;
-      fbin.close();
-      goto again;
+        cerr <<"AMSTimeId::write-E-"<<fnam<<" exists "<<endl;
+        _Insert++;
+        fbin.close();
+        goto again;
     }
     fbin.clear();
     fbin.open((const char *)fnam,ios::out|ios::trunc);
@@ -306,21 +300,21 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   else return -1;
   int ok;
   
-//#ifdef _OPENMP
-#if defined(_OPENMP_) && !defined(__ROOTSHAREDLIBRARY__)
+  
+#ifdef _OPENMP
   cout <<" in barrier AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
   AMSEvent::ResetThreadWait(1);
   AMSEvent::Barrier()=true;
 #pragma omp barrier 
   if( omp_get_thread_num()==0) {
     ok= read(dir,id,asktime,index)?1:0;
-#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
-    if(AMSNtuple::Get_setup02()){
-      AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
-    }
-    else{
-      cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
-    }
+#ifndef __CORBASERVER__
+     if(AMSNtuple::Get_setup02()){
+        AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
+     }
+     else{
+       cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
+     }
 #endif
     if(ok && _trigfun)_trigfun();
     AMSEvent::Barrier()=false;
@@ -330,13 +324,13 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   
   if( read(dir,id,asktime,index)){
     if(_trigfun)_trigfun();
-#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
-    if(AMSNtuple::Get_setup02()){
-      AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
-    }
-    else{
-      cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
-    }
+#ifndef __CORBASERVER__
+     if(AMSNtuple::Get_setup02()){
+        AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
+     }
+     else{
+       cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
+     }
 #endif
     return 1;
   }
@@ -351,7 +345,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 }
 
 bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
-#if  !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
+#ifndef __CORBASERVER__
   //   Add check remote client here
   ifstream fbin;
   fbin.open("/proc/self/where");
@@ -436,12 +430,11 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 	    }
 	  }
 	  cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
-	  //#ifdef __AMSDEBUG__
-	  cout <<"AMSTimeID::read-I-ask  "<<ctime(&begin)<<endl;
+#ifdef __AMSDEBUG__
 	  cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
 	  cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
 	  cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
-	  //#endif
+#endif
 #ifdef _WEBACCESS_
 	  url_fclose(ffbin);
 #else
@@ -460,34 +453,34 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
 	  delete [] pdata;
 	  return false;
 	}
-	}
-	else {
-	  cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
-	  return false;
-	}
       }
       else {
-	cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+	cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
 	return false;
       }
-      return true;
-      
     }
+    else {
+      cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+      return false;
+    }
+    return true;
+
+  }
 #ifdef __CORBA__
-    else{
-      if(run>0){
-	_Insert=_pDataBaseEntries[1][index];
-	_Begin=_pDataBaseEntries[2][index];
-	_End=_pDataBaseEntries[3][index];
-      }
-      //return AMSProducer::gethead()->getTDV(this,run);
-      return AMSProducer::gethead()->getSplitTDV(this,run);
+  else{
+    if(run>0){
+      _Insert=_pDataBaseEntries[1][index];
+      _Begin=_pDataBaseEntries[2][index];
+      _End=_pDataBaseEntries[3][index];
     }
+    //return AMSProducer::gethead()->getTDV(this,run);
+    return AMSProducer::gethead()->getSplitTDV(this,run);
+  }
 #endif
 }
 
 void AMSTimeID::_convert(uinteger *pdata, integer n){
-  
+
   if(AMSDBc::BigEndian){
     // Let's convert   to little endian...
     unsigned char tmp;
@@ -503,10 +496,9 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
       pc=pc+sizeof(pdata[0]);
     }
   }
-  
-  
+
+
 }
- 
 integer AMSTimeID::_getDBRecord(time_t & atime, int & rec){
   uinteger time(atime);
   integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
@@ -518,369 +510,366 @@ integer AMSTimeID::_getDBRecord(time_t & atime, int & rec){
       insert=     _pDataBaseEntries[1][i];
       rec=i;
     }
-   }
-  
+  }
+
 #ifndef __DB__
   if(rec>=0)atime=_pDataBaseEntries[2][rec];
   if(time<_Begin || time>_End )return rec<0?0:_pDataBaseEntries[0][rec];
   else if (rec>=0)return  _pDataBaseEntries[0][rec];
-   else return -1;
+  else return -1;
 #endif
 #ifdef __DB__
   return rec;
 #endif
 
   //Old
-   /*
-     integer index=AMSbiel(_pDataBaseEntries[0],time,_DataBaseSize);
-     if(index <0)return 0;
-     else if (index>=_DataBaseSize)return _pDataBaseEntries[0][_DataBaseSize-1];
-     else{
-     if(_pDataBaseEntries[0][index] ==run)return run;
-     else return index>0?_pDataBaseEntries[0][index-1]:0;
-   */
-  
+  /*
+    integer index=AMSbiel(_pDataBaseEntries[0],time,_DataBaseSize);
+    if(index <0)return 0;
+    else if (index>=_DataBaseSize)return _pDataBaseEntries[0][_DataBaseSize-1];
+    else{
+    if(_pDataBaseEntries[0][index] ==run)return run;
+    else return index>0?_pDataBaseEntries[0][index-1]:0;
+  */
+
 }
- 
+
 
 void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
  
-   integer index=AMSbiel(_pDataBaseEntries[4],time,_DataBaseSize);
-   //cout <<getname()<<" "<<index<<" "<<_pDataBaseEntries[4][0]<<" "<<_pDataBaseEntries[2][0]<<" "<<time<<" "<<_DataBaseSize<<endl;
-   if(index>=0 && index<_DataBaseSize)end=_pDataBaseEntries[4][index];
- }
+  integer index=AMSbiel(_pDataBaseEntries[4],time,_DataBaseSize);
+  //cout <<getname()<<" "<<index<<" "<<_pDataBaseEntries[4][0]<<" "<<_pDataBaseEntries[2][0]<<" "<<time<<" "<<_DataBaseSize<<endl;
+  if(index>=0 && index<_DataBaseSize)end=_pDataBaseEntries[4][index];
+}
 
 
 
- AString * AMSTimeID::_selectEntry=0;
-
-#ifdef __DARWIN__
- integer AMSTimeID::_select(  dirent *entry)
-#endif
-#ifdef __LINUXGNU__
-   integer AMSTimeID::_select(  const dirent64 *entry)
-#endif
- {
-   return strstr(entry->d_name,(const char*)*_selectEntry)!=NULL;    
- }
+AString * AMSTimeID::_selectEntry=0;
 
 #ifdef __DARWIN__
- integer AMSTimeID::_selectsdir( dirent *entry)
+integer AMSTimeID::_select(  dirent *entry)
 #endif
 #ifdef __LINUXGNU__
-   integer AMSTimeID::_selectsdir(  const dirent64 *entry)
+integer AMSTimeID::_select(  const dirent64 *entry)
 #endif
- {
-   return (entry->d_name)[0] != '.';   
- }
+{
+  return strstr(entry->d_name,(const char*)*_selectEntry)!=NULL;    
+}
 
- void AMSTimeID::rereaddb(bool force){
-   for(int i=0;i<5;i++)delete _pDataBaseEntries[i]; 
-   _fillDB((const char*)AMSDBc::amsdatabase,0,force); 
- }
-
- time_t AMSTimeID::_stat_adv(const char *dir){
-   struct stat64 statbuf_dir;
-   time_t tm=0;
-   if(stat64 (dir,&statbuf_dir)){
-     time(&tm);
-     return tm;
-   } 
-   if(statbuf_dir.st_mtime>tm){
-     tm=statbuf_dir.st_mtime;
-   }
+#ifdef __DARWIN__
+integer AMSTimeID::_selectsdir( dirent *entry)
+#endif
 #ifdef __LINUXGNU__
-   dirent64 ** namelistsubdir;
-   int nptrdir=scandir64(dir,&namelistsubdir,NULL,NULL);
+integer AMSTimeID::_selectsdir(  const dirent64 *entry)
+#endif
+{
+  return (entry->d_name)[0] != '.';   
+}
+
+void AMSTimeID::rereaddb(bool force){
+  for(int i=0;i<5;i++)delete _pDataBaseEntries[i]; 
+  _fillDB((const char*)AMSDBc::amsdatabase,0,force); 
+}
+
+time_t AMSTimeID::_stat_adv(const char *dir){
+  struct stat64 statbuf_dir;
+  time_t tm=0;
+  if(stat64 (dir,&statbuf_dir)){
+    time(&tm);
+    return tm;
+  } 
+  if(statbuf_dir.st_mtime>tm){
+    tm=statbuf_dir.st_mtime;
+  }
+#ifdef __LINUXGNU__
+  dirent64 ** namelistsubdir;
+  int nptrdir=scandir64(dir,&namelistsubdir,NULL,NULL);
 #endif
 #ifdef __DARWIN__
-   dirent ** namelistsubdir;
-   int nptrdir=scandir(dir,&namelistsubdir,NULL,NULL);
+  dirent ** namelistsubdir;
+  int nptrdir=scandir(dir,&namelistsubdir,NULL,NULL);
 #endif
 
-   for(int is=0;is<nptrdir;is++){
-     AString fsdir(dir);
-     fsdir+=namelistsubdir[is]->d_name;
-     if(namelistsubdir[is]->d_name[0]!= '.' && !stat64 ((const char*)fsdir,&statbuf_dir)){
-       if(S_ISDIR(statbuf_dir.st_mode)){
-	 //          cout <<"  dirs "<<fsdir<<endl;
-	 if(statbuf_dir.st_mtime>tm){
-	   tm=statbuf_dir.st_mtime;
-	 }
+  for(int is=0;is<nptrdir;is++){
+    AString fsdir(dir);
+    fsdir+=namelistsubdir[is]->d_name;
+    if(namelistsubdir[is]->d_name[0]!= '.' && !stat64 ((const char*)fsdir,&statbuf_dir)){
+      if(S_ISDIR(statbuf_dir.st_mode)){
+	//          cout <<"  dirs "<<fsdir<<endl;
+	if(statbuf_dir.st_mtime>tm){
+          tm=statbuf_dir.st_mtime;
+	}
         
-       }
-     }
-     free( namelistsubdir[is]);
-   }
-   if(nptrdir>0){
-     free (namelistsubdir);
-   }
-   return tm;
- }
+      }
+    }
+    free( namelistsubdir[is]);
+  }
+  if(nptrdir>0){
+    free (namelistsubdir);
+  }
+  return tm;
+}
+void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 
- void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
-
-   int everythingok=1;
-   int i;
-   for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
-   _DataBaseSize=0;
-   AString fmap("");
-   AString fdir("");
+  int everythingok=1;
+  int i;
+  for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
+  _DataBaseSize=0;
+  AString fmap("");
+  AString fdir("");
 #ifdef _WEBACCESS_
-   if(_WebAccess){
-     fmap+=_WebDir;
-     fdir+=_WebDir;
-   }else
+  if(_WebAccess){
+    fmap+=_WebDir;
+    fdir+=_WebDir;
+  }else
 #endif
-     {
-       fmap+=dir;
-       fdir+=dir;
-     }
-   fdir+=getname();
-   fdir+="/";
-   fmap+=".";
-   fmap+=getname();
-   fmap+=getid()==0?".0.map":".1.map";
-   fstream fbin;
-   struct stat64 statbuf_map;
-   time_t mtime=0;
+    {
+      fmap+=dir;
+      fdir+=dir;
+    }
+  fdir+=getname();
+  fdir+="/";
+  fmap+=".";
+  fmap+=getname();
+  fmap+=getid()==0?".0.map":".1.map";
+  fstream fbin;
+  struct stat64 statbuf_map;
+  time_t mtime=0;
 #ifdef _WEBACCESS_
-   if(!_WebAccess) 
+  if(!_WebAccess) 
 #endif
-     mtime=_stat_adv((const char*)fdir);
-   //    cout <<"  fdir "<<fdir<<" " <<mtime<<endl;
-   //    if((!stat((const char *)fmap,&statbuf_map) && 
-   //        !stat((const char *)fdir,&statbuf_dir) &&
-   //              statbuf_dir.st_mtime < statbuf_map.st_mtime) && !force ){
+    mtime=_stat_adv((const char*)fdir);
+  //    cout <<"  fdir "<<fdir<<" " <<mtime<<endl;
+  //    if((!stat((const char *)fmap,&statbuf_map) && 
+  //        !stat((const char *)fdir,&statbuf_dir) &&
+  //              statbuf_dir.st_mtime < statbuf_map.st_mtime) && !force ){
 
 #ifdef _WEBACCESS_
-   if(
-      !url_stat((const char *)fmap,&statbuf_map) &&
-      ( (mtime < statbuf_map.st_mtime && !force) || _WebAccess )
-      ){
+  if(
+     !url_stat((const char *)fmap,&statbuf_map) &&
+     ( (mtime < statbuf_map.st_mtime && !force) || _WebAccess )
+     ){
     
-     char buf[100];
-     URL_FILE* ffbin=url_fopen(fmap,"r");
-     if(ffbin){
-       url_fgets(buf,100,ffbin);
-       _DataBaseSize=atoi(buf);
+    char buf[100];
+    URL_FILE* ffbin=url_fopen(fmap,"r");
+      if(ffbin){
+      url_fgets(buf,100,ffbin);
+      _DataBaseSize=atoi(buf);
 #else
-   int ret=stat64((const char *)fmap,&statbuf_map);
-       
-   if((ret==0&&
-       mtime < statbuf_map.st_mtime) && !force){
+    if((!stat64((const char *)fmap,&statbuf_map)&&
+	mtime < statbuf_map.st_mtime) && !force){
     
-     char buf[100];
-     fbin.open(fmap,ios::in);
-     if(fbin){
-       fbin>>_DataBaseSize;
+      char buf[100];
+      fbin.open(fmap,ios::in);
+      if(fbin){
+	fbin>>_DataBaseSize;
 #endif
-       if(!_DataBaseSize){
-	 fbin.close();
-	 cout<<"AMSTimeID::_fillDB-W-MapHosZeroEnrtries "<<(const char *)fmap<<endl;
-	 goto notrust;
-       }
-       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
-       for(i=0;i<5;i++)
-	 for(int k=0;k<_DataBaseSize;k++){
-	   uinteger tmp;
+      if(!_DataBaseSize){
+         fbin.close();
+         cout<<"AMSTimeID::_fillDB-W-MapHosZeroEnrtries "<<(const char *)fmap<<endl;
+         goto notrust;
+     }
+      for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
+      for(i=0;i<5;i++)
+	for(int k=0;k<_DataBaseSize;k++){
+	  uinteger tmp;
 #ifdef _WEBACCESS_
-	   url_fgets(buf,100,ffbin);
-	   tmp=atoi(buf);
+	  url_fgets(buf,100,ffbin);
+	  tmp=atoi(buf);
 #else
-	   fbin>>tmp;
+	  fbin>>tmp;
 #endif
-	   _pDataBaseEntries[i][k]=tmp;      
-	 }
+	  _pDataBaseEntries[i][k]=tmp;      
+	}
 #ifdef _WEBACCESS_     	  
-       url_fclose(ffbin);
+      url_fclose(ffbin);
 #else
-       fbin.close();
+      fbin.close();
 #endif
-     }
-     else cerr <<"AMSTimeID::_fillDB-S-CouldNot open map file "<<fmap<<endl; 
+    }
+    else cerr <<"AMSTimeID::_fillDB-S-CouldNot open map file "<<fmap<<endl; 
     
-   }
-   else {
-   notrust:
-     cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
-     //    Check if is in new mode
-     _checkcompatibility(dir);
-     AString fnam(getname());
-     fnam+= getid()==0?".0":".1";
-     _selectEntry=&fnam;
-     int size=0;
-     
+  }
+  else {
+    notrust:
+    cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
+    //    Check if is in new mode
+    _checkcompatibility(dir);
+    AString fnam(getname());
+    fnam+= getid()==0?".0":".1";
+    _selectEntry=&fnam;
+    int size=0;
+
 #ifdef __LINUXGNU__
-     dirent64 ** namelistsubdir;
-     int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
+    dirent64 ** namelistsubdir;
+    int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
 #ifdef __DARWIN__
-     dirent ** namelistsubdir;
-     int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
+    dirent ** namelistsubdir;
+    int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
-     
-     for(int is=0;is<nptrdir;is++){
-       AString fsdir(fdir);
-       fsdir+=namelistsubdir[is]->d_name;
-       fsdir+="/";     
+
+    for(int is=0;is<nptrdir;is++){
+      AString fsdir(fdir);
+      fsdir+=namelistsubdir[is]->d_name;
+      fsdir+="/";     
 #ifdef __LINUXGNU__
-       dirent64 ** namelist;
-       int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
+      dirent64 ** namelist;
+      int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
 #endif
 #ifdef __DARWIN__
-       dirent ** namelist;
-       int nptr=scandir((const char *)fsdir,&namelist,&_select,NULL);     
+      dirent ** namelist;
+      int nptr=scandir((const char *)fsdir,&namelist,&_select,NULL);     
 #endif
-       
-       if(nptr>0){
-	 if(_DataBaseSize && size<_DataBaseSize+nptr){
-	   uinteger *tmp=new uinteger[_DataBaseSize];
-	   for(int k=0;k<5;k++){
-	     int l;
-	     for ( l=0;l<_DataBaseSize;l++)tmp[l]=_pDataBaseEntries[k][l]; 
-	     delete[] _pDataBaseEntries[k];
-	     size=2*(_DataBaseSize+nptr);
-	     _pDataBaseEntries[k]=new uinteger[size];
-	     for ( l=0;l<_DataBaseSize;l++)_pDataBaseEntries[k][l]=tmp[l]; 
-	   }
-	   delete[] tmp;
-	 } 
-	 else if(!_DataBaseSize){
-	   size=2*nptr;
-	   for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[size];
-	 }
-	 for(i=0;i<nptr;i++) {
-	   int valid=0;
-	   int kvalid=0;
-	   for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
-	     if((namelist[i]->d_name)[k]=='.' )valid++;
-	     if((namelist[i]->d_name)[k]=='.')kvalid=k;
-	   }
-	   if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
-	     sscanf((namelist[i]->d_name)+kvalid+1,"%d",
-		    _pDataBaseEntries[0]+_DataBaseSize);
-	     AString ffile(fsdir);
-	     ffile+=namelist[i]->d_name;
-	     fbin.close();
-	     fbin.clear();
-	     fbin.open((const char *)ffile,ios::in);
-	     uinteger temp[3];
-	     if(fbin){
-	       fbin.seekg(integer(fbin.tellg())+_Nbytes+sizeof(_CRC));
-	       fbin.read((char*)temp,3*sizeof(temp[0]));
-	       if(fbin.good()){
-		 _convert(temp,3);
-		 _pDataBaseEntries[1][_DataBaseSize]=temp[0];
-		 _pDataBaseEntries[2][_DataBaseSize]=temp[1];
-		 _pDataBaseEntries[3][_DataBaseSize]=temp[2];
-		 _DataBaseSize++;
-		 if(strcmp(namelistsubdir[is]->d_name,_getsubdirname(temp[1]))){
-		   everythingok=0;
-		   cerr<<"AMSTimeID::_fillDB-W-Dir/FileNameAreInconsistent "<<ffile<<" "<<"Recovering"<<endl;
-		   fbin.close();
-		   _rewrite(dir,ffile);
-		 }
-	       }
-	       if(fbin)fbin.close();
-	     }
+
+      if(nptr>0){
+	if(_DataBaseSize && size<_DataBaseSize+nptr){
+	  uinteger *tmp=new uinteger[_DataBaseSize];
+	  for(int k=0;k<5;k++){
+	    int l;
+	    for ( l=0;l<_DataBaseSize;l++)tmp[l]=_pDataBaseEntries[k][l]; 
+	    delete[] _pDataBaseEntries[k];
+	    size=2*(_DataBaseSize+nptr);
+	    _pDataBaseEntries[k]=new uinteger[size];
+	    for ( l=0;l<_DataBaseSize;l++)_pDataBaseEntries[k][l]=tmp[l]; 
+	  }
+	  delete[] tmp;
+	} 
+	else if(!_DataBaseSize){
+	  size=2*nptr;
+	  for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[size];
+	}
+	for(i=0;i<nptr;i++) {
+	  int valid=0;
+	  int kvalid=0;
+	  for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+	    if((namelist[i]->d_name)[k]=='.' )valid++;
+	    if((namelist[i]->d_name)[k]=='.')kvalid=k;
+	  }
+	  if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+	    sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+		   _pDataBaseEntries[0]+_DataBaseSize);
+	    AString ffile(fsdir);
+	    ffile+=namelist[i]->d_name;
+	    fbin.close();
+	    fbin.clear();
+	    fbin.open((const char *)ffile,ios::in);
+	    uinteger temp[3];
+	    if(fbin){
+	      fbin.seekg(integer(fbin.tellg())+_Nbytes+sizeof(_CRC));
+	      fbin.read((char*)temp,3*sizeof(temp[0]));
+	      if(fbin.good()){
+		_convert(temp,3);
+		_pDataBaseEntries[1][_DataBaseSize]=temp[0];
+		_pDataBaseEntries[2][_DataBaseSize]=temp[1];
+		_pDataBaseEntries[3][_DataBaseSize]=temp[2];
+		_DataBaseSize++;
+		if(strcmp(namelistsubdir[is]->d_name,_getsubdirname(temp[1]))){
+		  everythingok=0;
+		  cerr<<"AMSTimeID::_fillDB-W-Dir/FileNameAreInconsistent "<<ffile<<" "<<"Recovering"<<endl;
+		  fbin.close();
+		  _rewrite(dir,ffile);
+		}
+	      }
+	      if(fbin)fbin.close();
+	    }
             
-	   }
-	   free(namelist[i]);
-	 }
-	 free(namelist);
+	  }
+	  free(namelist[i]);
+	}
+	free(namelist);
         
-       }
-       free( namelistsubdir[is]);
-     }
-     if(nptrdir>0){
-       free (namelistsubdir);
-       // sort
-       //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
-       uinteger **padd= new uinteger*[_DataBaseSize+1];
-       uinteger *tmp=  new uinteger[_DataBaseSize+1];
+      }
+      free( namelistsubdir[is]);
+    }
+    if(nptrdir>0){
+      free (namelistsubdir);
+      // sort
+      //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
+      uinteger **padd= new uinteger*[_DataBaseSize+1];
+      uinteger *tmp=  new uinteger[_DataBaseSize+1];
 #ifdef __AMSDEBUG__
-       assert(padd!=NULL && tmp!=NULL);
+      assert(padd!=NULL && tmp!=NULL);
 #endif
-       for(i=0;i<_DataBaseSize;i++){
-	 tmp[i]=_pDataBaseEntries[3][i];
-	 _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
-	 padd[i]=tmp+i;
-       }
-       AMSsortNAG(padd,_DataBaseSize);
-       AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
-       for(i=0;i<4;i++){
-	 int k;
-	 for(k=0;k<_DataBaseSize;k++){
-	   tmp[k]=_pDataBaseEntries[i][k];
-	 }
-	 for(k=0;k<_DataBaseSize;k++){
-	   _pDataBaseEntries[i][k]=*(padd[k]);
-	 }
-       }
-       delete[] padd;
-       delete[] tmp;
-     }
-     // Rewrite map file;
+      for(i=0;i<_DataBaseSize;i++){
+	tmp[i]=_pDataBaseEntries[3][i];
+	_pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+	padd[i]=tmp+i;
+      }
+      AMSsortNAG(padd,_DataBaseSize);
+      AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+      for(i=0;i<4;i++){
+	int k;
+	for(k=0;k<_DataBaseSize;k++){
+	  tmp[k]=_pDataBaseEntries[i][k];
+	}
+	for(k=0;k<_DataBaseSize;k++){
+	  _pDataBaseEntries[i][k]=*(padd[k]);
+	}
+      }
+      delete[] padd;
+      delete[] tmp;
+    }
+    // Rewrite map file;
 
-     if(!updatemap(dir,true))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
-
-
+    if(!updatemap(dir,true))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
 
 
 
-     cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
-	  <<getname()<<endl; 
-   }
-   if( !everythingok){
-     for( i=0;i<5;i++)delete _pDataBaseEntries[i];
-     if(!reenter)_fillDB(dir,1);
-     else {
-       cerr<<"AMSTimeID::_fillDB-F-CouldnotUpdataDatabase,Exiting"<<endl;
-       exit(1);
-     }      
-   }
-     }
+
+
+    cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
+	 <<getname()<<endl; 
+  }
+  if( !everythingok){
+    for( i=0;i<5;i++)delete _pDataBaseEntries[i];
+    if(!reenter)_fillDB(dir,1);
+    else {
+      cerr<<"AMSTimeID::_fillDB-F-CouldnotUpdataDatabase,Exiting"<<endl;
+      exit(1);
+    }      
+  }
+}
 
 #ifdef __DB__
-     void AMSTimeID::_fillfromDB()
-     {
+void AMSTimeID::_fillfromDB()
+{
 
-       const integer S = 0;
-       const integer I = 1;
-       const integer B = 2;
-       const integer E = 3;
-       integer nobj = 0;
+  const integer S = 0;
+  const integer I = 1;
+  const integer B = 2;
+  const integer E = 3;
+  integer nobj = 0;
  
-       lms -> GetNTDV(getname(), getid(), nobj);
+  lms -> GetNTDV(getname(), getid(), nobj);
 
-       integer *pS = new integer[nobj];
-       time_t  *pI = new time_t[nobj];
-       time_t  *pB = new time_t[nobj];
-       time_t  *pE = new time_t[nobj];
+  integer *pS = new integer[nobj];
+  time_t  *pI = new time_t[nobj];
+  time_t  *pB = new time_t[nobj];
+  time_t  *pE = new time_t[nobj];
 
-       lms -> GetAllTDV(getname(), getid(), pS, pI, pB, pE, nobj);
-       if(nobj > 0) {
-	 for(int l=0; l<4; l++) _pDataBaseEntries[l]=new uinteger[nobj];
-	 for(int i=0; i<nobj; i++) {
-	   _pDataBaseEntries[S][i]= pS[i];
-	   _pDataBaseEntries[I][i]= pI[i];
-	   _pDataBaseEntries[B][i]= pB[i];
-	   _pDataBaseEntries[E][i]= pE[i];
-	 }
-       }
+  lms -> GetAllTDV(getname(), getid(), pS, pI, pB, pE, nobj);
+  if(nobj > 0) {
+    for(int l=0; l<4; l++) _pDataBaseEntries[l]=new uinteger[nobj];
+    for(int i=0; i<nobj; i++) {
+      _pDataBaseEntries[S][i]= pS[i];
+      _pDataBaseEntries[I][i]= pI[i];
+      _pDataBaseEntries[B][i]= pB[i];
+      _pDataBaseEntries[E][i]= pE[i];
+    }
+  }
 
-       _DataBaseSize = nobj;
+  _DataBaseSize = nobj;
 
-       if (pS) delete [] pS;
-       if (pI) delete [] pI;
-       if (pB) delete [] pB;
-       if (pE) delete [] pE;
+  if (pS) delete [] pS;
+  if (pI) delete [] pI;
+  if (pB) delete [] pB;
+  if (pE) delete [] pE;
 
-       cout <<"AMSTimeID::_fillfromDB-I-"<<nobj<<" entries found for TDV "
-	    <<getname()<<endl; 
-     }
-     
+  cout <<"AMSTimeID::_fillfromDB-I-"<<nobj<<" entries found for TDV "
+       <<getname()<<endl; 
+}
+
 #include "event.h"
 integer AMSTimeID::readDB(integer reenter){
 
@@ -911,282 +900,282 @@ integer AMSTimeID::readDB(integer reenter){
 }
 #endif
 
- char* AMSTimeID::_getsubdirname(time_t begin){
-   static char  _buf[32];
-   tm * tm1=localtime(&begin);
-   int tzz=timezone;
-   tm * tmp=gmtime(&begin);
-   tmp->tm_hour=0;
-   tmp->tm_min=0;
-   tmp->tm_sec=0;
-   sprintf(_buf,"%d",mktime(tmp)-3600-tzz);
-   return _buf;
- }
+char* AMSTimeID::_getsubdirname(time_t begin){
+  static char  _buf[32];
+  tm * tm1=localtime(&begin);
+  int tzz=timezone;
+  tm * tmp=gmtime(&begin);
+  tmp->tm_hour=0;
+  tmp->tm_min=0;
+  tmp->tm_sec=0;
+  sprintf(_buf,"%d",mktime(tmp)-3600-tzz);
+  return _buf;
+}
 
- void AMSTimeID::_checkcompatibility(const char *dir){
-   fstream fbin;
-   AString fdir(dir);
-   fdir+=getname();
-   fdir+="/";
-   AString fnam(getname());
-   fnam+= getid()==0?".0":".1";
-   _selectEntry=&fnam;
+void AMSTimeID::_checkcompatibility(const char *dir){
+  fstream fbin;
+  AString fdir(dir);
+  fdir+=getname();
+  fdir+="/";
+  AString fnam(getname());
+  fnam+= getid()==0?".0":".1";
+  _selectEntry=&fnam;
 
 #ifdef __LINUXGNU__
-   dirent64 ** namelist;
-   int nptr=scandir64((const char *)fdir,&namelist,&_select,NULL);     
+  dirent64 ** namelist;
+  int nptr=scandir64((const char *)fdir,&namelist,&_select,NULL);     
 #endif
 #ifdef __DARWIN__
-   dirent ** namelist;
-   int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
+  dirent ** namelist;
+  int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
 #endif
 
-   if(nptr>0){
-     cerr <<"AMSTimeID::_checkcompatibility-W-OldStructureFound"<<endl;
-     char y;
-     //       cout <<" Do you want to   convert  "<<getname();
-     //       cin >>y;
-     y='y';
-     if(y!='y' &&  y!='Y'){
-       cerr<<"AMSTimeID::_checkcompatibility-F-CanNotContinue,Aborting"<<endl;
-       abort();
-     }
-     int i; 
-     for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
-     for(i=0;i<nptr;i++) {
-       int valid=0;
-       int kvalid=0;
-       for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
-	 if((namelist[i]->d_name)[k]=='.' )valid++;
-	 if((namelist[i]->d_name)[k]=='.')kvalid=k;
-       }
-       if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
-	 sscanf((namelist[i]->d_name)+kvalid+1,"%d",
-		_pDataBaseEntries[0]+_DataBaseSize);
-	 AString ffile(fdir);
-	 ffile+=namelist[i]->d_name;
-	 _rewrite(dir,ffile);
-       }
-       free(namelist[i]);
-     }
+  if(nptr>0){
+    cerr <<"AMSTimeID::_checkcompatibility-W-OldStructureFound"<<endl;
+    char y;
+    //       cout <<" Do you want to   convert  "<<getname();
+    //       cin >>y;
+    y='y';
+    if(y!='y' &&  y!='Y'){
+      cerr<<"AMSTimeID::_checkcompatibility-F-CanNotContinue,Aborting"<<endl;
+      abort();
+    }
+    int i; 
+    for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+    for(i=0;i<nptr;i++) {
+      int valid=0;
+      int kvalid=0;
+      for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+	if((namelist[i]->d_name)[k]=='.' )valid++;
+	if((namelist[i]->d_name)[k]=='.')kvalid=k;
+      }
+      if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+	sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+	       _pDataBaseEntries[0]+_DataBaseSize);
+	AString ffile(fdir);
+	ffile+=namelist[i]->d_name;
+	_rewrite(dir,ffile);
+      }
+      free(namelist[i]);
+    }
         
-     free(namelist);
-     for(i=0;i<5;i++)delete[] _pDataBaseEntries[i];
-   }
+    free(namelist);
+    for(i=0;i<5;i++)delete[] _pDataBaseEntries[i];
+  }
 
 
- }
+}
 
- void AMSTimeID::_rewrite(const char *dir, AString & ffile){
-   ifstream fbin;
-   fbin.open((const char *)ffile,ios::in);
-   if(fbin){
-     uinteger * pdata;
-     _Nbytes+=sizeof(integer);
-     integer ns=_Nbytes/sizeof(pdata[0])+3;
-     pdata =new uinteger[ns];
-     if(pdata){
-       fbin.read((char*)pdata,ns*sizeof(pdata[0]));
-       if(fbin.good()){
-	 _convert(pdata,ns);
-	 CopyIn(pdata);
-	 _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
-	 _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
-	 _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
-	 cout <<"AMSTimeID::read-I-Open file "<<ffile<<endl;
+void AMSTimeID::_rewrite(const char *dir, AString & ffile){
+  ifstream fbin;
+  fbin.open((const char *)ffile,ios::in);
+  if(fbin){
+    uinteger * pdata;
+    _Nbytes+=sizeof(integer);
+    integer ns=_Nbytes/sizeof(pdata[0])+3;
+    pdata =new uinteger[ns];
+    if(pdata){
+      fbin.read((char*)pdata,ns*sizeof(pdata[0]));
+      if(fbin.good()){
+	_convert(pdata,ns);
+	CopyIn(pdata);
+	_Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
+	_Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
+	_End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+	cout <<"AMSTimeID::read-I-Open file "<<ffile<<endl;
 #ifdef __AMSDEBUG__
-	 cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
-	 cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
-	 cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
+	cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
+	cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
+	cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
 #endif
-	 bool ok=write(dir,0);
-	 fbin.close();
-	 delete [] pdata;
-	 AString rm("rm -f ");
-	 rm+=ffile;
-	 if(ok)system((const char *)rm);
-       }
-       else {
-	 cout<<"AMSTimeID::read-W-Problems to Read File "<<
-	   ffile<<" size declared "<<ns<<endl;//tempor
-	 fbin.close();
-	 delete [] pdata;
-       }
-     }
-     _Nbytes-=sizeof(integer);
-   }
+	bool ok=write(dir,0);
+	fbin.close();
+	delete [] pdata;
+	AString rm("rm -f ");
+	rm+=ffile;
+	if(ok)system((const char *)rm);
+      }
+      else {
+	cout<<"AMSTimeID::read-W-Problems to Read File "<<
+	  ffile<<" size declared "<<ns<<endl;//tempor
+	fbin.close();
+	delete [] pdata;
+      }
+    }
+    _Nbytes-=sizeof(integer);
+  }
             
 
 
- }
+}
 
- void AMSTimeID::checkupdate(const char * tdvc){
-   
-   if( (
-	strcmp(tdvc,getname())==0 ||
-	strcmp(tdvc,"UpdateAllTDV")==0  || (strstr(getname(),tdvc)!=0 && strlen(tdvc)>1)) &&
-       (_Begin < _End) ){
-     _UpdateMe=1;
-     time(&_Insert);
-     cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
-       " requested. "<<endl;
-     if(_Begin >= _End){
-       cout <<" But validity period is zero. Request rejected. "<<endl;
-       _UpdateMe=0;
-     }
-     time_t linuxcrazy=_Begin;
-     cout <<" Begin "<<ctime(&linuxcrazy);
-     linuxcrazy=_End;
-     cout <<" End "<<ctime(&linuxcrazy);
-     linuxcrazy=_Insert;
-     cout << " Insert "<<ctime(&linuxcrazy)<<endl;
-   }
- }
+void AMSTimeID::checkupdate(const char * tdvc){
 
- void AMSTimeID::fillDB (int length, uinteger *ibe[5]){
-   if(length==0)return;
-   _DataBaseSize=length;
-   for(int  i=0;i<5;i++){
-     delete _pDataBaseEntries[i];
-     _pDataBaseEntries[i]=ibe[i];
+  if( (
+       strcmp(tdvc,getname())==0 ||
+       strcmp(tdvc,"UpdateAllTDV")==0  || (strstr(getname(),tdvc)!=0 && strlen(tdvc)>1)) &&
+      (_Begin < _End) ){
+    _UpdateMe=1;
+    time(&_Insert);
+    cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
+      " requested. "<<endl;
+    if(_Begin >= _End){
+      cout <<" But validity period is zero. Request rejected. "<<endl;
+      _UpdateMe=0;
+    }
+    time_t linuxcrazy=_Begin;
+    cout <<" Begin "<<ctime(&linuxcrazy);
+    linuxcrazy=_End;
+    cout <<" End "<<ctime(&linuxcrazy);
+    linuxcrazy=_Insert;
+    cout << " Insert "<<ctime(&linuxcrazy)<<endl;
+  }
+}
 
-   }
+void AMSTimeID::fillDB (int length, uinteger *ibe[5]){
+  if(length==0)return;
+  _DataBaseSize=length;
+  for(int  i=0;i<5;i++){
+    delete _pDataBaseEntries[i];
+    _pDataBaseEntries[i]=ibe[i];
 
-   uinteger **padd= new uinteger*[_DataBaseSize+1];
-   uinteger *tmp=  new uinteger[_DataBaseSize+1];
-   for(int i=0;i<_DataBaseSize;i++){
-     tmp[i]=_pDataBaseEntries[3][i];
-     _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
-     padd[i]=tmp+i;
-   }
-   AMSsortNAG(padd,_DataBaseSize);
-   AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
-   for(int i=0;i<4;i++){
-     int k;
-     for(k=0;k<_DataBaseSize;k++){
-       tmp[k]=_pDataBaseEntries[i][k];
-     }
-     for(k=0;k<_DataBaseSize;k++){
-       _pDataBaseEntries[i][k]=*(padd[k]);
-     }
-   }
-   delete[] padd;
-   delete[] tmp;
- }
+  }
 
-
+  uinteger **padd= new uinteger*[_DataBaseSize+1];
+  uinteger *tmp=  new uinteger[_DataBaseSize+1];
+  for(int i=0;i<_DataBaseSize;i++){
+    tmp[i]=_pDataBaseEntries[3][i];
+    _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+    padd[i]=tmp+i;
+  }
+  AMSsortNAG(padd,_DataBaseSize);
+  AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+  for(int i=0;i<4;i++){
+    int k;
+    for(k=0;k<_DataBaseSize;k++){
+      tmp[k]=_pDataBaseEntries[i][k];
+    }
+    for(k=0;k<_DataBaseSize;k++){
+      _pDataBaseEntries[i][k]=*(padd[k]);
+    }
+  }
+  delete[] padd;
+  delete[] tmp;
+}
 
 
 
- AMSTimeID::IBE & AMSTimeID::findsubtable(time_t begin, time_t end){
-   if(_ibe.size())_ibe.clear();
-   int insert=0;
-   iibe a;
-   for (int i=0;i<_DataBaseSize;i++){
-     a.id=_pDataBaseEntries[0][i];
-     a.insert=_pDataBaseEntries[1][i];
-     a.begin=_pDataBaseEntries[2][i];
-     a.end=_pDataBaseEntries[3][i];
-     if(a.begin<end && a.end>begin){
-       if(a.begin<begin && a.end>end){
-	 if(a.insert>insert){
-	   if(insert){
-	     _ibe.erase(_ibe.begin());
-	   }
-	   _ibe.push_front(a);
-	   insert=a.insert;
-	 }
-       }
-       else _ibe.push_back(a);
-     }
-   }
+
+
+AMSTimeID::IBE & AMSTimeID::findsubtable(time_t begin, time_t end){
+  if(_ibe.size())_ibe.clear();
+  int insert=0;
+  iibe a;
+  for (int i=0;i<_DataBaseSize;i++){
+    a.id=_pDataBaseEntries[0][i];
+    a.insert=_pDataBaseEntries[1][i];
+    a.begin=_pDataBaseEntries[2][i];
+    a.end=_pDataBaseEntries[3][i];
+    if(a.begin<end && a.end>begin){
+      if(a.begin<begin && a.end>end){
+	if(a.insert>insert){
+	  if(insert){
+	    _ibe.erase(_ibe.begin());
+	  }
+	  _ibe.push_front(a);
+	  insert=a.insert;
+	}
+      }
+      else _ibe.push_back(a);
+    }
+  }
 #ifdef __AMSDEBUG__
-   cout <<" AMSTimeID::findsubtable-I-"<<_ibe.size()<<" Entries Found "<<endl;
+  cout <<" AMSTimeID::findsubtable-I-"<<_ibe.size()<<" Entries Found "<<endl;
 #endif
-   return _ibe;
- }
+  return _ibe;
+}
 
 
 
- bool AMSTimeID::updatemap(const char *dir,bool slp){
-   if(slp)sleep(1);
-   AString fmap(dir);
-   fmap+=".";
-   fmap+=getname();
-   fmap+=getid()==0?".0.map":".1.map";
-   AString fmaptmp=fmap;
-   if(!_DataBaseSize){
-     cout <<"AMSTimeID::_fillDB-W-CowardlyRefusesToupdate map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+bool AMSTimeID::updatemap(const char *dir,bool slp){
+  if(slp)sleep(1);
+  AString fmap(dir);
+  fmap+=".";
+  fmap+=getname();
+  fmap+=getid()==0?".0.map":".1.map";
+  AString fmaptmp=fmap;
+  if(!_DataBaseSize){
+    cout <<"AMSTimeID::_fillDB-W-CowardlyRefusesToupdate map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+   return false;
+  }
+  char utmp[80];
+  time_t timet;
+  time(&timet);
+  sprintf(utmp,".%d",timet);
+  fmaptmp+=utmp;
+  fstream fbin;
+  unlink(fmaptmp);
+  fbin.open(fmaptmp,ios::out);
+  if(fbin){
+    cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+    fbin<<_DataBaseSize<<endl;
+    for(int i=0;i<5;i++){
+      for(int k=0;k<_DataBaseSize;k++){
+	fbin<<_pDataBaseEntries[i][k]<<endl;
+      }
+    }
+    fbin.close();
+    char cmd[1255];
+    sprintf(cmd,"mv %s %s",(const char *)fmaptmp,(const char*)fmap);
+       system(cmd);
+    sprintf(cmd,"chmod g+w %s",(const char*)fmap);
+    system(cmd);
+    return true;
+  }
+  else{
+    cerr <<"AMSTimeID::_fillDB-E-Unable to open  map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
      return false;
-   }
-   char utmp[80];
-   time_t timet;
-   time(&timet);
-   sprintf(utmp,".%d",timet);
-   fmaptmp+=utmp;
-   fstream fbin;
-   unlink(fmaptmp);
-   fbin.open(fmaptmp,ios::out);
-   if(fbin){
-     cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
-     fbin<<_DataBaseSize<<endl;
-     for(int i=0;i<5;i++){
-       for(int k=0;k<_DataBaseSize;k++){
-	 fbin<<_pDataBaseEntries[i][k]<<endl;
-       }
-     }
-     fbin.close();
-     char cmd[1255];
-     sprintf(cmd,"mv %s %s",(const char *)fmaptmp,(const char*)fmap);
-     system(cmd);
-     sprintf(cmd,"chmod g+w %s",(const char*)fmap);
-     system(cmd);
-     return true;
-   }
-   else{
-     cerr <<"AMSTimeID::_fillDB-E-Unable to open  map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
-     return false;
-   }
- }
+  }
+}
 
- bool AMSTimeID::updatedb(){
-   cout <<"AMSTimeID::updatedb-I-Size "<<_DataBaseSize<<endl;
-   uinteger *tmpa[5];
-   int i;
-   for( i=0;i<5;i++){
-     tmpa[i]=new uinteger[_DataBaseSize+1];
-     for(int j=0;j<_DataBaseSize;j++)tmpa[i][j]=_pDataBaseEntries[i][j];
-     delete [] _pDataBaseEntries[i];
-     _pDataBaseEntries[i]=tmpa[i];
-   }
-   _pDataBaseEntries[0][_DataBaseSize]=_Insert;
-   _pDataBaseEntries[1][_DataBaseSize]=_Insert;
-   _pDataBaseEntries[2][_DataBaseSize]=_Begin;
-   _pDataBaseEntries[3][_DataBaseSize]=_End;
-   _DataBaseSize++;
+bool AMSTimeID::updatedb(){
+  cout <<"AMSTimeID::updatedb-I-Size "<<_DataBaseSize<<endl;
+  uinteger *tmpa[5];
+  int i;
+  for( i=0;i<5;i++){
+    tmpa[i]=new uinteger[_DataBaseSize+1];
+    for(int j=0;j<_DataBaseSize;j++)tmpa[i][j]=_pDataBaseEntries[i][j];
+    delete [] _pDataBaseEntries[i];
+    _pDataBaseEntries[i]=tmpa[i];
+  }
+  _pDataBaseEntries[0][_DataBaseSize]=_Insert;
+  _pDataBaseEntries[1][_DataBaseSize]=_Insert;
+  _pDataBaseEntries[2][_DataBaseSize]=_Begin;
+  _pDataBaseEntries[3][_DataBaseSize]=_End;
+  _DataBaseSize++;
        
-   uinteger **padd= new uinteger*[_DataBaseSize];
-   uinteger *tmp=  new uinteger[_DataBaseSize];
+  uinteger **padd= new uinteger*[_DataBaseSize];
+  uinteger *tmp=  new uinteger[_DataBaseSize];
 #ifdef __AMSDEBUG__
-   assert(padd!=NULL && tmp!=NULL);
+  assert(padd!=NULL && tmp!=NULL);
 #endif
-   for(i=0;i<_DataBaseSize;i++){
-     tmp[i]=_pDataBaseEntries[3][i];
-     _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
-     padd[i]=tmp+i;
-   }
-   AMSsortNAG(padd,_DataBaseSize);
-   AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
-   for(i=0;i<4;i++){
-     int k;
-     for(k=0;k<_DataBaseSize;k++){
-       tmp[k]=_pDataBaseEntries[i][k];
-     }
-     for(k=0;k<_DataBaseSize;k++){
-       _pDataBaseEntries[i][k]=*(padd[k]);
-     }
-   }
-   delete[] padd;
-   delete[] tmp;
-   return true;
- }
+  for(i=0;i<_DataBaseSize;i++){
+    tmp[i]=_pDataBaseEntries[3][i];
+    _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+    padd[i]=tmp+i;
+  }
+  AMSsortNAG(padd,_DataBaseSize);
+  AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+  for(i=0;i<4;i++){
+    int k;
+    for(k=0;k<_DataBaseSize;k++){
+      tmp[k]=_pDataBaseEntries[i][k];
+    }
+    for(k=0;k<_DataBaseSize;k++){
+      _pDataBaseEntries[i][k]=*(padd[k]);
+    }
+  }
+  delete[] padd;
+  delete[] tmp;
+  return true;
+}
