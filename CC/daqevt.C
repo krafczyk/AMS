@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.211.2.1 2011/04/29 16:51:42 choutko Exp $
+//  $Id: daqevt.C,v 1.211.2.2 2011/05/01 14:42:55 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2208,7 +2208,7 @@ if(_pData && AMSJob::gethead()->isSimulation()){
 const int thr=32767;
 if((_Length-_OffsetL)*2<=thr){
  _pData[0]=(_Length-_OffsetL)*2;
- _pData[1]=(btype)  ;
+ _pData[1]=(btype) | (1<<15) ;
  _pData[2]=0;
 time_t timeu=AMSEvent::gethead()->gettime();
 _pData[4]=timeu&65535;
@@ -2219,7 +2219,7 @@ else{
  _pData[0]=(((_Length-2*_OffsetL)*2)>>16)&32767;
  _pData[1]=(((_Length-2*_OffsetL)*2))&65535;
  _pData[0]=_pData[0] | (1<<15);
- _pData[2]=(btype)  ;
+ _pData[2]=(btype)  | (1<<15);
  _pData[3]=0;
 time_t timeu=AMSEvent::gethead()->gettime();
 _pData[5]=timeu&65535;
