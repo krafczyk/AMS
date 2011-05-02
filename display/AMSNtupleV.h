@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.47 2011/04/28 23:18:02 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.48 2011/05/02 17:34:03 mmilling Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -419,6 +419,43 @@ public:
 
 };
 
+class TrdHTrackV: public TPolyLine3D, public AMSDrawI{
+protected:
+public:
+  TrdHTrackV():AMSDrawI(NULL,-1),TPolyLine3D(){};
+  TrdHTrackV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
+    TrdHTrackR *pcl=ev->pTrdHTrack(ref);
+    if(pcl){
+      const int npoint=2;
+      float array[3*npoint];
+      double u[3];
+      double theta=pcl->Theta();
+      double phi=pcl->Phi();
+      u[0]=sin(theta)*cos(phi);
+      u[1]=sin(theta)*sin(phi);
+      u[2]=cos(theta);
+      float z1=65;   //tmp
+      float x1=pcl->Coo[0]+u[0]/u[2]*(z1-pcl->Coo[2]);
+      float y1=pcl->Coo[1]+u[1]/u[2]*(z1-pcl->Coo[2]);
+      float z2=150; 
+      float x2=pcl->Coo[0]+u[0]/u[2]*(z2-pcl->Coo[2]);
+      float y2=pcl->Coo[1]+u[1]/u[2]*(z2-pcl->Coo[2]);
+      array[0]=x1;
+      array[1]=y1;
+      array[2]=z1;
+      array[3]=x2;
+      array[4]=y2;
+      array[5]=z2;
+      SetPolyLine(npoint,array);
+    }
+    SetLineColor(14);
+    //    SetLineColor(28);
+    SetLineWidth(1);
+    SetLineStyle(1);
+  }
+  char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrdHTrack(fRef)->Info(fRef):0;}
+};
+
 
 class MCEventgV: public TPolyLine3D, public AMSDrawI{
 protected:
@@ -643,6 +680,7 @@ protected:
   vector<TrRecHitV> fTrRecHitV;
   vector<TrTrackV> fTrTrackV;
   vector<TrdTrackV> fTrdTrackV;
+  vector<TrdHTrackV> fTrdHTrackV;
   vector<EcalShowerV> fEcalShowerV;
   vector<RichRingV> fRichRingV;
   vector<RichRingBV> fRichRingBV;

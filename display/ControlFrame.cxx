@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.14 2010/10/12 22:11:32 pzuccon Exp $
+//  $Id: ControlFrame.cxx,v 1.15 2011/05/02 17:34:03 mmilling Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -51,52 +51,55 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
          type=ktrdtracks;
          break;
         case 7003:
-         type=ktrdclusters;
+         type=ktrdhtracks;
          break;
         case 7004:
-         type=kanticlusters;
+         type=ktrdclusters;
          break;
         case 7005:
-         type=ktofclusters;
+         type=kanticlusters;
          break;
         case 7006:
-         type=ktrtracks;
+         type=ktofclusters;
          break;
         case 7007:
-         type=ktrclusters;
+         type=ktrtracks;
          break;
         case 7008:
-         type=ktrclustersM;
+         type=ktrclusters;
          break;
         case 7009:
-         type=ktrclustersY;
+         type=ktrclustersM;
          break;
         case 7010:
-         type=krichrings;
+         type=ktrclustersY;
          break;
         case 7011:
-         type=krichhits;
+         type=krichrings;
          break;
         case 7012:
-         type=kecalshowers;
+         type=krichhits;
          break;
         case 7013:
-         type=kecalclusters;
+         type=kecalshowers;
          break;
         case 7014:
-         type=kparticles;
+         type=kecalclusters;
          break;
         case 7015:
-         type=kmcinfo;
+         type=kparticles;
          break;
         case 7016:
+         type=kmcinfo;
+         break;
+        case 7017:
          type=kgeometry;
           break;
       }
       if(parm1/1000==7){
-        if(parm1==7008)
+        if(parm1==7009)
 	  gAMSDisplay->GetNtuple()->SetTkMult(_pvis[parm1%100-1]->GetState());
-        else if(parm1==7009){
+        else if(parm1==7010){
 	  gAMSDisplay->GetNtuple()->SetTkDispY(_pvis[parm1%100-1]->GetState());
 	}
 	else
@@ -380,6 +383,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
      int marker=7001;
     _pvis.push_back(new TGCheckButton(_pvisfr,"UsedObjectsOnly",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrdTracks",marker++));
+    _pvis.push_back(new TGCheckButton(_pvisfr,"TrdHTracks",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TrdClusters",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"AntiClusters",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"TofClusters",marker++));
@@ -408,6 +412,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pvis[8]->SetState(kButtonUp);
      gAMSDisplay->SetVisible(kusedonly,_pvis[0]->GetState());
      gAMSDisplay->SetVisible(ktrdtracks,_pvis[1]->GetState());
+     gAMSDisplay->SetVisible(ktrdhtracks,_pvis[1]->GetState());
      gAMSDisplay->SetVisible(ktrdclusters,_pvis[2]->GetState());
      gAMSDisplay->SetVisible(kanticlusters,_pvis[3]->GetState());
      gAMSDisplay->SetVisible(ktofclusters,_pvis[4]->GetState());

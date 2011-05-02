@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.28 2010/12/02 23:29:35 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.29 2011/05/02 17:34:03 mmilling Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -43,7 +43,7 @@ class TPolyLine3D;
 class TList;
 class AMSR_GeometrySetter;
 enum EAMSR_View { kNoView=-1,kFrontView=0, kSideView=1, kTopView=2, kAllView=3, kTwoView=4 };
-enum EAMSType { kall=-1,kusedonly=0,ktrdtracks=1, ktrdclusters=2,kanticlusters=3,ktofclusters=4,ktrtracks=5,ktrclusters=6,ktrclustersM=96,ktrclustersY=996,krichrings=7,krichhits=8,kecalshowers=9,kecalclusters=10,kparticles=11,kmcinfo=12,kgeometry=13,ktrig=14};
+enum EAMSType { kall=-1,kusedonly=0,ktrdtracks=1, ktrdhtracks=69, ktrdclusters=2,kanticlusters=3,ktofclusters=4,ktrtracks=5,ktrclusters=6,ktrclustersM=96,ktrclustersY=996,krichrings=7,krichhits=8,kecalshowers=9,kecalclusters=10,kparticles=11,kmcinfo=12,kgeometry=13,ktrig=14};
 
 
 class AMSDisplay : public TObject {
@@ -86,6 +86,7 @@ private:
 
   bool d_usedonly;
   bool d_trdtracks;
+  bool d_trdhtracks;
   bool d_trdclusters;
   bool d_anticlusters;
   bool d_tofclusters;

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.39 2011/04/28 23:18:01 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.40 2011/05/02 17:34:03 mmilling Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -209,6 +209,18 @@ else dist=1000000;
  if(dist<7 && cand>=0)info=fTrdTrackV[cand].GetObjectInfo(px,py);
 }
 
+{
+ int cand=-1;
+ for(int i=0;i<fTrdHTrackV.size();i++){
+   int current=fTrdHTrackV[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+ if(dist<7 && cand>=0)info=fTrdHTrackV[cand].GetObjectInfo(px,py);
+}
+
 
 {
  int cand=-1;
@@ -404,6 +416,15 @@ if(type==kall || type==kusedonly || type==ktrdtracks){
  }
 }
 
+ if(type==kall || type==kusedonly || type==ktrdhtracks){
+  fTrdHTrackV.clear();
+  if(gAMSDisplay->DrawObject(ktrdhtracks)){
+    for(int i=0;i<NTrdHTrack();i++){
+      if(!gAMSDisplay->DrawUsedOnly() )fTrdHTrackV.push_back( TrdHTrackV(this,i));
+    }
+ }
+}
+
 if(type==kall || type==kusedonly || type==kecalshowers){
  fEcalShowerV.clear();
  if(gAMSDisplay->DrawObject(kecalshowers)){
@@ -493,6 +514,10 @@ for(int i=0;i<fDaqV.size();i++){
 
  for(int i=0;i<fTrdTrackV.size();i++){
    fTrdTrackV[i].AppendPad();
+  }
+
+ for(int i=0;i<fTrdHTrackV.size();i++){
+   fTrdHTrackV[i].AppendPad();
   }
 
  for(int i=0;i<fParticleV.size();i++){

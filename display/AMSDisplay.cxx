@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.52 2010/10/21 09:27:26 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.53 2011/05/02 17:34:03 mmilling Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -762,6 +762,9 @@ void AMSDisplay::SetVisible(EAMSType type, bool visible){
    case ktrdtracks:
      d_trdtracks=visible;
      break;
+   case ktrdhtracks:
+     d_trdhtracks=visible;
+     break;
    case ktrdclusters:
      d_trdclusters=visible;
      break;
@@ -808,6 +811,8 @@ switch (type){
      return d_usedonly;
    case ktrdtracks:
      return d_trdtracks;
+   case ktrdhtracks:
+     return d_trdhtracks;
    case ktrdclusters:
      return d_trdclusters;
    case kanticlusters:
