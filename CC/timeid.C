@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.125 2011/05/01 15:56:54 choutko Exp $
+//  $Id: timeid.C,v 1.126 2011/05/02 20:57:30 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -18,7 +18,7 @@
 #include <cstdio>
 #include <strstream>
 #include <limits.h>
-#ifndef __CORBASERVER__
+#if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "commonsi.h"
 #ifdef _OPENMP
 #include "event.h"
@@ -27,7 +27,7 @@
 #ifdef __CORBA__
 #include "producer.h"
 #endif
-#ifndef __CORBASERVER__
+#if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "ntuple.h"
 #endif
 #include <dirent.h>
@@ -302,13 +302,15 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   
   
 #ifdef _OPENMP
+#ifndef __ROOTSHAREDLIBRARY__
   cout <<" in barrier AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
   AMSEvent::ResetThreadWait(1);
   AMSEvent::Barrier()=true;
+#endif
 #pragma omp barrier 
   if( omp_get_thread_num()==0) {
     ok= read(dir,id,asktime,index)?1:0;
-#ifndef __CORBASERVER__
+#if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
      if(AMSNtuple::Get_setup02()){
         AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
      }
@@ -317,14 +319,17 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
      }
 #endif
     if(ok && _trigfun)_trigfun();
+
+#ifndef __ROOTSHAREDLIBRARY__
     AMSEvent::Barrier()=false;
+#endif
   }
   else ok=1;
 #else
   
   if( read(dir,id,asktime,index)){
     if(_trigfun)_trigfun();
-#ifndef __CORBASERVER__
+#if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
      if(AMSNtuple::Get_setup02()){
         AMSNtuple::Get_setup02()->TDVRC_Add(asktime,this);
      }
@@ -345,7 +350,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 }
 
 bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
-#ifndef __CORBASERVER__
+#if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
   //   Add check remote client here
   ifstream fbin;
   fbin.open("/proc/self/where");

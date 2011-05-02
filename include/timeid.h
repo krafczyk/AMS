@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.43 2011/05/01 15:57:38 choutko Exp $
+//  $Id: timeid.h,v 1.44 2011/05/02 20:57:30 pzuccon Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -221,6 +221,19 @@ public:
   AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true,trigfun_type fun=0);
   
   ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];_trigfun=0;}
+  /// Returns the number of records in the database 
+  integer  GetDataBaseSize(){return _DataBaseSize;}
+  /// Returns the begin validity and the times of the record ii-th (insert, begin ,end)
+  uinteger GetDBRecordTimes(int ii,uinteger* times)
+  {if (ii>=0 && ii<_DataBaseSize){ 
+      times[0]=_pDataBaseEntries[1][ii]; //insert 
+      times[1]=_pDataBaseEntries[2][ii]; // begin
+      times[2]=_pDataBaseEntries[3][ii]; //end
+      return _pDataBaseEntries[2][ii];   //begin
+    }
+    else return -1;
+  }
+  
 integer  GetNbytes() const { return _Nbytes;}
   integer  CopyOut (void *pdataNew) const;
   integer  CopyIn( const void *pdataNew);
