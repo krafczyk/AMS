@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.340 2011/04/30 07:13:23 shaino Exp $
+//  $Id: root.h,v 1.341 2011/05/02 23:23:57 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1549,6 +1549,8 @@ public:
   /// 
   /// \return path length of the stright line in the trd tube
   double Range(float coo[], float Theta, float Phi);
+  /// \return path length of the stright line in the trd tube
+  static double RangeCorr(double range,double norm);
   TrdClusterR(){};
   TrdClusterR(AMSTRDCluster *ptr);
   friend class AMSTRDCluster;
@@ -1560,7 +1562,7 @@ public:
    return _Info;
   }
   virtual ~TrdClusterR(){};
-ClassDef(TrdClusterR,2)       //TrdClusterR
+ClassDef(TrdClusterR,3)       //TrdClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1622,9 +1624,10 @@ public:
   int   Pattern;  ///< pattern no
   float Q;   ///< Charge Magnitude (0 if not calculated)
   short int Charge[10];  ///<  Ordered Charge guess from pdf functions (0 == electrons, 1,2,3,4,5,6,7,8,9 are protons to F)
-  float ChargeP[10];   ///<  log(likelihood) from different pdf
+  float ChargeP[10];   ///<  log(likelihood) from pdf functions
   protected:
   vector<int> fTrdSegment;
+  static float ChargePDF[10030];
   public:
   /// access function to TrdSegmentR objects used
   /// \return number of TrdSegmentR used
@@ -1637,7 +1640,12 @@ public:
   /// \param i index of fTrdSegment vector
   /// \return pointer to TrdSegmentR object or 0
   TrdSegmentR * pTrdSegment(unsigned int i);
+  /// create pdf function from file and/or TDV
+      static bool CreatePDF(const char *fnam);
+  /// compute charge & likelihoods
+  void ComputeCharge(double betacorr);  
   TrdTrackR(AMSTRDTrack *ptr);
+  TrdTrackR(const TrdTrackR & o);
   TrdTrackR(){};
   /// \param number index in container
   /// \return human readable info about TrdTrackR
@@ -1650,13 +1658,13 @@ public:
        if(pTrdSegment(i)->pTrdCluster(k)->HMultip)nph++;
      }
     }
-    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d Q=%7.2g QC %d/%d %7.2g/%7.2g ",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph,Q, Charge[0], Charge[1],ChargeP[0],ChargeP[1]);
+    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d Q=%7.2g QC %d/%d %7.2g/%7.2g ",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph,Q, Charge[0], Charge[1],exp(-ChargeP[0]),exp(-ChargeP[1]));
   return _Info;
   } 
   friend class AMSTRDTrack;
   friend class AMSEventR;
   virtual ~TrdTrackR(){};
-ClassDef(TrdTrackR,3)       //TrdTrackR
+ClassDef(TrdTrackR,4)       //TrdTrackR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1968,12 +1976,17 @@ public:
   /// \param i index of fTofCluster vector  < NTofCluster()
   /// \return pointer to TofClusterR object  or 0
   TofClusterR * pTofCluster(unsigned int i);
+  /// MC derived correction  function to TofClusterR objects   
+  /// \param datamc 0- MC 1-Data 
+  /// \return dedx amplification factor for the give benta
+       double GetTRDBetaCorr(int datamc=0);
+
    BetaR(){};
    BetaR(AMSBeta *ptr);
    friend class AMSBeta;
    friend class AMSEventR;
    virtual ~BetaR(){};
-   ClassDef(BetaR,2)         //BetaR
+   ClassDef(BetaR,3)         //BetaR
 #pragma omp threadprivate(fgIsA)
 };
 

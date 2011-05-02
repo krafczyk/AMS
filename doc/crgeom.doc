@@ -1,7 +1,7 @@
 How to update amsed ams02 geometry  form /linux/exe/gxint.exe
  
 Command [10] rz/file 21 ams02.g3 on
-f2users/choutko/ROOT/root/bin/g2rootold ams02.g3
+pcamsf8 /f2users/choutko/ROOT/root/bin/g2rootold ams02.g3
 
 patch ams02.C add at the end
 
@@ -12,4 +12,4 @@ ams02->Write();
 f.Write();
 f.Close();
  
-root .x ams02.C
+root  ams02.C

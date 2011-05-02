@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.44 2011/05/02 20:57:30 pzuccon Exp $
+//  $Id: timeid.h,v 1.45 2011/05/02 23:23:57 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -231,7 +231,7 @@ public:
       times[2]=_pDataBaseEntries[3][ii]; //end
       return _pDataBaseEntries[2][ii];   //begin
     }
-    else return -1;
+    else return 0;
   }
   
 integer  GetNbytes() const { return _Nbytes;}

@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.21 2011/04/28 02:06:32 choutko Exp $
+//  $Id: trdrec.h,v 1.22 2011/05/02 23:23:58 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -202,7 +202,7 @@ short int Charge[10];
 float ChargeP[10];
 TrackCharge():Q(0){
 for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
-for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=0;
+for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
 }
 static float ChargePDF[10030]; //0-100 kev; [1000]=0.1  [1001] charge [1002] not set
 

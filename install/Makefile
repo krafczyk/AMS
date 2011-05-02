@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.158 2011/05/02 21:26:47 choutko Exp $
+#  $Id: Makefile,v 1.159 2011/05/02 23:23:58 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -440,7 +440,7 @@ OBJECTCL= $(BIN)server-cpp-stubs.o                           $(BIN)server-cpp-co
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
 
 OBJECTSEAUX=    $(BIN)id.o         $(BIN)node.o     $(BIN)astring.o \
-		$(BIN)client.o     $(BIN)amsdbc.o   $(BIN)timeid_s.o \
+		$(BIN)client.o     $(BIN)amsdbc.o   $(BIN)timeid_server.o \
 		$(BIN)apool.o      $(BIN)snode.o    $(BIN)dbserver.o  
 
 #--------------------------------------------------------------------------------------------------
@@ -538,7 +538,8 @@ ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o 
+        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o \
+$(BIN)timeid_s.o
 
 
 else
@@ -801,8 +802,8 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 $(BIN)timeid_c.o:        $(SCC)timeid.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
 
-$(BIN)timeid_s.o:        $(SCC)timeid.C
-	$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
+$(BIN)timeid_server.o:        $(SCC)timeid.C
+	$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_server.o
 
 $(BIN)producer.o: 	 $(SCC)producer.C
 	$(CXX_ORBIT) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o

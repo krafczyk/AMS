@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.52 2011/04/28 02:06:27 choutko Exp $
+//  $Id: trdrec.C,v 1.53 2011/05/02 23:23:57 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1090,6 +1090,7 @@ double range=d<0?0:2*sqrt(d)/a;
    for (int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
     if(TrackCharge::ChargePDF[k*span+span-1]){
     _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
+    _Charge.ChargeP[k]=0;
     for(int i=0;i<edepc.size();i++){
       int ch=edepc[i]/beta/TrackCharge::ChargePDF[k*span+span-3];
       if(ch<0)ch=0;
@@ -1101,6 +1102,7 @@ double range=d<0?0:2*sqrt(d)/a;
       for(int l=k;l>0;l--){
         if(TrackCharge::ChargePDF[l*span+span-1]){
          _Charge.Charge[k]=TrackCharge::ChargePDF[k*span+span-2];  
+         _Charge.ChargeP[k]=0;
          float factor=_Charge.Charge[l]/_Charge.Charge[k];
           for(int i=0;i<edepc.size();i++){
             int ch=edepc[i]*factor*factor/beta/TrackCharge::ChargePDF[l*span+span-3];
@@ -1176,15 +1178,14 @@ double smax=0;
 for(int k=0;k<span-3;k++){
   float a=TrackCharge::ChargePDF[ptr*span+k];
   if(a<=0){
-    for(int j=k+1;j<span-3;j++){
-      if(TrackCharge::ChargePDF[ptr*span+j] || j==span-4){
-        for(int l=k;l<j;l++){
-         TrackCharge::ChargePDF[ptr*span+l]=0.5;
-        }
-        break;
+    float sum=0;
+    for(int j=k;j<span-3;j++){
+      if(TrackCharge::ChargePDF[ptr*span+j]<10)sum+=TrackCharge::ChargePDF[ptr*span+j];
+    }
+    for(int j=k;j<span-3;j++){
+        if(TrackCharge::ChargePDF[ptr*span+j]<10)TrackCharge::ChargePDF[ptr*span+j]=(sum==0?1:sum)/(span-3-k);
       }
     }
-  }
  }
 for(int k=0;k<span-3;k++){
 smax+=TrackCharge::ChargePDF[ptr*span+k];

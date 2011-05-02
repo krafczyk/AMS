@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.277 2011/04/30 07:13:16 shaino Exp $
+//  $Id: root.C,v 1.278 2011/05/02 23:23:57 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1409,7 +1409,7 @@ char TrRecHitR::_Info[255];
 char TrTrackR::_Info[255];
 char TrMCClusterR::_Info[255];
 #endif
-//char TrdHTrackR::_Info[255];
+float TrdTrackR::ChargePDF[10030];
 char TrdTrackR::_Info[255];
 char TrdClusterR::_Info[255];
 char EcalClusterR::_Info[255];
@@ -2789,6 +2789,19 @@ AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 }
 
 
+double BetaR::GetTRDBetaCorr(int datamc){
+if(datamc!=0)datamc=1;
+              double p[2][3]={0.522677,-0.16927,0.676221,
+                              0.522677,-0.16927,0.676221};
+              double betamc1=0;
+              for(int k=0;k<sizeof(p)/sizeof(p[0][0])/2;k++)betamc1+=p[datamc][k]*pow(fabs(Beta),k);
+              double x=(betamc1+fabs(Beta))/2;
+              if(x>0.96)x=0.96;
+              double norm=1.8377e-1;
+              double corr=norm/x/x*(log(x*x/(1-x*x))-x*x+(8*log(0.511e6*2/10/54)+2*log(0.511e6*2/10/6)+4*log(0.511e6*2/10/8))/14.);
+              return corr;
+
+}
 
 BetaR::BetaR(AMSBeta *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
@@ -3251,6 +3264,180 @@ TrdSegmentR::TrdSegmentR(AMSTRDSegment *ptr){
   Chi2          = ptr->_Chi2;
   Pattern       = ptr->_Pattern;
 #endif
+}
+
+#include <fstream>
+bool TrdTrackR::CreatePDF(const char *fnam){
+
+
+ifstream file;
+
+if(fnam)file.open(fnam);
+else if(getenv("TRDChargePDFFile")){
+file.open(getenv("TRDChargePDFFile"));
+}
+else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
+ AMSEventR::Head()->getsetup()->fTDV_Name.clear();
+ AMSEventR::Head()->getsetup()->getAllTDV("TRDPDF");
+ if(AMSEventR::Head()->getsetup()->fTDV_Name.size()){
+  if(AMSEventR::Head()->getsetup()->fTDV_Name[0].Size == AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()){ 
+    for(int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
+     ChargePDF[k]=AMSEventR::Head()->getsetup()->fTDV_Name[0].Data[k];
+    }
+  }
+  else cerr<<"Charge::ChargePDF-E- "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Name<<" RealSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<< " Size "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size<<endl;
+  }
+  else{
+    cerr<<"Charge::ChargePDF-E-noTDV "<<"TRDPDF"<<endl;
+  }
+}
+else{
+ cerr<<"Charge::ChargePDF-E-FileNotDefined"<<endl;
+  
+return false;
+}
+if(!file){
+ cerr<<"Charge::ChargePDF-E-UnableToOpen "<<fnam <<" "<<getenv("TRDChargePDFFile")<<endl;
+return false;
+}
+for(int k=0;k<sizeof(ChargePDF)/sizeof(ChargePDF[0]);k++)ChargePDF[k]=0;
+int ptr=0;
+const int span=1003;
+while(file.good() && !file.eof()){
+
+file>>ChargePDF[ptr*span+span-3];  //e2c
+file>>ChargePDF[ptr*span+span-2];  //id
+file>>ChargePDF[ptr*span+span-1];  //ok
+for(int k=0;k<span-3;k++)file>>ChargePDF[ptr*span+k];
+double smax=0;
+for(int k=0;k<span-3;k++){
+  float a=ChargePDF[ptr*span+k];
+  if(a<=0){
+    float sum=0;
+    for(int j=k;j<span-3;j++){
+      if(ChargePDF[ptr*span+j]<10)sum+=ChargePDF[ptr*span+j];
+    }
+    for(int j=k;j<span-3;j++){
+        if(ChargePDF[ptr*span+j]<10)ChargePDF[ptr*span+j]=(sum==0?1:sum)/(span-3-k);
+      }
+    }
+  }
+ 
+for(int k=0;k<span-3;k++){
+smax+=ChargePDF[ptr*span+k];
+}
+for(int k=0;k<span-3;k++)ChargePDF[ptr*span+k]/=smax;
+if(ChargePDF[ptr*span+span-1])ptr++;
+
+
+}
+
+cout <<"Charge::ChargePDF-I- "<<ptr<<" pdf loaded for ";
+for(int k=0;k<ptr;k++)cout<<ChargePDF[k*span+span-2]<<" ";
+cout <<endl;
+if(ptr<3){
+ cerr<<"Charge::ChargePDF-E-minimal 3 PDF Needed "<<endl;
+ return false;
+}
+for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
+  ChargePDF[i*span+span-2]=i;
+}
+for(int k=0;k<10;k++){
+ AMSEventR::hbook1(5000+k,"pdf func ",1000,0.,100.);
+  for(int j=0;j<span-3;j++){
+     AMSEventR::hf1(5000+k,j/10.+0.05,ChargePDF[span*k+j]);
+}
+}
+return true;
+}
+
+
+
+void TrdTrackR::ComputeCharge(double betacorr){
+            for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
+            for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
+            vector<float>edepc;
+     for(int k=0;k<NTrdSegment();k++){
+        TrdSegmentR tseg=*(pTrdSegment(iTrdSegment(k)));
+        for (int l=0;l<tseg.NTrdCluster();l++){
+          TrdClusterR trdcl=*(tseg.pTrdCluster(tseg.iTrdCluster(l)));
+          if(trdcl.Multip<3){
+            float range=trdcl.Range(Coo,Theta,Phi);
+            double norm=TrdClusterR::RangeCorr(0.57,1.);        
+            double e=trdcl.EDep/TrdClusterR::RangeCorr(range,norm);
+                edepc.push_back(e);         
+          }
+         }
+        }
+        if(edepc.size()>6){
+
+   sort(edepc.begin(),edepc.end());
+   double medianc=0;            
+   if(edepc.size()%2)for(int k=edepc.size()/2-2;k<edepc.size()/2+3;k++)medianc+=edepc[k]/5;
+   else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
+   Q=sqrt(medianc/betacorr)*1/1.0925+0.115/1.0925;
+
+
+   //lkhd
+   const int span =sizeof(ChargePDF)/sizeof(ChargePDF[0])/(sizeof(Charge)/sizeof(Charge[0]));
+   for (int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+    if(ChargePDF[k*span+span-1]){
+    Charge[k]=ChargePDF[k*span+span-2];  
+    ChargeP[k]=0;
+    for(int i=0;i<edepc.size();i++){
+      int ch=edepc[i]/betacorr/ChargePDF[k*span+span-3];
+      if(ch<0)ch=0;
+      if(ch>span-3)ch=span-3;
+      ChargeP[k]+=-log(ChargePDF[k*span+ch]);
+    }
+    }
+    else{
+      for(int l=k;l>0;l--){
+        if(ChargePDF[l*span+span-1]){
+         Charge[k]=ChargePDF[k*span+span-2];  
+         ChargeP[k]=0;
+         float factor=Charge[l]/Charge[k];
+          for(int i=0;i<edepc.size();i++){
+            int ch=edepc[i]*factor*factor/betacorr/ChargePDF[l*span+span-3];
+            if(ch<0)ch=0;
+            if(ch>span-3)ch=span-3;
+              ChargeP[k]+=-log(ChargePDF[l*span+ch]);
+          }
+         break;
+        }
+      }
+    }
+    
+   }
+
+   multimap<float,short int> chmap;
+   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+     chmap.insert(make_pair(ChargeP[k],Charge[k]));
+   }
+   int l=0;
+   for(multimap<float,short int>::iterator k=chmap.begin();k!=chmap.end();k++){
+        Charge[l]=k->second;
+        ChargeP[l++]=k->first;
+   }
+
+
+ }
+
+
+        }
+
+
+TrdTrackR::TrdTrackR(const TrdTrackR &o){
+if(&o!=this){
+ for(int k=0;k<3;k++)Coo[k]=o.Coo[k];
+ for(int k=0;k<3;k++)ErCoo[k]=o.ErCoo[k];
+ Phi=o.Phi; 
+ Theta=o.Theta; 
+ Q=o.Q;
+ for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=o.Charge[k];
+ for(int k=k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=o.ChargeP[k];
+ for(int i=0;i<o.fTrdSegment.size();i++)fTrdSegment.push_back(o.fTrdSegment[i]);  
+}
 }
 
 TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
@@ -3946,6 +4133,19 @@ TrdRawHitR* TrdClusterR::pTrdRawHit(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdRawHit(fTrdRawHit):0;
 }
 
+double TrdClusterR::RangeCorr(double range, double norm){
+  double p[3]={2.83105,-2.56767,+4.53374};
+  double b[2]={0.3,0.75};
+   double corr=1;
+    double rng=range;
+  if(rng<b[0])rng=b[0];
+  if(rng>b[1])rng=b[1];
+  
+  for(int i=0;i<sizeof(p)/sizeof(p[0]);i++){
+    corr+=p[i]*pow(rng,double(i));
+  }
+  return corr/norm;
+}
 double TrdClusterR::Range(float coo[], float theta,float phi){
 double R=0.3;
 AMSPoint  c1(Coo);
