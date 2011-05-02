@@ -68,7 +68,7 @@ foreach my $chop  (@ARGV){
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
             my $host=$sqls->ior2host($sqls->{IORS});
-            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc,$host)";
+            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc,'$host')";
                  $sqls->Update($sql);
                  last;
         }
