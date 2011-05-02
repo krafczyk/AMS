@@ -1,4 +1,4 @@
-# $Id: root.perl,v 1.5 2010/10/22 09:18:16 choutko Exp $
+# $Id: root.perl,v 1.6 2011/05/02 23:57:47 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -55,6 +55,9 @@ while ( my $line = <FILEI>){
             }
         } 
         if(!($line=~/\;/) ){
+            next;
+        }
+        if($line=~/static/){
             next;
         }
         my @pat=split /\;/, $line;
