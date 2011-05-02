@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.142 2011/01/07 23:10:16 ams Exp $
+# $Id: Monitor.pm,v 1.143 2011/05/02 21:34:03 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -533,6 +533,8 @@ sub getior{
      if(defined $ret->[0][0]){
          my $ref=shift;
          $ref->{dbfile}=$ret->[0][2];
+         my $host=$sqls->ior2host($ret->[0][0]);
+         print "Host : $host \n";
          return $ret->[0][0];
      } 
     }    

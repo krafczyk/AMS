@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.664 2011/04/25 14:02:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.665 2011/05/02 21:33:44 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1443,7 +1443,9 @@ if( defined $ref->{dbfile}){
 #                 my $createt=time();
                  my $sql="delete from Servers where dbfilename='$ref->{dbfile}'";
                  $ref->{sqlserver}->Update($sql);
-                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}','xyz','Active',$ac->{Start},$createt,$ref->{DataMC})";
+                 my $hostname=$ref->{sqlserver}->ior2host($ref->{IOR});
+                   
+                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}','xyz','Active',$ac->{Start},$createt,$ref->{DataMC}),$hostname";
                  $ref->{sqlserver}->Update($sql);
                  last;
                 }

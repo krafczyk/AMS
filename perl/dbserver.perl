@@ -67,7 +67,8 @@ foreach my $chop  (@ARGV){
             my $createt=time();
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
-            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc)";
+            my $host=$sqls->ior2host($sqls->{IORS});
+            $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc,$host)";
                  $sqls->Update($sql);
                  last;
         }

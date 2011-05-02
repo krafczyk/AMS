@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.88 2011/03/31 12:19:50 dmitrif Exp $
+# $Id: DBSQLServer.pm,v 1.89 2011/05/02 21:34:02 choutko Exp $
 
 #
 #
@@ -54,7 +54,7 @@ use Time::localtime;
 my $MCCitesMailsFile = "../doc/mc.cites.mails"; # file with cites and mails definitions
 my $MCFilesystems="../doc/mc.filesystems";      # file with filesystems definitions
 
-@DBSQLServer::EXPORT= qw(new Connect ConnectRO QueryAll Query QuerySafe Update Commit set_oracle_env);
+@DBSQLServer::EXPORT= qw(new Connect ConnectRO QueryAll Query QuerySafe Update Commit set_oracle_env ior2host);
 my %fields=(
      start=>undef,
      cid=>undef,
@@ -1004,4 +1004,32 @@ sub trimblanks {
         s/\s+$//;
     }
     return wantarray ? @inp_string : $inp_string[0];
+}
+
+sub ior2host{
+    my $self=shift;
+    my $ior=shift;
+    my $ret="";
+    if(defined $ior){
+      my $timenow=time();
+      my $file="/tmp/ior.$timenow";
+      my $cmd="ior-decode-2 $ior 1>$file 2>&1";
+      my $i=system($cmd);
+      if(!$i){
+          if(open(FILE,"<$file")){
+              my $buf;
+              read(FILE,$buf,32767);
+              close(FILE);
+              my @junk=split 'GIOP 1.2 ',$buf;
+              if($#junk>0){
+                  my @j1=split ':',$junk[1];
+                  if($#j1>0){
+                      $ret=$j1[0];
+                  }
+              }
+          }
+      }
+      unlink $file;      
+  }
+    return $ret;
 }
