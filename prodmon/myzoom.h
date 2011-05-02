@@ -11,6 +11,8 @@ void myzoom() {
 		if (!big)
 			big = new TCanvas("big","big",600,600);
 		big->cd();
+		gPad->SetFillColor(41);
+        	gPad->SetFrameFillColor(33);
 		TIter next(pad->GetListOfPrimitives());
 		TObject* obj;
 		while(obj=next()){

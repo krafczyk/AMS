@@ -187,7 +187,10 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 }
 void Menu::draw_history(){
 	TCanvas*c=_fhtab->GetCanvas();
+	c->SetFillColor(28);
 	c->cd(1);
+	gPad->SetFillColor(41);
+        gPad->SetFrameFillColor(33);
 	gPad->SetLogy();
 	Int_t i=0;
 	Int_t flag=0;
@@ -276,9 +279,13 @@ Menu::~Menu(){
 void Menu::draw(){
 	Int_t i=0;
 	TCanvas*c=_ftab->GetCanvas();
+	c->SetFillColor(28);
+	
 	TLegend*l;
 	for(i=0;i<_fdata->_hists_name.size();i++){
 		c->cd(_ftab->Getpid(_fdata->_hists_name[i]));
+		gPad->SetFillColor(41);
+        	gPad->SetFrameFillColor(33);
 		_fdata->_hists_1[i]->Draw();
 		_fdata->_hists_1[i]->SetLineColor(kRed);
 		_fdata->_hists_2[i]->Draw("SAME");
@@ -297,6 +304,9 @@ void Menu::draw(){
 	_ftab->GetCanvas()->Update();
 	c=_fstab->GetCanvas();
 	c->cd(1);
+	c->SetFillColor(28);
+	gPad->SetFillColor(41);
+        gPad->SetFrameFillColor(33);
 	l=new TLegend(0.5,0.85,0.98,0.95);
 	_fdata->_hists_summary[0]->Draw("bar2");
 	_fdata->_hists_summary[0]->SetMinimum(1.0);
@@ -467,6 +477,7 @@ void Menu::HandleMenu(Int_t i){
 					timer1->Stop();
 				}
 			}
+			
 			mode=1;
                 }
 		if(fMenuFile->IsEntryEnabled(9))
@@ -476,6 +487,14 @@ void Menu::HandleMenu(Int_t i){
                         fMenuFile->DisableEntry(0);
                         fMenuFile->DisableEntry(1);
                 }
+		if(!fMenuPlot->IsEntryEnabled(1)){
+                        fMenuPlot->EnableEntry(1);
+		}
+                if(fMenuPlot->IsEntryEnabled(2)){
+                        fMenuPlot->DisableEntry(2);
+                        timer1->Stop();
+                }
+
                 return;
         }
         FILE *fp;

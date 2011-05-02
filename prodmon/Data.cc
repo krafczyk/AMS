@@ -5,6 +5,8 @@ Data::Data(vector<string> hists_name,vector<string> hists_name_summary,vector<st
 	n1_changed=true;
 	n2_changed=true;
 	nhist=hists_name.size();
+	
+        fpre_time=time(0);	
 	_hists_1.resize(nhist);
 	_hists_2.resize(nhist);
 	i=hists_name_summary.size();
@@ -170,7 +172,7 @@ Bool_t Data::Generate_hist(){
                         //pbar->ShowPosition();
                 }	
 	}
-	
+		
 	l=_hists_2[0]->GetEntries();
 	 _hists_2[0]->Scale(1.0/(double)l);
 	l=_hists_2[1]->GetEntries();
@@ -252,7 +254,12 @@ Bool_t Data::Generate_hist(){
 		}
 		else{
 			for(k=0;k<_hists_h.size();k++){
-				_hists_h[k]->Fill(Form("No new file;%s",ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
+				if(time(0)-fpre_time<300)
+					_hists_h[k]->Fill(Form("                                                                                          No new file;%s",ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
+				else{
+					_hists_h[k]->Fill(Form("%s",ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
+					fpre_time=time(0);
+				}
 		}
 	}
 	for(i=1;i<=10;i++)

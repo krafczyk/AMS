@@ -2,7 +2,7 @@
 #include <iostream>
 #include "TH1F.h"
 #include "TDirectory.h"
-
+#include "time.h"
 
 #include "root.h"
 #include "amschain.h"
@@ -31,6 +31,7 @@ public:
 	vector<TH1F*> _hists_h;
 	vector<string> _hists_name_h;	
 private:
+	time_t fpre_time;
 	bool n1_changed;
 	bool n2_changed;
 	Int_t nhist;
