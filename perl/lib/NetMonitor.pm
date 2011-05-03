@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.34 2011/04/08 16:11:05 ams Exp $
+# $Id: NetMonitor.pm,v 1.35 2011/05/03 12:43:35 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -24,7 +24,9 @@ my %fields=(
   hosts=>[],
   excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0'],
+  clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
+  filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -69,8 +71,8 @@ sub InitOracle{
     my $pwd="";
     my $user="amsdes";
     
-#    my $oracle="/afs/cern.ch/user/a/ams/.oracle/.oracle.oracle";
-  my $oracle="/var/www/cgi-bin/mon/lib/.oracle.oracle";
+    my $oracle="/afs/cern.ch/user/a/ams/.oracle/.oracle.oracle";
+#  my $oracle="/var/www/cgi-bin/mon/lib/.oracle.oracle";
   aga2:
     if(not open(FILE,"<".$oracle)){
       $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n",0,1);
@@ -172,19 +174,95 @@ if(not open(FILE,"<".$self->{hostfile})){
 
         }
     }
-#    sleep(6);
-#    while (my ($host,$rtt,$ip) = $self->{ping}->ack) {
-#      print "HOST: $host [$ip] ACKed in $rtt seconds.\n";
+
+#cluster cman_tool check
+
+#    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' -t -t ";
+#    $mes="NetMonitor-W-NodeNotInCluster";
+#    foreach my $host (@{$self->{clusterhosts}}){
+#        my $gonext=0;
+#        foreach my $bad (@{$self->{bad}}){
+#            my @sbad=split ' ',$bad;
+#            if($sbad[0] ){
+#                $gonext=1;
+#                last;
+#            }
+#        }
+#        if($gonext){
+#            next;
+#        }
+#        unlink "/tmp/cluster";
+#        my $i=system($command.$host." \'sudo /usr/sbin/cman_tool status\' | grep \'Nodes: 7\' | wc -l > /tmp/cluster");
+#        if(1 or not $i){
+#            if(not open(FILE,"<"."/tmp/cluster")){
+#                push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+#                print "Cluster error: $host \n";
+#                next;
+#            }
+#            if(not read(FILE,$buf,16384)){
+#                push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
+#                print "Cluster error: $host \n";
+#                close FILE;
+#                next;
+#            }
+#            close FILE;
+#            unlink "/tmp/cluster";
+#            if($buf != 1){
+#                push @{$self->{bad}}, $host." NetMonitor-W-NodeNotInCluster";
+#            }
+#        }
 #    }
-#    sleep(6);
-#@{$self->{bad}}=keys %{$self->{ping}->{bad}};
+
+#fs check
+
+    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $mes="NetMonitor-W-NodeFileSystemProblem";
+    foreach my $host (@{$self->{hosts}}){
+        print "Fs check: $host\n";
+        my $gonext=0;
+        foreach my $bad (@{$self->{bad}}){
+            my @sbad=split ' ',$bad;
+            if($sbad[0] ){
+                $gonext=1;
+                last;
+            }
+        }
+        if($gonext){
+            next;
+        }
+        my $i="";
+        foreach my $fs (@{$self->{filesystems}}){
+            unlink "/tmp/filesys";
+            $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
+            if(1 or not $i){
+                if(not open(FILE,"<"."/tmp/filesys")){
+                    push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+                    print "Fs error: $host $fs\n";
+                    next;
+                }
+                if(not read(FILE,$buf,16384)){
+                    push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
+                    print "Fs error: $host $fs\n";
+                    close FILE;
+                    next;
+                }
+                close FILE;
+#                print "Fs good: $host $fs\n";
+                unlink "/tmp/filesys";
+                if($buf == 0){
+                    push @{$self->{bad}}, $host." NetMonitor-W-NodeFileSystemProblem";
+                }
+            }
+        }
+    }
+
 
 #
 # Now timing
 #
 
     $mes="NetMonitor-W-SomeHostsHaveWrongTime";
-    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 #    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
