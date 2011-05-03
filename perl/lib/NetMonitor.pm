@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.35 2011/05/03 12:43:35 ams Exp $
+# $Id: NetMonitor.pm,v 1.36 2011/05/03 17:36:51 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -23,7 +23,7 @@ my %fields=(
   sendmail=>[],
   hosts=>[],
   excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
-  dbhosts=>['pcamss0'],
+  dbhosts=>['pcamss0','amsvobox02'],
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
@@ -108,6 +108,7 @@ sub Run{
 #     $self->{ping} = Net::Ping->new();
     $self->{ping} = Net::Ping->new("tcp");
     $self->{ping}->{port_num} =20001;
+    $self->getprodservers();
 #    $self->{ping}->{port_num} = getservbyname("http", "tcp");
 
 
@@ -233,19 +234,19 @@ if(not open(FILE,"<".$self->{hostfile})){
         my $i="";
         foreach my $fs (@{$self->{filesystems}}){
             unlink "/tmp/filesys";
-            $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
+           $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
             if(1 or not $i){
                 if(not open(FILE,"<"."/tmp/filesys")){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-                    print "Fs error: $host $fs\n";
+#                    print "Fs error: $host $fs\n";
                     next;
                 }
                 if(not read(FILE,$buf,16384)){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-                    print "Fs error: $host $fs\n";
+#                    print "Fs error: $host $fs\n";
                     close FILE;
                     next;
-                }
+               }
                 close FILE;
 #                print "Fs good: $host $fs\n";
                 unlink "/tmp/filesys";
@@ -313,6 +314,10 @@ if(not open(FILE,"<".$self->{hostfile})){
 	#
 	# dbhosts targets
 	#
+        my @foundp=();
+        foreach my $target (@{$self->{dbhoststargets}}){
+            push @foundp, 0;
+        }
 	    $mes="NetMonitor-W-DBHostsTargetsProblems";
 	      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 	   foreach my $host (@{$self->{dbhosts}}){
@@ -343,8 +348,10 @@ if(not open(FILE,"<".$self->{hostfile})){
             unlink "/tmp/dbhosts";
              my $nt=-1;
             my $twp="";
+            my $pn=-1;
              foreach my $target (@{$self->{dbhoststargets}}){
                  my $found=0;
+#                print "checking $target on $host\n";
               foreach my $word (@words) {
                 if($word=~/$target/){
                    $nt++;
@@ -352,19 +359,28 @@ if(not open(FILE,"<".$self->{hostfile})){
                    last;
                  }
                 }
+                $pn++;
                 if($found==0){
-                 $twp=$twp."\_$target\_";  
-             }
+#                    print "not found\n";
+#                    $foundp[$pn]=0;
+#                    $twp=$twp."\_$target\_";
+                }else{
+                    $foundp[$pn]=1;
+                }
              }
                print " joptat $nt \n;";
-               if($nt!=$#{@{$self->{dbhoststargets}}}){
- push @{$self->{bad}}, $host." NetMonitor-W-DBHostsTargetsProblems".$nt."$twp";
-}
-else{
-#print " $host ok $nt \n ";
 }
 }
-}
+    my $cnt=0;
+#    print @foundp;
+    foreach my $target (@{$self->{dbhoststargets}}){
+        if($foundp[$cnt]==0){
+            push @{$self->{bad}}, "$target NetMonitor-W-DBHostsTargetsProblems ";
+            next;
+        }
+        $cnt++;
+    }
+
 #
 # df
 #
@@ -648,4 +664,22 @@ sub updateoracle{
     }
     $self->{sqlserver}->{lastupdate}=$curtim;
     return 1;
+}
+
+sub getprodservers{
+    my $self=shift;
+    my $sql="select unique hostname from servers";
+
+    my $sth=$self->{sqlserver}->{dbhandler}->prepare($sql);
+    $sth->execute;
+    my $ret=$sth->fetchall_arrayref();
+
+    if( defined $ret->[0][0]){
+        foreach my $host (@{$ret}){
+            push @{$self->{dbhosts}}, $host->[0];
+#            print $host->[0];
+        }
+    }else{
+        push @{$self->{dbhosts}}, "pcamss0.cern.ch";
+    }
 }
