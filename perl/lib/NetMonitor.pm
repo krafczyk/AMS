@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.36 2011/05/03 17:36:51 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.37 2011/05/03 17:40:48 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -219,7 +219,7 @@ if(not open(FILE,"<".$self->{hostfile})){
     my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     $mes="NetMonitor-W-NodeFileSystemProblem";
     foreach my $host (@{$self->{hosts}}){
-        print "Fs check: $host\n";
+#        print "Fs check: $host\n";
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
             my @sbad=split ' ',$bad;
