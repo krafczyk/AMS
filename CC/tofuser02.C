@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.44 2011/04/20 20:58:54 choumilo Exp $
+//  $Id: tofuser02.C,v 1.45 2011/05/03 14:15:25 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -574,6 +574,7 @@ Nextp:
     if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
+    if(betpatt<5){//>=3of4
       if(beta<0)HF1(1501,beta,1.);
       else HF1(11501,beta,1.);
       HF1(1520,beta,1.);
@@ -582,6 +583,7 @@ Nextp:
       HF1(1511,chi2t,1.);
       HF1(1512,chi2s,1.);
       HF1(1513,chi2,1.);
+    }
 }
     }
     bad=0;

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.80 2011/04/25 15:28:34 choumilo Exp $
+//  $Id: tofrec02.C,v 1.81 2011/05/03 14:15:25 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -75,8 +75,10 @@ void TOF2RawSide::validate(int &status,int cont){ //Check/correct RawSide-struct
   integer sumHTd(0);
   int retval;
 //
-  if(!AMSJob::gethead()->isRealData())
-                sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
+//  if(!AMSJob::gethead()->isRealData())
+//                sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
+//          (now do not need - delay is added in mcbuild to sumHT(SHT) arrays !!!)
+//
   status=1;//bad
 //
   ptr=(TOF2RawSide*)AMSEvent::gethead()

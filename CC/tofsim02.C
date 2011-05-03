@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.52 2011/04/20 20:58:54 choumilo Exp $
+//  $Id: tofsim02.C,v 1.53 2011/05/03 14:15:25 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -2603,6 +2603,7 @@ void TOF2RawSide::mc_build(int &status)
   int phn,nhn,nhnmin;
   geant tprev,tnext;
   integer itprev;
+  integer sumHTd=floor(0.5+TFMCFFKEY.sumHTdel/TOF2DBc::tdcbin(1));//sumHT-LT signal h/w delay for MC(tdc-ch)
   geant apw=TOF2DBc::daqpwd(11);//PW>=tdcDT for SumHT-ch on ACTEL-output(= TDC-input) 
   for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
     for(int sl=0;sl<TOF2GC::SCFETA-1;sl++){
@@ -2610,7 +2611,8 @@ void TOF2RawSide::mc_build(int &status)
       if(nhits>0){//<====== non-empty slot with SumHTt-hits
         for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
 	  tprev=TOF2Tovt::SumHTt[ic][sl][phn];
-          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+//          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl]+TFMCFFKEY.sumHTdel;//add sincronization(CoarseCounter state)+delay(wrt LT)
           lev1tms=lev1tm+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(TrigTimeTagCounter state)
 	  itprev=TofTdcCorMS::getbins(htims,lev1tms);//linear mode
 	  if(itprev<0)continue;//not in TDC's search window, take next hit
@@ -2631,7 +2633,8 @@ void TOF2RawSide::mc_build(int &status)
       if(nhits>0){//<-- non-empty slot with SumSHTt-hits
         for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
 	  tprev=TOF2Tovt::SumSHTt[ic][sl][phn];
-          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+//          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(CoarseCounter state)
+          htims=tprev+TOF2Tovt::TofATdcT0[ic][sl]+TFMCFFKEY.sumHTdel;//add sincronization(CoarseCounter state)+delay(wrt LT)
           lev1tms=lev1tm+TOF2Tovt::TofATdcT0[ic][sl];//add sincronization(TrigTimeTagCounter state)
 	  itprev=TofTdcCorMS::getbins(htims,lev1tms);//linear mode
 	  if(itprev<0)continue;//not in TDC's search window, take next hit
