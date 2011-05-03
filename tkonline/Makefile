@@ -8,7 +8,7 @@ BINDIR         := bin
 CINT           := $(ROOTSYS)/bin/rootcint
 ROOTCFG        := $(ROOTSYS)/bin/root-config
 ARCH           := $(shell $(ROOTCFG) --arch)
-CXXFLAGS       := -g -Wno-deprecated -Wno-write-strings -D_PGTRACK_ -D_STANDALONE_ -D__ROOTSHAREDLIBRARY__ -D__CORBASERVER__
+CXXFLAGS       := -g -Wno-deprecated -Wno-write-strings -D_PGTRACK_ -D_STANDALONE_ -D__ROOTSHAREDLIBRARY__ 
 ifeq ($(ARCH),macosx64)
   CXXFLAGS     += -D__DARWIN__ 
 else
@@ -21,7 +21,7 @@ LIBS           := $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
 LIBS           += $(shell $(ROOTCFG) --glibs)
 
 ### Additional Classes Dictionary  
-CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI
+CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
 CLASSES        += Predict 
 DICTINCNAMES   := $(CLASSES) LinkDef
 DICTINC        := $(addprefix $(PWD)/$(INCDIR)/, $(addsuffix .h, $(DICTINCNAMES)))

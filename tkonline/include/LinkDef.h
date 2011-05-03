@@ -14,6 +14,7 @@
 #pragma link C++ class SearchPanel;
 #pragma link C++ class TimerPanel;
 #pragma link C++ class MonitorUI;
+#pragma link C++ class CalList;
 
 #endif 
 

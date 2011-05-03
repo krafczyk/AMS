@@ -16,6 +16,8 @@
 #include <TrLadCal.h>
 #include "SliderI.h"
 
+
+class AMSTimeID;
 char * GetOctName(int oct);
 
 class CalSlider: public SliderI {
@@ -42,6 +44,7 @@ class CalSlider: public SliderI {
   void SetHistStyle3(TH1* hh);
   
  public:
+  AMSTimeID *TDV;
 
   TPaveLabel *label;
   TFile *rootfile,*reffile;
@@ -52,7 +55,7 @@ class CalSlider: public SliderI {
   
   CalSlider(char *name,char *title,int xsize=1000, int ysize=400);
   ~CalSlider();
-  
+  int OpenTDV();
   int try2Draw(TrLadCal *cc);
   
   /* To implement interface */

@@ -82,6 +82,11 @@ MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMai
 
 void MonitorUI::HandleFile(char* filename, int ref) {
   gs->Clear();
+  if(strcmp(filename,"-W")==0){    
+    gs->addSlider(GenericSlider::kCalSlider);
+    gs->setRootFile(filename);
+    return;
+  }else{
   TFile* file = TFile::Open(filename,"r");
   if (file==0) { 
     printf("MonitorUI::HandleFile-W cannot open the file (%s), please try again using the File::Open menu.\n",filename); 
@@ -103,6 +108,7 @@ void MonitorUI::HandleFile(char* filename, int ref) {
     printf("MonitorUI::HandleFile-W file not recognized in (%s), please try again using the File::Open menu.\n",filename);
     return;
   }
+  }
 }
 
 
@@ -121,10 +127,8 @@ void MonitorUI::HandleMenu(Int_t id){
     break;
   case M_CAL_DB:
     {
-      char rrun[20];
-      TGInputDialog* aa = new TGInputDialog(gClient->GetRoot(), 0,"Insert CAL run number","1259011030",rrun);
-      printf("Insert here a dialog box for the number\n");
-      gs->setCalfromDB(atoi(rrun));
+      //      gs->addSlider(GenericSlider::kCalSlider);
+      HandleFile("-W",0);
     }
     break;
   case M_FILE_EXIT:

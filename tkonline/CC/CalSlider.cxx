@@ -8,7 +8,9 @@
 #include "TLine.h"
 #include <vector>
 #include <ctime>
-
+#include "amsdbc.h"
+#include "timeid.h"
+#include "CalList.h"
 ClassImp(CalSlider);
 
 char* CalSlider::filename=0;
@@ -30,6 +32,7 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   label = NULL;
   text = 0;
   // histograms init
+  TDV=0;
   Ped   = 0;
   SigR  = 0;
   Sig   = 0;
@@ -123,8 +126,21 @@ int CalSlider::try2Draw(TrLadCal *cc){
 
 
 void CalSlider::setRootFile(char *filename){
-  rootfile = TFile::Open(filename,"read");
-  caldb = (TrCalDB*) rootfile->Get("TrCalDB");
+  if(strcmp(filename,"-W")==0){    
+    if(TrCalDB::Head==0||caldb==0){
+      caldb=new TrCalDB();
+      TrCalDB::Head=0;
+      caldb->init();
+    }
+    char rrun[20];
+    if(!TDV) OpenTDV();
+    //    AMSTimeID* tt= ((CalSlider*)gs->slider)->TDV;
+    CalList* bb=new CalList(TDV,gClient->GetRoot(),0, 200, 200); 
+    rootfile=0;
+  }else{
+    rootfile = TFile::Open(filename,"read");
+    caldb = (TrCalDB*) rootfile->Get("TrCalDB");
+  }
   // canvas title
   char title[100];
   time_t pippo = (time_t)caldb->GetRun();
@@ -1604,7 +1620,16 @@ void CalSlider::Draw8(const Option_t *aa,int flag) {
 
 #include "timeid.h"
 
-int CalSlider::ReadCalFromDB(time_t run){
+int CalSlider::OpenTDV(){
+  char * dd=getenv("AMSDataDir");
+  char nn[100];
+  sprintf(nn,"%s/DataBase/",dd);
+  AMSDBc::amsdatabase=new char[strlen(nn)+1];
+  strcpy(AMSDBc::amsdatabase,nn);
+  if(TrCalDB::Head==0){
+    TrCalDB* db= new TrCalDB();
+    db->init();
+  }
   TrCalDB::Head->CreateLinear();
   TrCalDB::Head->Clear();
 
@@ -1627,13 +1652,20 @@ int CalSlider::ReadCalFromDB(time_t run){
   end.tm_year=0;
   int need=1;
   AMSTimeID::CType server=AMSTimeID::Standalone;
-  AMSTimeID *tt= new AMSTimeID(AMSID("TrackerCals",1),begin,end,
-			       TrCalDB::GetLinearSize(),
-			       TrCalDB::linear,
-			       server,need,SLin2CalDB);
-  
+  TDV= new AMSTimeID(AMSID("TrackerCals",1),begin,end,
+                               TrCalDB::GetLinearSize(),
+                               TrCalDB::linear,
+                               server,need,SLin2CalDB);
+ 
+  return 1;
+}
+int CalSlider::ReadCalFromDB(time_t run){
+  if (!TDV) OpenTDV();
   time_t bb=run+10;
-  tt->validate(bb);
-  cout << " "<<*tt;
-  if(tt) delete tt;
+  TDV->validate(bb);
+  char title[140];
+  time_t pippo = (time_t)caldb->GetRun();
+  sprintf(title,"Calibration %10d %s",caldb->GetRun(),ctime(&pippo));
+  canvas->SetTitle(title);
+
 }
