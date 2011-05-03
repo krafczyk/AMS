@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.278 2011/05/02 23:23:57 choutko Exp $
+//  $Id: root.C,v 1.279 2011/05/03 22:20:31 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3358,9 +3358,9 @@ void TrdTrackR::ComputeCharge(double betacorr){
             for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
             vector<float>edepc;
      for(int k=0;k<NTrdSegment();k++){
-        TrdSegmentR tseg=*(pTrdSegment(iTrdSegment(k)));
+        TrdSegmentR tseg=*(pTrdSegment(k));
         for (int l=0;l<tseg.NTrdCluster();l++){
-          TrdClusterR trdcl=*(tseg.pTrdCluster(tseg.iTrdCluster(l)));
+          TrdClusterR trdcl=*(tseg.pTrdCluster(l));
           if(trdcl.Multip<3){
             float range=trdcl.Range(Coo,Theta,Phi);
             double norm=TrdClusterR::RangeCorr(0.57,1.);        
@@ -3410,6 +3410,14 @@ void TrdTrackR::ComputeCharge(double betacorr){
     
    }
 
+   double prsum=0;
+   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+     prsum+=exp(-double(ChargeP[k]));
+   }
+    
+   for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
+     ChargeP[k]+=log(prsum);
+   }
    multimap<float,short int> chmap;
    for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
      chmap.insert(make_pair(ChargeP[k],Charge[k]));
