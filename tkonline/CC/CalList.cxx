@@ -32,7 +32,7 @@ CalList::CalList(AMSTimeID * TT,
   fListBox= new TGListBox(this,num);
   for (int ii=0; ii< num;ii++){
     uinteger times[3];
-    time_t tim=timeid->GetDBRecordTimes(num-ii,times);
+    time_t tim=timeid->GetDBRecordTimes(num-(ii+1),times);
     sprintf(tmp,"%d %s",tim,ctime(&tim));
     fListBox->AddEntry(tmp,ii);
   }
@@ -55,11 +55,11 @@ CalList::CalList(AMSTimeID * TT,
    height = fOk->GetDefaultHeight();
    width  = TMath::Max(width, fOk->GetDefaultWidth());
 
-   fCancel = new TGTextButton(hf, "&Cancel", 2);
-   fCancel->Associate(this);
-   hf->AddFrame(fCancel, new TGLayoutHints(kLHintsCenterY | kLHintsExpandX, 5, 5, 0, 0));
-   height = fCancel->GetDefaultHeight();
-   width  = TMath::Max(width, fCancel->GetDefaultWidth());
+   //   fCancel = new TGTextButton(hf, "&Cancel", 2);
+   //   fCancel->Associate(this);
+   //   hf->AddFrame(fCancel, new TGLayoutHints(kLHintsCenterY | kLHintsExpandX, 5, 5, 0, 0));
+   //   height = fCancel->GetDefaultHeight();
+   //   width  = TMath::Max(width, fCancel->GetDefaultWidth());
 
    // place button frame (hf) at the bottom
    AddFrame(hf, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 0, 0, 5, 5));
@@ -82,7 +82,7 @@ CalList::CalList(AMSTimeID * TT,
 
    // Map main frame
    MapWindow();
-   fListBox->Select(num-1);
+   fListBox->Select(1);
    gClient->WaitFor(this);
 }
 
@@ -113,11 +113,14 @@ Bool_t CalList::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
                      // here copy the string from text buffer to return variable
 		    //                     strcpy(fRetStr, fTE->GetBuffer()->GetString());
 		     nn= fListBox->GetSelected();
-		     tim=timeid->GetDBRecordTimes(num-nn,times);
+		     tim=timeid->GetDBRecordTimes(num-(nn+1),times);
 		     timeid->validate(tim);
                      delete this;
                      break;
                   case 2:
+		    nn= 1;
+		     tim=timeid->GetDBRecordTimes(num-(nn+1),times);
+		     timeid->validate(tim);
                      delete this;
                      break;
                }
