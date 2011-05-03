@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.121.2.1 2011/04/29 10:27:56 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.121.2.2 2011/05/03 16:18:02 choutko Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/04/29 10:27:56 $
+/// $Date: 2011/05/03 16:18:02 $
 ///
-/// $Revision: 1.121.2.1 $
+/// $Revision: 1.121.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -364,7 +364,8 @@ int TrRecon::Build(int flag, int rebuild, int hist)
 #pragma omp critical (trhist)
     {
       trstat = CountTracks(trstat);
-      trstat = FillHistos (trstat);
+ //    does not work in mt mode
+      if(hist>1)trstat = FillHistos (trstat);
     }
   }
 

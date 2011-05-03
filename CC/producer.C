@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.160 2011/04/26 20:24:04 choutko Exp $
+//  $Id: producer.C,v 1.160.2.1 2011/05/03 16:18:02 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -526,7 +526,8 @@ int failure=0;
   }
   catch  (CORBA::SystemException & a){
     _OnAir=false;
-   failure++;
+     cerr<<"AMSProducer::sendCurrentrunInfo-ExceptionDuringSendingInfo "<<endl;
+     failure++;
   }
 }
 if(failure)UpdateARS();
@@ -536,7 +537,7 @@ if(force){
   else if(IOPA.WriteRoot)sendNtupleUpdate(DPS::Producer::RootFile);
   if(DAQCFFKEY.mode/10>0)sendNtupleUpdate(DPS::Producer::RawFile);
 }
-//cout <<" sendcurrentinfo end "<<endl;
+cout <<" sendcurrentinfo end "<<endl;
 }
 
 void AMSProducer::getASL(){
