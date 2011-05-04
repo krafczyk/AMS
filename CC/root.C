@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.281 2011/05/04 14:18:01 choutko Exp $
+//  $Id: root.C,v 1.282 2011/05/04 14:45:19 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3294,7 +3294,13 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
 */
     }
       AMSEventR::Head()->getsetup()->fTDV_Name[0].CopyOut(ChargePDF);
-    goto fill;
+for(int k=0;k<10;k++){
+ AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
+  for(int j=0;j<span-3;j++){
+     AMSEventR::hf1(-5000-k,j/10.+0.05,ChargePDF[span*k+j]);
+}
+}
+return true;
   }
   else cerr<<"Charge::ChargePDF-E- "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Name<<" RealSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<< " Size "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size<<endl;
   }
@@ -3353,7 +3359,6 @@ if(ptr<3){
 for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
   ChargePDF[i*span+span-2]=i;
 }
-fill:
 for(int k=0;k<10;k++){
  AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
