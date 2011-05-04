@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.283 2011/05/04 14:46:45 choutko Exp $
+//  $Id: root.C,v 1.284 2011/05/04 21:58:15 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4688,6 +4688,7 @@ static int master=0;
 bool suc=false;
 #pragma omp master 
 {
+  master=0;
   if (_FILE){
     _TreeSetup=(TTree*)_FILE->Get(name);
     if(_TreeSetup){
