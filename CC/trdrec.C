@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.53 2011/05/02 23:23:57 choutko Exp $
+//  $Id: trdrec.C,v 1.54 2011/05/04 13:54:11 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1115,6 +1115,14 @@ double range=d<0?0:2*sqrt(d)/a;
       }
     }
     
+   }
+   double prsum=0;
+   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+     prsum+=exp(-double(_Charge.ChargeP[k]));
+   }
+    
+   for(int k=0;k<sizeof(_Charge.Charge)/sizeof(_Charge.Charge[0]);k++){
+     _Charge.ChargeP[k]+=log(prsum);
    }
 
    multimap<float,short int> chmap;

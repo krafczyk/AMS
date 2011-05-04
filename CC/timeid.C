@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.126 2011/05/02 20:57:30 pzuccon Exp $
+//  $Id: timeid.C,v 1.127 2011/05/04 13:54:10 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -671,9 +671,12 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 #endif
       if(!_DataBaseSize){
          fbin.close();
-         cout<<"AMSTimeID::_fillDB-W-MapHosZeroEnrtries "<<(const char *)fmap<<endl;
+         cout<<"AMSTimeID::_fillDB-W-MapHasZeroEnrtries "<<(const char *)fmap<<endl;
+#ifdef   __CORBASERVER__     
          goto notrust;
+#endif
      }
+
       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
       for(i=0;i<5;i++)
 	for(int k=0;k<_DataBaseSize;k++){
@@ -1110,8 +1113,10 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
   fmap+=getid()==0?".0.map":".1.map";
   AString fmaptmp=fmap;
   if(!_DataBaseSize){
+#ifdef __CORBASERVER__
     cout <<"AMSTimeID::_fillDB-W-CowardlyRefusesToupdate map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
    return false;
+#endif
   }
   char utmp[80];
   time_t timet;

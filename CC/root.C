@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.279 2011/05/03 22:20:31 choutko Exp $
+//  $Id: root.C,v 1.280 2011/05/04 13:54:10 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3271,19 +3271,27 @@ bool TrdTrackR::CreatePDF(const char *fnam){
 
 
 ifstream file;
-
-if(fnam)file.open(fnam);
+if(fnam && strlen(fnam)>0)file.open(fnam);
 else if(getenv("TRDChargePDFFile")){
-file.open(getenv("TRDChargePDFFile"));
+ file.open(getenv("TRDChargePDFFile"));
 }
 else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
  AMSEventR::Head()->getsetup()->fTDV_Name.clear();
  AMSEventR::Head()->getsetup()->getAllTDV("TRDPDF");
  if(AMSEventR::Head()->getsetup()->fTDV_Name.size()){
   if(AMSEventR::Head()->getsetup()->fTDV_Name[0].Size == AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()){ 
-    for(int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
-     ChargePDF[k]=AMSEventR::Head()->getsetup()->fTDV_Name[0].Data[k];
+ cout <<    "Charge::ChargePDF-I-FoundTDVSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<<endl;
+ for(int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
+     union if_t{
+     float f;
+     unsigned int u;
+     int i; 
+     };
+     if_t tmp;
+     tmp.u=AMSEventR::Head()->getsetup()->fTDV_Name[0].Data[k];
+     ChargePDF[k]=tmp.f; 
     }
+    goto fill;
   }
   else cerr<<"Charge::ChargePDF-E- "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Name<<" RealSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<< " Size "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size<<endl;
   }
@@ -3342,10 +3350,11 @@ if(ptr<3){
 for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
   ChargePDF[i*span+span-2]=i;
 }
+fill:
 for(int k=0;k<10;k++){
- AMSEventR::hbook1(5000+k,"pdf func ",1000,0.,100.);
+ AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
-     AMSEventR::hf1(5000+k,j/10.+0.05,ChargePDF[span*k+j]);
+     AMSEventR::hf1(-5000-k,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
 return true;
@@ -3377,7 +3386,7 @@ void TrdTrackR::ComputeCharge(double betacorr){
    else for(int k=edepc.size()/2-2;k<edepc.size()/2+2;k++)medianc+=edepc[k]/4;
    Q=sqrt(medianc/betacorr)*1/1.0925+0.115/1.0925;
 
-
+    
    //lkhd
    const int span =sizeof(ChargePDF)/sizeof(ChargePDF[0])/(sizeof(Charge)/sizeof(Charge[0]));
    for (int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++){
