@@ -10,7 +10,7 @@
 #include "richrec.h"
 #include "particle.h"
 #include "TH1F.h"
-#include <vector.h>
+#include <vector>
 
 
 class AMSRichCal{

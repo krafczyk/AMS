@@ -1,7 +1,8 @@
-// $Id: glrender.cpp,v 1.2 2010/12/10 21:38:01 shaino Exp $
+// $Id: glrender.cpp,v 1.3 2011/05/04 16:36:54 pzuccon Exp $
 
 #include "glrender.h"
 #include <cmath>
+#include <cstdlib>
 
 #include <GL/gl.h>
 #include <GL/glu.h>

@@ -1,5 +1,5 @@
-// $Id: gvgeom.cpp,v 1.2 2010/12/10 21:38:02 shaino Exp $
-
+// $Id: gvgeom.cpp,v 1.3 2011/05/04 16:36:54 pzuccon Exp $
+#include <algorithm>
 #include "TFile.h"
 #include "TGeometry.h"
 #include "TNode.h"
