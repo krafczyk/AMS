@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.114 2011/03/31 17:15:35 sdifalco Exp $
+//  $Id: gmat.C,v 1.115 2011/05/04 18:57:15 mmilling Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -210,9 +210,14 @@ void AMSgmat::amsmat(){
   mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
   mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
   mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
+#ifdef __G4AMS__
+  mat.add(trdSimUtil.GetKaptonMaterial());
+#else
   mat.add (new AMSgmat("MYLARTRD",  8.7   ,4.5,  1.39  ,28.7, 43.));
+#endif
   mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
   mat.add (new AMSgmat("VACUUMTRD",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+
   geant a[]={20.18,12.01,1.01,0};
   geant z[]={10.,6.,1.,0};
   geant w[]={4.,1.,4.,0};
@@ -646,6 +651,7 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
   mat.add (new AMSgmat("ISSTUBEALU",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
+
 //-------------------------------
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
@@ -1050,7 +1056,12 @@ uwbuf[3]=0;
 pfoam->setubuf(nwbuf,uwbuf);
 tmed.add (pfoam);
 
-AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLARTRD",0);
+#ifdef __G4AMS__
+ AMSgtmed * pwall=new AMSgtmed("TRDCapton","Kapton",0);
+#else
+ AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLARTRD",0);
+#endif
+
 uwbuf[2]=2;
 uwbuf[3]=0;
 pwall->setubuf(nwbuf,uwbuf);

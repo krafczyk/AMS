@@ -179,7 +179,7 @@ AMSgmat *TrdSimUtil::GetRadiatorArtificialMaterial( void ){
   for(int i=0;i!=n;i++){
     a[i]=trdRadiatorArtificial->GetElementVector()->at(i)->GetA()/g*mole;
     z[i]=trdRadiatorArtificial->GetElementVector()->at(i)->GetZ();
-    w[i]=trdRadiatorArtificial->GetFractionVector()[i]*1.e8;
+    w[i]=trdRadiatorArtificial->GetFractionVector()[i]*4.e8;
     if(TRDMCFFKEY.debug)printf("comp %s - A %.2f Z %.2f W %.2f\n",trdRadiatorArtificial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
   }
 
@@ -191,6 +191,41 @@ AMSgmat *TrdSimUtil::GetRadiatorArtificialMaterial( void ){
   AMSgmat *thismat=new AMSgmat ("TrdArtRadGmat", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin);
 
   if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::GetRadiatorArtificialMaterial\n");
+  return thismat;
+}
+
+AMSgmat *TrdSimUtil::GetKaptonMaterial( void ){
+  if(TRDMCFFKEY.debug)printf("Enter TrdSimUtil::GetRadiatorArtificialMaterial\n");
+
+  G4Element* H  = new G4Element("Hydrogen","H" , 1., 1.01*g/mole);
+  G4Element* C  = new G4Element("Carbon"  ,"C" , 6., 12.01*g/mole);
+  G4Element* O  = new G4Element("Oxygen"  ,"O" , 8., 16.00*g/mole);
+  G4Element* N  = new G4Element("Nitrogen","N" , 7., 14.01*g/mole);
+
+  trdKaptonMaterial  = new G4Material("Kapton", 1.42*g/cm3, 4);
+  trdKaptonMaterial->AddElement(C, 22);
+  trdKaptonMaterial->AddElement(H, 10);
+  trdKaptonMaterial->AddElement(N, 2);
+  trdKaptonMaterial->AddElement(O, 5);
+  
+  const int n=trdKaptonMaterial->GetElementVector()->size();
+  geant a[n],z[n],w[n];
+  for(int i=0;i!=n;i++){
+    a[i]=trdKaptonMaterial->GetElementVector()->at(i)->GetA()/g*mole;
+    z[i]=trdKaptonMaterial->GetElementVector()->at(i)->GetZ();
+    w[i]=trdKaptonMaterial->GetFractionVector()[i]*4.e8;
+    if(TRDMCFFKEY.debug)printf("comp %s - A %.2f Z %.2f W %.2f\n",trdKaptonMaterial->GetElementVector()->at(i)->GetSymbol().data(),a[i],z[i],w[i]);
+  }
+
+  geant density=trdKaptonMaterial->GetDensity();
+  geant temp=   trdKaptonMaterial->GetTemperature();
+  geant radl=   trdKaptonMaterial->GetRadlen();
+  geant absl=   trdKaptonMaterial->GetNuclearInterLength();
+
+  //  delete H,C,N,O;
+  AMSgmat *thismat=new AMSgmat ("Kapton", a, z, w, n, density/g*cm3,radl/m,absl/m,temp/kelvin);
+  
+  if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::GetKaptonMaterial\n");
   return thismat;
 }
 
@@ -212,11 +247,13 @@ void TrdSimUtil::UpdateGas ( void ) {
   fTrdGasRegionCuts->SetProductionCut(cut, idxG4GammaCut);
   fTrdGasRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
   fTrdGasRegionCuts->SetProductionCut(cut, idxG4PositronCut);
+  fTrdGasRegionCuts->SetProductionCut(cut, idxG4ProtonCut);
   
   fTrdRadRegionCuts = new G4ProductionCuts();
-  fTrdRadRegionCuts->SetProductionCut(cut, idxG4GammaCut);
-  fTrdRadRegionCuts->SetProductionCut(cut, idxG4ElectronCut);
-  fTrdRadRegionCuts->SetProductionCut(cut, idxG4PositronCut);
+  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4GammaCut);
+  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4ElectronCut);
+  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4PositronCut);
+  fTrdRadRegionCuts->SetProductionCut(1*mm, idxG4ProtonCut);
   
   //Should not define region before "World" is created, "World" need to be the first instance in G4RegionStore
 //   if(!gasregion){
@@ -256,6 +293,7 @@ TrdSimUtil::TrdSimUtil(){
   trdFleeceMaterial=0;
   trdFleeceGasMaterial=0;
   trdRadiatorArtificial=0;
+  trdKaptonMaterial=0;
 
   trdFleeceFiberDiameter=0.;
   trdRadiatorThickness=0.;

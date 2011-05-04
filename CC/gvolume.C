@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.62 2011/03/30 15:02:38 choutko Exp $
+//  $Id: gvolume.C,v 1.63 2011/05/04 18:57:15 mmilling Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -447,9 +447,11 @@ integer AMSgvolume::_Norp=0;
 
      if(_pgtmed->IsSensitive()){
       _pg4l->SetUserLimits(new AMSUserLimits());
-      if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
+      //      if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1 && _pgtmed->getubuf(3)==TRDMCFFKEY.cor){
+      //      printf("pg4l %s gmat %s gmed %s\n ",_pg4l->GetName(),_pgtmed->getname(),_pgtmed->getpgmat()->getname());
+      if(strcmp(_pgtmed->getname(),"TRDRadiator")==0){
 #ifdef __G4AMS__
-	if(!trdSimUtil.radregion)    trdSimUtil.radregion=new G4Region("TrdRadRegion");      
+	if(!trdSimUtil.radregion)trdSimUtil.radregion=new G4Region("TrdRadRegion");      
 	trdSimUtil.radregion->AddRootLogicalVolume(_pg4l);
 	trdSimUtil.radlv=_pg4l;
 #endif
@@ -457,7 +459,7 @@ integer AMSgvolume::_Norp=0;
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
 #ifdef __G4AMS__
-	if(!trdSimUtil.gasregion)         trdSimUtil.gasregion=new G4Region("TrdGasRegion");
+	if(!trdSimUtil.gasregion)trdSimUtil.gasregion=new G4Region("TrdGasRegion");
         trdSimUtil.gasregion->AddRootLogicalVolume(_pg4l);
 #endif
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas

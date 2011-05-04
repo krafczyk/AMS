@@ -78,6 +78,7 @@ class TrdSimUtil
   G4Material *trdFleeceMaterial;
   G4Material *trdFleeceGasMaterial;
   G4Material *trdRadiatorArtificial;
+  G4Material *trdKaptonMaterial;
 
   G4double trdFleeceFiberDiameter;
   G4double trdRadiatorThickness;
@@ -114,10 +115,12 @@ class TrdSimUtil
 
   AMSgmat *GetTubeGasMaterial( void );
   AMSgmat *GetRadiatorArtificialMaterial( void );
+  AMSgmat *GetKaptonMaterial( void );
 
   G4Material *GetG4TubeGasMaterial( void ){return trdTubeGasMaterial;}
   G4Material *GetG4FleeceMaterial( void ){return trdFleeceMaterial;}
   G4Material *GetG4FleeceGasMaterial( void ){return trdFleeceGasMaterial;}
+  G4Material *GetG4KaptonMaterial( void ){return trdKaptonMaterial;}
   
   G4double GetTrdFoilThickness ( void ){return (trdFleeceFiberDiameter);}
   G4double GetTrdGasThickness ( void ){return (trdMeanGasGap);}
