@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.282 2011/05/04 14:45:19 choutko Exp $
+//  $Id: root.C,v 1.283 2011/05/04 14:46:45 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3293,11 +3293,13 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
      ChargePDF[k]=tmp.f; 
 */
     }
-      AMSEventR::Head()->getsetup()->fTDV_Name[0].CopyOut(ChargePDF);
+     if( AMSEventR::Head()->getsetup()->fTDV_Name[0].CopyOut(ChargePDF)){
+const int span=1003;
 for(int k=0;k<10;k++){
  AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
      AMSEventR::hf1(-5000-k,j/10.+0.05,ChargePDF[span*k+j]);
+}
 }
 }
 return true;
