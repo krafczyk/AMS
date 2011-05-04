@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.144 2011/04/28 13:41:12 afiasson Exp $
+//  $Id: ecalrec.C,v 1.144.2.1 2011/05/04 16:51:21 afiasson Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2531,6 +2531,10 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 	f = chisq;
 }
 
+namespace ecalrec_ZProf {
+	static TMinuit *fMinuit = 0;
+#pragma omp threadprivate(fMinuit)
+};
 
 //______________________________________________________________________________
 void AMSEcalShower::ZProfile()
@@ -2603,39 +2607,44 @@ void AMSEcalShower::ZProfile()
       // par2==zmax if the shower is an electromagnetic shower 
       par2= 1.05*(log(_EnergyPIC*10000./(8.*67.4))-0.5);
       // Minuit
-      TMinuit *gMinuit = new TMinuit(3); //initialize TMinuit with a maximum of 3 params
-      //Set Minuit print Options
-      gMinuit->SetPrintLevel(-1); 
-      gMinuit->SetFCN(fcn);
+ 
+		if (!ecalrec_ZProf::fMinuit) {
+#pragma omp critical (tminuit)
+			ecalrec_ZProf::fMinuit = new TMinuit(3);
+		}		
+		TMinuit *minuit = ecalrec_ZProf::fMinuit;
+	
+		//Set Minuit print Options
+      minuit->SetPrintLevel(-1); 
+      minuit->SetFCN(fcn);
       Double_t arglist[10];
       Double_t a1,erra1;
       Int_t ierflg = 0;
       arglist[0]   = 1;
-      gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
+      minuit->mnexcm("SET ERR", arglist ,1,ierflg);
       // Set starting values and step sizes for parameters
       Double_t vstart[3] = {.2, 0.48 , 6. };
       Double_t step[3]   = {0.001 , 0.01 , .02};
-      gMinuit->mnparm(0, "a1", vstart[0], step[0], 0.,1.2,ierflg);
-      gMinuit->mnparm(1, "a2", vstart[1], step[1], 0.44,0.52,ierflg);
-      gMinuit->mnparm(2, "a3", vstart[2], step[2], 0.,17.,ierflg);
+      minuit->mnparm(0, "a1", vstart[0], step[0], 0.,1.2,ierflg);
+      minuit->mnparm(1, "a2", vstart[1], step[1], 0.44,0.52,ierflg);
+      minuit->mnparm(2, "a3", vstart[2], step[2], 0.,17.,ierflg);
       // Now ready for minimization step
       arglist[0] = 500;
       arglist[1] = 1;
-      gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
+      minuit->mnexcm("MIGRAD", arglist ,2,ierflg);
       // Print results
-      gMinuit->GetParameter(0,zprof[0],errprof[0]);
-      gMinuit->GetParameter(1,zprof[1],errprof[1]);
-      gMinuit->GetParameter(2,zprof[2],errprof[2]);
+      minuit->GetParameter(0,zprof[0],errprof[0]);
+      minuit->GetParameter(1,zprof[1],errprof[1]);
+      minuit->GetParameter(2,zprof[2],errprof[2]);
       Double_t amin,edm,errdef;
       Int_t nvpar,nparx,icstat;
-      gMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+      minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
       _Zprofile[0] = zprof[0];
       _Zprofile[2] = zprof[2];
       _Zprofile[3] = par2;
       _Zprofile[1] = zprof[1];
       _ZprofileChi2 = amin;
-//       std::cout << _Zprofile[0] << " " << _Zprofile[1] << " " << _Zprofile[2] << " " << _Zprofile[3] << " " <<	_ZprofileChi2 << std::endl;
-    delete gMinuit;
+		std::cout << _Zprofile[0] << " " << _Zprofile[1] << " " << _Zprofile[2] << " " << _Zprofile[3] << " " <<	_ZprofileChi2 << std::endl;
     }
   }
 }
