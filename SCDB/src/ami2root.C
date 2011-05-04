@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.11 2011/03/28 12:36:54 choutko Exp $
+//  $Id: ami2root.C,v 1.12 2011/05/04 20:42:07 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -190,6 +190,9 @@ int main(int argc, char *argv[]){
 
   bool tm=false;    
 
+
+
+
   // loop over node types available at AMI
   int nnodes=0;
   const char** nodetypes=get_node_types(&nnodes) ;
@@ -197,6 +200,20 @@ int main(int argc, char *argv[]){
     cerr<<" unable to get node_types "<<endl;
     exit(5);
   }
+
+// get last scan block time
+
+  unsigned int timelast = get_lsbf_time();
+   cout <<"  last time "<<timelast<<endl;
+if(timelast<start){
+  notcompleted=3;
+  goto finish;
+}
+else if(timelast<end){
+ end=timelast;
+}
+
+
   for(int inode=0;inode<nnodes;inode++){
     
     // loop over node numbers 
