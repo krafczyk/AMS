@@ -304,6 +304,16 @@ ostream & AMSSetupR::TDVR::print(ostream &o)const{
   return(o <<Name << "  " <<FilePath<<" Size "<<Size<<" RealSize "<<Data.size() );
 }
 
+bool AMSSetupR::TDVR::CopyOut(void * Out){
+if(Data.size()!=Size){
+cerr<<"AMSSetupR::TDVR::CopyOut-E-SizeDeclared "<<Size <<" Real "<<Data.size()<<endl;
+return false;
+}
+for(int k=0;k<Data.size();k++){
+ memcpy((unsigned int*)Out+k,&Data[k],sizeof(Data[0]));
+}
+return true;
+}
 
 int AMSSetupR::getTDV(const string & name, unsigned int time, AMSSetupR::TDVR & tdv){
 TDVRC_i i=fTDVRC.find(name);

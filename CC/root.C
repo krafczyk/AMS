@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.280 2011/05/04 13:54:10 choutko Exp $
+//  $Id: root.C,v 1.281 2011/05/04 14:18:01 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3282,6 +3282,7 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
   if(AMSEventR::Head()->getsetup()->fTDV_Name[0].Size == AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()){ 
  cout <<    "Charge::ChargePDF-I-FoundTDVSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<<endl;
  for(int k=0;k<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size;k++){
+/*
      union if_t{
      float f;
      unsigned int u;
@@ -3290,7 +3291,9 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
      if_t tmp;
      tmp.u=AMSEventR::Head()->getsetup()->fTDV_Name[0].Data[k];
      ChargePDF[k]=tmp.f; 
+*/
     }
+      AMSEventR::Head()->getsetup()->fTDV_Name[0].CopyOut(ChargePDF);
     goto fill;
   }
   else cerr<<"Charge::ChargePDF-E- "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Name<<" RealSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<< " Size "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size<<endl;

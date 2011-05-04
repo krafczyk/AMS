@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.17 2011/04/08 10:31:31 choutko Exp $
+//  $Id: root_setup.h,v 1.18 2011/05/04 14:18:04 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -131,9 +131,13 @@ TString FilePath; ///<File Path
 TDVR():Begin(0),End(0),Insert(0),CRC(0),Size(0),DataMC(0),Name(""),FilePath(""),Data(){}
 TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),CRC(a.CRC),Size(a.Size),Name(a.Name),FilePath(a.FilePath),Data(a.Data){}
   friend ostream &operator << (ostream &o, const TDVR &b );
+///  Copy out Data vector to Out Structure
+///  \return true if success
+bool CopyOut(void * Out); 
 private:
   virtual ostream & print(ostream &) const;
-ClassDef (TDVR,4) //TDVR
+ 
+ClassDef (TDVR,5) //TDVR
 };
 
 
