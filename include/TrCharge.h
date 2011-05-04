@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2011/04/28 11:19:04 $
+ $Date: 2011/05/04 19:49:00 $
 
- $Revision: 1.2 $
+ $Revision: 1.3 $
 */
 
 #include "TrCluster.h"
@@ -59,11 +59,11 @@ class mean_t {
   //! Copy
   void copy(const mean_t &that) { Type = that.Type; Side = that.Side; NPoints = that.NPoints; Mean = that.Mean; RMS = that.RMS; }
   //! Approximate charge value (if mean is in MIP units)
-  float GetCharge() { return sqrt(Mean); }
+  float GetQ() { return sqrt(Mean); }
   //! Error on charge value
-  float GetChargeErr() { return RMS/(2*sqrt(Mean)); }
+  float GetQErr() { return RMS/(2*sqrt(Mean)); }
   //! Rounded value (if mean is in MIP units)
-  int   GetZ() { return floor(GetZ()+0.5); }
+  int   GetZ() { return int(floor(GetZ()+0.5)); }
 };
 
 
@@ -78,18 +78,20 @@ class like_t {
   int    NPoints;
   //! Likelihood
   float  LogLike; 
+  //! Probability
+  float  Prob;
   //! Mean estimation
   mean_t Mean;
   //! Constructor
   like_t() { clear(); }
   //! Constructor
-  like_t(int t, int s = 0, int n = 0, float ll = 0) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; }
+  like_t(int t, int s = 0, int n = 0, float ll = 0, float p = 0) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Prob = p; }
   //! Constructor
-  like_t(int t, int s, int n, float ll, mean_t m) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Mean = m; }
+  like_t(int t, int s, int n, float ll, float p, mean_t m) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Prob = p; Mean = m; }
   //! Destructor
   ~like_t() { clear(); }
   //! Clear
-  void clear() { Type = 0; Side = 0; NPoints = 0; LogLike = 0; Mean.clear(); }
+  void clear() { Type = 0; Side = 0; NPoints = 0; LogLike = 0; Prob = 0; Mean.clear(); }
 };
 
 
@@ -111,6 +113,15 @@ class TrCharge {
   static float B_BetaBetheBlock;
   //! Default beta value (MIP)
   static float MipBetaValue;
+
+  //! AdcVsBeta: A
+  static float A_AdcVsBeta;
+  //! AdcVsBeta: B
+  static float B_AdcVsBeta;
+  //! AdcVsBeta: Beta_0
+  static float b0_AdcVsBeta;
+  //! AdcVsBeta: k
+  static float k_AdcVsBeta;
 
   /////////////////////////
   // Enumerators
@@ -136,39 +147,44 @@ class TrCharge {
   
   //! The Bethe-Block formula in the limit of negligible mass term (no electrons) 
   static float BetaBetheBlock(float beta);
+  //! Simple function to describe the energy loss versus beta
+  static float AdcVsBeta(float beta);
   //! The rigidity could be used to estimate beta  
   static float GetBetaFromRigidity(float rigidity, int Z, float mass);
   //! Get the signal 
-  static float GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta = MipBetaValue, int opt = TrClusterR::DefaultCorrOpt);
+  static float GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta = 1, int opt = TrClusterR::DefaultCorrOpt);
   //! Get the probability 
-  static float GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = MipBetaValue, int opt = TrClusterR::DefaultCorrOpt); 
+  static float GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = 1, int opt = TrClusterR::DefaultCorrOpt); 
 
   /////////////////////////
   // Averaging methods
   /////////////////////////
 
   //! Track mean generic method
-  static mean_t GetMeanByType(int type, TrTrackR* track, int iside, float beta = MipBetaValue, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  static mean_t GetMeanByType(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
 
   //! Mean of n signals
   static mean_t GetMean(vector<float> signal);
   //! Track X mean signal (beta correction, jlayer = 1, ..., 9 indicates an excluded layer)
-  static mean_t GetMean(TrTrackR* track, int iside, float beta = MipBetaValue, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  static mean_t GetMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
 
   //! Truncated mean of n signals
   static mean_t GetTruncatedMean(vector<float> signal);
   //! Track X truncated mean signal (beta correction, jlayer = 1, ..., 9 indicates an excluded layer)
-  static mean_t GetTruncatedMean(TrTrackR* track, int iside, float beta = MipBetaValue, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  static mean_t GetTruncatedMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
 
   //! Gaussianized mean of n signals (discarding out-of-3-sigma signals)
   static mean_t GetGaussianizedMean(vector<float> signal);
-  //! Track X gaussianized mean of n signals (beta correction, layer=(0-8) indicates an excluded layer)
-  static mean_t GetGaussianizedMean(TrTrackR* track, int iside, float beta = MipBetaValue, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  //! Track X gaussianized mean of n signals (beta correction, jlayer= 1, ..., 9 indicates an excluded layer)
+  static mean_t GetGaussianizedMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
 
   //! Mean probability (only truncated mean has been implemented ...)
   static like_t GetMeanProbToBeZ(mean_t mean, int Z);
   //! Get charge from mean probability (only truncated mean has been implemented ...) 
   static int    GetMeanCharge(mean_t mean);
+
+  //! Best available Q evaluation (to be keep updated) 0: x, 1: y, 2: xy weigh, 3: xy plain
+  static float  GetQ(TrTrackR* track, int iside);
 
   /////////////////////////
   // Likelihood methods
@@ -176,14 +192,11 @@ class TrCharge {
 
   //! Likelihood computation methods (different likelihood methods with different type, 
   //! 0 = all, 1 = drop 1, 2 = use best 5, 3 use inner only 
-  static like_t  GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta = MipBetaValue);
+  static like_t  GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta = 1);
 
   /////////////////////////
   // Charge reconstruction
   /////////////////////////
-
-  //! Charge reconstruction call (beta needed)
-  static void reaxtkcharge(float beta);
 
   /* 
      interface to AMSCharge: what will be used? 
@@ -195,6 +208,15 @@ class TrCharge {
    integer _IndxTracker[maxzin];   // index 0,...,9 from most to least prob charge
    integer _iTracker;              // index of most probable charge
    number  _ProbAllTracker;        // prob of maximum charge using all tracker clusters
+
+  // one-th recon:
+  // Truncated mean distributions (gaussians) in ADC scale <<< only inner?
+  // Return to AMSCharge probs
+
+  // two-th recon:
+  // conversion to MIP scale
+  // likelihood calculation
+
   */
 
 };

@@ -4,20 +4,51 @@
 float TrCharge::A_BetaBetheBlock = 1.6;
 float TrCharge::B_BetaBetheBlock = 15;
 float TrCharge::MipBetaValue = 0.935;   // MIP value
+
+float TrCharge::A_AdcVsBeta  = 29.0220; // KSC 2010, muons truncated mean vs beta TOF
+float TrCharge::B_AdcVsBeta  = 3.81848; // KSC 2010, muons truncated mean vs beta TOF
+float TrCharge::b0_AdcVsBeta = 0.88615; // KSC 2010, muons truncated mean vs beta TOF
+float TrCharge::k_AdcVsBeta  = 35.2761; // KSC 2010, muons truncated mean vs beta TOF
+
+/*
+float TrCharge::A_AdcVsBeta  = 29.2545; // MC 2010 (p and mu), muons truncated mean vs beta TOF
+float TrCharge::B_AdcVsBeta  = 7.54380; // MC 2010 (p and mu), muons truncated mean vs beta TOF
+float TrCharge::b0_AdcVsBeta = 0.91155; // MC 2010 (p and mu), muons truncated mean vs beta TOF
+float TrCharge::k_AdcVsBeta  = 33.1179; // MC 2010 (p and mu), muons truncated mean vs beta TOF
+*/
+
 int   TrCharge::MaxCharge = 26; // maximum  
 
 
 float TrCharge::BetaBetheBlock(float beta) {
   /* pseudo Bethe-Block: BB(beta) = A/beta^2  *  [ B + ln[beta^2/(1-beta^2)] - beta^2 ] */
   if (beta>=1) {
-    // printf("TrCharge::BetaBetheBlock-Error Beta is greater-equal 1 (beta=%f).\n",beta);
-    // return 0;
+     printf("TrCharge::BetaBetheBlock-Error Beta is greater-equal 1 (beta=%f).\n",beta);
+     return 1;
   }
   float corrbeta = TMath::Min(TrCharge::MipBetaValue,beta);   
   float b2 = pow(corrbeta,2);
-  // return A_BetaBetheBlock/b2 * (B_BetaBetheBlock + log(b2/(1-b2)) - b2);
-  return A_BetaBetheBlock/b2;
+  return A_BetaBetheBlock/b2 * (B_BetaBetheBlock + log(b2/(1-b2)) - b2);
 }  
+
+
+float TrCharge::AdcVsBeta(float beta) {
+  /*
+     Maximum Probability Energy Loss:
+     MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
+     Simplified fitting function:
+     f(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + C
+               beta>beta0, k (the TOF beta "saturates")     
+     Continuity imposed on beta0 (no derivative continuity)
+  */
+  if (beta<b0_AdcVsBeta) 
+             return A_AdcVsBeta/pow(beta,2) + 
+                    B_AdcVsBeta*log(beta)/pow(beta,2) + 
+                    k_AdcVsBeta - 
+                    A_AdcVsBeta/pow(b0_AdcVsBeta,2) - 
+                    B_AdcVsBeta*log(b0_AdcVsBeta)/pow(b0_AdcVsBeta,2);
+  else       return k_AdcVsBeta;
+}
 
 
 float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
@@ -26,7 +57,9 @@ float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
 
 
 float TrCharge::GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta, int opt) {
-  return hit->GetSignalCombination(iside,opt)*TrCharge::BetaBetheBlock(TrCharge::MipBetaValue)/TrCharge::BetaBetheBlock(beta);  
+  if (fabs(beta)>=1) return hit->GetSignalCombination(iside,opt);
+  return hit->GetSignalCombination(iside,opt)* 
+         TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
 }
 
 
@@ -44,9 +77,9 @@ float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta, int o
 
 bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
   if (cluster==0) return false;
-  // dead strips in the cluster or before/after?
-  bool dead = false;
   int ndead = 0;
+  int nbad  = 0;
+  // loop on cluster strips + one before + one after
   for (int i=-1; i<cluster->GetNelem()+1; i++) {
     int iside   = cluster->GetSide();
     int address = i + cluster->GetAddress();
@@ -54,14 +87,17 @@ bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
     if ( (iside==0)&&(address<640)&&(address>1023) ) continue; // out-of-bounds
     if ( (iside==1)&&(address<  0)&&(address> 639) ) continue; // out-of-bounds
     short status = cluster->GetStatus(i); 
-    // this cut could be too tight (... maybe only if is near to seed strip ...) 
     ndead += ( (status>>0)&0x1 ) | ( (status>>2)&0x1 ); // dead strips
+    nbad  += status!=0;
   }
-  dead = (ndead>0);
-  // good cluster shape? not implemented for now
+  // dead strip  
+  bool dead = (ndead>0);
+  // no noisy cluster 
+  bool bad  = false; // (nbad>3); // good
+  // good cluster shape: not implemented for now
   bool badshape = false;
   // return
-  return !(dead||badshape);
+  return !(dead||bad||badshape);
 }
 
 
@@ -74,7 +110,7 @@ bool TrCharge::GoodChargeReconHit(TrRecHitR* hit) {
   // one of the two is not good
   if ( (!GoodChargeReconCluster(clx)) ||
        (!GoodChargeReconCluster(cly)) ) return false; 
-  // bad combination? not implemented for now
+  // bad combination: not implemented for now
   return true;
 }
 
@@ -218,7 +254,7 @@ like_t TrCharge::GetMeanProbToBeZ(mean_t mean, int Z) {
   }
 
   // evaluate
-  return like_t(0,mean.Side,mean.NPoints,pdf->Eval(mean.Mean),mean);
+  return like_t(0,mean.Side,mean.NPoints,pdf->Eval(mean.Mean),pdf->Eval(mean.Mean),mean);
 }
 
 
@@ -233,6 +269,14 @@ int TrCharge::GetMeanCharge(mean_t mean) {
 }
 
 
+float TrCharge::GetQ(TrTrackR* track, int iside) {
+  // to be keep updated
+  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP; 
+  mean_t mean = GetMeanByType(kTruncMean, track, iside, 1, -1, opt);
+  return mean.GetQ();
+}
+
+
 like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta) {
   // loop on hits belonging to the track
   // decide if good or not
@@ -241,26 +285,4 @@ like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int
   return like_t();
 }
 
-
-void TrCharge::reaxtkcharge(float beta) {
-  // one-th recon:
-  // Truncated mean distributions (gaussians) in ADC scale <<< only inner? 
-  // Return to AMSCharge probs
-
-  // two-th recon:
-  // conversion to MIP scale
-  // likelihood calculation
-
-  /* 
-     interface to AMSCharge: what will be used? 
-     how to interface?: AMS Charge can call the loop or TrCharge can use the AMSCharge pointer?
-     
-     number  _TrMeanTracker;
-     number  _ProbTracker[maxzin];   // prob to be e,p,He,...,F
-     number  _LkhdTracker[maxzin];   // loglikhd value for e,p, ...
-     integer _IndxTracker[maxzin];   // index 0,...,9 from most to least prob charge
-     integer _iTracker;              // index of most probable charge
-     number  _ProbAllTracker;        // prob of maximum charge using all tracker clusters
-  */
-}
 
