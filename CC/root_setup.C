@@ -262,8 +262,8 @@ return retcode;
  void AMSSetupR::Init(TTree *tree){
   //   Set branch addresses
   if (tree == 0) return;
-  AMSSetupR *dummy=this;
-  tree->SetBranchAddress("run.",&dummy);
+  _Head=this;
+  tree->SetBranchAddress("run.",&_Head);
    
 }
 #ifndef __ROOTSHAREDLIBRARY__

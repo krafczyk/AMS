@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.18 2011/05/04 14:18:04 choutko Exp $
+//  $Id: root_setup.h,v 1.19 2011/05/05 18:52:06 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -226,6 +226,9 @@ void Add(SlowControlDB *s);
 friend class AMSTimeID;
 friend class SlowControlDB;
 static AMSSetupR * _Head;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (_Head)
+#endif
 static int _select (const dirent64 * entry);
 public:
 void Purge();
