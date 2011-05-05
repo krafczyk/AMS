@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.11 2011/04/04 20:30:58 oliva Exp $
+// $Id: TrCalDB.h,v 1.12 2011/05/05 19:34:13 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/04/04 20:30:58 $
+///$Date: 2011/05/05 19:34:13 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -96,6 +96,7 @@ public:
   void CalDB2Lin();
 
   void Print(int verb){
+    printf(" Calibration Database for calrun %d\n",run);
     for(int ii=0;ii<GetEntries();ii++) 
       GetEntry(ii)->PrintInfo(verb);
   }
