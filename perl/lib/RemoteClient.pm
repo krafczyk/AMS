@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.666 2011/05/02 23:44:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.667 2011/05/05 13:39:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13415,6 +13415,12 @@ foreach my $block (@blocks) {
     $startingjob[0] = "StartingJob";
     $startingjobR   = 1;
     $lastjobid = $startingjob[2];
+     $sql = "UPDATE Jobs SET
+                 mips = $jobmips
+                where jid=$lastjobid";
+     print FILE "$sql \n";
+     $self->{sqlserver}->Update($sql);
+
    } else  {
     print FILE "parseJournalFiles -W- StartingJob - cannot find all patterns \n";
    }
@@ -13449,10 +13455,14 @@ foreach my $block (@blocks) {
        }
        $j++;
      }
+     
+     if($lastjobid!=$startingrun[2]){
+      print FILE " changung data mc $lastjobid $startingrun[2]\n";
+      $startingrun[21]=1;
+     }
 
 
-
-   if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) {
+   if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4 ) {
     my $run = $startingrun[2];
     my $dataruns=$startingrun[21]==1?"dataruns":"runs";
     $startingrun[0] = "StartingRun";
