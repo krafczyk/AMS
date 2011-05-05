@@ -26,9 +26,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2011/04/28 11:19:04 $
+ $Date: 2011/05/05 23:14:39 $
 
- $Revision: 1.24 $
+ $Revision: 1.25 $
 
 */
 
@@ -100,6 +100,8 @@ class TrClusterR :public TrElem{
 
   /// Default signal correction option
   static int DefaultCorrOpt;
+  /// Default signal MIP scale correction
+  static int DefaultMipCorrOpt;
   /// Default number of strips used for CofG
   static int DefaultUsedStrips;
 

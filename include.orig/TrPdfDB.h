@@ -8,9 +8,9 @@
  \class TrPdfDB
  \brief The tracker PDF manager
  
- $Date: 2011/04/28 11:19:05 $
+ $Date: 2011/05/05 23:14:39 $
 
- $Revision: 1.1 $
+ $Revision: 1.2 $
 */
 
 #include "TkDBc.h"
@@ -19,6 +19,7 @@
 #include "TFile.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TMath.h"
 
 #include <iostream>
 #include <fstream>
@@ -39,6 +40,13 @@ class TrPdfDB {
   TrPdfDB() {}
 
  public:
+
+  /////////////////////////
+  // Enumerators
+  /////////////////////////
+
+  //! Available PDF types
+  enum PdfType { kSingleLayer = 0, kTruncatedMean = 1 };
 
   /////////////////////////
   // Accessors 

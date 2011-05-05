@@ -58,20 +58,29 @@ float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
 
 float TrCharge::GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta, int opt) {
   if (fabs(beta)>=1) return hit->GetSignalCombination(iside,opt);
-  return hit->GetSignalCombination(iside,opt)* 
-         TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
+  return hit->GetSignalCombination(iside,opt)*TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
 }
 
 
-float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta, int opt) {
-  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,iside,0);
+float TrCharge::GetSignalWithBetaCorrection(TrClusterR* cluster, float beta, int opt) {
+  if (fabs(beta)>=1) return cluster->GetTotSignal(opt);
+  return cluster->GetTotSignal(opt)*TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
+}
+
+
+float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
+  /* ATTENTION: the requested PDF should be in MIP scale,
+     for the time being is not! */
+  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,iside,TrPdfDB::kSingleLayer);
   if (pdf==0) {
-    printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf (iside=%d,Z=%d,type=0), returning -1.\n",iside,Z);
-    return -1;
+    printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf (iside=%d,Z=%d,type=%d), returning -1.\n",
+           iside,Z,TrPdfDB::kSingleLayer);
+    return 0;
   }
-  float signal = GetSignalWithBetaCorrection(hit,iside,beta,opt);
+  // 0 i for electron particles (approximately no rise)
+  if (Z==0) beta = 1;
+  float signal = GetSignalWithBetaCorrection(hit,iside,beta,TrClusterR::DefaultMipCorrOpt);
   return pdf->Eval(signal);
-  return -1;
 }
 
 
@@ -115,7 +124,7 @@ bool TrCharge::GoodChargeReconHit(TrRecHitR* hit) {
 }
 
 
-mean_t TrCharge::GetMean(vector<float> signal) {
+mean_t TrCharge::GetPlainMean(vector<float> signal) {
   int   n    = 0;
   float mean = 0;
   float rms  = 0;
@@ -133,7 +142,7 @@ mean_t TrCharge::GetMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetTruncatedMean(vector<float> signal) {
+mean_t TrCharge::GetTruncMean(vector<float> signal) {
   int   n       = 0;
   float mean    = 0;
   float maxampl = 0;
@@ -153,7 +162,7 @@ mean_t TrCharge::GetTruncatedMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetGaussianizedMean(vector<float> signal) {
+mean_t TrCharge::GetGaussMean(vector<float> signal) {
   // calculate mean and rms
   int   n    = 0;
   float mean = 0;
@@ -187,82 +196,62 @@ mean_t TrCharge::GetGaussianizedMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetMeanByType(int type, TrTrackR* track, int iside, float beta, int layerj, int opt) {
+mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int layerj, int opt) {
+  // Signal Selection
   vector<float> signal;  
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
     TrRecHitR* hit = track->GetHit(ihit);
     int LayerJ = hit->GetLayerJ();
     if (hit==0) continue;
-    // hit analysis
+    // if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
-    // cluster analysis
+    // if cluster analysis
     TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
-    // excluded layer 
+    // an excluded layer 
     if (LayerJ==layerj) continue;
+    // requested inner 
+    if ( (type&kInner)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
+    // add 
     signal.push_back(GetSignalWithBetaCorrection(hit,iside,beta,opt));
   }
-  mean_t mean; 
-  switch (type) {
-    case kPlainMean:
-      mean = GetMean(signal);
-      break;
-    case kTruncMean:
-      mean = GetTruncatedMean(signal);
-      break;
-    case kGaussMean:
-      mean = GetGaussianizedMean(signal);
-      break;
-  }
-  // set side and other ... 
+  // Mean Computation
+  mean_t mean;
+  if      (type&kPlainMean) mean = GetPlainMean(signal);
+  else if (type&kTruncMean) mean = GetTruncMean(signal);
+  else if (type&kGaussMean) mean = GetGaussMean(signal);
+  // set side  
   mean.Side = iside;
   return mean;
 }   
 
 
-mean_t TrCharge::GetMean(TrTrackR* track, int iside, float beta, int layer, int opt) {
-  return GetMeanByType(kPlainMean, track, iside, beta, layer, opt);
-}
-
-
-mean_t TrCharge::GetTruncatedMean(TrTrackR* track, int iside, float beta, int layer, int opt) {
-  return GetMeanByType(kTruncMean, track, iside, beta, layer, opt);
-}
-
-
-mean_t TrCharge::GetGaussianizedMean(TrTrackR* track, int iside, float beta, int layer, int opt) {
-  return GetMeanByType(kGaussMean, track, iside, beta, layer, opt);
-}
-
-
-like_t TrCharge::GetMeanProbToBeZ(mean_t mean, int Z) { 
-  // implemented only for truncated mean, in ADC scale
-  if (mean.Type!=kTruncMean) {
-    printf("TrCharge::GetTruncatedMeanProbToBeZ-W algo. implemented only for truncated mean.\n");
-    return like_t();
-  }
-
-  // some kind of selection:
-  // - minimum number of hits?
-  // - (inner tracker ... maybe not at this level)
- 
-  // take the corresponding pdf
-  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,mean.Side,1); // put the correct distributions ... 
+like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) { 
+  // 0 is for electron particles (approximately no rise)
+  if (Z==0) beta = 1;
+  // Truncated mean computation (X side)
+  mean_t mean = GetMean(kTruncMean|kInner,track,kX,beta,-1,TrClusterR::DefaultCorrOpt);
+  // Take the corresponding PDF
+  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,kX,TrPdfDB::kTruncatedMean);
   if (pdf==0) {
-    printf("TrCharge::GetTruncatedMeanProbToBeZ-W requesting a not-existing pdf (iside=%d,Z=%d,type=1), returning nothing.\n",mean.Side,Z);
+    printf("TrCharge::GetMeanProbToBeZ-W requesting a not-existing pdf (iside=%d,type=%d), returning -1.\n",
+            Z,TrPdfDB::kTruncatedMean);
     return like_t();
   }
-
-  // evaluate
-  return like_t(0,mean.Side,mean.NPoints,pdf->Eval(mean.Mean),pdf->Eval(mean.Mean),mean);
+  // 0 is for electron particles (approximately no rise)
+  if (Z==0) beta = 1; 
+  // Evaluate
+  float value = sqrt(mean.Mean);
+  float prob  = pdf->Eval(value);
+  return like_t(0,mean.Side,mean.NPoints,prob,prob,mean);
 }
 
 
-int TrCharge::GetMeanCharge(mean_t mean) {
+int TrCharge::GetTruncMeanCharge(TrTrackR* track, float beta) {
   int bestz = -1;
   float maxprob = 0;
   for (int z=1; z<=MaxCharge; z++) {
-    float prob = GetMeanProbToBeZ(mean,z).LogLike;
+    float prob = GetTruncMeanProbToBeZ(track,z,beta).LogLike;
     if (prob>maxprob) bestz = z;
   } 
   return bestz;
@@ -270,19 +259,32 @@ int TrCharge::GetMeanCharge(mean_t mean) {
 
 
 float TrCharge::GetQ(TrTrackR* track, int iside) {
-  // to be keep updated
-  int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP; 
-  mean_t mean = GetMeanByType(kTruncMean, track, iside, 1, -1, opt);
+  // To be keep updated
+  mean_t mean = GetMean(kTruncMean,track,iside,1,-1,TrClusterR::DefaultMipCorrOpt);
   return mean.GetQ();
 }
 
 
 like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta) {
-  // loop on hits belonging to the track
-  // decide if good or not
-  // calculate likelihood 
-  // drop one hit? 
-  return like_t();
+  like_t likelihood;
+  for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+    TrRecHitR* hit = track->GetHit(ihit);
+    int LayerJ = hit->GetLayerJ();
+    if (hit==0) continue;
+    // if hit analysis
+    if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
+    // if cluster analysis
+    TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
+    if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
+    // requested inner
+    if ( (type&kInner!=0)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
+    // calculate probability 
+    float logprob = GetProbToBeZ(hit,iside,Z,beta);
+    
+    likelihood.LogLike += logprob;
+    // vector for the mean ... 
+  }
+  return likelihood;
 }
 
 

@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2011/05/04 19:49:00 $
+ $Date: 2011/05/05 23:14:39 $
 
- $Revision: 1.3 $
+ $Revision: 1.4 $
 */
 
 #include "TrCluster.h"
@@ -58,7 +58,7 @@ class mean_t {
   void clear() { Type = 0; Side = 0; NPoints = 0; Mean = 0; RMS = 0; }
   //! Copy
   void copy(const mean_t &that) { Type = that.Type; Side = that.Side; NPoints = that.NPoints; Mean = that.Mean; RMS = that.RMS; }
-  //! Approximate charge value (if mean is in MIP units)
+  //! Approximate charge value, charge units (if mean is in MIP units)
   float GetQ() { return sqrt(Mean); }
   //! Error on charge value
   float GetQErr() { return RMS/(2*sqrt(Mean)); }
@@ -126,13 +126,15 @@ class TrCharge {
   /////////////////////////
   // Enumerators
   /////////////////////////
-  
-  //! Available mean algorithms
-  enum MeanType { kPlainMean = 0, kTruncMean = 1, kGaussMean = 2 };
-  //! Available likelihood calculations
-  enum LikeType { kFromMean = 0, kAllPoints = 1, kDropOne = 2, kBestFour = 3, kInner = 4, kTop = 5, kLower = 6 };
-  //! Following the TrRecHit convention, 0: only-x, 1: only-y, 2: xy weighted mean, 3: xy not weighted
+
+  //! TrRecHit convention, 0: only-x, 1: only-y, 2: xy weighted mean, 3: xy not weighted
   enum SideType { kX = 0, kY = 1, kXY = 2, kXYUnWei = 3 };
+  //! Plane combinations
+  enum CombType { kInner = 0x01, kTop = 0x02, kLower = 0x04 };
+  //! Available mean algorithms
+  enum MeanType { kPlainMean = 0x100, kTruncMean = 0x200, kGaussMean = 0x400 };
+  //! Available likelihood calculations
+  enum LikeType { kTruncatedMean = 0x100, kAllPoints = 0x200, kDropOne = 0x400, kBestFour = 0x800 };
 
   /////////////////////////
   // Cluster/Hit methods
@@ -153,71 +155,38 @@ class TrCharge {
   static float GetBetaFromRigidity(float rigidity, int Z, float mass);
   //! Get the signal 
   static float GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta = 1, int opt = TrClusterR::DefaultCorrOpt);
+  //! Get the signal
+  static float GetSignalWithBetaCorrection(TrClusterR* cluster, float beta = 1, int opt = TrClusterR::DefaultCorrOpt);
   //! Get the probability 
-  static float GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = 1, int opt = TrClusterR::DefaultCorrOpt); 
+  static float GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta = 1); 
 
   /////////////////////////
   // Averaging methods
   /////////////////////////
 
   //! Track mean generic method
-  static mean_t GetMeanByType(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  static mean_t GetMean(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
 
   //! Mean of n signals
-  static mean_t GetMean(vector<float> signal);
-  //! Track X mean signal (beta correction, jlayer = 1, ..., 9 indicates an excluded layer)
-  static mean_t GetMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
-
+  static mean_t GetPlainMean(vector<float> signal);
   //! Truncated mean of n signals
-  static mean_t GetTruncatedMean(vector<float> signal);
-  //! Track X truncated mean signal (beta correction, jlayer = 1, ..., 9 indicates an excluded layer)
-  static mean_t GetTruncatedMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
-
+  static mean_t GetTruncMean(vector<float> signal);
   //! Gaussianized mean of n signals (discarding out-of-3-sigma signals)
-  static mean_t GetGaussianizedMean(vector<float> signal);
-  //! Track X gaussianized mean of n signals (beta correction, jlayer= 1, ..., 9 indicates an excluded layer)
-  static mean_t GetGaussianizedMean(TrTrackR* track, int iside, float beta = 1, int jlayer = -1, int opt = TrClusterR::DefaultCorrOpt);
+  static mean_t GetGaussMean(vector<float> signal);
 
-  //! Mean probability (only truncated mean has been implemented ...)
-  static like_t GetMeanProbToBeZ(mean_t mean, int Z);
-  //! Get charge from mean probability (only truncated mean has been implemented ...) 
-  static int    GetMeanCharge(mean_t mean);
-
-  //! Best available Q evaluation (to be keep updated) 0: x, 1: y, 2: xy weigh, 3: xy plain
+  //! Truncated mean probability (inner tracker)
+  static like_t GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta = 1);
+  //! Truncated mean charge (inner tracker)
+  static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
+  //! Best available Q evaluation (truncated mean, charge units, all tracker) [0: x, 1: y, 2: xy weigh, 3: xy plain]
   static float  GetQ(TrTrackR* track, int iside);
 
   /////////////////////////
   // Likelihood methods
   /////////////////////////
 
-  //! Likelihood computation methods (different likelihood methods with different type, 
-  //! 0 = all, 1 = drop 1, 2 = use best 5, 3 use inner only 
+  //! Likelihood computation generic method   
   static like_t  GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta = 1);
-
-  /////////////////////////
-  // Charge reconstruction
-  /////////////////////////
-
-  /* 
-     interface to AMSCharge: what will be used? 
-     how to interface?: AMS Charge can call the loop or TrCharge can use the AMSCharge pointer?
-     
-   number  _TrMeanTracker;
-   number  _ProbTracker[maxzin];   // prob to be e,p,He,...,F
-   number  _LkhdTracker[maxzin];   // loglikhd value for e,p, ...
-   integer _IndxTracker[maxzin];   // index 0,...,9 from most to least prob charge
-   integer _iTracker;              // index of most probable charge
-   number  _ProbAllTracker;        // prob of maximum charge using all tracker clusters
-
-  // one-th recon:
-  // Truncated mean distributions (gaussians) in ADC scale <<< only inner?
-  // Return to AMSCharge probs
-
-  // two-th recon:
-  // conversion to MIP scale
-  // likelihood calculation
-
-  */
 
 };
 

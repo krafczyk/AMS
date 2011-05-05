@@ -70,6 +70,9 @@ void TrPdfDB::Clear() {
 
 
 void TrPdfDB::LoadPierrePdf(TFile* file) {
+
+  // APPROX 1
+  // Create PDFs for single planes (should be in MIP scale)
   TH2D* histo;
   // n-side
   histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_N");
@@ -80,7 +83,7 @@ void TrPdfDB::LoadPierrePdf(TFile* file) {
     int Z = i+2;
     TrPdf* pdf = new TrPdf(Form("Z%d_N",Z),th1d,true,true);
     delete th1d;
-    Add(pdf,Z,0,0);
+    Add(pdf,Z,0,kSingleLayer);
   }
   // p-side
   histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_P");
@@ -91,7 +94,7 @@ void TrPdfDB::LoadPierrePdf(TFile* file) {
     int Z = i+2;
     TrPdf* pdf = new TrPdf(Form("Z%d_P",Z),th1d,true,true);
     delete th1d;
-    Add(pdf,Z,1,0);
+    Add(pdf,Z,1,kSingleLayer);
   }
   // p/n combination
   histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_PN_all");
@@ -102,8 +105,24 @@ void TrPdfDB::LoadPierrePdf(TFile* file) {
     int Z = i+2;
     TrPdf* pdf = new TrPdf(Form("Z%d_PN",Z),th1d,true,true);
     delete th1d;
-    Add(pdf,Z,2,0);
+    Add(pdf,Z,2,kSingleLayer);
   }
+
+  // APPROX 0
+  // Create PDFs for truncated mean evaluation [sqrt(ADC) units]
+  float mu[8]    = {6.249,12.533,19.02,25.69,32.80,38.16,43,49.74};
+  float sigma[8] = {0.726,1.23,1.57,2.1,3.1,2.50,5,3.30};
+  for (int i=0; i<8; i++) {
+    int Z = i+1;
+    TrPdf* pdf = new TrPdf(Form("TM_X_Z%d",Z));
+    for (int ix=0; ix<200; ix++) {
+      float x = ix*0.50 + 0.25; 
+      float y = TMath::Gaus(x,mu[i],sigma[i],kTRUE); 
+      pdf->AddPoint(x,y);
+    }
+    Add(pdf,Z,0,kTruncatedMean);
+  }
+
   // info
   Info();
 }

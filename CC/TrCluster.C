@@ -8,7 +8,8 @@ TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
 
-int      TrClusterR::DefaultCorrOpt = (TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+int      TrClusterR::DefaultCorrOpt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss;
+int      TrClusterR::DefaultMipCorrOpt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP;
 int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
 float    TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
 float    TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
