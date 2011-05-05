@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.53 2011/05/04 15:27:26 achikani Exp $
+//  $Id: TrFit.C,v 1.54 2011/05/05 08:54:09 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/05/04 15:27:26 $
+///$Date: 2011/05/05 08:54:09 $
 ///
-///$Revision: 1.53 $
+///$Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1233,7 +1233,7 @@ int TrFit::JAMinParams(double *F, double *V, int side, int fix)
   return 0;
 }
 
-#include "HistoMan.h"
+//#include "HistoMan.h"
 
 double TrFit::ChoutkoFit(void)
 {
@@ -1374,7 +1374,7 @@ double TrFit::ChoutkoFit(void)
 
     if (kiter >= 5) tol = 0.5;
 
-    if (kiter > 0) hman.Fill("TrChfit", kiter, dlt);
+  //if (kiter > 0) hman.Fill("TrChfit", kiter, dlt);
     if (kiter >= 2 && (dlt <= tol || dltb <= tol)) {
       ifail = 0;
       break;

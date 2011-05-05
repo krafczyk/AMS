@@ -1,3 +1,4 @@
+/// $Id: HistoMan.C,v 1.35 2011/05/05 08:54:09 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -242,10 +243,13 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,   10,    0,  10, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqXh", "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrCsqYh", "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
+  Add(TH2D_L("TrEriC", "ErRinvC VS RGT", 40, 0.1, 1e3,   80, 1e-2, 1e2, 1, 1));
   Add(TH2D_L("TrResX", "ResX/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
   Add(TH2D_L("TrResY", "ResY/um VS RGT", 40, 0.1, 1e3, 1000, -5e3, 5e3, 1, 0));
-  Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
-  Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  500,    0, 500, 1, 0));
+  Add(TH2D_L("TrChgP", "ChargeP VS RGT", 40, 0.1, 1e3,  200,    0,  10, 1, 0));
+  Add(TH2D_L("TrChgN", "ChargeN VS RGT", 40, 0.1, 1e3,  200,    0,  10, 1, 0));
 
   Add(new TH2D("TrPtkL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPftL8", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
@@ -262,8 +266,8 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
   Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
 
-  Add(new TH2F("TkTrdD0", "TkTRD dy VS dx bef.",   300, 0, 60, 100, 0,  2));
-  Add(new TH2F("TkTrdDD", "TkTRD dx aft. VS bef.", 300, 0, 60, 300, 0, 60));
+  Add(new TH2D("TkTrdD0", "TkTRD dy VS dx bef.",   300, 0, 60, 100, 0,  2));
+  Add(new TH2D("TkTrdDD", "TkTRD dx aft. VS bef.", 300, 0, 60, 300, 0, 60));
   Add(TH2D_L  ("TkMoveC", "CsqX 2 VS 1", 120, 1e-5, 1e7, 120, 1e-5, 1e7));
 
   Add(TH2D_L("TrEdx1", "dX VS R L1N", 80, 0.1, 1e3, 200, -10, 10, 1, 0));
@@ -273,16 +277,21 @@ void HistoMan::BookHistos(int simmode){
 
   Add(TH2D_L("TrChfit", "Choutko Fit", 20, 0, 20, 100, 1e-9, 1e1, 0, 1));
 
-  Add(new TH2F("trdmatch","trdmatch",1000,0,100,5,0,5));
-  Add(new TH2F("Time","Time",1000,0,50.,500,0,500));
+  Add(new TH2D("trdmatch","trdmatch",1000,0,100,5,0,5));
+  Add(new TH2D("Time","Time",1000,0,50.,500,0,500));
 
-  Add(new TH2F("Time2","Time2",1000,-4,2.,500,0,500));
+  Add(new TH2D("Time2","Time2",1000,-4,2.,500,0,500));
 
   // 1/Rigidity
-  Add(new TH2F("TrRiIBi", "binv VS 1/R(I)", 4000, -1, 1, 150, -3, 3));
-  Add(new TH2F("TrRiFBi", "binv VS 1/R(F)", 4000, -1, 1, 100, -3, 3));
-  Add(new TH2F("TrRiICs", "sChg VS 1/R(I)", 4000, -1, 1, 200, -20, 20));
-  Add(new TH2F("TrRiFCs", "sChg VS 1/R(F)", 4000, -1, 1, 200, -20, 20));
+  Add(new TH2D("TrRiIBi", "binv VS 1/R(I)", 400,  -1,  1, 300,  -3,  3));
+  Add(new TH2D("TrRiFBi", "binv VS 1/R(F)", 400, -.1, .1, 300,  -3,  3));
+  Add(new TH2D("TrRiICs", "sChg VS 1/R(I)", 400,  -1,  1, 800, -20, 20));
+  Add(new TH2D("TrRiFCs", "sChg VS 1/R(F)", 400, -.1, .1, 800, -20, 20));
+  Add(new TH2D("TrTofDD", "Track-TOF diff", 100,  -5,  5, 100,  -5,  5));
+
+  Add(TH2D_L("TrNclsL", "Ncls on trackL", 100, 1e-2, 1e3, 100, 0, 100, 1, 0));
+  Add(TH2D_L("TrNmaxL", "Nmax on trackL", 100, 1e-2, 1e3, 100, 0, 100, 1, 0));
+  Add(new TH2D("TrNmxcl","Nmax VS Ncls", 100, 0, 100, 100, 0, 100));
 
   // Trackfinding
   Add(TH2D_L("TfPsY0", "Pre-sel Y",     100, 1e-4,  10, 140, 1e-6,  10));
@@ -305,10 +314,17 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfRgt1", "Rgt1 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfRgt2", "Rgt2 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfCsqf", "CsqY VS CsqY2", 100, 1e-7, 1e3, 140, 1e-3, 1e4));
+  Add(TH2D_L("TfCsn0", "ClsSN psel0",   120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn1", "ClsSN psel1",   120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn2", "ClsSN mrgY",    120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn3", "ClsSN mrgX",    120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn4", "ClsSN mrgX",    120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,    1, 1e3, 120, 1e-2, 1e2));
 
   // residuals vs ladder
-  Add(new TH2F("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
-  Add(new TH2F("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
+  Add(new TH2D("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
+  Add(new TH2D("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
 
   // Sim. reconstruction
   if (simmode & 2) {
@@ -335,8 +351,8 @@ void HistoMan::BookHistos(int simmode){
     Add(TH1D_L("Pgen", "Pgen", 100, 1e-1, 1e4));
     Add(TH1D_L("Pacc", "Pacc", 100, 1e-1, 1e4));
 
-    Add(new TH2F("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
-    Add(new TH2F("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
+    Add(new TH2D("TrSimRx", "Sim Xreso VS angX", 50, 0, 50, 100, -100, 100));
+    Add(new TH2D("TrSimRy", "Sim Yreso VS angY", 50, 0, 50, 100, -100, 100));
 
     // intrinsic resolution and signal checks
     Add(new TH2D("TrSimSigx","raw charge vs eta; #eta; raw charge",100,0,1,100,0.5,1));

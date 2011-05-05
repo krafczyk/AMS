@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.46 2011/04/23 15:31:00 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.47 2011/05/05 08:54:09 shaino Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/04/23 15:31:00 $
+/// $Date: 2011/05/05 08:54:09 $
 ///
-/// $Revision: 1.46 $
+/// $Revision: 1.47 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -531,6 +531,9 @@ public:
 
   /// Print statics
   static void PrintStats();
+
+  /// Get current run number
+  static int GetRunID();
 
   /// Get current event number
   static int GetEventID();
