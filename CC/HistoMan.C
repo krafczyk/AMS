@@ -62,15 +62,11 @@ void HistoMan::Fill(const char * name, double a,double  b,double w){
       printf("HistoMan::Fill: Error Unknown histo %s\n",name);
     return;
   }
-#pragma omp critical (hmanfill)
-{
-  if( hist->InheritsFrom("TH3"))
-    ((TH3*)hist)->Fill(a,b,w);
-  else if( hist->InheritsFrom("TH2"))
-    ((TH2*)hist)->Fill(a,b,w);
-  else if( hist->InheritsFrom("TH1"))
-    ((TH1*)hist)->Fill(a,b);
-} 
+
+  if      (hist->GetDimension() == 3) ((TH3*)hist)->Fill(a,b,w);
+  else if (hist->GetDimension() == 2) ((TH2*)hist)->Fill(a,b,w);
+  else if (hist->GetDimension() == 1) ((TH1*)hist)->Fill(a,b);
+
   return;
 }
 
