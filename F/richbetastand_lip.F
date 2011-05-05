@@ -2,10 +2,10 @@
 * In this file
 * ------------
 *      subroutine richtoftrackinit(itype)  //steering routine for tof track hints ("init" means hint tracks)
-*      subroutine richtoftrackinit1
-*      subroutine richtoftrackinit2
-*      subroutine richtoftrackinit3
-*      subroutine richtoftrackinit4
+*      subroutine richtoftrackinit1(itype)
+*      subroutine richtoftrackinit2(itype)
+*      subroutine richtoftrackinit3(itype)
+*      subroutine richtoftrackinit4(itype)
 *      subroutine richrecflex
 *      subroutine richrecstand
 *      subroutine richinitstand(irshint,minsigquo,ierr)
@@ -117,16 +117,76 @@
       integer itype
 
       if(itype.eq.1) then
-         call richtoftrackinit1
+         call richtoftrackinit1(0)
+         return
+      elseif(itype.eq.14) then
+         call richtoftrackinit1(4)
+         return
+      elseif(itype.eq.13) then
+         call richtoftrackinit1(3)
+         return
+      elseif(itype.eq.131) then
+         call richtoftrackinit1(31)
+         return
+      elseif(itype.eq.132) then
+         call richtoftrackinit1(32)
+         return
+      elseif(itype.eq.133) then
+         call richtoftrackinit1(33)
+         return
+      elseif(itype.eq.134) then
+         call richtoftrackinit1(34)
          return
       elseif(itype.eq.2) then
-         call richtoftrackinit2
+         call richtoftrackinit2(0)
+         return
+      elseif(itype.eq.24) then
+         call richtoftrackinit2(4)
+         return
+      elseif(itype.eq.23) then
+         call richtoftrackinit2(3)
+         return
+      elseif(itype.eq.231) then
+         call richtoftrackinit2(31)
+         return
+      elseif(itype.eq.232) then
+         call richtoftrackinit2(32)
+         return
+      elseif(itype.eq.233) then
+         call richtoftrackinit2(33)
+         return
+      elseif(itype.eq.234) then
+         call richtoftrackinit2(34)
          return
       elseif(itype.eq.3) then
-         call richtoftrackinit3
+         call richtoftrackinit3(0)
+         return
+      elseif(itype.eq.32) then
+         call richtoftrackinit3(2)
+         return
+      elseif(itype.eq.31) then
+         call richtoftrackinit3(1)
+         return
+      elseif(itype.eq.311) then
+         call richtoftrackinit3(11)
+         return
+      elseif(itype.eq.312) then
+         call richtoftrackinit3(12)
          return
       elseif(itype.eq.4) then
-         call richtoftrackinit4
+         call richtoftrackinit4(0)
+         return
+      elseif(itype.eq.42) then
+         call richtoftrackinit4(2)
+         return
+      elseif(itype.eq.41) then
+         call richtoftrackinit4(1)
+         return
+      elseif(itype.eq.413) then
+         call richtoftrackinit4(13)
+         return
+      elseif(itype.eq.414) then
+         call richtoftrackinit4(14)
          return
       endif
 
@@ -141,10 +201,12 @@
 *** RICHTOFTRACKINIT1: initialization of TOF track (type I) ***
 ***************************************************************
 
-      subroutine richtoftrackinit1
+      subroutine richtoftrackinit1(itype)
 
 #include "../include/richrec_lipf.h"
 #include "../include/richrec_lipc.h"
+
+      integer itype
 
       real tol
 
@@ -168,6 +230,16 @@
 *         print*,'coo_tof(*,',i,') = ',
 *     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
 *      enddo
+
+      if(itype.ne.0
+     +     .and.itype.ne.4
+     +     .and.itype.ne.3
+     +     .and.itype.ne.31
+     +     .and.itype.ne.32
+     +     .and.itype.ne.33
+     +     .and.itype.ne.34) then
+         print*,'RICHTOFTRACKINIT1: invalid TOF-based rec type'
+      endif
 
 * --- maximum distance for cluster search
       tol = 10. !5. ! cm
@@ -242,20 +314,26 @@
 *                 (only one set is saved per 1-4 pair)
 
                   if(currcand(2).gt.0.and.currcand(3).gt.0) then
-                     ncand4p = ncand4p+1
-                     do n=1,4
-                        cand4p(ncand4p,n) = currcand(n)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.4) then
+                        ncand4p = ncand4p+1
+                        do n=1,4
+                           cand4p(ncand4p,n) = currcand(n)
+                        enddo
+                     endif
                   else if(currcand(2).gt.0.and.currcand(3).le.0) then
-                     ncand3p = ncand3p+1
-                     cand3p(ncand3p,1) = currcand(1)
-                     cand3p(ncand3p,2) = currcand(2)
-                     cand3p(ncand3p,3) = currcand(4)
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.33) then
+                        ncand3p = ncand3p+1
+                        cand3p(ncand3p,1) = currcand(1)
+                        cand3p(ncand3p,2) = currcand(2)
+                        cand3p(ncand3p,3) = currcand(4)
+                     endif
                   else if(currcand(2).le.0.and.currcand(3).gt.0) then
-                     ncand3p = ncand3p+1
-                     cand3p(ncand3p,1) = currcand(1)
-                     cand3p(ncand3p,2) = currcand(3)
-                     cand3p(ncand3p,3) = currcand(4)
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.32) then
+                        ncand3p = ncand3p+1
+                        cand3p(ncand3p,1) = currcand(1)
+                        cand3p(ncand3p,2) = currcand(3)
+                        cand3p(ncand3p,3) = currcand(4)
+                     endif
                   endif
 
                endif
@@ -319,10 +397,81 @@
 *                 (only one set is saved per 2-4 pair)
 
                   if(currcand(3).gt.0) then
-                     ncand3p = ncand3p+1
-                     do n=1,3
-                        cand3p(ncand3p,n) = currcand(n+1)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.31) then
+                        ncand3p = ncand3p+1
+                        do n=1,3
+                           cand3p(ncand3p,n) = currcand(n+1)
+                        enddo
+                     endif
+                  endif
+
+               endif
+            enddo
+         endif
+      enddo
+
+* --- cycle over possible pairs of clusters in planes 1,3
+
+      currcand(1) = 0
+
+      do i=1,ntofclu
+         if(ilayer_tof(i).eq.1) then
+
+            currcand(2) = i
+
+            do j=1,ntofclu
+               if(ilayer_tof(j).eq.3) then
+
+                  currcand(4) = j
+
+* --------------- look for nearby clusters in plane 2
+
+                  flagplane2 = 0
+
+                  currcand(3) = -1
+
+                  do k=1,ntofclu
+
+                     if(ilayer_tof(k).eq.2) then
+
+*                        print*,'Testing',i,j,k
+
+                        extrapx = coo_tof(1,i)
+     +                       +(coo_tof(1,j)-coo_tof(1,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+                        extrapy = coo_tof(2,i)
+     +                       +(coo_tof(2,j)-coo_tof(2,i))
+     +                       *(coo_tof(3,k)-coo_tof(3,i))
+     +                       /(coo_tof(3,j)-coo_tof(3,i))
+
+                        extrapdist2 = (extrapx-coo_tof(1,k))**2.
+     +                               +(extrapy-coo_tof(2,k))**2.
+
+*                        print*,'Extrap = ',extrapx,extrapy
+*                        print*,'Dist = ',extrapdist2**0.5
+
+                        if(extrapdist2.lt.tol**2.) then
+
+                           flagplane2 = 1
+                           currcand(3) = k
+
+                        endif
+
+                     endif
+
+                  enddo
+
+* --------------- save sets of 3 aligned clusters
+*                 (only one set is saved per 1-3 pair)
+
+                  if(currcand(3).gt.0) then
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.34) then
+                        ncand3p = ncand3p+1
+                        do n=1,3
+                           cand3p(ncand3p,n) = currcand(n+1)
+                        enddo
+                     endif
                   endif
 
                endif
@@ -433,10 +582,12 @@
 *** RICHTOFTRACKINIT2: initialization of TOF track (type II) ***
 ****************************************************************
 
-      subroutine richtoftrackinit2
+      subroutine richtoftrackinit2(itype)
 
 #include "../include/richrec_lipf.h"
 #include "../include/richrec_lipc.h"
+
+      integer itype
 
       real tol
 
@@ -460,6 +611,16 @@
 *         print*,'coo_tof(*,',i,') = ',
 *     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
 *      enddo
+
+      if(itype.ne.0
+     +     .and.itype.ne.4
+     +     .and.itype.ne.3
+     +     .and.itype.ne.31
+     +     .and.itype.ne.32
+     +     .and.itype.ne.33
+     +     .and.itype.ne.34) then
+         print*,'RICHTOFTRACKINIT2: invalid TOF-based rec type'
+      endif
 
 * --- maximum distance for cluster search
       tol = 10. !5. ! cm
@@ -543,31 +704,39 @@
 
                   if(currcand(2).gt.0.and.currcand(3).gt.0
      +                 .and.currcand(4).gt.0) then
-                     ncand4p = ncand4p+1
-                     do n=1,5
-                        cand4p(ncand4p,n) = currcand(n)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.4) then
+                        ncand4p = ncand4p+1
+                        do n=1,5
+                           cand4p(ncand4p,n) = currcand(n)
+                        enddo
+                     endif
                   else if(currcand(2).gt.0.and.currcand(3).gt.0
      +                    .and.currcand(4).le.0) then
-                     ncand3p = ncand3p+1
-                     cand3p(ncand3p,1) = currcand(1)
-                     cand3p(ncand3p,2) = currcand(2)
-                     cand3p(ncand3p,3) = currcand(3)
-                     cand3p(ncand3p,4) = currcand(5)
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.34) then
+                        ncand3p = ncand3p+1
+                        cand3p(ncand3p,1) = currcand(1)
+                        cand3p(ncand3p,2) = currcand(2)
+                        cand3p(ncand3p,3) = currcand(3)
+                        cand3p(ncand3p,4) = currcand(5)
+                     endif
                   else if(currcand(2).gt.0.and.currcand(3).le.0
      +                    .and.currcand(4).gt.0) then
-                     ncand3p = ncand3p+1
-                     cand3p(ncand3p,1) = currcand(1)
-                     cand3p(ncand3p,2) = currcand(2)
-                     cand3p(ncand3p,3) = currcand(4)
-                     cand3p(ncand3p,4) = currcand(5)
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.33) then
+                        ncand3p = ncand3p+1
+                        cand3p(ncand3p,1) = currcand(1)
+                        cand3p(ncand3p,2) = currcand(2)
+                        cand3p(ncand3p,3) = currcand(4)
+                        cand3p(ncand3p,4) = currcand(5)
+                     endif
                   else if(currcand(2).le.0.and.currcand(3).gt.0
      +                    .and.currcand(4).gt.0) then
-                     ncand3p = ncand3p+1
-                     cand3p(ncand3p,1) = currcand(1)
-                     cand3p(ncand3p,2) = currcand(3)
-                     cand3p(ncand3p,3) = currcand(4)
-                     cand3p(ncand3p,4) = currcand(5)
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.32) then
+                        ncand3p = ncand3p+1
+                        cand3p(ncand3p,1) = currcand(1)
+                        cand3p(ncand3p,2) = currcand(3)
+                        cand3p(ncand3p,3) = currcand(4)
+                        cand3p(ncand3p,4) = currcand(5)
+                     endif
                   endif
 
                endif
@@ -641,10 +810,12 @@
 *                 (only one set is saved per 2-5 pair)
 
                   if(currcand(3).gt.0.and.currcand(4).gt.0) then
-                     ncand3p = ncand3p+1
-                     do n=1,4
-                        cand3p(ncand3p,n) = currcand(n+1)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.3.or.itype.eq.31) then
+                        ncand3p = ncand3p+1
+                        do n=1,4
+                           cand3p(ncand3p,n) = currcand(n+1)
+                        enddo
+                     endif
                   endif
 
                endif
@@ -755,10 +926,12 @@
 *** RICHTOFTRACKINIT3: initialization of TOF track (type III) ***
 *****************************************************************
 
-      subroutine richtoftrackinit3
+      subroutine richtoftrackinit3(itype)
 
 #include "../include/richrec_lipf.h"
 #include "../include/richrec_lipc.h"
+
+      integer itype
 
       real tol
 
@@ -782,6 +955,14 @@
 *         print*,'coo_tof(*,',i,') = ',
 *     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
 *      enddo
+
+      if(itype.ne.0
+     +     .and.itype.ne.2
+     +     .and.itype.ne.1
+     +     .and.itype.ne.11
+     +     .and.itype.ne.12) then
+         print*,'RICHTOFTRACKINIT3: invalid TOF-based rec type'
+      endif
 
 * --- maximum distance for cluster search
       tol = 10. !5. ! cm
@@ -846,16 +1027,19 @@
 *                 (only one set is saved per 1-5 pair)
 
                   if(currcand(2).gt.0) then
-                     ncand2p = ncand2p+1
-                     do n=1,3
-                        cand2p(ncand2p,n) = currcand(n)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.2) then
+                        ncand2p = ncand2p+1
+                        do n=1,3
+                           cand2p(ncand2p,n) = currcand(n)
+                        enddo
+                     endif
                   else
-                     ncand1p = ncand1p+1
-                     cand1p(ncand1p,1) = currcand(1)
-                     cand1p(ncand1p,2) = currcand(3)
+                     if(itype.eq.0.or.itype.eq.1.or.itype.eq.12) then
+                        ncand1p = ncand1p+1
+                        cand1p(ncand1p,1) = currcand(1)
+                        cand1p(ncand1p,2) = currcand(3)
+                     endif
                   endif
-
                endif
             enddo
          endif
@@ -877,18 +1061,20 @@
 
 * --------------- save sets of 2 aligned clusters
 
-                  ncand1p = ncand1p+1
-                  do n=1,2
-                     cand1p(ncand1p,n) = currcand(n+1)
-                  enddo
+                  if(itype.eq.0.or.itype.eq.1.or.itype.eq.11) then
+                     ncand1p = ncand1p+1
+                     do n=1,2
+                        cand1p(ncand1p,n) = currcand(n+1)
+                     enddo
+                  endif
 
                endif
             enddo
          endif
       enddo
 
-*      print*,'ncand4p = ',ncand4p
-*      print*,'ncand3p = ',ncand3p
+*      print*,'ncand2p = ',ncand2p
+*      print*,'ncand1p = ',ncand1p
 
 * --- Generate TOF track from sets of clusters
 
@@ -990,10 +1176,12 @@
 *** RICHTOFTRACKINIT4: initialization of TOF track (type IV) ***
 ****************************************************************
 
-      subroutine richtoftrackinit4
+      subroutine richtoftrackinit4(itype)
 
 #include "../include/richrec_lipf.h"
 #include "../include/richrec_lipc.h"
+
+      integer itype
 
       real tol
 
@@ -1017,6 +1205,14 @@
 *         print*,'coo_tof(*,',i,') = ',
 *     +        coo_tof(1,i),coo_tof(2,i),coo_tof(3,i)
 *      enddo
+
+      if(itype.ne.0
+     +     .and.itype.ne.2
+     +     .and.itype.ne.1
+     +     .and.itype.ne.13
+     +     .and.itype.ne.14) then
+         print*,'RICHTOFTRACKINIT4: invalid TOF-based rec type'
+      endif
 
 * --- maximum distance for cluster search
       tol = 10. !5. ! cm
@@ -1081,14 +1277,18 @@
 *                 (only one set is saved per 1-5 pair)
 
                   if(currcand(2).gt.0) then
-                     ncand2p = ncand2p+1
-                     do n=1,3
-                        cand2p(ncand2p,n) = currcand(n)
-                     enddo
+                     if(itype.eq.0.or.itype.eq.2) then
+                        ncand2p = ncand2p+1
+                        do n=1,3
+                           cand2p(ncand2p,n) = currcand(n)
+                        enddo
+                     endif
                   else
-                     ncand1p = ncand1p+1
-                     cand1p(ncand1p,1) = currcand(1)
-                     cand1p(ncand1p,2) = currcand(3)
+                     if(itype.eq.0.or.itype.eq.1.or.itype.eq.14) then
+                        ncand1p = ncand1p+1
+                        cand1p(ncand1p,1) = currcand(1)
+                        cand1p(ncand1p,2) = currcand(3)
+                     endif
                   endif
 
                endif
@@ -1112,18 +1312,20 @@
 
 * --------------- save sets of 2 aligned clusters
 
-                  ncand1p = ncand1p+1
-                  do n=1,2
-                     cand1p(ncand1p,n) = currcand(n+1)
-                  enddo
+                  if(itype.eq.0.or.itype.eq.1.or.itype.eq.11) then
+                     ncand1p = ncand1p+1
+                     do n=1,2
+                        cand1p(ncand1p,n) = currcand(n+1)
+                     enddo
+                  endif
 
                endif
             enddo
          endif
       enddo
 
-*      print*,'ncand4p = ',ncand4p
-*      print*,'ncand3p = ',ncand3p
+*      print*,'ncand2p = ',ncand2p
+*      print*,'ncand1p = ',ncand1p
 
 * --- Generate TOF track from sets of clusters
 
