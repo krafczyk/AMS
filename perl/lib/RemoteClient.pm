@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.668 2011/05/05 17:54:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.669 2011/05/06 20:57:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14735,7 +14735,12 @@ if(not defined $fetime or not defined $letime){
     print "------------- $sql \n";
     print "------------- $ret->[0][1] \n";
     my $cmd="rm     $ret->[0][1]";
-    system($cmd);
+    if($path ne $ret->[0][1]){
+       system($cmd);
+    }
+    else{
+        print " cowardly refused to rm $path \n";
+    }
    $self->{sqlserver}->Update($sql);
     
   }
