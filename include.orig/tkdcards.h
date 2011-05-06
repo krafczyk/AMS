@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.38 2011/03/29 15:48:45 pzuccon Exp $
+// $Id: tkdcards.h,v 1.39 2011/05/06 21:53:40 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -306,6 +306,8 @@ public:
   int ExtMatch;
   //! I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
   int UseSensorAlign;
+  //! I 63  ReconStats flag  0=no 1=partial 2=full
+  int statflag;
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
   ClassDef(TRCLFFKEY_DEF,2);

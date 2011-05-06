@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.124 2011/05/05 08:54:09 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.125 2011/05/06 21:53:28 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/05/05 08:54:09 $
+/// $Date: 2011/05/06 21:53:28 $
 ///
-/// $Revision: 1.124 $
+/// $Revision: 1.125 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -377,7 +377,7 @@ int TrRecon::Build(int flag, int rebuild, int hist)
   // Fill histograms
   if (hist > 0) {
     trstat = CountTracks(trstat);
-    trstat = FillHistos (trstat);
+    if(hist>1) trstat = FillHistos (trstat);
   }
 
   return trstat;

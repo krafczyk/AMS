@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.47 2011/05/05 08:54:09 shaino Exp $ 
+// $Id: TrRecon.h,v 1.48 2011/05/06 21:53:40 pzuccon Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/05/05 08:54:09 $
+/// $Date: 2011/05/06 21:53:40 $
 ///
-/// $Revision: 1.47 $
+/// $Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -212,11 +212,12 @@ public:
 
     \param rebuild existing Tr** objects are cleared
 
-    \param hist Histograms are filled
+    \param hist Histograms are filled flag  0=no 1=partial 2=full
 
-    \return status of the reconstruction, to be passed to EventId::trstat 
+    \return status of the reconstruction, to be passed to EventId::trstat  
+    
   */
-  int Build(int flag = 111, int rebuild = 0, int hist = 1);
+  int Build(int flag = 111, int rebuild = 0, int hist = 2);
   
   // --- Clustering Methods --- // 
   /// Set the seed S/N threshold
