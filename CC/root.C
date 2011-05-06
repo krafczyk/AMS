@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.285 2011/05/06 00:40:14 choutko Exp $
+//  $Id: root.C,v 1.286 2011/05/06 15:55:49 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -216,14 +216,14 @@ void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,i
 void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){ 
   AMSID id(idd,Dir);
   if(Service::hb1.find(id) != Service::hb1.end()){
-    cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsNotReplacing "<<endl;
+    delete Service::hb1.find(id)->second;
+    Service::hb1.erase((Service::hb1.find(id)));
+    cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
   }
-  else{
-   char hid[1025];
-   sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
-   TH1F * p= new TH1F(hid,title,ncha,a,b);
-   (Service::hb1).insert(make_pair(id,p));
-  }
+  char hid[1025];
+  sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
+  TH1F * p= new TH1F(hid,title,ncha,a,b);
+  (Service::hb1).insert(make_pair(id,p));
 }
 
 void AMSEventR::hbookp(int idd,const char title[], int ncha, float  a, float b){
