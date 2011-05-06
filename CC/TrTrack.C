@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.106 2011/04/27 16:02:12 shaino Exp $
+// $Id: TrTrack.C,v 1.107 2011/05/06 22:30:23 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/04/27 16:02:12 $
+///$Date: 2011/05/06 22:30:23 $
 ///
-///$Revision: 1.106 $
+///$Revision: 1.107 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1279,7 +1279,9 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
     return -1;
   }
-  
+  int fflayer[9]={
+      kFitLayer1, kFitLayer2,	kFitLayer3, kFitLayer4,	kFitLayer5,
+      kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
   int ebpat = _bit_pattern & 0x180;
   int basetype=fittype;
   if(pattern==0){
@@ -1309,9 +1311,6 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   }
   else if(pattern>9){ //it is a base10 hit pattern	
     fittype|=kPattern;
-    int fflayer[9]={
-      kFitLayer1, kFitLayer2,	kFitLayer3, kFitLayer4,	kFitLayer5,
-      kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
     for(int kk=0;kk<9;kk++){
       if(((pattern/my_int_pow(10,kk))%10)==1){  //OLD scheme
 	if(_bit_pattern & (1<<kk))  fittype|=fflayer[kk];
@@ -1326,8 +1325,12 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       }
     }
     
-  }
-  else
+  }else if (pattern ==9) {
+    for (int hh=0;hh<_Nhits;hh++){
+      fittype|=kPattern;
+      if((_bit_pattern & (1<<hh)) && !(pTrRecHit(_iHits[hh])->OnlyY()) )  fittype|=fflayer[hh];
+    }
+  }else
     return -1;
 
   
