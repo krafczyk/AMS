@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.342 2011/05/03 03:56:21 afiasson Exp $
+//  $Id: root.h,v 1.343 2011/05/06 00:40:23 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1628,6 +1628,9 @@ public:
   protected:
   vector<int> fTrdSegment;
   static float ChargePDF[10030];
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ChargePDF)
+#endif
   public:
   /// access function to TrdSegmentR objects used
   /// \return number of TrdSegmentR used
@@ -2578,6 +2581,7 @@ class AMSEventR: public  TSelector {
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
+bool UpdateSetup(uinteger run);  ///< Update RootSetup for the new Run
 class Service{
 public:
  TFile *            _pOut;
@@ -2708,9 +2712,8 @@ static TTree     * _Tree;
 static TTree     * _TreeSetup;
 static TTree     * _ClonedTree;
 static TTree     * _ClonedTreeSetup;
-
+static unsigned long long  _Lock;
 static AMSEventR * _Head;
-static AMSSetupR * _HeadSetup;
 static int         _Count;
 static int _NFiles;
 static int         _Entry;
@@ -2718,8 +2721,11 @@ static int _EntrySetup;
 static char      * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(_Tree,_Entry,_Head)
+#pragma omp threadprivate(_TreeSetup,_EntrySetup)
 #endif
 public:
+static unsigned long long & Lock(){return 
+_Lock;}
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
 // void SetBranchA(TTree *tree);   // don;t use it anymore use Init
@@ -2980,7 +2986,7 @@ bool Status(unsigned int bit);                  ///< \return true if correspondi
 bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group 
 int Version() const {return fHeader.Version/16>465?fHeader.Version/16:fHeader.Version/4;} ///< \return producer version number
 ///
-static AMSSetupR *&  getsetup(){return _HeadSetup;} ///< \return RootSetup Tree Singleton
+static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
 int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun  12 linux 64bit )
 ///
 unsigned int Run() const {return fHeader.Run;} ///< \return Run number

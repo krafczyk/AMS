@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.33 2011/04/28 02:06:26 choutko Exp $
+//  $Id: amschain.C,v 1.34 2011/05/06 00:40:14 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -345,7 +345,13 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
            if(nentr>nentries)break;
 	  try{
+//            while(AMSEventR::_Lock&0x100000000){
+//            }
+//#pragma omp atomic 
+//           AMSEventR::_Lock+=(1<<thr);
 	    curp->Process(n);
+//#pragma omp atomic 
+//           AMSEventR::_Lock-=(1<<thr);
 	  }
 	  catch (...){
 #pragma omp critical(rd)

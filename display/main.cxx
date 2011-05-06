@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.54 2011/04/18 21:24:06 choutko Exp $
+//  $Id: main.cxx,v 1.55 2011/05/06 00:40:17 choutko Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -386,16 +386,16 @@ void OpenChain(AMSChain & chain, char * filenam){
                 cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
 #elif defined(__LINUXGNU__)
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #else
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,&Sort);
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,&Sort);
 #endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.284 2011/05/04 21:58:15 choutko Exp $
+//  $Id: root.C,v 1.285 2011/05/06 00:40:14 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -216,14 +216,14 @@ void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,i
 void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){ 
   AMSID id(idd,Dir);
   if(Service::hb1.find(id) != Service::hb1.end()){
-    delete Service::hb1.find(id)->second;
-    Service::hb1.erase((Service::hb1.find(id)));
-    cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+    cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsNotReplacing "<<endl;
   }
-  char hid[1025];
-  sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
-  TH1F * p= new TH1F(hid,title,ncha,a,b);
-  (Service::hb1).insert(make_pair(id,p));
+  else{
+   char hid[1025];
+   sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
+   TH1F * p= new TH1F(hid,title,ncha,a,b);
+   (Service::hb1).insert(make_pair(id,p));
+  }
 }
 
 void AMSEventR::hbookp(int idd,const char title[], int ncha, float  a, float b){
@@ -247,6 +247,7 @@ void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b,
 }
 void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
   AMSID id(idd,Dir);
+#pragma omp critical (hf2)
   if(Service::hb2.find(id) != Service::hb2.end()){
     delete Service::hb2.find(id)->second;
     Service::hb2.erase((Service::hb2.find(id)));
@@ -255,6 +256,7 @@ void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, 
   char hid[1025];
   sprintf(hid,"hb2_%d_%s_%s",idd,title,Dir.Data()); 
   TH2F * p= new TH2F(hid,title,ncha,a,b,nchaa,aa,ba);
+#pragma omp critical (hf2)
   Service::hb2.insert(make_pair(id,p));
 }
 
@@ -336,10 +338,12 @@ void AMSEventR::hlist(char ptit[]){
 
 void AMSEventR::hdelete(int idd){
   if(idd ==0){
+#pragma omp critical (hf1)
     for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
       delete i->second;
     }
     Service::hb1.clear();
+#pragma omp critical (hf2)
     for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
       delete i->second;
     }
@@ -1428,11 +1432,11 @@ TTree*     AMSEventR::_TreeSetup=0;
 TTree*     AMSEventR::_ClonedTree=0;
 TTree*     AMSEventR::_ClonedTreeSetup=0;
 AMSEventR* AMSEventR::_Head=0;
-AMSSetupR* AMSEventR::_HeadSetup=0;
 AMSEventR::Service*    AMSEventR::pService=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_NFiles=-1;
 int AMSEventR::_Entry=-1;
+unsigned long long  AMSEventR::_Lock=0;
 int AMSEventR::_EntrySetup=-1;
 char* AMSEventR::_Name="ev.";   
 
@@ -2069,7 +2073,21 @@ bool AMSEventR::ReadHeader(int entry){
   static TFile* local_pfile=0;
 #pragma omp threadprivate (local_pfile)
   if(i>0){
-    if( local_pfile!=_Tree->GetCurrentFile()){
+    if( local_pfile!=_Tree->GetCurrentFile() || entry==0){
+  int thr=0;
+#ifdef _OPENMP
+  thr=omp_get_thread_num();
+#endif
+
+//#pragma omp atomic 
+//_Lock-=(1<<thr);
+cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
+#pragma omp critical (readsetup)
+{
+//#pragma omp atomic 
+//_Lock+=0x100000000;
+//while(!(_Lock&0xFFFFFFFF)){
+//}
       local_pfile=_Tree->GetCurrentFile();
       InitDB(local_pfile);
 // workaround root static bug
@@ -2078,11 +2096,11 @@ bool AMSEventR::ReadHeader(int entry){
           TFile::Open(_Tree->GetCurrentFile()->GetName());
           cout <<"AMSEventR::ReadHeader-I-SettinggDirectory "<<endl;
       }
-      if(!InitSetup(local_pfile,"AMSRootSetup",UTime())){
+      if(!InitSetup(local_pfile,"AMSRootSetup",Run())){
       cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       }
       else{
-      cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
+      cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
         //getsetup()->printAllTDV_Time();
@@ -2092,7 +2110,16 @@ bool AMSEventR::ReadHeader(int entry){
        //cout<< "FT " <<i->first<<" "<<i->second.FTtrig(0)<<endl; 
    }
       }     
+//#pragma omp atomic 
+//_Lock-=0x100000000;
+//#pragma omp atomic 
+//_Lock+=(1<<thr);
+//cout <<" Lock "<<_Lock<<" "<<omp_get_thread_num()<<endl;
+
      }
+//cout <<" LockAfter "<<_Lock<<" "<<thr<<endl;
+}
+
     if(Version()<160){
       // Fix rich rings
       NRichHit();
@@ -2111,6 +2138,9 @@ bool AMSEventR::ReadHeader(int entry){
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
+      if(!UpdateSetup(fHeader.Run)){
+         cerr<<"AMSEventR::UpdateSetup-E-UnabletofindSetupEntryfor "<<fHeader.Run<<endl;
+       }
       runo=fHeader.Run;
       if(evento>0){
 #pragma omp critical (rd) 
@@ -3294,16 +3324,23 @@ else if (AMSEventR::Head() && AMSEventR::Head()->getsetup()){
 */
     }
      if( AMSEventR::Head()->getsetup()->fTDV_Name[0].CopyOut(ChargePDF)){
-const int span=1003;
+     const int span=1003;
+  int thr=0;
+static int xdone=0;
+#ifdef _OPENMP
+xdone=omp_get_num_threads()==1?0:1;
+#endif
 for(int k=0;k<10;k++){
- AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
+ if(!xdone) AMSEventR::hbook1(-50000-k-thr*100,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
-     AMSEventR::hf1(-5000-k,j/10.+0.05,ChargePDF[span*k+j]);
+     if(!xdone)AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
-}
+xdone=1;
+
 return true;
   }
+}
   else cerr<<"Charge::ChargePDF-E- "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Name<<" RealSize "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Data.size()<< " Size "<<AMSEventR::Head()->getsetup()->fTDV_Name[0].Size<<endl;
   }
   else{
@@ -3361,12 +3398,18 @@ if(ptr<3){
 for(int i=ptr;i<sizeof(ChargePDF)/sizeof(ChargePDF[0])/span;i++){
   ChargePDF[i*span+span-2]=i;
 }
+  int thr=0;
+#ifdef _OPENMP
+//  thr=omp_get_thread_num();
+#endif
+static int done=0;
 for(int k=0;k<10;k++){
- AMSEventR::hbook1(-5000-k,"pdf func ",1000,0.,100.);
+ if(!done) AMSEventR::hbook1(-50000-k-thr*100,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
-     AMSEventR::hf1(-5000-k,j/10.+0.05,ChargePDF[span*k+j]);
+     if(!done)AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
+done=1;
 return true;
 }
 
@@ -4635,7 +4678,10 @@ static int master=0;
 //  TkDBc::CreateTkDBc();
 //  TkDBc::Head->init((_EVENT->Run()>=1257416200)?2:1);
 //}
+#ifdef __ROOTSHAREDLIBRARY__
+#else
 #pragma omp master 
+#endif
 {
   if (_FILE){
     if(TrCalDB::Head) delete TrCalDB::Head;
@@ -4682,32 +4728,46 @@ master=1;
 
 }
 
-
-bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger time){
+bool AMSEventR::UpdateSetup(uinteger run){
+     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
+      _TreeSetup->GetEntry(++_EntrySetup);
+     };
+return (getsetup()->fHeader.Run==run);
+}
+bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
 static int master=0;
 bool suc=false;
+#ifdef __ROOTSHAREDLIBRARY__
+#else
 #pragma omp master 
+#endif
 {
   master=0;
   if (_FILE){
     _TreeSetup=(TTree*)_FILE->Get(name);
     if(_TreeSetup){
+#ifdef __ROOTSHAREDLIBRARY__
+//#pragma omp critical
+#endif
+{
       if(getsetup()){
-       
+       getsetup()->Reset();
+       getsetup()->Init(_TreeSetup);
       }
       else{
-         getsetup()=new AMSSetupR();
+         AMSSetupR *a=new AMSSetupR();
+         a->Init(_TreeSetup);
      }
-     getsetup()->Init(_TreeSetup);
-     
-     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.FEventTime>time || getsetup()->fHeader.LEventTime<time)) {
+   }
+     _EntrySetup=-1;
+     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
       _TreeSetup->GetEntry(++_EntrySetup);
-     };
-     
-     suc=!(getsetup()->fHeader.FEventTime>time || getsetup()->fHeader.LEventTime<time);
+    
+     suc=!(getsetup()->fHeader.Run!=run);
      
 }
 
+}
 }
 master=1;  
 }

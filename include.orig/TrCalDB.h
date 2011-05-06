@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.12 2011/05/05 19:34:13 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.13 2011/05/06 00:40:23 choutko Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/05 19:34:13 $
+///$Date: 2011/05/06 00:40:23 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +54,9 @@ public:
   void init();
   static void Load(char * filename);
   static TrCalDB* Head;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif
   static float* linear;
   static int  GetLinearSize(){return (1+192*TrLadCal::GetSize())*sizeof(float);}
 

@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.8 2010/08/04 13:32:06 shaino Exp $
+// $Id: TrParDB.h,v 1.9 2011/05/06 00:40:23 choutko Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2010/08/04 13:32:06 $
+///$Date: 2011/05/06 00:40:23 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +74,9 @@ class TrParDB : public TObject{
   static void ReadDB(char* filename) { Load(filename); } 
   /// TrLadPar singleton pointer
   static TrParDB* Head;
-
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif
   /// Entries in the TrLadPar map
   int GetEntries() {return trpar_hwidmap.size();}
   /// Get a TrLadPar by map index
