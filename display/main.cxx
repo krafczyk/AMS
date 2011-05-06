@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.55 2011/05/06 00:40:17 choutko Exp $
+//  $Id: main.cxx,v 1.56 2011/05/06 21:54:40 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -16,7 +16,7 @@
 #include <sys/file.h>
 #include <dirent.h>
 #endif
-#ifndef __APPLE__
+#if !defined(WIN32) && !defined(__APPLE__) && !defined(__NOCASTOR__)
 #include <TRFIOFile.h>
 #include <TCastorFile.h>
 #include <TXNetFile.h>
