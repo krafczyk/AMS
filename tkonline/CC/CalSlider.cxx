@@ -136,7 +136,7 @@ void CalSlider::setRootFile(char *filename){
     if(!TDV) OpenTDV();
     //    AMSTimeID* tt= ((CalSlider*)gs->slider)->TDV;
     CalList* bb=new CalList(TDV,gClient->GetRoot(),0, 200, 200); 
-    rootfile=0;
+    rootfile=TFile::Open(".fakerootcal","RECREATE");
   }else{
     rootfile = TFile::Open(filename,"read");
     caldb = (TrCalDB*) rootfile->Get("TrCalDB");
