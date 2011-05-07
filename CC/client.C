@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.51 2011/05/07 19:58:08 choutko Exp $
+//  $Id: client.C,v 1.52 2011/05/07 20:16:45 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -205,7 +205,9 @@ _ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" AC ";
 print(a.id,_ost);
-_ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<" Threads "<<a.id.threads<<ends;
+time_t lu=a.LastUpdate;
+time_t st=a.Start;
+_ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime(&lu)<<" Start "<<ctime(&st)<< "  Status " <<CS2string(a.Status)<<" Threads "<<a.id.threads<<ends;
 return _streambuffer;
 }
 
@@ -263,7 +265,8 @@ return o<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" , UID "<<a.uid<<" , 
 char * AMSClient::print(const DPS::Client::ActiveHost & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes <<" AH "<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Clock "<<a.Clock<<ends;
+time_t lu=a.LastUpdate;
+_ost<<mes <<" AH "<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime(&lu)<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
 }
 

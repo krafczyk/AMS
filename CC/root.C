@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.286 2011/05/06 15:55:49 choutko Exp $
+//  $Id: root.C,v 1.287 2011/05/07 20:16:46 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -615,7 +615,8 @@ void AMSEventR::hf1(int idd, float a, float w){
   else{
 #pragma omp critical (cout)
 { 
-cout << "id not found "<<id<<endl;
+static int ic=0;
+if(ic++<10)cout << "id not found "<<id<<endl;
 }
 }
 }
@@ -2103,7 +2104,7 @@ cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
-        //getsetup()->printAllTDV_Time();
+        getsetup()->printAllTDV_Time();
         //getsetup()->fSlowControl.print();
    for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
         
@@ -3333,7 +3334,7 @@ xdone=omp_get_num_threads()==1?0:1;
 for(int k=0;k<10;k++){
  if(!xdone) AMSEventR::hbook1(-50000-k-thr*100,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
-     if(!xdone)AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
+     AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
 xdone=1;
@@ -3406,7 +3407,7 @@ static int done=0;
 for(int k=0;k<10;k++){
  if(!done) AMSEventR::hbook1(-50000-k-thr*100,"pdf func ",1000,0.,100.);
   for(int j=0;j<span-3;j++){
-     if(!done)AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
+     AMSEventR::hf1(-50000-k-thr*100,j/10.+0.05,ChargePDF[span*k+j]);
 }
 }
 done=1;

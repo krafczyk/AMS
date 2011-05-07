@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.43 2011/05/01 14:45:28 choutko Exp $
+//  $Id: trdsim.C,v 1.44 2011/05/07 20:16:46 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -88,7 +88,7 @@ void AMSTRDRawHit::sitrddigi(){
            if(amp-idsoft.getped()>fabs(TRDMCFFKEY.Thr1R*idsoft.getsig())){
         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),
         new AMSTRDRawHit(idsoft,(amp-idsoft.getped())*TRDMCFFKEY.f2i));
-        // cout <<"  raw cluster-0 "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
+//         cout <<"  raw cluster-0 "<<idsoft.getsig()<<" "<<idsoft.getcrate()<<" "<<idsoft.getlayer() <<" "<<idsoft.getladder()<<" "<<" "<<" "<<idsoft.gettube()<<" "<<(amp-idsoft.getped())*TRDMCFFKEY.f2i<<endl;
         
         edep=0;       
         }
