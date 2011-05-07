@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.670 2011/05/07 19:33:53 choutko Exp $
+# $Id: RemoteClient.pm,v 1.671 2011/05/07 23:11:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6587,7 +6587,16 @@ DDTAB:          $self->htmlTemplateTable(" ");
 #
 # check if new datasetdescription needed to be inserted into db
 #
-                  my @junk=split 'Total Events',$cite->{filedesc};
+#
+#  glue file name to filedesc
+#
+                  my $fs=  $cite->{filedesc};
+                  my $full="$self->{AMSSoftwareDir}/DataSets/$dataset->{name}/$cite->{filename}";
+      my @sta  =stat $full;
+      if ($#sta>9 and $sta[9]>1304807618){
+                   $fs=$dataset->{name}."/".$cite->{filename}." ".$cite->{filedesc};
+               }
+                    my @junk=split 'Total Events',$fs;
                   if($#junk>0){
                       my $smdesc="";
                       my @junk2=split   " ",$junk[0];
@@ -6608,7 +6617,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                          my $buf=$cite->{filebody};
                          $buf=~ s/#/C /;
                          $buf =~ s/'/''/g;
-                         $sql = "INSERT INTO DatasetsDesc Values($ret->[0][0],'$dataset->{name}','$self->{AMSSoftwareDir}/DataSet','$cite->{filename}','$junk[0]','$buf',$timenow,$timenow)";
+                         $sql = "INSERT INTO DatasetsDesc Values($ret->[0][0],'$dataset->{name}','$self->{AMSSoftwareDir}/DataSets','$cite->{filename}','$junk[0]','$buf',$timenow,$timenow)";
 #                         die "$sql";
                          $self->{sqlserver}->Update($sql);
                      }
@@ -17779,6 +17788,10 @@ sub updateDataSetsDescription {
       my @sbuf=split "\n",$buf;
       my $desc=$sbuf[0];
       substr($desc,0,1)=" ";
+      my @sta  =stat $full;
+      if ($#sta>9 and $sta[9]>1304807618){
+       $desc=$dataset."/".$job." ".$desc;
+      }
       $sql = "SELECT dirpath, timeupdate FROM DatasetsDesc
                 WHERE dataset = '$dataset' and jobdesc = '$desc'";
      my $ret = $self->{sqlserver}->Query($sql);
@@ -17793,6 +17806,7 @@ sub updateDataSetsDescription {
           print "****Warning dataset : $dataset NOT FOUND in Datasets Table. Skipped \n";
       } else {
         my $did = $ret->[0][0];
+        
         $sql = "INSERT INTO DatasetsDesc Values($did,'$dataset','$topdir','$job','$desc','$buf',$timenow,$timenow)";
         if ($verbose) {print "$sql \n";}
         if ($update)  {
