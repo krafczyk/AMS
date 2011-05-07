@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.50 2011/03/21 22:53:31 choutko Exp $
+//  $Id: client.C,v 1.51 2011/05/07 19:58:08 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -278,14 +278,16 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Server::CriticalOps & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<< "COp Action "<<OPS2string(a.Action) << " ClientType "<<CT2string(a.Type)<<" ClientID "<<a.id<<" Time  "<<ctime((const time_t *)&a.TimeStamp)<<" TimeOut "<<a.TimeOut<<ends;
+time_t ts=a.TimeStamp;
+_ost<<mes<< "COp Action "<<OPS2string(a.Action) << " ClientType "<<CT2string(a.Type)<<" ClientID "<<a.id<<" Time  "<<ctime(&ts)<<" TimeOut "<<a.TimeOut<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , DataMC "<<a.DataMC<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<(a.FilePath?a.FilePath:" ")<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
+time_t submit=a.SubmitTime;
+_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , DataMC "<<a.DataMC<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<(a.FilePath?a.FilePath:" ")<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime(&submit);
 print(a.cinfo,_ost);
 _ost<<ends;
 return _streambuffer;
