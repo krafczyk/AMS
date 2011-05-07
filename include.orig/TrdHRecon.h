@@ -289,7 +289,7 @@ class TrdHReconR{
   /// get weighted charge for event ( (c1st*p1st+c2nd*p2nd)/(p1st+p2nd) )
   float GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
 
-  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
+  //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
 
   /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
   float GetELikelihood(TrdHTrackR *tr,float beta=0., int opt=0,int debug=0);
