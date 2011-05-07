@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.669 2011/05/06 20:57:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.670 2011/05/07 19:33:53 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13461,7 +13461,16 @@ foreach my $block (@blocks) {
       $startingrun[21]=1;
      }
 
-
+   my $run = $startingrun[2];
+    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    $startingrun[0] = "StartingRun";
+    my $sql=" select status from $dataruns where jid=$lastjobid";
+        my $rq=$self->{sqlserver}->Query($sql);
+    if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
+        warn "  Run $run already completed in database do nothing \n";
+         system("mv $inputfile $inputjfile.1");
+        return 0;
+    }
    if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4 ) {
     my $run = $startingrun[2];
     my $dataruns=$startingrun[21]==1?"dataruns":"runs";
@@ -14710,9 +14719,20 @@ if(not defined $fetime or not defined $letime){
   }
     my $stype='MC'." ".$ver." ".$ds;
 
-
-#    $sql="delete from mcfiles where run=$run";
-#     $self->{sqlserver}->Update($sql);
+     $sql="select run,path from datafiles where run=$run";
+     $ret= $self->{sqlserver}->Query($sql);
+     foreach my $nt (@{$ret}){
+    my $cmd="rm     $nt->[1]";
+    if($path ne $nt->[1]){
+       system($cmd);
+    }
+    else{
+        print " cowardly refused to rm $path \n";
+    }
+       
+    }
+    $sql="delete from datafiles where run=$run";
+     $self->{sqlserver}->Update($sql);
     $sql=" insert into datafiles values($run,'$version','$stype',$fevent,$levent,$events,$errors,$timestamp,$sizemb,'$status','$path',' ',$crc,$crctime,$castortime,0,$part,$fetime,$letime,'$paths')";
 }
   }
@@ -15906,7 +15926,7 @@ sub copyFile {
     }
     my $time0 = time();
     $copyCalls++;
-    my $cmd = "cp -pi -d -v $inputfile  $outputpath ";
+    my $cmd = "cp -p -d -v $inputfile  $outputpath ";
     my $cmdstatus = system($cmd);
     if ($verbose == 1 && $webmode == 0)  {
       $self->amsprint("*** docopy - ",666);
@@ -19431,7 +19451,7 @@ sub MoveBetweenDisks{
              print "Problem with disk $disk \n";
              return;
            } 
-           my $cp="cp -pi $file $newfile";
+           my $cp="cp -p $file $newfile";
            if($file eq $newfile){
              $cp="cp  $file /dev/null";
            }
