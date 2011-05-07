@@ -97,9 +97,7 @@ class TrdHTrackR:public TrElem{
   void propagateToZ(float z, float &x , float& y);
 
   /// return path length inside tube for layer [cm]
-  float TubePath(int layer, int ladder, int tube, int method=0,int  opt=0,int debug=0);
-
-  float GetPathLengthMH(int layer, int ladder, int tube, int i);
+  float TubePath(int layer, int ladder, int tube, int  opt=0,int debug=0);
   
   /// virtual dtor 
   virtual ~TrdHTrackR(){
