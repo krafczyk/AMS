@@ -6,11 +6,8 @@
 #include "event.h"
 #include "root.h"
 #include "commons.h"
-#include "trdid.h"
 #endif
-#include "timeid.h"
-#include "amsdbc.h"
-//#include "TF1.h"
+
 
 #ifdef __MLD__
 int TrdRawHitR::num=0;
@@ -22,9 +19,7 @@ int TrdHTrackR::numa=0;
 #endif
 
 ClassImp(TrdHReconR);
-AMSTimeID *ptdv=0;
 
-float TrdHReconR::tube_gain[6064];
 float TrdHReconR::tube_medians[5248];
 int TrdHReconR::tube_occupancy[5248];
 bool TrdHReconR::calibrate;
@@ -209,6 +204,7 @@ int TrdHReconR::DoPrefit(int debug){
     
     if(maxima.size()==0)continue;
 
+    
     // sort maxima in decreasing c (entries) order
     sort(maxima.begin(),maxima.end());
     
@@ -932,22 +928,19 @@ void TrdHReconR::AddHit(TrdRawHitR* hit){
 
 float TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
   if(debug)printf("Enter TrdHReconR::GetCharge\n");
-  
+  //  if(charge_probabilities.size()==0){
   float ampcorr[20];
   for(int i=0;i<20;i++)ampcorr[i]=0.;
-  
+
   for(int l=0;l<20;l++){
-    ampcorr[l]+=tr->elayer[l];
+    ampcorr[l]+=tr->elayer[l]/adc2kev;// calibration to be done
   }
   if(debug)
     for(int i=0;i<20;i++)
       printf(" L %i amp %.2f\n",i,ampcorr[i]);
   
-  if(fabs(beta)<0.5)return 99;
-
-  if(fabs(beta)<0.95)// beta correction to be done
+  if(beta!=0.)// beta correction to be done
     {
-      //      float betacorr=GetBetaCorr(beta,0.95);// approx mip beta (betagamma 3.04)
     }
   
   double clik[10];
@@ -1042,8 +1035,6 @@ int TrdHReconR::BuildPDFs(int force,int debug){
   for(int i=0;i<5;i++){
 #ifndef __ROOTSHAREDLIBRARY__
     sprintf(hname,"%s/TrdChgPDF%i",AMSDATADIR.amsdatadir,i);
-
-    
 #else
     sprintf(hname,"pdf_charge_%i",i);
 #endif
@@ -1150,31 +1141,25 @@ int TrdHReconR::GetNCC(TrdHTrackR* tr,int debug){
   return n;
 }
 
-void TrdHReconR::update_medians(TrdHTrackR* track,int opt,float beta,int debug){
-  int layer,ladder,tube;
+void TrdHReconR::update_medians(TrdHTrackR* track,int debug){
   for(int seg=0;seg<2;seg++){
     if(!track->pTrdHSegment(seg)) continue;
     for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
       TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
       if(!hit)continue;
       int layer=hit->Layer;      
-      
+
       int hvid=hit->Ladder;
       if(layer>3)hvid+=14;
       if(layer>7)hvid+=16;
       if(layer>11)hvid+=16;
       if(layer>15)hvid+=18;
-      
-      int tubeid=(hvid*4+layer%4)*16+hit->Tube;
 
-      float amp=hit->Amp;
-      if(opt>0)amp*=GetPathCorr(track->TubePath(layer,ladder,tube),0.59);
-      if(opt>1)amp*=GetBetaCorr(beta,0.95);// approx mip beta (betagamma 3.04)
-      
+      int tubeid=(hvid*4+layer%4)*16+hit->Tube;
 #pragma omp critical (trdmed)
       {
-	if(amp>tube_medians[tubeid])tube_medians[tubeid]+=0.04;
-	if(amp<tube_medians[tubeid])tube_medians[tubeid]-=0.1;
+	if(hit->Amp>tube_medians[tubeid])tube_medians[tubeid]+=0.04;
+	if(hit->Amp<tube_medians[tubeid])tube_medians[tubeid]-=0.1;
 	if(debug)
 	  printf("LLT %02i%02i%02i id %i med %.2f\n",hit->Layer,hit->Ladder,hit->Tube,tubeid,tube_medians[tubeid]);
 	tube_occupancy[tubeid]++;
@@ -1277,244 +1262,8 @@ bool TrdHReconR::update_tdv_array(int debug){
     }
   }
 #else
-  cout<<"Entering TrdHReconR::update_tdv_array"<<endl;
-  cout<<"Currently testing shared library version"<<endl;
-  
+  printf("Entering TrdHReconR::update_tdv_array\n");
+  printf("Currently restricted to gbatch framework\n");
 #endif
-
-  
-
-
-
   return toReturn;;
 }
-
-bool TrdHReconR::FillMedianFromTDV(){
-  bool toReturn = true;
-  int layer,ladder,tube;
-  for(int i=0;i<5248;i++){
-    GetLLTFromTubeId(layer,ladder,tube,i);
-    int ntdv=layer*18*16+ladder*16+tube;
-    tube_medians[i]=tube_gain[ntdv]*norm_mop;
-    if( tube_medians[i] < 0. )
-      toReturn = false;
-    
-  }
-  return toReturn;
-}
-
-bool TrdHReconR::FillTDVFromMedian(){
-  bool toReturn = false;
-  
-  int layer,ladder,tube;
-  for(int i=0;i<5248;i++){
-    if(tube_occupancy[i]>0){
-      GetLLTFromTubeId(layer,ladder,tube,i);
-      int ntdv=layer*18*16+ladder*16+tube;
-      tube_gain[ntdv]=tube_medians[i]/norm_mop;
-      if(!toReturn&&tube_occupancy[i]>100)
-	toReturn=true;
-    }
-  }
-  
-  return toReturn;;
-}
-
-bool TrdHReconR::readTDV(unsigned int t){
-  if(!ptdv) return false;
-  time_t thistime=(time_t)t;
-  if(!ptdv->validate(thistime))return false;
-  if(!FillMedianFromTDV())   return false;
-  return true;
-}
-
-bool TrdHReconR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
-  time_t begintime = (time_t) bgtime;
-  time_t endtime   = (time_t) edtime;
-  
-  //maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;
-  int size=16*18*20+16*18+16;
-  
-  for(int i=0;i<size;i++)tube_gain[i]=1.;
-
-  AMSTimeID::CType server=AMSTimeID::Standalone;
-  //  atm *t = gmtime((time_t*)&time);
-  tm begin = *gmtime(&begintime);
-  tm end   = *gmtime(&endtime);
-  
-  char tdname[200] = "";
-  sprintf(tdname, "%s/DataBase/", tempdirname);
-  strcpy(AMSDBc::amsdatabase,tdname);
-  
-  ptdv=new AMSTimeID(AMSID("TRDGains",type),
-		     begin,end,sizeof(tube_gain[0])*size,
-		     (void*)tube_gain,server);
-
-  ptdv->validate(begintime);
-  
-  if( ! readTDV(bgtime) ){
-    //    cerr<<"Warning: readTDV inside InitTDV"<<endl;
-    return false;
-  }
-  
-  return true;
-}
-
-// write calibration to TDV
-int TrdHReconR::writeTDV(int debug,char * tempdirname){
-  if( !FillTDVFromMedian() ) printf("Warning: FillTDVFromMedian inside writeTDV - low occupancy\n");
-  time_t begin,end,insert;
-  if(debug)
-    for(int i=0;i<5248;i++){
-      if(i%100==0)
-	printf("TrdHReconR::writeTDV - tube %4i median %.2f\n",i,tube_medians[i]);
-    }
-  
-  ptdv->UpdateMe()=1;
-  unsigned int crcold=ptdv->getCRC();
-  ptdv->UpdCRC();
-  
-  if(crcold!=ptdv->getCRC()){
-    // valid for 10 days
-    ptdv->gettime(insert,begin,end);
-    time(&insert);
-    ptdv->SetTime(insert,begin-1,end+864000);
-    cout <<" Write time:" << endl;
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
-    
-    char tdname[200] = "";
-    sprintf(tdname, "%s/DataBase/", tempdirname);
-    
-    if(!ptdv->write(tdname)) {
-      cerr <<"TrdHReconR::writeTDV - problem to update tdv"<<*ptdv;
-      return false;
-    }
-  }
-
-  return true;
-};
-
-
-void TrdHReconR::GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid){
-  if(layer>3)ladder+=14;
-  if(layer>7)ladder+=16;
-  if(layer>11)ladder+=16;
-  if(layer>15)ladder+=18;
-  
-  tubeid=(ladder*4+layer%4)*16+tube;
-}
-
-void GetLLTfromTDV(int &layer, int &ladder, int &tube,int idsoft){
-  tube=(idsoft-1)%16;
-  ladder=((idsoft-1)/16)%18;
-  layer=((idsoft-1)/16/18)%20;
-}
-
-
-void TrdHReconR::GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid){
-  tube=tubeid%16;
-  int hvid=tubeid/64;
-  layer=tubeid%64/16;
-  ladder=hvid;
-  
-  if(hvid>13){layer+=4;ladder-=14;}
-  if(hvid>29){layer+=4;ladder-=16;}
-  if(hvid>45){layer+=4;ladder-=16;}
-  if(hvid>63){layer+=4;ladder-=18;}
-}
-
-//float par[4]={6.37838e+01,5.26182e-01,8.96826e-02,5.50886e+01};;
-float par[4]={3.85478e+01,5.26885e-01,8.08710e-02,2.42610e+01};
-float TrdHReconR::PathParametrization(float path,int debug){
-  return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
-}
-
-Double_t betapar[7]={1.94728e+01,-5.96794e+00,1.58489e-02,9.52168e-03,8.18354e+01,6.00944e+00,1.54202e+03};
-float TrdHReconR::BetaParametrization(float beta,int debug){
-  Double_t x=beta/sqrt(1-beta*beta);//log10(betagamma
-  return betapar[0]*pow((1+1/x/x),betapar[1])*(pow(fabs(log(betapar[2]*x*x)),betapar[3])+betapar[4]*pow(1+1/x/x,betapar[5])) - betapar[6];
-}
-
-float TrdHReconR::GetBetaCorr(double beta, double tobeta, int debug){
-  double toReturn=BetaParametrization(tobeta)/BetaParametrization(beta);
-  if(debug)cout<<"TrdHReconR::GetBetaCorr - beta "<<beta<<" betagamma "<<beta/sqrt(1-beta*beta)<<" dEdx "<< BetaParametrization(beta) <<" correction "<< toReturn <<endl;
-
-  return toReturn;
-}
-
-float TrdHReconR::GetPathCorr(float path, float topath,int debug){
-  float toReturn=PathParametrization(topath)/PathParametrization(path);
-  if(debug)cout<<"TrdHReconR::GetPathCorr - path "<<path<<" correction "<<toReturn<<endl;
-  return toReturn;
-}
-
-/*double TrdHReconR::GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z){
-  double p[3]={0.522677,-0.16927,0.676221};
-  double betamc1=0;
-  for(int k=0;k<3;k++)betamc1+=p[k]*pow(fabs(beta),k);
-  double x=(betamc1+fabs(beta))/2;
-  if(x>0.96)x=0.96;
-
-  double norm=1.8377e-1;
-  double corr=norm/x/x*(log(x*x/(1-x*x))-x*x+(8*log(0.511e6*2/10/54)+2*log(0.511e6*2/10/6)+4*log(0.511e6*2/10/8))/14.);
-  
-  double bcorr=beta*corr;
-  char d_name[80];
-  double int_z[4];
-  double d_par[4][5]={{0,0,0,0,0},
-		      {0.889, 1.719, 0.726, -0.006, -0.05},
-		      {0.00000000000299, 8.94, 3.07, 26.38, -0.07},
-		      {0.0000000000195, 60.5, 17.5, 29.07, -0.18}};
-
-  TF1 *distri_z[4];
-  for(int i=1; i<4; i++){
-    sprintf(d_name, "distri_z%i", i);
-    distri_z[i]= new TF1(d_name, "landau(0)*expo(3)");
-    distri_z[i]->SetRange(0.,100.);
-    distri_z[i]->SetParameters(d_par[i][0], d_par[i][1], d_par[i][2],
-			       d_par[i][3], d_par[i][4]);
-    int_z[i]= 1/distri_z[i]->Integral(0., 100.);
-  }
-  distri_z[0]= new TF1("distri_el", "(landau(0)+landau(3))*exp(6)");
-  distri_z[0]->SetRange(0.,100.);
-  distri_z[0]->SetParameters(e_par(0), e_par(1), e_par(2), e_par(3),
-			     e_par(4), e_par(5), e_par(6), e_par(7));
-  int_z[0]= 1/distri_z[0]->Integral(0., 100.);
-
-  double like_z[4];
-  double p_z[4];
-  for(int i=0; i<4; i++){like_z[i]=0.;p_z[i]=1.;}
-  int nhits=0;
-  for(int i=0; i<trd_track->NTrdHSegment(); i++){
-    TrdHSegmentR *seg=trd_track->pTrdHSegment(i);
-    for(int j=0; j<seg->Nhits; j++){
-      TrdRawHitR *hit=seg->pTrdRawHit(j);
-      double l=trd_track->TubePath(hit->Layer,hit->Ladder,hit->Tube);
-      if(l>0.3 && l<0.6 && hit->Amp<3500.){
-	nhits+=1;
-	double amp=hit->Amp*0.6/l*bcorr/35;
-	for(int i=0; i<4; i++){
-	  p_z[i]*=int_z[i]*distri_z[i]->Eval(amp);
-	}
-      }
-    }
-  }
-  
-  for(int i=0; i<4; i++){
-    p_z[i]=pow((double)p_z[i],(double)(1./(double)nhits));
-    delete distri_z[i];
-  }
-  double p_sum=0;
-  for(int i=0; i<4; i++) p_sum+=p_z[i];
-  for(int i=0; i<4; i++) like_z[i]=p_z[i]/p_sum;
-  
-  if(z==0) return like_z[0];
-  else if(z==1) return like_z[1];
-  else if(z==2) return like_z[2];
-  else if(z==3) return like_z[3];
-  else return 0.;
-}
-
-*/
