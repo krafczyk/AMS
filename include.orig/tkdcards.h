@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.40 2011/05/08 16:52:46 pzuccon Exp $
+// $Id: tkdcards.h,v 1.41 2011/05/08 19:16:11 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -310,7 +310,7 @@ public:
   int statflag;
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,2);
+  ClassDef(TRCLFFKEY_DEF,3);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
