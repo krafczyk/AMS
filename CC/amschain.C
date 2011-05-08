@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.34 2011/05/06 00:40:14 choutko Exp $
+//  $Id: amschain.C,v 1.35 2011/05/08 04:03:47 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -194,7 +194,7 @@ char m32[5]="-m32";
 char elf[11]="-melf_i386";
 #endif
 #ifdef _PGTRACK_
-  sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+  sprintf(cmd,"$CC %s -g -D_PGTRACK_ -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #else
   sprintf(cmd,"$CC %s  -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #endif
@@ -202,16 +202,24 @@ char elf[11]="-melf_i386";
 int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
-    sprintf(cmd1,"ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
+    sprintf(cmd1,"ld  -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
 #else
-    sprintf(cmd1,"ld %s  -init fgSelect  -shared %s.o -o libuser.so",elf,nameonly.c_str());
+    sprintf(cmd1,"ld %s  -shared %s.o -o libuserAMSEVD.so",elf,nameonly.c_str());
 #endif
+    char * error;
     $i=system(cmd1);
     if( !$i){  
       if(handle){
 	dlclose(handle);
       }
-      if(handle=dlopen("libuser.so",RTLD_NOW)){
+      if(handle=dlopen("./libuserAMSEVD.so",RTLD_NOW)){
+	void (*fhandler)()=(void (*)())
+		dlsym(handle,"fgSelect");
+	if((error=dlerror())!=0){
+           fputs(error,stderr);
+	   return 1;
+	} else
+	   fhandler();
 	return 0;
       }
       cout <<dlerror()<<endl;
