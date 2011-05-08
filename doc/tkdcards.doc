@@ -101,7 +101,7 @@ I 59 TAS laser current intensity
 I 60 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
 I 61 TRD TOF Matching  mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
 I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
-I 63 ReconStats flag  0 no 1 partial 2 full
+I 63 ReconStats flag  0 no 1 yes
 //==============================
 
 //=============================

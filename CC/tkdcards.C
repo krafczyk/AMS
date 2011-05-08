@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.60 2011/05/06 22:14:57 shaino Exp $
+// $Id: tkdcards.C,v 1.61 2011/05/08 16:52:46 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -91,7 +91,7 @@ for (int ii=0;ii<9;ii++){
   TasLDDR  = 0;
   ExtMatch = 11;
   UseSensorAlign=1;
-  statflag = 2;
+  statflag = 1;
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
