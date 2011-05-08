@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.2 2010/12/08 20:31:29 pzuccon Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.3 2011/05/08 04:04:13 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -130,7 +130,7 @@ endif
 #CFLAGSB= -Winit-self -Wmissing-braces -Wparentheses -Wreturn-type  -Wstrict-aliasing  -Wfloat-equal -Wshadow -Wsign-compare -Winline -Wno-deprecated   
 #CFLAGSB=  -Wall -Wno-unused -Wfloat-equal -Wshadow -Wsign-compare -Wno-deprecated   
 CFLAGSB=  -Wno-deprecated -Wno-write-strings  -fPIC
-DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) 
+DEFINES+= -D__LINUXGNU__  -D__root_$(NEW) -D__X8664__ 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
