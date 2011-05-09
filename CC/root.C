@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.287 2011/05/07 20:16:46 choutko Exp $
+//  $Id: root.C,v 1.288 2011/05/09 15:04:17 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4730,10 +4730,10 @@ master=1;
 }
 
 bool AMSEventR::UpdateSetup(uinteger run){
-     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
+     while(getsetup() && _TreeSetup && _EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
       _TreeSetup->GetEntry(++_EntrySetup);
      };
-return (getsetup()->fHeader.Run==run);
+return (getsetup()?getsetup()->fHeader.Run==run:false);
 }
 bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
 static int master=0;
