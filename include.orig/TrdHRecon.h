@@ -12,6 +12,8 @@
 #include "TSpline.h"
 #include "TMath.h"
 
+class AMSTimeID;
+ 
 const int maxtrdhrecon=64;
 
 const float TRDz0=113.5;
@@ -206,8 +208,12 @@ class TrdHReconR{
   /// container for channel occupancy
   static int tube_occupancy[5248];
 
+  AMSTimeID* ptdv;
+
+  float norm_mop;
+
   /// default ctor
-  TrdHReconR():adc2kev(100./3.),ccampcut(6.){
+  TrdHReconR():adc2kev(100./3.),ccampcut(6.),norm_mop(50.){
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
@@ -216,6 +222,7 @@ class TrdHReconR{
     pdfs.clear();
     charge_probabilities.clear();
     BuildPDFs();
+    ptdv=0;
   };
 
   ~TrdHReconR(){
@@ -226,6 +233,7 @@ class TrdHReconR{
     refhits.clear();
     pdfs.clear();
     charge_probabilities.clear();
+    //    if(ptdv)delete ptdv;
     clear();}
 
   /// clear memory
@@ -259,7 +267,7 @@ class TrdHReconR{
   /// reconstruct TRD event according to TrdRawHit selection
   void BuildTRDEvent(vector<TrdRawHitR> r,int debug=0);
 
-  void update_medians(TrdHTrackR *track,int debug=0);
+  void update_medians(TrdHTrackR *track,int opt=3, float beta=0, int debug=0);
 
   /// reconstruct trd event
   int retrdhevent(int debug=0);
@@ -279,6 +287,8 @@ class TrdHReconR{
   /// get weighted charge for event ( (c1st*p1st+c2nd*p2nd)/(p1st+p2nd) )
   float GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
 
+  //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
+
   /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
   float GetELikelihood(TrdHTrackR *tr,float beta=0., int opt=0,int debug=0);
 
@@ -290,9 +300,38 @@ class TrdHReconR{
 
   int build();
 
-  ClassDef(TrdHReconR,7)
+  bool FillMedianFromTDV();
+
+  bool FillTDVFromMedian();
+
+  bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,
+#ifdef __ROOTSHAREDLIBRARY__
+	       char *tempdirname="/Offline/AMSDataDirRW");
+#else
+               char *tempdirname="/f2users/mmilling");
+#endif
+  
+int writeTDV(int debug,
+#ifdef __ROOTSHAREDLIBRARY__
+			 char *tempdirname="/Offline/AMSDataDirRW");
+#else
+                         char *tempdirname="/f2users/mmilling");
+#endif
+
+  bool readTDV(unsigned int t);
+
+static float tube_gain[6064];
+
+  void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
+  void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
+
+  float PathParametrization(float path,int debug=0);
+  float BetaParametrization(float beta,int debug=0);
+
+  float GetBetaCorr(double beta, double tobeta=0.95, int debug=0); 
+  float GetPathCorr(float path, float topath=0.59, int debug=0); 
+
+  ClassDef(TrdHReconR,8)
 };
-//extern float tube_medians[5248];
-//extern int tube_occupancy[5248];
 #endif
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.159 2011/05/02 23:23:58 choutko Exp $
+#  $Id: Makefile,v 1.160 2011/05/09 21:29:42 mmilling Exp $
 
 #P.Zuccon june 2005
 
@@ -543,7 +543,7 @@ $(BIN)timeid_s.o
 
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o
 
 endif
 
