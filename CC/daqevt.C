@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.213 2011/05/01 14:44:07 choutko Exp $
+//  $Id: daqevt.C,v 1.214 2011/05/09 20:28:07 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -23,6 +23,7 @@
 #ifdef _PGTRACK_
 #include "tkdcards.h"
 #include "MagField.h"
+#include "TrCalDB.h"
 #endif
 #ifdef __LVL3ONLY__
 ofstream fbin1("/f2users/choutko/AMS/examples/zip.txt",ios::out);
@@ -1530,87 +1531,100 @@ void DAQEvent::buildRawStructures(){
   if((_Checked ||(_EventOK()==1 && _HeaderOK())) && _DDGSBOK() ){
 
 
-if(_Buffer2Lock ){
-int16u *pd=_Buffer2;
-if(((*(pd+_cll(pd)))&31)==5){
-int16u* pc;
-   for(pc=pd+getpreset(pd);pc < pd+_Length2;pc=pc+_cl(pc)){
-    int16u id=*(pc+_cll(pc));
-    if(_isjinj(id)){
-     for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2 && pdown>=pc;pdown+=*pdown+1){
-     int ic=DAQS2Block::checkblockid(_getportj(*(pdown+*pdown)))-1;
-     if(ic>=0){
-      int16u *psafe=pdown+1;
-      integer n=((ic)<<16) | (*pdown) | (1<<30);
-      DAQS2Block::buildraw(n,psafe);
-     }
-    }
-   }
-   }
-   int sta;
-   TOF2RawSide::validate(sta,1);
-   }
-}
-
-
-
-   DAQSubDet * fpl=_pSD[_GetBlType()];
-   while(fpl){
-   for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length && _pcur>=_pData;_pcur=_pcur+_cl(_pcur)){
-    int16u id=*(_pcur+_cll(_pcur));
-    int jinj=_isjinj(id);
-    if(jinj){
-     for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
-     int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
-
-     if(ic>=0){
-#ifdef __AMSDEBUG__
-      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
-#endif
-      int16u *psafe=pdown+1;
-      
-      integer n=(ic<<16) | (*pdown);
-      if(DAQRichBlock::checkdaqid(_getportj(*(pdown+*pdown)))){
-        n|=(jinj-128)<<24;
+    if(_Buffer2Lock ){
+      int16u *pd=_Buffer2;
+      if(((*(pd+_cll(pd)))&31)==5){
+	int16u* pc;
+	for(pc=pd+getpreset(pd);pc < pd+_Length2;pc=pc+_cl(pc)){
+	  int16u id=*(pc+_cll(pc));
+	  if(_isjinj(id)){
+	    for(int16u * pdown=pc+_cll(pc)+1+_clll(pc);pdown<pc+_cl(pc)-2 && pdown>=pc;pdown+=*pdown+1){
+	      int ic=DAQS2Block::checkblockid(_getportj(*(pdown+*pdown)))-1;
+	      if(ic>=0){
+		int16u *psafe=pdown+1;
+		integer n=((ic)<<16) | (*pdown) | (1<<30);
+		DAQS2Block::buildraw(n,psafe);
+	      }
+	    }
+	  }
+	}
+	int sta;
+	TOF2RawSide::validate(sta,1);
       }
-      fpl->_pputdata(n,psafe);
-     }
     }
-    }
-    else if(_isjlvl1(id) ){
-     if(fpl->_pgetid(id)){
-      int16u *pdown=_pcur+_cll(_pcur)+2;
-      int16u *psafe=pdown;
-      fpl->_pputdata(_cl(_pcur)-_cll(_pcur)-2-1,psafe);
-     }
-    }
-    else if(_isjinf(id)){
-     int ic=fpl->_pgetid(id)-1;
-     if(ic>=0){
-      int16u *pdown=_pcur+_cll(_pcur)+_cltype(_pcur+_cll(_pcur));
-      int16u *psafe=pdown;
-      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur)-_cltype(_pcur+_cll(_pcur))-1);
-      fpl->_pputdata(n,psafe);
-     }
-    }
-    else if(_istdr(id) || _isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)|| _iscceb(id) || _istofst(id) ){
-     int ic=fpl->_pgetid(id)-1;
-     if(ic>=0){
-      int16u *pdown=_pcur+_cll(_pcur)+2;
-      int16u *psafe=pdown;
-      int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
-      fpl->_pputdata(n,psafe);
-     }
-    }  
-    else if(_isddg(id)){    // normal data if any...
-     cerr <<"   not supported !!!! "<<endl;
-     if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){
-      int16u *psafe=_pcur+_cll(_pcur);
-      fpl->_pputdata(_cl(_pcur)-1,psafe);
-    }
-    }
-    }
-    fpl=fpl->_next; 
+
+
+
+    DAQSubDet * fpl=_pSD[_GetBlType()];
+    while(fpl){
+      for(_pcur=_pData+getpreset(_pData);_pcur < _pData+_Length && _pcur>=_pData;_pcur=_pcur+_cl(_pcur)){
+	int16u id=*(_pcur+_cll(_pcur));
+	int jinj=_isjinj(id);
+	if(jinj){
+	  for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
+	    int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
+
+	    if(ic>=0){
+#ifdef __AMSDEBUG__
+	      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
+#endif
+	      int16u *psafe=pdown+1;
+      
+	      integer n=(ic<<16) | (*pdown);
+	      if(DAQRichBlock::checkdaqid(_getportj(*(pdown+*pdown)))){
+		n|=(jinj-128)<<24;
+	      }
+	      fpl->_pputdata(n,psafe);
+	    }
+	  }
+	}
+	else if(_isjlvl1(id) ){
+	  if(fpl->_pgetid(id)){
+	    int16u *pdown=_pcur+_cll(_pcur)+2;
+	    int16u *psafe=pdown;
+	    fpl->_pputdata(_cl(_pcur)-_cll(_pcur)-2-1,psafe);
+	  }
+	}
+	else if(_isjinf(id)){
+	  int ic=fpl->_pgetid(id)-1;
+	  if(ic>=0){
+	    int16u *pdown=_pcur+_cll(_pcur)+_cltype(_pcur+_cll(_pcur));
+	    int16u *psafe=pdown;
+	    int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur)-_cltype(_pcur+_cll(_pcur))-1);
+	    fpl->_pputdata(n,psafe);
+	  }
+	}
+	else if(_istdr(id)){
+	  int ic=fpl->_pgetid(id)-1;
+	  if(ic>=0){
+	    int16u *pdown=_pcur+_cll(_pcur)+2;
+	    int16u *psafe=pdown;
+	    int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
+	    unsigned  run=*(_pData+9)<<16 | *(_pData+10); 
+#ifdef _PGTRACK_
+	    if(TrCalDB::Head) TrCalDB::Head->run=run;
+#endif
+	    fpl->_pputdata(n,psafe);
+	  }
+	}
+	else if(_isudr(id) || _isrdr(id) || _isedr(id) || _issdr(id)|| _iscceb(id) || _istofst(id) ){
+	  int ic=fpl->_pgetid(id)-1;
+	  if(ic>=0){
+	    int16u *pdown=_pcur+_cll(_pcur)+2;
+	    int16u *psafe=pdown;
+	    int n=(ic<<16) | (_cl(_pcur)-_cll(_pcur));
+	    fpl->_pputdata(n,psafe);
+	  }
+	}  
+	else if(_isddg(id)){    // normal data if any...
+	  cerr <<"   not supported !!!! "<<endl;
+	  if(fpl->_pgetid(*(_pcur+_cll(_pcur)))){
+	    int16u *psafe=_pcur+_cll(_pcur);
+	    fpl->_pputdata(_cl(_pcur)-1,psafe);
+	  }
+	}
+      }
+      fpl=fpl->_next; 
     }
   }
 #else
@@ -2483,284 +2497,284 @@ void DAQEvent::SetEOFIn(){
 }
 
 char * DAQEvent::_getNextFile(integer & run, integer &event){
-if(KIFiles==0){
-run=SELECTFFKEY.Run;
-event=SELECTFFKEY.Event;
-}
-else{
-run=0;
-event=0;
-}
+  if(KIFiles==0){
+    run=SELECTFFKEY.Run;
+    event=SELECTFFKEY.Event;
+  }
+  else{
+    run=0;
+    event=0;
+  }
 
-if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
-_Waiting=true;
-again:
- while(KIFiles>=InputFiles){
-// Check if up directory isdigital, exists, and has files
-  char dir[255];
-  char newdir[1025];
-  char delims[]="/";
-  strcpy(newdir,_DirName);
-  char *result=strtok(newdir,delims);
-  while(result){
-     strcpy(dir,result);
-     result = strtok( NULL, delims );
-   }
-    bool digit=true;
-    for(int j=0;j<strlen(dir);j++){
-      if(!isdigit(dir[j])){
-        digit=false;
-        break;
+  if (AMSJob::gethead()!=0 && AMSJob::gethead()->isMonitoring()) {
+    _Waiting=true;
+  again:
+    while(KIFiles>=InputFiles){
+      // Check if up directory isdigital, exists, and has files
+      char dir[255];
+      char newdir[1025];
+      char delims[]="/";
+      strcpy(newdir,_DirName);
+      char *result=strtok(newdir,delims);
+      while(result){
+	strcpy(dir,result);
+	result = strtok( NULL, delims );
       }
-    }
-    if(digit){
-      int q=atoi(dir)+1;
-      if(q<10000){
-       strcpy(newdir,_DirName);
-       result=strstr(newdir,dir);
-       sprintf(dir,"%04d",q);
-       for(int i=0;i<4;i++){
-        *(result+i)=dir[i];
-       }
+      bool digit=true;
+      for(int j=0;j<strlen(dir);j++){
+	if(!isdigit(dir[j])){
+	  digit=false;
+	  break;
+	}
+      }
+      if(digit){
+	int q=atoi(dir)+1;
+	if(q<10000){
+	  strcpy(newdir,_DirName);
+	  result=strstr(newdir,dir);
+	  sprintf(dir,"%04d",q);
+	  for(int i=0;i<4;i++){
+	    *(result+i)=dir[i];
+	  }
 #ifdef __DARWIN__
-       dirent ** namelist;
-       int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
+	  dirent ** namelist;
+	  int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
 #elif defined( __LINUXNEW__)
-       dirent64 ** namelist;
-       int ntot=scandir64((const char *)newdir,&namelist,&_select,(&_sort));
+	  dirent64 ** namelist;
+	  int ntot=scandir64((const char *)newdir,&namelist,&_select,(&_sort));
 #elif defined( __LINUXGNU__)
-       dirent64 ** namelist;
-       int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+	  dirent64 ** namelist;
+	  int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
 #else
-       dirent64 ** namelist;
-       int ntot=scandir64((const char *)newdir,&namelist,&_select,&_sort);
+	  dirent64 ** namelist;
+	  int ntot=scandir64((const char *)newdir,&namelist,&_select,&_sort);
 #endif
-       if(ntot>0){
-         for(int i=0;i<ntot;i++){
-            free(namelist[i]);
-         }            
-            free(namelist);
+	  if(ntot>0){
+	    for(int i=0;i<ntot;i++){
+	      free(namelist[i]);
+	    }            
+	    free(namelist);
        
-       strcpy(_DirName,newdir); 
-       KIFiles=0;
-       cout <<"DAQEvent-I-SwitchingToNewDirFound "<<_DirName<<endl;
+	    strcpy(_DirName,newdir); 
+	    KIFiles=0;
+	    cout <<"DAQEvent-I-SwitchingToNewDirFound "<<_DirName<<endl;
+	  }
+	  else sleep(60);
+	}
+	else sleep(60);
       }
       else sleep(60);
-       }
-       else sleep(60);
-     }
-  else sleep(60);
-  if(ifnam){
-   for(int i=0;i<InputFiles;i++){
-   delete[] ifnam[i];
-  }
-   delete[] ifnam;
-   ifnam=0;
-  }
-  InputFiles=parser(_DirName,ifnam); 
- }
-         
-          char rootdir[10250];
-          if(strlen(ofnam)){
-            strcpy(rootdir,ofnam);
-            strcat(rootdir,ifnam[KIFiles]);
-          }
-          else{
-          strcpy(rootdir,ifnam[KIFiles]);
-          }
-            const int cl=161;
-           char bd[cl];
-           bd[cl-1]='\0';
-          UHTOC(DAQCFFKEY.BlocksDir,(cl-1)/sizeof(integer),bd,cl-1);
-  for (int i=cl-2; i>=0; i--) {
-    if(bd[i] == ' ') bd[i]='\0';
-    else break;
-  }
-
-   for(int i=1;i<cl-1;i++){
-    if(bd[i]==' '){
-       bd[i]='\0';
-       break;
+      if(ifnam){
+	for(int i=0;i<InputFiles;i++){
+	  delete[] ifnam[i];
+	}
+	delete[] ifnam;
+	ifnam=0;
+      }
+      InputFiles=parser(_DirName,ifnam); 
     }
-    }    
-          cout <<"  BlocksDir "<<bd<<endl;
-          char *last=strstr(rootdir,bd);
-          if(last && strlen(bd)>0){
-              //*last='R';
-              //*(last+1)='O';
-              //*(last+2)='O';
-              //*(last+3)='T';
-              char cmd[10250];
-              strcpy(cmd,"mkdir -p ");
-              last=strrchr(rootdir,'/');
-              if(last){
-               strncat(cmd,rootdir,(last-rootdir));
-               }
-              if(system(cmd)){
-                cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
-              }
-             }
-             else{
-            last=strstr(rootdir,bd);
-          if(last && strlen(bd)>0){
-              *last='R';
-              *(last+1)='O';
-              *(last+2)='O';
-              *(last+3)='T';
-              char cmd[1025];
-              strcpy(cmd,"mkdir -p ");
-              last=strrchr(rootdir,'/');
-              if(last){
-               strncat(cmd,rootdir,(last-rootdir));
-               }
-              if(system(cmd)){
-                cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
-              }
-             }
-             else{
-               cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<" "<<bd<<" "<<strstr(rootdir,bd)<<endl;
-               
-               abort();
-              }  
-             }
-/*             
-              struct stat f_stat;
-              char lockfile[1024];
-              strcpy(lockfile,rootdir);
-              strcat(lockfile,".lock");
-              if(!stat(lockfile,&f_stat)){
-                KIFiles++;
-                goto again;
-              }
-              else{
-               char cmd[1024];
-               strcpy(cmd,"touch ");
-               strcat(cmd,lockfile);
-               if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
-              } 
-*/
-              struct stat64 f_stat;
-//              sleep(1);
-              char rootfile[1024];
-              strcpy(rootfile,rootdir);
-              strcat(rootfile,".root");
-              if(!stat64(rootfile,&f_stat)){
-                cout <<"DAQEvent::_getNextFile-I-"<<rootfile<<" skipped"<<endl;  
-                KIFiles++;
-                goto again;   
-              } 
-              try{
-               char cmd[1024];
-               strcpy(cmd,"touch ");
-               strcat(cmd,rootfile);
-               if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
-               setRootDir(rootdir);
-                cout << " trying "<<RootDir()<<endl; 
-                 AMSEvent::getSRun()=0;  
-              //AMSJob::gethead()->urinit(rootdir);
-              }
-              catch (amsglobalerror e){
-                cerr << "Catached "<<e.getmessage()<<endl;
-                KIFiles++;
-                goto again;   
-              }
-              _Waiting=false;
-              int kb=0;
-              for(int k=0;k<strlen(ifnam[KIFiles]);k++){
-                if( *(ifnam[KIFiles]+k)==' ')kb++;
-                else break;
-              }
-              return ifnam[KIFiles++]+kb;
-        }
-else{
- if(!_NeventsPerRun || _NeventsPerRun>AMSEvent::get_num_threads()){
-  if(KIFiles<InputFiles){
-       _NeventsPerRun=0;
-              int kb=0;
-              for(int k=0;k<strlen(ifnam[KIFiles]);k++){
-                if( *(ifnam[KIFiles]+k)==' ')kb++;
-                else break;
-              }
-              for(int k=strlen(ifnam[KIFiles])-1;k>kb;k--){
-                if( *(ifnam[KIFiles]+k)==' ')*(ifnam[KIFiles]+k)='\0';
-              }
+         
+    char rootdir[10250];
+    if(strlen(ofnam)){
+      strcpy(rootdir,ofnam);
+      strcat(rootdir,ifnam[KIFiles]);
+    }
+    else{
+      strcpy(rootdir,ifnam[KIFiles]);
+    }
+    const int cl=161;
+    char bd[cl];
+    bd[cl-1]='\0';
+    UHTOC(DAQCFFKEY.BlocksDir,(cl-1)/sizeof(integer),bd,cl-1);
+    for (int i=cl-2; i>=0; i--) {
+      if(bd[i] == ' ') bd[i]='\0';
+      else break;
+    }
 
-      return ifnam[KIFiles++]+kb;
+    for(int i=1;i<cl-1;i++){
+      if(bd[i]==' '){
+	bd[i]='\0';
+	break;
+      }
+    }    
+    cout <<"  BlocksDir "<<bd<<endl;
+    char *last=strstr(rootdir,bd);
+    if(last && strlen(bd)>0){
+      //*last='R';
+      //*(last+1)='O';
+      //*(last+2)='O';
+      //*(last+3)='T';
+      char cmd[10250];
+      strcpy(cmd,"mkdir -p ");
+      last=strrchr(rootdir,'/');
+      if(last){
+	strncat(cmd,rootdir,(last-rootdir));
+      }
+      if(system(cmd)){
+	cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
+      }
+    }
+    else{
+      last=strstr(rootdir,bd);
+      if(last && strlen(bd)>0){
+	*last='R';
+	*(last+1)='O';
+	*(last+2)='O';
+	*(last+3)='T';
+	char cmd[1025];
+	strcpy(cmd,"mkdir -p ");
+	last=strrchr(rootdir,'/');
+	if(last){
+	  strncat(cmd,rootdir,(last-rootdir));
+	}
+	if(system(cmd)){
+	  cerr<<"DAQEvent-E-Parser-Unableto "<< cmd<<endl;
+	}
+      }
+      else{
+	cerr<<"DAQEvent-F-Parser-InvalidDirectoryStructure "<< rootdir<<" "<<bd<<" "<<strstr(rootdir,bd)<<endl;
+               
+	abort();
+      }  
+    }
+    /*             
+		   struct stat f_stat;
+		   char lockfile[1024];
+		   strcpy(lockfile,rootdir);
+		   strcat(lockfile,".lock");
+		   if(!stat(lockfile,&f_stat)){
+		   KIFiles++;
+		   goto again;
+		   }
+		   else{
+		   char cmd[1024];
+		   strcpy(cmd,"touch ");
+		   strcat(cmd,lockfile);
+		   if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
+		   } 
+    */
+    struct stat64 f_stat;
+    //              sleep(1);
+    char rootfile[1024];
+    strcpy(rootfile,rootdir);
+    strcat(rootfile,".root");
+    if(!stat64(rootfile,&f_stat)){
+      cout <<"DAQEvent::_getNextFile-I-"<<rootfile<<" skipped"<<endl;  
+      KIFiles++;
+      goto again;   
+    } 
+    try{
+      char cmd[1024];
+      strcpy(cmd,"touch ");
+      strcat(cmd,rootfile);
+      if(system(cmd))cerr<<"DAQEvent-E-ParserUnableTo "<<cmd<<endl;
+      setRootDir(rootdir);
+      cout << " trying "<<RootDir()<<endl; 
+      AMSEvent::getSRun()=0;  
+      //AMSJob::gethead()->urinit(rootdir);
+    }
+    catch (amsglobalerror e){
+      cerr << "Catached "<<e.getmessage()<<endl;
+      KIFiles++;
+      goto again;   
+    }
+    _Waiting=false;
+    int kb=0;
+    for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+      if( *(ifnam[KIFiles]+k)==' ')kb++;
+      else break;
+    }
+    return ifnam[KIFiles++]+kb;
   }
-  else return 0;
- }
- else{
-  cerr<<"DAQEvent::_getNextFile-E-FileTooShort "<<_NeventsPerRun<<" "<<ifnam[KIFiles-1]<<endl;
- }
-              int kb=0;
-              for(int k=0;k<strlen(ifnam[KIFiles-1]);k++){
-                if( *(ifnam[KIFiles-1]+k)==' ')kb++;
-                else break;
-              }
- return ifnam[KIFiles-1]+kb;
-}
+  else{
+    if(!_NeventsPerRun || _NeventsPerRun>AMSEvent::get_num_threads()){
+      if(KIFiles<InputFiles){
+	_NeventsPerRun=0;
+	int kb=0;
+	for(int k=0;k<strlen(ifnam[KIFiles]);k++){
+	  if( *(ifnam[KIFiles]+k)==' ')kb++;
+	  else break;
+	}
+	for(int k=strlen(ifnam[KIFiles])-1;k>kb;k--){
+	  if( *(ifnam[KIFiles]+k)==' ')*(ifnam[KIFiles]+k)='\0';
+	}
+
+	return ifnam[KIFiles++]+kb;
+      }
+      else return 0;
+    }
+    else{
+      cerr<<"DAQEvent::_getNextFile-E-FileTooShort "<<_NeventsPerRun<<" "<<ifnam[KIFiles-1]<<endl;
+    }
+    int kb=0;
+    for(int k=0;k<strlen(ifnam[KIFiles-1]);k++){
+      if( *(ifnam[KIFiles-1]+k)==' ')kb++;
+      else break;
+    }
+    return ifnam[KIFiles-1]+kb;
+  }
 
 }
 
 void DAQEvent::setRootDir(char * rootdir){
- if(_RootDir){
-   delete[]_RootDir;
-   _RootDir=0;
- }
-if(rootdir && strlen(rootdir)>0){
-_RootDir=new char[strlen(rootdir)+1];
-strcpy(_RootDir,rootdir);
-}
+  if(_RootDir){
+    delete[]_RootDir;
+    _RootDir=0;
+  }
+  if(rootdir && strlen(rootdir)>0){
+    _RootDir=new char[strlen(rootdir)+1];
+    strcpy(_RootDir,rootdir);
+  }
 }
 
 
 
 extern "C" size_t _compressable(Bytef * istream, size_t inputl){
-// 
-//estimate compressability
-//
-//input:   istream, inputl(Bytef)
-//
-//returns outputl(Bytef) if success ; 0 otherwise
-//
+  // 
+  //estimate compressability
+  //
+  //input:   istream, inputl(Bytef)
+  //
+  //returns outputl(Bytef) if success ; 0 otherwise
+  //
 
 
-size_t outputlb=0;
-for(int i=0;i<inputl;i++){
- if(istream[i]==0)outputlb++;
- else outputlb+=CHAR_BIT+1;
-}
+  size_t outputlb=0;
+  for(int i=0;i<inputl;i++){
+    if(istream[i]==0)outputlb++;
+    else outputlb+=CHAR_BIT+1;
+  }
 
-size_t outputl=(outputlb+CHAR_BIT-1)/CHAR_BIT;
-const int HDR=3;
-return (outputl+HDR<inputl?outputl:0);
+  size_t outputl=(outputlb+CHAR_BIT-1)/CHAR_BIT;
+  const int HDR=3;
+  return (outputl+HDR<inputl?outputl:0);
 
 }
 
 
 extern "C" size_t _decompressable(Bytef * istream, size_t inputl){
-//
-//input:   istream, inputl(Bytef)
-//
-//returns outputl(Bytef) if success ; 0 otherwise
-//
+  //
+  //input:   istream, inputl(Bytef)
+  //
+  //returns outputl(Bytef) if success ; 0 otherwise
+  //
 
 
-size_t pos=0;
-size_t outl=0;
-while(1){
-     if(pos>=inputl*CHAR_BIT)break;
-     size_t id=pos/CHAR_BIT;
-     size_t off=pos%CHAR_BIT;
-     if(istream[id]& (1<<off)){
+  size_t pos=0;
+  size_t outl=0;
+  while(1){
+    if(pos>=inputl*CHAR_BIT)break;
+    size_t id=pos/CHAR_BIT;
+    size_t off=pos%CHAR_BIT;
+    if(istream[id]& (1<<off)){
       pos+=CHAR_BIT+1;
       if(pos>inputl*CHAR_BIT)break;
-     }
-     else pos++;
-     outl++;
+    }
+    else pos++;
+    outl++;
 
-}
-return outl;
+  }
+  return outl;
 }
 
 
@@ -2768,18 +2782,18 @@ return outl;
 extern "C" bool _decompress(Bytef * istream, size_t inputl,Bytef * ostream, size_t outputl){
 
 
-size_t pos=0;
-size_t outl=0;
-while(1){
-     if(pos>=inputl*CHAR_BIT)break;
-     size_t id=pos/CHAR_BIT;
-     size_t off=pos%CHAR_BIT;
-     if(istream[id]& (1<<off)){
+  size_t pos=0;
+  size_t outl=0;
+  while(1){
+    if(pos>=inputl*CHAR_BIT)break;
+    size_t id=pos/CHAR_BIT;
+    size_t off=pos%CHAR_BIT;
+    if(istream[id]& (1<<off)){
       if(pos+CHAR_BIT>inputl*CHAR_BIT)break;
-     if(outl>outputl){
-       cerr<<"  _decompress error !!! "<<outl<<" "<<pos<<" "<<inputl<<" "<<outputl<<endl;
-       return false;
-     }
+      if(outl>outputl){
+	cerr<<"  _decompress error !!! "<<outl<<" "<<pos<<" "<<inputl<<" "<<outputl<<endl;
+	return false;
+      }
       pos++;
       for(int k=0;k<CHAR_BIT;k++){
        id=pos/CHAR_BIT;

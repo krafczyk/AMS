@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.12 2011/03/10 13:00:09 oliva Exp $
+//  $Id: TrCalDB.C,v 1.13 2011/05/09 20:28:07 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/03/10 13:00:09 $
+///$Date: 2011/05/09 20:28:07 $
 ///
-///$Revision: 1.12 $
+///$Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -284,7 +284,7 @@ void TrCalDB::updtrcalib2009S(integer n, int16u* p){
     printf("telav\n");
     cout<<*ptdv<<endl; 
     if(!ptdv) {
-      cout<<"TrCalDB::updtrrcalib2009S-E-Cannot fins TrackerCals TDV"<<endl;
+      cout<<"TrCalDB::updtrrcalib2009S-E-Cannot find TrackerCals TDV"<<endl;
       return;
     }
     
