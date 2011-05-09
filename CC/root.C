@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.288 2011/05/09 15:04:17 choutko Exp $
+//  $Id: root.C,v 1.289 2011/05/09 21:51:59 oliva Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4489,14 +4489,14 @@ Int_t AMSEventR::Fill()
     if (_ClonedTree==NULL) {
   TFile * input=_Tree->GetCurrentFile();
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
-  TObject* obj[4]={0,0,0,0}; 
+  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
+  TObject* obj[5]={0,0,0,0,0}; 
   TObjString* obj2=0;
   TObjString* obj3=0;
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
   else{
        cout <<input->GetName()<<endl;
-   for(int ii=3;ii>=0;ii--){
+   for(int ii=4;ii>=0;ii--){
     obj[ii]=input->Get(objlist[ii]);
      input->Get("TrParDB");
    }
@@ -4512,7 +4512,7 @@ Int_t AMSEventR::Fill()
       cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
            if(obj3)obj3->Write("DataCards");
-         for(int i=0;i<4;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
+         for(int i=0;i<5;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
         gDirectory=gdir;
 //    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
 //    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
@@ -4670,6 +4670,9 @@ char * DaqEventR::Info(int number){
 
 #ifdef _PGTRACK_
 #include "TrRecon.h"
+#include "TrCalDB.h"
+#include "TrParDB.h"
+#include "TrPdfDB.h"
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
@@ -4705,7 +4708,7 @@ static int master=0;
       if (TRFITFFKEY.ReadFromFile && _FILE->Get("datacards/TRFITFFKEY_DEF"))
     TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
 
-    if(TrParDB::Head) delete TrParDB::Head;
+    // if(TrParDB::Head) delete TrParDB::Head;
     TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
     if (!TrParDB::Head) {
       TrParDB* cc = new TrParDB();
@@ -4718,6 +4721,8 @@ static int master=0;
     TrRecon::Init();
     TrRecon::SetParFromDataCards();
     TrRecon::UsingTrCalDB(TrCalDB::Head);
+
+    TrPdfDB::Load(_FILE);
 }
 master=1;  
 }

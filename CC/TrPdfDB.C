@@ -1,14 +1,16 @@
 #include "TrPdfDB.h"
 
 
-TrPdfDB* TrPdfDB::fHead=0;
+ClassImp(TrPdfDB);
 
 
-TrPdfDB* TrPdfDB::GetHead(){
+TrPdfDB* TrPdfDB::fHead = 0;
+
+
+TrPdfDB* TrPdfDB::GetHead() {
   if (fHead==0) {
     printf("TrPdfDB::GetHead()-V istanciating TrPdfDB singleton.\n");
     fHead = new TrPdfDB(); 
-    // some default load
   } 
   return fHead;
 }
@@ -38,8 +40,30 @@ void TrPdfDB::Info() {
     TrPdf* pdf   = GetEntryPdf(ii);
     int    index = GetEntryIndex(ii); 
     printf("%3d of %3d   Index = %010d   Name = %10s   nPoints = %4d   xFirst = %7.3f   xLast = %7.3f\n",
-           ii+1,GetEntries(),index,pdf->GetName(),pdf->GetN(),pdf->GetX(0),pdf->GetX(pdf->GetN()-1));
+           ii+1,GetEntries(),index,pdf->GetName().Data(),pdf->GetN(),pdf->GetX(0),pdf->GetX(pdf->GetN()-1));
   }
+}
+
+
+void TrPdfDB::Load(TFile* file) {
+  TObject* obj = (TObject*) file->Get("TrPdfDB");
+  if (obj==0) {
+    printf("TrPdfDB::Load-W no TrPdfDB in file.\n");
+    return;
+  }
+  if (fHead!=0) delete fHead;
+  fHead = (TrPdfDB*) obj;
+}
+
+
+void TrPdfDB::Load(char* filename){
+  TFile* file = TFile::Open(filename,"read");
+  if (file==0) {
+    printf("TrPdfDB::Load-W file %s empty or unreachable.\n",filename);
+    return;
+  }
+  Load(file);
+  file->Close();
 }
 
  
@@ -69,46 +93,64 @@ void TrPdfDB::Clear() {
 }
 
 
+void TrPdfDB::LoadDefaults() {
+  // TMP DEFAULTS: this code has to be updated
+  char filename[100];
+  sprintf(filename,"%s/v5.00/tkpdf001mc.root",getenv("AMSDataDir"));
+  LoadPierrePdf(filename);
+}
+
+
+void TrPdfDB::LoadPierrePdf(char* filename) {
+  TFile* file = TFile::Open(filename,"read");
+  if (file==0) printf("TrPdfDB::LoadPierrePdf-W cannot open file %s. Loading only hard coded pdfs.\n",filename);
+  LoadPierrePdf(file);
+  file->Close();
+}
+
+
 void TrPdfDB::LoadPierrePdf(TFile* file) {
-
-  // APPROX 1
-  // Create PDFs for single planes (should be in MIP scale)
-  TH2D* histo;
-  // n-side
-  histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_N");
-  for (int i=0; i<5; i++) {
-    TH1D* th1d = GetSliceY(histo,i+1);
-    if (th1d==0) continue;
-    th1d->Rebin(50);
-    int Z = i+2;
-    TrPdf* pdf = new TrPdf(Form("Z%d_N",Z),th1d,true,true);
-    delete th1d;
-    Add(pdf,Z,0,kSingleLayer);
+  if (file!=0) { 
+    // Create PDFs for single planes (should be in MIP scale)
+    TH2D* histo;
+    // n-side
+    histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_N");
+    for (int i=0; i<5; i++) {
+      TH1D* th1d = GetSliceY(histo,i+1);
+      if (th1d==0) continue;
+      th1d->Rebin(50);
+      int Z = i+2;
+      TrPdf* pdf = new TrPdf(Form("Z%d_N",Z),th1d,true,true);
+      delete th1d;
+      Add(pdf,Z,0,kSingleLayer);
+    }
+    // p-side
+    histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_P");
+    for (int i=0; i<5; i++) {
+      TH1D* th1d = GetSliceY(histo,i+1);
+      if (th1d==0) continue;
+      th1d->Rebin(50);
+      int Z = i+2;
+      TrPdf* pdf = new TrPdf(Form("Z%d_P",Z),th1d,true,true);
+      delete th1d;
+      Add(pdf,Z,1,kSingleLayer);
+    }
+    // p/n combination
+    histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_PN_all");
+    for (int i=0; i<5; i++) {
+      TH1D* th1d = GetSliceY(histo,i+1);
+      if (th1d==0) continue;
+      th1d->Rebin(50);
+      int Z = i+2;
+      TrPdf* pdf = new TrPdf(Form("Z%d_PN",Z),th1d,true,true);
+      delete th1d;
+      Add(pdf,Z,2,kSingleLayer);
+    }
   }
-  // p-side
-  histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_all_P");
-  for (int i=0; i<5; i++) {
-    TH1D* th1d = GetSliceY(histo,i+1);
-    if (th1d==0) continue;
-    th1d->Rebin(50);
-    int Z = i+2;
-    TrPdf* pdf = new TrPdf(Form("Z%d_P",Z),th1d,true,true);
-    delete th1d;
-    Add(pdf,Z,1,kSingleLayer);
+  else {
+    printf("TrPdfDB::LoadPierrePdf-W no root file specified. No single plane PDF created.\n");
   }
-  // p/n combination
-  histo = (TH2D*) file->FindObjectAny("AmpVsChargeSelected_PN_all");
-  for (int i=0; i<5; i++) {
-    TH1D* th1d = GetSliceY(histo,i+1);
-    if (th1d==0) continue;
-    th1d->Rebin(50);
-    int Z = i+2;
-    TrPdf* pdf = new TrPdf(Form("Z%d_PN",Z),th1d,true,true);
-    delete th1d;
-    Add(pdf,Z,2,kSingleLayer);
-  }
-
-  // APPROX 0
+ 
   // Create PDFs for truncated mean evaluation [sqrt(ADC) units]
   float mu[8]    = {6.249,12.533,19.02,25.69,32.80,38.16,43,49.74};
   float sigma[8] = {0.726,1.23,1.57,2.1,3.1,2.50,5,3.30};

@@ -33,6 +33,7 @@ float TrCharge::BetaBetheBlock(float beta) {
 
 
 float TrCharge::AdcVsBeta(float beta) {
+  /////// different beta correction for different planes ///////
   /*
      Maximum Probability Energy Loss:
      MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
@@ -69,6 +70,8 @@ float TrCharge::GetSignalWithBetaCorrection(TrClusterR* cluster, float beta, int
 
 
 float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
+  // Z=0 means electrons (approximately no rise)
+  if (Z==0) { Z = 1; beta = 1; }
   /* ATTENTION: the requested PDF should be in MIP scale,
      for the time being is not! */
   TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,iside,TrPdfDB::kSingleLayer);
@@ -77,8 +80,6 @@ float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
            iside,Z,TrPdfDB::kSingleLayer);
     return 0;
   }
-  // 0 i for electron particles (approximately no rise)
-  if (Z==0) beta = 1;
   float signal = GetSignalWithBetaCorrection(hit,iside,beta,TrClusterR::DefaultMipCorrOpt);
   return pdf->Eval(signal);
 }
@@ -138,7 +139,7 @@ mean_t TrCharge::GetPlainMean(vector<float> signal) {
   rms  /= n;
   rms = sqrt(rms - mean*mean);
   if (n==0) return mean_t();
-  return mean_t(0,-1,n,mean,rms);
+  return mean_t(kPlainMean,-1,n,mean,rms);
 }
 
 
@@ -158,7 +159,7 @@ mean_t TrCharge::GetTruncMean(vector<float> signal) {
   mean = (mean - maxampl)/(n-1);
   rms  = (rms - pow(maxampl,2))/(n-1);
   rms  = sqrt(rms - mean*mean);    
-  return mean_t(1,-1,n-1,mean,rms);
+  return mean_t(kTruncMean,-1,n-1,mean,rms);
 }
 
 
@@ -192,7 +193,7 @@ mean_t TrCharge::GetGaussMean(vector<float> signal) {
   gaussmean /= gaussn;
   gaussrms  /= gaussn;
   gaussrms = sqrt(gaussrms - gaussmean*gaussmean);
-  return mean_t(2,-1,gaussn,gaussmean,gaussrms);
+  return mean_t(kGaussMean,-1,gaussn,gaussmean,gaussrms);
 }
 
 
@@ -203,6 +204,8 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
     TrRecHitR* hit = track->GetHit(ihit);
     int LayerJ = hit->GetLayerJ();
     if (hit==0) continue;
+    // requested inner
+    if ( (type&kInner)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
     // if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
     // if cluster analysis
@@ -210,8 +213,6 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
     // an excluded layer 
     if (LayerJ==layerj) continue;
-    // requested inner 
-    if ( (type&kInner)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
     // add 
     signal.push_back(GetSignalWithBetaCorrection(hit,iside,beta,opt));
   }
@@ -227,23 +228,21 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
 
 
 like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) { 
-  // 0 is for electron particles (approximately no rise)
-  if (Z==0) beta = 1;
+  // Z=0 means electrons (approximately no rise)
+  if (Z==0) { Z = 1; beta = 1; }
   // Truncated mean computation (X side)
   mean_t mean = GetMean(kTruncMean|kInner,track,kX,beta,-1,TrClusterR::DefaultCorrOpt);
   // Take the corresponding PDF
   TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,kX,TrPdfDB::kTruncatedMean);
   if (pdf==0) {
-    printf("TrCharge::GetMeanProbToBeZ-W requesting a not-existing pdf (iside=%d,type=%d), returning -1.\n",
-            Z,TrPdfDB::kTruncatedMean);
+    // printf("TrCharge::GetMeanProbToBeZ-W requesting a not-existing pdf (Z=%d,type=%d), returning -1.\n",
+    //        Z,TrPdfDB::kTruncatedMean);
     return like_t();
   }
-  // 0 is for electron particles (approximately no rise)
-  if (Z==0) beta = 1; 
   // Evaluate
   float value = sqrt(mean.Mean);
   float prob  = pdf->Eval(value);
-  return like_t(0,mean.Side,mean.NPoints,prob,prob,mean);
+  return like_t(kTruncMean|kInner,kX,mean.NPoints,prob,prob,mean);
 }
 
 

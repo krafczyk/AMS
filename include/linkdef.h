@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.84 2011/04/28 11:19:05 oliva Exp $
+//  $Id: linkdef.h,v 1.85 2011/05/09 21:51:59 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -21,8 +21,8 @@
 #pragma link C++ class TrSimSensor;
 #pragma link C++ class TrSimCluster;
 #pragma link C++ class TrCharge;
-#pragma link C++ class TrPdf;
-#pragma link C++ class TrPdfDB;
+#pragma link C++ class TrPdf+;
+#pragma link C++ class TrPdfDB+;
 #pragma link C++ class mean_t;
 #pragma link C++ class like_t;
 #pragma link C++ class MagField;

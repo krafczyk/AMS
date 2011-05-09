@@ -8,9 +8,9 @@
  \class TrPdfDB
  \brief The tracker PDF manager
  
- $Date: 2011/05/05 23:14:39 $
+ $Date: 2011/05/09 21:51:59 $
 
- $Revision: 1.2 $
+ $Revision: 1.3 $
 */
 
 #include "TkDBc.h"
@@ -20,6 +20,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TMath.h"
+#include "TObject.h"
 
 #include <iostream>
 #include <fstream>
@@ -28,7 +29,7 @@
 
 using namespace std;
 
-class TrPdfDB {
+class TrPdfDB : public TObject {
 
  private:
   
@@ -36,8 +37,6 @@ class TrPdfDB {
   map<int,TrPdf*> fTrPdfMap;
   //! Singleton
   static TrPdfDB* fHead;
-  //! Private contructor
-  TrPdfDB() {}
 
  public:
 
@@ -51,7 +50,9 @@ class TrPdfDB {
   /////////////////////////
   // Accessors 
   /////////////////////////
-  
+
+  //! Constructor (declared public because of ROOT I/O)
+  TrPdfDB() {}
   //! Destructor
   ~TrPdfDB() { Clear(); }
   //! Get self-pointer
@@ -59,7 +60,15 @@ class TrPdfDB {
   //! Clear
   void   Clear();
   //! Get a list of available pdfs
-  void   Info(); 
+  void   Info();
+  //! Default setting for GBATCH (called in job.C) 
+  void   LoadDefaults();
+  //! Load the database from a ROOT file
+  static void Load(char* filename);
+  //! Load the database from a ROOT file
+  static void Load(TFile* file);
+  //! Load the database from a ROOT file
+  static void ReadDB(char* filename) { Load(filename); }
 
   //! Entries in the database 
   int    GetEntries() { return fTrPdfMap.size(); }
@@ -89,11 +98,15 @@ class TrPdfDB {
   /// Reading 
   //////////////////////////
 
-  /// Load the Pierre's ROOT file with PDFs
-  void   LoadPierrePdf(TFile* file);
-
+  //! Load the Pierre's ROOT file with PDFs
+  void   LoadPierrePdf(char* filename);
+  //! Load the Pierre's ROOT file with PDFs
+  void   LoadPierrePdf(TFile* file = 0);
   //! Service function for the PDF management
   TH1D*  GetSliceY(TH2D* th2, int ixbin);
+
+  /// ROOT definition
+  ClassDef(TrPdfDB,1);
 
 };
 

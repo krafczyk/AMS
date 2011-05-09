@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.804 2011/05/09 20:58:45 choumilo Exp $
+// $Id: job.C,v 1.805 2011/05/09 21:51:59 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -28,6 +28,9 @@
 #include "patt.h"
 #include "TrRecon.h"
 #include "TrTasDB.h"
+#include "TrCalDB.h"
+#include "TrParDB.h"
+#include "TrPdfDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -1965,6 +1968,8 @@ else{
   cc2->init();
   cc2->CreateLinear();
   TrClusterR::UsingTrParDB(TrParDB::Head);
+
+  TrPdfDB::GetHead()->LoadDefaults();
 
   TrRecon::Init();
   TrRecon::SetParFromDataCards();

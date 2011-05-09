@@ -1,6 +1,9 @@
 #include "TrPdf.h"
 
 
+ClassImp(TrPdf);
+
+
 TrPdf::TrPdf(char* name, char* filename) { 
   Init(); 
   Name = name; 
@@ -23,7 +26,7 @@ TrPdf::TrPdf(char* name, TF1* fun, int nbins, double xlow, double xhig, bool nor
 
 
 void TrPdf::Init() {
-  Name = 0;
+  Name.Clear();
   N = 0;        
   X.reserve(10); 
   Y.reserve(10);
@@ -53,7 +56,7 @@ TrPdf& TrPdf::operator=(const TrPdf& that) {
 
 
 void TrPdf::Clear() {
-  Name = 0;
+  Name.Clear();
   N = 0;
   X.clear();
   Y.clear();
@@ -68,7 +71,7 @@ void TrPdf::Clear() {
 
 
 void TrPdf::Info(int verbosity) {
-  printf("------- Info -------- \nName = %s\nNPoints = %2d \n",Name,N);
+  printf("------- Info -------- \nName = %s\nNPoints = %2d \n",GetName().Data(),N);
   if (verbosity>0) {
     printf("More Info: The Point List (i,X,Y,DY)\n");
     if (N==0) printf("Empty!\n");
@@ -372,7 +375,8 @@ void TrPdf::FitLogLog(double min, double max) {
   }
   TF1* LinFitTmp = new TF1("linfittmp","[0]+[1]*x+[2]*pow(x,2.)+[3]*pow(x,3.)+[4]*pow(x,4.)+[5]*pow(x,5.)",-2.,5.); 
   FluxLogLogTmp->Fit(LinFitTmp,"EQR","",log10(min),log10(max));
-  LogLog = new TF1(Form("LogLog_%s",Name),"pow(10.,[0]+[1]*log10(x)+[2]*pow(log10(x),2.)+[3]*pow(log10(x),3.)+[4]*pow(log10(x),4.)+[5]*pow(log10(x),5.))",1.e-2,1.e5);
+  LogLog = new TF1(Form("LogLog_%s",GetName().Data()),
+    "pow(10.,[0]+[1]*log10(x)+[2]*pow(log10(x),2.)+[3]*pow(log10(x),3.)+[4]*pow(log10(x),4.)+[5]*pow(log10(x),5.))",1.e-2,1.e5);
   for (int i=0; i<6; i++) LogLog->SetParameter(i,LinFitTmp->GetParameter(i));
   delete LinFitTmp;
   delete FluxLogLogTmp;
@@ -380,7 +384,7 @@ void TrPdf::FitLogLog(double min, double max) {
 
 
 void TrPdf::FitSpeInd(double min, double max)  {
-  SpeInd = new TF1(Form("SpeInd_%s",GetName()),"[0]*pow(x,[1])",1.e-2,1.e5);
+  SpeInd = new TF1(Form("SpeInd_%s",GetName().Data()),"[0]*pow(x,[1])",1.e-2,1.e5);
   SpeInd->SetParameters(0.001,-2.7);
   GetGraph()->Fit(SpeInd,"EQR","",min,max);
 }

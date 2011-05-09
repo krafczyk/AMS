@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.35 2011/05/08 04:03:47 pzuccon Exp $
+//  $Id: amschain.C,v 1.36 2011/05/09 21:51:58 oliva Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -421,8 +421,8 @@ void AMSChain::OpenOutputFile(const char* filename){
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
   // Parameters
-  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
-  for(int ii=0;ii<4;ii++){
+  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
+  for(int ii=0;ii<5;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
   }
