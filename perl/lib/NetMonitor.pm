@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.37 2011/05/03 17:40:48 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.38 2011/05/09 07:13:58 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -376,10 +376,10 @@ if(not open(FILE,"<".$self->{hostfile})){
     foreach my $target (@{$self->{dbhoststargets}}){
         if($foundp[$cnt]==0){
             push @{$self->{bad}}, "$target NetMonitor-W-DBHostsTargetsProblems ";
-            next;
         }
         $cnt++;
     }
+#    print @{$self->{bad}};
 
 #
 # df
