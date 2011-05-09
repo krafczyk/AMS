@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.803 2011/05/03 14:15:24 choumilo Exp $
+// $Id: job.C,v 1.804 2011/05/09 20:58:45 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1414,9 +1414,9 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[4]=70.;//(22) JLV1 globFT decision_time + delay(JLV1-> S-crate, ns), i.e. glFT-time at S-crate
   TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
-  TFREFFKEY.cuts[7]=10.;// (25) T-type def.temperature (see card #29)
-  TFREFFKEY.cuts[8]=5.;// (26) P-type def.temperature 
-  TFREFFKEY.cuts[9]=8.;// (27) C-type def.temperature
+  TFREFFKEY.cuts[7]=0.;// (25) T-type def.temperature (see card #29)
+  TFREFFKEY.cuts[8]=0.;// (26) P-type def.temperature 
+  TFREFFKEY.cuts[9]=0.;// (27) C-type def.temperature
 //
   TFREFFKEY.ReadConstFiles=100;//(28) LQDPC(L->TDCLinCorCalib(mc/rd);Q->ChargeCalib(mc/rd),
 //                                           D->ThrCuts-set(datacards),P->Peds(rd),C->CalibConst(rd/mc));
