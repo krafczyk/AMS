@@ -1,8 +1,9 @@
-/// $Id: HistoMan.C,v 1.35 2011/05/05 08:54:09 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.36 2011/05/09 12:19:36 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
 #include "TH3.h"
+#include "TProfile.h"
 #include "TROOT.h"
 #include "TDirectoryFile.h"
 #include "tkdcards.h"
@@ -64,9 +65,14 @@ void HistoMan::Fill(const char * name, double a,double  b,double w){
     return;
   }
 
-  if      (hist->GetDimension() == 3) ((TH3*)hist)->Fill(a,b,w);
-  else if (hist->GetDimension() == 2) ((TH2*)hist)->Fill(a,b,w);
-  else if (hist->GetDimension() == 1) ((TH1*)hist)->Fill(a,b);
+  int ndim = hist->GetDimension();
+  if      (ndim == 3 && dynamic_cast<TH3*>(hist)) ((TH3*)hist)->Fill(a,b,w);
+  else if (ndim == 2 && dynamic_cast<TH2*>(hist)) ((TH2*)hist)->Fill(a,b,w);
+  else if (ndim == 1) {
+    if (hist->ClassName() == TString("TProfile") &&
+	dynamic_cast<TProfile*>(hist)) ((TProfile*)hist)->Fill(a,b,w);
+    else if (dynamic_cast<TH1*>(hist)) ((TH1*)     hist)->Fill(a,b);
+  }
 
   return;
 }
@@ -229,8 +235,10 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH1D("TrRecon",  "TrRecon status", 32, 0, 32));
 
   // TrCluster
-  Add(new TH2D("TrClsSigP", "Amplitude(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
-  Add(new TH2D("TrClsSigN", "Amplitude(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
+  Add(new TH2D("TrClsSigP", "TotSig(P) VS OnTrack", 2, 0, 2, 500, 0, 500));
+  Add(new TH2D("TrClsSigN", "TotSig(N) VS OnTrack", 2, 0, 2, 500, 0, 500));
+  Add(new TH3D("TrClsStrP", "Rsig(P)", 10, 0, 10, 100, 0, 0.5, 100, 0, 1));
+  Add(new TH3D("TrClsStrN", "Rsig(P)", 10, 0, 10, 100, 0, 0.5, 100, 0, 1));
 
   // TrRecHit
   Add(new TH2D("TrLadTrk", "Ladder on track",   33, -16.5, 16.5, 9, 0.5, 9.5));
@@ -314,13 +322,13 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfRgt1", "Rgt1 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfRgt2", "Rgt2 VS Rgtf",  100, 1e-2, 1e3, 120, 1e-2, 1e4));
   Add(TH2D_L("TfCsqf", "CsqY VS CsqY2", 100, 1e-7, 1e3, 140, 1e-3, 1e4));
-  Add(TH2D_L("TfCsn0", "ClsSN psel0",   120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn1", "ClsSN psel1",   120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn2", "ClsSN mrgY",    120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn3", "ClsSN mrgX",    120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn4", "ClsSN mrgX",    120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,    1, 1e3, 120, 1e-2, 1e2));
-  Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,    1, 1e3, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn0", "ClsSN psel0",   120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn1", "ClsSN psel1",   120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn2", "ClsSN mrgY",    120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn3", "ClsSN mrgX",    120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn4", "ClsSN mrgX",    120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,   10, 1e4, 120, 1e-2, 1e2));
+  Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,   10, 1e4, 120, 1e-2, 1e2));
 
   // residuals vs ladder
   Add(new TH2D("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
