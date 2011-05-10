@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.49 2010/01/19 09:24:25 choumilo Exp $
+//  $Id: amsdbc.h,v 1.50 2011/05/10 19:10:06 jorgec Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -39,7 +39,7 @@ public:
   static const number raddeg;
   static const number pi;
   static const number twopi;
-  static const integer MaxZTypes;
+  //static const integer MaxZTypes;
   // AMS parameters
   static  geant ams_size[3];
   //! AMS rotation matrix

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.805 2011/05/09 21:51:59 oliva Exp $
+// $Id: job.C,v 1.806 2011/05/10 19:10:07 jorgec Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1565,29 +1565,46 @@ DAQCFFKEY.SkipRec=0;
 //----------------------------------
 void AMSJob::_reaxdata(){
 // Fit beta & charge
-CHARGEFITFFKEY.NmembMax=3;
-CHARGEFITFFKEY.Tracker=1;
-CHARGEFITFFKEY.EtaMin[0]=0.05;
-CHARGEFITFFKEY.EtaMin[1]=0.00;
-CHARGEFITFFKEY.EtaMax[0]=0.95;
-CHARGEFITFFKEY.EtaMax[1]=1.00;
-CHARGEFITFFKEY.ProbTrkRefit=0.01;
-CHARGEFITFFKEY.ResCut[0]=4.;//-1. to switch OFF incomp.clus.exclusion(as for simulation default,
-CHARGEFITFFKEY.ResCut[1]=4.;//  see charge.C code with tempor. MC settings
-CHARGEFITFFKEY.SigMin=0.1;
-CHARGEFITFFKEY.SigMax=0.3;
-CHARGEFITFFKEY.PdfNorm=1;//not used now (pdf's are normalized automatically)
-CHARGEFITFFKEY.TrMeanRes=1;//(13) use normal(0)/"-incomp.hit"(1)truncated mean
-CHARGEFITFFKEY.ProbMin=0.0001;
-CHARGEFITFFKEY.TrackerOnly=9;//above this value use Tracker only
-CHARGEFITFFKEY.ChrgMaxAnode=9;//not used now
-CHARGEFITFFKEY.BetaPowAnode=0;//not used now
-CHARGEFITFFKEY.TrackerForceSK=0;//(18)
-CHARGEFITFFKEY.TrackerKSRatio=0.67;//(19)
-CHARGEFITFFKEY.TrackerProbOnly=9;
-CHARGEFITFFKEY.TrkPDFileMCVers=1;//MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
-CHARGEFITFFKEY.TrkPDFileRDVers=1;//RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
-CHARGEFITFFKEY.TrkPDFileRead=1;//read TrkPDF-info from DB(0) OR RawFile (1)
+//- AMSCharge Combination options
+CHARGEFITFFKEY.RecEnable[0]=1;         //I 1  TOF Charge reconstruction switch (1:enabled 0:disabled) 
+CHARGEFITFFKEY.RecEnable[1]=1111;      //I 2  Charge reconstruction switch (see datacards.doc)
+CHARGEFITFFKEY.RecEnable[2]=1;         //I 3  TRD Charge reconstruction switch (1:enabled, 0:disabled) 
+CHARGEFITFFKEY.RecEnable[3]=1;         //I 4  Rich Charge reconstruction switch (1:enabled, 0:disabled) 
+CHARGEFITFFKEY.SplitLevel[0]=0;        //I 5  TOF split level used in charge combination (only full TOF (0) implemeted)      
+CHARGEFITFFKEY.SplitLevel[1]=0;        //I 6  Tracker split level used in charge combination (full Trk (0) or Upper/Inner/Lower (1))      
+CHARGEFITFFKEY.SplitLevel[2]=0;        //I 7  TRD split level used in charge combination (only full TRD (0) implemented)
+CHARGEFITFFKEY.SplitLevel[3]=0;        //I 8  Rich split level used in charge combination (only full Rich (0) implemented)
+CHARGEFITFFKEY.ChargeMax[0]=-1;        //I 9  Maximum TOF Charge value for combination (0:not used, -1:no limit)
+CHARGEFITFFKEY.ChargeMax[1]=-1;        //I10  Maximum Tracker Charge value for combination (0:not used, -1:no limit)
+CHARGEFITFFKEY.ChargeMax[2]=-1;        //I11  Maximum TRD Charge value for combination (0:not used, -1:no limit)
+CHARGEFITFFKEY.ChargeMax[3]=-1;        //I12  Maximum Rich Charge value for combination (0:not used, -1:no limit)
+CHARGEFITFFKEY.ProbMin[0]=0.001;       //R13  Minimum TOF charge probability for combination  
+CHARGEFITFFKEY.ProbMin[1]=0.001;       //R14  Minimum Tracker charge probability for combination  
+CHARGEFITFFKEY.ProbMin[2]=0.001;       //R15  Minimum TRD charge probability for combination  
+CHARGEFITFFKEY.ProbMin[3]=0.001;       //R16  Minimum Richcharge  probability for combination  
+CHARGEFITFFKEY.NormalizeProbs=1;       //I17  do (1) or do not (0) normalize SubD charge probabilities to SUMprob(i)=1  
+CHARGEFITFFKEY.UseLikelihood=0;        //I18  use likelihood (1) or probability (0) for charge combination
+CHARGEFITFFKEY.ProbklMin=0.005;        //R19  minumum RichRing probability for combination 
+//- TOF & Tracker(v4) Charge Reconstruction Params
+CHARGEFITFFKEY.NmembMax=3;             //I20 maximum number of members for TOF clusters
+CHARGEFITFFKEY.Tracker=1;              //I21 tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
+CHARGEFITFFKEY.EtaMin[0]=0.05;         //R22 min eta value for tracker cluster (x)
+CHARGEFITFFKEY.EtaMin[1]=0.00;         //R23 min eta value for tracker cluster (y)
+CHARGEFITFFKEY.EtaMax[0]=0.95;         //R24 max eta value for tracker cluster (x)
+CHARGEFITFFKEY.EtaMax[1]=1.00;         //R25 max eta value for tracker cluster (y)
+CHARGEFITFFKEY.ProbTrkRefit=0.01;      //R26 refit tracker charge below this cut
+CHARGEFITFFKEY.ResCut[0]=4.;           //R27  thrsld for incompatible TOF clus exclusion (-1: no cluster is excluded)
+CHARGEFITFFKEY.ResCut[1]=4.;           //R28 thrsld for Tracker
+CHARGEFITFFKEY.SigMin=0.1;             //R29 min relative spread of TOF or trk cluster energies
+CHARGEFITFFKEY.SigMax=0.3;             //R30 max 
+CHARGEFITFFKEY.TrMeanRes=1;            //R31 normal(0)/"-incomp.hit"(1)truncated mean
+CHARGEFITFFKEY.TrackerForceSK=0;       //I32 if<>0 force tracker hit energies to be x+y 
+CHARGEFITFFKEY.TrackerKSRatio=0.67;    //R33 average x/y tracker energy ratio (used if TrackerForceSK<>0)
+CHARGEFITFFKEY.TOFMeVperMip=1.8;       //R34 mip in MeV units 
+CHARGEFITFFKEY.TrkkeVperMip=80.;       //R35 mip in keV units
+CHARGEFITFFKEY.TrkPDFileMCVers=1;      //I36 MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
+CHARGEFITFFKEY.TrkPDFileRDVers=1;      //I37 RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
+CHARGEFITFFKEY.TrkPDFileRead=1;        //I38 read TrkPDF-info from DB(0) OR RawFile (1)
 CHARGEFITFFKEY.sec[0]=0; 
 CHARGEFITFFKEY.sec[1]=0;
 CHARGEFITFFKEY.min[0]=0;
@@ -3381,8 +3398,8 @@ if((TFREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=TFREFFKEY.year[0]-1;//(Q
     (void*)&TofElosPDF::TofEPDFs[0],server,needval));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTof",isRealData()),
-    begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTOF[0]),
-    (void*)AMSCharge::_chargeTOF,server,needval));
+    begin,end,MaxZTypes*sizeof(AMSChargeTOF::_chargeTOF[0]),
+    (void*)AMSChargeTOF::_chargeTOF,server,needval));
    
   end.tm_year=TFREFFKEY.year[1];
 //----- 
@@ -3809,8 +3826,8 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
     (void*)&TrkElosPDF::TrkEPDFs[0],server,1));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTrk",isRealData()),
-    begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTracker[0]),
-    (void*)AMSCharge::_chargeTracker,server,1));
+    begin,end,MaxZTypes*sizeof(AMSChargeTracker::_chargeTracker[0]),
+    (void*)AMSChargeTracker::_chargeTracker,server,1));
     
   end.tm_year=CHARGEFITFFKEY.year[1];
 

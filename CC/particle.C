@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.227 2011/04/25 14:02:52 choutko Exp $
+//  $Id: particle.C,v 1.228 2011/05/10 19:10:07 jorgec Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -697,12 +697,14 @@ void AMSParticle::trdfit(){
 
 #endif
 
+/* // <- trdcharge computation moved to charge.C
 if(_ptrd && _pbeta){
 // Calculate trdcharge 
 
 _ptrd->ComputeCharge(_pbeta->GetTRDBetaCorr());
 
 }
+*/
 }
 
 

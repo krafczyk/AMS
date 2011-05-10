@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.22 2011/05/02 23:23:58 choutko Exp $
+//  $Id: trdrec.h,v 1.23 2011/05/10 19:10:06 jorgec Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -198,9 +198,10 @@ public:
 class TrackCharge{
 public:
 float Q;
+float Nused;
 short int Charge[10];
 float ChargeP[10];
-TrackCharge():Q(0){
+TrackCharge():Q(0),Nused(0){
 for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
 for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
 }

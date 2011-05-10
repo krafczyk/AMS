@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.320 2011/04/28 16:40:28 choutko Exp $
+//  $Id: commons.h,v 1.321 2011/05/10 19:10:06 jorgec Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -910,23 +910,28 @@ COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
 
 class CHARGEFITFFKEY_DEF {
 public:
+//- AMSCharge Combination options
+  integer RecEnable[4];
+  integer SplitLevel[4];
+  integer ChargeMax[4];
+  geant   ProbMin[4];
+  integer NormalizeProbs;
+  integer UseLikelihood;   
+  geant   ProbklMin;
+//- TOF & Tracker (v4) Charge Reconstruction
   integer NmembMax;
   integer Tracker;
-  geant EtaMin[2];
-  geant EtaMax[2];
-  geant ProbTrkRefit;
-  geant ResCut[2];
-  geant SigMin;
-  geant SigMax;
-  integer PdfNorm;
-  integer TrMeanRes;
-  geant ProbMin;
-  integer TrackerOnly;
-  integer ChrgMaxAnode;
-  integer BetaPowAnode;
+  geant   EtaMin[2];
+  geant   EtaMax[2];
+  geant   ProbTrkRefit;
+  geant   ResCut[2];
+  geant   SigMin;
+  geant   SigMax;
+  geant   TrMeanRes;
   integer TrackerForceSK;
-  geant TrackerKSRatio;
-  integer TrackerProbOnly;
+  geant   TrackerKSRatio;
+  geant   TOFMeVperMip;
+  geant   TrkkeVperMip;
   integer TrkPDFileMCVers;
   integer TrkPDFileRDVers;
   integer TrkPDFileRead;

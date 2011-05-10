@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.85 2011/05/09 21:51:59 oliva Exp $
+//  $Id: linkdef.h,v 1.86 2011/05/10 19:10:06 jorgec Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -101,6 +101,7 @@
 #pragma link C++ class Level1R+;
 #pragma link C++ class Level3R+;
 #pragma link C++ class BetaR+;
+#pragma link C++ class ChargeSubDR+;
 #pragma link C++ class ChargeR+;
 #pragma link C++ class VertexR+;
 #pragma link C++ class ParticleR+;

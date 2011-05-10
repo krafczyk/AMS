@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.289 2011/05/09 21:51:59 oliva Exp $
+//  $Id: root.C,v 1.290 2011/05/10 19:10:07 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -35,6 +35,7 @@
 #include "trigger102.h"
 #include "trigger302.h"
 #include "trrec.h"
+#include "charge.h"
 #ifndef _PGTRACK_
 #include "vtx.h"
 #else 
@@ -2602,18 +2603,14 @@ void AMSEventR::AddAMSObjectB(AMSBeta *ptr)
   }
 }
 
-void AMSEventR::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[], 
-			     float probtr[], int chintr[], float probrc[], 
-			     int chinrc[], float proballtr)
-{
-  if (ptr) {
-    fCharge.push_back(ChargeR(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr));
-    ptr->SetClonePointer(fCharge.size()-1);
-  }  else {
+void AMSEventR::AddAMSObject(AMSCharge *ptr){
+  if(!ptr){
     cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
+    return;
   }
+  fCharge.push_back(ChargeR(ptr));
+  ptr->SetClonePointer(fCharge.size()-1);
 }
-
 
 void AMSEventR::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
 {
@@ -2850,30 +2847,54 @@ BetaR::BetaR(AMSBeta *ptr){
 #endif
 }
 
+ChargeSubDR::ChargeSubDR(AMSChargeSubD *ptr){
 
-ChargeR::ChargeR(AMSCharge *ptr, float probtof[],int chintof[], 
-		 float probtr[], int chintr[], float probrc[],
-		 int chinrc[], float proballtr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Status = ptr->_status;
-  ChargeTOF     = ptr->_ChargeTOF;
-  ChargeTracker = ptr->_ChargeTracker;
-  ChargeRich    = ptr->_ChargeRich;
-  for (int i=0; i<4; i++) {
-    ProbTOF[i] = probtof[i];
-    ChInTOF[i] = chintof[i];
-    ProbTracker[i] = probtr[i];
-    ChInTracker[i] = chintr[i];
-    ProbRich[i] = probrc[i];
-    ChInRich[i] = chinrc[i];
-  }
-  ProbAllTracker= proballtr;
-  TrunTOF       = ptr->_TrMeanTOF;
-  TrunTOFD      = ptr->_TrMeanTOFD;
-  TrunTracker   = ptr->_TrMeanTracker;
-  fBeta=-1;
-  fRichRing=-1;
+#define CP(x) x=ptr->_##x
+  CP(ID);
+  Status=ptr->getstatus();
+  CP(ChargeI);
+  CP(Lkhd);
+  CP(Prob);
+  CP(Q);
+#undef CP
+
+  ptr->_addAttr(Attr);
 #endif
+}
+
+ChargeR::ChargeR(AMSCharge *ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+#define CP(x) x=ptr->_##x
+  Status=ptr->getstatus();
+  CP(ChargeI);
+  CP(Lkhd);
+  CP(Prob);
+#undef CP
+
+  // Copy subdetector information
+  for(map <TString,AMSChargeSubD*>::iterator i=ptr->_charges.begin();i!=ptr->_charges.end();++i){
+    Charges[i->first]=ChargeSubDR(i->second);
+  }
+
+  // Add further information here
+#endif
+}
+
+float ChargeSubDR::getAttr(TString key){
+  map<TString,float>::iterator v=Attr.find(key);
+  if(v==Attr.end()) {
+    cout<<"ChargeSubDR::getAttr-E-Attribute "<<key<<" not found for "<<ID<<endl;
+    return INFINITY;} 
+  else return v->second;
+}
+
+ChargeSubDR* ChargeR::getSubD(TString ID){
+  map<TString,ChargeSubDR>::iterator v=Charges.find(ID);
+  if(v==Charges.end()){
+    //cout<<"ChargeR::getSubD-E-ChargeSubD "<<ID<<" not found"<<endl;
+    return 0;} 
+  else return &v->second;
 }
 
 
@@ -4267,10 +4288,6 @@ TrTrackR* BetaR::pTrTrack(){
 BetaR* ChargeR::pBeta(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pBeta(fBeta):0;
 }
-RichRingR* ChargeR::pRichRing(){
-  return (AMSEventR::Head() )?AMSEventR::Head()->pRichRing(fRichRing):0;
-}
-
 
 RichRingR* ParticleR::pRichRing(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pRichRing(fRichRing):0;

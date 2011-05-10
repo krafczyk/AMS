@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.343 2011/05/06 00:40:23 choutko Exp $
+//  $Id: root.h,v 1.344 2011/05/10 19:10:06 jorgec Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -86,6 +86,7 @@ class AMSTrRecHit;
 class AMSAntiCluster;
 class AMSAntiMCCluster;
 class AMSBeta;
+class AMSChargeSubD;
 class AMSCharge;
 class AMSEvent;
 class AMSmceventg;
@@ -121,6 +122,7 @@ class AMSAntiCluster{};
 class AMSAntiMCCluster{};
 class AMSBeta{};
 class AMSCharge{};
+class AMSChargeSubD{};
 class AMSEvent{};
 class AMSEcalHit{};
 class AMSEcalMCHit{};
@@ -1993,61 +1995,110 @@ public:
 #pragma omp threadprivate(fgIsA)
 };
 
+#include <map>
+#include <vector>
 
-
-/// Voted Charge Structure
+/// Subdetector Charge structure
 /*!
-    Particle Charge Determination by Trd, Tof, Tr and Rich detectors \n
-    Still Incomplete \n
-    Only Tr, Tof aand Rich re used at the moment \n
-*/    
-class ChargeR {
-/*!
-  \author Carlos.Jose.Delgado.Mendez@cern.ch
+ \author jorge.casaus@ciemat.es
 
 */
+class ChargeSubDR{
+ public:
+  TString ID;                      ///< (Sub)Subdetector ID (AMSChargeTOF, AMSChargeTracker, AMSChargeTrackerInner....)   
+  unsigned int Status;             ///< Status word
+  vector<unsigned short> ChargeI;  ///< Charge Indexes sorted in descending likelihood (0:e, 1:H, 2:He ...)
+  vector<float> Lkhd;              ///< LogLikelihood for ordered charges
+  vector<float> Prob;              ///< Probabilities for ordered charges
+  float Q;                         ///< Charge value estimator (Truncated Mean, Median ...) 
 
-public:
-  unsigned int Status;     ///<  Status (1-refitted)
-  int ChargeTOF;  ///<TOF Charge
-  int ChargeTracker;  ///< Tracker Charge
-  int ChargeRich;      ///<Rich Charge 
-  float ProbTOF[4];    ///< TOF highest Probs
-  int ChInTOF[4];      ///< charge indices for highest Probs (see charge.doc)
-  float ProbTracker[4]; ///< Tracker highest Probs
-  int ChInTracker[4];     ///< charge indices for highest Probs (see charge.doc)
-  float ProbRich[4];    ///< rich highest Probs
-  int ChInRich[4];          ///< charge indices for highest Probs (see charge.doc)
-  float ProbAllTracker;  ///< Tracker highest Prob (all hits)
-  float TrunTOF;          ///< Truncated (-1) mean   (Tof Anodes)     
-  float TrunTOFD;         ///< Truncated (-1) mean  (Tof Dynodes)     
-  float TrunTracker;     ///< Truncated (-1) mean   Tracker  
-protected:
-  int  fBeta;        ///< index of BetaR used
-  int  fRichRing;        ///< index of RichRingR used 
-public:
+  /* Subdetector Specific Information */
+  map <TString,float> Attr;  //< map with additional subdetector specific information */
+
+ protected:
+  int fParent;  //< Index in its corresponding container of the object used to reconstruct this charge  
+
+ public:
+  /// access function to the reconstructed object used
+  /// \return index of object in collection or -1
+  int iParent()const {return fParent;}
+
+  /// number of charge hypothesis stored in charge vectors
+  int    getSize(){return ChargeI.size();}
+  /// charge index (0:e, 1:H, 2:He ...) for the i'th most likely hypothesis
+  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  /// loglikelihood value for the i'th most likely hypothesis
+  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  /// estimated probablility for the i'th most likely hypothesis
+  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  /// print subdetector specific information (attributes and values)
+  void dumpAttr(){for(map<TString,float>::iterator i=Attr.begin();i!=Attr.end();i++) cout<<i->first<<" = "<<i->second<<endl;}
+  /// return value corresponding to a subdetector specific attribute  
+  float getAttr(TString attr);
+
+  /// set function of the index of reconstructed object used
+  void setParent(int iParent) {fParent=iParent;}
+
+  ChargeSubDR(AMSChargeSubD* ptr);
+  ChargeSubDR(){};
+  friend class AMSEventR;
+  friend class ChargeR;
+  ClassDef(ChargeSubDR,1)
+#pragma omp threadprivate(fgIsA)  
+};
+
+/// AMS Charge structure
+/*!
+ \author jorge.casaus@ciemat.es
+
+*/
+class ChargeR{
+ public:
+  map<TString,ChargeSubDR> Charges; ///< map of the subdetector reconstructed charges 
+  unsigned int Status;              ///< Status word
+  vector<unsigned short> ChargeI;   ///< Charge Indexes sorted in descending probability (0:e, 1:H, 2:He ...)
+  vector<float> Lkhd;               ///< LogLikelihood for ordered charges
+  vector<float> Prob;               ///< Probabilities for ordered charges 
+
+ protected:
+  int fBeta;                        ///< index of BetaR used
+
+ public:
   /// access function to BetaR object used
   /// \return index of BetaR object in collection or -1
   int iBeta()const {return fBeta;}
   /// access function to BetaR object used
   /// \return pointer to BetaR object or 0
   BetaR * pBeta();
-  /// access function to RichRingR object used
-  /// \return index of RichRingR object in collection or -1
-  int iRichRing()const {return fRichRing;}
-  /// access function to RichRingR object used
-  /// \return pointer to RichRingR object or 0
-  RichRingR * pRichRing();
-   friend class AMSEventR;
-   friend class AMSCharge;
-  ChargeR(){};
-  ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
-               float probtr[], int chintr[], 
-               float probrc[], int chinrc[], float proballtr);
-  virtual ~ChargeR(){};
-ClassDef(ChargeR,1)       //ChargeR
-#pragma omp threadprivate(fgIsA)
 
+  /// most probable integer charge 
+  int Charge(){return max(1,int(ChargeI[0]));} 
+  /// number of ChargeSubD objects stored
+  int getNCharges(){return Charges.size();}
+  /// number of ChargeSubD objects used
+  int getNUsed(){int Nused=0;for(map<TString,ChargeSubDR>::iterator i=Charges.begin();i!=Charges.end();i++)if(i->second.Status&32)Nused++;return Nused;}
+  /// print the IDs of the ChargeSubD objects stored 
+  void dumpCharges(){for(map<TString,ChargeSubDR>::iterator i=Charges.begin();i!=Charges.end();i++) cout<<i->first<<endl;}
+  /// number of charge hypothesis stored in charge vectors
+  int    getSize(){return ChargeI.size();}
+  /// charge index (0:e, 1:H, 2:He ...) for the i'th most probable hypothesis
+  int getChargeI(int i=0){return i<ChargeI.size()?ChargeI.at(max(i,0)):-1;}
+  /// loglikelihood value for the i'th most probable hypothesis
+  float getLkhd(int i=0){return i<Lkhd.size()?Lkhd.at(max(i,0)):0;}
+  /// estimated probablility for the i'th most probable hypothesis
+  float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
+  /// return a pointer to the ChargeSubDR object using its ID or 0 if not reconstructed
+  ChargeSubDR *getSubD(TString ID);
+
+  /// set function of the index of BetaR object used
+  void setBeta(int iBeta) {fBeta=iBeta;}
+
+  ChargeR(AMSCharge* ptr);
+  ChargeR(){};
+  friend class AMSEventR;
+  friend class AMSCharge;
+
+  ClassDef(ChargeR,2)
 };
 
 #ifndef _PGTRACK_
@@ -4083,12 +4134,6 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
-
-
-
-
-
-
        ///  ChargeR accessor
       ///  \return number of ChargeR
       ///
@@ -4122,6 +4167,47 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       }
 
 
+
+       ///  ChargeSubDR accessor
+      ///  \return number of ChargeSubDR
+      ///
+      unsigned int   NChargeSubD()  {
+        if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
+        return 0;
+      }
+      ///  \return reference of ChargeSubDR Collection
+      ///
+      /*
+      vector<ChargeSubDR> & ChargeSubD()  {
+        if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
+         return NULL;
+       }
+*/
+
+       ///  ChargeSubDR accessor
+       /// \param l index of ChargeSubDR Collection
+      ///  \return reference to corresponding ChargeSubDR element
+      ///
+      /*
+       ChargeSubDR &   ChargeSubD(unsigned int l) {
+        if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
+         return NULL;
+      }
+      */
+
+       ///  ChargeSubDR accessor
+       /// \param l index of ChargeSubDR Collection
+      ///  \return pointer to corresponding ChargeSubDR element
+      ///
+      ChargeSubDR *   pChargeSubD(unsigned int l) {
+        if(fHeader.Charges && fCharge.size()==0)bCharge->GetEntry(_Entry);
+        return NULL;
+      }
+
+
+
+
+ 
        ///  VertexR accessor
       ///  \return number of VertexR
       ///
@@ -4333,7 +4419,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
 
-       ///  TrdMCClusterR accessor
+       ///  TrdMCOAClusterR accessor
       ///  \return number of TrdMCClusterR
       ///
       unsigned int   NTrdMCCluster()  {
@@ -4536,9 +4622,7 @@ void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
 void         AddAMSObjectB(AMSBeta *ptr);
-void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
-                          float probtr[], int chintr[], float probrc[], 
-                          int chinrc[], float proballtr);
+void         AddAMSObject(AMSCharge *ptr);
 void         AddAMSObject(AMSEcalHit *ptr);
 void         AddAMSObject(AMSEcalMCHit *ptr);
 void         AddAMSObject(AMSmceventg *ptr);
@@ -4572,7 +4656,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,13)       //AMSEventR
+ClassDef(AMSEventR,14)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

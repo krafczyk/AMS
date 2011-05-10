@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.26 2008/12/18 11:19:24 pzuccon Exp $
+//  $Id: charge.h,v 1.27 2011/05/10 19:10:06 jorgec Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -13,87 +13,280 @@
 #include "tofdbc02.h"
 #ifndef _PGTRACK_
 #include "tkdbc.h"
+#else
+#include "TrCharge.h"
 #endif
 #include "trrec.h"
 #include "beta.h"
 #include "richrec.h"
-const int TrackerMaxHits=trconst::maxlay;
-const int maxzin=AMSChargConst::MaxZTypes;
+#include "trdrec.h"
+#include "TString.h"
+
+using namespace AMSChargConst;
+
 const number powmx=50.;
-class AMSCharge: public AMSlink{
-protected:
-  AMSBeta * _pbeta;      // pointer to beta --> then to track & tof
-  AMSRichRing * _pring;  // pointer to RICH ring
+enum SubDiD { kTOF=0, kTracker=1, kTRD=2, kRich=3 };
 
- integer _ChargeTOF;
- integer _ChargeTracker;
- integer _ChargeRich;
- number _TrMeanTracker;
- number _TrMeanTOF;
- number _TrMeanTOFD;
- number  _ProbTOF[maxzin];       //prob  to be e,p,He,...,F
- number  _LkhdTOF[maxzin];       //loglikhd value for e,p,...
- integer _IndxTOF[maxzin];       //index 0,...,9 from most to least prob charge
- integer _iTOF;                   //index of most probable charge
- number  _ProbTracker[maxzin];   //prob  to be e,p,He,...,F
- number  _LkhdTracker[maxzin];   //loglikhd value for e,p,...
- integer _IndxTracker[maxzin];   //index 0,...,9 from most to least prob charge
- integer _iTracker;               //index of most probable charge
- number  _ProbAllTracker;         //prob of maximum charge using all tracker clusters
- number  _ProbRich[maxzin];      //prob  to be e,p,He,...,F
- number  _LkhdRich[maxzin];      //loglikhd value for e,p,...
- integer _IndxRich[maxzin];      //index 0,...,9 from most to least prob charge
- integer _iRich;                  //index of most probable charge
+/* Base class for subdetector charge reconstruction */
 
- integer _sortlkhd(integer sort);
- number _probcalc(int mode, int fit, int nhittyp[],number lkhd[]);
- number _probrich(number expRich, number useRich, number lkhrich[]);
- void _copyEl();
- void _printEl(ostream & stream){ stream << " ChargeTOF "<<_ChargeTOF<<" ChargeTracker "<<_ChargeTracker<<" ProbTOF "<<_ProbTOF[0]<<" "<<_ProbTOF[1]<<" "<<_ProbTOF[2]<<" "<<_ProbTOF[3]<<" "<<_ProbTOF[4]<<" "<<_ProbTOF[5]<<" "<<_ProbTOF[6]<<" "<<" ProbTracker "<<_ProbTracker[0]<<" "<<_ProbTracker[1]<<" "<<_ProbTracker[2]<<" "<<_ProbTracker[3]<<" "<<_ProbTracker[4]<<" "<<_ProbTracker[5]<<" "<<_ProbTracker[6]<<" "<<endl;}
- void _writeEl();
-   static integer _chargeTracker[maxzin];
-   static integer _chargeTOF[maxzin];
-   static integer _chargeRich[maxzin];
+class AMSChargeSubD : public AMSlink {
 public:
-  AMSCharge *  next(){return (AMSCharge*)_next;}
-  AMSCharge(): AMSlink(),  _pbeta(0),_pring(0),_iTracker(0),_ProbAllTracker(0),
-_ChargeTracker(0),_TrMeanTracker(0){}
-  AMSCharge(AMSBeta * pbeta, AMSRichRing * pring, number trtr, number trtof): AMSlink(),
-  _pbeta(pbeta),_pring(pring),_TrMeanTracker(trtr),_TrMeanTOF(trtof),_TrMeanTOFD(trtof),
-_iTracker(0),_ProbAllTracker(0),_ChargeTracker(0){}
-  integer getvotedcharge(int & index);
-  inline number getrmeantrk(){return _TrMeanTracker/2;}
-  inline number getrmeantof(){return _TrMeanTOF;}
-  number getprobcharge(integer charge);
-  integer getchargeTOF()const{return _ChargeTOF;}
-  integer getchargeTracker()const{return _ChargeTracker;}
-  integer getchargeRich()const{return _ChargeRich;}
-  AMSBeta * getpbeta()const{return _pbeta;}
-  AMSRichRing * getpring()const{return _pring;}
-  static void addnext(AMSBeta* pbeta, AMSRichRing* pring, integer nhitTOF, integer nhitTracker, 
-  AMSTOFCluster *pTOFc[], number EdepTOF[TOF2GC::SCLRS], AMSTrCluster  *pTrackerc[trconst::TrkTypes-1][TrackerMaxHits], number EdepTracker[trconst::TrkTypes-1][TrackerMaxHits], number trtr, number trtof, number expRich, number useRich);
-  int FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOF2GC::SCLRS]);
-  int FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, AMSTrCluster *pTrackerc[trconst::TrkTypes-1][TrackerMaxHits], number etrk[trconst::TrkTypes-1][TrackerMaxHits]);
-  int FitRich(int richfit, number expRich, number useRich);
-  static number resmax(number x[],int ntot,int refit,number rescut,int &imax,number &mean,number &trres,number &trmax);
-  static void lkhcalc(int mode, number beta, int nhit, number ehit[], int typeh[], number lkh[]);
-  static integer build(integer refit=0);
-  static integer ind2charge(int idet, int ind);
-  static void print();
-friend class AMSJob;
-#ifdef __WRITEROOT__
-friend class ChargeR;
+
+  TString _ID;                       // Subdetector ID
+
+  AMSBeta * _pbeta;                  // pointer to beta 
+  float _Q;                          // Charge magnitude from truncated mean or similar
+
+  vector <unsigned short> _ChargeI;  // Charge indexes ordered in decreasing probability
+  vector <float> _Lkhd;              // logLikelihood values from PDF
+  vector <float> _Prob;              // estimated probabilities for different charges
+
+  double _ProbSum;                   // Sum of probs for all chare hypotheses 
+  int _Priority;                     // Priority in charge combination (among all with same ClassID)
+ 
+  static int   _debug;         // debug level  
+
+  /********** (old scheme...but  still in use) */
+  double _Charge;
+  vector <double> _Probz;  // prob  to be e,p,He,...,F
+  vector <double> _Lkhdz;  // -loglikhd value for e,p,...
+  vector <int>    _Indxz;  // index 0,...,9 from most to least prob charge
+  int    _i;               // index of most probable charge
+  /*********/ 
+ 
+  void Init(int refit=false);
+  virtual int ComputeCharge(int refit=false){return 0;}
+  void FillRootVectors();
+  
+  double probcalc(int fit, int nhit,double lkhd[]);
+  int sortlkhd();
+
+  float getQ(){return _Q;}
+
+  double getprobcharge(int index, bool normalized=1){if (index<_Probz.size())return _Probz[index]/(normalized?_ProbSum:1); return 0;}
+  double getlkhdcharge(int index){return _Lkhdz[index];}
+  int getindex(){return _i;}
+  int getcharge(){return _Charge;}
+  int getsize(){return _Indxz.size();}
+  int getlkhdsize(){return _Lkhdz.size();}
+  int getprobsize(){return _Probz.size();}
+  int getsplitlevel();
+  int getchargemax();
+  double getprobmin();
+
+  AMSBeta * getpbeta(){return _pbeta;}
+
+  const TString &getID(){return _ID; }
+
+  // Static methods
+  static double resmax(double x[],int ntot,int refit,double rescut,int &imax,double &mean,double &trres,double &trmax);
+  static void lkhcalc(int mode, double beta, int nhit, double ehit[], int typeh[], double lkh[]);
+  static int ind2charge(int ind) { return max(1,ind); }
+  static TString ClassID() {return "";}
+  
+  void _copyEl(){};
+  void _printEl(ostream & stream){ stream << _ID << " Charge: " << _Charge <<" Probs : "; for (int i=0; i<min(4,getprobsize()); i++) stream <<getprobcharge(i)<<" "; stream << endl;}
+  void _writeEl(){};
+  virtual int _getParent(){return -1;};
+  virtual void _addAttr(map<TString,float> &attr){};
+  
+  AMSChargeSubD(const char *id,AMSBeta *pbeta):_ID(id),_Q(0),_pbeta(pbeta),_ProbSum(0){};
+    virtual ~AMSChargeSubD(){}; 
+};
+
+
+/* Class for TOF charge reconstruction */
+
+class AMSChargeTOF : public AMSChargeSubD {
+ public:
+  
+  float _TruncatedMean;       // truncated mean of the energy depositions (no beta corrections)
+  
+  static integer _chargeTOF[MaxZTypes];
+
+  int ComputeCharge(int refit=false);
+
+  static TString ClassID(){return "AMSChargeTOF";}
+
+  float getTruncatedMean() {return _TruncatedMean;}
+  
+  void FlagBad(){clearstatus(AMSDBc::BAD);}  // placeholder for beta selection
+  int Fill(int refit);     
+  int Fit(int refit, double beta, int bstatus, int nhit,
+	  AMSTOFCluster *pTOFc[], double etof[TOF2GC::SCLRS]);
+  double EdepBetaCorrection(int ichar, double beta);
+
+  int _getParent(){return _pbeta==NULL?-1:_pbeta->GetClonePointer();}
+  void _addAttr(map<TString,float> &attr){attr["TruncatedMean"]=getTruncatedMean();}
+
+  AMSChargeTOF(AMSBeta *pbeta):AMSChargeSubD(ClassID(),pbeta){};
+    ~AMSChargeTOF(){};
+};
+
+
+/* Base Class for Tracker charge reconstruction */
+
+class AMSChargeTracker : public AMSChargeSubD {
+ public:
+  
+  AMSTrTrack *_ptrtk;
+  
+  float _TruncatedMean;       // truncated mean of the energy depositions (no beta corrections)
+  float _ProbAllTracker;      // probability of most probable charge using all tracker hits
+
+  static integer _chargeTracker[MaxZTypes];
+  
+  int ComputeCharge(int refit=false);
+  static TString ClassID(){return "AMSChargeTracker";}
+
+  float getTruncatedMean() {return _TruncatedMean;}
+  float getProbAllTracker() {return _ProbAllTracker;}
+  
+  void FlagBad(){clearstatus(AMSDBc::BAD);}  // placeholder for track selection
+  
+  int Fill(int refit);
+#ifndef _PGTRACK_
+  int Fit(int fit, double beta, int bstatus, int nhit,
+	  AMSTrCluster *pTrackerc[trconst::TrkTypes-1][trconst::maxlay], 
+	  double etrk[trconst::TrkTypes-1][trconst::maxlay]);
+  double EdepBetaCorrection(int ichar, double beta);
+#else
+  int Fill(int index, like_t lkhd);
 #endif
+  
+  int _getParent(){return _ptrtk==NULL?-1:_ptrtk->GetClonePointer();}  
+  void _addAttr(map<TString,float> &attr){attr["TruncatedMean"]=getTruncatedMean();attr["ProbAllTracker"]=getProbAllTracker();}
+  
+  AMSChargeTracker(AMSBeta *pbeta, AMSTrTrack *ptrtk):AMSChargeSubD(ClassID(),pbeta),_ptrtk(ptrtk){};
+    ~AMSChargeTracker(){};
 };
 
 
-class AMSChargeI{
-public:
-AMSChargeI();
-private:
-static integer _Count;
-};
-static AMSChargeI cI;
+/* Class for Tracker Inner Charge Reconstruction (provision) */
 
+class AMSChargeTrackerInner : public AMSChargeTracker {
+ public:
+  
+  static TString ClassID(){return "AMSChargeTrackerInner";}
+  AMSChargeTrackerInner(AMSBeta *pbeta, AMSTrTrack *ptrtk):AMSChargeTracker(pbeta, ptrtk){_ID=ClassID();}
+    ~AMSChargeTrackerInner(){};
+};
+
+
+/* Class for Tracker Upper Charge Reconstruction (provision) */
+
+class AMSChargeTrackerUpper : public AMSChargeTracker {
+ public:
+
+  static TString ClassID(){return "AMSChargeTrackerUpper";}
+  AMSChargeTrackerUpper(AMSBeta *pbeta, AMSTrTrack *ptrtk):AMSChargeTracker(pbeta, ptrtk){_ID=ClassID();}
+    ~AMSChargeTrackerUpper(){};
+};
+
+
+/* Class for Tracker Lower Charge Reconstruction (provision) */
+
+class AMSChargeTrackerLower : public AMSChargeTracker {
+ public:
+
+  static TString ClassID(){return "AMSChargeTrackerLower";}
+  AMSChargeTrackerLower(AMSBeta *pbeta, AMSTrTrack *ptrtk):AMSChargeTracker(pbeta, ptrtk){_ID=ClassID();}
+    ~AMSChargeTrackerLower(){};
+};
+
+
+/* Class for TRD Charge Reconstruction */
+
+class AMSChargeTRD : public AMSChargeSubD {
+ public:
+
+  AMSTRDTrack *_ptrd;
+
+  int ComputeCharge(int refit=false);
+  static TString ClassID(){return "AMSChargeTRD";}
+
+  void FlagBad(){clearstatus(AMSDBc::BAD);}  // placeholder for track selection
+  int Fill(int refit);
+
+  AMSChargeTRD(AMSBeta *pbeta, AMSTRDTrack *ptrd):AMSChargeSubD(ClassID(),pbeta),_ptrd(ptrd){};
+    ~AMSChargeTRD(){};
+};
+
+
+/* Class for Rich Charge Reconstruction */
+
+class AMSChargeRich : public AMSChargeSubD {
+ public:
+ 
+  AMSRichRing *_pring;
+
+  int ComputeCharge(int refit=false);
+  static TString ClassID(){return "AMSChargeRich";}
+
+  void FlagBad(){if (_pring->getprob()<CHARGEFITFFKEY.ProbklMin) setstatus(AMSDBc::BAD); else clearstatus(AMSDBc::BAD);}
+  int Fill(int refit);
+
+  AMSChargeRich(AMSBeta *pbeta, AMSRichRing *pring):AMSChargeSubD(ClassID(),pbeta),_pring(pring){};
+    ~AMSChargeRich(){};
+};
+
+
+/* Class for Global AMS Charge Reconstruction */
+
+class AMSCharge : public AMSlink{
+ public:
+  AMSBeta * _pbeta;            // pointer to beta 
+
+  map <TString,AMSChargeSubD*> _charges;  // map storing all SubQ charges
+
+  vector <unsigned short> _ChargeI; //Charge indexes ordered in decreasing probability  
+  vector <float>     _Lkhd;         //loglikelihood values from PDFs
+  vector <float>     _Prob;         //estimated probabilities for different charges
+
+  int _Charge;           //most probable charge
+  int _Nused;            //number of SubD charges used
+
+  static int   _debug;         // debug level  
+
+  /********** (old scheme...but  still in use) */ 
+  vector <double>  _Probz;  // prob  to be e,p,He,...,F
+  vector <double>  _Lkhdz;  // -loglikhd value for e,p,...
+  vector <int>     _Indxz;  // index 0,...,9 from most to least prob charge
+  int    _i;                // index of most probable charge
+  /**********/ 
+
+  enum TrackerCombType { trkAll = 1, trkInner = 10, trkUpper = 100, trkLower = 1000};
+
+  static int build(int refit);
+  static int refit(){return 0;}
+  AMSCharge *next(){ return (AMSCharge *)_next; }
+
+  int BuildTOF(AMSBeta *pbeta);
+  int BuildTracker(AMSBeta *pbeta);
+  int BuildTRD(AMSBeta *pbeta);  
+  int BuildRich(AMSBeta *pbeta);
+
+  int BuildCombine();
+  void FillRootVectors();
+
+  int SelectSubDCharges();
+  int getvotedcharge(int & index);
+  double getprobcharge(int charge);
+
+  AMSBeta* getpbeta(){return _pbeta;}
+
+  int getchargeTOF();
+  int getchargeTracker();
+
+  static int ind2charge(int idet, int ind) { return AMSChargeSubD::ind2charge(ind); } /* back compat */
+
+  void _copyEl();
+  void _printEl(ostream & stream){for(map<TString,AMSChargeSubD*>::iterator i=_charges.begin();i!=_charges.end();++i) i->second->_printEl(stream);}
+  void _writeEl();
+
+ AMSCharge(AMSBeta *pbeta);
+  ~AMSCharge(){for(map<TString,AMSChargeSubD*>::iterator i=_charges.begin();i!=_charges.end();++i) delete i->second;}
+
+};
 
 #endif

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.353 2011/04/29 18:07:16 pzuccon Exp $
+#  $Id: datacards.doc,v 1.354 2011/05/10 19:10:07 jorgec Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -416,41 +416,48 @@ R21 TRDNorm       trd charge  beta norm factor
 R22 TRDP          beta extrapolation to trd region
 
 CHARGEFIT
-I 1 NmembMax(3)          // maximum number of members for TOF clusters
-I 2 Tracker(1)           // tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
-R 3 EtaMin[2](0.05,0.0)  // min eta value for tracker cluster (x,y)
-R 5 EtaMax[2](0.95,1.0)  // max eta value for tracker cluster (x,y)
-R 7 ProbTrkRefit(0.01)   // refit tracker charge below this cut
-R 8 ResCut(4.,4.)        // thrsld for incompatible TOF/trk clus exclusion *) 
-                            (-1: no cluster is excluded)
-R10 SigMin(0.1)          // min relative spread of TOF or trk cluster energies
-R11 SigMax(0.3)          // max 
-I12 PdfNorm(1)           // don't need now this variable due to autom.normalization of pdf's
-I13 TrMeanRes(1)         // 0/1 n-1/modified*) truncated mean 
-R14 ProbMin(0.01)        // minimum value for TOF and trk charge probs to be combined
-                            into particle charge
-I15 TrackerOnly(9)       // use only tracker charge if TOF charge is above this value
-I16 ChrgMaxAnode(9)      // not used now(dynodes are already used in TOF Edep calc)
-I17 BetaPowAnode(1)      // not used now(TOF beta-dependence does not Z-dep. at least in MC) 
-I18 TrackerForceSK(0)    // if<>0 force tracker hit energies to be x+y (overwrites
-                            Tracker datacard defined above)
-R19 TrackerKSRatio(0.67) // average x/y tracker energy ratio (used if TrackerForceSK<>0)
-I20 TrackerProbOnly(9)   // use only tracker probs for pid if charge is above this value
-I21 TrkPDFileMCVers(1)   //MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
-I22 TrkPDFileRDVers(1)   //RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
-I23 TrkPDFileRead(0)     //read TrkPDF-info from DB(0) OR RawFile (1)
-I24 sec[0](0)            //validity date for TrkChargeCalib(pdf's + ChargeIndexes) 
-I25 sec[1](0)
-I26 min[0](0)
-I27 min[1](0)
-I28 hour[0](0)
-I29 hour[1](0)
-I30 day[0](1)
-I31 day[1](1)
-I32 mon[0](0)
-I33 mon[1](0)
-I34 year[0](101)
-I35 year[1](110)
+//- AMSCharge Combination options
+I 1 RecEnable[4](1,1111,1,1) // TOF/Tracker/TRD/Rich Charge reconstruction switch (0:disabled) 
+                             //     Tracker Charge reconstruction switch :
+                             //        1 : Tracker (all planes)
+                             //       10 : Inner Tracker (planes 2-8)
+                             //      100 : Upper Tracker (plane 1)
+                             //     1000 : Lower Tracker (plane 9)
+I 5 SplitLevel[4](0,0,0,0)   // TOF/Tracker/TRD/Rich split level used in charge combination 
+                             // For Tracker, full (0) or Upper/Inner/Lower (1)
+                             // For TOF/TRD/Rich only no split option (0) implemeted      
+I 9 ChargeMax[4](-1,-1,6,-1) // Maximum TOF/Tracker/TRD/Rich Charge value for combination 
+                             // (0:not used, -1:no limit)
+R13 ProbMin[4](4*0.001)      // Minimum TOF/Tracker/TRD/Rich charge probability for combination  
+I17 NormalizeProbs(1)        // do (1) or do not (0) normalize SubD charge prob. to SUMprob(i)=1  
+I18 UseLikelihood(0)         // use likelihood (1) or SubD charge probs. (0) for charge combination
+R19 ProbklMin(0.005)         // Minimum RichRing probability for combination 
+
+//- TOF & Tracker(v4) Charge Reconstruction Params
+I20 NmembMax(3)             // maximum number of members for TOF clusters
+I21 Tracker(1)              // tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
+R22 EtaMin[2](0.05,0.0)     // min eta value for tracker cluster (x,y) 
+R24 EtaMax[2](0.95,1.0)     // max eta value for tracker cluster (x,y)
+R26 ProbTrkRefit(0.01)      // refit tracker charge below this cut
+R27 ResCut[2](4.,4.)        // thrsld for incompatible TOF/trk clus exclusion *) 
+                            // (-1: no cluster is excluded)
+R29 SigMin(0.1)             // min relative spread of TOF or trk cluster energies
+R30 SigMax(0.3)             // max 
+R31 TrMeanRes(1)            // 0/1 n-1/modified*) truncated mean 
+I32 TrackerForceSK(0)       // if<>0 force tracker hit energies to be x+y (overwrites
+                            // Tracker datacard defined above)
+R33 TrackerKSRatio(0.67)    // average x/y tracker energy ratio (used if TrackerForceSK<>0)
+R34 TOFMeVperMip(1.8)       // mip in MeV units 
+R35 TrkkeVperMip(80.)       // mip in keV units 
+I36 TrkPDFileMCVers(1)      // MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
+I37 TrkPDFileRDVers(1)      // RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
+I38 TrkPDFileRead(1)        // read TrkPDF-info from DB(0) OR RawFile (1)
+I39 sec[2](0,0)             // validity date for TrkChargeCalib(pdf's + ChargeIndexes)
+I41 min[2](0,0)
+I43 hour[2](0,0)
+I45 day[2](1,1)
+I47 mon[2](0,0)
+I49 year[2](101,121)
 
 *) most incompatible cluster is excluded if Ec-<E>_rest>ResCut*sigma(E_rest)
 

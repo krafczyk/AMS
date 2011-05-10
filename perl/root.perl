@@ -1,4 +1,4 @@
-# $Id: root.perl,v 1.6 2011/05/02 23:57:47 choutko Exp $
+# $Id: root.perl,v 1.7 2011/05/10 19:10:07 jorgec Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -36,6 +36,9 @@ while ( my $line = <FILEI>){
         if(defined $ENV{PGTRACK} and ($Class=~/TrTra/ or $Class=~/TrRec/ or $Class=~/TrClu/ or $Class=~/TrMC/ or $Class=~/TrRaw/ or $Class=~/Vertex/)){
             last;
         }
+        if($Class=~/ChargeSubD/){
+            last;
+	}
         if($line=~/ClassDef/ or $line=~/^\}\;/){
             last;
         }

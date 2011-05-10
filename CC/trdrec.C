@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.54 2011/05/04 13:54:11 choutko Exp $
+//  $Id: trdrec.C,v 1.55 2011/05/10 19:10:07 jorgec Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -1074,7 +1074,7 @@ double range=d<0?0:2*sqrt(d)/a;
 
    }
  }
- 
+
  if(edepc.size()>TRDFITFFKEY.MinFitPoints){
 
    sort(edepc.begin(),edepc.end());
@@ -1135,6 +1135,8 @@ double range=d<0?0:2*sqrt(d)/a;
         _Charge.ChargeP[l++]=k->first;
    }
 
+   _Charge.Nused = edepc.size();
+ 
 }
 
 
