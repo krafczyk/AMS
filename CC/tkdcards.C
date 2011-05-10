@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.61 2011/05/08 16:52:46 pzuccon Exp $
+// $Id: tkdcards.C,v 1.62 2011/05/10 18:42:43 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -22,7 +22,7 @@ void TKGEOMFFKEY_DEF::init(){
   WriteGeomToFile=0;
   UpdateGeomFile=0;
   CablVer=2;
-  CalibVer=2;
+  CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
   alignver=2;

@@ -320,7 +320,7 @@ int TrLadCal::GetnChannelsByStatus(int statusbit) {
 int  TrLadCal::Cal2Lin(float* offset){
   if(!offset) return -1;
   offset[0]  = GetHwId();
-  offset[1]  = (float) dspver;
+  offset[1]  = *((float*) &dspver);
   offset[2]  = S1_lowthres;
   offset[3]  = S1_highthres;
   offset[4]  = S2_lowthres;
@@ -328,7 +328,7 @@ int  TrLadCal::Cal2Lin(float* offset){
   offset[6]  = K_lowthres;
   offset[7]  = K_highthres;
   offset[8]  = sigrawthres;
-  offset[9]  = (float)  calstatus;
+  offset[9]  = *((float*)&calstatus);
   offset[10] = (float) Power_failureS;
   offset[11] = (float) Power_failureK;
   float* off2=&(offset[12]);
@@ -337,7 +337,7 @@ int  TrLadCal::Cal2Lin(float* offset){
     off2[ii+  1024]   = _Sigma[ii];
     off2[ii+2*1024]   = _SigmaRaw[ii];
     int aa = _Status[ii];
-    off2[ii+3*1024]   = (float)aa;
+    off2[ii+3*1024]   = *((float*)&aa);
     int bb = _Occupancy[ii];
     off2[ii+4*1024]   = (float)bb;
   }
@@ -394,6 +394,36 @@ int  TrLadCal::Lin2Cal(float* offset){
       _Sigma[ii]     = off2[ii+  1024];
       _SigmaRaw[ii]  = off2[ii+2*1024];
       int aa = (int) off2[ii+3*1024];
+      _Status[ii]    = aa;
+      int bb = (int) off2[ii+4*1024];
+      _Occupancy[ii] = bb;
+      _OccupancyGaus[ii] = 0;
+    }
+    float* off3=&(off2[5*1024]);
+    for (int ii=0;ii<16;ii++){
+      _CNmean[ii] = off3[ii];
+      _CNrms[ii]  = off3[ii+16];
+    }  
+  }
+  else if (version==3) {
+    HwId           = (int)offset[0];
+    dspver         = *((int*)&(offset[1]));
+    S1_lowthres    = offset[2];
+    S1_highthres   = offset[3];
+    S2_lowthres    = offset[4];
+    S2_highthres   = offset[5];
+    K_lowthres     = offset[6];
+    K_highthres    = offset[7];
+    sigrawthres    = offset[8];
+    calstatus      = *((int*)&(offset[9]));
+    Power_failureS = (int)offset[10];
+    Power_failureK = (int)offset[11];
+    float* off2=&(offset[12]);
+    for (int ii=0;ii<1024;ii++){
+      _Pedestal[ii]  = off2[ii];
+      _Sigma[ii]     = off2[ii+  1024];
+      _SigmaRaw[ii]  = off2[ii+2*1024];
+      int aa = *((int*) &(off2[ii+3*1024]));
       _Status[ii]    = aa;
       int bb = (int) off2[ii+4*1024];
       _Occupancy[ii] = bb;

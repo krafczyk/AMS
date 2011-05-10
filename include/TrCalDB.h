@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.13 2011/05/06 00:40:23 choutko Exp $
+// $Id: TrCalDB.h,v 1.14 2011/05/10 18:42:48 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/06 00:40:23 $
+///$Date: 2011/05/10 18:42:48 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -61,13 +61,13 @@ public:
   static int  GetLinearSize(){return (1+192*TrLadCal::GetSize())*sizeof(float);}
 
   //! The run number
-  int run;
+  unsigned int run;
 
   //! Merging (needed for hadd) 
   Long64_t Merge(TCollection* list) { return 1; }
 
   //! Returns the run number;
-  int GetRun(){return run;}
+  unsigned GetRun(){return run;}
 
   int GetEntries(){return trcal_hwidmap.size();}
   TrLadCal* GetEntry(int ii);
@@ -122,7 +122,7 @@ public:
   static int  SaveCal2DB();
 
   void PrintInfo(int verb){for(int ii=0;ii<GetEntries();ii++) GetEntry(ii)->PrintInfo(verb);}
-  ClassDef(TrCalDB,2);
+  ClassDef(TrCalDB,3);
 };
 
 typedef map<int,TrLadCal*>::const_iterator trcalIT;

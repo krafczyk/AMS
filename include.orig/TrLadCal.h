@@ -217,6 +217,7 @@ public:
   TrLadCal& operator=(TrLadCal& orig);
 
   static  void SetVersion(int ver); 
+  static int GetVersion(){return version;} 
 
   /// It copy the calibration data to a linear vector 
   ///  in memory starting at address offset

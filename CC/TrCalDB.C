@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.13 2011/05/09 20:28:07 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.14 2011/05/10 18:42:42 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/09 20:28:07 $
+///$Date: 2011/05/10 18:42:42 $
 ///
-///$Revision: 1.13 $
+///$Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -130,7 +130,9 @@ void TrCalDB::CalDB2Lin(){
     printf("TrCalDB::CalDB2Lin()-INFO the linear space is created NOW\n");
     linear= new float[GetLinearSize()/4];
   }
-  linear[0]=(float) run;
+
+  linear[0]=*((float*) &run);
+  
   for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
     int hwid=aa->second->GetHwId();
     int crate=hwid/100;
@@ -148,8 +150,21 @@ void TrCalDB::Lin2CalDB(){
     printf(" Calibration is NOT updated!!!\n");
     return;
   }
-  run=(int) linear[0];
-  for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
+  run=(unsigned int) linear[0];
+  if(run<1278000000 ){
+   TrLadCal::SetVersion(1);
+   run=(unsigned int) linear[0];
+   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A SC-MAGNET CALIBRATION (V1) while version  is set to: \n",TrLadCal::GetVersion());
+  }else   if (run>1278000000 && run < 1302000000){
+   TrLadCal::SetVersion(2);
+   run=(unsigned int) linear[0];
+   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A PRE-FLIGHT CALIBRATION (V2) while version  is set to: \n",TrLadCal::GetVersion());
+ } else {
+   TrLadCal::SetVersion(3);
+   run=*((unsigned int*)&(linear[0]));
+   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A FLIGHT CALIBRATION (V3) while version  is set to: \n",TrLadCal::GetVersion());
+ }
+ for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
     int hwid=aa->second->GetHwId();
     //printf("Filling Calibration %03d\n",hwid);
     int crate=hwid/100;
