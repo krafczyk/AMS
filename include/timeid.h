@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.45 2011/05/02 23:23:57 choutko Exp $
+//  $Id: timeid.h,v 1.46 2011/05/10 21:54:52 pzuccon Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 
@@ -226,9 +226,11 @@ public:
   /// Returns the begin validity and the times of the record ii-th (insert, begin ,end)
   uinteger GetDBRecordTimes(int ii,uinteger* times)
   {if (ii>=0 && ii<_DataBaseSize){ 
-      times[0]=_pDataBaseEntries[1][ii]; //insert 
-      times[1]=_pDataBaseEntries[2][ii]; // begin
-      times[2]=_pDataBaseEntries[3][ii]; //end
+      times[0]=_pDataBaseEntries[0][ii]; //insert 
+      times[1]=_pDataBaseEntries[1][ii]; //insert 
+      times[2]=_pDataBaseEntries[2][ii]; //insert 
+      times[3]=_pDataBaseEntries[3][ii]; // begin
+      times[4]=_pDataBaseEntries[4][ii]; //end
       return _pDataBaseEntries[2][ii];   //begin
     }
     else return 0;
