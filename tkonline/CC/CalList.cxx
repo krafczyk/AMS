@@ -31,7 +31,7 @@ CalList::CalList(AMSTimeID * TT,
   char tmp[50];
   fListBox= new TGListBox(this,num);
   for (int ii=0; ii< num;ii++){
-    uinteger times[3];
+    uinteger times[5];
     time_t tim=timeid->GetDBRecordTimes(num-(ii+1),times);
     sprintf(tmp,"%d %s",tim,ctime(&tim));
     fListBox->AddEntry(tmp,ii);
@@ -115,6 +115,7 @@ Bool_t CalList::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
 		     nn= fListBox->GetSelected();
 		     tim=timeid->GetDBRecordTimes(num-(nn+1),times);
 		     timeid->validate(tim);
+
                      delete this;
                      break;
                   case 2:

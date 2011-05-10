@@ -17,8 +17,8 @@ endif
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
-LIBS           := $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
-LIBS           += $(shell $(ROOTCFG) --glibs)
+LIBS           := $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
+LIBS           += $(shell $(ROOTCFG) --glibs) -lNetx -lMinuit
 
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
