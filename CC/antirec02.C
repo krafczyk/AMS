@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.42 2009/09/18 10:07:08 choumilo Exp $
+//  $Id: antirec02.C,v 1.43 2011/05/10 21:11:42 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -283,6 +283,8 @@ void Anti2RawEvent::mc_build(int &stat){
   static geant pshape[ANTI2C::ANFADC+1];//store PM single ph.el. pulse shape
   static geant pedisp[ANTI2C::ANFADC+1];//store ph.el. arrival time dispersion(due to light collection)
   static geant mv2pc;
+  static integer nshapo,ndispo;
+  static integer err1(0);
   geant peavr;
   int petru;
   geant pevstm[2][ANTI2C::ANFADC+1];
@@ -290,6 +292,12 @@ void Anti2RawEvent::mc_build(int &stat){
   if(first++==0){
     mv2pc=ANTI2DBc::inipulsh(nshap,pshape);//prep.PM-pulse shape arr.(in fadcbw() bins) and 1mv->pC conv.fact
     ANTI2DBc::inipedisp(ndisp,pedisp); // prep. ph.el. arrival time dispersion arr(in ANTI2DBc::fadcbw() bins)
+    cout<<"<------ Anti2RawEvent::mc_build: PE pulsesh/tspread init done, npsh/nspr="<<nshap<<" "<<ndisp<<endl;
+    nshapo=nshap;
+    ndispo=ndisp;
+  }
+  if(nshap!=nshapo || ndisp!=ndispo){
+    if(err1++<50)cerr<<"<--- Anti2RawEvent::mc_build: Error - shape/spread dims damaged, nshap/ndisp="<<nshap<<" "<<ndisp<<"   "<<nshapo<<" "<<ndispo<<endl; 
   }
 //
   VZERO(esignal,2*ANTI2C::MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
@@ -385,6 +393,7 @@ void Anti2RawEvent::mc_build(int &stat){
       for(i=0;i<ndisp;i++){//apply PEs time dispersion
         ii=j+i;
         if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+	if(i>=ANTI2C::ANFADC)break;
         pevstm[1][ii]+=eup*pedisp[i];//accumulate aver.PEs per time-bin 
         if(ii>ibmx[1])ibmx[1]=ii;//max.bin
       }
@@ -408,6 +417,7 @@ void Anti2RawEvent::mc_build(int &stat){
       for(i=0;i<ndisp;i++){//apply pe's time dispersion
         ii=j+i;
         if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//time ovfl-bin
+	if(i>=ANTI2C::ANFADC)break;
         pevstm[0][ii]+=edown*pedisp[i];//accumulate aver.pe's per time-bin per side;
         if(ii>ibmx[0])ibmx[0]=ii;//max.bin
       }
