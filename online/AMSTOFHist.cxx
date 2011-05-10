@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.41 2011/04/20 20:59:20 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.42 2011/05/10 21:46:17 jorgec Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -976,8 +976,10 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   RunPar::addsev(5);//<--- passed TRK-track check
 //
   ChargeR *p2charge=ntuple->Particle(pindex).pCharge();
-  Int_t TofQ=p2charge->ChargeTOF;
-  Int_t TrkQ=p2charge->ChargeTracker;
+  ChargeSubDR *zTof=p2charge->getSubD("AMSChargeTOF");
+  Int_t TofQ = zTof? max((int)zTof->ChargeI[0],1) : 0;
+  ChargeSubDR *zTrk=p2charge->getSubD("AMSChargeTracker");
+  Int_t TrkQ = zTrk? max((int)zTrk->ChargeI[0],1) : 0;
   Float_t pmom=ntuple->Particle(pindex).Momentum;//particle gev/c
 //
   Bool_t TOFBetaOK(0);
