@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.82 2011/05/10 19:10:07 jorgec Exp $
+//  $Id: charge.C,v 1.83 2011/05/10 20:27:29 jorgec Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1484,36 +1484,3 @@ void AMSCharge::_copyEl(){
   }
 #endif
 }
-
-#ifdef _PGTRACK_
-bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
-  number SearchReg(4);
-  number MaxCos(0.95);
-  double zpl=83.5; //Z low of TRD in cm;
-
-  // TRD point and direction at Z=  zpl
-  AMSPoint trd_pnt0     = ptrd->getCooStr();
-  AMSDir   trd_dir  = ptrd->getCooDirStr();
-
-  double X_TRD= (zpl-trd_pnt0[2])*trd_dir[0]/trd_dir[2]+trd_pnt0[0];
-  double Y_TRD= (zpl-trd_pnt0[2])*trd_dir[1]/trd_dir[2]+trd_pnt0[1];
-  AMSPoint trd_pnt(X_TRD,Y_TRD,zpl);
-
-  // Tracker point and direction at Z= zpl
-  AMSPoint tk_pnt;
-  AMSDir   tk_dir;
-  ptrack->Interpolate(zpl, tk_pnt, tk_dir); 
-
-  // angle between the tracks
-  number c=tk_dir.prod(trd_dir);
-  //distance 
-  number d=(tk_pnt-trd_pnt).norm();
-  
-  //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
-  if(fabs(c)>MaxCos && fabs(d) <SearchReg) return true;
-  
-  return false;
-}
-#endif
-
-
