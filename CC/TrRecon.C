@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.127 2011/05/09 12:19:36 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.128 2011/05/10 15:22:34 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/05/09 12:19:36 $
+/// $Date: 2011/05/10 15:22:34 $
 ///
-/// $Revision: 1.127 $
+/// $Revision: 1.128 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1062,6 +1062,17 @@ if (TrDEBUG >= 1) {\
   }\
 }
 
+#define TR_DEBUG_CODE_100 \
+if (TrDEBUG >= 4) {\
+  double clr = sig/cls->GetSeedSignal()/cls->GetNelem();\
+  double cog = std::fabs(cls->GetCofG());\
+  int   sadd = cls->GetSeedAddress();\
+  cout << Form("C100 %4d:%02d %2d "\
+               "nelm:%d sadd:%4d sSN:%5.2f sig:%5.1f clr:%5.3f cog:%5.3f",\
+	       cls->GetTkId(),j,sign,cls->GetNelem(),sadd,\
+	       cls->GetSeedSN(),sig,clr,cog)<<endl;\
+}
+
 #define TR_DEBUG_CODE_101 \
 if (TrDEBUG >= 4) {\
   cout << "C101 ";\
@@ -1476,24 +1487,27 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     TrClusterR *cls = (TrClusterR *)cont->getelem(j);
     if (!cls || cls->GetSide() != 1 || cls->GetLayer() >= 8) continue;
 
-    int sign = 1;
-    if (cls->GetLayer() != 1 && 
-	RecPar.TrackThrSeed[1] > 3.5 &&
-	RecPar.TrackThrSeed[1] > cls->GetSeedSN()) sign = -1;
+    cls->SetDxDz(0);
+    cls->SetDyDz(0);
 
     double sig = cls->GetTotSignal();
-    if (sig < 10) sign = -1;
+    int   sign = 1;
 
-    int sadd = cls->GetSeedAddress();
-    if (sadd <= 1 || 638 <= sadd) continue;
+    if (cls->GetLayer() != 1) {
+      if (RecPar.TrackThrSeed[1] > 3.5 &&
+	  RecPar.TrackThrSeed[1] > cls->GetSeedSN()) sign = -1;
 
-    if (cls->GetNelem() >= 4) {
-      double clr = sig/cls->GetSeedSignal()/cls->GetNelem();
-      double cog = std::fabs(cls->GetCofG());
-      double xx  = cog*cog*cog*cog;
-      if ((cls->GetNelem() == 4 && clr > 0.6+3*xx) ||
-	  (cls->GetNelem() >= 5 && clr > 0.5+4*xx)) sign = -1;
+      else if (sig < 10) sign = -1;
+
+      else if (cls->GetNelem() >= 4 && sig > 70) {
+	double clr = sig/cls->GetSeedSignal()/cls->GetNelem();
+	double cog = std::fabs(cls->GetCofG());
+	double xx  = cog*cog*cog*cog;
+	if ((cls->GetNelem() == 4 && clr > 0.6+3*xx) ||
+	    (cls->GetNelem() >= 5 && clr > 0.5+4*xx)) sign = -1;
+      }
     }
+    TR_DEBUG_CODE_100;
 
     int ly = cls->GetLayer();
     int ip = (ly == 1) ? 0 : ly/2;
@@ -1596,7 +1610,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double qs0 = (qc[1][i[1]]+qc[3][i[3]])/2;
     double qs1 =  qc[1][i[1]]/qc[3][i[3]];
-    if (qs1 < 1/(3+20/qs0) || 3+20/qs0 < qs1) continue;
+    double qth = ((qc[1][i[1]] > 20 &&
+		   qc[3][i[3]] > 20) || qs0 > 45) ? 3+20/qs0 : 10;
+    if (qs1 < 1/qth || qth < qs1) continue;
 
   for (i[0] = 0; i[0] <= nc[0]; i[0]++) { // Plane 1 (Layer 1)
     if (CpuTimeUp()) break;
@@ -2207,12 +2223,19 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
     double q0 = tmin[jc].qtm;
 
-    int ntcls = 0, ntmax = 0;
+    int ntcls = 0, ntmax = 0, nedg = 0;
     VCon *contc = GetVCon()->GetCont("AMSTrCluster");
     for (int j = 0; j < NL; j++) {
       TrRecHitR *hit = track->GetHitL(j);
       int tkid;
-      if (hit) tkid = hit->GetTkId();
+      if (hit) {
+	tkid = hit->GetTkId();
+	TrClusterR *cls = hit->GetYCluster();
+	if (cls) {
+	  int sadd = cls->GetSeedAddress();
+	  if (sadd <= 1 || 638 <= sadd) nedg++;
+	}
+      }
       else {
 	AMSPoint pnt = track->InterpolateLayer(j);
 	TkSens   tks(pnt, 0);
@@ -2234,6 +2257,9 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       }
       if (ntl > ntmax) ntmax = ntl;
     }
+    if ((ntcls >= 16 && ntmax >= 6) || 
+	 ntcls >= 20 ||
+	 nedg  >  0) track->setstatus(16);
 
     ntrack++;
     TR_DEBUG_CODE_107;
@@ -2248,8 +2274,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     hman.Fill("TrNclsL", rgtf, ntcls);
     hman.Fill("TrNmaxL", rgtf, ntmax);
     hman.Fill("TrNmxcl", ntcls, ntmax);
-    if ((ntcls >= 16 && ntmax >= 6) || 
-	 ntcls >= 20) track->setstatus(16);
 
     if (jj < 4) {
       float *par = &BTSdebug[jj*9];
@@ -3020,7 +3044,8 @@ int TrRecon::FillHistos(int trstat, int refit)
 
       double rgt = trk->GetRigidity(mf[j]);
       if (rgt != 0 && rmc != 0) {
-	TString shn = Form("TrRres%d", j+1);
+	TString shn = "TrRres";
+	shn += (char)('0'+j+1);
 	hman.Fill(shn+"1", armc, 1e3*(1/rgt-1/rmc));
 	hman.Fill(shn+"2", armc, rmc*(1/rgt-1/rmc));
       }
