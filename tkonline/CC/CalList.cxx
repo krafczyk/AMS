@@ -101,7 +101,7 @@ CalList::~CalList()
 Bool_t CalList::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
 {
    // Handle button and text enter events
-  uinteger times[3];
+  uinteger times[5];
   time_t tim=0;
   
    switch (GET_MSG(msg)) {
