@@ -15,7 +15,7 @@ else
   CXXFLAGS     += -D__LINUXGNU__
 endif
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
-DEFINES        := -I$(AMSWD)/include -I$(INCDIR) -I$(OBJDIR)
+DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
 LIBS           := $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
 LIBS           += $(shell $(ROOTCFG) --glibs)
