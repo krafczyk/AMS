@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.14 2011/05/10 18:42:42 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.15 2011/05/10 21:30:45 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/10 18:42:42 $
+///$Date: 2011/05/10 21:30:45 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -131,7 +131,16 @@ void TrCalDB::CalDB2Lin(){
     linear= new float[GetLinearSize()/4];
   }
 
-  linear[0]=*((float*) &run);
+  // PZ WARNING to Account for the new format used to store the CAL_RUN_ID into the TDV 
+  //             we use the most significant bit as a flag for the new format
+  //             there are no problems for dates up to 25/12/2037
+  
+  unsigned int run_to_store=run;
+
+  run_to_store|=0x80000000;
+
+  linear[0]=*((float*) &run_to_store);
+  
   
   for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
     int hwid=aa->second->GetHwId();
@@ -145,26 +154,33 @@ void TrCalDB::CalDB2Lin(){
 
 
 void TrCalDB::Lin2CalDB(){
-  if(! linear){
+  if(linear==0){
     printf("TrCalDB::Lin2CalDB()- Error! the linear space pointer is NULL!\n");
     printf(" Calibration is NOT updated!!!\n");
     return;
   }
-  run=(unsigned int) linear[0];
-  if(run<1278000000 ){
-   TrLadCal::SetVersion(1);
-   run=(unsigned int) linear[0];
-   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A SC-MAGNET CALIBRATION (V1) while version  is set to: \n",TrLadCal::GetVersion());
-  }else   if (run>1278000000 && run < 1302000000){
-   TrLadCal::SetVersion(2);
-   run=(unsigned int) linear[0];
-   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A PRE-FLIGHT CALIBRATION (V2) while version  is set to: \n",TrLadCal::GetVersion());
- } else {
-   TrLadCal::SetVersion(3);
-   run=*((unsigned int*)&(linear[0]));
-   printf(" TrCalDB::Lin2CalDB-W- ACCESSING A FLIGHT CALIBRATION (V3) while version  is set to: \n",TrLadCal::GetVersion());
- }
- for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
+  // PZ WARNING to Account for the new format used to store the CAL_RUN_ID into the TDV 
+  //             we use the most significant bit as a flag for the new format
+  //             there are no problems for dates up to 25/12/2037
+
+  
+  unsigned int run_to_decode=*((unsigned int*) &(linear[0]));
+  if((run_to_decode & 0x80000000)==0){
+    run=(unsigned int) linear[0];
+    if(run<1278000000 ){
+      TrLadCal::SetVersion(1);
+      printf(" TrCalDB::Lin2CalDB-W- ACCESSING A SC-MAGNET CALIBRATION (V1) while version  is set to: %d\n",TrLadCal::GetVersion());
+    }else{
+      TrLadCal::SetVersion(2);
+      printf(" TrCalDB::Lin2CalDB-W- ACCESSING A PRE-FLIGHT CALIBRATION (V2) while version  is set to: %d \n",TrLadCal::GetVersion());
+    }
+  }
+  else{
+    run=run_to_decode&0x7FFFFFFF;
+    TrLadCal::SetVersion(3);
+    printf(" TrCalDB::Lin2CalDB-W- ACCESSING A FLIGHT CALIBRATION (V3) while version  is set to: %d\n",TrLadCal::GetVersion());
+  }
+  for (trcalIT aa=trcal_hwidmap.begin(); aa!=trcal_hwidmap.end();aa++){
     int hwid=aa->second->GetHwId();
     //printf("Filling Calibration %03d\n",hwid);
     int crate=hwid/100;
