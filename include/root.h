@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.344 2011/05/10 19:10:06 jorgec Exp $
+//  $Id: root.h,v 1.345 2011/05/10 22:38:18 afiasson Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -54,7 +54,7 @@
 #include "amsvmc_RunConfiguration.h"
 #endif
 
-
+#include "TMVA/Reader.h"
 
 using namespace std;
 #ifdef __SLC3__
@@ -540,7 +540,6 @@ public:
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
- /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   int NbLayerX;
   int NbLayerY;
   float S1tot[3];		  
@@ -553,6 +552,10 @@ public:
   float ZprofileChi2; 
   float Zprofile[4]; 
 
+  // LAPP Ecal Estimator
+  float EcalStandaloneEstimator();
+
+  /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   /// lower values correspond to hadrons, higher to electromagnetic particles
   /// Trained on August 2010 test beam data 
   /// WARNING: by default this function is dummy, to have it you must compile 

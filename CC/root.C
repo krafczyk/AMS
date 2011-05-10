@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.290 2011/05/10 19:10:07 jorgec Exp $
+//  $Id: root.C,v 1.291 2011/05/10 22:38:17 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8,6 +8,7 @@
 #include "TXNetFile.h"
 #include <TChainElement.h>
 #include "TFile.h"
+#include "commonsi.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -2924,6 +2925,8 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
 #endif
 }
 
+
+
 EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
  Status      = ptr->_status;
@@ -2991,6 +2994,97 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   Nhits = ptr->_Nhits;
 #endif
 }
+
+TMVA::Reader *ecallappreader;
+float varBDT[23];
+float EcalShowerR::EcalStandaloneEstimator(){
+	
+	// Etot dans shower
+	float ECalEdepFrac[18];
+	float etot;
+	Ecal2DClusterR *tc2D;
+	EcalClusterR *tc1D;
+	EcalHitR *thit;
+	for(int a=0;a<NEcal2DCluster();a++){
+		tc2D = pEcal2DCluster(a);
+		for(int b=0;b<tc2D->NEcalCluster();b++){
+			tc1D = tc2D->pEcalCluster(b); 
+			for(int c=0;c<tc1D->NEcalHit();c++){
+				thit = tc1D->pEcalHit(c);
+				etot += thit->Edep;
+				ECalEdepFrac[thit->Plane] += thit->Edep;
+			}
+		}
+	}
+	for(int a=0;a<18;a++){
+		if(etot!=0.)
+			ECalEdepFrac[a] = ECalEdepFrac[a] / etot;
+		else
+			ECalEdepFrac[a]=0.;
+	}
+	varBDT[0] = ECalEdepFrac[0];         
+	varBDT[1] = ECalEdepFrac[1];        
+	varBDT[2] = ECalEdepFrac[2];        
+	varBDT[3] = ECalEdepFrac[7];        
+	varBDT[4] = ECalEdepFrac[8];        
+	varBDT[5] = ECalEdepFrac[9];        
+	varBDT[6] = Energy3C[1];          
+	varBDT[7] = S13R;           
+	varBDT[8] = Energy3C[2];           
+	varBDT[9] = S1tot[0];           
+	varBDT[10] = ShowerLongDisp;       
+	varBDT[11] = S1tot[0]/S3tot[0];   
+	varBDT[12] = S3tot[0]/S5tot[0];                 
+	varBDT[13] = S3tot[1]/S5tot[1];                
+	varBDT[14] = S3tot[2]/S5tot[2];                
+	varBDT[15] = ShowerLatDisp[0];        
+	varBDT[16] = ShowerLatDisp[1];       
+	varBDT[17] = ShowerLatDisp[2];       
+	varBDT[18] = ShowerFootprint[0];     
+	varBDT[19] = ShowerFootprint[1];    
+	varBDT[20] = ShowerFootprint[2];
+	if(Zprofile[3]!=0.)
+		varBDT[21] = Zprofile[2]/Zprofile[3]; 
+	else varBDT[21]=0.;
+	varBDT[22] = Zprofile[0];
+	
+	if(!ecallappreader){ 
+		ecallappreader = new TMVA::Reader( "!Color:!Silent" );
+		std::cout << "##############################################################" << std::endl;
+		std::cout << "                   Create ECAL LAPP Reader" << std::endl;
+		std::cout << "##############################################################" << std::endl;
+		
+		ecallappreader->AddVariable("ECalEdepFrac0",&varBDT[0]);         
+		ecallappreader->AddVariable("ECalEdepFrac1",&varBDT[1]);        
+		ecallappreader->AddVariable("ECalEdepFrac2",&varBDT[2]);        
+		ecallappreader->AddVariable("ECalEdepFrac7",&varBDT[3]);        
+		ecallappreader->AddVariable("ECalEdepFrac8",&varBDT[4]);        
+		ecallappreader->AddVariable("ECalEdepFrac9",&varBDT[5]);        
+		ecallappreader->AddVariable("Energy3C2",&varBDT[6]);          
+		ecallappreader->AddVariable("S13R",&varBDT[7]);           
+		ecallappreader->AddVariable("Energy3C3",&varBDT[8]);           
+		ecallappreader->AddVariable("MS1Etot",&varBDT[9]);      
+		ecallappreader->AddVariable("MShowerLongDisp",&varBDT[10]);       
+		ecallappreader->AddVariable("MS1S3",&varBDT[11]);   
+		ecallappreader->AddVariable("MS3S5",&varBDT[12]);                 
+		ecallappreader->AddVariable("MS3S5x",&varBDT[13]);                
+		ecallappreader->AddVariable("MS3S5y",&varBDT[14]);                
+		ecallappreader->AddVariable("MShowerLatDisp",&varBDT[15]);        
+		ecallappreader->AddVariable("MShowerLatDispx",&varBDT[16]);       
+		ecallappreader->AddVariable("MShowerLatDispy",&varBDT[17]);       
+		ecallappreader->AddVariable("Mshower_footprint",&varBDT[18]);     
+		ecallappreader->AddVariable("Mshower_footprintx",&varBDT[19]);  
+		ecallappreader->AddVariable("Mshower_footprinty",&varBDT[20]);    
+		ecallappreader->AddVariable("Zprofile2A/Zprofile3A",&varBDT[21]);          
+		ecallappreader->AddVariable("Zprofile0A",&varBDT[22]);          
+        char name[801];
+        sprintf(name,"%s/%s/ECAL_LAPP_BDT.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+		ecallappreader->BookMVA("BDTG method" , name);
+	}
+	return  ecallappreader->EvaluateMVA("BDTG method");
+}
+
+
 
 Level1R::Level1R(Trigger2LVL1 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__

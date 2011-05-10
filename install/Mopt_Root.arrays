@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root.arrays,v 1.3 2010/11/08 18:53:46 barao Exp $
+#  $Id: Mopt_Root.arrays,v 1.4 2011/05/10 22:38:18 afiasson Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -34,7 +34,7 @@ EXE=../exe/aix/
 LIB=../lib/aix/
 TIMEL=
 endif
-ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lTMVA 
 #ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPhysics -lPostscript -lProof -lTree -lRint -lTree -lUnix -lZip  
 #ROOTLIBS      = $(shell root-config --libs)
 
