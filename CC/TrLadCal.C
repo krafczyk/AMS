@@ -28,7 +28,7 @@ int TrLadCal::version=3;
 
 void  TrLadCal::SetVersion(int ver){
   if      (ver==3) { version=ver; printf("TrLadCal:: Set the Flight Cal Format %d\n",ver); }
-  if      (ver==2) { version=ver; printf("TrLadCal:: Set the Pre-Flight Cal Format %d\n",ver); }
+  else if (ver==2) { version=ver; printf("TrLadCal:: Set the Pre-Flight Cal Format %d\n",ver); }
   else if (ver==1) { version=ver; printf("TrLadCal:: Set the Pre-Integration Cal Format %d\n",ver); }
   else             { printf("TrLadCal:: Unknown Cal Format %d\n I Give Up",ver); exit(3); }
 }
