@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.127 2011/05/04 13:54:10 choutko Exp $
+//  $Id: timeid.C,v 1.128 2011/05/11 19:19:43 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -60,6 +60,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
    _trigfun=fun;
 
   _Nbytes=nbytes;
+  _Nbytes+=sizeof(uinteger);
 
 
 
@@ -83,7 +84,6 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
   _Begin=mktime(&begin); 
   _End=mktime(&end); 
   time(&_Insert);
-  _Nbytes+=sizeof(uinteger);
   _CRC=_CalcCRC();
 }
 
@@ -615,7 +615,7 @@ time_t AMSTimeID::_stat_adv(const char *dir){
   return tm;
 }
 void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
-
+  bool zero=false;
   int everythingok=1;
   int i;
   for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
@@ -663,16 +663,21 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 #else
     if((!stat64((const char *)fmap,&statbuf_map)&&
 	mtime < statbuf_map.st_mtime) && !force){
-    
+usemap:    
       char buf[100];
+      fbin.clear();
+      fbin.close();
       fbin.open(fmap,ios::in);
       if(fbin){
 	fbin>>_DataBaseSize;
 #endif
+      zero=false;
       if(!_DataBaseSize){
          fbin.close();
          cout<<"AMSTimeID::_fillDB-W-MapHasZeroEnrtries "<<(const char *)fmap<<endl;
+         zero=true;
 #ifdef   __CORBASERVER__     
+          
          goto notrust;
 #endif
      }
@@ -707,6 +712,10 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     fnam+= getid()==0?".0":".1";
     _selectEntry=&fnam;
     int size=0;
+	  for(int k=0;k<5;k++){
+	    if(_DataBaseSize)delete[] _pDataBaseEntries[k];
+          }
+          _DataBaseSize=0;
 
 #ifdef __LINUXGNU__
     dirent64 ** namelistsubdir;
@@ -731,6 +740,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 #endif
 
       if(nptr>0){
+//           cout <<"  dbsize "<<_DataBaseSize<<" "<<size<<" "<<nptr<<" "<<fsdir<<endl;
 	if(_DataBaseSize && size<_DataBaseSize+nptr){
 	  uinteger *tmp=new uinteger[_DataBaseSize];
 	  for(int k=0;k<5;k++){
@@ -759,14 +769,15 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 		   _pDataBaseEntries[0]+_DataBaseSize);
 	    AString ffile(fsdir);
 	    ffile+=namelist[i]->d_name;
-	    fbin.close();
-	    fbin.clear();
-	    fbin.open((const char *)ffile,ios::in);
+            ifstream ffbin;
+	    ffbin.close();
+	    ffbin.clear();
+	    ffbin.open((const char *)ffile);
 	    uinteger temp[3];
-	    if(fbin){
-	      fbin.seekg(integer(fbin.tellg())+_Nbytes+sizeof(_CRC));
-	      fbin.read((char*)temp,3*sizeof(temp[0]));
-	      if(fbin.good()){
+	    if(ffbin){
+	      ffbin.seekg(integer(ffbin.tellg())+_Nbytes);
+	      ffbin.read((char*)temp,3*sizeof(temp[0]));
+	      if(ffbin.good()){
 		_convert(temp,3);
 		_pDataBaseEntries[1][_DataBaseSize]=temp[0];
 		_pDataBaseEntries[2][_DataBaseSize]=temp[1];
@@ -775,11 +786,11 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 		if(strcmp(namelistsubdir[is]->d_name,_getsubdirname(temp[1]))){
 		  everythingok=0;
 		  cerr<<"AMSTimeID::_fillDB-W-Dir/FileNameAreInconsistent "<<ffile<<" "<<"Recovering"<<endl;
-		  fbin.close();
+		  ffbin.close();
 		  _rewrite(dir,ffile);
 		}
 	      }
-	      if(fbin)fbin.close();
+	      ffbin.close();
 	    }
             
 	  }
@@ -820,8 +831,15 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
     }
     // Rewrite map file;
 
-    if(!updatemap(dir,true))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
-
+    if(!updatemap(dir,true)){
+       cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+#ifdef __CORBASERVER__
+       if(!_DataBaseSize && !zero){
+       cerr <<"AMSTimeID::_fillDB-W-using old map file "<<fmap<<endl; 
+       goto usemap;          
+       }
+#endif
+    }   
 
 
 
@@ -979,7 +997,6 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
   fbin.open((const char *)ffile,ios::in);
   if(fbin){
     uinteger * pdata;
-    _Nbytes+=sizeof(integer);
     integer ns=_Nbytes/sizeof(pdata[0])+3;
     pdata =new uinteger[ns];
     if(pdata){
@@ -1010,7 +1027,6 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
 	delete [] pdata;
       }
     }
-    _Nbytes-=sizeof(integer);
   }
             
 
