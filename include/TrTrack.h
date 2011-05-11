@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.63 2011/04/13 14:28:05 shaino Exp $
+//  $Id: TrTrack.h,v 1.63.4.1 2011/05/11 20:36:59 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/04/13 14:28:05 $
+///$Date: 2011/05/11 20:36:59 $
 ///
-///$Revision: 1.63 $
+///$Revision: 1.63.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -343,6 +343,8 @@ public:
   TrRecHitR *GetHitLJ(int ilay) const;
   /// DEPRECATED - DO NOT USE  Get the pointer of hit at Layer OLD-scheme, ilay(0-7), or returns 0 if not exists
   TrRecHitR *GetHitL(int ilay) const;
+  /// Returns a number corresponding to the ladder combination spanned by the track
+  long long GetTrackPathID();
   /// For Gbatch compatibility
   uinteger checkstatus(integer checker) const{return Status & checker;}
   uinteger getstatus() const{return Status;}
