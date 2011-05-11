@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.62 2011/05/10 18:42:43 pzuccon Exp $
+// $Id: tkdcards.C,v 1.63 2011/05/11 14:03:01 choutko Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -29,6 +29,9 @@ void TKGEOMFFKEY_DEF::init(){
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (tkgeomffkey_)
+#endif
 
 //=============================
 //==============================
@@ -95,6 +98,9 @@ for (int ii=0;ii<9;ii++){
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (trclffkey_)
+#endif
 //==============================
 
 
@@ -237,6 +243,9 @@ void TRMCFFKEY_DEF::init(){
 }
 
 TRMCFFKEY_DEF TRMCFFKEY;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (trmcffkey_)
+#endif
 //=============================
 void TRCALIB_DEF::init(){
   CalibProcedureNo=0;
@@ -302,6 +311,9 @@ void TRCALIB_DEF::init(){
 }
 
 TRCALIB_DEF TRCALIB;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (trcalib_)
+#endif
 //=============================
 void TRALIG_DEF::init(){
   One=1.025;
@@ -345,6 +357,9 @@ void TRALIG_DEF::init(){
 }
 
 TRALIG_DEF TRALIG;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (tralig_)
+#endif
 
 #include "TrTrack.h"
 
@@ -382,4 +397,7 @@ void TRFITFFKEY_DEF::init(){
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 
 TRFITFFKEY_DEF TRFITFFKEY;
+#ifdef __ROOTSHARFELIBRARY__
+#pragma omp threadprivate (trfitffkey_)
+#endif
 //=============================
