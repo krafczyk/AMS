@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.160 2011/05/09 21:29:42 mmilling Exp $
+#  $Id: Makefile,v 1.161 2011/05/11 15:42:46 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -550,7 +550,7 @@ endif
 shared : amswd $(SHLD)
 $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h  
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS) -o  $(SHLD)
+	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBO)

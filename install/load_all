@@ -1,0 +1,42 @@
+#!/bin/tcsh
+if ( "$1" != "" )  then
+setenv AMSWD $1
+endif
+
+if ( "$2" != "" )  then
+setenv ADDBUILDNO 1
+else
+unsetenv ADDBUILDNO
+endif
+
+source /Offline/vdev/install/amsvar.icc32
+setenv ARCH linuxicc
+echo "Loading $ARCH"
+root -b -q load.C
+root -b -q loadPG.C
+
+source /Offline/vdev/install/amsvar
+setenv ARCH linuxx8664icc
+echo "Loading $ARCH"
+root -b -q load.C
+root -b -q loadPG.C
+
+source /Offline/vdev/install/amsvar.gcc32
+setenv ARCH linux
+echo "Loading $ARCH"
+root -b -q load.C
+root -b -q loadPG.C
+
+source /Offline/vdev/install/amsvar.gcc64
+setenv ARCH linuxx8664gcc
+echo "Loading $ARCH"
+root -b -q load.C
+root -b -q loadPG.C
+
+
+
+unsetenv ARCH
+
+
+
+
