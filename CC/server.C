@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.175 2011/04/28 02:06:27 choutko Exp $
+//  $Id: server.C,v 1.176 2011/05/12 18:02:41 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -661,17 +661,26 @@ if(_ActivateQueue){
 bool AMSServerI::InactiveClientExists(DPS::Client::ClientType ctype){
 int ina=0;
 bool lxplus=true;
+bool ret=false;
+int maxina=2;
+char *max=getenv("AMSMaxInactiveClients");
+if(max && strlen(max)){
+maxina=atol(max);
+}
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
    //if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
     lxplus=strstr((const char*)((*li)->id.HostName),"lxplus");
-    if(++ina>1 || !lxplus)return true;
+    if(++ina>maxina || !lxplus){
+        ret=true;
+        break;
+}
   }
 }
 if(getType() == DPS::Client::DBServer && getType()!=ctype){
   if(_parent->DBServerExists() && !_acl.size())return true;
 }
-return false;
+return ret;
 }
 
 
@@ -870,7 +879,7 @@ if(pcur->InactiveClientExists(getType()))return;
  if(_parent->DBServerExists() && getHostInfoSDB(_parent->getcid(),ahlv)){
   suc=true;
  }
- else{
+ else if(!_parent->DBServerExists()){
  _ahl.sort(Less());
 if(_acl.size()<(*_ncl.begin())->MaxClients ){
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
@@ -2373,7 +2382,7 @@ if(pcur->InactiveClientExists(getType()))return;
  if(_parent->DBServerExists() && getHostInfoSDB(_parent->getcid(),ahlv)){
   suc=true;
  }
- else{
+ else if(!_parent->DBServerExists()){
  _ahl.sort(Less());
   if(_acl.size()<(*_ncl.begin())->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
