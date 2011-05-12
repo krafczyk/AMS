@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.107 2011/05/06 22:30:23 pzuccon Exp $
+// $Id: TrTrack.C,v 1.108 2011/05/12 16:44:27 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/05/06 22:30:23 $
+///$Date: 2011/05/12 16:44:27 $
 ///
-///$Revision: 1.107 $
+///$Revision: 1.108 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -247,6 +247,23 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
   static TrTrackPar parerr;
   return parerr;
 }
+
+
+
+long long TrTrackR::GetTrackPathID(){
+  long long ret=0;
+  for (int ii=0;ii<GetNhits();ii++){
+    TrRecHitR* hit=pTrRecHit(ii);
+    if(hit){
+      long long pp=hit->GetSlot();
+      if(hit->GetSlotSide()==0)pp|=0x10;
+      ret|=pp<<((hit->GetLayer()-1)*5);
+    }
+  }
+  return ret;
+}
+
+
 
 TrTrackPar &TrTrackR::GetPar(int id)
 {
