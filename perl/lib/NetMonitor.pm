@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.38 2011/05/09 07:13:58 ams Exp $
+# $Id: NetMonitor.pm,v 1.39 2011/05/12 10:16:55 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -99,7 +99,7 @@ sub Run{
     my $self=shift;
 
     $self->InitOracle();
-
+    my $force=1;
 
 
 
@@ -216,6 +216,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 
 #fs check
 
+    print "Fs check\n";
     my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     $mes="NetMonitor-W-NodeFileSystemProblem";
     foreach my $host (@{$self->{hosts}}){
@@ -223,7 +224,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
             my @sbad=split ' ',$bad;
-            if($sbad[0] ){
+            if($sbad[0] eq $host){
                 $gonext=1;
                 last;
             }
@@ -248,14 +249,17 @@ if(not open(FILE,"<".$self->{hostfile})){
                     next;
                }
                 close FILE;
-#                print "Fs good: $host $fs\n";
                 unlink "/tmp/filesys";
                 if($buf == 0){
-                    push @{$self->{bad}}, $host." NetMonitor-W-NodeFileSystemProblem";
-                }
+                    push @{$self->{bad}}, $host."_$fs NetMonitor-W-NodeFileSystemProblem";
+                }else{
+#		    print "Fs good: $host $fs\n";
+		}
+		
             }
         }
     }
+#print "@{$self->{bad}}\n";
 
 
 #
@@ -318,23 +322,9 @@ if(not open(FILE,"<".$self->{hostfile})){
         foreach my $target (@{$self->{dbhoststargets}}){
             push @foundp, 0;
         }
-	    $mes="NetMonitor-W-DBHostsTargetsProblems";
-	      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
-	   foreach my $host (@{$self->{dbhosts}}){
-        my $gonext=0;
-        foreach my $bad (@{$self->{bad}}){
-            my @sbad=split ' ',$bad;
-            if($sbad[0] ){
-                $gonext=1;
-                last;
-            }
-        }
-        if($gonext){
-            next;
-        }
-      
-
-
+	$mes="NetMonitor-W-DBHostsTargetsProblems";
+	$command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+	foreach my $host (@{$self->{dbhosts}}){
           unlink "/tmp/dbhosts";
          #print "$command.$host. \n";
          my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
@@ -361,7 +351,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                 }
                 $pn++;
                 if($found==0){
-#                    print "not found\n";
+                    print "not found\n";
 #                    $foundp[$pn]=0;
 #                    $twp=$twp."\_$target\_";
                 }else{
@@ -369,23 +359,24 @@ if(not open(FILE,"<".$self->{hostfile})){
                 }
              }
                print " joptat $nt \n;";
-}
+	}
+
 }
     my $cnt=0;
-#    print @foundp;
+    print @foundp;
     foreach my $target (@{$self->{dbhoststargets}}){
         if($foundp[$cnt]==0){
             push @{$self->{bad}}, "$target NetMonitor-W-DBHostsTargetsProblems ";
         }
         $cnt++;
     }
-#    print @{$self->{bad}};
+#print "@{$self->{bad}}\n";
 
 #
 # df
 #
-     $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
-      $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
+    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
@@ -448,7 +439,9 @@ if(not open(FILE,"<".$self->{hostfile})){
                }
     }
     else{
-      $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
+#      $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
+      $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",$force);
+      $force=0;
       print time()." NetMonitor-I-AllHostsAreOK \n";
     }
      
