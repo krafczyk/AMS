@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.346 2011/05/10 23:28:57 choutko Exp $
+//  $Id: root.h,v 1.347 2011/05/12 15:43:01 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -590,46 +590,6 @@ ClassDef(EcalShowerR,7)       //EcalShowerR
 };
 
 
-
-
-
-/// TofRawClusterR structure
-
-/*!
- \author e.choumilov@cern.ch
-
-*/
-
-class TofRawClusterR {
-public:
-  unsigned int   Status;  ///< statusword
-                /*!<
-                                              // bit8(128)  -> bad time-history on any side
-                                              // bit9(256)  -> "1-sided" counter(1-side meas. is missing)
-                                              // bit10(512) -> ignore time-measurement(as known from DB),not used
-					      // bit11(1024)-> missing side number(0->s1,1->s2)
-                                              // bit12(2048)-> recovered from 1-sided (bit256 also set)
-                                              // bit13(4096)-> no bestLT/sumHT-hit matching(when requested) on any side
-					      // bit6(32)   -> used for TofCluster 
-   */
-  int   Layer;   ///< Tof plane 1(top)...4
-  int   Bar;     ///< Tof Bar number 1...10
-  float adca[2]; ///< Anode raw signal(adc), side=1-2
-  float adcd[2]; ///< Dynode(equilized sum of pmts on each side) raw signal(adc) 
-  float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc) 
-  float sdtm[2];  ///< A-noncorrected side times
-  float edepa;   ///< Anode Edep (mev)
-  float edepd;   ///< Dynode Edep (mev)
-  float time;    ///< Time (ns)
-  float cool;     ///< Long.coord.(cm)
-  TofRawClusterR(){};
-  TofRawClusterR(TOF2RawCluster *ptr);
-
-  virtual ~TofRawClusterR(){};
-  ClassDef(TofRawClusterR ,4)       //TofRawClusterR
-#pragma omp threadprivate(fgIsA)
-};
-
 /// TofRawSideR structure
 
 /*!
@@ -672,6 +632,64 @@ public:
 #pragma omp threadprivate(fgIsA)
 };
 
+
+
+
+
+/// TofRawClusterR structure
+
+/*!
+ \author e.choumilov@cern.ch
+
+*/
+
+class TofRawClusterR {
+public:
+  unsigned int   Status;  ///< statusword
+                /*!<
+                                              // bit8(128)  -> bad time-history on any side
+                                              // bit9(256)  -> "1-sided" counter(1-side meas. is missing)
+                                              // bit10(512) -> ignore time-measurement(as known from DB),not used
+					      // bit11(1024)-> missing side number(0->s1,1->s2)
+                                              // bit12(2048)-> recovered from 1-sided (bit256 also set)
+                                              // bit13(4096)-> no bestLT/sumHT-hit matching(when requested) on any side
+					      // bit6(32)   -> used for TofCluster 
+   */
+  int   Layer;   ///< Tof plane 1(top)...4
+  int   Bar;     ///< Tof Bar number 1...10
+  float adca[2]; ///< Anode raw signal(adc), side=1-2
+  float adcd[2]; ///< Dynode(equilized sum of pmts on each side) raw signal(adc) 
+  float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc) 
+  float sdtm[2];  ///< A-noncorrected side times
+  float edepa;   ///< Anode Edep (mev)
+  float edepd;   ///< Dynode Edep (mev)
+  float time;    ///< Time (ns)
+  float cool;     ///< Long.coord.(cm)
+protected:
+  vector<int> fTofRawSide;   //indexes of TofRawSideR's current object is made of.
+public:
+  /// access function to TofRawSideR objects used
+  /// \return number of TofRawSideR used
+  int NTofRawSide()const {return fTofRawSide.size();}
+  /// access function to TofRawSideR    used
+  /// \param i index of fTofRawSide vector
+  /// \return index of TofRawSideR object in TofRawSide collection or -1
+  int iTofRawSide(unsigned int i){return i<fTofRawSide.size()?fTofRawSide[i]:-1;}
+  /// access function to TofRawSideR's   current object is made of.
+  /// \param i index of fTofRawSide vector
+  /// \return pointer to TofRawSideR object or 0
+  TofRawSideR * pTofRawSide(unsigned int i);
+  
+  TofRawClusterR(){};
+  TofRawClusterR(TOF2RawCluster *ptr);
+  
+  friend class TOF2RawCluster;
+  friend class AMSEventR;
+  
+  virtual ~TofRawClusterR(){};
+  ClassDef(TofRawClusterR ,5)       //TofRawClusterR
+#pragma omp threadprivate(fgIsA)
+};
 
 
 

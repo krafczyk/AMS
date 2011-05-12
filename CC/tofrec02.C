@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.81 2011/05/03 14:15:25 choumilo Exp $
+//  $Id: tofrec02.C,v 1.82 2011/05/12 15:42:49 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -524,6 +524,8 @@ void TOF2RawCluster::build(int &ostatus){
   geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[TOF2GC::SCLRS];
   TOF2RawSide *ptr;
   TOF2RawSide *ptrN;
+  integer nmemb(0);
+  AMSlink *membp[2]={0,0};
   integer nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS];
   int bad,tsfl(0),anchok,anlchok,dychok,dylchok,hlf;
 // some variables for histogramming:
@@ -700,6 +702,10 @@ void TOF2RawCluster::build(int &ostatus){
       if(nttdc[isid]>0 && (nadca[isid]>0 || nadcd[isid]>0))TOF2JobStat::addch(chnum,8);
       if(nttdc[isid]>0 && (nadca[isid]>0 || nadcd[isid]>0)
                                         && nhtdc[isid]>0)TOF2JobStat::addch(chnum,11);
+      if(nmemb<2){
+        membp[nmemb]=ptr;
+        nmemb+=1;
+      }
     }// endof side-/DB-status check ---> 
 //---
     ptrN=ptr->next();
@@ -1184,7 +1190,12 @@ void TOF2RawCluster::build(int &ostatus){
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
               if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
                         ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amd,adcdr,
-                              aedep,dedep,tm,time,coo,ecoo)))st=1;;//store value
+                              aedep,dedep,tm,time,coo,ecoo,nmemb,membp)))st=1;;//store value
+//	cout<<" TofRawCluster created: "<<" IL/IB="<<ilay+1<<" "<<ibar+1<<"  RawSide nmemb="<<nmemb<<"  pointers="<<hex<<membp[0]<<" "<<membp[1]<<dec<<endl;
+//	if(membp[0]>0)idd=dynamic_cast<TOF2RawSide*>(membp[0])->getsid();//LBBS
+//        cout<<"   Side-1 lbbs1="<<idd<<endl;
+//	if(membp[1]>0)idd=dynamic_cast<TOF2RawSide*>(membp[1])->getsid();//LBBS
+//        cout<<"   Side-2 lbbs2="<<idd<<endl;
               if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0){//debug	      
 	        cout<<"StoreNewRawCl(il/ib)="<<ilay+1<<" "<<ibar+1<<" time="<<time<<endl;
 	        cout<<"      sta/Aedep/coo="<<sta<<" "<<aedep<<" "<<coo<<endl;
@@ -1210,6 +1221,9 @@ void TOF2RawCluster::build(int &ostatus){
       nshtdc[1]=0;
       nttdc[0]=0;
       nttdc[1]=0;
+      nmemb=0;
+      membp[0]=0;
+      membp[1]=0;
 //
     } // aaa---> end of "next COUNTER" or "last hit" check
 //------------------------------------------------------
@@ -1532,6 +1546,11 @@ void TOF2RawCluster::_writeEl(){
 //------
 
 void TOF2RawCluster::_copyEl(){
+#ifdef __WRITEROOT__
+ if(PointerNotSet())return;
+ TofRawClusterR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TofRawCluster(_vpos);
+      for(int i=0;i<_nmemb;i++)(ptr.fTofRawSide).push_back(_mptr[i]->GetClonePointer());
+#endif
 }
 
 //------

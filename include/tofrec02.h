@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.21 2009/11/05 15:01:09 choutko Exp $
+//  $Id: tofrec02.h,v 1.22 2011/05/12 15:43:01 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -35,6 +35,8 @@ integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  number _time;   // A-corrected time=0.5*(t1+t2) (ns);
  number _timeD; // Y-coo(long)/(cm,loc.r.s,A-corrected) calc.from 0.5(t1-t2)
  number _etimeD;// Y-coord.error(cm)
+ integer _nmemb; // number of TOFRawSide members(<=2)
+ AMSlink * _mptr[2]; // list of pointers to members(raw sides)
 
  void _copyEl();
  void _printEl(ostream & stream);
@@ -54,16 +56,17 @@ public:
    number z, number adca[2], number adcd[2],
    number adcdr[2][TOF2GC::PMTSMX],
    number de, number ded, 
-   number sdtm[2], number time, number timed, number etimed):
+   number sdtm[2], number time, number timed, number etimed, int nm, AMSlink * ptr[]):
    AMSlink(status,0), _ntof(xy),_plane(plane),_z(z),
    _edepa(de), _edepd(ded),
-   _time(time), _timeD(timed), _etimeD(etimed){
+   _time(time), _timeD(timed), _etimeD(etimed), _nmemb(nm){
    for(int i=0;i<2;i++){
      _adca[i]=adca[i];
      _adcd[i]=adcd[i];
      for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcdr[i][ip]=adcdr[i][ip];
      _sdtm[i]=sdtm[i];
    }
+   for(int i=0;i<2;i++)_mptr[i]=ptr[i];
  }
  void getadca(number adc[2]){
    adc[0]=_adca[0];
@@ -79,6 +82,11 @@ public:
  void getsdtm(number sdtm[2]){
    sdtm[0]=_sdtm[0];
    sdtm[1]=_sdtm[1];
+ }
+ integer getnmemb() {return _nmemb;}
+ integer getmemb(AMSlink *ptr[]){
+   for(int i=0;i<_nmemb;i++)ptr[i]=_mptr[i];
+   return _nmemb;
  }
  void recovers(number x);
 //

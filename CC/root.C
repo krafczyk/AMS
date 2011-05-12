@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.292 2011/05/10 23:28:24 choutko Exp $
+//  $Id: root.C,v 1.293 2011/05/12 15:42:49 choumilo Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4210,6 +4210,11 @@ TofRawClusterR* TofClusterR::pTofRawCluster(unsigned int i){
   return (AMSEventR::Head() && i<fTofRawCluster.size())?AMSEventR::Head()->pTofRawCluster(fTofRawCluster[i]):0;
 }
 
+
+TofRawSideR* TofRawClusterR::pTofRawSide(unsigned int i){
+  return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
+}
+
 #ifndef _PGTRACK_
 TrClusterR* TrRecHitR::pTrCluster(char xy){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrCluster(xy=='x'?fTrClusterX:fTrClusterY):0;
@@ -4681,7 +4686,6 @@ char * DaqEventR::Info(int number){
     sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d ",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767);
   return _Info;
   } 
-
 
 
 
