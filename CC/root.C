@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.292 2011/05/10 23:28:24 choutko Exp $
+//  $Id: root.C,v 1.292.2.1 2011/05/12 18:43:51 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3523,6 +3523,9 @@ TrdTrackR::TrdTrackR(const TrdTrackR &o){
 if(&o!=this){
  for(int k=0;k<3;k++)Coo[k]=o.Coo[k];
  for(int k=0;k<3;k++)ErCoo[k]=o.ErCoo[k];
+ Chi2=o.Chi2;
+ Pattern=o.Pattern;
+ Status=o.Status;
  Phi=o.Phi; 
  Theta=o.Theta; 
  Q=o.Q;
