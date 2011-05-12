@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.42 2011/05/11 22:30:27 choutko Exp $
+#  $Id: POADBServer.pm,v 1.43 2011/05/12 18:03:18 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1355,15 +1355,16 @@ OUT:
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
 #                          $ahl->{Status}="InActive";
 #                           sendAH("Class",$cid,$ahl,"Update");
-                          warn "d getfree host ok!!!!!!";
+                          warn "d getfree host ok!!!!!! $ahl->{HostName}";
                           my $notact=0;
             foreach my $acl (@{$ref->{acl}}){
-                if($acl->{Status} eq "Submitted" and $ahl->{Status} eq "OK" and $ahl->{HostName} eq $acl->{id}->{HostName}){
+                if($acl->{Status} eq "Submitted"  and $ahl->{HostName} eq $acl->{id}->{HostName}){
                     $notact=1;
+                    warn " found notactive $ahl->{HostName} \n";
                     last;
                 }
             }
-                       if(!$notact){
+                       if($notact==0){
                              return 1;
                          }
                       }
