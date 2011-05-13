@@ -228,6 +228,7 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
 
 
 like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) { 
+  /* calculating it every time: TO BE FIXED */
   // Z=0 means electrons (approximately no rise)
   if (Z==0) { Z = 1; beta = 1; }
   // Truncated mean computation (X side)
@@ -242,7 +243,7 @@ like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) {
   // Evaluate
   float value = sqrt(mean.Mean);
   float prob  = pdf->Eval(value);
-  return like_t(kTruncMean|kInner,kX,mean.NPoints,prob,prob,mean);
+  return like_t(kTruncMean|kInner,kX,mean.NPoints,prob,prob,mean.Mean);
 }
 
 
@@ -257,9 +258,9 @@ int TrCharge::GetTruncMeanCharge(TrTrackR* track, float beta) {
 }
 
 
-float TrCharge::GetQ(TrTrackR* track, int iside) {
+float TrCharge::GetQ(TrTrackR* track, int iside, float beta) {
   // To be keep updated
-  mean_t mean = GetMean(kTruncMean,track,iside,1,-1,TrClusterR::DefaultMipCorrOpt);
+  mean_t mean = GetMean(kTruncMean,track,iside,beta,-1,TrClusterR::DefaultMipCorrOpt);
   return mean.GetQ();
 }
 
