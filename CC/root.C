@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.295 2011/05/13 00:57:31 pzuccon Exp $
+//  $Id: root.C,v 1.296 2011/05/13 19:51:22 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3311,6 +3311,39 @@ TrdRawHitR::TrdRawHitR(AMSTRDRawHit *ptr){
 #endif
 }
 
+unsigned int TrdRawHitR::getid(){
+ const int maxtube=16;
+ const int maxlad=18;
+return  maxtube*maxlad*Layer+maxtube*Ladder+Tube;
+}
+
+float TrdRawHitR::getped(int & error){
+ unsigned int id=getid();
+ const string name("TRDPedestals");
+ AMSEventR::if_t value;
+ value.u=0;
+ error=AMSEventR::Head()->GetTDVEl(name,getid(),value);
+ return value.f;
+}
+
+float TrdRawHitR::getsig(int & error){
+ unsigned int id=getid();
+ const string name("TRDSigmas");
+ AMSEventR::if_t value;
+ value.u=0;
+ error=AMSEventR::Head()->GetTDVEl(name,getid(),value);
+ return value.f;
+}
+float TrdRawHitR::getgain(int & error){
+ unsigned int id=getid();
+ const string name("TRDGains");
+ AMSEventR::if_t value;
+ value.u=0;
+ error=AMSEventR::Head()->GetTDVEl(name,getid(),value);
+ return value.f;
+}
+
+
 TrdSegmentR::TrdSegmentR(AMSTRDSegment *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status        = ptr->_status;
@@ -4821,4 +4854,27 @@ unsigned int time=UTime();
 return getsetup()->fSlowControl.GetData(en,time,Frac(),v,method);
 }
 else return 1;
+}
+
+int AMSEventR::GetTDVEl(const string & tdv, unsigned int index, if_t & value){
+  if(!getsetup()){
+     return 5;
+  }
+  else{
+   unsigned int time=UTime();
+   AMSSetupR::TDVR_i tdvi;
+   int ret=getsetup()->getTDVi(tdv,time,tdvi);
+   value.u=0;
+   if(!ret){
+     if(index<tdvi->second.Size){
+       if(index<tdvi->second.Data.size()){
+          value.u=tdvi->second.Data[index];
+          return 0;
+       }
+       else return 4;
+     }
+     else return 3;
+   }
+   else return ret;
+  }
 }

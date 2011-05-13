@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.15 2008/12/08 15:15:18 choutko Exp $
+//  $Id: trdid.C,v 1.16 2011/05/13 19:51:22 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -692,3 +692,15 @@ void AMSTRDIdSoft::inittable(){
    }
   
 }
+
+void AMSTRDIdSoft::ResetGains(){
+int nr=0;
+for(int i=0;i<getgaisize();i++){
+  if(_gain[i]!=0){
+    nr++;
+    _gain[i]=1;
+  }
+}
+cout <<" AMSTRDIdsoft::ResetGains-I-"<<nr<<" gains reseted to 1 "<<endl;
+}
+

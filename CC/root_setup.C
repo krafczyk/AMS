@@ -343,6 +343,35 @@ else return 2;
 }
 else return 1;
 }
+
+int AMSSetupR::getTDVi(const string & name, unsigned int time, TDVR_i &j){
+TDVRC_i i=fTDVRC.find(name);
+if(i!=fTDVRC.end()){
+ j=i->second.lower_bound(time);
+if(i->second.size()>0){
+bool add=false;
+if(j==i->second.begin()){
+if(j->first==time)add=true;
+else add=false;
+}
+else if(j!=i->second.end()){
+if(j->first >time)j--;
+add=true;
+}
+else{
+j--;
+add=true;
+}
+if( add){
+return 0;
+}
+else return 2;
+}
+else return 2;
+}
+else return 1;
+}
+
  int AMSSetupR::getAllTDV(unsigned int time){
   vector<TDVR> &v= fTDV_Time;
   v.clear();
