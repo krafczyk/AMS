@@ -1,10 +1,11 @@
-//  $Id: amschain.C,v 1.36 2011/05/09 21:51:58 oliva Exp $
+//  $Id: amschain.C,v 1.37 2011/05/13 00:57:31 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
 #include "TXNetFile.h"
 #ifdef _PGTRACK_
 #include "TrRecon.h"
+#include "TrExtAlignDB.h"
 #endif
 #include <dlfcn.h>
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
@@ -182,24 +183,24 @@ int  AMSChain::LoadUF(char* fname){
   if(!CC){
     setenv("CC","g++",0);
   }
- char *AMSSRC=getenv("AMSSRC");
+  char *AMSSRC=getenv("AMSSRC");
   if(!AMSSRC){
     setenv("AMSSRC","..",0);
   }
 #ifdef __X8664__
-char m32[6]="-fPIC";
-char elf[11]="";
+  char m32[6]="-fPIC";
+  char elf[11]="";
 #else
-char m32[5]="-m32";
-char elf[11]="-melf_i386";
+  char m32[11]="-m32 -fPIC";
+  char elf[11]="-melf_i386";
 #endif
 #ifdef _PGTRACK_
   sprintf(cmd,"$CC %s -g -D_PGTRACK_ -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #else
   sprintf(cmd,"$CC %s  -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #endif
- cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
-int $i=system(cmd);
+  cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
+  int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
     sprintf(cmd1,"ld  -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
@@ -421,8 +422,8 @@ void AMSChain::OpenOutputFile(const char* filename){
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
   // Parameters
-  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
-  for(int ii=0;ii<5;ii++){
+  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+  for(int ii=0;ii<6;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
   }
@@ -442,6 +443,8 @@ void AMSChain::OpenOutputFile(const char* filename){
     fout->cd();
   }
 #endif
+  TTree* rsetup=(TTree*) input->Get("AMSRootSetup");
+  if(rsetup){fout->cd();rsetup->Write("AMSRootSetup");}
   TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
   if(obj2) {fout->cd();obj2->Write("AMS02Geometry");}
   TObjString* obj3=(TObjString*)input->Get("DataCards");

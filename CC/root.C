@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.294 2011/05/12 18:42:57 choutko Exp $
+//  $Id: root.C,v 1.295 2011/05/13 00:57:31 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -10,6 +10,9 @@
 #include "TFile.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+#ifdef _PGTRACK_
+#include "TrExtAlignDB.h"
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
@@ -4720,6 +4723,7 @@ static int master=0;
 	TkDBc::Head->init((Run()>=1257416200)?2:1);
       }
     }
+    TrExtAlignDB::Load(_FILE);
 
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
