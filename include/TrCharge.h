@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2011/05/05 23:14:39 $
+ $Date: 2011/05/13 19:27:24 $
 
- $Revision: 1.4 $
+ $Revision: 1.5 $
 */
 
 #include "TrCluster.h"
@@ -80,18 +80,17 @@ class like_t {
   float  LogLike; 
   //! Probability
   float  Prob;
-  //! Mean estimation
-  mean_t Mean;
+  //! Mean
+  float  Mean;
   //! Constructor
   like_t() { clear(); }
   //! Constructor
-  like_t(int t, int s = 0, int n = 0, float ll = 0, float p = 0) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Prob = p; }
+  like_t(int t, int s = 0, int n = 0, float ll = 0, float p = 0, float m = 0) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Prob = p; Mean = m; }
   //! Constructor
-  like_t(int t, int s, int n, float ll, float p, mean_t m) { clear(); Type = t; Side = s; NPoints = n; LogLike = ll; Prob = p; Mean = m; }
   //! Destructor
   ~like_t() { clear(); }
   //! Clear
-  void clear() { Type = 0; Side = 0; NPoints = 0; LogLike = 0; Prob = 0; Mean.clear(); }
+  void clear() { Type = 0; Side = 0; NPoints = 0; LogLike = 0; Prob = 0; Mean = 0; }
 };
 
 
@@ -179,7 +178,7 @@ class TrCharge {
   //! Truncated mean charge (inner tracker)
   static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
   //! Best available Q evaluation (truncated mean, charge units, all tracker) [0: x, 1: y, 2: xy weigh, 3: xy plain]
-  static float  GetQ(TrTrackR* track, int iside);
+  static float  GetQ(TrTrackR* track, int iside, float beta = 1);
 
   /////////////////////////
   // Likelihood methods

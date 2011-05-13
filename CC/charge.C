@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.83 2011/05/10 20:27:29 jorgec Exp $
+//  $Id: charge.C,v 1.84 2011/05/13 19:27:24 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -454,7 +454,9 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
   if (pbeta == NULL) return 0;
 
   AMSTrTrack *ptrtk=pbeta->getptrack();
-  if (ptrtk == NULL) return 0; 
+  if (ptrtk == NULL) return 0;
+
+  if (ptrtk->getnhits() == 0) return 0; // fake track check
 
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkAll)%10) != 0) {
 
@@ -961,11 +963,11 @@ int AMSChargeTracker::Fill(int refit) {
     return 0;
 
   // loop on charge indexes
-  like_t like; 
+  like_t like;
   for (int ind=0; ind<MaxZTypes; ind++) {
 
-    int Z = ind2charge(ind);
     float beta = ind>0?_pbeta->getbeta():1;
+    int Z = ind2charge(ind);
 
     if (_debug) 
       cout << "AMSChargeTracker::Fill-I- " <<
@@ -983,13 +985,12 @@ int AMSChargeTracker::Fill(int refit) {
   for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
   if (_ProbSum<=0) return 0; // GetTruncMeanProbToBeZ failed? 
 
-  //! Best available Q evaluation (truncated mean, charge units, all tracker) [0: x, 1: y, 2: xy weigh, 3: xy plain]
-  int iside=0; 
-  _Q = TrCharge::GetQ(_ptrtk, iside);
-
-  //! Truncated mean charge (inner tracker)
+  //! Best available Q evaluation (charge units) with beta correction 
   float beta = _pbeta->getbeta();
-  _TruncatedMean = TrCharge::GetTruncMeanCharge(_ptrtk, beta);
+  _Q = TrCharge::GetQ(_ptrtk, TrCharge::kX, beta);
+
+  //! Truncated mean charge (inner tracker), no beta correction
+  _TruncatedMean = TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner, _ptrtk, TrCharge::kX).Mean;
 
   //! ProbAlltracker not yet available
   _ProbAllTracker = 0;
