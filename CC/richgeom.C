@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.49 2011/03/30 10:11:29 mdelgado Exp $
+//  $Id: richgeom.C,v 1.50 2011/05/13 11:25:05 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -792,7 +792,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[1]=360;
   par[2]=RICradiator_box_sides;
   par[3]=2;
-  par[4]=-RICHDB::rad_height/2-RICHDB::foil_height/2-RICepsln/2;  // Radiator and foil are inside this box
+  par[4]=-RICHDB::rad_height/2-RICHDB::foil_height-RICepsln;  // Radiator and foil are inside this box
   par[5]=0;
   par[6]=RICradiator_box_radius;
   par[7]=RICHDB::rad_height/2;
@@ -847,7 +847,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
   par[9]=RICradiator_box_radius;
 
   coo[0]=0;coo[1]=0;
-  coo[2]=-RICHDB::rad_height/2-RICepsln/2;
+  coo[2]=-RICHDB::rad_height/2-RICepsln-RICHDB::foil_height/2;
 
   radiator_box->add(new AMSgvolume("HESAGLASS",
 				       0,
