@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.12 2009/02/20 14:12:20 choutko Exp $
+//  $Id: trdid.h,v 1.13 2011/05/13 19:51:25 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -166,6 +166,7 @@ geant getgain(){return _gain[_address+_tube];}
 static integer overflow(){return TRDMCFFKEY.adcoverflow;}
 //
 static uinteger NROCh(){return _NROCh;}
+static void ResetGains();
 uinteger cmpt() const;
 uinteger cmpta() const;
 uinteger gethaddr() const;   //  hardware address to be defined

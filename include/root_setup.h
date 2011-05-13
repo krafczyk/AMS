@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.19 2011/05/05 18:52:06 choutko Exp $
+//  $Id: root_setup.h,v 1.20 2011/05/13 19:51:25 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -120,13 +120,13 @@ ClassDef (SlowControlR,2)  //slowControl
 class TDVR{
 public:
 unsigned int Begin;  ///<Begin Validity
-unsigned int End;  ///<Begin Validity
-unsigned int Insert;  ///<Begin Validity
+unsigned int End;  ///<End Validity
+unsigned int Insert;  ///<Insert Time
 unsigned int Size; ///<Size in 32bit integers
 unsigned int CRC; ///<CRC
-vector<unsigned int> Data; ///<Data  (not filling by default)
+vector<unsigned int> Data; ///<Data  
 int DataMC; ///<0 MC 2: Data
-TString Name; ///< TDV Name; TString because of root can't properly handle string
+TString Name; ///< TDV Name; 
 TString FilePath; ///<File Path
 TDVR():Begin(0),End(0),Insert(0),CRC(0),Size(0),DataMC(0),Name(""),FilePath(""),Data(){}
 TDVR(const TDVR &a):Begin(a.Begin),End(a.End),Insert(a.Insert),CRC(a.CRC),Size(a.Size),Name(a.Name),FilePath(a.FilePath),Data(a.Data){}
@@ -137,7 +137,7 @@ bool CopyOut(void * Out);
 private:
   virtual ostream & print(ostream &) const;
  
-ClassDef (TDVR,5) //TDVR
+ClassDef (TDVR,6) //TDVR
 };
 
 
@@ -202,6 +202,7 @@ public:
 int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns fTDV_Time
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
+ int getTDVi(const string & name, unsigned int time, TDVR_i & tdvi); ///<Return TDVR_i terator  tdvi with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
  typedef map <unsigned int,GPSTime> GPSTime_m;
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;

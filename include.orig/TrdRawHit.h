@@ -1,4 +1,4 @@
-//  $Id: TrdRawHit.h,v 1.6 2010/08/24 08:16:20 choutko Exp $
+//  $Id: TrdRawHit.h,v 1.7 2011/05/13 19:51:25 choutko Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
 //  below is the gift from VC to MM
@@ -21,7 +21,10 @@ class TrdRawHitR: public TrElem{
   
   TrdRawHitR():Layer(-1),Ladder(-1),Tube(-1),Amp(0.),Haddr(-1){};
   TrdRawHitR(int lay, int lad, int tub, float amp):Layer(lay),Ladder(lad),Tube(tub),Amp(amp),Haddr(0){};
-    
+   unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
+  float getped(int &error);   ///< return ped
+  float getsig(int &error);   ///< return sigma
+  float getgain(int &error);  ///< return gain    
   bool operator==(const TrdRawHitR& other) const {
     if(Layer != other.Layer)return 0;
     if(Ladder!= other.Ladder)return 0;
@@ -84,7 +87,7 @@ p=0;
 
 #endif
   
-  ClassDef(TrdRawHitR,3)       //TrdRawHitR
+  ClassDef(TrdRawHitR,4)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
     };
 

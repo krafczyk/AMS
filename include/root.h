@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.347 2011/05/12 15:43:01 choumilo Exp $
+//  $Id: root.h,v 1.348 2011/05/13 19:51:25 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1524,18 +1524,22 @@ static char _Info[255];
 
 /*
 class TrdRawHitR {
+protected:
 public:
   int Layer;   ///< Layer 0(bottom)...19(top) 
   int Ladder;  ///<  Ladder  number
   int Tube;    ///< tube number
   float Amp;   ///< amplitude (adc counts)
   int Haddr;   ///< Hardware Address cufhh  c crate[0-1],u udr[0-6] f ufe [0-7] hh channel[0-63]
-  
+   unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
+  float getped(int &error);   ///< return ped
+  float getsig(int &error);   ///< return sigma
+  float getgain(int &error);  ///< return gain
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
   virtual ~TrdRawHitR(){};
-ClassDef(TrdRawHitR,2)       //TrdRawHitR
+ClassDef(TrdRawHitR,3)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
 };*/
 
@@ -2678,6 +2682,11 @@ static bool fgThickMemory;
 static int fgThreads;
 static TString gWDir;
 long long Size();
+     union if_t{
+     float f;
+     unsigned int u;
+     int i; 
+     };
 protected:
 static TString Dir;
 #ifdef __ROOTSHAREDLIBRARY__
@@ -3062,6 +3071,30 @@ unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
+
+//! Fast TDVR Element Accessor
+/*!
+   input  tdvname
+
+          index of element to by accessed
+
+    output value
+
+    return 0 if success
+
+           1 no such tdv found
+
+           2 no valid tdv record found for the given event
+
+           3 index outside of bounds
+
+           4 tdv body is empty
+
+           5 no setup tree found
+
+*/
+int GetTDVEl(const string & tdvname,unsigned int index, if_t &value); 
+
 
          //! Yet Another SlowControlElement Accessor
         /*!
@@ -4674,7 +4707,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,14)       //AMSEventR
+ClassDef(AMSEventR,15)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
