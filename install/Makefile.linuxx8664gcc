@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.3 2011/05/08 04:04:13 pzuccon Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.4 2011/05/13 20:56:42 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -202,7 +202,7 @@ LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnaggcc64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto -lkrb5support -lssl -lcrypto  -lcom_err -lfreetype  -ldl    -lpcre\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto -lkrb5support -lssl -lcrypto  -lcom_err -lfreetype -lncurses  -ldl    -lpcre\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE
