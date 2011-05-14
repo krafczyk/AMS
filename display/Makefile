@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.90 2011/05/06 21:54:40 pzuccon Exp $
+#  $Id: Makefile,v 1.91 2011/05/14 15:59:19 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -41,6 +41,11 @@ AMSPRGCC       = $(AMSWD)/exe/$(ARCH)/amseddPG
 endif
 
 
+CASTORLIB= -lRCastor
+ifdef NOCASTOR
+CPPFLAGS+= -D__NOCASTOR__
+CASTORLIB=
+endif
 
 # display compiles only with customized ROOT, at the moment v5.21
 NEW         :=_new
@@ -61,7 +66,7 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
@@ -85,10 +90,10 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil -lncurses
 
 LIBS          =   -Bstatic $(ROOTLIBSA)  -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm   -Bdynamic -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm             -ldl 
@@ -135,7 +140,7 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx -lGX11 -lGX11TTF
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
@@ -165,10 +170,10 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
 LIBS          =    -Bstatic $(ROOTLIBSA)  -lm -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -ldl
 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm    -ldl 
@@ -232,9 +237,6 @@ endif
 #endif
 
 
-ifdef NOCASTOR
-CPPFLAGS+= -D__NOCASTOR__
-endif
 
 
 ##### MACROS #####
