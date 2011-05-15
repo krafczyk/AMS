@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.162 2011/05/13 00:56:59 pzuccon Exp $
+#  $Id: Makefile,v 1.163 2011/05/15 01:15:14 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -233,7 +233,8 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
 	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
-        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrExtAlignDB.C
+        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C 
+#$(SCC)TrExtAlignDB.C
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C $(SFF)rkms.F
@@ -305,7 +306,7 @@ endif
 COMMON_FILES += $(SCC)root.C $(SCC)root_setup.C   
 
 ifdef PGTRACK
-ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h ../include/TrExtAlignDB.h\
+ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrCalDB.h \
 		../include/tkpatt.h         ../include/TkCoo.h  ../include/TkSens.h \
 		../include/TrRecon.h 	  ../include/TkDBc.h  ../include/MagField.h \
@@ -322,6 +323,7 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h ../include/TrExtAlignDB
 		../include/TrHistoMan.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h
+#../include/TrExtAlignDB.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif

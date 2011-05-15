@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.38 2011/05/14 16:50:52 pzuccon Exp $
+//  $Id: amschain.C,v 1.39 2011/05/15 01:15:14 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -423,7 +423,8 @@ void AMSChain::OpenOutputFile(const char* filename){
 #ifdef _PGTRACK_
   // Parameters
 // PZ FIXME TrExtAlign
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+//  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
   for(int ii=0;ii<5;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
