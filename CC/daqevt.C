@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.214 2011/05/09 20:28:07 pzuccon Exp $
+//  $Id: daqevt.C,v 1.215 2011/05/15 16:16:01 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -377,10 +377,10 @@ else{
  }
  fpl=fpl->_next;
  }
- if(pjinj){
+ if(pjinj) {
   *(_pcur)=0;
   *(_pcur+1)=calculate_CRC16((pjinj+2),lntotm/2-2);
- if(DAQCFFKEY.mode/100==9){
+ if(DAQCFFKEY.mode/100==9) {
 //
 // special daqcdffkey.mode/100==9;
 // hoffman compression (assumed to be same as  in jmdc) compressin
@@ -393,15 +393,15 @@ else{
     AMSgObj::BookTimer.start("SIZIP");
   static int ziperr=0;
   uint l2c=*(pjinj)-2;
-size_t outl=DAQCompress::compressable((Bytef*)(pjinj+2),l2c);
-if(outl){
+size_t outl=DAQCompress::compressable((unsigned short *)(pjinj+2), l2c);
+if(outl) {
  Bytef* ostream=(Bytef*)calloc(outl+2,sizeof(Bytef));
-if(DAQCompress::compress((Bytef*)(pjinj+2),l2c,ostream,outl)){ 
+ if(DAQCompress::compress((unsigned short *)(pjinj+2), l2c, (unsigned short *)ostream, outl)){ 
     *(pjinj)=*(pjinj)+(outl-l2c);
     *(pjinj+1)+=3;
     char *src=(char*)pjinj;
     int hdrsize=sizeof(_pData[0])*2;
-    int inputl=DAQCompress::decompressable((Bytef*)ostream,outl);
+    int inputl=DAQCompress::decompressable((unsigned short *)ostream, outl);
 //    cout <<"  *** imput/output "<<inputl<<" "<<l2c<<" "<<outl;
     memcpy(src+hdrsize,ostream,outl);
     if(outl%2){
@@ -848,7 +848,7 @@ integer DAQEvent::_EventOK(){
 // 
 //         cout <<"**** compressed structure found ***"<<endl;
          uint l2u=_clb(_pcur)-2;
-         uint l2c=DAQCompress::decompressable((Bytef*)(_pcur+_cll(_pcur)+1),l2u);
+         uint l2c=DAQCompress::decompressable((unsigned short *)(_pcur+_cll(_pcur)+1), l2u);
          if(l2c){
           uinteger bl=(_pcur-_pData-_cll(_pData))*sizeof(_pData[0]);
           uinteger cl=(_pcur+_cl(_pcur)-_pData-_cll(_pData));
@@ -862,7 +862,7 @@ integer DAQEvent::_EventOK(){
           }
           Bytef ostream[l2c+al+add+bl];
           memcpy(ostream,(char*)(_pData+_cll(_pData)),bl);
-           if(DAQCompress::decompress((Bytef*)(_pcur+_cll(_pcur)+1),l2u,ostream+bl+add,l2c)){
+	  if(DAQCompress::decompress((unsigned short *)(_pcur+_cll(_pcur)+1), l2u, (unsigned short *)(ostream+bl+add), l2c)){
             memcpy(ostream+bl+add+l2c,(char*)(_pcur+_cl(_pcur)),al);
             uint16 smb;
             smb=*(_pcur+_cll(_pcur));
@@ -2856,184 +2856,268 @@ return id == outputl;
 
 
 
+bool DAQCompress::_huffman_init = false;
+bool DAQCompress::_huffman_swap = false;
 
-DAQCompress::huff_code DAQCompress::alphabet[DAQCompress::L_CODES]={
-{  1,  1}, { 22,  6}, { 13,  5}, { 14,  5}, { 15,  5},
-{ 63,  8}, { 37,  7}, { 64,  8}, { 23,  6}, { 38,  7},
-{ 65,  8}, { 59,  9}, { 60,  9}, { 46, 10}, { 61,  9},
-{ 62,  9}, { 66,  8}, { 67,  8}, { 63,  9}, { 64,  9},
-{ 65,  9}, { 47, 10}, { 48, 10}, { 66,  9}, { 49, 10},
-{ 67,  9}, { 68,  9}, { 50, 10}, { 51, 10}, { 52, 10},
-{ 53, 10}, { 69,  9}, { 70,  9}, { 54, 10}, { 71,  9},
-{ 55, 10}, { 56, 10}, { 57, 10}, { 58, 10}, { 72,  9},
-{ 73,  9}, { 59, 10}, { 74,  9}, { 60, 10}, { 61, 10},
-{ 62, 10}, { 63, 10}, { 64, 10}, { 75,  9}, { 76,  9},
-{ 77,  9}, { 78,  9}, { 79,  9}, { 80,  9}, { 81,  9},
-{ 82,  9}, { 83,  9}, { 84,  9}, { 85,  9}, { 86,  9},
-{ 87,  9}, { 88,  9}, { 89,  9}, { 90,  9}, { 39,  7},
-{ 91,  9}, { 92,  9}, { 93,  9}, { 94,  9}, { 65, 10},
-{ 66, 10}, { 95,  9}, { 40,  7}, { 67, 10}, { 68, 10},
-{ 69, 10}, { 70, 10}, { 71, 10}, { 72, 10}, { 73, 10},
-{ 68,  8}, { 96,  9}, { 74, 10}, { 75, 10}, { 76, 10},
-{ 77, 10}, { 78, 10}, {  1, 11}, {  2, 11}, { 79, 10},
-{  3, 11}, {  4, 11}, { 80, 10}, {  5, 11}, { 81, 10},
-{ 82, 10}, { 83, 10}, { 84, 10}, {  6, 11}, {  7, 11},
-{ 85, 10}, {  8, 11}, {  9, 11}, { 10, 11}, { 11, 11},
-{ 86, 10}, { 12, 11}, { 13, 11}, { 87, 10}, { 14, 11},
-{ 88, 10}, { 15, 11}, { 89, 10}, { 90, 10}, { 16, 11},
-{ 17, 11}, { 18, 11}, { 91, 10}, { 19, 11}, { 20, 11},
-{ 21, 11}, { 92, 10}, { 22, 11}, { 23, 11}, { 93, 10},
-{ 94, 10}, { 95, 10}, { 97,  9}, { 24,  6}, { 98,  9},
-{ 99,  9}, {100,  9}, { 69,  8}, {101,  9}, {102,  9},
-{103,  9}, {104,  9}, {105,  9}, { 70,  8}, { 41,  7},
-{ 71,  8}, {106,  9}, {107,  9}, {108,  9}, { 25,  6},
-{109,  9}, {110,  9}, {111,  9}, {112,  9}, {113,  9},
-{114,  9}, {115,  9}, { 24, 11}, { 25, 11}, { 26, 11},
-{ 27, 11}, { 96, 10}, { 28, 11}, { 29, 11}, { 30, 11},
-{ 97, 10}, { 72,  8}, { 31, 11}, { 32, 11}, {116,  9},
-{ 33, 11}, { 98, 10}, { 34, 11}, { 99, 10}, {117,  9},
-{ 35, 11}, { 36, 11}, {100, 10}, { 37, 11}, { 38, 11},
-{ 39, 11}, {101, 10}, { 73,  8}, {102, 10}, { 40, 11},
-{103, 10}, { 41, 11}, {104, 10}, { 42, 11}, { 43, 11},
-{118,  9}, { 44, 11}, { 45, 11}, { 46, 11}, { 47, 11},
-{105, 10}, {106, 10}, {107, 10}, {119,  9}, { 48, 11},
-{ 49, 11}, { 50, 11}, { 51, 11}, { 52, 11}, { 53, 11},
-{ 54, 11}, {120,  9}, { 55, 11}, { 56, 11}, { 57, 11},
-{ 58, 11}, {108, 10}, { 59, 11}, {109, 10}, {121,  9},
-{ 60, 11}, { 61, 11}, { 62, 11}, { 63, 11}, { 64, 11},
-{110, 10}, { 65, 11}, {122,  9}, { 66, 11}, { 67, 11},
-{ 68, 11}, { 69, 11}, {111, 10}, {112, 10}, { 42,  7},
-{ 70, 11}, { 71, 11}, { 72, 11}, { 73, 11}, { 74, 11},
-{ 75, 11}, { 76, 11}, {123,  9}, { 77, 11}, { 78, 11},
-{ 79, 11}, {113, 10}, { 80, 11}, { 81, 11}, {114, 10},
-{124,  9}, { 82, 11}, { 83, 11}, {115, 10}, { 84, 11},
-{ 85, 11}, {116, 10}, { 86, 11}, { 87, 11}, { 88, 11},
-{117, 10}, { 89, 11}, { 90, 11}, { 91, 11}, {125,  9},
-{ 43,  7}, {  0, 12}
+unsigned int DAQCompress::huffman_code[256] = {
+  0x00010001, 0x00160006, 0x000d0005, 0x000e0005, 0x000f0005, 0x003f0008, 0x00250007, 0x00400008,
+  0x00170006, 0x00260007, 0x00410008, 0x003b0009, 0x003c0009, 0x002e000a, 0x003d0009, 0x003e0009,
+  0x00420008, 0x00430008, 0x003f0009, 0x00400009, 0x00410009, 0x002f000a, 0x0030000a, 0x00420009,
+  0x0031000a, 0x00430009, 0x00440009, 0x0032000a, 0x0033000a, 0x0034000a, 0x0035000a, 0x00450009,
+  0x00460009, 0x0036000a, 0x00470009, 0x0037000a, 0x0038000a, 0x0039000a, 0x003a000a, 0x00480009,
+  0x00490009, 0x003b000a, 0x004a0009, 0x003c000a, 0x003d000a, 0x003e000a, 0x003f000a, 0x0040000a,
+  0x004b0009, 0x004c0009, 0x004d0009, 0x004e0009, 0x004f0009, 0x00500009, 0x00510009, 0x00520009,
+  0x00530009, 0x00540009, 0x00550009, 0x00560009, 0x00570009, 0x00580009, 0x00590009, 0x005a0009,
+  0x00270007, 0x005b0009, 0x005c0009, 0x005d0009, 0x005e0009, 0x0041000a, 0x0042000a, 0x005f0009,
+  0x00280007, 0x0043000a, 0x0044000a, 0x0045000a, 0x0046000a, 0x0047000a, 0x0048000a, 0x0049000a,
+  0x00440008, 0x00600009, 0x004a000a, 0x004b000a, 0x004c000a, 0x004d000a, 0x004e000a, 0x0001000b,
+  0x0002000b, 0x004f000a, 0x0003000b, 0x0004000b, 0x0050000a, 0x0005000b, 0x0051000a, 0x0052000a,
+  0x0053000a, 0x0054000a, 0x0006000b, 0x0007000b, 0x0055000a, 0x0008000b, 0x0009000b, 0x000a000b,
+  0x000b000b, 0x0056000a, 0x000c000b, 0x000d000b, 0x0057000a, 0x000e000b, 0x0058000a, 0x000f000b,
+  0x0059000a, 0x005a000a, 0x0010000b, 0x0011000b, 0x0012000b, 0x005b000a, 0x0013000b, 0x0014000b,
+  0x0015000b, 0x005c000a, 0x0016000b, 0x0017000b, 0x005d000a, 0x005e000a, 0x005f000a, 0x00610009,
+  0x00180006, 0x00620009, 0x00630009, 0x00640009, 0x00450008, 0x00650009, 0x00660009, 0x00670009,
+  0x00680009, 0x00690009, 0x00460008, 0x00290007, 0x00470008, 0x006a0009, 0x006b0009, 0x006c0009,
+  0x00190006, 0x006d0009, 0x006e0009, 0x006f0009, 0x00700009, 0x00710009, 0x00720009, 0x00730009,
+  0x0018000b, 0x0019000b, 0x001a000b, 0x001b000b, 0x0060000a, 0x001c000b, 0x001d000b, 0x001e000b,
+  0x0061000a, 0x00480008, 0x001f000b, 0x0020000b, 0x00740009, 0x0021000b, 0x0062000a, 0x0022000b,
+  0x0063000a, 0x00750009, 0x0023000b, 0x0024000b, 0x0064000a, 0x0025000b, 0x0026000b, 0x0027000b,
+  0x0065000a, 0x00490008, 0x0066000a, 0x0028000b, 0x0067000a, 0x0029000b, 0x0068000a, 0x002a000b,
+  0x002b000b, 0x00760009, 0x002c000b, 0x002d000b, 0x002e000b, 0x002f000b, 0x0069000a, 0x006a000a,
+  0x006b000a, 0x00770009, 0x0030000b, 0x0031000b, 0x0032000b, 0x0033000b, 0x0034000b, 0x0035000b,
+  0x0036000b, 0x00780009, 0x0037000b, 0x0038000b, 0x0039000b, 0x003a000b, 0x006c000a, 0x003b000b,
+  0x006d000a, 0x00790009, 0x003c000b, 0x003d000b, 0x003e000b, 0x003f000b, 0x0040000b, 0x006e000a,
+  0x0041000b, 0x007a0009, 0x0042000b, 0x0043000b, 0x0044000b, 0x0045000b, 0x006f000a, 0x0070000a,
+  0x002a0007, 0x0046000b, 0x0047000b, 0x0048000b, 0x0049000b, 0x004a000b, 0x004b000b, 0x004c000b,
+  0x007b0009, 0x004d000b, 0x004e000b, 0x004f000b, 0x0071000a, 0x0050000b, 0x0051000b, 0x0072000a,
+  0x007c0009, 0x0052000b, 0x0053000b, 0x0073000a, 0x0054000b, 0x0055000b, 0x0074000a, 0x0056000b,
+  0x0057000b, 0x0058000b, 0x0075000a, 0x0059000b, 0x005a000b, 0x005b000b, 0x007d0009, 0x002b0007
 };
 
-int DAQCompress::bl_count[DAQCompress::LENGTH]= {  1 ,   0 ,   0 ,   0 ,   3 ,   4 ,   7 ,  11 ,  67 ,  72 ,  91 ,   1 ,   0 ,   0 ,   0};
+unsigned short DAQCompress::huffman_first_code[16] = {16*0};
+unsigned short DAQCompress::huffman_decode_table[16][256] = {4096*0};
+unsigned short DAQCompress::huffman_array[0xC000] = {0xC000*0};
+unsigned int   DAQCompress::huffman_length = 0;
+
+void DAQCompress::huffman_init() {
+
+  unsigned char  *ptr;
+  unsigned int   v;
+  unsigned short i, n, m, pos, vcode, lcode;
 
 
-int DAQCompress::first_code[DAQCompress::LENGTH] = {  1 ,   2 ,   4 ,   8 ,  13 ,  22 ,  37 ,  63 ,  59 ,  46 ,   1 ,   0 ,   0 ,   0 ,   0};
+  _huffman_init = true;        
 
 
-int DAQCompress::decode_table[DAQCompress::LENGTH][DAQCompress::LITERALS];
+  for(i=0; i<16; i++){                                  // code length
+    for (n=0;  n<256; n++) {                            // position for a given length
+      huffman_decode_table[i][n] = 0xFFFF;              // undefine code
+    }
+  }
 
-void DAQCompress::init_decode() {
-        _init_decode=true;        
-        for(int ilen = 1; ilen < LENGTH; ilen++){
-                int pos = 0;
-                for (int n = 0;  n <= 256; n++) {
-                        int len = alphabet[n].Len;
-                        if (len == 0) continue;
-                        if(len == ilen) {
-                                decode_table[ilen][pos++] = n;
-                        }
-                }
-        }
+  m = 0;
+  for(i=0; i<16; i++){
+
+    if ( i < 9 ) huffman_first_code[i] = 1<<i;
+    else         huffman_first_code[i] = 0;
+
+    pos = 0;
+    for (n=0;  n<256; n++) {
+
+      v = huffman_code[n];                              // Huffman codes
+      vcode = v >> 16;                                  // encoded bit pattern
+      lcode = v & 0xFFFF;                               // number of bits in the pattern
+      if ( m < lcode ) m = lcode;
+
+      if( lcode == (i+1) ) {
+        if ( pos == 0 ) huffman_first_code[i] = vcode;
+        huffman_decode_table[i][pos++] = n;             // fill decoding table
+      }
+    }
+
+  }
+
+  // insert end symbol
+  huffman_decode_table[m][0] = 256;                     // end symbol code
+
+
+  // define swap rules
+  ptr = (unsigned char *) &vcode;
+  vcode = 0x55AA;
+  lcode = ptr[1]<<8 | ptr[0];
+
+  if ( lcode == vcode ) {
+    _huffman_swap = true;
+  } else {
+    _huffman_swap = false;
+  }
+
 }
 
 
-size_t DAQCompress::compressable(Bytef *istream, size_t inputl)
+size_t DAQCompress::compressable(unsigned short *istream, size_t len)
 {
-        int nbits = 0;
 
-        for(int i = 0; i < inputl; i++)
-        {
-                nbits += alphabet[istream[i]].Len;
-        }
-        int outputl=(nbits+7)/8;
-        if(outputl%2)outputl++;
-        const int HDR=3;
-        return (outputl+HDR<inputl?outputl:0);
+  if(!_huffman_init) huffman_init();
+
+  unsigned int   i, v;
+  unsigned short vcode, lcode, nbits, *dest;
+
+  nbits  = 0;
+  huffman_length = 0;
+
+  len = len >> 1;                                        // input length in bytes
+  dest = huffman_array;
+
+  *dest = 0;
+
+  for(i=0; i<len; i++) {
+
+    v = (*istream & 0xFF00) >> 8;
+    v = huffman_code[v];                                 // Huffman code for MSB
+
+    vcode = v >> 16;                                     // encoded bit pattern
+    lcode = v & 0xFFFF;                                  // number of bits in the pattern
+
+    nbits += lcode;
+    if ( nbits > 16 ) {
+
+      // fill the current word and start the new one
+      nbits &= 0xF;                                       // economic way of doing nbits -= 16;
+      huffman_length++;
+
+      if ( huffman_length < 0xC000 ) {
+	*dest++ |= vcode >> nbits;
+	*dest    = vcode << (16-nbits);
+      }
+
+    } else {
+
+      // new code fits the current word
+      *dest |= vcode << (16-nbits);
+
+    }
+
+    v = *istream++ & 0xFF;
+    v = huffman_code[v];                                 // Huffman code for LSB
+
+    vcode = v >> 16;                                     // encoded bit pattern
+    lcode = v & 0xFFFF;                                  // number of bits in the pattern
+
+    nbits += lcode;
+    if ( nbits > 16 ) {
+
+      // fill the current word and start the new one
+      nbits &= 0xF;                                       // economic way of doing nbits -= 16;
+      huffman_length++;
+
+      if ( huffman_length < 0xC000 ) {
+	*dest++ |= vcode >> nbits;
+	*dest    = vcode << (16-nbits);
+      }
+
+    } else {
+
+      // new code fits the current word
+      *dest |= vcode << (16-nbits);
+
+    }
+
+  }
+
+  // END of BLOCK symbol - 12 bits, all 0 - already encoded by construction
+
+  huffman_length++;
+
+  // output length in bytes
+  return huffman_length<<1;
         
 }
 
 
-bool DAQCompress::compress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl)
+bool DAQCompress::compress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl)
 {
-        ush bi_buf = 0;
-        int bi_valid = 0;
-        ush npending = 0; // current length of output bit stream in bytes
+  if(!_huffman_init)                    return false;
 
-        for(int i = 0; i < inputl; i++){
-                int len = alphabet[istream[i]].Len;
-                int val = alphabet[istream[i]].Code;
-                bi_valid += len;
-                if (bi_valid > 16) {
-                        bi_valid -= 16;
-                        bi_buf |= (val >> bi_valid);
-                        if(!(npending+1<outputl)){
-                           return 0;
-                         }
-                        ostream[npending++] = bi_buf >> 8;
-                        ostream[npending++] = bi_buf & 0xff;
-                        bi_buf = (ush)val << (16 - bi_valid);
-                } else {
-                        bi_buf |= (val) << (16 - bi_valid);
-                }
+  if ( outputl != (huffman_length<<1) ) return false;
 
-        }
-        if(bi_valid > 0) {
-                        if(!(npending+1<outputl)){
-                           return 0;
-                         }
-                ostream[npending++] = bi_buf >> 8;
-                ostream[npending++] = bi_buf & 0xff;
-        }
-        return npending==outputl;
+  if ( huffman_length > 0xC000 )        return false;
+
+  memcpy(ostream, huffman_array, outputl);
+
+  return true;
 }
 
 
- size_t DAQCompress::decompressable(Bytef *istream, size_t inputl)
+ size_t DAQCompress::decompressable(unsigned short *istream, size_t length)
 {
-        if(!_init_decode)init_decode();
-        int l = 0;
-        int v = 0;
-        int nb = 0;
 
-        for(int i = 0; i < (inputl << 3); i++) {
-                v = (v << 1) | get_bit(istream, i);
-                if(v >= first_code[l]) {
-                        int dv = decode_table[l + 1][v - first_code[l]];
-                        if(dv >=0 && dv <= 255) nb++;
-                        l = 0;
-                        v = 0;
-                }
-                else l++;
-        }
+  if(!_huffman_init) huffman_init();
 
-        return nb;
+  unsigned char  *ostream;
+  unsigned short l, v, dv, nb = 0;
+  unsigned int   base = 0;
+
+  //
+  // decoding ends when all input words are processed
+  // or END symbol - (12 zero bits) is identified
+  //
+
+  length  = length >> 1;
+  ostream = (unsigned char *) huffman_array;
+
+  while( 1 ) {
+
+    // get encoded value
+    for(l=0, v=huffman_bit(istream, l+base); v<huffman_first_code[l]; v=(v<<1) | huffman_bit(istream, ++l + base));
+
+    base += l + 1;
+
+    // BASE exceeding length means remaing bits are all ZEROes
+    if ( base > (length<<4) ) break;                    // total decoded length <= input length
+
+    dv = huffman_decode_table[l][v -huffman_first_code[l]];
+    if( dv < 256 ) {
+      ostream[nb++] = dv;                               // valid byte - continue decoding
+    } else if (dv == 256) {
+      break;                                            // end symbol - normal termination
+    } else {
+      nb = 0;                                           // invalid byte - abnormal termination
+      break;
+    }
+
+  }
+
+  // if the encoded stream is only partially processed
+  if ( base < ((length<<4)-12) ) nb = 0;
+
+  huffman_length = (nb+1)>>1;
+
+  return nb;
+
 }
 
 
-bool DAQCompress::decompress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl)
+bool DAQCompress::decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl)
 {
 
-        if(!_init_decode)init_decode();
-        int l = 0;
-        int v = 0;
-        int nb = 0;
+  int i;
 
-        for(int i = 0; i < (inputl << 3); i++) {
-                v = (v << 1) | get_bit(istream, i);
-                if(v >= first_code[l]) {
-                        int dv = decode_table[l + 1][v - first_code[l]];
-                        if(dv >=0 && dv <= 255) {
-                           if(nb>=outputl)return false;
-                           ostream[nb++] = dv;
-                        }
-                        l = 0;
-                        v = 0;
-                }
-                else l++;
-        }
+  if(!_huffman_init)                    return false;
 
-        return nb==outputl;
+  if ( outputl != (huffman_length<<1) ) return false;
+
+  if ( huffman_length > 0xC000 )        return false;
+
+  // swap bytes if needed
+  if ( _huffman_swap ) {
+    for (i=0; i<huffman_length; i++) ostream[i] = ((huffman_array[i]&0xFF00)>>8) | ((huffman_array[i]&0xFF)<<8);
+  } else {
+    for (i=0; i<huffman_length; i++) ostream[i] = huffman_array[i];
+  }
+
+  return true;
 }
-
-bool DAQCompress::_init_decode=false;
 
 
 #include "timeid.h"

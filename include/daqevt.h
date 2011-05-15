@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.81 2011/04/26 20:24:10 choutko Exp $
+//  $Id: daqevt.h,v 1.82 2011/05/15 16:16:08 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -35,36 +35,24 @@ DAQSubDet(pid pgetid,  pputdata pput):
 friend class DAQEvent;
 };
 
-class DAQCompress{
-public:
-
-const int static LITERALS = 256;
-const int static L_CODES = LITERALS + 1;
-const int static LENGTH=16;
-const int static END_BLOCK = 256;
-typedef unsigned char uch;
-typedef unsigned char Bytef;
-typedef unsigned short ush;
-typedef unsigned long  ulg;
-typedef unsigned int uInt;
-typedef struct _huff_code{
-        ush Code;
-        ush Len;
-} huff_code;
-static  huff_code alphabet[L_CODES];
-static int bl_count[LENGTH];
-static int first_code[LENGTH];
-static int decode_table[LENGTH][LITERALS];
-static void init_decode();
-static bool _init_decode;
-static size_t compressable(Bytef *istream, size_t inputl);
-static bool compress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl); 
-static size_t decompressable(Bytef *istream, size_t inputl);
-static bool decompress(Bytef *istream, size_t inputl, Bytef *ostream, size_t outputl); 
-static int get_bit(uch *data, int i) {
-        return data[i >> 3] & (1 << (7 - i & 7)) ? 1 : 0; // i % 8 = i & 7
+class DAQCompress {
+protected:
+static unsigned int   huffman_code[256];
+static unsigned short huffman_first_code[16];
+static unsigned short huffman_decode_table[16][256];
+static unsigned short huffman_array[0xC000];
+static unsigned int   huffman_length;
+static bool           _huffman_init;
+static bool           _huffman_swap;
+static void           huffman_init();
+static unsigned short huffman_bit(unsigned short *data, unsigned short i) {
+  return (data[i>>4] & (1 << (0xF - (i&0xF)))) >> (0xF - (i&0xF));
 };
-
+public:
+static size_t         compressable(unsigned short *istream, size_t inputl);
+static bool           compress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
+static size_t         decompressable(unsigned short *istream, size_t inputl);
+static bool           decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
 
 };
 
