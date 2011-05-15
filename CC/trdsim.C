@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.45 2011/05/13 19:51:22 choutko Exp $
+//  $Id: trdsim.C,v 1.46 2011/05/15 22:19:11 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -279,8 +279,9 @@ void AMSTRDRawHit::updtrdcalib(int n, int16u* p){
    }
    AMSTimeID *ptdv;
      time_t begin,end,insert;
-      const int ntrd=3;
-      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDStatus"};
+      const int ntrd=2;
+//      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDStatus"};
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas"};
       for (int i=0;i<ntrd;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
       ptdv->UpdateMe()=1;
@@ -362,9 +363,10 @@ void AMSTRDRawHit::updtrdcalib2009(int n, int16u* p){
    if(update){
    AMSTimeID *ptdv;
      time_t begin,end,insert;
-      const int ntrd=3;
+      const int ntrd=2;
 //      AMSTRDIdSoft::ResetGains();
-      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDStatus"};
+//      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas","TRDStatus"};
+      const char* TDV2Update[ntrd]={"TRDPedestals","TRDSigmas"};
       for (int i=0;i<ntrd;i++){
       ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
       ptdv->UpdateMe()=1;
