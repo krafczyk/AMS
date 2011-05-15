@@ -126,7 +126,8 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
   int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
   int16u jbias,ebias,jblid,eblid,jleng,eleng,jaddr,eaddr,csid;
-  int16u rawlen,comlen;
+  int16u rawlen;
+  integer comlen;
   int16u word,nword,nnword;
   int16u fmt;
   int16u osbit;
@@ -397,7 +398,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
 	  SlRawFmt[slot]=0;//not the raw format
           while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))
 	    rdch=*(p+jbias+ebias);//rdch(ADC-addr)(0-242)
-	    if(rdch>=0 && rdch<=242){// addr ok
+	    if(rdch<=242){// addr ok
 	      val16=*(p+jbias+ebias+1);//ADC-value(multiplied by 16 in DSP)
 //	  cout<<"  ebias="<<ebias<<" rdch/val="<<rdch<<" "<<val16<<endl;
 	      AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
@@ -496,7 +497,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
             EcalJobStat::daqs3(crat-1,slot,17+12*formt);
             while(ebias<eleng){//<---- EDR-words loop (max 2*243 (rdch# + ADC-valie))
 	      rdch=*(p+jbias+ebias);//rdch(ADC-addr)(0-242)
-	      if(rdch>=0 && rdch<=242){// addr ok
+	      if(rdch<=242){// addr ok
 	        val16=*(p+jbias+ebias+1);//ADC-value(multiplied by 16 in DSP)
 //	cout<<"  ComSubS:ebias="<<ebias<<" rdch/val="<<rdch<<" "<<val16<<endl;
 	        AMSECIds ecid(crat-1,csid-1,slot,rdch);//create ecid-obj
