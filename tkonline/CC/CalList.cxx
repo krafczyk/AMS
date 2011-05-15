@@ -33,7 +33,7 @@ CalList::CalList(AMSTimeID * TT,
   for (int ii=0; ii< num;ii++){
     uinteger times[5];
     time_t tim=timeid->GetDBRecordTimes(num-(ii+1),times);
-    sprintf(tmp,"%d %s",tim,gmtime(&tim));
+    sprintf(tmp,"%d %s",tim,asctime(gmtime(&tim)));
     fListBox->AddEntry(tmp,ii);
   }
   fSelected = new TList;

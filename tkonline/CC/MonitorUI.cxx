@@ -13,12 +13,13 @@
 #include <TGFileDialog.h>
 #include <TGInputDialog.h>
 
-#define M_FILE_OPEN     0
-#define M_FILE_OPEN_REF 1
-#define M_CAL_DB        2
-#define M_FILE_EXIT     3
-#define M_PRINT_THIS    4
-#define M_PRINT_ALL     5
+#define M_FILE_OPEN_CAL 0
+#define M_FILE_OPEN_MON 1
+#define M_FILE_OPEN_REF 2
+#define M_CAL_DB        3
+#define M_FILE_EXIT     4
+#define M_PRINT_THIS    5
+#define M_PRINT_ALL     6
 
 ClassImp(MonitorUI);
 
@@ -26,7 +27,7 @@ ClassImp(MonitorUI);
 TStyle* MonitorUI::style = 0;
 
 
-MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMainFrame(p,w,h) {
+MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char* filename1, char* filename2) : TGMainFrame(p,w,h) {
   // DB init
   TkDBc::CreateTkDBc();
   TkDBc::Head->init(3);
@@ -34,7 +35,8 @@ MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMai
   // add menu bar
   TGMenuBar *menubar = new TGMenuBar(this,100,20,kHorizontalFrame);
   TGPopupMenu *menufile = new TGPopupMenu();
-  menufile->AddEntry("Open &File",M_FILE_OPEN);
+  menufile->AddEntry("Open &Calibration File",M_FILE_OPEN_CAL);
+  menufile->AddEntry("Open &Monitoring File",M_FILE_OPEN_MON);
   menufile->AddEntry("Open Calibration from &DB",M_CAL_DB);
   menufile->AddEntry("Open &Reference File",M_FILE_OPEN_REF);
   menufile->AddSeparator();
@@ -71,7 +73,9 @@ MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMai
   gs->Connect("Updated()","InteractionPanel",intpan,"Update()");
   gs->Connect("Updated()","TrackerPanel",track,"Update()");
   // open file if provided in command line
-  if (strlen(filename)!=0) HandleFile(filename,M_FILE_OPEN);
+  if (strlen(filename1)!=0) HandleFile(filename1,M_FILE_OPEN_MON);
+  if (strlen(filename2)!=0) HandleFile(filename2,M_FILE_OPEN_CAL);
+  if ( (strlen(filename1)!=0)&&(strlen(filename2)==0) ) HandleFile(filename1,M_FILE_OPEN_CAL);
   // finish 
   SetWindowName("MonitorUI");
   MapSubwindows();
@@ -81,40 +85,42 @@ MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename) : TGMai
 
 
 void MonitorUI::HandleFile(char* filename, int ref) {
-  gs->Clear();
+  if (filename==0) return; // no other ... 
   if(strcmp(filename,"-W")==0){    
     gs->addSlider(GenericSlider::kCalSlider);
-    gs->setRootFile(filename);
-    return;
-  }else{
-  TFile* file = TFile::Open(filename,"r");
-  if (file==0) { 
-    printf("MonitorUI::HandleFile-W cannot open the file (%s), please try again using the File::Open menu.\n",filename); 
-    return; 
-  }
-  if ( (ref==M_FILE_OPEN)&&(file->FindObjectAny("TrCalDB")!=0) ) {
-    gs->addSlider(GenericSlider::kCalSlider);
-    gs->setRootFile(filename);
-  }
-  if ( (ref==M_FILE_OPEN)&&( (file->FindObjectAny("TrOnlineMon")!=0)||(file->FindObjectAny("Size_all")!=0) ) ) {
-    gs->addSlider(GenericSlider::kMonSlider);
-    gs->setRootFile(filename);
-  }
-  if (ref==M_FILE_OPEN_REF) {
-    gs->setRefFile(filename);
-  }
-  file->Close();
-  if (gs->getnSlider()==0) {
-    printf("MonitorUI::HandleFile-W file not recognized in (%s), please try again using the File::Open menu.\n",filename);
+    gs->setRootFile(filename,GenericSlider::kCalSlider);
     return;
   }
+  else {
+    TFile* file = TFile::Open(filename,"r");
+    if (file==0) { 
+      printf("MonitorUI::HandleFile-W cannot open the file (%s), please try again using the File::Open menu.\n",filename); 
+      return; 
+    }
+    if ( (ref==M_FILE_OPEN_CAL)&&(file->FindObjectAny("TrCalDB")!=0) ) {
+      gs->addSlider(GenericSlider::kCalSlider);
+      gs->setRootFile(filename,GenericSlider::kCalSlider);
+    }
+    if ( (ref==M_FILE_OPEN_MON)&&( (file->FindObjectAny("TrOnlineMon")!=0)||(file->FindObjectAny("Size_all")!=0) ) ) {
+      gs->addSlider(GenericSlider::kMonSlider);
+      gs->setRootFile(filename,GenericSlider::kMonSlider);
+    }
+    if (ref==M_FILE_OPEN_REF) {
+      gs->setRefFile(filename);
+    }
+    file->Close();
+    if (gs->getnSlider()==0) {
+      printf("MonitorUI::HandleFile-W file not recognized in (%s), please try again using the File::Open menu.\n",filename);
+      return;
+    }
   }
 }
 
 
 void MonitorUI::HandleMenu(Int_t id){
   switch (id) {
-  case M_FILE_OPEN:
+  case M_FILE_OPEN_CAL:
+  case M_FILE_OPEN_MON:
   case M_FILE_OPEN_REF:
     {
       const char *ft[] = {"ROOT Files","*.root",0,0};

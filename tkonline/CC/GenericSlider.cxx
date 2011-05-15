@@ -22,10 +22,18 @@ GenericSlider::GenericSlider(TGWindow *p) : TGVerticalFrame(p) {
 }
 
 
+void GenericSlider::Clear() {
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    delete (*it).second;
+  }
+  slider.clear();
+}
+
+
 void GenericSlider::showHwId(int hwid){
   if (getnSlider()==0) return;
-  for (int id=0; id<getnSlider(); id++) {
-    int ret = slider.at(id)->showHwId(hwid);
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    int ret = (*it).second->showHwId(hwid);
     switch(ret) {
     case 0:
       info->SetText("");
@@ -45,8 +53,8 @@ void GenericSlider::showHwId(int hwid){
 
 void GenericSlider::showTkId(int tkid){
   if (getnSlider()==0) return;
-  for (int id=0; id<getnSlider(); id++) {
-    int ret = slider.at(id)->showTkId(tkid);
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    int ret = (*it).second->showTkId(tkid);
     switch(ret) {
     case 0:
       info->SetText("");
@@ -68,8 +76,8 @@ void GenericSlider::PrintThis(){
   if (getnSlider()==0) return;
   info->SetText("This canvas has been printed");
   Layout();
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->PrintThis();
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->PrintThis();
   }
 }
 
@@ -78,16 +86,16 @@ void GenericSlider::PrintAll(){
   if (getnSlider()==0) return;
   info->SetText("All canvas have been printed");
   Layout();
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->PrintAll();
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->PrintAll();
   }
 }
 
 
 void GenericSlider::showNext(){
   if (getnSlider()==0) return;
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->showNext();
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->showNext();
   }
   info->SetText("");
   Layout();
@@ -97,8 +105,8 @@ void GenericSlider::showNext(){
 
 void GenericSlider::showPrev(){
   if (getnSlider()==0) return;
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->showPrev();
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->showPrev();
   }
   info->SetText("");
   Layout();
@@ -108,19 +116,18 @@ void GenericSlider::showPrev(){
 
 void GenericSlider::addSlider(int id) {
   if (id==kCalSlider) { 
-    slider.push_back(new CalSlider("CalSlider","Calibration Slider"));
+    if (slider[kCalSlider]==0) slider[kCalSlider] = new CalSlider("CalSlider","Calibration Slider");
   }
   if (id==kMonSlider) {
-    slider.push_back(new MonSlider("MonSlider","Data Slider"));
+    if (slider[kMonSlider]==0) slider[kMonSlider] = new MonSlider("MonSlider","Data Slider");
   }
 }
 
 
-void GenericSlider::setRootFile(char *filename){
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->canvas->ToggleEventStatus();
-    slider.at(id)->setRootFile(filename);
-  }
+void GenericSlider::setRootFile(char *filename, int id) {
+  if (slider[id]==0) addSlider(id); 
+  slider[id]->canvas->ToggleEventStatus();
+  slider[id]->setRootFile(filename);
   info->SetText("");
   Layout();
   Updated();
@@ -129,9 +136,9 @@ void GenericSlider::setRootFile(char *filename){
 
 void GenericSlider::Update(){
   if (getnSlider()==0) return;
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->canvas->ToggleEventStatus();
-    slider.at(id)->Update();
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->canvas->ToggleEventStatus();
+    (*it).second->Update();
   }
   info->SetText("");
   Layout();
@@ -140,9 +147,9 @@ void GenericSlider::Update(){
 
 
 void GenericSlider::setCalfromDB(time_t run){
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->canvas->ToggleEventStatus();
-    slider.at(id)->setCalfromDB(run);
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->canvas->ToggleEventStatus();
+    (*it).second->setCalfromDB(run);
   }
   info->SetText("");
   Layout();
@@ -152,12 +159,12 @@ void GenericSlider::setCalfromDB(time_t run){
 
 void GenericSlider::setRefFile(char *filename){
   if(getnSlider()==0){
-    info->SetText("Select a Calibration or Monitoring file before");
+    info->SetText("Select a Calibration or Monitoring file before.\n");
     Layout();
     return;
   }
-  for (int id=0; id<getnSlider(); id++) {
-    slider.at(id)->setRefFile(filename);
+  for (map<int,SliderI*>::iterator it=slider.begin(); it!=slider.end(); it++) {
+    (*it).second->setRefFile(filename);
   }
   Layout();
   Updated();

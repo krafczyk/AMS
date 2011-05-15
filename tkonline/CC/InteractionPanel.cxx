@@ -38,7 +38,7 @@ void InteractionPanel::updateTDR(Int_t id){
 }
 
 void InteractionPanel::Update(){
-	int hwid = ref->getSlider(0)->GetHwId();
+	int hwid = ref->getFirstSlider()->GetHwId();
 	tdr = hwid%100;
 	crate = hwid/100;
 	for(int i=0;i<8;i++){

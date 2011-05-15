@@ -93,7 +93,7 @@ void MonSlider::setRootFile(char *filename){
     ntuple->SetBranchAddress("timebranch",&time_event);
     ntuple->GetEntry(0);
     time_t pippo = (time_t) time_event.Time;
-    canvas->SetTitle(Form("First event %10d %s",(int)pippo,gmtime(&pippo)));
+    canvas->SetTitle(Form("First event %10d %s",(int)pippo,asctime(gmtime(&pippo))));
   }
   /*
   if (rootfile->FindObjectAny("TrOnlineMonHeader")!=0) {
@@ -101,7 +101,7 @@ void MonSlider::setRootFile(char *filename){
     if (header->GetNRunNumbers()>0) { 
       char title[100];
       time_t pippo = (time_t) header->GetRunNumber(0);
-      sprintf(title,"Data from run %10d %s",header->GetRunNumber(0),gmtime(&pippo));
+      sprintf(title,"Data from run %10d %s",header->GetRunNumber(0),asctime(gmtime(&pippo)));
       canvas->SetTitle(title);
     }
   }
@@ -1328,8 +1328,8 @@ void MonSlider::DrawInfo(int alternative) {
     time_t in = (time_t) time_event.Time;
     ntuple->GetEntry(ntuple->GetEntries());
     time_t fi = (time_t) time_event.Time;
-    text->DrawTextNDC(0.1,0.95,Form("First event %10d %s",(int)in,gmtime(&in)));
-    text->DrawTextNDC(0.1,0.90,Form("Last event %10d %s",(int)fi,gmtime(&fi)));
+    text->DrawTextNDC(0.1,0.95,Form("First event %10d %s",(int)in,asctime(gmtime(&in))));
+    text->DrawTextNDC(0.1,0.90,Form("Last event %10d %s",(int)fi,asctime(gmtime(&fi))));
   }  
   // header infos 
   TrHistoManHeader* header = (TrHistoManHeader*) rootfile->FindObjectAny("TrOnlineMonHeader");

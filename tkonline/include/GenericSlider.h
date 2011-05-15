@@ -20,8 +20,8 @@ class GenericSlider: public TGVerticalFrame {
 
   /// Sliders types (... kShiSlider ...)
   enum Sliders { kCalSlider = 0, kMonSlider = 1}; 
-  /// Slider collection (tmp, up to 2 sliders)
-  vector<SliderI*> slider;
+  /// Slider collection 
+  map<int, SliderI*> slider;
 
   ///////////////////
   // Grap. Elements
@@ -46,7 +46,7 @@ class GenericSlider: public TGVerticalFrame {
   /// Perform update
   void Update();
   /// Open root file
-  void setRootFile(char *filename);
+  void setRootFile(char *filename, int id);
   /// Set calibration from TDV
   void setCalfromDB(time_t run);
   /// Set a reference file
@@ -69,12 +69,11 @@ class GenericSlider: public TGVerticalFrame {
   /// Get the number of active sliders
   int  getnSlider() { return (int) slider.size(); }
   /// Get a slider
-  SliderI* getSlider(int id = 0) { return ((id>=0)&&id<getnSlider()) ? slider.at(id) : 0; } 
+  SliderI* getSlider(int id = 0) { return ((id>=0)&&id<getnSlider()) ? slider[id] : 0; } 
+  /// Get the first slider (whatever it is)
+  SliderI* getFirstSlider() { return (*slider.begin()).second; }   
   /// Clear sliders
-  void Clear() {
-    for (int id=0; id<getnSlider(); id++) delete slider.at(id);	 
-    slider.clear(); 
-  }
+  void Clear();
  
   ClassDef(GenericSlider,0);
 };

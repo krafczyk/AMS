@@ -19,7 +19,7 @@ class MonitorUI: public TGMainFrame {
   TrackerPanel *track;
   static TStyle *style; 
   
-  MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char *filename);
+  MonitorUI(const TGWindow *p, UInt_t w, UInt_t h, char *filename1, char* filename2 = "");
   ~MonitorUI() {}
   void HandleMenu(Int_t id);
   void HandleFile(char* filename, int ref = 0);

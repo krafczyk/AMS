@@ -145,7 +145,7 @@ void CalSlider::setRootFile(char *filename){
   // canvas title
   char title[100];
   time_t pippo = (time_t)caldb->GetRun();
-  sprintf(title,"Calibration %10d %s",caldb->GetRun(),gmtime(&pippo));
+  sprintf(title,"Calibration %10d %s",caldb->GetRun(),asctime(gmtime(&pippo)));
   canvas->SetTitle(title);
   // pointers
   calit_begin = caldb->trcal_hwidmap.begin();
@@ -186,7 +186,7 @@ void CalSlider::Update() {
   // canvas title
   char title[100];
   time_t pippo = (time_t)caldb->GetRun();
-  sprintf(title,"Calibration %10d %s",caldb->GetRun(),gmtime(&pippo));
+  sprintf(title,"Calibration %10d %s",caldb->GetRun(),asctime(gmtime(&pippo)));
   canvas->SetTitle(title);
   // update drawing 
   try2Draw(calit_cur->second);
@@ -1666,7 +1666,7 @@ int CalSlider::ReadCalFromDB(time_t run){
   TDV->validate(bb);
   char title[140];
   time_t pippo = (time_t)caldb->GetRun();
-  sprintf(title,"Calibration %10d %s",caldb->GetRun(),gmtime(&pippo));
+  sprintf(title,"Calibration %10d %s",caldb->GetRun(),asctime(gmtime(&pippo)));
   canvas->SetTitle(title);
 
 }
