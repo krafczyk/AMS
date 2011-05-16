@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.13 2011/05/13 19:51:25 choutko Exp $
+//  $Id: trdid.h,v 1.14 2011/05/16 14:06:11 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -69,6 +69,7 @@ void _mkcrate();
 static geant *_ped;
 static geant *_sig;
 static geant *_gain;
+static geant *_mcgain;
 static uinteger *_status;
 static integer _NROCh;
 public:
@@ -163,6 +164,7 @@ inline uinteger gettube()const {return _tube;}
 geant getped(){return _ped[_address+_tube];}
 geant getsig(){return _sig[_address+_tube];}
 geant getgain(){return _gain[_address+_tube];}
+geant getmcgain(){return _mcgain[_address+_tube];}
 static integer overflow(){return TRDMCFFKEY.adcoverflow;}
 //
 static uinteger NROCh(){return _NROCh;}

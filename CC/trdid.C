@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.16 2011/05/13 19:51:22 choutko Exp $
+//  $Id: trdid.C,v 1.17 2011/05/16 14:06:05 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -107,6 +107,7 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
 _ped=new geant[getpedsize()];
 _sig=new geant[getsigsize()];
 _gain=new geant[getgaisize()];
+_mcgain=new geant[getgaisize()];
 _status=new uinteger[getstasize()];
 cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<getpedsize()<<" readout channels initialized"<<endl;
 }
@@ -125,6 +126,7 @@ void AMSTRDIdSoft::_check(){
 }
 
 
+geant * AMSTRDIdSoft::_mcgain=0;
 geant * AMSTRDIdSoft::_gain=0;
 geant * AMSTRDIdSoft::_ped=0;
 uinteger * AMSTRDIdSoft::_status=0;

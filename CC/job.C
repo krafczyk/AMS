@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.807 2011/05/12 18:02:41 choutko Exp $
+// $Id: job.C,v 1.808 2011/05/16 14:06:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3306,6 +3306,11 @@ if(TRDMCFFKEY.CreatePDF && AMSTRDTrack::CreatePDF()){
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
     (void*)AMSTRDIdSoft::_gain,server,1));
+if(!isRealData()){
+ TID.add (new AMSTimeID(AMSID("TRDMCGains",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
+    (void*)AMSTRDIdSoft::_mcgain,server,1));
+}
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
     (void*)AMSTRDIdSoft::_sig,server,1));

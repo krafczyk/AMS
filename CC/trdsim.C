@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.46 2011/05/15 22:19:11 choutko Exp $
+//  $Id: trdsim.C,v 1.47 2011/05/16 14:06:05 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -81,7 +81,7 @@ void AMSTRDRawHit::sitrddigi(){
 
      if(ptr->testlast()){
            AMSTRDIdSoft idsoft(ptr->getid());
-           number amp=(edep*idsoft.getgain()+idsoft.getped()+idsoft.getsig()*rnormx());
+           number amp=(edep*idsoft.getmcgain()+idsoft.getped()+idsoft.getsig()*rnormx());
            if (amp>idsoft.overflow())amp=idsoft.overflow();
           
            
