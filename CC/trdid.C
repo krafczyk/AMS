@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.17 2011/05/16 14:06:05 choutko Exp $
+//  $Id: trdid.C,v 1.16.2.1 2011/05/16 15:54:36 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
