@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.113 2011/05/16 09:25:45 mdelgado Exp $
+#  $Id: Moptg4,v 1.114 2011/05/16 16:20:22 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -398,7 +398,8 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)daqecblock.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
-	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C
+	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
+	$(SCC)g4rich.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
