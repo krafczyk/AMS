@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.41 2011/02/14 14:37:25 zweng Exp $
+//  $Id: g4physics.C,v 1.42 2011/05/16 09:19:47 mdelgado Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.41 2011/02/14 14:37:25 zweng Exp $
+// $Id: g4physics.C,v 1.42 2011/05/16 09:19:47 mdelgado Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -843,11 +843,12 @@ void AMSG4Physics::ConstructHad()
 #include "G4OpAbsorption.hh"
 #include "G4OpRayleigh.hh"
 #include "G4OpBoundaryProcess.hh"
+#include "g4rich.h"
 
 void AMSG4Physics::ConstructOp()
 {
   G4cout << " Construction Optical Processes "<<endl;
-  G4Cerenkov*   theCerenkovProcess = new G4Cerenkov("Cerenkov");
+  RichG4Cerenkov*   theCerenkovProcess = new RichG4Cerenkov("Cerenkov");
   G4OpAbsorption* theAbsorptionProcess = new G4OpAbsorption();
   G4OpRayleigh*   theRayleighScatteringProcess = new G4OpRayleigh();
   G4OpBoundaryProcess* theBoundaryProcess = new G4OpBoundaryProcess();
