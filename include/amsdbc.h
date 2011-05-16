@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.50 2011/05/10 19:10:06 jorgec Exp $
+//  $Id: amsdbc.h,v 1.51 2011/05/16 16:02:44 mmilling Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -81,6 +81,8 @@ public:
   static const uinteger S_AMBIG;
   static const uinteger GOLDEN;
   static const uinteger TOFFORGAMMA;
+  static const uinteger TRDLOWOCC;
+  static const uinteger TRDGROUPED;
 //
   static const uinteger TGL1NONDATA;
   static const uinteger TGL1ASSERR;

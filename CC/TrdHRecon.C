@@ -1,15 +1,16 @@
 #include "TrdHRecon.h"
 #include "VCon.h"
+#include "root.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "trdsim.h"
 #include "tofrec02.h"
 #include "event.h"
-#include "root.h"
 #include "commons.h"
 #include "trdid.h"
 #endif
 #include "timeid.h"
 #include "amsdbc.h"
+#include "TF1.h"
 
 #ifndef _PGTRACK_
 #include "commonsi.h"
@@ -26,12 +27,16 @@ int TrdHTrackR::numa=0;
 #endif
 
 ClassImp(TrdHReconR);
-AMSTimeID *ptdv=0;
+map<string,AMSTimeID *> TrdHReconR::tdvmap;
 
 float TrdHReconR::tube_gain[6064];
+unsigned int TrdHReconR::tube_status[6064];
 float TrdHReconR::tube_medians[5248];
+float TrdHReconR::mod_medians[20][18];
 int TrdHReconR::tube_occupancy[5248];
 bool TrdHReconR::calibrate;
+
+
 
 TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
   {0,0,0,0,0,0,0,0,0,0,
@@ -712,9 +717,6 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
   for(int n=0;n<r.size();n++)AddHit(&r[n]);
 
   retrdhevent(debug);
-
-  //  r.clear();
-  
 }
 
 int TrdHReconR::build(){
@@ -798,13 +800,12 @@ void TrdHReconR::clear(){
 #endif
 }
 int TrdHReconR::retrdhevent(int debug){
-  
   // skip arrays for now
   int nhcut=1.e6; //  below 40 nTRDRawHits: vector-histo 
   // above                 array-histo
   
-  double Hcut=0.0;
-  //if(pev->nTRDRawHit()>500) Hcut=30.0;
+  double Hcut=tracking_min_amp;
+  //  if(pev->nTRDRawHit()>100) Hcut=10.0;
   
   if(debug)printf("RawHits %i\n",(int)rhits.size());
   if(rhits.size()<4||rhits.size()>100) return 0;
@@ -857,32 +858,9 @@ int TrdHReconR::retrdhevent(int debug){
 
   if(debug)printf("TrdHTrackR::build tracks %i\n",(int)htrvec.size());
   
-
-  /*  if(calibrate)
-    if(SelectEvent())
-      for(int i=0;i<htrvec.size();i++)
-#pragma omp critical(updatemed)
-	  {
-	    if(SelectTrack(i))
-	      update_medians(&htrvec[i]);
-	  }
-  */
   return 1;
 }
 
-/*void TrdHReconR::DoCalibration(float beta, int charge){
-  if(calibrate)
-    if(beta>0.98&&charge==1)
-      if(SelectEvent())
-	//	for(int i=0;i<htrvec.size();i++)
-#pragma omp critical(updatemed)
-	{
-	if(SelectTrack(0)&&htrvec.size()==0&&hsegvec.size()==2)
-	  update_medians(&htrvec[0]);
-	}
-  return;
-}
-*/
 void TrdHReconR::AddTrack(TrdHTrackR* tr){
   if(tr){
 
@@ -934,105 +912,116 @@ void TrdHReconR::AddHit(TrdRawHitR* hit){
   }
 }
 
-float TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
+int TrdHReconR::GetCharge(TrdHTrackR *tr,float beta,int debug){
   if(debug)printf("Enter TrdHReconR::GetCharge\n");
+  if(pdfs.size()<2)return 1;
+  if(fabs(beta)<0.5)return 2;
+
+  float betacorr=1.;
+  if(fabs(beta)<0.95)// beta correction to be done
+    {
+      betacorr=GetBetaCorr(beta);// approx mip beta (betagamma 3.04)
+    }
   
   float ampcorr[20];
   for(int i=0;i<20;i++)ampcorr[i]=0.;
   
-  for(int l=0;l<20;l++){
-    ampcorr[l]+=tr->elayer[l];
-  }
+  for(int s=0;s<2;s++)
+    for(int h=0;h<tr->pTrdHSegment(s)->nTrdRawHit();h++){
+      TrdRawHitR* hit=tr->pTrdHSegment(s)->pTrdRawHit(h);
+      if(hit->Amp<5)continue;
+      ampcorr[hit->Layer]+=hit->Amp*betacorr*GetGainCorr(hit)*GetPathCorr(tr->TubePath(hit));
+    }
+
   if(debug)
     for(int i=0;i<20;i++)
       printf(" L %i amp %.2f\n",i,ampcorr[i]);
   
-  if(fabs(beta)<0.5)return 99;
-
-  if(fabs(beta)<0.95)// beta correction to be done
-    {
-      //      float betacorr=GetBetaCorr(beta,0.95);// approx mip beta (betagamma 3.04)
-    }
-  
-  double clik[10];
-  for(int i=0;i<10;i++)clik[i]=1.;
+  map<int,double> map_charge_prob;
   
   int nhit=0;
-  vector<int> charges;
-  for(int i=0;i<20;i++){
-    for(int c=0;c<10;c++){
-      int chg=c+1;
-      map<int,TSpline5>::iterator it=pdfs.find(chg);
-      if(it==pdfs.end()||ampcorr[i]<=0.)continue;
-      
-      float prob=it->second.Eval(ampcorr[i]);
+  for(int c=0;c<10;c++){
+    int chg=c+1;
+    map<int,TSpline5>::iterator it=pdfs.find(chg);
+    if(it==pdfs.end())continue;
+    
+    map<int,double>::iterator mit;
+    for(int i=0;i<20;i++){
+      double prob=it->second.Eval(ampcorr[i]);
       if(prob<=0)continue;
-      clik[chg]*=prob;
-      if(debug>1)printf(" c %i prob %.2e accum %.2e\n",chg,prob,clik[chg]);
-      if(chg==1)nhit++;
       
-      int found=0;
-      for(int j=0;j<charges.size();j++)if(charges[j]==chg)found=1;
-      if(!found)charges.push_back(chg);
+      mit=map_charge_prob.find(chg);
+      if(mit==map_charge_prob.end()){
+	map_charge_prob.insert(pair<int,double>(chg,prob));
+	mit=map_charge_prob.find(chg);
+      }
+      
+      mit->second*=prob;
+
+      if(debug>1)printf(" c %i prob %.2e accum %.2e\n",chg,prob,mit->second);
+      if(chg==1)nhit++;
     }
   }
     
-    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++){
-      clik[*it]=pow(clik[*it],(double)(1./(double)nhit));
-      if(debug)printf("normalized prob %i: %.4e\n",*it,clik[*it]);
-    }
-    double totalprob=0.;
-    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++)
-      totalprob+=clik[*it];
-    
-    for(vector<int>::const_iterator it=charges.begin();it!=charges.end();it++)
-      clik[*it]/=totalprob;
-    
-    charge_probabilities.clear();                                              
-    for(int i=0;i<charges.size();i++){
-      charge_probabilities.insert(pair<float,int>(clik[charges.at(i)],charges.at(i)));   
-    }
-    
-    for(map<float,int>::reverse_iterator it=charge_probabilities.rbegin();it!=charge_probabilities.rend();it++)
-      if(debug)printf("charge probs c %i %.2e\n",it->second,it->first);
-    //  }
-    
-    if(charge_probabilities.size()==0)return 0;
-    
-    map<float,int>::const_iterator maxit=--charge_probabilities.end();
-    if(charge_probabilities.size()==1)return charge_probabilities.begin()->second;
-    
-    map<float,int>::const_iterator upit=--charge_probabilities.end();
-    map<float,int>::const_iterator lowit=--charge_probabilities.end();
-    
-    for(map<float,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
-      if((maxit->second)-1==it->second)lowit=it;
-      if((maxit->second)+1==it->second)upit=it;
-    }
-    
-    float toReturn=0;
-    if(lowit!=maxit&&upit!=maxit){
-      toReturn= (lowit->first*lowit->second
-		 +maxit->first*maxit->second
-		 +upit->first*upit->second) 
-	/ (lowit->first+maxit->first+upit->first);
-    }
-    else if(lowit!=maxit){
-      toReturn= (lowit->first*lowit->second
-		 +maxit->first*maxit->second)
-	/ (lowit->first+maxit->first);
-    }
-    else if(upit!=maxit){
-      toReturn= (maxit->first*maxit->second
-		 +upit->first*upit->second) 
-	/ (maxit->first+upit->first);
-    }
-    if(debug){
-      printf("max c %i prob %.2f - low c %i prob %.2f - up c %i prob %.2f\n",maxit->second,maxit->first,lowit->second,lowit->first,upit->second,upit->first);
-      printf("returned charge %.2f\n",toReturn);
-    }
-    return toReturn;
-    
+
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
+    it->second=pow((double)it->second,(double)(1./(double)nhit));
+    if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
+  }
+  
+  double totalprob=0.;
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+    totalprob+=it->second;
+  
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+    it->second/=totalprob;
+  
+  
+  charge_probabilities.clear();                                              
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+    charge_probabilities.insert(pair<double,int>(it->second,it->first));
+  
+  /*  
+  for(map<float,int>::reverse_iterator it=charge_probabilities.rbegin();it!=charge_probabilities.rend();it++)
+    if(debug)printf("charge probs c %i %.2e\n",it->second,it->first);
+  
+  if(charge_probabilities.size()==0)return 0;
+  
+  map<float,int>::const_iterator maxit=--charge_probabilities.end();
+  if(charge_probabilities.size()==1)return charge_probabilities.begin()->second;
+  
+  map<float,int>::const_iterator upit=--charge_probabilities.end();
+  map<float,int>::const_iterator lowit=--charge_probabilities.end();
+  
+  for(map<float,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
+    if((maxit->second)-1==it->second)lowit=it;
+    if((maxit->second)+1==it->second)upit=it;
+  }
+  
+  float toReturn=0;
+  if(lowit!=maxit&&upit!=maxit){
+    toReturn= (lowit->first*lowit->second
+	       +maxit->first*maxit->second
+	       +upit->first*upit->second) 
+      / (lowit->first+maxit->first+upit->first);
+  }
+  else if(lowit!=maxit){
+    toReturn= (lowit->first*lowit->second
+	       +maxit->first*maxit->second)
+      / (lowit->first+maxit->first);
+  }
+  else if(upit!=maxit){
+    toReturn= (maxit->first*maxit->second
+	       +upit->first*upit->second) 
+      / (maxit->first+upit->first);
+  }
+  if(debug){
+    printf("max c %i prob %.2f - low c %i prob %.2f - up c %i prob %.2f\n",maxit->second,maxit->first,lowit->second,lowit->first,upit->second,upit->first);
+    printf("returned charge %.2f\n",toReturn);
+    }*/
+
+  return charge_probabilities.begin()->first;
+  
 }
 
 int TrdHReconR::BuildPDFs(int force,int debug){
@@ -1046,8 +1035,6 @@ int TrdHReconR::BuildPDFs(int force,int debug){
   for(int i=0;i<5;i++){
 #ifndef __ROOTSHAREDLIBRARY__
     sprintf(hname,"%s/TrdChgPDF%i",AMSDATADIR.amsdatadir,i);
-
-    
 #else
     sprintf(hname,"pdf_charge_%i",i);
 #endif
@@ -1085,14 +1072,14 @@ int TrdHReconR::BuildPDFs(int force,int debug){
     if(debug)printf("vector size in retrieval %i %i\n",i,(int)pdf->size());
     
     sprintf(hname,"spline_charge_%i",i);
-    TSpline5 *spline=new TSpline5(hname,xarr,yarr,npnts);
-    spline->SetName(hname);
-    spline->SetTitle(hname);
+    TSpline5 spline(hname,xarr,yarr,npnts);
+    spline.SetName(hname);
+    spline.SetTitle(hname);
     
-    pdfs.insert(pair<int,TSpline5>(i,*spline));
+    pdfs.insert(pair<int,TSpline5>(i,spline));
     
     toReturn++;
-    delete spline;
+    //    delete spline;
   }
   return toReturn;
 }
@@ -1160,25 +1147,22 @@ void TrdHReconR::update_medians(TrdHTrackR* track,int opt,float beta,int debug){
     if(!track->pTrdHSegment(seg)) continue;
     for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
       TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
-      if(!hit)continue;
-      int layer=hit->Layer;      
-      
-      int hvid=hit->Ladder;
-      if(layer>3)hvid+=14;
-      if(layer>7)hvid+=16;
-      if(layer>11)hvid+=16;
-      if(layer>15)hvid+=18;
-      
-      int tubeid=(hvid*4+layer%4)*16+hit->Tube;
+      if(!hit||hit->Amp<5)continue;
 
+      int tubeid;
+      GetTubeIdFromLLT(hit->Layer,hit->Ladder,hit->Tube,tubeid);
       float amp=hit->Amp;
-      if(opt>0)amp*=GetPathCorr(track->TubePath(layer,ladder,tube),0.59);
-      if(opt>1)amp*=GetBetaCorr(beta,0.95);// approx mip beta (betagamma 3.04)
+      if(opt>0)amp*=GetPathCorr(track->TubePath(hit->Layer,hit->Ladder,hit->Tube));
+      if(opt>1)amp*=GetBetaCorr(beta);// approx mip beta (betagamma 3.04)
       
 #pragma omp critical (trdmed)
       {
 	if(amp>tube_medians[tubeid])tube_medians[tubeid]+=0.04;
 	if(amp<tube_medians[tubeid])tube_medians[tubeid]-=0.1;
+
+	if(amp>mod_medians[hit->Layer][hit->Ladder])mod_medians[hit->Layer][hit->Ladder]+=0.04;
+	if(amp<mod_medians[hit->Layer][hit->Ladder])mod_medians[hit->Layer][hit->Ladder]-=0.1;
+
 	if(debug)
 	  printf("LLT %02i%02i%02i id %i med %.2f\n",hit->Layer,hit->Ladder,hit->Tube,tubeid,tube_medians[tubeid]);
 	tube_occupancy[tubeid]++;
@@ -1192,6 +1176,8 @@ void TrdHReconR::init_calibration(float start_value){
   calibrate=true;
   for(int i=0;i<5248;i++)
     if(tube_medians[i]==0)tube_medians[i]=start_value;
+
+  for(int i=0;i<20;i++)for(int j=0;j<18;j++)mod_medians[i][j]=start_value;
 }
 
 int TrdHReconR::SelectTrack(int tr){
@@ -1293,16 +1279,104 @@ bool TrdHReconR::update_tdv_array(int debug){
   return toReturn;;
 }
 
+float TrdHReconR::MeanGaussMedian(int opt){
+  TH1F h("h_gain","",100,0.,120.);
+  for(int i=0;i<5248;i++)h.Fill(tube_medians[i]);
+  TF1 f("f","gaus");
+  h.Fit(&f,"Q");
+  return f.GetParameter(1);
+}
+
+/*int TrdHReconR::InitTDVArray(string name){
+  map<string,vector<float> >::const_iterator it;
+  it=tdvarr.find(name);
+  if(it==tdvarr.end()){
+    vector<float> vec;
+    tdvarr.insert(pair<string,vector<float> >(name,vec));
+    return 0;
+  }
+  return 1;
+}
+
+int TrdHReconR::GetTDVArray(string name,int pos,float &val){
+  map<string,vector<float> >::const_iterator it;
+  it=tdvarr.find(name);
+  if(it==tdvarr.end())return 1;
+  if(pos>=it->second.size())return 2;
+  val=it->second[pos];
+  
+  return 0;
+}
+
+int TrdHReconR::SetTDVArray(string name,int pos,float val){
+  map<string,vector<float> >::iterator it;
+  it=tdvarr.find(name);
+  if(it==tdvarr.end())return 1;
+  if(pos>=it->second.size())return 2;
+  it->second[pos]=val;
+  
+  return 0;
+}
+
+int TrdHReconR::GetTDVArray(string name,vector<float> &vec){
+  map<string,vector<float> >::const_iterator it;
+  it=tdvarr.find(name);
+  if(it==tdvarr.end())return 1;
+  vec=it->second;
+  
+  return 0;
+}
+
+int TrdHReconR::SetTDVArray(string name,vector<float> vec){
+  map<string,vector<float> >::iterator it;
+  it=tdvarr.find(name);
+  if(it==tdvarr.end())return 1;
+  vec.resize(6064);
+  it->second=vec;
+  
+  return 0;
+  }*/
+
+
+float TrdHReconR::MeanGaussGain(int opt){
+  TH1F h("h_gain","",100,0.,3.);
+  int layer,ladder,tube;
+
+  //  vector<float> vec;
+  //  GetTDVArray("TRDGains",vec);
+  for(int i=0;i<5248;i++){
+    GetLLTFromTubeId(layer,ladder,tube,i);
+    int ntdv=layer*18*16+ladder*16+tube;
+    
+    h.Fill(tube_gain[ntdv]);
+    //    AMSTRDIdSoft idsoft(layer,ladder,tube);
+    //    h.Fill(idsoft.getgain());
+  }
+  
+  TF1 f("f","gaus");
+  h.Fit(&f,"Q");
+
+  // conversion factor to mean gain 1. stored here
+  tube_gain[250]=f.GetParameter(1);
+  
+  // target ADC value of gain correction
+  tube_gain[251]=norm_mop;
+
+  return f.GetParameter(1);
+}
+
 bool TrdHReconR::FillMedianFromTDV(){
   bool toReturn = true;
   int layer,ladder,tube;
+  
   for(int i=0;i<5248;i++){
     GetLLTFromTubeId(layer,ladder,tube,i);
     int ntdv=layer*18*16+ladder*16+tube;
     tube_medians[i]=tube_gain[ntdv]*norm_mop;
+    if(i%500==0)printf("i %i norm %.2f gain %.2f med %.2f\n",i,norm_mop,tube_gain[ntdv],tube_medians[i]);
+
     if( tube_medians[i] < 0. )
       toReturn = false;
-    
   }
   return toReturn;
 }
@@ -1310,26 +1384,40 @@ bool TrdHReconR::FillMedianFromTDV(){
 bool TrdHReconR::FillTDVFromMedian(){
   bool toReturn = false;
   
+  //  vector<float> gainvec;gainvec.resize(6064);
+  //  vector<unsigned int> statvec;
+  
   int layer,ladder,tube;
   for(int i=0;i<5248;i++){
-    if(tube_occupancy[i]>0){
-      GetLLTFromTubeId(layer,ladder,tube,i);
-      int ntdv=layer*18*16+ladder*16+tube;
+    GetLLTFromTubeId(layer,ladder,tube,i);
+    int ntdv=layer*18*16+ladder*16+tube;
+
+    if(tube_occupancy[i]>min_occupancy){
       tube_gain[ntdv]=tube_medians[i]/norm_mop;
-      if(!toReturn&&tube_occupancy[i]>100)
+      if(!toReturn)
 	toReturn=true;
     }
+    else{
+      tube_gain[ntdv]=mod_medians[layer][ladder]/norm_mop;
+      //      tube_status[ntdv]= tube_status[ntdv] | 17;
+      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDLOWOCC;
+      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDGROUPED;
+    }
   }
-  
-  return toReturn;;
+  return toReturn;
 }
 
+
 bool TrdHReconR::readTDV(unsigned int t){
-  if(!ptdv) return false;
   time_t thistime=(time_t)t;
-  if(!ptdv->validate(thistime))return false;
+
+  bool ok=true;
+  for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
+    if(!it->second->validate(thistime))ok=false;
+  
   if(!FillMedianFromTDV())   return false;
-  return true;
+
+  return ok;
 }
 
 bool TrdHReconR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
@@ -1338,66 +1426,96 @@ bool TrdHReconR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char
   
   //maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;
   int size=16*18*20+16*18+16;
-  
-  for(int i=0;i<size;i++)tube_gain[i]=1.;
+
+  for(int i=0;i<size;i++){
+    tube_gain[i]=1.;
+    tube_status[i]=0;
+  }
 
   AMSTimeID::CType server=AMSTimeID::Standalone;
-  //  atm *t = gmtime((time_t*)&time);
   tm begin = *gmtime(&begintime);
   tm end   = *gmtime(&endtime);
   
-  char tdname[200] = "";
+  char tdname[200];
   sprintf(tdname, "%s/DataBase/", tempdirname);
+  if(!AMSDBc::amsdatabase)
+    AMSDBc::amsdatabase=new char[200];
+  
   strcpy(AMSDBc::amsdatabase,tdname);
   
-  ptdv=new AMSTimeID(AMSID("TRDGains",type),
+  AMSTimeID *ptdv=new AMSTimeID(AMSID("TRDGains",type),
+				begin,end,sizeof(tube_gain[0])*size,
+				(void*)tube_gain,server);
+  
+  ptdv->validate(begintime);
+  tdvmap.insert(pair<string,AMSTimeID*>("TRDGains",ptdv));
+
+
+  ptdv=new AMSTimeID(AMSID("TRDMCGains",type),
 		     begin,end,sizeof(tube_gain[0])*size,
 		     (void*)tube_gain,server);
+  
+  ptdv->validate(begintime);
+  tdvmap.insert(pair<string,AMSTimeID*>("TRDMCGains",ptdv));
 
+
+  //  AMSTimeID *ptdv;
+  tdvmap.insert(pair<string,AMSTimeID*>("TRDStatus",ptdv=new AMSTimeID(AMSID("TRDStatus",type),
+								       begin,end,sizeof(tube_status[0])*size,
+								       (void*)tube_status,server)));
   ptdv->validate(begintime);
   
   if( ! readTDV(bgtime) ){
-    //    cerr<<"Warning: readTDV inside InitTDV"<<endl;
+    cerr<<"Warning: readTDV inside InitTDV"<<endl;
     return false;
   }
-  
+
   return true;
 }
 
 // write calibration to TDV
-int TrdHReconR::writeTDV(int debug,char * tempdirname){
-  if( !FillTDVFromMedian() ) printf("Warning: FillTDVFromMedian inside writeTDV - low occupancy\n");
+int TrdHReconR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+  if( !FillTDVFromMedian() ){
+    printf("Warning: FillTDVFromMedian inside writeTDV - low occupancy\n");
+    return 2;
+  }
+
   time_t begin,end,insert;
   if(debug)
     for(int i=0;i<5248;i++){
-      if(i%100==0)
-	printf("TrdHReconR::writeTDV - tube %4i median %.2f\n",i,tube_medians[i]);
+      if(i%100==0||i<20)
+	printf("TrdHReconR::writeTDV - tube %4i occ %4i median %.2f\n",i,tube_occupancy[i],tube_medians[i]);
     }
   
-  ptdv->UpdateMe()=1;
-  unsigned int crcold=ptdv->getCRC();
-  ptdv->UpdCRC();
-  
-  if(crcold!=ptdv->getCRC()){
-    // valid for 10 days
-    ptdv->gettime(insert,begin,end);
-    time(&insert);
-    ptdv->SetTime(insert,begin-1,end+864000);
-    cout <<" Write time:" << endl;
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
+  bool ok=true;
+  for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
+    it->second->UpdateMe()=1;
+    unsigned int crcold=it->second->getCRC();
+    it->second->UpdCRC();
     
-    char tdname[200] = "";
-    sprintf(tdname, "%s/DataBase/", tempdirname);
-    
-    if(!ptdv->write(tdname)) {
-      cerr <<"TrdHReconR::writeTDV - problem to update tdv"<<*ptdv;
-      return false;
+    if(crcold!=it->second->getCRC()){
+      // valid for 10 days
+      //    it->gettime(insert,begin,end);
+      time(&insert);
+      begin=(time_t)bgtime;
+      end=(time_t)edtime;
+      it->second->SetTime(insert,begin+1,end+864000);
+      cout <<" Write time:" << endl;
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+      
+      char tdname[200] = "";
+      sprintf(tdname, "%s/DataBase/", tempdirname);
+      
+      if(!it->second->write(tdname)) {
+	cerr <<"TrdHReconR::writeTDV - problem to update tdvc"<<it->first<<endl;
+	ok=false;
+      }
     }
   }
 
-  return true;
+  return ok;
 };
 
 
@@ -1453,6 +1571,67 @@ float TrdHReconR::GetPathCorr(float path, float topath,int debug){
   if(debug)cout<<"TrdHReconR::GetPathCorr - path "<<path<<" correction "<<toReturn<<endl;
   return toReturn;
 }
+
+
+float TrdHReconR::GetGainCorr(TrdRawHitR* hit,int opt, int debug){
+  if(!hit)cerr<<"TrdHReconR::GetGainCorr - hit not found"<<endl;
+  return GetGainCorr(hit->Layer,hit->Ladder,hit->Tube,opt,debug);
+}
+
+float TrdHReconR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug){
+  if(debug)cout<<"Entering TrdHReconR::GetGainCorr"<<endl;
+  
+  int ntdv=layer*18*16+ladder*16+tube;
+  if(debug)printf("hit %02i%02i%02i - tdvid %i\n",layer,ladder,tube,ntdv);
+  
+  // check in ROOT file
+  //  vector<float> values;
+  if(opt<2){
+    if(debug)cout<<"TDV from ROOT file"<<endl;
+    AMSEventR::if_t value;
+    value.u=0;
+    int stat=AMSEventR::Head()->GetTDVEl("TRDGains",ntdv,value);
+    if(!stat){
+      if(debug)cout<<"from tdvr" <<1./value.f<<endl;
+      return 1./value.f;
+    }
+  }
+  
+  
+  // check in tdv
+  if(opt!=1){
+    map<string,AMSTimeID*>::iterator it ;
+    it=tdvmap.find("TRDGains");
+
+
+    if(it!=tdvmap.end()){
+      if(debug)cout<<"TDV from Database"<<endl;
+      // check if ptdv contains useful values
+      bool ok=false;
+
+
+      if(tube_gain[ntdv]>=0.2&&tube_gain[ntdv]<5)ok=true; 
+
+      if(ok){
+	if(debug)cout<<"from DataBase" <<1./tube_gain[ntdv]<<endl;
+	return 1./tube_gain[ntdv];
+      }
+      /*      else{
+	      float modsum=0.;
+	      for(int i=0;i<16;i++){
+	      GetTubeIdFromLLT(layer,ladder,i,ntdv);
+	      modsum+=tube_gain[ntdv];
+	      }
+	      modsum/=16;
+	      
+	      if(debug)cout<<"return mean gain corection of module"<<endl;
+	      return 1./modsum;
+	      }*/
+    }
+  }
+  return 1.;
+}
+
 
 /*double TrdHReconR::GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z){
   double p[3]={0.522677,-0.16927,0.676221};

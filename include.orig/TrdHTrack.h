@@ -98,6 +98,7 @@ class TrdHTrackR:public TrElem{
 
   /// return path length inside tube for layer [cm]
   float TubePath(int layer, int ladder, int tube, int method=0,int  opt=0,int debug=0);
+  float TubePath(TrdRawHitR* hit, int method=0,int  opt=0,int debug=0);
 
   float GetPathLengthMH(int layer, int ladder, int tube, int i);
   

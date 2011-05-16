@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.60 2010/07/12 09:37:51 pzuccon Exp $
+//  $Id: amsdbc.C,v 1.61 2011/05/16 16:02:40 mmilling Exp $
 // Author V. Choutko 24-may-1996
 #define __AMSDBC_C__ 
 #include <math.h>
@@ -47,6 +47,8 @@ const uinteger AMSDBc::TGL1SIDERR=AMSDBc::BADTIME;
 const uinteger AMSDBc::ECHCISBAD=AMSDBc::BADHIS;
 const uinteger AMSDBc::ECLCISBAD=AMSDBc::ONESIDE;
 const uinteger AMSDBc::ECDCISBAD=AMSDBc::BADTIME;
+const uinteger AMSDBc::TRDLOWOCC=AMSDBc::TOFFORGAMMA;
+const uinteger AMSDBc::TRDGROUPED=AMSDBc::LOWGCHUSED;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

@@ -177,6 +177,10 @@ void TrdHTrackR::clear(){
   segments.clear();
 }
 
+float TrdHTrackR::TubePath(TrdRawHitR *hit,int method, int opt,int debug){
+  return TubePath(hit->Layer,hit->Ladder,hit->Tube,method,opt,debug);
+}
+
 float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,int debug){
   if(method==0){
     double tuberad=0.3;

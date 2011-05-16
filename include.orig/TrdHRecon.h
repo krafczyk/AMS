@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "TSpline.h"
 #include "TMath.h"
+//#include "root_setup.h"
 
 class AMSTimeID;
  
@@ -200,20 +201,32 @@ class TrdHReconR{
   map<int,TSpline5> pdfs;
 
   /// container to store probability of charge for event
-  map<float,int> charge_probabilities;
+  map<double,int> charge_probabilities;
 
   /// container for channel medians
   static float tube_medians[5248];
 
+  /// container for channel medians
+  static float mod_medians[20][18];
+
   /// container for channel occupancy
   static int tube_occupancy[5248];
 
-  AMSTimeID* ptdv;
+  static float tube_gain[6064];
+  static unsigned int tube_status[6064];
+
+  //  static AMSTimeID* ptdv;
+  int min_occupancy;
+
+  static map<string,AMSTimeID*> tdvmap;
+  //  static map<string,vector<float> > tdvarr;
 
   float norm_mop;
 
+  float tracking_min_amp;
+
   /// default ctor
-  TrdHReconR():adc2kev(100./3.),ccampcut(6.),norm_mop(50.){
+  TrdHReconR():adc2kev(100./3.),ccampcut(6.),norm_mop(44.2),tracking_min_amp(5),min_occupancy(50){
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
@@ -222,7 +235,8 @@ class TrdHReconR{
     pdfs.clear();
     charge_probabilities.clear();
     BuildPDFs();
-    ptdv=0;
+    //    ptdv=0;
+
   };
 
   ~TrdHReconR(){
@@ -233,7 +247,6 @@ class TrdHReconR{
     refhits.clear();
     pdfs.clear();
     charge_probabilities.clear();
-    //    if(ptdv)delete ptdv;
     clear();}
 
   /// clear memory
@@ -284,8 +297,8 @@ class TrdHReconR{
   /// build PDFs from database
   int BuildPDFs(int force=0,int debug=0);
 
-  /// get weighted charge for event ( (c1st*p1st+c2nd*p2nd)/(p1st+p2nd) )
-  float GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
+  /// get most probable charge
+  int GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
 
   //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
 
@@ -311,7 +324,9 @@ class TrdHReconR{
                char *tempdirname="/f2users/mmilling");
 #endif
   
-int writeTDV(int debug,
+//bool InitTDVR(AMSEventR* pev,const char* name,unsigned int time);
+
+int writeTDV(unsigned int begin, unsigned int end,int debug=0,
 #ifdef __ROOTSHAREDLIBRARY__
 			 char *tempdirname="/Offline/AMSDataDirRW");
 #else
@@ -320,18 +335,29 @@ int writeTDV(int debug,
 
   bool readTDV(unsigned int t);
 
-static float tube_gain[6064];
 
-  void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
-  void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
+void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
+void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
 
-  float PathParametrization(float path,int debug=0);
-  float BetaParametrization(float beta,int debug=0);
+float PathParametrization(float path,int debug=0);
+float BetaParametrization(float beta,int debug=0);
 
-  float GetBetaCorr(double beta, double tobeta=0.95, int debug=0); 
-  float GetPathCorr(float path, float topath=0.59, int debug=0); 
+float GetBetaCorr(double beta, double tobeta=0.95, int debug=0); 
+float GetPathCorr(float path, float topath=0.59, int debug=0); 
 
-  ClassDef(TrdHReconR,8)
+float GetGainCorr(TrdRawHitR* hit, int opt=0, int debug=0); 
+float GetGainCorr(int layer,int ladder, int tube, int opt=0,int debug=0); 
+
+float MeanGaussGain(int opt=0);
+float MeanGaussMedian(int opt=0);
+
+/*int GetTDVArray(string,int,float&);
+int SetTDVArray(string,int,float);
+int GetTDVArray(string,vector<float>&);
+int SetTDVArray(string,vector<float>);
+int InitTDVArray(string);*/
+
+  ClassDef(TrdHReconR,10)
 };
 #endif
 
