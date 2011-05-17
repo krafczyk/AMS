@@ -20,13 +20,13 @@ OBJ:=$(patsubst %.cc,%.o,$(SRC)) $(DictOBJ)
 
 all:prodmon
 prodmon:$(OBJ)
-	$(CXX) -o prodmon $(OBJ)  $(LIBS) -DSTANDALONE
+	$(CXX) -o dqm  $(OBJ)  $(LIBS) -DSTANDALONE
 .cc.o:$<
 	$(CXX)  -I$(ROOTSYS)/include  -I$(AMSSRC)/include -c $< -o $@
 %Dict.cc: Menu.h ProgBar.h myzoom.h InputDialog.h LinkDef.h
 	rootcint -f $@  -c -I$(ROOTSYS)/include  -I$(AMSSRC)/include $?
 
 clean:
-	@rm -f *.o prodmon
+	@rm -f *.o dqm 
 
 
