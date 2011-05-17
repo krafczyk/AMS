@@ -177,9 +177,10 @@ void TrdHTrackR::clear(){
   segments.clear();
 }
 
-float TrdHTrackR::TubePath(TrdRawHitR *hit,int method, int opt,int debug){
+float TrdHTrackR::TubePath(TrdRawHitR *hit, int method,int  opt,int debug){
   return TubePath(hit->Layer,hit->Ladder,hit->Tube,method,opt,debug);
 }
+
 
 float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,int debug){
   if(method==0){
@@ -257,8 +258,7 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,i
 
 
 float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){           // returns pathlength in tube if hit
-    double tuberad=0.3;
-    double r=1.e6;
+    double radius=0.3;
     if(layer>19||layer<0)return -1.;
     int dir=-1;
     if((layer>=16)||(layer<=3)) dir = 1;
@@ -286,13 +286,7 @@ float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){      
     if(tube >= 12) x+=0.03;
     if(tube >= 15) x+=0.03;
     
-    if(dir==1&&fabs(exp_y-x)<tuberad)
-      r=fabs(exp_y-x);
-    
-    if(dir==0&&fabs(exp_x-x)<tuberad)
-      r=fabs(exp_x-x);
-
-    double radius=0.3;
+    double r=x;
     
     double const Pi=4*atan(1);
     AMSPoint tr_pos(Coo[0],Coo[1],Coo[2]);
