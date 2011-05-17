@@ -2,9 +2,19 @@
 #include "TkDBc.h"
 #include "TFile.h"
 
+ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
+
 using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
+
+void TrExtAlignPar::Print(Option_t *) const
+{
+  cout << "dpos= " << dpos[0] << " " << dpos[1] << " " << dpos[2];
+  if (angles[0] != 0 || angles[1] != 0 || angles[2] != 0)
+    cout << " angles= " << angles[0] << " " << angles[1] << " " << angles[2];
+  cout << endl;
+}
 
 void TrExtAlignDB::Load(TFile * ff){
   if(!ff) return;
@@ -16,23 +26,20 @@ void TrExtAlignDB::Load(TFile * ff){
 }
 
 
-void TrExtAlignDB::UpdateTkDBc(uint time){
-    TkPlane* PL8= TkDBc::Head->GetPlane(8);
-    TkPlane* PL9= TkDBc::Head->GetPlane(9);
-    map<uint, apar>::iterator l8,l9;
-    l8=L8.lower_bound(time);
-    if(l8!=L8.end()){
-      PL8->setposA(l8->second.dpos[0],l8->second.dpos[1],l8->second.dpos[2]);
-      PL8->SetRotAngles(l8->second.angles[0],l8->second.angles[1],l8->second.angles[2]);
-    }
-    l9=L9.lower_bound(time);
+void TrExtAlignDB::UpdateTkDBc(uint time)
+{
+  for (int layer = 8; layer <= 9; layer++) {
+    TkPlane* pl = TkDBc::Head->GetPlane(layer);
+    if (!pl) continue;
 
-    if(l9!=L9.end()){
-      PL9->setposA(l9->second.dpos[0],l9->second.dpos[1],l9->second.dpos[2]);
-      PL9->SetRotAngles(l9->second.angles[0],l9->second.angles[1],l9->second.angles[2]);
-    }
-    return;
+    apar par = Get(layer, time);
+    AMSPoint  dpos(par.dpos[0], par.dpos[1], par.dpos[2]);
+    AMSRotMat drot;
+    drot.SetRotAngles(par.angles[0], par.angles[1], par.angles[2]);
 
+    pl->posA = pl->posA + dpos;
+    pl->rotA = pl->rotA * drot;
   }
+}
 
 

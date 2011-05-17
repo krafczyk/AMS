@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.164 2011/05/16 09:19:47 mdelgado Exp $
+#  $Id: Makefile,v 1.165 2011/05/17 09:19:34 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -94,6 +94,14 @@ ifdef PGTRACK
 PG:=PG
 DEFINES+= -D_PGTRACK_ 
 ROOTDICT_CPPFLAGS+= -D_PGTRACK_ 
+
+# Uncomment here if you have lib/libMinuit2.so and its objs in lib/libRoot.a
+# MINUIT2=1
+
+ifdef MINUIT2
+DEFINES+= -D_MINUIT2_
+ROOTDICT_CPPFLAGS+= -D_MINUIT2_
+endif
 
 BINMT=$(AMSWD)/bin/$(MARCH)/mt_PG$(G4)/
 BIN=$(AMSWD)/bin/$(MARCH)/PG$(G4)/
@@ -236,8 +244,8 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
 	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
-        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C 
-#$(SCC)TrExtAlignDB.C
+        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrExtAlignDB.C
+
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C $(SFF)rkms.F
@@ -325,8 +333,7 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
 		../include/TrHistoMan.h \
 		../include/TrTrackSelection.h \
-		../include/root_setup.h
-#../include/TrExtAlignDB.h
+		../include/root_setup.h ../include/TrExtAlignDB.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h
 endif

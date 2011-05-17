@@ -1,32 +1,70 @@
+//  $Id: TrExtAlignDB.h,v 1.2 2011/05/17 09:19:37 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 #include <map>
 #include "TObject.h"
+
+/// Repesentation of the plane alignement pars
+class TrExtAlignPar: public TObject{
+
+public:
+  /// Plane shift (dx,dy,dz) in cm
+  float dpos[3];
+  /// Plane rotation (alpha, beta, gamma) in rad
+  float angles[3];
+
+  /// Plane shift fitting error in cm
+  float edpos[3];
+  /// Plane rotation fitting error in rad
+  float eangles[3];
+
+  /// Fitting chisquare
+  float chisq;
+  /// Fitting NDF
+  int NDF;
+
+public:
+  /// Default constructor
+  TrExtAlignPar() { Init(); }
+
+  /// Constructor with parameters
+  TrExtAlignPar(float x, float y, float z, float a, float b, float g) {
+    Init();
+    SetPar(x, y, z, a, b, g);
+  }
+
+  void Init() {
+    SetPar(0, 0, 0, 0, 0, 0);
+    SetErr(0, 0, 0, 0, 0, 0);
+    chisq = 0;
+    NDF   = 0;
+  }
+
+  void SetPar(float x, float y, float z, float a, float b ,float g) {
+    dpos  [0] = x; dpos  [1] = y; dpos  [2] = z;
+    angles[0] = a; angles[1] = b; angles[2] = g;
+  }
+
+  void SetErr(float x, float y, float z, float a, float b ,float g) {
+    edpos  [0] = x; edpos  [1] = y; edpos  [2] = z;
+    eangles[0] = a; eangles[1] = b; eangles[2] = g;
+  }
+
+  void Print(Option_t *) const;
+
+  ClassDef(TrExtAlignPar, 1);
+};
 
 
 class TFile;
 
 typedef unsigned int uint;
 
-
 /// Class implemting the databse for tracker external planes alignment DB
 class TrExtAlignDB: public TObject{
 private:
-  /// Repesentation of the plane alignement pars
-  class apar{
-  public:
-    float dpos[3];   /// x,y,z
-    float angles[3]; /// alpha, beta, gamma
-    apar(){
-      dpos[0]=dpos[1]=dpos[2]=0;
-      angles[0]=angles[1]=angles[2]=0;
-    }
-    apar(float x,float y,float z, float a,float b ,float g){
-      dpos[0]=x; dpos[1]=y; dpos[2]=z;
-      angles[0]=a; angles[1]=b; angles[2]=g;
-    }
-    ClassDef(apar,1);
-  };
+  typedef TrExtAlignPar apar;
+
   /// Map of the aligment const vs time for layer 8 (J1)
   std::map<uint, apar> L8;
   /// Map of the aligment const vs time for layer 9 (J9)
@@ -42,8 +80,25 @@ public:
   ~TrExtAlignDB(){}
   /// reset the content of the DB
   void Clear(){ L8.clear(); L9.clear(); return;}
+
+  /// Get the closest apar to time
+  const apar &Get(int lay, uint time) {
+    std::map<uint, apar>::iterator it;
+    static apar dummy;
+    if (lay == 8 && (it = L8.lower_bound(time)) != L8.end()) return it->second;
+    if (lay == 9 && (it = L9.lower_bound(time)) != L9.end()) return it->second;
+    return dummy;
+  }
+
+  /// Fill an entry of the DB for Layer 8/9
+  void Fill(int layer, uint time, const apar &par)
+  {
+    if (layer == 8) L8[time] = par;
+    if (layer == 9) L9[time] = par;
+  }
+
   /// Fill  an entry of the DB for Layer8 (J1)
-  void Fill_L8(int time,
+  void Fill_L8(uint time,
 	       float dx,float dy,float dz,
 	       float dalpha=0, float dbeta=0, float dgamma=0)
   {
@@ -51,14 +106,14 @@ public:
     return;
   }
   /// Fill  an entry of the DB for Layer9 (J9)
-  void Fill_L9(int time,
+  void Fill_L9(uint time,
 	       float dx,float dy,float dz,
 	       float dalpha=0, float dbeta=0, float dgamma=0)
   {
     L9[time]=apar(dx,dy,dz,dalpha,dbeta,dgamma);
     return;
   }
-  /// Fill up the TkDBc with the most upt-to-date alignment pars for ext planes
+  /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   void UpdateTkDBc(uint time);
   /// Loaoad the DB from a file and make it available
   static void Load(TFile * ff);

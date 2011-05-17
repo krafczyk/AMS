@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.88 2011/05/15 01:15:14 pzuccon Exp $
+//  $Id: linkdef.h,v 1.89 2011/05/17 09:19:37 shaino Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -28,14 +28,15 @@
 #pragma link C++ class MagField;
 #pragma link C++ class TrFit+;
 #pragma link C++ class TrProp+;
-#pragma link C++ class TrAlignFit;
+//#pragma link C++ class TrAlignFit;
 #pragma link C++ class TrTrackPar+;
 #pragma link C++ class TrTasClusterR+;
 #pragma link C++ class TrTasPar+;
 #pragma link C++ class TrTasDB+;
 #pragma link C++ class TrTrackSelection+;
-//#pragma link C++ class TrExtAlignDB+;
-//#pragma link C++ class TrExtAlignDB::apar+;
+#pragma link C++ class TrExtAlignDB+;
+#pragma link C++ class TrExtAlignPar+;
+#pragma link C++ class TrExtAlignFit+;
 #pragma link C++ class TrHistoManHeader;
 #pragma link C++ class TrHistoMan;
 #pragma link C++ class TrOnlineMonitor;
