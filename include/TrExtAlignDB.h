@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.2 2011/05/17 09:19:37 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.3 2011/05/17 13:02:07 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 #include <map>
@@ -63,12 +63,10 @@ typedef unsigned int uint;
 /// Class implemting the databse for tracker external planes alignment DB
 class TrExtAlignDB: public TObject{
 private:
-  typedef TrExtAlignPar apar;
-
   /// Map of the aligment const vs time for layer 8 (J1)
-  std::map<uint, apar> L8;
+  std::map<uint, TrExtAlignPar> L8;
   /// Map of the aligment const vs time for layer 9 (J9)
-  std::map<uint, apar> L9;
+  std::map<uint, TrExtAlignPar> L9;
 
   /// Static Accessor to the DB
   static TrExtAlignDB* Head;
@@ -81,17 +79,17 @@ public:
   /// reset the content of the DB
   void Clear(){ L8.clear(); L9.clear(); return;}
 
-  /// Get the closest apar to time
-  const apar &Get(int lay, uint time) {
-    std::map<uint, apar>::iterator it;
-    static apar dummy;
+  /// Get the closest TrExtAlignDB to time
+  const TrExtAlignPar &Get(int lay, uint time) {
+    std::map<uint, TrExtAlignPar>::iterator it;
+    static TrExtAlignPar dummy;
     if (lay == 8 && (it = L8.lower_bound(time)) != L8.end()) return it->second;
     if (lay == 9 && (it = L9.lower_bound(time)) != L9.end()) return it->second;
     return dummy;
   }
 
   /// Fill an entry of the DB for Layer 8/9
-  void Fill(int layer, uint time, const apar &par)
+  void Fill(int layer, uint time, const TrExtAlignPar &par)
   {
     if (layer == 8) L8[time] = par;
     if (layer == 9) L9[time] = par;
@@ -102,7 +100,7 @@ public:
 	       float dx,float dy,float dz,
 	       float dalpha=0, float dbeta=0, float dgamma=0)
   {
-    L8[time]=apar(dx,dy,dz,dalpha,dbeta,dgamma);
+    L8[time]=TrExtAlignPar(dx,dy,dz,dalpha,dbeta,dgamma);
     return;
   }
   /// Fill  an entry of the DB for Layer9 (J9)
@@ -110,7 +108,7 @@ public:
 	       float dx,float dy,float dz,
 	       float dalpha=0, float dbeta=0, float dgamma=0)
   {
-    L9[time]=apar(dx,dy,dz,dalpha,dbeta,dgamma);
+    L9[time]=TrExtAlignPar(dx,dy,dz,dalpha,dbeta,dgamma);
     return;
   }
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes

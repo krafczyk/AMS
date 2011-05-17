@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.297 2011/05/14 16:50:52 pzuccon Exp $
+//  $Id: root.C,v 1.298 2011/05/17 13:02:13 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -12,7 +12,7 @@
 #include <omp.h>
 #endif
 #ifdef _PGTRACK_
-//#include "TrExtAlignDB.h"
+#include "TrExtAlignDB.h"
 #endif
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
@@ -2086,7 +2086,7 @@ bool AMSEventR::ReadHeader(int entry){
 
 //#pragma omp atomic 
 //_Lock-=(1<<thr);
-cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
+//cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
 #pragma omp critical (readsetup)
 {
 //#pragma omp atomic 
@@ -2108,7 +2108,7 @@ cout <<" LockBefore "<<_Lock<<" "<<thr<<endl;
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
-        getsetup()->printAllTDV_Time();
+        //getsetup()->printAllTDV_Time();
         //getsetup()->fSlowControl.print();
    for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
         
@@ -4756,7 +4756,7 @@ static int master=0;
 	TkDBc::Head->init((Run()>=1257416200)?2:1);
       }
     }
-//    TrExtAlignDB::Load(_FILE);
+    TrExtAlignDB::Load(_FILE);
 
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));

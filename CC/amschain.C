@@ -1,11 +1,11 @@
-//  $Id: amschain.C,v 1.39 2011/05/15 01:15:14 pzuccon Exp $
+//  $Id: amschain.C,v 1.40 2011/05/17 13:02:13 shaino Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
 #include "TXNetFile.h"
 #ifdef _PGTRACK_
 #include "TrRecon.h"
-//#include "TrExtAlignDB.h"
+#include "TrExtAlignDB.h"
 #endif
 #include <dlfcn.h>
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
@@ -422,10 +422,8 @@ void AMSChain::OpenOutputFile(const char* filename){
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
   // Parameters
-// PZ FIXME TrExtAlign
-//  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
-  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
-  for(int ii=0;ii<5;ii++){
+  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+  for(int ii=0;ii<6;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
   }

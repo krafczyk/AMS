@@ -19,7 +19,7 @@ void TrExtAlignPar::Print(Option_t *) const
 void TrExtAlignDB::Load(TFile * ff){
   if(!ff) return;
   if(Head) delete Head;
-  Head= (TrExtAlignDB*) ff->Get("TrExtAlign");
+  Head= (TrExtAlignDB*) ff->Get("TrExtAlignDB");
   if(!Head)
     printf("TrExtAlignDB::Load-W- Cannot Load the external Layer AlignmentDB\n");
   return;
@@ -32,7 +32,7 @@ void TrExtAlignDB::UpdateTkDBc(uint time)
     TkPlane* pl = TkDBc::Head->GetPlane(layer);
     if (!pl) continue;
 
-    apar par = Get(layer, time);
+    TrExtAlignPar par = Get(layer, time);
     AMSPoint  dpos(par.dpos[0], par.dpos[1], par.dpos[2]);
     AMSRotMat drot;
     drot.SetRotAngles(par.angles[0], par.angles[1], par.angles[2]);

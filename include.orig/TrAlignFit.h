@@ -1,4 +1,4 @@
-//  $Id: TrAlignFit.h,v 1.5 2011/05/17 09:19:37 shaino Exp $
+//  $Id: TrAlignFit.h,v 1.6 2011/05/17 13:02:05 shaino Exp $
 #ifndef __TrAlignFit__
 #define __TrAlignFit__
 
@@ -23,9 +23,9 @@ public:
 ///
 ///\date  2007/04/02 SH  First test version
 ///\date  2011/05/13 SH  Dynamic ext.planes alignment
-///$Date: 2011/05/17 09:19:37 $
+///$Date: 2011/05/17 13:02:05 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -83,7 +83,7 @@ public:
 		   Int_t fix = 0x38, Int_t verb = 0, Int_t nfcn = 1000);
 
   /// Write working directroy into current file
-  static Int_t WriteWorkDir(const char *name = "ExtAlign");
+  static Int_t WriteWorkDir(const char *name = "TrExtAlign");
 
   typedef std::vector<Double_t> PVec;
 

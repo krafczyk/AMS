@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.223 2011/05/14 16:50:52 pzuccon Exp $
+//  $Id: ntuple.C,v 1.224 2011/05/17 13:02:13 shaino Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -15,7 +15,7 @@
 #include "tralig.h"
 #else
 #include "TrCalDB.h"
-//#include "TrExtAlignDB.h"
+#include "TrExtAlignDB.h"
 #include "TrParDB.h"
 #include "TrPdfDB.h" 
 #include "TrRecon.h"
@@ -323,7 +323,7 @@ void AMSNtuple::endR(bool cachewrite){
     TkDBc  ::Head->Write();
     TrParDB::Head->Write();
     TrPdfDB::GetHead()->Write();
-//    TrExtAlignDB::GetHead()->Write();
+    TrExtAlignDB::GetHead()->Write();
     if (TrTasDB::Head) TrTasDB::Head->Write();
     if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
     if (IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);
