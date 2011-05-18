@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.57 2010/10/12 18:44:56 choutko Exp $
+//  $Id: server.h,v 1.58 2011/05/18 04:27:05 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -107,7 +107,7 @@ virtual void _PurgeQueue()=0;
 class NCL_find: public unary_function<DPS::Client::NominalClient,bool>{
 AString _a;
 public:
- explicit NCL_find(const char * s){_a=s;}
+ explicit NCL_find(const char * s){if(s && strlen(s))_a=s;}
  bool operator()(const DPS::Client::NominalClient & a){
   return strstr((const char *) _a, (const char *) a.HostName);
 }

@@ -472,6 +472,8 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
+   fISSData.clear();
+   LoadISS(fHeader.Run,fHeader.Run);
    return false; 
   }
   else{
@@ -496,6 +498,8 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
+   fISSData.clear();
+   LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    return true;
    }
 }
@@ -845,4 +849,47 @@ integer AMSSetupR::_select(  const dirent64 *entry){
 integer AMSSetupR::_select(  const dirent64 *entry){
  return 0;
 }
+#endif
+
+void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
+#ifdef __ROOTSHAREDLIBRARY__
+}
+#else
+char amsdatadir[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+char *amsd=getenv("AMSDataDir");
+if(!amsd || !strlen(amsd))amsd=amsdatadir;
+string ifile=amsd;
+ifile+="/";
+ifile+=AMSCommonsI::getversion();
+ifile+="/ISS_tlefile.txt";
+ifstream ifbin;
+ifbin.clear();
+ifbin.open(ifile.c_str());
+                         if(ifbin){
+	char stime[80],namei[80], line1i[80], line2i[80];
+                           while(!ifbin.eof()){
+			namei[0]=0;
+			line1i[0]=0;
+			line2i[0]=0;
+                        stime[0]=0;
+                        unsigned int tme;
+                        ifbin.getline(stime,75);
+                        tme=atol(stime);
+			ifbin.getline(namei,75);
+			ifbin.getline(line1i,75);
+			ifbin.getline(line2i,75);
+                        if(!ifbin.eof() ){
+                          ISSData a;
+                          a.TL1=line1i;
+                          a.TL2=line2i;
+                          a.Name=namei;
+                          if(tme<t1)fISSData.clear();
+                          fISSData.insert(make_pair(tme,a));
+                          if(tme>t2)break;
+                        }
+                       }
+                       ifbin.close();
+                    }
+                }
+
 #endif

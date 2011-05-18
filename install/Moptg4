@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.114 2011/05/16 16:20:22 mdelgado Exp $
+#  $Id: Moptg4,v 1.115 2011/05/18 04:27:14 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -417,7 +417,7 @@ FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
-OBJECTS+=$(BIN)rootdict.o
+OBJECTS+=$(BIN)rootdict.o $(BIN)predict.o
 MYOBJSC1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
 MYOBJSC:=$(MYOBJSC1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJSC:$(SFF)%.f=$(BIN)%.o) 
@@ -1034,6 +1034,10 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
+
+$(BIN)predict.o:  $(SCC)predict.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
 ##################### ADDTIONAL (PHONY) TARGETS ##############################################
 #checks if the directory AMSWD exist 
 amswd:

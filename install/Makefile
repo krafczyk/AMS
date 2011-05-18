@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.165 2011/05/17 09:19:34 shaino Exp $
+#  $Id: Makefile,v 1.166 2011/05/18 04:27:14 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -192,7 +192,7 @@ INCS= $(wildcard ../include/*.h)
 AMS_BASE=     $(SCC)amsdbc.C  $(SCC)astring.C     $(SCC)id.C  $(SCC)point.C  
 
 AMS_BASEO=$(AMS_BASE:$(SCC)%.C=$(BIN)%.o)
-COMMON_FILES+= $(AMS_BASE)
+COMMON_FILES+= $(AMS_BASE) $(BIN)predict.o
 
 # Base GBATCH Classes
 GBATCH_BASE = $(SCC)amsgobj.C $(SCC)link.C $(SCC)commonsi.C   $(SCC)node.C   $(SCC)snode.C \
@@ -482,7 +482,7 @@ STANDALONE:=$(EXE)gbatch$(G4)$(PG).exe
 
 gbatch: amswd $(STANDALONE)
 
-$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o
+$(STANDALONE): $(OBJECTS) $(SPECIAL_OBJS) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC)  -o $@ $(OBJECTS)  $(SPECIAL_OBJS) $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -491,7 +491,7 @@ $(SPECIAL_OBJS):$(SPECIAL_OBJS: %.o=%.C)
 
 readdaq:amswd  $(EXE)readdaq$(PG)
 
-$(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o
+$(EXE)readdaq$(PG):  $(OBJECTR) $(BIN)ctype.o 
 	$(LD) $(FLAGSSTATIC)  -o  $@  $(OBJECTR) $(TIMEL) $(LDFLAGSSTATIC)
 
 #------------------------------------------------------------------------------
@@ -501,7 +501,7 @@ INTERACTIVE:=$(EXE)gxint$(G4)$(PG).exe
 gxint :	amswd $(INTERACTIVE)
 
 
-$(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o
+$(INTERACTIVE):	$(OBJECTSI) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) -v -o $@  $(OBJECTSI) $(LDFLAGSI)
 
@@ -520,7 +520,7 @@ CLIENT=$(EXE)gbatch-orbit$(G4)$(PG).exe
 producer: amswd	$(CLIENT)
 
 #                   Orbit-C      Orbit-C++   gbatch
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o $(BIN)predict.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi; echo "Creating the $(EXE) directory ...."
 	$(LD) $(FLAGSSTATIC) -v -o $@  $(OBJECTCO)  $(OBJECTCL) $(OBJECTSC) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
@@ -587,6 +587,8 @@ else
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
 
+$(BIN)predict.o:  $(SCC)predict.c
+	$(CC) -c $(CFLAGS) $< -o$@
 
 ../include/root_methods$(PG).h:      ../perl/root.perl
 	perl ../perl/root.perl

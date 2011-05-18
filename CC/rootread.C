@@ -58,10 +58,21 @@ int firstevent=-1;
 //  tree->SetMakeClass(1);
   pev->Init(tree);
   pev->GetBranch(tree);
+  bool fast=true;
+again:
   int nbadev=0;
   int nevread=0;
   for (int i=0;i<nevents;i++){
-   if(!pev->ReadHeader(i))break;
+   if(fast && nevents>1001 && i>1 && i<nevents-1000){
+    nevread++;
+    continue; 
+   }
+   else if(i==nevents-1001 &&  (!pev->ReadHeader(i))){
+     fast=false;
+     goto again;
+   }
+   else if(!pev->ReadHeader(i))break;
+   if(iver && i%100==0)cout <<" i "<<i<<" "<<nevents<<endl;
    if((pev->fStatus/1073741824)%2)nbadev++;
    if(firstevent<0)firstevent=pev->fHeader.Event;
    if(lastevent && abs(lastevent-int(pev->fHeader.Event))>diff){

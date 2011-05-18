@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.20 2011/05/13 19:51:25 choutko Exp $
+//  $Id: root_setup.h,v 1.21 2011/05/18 04:27:05 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -169,7 +169,9 @@ uint64 time;
 
 class ISSData{
 public:
-float Rad;
+TString Name;
+TString TL1;
+TString TL2;
 };
 class Header{
 public:
@@ -244,8 +246,9 @@ static    AMSSetupR * gethead(){return _Head;}
  void UpdateHeader(AMSEventR* ev);
  void Reset();
  AMSSetupR();
+ void LoadISS(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,6)       //AMSSetupR
+ClassDef(AMSSetupR,7)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

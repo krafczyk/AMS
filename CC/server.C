@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.176 2011/05/12 18:02:41 choutko Exp $
+//  $Id: server.C,v 1.177 2011/05/18 04:26:02 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -4029,6 +4029,8 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
   //start  killer here
    
    if(ac.id.pid==0)return 0;
+   const char * hn=(const char*)(ac.id.HostName);
+   if(!(hn && strlen(hn)))return 0;
    AString submit;
     NCLI cli=find_if(_nki.begin(),_nki.end(),NCL_find((const char *)(ac.id.HostName))); 
     if(cli==_nki.end())cli=_nki.begin();

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.224 2011/05/17 13:02:13 shaino Exp $
+//  $Id: ntuple.C,v 1.225 2011/05/18 04:26:01 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -11,6 +11,7 @@
 #include "job.h"
 #include "ecaldbc.h"
 #include "event.h"
+extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #ifndef _PGTRACK_
 #include "tralig.h"
 #else
@@ -842,8 +843,37 @@ return _treesetup!=NULL;
 }
 
 
+bool AMSNtuple::LoadISS(time_t xtime){
+static unsigned int time=0;
+unsigned int tl=0;
+#pragma omp threadprivate(time)
+if(Get_setup02() && Get_setup02()->fISSData.size()>0){
+for(AMSSetupR::ISSData_i i=Get_setup02()->fISSData.begin();i!=Get_setup02()->fISSData.end();i++){
+ if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
+}
+if(tl!=time && tl){
+time=tl;
+AMSSetupR::ISSData_i i=Get_setup02()->fISSData.find(time);
+if(i!=Get_setup02()->fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
+cout << "LOAD!!!! "<<i->second.Name<<endl;
+return true;
+}
+else{
+static int print=0;
+time=0;
+if(print++<100)cerr<<"AMSNtuple::LoadISS-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
+return false ;
+}
+}
+return time!=0;
 
-
+}
+else{
+static int print=0;
+if(print++<100)cerr<<"AMSEvent::LoadISs-E-noSetupFoundorISSDataEmpty "<<Get_setup02()<<endl;
+return false;
+}
+}
 void AMSNtuple::readRSetup(AMSEvent *ev){
 if(!_rfile)return;
 int tmout=0;
