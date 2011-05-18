@@ -202,9 +202,12 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
   vector<float> signal;  
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
     TrRecHitR* hit = track->GetHit(ihit);
-    int LayerJ = hit->GetLayerJ();
-    if (hit==0) continue;
+    if (hit==0) {
+      printf("TrCharge::GetMean-W hit in the track with NULL pointer, skipping it.\n");
+      continue;
+    }
     // requested inner
+    int LayerJ = hit->GetLayerJ();
     if ( (type&kInner)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
     // if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
@@ -269,15 +272,18 @@ like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int
   like_t likelihood;
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
     TrRecHitR* hit = track->GetHit(ihit);
+    if (hit==0) {
+      printf("TrCharge::GetLogLikelihoodToBeZ-W hit in the track with NULL pointer, skipping it.\n");
+      continue;
+    }
+    // requested inner
     int LayerJ = hit->GetLayerJ();
-    if (hit==0) continue;
+    if ( (type&kInner!=0)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
     // if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
     // if cluster analysis
     TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
-    // requested inner
-    if ( (type&kInner!=0)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
     // calculate probability 
     float logprob = GetProbToBeZ(hit,iside,Z,beta);
     
