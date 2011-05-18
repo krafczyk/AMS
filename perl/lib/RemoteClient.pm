@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.671 2011/05/07 23:11:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.672 2011/05/18 17:02:28 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8976,6 +8976,10 @@ anyagain:
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
+           if($timendu-$timbegu>86400*30){
+               $timbegu=time();
+               $timendu=3600*$runno;
+           }
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
@@ -9273,8 +9277,8 @@ anyagain:
          $ri->{Run}=$run;
          $ri->{FirstEvent}=1;
          $ri->{LastEvent}=$evts;
-         $ri->{TFEvent}=$timbegu;
-         $ri->{TLEvent}=$timendu;
+         $ri->{TFEvent}=$start;
+         $ri->{TLEvent}=$end+1;
          $ri->{Priority}=0;
          $ri->{FilePath}=$script;
          $ri->{rndm1}=0;
