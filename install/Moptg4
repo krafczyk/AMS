@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.112.8.1 2011/05/18 16:57:48 choutko Exp $
+#  $Id: Moptg4,v 1.112.8.2 2011/05/18 18:07:14 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -362,7 +362,6 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
 	$(SCC)richdaq.C	$(SCC)astro.C  $(SCC)job.C $(SCC)event.C $(SCC)timeid.C \
-	$(SCC)g4rich.C 
 
 
 FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
@@ -399,7 +398,6 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
 	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
-	$(SCC)g4rich.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
