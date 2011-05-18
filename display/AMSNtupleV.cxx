@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.41 2011/05/18 04:26:47 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.42 2011/05/18 05:25:09 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -629,6 +629,7 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
   else n_aero=1.0529;
   const double n_naf=1.33;
   const double n_naf_Spread=0.01; 
+//cout <<"   version "<<ev->Version()<<endl;
    if(ev->Version() <89){
   double refi;
    double rad_posz;
@@ -787,7 +788,7 @@ for(int i=0;i<ev->nParticle();i++){
       rad_thick=-0.1;
       shift+=-rad_thick/2; 
   }    
-
+   //cout << "  rad_thick "<<rad_thick<<" "<<refi<<pcl->TrPMTPos[2]-pcl->TrRadPos[2]<<endl;
    double theta=pcl->Theta;
 
     TVector3 z(pcl->TrPMTPos[0]-pcl->TrRadPos[0],pcl->TrPMTPos[1]-pcl->TrRadPos[1],pcl->TrPMTPos[2]-pcl->TrRadPos[2]);
