@@ -79,8 +79,13 @@ void TrOnlineMonitor::Book() {
   DefineTracker("nTracks_vs_DT","; #Deltat (us); n. of Tracks",450,0.,500.,11,-0.5,10.5,0);
 
   // Signal
-  DefineTracker("Signal","; Amplitude (ADC)",100,0.,250.,1);
-  DefineTracker("SignalOnTrack","; Amplitude (ADC)",100,0.,250.,1);
+  DefineTracker("Signal","; Amplitude (ADC)",100,0.,250.,1);                                                           // beta>0.9
+  DefineTracker("SignalOnTrack","; Amplitude (ADC)",100,0.,250.,1);                                                    // beta>0.9
+  DefineTracker("SignalOnTrackY_vs_X","; Y Amp. (ADC); X Amp. (ADC)",100,0.,250.,100,0.,250.,kFALSE);                  // beta>0.9
+  DefineTracker("sqrtSignal","; Amplitude (#sqrt{ADC})",300,0.,70.,kTRUE);                                             // beta>0.9
+  DefineTracker("sqrtSignalOnTrack","; Amplitude (#sqrt{ADC})",300,0.,70.,kTRUE);                                      // beta>0.9
+  DefineTracker("sqrtSignalOnTrackY_vs_X","; Y Amp. (#sqrt{ADC}); X Amp. (#sqrt{ADC})",300,0.,70.,300,0.,70.,kFALSE);  // beta>0.9
+  DefineTracker("sqrtSignalOnTrack_vs_Beta","; #beta; Amplitude (#sqrt{ADC})",300,-1.2,1.2,300,0.,70.,kTRUE);
 
   // Ladder Summary Plots  
   DefineEntries("RawEntries",kTRUE);
@@ -131,6 +136,11 @@ void TrOnlineMonitor::Book() {
     DefineLadders("SignalToNoiseLowDT","; Seed S/N",100,0.,100.,kTRUE);
   }
 
+  // Truncated mean 
+  DefineTracker("sqrtTM_vs_Beta","; #beta; Truncated Mean (#sqrt{ADC})",300,-1.2,1.2,300,0.,70.,kFALSE);
+  DefineTracker("sqrtTM_vs_logRigidity","; log_{10}(|R|/GV); X Truncated Mean (#sqrt(ADC))",100,-2,4,300,0,70,kFALSE);
+  DefineTracker("sqrtTM_vs_invRigidity","; 1/Rigidity (1/GV); X Truncated Mean (#sqrt{ADC})",200,-20,20,300,0,70,kFALSE);
+
   Sumw2();
 
   // Time ntuple
@@ -139,13 +149,15 @@ void TrOnlineMonitor::Book() {
     fDir->cd();
     fTimeNtuple = new TTree("timentuple","Time Dependent Quantities");
     fTimeNtuple->Branch("timebranch",&time_event,
-      "Time/i:FineTime/F:dT/F:LiveTime/F:Rigidity/F:logChiSq/F:Size/s:nRaw/s:nClu/s:nHit/s:nTrk/s");
+      "Time/i:FineTime/F:dT/F:LiveTime/F:Rigidity/F:logChiSq/F:TruncMean/F:Beta/F:Size/s:nRaw/s:nClu/s:nHit/s:nTrk/s");
     saveddir->cd();
   }
 }
 
 
 void TrOnlineMonitor::Fill(AMSEventR* event){
+
+  if (event==0) return;
 
   char histoname[100];
 
@@ -161,16 +173,18 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   int    ntrk = event->NTrTrack();
 
   // ntuple vars
-  time_event.Time = (UInt_t) event->UTime();
-  time_event.FineTime = (Float_t) 0.001*0.001*0.64*((float) lvl1->TrigTime[3]*pow(2.,32.) + (float) lvl1->TrigTime[2]);
-  time_event.dT = (Float_t) dt;
-  time_event.LiveTime = (Float_t) lvl1->LiveTime; 
-  time_event.nRaw = (UShort_t) nraw;
-  time_event.nClu = (UShort_t) nclu;
-  time_event.nHit = (UShort_t) nhit;
-  time_event.nTrk = (UShort_t) ntrk;
-  time_event.Rigidity = (Float_t) 0.;
-  time_event.logChiSq = (Float_t) 1000.;
+  time_event.Time      = (UInt_t) event->UTime();
+  time_event.FineTime  = (Float_t) 0.001*0.001*0.64*((float) lvl1->TrigTime[3]*pow(2.,32.) + (float) lvl1->TrigTime[2]);
+  time_event.dT        = (Float_t) dt;
+  time_event.LiveTime  = (Float_t) lvl1->LiveTime; 
+  time_event.nRaw      = (UShort_t) nraw;
+  time_event.nClu      = (UShort_t) nclu;
+  time_event.nHit      = (UShort_t) nhit;
+  time_event.nTrk      = (UShort_t) ntrk;
+  time_event.TruncMean = (Float_t) 0.;
+  time_event.Beta      = (Float_t) 2.; 
+  time_event.Rigidity  = (Float_t) 0.;
+  time_event.logChiSq  = (Float_t) 1000.;
 
   // global
   FillTracker("DT",dt);  
@@ -221,6 +235,7 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
     FillTracker("SeedAddress_vs_Ladder",entry,addr);
     FillLayer(kFALSE,cluster,"SeedAddress",addr);
     FillTracker(iside,"Signal",signal);
+    FillTracker(iside,"sqrtSignal",sqrt(fabs(signal)));
     FillTracker(iside,"Signal_vs_Ladder",entry,signal);
     FillTracker(iside,"NElement_vs_Ladder",entry,width);
     if (dt<fDtMin) {
@@ -301,27 +316,28 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
   }
 
 
-  // track histograms
-  if (event->NTrTrack()==1) { // no multi-track
-    TrTrackR* track = event->pTrTrack(0); 
-    if ( (track->GetPar().ErrRinv<1e6)&&(fabs(track->GetRigidity())>1e-6) ) {
-      TrTrackPar par = track->GetPar();
-      float rigidity = track->GetRigidity();
-      float chisq    = (par.ChisqX+par.ChisqY)/(par.NdofX+par.NdofY);
-      // storing
-      time_event.Rigidity = (Float_t) rigidity;
-      time_event.logChiSq = (Float_t) log10(chisq);
+  // loop on tracks
+  for (int itrack=0; itrack<event->NTrTrack(); itrack++) {
+
+    TrTrackR*  track    = event->pTrTrack(itrack);
+    TrTrackPar par      = track->GetPar();
+    float      rigidity = par.Rigidity;
+    float      errinv   = par.ErrRinv; 
+    float      chisq    = (par.ChisqX+par.ChisqY)/(par.NdofX+par.NdofY);
+
+    if ( (errinv<1e6)&&(fabs(rigidity)>1e-6)&&(chisq>1e-6) ) { 
 
       AMSPoint global(par.P0);
       AMSDir   direction(par.Dir);
 
+      // rigidity plots
       if (rigidity<0) FillTracker("logRigidityMinus",log10(-rigidity)); 
       else            FillTracker("logRigidityPlus",log10(rigidity));
       FillTracker("logChiSq_vs_logRigidity",log10(fabs(rigidity)),log10(chisq));
       FillTracker("InvRigidity",1./rigidity);
-      FillTracker("ErrInvRigidity",log10(fabs(rigidity)),track->GetErrRinv(1)*fabs(rigidity));
+      FillTracker("ErrInvRigidity",log10(fabs(rigidity)),errinv*fabs(rigidity));
  
-      // track->InterpolateLayer(0,global,direction); // interpolation at layer 1
+      // position and direction at Z=0
       FillTracker("Y_vs_X",global.x(),global.y());
       float phi = direction.getphi(); 
       float theta = direction.gettheta();
@@ -336,32 +352,84 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
       int nhit = track->GetNhits();
       FillTracker("nRecHitsOnTrack",nhit);
 
+      // loop on hits
       for (int ihit=0; ihit<track->GetNhits(); ihit++) {
         TrRecHitR* hit = track->GetHit(ihit);
+        if (hit==0) continue; 
         TrClusterR* clx = hit->GetXCluster();
         TrClusterR* cly = hit->GetYCluster();
         int tkid = hit->GetTkId();
         TkLadder* ladder = TkDBc::Head->FindTkId(tkid);
         int ientry = ladder->GetCrate()*24 + ladder->GetTdr();
+        float signalx = 0; // default
+        float signaly = 0; // default
         if (clx!=0) { 
           nclus[0]++;
           LadderClusters[0][ientry]++;
           FillEntry(0,tkid,"TrackEntries");
-          FillTracker(0,"SignalOnTrack",hit->GetXCluster()->GetTotSignal());
+          signalx = hit->GetXCluster()->GetTotSignal(); 
+          if (rigidity>6.8) FillTracker(0,"SignalOnTrack",signalx);
+          if (rigidity>6.8) FillTracker(0,"sqrtSignalOnTrack",sqrt(fabs(signalx)));
         }
         if (cly!=0) {
           nclus[1]++;
           LadderClusters[1][ientry]++;
           FillEntry(1,tkid,"TrackEntries");
-          FillTracker(1,"SignalOnTrack",hit->GetYCluster()->GetTotSignal());
+          signaly = hit->GetYCluster()->GetTotSignal(); 
+          if (rigidity>6.8) FillTracker(1,"SignalOnTrack",signaly);
+          if (rigidity>6.8) FillTracker(1,"sqrtSignalOnTrack",sqrt(fabs(signaly)));
+        }
+        if ( (clx!=0)&&(cly!=0) ) {
+          if (rigidity>6.8) FillTracker("SignalOnTrackY_vs_X",signalx,signaly);
+          if (rigidity>6.8) FillTracker("sqrtSignalOnTrackY_vs_X",sqrt(fabs(signalx)),sqrt(fabs(signaly)));
         }
         FillLayer(hit->GetLayer(),"Occupancy",hit->GetCoord().x(),hit->GetCoord().y());
-      }
+      } 
+
+      // number of cluster on track
       for (int iside=0; iside<2; iside++) {
         FillTracker(iside,"nClustersOnTrack",nclus[iside]);
         for (int ientry=0; ientry<192; ientry++) {
           FillTracker(iside,"nClustersOnTrack_vs_Ladder",ientry,(float)LadderClusters[iside][ientry]);        
         }
+      }
+
+      // truncated mean
+      float truncmean = TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner,track,TrCharge::kX).Mean;
+      FillTracker("sqrtTM_vs_logRigidity",log10(rigidity),sqrt(fabs(truncmean)));
+      FillTracker("sqrtTM_vs_invRigidity",1./rigidity,sqrt(fabs(truncmean)));
+    } 
+  }  
+
+
+  // beta + track   
+  if (event->nParticle()!=0) {
+    ParticleR* particle = event->pParticle(0);
+    if ( (particle->iBeta()!=-1)&&(particle->iTrTrack()!=-1) ) {
+      float      beta     = event->pBeta(particle->iBeta())->Beta;
+      TrTrackR*  track    = event->pTrTrack(particle->iTrTrack());
+      TrTrackPar par      = track->GetPar();
+      float      rigidity = par.Rigidity;
+      float      errinv   = par.ErrRinv; 
+      float      chisq    = (par.ChisqX+par.ChisqY)/(par.NdofX+par.NdofY);
+      if ( (errinv<1e6)&&(fabs(rigidity)>1e-6)&&(chisq>1e-6) ) { 
+        // ntuple storing
+        time_event.Rigidity = (Float_t) rigidity;
+        time_event.logChiSq = (Float_t) log10(chisq);
+        time_event.Beta     = (Float_t) beta; 
+        // loop on hits
+        for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+          TrRecHitR* hit = track->GetHit(ihit);
+          if (hit==0) continue; 
+          TrClusterR* clx = hit->GetXCluster();
+          TrClusterR* cly = hit->GetYCluster();
+          if (clx!=0) FillTracker(0,"sqrtSignalOnTrack_vs_Beta",beta,sqrt(fabs(hit->GetXCluster()->GetTotSignal())));
+          if (cly!=0) FillTracker(1,"sqrtSignalOnTrack_vs_Beta",beta,sqrt(fabs(hit->GetYCluster()->GetTotSignal())));
+        }
+        // truncated mean
+        float truncmean = TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner,track,TrCharge::kX).Mean;
+        FillTracker("sqrtTM_vs_Beta",beta,sqrt(fabs(truncmean)));
+        time_event.TruncMean = (Float_t) truncmean;
       }
     }
   }
