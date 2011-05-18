@@ -18,6 +18,7 @@
 #include "TrCluster.h"
 #include "TrRecHit.h"
 #include "TrTrack.h"
+#include "TrCharge.h"
 
 #include "root.h"
 
@@ -267,27 +268,31 @@ class TrHistoMan : public TObject {
 */
 
 typedef struct {
-  // Unix time
+  // Unix time [event]
   UInt_t   Time; 
-  // Fine time
+  // Fine time [event]
   Float_t  FineTime;
-  // Interevent distance (us)
+  // Interevent distance (us) [event]
   Float_t  dT;
-  // Livetime
+  // Livetime [event]
   Float_t  LiveTime;
-  // Rigidity
+  // Rigidity [particle] 
   Float_t  Rigidity;
-  // log10(ChiSq)
+  // log10(ChiSq) [particle]
   Float_t  logChiSq;
-  // Tracker Event Size (max 24000) 
+  // Truncated mean inner tracker X-Side [particle]
+  Float_t  TruncMean;
+  // TOF Beta [particle]
+  Float_t  Beta;
+  // Tracker Event Size (max 24000) [event] 
   UShort_t Size; 
-  // Number of Raw Clusters
+  // Number of Raw Clusters [event]
   UShort_t nRaw; 
-  // Number of Clusters
+  // Number of Clusters [event]
   UShort_t nClu;  
-  // Number of Hits
+  // Number of Hits [event]
   UShort_t nHit; 
-  // Number of Tracks
+  // Number of Tracks [event]
   UShort_t nTrk;
 } TIME_EVENT;
 
