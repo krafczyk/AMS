@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.103 2011/04/26 20:24:10 choutko Exp $
+//  $Id: event.h,v 1.103.6.1 2011/05/18 16:57:59 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -416,6 +416,7 @@ static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void builddaqSh(integer i, integer length, int16u *p);
 static integer getselrun(integer i=0);
+void LoadISS();
 friend class AMSJob;
 #ifdef __WRITEROOT__
 friend class AMSEventHeaderRoot;

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.348.2.1 2011/05/18 05:28:10 choutko Exp $
+//  $Id: root.h,v 1.348.2.2 2011/05/18 16:57:59 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -322,7 +322,7 @@ public:
                          }
   
                          sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C TrStat %x",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker,TrStat);
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/10000000,VelocityS*RadS/10000000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker,TrStat);
   return _Info;
   }
 

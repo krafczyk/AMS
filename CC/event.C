@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.526 2011/04/26 20:24:04 choutko Exp $
+//  $Id: event.C,v 1.526.6.1 2011/05/18 16:58:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -19,6 +19,7 @@ extern "C" void setbcorr_(float *p);
 #include "TrRecon.h"
 #include "HistoMan.h"
 #endif
+extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
 
 #include "trrec.h"
 #include "tofdbc02.h" 
@@ -601,6 +602,7 @@ void AMSEvent::_signinitevent(){
       _VelTheta=Array[0].VelTheta;
       _VelPhi=Array[0].VelPhi;
     }
+    if(AMSJob::gethead()->isRealData())LoadISS();
   }
 
   AMSgObj::BookTimer.stop("SetTimeCoo");
@@ -4543,6 +4545,14 @@ void AMSEvent::SetTofSTemp(){
   }
 } 
 //------------------------------------
+
+
+void AMSEvent::LoadISS(){
+if(AMSNtuple::LoadISS(_time)){
+ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6);
+_NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
+}
+}
 
 #ifdef _PGTRACK_
 #include "event_tk.C"

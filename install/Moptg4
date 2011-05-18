@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.113 2011/05/16 09:25:45 mdelgado Exp $
+#  $Id: Moptg4,v 1.112.8.1 2011/05/18 16:57:48 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -398,7 +398,8 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)daqecblock.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
-	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C
+	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
+	$(SCC)g4rich.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
@@ -416,12 +417,12 @@ FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
-OBJECTS+=$(BIN)rootdict.o
+OBJECTS+=$(BIN)rootdict.o $(BIN)predict.o
 MYOBJSC1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
 MYOBJSC:=$(MYOBJSC1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJSC:$(SFF)%.f=$(BIN)%.o) 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o $(BIN)geant4_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o 
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o  $(BIN)predict.o
 
 # PGTRACVK not supported by the moment
 OBJECTSC += $(BIN)TrackFit_utils_c.o
@@ -1033,6 +1034,10 @@ ifeq  "$(shell uname)"  "Linux"
 else 
 	cp $(SCC)ctype.c $(BIN)ctype.o
 endif
+
+$(BIN)predict.o:  $(SCC)predict.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
 ##################### ADDTIONAL (PHONY) TARGETS ##############################################
 #checks if the directory AMSWD exist 
 amswd:
