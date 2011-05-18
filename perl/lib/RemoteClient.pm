@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.672 2011/05/18 17:02:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.673 2011/05/18 18:16:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8978,7 +8978,7 @@ anyagain:
           }
            if($timendu-$timbegu>86400*30){
                $timbegu=time();
-               $timendu=3600*$runno;
+               $timendu=$timbegu+3600*$runno;
            }
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
