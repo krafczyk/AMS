@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.128 2011/05/10 15:22:34 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.128.4.1 2011/05/18 17:16:03 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/05/10 15:22:34 $
+/// $Date: 2011/05/18 17:16:03 $
 ///
-/// $Revision: 1.128 $
+/// $Revision: 1.128.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1728,7 +1728,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     if (tmin[jc].Intp(pint, zlay) < 0) continue;
 
     double rsig = std::sqrt(tmin[jc].csq);
-    double rmax = (msely+rsig*0.7)*0.1;
+    double rmax = msely*(0.2+0.3*rsig);
     if (tmin[jc].ic[0] == 0) rmax = tmin[jc].csq*5;
     if (rmax > msely*5) rmax = msely*5;
 
@@ -2063,7 +2063,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 //////////////////// Merge again ////////////////////
 
   double mmxx = mselx*(0.1+0.2*std::sqrt(csqx));
-  double mmxy = msely*(0.1+0.2*std::sqrt(csqy));
+  double mmxy = msely*(0.2+0.2*std::sqrt(csqy));
 
   double dxmrg[NL], dymrg[NL];
   int nmrg = 0;
@@ -2959,7 +2959,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 	double dx = dp[  itc]/tofcls->getecoo()[  itc];
 	double dy = dp[1-itc]/tofcls->getecoo()[1-itc];
 	double dd = dx*dx+dy*dy;
-	if (dx < 3.5 && dy < 3.5 && dd < dmin) {
+	if (std::fabs(dx) < 3.5 && std::fabs(dy) < 3.5 && dd < dmin) {
 	  dmin   = dd;
 	  dxmin  = dx;
 	  dymin  = dy;
@@ -2991,13 +2991,14 @@ int TrRecon::FillHistos(int trstat, int refit)
 	hman.Fill("TrRiICs", 1/rgt, schg);
 
 	if (-1 < 1/rgt && 1/rgt < 0 && 
-	    schg > 1.5){//schg > 1.5*std::sqrt(1.5*1.5/rgt/rgt+1)) {
+	    schg > 1.5*std::sqrt(1.5*1.5/rgt/rgt+1)) {
 	  static int nhb = 0;
 	  if (nhb++ < 20)
 	    cout << "TrRecon::FillHistos-I-Hebar: Run/Ev= "
 		 << GetRunID() << " " << GetEventID() 
 		 << " 1/R= " << 1/rgt 
 		 << " Q= " << schg << " " << chgp << " " << chgn << endl;
+	  trstat |= 0x1000;
 	}
       }
 
