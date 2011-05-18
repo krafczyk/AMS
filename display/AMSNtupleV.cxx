@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.42 2011/05/18 05:25:09 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.43 2011/05/18 08:23:34 mdelgado Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -623,14 +623,14 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
   double rad_thick;
   const double rad_length=-3;
   double n_aero;
-  if(ev->Version()<130){
+  if(ev->Version()>0 && ev->Version()<130){
     n_aero=1.02998;
   }
   else n_aero=1.0529;
   const double n_naf=1.33;
   const double n_naf_Spread=0.01; 
 //cout <<"   version "<<ev->Version()<<endl;
-   if(ev->Version() <89){
+   if(ev->Version()>0 && ev->Version() <89){
   double refi;
    double rad_posz;
 for(int i=0;i<ev->nParticle();i++){
@@ -777,7 +777,7 @@ for(int i=0;i<ev->nParticle();i++){
     rad_thick=-0.5;
   }
   else {
-  if(ev->Version()<130){
+  if(ev->Version()>0 && ev->Version()<130){
    rad_thick=-3;
   }
   else rad_thick=-2.5;
@@ -843,7 +843,7 @@ for(int i=0;i<ev->nParticle();i++){
     double w1=-sqrt(1-st*st);
      ray=TVector3(u1,v1,w1);
      double addon=4;
-     if(ev->Version()>160){
+     if(ev->Version()<0 || ev->Version()>160){
         addon=0;
      }
     double rp=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
@@ -955,14 +955,14 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
   double rad_thick;
   const double rad_length=-3;
   double n_aero;
-  if(ev->Version()<130){
+  if(ev->Version()>0 && ev->Version()<130){
     n_aero=1.02998;
   }
   else n_aero=1.0529;
   const double n_naf=1.33;
   const double n_naf_Spread=0.01; 
 
-   if(ev->Version() <89){
+   if(ev->Version()>0 && ev->Version() <89){
    double refi;
    double rad_posz;
    //   //for(int i=0;i<ev->nParticle();i++){
@@ -1126,7 +1126,7 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
     fracemission = 0.5;
   }
   else {
-  if(ev->Version()<130){
+  if(ev->Version()>0 && ev->Version()<130){
    rad_thick=-3;
     fracemission = 0.6;
   }
@@ -1246,7 +1246,7 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
     double w1=-sqrt(1-st*st);
     ray=TVector3(u1,v1,w1);
     double addon=4.;
-    if(ev->Version()>160){
+    if(ev->Version()<0 || ev->Version()>160){
       addon=0;
     }
     double rp=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
