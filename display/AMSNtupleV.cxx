@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.40 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: AMSNtupleV.cxx,v 1.41 2011/05/18 04:26:47 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -721,7 +721,7 @@ for(int i=0;i<ev->nParticle();i++){
         if(rp2>rc2 && zl<0)zl=-zl;
         else if(rp2<rc2 && zl>0)zl=-zl;
       }           
-      cout <<"  got iteration "<<rcoo[0]<< " "<<rcoo[1]<<" "<<rcoo[2]<< " "<<rp2 <<" "<<rc2<<endl;
+      //cout <<"  got iteration "<<rcoo[0]<< " "<<rcoo[1]<<" "<<rcoo[2]<< " "<<rp2 <<" "<<rc2<<endl;
      // get norm vector to cone
      double cw=sin(atan(-tc));
      double phin=atan2(rcoo[1],rcoo[0]);
@@ -751,8 +751,8 @@ for(int i=0;i<ev->nParticle();i++){
       if(!(npoint--))break;
       continue;
      }
-    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
-    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+    //cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
+    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
 
    SetPolyLine(npoint,array);
@@ -1096,8 +1096,8 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
       if(!(npoint--))break;
       continue;
      }
-    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
-    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+    //cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
+    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
 
    SetPolyLine(npoint,array);
