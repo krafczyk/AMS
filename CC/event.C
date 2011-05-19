@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.526.6.1 2011/05/18 16:58:10 choutko Exp $
+//  $Id: event.C,v 1.526.6.2 2011/05/19 18:43:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1270,6 +1270,7 @@ if(AMSEvent::get_thread_num()==0)
 
 	    AMSJob::gethead()->uhend();
 	    AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
+            AMSNtuple::readRSetup(this);
             Barrier()=false;
 	  }
 #pragma omp barrier 
