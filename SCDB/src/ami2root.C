@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.12 2011/05/04 20:42:07 choutko Exp $
+//  $Id: ami2root.C,v 1.13 2011/05/19 20:52:06 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -82,17 +82,21 @@ bool check_node(map<int,vector<int> > select,int node, int debug=0){
 }
 
 bool check_selection(map<int,vector<int> > select,int node, int datatype, int debug){
+    cout <<" node "<<node<<" "<<select.size()<<endl;
   if((int)select.size()==0)return true;
   map<int,vector<int> >::const_iterator it;
   it=select.find(node);
-  if(it==select.end())return false;
-  if(it->second.size()==0)return true;
+
+  if(it==select.end())return true;
+  cout <<" 2nd "<<it->second.size()<<endl;
+  if(it->second.size()==0)return false;
 
   for(int j=0;j<(int)it->second.size();j++){
     if(debug)printf("dt %i %i\n",j,it->second[j]);
-    if(datatype==it->second[j])return true;
+    printf("dt %i %i\n",j,it->second[j]);
+    if(datatype==it->second[j])return false;
   }
-  return false;
+  return true;
 }
 
 int main(int argc, char *argv[]){
@@ -222,7 +226,7 @@ else if(timelast<end){
     for(int num=0;num<nnum;num++){
 
       // check if node is in selection
-      if(!check_node(select,node_numbers[num]->node_number,debug))continue;
+      //if(!check_node(select,node_numbers[num]->node_number,debug))continue;
       
       // replace forbidden characters in nodename
       char nname[20];
@@ -239,6 +243,12 @@ else if(timelast<end){
       // loop over node datatypes (read from AMI)
       int ndata_types=0;
       data_types** datatypes=get_data_types(node_numbers[num]->node_type_name,&ndata_types);
+         if(!datatypes){
+           cerr<<"  Unable to get datatypes "<<endl;
+           continue;    
+           tm=true;
+           goto finish;
+         }      
 
       DataType *datatype=0;
         time_t t1=time(&t1);
@@ -251,7 +261,7 @@ else if(timelast<end){
 	// check if datatype is in selection
 	if(!check_selection(select,node_numbers[num]->node_number,datatypes[data_type]->data_type,debug))continue;
 
-	printf("Processing %s | %s | %s ...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name);
+	printf("Processing %s | %s | %s | %x...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name,node_numbers[num]->node_number);
 	// create DataType object and link to Node
 	if(!datatype||datatype->number!=datatypes[data_type]->data_type){
 	  datatype=new DataType(datatypes[data_type]->data_type);
