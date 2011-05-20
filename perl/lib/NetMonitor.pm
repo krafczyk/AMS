@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.39 2011/05/12 10:16:55 ams Exp $
+# $Id: NetMonitor.pm,v 1.40 2011/05/20 14:15:17 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -76,7 +76,7 @@ sub InitOracle{
   aga2:
     if(not open(FILE,"<".$oracle)){
       $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n",0,1);
-      print time()." NetMonitor-S-UnableToOpenFile $oracle \n;";
+      print localtime()." NetMonitor-S-UnableToOpenFile $oracle \n;";
       sleep $self->{sleep};
       goto aga2;
                         }
@@ -86,7 +86,7 @@ sub InitOracle{
     close FILE;
       if(not $self->{sqlserver}->{dbhandler}=DBI->connect('DBI:'.$self->{sqlserver}->{dbdriver}.$self->{sqlserver}->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1})){
       $self->sendmailpolicy("NetMonitor-S-CannotConnectToOracle $DBI::errstr \n",0,1);
-      print time()." NetMonitor-S-CannotConnectToOracle \n";
+      print localtime()." NetMonitor-S-CannotConnectToOracle \n";
       sleep $self->{sleep};
       goto aga2;
      
@@ -100,11 +100,11 @@ sub Run{
 
     $self->InitOracle();
     my $force=1;
-
-
+    my $sshTimeout=600;
+    local $SIG{ALRM} = sub { print localtime()." > command timeout\n"; };
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
-    print time()." NetMonitor-I-Started \n";
+    print localtime()." NetMonitor-I-Started \n";
 #     $self->{ping} = Net::Ping->new();
     $self->{ping} = Net::Ping->new("tcp");
     $self->{ping}->{port_num} =20001;
@@ -120,22 +120,22 @@ sub Run{
 again:
 if(not open(FILE,"<".$self->{hostfile})){
     $self->sendmailpolicy("NetMonitor-S-UnableToOpen File $self->{hostfile} \n",0);
-    print time()." NetMonitor-S-UnableToOpen File $self->{hostfile} \n";
+    print localtime()." NetMonitor-S-UnableToOpen File $self->{hostfile} \n";
     sleep $self->{sleep};
     goto again;
 }
        my $buf;
     $self->sendmailpolicy("NetMonitor-I-Opened File $self->{hostfile} \n",0);
-    print time()." NetMonitor-I-Opened File $self->{hostfile} \n";
+    print localtime()." NetMonitor-I-Opened File $self->{hostfile} \n";
     if(not read(FILE,$buf,1638400)){
       close FILE;
       $self->sendmailpolicy("NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n",0);
-      print time()." NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n";
+      print localtime()." NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n";
       sleep $self->{sleep};
       goto again;
     }     
       $self->sendmailpolicy("NetMonitor-I-ReadFile $self->{hostfile} \n",0);
-      print time()." NetMonitor-I-ReadFile $self->{hostfile} \n";
+      print localtime()." NetMonitor-I-ReadFile $self->{hostfile} \n";
     close FILE;
     my @sbuf=split "\n",$buf;
     $#{$self->{hosts}}=-1;
@@ -171,8 +171,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
         else{
             push @{$self->{bad}}, $host." ".$mes;
-         print "bad $host \n";
-
+            print localtime()." bad $host \n";
         }
     }
 
@@ -216,7 +215,6 @@ if(not open(FILE,"<".$self->{hostfile})){
 
 #fs check
 
-    print "Fs check\n";
     my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     $mes="NetMonitor-W-NodeFileSystemProblem";
     foreach my $host (@{$self->{hosts}}){
@@ -234,17 +232,20 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
         my $i="";
         foreach my $fs (@{$self->{filesystems}}){
+            print ".";
             unlink "/tmp/filesys";
-           $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
+            alarm $sshTimeout;
+            $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
+            alarm 0;
             if(1 or not $i){
                 if(not open(FILE,"<"."/tmp/filesys")){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-#                    print "Fs error: $host $fs\n";
+                    print localtime()." > Fs error 1: $host $fs\n";
                     next;
                 }
                 if(not read(FILE,$buf,16384)){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-#                    print "Fs error: $host $fs\n";
+                    print localtime()." > Fs error 2: $host $fs\n";
                     close FILE;
                     next;
                }
@@ -252,6 +253,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                 unlink "/tmp/filesys";
                 if($buf == 0){
                     push @{$self->{bad}}, $host."_$fs NetMonitor-W-NodeFileSystemProblem";
+                    print localtime()." > $host_$fs NetMonitor-W-NodeFileSystemProblem";
                 }else{
 #		    print "Fs good: $host $fs\n";
 		}
@@ -266,54 +268,54 @@ if(not open(FILE,"<".$self->{hostfile})){
 # Now timing
 #
 
-    $mes="NetMonitor-W-SomeHostsHaveWrongTime";
-    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
-#    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
-    foreach my $host (@{$self->{hosts}}) {
-        my $gonext=0;
-        foreach my $bad (@{$self->{bad}}){
-		    my @sbad=split ' ',$bad;
-		    if($sbad[0] eq $host){
-			$gonext=1;
-			last;
-		    }
-		}
-		if($gonext){
-		    next;
-		}
-		unlink "/tmp/xtime";
-		my $i=system($command.$host.' date +%s > /tmp/xtime ');
-		my $curtime=time();
-		if(1 or not $i){
-		  if(not open(FILE,"<"."/tmp/xtime")){
-			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-		    next;
-		  }           
-		     my $buf;
-		     if(not read(FILE,$buf,16384)){
-			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-			 close FILE;
-		       next;
-		     }
-		     close FILE;
-		     unlink "/tmp/xtime";
-	#             my @sbuf= split ' ',$buf;
-	#             if($#sbuf>3){
-	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
-	#               my @ssbuf=split ':',$sbuf[3];
-	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
-		       if(abs($curtime-$buf)>360){
-			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
-		       }
-		       next;
-	#             }  
-			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
-		    }
-		else{
-		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
-		    next;
-		}
-	    }
+#    $mes="NetMonitor-W-SomeHostsHaveWrongTime";
+#    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+##    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
+#    foreach my $host (@{$self->{hosts}}) {
+#        my $gonext=0;
+#        foreach my $bad (@{$self->{bad}}){
+#		    my @sbad=split ' ',$bad;
+#		    if($sbad[0] eq $host){
+#			$gonext=1;
+#			last;
+#		    }
+#		}
+#		if($gonext){
+#		    next;
+#		}
+#		unlink "/tmp/xtime";
+#		my $i=system($command.$host.' date +%s > /tmp/xtime ');
+#		my $curtime=time();
+#		if(1 or not $i){
+#		  if(not open(FILE,"<"."/tmp/xtime")){
+#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+#		    next;
+#		  }           
+#		     my $buf;
+#		     if(not read(FILE,$buf,16384)){
+#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
+#			 close FILE;
+#		       next;
+#		     }
+#		     close FILE;
+#		     unlink "/tmp/xtime";
+#	#             my @sbuf= split ' ',$buf;
+#	#             if($#sbuf>3){
+#	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
+#	#               my @ssbuf=split ':',$sbuf[3];
+#	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
+#		       if(abs($curtime-$buf)>360){
+#			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
+#		       }
+#		       next;
+#	#             }  
+#			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
+#		    }
+#		else{
+#		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
+#		    next;
+#		}
+#	    }
 
 	#
 	# dbhosts targets
@@ -325,12 +327,16 @@ if(not open(FILE,"<".$self->{hostfile})){
 	$mes="NetMonitor-W-DBHostsTargetsProblems";
 	$command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 	foreach my $host (@{$self->{dbhosts}}){
+            print ".";
           unlink "/tmp/dbhosts";
          #print "$command.$host. \n";
-         my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
+        alarm $sshTimeout;
+        my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
+        alarm 0;
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/dbhosts")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh3Failed /tmp/dbhosts";
+                print localtime()." > $host NetMonitor-W-ssh3Failed /tmp/dbhosts\n";
                 next;
             }
             my @words=<FILE>;
@@ -351,22 +357,21 @@ if(not open(FILE,"<".$self->{hostfile})){
                 }
                 $pn++;
                 if($found==0){
-                    print "not found\n";
 #                    $foundp[$pn]=0;
 #                    $twp=$twp."\_$target\_";
                 }else{
                     $foundp[$pn]=1;
                 }
              }
-               print " joptat $nt \n;";
+#               print " joptat $nt \n;";
 	}
 
 }
     my $cnt=0;
-    print @foundp;
     foreach my $target (@{$self->{dbhoststargets}}){
         if($foundp[$cnt]==0){
             push @{$self->{bad}}, "$target NetMonitor-W-DBHostsTargetsProblems ";
+            print localtime()." > $target NetMonitor-W-DBHostsTargetsProblems\n";
         }
         $cnt++;
     }
@@ -389,12 +394,16 @@ if(not open(FILE,"<".$self->{hostfile})){
         if($gonext){
             next;
         }
+        print ".";
         unlink "/tmp/xspace";
          #print "$command.$host. \n";
-         my $i=system($command.$host." df -x nfs -x gfs > /tmp/xspace ");
+        alarm $sshTimeout;
+        my $i=system($command.$host." df -x nfs -x gfs > /tmp/xspace ");
+        alarm 0;
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/xspace")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+                print localtime()." > $host NetMonitor-W-ssh1Failed\n";
                 next;
             }
             my @words=<FILE>;
@@ -409,6 +418,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                         $pc=~ s/\%//;
                         if($ava < 100000 or $pc<2){
                             push @{$self->{bad}}, $host." NetMonitor-W-DiskSpaceProblems";
+                            print localtime()." > $host NetMonitor-W-DiskSpaceProblems\n";
                        }
                         last;
                     }
@@ -417,6 +427,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
          else{
                 push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
+                print localtime()." > $host NetMonitor-W-sshFailed\n";
                 next;
             }
         }
@@ -432,17 +443,17 @@ if(not open(FILE,"<".$self->{hostfile})){
           }
         }
               $self->sendmailpolicy("NetMonitor-W-SomeHostsAreDown",$#{$self->{bad}}+1-$found);
-              print time()." NetMonitor-W-SomeHostsAreDown \n";
               $#{$self->{badsave}}=-1;
                foreach my $bada (@{$self->{bad}}){
                  push @{$self->{badsave}}, $bada;
+                 print localtime()." > $bada(hz)\n";
                }
     }
     else{
 #      $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
       $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",$force);
       $force=0;
-      print time()." NetMonitor-I-AllHostsAreOK \n";
+      print localtime()." > NetMonitor-I-AllHostsAreOK\n";
     }
      
     sleep($self->{sleep});
