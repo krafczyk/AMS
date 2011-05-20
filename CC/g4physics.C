@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.42 2011/05/16 09:19:47 mdelgado Exp $
+//  $Id: g4physics.C,v 1.43 2011/05/20 13:26:11 mdelgado Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.42 2011/05/16 09:19:47 mdelgado Exp $
+// $Id: g4physics.C,v 1.43 2011/05/20 13:26:11 mdelgado Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -851,7 +851,7 @@ void AMSG4Physics::ConstructOp()
   RichG4Cerenkov*   theCerenkovProcess = new RichG4Cerenkov("Cerenkov");
   G4OpAbsorption* theAbsorptionProcess = new G4OpAbsorption();
   G4OpRayleigh*   theRayleighScatteringProcess = new G4OpRayleigh();
-  G4OpBoundaryProcess* theBoundaryProcess = new G4OpBoundaryProcess();
+  RichG4OpBoundaryProcess* theBoundaryProcess = new RichG4OpBoundaryProcess();
 
 //  theCerenkovProcess->DumpPhysicsTable();
 //  theAbsorptionProcess->DumpPhysicsTable();

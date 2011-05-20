@@ -38,5 +38,34 @@ class RichG4Cerenkov: public G4Cerenkov{
 };
 
 
+#include "G4OpBoundaryProcess.hh"
+
+class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
+ public:
+  G4double Rindex1;
+  G4double Rindex2;
+  G4ThreeVector theGlobalNormal;
+  G4ThreeVector OldMomentum;
+  G4ThreeVector OldPolarization;
+  G4double cost1, cost2, sint1, sint2;
+  G4ThreeVector NewMomentum;
+  G4ThreeVector NewPolarization;
+
+
+  RichG4OpBoundaryProcess(const G4String& processName = "OpBoundary",
+			  G4ProcessType type = fOptical):
+    G4OpBoundaryProcess(processName,type){};
+
+  G4VParticleChange* PostStepDoIt(const G4Track& aTrack,
+				  const G4Step&  aStep);
+
+  
+
+  void DielectricDielectric();
+  G4bool G4BooleanRand(const G4double prob){return (G4UniformRand() < prob);}
+};
+
+
+
 
 #endif

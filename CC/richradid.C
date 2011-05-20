@@ -389,6 +389,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/
     (_tiles[_current_tile]->index-1);
 
+  /*******************************************
 #ifdef __G4AMS__
 #warning Temporal patch for the output refractive index in the G4 MC
   if(AMSJob::gethead()->isSimulation() && _tiles[_current_tile]->kind!=naf_kind){
@@ -402,8 +403,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(AMSTrTrack *track){
     _local_index=RICHDB::rad_index;
   }
 #endif
-
-
+  **************************************************/
 
   // Force the propagation direction to be downwards
   if(_d_direct[2]>0) _d_direct=_d_direct*(-1);
