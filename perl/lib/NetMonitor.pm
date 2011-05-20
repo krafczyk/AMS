@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.40 2011/05/20 14:15:17 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.41 2011/05/20 14:53:57 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -100,7 +100,7 @@ sub Run{
 
     $self->InitOracle();
     my $force=1;
-    my $sshTimeout=600;
+    my $sshTimeout=300;
     local $SIG{ALRM} = sub { print localtime()." > command timeout\n"; };
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
@@ -240,12 +240,12 @@ if(not open(FILE,"<".$self->{hostfile})){
             if(1 or not $i){
                 if(not open(FILE,"<"."/tmp/filesys")){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-                    print localtime()." > Fs error 1: $host $fs\n";
+                    print "\n".localtime()." > Fs error 1: $host $fs\n";
                     next;
                 }
                 if(not read(FILE,$buf,16384)){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-                    print localtime()." > Fs error 2: $host $fs\n";
+                    print "\n".localtime()." > Fs error 2: $host $fs\n";
                     close FILE;
                     next;
                }
@@ -253,7 +253,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                 unlink "/tmp/filesys";
                 if($buf == 0){
                     push @{$self->{bad}}, $host."_$fs NetMonitor-W-NodeFileSystemProblem";
-                    print localtime()." > $host_$fs NetMonitor-W-NodeFileSystemProblem";
+                    print "\n".localtime()." > $host $fs NetMonitor-W-NodeFileSystemProblem\n";
                 }else{
 #		    print "Fs good: $host $fs\n";
 		}
@@ -336,7 +336,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/dbhosts")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh3Failed /tmp/dbhosts";
-                print localtime()." > $host NetMonitor-W-ssh3Failed /tmp/dbhosts\n";
+                print "\n".localtime()." > $host NetMonitor-W-ssh3Failed /tmp/dbhosts\n";
                 next;
             }
             my @words=<FILE>;
@@ -371,7 +371,7 @@ if(not open(FILE,"<".$self->{hostfile})){
     foreach my $target (@{$self->{dbhoststargets}}){
         if($foundp[$cnt]==0){
             push @{$self->{bad}}, "$target NetMonitor-W-DBHostsTargetsProblems ";
-            print localtime()." > $target NetMonitor-W-DBHostsTargetsProblems\n";
+            print "\n".localtime()." > $target NetMonitor-W-DBHostsTargetsProblems\n";
         }
         $cnt++;
     }
@@ -403,7 +403,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/xspace")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-                print localtime()." > $host NetMonitor-W-ssh1Failed\n";
+                print "\n".localtime()." > $host NetMonitor-W-ssh1Failed\n";
                 next;
             }
             my @words=<FILE>;
@@ -418,7 +418,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                         $pc=~ s/\%//;
                         if($ava < 100000 or $pc<2){
                             push @{$self->{bad}}, $host." NetMonitor-W-DiskSpaceProblems";
-                            print localtime()." > $host NetMonitor-W-DiskSpaceProblems\n";
+                            print "\n".localtime()." > $host NetMonitor-W-DiskSpaceProblems\n";
                        }
                         last;
                     }
@@ -427,7 +427,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
          else{
                 push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
-                print localtime()." > $host NetMonitor-W-sshFailed\n";
+                print "\n".localtime()." > $host NetMonitor-W-sshFailed\n";
                 next;
             }
         }
@@ -453,7 +453,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 #      $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",0);
       $self->sendmailpolicy("NetMonitor-I-AllHostsAreOK",$force);
       $force=0;
-      print localtime()." > NetMonitor-I-AllHostsAreOK\n";
+      print "\n".localtime()." > NetMonitor-I-AllHostsAreOK\n";
     }
      
     sleep($self->{sleep});
