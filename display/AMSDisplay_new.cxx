@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay_new.cxx,v 1.16 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: AMSDisplay_new.cxx,v 1.17 2011/05/20 20:37:53 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -286,13 +286,17 @@ void AMSDisplay::DrawTitle(Option_t *option){
   
   static char  atext[255];
   
-  
+   char agmtime[255];
+   time_t utime=m_ntuple->UTime();
+//    cout <<utime<<localtime(&utime)<<" "<<gmtime(&utime)<<endl;
+   strftime(agmtime, 40, "%Y-%j.%H:%M:%S", gmtime(&utime));
   if(!m_nodate){
-    sprintf(atext,"%s         Run %d/ %d %s",
+    sprintf(atext,"%s       Run/Event %d / %d  Time %s",
 	    m_Pad->GetTitle(),
 	    m_ntuple->Run(), 
 	    m_ntuple->Event(),
-	    m_ntuple->Time());
+//	    m_ntuple->Time());
+	    agmtime);
     
   }
   else{
