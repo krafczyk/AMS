@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.223.2.2 2011/05/19 18:43:43 choutko Exp $
+//  $Id: ntuple.C,v 1.223.2.3 2011/05/21 17:52:32 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -526,7 +526,9 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       for(evmapi i=evmap.begin();i!=evmap.end();i++){
 	ssize+=i->second->Size();
       }  
-      if(ssize/1024/1024>1000){
+      float maxsize=1000.*AMSEvent::get_num_threads()/4.;
+      if(maxsize<1000)maxsize=1000;
+      if(ssize/1024/1024>maxsize){
       cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       }

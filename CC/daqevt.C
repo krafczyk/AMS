@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.215 2011/05/15 16:16:01 choutko Exp $
+//  $Id: daqevt.C,v 1.215.2.1 2011/05/21 17:52:32 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1997,8 +1997,17 @@ again:
                 int i=system(cp.c_str());
                 if(i){
                  cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
-      if(getenv("NtupleDir2")){
-        setenv("NtupleDir",getenv("NtupleDir2"),1);
+      if(getenv("NtupleDir2") ){
+         char *nt2=getenv("NtupleDir2");
+        if(strlen(nt2)){
+          string nt2_new=nt2;
+          char * whoami=getlogin();
+          int pos=nt2_new.find("whoami");  
+          if(pos>=0 && whoami)nt2_new.replace(pos,6,whoami);
+          setenv("NtupleDir",nt2_new.c_str(),1);
+          cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("Ntupledir")<<endl;
+        } 
+        else setenv("NtupleDir",getenv("NtupleDir2"),1);
         unsetenv("NtupleDir2");
         goto again;
       }    
