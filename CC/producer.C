@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.160.6.1 2011/05/18 04:08:05 choutko Exp $
+//  $Id: producer.C,v 1.160.6.2 2011/05/21 21:46:47 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -421,7 +421,16 @@ ndir:
      else{
       cerr<<"AMSProducer::getRunEventInfo-E-UnwritableDir "<<ntd<<endl;
       if(getenv("NtupleDir2")){
-        setenv("NtupleDir",getenv("NtupleDir2"),1);
+         char *nt2=getenv("NtupleDir2");
+        if(strlen(nt2)){
+          string nt2_new=nt2;
+          char * whoami=getlogin();
+          int pos=nt2_new.find("whoami");  
+          if(pos>=0 && whoami)nt2_new.replace(pos,6,whoami);
+          setenv("NtupleDir",nt2_new.c_str(),1);
+          cout <<"producer-I-RedefinedNtupleDir "<<getenv("Ntupledir")<<endl;
+        } 
+        else setenv("NtupleDir",getenv("NtupleDir2"),1);
         unsetenv("NtupleDir2");
         goto ndir;
       }    
