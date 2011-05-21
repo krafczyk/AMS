@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.223.2.3 2011/05/21 17:52:32 choutko Exp $
+//  $Id: ntuple.C,v 1.223.2.4 2011/05/21 21:34:06 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -951,7 +951,7 @@ char name[256]="";
 //  look for other locks
         vector<AMSNtuple::trio> tv;
 
-      dirent64 ** namelist;
+      dirent64 ** namelist=0;
       int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
        time_t tnow;
        time(&tnow);
@@ -973,6 +973,7 @@ char name[256]="";
             free(namelist[i]);
             if(!strstr(t.filename.c_str(),tmp))tv.push_back(t);
 	}
+        cout <<"AMSNtuple::Lock-I-AttemptingtoFreeNamelist "<<endl; 
 	free(namelist);
         int ok=0;
         for(int i=0;i<tv.size();i++){
