@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.351 2011/05/21 13:01:57 mmilling Exp $
+//  $Id: root.h,v 1.352 2011/05/21 16:12:05 choumilo Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1778,6 +1778,12 @@ public:
      }
     }
 //
+    int pat[8];
+    for(int k=0;k<7;k++){
+      pat[k]=0;
+      if(PhysBPatt & (1<<k))pat[k]=1;
+    }
+//
     char toftyp[5],toftypz[5];
     if(TofFlag1==0)strcpy(toftyp,"4of4");
     else if(TofFlag1>0 && TofFlag1<5)strcpy(toftyp,"3of4");
@@ -1798,8 +1804,8 @@ public:
     double xtime=TrigTime[4]/1000.;
     int b15=(JMembPatt>>15)&1;
     int b14=(JMembPatt>>14)&1;
-    sprintf(_Info,"TrigLev1: TofFTz=1 %s, TofFTz>1 %s, AccSectors %d, EcalFTin  %s, EcalLev1in %d, EcalSum %5.1f GeV TimeD [ms]%6.2f LiveTime%6.2f ExtBits %d%d",toftyp,toftypz,antif,IsEcalFtrigOK()?"Yes":"No",EcalFlag,EcalTrSum,xtime,LiveTime,b15,b14);
-  return _Info;
+    sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
+    return _Info;
   }
    
 
