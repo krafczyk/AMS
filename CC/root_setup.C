@@ -418,7 +418,7 @@ for(TDVRC_i i=fTDVRC.begin();i!=fTDVRC.end();i++){
  cout<<"AMSSetupR::TDVRC_Purge-I-Purging "<<i->first<<" "<<i->second.size()<<endl;
 if(i->second.size()>1){
  i->second.erase(i->second.begin(),--(i->second.end()));
- cout<<"AMSSetupR::TDVRC_Purge-I-Purged "<<i->first<<" "<<i->second.begin()->second.Size<<" "<<i->second.begin()->second.FilePath<<" "<<endl;
+// cout<<"AMSSetupR::TDVRC_Purge-I-Purged "<<i->first<<" "<<i->second.begin()->second.Size<<" "<<i->second.begin()->second.FilePath<<" "<<endl;
  }
 }
 }

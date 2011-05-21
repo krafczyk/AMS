@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.227 2011/05/19 20:52:57 choutko Exp $
+//  $Id: ntuple.C,v 1.228 2011/05/21 21:49:26 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -528,7 +528,9 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
       for(evmapi i=evmap.begin();i!=evmap.end();i++){
 	ssize+=i->second->Size();
       }  
-      if(ssize/1024/1024>2000){
+      float maxsize=1000.*AMSEvent::get_num_threads()/4.;
+      if(maxsize<1000)maxsize=1000;
+      if(ssize/1024/1024>maxsize){
       cerr <<"AMSNtuple::writeR-W-OutputMapSizeTooBigClosingFile "<<AMSEvent::gethead()->get_thread_num()<<" "<<_Size<<" "<<ssize/1024/1024<<" Mb "<<endl;
 	if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       }
@@ -951,7 +953,7 @@ char name[256]="";
 //  look for other locks
         vector<AMSNtuple::trio> tv;
 
-      dirent64 ** namelist;
+      dirent64 ** namelist=0;
       int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
        time_t tnow;
        time(&tnow);
@@ -973,6 +975,7 @@ char name[256]="";
             free(namelist[i]);
             if(!strstr(t.filename.c_str(),tmp))tv.push_back(t);
 	}
+        cout <<" Attempting to free namelist "<<endl;
 	free(namelist);
         int ok=0;
         for(int i=0;i<tv.size();i++){

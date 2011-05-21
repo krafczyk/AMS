@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.177 2011/05/18 04:26:02 choutko Exp $
+//  $Id: server.C,v 1.178 2011/05/21 21:49:27 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2843,7 +2843,16 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
        cerr <<" kstart kend problem "<<kstart<<" "<<kend<<" "<<line<<endl;
      } 
    }
-   else acv->Status=DPS::Client::TimeOut;
+   else {
+     acv->Status=DPS::Client::TimeOut;
+    const char add[]="/afs/cern.ch/ams/local/bsubs/";
+    AString badd=add;
+    char uid[80];
+     sprintf(uid,"%u",(*li)->id.uid);
+      badd+=uid;
+      unlink((const char*)badd);
+
+   }
    if(_parent->Debug())_parent->EMessage(AMSClient::print(acv,"Client TIMEOUT"));
    PropagateAC(acv,DPS::Client::Update);
  }

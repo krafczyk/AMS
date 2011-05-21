@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.13 2011/05/19 20:52:06 choutko Exp $
+//  $Id: ami2root.C,v 1.14 2011/05/21 21:49:47 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]){
 
   unsigned int timelast = get_lsbf_time();
    cout <<"  last time "<<timelast<<endl;
-if(timelast<start){
+if(timelast<86400+start){
   notcompleted=3;
   goto finish;
 }
