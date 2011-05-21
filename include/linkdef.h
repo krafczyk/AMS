@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.89 2011/05/17 09:19:37 shaino Exp $
+//  $Id: linkdef.h,v 1.90 2011/05/21 13:01:57 mmilling Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -21,7 +21,6 @@
 #pragma link C++ class TrSimSensor;
 #pragma link C++ class TrSimCluster;
 #pragma link C++ class TrCharge;
-#pragma link C++ class TrPdf+;
 #pragma link C++ class TrPdfDB+;
 #pragma link C++ class mean_t;
 #pragma link C++ class like_t;
@@ -50,6 +49,7 @@
 
 #pragma link C++ class HistoMan;
 #endif
+#pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;
 #pragma link C++ class TrElem+;
 #ifdef __ROOTSHAREDLIBRARY__
@@ -100,6 +100,10 @@
 #pragma link C++ class TrdHSegmentR+;
 #pragma link C++ class TrdHTrackR+;
 #pragma link C++ class TrdHReconR+;
+#pragma link C++ class TrdHChargeR+;
+#pragma link C++ class TrdHCalibR+;
+#pragma link C++ class TrdTFit+;
+#pragma link C++ class Tfunc+;
 #pragma link C++ class Level1R+;
 #pragma link C++ class Level3R+;
 #pragma link C++ class BetaR+;

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.528 2011/05/19 18:44:41 choutko Exp $
+//  $Id: event.C,v 1.529 2011/05/21 13:01:52 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -63,6 +63,7 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #include "trdsim.h"
 #include "trdrec.h"
 #include "trdhrec.h"
+#include "TrdHCalib.h"
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif
@@ -998,8 +999,8 @@ void AMSEvent::_retrdinitevent(){
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHSegment",0),0));
     AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTRDHTrack",0),0));
     
-    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHReconR::calibrate&&(CALIB.SubDetInCalib/10000)%10>0)
-      TrdHReconR::gethead(AMSEvent::get_thread_num())->init_calibration(TRDFITFFKEY.CalStartVal);
+    if(TRDFITFFKEY.CalStartVal>0.&&!TrdHCalibR::gethead()->calibrate&&(CALIB.SubDetInCalib/10000)%10>0)
+      TrdHCalibR::gethead()->init_calibration(TRDFITFFKEY.CalStartVal);
   }
   
 }
@@ -1631,14 +1632,14 @@ for(i=0;i<nalg;i++){
 #endif
 
 void AMSEvent::_trdgain(){
-  if(!TrdHReconR::calibrate)return;
+  if(!TrdHCalibR::gethead()->calibrate)return;
 
   if(TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectEvent())
     if(TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec.size()==1 &&
        TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectTrack(0) &&
        TrdHReconR::gethead(AMSEvent::get_thread_num())->hsegvec.size()==2){
 
-      printf("trdgain event selected\n");
+
       // get event beta and charge
       AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
       AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
@@ -1657,7 +1658,7 @@ void AMSEvent::_trdgain(){
 	if(npart==1&&ptr->getpbeta()){
 	  float beta=ptr->getpbeta()->getbeta();
 	  
-	  printf("beta %.2f\n",beta);
+
 	  if(beta>0.98){
 	    geant elosc[TOF2GC::SCLRS];
 	    for(int ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (TofClus containers) ---
@@ -1682,11 +1683,10 @@ void AMSEvent::_trdgain(){
 	    avera[3]/=4.;
 	    
 	    // select charge 1
-	    printf("charge %.2f < 3\n",avera[2]);
 	    if(avera[2]<3){
 	      //calibrate trd here
 #pragma omp critical
-	      TrdHReconR::gethead(AMSEvent::get_thread_num())->update_medians(&TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec[0]);
+	      TrdHCalibR::gethead()->update_medians(&TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec[0]);
 	    }
 	  }
 	}

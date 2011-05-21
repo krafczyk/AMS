@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.350 2011/05/18 05:25:50 choutko Exp $
+//  $Id: root.h,v 1.351 2011/05/21 13:01:57 mmilling Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -40,6 +40,9 @@
 #include "trrec.h"
 #endif
 #include "trdhrec.h"
+#include "TrdHCharge.h"
+#include "TrdHCalib.h"
+#include "TrdTFit.h"
 #include "root_setup.h"
 #include "SlowControlDB.h"
 

@@ -11,7 +11,6 @@
 #include <algorithm>
 #include "TSpline.h"
 #include "TMath.h"
-//#include "root_setup.h"
 
 class AMSTimeID;
  
@@ -158,18 +157,6 @@ class TrdHReconR{
     return _trdhrecon[i];
   }
 
-  /// flag if calibration should be performed
-  static bool calibrate;
-
-  /// initialize calibration
-  void init_calibration(float start_value);
-
-  /// perform calibration for selected events
-  //  void DoCalibration(int trackiter,float beta, float charge);
-
-  /// update tdv gain array
-  bool update_tdv_array(int debug=0);
-
   /// event quality selection - level 0:basic 1:'golden'(exactly 1 track 2 segments)  
   int SelectEvent(int level=0);
 
@@ -191,52 +178,15 @@ class TrdHReconR{
   /// vector of error on reference hits (optional)
   vector<AMSPoint> referr;
 
-  /// factor to convert from adc to kev (default 33.33)
-  float adc2kev;
-  
-  /// amplitude cut for cluster counting
-  float ccampcut;
-
-  /// container to store tube energy spline fit for charges
-  map<int,TSpline5> pdfs;
-
-  /// container to store probability of charge for event
-  map<double,int> charge_probabilities;
-
-  /// container for channel medians
-  static float tube_medians[5248];
-
-  /// container for channel medians
-  static float mod_medians[20][18];
-
-  /// container for channel occupancy
-  static int tube_occupancy[5248];
-
-  static float tube_gain[6064];
-  static unsigned int tube_status[6064];
-
-  //  static AMSTimeID* ptdv;
-  int min_occupancy;
-
-  static map<string,AMSTimeID*> tdvmap;
-  //  static map<string,vector<float> > tdvarr;
-
-  float norm_mop;
-
   float tracking_min_amp;
 
   /// default ctor
-  TrdHReconR():adc2kev(100./3.),ccampcut(6.),norm_mop(44.2),tracking_min_amp(5),min_occupancy(50){
+  TrdHReconR():tracking_min_amp(5){
     rhits.clear();
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
     refhits.clear();
-    pdfs.clear();
-    charge_probabilities.clear();
-    BuildPDFs();
-    //    ptdv=0;
-
   };
 
   ~TrdHReconR(){
@@ -245,8 +195,6 @@ class TrdHReconR{
     htrvec.clear();
     referr.clear();
     refhits.clear();
-    pdfs.clear();
-    charge_probabilities.clear();
     clear();}
 
   /// clear memory
@@ -280,7 +228,7 @@ class TrdHReconR{
   /// reconstruct TRD event according to TrdRawHit selection
   void BuildTRDEvent(vector<TrdRawHitR> r,int debug=0);
 
-  void update_medians(TrdHTrackR *track,int opt=3, float beta=0, int debug=0);
+  //  void update_medians(TrdHTrackR *track,int opt=3, float beta=0, int debug=0);
 
   /// reconstruct trd event
   int retrdhevent(int debug=0);
@@ -294,70 +242,14 @@ class TrdHReconR{
   /// add hit to containers
   void AddHit(TrdRawHitR* hit);
 
-  /// build PDFs from database
-  int BuildPDFs(int force=0,int debug=0);
-
-  /// get most probable charge
-  int GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
-
-  //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
-
-  /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
-  float GetELikelihood(TrdHTrackR *tr,float beta=0., int opt=0,int debug=0);
-
-  /// get numbr of hits above CC amplitude cut
-  int GetNCC(TrdHTrackR *tr,int debug=0);
-
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
   TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
 
   int build();
-
-  bool FillMedianFromTDV();
-
-  bool FillTDVFromMedian();
-
-  bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,
-#ifdef __ROOTSHAREDLIBRARY__
-	       char *tempdirname="/Offline/AMSDataDirRW");
-#else
-               char *tempdirname="/f2users/mmilling");
-#endif
   
-//bool InitTDVR(AMSEventR* pev,const char* name,unsigned int time);
+  bool update_tdv_array(int debug=0);
 
-int writeTDV(unsigned int begin, unsigned int end,int debug=0,
-#ifdef __ROOTSHAREDLIBRARY__
-			 char *tempdirname="/Offline/AMSDataDirRW");
-#else
-                         char *tempdirname="/f2users/mmilling");
-#endif
-
-  bool readTDV(unsigned int t);
-
-
-void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
-void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
-
-float PathParametrization(float path,int debug=0);
-float BetaParametrization(float beta,int debug=0);
-
-float GetBetaCorr(double beta, double tobeta=0.95, int debug=0); 
-float GetPathCorr(float path, float topath=0.59, int debug=0); 
-
-float GetGainCorr(TrdRawHitR* hit, int opt=0, int debug=0); 
-float GetGainCorr(int layer,int ladder, int tube, int opt=0,int debug=0); 
-
-float MeanGaussGain(int opt=0);
-float MeanGaussMedian(int opt=0);
-
-/*int GetTDVArray(string,int,float&);
-int SetTDVArray(string,int,float);
-int GetTDVArray(string,vector<float>&);
-int SetTDVArray(string,vector<float>);
-int InitTDVArray(string);*/
-
-  ClassDef(TrdHReconR,10)
+  ClassDef(TrdHReconR,11)
 };
 #endif
 

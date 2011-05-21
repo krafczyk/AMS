@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.228 2011/05/10 19:10:07 jorgec Exp $
+//  $Id: particle.C,v 1.229 2011/05/21 13:01:52 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -36,6 +36,7 @@
 #include "TROOT.h"
 #include "TMath.h"
 #include "TrdHRecon.h"
+#include "TrdHCharge.h"
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -503,10 +504,10 @@ void AMSParticle::trd_Hlikelihood(){
 	if(tr){
 	  tr->status=3;
 	  TrdHReconR::gethead(AMSEvent::get_thread_num())->AddTrack(tr);
-	  _TRDHLikelihood=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr);
-	  _TRDHElik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr,0.,1);
-	  _TRDHPlik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(tr,0.,2);
-	  _TRDCCnhit=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetNCC(tr);
+	  _TRDHLikelihood=TrdHChargeR::gethead()->GetELikelihood(tr);
+	  _TRDHElik=TrdHChargeR::gethead()->GetELikelihood(tr,0.,1);
+	  _TRDHPlik=TrdHChargeR::gethead()->GetELikelihood(tr,0.,2);
+	  _TRDCCnhit=TrdHChargeR::gethead()->GetNCC(tr);
 
 	}
       }
@@ -516,9 +517,9 @@ void AMSParticle::trd_Hlikelihood(){
 
   if(!_phtrd)return;
   _TRDHLikelihood=_phtrd->elikelihood;
-  _TRDHElik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(_phtrd,0.,1);
-  _TRDHPlik=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetELikelihood(_phtrd,0.,2);
-  _TRDCCnhit=TrdHReconR::gethead(AMSEvent::get_thread_num())->GetNCC(_phtrd);
+  _TRDHElik=TrdHChargeR::gethead()->GetELikelihood(_phtrd,0.,1);
+  _TRDHPlik=TrdHChargeR::gethead()->GetELikelihood(_phtrd,0.,2);
+  _TRDCCnhit=TrdHChargeR::gethead()->GetNCC(_phtrd);
   if(debug)printf("likelihood %.2f\n",_TRDHLikelihood);
 }
 

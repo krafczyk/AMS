@@ -169,7 +169,10 @@ void TrdHTrackR::SetSegments(TrdHSegmentR* segx,TrdHSegmentR* segy){
  };
 
 void TrdHTrackR::Print(int opt){
-  cout << "AMSTRDHTrack - Info" << endl;
+  //  cout << "AMSTRDHTrack - Info" << endl;
+  sprintf(_Info,"TrdHTrack Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g NHits=%d chg %i elik %.2f",Coo[0],Coo[1],Coo[2],ex(),ey(),0.,Theta(),Phi(),Chi2,Nhits,(int)charge,elikelihood);
+  cout<<_Info<<endl;;
+  return;
 };
  
 void TrdHTrackR::clear(){
@@ -355,66 +358,14 @@ float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){      
     //printf( "l(y,z)= %f\n",
     //    sqrt( (cross[0].y()-cross[1].y())*(cross[0].y()-cross[1].y())+(cross[0].z()-cross[1].z())*(cross[0].z()-cross[1].z())));
   }
+
   else if(dir==1){
+
     W= 1/(tan(tr_dir.gettheta())*sin(tr_dir.getphi()));
     p= ((2*(double)r)+(2*W*W*tr_pos.y())-(2*W*tr_pos.z())+(2*W*(double)z))/(0-1-(W*W));
     q= (((double)radius*(double)radius)-((double)r*(double)r)-(tr_pos.z()*tr_pos.z())-((double)z*(double)z)+(2*tr_pos.z()*(double)z)-(2*W*(double)z*tr_pos.y())+(2*W*tr_pos.y()*tr_pos.z())-(W*W*tr_pos.y()*tr_pos.y()))/(0-1-(W*W));
-    
-    if((Pi-fabs(tr_dir.getphi()))<0.000001) {
-      y1= pos0.y();
-      y2= pos0.y();
-    }
-    else{
-      if(((p*p/4.)-q)>=0){
-	y1=0-(p/2.)+sqrt((p*p/4.)-q);
-	y2=0-(p/2.)-sqrt((p*p/4.)-q);
-      }
-      else if( i==0) return 0.6;
-      else if( i==1 || i==2) return 0.;
-    }
-    x1=pos0.x()+(y1-pos0.y())/tan(tr_dir.getphi());
-    x2=pos0.x()+(y2-pos0.y())/tan(tr_dir.getphi());
-    
-    if(fabs(pos0.y()-(double)r)<(double)radius){
-      if((tr_dir.getphi()>0 && tr_dir.gettheta()>Pi/2) || (tr_dir.getphi()<0 && tr_dir.gettheta()<Pi/2) ){
-	z1=sqrt(((double)radius*(double)radius)-((y1-(double)r)*(y1-(double)r)))+(double)z;
-	z2=0-sqrt(((double)radius*(double)radius)-((y2-(double)r)*(y2-(double)r)))+(double)z;
-      }
-      else {
-	z1=0-sqrt(((double)radius*(double)radius)-((y1-(double)r)*(y1-(double)r)))+(double)z;
-	z2=sqrt(((double)radius*(double)radius)-((x2-(double)r)*(x2-(double)r)))+(double)z;
-      }
-    }
-    else if ((pos0.x()-(double)r > (double)radius && tr_dir.gettheta()>Pi/2
-	      && (tr_dir.getphi()>Pi/2 || tr_dir.getphi()<-Pi/2)) ||
-	     (pos0.x()>(double)radius && tr_dir.gettheta()<Pi/2 && (tr_dir.getphi()<Pi/2 && tr_dir.getphi()>-Pi/2)) ||
-	     (pos0.x()-(double)r <0-(double)radius && tr_dir.gettheta()<Pi/2 &&
-	      (tr_dir.getphi()>Pi/2 || tr_dir.getphi()<-Pi/2)) || (pos0.x()<0-(double)radius && tr_dir.gettheta()>Pi/2 &&
-							     (tr_dir.getphi()<Pi/2 && tr_dir.getphi()>-Pi/2))){
-      z1=sqrt(((double)radius*(double)radius)-((x1-(double)r)*(x1-(double)r)))+(double)z;
-      z2=sqrt(((double)radius*(double)radius)-((x2-(double)r)*(x2-(double)r)))+(double)z;
-    }
-    else if  ((pos0.x()-(double)r <0-(double)radius &&
-	       tr_dir.gettheta()>Pi/2 && (tr_dir.getphi()>Pi/2 || tr_dir.getphi()<-Pi/2)) ||
-	      (pos0.x()<0-(double)radius && tr_dir.gettheta()<Pi/2 && (tr_dir.getphi()<Pi/2 && tr_dir.getphi()>-Pi/2)) ||
-	      (pos0.x()-(double)r >(double)radius && tr_dir.gettheta()>Pi/2 &&
-	       (tr_dir.getphi()<Pi/2 && tr_dir.getphi()>-Pi/2)) || (pos0.x()-(double)r >(double)radius &&
-							      tr_dir.gettheta()<Pi/2 && (tr_dir.getphi()>Pi/2 || tr_dir.getphi()<-Pi/2))){
-      z1=0-sqrt(((double)radius*(double)radius)-((x1-(double)r)*(x1-(double)r)))+(double)z;
-      z2=0-sqrt(((double)radius*(double)radius)-((x2-(double)r)*(x2-(double)r)))+(double)z;
-    }
-    //printf("1: %f %f %f 2: %f %f %f W: %f p: %f q: %f\n", x1, y1, z1, x2,y2, z2, W, p, q );
-    
-    cross[0].setp(x1, y1, z1);
-    cross[1].setp(x2, y2, z2);
-    
-    //printf( "l(y,z)= %f\n", sqrt( (cross[0].y()-cross[1].y())*(cross[0].y()-cross[1].y())+(cross[0].z()-cross[1].z())*(cross[0].z()-cross[1].z())));
-  }
-  else if(dir==1){
-    
-    W= 1/(tan(tr_dir.gettheta())*sin(tr_dir.getphi()));
-    p= ((2*(double)r)+(2*W*W*tr_pos.y())-(2*W*tr_pos.z())+(2*W*(double)z))/(0-1-(W*W));
-    q= (((double)radius*(double)radius)-((double)r*(double)r)-(tr_pos.z()*tr_pos.z())-((double)z*(double)z)+(2*tr_pos.z()*(double)z)-(2*W*(double)z*tr_pos.y())+(2*W*tr_pos.y()*tr_pos.z())-(W*W*tr_pos.y()*tr_pos.y()))/(0-1-(W*W));
+
+    //    printf("pos0: %f %f %f Phi: %f Theta: %f r: %f z: %f\n", pos0.x(), pos0.y(), pos0.z(), tr_dir.getphi(), tr_dir.gettheta(), r, z );
     
     if((Pi-fabs(tr_dir.getphi()))<0.000001) {
       y1= pos0.y();
@@ -441,26 +392,22 @@ float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){      
 	z2=sqrt(((double)radius*(double)radius)-((y2-(double)r)*(y2-(double)r)))+(double)z;
       }
     }
-    else if( (pos0.y()-(double)r >(double)radius && tr_dir.gettheta()>Pi/2 &&
-	      tr_dir.getphi()<0) || (pos0.y()-(double)r >(double)radius &&
-				  tr_dir.gettheta()<Pi/2 && tr_dir.getphi()>0) || (pos0.y()-(double)r<0-(double)radius &&
-									     tr_dir.gettheta()>Pi/2 &&tr_dir.getphi()>0) ||
-	     (pos0.y()-(double)r<0-(double)radius && tr_dir.gettheta()<Pi/2 && tr_dir.getphi()<0)){
+
+    else if( (pos0.y()-(double)r >(double)radius && tr_dir.gettheta()>Pi/2 && tr_dir.getphi()<0) || (pos0.y()-(double)r >(double)radius && tr_dir.gettheta()<Pi/2 && tr_dir.getphi()>0) || (pos0.y()-(double)r<0-(double)radius && tr_dir.gettheta()>Pi/2 &&tr_dir.getphi()>0) || (pos0.y()-(double)r<0-(double)radius && tr_dir.gettheta()<Pi/2 &&tr_dir.getphi()<0)){
       z1=sqrt(((double)radius*(double)radius)-((y1-(double)r)*(y1-(double)r)))+(double)z;
       z2=sqrt(((double)radius*(double)radius)-((y2-(double)r)*(y2-(double)r)))+(double)z;
     }
-    else if( (pos0.y()-(double)r <0-(double)radius && tr_dir.gettheta()>Pi/2
-	      && tr_dir.getphi()<0) || (pos0.y()-(double)r <0-(double)radius &&
-				     tr_dir.gettheta()<Pi/2 &&  tr_dir.getphi()>0) || (pos0.y()-(double)r>(double)radius &&
-										 tr_dir.gettheta()>Pi/2 &&tr_dir.getphi()>0) ||
-	     (pos0.y()-(double)r>(double)radius && tr_dir.gettheta()<Pi/2 && tr_dir.getphi()<0) ){
+    else if( (pos0.y()-(double)r <0-(double)radius && tr_dir.gettheta()>Pi/2 && tr_dir.getphi()<0) || (pos0.y()-(double)r <0-(double)radius && tr_dir.gettheta()<Pi/2 && tr_dir.getphi()>0) || (pos0.y()-(double)r>(double)radius && tr_dir.gettheta()>Pi/2 &&tr_dir.getphi()>0) || (pos0.y()-(double)r>(double)radius && tr_dir.gettheta()<Pi/2 &&tr_dir.getphi()<0) ){
       z1=0-sqrt(((double)radius*(double)radius)-((y1-(double)r)*(y1-(double)r)))+(double)z;
       z2=0-sqrt(((double)radius*(double)radius)-((y2-(double)r)*(y2-(double)r)))+(double)z;
     }
-    //printf("1: %f %f %f 2: %f %f %f W: %f p: %f q: %f\n", x1, y1, z1, x2,y2, z2, W, p, q);
+
+    // printf("1: %f %f %f 2: %f %f %f W: %f p: %f q: %f\n", x1, y1, z1, x2, y2, z2, W, p, q );
+ 
     cross[0].setp(x1, y1, z1);
     cross[1].setp(x2, y2, z2);
-    //printf( "l(x,z)= %f\n",sqrt( (cross[0].x()-cross[1].x())*(cross[0].x()-cross[1].x())+(cross[0].z()-cross[1].z())*(cross[0].z()-cross[1].z())));
+    
+    //printf( "l(y,z)= %f\n", sqrt( (cross[0].y()-cross[1].y())*(cross[0].y()-cross[1].y())+(cross[0].z()-cross[1].z())*(cross[0].z()-cross[1].z())));
   }
   
   float l= sqrt((cross[0].x()-cross[1].x())*(cross[0].x()-cross[1].x())+

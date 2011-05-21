@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.808 2011/05/16 14:06:05 choutko Exp $
+// $Id: job.C,v 1.809 2011/05/21 13:01:52 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -84,6 +84,7 @@
 #include "daqecblock.h"
 #include "tofid.h"
 #include "charge.h"
+#include "TrdHCalib.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -4422,7 +4423,8 @@ void AMSJob::_trdendjob(){
 
 #pragma omp master
   {
-    if( AMSFFKEY.Update && TrdHReconR::calibrate ){// && (AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
+    if( AMSFFKEY.Update && TrdHCalibR::gethead()->calibrate ){
+//(AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
       bool update=TrdHReconR::gethead(AMSEvent::get_thread_num())->update_tdv_array();
       if(update) AMSTRDRawHit::updtrdcalibSCI();
     }

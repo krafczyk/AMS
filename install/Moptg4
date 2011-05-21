@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.116 2011/05/18 05:35:28 choutko Exp $
+#  $Id: Moptg4,v 1.117 2011/05/21 13:02:02 mmilling Exp $
 #
 SHELL=/bin/sh
 #
@@ -346,6 +346,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
 	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
+	$(SCC)TrdHCharge.C $(SCC)TrdHCalib.C $(SCC)TrdTFit.C $(SCC)TrPdf.C \
 	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C  \
 	$(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C \
 	$(SCC)tofrec02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C \
@@ -383,6 +384,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
 	$(SCC)TrdHRecon.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C \
+	$(SCC)TrdHCharge.C $(SCC)TrdHCalib.C $(SCC)TrdTFit.C $(SCC)TrPdf.C \
 	$(SCC)trdrec.C $(SCC)trdhrec.C $(SCC)uzstat.C \
 	$(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C \
 	$(SCC)tofrec02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C \
