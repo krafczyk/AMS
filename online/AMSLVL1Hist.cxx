@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.30 2010/12/06 01:12:51 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.31 2011/05/22 21:42:31 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -19,7 +19,7 @@ void AMSLVL1Hist::Book(){
 
   AddSet("FT/LVL1 Members_Sharing");
   
-  _filled.push_back(new TH1F("trigh0","SomeTrigBranches Correlations",10,0.,10.));
+  _filled.push_back(new TH1F("trigh0","Exclusive PhysBranches sharing",10,0.,10.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
   _filled[_filled.size()-1]->SetFillColor(44);
   
@@ -208,6 +208,7 @@ case 0:
   xax->SetLabelSize(0.1);
   xax->SetBinLabel(1,"Entries");
   xax->SetBinLabel(2,"Lvl1");
+/*
   xax->SetBinLabel(3,"globFT");
   xax->SetBinLabel(4,"Z>=1(ftc)");
   xax->SetBinLabel(5,"SlowZ>=2(ftz)");
@@ -216,6 +217,15 @@ case 0:
   xax->SetBinLabel(8,"VerySlowZ>=2");
   xax->SetBinLabel(9,"Tof && Ec");
   xax->SetBinLabel(10,"Ec-alone");
+*/
+  xax->SetBinLabel(3,"unbTof");
+  xax->SetBinLabel(4,"Z>=1");
+  xax->SetBinLabel(5,"Ion");
+  xax->SetBinLabel(6,"SlowIon");
+  xax->SetBinLabel(7,"el/pos");
+  xax->SetBinLabel(8,"Photon");
+  xax->SetBinLabel(9,"UnbEcal");
+  xax->SetBinLabel(10," ");
   _filled[0]->SetStats(kFALSE);
   _filled[0]->Draw("hbar2");//FTMembers sharing  
   gPadSave->cd();
@@ -500,6 +510,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     bz= ((membpat&1<<9)>0);//Z>=2(when ftc)
     glft=(ftc||ftz||fte);//globFT
 //---
+/*
     if(glft){//<-- glFT ok
       _filled[0]->Fill(2,1.);//globFT_ok
       if(ftc)_filled[0]->Fill(3,1.);//ftc_ok(z>=1)
@@ -509,6 +520,11 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       if(ftz && !ftc)_filled[0]->Fill(7,1.);//"true,very_slowZ>=2)"
       if((ftc||ftz) && fte)_filled[0]->Fill(8,1.);//"tof+ec"
       if(fte && !(ftc||ftz))_filled[0]->Fill(9,1.);//"ec alone"
+    }
+*/
+    for(int i=0;i<7;i++){//<--- lvl1 phys.branches(exclusive)
+      lsbt=1<<i;
+      if(physbpat==lsbt)_filled[0]->Fill(i+2,1.);
     }
 //---
     for(int i=0;i<16;i++){//<-- basis trig-members 
