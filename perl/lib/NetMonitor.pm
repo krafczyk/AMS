@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.44 2011/05/22 11:51:01 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.45 2011/05/22 11:53:24 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -214,6 +214,41 @@ if(not open(FILE,"<".$self->{hostfile})){
 #        }
 #    }
 
+#
+# afs volumes space check
+#
+
+    $mes="NetMonitor-W-AfsVolumeWarning";
+    $command="fs listquota ";
+    print "afs check\n";
+    foreach my $afsvolume (@{$self->{afsvolumes}}) {
+        unlink "/tmp/afsvol";
+        my $i=system($command.$afsvolume." | grep WARNING | wc -l > /tmp/afsvol");
+        if(1 or not $i){
+                if(not open(FILE,"<"."/tmp/afsvol")){
+                    push @{$self->{bad}}, "$afsvolume afsWarning";
+                    print "\n".localtime()." > Afs warning1: $afsvolume\n";
+                    next;
+                }
+                if(not read(FILE,$buf,16384)){
+                    push @{$self->{bad}}, "$afsvolume afsWarning";
+                    print "\n".localtime()." > Afs warning2: $afsvolume\n";
+                    close FILE;
+                    next;
+               }
+                close FILE;
+                unlink "/tmp/afsvol";
+                if($buf != 0){
+                    push @{$self->{bad}}, "$afsvolume afsWarning";
+                    print "\n".localtime()." > Afs warning: $afsvolume\n";
+                }else{
+		    print "afs good: $afsvolume\n";
+		}
+		
+            }
+
+    }
+
 #fs check
 
     my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
@@ -378,40 +413,6 @@ if(not open(FILE,"<".$self->{hostfile})){
     }
 #print "@{$self->{bad}}\n";
 
-#
-# afs volumes space check
-#
-
-    $mes="NetMonitor-W-AfsVolumeWarning";
-    $command="fs listquota ";
-    print "afs check\n";
-    foreach my $afsvolume (@{$self->{afsvolumes}}) {
-        unlink "/tmp/afsvol";
-        my $i=system($command.$afsvolume." | grep WARNING | wc -l > /tmp/afsvol");
-        if(1 or not $i){
-                if(not open(FILE,"<"."/tmp/afsvol")){
-                    push @{$self->{bad}}, "$afsvolume afsWarning";
-                    print "\n".localtime()." > Afs warning1: $afsvolume\n";
-                    next;
-                }
-                if(not read(FILE,$buf,16384)){
-                    push @{$self->{bad}}, "$afsvolume afsWarning";
-                    print "\n".localtime()." > Afs warning2: $afsvolume\n";
-                    close FILE;
-                    next;
-               }
-                close FILE;
-                unlink "/tmp/afsvol";
-                if($buf != 0){
-                    push @{$self->{bad}}, "$afsvolume afsWarning";
-                    print "\n".localtime()." > Afs warning: $afsvolume\n";
-                }else{
-		    print "afs good: $afsvolume\n";
-		}
-		
-            }
-
-    }
 
 
 
