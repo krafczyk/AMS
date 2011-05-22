@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.41 2011/05/20 14:53:57 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.42 2011/05/22 11:27:46 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -27,6 +27,7 @@ my %fields=(
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
+  afsvolumes=>['/afs/cern.ch/ams/local','/afs/cern.ch/ams/AMSDataBase','/afs/cern.ch/ams/Offline'],
   hostsstat=>[],
   bad=>[],
   badsave=>[],
@@ -376,6 +377,44 @@ if(not open(FILE,"<".$self->{hostfile})){
         $cnt++;
     }
 #print "@{$self->{bad}}\n";
+
+#
+# afs volumes space check
+#
+
+    $mes="NetMonitor-W-AfsVolumeWarning";
+    $command="fs listquota ";
+    print "afs check\n";
+    foreach my $afsvolume (@{$self->{afsvolumes}}) {
+        unlink "/tmp/afsvol";
+        $i=system($command.$afsvolume." | grep WARNING | wc -l > /tmp/afsvol");
+        if(1 or not $i){
+                if(not open(FILE,"<"."/tmp/afsvol")){
+                    push @{$self->{bad}}, "afsWarning $afsvolume";
+                    print "\n".localtime()." > Afs warning: $afsvolume\n";
+                    next;
+                }
+                if(not read(FILE,$buf,16384)){
+                    push @{$self->{bad}}, "afsWarning $afsvolume";
+                    print "\n".localtime()." > Afs warning: $afsvolume\n";
+                    close FILE;
+                    next;
+               }
+                close FILE;
+                unlink "/tmp/afsvol";
+                if($buf != 0){
+                    push @{$self->{bad}}, "afsWarning $afsvolume";
+                    print "\n".localtime()." > Afs warning: $afsvolume\n";
+                }else{
+		    print "afs good: $afsvolume\n";
+		}
+		
+            }
+
+    }
+
+
+
 
 #
 # df
