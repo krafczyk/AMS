@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.42 2011/05/22 11:27:46 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.43 2011/05/22 11:30:20 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -387,7 +387,7 @@ if(not open(FILE,"<".$self->{hostfile})){
     print "afs check\n";
     foreach my $afsvolume (@{$self->{afsvolumes}}) {
         unlink "/tmp/afsvol";
-        $i=system($command.$afsvolume." | grep WARNING | wc -l > /tmp/afsvol");
+        my $i=system($command.$afsvolume." | grep WARNING | wc -l > /tmp/afsvol");
         if(1 or not $i){
                 if(not open(FILE,"<"."/tmp/afsvol")){
                     push @{$self->{bad}}, "afsWarning $afsvolume";
