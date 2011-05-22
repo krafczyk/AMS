@@ -128,6 +128,10 @@ class MonSlider : public SliderI {
   void DrawInfo(int alternative = 0);
   /// Test and draw a text
   void TestAndDrawText(int side, TH1D* histo, float xmin, float xmax);
+  /// Global Signal
+  void DrawGlobalSignal(int alternative = 0); 
+  /// Truncated Mean
+  void DrawTruncatedMean(int alternative = 0);
 
   /// Get the histogram named "name", or if doesn't exist, the "oldname" one 
   TH1*  GetHisto(TFile* file, char* name, char* oldname);

@@ -187,14 +187,18 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
          //printf("keyname=%s, obj=%x\n",key->GetName(),obj);
       
          /* AO begin */ 
-         if ( obj->IsA()->InheritsFrom("TObjString") ) continue;
          if ( strcmp(obj->GetName(),"AMSRoot")==0) continue;
-         if ( strcmp(obj->GetName(),"AMSRootSetup")==0) continue;  
+         if ( strcmp(obj->GetName(),"AMSRootSetup")==0) continue;
+         if ( strcmp(obj->GetName(),"TrReconPar")==0) continue;
          if ( strcmp(obj->GetName(),"datacards")==0) continue;
          if ( strcmp(obj->GetName(),"AMS02Geometry")==0) continue;
          if ( strcmp(obj->GetName(),"TkDBc")==0) continue;
          if ( strcmp(obj->GetName(),"TrParDB")==0) continue;
-         if ( strcmp(obj->GetName(),"TrReconPar")==0) continue;  
+         if ( strcmp(obj->GetName(),"TrPdfDB")==0) continue;
+         if ( strcmp(obj->GetName(),"TrCalDB")==0) continue;
+         if ( strcmp(obj->GetName(),"TrExtAlignDB")==0) continue;
+         // if ( strcmp(obj->GetName(),"TrOnlineMonHeader")==0) continue;
+         if ( obj->IsA()->InheritsFrom("TObjString") ) continue;
          /* AO end */
 
          if (obj->IsA()->InheritsFrom("TTree")!=0) {

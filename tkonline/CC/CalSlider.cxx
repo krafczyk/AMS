@@ -26,7 +26,7 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   fromdb    = 0;
   // default reffile
   char refname[200];
-  sprintf(refname,"%s/tkonline/refs/CalDB_1284918006.root",getenv("AMSWD"));
+  sprintf(refname,"%s/tkonline/refs/CalDB_1302257285.root",getenv("AMSWD"));
   reffile = new TFile(refname);
   if (!reffile) printf("Warning: No reference file loaded\n");
   label = NULL;

@@ -54,7 +54,9 @@ void MonSlider::BuildMenu() {
   graphmenu->AddEntry("ClustersSummary",index++);
   graphmenu->AddEntry("ClustersSummary (alt)",index++);
   graphmenu->AddEntry("ReconVsTime",index++);
-  graphmenu->AddEntry("OrbitFromTime",index++);
+  // graphmenu->AddEntry("OrbitFromTime",index++);
+  graphmenu->AddEntry("GlobalSignal",index++);
+  graphmenu->AddEntry("TruncatedMean",index++);
   graphmenu->AddEntry("Info",index++);
 
   graphmenu->Select(graphtype);
@@ -344,9 +346,13 @@ void MonSlider::Draw() {
     DrawReconVsTime();
     break;
   case 19:
-    DrawOrbitFromTime();
+    // DrawOrbitFromTime();
+    DrawGlobalSignal();
     break; 
   case 20:
+    DrawTruncatedMean();
+    break;
+  case 21:
     DrawInfo();
     break;
   }
@@ -604,7 +610,7 @@ void MonSlider::DrawSizeSummary(int alternative) {
     ChangeToLayerIndex(size_n_prof);
     ChangeToLayerIndex(size_p_prof);
   }
-  size_n_prof->GetYaxis()->SetRangeUser(0.,20.);
+  size_n_prof->GetYaxis()->SetRangeUser(0.,50.);
   size_n_prof->Draw();
   size_p_prof->Draw("SAME");
   if (alternative==0) {
@@ -770,7 +776,7 @@ void MonSlider::DrawLadder(int alternative) {
   TH1D* size = (TH1D*) GetHisto(rootfile,Form("Size_%+04d",tkid));
   if (size==0) { canvas->Update(); return; }
   size->SetLineWidth(2);
-  size->SetStats(kFALSE);
+  size->SetStats(kTRUE);
   size->GetXaxis()->SetRangeUser(7.,400);
   size->Draw("HIST"); 
   canvas->cd(1);
@@ -1347,5 +1353,80 @@ void MonSlider::DrawInfo(int alternative) {
   }
   canvas->Update();
   text->SetTextSize(0.05);
+}
+
+
+void MonSlider::DrawGlobalSignal(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(2,2,0.001,0.001);
+  text->SetTextColor(kBlack);
+
+  TH1D* sqrtsig_p = (TH1D*) GetHisto(rootfile,"sqrtSignalOnTrack_all_P");
+  if (sqrtsig_p==0) { canvas->Update(); return; }
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->SetLogy();
+  pad1->SetGridy();
+  pad1->SetGridx();
+  sqrtsig_p->Draw("L");
+   
+  TH1D* sqrtsig_n = (TH1D*) GetHisto(rootfile,"sqrtSignalOnTrack_all_N");
+  if (sqrtsig_n==0) { canvas->Update(); return; }
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetLogy();
+  pad2->SetGridy();
+  pad2->SetGridx();
+  sqrtsig_n->Draw("L");
+
+  TH2D* sqrtsig_y_vs_x = (TH2D*) GetHisto(rootfile,"sqrtSignalOnTrackY_vs_X_all");
+  if (sqrtsig_y_vs_x==0) { canvas->Update(); return; }
+  TVirtualPad* pad3 = (TVirtualPad*) canvas->cd(3);
+  pad3->SetGridy();
+  pad3->SetGridx();
+  sqrtsig_y_vs_x->Draw("COLZ");
+
+  TH2D* sqrtsig_vs_beta = (TH2D*) GetHisto(rootfile,"sqrtSignalOnTrack_vs_Beta_all_N");
+  if (sqrtsig_vs_beta==0) { canvas->Update(); return; }
+  TVirtualPad* pad4 = (TVirtualPad*) canvas->cd(4);
+  pad4->SetGridy();
+  pad4->SetGridx();
+  sqrtsig_vs_beta->Draw("COLZ");
+
+  canvas->Update();
+}
+
+
+void MonSlider::DrawTruncatedMean(int alternative) {
+  // clean
+  canvas->Draw();
+  canvas->Clear();
+  canvas->Divide(1,2,0.001,0.001);
+  text->SetTextColor(kBlack);
+  TVirtualPad* pad1 = (TVirtualPad*) canvas->cd(1);
+  pad1->Divide(2,1,0.001,0.001);
+ 
+  TH2D* sqrttm_vs_beta = (TH2D*) GetHisto(rootfile,"sqrtTM_vs_Beta_all");
+  if (sqrttm_vs_beta==0) { canvas->Update(); return; }
+  TVirtualPad* subpad1 = (TVirtualPad*) pad1->cd(1);
+  subpad1->SetGridy();
+  subpad1->SetGridx();
+  sqrttm_vs_beta->Draw("COLZ");
+
+  TH2D* sqrttm_vs_logrig = (TH2D*) GetHisto(rootfile,"sqrtTM_vs_logRigidity_all");
+  if (sqrttm_vs_logrig==0) { canvas->Update(); return; }
+  TVirtualPad* subpad2 = (TVirtualPad*) pad1->cd(2);
+  subpad2->SetGridy();
+  subpad2->SetGridx();
+  sqrttm_vs_logrig->Draw("COLZ");
+
+  TH2D* sqrttm_vs_invrig = (TH2D*) GetHisto(rootfile,"sqrtTM_vs_invRigidity_all");
+  if (sqrttm_vs_invrig==0) { canvas->Update(); return; }
+  TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
+  pad2->SetGridy();
+  pad2->SetGridx();
+  sqrttm_vs_invrig->Draw("COLZ");
+
+  canvas->Update();
 }
 

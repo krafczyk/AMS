@@ -110,7 +110,7 @@ void MonitorUI::HandleFile(char* filename, int ref) {
     }
     file->Close();
     if (gs->getnSlider()==0) {
-      printf("MonitorUI::HandleFile-W file not recognized in (%s), please try again using the File::Open menu.\n",filename);
+      printf("MonitorUI::HandleFile-W nSlider == 0, did the file exist?\n",filename);
       return;
     }
   }
