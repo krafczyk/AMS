@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.45 2011/05/22 11:53:24 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.46 2011/05/22 12:13:35 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -176,50 +176,12 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
     }
 
-#cluster cman_tool check
-
-#    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' -t -t ";
-#    $mes="NetMonitor-W-NodeNotInCluster";
-#    foreach my $host (@{$self->{clusterhosts}}){
-#        my $gonext=0;
-#        foreach my $bad (@{$self->{bad}}){
-#            my @sbad=split ' ',$bad;
-#            if($sbad[0] ){
-#                $gonext=1;
-#                last;
-#            }
-#        }
-#        if($gonext){
-#            next;
-#        }
-#        unlink "/tmp/cluster";
-#        my $i=system($command.$host." \'sudo /usr/sbin/cman_tool status\' | grep \'Nodes: 7\' | wc -l > /tmp/cluster");
-#        if(1 or not $i){
-#            if(not open(FILE,"<"."/tmp/cluster")){
-#                push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-#                print "Cluster error: $host \n";
-#                next;
-#            }
-#            if(not read(FILE,$buf,16384)){
-#                push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-#                print "Cluster error: $host \n";
-#                close FILE;
-#                next;
-#            }
-#            close FILE;
-#            unlink "/tmp/cluster";
-#            if($buf != 1){
-#                push @{$self->{bad}}, $host." NetMonitor-W-NodeNotInCluster";
-#            }
-#        }
-#    }
-
 #
 # afs volumes space check
 #
 
     $mes="NetMonitor-W-AfsVolumeWarning";
-    $command="fs listquota ";
+    my $command="fs listquota ";
     print "afs check\n";
     foreach my $afsvolume (@{$self->{afsvolumes}}) {
         unlink "/tmp/afsvol";
@@ -251,7 +213,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 
 #fs check
 
-    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     $mes="NetMonitor-W-NodeFileSystemProblem";
     foreach my $host (@{$self->{hosts}}){
 #        print "Fs check: $host\n";
@@ -298,60 +260,6 @@ if(not open(FILE,"<".$self->{hostfile})){
         }
     }
 #print "@{$self->{bad}}\n";
-
-
-#
-# Now timing
-#
-
-#    $mes="NetMonitor-W-SomeHostsHaveWrongTime";
-#    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
-##    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
-#    foreach my $host (@{$self->{hosts}}) {
-#        my $gonext=0;
-#        foreach my $bad (@{$self->{bad}}){
-#		    my @sbad=split ' ',$bad;
-#		    if($sbad[0] eq $host){
-#			$gonext=1;
-#			last;
-#		    }
-#		}
-#		if($gonext){
-#		    next;
-#		}
-#		unlink "/tmp/xtime";
-#		my $i=system($command.$host.' date +%s > /tmp/xtime ');
-#		my $curtime=time();
-#		if(1 or not $i){
-#		  if(not open(FILE,"<"."/tmp/xtime")){
-#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
-#		    next;
-#		  }           
-#		     my $buf;
-#		     if(not read(FILE,$buf,16384)){
-#			 push @{$self->{bad}}, $host." NetMonitor-W-ssh2Failed";
-#			 close FILE;
-#		       next;
-#		     }
-#		     close FILE;
-#		     unlink "/tmp/xtime";
-#	#             my @sbuf= split ' ',$buf;
-#	#             if($#sbuf>3){
-#	#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
-#	#               my @ssbuf=split ':',$sbuf[3];
-#	#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
-#		       if(abs($curtime-$buf)>360){
-#			  push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
-#		       }
-#		       next;
-#	#             }  
-#			push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
-#		    }
-#		else{
-#		    push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
-#		    next;
-#		}
-#	    }
 
 	#
 	# dbhosts targets
@@ -412,10 +320,6 @@ if(not open(FILE,"<".$self->{hostfile})){
         $cnt++;
     }
 #print "@{$self->{bad}}\n";
-
-
-
-
 
 #
 # df
