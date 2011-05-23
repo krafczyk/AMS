@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.298 2011/05/17 13:02:13 shaino Exp $
+//  $Id: root.C,v 1.299 2011/05/23 18:37:54 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2034,6 +2034,7 @@ void AMSEventR::SetCont(){
 }
 
 bool AMSEventR::ReadHeader(int entry){
+  bool badrun=false;
   static unsigned int runo=0;
   static unsigned int evento=0;
   static const int probe=100;
@@ -2074,6 +2075,8 @@ bool AMSEventR::ReadHeader(int entry){
   {
     i=bHeader->GetEntry(entry);
   }
+        badrun=isBadRun(Run());      
+  if(badrun)return;
   clear();
   static TFile* local_pfile=0;
 #pragma omp threadprivate (local_pfile)
@@ -2108,6 +2111,7 @@ bool AMSEventR::ReadHeader(int entry){
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
+        badrun=isBadRun(getsetup()->fHeader.Run);
         //getsetup()->printAllTDV_Time();
         //getsetup()->fSlowControl.print();
    for(AMSSetupR::Scalers_i i=getsetup()->fScalers.begin();i!=getsetup()->fScalers.end();i++){
@@ -4753,7 +4757,14 @@ static int master=0;
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
 	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
-	TkDBc::Head->init((Run()>=1257416200)?2:1);
+         int setup=0;
+           if(Run()>=1300000000)setup=3;
+         else if(Run()>=1257416200)setup=2;
+         else setup=1;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp master
+#endif
+	TkDBc::Head->init(setup);
       }
     }
     TrExtAlignDB::Load(_FILE);
@@ -4877,4 +4888,15 @@ int AMSEventR::GetTDVEl(const string & tdv, unsigned int index, if_t & value){
    }
    else return ret;
   }
+}
+
+
+vector <unsigned int>AMSEventR::BadRunList;
+
+bool AMSEventR::isBadRun(unsigned int run){
+ 
+for(int k=0;k<BadRunList.size();k++){
+if(run==BadRunList[k])return true;
+}
+return false;
 }

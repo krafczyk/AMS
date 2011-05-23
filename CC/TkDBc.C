@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.43 2011/04/30 22:22:48 oliva Exp $
+//  $Id: TkDBc.C,v 1.44 2011/05/23 18:37:54 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/04/30 22:22:48 $
+///$Date: 2011/05/23 18:37:54 $
 ///
-///$Revision: 1.43 $
+///$Revision: 1.44 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +75,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     printf("TkDBc::init -I- Selected Setup %d  %s\n",_setup,_setupname[_setup]);
 
     printf("initializing track patterns\n");
-    if(patt) delete patt;
+     if(patt) delete patt;
     int nn=8;
     if(setup==3)nn=7;
     patt= new tkpatt(nn);
