@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.352 2011/05/21 16:12:05 choumilo Exp $
+//  $Id: root.h,v 1.353 2011/05/23 03:02:43 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -301,11 +301,14 @@ public:
   char * Info(unsigned long long status){
                          double cp=cos(Pitch);
                          double sp=sin(Pitch);
-                         //double cy=cos(Yaw);
+                         double cy=cos(Yaw);
                          double sy=sin(Yaw);
                          double cr=cos(Roll);
                          double sr=sin(Roll);
-                         double cams=-sr*sy*sp+cr*cp;
+                         const float angle=-10./180*3.1415926;
+                         double crp=cos(angle);
+                         double srp=sin(angle);     
+                         double cams=(-sr*sy*sp+cr*cp)*crp+srp*sr*cy;
                          cams=acos(cams)*180/3.1415926; 
                          unsigned int comp=0;
                          unsigned long long one=1;

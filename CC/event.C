@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.529 2011/05/21 13:01:52 mmilling Exp $
+//  $Id: event.C,v 1.530 2011/05/23 03:02:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4552,6 +4552,17 @@ void AMSEvent::LoadISS(){
 if(AMSNtuple::LoadISS(_time)){
 ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6);
 _NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
+// put reasonable yaw pitch roll
+if(_time<1306183800){
+_Pitch=165./180*3.141592;
+_Roll=179.5/180*3.1415926;
+_Yaw=12/180*3.1415926;
+}
+else{
+_Pitch=0;
+_Roll=0;
+_Yaw=0;
+}
 }
 }
 
