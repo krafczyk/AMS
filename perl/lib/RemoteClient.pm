@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.673 2011/05/18 18:16:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.674 2011/05/23 03:02:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -843,6 +843,7 @@ if($#{$self->{DataSetsT}}==-1){
 #     push @{$self->{DataSetsT}}, $dataset;
      $dataset->{datamc}=0;
      $dataset->{g4}="";
+     $dataset->{delta}=0;
      $dataset->{singlejob}=0;
      foreach my $job (@jobs){
          if($job=~/^data=true/){
@@ -856,7 +857,11 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^g4=true/){
              $dataset->{g4}="g4";
          }
-         if($job=~/^singlejob=true/){
+         if($job=~/^delta=/){
+                  my @vrs= split '=',$job;
+             $dataset->{delta}=$vrs[1];
+           }
+           if($job=~/^singlejob=true/){
              $dataset->{singlejob}=1;
          }
         
@@ -1079,7 +1084,10 @@ if($#{$self->{DataSetsT}}==-1){
                $template->{initok}=undef;
              }
            }
-            if(defined $template->{OPENCLOSE}){
+          if($dataset->{delta}>0){
+             $template->{RUNMAX}=time()-$dataset->{delta};
+          }
+             if(defined $template->{OPENCLOSE}){
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
            }
