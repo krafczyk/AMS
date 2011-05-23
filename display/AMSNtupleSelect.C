@@ -12,7 +12,7 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
 
-   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC*(1-ev->EcalShower(0).RearLeak)>150 && ev->Particle(0).Momentum<0 && ev->nTrdTrack()<2 && ev->nTofCluster()<20&& ev->nAntiCluster()<6 && ev->EcalShower(0).RearLeak<0.5&& ev->Particle(0).Charge==1){
+   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>400 ){
      return true;
   }
   else return false;

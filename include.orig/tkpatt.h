@@ -112,4 +112,7 @@ public:
 };
 
 extern tkpatt* patt; 
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (patt)
+#endif
 #endif
