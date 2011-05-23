@@ -1,54 +1,48 @@
 #include "TrCharge.h"
 
 
-float TrCharge::A_BetaBetheBlock = 1.6;
-float TrCharge::B_BetaBetheBlock = 15;
-float TrCharge::MipBetaValue = 0.935;   // MIP value
+// Maximum charge to be analyzed
+int   TrCharge::MaxCharge = 26; 
 
-float TrCharge::A_AdcVsBeta  = 29.0220; // KSC 2010, muons truncated mean vs beta TOF
-float TrCharge::B_AdcVsBeta  = 3.81848; // KSC 2010, muons truncated mean vs beta TOF
-float TrCharge::b0_AdcVsBeta = 0.88615; // KSC 2010, muons truncated mean vs beta TOF
-float TrCharge::k_AdcVsBeta  = 35.2761; // KSC 2010, muons truncated mean vs beta TOF
 
 /*
-float TrCharge::A_AdcVsBeta  = 29.2545; // MC 2010 (p and mu), muons truncated mean vs beta TOF
-float TrCharge::B_AdcVsBeta  = 7.54380; // MC 2010 (p and mu), muons truncated mean vs beta TOF
-float TrCharge::b0_AdcVsBeta = 0.91155; // MC 2010 (p and mu), muons truncated mean vs beta TOF
-float TrCharge::k_AdcVsBeta  = 33.1179; // MC 2010 (p and mu), muons truncated mean vs beta TOF
+  - Beta Correction Parameters:
+    KSC 2010, muons + proton signal   
+    plane-by-plane vs beta TOF normalized
+    three values for 1st plane, anyone of the inner, 9th plane
 */
-
-int   TrCharge::MaxCharge = 26; // maximum  
-
-
-float TrCharge::BetaBetheBlock(float beta) {
-  /* pseudo Bethe-Block: BB(beta) = A/beta^2  *  [ B + ln[beta^2/(1-beta^2)] - beta^2 ] */
-  if (beta>=1) {
-     printf("TrCharge::BetaBetheBlock-Error Beta is greater-equal 1 (beta=%f).\n",beta);
-     return 1;
-  }
-  float corrbeta = TMath::Min(TrCharge::MipBetaValue,beta);   
-  float b2 = pow(corrbeta,2);
-  return A_BetaBetheBlock/b2 * (B_BetaBetheBlock + log(b2/(1-b2)) - b2);
-}  
+float TrCharge::A_BetaCorr[3]  = { 1.14505, 0.73906, -0.39480}; 
+float TrCharge::B_BetaCorr[3]  = { 0.67118, 0.05288, -1.47569};
+float TrCharge::b0_BetaCorr[3] = { 0.85387, 0.89147,  0.93449}; 
 
 
-float TrCharge::AdcVsBeta(float beta) {
-  /////// different beta correction for different planes ///////
+float TrCharge::BetaCorrection(float beta, int jlayer) {
   /*
-     Maximum Probability Energy Loss:
-     MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
-     Simplified fitting function:
-     f(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + C
-               beta>beta0, k (the TOF beta "saturates")     
-     Continuity imposed on beta0 (no derivative continuity)
+     - Maximum Probability Energy Loss:
+       MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * 
+                            * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
+     - Simplified fitting function:
+       f(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + C
+                 beta>beta0, k (the TOF beta "saturates")     
+       Continuity imposed on beta0 (no derivative continuity)
+       C = k - A/beta0^2 - B*log(beta0)/beta0^2
+     - Beta Correction:
+       g(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + 1 - A/beta0^2 - B*log(beta0)/beta0^2
+                 beta>beta0, 1
   */
-  if (beta<b0_AdcVsBeta) 
-             return A_AdcVsBeta/pow(beta,2) + 
-                    B_AdcVsBeta*log(beta)/pow(beta,2) + 
-                    k_AdcVsBeta - 
-                    A_AdcVsBeta/pow(b0_AdcVsBeta,2) - 
-                    B_AdcVsBeta*log(b0_AdcVsBeta)/pow(b0_AdcVsBeta,2);
-  else       return k_AdcVsBeta;
+  if ( (jlayer<1)||(jlayer>9) ) {
+    printf("TrCharge::BetaCorrection-W invalid layer index number (%d), returning 1.\n",index);
+    return 1.;
+  }
+  int index  = 0;        // 0 for the layer over TRD
+  if (jlayer>1) index++; // 1 for any inner tracker layer 
+  if (jlayer>8) index++; // 2 for the layer over ECAL
+  if (beta>=b0_BetaCorr[index]) return 1.; // beta "saturation" region
+  return A_BetaCorr[index]/pow(beta,2) + 
+         B_BetaCorr[index]*log(beta)/pow(beta,2) + 
+         1 - 
+         A_BetaCorr[index]/pow(b0_BetaCorr[index],2) - 
+         B_BetaCorr[index]*log(b0_BetaCorr[index])/pow(b0_BetaCorr[index],2);
 }
 
 
@@ -58,22 +52,46 @@ float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
 
 
 float TrCharge::GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta, int opt) {
+  // pointer check
+  if (hit==0) {
+    printf("TrCharge::GetSignalWithBetaCorrection-W hit with NULL pointer, returning 1\n");
+    return 1;
+  }
+  // beta over 1?
   if (fabs(beta)>=1) return hit->GetSignalCombination(iside,opt);
-  return hit->GetSignalCombination(iside,opt)*TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
+  int jlayer = hit->GetLayerJ();
+  return hit->GetSignalCombination(iside,opt)/TrCharge::BetaCorrection(beta,jlayer);
 }
 
 
 float TrCharge::GetSignalWithBetaCorrection(TrClusterR* cluster, float beta, int opt) {
+  // pointer check
+  if (cluster==0) {
+    printf("TrCharge::GetSignalWithBetaCorrection-W cluster with NULL pointer, returning 1\n");
+    return 1;
+  }
+  // beta over 1?
   if (fabs(beta)>=1) return cluster->GetTotSignal(opt);
-  return cluster->GetTotSignal(opt)*TrCharge::AdcVsBeta(1)/TrCharge::AdcVsBeta(beta);
+  int jlayer = cluster->GetLayerJ();
+  return cluster->GetTotSignal(opt)/TrCharge::BetaCorrection(beta,jlayer);
 }
 
 
 float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
-  // Z=0 means electrons (approximately no rise)
-  if (Z==0) { Z = 1; beta = 1; }
-  /* ATTENTION: the requested PDF should be in MIP scale,
-     for the time being is not! */
+  // pointer check
+  if (hit==0) {
+    printf("TrCharge::GetPropToBeZ-W hit with NULL pointer, returning 0\n");
+    return 0; 
+  }
+  // Z = 0 means electrons (approximately no rise)
+  if (Z==0) { 
+    Z = 1; 
+    beta = 1; 
+  }
+  /* ATTENTION: 
+     the requested PDF should be in MIP scale,
+     for the time being it is not! 
+  */
   TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,iside,TrPdfDB::kSingleLayer);
   if (pdf==0) {
     printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf (iside=%d,Z=%d,type=%d), returning -1.\n",
@@ -86,6 +104,7 @@ float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
 
 
 bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
+  // pointer check
   if (cluster==0) return false;
   int ndead = 0;
   int nbad  = 0;
@@ -112,6 +131,7 @@ bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
 
 
 bool TrCharge::GoodChargeReconHit(TrRecHitR* hit) {
+  // pointer check
   if (hit==0) return false;
   TrClusterR* clx = hit->GetXCluster();
   TrClusterR* cly = hit->GetYCluster();

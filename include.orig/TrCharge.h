@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2011/05/13 19:27:24 $
+ $Date: 2011/05/23 18:25:21 $
 
- $Revision: 1.5 $
+ $Revision: 1.6 $
 */
 
 #include "TrCluster.h"
@@ -106,21 +106,12 @@ class TrCharge {
   //! Maximum Z analyzed
   static int MaxCharge; 
 
-  //! 1st parameter of the pseudo-Bethe-Block
-  static float A_BetaBetheBlock;
-  //! 2nd parameter of the pseudo-Bethe-Block
-  static float B_BetaBetheBlock;
-  //! Default beta value (MIP)
-  static float MipBetaValue;
-
-  //! AdcVsBeta: A
-  static float A_AdcVsBeta;
-  //! AdcVsBeta: B
-  static float B_AdcVsBeta;
-  //! AdcVsBeta: Beta_0
-  static float b0_AdcVsBeta;
-  //! AdcVsBeta: k
-  static float k_AdcVsBeta;
+  //! Beta correction: A
+  static float A_BetaCorr[3];
+  //! Beta correction: B
+  static float B_BetaCorr[3];
+  //! Beta correction: Beta_0
+  static float b0_BetaCorr[3];
 
   /////////////////////////
   // Enumerators
@@ -146,10 +137,8 @@ class TrCharge {
 
   /// Check: other signal corrections (redo the impact point correction?)
   
-  //! The Bethe-Block formula in the limit of negligible mass term (no electrons) 
-  static float BetaBetheBlock(float beta);
-  //! Simple function to describe the energy loss versus beta
-  static float AdcVsBeta(float beta);
+  //! Function to describe the energy loss versus beta (TOF), depends from the selected layer 
+  static float BetaCorrection(float beta, int jlayer);
   //! The rigidity could be used to estimate beta  
   static float GetBetaFromRigidity(float rigidity, int Z, float mass);
   //! Get the signal 
