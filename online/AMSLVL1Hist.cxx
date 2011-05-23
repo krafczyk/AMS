@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.31 2011/05/22 21:42:31 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.32 2011/05/23 03:02:56 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -524,7 +524,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
 */
     for(int i=0;i<7;i++){//<--- lvl1 phys.branches(exclusive)
       lsbt=1<<i;
-      if(physbpat==lsbt)_filled[0]->Fill(i+2,1.);
+      if((physbpat&127)==lsbt)_filled[0]->Fill(i+2,1.);
     }
 //---
     for(int i=0;i<16;i++){//<-- basis trig-members 

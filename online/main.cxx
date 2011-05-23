@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.36 2011/04/21 22:53:06 choutko Exp $
+//  $Id: main.cxx,v 1.37 2011/05/23 03:02:56 choutko Exp $
 #include <TRegexp.h>
 #include <fstream.h>
 #include <TChain.h>
@@ -248,106 +248,12 @@ void (handler)(int sig){
   */
 }
 
-/*
-void OpenChain(TChain & chain, char * filenam){
-  //  
-  //  root can;t cope with multiple wild card so we must do it ourselves
-  //
-  char filename[255];
-  if(strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
-    cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
-    return;
-  }
-  TString a(filenam);
-  TRegexp b("^castor:",false);
-  TRegexp c("^http:",false);
-  TRegexp d("^root:",false);
-  TRegexp e("^rfio:",false);
-  TRegexp f("^/castor",false);
-  bool wildsubdir=false;
-  if(a.Contains(b)){
-#if !defined(WIN32) && !defined(__APPLE__)
-    TRFIOFile f("");
-    TXNetFile g("");
-#endif
-    strcpy(filename,filenam);
-  }
-  else if(a.Contains(c)){
-    strcpy(filename,filenam);
-  }
-  else if(a.Contains(d)){
-    strcpy(filename,filenam);
-  }
-  else if(a.Contains(e)){
-    strcpy(filename,filenam);
-  }
-  else if(a.Contains(f)){
-    strcpy(filename,"rfio:");
-    strcat(filename,filenam);
-  }
-  else{ 
-#ifndef WIN32
-    if(filenam[0]!='/'){
-      strcpy(filename,"./");
-      strcat(filename,filenam);
-    }
-    else strcpy(filename,filenam);
-#else
-    strcpy(filename,filenam);
-#endif
-    bool go=false;
-    for(int i=strlen(filename)-1;i>=0;i--){
-      if(filename[i]=='/')go=true;
-      if(go && filename[i]=='*'){
-	wildsubdir=true;
-	break;
-      }
-    }
-  }
-#ifndef WIN32   
-  if(wildsubdir){
-    for(int i=0;i<strlen(filename);i++){
-      if (filename[i]=='*'){
-        for(int k=i-1;k>=0;k--){
-	  if(filename[k]=='/'){
-	    TString ts(filename,k+1);
-	    for(int l=i+1;l<strlen(filename);l++){
-	      if(filename[l]=='/'){
-                
-                if(l-k-1>0)Selector= new TString(filename+k+1,l-k-1);
-                else Selector=0;
-                dirent ** namelistsubdir;
-                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,NULL);
-                for( int nsd=0;nsd<nptrdir;nsd++){
-                  char fsdir[1023];
-                  strcpy(fsdir,ts.Data());
-                  strcat(fsdir,namelistsubdir[nsd]->d_name);
-                  strcat(fsdir,filename+l);
-                  cout << "found dir "<<fsdir<<endl;
-                  OpenChain(chain,fsdir);
-                } 
-                return;               
-	      }
-	    }
-	  }
-	}                  
-      }
-    }
-  }
-#endif
-  chain.Add(filename);
-}
-
-
-*/
-
 void OpenChain(AMSChain & chain, char * filenam){
   //  
   //  root can;t cope with multiple wild card so we must do it ourselves
   //
   char filename[255];
-  if(!filenam || strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
+  if(strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
     cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
     return;
   }
@@ -471,13 +377,13 @@ void OpenChain(AMSChain & chain, char * filenam){
                 cout <<"  scanning wild"<<ts<<endl;
 #ifdef __APPLE__
                 dirent ** namelistsubdir;
-                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #elif defined(__LINUXNEW__)
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const dirent64**, const dirent64**)>(&Sort));
 #else
                 dirent64 ** namelistsubdir;
-                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Selectsdir,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
+                int nptrdir=scandir64(ts.Data(),&namelistsubdir,Select,reinterpret_cast<int(*)(const void*, const void*)>(&Sort));
 #endif
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];
@@ -505,7 +411,7 @@ void OpenChain(AMSChain & chain, char * filenam){
      time_t t;
      time(&t);
   if(remote || (statbuf.st_mtime>=lasttime &&statbuf.st_size)){
-     if( (t-statbuf.st_mtime>6 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename) )){     
+     if( (t-statbuf.st_mtime>60 || notlast || !monitor) && (strlen(lastfile)<2 || strcmp(lastfile,filename))){     
       strcpy(lastfile,filename);
       cout <<" added "<<filename<<" "<<statbuf.st_size<<endl;
       if(add++<3000){
@@ -517,6 +423,8 @@ void OpenChain(AMSChain & chain, char * filenam){
             TObjString s("");
             TFile * rfile=TFile::Open(filename,"READ");
             if(rfile){
+              s.Read("DataCards");
+              cout <<s.String()<<endl; 
             }
            }
     }
@@ -527,7 +435,6 @@ void OpenChain(AMSChain & chain, char * filenam){
      }
   }
 }
-
 
 
 
