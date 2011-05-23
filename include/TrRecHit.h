@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.33 2011/04/28 11:19:05 oliva Exp $
+//  $Id: TrRecHit.h,v 1.34 2011/05/23 19:41:13 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -268,6 +268,11 @@ public:
   /**@{*/
   /// Get ladder layer OLD Scheme (1-9)
   int   GetLayer()       const { return abs(_tkid/100); }
+  /// Get ladder layer New J-Scheme (1-9)
+  int   layJ()       const { return GetLayerJ(); }
+  /// Get ladder layer old Scheme (1-9)
+  int   lay()       const { return GetLayer(); }
+ 
  
   ///STD GBATCH compatibility layer
   int lad() const {return GetSlot();}
