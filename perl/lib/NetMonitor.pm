@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.47 2011/05/22 12:45:20 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.48 2011/05/23 15:06:10 dmitrif Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -102,7 +102,7 @@ sub Run{
     $self->InitOracle();
     my $force=1;
     my $sshTimeout=300;
-    local $SIG{ALRM} = sub { print localtime()." > command timeout\n"; };
+#    local $SIG{ALRM} = sub { print localtime()." > command timeout\n"; };
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
     print localtime()." NetMonitor-I-Started \n";
@@ -181,7 +181,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 #
 
     $mes="NetMonitor-W-AfsVolumeProblem";
-    my $command="fs listquota ";
+    my $command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout fs listquota ";
 #    print "afs check\n";
     foreach my $afsvolume (@{$self->{afsvolumes}}) {
         unlink "/tmp/afsvol";
@@ -213,7 +213,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 
 #fs check
 
-    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     $mes="NetMonitor-W-NodeFileSystemProblem";
     foreach my $host (@{$self->{hosts}}){
 #        print "Fs check: $host\n";
@@ -232,9 +232,9 @@ if(not open(FILE,"<".$self->{hostfile})){
         foreach my $fs (@{$self->{filesystems}}){
             print ".";
             unlink "/tmp/filesys";
-            alarm $sshTimeout;
+#            alarm $sshTimeout;
             $i=system($command.$host." \'ls /".$fs."\' | grep -v \'/".$fs."\' | grep -v \'error\' | wc -l > /tmp/filesys");
-            alarm 0;
+#            alarm 0;
             if(1 or not $i){
                 if(not open(FILE,"<"."/tmp/filesys")){
                     push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
@@ -269,14 +269,14 @@ if(not open(FILE,"<".$self->{hostfile})){
             push @foundp, 0;
         }
 	$mes="NetMonitor-W-DBHostsTargetsProblems";
-	$command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+	$command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 	foreach my $host (@{$self->{dbhosts}}){
             print ".";
           unlink "/tmp/dbhosts";
          #print "$command.$host. \n";
-        alarm $sshTimeout;
+#        alarm $sshTimeout;
         my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
-        alarm 0;
+#        alarm 0;
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/dbhosts")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh3Failed /tmp/dbhosts";
@@ -325,7 +325,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 # df
 #
     $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
-    $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
+    $command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
@@ -341,9 +341,9 @@ if(not open(FILE,"<".$self->{hostfile})){
         print ".";
         unlink "/tmp/xspace";
          #print "$command.$host. \n";
-        alarm $sshTimeout;
+#        alarm $sshTimeout;
         my $i=system($command.$host." df -x nfs -x gfs > /tmp/xspace ");
-        alarm 0;
+#        alarm 0;
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/xspace")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
