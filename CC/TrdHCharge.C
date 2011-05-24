@@ -52,8 +52,8 @@ double p_par(int p){
 
 int TrdHChargeR::GetCharge(TrdHTrackR *tr,float beta,int debug){
   if(debug)printf("Enter TrdHChargeR::GetCharge\n");
-  if(pdfs.size()<2)return 1;
-  if(beta<0.5)return 2;
+  if(pdfs.size()<2)return 0;
+  if(beta<0.5)return 0;
   
   float betacorr=1.;
   if(beta<0.95)// beta correction to be done
