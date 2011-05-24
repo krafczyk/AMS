@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.297 2011/05/14 16:50:52 pzuccon Exp $
+//  $Id: root.C,v 1.297.2.1 2011/05/24 17:26:12 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4752,8 +4752,15 @@ static int master=0;
     TrCalDB::Head = (TrCalDB*)_FILE->Get("TrCalDB");
     if(!TkDBc::Head){
       if (!TkDBc::Load(_FILE)) { // by default get TkDBc from _FILE
-	TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
-	TkDBc::Head->init((Run()>=1257416200)?2:1);
+        TkDBc::CreateTkDBc();    // Init nominal TkDBc if not found in _FILE
+         int setup=0;
+           if(Run()>=1300000000)setup=3;
+         else if(Run()>=1257416200)setup=2;
+         else setup=1;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp master
+#endif
+        TkDBc::Head->init(setup);
       }
     }
 //    TrExtAlignDB::Load(_FILE);
