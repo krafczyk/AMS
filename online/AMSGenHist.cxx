@@ -1,4 +1,4 @@
-//  $Id: AMSGenHist.cxx,v 1.9 2010/02/16 09:56:50 choutko Exp $
+//  $Id: AMSGenHist.cxx,v 1.10 2011/05/24 13:14:46 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -51,8 +51,8 @@ _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
 _filled[_filled.size()-1]->SetXTitle("Time Difference(msec)");
 _filled[_filled.size()-1]->SetYTitle("Length (bytes)");
   AddSet("Misc Info");
-  _filled.push_back(new TH1F("Bx","Bx (Kg)",400,0.,20.));
-_filled[_filled.size()-1]->SetXTitle("Average Bx (KGauss)");
+  _filled.push_back(new TH1F("ThetaM","ThetaM",400,-3.1415926/2,3.1415926/2));
+_filled[_filled.size()-1]->SetXTitle("ThetaM (Rad)");
 
 }
 
@@ -119,8 +119,8 @@ void AMSGenHist::Fill(AMSNtupleR *ntuple){
       ((TProfile*)_filled[13])->Fill(xtime,ntuple->pDaqEvent(0)->Length);  
     }
    }
-   //cout <<ntuple->fHeader.BAv<<endl;
-   _filled[14]->Fill(ntuple->fHeader.BAv,1.);
+   //cout <<ntuple->fHeader.ThetaM<<endl;
+   _filled[14]->Fill(ntuple->fHeader.ThetaM,1.);
    evno=ntuple->Event();
      Float_t xm=0;
 //    if(ntuple->nMCEventg()>0){		

@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.32 2011/05/23 03:02:56 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.33 2011/05/24 13:14:46 choutko Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -144,8 +144,8 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetYTitle("LiveTime fraction");
   _filled.push_back(new TProfile("trigh27","AMSDAQLiveTime vs Time",120,0,lev1trange[1],0,1.1));
   _filled[_filled.size()-1]->SetYTitle("LiveTime fraction");
-  _filled.push_back(new TProfile("trigh28","AMSDAQLiveTime vs Time",120,0,lev1trange[2],0,1.1));
-  _filled[_filled.size()-1]->SetYTitle("LiveTime fraction");
+  _filled.push_back(new TProfile("trigh28","ThetaM vs Time",120,0,lev1trange[0],-3.1415926/2,3.1415926/2));
+  _filled[_filled.size()-1]->SetYTitle("ThetaM (rad)");
   
   
   AddSet("TrigRates in LVL1");
@@ -344,8 +344,14 @@ case 6:
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(i<2){
     _filled[i+26]->SetMinimum(0);
     _filled[i+26]->SetMaximum(1.05);
+    }
+   else{
+    _filled[i+26]->SetMinimum(-1.5);
+    _filled[i+26]->SetMaximum(1.5);
+   }
     _filled[i+26]->SetMarkerStyle(20);
     _filled[i+26]->SetMarkerColor(2);
     _filled[i+26]->SetMarkerSize(0.5);
@@ -365,7 +371,7 @@ case 6:
     xax=_filled[i+26]->GetXaxis();
     xax->SetTitle(name);
     xax->SetTitleSize(0.05);
-    _filled[i+26]->Draw("P");//LiveTime 
+    _filled[i+26]->Draw("P");//thetaM
     gPadSave->cd();
   }
   break;
@@ -669,7 +675,7 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       timez[2]=time[2];
       Lvl1Pars::setdat3(ntuple->Time());
     }
-    ((TProfile*)_filled[28])->Fill(time[2]-timez[2],ltime,1.);
+    ((TProfile*)_filled[28])->Fill(time[0]-timez[0],ntuple->fHeader.ThetaM,1.);
 //trig-time histogr: 
  UInt_t itrtime[5];
 
