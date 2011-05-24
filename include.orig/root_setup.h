@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.21 2011/05/18 04:27:05 choutko Exp $
+//  $Id: root_setup.h,v 1.22 2011/05/24 13:14:43 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 

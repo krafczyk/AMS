@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.14 2011/05/16 14:06:11 choutko Exp $
+//  $Id: trdid.h,v 1.15 2011/05/24 13:14:43 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"

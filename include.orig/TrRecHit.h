@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.34 2011/05/23 19:41:13 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.35 2011/05/24 13:14:41 choutko Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 

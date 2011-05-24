@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.131 2011/05/18 05:25:50 choutko Exp $
+//  $Id: ntuple.h,v 1.132 2011/05/24 13:14:43 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
