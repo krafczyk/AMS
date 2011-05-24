@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.526.6.2 2011/05/19 18:43:42 choutko Exp $
+//  $Id: event.C,v 1.526.6.3 2011/05/24 13:56:12 ams Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4549,11 +4549,25 @@ void AMSEvent::SetTofSTemp(){
 
 
 void AMSEvent::LoadISS(){
+unsigned int gpsdiff=15;
 if(AMSNtuple::LoadISS(_time)){
-ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6);
+ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6-gpsdiff);
 _NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
+// put reasonable yaw pitch roll
+if(_time<1306183800+86400*8){
+_Pitch=165./180*3.141592;
+_Roll=179.5/180*3.1415926;
+_Yaw=12/180*3.1415926;
+}
+else{
+_Pitch=0;
+_Roll=0;
+_Yaw=0;
+}
+
 }
 }
+
 
 #ifdef _PGTRACK_
 #include "event_tk.C"

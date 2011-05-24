@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.228 2011/05/10 19:10:07 jorgec Exp $
+//  $Id: particle.C,v 1.228.4.1 2011/05/24 13:56:12 ams Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1211,6 +1211,43 @@ void AMSParticle::_loc2gl(){
   amsz[0]=n1*amsxg[0]+n2*amsyg[0]+n3*amszg[0];
   amsz[1]=n1*amsxg[1]+n2*amsyg[1]+n3*amszg[1];
   amsz[2]=n1*amsxg[2]+n2*amsyg[2]+n3*amszg[2];
+
+// additional roll 12 deg
+
+    for(int i=0;i<3;i++)amsxg[i]=amsx[i];
+    for(int i=0;i<3;i++)amsyg[i]=amsy[i];
+    for(int i=0;i<3;i++)amszg[i]=amsz[i];
+   pitch=0;
+   yaw=0;
+   roll=CCFFKEY.Angle/180*3.1415926;
+   cp=cos(pitch);
+   sp=sin(pitch);
+   cy=cos(yaw);
+   sy=sin(yaw);
+   cr=cos(roll);
+   sr=sin(roll);
+   l1=cy*cp;
+   m1=-sy;
+   n1=cy*sp;
+   l2=cr*sy*cp-sr*sp;
+   m2=cr*cy;
+   n2=cr*sy*sp+sr*cp;
+   l3=-sr*sy*cp-cr*sp;
+   m3=-sr*cy;
+   n3=-sr*sy*sp+cr*cp;
+
+  amsx[0]=(l1*amsxg[0]+l2*amsyg[0]+l3*amszg[0]);
+  amsx[1]=(l1*amsxg[1]+l2*amsyg[1]+l3*amszg[1]);
+  amsx[2]=(l1*amsxg[2]+l2*amsyg[2]+l3*amszg[2]);
+  amsy[0]=(m1*amsxg[0]+m2*amsyg[0]+m3*amszg[0]);
+  amsy[1]=(m1*amsxg[1]+m2*amsyg[1]+m3*amszg[1]);
+  amsy[2]=(m1*amsxg[2]+m2*amsyg[2]+m3*amszg[2]);
+  amsz[0]=n1*amsxg[0]+n2*amsyg[0]+n3*amszg[0];
+  amsz[1]=n1*amsxg[1]+n2*amsyg[1]+n3*amszg[1];
+  amsz[2]=n1*amsxg[2]+n2*amsyg[2]+n3*amszg[2];
+
+
+
   AMSDir _dir(_Theta,_Phi);
   number ue=_dir[0]*amsx[0]+_dir[1]*amsy[0]+_dir[2]*amsz[0];
   number ve=_dir[0]*amsx[1]+_dir[1]*amsy[1]+_dir[2]*amsz[1];
