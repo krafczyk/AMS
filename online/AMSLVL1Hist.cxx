@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.33 2011/05/24 13:14:46 choutko Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.34 2011/05/24 19:46:16 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -17,9 +17,9 @@ char Lvl1Pars::dat3[30];
 
 void AMSLVL1Hist::Book(){
 
-  AddSet("FT/LVL1 Members_Sharing");
+  AddSet("FT/LVL1 Members_Sharing");//0
   
-  _filled.push_back(new TH1F("trigh0","Exclusive PhysBranches sharing",10,0.,10.));
+  _filled.push_back(new TH1F("trigh0","Exclusive PhysBranches sharing",11,0.,11.));
   _filled[_filled.size()-1]->SetYTitle("number of events");
   _filled[_filled.size()-1]->SetFillColor(44);
   
@@ -32,7 +32,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetFillColor(44);
    
 
-  AddSet("TOF-TotMultiplicity in LVL1");
+  AddSet("TOF-TotMultiplicity in LVL1");//1
   
   _filled.push_back(new TH1F("trigh3","TOF-layers per events, Z>=1(ftc)",5,0.,5.));
   _filled[_filled.size()-1]->SetXTitle("Total layers");
@@ -51,7 +51,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetFillColor(4);
   
   
-  AddSet("TOF-patterns in LVL1");
+  AddSet("TOF-patterns in LVL1");//2
   
   _filled.push_back(new TH1F("trigh7","TOF PlanesPatternCode, Z>=1(ftc)",12,-1.,11.));
   _filled[_filled.size()-1]->SetXTitle("0:4L,(1-4):missL,5:13,6:14,7:23,8:24,9:12,10:34");
@@ -77,7 +77,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TOF-paddle number+10*(L-1)");
   _filled[_filled.size()-1]->SetFillColor(4);
    
-  AddSet("ANTIpatterns in LVL1");
+  AddSet("ANTIpatterns in LVL1");//3
   
   _filled.push_back(new TH1F("trigh13","ANTI-sectors(logical) pattern(globFT)",8,1.,9.));
   _filled[_filled.size()-1]->SetXTitle("Sector number");
@@ -103,7 +103,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("Total sectors/event");
   _filled[_filled.size()-1]->SetFillColor(6);
   
-  AddSet("ECAL in LVL1(1)");
+  AddSet("ECAL in LVL1(1)");//4
   
   _filled.push_back(new TH1F("trigh19","FTE_Flag(when !=0, noTOF) ",4,0.,4.));
   _filled[_filled.size()-1]->SetXTitle("noFTE(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
@@ -125,7 +125,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetXTitle("undef(0)/FTE&NoPrBits(1)/FTE&OrBit(2)/FTE&AndBit(3)");
   _filled[_filled.size()-1]->SetFillColor(4);
   
-  AddSet("ECAL in LVL1(2)");
+  AddSet("ECAL in LVL1(2)");//5
   
   _filled.push_back(new TH1F("trigh24","EcalTrigPatt(X-proj:Slayers 2,4,6)",120,1.,121.));
   _filled[_filled.size()-1]->SetXTitle("PhMultiplierNumber: Npm+(Sl/2-1)*40");
@@ -138,7 +138,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetFillColor(3);
   
   
-  AddSet("LiveTime in LVL1");
+  AddSet("LiveTime in LVL1");//6
   
   _filled.push_back(new TProfile("trigh26","AMSDAQLiveTime vs Time",120,0,lev1trange[0],0,1.1));
   _filled[_filled.size()-1]->SetYTitle("LiveTime fraction");
@@ -148,7 +148,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetYTitle("ThetaM (rad)");
   
   
-  AddSet("TrigRates in LVL1");
+  AddSet("TrigRates in LVL1");//7
   
   _filled.push_back(new TProfile("trigh29","FTtof(FTC)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
@@ -160,7 +160,7 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   
   
-  AddSet("EventTimeDiff in LVL1");
+  AddSet("EventTimeDiff in LVL1");//8
   
   _filled.push_back(new TH1F("trigh33","ConsecEvents TrigTimeDiff",200,0,1000.));
   _filled[_filled.size()-1]->SetXTitle("TrigTimeDiff(Mksec)");
@@ -172,18 +172,11 @@ void AMSLVL1Hist::Book(){
   _filled[_filled.size()-1]->SetFillColor(3);
 
 
-AddSet("ExtBits in LVL1");
+AddSet("ExtBits in LVL1");//9
 
-  _filled.push_back(new TH1F("b14","b14 vs time",1200,-0.5,1119.5));
-  _filled.push_back(new TH1F("b15","b15 vs time",1200,-0.5,1119.5));
-  _filled.push_back(new TH1F("b145","b145 vs time",1200,-0.5,1119.5));
-  _filled.push_back(new TH1F("b14a","b14 vs time",1200,-0.5,1119.5));
-  _filled[_filled.size()-1]->SetXTitle("Time from Run Start (sec)");
-  _filled[_filled.size()-1]->SetYTitle("Frequency");
+  _filled.push_back(new TH1F("trigh35","Number of ACC-sectors, IonTrig(incl)",9,0.,9.));
   _filled[_filled.size()-1]->SetFillColor(3);
-  _filled.push_back(new TH1F("b15a","b15 vs time",1200,-0.5,1119.5));
-  _filled[_filled.size()-1]->SetXTitle("Time from Run Start (sec)");
-  _filled[_filled.size()-1]->SetYTitle("Frequency");
+  _filled.push_back(new TH1F("trigh36","Number of ACC-sectors, IonTrig(excl)",9,0.,9.));
   _filled[_filled.size()-1]->SetFillColor(3);
 }
 
@@ -208,16 +201,6 @@ case 0:
   xax->SetLabelSize(0.1);
   xax->SetBinLabel(1,"Entries");
   xax->SetBinLabel(2,"Lvl1");
-/*
-  xax->SetBinLabel(3,"globFT");
-  xax->SetBinLabel(4,"Z>=1(ftc)");
-  xax->SetBinLabel(5,"SlowZ>=2(ftz)");
-  xax->SetBinLabel(6,"EcFT(fte)");
-  xax->SetBinLabel(7,"Z>=2(bz)");
-  xax->SetBinLabel(8,"VerySlowZ>=2");
-  xax->SetBinLabel(9,"Tof && Ec");
-  xax->SetBinLabel(10,"Ec-alone");
-*/
   xax->SetBinLabel(3,"unbTof");
   xax->SetBinLabel(4,"Z>=1");
   xax->SetBinLabel(5,"Ion");
@@ -225,7 +208,8 @@ case 0:
   xax->SetBinLabel(7,"el/pos");
   xax->SetBinLabel(8,"Photon");
   xax->SetBinLabel(9,"UnbEcal");
-  xax->SetBinLabel(10," ");
+  xax->SetBinLabel(10,"restoredUnbTof");
+  xax->SetBinLabel(11,"restoredUnbEc");
   _filled[0]->SetStats(kFALSE);
   _filled[0]->Draw("hbar2");//FTMembers sharing  
   gPadSave->cd();
@@ -364,7 +348,7 @@ case 6:
       strcpy(dat,Lvl1Pars::getdat2());
     }
     if(i==2){
-      strcpy(name,"Last 360days since ");
+      strcpy(name,"Last 120mins since ");
       strcpy(dat,Lvl1Pars::getdat3());
     }
     strcat(name,dat);
@@ -431,14 +415,15 @@ case 8:
     gPadSave->cd();
   }
   break;
-  case 9:
+case 9:
   gPad->Divide(1,2);
-    for(int i=0;i<2;i++){
+  for(int i=0;i<2;i++){
+    gStyle->SetOptStat(10);
     gPad->cd(i+1);
-  ((TH1F*)_filled[i+38])->Divide((TH1F*)_filled[i+35],(TH1F*)_filled[37]);
-    _filled[i+38]->Draw();//ConcecEvents TrigTimeDiff 
+    _filled[i+35]->Draw();//Nacc z>1 incl/excl 
     gPadSave->cd();
-   }
+  }
+  break;
   }
 //
 }
@@ -504,11 +489,6 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     tofflg2=ntuple->pLevel1(0)->TofFlag2;//for z>=2(bz)
     membpat=ntuple->pLevel1(0)->JMembPatt;
     physbpat=ntuple->pLevel1(0)->PhysBPatt;
-    int b15=(membpat>>15)&1;
-    int b14=(membpat>>14)&1;
-    _filled[35]->Fill(etime[0]-etime0,b14);
-    _filled[36]->Fill(etime[0]-etime0,b15);
-    _filled[37]->Fill(etime[0]-etime0,1);
 
     ftc=((membpat&1)>0);//Z>=1
     ftz=((membpat&1<<5)>0);//SlowZ>=2
@@ -516,21 +496,13 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
     bz= ((membpat&1<<9)>0);//Z>=2(when ftc)
     glft=(ftc||ftz||fte);//globFT
 //---
-/*
-    if(glft){//<-- glFT ok
-      _filled[0]->Fill(2,1.);//globFT_ok
-      if(ftc)_filled[0]->Fill(3,1.);//ftc_ok(z>=1)
-      if(ftz)_filled[0]->Fill(4,1.);//ftz_ok(slowz>=2)
-      if(fte)_filled[0]->Fill(5,1.);//fte_ok(ecal)
-      if(bz)_filled[0]->Fill(6,1.);//bz_ok(z>=2)
-      if(ftz && !ftc)_filled[0]->Fill(7,1.);//"true,very_slowZ>=2)"
-      if((ftc||ftz) && fte)_filled[0]->Fill(8,1.);//"tof+ec"
-      if(fte && !(ftc||ftz))_filled[0]->Fill(9,1.);//"ec alone"
-    }
-*/
     for(int i=0;i<7;i++){//<--- lvl1 phys.branches(exclusive)
       lsbt=1<<i;
       if((physbpat&127)==lsbt)_filled[0]->Fill(i+2,1.);
+    }
+    if((physbpat&127)==0){//suspect that was unbtrig case, try restore which one
+      if((membpat&1)>0)_filled[0]->Fill(7+2,1.);//was ftc in jmembpatt
+      if((membpat&64)>0)_filled[0]->Fill(8+2,1.);//was fte
     }
 //---
     for(int i=0;i<16;i++){//<-- basis trig-members 
@@ -676,7 +648,8 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       Lvl1Pars::setdat3(ntuple->Time());
     }
     ((TProfile*)_filled[28])->Fill(time[0]-timez[0],ntuple->fHeader.ThetaM,1.);
-//trig-time histogr: 
+    
+//---- trig-time histogr: 
  UInt_t itrtime[5];
 
     for(int i=0;i<5;i++)itrtime[i]=ntuple->pLevel1(0)->TrigTime[i];
@@ -684,6 +657,10 @@ void AMSLVL1Hist::Fill(AMSNtupleR *ntuple){
       trigtdif=Float_t(itrtime[4]);
       _filled[33]->Fill(trigtdif,1.);//TrigTimeDiff of 2 consecutive events (mksec)
       _filled[34]->Fill(trigtdif/1000.,1.);//...............................(msec)
+      
+//---- aux. ACC hist:
+    if((physbpat&4)>0)_filled[35]->Fill(nast,1.);//Nacc phys.tr= Z>=2(incl)
+    if((physbpat&127)==4)_filled[36]->Fill(nast,1.);//................(excl)
 //
   }
   evnloc+=1; 
