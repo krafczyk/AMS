@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.300 2011/05/24 13:14:12 choutko Exp $
+//  $Id: root.C,v 1.301 2011/05/24 19:47:21 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2138,12 +2138,11 @@ bool AMSEventR::ReadHeader(int entry){
       }
     }
     // Rich Dynamic Calibration
-
+    RichRingR::_isCalibrationEvent=false;
     if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
 #pragma omp critical (rd)
 	 RichRingR::updateCalibration(*this); 
-	 RichRingR::_isCalibrationEvent=true;
-    }else RichRingR::_isCalibrationEvent=false;
+    } 
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
@@ -3882,7 +3881,7 @@ void RichRingR::updateCalibration(AMSEventR &event){
   if(tile<0) return;                                // Reasonable tile
   if(fabs(event.Particle(0).Momentum)<_pThreshold) return; // beta=1
   if(ring->IsNaF()) tile=121;
-  
+  RichRingR::_isCalibrationEvent=true;
   if(indexHistos[tile].GetNbinsX()==1){
     if(!ring->IsNaF()) indexHistos[tile].SetBins(100,0.95,1.005); 
     else indexHistos[tile].SetBins(200,1/1.33,1.015);
