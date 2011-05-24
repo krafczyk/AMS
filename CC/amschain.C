@@ -1,7 +1,8 @@
-//  $Id: amschain.C,v 1.40 2011/05/17 13:02:13 shaino Exp $
+//  $Id: amschain.C,v 1.41 2011/05/24 23:57:25 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
+#include "TRFIOFile.h"
 #include "TXNetFile.h"
 #ifdef _PGTRACK_
 #include "TrRecon.h"
@@ -333,7 +334,9 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	//cout <<"thr "<<thr<<endl;
         // element=(TChainElement*) fFiles->At(i);
         TRegexp d("^root:",false);
+        TRegexp e("^rfio:",false);
         if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
+        else if(it->second.Contains(e))file=new TRFIOFile(it->second.Data(),"READ");
         else file=new TFile(it->second.Data(),"READ");
           tree=0;
 	if(file)tree=(TTree*)file->Get(_NAME);
