@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.101 2011/05/24 13:14:12 choutko Exp $
+//  $Id: trigger102.C,v 1.102 2011/05/24 14:52:45 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov

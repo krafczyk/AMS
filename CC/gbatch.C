@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.121 2011/05/24 13:14:12 choutko Exp $
+//  $Id: gbatch.C,v 1.122 2011/05/24 14:52:45 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
