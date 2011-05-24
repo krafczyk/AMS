@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.47 2011/05/16 14:06:05 choutko Exp $
+//  $Id: trdsim.C,v 1.48 2011/05/24 13:14:12 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"

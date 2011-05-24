@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.216 2011/05/21 21:49:26 choutko Exp $
+//  $Id: daqevt.C,v 1.217 2011/05/24 13:14:11 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2005,7 +2005,7 @@ again:
           int pos=nt2_new.find("whoami");  
           if(pos>=0 && whoami)nt2_new.replace(pos,6,whoami);
           setenv("NtupleDir",nt2_new.c_str(),1);
-          cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("Ntupledir")<<endl;
+          cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("NtupleDir")<<endl;
         } 
         else setenv("NtupleDir",getenv("NtupleDir2"),1);
         unsetenv("NtupleDir2");
@@ -2109,7 +2109,7 @@ ndir:
           int pos=nt2_new.find("whoami");  
           if(pos>=0 && whoami)nt2_new.replace(pos,6,whoami);
           setenv("NtupleDir",nt2_new.c_str(),1);
-          cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("Ntupledir")<<endl;
+          cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("NtupleDir")<<endl;
         } 
         else setenv("NtupleDir",getenv("NtupleDir2"),1);
         unsetenv("NtupleDir2");

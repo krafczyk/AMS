@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.810 2011/05/23 03:02:39 choutko Exp $
+// $Id: job.C,v 1.811 2011/05/24 13:14:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov

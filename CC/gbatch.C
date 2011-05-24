@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.120 2011/04/28 16:40:27 choutko Exp $
+//  $Id: gbatch.C,v 1.121 2011/05/24 13:14:12 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -69,7 +69,7 @@ std::set_unexpected (my_unexpected);
 #endif
       //*signal(SIGABRT,handler);
       //   *signal(SIGFPE, handler);
-     //*signal(SIGCONT, handler);
+     *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
      *signal(SIGINT, handler);
@@ -234,11 +234,10 @@ void (handler)(int sig){
   TrRecon::SigTERM=1;
 #endif
 if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
-#ifdef __G4AMS__
+//#ifdef __G4AMS__
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
-  
 #ifdef __CORBA__
   AMSClientError ab("SIGTERM intercepted",DPS::Client::CInAbort);
   if(AMSProducer::gethead()){
@@ -250,7 +249,7 @@ if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1))
   if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
   exit(1);
-#endif
+//#endif
 }
 
  }

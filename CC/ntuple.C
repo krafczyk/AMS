@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.228 2011/05/21 21:49:26 choutko Exp $
+//  $Id: ntuple.C,v 1.229 2011/05/24 13:14:12 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -975,7 +975,7 @@ char name[256]="";
             free(namelist[i]);
             if(!strstr(t.filename.c_str(),tmp))tv.push_back(t);
 	}
-        cout <<" Attempting to free namelist "<<endl;
+        cout <<"AMSNtuple::Lock-I-AttemptingtoFreeNamelist "<<endl; 
 	free(namelist);
         int ok=0;
         for(int i=0;i<tv.size();i++){

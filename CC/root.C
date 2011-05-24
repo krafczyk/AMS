@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.299 2011/05/23 18:37:54 choutko Exp $
+//  $Id: root.C,v 1.300 2011/05/24 13:14:12 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2076,7 +2076,7 @@ bool AMSEventR::ReadHeader(int entry){
     i=bHeader->GetEntry(entry);
   }
         badrun=isBadRun(Run());      
-  if(badrun)return;
+  if(badrun)return false;
   clear();
   static TFile* local_pfile=0;
 #pragma omp threadprivate (local_pfile)
