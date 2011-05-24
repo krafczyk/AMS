@@ -249,7 +249,7 @@ Bool_t Data::Generate_hist(){
 		n1_changed=false;
 		_hists_summary[0]->SetTitle(Form("Run: %d",evt->Run()));
 		for(k=0;k<_hists_h.size();k++){
-			_hists_h[k]->Fill(Form("Run: %d;%s",evt->Run(),ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
+			_hists_h[k]->Fill(Form("Run: %d;                                        %s",evt->Run(),ctime(&t)),_hists_summary[0]->GetBinContent(k+1));
 		}
 		}
 		else{

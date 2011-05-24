@@ -35,15 +35,19 @@ void Menu::TimerDone1(){
 			//cout<<"pretime: "<<ctime(&pre_time);
 			//cout<<"curtime: "<<ctime(&cur);
 			while((name=gSystem->GetDirEntry(dirp))){
-				cout<<name<<endl;
+	//			cout<<name<<endl;
 				if(strstr(name,"root")!=NULL){
 					data1_filename=data1_dir+"/";
 					data1_filename+=name;
 //					gSystem->GetPathInfo(data1_filename.c_str(),fs);
+				
 				lstat(data1_filename.c_str(),&sb);	
+				printf("%s : time %d , pre_time %d\n",data1_filename.c_str(),sb.st_mtim.tv_sec,pre_time);
 				if(sb.st_mtim.tv_sec>pre_time){
 						i++;
-						//cout<<"New file name: "<<data1_filename<<", modify time "<<ctime(&(fs.fMtime));
+						cout<<"New file name: "<<data1_filename<<", modify time "<<ctime(&(fs.fMtime));
+					//timer2->Start(0,kTRUE);
+						TimerDone2();
 					}
 				}
 			}
@@ -56,7 +60,6 @@ void Menu::TimerDone1(){
 		else{
 	    	  info+="Message: No new files";
 		}
-		timer2->Start(0,kTRUE);
 	}
 	else if(mode==2){
 		_fcmd+=">lastname.dat";
@@ -81,6 +84,9 @@ void Menu::TimerDone1(){
 		info+=path;
 		pre_time=cur;
 	}
+	else if(mode==0){
+		printf("mode==0\n");	
+	}
 	pbar->SetInfo(info);
 }
 void Menu::TimerDone2(){
@@ -96,6 +102,10 @@ void Menu::TimerDone2(){
 	_fdata->Generate_hist();
         draw();	
 }
+void Menu::TimerSaver(){
+	file->cd();
+	_fhtab->GetCanvas()->Write(0,TObject::kOverwrite);
+}
 Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame* htab):TGMenuBar(p),flag(0),data1_filename("NULL"),data2_filename("NULL"){
 	_fdata=data;
 	_ftab=tab;
@@ -103,9 +113,10 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	_fhtab=htab;
 	timer1_on=false;
 	timer2_on=false;
-	pre_time=time(NULL);
+	//pre_time=time(NULL)-3600;
+	pre_time=130600000;
 	time_val=60000;
-	data1_dir="Data1/";
+	data1_dir="/fc02dat1/Data/AMS02/2011B/ISS.B515/std/";
 	data2_dir="Data2/*.root";
 	data2_filename=data2_dir;
 	m=0;
@@ -117,8 +128,11 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	data2_filename=getenv("AMSProdMonRefFile");
 	timer1=new TTimer();
 	timer2=new TTimer();
+	timer_saver=new TTimer();
+	timer_saver->Start(120000,kFALSE);
 	timer1->Connect("Timeout()", "Menu",this, "TimerDone1()");
 	timer2->Connect("Timeout()", "Menu",this, "TimerDone2()");
+	timer_saver->Connect("Timeout()", "Menu",this, "TimerSaver()");
 	fMenuFile=new TGPopupMenu(gClient->GetRoot());
 	fMenuFile->AddEntry("Manually",3);
 	fMenuFile->AddEntry("Automatically",4);
@@ -139,7 +153,20 @@ Menu::Menu(const TGWindow* p,Data* data,Tab_Frame* tab,Tab_Frame* stab,Tab_Frame
 	fMenuFile->AddEntry("Exit", 2);
 	//initially use manually mode 
 	mode=0;
-	//file=new TFile("History.root","RECREATE");
+	time_t t1;
+        time(&t1);
+        char filename[100];
+        struct tm* timeinfo=localtime(&t1);
+        char c;
+        if(timeinfo->tm_hour<7)
+                c='A';
+        else if(timeinfo->tm_hour<15)
+                c='B';
+        else
+                c='C';
+        sprintf(filename,"%d%d%d%c.root",timeinfo->tm_year+1900,timeinfo->tm_mon+1,timeinfo->tm_mday,c);
+
+	file=new TFile(filename,"RECREATE");
 	//file->cd();
 	fMenuFile->DisableEntry(5);
 	fMenuFile->DisableEntry(6);
@@ -440,7 +467,8 @@ void Menu::HandleMenu(Int_t i){
 			mode=0;
 			fMenuFile->EnableEntry(0);
 			fMenuFile->EnableEntry(1);
-			if(!fMenuPlot->IsEntryEnabled(0)&&fMenuFile->IsEntryChecked(0)&&fMenuFile->IsEntryChecked(1))
+			//if(
+			//if(!fMenuPlot->IsEntryEnabled(0)&&fMenuFile->IsEntryChecked(0)&&fMenuFile->IsEntryChecked(1))
 				fMenuPlot->EnableEntry(0);
 			if(fMenuPlot->IsEntryEnabled(1))
 				fMenuPlot->DisableEntry(1);

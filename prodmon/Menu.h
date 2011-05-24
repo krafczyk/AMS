@@ -26,14 +26,15 @@ public:
 	TGPopupMenu* fMenuHS;
 	void TimerDone1();
 	void TimerDone2();
+	void TimerSaver();
 	void HandleMenu(Int_t i);
 	void HandleMenu2(Int_t i);
 	void HandleMenu3(Int_t i);
 	void Set_Cmd(string _cmd){ _fcmd=_cmd;};
 private:
 	int  _fhs;
-	//TFile* file;
-	TTimer* timer1,*timer2;
+	TFile* file;
+	TTimer* timer1,*timer2,*timer_saver;
 	Bool_t timer1_on,timer2_on;
 	Int_t time_val;
 	string data1_filename;
