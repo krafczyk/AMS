@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.100 2011/04/06 16:52:28 choumilo Exp $
+//  $Id: trigger102.C,v 1.100.6.1 2011/05/24 11:21:04 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -2404,7 +2404,7 @@ int cid=(len>>16)+1;
 //     
   if(
        (auxtrpat > 0)                                                               //aux.tr
-                     || (JMembPatt>0 && PhysBPatt>0)
+                     || (JMembPatt>0 || PhysBPatt>0)
                                                     ){
     AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
     new Trigger2LVL1(PhysBPatt,JMembPatt,auxtrpat,TofFlag1,TofFlag2,tofpat1,tofpat2,
