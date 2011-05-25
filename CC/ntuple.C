@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.230 2011/05/24 14:52:45 choutko Exp $
+//  $Id: ntuple.C,v 1.231 2011/05/25 05:13:43 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -363,7 +363,7 @@ void AMSNtuple::endR(bool cachewrite){
 	for(int i=0;i!=20;i++) for(int j=0;j!=18;j++) for(int k=0;k!=16;k++){
 	  int hid=41000+i*290+j*16+k;
 	  // get hit amplitude histogram
-	  TH1F* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
+	  TH1D* h=AMSJob::gethead()->getntuple()->Get_evroot02()->h1(hid);
 	  if(h)AMSJob::gethead()->getntuple()->Get_evroot02()->hdelete(hid);
 	}
       }
@@ -680,7 +680,7 @@ void AMSNtuple::TRDFitMOP(){
   TRDInfoNtuple02 *info=AMSJob::gethead()->getntuple()->Get_trdinfo02();
   if(!info)return;
 
-  TH1F* h=NULL;
+  TH1D* h=NULL;
   TF1* myfit=NULL;
 
   // loop over tubes (i=layer j=ladder k=tube)
