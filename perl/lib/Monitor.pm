@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.143 2011/05/02 21:34:03 choutko Exp $
+# $Id: Monitor.pm,v 1.144 2011/05/25 16:43:14 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -737,14 +737,15 @@ sub getactivehosts{
      my $tevt=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
-       $total+=$rdst->{LastEvent}+1-$rdst->{FirstEvent};
+       $total+=$rdst->{LastEvent}-$rdst->{FirstEvent}>0?$rdst->{LastEvent}+1-$rdst->{FirstEvent}:0;
        my $rdstc=$rdst->{cinfo};
        if($rdst->{Status} eq "Failed" and (not ($rdst->{FilePath} =~/laser/))){
           warn "  Run $rdst->{Run}  $rdst->{FilePath} \n";
        }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
            $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
-           $tevt+=$rdstc->{EventsProcessed};
+           print "$rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} \n";
+$tevt+=$rdstc->{EventsProcessed};
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
@@ -760,7 +761,7 @@ sub getactivehosts{
            }
        }
    }
-#     print "$total $host $lastevt \n";
+     print " ***** $total $host $lastevt  $evt $tevt $total\n";
    push @text, $evt; 
    push @text, int(1000*$lastevt/($total+1)*$evt/($tevt+1))/10.; 
    push @text, $err,$cerr; 
@@ -804,8 +805,8 @@ sub getactivehosts{
     push @output, [@text];
  }
     my $total_pr=$final_text[3]==0?1:$final_text[3];
-   my $cpuper=int ($total_cpu*10000/($total_ev+1)/$total_pr);
-   $final_text[11]= $cpuper/10000.;
+   my $cpuper=int ($total_cpu*1000000/($total_ev+1)/$total_pr);
+   $final_text[11]= $cpuper/1000000.;
    $final_text[12]= int($total_cpu/($totcpu+0.001)*$totproc/($total_time+0.001)*100)/100.;
     
     push @output, [@final_text];
@@ -1694,7 +1695,12 @@ sub RemoveRuns{
 
 
 
-
+sub ResetHistory{
+my $ref=shift;
+     for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+}
+}
 sub ResetFailedRuns{
  my $ref=shift;
 
@@ -1724,6 +1730,7 @@ sub ResetFailedRuns{
          if($rdst{Priority}>1){
             if($rdst{History} eq "Failed"){
                $rdst{History}="ToBeRerun";
+               $rdst{Fails}=0;
                $changed=1;
            }
          }

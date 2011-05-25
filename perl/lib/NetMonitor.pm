@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.48 2011/05/23 15:06:10 dmitrif Exp $
+# $Id: NetMonitor.pm,v 1.49 2011/05/25 16:43:14 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -101,7 +101,7 @@ sub Run{
 
     $self->InitOracle();
     my $force=1;
-    my $sshTimeout=300;
+    my $sshTimeout=150;
 #    local $SIG{ALRM} = sub { print localtime()." > command timeout\n"; };
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
