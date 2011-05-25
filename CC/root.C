@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.301 2011/05/24 19:47:21 mdelgado Exp $
+//  $Id: root.C,v 1.302 2011/05/25 00:05:08 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -110,7 +110,7 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
   char save[1024];
   strcpy(save,Dir.Data());
   hcdir(dir);
-  TH1F *h1p = h1(id1);
+  TH1D *h1p = h1(id1);
   if(h1p){
     float a=h1p->GetBinLowEdge(1); 
     int n=h1p->GetNbinsX();
@@ -118,7 +118,7 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
     const char *title=h1p->GetTitle();
     hcdir(save);
     hbook1(id2,title,n,a,b);
-    TH1F *h2p = h1(id2);
+    TH1D *h2p = h1(id2);
     if(h2p){
       for (int i=0;i<n+2;i++){
 	h2p->SetBinContent(i,h1p->GetBinContent(i));
@@ -128,7 +128,7 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
     }
   }
   else{
-    TH2F *h2p = h2(id1);
+    TH2D *h2p = h2(id1);
     if(h2p){
     }
     else{
@@ -141,14 +141,14 @@ void AMSEventR::hcopy(char dir[],int id1,int id2){
 }
 
 void AMSEventR::hcopy(int id1,int id2){
-  TH1F *h1p = h1(id1);
+  TH1D *h1p = h1(id1);
   if(h1p){
     float a=h1p->GetBinLowEdge(1); 
     int n=h1p->GetNbinsX();
     float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
     const char *title=h1p->GetTitle();
     hbook1(id2,title,n,a,b);
-    TH1F *h2p = h1(id2);
+    TH1D *h2p = h1(id2);
     if(h2p){
       for (int i=0;i<n+2;i++){
 	h2p->SetBinContent(i,h1p->GetBinContent(i));
@@ -158,7 +158,7 @@ void AMSEventR::hcopy(int id1,int id2){
     }
   }
   else{
-    TH2F *h2p = h2(id1);
+    TH2D *h2p = h2(id1);
     if(h2p){
     }
     else{
@@ -169,11 +169,11 @@ void AMSEventR::hcopy(int id1,int id2){
   }
 }
 void AMSEventR::hdivide(int id1,int id2,int id3){
-  TH1F *h2p = h1(id2);
+  TH1D *h2p = h1(id2);
   if(h2p){
     //   h2p->Sumw2();
     hcopy(id1,id3);
-    TH1F *h1p = h1(id3);
+    TH1D *h1p = h1(id3);
     if(h1p){
       //    h1p->Sumw2();
       h1p->Divide(h2p);
@@ -181,18 +181,18 @@ void AMSEventR::hdivide(int id1,int id2,int id3){
   }
 }
 void AMSEventR::hscale(int id1,double fac){
-  TH1F *h2p = h1(id1);
+  TH1D *h2p = h1(id1);
   if(h2p){
     h2p->Sumw2();
     h2p->Scale(fac);
   }
 }
 void AMSEventR::hsub(int id1,int id2,int id3){
-  TH1F *h2p = h1(id2);
+  TH1D *h2p = h1(id2);
   if(h2p){
     h2p->Sumw2();
     hcopy(id1,id3);
-    TH1F *h1p = h1(id3);
+    TH1D *h1p = h1(id3);
     if(h1p){
       h1p->Sumw2();
       h1p->Add(h2p,-1);
@@ -200,11 +200,11 @@ void AMSEventR::hsub(int id1,int id2,int id3){
   }
 }
 void AMSEventR::hadd(int id1,int id2,int id3){
-  TH1F *h2p = h1(id1);
+  TH1D *h2p = h1(id1);
   if(h2p){
     h2p->Sumw2();
     if(id2!=id3)hcopy(id2,id3);
-    TH1F *h1p = h1(id3);
+    TH1D *h1p = h1(id3);
     if(h1p){
       h1p->Sumw2();
       h1p->Add(h2p,1);
@@ -226,7 +226,7 @@ void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){
   }
   char hid[1025];
   sprintf(hid,"hb1_%d_%s_%s",idd,title,Dir.Data()); 
-  TH1F * p= new TH1F(hid,title,ncha,a,b);
+  TH1D * p= new TH1D(hid,title,ncha,a,b);
   (Service::hb1).insert(make_pair(id,p));
 }
 
@@ -259,7 +259,7 @@ void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, 
   }
   char hid[1025];
   sprintf(hid,"hb2_%d_%s_%s",idd,title,Dir.Data()); 
-  TH2F * p= new TH2F(hid,title,ncha,a,b,nchaa,aa,ba);
+  TH2D * p= new TH2D(hid,title,ncha,a,b,nchaa,aa,ba);
 #pragma omp critical (hf2)
   Service::hb2.insert(make_pair(id,p));
 }
@@ -412,7 +412,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
   TKey *key;
   while (key = (TKey*)nextkey()) {
     TObject *to=(key->ReadObj());
-    TH1F * f1 = dynamic_cast<TH1F*>(to);
+    TH1D * f1 = dynamic_cast<TH1D*>(to);
     if(f1){
       TString t(f1->GetName());
       if(t.BeginsWith("hb1")){
@@ -433,14 +433,14 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
               if(!idh || idh==idd)(Service::hb1).insert(make_pair(id,f1));
               break;
 	    }
-	    else cerr<<"TH1F "<<t<<" IdNotDigitalSkipped"<<endl;
+	    else cerr<<"TH1D "<<t<<" IdNotDigitalSkipped"<<endl;
 	  }
         }
       }
-      else if(t!=TString(""))cerr<<"TH1F "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+      else if(t!=TString(""))cerr<<"TH1D "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
     }
     else{
-      TH2F * f1 = dynamic_cast<TH2F*>(to);
+      TH2D * f1 = dynamic_cast<TH2D*>(to);
       if(f1){
 	TString t(f1->GetName());
 	if(t.BeginsWith("hb2")){
@@ -461,11 +461,11 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
 		if(!idh || idh==idd)(Service::hb2).insert(make_pair(id,f1));
 		break;
 	      }
-	      else cerr<<"TH2F "<<t<<" IdNotDigitalSkipped"<<endl;
+	      else cerr<<"TH2D "<<t<<" IdNotDigitalSkipped"<<endl;
 	    }
 	  }
 	}
-	else if(t!=TString(""))cerr<<"TH2F "<<t<<" NotCreatedByHBOOK2Skipped"<<endl;
+	else if(t!=TString(""))cerr<<"TH2D "<<t<<" NotCreatedByHBOOK2Skipped"<<endl;
       }
       else{
 	TProfile * f1 = dynamic_cast<TProfile*>(to);
@@ -507,7 +507,7 @@ void AMSEventR::hfetch(TFile &f, const char dir[],int idh){
   if(fetchp>0)cout <<fetchp<<" Profile Histos fetched"<<endl;
   //    chdir(dir);
 }
-TH1F * AMSEventR::h1(int idd){
+TH1D * AMSEventR::h1(int idd){
   //
   // must be used with care as may be changed after map update operation
   //
@@ -517,7 +517,7 @@ TH1F * AMSEventR::h1(int idd){
   else return 0; 
 }
 
-TH2F * AMSEventR::h2(int idd){
+TH2D * AMSEventR::h2(int idd){
   AMSID id(idd,Dir);
   Service::hb2i i1=Service::hb2.find(id);
   if(i1 != Service::hb2.end())return i1->second;
@@ -681,12 +681,12 @@ void AMSEventR::hjoin(){
   int joined=0;
   for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
     int id=i->first.getid();	
-    TH1F *h1p = i->second;
+    TH1D *h1p = i->second;
     if(h1p){
       h1p->Sumw2();
       for(Service::hb1i j=i;j!=Service::hb1.end();j++){
 	if(i!=j && id==j->first.getid()){
-	  TH1F* h2p=  j->second;
+	  TH1D* h2p=  j->second;
 	  if(h2p){
 	    h1p->Add(h2p,1);
 	    j->second=0;
@@ -703,12 +703,12 @@ void AMSEventR::hjoin(){
 
   for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
     int id=i->first.getid();
-    TH2F *h1p = i->second;
+    TH2D *h1p = i->second;
     if(h1p){
       //   h1p->Sumw2();
       for(Service::hb2i j=i;j!=Service::hb2.end();j++){
 	if(i!=j && id==j->first.getid()){
-	  TH2F* h2p=  j->second;
+	  TH2D* h2p=  j->second;
 	  if(h2p){
 	    h1p->Add(h2p,1);
 	    joined++;
@@ -2083,8 +2083,10 @@ bool AMSEventR::ReadHeader(int entry){
   if(i>0){
     if( local_pfile!=_Tree->GetCurrentFile() || entry==0){
   int thr=0;
+  int nthr=1;
 #ifdef _OPENMP
   thr=omp_get_thread_num();
+  nthr=omp_get_num_threads();
 #endif
 
 //#pragma omp atomic 
@@ -2096,8 +2098,14 @@ bool AMSEventR::ReadHeader(int entry){
 //_Lock+=0x100000000;
 //while(!(_Lock&0xFFFFFFFF)){
 //}
+static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      
       local_pfile=_Tree->GetCurrentFile();
-      InitDB(local_pfile);
+      if(!initdone[thr] || nthr==1){
+       InitDB(local_pfile);
+       initdone[thr]=1;
+       cout <<"  InitDB Init done "<<thr<<endl;
+     }
 // workaround root static bug
       if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
           cout <<" Open "<<_Tree->GetCurrentFile()->GetName()<<endl;
