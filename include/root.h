@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.356 2011/05/25 05:13:57 choutko Exp $
+//  $Id: root.h,v 1.357 2011/05/25 16:22:32 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -355,13 +355,15 @@ public:
   unsigned int Edr;  ///< Ecal length in bytes 
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
+  unsigned  int JStatus; ///< Jinj Status word  (short)
+  unsigned char JError[24]; ///< upper 8 bit of corresponding slave in jinj block  
   DaqEventR(DAQEvent *ptr);
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,2)       //DaqEventR
+ClassDef(DaqEventR,3)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 

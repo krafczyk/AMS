@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.82 2011/05/15 16:16:08 choutko Exp $
+//  $Id: daqevt.h,v 1.83 2011/05/25 16:22:32 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -107,6 +107,8 @@ static const char *_NodeNames[512];
 static const char *_PortNamesJ[32];
  unsigned int _SubLength[7];   //  tracker trd tof rich ecal lvl1 lvl3
  unsigned int _SubCount[7];   //  tracker trd tof rich ecal lvl1 lvl3
+ unsigned char _JError[32];
+ int16u _JStatus;
 static DAQSubDet * _pSD[nbtps];
 static DAQBlockType * _pBT[nbtps];
 //#pragma omp threadprivate(_pSD,_pBT)
@@ -189,7 +191,8 @@ static DAQEvent* gethead(){return _DAQEvent;}
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-_Time(0),_RunType(0),_usec(0),_BufferOwner(0),_Offset(0){
+_Time(0),_RunType(0),_usec(0),_BufferOwner(0),_Offset(0),_JStatus(0){
+for (int i=0;i<sizeof(_JError)/sizeof(_JError[0]);i++)_JError[i]=0;
 for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
 for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
 _setcalibdata(0);_DAQEvent=this;
@@ -218,6 +221,8 @@ void shrink();
 integer getlengthR() const {return _LengthR*sizeof(_pData[0]);}
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 integer getsublength(unsigned int i) const {return i<sizeof(_SubLength)/sizeof(_SubLength[0])?_SubLength[i]*sizeof(_pData[0]):0;}
+unsigned char getjerror(unsigned int i)const {return i<sizeof(_JError)/sizeof(_JError[0])?_JError[i]:0;}
+int16u getjstatus() const {return _JStatus;}
 integer getsubcount(unsigned int i) const {return i<sizeof(_SubCount)/sizeof(_SubCount[0])?_SubCount[i]:0;}
 uinteger getcalibdata(unsigned int i) const {return i<sizeof(_CalibData)/sizeof(_CalibData[0])?_CalibData[i]:0;}
 bool  CalibRequested(unsigned int crate, unsigned int xdr);

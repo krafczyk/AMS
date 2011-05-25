@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.218 2011/05/24 14:52:45 choutko Exp $
+//  $Id: daqevt.C,v 1.219 2011/05/25 16:22:27 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1561,9 +1561,12 @@ void DAQEvent::buildRawStructures(){
 	int16u id=*(_pcur+_cll(_pcur));
 	int jinj=_isjinj(id);
 	if(jinj){
+          _JStatus=id;
 	  for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
 	    int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
-
+            if(_getportj(*(pdown+*pdown))<sizeof(_JError)/sizeof(_JError[0])){
+                  _JError[_getportj(*(pdown+*pdown))]=(*(pdown+*pdown))>>8;
+             }
 	    if(ic>=0){
 #ifdef __AMSDEBUG__
 	      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
