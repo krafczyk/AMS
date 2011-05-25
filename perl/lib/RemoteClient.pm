@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.675 2011/05/25 17:38:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.676 2011/05/25 20:45:12 dmitrif Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11531,12 +11531,12 @@ sub listCites {
             };
 
 
-           $sql = "SELECT COUNT(jid) from jobs where cid=$cid and ( realtriggers<=0 or realtriggers=null ) and timekill>0 and ".$pps; 
+           $sql = "SELECT COUNT(jid) from jobs where cid=$cid and ( realtriggers<=0 or realtriggers=null ) and timekill>0 and jid not in (select run from datafiles) and ".$pps; 
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
               $jobsf = $r4->[0][0];
             };
-           $sql="select count(jid) from jobs_deleted where cid=$cid and ".$pps;
+           $sql="select count(jid) from jobs_deleted where cid=$cid and jobs_deleted.jid not in (select run from datafiles) and ".$pps;
            $r4=$self->{sqlserver}->Query($sql);
           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
           $jobsa = $jobs - $jobsf - $jobsc;
