@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.674 2011/05/23 03:02:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.675 2011/05/25 17:38:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10242,7 +10242,9 @@ sub checkJobsTimeout {
                  $jobsaved++;              
             }
           my $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent),sum(nevents),sum(neventserr),sum(datamc) from ntuples where jid=$jtokill->[0]";
+          my $sqlr="select sum(datafiles.levent-datafiles.fevent+1),min(datafiles.fevent),sum(nevents),sum(nevents),sum(nevents) from datafiles where run=$jtokill->[0]";
           my $q=$self->{sqlserver}->Query($sql);
+          my $qr=$self->{sqlserver}->Query($sqlr);
           if(defined $q->[0][0] and $q->[0][0]>0){
               my $rname="dataruns";
                   if($q->[0][4]==0){
@@ -10250,7 +10252,7 @@ sub checkJobsTimeout {
                   }
               $sql="select status from $rname where jid=$jtokill->[0]";
               my $q1=$self->{sqlserver}->Query($sql);
-              if(defined $q1->[0][0] && $q->[0][4]==0){
+              if(defined $q1->[0][0] ){
                 $sql="update $rname set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
               }
               elsif($q->[0][4]==0){
@@ -10267,6 +10269,28 @@ sub checkJobsTimeout {
                 $jobsaved++;              
                            
           }
+          elsif(defined $qr->[0][0] and $qr->[0][0]>0){
+              my $rname="runs";
+              $sql="select status from $rname where jid=$jtokill->[0]";
+              my $q1=$self->{sqlserver}->Query($sql);
+              if(defined $q1->[0][0] ){
+                $sql="update $rname set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
+              }
+              elsif($qr->[0][4]==0){
+                  $sql="insert into $rname values($jtokill->[0],$jtokill->[0],$q->[0][1],$q->[0][1]+$q->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
+              }
+            if ($update == 1){
+              $self->{sqlserver}->Update($sql);  
+            }
+                $sql="update jobs set timekill=0,events=$q->[0][2],errors=$q->[0][3],mips=0 where jid=$jtokill->[0]";
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+            }
+                next;
+                $jobsaved++;              
+                           
+          }
+
           else{
 #
 # Any run processing?
