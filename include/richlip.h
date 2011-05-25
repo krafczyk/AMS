@@ -24,8 +24,12 @@ class RichLIPRec{
 
  public:
 
+  static int actual;
+#pragma omp threadprivate(actual)
   static int totalhits;
+#pragma omp threadprivate(totalhits)
   static int hitinlip[11000];
+#pragma omp threadprivate(hitinlip)
 
   static void InitGlobal();
   static void InitEvent();

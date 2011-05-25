@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.157 2011/04/19 15:45:34 barao Exp $
+//  $Id: richrec.C,v 1.157.6.1 2011/05/25 21:16:10 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -7,6 +7,7 @@
 #include "richradid.h"
 #include "richlip.h"
 
+int RichLIPRec::actual;
 int RichLIPRec::totalhits;
 int RichLIPRec::hitinlip[11000];
 

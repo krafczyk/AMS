@@ -150,9 +150,12 @@ short int pmtconv_lip2ams[756] = { -1,647,648,649,650,651,652, -1, -1,639,
 				  654,655, -1,653, -1, -1};
 
 short int badpix_ams[680];
+#pragma omp threadprivate(badpix_ams)
 short int badpix_lip[756];
+#pragma omp threadprivate(badpix_lip)
 
 short int badpmt_lip[756];
+#pragma omp threadprivate(badpmt_lip)
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -232,7 +235,7 @@ void RichLIPRec::InitGlobal(){
   // tips for additional PMT exclusion (R. Pereira 18-Apr-2011)
   //
   // additional PMTs may be excluded (i.e. their hits ignored
-  // and their surfface considered as dead for acceptance calculations)
+  // and their surface considered as dead for acceptance calculations)
   // by adding, in this exact location, lines like:
   //
   // badpix_ams[###] = 16;
@@ -300,7 +303,7 @@ void RichLIPRec::InitEvent() {
 
   LIPC2F.nbhitsmax_ntup_ev = LIP_NHITMAX;
 
-  int actual = 0;
+  actual = 0;
   LIPC2F.nbhits_ev = 0;
 
   totalhits = 0;
