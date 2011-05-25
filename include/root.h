@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.355 2011/05/24 13:14:43 choutko Exp $
+//  $Id: root.h,v 1.356 2011/05/25 05:13:57 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -32,8 +32,8 @@
 #include "TMatrixD.h"
 #include "TStopwatch.h"
 #include <time.h>
-#include "TH1F.h"
-#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 #include "TProfile.h"
 #include "id.h"
 #ifdef _PGTRACK_
@@ -2674,10 +2674,10 @@ class Service{
 public:
  TFile *            _pOut;
 TDirectory *_pDir;
-typedef map<AMSID,TH1F*> hb1_d;
-typedef map<AMSID,TH1F*>::iterator hb1i;
-typedef map<AMSID,TH2F*> hb2_d;
-typedef map<AMSID,TH2F*>::iterator hb2i;
+typedef map<AMSID,TH1D*> hb1_d;
+typedef map<AMSID,TH1D*>::iterator hb1i;
+typedef map<AMSID,TH2D*> hb2_d;
+typedef map<AMSID,TH2D*>::iterator hb2i;
 typedef map<AMSID,TProfile*> hbp_d;
 typedef map<AMSID,TProfile*>::iterator hbpi;
 static  hb1_d hb1;
@@ -2834,16 +2834,16 @@ static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int
 static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
 static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
-   ///  hbook like profile histgoram booking by int id \n  parameters like in classical hbook1
+   ///  hbook like profile histgoram booking by int id \n  parameters like in classical maphbook1
 static void hbookp(int id,const char title[], int ncha, float  a, float b);   
- /// expert only TH1F* accessor
- /// returns pointer to TH1F* by id
-static  TH1F *h1(int id);
- /// expert only TH2F* accessor
- /// returns pointer to TH2F* by id
-static  TH2F *h2(int id);
+ /// expert only TH1D* accessor
+ /// returns pointer to TH1D* by id
+static  TH1D *h1(int id);
+ /// expert only TH2D* accessor
+ /// returns pointer to TH2D* by id
+static  TH2D *h2(int id);
  /// expert only TProfile* accessor
- /// returns pointer to TH1F* by id
+ /// returns pointer to TH1D* by id
 static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
