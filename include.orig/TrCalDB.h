@@ -1,4 +1,4 @@
-// $Id: TrCalDB.h,v 1.14 2011/05/10 18:42:48 pzuccon Exp $
+// $Id: TrCalDB.h,v 1.15 2011/05/26 01:30:29 pzuccon Exp $
 
 #ifndef __TrCalDB__
 #define __TrCalDB__
@@ -17,9 +17,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/10 18:42:48 $
+///$Date: 2011/05/26 01:30:29 $
 ///
-///$Revision: 1.14 $
+///$Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -107,7 +107,7 @@ public:
   static void CreateLinear(){
     linear= new float[GetLinearSize()/4];
   }
-
+  using TObject::Print;
 
   //! Reset to zero all the calibration in the lib
   void Clear(const Option_t*aa=0);

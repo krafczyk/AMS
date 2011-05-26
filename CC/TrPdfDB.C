@@ -87,7 +87,8 @@ int TrPdfDB::GetEntryIndex(int ii){
 }
 
 
-void TrPdfDB::Clear() {
+void TrPdfDB::Clear(Option_t* oo) {
+  TObject::Clear(oo);
   //! Complete deletion (who is the owner of TrPdf?)
   fTrPdfMap.clear();
 }

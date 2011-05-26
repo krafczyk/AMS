@@ -55,7 +55,8 @@ TrPdf& TrPdf::operator=(const TrPdf& that) {
 }
 
 
-void TrPdf::Clear() {
+void TrPdf::Clear(Option_t* oo) {
+  TObject::Clear(oo);
   Name.Clear();
   N = 0;
   X.clear();

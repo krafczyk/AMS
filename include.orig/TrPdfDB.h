@@ -8,9 +8,9 @@
  \class TrPdfDB
  \brief The tracker PDF manager
  
- $Date: 2011/05/09 21:51:59 $
+ $Date: 2011/05/26 01:30:29 $
 
- $Revision: 1.3 $
+ $Revision: 1.4 $
 */
 
 #include "TkDBc.h"
@@ -58,7 +58,7 @@ class TrPdfDB : public TObject {
   //! Get self-pointer
   static TrPdfDB* GetHead();
   //! Clear
-  void   Clear();
+  void   Clear(Option_t* oo="");
   //! Get a list of available pdfs
   void   Info();
   //! Default setting for GBATCH (called in job.C) 
@@ -104,6 +104,7 @@ class TrPdfDB : public TObject {
   void   LoadPierrePdf(TFile* file = 0);
   //! Service function for the PDF management
   TH1D*  GetSliceY(TH2D* th2, int ixbin);
+  using TObject::Info;
 
   /// ROOT definition
   ClassDef(TrPdfDB,1);

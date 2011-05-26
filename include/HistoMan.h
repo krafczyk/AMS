@@ -55,7 +55,7 @@ public:
   /// Disable this facility
   void Disable(){enabled=false;}
   /// Clears all the histo from memory
-  void Clear(){fhist.SetOwner(); fhist.Clear();}
+  void Clear(Option_t* oo=""){TObject::Clear(oo);fhist.SetOwner(); fhist.Clear();}
   ClassDef(HistoMan,0)
 };
 

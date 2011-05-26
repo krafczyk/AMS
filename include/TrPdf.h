@@ -8,9 +8,9 @@
  \class TrPdf
  \brief The tracker PDF class 
  
- $Date: 2011/05/09 21:51:59 $
+ $Date: 2011/05/26 01:30:29 $
 
- $Revision: 1.2 $
+ $Revision: 1.3 $
 */
 
 #include "TGraph.h"
@@ -87,9 +87,9 @@ class TrPdf : public TObject {
   //! Initializer
   void    Init();
   //! Clear 
-  void    Clear();
+  void    Clear(Option_t* option="");
   //! Copy  
-  void    Copy(const TrPdf& that);
+  void    Copy(const TrPdf& that) ;
   /// Print informations 
   void    Info(int verbosity = 1);
 
@@ -176,7 +176,11 @@ class TrPdf : public TObject {
   /// Clear graph
   void    ClearGraph() { if (Graph!=0) Graph->Delete(); Graph = 0; }
   /// Draw the current function
-  void    Draw(char* option = "") { GetGraph()->Draw(option); }
+  void    Draw(Option_t* option = "") { GetGraph()->Draw(option); }
+
+  using TObject::Copy;
+  using TObject::GetName;
+  using TObject::Info;
 
   /// ROOT definition
   ClassDef(TrPdf,1);

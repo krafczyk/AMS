@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.130 2011/05/24 13:14:11 choutko Exp $ 
+/// $Id: TrRecon.C,v 1.131 2011/05/26 01:30:19 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/05/24 13:14:11 $
+/// $Date: 2011/05/26 01:30:19 $
 ///
-/// $Revision: 1.130 $
+/// $Revision: 1.131 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4811,7 +4811,7 @@ int TrRecon::BuildVertex(integer refit){
 //       }
     }
   }
- exit:  
+  // exit:  
   if(vtx_ctr) delete vtx_ctr;
   if(pctr) delete pctr;
   return nfound;

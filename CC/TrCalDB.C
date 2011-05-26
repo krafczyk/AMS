@@ -1,4 +1,4 @@
-//  $Id: TrCalDB.C,v 1.15 2011/05/10 21:30:45 pzuccon Exp $
+//  $Id: TrCalDB.C,v 1.16 2011/05/26 01:30:19 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/01/17 PZ  First version
 ///\date  2008/01/20 SH  File name changed, some utils are added
 ///\date  2008/01/23 SH  Some comments are added
-///$Date: 2011/05/10 21:30:45 $
+///$Date: 2011/05/26 01:30:19 $
 ///
-///$Revision: 1.15 $
+///$Revision: 1.16 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -496,7 +496,7 @@ int TrCalDB::DecodeOneCal( int hwid,int16u * rr,int pri){
   cal.usedev=*(rr++);          if(pri>0) printf("Used triggers %d\n",cal.usedev);
   cal.calstatus=*(rr++);       if(pri>0) printf("Calibration status 0x%04X\n",cal.calstatus);
   int TDRStat=*(rr++);         if(pri>0) printf("TDR status 0x%04X\n",TDRStat);
-  if(pri>0) printf("---------> READ   %d  word for this cal\n",rr-offset);
+  if(pri>0) printf("---------> READ   %hd  word for this cal\n",rr-offset);
 
   // Fill the Calibration object
   // int hwid=((bb->node-282)/24)*100+(bb->node-282)%24;

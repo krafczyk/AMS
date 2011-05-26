@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.3 2011/05/17 13:02:07 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.4 2011/05/26 01:30:29 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 #include <map>
@@ -77,7 +77,7 @@ public:
   /// Destructor
   ~TrExtAlignDB(){}
   /// reset the content of the DB
-  void Clear(){ L8.clear(); L9.clear(); return;}
+  void Clear(Option_t* oo=""){TObject::Clear(oo); L8.clear(); L9.clear(); return;}
 
   /// Get the closest TrExtAlignDB to time
   const TrExtAlignPar &Get(int lay, uint time) {

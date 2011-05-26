@@ -57,7 +57,7 @@ void TrOnlineMonitor::Book() {
   DefineTracker("Size_vs_Crate","; Crate; Crate Segment Size (byte)",8,-0.5,7.5,1000,0.,24000.,0);      
   for (int icrate=0; icrate<8; icrate++) {
     sprintf(histoname,"T%1dSize_vs_DT",icrate);
-    sprintf(histotitle,"; #Deltat (us); Crate T\%1d Size (byte)",icrate);
+    sprintf(histotitle,"; #Deltat (us); Crate T\\%1d Size (byte)",icrate);
     DefineTracker(histoname,histotitle,450,50.,500.,400,0.,10000.,0);
   }
 
@@ -446,7 +446,8 @@ void TrOnlineMonitor::Fill(AMSEventR* event){
 /////////////////////////////////////////////////
 
 
-void TrHistoManHeader::Clear() {
+void TrHistoManHeader::Clear(Option_t* oo) {
+  TObject::Clear(oo);
   fRunList.clear();  
   fFileList.SetOwner(kTRUE);
   fFileList.Clear();
@@ -571,21 +572,24 @@ TrHistoMan::~TrHistoMan() {
 }
 
 
-void TrHistoMan::Write() {
+int TrHistoMan::Write(const char* name , Int_t option, Int_t bufsize) const {
   if ( (fFile==0)||(fFile->IsOpen()==0) ) {
     printf("TrHistoMan::Write-W invalid/absent output file, writing disabled\n");
-    return;
+    return -1;
   }
   fDir->cd();
   TList* list = fDir->GetList();
   TIter next(list);
   TObject *obj;
+  int siz=0;
   while ( (obj=next()) ) {
-    obj->Write(); 
+    siz+=obj->Write(); 
   }
+  return siz;
 }
-
-
+int TrHistoMan::Write(const char* name , Int_t option, Int_t bufsize)  {
+ return ((const TrHistoMan*)this)->Write(name, option, bufsize);
+}
 void TrHistoMan::Sumw2(){
   // Sets all histograms to have a correct statistic error calculation
   map<int,TNamed*>::iterator it;

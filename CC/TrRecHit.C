@@ -229,7 +229,7 @@ void TrRecHitR::_PrepareOutput(int opt) {
 		     _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),
 		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
 		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
-		     GetCoord(0).z(),GetCorrelation(),GetProb(),getstatus()));
+		     GetCorrelation(),GetProb(),getstatus()));
   if(!opt) return;
   for(int ii=0;ii<_mult;ii++)
     sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",

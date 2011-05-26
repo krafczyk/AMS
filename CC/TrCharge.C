@@ -30,13 +30,14 @@ float TrCharge::BetaCorrection(float beta, int jlayer) {
        g(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + 1 - A/beta0^2 - B*log(beta0)/beta0^2
                  beta>beta0, 1
   */
+ 
+  int index  = 0;        // 0 for the layer over TRD
+  if (jlayer>1) index++; // 1 for any inner tracker layer 
+  if (jlayer>8) index++; // 2 for the layer over ECAL
   if ( (jlayer<1)||(jlayer>9) ) {
     printf("TrCharge::BetaCorrection-W invalid layer index number (%d), returning 1.\n",index);
     return 1.;
   }
-  int index  = 0;        // 0 for the layer over TRD
-  if (jlayer>1) index++; // 1 for any inner tracker layer 
-  if (jlayer>8) index++; // 2 for the layer over ECAL
   if (beta>=b0_BetaCorr[index]) return 1.; // beta "saturation" region
   return A_BetaCorr[index]/pow(beta,2) + 
          B_BetaCorr[index]*log(beta)/pow(beta,2) + 

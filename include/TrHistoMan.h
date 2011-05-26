@@ -68,7 +68,7 @@ class TrHistoManHeader : public TNamed {
   //! Destructor 
   ~TrHistoManHeader() { Clear(); }
   //! Clear
-  void Clear(); 
+  void Clear(Option_t* oo=""); 
   //! Merging (needed for hadd) 
   Long64_t Merge(TCollection* list);
 
@@ -132,7 +132,8 @@ class TrHistoMan : public TObject {
   virtual ~TrHistoMan();
 
   //! Write the histogram manager on a file
-  void Write();
+  int Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0);
+  int Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0)const;
   //! Add an histogram to the manager
   void Add(TNamed* obj);
   //! Returns the pointer to the histogram with the required name
