@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.48 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: AMSNtupleV.h,v 1.49 2011/05/27 16:58:47 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -614,7 +614,7 @@ public:
       array[4]=pcl->Exit[1];
       array[5]=pcl->Exit[2];
       SetPolyLine(npoint,array);
-      int lw=sqrt(pcl->EnergyC);
+      int lw=log(pcl->EnergyC);
       if(lw<1)lw=1;
       SetLineWidth(lw);
     }

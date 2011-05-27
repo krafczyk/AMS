@@ -11,6 +11,7 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+ cout<<ev->getsetup()->fScalers[1]._LiveTime[0]<<" "<<ev->getsetup()->fScalers[1]._LiveTime[1]<<endl;
 
    if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>400 ){
      return true;
@@ -18,6 +19,7 @@ public:
   else return false;
     static int a=0;
     cout <<ev->getsetup()<<endl;
+    cout<<ev->getsetup()->fScalers[0]._LiveTime[0]<<endl;
     vector<float> aa;
     int k=ev->getsetup()->fSlowControl.GetData("B-Field P0 Component X",ev->UTime(),ev->Frac(),aa);
     cout <<"size "<<aa.size()<<" res "<<k<<endl;
