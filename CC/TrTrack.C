@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.108 2011/05/12 16:44:27 pzuccon Exp $
+// $Id: TrTrack.C,v 1.109 2011/05/27 15:16:40 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/05/12 16:44:27 $
+///$Date: 2011/05/27 15:16:40 $
 ///
-///$Revision: 1.108 $
+///$Revision: 1.109 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -976,7 +976,7 @@ void TrTrackR::_PrepareOutput(int full )
 {
   sout.clear();
   sout.append(Form("NHits %d (x:%d,y:%d,xy:%d)Pattern: %d  %s,   DefFit: %d, Chi2 %6.3f Pirig %6.3f",
-		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPattern()),
+		   GetNhits(),GetNhitsX(),GetNhitsY(),GetNhitsXY(),GetPattern(),HitBitsString(GetBitPatternJ()),
 		   trdefaultfit,Chi2FastFitf(),GetRigidity(kAlcaraz)));
   const TrTrackPar &bb=GetPar();
   bb.Print_stream(sout,full);
