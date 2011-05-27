@@ -893,3 +893,25 @@ ifbin.open(ifile.c_str());
                 }
 
 #endif
+
+
+int AMSSetupR::getScalers(unsigned int time, unsigned int usec){
+fScalersReturn.clear();
+
+if(fScalers.size()==0)return 0;
+unsigned long long t=time;
+unsigned long long utm;
+
+utm=t<<32;
+utm+= usec;
+Scalers_i k=fScalers.lower_bound(utm);
+if(k==fScalers.begin()){
+ fScalersReturn.push_back(k);
+ return 1;
+}
+else{
+fScalersReturn.push_back(--k);
+if(++k!=fScalers.end())fScalersReturn.push_back(k);
+return fScalersReturn.size();
+}
+}

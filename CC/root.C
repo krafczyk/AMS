@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.303 2011/05/25 16:22:29 choutko Exp $
+//  $Id: root.C,v 1.304 2011/05/27 16:58:30 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -180,10 +180,10 @@ void AMSEventR::hdivide(int id1,int id2,int id3){
     }   
   }
 }
-void AMSEventR::hscale(int id1,double fac){
+void AMSEventR::hscale(int id1,double fac,bool calcsumw2){
   TH1D *h2p = h1(id1);
   if(h2p){
-    h2p->Sumw2();
+    if(calcsumw2)h2p->Sumw2();
     h2p->Scale(fac);
   }
 }
@@ -4717,7 +4717,8 @@ char * ParticleR::Info(int number, AMSEventR* pev){
     btof=bta.Beta;
    }}
    if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
-    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) AntiC=%5.2f ",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],anti);
+    float lt=pev?pev->LiveTime():1;
+    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LiveTime %4.2f ",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt);
 return _Info;
 
 
@@ -4910,4 +4911,36 @@ for(int k=0;k<BadRunList.size();k++){
 if(run==BadRunList[k])return true;
 }
 return false;
+}
+
+float AMSEventR::LiveTime(){
+
+if(getsetup()){
+ int k=getsetup()->getScalers(fHeader.Time[0],fHeader.Time[1]);
+ if(!k)return -1;
+ else if(getsetup()->fScalersReturn.size()==1 ){
+   return getsetup()->fScalersReturn[0]->second._LiveTime[0];
+}
+ else if (getsetup()->fScalersReturn.size()==2){
+  float s0[2]={-1.-1};
+  double tme[2]={0,0};
+  for(int i=0;i<2;i++){
+   s0[i]=getsetup()->fScalersReturn[i]->second._LiveTime[0];
+   unsigned long long t=getsetup()->fScalersReturn[i]->first;
+   unsigned long long mask=1;
+   mask=(mask<<32)-1;
+   tme[i]=(t>>32)+(t& mask)/1000000.;
+  }
+  double ct=UTime()+Frac(); 
+  float lt=s0[0]+(ct-tme[0])*(s0[1]-s0[0])/(tme[1]-tme[0]+1.e-6);
+  return lt;
+}
+ else{
+   cerr<<" AMSEventR::Livetime-E-LogicError size "<<getsetup()->fScalersReturn.size()<<"  ret "<<k<<endl;
+   return -1;
+}
+}
+
+else return -1;
+
 }

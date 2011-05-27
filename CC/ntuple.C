@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.231 2011/05/25 05:13:43 choutko Exp $
+//  $Id: ntuple.C,v 1.232 2011/05/27 16:58:30 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -484,7 +484,9 @@ if(Trigger2LVL1::ScalerIsChanged){
 #pragma omp critical (g4)
 {
 Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger2LVL1::scalmon));
-
+//for(AMSSetupR::Scalers_i k=Get_setup02()->fScalers.begin();k!=Get_setup02()->fScalers.end();k++){
+//cout <<Get_setup02()->fScalers.size()<<" blia ... "<<((k->first)>>32)<<" "<<k->second._LiveTime[0]<<endl;
+//}
 }
 }
 
