@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.22 2011/05/24 13:14:43 choutko Exp $
+//  $Id: root_setup.h,v 1.23 2011/05/27 16:58:53 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -215,7 +215,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
    typedef map <unsigned long long,ScalerMon>::iterator Scalers_i;
    Scalers_m fScalers; ///<  Scalers Map
-
+   vector<Scalers_i> fScalersReturn; ///< Return Vectors for getScalers function (thanks to rootcint bug)
    typedef multimap <unsigned int,Lvl1TrigConfig> LVL1Setup_m;
    typedef multimap <unsigned int,Lvl1TrigConfig>::iterator LVL1Setup_i;
    LVL1Setup_m fLVL1Setup; ///<  LVL1Setup Map
@@ -234,6 +234,21 @@ static AMSSetupR * _Head;
 #endif
 static int _select (const dirent64 * entry);
 public:
+         //! Scalers Accessor
+	/*! 
+            
+
+	 \param timestamp (unix time)
+	 \param usec       second fraction after in mksec
+              
+      NB return vector<Scalers_i> fScalersReturn  of Nearest Scalers iterators
+           fScalers[0]->first < time < fScalers[1]->first
+	
+             
+           \return Nearest Scalers iterators vector length                  
+	 */
+
+int getScalers(unsigned int time,unsigned int usec );
 void Purge();
 static    AMSSetupR * gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
@@ -248,7 +263,7 @@ static    AMSSetupR * gethead(){return _Head;}
  AMSSetupR();
  void LoadISS(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,7)       //AMSSetupR
+ClassDef(AMSSetupR,8)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

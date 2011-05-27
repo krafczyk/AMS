@@ -107,7 +107,7 @@ public:
   /// Properly closes the Output File for selected events
   void CloseOutputFile();
 
-  using TTree::Process;
+   using TTree::Process;
    Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   
   ClassDef(AMSChain,5);       //AMSChain

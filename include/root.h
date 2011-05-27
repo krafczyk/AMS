@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.357 2011/05/25 16:22:32 choutko Exp $
+//  $Id: root.h,v 1.358 2011/05/27 16:58:53 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2856,7 +2856,7 @@ static  void hlist(char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
 /// scale histogram id content by fac 
-static  void hscale(int id, double fac);
+static  void hscale(int id, double fac,bool sumw2=true);
 /// fit 1d histogram by   func = "g" "e" "pN"
 static  void hfit1(int id,char func[],double xmin=0,double xmax=0);
 ///  change dir to dir
@@ -3125,6 +3125,8 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
 
         */
 int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
+
+float LiveTime(); ///< trying to get livetime from scalers map
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time

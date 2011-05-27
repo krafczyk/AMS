@@ -6,7 +6,7 @@
 #ifdef __ROOTINC__
     void * dum;
 #endif
-    number _FTtrig[5];//Glob,FTC,FTZ,FTE,NonPhys
+    number _FTtrig[5];//<Glob,FTC,FTZ,FTE,NonPhys
     number _LVL1trig[9];//LVL1, sub1:sub8
     number _DetMaxRate[5];//CPmx,BZmx,ACmx,ECFTmx,ECL1(angle)mx
     number _LiveTime[2];
