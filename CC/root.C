@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.304 2011/05/27 16:58:30 choutko Exp $
+//  $Id: root.C,v 1.305 2011/05/27 18:43:42 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4919,20 +4919,26 @@ if(getsetup()){
  int k=getsetup()->getScalers(fHeader.Time[0],fHeader.Time[1]);
  if(!k)return -1;
  else if(getsetup()->fScalersReturn.size()==1 ){
+//  cout <<"one "<<getsetup()->fScalersReturn[0]->second._LiveTime[0]<<endl;
    return getsetup()->fScalersReturn[0]->second._LiveTime[0];
 }
  else if (getsetup()->fScalersReturn.size()==2){
-  float s0[2]={-1.-1};
+  float s0[2]={-1.,-1};
   double tme[2]={0,0};
   for(int i=0;i<2;i++){
    s0[i]=getsetup()->fScalersReturn[i]->second._LiveTime[0];
    unsigned long long t=getsetup()->fScalersReturn[i]->first;
-   unsigned long long mask=1;
+   
+  unsigned long long mask=1;
+  // cout << i <<" "<<(t>>32)<<endl;
    mask=(mask<<32)-1;
-   tme[i]=(t>>32)+(t& mask)/1000000.;
+   tme[i]=double(t>>32)+double(t& mask)/1000000.;
   }
-  double ct=UTime()+Frac(); 
-  float lt=s0[0]+(ct-tme[0])*(s0[1]-s0[0])/(tme[1]-tme[0]+1.e-6);
+  double ct=double(UTime())+Frac(); 
+  //cout <<" utime "<<UTime()<<" "<<Frac()<<" "<<ct-UTime()<<endl;
+  float lt=s0[0]+(ct-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  //cout <<tme[0]<<" "<<tme[1]<<" "<<ct<<" "<<tme[1]-tme[0]<<" "<<ct-tme[0]<<endl;
+  //cout <<"two "<<s0[0]<<" "<<s0[1]<<" "<<lt<<endl;
   return lt;
 }
  else{
