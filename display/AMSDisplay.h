@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.29 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: AMSDisplay.h,v 1.30 2011/05/28 15:35:26 pzuccon Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -158,6 +158,7 @@ public:
   void                PrintCB();
   void                SaveParticleCB();
   void                SaveParticleGIF();
+  void                SaveParticleROOT();
   void        SetView(EAMSR_View newView=kFrontView);
   void        ResetView(){m_View=kNoView;}
   void        SetNextView(EAMSR_View nextView) {m_PrevView=m_View;m_View=nextView;}

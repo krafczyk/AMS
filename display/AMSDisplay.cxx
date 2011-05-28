@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.53 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: AMSDisplay.cxx,v 1.54 2011/05/28 15:35:26 pzuccon Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -642,7 +642,14 @@ void AMSDisplay::DrawEvent()
 }
 
 
-
+void AMSDisplay::SaveParticleROOT(){
+   char fnam[255];
+   sprintf(fnam, "%d.%d.root",m_ntuple->Run(),m_ntuple->Event());
+   m_chain->OpenOutputFile(fnam);
+   m_chain->SaveCurrentEvent();
+   m_chain->CloseOutputFile();
+   printf("Current event %d / %d save to %s\n",m_ntuple->Run(),m_ntuple->Event(),fnam);
+}
 
 
 void AMSDisplay::SaveParticleCB(){

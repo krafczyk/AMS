@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.15 2011/05/02 17:34:03 mmilling Exp $
+//  $Id: ControlFrame.cxx,v 1.16 2011/05/28 15:35:26 pzuccon Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -218,7 +218,7 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         gAMSDisplay->SetView(gAMSDisplay->GetView());
         gAMSDisplay->DrawTitle();
         break;
-      case 5:
+      case 6:
         gApplication->SetReturnFromRun(0);
         gApplication->Terminate(1);
 	break;
@@ -229,9 +229,12 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	gAMSDisplay->SaveParticleGIF();
 	break;              
       case 3:
-	gAMSDisplay->PrintCB();
+	gAMSDisplay->SaveParticleROOT();
 	break;              
       case 4:
+	gAMSDisplay->PrintCB();
+	break;              
+      case 5:
 	gAMSDisplay->OpenFileCB();
 	gAMSDisplay->DrawEvent();
 	break;              
@@ -271,12 +274,13 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fSaveAsMenu=new TGPopupMenu(fClient->GetRoot());
     fSaveAsMenu->AddEntry("Save As run.event.&pdf",1);
     fSaveAsMenu->AddEntry("Save As run.event.&png",2);
+    fSaveAsMenu->AddEntry("Save As run.event.&root",3);
     fSaveAsMenu->AddSeparator();
-    fSaveAsMenu->AddEntry("P&rint",3);
+    fSaveAsMenu->AddEntry("P&rint",4);
     fSaveAsMenu->AddSeparator();
-    fSaveAsMenu->AddEntry("&New File",4);
+    fSaveAsMenu->AddEntry("&New File",5);
     fSaveAsMenu->AddSeparator();
-    fSaveAsMenu->AddEntry("&Quit",5);
+    fSaveAsMenu->AddEntry("&Quit",6);
     
     fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
     fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
