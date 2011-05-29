@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.358 2011/05/27 16:58:53 choutko Exp $
+//  $Id: root.h,v 1.359 2011/05/29 22:34:58 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2667,6 +2667,8 @@ ClassDef(MCEventgR,1)       //MCEventgR
 class AMSEventR: public  TSelector {   
 public:
 static vector<unsigned int>BadRunList; 
+static unsigned int MinRun;
+static unsigned int MaxRun;
 static bool isBadRun(unsigned int run);
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file

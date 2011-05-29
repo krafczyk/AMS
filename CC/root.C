@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.305 2011/05/27 18:43:42 choutko Exp $
+//  $Id: root.C,v 1.306 2011/05/29 22:34:53 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -611,7 +611,7 @@ void AMSEventR::hf1(int idd, float a, float w){
       ///*
       // simple method
 
-#pragma omp critical (hf1)
+//#pragma omp critical (hf1)
       i1->second->Fill(a,w);
       //*/
     }
@@ -4904,6 +4904,9 @@ int AMSEventR::GetTDVEl(const string & tdv, unsigned int index, if_t & value){
 
 
 vector <unsigned int>AMSEventR::BadRunList;
+
+unsigned int AMSEventR::MinRun=0;
+unsigned int AMSEventR::MaxRun=INT_MAX;
 
 bool AMSEventR::isBadRun(unsigned int run){
  

@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.41 2011/05/24 23:57:25 choutko Exp $
+//  $Id: amschain.C,v 1.42 2011/05/29 22:34:53 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -297,7 +297,14 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     TObjString *s=(TObjString*)arr->At(arr->GetEntries()-1); 
     TObjArray *ar1=s->GetString().Tokenize(t2);
     unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
-    fmap.insert(make_pair(k,name) );
+    bool bad=false;
+    for(int is=0;is<AMSEventR::BadRunList.size();is++){
+         if(k==AMSEventR::BadRunList[is]){
+           bad=true;
+             break;
+         }
+    }
+    if(!bad && k>=AMSEventR::MinRun && k<AMSEventR::MaxRun)fmap.insert(make_pair(k,name) );
     delete arr;
     delete ar1;
   }
