@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.120.6.1 2011/05/24 11:21:04 choutko Exp $
+//  $Id: gbatch.C,v 1.120.6.2 2011/06/02 18:50:07 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -223,7 +223,7 @@ void (handler)(int sig){
     break;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
-#pragma omp master
+//#pragma omp master
 {
   GCFLAG.IEORUN=1;
   GCFLAG.IEOTRI=1;
@@ -235,6 +235,7 @@ void (handler)(int sig){
 #endif
 if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1)){
 //#ifdef __G4AMS__
+lasthope:
   cerr<<"Preparing for OPool Released"<<endl;
   OPool.ReleaseLastResort();
   cerr<<"OPool Released"<<endl;
@@ -256,10 +257,10 @@ if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1))
  break;
   case SIGQUIT:
     cerr <<" Process suspended"<<endl;
+    G4FFKEY.SigTerm=2;
     pause();
     break;
   case SIGCONT:
-    G4FFKEY.SigTerm=2;
     cerr <<" Process resumed"<<endl;
     break;
   case SIGHUP:
@@ -269,6 +270,9 @@ if(G4FFKEY.SigTerm && (!AMSJob::gethead()->isProduction() || G4FFKEY.SigTerm>1))
       cout <<" sending ... "<<endl;
       AMSProducer::gethead()->sendCurrentRunInfo(false);
     }
+    else{
+          goto lasthope;
+    } 
     cout << " sighup sended "<<endl;
 #endif
     break;

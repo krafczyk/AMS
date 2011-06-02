@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.160.6.3 2011/05/24 11:21:04 choutko Exp $
+//  $Id: producer.C,v 1.160.6.4 2011/06/02 18:50:08 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -119,6 +119,17 @@ if(!cpuf){
     _pid.threads=AMSEvent::get_num_threads_pot();
     _pid.threads_change=0;
     cout <<"  Mips:  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
+   #ifdef _OPENMP
+       int maxt=omp_get_num_procs();
+    if(1){
+        if(_pid.threads!=maxt && _pid.threads>maxt/2){
+           AMSEvent::set_num_threads(  maxt/2);
+           _pid.threads=AMSEvent::get_num_threads_pot();
+           cout <<"  ThreadsChanged  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
+        }
+     }
+#endif    
+   
     bool ok=SetDataCards();
      _pid.StatusType=DPS::Producer::OneRunOnly;
 if (_Solo){
