@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.4 2011/05/13 20:56:42 pzuccon Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.4.2.1 2011/06/03 23:22:22 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -173,7 +173,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree   -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 endif
 endif
 
