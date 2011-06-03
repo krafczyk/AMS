@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.91 2011/05/14 15:59:19 pzuccon Exp $
+#  $Id: Makefile,v 1.91.2.1 2011/06/03 23:21:18 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -42,11 +42,10 @@ endif
 
 
 CASTORLIB= -lRCastor
+
 ifdef NOCASTOR
-CPPFLAGS+= -D__NOCASTOR__
 CASTORLIB=
 endif
-
 # display compiles only with customized ROOT, at the moment v5.21
 NEW         :=_new
 
@@ -186,6 +185,9 @@ endif
 
 
 
+ifdef NOCASTOR
+CPPFLAGS+= -D__NOCASTOR__
+endif
 
 ifdef PGTRACK
 CPPFLAGS+= -D_PGTRACK_
