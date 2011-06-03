@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.144 2011/05/25 16:43:14 ams Exp $
+# $Id: Monitor.pm,v 1.145 2011/06/03 18:15:18 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -695,10 +695,13 @@ sub getactivehosts{
        $clients=$clients+1;
      } 
     }
-
+      my $clr=$hash->{ClientsRunning};
+      if($clr<0){
+             $clr=1;
+         }
     push @text, $string;
     push @text,int $clients;
-    push @text, int $hash->{ClientsRunning};           
+    push @text, $clr;           
     push @text, int $hash->{ClientsAllowed};           
     push @text, int $hash->{ClientsFailed};           
      my $ntp=0;
@@ -857,12 +860,14 @@ sub getactiveclients{
         push @text, $timeout;
 if ($producer eq "Producer"){
         my $run=-1;
+        my $evtp=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        my $rdstc=$rdst->{cinfo};
        if( $rdst->{Status} eq "Processing"){
            if ($rdst->{cuid}==$hash->{id}->{uid}){
                $run=$rdst->{Run};
+                $evtp=$rdst->{LastEvent}-$rdst->{cinfo}->{LastEventProcessed};
 #               warn "run ... $run \n";
                last;
            }
@@ -889,7 +894,7 @@ if ($producer eq "Producer"){
            }
        }
    }
-        push @text, $run;
+        push @text, $run,$evtp;
         my @dummy=split "/",$ntuple;
         push @text, $dummy[$#dummy];
         push @text, $hash->{Status};

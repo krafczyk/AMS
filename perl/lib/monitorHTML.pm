@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.30 2010/02/17 12:06:59 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.31 2011/06/03 18:15:18 ams Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -193,6 +193,7 @@ sub Update{
             "LastUpdate Time",
             "TimeOut",
             "Run",
+            "EventsP",
             "Name",
             "Status",
                                    );
