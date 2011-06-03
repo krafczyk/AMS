@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.157.2.4 2011/05/25 21:21:31 barao Exp $
+//  $Id: commonsi.C,v 1.157.2.5 2011/06/03 19:01:43 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -185,8 +185,8 @@ void AMSCommonsI::init(){
            else _cor=0.85;
           }
           else if(strstr(syscom,"Pentium(R) M"))_cor=1.07;
-          else if(strstr(syscom,"E55") or strstr(syscom,"X55"))_cor=1.81;
-          else if(strstr(syscom,"E5") or strstr(syscom,"X5"))_cor=1.6;
+          else if(strstr(syscom,"E55") or strstr(syscom,"X55") or strstr(syscom,"L55"))_cor=1.81;
+          else if(strstr(syscom,"E5") or strstr(syscom,"X5")or strstr(syscom,"L5"))_cor=1.6;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;
           else if(strstr(syscom,"Core(TM)2 Duo"))_cor=1.35;

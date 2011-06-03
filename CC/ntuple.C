@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.223.2.4 2011/05/21 21:34:06 choutko Exp $
+//  $Id: ntuple.C,v 1.223.2.5 2011/06/03 19:01:43 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -313,13 +313,13 @@ void AMSNtuple::endR(bool cachewrite){
   if(_rfile){
 
     writeRSetup();
+_rfile->cd();
 
 #ifndef _PGTRACK_
     _ta.SetString(AMSTrAligFit::GetAligString());
     //cout <<AMSTrAligFit::GetAligString()<<endl;
     _ta.Write("TrackerAlignment");
 #else
-    _rfile->cd();
     TrCalDB::Head->Write();
     TkDBc  ::Head->Write();
     TrParDB::Head->Write();
