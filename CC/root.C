@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.297.2.1 2011/05/24 17:26:12 pzuccon Exp $
+//  $Id: root.C,v 1.297.2.2 2011/06/06 14:37:51 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2937,17 +2937,17 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
     Exit[i]  = ptr->_ExitPoint[i];
     CofG[i]  = ptr->_CofG[i];
   }
-  ErDir   = ptr->_Angle3DErrorPI;
+  ErDir   = ptr->_Angle3DError;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
-  EnergyC   =   ptr->_EnergyPIC;
+  EnergyC   =   ptr->_EnergyC;
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
-  ErEnergyC   = ptr->_ErrEnergyPIC;
+  ErEnergyC   = ptr->_ErrEnergyC;
   DifoSum     = ptr->_DifoSum;
-  SideLeak    = ptr->_SideLeakPI;
-  RearLeak    = ptr->_RearLeakPI;
+  SideLeak    = ptr->_SideLeak;
+  RearLeak    = ptr->_RearLeak;
   S13Leak    = ptr->_S13Leak;
 
  // LAPP

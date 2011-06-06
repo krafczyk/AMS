@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.160.6.4 2011/06/02 18:50:08 choutko Exp $
+//  $Id: producer.C,v 1.160.6.5 2011/06/06 14:37:50 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -305,7 +305,8 @@ again:
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _pid.threads=AMSEvent::get_num_threads_pot();
-    _cinfo.Mips=AMSCommonsI::getmips();
+    _reinfo->cinfo.LastEventProcessed=0;
+   _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=(_reinfo->cinfo).EventsProcessed;
     _cinfo.ErrorsFound=(_reinfo->cinfo).ErrorsFound;
     _cinfo.CriticalErrorsFound=((_reinfo->cinfo).CriticalErrorsFound%2097152);
