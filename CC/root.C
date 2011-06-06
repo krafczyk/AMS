@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.306 2011/05/29 22:34:53 choutko Exp $
+//  $Id: root.C,v 1.307 2011/06/06 14:36:55 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2076,7 +2076,9 @@ bool AMSEventR::ReadHeader(int entry){
     i=bHeader->GetEntry(entry);
   }
         badrun=isBadRun(Run());      
-  if(badrun)return false;
+        bool rts=RunTypeSelected(fHeader.RunType);
+
+  if(badrun || !rts)return false;
   clear();
   static TFile* local_pfile=0;
 #pragma omp threadprivate (local_pfile)
@@ -2951,14 +2953,14 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   ErDir   = ptr->_Angle3DErrorPI;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
-  EnergyC   =   ptr->_EnergyPIC;
+  EnergyC   =   ptr->_EnergyC;
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
-  ErEnergyC   = ptr->_ErrEnergyPIC;
+  ErEnergyC   = ptr->_ErrEnergyC;
   DifoSum     = ptr->_DifoSum;
-  SideLeak    = ptr->_SideLeakPI;
-  RearLeak    = ptr->_RearLeakPI;
+  SideLeak    = ptr->_SideLeak;
+  RearLeak    = ptr->_RearLeak;
   S13Leak    = ptr->_S13Leak;
 
  // LAPP
@@ -4903,6 +4905,7 @@ int AMSEventR::GetTDVEl(const string & tdv, unsigned int index, if_t & value){
 }
 
 
+vector <unsigned int>AMSEventR::RunType;
 vector <unsigned int>AMSEventR::BadRunList;
 
 unsigned int AMSEventR::MinRun=0;
@@ -4912,6 +4915,14 @@ bool AMSEventR::isBadRun(unsigned int run){
  
 for(int k=0;k<BadRunList.size();k++){
 if(run==BadRunList[k])return true;
+}
+return false;
+}
+
+bool AMSEventR::RunTypeSelected(unsigned int runtype){
+if(!RunType.size())return true; 
+for(int k=0;k<RunType.size();k++){
+if(runtype==RunType[k])return true;
 }
 return false;
 }
