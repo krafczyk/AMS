@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.83 2011/05/25 16:22:32 choutko Exp $
+//  $Id: daqevt.h,v 1.84 2011/06/06 19:39:56 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -45,7 +45,7 @@ static unsigned int   huffman_length;
 static bool           _huffman_init;
 static bool           _huffman_swap;
 static void           huffman_init();
-static unsigned short huffman_bit(unsigned short *data, unsigned short i) {
+static unsigned short huffman_bit(unsigned short *data, unsigned int i) {
   return (data[i>>4] & (1 << (0xF - (i&0xF)))) >> (0xF - (i&0xF));
 };
 public:
