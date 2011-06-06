@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.307 2011/06/06 14:36:55 choutko Exp $
+//  $Id: root.C,v 1.308 2011/06/06 14:38:42 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2950,7 +2950,7 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
     Exit[i]  = ptr->_ExitPoint[i];
     CofG[i]  = ptr->_CofG[i];
   }
-  ErDir   = ptr->_Angle3DErrorPI;
+  ErDir   = ptr->_Angle3DError;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
   EnergyC   =   ptr->_EnergyC;
