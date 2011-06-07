@@ -304,6 +304,7 @@ void DAQRichBlock::DSPCompressedParser::parse(){
   pmt=channelid%PMTs;
   pixel=channelid/PMTs;
   gain=data&0xF000?1:0;                    // This is reversed: no bit= high gain (in all the s/w gain mode=1 is high gain)
+  inconsistent=data&0x4000;
   counts=data&0x0FFF;
 }
 
@@ -670,10 +671,16 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 	    // Get the pixel geom id, substract the pedestal, check that
 	    // it is above it and use low gain if necessary
 	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);
-	    
+
 	    if(RichPMTsManager::Status(geom_id,pixel_id)%10==Status_good_channel){  // Channel is OK
 	      int mode=channel.gain;                 // High gain
 	      int counts=channel.counts;
+
+	      if(channel.inconsistent){
+		// Substract the Gx1 pedestal
+		counts-=int(RichPMTsManager::Pedestal(geom_id,pixel_id,0));
+	      }
+
 	      int channel_geom_number=RichPMTsManager::PackGeom(geom_id,pixel_id);
 
 #ifdef __INSPECT__
