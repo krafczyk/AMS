@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.43 2011/05/12 18:03:18 choutko Exp $
+#  $Id: POADBServer.pm,v 1.44 2011/06/07 14:05:33 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1221,7 +1221,7 @@ OUT:
 #      
             foreach my $acl (@{$ref->{acl}}){
                 if($acl->{Status} eq "Submitted" and $ahl->{Status} eq "OK" and $ahl->{HostName} eq $acl->{id}->{HostName}){
-                    print "Submitted found $acl->{id}->{Hostname} \n"; 
+                    print "Submitted found $acl->{id}->{HostName} \n"; 
                     $ahl->{Status}="NonActiveClientsExists";
                     last;
                 }
@@ -1235,6 +1235,9 @@ OUT:
                   
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
 #                      warn "c getfreehost $ahl->{Name} $ahl->{ClientsRunning} $ahl->{ClientsAllowed}";
+                      if($ahl->{ClientsRunning}<0){
+                          $ahl->{ClientsRunning}=0;
+                      }
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
                           $ahl->{Status}="InActive";
                            sendAH("Class",$cid,$ahl,"Update");

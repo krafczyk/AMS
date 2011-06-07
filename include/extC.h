@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.23 2010/08/12 12:51:01 choutko Exp $
+//  $Id: extC.h,v 1.24 2011/06/07 14:05:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -9,6 +9,23 @@
 //
 #include "typedefs.h"
 //
+
+/*
+   action load the available iss attitude angles for the gps_begin<gpstime<gps_end time interval
+   return 0 if success
+   return not 0 if failure t
+   input gps_begin gps_end
+*/
+extern "C" int LoadISSAtt(unsigned int gps_begin, unsigned int gps_end);
+
+/*
+   Action  provides roll,pitch,yaw in LVLH, radians for the gpstime
+   input gpstime
+   return 0 if success
+*/
+extern "C" int ISSAtt(float * roll, float *pitch, float *yaw, unsigned int gpstime);
+
+
 extern "C" number rnormx();
 extern "C" number sitkfints_(number &,number &);
 extern "C" number sitkfint2_(number&,number&,number&,number&,number&);

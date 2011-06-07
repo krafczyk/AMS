@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.359 2011/05/29 22:34:58 choutko Exp $
+//  $Id: root.h,v 1.360 2011/06/07 14:05:28 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -328,7 +328,7 @@ public:
                          }
   
                          sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C TrStat %x",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/10000000,VelocityS*RadS/10000000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker,TrStat);
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker,TrStat);
   return _Info;
   }
 
@@ -1772,46 +1772,11 @@ public:
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
 
   Level1R(){};
+ void RestorePhysBPat();
   Level1R(Trigger2LVL1 *ptr);
   /// \param number index in container
   /// \return human readable info about Level1R
-  char * Info(int number=-1){
-    int antif=0;
-    for(int k=0;k<8;k++){
-     if(AntiPatt & (1<<(k))){
-       antif++;
-     }
-    }
-//
-    int pat[8];
-    for(int k=0;k<7;k++){
-      pat[k]=0;
-      if(PhysBPatt & (1<<k))pat[k]=1;
-    }
-//
-    char toftyp[5],toftypz[5];
-    if(TofFlag1==0)strcpy(toftyp,"4of4");
-    else if(TofFlag1>0 && TofFlag1<5)strcpy(toftyp,"3of4");
-    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
-    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
-    else if(TofFlag1==9)strcpy(toftyp,"2top");
-    else if(TofFlag1==10)strcpy(toftyp,"2bot");
-    else strcpy(toftyp,"unkn");
-//
-    if(TofFlag2==0)strcpy(toftypz,"4of4");
-    else if(TofFlag2>0 && TofFlag2<5)strcpy(toftypz,"3of4");
-    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
-    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
-    else if(TofFlag2==9)strcpy(toftypz,"2top");
-    else if(TofFlag2==10)strcpy(toftypz,"2bot");
-    else strcpy(toftypz,"unkn");
-//
-    double xtime=TrigTime[4]/1000.;
-    int b15=(JMembPatt>>15)&1;
-    int b14=(JMembPatt>>14)&1;
-    sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
-    return _Info;
-  }
+  char * Level1R::Info(int number=-1);
    
 
   
@@ -2666,10 +2631,12 @@ ClassDef(MCEventgR,1)       //MCEventgR
 #include <map>
 class AMSEventR: public  TSelector {   
 public:
+static vector<unsigned int>RunType; 
 static vector<unsigned int>BadRunList; 
 static unsigned int MinRun;
 static unsigned int MaxRun;
 static bool isBadRun(unsigned int run);
+static bool RunTypeSelected(unsigned int runtype);
 protected:
 void InitDB(TFile *file); ///< Read db-like objects from file
 bool InitSetup(TFile* file,char *name, uinteger time); ///< Load AMSRootSetup Tree
