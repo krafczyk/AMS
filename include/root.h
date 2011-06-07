@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.360 2011/06/07 14:05:28 choutko Exp $
+//  $Id: root.h,v 1.361 2011/06/07 14:14:22 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1776,7 +1776,7 @@ public:
   Level1R(Trigger2LVL1 *ptr);
   /// \param number index in container
   /// \return human readable info about Level1R
-  char * Level1R::Info(int number=-1);
+  char * Info(int number=-1);
    
 
   
