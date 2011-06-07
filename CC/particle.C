@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.231 2011/05/24 14:52:45 choutko Exp $
+//  $Id: particle.C,v 1.232 2011/06/07 14:05:21 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1298,6 +1298,15 @@ void AMSParticle::_loc2gl(){
 
   number cth=ue*uv+ve*vv+we*wv;
   number xfac=57.576*EarthR/rgm*EarthR/rgm;
+  if(rgm/EarthR>2){
+
+//   work around stupid bug
+
+     rgm=rgm/100;
+     
+     xfac=57.576*EarthR/rgm*EarthR/rgm;
+  
+ }
   number chsgn=_Momentum>0?1:-1;
   number cl3=cl*cl*cl;
   number cl4=cl*cl*cl*cl;

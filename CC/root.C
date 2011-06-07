@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.308 2011/06/06 14:38:42 choutko Exp $
+//  $Id: root.C,v 1.309 2011/06/07 14:05:21 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4964,3 +4964,60 @@ if(getsetup()){
 else return -1;
 
 }
+
+
+void  Level1R::RestorePhysBPat() {
+
+ if(PhysBPatt==0){
+
+  unsigned short int ft_pattern=JMembPatt;
+
+  if ( (ft_pattern & 0x0001) == 0x0001 ) PhysBPatt |= 0x0001; // unbiased 3/4 TOF-CP
+  if ( (ft_pattern & 0x0090) == 0x0090 ) PhysBPatt |= 0x0002; // 4/4 TOF-CT & ACC0
+  if ( (ft_pattern & 0x0300) == 0x0300 ) PhysBPatt |= 0x0004; // 4/4 TOF-BZ & ACC1
+  if ( (ft_pattern & 0x0020) == 0x0020 ) PhysBPatt |= 0x0008; // 4/4 FTZ
+  if ( (ft_pattern & 0x0410) == 0x0410 ) PhysBPatt |= 0x0010; // 4/4 TOF-CT & ECALF&
+  if ( (ft_pattern & 0x1000) == 0x1000 ) PhysBPatt |= 0x0020; // ECALA&
+  if ( (ft_pattern & 0x0800) == 0x0800 ) PhysBPatt |= 0x0040; // unbiased ECALA||
+
+}
+}
+
+  char * Level1R::Info(int number){
+    RestorePhysBPat();
+    int antif=0;
+    for(int k=0;k<8;k++){
+     if(AntiPatt & (1<<(k))){
+       antif++;
+     }
+    }
+//
+    int pat[8];
+    for(int k=0;k<7;k++){
+      pat[k]=0;
+      if(PhysBPatt & (1<<k))pat[k]=1;
+    }
+//
+    char toftyp[5],toftypz[5];
+    if(TofFlag1==0)strcpy(toftyp,"4of4");
+    else if(TofFlag1>0 && TofFlag1<5)strcpy(toftyp,"3of4");
+    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
+    else if(TofFlag1>=5 && TofFlag1<8)strcpy(toftyp,"1t1b");
+    else if(TofFlag1==9)strcpy(toftyp,"2top");
+    else if(TofFlag1==10)strcpy(toftyp,"2bot");
+    else strcpy(toftyp,"unkn");
+//
+    if(TofFlag2==0)strcpy(toftypz,"4of4");
+    else if(TofFlag2>0 && TofFlag2<5)strcpy(toftypz,"3of4");
+    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
+    else if(TofFlag2>=5 && TofFlag2<8)strcpy(toftypz,"1t1b");
+    else if(TofFlag2==9)strcpy(toftypz,"2top");
+    else if(TofFlag2==10)strcpy(toftypz,"2bot");
+    else strcpy(toftypz,"unkn");
+//
+    double xtime=TrigTime[4]/1000.;
+    int b15=(JMembPatt>>15)&1;
+    int b14=(JMembPatt>>14)&1;
+    sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
+    return _Info;
+  }
