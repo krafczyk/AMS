@@ -451,8 +451,9 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
-  AString systemc(exedir);
-  systemc+="/";
+   AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 2400 ");
+  systemc+=exedir;
+ systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
@@ -749,7 +750,7 @@ for (int ntry=0;ntry<maxtry;ntry++){
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
   AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 2400 ");
-  systemc+ exedir;
+  systemc+=exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
