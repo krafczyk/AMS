@@ -110,6 +110,7 @@ class DAQRichBlock{
     int pixel;
     int gain;
     int counts;
+    int inconsistent;
 
     DSPCompressedParser(int16u *p,int16u length):_root(p),_current_record(0),_length(length){parse();}
     int Next(){
