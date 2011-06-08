@@ -748,12 +748,13 @@ for (int ntry=0;ntry<maxtry;ntry++){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
-  AString systemc(exedir);
+  AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 2400 ");
+  systemc+ exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
-  char u[128];
+  char u[255];
   sprintf(u,"  %u %u %s %s %u",fHeader.FEventTime-delta,fHeader.LEventTime+delta,slc_orig.c_str(),slc.c_str(),tmout);
     slc_orig=slc;
     systemc+=u;

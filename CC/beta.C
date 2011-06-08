@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.90 2011/04/25 14:02:51 choutko Exp $
+//  $Id: beta.C,v 1.90.6.1 2011/06/08 02:32:53 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -518,6 +518,7 @@ integer AMSBeta::build_old(integer refit,integer Master){
 	      // 2-point combination found
 	      if(AMSBeta::patpoints[patb]==2){
 		if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,chi2space,Master)){
+		  bfound++;
 		  ptrackT->setstatus(AMSDBc::USED);
 		  ptrack->setstatus(AMSDBc::USED);
 		  
@@ -540,6 +541,7 @@ integer AMSBeta::build_old(integer refit,integer Master){
 		// 3-point combination found
 		if(AMSBeta::patpoints[patb]==3){
 		  if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,chi2space,Master)){
+		  bfound++;
 		    ptrackT->setstatus(AMSDBc::USED);
 		    ptrack->setstatus(AMSDBc::USED);
 		    goto nexttrack2;
@@ -560,6 +562,7 @@ integer AMSBeta::build_old(integer refit,integer Master){
 		  chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 		  // 4-point combination found
 		  if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,chi2space,Master)){
+		  bfound++;
 		    ptrackT->setstatus(AMSDBc::USED);
 		    ptrack->setstatus(AMSDBc::USED);
 		    goto nexttrack2;
@@ -584,7 +587,8 @@ integer AMSBeta::build_old(integer refit,integer Master){
   // Loop on TOF patterns
   TriggerLVL302 *ptr=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
   AMSTrTrack * ptrackF=0;
-  if(ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0){
+//  if(1 || (ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0)){
+    if(!bfound){
     for ( int pat=0; pat<npatb; pat++){
       AMSTOFCluster * phit[4]={0,0,0,0};
       number sleng[4];
@@ -887,6 +891,7 @@ if( !bfound ){
 // 2-point combination found
            if(AMSBeta::patpoints[patb]==2){
              if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,chi2space)){
+		  bfound++;
                ptrackT->setstatus(AMSDBc::USED);
                ptrack->setstatus(AMSDBc::USED);
   
@@ -909,6 +914,7 @@ if( !bfound ){
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
                if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,chi2space)){
+		  bfound++;
                  ptrackT->setstatus(AMSDBc::USED);
                  ptrack->setstatus(AMSDBc::USED);
                  goto nexttrack2;
@@ -929,6 +935,7 @@ if( !bfound ){
                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 4-point combination found
                if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,chi2space)){
+		  bfound++;
                  ptrackT->setstatus(AMSDBc::USED);
                  ptrack->setstatus(AMSDBc::USED);
                  goto nexttrack2;
@@ -953,7 +960,8 @@ nexttrack2:
 // Loop on TOF patterns
 TriggerLVL302 *ptr=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
  AMSTrTrack * ptrackF=0;
- if(ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0){
+// if(1 || (ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0)){
+if(!bfound){
    for ( int pat=0; pat<npatb; pat++){
      AMSTOFCluster * phit[4]={0,0,0,0};
      number sleng[4];
@@ -1136,10 +1144,10 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
   TriggerLVL302 *plvl3=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
 
   if(!ptrackc->checkstatus(AMSDBc::FalseTOFX)   &&  
-     !ptrackc->checkstatus(AMSDBc::WEAK)        && 
-     ((!ptrackc->checkstatus(AMSDBc::FalseX) ) || 
-      (!plvl3 || plvl3->LVL3HeavyIon() )          )
-     )
+     !ptrackc->checkstatus(AMSDBc::WEAK)        )
+//     ((!ptrackc->checkstatus(AMSDBc::FalseX) ) || 
+//      (!plvl3 || plvl3->LVL3HeavyIon() )          )
+//     )
     { 
       for(nh=0;nh<nhit;nh++){
 	status=pthit[nh]->getstatus();
