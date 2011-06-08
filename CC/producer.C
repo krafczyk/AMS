@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.164 2011/05/24 14:52:45 choutko Exp $
+//  $Id: producer.C,v 1.165 2011/06/08 15:05:29 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -119,6 +119,17 @@ if(!cpuf){
     _pid.threads=AMSEvent::get_num_threads_pot();
     _pid.threads_change=0;
     cout <<"  Mips:  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
+   #ifdef _OPENMP
+       int maxt=omp_get_num_procs();
+    if(1){
+        if(_pid.threads!=maxt && _pid.threads>maxt/2){
+           AMSEvent::set_num_threads(  maxt/2);
+           _pid.threads=AMSEvent::get_num_threads_pot();
+           cout <<"  ThreadsChanged  "<<_pid.Mips<<" Threads "<<_pid.threads<<endl;
+        }
+     }
+#endif    
+   
     bool ok=SetDataCards();
      _pid.StatusType=DPS::Producer::OneRunOnly;
 if (_Solo){
@@ -294,7 +305,8 @@ again:
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _pid.threads=AMSEvent::get_num_threads_pot();
-    _cinfo.Mips=AMSCommonsI::getmips();
+    _reinfo->cinfo.LastEventProcessed=0;
+   _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=(_reinfo->cinfo).EventsProcessed;
     _cinfo.ErrorsFound=(_reinfo->cinfo).ErrorsFound;
     _cinfo.CriticalErrorsFound=((_reinfo->cinfo).CriticalErrorsFound%2097152);

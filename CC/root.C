@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.309 2011/06/07 14:05:21 choutko Exp $
+//  $Id: root.C,v 1.310 2011/06/08 15:05:29 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5021,3 +5021,10 @@ void  Level1R::RestorePhysBPat() {
     sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
     return _Info;
   }
+
+bool Level1R::isTOFTrigger(int level){
+for(int i=1;i<5;i++){
+if((PhysBPatt & (1<<i)))return true;
+}
+return false;
+}
