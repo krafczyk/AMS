@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.56 2011/06/09 16:53:38 choutko Exp $
+//  $Id: trdrec.C,v 1.57 2011/06/09 19:40:41 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -544,9 +544,9 @@ integer AMSTRDTrack::build(int rerun){
     cout <<" but lvl3 says continue "<<endl;
   }
    
-  
-
+again:  
   integer NTrackFound=-1;
+
   for( _case=0;_case<2;_case++){
     bool      WeakCaseWanted=false;
     for (pat=0;pat<TRDDBc::npatS();pat++){
@@ -600,6 +600,13 @@ integer AMSTRDTrack::build(int rerun){
       }
     }
   }
+    if(NTrackFound==0 && !Relax){
+       Relax=true;
+       _Start();
+       goto again;
+     }
+     Relax=false;
+
   return NTrackFound;
 }
 
@@ -707,7 +714,7 @@ abort();
 #endif
 
     ptrack->StrLineFit();
-    if(ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< 2*TRDFITFFKEY.Chi2StrLine){
+    if(ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< (Relax?10*TRDFITFFKEY.Chi2StrLine:2*TRDFITFFKEY.Chi2StrLine)){
           ptrack->_addnextR();
           return 1;
        }
@@ -796,13 +803,13 @@ void AMSTRDTrack::StrLineFit(bool upd){
      xz/=nxz;
      xx/=nxz;
      xz2/=nxz;
-     if(sqrt(fabs(xz2-xz*xz))>TRDFITFFKEY.TwoSegMatch)return ;
+     if(sqrt(fabs(xz2-xz*xz))>(Relax?TRDFITFFKEY.TwoSegMatch*6:TRDFITFFKEY.TwoSegMatch))return ;
     }     
     if(nyz){
      yz/=nyz;
      yy/=nyz;
      yz2/=nyz;
-     if(sqrt(fabs(yz2-yz*yz))>TRDFITFFKEY.TwoSegMatch)return ;
+     if(sqrt(fabs(yz2-yz*yz))>(Relax?TRDFITFFKEY.TwoSegMatch*6:TRDFITFFKEY.TwoSegMatch))return ;
     }     
 
     if(!nyz || !nxz){
@@ -860,7 +867,7 @@ else{
      _StrLine._Coo[1]=x[1];
      _StrLine._Coo[2]=x[2];
      alfun(n,x,f,this);
-     if(upd)_StrLine._Chi2=f;
+     if(upd )_StrLine._Chi2=f;
      for(int i=0;i<3;i++)_StrLine._ErCoo[i]=_Base._PCluster[0]->getEHit()*sqrt
 (_StrLine._Chi2/(_Base._NHits-2)+1.);
       AMSDir s(x[4],x[3]);
@@ -1241,7 +1248,7 @@ _ptrack->interpolate(cmin,dir,cmini,theta,phi,sleng);
  _ptrack->interpolate(cmax,dir,cmaxi,theta,phi,sleng);
 #endif
   AMSTRDTrack* pc[2]={0,0};
-   number searchreg[2]={4,4}; 
+   number searchreg[2]={4,6}; 
 for( AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
     dir=ptr->getCooDirStr();  
     AMSPoint coo=ptr->getCooStr();  
@@ -1322,3 +1329,5 @@ if(p[0] || p[1])return true;
 
 return false;
 }
+
+bool AMSTRDTrack::Relax=false;
