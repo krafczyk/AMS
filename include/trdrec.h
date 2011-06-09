@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.24 2011/06/09 16:53:47 choutko Exp $
+//  $Id: trdrec.h,v 1.25 2011/06/09 19:40:43 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -207,7 +207,6 @@ for(int k=0;k<sizeof(Charge)/sizeof(Charge[0]);k++)Charge[k]=-1;
 for(int k=0;k<sizeof(ChargeP)/sizeof(ChargeP[0]);k++)ChargeP[k]=10000;
 }
 static float ChargePDF[10030]; //0-100 kev; [1000]=0.1  [1001] charge [1002] not set
-
 static float* getTRDPDF(){return ChargePDF;}
 static int  getTRDPDFsize(){return sizeof(ChargePDF);}
 };
@@ -247,7 +246,8 @@ void _printEl(ostream &o);
 void _copyEl();
 void _writeEl();
 static integer pat;
-#pragma omp threadprivate (pat)
+static bool Relax;
+#pragma omp threadprivate (pat,Relax)
 static number Distance3D(AMSPoint p, AMSDir d, AMSTRDCluster *ptr);
 static AMSTRDSegment * phit[trdconst::maxseg];
 #pragma omp threadprivate (phit)
