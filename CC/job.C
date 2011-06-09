@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.813 2011/06/07 14:05:21 choutko Exp $
+// $Id: job.C,v 1.814 2011/06/09 16:53:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1173,6 +1173,7 @@ TRDRECFFKEY.Chi2StrLine=5;
 TRDRECFFKEY.ResCutStrLine=1;
 TRDRECFFKEY.SearchRegStrLine=3;
  TRDRECFFKEY.CCAmpCut=6.;
+TRDRECFFKEY.ResolveAmb=1;
 FFKEY("TRDRE",(float*)&TRDRECFFKEY,sizeof(TRDRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDFITFFKEY.Chi2StrLine=3;
