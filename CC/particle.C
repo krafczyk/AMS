@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.232 2011/06/07 14:05:21 choutko Exp $
+//  $Id: particle.C,v 1.233 2011/06/09 16:53:38 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -561,70 +561,21 @@ void AMSParticle::trd_likelihood(){
 
 
 void AMSParticle::trdfit(){
-#ifdef _PGTRACK_
   _ptrd=0;
   AMSDir dir(0,0,1.);
   number theta, phi, sleng;
-  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
-
-  while(ptr){
+  number dist=FLT_MAX;
+  for(AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
+  if(ptr->checkstatus(AMSDBc::DELETED))continue;
     AMSPoint coo=ptr->getCooStr();
     AMSPoint tmp;
+#ifdef _PGTRACK_
     bool matched =TkTRDMatch(_ptrack,ptr);
     if( matched ){
       _ptrd=ptr;
       break;
     }
-    ptr=ptr->next();
-  }
-  if(_ptrd){
-    _ptrd->setstatus(AMSDBc::USED);
-    AMSPoint aa=_ptrd->getCooStr();
-    AMSDir dir;
-    _ptrack->Interpolate(aa[2], _TRDCoo[0],dir);
-  }
-  else{
-    AMSTRDIdGeom ida(0,0,0);
-    AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
-    AMSgvolume *pa=AMSJob::gethead()->getgeomvolume(ida.crgid());
-    AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
-    if(pa && pb){
-      number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
-      AMSPoint coo(0,0,z);
-      AMSDir dir;
-      _ptrack->Interpolate(z, _TRDCoo[0],dir);
-    }
-    else {
-      cerr << " trdfit-S- NoLayerFoundThenExpected " << pa<<" "<<pb<<endl ;
-      _TRDCoo[0]=AMSPoint(0,0,0);
-    }
-
-  }
-
-  //add trdcoo2 on top of trd
-  AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
-  AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
-  if(pb){
-    number z=pb->loc2gl(AMSPoint(0,0,0))[2]+2;
-    AMSPoint coo(0,0,z);
-      AMSDir dir;
-      _ptrack->Interpolate(z, _TRDCoo[1],dir);
-  }
-  else {
-    cerr << " trdfit-S- NoLayerFoundThenExpected " <<pb<<endl ;
-    _TRDCoo[1]=AMSPoint(0,0,0);
-  }
-  
-
 #else
-  _ptrd=0;
-  AMSDir dir(0,0,1.);
-  number theta, phi, sleng;
-  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
-  number dist=FLT_MAX;
-  while(ptr){
-    AMSPoint coo=ptr->getCooStr();
-    AMSPoint tmp;
     _ptrack->interpolate(coo,dir,tmp,theta,phi,sleng);
     number d2=(coo-tmp).norm();
     number cd=AMSDir(theta,phi).crossp(AMSDir(ptr->gettheta(),ptr->getphi())).norm();
@@ -651,8 +602,7 @@ void AMSParticle::trdfit(){
       d3=5*sqrt(error.prod(error)+tofe.prod(tofe)); 
     }
     else d3=5*error.norm();
-    if(_ptrack->TRDMatch(ptr) && d2<d3)
-      {
+    if(_ptrack->TRDMatch(ptr) && d2<d3){
 	if(d2<dist){
 	  dist=d2;
 	  _TRDCoo[0]=tmp;
@@ -662,10 +612,20 @@ void AMSParticle::trdfit(){
 	  _TRDCoo[0]=tmp;
 	}
       }
-    ptr=ptr->next();
+#endif
   }
-  if(_ptrd)_ptrd->setstatus(AMSDBc::USED);
+  if(_ptrd){
+    _ptrd->setstatus(AMSDBc::USED);
+    AMSPoint aa=_ptrd->getCooStr();
+    AMSDir dir;
+#ifdef _PGTRACK_
+    _ptrack->Interpolate(aa[2], _TRDCoo[0],dir);
+#else
+      _ptrack->interpolate(aa,dir,_TRDCoo[0],theta,phi,sleng);
+#endif
+  }
   else{
+     
     AMSTRDIdGeom ida(0,0,0);
     AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
     AMSgvolume *pa=AMSJob::gethead()->getgeomvolume(ida.crgid());
@@ -673,7 +633,12 @@ void AMSParticle::trdfit(){
     if(pa && pb){
       number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
       AMSPoint coo(0,0,z);
+      AMSDir dir;
+#ifdef _PGTRACK_
+      _ptrack->Interpolate(z, _TRDCoo[0],dir);
+#else
       _ptrack->interpolate(coo,dir,_TRDCoo[0],theta,phi,sleng);
+#endif
     }
     else {
       cerr << " trdfit-S- NoLayerFoundThenExpected " << pa<<" "<<pb<<endl ;
@@ -687,8 +652,14 @@ void AMSParticle::trdfit(){
   AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
   if(pb){
     number z=pb->loc2gl(AMSPoint(0,0,0))[2]+2;
+
     AMSPoint coo(0,0,z);
+      AMSDir dir;
+#ifdef _PGTRACK_
+      _ptrack->Interpolate(z, _TRDCoo[1],dir);
+#else
     _ptrack->interpolate(coo,dir,_TRDCoo[1],theta,phi,sleng);
+#endif
   }
   else {
     cerr << " trdfit-S- NoLayerFoundThenExpected " <<pb<<endl ;
@@ -696,7 +667,6 @@ void AMSParticle::trdfit(){
   }
   
 
-#endif
 
 /* // <- trdcharge computation moved to charge.C
 if(_ptrd && _pbeta){

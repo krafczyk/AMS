@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.321 2011/05/10 19:10:06 jorgec Exp $
+//  $Id: commons.h,v 1.322 2011/06/09 16:53:47 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -330,6 +330,7 @@ public:
   float ResCutStrLine;   // Max acc distance between point and fitted curve 
   float SearchRegStrLine;  
   float CCAmpCut;        // cut value for likelihood analysis
+  int ResolveAmb;       
 };
 #define TRDRECFFKEY COMMON_BLOCK(TRDRECFFKEY,trdrecffkey)
 COMMON_BLOCK_DEF(TRDRECFFKEY_DEF,TRDRECFFKEY);

@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.23 2011/05/10 19:10:06 jorgec Exp $
+//  $Id: trdrec.h,v 1.24 2011/06/09 16:53:47 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -6,7 +6,7 @@
 #include "link.h"
 #include "cont.h"
 #include "trdsim.h"
-
+class AMSTrTrack;
 class AMSTRDCluster: public AMSlink{
 protected:
 AMSPoint _Coo;   // Global Coordinates 
@@ -98,6 +98,7 @@ static integer _TrSearcher(int icall,uinteger iseg);
 static integer _addnext(integer pat, integer nhit, uinteger iseg,AMSTRDCluster* pthit[]);
 void _addnextR(uinteger iseg);
 public:
+int getori()const {return _Orientation;};
 AMSTRDSegment():AMSlink(),_Chi2(-1),_Orientation(-1),_NHits(0),_Pattern(-1),_SuperLayer(-1){
 _FitPar[0]=_FitPar[1]=0;
 for(int i=0;i<trdconst::maxhits;i++){
@@ -258,7 +259,8 @@ AMSTRDTrack():AMSlink(),_Base(),_Charge(),_BaseS(),_StrLine(),_Real(),_update(fa
 AMSTRDTrack(const AMSTRDTrack::TrackBase & Base, const AMSTRDTrack::TrackBaseS & BaseS, const AMSTRDTrack::TrackPar & StrLine):AMSlink(),_Charge(),_Base(Base),_BaseS(BaseS),_StrLine(StrLine),_Real(),_update(false){};
 AMSTRDTrack(const AMSTRDTrack::TrackBaseS & BaseS):AMSlink(),_Base(),_BaseS(BaseS),_StrLine(),_Real(),_update(false),_Charge(){};
 static integer build(int rerun=0);
-void StrLineFit();
+static bool ResolveAmb(AMSTrTrack *ptrack);
+void StrLineFit(bool update=true);
 void ComputeCharge(double bc);
 void RealFit();
 static bool CreatePDF( char *fnam=0);

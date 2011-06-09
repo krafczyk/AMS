@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.354 2011/05/10 19:10:07 jorgec Exp $
+#  $Id: datacards.doc,v 1.355 2011/06/09 16:53:44 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -709,7 +709,8 @@ TRDREC   // TRD Segment Reconstruction
 R1 Chi2StrLine(3)     //  fit max chi2
 R2 ResCutStrLine(1)   // Max acc distance between point and fitted curve cm
 R3 SearchRegStrLine(3);  //  Max distance point/curve to include it the fit err
-
+R4 ------      ;      //   MM to fillout
+I5 ResolveAmb(1);       //  try (1) or not to resolve amb in case of multiple tracks
 
 TRDFIT  // TRD Fit & other
 

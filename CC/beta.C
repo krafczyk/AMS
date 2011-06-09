@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.91 2011/06/08 15:05:29 choutko Exp $
+//  $Id: beta.C,v 1.92 2011/06/09 16:53:38 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //

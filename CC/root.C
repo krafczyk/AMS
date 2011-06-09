@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.310 2011/06/08 15:05:29 choutko Exp $
+//  $Id: root.C,v 1.311 2011/06/09 16:53:38 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2550,11 +2550,11 @@ void AMSEventR::AddAMSObject(AMSTRDSegment *ptr)
 
 void AMSEventR::AddAMSObject(AMSTRDTrack *ptr)
 {
-  if (ptr) {
+  if (ptr && (!ptr->checkstatus(AMSDBc::DELETED) || ptr->checkstatus(AMSDBc::USED))) {
     fTrdTrack.push_back(TrdTrackR(ptr));
     ptr->SetClonePointer(fTrdTrack.size()-1);
-  }  else {
-    cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
+  }  else if(!ptr){
+    cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL "<<endl;
   }
 }
 

@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.84 2011/05/13 19:27:24 oliva Exp $
+//  $Id: charge.C,v 1.85 2011/06/09 16:53:38 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -516,7 +516,7 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
 }
 
 
-int AMSCharge::BuildTRD(AMSBeta *pbeta) {
+int AMSCharge::BuildTRD(AMSBeta *pbeta) {       
 
   if (pbeta == NULL) return 0;
 
@@ -524,6 +524,9 @@ int AMSCharge::BuildTRD(AMSBeta *pbeta) {
   if (ptrtk == NULL) return 0; 
 
   AMSTRDTrack *ptrd=NULL;
+   bool notrefitted=true;
+again:
+  int ntrd=0;
   AMSTRDTrack* p=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
   while(p){
 #ifndef _PGTRACK_
@@ -537,7 +540,17 @@ int AMSCharge::BuildTRD(AMSBeta *pbeta) {
     p=p->next();
   }   
 
-  if (ptrd == NULL) return 0; 
+  if (ptrd == NULL) {
+
+   if(notrefitted){
+     notrefitted=false;
+     if(TRDRECFFKEY.ResolveAmb && AMSTRDTrack::ResolveAmb(ptrtk))goto again;
+     else return 0;
+   }
+
+    
+    else return 0; 
+  }
 
   AMSChargeTRD *chargetrd = new AMSChargeTRD(pbeta,ptrd);
 

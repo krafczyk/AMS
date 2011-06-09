@@ -1,12 +1,13 @@
-//  $Id: trdrec.C,v 1.55 2011/05/10 19:10:07 jorgec Exp $
+//  $Id: trdrec.C,v 1.56 2011/06/09 16:53:38 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
 #include "extC.h"
 #include"trigger302.h"
-
 #ifdef _PGTRACK_
 #include "TrFit.h"
+#else
+#include "trrec.h"
 #endif
 
 AMSTRDCluster * AMSTRDCluster::_Head[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -757,7 +758,7 @@ return (WriteAll || status);
 
 extern "C" void e04ccf_(int &n, number xc[], number &fc, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void * alfun, void * monit, int & maxcal, int &ifail, void * p);
 
-void AMSTRDTrack::StrLineFit(){
+void AMSTRDTrack::StrLineFit(bool upd){
 
     void (*palfun)(int &n, double xc[], double &fc, AMSTRDTrack *p)=&AMSTRDTrack::alfun;
     void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=&AMSTRDTrack::monit;
@@ -859,7 +860,7 @@ else{
      _StrLine._Coo[1]=x[1];
      _StrLine._Coo[2]=x[2];
      alfun(n,x,f,this);
-     _StrLine._Chi2=f;
+     if(upd)_StrLine._Chi2=f;
      for(int i=0;i<3;i++)_StrLine._ErCoo[i]=_Base._PCluster[0]->getEHit()*sqrt
 (_StrLine._Chi2/(_Base._NHits-2)+1.);
       AMSDir s(x[4],x[3]);
@@ -1218,4 +1219,106 @@ for(int i=ptr;i<sizeof(TrackCharge::ChargePDF)/sizeof(TrackCharge::ChargePDF[0])
 }
 
 return true;
+}
+
+bool AMSTRDTrack::ResolveAmb(AMSTrTrack *_ptrack){
+
+
+if (AMSEvent::gethead()->getC("AMSTRDTrack",0)->getnelem()<2)return false;
+
+//try to find two projections of two tracks which match with track
+
+double theta,phi,sleng;
+  AMSPoint cmin(0,0,85.);
+  AMSPoint cmax(0,0,140.);
+  AMSDir dir(0,0,1.);
+  AMSPoint cmini,cmaxi;
+ #ifdef _PGTRACK_
+    _ptrack->Interpolate(cmin[2], cmini,dir);
+    _ptrack->Interpolate(cmax[2], cmaxi,dir);
+#else
+_ptrack->interpolate(cmin,dir,cmini,theta,phi,sleng);
+ _ptrack->interpolate(cmax,dir,cmaxi,theta,phi,sleng);
+#endif
+  AMSTRDTrack* pc[2]={0,0};
+   number searchreg[2]={4,4}; 
+for( AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
+    dir=ptr->getCooDirStr();  
+    AMSPoint coo=ptr->getCooStr();  
+    AMSPoint cplus=AMSPoint(1,1,1)*dir;
+    cmax=coo+cplus*(cmaxi[2]-coo[2])/dir[2];
+    cmin=coo+cplus*(cmini[2]-coo[2])/dir[2];
+    for(int k=0;k<2;k++){
+      if(fabs(cmin[k]-cmini[k])<searchreg[k] && fabs(cmax[k]-cmaxi[k])<searchreg[k]){
+       searchreg[k]=max(fabs(cmin[k]-cmini[k]),fabs(cmin[k]-cmini[k]));
+       pc[k]=ptr;
+     }
+    }
+}
+if(pc[0] && pc[1]){
+if(pc[0]==pc[1]){
+  // some inconsistency
+  static int err=0;
+  if(err++<100){
+   cerr<<"AMSTRDTrack::ResolveAmb-E-OneTrack Match "<<searchreg[0]<<" "<<searchreg[1]<<endl;
+ }
+}
+else{
+// make two new tracks  by interchanging segments
+AMSTRDTrack* p[2]={0,0};
+for(int i=0;i<2;i++){
+AMSTRDSegment *pthit[10];
+int nseg=0;
+for(int k=0;k<2;k++){
+for(int l=0;l<pc[k]->_BaseS._NSeg;l++){
+ if(pc[k]->_BaseS._PSeg[l]->getori()==(i==0?k:1-k)){
+  pthit[nseg++]=pc[k]->_BaseS._PSeg[l];
+ }
+
+}
+}
+    AMSTRDTrack::TrackBaseS s(-1,nseg,pthit);
+    p[i]=new AMSTRDTrack(s);
+    p[i]->setstatus(AMSDBc::RECOVERED);
+    p[i]->StrLineFit(false);
+    if(p[i]->_StrLine._FitDone && p[i]->_StrLine._Chi2< 2*TRDFITFFKEY.Chi2StrLine){
+          p[i]->_addnextR();
+
+
+      for(int ii=0;ii<p[i]->_Base._NHits;ii++){
+	int lay=p[i]->_Base._PCluster[ii]->getlayer();
+	int proj= (lay<4 || lay>15)?0:1;
+        if(p[i]->_Real._FitDone){
+	  AMSDir dir(p[i]->_Real._Theta, p[i]->_Real._Phi);
+	  p[i]->_Base._PCluster[ii]->getCoo()[proj]=
+	    p[i]->_Real._Coo[proj] +  dir[proj] /dir[2] * (p[i]->_Base._PCluster[ii]->getCoo()[2]-p[i]->_Real._Coo[2]);
+	}
+	else{
+	  AMSDir dir(p[i]->_StrLine._Theta,p[i]->_StrLine._Phi);
+	  p[i]->_Base._PCluster[ii]->getCoo()[proj]=
+	    p[i]->_StrLine._Coo[proj] + dir[proj]/dir[2]*(p[i]->_Base._PCluster[ii]->getCoo()[2]-p[i]->_StrLine._Coo[2]);
+	}
+      }
+
+
+
+
+
+  }
+   else{
+     delete p[i];
+     p[i]=0;
+   }
+}
+if(p[0] && p[1]){
+for(int k=0;k<2;k++){
+ pc[k]->setstatus(AMSDBc::DELETED);
+}
+}
+if(p[0] || p[1])return true;
+}
+}
+
+
+return false;
 }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.361 2011/06/07 14:14:22 choutko Exp $
+//  $Id: root.h,v 1.362 2011/06/09 16:53:47 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1772,6 +1772,9 @@ public:
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
 
   Level1R(){};
+/// \param level -1 any tof level
+///  \return true if any tof related level1 was set
+ bool isTOFTrigger(int level=-1);
  void RestorePhysBPat();
   Level1R(Trigger2LVL1 *ptr);
   /// \param number index in container
