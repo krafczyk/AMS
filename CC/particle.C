@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.234 2011/06/10 16:26:06 choutko Exp $
+//  $Id: particle.C,v 1.235 2011/06/10 18:53:56 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -53,7 +53,7 @@ PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 
 #ifdef _PGTRACK_
 bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
-  number SearchReg[2]={4,12};
+  number SearchReg[2]={12,4};
   number MaxCos(0.95);
   double zpl=83.5; //Z low of TRD in cm;
 

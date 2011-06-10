@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.311 2011/06/09 16:53:38 choutko Exp $
+//  $Id: root.C,v 1.312 2011/06/10 18:53:57 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2104,7 +2104,12 @@ static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       
       local_pfile=_Tree->GetCurrentFile();
       if(!initdone[thr] || nthr==1){
+try{
        InitDB(local_pfile);
+}
+catch (...){
+cerr<<"AMSEventR::ReadHeader-E-UnabletoInitDB "<<endl;
+}
        initdone[thr]=1;
        cout <<"  InitDB Init done "<<thr<<endl;
      }
