@@ -3147,7 +3147,7 @@ int ISSGTOD(float *r, float *theta, float *phi, float *v, float *vtheta, float *
 
 	Magnitude(&vel);
 	*v=vel.w/pos.w;
-        *r=pos.w*10000000;
+        *r=pos.w*100000;
         *grmedphi=ThetaG_JD(jul_utc);
         *phi=AcTan(pos.y,pos.x);
         *theta=asin(pos.z/pos.w);
