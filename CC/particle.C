@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.233 2011/06/09 16:53:38 choutko Exp $
+//  $Id: particle.C,v 1.234 2011/06/10 16:26:06 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -53,7 +53,7 @@ PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 
 #ifdef _PGTRACK_
 bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
-  number SearchReg(4);
+  number SearchReg[2]={4,12};
   number MaxCos(0.95);
   double zpl=83.5; //Z low of TRD in cm;
 
@@ -76,7 +76,11 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   number d=(tk_pnt-trd_pnt).norm();
   
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
-  if(fabs(c)>MaxCos && fabs(d) <SearchReg) return true;
+
+// Changed by VC take care about tracker amb
+
+  if(fabs(c)>MaxCos && fabs((tk_pnt-trd_pnt)[0]) <SearchReg[0] && fabs((tk_pnt-trd_pnt)[1]) <SearchReg[1]) return true;
+//  if(fabs(c)>MaxCos && fabs(d) <SearchReg) return true;
   
   return false;
 }

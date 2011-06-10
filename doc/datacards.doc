@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.355 2011/06/09 16:53:44 choutko Exp $
+#  $Id: datacards.doc,v 1.356 2011/06/10 16:26:12 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -723,7 +723,7 @@ R6 MaxSegAllowed(50)   // max seg allowed
 I7 FitMethod(0)       // old (0) or new (1) or both (2) method
 I8 SaveHistos(0)      // save single tube amplitude spectra (1) or not (0)
 R9 QP                 //  trd charge correction
-
+I10 UseTOF(2)         //  use USeTOF tof clusters to match with trd track
 TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 
                // NB NOT included : initialization & termination

@@ -14,7 +14,7 @@ public:
  //cout<<ev->getsetup()->fScalers[1]._LiveTime[0]<<" "<<ev->getsetup()->fScalers[1]._LiveTime[1]<<endl;
 
 //   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>200 ){
-   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack()  && ev->Particle(0).iTrTrack()>=0 &&  ev->Particle(0).iTrdTrack()<0){
+   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->Particle(0).Beta>0 && ev->nTrTrack()  && ev->Particle(0).Charge>1 && ev->Particle(0).iTrTrack()>=0 &&  ev->Particle(0).iTrdTrack()<0){
      return true;
   }
   else return false;

@@ -1,9 +1,10 @@
-//  $Id: trdrec.C,v 1.57 2011/06/09 19:40:41 choutko Exp $
+//  $Id: trdrec.C,v 1.58 2011/06/10 16:26:07 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
 #include "extC.h"
 #include"trigger302.h"
+#include "tofrec02.h"
 #ifdef _PGTRACK_
 #include "TrFit.h"
 #else
@@ -714,7 +715,7 @@ abort();
 #endif
 
     ptrack->StrLineFit();
-    if(ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< (Relax?10*TRDFITFFKEY.Chi2StrLine:2*TRDFITFFKEY.Chi2StrLine)){
+    if( ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< (Relax?10*TRDFITFFKEY.Chi2StrLine:2*TRDFITFFKEY.Chi2StrLine) && ptrack->TOFOK()){
           ptrack->_addnextR();
           return 1;
        }
@@ -1331,3 +1332,52 @@ return false;
 }
 
 bool AMSTRDTrack::Relax=false;
+
+
+
+integer AMSTRDTrack::TOFOK(){
+
+    if (TRDFITFFKEY.UseTOF && !Relax){
+   // Cycle thru all TOF clusters;
+   // at least UseTOF of them should be matched with the track
+   integer i;
+   integer matched=0;
+   // Take cut from beta defs
+   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
+   BETAFITFFKEY.SearchReg[2]);
+    AMSDir dir=getCooDirStr();  
+    AMSPoint coo=getCooStr();  
+    AMSPoint cplus=AMSPoint(1,1,1)*dir;
+
+   for(i=0;i<4;i++){
+    AMSTOFCluster * phit = AMSTOFCluster::gethead(i);
+    while (phit){
+      AMSPoint Res=coo+cplus*(phit->getcoo()[2]-coo[2])/dir[2];
+     if( ((phit->getcoo()-Res)/phit->getecoo()).abs()< SearchReg){
+     if(phit->getntof() < 3)matched+=1;  
+     else matched+=10;
+     }
+     phit=phit->next();
+    } 
+   }
+   switch (TRDFITFFKEY.UseTOF){
+   case 0:
+    return 1;
+   case 1:
+    if(matched/10 <1 && matched%10 <1)return 0;
+    break;
+   case 2:
+    if(matched/10 <1 || matched%10<1)return 0;
+    break;
+   case 3:
+    if(matched/10 <2 && matched%10<2)return 0;
+    break;
+   case 4:
+    if(matched/10 <2 || matched%10<2)return 0;
+    break;
+   }
+   return 1;  
+    }
+  else return 1;
+}
+

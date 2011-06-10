@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.25 2011/06/09 19:40:43 choutko Exp $
+//  $Id: trdrec.h,v 1.26 2011/06/10 16:26:15 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include "trdid.h"
@@ -247,6 +247,7 @@ void _copyEl();
 void _writeEl();
 static integer pat;
 static bool Relax;
+integer TOFOK();
 #pragma omp threadprivate (pat,Relax)
 static number Distance3D(AMSPoint p, AMSDir d, AMSTRDCluster *ptr);
 static AMSTRDSegment * phit[trdconst::maxseg];

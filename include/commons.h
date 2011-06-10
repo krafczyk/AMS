@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.322 2011/06/09 16:53:47 choutko Exp $
+//  $Id: commons.h,v 1.323 2011/06/10 16:26:15 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -320,6 +320,7 @@ public:
   int SaveHistos;
   float CalStartVal;
   float QP[2];
+  integer UseTOF;
 };
 #define TRDFITFFKEY COMMON_BLOCK(TRDFITFFKEY,trdfitffkey)
 COMMON_BLOCK_DEF(TRDFITFFKEY_DEF,TRDFITFFKEY);
