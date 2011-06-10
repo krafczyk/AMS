@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.22 2011/03/31 08:01:49 choutko Exp $
+# $Id: DBServer.pm,v 1.23 2011/06/10 23:20:41 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -75,6 +75,7 @@ $self->{mypoadbserver}=new POADBServer;
 my $id = $self->{root_poa}->activate_object($self->{mypoadbserver});
 $self->{myref}=$self->{root_poa}->id_to_reference ($id);
 $self->{myior} = $self->{orb}->object_to_string ($self->{myref});
+    print "IORPERL   $self->{myior} \n";
 $self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
 
     my $mybless=bless $self,$type;

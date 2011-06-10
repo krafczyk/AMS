@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.178 2011/05/21 21:49:27 choutko Exp $
+//  $Id: server.C,v 1.179 2011/06/10 23:20:55 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3590,7 +3590,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
     try{
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
-       if(rc==DPS::Client::Delete || rc==DPS::Client::Update)dvar->sendRunEvInfo(ne,rc);
+       dvar->sendRunEvInfo(ne,rc);
     }
    catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.676 2011/05/25 20:45:12 dmitrif Exp $
+# $Id: RemoteClient.pm,v 1.677 2011/06/10 23:20:41 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -96,6 +96,7 @@ my $nTopDirFiles = 0;     # number of files in (input/output) dir
 my @inputFiles;           # list of file names in input dir
 
 package RemoteClient;
+use Sys::Hostname;
 use Storable;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
 use Error qw(:try);
@@ -892,6 +893,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
+
        my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ","OPENCLOSE");
        $template->{OPENCLOSE}=undef;
            foreach my $ent (@farray){
@@ -1292,13 +1294,14 @@ foreach my $file (@allfiles){
      }
 
 #try to get ior
-    $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active' and datamc=$self->{DataMC}";
+    $sql="select dbfilename,lastupdate,IORS,IORP,hostname from Servers where status='Active' and datamc=$self->{DataMC}";
      $ret=$self->{sqlserver}->Query($sql);
     my $updlast=0;
     foreach my $upd (@{$ret}){
         if($upd->[1]> $updlast){
             $updlast=$upd->[1];
             $self->{dbfile}=$upd->[0];
+            $self->{hostdbfile}=$upd->[4];
             $self->{IOR}=$upd->[2];
             $self->{IORP}=$upd->[3];
         }
@@ -1344,7 +1347,7 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
       }
     }
     if($datamc!=$ref->{DataMC}){   
-    my $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active' and datamc=$datamc";
+    my $sql="select dbfilename,lastupdate,IORS,IORP,hostname from Servers where status='Active' and datamc=$datamc";
      my $ret=$ref->{sqlserver}->Query($sql);
    $ref->{DataMC}=$datamc; 
    my $updlast=0;
@@ -1352,6 +1355,7 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
         if($upd->[1]> $updlast){
             $updlast=$upd->[1];
             $ref->{dbfile}=$upd->[0];
+            $ref->{hostdbfile}=$upd->[4];
             $ref->{IOR}=$upd->[2];
             $ref->{IORP}=$upd->[3];
         }
@@ -1373,6 +1377,35 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
      die "SystemException Error "."\n";
  };
 
+
+
+#get prod server id
+
+    if($#{$ref->{arpref}}<0){
+     try{
+         my %cid=%{$ref->{cid}};
+         $cid{Type}="Producer";
+      my ($length,$pars)=${$ref->{arsref}}[0]->getARS(\%cid,"Any",0,1);
+         if($length==0 ){
+         }
+         else{
+         foreach my $ior (@$pars){
+             try{
+              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
+              push @{$ref->{arpref}}, $newref;
+             }
+             catch CORBA::SystemException with{
+               die "stringtoobject  SystemException Error "."\n";
+             };
+
+         }
+     }
+ }
+     catch CORBA::SystemException with{
+         $ref->sendmailerror("Unable To connect to Server"," ");
+     };
+}
+
 #get db server id
 
      $#{$ref->{ardref}}=-1;
@@ -1393,8 +1426,8 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
              };
 
          }
-        }
-      }
+     }
+}
      catch CORBA::SystemException with{
          $ref->sendmailerror("Unable To connect to Server"," ");
 #      try to restart server here
@@ -1415,7 +1448,6 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
              $ref->ErrorPlus("Attempt to Restart Server Has Been Made.\n Please check bjobs -q linux_server -u all in few minutes $file");
          }
       };
-
 
     if($#{$ref->{ardref}} >=0){
         my $ard=${$ref->{ardref}}[0];
@@ -2192,7 +2224,24 @@ if($delete){
                my $ret=$self->{sqlserver}->Query($sql);
                if(defined $ret->[0][0]){
                   print "  deleting  $run->{Run} \n";
+    my $hostname=hostname();
+    if($#{$self->{arpref}} <0 and (not ($self->{hostdbfile}=~/$hostname/))){
+       $self->ServerConnect($ver);
+    }
+    if($#{$self->{arpref}} >=0){
+        my $ard=${$self->{arpref}}[0];
+          my %nc=%{$run};
+try{
+                $ard->sendRunEvInfo(\%nc,"Delete");
+}
+            catch CORBA::SystemException with{
+                $self->ErrorPlus( "sendback corba exc while deleting run $run->{Run}");
+            };
+    }
+     else{
+                  
                   DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
+}
               }
               elsif($run->{Status} eq 'Finished'){
                  $run->{Status}='ToBeRerun';
@@ -8059,7 +8108,23 @@ if($ri->{TLEvent}==0){
                        $ri->{Status});
         if(defined $self->{dbserver} ){
             if($self->{dwldaddon}==0 ){
+    my $hostname=hostname();
+    if($#{$self->{arpref}} <0 and (not ($self->{hostdbfile}=~/$hostname/))){
+       $self->ServerConnect($dataset->{version});
+    }
+    if($#{$self->{arpref}} >=0){
+        my $ard=${$self->{arpref}}[0];
+          my %nc=%{$ri};
+try{
+                $ard->sendRunEvInfo(\%nc,"Create");
+}
+            catch CORBA::SystemException with{
+                $self->ErrorPlus( "sendback corba exc while creating run $ri->{Run}");
+            };
+    }
+else{
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+}
         }
         }
         else{
@@ -9379,8 +9444,26 @@ anynext:
 #
         if(defined $self->{dbserver} ){
             if($self->{dwldaddon}==0 ){
+    my $hostname=hostname();  
+    
+    if($#{$self->{arpref}} <0 and (not ($self->{hostdbfile}=~/$hostname/))){
+       $self->ServerConnect($dataset->{version});
+    }
+
             foreach my $ri (@{$self->{Runs}}){
+    if($#{$self->{arpref}} >=0){
+        my $ard=${$self->{arpref}}[0];
+          my %nc=%{$ri};
+try{
+                $ard->sendRunEvInfo(\%nc,"Create");
+}
+            catch CORBA::SystemException with{
+                $self->ErrorPlus( "sendback corba exc while creating run $ri->{Run}");
+            };
+    }
+else{
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+}
            }
             my $lu=time();
             my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}' and datamc=$self->{DataMC}";
@@ -14268,7 +14351,19 @@ sub deleteTimeOutJobs {
             print FILE "$sql \n";
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
+    if($#{$self->{ardref}} >=0){
+        my $ard=${$self->{ardref}}[0];
+          my %nc=%{$runinfo};
+try{
+                $ard->sendRunEvInfo(\%nc,"Delete");
+}
+            catch CORBA::SystemException with{
+                $self->ErrorPlus( "sendback corba exc while deleting run $runinfo->{Run}");
+            };
+    }
+else{
               DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete");
+            }
               print FILE "send Delete to DBServer, run=$runinfo->{Run}\n";
               last;
              }
