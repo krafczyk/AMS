@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.312 2011/06/10 18:53:57 choutko Exp $
+//  $Id: root.C,v 1.313 2011/06/11 05:19:16 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2104,12 +2104,7 @@ static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       
       local_pfile=_Tree->GetCurrentFile();
       if(!initdone[thr] || nthr==1){
-try{
        InitDB(local_pfile);
-}
-catch (...){
-cerr<<"AMSEventR::ReadHeader-E-UnabletoInitDB "<<endl;
-}
        initdone[thr]=1;
        cout <<"  InitDB Init done "<<thr<<endl;
      }
@@ -4787,7 +4782,7 @@ static int master=0;
       }
     }
     TrExtAlignDB::Load(_FILE);
-
+try{
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
 				 if (_FILE->Get("datacards/TRMCFFKEY_DEF"))
@@ -4798,6 +4793,10 @@ static int master=0;
     TRCLFFKEY   =*((TRCLFFKEY_DEF*)  _FILE->Get("datacards/TRCLFFKEY_DEF"));
       if (TRFITFFKEY.ReadFromFile && _FILE->Get("datacards/TRFITFFKEY_DEF"))
     TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
+}
+catch (...){
+cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
+}
 
     // if(TrParDB::Head) delete TrParDB::Head;
     TrParDB::Head = (TrParDB*) _FILE->Get("TrParDB");
