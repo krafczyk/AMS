@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.147 2011/05/10 23:28:24 choutko Exp $
+//  $Id: ecalrec.C,v 1.148 2011/06/11 17:28:11 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2458,22 +2458,43 @@ void AMSEcalShower::EnergyFit(){
     //Pisa version
     efrac /= (1+_S13LeakYPI)*ec;
     
-    //float EALPHA0=-3.0;
-    //float EBETA=75.2;
-    //float EGAMMA=563.3;
-    //float EALPHA_PAR[2]={-5.,0.0143};
+    if(efrac>2*ECREFFKEY.SimpleRearLeak[0])
+      {   
+	
+	//float EALPHA0=-3.0;
+	//float EBETA=75.2;
+	//float EGAMMA=563.3;
+	//float EALPHA_PAR[2]={-5.,0.0143};
+	
+	float EshiftInPercent= ECREFFKEY.ealpha0+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
+	float ecorr2ebeam=1.+EshiftInPercent/100.;
+	_EnergyPIC=ec*ecorr2ebeam;
+	
+	float alphae =  ECREFFKEY.ealpha_par[0]+ ECREFFKEY.ealpha_par[1]*_EnergyPIC/1000;
+	EshiftInPercent=alphae+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
+	
+	if(EshiftInPercent<=0)
+	  {
+	    setstatus(AMSDBc::CATLEAK);
+	    EcalJobStat::addre(11);
+#ifdef __AMSDEBUG__
+	    cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<efrac<<endl;
+#endif
+	    EshiftInPercent=0;
+	  }
+	
+	ecorr2ebeam=1.+EshiftInPercent/100.;
+	_EnergyPIC=ec*ecorr2ebeam/1000;
+	_RearLeakPI= _EnergyPIC - ec/1000;
+      }
+    else
+      {
+	_EnergyPIC=ECREFFKEY.SimpleRearLeak[3]*ec;
+	_RearLeakPI= _EnergyPIC-ECREFFKEY.SimpleRearLeak[1]*ec;
+      }
     
-    float EshiftInPercent= ECREFFKEY.ealpha0+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
-    float ecorr2ebeam=1.+EshiftInPercent/100.;
-    _EnergyPIC=ec*ecorr2ebeam;
-    
-    float alphae =  ECREFFKEY.ealpha_par[0]+ ECREFFKEY.ealpha_par[1]*_EnergyPIC/1000;
-    EshiftInPercent=alphae+ ECREFFKEY.ebeta*efrac+ ECREFFKEY.egamma*(pow(efrac,2));
-    ecorr2ebeam=1.+EshiftInPercent/100.;
-    _EnergyPIC=ec*ecorr2ebeam/1000;
-    _RearLeakPI= _EnergyPIC - ec/1000;
   }
-
+  
   if(_EnergyC){
     _RearLeak/=_EnergyC;
     _OrpLeak/=_EnergyC;
@@ -2482,7 +2503,7 @@ void AMSEcalShower::EnergyFit(){
     _AttLeak/=_EnergyC;
     _NLinLeak/=_EnergyC;
   }
-
+  
   if(_EnergyPIC){
     _RearLeakPI /=_EnergyPIC;
     _OrpLeakPI/=_EnergyPIC;
