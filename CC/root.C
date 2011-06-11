@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.313 2011/06/11 05:19:16 choutko Exp $
+//  $Id: root.C,v 1.314 2011/06/11 17:29:04 sdifalco Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2942,7 +2942,7 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
 
 EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
- Status      = ptr->_status;
+  Status      = ptr->_status;
   for (int i=0; i<3; i++) {
     Dir[i]   = ptr->_Dir[i];
     EMDir[i] = ptr->_EMDir[i];
@@ -2951,19 +2951,25 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
     CofG[i]  = ptr->_CofG[i];
   }
   ErDir   = ptr->_Angle3DError;
+  ErDirE  = ptr->_Angle3DErrorPI;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
+  EnergyD   =   ptr->_Energy;
   EnergyC   =   ptr->_EnergyC;
+  EnergyE   =   ptr->_EnergyPIC;
   Energy3C[0] = ptr->_Energy3C;
   Energy3C[1] = ptr->_Energy5C;
   Energy3C[2] = ptr->_Energy9C;
   ErEnergyC   = ptr->_ErrEnergyC;
+  ErEnergyE   = ptr->_ErrEnergyPIC;
   DifoSum     = ptr->_DifoSum;
   SideLeak    = ptr->_SideLeak;
   RearLeak    = ptr->_RearLeak;
-  S13Leak    = ptr->_S13Leak;
-
- // LAPP
+  S13Leak     = ptr->_S13Leak;
+  SideLeakPI  = ptr->_SideLeakPI;
+  RearLeakPI  = ptr->_RearLeakPI;
+  
+  // LAPP
   S1tot[0] = ptr->_S1tot;		  
   S1tot[1] = ptr->_S1totx;		  
   S1tot[2] = ptr->_S1toty;		  
@@ -2992,13 +2998,17 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 
   S13LeakXPI    = ptr->_S13LeakXPI;
   S13LeakYPI    = ptr->_S13LeakYPI;
-  NLinLeak=ptr->_NLinLeak;
+  NLinLeak      =ptr->_NLinLeak;
+  NLinLeakPI    =ptr->_NLinLeakPI;
   S13R    = ptr->_S13R;
   S13Rpi[0]    = ptr->_S13Rpi[0];
   S13Rpi[1]    = ptr->_S13Rpi[1];
-  DeadLeak    = ptr->_DeadLeakPI;
-  AttLeak     = ptr->_AttLeakPI;
-  OrpLeak     = ptr->_OrpLeakPI;
+  DeadLeak    = ptr->_DeadLeak;
+  AttLeak     = ptr->_AttLeak;
+  OrpLeak     = ptr->_OrpLeak;
+  DeadLeakPI  = ptr->_DeadLeakPI;
+  AttLeakPI   = ptr->_AttLeakPI;
+  OrpLeakPI   = ptr->_OrpLeakPI;
   Orp2DEnergy = ptr->_Orp2DEnergy;
   Chi2Profile = ptr->_ProfilePar[4+ptr->_Direction*5];
   for (int i=0; i<4; i++) ParProfile[i] = fabs(ptr->_ProfilePar[i+ptr->_Direction*5])>FLT_MAX?FLT_MAX:ptr->_ProfilePar[i+ptr->_Direction*5];
