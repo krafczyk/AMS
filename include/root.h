@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.362 2011/06/09 16:53:47 choutko Exp $
+//  $Id: root.h,v 1.363 2011/06/11 17:31:40 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -521,23 +521,34 @@ public:
   float Exit[3];   ///< exit point(cm)
   float CofG[3];  ///< center of gravity (cm)
   float ErDir;    ///< 3d angle error
+  float ErDirE;   ///< 3d angle error - Pisa version
   float Chi2Dir;  ///<  chi2 direction fit
   float FirstLayerEdep; ///< front energy dep (Mev)
-  float EnergyC; ///< shower energy (gev)
+  float EnergyD; ///< energy deposit (gev)
+  float EnergyC; ///< shower energy (gev) - old version
+  float EnergyE; ///< shower energy (gev) - Pisa version
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
   float  S13Rpi[2];  ///< S1/S3 Ratio for X and Y view
-  float ErEnergyC;   ///< energy error (gev)
+  float ErEnergyC;   ///< energy error (gev) - old version
+  float ErEnergyE;   ///< energy error (gev) - Pisa version
   float DifoSum;     ///<  (E_x-E_y)/(E_x+E_y)
   float SideLeak;    ///< rel side leak
   float RearLeak;    ///< rel rear leak
   float DeadLeak;    ///< rel dead leak
   float AttLeak;     ///< rel att length correction
-  float NLinLeak;   ///<  rel non-lin correction
+  float SideLeakPI;    ///< rel side leak - Pisa version
+  float RearLeakPI;    ///< rel rear leak - Pisa version
+  float DeadLeakPI;    ///< rel dead leak - Pisa version
+  float AttLeakPI;     ///< rel att length correction - Pisa version
+
+  float NLinLeak;   ///<  rel non-lin correction - Pisa version
+  float NLinLeakPI;  ///<  rel non-lin correction 
   float S13Leak;   ///<  s1/s3 ratio correction;
   float S13LeakXPI;  ///< s1/s3 ratio correction for X view
   float S13LeakYPI;  ///< s1/s3 ratio correction for Y view
   float OrpLeak;   ///<  fraction of shower energy outside core.
+  float OrpLeakPI;  ///<  fraction of shower energy outside core - Pisa version.
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
@@ -592,7 +603,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,7)       //EcalShowerR
+ClassDef(EcalShowerR,8)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };
