@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.677 2011/06/10 23:20:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.678 2011/06/13 21:08:34 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3770,8 +3770,15 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
           
 #             die "2 $query $templat->[0] $sql ";
-#          for my $srun (34513...34516){
-#          $self->updateRunCatalog($srun);
+          
+#          my $sql22="select run from runs,jobs where jobs.jid=runs.jid and runs.status='Completed' order by jobs.timestamp desc";
+#          my $r22=$self->{sqlserver}->Query($sql22);
+#          my $i=0;
+#          my $i0=19998;
+#          for my $srun (@{$r22}){
+#              if($i++>i0 and $i<$i0+17000){
+#                 $self->updateRunCatalog($srun->[0]);
+#           }
 #          }          
           my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
@@ -14107,9 +14114,9 @@ sub updateRunCatalog {
     my $sql1       = undef;
 
     my $timestamp = time();
-    $sql = "SELECT runs.status, jobs.content FROM Runs, Jobs WHERE runs.jid=jobs.jid and jobs.jid=$jid";
+    $sql = "SELECT runs.status, jobs.content,datasetsdesc.jobdesc FROM Runs, Jobs,datasetsdesc WHERE runs.jid=jobs.jid and jobs.jid=$jid and datasetsdesc.did=jobs.did and   split(jobs.jobname) like datasetsdesc.jobname";
     my $r0 = $self->{sqlserver}->Query($sql);
-    if(defined $r0->[0][0] && defined $r0->[0][1]){
+    if(defined $r0->[0][0] && defined $r0->[0][1] && defined defined $r0->[0][2]){
       $runstatus = $r0->[0][0];
       $jobcontent = $r0->[0][1];
       if ($runstatus eq 'Completed') {
@@ -14158,18 +14165,20 @@ sub updateRunCatalog {
            }
            $i++;
          }
-             foreach my $line (@sbuf){
-              if ($line =~ m/generate/) {
-                 $line =~ s/C //;
-                 $line =~ s/\\//;
-                 $line =~ s/\\//;
-                 $line = trimblanks($line);
+#             foreach my $line (@sbuf){
+#              if ($line =~ m/generate/) {
+#                 $line =~ s/C //;
+#                 $line =~ s/\\//;
+#                 $line =~ s/\\//;
+#                 $line = trimblanks($line);
+#                       $sql0=$sql0.", jobname";
+#                       $sql1=$sql1.","."'$line'";
+#                       last;
+#               }
+#            }
                        $sql0=$sql0.", jobname";
-                       $sql1=$sql1.","."'$line'";
-                       last;
-               }
+                       $sql1=$sql1.","."'$r0->[0][2]'";
 
-            }
             $sql0=$sql0.", TIMESTAMP) ";
             $sql1=$sql1.",".$timestamp.")";
             $sql=$sql0.$sql1;
