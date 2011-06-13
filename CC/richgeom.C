@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.50 2011/05/13 11:25:05 mdelgado Exp $
+//  $Id: richgeom.C,v 1.50.2.1 2011/06/13 08:54:49 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -8,7 +8,7 @@
 
 #define SQR(x) ((x)*(x))
 
-#define VERSION "2008"
+#define RICHVERSION "2008"
 
 namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
@@ -611,7 +611,7 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
   // Write the selected geometry
 #ifdef __AMSDEBUG__
-  cout <<"RICH geometry version dated:"<<VERSION<<endl;
+  cout <<"RICH geometry version dated:"<<RICHVERSION<<endl;
   RICHDB::dump();
 #endif
 
