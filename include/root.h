@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.363 2011/06/11 17:31:40 sdifalco Exp $
+//  $Id: root.h,v 1.364 2011/06/14 15:24:18 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2670,9 +2670,10 @@ static  hb2_d hb2;
 static  hbp_d hbp;
 //#pragma omp threadprivate(hb1,hb2,hbp)
  TStopwatch         _w;
- unsigned int       TotalEv;
- unsigned int       BadEv;
- unsigned int       TotalTrig;
+ unsigned long long       TotalEv;
+ unsigned long long       BadEv;
+ unsigned long long        TotalTrig;
+
 Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 ~Service(){
 }
