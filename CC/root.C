@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.314 2011/06/11 17:29:04 sdifalco Exp $
+//  $Id: root.C,v 1.315 2011/06/14 15:23:52 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4958,14 +4958,14 @@ if(getsetup()){
    unsigned long long t=getsetup()->fScalersReturn[i]->first;
    
   unsigned long long mask=1;
-  // cout << i <<" "<<(t>>32)<<endl;
+//   cout << i <<" "<<(t>>32)<<endl;
    mask=(mask<<32)-1;
    tme[i]=double(t>>32)+double(t& mask)/1000000.;
   }
   double ct=double(UTime())+Frac(); 
-  //cout <<" utime "<<UTime()<<" "<<Frac()<<" "<<ct-UTime()<<endl;
+  cout <<" utime "<<UTime()<<" "<<Frac()<<" "<<ct-UTime()<<endl;
   float lt=s0[0]+(ct-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  //cout <<tme[0]<<" "<<tme[1]<<" "<<ct<<" "<<tme[1]-tme[0]<<" "<<ct-tme[0]<<endl;
+ // cout <<tme[0]<<" "<<tme[1]<<" "<<ct<<" "<<tme[1]-tme[0]<<" "<<ct-tme[0]<<endl;
   //cout <<"two "<<s0[0]<<" "<<s0[1]<<" "<<lt<<endl;
   return lt;
 }

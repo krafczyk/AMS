@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.58 2011/06/10 16:26:07 choutko Exp $
+//  $Id: trdrec.C,v 1.59 2011/06/14 15:23:52 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -526,7 +526,7 @@ return (WriteAll || status);
 
 
 integer AMSTRDTrack::build(int rerun){
-
+   Relax=false;
   _Start();
 
   int nrh=0;
@@ -606,7 +606,6 @@ again:
        _Start();
        goto again;
      }
-     Relax=false;
 
   return NTrackFound;
 }
@@ -921,8 +920,11 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
      AMSPoint alpha=sdir.crossp(p->_Base._PCluster[i]->getCooDir());
      AMSPoint beta= sdir.crossp(dc);
      number t=alpha.prod(beta)/alpha.prod(alpha);
-     if(t>p->_Base._PCluster[i]->getHitL())t=p->_Base._PCluster[i]->getHitL();
-     else if (t<-p->_Base._PCluster[i]->getHitL())t=-p->_Base._PCluster[i]->getHitL();
+      number delta=5;
+     if(p->_Base._PCluster[i]->getmult()==1){
+     if(t>p->_Base._PCluster[i]->getHitL()+delta)t=p->_Base._PCluster[i]->getHitL()+delta;
+     else if (t<-p->_Base._PCluster[i]->getHitL()-delta)t=-p->_Base._PCluster[i]->getHitL()-delta;
+     }
       p->_Base._Hit[i]=(p->_Base._PCluster[i]->getCoo()+p->_Base._PCluster[i]->getCooDir()*t);
       p->_Base._EHit[i]=AMSPoint(p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit());
       AMSPoint dc2=sp-p->_Base._Hit[i];
