@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.14 2011/05/21 21:49:47 choutko Exp $
+//  $Id: ami2root.C,v 1.15 2011/06/14 17:54:01 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -307,11 +307,21 @@ else if(timelast<end){
 
 	data_vals** vals=0;
 //         vals=get_real_valsN(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
+             int retry=0;
+retry:
          vals=get_real_valsN_fast(node_numbers[num]->name,datatypes[data_type]->name,start,end, &nval);
-         if(!vals){
+         if(!vals ){
            cerr<<"  Unable to get values "<<endl;
-           tm=true;
-           goto finish;
+           
+//           tm=true;
+//           goto finish;
+if(retry++>2){
+              continue;
+}
+else{
+             sleep(3);
+             goto retry;
+}
          }      
 	if(nval)cout <<" tag "<<subtype->tag<<" "<<nval<<endl;  
 	for(int ii=0;ii<nval;ii++){
