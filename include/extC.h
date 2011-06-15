@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.24 2011/06/07 14:05:28 choutko Exp $
+//  $Id: extC.h,v 1.25 2011/06/15 23:13:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -10,20 +10,30 @@
 #include "typedefs.h"
 //
 
+
 /*
    action load the available iss attitude angles for the gps_begin<gpstime<gps_end time interval
    return 0 if success
-   return not 0 if failure t
+   return 1 if requested time interval cannot be fully covered
+   return 2 if no data if avalable or other error
    input gps_begin gps_end
 */
 extern "C" int LoadISSAtt(unsigned int gps_begin, unsigned int gps_end);
 
+
+
 /*
-   Action  provides roll,pitch,yaw in LVLH, radians for the gpstime
-   input gpstime
+   Action  provides roll,pitch,yaw in LVLH, radians for the given time
+     by linear interpolation
+
+   input gpstime, unix time
+   input fraction ,second fraction
+
    return 0 if success
+   return 1 if extrapolation was used
+   return 2 if no data is available or other error 
 */
-extern "C" int ISSAtt(float * roll, float *pitch, float *yaw, unsigned int gpstime);
+extern "C" int ISSAtt(float * roll, float *pitch, float *yaw, unsigned int gpstime, float fraction);
 
 
 extern "C" number rnormx();

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.532 2011/05/24 14:51:20 choutko Exp $
+//  $Id: event.C,v 1.533 2011/06/15 23:13:22 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4553,19 +4553,12 @@ unsigned int gpsdiff=15;
 if(AMSNtuple::LoadISS(_time)){
 ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6-gpsdiff);
 _NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
-// put reasonable yaw pitch roll
-if(_time<1306183800+86400*8){
-_Pitch=165./180*3.141592;
-_Roll=179.5/180*3.1415926;
-_Yaw=12/180*3.1415926;
 }
-else{
-_Pitch=0;
-_Roll=0;
-_Yaw=0;
-}
+int ret=AMSNtuple::ISSAtt(_Roll,_Pitch,_Yaw,double(_time)+_usec/1.e6-gpsdiff);
+static int print=0;
+if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSAtt Returns "<<ret<<" "<<_Roll<<" "<<_Pitch<<" "<<_Yaw<<" "<<_time<<endl;
 
-}
+
 }
 
 

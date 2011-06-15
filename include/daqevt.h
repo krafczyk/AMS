@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.84 2011/06/06 19:39:56 choutko Exp $
+//  $Id: daqevt.h,v 1.85 2011/06/15 23:13:23 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -36,24 +36,24 @@ friend class DAQEvent;
 };
 
 class DAQCompress {
-protected:
-static unsigned int   huffman_code[256];
-static unsigned short huffman_first_code[16];
-static unsigned short huffman_decode_table[16][256];
-static unsigned short huffman_array[0xC000];
-static unsigned int   huffman_length;
-static bool           _huffman_init;
-static bool           _huffman_swap;
-static void           huffman_init();
-static unsigned short huffman_bit(unsigned short *data, unsigned int i) {
-  return (data[i>>4] & (1 << (0xF - (i&0xF)))) >> (0xF - (i&0xF));
-};
-public:
-static size_t         compressable(unsigned short *istream, size_t inputl);
-static bool           compress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
-static size_t         decompressable(unsigned short *istream, size_t inputl);
-static bool           decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
-
+ protected:
+  static unsigned int   huffman_code[256];
+  static unsigned short huffman_first_code[16];
+  static unsigned short huffman_decode_table[16][256];
+  static unsigned short huffman_array[0xC000];
+  static unsigned int   huffman_length;
+  static bool           _huffman_init;
+  static bool           _huffman_swap;
+  static unsigned short _huffman_version;
+  static void           huffman_init(unsigned int run_id);
+  static unsigned short huffman_bit(unsigned short *data, unsigned int i) {
+    return (data[i>>4] & (1 << (0xF - (i&0xF)))) >> (0xF - (i&0xF));
+  };
+ public:
+  static size_t         compressable(unsigned short *istream, size_t inputl, unsigned int run_id);
+  static bool           compress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
+  static size_t         decompressable(unsigned short *istream, size_t inputl, unsigned int run_id);
+  static bool           decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
 };
 
 class DAQBlockType  {

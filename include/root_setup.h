@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.23 2011/05/27 16:58:53 choutko Exp $
+//  $Id: root_setup.h,v 1.24 2011/06/15 23:13:23 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -172,7 +172,17 @@ public:
 TString Name;
 TString TL1;
 TString TL2;
+
 };
+
+class ISSAtt{
+public:
+float Roll; ///< Roll in LVLH, Rad
+float Pitch; ///< Pitch in LVLH, Rad
+float Yaw; ///< Yaw in LVLH, Rad
+ClassDef(ISSAtt,1)       //ISS Attitude Data
+};
+
 class Header{
 public:
   uinteger Run;
@@ -189,7 +199,7 @@ public:
 //#pragma omp threadprivate(fgIsA)
 };
 public:
-  Header fHeader;
+    Header fHeader;
     SlowControlR fSlowControl;
   typedef map <unsigned int,TDVR> TDVR_m;
  typedef map <unsigned int,TDVR>::iterator TDVR_i;
@@ -208,10 +218,12 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,GPSTime> GPSTime_m;
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;
+ typedef map <double,ISSAtt> ISSAtt_m;
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
+ typedef map <double,ISSAtt>::iterator ISSAtt_i;
     GPSTime_m fGPSTime;    ///< GPS Time
   ISSData_m fISSData;    ///< ISS Aux Data
-
+  ISSAtt_m fISSAtt;      ///< ISS Attitude angles
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
    typedef map <unsigned long long,ScalerMon>::iterator Scalers_i;
    Scalers_m fScalers; ///<  Scalers Map
@@ -262,8 +274,9 @@ static    AMSSetupR * gethead(){return _Head;}
  void Reset();
  AMSSetupR();
  void LoadISS(unsigned int t1, unsigned int t2);
+ int LoadISSAtt(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,8)       //AMSSetupR
+ClassDef(AMSSetupR,9)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

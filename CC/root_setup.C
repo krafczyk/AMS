@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.40 2011/06/08 15:05:29 choutko Exp $
+//  $Id: root_setup.C,v 1.41 2011/06/15 23:13:22 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -74,6 +74,7 @@ Purge();
 AMSSetupR::AMSSetupR(){
 Reset();
 }
+  ClassImp(AMSSetupR::ISSAtt)
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
@@ -475,7 +476,10 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    systemc+=tmp;
    system(systemc);
    fISSData.clear();
+   fISSAtt.clear();
    LoadISS(fHeader.Run,fHeader.Run);
+   LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+   
    return false; 
   }
   else{
@@ -501,7 +505,9 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    systemc+=tmp;
    system(systemc);
    fISSData.clear();
+   fISSAtt.clear();
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
+   LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    return true;
    }
 }
@@ -918,3 +924,137 @@ if(++k!=fScalers.end())fScalersReturn.push_back(k);
 return fScalersReturn.size();
 }
 }
+
+
+
+
+
+int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
+#ifdef __ROOTSHAREDLIBRARY__
+return 0;
+}
+#else
+
+ char AMSISSlocal[]="/afs/cern.ch/user/a/altec/public/";
+char * AMSISS=getenv("AMSISS");
+if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+
+if(t1>t2){
+cerr<< "AMSSetupR::LoadISSAtt-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadISSAtt-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+const char fpatb[]="ISS_ATT_EULR_LVLH-";
+const char fpate[]="-24H.csv";
+
+// convert time to GMT format
+
+// check tz
+   unsigned int tzd=0;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    tm tmf;
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+   char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+    
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     string fname=AMSISS;
+     fname+=fpatb;
+     char utmp[80];
+     sprintf(utmp,"%u-%03u",yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     ifstream fbin;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     if(fbin){
+      while(fbin.good() && !fbin.eof()){
+        char line[80];
+        fbin.getline(line,79);
+        
+        if(isdigit(line[0])){
+         char *pch;
+         pch=strtok(line,".");
+         ISSAtt a;
+         if(pch){
+          tm tmf;
+          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+          time_t tf=mktime(&tmf)+tzd;
+          pch=strtok(NULL,",");
+          char tm1[80];
+          sprintf(tm1,".%s",pch);
+          double tc=tf+atof(tm1);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          a.Yaw=atof(pch)*3.14159267/180;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          a.Pitch=atof(pch)*3.14159267/180;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          a.Roll=atof(pch)*3.14159267/180;
+           fISSAtt.insert(make_pair(tc,a));
+          
+          if(tc>=t1 && tc<=t2){
+           if(bfound!=2){
+               fISSAtt.clear();
+               fISSAtt.insert(make_pair(tc,a));
+               bfound=2;
+//               cout <<" line "<<line<<" "<<tc<<endl;
+           }
+          }
+         else if(tc<t1)bfound=1;
+         else if(tc>t2){
+             efound=1;
+             break;
+         }
+      }   
+     }
+     }
+     }
+     else{
+       cerr<<"AMSSetupR::LoadISSAtt-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+      dc=1;
+      yc++;
+     }
+    }
+
+
+int ret;
+if(bfound &&efound)ret=0;
+else if(!bfound && !efound )ret=2;
+else ret=1;
+    cout<< "AMSSetupR::LoadISSAtt-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
+
+return ret;
+}
+#endif

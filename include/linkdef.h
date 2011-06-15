@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.90 2011/05/21 13:01:57 mmilling Exp $
+//  $Id: linkdef.h,v 1.91 2011/06/15 23:13:23 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -134,6 +134,7 @@
 #pragma link C++ class amsvmc_RunConfiguration+;
 #endif
 
+#pragma link C++ class AMSSetupR::ISSAtt+;
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
 #pragma link C++ class std::map<unsigned int,std::vector<float> >+;

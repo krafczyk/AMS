@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.105 2011/05/24 13:14:42 choutko Exp $
+//  $Id: event.h,v 1.106 2011/06/15 23:13:23 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -23,6 +23,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+
+
+
 const int maxthread=32;
 class AMSEvent: public AMSNode{
 private:
