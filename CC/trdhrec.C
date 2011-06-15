@@ -13,6 +13,12 @@ void AMSTRDHSegment::_copyEl(){
 #ifdef __WRITEROOT__
   if(PointerNotSet())return;
   TrdHSegmentR & ptr =AMSJob::gethead()->getntuple()->Get_evroot02()->TrdHSegment(_vpos); 
+  
+  ptr.fTrdRawHit.clear();
+  for (int i=0; i<(int)gbhits.size(); i++) 
+    if (gbhits[i])
+      ptr.fTrdRawHit.push_back(gbhits[i]->GetClonePointer());
+
 #endif
 }
 

@@ -13,6 +13,7 @@
 #include "TMath.h"
 
 class AMSTimeID;
+class AMSTRDRawHit;
  
 const int maxtrdhrecon=64;
 
@@ -165,6 +166,8 @@ class TrdHReconR{
 
   /// vector of TrdRawHit objects (used as input to reconstruction)
   vector<TrdRawHitR> rhits;
+
+  vector<AMSTRDRawHit*> gbhits;
   
   /// vector of reconstructed TrdHSegment objects
   vector<TrdHSegmentR> hsegvec;
@@ -183,6 +186,7 @@ class TrdHReconR{
   /// default ctor
   TrdHReconR():tracking_min_amp(5){
     rhits.clear();
+    gbhits.clear();
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
@@ -191,6 +195,7 @@ class TrdHReconR{
 
   ~TrdHReconR(){
     rhits.clear();
+    gbhits.clear();
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
@@ -249,7 +254,7 @@ class TrdHReconR{
   
   bool update_tdv_array(int debug=0);
 
-  ClassDef(TrdHReconR,11)
+  ClassDef(TrdHReconR,12)
 };
 #endif
 

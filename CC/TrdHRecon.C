@@ -256,14 +256,10 @@ int TrdHReconR::DoPrefit(int debug){
 	
 	if(fabs(resid)<maxresid)
 	  seg->AddHit(rhits.at(h),h);
-
       }
       
       if(debug>0){
 	printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
-	for(int i=0;i<seg->fTrdRawHit.size();i++){
-	  printf("hit %i iter %i\n",i,seg->pTrdRawHit(i));
-	}
       }
       
       int lr=1;
@@ -284,6 +280,7 @@ int TrdHReconR::DoPrefit(int debug){
 	  if(debug>0)printf("Lin Reg residuals %.2f < %.2f %i (dz %.2f em %.2e)\n",resid,maxresid,fabs(resid)<maxresid,rzd.z-seg->z,seg->em);
 	  if(fabs(resid)<maxresid)
 	    seg->AddHit(rhits.at(h),h);
+	  
 	}
 	
 	if(n0>=seg->fTrdRawHit.size()){
@@ -551,11 +548,11 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float x=0.,y=0.;
     tr->propagateToZ(rzd.z,x,y);
     
-    float base=770.+230./(rzd.z-132.);
-    float side=320.+100./(rzd.z-132.);
-    float line=720.+205./(rzd.z-132.);
+    float base=770.+230.*600./(rzd.z-82.);
+    float side=320.+100.*600./(rzd.z-82.);
+    float line=720.+205.*600./(rzd.z-82.);
 
-    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(x)>side){
+    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(y)>side){
      if(tr)delete tr;  
      return 0;
    } 
@@ -653,6 +650,7 @@ int TrdHReconR::combine_segments(int debug){
 
 void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vector<TrdHTrackR> t){
   rhits.clear();
+  gbhits.clear();
   hsegvec.clear();
   htrvec.clear();
 
@@ -663,6 +661,7 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
 
 void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
   rhits.clear();
+  gbhits.clear();
   htrvec.clear();
   hsegvec.clear();
   refhits.clear();
@@ -670,13 +669,15 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
 
   clear();
   if(r.size()<3)return;
-  for(int n=0;n<r.size();n++)AddHit(&r[n]);
+  for(int n=0;n<r.size();n++)
+    AddHit(&r[n]);
 
   retrdhevent(debug);
 }
 
 int TrdHReconR::build(){
   rhits.clear();
+  gbhits.clear();
   hsegvec.clear();
   htrvec.clear();
   refhits.clear();
@@ -705,19 +706,14 @@ int TrdHReconR::build(){
       }
     }
     
-    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+
     // fill array of TrdRawHits
-
-    int hitnum=0;
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",0);Hi;Hi=Hi->next()){
-      rhits.push_back(Hi);
-    }
-
-
-    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",1);Hi;Hi=Hi->next()){
-      rhits.push_back(Hi);
-    }
-    
+    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+    for(int s=0;s<2;s++)
+      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",s);Hi;Hi=Hi->next()){
+	gbhits.push_back(Hi);
+	rhits.push_back(Hi);
+      }
     delete cont2;
     
     retrdhevent();
@@ -848,6 +844,9 @@ void TrdHReconR::AddSegment(TrdHSegmentR* seg){
   if(seg){
     VCon* cont2=GetVCon()->GetCont("AMSTRDHSegment");
 #ifndef __ROOTSHAREDLIBRARY__
+    for(int i=0;i<seg->nTrdRawHit();i++)
+      seg->gbhits.push_back(gbhits[seg->fTrdRawHit[i]]);
+
     AMSTRDHSegment* amsseg=new AMSTRDHSegment(seg);
 #else
     TrdHSegmentR* amsseg=seg;

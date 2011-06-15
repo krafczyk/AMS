@@ -8,6 +8,8 @@
 
 using namespace std;
 
+class AMSTRDRawHit;
+
 /// Class to store 2D tracks in xz or yz plane
 class TrdHSegmentR: public TrElem {
  public:
@@ -35,6 +37,8 @@ class TrdHSegmentR: public TrElem {
   vector<int> fTrdRawHit;
 
   vector<TrdRawHitR> hits; //!
+
+  vector<AMSTRDRawHit*> gbhits; //!
 
   /// return number of hits
   int NTrdRawHit();
@@ -86,6 +90,7 @@ class TrdHSegmentR: public TrElem {
   virtual ~TrdHSegmentR(){
     fTrdRawHit.clear();
     hits.clear();
+    gbhits.clear();
     clear();}
 
   void clear();
@@ -147,6 +152,6 @@ p=0;
 #endif
 
 
-  ClassDef(TrdHSegmentR, 8);
+  ClassDef(TrdHSegmentR, 9);
 };
 #endif

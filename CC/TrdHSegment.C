@@ -31,6 +31,7 @@ TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){
 
 TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){
   fTrdRawHit.clear();
+  gbhits.clear();
   hits.clear();
 }
 
@@ -39,6 +40,7 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,floa
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
 {
   fTrdRawHit.clear();
+  gbhits.clear();
   hits.clear();
 };
 
@@ -46,6 +48,7 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, flo
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
 {
   fTrdRawHit.clear();
+  gbhits.clear();
   hits.clear();
   SetHits(Nhits_,pthit);
 };
@@ -59,13 +62,10 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
   em=seg->em;
   er=seg->er;
   Nhits=seg->Nhits;
-  fTrdRawHit.clear();
-  hits.clear();
-  for(vector<int>::iterator it=seg->fTrdRawHit.begin();it!=seg->fTrdRawHit.end();it++)
-    fTrdRawHit.push_back(*it);
-  for(int i=0;i<seg->hits.size();i++)
-    hits.push_back(seg->hits.at(i));
 
+  fTrdRawHit=seg->fTrdRawHit;
+  hits=seg->hits;
+  gbhits=seg->gbhits;
   Chi2=seg->Chi2;
 };
 
@@ -245,7 +245,6 @@ void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
   hits.push_back(hit);
   fTrdRawHit.push_back(iter);
   Nhits=fTrdRawHit.size();
-
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
@@ -253,7 +252,6 @@ void TrdHSegmentR::RemoveHit(int iter){
   hits.erase(hits.begin()+iter);
   fTrdRawHit.erase(fTrdRawHit.begin()+iter);
   Nhits=fTrdRawHit.size();
-
 }
 
 

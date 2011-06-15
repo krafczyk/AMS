@@ -39,12 +39,8 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
   for(int i=0;i<20;i++)elayer[i]=tr->elayer[i];
   clear();
 
-  for(vector<int>::iterator it=tr->fTrdHSegment.begin();it!=tr->fTrdHSegment.end();it++)
-    fTrdHSegment.push_back(*it);
-  
-  for(vector<TrdHSegmentR>::iterator it=tr->segments.begin();it!=tr->segments.end();it++)
-    segments.push_back(*it);
-  
+  fTrdHSegment=tr->fTrdHSegment;
+  segments=tr->segments;
 };
 
 int TrdHTrackR::NTrdHSegment() {return fTrdHSegment.size();;}
@@ -73,21 +69,21 @@ float TrdHTrackR::Theta(){ return acos(Dir[2]);}
 
 float TrdHTrackR::ex(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i].d==0)return segments[i].er;
+    if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::ey(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i].d==1)return segments[i].er;
+    if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->er;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::emx(){
   for(int i=0;i!=nTrdHSegment();i++){
-    if(segments[i].d==0)return segments[i].em;
+    if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->em;
   }
   return 1.e6;
 }
@@ -95,22 +91,22 @@ float TrdHTrackR::emx(){
 float TrdHTrackR::emy(int debug){
   if(debug)printf("TrdHTrackR::emy - ntrdhsegment %i\n",nTrdHSegment());
   for(int i=0;i!=nTrdHSegment();i++){
-    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",i,segments[i].d,segments[i].m,segments[i].em);
-    if(segments[i].d==1)return segments[i].em;
+    if(debug)printf("segment %i - d %i m %.2f em %.2f\n",i,pTrdHSegment(i)->d,pTrdHSegment(i)->m,pTrdHSegment(i)->em);
+    if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->em;
   }
   return 1.e6;
 }
 
 float TrdHTrackR::mx(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(segments[i].d==0)return segments[i].m;
+      if(pTrdHSegment(i)->d==0)return pTrdHSegment(i)->m;
     }
     return 1.e6;
   }
 
   float TrdHTrackR::my(){
     for(int i=0;i!=nTrdHSegment();i++){
-      if(segments[i].d==1)return segments[i].m;
+      if(pTrdHSegment(i)->d==1)return pTrdHSegment(i)->m;
     }
     return 1.e6;
   }
