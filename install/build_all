@@ -11,6 +11,7 @@ endif
 
 unsetenv MARCH
 unsetenv PGTRACK
+setenv ECALBDT 1
 source /Offline/vdev/install/amsvar.icc64
 source /Offline/vdev/install/g4i
 gmake allg4
