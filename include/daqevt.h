@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.85 2011/06/15 23:13:23 choutko Exp $
+//  $Id: daqevt.h,v 1.86 2011/06/16 22:26:10 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -98,7 +98,7 @@ int16u calculate_CRC16(int16u * dat, int16u len);
 time_t _Time;
 uinteger _usec;
 public:
-int16u _lvl3[2];
+int16u _lvl3[4];
 protected:
 int16u *  _pcur;
 int16u * _pData;

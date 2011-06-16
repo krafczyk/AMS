@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.220 2011/06/15 23:13:22 choutko Exp $
+//  $Id: daqevt.C,v 1.221 2011/06/16 22:26:06 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -827,6 +827,7 @@ bool DAQEvent::_ComposedBlock(){
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
+_HeaderOK();
   if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
@@ -1393,7 +1394,7 @@ integer DAQEvent::_DDGSBOK(){
 
     if(_isddg(*(_pcur+_cll(_pcur)))){
       if( calculate_CRC16(_pcur+_cll(_pcur)+1,_cl(_pcur)-1-_cll(_pcur))){
-       cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<endl;
+       cerr<<"DAQEvent::_DDGSBOK-E-CRCError "<<_Run<<endl;
        return 0;
       }
       static int nprint=0;

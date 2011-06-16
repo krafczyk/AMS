@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.678 2011/06/13 21:08:34 choutko Exp $
+# $Id: RemoteClient.pm,v 1.679 2011/06/16 22:26:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -844,6 +844,7 @@ if($#{$self->{DataSetsT}}==-1){
 #     push @{$self->{DataSetsT}}, $dataset;
      $dataset->{datamc}=0;
      $dataset->{g4}="";
+     $dataset->{build}="";
      $dataset->{delta}=0;
      $dataset->{singlejob}=0;
      foreach my $job (@jobs){
@@ -857,6 +858,10 @@ if($#{$self->{DataSetsT}}==-1){
          }
          if($job=~/^g4=true/){
              $dataset->{g4}="g4";
+         }
+         if($job=~/^build=/){
+            my @vrs= split '=',$job;
+             $dataset->{build}=$vrs[1];
          }
          if($job=~/^delta=/){
                   my @vrs= split '=',$job;
@@ -7400,11 +7405,11 @@ print qq`
         my $gbatch="";
         my $gbatchcomp="";
         if($dataset->{g4}=~/g4/){
-           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}"."$dataset->{build}";
            $gbatch=$gbatchcomp.".$dataset->{g4}";
         }
         else{
-           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}"."$dataset->{build}";
            $gbatchcomp=$gbatch.".g4";
         }
         
@@ -8679,11 +8684,11 @@ anyagain:
         my $gbatch="";
         my $gbatchcomp="";
         if($dataset->{g4}=~/g4/){
-           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatchcomp=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}"."$dataset->{build}";
            $gbatch=$gbatchcomp.".$dataset->{g4}";
         }
         else{
-           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}";
+           $gbatch=$ret->[0][0].".$dataset->{version}".".$dataset->{datamc}"."$dataset->{build}";
            $gbatchcomp=$gbatch.".g4";
         }
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";

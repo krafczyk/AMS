@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.533 2011/06/15 23:13:22 choutko Exp $
+//  $Id: event.C,v 1.534 2011/06/16 22:26:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3329,7 +3329,7 @@ void AMSEvent::buildraw(
 
 void AMSEvent::buildraw2009(
               integer type, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[2]){
+              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[4]){
 
 
     id=(*(p+6)) |  (*(p+5))<<16;
@@ -3347,6 +3347,12 @@ void AMSEvent::buildraw2009(
     }
     // lvl3
     for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
+    for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
+    if(type==0x11 && run>1308200000){
+// to be changed in future;
+    lvl3[3]=0;
+    lvl3[2]=*(p+7+2);      
+    }
 }
     
 

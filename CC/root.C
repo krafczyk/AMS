@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.316 2011/06/16 15:16:35 bbeische Exp $
+//  $Id: root.C,v 1.317 2011/06/16 22:26:06 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2773,9 +2773,7 @@ void HeaderR::Set(EventNtuple02* ptr){
   VelTheta=  ptr->VelTheta;
   VelPhi=    ptr->VelPhi;
   ThetaM=    ptr->ThetaM;
-  BAv=ptr->BAv;
-  TempTracker=ptr->TempTracker;
-  TrStat=ptr->TrStat;
+      TrStat=ptr->TrStat;
     
 }
 #endif
@@ -4202,6 +4200,7 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
   Edr=ptr->getsublength(4);
   L1dr=ptr->getsublength(5);
   L3dr=ptr->_lvl3[0] | (ptr->_lvl3[1]<<16);
+  L3Event=ptr->_lvl3[2];
   for(int k=0;k<sizeof(JError)/sizeof(JError[0]);k++){
       JError[k]=ptr->getjerror(k);
   }
@@ -4762,7 +4761,7 @@ char * DaqEventR::Info(int number){
     int e=(L3dr>>13)&1;
     int p=(L3dr>>14)&1;
     int a=(L3dr>>15)&1;
-    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d ",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767);
+    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d L3counter %d",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767,L3Event);
   return _Info;
   } 
 

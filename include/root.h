@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.365 2011/06/16 15:16:35 bbeische Exp $
+//  $Id: root.h,v 1.366 2011/06/16 22:26:10 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -212,13 +212,13 @@ static char _Info[255];
   unsigned int Event;      ///<event number
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
-  int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
+  unsigned int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
 
 
 
 // shuttle/ISS parameters
 
-   float RadS;    ///<iss orbit altitude cm  (I2000 coo sys)
+   float RadS;    ///<iss orbit altitude cm  (J2000 coo sys)
    float ThetaS;  ///<theta (GTOD rad)  
    float PhiS;    ///<phi   (GTOD rad)
    float Yaw;     ///<ISS yaw (LVLH rad) 
@@ -238,8 +238,6 @@ static char _Info[255];
    float AMSEqDec; ///<(ISN) AMS pointing direction (equat. declination)
    float AMSGalLat; ///<(ISN) AMS pointing direction (gal. latitude)
    float AMSGalLong; ///<(ISN) AMS pointing direction (gal. longitude) 
-   float BAv;      ///< Average Bx Measurement From CCEB  (kG)
-   float TempTracker; ///< Average Tracker Temperature from CCEB (deg C)
    int   TrStat;     ///< SetofFlags for Problems during Tracking
    //
 
@@ -327,13 +325,13 @@ public:
                           if(status&(1<<(i+2)))comp+=int(pow(10.,i));
                          }
   
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d B_{x} %6.2f (kG) T_{Tracker} %6.1f^{o}C TrStat %x",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,BAv,TempTracker,TrStat);
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d  TrStat %x",
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,TrStat);
   return _Info;
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,14)       //HeaderR
+  ClassDef(HeaderR,15)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -355,15 +353,17 @@ public:
   unsigned int Edr;  ///< Ecal length in bytes 
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
+  unsigned int  L3Event; ///<Lvl3 event counter
   unsigned  int JStatus; ///< Jinj Status word  (short)
   unsigned char JError[24]; ///< upper 8 bit of corresponding slave in jinj block  
+  
   DaqEventR(DAQEvent *ptr);
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,3)       //DaqEventR
+ClassDef(DaqEventR,4)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 
