@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.364 2011/06/14 15:24:18 choutko Exp $
+//  $Id: root.h,v 1.365 2011/06/16 15:16:35 bbeische Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2360,7 +2360,8 @@ public:
   /// \return the difference in the reconstructed beta between the two RICH reconstrution algorithm, of inf if one reconstruction is missing. The value returned is RichRingR::Beta-RichRingBR::Beta.
   double RichBetasDiscrepancy();
 
-
+  /// \return true if position at z=(center of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
+  bool IsInsideTRD();
 
   ClassDef(ParticleR,12)       //ParticleR
 #pragma omp threadprivate(fgIsA)

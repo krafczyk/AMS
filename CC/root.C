@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.315 2011/06/14 15:23:52 choutko Exp $
+//  $Id: root.C,v 1.316 2011/06/16 15:16:35 bbeische Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3190,6 +3190,18 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 #endif
 }
 
+bool ParticleR::IsInsideTRD()
+{
+  // 8 points of the acceptance octagon at z = zTrd
+  const int npoints = 8;
+  double acceptance_x[npoints] = {+40, +78, +78, +40, -40, -78, -78, -40};
+  double acceptance_y[npoints] = {+76, +35, -35, -76, -76, -35, +35, +76};
+
+  // check if extrapolated point is inside acceptance octagon
+  double x = TRDCoo[0][0];
+  double y = TRDCoo[0][1];
+  return TMath::IsInside(x, y, npoints, acceptance_x, acceptance_y);
+}
 
 double ParticleR::RichBetasAverage(){
   if(pRichRing() && pRichRingB()){
