@@ -131,7 +131,7 @@ class ReadBDT : public IClassifierReader {
       fVmax[2] = 77.4569396972656;
       fVmin[3] = -5580571.5;
       fVmax[3] = 92.7463760375977;
-      fVmin[4] = -38567145472;
+      fVmin[4] = -38567145472.;
       fVmax[4] = 17.283390045166;
       fVmin[5] = -77.6060180664062;
       fVmax[5] = 36431.53515625;
@@ -145,7 +145,7 @@ class ReadBDT : public IClassifierReader {
       fVmax[9] = 4.90593671798706;
       fVmin[10] = -9999;
       fVmax[10] = 4.08844804763794;
-      fVmin[11] = -14103583744;
+      fVmin[11] = -14103583744.;
       fVmax[11] = 23.7884883880615;
 
       // initialize input variable types

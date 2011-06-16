@@ -108,7 +108,7 @@ public:
   void CloseOutputFile();
 
    using TTree::Process;
-   Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=1000000000000, Long64_t firstentry=0); // *MENU*
+   Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=1000000000000L, Long64_t firstentry=0); // *MENU*
   
   ClassDef(AMSChain,5);       //AMSChain
 #pragma omp threadprivate(fgIsA)
