@@ -43,3 +43,10 @@ http://pcamss0.cern.ch/cgi-bin/mon/rc.o.cgi?QPartD=bt.aug2010.v5.p3&QPPer=-1&QTe
 
 please ask A. Eline in case of problems
 
+In case of occasional nonavailability of files
+
+1.  make sure file exists and accessible by you 
+    by nsls and/or rfcp tools
+2.   send complains describing your problems to castor.support@cern.ch
+
+
