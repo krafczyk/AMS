@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.41 2011/06/15 23:13:22 choutko Exp $
+//  $Id: root_setup.C,v 1.42 2011/06/17 14:57:41 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1022,10 +1022,10 @@ char tmp2[255];
            fISSAtt.insert(make_pair(tc,a));
           
           if(tc>=t1 && tc<=t2){
-           if(bfound!=2){
+           if(abs(bfound)!=2){
                fISSAtt.clear();
                fISSAtt.insert(make_pair(tc,a));
-               bfound=2;
+               bfound=bfound?2:-2;
 //               cout <<" line "<<line<<" "<<tc<<endl;
            }
           }
@@ -1050,7 +1050,7 @@ char tmp2[255];
 
 
 int ret;
-if(bfound &&efound)ret=0;
+if(bfound>0 &&efound)ret=0;
 else if(!bfound && !efound )ret=2;
 else ret=1;
     cout<< "AMSSetupR::LoadISSAtt-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
