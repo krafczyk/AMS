@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.366 2011/06/16 22:26:10 choutko Exp $
+//  $Id: root.h,v 1.367 2011/06/17 13:19:49 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1214,6 +1214,8 @@ int getTileIndex();
 static int getTileIndex(float x,float y);
 static void updateCalibration( AMSEventR &event);
 static TH1F indexHistos[122]; 
+static double _sumIndex[122]; 
+static int _totalIndex[122]; 
 static double indexCorrection[122];
 static int _lastUpdate[122]; 
 static int _numberUpdates[122];
@@ -1248,13 +1250,13 @@ public:
   /// Get used multiplicative correction due to the dynamic calibration
   double betaCorrection();
   /// Get multiplicative correction for a crossing point in the radiator
-  static double betaCorrection(float x,float y);
+  static double betaCorrection(float index,float x,float y);
   /// Get number of time the calibration for the used tile has been updated
   int updates();
   /// Get number of time the calibration for the tile at the given crossing point has been updated
   static int updates(float x,float y);
   /// Push a value into the syn calibration manually
-  static void calPush(double beta,float x,float y);
+  static void calPush(double beta,double index,float x,float y);
   ///@}
 
 
@@ -1373,9 +1375,11 @@ public:
   /// \param usedInsteadNpCol Is the same parameter used in RingWidth
   /// \return Width of the ring
   float getWidth(bool usedInsteadNpCol=false){return RingWidth(usedInsteadNpCol);}
-  /// Refractive index used in the reconstruction
+
+  /// \return Uncorrected index associated to the track crossing point. 
+  float getRawIndexUsed()     {return 1.0/Beta/cos(Theta);}
   /// \return Index associated to the track crossing point. 
-  float getIndexUsed()     {return 1.0/Beta/betaCorrection()/cos(Theta);}
+  float getIndexUsed()     {return getRawIndexUsed()/betaCorrection();}
   /// The track parameters extrapolated to the radiator as used in the reconstruction.
   /// \return A pointer to an array of 5 floats, corresponding to x,y,z theta and phi of the track used in the reconstruction
   const float *getTrackEmissionPoint(){return AMSTrPars;}
@@ -1399,7 +1403,7 @@ public:
 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,21)           // RichRingR
+  ClassDef(RichRingR,22)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 

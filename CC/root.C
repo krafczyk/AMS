@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.317 2011/06/16 22:26:06 choutko Exp $
+//  $Id: root.C,v 1.318 2011/06/17 13:19:49 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1488,6 +1488,32 @@ int RichRingR::_numberUpdates[122]={0,0,0,0,0,0,0,0,0,0,0,0,
 				    0,0,0,0,0,0,0,0,0,0,0,
 				    0,0,0,0,0,0,0,0,0,0,0,
 				    0,0,0,0,0,0,0,0,0,0,0};
+
+
+int RichRingR::_totalIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0,
+				 0,0,0,0,0,0,0,0,0,0,0};
+
+
+double RichRingR::_sumIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0,
+				  0,0,0,0,0,0,0,0,0,0,0};
 
 void AMSEventR::GetBranch(TTree *fChain){
   char tmp[255];
@@ -3832,17 +3858,24 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
 }
 
 
-void RichRingR::calPush(double beta,float x,float y){
+void RichRingR::calPush(double beta,double index,float x,float y){
   if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}
 
 
   int tile=getTileIndex(x,y);
   if(tile<0) return;                                // Reasonable tile
-  indexHistos[tile].SetBins(100,0.95,1.005); 
+  if(indexHistos[tile].GetNbinsX()==1)
+    indexHistos[tile].SetBins(200,1/1.33,1.015);
+
+
 
   // Add the current event
   indexHistos[tile].Fill(beta);
   
+  // Keep track of the mean index of the tile
+  _sumIndex[tile]+=index;
+  _totalIndex[tile]++;
+
   // Check if we have to update the calibration constants
   if(indexHistos[tile].GetEntries()<_tileCalEvents) return;
 
@@ -3857,35 +3890,33 @@ void RichRingR::calPush(double beta,float x,float y){
   if(weight<_tileCalEvents) return;
   sum/=weight;
 
+  double mean_index=_sumIndex[tile]/_totalIndex[tile];
+
   //
   // We  got the value, store it
   //
   if(_lastUpdate[tile]==1)
-    indexCorrection[tile]=1.0/sum;
+    indexCorrection[tile]=sum*mean_index;
   else
-    indexCorrection[tile]=1.0/sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+    indexCorrection[tile]=sum*mean_index*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
 
   _lastUpdate[tile]=2;
   _numberUpdates[tile]++;
-  indexHistos[tile].Reset();  
+  indexHistos[tile].Reset();
+  _sumIndex[tile]=0;
+  _totalIndex[tile]=0;
 }
 
 bool RichRingR::calSelect(AMSEventR &event){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}
-  //  SELECT("1 Tracker, RICH particle",(event.fStatus&0b110011)==0b110001);
   SELECT("1 Tracker, RICH particle",(event.fStatus&0x33)==0x31);
-  //  SELECT("No antis",!(event.fStatus&(0b11<<21)));
   SELECT("No antis",!(event.fStatus&(0x3<<21)));
-  //  SELECT("At most 1 trd track",(event.fStatus&(0b11<<8))<=(0b1<<8));
   SELECT("At most 1 trd track",(event.fStatus&(0x3<<8))<=(0x1<<8));
-  //  SELECT("At most 4 tof clusters",(event.fStatus&(0b111<<10))<=(0b100<<10));
   SELECT("At most 4 tof clusters",(event.fStatus&(0x7<<10))<=(0x4<<10));
-  //  SELECT("At least 1 tr track",event.fStatus&(0b11<<13));
   SELECT("At least 1 tr track",event.fStatus&(0x3<<13));
-  //  SELECT("At least 1 rich ring",event.fStatus&(0b11<<15));
   SELECT("At least 1 rich ring",event.fStatus&(0x3<<15));
   SELECT("At most 1 crossing particle at rich",event.pParticle(0)->RichParticles<=1);
-  //  SELECT("Beta is one",fabs(ring.Particle(0).Momentum)>_pThreshold);
+
   RichRingR *ring=event.Particle(0).pRichRing();
   SELECT("PointersCheck",ring && ring->iTrTrack()>-1);
   SELECT("Charge is one",ring->Used/ring->NpExp<1.5*1.5);
@@ -3900,7 +3931,7 @@ void RichRingR::switchDynCalibration(){
   if(_updateDynamicCalibration) cout<<"RichRingR Dynamic calibration activated"<<endl;
   else{
     cout<<"RichRingR Dynamic calibration de-activated"<<endl;
-    for(int i=0;i<122;i++) {indexCorrection[i]=_lastUpdate[i]=1;indexHistos[i].Reset();}
+    for(int i=0;i<122;i++) {indexCorrection[i]=_lastUpdate[i]=1;indexHistos[i].Reset();_numberUpdates[i]=_totalIndex[i]=_sumIndex[i]=0;}
   }
 }
 
@@ -3918,6 +3949,10 @@ void RichRingR::updateCalibration(AMSEventR &event){
   }
   // Add the current event
   indexHistos[tile].Fill(ring->Beta);
+
+  // Keep track of the mean index of the tile
+  _sumIndex[tile]+=ring->getRawIndexUsed();
+  _totalIndex[tile]++;
   
   // Check if we have to update the calibration constants
   if(indexHistos[tile].GetEntries()<_tileCalEvents) return;
@@ -3933,18 +3968,22 @@ void RichRingR::updateCalibration(AMSEventR &event){
   if(weight<_tileCalEvents) return;
   sum/=weight;
 
+  double mean_index=_sumIndex[tile]/_totalIndex[tile];
+
   //
   // We  got the value, store it
   //
   int now=event.fHeader.Time[0];
   if(now<_lastUpdate[tile]-30*60 || _lastUpdate[tile]==1)
-    indexCorrection[tile]=1.0/sum;
+    indexCorrection[tile]=sum*mean_index;
   else
-    indexCorrection[tile]=1.0/sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+    indexCorrection[tile]=sum*mean_index*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
 
   _lastUpdate[tile]=now;
   _numberUpdates[tile]++;
   indexHistos[tile].Reset();
+  _sumIndex[tile]=0;
+  _totalIndex[tile]=0;
 }
 
 int RichRingR::updates(){
@@ -3960,17 +3999,19 @@ int RichRingR::updates(float x,float y){
   return _numberUpdates[t];
 }
 
-double RichRingR::betaCorrection(float x,float y){
+double RichRingR::betaCorrection(float index,float x,float y){
   int t=getTileIndex(x,y);
   if(t<0) return 1;
-  return indexCorrection[t];
+  if(_lastUpdate[t]==1) return 1; // defaults to no correction
+  return index/indexCorrection[t];
 }
 
 double RichRingR::betaCorrection(){
   int t=getTileIndex();
   if(t<0) return 1;
+  if(_lastUpdate[t]==1) return 1;
   if(IsNaF()) t=121;
-  return indexCorrection[t];
+  return getRawIndexUsed()/indexCorrection[t];
 }
 
 int RichRingR::getTileIndex(float x,float y){
