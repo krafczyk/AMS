@@ -1,4 +1,4 @@
-// $Id: tkalign.C,v 1.4 2011/03/31 10:10:06 haino Exp $
+// $Id: tkalign.C,v 1.5 2011/06/17 00:30:49 shaino Exp $
 #include "TObjArray.h"
 #include "TDirectory.h"
 #include "TH3.h"
@@ -26,7 +26,7 @@ class TrFit;
 class PlAlign : public TFcnAdapter {
 
 public:
-  enum { NPLA = 6, NPAR = 6 };
+  enum { NPLA = 6, NLAY = 9, NPAR = 6 };
 
 protected:
   Int_t fPlane;
@@ -42,6 +42,7 @@ protected:
 
 public:
   static Double_t fRange;
+  static Int_t    fMode;  // 1:Plane 2:Layer 3:ExPlane
 
 public:
   PlAlign(Int_t plane) : fPlane(plane), TFcnAdapter(0) { Init(); }
@@ -81,8 +82,12 @@ class TkAlign {
 public:
   enum { NPLA = 6, NLAY = 9, NLAD = 15, NHIST = 5 };
 
-  enum { kXpFit = 1,  kYpFit = 2, kZyFit = 4, kYtFit = 8, kSensY = 16,
-	 kZtFit = 32, kPlFit = 4096 };
+  enum { kXpFit = 0x0001, kYpFit = 0x0002, kZyFit = 0x0004, kYtFit = 0x0008, 
+	 kSensY = 0x0010, // 16
+	 kZtFit = 0x0020, // 32
+	 kPlFit = 0x1000, // 4096
+	 kLyFit = 0x2000  // 8192
+       };
 
 protected:
   TkLadder   *fLadder;
@@ -170,11 +175,12 @@ public:
 
 
 Double_t PlAlign::fRange = 1;
+Int_t    PlAlign::fMode  = 1;
 
 void PlAlign::Init(void)
 {
   Double_t rng = fRange;
-  if (fPlane < 5) rng *= 0.05;
+  if (fMode != 2 && fPlane >= 5) rng *= 20;
 
   fDir = gDirectory;
 
@@ -213,9 +219,10 @@ void PlAlign::Fill(TrFit &trfit, Int_t ih)
   TH3F *hist3 = (TH3F *)fHarray.At(2);
   TH3F *hist4 = (TH3F *)fHarray.At(3);
 
-  if ( fPlane == 3  && TMath::Abs(trfit.GetP0x()) > 40) return;
-  if ((fPlane == 2 ||
-       fPlane == 4) && TMath::Abs(trfit.GetP0x()) > 45) return;
+  Int_t pln = (fPlane == 1) ? 1 : fPlane/2+1; // fPlane;
+  if ( pln == 3  && TMath::Abs(trfit.GetP0x()) > 40) return;
+  if ((pln == 2 ||
+       pln == 4) && TMath::Abs(trfit.GetP0x()) > 45) return;
 
   if (trfit.GetXs(ih) >= 0) {
     hist1->Fill(trfit.GetP0x(), trfit.GetDxDz(), trfit.GetXr(ih));
@@ -248,12 +255,17 @@ void PlAlign::Prof(Int_t mode)
   Double_t rpk [8] = { 0.4, 0.4,  0.4, 0.4,  0.1, 0.3,   1.0,  1.0 };
 
   cout << endl;
-  cout << "##### Plane: " << fPlane << endl;
+  if (fMode == 2)
+    cout << "##### Layer: " << fPlane << endl;
+  else
+    cout << "##### Plane: " << fPlane << endl;
 
   for (Int_t i = 0; i < 4; i++) {
     TH3F *hist = (TH3F *)fHarray.At(i);
-
     if (hist) {
+     if (mode == 2)
+      fHarray.Add(Prof(hist, mode, wthd, pmax, emax, emin));
+     else {
       Double_t wsum = hist->GetSumOfWeights();
       if (wsum < 1e5) { emax = 100e-4; wthd = 200; }
       if (wsum > 1e6)   emax =  20e-4;
@@ -275,9 +287,9 @@ void PlAlign::Prof(Int_t mode)
 	rpk [j] = -1;
       }
 
-
       fHarray.Add(Prof(hist, mode, wthd, pmax, emax, emin, 
 		       sig1[j]*1e-4, sig2[j]*1e-4, rpk[j]));
+     }
     }
     else
       cerr << Form("hist%d does not exist", i+1) << endl;
@@ -303,6 +315,7 @@ TH2F *PlAlign::Prof(TH3F *hist, Int_t mode, Int_t wthd,
 
   TH1F *hchk = (TH1F *)gDirectory->Get("hchk");
   if (!hchk) hchk = new TH1F("hchk", "Prof.check", 4*nbx*nby, 0, 4*nbx*nby);
+
 
   TH2F *prof = new TH2F(shn, hist->GetName(), 
 			nbx, ax->GetXmin(), ax->GetXmax(),
@@ -451,9 +464,9 @@ Double_t PlAlign::Chisq(const PVec &par, Bool_t pset) const
 	Double_t rer = prof->GetBinError  (j+1, k+1);
 	Double_t ddz = (i%2 == 0) ? db*pos : -dc*pos;
 	Double_t drs = (i/2 == 0) ? dx : dy;
-      //Double_t drt = (i == 1) ?  da*pos 
-      //            : ((i == 2) ? -da*pos : 0);
-	Double_t drt = (i == 2) ? -da*pos : 0;
+	Double_t drt = (i == 1) ?  da*pos 
+                    : ((i == 2) ? -da*pos : 0);
+      //Double_t drt = (i == 2) ? -da*pos : 0;
 
 	Double_t ddr = res -drs-drt +(dz+ddz)*dtr;
 	chisq += ddr*ddr/rer/rer;
@@ -512,17 +525,47 @@ Int_t PlAlign::Minimize(PlAlign *plfit, Int_t fix, Int_t verb, Int_t nfcn)
   }
 
   if (TkDBc::Head) {
-    TkPlane *pl = TkDBc::Head->GetPlane(plfit->GetPlane());
-    pl->posA = pl->posA + plfit->fPosA;
-    pl->rotA = pl->rotA * plfit->fRotA;
+    if (fMode == 2) {
+      plfit->fRotA.GetRotAngles(par[3], par[4], par[5]);
+      par[0] = plfit->fPosA[0]/1e-4;
+      par[1] = plfit->fPosA[1]/1e-4;
+      par[2] = plfit->fPosA[2]/1e-4;
+      par[3] /= 1e-4/40;
+      par[4] /= 1e-4/40;
+      par[5] /= 1e-4/40;
 
-    pl->rotA.GetRotAngles(par[3], par[4], par[5]);
-    par[0] = pl->posA[0]/1e-4;
-    par[1] = pl->posA[1]/1e-4;
-    par[2] = pl->posA[2]/1e-4;
-    par[3] /= 1e-4/40;
-    par[4] /= 1e-4/40;
-    par[5] /= 1e-4/40;
+      for (Int_t i = 0; i < TkDBc::Head->GetEntries(); i++) {
+	TkLadder *lad = TkDBc::Head->GetEntry(i);
+	if (lad->GetLayer() == plfit->fPlane)
+	  lad->posA = lad->posA + plfit->fPosA;
+      }
+    }
+    else {
+      Int_t  plane  = plfit->GetPlane();
+      Bool_t update = ((fMode == 1 && plane <= 4) ||
+		       (fMode == 3 && plane >= 5)) ? kTRUE : kFALSE;
+
+      AMSPoint posa;
+      
+      if (update) {
+	TkPlane *pl = TkDBc::Head->GetPlane(plane);
+	pl->posA = pl->posA + plfit->fPosA;
+	pl->rotA = pl->rotA * plfit->fRotA;
+	pl->rotA.GetRotAngles(par[3], par[4], par[5]);
+	posa = pl->posA;
+      }
+      else {
+	posa = plfit->fPosA;
+	plfit->fRotA.GetRotAngles(par[3], par[4], par[5]);
+      }
+
+      par[0] = posa[0]/1e-4;
+      par[1] = posa[1]/1e-4;
+      par[2] = posa[2]/1e-4;
+      par[3] /= 1e-4/40;
+      par[4] /= 1e-4/40;
+      par[5] /= 1e-4/40;
+    }
   }
 
   for (Int_t i = 0; i < NPAR; i++) {
@@ -800,6 +843,7 @@ void TkAlign::InitShists(Double_t rng)
 
   Int_t npx = nbx;
   if (fTkMap.size() == 0 && fPlVec.size() == NPLA) npx = NPLA;
+  if (fTkMap.size() == 0 && fPlVec.size() == NLAY) npx = NLAY;
 
   Double_t bpx = npx+0.5;
   fSarray.Add(new TH1F("hpar1", "Fitpar (X)",     npx, 0.5, bpx));
@@ -874,22 +918,26 @@ void TkAlign::InitMap(Double_t rng)
 
 PlAlignVec TkAlign::fPlVec;
 
-void TkAlign::InitVec(void)
+void TkAlign::InitVec()
 {
   fPlVec.clear();
 
   TDirectory *fsave = gDirectory;
   if (!fsave) fsave = gROOT;
 
-  for (Int_t i = 0; i < NPLA; i++) {
+  Int_t mode = PlAlign::fMode;
+  Int_t nv   = (mode == 2) ? NLAY : NPLA;
+  for (Int_t i = 0; i < nv; i++) {
     TDirectory *dir;
 
     fsave->cd();
 
+    TString sdn = Form("%s %d", ((mode == 2) ? "Layer" : "Plane"), i+1);
+
     if (fsave != gROOT)
-      dir = new TDirectoryFile(Form("dir%d", i+1), Form("Plane %d", i+1));
+      dir = new TDirectoryFile(Form("dir%d", i+1), sdn);
     else
-      dir = new TDirectory    (Form("dir%d", i+1), Form("Plane %d", i+1));
+      dir = new TDirectory    (Form("dir%d", i+1), sdn);
     dir->cd();
     fPlVec.push_back(new PlAlign(i+1));
   }
@@ -899,7 +947,8 @@ void TkAlign::InitVec(void)
 
 void TkAlign::CopyVec(TFile &file)
 {
-  for (Int_t i = 0; i < NPLA; i++) {
+  Int_t nv = fPlVec.size();
+  for (Int_t i = 0; i < nv; i++) {
     PlAlign *plalg = fPlVec.at(i);
     TDirectory *dref = (TDirectory *)file.Get(Form("dir%d", i+1));
     if (dref) plalg->Copy(dref);
@@ -1033,7 +1082,8 @@ Double_t TkAlign::Fit(Int_t *tkid, Int_t *imlt, Float_t *xcog, Float_t *ycog)
     if (tkid[j] != 0) Fill(tkid[j], trfit, i);
 
     Int_t ily = TMath::Abs(tkid[j])/100-1;
-    Int_t ipl = TkDBc::Head->_plane_layer[ily]-1;
+    Int_t ipl = (PlAlign::fMode == 2) ? ily
+                                      : TkDBc::Head->_plane_layer[ily]-1;
 
     PlAlign *palg = (0 <= ipl && ipl < fPlVec.size()) ? fPlVec.at(ipl) : 0;
     if (palg) {
@@ -1047,14 +1097,17 @@ Double_t TkAlign::Fit(Int_t *tkid, Int_t *imlt, Float_t *xcog, Float_t *ycog)
 
 void TkAlign::Proc(Int_t bits)
 {
-  if (fPlVec.size() == NPLA) {
-    for (Int_t i = 0; i < NPLA; i++) {
-      fPlVec.at(i)->Prof();
+  if (fPlVec.size() >= NPLA) {
+    for (Int_t i = 0; i < fPlVec.size(); i++) {
+      fPlVec.at(i)->Prof(2); //();
 
       if (!(bits & kPlFit)) continue;
 
-      Int_t bpla = bits & 0x3f;
-      if (bpla && !(bpla & (1 << i))) continue;
+      if (0) { //(PlAlign::fMode == 1) {
+	Int_t bpla = bits & 0x3f;
+	if (bpla && !(bpla & (1 << i))) continue;
+      }
+      else if (i >= 7) continue;
 
       Int_t fix = (bits >> 6) & 0x3f;
       PlAlign::Minimize(fPlVec.at(i), fix);

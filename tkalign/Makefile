@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2011/04/04 20:24:22 haino Exp $
+# $Id: Makefile,v 1.11 2011/06/17 00:30:48 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -16,7 +16,7 @@ WDIR = $(AMSSRC)/tkalign
 ARCH = $(shell $(ROOTSYS)/bin/root-config --arch)
 HOST = $(shell hostname --domain)
 DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__ -D_WDIR_=\"$(WDIR)\"
-FLGS = -I$(ROOTSYS)/include -I../include -Iinclude
+FLGS = -I$(ROOTSYS)/include -I../include -Iinclude -IGeoUtils/include
 OPTS = -O3
 
 
@@ -65,7 +65,7 @@ endif
 
 
 MODS = tbalign tbafit tbaf tbafm tbafcp \
-       pmalign pmafit pmaf pmafcp pmrinv tkmerge
+       pmalign pmafit pmaf pmafcp pmrinv tkmerge tdv
 
 BINS = $(addprefix bin/, $(MODS))
 
@@ -73,6 +73,16 @@ all: $(BINS)
 
 %.o: CC/m_%.C
 	$(CXX) -c -o $@ $(DEFS) $(FLGS) $(OPTS) $<
+
+bin/pmalign: CC/pmalign.C $(LIBP)
+	$(CXX) -c -o pmalign.o $(DEFS) $(FLGS) $(OPTS) CC/m_pmalign.C
+	$(LD) -o $@ pmalign.o $(LIBP) $(LIBR) GeoUtils/lib/libaGeoUtil.a -lgfortran
+	rm -f pmalign.o
+
+bin/tdv : CC/tdv.C $(LIBP)
+	$(CXX) -c -o tdv.o $(DEFS) $(FLGS) $(OPTS) CC/tdv.C
+	$(LD) -o $@ tdv.o $(LIBP) $(LIBR) commonsi.o
+	rm -f tdv.o
 
 bin/%: %.o $(LIBP)
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
