@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.235 2011/06/10 18:53:56 choutko Exp $
+//  $Id: particle.C,v 1.236 2011/06/21 13:08:14 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -55,7 +55,8 @@ PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   number SearchReg[2]={12,4};
   number MaxCos(0.95);
-  double zpl=83.5; //Z low of TRD in cm;
+  double zpl=63.;//approximate utof height
+  //83.5; //Z low of TRD in cm;
 
   // TRD point and direction at Z=  zpl
   AMSPoint trd_pnt0     = ptrd->getCooStr();
@@ -513,6 +514,9 @@ void AMSParticle::trd_Hlikelihood(){
 	  _TRDHPlik=TrdHChargeR::gethead()->GetELikelihood(tr,0.,2);
 	  _TRDCCnhit=TrdHChargeR::gethead()->GetNCC(tr);
 
+
+	  AMSTRDHTrack* ptr=(AMSTRDHTrack*)AMSEvent::gethead()->getC("AMSTRDHTrack",0)->getlast();
+	  _phtrd=ptr;
 	}
       }
     }

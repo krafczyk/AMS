@@ -120,6 +120,17 @@ public:
       //printf("bin %i x %i y %i c %i\n",i,bins[i].x,bins[i].y,bins[i].c);
     //    }
   }
+
+  float Integral(int debug=0){
+    float integral=0.;
+    for( int i=0; i<(int)bins.size(); i++){
+      integral+=bins[i].c;
+      if(debug)printf(" integral - bin %i entries %.2f\n",i,bins[i].c);
+    }
+    if(debug)printf("return integral %.2f\n",integral);
+    return integral;
+  }
+
   void Fill( float x, float y, float za, float zb, float weight ){
     ix = int((x-Xlo)*Fx);
     iy = int((y-Ylo)*Fy);
@@ -184,7 +195,7 @@ class TrdHReconR{
   float tracking_min_amp;
 
   /// default ctor
-  TrdHReconR():tracking_min_amp(5){
+  TrdHReconR():tracking_min_amp(10.){
     rhits.clear();
     gbhits.clear();
     hsegvec.clear();

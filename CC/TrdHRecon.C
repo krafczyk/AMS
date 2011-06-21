@@ -32,14 +32,14 @@ int TrdHTrackR::numa=0;
 
 ClassImp(TrdHReconR)
 
-TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
-  {0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0};
+  TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
+{0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0,0,0,0,0,0,0,
+ 0,0,0,0};
 
 TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
 #ifndef __ROOTSHAREDLIBRARY__
@@ -133,7 +133,7 @@ int TrdHReconR::DoPrefit(int debug){
   }
   
   if(debug)printf("pairs x %i y %i\n",pairs_x,pairs_y);
-  if(pairs_x<5&&pairs_y<5)return 0;
+  if(pairs_x<5&&pairs_y<5)return -1;
   
   vector<PeakXYZW> peakvec[2];
   
@@ -144,13 +144,14 @@ int TrdHReconR::DoPrefit(int debug){
     if(d==0)hist=&H2V_mvrx;
     if(d==1)hist=&H2V_mvry;
     
-    if(debug)printf("findpeaks d %i histo size %i\n",d,(int)hist->bins.size());
+    if(debug)printf("findpeaks d %i histo size %i integral %.2f\n",d,(int)hist->bins.size(),hist->Integral());
     if(!hist||hist->bins.size()==0)continue;
     
     for(vector<BIN>::iterator i=hist->bins.begin(); i!=hist->bins.end(); i++){
-      // suppress number of segments for events lot of hits (hadronic interaction)
-      if(i->c<1+log(hist->bins.size()))continue;
-      
+
+      // suppress number of segments for events lots of hits
+      if(i->c<2)continue;//1+log(hist->Integral()))continue;
+
       // check distance to known maxima - check in 3x3 box around maximum
       int cb=-1;
       int biter=0;
@@ -209,7 +210,7 @@ int TrdHReconR::DoPrefit(int debug){
 
       if(debug)printf("maxima %i sw %.2f dz %.2f\n",miter2,sw,zmax-zmin);
       if(sw==0.||zmax-zmin==0.)continue;
-      if(peakvec[d].size()>0&&(sw<300||zmax-zmin<10.))continue;
+      if((peakvec[d].size()>0&&sw<300)||zmax-zmin<20.)continue;
       float prop_offset=sx/sw+(sz/sw-TRDz0)*sy/sw;
 
       PeakXYZW peak(prop_offset,sy/sw,sz/sw,zmin,zmax,sw);
@@ -227,9 +228,20 @@ int TrdHReconR::DoPrefit(int debug){
   if(debug)printf("DoPrefit segx %i segy %i\n",(int)peakvec[0].size(),(int)peakvec[1].size());
   
   int prefit=peakvec[0].size()+peakvec[1].size();
+  while(prefit>100){
+    cerr<<"TrdHRecon::DoPrefit - too many prefit candidates x "<<peakvec[0].size()<<" y "<<peakvec[1].size()<<endl;
+    if(peakvec[0].size()>peakvec[1].size())peakvec[0].pop_back();
+    else if(peakvec[1].size()>peakvec[0].size())peakvec[1].pop_back();
+    else{
+      if(peakvec[0].size()>10)peakvec[0].pop_back();
+      if(peakvec[1].size()>10)peakvec[1].pop_back();
+    }
+    prefit=peakvec[0].size()+peakvec[1].size();
+  }
+  
   if(prefit<=0||prefit>100){
     if(debug)printf("skipping \n");
-    return 0;
+    return -2;
   }
 
   if(debug>0)printf("Entering DoLinReg\n");
@@ -262,9 +274,12 @@ int TrdHReconR::DoPrefit(int debug){
 	printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
       }
       
+      int nlr=0;
       int lr=1;
       while(lr>=0){
 	lr=seg->LinReg(debug);
+	if(!lr)return 0;
+	nlr++;
 	int n0=seg->fTrdRawHit.size();
 	seg->fTrdRawHit.clear();	
 	seg->hits.clear();	
@@ -283,13 +298,17 @@ int TrdHReconR::DoPrefit(int debug){
 	  
 	}
 	
-	if(n0>=seg->fTrdRawHit.size()){
-	  if(debug)printf("no more hits - breaking loop\n");
+	if(n0==(int)seg->fTrdRawHit.size()){
+	  if(debug)printf("no change in number of hits - breaking loop\n");
+	  break;
+	}
+	else if(nlr>3&&seg->fTrdRawHit.size()>0){
+	  if(debug)printf("nlr %i - more hits than in last iteration %i>%i - breaking loop\n",nlr,(int)seg->fTrdRawHit.size(),n0);
 	  break;
 	}
 	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,(int)seg->fTrdRawHit.size());
       }
-      
+      if(debug)printf("number of linreg %i\n",nlr);
       if(seg->fTrdRawHit.size()>3){
 	seg->calChi2();
 	
@@ -548,25 +567,25 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float x=0.,y=0.;
     tr->propagateToZ(rzd.z,x,y);
     
-    float base=770.+230.*600./(rzd.z-82.);
-    float side=320.+100.*600./(rzd.z-82.);
-    float line=720.+205.*600./(rzd.z-82.);
+    float base=77.+23.*60./(rzd.z-82.);
+    float side=32.+10.*60./(rzd.z-82.);
+    float line=72.+20.5*60./(rzd.z-82.);
 
     if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(y)>side){
-     if(tr)delete tr;  
-     return 0;
-   } 
+      if(tr)delete tr;  
+      return 0;
+    } 
   }
   for(int i=0;i!=hsegvec.at(is2).nTrdRawHit();i++){
     TRDHitRZD rzd=TRDHitRZD(hsegvec.at(is2).hits.at(i));
     float x=0.,y=0.;
     tr->propagateToZ(rzd.z,x,y);
     
-    float base=770.+230./(rzd.z-132.);
-    float side=320.+100./(rzd.z-132.);
-    float line=720.+205./(rzd.z-132.);
+    float base=77.+23.*60./(rzd.z-82.);
+    float side=32.+10.*60./(rzd.z-82.);
+    float line=72.+20.5*60./(rzd.z-82.);
 
-    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(x)>side){
+    if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(y)>side){
       if(tr)delete tr;  
       return 0;
     } 
@@ -624,20 +643,21 @@ int TrdHReconR::combine_segments(int debug){
 
   // check for vertices
   /*  vector<pair<int,int> > check=check_secondaries();
-
+      
   if(check.size()>0){
-    // skip secondary vertices for now
-    for(int i=0;i!=check.size();i++){
-      int s=abs(check[i].second);
-      s_done[s]=1;
-      if(check[i].second==99&&check[i].first==99){
-	if(debug) printf("\nHADRONIC INTERACTION IN TRD\n");
-	//	save_ev=1;
-	return nhtrvec;
-      }
-    }
+  // skip secondary vertices for now
+  for(int i=0;i!=check.size();i++){
+  int s=abs(check[i].second);
+  s_done[s]=1;
+  if(check[i].second==99&&check[i].first==99){
+  if(debug) printf("\nHADRONIC INTERACTION IN TRD\n");
+  //	save_ev=1;
+  return nhtrvec;
+  }
+  }
   }
   */
+
   n_done=0;
   for(int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
 
@@ -654,7 +674,10 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   hsegvec.clear();
   htrvec.clear();
 
-  for(int i=0;i!=r.size();i++)rhits.push_back(r[i]);
+  for(int i=0;i!=r.size();i++){
+    if(r[i].Amp>tracking_min_amp)
+      rhits.push_back(r[i]);
+  }
   for(int i=0;i!=s.size();i++)hsegvec.push_back(s[i]);  
   for(int i=0;i!=t.size();i++)htrvec.push_back(t[i]);
 }
@@ -693,34 +716,50 @@ int TrdHReconR::build(){
 	referr.push_back(Hi->getecoo());}	
     }
   }
-    AMSTrRecHit *ttr;
-    for (i=0;i<2;i++) {
-      for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
-#ifndef _PGTRACK_
-	refhits.push_back(ttr->getHit());
-	referr.push_back(ttr->getEHit());
-#else
-	refhits.push_back(ttr->GetCoord());
-	referr.push_back(ttr->GetECoord());
-#endif
-      }
-    }
-    
 
-    // fill array of TrdRawHits
-    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-    for(int s=0;s<2;s++)
-      for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",s);Hi;Hi=Hi->next()){
-	gbhits.push_back(Hi);
-	rhits.push_back(Hi);
-      }
-    delete cont2;
-    
-    retrdhevent();
- 
-    return 1;
+  // no TR hits at this stage of reco
+  /*
+  AMSTrRecHit *ttr;
+  for (i=0;i<2;i++) {
+    for (ttr=AMSTrRecHit::gethead(i); ttr!=NULL; ttr=ttr->next()){
+      int lay=-1;float z=0.;
+#ifndef _PGTRACK_
+      lay=ttr->getLayer();
+      z=ttr->getHit()[2];
 #else
-    return 0;
+      lay=ttr->GetLayer();
+      z=ttr->GetCoord()[2];
+      
+#endif
+      printf("lay %i z %.2f\n",lay,z);
+#ifndef _PGTRACK_
+      refhits.push_back(ttr->getHit());
+      referr.push_back(ttr->getEHit());
+#else
+      refhits.push_back(ttr->GetCoord());
+      referr.push_back(ttr->GetECoord());
+#endif
+    }
+  }
+  */
+  //  for(int i=0;i<refhits.size();i++)
+  //    printf("refhit %i - %.2f %.2f %.2f\n",i,refhits[i][0],refhits[i][1],refhits[i][2]);
+  
+  // fill array of TrdRawHits
+  VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+  for(int s=0;s<2;s++)
+    for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",s);Hi;Hi=Hi->next()){
+      gbhits.push_back(Hi);
+      if(Hi->Amp()>tracking_min_amp)
+	rhits.push_back(Hi);
+    }
+  delete cont2;
+  
+  retrdhevent();
+ 
+  return 1;
+#else
+  return 0;
 #endif
     
 }    
@@ -753,18 +792,18 @@ void TrdHReconR::clear(){
 }
 int TrdHReconR::retrdhevent(int debug){
   // skip arrays for now
-  int nhcut=1.e6; //  below 40 nTRDRawHits: vector-histo 
+  //  int nhcut=1.e6; //  below 40 nTRDRawHits: vector-histo 
   // above                 array-histo
-  
-  double Hcut=tracking_min_amp;
+
+  //  double Hcut=tracking_min_amp;
   //  if(pev->nTRDRawHit()>100) Hcut=10.0;
   
   if(debug)printf("RawHits %i\n",(int)rhits.size());
   if(rhits.size()<4||rhits.size()>100) return 0;
-  
+
   int prefit=DoPrefit(debug);
 
-  if(!prefit)return 0;
+  if(prefit<0)return 0;
   clean_segvec(debug);
   
   if(debug) printf("got %i segment(s)\n",(int)hsegvec.size());
@@ -822,7 +861,7 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
 	tr->elayer[tr->pTrdHSegment(s)->pTrdRawHit(h)->Layer]+=tr->pTrdHSegment(s)->pTrdRawHit(h)->Amp;
       }
     }
-    
+   
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
 #else
@@ -902,14 +941,14 @@ int TrdHReconR::SelectTrack(int tr){
 int TrdHReconR::SelectEvent(int level){
   int nhit_ontrack=0;
   for(int tr=0;tr<(int)htrvec.size();tr++)
-  for(int seg=0;seg<2;seg++){
-    if(!htrvec[tr].pTrdHSegment(seg)) continue;
-    for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
-      TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
-      if(!hit)continue;
-      if(hit->Amp>5)nhit_ontrack++;
+    for(int seg=0;seg<2;seg++){
+      if(!htrvec[tr].pTrdHSegment(seg)) continue;
+      for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
+	TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
+	if(!hit)continue;
+	if(hit->Amp>5)nhit_ontrack++;
+      }
     }
-  }
   
   int nhit=0;
   for(int i=0;i!=rhits.size();i++){
