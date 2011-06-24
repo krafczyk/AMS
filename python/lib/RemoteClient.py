@@ -706,7 +706,7 @@ class RemoteClient:
                         thread.start_new(self.validaterun,(run,))
                     elif(datamc==run.DataMC and datamc==1): 
                         thread.start_new(self.validatedatarun,(run,))
-                        print "thread started ",run.Run
+                        #print "thread started ",run.Run
                 except:
                     i=0
                     for key in exitmutexes.keys():
@@ -1213,7 +1213,7 @@ class RemoteClient:
         del cpntuples[:]
         del mvntuples[:]
         os.system(rmdir)
-        print "run finished ",run.Run
+        #print "run finished ",run.Run
 	self.sqlserver.Commit()
         mutex.release()
         if(self.mt):
@@ -1222,7 +1222,7 @@ class RemoteClient:
     def validatedatarun(self,run):
         datamc=run.DataMC
         mutex.acquire()
-        print "run started ",run.Run,run.uid
+        #print "run started ",run.Run,run.uid
         odisk=None
         rmdir=""
         rmcmd=[]
@@ -1523,7 +1523,7 @@ class RemoteClient:
         del cpntuples[:]
         del mvntuples[:]
         os.system(rmdir)
-        print "run finished ",run.Run,run.uid
+        #print "run finished ",run.Run,run.uid
 	self.sqlserver.Commit()
         mutex.release()
         if(self.mt):
@@ -1567,6 +1567,8 @@ class RemoteClient:
            filesize=os.stat(inputfile)[ST_SIZE]
        odisk=None
        if(filesize>0):
+           junk=inputfile.split('/')
+           idisk="/"+junk[1]
            #get output disk
            if(outputpath == None):
                stime=100
@@ -1574,7 +1576,7 @@ class RemoteClient:
                while(stime>60):
                    if(odisk!=None):
                        fsmutexes[odisk].release()
-                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period,path)
+                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
@@ -1735,17 +1737,22 @@ class RemoteClient:
         else:
             return self.trimblanks(junk[0]),None,None
        
-    def getOutputPath(self,period,path='/Data'):
+    def getOutputPath(self,period,idisk,path='/Data'):
         #
         # select disk to be used to store ntuples
         #
         gb=0
         outputpath='xyz'
         rescue=self.CheckFS(1,360,path)
+        if(idisk!=None):
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and disk ='%s'ORDER BY priority DESC, available " %(path,idisk)
+            ret=self.sqlserver.Query(sql)
+            if(len(ret)<=0):
+                idisk=None;
         tme=int(time.time())
-        if(tme%2 ==0 and path!='/Data'):
+        if(tme%2 ==0 and idisk==None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
-        else:
+        elif(idisk==None):
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
         ret=self.sqlserver.Query(sql)
         if(len(ret)<=0):
