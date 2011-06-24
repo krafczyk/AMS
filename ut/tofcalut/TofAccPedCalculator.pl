@@ -1006,7 +1006,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
   my $debug="-d";
   if($ServConnect==0){
     unshift @ARGV, "-DOracle:";
-    unshift @ARGV, "-Fpdb_ams";
+    unshift @ARGV, "-Famsdb";
     $ServObject=new DBSQLServer();
     $ServConnect=$ServObject->ConnectRO();
   }

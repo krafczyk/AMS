@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.87 2011/04/20 20:58:53 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.88 2011/06/24 09:16:20 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2488,8 +2488,8 @@ void TOF2JobStat::printstat(){
     printf("   Ion event(not good for abs A-norm)   : % 6d\n",recount[31]);
     printf("   Entries to Tzslw-calib section       : % 6d\n",recount[32]);
     printf("       Momentum within TZSL-limits      : % 6d\n",recount[33]);
-//    printf("       Identified as MIP(not Ion)       : % 6d\n",recount[34]);
     printf("       Counters configuration OK        : % 6d\n",recount[34]);
+    printf("       Identified as MIP(not Ion)       : % 6d\n",recount[35]);
     printf("   Entries to Ampl-calib(OK for A2D)    : % 6d\n",recount[36]);
     printf("       NonIon(TruncEdep), OK for fillam : % 6d\n",recount[37]);
     printf("       Mass**2 OK                       : % 6d\n",recount[38]);

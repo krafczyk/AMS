@@ -60,7 +60,7 @@ cd $TofUserTopDir/headquarters/amsjobwd
 
 umask 000
 
-gbatch.exe <<!
+gbatchPG.exe <<!
 
 LIST
 KINE 14
@@ -83,7 +83,7 @@ c 10=(1)/0-> use/not TDClincor at reco-stage
 c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
 c 30=ref.cal_files set number (=run number)
 c----------- 
-TFCA 1=0.3 2=50. 3=$AVERBETA 7=$AVERBETA  9=0
+TFCA 1=1.2 2=50. 3=$AVERBETA 7=$AVERBETA  9=0
      11=$AMSPOS 12=$TRKUSAGE  18=$RELAXCUT 19=0 29=1 41=$UPDDBFLG
 c 29=0/1 -> flag selecting cal.files reading from official/user directories
 c Time(Tdelv/Tzslw)-calibration:

@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.34 2011/05/24 19:46:16 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.35 2011/06/24 09:16:39 choumilo Exp $
 //       v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -150,13 +150,13 @@ void AMSLVL1Hist::Book(){
   
   AddSet("TrigRates in LVL1");//7
   
-  _filled.push_back(new TProfile("trigh29","FTtof(FTC)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled.push_back(new TProfile("trigh29","FTtof(FTC)Trig-rate vs Time",120,0,lev1trange[0],0,15000.));
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   _filled.push_back(new TProfile("trigh30","FTec(FTE)Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   _filled.push_back(new TProfile("trigh31","Lev1Trig-rate vs Time",120,0,lev1trange[0],0,10000.));
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
-  _filled.push_back(new TProfile("trigh32","TofPlaneSide-MaxRate vs Time",120,0,lev1trange[0],0,10000.));
+  _filled.push_back(new TProfile("trigh32","TofPlaneSide-MaxRate vs Time",120,0,lev1trange[0],0,25000.));
   _filled[_filled.size()-1]->SetYTitle("RATE (Hz)");
   
   
@@ -373,6 +373,7 @@ case 7:
     _filled[i+29]->SetMarkerStyle(20);
     _filled[i+29]->SetMarkerColor(2);
     _filled[i+29]->SetMarkerSize(0.5);
+    if(i==3)_filled[i+29]->SetMaximum(20000.);
     strcpy(name,"Last 120mins since ");
     strcpy(dat,Lvl1Pars::getdat1());
     strcat(name,dat);

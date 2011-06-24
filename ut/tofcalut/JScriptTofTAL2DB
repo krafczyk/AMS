@@ -50,7 +50,7 @@ cd $TofUserTopDir/headquarters/amsjobwd
 
 umask 000
 
-gbatch.exe <<!
+gbatchPG.exe <<!
 
 
 LIST
@@ -113,7 +113,8 @@ c 4=(0)/1/10/100/1000 -> Read (off)/setup/../rec_banks
 c 5=................. -> Write.........................
 c 87=2/1/0->update/not TDV; 88='names' 
 C------------------------------------------------------------------------
-c DAQC 1=1
+DAQC 1=1
+ 2='/afs/cern.ch/ams/Offline/RunsDir/SCI/1305815610'
 c 1=mn, m=1/0->write/not,  n=1/0->read/not; 2->inp.f.n; 42->out.f.n.
 c------------------------------------------------------------------------
 TIME 3=10000000

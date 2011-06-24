@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.102 2011/05/24 14:52:45 choutko Exp $
+//  $Id: trigger102.C,v 1.103 2011/06/24 09:16:20 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -495,8 +495,8 @@ if((TGL1FFKEY.printfl%10)>0){
   }
   HBOOK1(1099,"DeltaEventTime(mksec)",100,0.,2000.,0.);
   HBOOK1(1094,"LiveTime(portion)",100,0.1,1.1,0.);
-  HBOOK1(1294,"LVL1:TofPlaneSide-MaxRate(Hz)",100,0.,2000.,0.);
-  HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,1000.,0.);
+  HBOOK1(1294,"LVL1:TofPlaneSide-MaxRate(Hz)",100,0.,20000.,0.);
+  HBOOK1(1295,"LVL1:FTC-rate(Hz)",100,0.,10000.,0.);
   HBOOK1(1296,"LVL1:FTZ-rate(Hz)",100,0.,500.,0.);
   HBOOK1(1297,"LVL1:FTE-rate(Hz)",100,0.,500.,0.);
   HBOOK1(1298,"LVL1:Lev1-rate(Hz)",100,0.,1000.,0.);
@@ -2375,12 +2375,12 @@ int cid=(len>>16)+1;
     LiveTime[1]=livetm[1];
     trtime[0]=timcal;
   }
-//  if((TGL1FFKEY.printfl%10)>0){
-//#pragma omp critical (hf1)
-//{
-//    HF1(1094,geant(LiveTime[0]),1.);
-//}
-//  } 
+  if((TGL1FFKEY.printfl%10)>0){
+#pragma omp critical (hf1)
+{
+    HF1(1094,geant(LiveTime[0]),1.);
+}
+  } 
 // 
   for(j=0;j<5;j++){//FT-rates(FT,FTC,FTZ,FTE,NonPhys)
     TrigRates[j]=scalmon.FTtrig(j);
@@ -2934,10 +2934,10 @@ integer Trigger2LVL1::buildrawearly(integer len, int16u *p){
         nw3+=2;
       }
       if((TGL1FFKEY.printfl%10)>0){//for compr.fmt fill here(for raw - in BuildRaw because in have it each event)
-#pragma omp critical (hf1)
-{
-        HF1(1094,geant(scalmon.LiveTime(0)),1.);
-}
+//#pragma omp critical (hf1)
+//{
+//        HF1(1094,geant(scalmon.LiveTime(0)),1.);
+//}
       } 
     }
 //---

@@ -25,6 +25,14 @@ sub pw_check{
     $LoginDone=1;
     return;
   }
+#
+  if($CurHost eq "pcamss0"){
+    show_messg("\n   <--- User $TofUserN do not need PW on this host, DB update is granted !!!","Big");
+    $LoginDone=1;
+    $dryrbt->configure(-state=>'normal');
+    return;
+  }
+#
   my $stat=0;
   $pwfn="pwfile";
   open(PWF,"+> $pwfn") or die show_warn("   <-- Cannot open $pwfn !, $!");# clear file if exists

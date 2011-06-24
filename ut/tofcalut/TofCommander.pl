@@ -30,6 +30,7 @@ $tdcsdir="/tdclfiles";
 $AMSDD=$ENV{AMSDataDir};# current AMSDataDir path
 $DaqDataDir=$ENV{RunsDir};# current AMS SCI-data dir (/Offline/RunsDir)
 $USERTD=$ENV{TofUserTopDir};#full path to /tofassuser
+$CurHost=$ENV{HOST};
 $TofUserN="";
 $TofPassW="";
 $UNinAtt=0;  
@@ -76,7 +77,8 @@ $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 #
 @AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
 @AMSHostsList=qw(Any scamsfs1 pcamsr0 pcamsr1 pcamsn0 pcamsf3 pcamss0 );
-@AMSQueuesList=qw(1nh 8nh 1nd 1nw 2nw);
+@AMSQueuesList=qw(8nm 1nh 8nh 1nd 1nw 2nw);
+@CalibrGapList=qw(0 0.37 1.5 6 8 12 24);
 #
 @cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD); 
 #
@@ -118,8 +120,9 @@ my $szx=int($mnwdszx*$displx);#in pixels
 my $szy=int($mnwdszy*$disply);
 $mwndgeom=$szx."x".$szy.$mwposx.$mwposy;
 print "Mwindow geom=",$mwndgeom,"\n";
+print "Host=",$CurHost,"\n";
 $mwnd->geometry($mwndgeom);
-$mwnd->title("TOF Calibration Commander");
+$mwnd->title("TOF Calibration Commander(RootFile version)");
 $mwnd->bell;
 #--------------
 #---> fonts:
@@ -143,7 +146,7 @@ $font11="Helvetica 14 bold italic";# for NormMessage
 #
 #-----> create log-file screen:
 #
-$LogfXsize=0.6;
+$LogfXsize=0.63;
 $log_fr=$mwnd->Frame(-label=>"LogFileFrame", -relief=>'groove', -borderwidth=>5)->place(
                                                       -relwidth=>$LogfXsize, -relheight=>0.95,
                                                       -relx=>(1-$LogfXsize), -rely=>0);
@@ -166,7 +169,7 @@ $logtext->tagConfigure('Orange',-foreground=> orange, -font=>$font4);
 $logtext->tagConfigure('Blue',-foreground=> blue, -font=>$font4);
 $logtext->tagConfigure('Green',-foreground=> green, -font=>$font4);
 #-------------
-my $nbutt=9;
+my $nbutt=10;
 my $bspac=0.002;
 my $width=(1-($nbutt-1)*$bspac)/$nbutt;
 my $bpos=0;
@@ -191,7 +194,7 @@ $bpos+=$width+$bspac;
 @CalTypeButt=();
 $CalType="";
 my $loop=0;
-foreach (qw(PedCal Ped2DB TdcLin TdcL2DB TAUCal TAU2DB)){
+foreach (qw(PedCal Ped2DB TdcLin TdcL2DB TAUCal TACalR TAU2DB)){
   $CalTypButt[$loop]=$ctpanel_fr->Radiobutton(-text => $_, -value => $_,
                                  -font=>$font2, -indicator=>0,
                                  -borderwidth=>3,-relief=>'raised',
@@ -360,6 +363,7 @@ sub StartSess{
   $FinishedJobs=0;# reset on session start, incr. in each "JobOutpControl"-click when finished jobs found 
   $JobConfLogFiles=0;#reset on "JOC"-click, incr. when log-file found and job-confirmed(in "JobOutpControl") 
   $UnFinishedJobs=0;# set on each "Welcome"-call by analizing the SubmJobsList-file
+  $LogFilesReceived=0;
   if($CalType eq "PedCal"){
     $SessName="PEDC";
     $workdir=$USERTD."/headquarters";
@@ -520,6 +524,57 @@ sub StartSess{
     $JOCReady=0;
 #
     TAUC_Welcome();
+  }
+#------------------------------
+  elsif($CalType eq "TACalR"){
+    $SessName="TACR";
+    $workdir=$USERTD."/headquarters";
+    $JobScriptN="JScriptTofTACR";
+    $ResultsBlockLen=3;#<-- TACR log-file results block length (incl.header/trailer)
+#
+    @RefCflistList=();
+    @RefCStatList=();
+    @RefTdelvList=();
+    @RefTzslwList=();
+    @RefAmplfList=();
+    @RefElospList=();
+    @RefTdcorList=();
+#
+    @CflistList=();
+    @CStatList=();
+    @TdelvList=();
+    @TzslwList=();
+    @AmplfList=();
+    @ElospList=();
+    @TdcorList=();
+#
+    $MatchCFSets=0;
+    @MatCflistInd=();
+    @MatCStatInd=();
+    @MatTdelvInd=();
+    @MatTzslwInd=();
+    @MatAmplfInd=();
+    @MatElospInd=();
+    @MatTdcorInd=(); 
+# 
+    @CflistLbox=();
+    @CStatLbox=();
+    @TdelvLbox=();
+    @TzslwLbox=();
+    @AmplfLbox=();
+    @ElospLbox=();
+    @TdcorLbox=();
+#
+    @LogJobMatchIndex=();
+#
+    require 'TofTimeAmplCalibR.pl';
+#
+    $AutoSessFlg="AutoSess";
+    $DBAutoUpdFlg="DBAutoUpd_Off";
+    TmAmCalibrationR();
+    $JOCReady=0;
+#
+    TACR_Welcome();
   }
 #-----------------------------
   elsif($CalType eq "TAU2DB"){

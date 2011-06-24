@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.45 2011/05/03 14:15:25 choumilo Exp $
+//  $Id: tofuser02.C,v 1.46 2011/06/24 09:16:20 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -596,6 +596,7 @@ Nextp:
 //-------------------------------------------> beta><0 problem study:
 //  if(beta<0)return;//tempor**2
 //--------------------------------
+  if(!(chargeTracker==1 && momentum>10.))return;//tempor to check resol
 //
   if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
@@ -925,7 +926,7 @@ Nextp:
 #pragma omp critical (hf1)
 {
       if(betof>0.85 && betof<1.15){//for beta-resol fit
-        HF1(1502,fabs(betof),1.);
+        if(momentum>10)HF1(1502,fabs(betof),1.);
         HF1(1208,chsq,1.);
         HF1(1209,tzer,1.);
       }

@@ -31,7 +31,7 @@ my $drh1=0.15;#height of dir-widgets
 #---
 $dir_fram=$mwnd->Frame(-label => "General Info/Settings :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>$dirfrheight,
+                                                      -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
                                                       -relx=>0, -rely=>0);
 #---
 $amsd_lab=$dir_fram->Label(-text=>"HeadD:",-font=>$font2,-relief=>'groove')->place(
@@ -167,7 +167,7 @@ my $drh2=0.116;#height of runcond-widgets
 #---
 $set_fram=$mwnd->Frame(-label=>"Job Settings :", 
                                                       -relief=>'groove', -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>$setfrheight,
+                                                      -relwidth=>(1-$LogfXsize), -relheight=>$setfrheight,
                                                       -relx=>0, -rely=>$dirfrheight);
 #-------
 $calt_lab1=$set_fram->Label(-text=>"DB-update Request for CalType:",
@@ -361,7 +361,7 @@ $dryrbt->bind("<Button-3>", \&dryrbt_help);
 #frame_progr:
 $prg_fram=$mwnd->Frame(-label=>"DB-update progress :",-background => "red", -relief=>'groove',
                                                       -borderwidth=>5)->place(
-                                                      -relwidth=>0.3, -relheight=>$prgfrheight,
+                                                      -relwidth=>(1-$LogfXsize), -relheight=>$prgfrheight,
                                                       -relx=>0, -rely=>($dirfrheight+$setfrheight));
 $perc_done=0.;
 $prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
@@ -373,7 +373,7 @@ $prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
 $jcl_fram=$mwnd->Frame(-label=>"CalPars2DB-Job control :",-background => "red",
                                                        -relief=>'groove', -borderwidth=>3)
 						       ->place(
-                                                       -relwidth=>0.3, -relheight=>$jclfrheight,
+                                                       -relwidth=>(1-$LogfXsize), -relheight=>$jclfrheight,
                                                        -relx=>0, -rely=>($dirfrheight+$setfrheight+$prgfrheight));
 #---
 $scanbt=$jcl_fram->Button(-text => "Search", -font=>$font2, 
@@ -1037,7 +1037,7 @@ sub scand{
     $MagStat=1;# cold(=on)
     $AmsPos=1;# on earth
   } 
-  elsif{$runmn>1284069601 && $runmx>1284069601){#--->2010 > 10sept
+  elsif($runmn>1284069601 && $runmx>1284069601){#--->2010 > 10sept
     $SetupName="AMS02Space";
     $MagStat=1;# cold(=on)
     $AmsPos=0;# in space
@@ -4065,7 +4065,8 @@ UPDATE:
       $jpar4=$updflg;
       $jpar5=$SetupName;
       $jpar6=$cfilesloc;
-      $jpar7=$cfilenames[0].".111";
+#      $jpar7=$cfilenames[0].".111";
+      $jpar7="111";
       $jpar8=$MagStat;
       $jpar9=$AmsPos;
       $status=0;
@@ -4078,10 +4079,12 @@ UPDATE:
       }
       if($status != 0){
         show_warn("\n   <--- DB-update problems for file(set) $sfilelist[$i] !!!");
+	print "Run failed :",$sfilelist[$i],"\n";
       }
       else{
         show_messg("\n   <--- DB-update is successful for file(set) $sfilelist[$i] !!!");
         $processed[$i]=2;#<-- written to DB
+	print "Run completed :",$sfilelist[$i],"\n";
       }
 #
     }#--->endof "selected-file" check
@@ -4248,9 +4251,9 @@ sub quits_actions
         $curfnl=$pathcalfs."/Tof".$shsn."*.".$run.".log*.*";
         $newfnl=$patharch;
         move($curfn,$newfn) or show_warn("   <-- Archiving failed for cal-file $curfn, $!");# move calf to archive
-        $rwsta = system("mv $curfnl $newfnl");
-        if($rwsta != 0){show_warn("   <-- Archiving failed for log-file $curfnl, $!");}
-        else{show_messg("\n   <--- CalibLogFile $curfnl was moved to archive !");}
+#        $rwsta = system("mv $curfnl $newfnl");
+#        if($rwsta != 0){show_warn("   <-- Archiving failed for log-file $curfnl, $!");}
+#        else{show_messg("\n   <--- CalibLogFile $curfnl was moved to archive !");}
 #        move($curfnl,$newfnl) or show_warn("   <-- Archiving failed for log-file $curfnl, $!");#...logs ...
       }
     }

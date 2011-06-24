@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.56 2011/04/25 22:09:55 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.57 2011/06/24 09:16:20 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -118,7 +118,7 @@ if(hprtf>0){
   HBOOK1(1507,"TmAmC:PartBetaChi2(based on prev calib)",80,0.,16.,0.);//
   HBOOK1(1508,"TmAmC:PartBetaChi2S(based on prev calib)",80,0.,16.,0.);//
   HBOOK1(1509,"TmAmC:PartTrackChi2",80,0.,40.,0.);//
-  if(hprtf>1)HBOOK1(1512,"TmAmC:Effective Beta used as reference for Tzslw-calib",80,0.8,1.,0.);//
+  if(hprtf>0)HBOOK1(1512,"TmAmC:Effective Beta used as reference for Tzslw-calib",80,0.8,1.,0.);//
       
   HBOOK1(1510,"TmAmC:MyTofBetaFit Chisq(prev.calib)",100,0.,25.,0.);
   HBOOK1(1511,"TmAmC:MyTofBetaFit Tzero(prev.calib)",50,-1.,1.,0.);
@@ -173,7 +173,7 @@ if(TFCAFFKEY.hprintf>0){
   HPRINT(1507);
   HPRINT(1508);
   HPRINT(1509);
-  if(TFCAFFKEY.hprintf>1)HPRINT(1512);
+  if(TFCAFFKEY.hprintf>0)HPRINT(1512);
   
   HPRINT(1200);
   HPRINT(1201);
@@ -909,7 +909,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
           if((ama[0]>adcmin && ama[1]>adcmin)
 	                     || ((ama[0]>adcmin || ama[1]>adcmin) && PMEQmode)
 	                                                                      ){// require min. anode signal
-            TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
+            TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(no gain corr)
             qtotl[ilay]=am[0]+am[1];
             qsd1[ilay]=am[0];//side q(pC) for Tzslw-calib
             qsd2[ilay]=am[1];
@@ -1034,9 +1034,9 @@ void TofTmAmCalib::select(){  // calibr. event selection
   }
   if(rr>qrcut && !(RelaxCut || PMEQmode)){
 //cout<<"<--- rejected due to Spike:qmax/meanq="<<qmax<<"/"<<meanq<<" rr="<<rr<<endl; 
-    return; // remove events with "spike" Edep layers(normal calib)
+//    return; // remove events with "spike" Edep layers(normal calib)
   } 
-// 
+ 
   TOF2JobStat::addre(13);
 //
 // -----> remove albedo, very slow and Beta>>1 particles(using only TOF) :
@@ -1085,13 +1085,13 @@ void TofTmAmCalib::select(){  // calibr. event selection
     }
     if(!PMEQmode){//calib-mode
       if(!RelaxCut){
-        if(fabs(betof)<0.7 || fabs(betof)>1.3){
+        if(betof<0.7 || betof>1.3){
 //cout<<"<--- rejected due to PrimitiveBet:beta="<<betof<<endl; 
 	  return;
 	}
       }
       else{
-        if(fabs(betof)<0.1 || fabs(betof)>1.8)return;//relaxed
+        if(betof<0.1 || betof>1.8)return;//relaxed
       }
     }
   }
@@ -1112,6 +1112,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
 //------> Look for the TRACK :
 //
     number pmas(0.938),mumas(0.1057);
+    number momentum;
     number pmom,bet,chi2,betm,beta;
     number chi2t,chi2s,crc;
     number the,phi,rigid,err,trl;
@@ -1202,6 +1203,7 @@ void TofTmAmCalib::select(){  // calibr. event selection
             pbeta=ppart->getpbeta();//pointer to tof beta
             betpatt=pbeta->getpattern();
             beta=pbeta->getbeta();//tof beta
+	    momentum=ppart->getmomentum();
             chi2t=pbeta->getchi2();
             chi2s=pbeta->getchi2S();
             chargeTracker=pcharge->getchargeTracker();
@@ -1242,7 +1244,8 @@ Nextp:
     if(!GoodTrkTrack)rigid=10;//dummy value when no tracker(or magnet off)
     bet=1; 
     if(GoodTrkTrack){
-      pmom=fabs(rigid);
+//      pmom=fabs(rigid);
+      pmom=momentum;//from part(>0=>pos.q)
       if(TFCAFFKEY.hprintf>0){
 #pragma omp critical (hf1)
 {
@@ -1256,7 +1259,7 @@ Nextp:
       if(TFCAFFKEY.truse>0){//use momentum-info from tracker for ref.beta calculation
         MomMeasExist=true;
 	bet=pmom/sqrt(pmom*pmom+imass*imass); 
-        TzslMomOK=(pmom>=TFCAFFKEY.pcut[0] && pmom<=TFCAFFKEY.pcut[1]);//check low/too_high mom.
+        TzslMomOK=(pmom>=TFCAFFKEY.pcut[0] && pmom<=TFCAFFKEY.pcut[1]);//check low/too_high mom, sel.pos.charge
 //
 	if(TFCAFFKEY.caltyp==0)AmplMomOK=(pmom>=TFCAFFKEY.plhc[0] && pmom<=TFCAFFKEY.plhc[1]);
 	else AmplMomOK=(pmom>=TFCAFFKEY.plhec[0] && pmom<=TFCAFFKEY.plhec[1]);
@@ -1267,12 +1270,7 @@ Nextp:
       }
     }
     betm=bet;//used by Tzslw-calib
-    if(TFCAFFKEY.hprintf>0){
-#pragma omp critical (hf1)
-{
-      HF1(1512,betm,1.);
-}
-    }
+    pmom=fabs(pmom);
 //
     
 //=================================================
@@ -1442,8 +1440,8 @@ Nextp:
         HF1(1514,geant(fpnt),1.);
 }
       }
-      if(!RelaxCut)TofBetaFitOK=(chsq<25. && fabs(betof)>0.6 && fabs(betof)<1.3);//check on chi2/beta
-      else TofBetaFitOK=(chsq<50. && fabs(betof)>0.1 && fabs(betof)<1.8);//relaxed check on chi2/beta
+      if(!RelaxCut)TofBetaFitOK=(chsq<25. && betof>0.6 && betof<1.3);//check on chi2/beta
+      else TofBetaFitOK=(chsq<50. && betof>0.1 && betof<1.8);//relaxed check on chi2/beta
     }//--->endof "normal calib" mode check(imply 4 layers)
 //---
     if(!TofBetaFitOK && !PMEQmode){
@@ -1553,6 +1551,12 @@ Nextp:
 //---
       if(!TzslMomOK)goto SkipTzsl; 
       TOF2JobStat::addre(33);
+    if(TFCAFFKEY.hprintf>0){
+#pragma omp critical (hf1)
+{
+      HF1(1512,betm,1.);
+}
+    }
 //---
       bad=0;
       for(il=0;il<TOF2GC::SCLRS;il++){//check presence of trapez.counters
@@ -1562,9 +1566,11 @@ Nextp:
 	if((ib==0 || (ib+1)==TOF2DBc::getbppl(il)) && fabs(coot[il])>20)bad=1;//trap.counter,use only central Longit-impact
       }
       if(bad==1)goto SkipTzsl;//ignore events with trapez.counters, when requested
-      if(IonEvent)goto SkipTzsl;
-      if(TOF2JobStat::getre(34)>80000)goto SkipTzsl;//to limit statistics
       TOF2JobStat::addre(34);
+      if(IonEvent)goto SkipTzsl;
+   betm=0.998;//tempor
+      if(TOF2JobStat::getre(35)>150000)goto SkipTzsl;//to limit statistics
+      TOF2JobStat::addre(35);
 //
 //---> measured track-lengthes:
       for(il=0;il<TOF2GC::SCLRS-1;il++)tld[il]=trlen[il];//r->2,r->3,r->4(=0 for missing pair), tld>0
@@ -1615,20 +1621,17 @@ Nextp:
       for(i=0;i<TOF2GC::SCLRS-1;i++)tdrm[i]=tdr[i]-tdm[i];//(ref.-meas.) time-diffs
 //----
 //
-//cout<<"Fired counters:"<<endl;
-//for(i=0;i<TOF2GC::SCLRS;i++)cout<<brnl[i]+1<<" ";
-//cout<<endl<<"LPatt:"<<endl;
-//for(i=0;i<TOF2GC::SCLRS;i++)cout<<nbrl[i]<<" ";
-//cout<<endl;
-//cout<<"tld[i]="<<tld[0]<<" "<<tld[1]<<" "<<tld[2]<<endl;
-//cout<<"tdr[i]="<<tdr[0]<<" "<<tdr[1]<<" "<<tdr[2]<<endl;
-//cout<<"tdm[i]="<<tdm[0]<<" "<<tdm[1]<<" "<<tdm[2]<<endl;
-//cout<<"dum[i]="<<dum[0]<<" "<<dum[1]<<" "<<dum[2]<<endl;
-//
       integer brnlw[TOF2GC::SCLRS];
 #pragma omp critical (ctof_filltz)
 {
+//cout<<"-----> Entry2filltz:event="<<(AMSEvent::gethead()->getid())<<" Bars:"<<brnl[0]<<" "<<brnl[1]<<" "<<brnl[2]<<" "<<brnl[3]<<endl;
+//cout<<"       trlen:"<<trlr[0]<<" "<<trlr[1]<<" "<<trlr[2]<<" "<<trlr[3]<<endl;
+//cout<<"       times:"<<times[0]<<" "<<times[1]<<" "<<times[2]<<" "<<times[3]<<endl;
+//cout<<"          zc:"<<zc[0]<<" "<<zc[1]<<" "<<zc[2]<<" "<<zc[3]<<endl;
       for(i=0;i<TOF2GC::SCLRS;i++)brnlw[i]=brnl[i];//copy for Tzslw(because it can change brnl from inside)
+//cout<<"       brnlw:"<<brnlw[0]<<" "<<brnlw[1]<<" "<<brnlw[2]<<endl;
+//cout<<"       tdrm:"<<tdrm[0]<<" "<<tdrm[1]<<" "<<tdrm[2]<<endl;
+//cout<<"       dum:"<<dum[0]<<" "<<dum[1]<<" "<<dum[2]<<"  betm="<<betm<<endl;
       TofTmAmCalib::filltz(brnlw,tdrm,dum); // fill calib.working arrays
 }
     }//--->endof Tzsl-submode check

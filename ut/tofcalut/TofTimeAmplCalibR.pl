@@ -1,9 +1,9 @@
-sub TdcLinCalibration
+sub TmAmCalibrationR
 {
 #---
 my $dirfrheight=0.35;
-my $setfrheight=0.57;
-my $jclfrheight=0.08;
+my $setfrheight=0.55;
+my $jclfrheight=0.1;
 my ($bwid,$bheig,$xpos,$ypos,$lbwid,$labw,$butw);
 
 #--------------
@@ -11,7 +11,7 @@ my ($bwid,$bheig,$xpos,$ypos,$lbwid,$labw,$butw);
 my $shf1=0.1;#down shift for dir-widgets
 my $drh1=(1-$shf1)/5;#height of dir-widgets
 #---
-$dir_fram=$mwnd->Frame(-label => "TdcLinearityCalibration - General Info/Settings:",-background => "Grey",
+$dir_fram=$mwnd->Frame(-label => "General Info/Settings :",-background => "Grey",
                                                       -relief=>'groove', -borderwidth=>5)
 						      ->place(
                                                       -relwidth=>(1-$LogfXsize), -relheight=>$dirfrheight,
@@ -39,13 +39,13 @@ $amsjd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -relwidth=>0.3, -relheight=>$drh1,  
                                                -relx=>0.7, -rely=>($shf1+$drh1));
 #---
-$taufd_lab=$dir_fram->Label(-text=>"TDCfD:",-font=>$font2,-relief=>'groove')
+$taufd_lab=$dir_fram->Label(-text=>"TAUfD:",-font=>$font2,-relief=>'groove')
                                                     ->place(
 						    -relwidth=>0.2, -relheight=>$drh1,
                                                     -relx=>0, -rely=>($shf1+$drh1));
 $pedsd_ent=$dir_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font1,
-                                               -textvariable=>\$tdcsdir)->place(
+                                               -textvariable=>\$tausdir)->place(
                                                -relwidth=>0.3, -relheight=>$drh1,  
                                                -relx=>0.2, -rely=>($shf1+$drh1));
 #--------------
@@ -76,8 +76,8 @@ $lookar_bt->bind("<Button-3>", \&lookaround_help);
 $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
-			                 -foreground=>"yellow",
-			                 -background=>"red",
+			                 -foreground=>"black",
+			                 -background=>"orange",
                                          -borderwidth=>3,-relief=>'raised',
 			                 -cursor=>hand2,
                                          -command => \&ResetHistory)
@@ -85,7 +85,7 @@ $clrhist_bt=$dir_fram->Button(-text=>"ResetHistory", -font=>$font2,
                                          -relwidth=>0.5, -relheight=>$drh1,  
                                          -relx=>0.5, -rely=>($shf1+3*$drh1));
 $clrhist_bt->bind("<Button-3>", \&resethist_help);
-#---
+#-----------
 $dir_fram->Button(-text=>"Help", -font=>$font2, 
                                          -activebackground=>"yellow",
 			                 -activeforeground=>"red",
@@ -113,16 +113,22 @@ $dir_fram->Button(-text=>"Sound-ON", -font=>$font2,
                                      -relwidth=>0.25, -relheight=>$drh1,
 				     -relx=>0.15, -rely=>($shf1+4*$drh1));
 #---
-$manauto_bt=$dir_fram->Button(-text=>"ManualSess", -font=>$font2, 
+$manauto_bt=$dir_fram->Button(-text=>"AutoSess", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
-			             -foreground=>"darkgreen",
+			             -foreground=>"black",
 			             -background=>"orange",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$AutoSessFlg,
-                                     -command => sub{if($AutoSessFlg eq "ManualSess"){$AutoSessFlg="AutoSess";}
-			                             else {$AutoSessFlg="ManualSess";}})
+                                     -command => sub{if($AutoSessFlg eq "ManualSess"){
+				                             $AutoSessFlg="AutoSess";
+							     $manauto_bt->configure(-background=>"red");
+							                             }
+			                             else {
+						             $AutoSessFlg="ManualSess";
+							     $manauto_bt->configure(-background=>"orange");
+							                             }})
 			             ->place(
                                      -relwidth=>0.3, -relheight=>$drh1,
 				     -relx=>0.4, -rely=>($shf1+4*$drh1));
@@ -131,13 +137,19 @@ $manauto_bt->bind("<Button-3>", \&manauto_help);
 $dbautoupd_bt=$dir_fram->Button(-text=>"DBAutoUpd_Off", -font=>$font2, 
                                      -activebackground=>"yellow",
 			             -activeforeground=>"red",
-			             -foreground=>"darkgreen",
+			             -foreground=>"black",
 			             -background=>"orange",
                                      -borderwidth=>3,-relief=>'raised',
 			             -cursor=>hand2,
 			             -textvariable=>\$DBAutoUpdFlg,
-                                     -command => sub{if($DBAutoUpdFlg eq "DBAutoUpd_Off"){$DBAutoUpdFlg="DBAutoUpd_On";}
-			                             else {$DBAutoUpdFlg="DBAutoUpd_Off";}})
+                                     -command => sub{if($DBAutoUpdFlg eq "DBAutoUpd_Off"){
+				                            $DBAutoUpdFlg="DBAutoUpd_On";
+							    $dbautoupd_bt->configure(-background=>"red");
+							                                 }
+			                             else {
+						            $DBAutoUpdFlg="DBAutoUpd_Off";
+							    $dbautoupd_bt->configure(-background=>"orange");
+							                                 }})
 			             ->place(
                                      -relwidth=>0.3, -relheight=>$drh1,
 				     -relx=>0.7, -rely=>($shf1+4*$drh1));
@@ -159,6 +171,7 @@ sub ResetHistory
     truncate($fn,0) or show_warn("\n   <--- Can't reset history-file $fn !!!($!)");
     show_messg("\n   <--- JobSubmissionHistory Reset is successful in file $fn !!!");
     $UnFinishedJobs=0;
+    $LogFilesReceived=0;
 #
     @DaqfHist=();
     $fn=$workdir."/".$JobDaqfHistFN.".".$SessName;
@@ -179,93 +192,55 @@ sub ResetHistory
 #--------------------------------------------------------------------------
 #run-conditions_set_frame:
 my $shf2=0.06;#down shift for runcond-widgets
-#my $drh2=0.093;#height of runcond-widgets
-my $drh2=(1-$shf2)/10;#height of runcond-widgets
+my $drh2=(1-$shf2)/9;#height of runcond-widgets
 #---
 $set_fram=$mwnd->Frame(-label=>"Setup New Job :",-relief=>'groove', -borderwidth=>5,
                                                   -background => "blue")
 						  ->place(
                                                   -relwidth=>(1-$LogfXsize), -relheight=>$setfrheight,
                                                   -relx=>0, -rely=>$dirfrheight);
-#------
-$set_fram->Label(-text=>"SelAmsState:",-font=>$font2,-relief=>'groove')
-                                                  ->place(
-						  -relwidth=>0.34, -relheight=>$drh2,
-                                                  -relx=>0, -rely=>$shf2);
-#---
-$magstext="MagnetON";
-$set_fram->Button(-text=>"MagnetON", -font=>$font2, 
-                              -activebackground=>"yellow",
-			      -activeforeground=>"red",
-#			      -foreground=>"red",
-			      -background=>"green",
-                              -borderwidth=>3,-relief=>'raised',
-			      -cursor=>hand2,
-			      -textvariable=>\$magstext,
-                              -command => sub{if($magstext eq "MagnetON"){$magstext="MagnetOFF";}
-			                      else {$magstext="MagnetON";}})
-			         ->place(
-                                 -relwidth=>0.33, -relheight=>$drh2,
-                                 -relx=>0.34, -rely=>$shf2);
-#---
-$posstext="InSpace";
-$set_fram->Button(-text=>"InSpace", -font=>$font2, 
-                              -activebackground=>"yellow",
-			      -activeforeground=>"red",
-#			      -foreground=>"red",
-			      -background=>"green",
-                              -borderwidth=>3,-relief=>'raised',
-			      -cursor=>hand2,
-			      -textvariable=>\$posstext,
-                              -command => sub{if($posstext eq "InSpace"){$posstext="OnEarth";}
-			                      else {$posstext="InSpace";}})
-			         ->place(
-                                 -relwidth=>0.33, -relheight=>$drh2,
-			         -relx=>0.67, -rely=>$shf2);
 #--------------
 $ctypselflag=0;#1st selection flag
-$set_fram->Label(-text=>"CalibMode:",-font=>$font2,-relief=>'groove')
+$set_fram->Label(-text=>"SelCalType :",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.25, -relheight=>$drh2,
-                                               -relx=>0, -rely=>($shf2+$drh2));
+                                               -relx=>0, -rely=>($shf2));
 #---
-$CalibMode="Normal";
-$mode1_bt=$set_fram->Radiobutton(-text=>"AllSFET",-font=>$font2, -indicator=>0,
+$sdtmdfcal=1;#on
+$set_fram->Checkbutton(-text=>"TimeDif", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
 						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
                                                  -background=>green,
-			                         -cursor=>hand2,
-#						 -foreground=>red,
-                                                 -value=>"Normal", -variable=>\$CalibMode)
-                                              ->place(
-						      -relwidth=>0.2, -relheight=>$drh2,
-						      -relx=>0.25, -rely=>($shf2+$drh2));
+                                                 -variable=>\$sdtmdfcal)
+					         ->place(
+                                                 -relwidth=>0.25, -relheight=>$drh2,
+						 -relx=>0.25, -rely=>($shf2));
 #---
-$mode2_bt=$set_fram->Radiobutton(-text=>"OneSFET",-font=>$font2, -indicator=>0, 
+$tm0slwcal=1;#on
+$set_fram->Checkbutton(-text=>"Time0Slw", -font=>$font2, -indicator=>0,
                                                  -borderwidth=>3,-relief=>'raised',
-						 -selectcolor=>orange,-activeforeground=>red, 
+						 -selectcolor=>orange,-activeforeground=>red,
 						 -activebackground=>yellow, 
-                                                 -background=>green, 
 			                         -cursor=>hand2,
-#						 -foreground=>red,
-                                                 -value=>"Econom", -variable=>\$CalibMode)
-                                               ->place(
-						       -relwidth=>0.2, -relheight=>$drh2,
-						        -relx=>0.45, -rely=>($shf2+$drh2));
+                                                 -background=>green,
+                                                 -variable=>\$tm0slwcal)
+					         ->place(
+                                                 -relwidth=>0.25, -relheight=>$drh2,
+						 -relx=>0.5, -rely=>($shf2));
 #---
-$set_fram->Label(-text=>"PassType:",-font=>$font2,-relief=>'groove')
-                                               ->place(
-					       -relwidth=>0.25, -relheight=>$drh2,
-                                               -relx=>0.65, -rely=>($shf2+$drh2));
-#---
-$PassType="1";#single pass job(2,3,4 for multipass,i.e with interm.file) 
-$set_fram->Entry(-relief=>'sunken', -background=>yellow,
-                                    -font=>$font3,
-                                    -textvariable=>\$PassType)
-				    ->place(
-                                    -relwidth=>0.1, -relheight=>$drh2,  
-                                    -relx=>0.9, -rely=>($shf2+$drh2));
+$amnormcal=1;#on
+$set_fram->Checkbutton(-text=>"AmplNorm", -font=>$font2, -indicator=>0,
+                                                 -borderwidth=>3,-relief=>'raised',
+						 -selectcolor=>orange,-activeforeground=>red,
+						 -activebackground=>yellow, 
+			                         -cursor=>hand2,
+                                                 -background=>green,
+                                                 -variable=>\$amnormcal)
+					         ->place(
+                                                 -relwidth=>0.25, -relheight=>$drh2,
+						 -relx=>0.75, -rely=>($shf2));
 #--------------
 $setdpar_bt=$set_fram->Button(-text=>"SetDefPars", -font=>$font2, 
                                    -activebackground=>"yellow",
@@ -277,15 +252,15 @@ $setdpar_bt=$set_fram->Button(-text=>"SetDefPars", -font=>$font2,
                                    -command => \&SetDefaultPars)
 			           ->place(
                                    -relwidth=>0.3, -relheight=>$drh2,  
-                                   -relx=>0, -rely=>($shf2+2*$drh2));
+                                   -relx=>0, -rely=>($shf2+$drh2));
 $setdpar_bt->bind("<Button-3>", \&setdefpar_help);
 #---
 $set_fram->Label(-text=>"Queue:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.15, -relheight=>$drh2,
-                                               -relx=>0.3, -rely=>($shf2+2*$drh2));
+                                               -relx=>0.3, -rely=>($shf2+$drh2));
 #
-$Queue2run="1nd";#queue name the job sould be submitted 
+$Queue2run="8nm";#queue name the job sould be submitted 
 $set_fram->Optionmenu(-textvariable => \$Queue2run, 
                                -background=>yellow,
                                -activebackground=>yellow,
@@ -296,25 +271,26 @@ $set_fram->Optionmenu(-textvariable => \$Queue2run,
 	                       )
                                ->place(
                                -relwidth=>0.2, -relheight=>$drh2,  
-                               -relx=>0.45, -rely=>($shf2+2*$drh2));
+                               -relx=>0.45, -rely=>($shf2+$drh2));
+					       
 					       
 #---
 $set_fram->Label(-text=>"CPUs to use:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.25, -relheight=>$drh2,
-                                               -relx=>0.65, -rely=>($shf2+2*$drh2));
+                                               -relx=>0.65, -rely=>($shf2+$drh2));
 $ncpus="1";#number of CPUs to use 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                     -font=>$font3,
                                     -textvariable=>\$ncpus)
 				    ->place(
                                     -relwidth=>0.1, -relheight=>$drh2,  
-                                    -relx=>0.9, -rely=>($shf2+2*$drh2));
+                                    -relx=>0.9, -rely=>($shf2+$drh2));
 #-------------
 $set_fram->Label(-text=>"RefCalibSetN:",-font=>$font2,-relief=>'groove')
                                                ->place(
-					       -relwidth=>0.3, -relheight=>$drh2,
-                                               -relx=>0, -rely=>($shf2+3*$drh2));
+					       -relwidth=>0.25, -relheight=>$drh2,
+                                               -relx=>0, -rely=>($shf2+2*$drh2));
 #---
 $refcalsetn="0";#ref.calib set number
 $refcfl_om=$set_fram->Optionmenu(-textvariable => \$refcalsetn, 
@@ -326,113 +302,90 @@ $refcfl_om=$set_fram->Optionmenu(-textvariable => \$refcalsetn,
                                -options => [$refcalsetn]
 	                       )
                                ->place(
-                               -relwidth=>0.3, -relheight=>$drh2,  
-                               -relx=>0.3, -rely=>($shf2+3*$drh2));
+                               -relwidth=>0.25, -relheight=>$drh2,  
+                               -relx=>0.25, -rely=>($shf2+2*$drh2));
 
  
 #---
 $set_fram->Label(-text=>"Events:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
-                                               -relx=>0.6, -rely=>($shf2+3*$drh2));
-$Evs2Read="1000000";#number of events to read 
+                                               -relx=>0.5, -rely=>($shf2+2*$drh2));
+$Evs2Read="1600000";#number of events to read 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                     -font=>$font3,
                                     -textvariable=>\$Evs2Read)
 				    ->place(
-                                    -relwidth=>0.2, -relheight=>$drh2,  
-                                    -relx=>0.8, -rely=>($shf2+3*$drh2));
-#-------------
-$refvel_lab=$set_fram->Label(-text=>"Evs/Bin(Min):",-font=>$font2,-relief=>'groove')
-                                                    ->place(
-						    -relwidth=>0.22, -relheight=>$drh2,
-                                                    -relx=>0, -rely=>($shf2+4*$drh2));
-$BinMinEvs="0";
-$binmine_state="disabled";
-$binmine_ent=$set_fram->Entry(-relief=>'sunken', -background=>"white",
-                                              -background=>yellow,
-                                              -font=>$font3,
-					      -state=>$binmine_state,
-                                              -textvariable=>\$BinMinEvs)->place(
-                                              -relwidth=>0.08, -relheight=>$drh2,  
-                                              -relx=>0.22, -rely=>($shf2+4*$drh2));
+                                    -relwidth=>0.3, -relheight=>$drh2,  
+                                    -relx=>0.7, -rely=>($shf2+2*$drh2));
+#---------------------------
+$set_fram->Label(-text=>"CalibrGap(hours):",-font=>$font2,-relief=>'groove')
+                                               ->place(
+					       -relwidth=>0.3, -relheight=>$drh2,
+                                               -relx=>0., -rely=>($shf2+3*$drh2));
+#
+$CalibrGap="12";#def.calibr.gap(h) 
+$set_fram->Optionmenu(-textvariable => \$CalibrGap, 
+                               -background=>yellow,
+                               -activebackground=>yellow,
+			       -relief=>'sunken',
+			       -borderwidth=>2,
+                               -font=>$font3,
+                               -options => [@CalibrGapList],
+	                       )
+                               ->place(
+                               -relwidth=>0.2, -relheight=>$drh2,  
+                               -relx=>0.3, -rely=>($shf2+3*$drh2));
+					       
+					       
 #---
-$cfilesloc="10101";#(def) 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=0 to use DB)
-@TofDBUsePatt=();
-$j=1;
-for($i=0;$i<5;$i++){
-  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
-  $j=10*$j;
-}
-my @tofdbdatatypes=qw(Cal Ped DCut Elos TdcL);
-$labw=0.15;
-$butw=0.11;
-$xpos=0.3;
-$cfloc_lab=$set_fram->Label(-text=>"UseDB4:",-font=>$font2,-relief=>'groove')
-                                                ->place(
-						-relwidth=>$labw, -relheight=>$drh2,
-                                                -relx=>$xpos, -rely=>($shf2+4*$drh2));
-$xpos+=$labw;
-for($i=0;$i<5;$i++){
-  $set_fram->Checkbutton(-text=>$tofdbdatatypes[$i], -font=>$font2, -indicator=>0,
-                                                 -borderwidth=>3,-relief=>'raised',
-						 -selectcolor=>orange,-activeforeground=>red,
-						 -activebackground=>yellow, 
-			                         -cursor=>hand2,
-                                                 -background=>green,
-                                                 -variable=>\$TofDBUsePatt[$i])
-					         ->place(
-                                                 -relwidth=>$butw, -relheight=>$drh2,
-						 -relx=>$xpos, -rely=>($shf2+4*$drh2));
-  $xpos+=$butw;
-}
 #-------------
 $dat1_lab=$set_fram->Label(-text=>"Date :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.12, -relheight=>$drh2,
-                                         -relx=>0, -rely=>($shf2+5*$drh2));
-$fdat1="2009.11.10 16:30:06";#def. file-date-from 
+                                         -relx=>0, -rely=>($shf2+4*$drh2));
+$fdat1="2011.05.19 00:00:01";#def. file-date-from 
 $fdat1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fdat1)
 					       ->place(
                                                -relwidth=>0.43, -relheight=>$drh2,  
-                                               -relx=>0.12, -rely=>($shf2+5*$drh2));
+                                               -relx=>0.12, -rely=>($shf2+4*$drh2));
 #---
 $dat2_lab=$set_fram->Label(-text=>"-",-font=>$font2)
                                       ->place(
 				      -relwidth=>0.02, -relheight=>$drh2,
-                                      -relx=>0.55, -rely=>($shf2+5*$drh2));
-$fdat2="2015.01.01 00:00:01";#def. file-date-till 
+                                      -relx=>0.55, -rely=>($shf2+4*$drh2));
+$fdat2="2011.12.31 23:59:59";#def. file-date-till 
 $fdat2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fdat2)
 					       ->place(
                                                -relwidth=>0.43, -relheight=>$drh2,  
-                                               -relx=>0.57, -rely=>($shf2+5*$drh2));
+                                               -relx=>0.57, -rely=>($shf2+4*$drh2));
 #---------
 $num1_lab=$set_fram->Label(-text=>"RunN :",-font=>$font2,-relief=>'groove')
                                          ->place(
 					 -relwidth=>0.16, -relheight=>$drh2,
-                                         -relx=>0, -rely=>($shf2+6*$drh2));
-$fnum1="1257867006";#def. file-number-from 
+                                         -relx=>0, -rely=>($shf2+5*$drh2));
+$fnum1="1167606001";#def. file-number-from 
 $fnum1_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fnum1)->place(
                                                -relwidth=>0.4, -relheight=>$drh2,  
-                                               -relx=>0.16, -rely=>($shf2+6*$drh2));
+                                               -relx=>0.16, -rely=>($shf2+5*$drh2));
 #---
 $num2_lab=$set_fram->Label(-text=>"-",-font=>$font2)
                                      ->place(
 				     -relwidth=>0.04, -relheight=>$drh2,
-				     -relx=>0.56, -rely=>($shf2+6*$drh2));
+				     -relx=>0.56, -rely=>($shf2+5*$drh2));
 $fnum2="1500000000";#def. file-num-till 
 $fnum2_ent=$set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                                -font=>$font3,
                                                -textvariable=>\$fnum2)
 					       ->place(
                                                -relwidth=>0.4, -relheight=>$drh2,  
-                                               -relx=>0.6, -rely=>($shf2+6*$drh2));
+                                               -relx=>0.6, -rely=>($shf2+5*$drh2));
 $fnum1o=$fnum1;
 $fnum2o=$fnum2;
 $fdat1o=$fdat1;
@@ -447,14 +400,9 @@ $convert_bt=$set_fram->Button(-text=>"ConfirmRunsRange", -font=>$font2,
 			              -cursor=>hand2,
                                       -command => \&RunDateConv)
 			              ->place(
-                                      -relwidth=>0.5, -relheight=>$drh2,
-				      -relx=>0, -rely=>($shf2+7*$drh2));
+                                      -relwidth=>1., -relheight=>$drh2,
+				      -relx=>0, -rely=>($shf2+6*$drh2));
 $convert_bt->bind("<Button-3>", \&convert_help);
-#---
-$set_fram->Label(-text=>"                    ",-font=>$font2,-relief=>'groove')
-                                               ->place(
-					       -relwidth=>0.5, -relheight=>$drh2,
-                                               -relx=>0.5, -rely=>($shf2+7*$drh2));
 #--------------
 $scanbt_state="disabled";
 $scanbt=$set_fram->Button(-text => "ScanDaqDir", -font=>$font2, 
@@ -468,7 +416,7 @@ $scanbt=$set_fram->Button(-text => "ScanDaqDir", -font=>$font2,
                                                  -command => \&scanddir)
 						 ->place(
                                                  -relwidth=>0.3,-relheight=>$drh2,
-                                                 -relx=>0,-rely=>($shf2+8*$drh2));
+                                                 -relx=>0,-rely=>($shf2+7*$drh2));
 $scanbt->bind("<Button-3>", \&scanddir_help);
 #---
 $edittext="EditRlist";
@@ -483,13 +431,13 @@ $editbt=$set_fram->Button(-text=>"EditRlist", -font=>$font2,
                                               -command =>\&edit_rlist)
 					      ->place(
                                               -relwidth=>0.3, -relheight=>$drh2,
-				              -relx=>0.3, -rely=>($shf2+8*$drh2));
+				              -relx=>0.3, -rely=>($shf2+7*$drh2));
 $editbt->bind("<Button-3>", \&editrlist_help);
 #---
 $set_fram->Label(-text=>"UseHost:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
-                                               -relx=>0.6, -rely=>($shf2+8*$drh2));
+                                               -relx=>0.6, -rely=>($shf2+7*$drh2));
 $Host2run="Any";
 $set_fram->Optionmenu(-textvariable => \$Host2run, 
                                -background=>yellow,
@@ -501,7 +449,7 @@ $set_fram->Optionmenu(-textvariable => \$Host2run,
 	                       )
                                ->place(
                                -relwidth=>0.2, -relheight=>$drh2,  
-                               -relx=>0.8, -rely=>($shf2+8*$drh2));
+                               -relx=>0.8, -rely=>($shf2+7*$drh2));
 #--------------
 $set_fram->Button(-text=>"EditJobScript", -font=>$font2, 
                                           -activebackground=>"yellow",
@@ -513,7 +461,7 @@ $set_fram->Button(-text=>"EditJobScript", -font=>$font2,
                                           -command => \&EditJobScript)
 			                  ->place(
                                           -relwidth=>0.35, -relheight=>$drh2,  
-                                          -relx=>0, -rely=>($shf2+9*$drh2));
+                                          -relx=>0, -rely=>($shf2+8*$drh2));
 #---
 $setupj_state="disabled";
 $setupj_bt=$set_fram->Button(-text=>"SetupJob", -font=>$font2, 
@@ -527,7 +475,7 @@ $setupj_bt=$set_fram->Button(-text=>"SetupJob", -font=>$font2,
                                    -command => \&SetupJob)
 			           ->place(
                                    -relwidth=>0.325, -relheight=>$drh2,  
-                                   -relx=>0.35, -rely=>($shf2+9*$drh2));
+                                   -relx=>0.35, -rely=>($shf2+8*$drh2));
 $setupj_bt->bind("<Button-3>", \&setupjob_help);
 #---
 $sjobbt_state="disabled";
@@ -542,30 +490,11 @@ $sjobbt=$set_fram->Button(-text => "SubmitJob", -font=>$font2,
                                                 -command => \&SubmitJob)
 						->place(
                                                 -relwidth=>0.325,-relheight=>$drh2,
-                                                -relx=>0.675,-rely=>($shf2+9*$drh2));
+                                                -relx=>0.675,-rely=>($shf2+8*$drh2));
 $sjobbt->bind("<Button-3>", \&submitjob_help);
 #--------------
-# $bellb=$set_fram->Button(-text => 'bell', -command =>[\&mybeep, 3, 3])
-#			                    ->place(
-#				            -relwidth=>0.5,-relheight=>$drh2,      
-#                                           -relx=>0.5,-rely=>($shf2+6*$drh2));
-#--------------
-#job_progress frame:
-#$prg_fram=$mwnd->Frame(-label=>"TAUcalib-Job progress :",-background => "green", 
-#                                                        -relief=>'groove', -borderwidth=>3)
-#						        ->place(
-#                                                        -relwidth=>(1-$LogfXsize), -relheight=>0.055,
-#                                                        -relx=>0, -rely=>0.87);
-#$perc_done=0.;
-#$prg_but=$prg_fram->ProgressBar( -width=>10, -from=>0, -to=>100, -blocks=>100,
-#                                             -colors=>[0,'green'], -gap=> 0,
-#                                             -variable=>\$perc_done)
-#					     ->place(
-#					     -relwidth=>0.999, -relheight=>0.3,
-#                                             -relx=>0, -rely=>0.65);
-#--------------
 #job_control frame:
-$jcl_fram=$mwnd->Frame(-label=>"TdcLinCalib-Job control :",-background => "red",
+$jcl_fram=$mwnd->Frame(-label=>"TACalib-Job control :",-background => "red",
                                                        -relief=>'groove', -borderwidth=>3)
 						       ->place(
                                                        -relwidth=>(1-$LogfXsize), -relheight=>$jclfrheight,
@@ -614,7 +543,7 @@ $quitbt->bind("<ButtonRelease-3>", \&quitbt_help);
 #------------------------HelpArea------------------------------
 sub open_help_window
 {
-  my $helpfile="TofHelpTDCL.txt";
+  my $helpfile="TofHelpTAUC.txt";
   my $hwdszx=0.4;#X-size of genhelp window (portion of display x-size)
   my $hwdszy=0.45;#Y-size of genhelp window (portion of display y-size)
   my $szx=int($hwdszx*$displx);#in pixels
@@ -923,6 +852,7 @@ sub quitbt_help{
 }
 #
 #---------------------BrowserArea---------------------------------
+#
 sub open_browser_window{ # open mozilla browser
 #
   my $stat=0;
@@ -930,7 +860,7 @@ sub open_browser_window{ # open mozilla browser
   if($stat != 0) {die  show_warn("   <-- Mozilla-browser exited badly $!");}
 }
 #----------------------Welcome/LookAroundArea------------------------------
-sub TDCL_Welcome{
+sub TACR_Welcome{
   $ResetHistFlg=0;
   $PrevSessUTC=0;
   $PrevSessTime=0;
@@ -955,7 +885,7 @@ sub TDCL_Welcome{
   $SessTLabel=$year."-".$month."-".$day."_".$hour.":".$min;
   print "SessTLabel=",$SessTLabel,"\n";
 #
-  $line="       ---------- WELCOME to TDCs Linearity calibration !!! ----------\n\n";
+  $line=" ----- WELCOME to TimeAmplitudeUniformity calibration !!! -----\n\n";
   $logtext->insert('end',$line,'BigAttention');
   $logtext->yview('end');
   show_messg("   <--- Session starts at : ".$SessTime."\n");
@@ -986,7 +916,7 @@ sub TDCL_Welcome{
 #
   show_messg("   <--- DaqFiles Directory $DaqDataDir","Big");   
 #
-#--- Read list of all submitted jobs from file "TofSubmJobsList.TDCL"(upto current session):
+#--- Read list of all submitted jobs from file "TofSubmJobsList.TAUC"(upto current session):
 #
   $fn="TofSubmJobsList".".".$SessName;
   open(SJLIST,"< $fn") or show_warn("\n   <--- Cannot open $fn for reading, $!");
@@ -1000,9 +930,7 @@ sub TDCL_Welcome{
   $nel=scalar(@SubmJobsList);
   my $max;
   if($nel>0){
-    if($nel>10){$max=10;}
-    else{$max=$nel;}
-    show_messg("\n   <--- Last unfinished jobs submitted in prev.sessions:\n");  
+    show_messg("\n   <--- List of Unfinished jobs submitted in prev.sessions:\n");  
     $title="JobId    Node    Que  CflRefNumb   FirstRunN    LastsRunN  CCode   SubmTime       JobStat \n";
     $logtext->insert('end',$title);
     $logtext->yview('end');
@@ -1021,9 +949,9 @@ sub TDCL_Welcome{
   else{show_warn("\n   <--- Submitted jobs history file is empty !!!\n");}
   if($UnFinishedJobs==0){show_messg("\n   <--- There are no Unfinished jobs submitted in prev.sessions:\n");}
 #
-#--- Prepare the lists of RefCflist-files and their members (created upto now):
+#--- Prepare the lists of RefCflist-files and their members (created upto now and stored in file):
 #
-  $fn="TofRefCflistList".".TAUC";
+  $fn="TofRefCflistList".".".$SessName;
   open(CFLIST,"< $fn") or show_warn("   <-- Cannot open $fn for reading $!");
   while(defined ($line = <CFLIST>)){
     chomp $line;
@@ -1034,7 +962,7 @@ sub TDCL_Welcome{
   close(CFLIST) or show_warn("   <-- Cannot close $fn after writing $!");
   $nel=scalar(@RefCflistList);
   show_messg("\n   <--- Found $nel RefCflist-files available from previous sessions !!!");
-  $LastRefCflistN=$RefCflistList[$nel-1];
+  $LastRefCflistN=$RefCflistList[0];
 #
   my $reffn;
   my @cflistmemb=();
@@ -1127,7 +1055,7 @@ sub TDCL_Welcome{
     $fnum2=time2run($fdat2);
   }
 #
-  $fnum1o=$fnum1;
+  $fnum1o=$fnum1;# save for later use in "RunDateConv"
   $fnum2o=$fnum2;
   $fdat1o=$fdat1;
   $fdat2o=$fdat2;
@@ -1179,8 +1107,8 @@ sub LookAround
 #
 #---> see calib-files in amsjobwd:
 #
-  $nelcft=scalar(@cfilenames); 
-  for($i=0;$i<$nelcft;$i++){#<--- all calf-types loop
+  $nelcft=scalar(@cfilenames);
+  for($i=0;$i<$nelcft;$i++){#<--- calf-types loop
     @array=();
     $cmd="ls -ogt --time-style=long-iso ".$dir."/".$cfilenames[$i].".*[0-9][^_] |";
     $pid=open(FLIST,$cmd) or show_warn("   <-- Cannot make cal-file list in amsjobwd  $!");
@@ -1197,7 +1125,7 @@ sub LookAround
       @substrg=split(/\./,$string[5]);
       $nel=scalar(@substrg);
       $runn=$substrg[$nel-1];#number after last "."
-      if($runn==111){next;}#<-- skip generic files(used as input for db-update jobs)
+      if($runn==111){next;}#skip generic file(used for db-update)
       $line=$runn." ".$dattim;
       push(@{$Cfrefs[$i]},$line);
     }
@@ -1208,30 +1136,27 @@ sub LookAround
     $title="     ".$cfilenames[$i].":"."\n";
     $logtext->insert('end',$title,'ItalText');
     $logtext->yview('end');
-    $nel=scalar(@RefCflistList);
     for($j=0;$j<$ncfiles[$i];$j++){#<-- i-th type memory cal-files loop
       $line=$Cfrefs[$i]->[$j];#<-- runn/date/time
       @string=split(/\s+/,$line);
+      $nel=scalar(@RefCflistList);
+      $tag='Text';
       for($k=0;$k<$nel;$k++){#<-- Ref-files loop(prepared from refcflist-file)
         if($i==0){$reffn=$RefCflistList[$k];}
 	else{$reffn=$p2memlists[$i-1]->[$k];}
-        $tag='Text';
 	if($reffn==$string[0]){
 	  $tag='Yellow';
-          $logtext->insert('end',$line."\n",$tag);
-          $logtext->yview('end');
 	  last;# skip others in p2mem-lists(some members can be repetetive)
-	} 
+	}
       }
+      $logtext->insert('end',$line."\n",$tag);
+      $logtext->yview('end');
     }
-    $line="\n";
-    $logtext->insert('end',$line);
-    $logtext->yview('end');
   }
 #
 #---> check the presence of log-files:
 #
-  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTDCL*.*[0-9]".".log.*[0-9] |";
+  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTACR*.*[0-9]".".log.*[0-9] |";
   @array=();
   $pid=open(FJOBS,$cmd) or show_warn("\n   <--- Cannot make log-file list in amsjobwd  $!");
   while(<FJOBS>){
@@ -1303,71 +1228,38 @@ sub SetDefaultPars
   my $i,$j;
 #
   $ResetHistFlg=0;
-  if($CalibMode eq "Econom"){
-    show_messg("\n   <--- Economical mode: all SFETs are identical - require lower statistics !");
-  }
-  else{
-    show_messg("\n   <--- Normal mode: all SFETs are uniqe - require higher statistics !!!");
-  }
 #
   show_messg("\n\n   <--- Setting Job's default-parameters ... \n");
 #
-  $cfilesloc="10101";#def value
-  $ncpus="4";#def number of CPUs to use 
-  $CalCode=900;# i just add 9 in front of true calcode for better logf identification later
+  $cfilesloc="101";#def value
+  $usetrd=0;#def "not use TRD"
+  $ncpus="1";#def number of CPUs to use 
+  $Queue2run="1nh";#def queue name the job sould be submitted 
+  $CalCode=0;
+  if($sdtmdfcal==1){
+     $CalCode+=100;
+  }
+  if($tm0slwcal==1){
+     $CalCode+=10;
+  }
+  if($amnormcal==1){#AmplNorm
+     $CalCode+=1;
+  }
   $jobctypes=0;#calib-types in job
-  $jpar1=0;#(TFCA #39=MN)
-  $Evs2Read=0;  
+  $Evs2Read=1600000;  
   $RunType="SCI";# required Daq Files type
-  $SubDetMsk=9;#bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
-  $FileSize=50;# mb
-  $MinEvsInFile=100000;
-  $BinMinEvs=10;
-  $OutFileExt="";
+  $SubDetMsk=41;#bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
+  $FileSize=300;# mb
+  $MinEvsInFile=150000;
+  $CalibrGap=$CalibrGapList[4];
 #
-#---
-  if($CalibMode eq "Econom"){
-    $Evs2Read=1000000;
-    $jpar1+=10;
-    $CalCode+=10;
-    $Queue2run="1nd";
-    $PassType=1;
-    $OutFileExt="_ecom";
-  }
-  else{
-    $Evs2Read=10000000;
-    $Queue2run="1nw";
-    $PassType=1;
-    $OutFileExt="_norm";
-  }
-  $CalCode+=($PassType-1);
-  $jpar1+=($PassType-1);#convention for TFCA 39 datacard
-#
-  if($magstext eq "MagnetON"){
-    $jpar6=1;
-  }
-  else{
-    $jpar6=0;
-  }
-#
-  if($posstext eq "InSpace"){
-    $jpar4=0;
-  }
-  else{
-    $jpar4=1;
-  }
 #-------------
   $refcfl_om->configure(-options => [@RefCflistList]);
-  $refcalsetn=$RefCflistList[0];# use 1st in the list as default
+  $refcalsetn=$RefCflistList[0];
 #
   $scanbt_state="normal";
   $scanbt->configure(-state=>$scanbt_state);
 #
-$j=1;
-for($i=0;$i<5;$i++){
-  $TofDBUsePatt[$i]=1-(($cfilesloc/$j)%10);# 10-base BitPattern Msb(tdcl elos dcrd ped cal)Lsb (=1 to use BD)
-  $j=10*$j;
-}
 #
   $mwnd->update;
 }# ---> endof sub:setRunDefs
@@ -1376,6 +1268,10 @@ sub SetupJob
 {
   $ResetHistFlg=0;
   $SubmJobCount=0;
+  if($fnum1==$fnum2){
+    $SingleFileJob=1;
+    $AutoSessFlg="ManualSess";
+  }
 #
   show_messg("\n   <========= Enter 'SetupJob ...","B");
 #
@@ -1384,6 +1280,7 @@ sub SetupJob
   my $cmd,$fpath,$lname,$dir,$fn;
   my $dflinksTD=$workdir.$daqflnk;
   my $dflinksSD;
+  my $i,$j;
   $DaqfIndex1=0;
   $DaqfIndex2=0;
   $DaqfSets=0;
@@ -1400,22 +1297,15 @@ sub SetupJob
 #
 #---> set values for job's stable params:
 #
-  $jpar2=0;#DBusage
-  $j=1;
-  for($i=0;$i<5;$i++){
-    if($TofDBUsePatt[$i]==0){$jpar2+=$j;}#means use RawFile instead DB
-    $j=10*$j;
-  }
-  show_messg("\n   <--- DB-usage parameter: $jpar2 (LQDPC) !\n");
 #
-  $jpar3=$refcalsetn;# ref TofClfile number
-  if($posstext eq "InSpace"){$jpar4=0;}# space/earth calib
-  else{$jpar4=1;}
-  $jpar5=$BinMinEvs;# min.evs/bin to concider bin as bad diring quality evaluation
-  if($magstext eq "MagnetON"){$jpar6=1;}
-  else{$jpar6=-1;}
-  $jpar7=$ncpus;
-  $jpar8=$Evs2Read;
+  $jpar4=$ncpus;
+  $jpar3=$Evs2Read;
+#---
+  if($DBAutoUpdFlg eq "DBAutoUpd_On"){# 'OnFlight' DB update activated
+    show_warn("   <--- DB 'OnFlight' update is activated !!!");
+    $jpar13=1;
+    $jpar14=1;
+  }
 #------
 NextJob:
 #------>
@@ -1435,37 +1325,28 @@ NextJob:
   for($i=$DaqfIndex1;$i<$ndaqfound;$i++){#<--- selected daq-files loop
     if($daqfstat[$i] == 11){#was selected by DB-search as good
       if($firstr==0){#<-- 1st run in sub-range
+        if($DaqfIndex1>$DaqfIndex2){#was already at least 1 submit
+	  if(($daqfrunn[$i]-$daqfrunn[$DaqfIndex2])<($CalibrGap*3600+1)){next;}
+	}
         $firstr=1;
 	$CalRun1=$daqfrunn[$i];
+        show_messg("\n   <--- Assembling NewCalibSet, with 1st Run=$CalRun1 !");
       }
       $DaqfIndex2=$i;
       $CalRun2=$daqfrunn[$i];
-#--> create symbolic link for given daq-file:
-      $fpath=$DaqDataDir."/SCI/".$daqfrunn[$i];#daq-file path
-      $lname=$daqfrunn[$i];
-      $cmd="ln -s $fpath $lname";
-      $stat = system("$cmd");
-      if($stat != 0){
-        show_warn("\n   <-- link $fpath was not created, skip to next !");
-	next;
-      }
-#--> and move it from current dir(workdir) to templinks-dir:
-      $dir=$workdir."/templinks";
-      $stat=system("mv $lname $dir");
-      if($stat!=0){
-        show_warn("\n   <-- Moving of new link $lname to templinks-dir failed, skip to next run !!!");
-        next;
-      }
       $nlinks+=1;
       $totevs+=$daqfevts[$i];
-      if($totevs>$Evs2Read){
+      if($totevs>$Evs2Read || $SingleFileJob==1){
         $DaqfSets+=1;
         last;
       }
     }#--->endof "selected-file" check
   }#--->endof "selected daq-files loop"
+#
+  $jpar1=$CalRun1;
+  $jpar2=$CalRun2;
 #----
-  if($totevs<$Evs2Read){#<-- low statistics
+  if($totevs<$Evs2Read && $SingleFileJob==0){#<-- low statistics and not 'single file job'
     if($AutoSessFlg eq "AutoSess"){
       if($DaqfSets>0){#<-- last Daqf sub-range with low-stat
         show_messg("\n   <--- AutoSession: Full DaqFiles-range is completed after $SubmJobCount submissions !");
@@ -1486,52 +1367,16 @@ NextJob:
       show_warn("\n   <--- ManualSession: only $totevs events found, change DaqFiles-range and repeat");
       show_warn("          'ScanDaqDir'=>'SetupJob', or change 'Events' and repeat 'SetupJob'=> !!!  ");
     }
-#---> clean templinks-dir from previous job temporary links and return:
-    $fn=$workdir."/templinks/*";
-    $stat = system("rm -f $fn");
-    if($stat != 0){show_messg("   <--- There are no temporary links to clear in templinks-dir !\n");}
-#
     return;
   }
 #----
-  else{#<-- statistics ok: 
-#--> redefine some run-dependent params:
-    if($CalRun2<1230764399){#--->2008
-      $jpar10="AMS02PreAss";
-    }
-    elsif($CalRun1>1230764399 && $CalRun2<1262300400){#--->2009
-      $jpar10="AMS02Ass1";
-    }
-    elsif($CalRun1>1262300400 && $CalRun2>1262300400){#--->2010
-      if($posstext eq "OnEarth"){#--->still on earth
-        $jpar10="AMS02";# ="AMS02Ass1" as default
-      }
-      else{
-        $jpar10="AMS02Space";
-      }
+  else{#<-- statistics not ok or SingleFileJob:
+    if($SingleFileJob==1 && $totevs<$Evs2Read){
+      show_warn("\n   <--- SingleFileJob mode: single file has only $totevs events !?..");
+      show_warn("        If it is OK - continue job by clicking 'SubmitJob'...");
     } 
-    else{
-      show_warn("\n   <-- Wrong dates(runs) range definition, please correct it !!!");
-      return;
-    }
-#--> create dir to keep job's daqf-links:
-    $dflinksSD="/JL".$CalRun1;
-    $cmd="mkdir -p -m a=rwx ".$dflinksTD.$dflinksSD;# ($dflinksTD=$workdir."/daqflinks")
-    $stat=system($cmd);
-    if($stat != 0){
-      show_warn("\n   <-- Can't create links-dir $dflinksSD, skip to next job !!!");
-      goto NextJob;#<-- means next sub-range job
-    }
-#--> move job's links from templinks-dir to job's links-dir:
-    $lname=$workdir."/templinks/*";#all link-names (=run#) created temporary in templinks-dir
-    $lpath=$dflinksTD.$dflinksSD;
-    $stat=system("mv $lname $lpath");
-    if($stat!=0){
-      show_warn("\n   <-- Moving of links to $dflinksSD failed, skip to next job !!!");# move links to job's link-dir
-      goto NextJob;#<-- means next sub-range job
-    }
+#--> redefine some run-dependent params:
 #---
-    $jpar9=$lpath."/";
     $sjobbt_state="normal";
     $sjobbt->configure(-state=>$sjobbt_state);
     if($AutoSessFlg eq "ManualSess"){#<-- SubmJob will be done manually
@@ -1598,7 +1443,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
   my $debug="-d";
   if($ServConnect==0){
     unshift @ARGV, "-DOracle:";
-    unshift @ARGV, "-Famsdb";
+    unshift @ARGV, "-Fpdb_ams";
     $ServObject=new DBSQLServer();
     $ServConnect=$ServObject->ConnectRO();
   }
@@ -1632,7 +1477,7 @@ sub scanddir{ # scan DAQ-directories to search for needed files in required date
 	$fdat=substr($fdat,0,16);
 #	print "type=",$type," Dtyp=",$rtype," Conf=",$conf," SubDetPat=",$subdetpat," Rtype=",$rtype,"\n";
 	if($rtype eq $RunType){#<-- use only requested runtype(LAS,SCI,CAL or UNK)
-          $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  Path:".$path."\n";
+          $curline="  Run/Tag/RType:".$run." ".$tag." ".$type."  StTime=".$fdat." Evs:".$nevents."  ".$path."\n";
           $logtext->insert('end',$curline);
           $logtext->yview('end');
           $daqfstat[$ndaqfound]=1;#status=found
@@ -1843,57 +1688,27 @@ sub SubmitJob
   my $pid_alive=0;
   my ($line,$format,$string);
   my $dir=$workdir.$amsjwd;
-  my $logf=$dir."/TofTDCL".$CalCode.".".$CalRun1.".log.%J";
-  my $logef=$dir."/TofTDCL".$CalCode.".".$CalRun1.".loge.%J";
+  my $logf=$dir."/TofTACR".$CalCode.".".$CalRun1.".log.%J";
+  my $logef=$dir."/TofTACR".$CalCode.".".$CalRun1.".loge.%J";
   my $comm2run;
   my $fn;
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
   if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
-    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar4 -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
+  print "SubmCommand=",$comm2run,"\n";
   }
   else{
-    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
-#    $comm2run="bsub -q $Queue2run -n $jpar7 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar4 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+#    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
   }
 #
 TryAgain:
   $bsubpid=0;
-#  $fn="mess.log";
-#  open(MESS,"+>$fn") or show_warn("\n   <--- Cannot open mess-file $fn, $!");
-#  $status=system("$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 $jpar11 >$fn");
-#  $mwnd->after(1000);#
-#  if($status==0){
-#    while(<MESS>){
-#      $output=$_;
-#      chomp $output;
-#      if($output =~/^\s*$/){next;}# skip empty or all " "'s lines
-#      $output =~s/^\s+//s;# remove " "'s at the beg.of line
-#      @words=split(/\s+/,$output);#split by any number of continious " "'s
-#      $nwords=scalar(@words);
-#      print " bsub-mess output:",$output," file=",$CalRun1,"\n";
-#    }
-#  }
-#  else{
-#    show_warn("\n   <--- System(bsub) status is bad : $status !!!");
-#    close(MESS) or show_warn("        Cannot close-1 mess-file $fn, $!");
-#    return;
-#  }
-#  close(MESS) or show_warn("        Cannot close-2 mess-file $fn, $!");
-#  $bsubpid=$words[1];
-#  $bsubpid =~ tr/0-9\<\>/0-9/d;#remove <> in output <bsubpid>
-#  if($bsubpid>0 && ($words[3] eq "submitted")){
-#    $SubmJobCount+=1;
-#    show_messg("\n   <========= Job $bsubpid is successfully submitted !!!","B");
-#  }
-#  else{
-#    show_warn("\n   <--- Leave SubmitJob after $attempts unsuccessful attempts !!!");
-#    return;
-#  }
-#---  
-  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 $jpar5 $jpar6 $jpar7 $jpar8 $jpar9 $jpar10 |") 
-                                              or show_warn("   <-- Job-submit problem (at open), $! !!!");
+  print "Pars=",$jpar1," ",$jpar2," ",$jpar3," ",$jpar4,"\n";
+  $pid=open(BSUBM,"$comm2run $jpar1 $jpar2 $jpar3 $jpar4 |") or show_warn("   <-- Job-submit problem (at open), $! !!!");
   while(<BSUBM>){
     $output=$_;
     chomp $output;
@@ -1917,7 +1732,7 @@ TryAgain:
   else{
     kill 9 => $pid;
     show_warn("\n   <--- JobSubmit problem, submit-process is killed, trying to repeat submission...");
-    if($attempts<4){
+    if($attempts<5){
       goto TryAgain;
     }
     else{
@@ -1980,7 +1795,7 @@ TryAgainBjobs:
     }
     else{#<-- means no answer or status not found
       if($attempts<5){
-        $mwnd->after(1000);#
+        $mwnd->after(2000);#
         goto TryAgainBjobs;
       }
       show_warn("\n   <--- SubmitJob: 'bjobs'-> just submitted job $bsubpid status is not found ?!: ");
@@ -2139,7 +1954,7 @@ sub CheckJobsStat
 #
   show_messg("\n   <========= Enter 'CheckJobStatus' ...","B");
 #
-#---> extract job-pids, job-stats from @SubmJobsList(to use locally):
+#---> extract job-pids, job-stats from current @SubmJobsList(to use locally):
 #
   $nelsjl=scalar(@SubmJobsList);
 #  @strarr format => JobId  Node  Que  CflRefNumb  FirstRunN  LastsRunN  CCode  SubmDate  SubmTime  JobStat
@@ -2227,7 +2042,7 @@ NextStage1:
   my $date,$time,$lfname,$lfpid,$ccode,$strun,$dtime,$dattim,$fcrmin,$crutc,$times,$name;
   @LogFileList=();
   $dir=$workdir.$amsjwd;
-  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTDCL*.*[0-9]".".log.*[0-9] |";
+  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTACR*.*[0-9]".".log.*[0-9] |";
   @array=();
   $pid=open(FJOBS,$cmd) or show_warn("\n   <--- Cannot make log-file list in amsjobwd  $!");
   while(<FJOBS>){
@@ -2253,7 +2068,7 @@ NextStage1:
     $nel=scalar(@substr);
     $lfpid=$substr[$nel-1];#number after last "."(embedded jobid)
     $strun=$substr[$nel-3];#number after first "."(1st daq-file number used, 10digs)
-    $name=$substr[0];# ="TofTDCLnnn"
+    $name=$substr[0];# ="TofTACRnnn"
     $ccode=substr($name,-3,3);
     $stat=1;#<--- logf status=found (2->jobconfirmed,3->logf(job)goodquality,4->cfilesconf)
     for($i=0;$i<$nelsjl;$i++){#find lfpid in sjpid-list
@@ -2312,7 +2127,7 @@ sub jcontr_kill
     while(<KJOBS>){
       $line=$_;
       @warr=split(/\s+/,$line);#warr => "Job <11230> is being terminated"
-      print "mess=",$line,"\n";
+#      print "<--- Kill.mess=",$line,"\n";
     }
     close(KJOBS);
     $killedpid=$warr[1];
@@ -2342,6 +2157,7 @@ sub jcontr_kill
       } 
     }
   }
+#
 }
 #---------------------
 sub jcontr_susp
@@ -2376,7 +2192,7 @@ TryAgain_1:
 #
   @LogFileList=();
   $dir=$workdir.$amsjwd;
-  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTDCL*.*[0-9]".".log.*[0-9] |";
+  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTACR*.*[0-9]".".log.*[0-9] |";
   @array=();
   $pid=open(FJOBS,$cmd) or show_warn("\n   <--- Cannot make log-file list in amsjobwd  $!");
   while(<FJOBS>){
@@ -2384,7 +2200,7 @@ TryAgain_1:
   }
   close(FJOBS);
   $nellfl=scalar(@array);
-  if($nellfl==0){show_messg("\n   <--- There are no any TDCL log-files in $amsjwd-directory !");}
+  if($nellfl==0){show_messg("\n   <--- There are no any log-files in $amsjwd-directory !");}
   for($j=0;$j<$nellfl;$j++){
     @string=split(/\s+/,$array[$j]);
     $date=$string[3];# yyyy-mm-dd
@@ -2402,11 +2218,11 @@ TryAgain_1:
     $nel=scalar(@substr);
     $lfpid=$substr[$nel-1];#number after last "."(embedded jobid)
     $strun=$substr[$nel-3];#number after first "."(1st daq-file number used, 10digs)
-    $name=$substr[0];# ="TofTDCLnnn"
+    $name=$substr[0];# ="TofTACRnnn"
     $ccode=substr($name,-3,3);
     $stat=1;#<--- logf status=found (2->jobconfirmed,3->logf(job)goodquality,4->cfilesconf)
     $line=pack($LogfListFmt,$lfpid,$ccode,$strun,$dtime,$fcrmin,$stat)."\n";
-    push(@LogFileList,$line);#<-- add to LogFileList new member(line) with latest status
+    push(@LogFileList,$line);#<-- add to LofFileList new member(line) with latest status
   }
 #
 #---> delete killed job's log-files:
@@ -2418,13 +2234,13 @@ TryAgain_1:
     for($kind=0;$kind<$KilledJobs;$kind++){#<-- look into killed jobs list
       $kjpid=$KilledJobsPids[$kind];
       if($kjpid==$lfpid){#<-- delete related log(e)-files
-        $fn="TofTDCL".$ccode.".".$strun.".log.".$lfpid;
+        $fn="TofTACR".$ccode.".".$strun.".log.".$lfpid;
         $fnfr=$workdir.$amsjwd."/".$fn;
         $rwsta = system("rm -f $fnfr");
         if($rwsta != 0){show_warn("\n   <-- Can't delete $fn in work-dir !");}
         else{show_messg("\n   <-- file $fn is deleted in work-dir !");}
 #      
-        $fne="TofTDCL".$ccode.".".$strun.".loge.".$lfpid;
+        $fne="TofTACR".$ccode.".".$strun.".loge.".$lfpid;
         $fnfr=$workdir.$amsjwd."/".$fne;
         $rwsta = system("rm -f $fnfr");
         if($rwsta != 0){show_warn("\n   <-- Can't delete $fne in work-dir !");}
@@ -2464,14 +2280,44 @@ TryAgain_1:
       $crefn=$array[3];
       $strun=$array[4];
       $ccode=$array[6];
-      if((($ccode%100)/10)>0){$fext="_ecom";}
-      else{$fext="_norm";}
-      $fn=$cfilenames[6].".".$fext;# <-- Tdcor
-      $fnfr=$workdir.$amsjwd."/".$fn;
-      $rwsta = system("rm -f $fnfr");
-      if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
-      else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
+      $fext=0;
+      if($crefn < $strun){$fext=$strun;}
+      elsif($crefn==$strun){$fext=$strun+1;}#<-- was rerun with new calf-set = strun
+      if($fext>0){#<-- one of 2 possible cases
+        $fn=$cfilenames[0].".".$fext;# <-- Cflist
+        $fnfr=$workdir.$amsjwd."/".$fn;
+        $rwsta = system("rm -f $fnfr");
+        if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
+	else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
 #
+        $fn=$cfilenames[1].".".$fext;# <-- CStat
+        $fnfr=$workdir.$amsjwd."/".$fn;
+        $rwsta = system("rm -f $fnfr");
+        if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
+	else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
+#
+        if(($ccode/100)>0){
+          $fn=$cfilenames[2].".".$fext;# <-- Tdelv
+          $fnfr=$workdir.$amsjwd."/".$fn;
+          $rwsta = system("rm -f $fnfr");
+          if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
+	  else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
+        }
+        if((($ccode%100)/10)>0){
+          $fn=$cfilenames[3].".".$fext;# <-- Tzslw
+          $fnfr=$workdir.$amsjwd."/".$fn;
+          $rwsta = system("rm -f $fnfr");
+          if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
+	  else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
+        }
+        if(($ccode%10)>0){
+          $fn=$cfilenames[4].".".$fext;# <-- Amplf
+          $fnfr=$workdir.$amsjwd."/".$fn;
+          $rwsta = system("rm -f $fnfr");
+          if($rwsta == 0){show_messg("\n   <-- file $fn is deleted as related with killed job $sjpid !");}
+	  else{show_warn("\n   <-- can't delete $fn of killed job $sjpid !");}
+        }
+      }
 #--> remove related link-dirs:
       $dflinksSD="/JL".$strun;
       $dir=$dflinksTD.$dflinksSD;
@@ -2632,7 +2478,7 @@ sub JobOutpControl
                                                                  -relwidth=>1., -relheight=>$bheight,
                                                                            -relx=>0, -rely=>$crely);
 #-------- frame for logf/calf-listboxes:
-  my $nlistbs=2;
+  my $nlistbs=6;
   my $bhrspac=0.002;#listb rel H-spacing in units of listb-width
   my $vbias=0.08;#listb v-bias to place frame-label
   my $lbwid=1/($nlistbs*(1+$bhrspac)-$bhrspac);
@@ -2646,8 +2492,8 @@ sub JobOutpControl
 			   place(-relwidth=>$lbfwid, -relheight=>1,
                                  -relx=>(1-$lbfwid), -rely=>0);
 #---
-  my $label1="  LogFiles(jobid, CalCode, RunN, CrTime, stat=2/3/4->jobconf/good/Cfmatched)";
-  my $label2="                   TdcorFiles(RunN, CrTime, stat=0/1/2->MarkedAsBad/Found/LogfMatch, type";
+  my $label1="LogFiles(s=2/3/4->jc/gd/mt)               CflistFiles                        CStatusFiles";
+  my $label2="                          TdelvFiles                          TzslwFiles                            AmplfFiles";
   my $label=$label1.$label2;
   my $logf_lab=$listb_fram->Label(-text=>$label, -anchor=>'w', -font => $font2)
                                             ->place(
@@ -2657,18 +2503,62 @@ sub JobOutpControl
 #--- logfile lbx
   $logf_lbx=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $font2c,
+							    -font => $font2b,
 							    -background=>LightBlue,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
 							    )->place(
                                                             -relwidth=>$lbwid, -relheight=>(1-$vbias),
                                                             -relx=>$crelx, -rely=>$vbias);
-#--- TdcorList lbx
+#--- CflistList lbx
   $crelx+=($lbwid+$lbspac);
-  $JClboxPointer[6]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
+  $JClboxPointer[0]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
                                                             -relief => "sunken",
-							    -font => $font2c,
+							    -font => $font2b,
+							    -background=>LightBlue,
+                                                            -selectbackground => "yellow",
+							    -selectforeground => "red"
+							    )->place(
+                                                            -relwidth=>$lbwid, -relheight=>(1-$vbias),
+                                                            -relx=>$crelx, -rely=>$vbias);
+#--- CStatList lbx
+  $crelx+=($lbwid+$lbspac);
+  $JClboxPointer[1]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
+                                                            -relief => "sunken",
+							    -font => $font2b,
+							    -background=>LightBlue,
+                                                            -selectbackground => "yellow",
+							    -selectforeground => "red"
+							    )->place(
+                                                            -relwidth=>$lbwid, -relheight=>(1-$vbias),
+                                                            -relx=>$crelx, -rely=>$vbias);
+#--- TdelvList lbx
+  $crelx+=($lbwid+$lbspac);
+  $JClboxPointer[2]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
+                                                            -relief => "sunken",
+							    -font => $font2b,
+							    -background=>LightBlue,
+                                                            -selectbackground => "yellow",
+							    -selectforeground => "red"
+							    )->place(
+                                                            -relwidth=>$lbwid, -relheight=>(1-$vbias),
+                                                            -relx=>$crelx, -rely=>$vbias);
+#--- TzslwList lbx
+  $crelx+=($lbwid+$lbspac);
+  $JClboxPointer[3]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
+                                                            -relief => "sunken",
+							    -font => $font2b,
+							    -background=>LightBlue,
+                                                            -selectbackground => "yellow",
+							    -selectforeground => "red"
+							    )->place(
+                                                            -relwidth=>$lbwid, -relheight=>(1-$vbias),
+                                                            -relx=>$crelx, -rely=>$vbias);
+#--- AmplfList lbx
+  $crelx+=($lbwid+$lbspac);
+  $JClboxPointer[4]=$listb_fram->Scrolled("Listbox", -scrollbars => "e", -selectmode => "multiple",
+                                                            -relief => "sunken",
+							    -font => $font2b,
 							    -background=>LightBlue,
                                                             -selectbackground => "yellow",
 							    -selectforeground => "red"
@@ -2689,11 +2579,11 @@ sub JobOutpControl
   my ($nellfl,$ccode,$lfccode,$name);
   my $dflinksTD=$workdir.$daqflnk;
   my $dflinksSD,$cmdstat;
-  my $nnel;
 #
   $JobConfLogFiles=0;#incr. when log-file found and job-confirmed(in "JobOutpControl") 
   $GoodLogFiles=0;# + "good"
   $FiniJobCount=0;
+  $LogFilesReceived=0;
   $JOCReady=0;
 #  
   my @SubmJStat=();
@@ -2729,8 +2619,7 @@ sub JobOutpControl
       if($nel>1){
         for($i=1;$i<$nel;$i++){# '1' to skip title
           @string=split(/\s+/,$rarray[$i]);
-	  $nnel=scalar(@string);
-	  if($nnel<9){next;}#<-- crazy line (LSF bug) - skip it
+	  if(scalar(@string)<9){next;}#<-- crazy line (LSF bug) - skip it
           $rjpid=$string[0];
           $user=$string[1];
           $rstat=$string[2];
@@ -2751,19 +2640,9 @@ sub JobOutpControl
       $sarray[9]=$stat;#update job-status
       $line=pack($SubmJobsFmt,@sarray);
       $SubmJobsList[$j]=$line;
+      if($stat==20){$FiniJobCount+=1;}#
     }#<---endof job-stat check in the list
 #
-    if($stat==20){#<-- remove links-dir of finished job
-      $FiniJobCount+=1;
-      $dflinksSD="/JL".$strun;
-      $dir=$dflinksTD.$dflinksSD;
-      $cmd="rm -rf $dir";
-      $cmdstat=system($cmd);
-      if($cmdstat != 0){
-        show_warn("\n   <--- Failed to remove links-dir of finished job $sjpid !!!");
-      }
-      else{show_messg("\n   <--- Command 'delete' Links-dir of finished job $sjpid is done  !");}
-    }
 #
 #-> save job pid/stat(updated) in separate lists:
     push(@SubmJPid,$sjpid);
@@ -2775,13 +2654,13 @@ sub JobOutpControl
     show_messg("\n   <--- JobOutputControl: there are no New finished jobs !");
 #    return;
   }
+  else{show_messg("\n   <--- JobOutputControl: Found $FiniJobCount new finished jobs !");}
 #
 #------> create the list of A-L-L log-files(=> finished jobs) on the moment of 'JobOutpContr' clicking :
 #                                     (also match with jobs)
   @LogJobMatchIndex=();
-# print "create list of log-files...","\n";
   $dir=$workdir.$amsjwd;
-  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTDCL*.*[0-9]".".log.*[0-9] |";
+  $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTACR*.*[0-9]".".log.*[0-9] |";
   @array=();
   open(FJOBS,$cmd) or show_warn("\n   <--- JobOutputControl: Cannot make log-file list in amsjobwd  $!");
   while(<FJOBS>){
@@ -2798,6 +2677,7 @@ sub JobOutpControl
 #---
   my ($dattim,$lfpid,$times,$crutc,$fcrmin);
   my ($ccodeok,$jmindx,$stline);
+  my $checked;
   @LogFileList=();
 #
   for($j=0;$j<$nellfl;$j++){#<--- logf-loop
@@ -2817,23 +2697,33 @@ sub JobOutpControl
     $nel=scalar(@substr);
     $lfpid=$substr[$nel-1];#number after last "."(embedded jobid)
     $strun=$substr[$nel-3];#number after first "."(1st daq-file number used, 10digs)
-    $name=$substr[0];# ="TofTDCLnnn"
+    $name=$substr[0];# ="TofTACRnnn"
     $ccode=substr($name,-3,3);
+#
     $stat=1;#<--- logf status=found (2->jobconfirmed,3->logf(job)goodquality,4->cfilesconf)
+    $checked=0;
+    for($ij=0;$ij<$nelsjl;$ij++){
+      $sjpid=$SubmJPid[$ij];
+      $sjsta=$SubmJStat[$ij];
+      if($lfpid==$sjpid && $sjsta==30 || $sjsta==40){
+        $checked=1;#set flag that given log-file already job-confirmed(=old)
+	last;
+      }
+    }
+#
     for($ij=0;$ij<$nelsjl;$ij++){#<-- match logs with jobs (by sjpid)
       $sjpid=$SubmJPid[$ij];
       $sjsta=$SubmJStat[$ij];
-      if($lfpid==$sjpid && ($sjsta==5 || $sjsta==10 || $sjsta==20)){#<-- found related job(running/pend job could be finished just befor)
+      if($lfpid==$sjpid && $sjsta>5){#<-- found related not log-matched job(running job could be finished just befor)
         $stat=2;#<--logf-status = "job-matched"
 	$JobConfLogFiles+=1;
         $SubmJStat[$ij]=30;#<-- job-status = "logf-matched"
 	$jmindx=$ij;
 	$LogJobMatchIndex[$j]=$ij;# attach matched job-index(as in SubmJobList) to LogFileList index
-# print "Matched Log ",$lfpid," with job ",$sjpid," Lf ccode=",$ccode," name=",$name,"\n";  
         last;
       }
     }#--->endof jobs loop 
-#---> check job(log)-quality(special info(block) near the end of log-file):
+#---> check job(log)-quality(special info(block) in log-file):
     if($stat==2){#<-- logf is job-confirmed, check quality 
       @rarray=();
       $fname=$lfname;
@@ -2848,10 +2738,10 @@ sub JobOutpControl
       close(FLOGS);
 #-> search/read "results"-block:
       $nel=scalar(@rarray);
-      $stline=1000;
+      $stline=1;
       @lfresult=();
       for($il=$stline;$il<$nel;$il++){
-	if(($rarray[$il] eq "<==========Tof CALIB Results:") && ($rarray[$il+$ResultsBlockLen-1] eq "<==========End of Results")){
+	if(($rarray[$il] eq "<----- TofCalib:ResultsBlock :") && ($rarray[$il+$ResultsBlockLen-1] eq "<----- TofCalib:EndOfResultsBlock.")){
 	  for($k=1;$k<$ResultsBlockLen-1;$k++){push(@lfresult,$rarray[$il+$k]);}#read results section into buffer
 	  last;
 	}
@@ -2859,26 +2749,18 @@ sub JobOutpControl
       $nel=scalar(@lfresult);
       $ccodeok=0;
       if($nel==$ResultsBlockLen-2){#<-- decoding/checking results block(header/trailler removed)
-	if(($ccode==900) || ($ccode==910)){#<--TDCL-results check(accept MN=00/10, i.e. 1-pass normal/economic modes)
-	  @calqual=split(/\s+/,$lfresult[3]);
-	  if($calqual[0]>1000 && $calqual[1]>100 && $calqual[2]<20 && $calqual[3]<5.5){#<-- TDCL pars ok:
-#         aver.evs/bin | aver.min.evs/bin | chan% with low evs/bin in any bin | chan% dead(connected, but aver.evs/bin too low)                 
-	    $ccodeok+=1;
-	  }
-	  else{show_messg("\n   <--- Bad Tdcor-results: $lfresult[3]\n");}
-	}
+        $ccodeok=$lfresult[0]; 
       }
       else{
 	show_warn("\n   <--- Finished/logmatched job $lfpid has no result block in Log-file !!!");
       }
-      if($ccodeok>0){
+      if($ccode==$ccodeok){
         $GoodLogFiles+=1;
         $stat=3;#<--log with good results
         $SubmJStat[$jmindx]=40;#<-- job has logf with good results
       }
       elsif($nel==$ResultsBlockLen-2){
-	show_warn("\n   <--- Finished/logmatched job $lfpid has bad result according to Log-file !!!");
-	show_warn("      results: $calqual[0], $calqual[1], $calqual[2], $calqual[3] ");
+	show_warn("\n   <--- Finished/logmatched job $lfpid has bad status, CalibStatus: $ccodeok !!!\n");
       }
 #--> update job-status in SubmJobsList:
       $line=$SubmJobsList[$jmindx];
@@ -2887,17 +2769,17 @@ sub JobOutpControl
       $SubmJobsList[$jmindx]=pack($SubmJobsFmt,@rarray);
 #
     }#--->endof 'logf is job-confirmed'
-#<--- endof job(logf) quality check
+#
     $line=pack($LogfListFmt,$lfpid,$ccode,$strun,$dtime,$fcrmin,$stat)."\n";
     push(@LogFileList,$line);#<-- add to LofFileList new member(line) with latest status
   }#--->endof logf-loop
 #
+  $LogFilesReceived=scalar(@LogFileList);
   if($GoodLogFiles==0){  
-    show_messg("\n   <--- JobOutputControl: there are no any good log-files in $amsjwd-directory !");
-#    return;
+    show_messg("\n   <--- JobOutputControl: there are no new good log-files in $amsjwd-directory !");
   }
 #
-#------> create the list of A-L-L ordinary(incl.'_norm') Tdcor-files on the moment of 'JobOutpControl' clicking :
+#------> create the list of A-L-L ordinary TofCalib-files on the moment of 'JobOutpControl' clicking :
 #                 (RefCalib-files are not included in this ordinary cal-files lists !!!)
 #
   my @Cfrefs=();
@@ -2908,7 +2790,6 @@ sub JobOutpControl
   $Cfrefs[4]=\@AmplfList;
   $Cfrefs[5]=\@ElospList;
   $Cfrefs[6]=\@TdcorList;
-  @TdcorfExt=();#to keep found outfiles extentions(_ecom/_norm)
 #-- lists of ref.cal-files:
   my @refCfrefs=();
   $refCfrefs[0]=\@RefCflistList;# all below are already existing(created in 'Welcome')
@@ -2932,20 +2813,17 @@ sub JobOutpControl
 #---> see calib-files in amsjobwd: 
   my @ncfiles=();
   my ($refstrun,$nrefcfl,$refcffl);
-  my $length,$ofext;
 #
   for($i=0;$i<$nelcft;$i++){# <--- cal-file types loop
     @{$Cfrefs[$i]}=();# clear refs
-    if($i!=6){next;}#<-- need only Tdcor-type(6) files
     @array=();
-    $cmd="ls -ogt --time-style=long-iso ".$dir."/".$cfilenames[$i].".*[0-9_cemnor] |";
+    $cmd="ls -ogt --time-style=long-iso ".$dir."/".$cfilenames[$i].".*[0-9][^_] |";
     open(FLIST,$cmd) or show_warn("   <-- JobOutputControl: Cannot make cal-file list in amsjobwd  $!");
     while(<FLIST>){
       push(@array,$_);
     }
     close(FLIST);
     $ncfiles[$i]=scalar(@array);
-# print "cftype=",$i," nfiles=",$ncfiles[$i],"  arr1=",$array[0]," ",$array[1],"\n";
     for($j=0;$j<$ncfiles[$i];$j++){#<--- cfiles-loop for type $i
       @string=split(/\s+/,$array[$j]);
       $date=$string[3];# yyyy-mm-dd
@@ -2958,20 +2836,10 @@ sub JobOutpControl
       $fcrmin=$crutc/60;# calf creation loc.time(since 1900) in minutes (8digs)
       @substrg=split(/\./,$string[5]);
       $nel=scalar(@substrg);
-      $ext=$substrg[$nel-1];#extention="number_norm(ecom)" after last "."
-      $length=length($ext);
-      if($length>10){# output Tdcor-file (with '_norm(ecom)' ext) 
-        $strun=substr($ext,0,($length-5));# "-5" to remove "_ecom(_norm)"
-	$ofext=substr($ext,-5,5);# '_ecom/_norm'
-      }
-      else{# standard Tdcor-file
-        $strun=$ext;
-	$ofext="";
-      }
-      if($strun==111){next;}#<-- skip generic files(used as input for db-update jobs)
-#  print "cfile:",$j," ext=",$ext,"  length=",$length," strun=",$strun,"\n";
+      $strun=$substrg[$nel-1];#number after last "."
+      if($strun==111){next;}#skip generic files(used as input for db-update mode)
 #
-      $nrefcfl=scalar(@{$refCfrefs[$i]});# ref.cal-files of type $i (here Tdcor-type)
+      $nrefcfl=scalar(@{$refCfrefs[$i]});# ref.cal-files of type $i
       $refcffl=0;
       for($k=0;$k<$nrefcfl;$k++){#<-- ref.cal-files loop
         $refstrun=$refCfrefs[$i]->[$k];
@@ -2981,14 +2849,13 @@ sub JobOutpControl
 	}
       }#--->endof ref.cal-files loop
 #
-      $stat=1;# found 
+      $stat=1;# found
       if($refcffl==1){
         $stat=10;# this file is one of the ref-files
-	next;#go to next Tdcor file in the list(to skip current $j-file as ref.one)
+	next;#to not include current $j-file in the ordinary cal-files list
       }
       $line=pack($CalfListFmt,$strun,$dtime,$fcrmin,$stat)."\n";
       push(@{$Cfrefs[$i]},$line);
-      push(@TdcorfExt,$ofext);
     }#<---endof cfiles-loop for type $i
   }#---> endof cal-file types loop
 #
@@ -3014,16 +2881,14 @@ sub JobOutpControl
   $Cflbref[5]=\@ElospLbox;
   $Cflbref[6]=\@TdcorLbox;
 #
-  for($i=0;$i<$nelcft;$i++){#<-- cal-files types loop
-    if($i!=6){next;}# need only Tdcor-type
+  for($i=0;$i<$nelcft-2;$i++){#<-- cal-file types loop
     $nel=$ncfiles[$i];
     @{$Cflbref[$i]}=();
     if($nel>0){
       for($j=0;$j<$nel;$j++){#<--file-loop inside given type
         $line=$Cfrefs[$i]->[$j];
         @string=unpack($CalfListFmt,$line);
-	if($i==6){$line=pack($CalfLboxFmt." A5",$string[0],$string[1],$string[3],$TdcorfExt[$j]);}# for Tdcor only
-        else{$line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);}# utcmin excluded in listbox
+        $line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);# utcmin excluded in listbox
         push(@{$Cflbref[$i]},$line);
       }
     }
@@ -3055,7 +2920,7 @@ sub ocontr_shlog
 #    $logf_lbx->selectionClear($index);
     $line=$LogFileList[$index];
     ($lfpid,$ccode,$strun,$time,$utcmin,$stat)=unpack($LogfListFmt,$line);
-    $fn="TofTDCL".$ccode.".".$strun.".log.".$lfpid;
+    $fn="TofTACR".$ccode.".".$strun.".log.".$lfpid;
     $fname=$workdir.$amsjwd."/".$fn;
     $stat=system("nedit -read $fname");
     if($stat != 0){
@@ -3086,7 +2951,7 @@ sub ocontr_shelog
 #    $logf_lbx->selectionClear($index);
     $line=$LogFileList[$index];
     ($lfpid,$ccode,$strun,$time,$utcmin,$stat)=unpack($LogfListFmt,$line);
-    $fn="TofTDCL".$ccode.".".$strun.".loge.".$lfpid;
+    $fn="TofTACR".$ccode.".".$strun.".loge.".$lfpid;
     $fname=$workdir.$amsjwd."/".$fn;
     $stat=system("nedit -read $fname");
     if($stat != 0){
@@ -3099,7 +2964,6 @@ sub ocontr_shelog
 sub ocontr_match
 {
   my $ccodeok=0;
-  my $tdcormok=0;
   my $statfmok=0;
   my $cflfmok=0;
   my @array=();
@@ -3162,14 +3026,11 @@ sub ocontr_match
     $cflfmok=0;
     @cfmatchindx=();# match-indexes of cal-files for given log-file $lf 
     if($stat==3){#<-- logf is jobmatched+good
-      for($i=0;$i<$nelcft;$i++){#<--cal.types loop
-        if($i!=6){next;}# need only Tdcor-type
+      for($i=0;$i<$nelcft-2;$i++){#<--cal.types loop(exept Tdcor/Elosp which are irrelevant of TAUC)
         $nel=scalar(@{$Cfrefs[$i]});
-# print "--> Ctyp=",$cfilenames[$i]," Nfiles=",$nel,"\n";
         for($j=0;$j<$nel;$j++){#<--- cal-files loop
           $line=$Cfrefs[$i]->[$j];
           ($strunc,$timec,$utcminc,$statc)=unpack($CalfListFmt,$line);
-# print "-> cf=",$j," strun/utc=",$strunc," ",$utcminc," stst=",$statc,"\n";
 	  if($statc==10){next;}#<-- skip ref-files(if was accepted to be present in the list of all cal-files)
 	  if((($strun==$strunc) || ($strunc==($strun+1)))
 	                        && (abs($utcmin-$utcminc)<=5)
@@ -3180,16 +3041,20 @@ sub ocontr_match
 	    $JClboxPointer[$i]->selectionSet($j);
 	    $line=pack($CalfListFmt,$strunc,$timec,$utcminc,$statc);# update stat in cal-files list
 	    $Cfrefs[$i]->[$j]=$line;
-	    if($i==6){$tdcormok=1;}
+	    if($i==0){$cflfmok=1;}
+	    if($i==1){$statfmok=1;}
+	    if($i==2){$ccodeok+=100;}
+	    if($i==3){$ccodeok+=10;}
+	    if($i==4){$ccodeok+=1;}
 	  }#--->endof matched
 	}#--->endof cal-files loop
       }#--->endof cal-types loop
     }#<---endof 'logf is job_matched/good ?'
+#    print "cflok/stsok=",$cflfmok," ",$statfmok," ccodes:",$ccode," ",$ccodeok,"\n";
 #
-    if($tdcormok==1){#<-- overall matching ok
+    if($cflfmok==1 && $statfmok==1 && $ccode==$ccodeok){#<-- overall matching ok
       $MatchCFSets+=1;
-      $k=6;# tdcor-type
-      push(@{$matCfrefs[$k]},$cfmatchindx[$k]);#<--store cal-files match-indexes
+      for($k=0;$k<$nelcft-2;$k++){push(@{$matCfrefs[$k]},$cfmatchindx[$k]);}#<--store cal-files match-indexes
       push(@MatLogfInd,$lf+1);#<-- store log-file match-index
       $nlfmatch+=1;
       $stat=4;#-> set logf-stat to 'all matched'=ok
@@ -3211,6 +3076,121 @@ sub ocontr_match
   }#---> endof logf-loop
 #------------------------
 #
+#---> Check matched files consistence and cure the "calib-rerun" case(if present):
+#
+  my $ilog,$imat,$ind,$jobind,$jline,$cureflg;
+  my @MCalFileNums=();#<-- current matched set file-numbers as found in amsjobwd-dir(i.e.in *Lists) (0 if missing due ccode)
+  my $cureflg=0;
+  my @CflFileMemb=();#<-- cal-files members in matched Cflist-file(1st element is total num_of_calfiles=6 !!)
+  my $fn,$ffn;
+  my $mpatt,$gpatt;
+  my $fnfr,$fnto,$rwsta,$status;
+# 
+  for($imat=0;$imat<$MatchCFSets;$imat++){#<-- loop over matched file-sets
+    @MCalFileNums=();
+    $ilog=$MatLogfInd[$imat];#<-- ind+1 in LogFileList
+    $line=$LogFileList[$ilog-1];# ilog always >0 because match always include log-file
+    ($lfpid,$ccode,$strun,$time,$utcmin,$stat)=unpack($LogfListFmt,$line);
+    $jobind=$LogJobMatchIndex[$ilog-1];#<-- matched job-index in SubmJobsList
+    $jline=$SubmJobsList[$jobind];
+    ($bsubpid,$Host2run,$Queue2run,$refcalsetn,$CalRun1,$CalRun2,$CalCode,$submdate,$submtime,$jobsta)=unpack($SubmJobsFmt,$jline);
+    for($i=0;$i<$nelcft-2;$i++){#<--- loop to prepare @MCalFileNums for given matched cal-files set $imat
+      $ind=$matCfrefs[$i]->[$imat];#<-- index+1 of matched cal-file in corresponding ***List
+      if($ind>0){
+        $line=$Cfrefs[$i]->[$ind-1];
+        @string=unpack($CalfListFmt,$line);
+        $MCalFileNums[$i]=$string[0];#<-- strun(or +1) from calf-list, corresponds to extention of cal-file name
+      }
+    }
+#
+#--> open relevant Cflist-file:
+#
+    @CflFileMemb=();
+    $fn=$cfilenames[0].".".$MCalFileNums[0];
+    $ffn=$workdir.$amsjwd."/".$fn;
+    open(CFMEMB,"< $ffn") or show_warn("   <-- Cannot open $fn for reading, $!");
+    while(defined ($line = <CFMEMB>)){
+      chomp $line;
+      if($line =~/^\s*$/){next;}# skip empty or all " "'s lines
+      $line =~s/^\s+//s;# remove " "'s at the beg.of line
+      push(@CflFileMemb,$line);
+    }
+    close(CFMEMB) or show_warn("   <-- Cannot close $fn after reading, $!");
+    $nel=scalar(@CflFileMemb);
+    if($nel==0){
+      show_warn("\n   <--- Cflist-file $fn physically missing, something wrong !!!");
+      return;
+    }
+#
+#--> check Cflist-file consistence:
+#
+    $mpatt=0;
+    $gpatt=1;
+    if(($ccode/100)>0){$gpatt+=10;}
+    if((($ccode%100)/10)>0){$gpatt+=100;}
+    if(($ccode%10)>0){$gpatt+=1000;}
+    if($CflFileMemb[1]==$MCalFileNums[1]){$mpatt+=1;}#<-- stat-file numb. ok
+    if(($ccode/100)>0 && $CflFileMemb[2] == $MCalFileNums[2]){$mpatt+=10;}#<-- tdelv-file numb. ok
+    if((($ccode%100)/10)>0 && $CflFileMemb[3] == $MCalFileNums[3]){$mpatt+=100;}#<-- tzslw-file numb. ok
+    if(($ccode%10)>0 && $CflFileMemb[4] == $MCalFileNums[4]){$mpatt+=1000;}#<-- amplf-file numb. ok
+    if($gpatt != $mpatt){
+      show_warn("\n   <--- CflistFile $fn MembNum<->InDirNum inconsistency , something wrong !!!");
+      return;
+    }
+    $cureflg=0;
+    if($MCalFileNums[0] == ($strun+1) && $strun == $refcalsetn){$cureflg=1;}
+    if($cureflg > 0){#<-- need curing
+      for($i=0;$i<$nelcft-2;$i++){#<--- calf-types loop
+        $ind=$matCfrefs[$i]->[$imat];#<-- index+1 of matched cal-file in corresponding ***List
+        if($ind>0){#<-- this cal-file is present
+          $line=$Cfrefs[$i]->[$ind-1];
+          @string=unpack($CalfListFmt,$line);
+	  $string[0]=$strun;#<-- corrected calf-number(=$strun)
+	  $string[3]=10;#<-- set 'ref cal-file'-status: ref.set $refcalsetn was =$strun, i.e. was re-calibration
+	  $line=pack($CalfListFmt,@string);
+	  $Cfrefs[$i]->[$ind-1]=$line;#<-- update cal-files list with new file-numbers and status
+#
+	  if($i > 0){#<-- rename Cflist-file members and rename physical files(i.e. drop ones from old $refcalsetn):
+	    $CflFileMemb[$i]=$strun;
+            $fn=$cfilenames[$i].".".$MCalFileNums[$i];#<-- old (strun+1) name
+            $ffn=$cfilenames[$i].".".$strun;#<-- new (strun) name
+            $fnfr=$workdir.$amsjwd."/".$fn;
+            $fnto=$workdir.$amsjwd."/".$ffn;
+            $rwsta = system("mv $fnfr $fnto");
+            if($rwsta != 0){show_warn("\n   <-- Can't rename $fn to ext=$strun, $!");}
+	    else{show_messg("\n   <--- Cal-file $fn was renamed to new ext=$strun !");}
+	  }
+	  else{#<-- correct Cflist-file itself:
+# kill old(uncured) Cflist-file:
+            $fn=$cfilenames[0].".".$MCalFileNums[0];
+            $ffn=$workdir.$amsjwd."/".$fn;
+            $cmd="rm -f ".$ffn." |";
+            $status = system($cmd);
+            if($status != 0){show_warn("\n   <-- Can't delete $fn in work-dir, $!");}
+            else{show_messg("\n   <--- old(strun+1 shifted) Cflist-file was removed !");}
+# create new(cured) Cflist-file:
+            $fn=$cfilenames[0].".".$strun;
+            $ffn=$workdir.$amsjwd."/".$fn;
+            $nel=scalar(@CflFileMemb);
+            $WarnFlg=0;#<-- set to 1 if show_warn is called
+            open(CFMEMB,"> $ffn") or show_warn("   <-- Cannot open $fn for writing, $!");
+            for($i=0;$i<$nel;$i++){
+              $line=$CflFileMemb[$i];
+              print CFMEMB $line."\n";
+            }
+            close(CFMEMB) or show_warn("   <-- Cannot close $fn after writing, $!");
+            if($WarnFlg==0){
+              show_messg("\n   <--- new Cflist-file $fn is 'rerun'-problem cured !");
+            }
+#
+	  } 
+        }#<--endof "this cal-file is present"
+      }#<---endof calf-types loop
+    }#<-- endof "need curing"
+#
+  }#<--endof loop over matched file-sets
+#------------------------ 
+#
 #--- update Log/CalFiles Lboxes to see new statuses:
 #
   @loglistbox=();
@@ -3223,16 +3203,14 @@ sub ocontr_match
   $logf_lbx->delete(0,"end");
   $logf_lbx->insert("end",@loglistbox);
 #
-  for($i=0;$i<$nelcft;$i++){#<-- cal-file types loop
+  for($i=0;$i<$nelcft-2;$i++){#<-- cal-file types loop
     $nel=scalar(@{$Cfrefs[$i]});
     @{$Cflbref[$i]}=();
-    if($i!=6){next;}# need only Tdcor-type
     if($nel>0){
       for($j=0;$j<$nel;$j++){#<--file-loop inside given type
         $line=$Cfrefs[$i]->[$j];
         @string=unpack($CalfListFmt,$line);
-	if($i==6){$line=pack($CalfLboxFmt." A5",$string[0],$string[1],$string[3],$TdcorfExt[$j]);}# for Tdcor only
-        else{$line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);}# utcmin excluded in listbox
+        $line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);# utcmin excluded in listbox
         push(@{$Cflbref[$i]},$line);
       }
     }
@@ -3278,7 +3256,7 @@ sub ocontr_addrefset
   my $nel=0;
   my ($index,$cstatind,$tdelvind,$tzslwind,$amplfind)=(0,0,0,0,0);
   my ($matlineind,$logind,$jobind)=(-1,-1,-1);
-  my ($lfpid,$ccode,$strun,$time,$utcmin,$stat,$status);
+  my ($lfpid,$ccode,$strun,$time,$utcmin,$stat);
   my $nel;
   my ($bsubpid,$Host2run,$Queue2run,$refcalsetn,$CalRun1,$CalRun2,$CalCode,$submdate,$submtime,$jobsta);
   my $refsetused=0;
@@ -3286,33 +3264,33 @@ sub ocontr_addrefset
   my @RefCflistFile=();
   my $badsel=0;
 #
-  show_messg("\n   <------ Create new RefCalSet using selected Tdcor-file and default Cflist-file ...");
+  show_messg("\n   <------ Trying to create new RefCalibSet ...");
   if($MatchCFSets==0){
-    show_warn("\n   <--- There is no any matched Tdcor-file  -  New RefSet can't be created !!!");
+    show_warn("\n   <--- There is no any matched CalFiles sets - New RefSet can't be created !!!");
     goto BadRet;
   }
 #
-  @list=$JClboxPointer[6]->curselection();
+  @list=$JClboxPointer[0]->curselection();
 #
   $nel=scalar(@list);
   if($nel==0){
-    show_warn("\n   <--- There is no any selected item in Tdcor-files list, do selection and repeate !!!");
+    show_warn("\n   <--- There is no any selected item in Cflist-files list, do selection and repeate !!!");
     goto BadRet;
   }
   elsif($nel>1){
-    show_warn("\n   <--- More than one selected item in Tdcor-files list, de-select unnecessary and repeate !!!");
+    show_warn("\n   <--- More than one selected item in Cflist-files list, de-select unnecessary and repeate !!!");
     goto BadRet;
   }
   else{#<-- selection ok in 1st approximation
     $index=$list[0];#<-- single=first, range:0-max
-    for($i=0;$i<$MatchCFSets;$i++){#<-- find this $index in the matched Tdcor-files list
-      if($MatTdcorInd[$i]==($index+1)){
+    for($i=0;$i<$MatchCFSets;$i++){#<-- find this $index in the matched Cflist-files list
+      if($MatCflistInd[$i]==($index+1)){
         $matlineind=$i;#<-- index in matched lines list (total matched lines = $MatchCFSets) 
         last;
       }
     }
     if($matlineind<0){
-      show_warn("\n   <--- selected Tdcor-file candidate was not matched, select correct one !!!");
+      show_warn("\n   <--- selected Cflist-file candidate was not matched, select correct one !!!");
       goto BadRet;
     }
 #
@@ -3323,14 +3301,20 @@ sub ocontr_addrefset
     my @string=();
     $badsel=0;
 # 
-    for($i=0;$i<$nelcft;$i++){#<--- calf-types loop
-      if($i!=6){next;}# need only Tdcor-file
+    for($i=0;$i<$nelcft-2;$i++){#<--- calf-types loop
       $ind=$matCfrefs[$i]->[$matlineind];#<-- index+1 of matched cal-file in corresponding ***List
       if($ind>0){
         $line=$Cfrefs[$i]->[$ind-1];
         @string=unpack($CalfListFmt,$line);
         $MCalFileNums[$i]=$string[0];#<-- strun
+	if($i==0){#<-- check that selected Cflist-file is matched and is not already ref-one(made during matching of cal-rerun case)
+	  if($string[3] != 2){$badsel=1;}
+	}
       }
+    }
+    if($badsel==1){
+      show_warn("\n   <--- selected Cflist-file was not matched or is already ref-file, select correct one !!!");
+      goto BadRet;
     }
 #
     $logind=$MatLogInd[$matlineind];#<-- now it is index in @LogFileList
@@ -3340,11 +3324,11 @@ sub ocontr_addrefset
     $line=$SubmJobsList[$jobind];
     ($bsubpid,$Host2run,$Queue2run,$refcalsetn,$CalRun1,$CalRun2,$CalCode,$submdate,$submtime,$jobsta)=unpack($SubmJobsFmt,$line);
 #
-#--> open default Cflist-file and create its members list:
+#--> open selected Cflist-file:
 #
-    my @CflFileMemb=();#<-- cal-files numbers in default Cflist-file(1st element is total num_of_cfiles=6 !!)
+    my @CflFileMemb=();#<-- cal-files numbers in matched Cflist-file(1st element is total num_of_cfiles=6 !!)
     my $fn,$ffn;
-    $fn=$cfilenames[0].".".$refcalsetn;
+    $fn=$cfilenames[0].".".$MCalFileNums[0];
     $ffn=$workdir.$amsjwd."/".$fn;
     open(CFMEMB,"< $ffn") or show_warn("   <-- Cannot open $fn for reading, $!");
     while(defined ($line = <CFMEMB>)){
@@ -3355,29 +3339,14 @@ sub ocontr_addrefset
     }
     close(CFMEMB) or show_warn("   <-- Cannot close $fn after reading, $!");
     $nel=scalar(@CflFileMemb);
-    if($nel!=7){
-      show_warn("\n   <--- default Cflist-file physically missing or something wrong inside !!!");
+    if($nel==0){
+      show_warn("\n   <--- selected Cflist-file physically missing, something wrong !!!");
       goto BadRet;
     }
 #
-#---> update Tdcor-member in the members list and create new ref.Cflist-file:
+#--> update status of selected Cflist-file and its members(consistency is already checked during matching):
 #
-    my $newsetn=$strun-1;# tempor use strun-1
-    $CflFileMemb[6]=$strun;
-    $fn=$cfilenames[0].".".$newsetn; 
-    $ffn=$workdir.$amsjwd."/".$fn;
-    open(NCFLF,"> $ffn") or show_warn("\n   <--- Cannot open new ref.Cflist-file $fn, $!");
-    for($i=0;$i<7;$i++){print NCFLF $CflFileMemb[$i]."\n";}
-    close(NCFLF) or show_warn("\n   <--- Cannot close new ref.Cflist-file $fn after creating, $!");
-    $status=system("chmod 666 $ffn");
-    if($status != 0){
-      print "Warning: problem with write-priv for new ref.Cflist-file $fn, status=",$status,"\n";
-    }
-#
-#--> update status of selected Tdcor-file in Tdcor-files list:
-#
-    for($i=0;$i<$nelcft;$i++){#<--- calf-types loop
-      if($i!=6){next;}
+    for($i=0;$i<$nelcft-2;$i++){#<--- calf-types loop
       $ind=$matCfrefs[$i]->[$matlineind];#<-- index+1 of matched cal-file in corresponding ***List
       if($ind>0){#<-- means presence of cfile of type $i
         $line=$Cfrefs[$i]->[$ind-1];
@@ -3393,13 +3362,16 @@ sub ocontr_addrefset
     my $nmemb=$CflFileMemb[0];   
     for($j=0;$j<$nmemb;$j++){#<-- loop over members of new RefCflist-file
       push(@{$p2memlists[$j]},$CflFileMemb[$j+1]);# add to ref.memb-lists
+      unshift(@{$p2memlists[$j]},pop(@{$p2memlists[$j]}));
     }
-    push(@RefCflistList,$newsetn);#<-- add Cflist itself
+#--> add Cflist itself 
+    push(@RefCflistList,$strun);
+    unshift(@RefCflistList,pop(@RefCflistList));
 #
-#-- and update TofRefCflistList.TAUC(!!!) file:
+#-- and update TofRefCflistList.TACR file:
 #
     $WarnFlg=0;
-    $fn="TofRefCflistList"."."."TAUC";
+    $fn="TofRefCflistList".".".$SessName;
     $nel=scalar(@RefCflistList);
     open(CFLIST,"> $fn") or show_warn("   <-- Cannot open $fn for writing, $!");
     for($i=0;$i<$nel;$i++){
@@ -3409,25 +3381,14 @@ sub ocontr_addrefset
     close(CFLIST) or show_warn("   <-- Cannot close $fn after writing $!");
     if($WarnFlg==0){
       show_messg("\n   <--- New RefCalFiles set was successfully created !!!");
-      $LastRefCflistN=$RefCflistList[$nel-1];
+      $LastRefCflistN=$RefCflistList[0];
     }
 #
-#---> rename selected Tdcor-file(remove _norm/ecom extention):
-#
-    $ind=$matCfrefs[$i]->[$matlineind];#<-- index+1 of matched cal-file in corresponding ***List
-    $fn=$cfilenames[6].".".$strun;
-    my $fnfr=$workdir.$amsjwd."/".$fn.$TdcorfExt[$ind-1];
-    my $fnto=$workdir.$amsjwd."/".$fn;
-    my $rwsta=0;
-    $rwsta = system("mv $fnfr $fnto");
-    if($rwsta != 0){show_warn("\n   <-- Can't rename $fn !");}
-    else{show_messg("\n   <--- Cal-file $fn was renamed as standard file !");}
   }#<---endof "selection ok"
 #
 #---> update cal-files list-boxes:  
 #
-  for($i=0;$i<$nelcft;$i++){#<-- cal-file types loop
-    if($i!=6){next;}
+  for($i=0;$i<$nelcft-2;$i++){#<-- cal-file types loop
     $nel=scalar(@{$Cfrefs[$i]});
     @{$Cflbref[$i]}=();
     if($nel>0){
@@ -3472,7 +3433,7 @@ sub ocontr_cleanup
       $stat=0;# mark log-file for killing
       $line=pack($LogfListFmt,$lfpid,$ccode,$strun,$time,$utcmin,$stat);# <- update stat in LogfList
       $LogFileList[$lf]=$line;
-      show_messg("\n      <--- Job's $lfpid log-file will be deleted !!!","Y");
+      show_messg("\n      <--- Job's $lfpid log-file is marked as Bad(cfiles will not be kept) !!!","Y");
       @rarray=();
       $line=$SubmJobsList[$LogJobMatchIndex[$lf]];# <- update stat in SubmJobList
       @rarray=unpack($SubmJobsFmt,$line);
@@ -3507,8 +3468,7 @@ sub ocontr_cleanup
   my $nelcft=scalar(@cfilenames);
 #
   $ditm=0; 
-  for($i=0;$i<$nelcft;$i++){#<--cal.types loop(exept Tdcor/Elosp which are irrelevant of TAUC)
-    if($i!=6){next;}
+  for($i=0;$i<$nelcft-2;$i++){#<--cal.types loop(exept Tdcor/Elosp which are irrelevant of TAUC)
     $JClboxPointer[$i]->selectionClear(0,'end');
     $nel=scalar(@{$Cfrefs[$i]});
     for($j=0;$j<$nel;$j++){#<--- cal-files loop
@@ -3518,6 +3478,9 @@ sub ocontr_cleanup
         $statc=0;#<-- mark for killing
         $line=pack($CalfListFmt,$strunc,$timec,$utcminc,$statc);# update stat in cal-files list
         $Cfrefs[$i]->[$j]=$line;
+#        $JClboxPointer[$i]->selectionSet($j-$ditm);
+#        $JClboxPointer[$i]->delete($j-$ditm);
+	$ditm+=1;
       }
     }
   }
@@ -3535,16 +3498,14 @@ sub ocontr_cleanup
   $logf_lbx->delete(0,"end");
   $logf_lbx->insert("end",@loglistbox);
 #
-  for($i=0;$i<$nelcft;$i++){#<-- cal-file types loop
-    if($i!=6){next;}
+  for($i=0;$i<$nelcft-2;$i++){#<-- cal-file types loop
     $nel=scalar(@{$Cfrefs[$i]});
     @{$Cflbref[$i]}=();
     if($nel>0){
       for($j=0;$j<$nel;$j++){#<--file-loop inside given type
         $line=$Cfrefs[$i]->[$j];
         @string=unpack($CalfListFmt,$line);
-	if($i==6 && $string[3]!=10){$line=pack($CalfLboxFmt." A5",$string[0],$string[1],$string[3],$TdcorfExt[$j]);}# for Tdcor only
-        else{$line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);}# utcmin excluded in listbox
+        $line=pack($CalfLboxFmt,$string[0],$string[1],$string[3]);# utcmin excluded in listbox
         push(@{$Cflbref[$i]},$line);
       }
     }
@@ -3591,32 +3552,28 @@ sub ocontr_finish
   my $fn,$fne,$fnfr,$fnto,$rwsta;
   my $bext;
 #
-#---> move log-files(incl.bad) to store(/tdclfiles):
+#---> move log-files:
 #
   for($lf=0;$lf<$nellfl;$lf++){#<---logf-loop
     $line=$LogFileList[$lf];
     ($lfpid,$ccode,$strun,$time,$utcmin,$stat)=unpack($LogfListFmt,$line);
-    $fn="TofTDCL".$ccode.".".$strun.".log.".$lfpid;
-    $fne="TofTDCL".$ccode.".".$strun.".loge.".$lfpid;
+    $fn="TofTACR".$ccode.".".$strun.".log.".$lfpid;
+    $fne="TofTACR".$ccode.".".$strun.".loge.".$lfpid;
     $bext="";
     if($stat==0){#<-- move bad-job log-files renaming them with "bad" mark
       $bext=".bad";
     }
     $fnfr=$workdir.$amsjwd."/".$fn;
-    $fnto=$workdir.$tdcsdir."/".$fn.$bext;
+    $fnto=$workdir.$tausdir."/".$fn.$bext;
     $rwsta = system("mv $fnfr $fnto");
     if($rwsta != 0){show_warn("\n   <-- Can't move $fn to store !");}
-    else{
-      show_messg("\n   <--- Log-file $fn.$bext was moved to store !");
-    }
+    else{show_messg("\n   <--- Log-file $fn was moved to store !");}
       
     $fnfr=$workdir.$amsjwd."/".$fne;
-    $fnto=$workdir.$tdcsdir."/".$fne.$bext;
+    $fnto=$workdir.$tausdir."/".$fne.$bext;
     $rwsta = system("mv $fnfr $fnto");
     if($rwsta != 0){show_warn("   <-- Can't move $fne to store !");}
-    else{
-      show_messg("\n   <--- Loge-file $fne.$bext was moved to store !");
-    }
+    else{show_messg("\n   <--- Loge-file $fne was moved to store !");}
   }#--->endof logf-loop
 #
 #---> move/delete cal-files:
@@ -3624,22 +3581,23 @@ sub ocontr_finish
 #--
   my $nelcft=scalar(@cfilenames);
 # 
-  for($i=0;$i<$nelcft;$i++){#<--cal.types loop(here only Tdcor-type)
-    if($i!=6){next;}
+  for($i=0;$i<$nelcft-2;$i++){#<--cal.types loop(exept Tdcor/Elosp which are irrelevant of TAUC)
     $nel=scalar(@{$Cfrefs[$i]});
     for($j=0;$j<$nel;$j++){#<--- cal-files loop
       $line=$Cfrefs[$i]->[$j];
       ($strunc,$timec,$utcminc,$statc)=unpack($CalfListFmt,$line);
       $fn=$cfilenames[$i].".".$strunc;
       if($statc==0){#<-- delete cal-file
-        $fnfr=$workdir.$amsjwd."/".$fn.$TdcorfExt[$j];
+        $fnfr=$workdir.$amsjwd."/".$fn;
         $rwsta = system("rm -f $fnfr");
         if($rwsta != 0){show_warn("\n   <-- Can't delete $fn in work-dir !");}
 	else{show_messg("\n   <--- Cal-file $fn is deleted in work-dir !");}
       }
       elsif($statc!=10){#<-- move cal-file to store(exept ref-file)
-        $fnfr=$workdir.$amsjwd."/".$fn.$TdcorfExt[$j];
-        $fnto=$workdir.$tdcsdir."/".$fn;
+        if($i==0){#<-- Cflist-file
+	}
+        $fnfr=$workdir.$amsjwd."/".$fn;
+        $fnto=$workdir.$tausdir."/".$fn;
 #        move($fnfr,$fnto) or show_warn("\n   <-- Moving failed for $fn, $!");
         $rwsta = system("mv $fnfr $fnto");
         if($rwsta != 0){show_warn("\n   <-- Can't move $fn to store !");}
@@ -3647,7 +3605,7 @@ sub ocontr_finish
       }
       elsif($statc==10){#<-- copy newly created ref.cal-file to store
         $fnfr=$workdir.$amsjwd."/".$fn;
-        $fnto=$workdir.$tdcsdir."/".$fn;
+        $fnto=$workdir.$tausdir."/".$fn;
         $rwsta = system("cp -f $fnfr $fnto");
         if($rwsta != 0){show_warn("\n   <-- Can't copy $fn to store !");}
 	else{show_messg("\n   <--- New ref.cal-file $fn was copied to store !");}
@@ -3670,7 +3628,7 @@ sub ocontr_finish
     $strun=$array[4];
     $ccode=$array[6];
     $stat=$array[9];# 0/1/5/10/20/30/40/100/->killed/submitted/pend/running/ended/haslogf/logfok/goodjob
-      push(@narray,$line."\n");
+    push(@narray,$line."\n");
   }
 #-- save:
   $fn="TofSubmJobsList".".".$SessName;
@@ -3723,7 +3681,7 @@ sub WatchDog
 					     ->place(
 					     -relwidth=>1, -relheight=>0.95,
                                              -relx=>0, -rely=>0.05);
-#-----
+#--------
   $wdpr_fram2=$topl5->Frame(-background => "Cyan",  
                            -relief=>'groove', -borderwidth=>3)->place(
                            -relwidth=>0.5, -relheight=>1,
@@ -3744,46 +3702,43 @@ sub WatchDog
 					     -relwidth=>1, -relheight=>0.95,
                                              -relx=>0, -rely=>0.05);
 #------
-  my $period=600000;# 60 sec
+  my $period=120000;# 120 sec
   my $id;
+  $topl5->update();#WDW
   $topl5->repeat($period,\&Analyze);  
 #
 }
 #---
 sub Analyze
 {
-  JobOutpControl();#(incide incr.$FinishedJobs, return new $FiniJobCount,$JobConfLogFiles)
+  $topl4->destroy() if Tk::Exists($topl4);
+  JobOutpControl();#(incide incr.$FinishedJobs, return new $FiniJobCount,$JobConfLogFiles,$LogFilesReceived)
 #  if($JOCReady == 0){$topl4->waitVariable(\$JOCReady);}#<-- just protection (may be stupid)
   if($FiniJobCount>0){$UnFinishedJobs-=$FiniJobCount;}
   $UnFinJs=$UnFinishedJobs;
   $FinJs=$FinishedJobs;
 #  $wdpr_pb1->configure(-value => $UnFinJs);
 #  $wdpr_pb2->configure(-value => $FinJs);
-  $topl5->update();
-  if($JobConfLogFiles>0){
+  $topl5->update();#WDW
+  if($AutoSessFlg eq "AutoSess" && ($UnFinishedJobs>0 || $LogFilesReceived<$SubmJobCount)){
+    show_messg("   <--- On duty: Unf/Fin/LogFs=$UnFinishedJobs / $FinishedJobs / $LogFilesReceived","B");
+  }
+  else{#<--- current session is completed
+#    JobOutpControl();#just to leave on screen latest status for few seconds  
     $matchf_bt->invoke();
-    $topl4->after(2000);# tempor for debug (to see result)
+    $topl4->after(5000);# tempor for debug (to see result)
     $cleanup_bt->invoke();
     $topl4->after(5000);# tempor for debug (to see result)
     $finish_bt->invoke();
-    $topl4->after(2000);# tempor for debug
-  }
-  if($AutoSessFlg eq "AutoSess" && $UnFinishedJobs>0){
-    show_messg("   <--- On duty: Unf/Fin=$UnFinishedJobs / $FinishedJobs","B");
-    $topl4->after(1000);# tempor for debug
-    $topl4->destroy() if Tk::Exists($topl4);
-  }
-  else{#<--- current session is completed
-    show_messg("\n   <--- WatchDog: Job done, gone away... Unf/Fin=$UnFinishedJobs / $FinishedJobs","Big");
-    JobOutpControl();#just to leave on screen latest status for few seconds  
-    $topl5->after(2000);# tempor for debug (to see result)
+    show_messg("\n   <--- WatchDog: Job done, Unf/Fin/LogFs=$UnFinishedJobs / $FinishedJobs / $LogFilesReceived","Big");
+    $topl4->after(10000);# tempor for debug
     $topl4->destroy() if Tk::Exists($topl4);
     $topl5->destroy() if Tk::Exists($topl5);
     $setupj_state="normal";
     $setupj_bt->configure(-state=>$setupj_state);   
     $sjobbt_state="normal";
     $sjobbt->configure(-state=>$sjobbt_state);
-#    QuitSession();#<-- tempor commented for debug
+    QuitSession();#<-- tempor commented for debug
   }
 #
   $mwnd->update;
@@ -3797,7 +3752,7 @@ sub QuitSession
   my ($sjpid,$crefn,$ccode,$strun,$date,$time,$dtime,$stat,$cmd);
   my $fn,$status,$rwsta;
 #
-#---> save list of  jobs in file:
+#---> save list of  jobs(unfinished only !!!) in file:
 #
   my $nelsjl=scalar(@SubmJobsList);
 #
@@ -3821,7 +3776,7 @@ sub QuitSession
 #
   my $logfname="Tof".$SessName."sessLog.";
     $filen=$logfname.$SessTLabel;#extention is session time label 
-    $newfn=$workdir.$tdcsdir."/".$filen;
+    $newfn=$workdir.$tausdir."/".$filen;
     open(OFN, "> $filen") or die show_warn("   <-- Cannot open $filen for writing !");
     print OFN $logtext->get("1.0","end");
     show_messg("\n   <-- LogFile $filen is saved !");
