@@ -53,7 +53,7 @@ class TrdHCalibR{
   float norm_mop;
 
   /// default ctor
-  TrdHCalibR():norm_mop(49.),min_occupancy(50){
+  TrdHCalibR():norm_mop(49.),min_occupancy(50),calibrate(0){
     for(int i=0;i<5248;i++){
       tube_occupancy[i]=0;
       tube_medians[i]=0.;
