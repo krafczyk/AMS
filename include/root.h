@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.367 2011/06/17 13:19:49 mdelgado Exp $
+//  $Id: root.h,v 1.368 2011/06/24 09:11:14 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -3046,7 +3046,182 @@ public:
  31   status not found
 
 
- 32 and up to 63 are not yet defined
+
+0
+ 0   npart
+ 1   
+
+1
+ 2   trd in part
+
+2
+ 3   tof in part
+
+3
+ 4   tr in part
+
+4
+ 5   rich in part
+
+5
+ 6   ecal in part
+
+6
+ 7   vtx in part
+
+7
+ 8  ntrd
+ 9
+
+8
+ 10  ntof
+ 11
+ 12
+
+9
+ 13  ntr
+ 14
+
+10
+ 15  nrich
+ 16
+
+11
+ 17  necal
+ 18
+
+12
+ 19  nvtx
+ 20
+
+13
+ 21  nanti
+ 22
+
+14
+ 23  charge
+ 24
+ 25
+
+15
+ 26 "z>=1" flag(Lvl1-info): [NtofLayers(max=4)-1] with signal above the low(z>=1) discr.threshold  
+ 27
+
+16
+ 28 "z>=2"  .............. : .................... ..................the high(z>=2) discr.threshold **)
+ 29
+
+17
+ 30   event has errors if 1
+
+18
+ 31   status not found if 1
+
+19
+ 32  not prescaled event, prescaled event
+
+20
+ 33  velocity <0; >0
+
+21
+ 34  momentum <0; >0
+
+22
+ 35 rig<8 ; <32 ; <128 ; >128 GV 
+ 36 
+ 
+23
+ 37 ecalenergy <2; <8; <32; >32 gev
+ 38
+ 
+24
+ 39 magnet current 0 ; <250 ; <400 ; >400  A
+ 40 
+
+24 (Perm Magnet)
+ 39 external planes :no; 1;9; 1&9 
+ 40
+
+
+
+
+25  trigger rate <500; <1000 ; <2000; >2000 Hz 
+ 41   
+ 42
+
+26 trd hmult <1 <2 <4 >4
+ 43
+ 44
+
+
+27
+ geomagnetic latitude  (not yet defined,only reserved)
+ 0 < 10 degres  cos <0.1736
+ 1 < 30 degrees cos <0.5
+ 2 < 50 degrees cos < 0.766
+ 3 > 50 degrees cos > 0.766
+ 45
+ 46
+
+28
+ 47  rich charge *4
+ 48
+ 49
+ 50
+ 51
+
+29
+ 52   0   rich  agl 1 rich naf 
+
+30
+ 53  beta pattern    <2 tof hits
+ 54                  <3 tof hits
+                     <4 tof hits
+                      4 tof hits
+
+31   mass/charge  <0.5 gev
+55
+56           <1.5
+           <3.
+           >3.
+32
+         track hit
+57      <4
+58      <5
+59       <6
+      <7
+     <8
+     <9
+      9
+
+
+
+33  
+      trd charge *2
+60 
+61
+62
+63
+
+correspondance between bits & status datacards words:
+
+values 0123...etc --> 1 10 100 1000    (in fact base ESTA 36)
+                      0 in datacards means select everything
+
+
+
+
+N.B.
+
+Due to lack of bits there is no "undefined state" bits,
+so to ensure proper functionality one has to require 
+particle (datacards: ESTA 1=1110) for most other status bits
+
+**) "z>=2" threshold is chosen to share He4 signal between 2 branches("z>=1" and "z>=2") !!! 
+
+
+
+
 
  \author vitali.choutko@cern.ch
 
