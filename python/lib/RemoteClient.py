@@ -1623,7 +1623,7 @@ class RemoteClient:
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
                                    self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
-                                   return outputpath,0,odisk
+                                   return outputpath,0,odisk,0
                            self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
                            print "docopy-E-cannot ",cmd
                            return outputpath,0,odisk,0
