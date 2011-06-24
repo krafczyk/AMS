@@ -1112,7 +1112,7 @@ class RemoteClient:
                                                         if(self.nBadCopiesInRow>3):
                                                             output.write("too many docopy failures")
                                                             print "too many docopy failurs"
-                                                            os.exit()
+                                                            sys.exit()
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
@@ -1428,7 +1428,7 @@ class RemoteClient:
                                                         if(self.nBadCopiesInRow>3):
                                                             output.write("too many docopy failures")
                                                             print "too many docopy failurs"
-                                                            os.exit()
+                                                            sys.exit()
                                                         levent=levent-(ntuple.LastEvent-ntuple.FirstEvent+1)
                                                         self.bad=self.bad+1
                                                         if(outputpath != None):
