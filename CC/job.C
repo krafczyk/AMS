@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.817 2011/06/10 16:26:06 choutko Exp $
+// $Id: job.C,v 1.817.2.1 2011/06/25 06:47:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4428,7 +4428,7 @@ void AMSJob::_trdendjob(){
     if( AMSFFKEY.Update && TrdHCalibR::gethead()->calibrate ){
 //(AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
       bool update=TrdHReconR::gethead(AMSEvent::get_thread_num())->update_tdv_array();
-      if(update) AMSTRDRawHit::updtrdcalibSCI();
+      if(0 && update) AMSTRDRawHit::updtrdcalibSCI();
     }
   }
 
