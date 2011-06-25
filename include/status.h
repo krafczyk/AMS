@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.18 2009/06/21 17:57:34 choutko Exp $
+//  $Id: status.h,v 1.18.10.1 2011/06/25 06:48:26 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -51,7 +51,7 @@ public:
   AMSStatus * up(){return   (AMSStatus *)AMSNode::up();}
   AMSStatus * down(){return (AMSStatus *)AMSNode::down();}
   integer getsize(){return _id==0?sizeof(_Run)+sizeof(_Nelem)+3*sizeof(_Status)/4:sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status)+sizeof(_Offset);}
-  void * getptr(){return &_Run;}
+  uinteger * getptr(){return sizeof(ulong)>sizeof(uinteger)?&_Run:&_Run+1;}
   void updates(uinteger run, uinteger evt, uinteger* status, time_t time=0);
   void adds(uinteger run, uinteger evt, uinteger * status, time_t time=0);
   void Sort();
