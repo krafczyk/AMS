@@ -1624,6 +1624,11 @@ class RemoteClient:
                                    print "doCopy-E-ErorrCRC ",rstatus
                                    self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
                                    return outputpath,0,odisk,0
+                           else:
+                               self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
+                               print "docopy-E-cannot copyfile",cmdstatus,inputfile,outputfile
+                               return outputpath,0,odisk,0
+                       else:
                            self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
                            print "docopy-E-cannot ",cmd
                            return outputpath,0,odisk,0
@@ -1684,16 +1689,22 @@ class RemoteClient:
                        castortime=self.UploadtoCastor(outputpath)
                        return outputpath,1,castortime
                    else:
-                       print "doCopy-E-ErorrCRC ",rstatus
+                       print "doCopyraw-E-ErorrCRC ",rstatus
                        self.BadCRC[self.nCheckedCite]=self.BadCRC[self.nCheckedCite]+1
                        return outputpath,0,0
-                   self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
-                   print "docopy-E-cannot ",cmd
-                   return outputpath,0,0
                else:
-                   print "doCopy-E-cannot stat",inputfile
-                   self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
-                   return None,0,0
+                   self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
+                   print "docopyraw-E-cannot copyfile",cmdstatus,inputfile,outputfile
+                   return outputpath,0,0
+           else:
+               self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
+               print "docopyraw-E-cannot ",cmd
+               return outputpath,0,0
+               
+       else:
+           print "doCopyraw-E-cannot stat",inputfile
+           self.BadDSTs[self.nCheckedCite]=self.BadDSTs[self.nCheckedCite]+1
+           return None,0,0
     
     def UploadtoCastor(self,input):
 #
@@ -1832,7 +1843,27 @@ class RemoteClient:
         if(i==0):
             return int(time.time())
         else:
-            return 0  
+            cmdn="nsls "+cmove
+            cmdstatus=os.system(cmdn)
+            if(cmdstatus):
+                return 0  
+            else:
+                return int(time.time())
+                
+    def getmoveCastor(self,input,output):
+        junk=output.split('/')
+        cmove='/castor/cern.ch/ams'
+        if(input.find(cmove)<0):
+            return None   
+        for i in range (2,len(junk)):
+            cmove=cmove+'/'+junk[i]
+        cmdn="nsls "+cmove
+        cmdstatus=os.system(cmdn)
+        if(cmdstatus):
+            return None
+        else:
+            return cmove
+    
     def copyFile(self,input,output):
         mutex.release()
         if(input == output):
@@ -1842,6 +1873,15 @@ class RemoteClient:
         time0=time.time()
         cmd="cp -pi -d -v "+input+" "+output
         if(input.find('/castor/cern.ch')>=0):
+            # check if already been put in place
+            cmdn="nsls "+input;
+            cmdstatus=os.system(cmdn);
+            if(cmdstatus):
+                print "copyFile-W-Failed ",cmdn
+                cmove=self.getmoveCastor(input,output)
+                if(cmove!=None):
+                    input=cmove
+
             cmd="rfcp "+input+" "+output
 #
 #      check if same disk
@@ -1856,7 +1896,7 @@ class RemoteClient:
         mutex.acquire()
         print "got  mutex in copyfile ", cmd
         if ( self.v ):
-            print "docopy-I-",cmd
+            print "docopy-I-",cmd,cmdstatus
         self.copyCalls=self.copyCalls+1
         self.copyTime=self.copyTime+time.time()-time0
         if(cmdstatus==0 and ifa[1]==ofa[1]):
