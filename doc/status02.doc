@@ -1,4 +1,4 @@
-#  $Id: status02.doc,v 1.14 2011/04/26 16:03:29 choutko Exp $
+#  $Id: status02.doc,v 1.15 2011/06/28 11:27:39 choutko Exp $
 status word definition
 
 0
@@ -109,7 +109,7 @@ status word definition
 
 
 27
- geomagnetic latitude  (not yet defined,only reserved)
+ geomagnetic latitude  
  0 < 10 degres  cos <0.1736
  1 < 30 degrees cos <0.5
  2 < 50 degrees cos < 0.766

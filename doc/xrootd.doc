@@ -37,8 +37,8 @@ please ask V. Choutko in case of problems
 
 In case of occasional nonavailability of files
 
-1.  make sure file exists and accessible by you
-    by nsls and/or rfcp tools
+1.  make sure file exists and staged
+    by nsls and stager_get -M
 2.   send complains describing your problems to castor.support@cern.ch
 
 
