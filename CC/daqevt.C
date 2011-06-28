@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.223 2011/06/28 10:23:14 pzuccon Exp $
+//  $Id: daqevt.C,v 1.224 2011/06/28 12:27:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1562,8 +1562,12 @@ void DAQEvent::buildRawStructures(){
 	int16u id=*(_pcur+_cll(_pcur));
 	int jinj=_isjinj(id);
 	if(jinj){
+          _JStatus=id;
 	  for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
 	    int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
+            if(_getportj(*(pdown+*pdown))<sizeof(_JError)/sizeof(_JError[0])){
+                  _JError[_getportj(*(pdown+*pdown))]=(*(pdown+*pdown))>>8;
+             }
 
 	    if(ic>=0){
 #ifdef __AMSDEBUG__
@@ -1843,13 +1847,14 @@ integer DAQEvent::read(){
   // here we must put triggerlvl1 buildraw
   //   
   
-  _NeventsPerRun++;
-  //cout <<" npr "<<_NeventsPerRun<<endl;
-  if(fbin){
-    _Offset=fbin.tellg();
-    _Offset-=getlengthR();
-  }
-  else {
+
+        _NeventsPerRun++;
+    if(fbin){
+        _Offset=fbin.tellg();
+//     cout <<" offset "<<_Offset<<" "<<getlengthR()<<" "<<_Offset-getlengthR()<<endl;
+     _Offset-=getlengthR();
+    }
+    else {
     //cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
     _Offset=0;
   }
