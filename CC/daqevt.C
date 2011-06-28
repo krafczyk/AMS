@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.224 2011/06/28 12:27:04 choutko Exp $
+//  $Id: daqevt.C,v 1.225 2011/06/28 17:58:07 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1562,19 +1562,27 @@ void DAQEvent::buildRawStructures(){
 	int16u id=*(_pcur+_cll(_pcur));
 	int jinj=_isjinj(id);
 	if(jinj){
-          _JStatus=id;
+ 	  uinteger size=((*_pcur)&0x8000)?(*(_pcur+1)|(((*_pcur)&0x7FFF)<<16))+sizeof(_pcur[0]): *_pcur;
+	  if(size%2==1) size++;
+	  ushort JinjStatus=(*(_pcur+size/2-1));
+	  if(jinj== 0x81 | jinj== 0x82)
+	    _JStatus|=(JinjStatus>>8);
+	  else 
+	    _JStatus|=(JinjStatus&0xF0);
+
 	  for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
 	    int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;
-            if(_getportj(*(pdown+*pdown))<sizeof(_JError)/sizeof(_JError[0])){
-                  _JError[_getportj(*(pdown+*pdown))]=(*(pdown+*pdown))>>8;
-             }
 
 	    if(ic>=0){
 #ifdef __AMSDEBUG__
 	      cout <<" getportj "<<_getportj(*(pdown+*pdown))<<" "<<_getportnamej(*(pdown+*pdown))<<" "<<*pdown<<"  Error "<<isError(*(pdown+*pdown))<<endl;
 #endif
+	      if(_getportj(*(pdown+*pdown))<sizeof(_JError)/sizeof(_JError[0])){
+		_JError[_getportj(*(pdown+*pdown))]=(*(pdown+*pdown))>>8;
+	      }
+	      
 	      int16u *psafe=pdown+1;
-      
+	      
 	      integer n=(ic<<16) | (*pdown);
 	      if(DAQRichBlock::checkdaqid(_getportj(*(pdown+*pdown)))){
 		n|=(jinj-128)<<24;
