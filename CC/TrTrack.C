@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.109 2011/05/27 15:16:40 pzuccon Exp $
+// $Id: TrTrack.C,v 1.110 2011/06/29 12:17:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/05/27 15:16:40 $
+///$Date: 2011/06/29 12:17:35 $
 ///
-///$Revision: 1.109 $
+///$Revision: 1.110 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -346,6 +346,7 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   _Hits [ihit] = hit;
   _iHits[ihit] = cont2->getindex(hit);
+  if(imult>-1) hit->SetResolvedMultiplicity(imult);
   //  _iMult[ihit] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
   delete cont2;
 
@@ -1288,7 +1289,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
 
   if (fittype!=kChikanianF && fittype!=kChikanian) {
-    if (!mscat && !wsame) fittype|=kMultScat;
+    if (!mscat && !wsame && algo!=0) fittype|=kMultScat;
     if (           wsame) fittype|=kSameWeight;
   }
 
