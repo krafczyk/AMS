@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.145 2011/06/03 18:15:18 ams Exp $
+# $Id: Monitor.pm,v 1.146 2011/06/29 13:29:23 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -640,14 +640,14 @@ sub getdbok{
      }
      elsif($spar[1]=~/^f/){
       $string="/".$spar[1];
-      warn "  $tring $hash->{TotalSpace} \n";
+#      warn "  $tring $hash->{TotalSpace} \n";
   }
      else{
       $string=$spar[0]."/".$spar[1];
  }
      $fsf{$string}=$hash->{FreeSpace};
      $fst{$string}=$hash->{TotalSpace};
-     warn  "$tring $string $hash->{TotalSpace}\n";
+#     warn  "$tring $string $hash->{TotalSpace}\n";
     }
     foreach my $string (sort keys %fst){
      $#text=-1;
@@ -746,8 +746,8 @@ sub getactivehosts{
           warn "  Run $rdst->{Run}  $rdst->{FilePath} \n";
        }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
-           $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
-           print "$rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} \n";
+           $lastevt+=$rdstc->{EventsProcessed};
+           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt \n";
 $tevt+=$rdstc->{EventsProcessed};
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
@@ -764,7 +764,7 @@ $tevt+=$rdstc->{EventsProcessed};
            }
        }
    }
-     print " ***** $total $host $lastevt  $evt $tevt $total\n";
+     print " total $total $host $lastevt  $evt $tevt $total\n";
    push @text, $evt; 
    push @text, int(1000*$lastevt/($total+1)*$evt/($tevt+1))/10.; 
    push @text, $err,$cerr; 
@@ -867,6 +867,9 @@ if ($producer eq "Producer"){
        if( $rdst->{Status} eq "Processing"){
            if ($rdst->{cuid}==$hash->{id}->{uid}){
                $run=$rdst->{Run};
+               if($rdst->{cinfo}->{LastEventProcessed}>$rdst->{LastEvent}){
+                   $rdst->{cinfo}->{LastEventProcessed}=0;
+               }
                 $evtp=$rdst->{LastEvent}-$rdst->{cinfo}->{LastEventProcessed};
 #               warn "run ... $run \n";
                last;

@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.49 2011/05/25 16:43:14 ams Exp $
+# $Id: NetMonitor.pm,v 1.50 2011/06/29 13:29:30 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -23,7 +23,7 @@ my %fields=(
   sendmail=>[],
   hosts=>[],
   excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
-  dbhosts=>['pcamss0','amsvobox02'],
+  dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
   filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
@@ -39,6 +39,7 @@ my %fields=(
 my $self={
   %fields,
 };
+
 my %sfields=(
      start=>undef,
      dbhandler=>undef,
@@ -54,7 +55,8 @@ push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
-push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
+#push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
+push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Gabriele.Alberti@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
     my $mybless=bless $self,$type;
     if(ref($NetMonitor::Singleton)){
@@ -210,6 +212,43 @@ if(not open(FILE,"<".$self->{hostfile})){
             }
 
     }
+# AMI check
+my $localtime = '';
+my $delta = '';
+my $period = '';
+    open (PERIOD, "/afs/cern.ch/user/a/ams/vc/perl/period");
+    $period = <PERIOD>;
+    close (PERIOD);
+
+    if ($period == 1) {
+        if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t.root /tmp/t.root 6 1>/tmp/checkami 2>&1") != 0) {
+            print "ami2root.exe: No answer\n";
+            push @{$self->{bad}}, "ami2root.exe does_not_replay";
+        }
+        my $str = (system "less /tmp/checkami|grep 'last time' 1>/tmp/strami 2>&1");
+#   print "$str\n"; 
+
+        open (TIME, "/tmp/strami");
+        my $time = <TIME>;
+        my @in = split (/ /, $time);
+#    print ("ami time is $in[4]\n"); 
+        $localtime = time();
+        $delta = ($localtime - $in[4]);
+        if (($localtime - $in[4]) > 7200) {
+            print "old one: delta is $delta\n";
+	    push @{$self->{bad}}, " slow_database_last_update_time_too_far_in_the_past:-$delta\n";
+#	    $self->sendmailpolicy("slow_database_last_update_time_too_far_in_the_past:-$delta\n",0);
+            }
+        close TIME;
+        unlink "/tmp/checkami";
+        } 
+    if (($period++) == 30){
+        $period = 1;
+        }
+    open (PERIOD, ">/afs/cern.ch/user/a/ams/vc/perl/period");
+    print (PERIOD "$period");
+    print ("period is $period\n");
+    close (PERIOD);
 
 #fs check
 
