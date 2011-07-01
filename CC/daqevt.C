@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.222.2.2 2011/06/28 18:21:29 pzuccon Exp $
+//  $Id: daqevt.C,v 1.222.2.3 2011/07/01 13:19:04 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1895,6 +1895,7 @@ DAQEvent::InitResult DAQEvent::init(){
   enum open_mode{binary=0x80};
   integer Run,Event;
   char * fnam=_getNextFile(Run, Event);
+        string fnamei=fnam; 
   if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
     unlink(getenv("TMPRawFile"));
     unsetenv("TMPRawFile");
@@ -1975,10 +1976,12 @@ DAQEvent::InitResult DAQEvent::init(){
 
       }
     }
-    else{
-      cerr<<"DAQEvent::init-E-cannot open file "<<fnam<<" in mode input"<<endl;
+    else{ 
+    cerr<<"DAQEvent::init-E-cannot open file "<<fnam<<" in mode input"<<endl;
+
       //    try castor
       if(getenv("NtupleDir") && !strstr(fnam,getenv("NtupleDir"))){
+        setenv("NtupleDir0",getenv("NtupleDir"),1);
 	setenv("STAGE_HOST","castorpublic",1);
 	setenv("RFIO_USE_CASTOR_V2","YES",1);
 	setenv("STAGE_SVCCLASS","amscdr",1);
@@ -2013,6 +2016,7 @@ DAQEvent::InitResult DAQEvent::init(){
 		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
 		if(getenv("NtupleDir2") ){
 		  char *nt2=getenv("NtupleDir2");
+		  setenv("NtupleDir02",getenv("NtupleDir2"),1);
 		  if(strlen(nt2)){
 		    string nt2_new=nt2;
 		    char * whoami=getlogin();
@@ -2026,6 +2030,7 @@ DAQEvent::InitResult DAQEvent::init(){
 		  goto again;
 		}    
 		else if(getenv("NtupleDir3")){
+		  setenv("NtupleDir03",getenv("NtupleDir3"),1);
 		  setenv("NtupleDir",getenv("NtupleDir3"),1);
 		  unsetenv("NtupleDir3");
 		  goto again;
@@ -2053,6 +2058,92 @@ DAQEvent::InitResult DAQEvent::init(){
 	  unlink(utmp);
 	}
       }
+//
+//  try scp once more
+//
+strcpy(fnam,fnamei.c_str());
+
+      if(getenv("NtupleDir0"))setenv("NtupleDir",getenv("NtupleDir0"),1);
+      if(getenv("NtupleDir02"))setenv("NtupleDir2",getenv("NtupleDir02"),1);
+      if(getenv("NtupleDir03"))setenv("NtupleDir3",getenv("NtupleDir03"),1);
+      if(getenv("NtupleDir") && !strstr(fnam,getenv("NtupleDir"))){
+		  unsetenv("NtupleDir0");
+	char ln[1024];
+	char utmp[80];
+	sprintf(utmp,"/tmp/raw.%d",getpid());
+	sprintf(ln,"ls -l %s 1>%s 2>&1",fnam,utmp);
+	system(ln);
+	ifstream ftxt;                                          
+	ftxt.open(utmp);
+	if(ftxt){
+	  string txt;
+	  getline(ftxt,txt);
+	  if(txt.find("->")!=string::npos){
+	    string castor("/castor/cern.ch/ams");
+	    string file(txt.c_str()+txt.rfind("/")+1);
+	    castor+=txt.c_str()+txt.find("/",txt.find("/",txt.find("->"))+1);
+	  againscp:
+	    if(getenv("NtupleDir")){
+	      string local(getenv("NtupleDir"));
+	      setenv("LD_LIBRARY_PATH",getenv("NtupleDir"),1);
+	      if(getenv("TransferSharedLib")){
+		setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
+	      }
+	      string cp(getenv("TransferRawBy2")?getenv("TransferRawBy2"):"scp  ams.cern.ch:");
+	      cp+=fnam;
+	      cp+=" ";
+	      cp+=local;
+	      int i=system(cp.c_str());
+	      if(i){
+		cerr <<"DAQEvent::init-E-Unableto "<<cp.c_str()<<endl;
+		if(getenv("NtupleDir2") ){
+		  char *nt2=getenv("NtupleDir2");
+		  unsetenv("NtupleDir02");
+		  if(strlen(nt2)){
+		    string nt2_new=nt2;
+		    char * whoami=getlogin();
+		    int pos=nt2_new.find("whoami");  
+		    if(pos>=0 && whoami)nt2_new.replace(pos,6,whoami);
+		    setenv("NtupleDir",nt2_new.c_str(),1);
+		    cout <<"daqevt-I-RedefinedNtupleDir "<<getenv("NtupleDir")<<endl;
+		  } 
+		  else setenv("NtupleDir",getenv("NtupleDir2"),1);
+		  unsetenv("NtupleDir2");
+		  goto againscp;
+		}    
+		else if(getenv("NtupleDir3")){
+		  unsetenv("NtupleDir03");
+		  setenv("NtupleDir",getenv("NtupleDir3"),1);
+		  unsetenv("NtupleDir3");
+		  goto againscp;
+		}    
+		local+="/";
+		local+=file;
+		setenv("TMPRawFile",local.c_str(),1);
+		strcpy(fnam,local.c_str());
+
+	      }
+              else{
+		local+="/";
+		local+=file;
+		cout<<"DAQEvent::init-I-CopiedTo "<<local<<endl;
+		setenv("TMPRawFile",local.c_str(),1);
+		strcpy(fnam,local.c_str());
+              }
+	    }
+	    ftxt.close();
+	    unlink(utmp);
+	    goto castor;
+
+	  }
+	  ftxt.close();
+	  unlink(utmp);
+	}
+      }
+
+
+
+
       return UnableToOpenFile;
     }
   }
