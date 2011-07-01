@@ -50,10 +50,11 @@ double p_par(int p){
 }
 
 
-int TrdHChargeR::GetCharge(TrdHTrackR *tr,float beta,int debug){
+int TrdHChargeR::GetCharge(TrdHTrackR *tr,int opt,float beta,int debug){
   if(debug)printf("Enter TrdHChargeR::GetCharge\n");
   if(pdfs.size()<2)return 0;
   if(beta<0.5)return 0;
+  
   
   float betacorr=1.;
   if(beta<0.95)// beta correction to be done
@@ -67,8 +68,12 @@ int TrdHChargeR::GetCharge(TrdHTrackR *tr,float beta,int debug){
   for(int s=0;s<2;s++)
     for(int h=0;h<tr->pTrdHSegment(s)->nTrdRawHit();h++){
       TrdRawHitR* hit=tr->pTrdHSegment(s)->pTrdRawHit(h);
-      if(hit->Amp<5)continue;
-      ampcorr[hit->Layer]+=hit->Amp*betacorr*TrdHCalibR::gethead()->GetGainCorr(hit)*TrdHCalibR::gethead()->GetPathCorr(tr->TubePath(hit));
+      if(hit->Amp<10)continue;
+      float amp=hit->Amp;
+      if(!(opt & (1 << 0))) amp*=TrdHCalibR::gethead()->GetGainCorr(hit,2);
+      if(!(opt & (1 << 1))) amp*=betacorr;
+      if(!(opt & (1 << 2))) amp*=TrdHCalibR::gethead()->GetPathCorr(tr->TubePath(hit));
+      ampcorr[hit->Layer]+=amp;
     }
   
   if(debug)
@@ -247,6 +252,182 @@ int TrdHChargeR::GetNCC(TrdHTrackR* tr,int debug){
 }
 
 
+bool TrdHChargeR::FillPDFsFromTDV(){
+  
+  for(int n=0;n<30;n++){
+    int i=0;
+    
+    while(i<1000)
+      {
+	if(charge_hist_array[n][i]==0)break;
+	
+	int c=(int)charge_hist_array[n][i++];
+	int npnt=(int)charge_hist_array[n][i++];
+	
+	TrPdf *pdf=new TrPdf((char*)GetStringForTDVEntry(n).c_str());
+	
+	int n=0;
+	while(n++<npnt)
+	  pdf->AddPoint(charge_hist_array[n][i++],charge_hist_array[n][i++]);
+	pdfs.insert(pair<int,TrPdf*>(c,pdf));
+      }
+  }
+  
+  return true;
+}
+
+bool TrdHChargeR::FillTDVFromPDFs(){
+  map<int,TrPdf*>::iterator it;
+
+  for(int n=0;n<30;n++)
+    for(int j=0;j<1000;j++)charge_hist_array[n][j]=0.;
+
+  for(map<int,TrPdf*>::const_iterator it=pdfs.begin();it!=pdfs.end();it++){
+    int i=0;
+    int n=GetTDVEntryForMapKey(it->first);
+    
+    charge_hist_array[n][i++]=it->first;
+    charge_hist_array[n][i++]=it->second->GetN();
+    
+    for(int p=0;p<it->second->GetN();p++){
+      charge_hist_array[n][i++]=it->second->GetX(p);
+      charge_hist_array[n][i++]=it->second->GetY(p);
+    }
+  }
+  
+  return true;
+}
+
+
+int TrdHChargeR::AddEvent(TrdHTrackR *track,float beta,int charge, int opt, int debug){
+  if(debug)cout<<"Entering TrdHChargeR::AddEvent"<<endl;
+  if(beta<0.5)return 1;
+  if(!track)return 2;
+
+
+  float betacorr=1.;
+  if(beta<0.95)
+    {
+      betacorr=TrdHCalibR::gethead()->GetBetaCorr(beta);
+    }
+  
+  float ampcorr[20];
+  for(int i=0;i<20;i++)ampcorr[i]=0.;
+  
+  for(int s=0;s<2;s++)
+    for(int h=0;h<track->pTrdHSegment(s)->nTrdRawHit();h++){
+      TrdRawHitR* hit=track->pTrdHSegment(s)->pTrdRawHit(h);
+      if(hit->Amp<10)continue;
+      float amp=hit->Amp;
+      if(!(opt & (1 << 0))) amp*=TrdHCalibR::gethead()->GetGainCorr(hit,2);
+      if(!(opt & (1 << 1))) amp*=betacorr;
+      if(!(opt & (1 << 2))) amp*=TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit));
+      ampcorr[hit->Layer]+=amp;
+    }
+  
+  
+  if(debug)cout<<"beta "<<beta<<" charge "<<charge<<endl;
+  
+  if(charge>0){
+    map<int,TH1F*>::iterator it=spectra.find(charge);
+    if(it==spectra.end()){
+      char name[20] ;
+      sprintf(name,"h_spectrum_%i",charge);
+      printf("TrdHChargeR::AddEvent - adding %s\n",name);
+
+      TH1F *h=0;
+      if(nlogbins>0)h=new TH1F(name,"",nlogbins-1,logbins);
+      else h=new TH1F(name,"",100,0,4000);
+      spectra.insert(pair<int,TH1F*>(charge,h));
+
+      it=spectra.find(charge);
+    }
+    
+    for(int i=0;i<20;i++){
+      //      cout<<"amp "<<ampcorr[i]<<" bin "<<it->second->FindBin(ampcorr[i])<<endl;;
+      it->second->Fill(ampcorr[i]);
+    }
+  }
+  else{
+    // storing electrons per layer as negative charges
+    // numbering layer L1-L20 to avoid confusion
+    for(int l=1;l<21;l++){
+      map<int,TH1F*>::iterator it=spectra.find(-l);
+      if(it==spectra.end()){
+	char name[20] ;
+	sprintf(name,"h_spectrum_el_L%i",l);
+	//	printf("TrdHChargeR::AddEvent - adding %s\n",name);
+	
+	TH1F *h=new TH1F(name,"",400,0,4000);
+	if(nlogbins)h->SetBins(nlogbins-1,logbins);
+	spectra.insert(pair<int,TH1F*>(-l,h));
+	it=spectra.find(-l);
+      }
+      
+      it->second->Fill(ampcorr[l-1]);
+    }
+  }
+
+  return 0;
+}
+
+int TrdHChargeR::CreatePDFs(int debug){
+  if(debug)cout<<"Entering TrdHChargeR::CreatePDFs - spectra size "<<spectra.size()<<endl;
+  pdfs.clear();
+  char name[20];
+  
+  for(map<int,TH1F*>::iterator it=spectra.begin();it!=spectra.end();it++){
+    if(debug)printf("charge %i\n",it->first);
+    if(it->first<0)
+      sprintf(name,"TRDHPDF_EL_L%i",-1-it->first);
+    else
+      sprintf(name,"TRDHPDF%i",it->first);
+    
+    if(debug)printf("name %s\n",name);
+
+    TrPdf *pdf=new TrPdf(name,it->second,false,true);
+
+    pdfs.insert(pair<int,TrPdf*>(it->first,pdf));
+  }
+
+  return 0;
+}
+
+string TrdHChargeR::GetStringForTDVEntry(int n){
+  string name;
+  char num[2];
+  if(n<10){
+    name="TRDCharge";
+    sprintf(num,"%i",n-1);
+    name.append(num);
+  }
+  else{
+    name="TRDElectronL";
+    sprintf(num,"%i",n-9);
+    name.append(num);
+  }
+  return name;
+}
+
+int TrdHChargeR::GetTDVEntryForMapKey(int c){
+  if(c<0)return 9-c;
+  else return c-1;
+}
+
+int TrdHChargeR::CreateBins(int decades,int base){
+  nlogbins=0;
+  
+  for(int d=base;d<base+decades;d++)
+    for(int n=0;n<10;n++){
+      logbins[nlogbins]=pow(10,(double)d)*pow(10,(double)n/10.);
+      printf("bin %i - %.2f\n",nlogbins,logbins[nlogbins]);
+      nlogbins++;
+      if(logbins[nlogbins]>4096)break;
+    }
+
+  return 1;
+}
+
 bool TrdHChargeR::closeTDV(){
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     delete it->second;
@@ -255,55 +436,64 @@ bool TrdHChargeR::closeTDV(){
   return 1;
 }
 
-bool TrdHChargeR::readTDV(unsigned int t, int debug){
+int TrdHChargeR::readAllTDV(unsigned int t, int debug){
   time_t thistime=(time_t)t;
 
-  bool ok=true;
+  int error=0;
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
-    if(!it->second->validate(thistime))ok=false;
+    if(!it->second->validate(thistime))error++;
 
-  if(!FillPDFsFromTDV()) ok=false;
-  
-  return ok;
+  return error;
 }
 
-bool TrdHChargeR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+int TrdHChargeR::readSpecificTDV(string which,unsigned int t, int debug){
+  time_t thistime=(time_t)t;
+  
+  int error=0;
+  for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
+    if(which==it->first)if(!it->second->validate(thistime))error++;
+
+  return error;
+}
+
+int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
   time_t begintime = (time_t) bgtime;
   time_t endtime   = (time_t) edtime;
   
-  //maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;
-  int size=16*18*20+16*18+16;
-
-
   AMSTimeID::CType server=AMSTimeID::Standalone;
   tm begin = *gmtime(&begintime);
   tm end   = *gmtime(&endtime);
   
-  char tdname[200];
-  sprintf(tdname, "%s/DataBase/", tempdirname);
-  if(!AMSDBc::amsdatabase)
-    AMSDBc::amsdatabase=new char[200];
+  if(strlen(tempdirname)){
+    char tdname[200];
+    sprintf(tdname, "%s/DataBase/", tempdirname);
+    if(!AMSDBc::amsdatabase)
+      AMSDBc::amsdatabase=new char[200];
+    
+    strcpy(AMSDBc::amsdatabase,tdname);
+  }
   
-  strcpy(AMSDBc::amsdatabase,tdname);
+  for(int n=0;n<30;n++){
+    AMSTimeID *ptdv=new AMSTimeID(AMSID(GetStringForTDVEntry(n).c_str(),type),
+				  begin,end,sizeof(charge_hist_array[n][0])*1000,
+				  (void*)charge_hist_array[n],server);
+    
+    tdvmap.insert(pair<string,AMSTimeID*>(GetStringForTDVEntry(n),ptdv));
+  }
   
-  AMSTimeID *ptdv=new AMSTimeID(AMSID("TRDHPDF",type),
-				begin,end,sizeof(charge_hist_array[0])*size,
-				(void*)charge_hist_array,server);
-  tdvmap.insert(pair<string,AMSTimeID*>("TRDHPDF",ptdv));
-
-  if( ! readTDV(bgtime) ){
-    cerr<<"Warning: readTDV inside InitTDV"<<endl;
-    return false;
+  if( ! readAllTDV(bgtime) ){
+    cerr<<"TrdHChargeR::initAllTDV - readTDV error"<<endl;
+    return 1;
   }
 
-  return true;
+  return 0;
 }
 
 // write calibration to TDV
-int TrdHChargeR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
   if( !FillTDVFromPDFs() ){
     printf("Warning: FillTDVFromMedian inside writeTDV - low occupancy\n");
-    //    return 2;
+    return 1;
   }
 
   time_t begin,end,insert;
@@ -326,10 +516,49 @@ int TrdHChargeR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, c
       cout <<" Time End "<<ctime(&end);
       
       char tdname[200] = "";
-      sprintf(tdname, "%s/DataBase/", tempdirname);
+      if(strlen(tempdirname))sprintf(tdname, "%s/DataBase/", tempdirname);
+      else if (AMSDBc::amsdatabase) sprintf(tdname, "%s/DataBase/", AMSDBc::amsdatabase);
+      else{
+	return 2;
+      }
       
       if(!it->second->write(tdname)) {
-	cerr <<"TrdHChargeR::writeTDV - problem to update tdvc"<<it->first<<endl;
+	cerr <<"TrdHChargeR::writeAllTDV - problem to update tdv "<<it->first<<endl;
+	ok=false;
+      }
+    }
+  }
+  
+  return 0;
+};
+
+int TrdHChargeR::writeSpecificTDV(string which,unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+  time_t begin,end,insert;
+  
+  bool ok=true;
+  for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
+    if(which!=it->first)continue;
+
+    it->second->UpdateMe()=1;
+    unsigned int crcold=it->second->getCRC();
+    it->second->UpdCRC();
+    
+    if(crcold!=it->second->getCRC()){
+      // valid for 10 days
+      time(&insert);
+      begin=(time_t)bgtime;
+      end=(time_t)edtime;
+      it->second->SetTime(insert,begin+10,end+864000);
+
+      char tdname[200] = "";
+      if(strlen(tempdirname))sprintf(tdname, "%s/DataBase/", tempdirname);
+      else if (AMSDBc::amsdatabase) sprintf(tdname, "%s/DataBase/", AMSDBc::amsdatabase);
+      else{
+	return 2;
+      }
+
+      if(!it->second->write(tdname)) {
+	cerr <<"TrdHChargeR::writeSpecificTDV - problem to update tdv "<<it->first<<endl;
 	ok=false;
       }
     }
@@ -337,154 +566,4 @@ int TrdHChargeR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, c
 
   return ok;
 };
-
-bool TrdHChargeR::FillPDFsFromTDV(){
-
-  int i=0;
-  while(i<30000)
-    {
-      if(charge_hist_array[i]==0)break;
-      
-      int npnt=(int)charge_hist_array[i++];
-      int c=(int)charge_hist_array[i++];
-      
-      char name[10];
-      sprintf(name,"TRDHPDF%i",c);
-      
-      TrPdf *pdf=new TrPdf(name);
-
-      int n=0;
-      bool ok=true;
-      while(n++<npnt){
-	pdf->AddPoint(charge_hist_array[i++],charge_hist_array[i++]);
-      }
-      
-      if(ok){
-	//      const char *tst=name;
-	//      TSpline5 spl(tst,gr);
-	//      pdfs.insert(pair<int,TSpline5>(c,spl));
-	
-	//      TrPdf spl(tst,gr);
-	pdfs.insert(pair<int,TrPdf*>(c,pdf));
-      }
-    }
-  
-  return true;
-}
-
-bool TrdHChargeR::FillTDVFromPDFs(){
-  map<int,TrPdf*>::iterator it;
-
-  for(int j=0;j<30000;j++)charge_hist_array[j]=0.;
-
-  int i=0;
-  for(int c=0;c<10;c++){
-    //  map<int,TSpline5>::const_iterator it;
-    it=pdfs.find(c);
-    if(it==pdfs.end())continue;
-    
-    //  charge_hist_array[c][0]=it->second.GetNp();
-    //  for(int p=0;p<it->second.GetNp();p++){
-
-    charge_hist_array[i++]=it->second->GetN();
-
-    if(c==0)charge_hist_array[i++]=-1.;
-    else charge_hist_array[i++]=c;
-    
-    for(int p=0;p<it->second->GetN();p++){
-      //    double x,y;
-      //    it->second.GetKnot(p,x,y);
-      charge_hist_array[i++]=it->second->GetX(p);
-      charge_hist_array[i++]=it->second->GetY(p);
-    }
-  }
-
-  return true;
-}
-
-
-int TrdHChargeR::AddEvent(TrdHTrackR *track,float beta,int charge, int debug){
-  if(debug)cout<<"Entering TrdHChargeR::AddEvent"<<endl;
-  if(beta<0.5)return 1;
-  if(!track)return 2;
-
-
-  float betacorr=1.;
-  if(beta<0.95)
-    {
-      betacorr=TrdHCalibR::gethead()->GetBetaCorr(beta);
-    }
-  
-  float ampcorr[20];
-  for(int i=0;i<20;i++)ampcorr[i]=0.;
-  
-  for(int s=0;s<2;s++)
-    for(int h=0;h<track->pTrdHSegment(s)->nTrdRawHit();h++){
-      TrdRawHitR* hit=track->pTrdHSegment(s)->pTrdRawHit(h);
-      if(hit->Amp<5)continue;
-      ampcorr[hit->Layer]+=hit->Amp*betacorr*TrdHCalibR::gethead()->GetGainCorr(hit)*TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit));
-    }
-
-
-  if(debug)cout<<"beta "<<beta<<" charge "<<charge<<endl;
-  
-  if(charge>0){
-    map<int,TH1F>::iterator it=spectra.find(charge);
-    if(it==spectra.end()){
-      char name[20] ;
-      sprintf(name,"h_spectrum_%i",charge);
-      printf("TrdHChargeR::AddEvent - adding %s\n",name);
-
-      TH1F h(name,"",100,0,4000);
-      spectra.insert(pair<int,TH1F>(charge,h));
-      it=spectra.find(charge);
-    }
-    
-    
-    for(int i=0;i<20;i++)
-      it->second.Fill(ampcorr[i]);
-  }
-  else{
-    // storing electrons per layer as negative charges
-    // numbering layer L1-L20 to avoid confusion
-    for(int l=1;l<21;l++){
-      map<int,TH1F>::iterator it=spectra.find(-l);
-      if(it==spectra.end()){
-	char name[20] ;
-	sprintf(name,"h_spectrum_el_L%i",l);
-	printf("TrdHChargeR::AddEvent - adding %s\n",name);
-	
-	TH1F h(name,"",400,0,4000);
-	spectra.insert(pair<int,TH1F>(-l,h));
-	it=spectra.find(-l);
-      }
-      
-      it->second.Fill(ampcorr[l-1]);
-    }
-  }
-
-  return 0;
-}
-
-int TrdHChargeR::CreatePDFs(int debug){
-  if(debug)cout<<"Entering TrdHChargeR::CreatePDFs - spectra size "<<spectra.size()<<endl;
-  pdfs.clear();
-  char name[20];
-  
-  for(map<int,TH1F>::iterator it=spectra.begin();it!=spectra.end();it++){
-    if(debug)printf("charge %i\n",it->first);
-    if(it->first<0)
-      sprintf(name,"TRDHPDF_EL_L%i",-1-it->first);
-    else
-      sprintf(name,"TRDHPDF%i",it->first);
-    
-    if(debug)printf("name %s\n",name);
-
-    TrPdf *pdf=new TrPdf(name,&it->second,false,true);
-
-    pdfs.insert(pair<int,TrPdf*>(it->first,pdf));
-  }
-
-  return 0;
-}
 

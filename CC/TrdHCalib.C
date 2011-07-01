@@ -60,7 +60,7 @@ float TrdHCalibR::MeanGaussMedian(int opt){
   TH1F h("h_gain","",100,0.,120.);
   for(int i=0;i<5248;i++)h.Fill(tube_medians[i]);
   TF1 f("f","gaus");
-  h.Fit(&f,"Q");
+  h.Fit(&f,"Q0");
   return f.GetParameter(1);
 }
 
@@ -76,7 +76,7 @@ float TrdHCalibR::MeanGaussGain(int opt){
   }
   
   TF1 f("f","gaus");
-  h.Fit(&f,"Q");
+  h.Fit(&f,"Q0");
 
   // conversion factor to mean gain 1. stored here
   tube_gain[250]=f.GetParameter(1);
@@ -87,42 +87,53 @@ float TrdHCalibR::MeanGaussGain(int opt){
   return f.GetParameter(1);
 }
 
-bool TrdHCalibR::FillMedianFromTDV(){
+int TrdHCalibR::FillMedianFromTDV(){
   bool toReturn = true;
   int layer,ladder,tube;
   
+  bool allone=true;
   for(int i=0;i<5248;i++){
     GetLLTFromTubeId(layer,ladder,tube,i);
     int ntdv=layer*18*16+ladder*16+tube;
     tube_medians[i]=tube_gain[ntdv]*norm_mop;
-    if(i%500==0)printf("i %i norm %.2f gain %.2f med %.2f\n",i,norm_mop,tube_gain[ntdv],tube_medians[i]);
+    //    if(i%500==0)printf("i %i norm %.2f gain %.2f med %.2f\n",i,norm_mop,tube_gain[ntdv],tube_medians[i]);
 
     if( tube_medians[i] < 0. )
       toReturn = false;
+    
+    if (tube_gain[ntdv]!=1.)allone=false;
   }
-  return toReturn;
+
+  return toReturn+2*allone;
 }
 
-bool TrdHCalibR::FillTDVFromMedian(){
-  bool toReturn = false;
-  
+int TrdHCalibR::FillTDVFromMedian(){
+  int nlowocc=0;
+
   int layer,ladder,tube;
   for(int i=0;i<5248;i++){
     GetLLTFromTubeId(layer,ladder,tube,i);
     int ntdv=layer*18*16+ladder*16+tube;
 
-    if(tube_occupancy[i]>min_occupancy){
+    if(tube_occupancy[i]==0){
       tube_gain[ntdv]=tube_medians[i]/norm_mop;
-      if(!toReturn)
-	toReturn=true;
+     tube_status[ntdv]= tube_status[ntdv] = AMSDBc::BAD;
+    }
+    else if(tube_occupancy[i]>min_occupancy){
+      tube_gain[ntdv]=tube_medians[i]/norm_mop;
+      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::BAD;
+      tube_status[ntdv]= tube_status[ntdv] & AMSDBc::TRDLOWOCC;
+      tube_status[ntdv]= tube_status[ntdv] & AMSDBc::TRDGROUPED;
     }
     else{
       tube_gain[ntdv]=mod_medians[layer][ladder]/norm_mop;
+      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::BAD;
       tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDLOWOCC;
       tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDGROUPED;
+      nlowocc++;
     }
   }
-  return toReturn;
+  return nlowocc;
 }
 
 
@@ -143,7 +154,7 @@ bool TrdHCalibR::readTDV(unsigned int t, int debug){
     if(!it->second->validate(thistime))ok=false;
 
   
-  if(!FillMedianFromTDV()) ok=false;
+  if(FillMedianFromTDV()) ok=false;
 
   if(debug)
     for(int i=0;i<5248;i++){
@@ -154,6 +165,16 @@ bool TrdHCalibR::readTDV(unsigned int t, int debug){
 	printf("TrdHCalibR::readTDV - tube %4i reading gain %.2f stat %u - setting median %.2f\n",i,tube_gain[ntdv],tube_status[ntdv],tube_medians[i]);
       }
     }
+  
+  return ok;
+}
+
+bool TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug){
+  bool ok=true;
+  time_t thistime=(time_t)t;
+  for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
+    if(it->first==which)
+      if(!it->second->validate(thistime))ok=false;
   
   return ok;
 }
@@ -224,10 +245,78 @@ bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char
   return true;
 }
 
+bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+  time_t begintime = (time_t) bgtime;
+  time_t endtime   = (time_t) edtime;
+  
+  for(int i=0;i<size;i++)arr[i]=0;
+  
+  AMSTimeID::CType server=AMSTimeID::Standalone;
+  tm begin = *gmtime(&begintime);
+  tm end   = *gmtime(&endtime);
+
+  if(strlen(tempdirname)){
+    char tdname[200];
+    sprintf(tdname, "%s/DataBase/", tempdirname);
+    if(!AMSDBc::amsdatabase)
+      AMSDBc::amsdatabase=new char[200];
+    
+    strcpy(AMSDBc::amsdatabase,tdname);
+  }
+
+  AMSTimeID *ptdv=new AMSTimeID(AMSID(which.c_str(),type),
+				begin,end,sizeof(arr[0])*size,
+				(void*)arr,server);
+  
+  tdvmap.insert(pair<string,AMSTimeID*>(which,ptdv));
+  //  ptdv->validate(bg);
+  
+  if( ! readSpecificTDV(which,bgtime) ){
+    cerr<<"Warning: readSpecificTDV inside InitTDV"<<endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,char * tempdirname){
+  time_t begintime = (time_t) bgtime;
+  time_t endtime   = (time_t) edtime;
+  
+  for(int i=0;i<size;i++)arr[i]=0;
+  
+  AMSTimeID::CType server=AMSTimeID::Standalone;
+  tm begin = *gmtime(&begintime);
+  tm end   = *gmtime(&endtime);
+
+  //  if(strlen(tempdirname)){
+    char tdname[200];
+    sprintf(tdname, "%s/DataBase/", tempdirname);
+    if(!AMSDBc::amsdatabase)
+      AMSDBc::amsdatabase=new char[200];
+    
+    strcpy(AMSDBc::amsdatabase,tdname);
+    //  }
+  
+  AMSTimeID *ptdv=new AMSTimeID(AMSID(which.c_str(),type),
+				begin,end,sizeof(arr[0])*size,
+				(void*)arr,server);
+
+  tdvmap.insert(pair<string,AMSTimeID*>(which,ptdv));
+  //  ptdv->validate(bg);
+  
+  if( ! readSpecificTDV(which,bgtime) ){
+    cerr<<"Warning: readSpecificTDV inside InitTDV"<<endl;
+    return false;
+  }
+
+  return true;
+}
+
 // write calibration to TDV
 int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
-  if( !FillTDVFromMedian() ){
-    printf("Warning: FillTDVFromMedian inside writeTDV - low occupancy\n");
+  if( int nchan=FillTDVFromMedian() ){
+    printf("TrdHCalibR::writeTDV - Warning: contains %i low occupancy channls\n",nchan);
     //    return 2;
   }
 
@@ -242,7 +331,6 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, ch
       }
     }
   
-  bool ok=true;
   for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     it->second->UpdateMe()=1;
     unsigned int crcold=it->second->getCRC();
@@ -254,23 +342,78 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, ch
       time(&insert);
       begin=(time_t)bgtime;
       end=(time_t)edtime;
-      it->second->SetTime(insert,begin+1,end+864000);
-      cout <<" Write time:" << endl;
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+      it->second->SetTime(insert,begin,end);
+      if(debug){
+	cout <<" Write time:" << endl;
+	cout <<" Time Insert "<<ctime(&insert);
+	cout <<" Time Begin "<<ctime(&begin);
+	cout <<" Time End "<<ctime(&end);
+      }
+      
+      char tdname[200] = "";
+      sprintf(tdname, "%s/DataBase/", tempdirname);
+      
+      if(!it->second->write(tdname)) {
+	cerr <<"TrdHCalibR::writeTDV - problem to update tdv "<<it->first<<endl;
+	return false;
+      }
+
+      if(!it->second->updatemap(tdname,true)){
+	cerr <<"TrdHCalibR::writeTDV - problem to update map file for "<<it->first<<endl;
+	return false;
+      }
+    }
+  }
+
+  return true;
+};
+
+int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
+  if( int nchan=FillTDVFromMedian() ){
+    printf("TrdHCalibR::writeTDV - Warning: contains %i low occupancy channls\n",nchan);
+    //    return 2;
+  }
+  time_t begin,end,insert;
+  for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
+    if(it->first!=which)continue;
+    printf("TrdHCalibR::writeSpecificTDV %s\n",which.c_str());
+    
+    it->second->UpdateMe()=1;
+    unsigned int crcold=it->second->getCRC();
+    it->second->UpdCRC();
+    
+    if(crcold!=it->second->getCRC()){
+      // valid for 10 days
+      //    it->gettime(insert,begin,end);
+      if(!intime)intime=time(NULL);
+      
+      insert=(time_t)intime;
+      begin=(time_t)bgtime;
+      end=(time_t)edtime;
+      it->second->SetTime(insert,begin,end);
+      if(debug){
+	cout <<" Write time:" << endl;
+	cout <<" Time Insert "<<ctime(&insert);
+	cout <<" Time Begin "<<ctime(&begin);
+	cout <<" Time End "<<ctime(&end);
+      }
       
       char tdname[200] = "";
       sprintf(tdname, "%s/DataBase/", tempdirname);
       
       if(!it->second->write(tdname)) {
 	cerr <<"TrdHCalibR::writeTDV - problem to update tdvc"<<it->first<<endl;
-	ok=false;
+	return false;
+      }
+
+      if(!it->second->updatemap(tdname,true)){
+	cerr <<"TrdHCalibR::writeTDV - problem to update map file for "<<it->first<<endl;
+	return false;
       }
     }
   }
-
-  return ok;
+  
+  return true;
 };
 
 
@@ -304,25 +447,47 @@ void TrdHCalibR::GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid){
 
 //float par[4]={6.37838e+01,5.26182e-01,8.96826e-02,5.50886e+01};;
 float par[4]={3.85478e+01,5.26885e-01,8.08710e-02,2.42610e+01};
-float TrdHCalibR::PathParametrization(float path,int debug){
-  return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
+float path_pol3[4]={66.4444,-43.7317,10.9122,-0.575106};
+float TrdHCalibR::PathParametrization(float path,int opt,int debug){
+  if(opt==1)return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
+  else{
+    float val=0.;
+    for(int i=0;i<4;i++)val+=path_pol3[i]*pow(path,i);
+    return val;
+  }
 }
 
 Double_t betapar[7]={1.94728e+01,-5.96794e+00,1.58489e-02,9.52168e-03,8.18354e+01,6.00944e+00,1.54202e+03};
-float TrdHCalibR::BetaParametrization(float beta,int debug){
-  Double_t x=beta/sqrt(1-beta*beta);//log10(betagamma
-  return betapar[0]*pow((1+1/x/x),betapar[1])*(pow(fabs(log(betapar[2]*x*x)),betapar[3])+betapar[4]*pow(1+1/x/x,betapar[5])) - betapar[6];
+Double_t betapar_pol4[5]={9161.75,-35936.6,53297.3,-35295.1,8828.5};
+float TrdHCalibR::BetaParametrization(float beta,int opt,int debug){
+  if(opt==1){
+    Double_t x=beta/sqrt(1-beta*beta);//log10(betagamma
+    return betapar[0]*pow((1+1/x/x),betapar[1])*(pow(fabs(log(betapar[2]*x*x)),betapar[3])+betapar[4]*pow(1+1/x/x,betapar[5])) - betapar[6];
+  }
+  else{
+    float val=0.;
+    for(int i=0;i<5;i++)val+=betapar_pol4[i]*pow(beta,i);
+    return val;
+  }
 }
 
-float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int debug){
-  double toReturn=BetaParametrization(tobeta)/BetaParametrization(beta);
-  if(debug)cout<<"TrdHCalibR::GetBetaCorr - beta "<<beta<<" betagamma "<<beta/sqrt(1-beta*beta)<<" dEdx "<< BetaParametrization(beta) <<" correction "<< toReturn <<endl;
+float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
+  double toReturn=0;
+  if(fabs(beta)>0.95)toReturn=1.;
+  else if (fabs(beta)<0.5)toReturn =0.;
+  else toReturn =BetaParametrization(tobeta,opt)/BetaParametrization(fabs(beta),opt);
 
+  if(debug)cout<<"TrdHCalibR::GetBetaCorr - beta "<<beta<<" betagamma "<<beta/sqrt(1-beta*beta)<<" dEdx "<< BetaParametrization(beta) <<" correction "<< toReturn <<endl;
+  
   return toReturn;
 }
 
-float TrdHCalibR::GetPathCorr(float path, float topath,int debug){
-  float toReturn=PathParametrization(topath)/PathParametrization(path);
+float TrdHCalibR::GetPathCorr(float path, float topath,int opt,int debug){
+  float toReturn=0.;
+  if(path<0.3)toReturn=1.;
+  else if(path<0.7)toReturn=PathParametrization(topath)/PathParametrization(path);
+  else toReturn=0.;
+
   if(debug)cout<<"TrdHCalibR::GetPathCorr - path "<<path<<" correction "<<toReturn<<endl;
   return toReturn;
 }

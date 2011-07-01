@@ -70,53 +70,46 @@ class TrdHCalibR{
 
     ~TrdHCalibR(){};
 
-  void update_medians(TrdHTrackR *track,int opt=3, float beta=0, int debug=0);
+    void update_medians(TrdHTrackR *track,int opt=3, float beta=0, int debug=0);
   
-  bool FillMedianFromTDV();
+    int FillMedianFromTDV();
 
-  bool FillTDVFromMedian();
+    int FillTDVFromMedian();
 
-  bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,
-#ifdef __ROOTSHAREDLIBRARY__
-	       char *tempdirname="/Offline/AMSDataDirRW");
-#else
-               char *tempdirname="/f2users/mmilling");
-#endif
-  
-//bool InitTDVR(AMSEventR* pev,const char* name,unsigned int time);
+    bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,char *tempdirname="");
 
-int writeTDV(unsigned int begin, unsigned int end,int debug=0,
-#ifdef __ROOTSHAREDLIBRARY__
-			 char *tempdirname="/Offline/AMSDataDirRW");
-#else
-                         char *tempdirname="/f2users/mmilling");
-#endif
+    bool InitSpecificTDV(string which,int size, float *arr,unsigned int bgtime, unsigned int edtime, int type,char *tempdirname="");
+    bool InitSpecificTDV(string which,int size, unsigned int *arr,unsigned int bgtime, unsigned int edtime, int type,char *tempdirname="");
 
-bool readTDV(unsigned int t, int debug=0);
+    int writeTDV(unsigned int begin, unsigned int end,int debug=0, char *tempdirname="");
+    int writeSpecificTDV(string which,unsigned int insert,unsigned int begin, unsigned int end,int debug=0, char *tempdirname="");
 
-bool closeTDV();
+    bool readTDV(unsigned int t, int debug=0);
 
+    bool readSpecificTDV(string which,unsigned int t, int debug=0);
 
-void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
-void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
+    bool closeTDV();
 
-float PathParametrization(float path,int debug=0);
-float BetaParametrization(float beta,int debug=0);
+    void GetTubeIdFromLLT(int layer,int ladder,int tube,int &tubeid);
+    void GetLLTFromTubeId(int &layer,int &ladder,int &tube,int tubeid);
 
-float GetBetaCorr(double beta, double tobeta=0.95, int debug=0); 
-float GetPathCorr(float path, float topath=0.59, int debug=0); 
+    float PathParametrization(float path,int opt=0,int debug=0);
+    float BetaParametrization(float beta,int opt=0,int debug=0);
+ 
+    float GetBetaCorr(double beta, double tobeta=0.95, int opt=0, int debug=0); 
+    float GetPathCorr(float path, float topath=0.3, int opt=0, int debug=0); 
 
-float GetGainCorr(TrdRawHitR* hit, int opt=0, int debug=0); 
-float GetGainCorr(int layer,int ladder, int tube, int opt=0,int debug=0); 
+    float GetGainCorr(TrdRawHitR* hit, int opt=0, int debug=0); 
+    float GetGainCorr(int layer,int ladder, int tube, int opt=0,int debug=0); 
 
-unsigned int GetStatus(TrdRawHitR* hit, int opt=0, int debug=0); 
-unsigned int GetStatus(int layer,int ladder, int tube, int opt=0,int debug=0); 
-
-float MeanGaussGain(int opt=0);
-float MeanGaussMedian(int opt=0);
-float MeanOccupancy(int opt=0);
-
-  ClassDef(TrdHCalibR,1)
-};
+    unsigned int GetStatus(TrdRawHitR* hit, int opt=0, int debug=0); 
+    unsigned int GetStatus(int layer,int ladder, int tube, int opt=0,int debug=0); 
+    
+    float MeanGaussGain(int opt=0);
+    float MeanGaussMedian(int opt=0);
+    float MeanOccupancy(int opt=0);
+    
+    ClassDef(TrdHCalibR,1)
+      };
 #endif
 

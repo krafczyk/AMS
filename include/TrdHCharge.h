@@ -20,7 +20,7 @@ class TrdHChargeR{
   //  map<int,TSpline5> pdfs;
   map<int,TrPdf*> pdfs;
 
-  map<int,TH1F> spectra;
+  map<int,TH1F*> spectra;
 
   /// container to store probability of charge for event
   map<double,int> charge_probabilities;
@@ -28,7 +28,10 @@ class TrdHChargeR{
   /// factor to convert from adc to kev (default 33.33)
   float adc2kev;
 
-  float charge_hist_array[30000];
+  float charge_hist_array[30][1000];
+
+  int nlogbins;
+  double logbins[100];
   
   map<string,AMSTimeID*> tdvmap;
 
@@ -47,15 +50,24 @@ class TrdHChargeR{
   /// default ctor
   TrdHChargeR():ccampcut(6.),adc2kev(100./3.){
     pdfs.clear();
+    spectra.clear();
     charge_probabilities.clear();
+    nlogbins=0;
+    for(int i=0;i<100;i++)logbins[i]=0.;
     //    BuildPDFs();
-    for(int i=0;i<10000;i++)charge_hist_array[i]=0.;
+    for(int i=0;i<30;i++)
+      for(int j=0;j<1000;j++)charge_hist_array[i][j]=0.;
   };
   
     ~TrdHChargeR(){
       for(int i=0;i<pdfs.size();i++)
 	delete pdfs[i];
       pdfs.clear();
+
+      for(int i=0;i<spectra.size();i++)
+	delete spectra[i];
+      spectra.clear();
+
       charge_probabilities.clear();
     };
 
@@ -63,7 +75,7 @@ class TrdHChargeR{
     int CreatePDFs(int debug=0);
 
     /// get most probable charge
-    int GetCharge(TrdHTrackR *tr,float beta=0., int debug=0);
+    int GetCharge(TrdHTrackR *tr,int opt=0,float beta=0., int debug=0);
 
     //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
 
@@ -75,31 +87,28 @@ class TrdHChargeR{
     /// get numbr of hits above CC amplitude cut
     int GetNCC(TrdHTrackR *tr,int debug=0);
   
-    bool readTDV(unsigned int t, int debug=0);
-    
-    bool closeTDV();
-    
     bool FillPDFsFromTDV();
     
     bool FillTDVFromPDFs();
     
-    int AddEvent(TrdHTrackR *track,float beta, int charge, int debug=0);
+    int AddEvent(TrdHTrackR *track,float beta, int charge, int opt=0, int debug=0);
     
-    bool InitTDV(unsigned int bgtime, unsigned int edtime, int type,
-#ifdef __ROOTSHAREDLIBRARY__
-		 char *tempdirname="/Offline/AMSDataDirRW");
-#else
-    char *tempdirname="/f2users/mmilling");
-#endif
+    int CreateBins(int decades=3, int bin=1);
+ 
+    int initAllTDV(unsigned int bgtime, unsigned int edtime, int type,char *tempdirname="");
+    int writeAllTDV(unsigned int begin, unsigned int end,int debug=0,char *tempdirname="");
 
-int writeTDV(unsigned int begin, unsigned int end,int debug=0,
-#ifdef __ROOTSHAREDLIBRARY__
-	     char *tempdirname="/Offline/AMSDataDirRW");
-#else
-char *tempdirname="/f2users/mmilling");
-#endif
+    int writeSpecificTDV(string which,unsigned int begin, unsigned int end,int debug=0,char *tempdirname="");
 
-ClassDef(TrdHChargeR,1)
-  };
+    int readAllTDV(unsigned int t, int debug=0);
+    int readSpecificTDV(string which,unsigned int t, int debug=0);
+
+    bool closeTDV();
+
+    string GetStringForTDVEntry(int n);
+    int GetTDVEntryForMapKey(int c);
+  
+    ClassDef(TrdHChargeR,2)
+      };
 #endif
 
