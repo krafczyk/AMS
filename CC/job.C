@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.817.2.2 2011/07/01 09:51:59 choutko Exp $
+// $Id: job.C,v 1.817.2.3 2011/07/01 09:56:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2916,7 +2916,7 @@ if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
-                          getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/1000000)%2)));
+                          getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/1000000)%2));
 
   if(AMSFFKEY.Update==88)return;
 
