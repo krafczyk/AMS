@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.323 2011/06/10 16:26:15 choutko Exp $
+//  $Id: commons.h,v 1.323.2.1 2011/07/01 09:52:09 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1065,6 +1065,7 @@ public:
 integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
 integer Ntuple;
 integer SubDetInCalib;//subDetectors selection for processing of OnBoard-calib data
+integer SubDetRequestCalib;
 };
 #define CALIB COMMON_BLOCK(CALIB,calib)
 COMMON_BLOCK_DEF(CALIB_DEF,CALIB);
