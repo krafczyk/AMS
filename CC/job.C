@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.817 2011/06/10 16:26:06 choutko Exp $
+// $Id: job.C,v 1.818 2011/07/01 10:01:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1225,6 +1225,7 @@ void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by daq-time
   CALIB.Ntuple=0;
   CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
+  CALIB.SubDetRequestCalib=111111111;
  FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -2915,7 +2916,7 @@ if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
-                          getstatustable()->getptr(),server));
+                          getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/1000000)%2));
 
   if(AMSFFKEY.Update==88)return;
 
@@ -3308,18 +3309,18 @@ if(TRDMCFFKEY.CreatePDF && AMSTRDTrack::CreatePDF()){
     (void*)AMSTRDIdSoft::_ped,server,1));
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-    (void*)AMSTRDIdSoft::_gain,server,1));
+    (void*)AMSTRDIdSoft::_gain,server,(CALIB.SubDetRequestCalib/100000)%2));
 if(!isRealData()){
  TID.add (new AMSTimeID(AMSID("TRDMCGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-    (void*)AMSTRDIdSoft::_mcgain,server,1));
+    (void*)AMSTRDIdSoft::_mcgain,server,isSimulation()));
 }
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
     (void*)AMSTRDIdSoft::_sig,server,1));
  TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-    (void*)AMSTRDIdSoft::_status,server,1));
+    (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/100000)%2));
 }
 
 
@@ -4428,7 +4429,7 @@ void AMSJob::_trdendjob(){
     if( AMSFFKEY.Update && TrdHCalibR::gethead()->calibrate ){
 //(AMSStatus::isDBWriteR()||AMSStatus::isDBUpdateR())){
       bool update=TrdHReconR::gethead(AMSEvent::get_thread_num())->update_tdv_array();
-      if(update) AMSTRDRawHit::updtrdcalibSCI();
+      if(0 && update) AMSTRDRawHit::updtrdcalibSCI();
     }
   }
 

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.179 2011/06/10 23:20:55 choutko Exp $
+//  $Id: server.C,v 1.180 2011/07/01 10:01:00 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1466,7 +1466,13 @@ for (ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
     if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface)){
       length++;
     }
-    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
+    else if((const char *)cid.Interface && 
+  strlen((const char *)cid.Interface) && 
+ (const char *)((*li)->id).Interface && 
+strlen((const char *)((*li)->id).Interface) && 
+(const char *)  (((*li)->ars)[i]).Interface && 
+strlen((const char *)  (((*li)->ars)[i]).Interface)
+ && !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
       length++;
     }
   }
@@ -1667,8 +1673,8 @@ return 0;
        case DPS::Client::Update:
        if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(ah,"Host not found for editing"));
        else{
+        cout <<" SendAH-I-"<<" "<<cid.Type<<" "<<ah.HostName<<" "<<" "<<ah.Interface<<" "<<(*li)->HostName<<endl;
         DPS::Client::ActiveHost_var vac= new DPS::Client::ActiveHost(ah);
-        cout <<" SendAH-I-"<<" "<<cid.Type<<" "<<ah.HostName<<" "<<(*li)->HostName<<endl;
         replace_if(li,pcur->getahl().end(),Eqs_h(ah),vac);
        
        }
@@ -3579,7 +3585,8 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
   break;
 }
 //         cout <<" exiting Producer_impl::sendRunEvInfo"<<endl;
-
+int ntry=0;
+again:
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
  if(pcur->getType()==DPS::Client::DBServer){
    bool done=false;
@@ -3592,7 +3599,16 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
        dvar->sendRunEvInfo(ne,rc);
     }
+       catch(DPS::DBProblem &dbl){
+        _parent->EMessage((const char*)dbl.message); 
+      sleep(4);
+      if(ntry++<15)goto again;
+       }
    catch (CORBA::SystemException &ex){
+      cerr<<"Producer_impl::sendRunEvInfo-E- exception catched"<<endl;
+      sleep(4);
+      if(ntry++<15)goto again;
+      cerr<<"Producer_impl::sendRunEvInfo-F-TooManyExceptions-Exiting "<<endl;
      // Have to Kill Servers Here
    }
 
@@ -3880,12 +3896,19 @@ void Producer_impl::PropagateRun(const DPS::Producer::RunEvInfo & ri, DPS::Clien
     DPS::Client::ARS * pars;
     int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
+int ntry=0;
+again:
   for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
     _pvar->sendRunEvInfo(ri,rc);
    }
+       catch(DPS::DBProblem &dbl){
+        _parent->EMessage((const char*)dbl.message); 
+       sleep(4);
+      if(ntry++<15)goto again;
+}
    catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here
    }

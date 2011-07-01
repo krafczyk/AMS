@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.534 2011/06/16 22:26:06 choutko Exp $
+//  $Id: event.C,v 1.535 2011/07/01 10:00:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1632,8 +1632,8 @@ for(i=0;i<nalg;i++){
 #endif
 
 void AMSEvent::_trdgain(){
-  if(!TrdHCalibR::gethead()->calibrate)return;
 
+  if(!TrdHCalibR::gethead()->calibrate)return;
   if(TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectEvent())
     if(TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec.size()==1 &&
        TrdHReconR::gethead(AMSEvent::get_thread_num())->SelectTrack(0) &&
@@ -3768,6 +3768,16 @@ else{
 //
 //   geomag here
 //
+  // Now collect geomag latitude 
+     geant thetam,phim;
+     getmag(thetam,phim);
+     number cosgm=fabs(sin(thetam));
+     integer icos;
+     if(cosgm<0.1736)icos=0;
+     else if(cosgm<0.5)icos=1;
+     else if(cosgm<0.766)icos=2;
+     else icos=3;
+      __status1|=(icos<<13);
 
 
 

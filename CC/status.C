@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.52 2011/04/26 16:03:28 choutko Exp $
+//  $Id: status.C,v 1.53 2011/07/01 10:01:01 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -117,6 +117,7 @@ cout <<"  out barrier AMSStatus::adds "<< AMSEvent::get_thread_num()<<endl;
    uinteger offset=uinteger(((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset()-_Offset);
   _Status[2][_Nelem]=offset;
   _Status[3][_Nelem]=status[1];
+//  cout <<" evt "<<evt<<" "<<offset<<" "<<_Offset<<endl;
   if(_Nelem<=MAXDAQRATE+STATUSSIZE-1)_Nelem++;
   else {
         cerr <<"AMSSTatus::adds-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
@@ -150,6 +151,7 @@ AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
    return statusI((one<<31),0);
   }
   // try hint +
+  //cout <<" nelem "<<_Nelem<<endl;
   int out;
   if( _Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
   else out=_Hint+1;
@@ -340,8 +342,16 @@ integer AMSStatus::getnextok(){
 //  protection in mthreaded mode
 //
   uint64 offset=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getsoffset();
-     if(offset<_Offset+_Status[2][i]){
-         ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Offset+_Status[2][i]);
+// a bit tricky in mt mode
+const int maxthr=32;
+const long long max32=4294967296LL;
+  uint64 off64=_Offset+_Status[2][i];
+if(i<maxthr && _Status[2][i]>_Status[2][maxthr] && off64>=max32){
+   cerr<<"AMSSetatus::getnextok-W-32bitProblemfound "<<i<<" "<<_Status[2][i]<<" "<<_Offset<<" "<<off64%max32<<endl;
+     off64=off64%max32;
+}
+     if(offset<off64){
+         ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(off64);
      _Hint=i;
      return skipped;
      }
