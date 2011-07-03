@@ -277,16 +277,11 @@ void AMSRichCal::process_event(){
 
 
 void AMSRichCal::finish(){
-  if(!isCalibration()) return;
-
 #pragma omp single
   {
-  //
-  // Prepare to update TDV
-  //
-    
-  // For the refractivr index, we assume that, in first approximation, 
-  // the obtenied values are OK.
+  if(isCalibration()){
+    // For the refractivr index, we assume that, in first approximation, 
+    // the obtenied values are OK.
     for(int i=0;i<RichRadiatorTileManager::get_number_of_tiles();i++){
       if(RichRadiatorTileManager::get_tile_kind(i)!=agl_kind) continue;  // Skip NaF 
 #ifdef __AMSDEBUG__
@@ -333,9 +328,8 @@ void AMSRichCal::finish(){
       RichPMTsManager::_Gain(pmt,channel,1)/=mean; // Update high gain   
       RichPMTsManager::_Gain(pmt,channel,0)/=mean; // Update high gain   
     }
-    
-    
-    
+  }
+  
     // DUMP TABLES
 #ifndef __AMSDEBUG__
     AMSTimeID *ptdv;
@@ -360,7 +354,8 @@ void AMSRichCal::finish(){
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
     }
-  }
+  
+
 
 #ifdef __AMSDEBUG__
   // Dump the calibration tables
@@ -377,5 +372,6 @@ void AMSRichCal::finish(){
    }
 #endif
 #endif
+  }
 }
 
