@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.318 2011/06/17 13:19:49 mdelgado Exp $
+//  $Id: root.C,v 1.319 2011/07/03 13:38:21 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3857,6 +3857,38 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
   return best;
 }
 
+float RichHitR::getCollectedPhotoElectrons(){
+  AMSEventR *event=AMSEventR::Head();
+  if(!event) return 0;
+  float counter=0;
+  for(int i=0;i<event->nRichHit();i++){
+    RichHitR *hit=event->pRichHit(i);
+    if(!hit) continue;
+    if(hit->IsCrossed()) continue;
+    counter+=hit->Npe;
+  }
+  return counter;
+}
+
+
+int RichHitR::getPMTs(bool countCrossed){
+  AMSEventR *event=AMSEventR::Head();
+  if(!event) return 0;
+  bool counted[680];
+  for(int i=0;i<680;counted[i++]=false); 
+  int counter=0;
+  for(int i=0;i<event->nRichHit();i++){
+    RichHitR *hit=event->pRichHit(i);
+    if(!hit) continue;
+    if(!countCrossed && hit->IsCrossed()) continue;
+    int pmt=hit->Channel/16;
+    if(counted[pmt]) continue;
+    counted[pmt]=true;
+    counter++;
+  }
+  return counter;
+}
+
 
 void RichRingR::calPush(double beta,double index,float x,float y){
   if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}
@@ -4066,6 +4098,24 @@ float RichRingR::getBetaConsistency(){
     }
   }
   return -1;
+}
+
+int RichRingR::getPMTs(){
+  AMSEventR *event=AMSEventR::Head();
+  if(!event) return 0;
+  bool counted[680];
+  for(int i=0;i<680;counted[i++]=false); 
+  int counter=0;
+  for(int i=0;i<Used;i++){
+    RichHitR *hit=event->pRichHit(iRichHit(i));
+    if(!hit) continue;
+    if(hit->IsCrossed()) continue;
+    int pmt=hit->Channel/16;
+    if(counted[pmt]) continue;
+    counted[pmt]=true;
+    counter++;
+  }
+  return counter;
 }
 
 

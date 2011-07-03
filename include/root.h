@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.369 2011/06/28 18:04:35 pzuccon Exp $
+//  $Id: root.h,v 1.370 2011/07/03 13:38:21 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1184,8 +1184,12 @@ public:
   bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
   bool IsHighGain(int){return (Status&(1<<29))!=0;}
   int  PhotoElectrons(double sigmaOverQ=0.6);
+  /// Return the number of photoelectrons in the event, discarding those PMTs crossed by charged particles
+  static float getCollectedPhotoElectrons();
+  /// Return the number of PMTs. This is useful because the algorithm indetifiying crossed PMTS relies in a large enough statistics of PMTs in the event
+  static int  getPMTs(bool countCrossed=true);
 
-ClassDef(RichHitR,5)       // RichHitR
+ClassDef(RichHitR,6)       // RichHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1390,6 +1394,8 @@ public:
   float getBetaConsistency();
   /// Number of hits in the ring
   int   getHits()          {return Used;}
+  /// Number of pmts in the ring
+  int   getPMTs();          
   /// Number of hits which are consistent with reflected photons
   int   getReflectedHits() {return UsedM;}
   ///@}
@@ -1403,7 +1409,7 @@ public:
 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,22)           // RichRingR
+  ClassDef(RichRingR,23)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
