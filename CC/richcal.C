@@ -328,7 +328,7 @@ void AMSRichCal::finish(){
       RichPMTsManager::_Gain(pmt,channel,1)/=mean; // Update high gain   
       RichPMTsManager::_Gain(pmt,channel,0)/=mean; // Update high gain   
     }
-  }
+    //  }
   
     // DUMP TABLES
 #ifndef __AMSDEBUG__
@@ -405,6 +405,7 @@ void AMSRichCal::finish(){
    }
 #endif
 #endif
+  }  // isCalibration 
   }
 }
 
