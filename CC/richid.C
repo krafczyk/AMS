@@ -627,7 +627,9 @@ void RichPMTsManager::Init_Default(){
 
 
 void RichPMTsManager::Finish_Default(){
-  AMSRichCal::finish();
+  if(AMSRichCal::isCalibration()){
+    AMSRichCal::finish();
+  }
 }
 
 integer RichPMTsManager::detcer(geant photen)

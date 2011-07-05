@@ -279,7 +279,7 @@ void AMSRichCal::process_event(){
 void AMSRichCal::finish(){
 #pragma omp single
   {
-  if(isCalibration()){
+
     // For the refractivr index, we assume that, in first approximation, 
     // the obtenied values are OK.
     for(int i=0;i<RichRadiatorTileManager::get_number_of_tiles();i++){
@@ -328,8 +328,7 @@ void AMSRichCal::finish(){
       RichPMTsManager::_Gain(pmt,channel,1)/=mean; // Update high gain   
       RichPMTsManager::_Gain(pmt,channel,0)/=mean; // Update high gain   
     }
-    //  }
-  
+    
     // DUMP TABLES
 #ifndef __AMSDEBUG__
     AMSTimeID *ptdv;
@@ -343,69 +342,36 @@ void AMSRichCal::finish(){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
-
-      if(isCalibration()){
-	if(CALIB.InsertTimeProc)insert=last_run;
-	
+      
+      if(CALIB.InsertTimeProc)insert=last_run;
+      
 #define max(x,y) ((x)>(y)?(x):(y))
-	ptdv->SetTime(insert,max(last_run-1,last_time),max(last_run-1,last_time)+864000);
+      ptdv->SetTime(insert,max(last_run-1,last_time),max(last_run-1,last_time)+864000);
 #undef min
-	cout <<" RICH info has been updated for "<<*ptdv<<endl;;
-	ptdv->gettime(insert,begin,end);
-	cout <<" Time Insert "<<ctime(&insert);
-	cout <<" Time Begin "<<ctime(&begin);
-	cout <<" Time End "<<ctime(&end);
-      }else{ 
-	//Default
-	tm mbegin;
-	tm mend;
-	mbegin.tm_isdst=0;
-	mend.tm_isdst=0;
-	
-	mbegin.tm_sec=RICFFKEY.sec[0];
-	mbegin.tm_min=RICFFKEY.min[0];
-	mbegin.tm_hour=RICFFKEY.hour[0];
-	mbegin.tm_mday=RICFFKEY.day[0];
-	mbegin.tm_mon=RICFFKEY.mon[0];
-	mbegin.tm_year=RICFFKEY.year[0];
-	
-	
-	mend.tm_sec=RICFFKEY.sec[1];
-	mend.tm_min=RICFFKEY.min[1];
-	mend.tm_hour=RICFFKEY.hour[1];
-	mend.tm_mday=RICFFKEY.day[1];
-	mend.tm_mon=RICFFKEY.mon[1];
-	mend.tm_year=RICFFKEY.year[1];	
-	begin=mktime(&mbegin);
-	end=mktime(&mend);
-	
-	ptdv->SetTime(insert,begin,end);
-	cout <<" RICH info has been updated for "<<*ptdv<<endl;;
-	ptdv->gettime(insert,begin,end);
-	cout <<" Time Insert "<<ctime(&insert);
-	cout <<" Time Begin "<<ctime(&begin);
-	cout <<" Time End "<<ctime(&end);
-      }
+      cout <<" RICH info has been updated for "<<*ptdv<<endl;;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert)<<endl;
+      cout <<" Time Begin "<<ctime(&begin)<<endl;
+      cout <<" Time End "<<ctime(&end)<<endl;
     }
   
-
-
+    
+    
 #ifdef __AMSDEBUG__
-  // Dump the calibration tables
-  cout<<"AMSRichCal::Finish -- Dumping stupid tables "<<endl;
-
-  cout<<"TILES CALIBRATION "<<endl;
-  for(int i=0;i<110;i++){
-    cout<<"TILE "<<i<<" Correction Factor "<<betaCalibration[i]<<" CURRENT "<<betaHisto[i].GetEntries()<<" CURRENTPOS "<<computePeakPos(betaHisto[i])<<endl;
-   }
-  
-  cout<<"CHANNEL CALIBRATION "<<endl;
-  for(int i=0;i<RICmaxpmts*RICnwindows;i++){
-    cout<<"CHANNEL "<<i<<" Correction Factor "<<signalCalibration[i]<<" CURRENT "<<signal[i].size()<<" CURRENTMEDIAN "<<computeMedian(signal[i])<<endl;
-   }
+    // Dump the calibration tables
+    cout<<"AMSRichCal::Finish -- Dumping stupid tables "<<endl;
+    
+    cout<<"TILES CALIBRATION "<<endl;
+    for(int i=0;i<110;i++){
+      cout<<"TILE "<<i<<" Correction Factor "<<betaCalibration[i]<<" CURRENT "<<betaHisto[i].GetEntries()<<" CURRENTPOS "<<computePeakPos(betaHisto[i])<<endl;
+    }
+    
+    cout<<"CHANNEL CALIBRATION "<<endl;
+    for(int i=0;i<RICmaxpmts*RICnwindows;i++){
+      cout<<"CHANNEL "<<i<<" Correction Factor "<<signalCalibration[i]<<" CURRENT "<<signal[i].size()<<" CURRENTMEDIAN "<<computeMedian(signal[i])<<endl;
+    }
 #endif
 #endif
-  }  // isCalibration 
   }
 }
 
