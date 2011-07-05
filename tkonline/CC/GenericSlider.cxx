@@ -116,10 +116,12 @@ void GenericSlider::showPrev(){
 
 void GenericSlider::addSlider(int id) {
   if (id==kCalSlider) { 
-    if (slider[kCalSlider]==0) slider[kCalSlider] = new CalSlider("CalSlider","Calibration Slider");
+    if (slider.find(kCalSlider)!=slider.end()) delete slider[kCalSlider];
+    slider[kCalSlider] = new CalSlider("CalSlider","Calibration Slider");
   }
   if (id==kMonSlider) {
-    if (slider[kMonSlider]==0) slider[kMonSlider] = new MonSlider("MonSlider","Data Slider");
+    if (slider.find(kMonSlider)!=slider.end()) delete slider[kMonSlider];
+    slider[kMonSlider] = new MonSlider("MonSlider","Data Slider");
   }
 }
 

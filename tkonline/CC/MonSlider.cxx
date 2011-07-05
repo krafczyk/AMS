@@ -643,7 +643,7 @@ void MonSlider::DrawDtSummary(int alternative) {
   float inrate = -1000.*dt->GetFunction("f1")->GetParameter(1);
   float trrate = 1000./dt->GetMean();
   dt->SetStats(kFALSE);
-  dt->Draw("l");
+  dt->Draw();
   text->DrawTextNDC(0.5,0.80,Form("Est. Event Rate = %7.3f Hz",inrate*1000.));
   text->DrawTextNDC(0.5,0.75,Form("Est. Trigger Rate = %7.3f Hz",trrate*1000.));
   text->DrawTextNDC(0.5,0.70,Form("Est. Lifetime = %7.5f",trrate/inrate));
@@ -734,6 +734,11 @@ void MonSlider::DrawLadder(int alternative) {
   signal_p->SetLineColor(kBlue);
   signal_p->Draw("HIST");
   signal_n->Draw("HIST SAME");
+  text->SetTextColor(kRed);
+  text->DrawTextNDC(0.65,0.80,Form("Overflows = %d",signal_n->GetBinContent(signal_n->GetNbinsX()+1)));
+  text->SetTextColor(kBlue);
+  text->DrawTextNDC(0.65,0.75,Form("Overflows = %d",signal_p->GetBinContent(signal_p->GetNbinsX()+1)));
+
 
   // width
   TVirtualPad* pad2 = (TVirtualPad*) canvas->cd(2);
@@ -751,6 +756,10 @@ void MonSlider::DrawLadder(int alternative) {
   width_p->SetLineColor(kBlue);
   width_p->Draw("HIST");
   width_n->Draw("HIST SAME");
+  text->SetTextColor(kRed);
+  text->DrawTextNDC(0.65,0.80,Form("Overflows = %d",width_n->GetBinContent(width_n->GetNbinsX()+1)));
+  text->SetTextColor(kBlue);
+  text->DrawTextNDC(0.65,0.75,Form("Overflows = %d",width_p->GetBinContent(width_p->GetNbinsX()+1)));
 
   // occupancy
   TVirtualPad* pad3 = (TVirtualPad*) canvas->cd(3);
@@ -783,6 +792,7 @@ void MonSlider::DrawLadder(int alternative) {
 
   // name
   canvas->cd(1);
+  text->SetTextColor(kBlack);
   text->DrawTextNDC(0.1,0.91,Form("Ladder %s  Oct: %s Crate: %d TDR: %d Layer: %d Slot: %d Side: %d ",
      ladder->name,GetOctName(ladder->GetOctant()),
      ladder->GetCrate(),ladder->GetTdr(),ladder->GetLayer(),

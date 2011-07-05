@@ -59,9 +59,14 @@ CalSlider::CalSlider(char *name,char *title,int xsize,int ysize) : SliderI(name,
   sig_n_vs_lad  = 0;
   bad_p_vs_lad  = 0;
   bad_n_vs_lad  = 0;
-  deltaped_vs_lad = 0;
-  deltasig_vs_lad = 0;
-  deltasigr_vs_lad = 0;
+  deltaped_vs_lad_n = 0;
+  deltasig_vs_lad_n = 0;
+  deltasigr_vs_lad_n = 0;
+  deltastat_vs_lad_n = 0;
+  deltaped_vs_lad_p = 0;
+  deltasig_vs_lad_p = 0;
+  deltasigr_vs_lad_p = 0;
+  deltastat_vs_lad_p = 0;
 }
 
 
@@ -127,24 +132,25 @@ int CalSlider::try2Draw(TrLadCal *cc){
 
 void CalSlider::setRootFile(char *filename){
   if(strcmp(filename,"-W")==0){    
-    if(TrCalDB::Head==0||caldb==0){
-      caldb=new TrCalDB();
+    if ( (TrCalDB::Head==0)||(caldb==0) ) {
+      caldb = new TrCalDB();
       TrCalDB::Head=0;
       caldb->init();
     }
     char rrun[20];
     if(!TDV) OpenTDV();
     //    AMSTimeID* tt= ((CalSlider*)gs->slider)->TDV;
-    CalList* bb=new CalList(TDV,gClient->GetRoot(),0, 200, 200); 
-    fromdb=1;
-    rootfile=0;
-  }else{
+    CalList* bb = new CalList(TDV,gClient->GetRoot(),0, 200, 200); 
+    fromdb = 1;
+    rootfile = 0;
+  } 
+  else {
     rootfile = TFile::Open(filename,"read");
     caldb = (TrCalDB*) rootfile->Get("TrCalDB");
   }
   // canvas title
   char title[100];
-  time_t pippo = (time_t)caldb->GetRun();
+  time_t pippo = (time_t) caldb->GetRun();
   sprintf(title,"Calibration %10d %s",caldb->GetRun(),asctime(gmtime(&pippo)));
   canvas->SetTitle(title);
   // pointers
@@ -321,9 +327,14 @@ void CalSlider::ClearHistograms(){
   if (sig_n_vs_lad!=0) delete sig_n_vs_lad;  
   if (bad_p_vs_lad!=0) delete bad_p_vs_lad;
   if (bad_n_vs_lad!=0) delete bad_n_vs_lad;
-  if (deltaped_vs_lad!=0) delete deltaped_vs_lad; 
-  if (deltasig_vs_lad!=0) delete deltasig_vs_lad; 
-  if (deltasigr_vs_lad!=0) delete deltasigr_vs_lad;
+  if (deltaped_vs_lad_n!=0) delete deltaped_vs_lad_n; 
+  if (deltasig_vs_lad_n!=0) delete deltasig_vs_lad_n; 
+  if (deltasigr_vs_lad_n!=0) delete deltasigr_vs_lad_n;
+  if (deltastat_vs_lad_n!=0) delete deltastat_vs_lad_n;
+  if (deltaped_vs_lad_p!=0) delete deltaped_vs_lad_p;
+  if (deltasig_vs_lad_p!=0) delete deltasig_vs_lad_p;
+  if (deltasigr_vs_lad_p!=0) delete deltasigr_vs_lad_p;
+  if (deltastat_vs_lad_p!=0) delete deltastat_vs_lad_p;
   Ped   = 0;
   SigR  = 0;
   Sig   = 0;
@@ -350,9 +361,14 @@ void CalSlider::ClearHistograms(){
   sig_n_vs_lad  = 0;
   bad_p_vs_lad  = 0;
   bad_n_vs_lad  = 0;
-  deltaped_vs_lad = 0;
-  deltasig_vs_lad = 0;
-  deltasigr_vs_lad = 0;
+  deltaped_vs_lad_n = 0;
+  deltasig_vs_lad_n = 0;
+  deltasigr_vs_lad_n = 0;
+  deltastat_vs_lad_n = 0;
+  deltaped_vs_lad_p = 0;
+  deltasig_vs_lad_p = 0;
+  deltasigr_vs_lad_p = 0;
+  deltastat_vs_lad_p = 0;
 }
 
 
@@ -427,63 +443,123 @@ void CalSlider::Draw5(const Option_t* aa,int flag){
   canvas->Clear();
   canvas->Divide(2,2,0.001,0.001);
   
-  if (deltaped_vs_lad==0)  deltaped_vs_lad  = new TH1F("deltaped_vs_lad","; ladder (iCrate*24 + iTDR); average #DeltaPedestal (ADC)",192,0,192);
-  if (deltasig_vs_lad==0)  deltasig_vs_lad  = new TH1F("deltasig_vs_lad","; ladder (iCrate*24 + iTDR); average #Delta#sigma (ADC)",192,0,192);
-  if (deltasigr_vs_lad==0) deltasigr_vs_lad = new TH1F("deltasigr_vs_lad","; ladder (iCrate*24 + iTDR); average #Delta#sigma_{raw} (ADC)",192,0,192);
+  if (deltaped_vs_lad_n==0)  deltaped_vs_lad_n  = new TH1F("deltaped_vs_lad_n","; ladder (iCrate*24 + iTDR); average #DeltaPedestal (ADC)",192,0,192);
+  if (deltasig_vs_lad_n==0)  deltasig_vs_lad_n  = new TH1F("deltasig_vs_lad_n","; ladder (iCrate*24 + iTDR); average #Delta#sigma (ADC)",192,0,192);
+  if (deltasigr_vs_lad_n==0) deltasigr_vs_lad_n = new TH1F("deltasigr_vs_lad_n","; ladder (iCrate*24 + iTDR); average #Delta#sigma_{raw} (ADC)",192,0,192);
+  if (deltastat_vs_lad_n==0) deltastat_vs_lad_n = new TH1F("deltastat_vs_lad_n","; ladder (iCrate*24 + iTDR); #Delta number of bad strips",192,0,192);
+  if (deltaped_vs_lad_p==0)  deltaped_vs_lad_p  = new TH1F("deltaped_vs_lad_p","; ladder (iCrate*24 + iTDR); average #DeltaPedestal (ADC)",192,0,192);
+  if (deltasig_vs_lad_p==0)  deltasig_vs_lad_p  = new TH1F("deltasig_vs_lad_p","; ladder (iCrate*24 + iTDR); average #Delta#sigma (ADC)",192,0,192);
+  if (deltasigr_vs_lad_p==0) deltasigr_vs_lad_p = new TH1F("deltasigr_vs_lad_p","; ladder (iCrate*24 + iTDR); average #Delta#sigma_{raw} (ADC)",192,0,192);
+  if (deltastat_vs_lad_p==0) deltastat_vs_lad_p = new TH1F("deltastat_vs_lad_p","; ladder (iCrate*24 + iTDR); #Delta number of bad strips",192,0,192);
 
-  float ped1[192];
-  float sig1[192];
-  float sigr1[192];
+  float ped1[192][2];
+  float sig1[192][2];
+  float sigr1[192][2];
+  float stat1[192][2];
   caldb = (TrCalDB*) reffile->Get("TrCalDB");
-  for (int ii=0; ii<caldb->GetEntries() ; ii++){
-    ped1[ii]  = 0.;
-    sig1[ii]  = 0.;
-    sigr1[ii] = 0.;
-    TrLadCal* ladcal = caldb->GetEntry(ii);
-    for (int jj=0; jj<1024; jj++) {
-      ped1[ii]  += ladcal->Pedestal(jj);
-      sig1[ii]  += ladcal->Sigma(jj);
-      sigr1[ii] += ladcal->SigmaRaw(jj); 
-    }
-    ped1[ii]  /= 1024.;
-    sig1[ii]  /= 1024.;
-    sigr1[ii] /= 1024.;
-  }
-
-
-  float ped2[192];
-  float sig2[192];
-  float sigr2[192];
-  caldb = (TrCalDB*) rootfile->Get("TrCalDB");
-  for (int ii=0; ii<caldb->GetEntries() ; ii++){
-    ped2[ii]  = 0.;
-    sig2[ii]  = 0.;
-    sigr2[ii] = 0.;
-    TrLadCal* ladcal = caldb->GetEntry(ii);
-    for (int jj=0; jj<1024; jj++) {
-      ped2[ii]  += ladcal->Pedestal(jj);
-      sig2[ii]  += ladcal->Sigma(jj);
-      sigr2[ii] += ladcal->SigmaRaw(jj);
-    }
-    ped2[ii]  /= 1024.;
-    sig2[ii]  /= 1024.;
-    sigr2[ii] /= 1024.;
-  }
-
   for (int ii=0; ii<caldb->GetEntries(); ii++){
-    deltaped_vs_lad->SetBinContent(ii+1,ped1[ii] - ped2[ii]);
-    deltasig_vs_lad->SetBinContent(ii+1,sig1[ii] - sig2[ii]);
-    deltasigr_vs_lad->SetBinContent(ii+1,sigr1[ii] - sigr2[ii]);
+    for (int iside=0; iside<2; iside++) {
+      ped1[ii][iside]  = 0;
+      sig1[ii][iside]  = 0;
+      sigr1[ii][iside] = 0;
+      stat1[ii][iside] = 0;
+    }
+    TrLadCal* ladcal = caldb->GetEntry(ii);
+    for (int jj=0; jj<1024; jj++) {
+      int iside = (jj<640) ? 1 : 0; 
+      ped1[ii][iside]  += ladcal->Pedestal(jj);
+      sig1[ii][iside]  += ladcal->Sigma(jj);
+      sigr1[ii][iside] += ladcal->SigmaRaw(jj);  
+      stat1[ii][iside] += (ladcal->Status(jj)!=0) ? 1 : 0;       
+    }
+    for (int iside=0; iside<2; iside++) {
+      ped1[ii][iside]  /= 1024.;
+      sig1[ii][iside]  /= 1024.;
+      sigr1[ii][iside] /= 1024.;
+    }
+  }
+
+  float ped2[192][2];
+  float sig2[192][2];
+  float sigr2[192][2];
+  float stat2[192][2];
+  caldb = (TrCalDB*) rootfile->Get("TrCalDB");
+  for (int ii=0; ii<caldb->GetEntries(); ii++){
+    for (int iside=0; iside<2; iside++) {
+      ped2[ii][iside]  = 0;
+      sig2[ii][iside]  = 0;
+      sigr2[ii][iside] = 0;
+      stat2[ii][iside] = 0;
+    }
+    TrLadCal* ladcal = caldb->GetEntry(ii);
+    for (int jj=0; jj<1024; jj++) {
+      int iside = (jj<640) ? 1 : 0;
+      ped2[ii][iside]  += ladcal->Pedestal(jj);
+      sig2[ii][iside]  += ladcal->Sigma(jj);
+      sigr2[ii][iside] += ladcal->SigmaRaw(jj);
+      stat2[ii][iside] += (ladcal->Status(jj)!=0) ? 1 : 0;
+    }
+    for (int iside=0; iside<2; iside++) {
+      ped2[ii][iside]  /= 1024.;
+      sig2[ii][iside]  /= 1024.;
+      sigr2[ii][iside] /= 1024.;
+    }
+  }
+
+  for (int ii=0; ii<caldb->GetEntries(); ii++) {
+    deltaped_vs_lad_n->SetBinContent(ii+1,ped1[ii][0]   - ped2[ii][0]);
+    deltasig_vs_lad_n->SetBinContent(ii+1,sig1[ii][0]   - sig2[ii][0]);
+    deltasigr_vs_lad_n->SetBinContent(ii+1,sigr1[ii][0] - sigr2[ii][0]);
+    deltastat_vs_lad_n->SetBinContent(ii+1,stat1[ii][0] - stat2[ii][0]);
+    deltaped_vs_lad_p->SetBinContent(ii+1,ped1[ii][1]   - ped2[ii][1]);
+    deltasig_vs_lad_p->SetBinContent(ii+1,sig1[ii][1]   - sig2[ii][1]);
+    deltasigr_vs_lad_p->SetBinContent(ii+1,sigr1[ii][1] - sigr2[ii][1]);
+    deltastat_vs_lad_p->SetBinContent(ii+1,stat1[ii][1] - stat2[ii][1]);
   }
 
   TVirtualPad* cc0 = canvas->cd(1);
-  deltaped_vs_lad->Draw("l");
+  cc0->SetGridx();
+  deltaped_vs_lad_n->SetStats(kFALSE);
+  deltaped_vs_lad_n->GetXaxis()->SetNdivisions(508,0);
+  deltaped_vs_lad_p->SetStats(kFALSE);
+  deltaped_vs_lad_p->GetXaxis()->SetNdivisions(508,0);
+  deltaped_vs_lad_n->SetLineColor(kRed);
+  deltaped_vs_lad_p->SetLineColor(kBlue);
+  deltaped_vs_lad_n->Draw();
+  deltaped_vs_lad_p->Draw("SAME");
 
   cc0 = canvas->cd(2);
-  deltasigr_vs_lad->Draw("l");
+  cc0->SetGridx();
+  deltasigr_vs_lad_n->SetStats(kFALSE);
+  deltasigr_vs_lad_n->GetXaxis()->SetNdivisions(508,0);
+  deltasigr_vs_lad_p->SetStats(kFALSE);
+  deltasigr_vs_lad_p->GetXaxis()->SetNdivisions(508,0);
+  deltasigr_vs_lad_n->SetLineColor(kRed);
+  deltasigr_vs_lad_p->SetLineColor(kBlue);
+  deltasigr_vs_lad_n->Draw();
+  deltasigr_vs_lad_p->Draw("SAME");
 
   cc0 = canvas->cd(4);
-  deltasig_vs_lad->Draw("l");
+  cc0->SetGridx();
+  deltasig_vs_lad_n->SetStats(kFALSE);
+  deltasig_vs_lad_n->GetXaxis()->SetNdivisions(508,0);
+  deltasig_vs_lad_p->SetStats(kFALSE);
+  deltasig_vs_lad_p->GetXaxis()->SetNdivisions(508,0);
+  deltasig_vs_lad_n->SetLineColor(kRed);
+  deltasig_vs_lad_p->SetLineColor(kBlue);
+  deltasig_vs_lad_n->Draw();
+  deltasig_vs_lad_p->Draw("SAME");
+
+  cc0 = canvas->cd(3);
+  cc0->SetGridx();
+  deltastat_vs_lad_n->SetStats(kFALSE);
+  deltastat_vs_lad_n->GetXaxis()->SetNdivisions(508,0);
+  deltastat_vs_lad_p->SetStats(kFALSE);
+  deltastat_vs_lad_p->GetXaxis()->SetNdivisions(508,0);
+  deltastat_vs_lad_n->SetLineColor(kRed);
+  deltastat_vs_lad_p->SetLineColor(kBlue);
+  deltastat_vs_lad_n->Draw();
+  deltastat_vs_lad_p->Draw("SAME");
 
   canvas->Update();
 }
@@ -531,7 +607,7 @@ void CalSlider::Draw6(const Option_t* aa,int flag){
   cc0->SetGrid(1,0);
   SetHistStyle1(PedDiff);
   PedDiff->SetYTitle("#DeltaPedestal (ADC)");
-  PedDiff->Draw("l");
+  PedDiff->Draw();
   gPad->Update();
   Double_t xmin,ymin,xmax,ymax;
   gPad->GetRangeAxis(xmin,ymin,xmax,ymax);
@@ -554,7 +630,7 @@ void CalSlider::Draw6(const Option_t* aa,int flag){
   Sig->SetFillStyle(3004);
   Sig->SetFillColor(col[4]);
   Sig->GetYaxis()->SetRangeUser(-10,10);
-  Sig->Draw("l");
+  Sig->Draw();
   SigNeg->SetFillStyle(3004);
   SigNeg->SetFillColor(col[1]);
   SigNeg->GetYaxis()->SetRangeUser(-10,10);
@@ -578,7 +654,7 @@ void CalSlider::Draw6(const Option_t* aa,int flag){
   SigR->SetFillColor(col[4]);
   SigR->SetFillStyle(3004);
   SigR->GetYaxis()->SetRangeUser(-18,18);
-  SigR->Draw("l");
+  SigR->Draw();
   SigRNeg->SetFillColor(col[1]);
   SigRNeg->SetFillStyle(3004);
   SigRNeg->GetYaxis()->SetRangeUser(-18,18);
@@ -597,7 +673,7 @@ void CalSlider::Draw6(const Option_t* aa,int flag){
   SigDiff->SetYTitle("#Delta#sigma (ADC)");
   SigDiff->SetFillColor(col[4]);
   SigDiff->GetYaxis()->SetRangeUser(-18,18);
-  SigDiff->Draw("l");
+  SigDiff->Draw();
 
   canvas->Update();
   // resetta il calDB
@@ -1143,7 +1219,7 @@ void CalSlider::Draw3(const Option_t* aa,int flag){
   TVirtualPad*cc0 = canvas->cd(1);  
   SetHistStyle1(Ped);
   cc0->SetGrid(1,0);
-  Ped->Draw("l"); // "l" to avoid annoying white strips on the display, temporary hopefully
+  Ped->Draw(); 
 
   Color_t col[6]={kGreen,kRed,kGreen,kBlue,kBlack,kViolet};
 
@@ -1157,7 +1233,7 @@ void CalSlider::Draw3(const Option_t* aa,int flag){
   Sig->SetFillStyle(3004);
   Sig->SetFillColor(col[4]);
   Sig->GetYaxis()->SetRangeUser(-2,10);
-  Sig->Draw("l"); // "l" temporary solution for white strips problem on display
+  Sig->Draw(); 
   // all the strips!!!
   ST[0]->SetFillColor(col[2]);
   ST[0]->SetFillStyle(3004);
@@ -1197,7 +1273,7 @@ void CalSlider::Draw3(const Option_t* aa,int flag){
   SigR->SetFillColor(col[4]);
   SigR->SetFillStyle(3004);
   SigR->GetYaxis()->SetRangeUser(-2,18);
-  SigR->Draw("l"); // "l" temporary solution for white strips problem on display
+  SigR->Draw(); 
   ST[0]->SetFillColor(col[2]);
   ST[0]->SetFillStyle(3004);
   ST[0]->SetLineColor(col[2]);
@@ -1351,7 +1427,7 @@ void CalSlider::Draw4(const Option_t* aa,int flag){
   Sig->SetFillColor(col[4]);
   Sig->SetFillStyle(3004);
   Sig->GetYaxis()->SetRangeUser(-2,10);
-  Sig->Draw("l"); // "l": trick to avoid white strips on the display - temporary(?)
+  Sig->Draw(); 
   ST[2]->SetFillColor(col[2]);
   ST[2]->SetFillStyle(3004);
   ST[2]->SetLineColor(col[2]);
@@ -1379,7 +1455,7 @@ void CalSlider::Draw4(const Option_t* aa,int flag){
   SigR->SetFillColor(col[4]);
   SigR->SetFillStyle(3004);
   SigR->GetYaxis()->SetRangeUser(-2,18);
-  SigR->Draw("l"); // "l": trick to avoid white strips on the display - temporary(?)
+  SigR->Draw(); 
   ST[0]->SetFillColor(col[2]);
   ST[0]->SetFillStyle(3004);
   ST[0]->SetLineColor(col[2]);
@@ -1398,7 +1474,7 @@ void CalSlider::Draw4(const Option_t* aa,int flag){
   SetHistStyle1(Occ);
   cc0->SetGrid(1,0);
   // Occ->GetYaxis()->SetRangeUser(-0.1,1.1);
-  Occ->Draw("l"); // "l": trick to avoid white strips on the display - temporary(?)
+  Occ->Draw(); 
   ST[4]->SetFillColor(col[1]);
   ST[4]->SetFillStyle(3005);
   ST[4]->SetLineColor(col[1]);
@@ -1546,7 +1622,7 @@ void CalSlider::Draw7(const Option_t* aa,int flag){
   TVirtualPad* cc0 = canvas->cd(3);
   SetHistStyle1(Ped);
   cc0->SetGrid(1,0);
-  Ped->Draw("l"); 
+  Ped->Draw(); 
   SetHistStyle1(PedOther);
   PedOther->SetLineColor(kRed);
   PedOther->Draw("l SAME"); 
@@ -1559,7 +1635,7 @@ void CalSlider::Draw7(const Option_t* aa,int flag){
   Sig->SetFillStyle(3004);
   Sig->SetFillColor(col[4]);
   Sig->GetYaxis()->SetRangeUser(-10,10);
-  Sig->Draw("l");
+  Sig->Draw();
   SigNeg->SetFillStyle(3004);
   SigNeg->SetFillColor(col[1]);
   SigNeg->GetYaxis()->SetRangeUser(-10,10);
@@ -1588,7 +1664,7 @@ void CalSlider::Draw7(const Option_t* aa,int flag){
   SigR->SetFillColor(col[4]);
   SigR->SetFillStyle(3004);
   SigR->GetYaxis()->SetRangeUser(-18,18);
-  SigR->Draw("l");
+  SigR->Draw();
   SigRNeg->SetFillColor(col[1]);
   SigRNeg->SetFillStyle(3004);
   SigRNeg->GetYaxis()->SetRangeUser(-18,18);

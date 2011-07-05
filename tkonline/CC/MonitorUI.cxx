@@ -74,8 +74,8 @@ MonitorUI::MonitorUI(const TGWindow *p,UInt_t w,UInt_t h,char* filename1, char* 
   gs->Connect("Updated()","TrackerPanel",track,"Update()");
   // open file if provided in command line
   if (strlen(filename1)!=0) HandleFile(filename1,M_FILE_OPEN_MON);
+  if (strlen(filename1)!=0) HandleFile(filename1,M_FILE_OPEN_CAL);
   if (strlen(filename2)!=0) HandleFile(filename2,M_FILE_OPEN_CAL);
-  if ( (strlen(filename1)!=0)&&(strlen(filename2)==0) ) HandleFile(filename1,M_FILE_OPEN_CAL);
   // finish 
   SetWindowName("MonitorUI");
   MapSubwindows();
@@ -109,10 +109,6 @@ void MonitorUI::HandleFile(char* filename, int ref) {
       gs->setRefFile(filename);
     }
     file->Close();
-    if (gs->getnSlider()==0) {
-      printf("MonitorUI::HandleFile-W nSlider == 0, did the file exist?\n",filename);
-      return;
-    }
   }
 }
 

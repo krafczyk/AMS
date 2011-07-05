@@ -33,7 +33,8 @@ class CalSlider: public SliderI {
   TH1F *ped_n,*ped_p,*sig_p,*sig_n,*sigR_p,*sigR_n,*sta_n,*sta_p;
   TH1F *cn_p,*cn_n,*cn2_p,*cn2_n,*cn3_p,*cn3_n; 
   TH1F *sigR_p_vs_lad,*sig_p_vs_lad,*sigR_n_vs_lad,*sig_n_vs_lad,*bad_p_vs_lad,*bad_n_vs_lad;  
-  TH1F *deltaped_vs_lad,*deltasig_vs_lad,*deltasigr_vs_lad;
+  TH1F *deltaped_vs_lad_n,*deltasig_vs_lad_n,*deltasigr_vs_lad_n,*deltastat_vs_lad_n;
+  TH1F *deltaped_vs_lad_p,*deltasig_vs_lad_p,*deltasigr_vs_lad_p,*deltastat_vs_lad_p;
 
   TText* text;
   
@@ -53,7 +54,7 @@ class CalSlider: public SliderI {
   trcalIT calit_begin,calit_end,calit_cur;
   int graphtype;
   
-  CalSlider(char *name,char *title,int xsize=1000, int ysize=400);
+  CalSlider(char *name,char *title,int xsize=1600, int ysize=900);
   ~CalSlider();
   int OpenTDV();
   int try2Draw(TrLadCal *cc);

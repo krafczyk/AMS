@@ -50,7 +50,7 @@ class MonSlider : public SliderI {
  public:
  
   /// Constructor
-  MonSlider(char *name,char *title,int xsize=1000, int ysize=400);
+  MonSlider(char *name,char *title,int xsize=1600, int ysize=900);
   /// Destructor
   ~MonSlider();
 

@@ -11,8 +11,8 @@ int main(int argc, char **argv){
   printf("   -W <calnumber>  tries to catch the calibration number from the database.\n");
   char filename1[200] = "";
   char filename2[200] = "";
-  if (argc>=2) strcpy(filename1,argv[1]);
-  if (argc>=3) strcpy(filename2,argv[2]);
+  if (argc>1) strcpy(filename1,argv[1]);
+  if (argc>2) strcpy(filename2,argv[2]);
   TApplication app("App",&argc,argv);
   new MonitorUI(gClient->GetRoot(),200,200,filename1,filename2);
   app.Run();

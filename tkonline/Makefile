@@ -39,19 +39,22 @@ COMMONOBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(COMMONOBJNAMES)))
 .PHONY: all clean  
 .SECONDARY: $(COMMONOBJS)
 
+### Development?
+DEV:=
+
 ### Everything
-all: $(BINDIR)/tkonline $(BINDIR)/tkhadd $(BINDIR)/tkprinter
+all: $(BINDIR)/tkonline$(DEV) $(BINDIR)/tkhadd$(DEV) $(BINDIR)/tkprinter$(DEV)
 
 ### Linking 
-$(BINDIR)/tkonline: $(OBJDIR)/tkonline.o $(COMMONOBJS)
+$(BINDIR)/tkonline$(DEV): $(OBJDIR)/tkonline.o $(COMMONOBJS)
 	@echo Linking $@ ... 
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
-$(BINDIR)/tkhadd: $(OBJDIR)/tkhadd.o 
+$(BINDIR)/tkhadd$(DEV): $(OBJDIR)/tkhadd.o 
 	@echo Linking $@ ... 
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
-$(BINDIR)/tkprinter: $(OBJDIR)/tkprinter.o $(COMMONOBJS) 
+$(BINDIR)/tkprinter$(DEV): $(OBJDIR)/tkprinter.o $(COMMONOBJS) 
 	@echo Linking $@ ... 
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
@@ -81,5 +84,5 @@ $(DICTSOURCE):
 ### Clean
 clean:
 	@echo Clean up ...
-	@rm -rf $(BINDIR)/tkonline $(OBJDIR)/*
+	@rm -rf $(BINDIR)/*$(DEV) $(OBJDIR)/*
 

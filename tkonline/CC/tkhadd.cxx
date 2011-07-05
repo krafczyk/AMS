@@ -184,19 +184,19 @@ int MergeRootfile( TDirectory *target, TList *sourcelist)
          // read object from first source file
          //current_sourcedir->cd();
          TObject *obj = key->ReadObj();
-         //printf("keyname=%s, obj=%x\n",key->GetName(),obj);
+         printf("keyname=%s, obj=%x\n",key->GetName(),obj);
       
          /* AO begin */ 
-         if ( strcmp(obj->GetName(),"AMSRoot")==0) continue;
-         if ( strcmp(obj->GetName(),"AMSRootSetup")==0) continue;
-         if ( strcmp(obj->GetName(),"TrReconPar")==0) continue;
-         if ( strcmp(obj->GetName(),"datacards")==0) continue;
-         if ( strcmp(obj->GetName(),"AMS02Geometry")==0) continue;
-         if ( strcmp(obj->GetName(),"TkDBc")==0) continue;
-         if ( strcmp(obj->GetName(),"TrParDB")==0) continue;
-         if ( strcmp(obj->GetName(),"TrPdfDB")==0) continue;
-         if ( strcmp(obj->GetName(),"TrCalDB")==0) continue;
-         if ( strcmp(obj->GetName(),"TrExtAlignDB")==0) continue;
+         if ( strcmp(key->GetName(),"AMSRoot")==0) continue;
+         if ( strcmp(key->GetName(),"AMSRootSetup")==0) continue;
+         if ( strcmp(key->GetName(),"TrReconPar")==0) continue;
+         if ( strcmp(key->GetName(),"datacards")==0) continue;
+         if ( strcmp(key->GetName(),"AMS02Geometry")==0) continue;
+         if ( strcmp(key->GetName(),"TkDBc")==0) continue;
+         if ( strcmp(key->GetName(),"TrParDB")==0) continue;
+         if ( strcmp(key->GetName(),"TrPdfDB")==0) continue;
+         if ( strcmp(key->GetName(),"TrCalDB")==0) continue;
+         if ( strcmp(key->GetName(),"TrExtAlignDB")==0) continue;
          // if ( strcmp(obj->GetName(),"TrOnlineMonHeader")==0) continue;
          if ( obj->IsA()->InheritsFrom("TObjString") ) continue;
          /* AO end */
