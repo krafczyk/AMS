@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.535 2011/07/01 10:00:58 choutko Exp $
+//  $Id: event.C,v 1.536 2011/07/05 10:23:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -408,6 +408,11 @@ void AMSEvent::_signinitevent(){
     _Yaw=0;
     _Roll=0;
     _Pitch=0;
+    _Alpha=0;
+    _B1a=0;
+    _B1b=0;
+    _B3a=0;
+    _B3b=0;
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
     _SunRad=0;
@@ -453,6 +458,11 @@ void AMSEvent::_signinitevent(){
     _Yaw=0;
     _Roll=0;
     _Pitch=0;
+    _Alpha=0;
+    _B1a=0;
+    _B1b=0;
+    _B3a=0;
+    _B3b=0;
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
     // get velocity parameters from orbit par
@@ -2806,6 +2816,11 @@ void AMSEvent::_writeEl(){
   EN->Yaw=_Yaw;
   EN->Pitch=_Pitch;
   EN->Roll=_Roll;
+  EN->Alpha=_Alpha;
+  EN->B1a=_B1a;
+  EN->B3a=_B3a;
+  EN->B1b=_B1b;
+  EN->B3b=_B3b;
   EN->VelocityS=_StationSpeed;
   EN->VelTheta=_VelTheta;
   EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
@@ -4574,6 +4589,8 @@ int ret=AMSNtuple::ISSAtt(_Roll,_Pitch,_Yaw,double(_time)+_usec/1.e6-gpsdiff);
 static int print=0;
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSAtt Returns "<<ret<<" "<<_Roll<<" "<<_Pitch<<" "<<_Yaw<<" "<<_time<<endl;
 
+ret=AMSNtuple::ISSSA(_Alpha,_B1a,_B3a,_B1b,_B3b,double(_time)+_usec/1.e6-gpsdiff);
+if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSSA Returns "<<ret<<" "<<_Alpha<<" "<<_B1a<<" "<<_B3a<<" "<<_time<<endl;
 
 }
 

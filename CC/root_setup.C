@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.42 2011/06/17 14:57:41 choutko Exp $
+//  $Id: root_setup.C,v 1.43 2011/07/05 10:23:32 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -75,6 +75,7 @@ AMSSetupR::AMSSetupR(){
 Reset();
 }
   ClassImp(AMSSetupR::ISSAtt)
+  ClassImp(AMSSetupR::ISSSA)
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
@@ -479,6 +480,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    fISSAtt.clear();
    LoadISS(fHeader.Run,fHeader.Run);
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+   LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
    
    return false; 
   }
@@ -508,6 +510,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    fISSAtt.clear();
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
    return true;
    }
 }
@@ -935,7 +938,7 @@ return 0;
 }
 #else
 
- char AMSISSlocal[]="/afs/cern.ch/user/a/altec/public/";
+ char AMSISSlocal[]="/afs/cern.ch/ams/local/altec/";
 char * AMSISS=getenv("AMSISS");
 if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
@@ -1054,6 +1057,246 @@ if(bfound>0 &&efound)ret=0;
 else if(!bfound && !efound )ret=2;
 else ret=1;
     cout<< "AMSSetupR::LoadISSAtt-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
+
+return ret;
+}
+#endif
+
+int AMSSetupR::getISSSA(AMSSetupR::ISSSA & a, double xtime){
+if (fISSSA.size()==0)return 2;
+
+
+AMSSetupR::ISSSA_i k=fISSSA.lower_bound(xtime);
+if(k==fISSSA.begin()){
+a=k->second;
+a.alpha*=180./3.14159267;
+a.b1a*=180./3.14159267;
+a.b3a*=180./3.14159267;
+a.b1b*=180./3.14159267;
+a.b3b*=180./3.14159267;
+return 1;
+}
+if(k==fISSSA.end()){
+k--;
+a=k->second;
+a.alpha*=180./3.14159267;
+a.b1a*=180./3.14159267;
+a.b3a*=180./3.14159267;
+a.b1b*=180./3.14159267;
+a.b3b*=180./3.14159267;
+return 1;
+}
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  AMSSetupR::ISSSA_i l=k;
+  l++;
+  tme[1]=l->first;
+//  cout <<" alpha "<< k->second.alpha<<" "<<l->second.alpha<<endl;
+//   cout << int(k->first)<<" "<<int(l->first)<<" "<<int(xtime)<<endl;
+  double ang1=k->second.alpha;
+  double ang2=l->second.alpha;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  a.alpha=atan2(s1,c1)*180/3.1415926;
+{
+  double ang1=k->second.b1a;
+  double ang2=l->second.b1a;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  a.b1a=atan2(s1,c1)*180/3.1415926;
+}
+
+{
+  double ang1=k->second.b3a;
+  double ang2=l->second.b3a;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  a.b3a=atan2(s1,c1)*180/3.1415926;
+
+}
+{ 
+ double ang1=k->second.b1b;
+  double ang2=l->second.b1b;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  a.b1b=atan2(s1,c1)*180/3.1415926;
+}
+
+{
+  double ang1=k->second.b3b;
+  double ang2=l->second.b3b;
+  s0[0]=sin(ang1);
+  s0[1]=sin(ang2);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=cos(ang1);
+  s0[1]=cos(ang2);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  a.b3b=atan2(s1,c1)*180/3.1415926;
+}
+
+
+  return 0;
+
+
+}
+
+
+
+int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
+#ifdef __ROOTSHAREDLIBRARY__
+return 0;
+}
+#else
+
+ char AMSISSlocal[]="/afs/cern.ch/ams/local/isssa/";
+char * AMSISS=getenv("AMSISSSA");
+if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+
+if(t1>t2){
+cerr<< "AMSSetupR::LoadISSSA-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadISSSA-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+const char fpatb[]="ISS_solar_arrays_";
+const char fpate[]="-24H.csv";
+
+// convert time to GMT format
+
+// check tz
+   unsigned int tzd=0;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+    tm tmf;
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+   char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+    
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     string fname=AMSISS;
+     fname+=fpatb;
+     char utmp[80];
+     sprintf(utmp,"%u_%03u",yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     ifstream fbin;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     if(fbin){
+      while(fbin.good() && !fbin.eof()){
+        char line[80];
+        fbin.getline(line,79);
+        
+        if(isdigit(line[0])){
+         char *pch;
+         pch=strtok(line,".");
+         ISSSA a;
+         if(pch){
+          tm tmf;
+          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+          //cout <<" pch "<<pch<<endl;
+          time_t tf=mktime(&tmf)+tzd;
+          pch=strtok(NULL,",");
+          char tm1[80];
+          sprintf(tm1,".%s",pch);
+          double tc=tf+atof(tm1);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]))continue;
+          a.alpha=atof(pch)*3.14159267/180;
+          //cout <<" alpha "<<a.alpha<<" "<<tf<<" "<<tc<<endl;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]))continue;
+          a.b1a=atof(pch)*3.14159267/180;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]))continue;
+          a.b3a=atof(pch)*3.14159267/180;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]))continue;
+          a.b1b=atof(pch)*3.14159267/180;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]))continue;
+          a.b3b=atof(pch)*3.14159267/180;
+           fISSSA.insert(make_pair(tc,a));
+          
+          if(tc>=t1 && tc<=t2){
+           if(abs(bfound)!=2){
+               fISSSA.clear();
+               fISSSA.insert(make_pair(tc,a));
+               bfound=bfound?2:-2;
+//               cout <<" line "<<line<<" "<<tc<<endl;
+           }
+          }
+         else if(tc<t1)bfound=1;
+         else if(tc>t2){
+             efound=1;
+             break;
+         }
+      }   
+     }
+     }
+     }
+     else{
+       cerr<<"AMSSetupR::LoadISSSA-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+      dc=1;
+      yc++;
+     }
+    }
+
+
+int ret;
+if(bfound>0 &&efound)ret=0;
+else if(!bfound && !efound )ret=2;
+else ret=1;
+    cout<< "AMSSetupR::LoadISSSA-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
 
 return ret;
 }

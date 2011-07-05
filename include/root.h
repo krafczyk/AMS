@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.370 2011/07/03 13:38:21 mdelgado Exp $
+//  $Id: root.h,v 1.371 2011/07/05 10:23:37 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -229,15 +229,16 @@ static char _Info[255];
    float VelPhi;       ///< ISS speed phi (GTOD rad)  
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
    float PhiM;          ///< magnetic (calculated for an eccentric dipole coo system)phi  rad
+
+   float Alpha; ///<ISS Solar Array Alpha (rad)
+   float B1a;   ///< ISS Solar Array Beta (rad)
+   float B1b;   ///< ISS Solar Array Beta (rad)
+   float B3a;   ///< ISS Solar Array Beta (rad)
+   float B3b;   ///< ISS Solar Array Beta (rad)
+
    // pointing direction in equatorial and galactic systems
-   float ISSEqAsc; ///<(ISN) ISS pointing direction (equat. right ascension)
-   float ISSEqDec; ///<(ISN) ISS pointing direction (equat. declination)
-   float ISSGalLat; ///<(ISN) ISS pointing direction (gal. latitude)
-   float ISSGalLong; ///<(ISN) ISS pointing direction (gal. longitude)   
-   float AMSEqAsc; ///<(ISN) AMS pointing direction (equat. right ascension)
-   float AMSEqDec; ///<(ISN) AMS pointing direction (equat. declination)
-   float AMSGalLat; ///<(ISN) AMS pointing direction (gal. latitude)
-   float AMSGalLong; ///<(ISN) AMS pointing direction (gal. longitude) 
+   // removed for the moment
+ 
    int   TrStat;     ///< SetofFlags for Problems during Tracking
    //
 
@@ -290,6 +291,8 @@ public:
 #endif
   friend class AMSEventR;
 
+int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b); ///<get AMSSetupR::ISSSA values for the current event time;
+
   //#ifdef _PGTRACK_
   friend class VCon_root;
   //#endif
@@ -324,14 +327,19 @@ public:
                        for(int i=0;i<6;i++){
                           if(status&(1<<(i+2)))comp+=int(pow(10.,i));
                          }
+    float alpha,b1a,b3a,b1b,b3b;
+    alpha=0;
+    b1a=0;
+    b3a=0;
+    int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
   
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} TrRH %d  TrStat %x",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,TrRecHits,TrStat);
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x",
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
   return _Info;
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,15)       //HeaderR
+  ClassDef(HeaderR,16)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -3297,6 +3305,9 @@ int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
 int GetSlowControlData(char *ElementName, vector<float>&value,int method=1); ///<  SlowControlElement Accessor
 
 float LiveTime(); ///< trying to get livetime from scalers map
+
+
+
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time

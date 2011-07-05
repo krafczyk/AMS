@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.234 2011/06/15 23:13:22 choutko Exp $
+//  $Id: ntuple.C,v 1.235 2011/07/05 10:23:32 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -883,8 +883,7 @@ return false;
 
 int AMSNtuple::ISSAtt(float &roll, float&pitch, float &yaw,double xtime){
 if(!Get_setup02() || Get_setup02()->fISSAtt.size()==0)return 2;
-unsigned int time=xtime;
-AMSSetupR::ISSAtt_i k=Get_setup02()->fISSAtt.lower_bound(time);
+AMSSetupR::ISSAtt_i k=Get_setup02()->fISSAtt.lower_bound(xtime);
 if(k==Get_setup02()->fISSAtt.begin()){
 roll=k->second.Roll;
 pitch=k->second.Pitch;
@@ -916,6 +915,24 @@ return 1;
   return 0;
 }   
  
+
+
+
+
+int AMSNtuple::ISSSA(float &alpha, float&b1a, float &b3a, float &b1b, float &b3b, double xtime){
+const double rad=3.14159267/180.;
+if(!Get_setup02())return 2;
+else{
+AMSSetupR::ISSSA a;
+int ret=Get_setup02()->getISSSA(a,xtime);
+alpha=a.alpha*rad;
+b1a=a.b1a*rad;
+b3a=a.b3a*rad;
+b1b=a.b1b*rad;
+b3b=a.b3b*rad;
+return ret;
+}
+} 
 
 
 

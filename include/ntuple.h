@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.133 2011/06/15 23:13:23 choutko Exp $
+//  $Id: ntuple.h,v 1.134 2011/07/05 10:23:37 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -110,6 +110,11 @@ public:
   float AMSEqDec; // ISN 
   float AMSGalLong; // ISN   
   float AMSGalLat; // ISN 
+  float Alpha;
+  float B1a;
+  float B3a;
+  float B1b;
+  float B3b;
   float BAv;
   float TempTracker;
   int Tracks;
@@ -971,6 +976,7 @@ public:
   static void readRSetup(AMSEvent *ev);
   static bool LoadISS(time_t xtime);
   static int ISSAtt(float &roll, float &pitch, float &yaw, double xtime);
+  static int ISSSA(float &a, float &b1a, float &b3a, float &b1b, float &b3b, double xtime);
   void endR(bool writecache=true);
   void initR(const char* name,uinteger run,bool update=false);
   

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.319 2011/07/03 13:38:21 mdelgado Exp $
+//  $Id: root.C,v 1.320 2011/07/05 10:23:32 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2784,14 +2784,14 @@ void HeaderR::Set(EventNtuple02* ptr){
   RadS=      ptr->RadS;
   ThetaS=    ptr->ThetaS;
   PhiS=      ptr->PhiS;
-  ISSEqAsc=        ptr->ISSEqAsc;
-  ISSEqDec=       ptr->ISSEqDec;
-  ISSGalLat=      ptr->ISSGalLat;
-  ISSGalLong=     ptr->ISSGalLong;
-  AMSEqAsc=     ptr->AMSEqAsc;
-  AMSEqDec=    ptr->AMSEqDec;
-  AMSGalLat=   ptr->AMSGalLat;
-  AMSGalLong=  ptr->AMSGalLong;
+//  ISSEqAsc=        ptr->ISSEqAsc;
+//  ISSEqDec=       ptr->ISSEqDec;
+//  ISSGalLat=      ptr->ISSGalLat;
+//  ISSGalLong=     ptr->ISSGalLong;
+//  AMSEqAsc=     ptr->AMSEqAsc;
+//  AMSEqDec=    ptr->AMSEqDec;
+//  AMSGalLat=   ptr->AMSGalLat;
+//  AMSGalLong=  ptr->AMSGalLong;
   Yaw=       ptr->Yaw;
   Pitch=     ptr->Pitch;
   Roll=      ptr->Roll;
@@ -2800,7 +2800,11 @@ void HeaderR::Set(EventNtuple02* ptr){
   VelPhi=    ptr->VelPhi;
   ThetaM=    ptr->ThetaM;
       TrStat=ptr->TrStat;
-    
+  Alpha=ptr->Alpha;    
+  B1a=ptr->B1a;    
+  B3a=ptr->B3a;    
+  B1b=ptr->B1b;    
+  B3b=ptr->B3b;    
 }
 #endif
 
@@ -5043,6 +5047,22 @@ if(runtype==RunType[k])return true;
 return false;
 }
 
+
+
+int HeaderR::getISSSA(float & alpha, float &b1a, float &b3a, float &b1b,float &b3b){
+unsigned int gpsdiff=15;
+if(!AMSEventR::getsetup())return 2;
+AMSSetupR::ISSSA a;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+int ret=AMSEventR::getsetup()->getISSSA(a,xtime);
+alpha=a.alpha;
+b1a=a.b1a;
+b3a=a.b3a;
+b1b=a.b1b;
+b3b=a.b3b;
+return ret;
+
+}
 float AMSEventR::LiveTime(){
 
 if(getsetup()){
@@ -5134,6 +5154,7 @@ void  Level1R::RestorePhysBPat() {
     double xtime=TrigTime[4]/1000.;
     int b15=(JMembPatt>>15)&1;
     int b14=(JMembPatt>>14)&1;
+
     sprintf(_Info,"TrigLev1: TofZ>=1 %s, TofZ>1 %s, EcalFT  %s, EcalLev1 %d,  TimeD[ms]%6.2f LiveTime%6.2f, PhysTr=|uTf:%d|Z>=1:%d|Ion:%d|SIon:%d|e:%d|ph:%d|uEc:%d|",toftyp,toftypz,IsEcalFtrigOK()?"Yes":"No",EcalFlag,xtime,LiveTime,pat[0],pat[1],pat[2],pat[3],pat[4],pat[5],pat[6]);
     return _Info;
   }

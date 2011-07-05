@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.24 2011/06/15 23:13:23 choutko Exp $
+//  $Id: root_setup.h,v 1.25 2011/07/05 10:23:38 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -182,6 +182,17 @@ float Pitch; ///< Pitch in LVLH, Rad
 float Yaw; ///< Yaw in LVLH, Rad
 ClassDef(ISSAtt,1)       //ISS Attitude Data
 };
+class ISSSA{
+public:
+float alpha; ///< Solar Array alpha angle (degrees) alpha:0 means 3a and  1b is in ams field of view ;see also https://twiki.cern.ch/twiki/bin/view/AMS/ISSAuxData
+float b1a; ///< beta 1a  degrees
+float b3a; ///< beta 2a  --
+float b1b; ///< beta 1b  --
+float b3b; ///< beta 3b  --
+ClassDef(ISSSA,1)       //ISS Solar Arrays Data
+};
+
+
 
 class Header{
 public:
@@ -218,12 +229,15 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,GPSTime> GPSTime_m;
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;
+ typedef map <unsigned int,ISSSA> ISSSA_m;
  typedef map <double,ISSAtt> ISSAtt_m;
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
+ typedef map <unsigned int,ISSSA>::iterator ISSSA_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
     GPSTime_m fGPSTime;    ///< GPS Time
-  ISSData_m fISSData;    ///< ISS Aux Data
-  ISSAtt_m fISSAtt;      ///< ISS Attitude angles
+  ISSData_m fISSData;    ///< ISS Aux Data map
+  ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
+  ISSSA_m fISSSA;      ///< ISS Solar Array angles map
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
    typedef map <unsigned long long,ScalerMon>::iterator Scalers_i;
    Scalers_m fScalers; ///<  Scalers Map
@@ -246,6 +260,21 @@ static AMSSetupR * _Head;
 #endif
 static int _select (const dirent64 * entry);
 public:
+         //! ISS Solar Angles Accessor
+	/*! 
+            
+
+	 \param double xtime (unix time + fraction of second)
+         \param ISSSSA a  interpolated values for the angles      
+	   
+             
+           \return 
+               0   ok (interpolation)
+               1   ok  (extrapolation)
+               2   no data                  
+	 */
+  int getISSSA(ISSSA & a, double xtime); 
+
          //! Scalers Accessor
 	/*! 
             
@@ -275,8 +304,9 @@ static    AMSSetupR * gethead(){return _Head;}
  AMSSetupR();
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
+ int LoadISSSA(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,9)       //AMSSetupR
+ClassDef(AMSSetupR,10)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

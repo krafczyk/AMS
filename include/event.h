@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.106 2011/06/15 23:13:23 choutko Exp $
+//  $Id: event.h,v 1.107 2011/07/05 10:23:37 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -131,6 +131,11 @@ geant _StationSpeed;
 geant _SunRad; 
 geant _VelTheta; 
 geant _VelPhi; 
+geant _Alpha;
+geant _B1a;
+geant _B3a;
+geant _B1b;
+geant _B3b;
 time_t _time;
 uinteger _usec;
 CCEBPar * _ccebp;
