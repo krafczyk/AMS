@@ -3,6 +3,7 @@
 #include"timeid.h" 
 #include"commons.h"
 #include "job.h"
+#include <string.h>
 
 // Change all my assertions
 #define _assert(x) {if(0 && !(x))throw 1;}
@@ -627,9 +628,77 @@ void RichPMTsManager::Init_Default(){
 
 
 void RichPMTsManager::Finish_Default(){
+  cout<<"IN RichPMTsManager::Finish_Default "<<RICDBFFKEY.dump<<" "<<RICFFKEY.fname_in<<endl;
+
+
   if(AMSRichCal::isCalibration()){
     AMSRichCal::finish();
+  }else if((RICDBFFKEY.dump/100)%10){
+    if(AMSFFKEY.Update==0) return;
+    char name[801];
+    UHTOC(RICFFKEY.fname_in,200,name,800);
+    
+    for(int i=800;i>=0;i--){
+      if(name[i]!=' '){
+	name[i+1]=0;
+	break;
+      }
+    }
+
+    if(name[0]==' ' || strlen(name)==0){
+      cout<<"RichPMTsManager::Finish_Default -- W -- No filename provided. Exiting"<<endl;
+      return;
+    }
+
+
+    ReadFromFile(name);
+    
+    AMSTimeID *ptdv;
+    time_t begin_time,end_time,insert_time;
+    const int ntdv=1;
+    const char* TDV2Update[ntdv]={"RichPMTChannelGain"};
+    
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+  
+    begin.tm_sec=RICDBFFKEY.sec[0];
+    begin.tm_min=RICDBFFKEY.min[0];
+    begin.tm_hour=RICDBFFKEY.hour[0];
+    begin.tm_mday=RICDBFFKEY.day[0];
+    begin.tm_mon=RICDBFFKEY.mon[0];
+    begin.tm_year=RICDBFFKEY.year[0];
+    
+    
+    end.tm_sec=RICDBFFKEY.sec[1];
+    end.tm_min=RICDBFFKEY.min[1];
+    end.tm_hour=RICDBFFKEY.hour[1];
+    end.tm_mday=RICDBFFKEY.day[1];
+    end.tm_mon=RICDBFFKEY.mon[1];
+    end.tm_year=RICDBFFKEY.year[1];
+    
+    begin_time=mktime(&begin);
+    end_time=mktime(&end);
+    time(&insert_time);
+    
+    
+    for (int i=0;i<ntdv;i++){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSID(TDV2Update[i],AMSJob::gethead()->isRealData()));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      ptdv->SetTime(insert_time,begin_time,end_time);
+      cout <<" RICH info has been updated for "<<*ptdv<<endl;
+      ptdv->gettime(insert_time,begin_time,end_time);
+      cout <<" Time Insert "<<ctime(&insert_time)<<endl;
+      cout <<" Time Begin "<<ctime(&begin_time)<<endl;
+      cout <<" Time End "<<ctime(&end_time)<<endl;
+    }
+    
+    
   }
+
+
 }
 
 integer RichPMTsManager::detcer(geant photen)
