@@ -90,7 +90,7 @@ void TrLadCal::Fill_new(CaloutDSP* cc) {
 
 void TrLadCal::Fill_same(CaloutDSP* cc) {
   for (int ii=0;ii<1024;ii++){
-    _Pedestal[ii]      = cc->ped[ii]/8.;
+    _Pedestal[ii]      = short(int(cc->ped[ii])&0xFFFF)/8.;
     _SigmaRaw[ii]      = cc->rsig[ii]/8./(cc->sigrawthres*1.);
     _Status[ii]        = cc->status[ii];
     _Occupancy[ii]     = cc->occupancy[ii];

@@ -153,7 +153,7 @@ public:
   /// Get the DSP code version
   int GetDSPCodeVersion()   { return dspver&0xFFFF; } 
   /// Get ii-th strip pedestal ADC value
-  geant Pedestal(int ii)    { return _getnum(_Pedestal,ii);}
+  geant Pedestal(int ii)    { return short(int(_getnum(_Pedestal,ii)*8)&0xFFFF)/8.; } // Apply the formula also here for bkward comp.  
   /// Get ii-th strip sigma (CN subtracted pedestal sigma) ADC value
   geant Sigma(int ii)       { return _getnum(_Sigma,ii);}
   /// Get ii-th strip sigma-pedestal ADC value
@@ -171,7 +171,7 @@ public:
   /// Get the HwId
   short int GetHwId() const   { return HwId; }
   /// Get ii-th strip pedestal ADC value
-  geant GetPedestal(int ii)   { return _getnum(_Pedestal,ii); }
+  geant GetPedestal(int ii)   { return Pedestal(ii); }
   /// Get ii-th strip sigma (CN subtracted pedestal sigma) ADC value
   geant GetSigma(int ii)      { return _getnum(_Sigma,ii); }
   /// Get ii-th strip sigma-pedestal ADC value
