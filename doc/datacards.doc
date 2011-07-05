@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.357 2011/07/01 10:01:04 choutko Exp $
+#  $Id: datacards.doc,v 1.358 2011/07/05 18:05:18 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -168,7 +168,7 @@ I 1 dump(0)                     // 0 no action
                                 // >0 Ignore db settings and dump tables to db
                                 // +1  Dump radiator configuration                      
                                 // +10 Dump alignment settings 
-
+                                // +100 Dump Gain calibrations store in file described in RICAL    
 
 I 2  sec[2](0,0)        // Validity time:              
 I 4  min[2](0,0)        //
