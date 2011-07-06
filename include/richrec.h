@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.74 2011/04/05 10:41:09 mdelgado Exp $
+//  $Id: richrec.h,v 1.75 2011/07/06 11:24:32 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -181,6 +181,9 @@ static geant _Time;
 
   integer _collected_hits_window[10];
   number  _collected_pe_window[10];
+
+  float NpColPMT[680];     /// Collected photoelectrons in the ring per PMT hits
+  float NpExpPMT[680];     /// Expected photoelectrons in the ring per PMT 
 
 
   // All these guys can be obtained asking to the class RichRadiatorTile

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.371 2011/07/05 10:23:37 choutko Exp $
+//  $Id: root.h,v 1.372 2011/07/06 11:24:32 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1204,6 +1204,7 @@ ClassDef(RichHitR,6)       // RichHitR
 
 //!  Rich Ring Structure
 
+#include <map>
 #include "TH1F.h"
 
 /*!
@@ -1306,6 +1307,10 @@ public:
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
   float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
+  map<unsigned short,float>NpColPMT;     /// Collected photoelectrons in the ring per PMT
+  map<unsigned short,float>NpExpPMT;     /// Expected photoelectrons in the ring per PMT
+
+
 
  protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
@@ -1371,8 +1376,10 @@ public:
   float getBeta()          {return BetaRefit*betaCorrection();}
   /// Total number of photoelectrons in the ring. 
   float   getPhotoElectrons(){return NpCol;}
+  float getPhotoElectrons(int pmt){map<unsigned short,float>::iterator i=NpColPMT.find(pmt);return i==NpColPMT.end()?0:i->second;}
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
   float getExpectedPhotoelectrons() {return NpExp;}
+  float getExpectedPhotoelectrons(int pmt){map<unsigned short,float>::iterator i=NpExpPMT.find(pmt);return i==NpExpPMT.end()?0:i->second;}
   /// Continuous Z^2 estimate for this ring
   float getCharge2Estimate() {return getExpectedPhotoelectrons()>0?getPhotoElectrons()/getExpectedPhotoelectrons():0;}
   /// Estimation of the error of the reconstructed beta
@@ -1417,7 +1424,7 @@ public:
 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,23)           // RichRingR
+  ClassDef(RichRingR,24)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 

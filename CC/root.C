@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.320 2011/07/05 10:23:32 choutko Exp $
+//  $Id: root.C,v 1.321 2011/07/06 11:24:32 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4190,6 +4190,14 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }
+  
+  // Fill the information per PMT
+  for(unsigned short pmtNb=0;pmtNb<680;pmtNb++){
+    if(ptr->NpColPMT[pmtNb]>1e-6) NpColPMT[pmtNb]=ptr->NpColPMT[pmtNb];
+    if(ptr->NpExpPMT[pmtNb]>1e-6) NpExpPMT[pmtNb]=ptr->NpExpPMT[pmtNb];
+  }
+  
+
 #endif
 }
 

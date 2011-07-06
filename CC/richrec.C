@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.158 2011/05/25 20:36:36 barao Exp $
+//  $Id: richrec.C,v 1.159 2011/07/06 11:24:32 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1046,6 +1046,9 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   AMSPoint local_pos=_entrance_p;
   AMSDir   local_dir=_entrance_d;
 
+  // Cleanup arrays containig PMT by PMT information
+  for(int i=0;i<680;i++) NpColPMT[i]=NpExpPMT[i]=0;
+
   local_pos[2]=RICHDB::rad_height-_height;
 
   // Protect against unexpected sign in _entrance_d 
@@ -1173,6 +1176,12 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
 	nexpg+=geftr*ggen;
 	nexpr+=reftr*rgen;
 	nexpb+=beftr*bgen;
+
+	// Add the same quantity per PMT
+	int channel=RichPMTsManager::FindChannel(xb,yb);
+	int pmt,pixel;  RichPMTsManager::UnpackGeom(channel,pmt,pixel);
+	if(pmt>-1) NpExpPMT[pmt]+=efftr*cnt;
+
       }
 
       for(k=0;k<nh_unused;k++){
@@ -1225,6 +1234,7 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
   for(phi=0,i=0;phi<2*PI;phi+=dphi,i++){
     dfphi[i]*=_height/local_dir[2]/counter;
   }
+  for(int i=0;i<680;NpExpPMT[i++]*=_height/local_dir[2]/counter);
 
 #else
 
@@ -1387,6 +1397,12 @@ void AMSRichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of si
 
 
     if(value<window_size){
+      // Computation per PMT 
+      int pmt,pixel;
+      RichPMTsManager::UnpackGeom(hit->getchannel(),pmt,pixel);
+      if(pmt>-1) NpColPMT[pmt]+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      
+      // General computation
       _collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
       _collected_npe_lkh+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->photoElectrons();
     }
