@@ -56,6 +56,9 @@ my $maxtime=2000000000;
         unlink "/tmp/t.root.$$";
         unlink "/tmp/checkami.$$";
         unlink "/tmp/strami.$$";
+         if(time()-$maxtime>86400*2){
+             die "scdb.perl-F-DataBaseNotUpdating, Exiting \n";
+         }
         if($max>$maxtime){
             $max=$maxtime;
         }
@@ -87,9 +90,16 @@ my $maxtime=2000000000;
             }
         }
 
+
+
+
+
 my $overlap=$len/12;
 my $beg=$min-$overlap;
 my $end=$beg+$len;
+if($end>$max){
+    $end=$max;
+}
     my $t1=time();
         if($max-$min<$len-$overlap){
             print "scdb.perl-I-NotEnoughData $max $min  \n";
@@ -104,9 +114,8 @@ my $end=$beg+$len;
             }
         }
 
-# read all the directory if not --force and only update
 
-while ($beg<$max){
+while ($beg<$end and $end<=$max){
     my $cmd=$scdbp." $beg $end /tmp/t.root.$$ /tmp/t.root.$$ $tmout 1>/tmp/getior.$$ 2>&1";
     my $i=system($cmd);
     if($i){
@@ -131,7 +140,15 @@ while ($beg<$max){
              }
     $t1=time();
     $beg=$end-$overlap;
-    $end=$beg+$len;
+    if($end<$max){
+     $end=$beg+$len;
+     if($end>$max){
+         $end=$max;
+     }
+    }
+    else{
+     $end=$beg+$len;
+    }
 }
 unlink "/tmp/getior.$$";
         goto begin;
