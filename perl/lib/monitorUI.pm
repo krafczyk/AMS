@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.59 2011/06/03 18:15:18 ams Exp $
+#  $Id: monitorUI.pm,v 1.60 2011/07/06 09:08:37 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1168,6 +1168,7 @@ sub item_factory_cb {
          }elsif($action==14){
              $Monitor::Singleton->FinishFailedRuns();
          }elsif($action==15){
+             system("kinit -R");
              system("/var/www/cgi-bin/mon/kread.py");
          }elsif($action==16){
            $Monitor::Singleton->ResetHistory();

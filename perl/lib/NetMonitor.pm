@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.50 2011/06/29 13:29:30 ams Exp $
+# $Id: NetMonitor.pm,v 1.51 2011/07/06 09:08:37 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -223,7 +223,7 @@ my $period = '';
     if ($period == 1) {
         if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t.root /tmp/t.root 6 1>/tmp/checkami 2>&1") != 0) {
             print "ami2root.exe: No answer\n";
-            push @{$self->{bad}}, "ami2root.exe does_not_replay";
+            push @{$self->{bad}}, "ami2root.exe does_not_reply";
         }
         my $str = (system "less /tmp/checkami|grep 'last time' 1>/tmp/strami 2>&1");
 #   print "$str\n"; 
