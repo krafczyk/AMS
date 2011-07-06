@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.60 2011/07/06 09:08:37 choutko Exp $
+#  $Id: monitorUI.pm,v 1.61 2011/07/06 09:14:25 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -432,6 +432,7 @@ if (not $Monitor::Singleton->{ok}){
 }else{
     $statusbar->push(1," Connected to Servers");
 }		
+Gtk->timeout_add(3600000,\&AFS);
 Gtk->timeout_add(900000,\&Update);
 Gtk->timeout_add(3600000,\&ReCreate);
 return $mybless;
@@ -792,6 +793,10 @@ sub create_clist {
 sub ReCreate{
              $Monitor::Singleton->RemoveRuns();
              DBServer::InitDBFileNew(undef,$Monitor::Singleton);
+}
+sub AFS{
+             system("kinit -R");
+             system("/var/www/cgi-bin/mon/kread.py");
 }
 sub Update{
     if( $Monitor::Singleton->{updatesviadb}){
@@ -1168,8 +1173,7 @@ sub item_factory_cb {
          }elsif($action==14){
              $Monitor::Singleton->FinishFailedRuns();
          }elsif($action==15){
-             system("kinit -R");
-             system("/var/www/cgi-bin/mon/kread.py");
+             AFS():
          }elsif($action==16){
            $Monitor::Singleton->ResetHistory();
          }         
