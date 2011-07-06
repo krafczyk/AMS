@@ -1626,7 +1626,7 @@ class RemoteClient:
                                    return outputpath,0,odisk,0
                            else:
                                self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
-                               print "docopy-E-cannot copyfile",cmdstatus,inputfile,outputfile
+                               print "docopy-E-cannot copyfile",cmdstatus,inputfile,outputpath
                                return outputpath,0,odisk,0
                        else:
                            self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
@@ -1694,7 +1694,7 @@ class RemoteClient:
                        return outputpath,0,0
                else:
                    self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
-                   print "docopyraw-E-cannot copyfile",cmdstatus,inputfile,outputfile
+                   print "docopyraw-E-cannot copyfile",cmdstatus,inputfile,outputpath
                    return outputpath,0,0
            else:
                self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
