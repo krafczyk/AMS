@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.146 2011/06/29 13:29:23 ams Exp $
+# $Id: Monitor.pm,v 1.147 2011/07/06 09:15:31 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1002,7 +1002,7 @@ sub getntuples{
          my $dt=time()-$hash->{Insert};
      if ($hash->{Status} eq "InProgress"){
          if($dt>3600*12 && $dt<3600*24){
-             push @text,2;
+             push @text,1;
          }elsif($dt>3600*6 && $dt<3600*24){
              push @text,1;
          }

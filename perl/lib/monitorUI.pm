@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.61 2011/07/06 09:14:25 choutko Exp $
+#  $Id: monitorUI.pm,v 1.62 2011/07/06 09:15:31 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1173,7 +1173,7 @@ sub item_factory_cb {
          }elsif($action==14){
              $Monitor::Singleton->FinishFailedRuns();
          }elsif($action==15){
-             AFS():
+             AFS();
          }elsif($action==16){
            $Monitor::Singleton->ResetHistory();
          }         
