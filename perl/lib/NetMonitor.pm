@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.51 2011/07/06 09:08:37 choutko Exp $
+# $Id: NetMonitor.pm,v 1.52 2011/07/07 09:28:09 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -25,7 +25,7 @@ my %fields=(
   excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
-  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd'],
+  dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd','scdb.perl'],
   filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
   afsvolumes=>['/afs/cern.ch/ams/local','/afs/cern.ch/ams/AMSDataBase','/afs/cern.ch/ams/Offline'],
   hostsstat=>[],

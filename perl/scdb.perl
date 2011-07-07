@@ -49,9 +49,9 @@ my $maxtime=2000000000;
 
         open (TIME, "/tmp/strami.$$");
         my $time = <TIME>;
-        my @in = split (/ /, $time);
-#    print ("ami time is $in[4]\n"); 
-        $maxtime=$in[4];
+        my @in = split (/([ \n])/, $time);
+#    print ("ami time is $in[8]\n"); 
+        $maxtime=$in[8];
         print "scdb.perl-I-MaxTimeInDB $maxtime \n";
     }
         unlink "/tmp/t1.root.$$";
@@ -61,7 +61,7 @@ my $maxtime=2000000000;
              my $ctime=localtime(time());
              warn "scdb.perl-E-DataBaseNotUpdating-T-$ctime \n";
              sleep 600;
-             goto again;
+             goto begin;
          }
         if($max>$maxtime){
             $max=$maxtime;
@@ -105,8 +105,8 @@ if($end>$max){
     $end=$max;
 }
     my $t1=time();
-        if($max-$min<$len/2+$overlap){
-            print "scdb.perl-I-NotEnoughData $max $min  \n";
+        if($max-$min<$len/2){
+            warn "scdb.perl-W-NotEnoughData $max $min  \n";
             if($max==$maxtime){
                 my $ctime=localtime(time());
                 print "scdb.perl-I-willSleep $overlap $ctime \n";
@@ -130,7 +130,7 @@ while ($beg<$end and $end<=$max){
 #                 here add mail message
             sleep 600;
             unlink "/tmp/t.root.$$";
-            goto again;
+            goto begin;
            
         }
         next;
