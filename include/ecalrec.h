@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.55 2011/04/28 13:41:13 afiasson Exp $
+//  $Id: ecalrec.h,v 1.56 2011/07/07 14:51:21 afiasson Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -383,12 +383,15 @@ number   _Angle3DChi2;
 number   _AngleTrue3DChi2;
 number   _Angle3DError;
 number   _Angle3DErrorPI;
+number   _Angle3DErrorA;
 
 number  _FrontEnergyDep;
 number  _Energy;
 
 number  _EnergyC;
 number  _EnergyPIC;
+number  _Energy0A[2];  //LAPP EcalShower Energy0 0->X, 1->Y  only impact-point corrected, no rear leakage corr. (M.P.)
+number  _EnergyA;  //LAPP EcalShower Energy (M.P.)
 
 number  _Energy3C;
 number  _Energy5C;
@@ -396,6 +399,8 @@ number  _Energy9C;
 
 number  _S13R;
 number  _S13Rpi[2];
+number  _S13Ra[2]; //LAPP S13ratios 0->X, 1->Y (M.P.)
+number  _S35Ra[2]; //LAPP S35ratios 0->X, 1->Y (M.P.)
 
 number  _DifoSum;
 
@@ -415,9 +420,20 @@ number  _SideLeakPI;
 number  _DeadLeakPI;
 number  _AttLeakPI;
 number  _NLinLeakPI;
-
+//LAPP (M.P.) begin:
+number  _OrpLeakA;
+number  _RearLeakA;
+number  _S13LeakXA;
+number  _S13LeakYA; // --> corry1
+number  _S13LeakYA0;  // -->corry0
+number  _SideLeakA;
+number  _DeadLeakA;
+number  _AttLeakA;
+number  _NLinLeakA;
+//end LAPP
 number  _ErrEnergyC;
 number  _ErrEnergyPIC;
+number  _ErrEnergyA;//LAPP EcalShower Energy error (M.P)
 
 number  _Orp2DEnergy;
 AMSPoint _CofG;
@@ -515,25 +531,35 @@ number getEnergyPIC()const {return _EnergyPIC;}
 number getEnergyXY(int proj)const;
 number getEnergyErr()const{return _ErrEnergyC;}
 number getEnergyErrPI()const{return _ErrEnergyPIC;}
+number getEnergyA()const {return _EnergyA;} //LAPP (M.P.)
+number getEnergyErrA()const{return _ErrEnergyA;}//LAPP (M.P.)
 integer getDirection() const{return _Direction==0?1:-1;}
 integer getNhits() const{return _Nhits;}
 //gchen
  number getDirChi2() const {return _AngleTrue3DChi2;}
  number getErDir() const {return _Angle3DError;}
  number getErDirPI() const {return _Angle3DErrorPI;}
+ number getErDirA() const {return _Angle3DErrorA;}//LAPP
  number getEnFront() const {return _FrontEnergyDep;}
  number getDifoSum() const {return _DifoSum;}
  number getSLeak() const {return _SideLeak;}
  number getSLeakPI() const {return _SideLeakPI;}
+number getSLeakA() const {return _SideLeakA;}//LAPP (M.P.)
  number getRLeak() const {return _RearLeak;}
  number getRLeakPI() const {return _RearLeakPI;}
+number getRLeakA() const {return _RearLeakA;}//LAPP (M.P.)
  number getS13Leak() const {return _S13Leak;}
  number getS13LeakXPI() const {return _S13LeakXPI;}
  number getS13LeakYPI() const {return _S13LeakYPI;}
+number getS13LeakXA() const {return _S13LeakXA;}//LAPP (M.P)
+ number getS13LeakYA() const {return _S13LeakYA;}//LAPP (M.P.)
+ number getS13LeakYA0() const {return _S13LeakYA0;}//LAPP (M.P.)
  number getDLeak() const {return _DeadLeak;}
  number getDLeakPI() const {return _DeadLeakPI;}
+ number getDLeakA() const {return _DeadLeakA;}//LAPP (M.P.)
  number getOLeak() const {return _OrpLeak;}
  number getOLeakPI() const {return _OrpLeakPI;}
+number getOLeakA() const {return _OrpLeakA;}//LAPP (M.P.)
  number getProfChi2() const {return _ProfilePar[4+_Direction*5];}
  number getTransChi2() const {return _TransFitChi2;}
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.167 2011/05/21 13:02:02 mmilling Exp $
+#  $Id: Makefile,v 1.168 2011/07/07 14:51:21 afiasson Exp $
 
 #P.Zuccon june 2005
 
@@ -550,7 +550,7 @@ ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
 	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
 $(BIN)timeid_s.o
 
 

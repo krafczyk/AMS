@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.50 2011/01/19 12:38:00 choutko Exp $
+#  $Id: Makefile,v 1.51 2011/07/07 14:51:21 afiasson Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -79,7 +79,7 @@ ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
-LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
+LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
 
 endif
@@ -248,11 +248,11 @@ $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a:
 
 
 $(AMSPRG):        $(OBJS)  $(DICTO) $(MAINO) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a
-		$(LDS)   $(LDFLAGS) $^  $(LIBSA) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  -o $(@) 
+		$(LDS)   $(LDFLAGS) $^  $(LIBSA) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	  $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
-		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  -o $(AMSPRGC) 
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) $(AMSWD)/lib/$(ARCH)/lib$(AMSLIB).a  $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS) LinkDef.h

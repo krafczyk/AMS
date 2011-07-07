@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.818 2011/07/01 10:01:00 choutko Exp $
+// $Id: job.C,v 1.819 2011/07/07 14:51:20 afiasson Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -963,6 +963,14 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.ealpha_par[0]=-5.;
   ECREFFKEY.ealpha_par[1]=0.0143;
 
+
+//LAPP rear-leakage correction parameters (M.P.)
+  ECREFFKEY.LAPPRearLeak[0]=1.055;
+  ECREFFKEY.LAPPRearLeak[1]=0.0016;
+  ECREFFKEY.LAPPRearLeak[2]=1.589;
+  ECREFFKEY.LAPPRearLeak[3]=0.035; 
+  // end of LAPP parameters
+
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.03;
   ECREFFKEY.HiEnThr=1650;
@@ -985,6 +993,18 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3Y[3]=49.19;
   ECREFFKEY.S1S3Y[4]=-7.23;
   ECREFFKEY.S1S3Y[5]=-0.193;
+
+//LAPP impact-point correction parameters X and Y sides (M.P.)
+  ECREFFKEY.S1S3XA[0]=0.38;
+  ECREFFKEY.S1S3XA[1]=0.715;
+  ECREFFKEY.S1S3XA[2]=0.75;
+  ECREFFKEY.S1S3XA[3]=0.5;
+      
+  ECREFFKEY.S1S3YA[0]=0.44;
+  ECREFFKEY.S1S3YA[1]=0.67;
+  ECREFFKEY.S1S3YA[2]=0.735;
+  ECREFFKEY.S1S3YA[3]=0.5;
+  // end of LAPP parameters
 
   ECREFFKEY.sec[0]=0;//54 
   ECREFFKEY.sec[1]=0;//

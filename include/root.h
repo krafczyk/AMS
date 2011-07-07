@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.372 2011/07/06 11:24:32 mdelgado Exp $
+//  $Id: root.h,v 1.373 2011/07/07 14:51:21 afiasson Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -27,6 +27,7 @@
 #include "TFile.h"
 #include "TSelector.h"
 #include "TROOT.h"
+#include "TMVA/Reader.h"
 #include <TRandom.h>
 #include "TBranch.h"
 #include "TMatrixD.h"
@@ -46,7 +47,6 @@
 #include "root_setup.h"
 #include "SlowControlDB.h"
 
-
 #ifdef __AMSVMC__
 #include "amsvmc_MCApplication.h"
 #include "amsvmc_DetectorConstruction.h"
@@ -56,7 +56,6 @@
 #include "amsvmc_MagField.h"
 #include "amsvmc_RunConfiguration.h"
 #endif
-
 
 
 using namespace std;
@@ -557,6 +556,24 @@ public:
   float S13LeakYPI;  ///< s1/s3 ratio correction for Y view
   float OrpLeak;   ///<  fraction of shower energy outside core.
   float OrpLeakPI;  ///<  fraction of shower energy outside core - Pisa version.
+
+//LAPP (MP) begin
+  float Energy0A[2]; ///< LAPP shower energy x, y only impact point correction applied, no fiber cross-talk (Mev)
+  float EnergyA; ///< LAPP shower energy (Mev)
+  float ErEnergyA;   ///< LAPP energy error (Mev)
+  float SideLeakA;    ///< LAPP rel side leak
+  float RearLeakA;    ///< LAPP rel rear leak
+  float DeadLeakA;    ///< LAPP rel dead leak
+  float AttLeakA;     ///< LAPP rel att length correction
+  float NLinLeakA;   ///<  LAPP rel non-lin correction
+  float S13LeakXA;  ///< LAPP impact-point correction for X view
+  float S13LeakYA;  ///< LAPP  impact-point correction for Y view
+  float S13LeakYA0;  ///< LAPP  impact-point correction (no-fiber cross-talk) for Y view
+  float OrpLeakA;   ///<  LAPP fraction of shower energy outside core.
+  float S13Ra[2];  ///< LAPP S1/S3 Ratio for X and Y view
+  float S35Ra[2];  ///< LAPP S3/S5 Ratio for X and Y view
+// LAPP (MP) end
+
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
   float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
@@ -567,7 +584,6 @@ public:
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
- /// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   int NbLayerX;
   int NbLayerY;
   float S1tot[3];		  
@@ -579,7 +595,12 @@ public:
   float ShowerFootprint[3]; 
   float ZprofileChi2; 
   float Zprofile[4]; 
+	
+	float EcalStandaloneEstimator();	///<LAPP Ecal Estimator 
 
+	
+	
+	/// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   /// lower values correspond to hadrons, higher to electromagnetic particles
   /// Trained on August 2010 test beam data 
   /// WARNING: by default this function is dummy, to have it you must compile 
@@ -611,7 +632,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,8)       //EcalShowerR
+ClassDef(EcalShowerR,9)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

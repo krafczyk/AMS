@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.324 2011/07/01 10:01:07 choutko Exp $
+//  $Id: commons.h,v 1.325 2011/07/07 14:51:20 afiasson Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -415,8 +415,9 @@ public:
   float PosError1D;
   float Chi2Change2D;
   float TransShowerSize2D;
-  float SimpleRearLeak[4];
- 
+  float SimpleRearLeak[4]; 
+  float LAPPRearLeak[4]; //LAPP rear-leakage correction parameters (M.P.)
+
   float ealpha0;
   float ebeta;
   float egamma;
@@ -429,6 +430,8 @@ public:
   float S1S3[4];
   float S1S3X[6];
   float S1S3Y[6];
+  float S1S3XA[4]; //LAPP impact-point correction parameters X side (M.P.)
+  float S1S3YA[4]; //LAPP impact-point correction parameter Y side (M.P.)
 
   integer sec[2];
   integer min[2];
