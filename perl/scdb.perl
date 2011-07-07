@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 #  $Id: checkfs.cgi,v 1.12 2011/03/30 12:48:35 dmitrif Exp 
 use strict;
+use Carp;
 my $output="/afs/cern.ch/ams/local/SCDBGlobal/";
     if(defined $ENV{SCDBGlobal}){
         $output=$ENV{SCDBGlobal};
@@ -38,9 +39,9 @@ begin:
 #check max time in db
 
 my $maxtime=2000000000;
-        if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t.root.$$ /tmp/t.root.$$ 60 1>/tmp/checkami.$$ 2>&1") != 0) {
-        print "scdb.perl-E-CouldNotGetMaxTime  \n";
-        die;
+        if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t1.root.$$ /tmp/t1.root.$$ 60 1>/tmp/checkami.$$ 2>&1") != 0) {
+        warn "scdb.perl-E-CouldNotGetMaxTime  \n";
+        die " UnableToRead DB \n";
         }
         else{
         my $str = (system "less /tmp/checkami.$$|grep 'last time' 1>/tmp/strami.$$ 2>&1");
@@ -53,11 +54,14 @@ my $maxtime=2000000000;
         $maxtime=$in[4];
         print "scdb.perl-I-MaxTimeInDB $maxtime \n";
     }
-        unlink "/tmp/t.root.$$";
+        unlink "/tmp/t1.root.$$";
         unlink "/tmp/checkami.$$";
         unlink "/tmp/strami.$$";
          if(time()-$maxtime>86400*2){
-             die "scdb.perl-F-DataBaseNotUpdating, Exiting \n";
+             my $ctime=localtime(time());
+             warn "scdb.perl-E-DataBaseNotUpdating-T-$ctime \n";
+             sleep 600;
+             goto again;
          }
         if($max>$maxtime){
             $max=$maxtime;
@@ -101,10 +105,11 @@ if($end>$max){
     $end=$max;
 }
     my $t1=time();
-        if($max-$min<$len-$overlap){
+        if($max-$min<$len/2+$overlap){
             print "scdb.perl-I-NotEnoughData $max $min  \n";
             if($max==$maxtime){
-                print "scdb.perl-I-willSleep $overlap \n";
+                my $ctime=localtime(time());
+                print "scdb.perl-I-willSleep $overlap $ctime \n";
                sleep $overlap;
                 $force=0;
                goto begin;
@@ -120,9 +125,13 @@ while ($beg<$end and $end<=$max){
     my $i=system($cmd);
     if($i){
         if(($i&255) or ($i>>8)!=4){
-            print " scdb.perl-E-UnableTo $cmd \n";
+                 my $ctime=localtime(time());
+            warn " scdb.perl-E-UnableTo-T-$ctime $cmd \n";
 #                 here add mail message
-                  die "Exiting";
+            sleep 600;
+            unlink "/tmp/t.root.$$";
+            goto again;
+           
         }
         next;
     }
@@ -134,7 +143,8 @@ while ($beg<$end and $end<=$max){
     $cmd="mv /tmp/t.root.$$  $output/SCDB.$beg.$end.root";
     $i=system($cmd);
              if($i){
-                 print "scdb.perl-E-UnableToMove $cmd \n";
+                 my $ctime=localtime(time());
+                 warn "scdb.perl-E-UnableToMove-T-$ctime $cmd \n";
 #                here add mail message
                  next;
              }
@@ -143,7 +153,7 @@ while ($beg<$end and $end<=$max){
     if($end<$max){
      $end=$beg+$len;
      if($end>$max){
-         $end=$max;
+#         $end=$max;
      }
     }
     else{
