@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.14 2011/04/25 16:03:41 shaino Exp $ 
+/// $Id: TkSens.C,v 1.15 2011/07/10 10:49:14 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2011/04/25 16:03:41 $
+///$Date: 2011/07/10 10:49:14 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -83,6 +83,7 @@ void TkSens::Clear(){
   LaddCoo  = SensCoo;
   LaddDir  = SensDir;
   ReadChanX     = -1;
+  close_chanX   = -1;
   ReadChanY     = -1;
   ImpactPointX  = -10;
   ImpactPointY  = -10;
@@ -426,8 +427,16 @@ int TkSens::GetStripFromLocalCooS(number Y){
 //--------------------------------------------------
 int TkSens::GetStripFromLocalCooK5(number X,int Sens){
   int chan=-1;
-  if( X<0 ||X > TkDBc::Head->_ssize_active[0])
+  if( X<0){
+    close_chanX=0;
+    if(Sens%2==1) close_chanX+=192;
     return -1;
+  }
+  else if ( X > TkDBc::Head->_ssize_active[0]){
+    close_chanX=191;
+    if(Sens%2==1) close_chanX+=192;
+    return -1;
+  }
   else if(X>=0 && X<  189.5*TkDBc::Head->_PitchK5)
     chan=(int)round(X/TkDBc::Head->_PitchK5);
   else if( X>=189.5*TkDBc::Head->_PitchK5 &&
@@ -435,9 +444,12 @@ int TkSens::GetStripFromLocalCooK5(number X,int Sens){
     chan=190;
   else
     chan=191;
-    
-  if(Sens%2==1)
+
+  close_chanX=chan;    
+  if(Sens%2==1){
+    close_chanX+=192;
     chan+=192;
+  }
   return chan;
 }
 
@@ -447,9 +459,17 @@ int TkSens::GetStripFromLocalCooK5(number X,int Sens){
 //--------------------------------------------------
 int TkSens::GetStripFromLocalCooK7(number X,int Sens){
 
-
-  if( X<0 ||X > TkDBc::Head->_ssize_active[0])
+  // PZ FIXME is K7 not K5
+   if( X<0){
+    close_chanX=0;
+    if(Sens%2==1) close_chanX+=192;
     return -1;
+  }
+  else if ( X > TkDBc::Head->_ssize_active[0]){
+    close_chanX=191;
+    if(Sens%2==1) close_chanX+=192;
+    return -1;
+  }
   
   int gstrip=-1;
   float strip=(X/TkDBc::Head->_ImplantPitchK);
@@ -478,6 +498,9 @@ int TkSens::GetStripFromLocalCooK7(number X,int Sens){
   }
 
   if(gstrip<0) return -1;
-  return (Sens*224+gstrip)%384;
+  int rstrip=(Sens*224+gstrip)%384;
+  close_chanX=rstrip;
+  return rstrip;
+
 }
 

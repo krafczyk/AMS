@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.6 2011/04/25 16:03:42 shaino Exp $ 
+/// $Id: TkSens.h,v 1.7 2011/07/10 10:49:27 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2011/04/25 16:03:42 $
+///$Date: 2011/07/10 10:49:27 $
 ///
-/// $Revision: 1.6 $
+/// $Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,6 +55,9 @@ class TkSens {
   AMSDir   LaddDir;
   //! nearest K side readout channel
   int      ReadChanX;
+  //! In the case the point is on a dead zone (ReadChanX =-1 )
+  //   returns the closest K side readout channel
+  int      close_chanX;
   //! nearest S side readout channel
   int      ReadChanY;
   //! The X coo. Impact Point in strip pitch unit wrt the nearest strip
@@ -135,6 +138,9 @@ class TkSens {
   AMSPoint GetLaddDir()   { return LaddDir; }
   //! Returns the nearest readout channel for K side
   int      GetStripX()    { return ReadChanX; }
+  //! In the case the point is on a dead zone (ReadChanX =-1 )
+  //   returns the closest K side readout channel
+  int      GetCloseChanX() {return close_chanX;}
   //! Returns the nearest readout channel for S side
   int      GetStripY()    { return ReadChanY; }
   //! Returns the X coo. Impact Point in strip pitch unit wrt the nearest strip (i.e. GetStripX())

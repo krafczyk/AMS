@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.131 2011/05/26 01:30:19 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.132 2011/07/10 10:49:14 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/05/26 01:30:19 $
+/// $Date: 2011/07/10 10:49:14 $
 ///
-/// $Revision: 1.131 $
+/// $Revision: 1.132 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4558,7 +4558,7 @@ int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
   int mfit = TrTrackR::DefaultFitID;
   if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
 
-  number SearchReg(1);
+  number SearchReg(1.1);
   number MaxCos(0.95);
   AMSPoint dst0 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
 
@@ -4570,9 +4570,9 @@ int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 
   // Good match between TrTrack-TRD tracks; no need to move
   if (fabs(dst0[0]) < SearchReg) return 1;
-//printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
+  //printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
 
-  bool moved=MoveTrTrack(ptrack, trdcoo, trddir,  3.);
+  bool moved=MoveTrTrack(ptrack, trdcoo, trddir,  5.);
   if(moved){
     ptrack->FitT(mfit);
     AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
@@ -4595,71 +4595,132 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
   for(int jj=0;jj<ptr->getnhits();jj++){
     TrRecHitR* phit=ptr->GetHit(jj);
     if(phit->OnlyY()) continue;
+    if(phit->GetLayer()==1) continue;
     nxy++;
     float X=pp[0]+dir[0]/dir[2]*(phit->GetCoord().z()-pp[2]);
-    int mm=-1;
-    float max=9999.;
+    int mm;
+    float max;
+    max=9999.;
+    mm=-1;
     for(int ii=0;ii<phit->GetMultiplicity();ii++){
       int layer=phit->GetLayer();
       float diff=X- phit->GetCoord(ii).x();
-      if (fabs(diff)<max) max=fabs(diff);
-
-      if(fabs(diff) < (err*(1.+(layer-1)*0.017) )) 
-	{ mm=ii; break;}
+      if(fabs(diff) <max) { 
+	max=fabs(diff);
+	mm=ii;
+      }
     }
     float base=(err>3)?2:0;
     hman.Fill("trdmatch",max,(mm>-1)?(base+1.):(base+2.));
-    if(mm>-1) {
+    if(mm>-1 && max < (err*(1.+(phit->GetLayer()-1)*0.017))) {
       good_mult[ngood][0]=jj;
       good_mult[ngood++][1]=mm;
     }
   }
-  if(ngood!=nxy || ngood<3) return false;
+  if(ngood!=nxy || ngood<2) return false;
 
-  TrFit fit1, fit2;
-  double ferr = 300e-4;
-  for (int ii=0;ii<ngood;ii++){
-    TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
-    AMSPoint coo1 = phit->GetCoord();
-    AMSPoint coo2 = phit->GetCoord(good_mult[ii][1]);
-    fit1.Add(coo1, ferr, ferr, ferr);
-    fit2.Add(coo2, ferr, ferr, ferr);
-  }
-  if (fit1.SimpleFit() < 0 || fit2.SimpleFit() < 0) return false;
 
-  double cthd = fit1.GetChisqX()*10+1;
-  if (fit2.GetChisqX() > cthd) {
-    double    snmin = 5;
-    TrRecHitR *hmin = 0;
-    for (int i = 0; i < ptr->GetNhits(); i++) {
-      TrRecHitR *hit = ptr->GetHit(i);
-      if (hit->GetLayer() >= 8 || hit->OnlyY()) continue;
-      TrClusterR *cls = hit->GetXCluster();
-      double sn = (cls) ? cls->GetSeedSN() : 99;
-      if (sn < snmin) { snmin = sn; hmin = hit; }
-    }
-    if (!hmin) return false;
-
-    fit2.Clear();
-    for (int i = 0; i < ngood; i++){
-      TrRecHitR* phit = ptr->GetHit(good_mult[i][0]);
-      if (phit != hmin) 
-	fit2.Add(phit->GetCoord(good_mult[i][1]), ferr, ferr, ferr);
-    }
-    if (fit2.SimpleFit() < 0) return false;
-    if (fit2.GetChisqX() < cthd) hmin->setstatus(TrRecHitR::YONLY);
-  }
-
-  hman.Fill("TkMoveC", fit1.GetChisqX(), fit2.GetChisqX());
-  if (fit2.GetChisqX() > cthd) return false;
+  
+//   // prepare a simple fit fit with the moved point
+//   TrFit fit1, fit2;
+//   double ferr = 300e-4;
+//   for (int ii=0;ii<ngood;ii++){
+//     TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
+//     AMSPoint coo1 = phit->GetCoord();
+//     AMSPoint coo2 = phit->GetCoord(good_mult[ii][1]);
+//     fit1.Add(coo1, ferr, ferr, ferr);
+//     fit2.Add(coo2, ferr, ferr, ferr);
+//   }
+//   if (fit1.SimpleFit() < 0 || fit2.SimpleFit() < 0) return false;
 
   // move the XY hits 
   for (int ii=0;ii<ngood;ii++){
     TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
     phit->SetResolvedMultiplicity(good_mult[ii][1]);
   }
-  float q=fit2.GetP0x();
-  float m=fit2.GetDxDz();
+
+  
+  double sx=0;
+  double sx2=0;
+  double sy=0;
+  double sxy=0;
+  int    N=0;
+  for (int ii=0;ii<ngood;ii++){
+    TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
+    if(phit->OnlyY()) continue;
+    AMSPoint coo1 = phit->GetCoord();
+    sx+=coo1[2];
+    sx2+=coo1[2]*coo1[2];
+    sy+=coo1[0];
+    sxy+=coo1[2]*coo1[0];
+    N++;
+  } 
+  double Delta=N*sx2-sx*sx;
+  
+  double q=1/Delta*(sx2*sy - sx *sxy);
+  double m=1/Delta*(N*sxy - sx *sy);
+
+  //  Lets try to find the best hit for the new track on layer 1
+
+
+  TrRecHitR * 	phit2=ptr->GetHitLJ(2);
+  // Check that hit on lay 1 exists and it is not Y only
+  if(phit2 && !phit2->OnlyY()){
+    TrClusterR*   cl1y=phit2->GetYCluster();
+    float X=q+m*phit2->GetCoord().z();
+    VCon* cont=GetVCon()->GetCont("AMSTrRecHit");
+    int idx=-1;
+    int mm=-1;
+    float max=9999.;
+    
+    for (int kk=0;kk< cont->getnelem();kk++){
+      TrRecHitR*  hit=(TrRecHitR*)cont->getelem(kk);
+      if(hit->GetYCluster()!=cl1y) continue;
+      for (int mult=0;mult<hit->GetMultiplicity();mult++){
+	float diff=X- hit->GetCoord(mult).x();
+	if(fabs(diff)<max){
+	  max=fabs(diff);
+	  idx=kk;
+	  mm=mult;
+	}
+      }
+    }
+    
+    if(idx!=-1&&mm!=-1){
+      TrRecHitR*  hit_new=(TrRecHitR*)cont->getelem(idx);
+      if (hit_new!=phit2){
+	//add the new one
+	ptr->AddHit(hit_new,mm);
+      }
+      
+      hit_new->SetResolvedMultiplicity(mm);
+    }
+    if(cont) delete cont;
+  }
+
+
+
+  sx=0;
+  sx2=0;
+  sy=0;
+  sxy=0;
+  N=0;
+  for (int ii=0;ii<ptr->getnhits();ii++){
+    TrRecHitR* phit=ptr->GetHit(ii);
+    if(phit->OnlyY()) continue;
+    AMSPoint coo1 = phit->GetCoord();
+    sx+=coo1[2];
+    sx2+=coo1[2]*coo1[2];
+    sy+=coo1[0];
+    sxy+=coo1[2]*coo1[0];
+    N++;
+  } 
+
+  Delta=N*sx2-sx*sx;
+  
+  q=1/Delta*(sx2*sy - sx *sxy);
+  m=1/Delta*(N*sxy - sx *sy);
+
 
   // Fix the X coo of the Y only hits
   for(int jj=0;jj<ptr->getnhits();jj++){
@@ -4671,7 +4732,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
       TkSens tks(tkid, gcoo, 0);
       if(tks.LadFound()){
 	if(tks.GetStripX()!=-1) phit->SetDummyX(tks.GetStripX());
-	else phit->SetDummyX(383);
+	else phit->SetDummyX(tks.GetCloseChanX());
 	//phit->BuildCoordinates();	  
 	phit->SetResolvedMultiplicity(tks.GetMultIndex());
       }
