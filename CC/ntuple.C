@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.235 2011/07/05 10:23:32 choutko Exp $
+//  $Id: ntuple.C,v 1.236 2011/07/11 08:54:40 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -554,6 +554,8 @@ Get_setup02()->fScalers.insert(make_pair(AMSEvent::gethead()->getutime(),Trigger
         _Lastev=del[k]->Event();
         _Lasttime=del[k]->UTime();
 	_tree->Fill();
+         AMSPoint ic;
+         //int i=AMSEventR::Head()->isInShadow(ic);
          Get_setup02()->UpdateHeader(AMSEventR::Head());
       }
     }

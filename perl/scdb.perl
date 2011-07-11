@@ -76,25 +76,42 @@ my $maxtime=2000000000;
             opendir THISDIR,$output or die "scdb.perl-F-UnableToOpen $output \n";
             my @files=readdir THISDIR;
             closedir THISDIR;
+            my @tmpa=();
             foreach my $file (@files){
                 if($file=~/^SCDB/ and $file=~/.root$/){
                     my @junk=split '\.',$file;
                     my $t1=$junk[1];
                     my $t2=$junk[2];
-                    if($t1<$tmin){
-                        $tmin=$t1;
-                    }
-                    if($t2>$tmax){
-                        $tmax=$t2;
-                    }
+                    my $tmp={};
+                    $tmp->{b}=$t1;
+                    $tmp->{e}=$t2;
+                    push @tmpa,$tmp;
+#                    if($t1<$tmin){
+#                        $tmin=$t1;
+#                    }
+#                    if($t2>$tmax){
+#                        $tmax=$t2;
+#                    }
                 }
             }
+            my @tmpb= sort prio @tmpa;
+            my $end=2000000000;
+            foreach my $tmp (@tmpb){
+                if ($tmp->{b}>$end){
+                    $tmin=$end;
+                    last;
+                }
+                else{
+                    $tmin=$tmp->{e};
+                }
+                $end=$tmp->{e};
+            }            
             if($tmin<=$min){
                 $min=$tmax;
                 print "scdb.perl-I-MinChangedTo $min \n";
             }
         }
-
+  
 
 
 
@@ -166,3 +183,8 @@ while ($beg<$end and $end<=$max){
 unlink "/tmp/getior.$$";
         $max=4000000000;
         goto begin;
+
+
+sub prio{
+    $a->{b} <=> $b->{b};
+}

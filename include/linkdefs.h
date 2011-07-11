@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.15 2011/07/05 10:23:37 choutko Exp $
+//  $Id: linkdefs.h,v 1.16 2011/07/11 08:54:49 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -42,7 +42,7 @@
 
 #pragma link C++ class ScalerMon+;
 #pragma link C++ class AMSSetupR::ISSAtt+;
-#pragme link C++ class AMSSetupR::ISSSA+;
+#pragma link C++ class AMSSetupR::ISSSA+;
 #pragma link C++ class Lvl1TrigConfig+;
 #pragma link C++  class AMSSetupR::TDVR+;
 #pragma link C++ class AMSPoint+;

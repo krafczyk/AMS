@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.180 2011/07/01 10:01:00 choutko Exp $
+//  $Id: server.C,v 1.181 2011/07/11 08:54:40 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -509,6 +509,7 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
                AString submit(perldir);
                submit+="/klist.py";
                system((const char*)submit);
+               system("kinit -R");
     }
   }
 
@@ -2847,6 +2848,10 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
      }
      else{
        cerr <<" kstart kend problem "<<kstart<<" "<<kend<<" "<<line<<endl;
+       if(strstr(line,"aborted by esub")){
+       cerr <<" *** No AFS Token *** "<<line<<endl;
+         system("kinit -R");    
+       }
      } 
    }
    else {

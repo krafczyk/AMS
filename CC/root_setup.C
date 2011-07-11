@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.43 2011/07/05 10:23:32 choutko Exp $
+//  $Id: root_setup.C,v 1.44 2011/07/11 08:54:40 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -713,7 +713,7 @@ AMSNtuple::UnLock();
 return false;
 }
 char tmps[255];
-int delta=86400;
+int delta=43200;
 sprintf(tmps,"/tmp/SCDB.%u.%u.root",fHeader.FEventTime-delta,fHeader.LEventTime+delta);
 const char * nve=getenv("Getami2rootxec");
 char ior[]="ami2root.exe";

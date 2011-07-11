@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.322 2011/07/07 14:51:20 afiasson Exp $
+//  $Id: root.C,v 1.323 2011/07/11 08:54:40 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4948,6 +4948,178 @@ long long AMSEventR::Size(){
   return size;
 }
 
+int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
+
+
+// says if particle ipart is in shadow and returns also  AMSPoints of interception of particles with iss solar panel rotation plane planes (FLT_MAX if directed away);
+
+if(ipart>=nParticle()){
+ cerr<<"AMSEventR::isInShadow-E-NiSuchParticle "<<ipart<<endl;
+ return -1;
+}
+ParticleR part=Particle(ipart);
+if(part.Beta<0)return -2;
+AMSPoint AMSGlCoo(-33.7 , -841.1, 152.8);   // AMS Coo (inches)in Station  coo system , to be changed
+
+AMSGlCoo=AMSGlCoo*2.54;  //to cm
+
+AMSPoint SA[2];
+
+// SA arraya centers in cm (at alpha=0)
+
+SA[0]=AMSPoint(-1982.51,-3418.02,-110.11);  //3A
+
+SA[1]=AMSPoint(1982.51,-3417.3,23.77);  //1A
+
+
+double za=(SA[0][2]+SA[1][2])/2;
+
+SA[0][2]=SA[0][2]-za;
+
+SA[1][2]=SA[0][1]-za;
+AMSGlCoo[2]=AMSGlCoo[2]-za;
+// sizes
+
+
+AMSPoint SAsize[2];
+for(int k=0;k<2;k++){
+   SAsize[k]=AMSPoint(1281.,453.9,0.5);  // size in inches in their local coo sys
+   SAsize[k]=SAsize[k]*2.54;
+}
+
+
+// here need account for tilt;
+
+double nrm[3][3];
+
+//take into acc 0.5 deg uncertainty
+
+double angle=11.5/180.*3.1415926;
+
+
+AMSDir dir(part.Theta,part.Phi);
+dir[0]=-dir[0];
+dir[1]=-dir[1];
+dir[2]=-dir[2];
+
+//  add some error due to the mscattering
+    double addon=13.6e-3/fabs(part.Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
+
+   double roll=angle-addon;
+   double cr=cos(roll);
+   double sr=sin(roll);
+   double l1=1;
+   double m1=0;
+   double n1=0;
+
+   double l2=0;
+   double m2=cr;
+   double n2=sr;
+
+   double l3=0;
+   double m3=-sr;
+   double n3=cr;
+   AMSDir dv;
+
+   dv[0]=dir[0]*l1+dir[1]*m1+dir[2]*n1;
+   dv[1]=dir[0]*l2+dir[1]*m2+dir[2]*n2;
+   dv[2]=dir[0]*l3+dir[1]*m3+dir[2]*n3;
+
+
+
+//  Calculate interception points;
+
+AMSPoint coo(part.Coo);
+
+coo=coo+AMSGlCoo;
+
+AMSDir Dirp(0,1,0);  // alpha rot plane
+
+
+AMSPoint Coop=SA[0]+SA[1];
+
+Coop=Coop*0.5;
+
+int ret=0;
+
+ double xcross=dv.prod(Dirp);
+ if(xcross==0){
+    ic=AMSPoint(FLT_MAX,FLT_MAX,FLT_MAX);
+    return ret;
+  }
+ else{
+   double t=Dirp.prod(Coop-coo)/xcross;
+   if(t<0){
+    ic=AMSPoint(FLT_MAX,FLT_MAX,FLT_MAX);
+    return ret;
+   }
+   else{
+    ic=dv*t;
+    ic=ic+coo;
+//   check here if in shadow
+
+    // Check phi angle
+    float alpha,b1a,b3a,b1b,b3b;
+    float aa,ab; 
+    int s1=fHeader.getISSSA(aa,b1a,b3a,b1b,b3b,-5);
+    int s2=fHeader.getISSSA(ab,b1a,b3a,b1b,b3b,5);
+    int s3=fHeader.getISSSA(alpha,b1a,b3a,b1b,b3b);
+    double dr=3.1415926/180.;
+    alpha*=dr;
+    aa*=dr;
+    ab*=dr;
+    b1a*=dr;
+    b3a*=dr;
+    double da=fabs(ab-aa)/2+addon;
+    if(s3==2 || s1==2 || s2==2){
+     alpha=fHeader.Alpha;
+     b1a=fHeader.B1a;
+     b3a=fHeader.B3a;
+     da=2*3.1415926/90./60.*5+addon;
+    }
+    double beta;    
+    double rmax;
+    double size;
+    double c; 
+    if(alpha>0 && alpha<3.1415926){
+        beta=b1a;
+        c=SA[1][2];
+        size=SAsize[1][1]/2*fabs(cos(beta));
+        rmax=fabs(SA[1][0])+SAsize[1][0]/2;
+        rmax=sqrt(rmax*rmax+(SAsize[1][1]/2)*(SAsize[1][1]/2));
+    }
+    else {
+     c=-SA[0][2];
+     alpha=alpha-3.1415926;
+     beta=b3a;
+     size=SAsize[0][1]/2*fabs(cos(beta));
+     rmax=fabs(SA[0][0])+SAsize[0][0]/2;
+     rmax=sqrt(rmax*rmax+(SAsize[0][1]/2)*(SAsize[0][1]/2));
+    }
+    double r=sqrt(ic[0]*ic[0]+ic[1]*ic[1]);
+    if(r>rmax)return 0;
+    double phi=atan2(ic[2],ic[0]);
+    if(phi>alpha-da && phi<alpha+da){
+         return 1;
+    }
+    else{
+{
+      double d=fabs(cos(alpha-da)*ic[2]-sin(alpha-da)*ic[0]-c);
+      if(d<size)return 1;
+}
+{
+      double d=fabs(cos(alpha+da)*ic[2]-sin(alpha+da)*ic[0]-c);
+      if(d<size)return 1;
+}
+    }    
+   }
+}
+   return 0;
+}
+
+
+
+
 char * ParticleR::Info(int number, AMSEventR* pev){
   double anti=AntiCoo[0][2];
    float btof=0;
@@ -5171,11 +5343,12 @@ return false;
 
 
 
-int HeaderR::getISSSA(float & alpha, float &b1a, float &b3a, float &b1b,float &b3b){
+
+int HeaderR::getISSSA(float & alpha, float &b1a, float &b3a, float &b1b,float &b3b,float dt){
 unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
 AMSSetupR::ISSSA a;
-double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
 int ret=AMSEventR::getsetup()->getISSSA(a,xtime);
 alpha=a.alpha;
 b1a=a.b1a;

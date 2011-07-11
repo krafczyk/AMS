@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.373 2011/07/07 14:51:21 afiasson Exp $
+//  $Id: root.h,v 1.374 2011/07/11 08:54:49 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -290,7 +290,7 @@ public:
 #endif
   friend class AMSEventR;
 
-int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b); ///<get AMSSetupR::ISSSA values for the current event time;
+int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, float dt=0); ///<get AMSSetupR::ISSSA values for the current event time;
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
@@ -3293,6 +3293,19 @@ int OS() const {return fHeader.Version/16>465?fHeader.Version%16:fHeader.Version
 unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
+///
+
+
+//!   Says if particle pass thru the ISS Solar Array
+
+/*!  
+       input ipart index (default);
+   
+       output Coordinate of the particle crossing SA Arrays in StationAnalysisCooSystem
+
+       \return 0 if not in shadow ;  1  if in ; -1 if no particle; -2 if upgoing particle, -3 if no SA data
+*/
+int isInShadow(AMSPoint & ic,int ipart=0); ///< Says if particle pass thru the ISS Solar Array
 ///
 
 //! Fast TDVR Element Accessor
