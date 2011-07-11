@@ -61,6 +61,7 @@ my $maxtime=2000000000;
              my $ctime=localtime(time());
              warn "scdb.perl-E-DataBaseNotUpdating-T-$ctime \n";
              sleep 600;
+             $max=4000000000;
              goto begin;
          }
         if($max>$maxtime){
@@ -109,13 +110,14 @@ if($end>$max){
             warn "scdb.perl-W-NotEnoughData $max $min  \n";
             if($max==$maxtime){
                 my $ctime=localtime(time());
-                print "scdb.perl-I-willSleep $overlap $ctime \n";
+                warn "scdb.perl-I-willSleep $overlap $ctime \n";
                sleep $overlap;
                 $force=0;
+               $max=4000000000;
                goto begin;
             }
             else{
-                die "scdb.perl-I-Stop \n";
+                die "scdb.perl-I-Stop $max $maxtime \n";
             }
         }
 
@@ -130,6 +132,7 @@ while ($beg<$end and $end<=$max){
 #                 here add mail message
             sleep 600;
             unlink "/tmp/t.root.$$";
+            $max=4000000000;
             goto begin;
            
         }
@@ -161,4 +164,5 @@ while ($beg<$end and $end<=$max){
     }
 }
 unlink "/tmp/getior.$$";
+        $max=4000000000;
         goto begin;
