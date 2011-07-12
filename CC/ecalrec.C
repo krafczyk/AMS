@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.148 2011/06/11 17:28:11 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.148.2.1 2011/07/12 10:24:45 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2605,7 +2605,7 @@ void AMSEcalShower::ZProfile()
       if (err<.009&&_EnergyPIC<1000.) err=0.009;
       if (err<.004&&_EnergyPIC>1000.) err=0.004;
       if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
-	if((par2>9&&a>4)||(par2<8&&a<15)){
+	if((par2>=8&&a>4)||(par2<8&&a<15)){
 	  z[nbins] = frac[nbins];
 	  errorz[nbins] = err;
 	  x[nbins]=(float) a + 0.5;
