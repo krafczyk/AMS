@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.149 2011/07/07 14:51:20 afiasson Exp $
+//  $Id: ecalrec.C,v 1.150 2011/07/12 09:12:10 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2693,7 +2693,7 @@ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
     //Pisa version
     efrac /= (1+_S13LeakYPI)*ec;
     
-    if(efrac>2*ECREFFKEY.SimpleRearLeak[0])
+    if(efrac>0.01)
       {   
 	
 	//float EALPHA0=-3.0;
@@ -2724,8 +2724,8 @@ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
       }
     else
       {
-	_EnergyPIC=ECREFFKEY.SimpleRearLeak[3]*ec;
-	_RearLeakPI= _EnergyPIC-ECREFFKEY.SimpleRearLeak[1]*ec;
+	_EnergyPIC= ec;
+	_RearLeakPI=0.;
       }
     
   }
@@ -2849,7 +2849,7 @@ void AMSEcalShower::ZProfile()
       if (err<.009&&_EnergyPIC<1000.) err=0.009;
       if (err<.004&&_EnergyPIC>1000.) err=0.004;
       if(!isnan(frac[a]) && !isnan(err) && frac[a]>0. && frac[a]<1. && err>0. && err<1.){
-	if((par2>9&&a>4)||(par2<8&&a<15)){
+	if((par2>8&&a>4)||(par2<8&&a<15)){
 	  z[nbins] = frac[nbins];
 	  errorz[nbins] = err;
 	  x[nbins]=(float) a + 0.5;
