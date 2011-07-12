@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.679 2011/06/16 22:26:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.680 2011/07/12 09:02:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8861,7 +8861,8 @@ anyagain:
 #        }
 #        if(($#sta<0 or time()-$sta[9] >86400*180  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
 
-         my $dte=stat_adv ("$self->{AMSDataDir}/DataBase",0,0,1);
+         my $dte=stat_adv_mc ("$self->{AMSDataDir}/DataBase",0,0,2,$sta[9]);
+#         die "$sta[9] $dte $filedb_att \n";
         if(($#sta<0 or time()-$sta[9] >86400*180  or $dte > $sta[9] ) and $self->{dwldaddon}==1){
 
            $self->{sendaddon}=2;
@@ -8943,7 +8944,7 @@ anyagain:
         $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerStatus.l";
 
         $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
-    }
+}
            else{
         $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerCmnNoise";
         $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerSigmas.r";
@@ -9061,7 +9062,7 @@ anyagain:
            $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
              #die " $subs $buf \n";
           }
-           if($timendu-$timbegu>86400*30){
+           if($timendu-$timbegu>86400*92){
                $timbegu=time();
                $timendu=$timbegu+3600*$runno;
            }
@@ -18459,8 +18460,8 @@ foreach my $file (@allfiles){
         next;
     }
     my @sts = stat $newfile;
-    if($#sts>0 && $sta[9]>$dte){
-        $dte=$sta[9];
+    if($#sts>0 && $sts[9]>$dte){
+        $dte=$sts[9];
     }
     if($level<$mxl){
        if($sts[2]<32000){
@@ -18470,6 +18471,55 @@ foreach my $file (@allfiles){
 }
 return $dte;
 }
+
+
+sub stat_adv_mc{
+my $dir=shift;
+my $dte=shift;
+my $level=shift;
+my $mxl=shift;
+my $lim=shift;
+my @sta=stat $dir;
+if($#sta<0){
+#    die "youptat $dir ";
+  return time();
+}
+opendir THISDIR ,$dir or return time();
+#opendir THISDIR ,$dir or die "!!!! $dir";
+my @allfiles= readdir THISDIR;
+closedir THISDIR;
+foreach my $file (@allfiles){
+    if ($file =~/^\./){
+       next;
+    }
+    my $newfile=$dir."/".$file;
+    if(readlink $newfile){
+        next;
+    }
+    if(not ($file=~/\.0\./ or $file=~/\.0$/) and $level==$mxl){
+       next;
+   }
+    my @sts = stat $newfile;
+    if($level<$mxl){
+       if($#sts>0 && $sts[2]<32000){
+           if($sts[9]>$lim or $level==0){
+           $dte=stat_adv_mc($newfile,$dte,$level+1,$mxl,$lim);
+       }
+    }
+   }
+    if(not ($file=~/\.0\./ or $file=~/\.0$/)){
+       next;
+   }
+   if($#sts>0 && $sts[9]>$dte){
+        $dte=$sts[9];
+    }
+ 
+}
+return $dte;
+}
+
+
+
 sub ChangeFS{
     my ($ref,$oldfs, $newfs, $update,$run)=  @_;
     my $rc="";
