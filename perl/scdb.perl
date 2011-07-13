@@ -85,7 +85,9 @@ my $maxtime=2000000000;
                     my $tmp={};
                     $tmp->{b}=$t1;
                     $tmp->{e}=$t2;
+                    $tmp->{file}="$output/$file";
                     push @tmpa,$tmp;
+                    
 #                    if($t1<$tmin){
 #                        $tmin=$t1;
 #                    }
@@ -98,21 +100,31 @@ my $maxtime=2000000000;
             my $end=2000000000;
             foreach my $tmp (@tmpb){
                 if ($tmp->{b}>$end){
-                    $tmin=$end;
+                    $tmax=$end;
                     last;
                 }
                 else{
-                    $tmin=$tmp->{e};
+                    $tmax=$tmp->{e};
                 }
                 $end=$tmp->{e};
             }            
-            if($tmin<=$min){
+            if($tmax>=$min){
                 $min=$tmax;
                 print "scdb.perl-I-MinChangedTo $min \n";
             }
-        }
+        
   
-
+#  remove repetitive files
+my $i=1;
+while ($i <$#tmpb){
+    if($tmpb[$i-1]->{e}>$tmpb[$i+1]->{b}){
+    my $cmd ="rm $tmpb[$i]->{file}";
+    system($cmd);
+    $i=$i+1;
+}
+    $i=$i+1;
+}
+        }
 
 
 
