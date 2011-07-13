@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.91 2011/05/14 15:59:19 pzuccon Exp $
+#  $Id: Makefile,v 1.92 2011/07/13 09:21:24 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -191,6 +191,9 @@ ifdef PGTRACK
 CPPFLAGS+= -D_PGTRACK_
 endif
 
+ifdef NOCASTOR
+CPPFLAGS+= -D__NOCASTOR__
+endif
 
 # Other ARCH are not supported for the moment !!!!!!!!!!
 
