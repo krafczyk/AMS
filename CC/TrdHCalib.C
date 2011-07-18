@@ -26,17 +26,41 @@ void TrdHCalibR::update_medians(TrdHTrackR* track,int opt,float beta,int debug){
       if(opt>0)amp*=GetPathCorr(track->TubePath(hit->Layer,hit->Ladder,hit->Tube));
       if(opt>1)amp*=GetBetaCorr(beta);// approx mip beta (betagamma 3.04)
       
+      //      int gc,gcmod;
+      //      LLT2GCM(hit->Layer,hit->Ladderr,gc,gcmon);
+      int mod=tubeid/16;
+      int hv=mod/4;
+      int gc=hv/2;
+      int mf=GetManifold(gc);
+      
 #pragma omp critical (trdmed)
       {
-	if(amp>tube_medians[tubeid])tube_medians[tubeid]+=0.04;
-	if(amp<tube_medians[tubeid])tube_medians[tubeid]-=0.1;
+	if(amp>det_median)det_median+=0.001;
+	if(amp<det_median)det_median-=0.001;
+	
+	float mf_amp=amp/det_median;
+	if(mf_amp>mf_medians[mf])mf_medians[mf]+=0.0001;
+	if(mf_amp<mf_medians[mf])mf_medians[mf]-=0.0001;
+	
+	float hv_amp=amp/det_median/mf_medians[mf]; 
+	if(hv_amp>hv_medians[hv])hv_medians[hv]+=0.0001;
+	if(hv_amp<hv_medians[hv])hv_medians[hv]-=0.0001;
+	
+	float mod_amp=amp/det_median/mf_medians[mf]/hv_medians[hv];
+	if(mod_amp>mod_medians[mod])mod_medians[mod]+=0.0001;
+	if(mod_amp<mod_medians[mod])mod_medians[mod]-=0.0001;
 
-	if(amp>mod_medians[hit->Layer][hit->Ladder])mod_medians[hit->Layer][hit->Ladder]+=0.04;
-	if(amp<mod_medians[hit->Layer][hit->Ladder])mod_medians[hit->Layer][hit->Ladder]-=0.1;
+	float tube_amp=amp/det_median/mf_medians[mf]/hv_medians[hv]/mod_medians[mod];
+	if(amp>tube_medians[tubeid])tube_medians[tubeid]+=0.0001;
+	if(amp<tube_medians[tubeid])tube_medians[tubeid]-=0.0001;
 
-	if(debug)
+	if(debug){
 	  printf("LLT %02i%02i%02i id %i med %.2f\n",hit->Layer,hit->Ladder,hit->Tube,tubeid,tube_medians[tubeid]);
+	  printf("DET %.2f MF %i %.2f HV %i %.2f MOD %i %.2f\n",det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod]);
+	}
+
 	tube_occupancy[tubeid]++;
+	
       }
     }
   }
@@ -45,9 +69,10 @@ void TrdHCalibR::update_medians(TrdHTrackR* track,int opt,float beta,int debug){
 
 void TrdHCalibR::init_calibration(float start_value){
   calibrate=true;
-  for(int i=0;i<5248;i++)
-    if(tube_medians[i]==0)tube_medians[i]=start_value;
-  for(int i=0;i<20;i++)for(int j=0;j<18;j++)mod_medians[i][j]=start_value;
+  //  for(int i=0;i<5248;i++)
+  //    if(det_median==0)
+  det_median=start_value/0.4;
+  
 }
 
 float TrdHCalibR::MeanOccupancy(int opt){
@@ -91,12 +116,26 @@ int TrdHCalibR::FillMedianFromTDV(){
   bool toReturn = true;
   int layer,ladder,tube;
   
+  det_median=0.;
+  
   bool allone=true;
   for(int i=0;i<5248;i++){
     GetLLTFromTubeId(layer,ladder,tube,i);
     int ntdv=layer*18*16+ladder*16+tube;
-    tube_medians[i]=tube_gain[ntdv]*norm_mop;
-    //    if(i%500==0)printf("i %i norm %.2f gain %.2f med %.2f\n",i,norm_mop,tube_gain[ntdv],tube_medians[i]);
+
+    tube_medians[i]=tube_gain[ntdv]*norm_mop/0.4;
+
+    det_median+=tube_medians[i];
+    
+    int mod=i/16;
+    mod_medians[mod]+=tube_medians[i];
+
+    int hv=mod/4;
+    hv_medians[hv]+=tube_medians[i];
+
+    int mf=GetManifold(hv/2);
+
+    mf_medians[hv]+=tube_medians[i];
 
     if( tube_medians[i] < 0. )
       toReturn = false;
@@ -104,36 +143,56 @@ int TrdHCalibR::FillMedianFromTDV(){
     if (tube_gain[ntdv]!=1.)allone=false;
   }
 
+  det_median/=5248.;
+
+  for(int i=0;i<10;i++){
+    if(i==7)mf_medians[i]/=det_median*5.*8.*16.;
+    else mf_medians[i]/=det_median*4.*8.*16.;
+  }
+  for(int i=0;i<82;i++){
+    int mf=GetManifold(i/2);
+    hv_medians[i]/=det_median*mf_medians[mf]*64.;
+  }
+
+  for(int i=0;i<328;i++){
+    int hv=i/4;
+    int mf=GetManifold(hv/2);
+    mod_medians[i]/=det_median*mf_medians[mf]*hv_medians[hv]*16.;
+  }
+
+  for(int i=0;i<5248;i++){
+    int mod=i/16;
+    int hv=mod/4;
+    int mf=GetManifold(hv/2);
+    tube_medians[i]/=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod];
+  }
+
+
   return toReturn+2*allone;
 }
 
 int TrdHCalibR::FillTDVFromMedian(){
-  int nlowocc=0;
+  //  int nlowocc=0;
 
   int layer,ladder,tube;
+  float mean=0.;
   for(int i=0;i<5248;i++){
     GetLLTFromTubeId(layer,ladder,tube,i);
     int ntdv=layer*18*16+ladder*16+tube;
 
-    if(tube_occupancy[i]==0){
-      tube_gain[ntdv]=tube_medians[i]/norm_mop;
-     tube_status[ntdv]= tube_status[ntdv] = AMSDBc::BAD;
-    }
-    else if(tube_occupancy[i]>min_occupancy){
-      tube_gain[ntdv]=tube_medians[i]/norm_mop;
-      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::BAD;
-      tube_status[ntdv]= tube_status[ntdv] & AMSDBc::TRDLOWOCC;
-      tube_status[ntdv]= tube_status[ntdv] & AMSDBc::TRDGROUPED;
-    }
-    else{
-      tube_gain[ntdv]=mod_medians[layer][ladder]/norm_mop;
-      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::BAD;
-      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDLOWOCC;
-      tube_status[ntdv]= tube_status[ntdv] | AMSDBc::TRDGROUPED;
-      nlowocc++;
-    }
+    int mod=i/16;
+    int hv=mod/4;
+    int mf=GetManifold(hv/2);
+    
+    float amp=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[i]*0.4;
+
+    printf("DET %3.2f MF %i %.2f HV %i %.2f % MOD %i %.2f TUBE %i %.2f-> A %.2f\n",det_median*0.4,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],i,tube_medians[i],amp);
+    tube_gain[ntdv]=amp/norm_mop;
+    mean+=amp;
   }
-  return nlowocc;
+
+  printf("detector mean %.2f",mean/5248.);
+  return 0;//nlowocc;
 }
 
 
@@ -596,3 +655,116 @@ float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug)
 }
 
 
+//inlets
+static int mnf3_1[4]={13,15,28,38};
+static int mnf3_2[4]={5 ,11,17,40};
+static int mnf3_3[4]={3 ,9 ,19,30};
+static int mnf3_4[4]={6 ,7 ,26,37};
+static int mnf3_5[4]={4 ,21,24,39};
+
+//outlets
+static int mnf7_1[4]={2 ,10,25,29};
+static int mnf7_2[4]={12,16,23,35};
+static int mnf7_3[4]={8 ,22,27,32};
+static int mnf7_4[4]={1 ,14,20,36};
+static int mnf7_5[4]={0 ,18,31,34};
+
+int TrdHCalibR::GetManifold(int gascirc){
+  if(gascirc==33)
+    return 7;
+  else{
+    for(int i=0;i<4;i++){
+      if(gascirc==mnf3_1[i])return 0;
+      if(gascirc==mnf3_2[i])return 1;
+      if(gascirc==mnf3_3[i])return 2;
+      if(gascirc==mnf3_4[i])return 3;
+      if(gascirc==mnf3_5[i])return 4;
+      if(gascirc==mnf7_1[i])return 5;
+      if(gascirc==mnf7_2[i])return 6;
+      if(gascirc==mnf7_3[i])return 7;
+      if(gascirc==mnf7_4[i])return 8;
+      if(gascirc==mnf7_5[i])return 9;
+    }
+  }
+  cerr << "manifold for gascirc " << gascirc << "not found!" << endl;
+  return -1;
+}
+
+
+// numbering 0-40
+static int gc_leftbotarr [13]={7,11,12,14,15,17,18,20,22,32,35,40,-1};
+static int gc_rightbotarr[13]={8, 9,10,13,16,19,21,33,34,36,37,38,39};
+static int gc_lefttoparr [13]={0, 4, 5, 6,24,25,26,28,30,-1,-1,-1,-1};
+static int gc_righttoparr[13]={1, 2, 3,23,27,29,31,-1,-1,-1,-1,-1,-1};
+
+int TrdHCalibR::GetInletGeom(int gascirc){
+  int inletgeom=-1;
+  for(int i=0;i!=13;i++){
+    if(gc_leftbotarr[i]==gascirc){
+      inletgeom=0;
+      break;
+    }
+    else if (gc_rightbotarr[i]==gascirc){
+      inletgeom=1;
+      break;
+    }
+    else if (gc_lefttoparr[i]==gascirc){
+      inletgeom=2;
+      break;
+    }
+    else if (gc_righttoparr[i]==gascirc){
+      inletgeom=3;
+      break;
+    }
+  }
+  if(inletgeom==-1){
+    cerr << "no inlet geometry for gascirc " << gascirc << endl; 
+    return -1;
+  }
+  return inletgeom;
+}
+
+void TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod){
+  int templadder=ladder;
+  if(layer>3)templadder+=14;
+  if(layer>7)templadder+=16;
+  if(layer>11)templadder+=16;
+  if(layer>15)templadder+=18;
+  
+  if(layer>19)
+    cerr << "layer 19+ found! layers should be 0-19 here" << endl;
+  
+  if(templadder%2==1) gascirc_=(templadder-1)/2;
+  else gascirc_=templadder/2;
+  
+  int side=-1; // 0 left - 1 right
+                                                 
+  if(templadder%2==0)side=0;
+  else side=1;
+
+  if(side==0) gasmod=layer%4;
+  else gasmod = 4+layer%4;
+
+  int inletgeom = GetInletGeom(gascirc_);
+
+  // modules numbering depending on gas inlet
+  if(inletgeom==0){    // left bottom
+    if(side)gasmod=7-layer%4;
+    if(!side)gasmod=layer%4;
+  }
+  else if(inletgeom==1){    // right bottom
+    if(side)gasmod=layer%4;
+    if(!side)gasmod=7-layer%4;
+  }
+  else if(inletgeom==2){  // left top
+    if(side)gasmod=4+layer%4;
+    if(!side)gasmod=3-layer%4;
+  }
+  else if(inletgeom==3){  // right top
+    if(side)gasmod=3-layer%4;
+    if(!side)gasmod=4+layer%4;
+  }
+  else cerr << "ERROR ! Inlet for gascirc " << gascirc_ << "not found" << endl;
+
+  if(gasmod==-1)cerr << "gasmodule not found!" << endl;
+}

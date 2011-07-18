@@ -34,11 +34,20 @@ class TrdHCalibR{
   /// container for channel medians
   float tube_medians[5248];
   
-  /// container for channel medians
-  float mod_medians[20][18];
-
   /// container for channel occupancy
   int tube_occupancy[5248];
+  
+  /// container for module medians
+  float mod_medians[328];
+
+  /// container for HVchannel medians
+  float hv_medians[82];
+
+  /// container for manifold medians
+  float mf_medians[10];
+
+  /// container for detector;
+  float det_median;
 
   float tube_gain[6064];
   unsigned int tube_status[6064];
@@ -55,17 +64,19 @@ class TrdHCalibR{
   /// default ctor
   TrdHCalibR():norm_mop(49.),min_occupancy(50),calibrate(0){
     for(int i=0;i<5248;i++){
+      if(i<10)mf_medians[i]=1.;
+      if(i<82)hv_medians[i]=1.;
+      if(i<328)mod_medians[i]=1.;
       tube_occupancy[i]=0;
-      tube_medians[i]=0.;
+      tube_medians[i]=1.;
     }
-    for(int i=0;i<20;i++)for(int j=0;j<18;j++)mod_medians[i][j]=0.;
+    det_median=norm_mop/0.4;
     for(int i=0;i<6064;i++){
       tube_status[i]=0;
       tube_gain[i]=1.;
       tube_pedestals[i]=0.;
       tube_sigmas[i]=0.;
     }
-
   };
 
     ~TrdHCalibR(){};
@@ -109,6 +120,10 @@ class TrdHCalibR{
     float MeanGaussMedian(int opt=0);
     float MeanOccupancy(int opt=0);
     
+    void LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod);
+    int GetInletGeom(int gascirc);
+    int GetManifold(int gascirc);
+
     ClassDef(TrdHCalibR,1)
       };
 #endif
