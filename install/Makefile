@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.168 2011/07/07 14:51:21 afiasson Exp $
+#  $Id: Makefile,v 1.169 2011/07/19 09:37:16 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -335,7 +335,7 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h ../include/TrExtAlignDB.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h
+ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h
 endif
 
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h  ../include/trigger102_setup.h
@@ -604,12 +604,12 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C:    ../include/point.h     ../include/root_RV.h ../include/root.h         ../include/root_setup.h ../include/trigger102_setup.h  ../include/linkdef.h
+$(BIN)rootdict.C:    ../include/point.h     ../include/root_RV.h ../include/root.h         ../include/root_setup.h ../include/trigger102_setup.h  ../include/trfit.h ../include/linkdef.h  
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
 	@echo "OK"

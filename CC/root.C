@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.323 2011/07/11 08:54:40 choutko Exp $
+//  $Id: root.C,v 1.324 2011/07/19 09:37:06 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -8,8 +8,6 @@
 #include "TXNetFile.h"
 #include <TChainElement.h>
 #include "TFile.h"
-#include "commons.h"
-#include "commonsi.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -3151,8 +3149,8 @@ float EcalShowerR::EcalStandaloneEstimator(){
 		ecallappreader->AddVariable("Mshower_footprinty",&varBDT[20]);    
 		ecallappreader->AddVariable("Zprofile2A/Zprofile3A",&varBDT[21]);          
 		ecallappreader->AddVariable("Zprofile0A",&varBDT[22]);          
-        char name[801];
-        sprintf(name,"%s/%s/ECAL_LAPP_BDT.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+        char name[801]="";
+        //sprintf(name,"%s/%s/ECAL_LAPP_BDT.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
 		ecallappreader->BookMVA("BDTG method" , name);
 	}
 	estimator = ecallappreader->EvaluateMVA("BDTG method");
@@ -3923,6 +3921,17 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   PiErrRig        = ptr->_PIErrRigidity;
   RigidityMS      = ptr->_RidgidityMS;
   PiRigidity      = ptr->_PIRigidity;
+       BitPattern=0;
+       for(int k=0;k<ptr->_NHits;k++){
+       int l=(ptr->_Pthit[k]->getid().cmptr())%10-1;
+        BitPattern|=(1<<l);
+       }
+  fTrTrackFit.clear();
+  for(int k=0;k<ptr->fTrTrackFit.size();k++){
+    fTrTrackFit.push_back(ptr->fTrTrackFit[k]);
+  }
+//  char* info;
+//  info=Info();
 #endif
 }
 #endif
@@ -4417,7 +4426,8 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
   Edr=ptr->getsublength(4);
   L1dr=ptr->getsublength(5);
   L3dr=ptr->_lvl3[0] | (ptr->_lvl3[1]<<16);
-  L3Event=ptr->_lvl3[2];
+  L3VEvent=ptr->_lvl3[3] | (ptr->_lvl3[2]<<16);;
+  L3TimeD=ptr->_lvl3[4];
   for(int k=0;k<sizeof(JError)/sizeof(JError[0]);k++){
       JError[k]=ptr->getjerror(k);
   }
@@ -4983,7 +4993,7 @@ AMSGlCoo[2]=AMSGlCoo[2]-za;
 
 AMSPoint SAsize[2];
 for(int k=0;k<2;k++){
-   SAsize[k]=AMSPoint(1281.,453.9,0.5);  // size in inches in their local coo sys
+   SAsize[k]=AMSPoint(1306.,453.9,0.5);  // size in inches in their local coo sys
    SAsize[k]=SAsize[k]*2.54;
 }
 
@@ -5150,7 +5160,7 @@ char * DaqEventR::Info(int number){
     int e=(L3dr>>13)&1;
     int p=(L3dr>>14)&1;
     int a=(L3dr>>15)&1;
-    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d L3counter %d",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767,L3Event);
+    sprintf(_Info,"Length  %d TDR %d UDR %d SDR %d RDR %d EDR %d LVL1 %d ; LVL3  %d %d %d %d %d %d %d %d %d %d %d L3counter %d L3Td %f7.1 msec",Length,Tdr,Udr,Sdr,Rdr,Edr,L1dr,a,p,e,len,status,sa4,sa3,sa2,sa1,sc, (L3dr>>16)&32767,L3Event(),double(L3TimeD)*0.64e-3);
   return _Info;
   } 
 
@@ -5460,3 +5470,377 @@ if((PhysBPatt & (1<<i)))return true;
 }
 return false;
 }
+#ifndef _PGTRACK_
+bool TrTrackR::setFitPattern(TrTrackFitR::kAtt k, int & pattern){
+if (pattern<0){
+  int p=PatternL();
+  int npt=(NHits()+1)/2;
+  switch(k){
+    case TrTrackFitR::kF:
+     pattern=BitPattern;
+     return true;
+    case TrTrackFitR::kH1:
+     if(npt<3)npt=3;
+     if (NHits()>4 && NHits()%2==0){
+      // fit 1,,,n/2-1,n/2+1
+       pattern=0;
+       for(int k=0;k<npt-1;k++){
+         int l=p%10-1;
+         pattern|= (1<<l);
+         p/=10;
+       }
+       p/10;
+       int l=p%10-1;
+       pattern|= (1<<l);
+     }
+     else if(NHits()>3){
+       // fit 1,,,,n/2
+       pattern=0;
+       for(int k=0;k<npt;k++){
+         int l=p%10-1;
+         pattern|= (1<<l);
+         p/=10;
+       }
+     }
+     else return false;
+     return true;
+    case TrTrackFitR::kH2:
+     if(npt<3)npt=3;
+     if (NHits()>4 && NHits()%2==0){
+      // fit 1,,,n/2-1,n/2+1
+       pattern=0;
+       for(int k=0;k<NHits()-npt-1;k++)p/=10;
+        int l=p%10-1;
+        pattern|= (1<<l);
+        p/=10;
+        p/=10;
+       for(int k=0;k<npt-1;k++){
+        int l=p%10-1;
+        pattern|= (1<<l);
+        p/=10;
+       }
+     }
+     else if(NHits()>3){
+       // fit 1,,,,n/2
+       for(int k=0;k<NHits()-npt;k++)p/=10;
+       pattern=0;
+       for(int k=0;k<npt;k++){
+         int l=p%10-1;
+         pattern|= (1<<l);
+         p/=10;
+       }
+     }
+     else return false;
+     return true;
+
+
+     return true;
+    case TrTrackFitR::kI:
+     pattern=0;
+     for(int i=1;i<8;i++)if(((BitPattern>>i)&1))pattern|=(1<<i) ;
+     return true;
+    case TrTrackFitR::kE:
+     if(NHits()<4)return false;
+     pattern=0;
+     for(int i=0;i<2;i++){
+      int l=(p%10)-1;
+      pattern|=(1<<l);
+      p/=10;
+     }     
+     for (int i=0;i<NHits()-4;i++)p/=10;
+     for(int i=0;i<2;i++){
+      int l=(p%10)-1;
+      pattern|=(1<<l);
+      p/=10;
+     }     
+     return true;
+    default:
+     return false;
+
+  }
+ 
+}
+else return false;
+}
+
+TrTrackFitR::kAtt  TrTrackFitR::getAtt(){
+
+if(Att==0)return kF;
+else if(Att==1)return kH1;
+else if(Att==2)return kH2;
+else if(Att==3)return kI;
+else if(Att==4)return kE;
+else if(Att==5)return kC;
+else  return kND;
+
+}
+
+
+int TrTrackR::iTrTrackFit(TrTrackFitR & fit,int refit){
+// refit 0 just return; 1 refit if not 2 always refit and replace
+
+// Check TrTrackFitR is well defined;
+
+   setFitPattern(fit.getAtt(),fit.Pattern);
+
+   if(fit.Algo<0 || fit.Alig<0 || fit.MS<0)return -2;
+   if( !isSubSet(fit.Pattern)){
+     fit.Pattern=-1;
+     return -3;
+   }
+   if(refit>1){
+    static int err=0;
+    if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplemented"<<endl;
+    return -4;
+   }
+   else{
+    for(int i=0;i<fTrTrackFit.size();i++){
+
+    if(fTrTrackFit[i]==fit){
+      fit=fTrTrackFit[i];
+      return  i;
+    }
+    }
+    if( refit==0)return -1;
+    else{
+      static int err=0;
+     if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplemented"<<endl;
+     return -4;
+    }
+   }
+}
+   
+      
+
+
+bool TrTrackR::isSubSet(int pattern){
+
+for(int k=0;k<9;k++){
+ if( (pattern & (1<<k))){
+     if (!(BitPattern & (1<<k)))return false;
+ }
+}
+return true;
+}
+
+
+int TrTrackR::PatternL(){
+int ret=0;
+unsigned int p=1;
+for( int k=0;k<9;k++){
+  if(BitPattern & (1<<k)){
+    ret+=p*(k+1);
+     p*=10;
+}
+}
+return ret;
+}
+
+int TrTrackR::ToBitPattern(int patl){
+
+int p=patl;
+int ret=0;
+while(p){
+int l=p%10-1;
+ret|= (1<<l);
+p/=10;
+}
+return patl==PatternL()?ret:-1;
+
+}
+
+
+unsigned int TrTrackFitR::NHits() const{
+unsigned int ret=0;
+for( int k=0;k<9;k++){
+  if(Pattern & (1<<k))ret++;
+}
+return ret;
+}
+unsigned int TrTrackR::NHits() const{
+unsigned int ret=0;
+for( int k=0;k<9;k++){
+  if(BitPattern & (1<<k))ret++;
+}
+return ret;
+}
+
+TrTrackFitR::TrTrackFitR( int pattern, int algo,int alig,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[]):Pattern(pattern),Algo(algo),Alig(alig),MS(ms),Att(att),Rigidity(r),ErrRigidity(er),Coo(coo),Theta(t),Phi(p),Chi2(chi2){
+fTrSCoo.clear();
+for(int i=0;i<size;i++){
+fTrSCoo.push_back(ic[i]);
+}
+
+}
+
+bool TrTrackR::Compat(){
+if(fTrTrackFit.size()){
+if(AdvancedFitDone!=1){
+ AdvancedFitDone=1;
+
+
+  int patternoratt=0;
+  int alg=0;
+  int ms=1;
+  int alig=1;       
+
+{ 
+ TrTrackFitR a(patternoratt,alg,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     Rigidity=a.Rigidity;
+     ErrRigidity=a.ErrRigidity;
+     Theta=a.Theta;
+     Phi=a.Phi;
+     Chi2FastFit=a.Chi2;
+     for(int k=0;k<3;k++)P0[k]=a.Coo[k];
+   }
+}
+for(int k=0;k<3;k++){
+    TrTrackFitR a(-1,k,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     HRigidity[0]=a.Rigidity;
+     HTheta[0]=a.Theta;
+     HPhi[0]=a.Phi;
+     for(int l=0;l<3;l++)HP0[0][l]=a.Coo[l];
+     HChi2[0]=a.Chi2;
+     HErrRigidity[0]=a.ErrRigidity;
+     break;
+   }
+  }
+for(int k=0;k<3;k++){
+    TrTrackFitR a(-2,k,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     HRigidity[1]=a.Rigidity;
+     HTheta[1]=a.Theta;
+     HPhi[1]=a.Phi;
+     for(int l=0;l<3;l++)HP0[1][l]=a.Coo[l];
+     HChi2[1]=a.Chi2;
+     HErrRigidity[1]=a.ErrRigidity;
+     break;
+   }
+  }
+   
+{ 
+ TrTrackFitR a(0,1,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     PiRigidity=a.Rigidity;
+     PiErrRig=a.ErrRigidity;
+   }
+}
+{ 
+ TrTrackFitR a(0,2,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     GeaneFitDone=1;
+     GRigidity=a.Rigidity;
+     GErrRigidity=a.ErrRigidity;
+     GChi2=a.Chi2;
+   }
+}
+
+{ 
+ TrTrackFitR a(0,0,0,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     DBase[0]=a.Rigidity;
+     DBase[1]=a.Chi2;
+   }
+}
+
+
+{ 
+ TrTrackFitR a(0,0,1,0);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     FChi2MS=a.Chi2;
+     RigidityMS=a.Rigidity;
+   }
+}
+
+
+{ 
+ TrTrackFitR a(-3,0,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[0][0]=a.Rigidity;
+   }
+}
+{ 
+ TrTrackFitR a(-3,1,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[1][0]=a.Rigidity;
+   }
+}
+{ 
+ TrTrackFitR a(-3,2,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[2][0]=a.Rigidity;
+   }
+}
+
+{ 
+ TrTrackFitR a(-4,0,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[0][1]=a.Rigidity;
+   }
+}
+{ 
+ TrTrackFitR a(-4,1,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[1][1]=a.Rigidity;
+   }
+}
+{ 
+ TrTrackFitR a(-4,2,alig,ms);
+  int ret=iTrTrackFit(a,1);
+  if(ret>=0){
+     RigidityIE[2][1]=a.Rigidity;
+   }
+}
+}
+return true;
+}
+else{
+AdvancedFitDone=0;
+GeaneFitDone=0;
+Rigidity=0;
+Chi2FastFit=FLT_MAX;
+PiRigidity=0;
+GRigidity=0;
+Theta=0;
+HRigidity[0]=0;
+HRigidity[1]=0;
+return false;
+}
+
+}
+  char * TrTrackR::Info(int number){
+   int p=1;
+    int pattern=0;
+    for(int k=0;k<9;k++){
+      if((BitPattern & (1<<k)))pattern+=p;
+       p*=10;
+     }
+     Compat();
+
+  char * Info(int number=-1);
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Pattern=%09d HRig=(%7.3g,%7.3g) IERig=(%7.3g,%7.3g) (%7.3g,%7.3g)",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),pattern,HRigidity[0],HRigidity[1],RigidityIE[0][0],RigidityIE[0][1],RigidityIE[2][0],RigidityIE[2][1]);
+  return _Info;
+  }
+
+
+
+#ifdef __ROOTSHAREDLIBRARY__
+int TrTrackFitR::Fit(const TrTrackR & tr, AMSEventR *ev){
+return 0;
+}
+#endif
+#endif

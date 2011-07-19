@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.165 2011/06/08 15:05:29 choutko Exp $
+//  $Id: producer.C,v 1.166 2011/07/19 09:37:06 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -768,12 +768,15 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
  if(!_Solo)sendid(3600);
- int ntry=5;
+ int ntry=3;
+ bool suc=false;
+againcp:
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
   if(!_Solo)sendCurrentRunInfo();
   cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
   if(!system((const char*)fcopy)){
+   suc=true;
    cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
   if(!_Solo)sendCurrentRunInfo();
    if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
@@ -805,6 +808,58 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
    }
    break;
   }
+ }
+ if(!suc && means){
+   if(!_Solo)sendid(3600);
+   cerr <<"SendNtupleEnd-E-UnabletoCopyDSTSuccesfully "<<" Tried "<<(const char*)fcopy<<endl;
+  char *nd2=getenv("NtupleDestDirBackup");
+  char *nd20=getenv("NtupleDestDir00");
+  char *td2=getenv("TransferRawBy2");
+  if(nd2 &&strlen(nd2)){
+   char tmp[1024];
+   sprintf(tmp,"%s/%d.%d",_pid.uid,_pid.pid);
+   fmake="mkdir -p ";
+   fmake+=tmp;  
+   int i=system((const char*)fmake);
+   if(!i){
+   fcopy="cp ";
+   fcopy+=(const char*)a(bstart);
+   fcopy+="  ";
+   fcopy+=tmp; 
+   suc=true;
+   destdir=nd2;
+   goto againcp;
+   }
+   else{
+   cerr <<"SendNtupleEnd-E-UnabletoMakeDirBy "<<(const char*)fmake<<endl;
+   }
+  }
+  else if(nd20 &&strlen(nd20)){
+    char hostdefault[]="ams.cern.ch";
+    char *host=getenv("AMSRescueHost")?getenv("AMSRescueHost"):hostdefault;
+    fmake="ssh ";
+    fmake+=host;
+    fmake+=" mkdir -p ";
+    fmake+=nd20;
+   int i=system((const char*)fmake);
+   if(!i){
+   fcopy="scp ";
+   fcopy+=(const char*)a(bstart);
+   fcopy+=" ";
+   fcopy+=host;    
+   fcopy+=":";
+   fcopy+=nd20; 
+   suc=true;
+   destdir=nd20;
+   goto againcp;
+   }
+   else{
+   cerr <<"SendNtupleEnd-E-UnabletoMakeDirBy "<<(const char*)fmake<<endl;
+   }
+  
+
+  }
+  
  }
 }
 
@@ -1189,6 +1244,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
              }
              newdd+="/castor/cern.ch/ams";
              newdd+=destdir+bstart;
+             setenv("NtupleDestDir00",getenv("NtupleDestDir"),1);
              setenv("NtupleDestDir",(const char*)newdd,1);
              setenv("STAGE_HOST","castorpublic",1);
              setenv("RFIO_USE_CASTOR_V2","YES",1);

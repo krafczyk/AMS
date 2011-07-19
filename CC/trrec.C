@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.234 2011/03/23 15:01:48 choutko Exp $
+//  $Id: trrec.C,v 1.235 2011/07/19 09:37:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2391,8 +2391,8 @@ AMSgObj::BookTimer.start("TrAdvancedFit");
     for(int i=0;i<_NHits;i++){
       _Pthit[i]->updatecoo(force);
     }
-    if(!force[0] || !force[1] || TRFITFFKEY.AddMS==1)Fit(0); 
     _AdvancedFitDone=1;
+    if(!force[0] || !force[1] || TRFITFFKEY.AddMS==1)Fit(0); 
     if(TKDBc::patpoints(_Pattern)>3){
 AMSgObj::BookTimer.start("TrAdvancedFit_3");
       Fit(1);
@@ -2984,9 +2984,8 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   //  fit=6 -> fit ==0 nodb
   // abs(fits)/10 ==1  int only
   // abs(fits)/10 ==2  ext only
-
    // Create Proper Hit/Ehit things
-   
+        
    _crHit(fits%10==6);
 
   // Protection from too low mass
@@ -3000,12 +2999,23 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
    geant normal[maxhits][3];
    integer layer[maxhits];
   integer ialgo=TRFITFFKEY.MainAlg%10;
+   
   geant out[9];
   integer i;
     integer fit =abs(fits)%10;
     integer ie=abs(fits)/10;
     if(fit==1 || fit==2 || fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:(TRFITFFKEY.MainAlg/100)%10;        else if(fit==5)ialgo=(TRFITFFKEY.MainAlg/10)%10;
+    int ALG,ALIG;
+    
     if(ialgo==5)_GeaneFitDone=-5;
+    if(ialgo==1)ALG=0;
+    else if(ialgo==4)ALG=1;
+    else if(ialgo==5)ALG=2;
+    else if(ialgo==2)ALG=3;
+    else if(ialgo==3)ALG=4;
+    ALIG=1;
+    if(fits%10==6)ALIG=0;
+
     else if (_GeaneFitDone<0)_GeaneFitDone=0;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
@@ -3024,29 +3034,6 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       }
      }
     }
-/*
-{
-      AMSContainer *p=AMSEvent::gethead()->getC("AMSmctrack",1);
-      if(p && p->getnelem()){
-    AMSmctrack *pmcg=(AMSmctrack*)AMSEvent::gethead()->getheadC("AMSmctrack",1);
-       AMSPoint coo=pmcg->getcoo();
-       coo[0]+=rnormx()*TRCLFFKEY.ErrX/2;
-       coo[1]+=rnormx()*TRCLFFKEY.ErrY/2;
-       coo[2]+=rnormx()*TRCLFFKEY.ErrZ/2;
-       normal[npt][0]=0;
-       normal[npt][1]=0;
-       normal[npt][2]=fits<0?1:-1;
-       for(int j=0;j<3;j++){
-        hits[npt][j]=coo[j];
-        sigma[npt][j]=sigma[npt-1][j];
-       }
-       layer[npt]=9;
-       npt++;
-       static int qq=0;
-       if(qq++<100)cout <<"  got point at "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
-    }
-   }
-*/
   }
   else if(fit ==1){
      npt=(TKDBc::patpoints(_Pattern)+1)/2;
@@ -3055,7 +3042,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       // fit 1,,,n/2-1,n/2+1
        int j,k;
        for(k=0;k<npt;k++){
-        layer[k]=_Pthit[k]->getLayer();
+        layer[k]=_Pthit[k<npt-1?k:k+1]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit(k<npt-1?k:k+1,fits<0)[j];
         sigma[k][j]=getEHit(k<npt-1?k:k+1)[j];
@@ -3085,7 +3072,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       // fit 1,,,n/2-1,n/2+1
        int j,k;
        for(k=0;k<npt;k++){
-        layer[k]=_Pthit[k]->getLayer();
+        layer[k]=_Pthit[(k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt,fits<0)[j];
         sigma[k][j]=getEHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt)[j];
@@ -3096,7 +3083,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
        // fit 1,,,,n/2
        int j,k;
        for(k=0;k<npt;k++){
-        layer[k]=_Pthit[k]->getLayer();
+        layer[k]=_Pthit[TKDBc::patpoints(_Pattern)-npt+k]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit(TKDBc::patpoints(_Pattern)-npt+k,fits<0)[j];
         sigma[k][j]=getEHit(TKDBc::patpoints(_Pattern)-npt+k)[j];
@@ -3149,6 +3136,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
 integer ims; 
 if(fit==4)ims=0;
 else ims=1;
+int MS=ims;
     AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(pmcg){
      number charge=pmcg->getcharge();    
@@ -3162,6 +3150,170 @@ int ml=TKDBc::nlay();
 TKGETRES(_Res,ml);
 _RC=1;
 }
+
+// Fill TrTrackFit object
+
+if(_AdvancedFitDone){
+
+// make an interpolation
+  TrTrackFitR::TrSCooR coos[9]; 
+   int size=0;
+for(int k=0;k<TKDBc::nlay();k++){
+  AMSTrRecHit * phit=0;  
+  for(int i=0;i<_NHits;i++){
+   if(_Pthit[i]->getLayer()-1 == k){
+    phit=_Pthit[i];
+    break;
+   } 
+  }
+  AMSgSen*pls=0;
+ if(phit){
+    pls=phit->getpsen();
+    AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+    AMSPoint pntplane(phit->getHit());
+
+  geant outa[7];
+  number m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
+  geant init[7];
+  geant point[6];
+  geant charge=1;
+  AMSDir dir(out[3],out[4]);
+  init[0]=out[0];
+  init[1]=out[1];
+  init[2]=out[2];
+  init[3]=dir[0];
+  init[4]=dir[1];
+  init[5]=dir[2];
+   init[6]=out[5];
+  point[0]=pntplane[0];
+  point[1]=pntplane[1];
+  point[2]=pntplane[2];
+  point[3]=pntdir[0];
+  point[4]=pntdir[1];
+  point[5]=pntdir[2];
+  geant slength;
+  TKFITPAR(init, charge,  point,  outa,  m55, slength);
+  coos[size].Coo=AMSPoint(outa[0],outa[1],outa[2]);
+  AMSDir d1(outa[3],outa[4],outa[5]);
+  if(dir.prod(d1)<0){
+   for(int k=0;k<3;k++)outa[3+k]=-outa[3+k];
+  }
+  coos[size].Theta=acos(outa[5]);
+  coos[size].Phi=atan2(outa[4],outa[3]); 
+  coos[size].Id=phit->getid().cmptr();  
+
+  }
+  else{
+    // no hits but still track extrap needed
+
+    AMSTrIdGeom g(k+1,8,4,0,0);    // reference
+    AMSgvolume *p =AMSJob::gethead()->getgeomvolume(g.crgid());
+    if(p){
+      AMSDir pntdir(p->getnrmA(0,2),p->getnrmA(1,2),p->getnrmA(2,2));
+      AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
+{
+  geant outa[7];
+  number m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
+
+  geant init[7];
+  geant point[6];
+  geant charge=1;
+  AMSDir dir(out[3],out[4]);
+  init[0]=out[0];
+  init[1]=out[1];
+  init[2]=out[2];
+  init[3]=dir[0];
+  init[4]=dir[1];
+  init[5]=dir[2];
+   init[6]=out[5];
+  point[0]=pntplane[0];
+  point[1]=pntplane[1];
+  point[2]=pntplane[2];
+  point[3]=pntdir[0];
+  point[4]=pntdir[1];
+  point[5]=pntdir[2];
+  geant slength;
+  TKFITPAR(init, charge,  point,  outa,  m55, slength);
+  coos[size].Coo=AMSPoint(outa[0],outa[1],outa[2]);
+  AMSDir d1(outa[3],outa[4],outa[5]);
+  if(dir.prod(d1)<0){
+   for(int k=0;k<3;k++)outa[3+k]=-outa[3+k];
+  }
+  coos[size].Theta=acos(outa[5]);
+  coos[size].Phi=atan2(outa[4],outa[3]); 
+  coos[size].Id=k+1;
+ }
+  }
+    else {
+      cerr <<"AMSTrTrack::intercept-E-NoGeomVolumeFound"<<g.crgid()<<endl;
+      continue;
+    }
+      // Interpolate to certain sensor if any;
+     AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
+      if(g.FindAtt(coos[size].Coo,PS)){
+         pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(g.crgid());
+         AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+         AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+{
+  geant outa[7];
+  number m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
+
+  geant init[7];
+  geant point[6];
+  geant charge=1;
+  AMSDir dir(out[3],out[4]);
+  init[0]=out[0];
+  init[1]=out[1];
+  init[2]=out[2];
+  init[3]=dir[0];
+  init[4]=dir[1];
+  init[5]=dir[2];
+   init[6]=out[5];
+  point[0]=pntplane[0];
+  point[1]=pntplane[1];
+  point[2]=pntplane[2];
+  point[3]=pntdir[0];
+  point[4]=pntdir[1];
+  point[5]=pntdir[2];
+  geant slength;
+  TKFITPAR(init, charge,  point,  outa,  m55, slength);
+  coos[size].Coo=AMSPoint(outa[0],outa[1],outa[2]);
+  AMSDir d1(outa[3],outa[4],outa[5]);
+  if(dir.prod(d1)<0){
+   for(int k=0;k<3;k++)outa[3+k]=-outa[3+k];
+  }
+  coos[size].Theta=acos(outa[5]);
+  coos[size].Phi=atan2(outa[4],outa[3]); 
+  coos[size].Id=g.cmptr();  
+ }
+
+  }
+}
+size++;
+}
+
+
+
+
+
+
+ 
+
+int BitPattern=0;
+for(int l=0;l<npt;l++){
+  BitPattern|=(1<<(layer[l]-1));
+}
+int ATT=0;
+if(fit==1)ATT=1;
+else if(fit==2)ATT=2;
+else{
+   if(ie==0)ATT=0;
+   else if(ie==1)ATT=3;
+   else if (ie==2)ATT=4;
+}
+fTrTrackFit.push_back(TrTrackFitR(BitPattern,ALG,ALIG,MS,ATT,out[5],out[8],(out[7]!=0 && out[7]!=2)?FLT_MAX:out[6],AMSPoint(out[0],out[1],out[2]),out[3],out[4],size,coos));
+}
+
 if(fit==0){
 if(ie==0){
 _FastFitDone=1;

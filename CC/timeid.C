@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.128 2011/05/11 19:19:43 choutko Exp $
+//  $Id: timeid.C,v 1.129 2011/07/19 09:37:06 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -70,6 +70,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
   else{
     for( int i=0;i<5;i++) _pDataBaseEntries[i]=0;
     _DataBaseSize=0;
+    cout<<"AMSTimeID::AMSTimeID-I-DataBaseSizeZeroed "<<id.getname()<<endl;
   }
 #ifdef __AMSDEBUG__
   cout <<id.getname()<<" Size "<<_Nbytes<<endl;
@@ -236,7 +237,7 @@ again:
 	_convert(pdata,ns);
 	fbin.write((char*)pdata,ns*sizeof(pdata[0]));
 	fbin.close();
-        cout <<"AMSTimeId::write-I-"<<fnam<<" written "<<endl;
+        cout <<"AMSTimeId::write-I-"<<fnam<<" written "<<_DataBaseSize<<endl;
 	delete [] pdata;
 	//  touch the directory
 
@@ -572,8 +573,13 @@ integer AMSTimeID::_selectsdir(  const dirent64 *entry)
 }
 
 void AMSTimeID::rereaddb(bool force){
+if(_Type!=Server){
   for(int i=0;i<5;i++)delete _pDataBaseEntries[i]; 
   _fillDB((const char*)AMSDBc::amsdatabase,0,force); 
+}
+else{
+  _fillDBServer((const char*)AMSDBc::amsdatabase,0,force); 
+}
 }
 
 time_t AMSTimeID::_stat_adv(const char *dir){
@@ -620,6 +626,7 @@ void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
   int i;
   for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
   _DataBaseSize=0;
+   cout <<"AMSTimeId::_fillDB-I-DataBaseSizeZeroed"<<getname()<<endl;
   AString fmap("");
   AString fdir("");
 #ifdef _WEBACCESS_
@@ -670,6 +677,7 @@ usemap:
       fbin.open(fmap,ios::in);
       if(fbin){
 	fbin>>_DataBaseSize;
+        cout <<"AMSTimeId::_fillDB-I-DataBaseSizeReadFromMap"<<_DataBaseSize<<" "<<getname()<<endl;
 #endif
       zero=false;
       if(!_DataBaseSize){
@@ -681,6 +689,7 @@ usemap:
          goto notrust;
 #endif
      }
+         cout<<"AMSTimeID::_fillDB-I-MapFilled "<<(const char *)fmap<<" "<<_DataBaseSize<<endl;
 
       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
       for(i=0;i<5;i++)
@@ -716,6 +725,7 @@ usemap:
 	    if(_DataBaseSize)delete[] _pDataBaseEntries[k];
           }
           _DataBaseSize=0;
+          cout <<"AMSTimeId::_fillDB-I-DataBaseSizeZeroedAgain "<<getname()<<endl;
 
 #ifdef __LINUXGNU__
     dirent64 ** namelistsubdir;
@@ -748,6 +758,7 @@ usemap:
 	    for ( l=0;l<_DataBaseSize;l++)tmp[l]=_pDataBaseEntries[k][l]; 
 	    delete[] _pDataBaseEntries[k];
 	    size=2*(_DataBaseSize+nptr);
+            cout<<" AMSTimeID::_fillDB-I-UpdatingDataBase Size "<<size<<" "<<_DataBaseSize<<endl;
 	    _pDataBaseEntries[k]=new uinteger[size];
 	    for ( l=0;l<_DataBaseSize;l++)_pDataBaseEntries[k][l]=tmp[l]; 
 	  }
@@ -845,7 +856,7 @@ usemap:
 
 
     cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
-	 <<getname()<<endl; 
+	 <<getname()<<" ok "<<everythingok<<endl; 
   }
   if( !everythingok){
     for( i=0;i<5;i++)delete _pDataBaseEntries[i];
@@ -857,74 +868,229 @@ usemap:
   }
 }
 
-#ifdef __DB__
-void AMSTimeID::_fillfromDB()
-{
 
-  const integer S = 0;
-  const integer I = 1;
-  const integer B = 2;
-  const integer E = 3;
-  integer nobj = 0;
- 
-  lms -> GetNTDV(getname(), getid(), nobj);
-
-  integer *pS = new integer[nobj];
-  time_t  *pI = new time_t[nobj];
-  time_t  *pB = new time_t[nobj];
-  time_t  *pE = new time_t[nobj];
-
-  lms -> GetAllTDV(getname(), getid(), pS, pI, pB, pE, nobj);
-  if(nobj > 0) {
-    for(int l=0; l<4; l++) _pDataBaseEntries[l]=new uinteger[nobj];
-    for(int i=0; i<nobj; i++) {
-      _pDataBaseEntries[S][i]= pS[i];
-      _pDataBaseEntries[I][i]= pI[i];
-      _pDataBaseEntries[B][i]= pB[i];
-      _pDataBaseEntries[E][i]= pE[i];
+void AMSTimeID::_fillDBServer(const char *dir, int reenter, bool force){
+  bool zero=false;
+  int everythingok=1;
+  AString fmap("");
+  AString fdir("");
+    {
+      fmap+=dir;
+      fdir+=dir;
     }
-  }
+  fdir+=getname();
+  fdir+="/";
+  fmap+=".";
+  fmap+=getname();
+  fmap+=getid()==0?".0.map":".1.map";
+  fstream fbin;
+  struct stat64 statbuf_map;
+  time_t mtime=0;
+again:
+    mtime=_stat_adv((const char*)fdir);
+    if((!stat64((const char *)fmap,&statbuf_map)&&
+	mtime < statbuf_map.st_mtime) && !force){
+usemap:    
+      char buf[100];
+      fbin.clear();
+      fbin.close();
+      fbin.open(fmap,ios::in);
+      unsigned int dbs;
+      if(fbin){
+	fbin>>dbs;
+        if(!fbin.good()){
+         cout <<"AMSTimeId::_fillDBServer-E-UnableReadDataBaseSizeFromMap"<<getname()<<" "<<fmap<<endl;
+         if(!_DataBaseSize){
+           fbin.close();
+           force=true;
+           goto again;
+        }
+        else{
+         updatemap(dir,true);
+         return;
+        }
+        }
+        else if(dbs<_DataBaseSize){
+         cerr <<"AMSTimeId::_fillDBServer-E-DataBaseSizeShrinked "<<getname()<<" "<<fmap<<" "<<statbuf_map.st_mtime<<" "<<dbs<<" "<<_DataBaseSize<<endl;
+        updatemap(dir,true);
+        return;
+        }
+        _DataBaseSize=dbs;
+   for(int i=0;i<5;i++){
+         delete _pDataBaseEntries[i]; 
+        _pDataBaseEntries[i]=0; 
+   }
+        cout <<"AMSTimeId::_fillDBServer-I-DataBaseSizeReadFromMap"<<_DataBaseSize<<" "<<getname()<<" "<<statbuf_map.st_mtime<<endl;
+      zero=false;
+      if(!_DataBaseSize){
+         fbin.close();
+         cout<<"AMSTimeID::_fillDBServer-W-MapHasZeroEnrtries "<<(const char *)fmap<<endl;
+         zero=true;
+          
+         goto notrust;
+     }
+         cout<<"AMSTimeID::_fillDBServer-I-MapFilled "<<(const char *)fmap<<" "<<_DataBaseSize<<endl;
 
-  _DataBaseSize = nobj;
-
-  if (pS) delete [] pS;
-  if (pI) delete [] pI;
-  if (pB) delete [] pB;
-  if (pE) delete [] pE;
-
-  cout <<"AMSTimeID::_fillfromDB-I-"<<nobj<<" entries found for TDV "
-       <<getname()<<endl; 
-}
-
-#include "event.h"
-integer AMSTimeID::readDB(integer reenter){
-
-  integer rec = -1;
-
-  time_t  I, B, E;
-  integer S;
-
-  rec =_getDBRecord(AMSEvent::gethead()->gettime());
-  if (rec != -1) {
-    S    = _pDataBaseEntries[0][rec];
-    if (S > 0) {
-      I    = _pDataBaseEntries[1][rec];
-      B    = _pDataBaseEntries[2][rec];
-      E    = _pDataBaseEntries[3][rec];
-      uinteger* buff = new uinteger[S];
-      int rstat = lms -> ReadTDV(getname(), getid(), I, B, E, buff);
-      if (rstat) {
-	CopyIn((uinteger*)buff);
-	SetTime(I,B,E);
-      }
-      delete [] buff;
-    } else {
-      cout<<"AMSTimeID::readDB -W- TDV object with zero size"<<endl;
+      for(int i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
+      for(int i=0;i<5;i++){
+	for(int k=0;k<_DataBaseSize;k++){
+	  uinteger tmp;
+	  fbin>>tmp;
+	  _pDataBaseEntries[i][k]=tmp;      
+	}
+       }
+      fbin.close();
     }
+    else cerr <<"AMSTimeID::_fillDBServer-S-CouldNot open map file "<<fmap<<endl; 
+    
   }
-  return rec;
-}
+  else {
+    notrust:
+    cout <<"AMSTimeID::_fillDBServer-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
+    //    Check if is in new mode
+    _checkcompatibility(dir);
+    AString fnam(getname());
+    fnam+= getid()==0?".0":".1";
+    _selectEntry=&fnam;
+    int size=0;
+	  for(int k=0;k<5;k++){
+	    if(_DataBaseSize){
+              delete[] _pDataBaseEntries[k];
+              _pDataBaseEntries[k]=0;
+            }           
+          }
+          _DataBaseSize=0;
+
+#ifdef __LINUXGNU__
+    dirent64 ** namelistsubdir;
+    int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
+
+    for(int is=0;is<nptrdir;is++){
+      AString fsdir(fdir);
+      fsdir+=namelistsubdir[is]->d_name;
+      fsdir+="/";     
+#ifdef __LINUXGNU__
+      dirent64 ** namelist;
+      int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
+#endif
+
+      if(nptr>0){
+//           cout <<"  dbsize "<<_DataBaseSize<<" "<<size<<" "<<nptr<<" "<<fsdir<<endl;
+	if(_DataBaseSize && size<_DataBaseSize+nptr){
+	  uinteger *tmp=new uinteger[_DataBaseSize];
+	  for(int k=0;k<5;k++){
+	    int l;
+	    for ( l=0;l<_DataBaseSize;l++)tmp[l]=_pDataBaseEntries[k][l]; 
+	    delete[] _pDataBaseEntries[k];
+	    size=2*(_DataBaseSize+nptr);
+            cout<<" AMSTimeID::_fillDBServer-I-UpdatingDataBase Size "<<size<<" "<<_DataBaseSize<<endl;
+	    _pDataBaseEntries[k]=new uinteger[size];
+	    for ( l=0;l<_DataBaseSize;l++)_pDataBaseEntries[k][l]=tmp[l]; 
+	  }
+	  delete[] tmp;
+	} 
+	else if(!_DataBaseSize){
+	  size=2*nptr;
+	  for(int i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[size];
+	}
+	for(int i=0;i<nptr;i++) {
+	  int valid=0;
+	  int kvalid=0;
+	  for(int k=strlen((const char*)fnam);k<strlen(namelist[i]->d_name);k++){
+	    if((namelist[i]->d_name)[k]=='.' )valid++;
+	    if((namelist[i]->d_name)[k]=='.')kvalid=k;
+	  }
+	  if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+	    sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+		   _pDataBaseEntries[0]+_DataBaseSize);
+	    AString ffile(fsdir);
+	    ffile+=namelist[i]->d_name;
+            ifstream ffbin;
+	    ffbin.close();
+	    ffbin.clear();
+	    ffbin.open((const char *)ffile);
+	    uinteger temp[3];
+	    if(ffbin){
+	      ffbin.seekg(integer(ffbin.tellg())+_Nbytes);
+	      ffbin.read((char*)temp,3*sizeof(temp[0]));
+	      if(ffbin.good()){
+		_convert(temp,3);
+		_pDataBaseEntries[1][_DataBaseSize]=temp[0];
+		_pDataBaseEntries[2][_DataBaseSize]=temp[1];
+		_pDataBaseEntries[3][_DataBaseSize]=temp[2];
+		_DataBaseSize++;
+		if(strcmp(namelistsubdir[is]->d_name,_getsubdirname(temp[1]))){
+		  everythingok=0;
+		  cerr<<"AMSTimeID::_fillDB-W-Dir/FileNameAreInconsistent "<<ffile<<" "<<"Recovering"<<endl;
+		  ffbin.close();
+		  _rewrite(dir,ffile);
+		}
+	      }
+	      ffbin.close();
+	    }
+            
+	  }
+	  free(namelist[i]);
+	}
+	free(namelist);
+        
+      }
+      free( namelistsubdir[is]);
+    }
+    if(nptrdir>0){
+      free (namelistsubdir);
+      // sort
+      //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
+      uinteger **padd= new uinteger*[_DataBaseSize+1];
+      uinteger *tmp=  new uinteger[_DataBaseSize+1];
+#ifdef __AMSDEBUG__
+      assert(padd!=NULL && tmp!=NULL);
+#endif
+      for(int i=0;i<_DataBaseSize;i++){
+	tmp[i]=_pDataBaseEntries[3][i];
+	_pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+	padd[i]=tmp+i;
+      }
+      AMSsortNAG(padd,_DataBaseSize);
+      AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+      for(int i=0;i<4;i++){
+	int k;
+	for(k=0;k<_DataBaseSize;k++){
+	  tmp[k]=_pDataBaseEntries[i][k];
+	}
+	for(k=0;k<_DataBaseSize;k++){
+	  _pDataBaseEntries[i][k]=*(padd[k]);
+	}
+      }
+      delete[] padd;
+      delete[] tmp;
+    }
+    // Rewrite map file;
+
+    if(!updatemap(dir,true)){
+       cerr <<"AMSTimeID::_fillDBServer-S-CouldNot update map file "<<fmap<<endl; 
+       if(!_DataBaseSize && !zero){
+       cerr <<"AMSTimeID::_fillDBServer-W-using old map file "<<fmap<<endl; 
+       goto usemap;          
+       }
+    }   
+
+
+
+
+    cout <<"AMSTimeID::_fillDBServer-I-"<<_DataBaseSize<<" entries found for TDV "
+	 <<getname()<<" ok "<<everythingok<<endl; 
+  }
+  if( !everythingok){
+    if(!reenter)_fillDBServer(dir,1);
+    else {
+      cerr<<"AMSTimeID::_fillDBServer-E-CouldnotUpdataDatabase,Exiting"<<endl;
+      return;
+    }      
+  }
+}
+
 
 char* AMSTimeID::_getsubdirname(time_t begin){
   static char  _buf[32];
@@ -1058,6 +1224,7 @@ void AMSTimeID::checkupdate(const char * tdvc){
 
 void AMSTimeID::fillDB (int length, uinteger *ibe[5]){
   if(length==0)return;
+  cout<<" AMSTimeID::fillDB-I-RedefiningDataBaseSize "<<_DataBaseSize<<" "<<length<<endl;
   _DataBaseSize=length;
   for(int  i=0;i<5;i++){
     delete _pDataBaseEntries[i];
@@ -1141,9 +1308,10 @@ bool AMSTimeID::updatemap(const char *dir,bool slp){
   fmaptmp+=utmp;
   fstream fbin;
   unlink(fmaptmp);
+  fbin.clear();
   fbin.open(fmaptmp,ios::out);
   if(fbin){
-    cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
+    cout <<"AMSTimeID::updatemap-I-updating map file "<<fmaptmp<<" "<<_DataBaseSize<<endl; 
     fbin<<_DataBaseSize<<endl;
     for(int i=0;i<5;i++){
       for(int k=0;k<_DataBaseSize;k++){
@@ -1179,6 +1347,7 @@ bool AMSTimeID::updatedb(){
   _pDataBaseEntries[2][_DataBaseSize]=_Begin;
   _pDataBaseEntries[3][_DataBaseSize]=_End;
   _DataBaseSize++;
+  cout <<"AMSTimeID::updatedb-I-SizeGrow "<<_DataBaseSize<<endl;
        
   uinteger **padd= new uinteger*[_DataBaseSize];
   uinteger *tmp=  new uinteger[_DataBaseSize];

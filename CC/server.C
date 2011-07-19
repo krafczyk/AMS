@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.181 2011/07/11 08:54:40 choutko Exp $
+//  $Id: server.C,v 1.182 2011/07/19 09:37:06 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2454,7 +2454,12 @@ if(pcur->InactiveClientExists(getType()))return;
         DPS::Producer::RunEvInfo_var   reinfo;
         DPS::Producer::DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);     
-if(reinfo->DataMC==0 || (reinfo->CounterFail>2 && reinfo->History==DPS::Producer::Failed)){
+int minr=3;
+char *min_bad=getenv("AMSMaxRunFailRate");
+if(min_bad && strlen(min_bad)){
+ minr=atol(min_bad)+1;
+}
+if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Producer::Failed)){
         singlethread=true;
 }
         cout <<"prio "<<(const char*)reinfo->cinfo.HostName<<" "<<reinfo->Priority<<endl;
@@ -2748,15 +2753,17 @@ if(li!=_acl.end()){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
+   DPS::Client::ActiveClient_var acv2=*li;
+   DPS::Client::ActiveClient_var acv3=*li;
+   DPS::Client::ActiveClient_var acv4=*li;
    PropagateAC(acv,DPS::Client::Update);
-   int iret=_pser->Kill((*li),SIGHUP,true);
+   int iret=_pser->Kill(acv2,SIGHUP,true);
     if(iret){
-     _parent->EMessage(AMSClient::print(*li,"Producer::Unable To SigHup Client"));
-         DPS::Client::ActiveClient_var acv=*li;
-         PropagateAC(acv,DPS::Client::Delete);
+     _parent->EMessage(AMSClient::print(acv3,"Producer::Unable To SigHup Client"));
+//         DPS::Client::ActiveClient_var acv2=*li;
+         PropagateAC(acv4,DPS::Client::Delete);
 
-    }
-
+  }
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
@@ -2826,7 +2833,7 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
         jid=atol(line+kstart+1);
         cout <<"  Check Client jid found "<<jid<<" "<<uid;         
         char tmp[255];
-        sprintf(tmp,"ssh lxplus bjobs %u 1>& %s%s.bsub",jid,add,uid);
+        sprintf(tmp,"ssh afs/cern.ch/ams/local/bin/timeout --signal 9 60 lxplus bjobs %u 1>& %s%s.bsub",jid,add,uid);
         system(tmp);
         sprintf(tmp,"%s%s.bsub",add,uid);
         fbin.clear();
@@ -3214,7 +3221,7 @@ cout << " TDV "<<tdvname.Name<<" File "<<tdvname.File<<endl;
 cout << " second "<<li->second->getname()<<endl;
 li->second->SetTime(i,b,e);
 try{
-li->second->updatedb();
+//li->second->updatedb();
 }
 catch (bad_alloc aba){
  _parent->EMessage("sendTDVUpdate::NoMemoryAvailable");
@@ -3537,7 +3544,12 @@ if(dv->DieHard ==0){
   }
  }
 }
-if(rv->CounterFail>2 && rv->History==DPS::Producer::Failed){
+int minr=3;
+char *min_bad=getenv("AMSMaxRunFailRate");
+if(min_bad && strlen(min_bad)){
+ minr=atol(min_bad)+1;
+}
+if(rv->CounterFail>minr && rv->History==DPS::Producer::Failed){
 threads=1;
 cerr<<"  Too Many Fails Run "<<rv->Run<<" "<<rv->CounterFail<<endl; 
 cout << "  Threads allowed "<<threads<<endl;

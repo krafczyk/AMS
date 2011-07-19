@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.16 2011/07/11 08:54:49 choutko Exp $
+//  $Id: linkdefs.h,v 1.17 2011/07/19 09:37:15 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -26,6 +26,9 @@
 
 #endif
 #pragma link C++ class TrTrackPar+;
+#else
+#pragma link C++ class TrTrackFitR+;
+#pragma link C++ class TrTrackFitR::TrSCooR+;
 #endif
 #pragma link C++ class TrElem+;
 #pragma link C++ class TrMCClusterR+;

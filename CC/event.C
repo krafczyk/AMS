@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.536 2011/07/05 10:23:32 choutko Exp $
+//  $Id: event.C,v 1.537 2011/07/19 09:37:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3043,8 +3043,8 @@ while(offspring){
       cerr<<" End : " <<ctime(&e)<<" "<<e<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<" "<<i<<endl; 
 #ifdef __CORBA__
-cerr<<"  updating map "<<endl;
-offspring->updatemap(AMSDATADIR.amsdatabase,true);
+//cerr<<"  updating map "<<endl;
+//offspring->updatemap(AMSDATADIR.amsdatabase,true);
 #endif
       throw amsglobalerror("TDV Not    Validated ",3);
  
@@ -3344,7 +3344,7 @@ void AMSEvent::buildraw(
 
 void AMSEvent::buildraw2009(
               integer type, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[4]){
+              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[]){
 
 
     id=(*(p+6)) |  (*(p+5))<<16;
@@ -3363,11 +3363,17 @@ void AMSEvent::buildraw2009(
     // lvl3
     for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
     for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
-    if(type==0x11 && run>1308200000){
+    if(type==0x11){
+      if ( run>1308200000 && run<1310368300){
 // to be changed in future;
+    lvl3[4]=0;
     lvl3[3]=0;
     lvl3[2]=*(p+7+2);      
     }
+    else if(run>=1310382120){
+     for(int k=0;k<3;k++)lvl3[k+2]=*(p+7+2+k);
+    }
+   }
 }
     
 

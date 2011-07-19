@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.88 2011/06/28 18:08:22 pzuccon Exp $
+//  $Id: daqevt.h,v 1.89 2011/07/19 09:37:15 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -102,7 +102,7 @@ protected:
   time_t _Time;
   uinteger _usec;
 public:
-  int16u _lvl3[4];
+  int16u _lvl3[5];
 protected:
   int16u *  _pcur;
   int16u * _pData;

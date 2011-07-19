@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.121 2011/03/23 15:01:52 choutko Exp $
+//  $Id: trrec.h,v 1.122 2011/07/19 09:37:16 choutko Exp $
 #ifndef _PGTRACK_
 
    // STANDARD GBATCH
@@ -29,6 +29,7 @@ class AMSTRDTrack;
 #include "apool.h"
 #include "gsen.h"
 #include "trid.h"
+#include "trfit.h"
 #include "link.h"
 #include "commons.h"
 #include "cont.h"
@@ -314,6 +315,7 @@ number _PITheta;
 number _PIPhi;
 AMSPoint _PIP0;
 number _PIChi2;
+vector<TrTrackFitR> fTrTrackFit;
 bool NotMatch(int nhit);
 void SimpleFit(AMSPoint err);
 static AMSTrRecHit* SimpleFit(AMSPoint err,const AMSTrTrack& ptr, AMSTrRecHit* a[], int nhit);

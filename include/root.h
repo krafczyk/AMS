@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.374 2011/07/11 08:54:49 choutko Exp $
+//  $Id: root.h,v 1.375 2011/07/19 09:37:15 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -39,6 +39,8 @@
 #include "id.h"
 #ifdef _PGTRACK_
 #include "trrec.h"
+#else
+#include "trfit.h"
 #endif
 #include "trdhrec.h"
 #include "TrdHCharge.h"
@@ -360,17 +362,19 @@ public:
   unsigned int Edr;  ///< Ecal length in bytes 
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
-  unsigned int  L3Event; ///<Lvl3 event counter
+  unsigned int  L3VEvent; ///<Lvl3 event counter + Version
+  unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
   unsigned  int JStatus; ///< 8 lower bit JINJ-P (hi8 bits of status word) 8 higher bits JINJ-S (hi8 bits of status word)
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block  
-  
+  unsigned int L3Version() const {return (L3VEvent>>24)&255;};
+  unsigned int L3Event()const {return (L3VEvent&16777215);}
   DaqEventR(DAQEvent *ptr);
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,4)       //DaqEventR
+ClassDef(DaqEventR,5)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -1061,47 +1065,87 @@ public:
   int Pattern;  ///< see datacards.doc
   int Patternf(){return Pattern;}
   unsigned long long Addressl;  ///< ladders combination code (see trrec.C buildaddress)
-  int   GeaneFitDone; ///<  != 0 if done
-  int   AdvancedFitDone;  ///< != 0 if done
+///<  != 0 if done
+  int   GeaneFitDone; //!
+/// != 0 if done
+  int   AdvancedFitDone;  //!
   float Chi2StrLine;  ///< chi2 sz fit
   float Chi2StrLinef(){return Chi2StrLine;}
   float Chi2WithoutMS;  ///< chi2 circular fit OR pathint chi2  without ms
   float Chi2WithoutMSf(){return Chi2WithoutMS;}
   float RigidityWithoutMS;  ///< circular rigidity OR pathint rigidity without ms
-  float Chi2FastFit;    ///< chi2 fast nonl fit
+/// chi2 fast nonl fit
+  float Chi2FastFit;    //!
   float Chi2FastFitf(){return Chi2FastFit;}
-  float Rigidity;  ///< fast nonl rigidity
+/// fast nonl rigidity
+  float Rigidity;  //!
   float Rigidityf(){return Rigidity;}
-  float ErrRigidity;  ///<err to 1/above
-  float Theta;      ///< theta (from fast)
-  float Phi;        ///< phi (from fast) 
+///err to 1/above
+  float ErrRigidity;  //!
+/// theta (from fast)
+  float Theta;      //!
+/// phi (from fast) 
+  float Phi;        //!
   AMSDir GetDir(){return AMSDir(Theta,Phi);} ///< dir cos
-  float P0[3];      ///< coo (from fast)
-  float GChi2;     ///< geane chi2
-  float GRigidity;  ///< geane rigidity
-  float GErrRigidity; ///< geane err(1/rigidity)
-  float HChi2[2];     ///< two halves chi2s
+/// coo (from fast)
+  float P0[3];      //!
+/// geane chi2
+  float GChi2;     //!
+/// geane rigidity
+  float GRigidity;  //!
+/// geane err(1/rigidity)
+  float GErrRigidity; //!
+/// two halves chi2s
+  float HChi2[2];     //!
   float HChi2f(int k){return HChi2[k];}
-  float HRigidity[2];  ///< two halves rigidities
+/// two halves rigidities
+  float HRigidity[2];  //!
    float HRigidityf(int k){return HRigidity[k];}
-  float HErrRigidity[2];  ///< two halves err(1/rig)
-  float HTheta[2];   ///< two halves theta
-  float HPhi[2];     ///< two halves phi
-  float HP0[2][3];   ///< two halves coo
-  float FChi2MS;    ///< fast chi2 mscat off
+/// two halves err(1/rig)
+  float HErrRigidity[2];  //!
+/// two halves theta
+  float HTheta[2];   //!
+/// two halves phi
+  float HPhi[2];     //!
+/// two halves coo
+    float HP0[2][3];   //!
+///< fast chi2 mscat off
+  float FChi2MS;    //!
   float FChi2MSf(){return FChi2MS;}
-  float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
-  float RigidityMS;  ///< fast rigidity mscat off
-  float PiRigidity;  ///<  PathInt rigidity
-  float RigidityIE[3][2];  ///<Fast,PI,RK Rigidities with only internal or only external points 
+ /// PathInt err(1/rig) (<0 means fit was not succesful)
+  float PiErrRig;    //!
+/// fast rigidity mscat off 
+    float RigidityMS;  //!
+///  PathInt rigidity
+  float PiRigidity;  //!
+///Fast,PI,RK Rigidities with only internal or only external points 
+  float RigidityIE[3][2];  //!
   float Hit[9][3];   ///< Track Coordinate (after alignment)
   AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);} 
   float DBase[2];    ///< Rigidity & chi2 without alignment
-  TrTrackR(AMSTrTrack *ptr);
+  TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
+  bool Compat(); ///< Compatibility function to be called once to ensure old functionality
   protected:
-  vector<int> fTrRecHit;
+  vector<TrTrackFitR> fTrTrackFit; ///< !!Vector of Fits;
+  vector<int> fTrRecHit;  ///< Vector of trrechit indexes
   public:
+   int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom) 
+  bool isSubSet(int pattern); ///< return true if pattern is subset of track Bitpattern;
+   int BitPattern; ///<  bits xxxxxxxx where x =0 1 and layer 1 corresponds to the leaset significant bit
+   int ToBitPattern( int patternL);///< return bit pattern for given patternL or -1 if error  
+   unsigned int NHits()const ;  ///< retutn NHits;
+   
+
   TrTrackR(){};
+/// Get and optionally refit  track using pattern bit pattern (inclusive)
+/// \return index of the fTrTrackFit vector or -1 if no such element or -2 if alig or alg or ms  not defined or -3 if pattern is not subset of BitPattern or -4 if refit failed or not yet implemented
+/// \param refit 0: do not refit, 1 refit if not present, 2 refit and replace
+/// \param fit  TrTrackFitR params  (pattern,alg,alig,ms) also returned
+int iTrTrackFit(TrTrackFitR &fit, int refit=0);   ///< !!accessor 
+
+bool setFitPattern(TrTrackFitR::kAtt k, int & pattern); ///< set fit pattern for the given attribute  return false if not
+
+ /// access function to TrTrackFitR
  /// select good tracks (i.e. tracks having x & y hits from tracker)
   /// \return true if good false otherwise
  ///
@@ -1119,27 +1163,9 @@ public:
   TrRecHitR * pTrRecHit(unsigned int i);
   /// \param number index in container
   /// \return human readable info about TrTrackR
-  char * Info(int number=-1){
-   const float  zposl[9]={159.,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-136.0};
-    int pk[9]={0,0,0,0,0,0,0,0,0};
-    for(int i=0;i<NTrRecHit();i++){
-     for(int k=0;k<9;k++){
-      if(fabs(Hit[i][2]-zposl[k])<1){
-       pk[k]=1;
-      }
-    }
-   }
-   int p=100000000;
-    int pattern=0;
-    for(int k=0;k<9;k++){
-      if(pk[k])pattern+=p;
-       p/=10;
-     }
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Pattern=%09d HRig=(%7.3g,%7.3g) IERig=(%7.3g,%7.3g) (%7.3g,%7.3g)",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),pattern,HRigidity[0],HRigidity[1],RigidityIE[0][0],RigidityIE[0][1],RigidityIE[2][0],RigidityIE[2][1]);
-  return _Info;
-  } 
+  char * Info(int number=-1);
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,13)       //TrTrackR
+ClassDef(TrTrackR,14)       //TrTrackR
 #pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;
@@ -4043,12 +4069,18 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       unsigned int   NTrTrack()  {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+#ifndef _PGTRACK_
+for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
+#endif
         return fTrTrack.size();
       }
       ///  \return reference of TrTrackR Collection
       ///
       vector<TrTrackR> & TrTrack()  {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+#ifndef _PGTRACK_
+for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
+#endif
          return  fTrTrack;
        }
 
@@ -4058,6 +4090,9 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
        TrTrackR &   TrTrack(unsigned int l) {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+#ifndef _PGTRACK_
+for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
+#endif
          return fTrTrack.at(l);
       }
 
@@ -4067,6 +4102,9 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       ///
       TrTrackR *   pTrTrack(unsigned int l) {
         if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+#ifndef _PGTRACK_
+for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
+#endif
         return l<fTrTrack.size()?&(fTrTrack[l]):0;
       }
 

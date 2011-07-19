@@ -1,4 +1,4 @@
-# $Id: root.perl,v 1.7 2011/05/10 19:10:07 jorgec Exp $
+# $Id: root.perl,v 1.8 2011/07/19 09:37:16 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -65,7 +65,7 @@ while ( my $line = <FILEI>){
         }
         my @pat=split /\;/, $line;
         my $subpat=$pat[0];
-        if($subpat=~/\(/ or $subpat=~/\{/ or $subpat=~/\,/    or $subpat=~/Info/ or $subpat=~/friend/){
+        if($subpat=~/\(/ or $subpat=~/\{/ or $subpat=~/\,/    or $subpat=~/Info/ or $subpat=~/friend/ or $pat[1]=~/\!\!/){
             next;
         }
         @pat=split / /, $subpat;
