@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.88 2011/06/24 09:16:20 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.89 2011/07/19 11:56:19 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -186,7 +186,7 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
       else{
         cout <<"<------ TOFGeom-I- AMS02-configuration is used..."<<endl;
         cout <<"      Assembly_1(as default) setup selected..."<<endl;
-        strcat(name,vers3);//default(Ass1)
+        strcat(name,vers4);//default(perm.magn in space)
       }
     }
     else
@@ -3830,7 +3830,8 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
   for(int ich=0;ich<MaxZTypes;ich++){
     pdfile >> ic;
     pdfile >> charge;
-    chref=AMSCharge::ind2charge(0,ich+1);//charge from ctandard list("0"->TOF)
+    chref=AMSCharge::ind2charge(0,ich);//charge from ctandard list("0"->TOF)
+//    cout<<"TofElosPDF::build:ich="<<ich<<" ic/charge="<<ic<<" "<<charge<<" chref="<<chref<<endl;
     if(charge!=chref || ic!=(ich+1)){
       cout<<"<---- Error: wrong Z-structure of TofElosPDF-file for id="<<ic<<endl;
       exit(1);
@@ -3860,7 +3861,7 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 }
 //---
 number TofElosPDF::getlkhd(int nhits, int hstat[], number ehit[], number beta){
-  number eh,xmax,hend,betapow,betacor,betamax(0.94),lkhd(0);
+  number eh,xmax,hend,betapow,betacor,betamax(0.95),lkhd(0);
   int ia;
   betapow=bpow;//now depends on Z-index
   betacor=ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))

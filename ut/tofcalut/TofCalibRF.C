@@ -42,6 +42,7 @@ const UInt_t kAnalyse[10]={      0,        0,        0,        0,       0,      
 const UInt_t kTofCalibType[3]={1,1,1};//Tdlv/Tzslw/Ampl
 const UInt_t kTofCalibPrint[3]={1,1,1};//print level for Tdlv/Tzslw/Ampl-calib(0/1/2->no/norm/debug)
 const Int_t kSpaceCalib=1;//0/1-> Earth/Space calib
+const Float_t kEvsPortionToUse=0.6;//use this % of 3.5mln inp.evs to cover complete orbit
 const Int_t kRDCalib=1;//1/0->rd/mc-calib
 const UInt_t kRefFileN=1305815610;//tempor for RD
 const UInt_t kMCRefN=2;//tempor for MC
@@ -658,6 +659,7 @@ public:
     printf(" Event has no error            : % 8d\n",evsel[141]);
     printf(" EventStatus OK(accepted)      : % 8d\n",evsel[142]);
     printf(" Entries to MyAnalysis         : % 8d\n",evsel[143]);
+    printf(" Accepted for MyAnalysis       : % 8d\n",evsel[158]);
     printf(" MC entries                    : % 8d\n",evsel[144]);
     printf(" Accepted entries              : % 8d\n",evsel[145]);
     printf(" Event has LVL1                : % 8d\n",evsel[146]);
@@ -1830,6 +1832,7 @@ try{
   Int_t TofTopAddr,TofBotAddr;
 //
   RunPar::addsev(143);//<--counts inputs
+//
   if(nMCEventg()>0)RunPar::SetMCF1();//MC data
   else RunPar::SetMCF0();//Real data
 //  cout<<" nMCEventg="<<nMCEventg()<<endl;
@@ -1838,6 +1841,8 @@ try{
   UInt_t runt=fHeader.RunType;
   UInt_t evnum=fHeader.Event;
 //cout<<"---------> Enter UProcessFill "<<" Run/Event="<<runn<<" "<<evnum<<" seq.ev="<<RunPar::getsev(143)<<endl;
+  if((evnum%100000)==0)cout<<"<--- 100000 events processed..."<<endl;
+//
   Int_t etime[2];
   etime[0]=fHeader.Time[0];
   etime[1]=fHeader.Time[1];
@@ -1850,17 +1855,25 @@ try{
 //--->1st event actions:
 //store 1st run#
   if(RunPar::firstev==0){
+    gRandom->SetSeed();
     RunPar::StartRun=runn;
     TofCalib::FirstLastEvent[0]=evnum;
     TofCalib::FirstLastRun[0]=runn;
     strcpy(TofCalib::FirstEvDate,date);
     RunPar::firstev=1;
   }
+//
+//---> Random selection:
+  Int_t dummy;
+  Float_t ranv;
+  ranv=gRandom->Rndm(dummy);  
+  if(ranv>kEvsPortionToUse)return;
+  RunPar::addsev(158);//<--counts inputs
+//---
   TofCalib::FirstLastEvent[1]=evnum;
   TofCalib::FirstLastRun[1]=runn;
   strcpy(TofCalib::LastEvDate,date);
 //-------
-  if((evnum%100000)==0)cout<<"<--- 100000 events processed..."<<endl;
 //
 //cout<<"GetMCF="<<RunPar::GetMCF()<<endl;
   if(RunPar::GetMCF()){//<--- mc-data		
@@ -6845,7 +6858,7 @@ int main(int argc, char *argv[]){
   int  brnumb=0;
   char ername[]="";
   int  ernumb=0;
-  int events=2000000;
+  int events=3400000;
   int thread=1;
   long long order=0;
   int mem=0;
@@ -6917,8 +6930,9 @@ int main(int argc, char *argv[]){
 //
   if(order==0 || order/pp%10==1){
     AMSChain chain("AMSRoot",thread,sizeof(TofCalibPG));
-    chain.Add("/fc02dat1/Data/AMS02/2011B/ISS.B515/std/*.root");
-    chain.Add("/fcdat1/Data/AMS02/2011B/ISS.B515/std/*.root");
+    chain.Add("/fcdat1/Data/AMS02/2011B/ISS.B524/std/*.root");
+    chain.Add("/fc02dat1/Data/AMS02/2011B/ISS.B524/std/*.root");
+    chain.Add("/r0fc00/Data/AMS02/2011B/ISS.B524/std/*.root");
     string fileoutput(brname);
     fileoutput+=xtname;
     fileoutput+=".his";

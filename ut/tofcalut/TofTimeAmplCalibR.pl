@@ -260,7 +260,7 @@ $set_fram->Label(-text=>"Queue:",-font=>$font2,-relief=>'groove')
 					       -relwidth=>0.15, -relheight=>$drh2,
                                                -relx=>0.3, -rely=>($shf2+$drh2));
 #
-$Queue2run="8nm";#queue name the job sould be submitted 
+$Queue2run="8nh";#queue name the job sould be submitted 
 $set_fram->Optionmenu(-textvariable => \$Queue2run, 
                                -background=>yellow,
                                -activebackground=>yellow,
@@ -311,7 +311,7 @@ $set_fram->Label(-text=>"Events:",-font=>$font2,-relief=>'groove')
                                                ->place(
 					       -relwidth=>0.2, -relheight=>$drh2,
                                                -relx=>0.5, -rely=>($shf2+2*$drh2));
-$Evs2Read="1600000";#number of events to read 
+$Evs2Read="3400000";#number of events to read 
 $set_fram->Entry(-relief=>'sunken', -background=>yellow,
                                     -font=>$font3,
                                     -textvariable=>\$Evs2Read)
@@ -1234,7 +1234,7 @@ sub SetDefaultPars
   $cfilesloc="101";#def value
   $usetrd=0;#def "not use TRD"
   $ncpus="1";#def number of CPUs to use 
-  $Queue2run="1nh";#def queue name the job sould be submitted 
+  $Queue2run="8nh";#def queue name the job sould be submitted 
   $CalCode=0;
   if($sdtmdfcal==1){
      $CalCode+=100;
@@ -1246,12 +1246,12 @@ sub SetDefaultPars
      $CalCode+=1;
   }
   $jobctypes=0;#calib-types in job
-  $Evs2Read=1600000;  
+  $Evs2Read=3400000;  
   $RunType="SCI";# required Daq Files type
   $SubDetMsk=41;#bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
   $FileSize=300;# mb
   $MinEvsInFile=150000;
-  $CalibrGap=$CalibrGapList[4];
+  $CalibrGap=$CalibrGapList[6];
 #
 #-------------
   $refcfl_om->configure(-options => [@RefCflistList]);
@@ -1694,15 +1694,17 @@ sub SubmitJob
   my $fn;
   my $ext=substr($CalRun1,-5,5);
   my $jobname=$SessName.$ext;
+  my $opt='"span[hosts=1]"';
   if($Host2run eq "Any"){$Host2run="";}
   if($Host2run eq ""){#<-- means any host
-    $comm2run="bsub -q $Queue2run -n $jpar4 -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar4 -R $opt -o $logf -e $logef  -J $jobname $JobScriptN";
 #    $comm2run="bsub -q $Queue2run -o $logf -e $logef  -J $jobname $JobScriptN";
-  print "SubmCommand=",$comm2run,"\n";
+    print "SubmCommand=",$comm2run,"\n";
   }
   else{
-    $comm2run="bsub -q $Queue2run -n $jpar4 -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    $comm2run="bsub -q $Queue2run -n $jpar4 -m $Host2run -R $opt -o $logf -e $logef  -J $jobname $JobScriptN";
 #    $comm2run="bsub -q $Queue2run -m $Host2run -o $logf -e $logef  -J $jobname $JobScriptN";
+    print "SubmCommand=",$comm2run,"\n";
   }
 #
 TryAgain:
@@ -3725,6 +3727,7 @@ sub Analyze
   }
   else{#<--- current session is completed
 #    JobOutpControl();#just to leave on screen latest status for few seconds  
+    $topl4->after(5000);# safety delay
     $matchf_bt->invoke();
     $topl4->after(5000);# tempor for debug (to see result)
     $cleanup_bt->invoke();
@@ -3738,7 +3741,7 @@ sub Analyze
     $setupj_bt->configure(-state=>$setupj_state);   
     $sjobbt_state="normal";
     $sjobbt->configure(-state=>$sjobbt_state);
-    QuitSession();#<-- tempor commented for debug
+    QuitSession();#<-- 
   }
 #
   $mwnd->update;

@@ -26,7 +26,7 @@ sub pw_check{
     return;
   }
 #
-  if($CurHost eq "pcamss0"){
+  if($CurHost eq "scamsfs1"){
     show_messg("\n   <--- User $TofUserN do not need PW on this host, DB update is granted !!!","Big");
     $LoginDone=1;
     $dryrbt->configure(-state=>'normal');

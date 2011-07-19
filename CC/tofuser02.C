@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.46 2011/06/24 09:16:20 choumilo Exp $
+//  $Id: tofuser02.C,v 1.47 2011/07/19 11:56:20 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -596,7 +596,7 @@ Nextp:
 //-------------------------------------------> beta><0 problem study:
 //  if(beta<0)return;//tempor**2
 //--------------------------------
-  if(!(chargeTracker==1 && momentum>10.))return;//tempor to check resol
+//  if(!(chargeTracker==1 && momentum>10.))return;//tempor to check resol
 //
   if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)

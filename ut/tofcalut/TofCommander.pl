@@ -78,7 +78,7 @@ $BjobsFmt="A8 A8 A7 A10 A12 A12 A13 A14";#for packing message of "bjobs"
 @AMSSetupsList=qw(AMS02PreAss AMS02Ass1 AMS02Space);
 @AMSHostsList=qw(Any scamsfs1 pcamsr0 pcamsr1 pcamsn0 pcamsf3 pcamss0 );
 @AMSQueuesList=qw(8nm 1nh 8nh 1nd 1nw 2nw);
-@CalibrGapList=qw(0 0.37 1.5 6 8 12 24);
+@CalibrGapList=qw(0 0.37 1.5 6 8 12 22);
 #
 @cfilenames=qw(TofCflistRD TofCStatRD TofTdelvRD TofTzslwRD TofAmplfRD TofElospRD TofTdcorRD); 
 #

@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.85 2011/06/09 16:53:38 choutko Exp $
+//  $Id: charge.C,v 1.86 2011/07/19 11:56:16 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1441,7 +1441,7 @@ double AMSChargeTOF::EdepBetaCorrection(int ichar, double beta) {
 
   if (ichar<0 || ichar>=MaxZTypes) return 0;
 
-  double betamax = 0.94;//now depends on Z-index
+  double betamax = 0.95;//now depends on Z-index
   double betapow = TofElosPDF::TofEPDFs[ichar].getbpow();
   double betacor = ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
 
