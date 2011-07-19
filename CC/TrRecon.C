@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.132 2011/07/10 10:49:14 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.133 2011/07/19 07:30:18 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/07/10 10:49:14 $
+/// $Date: 2011/07/19 07:30:18 $
 ///
-/// $Revision: 1.132 $
+/// $Revision: 1.133 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1612,7 +1612,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     double qs1 =  qc[1][i[1]]/qc[3][i[3]];
     double qth = ((qc[1][i[1]] > 20 &&
 		   qc[3][i[3]] > 20) || qs0 > 45) ? 3+20/qs0 : 10;
-    if (qs1 < 1/qth || qth < qs1) continue;
+//  if (qs1 < 1/qth || qth < qs1) continue; // SH-to-be-fixed
 
   for (i[0] = 0; i[0] <= nc[0]; i[0]++) { // Plane 1 (Layer 1)
     if (CpuTimeUp()) break;
@@ -1621,8 +1621,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       dps1 = std::fabs(CY(1)-Intpol1(CZ(0), CZ(3), CY(0), CY(3), CZ(1)));
       if (dps1 > psely*2.5) continue;
 
-      if (qc[0][i[0]]/qs0 < 1/(2.5+50/qs0) || 
-	  qc[0][i[0]]/qs0 >    2.5+50/qs0) continue;
+//      if (qc[0][i[0]]/qs0 < 1/(2.5+50/qs0) || 
+//	    qc[0][i[0]]/qs0 >    2.5+50/qs0) continue;  // SH-to-be-fixed
     }
 
   for (i[2] = 0; i[2] < nc[2]; i[2]++) {  // Plane 3 (Layer 4, 5)
@@ -1639,8 +1639,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       cskip = 0; 
     }
 
-    if (qc[2][i[2]]/qs0 < 1/(2.5+50/qs0) || 
-	qc[2][i[2]]/qs0 >    2.5+50/qs0) continue;
+//    if (qc[2][i[2]]/qs0 < 1/(2.5+50/qs0) || 
+// 	  qc[2][i[2]]/qs0 >    2.5+50/qs0) continue; // SH-to-be-fixed
 
     if (i[0] == nc[0]) {
       double dps = std::fabs(CY(2)-Intpol1(CZ(1), CZ(3), 
@@ -1741,7 +1741,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
 	double q0 = tmin[jc].qsm;
 	double qs = qc[j][k]/q0;
-	if (qs < 1/(2+20/q0) || 2+20/q0 < qs) continue;
+	//if (qs < 1/(2+20/q0) || 2+20/q0 < qs) continue; // SH-to-be-fixed
 
 	double r = std::fabs(cc[j][k].y()-pint[j-1].y());
 	TR_DEBUG_CODE_105;
@@ -1871,7 +1871,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       double  q0 = tmin[jc].qtm;
       double sq0 = std::pow(q0, 0.8);
       double  qs = clx->GetTotSignal()/cly->GetTotSignal();
-      if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
+      // SH-to-be-fixed
+      //if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
       hman.Fill("TfCsn3", q0, qs);
     }
 
@@ -2088,7 +2089,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 
       double q0  = tmin[jc].qtm;
       double qsy = cly->GetTotSignal()/q0;
-      if (qsy < 1/(2+20/q0) || 2+20/q0 < qsy) continue;
+      //if (qsy < 1/(2+20/q0) || 2+20/q0 < qsy) continue; // SH-to-be-fixed
 
       double dy  = std::fabs(hit->GetCoord().y()-pnt.y());
       if (dy < ymin) { 
@@ -2121,7 +2122,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       double  q0 = tmin[jc].qtm;
       double sq0 = std::pow(q0, 0.8);
       double  qs = clx->GetTotSignal()/cly->GetTotSignal();
-      if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
+      // SH-to-be-fixed
+      //if (qs < 0.2*(1+0.01*sq0) || 5*(1+0.01*sq0) < qs) continue;
       hman.Fill("TfCsn4", q0, qs);
 
       for (int m = 0; m < hit->GetMultiplicity(); m++) {
@@ -2729,9 +2731,9 @@ int TrRecon::FillHistos(int trstat, int refit)
 #ifdef __ROOTSHAREDLIBRARY__
     // Book histos if not yet
     AMSEventR *evt = AMSEventR::Head();
-    bool ismc = (evt && evt->pMCEventg(0)) ? true : false;
+    int mc = (evt && evt->pMCEventg(0)) ? 3 : 0;
     hman.Enable();
-    hman.BookHistos(ismc);
+    hman.BookHistos(mc);
 #else
     return trstat;
 #endif
@@ -2936,34 +2938,46 @@ int TrRecon::FillHistos(int trstat, int refit)
     }
 
     double beta = 0;
-#ifndef __ROOTSHAREDLIBRARY__
+#ifndef _STANDALONE_
     double ttm[4], sln[4];
     for (int j = 0; j < 4; j++) {
       double dmin = 25, dxmin, dymin;
       ttm[j] = sln[j] = 0;
       int itc = (j == 0 || j == 3) ? 1 : 0;
       int jj  = (j == 0 || j == 2) ? j+1 : j-1;
+#ifndef __ROOTSHAREDLIBRARY__
       for (AMSTOFCluster *tofcls
 	     = AMSTOFCluster::gethead(j); tofcls; tofcls = tofcls->next()) {
-	if (tofcls->getetime() > 2.5e-10) continue;
-	if (tofcls->getecoo().x() == 0 ||
-	    tofcls->getecoo().y() == 0) continue;
+	AMSPoint tcoo = tofcls->getcoo();
+	AMSPoint ecoo = tofcls->getecoo();
+	double   time = tofcls->gettime();
+#else
+      AMSEventR *evt = AMSEventR::Head();
+      for (int k = 0; evt && k < evt->nTofCluster(); k++) {
+	TofClusterR *tofcls = evt->pTofCluster(k);
+	if (tofcls->Layer != j+1) continue;
+	AMSPoint tcoo(tofcls->Coo);
+	AMSPoint ecoo(tofcls->ErrorCoo);
+	double   time = tofcls->Time;
+#endif
+	if (time > 2.5e-10) continue;
+	if (ecoo.x() == 0 || ecoo.y() == 0) continue;
 
-	double zl = tofcls->getcoo().z();
+	double zl = tcoo.z();
 	AMSPoint pnt;
 	AMSDir   dir;
 	double slen = trk->Interpolate(zl, pnt, dir);
 	if (pnt.z() > 0) slen *= -1;
 
-	AMSPoint dp = tofcls->getcoo()-pnt;
-	double dx = dp[  itc]/tofcls->getecoo()[  itc];
-	double dy = dp[1-itc]/tofcls->getecoo()[1-itc];
+	AMSPoint dp = tcoo-pnt;
+	double dx = dp[  itc]/ecoo[  itc];
+	double dy = dp[1-itc]/ecoo[1-itc];
 	double dd = dx*dx+dy*dy;
 	if (std::fabs(dx) < 3.5 && std::fabs(dy) < 3.5 && dd < dmin) {
 	  dmin   = dd;
 	  dxmin  = dx;
 	  dymin  = dy;
-	  ttm[j] = tofcls->gettime();
+	  ttm[j] = time;
 	  sln[j] = slen;
 	}
       }
@@ -2974,13 +2988,6 @@ int TrRecon::FillHistos(int trstat, int refit)
       double dlen = (sln[2]+sln[3])/2-(sln[0]+sln[1])/2;
       beta = 0.01*dlen/dtof/TrProp::Clight;
     }
-#else
-    AMSEventR *evt = AMSEventR::Head();
-#ifdef _STANDALONE_
-    beta=0;
-#else
-    if (evt && evt->pBeta(0)) beta = evt->pBeta(0)->Beta;
-#endif
 #endif
     if (beta != 0 && mfi > 0 && chg > 0) {
       double schg = (beta > 0) ? chg : -chg;
@@ -2990,7 +2997,7 @@ int TrRecon::FillHistos(int trstat, int refit)
       if (schg != 0) {
 	hman.Fill("TrRiICs", 1/rgt, schg);
 
-	if (-1 < 1/rgt && 1/rgt < 0 && 
+	if (-1 < 1/rgt && 1/rgt < -0.1 && 
 	    schg > 1.5*std::sqrt(1.5*1.5/rgt/rgt+1)) {
 	  static int nhb = 0;
 	  if (nhb++ < 20)
