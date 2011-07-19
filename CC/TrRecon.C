@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.133 2011/07/19 07:30:18 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.134 2011/07/19 09:56:18 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/07/19 07:30:18 $
+/// $Date: 2011/07/19 09:56:18 $
 ///
-/// $Revision: 1.133 $
+/// $Revision: 1.134 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4698,6 +4698,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
       if (hit_new!=phit2){
 	//add the new one
 	ptr->AddHit(hit_new,mm);
+	hit_new->SetUsed();
       }
       
       hit_new->SetResolvedMultiplicity(mm);
