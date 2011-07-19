@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.222.2.4 2011/07/13 16:19:18 choutko Exp $
+//  $Id: daqevt.C,v 1.222.2.5 2011/07/19 10:50:36 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2089,7 +2089,7 @@ strcpy(fnam,fnamei.c_str());
 	      if(getenv("TransferSharedLib")){
 		setenv("LD_LIBRARY_PATH",getenv("TransferSharedLib"),1);
 	      }
-	      string cp(getenv("TransferRawBy2")?getenv("TransferRawBy2"):"scp ");
+	      string cp((getenv("TransferRawBy2") &&!strstr(getenv("TransferRawBy2"),":"))?getenv("TransferRawBy2"):"scp ");
               setenv("TransferRawBy2",cp.c_str(),0);
               char hostdefault[]="ams.cern.ch";
               char *host=getenv("AMSRescueHost")?getenv("AMSRescueHost"):hostdefault;

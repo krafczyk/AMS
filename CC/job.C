@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.817.2.3 2011/07/01 09:56:34 choutko Exp $
+// $Id: job.C,v 1.817.2.4 2011/07/19 10:50:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2916,7 +2916,7 @@ if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
-                          getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/1000000)%2));
+                          getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
 
   if(AMSFFKEY.Update==88)return;
 
@@ -3309,7 +3309,7 @@ if(TRDMCFFKEY.CreatePDF && AMSTRDTrack::CreatePDF()){
     (void*)AMSTRDIdSoft::_ped,server,1));
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-    (void*)AMSTRDIdSoft::_gain,server,(CALIB.SubDetRequestCalib/100000)%2));
+    (void*)AMSTRDIdSoft::_gain,server,(CALIB.SubDetRequestCalib/10000)%10));
 if(!isRealData()){
  TID.add (new AMSTimeID(AMSID("TRDMCGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
@@ -3320,7 +3320,7 @@ if(!isRealData()){
     (void*)AMSTRDIdSoft::_sig,server,1));
  TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-    (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/100000)%2));
+    (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/10000)%10));
 }
 
 

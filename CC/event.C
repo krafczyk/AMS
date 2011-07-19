@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.534.2.1 2011/06/25 06:47:26 choutko Exp $
+//  $Id: event.C,v 1.534.2.2 2011/07/19 10:50:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3028,8 +3028,8 @@ while(offspring){
       cerr<<" End : " <<ctime(&e)<<" "<<e<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<" "<<i<<endl; 
 #ifdef __CORBA__
-cerr<<"  updating map "<<endl;
-offspring->updatemap(AMSDATADIR.amsdatabase,true);
+//cerr<<"  updating map "<<endl;
+//offspring->updatemap(AMSDATADIR.amsdatabase,true);
 #endif
       throw amsglobalerror("TDV Not    Validated ",3);
  
