@@ -54,6 +54,7 @@ float EcalShowerR::GetEcalBDT(){
   float LayerTruncEneDep[nECAL_LAYERs]={0}; 
   float HitEneDep[nECAL_LAYERs][nECAL_CELLs]={0};
 
+  float edepl[nECAL_LAYERs]={0};
 
   ShowEne=EnergyC;
   
@@ -87,7 +88,7 @@ float EcalShowerR::GetEcalBDT(){
     Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
     int nCLUSTERs= cluster2d->NEcalCluster();
     for (int icluster=0; icluster<nCLUSTERs; icluster++){
-      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);		  
+      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
       int nclHITs = cluster->NEcalHit();
       for(int ihit=0; ihit<nclHITs;ihit++){
 	hit = cluster->pEcalHit(ihit);
@@ -115,7 +116,8 @@ float EcalShowerR::GetEcalBDT(){
     Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
     int nCLUSTERs= cluster2d->NEcalCluster();
     for (int icluster=0; icluster<nCLUSTERs; icluster++){
-      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);		  
+      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
+      LayerEneDep[cluster->Plane]+=cluster->Edep;
       int nclHITs = cluster->NEcalHit();
       for(int ihit=0; ihit<nclHITs;ihit++){
 	hit = cluster->pEcalHit(ihit);	
@@ -133,10 +135,10 @@ float EcalShowerR::GetEcalBDT(){
 
   for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
     for(int icell=0; icell<72; icell++){
-      LayerEneDep[ilayer]+=HitEneDep[ilayer][icell];
       LayerCentroid[ilayer]+=icell*HitEneDep[ilayer][icell];
+      edepl[ilayer]+=HitEneDep[ilayer][icell];
     }
-    LayerCentroid[ilayer]/=LayerEneDep[ilayer];	  
+    LayerCentroid[ilayer]/=edepl[ilayer];	  
   }
       
   F2LEnedep=F2LFrac/1000.;   //MeV to GeV
