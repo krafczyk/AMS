@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.134 2011/07/19 09:56:18 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.135 2011/07/19 10:40:58 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/07/19 09:56:18 $
+/// $Date: 2011/07/19 10:40:58 $
 ///
-/// $Revision: 1.134 $
+/// $Revision: 1.135 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2492,6 +2492,7 @@ void TrRecon::PurgeGhostHits()
     for(int ithit=0;ithit<track->GetNhits();ithit++){
       TrRecHitR *thit=track->GetHit(ithit);
       if (!thit) continue;
+      if (!thit->Used()) thit->SetUsed();
       TrClusterR* yclus= thit->GetYCluster();
       if (!yclus) continue;
       int nhit = cont->getnelem();
