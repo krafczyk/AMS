@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.324 2011/07/19 09:37:06 choutko Exp $
+//  $Id: root.C,v 1.325 2011/07/20 13:26:10 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5390,7 +5390,7 @@ if(getsetup()){
    tme[i]=double(t>>32)+double(t& mask)/1000000.;
   }
   double ct=double(UTime())+Frac(); 
-  cout <<" utime "<<UTime()<<" "<<Frac()<<" "<<ct-UTime()<<endl;
+  //cout <<" utime "<<UTime()<<" "<<Frac()<<" "<<ct-UTime()<<endl;
   float lt=s0[0]+(ct-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
  // cout <<tme[0]<<" "<<tme[1]<<" "<<ct<<" "<<tme[1]-tme[0]<<" "<<ct-tme[0]<<endl;
   //cout <<"two "<<s0[0]<<" "<<s0[1]<<" "<<lt<<endl;
