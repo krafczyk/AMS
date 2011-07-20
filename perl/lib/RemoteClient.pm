@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.680 2011/07/12 09:02:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.681 2011/07/20 11:25:11 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19625,7 +19625,7 @@ sub MoveBetweenDisks{
         die "No FileSystems Available \n"
         }
        if(defined $newd){
-        $sql="select available from filesystems where disk='$newd' and isonline=1";
+        $sql="select available from filesystems where disk='$newd' and path='$path' and isonline=1";
         my $r2=$self->{sqlserver}->Query($sql);
         if(defined $r2 and ${$r2}[0]->[0]>$ds->[1]){
             $disk=$newd;
@@ -19660,7 +19660,7 @@ sub MoveBetweenDisks{
              print "Problem with disk $disk \n";
              return;
            } 
-           my $cp="cp -p $file $newfile";
+           my $cp="cp  --preserve=timestamps,ownership  $file $newfile";
            if($file eq $newfile){
              $cp="cp  $file /dev/null";
            }
@@ -19668,7 +19668,10 @@ sub MoveBetweenDisks{
            if($i ){
              if($verbose){
                  print "Problem to $cp \n";
+                
              }
+            system("$rm  $newfile");
+            
 #
 # get the file from castor
 #   
@@ -19720,7 +19723,6 @@ sub MoveBetweenDisks{
                if(not defined $fchk->[0][0]){
                  if($verbose){
                      print " Failure after succ Commit $file $newfile\n";                                      }
-                 system("$rm  $newfile");
                  last;
 
                }

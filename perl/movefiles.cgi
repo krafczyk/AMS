@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: movefiles.cgi,v 1.2 2011/03/30 12:48:34 dmitrif Exp $
+#  $Id: movefiles.cgi,v 1.3 2011/07/20 11:25:07 ams Exp $
 use Gtk;
 use strict;
 
@@ -18,7 +18,7 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 my $ok=$html->ConnectDB();
 my $v=1;
-my $upd=0;
+my $upd=1;
 my $run2p=0;
 my $tmp="/tmp/castor";
 my $irm=0;
