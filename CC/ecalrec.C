@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.150 2011/07/12 09:12:10 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.151 2011/07/20 11:51:19 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2590,7 +2590,7 @@ int icofgcell[Maxrow];
    erec_ipcorr=erec_ipcorr/1000.;
  float corr_leak_2d=1.;   
 if (frac2>ECREFFKEY.LAPPRearLeak[3]){
-    corr_leak_2d=ECREFFKEY.LAPPRearLeak[0]+exp(-ECREFFKEY.LAPPRearLeak[1]*erec_ipcorr/((float)cofgl))-ECREFFKEY.LAPPRearLeak[2]*frac2;
+    corr_leak_2d=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*erec_ipcorr/((float)cofgl))-ECREFFKEY.LAPPRearLeak[2]*frac2;
    }
  //explicit datacards values (N.B. erec_ipcorr in GeV):
 // if (frac2>0.035){
