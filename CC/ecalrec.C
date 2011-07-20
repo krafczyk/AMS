@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.150.2.1 2011/07/20 11:34:05 paniccia Exp $
+//  $Id: ecalrec.C,v 1.150.2.2 2011/07/20 13:26:47 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2610,11 +2610,6 @@ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
 
     // now add s13leak: Choutko version
     _Energy= ec;
-    float _S13Leak=0;
-    if(_S13R>ECREFFKEY.S1S3[2] && _S13R<ECREFFKEY.S1S3[3]){
-      _S13Leak=-ECREFFKEY.S1S3[1]*(_S13R-ECREFFKEY.S1S3[0]);
-    }
-    //_EnergyC/=(1-_S13Leak);
 
 
     //Pisa version
@@ -2730,6 +2725,12 @@ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
     
   }
   
+    _S13Leak=0;
+    if(_S13R>ECREFFKEY.S1S3[2] && _S13R<ECREFFKEY.S1S3[3]){
+      _S13Leak=-ECREFFKEY.S1S3[1]*(_S13R-ECREFFKEY.S1S3[0]);
+    }
+    _EnergyC/=(1-_S13Leak);
+
   if(_EnergyC){
     _RearLeak/=_EnergyC;
     _OrpLeak/=_EnergyC;
