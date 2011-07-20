@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.52 2011/07/07 09:28:09 ams Exp $
+# $Id: NetMonitor.pm,v 1.53 2011/07/20 10:06:31 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -7,6 +7,7 @@ use Carp;
 use DBI;
 use POSIX  qw(strtod);
 @NetMonitor::EXPORT=qw(new Run); 
+$ENV{AMISERVER} = 'pcamss0.cern.ch';
 
 sub new{
     my $type=shift;
@@ -231,11 +232,12 @@ my $period = '';
         open (TIME, "/tmp/strami");
         my $time = <TIME>;
         my @in = split (/ /, $time);
-#    print ("ami time is $in[4]\n"); 
+    print ("ami time is $in[4]\n"); 
         $localtime = time();
         $delta = ($localtime - $in[4]);
+     print ("delta time is $delta\n");
         if (($localtime - $in[4]) > 7200) {
-            print "old one: delta is $delta\n";
+            print "localtime is $localtime, old one: delta is $delta\n";
 	    push @{$self->{bad}}, " slow_database_last_update_time_too_far_in_the_past:-$delta\n";
 #	    $self->sendmailpolicy("slow_database_last_update_time_too_far_in_the_past:-$delta\n",0);
             }

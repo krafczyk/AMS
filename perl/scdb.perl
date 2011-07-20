@@ -152,8 +152,12 @@ if($end>$max){
 
 
 while ($beg<$end and $end<=$max){
+    system("kinit -R");
+    my $upd="/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/perl/klist.py";
+    system($upd);
     my $cmd=$scdbp." $beg $end /tmp/t.root.$$ /tmp/t.root.$$ $tmout 1>/tmp/getior.$$ 2>&1";
-    my $i=system($cmd);
+    $t1=time();
+     my $i=system($cmd);
     if($i){
         if(($i&255) or ($i>>8)!=4){
                  my $ctime=localtime(time());
