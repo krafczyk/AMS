@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.148 2011/07/21 09:39:29 ams Exp $
+# $Id: Monitor.pm,v 1.149 2011/07/21 11:43:34 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -887,7 +887,8 @@ if ($producer eq "Producer"){
                my @host=split ":",$rdst->{Name};
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
-                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)){
+                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)
+or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus5/)){
 #               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
                if($rdst->{Insert}>$ltime){
                    $ltime=$rdst->{Insert};
@@ -1674,9 +1675,7 @@ sub RemoveRuns{
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
 #     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
-     if( $rdst{Status} eq "Allocated" and  $rdst{FilePath} =~/pass2/){
-         $rdst{Status}="Finished";
-         print "$rdst{uid} \n";
+     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
 #     if($rdst{Status} eq "Finished"){
          foreach my $hash (@{$ref->{acl}}){
              if ($hash->{id}->{uid} == $rdst{uid}){
@@ -1688,7 +1687,7 @@ sub RemoveRuns{
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
-                $arsref->sendRunEvInfo(\%rdst,"Update");
+#                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{
