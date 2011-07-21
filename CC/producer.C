@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.166 2011/07/19 09:37:06 choutko Exp $
+//  $Id: producer.C,v 1.166.2.1 2011/07/21 12:03:15 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -437,8 +437,8 @@ ndir:
         if(strlen(nt2)){
           string nt2_new=nt2;
           char whoami[255]="";
-          if(getlogin())sprintf(whoami,"%s/%u",getlogin(),_pid.pid);
-          else if(getenv("LOGNAME"))sprintf(whoami,"%s/%u",getenv("LOGNAME"),_pid.pid);
+          if(getlogin())sprintf(whoami,"%s/%uA",getlogin(),_pid.pid);
+          else if(getenv("LOGNAME"))sprintf(whoami,"%s/%uA",getenv("LOGNAME"),_pid.pid);
           int pos=nt2_new.find("whoami");  
           if(pos>=0 && whoami && strlen(whoami))nt2_new.replace(pos,6,whoami);
           setenv("NtupleDir",nt2_new.c_str(),1);
@@ -767,7 +767,9 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
- if(!_Solo)sendid(3600);
+int tmc=3600;
+if(strstr((const char *)fcopy,"rfcp"))tmc=10800;
+ if(!_Solo)sendid(tmc);
  int ntry=3;
  bool suc=false;
 againcp:
