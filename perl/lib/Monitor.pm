@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.147 2011/07/06 09:15:31 ams Exp $
+# $Id: Monitor.pm,v 1.148 2011/07/21 09:39:29 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -782,7 +782,7 @@ $tevt+=$rdstc->{EventsProcessed};
           last;
       }
   }
-    my $effic=$time==0?0:int ($cpu*100*$proc/$cpunumber/($time)); 
+    my $effic=$time==0?0:int ($cpu*100*$proc/($cpunumber+0.01)/($time)); 
      $totproc+=$proc;
      $totcpu+=$cpunumber;
   push @text, $cpuper/10000., $effic/100.;
@@ -1673,12 +1673,22 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-     if( $rdst{Status} eq "Alocated"){
+#     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
+     if( $rdst{Status} eq "Allocated" and  $rdst{FilePath} =~/pass2/){
+         $rdst{Status}="Finished";
+         print "$rdst{uid} \n";
 #     if($rdst{Status} eq "Finished"){
+         foreach my $hash (@{$ref->{acl}}){
+             if ($hash->{id}->{uid} == $rdst{uid}){
+                 print " $hash->{id}->{HostName} $hash->{id}->{pid} $rdst{Run} $rdst{uid} \n";
+                 my $cmd="ssh $hash->{id}->{HostName} kill -9  $hash->{id}->{pid} ";
+                 system($cmd);
+             }
+         }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
-                $arsref->sendRunEvInfo(\%rdst,"Delete");
+                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{
@@ -1687,7 +1697,7 @@ sub RemoveRuns{
         }
         foreach $arsref (@{$ref->{ardref}}){
             try{
-                #$arsref->sendRunEvInfo(\%rdst,"Delete");
+           #     $arsref->sendRunEvInfo(\%rdst,"Delete");
                 last;
             }
             catch CORBA::SystemException with{
