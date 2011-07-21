@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.375 2011/07/19 09:37:15 choutko Exp $
+//  $Id: root.h,v 1.376 2011/07/21 11:55:03 sdifalco Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -535,7 +535,7 @@ public:
   float ErDirE;   ///< 3d angle error - Pisa version
   float Chi2Dir;  ///<  chi2 direction fit
   float FirstLayerEdep; ///< front energy dep (Mev)
-  float EnergyD; ///< energy deposit (gev)
+  float EnergyD; ///< energy deposit (Mev)
   float EnergyC; ///< shower energy (gev) - old version
   float EnergyE; ///< shower energy (gev) - Pisa version
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
@@ -608,8 +608,7 @@ public:
   /// lower values correspond to hadrons, higher to electromagnetic particles
   /// Trained on August 2010 test beam data 
   /// WARNING: by default this function is dummy, to have it you must compile 
-  /// with the ECALBDT defined but this take about 12 minutes with g++ and 
-  /// more than 1 hour with icc)
+  /// with the ECALBDT defined but this take about 6 minutes 
   float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
