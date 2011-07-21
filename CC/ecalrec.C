@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.150.2.2 2011/07/20 13:26:47 choutko Exp $
+//  $Id: ecalrec.C,v 1.150.2.3 2011/07/21 11:09:13 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2719,7 +2719,7 @@ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
       }
     else
       {
-	_EnergyPIC= ec;
+	_EnergyPIC= ec/1000.;
 	_RearLeakPI=0.;
       }
     
