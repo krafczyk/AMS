@@ -723,10 +723,10 @@ class RemoteClient:
                         try:
                             if(datamc==0 and run.DataMC==datamc and run.Run != run.uid):
                                 thread.start_new(self.validatedatarun,(run,))
-                                elif(datamc==0 and run.DataMC==datamc):
-                                    thread.start_new(self.validaterun,(run,))
-                                    elif(datamc==run.DataMC and datamc==1): 
-                                        thread.start_new(self.validatedatarun,(run,))
+                            elif(datamc==0 and run.DataMC==datamc):
+                                thread.start_new(self.validaterun,(run,))
+                            elif(datamc==run.DataMC and datamc==1): 
+                                thread.start_new(self.validatedatarun,(run,))
                         except:
                             print " Unable to start new thread "
                             time.sleep(60)

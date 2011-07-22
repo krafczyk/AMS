@@ -48,7 +48,7 @@ class DBServer:
     def UpdateEverything(self):
         self.dsts=[]
 #	(length,self.dsts)=self.iorp.getDSTS(self.cid)
-        maxr=1000
+        maxr=1200
         (length,self.rtb,maxrun1)=self.iorp.getRunEvInfoS(self.cid,maxr)
         self.rundummy=self.rtb[0]
         len=0
