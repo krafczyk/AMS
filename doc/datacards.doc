@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.358 2011/07/05 18:05:18 mdelgado Exp $
+#  $Id: datacards.doc,v 1.359 2011/07/23 09:29:32 zweng Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -634,10 +634,9 @@ I 5 PhysicsListUsed(1)  // (0=Not Use Physics Lists, 1=QGSP, 2=QGSC, others not 
 I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "standard-em=proc"
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model
-			// 2: Wilson abrasion model (Not working in high enegy (~100GeV)for the moment)
-			// 3: EM Dissociation model  (Not working in high enegy (~100GeV)for the moment)
-			
-I 8 SIGTERM   (0)      //  1 immediate sigterm
+			// 2: Wilson abrasion model 
+I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
+I 9 SIGTERM   (0)      //  1 immediate sigterm
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
