@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.134 2011/07/05 10:23:37 choutko Exp $
+//  $Id: ntuple.h,v 1.135 2011/07/25 12:58:02 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -977,6 +977,7 @@ public:
   static bool LoadISS(time_t xtime);
   static int ISSAtt(float &roll, float &pitch, float &yaw, double xtime);
   static int ISSSA(float &a, float &b1a, float &b3a, float &b1b, float &b3b, double xtime);
+  static int ISSCTRS(float &r, float &theta, float &phi, float &v, float &vtheta, float&vphi,double xtime);
   void endR(bool writecache=true);
   void initR(const char* name,uinteger run,bool update=false);
   

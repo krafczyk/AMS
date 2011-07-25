@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.44 2011/06/07 14:05:33 choutko Exp $
+#  $Id: POADBServer.pm,v 1.45 2011/07/25 12:58:04 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -603,6 +603,7 @@ sub sendACPerl{
     my ($class,$cid,$ri,$rc)=@_;
 #        my ($ok,%hash)=$ref->OpenDBFile();
 # need to explicitely open db file in every sub 
+again:
     my $ok=0;
     my %hash;
     local *DBM;
@@ -721,7 +722,12 @@ OUT:
                      }
                          untie %hash;
                           close(LOCK);
-              throw DPS::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
+              if($rc eq "Update"){
+                  warn "sendACPerl::Unable to $rc the $tag $cid->{uid} \n";
+                  $rc="Create";
+                  goto again;   
+              }
+              throw DPS::DBProblem  message=>"sendACPerl::Unable to $rc the $tag $cid->{uid}";
           }
           else{
              throw DPS::DBProblem message=>"sendacperl Unable to Open DB File";

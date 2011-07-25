@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.681 2011/07/20 11:25:11 ams Exp $
+# $Id: RemoteClient.pm,v 1.682 2011/07/25 12:58:04 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18664,11 +18664,6 @@ sub CheckFS{
                   $rused=$sizemb->[0][0];
               }
                  $sql = "SELECT SUM(sizemb) FROM datafiles WHERE  PATH like '$fs->[0]%' and path like '%$path%'";
-                 $sizemb=$self->{sqlserver}->Query($sql);
-                 if(defined $sizemb->[0][0]){
-                  $rused+=$sizemb->[0][0];
-                 } 
-#                 $sql = "SELECT SUM(sizemb) FROM mcfiles WHERE  PATH like '$fs->[0]%' and path like '%$path%'";
                  $sizemb=$self->{sqlserver}->Query($sql);
                  if(defined $sizemb->[0][0]){
                   $rused+=$sizemb->[0][0];

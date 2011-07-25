@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.25 2011/07/05 10:23:38 choutko Exp $
+//  $Id: root_setup.h,v 1.26 2011/07/25 12:58:02 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -191,6 +191,28 @@ float b1b; ///< beta 1b  --
 float b3b; ///< beta 3b  --
 ClassDef(ISSSA,1)       //ISS Solar Arrays Data
 };
+class ISSCTRS{
+public:
+float x; ///< x (km) in CTRS
+float y; ///< y
+float z; ///< z
+float vx; ///< v_x km/s
+float vy; ///< v_y km/s
+float vz; ///< v_z km/s
+ClassDef(ISSCTRS,1)       //ISS Solar Arrays Data
+};
+class ISSCTRSR{
+public:
+float r; ///< r (cm) in CTRS
+float phi; ///< (rad)
+float theta; ///< (rad) 0 == equator
+float v; ///< velocity in rad/s
+float vphi; ///< (rad)
+float vtheta; ///< (rad)
+ISSCTRSR():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
+ISSCTRSR(const ISSCTRS &a);
+ClassDef(ISSCTRSR,1)       //ISS Solar Arrays Data
+};
 
 
 
@@ -230,14 +252,17 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSSA> ISSSA_m;
+ typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
  typedef map <double,ISSAtt> ISSAtt_m;
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
  typedef map <unsigned int,ISSSA>::iterator ISSSA_i;
+ typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
     GPSTime_m fGPSTime;    ///< GPS Time
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
+  ISSCTRS_m fISSCTRS;      ///< ISS CTRS coordinates & velocity vector map
    typedef map <unsigned long long ,ScalerMon> Scalers_m;
    typedef map <unsigned long long,ScalerMon>::iterator Scalers_i;
    Scalers_m fScalers; ///<  Scalers Map
@@ -260,6 +285,20 @@ static AMSSetupR * _Head;
 #endif
 static int _select (const dirent64 * entry);
 public:
+         //! ISS Coo & Velocity CTRS accessor
+	/*! 
+            
+
+	 \param double xtime (unix time + fraction of second)
+         \param ISSSCTRSR a  interpolated values      
+	   
+             
+           \return 
+               0   ok (interpolation)
+               1   ok  (extrapolation)
+               2   no data                  
+	 */
+  int getISSCTRS(ISSCTRSR & a, double xtime); 
          //! ISS Solar Angles Accessor
 	/*! 
             
@@ -305,8 +344,9 @@ static    AMSSetupR * gethead(){return _Head;}
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
+ int LoadISSCTRS(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,10)       //AMSSetupR
+ClassDef(AMSSetupR,11)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

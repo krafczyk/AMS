@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.376 2011/07/21 11:55:03 sdifalco Exp $
+//  $Id: root.h,v 1.377 2011/07/25 12:58:02 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -219,13 +219,13 @@ static char _Info[255];
 
 // shuttle/ISS parameters
 
-   float RadS;    ///<iss orbit altitude cm  (J2000 coo sys)
+   float RadS;    ///<iss orbit altitude cm  (GTOD coo sys)
    float ThetaS;  ///<theta (GTOD rad)  
    float PhiS;    ///<phi   (GTOD rad)
    float Yaw;     ///<ISS yaw (LVLH rad) 
    float Pitch;   ///<ISS pitch (LVLH rad) 
    float Roll;   ///<ISS roll (LVLH rad)  
-   float VelocityS;     ///< ISS velocity (rad/sec) 
+   float VelocityS;     ///< ISS velocity ( rad/sec) 
    float VelTheta;     ///< ISS speed theta (GTOD rad) 
    float VelPhi;       ///< ISS speed phi (GTOD rad)  
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
@@ -294,6 +294,8 @@ public:
 
 int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, float dt=0); ///<get AMSSetupR::ISSSA values for the current event time;
 
+int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
+
   //#ifdef _PGTRACK_
   friend class VCon_root;
   //#endif
@@ -333,6 +335,8 @@ int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, floa
     b1a=0;
     b3a=0;
     int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
+    float r,phi,theta,v,vphi,vtheta;
+    int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
   
                          sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x",
 			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
