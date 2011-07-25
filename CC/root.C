@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.325 2011/07/20 13:26:10 choutko Exp $
+//  $Id: root.C,v 1.326 2011/07/25 12:57:55 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5368,6 +5368,26 @@ b3b=a.b3b;
 return ret;
 
 }
+
+
+
+int HeaderR::getISSCTRS(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
+unsigned int gpsdiff=15;
+if(!AMSEventR::getsetup())return 2;
+AMSSetupR::ISSCTRSR a;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+int ret=AMSEventR::getsetup()->getISSCTRS(a,xtime);
+r=a.r;
+theta=a.theta;
+phi=a.phi;
+v=a.v;
+vphi=a.vphi;
+vtheta=a.vtheta;
+return ret;
+
+}
+
+
 float AMSEventR::LiveTime(){
 
 if(getsetup()){

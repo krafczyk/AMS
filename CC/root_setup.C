@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.44 2011/07/11 08:54:40 choutko Exp $
+//  $Id: root_setup.C,v 1.45 2011/07/25 12:57:55 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -76,6 +76,7 @@ Reset();
 }
   ClassImp(AMSSetupR::ISSAtt)
   ClassImp(AMSSetupR::ISSSA)
+  ClassImp(AMSSetupR::ISSCTRS)
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
@@ -481,6 +482,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISS(fHeader.Run,fHeader.Run);
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
    LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
+   LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
    
    return false; 
   }
@@ -511,6 +513,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
    return true;
    }
 }
@@ -952,18 +955,20 @@ else if(t2-t1>864000){
 }
 const char fpatb[]="ISS_ATT_EULR_LVLH-";
 const char fpate[]="-24H.csv";
+const char fpate2[]="-24h.csv";
 
 // convert time to GMT format
 
 // check tz
    unsigned int tzd=0;
+tm tmf;
 {
 char tmp2[255];
    time_t tz=t1;
           strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-    tm tmf;
           strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
     time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
     tzd=tz-tc;
     cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
 
@@ -996,17 +1001,28 @@ char tmp2[255];
      fbin.close();    
      fbin.clear();
      fbin.open(fname.c_str());
+     if(!fbin){
+// change 24H to 24h
+      fname=AMSISS;
+      fname+=fpatb;
+      char utmp[80];
+      sprintf(utmp,"%u-%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
      if(fbin){
       while(fbin.good() && !fbin.eof()){
-        char line[80];
-        fbin.getline(line,79);
+        char line[120];
+        fbin.getline(line,119);
         
         if(isdigit(line[0])){
          char *pch;
          pch=strtok(line,".");
          ISSAtt a;
          if(pch){
-          tm tmf;
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           time_t tf=mktime(&tmf)+tzd;
           pch=strtok(NULL,",");
@@ -1158,6 +1174,102 @@ return 1;
 }
 
 
+AMSSetupR::ISSCTRSR::ISSCTRSR(const  AMSSetupR::ISSCTRS &a){
+r=sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
+phi=atan2(a.y,a.x);
+theta=asin(a.z/r);
+v=sqrt(a.vx*a.vx+a.vy*a.vy+a.vz*a.vz);
+vphi=atan2(a.vy,a.vx);
+vtheta=asin(a.vz/v);
+v=v/r;
+r*=100000;
+}
+
+
+
+
+int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
+if (fISSCTRS.size()==0)return 2;
+
+
+
+AMSSetupR::ISSCTRS_i k=fISSCTRS.lower_bound(xtime);
+if(k==fISSCTRS.begin()){
+a=ISSCTRSR(k->second);
+return 1;
+}
+if(k==fISSCTRS.end()){
+k--;
+a=ISSCTRSR(k->second);
+return 1;
+}
+  AMSSetupR::ISSCTRS b;
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  AMSSetupR::ISSCTRS_i l=k;
+  l++;
+  tme[1]=l->first;
+//  cout <<" alpha "<< k->second.alpha<<" "<<l->second.alpha<<endl;
+//   cout << int(k->first)<<" "<<int(l->first)<<" "<<int(xtime)<<endl;
+{
+  double ang1=k->second.x;
+  double ang2=l->second.x;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.x=s1;
+}
+{
+  double ang1=k->second.y;
+  double ang2=l->second.y;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.y=s1;
+}
+{
+  double ang1=k->second.z;
+  double ang2=l->second.z;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.z=s1;
+}
+{
+  double ang1=k->second.vx;
+  double ang2=l->second.vx;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.vx=s1;
+}
+{
+  double ang1=k->second.vy;
+  double ang2=l->second.vy;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.vy=s1;
+}
+
+{
+  double ang1=k->second.vz;
+  double ang2=l->second.vz;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.vz=s1;
+}
+
+a=ISSCTRSR(b);
+  return 0;
+
+
+}
+
+
+
 
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
 #ifdef __ROOTSHAREDLIBRARY__
@@ -1179,18 +1291,20 @@ else if(t2-t1>864000){
 }
 const char fpatb[]="ISS_solar_arrays_";
 const char fpate[]="-24H.csv";
+const char fpate2[]="-24h.csv";
 
 // convert time to GMT format
 
 // check tz
    unsigned int tzd=0;
+    tm tmf;
 {
 char tmp2[255];
    time_t tz=t1;
           strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-    tm tmf;
           strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
     time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
     tzd=tz-tc;
     cout<< "AMSSetupR::LoadISSAtt-I-TZDSeconds "<<tzd<<endl;
 
@@ -1223,17 +1337,28 @@ char tmp2[255];
      fbin.close();    
      fbin.clear();
      fbin.open(fname.c_str());
+     if(!fbin){
+// change 24H to 24h
+      fname=AMSISS;
+      fname+=fpatb;
+      char utmp[80];
+      sprintf(utmp,"%u_%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
      if(fbin){
       while(fbin.good() && !fbin.eof()){
-        char line[80];
-        fbin.getline(line,79);
+        char line[120];
+        fbin.getline(line,119);
         
         if(isdigit(line[0])){
          char *pch;
          pch=strtok(line,".");
          ISSSA a;
          if(pch){
-          tm tmf;
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           //cout <<" pch "<<pch<<endl;
           time_t tf=mktime(&tmf)+tzd;
@@ -1243,24 +1368,24 @@ char tmp2[255];
           double tc=tf+atof(tm1);
           pch=strtok(NULL,",");
           if(!pch)continue;
-          if(!isdigit(pch[0]))continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.alpha=atof(pch)*3.14159267/180;
           //cout <<" alpha "<<a.alpha<<" "<<tf<<" "<<tc<<endl;
           pch=strtok(NULL,",");
           if(!pch)continue;
-          if(!isdigit(pch[0]))continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.b1a=atof(pch)*3.14159267/180;
           pch=strtok(NULL,",");
           if(!pch)continue;
-          if(!isdigit(pch[0]))continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.b3a=atof(pch)*3.14159267/180;
           pch=strtok(NULL,",");
           if(!pch)continue;
-          if(!isdigit(pch[0]))continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.b1b=atof(pch)*3.14159267/180;
           pch=strtok(NULL,",");
           if(!pch)continue;
-          if(!isdigit(pch[0]))continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
           a.b3b=atof(pch)*3.14159267/180;
            fISSSA.insert(make_pair(tc,a));
           
@@ -1296,8 +1421,173 @@ int ret;
 if(bfound>0 &&efound)ret=0;
 else if(!bfound && !efound )ret=2;
 else ret=1;
-    cout<< "AMSSetupR::LoadISSSA-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
+    cout<< "AMSSetupR::LoadISSSA-I- "<<fISSSA.size()<<" Entries Loaded"<<endl;
 
 return ret;
 }
+#endif
+
+
+
+int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
+#ifdef __ROOTSHAREDLIBRARY__
+return 0;
+}
+#else
+
+ char AMSISSlocal[]="/afs/cern.ch/ams/local/isssa/";
+char * AMSISS=getenv("AMSISSSA");
+if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+
+if(t1>t2){
+cerr<< "AMSSetupR::LoadISSCTRS-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadISSCTRS-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+const char fpatb[]="ISS_CTRS_vectors_";
+const char fpate[]="-24H.csv";
+const char fpate2[]="-24h.csv";
+
+// convert time to GMT format
+
+// check tz
+   unsigned int tzd=0;
+    tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSCTRS-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+   char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+    
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     string fname=AMSISS;
+     fname+=fpatb;
+     char utmp[80];
+     sprintf(utmp,"%u_%03u",yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     ifstream fbin;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     if(!fbin){
+// change 24H to 24h
+      fname=AMSISS;
+      fname+=fpatb;
+      char utmp[80];
+      sprintf(utmp,"%u_%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(fbin){
+      while(fbin.good() && !fbin.eof()){
+        char line[120];
+        fbin.getline(line,119);
+        
+        if(isdigit(line[0])){
+         char *pch;
+         pch=strtok(line,".");
+         ISSCTRS a;
+         if(pch){
+          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+          //cout <<" pch "<<pch<<endl;
+          time_t tf=mktime(&tmf)+tzd;
+          pch=strtok(NULL,",");
+          char tm1[80];
+          sprintf(tm1,".%s",pch);
+          double tc=tf+atof(tm1);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.')continue;
+          a.x=atof(pch);
+          //cout <<" alpha "<<a.x<<" "<<tf<<" "<<tc<<endl;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.y=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.z=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vx=atof(pch)/1000.;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vy=atof(pch)/1000.;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vz=atof(pch)/1000.;
+           fISSCTRS.insert(make_pair(tc,a));
+          
+          if(tc>=t1 && tc<=t2){
+           if(abs(bfound)!=2){
+               fISSCTRS.clear();
+               fISSCTRS.insert(make_pair(tc,a));
+               bfound=bfound?2:-2;
+//               cout <<" line "<<line<<" "<<tc<<endl;
+           }
+          }
+         else if(tc<t1)bfound=1;
+         else if(tc>t2){
+             efound=1;
+             break;
+         }
+      }   
+     }
+     }
+     }
+     else{
+       cerr<<"AMSSetupR::LoadISSCTRS-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+      dc=1;
+      yc++;
+     }
+    }
+
+
+int ret;
+if(bfound>0 &&efound)ret=0;
+else if(!bfound && !efound )ret=2;
+else ret=1;
+    cout<< "AMSSetupR::LoadISSCTRS-I- "<<fISSCTRS.size()<<" Entries Loaded"<<endl;
+
+return ret;
+}
+
+
 #endif

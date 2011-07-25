@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.182 2011/07/19 09:37:06 choutko Exp $
+//  $Id: server.C,v 1.183 2011/07/25 12:57:55 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -449,7 +449,7 @@ else{
 
 void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
-      int ntry=sleeptime*1000000/int(AMSServer::Singleton()->getSleepTime());
+      int ntry=sleeptime*2000000/int(AMSServer::Singleton()->getSleepTime());
       if(ntry<=0)ntry=1;
      if(AMSServer::Singleton()->getSleepTime()<20000){
        cout <<"  entering listening " << "  "<<AMSServer::Singleton()->getSleepTime() <<" "<<sleeptime<<"  "<<ntry<<endl;

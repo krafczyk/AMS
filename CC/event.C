@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.537 2011/07/19 09:37:05 choutko Exp $
+//  $Id: event.C,v 1.538 2011/07/25 12:57:55 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4589,6 +4589,11 @@ void AMSEvent::LoadISS(){
 unsigned int gpsdiff=15;
 if(AMSNtuple::LoadISS(_time)){
 ISSGTOD(&_StationRad,&_StationTheta,&_StationPhi,&_StationSpeed,&_VelTheta,&_VelPhi,&_NorthPolePhi,double(_time)+_usec/1.e6-gpsdiff);
+//double v_earth=2*3.1415926/24/3600;
+//double vz=fabs(_StationSpeed*sin(_VelTheta));
+//double vr=fabs(_StationSpeed*cos(_VelTheta));
+//vr-=v_earth*sin(atan(AMSmceventg::Orbit.AlphaTanThetaMax));
+//double vgtod=sqrt(vz*vz+vr*vr);
 _NorthPolePhi+=AMSmceventg::Orbit.PolePhiStatic;
 }
 int ret=AMSNtuple::ISSAtt(_Roll,_Pitch,_Yaw,double(_time)+_usec/1.e6-gpsdiff);
@@ -4597,6 +4602,15 @@ if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSAtt Returns "<<ret<<" "<<_
 
 ret=AMSNtuple::ISSSA(_Alpha,_B1a,_B3a,_B1b,_B3b,double(_time)+_usec/1.e6-gpsdiff);
 if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSSA Returns "<<ret<<" "<<_Alpha<<" "<<_B1a<<" "<<_B3a<<" "<<_time<<endl;
+
+float r,phi,theta,v,vphi,vtheta;
+ret=AMSNtuple::ISSCTRS(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-gpsdiff);
+if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSCTRS Returns "<<ret<<" "<<r<<" "<<theta<<" "<<phi<<" "<<v<<" "<<_time<<endl;
+if(!ret){
+// replace?
+//cout<< "tbd "<<endl;
+
+}
 
 }
 
