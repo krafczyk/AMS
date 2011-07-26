@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.110 2011/06/29 12:17:35 pzuccon Exp $
+// $Id: TrTrack.C,v 1.110.2.1 2011/07/26 09:29:02 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/06/29 12:17:35 $
+///$Date: 2011/07/26 09:29:02 $
 ///
-///$Revision: 1.110 $
+///$Revision: 1.110.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -242,8 +242,9 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
   if (_MagFieldOn == 0 && id2 != kDummy) id2 = kLinear;
   if (ParExists(id2)) return _TrackPar.find(id2)->second;
   static int i=0;
-   if(i++<100)cerr << "Warning in TrTrackR::GetPar, Parameter not exists " 
-       << id << " "  << endl;
+   if(i++<100)
+     cerr << "TrTrackR::GetPar-W-Parameter not exists (" << id << "): "
+	  << GetFitNameFromID(id) << endl;
   static TrTrackPar parerr;
   return parerr;
 }
@@ -859,6 +860,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
 
+    if (((id & kUpperHalf) || 
+	 (id & kLowerHalf)) && ferx == 0) ferx = 10;
+
     double bf[3] = { 0, 0, 0 };
     TrFit::GuFld(coo[0], coo[1], coo[2], bf);
     _TrFit.Add(coo, ferx*errx*fmscx, fery*erry*fmscy, errz, 
@@ -881,8 +885,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   // Perform fitting
   float fdone = _TrFit.Fit(method);
 
-  bool done = (fdone > 0 && _TrFit.GetChisqX() > 0 && 
-	                    _TrFit.GetChisqY() > 0);
+  bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
+	                     _TrFit.GetChisqY() >= 0);
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
     done = false;
   if (!done) return -90000+fdone;
@@ -1355,7 +1359,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
   if(refit==2 || (!FitExists && refit==1)) { 
     float ret=FitT(fittype,-1,true,0,mass,chrg);
-    if (ret>0) 
+    if (ret>=0) 
       return fittype; 
     else 
        return -3;
