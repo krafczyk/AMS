@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.54 2011/05/05 08:54:09 shaino Exp $
+//  $Id: TrFit.C,v 1.55 2011/07/26 09:21:55 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/05/05 08:54:09 $
+///$Date: 2011/07/26 09:21:55 $
 ///
-///$Revision: 1.54 $
+///$Revision: 1.55 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -210,7 +210,6 @@ double TrFit::LinearFit(int side)
      chisq += (sig[i] > 0) ? res[i]*res[i]/sig[i]/sig[i] : 0;
    }
 
-   int ndof = _nhit-2;
    if (side == 2) {
      _ndofy  = _nhity-2;
      _chisqy = chisq;
@@ -659,7 +658,7 @@ double TrFit::SimpleFit(void)
       } 
     }
   }
-        
+
   // cov^{-1}
   if (Inv55(cov)) return -2;
 
@@ -692,7 +691,7 @@ double TrFit::SimpleFit(void)
 
   _ndofx -= 2;
   _ndofy -= 3;
-  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
+  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : 0;
 
   double dz = std::sqrt(1-_param[2]*_param[2]-_param[3]*_param[3]);
   _p0x = _param[0]; _dxdz = -_param[2]/dz;
@@ -912,7 +911,7 @@ double TrFit::AlcarazFit(int fixr)
       _chisqx += _xr[i]*vmtx[i*LMAX+j]*_xr[j];
       _chisqy += _yr[i]*wmtx[i*LMAX+j]*_yr[j];
     }
-  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : -1;
+  _chisq = (_ndofx+_ndofy > 0) ? (_chisqx+_chisqy)/(_ndofx+_ndofy) : 0;
 
   // Fill parameters
   double dzarg = 1-_param[2]*_param[2]-_param[3]*_param[3];
@@ -1161,8 +1160,8 @@ int TrFit::JAFillVWmtx(double *vmtx, double *wmtx,
       }
     }
 
-  for (int i = 0, k = 0; i < _nhit; i++)
-    for (int j = 0, l = 0; j < _nhit; j++) {
+  for (int i = 0; i < _nhit; i++)
+    for (int j = 0; j < _nhit; j++) {
       if (vmtx[i*LMAX+j] != 0) vmtx[i*LMAX+j] = 1/vmtx[i*LMAX+j];
       if (wmtx[i*LMAX+j] != 0) wmtx[i*LMAX+j] = 1/wmtx[i*LMAX+j];
     }
@@ -1262,9 +1261,9 @@ double TrFit::ChoutkoFit(void)
   double tol = 0.1;
 
   // Multiple scattering constant
-  double xls = 300.e-4;
-  double rls = 9.36;
-  double sms = 13.6e-3*std::sqrt(xls/rls)*1.5;
+//double xls = 300.e-4;
+//double rls = 9.36;
+//double sms = 13.6e-3*std::sqrt(xls/rls)*1.5;
 
   double chisqb  = -1;
   double chisqbb = -1;
@@ -1332,7 +1331,8 @@ double TrFit::ChoutkoFit(void)
 
       // Transportation
       int clear = (i == i1 || i == i1+di) ? 0 : 1;
-      if (VCFitPar(init, out, point, mm, clear) < 0) return -3;
+      //if (VCFitPar(init, out, point, mm, clear) < 0) return -3;
+      VCFitPar(init, out, point, mm, clear);
 
       // Multiple scattering matrix
       xms[i] = (_mscat) ? dmsc[i] : 0;
@@ -1410,7 +1410,7 @@ double TrFit::ChoutkoFit(void)
   _param[4] = _param[4]*_chrg/std::fabs(_chrg);
   _rigidity = (_param[4] != 0) ? 1/_param[4] : 0;
 
-  _chisq = (_ndofx+_ndofy > 0) ? _chisq/(_ndofx+_ndofy) : -1;
+  _chisq = (_ndofx+_ndofy > 0) ? _chisq/(_ndofx+_ndofy) : 0;
 
   return _chisq;
 }
@@ -1695,9 +1695,9 @@ void TrFit::RkmsFit(double *out)
   if(ierr) cerr << "MNEXCM: ERRo ierflg=" << ierr << endl;
 
   double z1  = _zh[0]; // ! if so Par(4)=x(1), Par[5]=y(1)
-  double rad = std::sqrt((_xh[1]-_xh[0])*(_xh[1]-_xh[0])+
-			 (_yh[1]-_yh[0])*(_yh[1]-_yh[0])+
-			 (_zh[1]-_zh[0])*(_zh[1]-_zh[0]));
+//double rad = std::sqrt((_xh[1]-_xh[0])*(_xh[1]-_xh[0])+
+//			 (_yh[1]-_yh[0])*(_yh[1]-_yh[0])+
+//			 (_zh[1]-_zh[0])*(_zh[1]-_zh[0]));
 
 /*=============================
  *#include "../RKMSFIT/debug1.h"
@@ -1850,10 +1850,10 @@ void TrFit::RkmsMtx(double rini)
    Imported to C++/ROOT by SH
  */
 
-  double SiThick = 0.0300;    // ! plane thicknes in cm. (300mkm Si)
-  double SiRlen  = 0.0032054; // ! plane thicknes in R.L.(300mkm Si) zz0
+//double SiThick = 0.0300;    // ! plane thicknes in cm. (300mkm Si)
+//double SiRlen  = 0.0032054; // ! plane thicknes in R.L.(300mkm Si) zz0
   double Rmin    = 0.300;     // ! Minimum rigidity, GV
-  double xHC     = 1;         // ! Amount of HanyComb mater.in Si-pl.r.l
+//double xHC     = 1;         // ! Amount of HanyComb mater.in Si-pl.r.l
 
 /*=== AMS01 Nov.29,1996
  c01      data trkZ0/50.95,29.15,7.75,-7.75,-29.15,-50.95/
@@ -1907,8 +1907,8 @@ void TrFit::RkmsMtx(double rini)
     npl[i] = layer+1;
   }
 
-  double dTh0 = std::sqrt(2.)*13.6e-3*std::sqrt(SiRlen)
-                            *(1.+.038*std::log (SiRlen));
+//double dTh0 = std::sqrt(2.)*13.6e-3*std::sqrt(SiRlen)
+//                           *(1.+.038*std::log (SiRlen));
 
 /*========================================= checkimg # of planes > 3 */
   if(_nhit < 3) {
@@ -2365,8 +2365,8 @@ void TrFit::RkmsFCN(int &npa, double *grad, double &fu, double *par, int iflag)
     /*                 GeV     GeV     GeV    cm    cm  !
      *================================================== */
 
-    double step = par[5];
-    double sign = par[6];
+  //double step = par[5];
+  //double sign = par[6];
 
     double xx[7];
     for (int j = 0; j < npa+2 && j < 7; j++) xx[j] = par[j];
