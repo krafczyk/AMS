@@ -667,7 +667,9 @@ class RemoteClient:
         if(ret[0][0]==1 and timenow-ret[0][1]<100000 and force==0):
             print "ValidateRuns-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
-        else: self.setprocessingflag(1,timenow,1)
+        else: 
+            print "ValidateRuns-I-ProcessingFlagSet  off ",ret[0][0],ret[0][1],force," continuing"
+            self.setprocessingflag(1,timenow,1)
         global vdir,vlog,output
         vdir=self.getValidationDir()
         vlog=vdir+"validateRuns.log."+str(timenow)
