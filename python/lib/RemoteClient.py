@@ -1733,7 +1733,7 @@ class RemoteClient:
            else:
                self.BadDSTCopy[self.nCheckedCite]=self.BadDSTCopy[self.nCheckedCite]+1
                print "docopyraw-E-cannot ",cmd
-               return outputpath,0,0
+               return None,0,0
                
        else:
            print "doCopyraw-E-cannot stat",inputfile
