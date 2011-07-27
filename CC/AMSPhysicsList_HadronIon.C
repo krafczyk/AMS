@@ -72,7 +72,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     G4BinaryLightIonReaction * theGenIonBC = new G4BinaryLightIonReaction;
     theGenIonBC->SetMinEnergy(0.0*MeV);
-    theGenIonBC->SetMaxEnergy(2000.0*GeV);
+    theGenIonBC->SetMaxEnergy(20000.0*GeV);
 
 
     G4EMDissociationCrossSection *EMDCrossSection = new G4EMDissociationCrossSection;
@@ -149,7 +149,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  cout<<"Also Use EMD Model"<<endl;
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
-	  theEMD->SetMaxEnergy(2000.0*GeV);
+	  theEMD->SetMaxEnergy(20000.0*GeV);
 	  theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
@@ -172,7 +172,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     G4WilsonAbrasionModel *theAM = new G4WilsonAbrasionModel(true);
     theAM->SetMinEnergy(0.0*MeV);
-    theAM->SetMaxEnergy(2000.0*GeV);
+    theAM->SetMaxEnergy(20000.0*GeV);
     theAM->SetVerboseLevel(2);
 
 
@@ -218,7 +218,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	  cout<<"Also Use EMD Model"<<endl;
 	  G4EMDissociation *theEMD = new G4EMDissociation();
 	  theEMD->SetMinEnergy(100.0*MeV);
-	  theEMD->SetMaxEnergy(2000.0*GeV);
+	  theEMD->SetMaxEnergy(20000.0*GeV);
 	  theEMD->SetVerboseLevel(2);
 	  G4ElementTable::iterator iter;
 	  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
