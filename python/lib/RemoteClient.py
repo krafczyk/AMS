@@ -1790,7 +1790,7 @@ class RemoteClient:
                     break
         timew=time.time()
         if(fsmutexes.has_key(outputdisk)):
-            print "acquirng fs mutex for ",outputdisk
+            print "acquirng fs mutex for ",outputdisk,sql
             mutex.release()
             fsmutexes[outputdisk].acquire()
             mutex.acquire()
@@ -1798,7 +1798,7 @@ class RemoteClient:
         else:
             fsmutexes[outputdisk]=thread.allocate_lock()
             mutex.release()
-            print "acquirng first fs mutex for ",outputdisk
+            print "acquirng first fs mutex for ",outputdisk,sql
             fsmutexes[outputdisk].acquire()
             mutex.acquire()
             print "got first fs mutex for ",outputdisk
