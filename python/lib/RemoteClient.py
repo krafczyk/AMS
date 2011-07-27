@@ -623,6 +623,34 @@ class RemoteClient:
         if(d==1):
             self.delete=1
         else: self.delete=0
+        if(d==2):
+            self.delete=2
+        if(self.delete==2):
+            for run in self.dbclient.rtb:
+                if(run2p!=0 and run2p!=run.Run):
+                    continue
+                status=self.dbclient.cr(run.Status)
+                if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
+                    uid=run.uid;
+                    sql=" select ntuples.path from ntuples,dataruns where ntuples.run=dataruns.run and dataruns.status='Completed' and dataruns.jid=%d " %(uid)
+                    ret=self.sqlserver.Query(sql)
+                    ret2=self.sqlserver.Query("select path from ntuples where jid=-1")
+                    if(datamc==0):
+                        uid=run.uid
+                        sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=%d " %(uid)
+                        ret=self.sqlserver.Query(sql)
+                        sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
+                        ret2=self.sqlserver.Query(sql)
+                    if(len(ret)>0 or len(ret2)>0):
+                        for ntuple in self.dbclient.dsts:
+                            if(self.dbclient.cn(ntuple.Status)=="Validated"):
+                                if(ntuple.Run==run.Run):
+                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                    print " deleting ntuple ",ntuple.Name
+                        print " deleting ",run.Run
+                        self.dbclient.iorp.sendRunEvInfo(run,self.dbclient.tm.Delete)
+                        
+            return
         if(mt==1):
             self.mt=1
         else: self.mt=0

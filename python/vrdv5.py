@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv5.py,v 1.2 2011/06/24 07:43:00 ams Exp $
+#  $Id: vrdv5.py,v 1.3 2011/07/27 10:02:55 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -24,6 +24,7 @@ for x in sys.argv:
     elif x == "-i": i=1
     elif x == "-v": v=1
     elif x == "-d": d=1
+    elif x == "-dd": d=2
     elif x == "-u": u=1
     elif x == "-force": force=1
     elif x == "-mt": mt=1
