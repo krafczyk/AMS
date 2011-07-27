@@ -3379,8 +3379,11 @@ class RemoteClient:
                         filesfound=filesfound+1
                     else:
                         if(outputpath!=None):
-                            cmd="rm -rf "+outputpath
-                            os.system(cmd)
+                            cmd="rm  "+outputpath
+                            print "TransferDataFiles-ECopyFail ",cmd 
+                            time.sleep(60) 
+                            if(not os.path.islink(outputpath) and not os.path.isdir(outputpath)):
+                                os.system(cmd)
             if(c==0 or run2p!=0):
                 break;
             else:
