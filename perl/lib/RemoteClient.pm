@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.682 2011/07/25 12:58:04 choutko Exp $
+# $Id: RemoteClient.pm,v 1.683 2011/07/28 11:13:00 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -115,7 +115,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
+@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC CheckCRCRaw MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -19028,6 +19028,26 @@ again:
 
 }
 
+sub CheckCRCRaw{
+#check and copy from castor raw files
+    my ($self,$dir)=@_;
+    my $nbad=0;
+    my $ntot=0;
+    my $sql=" select path, run from datafiles where path like '$dir%' and castortime>0";
+        my $ret_nt =$self->{sqlserver}->Query($sql);
+         
+          foreach my $ntuple (@{$ret_nt}){
+              my $run=$ntuple->[1];
+              my $path=$ntuple->[0];
+              my $ret=$self->CheckCRC(1,0,1,$run,0,$path,0,2);
+              if($ret==0){
+                  $nbad++;
+              }
+              $ntot++;
+          }
+    print "CheckCRCRaw-I-Total $ntot Bad $nbad \n";
+}
+
 
 sub CheckCRC{
 #
@@ -19081,11 +19101,12 @@ sub CheckCRC{
         $datamc=0;
     }
     if($datamc>1){
+        my $delimiter='/Data';                                                                              
         if($run2p<=0){
             warn "CheckCRc withn datamc $datamc and run $run2p not supported \n";           
         return 0;
         }
-        my $sql = "select path,crc,sizemb from datafiles where run=$run2p  and path  like '$dir' and status not like '%BAD%'";
+        my $sql = "select path,crc,sizemb,castortime from datafiles where run=$run2p  and path  like '$dir' ";
     if(defined $nocastoronly and $nocastoronly == 1){
        $sql=$sql. " and castortime=0 ";
     }
@@ -19098,15 +19119,63 @@ sub CheckCRC{
                         $rstatus=($rstatus>>8);
                         if($rstatus!=1 ){
                          if($verbose){
-                                $self->sendmailmessage($address,"crc   failed $ntuple->[0]"," ");
+                             if($verbose>1){
+                                   $self->sendmailmessage($address,"crc   failed $ntuple->[0]"," ");
+                               }
                           print "$ntuple->[0] crc error:  $rstatus \n";
+                         }
+                      
+                          if($ntuple->[2]>0){
+#
+# copy from castor
+#          
+                          my $suc=1;
+                          my @junk=split $delimiter,$ntuple->[0];
+                          if($#junk>0){
+                          my $castornt=$castorPrefix."/$delimiter".$junk[1];
+                          my $sys=$rfcp." $castornt $ntuple->[0].castor";
+                          my $i=system($sys);
+                          if($i){
+                           $suc=0;
+                           if($verbose){
+                            print " $sys failed for $castornt \n";
+                           }
+                           system("rm $ntuple->[0].castor");              
+                           return 0;
+                          }
+                          else{
+                           $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0].castor  $ntuple->[1]";
+                            $rstatus   = system($crccmd);
+                            $rstatus=($rstatus>>8);
+                           }
+                            if($rstatus!=1){
+                                $suc=0;
+                              if($verbose){
+                                if($verbose>1){
+                                $self->sendmailmessage($address,"crc castor  failed $castornt"," ");
+                               }
+                               print "$castornt crc error:  $rstatus \n";
                             }
-            
+                                return 0;
+
+                            }
+                             if($update){
+                                    system("mv $ntuple->[0].castor $ntuple->[0]");    
+                                 }
+                                    else{
+                                        system("rm $ntuple->[0].castor");
+                                    }
+                      }
+                      }
                      }
-              return $rstatus==1;
+                          return $rstatus==1;
           }
       }
+        else{
+            return 0;
+        }
     }
+
     if($datamc!=0){
         $delimiter='Data';
     }
