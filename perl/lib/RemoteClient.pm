@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.683 2011/07/28 11:13:00 ams Exp $
+# $Id: RemoteClient.pm,v 1.684 2011/07/28 17:43:47 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -115,7 +115,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC CheckCRCRaw MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
+@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC CheckCRCRaw CheckNTUnique MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -19027,6 +19027,55 @@ again:
    }
 
 }
+
+sub CheckNTUnique{
+#check and optionally remove identical ntuples
+    my ($self,$dir,$update,$verbose,$run2p)=@_;
+    my $sql="select path,jid,run from ntuples where path like '%$dir%'";    
+    if($run2p!=0){
+        $sql=$sql." and run=$run2p";
+    }
+        my $ret_nt =$self->{sqlserver}->Query($sql);
+          foreach my $ntuple (@{$ret_nt}){
+              my $path=$ntuple->[0];
+              my @junk=split $dir,$path;
+              my $run=$ntuple->[2];
+              my $jid=$ntuple->[1];
+              foreach my $nt1 (@{$ret_nt}){
+                  if(($nt1->[0] ne $path) and ($nt1->[0] =~/$junk[1]/)and ($jid=$nt1->[1])){
+                      if($verbose){
+                          print "duplicate ntuple found $path $nt1->[0]\n";
+                      }
+                      if($path lt $nt1->[0]){
+                          if($update){
+                              my $datamc=0;
+                              if($path=~/\/Data/){
+                                  $datamc=1;
+                              }
+                              my $ret=$self->CheckCRC($verbose,0,$update,$run,0,$path,0,$datamc);
+                              if($ret==1){
+                                  my $sql1="delete from ntuples where path='$nt1->[0]'";
+                                  my $cmd="rm $nt1->[0]";
+                                  my $i=system($cmd);
+                                  if($i==0){
+                                     $self->{sqlserver}->Update($sql1);
+                                     $self->{sqlserver}->Commit();
+                                  }
+                                  else{
+                                   if($verbose){
+                                      print "command failed $cmd \n";
+                                    }                                  
+                              }
+                              }
+                      }                            
+                      }
+                  }
+              }
+          }
+
+
+}
+
 
 sub CheckCRCRaw{
 #check and copy from castor raw files
