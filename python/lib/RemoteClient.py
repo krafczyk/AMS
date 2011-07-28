@@ -1857,12 +1857,14 @@ class RemoteClient:
             else:
                 outputpath=outputdisk+outputpath+"/"+period
             os.system("mkdir -p "+outputpath)
+            
             mtime=os.stat(outputpath)[9]
             if(mtime != None):
                 if(mtime!=0):
                     gb=disk[2]
                     break
         timew=time.time()
+        print "getoutputpath raw ",outputpath,sql
         return outputpath,gb,outputdisk,time.time()-timew
            
     def moveCastor(self,input,output):
