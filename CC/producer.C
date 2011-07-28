@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.166.2.1 2011/07/21 12:03:15 choutko Exp $
+//  $Id: producer.C,v 1.166.2.2 2011/07/28 11:29:06 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -437,8 +437,8 @@ ndir:
         if(strlen(nt2)){
           string nt2_new=nt2;
           char whoami[255]="";
-          if(getlogin())sprintf(whoami,"%s/%uA",getlogin(),_pid.pid);
-          else if(getenv("LOGNAME"))sprintf(whoami,"%s/%uA",getenv("LOGNAME"),_pid.pid);
+          if(getlogin())sprintf(whoami,"%s/%u",getlogin(),_pid.pid);
+          else if(getenv("LOGNAME"))sprintf(whoami,"%s/%u",getenv("LOGNAME"),_pid.pid);
           int pos=nt2_new.find("whoami");  
           if(pos>=0 && whoami && strlen(whoami))nt2_new.replace(pos,6,whoami);
           setenv("NtupleDir",nt2_new.c_str(),1);

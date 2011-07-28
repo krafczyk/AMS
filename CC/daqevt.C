@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.227 2011/07/19 09:37:05 choutko Exp $
+//  $Id: daqevt.C,v 1.227.2.1 2011/07/28 11:29:05 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1894,6 +1894,7 @@ void DAQEvent::select(){
 DAQEvent::InitResult DAQEvent::init(){
   enum open_mode{binary=0x80};
   integer Run,Event;
+  int ntryscp=0;
   char * fnam=_getNextFile(Run, Event);
         string fnamei=fnam; 
   if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
@@ -2062,7 +2063,7 @@ DAQEvent::InitResult DAQEvent::init(){
 //  try scp once more
 //
 strcpy(fnam,fnamei.c_str());
-
+      if(ntryscp++>3)return UnableToOpenFile; 
       if(getenv("NtupleDir0"))setenv("NtupleDir",getenv("NtupleDir0"),1);
       if(getenv("NtupleDir02"))setenv("NtupleDir2",getenv("NtupleDir02"),1);
       if(getenv("NtupleDir03"))setenv("NtupleDir3",getenv("NtupleDir03"),1);

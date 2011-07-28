@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.129 2011/07/19 09:37:06 choutko Exp $
+//  $Id: timeid.C,v 1.129.2.1 2011/07/28 11:29:06 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -712,9 +712,9 @@ usemap:
     else cerr <<"AMSTimeID::_fillDB-S-CouldNot open map file "<<fmap<<endl; 
     
   }
-  else {
+  else if(_verify){
     notrust:
-    cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<endl;
+    cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<" "<<_verify<<endl;
     //    Check if is in new mode
     _checkcompatibility(dir);
     AString fnam(getname());
