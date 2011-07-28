@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.183 2011/07/25 12:57:55 choutko Exp $
+//  $Id: server.C,v 1.184 2011/07/28 11:13:38 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -449,7 +449,7 @@ else{
 
 void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
-      int ntry=sleeptime*2000000/int(AMSServer::Singleton()->getSleepTime());
+      int ntry=sleeptime*1500000/int(AMSServer::Singleton()->getSleepTime());
       if(ntry<=0)ntry=1;
      if(AMSServer::Singleton()->getSleepTime()<20000){
        cout <<"  entering listening " << "  "<<AMSServer::Singleton()->getSleepTime() <<" "<<sleeptime<<"  "<<ntry<<endl;
@@ -671,7 +671,7 @@ maxina=atol(max);
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
    //if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
-    lxplus=strstr((const char*)((*li)->id.HostName),"lxplus");
+//    lxplus=strstr((const char*)((*li)->id.HostName),"lxplus");
     if(++ina>maxina || !lxplus){
         ret=true;
         break;
@@ -1665,7 +1665,9 @@ return 0;
 
    void Server_impl::sendAH(const DPS::Client::CID &  cid,  const DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-//cout <<" entering Server_impl::sendAH"<<endl;
+cout <<" entering Server_impl::sendAH "<<endl;
+cout <<" entering Server_impl::sendAH "<<strlen(ah.HostName)<<endl;
+cout <<" entering Server_impl::sendAH "<<ah.HostName<<endl;
 
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){

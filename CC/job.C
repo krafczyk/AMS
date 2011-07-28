@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.821 2011/07/19 09:37:06 choutko Exp $
+// $Id: job.C,v 1.822 2011/07/28 11:13:38 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1684,6 +1684,7 @@ if((CALIB.SubDetRequestCalib/100000)%10==0){
     for(int i=0;i<size-1;i++){
       if(STATUSFFKEY.status[i]){
           one=100000;
+          cout<<"AMSJob::udata-I-STATUSFFKEY.status-notZero "<<i<<" Changing CALIB.SubDetRequestCalib"<<endl; 
           break;
       }
     }
@@ -2949,7 +2950,7 @@ if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
                           getstatustable()->getptr(),server,(CALIB.SubDetRequestCalib/100000)%10));
-
+   cout <<" timeinitjob calib.subdetrequest "<<(CALIB.SubDetRequestCalib/100000)%10<<" "<<CALIB.SubDetRequestCalib<<endl;
   if(AMSFFKEY.Update==88)return;
 
 }
@@ -3939,9 +3940,9 @@ if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//Charge
 if(isRealData()){
 
 // CCEB:
-
   tm begin;
   tm end;
+/*
   if(AMSFFKEY.Update==187){
     begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
@@ -3951,12 +3952,11 @@ if(isRealData()){
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
-///*
+
   TID.add (new AMSTimeID(AMSID("CCEBPar",isRealData()),
                          begin,end,
                          sizeof(AMSEvent::ArrayC),(void*)AMSEvent::ArrayC,server));
-//*/
-
+*/
 
 // New TofSlowTemperature:
 /*
