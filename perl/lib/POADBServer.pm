@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.45 2011/07/25 12:58:04 choutko Exp $
+#  $Id: POADBServer.pm,v 1.46 2011/07/28 08:25:46 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -374,7 +374,11 @@ OUT:
                          return;
                      } 
                  }
-      
+                print "Unable to $rc the rtb $ri->{uid} $ri->{Run} \n";
+                                        untie %hash;
+                         close(LOCK);
+                         return;
+ 
              }
              elsif($rc eq "Create"){
                  if($hash{rtb_maxr}<=$ri->{uid}){
@@ -628,8 +632,9 @@ again:
      }
 
      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    
+     
      if(not $db){
+        $ref->Exiting("Unable to tie  $ref->{dbfile} ","CInAbort");
         goto OUT;
       }
       
