@@ -1598,7 +1598,11 @@ class RemoteClient:
        file=junk[len(junk)-1]
        filesize=1
        if(inputfile.find('/castor/cern.ch')<0):
-           filesize=os.stat(inputfile)[ST_SIZE]
+           try:
+               filesize=os.stat(inputfile)[ST_SIZE]
+           except:
+               print "Problem to stat file ",inputfile;
+               return None,0,None,0
        odisk=None
        if(filesize>0):
            junk=inputfile.split('/')
