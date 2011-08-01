@@ -1752,11 +1752,15 @@ class RemoteClient:
         output='/castor/cern.ch/ams'
         buf2=input.split(buf[1])
         output=output+buf2[1]
-        cmd="/usr/bin/rfcp "+input+" "+output
+        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 7200 /usr/bin/rfcp "+input+" "+output
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
-            return 0
+            cmd="/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
+            cmdstatus=os.system(cmd)
+            if(cmdstatus):
+                print "Error uploadToCastor ",input,output,cmdstatus
+                return 0                        
         else:
             return int(time.time())
         
