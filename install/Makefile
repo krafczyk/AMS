@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.167 2011/05/21 13:02:02 mmilling Exp $
+#  $Id: Makefile,v 1.167.2.1 2011/08/01 13:59:32 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -233,7 +233,7 @@ endif
 
 #Tracker
 ifdef PGTRACK
-TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
+TRACK_BASE= $(SCC)TkCoo.C 	\
         $(SCC)tkdcards.C     $(SCC)TkLadder.C $(SCC)TkObject.C \
 	$(SCC)TkPlane.C      $(SCC)TkSens.C \
 	$(SCC)TrCluster.C \
@@ -246,7 +246,7 @@ TRACK_BASE= $(SCC)TkCoo.C $(SCC)TkDBc.C	\
 	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
         $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrExtAlignDB.C
 
-TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C    \
+TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C $(SCC)TkDBc.C   \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)gufld.C $(SFF)rkms.F
 
@@ -548,7 +548,7 @@ lib: shared static
 ifdef PGTRACK
 
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
-	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o \
+	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o \
 	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o \
 $(BIN)timeid_s.o
