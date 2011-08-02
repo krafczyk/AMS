@@ -56,6 +56,8 @@ public:
   void Disable(){enabled=false;}
   /// Clears all the histo from memory
   void Clear(Option_t* oo=""){TObject::Clear(oo);fhist.SetOwner(); fhist.Clear();}
+  /// Get hman pointer (for ROOT CINT)
+  static HistoMan *GetPtr();
   ClassDef(HistoMan,0)
 };
 

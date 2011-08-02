@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.36 2011/05/09 12:19:36 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.37 2011/08/02 06:53:05 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -16,6 +16,11 @@ HistoMan::HistoMan():enabled(false), booked(false) {
 }
 
 HistoMan::~HistoMan(){}
+
+HistoMan *HistoMan::GetPtr()
+{
+  return &hman;
+}
 
 void HistoMan::Save(){
   if(!enabled) return;
