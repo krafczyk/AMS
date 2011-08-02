@@ -114,7 +114,7 @@ else
 endif
 endif
 
-SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lRFIO -lTMVA
+SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lTMVA
 
 ########################################################################
 # Output dirs
