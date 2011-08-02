@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.168 2011/07/25 12:57:54 choutko Exp $
+//  $Id: commonsi.C,v 1.169 2011/08/02 09:12:02 shaino Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -57,6 +57,10 @@ void AMSCommonsI::init(){
      else if(strstr(u.sysname,"SunOS")){
       strcpy(_osname,"sunos");
       _os=3;
+     }
+     else if(strstr(u.sysname,"Darwin")){
+      strcpy(_osname,"Darwin");
+      _os=4;
      }
      else {
       _os=0;
@@ -148,6 +152,7 @@ void AMSCommonsI::init(){
        //  get mips
        char *fname = tempnam("/tmp",NULL);
        char syscom[255];
+#ifndef __DARWIN__
 {
        strcpy(syscom,"cat /proc/cpuinfo | grep -i -e 'cpu mhz'  > ");
        strcat(syscom,fname);
@@ -163,7 +168,6 @@ void AMSCommonsI::init(){
         }
        }  
 }
-
 {
        strcpy(syscom,"cat /proc/cpuinfo | grep -i -e name  > ");
        strcat(syscom,fname);
@@ -203,6 +207,7 @@ void AMSCommonsI::init(){
       } 
 #endif 
 }
+#endif
 
 
   }
