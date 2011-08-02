@@ -1763,6 +1763,8 @@ class RemoteClient:
             if(cmdstatus):
                 print "Error uploadToCastor ",input,output,cmdstatus
                 return 0                        
+            else:
+                return int(time.time())
         else:
             return int(time.time())
         
