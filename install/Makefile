@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.170 2011/08/01 13:58:54 choutko Exp $
+#  $Id: Makefile,v 1.171 2011/08/02 08:22:44 shaino Exp $
 
 #P.Zuccon june 2005
 
@@ -331,7 +331,7 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/point.h ../include/root_RV.h ../include/root.h  \
 		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h \
 		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
-		../include/TrHistoMan.h \
+		../include/TrHistoMan.h ../include/HistoMan.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h ../include/TrExtAlignDB.h
 else
