@@ -1756,6 +1756,8 @@ class RemoteClient:
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor ",input,output,cmdstatus
+            cmd="nsrm "+output
+            cmdstatus=os.system(cmd)
             cmd="/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
             cmdstatus=os.system(cmd)
             if(cmdstatus):
@@ -1915,7 +1917,7 @@ class RemoteClient:
             mutex.acquire()
             return 0
         time0=time.time()
-        cmd="cp -pi -d -v "+input+" "+output
+        cmd="cp -p -d -v "+input+" "+output
         if(input.find('/castor/cern.ch')>=0):
             # check if already been put in place
             cmdn="nsls "+input;
