@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.822 2011/07/28 11:13:38 choutko Exp $
+// $Id: job.C,v 1.823 2011/08/03 23:27:48 shaino Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -36,6 +36,7 @@
 #include "tkdcards.h"
 #include "trdaq.h"
 #include "MagField.h"
+#include "TrExtAlignDB.h"
 
 #else
 
@@ -3125,6 +3126,28 @@ bool NeededByDefault=isSimulation();
     TID.add (new AMSTimeID(AMSID("TrackerCals",isRealData()),begin,end,
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
+
+    begin.tm_isdst=0;
+    end.tm_isdst=0;    
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+   
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+    TrExtAlignDB::CreateLinear();
+    TID.add (new AMSTimeID(AMSID("TrackerExtAlign",isRealData()),begin,end,
+                           TrExtAlignDB::GetLinearSize(),
+			   TrExtAlignDB::fLinear,
+                           server,need,SLin2ExAlign));
+
     begin.tm_isdst=0;
     end.tm_isdst=0;    
     begin.tm_sec  =0;
