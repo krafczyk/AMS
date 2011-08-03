@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.166.2.2 2011/07/28 11:29:06 choutko Exp $
+//  $Id: producer.C,v 1.166.2.3 2011/08/03 11:20:20 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -770,7 +770,7 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
 int tmc=3600;
 if(strstr((const char *)fcopy,"rfcp"))tmc=10800;
  if(!_Solo)sendid(tmc);
- int ntry=3;
+int ntry=3;
  bool suc=false;
 againcp:
  for(int j=0;j<ntry;j++){
@@ -2177,14 +2177,26 @@ else sprintf(tmpu,"%d",_pid.uid);
                //  not if pcamsf4
               int i=!(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb"))?1:system((const char*)afscript);
               char line[1024];
+              bool amsprod=false;
               if(i==0){
                 ifstream afbin;
+                afbin.open((const char*)afout);
+                while(afbin.good() && !afbin.eof()){
+                afbin.getline(line,1023);
+                if(strstr(line,"amsprod")){
+                 amsprod=true;
+                 break;
+                }
+                }
+                afbin.close();
+                afbin.clear();
                 afbin.open((const char*)afout);
                 while(afbin.good() && !afbin.eof()){
                 afbin.getline(line,1023);
                 if(strstr(line,"JOBID")){
                   int idd;
                   afbin>>idd;
+                   
                   id.push_back(idd);
                   cout << "AMSProducer-I-bsubDetected "<<idd<<endl;
                 }
@@ -2196,8 +2208,12 @@ else sprintf(tmpu,"%d",_pid.uid);
                       cerr<<"AMSProducer-E-bsubduplicatediddetected "<<id[id.size()-1]<<" "<<id[i]<<endl;
              }
               if(id.size()>0){
+               char *lxplus5=getenv("AMSPublicBatch");
+               if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
+              lxplus5=getenv("AMSPublicBatch");
                   if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")){
-                    _pid.HostName="lxplus.cern.ch";
+
+                    _pid.HostName=amsprod?"lxplus.cern.ch":lxplus5;
                     _pid.pid=id[id.size()-1];
                     _pid.ppid=0;
                   }

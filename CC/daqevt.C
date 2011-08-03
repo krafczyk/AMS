@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.227.2.1 2011/07/28 11:29:05 choutko Exp $
+//  $Id: daqevt.C,v 1.227.2.2 2011/08/03 11:20:20 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -827,7 +827,7 @@ bool DAQEvent::_ComposedBlock(){
 }
 integer DAQEvent::_EventOK(){
 #ifdef __AMS02DAQ__
-  if(_GetBlType()==0)_HeaderOK();
+  if(_GetBlType()==0 && AMSJob::gethead()->isRealData())_HeaderOK();
   if((!_ComposedBlock() && _GetBlType()!= 0x14  && _GetBlType()!= 0x13 &&_GetBlType()!= 0x1b && _GetBlType()!= 896) || !(DAQCFFKEY.BTypeInDAQ[0]<=_GetBlType() && DAQCFFKEY.BTypeInDAQ[1]>=_GetBlType()))return 0;
   int preset=getpreset(_pData); 
   int ntot=0;
