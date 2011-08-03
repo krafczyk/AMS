@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.64 2011/05/12 16:44:27 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.65 2011/08/03 15:32:43 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/05/12 16:44:27 $
+///$Date: 2011/08/03 15:32:43 $
 ///
-///$Revision: 1.64 $
+///$Revision: 1.65 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +93,7 @@ public:
   AMSDir Dir;
 
   /// Returns true if the Layer (J-scheme)(1-9) has an hit used in this fit
-  bool TestHitLayerJ(int layJ){
+  bool TestHitLayerJ(int layJ) const {
     int lay=TkDBc::Head->GetLayerFromJ(layJ);
     if(HitBits&(1<<(lay-1))) return true;
     else  return false;
@@ -110,7 +110,7 @@ public:
   }
 
   /// DEPRECATED Returns true if the Layer (OLD scheme) has an hit used in this fit
-  bool TestHitLayer(int lay){
+  bool TestHitLayer(int lay) const {
     if(HitBits&(1<<(lay-1))) return true;
     else  return false;
   }
@@ -332,19 +332,19 @@ public:
   //! Number of  XY hits
   int GetNhitsXY  () const { return _NhitsXY;   }
   //! Check for the presence of external layers; returns 0- noext layer; 1 Layer 1; 2 Layer 9; 3 Layer 1& Layer 9
-  int HasExtLayers(){int aa=0;if(_bit_pattern&0x080) aa|=1;if(_bit_pattern&0x100) aa|=2;return aa;}
+  int HasExtLayers() const {int aa=0;if(_bit_pattern&0x080) aa|=1;if(_bit_pattern&0x100) aa|=2;return aa;}
   /// Get areferemce to the i-th in the track
   TrRecHitR& TrRecHit(int i ); 
   /// Get the index of the i-th hit in the track within the hit vector
-  int iTrRecHit(int i){return _iHits[i];}
+  int iTrRecHit(int i) const {return _iHits[i];}
   /// Get the pointer to the i-th in the track
-  TrRecHitR *pTrRecHit(int i){ return GetHit(i);}
+  TrRecHitR *pTrRecHit(int i)const { return GetHit(i);}
   /// Get the pointer of hit at Layer, ilay J-scheme  (1-9), or returns 0 if not exists
   TrRecHitR *GetHitLJ(int ilay) const;
   /// DEPRECATED - DO NOT USE  Get the pointer of hit at Layer OLD-scheme, ilay(0-7), or returns 0 if not exists
   TrRecHitR *GetHitL(int ilay) const;
   /// Returns a number corresponding to the ladder combination spanned by the track
-  long long GetTrackPathID();
+  long long GetTrackPathID() const;
   /// For Gbatch compatibility
   uinteger checkstatus(integer checker) const{return Status & checker;}
   uinteger getstatus() const{return Status;}
@@ -409,9 +409,9 @@ public:
   !*/
   const TrTrackPar&  gTrTrackPar(int fit_type)  throw (string);
   //!Return the number of store fit results (TrTrackPar objects)
-  int nTrTrackPar(){return _TrackPar.size();}
+  int nTrTrackPar() const {return _TrackPar.size();}
   /// Print the string IDs of all the performed fits
-  void   PrintFitNames();
+  void   PrintFitNames() const;
   ///@}
 	
   /** @name Accessor to fit dependent quantiies */
@@ -432,16 +432,16 @@ public:
   //! returns Ndof on Y from TrTrackPar corresponding to id
   int      GetNdofY    (int id= 0) const { return GetPar(id).NdofY;    }
   /// Get normalized chisquare in X
-  double GetNormChisqX(int id= 0);
+  double GetNormChisqX(int id= 0) const;
   /// Get normalized chisquare in Y
-  double GetNormChisqY(int id= 0);
+  double GetNormChisqY(int id= 0) const;
 
   /// Get track entry point (first layer of the fitting) from TrTrackPar corresponding to id
-  AMSPoint GetPentry(int id = 0);
+  AMSPoint GetPentry(int id = 0) const;
   ///Returns the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   AMSPoint GetP0       (int id= 0) const { return GetPar(id).P0;       }
   /// Get track entry point direction (first layer of the fitting) from TrTrackPar corresponding to id
-  AMSDir GetPdir(int id = 0);
+  AMSDir GetPdir(int id = 0) const;
   ///Returns the direction at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   AMSDir   GetDir      (int id= 0) const { return GetPar(id).Dir;      }
   /// Returns the Theta angle at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
@@ -468,11 +468,11 @@ public:
 
 
   /// Get track position at layer ilay J-scheme  (1-9)
-  AMSPoint GetPlayerJ(int ilayJ, int id = 0);
+  AMSPoint GetPlayerJ(int ilayJ, int id = 0) const;
 
 
   ///  DEPRECATED DO NOT USE Get track position at layer ilay (0-7)
-  AMSPoint GetPlayer(int ilay, int id = 0);
+  AMSPoint GetPlayer(int ilay, int id = 0) const;
 
 
  
@@ -492,12 +492,12 @@ public:
 
 
   /// Get tan(theta) on XZ projection
-  double GetThetaXZ(int id = 0) { 
+  double GetThetaXZ(int id = 0) const { 
     AMSDir dir = GetDir(id);
     return (dir.z() != 0) ? dir.x()/dir.z() : 0;
   }
   /// Get tan(theta) on YZ projection
-  double GetThetaYZ(int id = 0) { 
+  double GetThetaYZ(int id = 0) const { 
     AMSDir dir = GetDir(id);
     return (dir.z() != 0) ? dir.y()/dir.z() : 0;
   }
@@ -506,7 +506,7 @@ public:
   TrFit *GetTrFit() { return &_TrFit; }
 
   //!Returns the default fit method used for this track
-  int Gettrdefaultfit(){return trdefaultfit;}
+  int Gettrdefaultfit() const {return trdefaultfit;}
 
   //!Set the default fit method to be used for this track
   void Settrdefaultfit(int def ){trdefaultfit=def;}
@@ -592,7 +592,7 @@ public:
   /// Interpolation to cylindrical surface
   bool interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, number idir, 
 		      AMSPoint &P1, number &theta, number &phi,
-		      number &length, int id = 0);
+		      number &length, int id = 0) const;
   /// Print Track info (verbose if opt !=0 )
   void  Print(int opt=0);
   /// Return a string with hit infos (used for the event display)
@@ -651,7 +651,7 @@ public:
   bool     FitDone     (int id= 0) const { return ParExists(id) &&
       GetPar(id).FitDone;  }
   
-  int Pattern(int input=111111111) ; ///< \return full track  pattern hit suitable for iTrTrackPar
+  int Pattern(int input=111111111) const; ///< \return full track  pattern hit suitable for iTrTrackPar
   //! Returns the pattern on X
   int GetPatternX () const { return _PatternX;  }
   //! Returns the pattern on Y
@@ -682,11 +682,11 @@ public:
   
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
-		     number& Theta, number& Phi, AMSPoint& X0);
+		     number& Theta, number& Phi, AMSPoint& X0) const;
 
   /// Interception (for the compatibility with Gbatch)
   int intercept(AMSPoint &pnt, int layer, 
-		number &theta, number &phi, number &local, int id = 0);
+		number &theta, number &phi, number &local, int id = 0) const;
   ///@}
   /** @name A.F: RECONSTRUCTION  METHODS  
    */
@@ -737,13 +737,13 @@ public:
   //  }
 
   /// Check if advanced fits specified by flag are done
-  int AdvancedFitDone(int add_flags=0);
+  int AdvancedFitDone(int add_flags=0) const;
 
   /// Do advanced fits specified in the default list and add in OR the add_flags
   int DoAdvancedFit(int add_flags=0);
 
   /// Get range of maximum shift in multiplicity
-  void GetMaxShift(int &left, int &right);
+  void GetMaxShift(int &left, int &right) const;
 
   /// Move the track in X direction
   void Move(int shift, int fit_flags = 0);
@@ -791,7 +791,7 @@ public:
   }
 	
   /// Stream out operator
-  friend std::ostream &operator << (std::ostream &ostr,  TrTrackR &Tr){
+  friend std::ostream &operator << (std::ostream &ostr,  TrTrackR &Tr) {
     return Tr.putout(ostr);}
 	
 	

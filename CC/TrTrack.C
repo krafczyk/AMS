@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.111 2011/07/26 09:21:56 shaino Exp $
+// $Id: TrTrack.C,v 1.112 2011/08/03 15:32:47 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/07/26 09:21:56 $
+///$Date: 2011/08/03 15:32:47 $
 ///
-///$Revision: 1.111 $
+///$Revision: 1.112 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -251,7 +251,7 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
 
 
 
-long long TrTrackR::GetTrackPathID(){
+long long TrTrackR::GetTrackPathID() const{
   long long ret=0;
   for (int ii=0;ii<GetNhits();ii++){
     TrRecHitR* hit=pTrRecHit(ii);
@@ -275,19 +275,19 @@ TrTrackPar &TrTrackR::GetPar(int id)
 }
 
 
-double TrTrackR::GetNormChisqX(int id)
+double TrTrackR::GetNormChisqX(int id) const
 {
   double enorm = 1;
   return (GetNdofX(id) > 0) ? GetChisqX(id)/GetNdofX(id)*enorm*enorm : 0;
 }
 
-double TrTrackR::GetNormChisqY(int id)
+double TrTrackR::GetNormChisqY(int id) const
 {
   double enorm = 1;
   return (GetNdofY(id) > 0) ? GetChisqY(id)/GetNdofY(id)*enorm*enorm : 0;
 }
 
-AMSPoint TrTrackR::GetPlayer(int ilay, int id)
+AMSPoint TrTrackR::GetPlayer(int ilay, int id) const
 {
   TrRecHitR *hit = GetHitL(ilay);
   if (hit) {
@@ -299,7 +299,7 @@ AMSPoint TrTrackR::GetPlayer(int ilay, int id)
 }
 
 
-AMSPoint TrTrackR::GetPlayerJ(int ilayJ, int id)
+AMSPoint TrTrackR::GetPlayerJ(int ilayJ, int id) const
 {
   AMSPoint pres = GetResidualJ(ilayJ, id);
 
@@ -441,7 +441,7 @@ void TrTrackR::SetHitsIndex(int *ihit)
   delete cont;
 }
 
-void TrTrackR::GetMaxShift(int &left, int &right)
+void TrTrackR::GetMaxShift(int &left, int &right) const
 {
   left = right = 99;
   for (int i = 0; i < _Nhits; i++) {
@@ -574,7 +574,7 @@ void TrTrackR::ReFit( const float *err,
 }
 
 
-AMSPoint TrTrackR::GetPentry(int id)
+AMSPoint TrTrackR::GetPentry(int id) const
 {
   int    ilay = 7;
   double zmax = -999;
@@ -590,7 +590,7 @@ AMSPoint TrTrackR::GetPentry(int id)
   return InterpolateLayer(ilay);
 }
 
-AMSDir TrTrackR::GetPdir(int id)
+AMSDir TrTrackR::GetPdir(int id) const
 {
   int    ilay = 7;
   double zmax = -999;
@@ -924,7 +924,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     par.Residual[il][1]= _TrFit.GetYr(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
-    if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
+    if (1) {//if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitL(i);
       AMSPoint pint  = InterpolateLayer(i, id);
       if (hit){
@@ -1109,7 +1109,7 @@ void TrTrackR::interpolate(AMSPoint pnt, AMSDir dir, AMSPoint &P1,
 
 bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad, 
                                 number idir, AMSPoint &P1, number &theta, 
-                                number &phi, number &length, int id2)
+                                number &phi, number &length, int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
@@ -1130,7 +1130,7 @@ bool TrTrackR::interpolateCyl(AMSPoint pnt, AMSDir dir, number rad,
 }
 
 int TrTrackR::intercept(AMSPoint &pnt, int layer, 
-			number &theta, number &phi, number &local, int id)
+			number &theta, number &phi, number &local, int id) const
 {
   AMSDir dir;
   Interpolate(TkDBc::Head->GetZlayer(layer+1), pnt, dir, id);
@@ -1153,7 +1153,7 @@ int TrTrackR::intercept(AMSPoint &pnt, int layer,
 }
 
 void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err, 
-		   number& Theta, number& Phi, AMSPoint& X0) {
+		   number& Theta, number& Phi, AMSPoint& X0) const {
     /// FastFit is assumed as normal (Choutko) fit without MS
   int id = kChoutko;
   if(_MagFieldOn==0) id=kLinear;
@@ -1188,7 +1188,7 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  return AdvancedFitDone(add_flag);
 }
 
-int TrTrackR::AdvancedFitDone(int add_flag)
+int TrTrackR::AdvancedFitDone(int add_flag) const
 { 
   if (!_MagFieldOn) return FitDone(kLinear|add_flag);
   bool done = true;
@@ -1249,8 +1249,8 @@ int TrTrackR::GetFitID(int pos){
   return 0;
 
 }
-void TrTrackR::PrintFitNames(){
-  map<int, TrTrackPar>::iterator it;
+void TrTrackR::PrintFitNames() const { 
+  map<int, TrTrackPar>::const_iterator it;
   for(it=_TrackPar.begin();it!=_TrackPar.end();it++)
     printf("[0x%04x] %s\n", it->first, GetFitNameFromID(it->first));
 }
@@ -1371,7 +1371,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     return -4;
 }
 
-int TrTrackR::Pattern(int input) {
+int TrTrackR::Pattern(int input) const {
 int pat=0;
 int p=1;
 for(int k=0;k<maxlay;k++){
