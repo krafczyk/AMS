@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.64 2011/05/12 16:44:27 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.64.4.1 2011/08/03 15:02:01 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/05/12 16:44:27 $
+///$Date: 2011/08/03 15:02:01 $
 ///
-///$Revision: 1.64 $
+///$Revision: 1.64.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +93,7 @@ public:
   AMSDir Dir;
 
   /// Returns true if the Layer (J-scheme)(1-9) has an hit used in this fit
-  bool TestHitLayerJ(int layJ){
+  bool TestHitLayerJ (int layJ) const {
     int lay=TkDBc::Head->GetLayerFromJ(layJ);
     if(HitBits&(1<<(lay-1))) return true;
     else  return false;
