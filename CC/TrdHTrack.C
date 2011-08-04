@@ -231,19 +231,13 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,i
     double path2d=2*sqrt(pow(tuberad,2)-pow(dradial,2));
     if(opt==1)return path2d;
     
-    // angle between radial distance and track on plane defined by track and tub\e wire
-    double alphaplane=0;
-    // "unit" vector perpendicular to tube wire and on plane mentioned above
-    double dplane=0.;
-    
     // 3d path lentgh
     double path3d=path2d;
-    dplane=(sqrt(pow(Dir[d],2)+pow(Dir[2],2)));
-    alphaplane=atan(Dir[1-d]/dplane);
-    path3d/=cos(alphaplane);
-    
-    if(debug)printf("dplanar %.2f dradial %.2f path2d %.2f \n dplane %.2f alphaplane %.2f path3d %.2f\n",dr,dradial,path2d,dplane,alphaplane,path3d);
-    //   if(debug)printf("TubeDist L%i dx %.2f dr %.2f path %.2f (ladder %i tube %i)\n",layer,dr,dr*cos(M_PI-Theta()),path,thisladder,thistube);                       
+    AMSDir wire(d,1-d,0);
+    AMSDir track(Dir[0],Dir[1],Dir[2]);
+    path3d/=sin(acos(wire.prod(track)/wire.norm()/track.norm()));
+
+    if(debug)printf("planar %.2f dradial %.2f path2d %.2f path3d %.2f\n",dr,dradial,path2d,path3d);
     return  path3d;
   }
   else if (method==1){
@@ -255,8 +249,8 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,i
   return -2;
 }
 
-
-float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){           // returns pathlength in tube if hit
+// returns pathlength in tube if hit
+float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){           
     double radius=0.3;
     if(layer>19||layer<0)return -1.;
     int dir=-1;

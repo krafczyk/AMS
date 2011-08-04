@@ -906,24 +906,23 @@ void TrdHReconR::AddHit(TrdRawHitR* hit){
   }
 }
 
-int TrdHReconR::SelectTrack(int tr){
-  if(tr>=htrvec.size())return 0;
+int TrdHReconR::SelectTrack(TrdHTrackR *track){
+  if(!track)return 0;
 
   int ntracklay[20];
   for(int i=0;i<20;i++)ntracklay[i]=0;
   
   // loop over hits on both segments and calculate number hits on track per layer
-  for(int seg=0;seg<htrvec[tr].nTrdHSegment();seg++){
-    if(!htrvec[tr].pTrdHSegment(seg)) continue;
-    for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
-      TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
+  for(int seg=0;seg<track->nTrdHSegment();seg++){
+    if(!track->pTrdHSegment(seg)) continue;
+    for(int i=0;i<(int)track->pTrdHSegment(seg)->fTrdRawHit.size();i++){
+      TrdRawHitR* hit=track->pTrdHSegment(seg)->pTrdRawHit(i);
       if(!hit)continue;
-      if(hit->Amp>5)ntracklay[hit->Layer]++;
+      if(hit->Amp>10)ntracklay[hit->Layer]++;
     }
   }
 
-  int ok[3];
-  for(int i=0;i<3;i++)ok[i]=0;
+  int ok[3]={0,0,0};
 
   for(int i=0;i<20;i++){
     if(ntracklay[i]>0){

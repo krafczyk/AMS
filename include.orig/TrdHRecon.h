@@ -173,7 +173,7 @@ class TrdHReconR{
   int SelectEvent(int level=0);
 
   /// track quality selection  
-  int SelectTrack(int tr);
+  int SelectTrack(TrdHTrackR *tr);
 
   /// vector of TrdRawHit objects (used as input to reconstruction)
   vector<TrdRawHitR> rhits;
