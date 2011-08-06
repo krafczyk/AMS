@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.685 2011/08/06 15:02:10 ams Exp $
+# $Id: RemoteClient.pm,v 1.686 2011/08/06 18:14:41 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13407,7 +13407,7 @@ foreach my $block (@blocks) {
     my $run              = $runincomplete[2];
 
     $runfinishedR   = 1;
-    if($#startingrun<20 or $startingrun[21]==1){
+    if($#startingrun<20 or $startingrun[21]!=0){
 #    data do not allow incomplete run
         warn "  Run $run incomplete while real data mode  do nothing \n";
          system("mv $inputfile $inputjfile.0");
@@ -13599,11 +13599,11 @@ foreach my $block (@blocks) {
      
      if($lastjobid!=$startingrun[2]){
       print FILE " changung data mc $lastjobid $startingrun[2]\n";
-      $startingrun[21]=1;
+      $startingrun[21]=2;
      }
 
    my $run = $startingrun[2];
-    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    my $dataruns=$startingrun[21]!=0?"dataruns":"runs";
     $startingrun[0] = "StartingRun";
     my $sql=" select status from $dataruns where jid=$lastjobid";
         my $rq=$self->{sqlserver}->Query($sql);
@@ -13614,7 +13614,7 @@ foreach my $block (@blocks) {
     }
    if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4 ) {
     my $run = $startingrun[2];
-    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    my $dataruns=$startingrun[21]!=0?"dataruns":"runs";
     $startingrun[0] = "StartingRun";
     my $sql=" select status from $dataruns where jid=$lastjobid";
         my $rq=$self->{sqlserver}->Query($sql);
@@ -13653,7 +13653,7 @@ foreach my $block (@blocks) {
      if (defined $startingrun[13]) {
       $host=$startingrun[13];
   }
-    if( $startingrun[21]==1 and ($run_incompleted==1 or $run_finished==0)){
+    if( $startingrun[21]!=0 and ($run_incompleted==1 or $run_finished==0)){
 #    data do not allow incomplete run
         warn "  Run $startingrun[2] incomplete or not finished while real data mode  do nothing \n";
          system("mv $inputfile $inputjfile.0");
@@ -13849,7 +13849,7 @@ foreach my $block (@blocks) {
             $terrors += $badevents;
             $validated++;
             $ntstatus = "Validated";
-             my ($outputpatha,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version,$outputpath,$startingrun[21]);
+             my ($outputpatha,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version,$outputpath,$startingrun[21]%2);
             $outputpath=$outputpatha;
             if(defined $outputpath){
               push @mvntuples, $outputpath;
