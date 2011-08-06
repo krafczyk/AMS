@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.55 2011/07/28 11:13:00 ams Exp $
+# $Id: NetMonitor.pm,v 1.56 2011/08/06 21:50:18 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -313,10 +313,20 @@ my $period = '';
 	$command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 	foreach my $host (@{$self->{dbhosts}}){
             print ".";
-          unlink "/tmp/dbhosts";
+          unlink "/tmp/dbhosts.$$";
          #print "$command.$host. \n";
 #        alarm $sshTimeout;
-        my $i=system($command.$host."   ps -f -uams >/tmp/dbhosts");
+   my $try=0;
+   my $i=0;
+oncemore:
+        $i=system($command.$host."   ps -f -uams >/tmp/dbhosts.$$");
+         if(!$i){
+           $try++;
+            sleep(2);
+            if($try<10){
+               goto oncemore;
+            } 
+          } 
 #        alarm 0;
         if(1 or not $i){
             if(not open(FILE,"<"."/tmp/dbhosts")){
