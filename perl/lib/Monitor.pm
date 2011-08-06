@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.150 2011/07/28 17:43:46 ams Exp $
+# $Id: Monitor.pm,v 1.151 2011/08/06 15:02:07 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -888,7 +888,7 @@ if ($producer eq "Producer"){
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
                   ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or ($fh[1] eq 'hrdl' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)
-or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus5/)){
+or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus/)){
 #               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
                if($rdst->{Insert}>$ltime){
                    $ltime=$rdst->{Insert};
@@ -1674,20 +1674,22 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-#     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
-     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
+     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
+         print "restoring $rdst{uid} \n";
+         $rdst{Status} = "ToBeRerun";
+#     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
 #     if($rdst{Status} eq "Finished"){
          foreach my $hash (@{$ref->{acl}}){
              if ($hash->{id}->{uid} == $rdst{uid}){
                  print " $hash->{id}->{HostName} $hash->{id}->{pid} $rdst{Run} $rdst{uid} \n";
                  my $cmd="ssh $hash->{id}->{HostName} kill -9  $hash->{id}->{pid} ";
-                 system($cmd);
+#                 system($cmd);
              }
          }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
-#                $arsref->sendRunEvInfo(\%rdst,"Update");
+                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{

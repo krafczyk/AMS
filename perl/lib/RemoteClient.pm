@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.684 2011/07/28 17:43:47 ams Exp $
+# $Id: RemoteClient.pm,v 1.685 2011/08/06 15:02:10 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18668,7 +18668,7 @@ sub CheckFS{
                  if(defined $sizemb->[0][0]){
                   $rused+=$sizemb->[0][0];
                  } 
-                 my $ava=$bavail*$fac;
+                 my $ava=$bavail*$fac-20000;
                  my $ava1=$tot*$fs->[3]/100-$rused;
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';

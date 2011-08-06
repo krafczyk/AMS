@@ -476,7 +476,7 @@ class RemoteClient:
                         if len(sizemb)>0 and sizemb[0][0] != None:
                             rused=rused+sizemb[0][0]
                         
-                        ava=bavail*fac
+                        ava=bavail*fac-20000
                         ava1=tot*float(fs[3])/100-rused
                         if (fs[2].find('Reserved')>=0):
                             status='Reserved'
