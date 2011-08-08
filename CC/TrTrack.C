@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.110.2.2 2011/08/03 15:42:19 shaino Exp $
+// $Id: TrTrack.C,v 1.110.2.3 2011/08/08 16:48:11 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/08/03 15:42:19 $
+///$Date: 2011/08/08 16:48:11 $
 ///
-///$Revision: 1.110.2.2 $
+///$Revision: 1.110.2.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -274,6 +274,12 @@ TrTrackPar &TrTrackR::GetPar(int id)
   return parerr;
 }
 
+bool TrTrackR::TestHitLayerJHasXY(int layJ)
+{
+  TrRecHitR* hit=GetHitLJ(layJ);
+  if(!hit) return false;
+  return ((!hit->OnlyY())&&(!hit->OnlyX()));
+}     
 
 double TrTrackR::GetNormChisqX(int id) const
 {

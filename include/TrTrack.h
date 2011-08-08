@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.64.6.1 2011/08/03 15:42:21 shaino Exp $
+//  $Id: TrTrack.h,v 1.64.6.2 2011/08/08 16:48:10 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/08/03 15:42:21 $
+///$Date: 2011/08/08 16:48:10 $
 ///
-///$Revision: 1.64.6.1 $
+///$Revision: 1.64.6.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -343,6 +343,8 @@ public:
   TrRecHitR *GetHitLJ(int ilay) const;
   /// DEPRECATED - DO NOT USE  Get the pointer of hit at Layer OLD-scheme, ilay(0-7), or returns 0 if not exists
   TrRecHitR *GetHitL(int ilay) const;
+   /// Return true if the track hit on lajer layJ (J-scheme) has X and Y clusters
+  bool TestHitLayerJHasXY(int layJ);  
   /// Returns a number corresponding to the ladder combination spanned by the track
   long long GetTrackPathID() const;
   /// For Gbatch compatibility
