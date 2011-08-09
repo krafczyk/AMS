@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.151 2011/08/06 15:02:07 ams Exp $
+# $Id: Monitor.pm,v 1.152 2011/08/09 14:03:38 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -738,6 +738,15 @@ sub getactivehosts{
      my $timep=0;
      my $total=0;
      my $tevt=0;
+     my $evtp=0;
+     my $evtp2=0;
+#     for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
+#       my $rdst=$Monitor::Singleton->{rtb}[$j];
+#       my $rdstc=$rdst->{cinfo};
+#           $evtp+=$rdstc->{EventsProcessed}>$rdst->{LastEvent}-$rdst->{FirstEvent}?$rdst->{LastEvent}-$rdst->{FirstEvent}:$rdstc->{EventsProcessed};
+#           $evtp2+=$rdstc->{EventsProcessed};
+#   }
+#     die " total $total, $evtp  $evtp2 \n";
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        $total+=$rdst->{LastEvent}-$rdst->{FirstEvent}>0?$rdst->{LastEvent}+1-$rdst->{FirstEvent}:0;
@@ -746,13 +755,14 @@ sub getactivehosts{
           warn "  Run $rdst->{Run}  $rdst->{FilePath} \n";
        }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
-           $lastevt+=$rdstc->{EventsProcessed};
-           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt \n";
-$tevt+=$rdstc->{EventsProcessed};
+           $evtp=$rdstc->{EventsProcessed}>$rdst->{LastEvent}-$rdst->{FirstEvent}?$rdst->{LastEvent}-$rdst->{FirstEvent}:$rdstc->{EventsProcessed};
+           $lastevt+=$evtp;
+           $tevt+=$evtp;
+           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt $tevt \n";
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
-               $evt+=$rdstc->{EventsProcessed};
+                             $evt+=$evtp;
                $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};
                $cpu+=$rdstc->{CPUTimeSpent};
@@ -887,7 +897,10 @@ if ($producer eq "Producer"){
                my @host=split ":",$rdst->{Name};
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
-                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or ($fh[1] eq 'hrdl' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)
+                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or
+               ($fh[1] eq 'hrdl' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or   
+               ($fh[1] eq 'local' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or   
+                ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)
 or  ($host[0] =~/lxplus/ and $hash->{id}->{HostName} =~ /lxplus/)){
 #               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
                if($rdst->{Insert}>$ltime){
@@ -1756,8 +1769,9 @@ sub ResetFailedRuns{
        if($rdst{Status} eq "Failed"){
                $changed=1;
          $rdst{Status}="ToBeRerun";
-         if($rdst{Priority}>1){
+         if($rdst{Priority}>1 or $rdst{CounterFail}>6){
             $rdst{History}="ToBeRerun";
+            $rdst{CounterFail}=0;
          }
          if($rdst{uid}>(1<<26)){
           $rdst{Status}="Foreign";
@@ -2698,6 +2712,7 @@ sub DeleteFailedDST{
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
                   ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/))or
+                  ($fh[1] eq 'local' and ($hash->{id}->{HostName} =~ /$fh[0]/))or
                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)){
                    push @nchost , $hash->{id}->{HostName} ;
                    push @ncname , $nc{Name};
