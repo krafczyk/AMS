@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.150 2011/04/25 16:03:42 shaino Exp $
+//  $Id: geant3.C,v 1.150.10.1 2011/08/10 12:11:07 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -677,7 +677,13 @@ extern "C" void guout_(){
       // special trick to simulate/reconstruct with different mag field
       if(TKFIELD.iniok==2)TKFIELD.iniok=3;
       //          cout <<"  iniok "<<TKFIELD.iniok<<endl;
+try{
       if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+}
+catch(std::bad_alloc a){
+cerr<<" Event "<<AMSEvent::gethead()->getid()<<" Thread "<<AMSEvent::get_thread_num()<<"   memory exhausted in AMSEvent::event "<<endl;
+      AMSEvent::gethead()->seterror(2);
+}
       if(TKFIELD.iniok==3)TKFIELD.iniok=2;
       //          cout <<"  iniok "<<TKFIELD.iniok<<endl;
 

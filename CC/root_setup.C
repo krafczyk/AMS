@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.44 2011/07/11 08:54:40 choutko Exp $
+//  $Id: root_setup.C,v 1.44.2.1 2011/08/10 12:11:08 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -957,11 +957,11 @@ const char fpate[]="-24H.csv";
 
 // check tz
    unsigned int tzd=0;
+    tm tmf;
 {
 char tmp2[255];
    time_t tz=t1;
           strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-    tm tmf;
           strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
     time_t tc=mktime(&tmf);
     tzd=tz-tc;
@@ -998,15 +998,14 @@ char tmp2[255];
      fbin.open(fname.c_str());
      if(fbin){
       while(fbin.good() && !fbin.eof()){
-        char line[80];
-        fbin.getline(line,79);
+        char line[120];
+        fbin.getline(line,119);
         
         if(isdigit(line[0])){
          char *pch;
          pch=strtok(line,".");
          ISSAtt a;
          if(pch){
-          tm tmf;
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           time_t tf=mktime(&tmf)+tzd;
           pch=strtok(NULL,",");
@@ -1023,13 +1022,11 @@ char tmp2[255];
           if(!pch)continue;
           a.Roll=atof(pch)*3.14159267/180;
            fISSAtt.insert(make_pair(tc,a));
-          
           if(tc>=t1 && tc<=t2){
            if(abs(bfound)!=2){
                fISSAtt.clear();
                fISSAtt.insert(make_pair(tc,a));
                bfound=bfound?2:-2;
-//               cout <<" line "<<line<<" "<<tc<<endl;
            }
           }
          else if(tc<t1)bfound=1;
@@ -1056,7 +1053,7 @@ int ret;
 if(bfound>0 &&efound)ret=0;
 else if(!bfound && !efound )ret=2;
 else ret=1;
-    cout<< "AMSSetupR::LoadISSAtt-I- "<<fISSAtt.size()<<" Entries Loaded"<<endl;
+    cout<< "AMSSetupR::LoadISSAtt-I- "<<fISSAtt.size()<<" Entries Loaded "<<ret<<endl;
 
 return ret;
 }
@@ -1184,11 +1181,11 @@ const char fpate[]="-24H.csv";
 
 // check tz
    unsigned int tzd=0;
+    tm tmf;
 {
 char tmp2[255];
    time_t tz=t1;
           strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
-    tm tmf;
           strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
     time_t tc=mktime(&tmf);
     tzd=tz-tc;
@@ -1225,15 +1222,14 @@ char tmp2[255];
      fbin.open(fname.c_str());
      if(fbin){
       while(fbin.good() && !fbin.eof()){
-        char line[80];
-        fbin.getline(line,79);
+        char line[120];
+        fbin.getline(line,119);
         
         if(isdigit(line[0])){
          char *pch;
          pch=strtok(line,".");
          ISSSA a;
          if(pch){
-          tm tmf;
           strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
           //cout <<" pch "<<pch<<endl;
           time_t tf=mktime(&tmf)+tzd;

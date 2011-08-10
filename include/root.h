@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.375 2011/07/19 09:37:15 choutko Exp $
+//  $Id: root.h,v 1.375.2.1 2011/08/10 12:11:12 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1744,7 +1744,7 @@ public:
   vector<int> fTrdSegment;
   static float ChargePDF[10030];
 #ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate (ChargePDF)
+//#pragma omp threadprivate (ChargePDF)
 #endif
   public:
   /// access function to TrdSegmentR objects used
