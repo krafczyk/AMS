@@ -12,10 +12,14 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
  //cout<<ev->getsetup()->fScalers[1]._LiveTime[0]<<" "<<ev->getsetup()->fScalers[1]._LiveTime[1]<<endl;
+ cout <<ev->fHeader.Roll<<" "<<ev->fHeader.Pitch<<" "<<ev->fHeader.Yaw<<endl;
+return true;
+   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>3 ){
 
-   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>20 && ev->EcalShower(0).S13R!=0 && ev->EcalShower(0).RearLeak<0.99 ){
+//   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>20 && ev->EcalShower(0).S13R!=0 && ev->EcalShower(0).RearLeak<0.99 ){
    //if(ev && ev->nLevel1()   && ev->nParticle()  && ev->Particle(0).Beta>0 && ev->nTrTrack()  && ev->Particle(0).Charge>1 && ev->Particle(0).iTrTrack()>=0 &&  ev->Particle(0).iTrdTrack()<0){
-   cout<<ev->EcalShower(0).AttLeak<<" "<<ev->EcalShower(0).S13Leak<<" "<<ev->EcalShower(0).S13R<<endl;
+//   cout<<ev->EcalShower(0).AttLeak<<" "<<ev->EcalShower(0).S13Leak<<" "<<ev->EcalShower(0).S13R<<endl;
+  cout <<ev->fHeader.Roll<<" "<<ev->fHeader.Pitch<<" "<<ev->fHeader.Yaw<<endl;
   return true;
   }
   else return false;

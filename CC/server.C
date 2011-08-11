@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.184 2011/07/28 11:13:38 choutko Exp $
+//  $Id: server.C,v 1.185 2011/08/11 16:14:12 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3432,8 +3432,16 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
             if(!strcmp((const char *)(*i)->HostName, (const char *)(cid).HostName)){
 
           cout << "  Threads found "<<(*i)->ClientsAllowed<<" "<<(*i)->ClientsRunning<<endl;
-            if((*i)->ClientsAllowed<(*i)->ClientsRunning+threads-1){
-              threads=(*i)->ClientsAllowed-(*i)->ClientsRunning+1+1+1;
+// calculate processes on a give host once more
+int crun=0;
+    for(ACLI j=_acl.begin();j!=_acl.end();++j){
+          if(!strcmp((const char *)(*j)->id.HostName, (const char *)(cid).HostName)){
+           if( (*j)->id.uid!=cid.uid)crun+=(*j)->id.threads;
+}
+}
+          cout <<" found "<<crun<< " on "<<(const char *)cid.HostName<<endl;
+           if((*i)->ClientsAllowed<crun+cid.threads){
+              threads=(*i)->ClientsAllowed-crun;
                if(threads>cid.threads)threads=cid.threads;
                if(threads<=0)threads=1;
             }
@@ -3442,7 +3450,26 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::Run
          }
        }
       }
-      cout << "  Threads allowed "<<threads<<endl;
+
+    char *lxplus5=getenv("AMSPublicBatch");
+    if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
+    lxplus5=getenv("AMSPublicBatch");
+
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)cid.HostName));
+   if(cli!=_ncl.end()){
+   string lp=(const char*)((*cli)->LogPath);  
+      char pat[]="bsub -n ";
+      int pos=lp.find(pat);
+      if(pos>=0){
+       int pos2=lp.find(" ",pos+8);
+       string lps=lp.substr(pos+8,pos2);
+       int thr=atol(lps.c_str());
+       cout <<"  found max "<<thr<<" Threads for host "<<(const char *)cid.HostName<<endl;
+       if(threads>thr && strstr((const char *)cid.HostName,lxplus5))threads=thr;        
+      }
+    }
+   
+      cout << "  Threads allowed "<<threads<<" "<<cid.uid<<" "<<(const char *)cid.HostName<<endl;
 
 
      for(ACLI j=_acl.begin();j!=_acl.end();++j){

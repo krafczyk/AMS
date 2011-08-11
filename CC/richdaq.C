@@ -666,8 +666,8 @@ void DAQRichBlock::DecodeRich(integer length,int16u *p,int side,int secondary){
 	  if(physical_cdp!=-1){
 	    int geom_id=RichPMTsManager::GetGeomPMTIdFromCDP(physical_cdp,channel.pmt);
 	    
-	    if(geom_id<0) Do(kWrongCDPChannelNumber);
-	    
+//	    if(geom_id<0) Do(kWrongCDPChannelNumber);
+	    if(geom_id<0) continue;    
 	    // Get the pixel geom id, substract the pedestal, check that
 	    // it is above it and use low gain if necessary
 	    int pixel_id=RichPMTsManager::GetGeomChannelID(geom_id,channel.pixel);

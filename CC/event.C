@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.538 2011/07/25 12:57:55 choutko Exp $
+//  $Id: event.C,v 1.539 2011/08/11 16:14:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1531,10 +1531,33 @@ static int ist=0;
   callecal = (!tfcal);
   if((ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2) && (AMSEvent::gethead()->getid())>90000)return;
   //
+
+
+
+
   if(getC("TriggerLVL1",0)->getnelem() ){
+try{
     _retof2event();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
+ seterror(2);
+}
+try{
     _reanti2event();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reantievent"<<endl;
+ seterror(2);
+}
+
+try{
     if(calltrd)_retrdevent();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdevent"<<endl;
+ seterror(2);
+}
     
     if(calltrk){
       try{
@@ -1546,12 +1569,41 @@ static int ist=0;
 	seterror(2);
 	
       }
-    } 
+
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
+ seterror(2);
+}
+} 
+try{
     if(callrich)_rerichevent();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
+ seterror(2);
+}
+try{
     if(callecal)_reecalevent();
-  }
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reecalevent"<<endl;
+ seterror(2);
+}
+ }
+try{
   if(callax)_reaxevent();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reaxevent"<<endl;
+ seterror(2);
+}
+try{
   if(calluser)AMSUser::Event();
+}
+catch(std::bad_alloc a){
+ cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" AMSUser::Event"<<endl;
+ seterror(2);
+}
 #ifndef _PGTRACK_
   if(calltrk)AMSTrTrack::cleanup(); 
 #endif
@@ -3683,11 +3735,19 @@ void AMSEvent::_collectstatus(){
 
              }
 
-        TriggerLVL302 *ptr3= dynamic_cast<TriggerLVL302*>(getheadC("TriggerLVL3",0));         
-        if(ptr3){
-         int z1=ptr3->Prescaled()?1:0;
-         __status1|=z1;
-        }
+
+
+//        TriggerLVL302 *ptr3= dynamic_cast<TriggerLVL302*>(getheadC("TriggerLVL3",0));         
+//        if(ptr3){
+//         int z1=ptr3->Prescaled()?1:0;
+//         __status1|=z1;
+//        }
+          if(ptrt){
+           int z1=(ptrt->JMembPattBitSet(0) ||ptrt->JMembPattBitSet(11) )?1:0;
+           __status1|=z1;
+         }              
+  
+
         
         if(ptr){
          if(ptr->getpbeta()){
@@ -3705,7 +3765,7 @@ void AMSEvent::_collectstatus(){
 	if (charge==0)
 	  rig=fabs(ptr->getmomentum());
 	 else 
-	   fabs(ptr->getmomentum())/fabs(charge);
+	   rig=fabs(ptr->getmomentum())/fabs(charge);
         int z1=0;
         if(rig<8)z1=0;        
         else if(rig<32)z1=1;        

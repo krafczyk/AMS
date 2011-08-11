@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.687 2011/08/11 11:41:22 ams Exp $
+# $Id: RemoteClient.pm,v 1.688 2011/08/11 16:14:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -710,11 +710,18 @@ jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (selec
 	}
 
         $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
-(select cid, pid as jpid, realtriggers from jobs union all select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
-jpid=productionset.did and realtriggers>0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+(select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
+jpid=productionset.did  and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
+        $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+(select cid, pid as jpid, jid as jjid from jobs), ntuples,productionset where 
+jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+	if ( defined $ret->[0][0] ) {
+		$completed_jobs = $completed_jobs+$ret->[0][0];
+	}
+
         $max_jobs = int(2.2*$capacity_jobs*$reputation*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs));
         if($completed_jobs > 0){
 	    if($max_jobs < $capacity_jobs*$reputation-$total_jobs+$completed_jobs){

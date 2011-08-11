@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.166 2011/07/19 09:37:06 choutko Exp $
+//  $Id: producer.C,v 1.167 2011/08/11 16:14:12 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -767,8 +767,10 @@ if(getenv("NtupleDir") && destdir && strcmp(destdir,getenv("NtupleDir"))){
  fcopy+=destdir; 
 // fcopy+='/';
 // for (int k=bnt;k<bend;k++)fcopy+=a[k];
- if(!_Solo)sendid(3600);
- int ntry=3;
+int tmc=3600;
+if(strstr((const char *)fcopy,"rfcp"))tmc=10800;
+ if(!_Solo)sendid(tmc);
+int ntry=3;
  bool suc=false;
 againcp:
  for(int j=0;j<ntry;j++){
@@ -1342,6 +1344,14 @@ break;
 catch  (CORBA::SystemException & a){}
     _OnAir=false;
 }
+char tmp[256];
+sprintf(tmp," sleep 60 ; bkill %u &",_pid.pid);
+system(tmp);
+sprintf(tmp," sleep 60 ; kill -9 %u &",_pid.pid);
+system(tmp);
+cout <<" Exiting-I-Bkill "<<tmp<<endl;
+
+
 }
 
 
@@ -2175,14 +2185,26 @@ else sprintf(tmpu,"%d",_pid.uid);
                //  not if pcamsf4
               int i=!(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb"))?1:system((const char*)afscript);
               char line[1024];
+              bool amsprod=false;
               if(i==0){
                 ifstream afbin;
+                afbin.open((const char*)afout);
+                while(afbin.good() && !afbin.eof()){
+                afbin.getline(line,1023);
+                if(strstr(line,"amsprod")){
+                 amsprod=true;
+                 break;
+                }
+                }
+                afbin.close();
+                afbin.clear();
                 afbin.open((const char*)afout);
                 while(afbin.good() && !afbin.eof()){
                 afbin.getline(line,1023);
                 if(strstr(line,"JOBID")){
                   int idd;
                   afbin>>idd;
+                   
                   id.push_back(idd);
                   cout << "AMSProducer-I-bsubDetected "<<idd<<endl;
                 }
@@ -2194,8 +2216,12 @@ else sprintf(tmpu,"%d",_pid.uid);
                       cerr<<"AMSProducer-E-bsubduplicatediddetected "<<id[id.size()-1]<<" "<<id[i]<<endl;
              }
               if(id.size()>0){
+               char *lxplus5=getenv("AMSPublicBatch");
+               if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
+              lxplus5=getenv("AMSPublicBatch");
                   if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")){
-                    _pid.HostName="lxplus.cern.ch";
+
+                    _pid.HostName=amsprod?"lxplus.cern.ch":lxplus5;
                     _pid.pid=id[id.size()-1];
                     _pid.ppid=0;
                   }

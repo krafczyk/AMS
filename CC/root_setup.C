@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.45 2011/07/25 12:57:55 choutko Exp $
+//  $Id: root_setup.C,v 1.46 2011/08/11 16:14:12 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1447,7 +1447,7 @@ else if(t2-t1>864000){
     cerr<< "AMSSetupR::LoadISSCTRS-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
    t2=t1+864000;
 }
-const char fpatb[]="ISS_CTRS_vectors_";
+const char fpatb[]="ISS_CTRS_Vectors_";
 const char fpate[]="-24H.csv";
 const char fpate2[]="-24h.csv";
 

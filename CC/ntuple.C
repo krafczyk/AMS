@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.237 2011/07/25 12:57:55 choutko Exp $
+//  $Id: ntuple.C,v 1.238 2011/08/11 16:14:12 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -1089,11 +1089,14 @@ void AMSNtuple::UnLock(){
  char tmp[512];
 char name[256]="";
  int len=255;
- if(!gethostname(name,len)){
+ if(gethostname(name,len)){
    struct hostent *hent;
    hent=gethostbyname(name);
    if(hent)strcpy(name,hent->h_name);
    else cerr<<"AMSNtuple::UnLock::_gethostname-E-UnableToGetHostbyName "<<name<<endl;
+ }
+ else{
+   cout <<"AMSNtuple::UnLock-I-HostName "<<name<<endl;
  }
  pid_t pid=getpid();
  sprintf(tmp,"lock.%s.%d",name,pid);
