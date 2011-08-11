@@ -3034,9 +3034,10 @@ class RemoteClient:
             return
         if(len(files)==0):
             if(datamc==0):
-                sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
-                files=self.sqlserver.Query(sql)
-                df=1
+                if(donly==0):
+                    df=1
+                    sql="select path,castortime from datafiles where path like '%%%s/%%' and type like 'MC%%'  %s " %(datapath,runndf) 
+                    files=self.sqlserver.Query(sql)
         if(len(files)>0 or self.force!=0):
             sql="insert into jobs_deleted select jobs.* from jobs,%s where jobs.jobname like '%%%s.job'  and jobs.jid=%s.jid %s %s  " %(runsname,dataset,runsname,runst,rund)
             if(donly==0):
@@ -3054,6 +3055,7 @@ class RemoteClient:
                 self.sqlserver.Update(sql)
             else:
                 sql="DELETE from datafiles where path like '%%%s/%%' and type like 'MC%%' %s " %(datapath,runndf)
+
                 self.sqlserver.Update(sql)
                 
             if(self.update):
