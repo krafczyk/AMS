@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.686 2011/08/06 18:14:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.687 2011/08/11 11:41:22 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18599,7 +18599,7 @@ sub CheckFS{
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0] and $cachetime>0){
               return $ret->[0][0];
             }
-            $sql="select disk,host,status,allowed  from filesystems where path like '$path%' and allowed>0";
+            $sql="select disk,host,status,allowed  from filesystems where path like '$path%' and (allowed>0 or status='Active')";
             $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
 #
@@ -18859,7 +18859,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$dir,1,$datamc);
+        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$run->[1],1,$datamc);
         if(!$ok){
         $errors++;
             if($errors>=$maxer){
@@ -19740,7 +19740,7 @@ sub MoveBetweenDisks{
        if(defined $newd){
         $sql="select available from filesystems where disk='$newd' and path='$path' and isonline=1";
         my $r2=$self->{sqlserver}->Query($sql);
-        if(defined $r2 and ${$r2}[0]->[0]>$ds->[1]){
+        if(defined $r2->[0][0] and $r2->[0][0]>$ds->[1]){
             $disk=$newd;
         }
       }
