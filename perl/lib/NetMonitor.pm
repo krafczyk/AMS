@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.57 2011/08/12 11:54:13 ams Exp $
+# $Id: NetMonitor.pm,v 1.58 2011/08/12 17:09:40 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -23,8 +23,9 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsj0','pcamsj1','pcamsap','pcamsd1','pcamsf9','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
+  sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd','scdb.perl'],
   filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
@@ -220,11 +221,11 @@ my $period = '';
     open (PERIOD, "/afs/cern.ch/user/a/ams/vc/perl/period");
     $period = <PERIOD>;
     close (PERIOD);
-
+    unlink "/tmp/strami";
     if ($period == 1) {
         if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t.root /tmp/t.root 6 1>/tmp/checkami 2>&1") != 0) {
             print "ami2root.exe: No answer\n";
-#            push @{$self->{bad}}, "ami2root.exe does_not_reply";
+            push @{$self->{bad}}, "ami2root.exe_does_not_reply NetMonitor-W-SlowDBProblem";
         }
         my $str = (system "less /tmp/checkami|grep 'last time' 1>/tmp/strami 2>&1");
 #   print "$str\n"; 
@@ -238,7 +239,7 @@ my $period = '';
      print ("delta time is $delta\n");
         if (($localtime - $in[4]) > 7200) {
             print "localtime is $localtime, old one: delta is $delta\n";
-	    push @{$self->{bad}}, " slow_database_last_update_time_too_far_in_the_past:-$delta\n";
+	    push @{$self->{bad}}, " slow_database_last_update_time_too_far_in_the_past:-$delta  NetMonitor-W-SlowDBProblem";
 #	    $self->sendmailpolicy("slow_database_last_update_time_too_far_in_the_past:-$delta\n",0);
             }
         close TIME;
@@ -302,6 +303,33 @@ my $period = '';
     }
 #print "@{$self->{bad}}\n";
 
+#
+# sanboxes
+#
+	$mes="NetMonitor-W-SanBoxesProblems";
+	$command="/afs/cern.ch/ams/local/bin/timeout $sshTimeout ssh -2 -x -o \'StrictHostKeyChecking no \' $self->{sbhost} /afs/cern.ch/ams/local/bin/check_sanbox.pl";
+        my $i1=system("$command -fsanbox01 >/tmp/sbhost.$$");
+        my $i2=system("$command -fsanbox02 >>/tmp/sbhost.$$");
+    if($i1 or $i2){
+                push @{$self->{bad}}, "$self->{sbhost} NetMonitor-W-ssh4Failed ";
+    }
+    else{
+            if(not open(FILE,"<"."/tmp/sbhost.$$")){
+                push @{$self->{bad}}, " /tmp/sbhost.$$ NetMonitor-W-ssh5Failed ";
+                print "\n".localtime()."   /tmp/sbhost.$$ NetMonitor-W-ssh5Failed \n";
+            }
+            else{
+            my @lines=<FILE>;
+            close FILE;
+    foreach my $bl (@lines){
+            push @{$self->{bad}}, "$bl $mes ";
+    }
+
+        }
+        }
+            unlink "/tmp/sbhost.$$";
+
+           
 	#
 	# dbhosts targets
 	#
