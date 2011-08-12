@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.56 2011/08/06 21:50:18 choutko Exp $
+# $Id: NetMonitor.pm,v 1.57 2011/08/12 11:54:13 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -329,14 +329,14 @@ oncemore:
           } 
 #        alarm 0;
         if(1 or not $i){
-            if(not open(FILE,"<"."/tmp/dbhosts")){
+            if(not open(FILE,"<"."/tmp/dbhosts.$$")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh3Failed /tmp/dbhosts";
                 print "\n".localtime()." > $host NetMonitor-W-ssh3Failed /tmp/dbhosts\n";
                 next;
             }
             my @words=<FILE>;
             close FILE;
-            unlink "/tmp/dbhosts";
+            unlink "/tmp/dbhosts.$$";
              my $nt=-1;
             my $twp="";
             my $pn=-1;
