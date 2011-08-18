@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.154 2011/08/08 14:11:25 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.155 2011/08/18 20:59:24 paniccia Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2494,33 +2494,43 @@ int icofgcell[Maxrow];
     }
    ////LAPP impact-point correction (implemented by on M.P. April 6, 2011)  BEGIN
    //workaround for fiber cross-talk in sl 4 and 8  (to be replaced in next future with proper correction)
-   float s13rmod=1.;
+   float s13rmod=_S13Ra[1];
    _S13LeakYA0=0; //needed for the fiber cross-talk workaround 
-   int positiony=(int(cofgcelly))%4;
+  
    bool flagy=kFALSE;
+   int d1=1;
+   
    float wsl4=1.;
    float wl16=1.;
    float wl17=1.;
    
+   int icofgcelly=int(cofgcelly);
+   if ((cofgcelly-icofgcelly)>=0.5)  icofgcelly++;
+
+   int positiony=icofgcelly%4;
+
    if (edepl[17]>0){
-     positiony=(int(cofgcell[17]))%4;
+     positiony=icofgcell[17]%4;
      if (positiony>=3) wl17=1.107;
      if ((positiony>=1)&&(positiony<2)) wl17=0.92;
+     
    }
-   if (edepl[16]>0){
-     positiony=(int(cofgcell[16]))%4;
+    if (edepl[16]>0){
+     positiony=icofgcell[16]%4;
      if (positiony>=3) wl16=1.083;
      if ((positiony>=1)&&(positiony<2)) wl16=0.92;
-   }
-   if (edepl[8]>0){
-     positiony=(int(cofgcell[8]))%4;
+     
+    }
+
+     if (edepl[8]>0){
+     positiony=icofgcell[8]%4;
      if (positiony>=3) wsl4=1.02;
      if ((positiony>=1)&&(positiony<2)) wsl4=0.92;
-   }
+     }
 
-   float d1=abs(cofgcell[8]-cofgcell[17]);
-
-   positiony=(int( cofgcelly))%4;
+     if (edepl[8]>0 && edepl[17]>0) d1=abs(icofgcell[8]-icofgcell[17]);     
+  
+   positiony=icofgcelly%4;
 
    if ((positiony>=3)&&(d1<1)) flagy=kTRUE;
 
@@ -2541,7 +2551,7 @@ int icofgcell[Maxrow];
       if(_S13Ra[1]>ECREFFKEY.S1S3YA[3] && _S13Ra[1]<=ECREFFKEY.S1S3YA[2]){
 	 _S13LeakYA0=ECREFFKEY.S1S3YA[0]*_S13Ra[1]+ECREFFKEY.S1S3YA[1]-1.;
       }
-      else if(_S13Ra[0]<=ECREFFKEY.S1S3YA[3]){
+      else if(_S13Ra[1]<=ECREFFKEY.S1S3YA[3]){
 	 _S13LeakYA0=ECREFFKEY.S1S3YA[0]*ECREFFKEY.S1S3YA[3]+ECREFFKEY.S1S3YA[1]-1.;
 
       }
@@ -2549,7 +2559,7 @@ int icofgcell[Maxrow];
    }
    else
      {
-      if(_S13Ra[1]>0.5 && _S13Ra[1]<=0.735){
+      if(_S13Ra[1]>0.5 && _S13Ra[1]<=0.701){
 	 _S13LeakYA0=0.32*_S13Ra[1]+0.78-1.;
       }
       else if(_S13Ra[1]<=0.5){
@@ -2587,16 +2597,30 @@ int icofgcell[Maxrow];
    float frac2=frac1+ edepl[16]/edept;
     //begin corr_leak_2d  
    
-   erec_ipcorr=erec_ipcorr/1000.;
- float corr_leak_2d=1.;   
-if (frac2>ECREFFKEY.LAPPRearLeak[3]){
-    corr_leak_2d=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*erec_ipcorr/((float)cofgl))-ECREFFKEY.LAPPRearLeak[2]*frac2;
-   }
+   erec_ipcorr=erec_ipcorr/1000.;//in GeV
+ float corr_leak_2d=1.;
+
+ if (frac2>ECREFFKEY.LAPPRearLeak[3]){
+       corr_leak_2d=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*erec_ipcorr/((float)cofgl))-ECREFFKEY.LAPPRearLeak[2]*frac2;
+      }
  //explicit datacards values (N.B. erec_ipcorr in GeV):
 // if (frac2>0.035){
     //     corr_leak_2d=1.055*exp(-0.0016*erec_ipcorr/((float)cofgl))-1.589*frac2;
-    //   }
-     _EnergyA=erec_xtc/corr_leak_2d;
+    //   }      
+     
+ if ((erec_ipcorr>=1000.)||(frac2>=0.15)) corr_leak_2d=1.;// do not apply correction for E>=1TeV or too big Edep in last2layers
+ if ((erec_xtc/corr_leak_2d)<0){
+           setstatus(AMSDBc::CATLEAK);
+	    EcalJobStat::addre(12);
+            #ifdef __AMSDEBUG__
+	    cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<< frac2 <<endl;
+            #endif
+          corr_leak_2d=1./FLT_MAX*100;
+
+ }
+ 
+
+    _EnergyA=erec_xtc/corr_leak_2d;
     _RearLeakA=_EnergyA-erec_xtc;
 
     _SideLeakA=_SideLeak/corr_leak_2d;
