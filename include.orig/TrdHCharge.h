@@ -99,8 +99,8 @@ class TrdHChargeR{
   int CreatePDFs(int debug=0);
   
   /// get most probable charge
-  int GetCharge(TrdHTrackR *tr,int opt=0,float beta=0., int debug=0);
-  
+  int GetCharge(TrdHTrackR *tr,float beta=1.,float corr=1.,int opt=0,int debug=0);
+  int GetCharge(vector<float> ampvec,int debug=0);
   //  double GetTrdChargeMH(TrdHTrackR *trd_track, float beta, int z);
   
   /// get electron likelihood (-log(elik/elik+elik) - 2 hypothesis e or p)
@@ -141,10 +141,12 @@ class TrdHChargeR{
   
   /// Close ALL currently open TDV interfaces
   bool closeTDV();
-
-  /// Get Name string for TDV entry iterator
-  string GetStringForTDVEntry(int n);
   
+  string GetStringForTDVEntry(int n);
+  int GetTDVEntryForMapKey(int c);
+
+  vector<float> GetLayerSpectrum(TrdHTrackR* track,float beta=1.,float corr=1.,int opt=0,int debug=0);
+
   ClassDef(TrdHChargeR,2)
 };
 #endif

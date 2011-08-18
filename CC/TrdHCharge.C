@@ -45,35 +45,117 @@ double p_par(int p){
 }
 
 
-int TrdHChargeR::GetCharge(TrdHTrackR *tr,int opt,float beta,int debug){
-  if(debug)printf("Enter TrdHChargeR::GetCharge\n");
-  if(pdfs.size()<2)return 0;
-  if(beta<0.5)return 0;
-  
-  float betacorr=1.;
-  if(beta<0.95)// beta correction to be done
-    {
-      betacorr=TrdHCalibR::gethead()->GetBetaCorr(beta);// approx mip beta (betagamma 3.04)
-    }
-  
-  double ampcorr[20];
+vector<float> TrdHChargeR::GetLayerSpectrum(TrdHTrackR* track,float beta,float corr,int opt,int debug){
+  float ampcorr[20];
   for(int i=0;i<20;i++)ampcorr[i]=0.;
   
+  float betacorr=1;
+  if(fabs(beta)<0.95)betacorr=TrdHCalibR::gethead()->GetBetaCorr(fabs(0.95));
+  
   for(int s=0;s<2;s++)
-    for(int h=0;h<tr->pTrdHSegment(s)->nTrdRawHit();h++){
-      TrdRawHitR* hit=tr->pTrdHSegment(s)->pTrdRawHit(h);
+    for(int h=0;h<track->pTrdHSegment(s)->nTrdRawHit();h++){
+      TrdRawHitR* hit=track->pTrdHSegment(s)->pTrdRawHit(h);
       if(hit->Amp<10)continue;
-      float amp=hit->Amp;
-      if(!(opt & (1 << 0))) amp*=TrdHCalibR::gethead()->GetGainCorr(hit,2);
-      if(!(opt & (1 << 1))) amp*=TrdHCalibR::gethead()->GetPathCorr(tr->TubePath(hit));
+      if(debug)printf(" Raw Hit %2i L %i A %3.2f\n",h,hit->Layer,hit->Amp);
+      float amp=hit->Amp*corr;
+      if(!(opt & (1 << 0))){
+	amp*=TrdHCalibR::gethead()->GetGainCorr(hit,2);
+	if(debug)printf(" gain corr %.2f\n",TrdHCalibR::gethead()->GetGainCorr(hit,2));
+      }
+      else if(debug)printf("gaincorr disabled corr %.2f\n",TrdHCalibR::gethead()->GetGainCorr(hit,2));
+      if(!(opt & (1 << 1))){
+	amp*=TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit));
+	if(debug)printf(" path %.2f corr %.2f\n",track->TubePath(hit),TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit)));
+      }
+      else if(debug)printf("pathcorr disabled path %.2f corr %.2f\n",track->TubePath(hit),TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit)));
       if(!(opt & (1 << 2))) amp*=betacorr;
+      else if(debug)printf("betacorr disabled beta %.2f corr %.2f\n",beta,betacorr);
+      if(debug)printf(" Corr Hit %2i L %i A %3.2f\n",h,hit->Layer,amp);
       ampcorr[hit->Layer]+=amp;
     }
   
-  if(debug)
-    for(int i=0;i<20;i++)
-      printf(" L %i amp %.2f\n",i,ampcorr[i]);
+  vector<float> vec;
+  for(int i=0;i<20;i++){
+    vec.push_back(ampcorr[i]);
+    if(debug)printf(" L %2i edep %3.2f test %3.2f\n",i,vec.at(i),ampcorr[i]);
+  }
+  return vec;
+}
+
+int TrdHChargeR::GetCharge(TrdHTrackR *tr,float beta,float corr,int opt,int debug){
+  if(debug)printf("Enter TrdHChargeR::GetCharge\n");
+  if(pdfs.size()<2)return 0;
+
+  vector<float> ampcorr=GetLayerSpectrum(tr,beta,corr,opt,debug);
   
+  map<int,double> map_charge_prob;
+  map<int,double>::iterator mit;
+  
+  int nhit=0;
+  for(int chg=0;chg<10;chg++){
+    map<int,TrPdf*>::iterator it=pdfs.find(chg);
+    if(it==pdfs.end())continue;
+    
+    for(int i=0;i<20;i++){
+      if(ampcorr.at(i)<5)continue;
+      
+      if(debug&&chg==0&&i==0){
+	if(use_single_layer_pdfs)cout<<"Using single layer electron pdfs"<<endl;
+	else cout<<"Using all layer electron pdfs"<<endl;
+      }
+      if(chg==0&&use_single_layer_pdfs){
+	it=pdfs.find(-i-1);
+	if(it==pdfs.end()){
+	  cerr<<"electron pdf for layer "<<-i-1<<" not found"<<endl; 
+	  continue;
+	}
+      }
+      
+      double prob=it->second->Eval(ampcorr.at(i));
+      if(prob<=0)continue;
+      
+      mit=map_charge_prob.find(chg);
+      if(mit==map_charge_prob.end()){
+	map_charge_prob.insert(pair<int,double>(chg,prob));
+	mit=map_charge_prob.find(chg);
+      }
+      else mit->second*=prob;
+      
+      if(debug>1)printf(" c %i prob %.2e accum %.2e\n",chg,prob,mit->second);
+      nhit++;
+    }
+  }
+  
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
+    it->second=pow((double)it->second,(double)(1./(double)nhit));
+    if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
+  }
+  
+  double totalprob=0.;
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+    totalprob+=it->second;
+  
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+    it->second/=totalprob;
+  
+  
+  int toReturn=0;double maxprob=0.;
+  charge_probabilities.clear();                                              
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
+    if(it->second>maxprob){
+      maxprob=it->second;
+      toReturn=it->first;
+    }
+    charge_probabilities.insert(pair<double,int>(it->second,it->first));
+  }
+  
+  return toReturn;
+}
+
+int TrdHChargeR::GetCharge(vector<float> ampcorr, int debug){
+  if(debug)printf("Enter TrdHChargeR::GetCharge\n");
+  if(pdfs.size()<2)return 0;
+
   map<int,double> map_charge_prob;
   map<int,double>::iterator mit;
 
@@ -83,7 +165,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR *tr,int opt,float beta,int debug){
     if(it==pdfs.end())continue;
 
     for(int i=0;i<20;i++){
-      if(ampcorr[i]<5)continue;
+      if(ampcorr.at(i)<5)continue;
 
       if(debug&&chg==0&&i==0){
 	if(use_single_layer_pdfs)cout<<"Using single layer electron pdfs"<<endl;
@@ -97,7 +179,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR *tr,int opt,float beta,int debug){
 	}
       }
 
-      double prob=it->second->Eval(ampcorr[i]);
+      double prob=it->second->Eval(ampcorr.at(i));
       if(prob<=0)continue;
       
       mit=map_charge_prob.find(chg);
@@ -142,7 +224,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR *tr,int opt,float beta,int debug){
 float TrdHChargeR::GetELikelihoodNEW(int opt, int debug){
   if(debug)cout<<"Entering TrdHChargeR::GetELikelihoodNEW"<<endl;
   
-  if(charge_probabilities.size()<3){
+  if(charge_probabilities.size()<2){
     cerr<<"please execute GetCharge first to fill charge probabilities"<<endl;
     return -1.;
   }
@@ -260,11 +342,14 @@ bool TrdHChargeR::FillPDFsFromTDV(int debug){
     {
       if(electron_hist_array[i]==0)break;
       
-      int l=(int)electron_hist_array[i++]-1;
+      int l=(int)electron_hist_array[i++];
+      int arrl=-l-1;
+      if(l>-1||l<-20)cerr<<"TrdHChargeR::FillPDFsFromTDV - l expected to be between -20 and -1 but it is "<<l <<endl;
+      if(arrl<0||arrl>19)cerr<<"TrdHChargeR::FillPDFsFromTDV - arrl expected to be between 0 and 19 but it is"<< arrl<<endl;
       int npnt=(int)electron_hist_array[i++];
       if(debug)cout<<"l "<<l<< " npnt "<<npnt<<endl;
-      if(!epdf[l])
-	epdf[l]=new TrPdf((char*)GetStringForTDVEntry(-l-1).c_str());
+      if(!epdf[arrl])
+	epdf[arrl]=new TrPdf((char*)GetStringForTDVEntry(l).c_str());
 
       float ysum=0.;
       int p=0;
@@ -272,12 +357,12 @@ bool TrdHChargeR::FillPDFsFromTDV(int debug){
 	float x=electron_hist_array[i++];
 	float y=electron_hist_array[i++];
 	ysum+=y;
-	epdf[l]->AddPoint(x,y);
+	epdf[arrl]->AddPoint(x,y);
       }
       
-      if(debug)epdf[l]->Info(1);
+      if(debug)epdf[arrl]->Info(1);
       if(ysum>0.)
-	pdfs.insert(pair<int,TrPdf*>(-l-1,epdf[l]));
+	pdfs.insert(pair<int,TrPdf*>(l,epdf[arrl]));
     }
 
   cout<<pdfs.size()<<" TRD PDFs loaded from TDV"<<endl;
@@ -296,6 +381,7 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
   for(map<int,TrPdf*>::const_iterator it=pdfs.begin();it!=pdfs.end();it++){
     if((int)it->second->GetN()==0)continue;
     int i=0;
+    //int n=GetTDVEntryForMapKey(it->first);
     int n=it->first;
   
     it->second->Info(1);    
@@ -311,7 +397,7 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
       }
     }
     else{//electron
-      electron_hist_array[eliter++]=-it->first;
+      electron_hist_array[eliter++]=it->first;
       electron_hist_array[eliter++]=(int)it->second->GetN();
       if(debug)printf("TrdHChargeR::FillTDVFromPDFs - L %i ntdv %i pnt %i\n",-it->first,n,it->second->GetN());
       for(int p=0;p<(int)it->second->GetN();p++){
@@ -327,37 +413,10 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
 
 int TrdHChargeR::AddEvent(TrdHTrackR *track,int opt,float corr, float beta,int charge, int debug){
   if(debug)cout<<"Entering TrdHChargeR::AddEvent"<<endl;
-  //  if(beta<0.5)return 1;
   if(!track)return 1;
 
-  float betacorr=1.;
-  if(beta<0.95)
-    {
-      betacorr=TrdHCalibR::gethead()->GetBetaCorr(beta);
-    }
-  
-  if(debug){
-    cout<<"beta "<<beta<<" charge "<<charge<<" corr "<<corr<<endl;
-  }
+  vector<float> ampcorr=GetLayerSpectrum(track,beta,corr,opt,debug);
 
-  float ampcorr[20];
-  for(int i=0;i<20;i++)ampcorr[i]=0.;
-  
-  for(int s=0;s<2;s++)
-    for(int h=0;h<track->pTrdHSegment(s)->nTrdRawHit();h++){
-      TrdRawHitR* hit=track->pTrdHSegment(s)->pTrdRawHit(h);
-      if(hit->Amp<10)continue;
-      float amp=hit->Amp*corr;
-      if(!(opt & (1 << 0))) amp*=TrdHCalibR::gethead()->GetGainCorr(hit,2);
-      else if(debug)printf("gaincorr disabled corr %.2f\n",TrdHCalibR::gethead()->GetGainCorr(hit,2));
-
-      if(!(opt & (1 << 1))) amp*=TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit));
-      else if(debug)printf("pathcorr disabled path %.2f corr %.2f\n",track->TubePath(hit),TrdHCalibR::gethead()->GetPathCorr(track->TubePath(hit)));
-      if(!(opt & (1 << 2))) amp*=betacorr;
-      else if(debug)printf("betacorr disabled beta %.2f corr %.2f\n",beta,betacorr);
-      ampcorr[hit->Layer]+=amp;
-    }
-  
   if(charge>=0){
     map<int,TH1F*>::iterator it=spectra.find(charge);
     if(it==spectra.end()){
@@ -372,10 +431,9 @@ int TrdHChargeR::AddEvent(TrdHTrackR *track,int opt,float corr, float beta,int c
       
       it=spectra.find(charge);
     }
-    
-    for(int i=0;i<20;i++){
-      it->second->Fill(ampcorr[i]);
-    }
+  
+    for(int i=0;i<20;i++)
+      it->second->Fill(ampcorr.at(i));
   }
   if(charge==0){
     // storing electrons per layer as negative charges
@@ -393,13 +451,9 @@ int TrdHChargeR::AddEvent(TrdHTrackR *track,int opt,float corr, float beta,int c
 	it=spectra.find(-l);
       }
       
-      it->second->Fill(ampcorr[l-1]);
+      it->second->Fill(ampcorr.at(l-1));
     }
   }
-
-  if(debug)
-    for(int i=0;i<20;i++)
-      cout<<" L "<<i<<" amp "<<ampcorr[i]<<endl;
   
   return 0;
 }
@@ -446,6 +500,11 @@ string TrdHChargeR::GetStringForTDVEntry(int n){
     name.append(num);
   }
   return name;
+}
+
+int TrdHChargeR::GetTDVEntryForMapKey(int c){
+  if(c<0)return 9-c;
+  else return c-1;
 }
 
 int TrdHChargeR::CreateBins(int decades,int base){

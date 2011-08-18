@@ -539,7 +539,7 @@ float TrdHCalibR::PathParametrization(float path,int opt,int debug){
   if(opt==1)return par[0]/(1+exp((par[1]-path)/par[2]))+par[3];
   else{
     float val=0.;
-    for(int i=0;i<4;i++)val+=path_pol3[i]*pow(path,i);
+    for(int i=0;i<4;i++)val+=path_pol3[i]*pow(path*10.,i);
     return val;
   }
 }
@@ -572,7 +572,7 @@ float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
 float TrdHCalibR::GetPathCorr(float path, float topath,int opt,int debug){
   float toReturn=0.;
   if(path<0.3||path>0.7)toReturn=0.;
-  else toReturn=PathParametrization(topath*10.,opt)/PathParametrization(path*10.,opt);
+  else toReturn=PathParametrization(topath,opt)/PathParametrization(path,opt);
   //  else toReturn=0.6/path;
 
   if(debug)cout<<"TrdHCalibR::GetPathCorr - path "<<path<<" correction "<<toReturn<<endl;
