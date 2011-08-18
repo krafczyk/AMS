@@ -108,7 +108,18 @@ void TrExtAlignDB::UpdateTkDBc(uint time) const
     return;
   }
 
-  static uint btime = 0;
+  uint tf8 = Find(8, time);
+  uint tf9 = Find(9, time);
+  int  dt8 = (int)tf8-(int)time;
+  int  dt9 = (int)tf9-(int)time;
+
+  static int nwar = 0;
+  if ((dt8 < -200 || 200 < dt8) && nwar++ < 10)
+    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+	      << tf8 << " " << time << " " << tf8-time << std::endl;
+  if ((dt9 < -200 || 200 < dt9) && nwar++ < 10)
+    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+	      << tf9 << " " << time << " " << tf9-time << std::endl;
 
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
@@ -119,8 +130,6 @@ void TrExtAlignDB::UpdateTkDBc(uint time) const
     pl->posA.setp(par.dpos[0], par.dpos[1], par.dpos[2]);
     pl->rotA.SetRotAngles(par.angles[0], par.angles[1], par.angles[2]);
   }
-
-  btime = time;
 }
 
 void TrExtAlignDB::Print(Option_t *) const
