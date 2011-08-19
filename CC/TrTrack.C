@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.113 2011/08/08 16:30:57 pzuccon Exp $
+// $Id: TrTrack.C,v 1.114 2011/08/19 08:54:27 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/08/08 16:30:57 $
+///$Date: 2011/08/19 08:54:27 $
 ///
-///$Revision: 1.113 $
+///$Revision: 1.114 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1363,7 +1363,10 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
   
   bool FitExists=ParExists(fittype);
-  if(refit==2 || (!FitExists && refit==1)) { 
+  if(refit>=2 || (!FitExists && refit==1)) { 
+    if(refit>2)
+      for (int ii=0;ii<getnhits () ;ii++)
+       pTrRecHit(ii)->BuildCoordinate();
     float ret=FitT(fittype,-1,true,0,mass,chrg);
     if (ret>=0) 
       return fittype; 

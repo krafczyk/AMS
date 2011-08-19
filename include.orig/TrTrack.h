@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.66 2011/08/08 16:30:57 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.67 2011/08/19 08:58:09 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/08/08 16:30:57 $
+///$Date: 2011/08/19 08:58:09 $
 ///
-///$Revision: 1.66 $
+///$Revision: 1.67 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -388,6 +388,7 @@ public:
     0   do not refit
     1    refit if does not exist
     2  refit
+    3  refit and rebuild of coordinates (useful for tricked alignment)
     \param mass (optional) the particle mass. (default= 0.938272297)
      
     \param chrg (optional) the particle charge. (default = 1)
