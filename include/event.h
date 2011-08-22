@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.108 2011/07/19 09:37:15 choutko Exp $
+//  $Id: event.h,v 1.109 2011/08/22 13:34:30 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -116,6 +116,8 @@ geant _StationRad;    //cm
 geant _StationTheta; 
 geant _StationPhi;   
 geant _NorthPolePhi;
+unsigned int _GPS[7];
+unsigned int _GPSL;
 number _StationEqAsc; //ISN  
 number _StationEqDec; //ISN 
 number _StationGalLat; //ISN 
@@ -292,7 +294,15 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
     _RunEv[get_thread_num()]=getrunev();
    _status[0]=0;
    _status[1]=0;
+   for (int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
+   _GPSL=0;
 }
+void SetGPSTime(unsigned int gpsl,unsigned int gps[]){
+ _GPSL=gpsl;
+ if(_GPSL>=sizeof(_GPS)/sizeof(_GPS[0]))_GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
+ for(int k=0;k<_GPSL;k++)_GPS[k]=gps[k];
+}
+
 ~AMSEvent(){_RunEv[get_thread_num()]=0;_Head[get_thread_num()]=0;}
 void _printEl(ostream & stream);
 void loc2gl();
@@ -416,7 +426,7 @@ static void buildtofst(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static void buildraw2009(integer type, int16u *p, uinteger &run, uinteger &event,
-uinteger & runtype, time_t & time, uinteger & usec, int16u lvl3[]); 
+uinteger & runtype, time_t & time, uinteger & usec, int16u lvl3[], unsigned int gps[], unsigned int & gpsl); 
 static integer getmaxblocks(){return 1;}
 static integer getmaxblocksSh(){return 1;}
 static integer calcdaqlength(integer i){return 12;}

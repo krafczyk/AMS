@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.540 2011/08/22 09:39:34 choutko Exp $
+//  $Id: event.C,v 1.541 2011/08/22 13:34:29 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -96,6 +96,9 @@ integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(DAQEvent*pdaq){
+// gps stuff
+ if(pdaq)SetGPSTime(pdaq->_gpsl,pdaq->_gps);
+
   // Status stuff
   #ifdef __CORBA__
   static bool opendst=false;
@@ -2868,6 +2871,11 @@ void AMSEvent::_writeEl(){
   EN->Yaw=_Yaw;
   EN->Pitch=_Pitch;
   EN->Roll=_Roll;
+  for(int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)EN->GPS[k]=0;
+  EN->GPSL=_GPSL;
+  if(EN->GPSL>=  sizeof(_GPS)/sizeof(_GPS[0]))EN->GPSL=sizeof(_GPS)/sizeof(_GPS[0]);
+  for(int k=0;k<EN->GPSL;k++)EN->GPS[k]=_GPS[k];
+  
   EN->Alpha=_Alpha;
   EN->B1a=_B1a;
   EN->B3a=_B3a;
@@ -3396,7 +3404,7 @@ void AMSEvent::buildraw(
 
 void AMSEvent::buildraw2009(
               integer type, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[]){
+              uinteger &runtype, time_t & time, uinteger &usec, int16u lvl3[], unsigned int _GPS[], unsigned int &_GPSL){
 
 
     id=(*(p+6)) |  (*(p+5))<<16;
@@ -3412,20 +3420,52 @@ void AMSEvent::buildraw2009(
    if(time<1000000000 && AMSJob::gethead()->isRealData()){
         time+=_OffsetT;
     }
+    for(int k=0;k<sizeof(_GPS)/sizeof(_GPS[0]);k++)_GPS[k]=0;
+    _GPSL=0;
     // lvl3
-    for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
-    for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
-    if(type==0x11){
-      if ( run>1308200000 && run<1310368300){
-// to be changed in future;
-    lvl3[4]=0;
-    lvl3[3]=0;
-    lvl3[2]=*(p+7+2);      
+    for(int k=0;k<5;k++)lvl3[k]=0;
+    int nbytes=0;
+    if(type==0x11 || type==0x13){
+     nbytes=( (*(p+7)>>8)&31);
     }
-    else if(run>=1310382120){
+       static int print=0;
+    if(nbytes>0){
+     for(int k=0;k<2;k++)lvl3[k]=type==0x11?*(p+7+k):0;
+    }
+    if(nbytes==5){
+       if(print++<10)cerr<<" AMSEvent::buildraw2009-E-Brokenlvl3formatsuspected "<<run<<endl;
+       nbytes=3;
+    }
+    else if (nbytes==9){
      for(int k=0;k<3;k++)lvl3[k+2]=*(p+7+2+k);
     }
-   }
+    else{
+       if(print++<10)cerr<<" AMSEvent::buildraw2009-E-unknownlvl3format datected "<<run<<" "<<nbytes<<endl;
+    }
+    if(type== 0x12 || type== 0x13){
+     if(nbytes>0 && nbytes%2){
+      nbytes++;
+      int nbytesgps=( (*(p+7+nbytes/2)>>8)&31);
+      if(nbytesgps%2){
+         nbytesgps++;
+         if(nbytesgps%4){
+       if(print++<10)cerr<<" AMSEvent::buildraw2009-E-gpsnbytes++ error "<<run<<" "<<nbytes<<" "<<nbytesgps<<endl;
+         }
+         else{
+          _GPSL=0;
+          for(int k=0;k<nbytesgps/2;k+=2){
+           unsigned int a= *(p+7+nbytes/2+k)<<16;
+           a+=*(p+nbytes/2+7+k+1);
+            _GPS[_GPSL++]=a; 
+          }
+        }
+       }
+      else{
+       if(print++<10)cerr<<" AMSEvent::buildraw2009-E-gpsnbytes error "<<run<<" "<<nbytes<<" "<<nbytesgps<<endl;
+      }
+     }
+    }
+
 }
     
 
@@ -3472,10 +3512,6 @@ int16u type=id&31;
 int16u node=(id>>5)&1023;
 if(type>=16 && type <=19 && node<16){
 
-static int print=0;
- if(print++<10 && type>17){
-  cout<<"AMSEvent::checkdaqid2009-I-GPSFound "<<type<<endl;
- }
    return type;
 }
 else return 0;

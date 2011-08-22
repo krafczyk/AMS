@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.229 2011/08/01 11:49:17 choutko Exp $
+//  $Id: daqevt.C,v 1.230 2011/08/22 13:34:29 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1222,7 +1222,7 @@ integer DAQEvent::_HeaderOK(){
 
     else if(int stype=AMSEvent::checkdaqid2009(*(_pcur+_cll(_pcur)))){
       //      AMSEvent::buildraw2009(_cl(_pcur)-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
-      AMSEvent::buildraw2009(stype,_pcur+1, _Run,_Event,_RunType,_Time,_usec,_lvl3);
+      AMSEvent::buildraw2009(stype,_pcur+1, _Run,_Event,_RunType,_Time,_usec,_lvl3,_gps,_gpsl);
       TRCALIB.Version=1;
       DAQCFFKEY.DAQVersion=0;
       if(AMSJob::gethead()->isRealData())DAQCFFKEY.DAQVersion=1;  

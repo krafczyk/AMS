@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.135 2011/07/25 12:58:02 choutko Exp $
+//  $Id: ntuple.h,v 1.136 2011/08/22 13:34:30 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -140,6 +140,8 @@ public:
   int TRDTracks;
   int EventStatus[2];
   int TrStat; 
+  unsigned int GPS[7];
+  unsigned int GPSL;
 friend class AMSEvent;
 friend class AMSNtuple;
 };

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.379 2011/08/22 09:40:15 choutko Exp $
+//  $Id: root.h,v 1.380 2011/08/22 13:34:30 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -346,9 +346,13 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
     int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
     float r,phi,theta,v,vphi,vtheta;
     int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
-  
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
+    unsigned int gps,gpsn;
+    int retgps=GetGPSTime(gps,gpsn);
+    double gpstime=0;
+    if(!retgps)gpstime=gps+gpsn*1.e-9;  
+
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x GPSTime %20.8f",
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat,gpstime);
   return _Info;
   }
 

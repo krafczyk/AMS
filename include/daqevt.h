@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.89 2011/07/19 09:37:15 choutko Exp $
+//  $Id: daqevt.h,v 1.90 2011/08/22 13:34:30 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -103,6 +103,8 @@ protected:
   uinteger _usec;
 public:
   int16u _lvl3[5];
+  unsigned int _gps[7];
+  unsigned int _gpsl;
 protected:
   int16u *  _pcur;
   int16u * _pData;
@@ -200,6 +202,8 @@ public:
     for (int i=0;i<sizeof(_SubLength)/sizeof(_SubLength[0]);i++)_SubLength[i]=0;
     for (int i=0;i<sizeof(_SubCount)/sizeof(_SubCount[0]);i++)_SubCount[i]=0;
     _setcalibdata(0);_DAQEvent=this;
+    for(int k=0;k<sizeof(_gps)/sizeof(_gps[0]);k++)_gps[k]=0;
+    _gpsl=0;
   }
   static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(strstr(_getnodename(id),sstr)!=0);}
   static bool isRawMode(int16u id){return (id&64)>0;}

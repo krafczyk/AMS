@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.328 2011/08/22 09:39:34 choutko Exp $
+//  $Id: root.C,v 1.329 2011/08/22 13:34:29 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2795,6 +2795,8 @@ void HeaderR::Set(EventNtuple02* ptr){
   Yaw=       ptr->Yaw;
   Pitch=     ptr->Pitch;
   Roll=      ptr->Roll;
+  GPSTime.clear();
+  for(int k=0;k<ptr->GPSL;k++)GPSTime.push_back(ptr->GPS[k]);
   VelocityS= ptr->VelocityS;
   VelTheta=  ptr->VelTheta;
   VelPhi=    ptr->VelPhi;
@@ -5358,10 +5360,10 @@ sec=0;
 nsec=0;
 int size=GPSTime.size();
 if(!size)return 1;
-unsigned int a=( GPSTime[0] & 7);
-if(a!=1 || a!=4 || a!=7) return 2;
+unsigned int a=( (GPSTime[0]>>16) & 7);
+if(a!=1 && a!=4 && a!=7) return 2;
 else if (size<3) return 3;
-else if (!(GPSTime[0] & 32))return 4;
+else if (!((GPSTime[0]>>16) & 32))return 4;
 sec=GPSTime[1];
 nsec=GPSTime[2];
 return 0;
