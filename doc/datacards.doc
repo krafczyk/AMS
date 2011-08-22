@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.360 2011/07/25 21:23:00 zweng Exp $
+#  $Id: datacards.doc,v 1.361 2011/08/22 09:40:12 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -500,15 +500,17 @@ I5     MinEventsPerFit(999);
 I6     MaxPatternsPerJob(99);
 R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
 I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta 2 chisq
-I28 ActiveParameters[8][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
-I76 GlobalFit(0)                   // global fit (1) local(0)
-I77 EventsPerRun(1001)            
-I78 LayersOnly(0)                     // ladder(0) or layer(1) based alig
-R79 GlobalGoodLimit(0.06)             // invoke local db if beyond
-I80 SingleLadderEntryLimit(10000)     
-R81 One(1.025)
-I82 gfile[40]                         //  file with track data
-I122LaddersOnly(1)                    //  Alignment  on ladders(1) sensors(0) level
+I28 ActiveParameters[9][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
+I82 GlobalFit(0)                   // global fit (1) local(0)
+I83 EventsPerRun(1001)            
+I84 LayersOnly(0)                     // ladder(0) or layer(1) based alig
+R85 GlobalGoodLimit(0.06)             // invoke local db if beyond
+I86 SingleLadderEntryLimit(10000)     
+R87 One(1.025)
+I88 gfile[40]                         //  file with track data
+I128LaddersOnly(1)                    //  Alignment  on ladders(1) sensors(0) level
+I129Skip(0)                           //  Skip first n events
+I130Max(1000000000)                    //  max events to treat
 ----------------------------------
 
 L3SIM

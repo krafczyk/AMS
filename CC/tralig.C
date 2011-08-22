@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.71 2010/09/24 14:55:11 choutko Exp $
+//  $Id: tralig.C,v 1.72 2011/08/22 09:39:34 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -445,6 +445,7 @@ else {
 
 bool AMSTrAligFit::Fillgl(AMSNode *pnode){
 if(MAGSFFKEY.magstat>0){
+ resetmagstat_();  
  time_t timenow;
 time(&timenow);
 
@@ -480,6 +481,7 @@ while(offspring){
 
     char hfile[161];
     UHTOC(TRALIG.gfile,40,hfile,160);
+         int totalall=0;
        if(hfile[0]=='\0'){
         return false;
        }
@@ -518,6 +520,7 @@ while(offspring){
          num[0]=num[1]=0;
         while(ftxt.good() && !ftxt.eof()){
           rig=10000;
+          totalall++;
           mcrig=10000;
           uint64 address;
 //         ftxt>>nh>>chi2>>pattern>>add1>>add2>>rig;
@@ -678,6 +681,9 @@ if(lay==5 && half==1 && lad==3){
            cout<<"TRALIG-W-AligCapacityReached"<< pal->_PositionData<<endl;
            break;
           }          
+         }
+         else{
+            int cfalse=0;
          }          
                       
         }
@@ -705,8 +711,10 @@ again:
           xf[0]=mcrig;
          FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigmin,itermin);
          what=0;
-         cout <<" Total "<<pal->_PositionData<<endl;
+         cout <<" Total "<<pal->_PositionData<<" out of" <<totalall<<endl;
          for(int ip=0;ip<pal->_PositionData-1;ip++){
+             if(ip<TRALIG.Skip)continue;
+             if(ip>TRALIG.Skip+TRALIG.Max)continue;
              integer ladder[3][maxlay];
              AMSTrTrack::decodeaddressS(ladder,pal->_pData[ip]._Address);
              VZERO(arr,sizeof(arr)/sizeof(arr[0][0]));
@@ -718,6 +726,14 @@ again:
             }
              for(int i=0;i<npt;i++){
               int plane=TKDBc::patconf((pal->_pData)[ip]._Pattern,i)-1;
+              if(plane==0 || plane==8){
+//              no external planes
+                static int warn=0;
+                if(warn++<1){
+                  cerr<<" TRALIG-W_NoExtPlanes !!! "<<endl;
+                }
+                continue;
+              } 
               lad=ladder[0][plane];
               half=ladder[1][plane];
               int sens=ladder[2][plane];
@@ -747,7 +763,7 @@ again:
 
              FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
 next:
-             if(ip<10){
+             if(ip<10+TRALIG.Skip){
               int ims=0;
               int ialgo=1;
               const integer maxhits=10;
@@ -760,8 +776,20 @@ next:
                 normal[i][1]=0;
                 normal[i][2]=-1;
               }
-              for(int i=0;i<npt;i++){
-               int plane=TKDBc::patconf((pal->_pData)[ip]._Pattern,i)-1;
+              int i=-1;
+              int nptt=npt;
+              for(int ii=0;ii<npt;ii++){
+               int plane=TKDBc::patconf((pal->_pData)[ip]._Pattern,ii)-1;
+              if(plane==0 || plane==8){
+//              no external planes
+                static int warn=0;
+                if(warn++<1){
+                  cerr<<" TRALIG-W_NoExtPlanes !!! "<<endl;
+                }
+                nptt--;
+                continue;
+              } 
+                i++;
                 layer[i]=plane+1;
                 for(int j=0;j<3;j++){
                   hits[i][j]=arr[j][plane];
@@ -772,7 +800,7 @@ next:
               int pid=5;
               out[0]=1./10000000.;
                         int ialgg=ialgo%10;
-              TKFITG(npt,hits,sigma,normal,pid,ialgg,ims,layer,out);
+              TKFITG(nptt,hits,sigma,normal,pid,ialgg,ims,layer,out);
               cout <<"  fit "<<" "<<npt<<" "<<out[6]<<endl;
              }      
             }

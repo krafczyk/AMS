@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.167 2011/08/11 16:14:12 choutko Exp $
+//  $Id: producer.C,v 1.168 2011/08/22 09:39:34 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1588,6 +1588,7 @@ void AMSProducer::InitTDV( uinteger run){
 AMSTimeID * head=AMSJob::gethead()->gettimestructure();
 for (AMSTimeID * pser=dynamic_cast<AMSTimeID*>(head->down());pser;pser=dynamic_cast<AMSTimeID*>(pser->next())){
 DPS::Producer::TDVName a;
+if (!pser->Verify())continue;
 a.Name=pser->getname();
 a.DataMC=pser->getid();
 a.Size=pser->GetNbytes();

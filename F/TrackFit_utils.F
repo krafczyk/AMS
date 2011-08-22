@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
+* $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.46  2011/08/22 09:40:10  choutko
+* *** empty log message ***
+*
 * Revision 1.45  2010/12/06 14:31:21  zweng
 * Add ,der to tkhmd, solve the problem when no TrTrack using gcc
 *
@@ -224,7 +227,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
+*  $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6882,7 +6885,7 @@ c           phi(i,j,k,l)=0
       rigr=0
       ntot=0
 #ifdef __AMSPARALLEL__
-       call omp_set_num_threads(omp_get_num_procs()-1)
+       call omp_set_num_threads(omp_get_num_procs()-2)
 c       call omp_set_num_threads(1)
        !$OMP PARALLEL   DEFAULT(NONE) PRIVATE(ims,
      + ialgo,npt,layer,
@@ -6894,6 +6897,7 @@ c       call omp_set_num_threads(1)
      +itermin,rmax,algo,xchi2) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
      + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,rigr,averx)
+      call resetmagstat
       !$OMP DO   
 #endif
       do i=1,ncases
@@ -7089,7 +7093,7 @@ c          write(*,*)'chi2 ',i,iter,chi2
         endif
         if((chi2.lt.chi2max.and.rig.gt.rigmin).or.iter.lt.itermin)then
 #ifdef __AMSPARALLEL__
-       !$OMP  CRITICAL
+       !$OMP  CRITICAL  (fortran critical)
 #endif
          do j=1,nplan
           if(mod(algo,2).eq.0)then
@@ -7151,12 +7155,13 @@ c          write(*,*)'chi2 ',i,iter,chi2
          chi2a=chi2a+chi2
          rigr=rigr+abs(mcrig(i)/rig) 
 #ifdef __AMSPARALLEL__
-       !$OMP END CRITICAL
+       !$OMP END CRITICAL (fortran critical)
 #endif
          endif
          endif
 c         if(mod(ntot,100).eq.1)then
-c           write(*,*)'l ',l,chi2,chi2a,chi2a/ntot,ntot
+c           write(*,*)'l ',l,chi2,chi2a,chi2a/ntot,ntot,
+c     +     omp_get_thread_num()
 c         endif
       enddo 
       enddo
@@ -7880,9 +7885,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.45 2010/12/06 14:31:21 zweng Exp $
+* $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.46  2011/08/22 09:40:10  choutko
+* *** empty log message ***
+*
 * Revision 1.45  2010/12/06 14:31:21  zweng
 * Add ,der to tkhmd, solve the problem when no TrTrack using gcc
 *

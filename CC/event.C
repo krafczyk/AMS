@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.539 2011/08/11 16:14:12 choutko Exp $
+//  $Id: event.C,v 1.540 2011/08/22 09:39:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3470,7 +3470,14 @@ integer AMSEvent::checkdaqid2009(int16u id){
 
 int16u type=id&31;
 int16u node=(id>>5)&1023;
-if(type>=16 && type <=19 && node<16)return type;
+if(type>=16 && type <=19 && node<16){
+
+static int print=0;
+ if(print++<10 && type>17){
+  cout<<"AMSEvent::checkdaqid2009-I-GPSFound "<<type<<endl;
+ }
+   return type;
+}
 else return 0;
 }
 

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.378 2011/08/11 16:14:18 choutko Exp $
+//  $Id: root.h,v 1.379 2011/08/22 09:40:15 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -236,7 +236,16 @@ static char _Info[255];
    float B1b;   ///< ISS Solar Array Beta (rad)
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
+   
+   vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat
 
+
+   /*!
+    \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid
+    output parameters gps_time_sec, gps_time_nsec
+  */
+   int  GetGPSTime( unsigned int &sec, unsigned int &nsec);  
+  
    // pointing direction in equatorial and galactic systems
    // removed for the moment
  
@@ -344,7 +353,7 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,16)       //HeaderR
+  ClassDef(HeaderR,17)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -2325,7 +2334,6 @@ endif
   float RichLength; ///< Estimated pathlength of particle within rich radiator (cm)
   int   RichParticles; ///< Estimated number of particles crossing the RICH radiator
   float Local[9];  ///< contains the minimal distance to sensor edge in sensor length units ;
-  float TRDLikelihood; ///< TRD likelihood  (whatever is it)
   float TRDHLikelihood; ///< TRDH likelihood  (-log(elik/elik+plik))
   float TRDHElik; ///< normalized product of single layer electron probability
   float TRDHPlik; ///< normalized product of single layer proton probability
@@ -2438,7 +2446,7 @@ public:
   /// \return true if position at z=(center of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 
-  ClassDef(ParticleR,12)       //ParticleR
+  ClassDef(ParticleR,13)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 

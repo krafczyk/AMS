@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.823 2011/08/03 23:27:48 shaino Exp $
+// $Id: job.C,v 1.824 2011/08/22 09:39:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -654,8 +654,8 @@ for(i=0;i<6;i++){
 }
  FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
 
-
-
+ TRALIG.Max=1000000000;
+ TRALIG.Skip=0;
  TRALIG.One=1.025;
  TRALIG.GlobalFit=0;
  TRALIG.InitDB=0;
@@ -3363,9 +3363,23 @@ if(TRDMCFFKEY.CreatePDF && AMSTRDTrack::CreatePDF()){
  TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
     (void*)AMSTRDIdSoft::_ped,server,1));
+
+if((CALIB.SubDetRequestCalib/10000)%10==2){
+ TID.add (new AMSTimeID(AMSID("TRDGains2",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
+    (void*)AMSTRDIdSoft::_gain,server,1));
+ TID.add (new AMSTimeID(AMSID("TRDStatus2",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
+    (void*)AMSTRDIdSoft::_status,server,1));
+}
+else{
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
     (void*)AMSTRDIdSoft::_gain,server,(CALIB.SubDetRequestCalib/10000)%10));
+ TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
+    (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/10000)%10));
+}
 if(!isRealData()){
  TID.add (new AMSTimeID(AMSID("TRDMCGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
@@ -3374,9 +3388,6 @@ if(!isRealData()){
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
     (void*)AMSTRDIdSoft::_sig,server,1));
- TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
-    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-    (void*)AMSTRDIdSoft::_status,server,(CALIB.SubDetRequestCalib/10000)%10));
 }
 
 

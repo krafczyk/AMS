@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.688 2011/08/11 16:14:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.689 2011/08/22 09:40:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -715,9 +715,17 @@ jpid=productionset.did  and cid=".$self->{CCID}." and productionset.did in (sele
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
-        $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
-(select cid, pid as jpid, jid as jjid from jobs), ntuples,productionset where 
-jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+       $ret = $self->{sqlserver}->Query("select count(*) as completed from
+(select cid as jcid, pid, realtriggers , time as jtime from jobs ) 
+, productionset where
+jcid=".$self->{CCID}." and realtriggers>0 and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
+        if ( defined $ret->[0][0] ) {
+                $completed_jobs+= $ret->[0][0];
+        }
+ 
+         $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+(select cid, pid as jpid, jid as jjid, realtriggers  from jobs), ntuples,productionset where 
+jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $completed_jobs+$ret->[0][0];
 	}
@@ -1088,6 +1096,9 @@ if($#{$self->{DataSetsT}}==-1){
                    my @junk=split "$ent=",$line;
                    $template->{$ent}=$junk[$#junk];
                    $buf=~ s/$ent=/C $ent=/;
+                   if($ent =~/LIST/){
+                       $buf=~s/$line/C $ent=/;
+                   }
                    last;
                }
             }
@@ -10377,15 +10388,15 @@ sub checkJobsTimeout {
               $sql="select status from $rname where jid=$jtokill->[0]";
               my $q1=$self->{sqlserver}->Query($sql);
               if(defined $q1->[0][0] ){
-                $sql="update $rname set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
+                $sql="update $rname set fevent=$qr->[0][1], levent=$qr->[0][1]+$qr->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
               }
               elsif($qr->[0][4]==0){
-                  $sql="insert into $rname values($jtokill->[0],$jtokill->[0],$q->[0][1],$q->[0][1]+$q->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
+                  $sql="insert into $rname values($jtokill->[0],$jtokill->[0],$qr->[0][1],$qr->[0][1]+$qr->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
               }
             if ($update == 1){
               $self->{sqlserver}->Update($sql);  
             }
-                $sql="update jobs set timekill=0,events=$q->[0][2],errors=$q->[0][3],mips=0 where jid=$jtokill->[0]";
+                $sql="update jobs set timekill=0,events=$qr->[0][2],errors=$qr->[0][3],mips=0 where jid=$jtokill->[0]";
             if ($update == 1){
                 $self->{sqlserver}->Update($sql);
             }
@@ -19466,7 +19477,16 @@ sub CheckCRC{
           }
       }
     if($verbose and $ntp>0){
-        print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified\n";
+        print "Total of $runs  runs, $ntp ntuples  processed. \n ";
+        if($ntpb){
+           print " $ntpb bad ntuples found. \n";
+        }
+        if($ntpf){
+        print " $ntpf  ntuples could not be repared\n ";
+        }
+        if($ntna){
+           print "$ntna ntuples could not be verified\n";
+       }
     }
     if($ntpf>0){
         return 0;

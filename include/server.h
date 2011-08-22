@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.58 2011/05/18 04:27:05 choutko Exp $
+//  $Id: server.h,v 1.59 2011/08/22 09:40:15 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -109,6 +109,14 @@ AString _a;
 public:
  explicit NCL_find(const char * s){if(s && strlen(s))_a=s;}
  bool operator()(const DPS::Client::NominalClient & a){
+  return strstr((const char *) _a, (const char *) a.HostName);
+}
+};
+class NHL_find: public unary_function<DPS::Client::NominalHost,bool>{
+AString _a;
+public:
+ explicit NHL_find(const char * s){if(s && strlen(s))_a=s;}
+ bool operator()(const DPS::Client::NominalHost & a){
   return strstr((const char *) _a, (const char *) a.HostName);
 }
 

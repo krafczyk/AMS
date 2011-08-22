@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.325 2011/07/07 14:51:20 afiasson Exp $
+//  $Id: commons.h,v 1.326 2011/08/22 09:40:15 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -703,6 +703,8 @@ integer SingleLadderEntryLimit;
 geant One;
 integer gfile[40];
 integer LaddersOnly;
+integer Skip;
+integer Max;
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
 COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);

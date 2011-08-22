@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.185 2011/08/11 16:14:12 choutko Exp $
+//  $Id: server.C,v 1.186 2011/08/22 09:39:34 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2527,8 +2527,8 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
      submit+=uid;
      submit+=".log ";
     }
+       AString fnam="";
      if(_parent->IsMC()){
-       AString fnam;
        char * logdir=getenv("ProductionLogDir");
        if(!logdir){
          logdir=getenv("AMSDataDir");
@@ -2610,6 +2610,56 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
         submit=s1.c_str();
          cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
       }
+    }
+    else{
+      string s=(const char*)submit;
+      char pat[]="bsub -n ";
+      int pos=s.find(pat);
+      if(pos>=0){
+//         read script put max cpu number for given host
+           ifstream ftxt;
+           ftxt.clear();
+           fnam+=(const char*)((*cli)->WholeScriptPath);
+           ftxt.open((const char*)fnam);
+           if(ftxt){           
+            char line [255];
+            while(ftxt.good() && !ftxt.eof()){
+              ftxt.getline(line,254);
+             if(strstr(line,"MISC ")){
+                    string cline=line;
+                    int poss=cline.find(" 8=");
+                    if(poss>=0){
+                char *pch=strtok(line+poss+3," ");
+                if(pch){
+                    int tr=atol(pch);
+                    NHLI li=find_if(_pser->getnhl().begin(),_pser->getnhl().end(),NHL_find((const char *)(ahlv)->HostName)); 
+                    int maxn=12;
+                     if(li!=_pser->getnhl().end()){
+                        int maxn=(*li)->CPUNumber;
+                    }
+                    else{
+                     cerr<<"AMSProducer::StartClients-E-UnableToGetNominalHostFor "<<ahlv->HostName<<endl;
+                    }
+                    cout <<"AMSProducer-I-getthreads "<<tr<<" "<<maxn<<endl;;
+                    if(tr>maxn || tr<=0 )tr=maxn; 
+                    if(tr>32)tr=32;
+                     char cmaxn[33];
+                      sprintf(cmaxn,"bsub -n %u ",tr);
+                      string s1=s.replace(pos,strlen(pat)+1,cmaxn);
+                      submit=s1.c_str();
+                       cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
+              }
+            }
+            break;
+           }   
+           }
+           ftxt.close();
+          }
+           else{  
+            cerr<<"AMSProducer::StartClients-E-UnableToOpen "<<(const char*)fnam<<endl;
+           
+           }
+     }
     }
     int out=systemC(submit);
      time(&tt);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.327 2011/08/11 16:14:12 choutko Exp $
+//  $Id: root.C,v 1.328 2011/08/22 09:39:34 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3322,8 +3322,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   RichLength = ptr->_RichLength;
   RichParticles= ptr->_RichParticles;
 
-  TRDLikelihood = ptr->_TRDLikelihood;
-  TRDHLikelihood = ptr->_TRDHLikelihood;
+    TRDHLikelihood = ptr->_TRDHLikelihood;
   TRDHElik = ptr->_TRDHElik;
   TRDHPlik = ptr->_TRDHPlik;
   TRDCCnhit = ptr->_TRDCCnhit;
@@ -5353,6 +5352,21 @@ return false;
 }
 
 
+
+int HeaderR::GetGPSTime(unsigned int &sec, unsigned int & nsec){
+sec=0;
+nsec=0;
+int size=GPSTime.size();
+if(!size)return 1;
+unsigned int a=( GPSTime[0] & 7);
+if(a!=1 || a!=4 || a!=7) return 2;
+else if (size<3) return 3;
+else if (!(GPSTime[0] & 32))return 4;
+sec=GPSTime[1];
+nsec=GPSTime[2];
+return 0;
+
+}
 
 
 int HeaderR::getISSSA(float & alpha, float &b1a, float &b3a, float &b1b,float &b3b,float dt){
