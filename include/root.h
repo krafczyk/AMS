@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.380 2011/08/22 13:34:30 choutko Exp $
+//  $Id: root.h,v 1.381 2011/08/22 21:53:41 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -237,14 +237,14 @@ static char _Info[255];
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
    
-   vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat
-
+   vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat; 
 
    /*!
     \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid
-    output parameters gps_time_sec, gps_time_nsec
+    output parameters gps_time_sec, gps_time_nsec of epoche
   */
-   int  GetGPSTime( unsigned int &sec, unsigned int &nsec);  
+   int  GetGPSEpoche( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);  
+
   
    // pointing direction in equatorial and galactic systems
    // removed for the moment
@@ -346,13 +346,9 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
     int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
     float r,phi,theta,v,vphi,vtheta;
     int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
-    unsigned int gps,gpsn;
-    int retgps=GetGPSTime(gps,gpsn);
-    double gpstime=0;
-    if(!retgps)gpstime=gps+gpsn*1.e-9;  
 
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x GPSTime %20.8f",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat,gpstime);
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
   return _Info;
   }
 
@@ -1870,6 +1866,8 @@ public:
   float TrigRates[19]; ///< TrigCompRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,L1M1-M8,CPmx,BZmx,ACmx,EFTmx,EANmx
   unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
 
+  int GetGPSTime(unsigned int & gps_sec, unsigned int & gps_nsec); // return 0 if success
+
   Level1R(){};
 /// \param level -1 any tof level
 ///  \return true if any tof related level1 was set
@@ -1883,7 +1881,7 @@ public:
 
   
   virtual ~Level1R(){};
-ClassDef(Level1R,7)       //Level1R
+ClassDef(Level1R,8)       //Level1R
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3335,6 +3333,16 @@ unsigned int Run() const {return fHeader.Run;} ///< \return Run number
 ///
 unsigned int Event() const {return fHeader.Event;} ///< \return Event number
 ///
+
+   void UpdateGPS();  ///< Update GPSTime from getsetup(AMSSetupR *head);
+
+
+   /*!
+    \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid; 5 no lvl1 block; 6 no coarse reg in lvl1 block
+    output parameters gps_time_sec, gps_time_nsec
+  */
+   int  GetGPSTime( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);  
+
 
 
 //!   Says if particle pass thru the ISS Solar Array

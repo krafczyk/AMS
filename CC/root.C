@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.329 2011/08/22 13:34:29 choutko Exp $
+//  $Id: root.C,v 1.330 2011/08/22 21:53:40 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2147,6 +2147,9 @@ static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       cout <<"AMSSetupR::ReadHeader-I-Version/OS/BuildTime "<<getsetup()->fHeader.BuildNo<<"/"<<getsetup()->fHeader.OS<<" "<<getsetup()->BuildTime()<<" Run "<<getsetup()->fHeader.Run<<" "<<_Tree->GetCurrentFile()->GetName()<<endl;
       cout <<"AMSSetupR::ReadHeader-I-"<<getsetup()->fScalers.size()<<" ScalersEntriesFound "<<endl;
         cout<<"AMSSetupR::ReadHeader-I-"<<getsetup()->getAllTDV(UTime())<<" TDVNamesFound"<<endl;
+        for(AMSSetupR::GPS_i i=getsetup()->fGPS.begin();i!=getsetup()->fGPS.end();i++){
+              //cout << " GPS "<<i->first<<" "<<i->second.Run<<endl;
+        }
         badrun=isBadRun(getsetup()->fHeader.Run);
         //getsetup()->printAllTDV_Time();
         //getsetup()->fSlowControl.print();
@@ -4869,6 +4872,7 @@ void AMSEventR::GetAllContents() {
   clear();
   bStatus->GetEntry(_Entry);
   bHeader->GetEntry(_Entry);
+   UpdateGPS();
   bEcalHit->GetEntry(_Entry);
   bEcalCluster->GetEntry(_Entry);
   bEcal2DCluster->GetEntry(_Entry);
@@ -5353,20 +5357,54 @@ if(runtype==RunType[k])return true;
 return false;
 }
 
+int Level1R::GetGPSTime(unsigned int &sec, unsigned int &nsec){
+ const unsigned long long ns=1000000000LL; 
+ if(TrigTime[1]==0)return 6;
+ unsigned long long gpstime=((unsigned long long)TrigTime[3]<<32);
+ gpstime+=TrigTime[2];
+ gpstime*=640;
+ gpstime+=((unsigned long long)(sec+(TrigTime[1]-1)))*ns;
+ sec=gpstime/ns;
+ nsec=gpstime%ns ;
+ return 0;
+}
+
+void AMSEventR::UpdateGPS(){
+if(getsetup()){
+AMSSetupR::GPS gps=getsetup()->GetGPS(Run(),Event());
+if(gps.Epoche.size()){
+ fHeader.GPSTime.clear();
+ for(int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
+}
+}
+}
+
+int HeaderR::GetGPSEpoche(unsigned int &sec, unsigned int & nsec){
+ sec=0;
+ nsec=0;
+ int size=GPSTime.size();
+ if(!size)return 1;
+ unsigned int a=( (GPSTime[0]>>16) & 7);
+ if(a!=1 && a!=4 && a!=7) return 2;
+ else if (size<3) return 3;
+ else if (!((GPSTime[0]>>16) & 32))return 4;
+ sec=GPSTime[1];
+ nsec=GPSTime[2];
+ return 0;
+}
 
 
-int HeaderR::GetGPSTime(unsigned int &sec, unsigned int & nsec){
+
+int AMSEventR::GetGPSTime(unsigned int &sec, unsigned int & nsec){
 sec=0;
 nsec=0;
-int size=GPSTime.size();
-if(!size)return 1;
-unsigned int a=( (GPSTime[0]>>16) & 7);
-if(a!=1 && a!=4 && a!=7) return 2;
-else if (size<3) return 3;
-else if (!((GPSTime[0]>>16) & 32))return 4;
-sec=GPSTime[1];
-nsec=GPSTime[2];
-return 0;
+if(!fHeader.GPSTime.size()){
+ UpdateGPS();
+}
+int ret=fHeader.GetGPSEpoche(sec,nsec);
+if(ret)return ret;
+if(pLevel1(0))return pLevel1(0)->GetGPSTime(sec,nsec);
+else return 5; 
 
 }
 

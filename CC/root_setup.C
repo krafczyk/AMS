@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.46 2011/08/11 16:14:12 choutko Exp $
+//  $Id: root_setup.C,v 1.47 2011/08/22 21:53:40 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -32,8 +32,30 @@ void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
   }
 }
 
+AMSSetupR::GPS AMSSetupR::GetGPS(unsigned int run,unsigned int event){
+static AMSSetupR::GPS gps;
+for( GPS_ri i=fGPS.rbegin();i!=fGPS.rend();i++){
+ if(i->second.Run==run && i->second.Event<=event){
+  return i->second;
+ }
+}
+return gps;
+}
+
 void AMSSetupR::UpdateHeader(AMSEventR *head){
 if(!head)return;
+unsigned int nsec;
+unsigned int sec;
+if(!head->fHeader.GetGPSEpoche(sec,nsec)){
+ GPS gps;
+ gps.Run=head->Run();
+ gps.Event=head->Event();
+ gps.Epoche=head->fHeader.GPSTime;
+ fGPS.insert(make_pair(sec,gps));
+gps=GetGPS(gps.Run,gps.Event);
+ head->fHeader.GPSTime.clear();
+
+}   
 if(!fHeader.Run){
 cerr<<"AMSSetupR::UpdateHeader-W-RunNotSet.SettingTo "<<head->Run()<<endl;
 fHeader.Run=head->Run();
@@ -60,7 +82,7 @@ if(run){
 return true;
 }
 void AMSSetupR::Reset(){
-fGPSTime.clear();
+fGPS.clear();
 fISSData.clear();
 fScalers.clear();
 fLVL1Setup.clear();

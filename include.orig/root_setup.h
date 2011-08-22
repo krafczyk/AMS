@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.26 2011/07/25 12:58:02 choutko Exp $
+//  $Id: root_setup.h,v 1.27 2011/08/22 21:53:41 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -162,9 +162,12 @@ class LVL1Setup {
 
 
 
-class GPSTime{
+class GPS{
 public:
-uint64 time;
+unsigned int Run;  ///< Run
+unsigned int Event;  ///<Event
+vector<unsigned int> Epoche; ///< GPS Time Epoche Format
+ClassDef(GPS,1)
 };
 
 class ISSData{
@@ -248,8 +251,10 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  int getAllTDV(const string & name);  ///<Get All TDV for the current TDV name; Returns fTDV_Name 
  int getTDV(const string & name, unsigned int time, TDVR & tdv); ///<Return TDV tdv with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
  int getTDVi(const string & name, unsigned int time, TDVR_i & tdvi); ///<Return TDVR_i terator  tdvi with name name for time time; return codes: 0 success; 1 no such name; 2: no valid record for time t
- typedef map <unsigned int,GPSTime> GPSTime_m;
- typedef map <unsigned int,GPSTime>::iterator GPSTime_i;
+ typedef map <unsigned int,GPS> GPS_m;
+ typedef map <unsigned int,GPS>::iterator GPS_i;
+ typedef map <unsigned int,GPS>::reverse_iterator GPS_ri;
+ GPS GetGPS(unsigned int run,unsigned int event);
  typedef map <unsigned int,ISSData> ISSData_m;
  typedef map <unsigned int,ISSSA> ISSSA_m;
  typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
@@ -258,7 +263,7 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSSA>::iterator ISSSA_i;
  typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
-    GPSTime_m fGPSTime;    ///< GPS Time
+    GPS_m fGPS;    ///< GPS Epoch Time
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
@@ -346,7 +351,7 @@ static    AMSSetupR * gethead(){return _Head;}
  int LoadISSSA(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,11)       //AMSSetupR
+ClassDef(AMSSetupR,12)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
