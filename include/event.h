@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.109 2011/08/22 13:34:30 choutko Exp $
+//  $Id: event.h,v 1.110 2011/08/22 22:41:56 pzuccon Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -144,6 +144,7 @@ CCEBPar * _ccebp;
 TofSTemp * _Utoftp;
 TofSTemp * _Ltoftp;
   integer trstat;
+static long long _oldtime;
 static integer SRun;
 static integer PosInRun;
 static integer PosGlobal;

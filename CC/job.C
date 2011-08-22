@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.824 2011/08/22 09:39:34 choutko Exp $
+// $Id: job.C,v 1.825 2011/08/22 22:41:45 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -249,6 +249,8 @@ IOPA.WriteRoot=0;//127
 IOPA.WriteTGeometry=0;//173
 IOPA.WriteTDVDataInRoot=1;
 IOPA.ReadAMI=0;
+ IOPA.unitimegen=0;
+ IOPA.unitimegenrate=1;
 VBLANK(IOPA.TGeometryFileName,40);//174
 char tgeofilename[16]="ams02.root";
 UCTOH(tgeofilename,IOPA.TGeometryFileName,4,16);
@@ -2332,7 +2334,18 @@ void AMSJob::_signinitjob(){
   //
   AMSmceventg::setspectra(CCFFKEY.begindate,CCFFKEY.begintime,
   CCFFKEY.enddate, CCFFKEY.endtime, GCKINE.ikine,CCFFKEY.low);
-  
+  if(IOPA.unitimegen>0){
+    struct tm tt;
+    // PZ dirty fix
+    tt.tm_mday = CCFFKEY.begindate/1000000;
+    tt.tm_mon  = (CCFFKEY.begindate/10000)%100-1;
+    tt.tm_year = (CCFFKEY.begindate%10000)-1900;
+    tt.tm_hour = CCFFKEY.begintime/10000;
+    tt.tm_min  = (CCFFKEY.begintime/100)%100;
+    tt.tm_sec  = CCFFKEY.begintime%100;
+    AMSEvent::_oldtime=mktime(&tt);
+    AMSEvent::_oldtime=AMSEvent::_oldtime*1000000LL;
+  }
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_sitof2initjob(){
@@ -3143,10 +3156,10 @@ bool NeededByDefault=isSimulation();
     end.tm_mon=0;
     end.tm_year=0;
     TrExtAlignDB::CreateLinear();
-    TID.add (new AMSTimeID(AMSID("TrackerExtAlign",isRealData()),begin,end,
-                           TrExtAlignDB::GetLinearSize(),
-			   TrExtAlignDB::fLinear,
-                           server,need,SLin2ExAlign));
+      TID.add (new AMSTimeID(AMSID("TrackerExtAlign",isRealData()),begin,end,
+	    TrExtAlignDB::GetLinearSize(),
+	    TrExtAlignDB::fLinear,
+	    server,need,SLin2ExAlign));
 
     begin.tm_isdst=0;
     end.tm_isdst=0;    

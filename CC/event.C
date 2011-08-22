@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.541 2011/08/22 13:34:29 choutko Exp $
+//  $Id: event.C,v 1.542 2011/08/22 22:41:45 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -82,9 +82,17 @@ extern LMS* lms;
 //
 //
 
+static long long GetDt(float rate){
+  int bb=1;
+  float x=RNDM(bb);
+  if(rate<=0||x==1.) return 0;
+  double aa= -1/rate*log(1-x);
+  long long out=aa*1E6;
+  return out;
+}
 
 //#include "HistoMan.h"
-
+long long AMSEvent::_oldtime=0;
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -376,7 +384,7 @@ void AMSEvent::_signinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",1),0));
 }
 
- void AMSEvent::SetTimeCoo(integer rec){    
+void AMSEvent::SetTimeCoo(integer rec){    
   AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
@@ -387,43 +395,51 @@ void AMSEvent::_signinitevent(){
     int i;
     number xsec=0;
     if(CCFFKEY.low==0&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
-       xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
-      }
-      else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
+      xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
+    }
+    else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
     curtime+=xsec;
     if(curtime>AMSmceventg::Orbit.FlightTime){
       curtime=AMSmceventg::Orbit.FlightTime;
       GCFLAG.IEORUN=1;
     }
-//    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
+    //    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
     GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
-//    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
-//      GCFLAG.IEORUN=1;
-//      GCFLAG.IEOTRI=1;
-//      return;
-//    }
+    //    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
+    //      GCFLAG.IEORUN=1;
+    //      GCFLAG.IEOTRI=1;
+    //      return;
+    //    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationEqAsc,_StationEqDec,_StationGalLat,_StationGalLong,_time);
-
+    
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
+    
+  
+    if (IOPA.unitimegen){
+      _oldtime+=GetDt(IOPA.unitimegenrate);
+      _time=_oldtime/1000000LL;
+      _usec=_oldtime%1000000LL;
+    }
+    
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
     _Yaw=0;
     _Roll=0;
-    _Pitch=0;
-    _Alpha=0;
-    _B1a=0;
-    _B1b=0;
-    _B3a=0;
-    _B3b=0;
-    _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
-    _StationRad=AMSmceventg::Orbit.AlphaAltitude;
-    _SunRad=0;
-    // get velocity parameters from orbit par
-    AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
-    AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
-    //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
-    _VelTheta=AMSDBc::pi/2-ax2.gettheta();
+  _Pitch=0;
+  _Alpha=0;
+  _B1a=0;
+  _B1b=0;
+  _B3a=0;
+  _B3b=0;
+  _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
+  _StationRad=AMSmceventg::Orbit.AlphaAltitude;
+  _SunRad=0;
+  // get velocity parameters from orbit par
+  AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+  AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
+  //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
+  _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
     
     // Once ISS celestial coo have been calculated, obtain AMS celestial coo
@@ -1447,6 +1463,44 @@ if(GCFLAG.IEVENT==1000){
     AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
   }
 }
+#include "TrExtAlignDB.h"
+
+void ProduceDisalignment(time_t time){
+
+  float period=M_PI/5400.;
+  TrExtAlignPar par[2];
+  float p1[6]={0.01,0.01,0.02,0.0001,0.0001,0.0001};
+  float phase1[6]={1.,2.,3.,2.1,3.4,4.5};
+  par[0].dpos[0]=p1[0]*sin(time*period+phase1[0]);
+  par[0].dpos[1]=p1[1]*sin(time*period+phase1[1]);
+  par[0].dpos[2]=p1[2]*sin(time*period+phase1[2]);
+  par[0].angles[0]=p1[3]*sin(time*period+phase1[3]);
+  par[0].angles[1]=p1[4]*sin(time*period+phase1[4]);
+  par[0].angles[2]=p1[5]*sin(time*period+phase1[5]);
+
+  float p9[6]={0.01,0.01,0.02,0.0001,0.0001,0.0001};
+  float phase9[6]={1.4,2.3,3.2,2.11,3.14,4.85};
+  par[1].dpos[0]=p9[0]*sin(time*period+phase9[0]);
+  par[1].dpos[1]=p9[1]*sin(time*period+phase9[1]);
+  par[1].dpos[2]=p9[2]*sin(time*period+phase9[2]);
+  par[1].angles[0]=p9[3]*sin(time*period+phase9[3]);
+  par[1].angles[1]=p9[4]*sin(time*period+phase9[4]);
+  par[1].angles[2]=p9[5]*sin(time*period+phase9[5]);
+
+  for (int layer = 8; layer <= 9; layer++) {
+    int plane = (layer == 8) ? 5 : 6;
+    TkPlane* pl = TkDBc::Head->GetPlane(plane);
+    if (!pl) continue;
+    
+    TrExtAlignPar &ppar=par[(layer==8)?0:1];
+    pl->posT.setp(ppar.dpos[0], ppar.dpos[1], ppar.dpos[2]);
+    pl->rotT.SetRotAngles(ppar.angles[0], ppar.angles[1], ppar.angles[2]);
+  }
+
+  return;
+}
+
+
 //------------------------------------------------------------------
 void AMSEvent::_siamsevent(){
   AMSgObj::BookTimer.start("SIAMSEVENT");
@@ -1462,6 +1516,7 @@ void AMSEvent::_siamsevent(){
 
     }
   }
+  if(IOPA.unitimegen)ProduceDisalignment(_time);
   _siecalevent();
   _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
   //                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
@@ -2864,6 +2919,8 @@ void AMSEvent::_writeEl(){
      }
      
    }
+   //PZ TEMP FIX
+  if(IOPA.unitimegen) EN->Time[1]=_usec;
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);

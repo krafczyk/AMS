@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.361 2011/08/22 09:40:12 choutko Exp $
+#  $Id: datacards.doc,v 1.362 2011/08/22 22:42:07 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -83,6 +83,8 @@ I173 WriteTGeometry(0)           // Write TGeometry (0: no, 1: yes)
 I174 TGeometryFileName('ams02.root')  // TGeometry file name
 I214 WriteTDVDataInRoot(0)             // Write/NotWrite TDVData in Root (not to be mixed with names
 I215 ReadAMI(0)                   //  0,1,2 not read/Read/force read AMI interface with standalone program
+I216 unitimegen(0)                    // activate time generation with exponential DT
+F217 unitimegenrate(400)                  // Rate for pzgen
 //-------------------------------------------------------------------------------
 
     RICH simulation
