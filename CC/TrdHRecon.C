@@ -567,10 +567,10 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float x=0.,y=0.;
     tr->propagateToZ(rzd.z,x,y);
     
-    float base=77.+23.*60./(rzd.z-82.);
+    float base=77.+23.*(rzd.z-82.)/60.;
     float side=32.+10.*(rzd.z-82.)/60.;
-    float line=72.+20.5*60./(rzd.z-82.);
-    float corner=(base*sqrt(2)-(base-side)/sqrt(2))*sqrt(2);
+    float line=72.+20.5*(rzd.z-82.)/60.;
+    float corner=base+side;
 
     if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(y)>corner){
       if(tr)delete tr;  
@@ -585,7 +585,7 @@ bool TrdHReconR::check_geometry(int is1, int is2){
     float base=77.+23.*(rzd.z-82.)/60.;
     float side=32.+10.*(rzd.z-82.)/60.;
     float line=72.+20.5*(rzd.z-82.)/60.;
-    float corner=(base*sqrt(2)-(base-side)/sqrt(2))*sqrt(2);
+    float corner=base+side;
     
     if(fabs(x)>base || fabs(y)>base || fabs(y)>line ||fabs(x)+fabs(y)>corner){
       if(tr)delete tr;  
