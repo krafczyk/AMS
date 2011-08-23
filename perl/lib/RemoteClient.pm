@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.689 2011/08/22 09:40:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.690 2011/08/23 13:12:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4222,7 +4222,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 #   vc   -  remove monstrous loop in summary
 #
-      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc,datasets where (ntuples.datamc=1 or ntuples.datamc=0) ";
+      my $sqlsum=  "SELECT COUNT(ntuples.jid), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, jobs,dataruns,datasetsdesc,datasets where (ntuples.datamc=1 or ntuples.datamc=0 or ntuples.datamc=2) ";
       my $rsum=undef;
 #
 # Template is defined explicitly
@@ -4511,7 +4511,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "<BR><BR>\n";
        }
 # ....print 'ALL' information
-      #  die " $#runs $sql $sqlNT blia\n";
+#        die " $#runs $sql $sqlNT blia\n";
        if ($q->param("NTOUT") eq "ALL") {
               my $i       = 0;
               my $runold  = 0;
@@ -4641,7 +4641,6 @@ CheckCite:            if (defined $q->param("QCite")) {
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
-#       die "nah"; 
        my @titles= (
         "Template",
         "Jobs",
@@ -13934,12 +13933,12 @@ foreach my $block (@blocks) {
        $patternsmatched == $#RunFinishedPatterns) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
-    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    my $dataruns=$startingrun[21]!=0?"dataruns":"runs";
     $sql = "UPDATE $dataruns SET LEVENT=$runfinished[4] WHERE jid=$lastjobid";
     if($startingrun[21]==0){
        $self->{sqlserver}->Update($sql);
    }
-    if($startingrun[21]==1){
+    if($startingrun[21]!=0){
     $sql = "UPDATE jobs SET realtriggers=$runfinished[3] WHERE jid=$lastjobid";   
     $self->{sqlserver}->Update($sql);
 }
@@ -14058,7 +14057,7 @@ foreach my $block (@blocks) {
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
 }
-    my $dataruns=$startingrun[21]==1?"dataruns":"runs";
+    my $dataruns=$startingrun[21]=!0?"dataruns":"runs";
     my $runupdate = "UPDATE $dataruns SET ";
  if ($startingrun[2] != 0) {
    $sql = $runupdate." STATUS='$status' WHERE jid=$lastjobid";
