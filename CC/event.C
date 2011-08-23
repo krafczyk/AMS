@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.542 2011/08/22 22:41:45 pzuccon Exp $
+//  $Id: event.C,v 1.543 2011/08/23 08:46:56 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1463,6 +1463,7 @@ if(GCFLAG.IEVENT==1000){
     AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
   }
 }
+#ifdef _NOWAY_
 #include "TrExtAlignDB.h"
 
 void ProduceDisalignment(time_t time){
@@ -1499,7 +1500,7 @@ void ProduceDisalignment(time_t time){
 
   return;
 }
-
+#endif
 
 //------------------------------------------------------------------
 void AMSEvent::_siamsevent(){
@@ -1516,7 +1517,7 @@ void AMSEvent::_siamsevent(){
 
     }
   }
-  if(IOPA.unitimegen)ProduceDisalignment(_time);
+//  if(IOPA.unitimegen)ProduceDisalignment(_time);
   _siecalevent();
   _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
   //                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
