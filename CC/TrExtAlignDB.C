@@ -265,7 +265,12 @@ void TrExtAlignDB::ProduceDisalignment(time_t time){
 
   return;
 }
-
+#ifdef __ROOTSHAREDLIBRARY__
+long long TrExtAlignDB::GetDt(float rate){
+cerr<<"TrExtAlignDB::GetDt-W-DummyFunction "<<endl;
+return 0;
+}
+#else
 long long TrExtAlignDB::GetDt(float rate){
   int bb=1;
   float x=RNDM(bb);
@@ -274,3 +279,4 @@ long long TrExtAlignDB::GetDt(float rate){
   long long out=aa*1E6;
   return out;
 }
+#endif
