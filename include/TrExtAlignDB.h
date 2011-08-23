@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.5 2011/08/03 23:27:51 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.6 2011/08/23 09:59:58 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -180,6 +180,10 @@ public:
     fLinear = new float[nlin];
     for (int i = 0; i < nlin; i++) fLinear[i] = 0;
   }
+  /// Produce disaligment for MC TESTS
+  static void ProduceDisalignment(time_t time);
+  static long long GetDt(float rate);
+
 
   ClassDef(TrExtAlignDB,1);
 };

@@ -1,6 +1,7 @@
 #include "TrExtAlignDB.h"
 #include "TkDBc.h"
 #include "TFile.h"
+#include "random.h"
 
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -225,4 +226,51 @@ void TrExtAlignDB::Lin2ExAlign()
 void SLin2ExAlign()
 {
   TrExtAlignDB::GetHead()->Lin2ExAlign();
+}
+
+
+
+
+void TrExtAlignDB::ProduceDisalignment(time_t time){
+
+  float period=M_PI/5400.;
+  TrExtAlignPar par[2];
+  float p1[6]={0.01,0.01,0.02,0.0001,0.0001,0.0001};
+  float phase1[6]={1.,2.,3.,2.1,3.4,4.5};
+  par[0].dpos[0]=p1[0]*sin(time*period+phase1[0]);
+  par[0].dpos[1]=p1[1]*sin(time*period+phase1[1]);
+  par[0].dpos[2]=p1[2]*sin(time*period+phase1[2]);
+  par[0].angles[0]=p1[3]*sin(time*period+phase1[3]);
+  par[0].angles[1]=p1[4]*sin(time*period+phase1[4]);
+  par[0].angles[2]=p1[5]*sin(time*period+phase1[5]);
+
+  float p9[6]={0.01,0.01,0.02,0.0001,0.0001,0.0001};
+  float phase9[6]={1.4,2.3,3.2,2.11,3.14,4.85};
+  par[1].dpos[0]=p9[0]*sin(time*period+phase9[0]);
+  par[1].dpos[1]=p9[1]*sin(time*period+phase9[1]);
+  par[1].dpos[2]=p9[2]*sin(time*period+phase9[2]);
+  par[1].angles[0]=p9[3]*sin(time*period+phase9[3]);
+  par[1].angles[1]=p9[4]*sin(time*period+phase9[4]);
+  par[1].angles[2]=p9[5]*sin(time*period+phase9[5]);
+
+  for (int layer = 8; layer <= 9; layer++) {
+    int plane = (layer == 8) ? 5 : 6;
+    TkPlane* pl = TkDBc::Head->GetPlane(plane);
+    if (!pl) continue;
+    
+    TrExtAlignPar &ppar=par[(layer==8)?0:1];
+    pl->posT.setp(ppar.dpos[0], ppar.dpos[1], ppar.dpos[2]);
+    pl->rotT.SetRotAngles(ppar.angles[0], ppar.angles[1], ppar.angles[2]);
+  }
+
+  return;
+}
+
+long long TrExtAlignDB::GetDt(float rate){
+  int bb=1;
+  float x=RNDM(bb);
+  if(rate<=0||x==1.) return 0;
+  double aa= -1/rate*log(1-x);
+  long long out=aa*1E6;
+  return out;
 }
