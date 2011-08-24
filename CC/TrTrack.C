@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.114 2011/08/19 08:54:27 pzuccon Exp $
+// $Id: TrTrack.C,v 1.115 2011/08/24 10:53:27 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/08/19 08:54:27 $
+///$Date: 2011/08/24 10:53:27 $
 ///
-///$Revision: 1.114 $
+///$Revision: 1.115 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -293,15 +293,15 @@ double TrTrackR::GetNormChisqY(int id) const
   return (GetNdofY(id) > 0) ? GetChisqY(id)/GetNdofY(id)*enorm*enorm : 0;
 }
 
-AMSPoint TrTrackR::GetPlayer(int ilay, int id) const
+AMSPoint TrTrackR::GetPlayerO(int ilay, int id) const
 {
-  TrRecHitR *hit = GetHitL(ilay);
+  TrRecHitR *hit = GetHitLO(ilay);
   if (hit) {
-    AMSPoint pres = GetResidual(ilay, id);
+    AMSPoint pres = GetResidualO(ilay, id);
     AMSPoint coo  = hit->GetCoord();
     return coo-pres;
   }
-  return InterpolateLayer(ilay, id);
+  return InterpolateLayerO(ilay, id);
 }
 
 
@@ -506,10 +506,10 @@ void TrTrackR::FillExRes(int idsel)
     if (id & (kFitLayer8 | kFitLayer9)) continue;
     if (idsel > 0 && id != idsel) continue;
 
-    for (int ily = 7; ily <= 8; ily++) {
-      TrRecHitR *hit = GetHitL(ily);
+    for (int ily = 8; ily <= 9; ily++) {
+      TrRecHitR *hit = GetHitLO(ily);
       if (hit) {
-	AMSPoint pint = InterpolateLayer(ily, id);
+	AMSPoint pint = InterpolateLayerO(ily, id);
 	GetPar(id).Residual[ily][0] = (hit->GetCoord()-pint)[0];
 	GetPar(id).Residual[ily][1] = (hit->GetCoord()-pint)[1];
       }
@@ -524,8 +524,8 @@ void TrTrackR::EstimateDummyX(int fitid)
     if (!hit || !hit->OnlyY()) continue;
 
     int tkid = hit->GetTkId();
-    int ily  = hit->GetLayer()-1;
-    AMSPoint gcoo = InterpolateLayer(ily, fitid);
+    int ily  = hit->GetLayer();
+    AMSPoint gcoo = InterpolateLayerO(ily, fitid);
     TkSens tks(tkid, gcoo, 0);
 
     if (tks.LadFound()) {
@@ -593,7 +593,7 @@ AMSPoint TrTrackR::GetPentry(int id) const
     }
   }
 
-  return InterpolateLayer(ilay);
+  return InterpolateLayerO(ilay+1);
 }
 
 AMSDir TrTrackR::GetPdir(int id) const
@@ -611,7 +611,7 @@ AMSDir TrTrackR::GetPdir(int id) const
 
   AMSPoint pnt;
   AMSDir   dir;
-  InterpolateLayer(ilay, pnt, dir, id);
+  InterpolateLayerO(ilay+1, pnt, dir, id);
   if (dir.z() < 0) dir = dir*(-1);
   return dir;
 }
@@ -654,11 +654,11 @@ TrRecHitR *TrTrackR::GetHitLJ(int ilayJ) const
 
 
 
-TrRecHitR *TrTrackR::GetHitL(int ilay) const
+TrRecHitR *TrTrackR::GetHitLO(int ilay) const
 {
   for (int i = 0; i < GetNhits(); i++) {
     TrRecHitR *hit = GetHit(i);
-    if (hit && hit->GetLayer() == ilay+1) return hit;
+    if (hit && hit->GetLayer() == ilay) return hit;
   }
   return 0;
 }
@@ -931,8 +931,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }
   for (int i = 0; i < trconst::maxlay; i++) {
     if (1) {//if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
-      TrRecHitR *hit = GetHitL(i);
-      AMSPoint pint  = InterpolateLayer(i, id);
+      TrRecHitR *hit = GetHitLO(i+1);
+      AMSPoint pint  = InterpolateLayerO(i+1, id);
       if (hit){
 	par.Residual[i][0] = (hit->GetCoord()-pint)[0];
 	par.Residual[i][1] = (hit->GetCoord()-pint)[1];
@@ -1018,15 +1018,15 @@ double TrTrackR::Interpolate(double zpl, AMSPoint &pnt,
   return tprop.Interpolate(pnt, dir);
 }
 
-AMSPoint TrTrackR::InterpolateLayer(int ily, int id) const
+AMSPoint TrTrackR::InterpolateLayerO(int ily, int id) const
 {
   AMSPoint pnt;
   AMSDir   dir;
-  InterpolateLayer(ily, pnt, dir, id);
+  InterpolateLayerO(ily, pnt, dir, id);
   return pnt;
 }
 
-double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt, 
+double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt, 
 				  AMSDir &dir, int id2) const
 {
   int id=id2;
@@ -1037,13 +1037,13 @@ double TrTrackR::InterpolateLayer(int ily, AMSPoint &pnt,
   if (id == kDummy) tprop.SetChrg(0);
 
   int tkid = 0;
-  TrRecHitR *hit = GetHitL(ily);
+  TrRecHitR *hit = GetHitLO(ily);
   if (hit)
     tkid = hit->GetTkId();
 
   else {
     dir.setp(0, 0, 1);
-    pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily+1));
+    pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
 
     double ret = tprop.Interpolate(pnt, dir);
 

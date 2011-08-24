@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.381 2011/08/22 21:53:41 choutko Exp $
+//  $Id: root.h,v 1.382 2011/08/24 10:53:09 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2430,7 +2430,14 @@ public:
       if(iVertex()>=0)strcat(type,"Vertex");
    return type;
   }
-
+  /// Returns the extrapolation on the TrackerLayer J-scheme (1-9)
+  float GetTrCooJ(int jlay,int coo) const {
+    return GetTrCoo(TkDBc::Head->GetLayerFromJ(jlay),coo);
+  }
+  /// Returns the extrapolation on the TrackerLayer OLD scheme (1-9)
+  float GetTrCoo(int lay,int coo) const {
+    return TrCoo[lay-1][coo];
+  }
   /// \param number index in container
   /// \return human readable info about ParticleR
   char * Info(int number,AMSEventR *pev);

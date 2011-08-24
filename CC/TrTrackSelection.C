@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.4 2011/03/10 07:41:32 shaino Exp $
+// $Id: TrTrackSelection.C,v 1.5 2011/08/24 10:53:27 pzuccon Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -121,8 +121,8 @@ double TrTrackSelection::GetHalfRessq(TrTrackR *track, int span,
   double ery9 = TMath::Sqrt(15+fms9*fms9)*TRFITFFKEY.ErrY*1.2;
   if (ery8 <= 0 || ery9 <= 0) return -4;
 
-  double res8 = track->GetResidual(7, mf9).y();
-  double res9 = track->GetResidual(8, mf8).y();
+  double res8 = track->GetResidualO(8, mf9).y();
+  double res9 = track->GetResidualO(9, mf8).y();
   if (res8 == 0 || res9 == 0) return -5;
 
   return res8*res8/ery8/ery8+res9*res9/ery9/ery9;

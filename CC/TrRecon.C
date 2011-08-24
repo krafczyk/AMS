@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.135 2011/07/19 10:40:58 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.136 2011/08/24 10:53:27 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/07/19 10:40:58 $
+/// $Date: 2011/08/24 10:53:27 $
 ///
-/// $Revision: 1.135 $
+/// $Revision: 1.136 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1009,9 +1009,9 @@ if (TrDEBUG >= 1) {\
   for (int i = 0; i < track->GetNhits(); i++) {\
     TrRecHitR *hit = track->GetHit(i);\
     if (!hit) continue;\
-    int ily = hit->GetLayer()-1;\
-    cout << Form("%4.1f ", track->GetResidual(ily).x()*10);\
-    cout << Form("%4.1f ", track->GetResidual(ily).y()*10);\
+    int ily = hit->GetLayer();\
+    cout << Form("%4.1f ", track->GetResidualO(ily).x()*10);\
+    cout << Form("%4.1f ", track->GetResidualO(ily).y()*10);\
   }\
   cout << endl;\
   int id;\
@@ -1049,14 +1049,14 @@ if (TrDEBUG >= 1) {\
   if (TrDEBUG >= 3) {\
     for (int i = 0; i < track->GetNhits(); i++) {\
       TrRecHitR *hit = track->GetHit(i);\
-      int il = std::abs(hit->GetTkId())/100-1;\
+      int il = std::abs(hit->GetTkId())/100;\
       cout << Form("%4d %03X %6.2f %6.2f %6.2f res %8.1f %8.1f %8.1f %8.1f", \
                    hit->GetTkId(), hit->getstatus(), hit->GetCoord()[0],\
                    hit->GetCoord()[1], hit->GetCoord()[2],\
-                   1e4*track->GetResidual(il, id)[0],\
-                   1e4*track->GetResidual(il, TrTrackR::kChoutko)[0],\
-                   1e4*track->GetResidual(il, id)[1],\
-                   1e4*track->GetResidual(il, TrTrackR::kChoutko)[1])\
+                   1e4*track->GetResidualO(il, id)[0],\
+                   1e4*track->GetResidualO(il, TrTrackR::kChoutko)[0],\
+                   1e4*track->GetResidualO(il, id)[1],\
+                   1e4*track->GetResidualO(il, TrTrackR::kChoutko)[1])\
            << endl;\
     }\
   }\
@@ -2228,7 +2228,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
     int ntcls = 0, ntmax = 0, nedg = 0;
     VCon *contc = GetVCon()->GetCont("AMSTrCluster");
     for (int j = 0; j < NL; j++) {
-      TrRecHitR *hit = track->GetHitL(j);
+      TrRecHitR *hit = track->GetHitLO(j+1);
       int tkid;
       if (hit) {
 	tkid = hit->GetTkId();
@@ -2239,7 +2239,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
 	}
       }
       else {
-	AMSPoint pnt = track->InterpolateLayer(j);
+	AMSPoint pnt = track->InterpolateLayerO(j+1);
 	TkSens   tks(pnt, 0);
 	if (!tks.LadFound()) continue;
 	tkid = tks.GetLadTkID();
@@ -2814,7 +2814,7 @@ int TrRecon::FillHistos(int trstat, int refit)
     ////////// Hit ladders and cluster signals on track//////////
     int nhxi = 0, nhyi = 0;
     for (int j = 0; j < TkDBc::Head->nlay(); j++) {
-      TrRecHitR *hit = trk->GetHitL(j);
+      TrRecHitR *hit = trk->GetHitLO(j+1);
       if (hit) {
 	int slot  = hit->GetTkId()%100;
 	int layer = hit->GetLayer();
@@ -2844,7 +2844,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 	}
       }
       else {
-	AMSPoint play = trk->InterpolateLayer(j);
+	AMSPoint play = trk->InterpolateLayerO(j+1);
 	TkSens tks(play, 0);
 	if (tks.LadFound())
 	  hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
@@ -2877,8 +2877,8 @@ int TrRecon::FillHistos(int trstat, int refit)
 
     ////////// Hit residuals and trunc-mean signals //////////
     for (int j = 0; j < 7; j++) {  // Inner layers
-      TrRecHitR *hit = trk->GetHitL(j);
-      AMSPoint   res = trk->GetResidual(j, mfi);  // Inner fitting residual
+      TrRecHitR *hit = trk->GetHitLO(j+1);
+      AMSPoint   res = trk->GetResidualO(j+1, mfi);  // Inner fitting residual
       if (hit && !hit->OnlyY()) hman.Fill("TrResX", argt, res.x()*1e4);
       if (hit && !hit->OnlyX()) hman.Fill("TrResY", argt, res.y()*1e4);
     }
@@ -2899,8 +2899,8 @@ int TrRecon::FillHistos(int trstat, int refit)
     ////////// Track position at external planes //////////
     AMSPoint pl8, pl9;
     AMSDir   dr8, dr9;
-    trk->InterpolateLayer(7, pl8, dr8, mfi);
-    trk->InterpolateLayer(8, pl9, dr9, mfi);
+    trk->InterpolateLayerO(8, pl8, dr8, mfi);
+    trk->InterpolateLayerO(9, pl9, dr9, mfi);
     if (pl8.z() >  150) hman.Fill("TrPtkL8", pl8.x(), pl8.y());
     if (pl9.z() < -130) hman.Fill("TrPtkL9", pl9.x(), pl9.y());
 
@@ -2908,10 +2908,10 @@ int TrRecon::FillHistos(int trstat, int refit)
     int mf9 = trk->iTrTrackPar(malgo, 6, 0); // With L9
     int mff = trk->iTrTrackPar(malgo, 7, 0); // Full span
 
-    AMSPoint   res8 = trk->GetResidual(7, mfi);
-    AMSPoint   res9 = trk->GetResidual(8, mfi);
-    TrRecHitR *hit8 = trk->GetHitL(7);
-    TrRecHitR *hit9 = trk->GetHitL(8);
+    AMSPoint   res8 = trk->GetResidualO(8, mfi);
+    AMSPoint   res9 = trk->GetResidualO(9, mfi);
+    TrRecHitR *hit8 = trk->GetHitLO(8);
+    TrRecHitR *hit9 = trk->GetHitLO(9);
 
     ////////// For the external planes alignment //////////
     if (mf8 > 0 && trk->GetChisq(mf8) < 100) {
@@ -3026,10 +3026,10 @@ int TrRecon::FillHistos(int trstat, int refit)
 
     ////////// Residual vs layer //////////
     for (int ilay = 0; ilay < 9; ilay++) {
-      TrRecHitR *hit = trk->GetHitL(ilay);
+      TrRecHitR *hit = trk->GetHitLO(ilay+1);
       if (!hit) continue;
 
-      AMSPoint res = trk->GetResidual(ilay, mf0);
+      AMSPoint res = trk->GetResidualO(ilay+1, mf0);
       if (hit->GetXCluster()) hman.Fill("TrResLayx", ilay, res.x()*1.e+04);
       if (hit->GetYCluster()) hman.Fill("TrResLayy", ilay, res.y()*1.e+04);
     }  
@@ -3043,8 +3043,8 @@ int TrRecon::FillHistos(int trstat, int refit)
     if (hit9 && mf9 > 0) hman.Fill("TrDtyL91", armc, res9.y());
 
     if (mff > 0) {
-      if (mf9 > 0) hman.Fill("TrDtyL82", armc, trk->GetResidual(8-1, mf9).y());
-      if (mf8 > 0) hman.Fill("TrDtyL92", armc, trk->GetResidual(9-1, mf8).y());
+      if (mf9 > 0) hman.Fill("TrDtyL82", armc, trk->GetResidualO(8, mf9).y());
+      if (mf8 > 0) hman.Fill("TrDtyL92", armc, trk->GetResidualO(9, mf8).y());
     }
 
     int mf[4] = { mfi, mf8, mf9, mff };
@@ -3628,7 +3628,7 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   double   rymin[_SCANLAY];
   int      ncmin[_SCANLAY];
   for (int i = 0; i < _SCANLAY; i++) {
-    pltrk[i] = track->InterpolateLayer(i, mfit);
+    pltrk[i] = track->InterpolateLayerO(i+1, mfit);
     rymin[i] = rthdy*1.5;
     ncmin[i] = 0;
   }
@@ -3643,7 +3643,7 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
     int ily = hit->GetLayer()-1;
     if (track->TestHitBits(hit->GetLayer(), mfit)) {
       if (hit->OnlyY()) continue;
-      TrRecHitR *hh = track->GetHitL(ily);
+      TrRecHitR *hh = track->GetHitLO(ily+1);
       if (hh && (!hh->OnlyY() ||
 		  hh->iTrCluster('y') != hit->iTrCluster('y'))) continue;
     }
@@ -3727,8 +3727,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   ctest DXY[2];
   ctest DY[2];
   AMSPoint ptrk[2];
-  ptrk[0] = track->InterpolateLayer(lyext[0]-1, mfit);
-  ptrk[1] = track->InterpolateLayer(lyext[1]-1, mfit);
+  ptrk[0] = track->InterpolateLayerO(lyext[0], mfit);
+  ptrk[1] = track->InterpolateLayerO(lyext[1], mfit);
   float rig= std::fabs(track->GetRigidity(mfit));
   if (rig == 0) return -2;
 
@@ -4070,7 +4070,7 @@ int TrRecon::TryDropX(TrTrackR *track, int mfit)
     if (!hit || hit->OnlyY()) continue;
     int ily = hit->GetLayer()-1;
     if (track->TestHitBits(ily+1, mfit)) {
-      double rx = fabs(track->GetResidual(ily, mfit).x());
+      double rx = fabs(track->GetResidualO(ily+1, mfit).x());
       if (imax[0] < 0 || rx > rmax[0]) { 
 	imax[1] = imax[0]; imax[0] = i;
 	rmax[1] = rmax[0]; rmax[0] = rx; 

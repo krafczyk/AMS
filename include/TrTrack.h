@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.67 2011/08/19 08:58:09 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.68 2011/08/24 10:53:09 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/08/19 08:58:09 $
+///$Date: 2011/08/24 10:53:09 $
 ///
-///$Revision: 1.67 $
+///$Revision: 1.68 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -341,8 +341,8 @@ public:
   TrRecHitR *pTrRecHit(int i)const { return GetHit(i);}
   /// Get the pointer of hit at Layer, ilay J-scheme  (1-9), or returns 0 if not exists
   TrRecHitR *GetHitLJ(int ilay) const;
-  /// DEPRECATED - DO NOT USE  Get the pointer of hit at Layer OLD-scheme, ilay(0-7), or returns 0 if not exists
-  TrRecHitR *GetHitL(int ilay) const;
+  ///  Get the pointer of hit at Layer OLD-scheme
+  TrRecHitR *GetHitLO(int ilay) const;
   /// Return true if the track hit on lajer layJ (J-scheme) has X and Y clusters
   bool TestHitLayerJHasXY(int layJ);
   /// Returns a number corresponding to the ladder combination spanned by the track
@@ -461,12 +461,12 @@ public:
   }
 
 
-  /// DEPRECATED DO NOT USE Return the  proj (0=X,1=Y) residual at layer ilay TOO OLD Scheme (0-8) from TrTrackPar corresponding to id
-  AMSPoint  GetResidual (int ilay, int id= 0) const { 
-    if (ilay < 0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
-    return AMSPoint(GetPar(id).GetResidualX_Lay(ilay+1),
-		    GetPar(id).GetResidualY_Lay(ilay+1),
-		    TkDBc::Head->GetZlayer(ilay+1));
+  /// Return the  proj (0=X,1=Y) residual at layer ilay  OLD Scheme (1-9) from TrTrackPar corresponding to id
+  AMSPoint  GetResidualO(int ilay, int id= 0) const { 
+    if (ilay <= 0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
+    return AMSPoint(GetPar(id).GetResidualX_Lay(ilay),
+		    GetPar(id).GetResidualY_Lay(ilay),
+		    TkDBc::Head->GetZlayer(ilay));
   }
 
 
@@ -474,8 +474,8 @@ public:
   AMSPoint GetPlayerJ(int ilayJ, int id = 0) const;
 
 
-  ///  DEPRECATED DO NOT USE Get track position at layer ilay (0-7)
-  AMSPoint GetPlayer(int ilay, int id = 0) const;
+  ///  Get track position at layer ilay OLD scheme (1-9)
+  AMSPoint GetPlayerO(int ilay, int id = 0) const;
 
 
  
@@ -537,8 +537,8 @@ public:
    */
   double InterpolateLayerJ(int ilyJ, AMSPoint &pnt, AMSDir &dir, 
 			   int id = 0) const{
-    int ily=TkDBc::Head->GetLayerFromJ(ilyJ)-1;
-    return InterpolateLayer(ily, pnt,dir,id);
+    int ily=TkDBc::Head->GetLayerFromJ(ilyJ);
+    return InterpolateLayerO(ily, pnt,dir,id);
   }
 
   /// Interpolation onto Tracker layer with alignment correction 
@@ -548,29 +548,29 @@ public:
    * \return          Track position  at the layer
    */
   AMSPoint InterpolateLayerJ(int ilyJ, int id = 0) const{
-    int ily=TkDBc::Head->GetLayerFromJ(ilyJ)-1;
-    return InterpolateLayer(ily,id);
+    int ily=TkDBc::Head->GetLayerFromJ(ilyJ);
+    return InterpolateLayerO(ily,id);
   }
 
 
-  /// DEPRECATED  Interpolation onto Tracker layer with alignment correction 
+  /// Interpolation onto Tracker layer with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index -1 ; [0-8] (Layer_number Old Scheme - 1) 
+   * \param[in]  ily  Tracker layer index  ; [1-9] (Layer_number Old Scheme ) 
    * \param[out] pnt  Track position  at the layer
    * \param[out] dif  Track direction at the layer
    * \param[in]  id   Fitting method ID
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
-  double InterpolateLayer(int ily, AMSPoint &pnt, AMSDir &dir, 
+  double InterpolateLayerO(int ily, AMSPoint &pnt, AMSDir &dir, 
 			  int id = 0) const;
 
-  /// DEPRECATED Interpolation onto Tracker layer with alignment correction 
+  /// Interpolation onto Tracker layer with alignment correction 
   /*!
-   * \param[in]  ily  Tracker layer index -1 ; [0-8] (Layer_number Old Scheme - 1) 
+   * \param[in]  ily  Tracker layer index  ; [1-9] (Layer_number Old Scheme ) 
    * \param[in]  id   Fitting method ID
    * \return          Track position  at the layer
    */
-  AMSPoint InterpolateLayer(int ily, int id = 0) const;
+  AMSPoint InterpolateLayerO(int ily, int id = 0) const;
 
   /// Build interpolation vectors onto Z=zpl[i] (0<=i<nz) planes
   /*!
@@ -687,7 +687,7 @@ public:
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
 		     number& Theta, number& Phi, AMSPoint& X0) const;
 
-  /// Interception (for the compatibility with Gbatch)
+  /// Interception (for the compatibility with Gbatch) WARNING here layer is from 0 to 8 following (old_scheme -1)
   int intercept(AMSPoint &pnt, int layer, 
 		number &theta, number &phi, number &local, int id = 0) const;
   ///@}
