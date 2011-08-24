@@ -677,8 +677,8 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   htrvec.clear();
 
   for(int i=0;i!=r.size();i++){
-    if(r[i].Amp>tracking_min_amp)
-      rhits.push_back(r[i]);
+    //if(r[i].Amp>tracking_min_amp)
+    rhits.push_back(r[i]);
   }
   for(int i=0;i!=s.size();i++)hsegvec.push_back(s[i]);  
   for(int i=0;i!=t.size();i++)htrvec.push_back(t[i]);
@@ -752,8 +752,8 @@ int TrdHReconR::build(){
   for(int s=0;s<2;s++)
     for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",s);Hi;Hi=Hi->next()){
       gbhits.push_back(Hi);
-      if(Hi->Amp()>tracking_min_amp)
-	rhits.push_back(Hi);
+      //      if(Hi->Amp()>tracking_min_amp)
+      rhits.push_back(Hi);
     }
   delete cont2;
   
