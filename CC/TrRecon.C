@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.136 2011/08/24 10:53:27 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.137 2011/08/24 17:14:15 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/08/24 10:53:27 $
+/// $Date: 2011/08/24 17:14:15 $
 ///
-/// $Revision: 1.136 $
+/// $Revision: 1.137 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -253,10 +253,15 @@ void TrRecon::Init(){
 //////////////////////////////////////////////////////////
 
 
-int TrRecon::Build(int flag, int rebuild, int hist)
+int TrRecon::Build(int iflag, int rebuild, int hist)
 {
+  int flag=abs(flag);
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if (!cont) return 0;
+  if (iflag<0){ // Redo the digitization of TrRawcluster
+    cont->eraseC();
+    TrSim::sitkdigi();
+  }
 
   int nraw = cont->getnelem();
   delete cont;
