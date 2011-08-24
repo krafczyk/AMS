@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.49 2011/05/27 16:58:47 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.49.6.1 2011/08/24 15:36:14 pzuccon Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -515,7 +515,7 @@ public:
       SetPolyLine(-1);
       int ind=0;
       if((bit & (1<<7))>0){
-	if(TrRecHitR* hh=pcl->GetHitL(7)){
+	if(TrRecHitR* hh=pcl->GetHitLO(8)){
 	  AMSPoint aa=hh->GetCoord();
 	  if(hh->OnlyY () && hh->GetDummyX()==-1){
 	    hh->SetDummyX(0);
@@ -526,7 +526,7 @@ public:
       }
       for (int ii=0;ii<7;ii++){
 	if((bit & (1<<ii))>0){
-	  if(TrRecHitR* hh=pcl->GetHitL(ii)){
+	  if(TrRecHitR* hh=pcl->GetHitLO(ii+1)){
 	    AMSPoint aa=hh->GetCoord();
 	    
 	    if (!(hh->OnlyY () && hh->GetDummyX()==-1))
@@ -535,7 +535,7 @@ public:
 	}
       }
       if((bit & (1<<8))>0){
-	if(TrRecHitR* hh=pcl->GetHitL(8)){
+	if(TrRecHitR* hh=pcl->GetHitLO(9)){
 	  AMSPoint aa=hh->GetCoord();
 	    if (!(hh->OnlyY () && hh->GetDummyX()==-1))
 	  SetPoint(ind++,aa[0],aa[1],aa[2]);
