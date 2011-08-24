@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.239 2011/08/22 21:53:39 choutko Exp $
+//  $Id: ntuple.C,v 1.239.2.1 2011/08/24 13:32:40 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -1008,7 +1008,7 @@ AMSProducer::gethead()->sendCurrentRunInfo();
  pid_t pid=getpid();
 char name[256]="";
  int len=255;
- if(!gethostname(name,len)){
+ if(gethostname(name,len)){
    struct hostent *hent;
    hent=gethostbyname(name);
    if(hent)strcpy(name,hent->h_name);
