@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.237 2011/08/24 10:53:27 pzuccon Exp $
+//  $Id: particle.C,v 1.236.4.1 2011/08/24 13:07:04 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1018,15 +1018,15 @@ void AMSParticle::refit(int fast){
 	number theta,phi;
 	bool bad=false;
 #ifdef  _PGTRACK_
-	AMSDir dir;
-	//PZ FIXME REFIT //SH FIXED
-	_TrCoo[layer]=_ptrack->GetResidualO(layer+1);
-	if (_TrCoo[layer].norm() == 0 || layer==0 || layer==TkDBc::Head->nlay()-1){
-	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
-	_ptrack->InterpolateLayerO(layer+1, _TrCoo[layer],dir);
+        AMSDir dir;
+        //PZ FIXME REFIT //SH FIXED
+        _TrCoo[layer]=_ptrack->GetResidualO(layer+1);
+        if (_TrCoo[layer].norm() == 0 || layer==0 || layer==TkDBc::Head->nlay()-1){
+          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
+        _ptrack->InterpolateLayerO(layer+1, _TrCoo[layer],dir);
 #else
-	if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
-	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
+        if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
+          bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
 #endif
 	if(bad)setstatus(AMSDBc::BADINTERPOL);
 	// Change theta,phi,coo 

@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.41 2011/05/08 19:16:11 pzuccon Exp $
+// $Id: tkdcards.h,v 1.41.10.1 2011/08/24 13:07:04 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -223,7 +223,7 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 //! Data Cards to drive the Tracker reconstruction
 class TRCLFFKEY_DEF : public TObject{
 public:
-  //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks
+  //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; if negative the MC digitization is redone
   integer recflag;
   //! R [2,19] Seed S/N Threshold per layer(1-9 -> 0-8)for 2-10:n(X) 11-19:p(Y) side
   geant     ThrSeed[2][9];  

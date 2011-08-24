@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.68 2011/08/24 10:53:09 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.67.2.1 2011/08/24 13:07:04 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/08/24 10:53:09 $
+///$Date: 2011/08/24 13:07:04 $
 ///
-///$Revision: 1.68 $
+///$Revision: 1.67.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -465,8 +465,8 @@ public:
   AMSPoint  GetResidualO(int ilay, int id= 0) const { 
     if (ilay <= 0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_Lay(ilay),
-		    GetPar(id).GetResidualY_Lay(ilay),
-		    TkDBc::Head->GetZlayer(ilay));
+                    GetPar(id).GetResidualY_Lay(ilay),
+                    TkDBc::Head->GetZlayer(ilay));
   }
 
 
@@ -536,7 +536,7 @@ public:
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
   double InterpolateLayerJ(int ilyJ, AMSPoint &pnt, AMSDir &dir, 
-			   int id = 0) const{
+                           int id = 0) const{
     int ily=TkDBc::Head->GetLayerFromJ(ilyJ);
     return InterpolateLayerO(ily, pnt,dir,id);
   }
@@ -562,7 +562,7 @@ public:
    * \return          Path length between Z=P0z(usually 0) and Z=zpl
    */
   double InterpolateLayerO(int ily, AMSPoint &pnt, AMSDir &dir, 
-			  int id = 0) const;
+                          int id = 0) const;
 
   /// Interpolation onto Tracker layer with alignment correction 
   /*!
@@ -685,11 +685,11 @@ public:
   
   /// For compatibility with Gbatch
   void getParFastFit(number& Chi2,  number& Rig, number& Err, 
-		     number& Theta, number& Phi, AMSPoint& X0) const;
+                     number& Theta, number& Phi, AMSPoint& X0) const;
 
   /// Interception (for the compatibility with Gbatch) WARNING here layer is from 0 to 8 following (old_scheme -1)
   int intercept(AMSPoint &pnt, int layer, 
-		number &theta, number &phi, number &local, int id = 0) const;
+                number &theta, number &phi, number &local, int id = 0) const;
   ///@}
   /** @name A.F: RECONSTRUCTION  METHODS  
    */

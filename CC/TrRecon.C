@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.136 2011/08/24 10:53:27 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.135.4.1 2011/08/24 13:07:03 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/08/24 10:53:27 $
+/// $Date: 2011/08/24 13:07:03 $
 ///
-/// $Revision: 1.136 $
+/// $Revision: 1.135.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -253,10 +253,15 @@ void TrRecon::Init(){
 //////////////////////////////////////////////////////////
 
 
-int TrRecon::Build(int flag, int rebuild, int hist)
+int TrRecon::Build(int iflag, int rebuild, int hist)
 {
+  int flag=abs(flag);
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if (!cont) return 0;
+  if (iflag<0){ // Redo the digitization of TrRawcluster
+    cont->eraseC();
+    TrSim::sitkdigi();
+  }
 
   int nraw = cont->getnelem();
   delete cont;
@@ -2231,18 +2236,18 @@ int TrRecon::BuildTrTracksSimple(int rebuild)
       TrRecHitR *hit = track->GetHitLO(j+1);
       int tkid;
       if (hit) {
-	tkid = hit->GetTkId();
+        tkid = hit->GetTkId();
 	TrClusterR *cls = hit->GetYCluster();
 	if (cls) {
 	  int sadd = cls->GetSeedAddress();
 	  if (sadd <= 1 || 638 <= sadd) nedg++;
-	}
+        }
       }
       else {
-	AMSPoint pnt = track->InterpolateLayerO(j+1);
-	TkSens   tks(pnt, 0);
-	if (!tks.LadFound()) continue;
-	tkid = tks.GetLadTkID();
+        AMSPoint pnt = track->InterpolateLayerO(j+1);
+        TkSens   tks(pnt, 0);
+        if (!tks.LadFound()) continue;
+        tkid = tks.GetLadTkID();
       }
       int ntl = 0;
       for (int k = 0; k < contc->getnelem(); k++) {
@@ -2816,8 +2821,8 @@ int TrRecon::FillHistos(int trstat, int refit)
     for (int j = 0; j < TkDBc::Head->nlay(); j++) {
       TrRecHitR *hit = trk->GetHitLO(j+1);
       if (hit) {
-	int slot  = hit->GetTkId()%100;
-	int layer = hit->GetLayer();
+        int slot  = hit->GetTkId()%100;
+        int layer = hit->GetLayer();
 	TrClusterR *clx = hit->GetXCluster();
 	TrClusterR *cly = hit->GetYCluster();
 
@@ -2841,13 +2846,13 @@ int TrRecon::FillHistos(int trstat, int refit)
 	if (layer <= 7) {
 	  if (clx) nhxi++;
 	  if (cly) nhyi++;
-	}
+        }
       }
       else {
-	AMSPoint play = trk->InterpolateLayerO(j+1);
-	TkSens tks(play, 0);
-	if (tks.LadFound())
-	  hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
+        AMSPoint play = trk->InterpolateLayerO(j+1);
+        TkSens tks(play, 0);
+        if (tks.LadFound())
+          hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
 		                abs(tks.GetLadTkID())/100);
       }
     }
@@ -3645,7 +3650,7 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
       if (hit->OnlyY()) continue;
       TrRecHitR *hh = track->GetHitLO(ily+1);
       if (hh && (!hh->OnlyY() ||
-		  hh->iTrCluster('y') != hit->iTrCluster('y'))) continue;
+                  hh->iTrCluster('y') != hit->iTrCluster('y'))) continue;
     }
 
     TrClusterR *clx = hit->GetXCluster();
@@ -4072,8 +4077,8 @@ int TrRecon::TryDropX(TrTrackR *track, int mfit)
     if (track->TestHitBits(ily+1, mfit)) {
       double rx = fabs(track->GetResidualO(ily+1, mfit).x());
       if (imax[0] < 0 || rx > rmax[0]) { 
-	imax[1] = imax[0]; imax[0] = i;
-	rmax[1] = rmax[0]; rmax[0] = rx; 
+        imax[1] = imax[0]; imax[0] = i;
+        rmax[1] = rmax[0]; rmax[0] = rx; 
       }
       else if (imax[1] < 0 || rx > rmax[1]) { 
 	imax[1] = i;

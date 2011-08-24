@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.115 2011/08/24 10:53:27 pzuccon Exp $
+// $Id: TrTrack.C,v 1.114.2.1 2011/08/24 13:07:04 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/08/24 10:53:27 $
+///$Date: 2011/08/24 13:07:04 $
 ///
-///$Revision: 1.115 $
+///$Revision: 1.114.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -509,9 +509,9 @@ void TrTrackR::FillExRes(int idsel)
     for (int ily = 8; ily <= 9; ily++) {
       TrRecHitR *hit = GetHitLO(ily);
       if (hit) {
-	AMSPoint pint = InterpolateLayerO(ily, id);
-	GetPar(id).Residual[ily][0] = (hit->GetCoord()-pint)[0];
-	GetPar(id).Residual[ily][1] = (hit->GetCoord()-pint)[1];
+        AMSPoint pint = InterpolateLayerO(ily, id);
+        GetPar(id).Residual[ily][0] = (hit->GetCoord()-pint)[0];
+        GetPar(id).Residual[ily][1] = (hit->GetCoord()-pint)[1];
       }
     }
   }
@@ -934,8 +934,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       TrRecHitR *hit = GetHitLO(i+1);
       AMSPoint pint  = InterpolateLayerO(i+1, id);
       if (hit){
-	par.Residual[i][0] = (hit->GetCoord()-pint)[0];
-	par.Residual[i][1] = (hit->GetCoord()-pint)[1];
+        par.Residual[i][0] = (hit->GetCoord()-pint)[0];
+        par.Residual[i][1] = (hit->GetCoord()-pint)[1];
       }else{
 	par.Residual[i][0] = pint[0];
 	par.Residual[i][1] = pint[1];
@@ -1027,7 +1027,7 @@ AMSPoint TrTrackR::InterpolateLayerO(int ily, int id) const
 }
 
 double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt, 
-				  AMSDir &dir, int id2) const
+                                  AMSDir &dir, int id2) const
 {
   int id=id2;
   if (id2==0) id=trdefaultfit;
