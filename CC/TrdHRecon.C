@@ -259,7 +259,7 @@ int TrdHReconR::DoPrefit(int debug){
       seg->em=0.6/(it->zmax-it->zmin);
       
       for(int h=0;h!=rhits.size();h++){	
-	if(rhits.at(h).Amp>tracking_min_amp)continue;
+	if(rhits.at(h).Amp<tracking_min_amp)continue;
 	TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	if(rzd.d!=d)continue;
 	
@@ -288,7 +288,7 @@ int TrdHReconR::DoPrefit(int debug){
 	seg->hits.clear();	
 	
 	for(int h=0;h!=rhits.size();h++){	
-	  if(rhits.at(h).Amp>tracking_min_amp)continue;
+	  if(rhits.at(h).Amp<tracking_min_amp)continue;
 	  TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	  if(rzd.d!=d)continue;
 	  
