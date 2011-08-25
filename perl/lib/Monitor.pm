@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.152 2011/08/09 14:03:38 ams Exp $
+# $Id: Monitor.pm,v 1.153 2011/08/25 14:16:33 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -895,7 +895,8 @@ if ($producer eq "Producer"){
 #           warn "wasrun $run $rdst->{Run} \n";
            if ($rdst->{Run}==$run and $rdst->{Status} eq "InProgress"){
                my @host=split ":",$rdst->{Name};
-               my @fh=split '\.',$host[0];
+               my $hh=$host[0].'.om';
+               my @fh=split '\.',$hh;
                if($host[0] eq $hash->{id}->{HostName} or
                   ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or
                ($fh[1] eq 'hrdl' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or   
@@ -960,6 +961,7 @@ sub getruns{
      my $total_ev=0;
     my @sort=( "Failed","Processing", "Finished","Allocated", "Foreign","ToBeRerun");
     for my $j (0 ... $#sort){
+        my $number=1;
     for my $i (0 ... $#sortedrtb){
      $#text=-1;
      my $hash=$sortedrtb[$i];
@@ -976,7 +978,7 @@ sub getruns{
      if($hash->{DataMC}==0){
          $datamc="MC";
      }
-     push @text, $hash->{Run},$hash->{uid},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{CounterFail},$datamc,$hash->{cinfo}->{HostName},$hash->{Status};
+     push @text, $hash->{Run},$hash->{uid},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{CounterFail},$datamc,$hash->{cinfo}->{HostName},$hash->{Status},$number++;
      if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
          push @text, 2;
      }elsif($hash->{History} eq "Failed" and $hash->{Status} ne "Finished"){
