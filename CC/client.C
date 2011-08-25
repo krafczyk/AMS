@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.53 2011/08/25 12:45:57 choutko Exp $
+//  $Id: client.C,v 1.54 2011/08/25 15:44:14 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -105,9 +105,10 @@ bool AMSClient::_getpidhost(uinteger uid, const char * iface){
  _pid.pid=getpid();
  _pid.ppid=getppid();
  _pid.threads=1;
-char name[256];
+char name[256]="";
  int len=255;
  if(gethostname(name,len)){
+   cout<<" AMSClient::_gethostname-E-UnableToGetHostName "<<endl;
    struct hostent *hent;
    hent=gethostbyname(name);
    if(hent)strcpy(name,hent->h_name);
