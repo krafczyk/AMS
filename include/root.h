@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.381.2.1 2011/08/24 13:07:04 pzuccon Exp $
+//  $Id: root.h,v 1.381.2.2 2011/08/25 14:09:35 pzuccon Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2431,13 +2431,13 @@ public:
    return type;
   }
 #ifdef _PGTRACK_
-  /// Returns the extrapolation on the TrackerLayer J-scheme (1-9)
-  float GetTrCooJ(int jlay,int coo) const {
-    return GetTrCoo(TkDBc::Head->GetLayerFromJ(jlay),coo);
-  }
   /// Returns the extrapolation on the TrackerLayer OLD scheme (1-9)
   float GetTrCoo(int lay,int coo) const {
-    return TrCoo[lay-1][coo];
+    return GetTrCooJ(TkDBc::Head->GetJFromLayer(lay),coo);
+  }
+  /// Returns the extrapolation on the TrackerLayer J-scheme (1-9)
+  float GetTrCooJ(int jlay,int coo) const {
+    return TrCoo[jlay-1][coo];
   }
 #endif
   /// \param number index in container

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.135.4.1 2011/08/24 13:07:03 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.135.4.2 2011/08/25 14:09:19 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/08/24 13:07:03 $
+/// $Date: 2011/08/25 14:09:19 $
 ///
-/// $Revision: 1.135.4.1 $
+/// $Revision: 1.135.4.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -255,7 +255,7 @@ void TrRecon::Init(){
 
 int TrRecon::Build(int iflag, int rebuild, int hist)
 {
-  int flag=abs(flag);
+  int flag=abs(iflag);
   VCon* cont = GetVCon()->GetCont("AMSTrRawCluster");
   if (!cont) return 0;
   if (iflag<0){ // Redo the digitization of TrRawcluster
