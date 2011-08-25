@@ -993,8 +993,11 @@ class RemoteClient:
                     if(mips<=0):
                         print "Mips Problem for %d %s" %(mips, host)
                         mips=1000
+                        if(events==0):
+                            events=run.LastEvent-run.FirstEvent
                     cputime=cputime/mips*1000
                     cputime="%.2f" %(cputime)
+                     
                     if(events==0 and errors==0 and self.dbclient.cr(run.Status) == "Finished"):
                         print "run events 0 "
                         self.sqlserver.Update("update runs set status='Unchecked' where run="+str(run.Run))
