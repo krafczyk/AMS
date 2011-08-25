@@ -1,5 +1,5 @@
 #include "TrdHRecon.h"
-#include "commonsi.h"
+//#include "commonsi.h"
 ClassImp(TrdHSegmentR)
 
 #ifdef __MLD__
@@ -12,7 +12,8 @@ int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-  if(AMSCommonsI::getbuildno()<=538){
+//  if(AMSCommonsI::getbuildno()<=538){
+if(0){
     if(hits.size()<=i&&i<Nhits){
       hits.clear();
       VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
