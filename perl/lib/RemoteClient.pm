@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.690 2011/08/23 13:12:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.691 2011/08/25 12:45:57 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11196,6 +11196,9 @@ sub listStat {
      htmlTable("Jobs");
     }
     foreach my $ds (@productionPeriods) {
+        if (not $ds->{status} =~ 'Active'){
+            next;
+        }
      if ($ds->{status} =~ 'Active') {
 
        $jobsreq    = 0;  # active jobs
@@ -11330,7 +11333,7 @@ sub listStat {
         }
 
      }
-   }
+    }
     
 #
                my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
@@ -11399,8 +11402,7 @@ sub listStat {
     }
    }
        $td[8] = time();
- }
-
+    }
     if ($webmode == 1) {
      htmlTable("Datasets");
     }
@@ -11414,7 +11416,7 @@ sub listStat {
                $dtime=3600*24;
              }
              #die "  $part $dtime $lupdate $sta[9] $dte) \n";
-            if($#sta>0 and time()-$sta[9] <$dtime and $lupdate<$sta[9] and $dte<$sta[9]){
+            if(1 or ($#sta>0 and time()-$sta[9] <$dtime and $lupdate<$sta[9] and $dte<$sta[9])){
              my $dsref=retrieve($save);
              if(defined $dsref){
               foreach my $dss (@{$dsref}){

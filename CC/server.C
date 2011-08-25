@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.186 2011/08/22 09:39:34 choutko Exp $
+//  $Id: server.C,v 1.187 2011/08/25 12:45:57 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -667,6 +667,9 @@ int maxina=2;
 char *max=getenv("AMSMaxInactiveClients");
 if(max && strlen(max)){
 maxina=atol(max);
+}
+else{
+setenv("AMSMaxInactiveClients",maxina,1);
 }
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
@@ -2612,10 +2615,13 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       }
     }
     else{
+    char *lxplus5=getenv("AMSPublicBatch");
+    if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
+      lxplus5=getenv("AMSPublicBatch");
       string s=(const char*)submit;
       char pat[]="bsub -n ";
       int pos=s.find(pat);
-      if(pos>=0){
+      if(pos>=0 && !strstr((const char*)ahlv->HostName,lxplus5)){
 //         read script put max cpu number for given host
            ifstream ftxt;
            ftxt.clear();
@@ -2640,7 +2646,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                     else{
                      cerr<<"AMSProducer::StartClients-E-UnableToGetNominalHostFor "<<ahlv->HostName<<endl;
                     }
-                    cout <<"AMSProducer-I-getthreads "<<tr<<" "<<maxn<<endl;;
+                    cout <<"AMSProducer-I-getthreads "<<tr<<" "<<maxn<<" "<<ahlv->HostName<<endl;;
                     if(tr>maxn || tr<=0 )tr=maxn; 
                     if(tr>32)tr=32;
                      char cmaxn[33];
