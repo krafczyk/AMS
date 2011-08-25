@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.825 2011/08/22 22:41:45 pzuccon Exp $
+// $Id: job.C,v 1.825.2.1 2011/08/25 09:00:03 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2872,6 +2872,7 @@ if (AMSJob::gethead()->isMonitoring()) {
 void AMSJob::_retrdinitjob(){
 AMSgObj::BookTimer.book("RETRDEVENT"); 
 AMSgObj::BookTimer.book("REHTRDEVENT"); 
+AMSgObj::BookTimer.book("RETRDHEVENT"); 
 }
 void AMSJob::_resrdinitjob(){
 AMSgObj::BookTimer.book("RESRDEVENT"); 

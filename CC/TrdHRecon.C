@@ -117,8 +117,10 @@ int TrdHReconR::DoPrefit(int debug){
 
   int pairs_x=0,pairs_y=0;;
   for(int i=0;i<rhits.size();i++){
+    if(rhits.at(i).Amp<tracking_min_amp)continue;
     TRDHitRZD rzdi=TRDHitRZD(rhits.at(i));
     for(int j=i+1;j<rhits.size();j++){
+      if(rhits.at(j).Amp<tracking_min_amp)continue;
       TRDHitRZD rzdj=TRDHitRZD(rhits.at(j));
       
       if(rzdi.d==rzdj.d && rzdi.z!=rzdj.z){
@@ -257,6 +259,7 @@ int TrdHReconR::DoPrefit(int debug){
       seg->em=0.6/(it->zmax-it->zmin);
       
       for(int h=0;h!=rhits.size();h++){	
+	if(rhits.at(h).Amp>tracking_min_amp)continue;
 	TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	if(rzd.d!=d)continue;
 	
@@ -285,6 +288,7 @@ int TrdHReconR::DoPrefit(int debug){
 	seg->hits.clear();	
 	
 	for(int h=0;h!=rhits.size();h++){	
+	  if(rhits.at(h).Amp>tracking_min_amp)continue;
 	  TRDHitRZD rzd=TRDHitRZD(rhits.at(h));
 	  if(rzd.d!=d)continue;
 	  
@@ -493,8 +497,8 @@ vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
   // rough division of TRD height in dm (0=0-10 cm, 6=60-70 cm)
   int zvec[7];for(int i=0;i!=7;i++)zvec[i]=0;
 
-  for(int s1=0;s1!=rhits.size();s1++){
-    for(int s2=s1+1;s2!=rhits.size();s2++){
+  for(int s1=0;s1!=hsegvec.size();s1++){
+    for(int s2=s1+1;s2!=hsegvec.size();s2++){
       if(hsegvec.at(s1).d==hsegvec.at(s2).d){
 
 	// check for z of crossing
@@ -677,7 +681,6 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
   htrvec.clear();
 
   for(int i=0;i!=r.size();i++){
-    //if(r[i].Amp>tracking_min_amp)
     rhits.push_back(r[i]);
   }
   for(int i=0;i!=s.size();i++)hsegvec.push_back(s[i]);  
@@ -752,7 +755,6 @@ int TrdHReconR::build(){
   for(int s=0;s<2;s++)
     for(AMSTRDRawHit* Hi=(AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",s);Hi;Hi=Hi->next()){
       gbhits.push_back(Hi);
-      //      if(Hi->Amp()>tracking_min_amp)
       rhits.push_back(Hi);
     }
   delete cont2;

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.544 2011/08/23 09:59:58 pzuccon Exp $
+//  $Id: event.C,v 1.544.2.1 2011/08/25 09:00:02 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2183,22 +2183,20 @@ void AMSEvent::_retrdevent(){
    if(p && AMSEvent::debug)p->printC(cout);
   }
 #endif
+  AMSgObj::BookTimer.stop("RETRDEVENT");
 
   if(TRDFITFFKEY.FitMethod!=0){
+    AMSgObj::BookTimer.start("RETRDHEVENT");
+
 #ifdef __MLD__
     cout << " trd before "<<endl;
     TrdRawHitR::print();
     TrdHSegmentR::print();
     TrdHTrackR::print();
 #endif
-
-    //    AMSgObj::BookTimer.start("RETRDHEVENT");
     
-
     TrdHReconR::gethead(AMSEvent::get_thread_num())->clear();
     TrdHReconR::gethead(AMSEvent::get_thread_num())->build();
-
-    //    AMSgObj::BookTimer.stop("RETRDHEVENT");
 
 #ifdef __MLD__
     cout << " trd after "<<endl;
@@ -2206,9 +2204,10 @@ void AMSEvent::_retrdevent(){
     TrdHSegmentR::print();
     TrdHTrackR::print();
 #endif
+
+    AMSgObj::BookTimer.stop("RETRDHEVENT");
   }
   
-  AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){
   Trigger2LVL1 *ptr;
