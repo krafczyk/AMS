@@ -195,7 +195,7 @@ class TrdHReconR{
   float tracking_min_amp;
 
   /// default ctor
-  TrdHReconR():tracking_min_amp(10.){
+  TrdHReconR():tracking_min_amp(5.){
     rhits.clear();
     gbhits.clear();
     hsegvec.clear();

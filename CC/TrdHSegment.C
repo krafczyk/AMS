@@ -1,10 +1,10 @@
 #include "TrdHRecon.h"
-
+#include "commonsi.h"
 ClassImp(TrdHSegmentR)
 
 #ifdef __MLD__
 int TrdRawHitR::num=0;
-//int TrsHSegmentR::num=0;
+//int TrdHSegmentR::num=0;
 #endif
 
 int TrdHSegmentR::NTrdRawHit(){return fTrdRawHit.size();};
@@ -12,18 +12,39 @@ int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-  if(hits.size()<=i&&i<Nhits){
-    hits.clear();
-    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-    for(int i=0;i<cont2->getnelem();i++){
-      for(int n=0;n<fTrdRawHit.size();n++){
-        if(i==fTrdRawHit[n])
-          hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
+  if(AMSCommonsI::getbuildno()<=538){
+    if(hits.size()<=i&&i<Nhits){
+      hits.clear();
+      VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+      int n=0;
+      for(int i=0;i<cont2->getnelem();i++){
+	TRDHitRZD rzd=TRDHitRZD(*(TrdRawHitR*)cont2->getelem(i));
+	if(rzd.d!=d)continue;
+	
+	float dz=rzd.z-z;
+	float expos=r+ m*dz;//*cos(atan(seg->m));
+	float resid=rzd.r - expos;
+	float maxresid=0.6+fabs(dz)* em;
+	if(fabs(resid)<maxresid)
+	  hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
       }
+      delete cont2;
     }
-    delete cont2;
   }
-
+  else{
+    if(hits.size()<=i&&i<Nhits){
+      hits.clear();
+      VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+      for(int i=0;i<cont2->getnelem();i++){
+	for(int n=0;n<fTrdRawHit.size();n++){
+	  if(i==fTrdRawHit[n])
+	    hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
+	}
+      }
+      delete cont2;
+    }
+  }
+  
   if(i<hits.size())return &hits[i];
   return 0;
 
