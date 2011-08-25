@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.691 2011/08/25 12:45:57 choutko Exp $
+# $Id: RemoteClient.pm,v 1.692 2011/08/25 16:06:04 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14059,7 +14059,7 @@ foreach my $block (@blocks) {
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
 }
-    my $dataruns=$startingrun[21]=!0?"dataruns":"runs";
+    my $dataruns=$startingrun[21]!=0?"dataruns":"runs";
     my $runupdate = "UPDATE $dataruns SET ";
  if ($startingrun[2] != 0) {
    $sql = $runupdate." STATUS='$status' WHERE jid=$lastjobid";
