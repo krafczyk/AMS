@@ -856,7 +856,7 @@ int TrdHReconR::retrdhevent(int debug){
       TrdHTrackR *tr=SegToTrack(segiter_sel[0],segiter_sel[1],debug);
       if(tr){
 	tr->status=1;
-	htrvec.push_back(tr);
+	//	htrvec.push_back(tr);
 	AddTrack(tr);
 	delete tr;
       }
@@ -888,12 +888,15 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
     amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr);
     amstr->elikelihood=TrdHChargeR::gethead()->GetELikelihood(amstr);
 
+#ifndef __ROOTSHAREDLIBRARY__
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");
     if(amstr){
       cont2->addnext(amstr);
-      htrvec.push_back(*amstr);
     }
     delete cont2;
+#endif
+
+    htrvec.push_back(*amstr);
   }
 }
 void TrdHReconR::AddSegment(TrdHSegmentR* seg){
