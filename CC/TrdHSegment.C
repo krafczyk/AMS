@@ -1,5 +1,5 @@
 #include "TrdHRecon.h"
-//#include "commonsi.h"
+#include "root.h"
 ClassImp(TrdHSegmentR)
 
 #ifdef __MLD__
@@ -12,8 +12,8 @@ int TrdHSegmentR::nTrdRawHit(){return fTrdRawHit.size();};
 int TrdHSegmentR::iTrdRawHit(unsigned int i){return i<nTrdRawHit()?fTrdRawHit[i]:-1;};
 
 TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){ 
-//  if(AMSCommonsI::getbuildno()<=538){
-if(0){
+#ifdef __ROOTSHAREDLIBRARY__
+  if(AMSEventR::Head()->Version()<=538){
     if(hits.size()<=i&&i<Nhits){
       hits.clear();
       VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
@@ -32,18 +32,18 @@ if(0){
       delete cont2;
     }
   }
-  else{
-    if(hits.size()<=i&&i<Nhits){
-      hits.clear();
-      VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
-      for(int i=0;i<cont2->getnelem();i++){
-	for(int n=0;n<fTrdRawHit.size();n++){
-	  if(i==fTrdRawHit[n])
-	    hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
-	}
+#endif
+
+  if(hits.size()<=i&&i<Nhits){
+    hits.clear();
+    VCon* cont2=GetVCon()->GetCont("AMSTRDRawHit");
+    for(int i=0;i<cont2->getnelem();i++){
+      for(int n=0;n<fTrdRawHit.size();n++){
+	if(i==fTrdRawHit[n])
+	  hits.push_back(*(TrdRawHitR*)cont2->getelem(i));
       }
-      delete cont2;
     }
+    delete cont2;
   }
   
   if(i<hits.size())return &hits[i];
@@ -51,7 +51,7 @@ if(0){
 
 }
 
-TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0.),Chi2(0.){
+TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0),Chi2(0.){
   fTrdRawHit.clear();
   gbhits.clear();
   hits.clear();
@@ -256,7 +256,7 @@ int TrdHSegmentR::Refit(int debug){
   int lsum=0;
   for(int l=0;l!=20;l++)if(lay[l]>0)lsum++;
   if(debug)printf("linreg stat %i dz %.2f layers %i\n",lr,zmax-zmin,lsum);
-  if(lr==1&&zmax-zmin>10.&&lsum>2){
+  if(lr==1&&zmax-zmin>8.&&lsum>2){
     calChi2();
     return 1;
   }
