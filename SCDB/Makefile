@@ -1,7 +1,7 @@
-CC=gcc 
-CXX=g++ 
+#CC=gcc 
+#CXX=g++ 
 
-CFLAGS          = -Wall -g -fPIC
+CFLAGS          = -Wall -g -fPIC -O2
 ROOTCFLAGS      = $(shell $(ROOTSYS)/bin/root-config --cflags)
 ROOTLIBS        = $(shell $(ROOTSYS)/bin/root-config --libs)
 CFLAGS         += $(ROOTCFLAGS)
