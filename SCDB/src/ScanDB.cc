@@ -32,14 +32,15 @@ int main(int argc, char *argv[]){
   int level=0;
   if(argc==4)level=atoi(argv[3]);
 
-  Node *node=&scdb->GetNode(argv[2]);
+  Node nodestat=scdb->GetNode(argv[2]);
+  Node *node=&nodestat;
 
   printf("node pointer %d got - datatypes %i\n",node,(int)node->getnelem());
   for(int i=0;i<(int)node->getnelem();i++){
     printf("node %i %s entries %i\n",i,node->GetName(),node->GetDataTypeN(i)->getnelem());
     if(level==0)continue;
     for(int j=0;j<node->GetDataTypeN(i)->getnelem();j++){
-      printf("%i values for entry %i %s\n",node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem(),j,(const char*)node->GetDataTypeN(i)->GetSubType(j)->tag);
+      printf("%i values for entry %i %s\n",node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem(),j,(const char*)node->GetDataTypeN(i)->GetSubTypeN(j)->tag);
       if(level==1)continue;
       for(int k=0;k<node->GetDataTypeN(i)->GetSubTypeN(j)->getnelem();k++){
 	printf("time %i val %.2f\n",node->GetDataTypeN(i)->GetSubTypeN(j)->GetTime(k),node->GetDataTypeN(i)->GetSubTypeN(j)->GetValue(k));
@@ -47,7 +48,6 @@ int main(int argc, char *argv[]){
     }
   }
   
-  delete node;
   delete scdb;
   return 0;
 }
