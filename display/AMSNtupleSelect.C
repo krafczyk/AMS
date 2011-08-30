@@ -12,16 +12,16 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
  //cout<<ev->getsetup()->fScalers[1]._LiveTime[0]<<" "<<ev->getsetup()->fScalers[1]._LiveTime[1]<<endl;
- cout <<ev->fHeader.Roll<<" "<<ev->fHeader.Pitch<<" "<<ev->fHeader.Yaw<<endl;
+// cout <<ev->fHeader.Roll<<" "<<ev->fHeader.Pitch<<" "<<ev->fHeader.Yaw<<endl;
  unsigned int gps,gpsn;
- int ret=ev->GetGPSTime(gps,gpsn);
- cout <<"  ret "<<endl;
- for(int k=0;k<ev->fHeader.GPSTime.size();k++){
-   cout <<" GPS "<<k<<" "<<ev->fHeader.GPSTime[k]<<endl;
- }
- cout <<" gps "<<ret<<" "<<gps<<" "<<gpsn<<" "<<ev->UTime()<<" "<<ev->fHeader.Time[1]<<endl; 
-return true;
-   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>3 ){
+ //int ret=ev->GetGPSTime(gps,gpsn);
+ //cout <<"  ret "<<endl;
+ //for(int k=0;k<ev->fHeader.GPSTime.size();k++){
+ //  cout <<" GPS "<<k<<" "<<ev->fHeader.GPSTime[k]<<endl;
+// }
+ //cout <<" gps "<<ret<<" "<<gps<<" "<<gpsn<<" "<<ev->UTime()<<" "<<ev->fHeader.Time[1]<<endl; 
+//return true;
+   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>200 ){
 
 //   if(ev && ev->nLevel1()   && ev->nParticle()  && ev->nTrTrack() && ev->nTrdTrack() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>20 && ev->EcalShower(0).S13R!=0 && ev->EcalShower(0).RearLeak<0.99 ){
    //if(ev && ev->nLevel1()   && ev->nParticle()  && ev->Particle(0).Beta>0 && ev->nTrTrack()  && ev->Particle(0).Charge>1 && ev->Particle(0).iTrTrack()>=0 &&  ev->Particle(0).iTrdTrack()<0){

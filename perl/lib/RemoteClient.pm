@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.692 2011/08/25 16:06:04 choutko Exp $
+# $Id: RemoteClient.pm,v 1.693 2011/08/30 14:49:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -711,24 +711,36 @@ jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (selec
 
         $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, realtriggers from jobs_deleted), productionset where 
-jpid=productionset.did  and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+jpid=productionset.did  and cid=".$self->{CCID}." and productionset.status='Active'");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $ret->[0][0];
 	}
        $ret = $self->{sqlserver}->Query("select count(*) as completed from
 (select cid as jcid, pid, realtriggers , time as jtime from jobs ) 
 , productionset where
-jcid=".$self->{CCID}." and realtriggers>0 and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
+jcid=".$self->{CCID}." and realtriggers>0 and pid=productionset.did and productionset.status='Active'");
         if ( defined $ret->[0][0] ) {
                 $completed_jobs+= $ret->[0][0];
         }
  
          $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
 (select cid, pid as jpid, jid as jjid, realtriggers  from jobs), ntuples,productionset where 
-jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.did in (select did from productionset where status='Active')");
+jjid=ntuples.jid and ntuples.path like '%00000%' and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
 	if ( defined $ret->[0][0] ) {
 		$completed_jobs = $completed_jobs+$ret->[0][0];
 	}
+        $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+(select cid, pid as jpid, jid as jjid, realtriggers  from jobs), ntuples,datafiles,productionset where
+jjid=ntuples.jid and ntuples.path like '%00000%' and datafiles.type like '%MC%'  and datafiles.run=ntuples.jid and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
+        if ( defined $ret->[0][0] ) {
+                $completed_jobs = $completed_jobs-=$ret->[0][0];
+        }
+       $ret = $self->{sqlserver}->Query("select count(*) as COMPLETED from
+(select cid, pid as jpid, jid as jjid, realtriggers  from jobs), datafiles,productionset where
+jjid=datafiles.run and datafiles.type like '%MC%'  and jpid=productionset.did and realtriggers<=0 and cid=".$self->{CCID}." and productionset.status='Active' ");
+        if ( defined $ret->[0][0] ) {
+                $completed_jobs = $completed_jobs+=$ret->[0][0];
+        }
 
         $max_jobs = int(2.2*$capacity_jobs*$reputation*($completed_jobs/($total_jobs+1))+1-($total_jobs-$completed_jobs));
         if($completed_jobs > 0){

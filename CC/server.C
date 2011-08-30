@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.187 2011/08/25 12:45:57 choutko Exp $
+//  $Id: server.C,v 1.188 2011/08/30 14:48:56 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -669,7 +669,7 @@ if(max && strlen(max)){
 maxina=atol(max);
 }
 else{
-setenv("AMSMaxInactiveClients",maxina,1);
+setenv("AMSMaxInactiveClients","2",1);
 }
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
@@ -2602,7 +2602,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
 }
 }
     submit+=" &";
-
+    int threads=ac.id.threads;
     if(singlethread){
       cout<<"AMSProducer::StartClients-I-singleThreadDetected "<<submit<<endl;
       string s=(const char*)submit;
@@ -2621,7 +2621,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       string s=(const char*)submit;
       char pat[]="bsub -n ";
       int pos=s.find(pat);
-      if(pos>=0 && !strstr((const char*)ahlv->HostName,lxplus5)){
+      if( !strstr((const char*)ahlv->HostName,lxplus5)){
 //         read script put max cpu number for given host
            ifstream ftxt;
            ftxt.clear();
@@ -2651,9 +2651,13 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                     if(tr>32)tr=32;
                      char cmaxn[33];
                       sprintf(cmaxn,"bsub -n %u ",tr);
-                      string s1=s.replace(pos,strlen(pat)+1,cmaxn);
-                      submit=s1.c_str();
+                      threads=tr;
+                      if(pos>=0){
+                       string s1=s.replace(pos,strlen(pat)+1,cmaxn);
+                       submit=s1.c_str();
                        cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
+                      }
+                      
               }
             }
             break;
@@ -2677,6 +2681,8 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       cid.Interface= (const char *) " "; 
     PropagateAH(cid,(ahlv),DPS::Client::Update);
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
+    acv->id.threads=threads;
+    cout <<"   AMSProducer::StartClients-I-InitialthreadsSet "<<threads;
     PropagateAC(acv,DPS::Client::Create);
 //     ((ahlv)->ClientsRunning)++;
     }
@@ -2819,7 +2825,7 @@ if(li!=_acl.end()){
     if(iret){
      _parent->EMessage(AMSClient::print(acv3,"Producer::Unable To SigHup Client"));
 //         DPS::Client::ActiveClient_var acv2=*li;
-         PropagateAC(acv4,DPS::Client::Delete);
+//         PropagateAC(acv4,DPS::Client::Delete);
 
   }
   }
@@ -2872,7 +2878,7 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
       fbin.open((const char*)badd);
          int kstart=-1;
          int kend=-1;
-        char line[255]="";
+        char line[1255]="";
       if(fbin){
         fbin.getline(line,254);
         for(int i=0;i<strlen(line);i++){
@@ -2889,21 +2895,32 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
       unsigned jid=0;
       if(kstart>=0 && kend>=0 && kstart<kend && isdigit(line[kstart+1])){
         jid=atol(line+kstart+1);
-        cout <<"  Check Client jid found "<<jid<<" "<<uid;         
+        cout <<"  Check Client jid found "<<jid<<" "<<uid<<endl;         
+        acv->id.pid=jid;
         char tmp[255];
-        sprintf(tmp,"ssh afs/cern.ch/ams/local/bin/timeout --signal 9 60 lxplus bjobs %u 1>& %s%s.bsub",jid,add,uid);
-        system(tmp);
+        sprintf(tmp,"%s%s.bsub",add,uid);
+        unlink(tmp);
+        sprintf(tmp,"ssh lxplus /afs/cern.ch/ams/local/bin/timeout --signal 9 120  bjobs %u 1>& %s%s.bsub",jid,add,uid);
+        int suc=system(tmp);
+        if(suc){
+            cerr<<" unable to "<<tmp<<endl;
+        }
         sprintf(tmp,"%s%s.bsub",add,uid);
         fbin.clear();
         fbin.open(tmp);
+        bool found=false;
         if(fbin){
          while(fbin.good() && !fbin.eof()){
-         fbin.getline(line,254);
-         if(strstr(line,"PEND")){
+         fbin.getline(line,1254);
+//         cout <<" line "<<line<<endl;
+         if(strstr(line,"PEND") || strstr(line,"RUN")){
            acv->Status=DPS::Client::Submitted;
+           time(&tt);
            acv->LastUpdate=tt;
+           found=true;
          }
-         }         
+         }
+         if(!found)cerr<<" unable to find PEND or RUN in "<<tmp<<" "<<jid<<endl;         
         }
       else{
          cerr <<" unable to open "<<tmp<<endl;
@@ -4162,7 +4179,10 @@ return _pser->Master(advanced);
 integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool self){
   //start  killer here
    
-   if(ac.id.pid==0)return 0;
+   if(ac.id.pid==0){
+         cerr<<"  ac.id.pid 0 "<<ac.id.uid<<endl;
+         return 0;
+  }
    const char * hn=(const char*)(ac.id.HostName);
    if(!(hn && strlen(hn)))return 0;
    AString submit;

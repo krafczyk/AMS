@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.385 2011/08/26 09:33:10 pzuccon Exp $
+//  $Id: root.h,v 1.386 2011/08/30 14:49:01 choutko Exp $
 
 //
 //  NB 
@@ -1138,9 +1138,9 @@ public:
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
   bool Compat(); ///< Compatibility function to be called once to ensure old functionality
-  protected:
   vector<TrTrackFitR> fTrTrackFit; ///< !!Vector of Fits;
-  vector<int> fTrRecHit;  ///< Vector of trrechit indexes
+  protected:
+vector<int> fTrRecHit;  ///< Vector of trrechit indexes
   public:
    int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom) 
   bool isSubSet(int pattern); ///< return true if pattern is subset of track Bitpattern;
