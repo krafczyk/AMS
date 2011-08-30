@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.1 2011/07/19 09:37:15 choutko Exp $
+//  $Id: trfit.h,v 1.1.4.1 2011/08/30 14:48:12 choutko Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -24,7 +24,7 @@ short int Alig; ///< Alignment applied to a pattern in a same way xxxxxxxxx x=0,
 short int Att; ///< Attribute 0 full path 1 1st half 2 2nd half 3 int only 4 ext only 5 custom 6 not defined
 float Rigidity;  ///< Rigidity GV
 float ErrRigidity; ///<  Err (1/Rigidity)
-AMSPoint Coo;      ///< Track Fitted Coo [cm]p
+AMSPoint Coo;      ///< Track Fitted Coo  (cm)
 float Theta;      ///< Track Theta (rad)
 float Phi;        ///< Track Phi (rad)
 float Chi2;       ///< Chi2
@@ -38,7 +38,7 @@ float Phi;    ///<  !!Fitted Phi
 unsigned int NHits()const; ///< NumberOfHits
 
 
-vector<TrSCooR> fTrSCoo;  ///< !!Vector  Contained only  layers not in the Pattern
+vector<TrSCooR> fTrSCoo;  ///< !!Vector of fitted coo 
 TrTrackFitR():Pattern(0),Algo(-1),Alig(-1),MS(-1),Att(kND),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0){
 fTrSCoo.clear();
 }

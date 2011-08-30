@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.155 2011/08/18 20:59:24 paniccia Exp $
+//  $Id: ecalrec.C,v 1.155.2.1 2011/08/30 14:48:10 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2610,7 +2610,7 @@ int icofgcell[Maxrow];
      
  if ((erec_ipcorr>=1000.)||(frac2>=0.15)) corr_leak_2d=1.;// do not apply correction for E>=1TeV or too big Edep in last2layers
  if ((erec_xtc/corr_leak_2d)<0){
-           setstatus(AMSDBc::CATLEAK);
+           //setstatus(AMSDBc::CATLEAK);
 	    EcalJobStat::addre(12);
             #ifdef __AMSDEBUG__
 	    cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<< frac2 <<endl;
@@ -2729,7 +2729,7 @@ int icofgcell[Maxrow];
 	
 	if(EshiftInPercent<=0)
 	  {
-	    setstatus(AMSDBc::CATLEAK);
+	    //setstatus(AMSDBc::CATLEAK);
 	    EcalJobStat::addre(11);
 #ifdef __AMSDEBUG__
 	    cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<efrac<<endl;

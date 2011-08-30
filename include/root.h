@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.381.2.2 2011/08/25 14:09:35 pzuccon Exp $
+//  $Id: root.h,v 1.381.2.3 2011/08/30 14:48:12 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1137,8 +1137,8 @@ public:
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
   bool Compat(); ///< Compatibility function to be called once to ensure old functionality
-  protected:
   vector<TrTrackFitR> fTrTrackFit; ///< !!Vector of Fits;
+  protected:
   vector<int> fTrRecHit;  ///< Vector of trrechit indexes
   public:
    int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom) 

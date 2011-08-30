@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.235 2011/07/19 09:37:06 choutko Exp $
+//  $Id: trrec.C,v 1.235.4.1 2011/08/30 14:48:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2407,9 +2407,10 @@ AMSgObj::BookTimer.start("TrAdvancedFit_3");
     Fit(3);
 AMSgObj::BookTimer.stop("TrAdvancedFit_3");
 
-    if(TKDBc::patpoints(_Pattern)>5){
+    if(TKDBc::patpoints(_Pattern)>=5){
 
     Fit(10);
+    Fit(14);
     Fit(15);
 AMSgObj::BookTimer.start("TrAdvancedFit_3");
 

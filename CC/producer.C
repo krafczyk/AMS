@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.168 2011/08/22 09:39:34 choutko Exp $
+//  $Id: producer.C,v 1.168.2.1 2011/08/30 14:48:10 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -946,7 +946,8 @@ if(_Solo){
 }
 UpdateARS();
 sendDSTInfo();
-
+const int mtry=60;
+int ntry=0;
 if(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO){
 aga1:
 for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
@@ -960,7 +961,9 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
   }
   catch  (CORBA::SystemException & a){
     _OnAir=false;
- if(getior("GetIorExec"))goto aga1;
+    cerr<<" Catched aga1 "<<ntry<<endl;
+
+ if(getior("GetIorExec") && ntry++<mtry)goto aga1;
  else FMessage("AMSProducer::sendNtupleEnd-F-UnableToDeleteNtuple ",DPS::Client::CInAbort);
   }
 }
@@ -1045,7 +1048,10 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
       _OnAir=false;
      }
     }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendntupleend "<<endl;
+    goto again;
+  }
  else FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 }
    else FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtuplein mode RO ",DPS::Client::CInAbort);
@@ -1073,7 +1079,10 @@ else{
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again1;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendntuple2 "<<endl;
+       goto again1;
+ }
  else FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 }
 }
@@ -1149,7 +1158,10 @@ again:
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendntuple1 "<<endl;
+ goto again;
+ }
 else FMessage("AMSProducer::sendNtupleStart-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
 else{
@@ -1316,7 +1328,10 @@ again:
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendntuplestartinfo "<<endl;
+    goto again;
+ }
 else FMessage("AMSProducer::sendNtupleUpdate-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
 else{
@@ -1486,7 +1501,10 @@ again:
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendRunEndInfo "<<endl;
+    goto again;
+}
 else FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
 
 
@@ -1532,7 +1550,10 @@ again:
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr<<" catched -UnableToSendRunEndInf0 "<<endl;
+   goto again;
+ }
 else FMessage("AMSProducer::sendRunEndMC-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
 
 
@@ -1619,7 +1640,10 @@ again:
   }
  }
 if(!suc){
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec")){
+   cerr <<"  catched UnableTogetTDVTabl "<<endl;
+    goto again;
+  }
  else FMessage("AMSProducer::getinitTDV-F-UnableTogetTDVTable",DPS::Client::CInAbort);
 }
 DPS::Producer::TDVTable_var tvar=ptdv;
@@ -1682,6 +1706,7 @@ again:
 if(!suc){
  if(oncemore){
  if(getior("GetIorExec") && !exhausted){
+   cout <<"  catched exausted1 "<<endl;
     exhausted=true;
     goto again;
  }
@@ -1745,6 +1770,7 @@ cout <<" time ibe "<<i<<" "<<b<<" "<<e<<endl;
 }
 if(!suc){
  if(getior("GetIorExec")&& !exausted){
+   cout <<"  catched exausted "<<endl;
    exausted=true;
    goto again;
 }
@@ -1928,6 +1954,8 @@ LMessage(AMSClient::print(_evtag,"OpenDST"));
 if(_Solo)return;
 
 UpdateARS();
+const int mtry=60;
+int ntry=0;
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -1940,10 +1968,11 @@ again:
    }
   }
   catch  (CORBA::SystemException & a){
+    cerr<<" catch again "<<ntry<<endl;
     _OnAir=false;
   }
 }
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec") && ntry++<mtry)goto again;
 else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagBeginInfo ",DPS::Client::CInAbort);
 
 
