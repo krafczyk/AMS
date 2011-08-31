@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.238 2011/08/31 15:45:09 choutko Exp $
+//  $Id: particle.C,v 1.239 2011/08/31 21:14:21 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1019,7 +1019,8 @@ void AMSParticle::refit(int fast){
 	_TrCoo[layer]=_ptrack->GetResidualO(layer+1);
 	if (_TrCoo[layer].norm() == 0 || layer==0 || layer==TkDBc::Head->nlay()-1){
 	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
-	_ptrack->InterpolateLayerO(layer+1, _TrCoo[layer],dir);
+	AMSDir dir;
+        _ptrack->InterpolateLayerO(layer+1, _TrCoo[layer],dir);
 #else
 	if(!_ptrack->getres(layer,_TrCoo[layer]) || layer==0 || layer==TKDBc::nlay()-1){
 	  bad=_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1;       }
