@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.236.4.1 2011/08/24 13:07:04 pzuccon Exp $
+//  $Id: particle.C,v 1.236.4.2 2011/08/31 15:44:27 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -625,7 +625,6 @@ void AMSParticle::trdfit(){
   if(_ptrd){
     _ptrd->setstatus(AMSDBc::USED);
     AMSPoint aa=_ptrd->getCooStr();
-    AMSDir dir;
 #ifdef _PGTRACK_
     _ptrack->Interpolate(aa[2], _TRDCoo[0],dir);
 #else
@@ -641,7 +640,6 @@ void AMSParticle::trdfit(){
     if(pa && pb){
       number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
       AMSPoint coo(0,0,z);
-      AMSDir dir;
 #ifdef _PGTRACK_
       _ptrack->Interpolate(z, _TRDCoo[0],dir);
 #else
@@ -662,7 +660,6 @@ void AMSParticle::trdfit(){
     number z=pb->loc2gl(AMSPoint(0,0,0))[2]+2;
 
     AMSPoint coo(0,0,z);
-      AMSDir dir;
 #ifdef _PGTRACK_
       _ptrack->Interpolate(z, _TRDCoo[1],dir);
 #else
@@ -1018,7 +1015,6 @@ void AMSParticle::refit(int fast){
 	number theta,phi;
 	bool bad=false;
 #ifdef  _PGTRACK_
-        AMSDir dir;
         //PZ FIXME REFIT //SH FIXED
         _TrCoo[layer]=_ptrack->GetResidualO(layer+1);
         if (_TrCoo[layer].norm() == 0 || layer==0 || layer==TkDBc::Head->nlay()-1){
