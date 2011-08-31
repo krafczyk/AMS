@@ -1,4 +1,4 @@
-// $Id: MagField.C,v 1.16 2011/04/22 21:33:37 shaino Exp $
+// $Id: MagField.C,v 1.17 2011/08/31 18:47:33 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2007/12/20 SH  All the parameters are defined in double
 ///\date  2008/01/20 SH  Imported to tkdev (test version)
 ///\date  2008/11/17 PZ  Many improvement and import to GBATCH
-///$Date: 2011/04/22 21:33:37 $
+///$Date: 2011/08/31 18:47:33 $
 ///
-///$Revision: 1.16 $
+///$Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -61,6 +61,16 @@ MagField::~MagField()
 {
   if(mm) delete mm;
   _ptr=0;
+}
+
+MagField *MagField::GetPtr(void)
+{
+  if (_ptr) return _ptr;
+#pragma omp critical (maggetptr)
+  {
+    if (!_ptr) new MagField;
+  }
+  return _ptr;
 }
 
 int MagField::Read(const char *fname)

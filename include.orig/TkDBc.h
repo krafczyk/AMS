@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.22 2011/05/06 00:40:22 choutko Exp $
+// $Id: TkDBc.h,v 1.23 2011/08/31 18:47:33 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -83,9 +83,6 @@ public:
     Example: TkDBc::Head->_nplanes  or TkDBc::FindTkId(-212);
   */
   static TkDBc* Head;
-#ifdef __ROOTSHAREDLIBRARY__
-#pragma omp threadprivate (Head)
-#endif
 
   // ------- PLANE 1N Support--------------------   
   number P1NSupportCoo[3];

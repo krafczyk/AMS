@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.55 2011/07/26 09:21:55 shaino Exp $
+//  $Id: TrFit.C,v 1.56 2011/08/31 18:47:34 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/07/26 09:21:55 $
+///$Date: 2011/08/31 18:47:34 $
 ///
-///$Revision: 1.55 $
+///$Revision: 1.56 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3950,11 +3950,14 @@ void TrProp::Propagate(double *x, double *d, double *u, int ndiv)
 
 TkDBc *TrProp::TkDBc()
 {
+  if (TkDBc::Head) return TkDBc::Head;
 #pragma omp critical (tkdbccheck)
+ {
   if (!TkDBc::Head) {
     TkDBc::CreateTkDBc();
     TkDBc::Head->init(3);
   }
+ }
   return TkDBc::Head;
 }
 
@@ -3964,21 +3967,26 @@ void TrProp::GuFld(double *p, double *b)
 
   if (!MagFieldOn()) return;
 
-  static int magerr = 0;
-#pragma omp threadprivate(magerr)  
-
   MagField *mfp = MagField::GetPtr();
-  if (mfp->GetMap() == 0 && !magerr) {
-    char name[200];
-    sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
-	    getenv("AMSDataDir"));
-    if ((mfp->Read(name)) < 0) {
-      std::cerr << "Magnetic Field map not found: " << name << std::endl;
-      magerr = -1;
-      return;
+  if (!mfp->GetMap()) {
+    int err = 0;
+#pragma omp critical (magchk)
+    {
+      static int magerr = 0;
+      if (!mfp->GetMap() && !magerr) {
+	char name[200];
+	sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
+		getenv("AMSDataDir"));
+	if ((mfp->Read(name)) < 0) {
+	  std::cerr << "Magnetic Field map not found: " << name << std::endl;
+	  magerr = -1;
+	  err = 1;
+	}
+	mfp->SetMagstat(1);
+	mfp->SetScale(1.);
+      }
     }
-    mfp->SetMagstat(1);
-    mfp->SetScale(1.);
+    if (err) return;
   }
 
   float pp[3] = { p[0], p[1], p[2] };
