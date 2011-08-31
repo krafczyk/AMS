@@ -11,6 +11,14 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+  if(ev && ev->nParticle()){
+    cout <<"0 "<<ev->Particle(0).TRDCoo[0][2]<<endl;
+    cout <<"1 "<<ev->Particle(0).TRDCoo[1][2]<<endl;
+    for(int k=0;k<9;k++)cout <<k<<" "<<ev->Particle(0).TrCoo[k][2]<<endl;
+
+    return 1;
+  }
+  
  //cout<<ev->getsetup()->fScalers[1]._LiveTime[0]<<" "<<ev->getsetup()->fScalers[1]._LiveTime[1]<<endl;
 // cout <<ev->fHeader.Roll<<" "<<ev->fHeader.Pitch<<" "<<ev->fHeader.Yaw<<endl;
  unsigned int gps,gpsn;
