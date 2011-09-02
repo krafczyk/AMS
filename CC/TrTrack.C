@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.114.2.1 2011/08/24 13:07:04 pzuccon Exp $
+// $Id: TrTrack.C,v 1.114.2.2 2011/09/02 06:36:42 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/08/24 13:07:04 $
+///$Date: 2011/09/02 06:36:42 $
 ///
-///$Revision: 1.114.2.1 $
+///$Revision: 1.114.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -510,8 +510,8 @@ void TrTrackR::FillExRes(int idsel)
       TrRecHitR *hit = GetHitLO(ily);
       if (hit) {
         AMSPoint pint = InterpolateLayerO(ily, id);
-        GetPar(id).Residual[ily][0] = (hit->GetCoord()-pint)[0];
-        GetPar(id).Residual[ily][1] = (hit->GetCoord()-pint)[1];
+        GetPar(id).Residual[ily-1][0] = (hit->GetCoord()-pint)[0];
+        GetPar(id).Residual[ily-1][1] = (hit->GetCoord()-pint)[1];
       }
     }
   }
@@ -920,17 +920,20 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   par.P0  = pnt;
   par.Dir = dir;
 
+  for (int i = 0; i < trconst::maxlay; i++)
+    par.Residual[i][0] = par.Residual[i][1] = 0;
+
   // Fill residuals
   for (int i = 0; i < _TrFit.GetNhit(); i++) {
     int j = idx[i]%10;
     TrRecHitR *hit = GetHit(j);
 
     int il = hit->GetLayer()-1;
-    par.Residual[il][0]= _TrFit.GetXr(i);
-    par.Residual[il][1]= _TrFit.GetYr(i);
+    par.Residual[il][0] = _TrFit.GetXr(i);
+    par.Residual[il][1] = _TrFit.GetYr(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
-    if (1) {//if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
+    if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
       TrRecHitR *hit = GetHitLO(i+1);
       AMSPoint pint  = InterpolateLayerO(i+1, id);
       if (hit){
