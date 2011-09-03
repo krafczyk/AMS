@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.5 2011/08/24 10:53:27 pzuccon Exp $
+// $Id: TrTrackSelection.C,v 1.6 2011/09/03 08:40:59 shaino Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -107,25 +107,25 @@ double TrTrackSelection::GetHalfRessq(TrTrackR *track, int span,
   // For the moment only max span is supported
   if (span != kMaxSpan) return -1;
 
-  int mf8 = track->iTrTrackPar(algo, 5, refit);  // With Layer 1N
+  int mf1 = track->iTrTrackPar(algo, 5, refit);  // With Layer 1N
   int mf9 = track->iTrTrackPar(algo, 6, refit);  // With Layer 9
   int mff = track->iTrTrackPar(algo, 7, refit);  // With Layer 1N and 9
-  if (mf8 <= 0 || mf9 <= 0 || mff <= 0) return -2;
+  if (mf1 <= 0 || mf9 <= 0 || mff <= 0) return -2;
 
   double rgt = TMath::Abs(track->GetRigidity(mff));
   if (rgt == 0) return -3;
 
-  double fms8 = TRFITFFKEY.FitwMsc[7]/rgt;
+  double fms1 = TRFITFFKEY.FitwMsc[7]/rgt;
   double fms9 = TRFITFFKEY.FitwMsc[8]/rgt;
-  double ery8 = TMath::Sqrt( 9+fms8*fms8)*TRFITFFKEY.ErrX*1.2;
+  double ery1 = TMath::Sqrt( 9+fms1*fms1)*TRFITFFKEY.ErrX*1.2;
   double ery9 = TMath::Sqrt(15+fms9*fms9)*TRFITFFKEY.ErrY*1.2;
-  if (ery8 <= 0 || ery9 <= 0) return -4;
+  if (ery1 <= 0 || ery9 <= 0) return -4;
 
-  double res8 = track->GetResidualO(8, mf9).y();
-  double res9 = track->GetResidualO(9, mf8).y();
-  if (res8 == 0 || res9 == 0) return -5;
+  double res1 = track->GetResidualJ(1, mf9).y();
+  double res9 = track->GetResidualJ(9, mf1).y();
+  if (res1 == 0 || res9 == 0) return -5;
 
-  return res8*res8/ery8/ery8+res9*res9/ery9/ery9;
+  return res1*res1/ery1/ery1+res9*res9/ery9/ery9;
 }
 
 AMSPoint TrTrackSelection::GetMinDist(TrTrackR *track, int layerp, int nhmin)
