@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.67.2.1 2011/08/24 13:07:04 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.67.2.2 2011/09/03 08:43:01 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/08/24 13:07:04 $
+///$Date: 2011/09/03 08:43:01 $
 ///
-///$Revision: 1.67.2.1 $
+///$Revision: 1.67.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -463,7 +463,7 @@ public:
 
   /// Return the  proj (0=X,1=Y) residual at layer ilay  OLD Scheme (1-9) from TrTrackPar corresponding to id
   AMSPoint  GetResidualO(int ilay, int id= 0) const { 
-    if (ilay <= 0 || ilay >= trconst::maxlay) return AMSPoint(0,0,0);
+    if (ilay <= 0 || ilay > trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_Lay(ilay),
                     GetPar(id).GetResidualY_Lay(ilay),
                     TkDBc::Head->GetZlayer(ilay));
