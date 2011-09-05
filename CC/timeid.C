@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.129.2.1 2011/07/28 11:29:06 choutko Exp $
+//  $Id: timeid.C,v 1.129.2.2 2011/09/05 13:37:46 mduranti Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -965,6 +965,10 @@ usemap:
     dirent64 ** namelistsubdir;
     int nptrdir=scandir64((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
 #endif
+#ifdef __DARWIN__
+    dirent ** namelistsubdir;
+    int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
+#endif
 
     for(int is=0;is<nptrdir;is++){
       AString fsdir(fdir);
@@ -974,6 +978,11 @@ usemap:
       dirent64 ** namelist;
       int nptr=scandir64((const char *)fsdir,&namelist,&_select,NULL);     
 #endif
+#ifdef __DARWIN__
+      dirent ** namelist;
+      int nptr=scandir((const char *)fsdir,&namelist,&_select,NULL);     
+#endif
+
 
       if(nptr>0){
 //           cout <<"  dbsize "<<_DataBaseSize<<" "<<size<<" "<<nptr<<" "<<fsdir<<endl;
