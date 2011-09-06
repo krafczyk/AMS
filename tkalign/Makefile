@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.13 2011/09/06 09:23:02 shaino Exp $
+# $Id: Makefile,v 1.14 2011/09/06 09:47:20 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -57,7 +57,8 @@ ifeq ($(HOST),cern.ch)
 
 # for dynamic binary
 else
-  LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx -lMinuit -lMinuit2
+  LIBX = -lMinuit2 -lTMVA -lXMLIO -lMLP -lTreePlayer
+  LIBR = $(shell $(ROOTSYS)/bin/root-config --libs) -lNetx $(LIBX)
   LIBP = $(AMSWD)/lib/$(ARCH)/ntuple_slc4_PG.so
 
 endif
@@ -80,6 +81,8 @@ obj/tdv.o: CC/tdv.C
 
 bin/%: obj/%.o $(LIBP)
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
+	@echo $(LIBP)
+	@echo $(LIBR)
 	$(LD) -o $@ $< $(LIBP) $(LIBR)
 	#readelf -d $@
 
