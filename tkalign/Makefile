@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2011/09/06 08:51:50 shaino Exp $
+# $Id: Makefile,v 1.13 2011/09/06 09:23:02 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -52,7 +52,7 @@ ifeq ($(HOST),cr.cnaf.infn.it)
 else
 ifeq ($(HOST),cern.ch)
   LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys
-  LIBR = -L$(ROOTSYS)/lib -lRoot -pthread  -lpcre $(LIBX)
+  LIBR = -L$(ROOTSYS)/lib -lRoot -lfreetype -pthread -lpcre -lshift $(LIBX)
   LIBP = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
 
 # for dynamic binary
