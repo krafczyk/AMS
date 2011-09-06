@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2011/06/17 00:30:48 shaino Exp $
+# $Id: Makefile,v 1.12 2011/09/06 08:51:50 shaino Exp $
 #
 # Makefile to build executables for Tracker alignment with TB/CR
 #
@@ -16,7 +16,7 @@ WDIR = $(AMSSRC)/tkalign
 ARCH = $(shell $(ROOTSYS)/bin/root-config --arch)
 HOST = $(shell hostname --domain)
 DEFS = -D_PGTRACK_ -D__ROOTSHAREDLIBRARY__ -D_WDIR_=\"$(WDIR)\"
-FLGS = -I$(ROOTSYS)/include -I../include -Iinclude -IGeoUtils/include
+FLGS = -I$(ROOTSYS)/include -I../include -Iinclude
 OPTS = -O3
 
 
@@ -43,8 +43,8 @@ endif
 
 # for CNAF static binary with linuxx8664gcc
 ifeq ($(HOST),cr.cnaf.infn.it)
-  LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys 
-  LIBR = lib/libMinuit2.a -L$(ROOTSYS)/lib -lRoot -pthread -lpcre -ldl $(LIBX)
+  LIBX = -lXrdClient -lXrd -lXrdNet -lXrdOuc -lXrdSys -Llib -lMinuit2 -lshift
+  LIBR = -L$(ROOTSYS)/lib -lRoot -lfreetype -pthread -lpcre -ldl $(LIBX)
   LIBP = $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a 
   LD   = g++ -static
 
@@ -64,33 +64,27 @@ endif
 endif
 
 
-MODS = tbalign tbafit tbaf tbafm tbafcp \
-       pmalign pmafit pmaf pmafcp pmrinv tkmerge tdv
+MODS = trcls refit mfit tkmerge tdv
 
 BINS = $(addprefix bin/, $(MODS))
 
 all: $(BINS)
 
-%.o: CC/m_%.C
+obj/%.o: CC/m_%.C
+	@if ! [ -d obj ] ; then mkdir -p obj; fi
 	$(CXX) -c -o $@ $(DEFS) $(FLGS) $(OPTS) $<
 
-bin/pmalign: CC/pmalign.C $(LIBP)
-	$(CXX) -c -o pmalign.o $(DEFS) $(FLGS) $(OPTS) CC/m_pmalign.C
-	$(LD) -o $@ pmalign.o $(LIBP) $(LIBR) GeoUtils/lib/libaGeoUtil.a -lgfortran
-	rm -f pmalign.o
+obj/tdv.o: CC/tdv.C
+	@if ! [ -d obj ] ; then mkdir -p obj; fi
+	$(CXX) -c -o $@ $(DEFS) $(FLGS) $(OPTS) $<
 
-bin/tdv : CC/tdv.C $(LIBP)
-	$(CXX) -c -o tdv.o $(DEFS) $(FLGS) $(OPTS) CC/tdv.C
-	$(LD) -o $@ tdv.o $(LIBP) $(LIBR) commonsi.o
-	rm -f tdv.o
-
-bin/%: %.o $(LIBP)
+bin/%: obj/%.o $(LIBP)
 	@if ! [ -d bin ] ; then mkdir -p bin; fi
 	$(LD) -o $@ $< $(LIBP) $(LIBR)
 	#readelf -d $@
 
 clean:
-	rm -f bin/*
+	rm -f bin/* obj/*
 
 bin/tbalign: CC/tbalign.C CC/tbpos.C
 bin/tbafit : CC/tbafit.C  CC/tkalign.C
@@ -107,6 +101,3 @@ bin/pmrinv : CC/pmrinv.C
 
 bin/tkmerge: CC/tkmerge.C
 
-bin/trqpar : CC/trqpar.C
-
-bin/mtree  : CC/mtree.C
