@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.56 2011/08/31 18:47:34 shaino Exp $
+//  $Id: TrFit.C,v 1.57 2011/09/06 06:42:13 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/08/31 18:47:34 $
+///$Date: 2011/09/06 06:42:13 $
 ///
-///$Revision: 1.56 $
+///$Revision: 1.57 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -880,6 +880,14 @@ double TrFit::AlcarazFit(int fixr)
     ilay[i] = GetLayer(_zh[i]);
     if (ilay[i] == 8) ilay[i] = 0;
     if (ilay[i] == 9) ilay[i] = 8;
+
+    if (i > 0 && ilay[i] == ilay[i-1]) {
+      cout << "TrFit::AlcarazFit-E-Duplicated layer "
+	   << ilay[i] << " " << ilay[i-1] << " nhit= " << _nhit << endl;
+      for (int j = 0; j < _nhit; j++)
+	cout << ilay[j] << " " << _zh[j] << endl;
+      return -9;
+    }
   }
 
   // Fill transportation matrices
