@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.58 2011/08/12 17:09:40 ams Exp $
+# $Id: NetMonitor.pm,v 1.59 2011/09/06 08:19:37 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -322,6 +322,7 @@ my $period = '';
             my @lines=<FILE>;
             close FILE;
     foreach my $bl (@lines){
+        $bl=~s/ /\_/g;
             push @{$self->{bad}}, "$bl $mes ";
     }
 

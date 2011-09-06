@@ -14,7 +14,7 @@ insert into mods values('datafiles','25-oct-05');
 insert into mods values('ntuples','25-oct-05');
 insert into mods values('fs','25-oct-05'); 
 create or replace trigger jobs_biu
-after insert or update on jobs
+before insert or update on jobs
 for each row
 begin
 update mods set modtime=sysdate where tabname='jobs';
