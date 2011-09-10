@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.34 2010/10/29 18:49:31 choutko Exp $
+//  $Id: point.h,v 1.34.14.1 2011/09/10 12:14:10 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -249,6 +249,18 @@ public:
   //! it requires that the two matrix are identical
   bool operator==(const AMSRotMat& orig);
 
+
+  //! do some printout
+  void Print(int opt=0){
+    printf("RotMat : %f  %f %f\n",_nrm[0][0],_nrm[0][1],_nrm[0][2]);
+    printf("       : %f  %f %f\n",_nrm[1][0],_nrm[1][1],_nrm[1][2]);
+    printf("       : %f  %f %f\n",_nrm[1][0],_nrm[2][1],_nrm[2][2]);
+    if(opt>0){
+      double alpha, beta,gamma;
+      GetRotAngles(alpha,  beta,  gamma);      
+      printf("alpha: %f beta: %f  gamma: %f\n",alpha, beta,gamma);
+    }
+  }
 
 };
 
