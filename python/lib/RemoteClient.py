@@ -870,6 +870,8 @@ class RemoteClient:
                     dataruns="runs"
                 if(status=='Finished' and (datamc==0 or datamc==1)):
                     ro=self.sqlserver.Query("select run, status from "+dataruns+" where jid="+str(run.uid))
+                    if(len(ro)<=0):
+                        continue
                     rstatus=ro[0][1]
                     uid=run.uid;
                     if(rstatus == 'Unchecked'): 
