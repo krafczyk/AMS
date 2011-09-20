@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.42 2011/05/29 22:34:53 choutko Exp $
+//  $Id: amschain.C,v 1.43 2011/09/20 12:50:35 sdifalco Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -611,31 +611,39 @@ void AMSEventList::Write(AMSChain* chain, TFile* file){
   if(obj3) {file->cd();obj3->Write("DataCards");}
   
   // Required to solve a bug (or feature) in GetEvent: it never returns NULL 
-  int current_run=-1;
-  int current_event=-1; 
-  
+  //int current_run=-1;
+  //int current_event=-1; 
+  int nfound=0;
   while ((ev=chain->GetEvent())) {
 
-    // Patch
-    if(ev->Run()==current_run && ev->Event()==current_event) break;
+    /* Old Patch (fails when HeaderR-W-EventSeqSeemsToBeBroken) 
+    if(ev->Run()==current_run && ev->Event()==current_event) {
+      cerr << "BREAK AT RUN " << ev->Run() << " EVENT " << ev->Event() << endl;
+            break;
+    }
     current_run=ev->Run();
     current_event=ev->Event();
+    */
 
     bool found = false;
     for (int j=0; j<_RUNs.size(); j++) {
       if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
 	found=true;
+	nfound++;
 	break;
       }
     }
     if (!found) continue;
     printf("AMSEventList::Writing event ............ %12d %12d\n"
-	   , ev->Run(), ev->Event());
+    	   , ev->Run(), ev->Event());
     ev->GetAllContents();
     amsnew->Fill();
+    // New Patch
+    if (nfound ==_RUNs.size()) break;
   }
   cout << "AMSEventList::Writing AMS ROOT file \"";
-  cout << file->GetName() << "\" with " << this->GetEntries(); 
+  //  cout << file->GetName() << "\" with " << this->GetEntries(); 
+  cout << file->GetName() << "\" with " << nfound; 
   cout << " selected events" << endl;
   file->Write();
 };
