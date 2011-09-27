@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.173 2011/08/26 09:58:34 mmilling Exp $
+#  $Id: Makefile,v 1.174 2011/09/27 23:44:00 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -72,10 +72,13 @@ G4LIBS= -L$(CLHEP_BASE_DIR)/lib -L$(G4INSTALL)/lib/geant4/$(G4SYSTEM) -lG4error_
 AR=ar
 endif
 
+############## PRE PROCESSOR FLAGS (non ARCH dependent) 
 ifdef ECALBDT
  DEFINES  += -D_ECALBDT_
 endif
-############## PRE PROCESSOR FLAGS (non ARCH dependent) 
+ifdef CASTORSTATIC 
+DEFINES += -DCASTORSTATIC
+endif
 
 DEFINES  +=    -D__WRITEROOT__    
 INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
@@ -548,10 +551,11 @@ lib: shared static
 ifdef PGTRACK
 
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
-	$(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o\
-	$(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
+        $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o\
+        $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
-$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o
+$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o 
+#$(BIN)rkms.o $(BIN)gufld.o
 
 
 else

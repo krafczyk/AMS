@@ -1,0 +1,39 @@
+setenv Offline /afs/cern.ch/ams/Offline
+setenv BASE_ARCH_DIR $Offline/AMSsoft/linux_slc5_icc64 
+setenv ROOTSYS $BASE_ARCH_DIR/root_v5.27ams/
+set path=($ROOTSYS/bin /opt/intel/Compiler/11.1/073/bin/intel64 $path . /usr/sbin  )
+setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.1/073/idb/lib/intel64/:/opt/intel/Compiler/11.1/073/lib/intel64/:$ROOTSYS/lib
+setenv CERN $BASE_ARCH_DIR
+setenv CERN_LEVEL 2005/
+setenv CERN_ROOT $CERN/$CERN_LEVEL
+setenv CERNDIR $CERN/$CERN_LEVEL
+setenv AMSLIB $CERN/lib
+setenv NAGDIR $CERN/lib
+setenv CVSROOT $Offline/CVS
+#setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
+setenv CVS_RSH ssh
+setenv ProductionRunsDir /s0dat0/Data/Deframing
+setenv AMSDataDir $Offline/AMSDataDirRW
+setenv AMSDataDirRW $Offline/AMSDataDirRW
+setenv EDITOR  emacs
+setenv CVSEDITOR  emacs
+setenv RunsDir $Offline/RunsDir
+setenv AMSDataNtuplesDir $Offline/ntuples
+setenv AMSMCNtuplesDir   $Offline/amsmcntuplesdir
+setenv ProductionLogDirLocal $Offline/logs.local
+setenv RunsSummaryFile   $Offline/runs_STS91.log
+setenv SlowRateDataDir   $Offline/SlowRateDataDir
+setenv AMSGeoDir         $Offline/vdev/display/
+setenv amsed            $Offline/vdev/exe/linuxicc/amsed
+setenv amsedc           $Offline/vdev/exe/linuxicc/amsedc
+setenv amsedPG            $Offline/vdev/exe/linux/amsedPG
+setenv amsedcPG           $Offline/vdev/exe/linux/amsedcPG
+
+setenv offmon        $Offline/vdev/exe/linuxicc/offmon      
+setenv offmonc        $Offline/vdev/exe/linuxicc/offmonc      
+setenv AMSICC 1
+setenv AMSP 1
+limit core 0
+limit data 700000
+limit stack 32000
+

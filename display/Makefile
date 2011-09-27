@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.93 2011/09/05 14:25:49 mduranti Exp $
+#  $Id: Makefile,v 1.94 2011/09/27 23:48:20 pzuccon Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -41,7 +41,6 @@ AMSPRGCC       = $(AMSWD)/exe/$(ARCH)/amseddPG
 endif
 
 
-CASTORLIB= -lRCastor
 ifdef NOCASTOR
 CPPFLAGS+= -D__NOCASTOR__
 CASTORLIB=
@@ -66,8 +65,8 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
+ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 
@@ -90,8 +89,8 @@ LDFLAGS       =
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
-ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage  -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
+ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil -lncurses
 
@@ -116,8 +115,8 @@ LDS	= 	$(LD)
 LDD	= 	$(LD) 
 
 
-ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx -lRFIO -lTMVA
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx -lRFIO -lTMVA
+ROOTLIBSA       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx  -lTMVA
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lNetx  -lTMVA
 LIBS          =  -L$(AMSWD)/lib/macosx64/  -l$(AMSLIB) $(ROOTLIBS) 
 LIBSA         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBSA)
 LIBSD         =  -L$(AMSWD)/lib/macosx64/ -l$(AMSLIB) $(ROOTLIBS)
@@ -140,8 +139,8 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx -lRFIO -lTMVA -lGX11 -lGX11TTF $(CASTORLIB)
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lNetx  -lTMVA -lGX11 -lGX11TTF $(CASTORLIB)
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  /usr/lib/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys 
 LIBS          =   -Bstatic $(ROOTLIBSA)   -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive -lm -Bdynamic -ldl
@@ -170,7 +169,7 @@ LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
 
-ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lRFIO -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
+ROOTLIBS       = $(shell $(ROOTSYS)/bin/root-config --glibs) -lMinuit -lASImage -lTMVA -lNetx -lGX11 -lGX11TTF $(CASTORLIB)
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  /usr/lib64/libexpat.a   \
                   -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdOuc -lXrdSys -lXrdNetUtil 
@@ -191,8 +190,9 @@ ifdef PGTRACK
 CPPFLAGS+= -D_PGTRACK_
 endif
 
-ifdef NOCASTOR
-CPPFLAGS+= -D__NOCASTOR__
+ifdef CASTORSTATIC
+CPPFLAGS+= -DCASTORSTATIC
+ROOTLIBS+= -lRFIO
 endif
 
 # Other ARCH are not supported for the moment !!!!!!!!!!

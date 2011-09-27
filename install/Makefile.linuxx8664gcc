@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664gcc,v 1.4 2011/05/13 20:56:42 pzuccon Exp $
+#  $Id: Makefile.linuxx8664gcc,v 1.5 2011/09/27 23:44:01 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -173,7 +173,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lSQL  -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree   -lNet -lTree -lNetx -lHist -lHistPainter -lGraf -lMatrix -lMinuit
 endif
 endif
 
@@ -195,14 +195,14 @@ LDFLAGSI=    -static $(G4LIBS) $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre -lcrypt      -lkrb5   -lssl -lcrypto  -lcom_err -lresolv  -lcrypto    \
+-lcrypt -lcrypto -ldl -lpcre -lncurses -lcrypt      -lkrb5   -lssl -lcrypto  -lcom_err -lresolv  -lcrypto    \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=   $(G4LIBS)   $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnaggcc64   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto -lkrb5support -lssl -lcrypto  -lcom_err -lfreetype -lncurses  -ldl    -lpcre\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lkrb5 -lk5crypto -lkrb5support -lssl -lcrypto  -lcom_err -lfreetype -lncurses  -ldl    -lpcre -lncurses\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE

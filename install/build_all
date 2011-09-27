@@ -12,33 +12,36 @@ endif
 unsetenv MARCH
 unsetenv PGTRACK
 setenv ECALBDT 1
-source /Offline/vdev/install/amsvar.icc64
-source /Offline/vdev/install/g4i
+source amsvar.icc64
+source g4i.icc64
 gmake allg4
-source /Offline/vdev/install/amsvar.gcc64
+source amsvar.gcc64
+source g4i.gcc64
 gmake allp
 gmake server
-source /Offline/vdev/install/amsvar.icc32
+source amsvar.icc32
 gmake allold 
 setenv MARCH linuxicc26
 gmake -j
 gmake producer -i
 unsetenv MARCH
-source /Offline/vdev/install/amsvar.gcc32
-source /Offline/vdev/install/g4i
+source amsvar.gcc32
+source g4i.gcc32
 gmake allg4
 gmake server
+
 setenv PGTRACK 1
-source /Offline/vdev/install/amsvar.icc64
-source /Offline/vdev/install/g4i
+source ./amsvar.icc64
+source ./g4i.icc64
 gmake allg4
-source /Offline/vdev/install/amsvar.gcc32
-source /Offline/vdev/install/g4i
+source amsvar.gcc32
+source g4i.gcc32
 gmake allg4
 gmake server
-source /Offline/vdev/install/amsvar.gcc64
+source ./amsvar.gcc64
+source g4i.gcc64
 gmake allp
-source /Offline/vdev/install/amsvar.icc32
+source amsvar.icc32
 gmake allold 
 setenv MARCH linuxicc26
 gmake -j
@@ -46,8 +49,8 @@ gmake producer -i
 unsetenv MARCH
 setenv PGTRACK 1
 setenv G4AMS 1
-source /Offline/vdev/install/amsvar.icc64
-source /Offline/vdev/install/g4i
+source amsvar.icc64
+source g4i.icc64
 gmake  -j
 gmake producer -i
 unsetenv G4AMS

@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.118 2011/05/24 13:12:17 choutko Exp $
+#  $Id: Moptg4,v 1.119 2011/09/27 23:44:01 pzuccon Exp $
 #
 SHELL=/bin/sh
 #
@@ -192,7 +192,7 @@ XLDFLAGS=   -static  $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
+-lcrypt -lcrypto -ldl -lpcre -lncurses   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) -pthread
 
 TIMEL=
@@ -274,7 +274,7 @@ XLDFLAGS=   -static  $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib   -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib64  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
+-lcrypt -lcrypto -ldl -lpcre -lncurses   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) -pthread
 
 TIMEL=
@@ -310,7 +310,7 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 
-XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -lgfortran -pthread
+XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lncurses -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -lgfortran -pthread
 CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
 ifndef LinuxBUG
 CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686

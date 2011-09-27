@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxicc26,v 1.3 2011/02/14 14:11:01 choutko Exp $
+#  $Id: Makefile.linuxicc26,v 1.4 2011/09/27 23:44:01 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 #
@@ -79,11 +79,11 @@ CERN_LEVEL = pro
 endif
 
 CERNLIBS= -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib -L/usr/local/lib  -lshift
-CERNSRCDIR = /cern/$(CERN_LEVEL)
-
-
-ifndef CERNDIR
+ifdef CERNDIR
+CERNSRCDIR = $(CERNDIR)
+else
 CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2006/cern/pro
+CERNSRCDIR = /cern/$(CERN_LEVEL)
 endif
 ifndef AMSLIB
 AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc2
@@ -182,14 +182,14 @@ LDFLAGSI=    -static  $(FORTRAN2_LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
+-lcrypt -lcrypto -ldl -lpcre -lncurses   \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(FORTRAN2_LIBS) \
 -L$(NAGDIR) -lnag   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre -lncurses\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE

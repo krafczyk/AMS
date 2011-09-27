@@ -184,14 +184,14 @@ LDFLAGSI=    -static $(G4LIBS) \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lfreetype\
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl -lpcre   \
+-lcrypt -lcrypto -ldl -lpcre -lncurses  \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(G4LIBS)  \
 -L$(NAGDIR) -lnag  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype -lncurses -ldl -lpcre\
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype -lncurses -ldl -lpcre -lncurses\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE

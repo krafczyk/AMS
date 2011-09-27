@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.56 2011/05/06 21:54:40 pzuccon Exp $
+//  $Id: main.cxx,v 1.57 2011/09/27 23:48:20 pzuccon Exp $
 #include <TASImage.h>
 #include <TRegexp.h>
 #include <TRootApplication.h>
@@ -16,7 +16,7 @@
 #include <sys/file.h>
 #include <dirent.h>
 #endif
-#if !defined(WIN32) && !defined(__APPLE__) && !defined(__NOCASTOR__)
+#ifdef CASTORSTATIC
 #include <TRFIOFile.h>
 #include <TCastorFile.h>
 #include <TXNetFile.h>
@@ -273,7 +273,7 @@ void OpenChain(AMSChain & chain, char * filenam){
   bool wild=false;
   bool remote=false;
    if(a.Contains(b)){
-#if !defined(WIN32) && !defined(__APPLE__) && !defined(__NOCASTOR__)
+#ifdef CASTORSTATIC
      TRFIOFile f(""); 	 
      TXNetFile g(""); 	 
      TCastorFile h(""); 	 

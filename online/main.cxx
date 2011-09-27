@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.37 2011/05/23 03:02:56 choutko Exp $
+//  $Id: main.cxx,v 1.38 2011/09/27 23:44:18 pzuccon Exp $
 #include <TRegexp.h>
 #include <fstream.h>
 #include <TChain.h>
@@ -14,10 +14,11 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #endif
+#ifdef CASTORSTATIC 
 #include <TRFIOFile.h>
 #include <TCastorFile.h>
 #include <TXNetFile.h>
-
+#endif
 #include <stdlib.h>
 #include <signal.h>
 #include <getopt.h>
@@ -38,10 +39,6 @@
 #include <dirent.h>
 #endif
 #include <TString.h>
-#ifndef __APPLE__
-#include <TRFIOFile.h>
-#include <TXNetFile.h>
-#endif
 TString * Selector;
 TString * Selectorf=0;
 extern void * gAMSUserFunction;
@@ -267,7 +264,7 @@ void OpenChain(AMSChain & chain, char * filenam){
   bool wild=false;
   bool remote=false;
    if(a.Contains(b)){
-#if !defined(WIN32) && !defined(__APPLE__) && !defined(__NOCASTOR__)
+#ifdef CASTORSTATIC 
      TRFIOFile f(""); 	 
      TXNetFile g(""); 	 
      TCastorFile h(""); 	 

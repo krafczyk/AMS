@@ -52,7 +52,7 @@ CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2002/icc/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm    -ldl -lfreetype -lpcre -pthread    -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins -Wl,--allow-multiple-definition -L/opt/intel/Compiler/11.1/073/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L//afs/cern.ch/exp/ams/Offline/CERN/2002/icc/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm    -ldl -lfreetype -lpcre -lncurses -pthread    -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins -Wl,--allow-multiple-definition -L/opt/intel/Compiler/11.1/073/lib/ia32     -lifport -lifcoremt -limf  -lipgo -lirc_s 
 CC=/opt/intel/Compiler/11.1/073/bin/ia32/icc -m32 -openmp -gcc-version=340
 FF=/opt/intel/Compiler/11.1/073/bin/ia32/ifort -m32 -openmp -gcc-version=340
 LD=/opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -openmp   $(PARALLEL) -gcc-version=340
