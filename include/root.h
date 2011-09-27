@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.386 2011/08/30 14:49:01 choutko Exp $
+//  $Id: root.h,v 1.387 2011/09/27 23:49:20 pzuccon Exp $
 
 //
 //  NB 
@@ -215,7 +215,7 @@ static char _Info[255];
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
   unsigned int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
-
+  int RNDMSeed[2];  /// MC Only RNDM(1)/RNDM(2) seeds
 
 
 // shuttle/ISS parameters
@@ -354,7 +354,7 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,17)       //HeaderR
+  ClassDef(HeaderR,18)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 

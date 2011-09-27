@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.330 2011/08/22 21:53:40 choutko Exp $
+//  $Id: root.C,v 1.331 2011/09/27 23:49:40 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2784,6 +2784,8 @@ void HeaderR::Set(EventNtuple02* ptr){
   Version=   (ptr->RawWords)>>18;
   Time[0]=   ptr->Time[0];
   Time[1]=   ptr->Time[1];
+  RNDMSeed[0]= ptr->RNDMSeed[0];
+  RNDMSeed[1]= ptr->RNDMSeed[1];
   RadS=      ptr->RadS;
   ThetaS=    ptr->ThetaS;
   PhiS=      ptr->PhiS;

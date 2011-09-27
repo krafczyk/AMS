@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.545 2011/08/25 08:22:25 mmilling Exp $
+//  $Id: event.C,v 1.546 2011/09/27 23:49:40 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1473,7 +1473,11 @@ void AMSEvent::_siamsevent(){
     }
   }
 #ifdef _PGTRACK_
-  if(IOPA.unitimegen)TrExtAlignDB::ProduceDisalignment(_time);
+  if(IOPA.unitimegen){
+    unsigned int tt[2];
+    tt[0]=_time; tt[1]=_usec;
+    TrExtAlignDB::ProduceDisalignment(tt);
+  }
 #endif
   _siecalevent();
   _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
@@ -2872,12 +2876,11 @@ void AMSEvent::_writeEl(){
      AMSmceventg *p =(AMSmceventg*)getheadC("AMSmceventg",0);
      if(p){
       EN->RunType=p->getseed(0);
-      EN->Time[1]=p->getseed(1);
+      EN->RNDMSeed[1]=p->getseed(0);
+      EN->RNDMSeed[1]=p->getseed(1);
      }
      
    }
-   //PZ TEMP FIX
-  if(IOPA.unitimegen) EN->Time[1]=_usec;
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);

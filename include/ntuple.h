@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.136 2011/08/22 13:34:30 choutko Exp $
+//  $Id: ntuple.h,v 1.137 2011/09/27 23:49:20 pzuccon Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -90,6 +90,7 @@ public:
   int Run;
   int RunType;
   int Time[2];
+  int RNDMSeed[2];
   unsigned int RawWords;
   float RadS;
   float ThetaS;
