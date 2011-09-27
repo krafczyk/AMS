@@ -1,4 +1,4 @@
-//  $Id: TrMCCluster.C,v 1.29 2011/03/23 01:18:04 oliva Exp $
+//  $Id: TrMCCluster.C,v 1.30 2011/09/27 23:50:04 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -8,9 +8,9 @@
 ///\date  2008/02/14 SH  First import from Gbatch
 ///\date  2008/03/17 SH  Compatible with new TkDBc and TkCoo
 ///\date  2008/04/02 SH  Compatible with new TkDBc and TkSens
-///$Date: 2011/03/23 01:18:04 $
+///$Date: 2011/09/27 23:50:04 $
 ///
-///$Revision: 1.29 $
+///$Revision: 1.30 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -266,12 +266,15 @@ void TrMCClusterR::GenSimClusters(){
   if (edep<1) return;             // if energy deposition < 1 keV (less than 0.5 ADC counts)
   if (momentum<1e-6) return;      // if momentum < keV/c
   AMSDir dir(mom.x()/momentum,mom.y()/momentum,mom.z()/momentum);
+
   TkSens _glo2loc(1);
   _glo2loc.SetGlobal(GetTkId(),glo,dir);                                    // from global to local
+
   int  nsensor = _glo2loc.GetSensor();                                      // sensor number
   double ip[2] = {_glo2loc.GetSensCoo().x(),_glo2loc.GetSensCoo().y()};     // sensor impact point
   double ia[2] = {_glo2loc.GetImpactAngleXZ(),_glo2loc.GetImpactAngleYZ()}; // sensor impact angle
   int imult = _glo2loc.GetMultIndex();
+
   if (VERBOSE) {
     printf("TrSim::GenSimClusters-V  tkid = %+4d   loc(x,y) = (%7.4f,%7.4f)   theta(xz,yz) = (%7.4f,%7.4f)   nsens = %2d\n",
            GetTkId(),ip[0],ip[1],ia[0],ia[1],nsensor);
@@ -296,6 +299,7 @@ void TrMCClusterR::GenSimClusters(){
     if (simcluster.GetWidth()==0) continue;
 
     // put the cluster in the TrMCCluster object
+    if(simcl[iside]) delete simcl[iside];
     simcl[iside] = new TrSimCluster(simcluster);
     // raw signal
     hman.Fill(Form("TrSimSig%c",sidename[iside]),simcl[iside]->GetEta(),simcl[iside]->GetTotSignal());

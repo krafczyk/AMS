@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.5 2010/05/21 10:33:23 shaino Exp $
+// $Id: TkObject.h,v 1.6 2011/09/27 23:50:08 pzuccon Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/05/21 10:33:23 $
+///$Date: 2011/09/27 23:50:08 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -161,6 +161,7 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
 
   void ReadT(istream &o){putinT(o);}
   void WriteT(ostream &o){putoutT(o);}
+  void PrintT();
 
   void Align2Lin(float * off);
   void Lin2Align(float * off);

@@ -1,9 +1,13 @@
-//  $Id: amschain.C,v 1.43 2011/09/20 12:50:35 sdifalco Exp $
+//  $Id: amschain.C,v 1.44 2011/09/27 23:50:04 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
+#ifdef CASTORSTATIC 
 #include "TRFIOFile.h"
 #include "TXNetFile.h"
+#else
+#include "TSystem.h"
+#endif
 #ifdef _PGTRACK_
 #include "TrRecon.h"
 #include "TrExtAlignDB.h"
@@ -340,11 +344,15 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	// }
 	//cout <<"thr "<<thr<<endl;
         // element=(TChainElement*) fFiles->At(i);
+#ifdef CASTORSTATIC
         TRegexp d("^root:",false);
         TRegexp e("^rfio:",false);
         if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
         else if(it->second.Contains(e))file=new TRFIOFile(it->second.Data(),"READ");
         else file=new TFile(it->second.Data(),"READ");
+#else 
+	file= TFile::Open(it->second.Data(),"READ");
+#endif
           tree=0;
 	if(file)tree=(TTree*)file->Get(_NAME);
         if(!tree){

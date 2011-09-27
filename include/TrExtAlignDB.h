@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.6 2011/08/23 09:59:58 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.7 2011/09/27 23:50:08 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -181,7 +181,7 @@ public:
     for (int i = 0; i < nlin; i++) fLinear[i] = 0;
   }
   /// Produce disaligment for MC TESTS
-  static void ProduceDisalignment(time_t time);
+  static void ProduceDisalignment(unsigned int * tt);
   static long long GetDt(float rate);
 
 

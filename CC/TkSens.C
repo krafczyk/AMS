@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.16 2011/09/06 06:42:12 shaino Exp $ 
+/// $Id: TkSens.C,v 1.17 2011/09/27 23:50:04 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2011/09/06 06:42:12 $
+///$Date: 2011/09/27 23:50:04 $
 ///
-/// $Revision: 1.16 $
+/// $Revision: 1.17 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -257,12 +257,6 @@ int TkSens::GetSens(){
     //Get the local coo on the Ladder (again)
     AMSPoint oo2 = PRotG*(gcoo-PPosG);
     SensCoo = RotG*(oo2-PosG);
-    LaddCoo = SensCoo;
-  }
-
-  if (IsMC()) {
-    // Z-shift effect
-    SensCoo = SensCoo-SensDir*(SensCoo.z()/SensDir.z());
     LaddCoo = SensCoo;
   }
 

@@ -1,4 +1,4 @@
-//  $Id: TkObject.C,v 1.5 2010/05/21 10:33:22 shaino Exp $
+//  $Id: TkObject.C,v 1.6 2011/09/27 23:50:03 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2010/05/21 10:33:22 $
+///$Date: 2011/09/27 23:50:03 $
 ///
-///$Revision: 1.5 $
+///$Revision: 1.6 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,6 +97,7 @@ istream& TkObject::putin(istream& s){
 }
 
 
+void TkObject::PrintT() { cout <<name<<endl<<posT<<endl<<rotT<<endl ; return;}
 
 
 

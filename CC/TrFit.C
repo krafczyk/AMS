@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.57 2011/09/06 06:42:13 shaino Exp $
+//  $Id: TrFit.C,v 1.58 2011/09/27 23:50:04 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/09/06 06:42:13 $
+///$Date: 2011/09/27 23:50:04 $
 ///
-///$Revision: 1.57 $
+///$Revision: 1.58 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -883,9 +883,9 @@ double TrFit::AlcarazFit(int fixr)
 
     if (i > 0 && ilay[i] == ilay[i-1]) {
       cout << "TrFit::AlcarazFit-E-Duplicated layer "
-	   << ilay[i] << " " << ilay[i-1] << " nhit= " << _nhit << endl;
+           << ilay[i] << " " << ilay[i-1] << " nhit= " << _nhit << endl;
       for (int j = 0; j < _nhit; j++)
-	cout << ilay[j] << " " << _zh[j] << endl;
+        cout << ilay[j] << " " << _zh[j] << endl;
       return -9;
     }
   }
@@ -1517,6 +1517,13 @@ double TrFit::ChikanianFit(int type)
     AMSgObj::BookTimer.stop("TrFitRkmsT");
   }
 #else
+// PZ
+   if (type == 2) {
+     printf(" ChikanianF Fit not yet allowed for refit\n");
+
+     RkmsFit(out);
+   }
+  else
   RkmsFit(out);
 #endif
 
@@ -1554,6 +1561,13 @@ extern "C" void rkmsinit_(float*);
 
 void TrFit::RkmsFitF(double *out)
 {
+  float zpos[trconst::maxlay];
+  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
+  for (int i = 0; i < trconst::maxlay; i++)
+    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+
+  rkmsinit_(zpos);
+
   int npo = 0, npl[NPma], ipa = 14;
   float xyz[NPma*3], dxyz[NPma*3];
   for (int i = 0; i < NPma; i++) {
@@ -1587,19 +1601,17 @@ void TrFit::RkmsFitF(double *out)
   for (int i = 0; i < 9; i++) out[i] = outf[i];
 }
 #else
-
 void TrFit::RkmsFitF(double *out)
-{
+{ 
   static int nerr = 1;
   if (nerr++ < 5)
     std::cout << "TrFit::RkmsFitF-W-RkmsFit (C++ version) is called "
-                 "instead of Fortran version." << std::endl;
-
+      <<"instead of Fortran version." << std::endl;
   RkmsFit(out);
+  return;
 }
 
 #endif
-
 
 #include "TMinuit.h"
 
@@ -3426,8 +3438,8 @@ TrProp::TrProp(double p0x,   double p0y, double p0z,
   _chrg = 1;
 
   AMSDir dir(theta, phi);
-  _dxdz = dir.x();
-  _dydz = dir.y();
+  _dxdz = (dir.z() != 0) ? dir.x()/dir.z() : 0;
+  _dydz = (dir.z() != 0) ? dir.y()/dir.z() : 0;
 }
 
 TrProp::TrProp(AMSPoint p0, AMSDir dir, double rigidity)

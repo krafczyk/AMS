@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.23 2011/08/31 18:47:33 shaino Exp $
+// $Id: TkDBc.h,v 1.24 2011/09/27 23:50:08 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -382,11 +382,23 @@ public:
     return (1 <= i && i <= nlays)
       ? GetPlane(_plane_layer[i-1])->pos[1]: -9999.;} 
 
+  //! Get Aligned Z-coordinate of layer J-scheme
+  double GetZlayerAJ(int i) {
+    int lay=GetJFromLayer(i);
+    return GetZlayerA(lay);
+  }
   //! Get Z-coordinate of layer J-scheme
   double GetZlayerJ(int i) {
     int lay=GetJFromLayer(i);
     return GetZlayer(lay);
   }
+  //! Get Aligned Z-coordinate of layer OLD scheme
+  double GetZlayerA(int i) {
+    return (1 <= i && i <= nlays) 
+      ? GetPlane(_plane_layer[i-1])->pos[2]+
+        GetPlane(_plane_layer[i-1])->posA[2]+
+        GetPlane(_plane_layer[i-1])->rot.GetEl(2, 2)*
+        _layer_deltaZ[i-1] : -99999.;}
   //! Get Z-coordinate of layer OLD scheme
   double GetZlayer(int i) {
     return (1 <= i && i <= nlays) 

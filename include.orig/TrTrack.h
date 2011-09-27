@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.69 2011/09/03 08:40:31 shaino Exp $
+//  $Id: TrTrack.h,v 1.70 2011/09/27 23:50:08 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/09/03 08:40:31 $
+///$Date: 2011/09/27 23:50:08 $
 ///
-///$Revision: 1.69 $
+///$Revision: 1.70 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -453,6 +453,10 @@ public:
   double   GetPhi      (int id= 0) const { return GetDir(id).getphi();  }
 
   /// Return the  proj (0=X,1=Y) residual at layer ilay J-scheme (1-9) from TrTrackPar corresponding to id
+  /// \return The obtained quantity can be:
+  /// \li The true fit residual => In the case the track has an hit on the layer and that hit is included in the fit 
+  /// \li The distance between the hit and the track fit => in the case the track has an hit on the layer that  is NOT used in the fit
+  /// \li The postion of the fitted track at that layer => int the case the track has NOT an hit on the layer
   AMSPoint  GetResidualJ (int ilayJ, int id= 0) const { 
     if (ilayJ <= 0 || ilayJ > trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_LayJ(ilayJ),
@@ -462,11 +466,43 @@ public:
 
 
   /// Return the  proj (0=X,1=Y) residual at layer ilay  OLD Scheme (1-9) from TrTrackPar corresponding to id
+  /// \return The obtained quantity can be:
+  /// \li The true fit residual => In the case the track has an hit on the layer and that hit is included in the fit 
+  /// \li The distance between the hit and the track fit => in the case the track has an hit on the layer that  is NOT used in the fit
+  /// \li The postion of the fitted track at that layer => int the case the track has NOT an hit on the layer
   AMSPoint  GetResidualO(int ilay, int id= 0) const { 
     if (ilay <= 0 || ilay > trconst::maxlay) return AMSPoint(0,0,0);
     return AMSPoint(GetPar(id).GetResidualX_Lay(ilay),
 		    GetPar(id).GetResidualY_Lay(ilay),
 		    TkDBc::Head->GetZlayer(ilay));
+  }
+
+  /// Calculate the residual for two kinds (0= point included in the fit; 1= point not included) 
+  /// starting from the base fit defined by id 
+  /// \param ilay the selected layer (J-Scheme),
+  /// \param pnt  reference to the amspoint that will contail the result
+  /// \param kind 
+  ///  \li 0=  point included in the fit; 
+  ///  \li 1= point not included ;
+  ///  \li 2 =The distance between the fit and the hit not belonging to the fit
+  /// \param id  the fitcode of the base fit that is considered
+  /// \return a code that reports that success or the failure of the procedure
+  /// \retval  2  --> The distance between the fit and the hit not belonging to the fit
+  /// \retval  1  --> The Residual with point NOT included in the fit has been calculated
+  /// \retval  0  --> The Residual with point included in the fit has been calculated
+  /// \retval -1 --> No hit on the track on this layer
+  /// \retval -2 --> Cannot find the fit inic
+  /// \retval -3 --> The layer was not used in the fit and kind !=2
+  /// \retval -4 --> the kind type was not 0, 1 or 2
+  /// \retval <-10 ---> Problem with the fitting, returning iTrTrackPar error multiplied by 10
+  int GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id);
+
+  /// Old-scheme Calculate the residual for two kinds (0= point included in the fit; 1= point not included) 
+  /// starting from the base fit defined by id 
+  /// see the correspondig GetResidualKindJ for more documentation
+  int GetResidualKindO(int ilay, AMSPoint& pnt,int kind, int id){
+    int ilyJ=TkDBc::Head->GetJFromLayer(ilay);
+    return GetResidualKindJ(ilyJ,pnt,kind,id);
   }
 
 

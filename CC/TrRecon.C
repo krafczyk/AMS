@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.139 2011/09/06 06:42:13 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.140 2011/09/27 23:50:04 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2011/09/06 06:42:13 $
+/// $Date: 2011/09/27 23:50:04 $
 ///
-/// $Revision: 1.139 $
+/// $Revision: 1.140 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -382,10 +382,8 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 
   //////////////////// Post-rec. process ////////////////////
 
-#ifndef __ROOTSHAREDLIBRARY__
   // Purge "ghost" hits and assign hit index to tracks
   PurgeGhostHits();
-#endif
 
   // Fill histograms
   if (hist > 0) {

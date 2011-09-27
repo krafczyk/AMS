@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.116 2011/09/02 06:55:49 shaino Exp $
+// $Id: TrTrack.C,v 1.117 2011/09/27 23:50:04 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/09/02 06:55:49 $
+///$Date: 2011/09/27 23:50:04 $
 ///
-///$Revision: 1.116 $
+///$Revision: 1.117 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1306,12 +1306,12 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     if (           wsame) fittype|=kSameWeight;
   }
 
-  if(fittype==kChikanianF &&refit>0){
-    printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
-    return -1;
-  }
+   if(fittype==kChikanianF &&refit>0){
+     printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
+     return -1;
+   }
   int fflayer[9]={
-      kFitLayer1, kFitLayer2,	kFitLayer3, kFitLayer4,	kFitLayer5,
+      kFitLayer1, kFitLayer2,   kFitLayer3, kFitLayer4, kFitLayer5,
       kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
   int ebpat = _bit_pattern & 0x180;
   int basetype=fittype;
@@ -1383,14 +1383,57 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     return -4;
 }
 
-int TrTrackR::Pattern(int input) const {
-int pat=0;
-int p=1;
-for(int k=0;k<maxlay;k++){
- if((input/p)%10)pat+=((_bit_pattern>>k)&1)*p;
-p*=10;
+int TrTrackR::GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id){
+  pnt.setp(0,0,0);
+  if(!GetHitLJ(ilay)) return -1;
+  TrTrackPar aa=GetPar(id);
+  if(aa.FitDone==0) return -2;
+  if(!aa.TestHitLayerJ(ilay)){
+    if(kind==2){
+      pnt=GetResidualJ(ilay,id);
+    }	else
+      return -3;
+  }
+  if(kind==0){
+    pnt=GetResidualJ(ilay,id);
+    return 0;
+  }
+  else if(kind==1){
+    int dec_patt=0;
+    for (int ii=1;ii<=9;ii++)
+      if(aa.TestHitLayerJ(ii)&&ii!=ilay)
+	dec_patt+=pow(10.,ii-1)*9;
+      
+    int fit_type=0;
+    if((id&kMultScat)==1) fit_type=10;
+    else if((id&kSameWeight)==1) fit_type=20;
+      
+    if((id&0xF)==kChoutko) fit_type+=1;
+    else if((id&0xF)==kAlcaraz) fit_type+=2;
+    else if((id&0xF)==kChikanian) fit_type+=3;
+    else if((id&0xF)==kChikanianF) fit_type+=4;
+      
+      
+    int fitcode=iTrTrackPar(fit_type,dec_patt,1);
+    if(fitcode<0) return fitcode*10;
+    pnt=GetResidualJ(ilay,fitcode);
+      
+    return 1;
+  }else
+    return -4;
+    
 }
-return pat;
+
+
+
+int TrTrackR::Pattern(int input) const {
+  int pat=0;
+  int p=1;
+  for(int k=0;k<maxlay;k++){
+    if((input/p)%10)pat+=((_bit_pattern>>k)&1)*p;
+    p*=10;
+  }
+  return pat;
 }
 
 
