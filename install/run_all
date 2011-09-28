@@ -9,26 +9,29 @@ else
 unsetenv ADDBUILDNO
 endif
 
+setenv PREFIX /Offline/vdev/install
+setenv TESTFLAG
+
 unsetenv PGTRACK
 unsetenv ARCH
-source amsvar.icc32
+source $PREFIX/amsvar$TESTFLAG.icc32
 ../examples/g3.root.test.job
-source amsvar.slc4
+source $PREFIX/amsvar$TESTFLAG.slc4
 ../examples/g3.root.test.job
-source amsvar.icc64
+source $PREFIX/amsvar$TESTFLAG.icc64
 ../examples/g3.root.test.job
-source amsvar.slc4icc
+source $PREFIX/amsvar$TESTFLAG.slc4icc
 setenv ARCH Linux.24
 ../examples/g3.root.test.job
 unsetenv ARCH
 setenv PGTRACK 1
-source amsvar.icc32
+source $PREFIX/amsvar$TESTFLAG.icc32
 ../examples/g3.root.test.job
-source amsvar.slc4
+source $PREFIX/amsvar$TESTFLAG.slc4
 ../examples/g3.root.test.job
-source amsvar.icc64
+source $PREFIX/amsvar$TESTFLAG.icc64
 ../examples/g3.root.test.job
-source amsvar.slc4icc
+source $PREFIX/amsvar$TESTFLAG.slc4icc
 setenv ARCH Linux.24
 ../examples/g3.root.test.job
 unsetenv ARCH

@@ -9,39 +9,42 @@ else
 unsetenv ADDBUILDNO
 endif
 
+setenv PREFIX /Offline/vdev/install
+setenv TESTFLAG 
+
+
 unsetenv MARCH
 unsetenv PGTRACK
 setenv ECALBDT 1
-source amsvar.icc64
-source g4i.icc64
+source $PREFIX/amsvar$TESTFLAG.icc64
+source  $PREFIX/g4i$TESTFLAG.icc64
 gmake allg4
-source amsvar.gcc64
-source g4i.gcc64
+source  $PREFIX/amsvar$TESTFLAG.gcc64
 gmake allp
 gmake server
-source amsvar.icc32
+source  $PREFIX/amsvar$TESTFLAG.icc32
 gmake allold 
 setenv MARCH linuxicc26
 gmake -j
 gmake producer -i
 unsetenv MARCH
-source amsvar.gcc32
-source g4i.gcc32
+source  $PREFIX/amsvar$TESTFLAG.gcc32
+source  $PREFIX/g4i$TESTFLAG.gcc32
 gmake allg4
 gmake server
 
 setenv PGTRACK 1
-source ./amsvar.icc64
-source ./g4i.icc64
+source  $PREFIX/amsvar$TESTFLAG.icc64
+source  $PREFIX/g4i$TESTFLAG.icc64
 gmake allg4
-source amsvar.gcc32
-source g4i.gcc32
+source  $PREFIX/amsvar$TESTFLAG.gcc32
+source  $PREFIX/g4i$TESTFLAG.gcc32
 gmake allg4
 gmake server
-source ./amsvar.gcc64
-source g4i.gcc64
+source  $PREFIX/amsvar$TESTFLAG.gcc64
+source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
-source amsvar.icc32
+source $PREFIX/amsvar$TESTFLAG.icc32
 gmake allold 
 setenv MARCH linuxicc26
 gmake -j
@@ -49,8 +52,8 @@ gmake producer -i
 unsetenv MARCH
 setenv PGTRACK 1
 setenv G4AMS 1
-source amsvar.icc64
-source g4i.icc64
+source $PREFIX/amsvar$TESTFLAG.icc64
+source $PREFIX/g4i$TESTFLAG.icc64
 gmake  -j
 gmake producer -i
 unsetenv G4AMS

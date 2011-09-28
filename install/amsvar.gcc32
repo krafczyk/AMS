@@ -1,15 +1,8 @@
-setenv Offline /afs/cern.ch/exp/ams/Offline
-setenv BASE_ARCH_DIR /afs/cern.ch/exp/ams/Offline/AMSsoft/linux_slc5_gcc32/
-setenv ROOTSYS $BASE_ARCH_DIR/root_v5.27ams/
-#setenv ROOTSYS /f2users/choutko/root.gcc64
-setenv CERN $BASE_ARCH_DIR
-setenv CERN_LEVEL 2005/
-setenv CERN_ROOT $CERN/$CERN_LEVEL
-setenv CERNDIR $CERN/$CERN_LEVEL
-setenv AMSLIB $CERN/lib
-setenv NAGDIR $CERN/lib
-set path=($ROOTSYS/bin  $path . /usr/sbin  )
-setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
+setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/527.gcc32
+#setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
+#setenv ROOTSYS    /f2users/choutko/root.p
+set path=($ROOTSYS/bin /opt/intel/Compiler/11.1/073/bin/ia32/ $path . /usr/sbin  )
+setenv LD_LIBRARY_PATH .:/opt/intel/Compiler/11.1/073/idb/lib/ia32/:/opt/intel/Compiler/11.1/073/lib/ia32/:$ROOTSYS/lib:/opt/intel/compiler80/lib
 setenv CVSROOT $Offline/CVS
 #setenv CVSROOT :ext:`whoami`@ams.cern.ch:/cvsroot
 setenv CVS_RSH ssh

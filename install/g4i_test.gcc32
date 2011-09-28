@@ -1,31 +1,18 @@
-#  $Id: g4i,v 1.47 2011/09/28 08:49:14 pzuccon Exp $
+#  $Id: g4i_test.gcc32,v 1.1 2011/09/28 08:49:14 pzuccon Exp $
 setenv GEANT4NEW 1
 
-if `$ROOTSYS/bin/root-config --arch` == "linux" then
 setenv G4SYSTEM Linux-g++
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.7.gcc32
-endif
-
-
-if `$ROOTSYS/bin/root-config --arch` == "linuxx8664icc" then
-setenv G4SYSTEM Linux-icc
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP.2.0.4.7.icc64
-endif
-
-if `$ROOTSYS/bin/root-config --arch` == "linuxia64ecc" then
-setenv G4SYSTEM Linux-icc.ia64
-setenv CLHEP_BASE_DIR /afs/cern.ch/exp/ams/Offline/CLHEP/2.0.4.5/sles_ia64_icc41
-endif
+setenv CLHEP_BASE_DIR $BASE_ARCH_DIR/CLHEP/
 
 setenv G4USE_STL 1
 setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
-setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.9.3.p02
+setenv G4INSTALL $BASE_ARCH_DIR/geant4_ams
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
 setenv G4VIS_BUILD_DAWN_DRIVER         1
-setenv G4VIS_USE_DAWN       1 
+setenv G4VIS_USE_DAWN       1
 setenv G4VIS_USE_DAWNFILE         1
 setenv G4VIS_BUILD_OPENGLX_DRIVER     1  # Uses OpenGL and Motif
 setenv G4VIS_USE_OPENGLX     1
