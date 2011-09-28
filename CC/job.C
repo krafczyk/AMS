@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.827 2011/09/28 02:04:51 pzuccon Exp $
+// $Id: job.C,v 1.828 2011/09/28 18:22:12 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3183,7 +3183,7 @@ bool NeededByDefault=isSimulation();
       char disname[400];
      if(TKGEOMFFKEY.LoadMCDisalign==1){
 	char disname[200];
-        sprintf(disname,"%s/v5.00/MCDisaligment.txt",AMSDATADIR.amsdatadir);
+        sprintf(disname,"%s/MCDisaligment.txt",AMSDATADIR.amsdatadir);
 	TkDBc::Head->readDisalignment(disname);
 	printf("Read MC Disaligment from %s \n",disname);
      }else  if(TKGEOMFFKEY.LoadMCDisalign==2){

@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.43 2011/09/28 02:04:51 pzuccon Exp $
+// $Id: tkdcards.h,v 1.44 2011/09/28 18:22:12 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -41,7 +41,7 @@ public:
   integer LoadMCDisalign;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,2);
+  ClassDef(TKGEOMFFKEY_DEF,3);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
