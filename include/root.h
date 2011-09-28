@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.387 2011/09/27 23:49:20 pzuccon Exp $
+//  $Id: root.h,v 1.388 2011/09/28 07:50:05 choutko Exp $
 
 //
 //  NB 
@@ -1049,7 +1049,7 @@ public:
    ///
   /// \return human readable info about TrRecHitR
   char * Info(int number=-1){
-   sprintf(_Info,"TrRecHit no %d Id %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x,llhsss=%d %d %d %d %d %d)",number,Id,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status,lay(),lad(),half(),sen(),stripx(),stripy());
+   sprintf(_Info,"TrRecHit no %d Id %d Ampl=%4.1f, at (%9.4f,%9.4f,%9.4f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x,llhsss=%d %d %d %d %d %d)",number,Id,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status,lay(),lad(),half(),sen(),stripx(),stripy());
      return _Info;
 }
 

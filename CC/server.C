@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.188 2011/08/30 14:48:56 choutko Exp $
+//  $Id: server.C,v 1.189 2011/09/28 07:50:04 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -965,7 +965,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
     }
     if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
-    int out=systemC(submit);
+    int out=system(submit);
      time_t tt;
      time(&tt);
      (ahlv)->LastUpdate=tt;     
@@ -1954,7 +1954,7 @@ return length;
    char tmpbuf[1024];
    strcpy(tmpbuf,"ping -c 1 -w 9 ");
    strcat(tmpbuf,host);
-   return systemC(tmpbuf)==0;
+   return system(tmpbuf)==0;
 
 
 }
@@ -2614,14 +2614,14 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
          cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
       }
     }
-    else{
+    {
     char *lxplus5=getenv("AMSPublicBatch");
     if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
       lxplus5=getenv("AMSPublicBatch");
       string s=(const char*)submit;
       char pat[]="bsub -n ";
       int pos=s.find(pat);
-      if( !strstr((const char*)ahlv->HostName,lxplus5)){
+      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
 //         read script put max cpu number for given host
            ifstream ftxt;
            ftxt.clear();
@@ -2671,7 +2671,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
            }
      }
     }
-    int out=systemC(submit);
+    int out=system(submit);
      time(&tt);
      (ahlv)->LastUpdate=tt;     
     if(out==0){
@@ -3103,7 +3103,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
        rv->cinfo.HostName=cid.HostName;
       if(rv->History !=DPS::Producer::Failed){
         rv->Status=rv->History;
-        rv->CounterFail++;
+        if(acv->id.Status!=DPS::Client::SInExit)rv->CounterFail++;
         if(LastTry(rv)){
          rv->History=DPS::Producer::Failed;
         }
@@ -3515,6 +3515,14 @@ int crun=0;
           cout <<" found "<<crun<< " on "<<(const char *)cid.HostName<<endl;
            if((*i)->ClientsAllowed<crun+cid.threads){
               threads=(*i)->ClientsAllowed-crun;
+              // add one more thread
+               char *am=getenv("AMSAddOneMoreThread");
+              if(am && strlen(am)){
+                threads+=atol(am);
+               }
+              else{
+                setenv("AMSAddOneMoreThread","0",1);
+              }
                if(threads>cid.threads)threads=cid.threads;
                if(threads<=0)threads=1;
             }
@@ -4217,9 +4225,9 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
      submit+=".log ";
     }
     cout << "  kill: " <<submit<<endl;
-    int i=systemC(submit);
+    int i=system(submit);
     if(signal != SIGKILL and !i){
-       system("sleep 20");
+       system("sleep 10");
      }
 
     return i;
@@ -4287,7 +4295,7 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
        DPS::Producer::RunEvInfo_var rv=*li;
        rv->cinfo.HostName=(acv.id).HostName;
        rv->Status=rv->History;
-        rv->CounterFail++;
+        if(acv.id.Status!=DPS::Client::SInExit)rv->CounterFail++;
         if(LastTry(rv)){
          rv->History=DPS::Producer::Failed;
         }
@@ -5237,7 +5245,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       _parent->setdbfile(filepath);
       DPS::Producer::RES * pres;
       int length=0;
-      int mod=lentho/256;
+      int mod=lentho/64;
       if(mod<1)mod=1;
       if(count++%mod==0){
         cout <<" asking runs "<<mod<<endl;

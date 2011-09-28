@@ -46,7 +46,7 @@ please ask A. Eline in case of problems
 In case of occasional nonavailability of files
 
 1.  make sure file exists and staged 
-    by nsls and stager_get -M 
+    by nsls ; stager_get -M ; stager_gry -M 
 2.   send complains describing your problems to castor.support@cern.ch
 
 

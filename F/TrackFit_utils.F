@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.47  2011/09/28 07:50:04  choutko
+* *** empty log message ***
+*
 * Revision 1.46  2011/08/22 09:40:10  choutko
 * *** empty log message ***
 *
@@ -227,7 +230,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -6712,7 +6715,8 @@ c         ENDIF
 *
       END
 
-      subroutine fit(arr,prm,chi2m,algo,what,xf,xchi2,rigmin,itermin)
+      subroutine fit(arr,prm,chi2m,algo,what,xf,xchi2,rigra,
+     +rigmin,itermin)
       implicit none
       integer nplan,m,algo,what
       integer nlad,nhalf,npar,iter,miter,nmin,maxcases
@@ -6734,7 +6738,7 @@ c         ENDIF
       real rig,rigmin
       integer itermin
       real xf(2)
-      real xchi2(2,1000)
+      real xchi2(2,1000),rigra(1000)
       real cool(3,nplan,nlad,nhalf),s1,s2,s3
       common /arrcommon/ncases,array,fixpar,cool,mcrig
       real arr(nplan,*),chi2m
@@ -6742,7 +6746,7 @@ c         ENDIF
       real mcrig(maxcases)   !   mc rigidity
       integer fixpar(nplan,nlad,nhalf,6) ! -1 fixed 0 one for all ladders 1 free
       real sigma(nplan,2),z(nplan)
-      integer ncases,i,j,k,l,ntot,npt,ialgo
+      integer ncases,i,j,k,l,ntot,npt,ialgo,ntoto
       real out(9),hits(3,nplan),xsigma(3,2*nplan),normal(3,nplan),
      + outa(7,nplan),res(2,nplan)
       integer layer(nplan),ilayer(nplan),ims,ialg,ifail,l1
@@ -6834,8 +6838,9 @@ c          write(*,*)j,k
       rmax=0.1
       nmin=20
       iter=0
-      miter=100
+      miter=350
        chi2o=10000000
+       ntoto=0
        tol=2.e-3
        if(what.eq.1)then
       do i=nplan+1,nplan+1
@@ -6894,9 +6899,9 @@ c       call omp_set_num_threads(1)
      +a,b,sigma,res,dy,z,chi2,rig,ch,i,l)
      + SHARED(param,roll,pitch,phi,iter,array,
      +cool,mcrig,ncases,chi2max,rigmin,
-     +itermin,rmax,algo,xchi2) 
+     +itermin,rmax,algo,xchi2,rigra) 
      +  shared(dd,ddxx,ddxy,xnx,xnx2,xynx,xny,xny2,
-     + naver,averz,averxz,aver,averxy,aver2,ntot,chi2a,rigr,averx)
+     + naver,averz,averxz,aver,averxy,aver2,ntot,ntoto,chi2a,rigr,averx)
       call resetmagstat
       !$OMP DO   
 #endif
@@ -7074,7 +7079,7 @@ c             enddo
          rig=10000
          if(mod(algo,2).eq.0)then
            chi2=out(7)
-           rig=abs(out(6))
+           rig=out(6)
            
           ch(1)=chi2
           ch(2)=chi2
@@ -7153,7 +7158,10 @@ c          write(*,*)'chi2 ',i,iter,chi2
          enddo
          ntot=ntot+1
          chi2a=chi2a+chi2
-         rigr=rigr+abs(mcrig(i)/rig) 
+         rigr=rigr+(mcrig(i)/2/rig) 
+         if(i.le.1000)then
+            rigra(i)=mcrig(i)/2/rig
+         endif
 #ifdef __AMSPARALLEL__
        !$OMP END CRITICAL (fortran critical)
 #endif
@@ -7328,10 +7336,11 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
         xf(1)=chi2a
       endif
         xf(2)=chi2a
-      if(abs(chi2a-chi2o).gt.tol.and.iter.lt.miter.and.
-     +  chi2a.le.chi2o)then
+      if((abs(chi2a-chi2o).gt.tol.or.ntoto.le.ntot).and.iter.lt.miter
+     +  .and.(chi2a.lt.chi2o.or.ntoto<ntot).and.ntoto<=ntot)then
        iter=iter+1
        chi2o=chi2a
+       ntoto=ntot
        goto 10
       endif
       do i=1,nplan
@@ -7885,9 +7894,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.46 2011/08/22 09:40:10 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.47  2011/09/28 07:50:04  choutko
+* *** empty log message ***
+*
 * Revision 1.46  2011/08/22 09:40:10  choutko
 * *** empty log message ***
 *

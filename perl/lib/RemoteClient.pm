@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.693 2011/08/30 14:49:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.694 2011/09/28 07:50:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12550,6 +12550,8 @@ sub PrintDownloadTable {
     } else {
      print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download ($vvv)</b></font>:\n";
     }
+    print "<br><br>\n";
+     print "<font color=#8b1a1a size=\"6\"><b> All executibles can also be found in /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux </b></font>\n";
     print "<br><br>\n";
 #
 ##ams02mcdb tar

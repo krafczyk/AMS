@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.236 2011/08/30 14:48:56 choutko Exp $
+//  $Id: trrec.C,v 1.237 2011/09/28 07:50:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2411,7 +2411,10 @@ AMSgObj::BookTimer.stop("TrAdvancedFit_3");
 
     Fit(10);
     Fit(14);
+    Fit(114);
     Fit(15);
+    Fit(16);
+    Fit(116);
 AMSgObj::BookTimer.start("TrAdvancedFit_3");
 
     Fit(13);
@@ -2985,6 +2988,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   //  fit=6 -> fit ==0 nodb
   // abs(fits)/10 ==1  int only
   // abs(fits)/10 ==2  ext only
+  //  abs(fits)/100==1  residuals external
    // Create Proper Hit/Ehit things
         
    _crHit(fits%10==6);
@@ -3004,7 +3008,8 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   geant out[9];
   integer i;
     integer fit =abs(fits)%10;
-    integer ie=abs(fits)/10;
+    integer ie=(abs(fits)/10)%10;
+    integer extres=abs(fits)/100;
     if(fit==1 || fit==2 || fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:(TRFITFFKEY.MainAlg/100)%10;        else if(fit==5)ialgo=(TRFITFFKEY.MainAlg/10)%10;
     int ALG,ALIG;
     
@@ -3135,9 +3140,10 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
      return FLT_MAX;       
   }   
 integer ims; 
-if(fit==4)ims=0;
+if(fit==4  || fit==6)ims=0;
 else ims=1;
 int MS=ims;
+if(extres)MS+=100;
     AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(pmcg){
      number charge=pmcg->getcharge();    
@@ -3169,6 +3175,51 @@ for(int k=0;k<TKDBc::nlay();k++){
   }
   AMSgSen*pls=0;
  if(phit){
+ bool fitdone=false;
+// extres or not;
+if(extres && npt>3){
+
+resetmagstat_();
+for(int ik=0;ik<npt;ik++){
+  if(layer[ik]==phit->getLayer()){
+          double sgm[3];
+//          for(int ikk=0;ikk<3;ikk++)sgm[ikk]=sigma[ik][ikk];
+//          for(int ikk=0;ikk<3;ikk++)sigma[ik][ikk]=1;
+
+          float hits_a[10][3];
+          float sigma_a[10][3];
+          int layer_a[10];
+          float normal_a[10][3];
+          for(int ika=0;ika<ik;ika++){
+            layer_a[ika]=layer[ika];
+            for(int ika3=0;ika3<3;ika3++){
+             sigma_a[ika][ika3]=sigma[ika][ika3];
+             normal_a[ika][ika3]=normal[ika][ika3];
+             hits_a[ika][ika3]=hits[ika][ika3];
+            }  
+          }   
+          for(int ika=ik+1;ika<npt;ika++){
+            layer_a[ika-1]=layer[ika];
+            for(int ika3=0;ika3<3;ika3++){
+             sigma_a[ika-1][ika3]=sigma[ika][ika3];
+             normal_a[ika-1][ika3]=normal[ika][ika3];
+             hits_a[ika-1][ika3]=hits[ika][ika3];
+            }  
+          }   
+          int npt1=npt-1;
+          TKFITG(npt1,hits_a,sigma_a,normal_a,ipart,ialgo,ims,layer_a,out);
+
+//          TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+//          for(int ikk=0;ikk<3;ikk++)sigma[ik][ikk]=sgm[ikk];
+          fitdone=true;
+          break;
+  }
+}
+if(!fitdone){
+          TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+}
+
+}
     pls=phit->getpsen();
     AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
     AMSPoint pntplane(phit->getHit());
@@ -3298,7 +3349,15 @@ size++;
 
 
 
- 
+if(extres){
+resetmagstat_();
+TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
+if(fit==0 && ie==0){
+int ml=TKDBc::nlay();
+TKGETRES(_Res,ml);
+_RC=1;
+}
+} 
 
 int BitPattern=0;
 for(int l=0;l<npt;l++){

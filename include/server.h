@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.59 2011/08/22 09:40:15 choutko Exp $
+//  $Id: server.h,v 1.60 2011/09/28 07:50:05 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
@@ -323,7 +323,7 @@ bool LastTry(const DPS::Producer::RunEvInfo_var & rv){
     maxtry=atol(gtv);
     if(maxtry>10)maxtry=10;
    }
- if(rv->CounterFail>=maxtry)return true;
+ if(rv->CounterFail>=maxtry+rv->Priority)return true;
  else return false;
 }
 

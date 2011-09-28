@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.153 2011/08/25 14:16:33 ams Exp $
+# $Id: Monitor.pm,v 1.154 2011/09/28 07:50:05 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1689,7 +1689,8 @@ sub RemoveRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
+#     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
+     if( $rdst{uid} <140000 and $rdst{uid}>130000 and $rdst{FilePath} =~/zg1/){
          print "restoring $rdst{uid} \n";
          $rdst{Status} = "ToBeRerun";
 #     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
@@ -1704,7 +1705,8 @@ sub RemoveRuns{
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
-                $arsref->sendRunEvInfo(\%rdst,"Update");
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
+#                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{
@@ -1713,7 +1715,7 @@ sub RemoveRuns{
         }
         foreach $arsref (@{$ref->{ardref}}){
             try{
-           #     $arsref->sendRunEvInfo(\%rdst,"Delete");
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
                 last;
             }
             catch CORBA::SystemException with{

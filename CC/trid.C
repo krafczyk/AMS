@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.54 2010/09/20 15:21:44 choutko Exp $
+//  $Id: trid.C,v 1.55 2011/09/28 07:50:04 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -2898,9 +2898,9 @@ TKDBc::setNStripsSen(AMSTrIdSoft::_setup);
           }
           else{
            for(k=1;k<TKDBc::NStripsSen(i+1,j,m+1,l)-2;k++)_swxy[i][j][m][l][k]=0.0208;
-           _swxy[i][j][m][l][0]=0.0052*2.5;
+           _swxy[i][j][m][l][0]=0.0052*3;
            _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-2]=0.0052*5;
-           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-1]=0.0052*3.5;
+           _swxy[i][j][m][l][TKDBc::NStripsSen(i+1,j,m+1,l)-1]=0.0052*3.;
           }
         }
         else{

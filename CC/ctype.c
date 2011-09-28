@@ -4,10 +4,21 @@
  * This file has been added to compensate for a bug in
  * version 2.3.2 of the glibc library for RH8.
  */
+
  
 #define attribute_hidden
 #define CTYPE_EXTERN_INLINE /* Define real functions for accessors.  */
 #include <ctype.h>
+
+
+void  _nss_dns_gethostbyname33_r (const char *name, int af, struct hostent *result,                          char *buffer, size_t buflen, int *errnop,
+                          int *h_errnop){
+return 1;
+}
+
+
+
+
 /*
 #include <locale/localeinfo.h>
  
@@ -41,3 +52,6 @@ feenableexcept(*val);
 void feunsetexcept_(){
 fedisableexcept(FE_ALL_EXCEPT);
 }
+
+
+

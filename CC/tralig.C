@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.72 2011/08/22 09:39:34 choutko Exp $
+//  $Id: tralig.C,v 1.73 2011/09/28 07:50:04 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -533,7 +533,7 @@ while(offspring){
          ftxt.read((char*)&rig,sizeof(rig));
          ftxt.read((char*)&mcrig,sizeof(mcrig));
          if(mcrig==0)mcrig=400;
-            mcrig=400;
+//            mcrig=400;
          //ftxt>>nh>>chi2>>pattern>>add1>>add2;
          //uintl address(add1,add2);
          int ilad[maxlay]={0,0,0,0,0,0,0,0,0};
@@ -707,9 +707,10 @@ again:
           geant xf[2]; 
           geant chi2[1000][2];
           geant rigmin=0;
+          geant rigra[1000];
           int itermin=0;
           xf[0]=mcrig;
-         FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigmin,itermin);
+         FIT(arr,fixpar,chi2m,alg,what,xf,chi2,rigra,rigmin,itermin);
          what=0;
          cout <<" Total "<<pal->_PositionData<<" out of" <<totalall<<endl;
          for(int ip=0;ip<pal->_PositionData-1;ip++){
@@ -761,7 +762,7 @@ again:
              }
      xf[0]=mcrig;
 
-             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigra,rigmin,itermin);
 next:
              if(ip<10+TRALIG.Skip){
               int ims=0;
@@ -810,7 +811,7 @@ next:
             itermin=TRALIG.Cuts[8][1];
             cout <<" chi2m "<<chi2m<<"rigmin "<<rigmin<<" itermin "<<itermin<<endl;
               xf[0]=mcrig;
-            FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+            FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigra,rigmin,itermin);
 
              number nchi2a=0;
              float chi2a=0;
@@ -832,18 +833,19 @@ next:
             for(int i=0;i<sizeof(pal->chi2)/sizeof(pal->chi2[0]);i++){
               pal->chi2i[i]=chi2[i][0];
               pal->chi2[i]=chi2[i][1];
+              pal->rigra[i]=rigra[i];
             }
              cout <<"  Chi2 Changed "<<chi2a<<endl;
              what=-1;
              itermin=0;
               xf[0]=mcrig;
-             FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+             FIT(arr,fixpar,chi2a,TRALIG.Algorithm,what,xf,chi2,rigra,rigmin,itermin);
 
             what=2;
             int whato;
             do{
              whato=what;             
-             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigmin,itermin);
+             FIT(arr,fixpar,chi2m,TRALIG.Algorithm,what,xf,chi2,rigra,rigmin,itermin);
              AMSPoint outc;
              AMSPoint outa;
              AMSPoint coo;
@@ -1466,7 +1468,7 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
     else cout <<"tralig ntuple file "<<filename<<" opened."<<endl;
 
    HBNT(IOPA.ntuple+1,"Tracker Alignment"," ");
-   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Sensor:I,Side:I,FCN:R,FCNI:R,CHI2(1000):R,CHI2I(1000):R,ndata:I,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R,Stat:I");
+   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Sensor:I,Side:I,FCN:R,FCNI:R,CHI2(1000):R,CHI2I(1000):R,rigra(1000):R,ndata:I,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R,Stat:I");
  
 
   }
@@ -1489,6 +1491,7 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
      for(int ll=0;ll<sizeof(chi2)/sizeof(chi2[0]);ll++){
       TRALIGG.CHI2[ll]=chi2[ll];
       TRALIGG.CHI2I[ll]=chi2i[ll];
+      TRALIGG.rigra[ll]=rigra[ll];
      }
           TRALIGG.Stat=_pPargl[nsen][nlad][side][j].NEntries();
            for(k=0;k<3;k++){

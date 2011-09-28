@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.115 2010/11/10 19:33:19 choutko Exp $
+//  $Id: trrawcluster.C,v 1.116 2011/09/28 07:50:04 choutko Exp $
 #include "trid.h"
 #include "trrawcluster.h"
 #include "extC.h"
@@ -873,7 +873,7 @@ if(nerr>0){
    time_t begin,end,insert;
    time(&insert);
    if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
-   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+8640000);
+   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+864000);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1073,7 +1073,7 @@ if(nerr>0){
    time_t begin,end,insert;
    time(&insert);
    if(CALIB.InsertTimeProc)insert=AMSEvent::gethead()->getrun();
-   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+8640000);
+   ptdv->SetTime(insert,AMSEvent::gethead()->getrun()-1,AMSEvent::gethead()->getrun()+864000);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);

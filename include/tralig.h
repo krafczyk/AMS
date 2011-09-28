@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.29 2010/07/14 15:13:52 choutko Exp $
+//  $Id: tralig.h,v 1.30 2011/09/28 07:50:05 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -166,6 +166,7 @@ geant FCN;
 geant FCNI;
 geant CHI2[1000];
 geant CHI2I[1000];
+geant rigra[1000];
 int ndata;
 geant Pfit;
 geant Pfitsig;
@@ -196,6 +197,7 @@ number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
 number chi2[1000];
 number chi2i[1000];
+number rigra[1000];
 number _Chi2Max;
 AMSTrAligPar _pParC[trconst::maxlad];
 static AMSTrAligPar _pPargl[trconst::maxsen][trconst::maxlad][2][trconst::maxlay];

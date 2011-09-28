@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.168 2011/08/22 09:39:34 choutko Exp $
+//  $Id: producer.C,v 1.169 2011/09/28 07:50:04 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1344,13 +1344,14 @@ break;
 catch  (CORBA::SystemException & a){}
     _OnAir=false;
 }
+if(DAQCFFKEY.BTypeInDAQ[0]<=5){
 char tmp[256];
-sprintf(tmp," sleep 60 ; bkill %u &",_pid.pid);
+sprintf(tmp," (sleep 60 ; bkill %u )&",_pid.pid);
 system(tmp);
-sprintf(tmp," sleep 60 ; kill -9 %u &",_pid.pid);
+sprintf(tmp," (sleep 60 ; kill -9 %u )&",_pid.pid);
 system(tmp);
 cout <<" Exiting-I-Bkill "<<tmp<<endl;
-
+}
 
 }
 

@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.2 2011/08/30 14:49:01 choutko Exp $
+//  $Id: trfit.h,v 1.3 2011/09/28 07:50:05 choutko Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -19,7 +19,7 @@ enum kAtt{
 };
 int Pattern;   ///< Pattern in a way xxxxxxxxx  x =0...9  124789 means 6 hits with layers 1,2,4,7,8,9; pattern -1 if object is invalid
 short int Algo; ///< Algo 0 Choutko,1 Alc 2 Chik
-short int MS;  ///< 0 no MS 1 MS
+short int MS;  ///< 0 no MS 1 MS +100 extres
 short int Alig; ///< Alignment applied to a pattern in a same way xxxxxxxxx x=0,1,2,3 0 == no alig, 1=static alig, 2 == dyn alig, 3== reserved 
 short int Att; ///< Attribute 0 full path 1 1st half 2 2nd half 3 int only 4 ext only 5 custom 6 not defined
 float Rigidity;  ///< Rigidity GV
