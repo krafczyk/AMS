@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.42 2011/08/24 17:14:16 pzuccon Exp $
+// $Id: tkdcards.h,v 1.43 2011/09/28 02:04:51 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -37,6 +37,8 @@ public:
   integer disfname[400];
   ///[806] Alignment version; 1 :preflight, >1 flight
   integer alignver;
+  ///[807]; Enable MC disalign (0 disabled(default), 1 from file, 2 from TDV)
+  integer LoadMCDisalign;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
   ClassDef(TKGEOMFFKEY_DEF,2);

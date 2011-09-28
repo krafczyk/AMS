@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.65 2011/09/27 23:50:04 pzuccon Exp $
+// $Id: tkdcards.C,v 1.66 2011/09/28 02:04:51 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -26,6 +26,7 @@ void TKGEOMFFKEY_DEF::init(){
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
   alignver=2;
+  LoadMCDisalign=0;
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
@@ -95,6 +96,7 @@ for (int ii=0;ii<9;ii++){
   ExtMatch = 11;
   UseSensorAlign=1;
   statflag = 1;
+  
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

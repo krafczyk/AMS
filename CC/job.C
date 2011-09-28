@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.826 2011/08/25 08:22:25 mmilling Exp $
+// $Id: job.C,v 1.827 2011/09/28 02:04:51 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3178,7 +3178,18 @@ bool NeededByDefault=isSimulation();
     end.tm_mon=0;
     end.tm_year=0;
     TkDBc::CreateLinear();
-
+	
+    if(isSimulation()){
+      char disname[400];
+     if(TKGEOMFFKEY.LoadMCDisalign==1){
+	char disname[200];
+        sprintf(disname,"%s/v5.00/MCDisaligment.txt",AMSDATADIR.amsdatadir);
+	TkDBc::Head->readDisalignment(disname);
+	printf("Read MC Disaligment from %s \n",disname);
+     }else  if(TKGEOMFFKEY.LoadMCDisalign==2){
+      printf("The Tracker MC Disalign TDV interface is not yet implemented");
+     }
+    }
     if(isRealData()) {
      if (TKGEOMFFKEY.ReadGeomFromFile/10==1)
        cout << "AMSJob::timeinitjob-I-TrackerAlign is NOT added to TimeID"
