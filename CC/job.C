@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.829 2011/09/29 09:09:11 mmilling Exp $
+// $Id: job.C,v 1.828.2.1 2011/09/29 09:41:22 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
