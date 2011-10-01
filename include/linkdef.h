@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.95 2011/08/22 21:53:40 choutko Exp $
+//  $Id: linkdef.h,v 1.96 2011/10/01 22:35:07 chchung Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -106,6 +106,12 @@
 #pragma link C++ class TrdHReconR+;
 #pragma link C++ class TrdHChargeR+;
 #pragma link C++ class TrdHCalibR+;
+
+#ifdef _PGTRACK_
+#pragma link C++ class AC_TrdHits+;
+#pragma link C++ class TrdSCalibR+;
+#endif
+
 #pragma link C++ class TrdTFit+;
 #pragma link C++ class Tfunc+;
 #pragma link C++ class Level1R+;
