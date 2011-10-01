@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.174 2011/09/27 23:44:00 pzuccon Exp $
+#  $Id: Makefile,v 1.175 2011/10/01 22:33:28 chchung Exp $
 
 #P.Zuccon june 2005
 
@@ -273,6 +273,11 @@ COMMON_FILES += $(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C
 #TRD 
 COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRecon.C $(SCC)TrdHCalib.C $(SCC)TrdHCharge.C $(SCC)TrdTFit.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C 
 
+#TRD + AC Calibration
+ifdef PGTRACK
+TRD_ADD= $(SCC)TrdSCalib.C
+endif
+COMMON_FILES +=$(TRD_ADD) 
 
 #TOF + ACC
 COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
@@ -344,6 +349,9 @@ endif
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h  ../include/trigger102_setup.h
 
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/TrdHCalib.h ../include/TrdHCharge.h ../include/TrdTFit.h ../include/SlowControlDB.h
+ifdef PGTRACK
+ROOTDICTFILES += ../include/TrdSCalib.h
+endif
 
 ROOTDICTFILES += ../include/linkdef.h
 
@@ -553,7 +561,7 @@ ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o\
         $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
 $(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o 
 #$(BIN)rkms.o $(BIN)gufld.o
 
