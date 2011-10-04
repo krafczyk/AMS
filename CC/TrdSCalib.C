@@ -65,7 +65,7 @@ void AC_TrdHits::PrintTrdHit(Option_t *) const{
 vector<int> TrdSCalibR::nTrdModulesPerLayer(20);
 vector< vector<int> > TrdSCalibR::mStraw(18, vector<int>(20));   
 
-void TrdSCalibR::Init() {
+void TrdSCalibR::GenmStrawMatrix() {
   std::cout << "TrdSCalib:: Generate mStraw-Matrix." << std::endl;
   
   int iLay0 = 0;
@@ -429,8 +429,7 @@ void TrdSCalibR::ReadLFname(void){
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::GetEvthTime(AMSEventR *ev, int Debug){
   static int hTime = 0;
-
-  time_t  EvtTime = ev->UTime();
+  time_t  EvtTime = ev->fHeader.Time[0];
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
   int	Hour	= TimeInfo->tm_hour;
@@ -651,9 +650,9 @@ double AC_TrdHits::GetTrdHitTrkDistance(int d, float xy, float z, AMSPoint cPtrk
   bPtrk[1] = cPtrk[1] + xl*dPtrk[1];
   bPtrk[2] = cPtrk[2] + xl*dPtrk[2];
 
-  if (d==0) {
+  if (d==0) {             /// xz plane
     Distance = DistanceFromLine(xy,z,cPtrk[0],cPtrk[2],bPtrk[0],bPtrk[2]);
-  } else if (d==1) {
+  } else if (d==1) {      /// yz plane
     Distance = DistanceFromLine(xy,z,cPtrk[1],cPtrk[2],bPtrk[1],bPtrk[2]);
   }
   return Distance;
@@ -739,7 +738,7 @@ bool TrdSCalibR::GetTrdCalibHistos(int CalibLevel, int Debug) {
 
 //-------------------------------------------------------------------------------------------------
 		
-void TrdSCalibR::GetBinGasCirModule(int hTime, int CalibLevel, int Debug) {
+void TrdSCalibR::GetBinGasCirModule(int hTime, int CalibLevel, int iCir, int iMod, int Debug) {
   	
   iBinGasCir 	= 0;
   iBinModule 	= 0;
@@ -749,15 +748,35 @@ void TrdSCalibR::GetBinGasCirModule(int hTime, int CalibLevel, int Debug) {
 	      << "  h_TrdModuleMPV.size= " << h_TrdModuleMPV.size()
 	      << std::endl;
   
+  if(Debug > 0)
+    std::cout << Form("TrdCalib_01=%s TrdCalib_02=%s CalibLevel=%d", 
+		      TrdCalib_01?"true":"false",TrdCalib_02?"true":"false", CalibLevel)
+	      << std::endl;
   if (TrdCalib_01 && CalibLevel>0) 
-      iBinGasCir = h_TrdGasCirMPV.at(1)->FindBin(double(hTime));
+      iBinGasCir = h_TrdGasCirMPV.at(iCir)->FindBin(double(hTime));
 
   if (TrdCalib_02 && CalibLevel>1) 
-      iBinModule = h_TrdModuleMPV.at(1)->FindBin(double(hTime)); 
+      iBinModule = h_TrdModuleMPV.at(iMod)->FindBin(double(hTime)); 
   
   if(Debug > 0)
-    std::cout << "iBinGasCir= " << iBinGasCir << " iBinModule= " << iBinModule << std::endl; 
+  std::cout << "hTime=" << (int)hTime 
+	    << " iBinGasCir= " << iBinGasCir 
+	    << " iBinModule= " << iBinModule 
+	    << std::endl; 
 
+
+  if (TrdCalib_02 && CalibLevel>1 && Debug) {
+    TAxis *axis    = h_TrdModuleMPV.at(iMod)->GetXaxis();
+    Double_t xmin  = axis->GetXmin();
+    Double_t xmax  = axis->GetXmax();
+    Int_t nbins    = axis->GetNbins();
+    Float_t bwid   = axis->GetBinWidth(1);
+    Int_t bin      = axis->FindBin(hTime);   
+    double ibinmod = h_TrdModuleMPV.at(iMod)->GetBinContent(h_TrdModuleMPV.at(iMod)->FindBin(hTime));
+    std::cout << Form("hTime=%6d iCir=%2d iMod=%3d xmin=%6.0f xmax=%6.0f nbins=%6d bwid=%4.1f bin=%6d ibinmod=%4.1f", 
+		      hTime, iCir, iMod, xmin, xmax, nbins, bwid, bin, ibinmod) << std::endl;
+  }
+  
   return;
 }
 

@@ -345,7 +345,7 @@ class TrdSCalibR: public TObject{
 
  public:
 
-  void Init();
+  void GenmStrawMatrix();
   void ReadLFname();
 
   ///(Z= upper TOF)
@@ -368,7 +368,7 @@ class TrdSCalibR: public TObject{
 
   bool GetTrdCalibHistos(int CalibLevel, int Debug);
 
-  void GetBinGasCirModule(int hTime, int CalibLevel, int Debug);
+  void GetBinGasCirModule(int hTime, int CalibLevel, int iCir, int iMod, int Debug);
 
   vector<float> GetTrdSum8(vector<AC_TrdHits*> TrdHits, int Debug);
 
