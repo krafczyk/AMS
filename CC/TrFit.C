@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.55 2011/07/26 09:21:55 shaino Exp $
+//  $Id: TrFit.C,v 1.55.2.1 2011/10/04 14:27:44 choutko Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/07/26 09:21:55 $
+///$Date: 2011/10/04 14:27:44 $
 ///
-///$Revision: 1.55 $
+///$Revision: 1.55.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3969,16 +3969,19 @@ void TrProp::GuFld(double *p, double *b)
 
   MagField *mfp = MagField::GetPtr();
   if (mfp->GetMap() == 0 && !magerr) {
+#pragma omp critical (magchk)
+{
     char name[200];
     sprintf(name, "%s/v5.00/MagneticFieldMapPermanent_NEW.bin",
 	    getenv("AMSDataDir"));
     if ((mfp->Read(name)) < 0) {
       std::cerr << "Magnetic Field map not found: " << name << std::endl;
       magerr = -1;
-      return;
     }
     mfp->SetMagstat(1);
     mfp->SetScale(1.);
+}
+  if(magerr==-1)return;
   }
 
   float pp[3] = { p[0], p[1], p[2] };
