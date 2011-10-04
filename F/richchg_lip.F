@@ -95,7 +95,8 @@
 * ... count nb photoelectrons close to pattern
       do i=1,min(nbhits,nhitmax)
 *         print*,'(richchgrec) Hit ',i,' has flag ',iflghit(i)
-         if ( iflghit(i).ne.1 .and.                !hits not associated to particle
+C         if ( iflghit(i).ne.1 .and.                !hits not associated to particle
+         if ( iflghit(i).gt.0 .and.                !hits not associated to particle or anomalous cases
      +        sqrt(chi2hit(ipthetac,i)).lt.chgwin  !in the window
      +      ) then
 *            print*,' >>> hit ',i,' included in charge'

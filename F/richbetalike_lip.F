@@ -394,6 +394,8 @@ CC            prob_evt = fliketotall(cangrecmin)
          if (iflghit(i).eq.2) goto 1 !next hit
 * ...... exclude hits farther than 10 cm for maximum cerenkov pattern
          if (iflghit(i).eq.3) goto 1 !next hit
+* ...... exclude any other anomalous hits
+         if (iflghit(i).gt.0) goto 1 !next hit
 * ...... current hit
          ihit = i
          curhit(1) = hitscoo(1,i)

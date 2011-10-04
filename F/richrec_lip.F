@@ -518,7 +518,12 @@ C     -------------------------------------------------------------------------
                                                    ! pixel      : mod(int(bevent_hid(i)/10),16)
                                                    ! gain       : mod(bevent_hid(i),10)
                hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
-               hitstat(nbhits)     = 0 ! good hit
+               hitstat(nbhits)     = hitstat_ev(i) ! hit status
+               if(hitstat(nbhits).eq.0) then
+                  iflghit(nbhits) = 0
+               else
+                  iflghit(nbhits) = 4
+               endif
             endif
          enddo
 
@@ -1577,7 +1582,7 @@ C ------------------------------------------------------------------
 
 * --- init
       ipthetac = 0 !reset thetac rec pointer
-      call vzero(iflghit,nhitmax)
+C      call vzero(iflghit,nhitmax)
 
 * --- photons Tracing Variables init  /Begin/
 *     rotation matrix for loaded track was forced
@@ -1760,10 +1765,10 @@ C            FSIGMA2   =  0.7**2 ! likelihood function width
      +        (hitscoo(2,i)-(pcoopmt(2)
      +        +ZLGSIGNAL*atan(pthe)*sin(pphi)))**2
 *         print*,'... hit ',i,' - difextrap2 = ',difextrap2
-         if (difextrap2.lt.TRHITASS2) then
+         if (difextrap2.lt.TRHITASS2 .and. iflghit(i).eq.0) then
             iflghit(i) = 1
          else
-            iflghit(i) = 0
+C            iflghit(i) = 0
             nbhits_nass = nbhits_nass + 1
             if (nbhits_nass.le.nhitmax) ip_nass(nbhits_nass) = i
          endif

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.327 2011/08/22 22:41:56 pzuccon Exp $
+//  $Id: commons.h,v 1.327.4.1 2011/10/04 17:28:06 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1297,6 +1297,7 @@ class LIPC2F_DEF{
   int hitspmt_ev[LIP_NBHITSMAX];     
   geant hitscoo_ev[LIP_NBHITSMAX][3];   
   geant hitsnpe_ev[LIP_NBHITSMAX];     
+  int hitstat_ev[LIP_NBHITSMAX];     
 
   // simulated main track parameters
   geant pimp_sim[3];               
