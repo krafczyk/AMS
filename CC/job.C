@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.828.2.1 2011/09/29 09:41:22 mmilling Exp $
+// $Id: job.C,v 1.828.2.2 2011/10/05 09:50:12 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1176,13 +1176,13 @@ TRDMCFFKEY.multiples=0;
  TRDMCFFKEY.etrcor=1.2;
  TRDMCFFKEY.ndecor=1.0;
  TRDMCFFKEY.edecor=1.0;
- TRDMCFFKEY.Tmean=293.15;
- TRDMCFFKEY.Pmean=1080;
+ TRDMCFFKEY.Tmean=287.15;
+ TRDMCFFKEY.Pmean=950;
  TRDMCFFKEY.FibreDiam=12.;
  TRDMCFFKEY.RadThick=20.;
  TRDMCFFKEY.AlphaFibre=5.;
  TRDMCFFKEY.AlphaGas=0.66;
- TRDMCFFKEY.FleeceGas=0;
+ TRDMCFFKEY.FleeceGas=1;
  TRDMCFFKEY.XenonFraction=0.8;
  TRDMCFFKEY.ArgonFraction=0.;
  TRDMCFFKEY.CO2Fraction=0.2;
