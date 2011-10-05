@@ -1,7 +1,13 @@
 *
-* $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.48  2011/10/05 18:52:19  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.47.2.1  2011/10/05 16:01:12  choutko
+* tkfitpar propagatin bug fixed
+*
 * Revision 1.47  2011/09/28 07:50:04  choutko
 * *** empty log message ***
 *
@@ -230,7 +236,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -5034,7 +5040,7 @@ c          stepa=0
           step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
           stept=stept+step*idir
           if(step.gt.steps )then
-           call grkuta(chrg,step,vin,out)
+           call grkuta(chrg*idir,step,vin,out)
           else
             out(1)=vin(1)+step*vin(4)
             out(2)=vin(2)+step*vin(5)
@@ -5201,7 +5207,7 @@ c          stepa=0
           step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
           stept=stept+step*idir
           if(step.gt.steps)then
-           call grkuta(chrg,step,vin,out)
+           call grkuta(chrg*idir,step,vin,out)
           else
             out(1)=vin(1)+step*vin(4)
             out(2)=vin(2)+step*vin(5)
@@ -7894,9 +7900,15 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.47 2011/09/28 07:50:04 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.48  2011/10/05 18:52:19  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.47.2.1  2011/10/05 16:01:12  choutko
+* tkfitpar propagatin bug fixed
+*
 * Revision 1.47  2011/09/28 07:50:04  choutko
 * *** empty log message ***
 *

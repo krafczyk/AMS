@@ -42,7 +42,7 @@
      +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,levghit_c2f,
      +        nradts_c2f,
      +        nmirsec_c2f,idmirs_c2f,ipmtstat_c2f,
-     +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, 
+     +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, hitstat_ev,
      +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
      +        ibar_tof,irecnumb,itrknumb,idispflag
 
@@ -100,6 +100,7 @@
      +                  hitspmt_ev(nbhitsmax),     ! (pmtnumber+16*pixelnumber)*10 + gain  
      +                  hitscoo_ev(3,nbhitsmax),   ! hit coordinates
      +                  hitsnpe_ev(nbhitsmax),     ! nb photo electrons from adc   
+     +                  hitstat_ev(nbhitsmax),     ! hit status
                       ! [ SIMULATION MAIN TRACK PARAMETERS ]
      +                  pimp_sim(3),               ! impact point on radiator entrance
      +                  pthe_sim,                  ! theta

@@ -338,6 +338,7 @@ void RichLIPRec::InitEvent() {
     int hgain=hit->getbit(gain_mode_bit);
 
     LIPC2F.hitspmt_ev[actual]=10*(16*hitch.pmt_geom_id+hitch.channel_geom_id)+hgain;
+    LIPC2F.hitstat_ev[actual]=0;
 
     actual++;
   }

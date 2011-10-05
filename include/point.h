@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.35 2011/09/10 12:12:47 pzuccon Exp $
+//  $Id: point.h,v 1.36 2011/10/05 18:52:20 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #ifndef __AMSPOINT__
@@ -254,7 +254,7 @@ public:
   void Print(int opt=0){
     printf("RotMat : %f  %f %f\n",_nrm[0][0],_nrm[0][1],_nrm[0][2]);
     printf("       : %f  %f %f\n",_nrm[1][0],_nrm[1][1],_nrm[1][2]);
-    printf("       : %f  %f %f\n",_nrm[1][0],_nrm[2][1],_nrm[2][2]);
+    printf("       : %f  %f %f\n",_nrm[2][0],_nrm[2][1],_nrm[2][2]);
     if(opt>0){
       double alpha, beta,gamma;
       GetRotAngles(alpha,  beta,  gamma);      

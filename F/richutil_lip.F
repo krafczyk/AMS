@@ -1062,7 +1062,8 @@ C ----------------------------------------
          flatsin   = 0.0
          flatcos   = 0.0
          do i=1,min(nbhits,nhitmax)
-            if (iflghit(i).ne.1) then
+C            if (iflghit(i).ne.1) then
+            if (iflghit(i).gt.0) then
                if (chi2hit(ipthetac,i).gt.0.) then
                   hits_res = sqrt(chi2hit(ipthetac,i))
                else
@@ -1326,7 +1327,8 @@ c NORMALIZED GAUSSIAN
 * --- store phi values for ring data hits
       nbhits_ring=0
       do i=1,min(nbhits,nhitmax)
-         if (iflghit(i).ne.1) then
+C         if (iflghit(i).ne.1) then
+         if (iflghit(i).gt.0) then
             if(chi2hit(ipthetac,i).lt.CHI2HTCUT)then
                nbhits_ring=nbhits_ring+1
                if (nbhits_ring.le.nbhits_ring_max)
@@ -1421,9 +1423,15 @@ c      print*,' prob ',prob
 
 ********************************************************************
 *
-* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
+* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.8  2011/10/05 18:52:20  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.7.14.1  2011/10/04 17:28:06  barao
+* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
+*
 * Revision 1.7  2011/04/19 15:45:34  barao
 * Update of LIP RICH rec to support bad PMT/pixel flagging
 *
@@ -1668,9 +1676,15 @@ C   arising on parallelization (LIP)
 *********************************************************************+
 
 *
-* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
+* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.8  2011/10/05 18:52:20  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.7.14.1  2011/10/04 17:28:06  barao
+* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
+*
 * Revision 1.7  2011/04/19 15:45:34  barao
 * Update of LIP RICH rec to support bad PMT/pixel flagging
 *
@@ -1778,9 +1792,15 @@ C   arising on parallelization (LIP)
 
 
 
-* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
+* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.8  2011/10/05 18:52:20  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.7.14.1  2011/10/04 17:28:06  barao
+* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
+*
 * Revision 1.7  2011/04/19 15:45:34  barao
 * Update of LIP RICH rec to support bad PMT/pixel flagging
 *
@@ -1936,9 +1956,15 @@ C   arising on parallelization (LIP)
 
 ***********************************************************************
 *
-* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
+* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.8  2011/10/05 18:52:20  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.7.14.1  2011/10/04 17:28:06  barao
+* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
+*
 * Revision 1.7  2011/04/19 15:45:34  barao
 * Update of LIP RICH rec to support bad PMT/pixel flagging
 *
@@ -2145,9 +2171,15 @@ C
 
 ***********************************************************************
 
-* $Id: richutil_lip.F,v 1.7 2011/04/19 15:45:34 barao Exp $
+* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
 *
 * $Log: richutil_lip.F,v $
+* Revision 1.8  2011/10/05 18:52:20  pzuccon
+* propagate B542 updates to vdev
+*
+* Revision 1.7.14.1  2011/10/04 17:28:06  barao
+* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
+*
 * Revision 1.7  2011/04/19 15:45:34  barao
 * Update of LIP RICH rec to support bad PMT/pixel flagging
 *

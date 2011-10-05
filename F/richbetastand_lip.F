@@ -57,7 +57,12 @@
                                                 ! pixel      : mod(int(bevent_hid(i)/10),16)
                                                 ! gain       : mod(bevent_hid(i),10)
             hitsnpe_sim(nbhits) = hitsnpe_sim_ev(i)
-            hitstat(nbhits)     = 0 ! good hit
+            hitstat(nbhits)     = hitstat_ev(i) ! hit status
+            if(hitstat(nbhits).eq.0) then
+               iflghit(nbhits) = 0
+            else
+               iflghit(nbhits) = 4
+            endif
          endif
       enddo
 
@@ -2861,7 +2866,8 @@ C      call richsetradvtx(pimp,pthe,pphi,chradout) !pcervtx,...
 *     (notice that using a subset of hits is not supported here)
       if(fliketot5parxypart.lt.1.E7) then
          do i=1,min(nbhits,nhitmax)
-            if (iflghit(i).eq.1) then
+C            if (iflghit(i).eq.1) then
+            if (iflghit(i).gt.0) then
                if (hitsnpe(i).lt.1.) then
                   fact_weight=1.
                else
