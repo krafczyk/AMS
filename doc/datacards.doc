@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.362 2011/08/22 22:42:07 pzuccon Exp $
+#  $Id: datacards.doc,v 1.362.4.1 2011/10/05 09:50:54 mmilling Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -682,12 +682,12 @@ R34   ntrcor(1.4)           // correction factor to n tr gammas
 R35   etrcor(1.2)           // correction factor to mean energy of tr gammas
 R36   ndecor(0.85)           // correction factor to number of ion collisions
 R37   edecor(1.0)           // correction factor to mean energy loss per collision
-R38   Tmean(293.15)	    // mean temperature in TRD in kelvin
-R39   Pmean(1080);	    // mean pressure in TRD in mbar
-R40   FibreDiam(18.);	    // mean fibre diameter in um
+R38   Tmean(287.15)	    // mean temperature in TRD in kelvin
+R39   Pmean(950.);	    // mean pressure in TRD in mbar
+R40   FibreDiam(12.);	    // mean fibre diameter in um
 R41   RadThick(2.);	    // mean radiator thickness in mm
-R42   AlphaFibre(100);	    // alpha fibre of radiator
-R43   AlphaGas(100);        // alpha gas of radiator
+R42   AlphaFibre(5.);	    // alpha fibre of radiator
+R43   AlphaGas(0.66);        // alpha gas of radiator
 I44   FleeceGas(0);	    // fleece gas - 0:Air 1:Galactic
 R45   XenonFraction(0.8);   // volume fraction of xenon gas
 R46   ArgonFraction(0.0);   // volume fraction of argon gas
