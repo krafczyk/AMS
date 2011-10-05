@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.362.4.1 2011/10/05 09:50:54 mmilling Exp $
+#  $Id: datacards.doc,v 1.362.4.2 2011/10/05 18:46:42 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -234,11 +234,26 @@ I20 low(5)                        //cosmic(0);  undercutoff(1)
                                   //from flux file(6)
                                   //(7) uniform on 13 Rigidity values 
 				  // [.5,1,2,5,10,20,50,100,200,500,1000,2000,5000] GV
-                                  //(8) Test Beam Mode, uniform generation of parms:
+                                  //(8) Test Beam Mode, 
+                                  //                    positive sigma = uniform  generation of parms:
+                                  //                    negative sigma = gaussian generation of parms:
+				  //                    if sigma == 0  fixed value
                                   //                    1 to 3 postion mean;  4 to 6 position sigma;  
                                   //                    7 8 Theta,Phi  mean; 10 11 Theta,Phi sigma;  
                                   //                    13     Mom     mean; 14 Mom sigma;
 				  //                    if sigma == 0  fixed value
+                                  //
+                                  //(9) Test Beam Mode multiple position from file, 
+                                  //                    positive sigma=uniform  generation of parms:
+                                  //                    negative sigma=gaussian generation of parms:
+				  //                    if sigma == 0  fixed value
+                                  //                    1,2,3,6 ignored;
+                                  //                    4,5 beam spot sigma (X,Y);
+                                  //                    7   beam divergence;
+                                  //                    8,9,10,11 ignored;
+				  //                    12 suffix for filename; ex ($AMSDataDir/vX.00/TestBeamPos_$SUFFIX.txt)
+		                  //                                  file format = X Y Z Theta Phi
+                                  //                    13     Mom     mean; 14 Mom sigma;
                                   //
 I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin

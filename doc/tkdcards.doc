@@ -18,8 +18,9 @@ I 5  Calib FormatVer =1 Pre-Integration
 I 6   fname   (400*'') file name for dbase from file
 I 406 disfname(400*'') Disalignment file name
 I 806 alignver(def 2)  Alignment version; 1 :preflight, >1 flight
-I 807 LoadMCDisalign  Enable MC disalign (0 disabled(default), 1 from file, 2 from TDV)
-
+I 807 LoadMCDisalign   MN Enable MC disalign (
+                        N=0 disabled(default), N=1 from file, N=2 from TDV)
+                       M=0 no aligment loded M=1 Aligment from MC TDV
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm

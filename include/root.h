@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.388 2011/09/28 07:50:05 choutko Exp $
+//  $Id: root.h,v 1.388.2.1 2011/10/05 18:46:43 pzuccon Exp $
 
 //
 //  NB 
@@ -2686,6 +2686,7 @@ public:
   float Momentum;  ///< momentum (gev)
   float Mass;      ///< mass (gev)
   float Charge;    ///< charge (signed)
+  int tbline;      ///< For TB generation mode postion id (line number of the file of positions) 
   MCEventgR(){};
   MCEventgR(AMSmceventg *ptr);
   /// \param number index in container
@@ -2695,7 +2696,7 @@ public:
   return _Info;
   } 
   virtual ~MCEventgR(){};
-ClassDef(MCEventgR,1)       //MCEventgR
+ClassDef(MCEventgR,2)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
 };
 

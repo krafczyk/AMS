@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.167 2011/04/29 18:05:11 pzuccon Exp $
+//  $Id: mceventg.C,v 1.167.12.1 2011/10/05 18:46:42 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -82,6 +82,7 @@ for(i=0;i<3;i++){
  _coo[i]=io._coo[i];
  _dir[i]=io._dir[i];
 }
+ _tbline=0;
 InitSeed();
 if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
    io.getvelphi(),io.getstheta(),io.getsphi());
@@ -89,16 +90,38 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 
 
 AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
-const AMSDir & dir, integer nskip):_nskip(nskip),_mom(mom),_coo(coo),_dir(dir){
+			 const AMSDir & dir, integer nskip):_nskip(nskip),_mom(mom),_coo(coo),_dir(dir),_tbline(0){
 init(ipart);
 }
 
-double extract(float m, float s){
+double AMSmceventg::extract(float m, float s){
   if (s==0)  return m;
+  float s2=fabs(s);
   int d=1;
-  return (m+(2*RNDM(d)-1)*s);    
-  //  return (m+rnormx()*s);    
+  if(s>0)
+    return (m+(2*RNDM(d)-1)*s2);    
+  else
+    return (m+rnormx()*s2);    
 }
+
+
+
+int  AMSmceventg::readposfromfile(char* filename,vector<tbpos> &poslist){
+  FILE* ff=fopen(filename,"r");
+  if(!ff) return -1;
+  while(1){
+    float a,b,c,d,e;
+    tbpos aa;
+    fscanf(ff,"%f %f %f %f %f",&a,&b,&c,&d, &e );
+    if(feof(ff)) break;
+    aa.X=a;  aa.Y=b; aa.Z=c;
+    aa.TH=d; aa.PH=e;
+    poslist.push_back(aa);
+  }
+  
+  return poslist.size();
+}
+
 
 void AMSmceventg::gener(){
   char cdir[256];
@@ -118,11 +141,62 @@ void AMSmceventg::gener(){
     _dir[2]=cos(Th);
 
     _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[1]);
- //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
- //      _coo[0],_coo[1],_coo[2],
- //      _dir[0],_dir[1],_dir[2]);
+    //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
+    //      _coo[0],_coo[1],_coo[2],
+    //      _dir[0],_dir[1],_dir[2]);
   }
-  else if(CCFFKEY.low==-2){
+  else if(CCFFKEY.low==9){ // test beam mode from file
+    static int readfile=0;
+    static int index=0;
+    static int maxlist=0;
+    static vector<tbpos> poslist;
+    int d=1;
+    if(readfile==0){
+
+      poslist.clear();
+      char filename[400];
+      sprintf(filename,"%s/TestBeamPos_%03.0f.txt",AMSDATADIR.amsdatadir,CCFFKEY.dir[5]);
+      maxlist=readposfromfile(filename,poslist);
+      if(maxlist<0) {
+	printf("AMSmceventg::gener-E-: Cannot open file with TB postions filename:%s\n",filename);
+	printf("Sorry I give up \n");
+	exit(-5);
+	return;
+      }
+      readfile=1;
+    }
+    if(index>=maxlist) index=0;
+    _coo[0]=extract(0.,CCFFKEY.coo[3]);
+    _coo[1]=extract(0.,CCFFKEY.coo[4]);
+    _coo[2]=0;
+    _coo[0]+=poslist[index].X;
+    _coo[1]+=poslist[index].Y;
+    _coo[2]+=poslist[index].Z;
+
+    float Th  = RNDM(d)*CCFFKEY.dir[0];
+    float Ph  = RNDM(d) *2*M_PI;    
+    float CT=cos(poslist[index].TH);
+    float ST=sin(poslist[index].TH);
+    float CP=cos(poslist[index].PH);
+    float SP=sin(poslist[index].PH);
+    float rotmat[3][3];
+    rotmat[0][0]= CP*CT;    rotmat[0][1]=SP;     rotmat[0][2]=-CP*ST;
+    rotmat[1][0]=-SP*CT;    rotmat[1][1]=CP;     rotmat[1][2]= SP*ST;
+    rotmat[2][0]= ST;       rotmat[2][1]=0;      rotmat[2][2]= CT;
+    float d0[3];
+    d0[0]=sin(Th)*cos(Ph);
+    d0[1]=sin(Th)*sin(Ph);
+    d0[2]=cos(Th);
+    for(int ii=0;ii<3;ii++)
+      _dir[ii]=d0[0]*rotmat[ii][0]+d0[1]*rotmat[ii][1]+d0[2]*rotmat[ii][2];
+
+
+    _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[1]);
+    _tbline=index++;
+    //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
+    //      _coo[0],_coo[1],_coo[2],
+    //      _dir[0],_dir[1],_dir[2]);
+  }else  if(CCFFKEY.low==-2){
     //
     //  wrong method do not use  (VC)
     //
@@ -1075,7 +1149,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
 
 integer AMSmceventg::accept(){
   _nskip=Orbit.Ntot;
- if(CCFFKEY.low==8)  return 1;
+ if(CCFFKEY.low==8|| CCFFKEY.low==9)  return 1;
   if(!(GMFFKEY.GammaSource==0) || CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0) return 1; //ISN
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){

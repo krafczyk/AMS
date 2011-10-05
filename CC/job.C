@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.828.2.2 2011/10/05 09:50:12 mmilling Exp $
+// $Id: job.C,v 1.828.2.3 2011/10/05 18:46:42 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1971,6 +1971,17 @@ else{
     }
     else
       TkDBc::Head->init(pgtrack_DB_ver);
+
+    char disname[400];
+    if(TKGEOMFFKEY.LoadMCDisalign%10==1){
+      char disname[200];
+      sprintf(disname,"%s/MCDisaligment.txt",AMSDATADIR.amsdatadir);
+      TkDBc::Head->readDisalignment(disname);
+      printf("Read MC Disaligment from %s \n",disname);
+    }else  if(TKGEOMFFKEY.LoadMCDisalign%10==2){
+      printf("The Tracker MC Disalign TDV interface is not yet implemented");
+    }
+
 #else
   AMSTrIdGeom::init(STD_DB_ver);
   float zpos[trconst::maxlad];
@@ -3180,15 +3191,21 @@ bool NeededByDefault=isSimulation();
     TkDBc::CreateLinear();
 	
     if(isSimulation()){
-      char disname[400];
-     if(TKGEOMFFKEY.LoadMCDisalign==1){
-	char disname[200];
-        sprintf(disname,"%s/MCDisaligment.txt",AMSDATADIR.amsdatadir);
-	TkDBc::Head->readDisalignment(disname);
-	printf("Read MC Disaligment from %s \n",disname);
-     }else  if(TKGEOMFFKEY.LoadMCDisalign==2){
-      printf("The Tracker MC Disalign TDV interface is not yet implemented");
-     }
+      //  PZ MOVE to AMSJob::udata();
+//       char disname[400];
+//      if(TKGEOMFFKEY.LoadMCDisalign%10==1){
+// 	char disname[200];
+//         sprintf(disname,"%s/MCDisaligment.txt",AMSDATADIR.amsdatadir);
+// 	TkDBc::Head->readDisalignment(disname);
+// 	printf("Read MC Disaligment from %s \n",disname);
+//      }else  if(TKGEOMFFKEY.LoadMCDisalign%10==2){
+//       printf("The Tracker MC Disalign TDV interface is not yet implemented");
+//      }
+     if(TKGEOMFFKEY.LoadMCDisalign/10>0)
+       TID.add (new AMSTimeID(AMSID("TrackerAlignPM2",isRealData()),begin,end,
+			      TkDBc::GetLinearSize(),TkDBc::linear,
+			      server,need,SLin2Align));
+     
     }
     if(isRealData()) {
      if (TKGEOMFFKEY.ReadGeomFromFile/10==1)
@@ -3211,6 +3228,7 @@ bool NeededByDefault=isSimulation();
 				server,need,SLin2Align));
      }
     }
+    
     
     begin.tm_isdst=0;
     end.tm_isdst=0;

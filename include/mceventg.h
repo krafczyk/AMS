@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.47 2011/02/09 03:53:15 choutko Exp $
+//  $Id: mceventg.h,v 1.47.16.1 2011/10/05 18:46:43 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -73,6 +73,13 @@ AMSPoint getcoo() {return AMSPoint(_pos);}
 
 class AMSmceventg: public AMSlink {
 private:
+typedef struct tbpos{
+  float X;
+  float Y;
+  float Z;
+  float TH;
+  float PH;
+} tbpos;
 
 AMSPoint _coo;
 AMSDir   _dir;
@@ -84,6 +91,7 @@ number _delay;
 integer _ipart;
 integer _seed[2];
 integer _nskip;
+integer _tbline;
 static AMSPoint *_r_c;
 static AMSDir *_dir_c;
 static AMSPoint _coorange[2];
@@ -123,6 +131,10 @@ void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer fixedmom(){return _fixedmom;}
 static integer fixeddir(){return _fixeddir;}
 static void FillMCInfo();
+static int    readposfromfile(char* filename,vector<tbpos> &poslist);
+static double extract(float m, float s);
+
+
 #ifdef __AMSVMC__
 static void FillMCInfoVMC(int vmc_ipart,int vmc_inwvol,int CurrentLevel,const char* CurrentVolName,float* vmc_vect);
 #endif
@@ -131,7 +143,7 @@ static integer debug;
 
 static integer Out(integer status=0);
 AMSmceventg(integer ip, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
-AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
+AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);_tbline=0;}
 AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
 void init(integer);
