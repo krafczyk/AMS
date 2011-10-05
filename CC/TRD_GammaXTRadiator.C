@@ -50,7 +50,10 @@ TRD_GammaXTRadiator::TRD_GammaXTRadiator(G4Region *anEnvelope,
       fFilename = "/scratch/mmilling/gbatch/g4/"+name.str();
   }
   else{
-    name << "trd_gammaxtrad_table.txt";
+    //    name << "trd_gammaxtrad_table.txt";
+    // MM 20111005
+    name<<"table_GammaXTRadiator_TrdRadRegion_5_0.66_TrdRadUtil_Galactic_0.012_0.1699_109.txt";
+    
     fFilename = AMSDATADIR.amsdatadir+name.str();
   }
 
