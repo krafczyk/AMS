@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.47.16.1 2011/10/05 18:46:43 pzuccon Exp $
+//  $Id: mceventg.h,v 1.47.16.2 2011/10/07 14:17:21 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -77,8 +77,9 @@ typedef struct tbpos{
   float X;
   float Y;
   float Z;
-  float TH;
-  float PH;
+  float DX;
+  float DY;
+  float DZ;
 } tbpos;
 
 AMSPoint _coo;
