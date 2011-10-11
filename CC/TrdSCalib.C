@@ -384,12 +384,28 @@ bool TrdSCalibR::GetcTrd(TrdHTrackR *trdht) {
   cTrd[2] = trdconst::ToFLayer1Z;
   return true;
 }
+
+bool TrdSCalibR::GetcTrd(TrdTrackR *trdt) {
+  if(! trdt) return false; 
+  cTrd[0] = trdt->Coo[0]+dTrd[0]/dTrd[2]*(trdconst::ToFLayer1Z - trdt->Coo[2]);
+  cTrd[1] = trdt->Coo[1]+dTrd[1]/dTrd[2]*(trdconst::ToFLayer1Z - trdt->Coo[2]);
+  cTrd[2] = trdconst::ToFLayer1Z;
+  return true;
+}
+
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetdTrd(TrdHTrackR *trdht) {
   if(! trdht) return false;
   dTrd[0] = sin(trdht->Theta())*cos(trdht->Phi());
   dTrd[1] = sin(trdht->Theta())*sin(trdht->Phi());
   dTrd[2] = cos(trdht->Theta());
+  return true;
+}
+bool TrdSCalibR::GetdTrd(TrdTrackR *trdt) {
+  if(! trdt) return false;
+  dTrd[0] = sin(trdt->Theta)*cos(trdt->Phi);
+  dTrd[1] = sin(trdt->Theta)*sin(trdt->Phi);
+  dTrd[2] = cos(trdt->Theta);
   return true;
 }
 //--------------------------------------------------------------------------------------------------
@@ -400,7 +416,7 @@ bool TrdSCalibR::GetcTrkdTrk(TrTrackR *trt){
   return true;
 }
 //--------------------------------------------------------------------------------------------------
-bool TrdSCalibR::MatchingTrdHTKtrack(float P, int Debug){
+bool TrdSCalibR::MatchingTrdTKtrack(float P, int Debug){
   double TrdTkD  = TMath::Sqrt(TMath::Power(cTrk.x()-cTrd.x(),2)+
 			   TMath::Power(cTrk.y()-cTrd.y(),2)+
 			   TMath::Power(cTrk.z()-cTrd.z(),2));

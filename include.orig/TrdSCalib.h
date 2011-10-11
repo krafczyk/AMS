@@ -105,6 +105,7 @@ class AMSEventR;
 class TrdRawHitR;
 class TrdHSegmentR;
 class TrdHTrackR;
+class TrdTrackR;
 class TrTrackR;
 class AC_TrdHits;
 class TrdSCalibR;
@@ -350,10 +351,12 @@ class TrdSCalibR: public TObject{
 
   ///(Z= upper TOF)
   bool GetcTrd(TrdHTrackR *trdht); 
-  bool GetdTrd(TrdHTrackR *trdht);   
+  bool GetdTrd(TrdHTrackR *trdht);
+  bool GetcTrd(TrdTrackR  *trdt); 
+  bool GetdTrd(TrdTrackR  *trdt);
   bool GetcTrkdTrk(TrTrackR *trt);
 
-  bool MatchingTrdHTKtrack(float P, int Debug); 
+  bool MatchingTrdTKtrack(float P, int Debug); 
 
  public:
   int GetEvthTime(AMSEventR *ev, int Debug);
