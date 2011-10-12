@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.694 2011/09/28 07:50:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.695 2011/10/12 19:33:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -889,6 +889,13 @@ if($#{$self->{DataSetsT}}==-1){
          if($job=~/^build=/){
             my @vrs= split '=',$job;
              $dataset->{build}=$vrs[1];
+            my @j1=split '.B',$job;
+            if($#j1>0){
+                my $build=$j1[$#j1];
+                if(not defined $self->{Build} or $build>$self->{Build}){
+                    $self->{Build}=$build;
+                }
+            }
          }
          if($job=~/^delta=/){
                   my @vrs= split '=',$job;
@@ -15100,8 +15107,10 @@ sub getProductionVersion {
       $junk[2] =~ s/os//;
       $self->{ProductionVersion}=$r0->[0][0];
       $self->{Version}=strtod($junk[0]);
-      $self->{Build}  =strtod($junk[1]);
-      if(trimblanks($r0->[0][1]) ne $self->{Build}){
+      if(not defined $self->{Build}){
+          $self->{Build}  =strtod($junk[1]);
+      }
+      if(trimblanks($r0->[0][1]) > $self->{Build}){
           die "ProductionSet Inconsitency (trimblanks($r0->[0][1])  $self->{Build} \n";
       }
       $self->{OS}     =strtod($junk[2]);
