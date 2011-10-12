@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.695 2011/10/12 19:33:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.696 2011/10/12 20:20:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -893,8 +893,10 @@ if($#{$self->{DataSetsT}}==-1){
             if($#j1>0){
                 my $build=$j1[$#j1];
                 if(not defined $self->{Build} or $build>$self->{Build}){
-                    $self->{Build}=$build;
+#                    $self->{Build}=$build;
+                    $dataset->{buildno}=$build;
                 }
+               
             }
          }
          if($job=~/^delta=/){
@@ -7030,7 +7032,6 @@ print qq`
                 print "Output file Type ";
           print "<BR>";
 #    $self->getProductionVersion();
-
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000 170=$self->{Build} 2=" $defNTUPLE>Ntuple 
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=9000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
@@ -7872,6 +7873,14 @@ print qq`
          $buf=~ s/JOB=/DATASETNAME=$dataset->{name} \nJOB=/;
          $buf=~ s/JOB=/CPUTIME=$cpus \nJOB=/;
          my $rootntuple=$q->param("RootNtuple");
+if(defined $dataset->{buildno} ){
+    if($self->{Build}<0){
+    $self->getProductionVersion;
+    }
+    my $tago="170=$self->{Build}";
+    my $tagn="170=$dataset->{buildno}";
+    $rootntuple=~s/$tago/$tagn/;
+}
          $buf=~ s/ROOTNTUPLE=\d/ROOTNTUPLE=/;
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
@@ -8600,6 +8609,14 @@ anyagain:
             }
              $trtype=$q->param("QTrType");
              $rootntuple=$q->param("RootNtuple");
+if(defined $dataset->{buildno} ){
+    if($self->{Build}<0){
+    $self->getProductionVersion;
+    }
+    my $tago="170=$self->{Build}";
+    my $tagn="170=$dataset->{buildno}";
+    $rootntuple=~s/$tago/$tagn/;
+}
              $rno=$q->param("RNO");
              $spectrum=$self->{tsyntax}->{spectra}->{$q->param("QSpec")};
              $focus=$self->{tsyntax}->{focus}->{$q->param("QFocus")};
@@ -9131,6 +9148,14 @@ anyagain:
            }
        }
          if (defined $rootntuple && $i<2 && ($Any<0 or $srunno eq $qrunno) && not $self->{q}->param("AdvancedQuery")) {
+if(defined $dataset->{buildno} ){
+    if($self->{Build}<0){
+    $self->getProductionVersion;
+    }
+    my $tago="170=$self->{Build}";
+    my $tagn="170=$dataset->{buildno}";
+    $rootntuple=~s/$tago/$tagn/;
+}
           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          }
          if($i > 1){
@@ -9175,10 +9200,19 @@ anyagain:
           $rootntuple=~ s/168=40/168=4000/;
          }
 #         die  " $rootntuple $tmpb"
+if(defined $dataset->{buildno} ){
+    if($self->{Build}<0){
+    $self->getProductionVersion;
+    }
+    my $tago="170=$self->{Build}";
+    my $tagn="170=$dataset->{buildno}";
+    $rootntuple=~s/$tago/$tagn/;
+}
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          $tmpb=~ s/IOPA \$ROOTNTUPLE\'/IOPA \$ROOTNTUPLE\'\n/;
          #$tmpb=~ s/TERM/TGL1 1=8 \nTERM/;
+         
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/;
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;
@@ -15107,7 +15141,7 @@ sub getProductionVersion {
       $junk[2] =~ s/os//;
       $self->{ProductionVersion}=$r0->[0][0];
       $self->{Version}=strtod($junk[0]);
-      if(not defined $self->{Build}){
+      if(not defined $self->{Build} or $self->{Build}  <strtod($junk[1]) ){
           $self->{Build}  =strtod($junk[1]);
       }
       if(trimblanks($r0->[0][1]) > $self->{Build}){
