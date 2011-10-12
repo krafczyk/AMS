@@ -2888,18 +2888,46 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
-        types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
+        types=["0SCI","LAS","0CAL","0CMD","0CAB"]
         if(tab):
             print "<HR>"
             print "<table border=1>"
         for type in types:
-           sql="select path from datafiles where type like '%s%%' " %(type)
+           sql="select path,paths,run from datafiles where type like '%s%%' " %(type)
            sql=sql+" and status not like '%BAD%'"
            files=self.sqlserver.Query(sql)
            for file in files:
-                sysc="ln -sf "+file[0]+" /Offline/RunsDir/"+type+"/"
-#                sysc="ln -sf "+file[0]+" /Offline/RunsDirG/"+type+"/"
-                os.system(sysc)
+                run=file[2]
+                if(run2p!=0 and run!=run2p):
+                        continue
+                pathso=file[1]
+                paths=pathso.replace('ams.cern.ch/Offline','cern.ch/ams/Offline',1)
+                junk=paths.split('/')
+                bpath=""
+                for i in range (1,len(junk)-1):
+                        bpath=bpath+"/"+junk[i]
+                isdir=run/1000000
+                isdir=isdir*1000000;
+                sdir="/%d" %(isdir)
+                if(paths.find(sdir)<0):
+                        sysc="rm "+paths
+                        os.system(sysc)
+                        bpath=bpath+sdir;
+                        cmd="mkdir -p "+bpath
+                        i=os.system(cmd)
+                        if(i):
+                                print "Command failed ",cmd  
+                        else:
+                           sysc="ln -sf "+file[0]+" "+bpath
+                           os.system(sysc)
+                           bpath=bpath+"/"+junk[len(junk)-1]
+                           sql="update datafiles set paths='%s' where paths='%s'" %(bpath,file[1])     
+                           self.sqlserver.Update(sql)
+                           self.sqlserver.Commit(1)
+                else:
+                   continue     
+                   sysc="ln -sf "+file[0]+" /afs/cern.ch/ams/Offline/RunsDir/"+type+"/"
+                   os.system(sysc)
         if(run2p!=0):
             rundd=" and datafiles.run=%d " %(run2p)
             rund=" and dataruns.run=%d " %(run2p)
@@ -3368,6 +3396,15 @@ class RemoteClient:
                         elif (t0=="27" or t0=="896"):
                             type="CAB"
                         bpath=runsdir+"/"+type
+                        if(type=="LAS"):
+                                isdir=int(run)/1000000;
+                                isdir=isdir*1000000;
+                                sdir="/%d" %(isdir)
+                                bpath=bpath+sdir;
+                                cmd="mkdir -p "+bpath
+                                i=os.system(cmd)
+                                if(i):
+                                        print "Command failed ",cmd  
                         cmd="ln -sf "+outputpath+" "+bpath
                         i=os.system(cmd)
                         if(i):
