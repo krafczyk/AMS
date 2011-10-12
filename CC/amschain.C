@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.44 2011/09/27 23:50:04 pzuccon Exp $
+//  $Id: amschain.C,v 1.45 2011/10/12 07:43:59 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -601,6 +601,15 @@ void AMSEventList::Write(const char* filename){
 };
 
 void AMSEventList::Write(AMSChain* chain, TFile* file){
+if(!dynamic_cast<AMSChain*>(chain)){
+cerr<<"AMSEventList::Write-E-ChainIsNULL "<<endl;
+return;
+}
+if(!dynamic_cast<TFile*>(file)){
+cerr<<"AMSEventList::Write-E-TfileIsNULL "<<endl;
+return;
+}
+
   TTree *amsnew = chain->CloneTree(0);
   chain->Rewind();
   AMSEventR* ev = NULL;
