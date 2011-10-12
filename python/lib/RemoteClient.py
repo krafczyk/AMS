@@ -2888,7 +2888,7 @@ class RemoteClient:
         rundd=""
         rund=""
         runn=""
-        types=["0SCI","LAS","0CAL","0CMD","0CAB"]
+        types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
         if(tab):
             print "<HR>"
             print "<table border=1>"
@@ -3396,7 +3396,7 @@ class RemoteClient:
                         elif (t0=="27" or t0=="896"):
                             type="CAB"
                         bpath=runsdir+"/"+type
-                        if(type=="LAS"):
+                        if(type!="UNK"):
                                 isdir=int(run)/1000000;
                                 isdir=isdir*1000000;
                                 sdir="/%d" %(isdir)
