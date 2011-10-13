@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.696 2011/10/12 20:20:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.697 2011/10/13 11:40:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4397,7 +4397,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
             $addf=" and ntuples.path not like '%castor%'";
         }
-        $sqlsum=$sqlsum." and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
+        $sqlsum=$sqlsum." and  datasets.did=jobs.did and ntuples.jid=jobs.jid and ".$garbage[1].$pps." and ntuples.run=dataruns.run".$addf;
 #         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=dataruns.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
          # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
       }
@@ -4714,6 +4714,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #             die "2 $query $templat->[0] $sql ";
            }
             my $rsump=$self->{sqlserver}->Query($sql);
+#          die "$sql";
            my @sqla=split 'where',$sql;
 #           $sqla[1]=~s/and ntuples.run=runs.run//;
 #           $sqla[1]=~s/and ntuples.path not like \'\%castor\%\'//;
