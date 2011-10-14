@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.698 2011/10/14 13:34:05 ams Exp $
+# $Id: RemoteClient.pm,v 1.699 2011/10/14 15:46:21 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19786,7 +19786,7 @@ sub MoveBetweenDisks{
        if($verbose){
          print "processing run $run... $ds->[1] mb \n";
        }
-       $sql=" select path,castortime from $ntuples where run=$ds->[0]";
+       $sql=" select path,castortime from $ntuples where run=$ds->[0] and path like '$dir%'";
        my $r1=$self->{sqlserver}->Query($sql);
        my $path='/MC';
        if(defined $r1->[0][0]){
