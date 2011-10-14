@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.697 2011/10/13 11:40:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.698 2011/10/14 13:34:05 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19849,14 +19849,15 @@ sub MoveBetweenDisks{
             foreach my $jpart (@j2){
                 $mk=$mk.'/'.$jpart;
            }
-           system($mk);
-           $mkdir=0;
+           my $ret=system($mk);
+           #print "$mk returns $ret \n"; 
+           #$mkdir=0;
           }
            my $dd="dd if=/dev/zero of=$newfile.dd bs=1M count=10" ;
            my $iok=system($dd);
            system("rm -rf $newfile.dd");
            if($iok){
-             print "Problem with disk $disk \n";
+             print "Problem with disk $disk  \n";
              return;
            } 
            my $cp="cp  --preserve=timestamps,ownership  $file $newfile";

@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.59 2011/09/06 08:19:37 choutko Exp $
+# $Id: NetMonitor.pm,v 1.60 2011/10/14 13:34:05 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -8,6 +8,7 @@ use DBI;
 use POSIX  qw(strtod);
 @NetMonitor::EXPORT=qw(new Run); 
 $ENV{AMISERVER} = 'http://pcamss0.cern.ch:8081';
+use lib::DirMonitor;
 
 sub new{
     my $type=shift;
@@ -37,10 +38,22 @@ my %fields=(
   hostfile=>"/afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/prod/NominalHost",
   ping=>undef,
   sqlserver=>undef,
+  dir_monitor=>undef,
             );
 my $self={
   %fields,
 };
+
+my $dmfeilds={
+        warn_level=>32000,
+        src_dirs=>['/afs/cern.ch/ams/local/logs','/afs/cern.ch/ams/local/bsubs','/afs/cern.ch/ams/Offline/AMSDataDirRW/prod.log/scripts','/afs/cern.ch/ams/local/prod.log/Producer','/afs/cern.ch/ams/local/prod.log/MCProducer'],
+        dst_dir=>'/fc02dat0/scratch/MC/afsbackup',
+        dst_dir2=>'/f2users/scratch/MC/backupafs',
+        max_nfiles=>4578,
+        file_life=>604800,
+        rm_mode=>0
+        };
+$self->{dir_monitor}=new DirMonitor($dmfeilds);
 
 my %sfields=(
      start=>undef,
@@ -214,6 +227,19 @@ if(not open(FILE,"<".$self->{hostfile})){
             }
 
     }
+
+#director monitor
+        my $period = '';
+    open (PERIOD, "/afs/cern.ch/user/a/ams/vc/perl/period");
+    $period = <PERIOD>;
+    close (PERIOD);
+    if ($period%10==0) {
+                                $self->{dir_monitor}->run;
+                                if($self->{dir_monitor}->{error_counter}>0){
+                                            push @{$self->{bad}}, $self->{dir_monitor}->{error_message};
+                                }
+    }
+
 # AMI check
 my $localtime = '';
 my $delta = '';
