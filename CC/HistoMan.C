@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.37 2011/08/02 06:53:05 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.38 2011/10/15 16:30:37 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -41,14 +41,14 @@ void HistoMan::Save(){
   return;
 }
 
-void HistoMan::Save(TFile *file){
+void HistoMan::Save(TFile *file, char* dirname){
   if(!enabled) return;
   if(!file)return;
   printf("HistoMan::Save ----> Saving %s\n",file->GetName());
 
   TDirectory *dsave = gDirectory;
   file->cd();
-  TDirectoryFile *dir = new TDirectoryFile("HistoMan", "HistoMan");
+  TDirectoryFile *dir = new TDirectoryFile(dirname, dirname);
   dir->cd();
   for (int i = 0; i < fhist.GetEntries(); i++) {
     TH1 *obj = (TH1 *)fhist.At(i);

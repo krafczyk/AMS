@@ -10,10 +10,8 @@
 
 /// Returns TH1F histogram with log bin
 TH1F* TH1F_L(const char *name,const char * title,int nbin, double low, double up);
-
 /// Returns TH2F histogram with log/log or log/lin bins depending on logx/logy
 TH2F* TH2F_L(const char *name,const char * title,int nbin, double low, double up, int nbiny, double lowy, double upy, bool logx = true, bool logy = true);
-
 /// Returns TH1D histogram with log bin
 TH1D* TH1D_L(const char *name,const char * title,int nbin, double low, double up);
 /// Returns TH2D histogram with log/log or log/lin bins depending on logx/logy
@@ -45,7 +43,7 @@ public:
   /// Save histograms to file
   void Save();
   /// Save histograms to a specified file
-  void Save(TFile *file);
+  void Save(TFile *file, char* dirname = "HistoMan");
   /// Book default histograms (simmode 0: real data, 1: MC gen,  2: MC rec)
   void BookHistos(int simmode = 0);
   /// Is enabled or not
