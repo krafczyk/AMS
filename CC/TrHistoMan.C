@@ -561,7 +561,7 @@ TrHistoMan::~TrHistoMan() {
     if (!fHeader) fHeader->Clear();
   }
   // fFile is the owner, no deletion
-  map<Int_t,TNamed*>::iterator it;
+  map<uint32_t,TNamed*>::iterator it;
   for (it=fHashTable.begin(); it!=fHashTable.end(); it++) (*it).second = 0;
   fHashTable.clear();
   fDir = 0;
@@ -587,12 +587,16 @@ int TrHistoMan::Write(const char* name , Int_t option, Int_t bufsize) const {
   }
   return siz;
 }
+
+
 int TrHistoMan::Write(const char* name , Int_t option, Int_t bufsize)  {
  return ((const TrHistoMan*)this)->Write(name, option, bufsize);
 }
+
+
 void TrHistoMan::Sumw2(){
   // Sets all histograms to have a correct statistic error calculation
-  map<int,TNamed*>::iterator it;
+  map<uint32_t,TNamed*>::iterator it;
   for (it=fHashTable.begin(); it!=fHashTable.end(); it++) {
     TNamed* histo = it->second;
     if      (strcmp(histo->ClassName(),"TH1D")!=0) ((TH1D*) histo)->Sumw2();
@@ -603,21 +607,46 @@ void TrHistoMan::Sumw2(){
 
 
 void TrHistoMan::Add(TNamed* obj) {
-  TString istring(obj->GetName());
-  int ihash = istring.Hash(); 
-  // cout << "Add: " << obj->ClassName() << " " << ihash << " " << obj->GetName() << endl;
-  fHashTable.insert(pair<int,TNamed*>(ihash,obj));
+  uint32_t ihash = CalcHash(obj->GetName());
+  // repetition check
+  if (fHashTable.find(ihash)!=fHashTable.end()) {
+    printf("TrHistoMan::Add-W the object named %s has the same hash %d of the previously stored object %s.\n",
+           obj->GetName(),ihash,fHashTable.find(ihash)->second->GetName());
+    printf("TrHistoMan::Add-W I WILL SKIP THIS OBJECT, THE BEST SOLUTION WILL BE TO CHANGE THE OBJECT NAME.\n");
+    return; 
+  }
+  fHashTable.insert(pair<uint32_t,TNamed*>(ihash,obj));
 }
 
 
 TNamed* TrHistoMan::Get(const char* name){
-  // Return a pointer the the histogram with the reqired name.
-  // The output need a cast for the correct type.
-  // return fHlist->FindObject(name); // Requires a sequential scan
-  TString istring(name);
-  int ihash = istring.Hash();
-  // cout << "Get: " << fHashTable.find(ihash)->second->ClassName() << " " << ihash << " " << name << endl;
+  uint32_t ihash = CalcHash(name);
+  // existence check
+  if (fHashTable.find(ihash)==fHashTable.end()) {
+    printf("TrHistoMan::Get-W object named %s not found. Returning 0.\n");
+    return 0; 
+  }
   return fHashTable.find(ihash)->second;
+}
+
+
+uint32_t TrHistoMan::CalcHash(const char *str) {
+  /* 
+    // ROOT hashing, some problem has arisen with this!
+    TString istring(str);
+    int ihash = istring.Hash();
+  */
+  // The FNV-1 hashing algorithm
+  // http://www.isthe.com/chongo/src/fnv/hash_32.c
+  uint32_t ihash = ((uint32_t)0x811c9dc5);
+  unsigned char *s = (unsigned char *)str; // unsigned string
+  //  FNV-1 hash each octet in the buffer
+  while (*s) {
+    ihash *= ((uint32_t)0x01000193);
+    // xor the bottom with the current octet
+    ihash ^= (uint32_t)*s++;
+  }
+  return ihash;
 }
 
 
@@ -969,7 +998,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, const cha
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillTracker-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -985,7 +1014,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrRawClusterR* cluster, const cha
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillTracker-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1004,7 +1033,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, const char *
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillTracker-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1020,7 +1049,7 @@ void TrHistoMan::FillTracker(Bool_t bothsides, TrClusterR* cluster, const char *
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillTracker-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1032,7 +1061,7 @@ void TrHistoMan::FillTracker(Int_t side, const char *name, Double_t X1, Double_t
   else         sprintf(histoname,"%s_all_N",name);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillTracker-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1048,7 +1077,7 @@ void TrHistoMan::FillTracker(Int_t side, const char *name, Double_t X1, Double_t
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillTracker-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1059,7 +1088,7 @@ void TrHistoMan::FillTracker(const char *name, Double_t X1, Double_t X2, Double_
   sprintf(histoname,"%s_all",name);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillTracker() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillTracker-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1075,7 +1104,7 @@ void TrHistoMan::FillTracker(const char *name, Double_t X1, Double_t X2, Double_
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillTracker() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillTracker-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1098,7 +1127,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, const char 
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLayer-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1114,7 +1143,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrRawClusterR* cluster, const char 
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLayer-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1137,7 +1166,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, const char *na
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLayer-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1153,7 +1182,7 @@ void TrHistoMan::FillLayer(Bool_t bothsides, TrClusterR* cluster, const char *na
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLayer-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1166,7 +1195,7 @@ void TrHistoMan::FillLayer(Int_t side, Int_t layer, const char *name, Double_t X
   else         sprintf(histoname,"%s_layer%1d_N",name,layer);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLayer-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1182,7 +1211,7 @@ void TrHistoMan::FillLayer(Int_t side, Int_t layer, const char *name, Double_t X
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLayer-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1194,7 +1223,7 @@ void TrHistoMan::FillLayer(Int_t layer, const char *name, Double_t X1, Double_t 
   sprintf(histoname,"%s_layer%1d",name,layer);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLayer() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLayer-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1210,7 +1239,7 @@ void TrHistoMan::FillLayer(Int_t layer, const char *name, Double_t X1, Double_t 
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLayer() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLayer-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1231,7 +1260,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, const char
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLadder-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1247,7 +1276,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrRawClusterR* cluster, const char
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLadder-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1268,7 +1297,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, const char *n
   }
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLadder-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1284,7 +1313,7 @@ void TrHistoMan::FillLadder(Bool_t bothsides, TrClusterR* cluster, const char *n
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLadder-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1297,7 +1326,7 @@ void TrHistoMan::FillLadder(Int_t side, Int_t TkId, const char *name, Double_t X
   else         sprintf(histoname,"%s_%+03d_N",name,TkId);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLadder-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1313,7 +1342,7 @@ void TrHistoMan::FillLadder(Int_t side, Int_t TkId, const char *name, Double_t X
       hh->Fill(X1,X2,X3,w);
     }
    else {
-      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLadder-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1325,7 +1354,7 @@ void TrHistoMan::FillLadder(Int_t TkId, const char *name, Double_t X1, Double_t 
   sprintf(histoname,"%s_%+03d",name,TkId);
   TNamed* tmp = Get(histoname);
   if (!tmp) {
-    cout << "TrHistoMan::FillLadder() Error: " << histoname << " does not exist, ignoring for the moment ..." << endl;
+    cout << "TrHistoMan::FillLadder-W " << histoname << " does not exist, ignoring for the moment ..." << endl;
   }
   else {
     if      (strcmp("TH1D",tmp->ClassName())==0) {     // is a TH1D
@@ -1341,7 +1370,7 @@ void TrHistoMan::FillLadder(Int_t TkId, const char *name, Double_t X1, Double_t 
       hh->Fill(X1,X2,X3,w);
     }
     else {
-      cout <<"TrHistoMan:FillLadder() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+      cout <<"TrHistoMan:FillLadder-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
     }
   }
 }
@@ -1396,7 +1425,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, const char 
   }
   TNamed* tmp = Get(histoname);
   if(!tmp){
-    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " not found" << endl;
+    cout <<"TrHistoMan:FillEntry-W " << histoname << " not found" << endl;
     return;
   }
     
@@ -1405,7 +1434,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrRawClusterR* cluster, const char 
     hh->Fill((float)slot,(float)layer,1.);
   }
   else {
-    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    cout <<"TrHistoMan:FillEntry-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
   }
 }
 
@@ -1431,7 +1460,7 @@ void TrHistoMan::FillEntry(Bool_t bothsides, TrClusterR* cluster, const char *na
     hh->Fill((float)slot,(float)layer,1.);
   }
   else {
-    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    cout <<"TrHistoMan:FillEntry-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
   }
 }
 
@@ -1449,7 +1478,7 @@ void TrHistoMan::FillEntry(Int_t side, Int_t tkid, const char *name){
     hh->Fill((float)slot,(float)layer,1.);
   }
   else {
-    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    cout <<"TrHistoMan:FillEntry-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
   }
 }
 
@@ -1466,7 +1495,7 @@ void TrHistoMan::FillEntry(Int_t tkid, const char *name){
     hh->Fill((float)slot,(float)layer,1.);
   }
   else {
-    cout <<"TrHistoMan:FillEntry() Error: " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
+    cout <<"TrHistoMan:FillEntry-W " << histoname << " type " << tmp->ClassName() << " not supported" << endl;
   }
 }
 

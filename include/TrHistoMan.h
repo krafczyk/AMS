@@ -37,6 +37,7 @@
 #include "TList.h"
 #include "TCollection.h"
 
+#include <stdint.h>
 #include <vector>
 #include <map>
 
@@ -118,7 +119,7 @@ class TrHistoMan : public TObject {
   //! Directories for the layers; 
   TDirectory* fDirLayers[maxlay];  
   //! TObject hash table containing the histos
-  map<Int_t,TNamed*> fHashTable;
+  map<uint32_t,TNamed*> fHashTable;
   //! Who is the Owner?
   Bool_t fOwnerItself;
 
@@ -133,11 +134,13 @@ class TrHistoMan : public TObject {
 
   //! Write the histogram manager on a file
   int Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0);
-  int Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0)const;
+  int Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0) const;
   //! Add an histogram to the manager
   void Add(TNamed* obj);
   //! Returns the pointer to the histogram with the required name
   TNamed* Get(const char* name);
+  //! Static function for the hash calculation
+  static uint32_t CalcHash(const char *str);
 
   //! Returns the pointer to the histogram header
   inline TrHistoManHeader* GetHeader() const { return fHeader; } 
