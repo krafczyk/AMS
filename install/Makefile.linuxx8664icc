@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.11 2011/07/19 09:37:16 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.12 2011/10/16 09:10:13 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -129,7 +129,7 @@ CFLAGSn=      $(CFLAGSB)
 CFLAGSDAQ=    $(CFLAGSB) 
 
 
-FFLAGS=    -D__ICC__  -mp1  -fp_port   
+FFLAGS=    -D__ICC__  -mp1  -fp_port  -fPIC 
 FFLAGSn=   -D__ICC__  -mp1 -fp_port   
 
 

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.52 2011/09/27 23:44:18 pzuccon Exp $
+#  $Id: Makefile,v 1.53 2011/10/16 09:10:13 choutko Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -20,7 +20,6 @@ AMSLIB        = ntuple_slc4
 AMSPRG        = $(AMSWD)/exe/$(ARCH)/offmon
 AMSPRGC       = $(AMSWD)/exe/$(ARCH)/offmonc
 SLC4=y
-
 ifdef PGTRACK
 PREFIX        = $(AMSWD)/bin/$(ARCH)/online/PG/
 AMSLIB        = ntuple_slc4_PG
@@ -47,14 +46,20 @@ OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -axssse3 -openmp
+
 LDFLAGS       = 
 LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
+ifdef PGTRACK
+LFORT= 
+else
+LFORT = -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_icc32/2005/lib -lgeant321 -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/ia32 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+endif
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
@@ -70,14 +75,20 @@ OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/intel64/icpc  -axssse3 -openmp -static-intel
+ifdef PGTRACK
 LDFLAGS       = 
+LFORT= 
+else
+LDFLAGS = 
+LFORT =  -L/afs/cern.ch/exp/ams/Offline/CERN/2005/lib -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib  -L/opt/intel/Compiler/11.1/073/lib/intel64 -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+endif
 LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
 
-ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF
+ROOTLIBS      =  $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lHistPainter -lMinuit -lGX11 -lGX11TTF $(LFORT)
 ROOTLIBSA     =   -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat  -lncurses \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl 
 LIBSA         =   $(ROOTLIBSA) -Wl,-whole-archive,--allow-multiple-definition -lshift -Wl,-no-whole-archive  -lm   -Bdynamic          -ldl 
@@ -96,11 +107,16 @@ LDFLAGS       = -g
 LDS	= 	$(LD) -static
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
+ifdef PGTRACK
+LFORT= 
+else
+LFORT =  -L/afs/cern.ch/ams/Offline/AMSsoft/linux_slc5_gcc32/2005/lib -lgeant321  -lpacklib -lmathlib -lkernlib  -lgfortran
+endif
 
-ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl
@@ -117,14 +133,19 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++ 
 LDFLAGS       = -g 
+ifdef PGTRACK
+LFORT= 
+else
+LFORT =  -L/afs/cern.ch/exp/ams/Offline/CERN/2005.gcc64/lib -lgeant321 -lminuit -lpacklib -lmathlib -lkernlib  -lgfortran
+endif
 LDS	= 	$(LD) -static
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 
-ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --glibs) -lASImage  -lNetx -lGX11 -lHistPainter -lMinuit  -lGX11TTF $(LFORT)
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -pthread  -lAfterImage $(ROOTSYS)/lib/libXrdClient.a -lpcre -lncurses \
 	          -L/usr/X11R6/lib64 -lXft -lfontconfig -lXrender -lfreetype  -lexpat   \
-                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys 
+                  -lXpm -lXmu -lXt -lXext -lX11 -ljpeg -lpng -ltiff   -lXrd -lXrdNet  -lXrdNetUtil -lXrdOuc -lXrdSys $(LFORT)
 
 
 LIBS          =  -Bstatic   $(ROOTLIBSA)  -Bdynamic -lshift -lm    -ldl

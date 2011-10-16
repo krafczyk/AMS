@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.38 2010/06/24 11:33:48 zweng Exp $
+*  $Id: mfield.F,v 1.39 2011/10/16 09:10:12 choutko Exp $
 
 c. Add by Zhili.Weng 2009-11-11
 #ifdef __AMSVMC__
@@ -719,7 +719,11 @@ c      end
 *
 * Special trick if need
 *
+#ifdef __ROOTSHAREDLIBRARY__
+           xfac=1
+#else
         CALL BZCORR(xfac)
+#endif
         avv(3)=abs(vv(3))*xfac
 
  
@@ -734,7 +738,11 @@ c           if(mod(jj,1000).eq.2)write(*,*)' calling bx ',bx(1,1,1),iniok
           call fint_my(3,avv(1),NA(1),xyz(1),
      +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
          endif
+#ifdef __ROOTSHAREDLIBRARY__
+         factor=1
+#else
          CALL BTEMPCOR (factor)
+#endif
          b(1) = b(1) * factor
          b(2) = b(2)*sx*sy * factor
          b(3) = b(3)*sx*sz * factor
@@ -1282,9 +1290,15 @@ c                   x1(3)=x1(3)*xc(8)
              write(*,*)' readfieldmeasured ntot=',ntot
              end
 
-
-
+#ifdef __ROOTSHAREDLIBRARY__
           subroutine tkfldc(xx,hxy)
+          common /tkigufldC/i,j,xxy(3)
+          real xx(3),hxy(3,3)
+          real *8 xval,hbase,der(14),erest(14),tkigufld
+          end
+#else
+     
+      subroutine tkfldc(xx,hxy)
           common /tkigufldC/i,j,xxy(3)
           real xx(3),hxy(3,3)
           real *8 xval,hbase,der(14),erest(14),tkigufld
@@ -1310,7 +1324,7 @@ c                   x1(3)=x1(3)*xc(8)
           call gufld(xx,h)
           tkigufld=h(j)
           end
-
+#endif
           subroutine setbcorr(bcor)
 #      include "mfield.h"
           real bcor

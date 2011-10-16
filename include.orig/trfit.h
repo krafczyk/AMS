@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.3 2011/09/28 07:50:05 choutko Exp $
+//  $Id: trfit.h,v 1.4 2011/10/16 09:10:13 choutko Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -17,7 +17,7 @@ enum kAtt{
    kC,
    kND
 };
-int Pattern;   ///< Pattern in a way xxxxxxxxx  x =0...9  124789 means 6 hits with layers 1,2,4,7,8,9; pattern -1 if object is invalid
+int Pattern;   ///< bit pattern  bits xxxxxxxx where x =0 1 and layer 1 corresponds to the least significant bit ; pattern -1 if object is invalid
 short int Algo; ///< Algo 0 Choutko,1 Alc 2 Chik
 short int MS;  ///< 0 no MS 1 MS +100 extres
 short int Alig; ///< Alignment applied to a pattern in a same way xxxxxxxxx x=0,1,2,3 0 == no alig, 1=static alig, 2 == dyn alig, 3== reserved 
@@ -28,6 +28,7 @@ AMSPoint Coo;      ///< Track Fitted Coo  (cm)
 float Theta;      ///< Track Theta (rad)
 float Phi;        ///< Track Phi (rad)
 float Chi2;       ///< Chi2
+float Velocity;    ///<  velocity used in fit
 class TrSCooR{
 public:
 int Id;  ///< !!ssddhl ss sensor(1:xx) dd ladder(1:15) h half(0:1) l layer(1u:9d)
@@ -39,13 +40,13 @@ unsigned int NHits()const; ///< NumberOfHits
 
 
 vector<TrSCooR> fTrSCoo;  ///< !!Vector of fitted coo 
-TrTrackFitR():Pattern(0),Algo(-1),Alig(-1),MS(-1),Att(kND),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0){
+TrTrackFitR():Pattern(0),Algo(-1),Alig(-1),MS(-1),Att(kND),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(1.){
 fTrSCoo.clear();
 }
 
 /// TrTrackFit Constructor for iTrTrackFit function
 ///  patternoratt can be either positive(bit pattern) or (0,-1,-2,-3,-4) (-kAtt) 
-TrTrackFitR( int patternoratt, int algo,int alig,int ms):Algo(algo),Alig(alig),MS(ms),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0){
+TrTrackFitR( int patternoratt, int algo,int alig,int ms,float vel=1):Algo(algo),Alig(alig),MS(ms),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(vel){
 fTrSCoo.clear();
 if(patternoratt>0){
  Pattern=patternoratt;
@@ -60,17 +61,16 @@ else{
 kAtt getAtt();  ///< return attribute in katt form
 bool CheckLayer(int layer) const {return (Pattern &(1<<(layer-1)));} ///< Return true if layer (1...9) is is in the bit pattern
 
-TrTrackFitR( int pattern, int algo,int alg,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[]);
+TrTrackFitR( int pattern, int algo,int alg,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[],float vel=1);
 
 
 
 bool operator == (const TrTrackFitR &a ) const{
  return Algo==a.Algo && (a.Att==Att || (Pattern>0 &&a.Pattern==Pattern))  && (Att==kC || a.Pattern==Pattern) && Alig==a.Alig && MS==a.MS;
 }
-#ifdef __ROOTSHAREDLIBRARY__
-int Fit(const TrTrackR &track, AMSEventR * event); ///< Fit for root
-#endif
-ClassDef(TrTrackFitR,1)       //TrTrackFitR
+int Fit(TrTrackR *fit); ///< Fit for root; return 0 if success, 1 if error , 2 if fit not defined
+static int InitMF(unsigned int time); ///< MagField Initialization return 0 if success;
+ClassDef(TrTrackFitR,3)       //TrTrackFitR
 };
 
 

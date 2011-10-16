@@ -1,2 +1,2 @@
-insert into filesystems values ('scamsfs0', '/fc02dat1','/MC',0,0,0,50,'Active',0,0,0);
+insert into filesystems values ('scamsfs0', '/fc00dat1','/Data',0,0,0,100,'Active',10,0,0);
 

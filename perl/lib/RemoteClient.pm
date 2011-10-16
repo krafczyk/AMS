@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.699 2011/10/14 15:46:21 ams Exp $
+# $Id: RemoteClient.pm,v 1.700 2011/10/16 09:10:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16618,7 +16618,7 @@ sub calculateMipsVC {
           else{
          my $datafiles="datafiles";
          if($dataset->{datamc}/10==1){
-             $datafiles="mcfiles";
+#             $datafiles="mcfiles";
          }
        foreach my $job (@jobs){
         if($job =~ /\.job$/){

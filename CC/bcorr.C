@@ -1,12 +1,19 @@
-//  $Id: bcorr.C,v 1.6 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: bcorr.C,v 1.7 2011/10/16 09:10:07 choutko Exp $
+#ifdef __ROOTSHAREDLIBRARY__
+#else
 #include "event.h"
 #include "bcorr.h"
 #include "commons.h"
+#endif
 extern "C" void bzcorr_(float& factor){
+#ifdef __ROOTSHAREDLIBRARY__
+#else
  factor=MISCFFKEY.BZCorr;
+#endif
 }
 extern "C" void btempcor_(float& factor) {
-
+#ifdef __ROOTSHAREDLIBRARY__
+#else
 // Default in absence of corrections
   factor = 1.;
   if(!MISCFFKEY.BTempCorrection)return;
@@ -27,7 +34,10 @@ extern "C" void btempcor_(float& factor) {
 //    cout << "Event= " << oldevent << " Time= " << utime;
 //    cout << " MagTemp= " << temp << " BtempCor= " << factor << endl;
 //  }
-
+#endif
 }
 
+#ifdef __ROOTSHAREDLIBRARY__
+#else
 MagnetVarp::MagnetTemperature MagnetVarp::mgtt;
+#endif

@@ -1,5 +1,4 @@
-//  $Id: root.h,v 1.389 2011/10/05 18:52:20 pzuccon Exp $
-
+//  $Id: root.h,v 1.390 2011/10/16 09:10:13 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1134,6 +1133,7 @@ public:
 ///Fast,PI,RK Rigidities with only internal or only external points 
   float RigidityIE[3][2];  //!
   float Hit[9][3];   ///< Track Coordinate (after alignment)
+  float EHit[9][3];   ///< Track Error Coordinate (after alignment)
   AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);} 
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
@@ -1143,12 +1143,12 @@ public:
 vector<int> fTrRecHit;  ///< Vector of trrechit indexes
   public:
    int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom) 
+   int Layer(unsigned int i); ///< return layer number (0...8) for the Hit[i]
   bool isSubSet(int pattern); ///< return true if pattern is subset of track Bitpattern;
    int BitPattern; ///<  bits xxxxxxxx where x =0 1 and layer 1 corresponds to the leaset significant bit
    int ToBitPattern( int patternL);///< return bit pattern for given patternL or -1 if error  
    unsigned int NHits()const ;  ///< retutn NHits;
    
-
   TrTrackR(){};
 /// Get and optionally refit  track using pattern bit pattern (inclusive)
 /// \return index of the fTrTrackFit vector or -1 if no such element or -2 if alig or alg or ms  not defined or -3 if pattern is not subset of BitPattern or -4 if refit failed or not yet implemented
@@ -1178,7 +1178,7 @@ bool setFitPattern(TrTrackFitR::kAtt k, int & pattern); ///< set fit pattern for
   /// \return human readable info about TrTrackR
   char * Info(int number=-1);
   virtual ~TrTrackR(){};
-ClassDef(TrTrackR,14)       //TrTrackR
+ClassDef(TrTrackR,15)       //TrTrackR
 #pragma omp threadprivate(fgIsA)
 friend class AMSTrTrack;
 friend class AMSEventR;

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.546 2011/09/27 23:49:40 pzuccon Exp $
+//  $Id: event.C,v 1.547 2011/10/16 09:10:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1767,7 +1767,7 @@ void AMSEvent::_trdgain(){
 	    // select charge 1
 	    if(avera[2]<3){
 	      //calibrate trd here
-#pragma omp critical
+#pragma omp critical (trd)
 	      TrdHCalibR::gethead()->update_medians(&TrdHReconR::gethead(AMSEvent::get_thread_num())->htrvec[0]);
 	    }
 	  }

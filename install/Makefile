@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.175 2011/10/01 22:33:28 chchung Exp $
+#  $Id: Makefile,v 1.176 2011/10/16 09:10:13 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -161,6 +161,12 @@ $(BIN)%.o : $(SFF)%.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 
+$(BIN)%_s.o : $(SFF)%.F
+	@echo Compiling  $< ...
+	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
+	$(FF) -c $(FFLAGS) -D__ROOTSHAREDLIBRARY__  -I$(CERNDIR)/include $< -o $@
+
+
 $(BIN)%.o : $(SFF)%.f
 	@echo Compiling  $< ...
 	@if ! [ -d $(BIN) ] ; then mkdir -p $(BIN); fi
@@ -258,7 +264,7 @@ else
 #Tracker
 TRACK_BASE +=   $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C  $(SCC)trcalib.C $(SCC)tralig.C  \
 	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
-		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
+		$(SFF)tszfit.F     $(SCC)trfit.C $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C    $(SCC)TrPdf.C \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
 TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C 
@@ -564,10 +570,12 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
 $(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o 
 #$(BIN)rkms.o $(BIN)gufld.o
+SHLIBBO:=$(SHLIBO)
 
 
 else
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o
+SHLIBBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o 
 
 endif
 
@@ -577,9 +585,9 @@ $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h
 	$(LD) -O   $(SHLIBO) $(SOFLAGS) $(SHLDFLAGS)  -o  $(SHLD)
 
 static : amswd $(NTLD)
-$(NTLD): $(SHLIBO)
+$(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) rv   $(NTLD) $(SHLIBO)
+	$(AR) rv   $(NTLD) $(SHLIBBO)
 
 
 #-------------------------------------------------------------------------------

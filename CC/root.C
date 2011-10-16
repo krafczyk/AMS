@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.332 2011/10/05 18:52:19 pzuccon Exp $
+//  $Id: root.C,v 1.333 2011/10/16 09:10:08 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2129,11 +2129,6 @@ bool AMSEventR::ReadHeader(int entry){
 static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       
       local_pfile=_Tree->GetCurrentFile();
-      if(!initdone[thr] || nthr==1){
-       InitDB(local_pfile);
-       initdone[thr]=1;
-       cout <<"  InitDB Init done "<<thr<<endl;
-     }
 // workaround root static bug
       if(!gDirectory ||  !dynamic_cast<TDirectoryFile*>(gDirectory)){
           cout <<" Open "<<_Tree->GetCurrentFile()->GetName()<<endl;
@@ -2163,6 +2158,11 @@ static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 //#pragma omp atomic 
 //_Lock+=(1<<thr);
 //cout <<" Lock "<<_Lock<<" "<<omp_get_thread_num()<<endl;
+      if(!initdone[thr] || nthr==1){
+       InitDB(local_pfile);
+       initdone[thr]=1;
+       cout <<"  InitDB Init done "<<thr<<endl;
+     }
 
      }
 //cout <<" LockAfter "<<_Lock<<" "<<thr<<endl;
@@ -3900,6 +3900,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
     {
       for(int k=0;k<3;k++){
 	Hit[i][k]=(float)ptr->_Hit[i][k];
+	EHit[i][k]=(float)ptr->_EHit[i][k];
       }
     }
   if(AdvancedFitDone){
@@ -5245,10 +5246,15 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 }
 master=1;  
 }
+#else
+#ifdef __ROOTSHAREDLIBRARY__
+TrTrackFitR::InitMF(UTime());
+#endif
+ master=1;  
+#endif
  while (master==0){
    usleep(1);
  }
-#endif
   
 
 }
@@ -5668,8 +5674,29 @@ int TrTrackR::iTrTrackFit(TrTrackFitR & fit,int refit){
    }
    if(refit>1){
     static int err=0;
-    if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplemented"<<endl;
-    return -4;
+    for(int i=0;i<fTrTrackFit.size();i++){
+
+    if(fTrTrackFit[i]==fit){
+      fit=fTrTrackFit[i];
+      break;
+    }
+    }
+    int ierr=fit.Fit(this);
+    if(ierr){
+     if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplementedOrFitError "<<ierr<<endl;
+     return -4;
+    }
+    else{
+    for(int i=0;i<fTrTrackFit.size();i++){
+
+    if(fTrTrackFit[i]==fit){
+      fTrTrackFit[i]=fit;
+      return i;
+    }
+    }
+    fTrTrackFit.push_back(fit);
+    return fTrTrackFit.size()-1;
+    }
    }
    else{
     for(int i=0;i<fTrTrackFit.size();i++){
@@ -5681,9 +5708,17 @@ int TrTrackR::iTrTrackFit(TrTrackFitR & fit,int refit){
     }
     if( refit==0)return -1;
     else{
+      int ierr=fit.Fit(this);
+    if(ierr){
       static int err=0;
-     if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplemented"<<endl;
+     if(err++<100)cerr<<"TrTrackR::iTrTrackFit-E-RefitNotYetImplementedOrFitError "<<ierr<<endl;
      return -4;
+    }
+    else{
+    fTrTrackFit.push_back(fit);
+    return fTrTrackFit.size()-1;
+    
+    }
     }
    }
 }
@@ -5712,6 +5747,17 @@ for( int k=0;k<9;k++){
 }
 }
 return ret;
+}
+
+
+int TrTrackR::Layer(unsigned int i){
+int ret=0;
+for(int k=0;k<9;k++){
+if(BitPattern &( 1<<k)){
+ if(ret++==i)return k;
+}
+}
+return 0;
 }
 
 int TrTrackR::ToBitPattern(int patl){
@@ -5743,7 +5789,7 @@ for( int k=0;k<9;k++){
 return ret;
 }
 
-TrTrackFitR::TrTrackFitR( int pattern, int algo,int alig,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[]):Pattern(pattern),Algo(algo),Alig(alig),MS(ms),Att(att),Rigidity(r),ErrRigidity(er),Coo(coo),Theta(t),Phi(p),Chi2(chi2){
+TrTrackFitR::TrTrackFitR( int pattern, int algo,int alig,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[],float vel):Pattern(pattern),Algo(algo),Alig(alig),MS(ms),Att(att),Rigidity(r),ErrRigidity(er),Coo(coo),Theta(t),Phi(p),Chi2(chi2),Velocity(vel){
 fTrSCoo.clear();
 for(int i=0;i<size;i++){
 fTrSCoo.push_back(ic[i]);
@@ -5916,9 +5962,4 @@ return false;
 
 
 
-#ifdef __ROOTSHAREDLIBRARY__
-int TrTrackFitR::Fit(const TrTrackR & tr, AMSEventR *ev){
-return 0;
-}
-#endif
 #endif
