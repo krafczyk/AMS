@@ -262,6 +262,8 @@ if(!fitdone){
   else coos[size].Id=k+1;
  }
 }
+fTrSCoo.clear();
+for(int k=0;k<sizeof(coos)/sizeof(coos[0]);k++)fTrSCoo.push_back(coos[k]);
 
 
    
