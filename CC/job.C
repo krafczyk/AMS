@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.831 2011/10/05 18:52:19 pzuccon Exp $
+// $Id: job.C,v 1.832 2011/10/21 12:47:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1248,7 +1248,7 @@ void AMSJob:: _reamsdata(){
   CALIB.InsertTimeProc=1;  // Insert Time by daq-time
   CALIB.Ntuple=0;
   CALIB.SubDetInCalib=11111;//SubDets selection for proc. of OnBoard-calib data(msb->lsb =>trd|tof+acc|trk|rich|ec)
-  CALIB.SubDetRequestCalib=111011111;
+  CALIB.SubDetRequestCalib=111021111;
  FFKEY("CALIB",(float*)&CALIB,sizeof(CALIB_DEF)/sizeof(integer),"MIXED");
 
 

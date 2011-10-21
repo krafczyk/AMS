@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.131 2011/08/02 09:12:01 shaino Exp $
+//  $Id: timeid.C,v 1.132 2011/10/21 12:47:11 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -29,6 +29,9 @@
 #endif
 #if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
 #include "ntuple.h"
+#endif
+#ifdef __ROOTSHAREDLIBRARY__
+#include "root.h"
 #endif
 #include <dirent.h>
 
@@ -307,9 +310,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
   cout <<" in barrier AMSTimeId::readDB-I-BarrierReachedFor "<<omp_get_thread_num()<<endl;
   AMSEvent::ResetThreadWait(1);
   AMSEvent::Barrier()=true;
-#endif
 #pragma omp barrier 
   if( omp_get_thread_num()==0) {
+#else
+if(1){
+#endif
     ok= read(dir,id,asktime,index)?1:0;
 #if !defined(__CORBASERVER__) && !defined(__ROOTSHAREDLIBRARY__)
      if(AMSNtuple::Get_setup02()){
@@ -318,6 +323,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
      else{
        cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
      }
+#endif
+#ifdef __ROOTSHAREDLIBRARY__
+if(AMSEventR::Head()  && AMSEventR::Head()->getsetup()){
+        AMSEventR::Head()->getsetup()->TDVRC_Add(asktime,this);
+}
 #endif
     if(ok && _trigfun)_trigfun();
 
@@ -337,6 +347,11 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
      else{
        cerr<<"AMSTimeID::readDB-E-AMSNtuple::Getsetup02IsNull "<<endl;
      }
+#endif
+#ifdef __ROOTSHAREDLIBRARY__
+if(AMSEventR::Head()  && AMSEventR::Head()->getsetup()){
+        AMSEventR::Head()->getsetup()->TDVRC_Add(asktime,this);
+}
 #endif
     return 1;
   }

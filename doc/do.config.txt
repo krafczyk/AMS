@@ -383,6 +383,7 @@ FILE_PATTERNS          = root.h \
                          tracking.h \
                          tracking.C \
                          root.C \
+                         trfit.C \
                          stlv.h \
                          stlv.C \
                          ad.C    \
@@ -410,7 +411,10 @@ FILE_PATTERNS          = root.h \
                          ana.root_static.doc \
                          ana.root_staticp.doc \
                          daqe_mt.C  \
+                         aligmct.C   \
                          link_mt.sh      \
+                         l64o.sh         \
+                         l32g.sh         \
                          ana.root_static.C \
                          ams_run.sh \
                          select_entries.doc \

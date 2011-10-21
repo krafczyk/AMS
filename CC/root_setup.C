@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.47 2011/08/22 21:53:40 choutko Exp $
+//  $Id: root_setup.C,v 1.48 2011/10/21 12:47:10 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -18,7 +18,10 @@
         };
 #include "dirent.h"
 #include <sys/stat.h>
+#else
+#include "timeid.h"
 #endif
+
 
 AMSSetupR* AMSSetupR::_Head=0;
 
@@ -320,6 +323,27 @@ i->second.insert(make_pair(time,a));
 }
 #else
 void AMSSetupR::TDVRC_Add(unsigned int time,AMSTimeID *tdv){
+TDVR a;
+a.Begin=tdv->_Begin;
+a.Insert=tdv->_Insert;
+a.End=tdv->_End;
+a.Size=tdv->_Nbytes;
+a.CRC=tdv->_CRC;
+a.DataMC=tdv->getid();
+a.Name=tdv->getname();
+a.FilePath=(const char*)tdv->_fname;
+a.Data.clear();
+a.Size/=sizeof(uinteger);
+a.Size--;
+for(int i=0;i<a.Size;i++){
+a.Data.push_back(*(tdv->_pData+i));
+}
+string s=tdv->getname();
+fTDVRC[s];
+TDVRC_i i=fTDVRC.find(s);
+i->second.insert(make_pair(time,a));
+cout <<"  inserting "<<a.Name<<" "<<a.FilePath<<" "<<time<<endl;
+
 }
 #endif
 

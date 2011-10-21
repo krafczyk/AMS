@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.390 2011/10/16 09:10:13 choutko Exp $
+//  $Id: root.h,v 1.391 2011/10/21 12:47:18 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1638,12 +1638,13 @@ public:
    unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
   float getped(int &error);   ///< return ped
   float getsig(int &error);   ///< return sigma
-  float getgain(int &error);  ///< return gain
+  float getgain(int &error);  ///< return gain from TRDGains
+  float getgain2(int &error);  ///< return gain from TRDGains2
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
   virtual ~TrdRawHitR(){};
-ClassDef(TrdRawHitR,3)       //TrdRawHitR
+ClassDef(TrdRawHitR,4)       //TrdRawHitR
 #pragma omp threadprivate(fgIsA)
 };*/
 

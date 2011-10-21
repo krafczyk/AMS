@@ -1,10 +1,11 @@
 /*! \example ana.root_staticp.doc
- *  The program below (daqe_mt.C) illustrates a way to analyze AMS Root 
+ *  The program below (aligmct.C) illustrates a way to analyze AMS Root 
  *  files in a parallel way using OPENMP enabled compiler (icc, gcc 4.2++). The parallelization is done on the level of root files, and not events. 
- *    - To compile and link it  you can use  script 
- *                -  link_mt.sh daqe_mt  
+ *    - To compile and link it  you can use  script
+ *                -   setenv AMSINCLUDE /Offline/vdev/  
+ *                -  l64o.sh ( l32g.sh if using 32bit gcc root version) aligmct  
  *    
- *    - To run it use $AMSWD/daqe_mt -tthreadnumber -ffile_output_name  
+ *    - To run it use $AMSWD/aligmct -tthreadnumber -ffile_output_name  
  * 
  *     -  where threadnumber is the integer between 1 and number of cores of a given machine. You should avoid to use threadnumber>2 on a public ams machine. 
  *      
@@ -18,8 +19,7 @@
 *  -    Note that this mode is primarily designed for the massive data analysis with number of root files at least O(100) 
 *
  *    - Note that the program is prepared to be run in batch mode. 
+ *    - Note  that this is the only mode in which track refit can be done in version 4.00 tracksr software
  *
- *    - Also, it does not work with RFIO files for the time being.
- *
- *  \include daqe_mt.C
+ *  \include aligmct.C
  */ 

@@ -17,7 +17,6 @@
 #ifndef _PGTRACK_
 #ifdef __ROOTSHAREDLIBRARY__
 #include "commonsi.h"
-AMSDATADIR_DEF amsdatadir_;
 #endif
 #endif
 

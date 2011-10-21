@@ -1,4 +1,4 @@
-//  $Id: commonsi.C,v 1.174 2011/10/05 18:52:19 pzuccon Exp $
+//  $Id: commonsi.C,v 1.175 2011/10/21 12:47:10 choutko Exp $
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -6,9 +6,7 @@
 #include "amsdbc.h"
 #include <fstream>
 
-#ifdef _PGTRACK_
 AMSDATADIR_DEF AMSDATADIR;
-#endif
 
 #ifdef __ROOTSHAREDLIBRARY__
 int AMSCommonsI::pri=0;

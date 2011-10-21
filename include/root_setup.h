@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.27 2011/08/22 21:53:41 choutko Exp $
+//  $Id: root_setup.h,v 1.28 2011/10/21 12:47:18 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -278,9 +278,9 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
 
   const char * BuildTime(){time_t tm=fHeader.BuildTime;return ctime(&tm);};
 
-protected:
 void TDVRC_Purge(); ///< Purge TDVRC map
 void TDVRC_Add(unsigned int time,AMSTimeID * tdv);
+protected:
 void Add(SlowControlDB *s);
 friend class AMSTimeID;
 friend class SlowControlDB;

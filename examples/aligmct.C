@@ -200,10 +200,15 @@ try{
      
      
        TrTrackFitR ftot(0,0,1,1);
+//     inernal tracker only objct alignd
        TrTrackFitR fi(-3,0,1,1);
-       TrTrackFitR fii(-3,0,1,1);
+//     no ms internal tracker only object aligned
+//
+       TrTrackFitR fii(-3,0,1,0);
        TrTrackFitR fms(-3,2,1,0);
+// noalignd  internal tracker only int residuals  VC fit  
        TrTrackFitR fnoalig(-3,0,0,0);
+//  noaligned internal tracker only ext residuals VC fit
        TrTrackFitR noaligext(-3,0,0,100);
        TrTrackFitR noaligc(-3,2,0,1);
        TrTrackFitR fia(-3,1,1,1);
@@ -214,6 +219,7 @@ try{
        int iftot=tr.iTrTrackFit(ftot);
        int ifi=tr.iTrTrackFit(fi);
        cout <<" Rig0 "<<fi.Rigidity<<" "<<fi.NHits()<<" "<<Event()<<endl;
+  //forced refit of fii object
        int ifi1=tr.iTrTrackFit(fii,2);
        cout <<" Rig1 "<<fii.Rigidity<<" "<<fii.NHits()<<" "<<Event()<<endl;
        int ifia=tr.iTrTrackFit(fia);
@@ -336,6 +342,7 @@ try{
         }
                   for(int i=0;i<tr.NTrRecHit();i++){
                      TrRecHitR rh=TrRecHit(tr.iTrRecHit(i));
+     //     dx,dy,dz  hits differenr due to the alignment (non alignd == test beam geometry)
                      double dx=tr.Hit[i][0]-rh.Hit[0];  
                      double dy=tr.Hit[i][1]-rh.Hit[1];
                      double dz=tr.Hit[i][2]-rh.Hit[2];
@@ -359,8 +366,9 @@ try{
                   hf1(60000+(lad+half*20)*10+lay+part.Charge*1000,dx,1);
                   hf1(70000+(lad+half*20)*10+lay+part.Charge*1000,dy,1);
                   hf1(80000+(lad+half*20)*10+lay+part.Charge*1000,dz,1);
-                  double dxt=tr.Hit[i][0]-fnoalig.fTrSCoo[lay-1].Coo[0];
-                  double dyt=tr.Hit[i][1]-fnoalig.fTrSCoo[lay-1].Coo[1];
+//  internal residuals for aligned case  
+                  double dxt=tr.Hit[i][0]-fi.fTrSCoo[lay-1].Coo[0];
+                  double dyt=tr.Hit[i][1]-fi.fTrSCoo[lay-1].Coo[1];
                   hf1(40000+part.Charge*1000,dxt,1);                   
                   hf1(50000+part.Charge*1000,dyt,1);                   
                   hf1(40000+lay+part.Charge*1000,dxt,1);                   
@@ -374,6 +382,8 @@ try{
                   hf1(40000+(lad+half*20)*10+lay,dxt,1);                   
                   hf1(50000+(lad+half*20)*10+lay,dyt,1);                   
                  if(inoaligext>0){
+    //          external residuals for nonaligned == testbeam case
+    //          change noaligext -> noalig   if internal residuals
                         dxt=rh.Hit[0]-noaligext.fTrSCoo[lay-1].Coo[0];
                   dyt=rh.Hit[1]-noaligext.fTrSCoo[lay-1].Coo[1];
                   //hf1(20000+part.Charge*1000,dxt,1);                   
