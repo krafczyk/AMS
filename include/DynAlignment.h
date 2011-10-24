@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "root.h"
 
 using namespace std;
 
@@ -30,6 +31,8 @@ class DynAlEvent: public TObject{
   int lad()const{return (Id/100)%100;}
   int half()const{return (Id/10)%10;}
   int sen()const{return (Id/10000)%100;}
+
+  static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);
 
   ClassDef(DynAlEvent,1);
 };
@@ -108,8 +111,6 @@ class DynAlFit: public TObject{
   void RetrieveFitPar(int t0=0,int t1=0);
   void ApplyLocalAlignment(int id,double &x,double &y,double &z);
   void ApplyLocalAlignment(int id,float &x,float &y,float &z);
-  
-  ClassDef(DynAlFit,1);
 };
 
 
@@ -117,6 +118,8 @@ class DynAlFit: public TObject{
 //
 // Implement a tool to guarantee the continuity between different runs
 //
+/*
+#include "root.h"
 
 class DynAlContinuity{
  public:
@@ -136,11 +139,10 @@ class DynAlContinuity{
   TFile *FindCreateIdx(int run,TString file);
 
   //Tools
-  void CreateIdx(int run,TString file);
-  void buildEvent(DstEvent &ev,int index,DynAlEvent &event);
-  void findHits(DstEvent *ev,vector<int> &indexes,vector<double> &dist);
-  int select(DstEvent *ev);
+  void CreateIdx(int run,TString file);                      // Create the idx file
+  static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);   // Dump a event into the DynAlEvent structure. Return true is succeed
+  static int select(AMSEventR *ev,int layer);                          // Check if the event has to be selected to compute the alignment
 };
-
+*/
 
 #endif

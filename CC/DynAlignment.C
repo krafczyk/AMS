@@ -20,6 +20,103 @@ void DynAlEvent::extrapolateTrack(){
   TrackHit[2]+=dz;
 }
 
+
+bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
+  ////////////////////////////////
+  // Get the hit for the layer  //
+  ////////////////////////////////
+
+  if(ev.nParticle()!=1) return false;
+  ParticleR &part=ev.Particle(0);
+  if(part.iTrTrack()<0) return false;
+  TrTrackR &track=ev.TrTrack(part.iTrTrack());
+  TrRecHitR *hitp=0;
+
+#ifdef _PGTRACK_
+  hitp=track.GetHitLJ(layer);
+#else
+  int whichHit=-1;
+  for(int hi=0;hi<track.NTrRecHit();hi++){
+    TrRecHitR &h=ev.TrRecHit(track.iTrRecHit(hi));
+    if(h.lay()==layer){hitp=&h;whichHit=hi;break;}
+  }
+#endif
+
+  if(!hitp) return false;
+  TrRecHitR &hit=*hitp;
+
+  ///////////////////////////////////////////////////////////////////////
+  // Extrapolate the track to the layer and dump the track information //
+  ///////////////////////////////////////////////////////////////////////
+
+  AMSDir dir;
+  AMSPoint pnt;
+#ifdef _PGTRACK_
+  int id=track.iTrTrackPar(1,3,1);
+  if(id<0) return false;
+  const TrTrackPar &trPar=track.gTrTrackPar(id);
+  track.InterpolateLayerJ(layer, pnt, dir, id) ;
+  for(int i=0;i<3;i++) event.TrackHit[i]=pnt[i];
+  event.TrackTheta=dir.gettheta();
+  event.TrackPhi=dir.getphi();
+  event.Rigidity=trPar.Rigidity;
+#else
+  TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
+  int id=track.iTrTrackFit(fit,0);
+  if(id<0) return false;
+  TrTrackFitR &trPar=track.fTrTrackFit.at(id);
+  int which=-1;
+  for(int i=0;i<trPar.fTrSCoo.size();i++)
+    if(trPar.fTrSCoo.at(i).Id%10==layer){
+      which=i;
+      break;
+    }
+  if(which<0) return false;
+  for(int i=0;i<3;i++) event.TrackHit[i]=trPar.fTrSCoo[which].Coo[i];
+  event.TrackTheta=trPar.fTrSCoo[which].Theta;
+  event.TrackPhi=trPar.fTrSCoo[which].Phi;
+  event.Rigidity=trPar.Rigidity;
+#endif  
+
+  ////////////////////////////////////////////////////////
+  // Pick the hit position without alignment correction //
+  ////////////////////////////////////////////////////////
+#ifdef _PGTRACK_
+  int imult=hit.GetResolvedMultiplicity();
+  pnt=hit.GetGlobalCoordinate(imult,"");
+#else
+  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
+#endif
+  
+  ///////////////////////////
+  // Dump the hit position //
+  //////////////////////////
+
+  for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
+
+  ///////////////////////////////
+  // Dump the Time information //
+  ///////////////////////////////
+
+  event.Time[0]=ev.fHeader.Time[0];
+  event.Time[1]=ev.fHeader.Time[1];
+
+  ////////////////////// 
+  // Dump the hit id  //
+  //////////////////////
+  
+#ifdef _PGTRACK_
+  event.Id=(hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad())*(hit.OnlyY()?-1:1);
+#else
+  event.Id=hit.Id;
+  if(hit.Status&16384 || hit.Status&8192) event.Id*=-1;
+#endif
+
+
+  return true;  // Success 
+}
+
+
 ClassImp(DynAlHistory);
 
 int DynAlHistory::FindCloser(int seconds,int muSeconds,int initial){
@@ -87,7 +184,7 @@ void DynAlHistory::FindTimeWindow(int event,int seconds,int &first,int &last){
 }
 
 
-ClassImp(DynAlFit);
+//////////////////////////////////////////////////////////////////////////////
 
 DynAlFit::DynAlFit(int order){
   LadderFit=false;ZOffset=-136.0;First=Last=Excluded=-1;
@@ -132,30 +229,43 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
     excluded.insert(i);
   }
 
+  /////////////////////////////////////////////////
+  // exclude too far away hit
+  for(int i=first;i<=last;i++){
+    if(fabs(history.Events[i].RawHit[0]-history.Events[i].TrackHit[0])>1 ||
+       fabs(history.Events[i].RawHit[e]-history.Events[i].TrackHit[1])>1) excluded.insert(i);
+    if(history.Events[i].Id<0) excluded.insert(i);
+  }
+
+
 
   /////////////////////////////////////////////
   // Exclude outliers
-  // Compute ZOffset 
+ 
   double sum[2]={0,0};
   double sum2[2]={0,0};
-  ZOffset=0;
+  int totalCount=0;
   for(int i=first;i<=last;i++){
+    if(excluded.count(i)) continue;
     for(int j=0;j<2;j++){
       sum[j]+=history.Events.at(i).RawHit[j];
       sum2[j]+=history.Events.at(i).RawHit[j]*history.Events.at(i).RawHit[j];
     }
-    ZOffset+=history.Events.at(i).RawHit[2];
+    totalCount++;
   }
 
-  for(int j=0;j<2;j++) {sum[j]/=total;sum2[j]/=total;sum2[j]-=sum[j]*sum[j];}
-  ZOffset/=total;
+  for(int j=0;j<2;j++) {sum[j]/=totalCount;sum2[j]/=totalCount;sum2[j]-=sum[j]*sum[j];}
   
   for(int i=first;i<=last;i++){
+    if(excluded.count(i)) continue;
     double delta[2];
     const double threshold=5*5;
     for(int j=0;j<2;j++) {delta[j]=history.Events.at(i).RawHit[j]-sum[j];}
     if(delta[0]*delta[0]>threshold*sum2[0] || delta[1]*delta[1]>threshold*sum2[1]) excluded.insert(i); 
   }
+
+
+
   ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -206,17 +316,6 @@ void DynAlFit::ApplyLocalAlignment(int myid,double &x,double &y,double &z){
 }
 
 bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclude){
-  /* The function fit is
-
-     X         DX        1     -theta  -alpha    X
-     Y    =    DY  +    theta    1     -beta  *  Y 
-     Z         DZ       alpha   beta     1       Z
- 
-     plus first ans second order time derivatives
-
-     but we assume Z=0
-
-   */
 
   Fail=true;
   Fit.ClearPoints();
@@ -234,12 +333,18 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   double y=0;
   double error=0;
 
+  // Compute ZOffset
+  ZOffset=0;
+  const int total=1+last-first;
+  for(int i=first;i<=last;i++) ZOffset+=history.Events.at(i).RawHit[2];
+  ZOffset/=total;
+
   // Get the reference time
   Events=0;
   for(int i=first;i<=last;i++){
     DynAlEvent event=history.Events.at(i); // Take a copy of the event
     if(fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
-
+    
     if(exclude.count(i)>0){
 #ifdef VERBOSE
       cout<<"EXCLUDED --- "<<i<<endl;
@@ -350,6 +455,7 @@ void DynAlFit::Eval(DynAlEvent &event,double &x,double &y,double &z){
   z=event.RawHit[2]+dz;
 }
 
+/*
 
 ////////////////////// Continuity: here all the interfaces with AMSEvenR are in the function buildEvent
 ////////////////////// Moreover, all the utilities to keep all indexes in a file should be included here 
@@ -476,105 +582,129 @@ void Continuity::CreateIdx(int run,TString fileName){
 }
 
 
-void Continuity::buildEvent(DstEvent &ev,int index,DynAlEvent &event){
-  const int plane=Plane;
-  for(int j=0;j<3;j++){
-    event.RawHit[j]=ev.get(plane,index).hit.Hit[j];
-    event.TrackHit[j]=ev.get(plane,index).coo[j];
+bool Continuity::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
+  ////////////////////////////////
+  // Get the hit for the layer  //
+  ////////////////////////////////
+
+  if(ev.nParticle()!=1) return false;
+  ParticleR &part=ev.Particle(0);
+  if(part.iTrTrack()<0) return false;
+  TrTrackR &track=ev.TrTrack(part.iTrTrack());
+  TrRecHitR *hit=0;
+
+#ifdef _PGTRACK_
+  hitp=track.GetHitLJ(layer);
+#else
+  int whichHit=-1;
+  for(int hi=0;hi<track.NTrRecHit();hi++){
+    TrRecHitR &h=ev.TrRecHit(track.iTrRecHit(hi));
+    if(h.lay()==layer){hitp=&h;whichHit=hi;break;}
   }
-  event.TrackTheta=ev.get(plane,index).theta;
-  event.TrackPhi=ev.get(plane,index).phi;
-  event.Rigidity=ev.get(plane,index).rigidity;
-  event.Time[0]=ev.header.Time[0];
-  event.Time[1]=ev.header.Time[1];
-  event.Id=ev.get(plane,index).hit.Id;
+#endif
+
+  if(!hitp) return false;
+  TrRecHitR &hit=*hitp;
+
+  ///////////////////////////////////////////////////////////////////////
+  // Extrapolate the track to the layer and dump the track information //
+  ///////////////////////////////////////////////////////////////////////
+
+  AMSDir dir;
+  AMSPoint pnt;
+#ifdef _PGTRACK_
+  int id=track.iTrTrackPar(1,3,1);
+  if(id<0) return false;
+  const TrTrackPar &trPar=track.gTrTrackPar(id);
+  track.InterpolateLayerJ(layer, pnt, dir, id) ;
+  for(int i=0;i<3;i++) event.TrackHit[i]=pnt[i];
+  event.TrackTheta=dir.gettheta();
+  event.TrackPhi=dir.getphi();
+  event.Rigidity=trPar.Rigidity;
+#else
+  TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
+  int id=track.iTrTrackFit(fit,0);
+  if(id<0) return false;
+  TrTrackFitR &trPar=track.fTrTrackFit.at(id);
+  int which=-1;
+  for(int i=0;i<trPar.fTrSCoo.size();i++)
+    if(trPar.fTrSCoo.at(i).Id%10==layer){
+      which=i;
+      break;
+    }
+  if(which<0) return false;
+  for(int i=0;i<3;i++) event.TrackHit[i]=trPar.fTrSCoo[which].Coo[i];
+  event.TrackTheta=trPar.fTrSCoo[which].Theta;
+  event.TrackPhi=trPar.fTrSCoo[which].Phi;
+  event.Rigidity=trPar.Rigidity;
+#endif  
+
+  ////////////////////////////////////////////////////////
+  // Pick the hit position without alignment correction //
+  ////////////////////////////////////////////////////////
+#ifdef _PGTRACK_
+  int imult=hit.GetResolvedMultiplicity();
+  pnt=hit.GetGlobalCoordinate(imult,"");
+#else
+  for(int i=0;i<3;i++) pnt[i]=hit.Coo[i];
+#endif
+  
+  ///////////////////////////
+  // Dump the hit position //
+  //////////////////////////
+
+  for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
+
+  ///////////////////////////////
+  // Dump the Time information //
+  ///////////////////////////////
+
+  event.Time[0]=ev.fHeader.Time[0];
+  event.Time[1]=ev.fHeader.Time[1];
+
+  ////////////////////// 
+  // Dump the hit id  //
+  //////////////////////
+  
+#ifdef _PGTRACK_
+  event.Id=(hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad())*(hit.OnlyY()?-1:1);
+#else
+  event.Id=hit.Id;
+  if(hit.Status&16384 || hit.Status&8192) event.Id*=-1;
+#endif
+
+
+  return true;  // Success 
 }
 
 
-void Continuity::findHits(DstEvent *ev,vector<int> &indexes,vector<double> &dist){
-  const int plane=Plane;
-  map<double,int> idx;
-  dist.clear();
-  indexes.clear();
 
-  // Search the closer
-  double best=INFINITY;
-  int bestI=-1;
 
-  for(int i=0;i<ev->getN(plane);i++){
-    DynAlEvent event;
-    buildEvent(*ev,i,event);
-    event.extrapolateTrack();
+int Continuity::select(AMSEventR *ev,int layer){
+#define SELECT(_name,_condition) {if(!(_condition)) return false;}
+#define fStatus (ev->fStatus)  
 
-    double d=0;
-    double weight[2]={1.0,1.0};
-    for(int j=0;j<2;j++) {double x=event.TrackHit[j]-event.RawHit[j];d+=x*x*weight[j]*weight[j];}
-    d=sqrt(d);
+  SELECT("1 Tracker+RICH particle",(fStatus&0x33)==0x31);
+  SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
+  SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
+  SELECT("At least 1 tr track",fStatus&(0x3<<13));
+  SELECT("At most 1 crossing particle at rich",ev->pParticle(0)->RichParticles<=1);
+  SELECT("At least 3 out of 4 for beta",Particle(0).pBeta()->Pattern<=4);
+  SELECT("TOF beta>0.9",Particle(0).pBeta()->Beta>0.9);  
+  SELECT("Rich Beta>0.99",Particle(0).pRichRing && Particle(0).pRichRing->IsGood() && Particle(0).pRichRing->Beta>0.99);
 
-    if(d<best){
-      best=d;
-      bestI=i;
-    }
-    //    cout<<"PLANE "<<plane<<" current "<<i<<" DIST "<<d<<" best "<<best<<" betsI "<<bestI<<endl;
+  bool layerUsed[10];
+  for(int l=0;l<10;l++) layerUsed[l]=false;
+  TrTrackR &track=*(ev->Particle(0).pTrTrack());
+  for(int hi=0;hi<track.NTrRecHit();hi++){
+    TrRecHitR &hit=*(track.pTrRecHit(hi));
+    layerUsed[hit.lay()]=true;
   }
 
-  if(bestI>-1){
-    dist.push_back(best);
-    indexes.push_back(bestI);
-  }else return;
+  SELECT("Has the right external layer",layerUsed(layer));
+  SELECT("The inner tracker has layer 2 and plane(7,8) and other inner hit",layerUsed[2] && (layerUsed[7] || layerUsed[8]) && (layerUsed[3] || layerUsed[4] || layerUsed[5] || layerUsed[6]));
 
-  best=INFINITY;
-  bestI=-1;
-
-  for(int i=0;i<ev->getN(plane);i++){
-    if(i==indexes[0]) continue;
-    DynAlEvent event;
-    buildEvent(*ev,i,event);
-    event.extrapolateTrack();
-    
-    double d=0;
-    for(int j=0;j<2;j++) {double x=event.TrackHit[j]-event.RawHit[j];d+=x*x;}
-    d=sqrt(d);
-    if(d<best){
-      best=d;
-      bestI=i;
-    }
-  }
-
-  if(bestI>-1){
-    dist.push_back(best);
-    indexes.push_back(bestI);
-  }else return;
-
-}
-
-
-int Continuity::select(DstEvent *ev){
-  const int plane=Plane;
-  // Ensure layers 2 and 8 are in the fit
-  if(ev->getN(2)==0 || !ev->get(2,0).hit.Used) return -1; // One hit used in the last layer of the inner tracker
-#define USE(x) (ev->getN(x) && ev->get(x,0).hit.Used)
-  if(!USE(7) && !USE(8)) return -1; // One hit used in the last layer of the inner tracker
-  if(ev->getN(plane)==0 || ev->get(plane,0).hit.falseX()) return -1; // At least one hit in the layer 
-  // Use rich for the rigidity selection
-  //  if(ev->rich.Beta<0.99) return -1; // with rigidity cut at 5
-  if(ev->rich.Beta<0.995) return -1; // with rigidity cut at 5
-  if(1/fabs(ev->get(plane,0).rigidity)>0.5) return -1;  // This selects a true rigidity larger than 2 approximatly
-
-
-  int counter=2;
-  counter+=(USE(3) || USE(4))+(USE(5) || USE(6));
-  if(counter<3) return -1;  // At least 3 (double side)planes
-  
-  // Find the closer hit
-  vector<int> indexes;
-  vector<double> dist;
-  findHits(ev,indexes,dist);
-  
-  if(dist[0]>1) return -1; // Just in case
-  //  if(dist.size()>1 && dist[1]<1) return -1;
-
-  return indexes[0];
+  return true;
 }
 
 
@@ -599,3 +729,4 @@ TFile *Continuity::FindCreateIdx(int run,TString file){
 
   return idxFile;
 }
+*/
