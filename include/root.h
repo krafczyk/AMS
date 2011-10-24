@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.392 2011/10/24 13:07:03 mdelgado Exp $
+//  $Id: root.h,v 1.393 2011/10/24 13:11:11 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1419,7 +1419,7 @@ public:
   bool Rebuild(){return (Status&1)!=0;}
   /// Check if the ring is contaminated by charge particles crossing the RICH detection plane
   /// \return true if the ring is good
-  bool IsGood()return IsClean();}
+  bool IsGood(){return IsClean();}
   bool IsClean(){return (Status&1)==0;}
   /// Bool set to true if the radiator used is NaF 
   bool IsNaF(){return (Status&2)!=0;}
