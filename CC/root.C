@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.334 2011/10/21 12:47:10 choutko Exp $
+//  $Id: root.C,v 1.335 2011/10/25 12:43:18 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5757,7 +5757,8 @@ int TrTrackR::iTrTrackFit(TrTrackFitR & fit,int refit){
 // refit 0 just return; 1 refit if not 2 always refit and replace
 
 // Check TrTrackFitR is well defined;
-
+   fit.fTrTrack=this;
+   for(int i=0;i<fTrTrackFit.size();i++)fit.fTrTrack=this;
    setFitPattern(fit.getAtt(),fit.Pattern);
 
    if(fit.Algo<0 || fit.Alig<0 || fit.MS<0)return -2;
@@ -5882,7 +5883,7 @@ for( int k=0;k<9;k++){
 return ret;
 }
 
-TrTrackFitR::TrTrackFitR( int pattern, int algo,int alig,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[],float vel):Pattern(pattern),Algo(algo),Alig(alig),MS(ms),Att(att),Rigidity(r),ErrRigidity(er),Coo(coo),Theta(t),Phi(p),Chi2(chi2),Velocity(vel){
+TrTrackFitR::TrTrackFitR( int pattern, int algo,int alig,int ms,int att,float r,float er,float chi2,AMSPoint coo,float t, float p,int size,TrSCooR ic[],float vel):Pattern(pattern),Algo(algo),Alig(alig),MS(ms),Att(att),Rigidity(r),ErrRigidity(er),Coo(coo),Theta(t),Phi(p),Chi2(chi2),Velocity(vel),fTrTrack(0){
 fTrSCoo.clear();
 for(int i=0;i<size;i++){
 fTrSCoo.push_back(ic[i]);

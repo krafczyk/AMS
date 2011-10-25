@@ -1,4 +1,3 @@
-
 		///   \example stlv.C
 		///
 		#define stlv_cxx
@@ -114,6 +113,8 @@ float daqec::mcmomentum=400;
             for(int k=0;k<10;k++){
              for(int l=0;l<20;l++){
                for(int s=0;s<2;s++){
+                  hbook1(1000+k+(l+20*s)*10," resid x",400,-0.02,0.02);
+                  hbook1(2000+k+(l+20*s)*10," resid y",400,-0.02,0.02);
                  for(int charge=0;charge<5;charge++){
                   hbook1(10000+k+(l+20*s)*10+charge*1000," resid x",400,-0.02,0.02);
                   hbook1(90000+k+(l+20*s)*10+charge*1000," resid x",400,-0.5,399.5);
@@ -379,8 +380,13 @@ try{
                   hf1(70000+(lad+half*20)*10+lay+part.Charge*1000,dy,1);
                   hf1(80000+(lad+half*20)*10+lay+part.Charge*1000,dz,1);
 //  internal residuals for aligned case  
-                  double dxt=tr.Hit[i][0]-fi.fTrSCoo[lay-1].Coo[0];
-                  double dyt=tr.Hit[i][1]-fi.fTrSCoo[lay-1].Coo[1];
+                  AMSPoint hit;
+                  int ret=fi.getHit(lay,hit);
+                  if(ret>1){
+                      cerr<< "  error getting hit "<<lay<<" "<<ret;
+                  } 
+                  double dxt=hit[0]-fi.fTrSCoo[lay-1].Coo[0];
+                  double dyt=hit[1]-fi.fTrSCoo[lay-1].Coo[1];
                   hf1(40000+part.Charge*1000,dxt,1);                   
                   hf1(50000+part.Charge*1000,dyt,1);                   
                   hf1(40000+lay+part.Charge*1000,dxt,1);                   
@@ -393,11 +399,23 @@ try{
                   hf1(50000+lay,dyt,1);                   
                   hf1(40000+(lad+half*20)*10+lay,dxt,1);                   
                   hf1(50000+(lad+half*20)*10+lay,dyt,1);                   
+                 if(ifi3>0){
+                   ret=fiii.getHit(lay,hit);
+                   if(!ret){
+                        dxt=hit[0]-fiii.fTrSCoo[lay-1].Coo[0];
+                        dyt=hit[1]-fiii.fTrSCoo[lay-1].Coo[1];
+                        hf1(1000+lay,dxt,1);                   
+                        hf1(2000+lay,dyt,1);                   
+                        hf1(1000,dxt,1);                   
+                        hf1(2000,dyt,1);                   
+                   }
+                  }
                  if(inoaligext>0){
     //          external residuals for nonaligned == testbeam case
     //          change noaligext -> noalig   if internal residuals
-                        dxt=rh.Hit[0]-noaligext.fTrSCoo[lay-1].Coo[0];
-                  dyt=rh.Hit[1]-noaligext.fTrSCoo[lay-1].Coo[1];
+                  ret=noaligext.getHit(lay,hit);
+                        dxt=hit[0]-noaligext.fTrSCoo[lay-1].Coo[0];
+                  dyt=hit[1]-noaligext.fTrSCoo[lay-1].Coo[1];
                   //hf1(20000+part.Charge*1000,dxt,1);                   
                   hf1(10000+part.Charge*1000,dxt,rh.stripx());                 
                   hf1(30000+part.Charge*1000,dyt,1);                   

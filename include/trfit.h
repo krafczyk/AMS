@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.5 2011/10/25 09:45:40 choutko Exp $
+//  $Id: trfit.h,v 1.6 2011/10/25 12:44:03 choutko Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -24,6 +24,7 @@ enum kAtt{
    kC,
    kND
 };
+TrTrackR* fTrTrack; ///< pointer to trtrackr used
 int Pattern;   ///< bit pattern  bits xxxxxxxx where x =0 1 and layer 1 corresponds to the least significant bit ; pattern -1 if object is invalid
 short int Algo; ///< Algo 0 Choutko,1 Alc 2 Chik
 short int MS;  ///< 0 no MS 1 MS +100 extres
@@ -85,13 +86,18 @@ unsigned int NHits()const; ///< NumberOfHits
 
 
 vector<TrSCooR> fTrSCoo;  ///< !!Vector of fitted coo 
-TrTrackFitR():Pattern(0),Algo(-1),Alig(-1),MS(-1),Att(kND),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(1.){
+
+///  returns hit  - Hit coordinate in track for the given layer lay 1...9 top...bottom
+///  \return 0 in case of success, 1 in case of hit does not exist , 2-6 unable to get hit
+int getHit(unsigned int lay, AMSPoint & hit); ///< !! Hit coordinates in track 
+
+TrTrackFitR():Pattern(0),Algo(-1),Alig(-1),MS(-1),Att(kND),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(1.),fTrTrack(0){
 fTrSCoo.clear();
 }
 
 /// TrTrackFit Constructor for iTrTrackFit function
 ///  patternoratt can be either positive(bit pattern) or (0,-1,-2,-3,-4) (-kAtt) 
-TrTrackFitR( int patternoratt, int algo,int alig,int ms,float vel=1):Algo(algo),Alig(alig),MS(ms),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(vel){
+TrTrackFitR( int patternoratt, int algo,int alig,int ms,float vel=1):Algo(algo),Alig(alig),MS(ms),Chi2(0),Rigidity(0),ErrRigidity(0),Coo(0,0,0),Theta(0),Phi(0),Velocity(vel),fTrTrack(0){
 fTrSCoo.clear();
 if(patternoratt>0){
  Pattern=patternoratt;
@@ -115,7 +121,7 @@ bool operator == (const TrTrackFitR &a ) const{
 }
 int Fit(TrTrackR *fit); ///< Fit for root; return 0 if success, 1 if error , 2 if fit not defined 4 if no AMSEventR is present 5 if noalig structrure present for alig=3
 static int InitMF(unsigned int time); ///< MagField Initialization return 0 if success;
-ClassDef(TrTrackFitR,4)       //TrTrackFitR
+ClassDef(TrTrackFitR,5)       //TrTrackFitR
 };
 
 

@@ -132,7 +132,55 @@ TrTrackFitR::gldb_def  TrTrackFitR::_gldb[trc::maxsen+1][trc::maxlad+1][2][trc::
 
 
 
-
+int TrTrackFitR::getHit(unsigned int lay, AMSPoint & hit){
+  const float sgm[3]={0.003,0.0016,0.003};
+  const double zc[9]={159.,53.,29.2,25.2,1.71,-2.29,-25.2,-29.2,-136};
+    AMSEventR *h=AMSEventR::Head();
+    if(!h)return 2;
+    TrTrackR * ptr= dynamic_cast<TrTrackR*>(fTrTrack);
+    if(!ptr)return 3;
+   if(Alig==0){
+    for(int i=0;i<ptr->NTrRecHit();i++){
+    TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+      if(rh.lay()==lay){
+         hit=AMSPoint(rh.Hit[0],rh.Hit[1],rh.Hit[2]);
+         return 0;
+      }
+    }
+   }   
+   else if(Alig==1){
+    for(int i=0;i<ptr->NHits();i++){
+      if(lay==ptr->Layer(i)+1){
+         hit=AMSPoint(ptr->Hit[i][0],ptr->Hit[i][1],ptr->Hit[i][2]);
+         return 0;
+      }
+    }
+   }
+   else if(Alig==3){
+//  recreate hits using timeid alignment structure
+    if(SAp){
+      time_t tm=h->UTime();
+      int ret=SAp->validate(tm);
+      if(!ret)return 4;
+    }
+    else return 5;
+    for(int i=0;i<ptr->NHits();i++){
+      TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+      if(rh.lay()==lay){
+        hit=CrHit(&rh);
+        return 0;
+      }
+    }
+    }
+    else{
+      static unsigned int er=0; 
+      if(er++<100)cerr<<"TrTrackFitR::getHit-E-AligNotYetImplemented "<<Alig <<endl;
+      return 6;
+    }
+    double z=lay>0 && lay<=sizeof(zc)/sizeof(zc[0])?zc[lay-1]:0;
+    hit=AMSPoint(0,0,z);
+    return 1;
+}
 
 TKFIELD_DEF TKFIELD;
 
@@ -536,6 +584,9 @@ void TrTrackFitR::gldb_par::setpar(const AMSPoint & coo, const AMSPoint & angles
 }
 int TrTrackFitR::Fit( TrTrackR * ptr){
 return -1;
+}
+int TrTrackFitR::getHit(unsigned int lay, AMSPoint & hit){
+return 2;
 }
 int TrTrackFitR::InitMF(unsigned int time){
 return -1;
