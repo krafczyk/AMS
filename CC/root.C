@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.335 2011/10/25 12:43:18 choutko Exp $
+//  $Id: root.C,v 1.336 2011/10/25 15:21:36 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5340,10 +5340,12 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 master=1;  
 }
 #else
-#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp master 
+{
 TrTrackFitR::InitMF(UTime());
-#endif
  master=1;  
+}
+
 #endif
  while (master==0){
    usleep(1);

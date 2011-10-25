@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.133 2011/10/25 09:45:22 choutko Exp $
+//  $Id: timeid.C,v 1.134 2011/10/25 15:21:41 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -360,7 +360,9 @@ if(AMSEventR::Head()  && AMSEventR::Head()->getsetup()){
   
 
 #endif
+#ifndef __ROOTSHAREDLIBRARY__
 #pragma omp barrier 
+#endif
   return ok;
    
 }
