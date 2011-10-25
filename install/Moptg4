@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.122 2011/10/25 10:16:01 mdelgado Exp $
+#  $Id: Moptg4,v 1.123 2011/10/25 13:09:17 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -405,7 +405,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
 	$(SCC)g4rich.C
 
-FILESC+=($SCC)DynAlignment
+FILESC+=$(SCC)DynAlignment.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
