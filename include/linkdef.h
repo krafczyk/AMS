@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.96 2011/10/01 22:35:07 chchung Exp $
+//  $Id: linkdef.h,v 1.97 2011/10/25 08:56:16 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -52,6 +52,12 @@
 #pragma link C++ class TrTrackFitR+;
 #pragma link C++ class TrTrackFitR::TrSCooR+;
 #endif
+
+// #pragma link C++ class DynAlContinuity;
+// #pragma link C++ class DynAlFit;
+#pragma link C++ class DynAlHistory+;
+#pragma link C++ class DynAlEvent+;
+
 #pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;
 #pragma link C++ class TrElem+;
