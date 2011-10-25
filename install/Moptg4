@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.121 2011/10/25 09:45:40 choutko Exp $
+#  $Id: Moptg4,v 1.122 2011/10/25 10:16:01 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -366,6 +366,8 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)g4rich.C 
 
 
+FILES+=$(SCC)DynAlignment.C
+
 FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
 	$(SFF)tcircf.F $(SFF)tszfit.F $(SFF)txyfit.F $(SFF)fint_my.F \
@@ -403,6 +405,8 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
 	$(SCC)g4rich.C
 
+FILESC+=($SCC)DynAlignment
+
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
@@ -412,6 +416,8 @@ FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 	$(SFF)cerenkov.F $(SFF)mfield.F  $(SFF)egzav.F  $(SFF)tkfit.F  \
 	$(SFF)richrec_lip.F  $(SFF)richnodisp_lip.F $(SFF)richpatt_lip.F $(SFF)richbetalike_lip.F $(SFF)richbetastand_lip.F $(SFF)richchg_lip.F $(SFF)richutil_lip.F \
 	$(SFF)rkms.F $(SFF)rzerowrapper.F $(SFF)trd.F
+
+
 
 
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
