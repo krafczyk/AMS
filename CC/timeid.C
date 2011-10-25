@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.132 2011/10/21 12:47:11 choutko Exp $
+//  $Id: timeid.C,v 1.133 2011/10/25 09:45:22 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -731,7 +731,9 @@ usemap:
     notrust:
     cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase for"<<(const char *)fmap<<" "<<_verify<<endl;
     //    Check if is in new mode
+#ifdef __CORBASERVER__
     _checkcompatibility(dir);
+#endif
     AString fnam(getname());
     fnam+= getid()==0?".0":".1";
     _selectEntry=&fnam;

@@ -412,6 +412,7 @@ FILE_PATTERNS          = root.h \
                          ana.root_staticp.doc \
                          daqe_mt.C  \
                          aligmct.C   \
+                         aligdata.C   \
                          link_mt.sh      \
                          l64o.sh         \
                          l32g.sh         \

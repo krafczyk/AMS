@@ -45,7 +45,94 @@ extern "C" void tkfitpar_(float init[7], float & chrg, float point[6],
 #define TKFITPAR tkfitpar_
 
 
+AMSTimeID* TrTrackFitR::SAp=0;
+AMSTimeID* TrTrackFitR::SetAligDB(const char *name,int datamc,bool force){
+
+if(SAp){
+if(force) {
+ static int ci=0;
+ if(ci++<100)cout<<"TrTackFitR::SetAligDB-W-RedefiningDB "<<endl;
+ delete SAp;
+}
+else return SAp;
+}
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+
+SAp=new AMSTimeID(AMSID(name,datamc==0?0:1),begin,end,sizeof(_gldb),(void*)&(_gldb[0][0][0][0]),AMSTimeID::Standalone,true);
+return SAp;
+}
+AMSTimeID* TrTrackFitR::SetAligDB_TDVR(const char *name,int datamc,bool force){
+
+if(SAp){
+if(force) {
+ static int ci=0;
+ if(ci++<100)cout<<"TrTackFitR::SetAligDB_TDVR-W-RedefiningDB "<<endl;
+ delete SAp;
+}
+else return SAp;
+}
+
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =1;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=130;
+SAp=new AMSTimeID(AMSID(name,datamc==0?0:1),begin,end,sizeof(_gldb),(void*)&(_gldb[0][0][0][0]),AMSTimeID::Standalone,false);
+time_t i,b,e;
+SAp->gettime(i,b,e);
+b=0;
+SAp->SetTime(i,b,e);
+for (int k=0;k<sizeof(_gldb)/sizeof(AMSEventR::if_t);k++){
+ AMSEventR::if_t value;
+int err=AMSEventR::Head()->GetTDVEl(name,k,value);
+if(err){
+  delete SAp;
+  SAp=0;
+  return 0;
+}
+else{
+memcpy((char*)(((AMSEventR::if_t*)&(_gldb[0][0][0][0]))+k),&value,sizeof(value));
+}
+}
+
+return SAp;
+}
+TrTrackFitR::gldb_def  TrTrackFitR::_gldb[trc::maxsen+1][trc::maxlad+1][2][trc::maxlay];
 #ifdef __ROOTSHAREDLIBRARY__
+
+
+
+
+
+
+
+
 
 TKFIELD_DEF TKFIELD;
 
@@ -71,9 +158,9 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
     }
 //  get hits;
     int nh=0;    
-   if(Alig==0){
     AMSEventR *h=AMSEventR::Head();
     if(!h)return 4;
+   if(Alig==0){
     for(int i=0;i<ptr->NTrRecHit();i++){
     TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
       int lay=ptr->Layer(i)+1;
@@ -85,7 +172,7 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
       }    
    }
    }
-   else{
+   else if(Alig==1){
     for(int i=0;i<ptr->NHits();i++){
       int lay=ptr->Layer(i)+1;
       if(CheckLayer(lay)){
@@ -100,7 +187,31 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
         nh++;
       }
      }
+    }
+    else if(Alig==3){
+//  recreate hits using timeid alignment structure
+    if(SAp){
+      time_t tm=h->UTime();
+      int ret=SAp->validate(tm);
+      if(!ret)return 2;
+    }
+    else return 5;
+    for(int i=0;i<ptr->NHits();i++){
+      TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+      int lay=ptr->Layer(i)+1;
+      if(CheckLayer(lay)){
+        AMSPoint Hit=CrHit(&rh);
+        for(int k=0;k<3;k++)hits[nh][k]=Hit[k]; 
+        for(int k=0;k<3;k++)sigma[nh][k]=rh.EHit[k]; 
+        layer[nh]=lay;
+        nh++;
+      }
      }
+    }
+    else{
+      static unsigned int er=0; 
+      if(er++<100)cerr<<"TrTrackFitR::Fit-E-AligNotYetImplemented "<<Alig <<endl;
+    }
      int algo=0;
     if(Algo==0)algo=1;
     else if(Algo==1)algo=4;
@@ -318,7 +429,111 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
 }
 else return -1;
 }
+
+AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
+   AMSPoint Hit=AMSPoint(rh->Hit[0],rh->Hit[1],rh->Hit[2]);
+
+  gldb_par *par(0);
+    if( (par=SearchDB(rh))){
+     AMSPoint HitA;
+    for(int j=0;j<3;j++)HitA[j]=(par->getcoo())[j]+
+       (par->getmtx(j)).prod(Hit);
+     
+     return HitA;
+   }
+   else return Hit;
+}
+
+TrTrackFitR::gldb_par * TrTrackFitR::SearchDB(TrRecHitR *rh){
+static gldb_par par;
+#pragma omp threadprivate (par)
+if(!_gldb[trc::maxsen][trc::maxlad][1][0].nentries)return 0;
+bool lyonly=false;
+bool laonly=false;
+for(int i=0;i<trc::maxlay;i++){
+if(_gldb[trc::maxsen][trc::maxlad][0][i].nentries){
+  lyonly=true;
+  break;
+}
+}
+for(int i=0;i<trc::maxlay;i++){
+if(_gldb[trc::maxsen][0][0][i].nentries){
+  laonly=true;
+  break;
+}
+}
+
+if(lyonly){
+          int i=rh->lay()-1;
+          par.setpar(_gldb[trc::maxsen][trc::maxlad][0][i].getcoo(),_gldb[trc::maxsen][trc::maxlad][0][i].getang());
+}   
+else if(laonly){
+    integer lad[2][trc::maxlay];    
+     int i=rh->lay()-1;
+     lad[0][i]=rh->lad();
+     lad[1][i]=rh->half();
+          int ld=lad[0][i]-1;
+          if(ld>=0){
+           par.setpar(_gldb[trc::maxsen][ld][lad[1][i]][i].getcoo(),_gldb[trc::maxsen][ld][lad[1][i]][i].getang());
+          }
+          else{
+           par.setpar(AMSPoint(),AMSPoint());
+          }
+}
+else{
+    integer lad[2][trc::maxlay];    
+     int i=rh->lay()-1;
+     lad[0][i]=rh->lad()-1;
+     lad[1][i]=rh->half();
+     lad[2][i]=rh->sen()-1;
+          if(lad[0][i]>=0){
+           par.setpar(_gldb[lad[2][i]][lad[0][i]][lad[1][i]][i].getcoo(),_gldb[lad[2][i]][lad[0][i]][lad[1][i]][i].getang());
+          }
+          else{
+           par.setpar(AMSPoint(),AMSPoint());
+          }
+}
+    return &par;
+
+}
+
+void TrTrackFitR::gldb_par::setpar(const AMSPoint & coo, const AMSPoint & angles){
+_Coo=coo;
+_Angles=angles;
+double pitch=angles[0];
+double yaw=angles[1];
+double roll=angles[2];
+  double cp=cos(pitch);
+  double sp=sin(pitch);
+  double cy=cos(yaw);
+  double sy=sin(yaw);
+  double cr=cos(roll);
+  double sr=sin(roll);
+  double l1=cy*cp;
+  double m1=-sy;
+  double n1=cy*sp;
+  double l2=cr*sy*cp-sr*sp;
+  double m2=cr*cy;
+  double n2=cr*sy*sp+sr*cp;
+  double l3=-sr*sy*cp-cr*sp;
+  double m3=-sr*cy;
+  double n3=-sr*sy*sp+cr*cp;
+  _Dir[0]=AMSDir(l1,m1,n1);
+  _Dir[1]=AMSDir(l2,m2,n2);
+  _Dir[2]=AMSDir(l3,m3,n3);
+
+
+
+}
 #else
+AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
+return AMSPoint();
+}
+TrTrackFitR::gldb_par * TrTrackFitR::SearchDB(TrRecHitR *rh){
+return 0;
+}
+void TrTrackFitR::gldb_par::setpar(const AMSPoint & coo, const AMSPoint & angles){
+}
 int TrTrackFitR::Fit( TrTrackR * ptr){
 return -1;
 }

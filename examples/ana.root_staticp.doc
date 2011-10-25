@@ -1,5 +1,5 @@
 /*! \example ana.root_staticp.doc
- *  The program below (aligmct.C) illustrates a way to analyze AMS Root 
+ *  The program below (aligmct.C) (aligdata.C) illustrates a way to analyze AMS Root 
  *  files in a parallel way using OPENMP enabled compiler (icc, gcc 4.2++). The parallelization is done on the level of root files, and not events. 
  *    - To compile and link it  you can use  script
  *                -   setenv AMSINCLUDE /Offline/vdev/  
@@ -21,5 +21,5 @@
  *    - Note that the program is prepared to be run in batch mode. 
  *    - Note  that this is the only mode in which track refit can be done in version 4.00 tracksr software
  *
- *  \include aligmct.C
+ *  \include aligdata.C
  */ 

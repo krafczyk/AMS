@@ -207,8 +207,13 @@ try{
 //
        TrTrackFitR fii(-3,0,1,0);
 //     internal tracker only ext align
-       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
-       TrTrackFitR fiii(-3,0,3,0);
+//       TrTrackFitR::SetAligDB("TrAligglDBP_lay",nMCEventg()>0?0:1);
+//      TrTrackFitR::SetAligDB_TDVR("TrAligglDBP",nMCEventg()>0?0:1,true);
+       TrTrackFitR::SetAligDB("TrAligglDBP_lad",nMCEventg()>0?0:1);
+//       TrTrackFitR::SetAligDB("TrAligglDBP_sen",nMCEventg()>0?0:1);
+//       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
+
+       TrTrackFitR fiii(-3,0,3,1);
        TrTrackFitR fms(-3,2,1,0);
 // noalignd  internal tracker only int residuals  VC fit  
        TrTrackFitR fnoalig(-3,0,0,0);
@@ -465,7 +470,7 @@ int main(int argc, char *argv[]){
      *signal(SIGUSR1, handler);
 
     int option_index = 0;
-    char fout[]="                                           64.root";
+    char fout[]="                                           ISS.B538.root";
     static struct option long_options[] = {
         {"events", 1, 0, 'e'},
         {"help",    0, 0, 'h'},
@@ -524,28 +529,9 @@ int thread=1;
 unsigned long long pp=1;
 if(order==0 || order/pp%10==1){
       AMSChain chain("AMSRoot",thread,sizeof(daqec));
-chain.Add("/f2users/choutko/64p.root");
+chain.Add("/afs/cern.ch/ams//Offline/DataSetsDir/Data/AMS02/2011A/ISS.B538.v4/pass2_v5_lay/*.root");
 string fileoutput(fout);
-fileoutput+=".p";
-cout <<" fileoutpot "<<fileoutput.c_str()<<endl;
-pchain=&chain;
-chain.Process(new daqec[thread],fileoutput.c_str(),events);
-}
-pp*=10;
-if(order==0 || order/pp%10==1){
-      AMSChain chain("AMSRoot",thread,sizeof(daqec));
-chain.Add("/f2users/choutko/64pg_n.root");
-string fileoutput(fout);
-fileoutput+=".he";
-cout <<" fileoutpot "<<fileoutput.c_str()<<endl;
-pchain=&chain;
-chain.Process(new daqec[thread],fileoutput.c_str(),events);
-}
-if(order==0 || order/pp%10==1){
-      AMSChain chain("AMSRoot",thread,sizeof(daqec));
-chain.Add("/f2users/choutko/64c.root");
-string fileoutput(fout);
-fileoutput+=".c";
+fileoutput+=".v4";
 cout <<" fileoutpot "<<fileoutput.c_str()<<endl;
 pchain=&chain;
 chain.Process(new daqec[thread],fileoutput.c_str(),events);
