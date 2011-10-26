@@ -210,16 +210,17 @@ try{
 //     internal tracker only ext align
 //       TrTrackFitR::SetAligDB("TrAligglDBP_lay",nMCEventg()>0?0:1);
 //      TrTrackFitR::SetAligDB_TDVR("TrAligglDBP",nMCEventg()>0?0:1,true);
-       TrTrackFitR::SetAligDB("TrAligglDBP_lad",nMCEventg()>0?0:1);
-//       TrTrackFitR::SetAligDB("TrAligglDBP_sen",nMCEventg()>0?0:1);
+//        TrTrackFitR::SetAligDB("TrAligglDBP_lad",nMCEventg()>0?0:1);
+       TrTrackFitR::SetAligDB("TrAligglDBP_sen",nMCEventg()>0?0:1);
 //       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
 
-       TrTrackFitR fiii(-3,0,3,1);
+       TrTrackFitR fiii(-3,0,3,0);
        TrTrackFitR fms(-3,2,1,0);
 // noalignd  internal tracker only int residuals  VC fit  
        TrTrackFitR fnoalig(-3,0,0,0);
 //  noaligned internal tracker only ext residuals VC fit
        TrTrackFitR noaligext(-3,0,0,100);
+       TrTrackFitR fiiiext(-3,0,3,100);
        TrTrackFitR noaligc(-3,2,0,1);
        TrTrackFitR fia(-3,1,1,1);
        TrTrackFitR fic(-3,2,1,1);
@@ -228,25 +229,26 @@ try{
        int ifms=tr.iTrTrackFit(fms);
        int iftot=tr.iTrTrackFit(ftot);
        int ifi=tr.iTrTrackFit(fi);
-       cout <<" Rig0 "<<fi.Rigidity<<" "<<fi.NHits()<<" "<<Event()<<endl;
+       //cout <<" Rig0 "<<fi.Rigidity<<" "<<fi.NHits()<<" "<<Event()<<endl;
   //forced refit of fii object
        int ifi1=tr.iTrTrackFit(fii,2);
-       cout <<" Rig1 "<<fii.Rigidity<<" "<<fii.NHits()<<" "<<Event()<<endl;
+       //cout <<" Rig1 "<<fii.Rigidity<<" "<<fii.NHits()<<" "<<Event()<<endl;
   //refit of fiii object
        int ifi3=tr.iTrTrackFit(fiii,1);
-       cout <<" Rig3 "<<fiii.Rigidity<<" "<<fiii.NHits()<<" "<<Event()<<endl;
+       int ifi3ext=tr.iTrTrackFit(fiiiext,1);
+       //cout <<" Rig3 "<<fiii.Rigidity<<" "<<fiii.NHits()<<" "<<Event()<<endl;
        int ifia=tr.iTrTrackFit(fia);
-       cout <<" rig a "<<fia.Rigidity<<endl;
+       //cout <<" rig a "<<fia.Rigidity<<endl;
        int ific=tr.iTrTrackFit(fic);
-       cout <<" rig c "<<fic.Rigidity<<endl;
+       //cout <<" rig c "<<fic.Rigidity<<endl;
        int if1=tr.iTrTrackFit(f1);
        int if2=tr.iTrTrackFit(f2);
        int inoalig=tr.iTrTrackFit(fnoalig);
-       cout <<" Rig0n "<<fnoalig.Rigidity<<" "<<fnoalig.NHits()<<" "<<Event()<<endl;
+       //cout <<" Rig0n "<<fnoalig.Rigidity<<" "<<fnoalig.NHits()<<" "<<Event()<<endl;
        int inoaligi=tr.iTrTrackFit(fnoalig,2);
-       cout <<" Rig1n "<<fnoalig.Rigidity<<" "<<fnoalig.NHits()<<" "<<Event()<<endl;
-       int inoaligext=tr.iTrTrackFit(noaligext);
-       int i2=tr.iTrTrackFit(noaligext,2);
+       //cout <<" Rig1n "<<fnoalig.Rigidity<<" "<<fnoalig.NHits()<<" "<<Event()<<endl;
+       int inoaligext=tr.iTrTrackFit(noaligext,1);
+       //int i2=tr.iTrTrackFit(noaligext,2);
        int inoaligc=tr.iTrTrackFit(noaligc);
     int l19=0;
     int l1=0;
@@ -351,7 +353,7 @@ try{
 //              Fill();
        static int print=0;
        if(print++<10){
-           cout <<" "<<ifms<<" "<<ifi<<" "<<ifia<<" "<<ific<<" "<<if1<<" "<<if2<<" "<<inoalig<<" "<<inoaligc<<endl;
+           //cout <<" "<<ifms<<" "<<ifi<<" "<<ifia<<" "<<ific<<" "<<if1<<" "<<if2<<" "<<inoalig<<" "<<inoaligc<<endl;
         }
                   for(int i=0;i<tr.NTrRecHit();i++){
                      TrRecHitR rh=TrRecHit(tr.iTrRecHit(i));
@@ -379,14 +381,14 @@ try{
                   hf1(60000+(lad+half*20)*10+lay+part.Charge*1000,dx,1);
                   hf1(70000+(lad+half*20)*10+lay+part.Charge*1000,dy,1);
                   hf1(80000+(lad+half*20)*10+lay+part.Charge*1000,dz,1);
-//  internal residuals for aligned case  
+//  ext residuals for ext aligned case  
                   AMSPoint hit;
-                  int ret=fi.getHit(lay,hit);
+                  int ret=fiiiext.getHit(lay,hit);
                   if(ret>1){
                       cerr<< "  error getting hit "<<lay<<" "<<ret;
                   } 
-                  double dxt=hit[0]-fi.fTrSCoo[lay-1].Coo[0];
-                  double dyt=hit[1]-fi.fTrSCoo[lay-1].Coo[1];
+                  double dxt=hit[0]-fiiiext.fTrSCoo[lay-1].Coo[0];
+                  double dyt=hit[1]-fiiiext.fTrSCoo[lay-1].Coo[1];
                   hf1(40000+part.Charge*1000,dxt,1);                   
                   hf1(50000+part.Charge*1000,dyt,1);                   
                   hf1(40000+lay+part.Charge*1000,dxt,1);                   
@@ -401,7 +403,11 @@ try{
                   hf1(50000+(lad+half*20)*10+lay,dyt,1);                   
                  if(ifi3>0){
                    ret=fiii.getHit(lay,hit);
-                   if(!ret){
+                   if(!ret && part.Charge==2){
+//                        if(lay==2){
+//                           ret=fiii.getHit(lay,hit);
+//                           ifi3=tr.iTrTrackFit(fiii,2);
+//                        }
                         dxt=hit[0]-fiii.fTrSCoo[lay-1].Coo[0];
                         dyt=hit[1]-fiii.fTrSCoo[lay-1].Coo[1];
                         hf1(1000+lay,dxt,1);                   
@@ -416,10 +422,10 @@ try{
                   ret=noaligext.getHit(lay,hit);
                         dxt=hit[0]-noaligext.fTrSCoo[lay-1].Coo[0];
                   dyt=hit[1]-noaligext.fTrSCoo[lay-1].Coo[1];
-                  //hf1(20000+part.Charge*1000,dxt,1);                   
+                  hf1(20000+part.Charge*1000,dxt,1);                   
                   hf1(10000+part.Charge*1000,dxt,rh.stripx());                 
                   hf1(30000+part.Charge*1000,dyt,1);                   
-                  //hf1(20000+lay+part.Charge*1000,dxt,1);                   
+                  hf1(20000+lay+part.Charge*1000,dxt,1);                   
                   hf1(10000+lay+part.Charge*1000,dxt,rh.stripx());                   
                   hf1(30000+lay+part.Charge*1000,dyt,1);                   
                   //hf1(20000+(lad+half*20)*10+lay+part.Charge*1000,dxt,1);                   
@@ -433,9 +439,9 @@ try{
                   hf1(30000+lay,dyt,1);                   
                   hf1(20000+(lad+half*20)*10+lay,dxt,1);                   
                   hf1(21000+(half*20)*10+lay,dxt,1);                   
-                  if(stripx<64)hf1(22000+(half*20)*10+lay,dxt,1);                   
-                   else if(stripx<160)hf1(23000+(half*20)*10+lay,dxt,1);                   
-                   else  hf1(24000+(half*20)*10+lay,dxt,1);                   
+                  //if(stripx<64)hf1(22000+(half*20)*10+lay,dxt,1);                   
+                   //else if(stripx<160)hf1(23000+(half*20)*10+lay,dxt,1);                   
+                   //else  hf1(24000+(half*20)*10+lay,dxt,1);                   
                     hf1(90000+(lad+half*20)*10+lay,rh.stripx(),dxt);                   
                   hf1(91000+(lad+half*20)*10+lay,rh.stripx(),1);                   
                   hf1(30000+(lad+half*20)*10+lay,dyt,1);                   

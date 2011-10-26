@@ -241,7 +241,9 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
     if(SAp){
       time_t tm=h->UTime();
       int ret=SAp->validate(tm);
-      if(!ret)return 2;
+      if(!ret){
+          return 2;
+      }
     }
     else return 5;
     for(int i=0;i<ptr->NHits();i++){
@@ -329,6 +331,7 @@ if(!fitdone){
         }
    AMSDir pntdir(0,0,-1);
     AMSPoint pntplane(ptr->Hit[i0][0],ptr->Hit[i0][1],ptr->Hit[i0][2]);
+    getHit(k+1,pntplane);
 
   float outa[7];
   double m55[5][5]={{0,0,0,0,1},{0,0,0,1,0},{0,0,1,0,0},{0,1,0,0,0},{1,0,0,0,0}};
@@ -428,13 +431,17 @@ for(int k=0;k<sizeof(coos)/sizeof(coos[0]);k++)fTrSCoo.push_back(coos[k]);
    
     
 
-  
-      return out[7];
+//      if(out[7]!=0){
+//          cerr<<"  out[7] "<<out[7]<<endl;
+//      }
+      return out[7]!=0?3:0;
 }
 
 int TrTrackFitR::InitMF(unsigned int time){
 static int initdone=0;
-if(!initdone++){
+int ret=-1;
+#pragma omp master
+if(!initdone){
  
  tm begin;
   tm end;
@@ -465,17 +472,19 @@ if(!initdone++){
 int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
  AMSTimeID *tdvdb=new AMSTimeID(AMSID(FieldMapName,1),
                         begin,end,ssize,
-                        (void*)TKFIELD.isec,AMSTimeID::Standalone,true);
+                        (void*)TKFIELD.isec,AMSTimeID::Standalone,false);
 
   time_t tmt=time;
   int ret=tdvdb->validate(tmt);
   setmagstat_();
   resetmagstat_();
   cout <<"TrTrackFitR-I-MagneticFieldMap "<<FieldMapName <<" initialized "<<time<<endl;
-  return ret==1?0:1;
-
+  initdone=1;
 }
-else return -1;
+while(!initdone){
+ usleep(1);
+}
+  return ret==1?0:1;
 }
 
 AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){

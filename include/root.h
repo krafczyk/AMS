@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.393 2011/10/24 13:11:11 mdelgado Exp $
+//  $Id: root.h,v 1.394 2011/10/26 14:00:13 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1154,7 +1154,7 @@ vector<int> fTrRecHit;  ///< Vector of trrechit indexes
 /// \return index of the fTrTrackFit vector or -1 if no such element or -2 if alig or alg or ms  not defined or -3 if pattern is not subset of BitPattern or -4 if refit failed or not yet implemented
 /// \param refit 0: do not refit, 1 refit if not present, 2 refit and replace
 /// \param fit  TrTrackFitR params  (pattern,alg,alig,ms) also returned
-int iTrTrackFit(TrTrackFitR &fit, int refit=0);   ///< !!accessor 
+int iTrTrackFit(TrTrackFitR &fit, int refit=1);   ///< !!accessor 
 
 bool setFitPattern(TrTrackFitR::kAtt k, int & pattern); ///< set fit pattern for the given attribute  return false if not
 

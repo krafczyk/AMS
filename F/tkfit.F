@@ -294,7 +294,7 @@ C Convergence criteria
 
 30    continue
 C Too many iterations and no convergence
-      write(*,*)'tkfita-Error-TooManyIterations'
+c      write(*,*)'tkfita-Error-TooManyIterations'
 C Final Chi2
       NDOF = 2*NPOINTS-IDIM_EFF
       CHI2 = 0.

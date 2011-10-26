@@ -1,4 +1,4 @@
-* $Id: TrFitF.F,v 1.1 2011/10/17 08:21:57 choutko Exp $
+* $Id: TrFitF.F,v 1.2 2011/10/26 14:00:13 choutko Exp $
       SUBROUTINE DMM55(A,B,C)
 C *** ---------------------------------------------                     05/07/81
 C *** MULTIPLICATION OF 5X5 MATRICES: A*B -> C.
@@ -1035,7 +1035,7 @@ c          stepa=0
           step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
           stept=stept+step*idir
           if(step.gt.steps )then
-           call grkuta(chrg,step,vin,out)
+           call grkuta(chrg*idir,step,vin,out)
           else
             out(1)=vin(1)+step*vin(4)
             out(2)=vin(2)+step*vin(5)
@@ -1202,7 +1202,7 @@ c          stepa=0
           step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
           stept=stept+step*idir
           if(step.gt.steps)then
-           call grkuta(chrg,step,vin,out)
+           call grkuta(chrg*idir,step,vin,out)
           else
             out(1)=vin(1)+step*vin(4)
             out(2)=vin(2)+step*vin(5)

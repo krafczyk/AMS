@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.700 2011/10/16 09:10:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.701 2011/10/26 14:00:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19898,11 +19898,11 @@ sub MoveBetweenDisks{
                    $softlink='/Offline/RunsDir';
                }
                my $timenow=time();
-                $sql="update $ntuples set path='$newfile', timestamp=$timenow where path='$file'";
+                $sql="update $ntuples set path='$newfile' where path='$file'";
   $self->datasetlink($file,$softlink,0);
   my $netlink=$self->datasetlink($newfile,$softlink,1,$preset);
                if($ntuples eq 'datafiles'){
-                   $sql="update $ntuples set path='$newfile', timestamp=$timenow ,paths='$netlink' where path='$file'";
+                   $sql="update $ntuples set path='$newfile', paths='$netlink' where path='$file'";
                }
 
                 $self->{sqlserver}->Update($sql);

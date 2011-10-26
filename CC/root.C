@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.336 2011/10/25 15:21:36 choutko Exp $
+//  $Id: root.C,v 1.337 2011/10/26 14:00:12 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2168,6 +2168,11 @@ static int initdone[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
      }
 //cout <<" LockAfter "<<_Lock<<" "<<thr<<endl;
+
+#ifndef _PGTRACK_
+TrTrackFitR::InitMF(UTime());
+#endif
+
 }
 
     if(Version()<160){
@@ -5340,12 +5345,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
 master=1;  
 }
 #else
-#pragma omp master 
-{
-TrTrackFitR::InitMF(UTime());
- master=1;  
-}
-
+master=1;
 #endif
  while (master==0){
    usleep(1);
@@ -5760,7 +5760,7 @@ int TrTrackR::iTrTrackFit(TrTrackFitR & fit,int refit){
 
 // Check TrTrackFitR is well defined;
    fit.fTrTrack=this;
-   for(int i=0;i<fTrTrackFit.size();i++)fit.fTrTrack=this;
+   for(int i=0;i<fTrTrackFit.size();i++)fTrTrackFit[i].fTrTrack=this;
    setFitPattern(fit.getAtt(),fit.Pattern);
 
    if(fit.Algo<0 || fit.Alig<0 || fit.MS<0)return -2;
