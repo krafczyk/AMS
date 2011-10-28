@@ -254,7 +254,8 @@ int TrdHReconR::DoPrefit(int debug){
   int i=0;
   for(int d=0;d<2;d++){
     for(vector<PeakXYZW>::iterator it=peakvec[d].begin();it!=peakvec[d].end();it++,i++){
-      TrdHSegmentR *seg=new TrdHSegmentR(d,it->y,0.,it->x,0.,it->z,it->w);
+      TrdHSegmentR iseg= TrdHSegmentR(d,it->y,0.,it->x,0.,it->z,it->w);
+      TrdHSegmentR *seg=&iseg;
       seg->fTrdRawHit.clear();
       seg->em=0.6/(it->zmax-it->zmin);
       
@@ -324,7 +325,7 @@ int TrdHReconR::DoPrefit(int debug){
 	//	AddSegment(seg);
 	hsegvec.push_back(*seg);
       }
-            if(seg)delete seg;
+            //if(seg)delete seg;
     }
   }
 
