@@ -325,7 +325,7 @@ int TrdHReconR::DoPrefit(int debug){
 	//	AddSegment(seg);
 	hsegvec.push_back(*seg);
       }
-      //      if(seg)delete seg;
+            if(seg)delete seg;
     }
   }
 
