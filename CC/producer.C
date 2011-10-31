@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.168.2.1 2011/08/30 14:48:10 choutko Exp $
+//  $Id: producer.C,v 1.168.2.2 2011/10/31 08:05:49 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1360,9 +1360,9 @@ catch  (CORBA::SystemException & a){}
     _OnAir=false;
 }
 char tmp[256];
-sprintf(tmp," sleep 60 ; bkill %u &",_pid.pid);
+sprintf(tmp,"( sleep 60 ; bkill %u )&",_pid.pid);
 system(tmp);
-sprintf(tmp," sleep 60 ; kill -9 %u &",_pid.pid);
+sprintf(tmp,"( sleep 60 ; kill -9 %u )&",_pid.pid);
 system(tmp);
 cout <<" Exiting-I-Bkill "<<tmp<<endl;
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.825.2.1 2011/08/25 09:00:03 mmilling Exp $
+// $Id: job.C,v 1.825.2.2 2011/10/31 08:05:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4076,9 +4076,10 @@ if(MISCFFKEY.BeamTest>1){
   else{
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
-  }
+  
    AMSTimeID * ptdv = (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVGLDB():AMSTrAligFit::getTDVGLDBP(),begin,end,AMSTrAligFit::gettraliggldbsize(),AMSTrAligFit::gettraliggldbp(),server));
    if(TRALIG.ReWriteDB)ptdv->UpdateMe()=1;
+  }
 }
 
 
@@ -4095,10 +4096,11 @@ if(!isRealData()){
   else{
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
-  }
+  
 
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVAGLDB():AMSTrAligFit::getTDVAGLDBP(),begin,end,AMSTrAligFit::gettraliggladbsize(),AMSTrAligFit::gettraliggladbp(),server));
 
+  }
 }
 
 
