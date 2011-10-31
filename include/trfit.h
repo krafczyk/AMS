@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.1.4.1 2011/08/30 14:48:12 choutko Exp $
+//  $Id: trfit.h,v 1.1.4.2 2011/10/31 08:08:12 choutko Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -19,7 +19,7 @@ enum kAtt{
 };
 int Pattern;   ///< Pattern in a way xxxxxxxxx  x =0...9  124789 means 6 hits with layers 1,2,4,7,8,9; pattern -1 if object is invalid
 short int Algo; ///< Algo 0 Choutko,1 Alc 2 Chik
-short int MS;  ///< 0 no MS 1 MS
+short int MS;  ///< 0 no MS 1 MS +100 extres
 short int Alig; ///< Alignment applied to a pattern in a same way xxxxxxxxx x=0,1,2,3 0 == no alig, 1=static alig, 2 == dyn alig, 3== reserved 
 short int Att; ///< Attribute 0 full path 1 1st half 2 2nd half 3 int only 4 ext only 5 custom 6 not defined
 float Rigidity;  ///< Rigidity GV
@@ -70,7 +70,7 @@ bool operator == (const TrTrackFitR &a ) const{
 #ifdef __ROOTSHAREDLIBRARY__
 int Fit(const TrTrackR &track, AMSEventR * event); ///< Fit for root
 #endif
-ClassDef(TrTrackFitR,1)       //TrTrackFitR
+ClassDef(TrTrackFitR,2)       //TrTrackFitR
 };
 
 

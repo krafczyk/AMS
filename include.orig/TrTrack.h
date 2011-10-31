@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.67.2.2 2011/09/03 08:43:01 shaino Exp $
+//  $Id: TrTrack.h,v 1.67.2.3 2011/10/31 08:08:12 choutko Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/09/03 08:43:01 $
+///$Date: 2011/10/31 08:08:12 $
 ///
-///$Revision: 1.67.2.2 $
+///$Revision: 1.67.2.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -253,6 +253,7 @@ protected:
   /// The last successful TrFit object (not stored in ROOT Tree)
   TrFit _TrFit;  //!
   /// maps of track parameters with the key as fitting method ID
+  public:
   map<int, TrTrackPar> _TrackPar;
   //! Flag if the track was reconstructed with or without Magfield
   bool _MagFieldOn;
