@@ -877,7 +877,7 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
     originalPoint.TrackTheta=acos(trNewVect[2]);
     originalPoint.TrackPhi=atan2(trNewVect[1],trNewVect[0]);
     originalPoint.extrapolateTrack();
-    historyPerLadder[Id].Push(event);
+    historyPerLadder[Id].Push(originalPoint);
   }
 
   // Perform all the local alignment fits and store them
