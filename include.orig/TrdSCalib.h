@@ -14,13 +14,15 @@
 #include "TrTrackSelection.h"
 
 #include "TFile.h"
-#include "TH1F.h"
+#include "TH1.h"
+#include "TH2.h"
 #include "TF1.h"
 #include "TString.h"
 #include "TROOT.h"
 #include "TMath.h"
 #include "TVector3.h"
 #include "TGraph.h"
+#include "TGraphSmooth.h"
 #include "TObjArray.h"
 
 
@@ -36,7 +38,7 @@ namespace trdconst{
 
   const number  TrdMeanMPV       = 70.0;
   const number  TrdMeanMPVSC     = 56.0;
-  const number  TrdEadcMin       =  0.0;
+  const number  TrdEadcMin       =  7.0;
   const number  TrdEadcMax       = 4048.0;
   
 
@@ -263,7 +265,7 @@ class AC_TrdHits: public TObject{
 class TrdSCalibR: public TObject{
   
  private:
-  int algo,patt,refit, pmass, pcharge;  
+  int algo,patt,refit, pmass, pcharge;
   static TrdSCalibR* head;
 
   
@@ -284,10 +286,11 @@ class TrdSCalibR: public TObject{
 
   static vector<int> nTrdModulesPerLayer;
   static vector< vector<int> > mStraw; 	
-
   
   vector<TH1F *> h_TrdGasCirMPV;
   vector<TH1F *> h_TrdModuleMPV;
+
+  unsigned int FirstCalRunTime, LastCalRunTime;
 
   static TObjArray *ObjTrdGasCirMPV_list;
   static TObjArray *ObjTrdModuleMPV_list;
@@ -301,21 +304,51 @@ class TrdSCalibR: public TObject{
   int  dummy;
   bool FirstCall, TrdCalib_01, TrdCalib_02;
   bool FirstLLCall;
- 
-  TF1 *fTrdSigmaDx, *fTrdSigmaDy;
+  
+  vector<double>	   TrdLR_xProt, TrdLR_xHeli, TrdLR_xElec;
+  vector<double>	   TrdLR_nProt, TrdLR_nHeli, TrdLR_nElec;
+  vector< vector<double> > TrdLR_pProt, TrdLR_pHeli, TrdLR_pElec;
+
+  vector<TGraph *> TrdLR_Gr_Prot, TrdLR_Gr_Elec, TrdLR_Gr_Heli;
+
+
+  TF1 *fTrdSigmaDx, *fTrdSigmaDy, *fTrd95Da;
   TF1 *fTrdLR;
   
  TrdSCalibR(): algo(1), patt(3), refit(2),
   dummy(0) {
  
     FirstLLCall = true;
+    h_TrdGasCirMPV.clear();
+    h_TrdModuleMPV.clear();
+
+    FirstCalRunTime = 2000000000;
+    LastCalRunTime  = 0;
+
+    TrdLR_xProt.clear();
+    TrdLR_xHeli.clear();
+    TrdLR_xElec.clear();
+
+    TrdLR_nProt.clear();
+    TrdLR_nHeli.clear();
+    TrdLR_nElec.clear();
+
+    TrdLR_pProt.clear();
+    TrdLR_pHeli.clear();
+    TrdLR_pElec.clear();
+
+    TrdLR_Gr_Prot.clear();
+    TrdLR_Gr_Elec.clear();
+    TrdLR_Gr_Heli.clear();
 
     for(int i=0;i<3;i++) cTrd[i]=dTrd[i]=cTrk[i]=dTrk[i]=0.0;
 
     fTrdSigmaDy = new TF1("fTrdSigmaDy",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
-    fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347);
+    fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347); 
     fTrdSigmaDx = new TF1("fTrdSigmaDx",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
     fTrdSigmaDx->SetParameters(2.484,0.1183,0.3487);
+    fTrd95Da = new TF1("fTrd95Da",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);  
+    fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
 
     fTrdLR      = 0;
 
@@ -360,10 +393,8 @@ class TrdSCalibR: public TObject{
 
  public:
   int GetEvthTime(AMSEventR *ev, int Debug);
-
   int GetEvthTime(time_t EvtTime, int Debug);
-
-  int GetDays(TString fname, int &FirstDay, int &LastDay);
+  int GetModCalibTimePeriod(TString fname, int Debug);
 
   bool Get01TrdCalibration(TString fname, int Debug);
   
@@ -491,15 +522,57 @@ class TrdSCalibR: public TObject{
     
     return arg1/arg2/arg3/arg4;
   };
+//--------------------------------------------------
+///	x[0] = Eadc, par[0] = iP = Momentum Bin
+double TrdLR_fProton_v02(double *x, double *par) {
+	
+  int 		iP    = par[0];	
+  double 	L     = 0.0;	
+  if (x[0]<TrdMinAdc) {
+    L = TrdLR_Gr_Prot.at(iP)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
+  } else if (x[0]>TrdMaxAdc) {
+    L = TrdLR_Gr_Prot.at(iP)->Eval(TrdMaxAdc) * 1.0/(1.0+TMath::Exp(-1.0*(TrdMaxAdc-x[0])));
+  } else {
+    L = TrdLR_Gr_Prot.at(iP)->Eval(x[0]);
+  }
+  return L/TrdLR_nProt.at(iP);
+}
 
+//--------------------------------------------------
+///	x[0] = Eadc, par[0] = iP = Momentum Bin
+double TrdLR_fHelium_v02(double *x, double *par) {
+	
+  int 		iP    = par[0];	
+  double 	L     = 0.0;	
+  if (x[0]<TrdMinAdc) {
+    L = TrdLR_Gr_Heli.at(iP)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
+  } else if (x[0]>TrdMaxAdc) {
+    L = TrdLR_Gr_Heli.at(iP)->Eval(TrdMaxAdc) * 1.0/(1.0+TMath::Exp(-1.0*(TrdMaxAdc-x[0])));
+  } else {
+    L = TrdLR_Gr_Heli.at(iP)->Eval(x[0]);
+  }
+  return L/TrdLR_nHeli.at(iP);
+}
+
+//--------------------------------------------------
+///	x[0] = Eadc, par[0] = Layer
+double TrdLR_fElectron_v02(double *x, double *par) {
+	
+  int 		Layer = par[0];
+  double 	L     = 0.0;	
+  if (x[0]<TrdMinAdc) {
+    L = TrdLR_Gr_Elec.at(Layer)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
+  } else if (x[0]>TrdMaxAdc) {
+    L = TrdLR_Gr_Elec.at(Layer)->Eval(TrdMaxAdc) * 1.0/(1.0+TMath::Exp(-1.0*(TrdMaxAdc-x[0])));
+  } else {
+    L = TrdLR_Gr_Elec.at(Layer)->Eval(x[0]);
+  }
+  return L/TrdLR_nElec.at(Layer);
+}
 //--------------------------------------------------
   
 
  public:
-   
-  vector<double>	   TrdLR_xProt, TrdLR_xHeli, TrdLR_xElec;
-  vector<double>	   TrdLR_nProt, TrdLR_nHeli, TrdLR_nElec;
-  vector< vector<double> > TrdLR_pProt, TrdLR_pHeli, TrdLR_pElec;
 
   bool TrdLR_GetParameters(string fName, string hName, int nPar, vector<double> &xMin, vector< vector<double> > &Par);
   
@@ -510,13 +583,14 @@ class TrdSCalibR: public TObject{
   vector<double> GenLogBinning(int nBinLog, double Tmin, double Tmax);
 
   double TrdLR_fProton(double *x, double *par);
-
   double TrdLR_fHelium(double *x, double *par);
-
   double TrdLR_fElectron(double *x, double *par);
 
-
-
+  /// version 2 released on 20111013
+  vector<double> RootGetYbinsTH2(TH2 *hist, int Debug);
+  bool TrdLR_CalcIni_v02(int Debug);
+  vector<double> TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug);
+ 
   static TrdSCalibR* gethead(){
     if(!head) head=new TrdSCalibR();
     return head;
