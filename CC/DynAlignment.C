@@ -559,17 +559,17 @@ void DynAlContinuity::GetFileList(TString dir,vector<int> &lista){
 
 bool DynAlContinuity::Update(int run){
   if(CurrentRun==run && CurrentRun!=-1) return false;
-  ForceUpdate(DirName,Prefix,run,Layer);
+  ForceUpdate(DirName,Prefix,run);
   return true;
 }
 
-void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run,int layer){
+void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run){
   CurrentRun=run;
   History.Run=run;
-  History.Layer=layer;
+  //  History.Layer=layer;
   DirName=dir_name;
   Prefix=prefix;
-  Layer=layer;
+  //  Layer=layer;
 
   if(run<0) return;// Skip dummy run numbers
 
@@ -581,10 +581,10 @@ void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run,int la
   GetFileList(dir,runs);
 
   if(runs.size()==0){
-    cout<<"Problem updating with dir="<<dir_name<<" prefix="<<prefix<<" run="<<run<<" layer="<<layer<<endl;
+    cout<<"Problem updating with dir="<<dir_name<<" prefix="<<prefix<<" run="<<run<<endl;
     return;
   }
-
+  
   History.Events.clear();
 
   // Find the position of current run
@@ -639,6 +639,8 @@ void DynAlContinuity::Fill(TString dir,TString prefix,int run){
     return;
   }
   for(int i=0;i<h->Size();i++)  History.Push(h->Get(i));
+  Layer=History.Layer=h->Layer;
+
 #ifdef VERBOSE__
   cout<<"     READ "<<h->Size()<<" events"<<endl;
 #endif
@@ -894,8 +896,8 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
 void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   // Use the continuity tool to get the history
   FitParameters.clear();
-  DynAlContinuity historyC(dir,prefix,Layer,run);
-  Layer=historyC.History.Layer;
+  DynAlContinuity historyC(dir,prefix,run);
+  Layer=historyC.Layer;
 
   // Copy it 
   DynAlHistory history;
