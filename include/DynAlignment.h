@@ -1,6 +1,6 @@
 #ifndef __DynAl__
 #define __DynAl__
-
+#ifdef __ROOTSHAREDLIBRARY__
 #include "TLinearFitter.h"
 #include "TObject.h"
 #include "TChain.h"
@@ -9,6 +9,8 @@
 #include <map>
 #include <set>
 #include "root.h"
+#include "amschain.h"
+
 
 using namespace std;
 
@@ -27,12 +29,15 @@ class DynAlEvent: public TObject{
   int Id;            // Id (slot, half...) using Vitaly naming scheme
 
   void extrapolateTrack(); // Propagate the track to the hit z
-  int lay()const{return Id%10;}
-  int lad()const{return (Id/100)%100;}
-  int half()const{return (Id/10)%10;}
-  int sen()const{return (Id/10000)%100;}
+  int lay()const{return abs(Id)%10;}
+  int lad()const{return (abs(Id)/100)%100;}
+  int half()const{return (abs(Id)/10)%10;}
+  int sen()const{return (abs(Id)/10000)%100;}
+  bool falsex(){return Id<0;}
 
+  bool operator<(const DynAlEvent &b) const {return Time[0]!=b.Time[0]?Time[0]<b.Time[0]:Time[1]<b.Time[1];}
   static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);
+  static bool buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event);
 
   ClassDef(DynAlEvent,1);
 };
@@ -46,11 +51,12 @@ class DynAlEvent: public TObject{
 
 class DynAlHistory: public TObject{
  public:
-  unsigned int Run;
+  int Run;
+  int Layer;
   vector<DynAlEvent> Events;
 
-  DynAlHistory(int run):Run(run){Events.reserve(4096);}
-  DynAlHistory(){}
+  DynAlHistory(int run,int layer):Run(run),Layer(layer){Events.reserve(4096);}
+  DynAlHistory():Run(0),Layer(-1){Events.reserve(4096);}
   void Push(DynAlEvent &event){Events.push_back(event);}
   int FindCloser(int seconds,int muSeconds,int initial=0);
   void FindTimeWindow(int event,int seconds,int &first,int &last);
@@ -75,7 +81,6 @@ class DynAlFit: public TObject{
   int Excluded;           //!
   double ZOffset;         // Offset for Z 
   int TOffset;            // Last fist T offset
-  bool   LadderFit;       //! Fit ladder by ladder if true
   double MinRigidity;     //! Minimum absolute rigidity 
   double MaxRigidity;     //! Maximum absolute rigidity 
   int Events;             //! Events in last fit
@@ -89,15 +94,6 @@ class DynAlFit: public TObject{
   Double_t ALPHA;  
   Double_t BETA;  
 
-  // Use local alignment
-  bool UseLocalAlignment;
-  map<int,double> LocalDX;
-  map<int,double> LocalDY;
-  map<int,double> LocalDZ;
-  map<int,double> LocalTHETA;
-  map<int,double> LocalALPHA;
-  map<int,double> LocalBETA;
-
   bool Fail;            // Set to true if the fit failed
   int ControlGroup;     //! 1 our of ControlGroup events are not used in the fit
 
@@ -109,40 +105,89 @@ class DynAlFit: public TObject{
   bool ForceFit(DynAlHistory &history,int first,int last,set<int> &exclude);
   void Eval(DynAlEvent &event,double &x,double &y,double &z);
   void RetrieveFitPar(int t0=0,int t1=0);
-  void ApplyLocalAlignment(int id,double &x,double &y,double &z);
-  void ApplyLocalAlignment(int id,float &x,float &y,float &z);
+  //  void ApplyLocalAlignment(int id,double &x,double &y,double &z);
+  //  void ApplyLocalAlignment(int id,float &x,float &y,float &z);
+  void Eval(AMSEventR &ev,double &x,double &y,double &z);
+  ClassDef(DynAlFit,1);
 };
 
 
-
-//
-// Implement a tool to guarantee the continuity between different runs
-//
-/*
-#include "root.h"
 
 class DynAlContinuity{
  public:
-  map<int,TString> Run2File;      // Map of run to filename
-  map<int,vector<int> > Run2Runs; // Map of run to runs to load
-  DynAlHistory *History;          // Current history
-  int CurrentRun;
-  int LastVisited;
-  TString Prefix; 
-  int Plane;
+  static int getBin(int utime);                 // Directory name where to look for files 
+  static int getNextBin(int utime);             // Directory name where to look for files 
+  static int getPreviousBin(int utime);         // Directory name where to look for files 
+  static bool select(AMSEventR *ev,int layer);  // Select the an event for the idx file
+  static void CreateIdx(AMSChain &ch,int layer,TString dir,TString prefix);  //Create an Idx file for chain ch and "layer" in directory dir, using as prefix "prefix"
+  static void GetFileList(TString dir,vector<int> &lista);
 
+  // Fit parameters
+  static double BetaCut;      // Rich Beta Cut
+  static int    FitOrder;     // Time order of the fit
+  static int    FitWindow;    // Window time in minutes
 
-  void Init(TChain &chain);
-  Continuity():History(0),CurrentRun(0),LastVisited(-1),Prefix(""),Plane(0){};
-  Continuity(TChain &ch,int plane,TString prefix=""):History(0),CurrentRun(0),LastVisited(-1),Prefix(prefix),Plane(plane){Init(ch);}
-  void SetRun(int run);
-  TFile *FindCreateIdx(int run,TString file);
+  DynAlFit Fit;
+  DynAlHistory History;          // Current history
+  int CurrentRun;                 // Current run   
+  TString DirName;
+  TString Prefix;
+  int Layer;
+  DynAlContinuity():Fit(FitOrder),CurrentRun(-1){};
+  DynAlContinuity(TString dir,TString prefix,int layer,int run=-1):Fit(FitOrder){ForceUpdate(dir,prefix,run,layer);}; //  
+  void ForceUpdate(TString dir,TString prefix,int run,int layer);
+  bool Update(int run);
+  void Fill(TString dir,TString prefix,int run);
+  bool UpdateFit(AMSEventR &ev);
 
-  //Tools
-  void CreateIdx(int run,TString file);                      // Create the idx file
-  static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);   // Dump a event into the DynAlEvent structure. Return true is succeed
-  static int select(AMSEventR *ev,int layer);                          // Check if the event has to be selected to compute the alignment
+  ClassDef(DynAlContinuity,1);
 };
-*/
 
+
+
+/// A class to store the fit results for a single run
+/// including local alignment
+
+class DynAlFitParameters: public TObject{
+ public:
+  vector<Double_t> DX;
+  vector<Double_t> DY;
+  vector<Double_t> DZ;  
+  vector<Double_t> THETA;  
+  vector<Double_t> ALPHA;  
+  vector<Double_t> BETA;  
+  Double_t ZOffset;
+  Double_t TOffset;
+  
+  DynAlFitParameters(){};
+  DynAlFitParameters(DynAlFit &fit);
+  Double_t GetTime(int seconds,int museconds){return ((seconds-TOffset)+1e-6*museconds)/60.0/90.0;}
+  void ApplyAlignment(int seconds,int musecons,double &x,double &y,double &z);
+  void ApplyAlignment(double &x,double &y,double &z);   // To use in case it is a local alignment
+
+  ClassDef(DynAlFitParameters,1);
+};
+
+
+class DynAlFitContainer:public TObject{
+ public:
+  int Layer;
+  map<int,DynAlFitParameters> FitParameters;       // Fits parameters at the second level
+  map<int,DynAlFitParameters> LocalFitParameters;  // Local alignment
+  bool ApplyLocalAlignment;
+  void Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z);
+  void Eval(DynAlEvent &ev,double &x,double &y,double &z);
+  int GetId(TrRecHitR &hit);
+  int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
+  
+  void BuildLocalAlignment(DynAlHistory &history);
+  void BuildAlignment(TString dir,TString prefix,int run);
+  
+  DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
+
+
+  ClassDef(DynAlFitContainer,1);
+};
+
+#endif
 #endif

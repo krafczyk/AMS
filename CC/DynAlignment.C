@@ -1,5 +1,7 @@
+#ifdef __ROOTSHAREDLIBRARY__
 #include "DynAlignment.h"
 #include "TChainElement.h"
+#include "TSystem.h"
 
 #include <iostream>
 #include <algorithm>
@@ -7,7 +9,7 @@
 #include "limits.h"
 #include "stdlib.h"
 
-//#define VERBOSE
+//#define VERBOSE__
 
 ClassImp(DynAlEvent);
 
@@ -116,6 +118,40 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   return true;  // Success 
 }
 
+bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
+  ///////////////////////////////
+  // Dump the Time information //
+  ///////////////////////////////
+
+  event.Time[0]=ev.fHeader.Time[0];
+  event.Time[1]=ev.fHeader.Time[1];
+
+
+  /////////////////////////////////////////
+  // Get the hit position for the layer  //
+  /////////////////////////////////////////
+
+    AMSPoint pnt;
+#ifdef _PGTRACK_
+  int imult=hit.GetResolvedMultiplicity();
+  pnt=hit.GetGlobalCoordinate(imult,"");
+#else
+  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
+#endif
+  for(int i=0;i<3;i++){event.RawHit[i]=pnt[i];event.TrackHit[i]=0;}
+
+  event.TrackTheta=event.TrackPhi=event.Rigidity=0;
+
+#ifdef _PGTRACK_
+  event.Id=hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad();
+#else
+  event.Id=hit.Id;
+#endif
+
+  return true;  // Success 
+}
+
+
 
 ClassImp(DynAlHistory);
 
@@ -139,7 +175,7 @@ int DynAlHistory::FindCloser(int seconds,int muSeconds,int initial){
     // If the error increases then we have finished
     break;
   }
-#ifdef VERBOSE
+#ifdef VERBOSE__
   if(current==-1){
     cout<<"NO EVENT FOUND"<<endl;
   }else{
@@ -187,12 +223,12 @@ void DynAlHistory::FindTimeWindow(int event,int seconds,int &first,int &last){
 //////////////////////////////////////////////////////////////////////////////
 
 DynAlFit::DynAlFit(int order){
-  LadderFit=false;ZOffset=-136.0;First=Last=Excluded=-1;
+  ZOffset=-136.0;First=Last=Excluded=-1;
   MinRigidity=0;MaxRigidity=1e6;Events=0;
   Order=order;
-  UseLocalAlignment=false;
   ControlGroup=-1;
-  Init();}
+  Init();
+}
 
 void DynAlFit::Init(){
   Fit.SetDim((Order+1)*6);
@@ -223,20 +259,11 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
   int f,l;
   history.FindTimeWindow(timeRef,1,f,l);
   for(int i=f;i<=l;i++){
-#ifdef VERBOSE
+#ifdef VERBOSE__
     cout<<"EXCLUDING "<<history.Events[i].Time[0]-exclude.Time[0]<<endl;
 #endif
     excluded.insert(i);
   }
-
-  /////////////////////////////////////////////////
-  // exclude too far away hit
-  for(int i=first;i<=last;i++){
-    if(fabs(history.Events[i].RawHit[0]-history.Events[i].TrackHit[0])>1 ||
-       fabs(history.Events[i].RawHit[e]-history.Events[i].TrackHit[1])>1) excluded.insert(i);
-    if(history.Events[i].Id<0) excluded.insert(i);
-  }
-
 
 
   /////////////////////////////////////////////
@@ -264,59 +291,11 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
     if(delta[0]*delta[0]>threshold*sum2[0] || delta[1]*delta[1]>threshold*sum2[1]) excluded.insert(i); 
   }
 
-
-
-  ///////////////////////////////////////////////////////////////////////////////
-
-
-  if(LadderFit){
-    // The user wants to exclude hits in a layer different of that of "exclude"... therefore we exclude those
-    int ladder=exclude.lad();
-    int half=exclude.half();
-    int layer=exclude.lay();
-    for(int i=first;i<=last;i++){
-      DynAlEvent &ev=history.Events.at(i);
-      if(ladder!=ev.lad() || layer!=ev.lay() || half!=ev.half()) excluded.insert(i);
-    }
-  }
-
   return ForceFit(history,first,last,excluded);
 }
 
 
-void DynAlFit::ApplyLocalAlignment(int myid,float &x,float &y,float &z){
-  double mx=x;
-  double my=y;
-  double mz=z;
-  ApplyLocalAlignment(myid,mx,my,mz);
-  x=mx;
-  y=my;
-  z=mz;
-}
-
-void DynAlFit::ApplyLocalAlignment(int myid,double &x,double &y,double &z){
-  if(LocalDX.find(myid)==LocalDX.end()){
-    cout<<"************ LOCAL ALIGNMENT PARAMETERS FOR ID "<<myid<<" not found"<<endl;
-  }
-  double _DX=LocalDX[myid];
-  double _DY=LocalDY[myid];
-  double _DZ=LocalDZ[myid];
-  double _THETA=LocalTHETA[myid];
-  double _ALPHA=LocalALPHA[myid];
-  double _BETA=LocalBETA[myid];
-  
-  // We assume z==0
-  double dx=_DX-_THETA*y;
-  double dy=_DY+_THETA*x;
-  double dz=_DZ+_ALPHA*x+_BETA*y;
-  
-  x+=dx;
-  y+=dy;
-  z+=dz;
-}
-
 bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclude){
-
   Fail=true;
   Fit.ClearPoints();
   Double_t x[8]; // variables
@@ -346,7 +325,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     if(fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
     
     if(exclude.count(i)>0){
-#ifdef VERBOSE
+#ifdef VERBOSE__
       cout<<"EXCLUDED --- "<<i<<endl;
 #endif      
       continue;  // Exclude using the mask
@@ -354,13 +333,6 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 
     // Exclude interleave events for a test
     if(ControlGroup>0) if((event.Time[0]%ControlGroup)==0) continue;
-
-    // Apply inner alignment if required
-    if(UseLocalAlignment){
-      // Get the Id:
-      int myid=event.Id%10000;
-      ApplyLocalAlignment(myid,event.RawHit[0],event.RawHit[1],event.RawHit[2]);
-    }
     event.extrapolateTrack(); // Just in case
 
     // Shift the Z origin
@@ -440,6 +412,14 @@ void DynAlFit::RetrieveFitPar(int t0,int t1){
 
 }
 
+void DynAlFit::Eval(AMSEventR &ev,double &x,double &y,double &z){
+  DynAlEvent event;
+  for(int i=0;i<2;i++) event.Time[i]=ev.fHeader.Time[i];
+  event.RawHit[0]=x;
+  event.RawHit[1]=y;
+  event.RawHit[2]=z;
+  Eval(event,x,y,z);
+}
 
 void DynAlFit::Eval(DynAlEvent &event,double &x,double &y,double &z){
   RetrieveFitPar(event.Time[0],event.Time[1]);
@@ -455,232 +435,28 @@ void DynAlFit::Eval(DynAlEvent &event,double &x,double &y,double &z){
   z=event.RawHit[2]+dz;
 }
 
-/*
 
-////////////////////// Continuity: here all the interfaces with AMSEvenR are in the function buildEvent
-////////////////////// Moreover, all the utilities to keep all indexes in a file should be included here 
+ClassImp(DynAlContinuity);
+// Number of seconds in a week
+#define magicNumber 605800
+double DynAlContinuity::BetaCut=0.99;
+int    DynAlContinuity::FitOrder=0;
+int    DynAlContinuity::FitWindow=20;
 
-#define WHICHTREE "TrAlignment"
-#define WHICHBRANCH "header.Run"
+int DynAlContinuity::getBin(int run){
+  return (run/magicNumber)*magicNumber;
+}
 
-void Continuity::Init(TChain &chain){
-  // Scan the chain to get run numbers
-  Run2File.clear();
-  Run2Runs.clear();
-  vector<int> runs; runs.reserve(256);
+int DynAlContinuity::getNextBin(int run){
+  return (run/magicNumber)*magicNumber+magicNumber;
+}
 
-  TObjArray *fileElements=chain.GetListOfFiles();
-  TIter next(fileElements);
-  TChainElement *chEl=0;
-  while (( chEl=(TChainElement*)next() )) {
-    TString filename=chEl->GetTitle();
-    TFile f(filename);
-    TTree *tree=(TTree*)f.Get(WHICHTREE);
-    if(!tree){
-      cout<<"TREE AMSRoot NOT FOUND IN "<<filename<<endl;
-      continue;
-    }
-
-    tree->Draw(WHICHBRANCH,"","goff",1); // Dirty and fast way of getting the value 
-    if(!tree->GetV1()) continue;
-    int run=int(tree->GetV1()[0]);
-
-    Run2File[run]=filename;
-    runs.push_back(run);
-  }
-
-  sort(runs.begin(),runs.end());  // Sort the runs numbers, just in case
-
-  // Associate the runs in range to current run
-  for(int i=0;i<runs.size();i++){
-    int begin=max(0,i-1);
-    int end=min(int(runs.size())-1,i+1);
-    Run2Runs[runs[i]].clear();
-    Run2Runs[runs[i]].reserve(3);
-    for(int j=begin;j<=end;j++) Run2Runs[runs[i]].push_back(runs[j]);
-  }
+int DynAlContinuity::getPreviousBin(int run){
+  return (run/magicNumber)*magicNumber-magicNumber;
 }
 
 
-
-void Continuity::SetRun(int run){
-  if(run==CurrentRun) return;
-  CurrentRun=run;
-  // If this is a new run go for it
-  if(Run2File.find(run)==Run2File.end()){
-    cout<<"RUN "<<run<<" NOT PRESENT"<<endl;
-  }
-
-  cout<<"------------- CREATING A NEW HISTORY FOR RUN "<<run<<endl;
-  if(!History){
-    History=new DynAlHistory(run);
-    History->Events.reserve(4096);
-  }
-  History->Events.clear();
-
-  // Try to the the idx files. If not presetn try to build them
-  vector<int> &runs=Run2Runs[run];
-
-  for(int i=0;i<runs.size();i++){
-    TFile *idxFile=FindCreateIdx(runs[i],Run2File[runs[i]]);
-    if(!idxFile){
-      cout<<"COULD NOT FIND OR CREATE IDX FILE FOR RUN "<<runs[i]<<endl;
-      continue;
-    }
-
-    DynAlHistory *history=(DynAlHistory*)idxFile->Get(Prefix+TString("idx"));
-    if(!history){
-      cout<<"COULD NOT FIND HISTORY IN FILE "<<runs[i]<<endl;
-      continue;
-    }
-
-
-    cout<<"     COPYING CONTENTS OF  run "<<runs[i]<<endl;
-    // Copy the contents for the idxFile into the history
-    for(int entry=0;entry<history->Events.size();entry++) {
-      History->Push(history->Events[entry]);
-    }
-
-    // Done
-    delete idxFile;
-  }
-
-  cout<<"DONE"<<endl;
-}
-
-
-
-void Continuity::CreateIdx(int run,TString fileName){
-  // Create the history object
-  DynAlHistory history(run);
-
-  // Create the chain
-  TChain ch("TrAlignment");
-  ch.Add(fileName);
-
-  // Loop in all the events
-  long entries=ch.GetEntries();
-  DstEvent *ev=0;
-  ch.SetBranchAddress("DstEvent",&ev);
-
-  for(long n=0;n<entries;n++){
-    ch.GetEvent(n);
-    int index=select(ev);
-    if(index<0) continue;
-
-    DynAlEvent event;
-    buildEvent(*ev,index,event);
-    event.extrapolateTrack();
-    history.Push(event);
-  }
-  
-  TFile file(Form("%u.idx.root",run),"UPDATE");
-  history.Write(Prefix+TString("idx"));
-  file.Close();
-
-  cout<<"Wrote "<<history.Size()<<" events in "<<Form("%u.idx.root",run)<<endl;
-}
-
-
-bool Continuity::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
-  ////////////////////////////////
-  // Get the hit for the layer  //
-  ////////////////////////////////
-
-  if(ev.nParticle()!=1) return false;
-  ParticleR &part=ev.Particle(0);
-  if(part.iTrTrack()<0) return false;
-  TrTrackR &track=ev.TrTrack(part.iTrTrack());
-  TrRecHitR *hit=0;
-
-#ifdef _PGTRACK_
-  hitp=track.GetHitLJ(layer);
-#else
-  int whichHit=-1;
-  for(int hi=0;hi<track.NTrRecHit();hi++){
-    TrRecHitR &h=ev.TrRecHit(track.iTrRecHit(hi));
-    if(h.lay()==layer){hitp=&h;whichHit=hi;break;}
-  }
-#endif
-
-  if(!hitp) return false;
-  TrRecHitR &hit=*hitp;
-
-  ///////////////////////////////////////////////////////////////////////
-  // Extrapolate the track to the layer and dump the track information //
-  ///////////////////////////////////////////////////////////////////////
-
-  AMSDir dir;
-  AMSPoint pnt;
-#ifdef _PGTRACK_
-  int id=track.iTrTrackPar(1,3,1);
-  if(id<0) return false;
-  const TrTrackPar &trPar=track.gTrTrackPar(id);
-  track.InterpolateLayerJ(layer, pnt, dir, id) ;
-  for(int i=0;i<3;i++) event.TrackHit[i]=pnt[i];
-  event.TrackTheta=dir.gettheta();
-  event.TrackPhi=dir.getphi();
-  event.Rigidity=trPar.Rigidity;
-#else
-  TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
-  int id=track.iTrTrackFit(fit,0);
-  if(id<0) return false;
-  TrTrackFitR &trPar=track.fTrTrackFit.at(id);
-  int which=-1;
-  for(int i=0;i<trPar.fTrSCoo.size();i++)
-    if(trPar.fTrSCoo.at(i).Id%10==layer){
-      which=i;
-      break;
-    }
-  if(which<0) return false;
-  for(int i=0;i<3;i++) event.TrackHit[i]=trPar.fTrSCoo[which].Coo[i];
-  event.TrackTheta=trPar.fTrSCoo[which].Theta;
-  event.TrackPhi=trPar.fTrSCoo[which].Phi;
-  event.Rigidity=trPar.Rigidity;
-#endif  
-
-  ////////////////////////////////////////////////////////
-  // Pick the hit position without alignment correction //
-  ////////////////////////////////////////////////////////
-#ifdef _PGTRACK_
-  int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"");
-#else
-  for(int i=0;i<3;i++) pnt[i]=hit.Coo[i];
-#endif
-  
-  ///////////////////////////
-  // Dump the hit position //
-  //////////////////////////
-
-  for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
-
-  ///////////////////////////////
-  // Dump the Time information //
-  ///////////////////////////////
-
-  event.Time[0]=ev.fHeader.Time[0];
-  event.Time[1]=ev.fHeader.Time[1];
-
-  ////////////////////// 
-  // Dump the hit id  //
-  //////////////////////
-  
-#ifdef _PGTRACK_
-  event.Id=(hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad())*(hit.OnlyY()?-1:1);
-#else
-  event.Id=hit.Id;
-  if(hit.Status&16384 || hit.Status&8192) event.Id*=-1;
-#endif
-
-
-  return true;  // Success 
-}
-
-
-
-
-int Continuity::select(AMSEventR *ev,int layer){
+bool DynAlContinuity::select(AMSEventR *ev,int layer){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}
 #define fStatus (ev->fStatus)  
 
@@ -689,9 +465,12 @@ int Continuity::select(AMSEventR *ev,int layer){
   SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
   SELECT("At least 1 tr track",fStatus&(0x3<<13));
   SELECT("At most 1 crossing particle at rich",ev->pParticle(0)->RichParticles<=1);
-  SELECT("At least 3 out of 4 for beta",Particle(0).pBeta()->Pattern<=4);
-  SELECT("TOF beta>0.9",Particle(0).pBeta()->Beta>0.9);  
-  SELECT("Rich Beta>0.99",Particle(0).pRichRing && Particle(0).pRichRing->IsGood() && Particle(0).pRichRing->Beta>0.99);
+  SELECT("At least 3 out of 4 for beta",ev->Particle(0).pBeta()->Pattern<=4);
+  SELECT("TOF beta>0.9",ev->Particle(0).pBeta()->Beta>0.9);  
+  SELECT("Has rich ring",ev->Particle(0).pRichRing());
+  RichRingR *ring=ev->Particle(0).pRichRing();
+  SELECT("Ring is good", ring->IsGood());
+  SELECT("Beta>BetaCut",ring->Beta>BetaCut);
 
   bool layerUsed[10];
   for(int l=0;l<10;l++) layerUsed[l]=false;
@@ -701,32 +480,470 @@ int Continuity::select(AMSEventR *ev,int layer){
     layerUsed[hit.lay()]=true;
   }
 
-  SELECT("Has the right external layer",layerUsed(layer));
+  SELECT("Has the right external layer",layerUsed[layer]);
   SELECT("The inner tracker has layer 2 and plane(7,8) and other inner hit",layerUsed[2] && (layerUsed[7] || layerUsed[8]) && (layerUsed[3] || layerUsed[4] || layerUsed[5] || layerUsed[6]));
 
+  // Finally use the implicit cuts in DynAlEvent::buildEvent
+  DynAlEvent event;
+  if(!DynAlEvent::buildEvent(*ev,layer,event)) return false;
+  if(event.Id<0) return false;
+  event.extrapolateTrack();
+  if(fabs(event.RawHit[0]-event.TrackHit[0])>1 ||
+     fabs(event.RawHit[1]-event.TrackHit[1])>1) return false;
+
+  return true;
+#undef SELECT
+#undef fStatus
+}
+
+
+
+void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString prefix){
+  // Create the history object
+  ch.Rewind();
+  AMSEventR *ev=ch.GetEvent();
+  if(!ev) return;
+  int current_run=ev->fHeader.Run;
+  DynAlHistory history(current_run,layer);
+
+  ch.Rewind();
+  int events = ch.GetEntries();
+  for (int entry=0; entry<events; entry++) {
+    AMSEventR *pev = ch.GetEvent(entry);
+    if(!select(pev,layer)) continue;
+    if(pev->fHeader.Run!=current_run) break;
+    
+    DynAlEvent event;
+    if(!DynAlEvent::buildEvent(*pev,layer,event)) continue;
+    event.extrapolateTrack();
+    history.Push(event);
+  }
+
+  // Clean up
+  ch.Rewind();
+
+  // Sort the history (just in case)
+  sort(history.Events.begin(),history.Events.end());
+
+  
+  // Save the file: this requires
+  //    1st find the directory where it should be placed
+  //    2nd create it if it does not exist
+  //    3rd writing it in a suitable manner  
+
+  
+  TString dir=Form("%s/%i/",dir_name.Data(),getBin(current_run));
+  gSystem->mkdir(dir);
+  TString file_name=Form("%u.idx.root",current_run);
+  TFile file(dir+file_name,"UPDATE");
+  history.Write(prefix+TString("idx"));
+  file.Close();
+  cout<<"Wrote "<<history.Size()<<" events in "<<file_name<<endl;
+}
+
+
+void DynAlContinuity::GetFileList(TString dir,vector<int> &lista){
+  lista.clear();
+  void *dirp=gSystem->OpenDirectory(dir);
+  if(!dirp) return;
+  for(const char *name=gSystem->GetDirEntry(dirp);name!=0;name=gSystem->GetDirEntry(dirp)){
+
+	TString entry(name);
+	if(!entry.Contains(".idx.root")) continue;
+	int run;
+	sscanf(entry.Data(),"%i.idx.root",&run);
+	lista.push_back(run);
+      }
+  sort(lista.begin(),lista.end());
+}
+
+bool DynAlContinuity::Update(int run){
+  if(CurrentRun==run && CurrentRun!=-1) return false;
+  ForceUpdate(DirName,Prefix,run,Layer);
+  return true;
+}
+
+void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run,int layer){
+  CurrentRun=run;
+  History.Run=run;
+  History.Layer=layer;
+  DirName=dir_name;
+  Prefix=prefix;
+  Layer=layer;
+
+  if(run<0) return;// Skip dummy run numbers
+
+  // Find the idx file for current run
+  TString dir=Form("%s/%i/",dir_name.Data(),getBin(CurrentRun));
+
+  // Get the list of files in current directory
+  vector<int> runs;
+  GetFileList(dir,runs);
+
+  if(runs.size()==0){
+    cout<<"Problem updating with dir="<<dir_name<<" prefix="<<prefix<<" run="<<run<<" layer="<<layer<<endl;
+    return;
+  }
+
+  History.Events.clear();
+
+  // Find the position of current run
+  int position=-1;
+  for(int i=0;i<runs.size();i++)
+    if(runs[i]==CurrentRun){position=i;break;}
+
+  if(position==-1) return;
+
+  // Join the different runs
+  if(position>0 && position<runs.size()-1){
+    // Normal case
+    if(position-1>=0) Fill(dir,prefix,runs.at(position-1));
+    Fill(dir,prefix,runs.at(position));
+    if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
+    return;
+  }
+
+  if(position==0){
+    TString mydir=Form("%s/%i/",dir_name.Data(),getPreviousBin(CurrentRun));
+    // Get the list of files in current directory
+    vector<int> list;
+    GetFileList(mydir,list);
+    if(list.size()>0) Fill(mydir,prefix,list.at(list.size()-1));
+    Fill(dir,prefix,runs.at(position));
+    if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
+    return;
+  }
+  
+  if(position-1>=0) Fill(dir,prefix,runs.at(position-1));
+  if(position>=0)  Fill(dir,prefix,runs.at(position));
+  TString mydir=Form("%s/%i/",dir_name.Data(),getNextBin(CurrentRun));
+  // Get the list of files in current directory
+  vector<int> list;
+  GetFileList(mydir,list);
+  if(list.size()>0) Fill(mydir,prefix,list.at(0));
+}
+
+
+void DynAlContinuity::Fill(TString dir,TString prefix,int run){
+  // Open the file
+  TString file_name=Form("/%u.idx.root",run);
+
+  //#ifdef VERBOSE__
+  cout<<"Opening file "<<(dir+file_name)<<" for reading"<<endl;
+  //#endif
+
+  TFile file(dir+file_name);
+  DynAlHistory *h=(DynAlHistory*)file.Get(prefix+TString("idx"));
+  if(!h){
+    cout<<"Object "<<(prefix+TString("idx"))<<" not found in "<<(dir+file_name)<<endl;
+    return;
+  }
+  for(int i=0;i<h->Size();i++)  History.Push(h->Get(i));
+#ifdef VERBOSE__
+  cout<<"     READ "<<h->Size()<<" events"<<endl;
+#endif
+  file.Close();
+}
+
+
+bool DynAlContinuity::UpdateFit(AMSEventR &ev){
+  int Minutes=FitWindow;  // This should be move out
+  Fit.MinRigidity=5;
+
+  // Update the run sequence if required
+  Update(ev.fHeader.Run);
+  // Get event number 
+  int current=History.FindCloser(ev.fHeader.Time[0],ev.fHeader.Time[1],0);
+  // Find the time window
+  int first,last;
+  History.FindTimeWindow(current,Minutes*30,first,last);
+  
+  // Do the fit if needed, excluding current event
+  DynAlEvent event;
+  DynAlEvent::buildEvent(ev,Layer,event);
+  Fit.DoFit(History,first,last,event);
+  if(Fit.Fail) return false;
   return true;
 }
 
 
-TFile *Continuity::FindCreateIdx(int run,TString file){
-  TString filename=Form("%i.idx.root",run);
-  
-  TFile *idxFile=new TFile(filename);
-  DynAlHistory *history=(DynAlHistory*)idxFile->Get(Prefix+TString("idx"));
 
-  if(!history){
-    cout<<"IDX object not found in file "<<filename<<". Trying to (re)create."<<endl;
-    cout<<"CURRENT RUN "<<run<<" CURRENT FILE "<<file<<endl;
-    CreateIdx(run,file);
-    delete idxFile;
-    idxFile=new TFile(filename);
-    history=(DynAlHistory*)idxFile->Get(Prefix+TString("idx"));
-    if(!history){
-      cout<<"IDX object not found in file "<<filename<<"exiting."<<endl;
-      exit(1);
+ClassImp(DynAlFitParameters);
+
+DynAlFitParameters::DynAlFitParameters(DynAlFit &fit){
+  TVectorD par;
+  fit.Fit.GetParameters(par);
+  int p=0;
+  for(int i=0;i<=fit.Order;i++){ 
+    DX.push_back(par[p++]);
+    DY.push_back(par[p++]);
+    DZ.push_back(par[p++]);
+    THETA.push_back(par[p++]);
+    ALPHA.push_back(par[p++]);
+    BETA.push_back(par[p++]);
+  }
+  
+  ZOffset=fit.ZOffset;
+  TOffset=fit.TOffset;
+}
+
+void DynAlFitParameters::ApplyAlignment(double &x,double &y,double &z){
+  ApplyAlignment(TOffset,0,x,y,z);
+}
+
+void DynAlFitParameters::ApplyAlignment(int seconds,int museconds,double &x,double &y,double &z){
+  double _DX=0;
+  double _DY=0;
+  double _DZ=0;
+  double _THETA=0;
+  double _ALPHA=0;
+  double _BETA=0;
+  
+  double elapsed=GetTime(seconds,museconds);
+  double dt=1;
+
+#define Do(xx) _##xx+=dt* xx.at(i) 
+  for(int i=0;i<DX.size();i++){
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+    dt*=elapsed;
+  }
+#undef Do
+
+  double zHit=z-ZOffset;
+  double dx=_DX-_THETA*y-_ALPHA*zHit;
+  double dy=_DY+_THETA*x-_BETA*zHit;
+  double dz=_DZ+_ALPHA*x+_BETA*y;
+  
+  x+=dx;
+  y+=dy;
+  z+=dz;
+}
+
+ClassImp(DynAlFitContainer);
+
+
+int DynAlFitContainer::GetId(TrRecHitR &hit){
+#ifdef _PGTRACK_
+  if(hit.GetLayerJ()!=Layer){
+    cout<<"DynAlFitContainer::GetId-W-Requested Id for layer "<<hit.lay()<<" whereas fits are for layer "<<Layer<<endl;
+  }
+  return hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad();
+#else
+  if(hit.lay()!=Layer){
+    cout<<"DynAlFitContainer::GetId-W-Requested Id for layer "<<hit.lay()<<" whereas fits are for layer "<<Layer<<endl;
+  }
+  return hit.lay()+10*hit.half()+100*hit.lad();
+#endif
+}
+
+void DynAlFitContainer::Eval(DynAlEvent &ev,double &x,double &y,double &z){
+  int seconds=ev.Time[0]; 
+  int museconds=ev.Time[1]; 
+  int Id=GetId(ev);
+  // Find the candidate
+  map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
+  if(lower==FitParameters.end()){
+    lower=FitParameters.upper_bound(seconds);
+    if(lower==FitParameters.end()){
+      // Not possible to find anything -- return
+      cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+      return;
     }
   }
 
-  return idxFile;
+  DynAlFitParameters &fit=lower->second;
+  x=ev.RawHit[0];y=ev.RawHit[1];z=ev.RawHit[2];
+  // If Local alignment needs to be applied, do it
+  if(ApplyLocalAlignment){
+    map<int,DynAlFitParameters>::iterator  which=LocalFitParameters.find(Id);
+    if(which!=LocalFitParameters.end()){
+      which->second.ApplyAlignment(x,y,z);
+    }else{
+      cout<<"DynAlFitContainer::Eval-W-Local Fit parameters requested but not found"<<endl;
+    }
+  }
+
+
+
+  fit.ApplyAlignment(seconds,museconds,x,y,z);
 }
-*/
+
+void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z){
+  // Get the time
+  int seconds=ev.fHeader.Time[0]; 
+  int museconds=ev.fHeader.Time[1]; 
+
+  // Get the coordinates
+  AMSPoint pnt;
+#ifdef _PGTRACK_
+  int imult=hit.GetResolvedMultiplicity();
+  pnt=hit.GetGlobalCoordinate(imult,"");
+#else
+  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
+#endif
+
+  x=pnt[0];
+  y=pnt[1];
+  z=pnt[2];
+
+  // Get the Id 
+  int Id=GetId(hit);
+
+  // Find the candidate
+  map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
+  if(lower==FitParameters.end()){
+    lower=FitParameters.upper_bound(seconds);
+    if(lower==FitParameters.end()){
+      // Not possible to find anything -- return
+      cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+      return;
+    }
+  }
+
+  DynAlFitParameters &fit=lower->second;
+
+  // If Local alignment needs to be applied, do it
+  if(ApplyLocalAlignment){
+    map<int,DynAlFitParameters>::iterator  which=LocalFitParameters.find(Id);
+    if(which!=LocalFitParameters.end()){
+      which->second.ApplyAlignment(x,y,z);
+    }else{
+      cout<<"DynAlFitContainer::Eval-W-Local Fit parameters requested but not found"<<endl;
+    }
+  }
+
+  fit.ApplyAlignment(seconds,museconds,x,y,z);
+}
+
+void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
+  // Compute the local alignment nfirst
+  DynAlFit fit(DynAlContinuity::FitOrder);
+  fit.MinRigidity=5;
+  int minutes=DynAlContinuity::FitWindow;
+  sort(history.Events.begin(),history.Events.end());
+  map<int,DynAlHistory> historyPerLadder;
+  Layer=history.Layer;
+  for(int point=0;point<history.Size();point++){
+    // Take the time of the event
+    DynAlEvent event=history.Get(point);
+    //    if(event.lay()!=Layer) continue;
+    event.extrapolateTrack();
+    int Id=GetId(event);
+    int current=history.FindCloser(event.Time[0],event.Time[1],fit.First);
+    
+    // Find the time window
+    int first,last;
+    history.FindTimeWindow(current,minutes*30,first,last);
+    
+    // Fit
+    fit.DoFit(history,first,last,event);
+    if(fit.Fail) continue;
+
+
+    fit.RetrieveFitPar(event.Time[0],event.Time[1]);
+#define ESC(_x,_y) (_x[0]*_y[0]+_x[1]*_y[1]+_x[2]*_y[2])
+
+    // Derotate the track vector 
+    double trVect[3];
+    trVect[0]=sin(event.TrackTheta)*cos(event.TrackPhi);
+    trVect[1]=sin(event.TrackTheta)*sin(event.TrackPhi);
+    trVect[2]=cos(event.TrackTheta);
+    double trNewVect[3];
+    trNewVect[0]=trVect[0]+fit.THETA*trVect[1]+fit.ALPHA*trVect[2];
+    trNewVect[1]=trVect[1]-fit.THETA*trVect[1]+fit.BETA*trVect[2];
+    trNewVect[2]=trVect[2]-fit.ALPHA*trVect[0]-fit.BETA*trVect[1];
+
+    // Normalize to compensate the approximations of the fit
+    double norma=sqrt(ESC(trNewVect,trNewVect));
+    for(int i=0;i<3;i++) trNewVect[i]/=norma;
+
+    // InvTransform the position
+    double zTr=event.TrackHit[2]-fit.ZOffset;
+    double trNewPos[3];
+    trNewPos[0]=(event.TrackHit[0]-fit.DX)+fit.THETA*(event.TrackHit[1]-fit.DY)+fit.ALPHA*(zTr-fit.DZ);
+    trNewPos[1]=(event.TrackHit[1]-fit.DY)-fit.THETA*(event.TrackHit[0]-fit.DX)+fit.BETA*(zTr-fit.DZ);
+    trNewPos[2]=(zTr-fit.DZ)-fit.ALPHA*(event.TrackHit[0]-fit.DX)-fit.BETA*(event.TrackHit[1]-fit.DY);
+    trNewPos[2]+=fit.ZOffset;
+
+    DynAlEvent originalPoint=event;
+    for(int i=0;i<3;i++)  originalPoint.TrackHit[i]=trNewPos[i];
+    originalPoint.TrackTheta=acos(trNewVect[2]);
+    originalPoint.TrackPhi=atan2(trNewVect[1],trNewVect[0]);
+    originalPoint.extrapolateTrack();
+    historyPerLadder[Id].Push(event);
+  }
+
+  // Perform all the local alignment fits and store them
+  for(map<int,DynAlHistory>::iterator i=historyPerLadder.begin();i!=historyPerLadder.end();i++){
+    DynAlFit ladFit(0);
+    set<int> excluded;
+    ladFit.MinRigidity=5;
+    if(ladFit.ForceFit(i->second,0,i->second.Size()-1,excluded)){
+      LocalFitParameters[i->first]=DynAlFitParameters(ladFit);
+    }
+  }
+  ApplyLocalAlignment=true;
+}
+
+
+void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
+  // Use the continuity tool to get the history
+  FitParameters.clear();
+  DynAlContinuity historyC(dir,prefix,Layer,run);
+  Layer=historyC.History.Layer;
+
+  // Copy it 
+  DynAlHistory history;
+  for(int i=0;i<historyC.History.Size();i++){
+    DynAlEvent ev=historyC.History.Get(i);
+    //    if(ev.lay()!=Layer) continue;
+    if(ApplyLocalAlignment){
+      int Id=GetId(ev);
+      if(LocalFitParameters.find(Id)!=LocalFitParameters.end()){
+	double x[3];for(int i=0;i<3;i++) x[i]=ev.RawHit[i];
+	LocalFitParameters[Id].ApplyAlignment(x[0],x[1],x[2]);
+	for(int i=0;i<3;i++) ev.RawHit[i]=x[i];
+      }
+    }
+    ev.extrapolateTrack();
+    history.Push(ev);
+  }
+
+  // Default fit parameters
+
+  DynAlFit fit(DynAlContinuity::FitOrder);
+  int minutes=DynAlContinuity::FitWindow;
+  fit.MinRigidity=5;
+  int prev_second=0;   // Keep track of every second already fit
+
+  for(int point=0;point<history.Size();point++){
+    // Take the time of the event
+    DynAlEvent ev=history.Get(point);
+    int Id=GetId(ev);
+
+    if(ev.Time[0]==prev_second) continue;
+    ev.Time[1]=500000;
+    int current=history.FindCloser(ev.Time[0],ev.Time[1],fit.First);
+
+    // Find the time window
+    int first,last;
+    history.FindTimeWindow(current,minutes*30,first,last);
+    
+    // Fit
+    fit.DoFit(history,first,last,ev);
+    
+    if(fit.Fail) continue;
+    prev_second=ev.Time[0];
+
+    // Retrieve the fit parameters and store them
+    FitParameters[ev.Time[0]]=DynAlFitParameters(fit);    
+  }
+
+}
+
+#endif

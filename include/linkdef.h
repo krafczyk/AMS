@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.97 2011/10/25 08:56:16 mdelgado Exp $
+//  $Id: linkdef.h,v 1.98 2011/11/02 01:36:26 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -53,10 +53,14 @@
 #pragma link C++ class TrTrackFitR::TrSCooR+;
 #endif
 
-// #pragma link C++ class DynAlContinuity;
-// #pragma link C++ class DynAlFit;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma link C++ class DynAlContinuity;
+#pragma link C++ class DynAlFit;
 #pragma link C++ class DynAlHistory+;
 #pragma link C++ class DynAlEvent+;
+#pragma link C++ class DynAlFitParameters+;
+#pragma link C++ class DynAlFitContainer+;
+#endif
 
 #pragma link C++ class TrPdf+;
 #pragma link C++ class VCon;
