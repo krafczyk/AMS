@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.394 2011/10/26 14:00:13 choutko Exp $
+//  $Id: root.h,v 1.395 2011/11/03 09:10:20 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1137,7 +1137,7 @@ public:
   AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);} 
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
-  bool Compat(); ///< Compatibility function to be called once to ensure old functionality
+  bool Compat(int refiti=0); ///< Compatibility function to be called once to ensure old functionality
   vector<TrTrackFitR> fTrTrackFit; ///< !!Vector of Fits;
   protected:
 vector<int> fTrRecHit;  ///< Vector of trrechit indexes

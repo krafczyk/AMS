@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.169 2011/09/28 07:50:04 choutko Exp $
+//  $Id: producer.C,v 1.170 2011/11/03 09:10:17 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h> 
 #include <malloc.h>
+#include <netdb.h>
 
 AMSProducer * AMSProducer::_Head=0;
 AString * AMSProducer::_dc=0; 
@@ -113,6 +114,7 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 
 }
 
+
 void AMSProducer::sendid(int cpuf){
 if(!cpuf){
     _pid.Mips=AMSCommonsI::getmips();
@@ -132,6 +134,7 @@ if(!cpuf){
    
     bool ok=SetDataCards();
      _pid.StatusType=DPS::Producer::OneRunOnly;
+     _pid.Type=DPS::Producer::Generic;
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
 //      _pid.StatusType=DPS::Producer::OneRunOnly;
@@ -160,6 +163,9 @@ again:
      if(!IsLocal() && cput<cpug)cput=cpug; 
     if(cpuf)cput=cpuf; 
     cout <<"   TimeOut sending "<<cput<<endl;
+    struct hostent* h;
+    h=gethostbyname("pcamss0.cern.ch");
+      IMessage(AMSClient::print(_pid,"sendID-I-Before"));
   try{
      if(!((*li)->sendId(_pid,_pid.Mips,cput))){
        if(_pid.uid)sleep(10);
@@ -2185,7 +2191,7 @@ else sprintf(tmpu,"%d",_pid.uid);
               afscript+=" 2>&1";
              cout << "AMSClient-I-Trying "<<(const char*)afscript<<endl;
                //  not if pcamsf4
-              int i=!(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb"))?1:system((const char*)afscript);
+              int i=!(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb") || strstr(_pid.HostName,"vmb"))?1:system((const char*)afscript);
               char line[1024];
               bool amsprod=false;
               if(i==0){
@@ -2221,7 +2227,7 @@ else sprintf(tmpu,"%d",_pid.uid);
                char *lxplus5=getenv("AMSPublicBatch");
                if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
               lxplus5=getenv("AMSPublicBatch");
-                  if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")){
+                  if(strstr(_pid.HostName,"lsb") || strstr(_pid.HostName,"lxb")|| strstr(_pid.HostName,"vmb")){
 
                     _pid.HostName=amsprod?"lxplus.cern.ch":lxplus5;
                     _pid.pid=id[id.size()-1];

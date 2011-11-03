@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.832 2011/10/21 12:47:10 choutko Exp $
+// $Id: job.C,v 1.833 2011/11/03 09:10:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4106,7 +4106,7 @@ if(MISCFFKEY.BeamTest>1){
      begin=AMSmceventg::Orbit.End;
      end=AMSmceventg::Orbit.Begin;
   }
-   AMSTimeID * ptdv = (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVGLDB():AMSTrAligFit::getTDVGLDBP(),begin,end,AMSTrAligFit::gettraliggldbsize(),AMSTrAligFit::gettraliggldbp(),server));
+   AMSTimeID * ptdv = (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVGLDB():AMSTrAligFit::getTDVGLDBP(),begin,end,AMSTrAligFit::gettraliggldbsize(),AMSTrAligFit::gettraliggldbp(),server,TRALIG.UpdateDB?0:1));
    if(TRALIG.ReWriteDB)ptdv->UpdateMe()=1;
 }
 
@@ -4126,7 +4126,7 @@ if(!isRealData()){
      end=AMSmceventg::Orbit.Begin;
   }
 
-  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVAGLDB():AMSTrAligFit::getTDVAGLDBP(),begin,end,AMSTrAligFit::gettraliggladbsize(),AMSTrAligFit::gettraliggladbp(),server));
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(strcmp(getsetup(),"AMS02P")?AMSTrAligFit::getTDVAGLDB():AMSTrAligFit::getTDVAGLDBP(),begin,end,AMSTrAligFit::gettraliggladbsize(),AMSTrAligFit::gettraliggladbp(),server,TRALIG.UpdateDB>1?0:1));
 
 }
 

@@ -11,10 +11,6 @@
 #include <ctype.h>
 
 
-void  _nss_dns_gethostbyname33_r (const char *name, int af, struct hostent *result,                          char *buffer, size_t buflen, int *errnop,
-                          int *h_errnop){
-return 1;
-}
 
 
 
@@ -52,6 +48,5 @@ feenableexcept(*val);
 void feunsetexcept_(){
 fedisableexcept(FE_ALL_EXCEPT);
 }
-
 
 

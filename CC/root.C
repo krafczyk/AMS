@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.337 2011/10/26 14:00:12 choutko Exp $
+//  $Id: root.C,v 1.338 2011/11/03 09:10:17 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5893,7 +5893,7 @@ fTrSCoo.push_back(ic[i]);
 
 }
 
-bool TrTrackR::Compat(){
+bool TrTrackR::Compat(int refit){
 if(fTrTrackFit.size()){
 if(AdvancedFitDone!=1){
  AdvancedFitDone=1;
@@ -5906,7 +5906,7 @@ if(AdvancedFitDone!=1){
 
 { 
  TrTrackFitR a(patternoratt,alg,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      Rigidity=a.Rigidity;
      ErrRigidity=a.ErrRigidity;
@@ -5918,7 +5918,7 @@ if(AdvancedFitDone!=1){
 }
 for(int k=0;k<3;k++){
     TrTrackFitR a(-1,k,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      HRigidity[0]=a.Rigidity;
      HTheta[0]=a.Theta;
@@ -5931,7 +5931,7 @@ for(int k=0;k<3;k++){
   }
 for(int k=0;k<3;k++){
     TrTrackFitR a(-2,k,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      HRigidity[1]=a.Rigidity;
      HTheta[1]=a.Theta;
@@ -5945,7 +5945,7 @@ for(int k=0;k<3;k++){
    
 { 
  TrTrackFitR a(0,1,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      PiRigidity=a.Rigidity;
      PiErrRig=a.ErrRigidity;
@@ -5953,7 +5953,7 @@ for(int k=0;k<3;k++){
 }
 { 
  TrTrackFitR a(0,2,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      GeaneFitDone=1;
      GRigidity=a.Rigidity;
@@ -5964,7 +5964,7 @@ for(int k=0;k<3;k++){
 
 { 
  TrTrackFitR a(0,0,0,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      DBase[0]=a.Rigidity;
      DBase[1]=a.Chi2;
@@ -5974,7 +5974,7 @@ for(int k=0;k<3;k++){
 
 { 
  TrTrackFitR a(0,0,1,0);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      FChi2MS=a.Chi2;
      RigidityMS=a.Rigidity;
@@ -5984,21 +5984,21 @@ for(int k=0;k<3;k++){
 
 { 
  TrTrackFitR a(-3,0,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[0][0]=a.Rigidity;
    }
 }
 { 
  TrTrackFitR a(-3,1,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[1][0]=a.Rigidity;
    }
 }
 { 
  TrTrackFitR a(-3,2,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[2][0]=a.Rigidity;
    }
@@ -6006,21 +6006,21 @@ for(int k=0;k<3;k++){
 
 { 
  TrTrackFitR a(-4,0,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[0][1]=a.Rigidity;
    }
 }
 { 
  TrTrackFitR a(-4,1,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[1][1]=a.Rigidity;
    }
 }
 { 
  TrTrackFitR a(-4,2,alig,ms);
-  int ret=iTrTrackFit(a,1);
+  int ret=iTrTrackFit(a,refit);
   if(ret>=0){
      RigidityIE[2][1]=a.Rigidity;
    }
@@ -6049,7 +6049,7 @@ return false;
       if((BitPattern & (1<<k)))pattern+=p;
        p*=10;
      }
-     Compat();
+     Compat(1);
 
   char * Info(int number=-1);
     sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g  RigMi=%7.3g  #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g/%7.3g Points=%d Pattern=%09d HRig=(%7.3g,%7.3g) IERig=(%7.3g,%7.3g) (%7.3g,%7.3g)",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,GRigidity, Theta,Phi,Chi2FastFit,DBase[1],NTrRecHit(),pattern,HRigidity[0],HRigidity[1],RigidityIE[0][0],RigidityIE[0][1],RigidityIE[2][0],RigidityIE[2][1]);
