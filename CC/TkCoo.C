@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.9 2011/03/29 15:48:45 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.10 2011/11/06 18:51:55 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2011/03/29 15:48:45 $
+///$Date: 2011/11/06 18:51:55 $
 ///
-/// $Revision: 1.9 $
+/// $Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -306,7 +306,7 @@ double TkCoo::GetLadderLength(int tkid) {
 
 
 //--------------------------------------------------
-AMSPoint TkCoo::GetLadderCenter(int tkid) { 
+AMSPoint TkCoo::GetLadderCenter(int tkid,int isMC) { 
 // Get central position of the ladder in the X-coordinate in cm
   if(!TkDBc::Head) return AMSPoint(-9999.,-9999.,-9999.);
   TkLadder* pp=TkDBc::Head->FindTkId(tkid);
@@ -314,7 +314,10 @@ AMSPoint TkCoo::GetLadderCenter(int tkid) {
 
   double hlen = GetLadderLength(tkid)/2-(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
-  return TkCoo::GetGlobalA(tkid, hlen, hwid);
+  if(isMC)  
+    return TkCoo::GetGlobalT(tkid, hlen, hwid);
+  else 
+    return TkCoo::GetGlobalA(tkid, hlen, hwid);
 }
 
 
@@ -366,4 +369,74 @@ print_trace (void)
   free (strings);
 }
 
+AMSPoint TkCoo::GetGlobalTC(int tkid,float readchanK, float readchanS,int mult){
+  TkLadder* ll = TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+    printf("GetGlobalAC: ERROR cant find ladder %d into the database\n",tkid);
+    return AMSPoint(-1,-1,-1);
+  }
+  int layer=abs(tkid)/100;
+  if(ll->IsK7())
+    return GetGlobalT(tkid,GetLocalCooK7((int)readchanK, mult),  GetLocalCooS((int)readchanS));
+  else 
+    return GetGlobalT(tkid,GetLocalCooK5((int)readchanK, mult),  GetLocalCooS((int)readchanS));
+}
 
+//--------------------------------------------------
+AMSPoint TkCoo::GetGlobalT(int tkid,float X, float Y){
+  // if(X<0||X > TkDBc::Head->_ssize_active[0]){
+  //   printf("TkCoo::GetGlobalN Error X is outside the ladder size %f\n",X);
+  //   return AMSPoint();
+  // }
+ // if(Y<0 || Y>TkDBc::Head->_ssize_active[1]){
+//    printf("TkCoo::GetGlobalA Error Y is outside the ladder size %f\n",Y);
+//    return AMSPoint();
+//  }
+  AMSPoint loc(X,Y,0.);
+  return TkCoo::GetGlobalT(tkid, loc);
+}
+
+
+//--------------------------------------------------
+AMSPoint TkCoo::GetGlobalT(int tkid, AMSPoint& loc){
+  // if(loc[0]<0||loc[0] > TkDBc::Head->_ssize_active[0]){
+  //   printf("TkCoo::GetGlobalN Error X is outside the ladder size %f\n",loc[0]);
+  //   return AMSPoint();
+  // }
+  if(loc[1]<0 || loc[1]>TkDBc::Head->_ssize_active[1]){
+ // PZ FIXME!!!   printf("TkCoo::GetGlobalT Error Y is outside the ladder size %f\n",loc[1]);
+    return AMSPoint();
+  }
+  TkLadder* ll=TkDBc::Head->FindTkId(tkid);
+  if(!ll){
+   //PZ FIXME!!!!  printf("GetGlobalT: ERROR cant find ladder %d into the database\n",tkid);
+    return AMSPoint();
+  }
+  AMSPoint loc2(loc);
+  // Set ladder local coo Z to zero
+  loc2[2]=0;
+
+  // Alignment corrected Ladder Rotation matrix
+  AMSRotMat RotG  = ll->GetRotMatT()*ll->GetRotMat();
+
+  // Alignment corrected Ladder postion
+  AMSPoint  PosG  = ll->GetPosT()+ll->GetPos();
+
+  // Get the Global coo on the plane
+  AMSPoint  oo    = RotG*loc2+PosG;
+
+  // Get The Plane Pointer
+  TkPlane*  pp    = ll->GetPlane();
+
+  // Alignment corrected Plane Rotation matrix
+  AMSRotMat PRotG = pp->GetRotMatT()*pp->GetRotMat();
+
+  // Alignment corrected Plane postion
+  AMSPoint  PPosG = pp->GetPosT()+pp->GetPos();
+
+  // Covolute with the Plane pos in the space and Get the global Coo
+  AMSPoint  oo2   = PRotG*oo + PPosG;
+
+  
+  return oo2;
+}

@@ -1,4 +1,4 @@
-/// $Id: TkCoo.h,v 1.2 2010/01/10 13:06:56 shaino Exp $ 
+/// $Id: TkCoo.h,v 1.3 2011/11/06 18:51:55 pzuccon Exp $ 
 #ifndef  _TKCOO_
 #define  _TKCOO_
 
@@ -15,9 +15,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position  
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2010/01/10 13:06:56 $
+///$Date: 2011/11/06 18:51:55 $
 ///
-/// $Revision: 1.2 $
+/// $Revision: 1.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -60,6 +60,16 @@ class TkCoo{
   /// \param tkid with local given by the AMSPoint loc (Z value is ignored)
   static AMSPoint GetGlobalA(int tkid,AMSPoint& loc);
 
+  /// \brief Returns the Global coordinate (MC DisAlignment Corrected) for the point on ladder 
+  /// \param tkid with local Coo X and Y
+  static AMSPoint GetGlobalT(int tkid,float X, float Y);
+  /// \brief Returns the Global coordinate (MC DisAlignment Corrected) for the point on ladder 
+  /// \param tkid with local readout chann and mult
+  static AMSPoint GetGlobalTC(int tkid,float readchanK, float readchanS,int mult=0);
+  /// \brief Returns the Global coordinate (MC DisAlignment Corrected) for the point on ladder 
+  /// \param tkid with local given by the AMSPoint loc (Z value is ignored)
+  static AMSPoint GetGlobalT(int tkid,AMSPoint& loc);
+
  private:
 
   /// Local coo from the S channel
@@ -77,13 +87,13 @@ public:
   /// Returns the lenght of ladder
   static double GetLadderLength(int tkid);
   /// Return the central position of the ladder
-  static AMSPoint GetLadderCenter(int tkid); 
+  static AMSPoint GetLadderCenter(int tkid,int isMC=0); 
   /// Return the X center of a ladder
-  static double GetLadderCenterX(int tkid) { return GetLadderCenter(tkid).x(); }
+  static double GetLadderCenterX(int tkid,int isMC=0) { return GetLadderCenter(tkid,isMC).x(); }
   /// Return the Y center of a ladder
-  static double GetLadderCenterY(int tkid) { return GetLadderCenter(tkid).y(); }
+  static double GetLadderCenterY(int tkid,int isMC=0) { return GetLadderCenter(tkid,isMC).y(); }
   /// Return the Z at the center of ladder
-  static double GetLadderCenterZ(int tkid) { return GetLadderCenter(tkid).z(); }
+  static double GetLadderCenterZ(int tkid,int isMC=0) { return GetLadderCenter(tkid,isMC).z(); }
 };
 
 #endif

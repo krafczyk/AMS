@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.17 2011/09/27 23:50:04 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.18 2011/11/06 18:51:55 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2011/09/27 23:50:04 $
+///$Date: 2011/11/06 18:51:55 $
 ///
-/// $Revision: 1.17 $
+/// $Revision: 1.18 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -203,6 +203,30 @@ int TkSens::GetSens(){
 
   //Get the local coo on the Ladder
   SensCoo = RotG*(oo-PosG);
+
+  // PZ Add local Z correction for high precision on z-unaligned cases 
+  //Get the global coo from the geometry
+  AMSPoint g2;
+  if(IsMC())
+    g2=TkCoo::GetGlobalT(lad_tkid,SensCoo[0],SensCoo[1]);
+  else
+    g2=TkCoo::GetGlobalA(lad_tkid,SensCoo[0],SensCoo[1]);
+  
+  double dz=g2[2]-GlobalCoo[2];
+  if(GlobalDir[2]!=0){
+    g2[0]=GlobalDir[0]/GlobalDir[2]*dz+GlobalCoo[0];
+    g2[1]=GlobalDir[1]/GlobalDir[2]*dz+GlobalCoo[1];
+  }else   {
+    g2[0]=GlobalCoo[0];
+    g2[1]=GlobalCoo[1];
+  }
+
+  //Convolute with the Plane pos in the space
+  oo = PRotG*(g2-PPosG);
+
+  //Get the local coo on the Ladder
+  SensCoo = RotG*(oo-PosG);
+
   LaddCoo = SensCoo;
 
   /*
@@ -349,7 +373,9 @@ bool TkSens::IsInsideLadder(TkLadder* lad){
   // XY check
 
   int tkid = lad->GetTkId();
-  AMSPoint diff = GlobalCoo-TkCoo::GetLadderCenter(tkid);
+  int flag= (_isMC)?1:0;
+  AMSPoint diff= GlobalCoo-TkCoo::GetLadderCenter(tkid,flag);
+
 
   if (abs(diff[0]) < TkCoo::GetLadderLength(tkid)/2 &&
       abs(diff[1]) < TkDBc::Head->_ssize_active[1]/2) return true;
