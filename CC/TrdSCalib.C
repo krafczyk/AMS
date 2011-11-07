@@ -10,6 +10,8 @@
 //  2011.10.28 FirstCalRunTime and LastCalRunTime
 //  2011.11.02 Ver.1 validation results are posted on
 //             http://accms04.physik.rwth-aachen.de/~chchung/HowtoUseTrdSCalib/
+//  2011.11.07 Init(int CalibLevel, int Debug) for short initialization
+//  2011.11.08 released version 2 for new PDFs using TGraphSmooth 
 //--------------------------------------------------------------------------------------------------
 
 #include "TrdSCalib.h"
@@ -50,6 +52,9 @@ const char *TrdSCalibR::TrdLLname[] =
 
 const char *TrdSCalibR::TrdSum8name[] = {"TrdSum8Raw", "TrdSum8New"};
 
+const char *TrdSCalibR::EvtPartID[]   = {"Proton", "Helium","Electron","Positron","AntiProton"};
+    
+
 //--------------------------------------------------------------------------------------------------
 
 void AC_TrdHits::PrintTrdHit(Option_t *) const{
@@ -71,7 +76,7 @@ void AC_TrdHits::PrintTrdHit(Option_t *) const{
 vector<int> TrdSCalibR::nTrdModulesPerLayer(20);
 vector< vector<int> > TrdSCalibR::mStraw(18, vector<int>(20));   
 
-void TrdSCalibR::GenmStrawMatrix() {
+void TrdSCalibR::GenmStrawMatrix(int Debug) {
   std::cout << "TrdSCalib:: Generate mStraw-Matrix." << std::endl;
   
   int iLay0 = 0;
@@ -128,9 +133,9 @@ void TrdSCalibR::GenmStrawMatrix() {
       n += 4;
     }
   }
-
-  std::cout << "nTrdModulesPerLayer[19]= " << nTrdModulesPerLayer[19] 
-  	    << " mStraw[15][19] = " << mStraw[15][19]  << std::endl;
+  if(Debug > 1)
+    std::cout << "nTrdModulesPerLayer[19]= " << nTrdModulesPerLayer[19] 
+	      << " mStraw[15][19] = " << mStraw[15][19]  << std::endl;
   
 };
 //--------------------------------------------------------------------------------------------------
@@ -422,19 +427,19 @@ bool TrdSCalibR::GetcTrkdTrk(TrTrackR *trt){
   return true;
 }
 //--------------------------------------------------------------------------------------------------
-bool TrdSCalibR::MatchingTrdTKtrack(float P, int Debug){
+bool TrdSCalibR::MatchingTrdTKtrack(float Pabs, int Debug){
   double TrdTkD  = TMath::Sqrt(TMath::Power(cTrk.x()-cTrd.x(),2)+
 			   TMath::Power(cTrk.y()-cTrd.y(),2)+
 			   TMath::Power(cTrk.z()-cTrd.z(),2));
 
   double TrdTkDx = cTrk.x() - c0Trd.x() + trdconst::TrdOffsetDx;
   double TrdTkDy = cTrk.y() - c0Trd.y() + trdconst::TrdOffsetDy;
-  double SigmaTrdTrackerX = fTrdSigmaDx->Eval(TMath::Abs(P));
-  double SigmaTrdTrackerY = fTrdSigmaDy->Eval(TMath::Abs(P));
+  double SigmaTrdTrackerX = fTrdSigmaDx->Eval(Pabs);
+  double SigmaTrdTrackerY = fTrdSigmaDy->Eval(Pabs);
   double TrdTkDr 	  = TMath::Sqrt( TMath::Power(TrdTkDx/SigmaTrdTrackerX,2) + 
 			       TMath::Power(TrdTkDy/SigmaTrdTrackerY,2) );
 
-  double CutTrdTkDa       = 10.0*fTrd95Da->Eval(TMath::Abs(P));
+  double CutTrdTkDa       = 10.0*fTrd95Da->Eval(Pabs);
 
   double TrdTkDa = dTrk.x()*(-1*dTrd.x()) +  dTrk.y()*(-1*dTrd.y()) +  dTrk.z()*(-1*dTrd.z());
   TrdTkDa        = TMath::ACos(TrdTkDa)*180/TMath::Pi();
@@ -730,7 +735,26 @@ double AC_TrdHits::GetTrdPathLen3D(int lay, float xy, float z, AMSPoint cP, AMSD
 }
 
 //--------------------------------------------------------------------------------------------------
+bool TrdSCalibR::Init(int CalibLevel, int Debug){
+  /// generate mStraw-Matrix
+  GenmStrawMatrix(Debug);
+  
+  /// get TRD calibration histos corresponding each gas circuit and each module level
+  GetTrdCalibHistos(CalibLevel, Debug);
 
+  /// initiate TRD loglikelihood calculator
+  TrdLR_CalcIni(Debug);
+
+  /// initiate ToyMC loglikelihood calculator
+  TrdLR_MC_CalcIni(Debug);
+
+  /// check each initiate procedure
+  if(FirstCall || FirstLLCall || FirstMCCall)
+    return false;
+
+  else return true;
+}
+//--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetTrdCalibHistos(int CalibLevel, int Debug) {
   
   FirstCall = true;  TrdCalib_01 = false;  TrdCalib_02 = false;
@@ -902,7 +926,7 @@ bool TrdSCalibR::TrdLR_GetParameters(string fName, string hName,
 }
 //--------------------------------------------------------------------------------------------------
 
-void TrdSCalibR::TrdLR_CalcIni(int Debug) {
+void TrdSCalibR::TrdLR_CalcIni_v01(int Debug) {
 
   FirstLLCall = true;
 
@@ -973,7 +997,7 @@ void TrdSCalibR::TrdLR_CalcIni(int Debug) {
 
 //--------------------------------------------------------------------------------------------------
 
-vector<double> TrdSCalibR::TrdLR_Calc(float P, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug) {
+vector<double> TrdSCalibR::TrdLR_Calc_v01(float Pabs, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug) {
 
   vector<double> TrdLR;
   TrdLR.assign(3,-1.0);
@@ -982,19 +1006,20 @@ vector<double> TrdSCalibR::TrdLR_Calc(float P, vector<AC_TrdHits*> TrdHits, int 
   int iP     = -1;
   int iMax   = TrdLR_xProt.size()-1;
   for (unsigned int i=0; i<iMax; i++) {
-    if (P>=TrdLR_xProt.at(i) && P<TrdLR_xProt.at(i+1)) {
+    if (Pabs >= TrdLR_xProt.at(i) && Pabs < TrdLR_xProt.at(i+1)) {
       iP = i;
       break;
     }
   }
   
-  if(Debug) std::cout << "Pmin= " << TrdLR_xProt.at(0) << " Pmax= " << TrdLR_xProt.at(iMax) << std::endl;
+  if(Debug > 1) 
+    std::cout << "Pmin= " << TrdLR_xProt.at(0) << " Pmax= " << TrdLR_xProt.at(iMax) << std::endl;
 
-  if (P>=TrdLR_xProt.at(iMax)) 	iP = iMax-1;
-  if (P< TrdLR_xProt.at(0))     iP = 0;
+  if (Pabs >= TrdLR_xProt.at(iMax))  iP = iMax-1;
+  if (Pabs <  TrdLR_xProt.at(0))     iP = 0;
   
   if (iP<0) {
-    std::cout << "Error in TrdLR_Calc: invalid momentum P=" << P << std::endl;
+    std::cout << "Error in TrdLR_Calc: invalid momentum P=" << Pabs << std::endl;
     exit(-1);
   }
   
@@ -1037,8 +1062,8 @@ vector<double> TrdSCalibR::TrdLR_Calc(float P, vector<AC_TrdHits*> TrdHits, int 
   }
 
   if(Debug > 1) 
-    std::cout << Form("Step 1. P=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
-		      P, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    std::cout << Form("Step 1. |P|=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
   
   
   Lprod_Proton 		= TMath::Power(Lprod_Proton,  1.0/float(nCount));
@@ -1046,8 +1071,8 @@ vector<double> TrdSCalibR::TrdLR_Calc(float P, vector<AC_TrdHits*> TrdHits, int 
   Lprod_Electron 	= TMath::Power(Lprod_Electron,1.0/float(nCount));
 
   if(Debug > 1) 
-    std::cout << Form("Step 2. P=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
-		      P, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    std::cout << Form("Step 2. |P|=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
   
   
   double LR_Elec_Prot   = Lprod_Electron/(Lprod_Electron+Lprod_Proton);
@@ -1252,7 +1277,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
     TH2D* h_TrdHeli  = (TH2D*) input->Get("h_TrdHeli");
     TH1D* h_Norm     = (TH1D*) input->Get("h_Norm");
     
-    vector<TH1D*> h_TrdLR_Prot, h_TrdLR_Elec, h_TrdLR_Heli;
+    //vector<TH1D*> h_TrdLR_Prot, h_TrdLR_Elec, h_TrdLR_Heli;
     int nBinY=0;
     //------------------- Protons -----------------------------------------------------------
     TrdLR_xProt 	= RootGetYbinsTH2(h_TrdProt, Debug);
@@ -1279,7 +1304,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
     
     //------------------- Electrons -----------------------------------------------------------
     TrdLR_xElec 	= RootGetYbinsTH2(h_TrdElec, Debug);
-    nBinY 			= h_TrdElec->GetNbinsY();
+    nBinY 		= h_TrdElec->GetNbinsY();
     for (int iBinY=1; iBinY<=nBinY; iBinY++) {
       char hpName[80];
       sprintf(hpName,"h_TrdLR_Elec_%d",iBinY);
@@ -1302,7 +1327,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
     
     //------------------- Helium -----------------------------------------------------------
     TrdLR_xHeli 	= RootGetYbinsTH2(h_TrdHeli, Debug);
-    nBinY 			= h_TrdHeli->GetNbinsY();
+    nBinY 		= h_TrdHeli->GetNbinsY();
     for (int iBinY=1; iBinY<=nBinY; iBinY++) {
       char hpName[80];
       sprintf(hpName,"h_TrdLR_Heli_%d",iBinY);
@@ -1330,7 +1355,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
 
 //--------------------------------------------------------------------------------------------------
 
-vector<double> TrdSCalibR::TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug) {
+vector<double> TrdSCalibR::TrdLR_Calc(float Pabs, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug) {
 
   vector<double> TrdLR;
   TrdLR.assign(3,-1.0);
@@ -1339,16 +1364,16 @@ vector<double> TrdSCalibR::TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, 
   int iP 	= -1;
   int iMax 	= TrdLR_xProt.size()-1;
   for (unsigned int i=0; i<iMax; i++) {
-    if (P>=TrdLR_xProt.at(i) && P<TrdLR_xProt.at(i+1)) {
+    if (Pabs >= TrdLR_xProt.at(i) && Pabs < TrdLR_xProt.at(i+1)) {
       iP = i;
       break;
     }
   }
-  if (P>=TrdLR_xProt.at(iMax)) 	iP = iMax-1;
-  if (P< TrdLR_xProt.at(0)) 	iP = 0;
+  if (Pabs >= TrdLR_xProt.at(iMax)) 	iP = iMax-1;
+  if (Pabs <  TrdLR_xProt.at(0)) 	iP = 0;
   
   if (iP<0) {
-    std::cerr << "Error in TrdLR_Calc: invalid momentum P=" << P << std::endl;
+    std::cerr << "Error in TrdLR_Calc: invalid momentum P=" << Pabs << std::endl;
     exit(-1);
   }
   
@@ -1389,16 +1414,16 @@ vector<double> TrdSCalibR::TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, 
   }
   
   if(Debug > 1) 
-    std::cout << Form("Step 1. P=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
-		      P, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    std::cout << Form("Step 1. |P|=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
 
   Lprod_Proton 		= TMath::Power(Lprod_Proton,  1.0/float(nCount));
   Lprod_Helium 		= TMath::Power(Lprod_Helium,  1.0/float(nCount));
   Lprod_Electron 	= TMath::Power(Lprod_Electron,1.0/float(nCount));
 
   if(Debug > 1) 
-    std::cout << Form("Step 2. P=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
-		      P, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    std::cout << Form("Step 2. |P|=%6.2f(GeV/c) Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
 
    
   double LR_Elec_Prot   = Lprod_Electron/(Lprod_Electron+Lprod_Proton);
@@ -1409,15 +1434,175 @@ vector<double> TrdSCalibR::TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, 
   TrdLR.at(1) = -log(LR_Heli_Prot);
   TrdLR.at(2) = -log(LR_Elec_Heli);
 
-  if(Debug > 1) {
-    int j = 0;
-    for(vector<double>::iterator lr = TrdLR.begin(); lr != TrdLR.end(); ++lr )
-      {
-	std::cout << Form("%s=%4.2f  ", TrdLLname[j++], *lr);
-      }
-    std::cout << std::endl;
-  }
+  if(Debug > 1) 
+    {
+      int j = 0;
+      for(vector<double>::iterator lr = TrdLR.begin(); lr != TrdLR.end(); ++lr )
+	{
+	  std::cout << Form("%s=%4.2f  ", TrdLLname[j++], *lr);
+	}
+      std::cout << std::endl;
+    }
 
   return TrdLR;
+}
+//--------------------------------------------------------------------------------------------------
+bool TrdSCalibR::TrdLR_MC_CalcIni(int Debug) {
+  
+  char fName[80];
+
+  if (FirstMCCall) {
+    for (int iP=0; iP<nParLR; iP++) {
+      sprintf(fName,"fTrdLR_fProton_%d",iP);
+      TF1 *fpTrdLR = new TF1(fName, this, &TrdSCalibR::TrdLR_fProton_v02, 0.0,4000.0,1);
+      fTrdLR_fProton.push_back(fpTrdLR);
+      fTrdLR_fProton.at(iP)->SetNpx(1000);
+      fTrdLR_fProton.at(iP)->SetLineColor(kBlack);
+      fTrdLR_fProton.at(iP)->SetParameter(0,double(iP));
+      fTrdLR_fProton.at(iP)->SetMinimum(1E-8);
+
+      sprintf(fName,"fTrdLR_fElectron_%d",iP);
+      TF1 *feTrdLR = new TF1(fName, this, &TrdSCalibR::TrdLR_fElectron_v02, 0.0,4000.0,1);
+      fTrdLR_fElectron.push_back(feTrdLR);
+      fTrdLR_fElectron.at(iP)->SetNpx(1000);
+      fTrdLR_fElectron.at(iP)->SetLineColor(kRed);
+      fTrdLR_fElectron.at(iP)->SetParameter(0,double(iP));
+      fTrdLR_fElectron.at(iP)->SetMinimum(1E-8);
+
+      sprintf(fName,"fTrdLR_fHelium_%d",iP);
+      TF1 *fHeTrdLR = new TF1(fName, this, &TrdSCalibR::TrdLR_fHelium_v02, 0.0,4000.0,1);
+      fTrdLR_fHelium.push_back(fHeTrdLR);
+      fTrdLR_fHelium.at(iP)->SetNpx(1000);
+      fTrdLR_fHelium.at(iP)->SetLineColor(kBlue);
+      fTrdLR_fHelium.at(iP)->SetParameter(0,double(iP));
+      fTrdLR_fHelium.at(iP)->SetMinimum(1E-8);
+    }
+
+    FirstMCCall = false;
+  }
+  
+  if(Debug > 1)
+    std::cout << Form("### Check LR Calc_MC Electrons=%12.4E Protons=%12.4E Helium=%12.4E",
+		      fTrdLR_fElectron.at(0)->Integral(TrdMinAdc,TrdMaxAdc),
+		      fTrdLR_fProton.at(0)->Integral(TrdMinAdc,TrdMaxAdc),
+		      fTrdLR_fHelium.at(0)->Integral(TrdMinAdc,TrdMaxAdc))  
+	      << std::endl;
+  
+  return true;
+
+}
+//--------------------------------------------------------------------------------------------------
+vector<double> TrdSCalibR::TrdLR_MC_Calc(float Pabs,  
+					     vector<AC_TrdHits*> TrdHits, vector<bool> PartId, 
+					     int iFlag, int Debug) {
+
+
+  vector<double> TrdLR_MC;
+  TrdLR_MC.assign(3,-1.0);
+
+  if(FirstMCCall) return TrdLR_MC;
+  
+  
+  // Which Momentum Bin for Protons & Helium ?
+  int iP 	= -1;
+  int iMax 	= TrdLR_xProt.size()-1;
+  for (unsigned int i=0; i<iMax; i++) {
+    if (Pabs >= TrdLR_xProt.at(i) && Pabs < TrdLR_xProt.at(i+1)) {
+      iP = i;
+      break;
+    }
+  }
+  if (Pabs >= TrdLR_xProt.at(iMax)) 	iP = iMax-1;
+  if (Pabs <  TrdLR_xProt.at(0)) 	iP = 0;
+  
+  if (iP<0) {
+    std::cerr << "Error in TrdLR_Calc: invalid momentum P=" << Pabs << std::endl;
+    exit(-1);
+  }
+  
+  int j = 0;
+  bool IsProton, IsHelium, IsElectron, IsPositron, IsAntiProton;
+  for(vector<bool>::iterator id = PartId.begin(); id != PartId.end(); ++id ) {
+    if(j == 0)   IsProton	= *id;
+    if(j == 1)   IsHelium	= *id;
+    if(j == 2)   IsElectron	= *id;
+    if(j == 3)   IsPositron	= *id;
+    if(j == 4)   IsAntiProton	= *id;
+    j++;
+  }
+  if( !IsProton && !IsHelium && !IsElectron) return TrdLR_MC;
+  
+  double Lprod_Proton = 1.0, Lprod_Helium = 1.0, Lprod_Electron = 1.0;
+  double x[1], par[1];
+  int nCount = 0;
+
+  vector<AC_TrdHits*>::iterator iter;
+  for (iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
+    {
+      if (fabs((*iter)->TrkD) > 0.999*trdconst::TrdStrawRadius) continue;
+      int 	    Layer = (*iter)->Lay;
+      double	    Len   = (*iter)->Len2D;
+      if (iFlag==3) Len   = (*iter)->Len3D;
+      if (Len < 0.05) continue;
+      
+      double Eadc = 0.0;
+      
+      if (IsElectron)   Eadc = fTrdLR_fElectron.at(Layer)->GetRandom();
+      if (IsProton) 	Eadc = fTrdLR_fProton.at(iP)->GetRandom();
+      if (IsHelium) 	Eadc = fTrdLR_fHelium.at(iP)->GetRandom();
+    
+      x[0] 		= Eadc;
+      par[0] 	        = iP;	
+      myPair <double> myProtonL  (1E-8, TrdSCalibR::TrdLR_fProton_v02(x,par));
+      myPair <double> myHeliumL  (1E-8, TrdSCalibR::TrdLR_fHelium_v02(x,par));
+      par[0]            = Layer;  
+      myPair <double> myElectronL(1E-8, TrdSCalibR::TrdLR_fElectron_v02(x,par));
+      double L_Proton   = myProtonL.GetMax();
+      double L_Helium   = myHeliumL.GetMax();
+      double L_Electron = myElectronL.GetMax();
+
+      if(Debug > 1) 
+	std::cout << Form("i=%3d EadcR=%4d EadcCS=%4d EadcMC=%4d L_Proton=%12.4E L_Helium=%12.4f L_Electron=%12.4f",
+			  nCount, (int)(*iter)->EadcR, (int)(*iter)->EadcCS, (int)Eadc, L_Proton,L_Helium,L_Electron) 
+		  << std::endl;
+     
+      Lprod_Proton 	*= L_Proton;
+      Lprod_Helium 	*= L_Helium;
+      Lprod_Electron 	*= L_Electron;
+      nCount ++;
+    }
+
+    if(Debug > 1) 
+    std::cout << Form("Step 1. |P|=%6.2f(GeV/c) MC Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+		      Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+  
+    Lprod_Proton 	= TMath::Power(Lprod_Proton,  1.0/float(nCount));
+    Lprod_Helium 	= TMath::Power(Lprod_Helium,  1.0/float(nCount));
+    Lprod_Electron 	= TMath::Power(Lprod_Electron,1.0/float(nCount));
+    
+    if(Debug > 1) 
+      std::cout << Form("Step 2. |P|=%6.2f(GeV/c) MC Lprod_Electron=%12.4E Lprod_Helium=%12.4E Lprod_Proton=%12.4E", 
+			Pabs, Lprod_Electron, Lprod_Helium, Lprod_Proton) << std::endl;
+    
+    double LR_Elec_Prot = Lprod_Electron/(Lprod_Electron+Lprod_Proton);
+    double LR_Heli_Prot	= Lprod_Helium/(Lprod_Helium+Lprod_Proton);
+    double LR_Elec_Heli	= Lprod_Electron/(Lprod_Electron+Lprod_Helium);
+    
+    TrdLR_MC.at(0) = -log(LR_Elec_Prot);
+    TrdLR_MC.at(1) = -log(LR_Heli_Prot);
+    TrdLR_MC.at(2) = -log(LR_Elec_Heli);
+    
+    if(Debug > 1) 
+      {
+	int j = 0;
+	std::cout << "MC " ;
+	for(vector<double>::iterator lr = TrdLR_MC.begin(); lr != TrdLR_MC.end(); ++lr )
+	  {
+	    std::cout << Form("%s=%4.2f  ", TrdLLname[j++], *lr);
+	  }
+	std::cout << std::endl;
+      }
+  
+  return TrdLR_MC;
 }
 //--------------------------------------------------------------------------------------------------

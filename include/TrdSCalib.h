@@ -45,6 +45,8 @@ namespace trdconst{
   const integer	TrdLR_Prot_nPar	 = 12;
   const integer	TrdLR_Heli_nPar	 = 10;
   const integer	TrdLR_Elec_nPar	 = 12;
+
+  const integer nParLR           = 20;         // iP range[3-100 GeV/c] || 20 layers
   
   const integer	TrdMinAdc	 = 15;
   const integer	TrdMaxAdc	 = 3500;
@@ -279,6 +281,8 @@ class TrdSCalibR: public TObject{
   static const char* TrdLLname[];
   /// ordering name of TrdSum8 
   static const char* TrdSum8name[];
+  /// ordering name of EvtPartID
+  static const char* EvtPartID[];
  
 
   /// extended TrdRawHit class
@@ -289,6 +293,12 @@ class TrdSCalibR: public TObject{
   
   vector<TH1F *> h_TrdGasCirMPV;
   vector<TH1F *> h_TrdModuleMPV;
+  
+  /// use for ver.02
+  vector<TH1D*> h_TrdLR_Prot, h_TrdLR_Elec, h_TrdLR_Heli;
+
+  /// use for Toy MC
+  vector<TF1*> fTrdLR_fElectron, fTrdLR_fProton, fTrdLR_fHelium;
 
   unsigned int FirstCalRunTime, LastCalRunTime;
 
@@ -303,7 +313,7 @@ class TrdSCalibR: public TObject{
  public:  
   int  dummy;
   bool FirstCall, TrdCalib_01, TrdCalib_02;
-  bool FirstLLCall;
+  bool FirstLLCall, FirstMCCall;
   
   vector<double>	   TrdLR_xProt, TrdLR_xHeli, TrdLR_xElec;
   vector<double>	   TrdLR_nProt, TrdLR_nHeli, TrdLR_nElec;
@@ -317,8 +327,9 @@ class TrdSCalibR: public TObject{
   
  TrdSCalibR(): algo(1), patt(3), refit(2),
   dummy(0) {
- 
+    FirstCall   = true;
     FirstLLCall = true;
+    FirstMCCall = true;
     h_TrdGasCirMPV.clear();
     h_TrdModuleMPV.clear();
 
@@ -351,7 +362,6 @@ class TrdSCalibR: public TObject{
     fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
 
     fTrdLR      = 0;
-
     //fTrdLR = new TF1("fTrdLR",this,&TrdSCalibR::Fun2Landau3Expo, 0.0,4000.0, 0);
     ///avoids being deleted next time a new one with the same name is constructed 
     //gROOT->GetListOfFunctions()->Remove(fTrdLR);
@@ -360,14 +370,30 @@ class TrdSCalibR: public TObject{
   
 
   virtual ~TrdSCalibR(){
-    if ( h_TrdGasCirMPV.size() != 0) {
-      for(int i=0; i< trdconst::nTrdGasCir;i++)  
-	delete h_TrdGasCirMPV[i];
-    }
-    if ( h_TrdModuleMPV.size() != 0) {
-      for(int i=0; i< trdconst::nTrdModules;i++) 
-	delete h_TrdModuleMPV[i];
-    }
+    if ( h_TrdGasCirMPV.size() != 0) 
+      for(int i=0; i< trdconst::nTrdGasCir;i++)  delete h_TrdGasCirMPV[i];
+    if ( h_TrdModuleMPV.size() != 0) 
+      for(int i=0; i< trdconst::nTrdModules;i++) delete h_TrdModuleMPV[i];
+
+    if( h_TrdLR_Prot.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Prot[i];
+
+    if( h_TrdLR_Elec.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Elec[i];
+
+    if( h_TrdLR_Heli.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Heli[i];
+
+    if( fTrdLR_fProton.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete fTrdLR_fProton[i];
+
+    if( fTrdLR_fElectron.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete fTrdLR_fElectron[i];
+
+    if( fTrdLR_fHelium.size() !=0) 
+      for(int i=0; i< trdconst::nParLR;i++) delete fTrdLR_fHelium[i];
+
+   
   }
  
   
@@ -379,7 +405,7 @@ class TrdSCalibR: public TObject{
 
  public:
 
-  void GenmStrawMatrix();
+  void GenmStrawMatrix(int Debug);
   void ReadLFname();
 
   ///(Z= upper TOF)
@@ -389,7 +415,7 @@ class TrdSCalibR: public TObject{
   bool GetdTrd(TrdTrackR  *trdt);
   bool GetcTrkdTrk(TrTrackR *trt);
 
-  bool MatchingTrdTKtrack(float P, int Debug); 
+  bool MatchingTrdTKtrack(float Pabs, int Debug); 
 
  public:
   int GetEvthTime(AMSEventR *ev, int Debug);
@@ -574,23 +600,31 @@ double TrdLR_fElectron_v02(double *x, double *par) {
 
  public:
 
+  bool Init(int CalibLevel, int Debug);
+
   bool TrdLR_GetParameters(string fName, string hName, int nPar, vector<double> &xMin, vector< vector<double> > &Par);
   
-  void TrdLR_CalcIni(int Debug);
+  void TrdLR_CalcIni(int Debug) {TrdLR_CalcIni_v02(Debug);}
 
-  vector<double> TrdLR_Calc(float P, vector<AC_TrdHits*> ACTrdHits, int iFlag, int Debug);
+
+  void TrdLR_CalcIni_v01(int Debug);
+  vector<double> TrdLR_Calc_v01(float Pabs, vector<AC_TrdHits*> ACTrdHits, int iFlag, int Debug);
 
   vector<double> GenLogBinning(int nBinLog, double Tmin, double Tmax);
 
-  double TrdLR_fProton(double *x, double *par);
-  double TrdLR_fHelium(double *x, double *par);
+  double TrdLR_fProton  (double *x, double *par);
+  double TrdLR_fHelium  (double *x, double *par);
   double TrdLR_fElectron(double *x, double *par);
 
-  /// version 2 released on 20111013
+  /// ver.2 released on 2011.10.28
   vector<double> RootGetYbinsTH2(TH2 *hist, int Debug);
   bool TrdLR_CalcIni_v02(int Debug);
-  vector<double> TrdLR_Calc_v02(float P, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug);
- 
+  vector<double> TrdLR_Calc(float Pabs, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug);
+
+  /// toyMC add on 2011.11.02
+  bool TrdLR_MC_CalcIni(int Debug);
+  vector<double> TrdLR_MC_Calc(float Pabs,  vector<AC_TrdHits*> TrdHits, vector<bool> PartId, int iFlag, int Debug);
+    
   static TrdSCalibR* gethead(){
     if(!head) head=new TrdSCalibR();
     return head;
@@ -602,7 +636,7 @@ double TrdLR_fElectron_v02(double *x, double *par) {
   }
  
 
-  ClassDef(TrdSCalibR,1)
+  ClassDef(TrdSCalibR,2)
 };
 
 #endif
