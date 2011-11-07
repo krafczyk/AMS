@@ -24,6 +24,13 @@ void DynAlEvent::extrapolateTrack(){
 
 
 bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
+  ///////////////////////////////
+  // Dump the Time information //
+  ///////////////////////////////
+
+  event.Time[0]=ev.fHeader.Time[0];
+  event.Time[1]=ev.fHeader.Time[1];
+
   ////////////////////////////////
   // Get the hit for the layer  //
   ////////////////////////////////
@@ -47,17 +54,47 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   if(!hitp) return false;
   TrRecHitR &hit=*hitp;
 
+  ////////////////////////////////////////////////////////
+  // Pick the hit position without alignment correction //
+  ////////////////////////////////////////////////////////
+  AMSPoint pnt;
+  AMSDir dir;
+#ifdef _PGTRACK_
+  int imult=hit.GetResolvedMultiplicity();
+  pnt=hit.GetGlobalCoordinate(imult,"");
+#else
+  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
+#endif
+  
+  ///////////////////////////
+  // Dump the hit position //
+  //////////////////////////
+
+  for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
+
+
+  ////////////////////// 
+  // Dump the hit id  //
+  //////////////////////
+  
+#ifdef _PGTRACK_
+  event.Id=(hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad())*(hit.OnlyY()?-1:1);
+#else
+  event.Id=hit.Id;
+  if(hit.Status&16384 || hit.Status&8192) event.Id*=-1;
+#endif
+
+
+
   ///////////////////////////////////////////////////////////////////////
   // Extrapolate the track to the layer and dump the track information //
   ///////////////////////////////////////////////////////////////////////
 
-  AMSDir dir;
-  AMSPoint pnt;
 #ifdef _PGTRACK_
   int id=track.iTrTrackPar(1,3,1);
   if(id<0) return false;
   const TrTrackPar &trPar=track.gTrTrackPar(id);
-  track.InterpolateLayerJ(layer, pnt, dir, id) ;
+  track.Interpolate(event.RawHit[2], pnt, dir, id) ;
   for(int i=0;i<3;i++) event.TrackHit[i]=pnt[i];
   event.TrackTheta=dir.gettheta();
   event.TrackPhi=dir.getphi();
@@ -80,40 +117,11 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   event.Rigidity=trPar.Rigidity;
 #endif  
 
-  ////////////////////////////////////////////////////////
-  // Pick the hit position without alignment correction //
-  ////////////////////////////////////////////////////////
-#ifdef _PGTRACK_
-  int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"");
-#else
-  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
-#endif
+  event.Beta=part.pRichRing()?part.pRichRing()->getBeta():0;
   
-  ///////////////////////////
-  // Dump the hit position //
-  //////////////////////////
-
-  for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
-
-  ///////////////////////////////
-  // Dump the Time information //
-  ///////////////////////////////
-
-  event.Time[0]=ev.fHeader.Time[0];
-  event.Time[1]=ev.fHeader.Time[1];
-
-  ////////////////////// 
-  // Dump the hit id  //
-  //////////////////////
-  
-#ifdef _PGTRACK_
-  event.Id=(hit.GetLayerJ()+10*hit.GetSlotSide()+100*hit.lad())*(hit.OnlyY()?-1:1);
-#else
-  event.Id=hit.Id;
-  if(hit.Status&16384 || hit.Status&8192) event.Id*=-1;
-#endif
-
+  // Final cuts 
+  if(event.Beta==0) return false;
+  if(event.Rigidity<5) return false;
 
   return true;  // Success 
 }
@@ -148,6 +156,9 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
   event.Id=hit.Id;
 #endif
 
+  event.Beta=0;
+
+  
   return true;  // Success 
 }
 
@@ -224,7 +235,7 @@ void DynAlHistory::FindTimeWindow(int event,int seconds,int &first,int &last){
 
 DynAlFit::DynAlFit(int order){
   ZOffset=-136.0;First=Last=Excluded=-1;
-  MinRigidity=0;MaxRigidity=1e6;Events=0;
+  MinRigidity=0;MaxRigidity=1e6;MinBeta=0;Events=0;
   Order=order;
   ControlGroup=-1;
   Init();
@@ -322,7 +333,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   Events=0;
   for(int i=first;i<=last;i++){
     DynAlEvent event=history.Events.at(i); // Take a copy of the event
-    if(fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
+    if(event.Beta<MinBeta || fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
     
     if(exclude.count(i)>0){
 #ifdef VERBOSE__
@@ -440,6 +451,7 @@ ClassImp(DynAlContinuity);
 // Number of seconds in a week
 #define magicNumber 605800
 double DynAlContinuity::BetaCut=0.99;
+double DynAlContinuity::RigidityCut=5;
 int    DynAlContinuity::FitOrder=0;
 int    DynAlContinuity::FitWindow=20;
 
@@ -470,7 +482,7 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
   SELECT("Has rich ring",ev->Particle(0).pRichRing());
   RichRingR *ring=ev->Particle(0).pRichRing();
   SELECT("Ring is good", ring->IsGood());
-  SELECT("Beta>BetaCut",ring->Beta>BetaCut);
+  //  SELECT("Beta>BetaCut",ring->Beta>BetaCut); // delayed 
 
   bool layerUsed[10];
   for(int l=0;l<10;l++) layerUsed[l]=false;
@@ -650,7 +662,8 @@ void DynAlContinuity::Fill(TString dir,TString prefix,int run){
 
 bool DynAlContinuity::UpdateFit(AMSEventR &ev){
   int Minutes=FitWindow;  // This should be move out
-  Fit.MinRigidity=5;
+  Fit.MinRigidity=RigidityCut;
+  Fit.MinBeta=BetaCut;
 
   // Update the run sequence if required
   Update(ev.fHeader.Run);
@@ -825,7 +838,8 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
 void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
   // Compute the local alignment nfirst
   DynAlFit fit(DynAlContinuity::FitOrder);
-  fit.MinRigidity=5;
+  fit.MinRigidity=DynAlContinuity::RigidityCut;
+  fit.MinBeta=DynAlContinuity::BetaCut;
   int minutes=DynAlContinuity::FitWindow;
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
@@ -884,7 +898,8 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
   for(map<int,DynAlHistory>::iterator i=historyPerLadder.begin();i!=historyPerLadder.end();i++){
     DynAlFit ladFit(0);
     set<int> excluded;
-    ladFit.MinRigidity=5;
+    ladFit.MinRigidity=DynAlContinuity::RigidityCut;
+    ladFit.MinBeta=DynAlContinuity::BetaCut;
     if(ladFit.ForceFit(i->second,0,i->second.Size()-1,excluded)){
       LocalFitParameters[i->first]=DynAlFitParameters(ladFit);
     }
@@ -920,7 +935,8 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
 
   DynAlFit fit(DynAlContinuity::FitOrder);
   int minutes=DynAlContinuity::FitWindow;
-  fit.MinRigidity=5;
+  fit.MinRigidity=DynAlContinuity::RigidityCut;
+  fit.MinBeta=DynAlContinuity::BetaCut;
   int prev_second=0;   // Keep track of every second already fit
 
   for(int point=0;point<history.Size();point++){
@@ -947,5 +963,72 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   }
 
 }
+
+/////////////////// Finally the tools to provide the alignment as a function of time
+ClassImp(DynAlManager);
+
+#include "commonsi.h"
+
+//map<int,DynAlFitContainer> DynAlManager::dynAlFitContainers;
+DynAlFitContainer DynAlManager::dynAlFitContainers[10];
+int DynAlManager::currentRun=-1;
+int DynAlManager::skipRun=-1;
+TString DynAlManager::defaultDir=".";
+
+bool DynAlManager::FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir){
+  // Update the maps, if needed
+  if(ev.fHeader.Run==skipRun) return false;
+
+  if(ev.fHeader.Run!=currentRun){
+    currentRun=ev.fHeader.Run;
+    // Update the maps
+    //    dynAlFitContainers.clear();
+    int subdir=DynAlContinuity::getBin(currentRun);
+
+    // If directory name is empty, use the default
+    if(dir.Length()==0){
+      //      dir=Form("%s/%s/DynAlignment",getenv("AMSDataDir"),AMSCommonsI::getversion());
+      //      cout<<"DEFAULT IS "<<Form("%s/%s/DynAlignment",getenv("AMSDataDir"),AMSCommonsI::getversion())<<endl;
+      dir=defaultDir;
+    }
+
+    // Update the map
+    TFile file(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
+    DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
+    DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
+    if(!l1 || !l9){
+      cout<<"DynAlFitContainer::FindAlignment-W-Unable to get \"layer_1\" and \"layer_9\" objects from "<<(Form("%s/%i/%i",dir.Data(),subdir,currentRun))<<endl;
+      skipRun=currentRun;
+      return false;
+    }
+    
+    dynAlFitContainers[1]=*l1;
+    dynAlFitContainers[9]=*l9;
+    dynAlFitContainers[1].Layer=1;
+    dynAlFitContainers[9].Layer=9;
+  }
+
+
+  // Get the hit layer
+#ifdef _PGTRACK_
+  int layer=hit.GetLayerJ();
+#else
+  int layer=hit.lay();
+#endif
+
+  //  if(dynAlFitContainers.find(layer)==dynAlFitContainers.end()){
+  //    cout<<"DynAlFitContainer::FindAlignment-W-trying to use alignment for missing layer "<<layer<<endl;
+  //    return false;
+  //  }
+
+  if(layer!=1 && layer!=9){
+    // By the moment we only deal with layer 1 and layer 9
+    return false;
+  }
+
+  dynAlFitContainers[layer].Eval(ev,hit,x,y,z);
+  return true;
+}
+
 
 #endif

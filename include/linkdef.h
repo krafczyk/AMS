@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.98 2011/11/02 01:36:26 mdelgado Exp $
+//  $Id: linkdef.h,v 1.99 2011/11/07 10:55:04 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -60,6 +60,7 @@
 #pragma link C++ class DynAlEvent+;
 #pragma link C++ class DynAlFitParameters+;
 #pragma link C++ class DynAlFitContainer+;
+#pragma link C++ class DynAlManager;
 #endif
 
 #pragma link C++ class TrPdf+;

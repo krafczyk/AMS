@@ -25,6 +25,7 @@ class DynAlEvent: public TObject{
   float TrackTheta;  // Theta
   float TrackPhi;    // and phi 
   float Rigidity;    // rigidity (unused)
+  float Beta;        // rich beta  
   int Time[2];       // Time
   int Id;            // Id (slot, half...) using Vitaly naming scheme
 
@@ -83,6 +84,7 @@ class DynAlFit: public TObject{
   int TOffset;            // Last fist T offset
   double MinRigidity;     //! Minimum absolute rigidity 
   double MaxRigidity;     //! Maximum absolute rigidity 
+  double MinBeta;         //! Minimum rich beta
   int Events;             //! Events in last fit
   int Order;              //! Order of the time slope
 
@@ -124,6 +126,7 @@ class DynAlContinuity{
 
   // Fit parameters
   static double BetaCut;      // Rich Beta Cut
+  static double RigidityCut;      // Rich Beta Cut
   static int    FitOrder;     // Time order of the fit
   static int    FitWindow;    // Window time in minutes
 
@@ -168,7 +171,6 @@ class DynAlFitParameters: public TObject{
   ClassDef(DynAlFitParameters,1);
 };
 
-
 class DynAlFitContainer:public TObject{
  public:
   int Layer;
@@ -184,10 +186,21 @@ class DynAlFitContainer:public TObject{
   void BuildAlignment(TString dir,TString prefix,int run);
   
   DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
-
-
   ClassDef(DynAlFitContainer,1);
 };
+  
+class DynAlManager:public TObject{
+ public:
+  static bool FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir="");
+  //  static map<int,DynAlFitContainer> dynAlFitContainers; // STL containers are not thread safe 
+  static DynAlFitContainer dynAlFitContainers[10];
+  static int currentRun;
+  static int skipRun;
+  static TString defaultDir;
+#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun)  
+  ClassDef(DynAlManager,1);
+};
+
 
 #endif
 #endif
