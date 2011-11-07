@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.118 2011/11/07 10:55:13 mdelgado Exp $
+// $Id: TrTrack.C,v 1.119 2011/11/07 17:16:48 mdelgado Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/11/07 10:55:13 $
+///$Date: 2011/11/07 17:16:48 $
 ///
-///$Revision: 1.118 $
+///$Revision: 1.119 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -777,7 +777,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 	bhit[1] = 1;
 	if (!(id & kFitLayer9)) continue; 
       }
-
       int lyr = hit->GetLayer();
       if (lyr == 8) lyr = 0;
       idx[nhit++] = lyr*10+i;
@@ -893,6 +892,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);
+
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
     done = false;
   if (!done) return -90000+fdone;
@@ -1368,8 +1368,10 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
   if(refit>=2 || (!FitExists && refit==1)) { 
     if(refit>2){
+
       switch(refit){
       case 4:
+	//	if(FitExists) _TrackPar.erase(_TrackPar.find(fittype));  // Just in case
 	for (int ii=0;ii<getnhits () ;ii++)
 	  pTrRecHit(ii)->BuildCoordinateDynExt();
 	break;

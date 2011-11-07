@@ -1,4 +1,3 @@
-#ifdef __ROOTSHAREDLIBRARY__
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -509,7 +508,7 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 }
 
 
-
+#ifdef __ROOTSHAREDLIBRARY__
 void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString prefix){
   // Create the history object
   ch.Rewind();
@@ -552,7 +551,7 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
   file.Close();
   cout<<"Wrote "<<history.Size()<<" events in "<<file_name<<endl;
 }
-
+#endif
 
 void DynAlContinuity::GetFileList(TString dir,vector<int> &lista){
   lista.clear();
@@ -1031,4 +1030,3 @@ bool DynAlManager::FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &
 }
 
 
-#endif

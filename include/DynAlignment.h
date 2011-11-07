@@ -1,6 +1,5 @@
 #ifndef __DynAl__
 #define __DynAl__
-#ifdef __ROOTSHAREDLIBRARY__
 #include "TLinearFitter.h"
 #include "TObject.h"
 #include "TChain.h"
@@ -9,8 +8,9 @@
 #include <map>
 #include <set>
 #include "root.h"
+#ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
-
+#endif
 
 using namespace std;
 
@@ -121,7 +121,9 @@ class DynAlContinuity{
   static int getNextBin(int utime);             // Directory name where to look for files 
   static int getPreviousBin(int utime);         // Directory name where to look for files 
   static bool select(AMSEventR *ev,int layer);  // Select the an event for the idx file
+#ifdef __ROOTSHAREDLIBRARY__
   static void CreateIdx(AMSChain &ch,int layer,TString dir,TString prefix);  //Create an Idx file for chain ch and "layer" in directory dir, using as prefix "prefix"
+#endif
   static void GetFileList(TString dir,vector<int> &lista);
 
   // Fit parameters
@@ -202,5 +204,4 @@ class DynAlManager:public TObject{
 };
 
 
-#endif
 #endif
