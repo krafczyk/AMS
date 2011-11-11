@@ -1,11 +1,20 @@
-//  $Id: richrec.C,v 1.15 2011/04/01 11:04:59 mdelgado Exp $
+//  $Id: richrec.C,v 1.16 2011/11/11 21:43:22 mdelgado Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
 #include <iostream>
 
+//#define __AUTOCLEAN__
+
+#ifdef __AUTOCLEAN__
+#include<vector>
+#include<algorithm>
+#endif
+
 
 using namespace std;
+
+
 
 integer RichRawEvent::_PMT_Status[RICmaxpmts];
 geant   RichRawEvent::_beta_hit[RICmaxpmts*RICnwindows][3];
@@ -488,11 +497,42 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
   integer actual=0,counter=0;
   //  RichRawEvent *hitp[RICmaxpmts*RICnwindows];
   RichHitR *hitp[RICmaxpmts*RICnwindows];
+
+
+  // Sort the hits by amplitude and compute a hit threshold
+#ifdef __AUTOCLEAN__
+  double signalThreshold=0;
+  {
+    const double threshold=0.5;  // Remove everything below 20% of the total charge 
+
+    vector<double> amplitude;
+    double total=0;
+    for(RichRawEvent* hit=new RichRawEvent(_event);
+	hit;hit=hit->next()){
+      // Skip problematic ones
+      if(!hit->getbit(ok_status_bit)) continue;
+      if(hit->getpointer()->Status&(1<<crossed_pmt_bit)) continue;
+      total+=hit->getpointer()->Npe;
+      amplitude.push_back(hit->getpointer()->Npe);
+    }  
+    
+    sort(amplitude.begin(),amplitude.end());
+    double acc=0;
+    for(vector<double>::iterator i=amplitude.begin();i!=amplitude.end();i++){
+      acc+=*i;
+      if(acc>threshold*total){signalThreshold=*i;break;}
+    }
+    if(signalThreshold<1.5) signalThreshold=0;
+  }
+#endif
   
   for(RichRawEvent* hit=new RichRawEvent(_event);
 	hit;hit=hit->next()){
     if(!hit->getbit(ok_status_bit)) continue;
-
+#ifdef __AUTOCLEAN__
+    if(hit->getpointer()->Status&(1<<crossed_pmt_bit)) continue;
+    if(hit->getpointer()->Npe<signalThreshold) continue;
+#endif
     // Checks bounds
     if(actual>=RICmaxpmts*RICnwindows) {
       cerr << "RichRing::build : Event too long."<<endl;
