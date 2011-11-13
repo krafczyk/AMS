@@ -90,7 +90,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   ///////////////////////////////////////////////////////////////////////
 
 #ifdef _PGTRACK_
-  int id=track.iTrTrackPar(1,3,1);
+  int id=track.iTrTrackPar(1,3,3);
   if(id<0) return false;
   const TrTrackPar &trPar=track.gTrTrackPar(id);
   track.Interpolate(event.RawHit[2], pnt, dir, id) ;
