@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.159 2011/07/06 11:24:32 mdelgado Exp $
+//  $Id: richrec.C,v 1.160 2011/11/16 11:19:16 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2683,8 +2683,8 @@ void AMSRichRingNewSet::build() {
   }
 
   //Loop on ams tracks
-  AMSTrTrack *track;
-  AMSRichRingNew *pliprec;
+  AMSTrTrack *track=0;
+  AMSRichRingNew *pliprec=0;
   int j=0,k=0;
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
@@ -2708,7 +2708,8 @@ void AMSRichRingNewSet::build() {
 	if ( pliprec->buildlip() ) {
 	  k++;
 	  AddRing(pliprec);
-	} 
+	}
+        else delete pliprec; 
 
 	if(trig==0 && _NoMoreTime()){
 	  //	  throw amsglobalerror(" AMSRichRingNewSet::build-E-Cpulimit Exceeded ");
