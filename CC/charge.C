@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.86 2011/07/19 11:56:16 choumilo Exp $
+//  $Id: charge.C,v 1.87 2011/11/16 11:08:56 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -441,8 +441,10 @@ int AMSCharge::BuildTOF(AMSBeta *pbeta) {
 
   if (chargetof->ComputeCharge()) 
     _charges[chargetof->_ID]=chargetof;
-  else return 0;
-
+  else {
+    delete chargetof;
+    return 0;
+  }
   if (_debug) chargetof->_printEl(cout);
 
   return 1;
@@ -465,7 +467,7 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
     if (chargetrk != NULL) {
       if (chargetrk->ComputeCharge()) 
 	_charges[chargetrk->_ID]=chargetrk;
-    
+      else delete chargetrk;
       if (_debug) chargetrk->_printEl(cout);
     }
   }
@@ -478,7 +480,7 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
     if (chargetrkinner != NULL) {
       if (chargetrkinner->ComputeCharge())
 	_charges[chargetrkinner->_ID]=chargetrkinner;
-
+      else delete  chargetrkinner;
       if (_debug) chargetrkinner->_printEl(cout);
     }
 
@@ -488,11 +490,10 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
   if (((CHARGEFITFFKEY.RecEnable[kTracker]/trkUpper)%10) != 0) {
 
     AMSChargeTrackerUpper *chargetrkupper = new AMSChargeTrackerUpper(pbeta,ptrtk);
-
     if (chargetrkupper != NULL) {
       if (chargetrkupper->ComputeCharge())
 	_charges[chargetrkupper->_ID]=chargetrkupper;
-
+      else delete chargetrkupper;
       if (_debug) chargetrkupper->_printEl(cout);
     }
 
@@ -506,6 +507,7 @@ int AMSCharge::BuildTracker(AMSBeta *pbeta) {
     if (chargetrkbottom != NULL) {
       if(chargetrkbottom->ComputeCharge())
 	_charges[chargetrkbottom->_ID]=chargetrkbottom;
+      else delete chargetrkbottom;
 
       if (_debug) chargetrkbottom->_printEl(cout);
     }
@@ -558,8 +560,10 @@ again:
 
   if (chargetrd->ComputeCharge()) 
     _charges[chargetrd->_ID]=chargetrd;
-  else return 0;
-
+  else {
+    delete chargetrd;
+    return 0;
+  }
   if (_debug) chargetrd->_printEl(cout);
 
   return 1; 
@@ -590,8 +594,10 @@ int AMSCharge::BuildRich(AMSBeta *pbeta) {
 
   if (chargerich->ComputeCharge()) 
     _charges[chargerich->_ID]=chargerich;
-  else return 0;
-
+  else {
+     delete chargerich;
+     return 0;
+  }
   if (_debug) chargerich->_printEl(cout);
 
   return 1; 
