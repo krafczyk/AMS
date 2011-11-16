@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.119 2011/11/07 17:16:48 mdelgado Exp $
+// $Id: TrTrack.C,v 1.120 2011/11/16 14:35:42 mdelgado Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/11/07 17:16:48 $
+///$Date: 2011/11/16 14:35:42 $
 ///
-///$Revision: 1.119 $
+///$Revision: 1.120 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1368,18 +1368,8 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
   if(refit>=2 || (!FitExists && refit==1)) { 
     if(refit>2){
-
-      switch(refit){
-      case 4:
-	//	if(FitExists) _TrackPar.erase(_TrackPar.find(fittype));  // Just in case
-	for (int ii=0;ii<getnhits () ;ii++)
-	  pTrRecHit(ii)->BuildCoordinateDynExt();
-	break;
-      default:
-	for (int ii=0;ii<getnhits () ;ii++)
-	  pTrRecHit(ii)->BuildCoordinate();
-	break;
-      }
+      for (int ii=0;ii<getnhits () ;ii++)
+	pTrRecHit(ii)->BuildCoordinate();
     }
     float ret=FitT(fittype,-1,true,0,mass,chrg);
     if (ret>=0) 

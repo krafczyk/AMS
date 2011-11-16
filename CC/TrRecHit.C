@@ -284,21 +284,6 @@ void TrRecHitR::ClearUsed() {
   if (GetYCluster()) GetYCluster()->ClearUsed();
 }
 
-#include "root.h"
-#include "DynAlignment.h"
-void     TrRecHitR::BuildCoordinateDynExt(){
-  if(GetLayerJ()!=1 && GetLayerJ()!=9) {BuildCoordinate();return;}  // Apply the patch only for layer 1 and 9
-  if(_imult<0) return;
-  
-  double newcoor[3]={0,0,0};
-  if(DynAlManager::FindAlignment(*AMSEventR::Head(),*this,newcoor[0],newcoor[1],newcoor[2])){
-    for(int i=0;i<3;i++) _coord[i]=newcoor[i];
-  }else{
-    cout<<"TrRecHitR::BuildCoordinateDynExt-W-DynAlManager::FindAlignment did not find an alignment for run "<<AMSEventR::Head()->fHeader.Run<<" hit at layer "<<this->GetLayerJ()<<endl;
-  }
-}
-
-
 AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
   // parsing options
