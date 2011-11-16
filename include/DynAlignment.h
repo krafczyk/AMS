@@ -193,6 +193,7 @@ class DynAlFitContainer:public TObject{
   
 class DynAlManager:public TObject{
  public:
+  static bool FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id=-1,TString dir="");
   static bool FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir="");
   //  static map<int,DynAlFitContainer> dynAlFitContainers; // STL containers are not thread safe 
   static DynAlFitContainer dynAlFitContainers[10];

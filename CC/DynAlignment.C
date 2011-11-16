@@ -974,6 +974,61 @@ int DynAlManager::currentRun=-1;
 int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir=".";
 
+
+bool DynAlManager::FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id,TString dir){
+  for(int i=0;i<3;i++) hitA[i]=hit[i];
+
+  if(run==skipRun) return false;
+  
+  if(run!=currentRun){
+    currentRun=run;
+    // Update the maps
+    int subdir=DynAlContinuity::getBin(currentRun);
+    
+    // If directory name is empty, use the default
+    if(dir.Length()==0) dir=defaultDir;
+    
+    // Update the map
+    TFile file(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
+    DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
+    DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
+    if(!l1 || !l9){
+      cout<<"DynAlFitContainer::FindAlignment-W-Unable to get \"layer_1\" and \"layer_9\" objects from "<<(Form("%s/%i/%i",dir.Data(),subdir,currentRun))<<endl;
+      skipRun=currentRun;
+      return false;
+    }
+    
+    dynAlFitContainers[1]=*l1;
+    dynAlFitContainers[9]=*l9;
+    dynAlFitContainers[1].Layer=1;
+    dynAlFitContainers[9].Layer=9;
+  }  
+  
+  if(layer!=1 && layer!=9){
+    // By the moment we only deal with layer 1 and layer 9
+    return false;
+  }
+  
+  
+  DynAlEvent event;
+  event.Time[0]=time;
+  event.Time[1]=0;
+  for(int i=0;i<3;i++) event.RawHit[i]=hit[i];
+  event.Id=abs(Id)%10000;
+
+  double x=hit[0];
+  double y=hit[1];
+  double z=hit[2];
+
+  bool use_local=dynAlFitContainers[layer].ApplyLocalAlignment;
+  if(Id<0) dynAlFitContainers[layer].ApplyLocalAlignment=false; 
+  dynAlFitContainers[layer].Eval(event,x,y,z);
+  dynAlFitContainers[layer].ApplyLocalAlignment=use_local;
+  hitA[0]=x; hitA[1]=y; hitA[2]=z;
+  return true;
+}
+
+
 bool DynAlManager::FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir){
   // Update the maps, if needed
   if(ev.fHeader.Run==skipRun) return false;
