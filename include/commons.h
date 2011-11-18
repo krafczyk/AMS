@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.328 2011/10/05 18:52:20 pzuccon Exp $
+//  $Id: commons.h,v 1.329 2011/11/18 11:07:32 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -33,52 +33,52 @@
 
 
 class TRMFFKEY_DEF{
-public:
-integer OKAY;
-integer TIME;
+ public:
+  integer OKAY;
+  integer TIME;
 };
 #define TRMFFKEY COMMON_BLOCK(TRMFFKEY,trmffkey)
 COMMON_BLOCK_DEF(TRMFFKEY_DEF,TRMFFKEY);
 
 class MISCFFKEY_DEF{
-public:
-integer BTempCorrection;
-integer BeamTest;
-float   BZCorr; 
-integer G3On;
-integer G4On;
-integer dbwrbeg;
-integer dbwrend;
-integer NumThreads;
-integer DynThreads;
-integer ChunkThreads;
-integer DivideBy;
-integer RaiseFPE;
+ public:
+  integer BTempCorrection;
+  integer BeamTest;
+  float   BZCorr; 
+  integer G3On;
+  integer G4On;
+  integer dbwrbeg;
+  integer dbwrend;
+  integer NumThreads;
+  integer DynThreads;
+  integer ChunkThreads;
+  integer DivideBy;
+  integer RaiseFPE;
 };
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
 
 
 class SELECTFFKEY_DEF {
-public:
-integer Run;
-integer Event;
-integer File[40];
-integer RunE;
-integer EventE;
+ public:
+  integer Run;
+  integer Event;
+  integer File[40];
+  integer RunE;
+  integer EventE;
 };
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
 class STATUSFFKEY_DEF {
-public:
-uinteger status[36];
+ public:
+  uinteger status[36];
 };
 #define STATUSFFKEY COMMON_BLOCK(STATUSFFKEY,statusffkey)
 COMMON_BLOCK_DEF(STATUSFFKEY_DEF,STATUSFFKEY);
 
 
 class HVSEC_DEF {
-public:
+ public:
   int ihvse[2];
 };
 #define HVSEC COMMON_BLOCK(HVSEC,hvsec)
@@ -86,16 +86,16 @@ COMMON_BLOCK_DEF(HVSEC_DEF,HVSEC);
   
 
 class DAQCFFKEY_DEF {
-public:
-integer mode;
-integer ifile[40];
-integer ofile[40];
-integer BTypeInDAQ[2];
-integer DAQVersion;
-integer Mode;
-integer ReadAhead;
-integer BlocksDir[40];
-integer SkipRec;
+ public:
+  integer mode;
+  integer ifile[40];
+  integer ofile[40];
+  integer BTypeInDAQ[2];
+  integer DAQVersion;
+  integer Mode;
+  integer ReadAhead;
+  integer BlocksDir[40];
+  integer SkipRec;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
@@ -103,18 +103,18 @@ COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
 
 
 class LVL3SIMFFKEY_DEF{
-public:
-geant NoiseProb[2];
+ public:
+  geant NoiseProb[2];
 };
 #define LVL3SIMFFKEY COMMON_BLOCK(LVL3SIMFFKEY,lvl3simffkey)
 COMMON_BLOCK_DEF(LVL3SIMFFKEY_DEF,LVL3SIMFFKEY);
 
 class LVL3EXPFFKEY_DEF{
-public:
-integer NEvents;
-integer ToBad;
-integer TryAgain;
-geant   Range[3][2];
+ public:
+  integer NEvents;
+  integer ToBad;
+  integer TryAgain;
+  geant   Range[3][2];
 };
 #define LVL3EXPFFKEY COMMON_BLOCK(LVL3EXPFFKEY,lvl3expffkey)
 COMMON_BLOCK_DEF(LVL3EXPFFKEY_DEF,LVL3EXPFFKEY);
@@ -122,24 +122,24 @@ COMMON_BLOCK_DEF(LVL3EXPFFKEY_DEF,LVL3EXPFFKEY);
 
 
 class LVL3FFKEY_DEF {
-public:
-integer MinTOFPlanesFired;
-integer UseTightTOF;
-geant TrTOFSearchReg; 
-geant TrMinResidual;
-geant TrMaxResidual[3];
-integer TrMaxHits;
-geant Splitting;
-integer NRep;
-integer Accept;
-integer RebuildLVL3;
-integer NoK;
-geant TrHeavyIonThr;
-integer SeedThr;
-integer TRDHMulThr;
-geant  TRDHMulPart;
-integer Stat;
-integer histprf;
+ public:
+  integer MinTOFPlanesFired;
+  integer UseTightTOF;
+  geant TrTOFSearchReg; 
+  geant TrMinResidual;
+  geant TrMaxResidual[3];
+  integer TrMaxHits;
+  geant Splitting;
+  integer NRep;
+  integer Accept;
+  integer RebuildLVL3;
+  integer NoK;
+  geant TrHeavyIonThr;
+  integer SeedThr;
+  integer TRDHMulThr;
+  geant  TRDHMulPart;
+  integer Stat;
+  integer histprf;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);
@@ -147,11 +147,11 @@ COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);
 
 
 class LVTMFFKEY_DEF {
-public:
-integer BufSize;
-float MinFTime;
-float MinTime;
-float MeanTime;
+ public:
+  integer BufSize;
+  float MinFTime;
+  float MinTime;
+  float MeanTime;
 };
 #define LVTMFFKEY COMMON_BLOCK(LVTMFFKEY,lvtmffkey)
 COMMON_BLOCK_DEF(LVTMFFKEY_DEF,LVTMFFKEY);
@@ -160,76 +160,76 @@ COMMON_BLOCK_DEF(LVTMFFKEY_DEF,LVTMFFKEY);
 
 
 class AMSFFKEY_DEF {
-public:
-integer Simulation;
-integer Reconstruction;
-integer Jobtype;
-integer Debug;
-geant   CpuLimit;
-integer Read;
-integer Write;
-integer Jobname[40];
-integer Setupname[40];
-integer ZeroSetupOk;
-integer Update;
-integer TDVC[400];
+ public:
+  integer Simulation;
+  integer Reconstruction;
+  integer Jobtype;
+  integer Debug;
+  geant   CpuLimit;
+  integer Read;
+  integer Write;
+  integer Jobname[40];
+  integer Setupname[40];
+  integer ZeroSetupOk;
+  integer Update;
+  integer TDVC[400];
 };
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);
 //==============================================================
 class IOPA_DEF {
-public:
-integer hlun;
-integer hfile[40];
-integer ntuple;
-integer WriteAll;
-float   Portion;
-integer TriggerC[40];
-integer mode;
-integer ffile[40];
-integer MaxNtupleEntries;
-integer WriteRoot;
-integer rfile[40];
-uinteger MaxFileSize;
-integer MaxFileTime;
-integer BuildMin;
-integer histoman;
-integer skip;
-integer WriteTGeometry;
-integer TGeometryFileName[40];
-integer WriteTDVDataInRoot;
-integer ReadAMI;
+ public:
+  integer hlun;
+  integer hfile[40];
+  integer ntuple;
+  integer WriteAll;
+  float   Portion;
+  integer TriggerC[40];
+  integer mode;
+  integer ffile[40];
+  integer MaxNtupleEntries;
+  integer WriteRoot;
+  integer rfile[40];
+  uinteger MaxFileSize;
+  integer MaxFileTime;
+  integer BuildMin;
+  integer histoman;
+  integer skip;
+  integer WriteTGeometry;
+  integer TGeometryFileName[40];
+  integer WriteTDVDataInRoot;
+  integer ReadAMI;
   integer unitimegen;
   float unitimegenrate;
 #ifdef __AMSVMC__
-integer VMCVersion;
-integer VMCEventno;
+  integer VMCVersion;
+  integer VMCEventno;
 #endif
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
 //==============================================================
 class TFMCFFKEY_DEF {
-public:
-geant TimeSigma;
-geant sumHTdel;
-geant canormf;
-geant dzconv;
-geant Thr;
-//
-integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
-integer trlogic[2]; // to control trigger logic
-integer fast;    // 1/0 fast/slow algo;
-integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
-integer birks;     // 0/1  not apply/apply birks corrections
-integer mcseedo;   // 0/1->use MCCalib/RealData files as MCseed
-geant blshift;     // base line shift
-geant hfnoise;     // high freq. noise
-integer ReadConstFiles;
-integer addpeds;
-integer calvern;//  TofCflistMC-file version number (file extention)
-integer tdclin;//flag to activate(if =1) TDC-linearity logic for MC
-integer tdcovf;//flag to activate(if =1) TDC-ovfl protection logic
+ public:
+  geant TimeSigma;
+  geant sumHTdel;
+  geant canormf;
+  geant dzconv;
+  geant Thr;
+  //
+  integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
+  integer trlogic[2]; // to control trigger logic
+  integer fast;    // 1/0 fast/slow algo;
+  integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
+  integer birks;     // 0/1  not apply/apply birks corrections
+  integer mcseedo;   // 0/1->use MCCalib/RealData files as MCseed
+  geant blshift;     // base line shift
+  geant hfnoise;     // high freq. noise
+  integer ReadConstFiles;
+  integer addpeds;
+  integer calvern;//  TofCflistMC-file version number (file extention)
+  integer tdclin;//flag to activate(if =1) TDC-linearity logic for MC
+  integer tdcovf;//flag to activate(if =1) TDC-ovfl protection logic
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
@@ -237,17 +237,17 @@ COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
 
 #ifndef _PGTRACK_
 class MAGSFFKEY_DEF {
-public:
-integer magstat; // status: 0/1-> off/on
-geant fscale;    // nom.field reduction
-geant ecutge;    // e/g energy cut for tracking in magnet materials
-geant r0[3];     // shift & rotation of mag field map w/r nom
-geant pitch;
-geant yaw;
-geant roll;
-integer rphi;    // use xyz (0) or rphiz (1) grid
-integer begin;    // begin time
-integer end;    //end time
+ public:
+  integer magstat; // status: 0/1-> off/on
+  geant fscale;    // nom.field reduction
+  geant ecutge;    // e/g energy cut for tracking in magnet materials
+  geant r0[3];     // shift & rotation of mag field map w/r nom
+  geant pitch;
+  geant yaw;
+  geant roll;
+  integer rphi;    // use xyz (0) or rphiz (1) grid
+  integer begin;    // begin time
+  integer end;    //end time
 };
 #define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
@@ -256,60 +256,60 @@ COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 
 
 class TRDMCFFKEY_DEF{
-public:
-integer mode; // 0: saveliev 1: saveliev+Pai 2: garibyan + Pai
-integer g3trd;  // g3identifier for trd aware media
-float cor;     // saveliev parameter
-float alpha;    // garibyan pars
-float beta;    //  garibyan par
-geant ped;     
-geant pedsig;     
-geant sigma;
-geant gain;
-geant cmn;
-geant   f2i;
-integer adcoverflow;
-integer NoiseOn;
-float GeV2ADC;
-float Thr1R;
-integer GenerateConst;
-geant NoiseLevel;
-geant DeadLevel;
-integer sec[2];
-integer min[2];
-integer hour[2];
-integer day[2];
-integer mon[2];
-integer year[2];
-integer multiples;
- geant  Gdens;
- geant  Pecut;
- geant  ntrcor;
- geant  etrcor;
- geant  ndecor;
- geant  edecor;
+ public:
+  integer mode; // 0: saveliev 1: saveliev+Pai 2: garibyan + Pai
+  integer g3trd;  // g3identifier for trd aware media
+  float cor;     // saveliev parameter
+  float alpha;    // garibyan pars
+  float beta;    //  garibyan par
+  geant ped;     
+  geant pedsig;     
+  geant sigma;
+  geant gain;
+  geant cmn;
+  geant   f2i;
+  integer adcoverflow;
+  integer NoiseOn;
+  float GeV2ADC;
+  float Thr1R;
+  integer GenerateConst;
+  geant NoiseLevel;
+  geant DeadLevel;
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+  integer multiples;
+  geant  Gdens;
+  geant  Pecut;
+  geant  ntrcor;
+  geant  etrcor;
+  geant  ndecor;
+  geant  edecor;
 
- geant Tmean;
- geant Pmean;
- geant FibreDiam;
- geant RadThick;
- geant AlphaFibre;
- geant AlphaGas;
- integer FleeceGas;
- geant XenonFraction;
- geant ArgonFraction;
- geant CO2Fraction;
- geant GasStep;
- integer PAIModel;
- integer debug;
- int CreatePDF;
+  geant Tmean;
+  geant Pmean;
+  geant FibreDiam;
+  geant RadThick;
+  geant AlphaFibre;
+  geant AlphaGas;
+  integer FleeceGas;
+  geant XenonFraction;
+  geant ArgonFraction;
+  geant CO2Fraction;
+  geant GasStep;
+  integer PAIModel;
+  integer debug;
+  int CreatePDF;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
 
 
 class TRDFITFFKEY_DEF{
-public:
+ public:
   float Chi2StrLine;     //  fit max chi2
   float ResCutStrLine;   // Max acc distance between point and fitted curve 
   float SearchRegStrLine;  
@@ -327,7 +327,7 @@ public:
 COMMON_BLOCK_DEF(TRDFITFFKEY_DEF,TRDFITFFKEY);
 
 class TRDRECFFKEY_DEF{
-public:
+ public:
   float Chi2StrLine;     //  fit max chi2
   float ResCutStrLine;   // Max acc distance between point and fitted curve 
   float SearchRegStrLine;  
@@ -337,7 +337,7 @@ public:
 #define TRDRECFFKEY COMMON_BLOCK(TRDRECFFKEY,trdrecffkey)
 COMMON_BLOCK_DEF(TRDRECFFKEY_DEF,TRDRECFFKEY);
 class TRDCLFFKEY_DEF{
-public:
+ public:
   float ADC2KeV;         //
   float Thr1A;           // cluster threshold amp kev
   float Thr1S;           // cluster threshold sigma kev
@@ -353,59 +353,59 @@ COMMON_BLOCK_DEF(TRDCLFFKEY_DEF,TRDCLFFKEY);
 
 //==================================================================
 class ECMCFFKEY_DEF {
-public:
-integer fastsim;  //1/0-> fast/slow simulation
-integer mcprtf;   //1/0-> print/not mc-histogr.
-geant cutge;// cutgam=cutele cut in EC_radiator
-integer silogic[2];// SIMU logic flags
-geant mev2mev;
-geant mev2adc;
-geant safext;     // Extention(cm) of EC transv.size when TFMC 13=2 is used
-geant mev2pes;
-geant pmseres;
-geant adc2q;//adc->q conv.factor(pC/adc)
-geant fendrf;//fiber end-cut reflection factor
-geant physa2d;//physical an/dyn ratio(mv/mv)
-geant hi2low;//not used now
-geant sbcgn;//not used now
-geant pedh; //Ped-HiCh    
-geant pedvh;//ch-to-ch variation(%)     
-geant pedl; //Ped-LoCh    
-geant pedvl;//ch-to-ch variations(%)
-geant pedsh;//PedSig-HiCh     
-geant pedsvh;//ch-to-ch variation(%)     
-geant pedsl;//PedSig-LoCh    
-geant pedsvl;//ch-to-ch variation(%)
-geant pedd; //Ped-DyCh    
-geant peddv;//ch-to-ch variation(%)     
-geant pedds;//PedSig-DyCh    
-geant peddsv;//ch-to-ch variation(%)
-integer ReadConstFiles;
-integer calvern;
-integer mch2root;
- float Sl_gap;
- float HoneyRelDen;
- float SbMassFrac; // Antimonium mass fraction in Lead
- float effmn; // pixel efficiency correction
- float deffw;
- float cladgluex; // cladding+glue thickness(cm) horizontal
- float cladgluey; // cladding+glue thickness(cm) vertical
- float gap; // thickness of the gap from fiber to fiber 
- integer endplate;// flag to insert Aluminum end plate (0=not inserted) 
- float claddxy[36]; // clad+glue thick. horiz./vert. variation in layer
+ public:
+  integer fastsim;  //1/0-> fast/slow simulation
+  integer mcprtf;   //1/0-> print/not mc-histogr.
+  geant cutge;// cutgam=cutele cut in EC_radiator
+  integer silogic[2];// SIMU logic flags
+  geant mev2mev;
+  geant mev2adc;
+  geant safext;     // Extention(cm) of EC transv.size when TFMC 13=2 is used
+  geant mev2pes;
+  geant pmseres;
+  geant adc2q;//adc->q conv.factor(pC/adc)
+  geant fendrf;//fiber end-cut reflection factor
+  geant physa2d;//physical an/dyn ratio(mv/mv)
+  geant hi2low;//not used now
+  geant sbcgn;//not used now
+  geant pedh; //Ped-HiCh    
+  geant pedvh;//ch-to-ch variation(%)     
+  geant pedl; //Ped-LoCh    
+  geant pedvl;//ch-to-ch variations(%)
+  geant pedsh;//PedSig-HiCh     
+  geant pedsvh;//ch-to-ch variation(%)     
+  geant pedsl;//PedSig-LoCh    
+  geant pedsvl;//ch-to-ch variation(%)
+  geant pedd; //Ped-DyCh    
+  geant peddv;//ch-to-ch variation(%)     
+  geant pedds;//PedSig-DyCh    
+  geant peddsv;//ch-to-ch variation(%)
+  integer ReadConstFiles;
+  integer calvern;
+  integer mch2root;
+  float Sl_gap;
+  float HoneyRelDen;
+  float SbMassFrac; // Antimonium mass fraction in Lead
+  float effmn; // pixel efficiency correction
+  float deffw;
+  float cladgluex; // cladding+glue thickness(cm) horizontal
+  float cladgluey; // cladding+glue thickness(cm) vertical
+  float gap; // thickness of the gap from fiber to fiber 
+  integer endplate;// flag to insert Aluminum end plate (0=not inserted) 
+  float claddxy[36]; // clad+glue thick. horiz./vert. variation in layer
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
 //---
 class ECREFFKEY_DEF {
-public:
+ public:
   integer reprtf[3];   //reco print-flags
   integer relogic[5];  //reco logic-flags
   geant thresh[15];       //Time dependent DAQ/Trig-thresholds
   geant cuts[10];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
   integer calutc;//EcalCflistRD-file extention(utc-time)
-//
+  //
   float Thr1DSeed;        // Threshold for 1d cluster search
   float Thr1DRSeed;        // Threshold for 1d cluster search
   int   Cl1DCoreSize;
@@ -445,12 +445,12 @@ public:
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
 //---
 class ECCAFFKEY_DEF {
-public:
+ public:
   integer hprintf;// ECcalib-related hist.print flag
   integer cafdir;// 0/1-> use officical/private directory for calib.files
   integer prtuse; // 1/0/-1 -> use He/pr/mu for calib
   integer refpid;// ref.pm id
-//   RLGA+FIAT part
+  //   RLGA+FIAT part
   geant trmin;// presel.cut on min. rigidity of the track
   geant adcmin;//cut on min ADC-value of indiv.sub-cell
   geant adcpmx;//cut on max ADC-value of indiv.PM
@@ -463,7 +463,7 @@ public:
   geant etrunmn;  // Min ECenergy (Etrunc in mev) to select particle(p or He ...)
   geant etrunmx;  // Max ECenergy (Etrunc in mev) ...............................
   geant nsigtrk;  // safety gap in TRK-accur. units for crossing check procedure
-//   ANOR part
+  //   ANOR part
   geant pmin;       // presel-cut on min. mom. of the track(gev/c) 
   geant pmax;       // presel-cut on max. mom. of the track 
   geant scmin;      // min ADC for indiv. SubCell (to remove ped,noise)
@@ -487,7 +487,7 @@ public:
   integer pedoutf;     //        PedOutpFlag 
   geant pedlim[2];     // Ped-limits for PedCalibJobs
   geant siglim[2];     // PedSig-limits .............
-//g.chen
+  //g.chen
   integer ecshswit;      // 0/1 switch to/(not to)  use shower info in calibration
   geant chi2dirmx;     // max chi2 of shower dir fit
   geant prchi2mx;      // max chi2 of shower profile fit
@@ -499,7 +499,7 @@ public:
   geant difsummx;      // cut of (E_x-E_y)/(E_x+E_y)
   geant trentmax[2];   // cut of distance between track and shower entry
   geant trextmax[2];   // cut of distance between track and shower exit
-//
+  //
   integer onbpedspat;  // bit-patt of present sections in OnBoardPed block
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
@@ -508,7 +508,7 @@ COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);
 #ifndef _PGTRACK_
 //===================================================================
 class TKGEOMFFKEY_DEF{
-public:
+ public:
   integer ReadGeomFromFile;
   integer WriteGeomToFile;
   integer UpdateGeomFile;
@@ -518,42 +518,42 @@ public:
 COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);
 
 class TRMCFFKEY_DEF {
-public:
-geant alpha;
-geant beta;
-geant gamma;
-geant dedx2nprel;
-geant fastswitch;
-geant ped[2];
-geant sigma[2];
-geant gain[2];
-geant   cmn[2];
-integer adcoverflow;
-integer NoiseOn;
-integer sec[2];
-integer min[2];
-integer hour[2];
-integer day[2];
-integer mon[2];
-integer year[2];
-integer CalcCmnNoise[2];
-geant thr1R[2];
-geant thr2R[2];
-integer neib[2];
-integer GenerateConst;
-integer RawModeOn[8][2][32];
-integer WriteHK; 
-geant delta[2];
-geant gammaA[2];
-geant NonGaussianPart[2];
-geant BadCh[2];
+ public:
+  geant alpha;
+  geant beta;
+  geant gamma;
+  geant dedx2nprel;
+  geant fastswitch;
+  geant ped[2];
+  geant sigma[2];
+  geant gain[2];
+  geant   cmn[2];
+  integer adcoverflow;
+  integer NoiseOn;
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+  integer CalcCmnNoise[2];
+  geant thr1R[2];
+  geant thr2R[2];
+  integer neib[2];
+  integer GenerateConst;
+  integer RawModeOn[8][2][32];
+  integer WriteHK; 
+  geant delta[2];
+  geant gammaA[2];
+  geant NonGaussianPart[2];
+  geant BadCh[2];
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
 //
 const integer npat=42;
 class TRFITFFKEY_DEF {
-public:
+ public:
   integer patternp[npat];  //patterns  to fit; Priority decreases with number
   //    Number              Descr             Points      Default
   //    0                   123456            6           on
@@ -611,7 +611,7 @@ public:
   integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
   integer MainAlg;     //
   integer AddMS;      // Add MS error to ext planes
-   integer B23[2];    //  angle to switch 2 to 3 strips cluster cofg calculation
+  integer B23[2];    //  angle to switch 2 to 3 strips cluster cofg calculation
 };
 //
 
@@ -619,30 +619,30 @@ public:
 #define TRFITFFKEY COMMON_BLOCK(TRFITFFKEY,trfitffkey)
 COMMON_BLOCK_DEF(TRFITFFKEY_DEF,TRFITFFKEY);
 class TRCLFFKEY_DEF {
-public:
-geant ThrClA[2];
-geant ThrClS[2];
-geant ThrClR[2];
-geant Thr1A[2];
-geant Thr1S[2];
-geant Thr1R[2];
-geant Thr2A[2];
-geant Thr2S[2];
-geant Thr2R[2];
-geant Thr3R[2];
-integer ThrClNMin[2];
-integer ThrClNEl[2];
-geant ThrDSide;
-geant ErrX;
-geant ErrY;
-geant ErrZ;
-geant CorFunParA[2][6];
-geant CorFunParB[2][6];
-geant ResFunX[3][6];
-geant ResFunY[3][6];
-geant CommonGain[2];
-geant CommonShift[2];
-geant EtaCor[2];
+ public:
+  geant ThrClA[2];
+  geant ThrClS[2];
+  geant ThrClR[2];
+  geant Thr1A[2];
+  geant Thr1S[2];
+  geant Thr1R[2];
+  geant Thr2A[2];
+  geant Thr2S[2];
+  geant Thr2R[2];
+  geant Thr3R[2];
+  integer ThrClNMin[2];
+  integer ThrClNEl[2];
+  geant ThrDSide;
+  geant ErrX;
+  geant ErrY;
+  geant ErrZ;
+  geant CorFunParA[2][6];
+  geant CorFunParB[2][6];
+  geant ResFunX[3][6];
+  geant ResFunY[3][6];
+  geant CommonGain[2];
+  geant CommonShift[2];
+  geant EtaCor[2];
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
@@ -650,62 +650,62 @@ COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
 
 const integer nalg=4;
 class TRCALIB_DEF{
-public:
-integer CalibProcedureNo;
-                                // Proc # 1 starts here
-integer EventsPerCheck;
-geant PedAccRequired[2]; 
-integer Validity[2];
-geant RhoThrA; 
-geant RhoThrV; 
-integer Method;
-geant BadChanThr[2];
-integer Pass;
-integer DPS;
-integer UPDF;
-integer LaserRun;
-integer PrintBadChList;
-                                // Proc # 2 starts here
-integer EventsPerIteration[nalg];
-integer NumberOfIterations[nalg];
-                                 // Select Cut
-geant BetaCut[nalg][2];             // Beta limits
-geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
-                                 // Global fit cuts
-geant MomentumCut[nalg][2];         // momentum ----------
-geant Chi2Cut[nalg];                // chi2 --------------- 
-integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
-integer Ladder[8];            // ladder*10+half no for each plane 0 == all
-integer PatStart;
-integer MultiRun;
-integer EventsPerRun;
-integer Version;
+ public:
+  integer CalibProcedureNo;
+  // Proc # 1 starts here
+  integer EventsPerCheck;
+  geant PedAccRequired[2]; 
+  integer Validity[2];
+  geant RhoThrA; 
+  geant RhoThrV; 
+  integer Method;
+  geant BadChanThr[2];
+  integer Pass;
+  integer DPS;
+  integer UPDF;
+  integer LaserRun;
+  integer PrintBadChList;
+  // Proc # 2 starts here
+  integer EventsPerIteration[nalg];
+  integer NumberOfIterations[nalg];
+  // Select Cut
+  geant BetaCut[nalg][2];             // Beta limits
+  geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
+  // Global fit cuts
+  geant MomentumCut[nalg][2];         // momentum ----------
+  geant Chi2Cut[nalg];                // chi2 --------------- 
+  integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
+  integer Ladder[8];            // ladder*10+half no for each plane 0 == all
+  integer PatStart;
+  integer MultiRun;
+  integer EventsPerRun;
+  integer Version;
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 
 
 class TRALIG_DEF{
-public:
-integer InitDB;    
-integer ReWriteDB;
-integer UpdateDB;
-integer MaxEventsPerFit;
-integer MinEventsPerFit;
-integer MaxPatternsPerJob;
-geant Cuts[10][2];  
-integer Algorithm;     
-integer ActiveParameters[9][6]; //   for each plane: x,y,z, pitch, yaw, roll
-integer GlobalFit;
-integer EventsPerRun;
-integer LayersOnly;
-geant GlobalGoodLimit;
-integer SingleLadderEntryLimit;
-geant One;
-integer gfile[40];
-integer LaddersOnly;
-integer Skip;
-integer Max;
+ public:
+  integer InitDB;    
+  integer ReWriteDB;
+  integer UpdateDB;
+  integer MaxEventsPerFit;
+  integer MinEventsPerFit;
+  integer MaxPatternsPerJob;
+  geant Cuts[10][2];  
+  integer Algorithm;     
+  integer ActiveParameters[9][6]; //   for each plane: x,y,z, pitch, yaw, roll
+  integer GlobalFit;
+  integer EventsPerRun;
+  integer LayersOnly;
+  geant GlobalGoodLimit;
+  integer SingleLadderEntryLimit;
+  geant One;
+  integer gfile[40];
+  integer LaddersOnly;
+  integer Skip;
+  integer Max;
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
 COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
@@ -714,7 +714,7 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 
 //===================================================================
 class ATGEFFKEY_DEF {
-public:
+ public:
   integer nscpad;  // number of scintillator paddles 
   geant scradi;    // internal radious of ANTI sc. cylinder (cm)
   geant scinth;    // thickness of scintillator (cm)
@@ -730,20 +730,20 @@ public:
 COMMON_BLOCK_DEF(ATGEFFKEY_DEF,ATGEFFKEY);
 //===================================================================
 class ATMCFFKEY_DEF {
-public:
-integer mcprtf;// hist. print flag
-geant FTdel;
-geant LSpeed;
-//
-integer ReadConstFiles;
-integer calvern;
-//
+ public:
+  integer mcprtf;// hist. print flag
+  geant FTdel;
+  geant LSpeed;
+  //
+  integer ReadConstFiles;
+  integer calvern;
+  //
 };
 #define ATMCFFKEY COMMON_BLOCK(ATMCFFKEY,atmcffkey)
 COMMON_BLOCK_DEF(ATMCFFKEY_DEF,ATMCFFKEY);
 //===================================================================
 class ATREFFKEY_DEF {
-public:
+ public:
   integer reprtf[2];//  print flag
   integer relogic;// reco logic
   geant Edthr; // threshold (mev) to create Cluster-object
@@ -751,10 +751,10 @@ public:
   integer nlcorr; //apply non-lin corrections to raw amplitudes 
   geant ftdel; // FT-delay wrt hist-TDC hit 
   geant ftwin; // t-window(ns) for Hist-TDC hit coinc.with FT 
-//
+  //
   integer ReadConstFiles;
   uinteger calutc;
-//
+  //
   integer sec[2];
   integer min[2];
   integer hour[2];
@@ -766,7 +766,7 @@ public:
 COMMON_BLOCK_DEF(ATREFFKEY_DEF,ATREFFKEY);
 //================================================================
 class ATCAFFKEY_DEF {
-  public:
+ public:
   integer trackmode; // use trk/trk+trd-track 
   integer cafdir; // use official/private directory for calib.file
   geant pedcpr[2]; //PedCalibJob: Class/DownScaled: portion of highest adcs to remove for ped-calc
@@ -779,20 +779,20 @@ class ATCAFFKEY_DEF {
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);
 //================================================================
 class TFREFFKEY_DEF {
-public:
-geant Thr1;  // limit on max
-geant ThrS;  // limit on sum
-//
+ public:
+  geant Thr1;  // limit on max
+  geant ThrS;  // limit on sum
+  //
   integer reprtf[5]; //RECO print flag 
   integer relogic[5];//RECO logic flag
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
-//
+  //
   integer ReadConstFiles;
-//
+  //
   integer TempHandlMode;
   uinteger calutc;
-//
+  //
   integer sec[2];
   integer min[2];
   integer hour[2];
@@ -804,77 +804,77 @@ geant ThrS;  // limit on sum
 COMMON_BLOCK_DEF(TFREFFKEY_DEF,TFREFFKEY);
 //===================================================================
 class TFCAFFKEY_DEF {
-public:
-// TZSL-calibration :
-geant pcut[2];//low/high limits on momentum of calibr. events
-geant bmeanpr;// mean proton velocity in this mom. range
-geant tzref[2];// def. T0 for reference counter + spare
-geant fixsl;// def. for slope
-geant bmeanmu;// mean muon velocity in this mom. range
-integer idref[2];// LBB for ref.counter and fix/release flag for trapez.counters
-integer ifsl;// 0/1 to fix/release slope param.
-integer caltyp;// 0/1 to select space/earth calibration
-// AMPL-calibration :
-integer truse;// 1/0 to use/not tracker
-geant plhc[2];//low/high cuts on tracker mom. for space calibration
-integer minev;// min.events needed for measurement in channel or bin
-geant trcut;// cut to use for "truncated average" calculation (0.85)
-integer spares[4];//
-geant adc2q;//adc->charge conv.factor(pC/ADCch)(hope = for all ADC chips)
-geant plhec[2];//low/high cuts on tracker mom. for earth calibration
-geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
-integer tofcoo;// 0/1-> use transv/longit coord. from TOF
-geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
-//                to use when previous calibration suppose to be good enought
-integer hprintf;// hist.print flag
-integer cafdir;// 0/1->use officical/private directory for calib.files
-integer mcainc;// spare
-geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)
-integer pedoutf;//           PedOutputFlag
-geant pedlim[2];// Ped-limits for PedCalibJobs
-geant siglim[2];// PedSig-limits .............
-// TOFTdcCalib (LINC)
-integer minstat;//min.stat/ch
-integer tdccum;//tdc-calib usage mode
-//
-integer onbpedspat;//bit-pattern for onboard ped-table sections
-//
-integer updbrcaldb;//update RD barcal DB "on flight"
+ public:
+  // TZSL-calibration :
+  geant pcut[2];//low/high limits on momentum of calibr. events
+  geant bmeanpr;// mean proton velocity in this mom. range
+  geant tzref[2];// def. T0 for reference counter + spare
+  geant fixsl;// def. for slope
+  geant bmeanmu;// mean muon velocity in this mom. range
+  integer idref[2];// LBB for ref.counter and fix/release flag for trapez.counters
+  integer ifsl;// 0/1 to fix/release slope param.
+  integer caltyp;// 0/1 to select space/earth calibration
+  // AMPL-calibration :
+  integer truse;// 1/0 to use/not tracker
+  geant plhc[2];//low/high cuts on tracker mom. for space calibration
+  integer minev;// min.events needed for measurement in channel or bin
+  geant trcut;// cut to use for "truncated average" calculation (0.85)
+  integer spares[4];//
+  geant adc2q;//adc->charge conv.factor(pC/ADCch)(hope = for all ADC chips)
+  geant plhec[2];//low/high cuts on tracker mom. for earth calibration
+  geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
+  integer tofcoo;// 0/1-> use transv/longit coord. from TOF
+  geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
+  //                to use when previous calibration suppose to be good enought
+  integer hprintf;// hist.print flag
+  integer cafdir;// 0/1->use officical/private directory for calib.files
+  integer mcainc;// spare
+  geant pedcpr[2];//PedCalJob: portion of highest adcs to remove for ped-calc(Class/DScal)
+  integer pedoutf;//           PedOutputFlag
+  geant pedlim[2];// Ped-limits for PedCalibJobs
+  geant siglim[2];// PedSig-limits .............
+  // TOFTdcCalib (LINC)
+  integer minstat;//min.stat/ch
+  integer tdccum;//tdc-calib usage mode
+  //
+  integer onbpedspat;//bit-pattern for onboard ped-table sections
+  //
+  integer updbrcaldb;//update RD barcal DB "on flight"
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);
 //===================================================================
 class TGL1FFKEY_DEF {
-public:
-integer trtype;
-integer toflc;
-integer tofsc;
-integer toflcsz;
-integer toflcz;
-integer tofextwid;
-integer antismx[2];
-integer antisc;
-integer cftmask;
-integer RebuildLVL1;
-geant MaxScalersRate;
-geant MinLifeTime;
-geant TheMagCut;
-integer ecorand;
-integer ecprjmask;
-integer Lvl1ConfMCVers;
-integer Lvl1ConfRDVers;
-integer Lvl1ConfRead;
-integer printfl;
-integer Lvl1ConfSave;
-integer NoPrescalingInMC;
-integer NoMaskingInMC;
-//
-integer sec[2];
-integer min[2];
-integer hour[2];
-integer day[2];
-integer mon[2];
-integer year[2];
+ public:
+  integer trtype;
+  integer toflc;
+  integer tofsc;
+  integer toflcsz;
+  integer toflcz;
+  integer tofextwid;
+  integer antismx[2];
+  integer antisc;
+  integer cftmask;
+  integer RebuildLVL1;
+  geant MaxScalersRate;
+  geant MinLifeTime;
+  geant TheMagCut;
+  integer ecorand;
+  integer ecprjmask;
+  integer Lvl1ConfMCVers;
+  integer Lvl1ConfRDVers;
+  integer Lvl1ConfRead;
+  integer printfl;
+  integer Lvl1ConfSave;
+  integer NoPrescalingInMC;
+  integer NoMaskingInMC;
+  //
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);
@@ -884,7 +884,7 @@ COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);
 //
 const integer npatb=11;
 class BETAFITFFKEY_DEF {
-public:
+ public:
   integer pattern[npatb];  //patterns  to fit; Priority decreases with number
   //    Number              Descr             Points      Default
   //    0                   1234              4           on
@@ -901,7 +901,7 @@ public:
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
   geant LowBetaThr;   // Threshold below refit should be done if possible 
-                           // using 2 & 3 (comb # 7)i
+  // using 2 & 3 (comb # 7)i
   integer FullReco;
   geant Chi2S;  // Max acceptable chi2 for space fit
   integer MassFromBetaRaw;
@@ -917,8 +917,8 @@ public:
 COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
 
 class CHARGEFITFFKEY_DEF {
-public:
-//- AMSCharge Combination options
+ public:
+  //- AMSCharge Combination options
   integer RecEnable[4];
   integer SplitLevel[4];
   integer ChargeMax[4];
@@ -926,7 +926,7 @@ public:
   integer NormalizeProbs;
   integer UseLikelihood;   
   geant   ProbklMin;
-//- TOF & Tracker (v4) Charge Reconstruction
+  //- TOF & Tracker (v4) Charge Reconstruction
   integer NmembMax;
   integer Tracker;
   geant   EtaMin[2];
@@ -961,7 +961,7 @@ COMMON_BLOCK_DEF(CHARGEFITFFKEY_DEF,CHARGEFITFFKEY);
 //
 
 class CCFFKEY_DEF {
-public:
+ public:
   geant coo[6];       //1-6
   geant dir[6];       //7-12
   geant momr[2];      //13-14
@@ -999,12 +999,12 @@ COMMON_BLOCK_DEF(CCFFKEY_DEF,CCFFKEY);
 //
 //ISN 
 class GMFFKEY_DEF {
-public:
-integer GammaSource; // gamma source flag/identifier. 1 for user defined
-geant SourceCoo[2]; // user defined source equatorial coordinates (GammaSource=1)
-geant SourceVisib; // maximum zenith angle (to speed up simulation)
-integer GammaBg; // diffuse background flag 
-geant BgAngle; // angle for background integration
+ public:
+  integer GammaSource; // gamma source flag/identifier. 1 for user defined
+  geant SourceCoo[2]; // user defined source equatorial coordinates (GammaSource=1)
+  geant SourceVisib; // maximum zenith angle (to speed up simulation)
+  integer GammaBg; // diffuse background flag 
+  geant BgAngle; // angle for background integration
 };
 #define GMFFKEY COMMON_BLOCK(GMFFKEY,gmffkey)
 COMMON_BLOCK_DEF(GMFFKEY_DEF,GMFFKEY);
@@ -1017,61 +1017,61 @@ const integer nz=180;
 
 //PZMAG #ifndef _PGTRACK_
 class TKFIELD_DEF{
-public:
-integer mfile[40];
-integer iniok;
-integer isec[2];
-integer imin[2];
-integer ihour[2];
-integer iday[2];
-integer imon[2];
-integer iyear[2];
-integer na[3];
-geant  x[nx];
-geant  y[ny];
-geant  z[nz];
-geant bx[nz][ny][nx];
-geant by[nz][ny][nx];
-geant bz[nz][ny][nx];
-geant xyz[nx+ny+nz];
-geant bdx[2][nz][ny][nx];
-geant bdy[2][nz][ny][nx];
-geant bdz[2][nz][ny][nx];
-//geant bxc[nz][ny][nx];
-//geant byc[nz][ny][nx];
-//geant bzc[nz][ny][nx];
+ public:
+  integer mfile[40];
+  integer iniok;
+  integer isec[2];
+  integer imin[2];
+  integer ihour[2];
+  integer iday[2];
+  integer imon[2];
+  integer iyear[2];
+  integer na[3];
+  geant  x[nx];
+  geant  y[ny];
+  geant  z[nz];
+  geant bx[nz][ny][nx];
+  geant by[nz][ny][nx];
+  geant bz[nz][ny][nx];
+  geant xyz[nx+ny+nz];
+  geant bdx[2][nz][ny][nx];
+  geant bdy[2][nz][ny][nx];
+  geant bdz[2][nz][ny][nx];
+  //geant bxc[nz][ny][nx];
+  //geant byc[nz][ny][nx];
+  //geant bzc[nz][ny][nx];
 
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
 COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
 //PZMAG #endif
 /*
-const integer mmax=nx*ny*nz;
-const integer lrq=10*mmax+7;
-const integer liq=2*mmax+1;
+  const integer mmax=nx*ny*nz;
+  const integer lrq=10*mmax+7;
+  const integer liq=2*mmax+1;
 
-class TKFIELDADDON_DEF{
-public:
-int    iqx[liq];
-int    iqy[liq];
-int    iqz[liq];
-geant  rqx[lrq][2];
-geant  rqy[lrq][2];
-geant  rqz[lrq][2];
+  class TKFIELDADDON_DEF{
+  public:
+  int    iqx[liq];
+  int    iqy[liq];
+  int    iqz[liq];
+  geant  rqx[lrq][2];
+  geant  rqy[lrq][2];
+  geant  rqz[lrq][2];
 
-};
-#define TKFIELDADDON COMMON_BLOCK(TKFIELDADDON,tkfieldaddon)
-COMMON_BLOCK_DEF(TKFIELDADDON_DEF,TKFIELDADDON);
+  };
+  #define TKFIELDADDON COMMON_BLOCK(TKFIELDADDON,tkfieldaddon)
+  COMMON_BLOCK_DEF(TKFIELDADDON_DEF,TKFIELDADDON);
 */
 
 
 
 class CALIB_DEF{
-public:
-integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
-integer Ntuple;
-integer SubDetInCalib;//subDetectors selection for processing of OnBoard-calib data
-integer SubDetRequestCalib;
+ public:
+  integer InsertTimeProc;             // 0 (default) by current time ; 1 by run time
+  integer Ntuple;
+  integer SubDetInCalib;//subDetectors selection for processing of OnBoard-calib data
+  integer SubDetRequestCalib;
 };
 #define CALIB COMMON_BLOCK(CALIB,calib)
 COMMON_BLOCK_DEF(CALIB_DEF,CALIB);
@@ -1081,12 +1081,12 @@ COMMON_BLOCK_DEF(CALIB_DEF,CALIB);
 
 
 class TRDCALIB_DEF{
-public:
-integer CalibProcedureNo;
-integer EventsPerCheck;
-geant PedAccRequired; 
-integer Validity[2];
-geant BadChanThr;
+ public:
+  integer CalibProcedureNo;
+  integer EventsPerCheck;
+  geant PedAccRequired; 
+  integer Validity[2];
+  geant BadChanThr;
 };
 #define TRDCALIB COMMON_BLOCK(TRDCALIB,trdcalib)
 COMMON_BLOCK_DEF(TRDCALIB_DEF,TRDCALIB);
@@ -1096,16 +1096,16 @@ COMMON_BLOCK_DEF(TRDCALIB_DEF,TRDCALIB);
 
 
 class G4FFKEY_DEF{
-public:
-int BFOrder;
-float Delta;
-int UniformMagField;
-int Geant3CutsOn;
-int PhysicsListUsed;
-int LowEMagProcUsed;
-int IonPhysicsModel;
-int UseEMDModel; 
-int SigTerm;
+ public:
+  int BFOrder;
+  float Delta;
+  int UniformMagField;
+  int Geant3CutsOn;
+  int PhysicsListUsed;
+  int LowEMagProcUsed;
+  int IonPhysicsModel;
+  int UseEMDModel; 
+  int SigTerm;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
@@ -1115,56 +1115,56 @@ COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
 
 class 
 RICGEOM_DEF{
-public:
-// Mirrors
-geant top_radius; 
-geant bottom_radius;
-geant hole_radius;
-geant height;
-geant inner_mirror_height;
-// Radiator
-geant radiator_radius;
-geant radiator_height;
-geant radiator_box_length; // The aerogel is an array of this length
-// lighguides and PMT
-geant light_guides_height; // Unused
-geant light_guides_length;
+ public:
+  // Mirrors
+  geant top_radius; 
+  geant bottom_radius;
+  geant hole_radius;
+  geant height;
+  geant inner_mirror_height;
+  // Radiator
+  geant radiator_radius;
+  geant radiator_height;
+  geant radiator_box_length; // The aerogel is an array of this length
+  // lighguides and PMT
+  geant light_guides_height; // Unused
+  geant light_guides_length;
 };
 #define RICGEOM COMMON_BLOCK(RICGEOM,ricgeom)
 COMMON_BLOCK_DEF(RICGEOM_DEF,RICGEOM);
 
 class RICCONTROLFFKEY_DEF{
-public:
-integer iflgk_flag;
-integer tsplit; // Allows task time spliting at the end of the job for OPTIMIZATION
-integer pmttables[50];     // Precomputed input PMT tables if any
-integer pmttables_out[50]; // Output of precomputed PMT tables if any
+ public:
+  integer iflgk_flag;
+  integer tsplit; // Allows task time spliting at the end of the job for OPTIMIZATION
+  integer pmttables[50];     // Precomputed input PMT tables if any
+  integer pmttables_out[50]; // Output of precomputed PMT tables if any
 };
 #define RICCONTROLFFKEY COMMON_BLOCK(RICCONTROLFFKEY,riccontrolffkey)
 COMMON_BLOCK_DEF(RICCONTROLFFKEY_DEF,RICCONTROLFFKEY);
 
 
 class RICRADSETUPFFKEY_DEF{
-public:
-integer setup;  // Allows to choose among several differen geometries
-integer tables_in[50];     // Input file of radiator tables
-integer tables_out[50];    // Output file of radiator tables
-integer finemesh_in[50]; 
-integer alignment_in[50];  // alignment input file, if any  
+ public:
+  integer setup;  // Allows to choose among several differen geometries
+  integer tables_in[50];     // Input file of radiator tables
+  integer tables_out[50];    // Output file of radiator tables
+  integer finemesh_in[50]; 
+  integer alignment_in[50];  // alignment input file, if any  
 };
 #define RICRADSETUPFFKEY COMMON_BLOCK(RICRADSETUPFFKEY,ricradsetupffkey)
 COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);
 
 
 class RICRECFFKEY_DEF{
-public:
-integer recon[2];
-integer liprflag[2];  // LIP reconstruction flags
-float   lipsigma[4];  // LIP residuals sigmas
-float   lipdcut[2];   // LIP distance cut in sigmas
-float   lipznorm[2];  // LIP charge overall factors
-integer lipdisp;      // LIP display flag
-integer store_rec_hits;
+ public:
+  integer recon[2];
+  integer liprflag[2];  // LIP reconstruction flags
+  float   lipsigma[4];  // LIP residuals sigmas
+  float   lipdcut[2];   // LIP distance cut in sigmas
+  float   lipznorm[2];  // LIP charge overall factors
+  integer lipdisp;      // LIP display flag
+  integer store_rec_hits;
 };
 #define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
 COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);
@@ -1205,10 +1205,10 @@ COMMON_BLOCK_DEF(RICDBFFKEY_DEF,RICDBFFKEY);
 
 class
 RICGTKOV_DEF{
-public:
-geant usrcla;
-geant scatprob;
-geant scatang;
+ public:
+  geant usrcla;
+  geant scatprob;
+  geant scatang;
 };
 
 #define RICGTKOV COMMON_BLOCK(RICGTKOV,gtckovext)
@@ -1216,9 +1216,9 @@ COMMON_BLOCK_DEF(RICGTKOV_DEF,RICGTKOV);
 
 class
 PRODFFKEY_DEF{
-public:
-integer Debug;
-integer Job;
+ public:
+  integer Debug;
+  integer Job;
 };
 
 #define PRODFFKEY COMMON_BLOCK(PRODFFKEY,prodffkey)
@@ -1417,14 +1417,14 @@ COMMON_BLOCK_DEF(LIPF2C_DEF,LIPF2C);
 // output parameters, obsolete (FOR DEBUGGING ONLY!)
 
 class LIPVAR_DEF{
-public:
-int   liphused;
-geant lipthc;
-geant lipbeta;
-geant lipebeta;
-geant liplikep;
-geant lipchi2;
-geant liprprob;
+ public:
+  int   liphused;
+  geant lipthc;
+  geant lipbeta;
+  geant lipebeta;
+  geant liplikep;
+  geant lipchi2;
+  geant liprprob;
 };
 #define LIPVAR COMMON_BLOCK(LIPVAR,lipvar)
 COMMON_BLOCK_DEF(LIPVAR_DEF,LIPVAR);
