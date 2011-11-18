@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.98 2011/11/18 11:02:20 sdifalco Exp $
+//  $Id: ecaldbc.C,v 1.99 2011/11/18 12:14:14 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -10,6 +10,8 @@
 #include "ecaldbc.h"
 #include <stdio.h>
 #include "ecalcalib.h"
+#include "event.h"
+#include "ntuple.h"
 #include <fstream>
 //
 using namespace ecalconst;
@@ -18,6 +20,8 @@ uinteger ECcalib::CFlistC[7];
 ECcalibMS ECcalibMS::ecpmcal[ECSLMX][ECPMSMX];// the same for MC-Seeds params
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
+ECTslope ECTslope::ecpmtslo[ECSLMX][ECPMSMX];// mem.reserv.for ECAL Temperature slopes 
+uinteger ECTslope::CFlistC[7]; 
 //-----------------------------------------------------------------------
 //  =====> ECALDBc class variables definition :
 //
@@ -1751,6 +1755,8 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   // ---> read common(hope) adc2mev convertion factor(abs.norm):
   //
   anrfile >> adc2mev;
+  // DEBUG
+  if (ECREFFKEY.reprtf[1]==2) cout << "ADC2MEV=" << adc2mev << endl;
   //
   // ---> read endfile-label:
   //
@@ -2292,3 +2298,272 @@ void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing o
 }
 //
 //==========================================================================
+//==========================================================================
+//  ECTslope class functions :
+//
+void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
+  char fname[80];
+  char name[80];
+  char datt[3];
+  char ext[80];
+  int ntypes;
+  uinteger verids[10];
+  int date[2],year,mon,day,hour,min,sec;
+  tm begin;
+  time_t utct;
+  uinteger iutct;
+  int ctyp;
+  uinteger verid;
+  //
+  integer slmx,pmmx;
+  integer scmx=4;// max.SubCells(pixels) in PM
+  slmx=ECSLMX;//max.S-layers
+  pmmx=ECPMSMX;//max.PM's in S-layer
+  //
+  int cnum;
+  geant tslope[ECPMSL][4];
+  integer endflab;
+  integer sid;
+  geant tslopesc[4];
+  //
+  // ---> read list of calibration-files version-numbers (menu-file) :
+  //
+  strcpy(name,"EcalCflist");// basic name for vers.list-file  
+  if(AMSJob::gethead()->isMCData()){
+    strcpy(datt,"MC");
+    sprintf(ext,"%d",ECMCFFKEY.calvern);//MC-versn
+  }
+  else{
+    strcpy(datt,"RD");
+    sprintf(ext,"%d",ECREFFKEY.calutc);//RD-utc
+  }
+  strcat(name,datt);
+  strcat(name,".");
+  strcat(name,ext);
+  //
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"====> ECTslope::build:Opening Calib_vers_list-file: "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"<---- ECTslope_build:Error: missing Calib_vers_list-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> verids[i];
+    CFlistC[i+1]=verids[i]; 
+  }
+  CFlistC[0]=ntypes;
+  //
+  if(AMSJob::gethead()->isMCData()){
+    vlfile >> date[0];//YYYYMMDD beg.validity of TofCflistMC.ext file
+    vlfile >> date[1];//HHMMSS ......................................
+    year=date[0]/10000;//2004->
+    mon=(date[0]%10000)/100;//1-12
+    day=(date[0]%100);//1-31
+    hour=date[1]/10000;//0-23
+    min=(date[1]%10000)/100;//0-59
+    sec=(date[1]%100);//0-59
+    begin.tm_isdst=0;
+    begin.tm_sec=sec;
+    begin.tm_min=min;
+    begin.tm_hour=hour;
+    begin.tm_mday=day;
+    begin.tm_mon=mon-1;
+    begin.tm_year=year-1900;
+    utct=mktime(& begin);
+    iutct=uinteger(utct);
+    cout<<"      EcalCflistMC-file begin_date: year:month:day = "<<year<<":"<<mon<<":"<<day<<endl;
+    cout<<"                                     hour:min:sec = "<<hour<<":"<<min<<":"<<sec<<endl;
+    cout<<"                                         UTC-time = "<<iutct<<endl;
+    CFlistC[ntypes+1]=ECMCFFKEY.calvern;
+    CFlistC[ntypes+2]=date[0];
+    CFlistC[ntypes+3]=date[1];
+  }
+  else{
+    utct=time_t(TFREFFKEY.calutc);
+    printf("      EcalCflistRD-file begin_date: %s",ctime(&utct)); 
+    CFlistC[ntypes+1]=ECREFFKEY.calutc;
+  }
+  //
+  vlfile.close();
+  //------------------------------
+  //
+  //   --->  Read Tslope calib. file :
+  //
+  if (ntypes<4) {
+    cout << "WARNING: EcalCflist file too hold for T slopes: no T correction applied" << endl;
+    for(int isl=0;isl<slmx;isl++){
+      for(int ipm=0;ipm<pmmx;ipm++){
+	cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
+	sid=(ipm+1)+100*(isl+1);
+	for(int isc=0;isc<4;isc++) tslopesc[isc]=0.;
+	ecpmtslo[isl][ipm]=ECTslope(sid,tslopesc);
+      }
+    }
+    return;
+  }
+
+  ctyp=4;//1st type of calibration is RLGA(really may be single)
+  verid=verids[ctyp-1];//MC-versn or RD-utc
+  strcpy(name,"EcalTslo");
+  strcat(name,datt);
+  strcat(name,".");
+  sprintf(ext,"%d",verid);
+  strcat(name,ext);
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"      Opening Tslo-calib file "<<fname<<" ..."<<endl;
+  ifstream tslofile(fname,ios::in); // open  file for reading
+  if(!tslofile){
+    cerr <<"<---- ECTslope_build: Error: missing Tslo-file !!? "<<fname<<endl;
+    exit(1);
+  }
+  // ---> read PM-SubCell Temperature Slopes:
+  //
+  for(int isl=0;isl<slmx;isl++){   
+    for(int isc=0;isc<4;isc++){   
+      for(int ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        tslofile >> tslope[cnum][isc];
+      }
+    }
+  }
+  // TSLOPE reading DEBUG
+  if (ECREFFKEY.reprtf[1]==2){
+    for(int isl=0;isl<slmx;isl++){   
+      for(int isc=0;isc<4;isc++){   
+	for(int ipm=0;ipm<pmmx;ipm++){ 
+	  cout << "********* PMT " << ipm << " ";
+	  cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324) 
+	  cout <<  tslope[cnum][isc] << endl;
+	}
+	cout << endl;
+      }
+      cout << endl;
+    }
+  }
+  // ---> read endfile-label:
+  //
+  tslofile >> endflab;
+  //
+  tslofile.close();
+  if(endflab==12345){
+    cout<<"      Tslo-calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"<---- ECTslope::build: ERROR: problems while reading Tslo-calib.file !!?"<<endl;
+    exit(1);
+  }
+  //
+  for(int isl=0;isl<slmx;isl++){
+    for(int ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
+      sid=(ipm+1)+100*(isl+1);
+      for(int isc=0;isc<4;isc++) tslopesc[isc]=tslope[cnum][isc];
+      ecpmtslo[isl][ipm]=ECTslope(sid,tslopesc);
+    }
+  }
+  cout<<"<---- ECTslope::build: successfully done !"<<endl<<endl;
+}
+//-----------------------------------------------------------
+int ECTslope::GetECALSensorTemper(int superlayer,int column,float* temp){
+
+  const int nSUPERLAYERs=9;
+  const int nCOLUMNs=36;
+    
+  const int nFACEs=4;
+  const int nCOLUMNGROUPs=3;
+  const int nSENSORGROUPs=2;
+  const int nNODEs=2;
+
+  vector<float> values;
+  int stat;
+  char tchar[255];
+  float ftemp[4];
+  float tempecal[24];
+
+  unsigned int fTime;
+  float frac;
+
+  string facename[nFACEs]={"STAR","WAKE","PORT","RAM "};
+  string columngroupname[nCOLUMNGROUPs]={"0-11","12-23","24-35"};
+
+
+  string SensorName[nFACEs][nCOLUMNGROUPs][nSENSORGROUPs]={
+    {  
+      {"S1","S2"},
+      {"S3","S4"},
+      {"S5","S6"}},
+    {
+      {"W1","W2"},
+      {"W3","W4"},
+      {"W5","W6"}},
+    {
+      {"P5","P6"},
+      {"P3","P4"},
+      {"P1","P2"}},
+    {
+      {"R5","R6"},
+      {"R3","R4"},
+      {"R1","R2"}}
+  };
+
+  string NodeName[nNODEs]={"JPD_A","JPD_D"};
+
+  int columnsingroup;
+  columnsingroup= nCOLUMNs/nCOLUMNGROUPs;
+  int columngroup;
+  columngroup = (int)(column/columnsingroup);
+  int face;
+  if ( superlayer %2 == 0 ) { // Y view
+    if (column%2 == 0 ){ // face A
+      face = 0;
+    }
+    else{ // face C
+      face = 2;
+    }
+  }
+  else{ // X view
+    if (column%2 == 0 ){ // face B
+      face = 1;
+    }
+    else{ // face D
+      face = 3;
+    }
+  }
+
+  //Header:    
+  fTime = AMSEvent::gethead()->gettime();
+  frac= float(AMSEvent::gethead()->getusec())/1000000.;
+  //cout << "Time= " << fTime << " " << " frac=" << frac << endl;
+
+  int methode(1);
+
+  char elemname[22];
+  int nsens=0;
+  *temp=0;
+  for (int isensorgroup=0;isensorgroup<nSENSORGROUPs;isensorgroup++){
+    sprintf(elemname,"ECAL %s",SensorName[face][columngroup][isensorgroup].data());
+    if (ECREFFKEY.reprtf[1]==3)    cout << elemname << endl;
+    for (int inode=0;inode<nNODEs;inode++){
+      stat=AMSNtuple::Get_setup02()->fSlowControl.GetData(elemname,fTime, frac,values,methode,NodeName[inode].data());
+      //cout << "STAT=" << stat << endl;
+      if (ECREFFKEY.reprtf[1]==3)  cout << NodeName[inode].c_str() << " " << values[0] << endl;
+      if (stat == 0) {
+	*temp+=values[0];
+	nsens++;
+      }
+    }
+  }
+  if (nsens==0) {
+    *temp=-999.;
+    return 1;
+  }
+   
+  *temp/=nsens;
+
+  return 0;
+}
