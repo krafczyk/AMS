@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.57 2011/11/18 11:06:09 sdifalco Exp $
+//  $Id: ecalrec.h,v 1.58 2011/11/18 11:23:52 sdifalco Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -127,6 +127,7 @@ class AMSEcalRawEvent: public AMSlink{
     static    AMSID  getTDVcalib(){return AMSID("Ecalpmcalib",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVcalibMS(){return AMSID("EcalpmcalibMS",AMSJob::gethead()->isRealData());}
     static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
+    static    AMSID  getTDVcalibTslo(){return AMSID("EcalTslo",AMSJob::gethead()->isRealData());}
  protected:
     void _printEl(ostream &stream){
       int i;
