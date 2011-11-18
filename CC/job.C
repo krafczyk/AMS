@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.834 2011/11/18 11:03:40 sdifalco Exp $
+// $Id: job.C,v 1.835 2011/11/18 12:28:02 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -847,14 +847,16 @@ void AMSJob::_simag2data(){
 }
 //===============================================================================
 void AMSJob::_siecaldata(){
-  ECMCFFKEY.fastsim=0;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
+  ECMCFFKEY.fastsim=0;      //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
   ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
-  ECMCFFKEY.mev2mev=58.86;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
+  //  ECMCFFKEY.mev2mev=58.86;
+  ECMCFFKEY.mev2mev=30.12;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
   //                                                   to have Tot.MCMeas=Einp(at center,at 500 kev geant3 cut)
-  ECMCFFKEY.mev2adc=2.042;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
+  //  ECMCFFKEY.mev2adc=2.042; //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
+  ECMCFFKEY.mev2adc=2.12585;  //inverse of adc2mev from Test Beam
   ECMCFFKEY.safext=-10.;    //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
@@ -878,7 +880,7 @@ void AMSJob::_siecaldata(){
   //     
   ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|MCPeds:C=1/0->Read MSCalibFile/DB
   //                                          P=1/0->ReadFromFile/ReadFromDB
-  ECMCFFKEY.calvern=2;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
+  ECMCFFKEY.calvern=3;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
   //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
   // 
@@ -890,18 +892,20 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cladgluex=0.01135; //(36) fiber clad+glue horizontal thickness (cm)  
   ECMCFFKEY.cladgluey=0.01135; //(37) fiber clad+glue vertical thickness (cm) 
   ECMCFFKEY.gap=0.; //(38) thickness (cm) of segments of glue between fibers of the same fiber layer
-  ECMCFFKEY.endplate=1; // (39) If <>0 insert an Aluminum plate at the end of last superlayer
+  ECMCFFKEY.endplate=1; // (39) If >0 insert an Aluminum plate at the end of last superlayer
   
   for (int ilayer=0;ilayer<18;ilayer++){
     ECMCFFKEY.claddxy[2*ilayer]=0.; //(40-75)clad+glue additional horiz. th.  
     ECMCFFKEY.claddxy[2*ilayer+1]=0.;//(40-75)clad+glue additional vert. th.  
   }
+  ECMCFFKEY.g4cutge=1.; // (76) Factor to divide the standard minimum range for photons and electrons in g4physics.C
+  ECMCFFKEY.Tsim=23.; // (77) Temperature for MC simulation (equal to the test beam ECREFFKEY.Tref means no T corrections applied)
   FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
 void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;   // (1) print flag (0/1/2->no/summ/+hist)
-  ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes)
+  ECREFFKEY.reprtf[1]=0;   // (2) print_profile flag (0/1->no/yes) 2: print mevtot
   ECREFFKEY.reprtf[2]=0;   // (3) DAQ-debug prints: 0/1/2/>2 (nodebug/Errors/fulldebug)
   //
   ECREFFKEY.relogic[0]=1;  // (4) 1/0->write/not EcalHits into Ntuple
@@ -938,7 +942,8 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[8]=0.;     // (32)
   ECREFFKEY.cuts[9]=0.65;   // (33) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
   //
-  ECREFFKEY.ReadConstFiles=100;//(34)DCP (ThreshCuts-set | Calib.const(MC/RD) | RDpeds)
+  ECREFFKEY.ReadConstFiles=100;//(34)TDCP (Temperature slopes | ThreshCuts-set | Calib.const(MC/RD) | RDpeds)
+  //                            T=1/0-> Take from CalibFiles/DB
   //                            D=1/0-> Take from DataCards/DB
   //                            C=1/0-> Take from CalibFiles/DB
   //                            P=1/0-> Take from CalibFiles/DB
@@ -946,51 +951,52 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.calutc=1199142001;//(35)(20080101 ~0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
   //
   ECREFFKEY.Thr1DSeed=3;//(36) this and below is for Vitali's clust. algorithm
-  ECREFFKEY.Thr1DRSeed=0.05;
-  ECREFFKEY.Cl1DLeakSize=9;
-  ECREFFKEY.Cl1DCoreSize=2;
-  ECREFFKEY.Thr2DMax=1.2;  //max tan(theta)
-  ECREFFKEY.Length2DMin=3;
-  ECREFFKEY.Chi22DMax=1000;
-  ECREFFKEY.PosError1D=0.1;
-  ECREFFKEY.Chi2Change2D=0.33;
-  ECREFFKEY.TransShowerSize2D=10;
-  ECREFFKEY.SimpleRearLeak[0]=-0.015;
+  ECREFFKEY.Thr1DRSeed=0.05; // (37)
+  ECREFFKEY.Cl1DCoreSize=2; // (38)
+  ECREFFKEY.Cl1DLeakSize=9;  // (39)
+  ECREFFKEY.Thr2DMax=1.2;  // (40) max tan(theta)
+  ECREFFKEY.Length2DMin=3; // (41) 
+  ECREFFKEY.Chi22DMax=1000; // (42) 
+  ECREFFKEY.PosError1D=0.1; // (43)
+  ECREFFKEY.Chi2Change2D=0.33; // (44)
+  ECREFFKEY.TransShowerSize2D=10; // (45)
+  ECREFFKEY.SimpleRearLeak[0]=-0.015; // (46-49)
   ECREFFKEY.SimpleRearLeak[1]=0.952e-3;
   ECREFFKEY.SimpleRearLeak[2]=3.1;
   ECREFFKEY.SimpleRearLeak[3]=0.9984e-3;  //  ==  [1]/(1-abs([0])*[2])
 
-  ECREFFKEY.ealpha0=-3.0;
-  ECREFFKEY.ebeta=75.2;
-  ECREFFKEY.egamma=563.3;
-  ECREFFKEY.ealpha_par[0]=-5.;
-  ECREFFKEY.ealpha_par[1]=0.0143;
-
-
   //LAPP rear-leakage correction parameters (M.P.)
-  ECREFFKEY.LAPPRearLeak[0]=1.055;
+  ECREFFKEY.LAPPRearLeak[0]=1.055;   // (50-53)
   ECREFFKEY.LAPPRearLeak[1]=0.0016;
   ECREFFKEY.LAPPRearLeak[2]=1.589;
   ECREFFKEY.LAPPRearLeak[3]=0.035; 
   // end of LAPP parameters
 
-  ECREFFKEY.CalorTransSize=32;
-  ECREFFKEY.EMDirCorrection=1.03;
-  ECREFFKEY.HiEnThr=1650;
-  ECREFFKEY.HiEnCorFac=0.225;
-  ECREFFKEY.S1S3[0]=0.6;
+  ECREFFKEY.ealpha0=-3.0; // (54)
+  ECREFFKEY.ebeta=75.2;   // (55)
+  ECREFFKEY.egamma=563.3;  // (56)
+  ECREFFKEY.ealpha_par[0]=-5.; // (57-58)
+  ECREFFKEY.ealpha_par[1]=0.0143;
+
+
+
+  ECREFFKEY.CalorTransSize=32;  // (59)
+  ECREFFKEY.EMDirCorrection=1.03; // (60)
+  ECREFFKEY.HiEnThr=1650;        // (61)
+  ECREFFKEY.HiEnCorFac=0.225;  // (62)
+  ECREFFKEY.S1S3[0]=0.6;  // (63-66)
   ECREFFKEY.S1S3[1]=0.25;
   ECREFFKEY.S1S3[2]=0.4;
   ECREFFKEY.S1S3[3]=0.8;
 
-  ECREFFKEY.S1S3X[0]=0.529;
+  ECREFFKEY.S1S3X[0]=0.529; // (67-72)
   ECREFFKEY.S1S3X[1]=0.753;
   ECREFFKEY.S1S3X[2]=0.922;
   ECREFFKEY.S1S3X[3]=47.25;
   ECREFFKEY.S1S3X[4]=-104.;
   ECREFFKEY.S1S3X[5]=-0.006;
  
-  ECREFFKEY.S1S3Y[0]=0.517;
+  ECREFFKEY.S1S3Y[0]=0.517; // (73-78)
   ECREFFKEY.S1S3Y[1]=0.743;
   ECREFFKEY.S1S3Y[2]=0.933;
   ECREFFKEY.S1S3Y[3]=49.19;
@@ -998,29 +1004,31 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3Y[5]=-0.193;
 
   //LAPP impact-point correction parameters X and Y sides (M.P.)
-  ECREFFKEY.S1S3XA[0]=0.38;
+  ECREFFKEY.S1S3XA[0]=0.38; // (79-82)
   ECREFFKEY.S1S3XA[1]=0.715;
   ECREFFKEY.S1S3XA[2]=0.75;
   ECREFFKEY.S1S3XA[3]=0.5;
       
-  ECREFFKEY.S1S3YA[0]=0.44;
+  ECREFFKEY.S1S3YA[0]=0.44; // (83-86) 
   ECREFFKEY.S1S3YA[1]=0.67;
   ECREFFKEY.S1S3YA[2]=0.735;
   ECREFFKEY.S1S3YA[3]=0.5;
   // end of LAPP parameters
 
-  ECREFFKEY.sec[0]=0;//54 
+  ECREFFKEY.sec[0]=0;//  (87-88)
   ECREFFKEY.sec[1]=0;//
-  ECREFFKEY.min[0]=0;//
+  ECREFFKEY.min[0]=0;//  (89-90)
   ECREFFKEY.min[1]=0;//
-  ECREFFKEY.hour[0]=0;//
+  ECREFFKEY.hour[0]=0;// (91-92) 
   ECREFFKEY.hour[1]=0;//
-  ECREFFKEY.day[0]=1;//
+  ECREFFKEY.day[0]=1;//  (93-94)
   ECREFFKEY.day[1]=1;//
-  ECREFFKEY.mon[0]=0;//
+  ECREFFKEY.mon[0]=0;//  (95-96)
   ECREFFKEY.mon[1]=0;//
-  ECREFFKEY.year[0]=108;//64
-  ECREFFKEY.year[1]=125;//65
+  ECREFFKEY.year[0]=108;// (97-98)
+  ECREFFKEY.year[1]=125;//
+  ECREFFKEY.Tref=23.;// (99)
+
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //
   // REUN-Calibration  parameters:
@@ -2784,8 +2792,16 @@ void AMSJob::_reecalinitjob(){
   //-----------
   // 
   // ===> create Cuts/Thresh parameters (ecalvpar structure) fr.data-cards :
-  //              ECREFFKEY.ReadConstFiles=DCP
-  if(ECREFFKEY.ReadConstFiles/100>0){//D Thresh/Cuts-object will be created from data-cards  
+  //              ECREFFKEY.ReadConstFiles=TDCP
+  //-------------------------
+  // ===> create EC-SubCell Temperature Slopes:
+  //
+  
+  if((ECREFFKEY.ReadConstFiles%10000)/1000>0 && (isRealData() || ECMCFFKEY.calvern >= 3) ){
+    ECTslope::build();
+  }
+  
+  if((ECREFFKEY.ReadConstFiles%1000)/100>0){//D Thresh/Cuts-object will be created from data-cards  
     ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);
     cout<<" <--- ecalvpar(datacards) init done..."<<endl;
   }
@@ -3872,7 +3888,7 @@ void AMSJob::_timeinitjob(){
     end.tm_mon=ECREFFKEY.mon[1];
     end.tm_year=ECREFFKEY.year[1];
     //--------
-    //ecre->DCP; ecmc->CP
+    //ecre->TDCP; ecmc->CP
     //
     if((ECREFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
 
@@ -3880,10 +3896,16 @@ void AMSJob::_timeinitjob(){
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
 			   begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
 			   (void*)&ECcalib::ecpmcal[0][0],server,needval));
-
-    end.tm_year=ECREFFKEY.year[1];
+    end.tm_year=ECREFFKEY.year[1];    
+    //--------  
+    if((ECREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
+    TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibTslo(),
+			   begin,end,ecalconst::ECPMSL*sizeof(ECTslope::ecpmtslo[0][0]),
+			   (void*)&ECTslope::ecpmtslo[0][0],server,needval));
+    end.tm_year=ECREFFKEY.year[1];          
+    //
     //--------                                
-    if((ECREFFKEY.ReadConstFiles/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
+    if(((ECREFFKEY.ReadConstFiles%1000)/100)==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThresh/Cuts fromDB
 
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
 			   begin,end,sizeof(ECALVarp::ecalvpar),
@@ -3910,8 +3932,8 @@ void AMSJob::_timeinitjob(){
 			   begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
 			   (void*)&ECPMPeds::pmpeds[0][0],server,needval));
     end.tm_year=ECREFFKEY.year[1];
-    //--------
-  }
+    //-------- 
+	}
   //
   //---------------------------------------
   //
