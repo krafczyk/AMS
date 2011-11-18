@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.329 2011/11/18 11:07:32 sdifalco Exp $
+//  $Id: commons.h,v 1.330 2011/11/18 11:15:29 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -393,6 +393,8 @@ class ECMCFFKEY_DEF {
   float gap; // thickness of the gap from fiber to fiber 
   integer endplate;// flag to insert Aluminum end plate (0=not inserted) 
   float claddxy[36]; // clad+glue thick. horiz./vert. variation in layer
+  float g4cutge;     // Factor to divide the standard minimum range for photons and electrons in g4physics.C
+  float Tsim;      // Temperature for MC simulation
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
@@ -440,6 +442,7 @@ class ECREFFKEY_DEF {
   integer day[2];
   integer mon[2];
   integer year[2];
+  float Tref; // Reference temperature at which ADC2MeV is calculated
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
