@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.159 2011/11/18 11:56:49 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.160 2011/11/18 13:25:08 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -247,6 +247,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number an4resp,an4respt,an4qin;// (for trigger)
   number qin,saturf,a4maxq(0);
   integer adchmx,adclmx,adcdmx;
+  float Tsim,Tref,deltaT,Tcorr;
+  float mevtot;
   //
   nslmx=ECALDBc::slstruc(3);
   npmmx=ECALDBc::slstruc(4);
@@ -274,6 +276,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       dytmap[il][ipm]=0;
     }
   }
+  mevtot=0.;
   //
   for(il=0;il<nslmx;il++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
@@ -326,20 +329,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  //
           pmdis=coo+hflen;//to count from "-" edge of fiber (0-2*hflen)
           if(rdir<0)pmdis=2.*hflen-pmdis;
-	  lfs=ECcalibMS::ecpmcal[il][pm].alfast();//att_len(fast comp) from DB(MC-Seeds)
-	  lsl=ECcalibMS::ecpmcal[il][pm].alslow();//att_len(slow comp) from DB(MC-Seeds)
-	  ffr=ECcalibMS::ecpmcal[il][pm].fastfr();//fast comp. fraction from DB(MC-Seeds)
+	  lfs=ECcalib::ecpmcal[il][pm].alfast();//att_len(fast comp) from DB(MC-Seeds)
+	  lsl=ECcalib::ecpmcal[il][pm].alslow();//att_len(slow comp) from DB(MC-Seeds)
+	  ffr=ECcalib::ecpmcal[il][pm].fastfr();//fast comp. fraction from DB(MC-Seeds)
           attfdir=(1.-ffr)*exp(-pmdis/lsl)+ffr*exp(-pmdis/lfs);//fiber att.factor(direct light)
 	  attfrfl=((1-ffr)*exp(-(2*hflen-pmdis)/lsl)+ffr*exp(-(2*hflen-pmdis)/lfs))
 	    *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl)
           attf=0.5*(attfdir+attfrfl);
-	  //          attfdir0=(1.-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs);//fiber att.factor(direct light, center)
-	  //	  attfrfl0=((1-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs))
-	  //	         *((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl, center)
-	  //          attf0=0.5*(attfdir0+attfrfl0);
-	  //          edepr=edep*0.5*(attfdir+attfrfl)*ww[j];//geant dE/dX(mev) + Attenuation for direct/refl
           edepr=edep*attf*ww[j];//geant dE/dX(mev) + Attenuation for direct/refl light
-	  //	  edepr=edep*attf*ww[j]/attf0;
           sum[pm][sc]+=edepr;
           edeprt+=edepr;
 	}
@@ -350,28 +347,49 @@ void AMSEcalRawEvent::mc_build(int &stat){
     //
     //
     for(int ipm=0;ipm<npmmx;ipm++){ // <------- loop over PM's in this(il) S-layer
-      a2dr=ECcalibMS::ecpmcal[il][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
+      a2dr=ECcalib::ecpmcal[il][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
       //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
-      pmrgn=ECcalibMS::ecpmcal[il][ipm].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
+      pmrgn=ECcalib::ecpmcal[il][ipm].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
       ECPMPeds::pmpeds[il][ipm].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
       ECPMPeds::pmpeds[il][ipm].getsigh(sigh);
       ECPMPeds::pmpeds[il][ipm].getpedl(pedl);
       ECPMPeds::pmpeds[il][ipm].getsigl(sigl);
       pedd=ECPMPeds::pmpeds[il][ipm].pedd();
       sigd=ECPMPeds::pmpeds[il][ipm].sigd();
+      //---  
+      lfs=ECcalib::ecpmcal[il][ipm].alfast();//att_len(fast comp) from DB(MC-Seeds)
+      lsl=ECcalib::ecpmcal[il][ipm].alslow();//att_len(slow comp) from DB(MC-Seeds)
+      ffr=ECcalib::ecpmcal[il][ipm].fastfr();//fast comp. fraction from DB(MC-Seeds)
+      attfdir0=(1.-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs);//fiber att.factor(direct light, center)
+      attfrfl0=((1-ffr)*exp(-hflen/lsl)+ffr*exp(-hflen/lfs))
+  	*((1-ffr)*exp(-2*hflen/lsl)+ffr*exp(-2*hflen/lfs))*ECMCFFKEY.fendrf;//(refl, center)
+      attf0=0.5*(attfdir0+attfrfl0);
+      //
       //---
       an4qin=0;//PM Anode-resp(4cells,pC)
-      for(ic=0;ic<4;ic++)pmedepr[ic]=0;
-      
+      for(ic=0;ic<4;ic++)pmedepr[ic]=0; 
+      Tref= ECREFFKEY.Tref;
+      Tsim= ECMCFFKEY.Tsim;
+      deltaT=0.; // deltaT=Tsim-Tref; (not implemented yet)        
       for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
         if(sum[ipm][ic]>0){
-	  scgn=ECcalibMS::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
+	  scgn=ECcalib::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
+  	  // include Gain dependence on Temperature (not implemented: deltaT=0)
+ 	  Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
+ 	  if ( Tcorr > 0 ){
+  	    scgn/=Tcorr;
+  	  }
+  	  else{
+  	    cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
+  	  }
+ 	  //
 	  ares=0.;
 	  phel=sum[ipm][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
 	  if(phel>=1){
 	    ares=ECMCFFKEY.pmseres/sqrt(phel);//ampl.resol.
-            edepr=sum[ipm][ic]*(1.+ares*rnormx())*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Evis(Mev)(incl.amp.fluct)
+            // New definition of MeV2MeV (12 nov 2011)            
+	    edepr=sum[ipm][ic]*(1.+ares*rnormx())/attf0*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Evis(Mev)(incl.amp.fluct)
 	  }
 	  else edepr=0;
 	  if(edepr<0)edepr=0;
@@ -393,13 +411,22 @@ void AMSEcalRawEvent::mc_build(int &stat){
       dyen=0.;
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
         EcalJobStat::addzprmc2(il,sum[ipm][k]);//geant SL(PM-assigned)-profile
-	h2lr=ECcalibMS::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
-	h2lo=ECcalibMS::ecpmcal[il][ipm].hi2lowo(k);//PM subcell high/low ratio from DB
-	scgn=ECcalibMS::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
+	h2lr=ECcalib::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
+	h2lo=ECcalib::ecpmcal[il][ipm].hi2lowo(k);//PM subcell high/low ratio from DB
+	scgn=ECcalib::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
+ 	// Gain dependence on Temperature (not implemented yet: deltaT=0)
+ 	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
+  	if ( Tcorr > 0 ){
+  	  scgn/=Tcorr;
+  	}
+  	else{
+  	  cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
+  	} 
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)
 	emeast+=edepr;
 	anen+=saturf*edepr/scgn;//sum for 4xSubc. signal(for trig.study)
 	dyen+=edepr;//summing to get dyn.signal for FT and Dadc(no satur.for Dynode ??)
+	mevtot+=edepr;
 	// ---------> digitization:
 	// High-gain channel:
         radc=saturf*edepr*mev2adc/scgn;//Evis(mev)->indiv.Em(adc)
@@ -742,6 +769,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
     HF1(ECHIST+19,geant(trigfl),1.);
   }
   if(trflen>=2)stat=0;
+  // DEBUG
+  if (ECREFFKEY.reprtf[1]==2) cout << "///////////////////////////// MEVTOT=" << mevtot << " //////////" <<endl;
   return;
 }
 
@@ -816,6 +845,10 @@ void AMSEcalHit::build(int &stat){
   number bedep[4],bfadc[4],edepgd,dedep,etrue,edcort;
   AMSEcalRawEvent * ptr;
   AMSEcalRawEvent * ptrn;
+  geant scgn,deltaT,Tcorr;
+  geant mevtot;
+  int ReadTemp;
+  float T_PMT;
   //
   stat=1;//bad
   nhits=0;
@@ -824,6 +857,7 @@ void AMSEcalHit::build(int &stat){
   emeast=0.;
   edcort=0.;
   adchovfl=ECADCMX[0]-1;//default 
+  mevtot=0.; 
   if(AMSJob::gethead()->isRealData() && AMSEvent::gethead()->getrun()<1265450278)adchovfl=2000;//due to err in DSP
   //
   for(int nc=0;nc<AMSECIds::ncrates();nc++){ // <-------------- cr. loop
@@ -903,7 +937,32 @@ void AMSEcalHit::build(int &stat){
       if(ids.HCHisBad())sta|=AMSDBc::ECHCISBAD;
       if(ids.LCHisBad())sta|=AMSDBc::ECLCISBAD;
       //
-      edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);// adc gain corr(really 1/pmrg/pmscg
+      // read temperature from map
+      if (AMSJob::gethead()->isRealData()){
+ 	ReadTemp= ECTslope::ecpmtslo[isl][pmc].GetECALSensorTemper(isl,pmc,&T_PMT);
+ 	if (ReadTemp==0) {	  
+ 	  deltaT=T_PMT-ECREFFKEY.Tref;
+ 	}
+ 	else{
+ 	  cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
+	  deltaT=0;
+	}
+      }
+      else{
+ 	deltaT=ECMCFFKEY.Tsim-ECREFFKEY.Tref;
+      }
+      //
+      scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
+      // correct for Gain dependence on Temperature
+      deltaT=0.; // T correction not implemented yet
+      Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
+      if ( Tcorr > 0 ){
+  	scgn/=Tcorr;
+      }
+      else{
+  	cout << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
+      }
+      edep=fadc*scgn;
       //      (because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
       if(ECREFFKEY.reprtf[0]>1 && edep>2){
 #pragma omp critical (hf1)
@@ -915,6 +974,7 @@ void AMSEcalHit::build(int &stat){
       adct+=edep;//tot.adc
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       if(fadc>0.){// store good (h+l)-hit info in buffer:
+	mevtot+=edep;
 	bsta[nsubc]=sta;
 	bsubc[nsubc]=subc+1;
 	bid[nsubc]=id;
@@ -1027,6 +1087,8 @@ void AMSEcalHit::build(int &stat){
     }
   }
   if(nhits>0)stat=0;
+  // DEBUG
+  if (ECREFFKEY.reprtf[1]==2) cout << "****************************** MEVTOT=" << mevtot << " ******" << endl; 
 }
 
 //---------------------------------------------------
@@ -3696,6 +3758,8 @@ void AMSEcalRawEvent::setTDV(){
   if(ptdv)ptdv->Verify()=true;
   ptdv = AMSJob::gethead()->gettimestructure(getTDVvpar());
   if(ptdv)ptdv->Verify()=true;
+  ptdv = AMSJob::gethead()->gettimestructure(getTDVcalibTslo());
+  if(ptdv)ptdv->Verify()=true; 
 }
 
 
