@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.702 2011/11/18 13:17:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.703 2011/11/18 14:24:53 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19574,7 +19574,13 @@ sub UploadToDisks{
 # 
     my ($self,$dir,$verbose,$update,$run2p,$filesystem)= @_;
                                                                                 
+    my $datamc=0;
+    my $runsn='runs';
   my $castorPrefix = '/castor/cern.ch/ams';
+    if ($dir=~'/Data/'){
+     $datamc=1;
+     $runsn='dataruns';
+    }
                                                                                 
   my $rfcp="/usr/bin/rfcp ";
   my $whoami = getlogin();
@@ -19602,21 +19608,18 @@ sub UploadToDisks{
         if($verbose){
             print "No datasets found for $dir \n";
         }
-         if($run2p eq 0){
            return 0;
-       }
     }
     if($did>0){
     if($run2p eq 0){
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix%$dir%'";
+    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '$castorPrefix%$dir%'";
 }
    else{ 
-   $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and runs.run=$run2p";
+    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '$castorPrefix%$dir%' and ntuples.run=$run2p";
 
 }
 }
     else{
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and  runs.run=ntuples.run and jobs.jid=$run2p and ntuples.path like '$castorPrefix%'";
 } 
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
@@ -19624,26 +19627,30 @@ sub UploadToDisks{
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  run=$run->[0]  and castortime>0 and path not like '/castor%'";
+        $sql="select path,crc from ntuples where  jid=$run->[1]  and castortime>0 and path not like '/castor%'";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       $runs++;
       if(defined $ret_nt->[0][0]){
        if($verbose){
-        print "  Run $run->[0] has non-castor ntuples, ignored \n";
+        print "  Run $run->[0] $run->[1] has non-castor ntuples, ignored \n";
        }
        $suc=0;
        $bad_runs++;  
        next;
       }
-#       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%$dir%' and castortime>0 "; 
-       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%' and castortime>0 "; 
+#       $sql="select path,crc from ntuples where  jid=$run->[1] and path like '$castorPrefix%$dir%' and castortime>0 "; 
+       $sql="select path,crc from ntuples where  jid=$run->[1] and path like '$castorPrefix%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
         my $dir=undef;
        if(defined $ret_nt->[0][0]){
            if(not defined $filesystem){
-            $disk=$self->CheckFS(1,300,0,'/');
+               my $path='/MC';
+               if($datamc==1){
+                   $path='/Data';
+               }
+            $disk=$self->CheckFS(1,300,0,$path);
            }
            else{
                $disk=$filesystem;
@@ -19973,9 +19980,14 @@ sub RemoveFromDisks{
     else{
         $irm="rm ";
     }
-
+    my $datamc=0;
+    my $runsn='runs';
   my $castorPrefix = '/castor/cern.ch/ams/MC';
-  
+    if ($dir=~'/Data/'){
+     $castorPrefix = '/castor/cern.ch/ams/Data';
+     $datamc=1;
+     $runsn='dataruns';
+    }
   my $rfcp="/usr/bin/rfcp ";    
 
   my $whoami = getlogin();
@@ -20008,10 +20020,11 @@ sub RemoveFromDisks{
        }
     }
  if($did>0){   
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '%$dir%'";
 }
     else{
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.jid=$run2p and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+        printf "Unable to find Dataset $dir \n";
+        return 0;
     }
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
@@ -20019,7 +20032,7 @@ sub RemoveFromDisks{
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%'";
+        $sql="select path,crc from ntuples where  jid=$run->[1] and path like '%$dir%' and castortime>0 and path not like '/castor%' and datamc=$datamc";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -20098,10 +20111,10 @@ sub RemoveFromDisks{
 # 
               
               if($update){
-               $sql="insert into ntuples_deleted select * from ntuples where ntuples.run=$run->[0]";
+               $sql="insert into ntuples_deleted select * from ntuples where ntuples.jid=$run->[1]";
                $self->{sqlserver}->Update($sql);
-               $sql="update ntuples_deleted set timestamp=$timenow where run=$run->[0]";
-               $self->{sqlserver}->Update($sql);
+#               $sql="update ntuples_deleted set timestamp=$timenow where jid=$run->[1]";
+#               $self->{sqlserver}->Update($sql);
                foreach my $ntuple (@{$ret_nt}){
                    my $castor=$castorPrefix;
                    if($did<0){
@@ -20123,7 +20136,7 @@ sub RemoveFromDisks{
                  $sys="sleep 1";
                  my $newp=$ntuple->[0];
                  $newp=~s/^# //;
-                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
+#                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
  
                 }
                 $i=system($sys);
