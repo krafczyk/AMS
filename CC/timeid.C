@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.140 2011/11/18 14:46:58 sdifalco Exp $
+//  $Id: timeid.C,v 1.141 2011/11/18 14:51:53 sdifalco Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -34,8 +34,8 @@
 #include "root.h"
 #endif
 #include <dirent.h>
-#include "commons.h"
-#include "ecaldbc.h"
+//#include "commons.h"
+//#include "ecaldbc.h"
 
 
 
