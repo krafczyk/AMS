@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.44 2011/11/18 11:05:13 sdifalco Exp $
+//  $Id: g4physics.C,v 1.45 2011/11/18 12:07:52 sdifalco Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.44 2011/11/18 11:05:13 sdifalco Exp $
+// $Id: g4physics.C,v 1.45 2011/11/18 12:07:52 sdifalco Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -957,10 +957,10 @@ void AMSG4Physics::SetCuts()
   
   // set cut values for gamma at first and for e- second and next for e+,
   // because some processes for e+/e- need cut values for gamma
-  SetCutValue(cut/10., "gamma");
+  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "gamma");
   SetCutValue(cut/10., "xrayphoton");
-  SetCutValue(cut/10., "e-");
-  SetCutValue(cut/10., "e+");
+  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e-");
+  SetCutValue(cut/10./ECMCFFKEY.g4cutge, "e+");
 
   // set cut values for proton and anti_proton before all other hadrons
   // because some processes for hadrons need cut values for proton/anti_proton
