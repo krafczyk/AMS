@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.364 2011/10/05 18:52:20 pzuccon Exp $
+#  $Id: datacards.doc,v 1.365 2011/11/18 11:32:04 sdifalco Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1009,7 +1009,8 @@ R 37   cladgluey(0.01135) //   fiber clad+glue vertical   thickness (cm)
 R 38   gap(0.) // thickness (cm) of segments of glue between fibers of the same fiber layer
 I 39   endplate(1) // Flag for last Aluminum plane replacing last Lead plane in last superlayer : 0=Lead 1=aluminum
 R 40-75 claddxy[36](0.) // Difference of clad+glue thickness in x (even) or y (odd indices) for each layer to change single layer density and get ellyptical holes   
-
+R 76   g4cutge(1.) // Factor to divide the standard minimum range for photons and electrons in g4physics.C
+R 77   Tsim(23.) //  Temperature for MC simulation (equal to the test beam ECREFFKEY.Tref to avoid T corrections)
 
     ECAL reconstruction:
 
@@ -1048,12 +1049,13 @@ R 28   cuts[4](2)          // min.layers(out of 3 per proj) with at least 1 pm h
 R 29-32.................   // spares
 R 33   cuts[9](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 
-I 34   ReadConstFiles(100) // DCP (ThreshCuts-set | Calib.const(MC/RD) / RDpeds)
+I 34   ReadConstFiles(100) // TDCP (Temperature slopes(MC/RD) | ThreshCuts-set | Calib.const(MC/RD) / RDpeds)
+//                            T=1/0-> Take from DataCards/DB
 //                            D=1/0-> Take from DataCards/DB
 //                            C=1/0-> Take from CalibFiles/DB
 //                            P=1/0-> Take from CalibFiles/DB
 			    
-I 35   calutc(1167606001)//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor-files utc-list) begin UTC-time
+I 35   calutc(1167606001)//(35)(20070101 0000001)EcalCflistRD-file(rlga,fiat,anor,tslo-files utc-list) begin UTC-time
 // Vitaly's cluster algorithm parameters:
 R 36   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
 R 37   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
@@ -1071,19 +1073,59 @@ R 51   EMDirCorrection(1.035)  // em shower shape direction correction
 R 52   HiEnThr(1650)           // pmt saturation limit (gev)
 R 53   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
  
-R 54 S1S3[4]  //  s1/s3 energy correction
-R 58 sec[0](0)                // cards below are used as validity time when need to write
-R 59 sec[1](0)                // to DB new calibration/status parameters
-R 60 min[0](0)                //
-R 61 min[1](0)                //
-R 62 hour[0](0)               //
-R 63 hour[1](0)               //
-R 64 day[0](1)                //
-R 65 day[1](1)                //
-R 66 mon[0](0)                //
-R 67 mon[1](0)                //
-R 68 year[0](101)             //
-R 69 year[1](108)             //
+R 54 ealpha0(-3.0)  // leakage correction: alpha0(averaged on energy) + beta*T +gamma*T^2
+R 55 ebeta(75.2)    // first order coefficient
+R 56 egamma(563.3)  // second order coefficient
+R 57 ealpha_par[0](-5)     // Alpha(E)=par0+par1*Energy
+R 58 ealpha_par[1](0.0143) // 
+
+R 59 CalorTransSize(32)
+R 60 EMDirCorrection(1.03)
+R 61 HiEnThr(1650.)
+R 62 HiEnCorFac(0.225)
+R 63 S1S3[0](0.6)
+R 64 S1S3[1](0.25)
+R 64 S1S3[2](0.4)
+R 66 S1S3[3](0.8)
+
+R 67 S1S3X[0](0.529) // (67-72)
+R 68 S1S3X[1](0.753)
+R 69 S1S3X[2](0.922)
+R 70 S1S3X[3](47.25)
+R 71 S1S3X[4](-104.)
+R 72 S1S3X[5](-0.006)
+ 
+R 73 S1S3Y[0](0.517) // (73-78)
+R 74 S1S3Y[1](0.743)
+R 75 S1S3Y[2](0.933)
+R 76 S1S3Y[3](49.19)
+R 77 S1S3Y[4](-7.23)
+R 78 S1S3Y[5](-0.193)
+
+//LAPP impact-point correction parameters X and Y sides (M.P.)
+R 79 S1S3XA[0](0.38) // (79-82)
+R 80 S1S3XA[1](0.715)
+R 81 S1S3XA[2](0.75)
+R 82 S1S3XA[3](0.5)
+      
+R 83 S1S3YA[0](0.44) // (83-86) 
+R 84 S1S3YA[1](0.67)
+R 85 S1S3YA[2](0.735)
+R 86 S1S3YA[3](0.5;)  // end of LAPP parameters
+
+I 87 sec[0](0)                // cards below are used as validity time when need to write
+I 88 sec[1](0)                // to DB new calibration/status parameters
+I 89 min[0](0)                //
+I 90 min[1](0)                //
+I 91 hour[0](0)               //
+I 92 hour[1](0)               //
+I 93 day[0](1)                //
+I 94 day[1](1)                //
+I 95 mon[0](0)                //
+I 96 mon[1](0)                //
+I 97 year[0](101)             //
+I 98 year[1](108)             //
+R 99 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
 
    ECAL calibration:
 
