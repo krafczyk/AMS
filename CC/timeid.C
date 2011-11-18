@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.139 2011/11/18 12:52:17 sdifalco Exp $
+//  $Id: timeid.C,v 1.140 2011/11/18 14:46:58 sdifalco Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -32,10 +32,10 @@
 #endif
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
-#include "commons.h"
-#include "ecaldbc.h"
 #endif
 #include <dirent.h>
+#include "commons.h"
+#include "ecaldbc.h"
 
 
 
@@ -456,6 +456,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 		}
 		cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
   // ECAL Temperature SLOPE reading DEBUG
+		/*
 	  if (ECREFFKEY.reprtf[1]==2 && strcmp(getname(),"EcalTslo")==0){
 	    cout << ">>>>>>>>>>>>>>>>" << getname() << endl;
       
@@ -471,6 +472,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 	      cout << endl;
 	    }
 	  } 
+		*/
 #ifdef __AMSDEBUG__
 		cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
 		cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
