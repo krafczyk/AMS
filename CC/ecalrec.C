@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.158 2011/11/18 11:00:44 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.159 2011/11/18 11:56:49 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -224,7 +224,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //----------------------------------------------------
 void AMSEcalRawEvent::mc_build(int &stat){
 
-  int i,j,k,ic;
+  int j,k,ic;
   integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attfdir,attfrfl,ww[4],anen,dyen;
@@ -269,17 +269,17 @@ void AMSEcalRawEvent::mc_build(int &stat){
     zhitmap[il]=0;
     dytrc[il]=0;
     dycog[il]=0;
-    for(i=0;i<ECPMSMX;i++){
-      pmtmap[il][i]=0.;
-      dytmap[il][i]=0;
+    for(int ipm=0;ipm<ECPMSMX;ipm++){
+      pmtmap[il][ipm]=0.;
+      dytmap[il][ipm]=0;
     }
   }
   //
   for(il=0;il<nslmx;il++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
-      getheadC("AMSEcalMCHit",il,0);
-    for(i=0;i<npmmx;i++)
-      for(k=0;k<4;k++)sum[i][k]=0.;
+      getheadC("AMSEcalMCHit",il,0);   
+    for(int ipm=0;ipm<npmmx;ipm++)
+      for(k=0;k<4;k++)sum[ipm][k]=0.; 
     nslhits=0;
     while(ptr){ // <------------------- geant-hits loop in superlayer:
       nhits+=1;
@@ -349,29 +349,29 @@ void AMSEcalRawEvent::mc_build(int &stat){
     } // ---------------> end of geant-hit-loop in superlayer
     //
     //
-    for(i=0;i<npmmx;i++){ // <------- loop over PM's in this(il) S-layer
-      a2dr=ECcalibMS::ecpmcal[il][i].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
+    for(int ipm=0;ipm<npmmx;ipm++){ // <------- loop over PM's in this(il) S-layer
+      a2dr=ECcalibMS::ecpmcal[il][ipm].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
       //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
-      pmrgn=ECcalibMS::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
-      ECPMPeds::pmpeds[il][i].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
-      ECPMPeds::pmpeds[il][i].getsigh(sigh);
-      ECPMPeds::pmpeds[il][i].getpedl(pedl);
-      ECPMPeds::pmpeds[il][i].getsigl(sigl);
-      pedd=ECPMPeds::pmpeds[il][i].pedd();
-      sigd=ECPMPeds::pmpeds[il][i].sigd();
+      pmrgn=ECcalibMS::ecpmcal[il][ipm].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
+      ECPMPeds::pmpeds[il][ipm].getpedh(pedh);//No PedSeeds used due to very small real ped sigmas !!!
+      ECPMPeds::pmpeds[il][ipm].getsigh(sigh);
+      ECPMPeds::pmpeds[il][ipm].getpedl(pedl);
+      ECPMPeds::pmpeds[il][ipm].getsigl(sigl);
+      pedd=ECPMPeds::pmpeds[il][ipm].pedd();
+      sigd=ECPMPeds::pmpeds[il][ipm].sigd();
       //---
       an4qin=0;//PM Anode-resp(4cells,pC)
       for(ic=0;ic<4;ic++)pmedepr[ic]=0;
       
       for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
-        if(sum[i][ic]>0){
-	  scgn=ECcalibMS::ecpmcal[il][i].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
+        if(sum[ipm][ic]>0){
+	  scgn=ECcalibMS::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
 	  ares=0.;
-	  phel=sum[i][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
+	  phel=sum[ipm][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)(mev2pes incl trapping+Quant.eff)
 	  if(phel>=1){
 	    ares=ECMCFFKEY.pmseres/sqrt(phel);//ampl.resol.
-            edepr=sum[i][ic]*(1.+ares*rnormx())*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Evis(Mev)(incl.amp.fluct)
+            edepr=sum[ipm][ic]*(1.+ares*rnormx())*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Evis(Mev)(incl.amp.fluct)
 	  }
 	  else edepr=0;
 	  if(edepr<0)edepr=0;
@@ -392,10 +392,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
       anen=0.;
       dyen=0.;
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
-        EcalJobStat::addzprmc2(il,sum[i][k]);//geant SL(PM-assigned)-profile
-        h2lr=ECcalibMS::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
-        h2lo=ECcalibMS::ecpmcal[il][i].hi2lowo(k);//PM subcell high/low ratio from DB
-	scgn=ECcalibMS::ecpmcal[il][i].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
+        EcalJobStat::addzprmc2(il,sum[ipm][k]);//geant SL(PM-assigned)-profile
+	h2lr=ECcalibMS::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
+	h2lo=ECcalibMS::ecpmcal[il][ipm].hi2lowo(k);//PM subcell high/low ratio from DB
+	scgn=ECcalibMS::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)
 	emeast+=edepr;
 	anen+=saturf*edepr/scgn;//sum for 4xSubc. signal(for trig.study)
@@ -457,7 +457,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  else{ adc[1]=0;}
 	}
 	// <---------
-	id=(k+1)+10*(i+1)+1000*(il+1);// LTTP(sLayer|Tube|Pixel)
+	id=(k+1)+10*(ipm+1)+1000*(il+1);// LTTP(sLayer|Tube|Pixel)
         AMSECIds ids(id);
 	if(ids.HCHisBad())adc[0]=0;
 	if(ids.LCHisBad())adc[1]=0;
@@ -503,17 +503,17 @@ void AMSEcalRawEvent::mc_build(int &stat){
         else{ radc=0;}
       }
       //
-      if(ECPMPeds::pmpeds[il][i].DCHisBad() || ECcalib::ecpmcal[il][i].DCHisBad())radc=0;
+      if(ECPMPeds::pmpeds[il][ipm].DCHisBad() || ECcalib::ecpmcal[il][ipm].DCHisBad())radc=0;
       if(radc>0){
 	nrawd+=1;
-	id=1000*(il+1)+10*(i+1)+5;// LTTP(sLayer|Tube|Pixel=5)
+	id=1000*(il+1)+10*(ipm+1)+5;// LTTP(sLayer|Tube|Pixel=5)
         AMSECIds ids(id);
 	if(ECREFFKEY.reprtf[2]>0){
 	  cout<<"<----- Add Dyn:LTTP/adc="<<id<<" "<<radc<<" to crate/slot(edr)="<<
 	    ids.getcrate()<<" "<<ids.getslot()
 	      <<" ped="<<pedd<<endl;
 	}
-	dynadc[il][i]=radc;//store in static array of AMSEcalRawEvent class
+	dynadc[il][ipm]=radc;//store in static array of AMSEcalRawEvent class
       }
       //
       an4resp=anen;//PM 4anode-sum resp(true mev ~ mV !!!)
@@ -527,7 +527,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
         if(dyresp>0 && an4resp<5000.)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
       }
       //            arrays for trigger study:
-      pmtmap[il][i]=dyresp;//tempor Dynode-resp in Anode scale(mev)
+      pmtmap[il][ipm]=dyresp;//tempor Dynode-resp in Anode scale(mev)
       pmlprof[il]+=dyresp; 
       //
     }//-------> end of PM-loop in superlayer
@@ -538,8 +538,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
     cout<<endl;
     cout<<"-----> DynodesMap: "<<endl<<endl;
     for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
-      for(pm=0;pm<npmmx;pm++){
-        if(dynadc[il][pm]>0)cout<<1<<" ";
+      for(int ipm=0;ipm<npmmx;ipm++){
+        if(dynadc[il][ipm]>0)cout<<1<<" ";
 	else cout<<0<<" ";
       }
       cout<<endl;
