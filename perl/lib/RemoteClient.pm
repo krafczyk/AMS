@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.701 2011/10/26 14:00:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.702 2011/11/18 13:17:28 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6800,6 +6800,9 @@ DDTAB:          $self->htmlTemplateTable(" ");
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,300000,"QCPUTime"," seconds (Native).");
               my $jbs=99;
+if($self->{CCT} eq "local"){
+                $jbs=69;
+}
               if($max_jobs<$jbs){
                 $jbs=$max_jobs;
               }
@@ -20034,8 +20037,29 @@ sub RemoveFromDisks{
          my @junk2=split /\//,$ntuple->[0];
          $sys=$rfcp.$castor." $tmp";
          if($notverify){
-          $i=0;
-         }
+            my $ctmp="/tmp/castor.tmp";
+           $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
+           system($sys);
+           my $ltmp="/tmp/local.tmp";
+           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          $i=system($sys);
+            if(not $i){
+                 open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
+                 my $line_c = <FILE>;
+                 close FILE;
+                 open(FILE,"<$ltmp") or die "Unable to open $ltmp \n";
+                 my $line_l = <FILE>;
+                 close FILE;
+                 unlink $ctmp;
+                 unlink $ltmp;
+                 my @size_l= split ' ',$line_l;
+                 my @size_c= split ' ',$line_c;
+                 if(($#size_c<4 or not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor $line_c $line_l \n";
+                 $i=2;       
+              }
+             }
+          }
          else{
           $i=system($sys);
          }
