@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.48 2011/11/18 11:06:37 sdifalco Exp $
+//  $Id: ecaldbc.h,v 1.49 2011/11/18 11:16:53 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -392,6 +392,30 @@ class ECPMPeds{
     integer getsid(){return _softid;}
     static void build();
     static void mcbuild();
+};
+//
+//===========================================================================
+// ---------------> Class to store ECAL Temperature Slope (MC/RealData) constants :
+//
+class ECTslope{
+  //
+ private:
+  integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
+  geant _tslope[4]; // precentual gain variation in 1 degree (reference T is 10 degrees) 
+ public:
+  static ECTslope ecpmtslo[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+  static uinteger CFlistC[7];//Cflist-file content
+  ECTslope(){};
+  ECTslope(integer sid, geant tslo[4]):
+    _softid(sid){
+    for(int i=0;i<4;i++){
+      _tslope[i]=tslo[i];
+    }
+  };
+    geant &tslope(int i){return _tslope[i];}
+    int GetECALSensorTemper(int superlayer,int column,float* temp);
+
+    static void build();
 };
 //
 #endif
