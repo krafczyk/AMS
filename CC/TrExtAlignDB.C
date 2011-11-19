@@ -102,6 +102,53 @@ Bool_t  TrExtAlignDB::Load(const char *fname)
   return kTRUE;
 }
 
+//#ifdef __ROOTSHAREDLIBRARY__
+#include "DynAlignment.h"
+//#include "root.h"
+void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
+  //  AMSEventR *ev=AMSEventR::Head();
+  //  if(!ev){
+  //    cout<<"TrExtAlignDB::updateTkDBcDyn-E-No AMSEventR::Head()"<<endl;
+  //    return;
+  //  }
+  
+  // Update the alignment
+  //  if(!DynAlManager::UpdateParameters(ev->fHeader.Run,time)){
+  if(!DynAlManager::UpdateParameters(run,time)){
+    // Set the alignment to zero: useful to create the alignment
+    int plane[2]={5,6};
+    for(int i=0;i<2;i++){
+      TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
+      if (!pl) continue;
+      pl->posA.setp(0,0,0);
+      pl->rotA.Reset();
+    }
+  }
+  
+  // Retrieve the parameters
+  int layerJ[2]={1,9};
+  int plane[2]={5,6};
+  int layer[2]={8,9};
+  for(int i=0;i<2;i++){
+    TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
+    if (!pl) continue;
+    
+    // Retrieve alignment parameters
+    DynAlFitParameters pars;
+    if(!DynAlManager::dynAlFitContainers[layerJ[i]].Find(time,pars)) continue;
+    AMSPoint pos;
+    AMSRotMat rot;
+    pars.GetParameters(time,0,pos,rot);
+
+    // Set plane parameters
+    pl->posA=pos;
+    pl->rotA=rot;
+  }
+}
+//#else
+//void TrExtAlignDB::UpdateTkDBcDyn(uint time){}
+//#endif
+
 void TrExtAlignDB::UpdateTkDBc(uint time) const
 {
   if (!TkDBc::Head) {

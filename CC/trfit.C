@@ -3,6 +3,7 @@
 #include "timeid.h"
 #define mipsFortran
 #include "cfortran.h"
+#include "DynAlignment.h"
 #ifndef _PGTRACK_
 const integer nx=41;
 const integer ny=41;
@@ -156,6 +157,23 @@ int TrTrackFitR::getHit(unsigned int lay, AMSPoint & hit){
       }
     }
    }
+   else if(Alig==2){
+     // Alignment using external tools
+     for(int i=0;i<ptr->NHits();i++){
+       TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+       if(lay==1 || lay==9){
+	 if(rh.lay()==lay){
+	   hit=DynHit(&rh);
+	   return 0;
+	 }
+       }else{
+	 if(lay==ptr->Layer(i)+1){
+	   hit=AMSPoint(ptr->Hit[i][0],ptr->Hit[i][1],ptr->Hit[i][2]);
+	   return 0;
+	 }
+       }
+     }
+   }
    else if(Alig==3){
 //  recreate hits using timeid alignment structure
     if(SAp){
@@ -171,7 +189,7 @@ int TrTrackFitR::getHit(unsigned int lay, AMSPoint & hit){
         return 0;
       }
     }
-    }
+   }
     else{
       static unsigned int er=0; 
       if(er++<100)cerr<<"TrTrackFitR::getHit-E-AligNotYetImplemented "<<Alig <<endl;
@@ -236,7 +254,30 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
       }
      }
     }
-    else if(Alig==3){
+   else if(Alig==2){
+     for(int i=0;i<ptr->NHits();i++){
+       int lay=ptr->Layer(i)+1;
+       if(CheckLayer(lay)){
+	 if(lay==1 || lay==9){
+	   TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+	   AMSPoint hit=DynHit(&rh);
+	   for(int k=0;k<3;k++)hits[nh][k]=hit[k]; 
+	   for(int k=0;k<3;k++)sigma[nh][k]=rh.EHit[k]; 
+	 }else{
+	   for(int k=0;k<3;k++)hits[nh][k]=ptr->Hit[i][k]; 
+	   for(int k=0;k<3;k++){
+	     sigma[nh][k]=ptr->EHit[i][k]; 
+	     if(sigma[nh][k]<1.e-4 || sigma[nh][k]!=sigma[nh][k]){
+	       sigma[nh][k]=sgm[k];
+	     }
+	   }
+	 }	
+	 layer[nh]=lay;
+	 nh++;
+       }
+     }
+   }
+   else if(Alig==3){
 //  recreate hits using timeid alignment structure
     if(SAp){
       time_t tm=h->UTime();
@@ -487,18 +528,27 @@ while(!initdone){
   return ret==1?0:1;
 }
 
-AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
-   AMSPoint Hit=AMSPoint(rh->Hit[0],rh->Hit[1],rh->Hit[2]);
 
+AMSPoint TrTrackFitR::DynHit(TrRecHitR * rh){
+  AMSEventR *h=AMSEventR::Head();
+  double x=0,y=0,z=0; 
+  DynAlManager::FindAlignment(*h,*rh,x,y,z);
+  AMSPoint HitA(x,y,z);
+  return HitA;
+}
+
+AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
+  AMSPoint Hit=AMSPoint(rh->Hit[0],rh->Hit[1],rh->Hit[2]);
+  
   gldb_par *par(0);
-    if( (par=SearchDB(rh))){
-     AMSPoint HitA;
+  if( (par=SearchDB(rh))){
+    AMSPoint HitA;
     for(int j=0;j<3;j++)HitA[j]=(par->getcoo())[j]+
-       (par->getmtx(j)).prod(Hit);
-     
-     return HitA;
-   }
-   else return Hit;
+      (par->getmtx(j)).prod(Hit);
+    
+    return HitA;
+  }
+  else return Hit;
 }
 
 TrTrackFitR::gldb_par * TrTrackFitR::SearchDB(TrRecHitR *rh){
@@ -583,6 +633,9 @@ double roll=angles[2];
 
 }
 #else
+AMSPoint TrTrackFitR::DynHit(TrRecHitR * rh){
+return AMSPoint();
+}
 AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
 return AMSPoint();
 }

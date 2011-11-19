@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include "root.h"
+#include "point.h"
 #ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
 #endif
@@ -169,6 +170,8 @@ class DynAlFitParameters: public TObject{
   Double_t GetTime(int seconds,int museconds){return ((seconds-TOffset)+1e-6*museconds)/60.0/90.0;}
   void ApplyAlignment(int seconds,int musecons,double &x,double &y,double &z);
   void ApplyAlignment(double &x,double &y,double &z);   // To use in case it is a local alignment
+  // Return the parameters without local alignment
+  void GetParameters(int seconds,int musecodns,AMSPoint &posA,AMSRotMat &rotA);
 
   ClassDef(DynAlFitParameters,1);
 };
@@ -179,6 +182,7 @@ class DynAlFitContainer:public TObject{
   map<int,DynAlFitParameters> FitParameters;       // Fits parameters at the second level
   map<int,DynAlFitParameters> LocalFitParameters;  // Local alignment
   bool ApplyLocalAlignment;
+  bool Find(int time,DynAlFitParameters &fit);
   void Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z);
   void Eval(DynAlEvent &ev,double &x,double &y,double &z);
   int GetId(TrRecHitR &hit);
@@ -193,6 +197,7 @@ class DynAlFitContainer:public TObject{
   
 class DynAlManager:public TObject{
  public:
+  static bool UpdateParameters(int run,int time,TString dir=""); 
   static bool FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id=-1,TString dir="");
   static bool FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir="");
   //  static map<int,DynAlFitContainer> dynAlFitContainers; // STL containers are not thread safe 

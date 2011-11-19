@@ -1,4 +1,4 @@
-//  $Id: trfit.h,v 1.6 2011/10/25 12:44:03 choutko Exp $
+//  $Id: trfit.h,v 1.7 2011/11/19 00:05:07 mdelgado Exp $
 #ifndef __TRFIT__
 #define __TRFIT__
 #include "TObject.h"
@@ -68,6 +68,7 @@ AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 protected:
  static AMSTimeID* SAp; 
 #pragma omp threadprivate (SAp)
+ AMSPoint DynHit(TrRecHitR *rh); ///< Create Hits using external dynamic alignment
  AMSPoint CrHit(TrRecHitR *rh);  ///< Create Hits using readin alignment db 
  gldb_par * SearchDB(TrRecHitR * rh);
  static gldb_def _gldb[trc::maxsen+1][trc::maxlad+1][2][trc::maxlay];

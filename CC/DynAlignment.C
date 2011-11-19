@@ -60,7 +60,8 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   AMSDir dir;
 #ifdef _PGTRACK_
   int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"");
+  //  pnt=hit.GetGlobalCoordinate(imult,"");
+  pnt=hit.GetGlobalCoordinate(imult,"A");
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
 #endif
@@ -141,7 +142,8 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
     AMSPoint pnt;
 #ifdef _PGTRACK_
   int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"");
+  //  pnt=hit.GetGlobalCoordinate(imult,"");
+  pnt=hit.GetGlobalCoordinate(imult,"A");
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
 #endif
@@ -509,6 +511,12 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 
 
 #ifdef __ROOTSHAREDLIBRARY__
+
+#ifdef _PGTRACK_
+#include "TkDBc.h"
+#endif
+
+
 void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString prefix){
   // Create the history object
   ch.Rewind();
@@ -521,6 +529,18 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
   int events = ch.GetEntries();
   for (int entry=0; entry<events; entry++) {
     AMSEventR *pev = ch.GetEvent(entry);
+#ifdef _PGTRACK_
+    {
+    // Cleanup the external planes alignment, just in case
+      int plane[2]={5,6};
+      for(int i=0;i<2;i++){
+	TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
+	if (!pl) continue;
+	pl->posA.setp(0,0,0);
+	pl->rotA.Reset();
+      }
+    }
+#endif
     if(!select(pev,layer)) continue;
     if(pev->fHeader.Run!=current_run) break;
     
@@ -738,6 +758,60 @@ void DynAlFitParameters::ApplyAlignment(int seconds,int museconds,double &x,doub
   z+=dz;
 }
 
+void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,AMSRotMat &rotA){
+  double _DX=0;
+  double _DY=0;
+  double _DZ=0;
+  double _THETA=0;
+  double _ALPHA=0;
+  double _BETA=0;
+  
+  double elapsed=GetTime(seconds,museconds);
+  double dt=1;
+
+#define Do(xx) _##xx+=dt* xx.at(i) 
+  for(int i=0;i<DX.size();i++){
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+    dt*=elapsed;
+  }
+#undef Do
+
+  //  double zHit=z-ZOffset;
+
+#ifdef VERBOSE__
+  cout<<"GETPARAMETERS EVALUATING "<<seconds<<" "<<museconds<<endl;
+  cout<<"DUMPING PARAMETERS "<<endl;
+#define dump(_x)   for(int i=0;i<_x.size();i++) cout<<_x[i]<<" ";cout<<endl;
+  dump(DX);
+  dump(DY);
+  dump(DZ);
+  dump(THETA);
+  dump(ALPHA);
+  dump(BETA);
+#undef dump
+#endif
+
+  posA.setp(_DX,_DY,_DZ);
+
+  double matrix[3][3];
+  for(int i=0;i<3;i++) matrix[i][i]=1;
+  matrix[0][1]=-_THETA;
+  matrix[0][2]=-_ALPHA;
+  matrix[1][0]=_THETA;
+  matrix[1][2]=-_BETA;
+  matrix[2][0]=_ALPHA;
+  matrix[2][1]=_BETA;
+  rotA.SetMat(matrix);
+}
+
+
+
+
 ClassImp(DynAlFitContainer);
 
 
@@ -754,6 +828,24 @@ int DynAlFitContainer::GetId(TrRecHitR &hit){
   return hit.lay()+10*hit.half()+100*hit.lad();
 #endif
 }
+
+
+bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
+  map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
+  if(lower==FitParameters.end()){
+    lower=FitParameters.upper_bound(seconds);
+    if(lower==FitParameters.end()){
+      // Not possible to find anything -- return
+      cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+      return false;
+    }
+  }
+
+  fit=lower->second;
+  return true;
+}
+
+
 
 void DynAlFitContainer::Eval(DynAlEvent &ev,double &x,double &y,double &z){
   int seconds=ev.Time[0]; 
@@ -782,8 +874,6 @@ void DynAlFitContainer::Eval(DynAlEvent &ev,double &x,double &y,double &z){
     }
   }
 
-
-
   fit.ApplyAlignment(seconds,museconds,x,y,z);
 }
 
@@ -796,7 +886,8 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
   AMSPoint pnt;
 #ifdef _PGTRACK_
   int imult=hit.GetResolvedMultiplicity();
-  pnt=hit.GetGlobalCoordinate(imult,"");
+  //  pnt=hit.GetGlobalCoordinate(imult,"");
+  pnt=hit.GetGlobalCoordinate(imult,"A");
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
 #endif
@@ -830,6 +921,19 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
       cout<<"DynAlFitContainer::Eval-W-Local Fit parameters requested but not found"<<endl;
     }
   }
+
+#ifdef VERBOSE__
+  cout<<"EVALUATING "<<seconds<<" "<<museconds<<" for "<<Id<<endl;
+  cout<<"DUMPING PARAMETERS "<<endl;
+#define dump(_x)   for(int i=0;i<_x.size();i++) cout<<_x[i]<<" ";cout<<endl;
+  dump(fit.DX);
+  dump(fit.DY);
+  dump(fit.DZ);
+  dump(fit.THETA);
+  dump(fit.ALPHA);
+  dump(fit.BETA);
+#undef dump
+#endif
 
   fit.ApplyAlignment(seconds,museconds,x,y,z);
 }
@@ -975,10 +1079,8 @@ int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir=".";
 
 
-bool DynAlManager::FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id,TString dir){
-  for(int i=0;i<3;i++) hitA[i]=hit[i];
-
-  if(run==skipRun) return false;
+bool DynAlManager::UpdateParameters(int run,int time,TString dir){
+if(run==skipRun) return false;
   
   if(run!=currentRun){
     currentRun=run;
@@ -1002,8 +1104,15 @@ bool DynAlManager::FindAlignment(int run,int time,int layer,float hit[3],float h
     dynAlFitContainers[9]=*l9;
     dynAlFitContainers[1].Layer=1;
     dynAlFitContainers[9].Layer=9;
-  }  
-  
+  }    
+  return true;
+}
+
+
+bool DynAlManager::FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id,TString dir){
+  for(int i=0;i<3;i++) hitA[i]=hit[i];
+
+  if(!UpdateParameters(run,time,dir)) return false;
   if(layer!=1 && layer!=9){
     // By the moment we only deal with layer 1 and layer 9
     return false;
@@ -1031,49 +1140,13 @@ bool DynAlManager::FindAlignment(int run,int time,int layer,float hit[3],float h
 
 bool DynAlManager::FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir){
   // Update the maps, if needed
-  if(ev.fHeader.Run==skipRun) return false;
-
-  if(ev.fHeader.Run!=currentRun){
-    currentRun=ev.fHeader.Run;
-    // Update the maps
-    //    dynAlFitContainers.clear();
-    int subdir=DynAlContinuity::getBin(currentRun);
-
-    // If directory name is empty, use the default
-    if(dir.Length()==0){
-      //      dir=Form("%s/%s/DynAlignment",getenv("AMSDataDir"),AMSCommonsI::getversion());
-      //      cout<<"DEFAULT IS "<<Form("%s/%s/DynAlignment",getenv("AMSDataDir"),AMSCommonsI::getversion())<<endl;
-      dir=defaultDir;
-    }
-
-    // Update the map
-    TFile file(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
-    DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
-    DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
-    if(!l1 || !l9){
-      cout<<"DynAlFitContainer::FindAlignment-W-Unable to get \"layer_1\" and \"layer_9\" objects from "<<(Form("%s/%i/%i",dir.Data(),subdir,currentRun))<<endl;
-      skipRun=currentRun;
-      return false;
-    }
-    
-    dynAlFitContainers[1]=*l1;
-    dynAlFitContainers[9]=*l9;
-    dynAlFitContainers[1].Layer=1;
-    dynAlFitContainers[9].Layer=9;
-  }
-
-
+  if(!UpdateParameters(ev.fHeader.Run,ev.fHeader.Time[0])) return false; 
   // Get the hit layer
 #ifdef _PGTRACK_
   int layer=hit.GetLayerJ();
 #else
   int layer=hit.lay();
 #endif
-
-  //  if(dynAlFitContainers.find(layer)==dynAlFitContainers.end()){
-  //    cout<<"DynAlFitContainer::FindAlignment-W-trying to use alignment for missing layer "<<layer<<endl;
-  //    return false;
-  //  }
 
   if(layer!=1 && layer!=9){
     // By the moment we only deal with layer 1 and layer 9
