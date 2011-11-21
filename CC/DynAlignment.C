@@ -30,6 +30,16 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   event.Time[0]=ev.fHeader.Time[0];
   event.Time[1]=ev.fHeader.Time[1];
 
+
+  /////////////////////////////////
+  // Dump the position and cutoff//
+  /////////////////////////////////
+
+  event.ThetaM=ev.fHeader.ThetaM;
+  event.PhiM=ev.fHeader.PhiM;
+  event.Cutoff=0;
+
+
   ////////////////////////////////
   // Get the hit for the layer  //
   ////////////////////////////////
@@ -37,6 +47,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   if(ev.nParticle()!=1) return false;
   ParticleR &part=ev.Particle(0);
   if(part.iTrTrack()<0) return false;
+  event.Cutoff=part.Cutoff;
   TrTrackR &track=ev.TrTrack(part.iTrTrack());
   TrRecHitR *hitp=0;
 
@@ -134,6 +145,14 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
   event.Time[0]=ev.fHeader.Time[0];
   event.Time[1]=ev.fHeader.Time[1];
 
+
+  /////////////////////////////////
+  // Dump the position and cutoff//
+  /////////////////////////////////
+
+  event.ThetaM=ev.fHeader.ThetaM;
+  event.PhiM=ev.fHeader.PhiM;
+  event.Cutoff=0;
 
   /////////////////////////////////////////
   // Get the hit position for the layer  //
@@ -516,6 +535,19 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 #include "TkDBc.h"
 #endif
 
+void DynAlContinuity::CleanAlignment(){
+#ifdef _PGTRACK_
+  // Cleanup the external planes alignment, just in case
+  int plane[2]={5,6};
+  for(int i=0;i<2;i++){
+    TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
+    if (!pl) continue;
+    pl->posA.setp(0,0,0);
+    pl->rotA.Reset();
+  }
+#endif
+}
+
 
 void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString prefix){
   // Create the history object
@@ -529,18 +561,7 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
   int events = ch.GetEntries();
   for (int entry=0; entry<events; entry++) {
     AMSEventR *pev = ch.GetEvent(entry);
-#ifdef _PGTRACK_
-    {
-    // Cleanup the external planes alignment, just in case
-      int plane[2]={5,6};
-      for(int i=0;i<2;i++){
-	TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
-	if (!pl) continue;
-	pl->posA.setp(0,0,0);
-	pl->rotA.Reset();
-      }
-    }
-#endif
+    CleanAlignment();
     if(!select(pev,layer)) continue;
     if(pev->fHeader.Run!=current_run) break;
     

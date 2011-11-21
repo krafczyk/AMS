@@ -30,6 +30,10 @@ class DynAlEvent: public TObject{
   int Time[2];       // Time
   int Id;            // Id (slot, half...) using Vitaly naming scheme
 
+  float ThetaM;
+  float PhiM;
+  float Cutoff;
+
   void extrapolateTrack(); // Propagate the track to the hit z
   int lay()const{return abs(Id)%10;}
   int lad()const{return (abs(Id)/100)%100;}
@@ -41,7 +45,7 @@ class DynAlEvent: public TObject{
   static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);
   static bool buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event);
 
-  ClassDef(DynAlEvent,1);
+  ClassDef(DynAlEvent,2);
 };
 
 
@@ -124,6 +128,7 @@ class DynAlContinuity{
   static bool select(AMSEventR *ev,int layer);  // Select the an event for the idx file
 #ifdef __ROOTSHAREDLIBRARY__
   static void CreateIdx(AMSChain &ch,int layer,TString dir,TString prefix);  //Create an Idx file for chain ch and "layer" in directory dir, using as prefix "prefix"
+  static void CleanAlignment();
 #endif
   static void GetFileList(TString dir,vector<int> &lista);
 
