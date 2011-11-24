@@ -17,8 +17,8 @@ endif
 CXXFLAGS       += $(shell $(ROOTCFG) --cflags) 
 DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
-LIBS           := $(AMSWD)/lib/$(ARCH)/libntuple_slc4_PG.a
-LIBS           += $(shell $(ROOTCFG) --glibs) -lNetx -lMinuit
+LIBS           := -L$(AMSWD)/lib/$(ARCH)/ -lntuple_slc4_PG
+LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO 
 
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
@@ -48,14 +48,17 @@ all: $(BINDIR)/tkonline$(DEV) $(BINDIR)/tkhadd$(DEV) $(BINDIR)/tkprinter$(DEV)
 ### Linking 
 $(BINDIR)/tkonline$(DEV): $(OBJDIR)/tkonline.o $(COMMONOBJS)
 	@echo Linking $@ ... 
+	@mkdir -p bin
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
 $(BINDIR)/tkhadd$(DEV): $(OBJDIR)/tkhadd.o 
 	@echo Linking $@ ... 
+	@mkdir -p bin
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
 $(BINDIR)/tkprinter$(DEV): $(OBJDIR)/tkprinter.o $(COMMONOBJS) 
 	@echo Linking $@ ... 
+	@mkdir -p bin
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
 ### Rules for symbolic linking for few needed classes from GBATCH
@@ -65,15 +68,18 @@ $(SRCDIR)/%.C : $(AMSWD)/CC/%.C
 ### Rules for compilation  
 $(OBJDIR)/%.o: $(SRCDIR)/%.cxx
 	@echo Compiling $^ ...
+	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
 ### ROOT dictionary
 $(OBJDIR)/%.o: $(OBJDIR)/%.cxx
 	@echo Compiling $^ ROOT dictionary ...
+	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.C
 	@echo Compiling $^ ...
+	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $^ -o $@
 
 ### ROOT Dictionary
@@ -84,5 +90,5 @@ $(DICTSOURCE):
 ### Clean
 clean:
 	@echo Clean up ...
-	@rm -rf $(BINDIR)/*$(DEV) $(OBJDIR)/*
+	@rm -rf $(BINDIR) $(OBJDIR)
 
