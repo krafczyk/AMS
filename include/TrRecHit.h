@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.35 2011/05/24 13:14:41 choutko Exp $
+//  $Id: TrRecHit.h,v 1.35.6.1 2011/11/24 15:40:23 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -196,8 +196,10 @@ public:
   }
   /// Returns the hit signal (0: x, 1: y, 2: weighted mean, 3: simple mean)
   float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt);
-  /// Returns the hit signal correlation (OLD)
-  float GetSignalDifference(int opt = TrClusterR::DefaultCorrOpt);
+  /// Returns the hit signal signal (on side p scale) 
+  float GetSignalDifference();
+  /// Returns the hit correlation for a gaussian p-value
+  float GetCorrelationProb();
   /// Get correlation between the X and Y clusters (DEPRECATED)
   float GetCorrelation();
   /// Get probability of correlation between the X and Y clusters (DEPRECATED)

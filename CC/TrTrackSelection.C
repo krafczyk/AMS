@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.4.14.1 2011/08/24 13:07:04 pzuccon Exp $
+// $Id: TrTrackSelection.C,v 1.4.14.2 2011/11/24 15:40:24 oliva Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -107,25 +107,25 @@ double TrTrackSelection::GetHalfRessq(TrTrackR *track, int span,
   // For the moment only max span is supported
   if (span != kMaxSpan) return -1;
 
-  int mf8 = track->iTrTrackPar(algo, 5, refit);  // With Layer 1N
+  int mf1 = track->iTrTrackPar(algo, 5, refit);  // With Layer 1N
   int mf9 = track->iTrTrackPar(algo, 6, refit);  // With Layer 9
   int mff = track->iTrTrackPar(algo, 7, refit);  // With Layer 1N and 9
-  if (mf8 <= 0 || mf9 <= 0 || mff <= 0) return -2;
+  if (mf1 <= 0 || mf9 <= 0 || mff <= 0) return -2;
 
   double rgt = TMath::Abs(track->GetRigidity(mff));
   if (rgt == 0) return -3;
 
-  double fms8 = TRFITFFKEY.FitwMsc[7]/rgt;
+  double fms1 = TRFITFFKEY.FitwMsc[7]/rgt;
   double fms9 = TRFITFFKEY.FitwMsc[8]/rgt;
-  double ery8 = TMath::Sqrt( 9+fms8*fms8)*TRFITFFKEY.ErrX*1.2;
+  double ery1 = TMath::Sqrt( 9+fms1*fms1)*TRFITFFKEY.ErrX*1.2;
   double ery9 = TMath::Sqrt(15+fms9*fms9)*TRFITFFKEY.ErrY*1.2;
-  if (ery8 <= 0 || ery9 <= 0) return -4;
+  if (ery1 <= 0 || ery9 <= 0) return -4;
 
-  double res8 = track->GetResidualO(8, mf9).y();
-  double res9 = track->GetResidualO(9, mf8).y();
-  if (res8 == 0 || res9 == 0) return -5;
+  double res1 = track->GetResidualJ(1, mf9).y();
+  double res9 = track->GetResidualJ(9, mf1).y();
+  if (res1 == 0 || res9 == 0) return -5;
 
-  return res8*res8/ery8/ery8+res9*res9/ery9/ery9;
+  return res1*res1/ery1/ery1+res9*res9/ery9/ery9;
 }
 
 AMSPoint TrTrackSelection::GetMinDist(TrTrackR *track, int layerp, int nhmin)
@@ -228,5 +228,45 @@ double TrTrackSelection::GetHalfRdiff(int fitid, TrTrackR *track, int refit)
 double TrTrackSelection::GetHalfRessq(int fitid, TrTrackR *track, int refit)
 {
   return GetHalfRessq(track, FitidToSpan(fitid), FitidToAlgo(fitid), refit);
+}
+
+int  TrTrackSelection::GetPatternForGoodHelium(TrTrackR* track, float beta) {
+  if (track==0) return -1;
+  // charge selection (raw estimation) 
+  float x = sqrt(TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner,track,TrCharge::kX,beta).Mean);
+  float z = -0.129643 + 0.202016*x - 0.00208005*x*x + 2.60621e-05*x*x*x;
+  if ( (z<1.7)||(z>2.5) ) return -2;
+  // pattern loop 
+  int pattern = 0;
+  int ngoodhits = 0;
+  for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+    TrRecHitR* hit = track->GetHit(ihit);
+    int layerj = hit->GetLayerJ();
+    if (IsGoodHeliumHit(hit)) {
+      pattern += 9*int(pow(10.,layerj-1));
+      ngoodhits++;
+    }
+  }
+  // minimum amount of hits
+  if (ngoodhits<4) return -3;
+  // try to fit
+  int id = track->iTrTrackPar(21,pattern,2); 
+  if (id<0) return -4;
+  return pattern;
+}
+
+bool TrTrackSelection::IsGoodHeliumHit(TrRecHitR* hit) {
+  if (hit==0) return false;
+  TrClusterR* clx = hit->GetXCluster();
+  TrClusterR* cly = hit->GetYCluster();
+  // no only
+  if ( (clx==0)||(cly==0) ) return false;
+  // bad correlation
+  if (hit->GetCorrelationProb()<0.001) return false;
+  // signal over a simple threshold
+  float sigx = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  float sigy = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  if ( (sigx<90)||(sigy<90) ) return false; 
+  return true;
 }
 
