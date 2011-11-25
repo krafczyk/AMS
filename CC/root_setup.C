@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.49 2011/11/25 22:37:06 mdelgado Exp $
+//  $Id: root_setup.C,v 1.50 2011/11/25 23:20:55 mdelgado Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1636,10 +1636,11 @@ else ret=1;
 
 return ret;
 }
-
+#endif
 
 int AMSSetupR::LoadDynAlignment(unsigned int run){
-  #ifdef __ROOTSHAREDLIBRARY__
+#ifdef __ROOTSHAREDLIBRARY__
+  return false;
 }
 #else
    char defaultDir[]="/afs/cern.ch/ams/local/ExtAlig/Align";
@@ -1654,7 +1655,8 @@ int AMSSetupR::LoadDynAlignment(unsigned int run){
    fDynAlignment[1]=DynAlManager::dynAlFitContainers[1];
    fDynAlignment[9]=DynAlManager::dynAlFitContainers[9];
    return true;
-#endif
 }
-
 #endif
+
+
+
