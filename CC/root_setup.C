@@ -1,9 +1,10 @@
-//  $Id: root_setup.C,v 1.48 2011/10/21 12:47:10 choutko Exp $
+//  $Id: root_setup.C,v 1.49 2011/11/25 22:37:06 mdelgado Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
 #include "SlowControlDB.h"
 #include "ntuple.h"
+#include "DynAlignment.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "job.h"
 #include "commons.h"
@@ -529,7 +530,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
    LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
-   
+   LoadDynAlignment(fHeader.Run);
    return false; 
   }
   else{
@@ -560,6 +561,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadDynAlignment(fHeader.Run);
    return true;
    }
 }
@@ -1635,5 +1637,24 @@ else ret=1;
 return ret;
 }
 
+
+int AMSSetupR::LoadDynAlignment(unsigned int run){
+  #ifdef __ROOTSHAREDLIBRARY__
+}
+#else
+   char defaultDir[]="/afs/cern.ch/ams/local/ExtAlig/Align";
+   char *directory=getenv("AMSDynAlignment");
+   if(!directory || !strlen(directory)) directory=defaultDir;
+   if(!DynAlManager::UpdateParameters(run,0,directory)){
+     cout<<"AMSSetupR::LoadDynAlignment-W-Failed to find external alignment in "<<directory<<" for run "<<run<<endl;
+     return false;
+   }
+
+// Copy the objects into the map
+   fDynAlignment[1]=DynAlManager::dynAlFitContainers[1];
+   fDynAlignment[9]=DynAlManager::dynAlFitContainers[9];
+   return true;
+#endif
+}
 
 #endif

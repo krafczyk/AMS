@@ -102,18 +102,28 @@ Bool_t  TrExtAlignDB::Load(const char *fname)
   return kTRUE;
 }
 
-//#ifdef __ROOTSHAREDLIBRARY__
+
 #include "DynAlignment.h"
-//#include "root.h"
+#ifdef __ROOTSHAREDLIBRARY__
+#include "root.h"
+#endif
+void TrExtAlignDB::UpdateTkDBcDyn(){
+#ifdef __ROOTSHAREDLIBRARY__
+  if(!AMSEventR::Head()){
+    std::cerr << "AMSEventR::Head is null" << std::endl;
+    return;
+  }
+  UpdateTkDBcDyn(AMSEventR::Head()->fHeader.Run,AMSEventR::Head()->fHeader.Time[0]);
+#endif
+}
+
 void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
-  //  AMSEventR *ev=AMSEventR::Head();
-  //  if(!ev){
-  //    cout<<"TrExtAlignDB::updateTkDBcDyn-E-No AMSEventR::Head()"<<endl;
-  //    return;
-  //  }
-  
+  if (!TkDBc::Head) {
+    std::cerr << "TkDBc::Head is null" << std::endl;
+    return;
+  }
+
   // Update the alignment
-  //  if(!DynAlManager::UpdateParameters(ev->fHeader.Run,time)){
   if(!DynAlManager::UpdateParameters(run,time)){
     // Set the alignment to zero: useful to create the alignment
     int plane[2]={5,6};
@@ -145,9 +155,7 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
     pl->rotA=rot;
   }
 }
-//#else
-//void TrExtAlignDB::UpdateTkDBcDyn(uint time){}
-//#endif
+
 
 void TrExtAlignDB::UpdateTkDBc(uint time) const
 {

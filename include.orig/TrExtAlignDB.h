@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.8 2011/11/19 00:05:07 mdelgado Exp $
+//  $Id: TrExtAlignDB.h,v 1.9 2011/11/25 22:37:06 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -140,6 +140,10 @@ public:
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   void UpdateTkDBcDyn(int run,uint time);
+
+  /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
+  /// Takes the required information from AMSEventR
+  void UpdateTkDBcDyn();
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   void UpdateTkDBc(uint time) const;

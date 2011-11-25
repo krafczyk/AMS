@@ -7,10 +7,12 @@
 #include <vector>
 #include <map>
 #include <set>
-#include "root.h"
 #include "point.h"
+
+class AMSEventR;
+class TrRecHitR;
 #ifdef __ROOTSHAREDLIBRARY__
-#include "amschain.h"
+class AMSChain;
 #endif
 
 using namespace std;
@@ -210,6 +212,7 @@ class DynAlManager:public TObject{
   static int currentRun;
   static int skipRun;
   static TString defaultDir;
+  static void ForceUpdating() {currentRun=skipRun=-1;}
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun)  
   ClassDef(DynAlManager,1);
 };

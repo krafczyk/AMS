@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.28 2011/10/21 12:47:18 choutko Exp $
+//  $Id: root_setup.h,v 1.29 2011/11/25 22:37:06 mdelgado Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -9,6 +9,9 @@
 #include "TString.h"
 #include "TTree.h"
 #include "trigger102_setup.h"
+#include "DynAlignment.h"
+
+
 class SlowControlDB;
 class AMSEventR;
 class AMSTimeID;
@@ -275,6 +278,8 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
    typedef multimap <unsigned int,Lvl1TrigConfig> LVL1Setup_m;
    typedef multimap <unsigned int,Lvl1TrigConfig>::iterator LVL1Setup_i;
    LVL1Setup_m fLVL1Setup; ///<  LVL1Setup Map
+   typedef map <int,DynAlFitContainer> DynAlignment_m;
+   DynAlignment_m fDynAlignment;
 
   const char * BuildTime(){time_t tm=fHeader.BuildTime;return ctime(&tm);};
 
@@ -350,8 +355,9 @@ static    AMSSetupR * gethead(){return _Head;}
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
+ int LoadDynAlignment(unsigned int run);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,12)       //AMSSetupR
+ClassDef(AMSSetupR,13)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
