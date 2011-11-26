@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.835 2011/11/18 12:28:02 sdifalco Exp $
+// $Id: job.C,v 1.836 2011/11/26 10:46:56 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -86,6 +86,7 @@
 #include "tofid.h"
 #include "charge.h"
 #include "TrdHCalib.h"
+#include "OrbGen.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -250,7 +251,6 @@ void AMSJob::_siamsdata(){
   IOPA.WriteTDVDataInRoot=1;
   IOPA.ReadAMI=0;
   IOPA.unitimegen=0;
-  IOPA.unitimegenrate=1;
   VBLANK(IOPA.TGeometryFileName,40);//174
   char tgeofilename[16]="ams02.root";
   UCTOH(tgeofilename,IOPA.TGeometryFileName,4,16);
@@ -1711,6 +1711,21 @@ void AMSJob::udata(){
   }
 
 
+  if(CCFFKEY.low==10){
+    OrbGen*orb=OrbGen::GetOrbGen();
+    tm begin;
+    begin.tm_year= CCFFKEY.begindate%10000-1900;
+    begin.tm_mon= (CCFFKEY.begindate/10000)%100-1;
+    begin.tm_mday= (CCFFKEY.begindate/1000000);
+    begin.tm_hour=CCFFKEY.begintime/10000;
+    begin.tm_min=(CCFFKEY.begintime/100)%100;
+    begin.tm_sec=CCFFKEY.begintime%100;
+    begin.tm_isdst=0;
+    time_t bb=mktime(&begin);
+    orb->SetTime(bb,0);
+
+  }
+
 
 #ifdef _WEBACCESS_
   if (char * pp=getenv("WEBACCESS")){
@@ -2353,18 +2368,7 @@ void AMSJob::_signinitjob(){
   //
   AMSmceventg::setspectra(CCFFKEY.begindate,CCFFKEY.begintime,
 			  CCFFKEY.enddate, CCFFKEY.endtime, GCKINE.ikine,CCFFKEY.low);
-  if(IOPA.unitimegen>0){
-    struct tm tt;
-    // PZ dirty fix
-    tt.tm_mday = CCFFKEY.begindate/1000000;
-    tt.tm_mon  = (CCFFKEY.begindate/10000)%100-1;
-    tt.tm_year = (CCFFKEY.begindate%10000)-1900;
-    tt.tm_hour = CCFFKEY.begintime/10000;
-    tt.tm_min  = (CCFFKEY.begintime/100)%100;
-    tt.tm_sec  = CCFFKEY.begintime%100;
-    AMSEvent::_oldtime=mktime(&tt);
-    AMSEvent::_oldtime=AMSEvent::_oldtime*1000000LL;
-  }
+
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_sitof2initjob(){
@@ -3168,27 +3172,28 @@ void AMSJob::_timeinitjob(){
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
 
-    begin.tm_isdst=0;
-    end.tm_isdst=0;    
-    begin.tm_sec  =0;
-    begin.tm_min  =0;
-    begin.tm_hour =0;
-    begin.tm_mday =0;
-    begin.tm_mon  =0;
-    begin.tm_year =0;
-   
-    end.tm_sec=0;
-    end.tm_min=0;
-    end.tm_hour=0;
-    end.tm_mday=0;
-    end.tm_mon=0;
-    end.tm_year=0;
-    TrExtAlignDB::CreateLinear();
-    TID.add (new AMSTimeID(AMSID("TrackerExtAlign",isRealData()),begin,end,
+    if(isRealData()){
+      begin.tm_isdst=0;
+      end.tm_isdst=0;    
+      begin.tm_sec  =0;
+      begin.tm_min  =0;
+      begin.tm_hour =0;
+      begin.tm_mday =0;
+      begin.tm_mon  =0;
+      begin.tm_year =0;
+      
+      end.tm_sec=0;
+      end.tm_min=0;
+      end.tm_hour=0;
+      end.tm_mday=0;
+      end.tm_mon=0;
+      end.tm_year=0;
+      TrExtAlignDB::CreateLinear();
+      TID.add (new AMSTimeID(AMSID("TrackerExtAlign",isRealData()),begin,end,
 			   TrExtAlignDB::GetLinearSize(),
-			   TrExtAlignDB::fLinear,
-			   server,need,SLin2ExAlign));
-
+			     TrExtAlignDB::fLinear,
+			     server,need,SLin2ExAlign));
+    }
     begin.tm_isdst=0;
     end.tm_isdst=0;    
     begin.tm_sec  =0;

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.330 2011/11/18 11:15:29 sdifalco Exp $
+//  $Id: commons.h,v 1.331 2011/11/26 10:47:02 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -200,7 +200,6 @@ class IOPA_DEF {
   integer WriteTDVDataInRoot;
   integer ReadAMI;
   integer unitimegen;
-  float unitimegenrate;
 #ifdef __AMSVMC__
   integer VMCVersion;
   integer VMCEventno;

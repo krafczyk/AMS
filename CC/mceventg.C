@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.168 2011/10/05 18:52:19 pzuccon Exp $
+//  $Id: mceventg.C,v 1.169 2011/11/26 10:46:56 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -17,6 +17,7 @@
 #ifdef _PGTRACK_
 #include "HistoMan.h"
 #endif
+#include "OrbGen.h" 
 
 #ifdef __AMSVMC__
 
@@ -110,12 +111,12 @@ int  AMSmceventg::readposfromfile(char* filename,vector<tbpos> &poslist){
   FILE* ff=fopen(filename,"r");
   if(!ff) return -1;
   while(1){
-    float a,b,c,d,e;
+    float a,b,c,d,e,f;
     tbpos aa;
-    fscanf(ff,"%f %f %f %f %f",&a,&b,&c,&d, &e );
+    fscanf(ff,"%f %f %f %f %f %f",&a,&b,&c,&d, &e, &f);
     if(feof(ff)) break;
-    aa.X=a;  aa.Y=b; aa.Z=c;
-    aa.TH=d; aa.PH=e;
+    aa.X=a;  aa.Y=b;  aa.Z=c;
+    aa.DX=d; aa.DY=e; aa.DZ=f;
     poslist.push_back(aa);
   }
   
@@ -173,29 +174,47 @@ void AMSmceventg::gener(){
     _coo[1]+=poslist[index].Y;
     _coo[2]+=poslist[index].Z;
 
-    float Th  = RNDM(d)*CCFFKEY.dir[0];
-    float Ph  = RNDM(d) *2*M_PI;    
-    float CT=cos(poslist[index].TH);
-    float ST=sin(poslist[index].TH);
-    float CP=cos(poslist[index].PH);
-    float SP=sin(poslist[index].PH);
-    float rotmat[3][3];
-    rotmat[0][0]= CP*CT;    rotmat[0][1]=SP;     rotmat[0][2]=-CP*ST;
-    rotmat[1][0]=-SP*CT;    rotmat[1][1]=CP;     rotmat[1][2]= SP*ST;
-    rotmat[2][0]= ST;       rotmat[2][1]=0;      rotmat[2][2]= CT;
-    float d0[3];
-    d0[0]=sin(Th)*cos(Ph);
-    d0[1]=sin(Th)*sin(Ph);
-    d0[2]=cos(Th);
-    for(int ii=0;ii<3;ii++)
-      _dir[ii]=d0[0]*rotmat[ii][0]+d0[1]*rotmat[ii][1]+d0[2]*rotmat[ii][2];
-
+//     float Th  = RNDM(d)*CCFFKEY.dir[0];
+//     float Ph  = RNDM(d) *2*M_PI;    
+//     float nn=sqrt(pow(poslist[index].DX,2)+pow(poslist[index].DY,2)+pow(poslist[index].DZ,2));
+//     float CT=poslist[index].DZ/nn;
+//     float ST=sqrt(pow(poslist[index].DX,2)+pow(poslist[index].DY,2))/nn;
+//     float CP=poslist[index].DX/sqrt(pow(poslist[index].DX,2)+pow(poslist[index].DY,2));
+//     float SP=poslist[index].DY/sqrt(pow(poslist[index].DX,2)+pow(poslist[index].DY,2));
+//     float rotmat[3][3];
+//     rotmat[0][0]= CP*CT;    rotmat[0][1]=SP;     rotmat[0][2]=-CP*ST;
+//     rotmat[1][0]=-SP*CT;    rotmat[1][1]=CP;     rotmat[1][2]= SP*ST;
+//     rotmat[2][0]= ST;       rotmat[2][1]=0;      rotmat[2][2]= CT;
+//     float d0[3];
+//     d0[0]=sin(Th)*cos(Ph);
+//     d0[1]=sin(Th)*sin(Ph);
+//     d0[2]=cos(Th);
+//     for(int ii=0;ii<3;ii++)
+//       _dir[ii]=d0[0]*rotmat[ii][0]+d0[1]*rotmat[ii][1]+d0[2]*rotmat[ii][2];
+    
+    _dir[0]=poslist[index].DX;
+    _dir[1]=poslist[index].DY;
+    _dir[2]=poslist[index].DZ;
 
     _mom   =extract(CCFFKEY.momr[0],CCFFKEY.momr[1]);
     _tbline=index++;
-    //  printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
-    //      _coo[0],_coo[1],_coo[2],
-    //      _dir[0],_dir[1],_dir[2]);
+//     printf("Want to fire mom %f from %f %f %f dir %f %f %f\n",_mom,
+// 	   _coo[0],_coo[1],_coo[2],
+// 	   _dir[0],_dir[1],_dir[2]);
+
+  }else if(CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
+
+    OrbGen*orb=OrbGen::GetOrbGen();
+    orb->GenDir();
+    for(int ii=0;ii<3;ii++){
+      _dir[ii]=orb->Dir[ii];
+      _coo[ii]=orb->Coo[ii];
+    }
+    _mom=orb->Rigidity;
+    _tbline=0;
+    init(orb->Pid);
+    _mom=orb->Rigidity*abs(_charge);
+
   }else  if(CCFFKEY.low==-2){
     //
     //  wrong method do not use  (VC)
@@ -1149,7 +1168,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
 
 integer AMSmceventg::accept(){
   _nskip=Orbit.Ntot;
- if(CCFFKEY.low==8|| CCFFKEY.low==9)  return 1;
+ if(CCFFKEY.low==8|| CCFFKEY.low==9 || CCFFKEY.low==10)  return 1;
   if(!(GMFFKEY.GammaSource==0) || CCFFKEY.DirFilePositions[1]-CCFFKEY.DirFilePositions[0]+1>0) return 1; //ISN
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){

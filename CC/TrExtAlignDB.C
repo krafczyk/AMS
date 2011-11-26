@@ -287,23 +287,23 @@ void SLin2ExAlign()
 
 
 void TrExtAlignDB::ProduceDisalignment(unsigned int * tt){
-
-  double period=M_PI/10.;
-  double time=tt[0]/period;
-  time+=(tt[1]*0.000001L)/period;
+  //                     min  sec/min
+  double period=2*M_PI/ (92.*60.);
+  double time=tt[0];
+  time+=(tt[1]*0.000000001L);
   TrExtAlignPar par[2];
-  double p1[6]={0.1,0.1,0.02,0.0001,0.0001,0.0001};
+  double p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
   double phase1[6]={1.,2.,3.,2.1,3.4,4.5};
-  par[0].dpos[1]=p1[1];
-  /*  par[0].dpos[0]=p1[0]*sin(time*period+phase1[0]);
+  //par[0].dpos[1]=p1[1];
+  par[0].dpos[0]=p1[0]*sin(time*period+phase1[0]);
   par[0].dpos[1]=p1[1]*sin(time*period+phase1[1]);
   par[0].dpos[2]=p1[2]*sin(time*period+phase1[2]);
   par[0].angles[0]=p1[3]*sin(time*period+phase1[3]);
   par[0].angles[1]=p1[4]*sin(time*period+phase1[4]);
   par[0].angles[2]=p1[5]*sin(time*period+phase1[5]);
-  Printf("Time: %d %d\n",tt[0],tt[1]);
-  par[0].Print();
-  float p9[6]={0.01,0.01,0.02,0.0001,0.0001,0.0001};
+//   Printf("Time: %d %d\n",tt[0],tt[1]);
+//   par[0].Print();
+  float p9[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
   float phase9[6]={1.4,2.3,3.2,2.11,3.14,4.85};
   par[1].dpos[0]=p9[0]*sin(time*period+phase9[0]);
   par[1].dpos[1]=p9[1]*sin(time*period+phase9[1]);
@@ -311,7 +311,7 @@ void TrExtAlignDB::ProduceDisalignment(unsigned int * tt){
   par[1].angles[0]=p9[3]*sin(time*period+phase9[3]);
   par[1].angles[1]=p9[4]*sin(time*period+phase9[4]);
   par[1].angles[2]=p9[5]*sin(time*period+phase9[5]);
-  */
+  
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
     TkPlane* pl = TkDBc::Head->GetPlane(plane);

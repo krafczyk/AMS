@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.547 2011/10/16 09:10:08 choutko Exp $
+//  $Id: event.C,v 1.548 2011/11/26 10:46:56 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -82,10 +82,10 @@ extern LMS* lms;
 #endif
 //
 //
-
+#include "OrbGen.h"
 
 //#include "HistoMan.h"
-long long AMSEvent::_oldtime=0;
+
 bool AMSEvent::_Barrier=false;
 integer AMSEvent::debug=0;
 uint64 AMSEvent::_RunEv[maxthread]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -377,7 +377,7 @@ void AMSEvent::_signinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSmctrack",1),0));
 }
 
-void AMSEvent::SetTimeCoo(integer rec){    
+void AMSEvent::SetTimeCoo(integer rec){
   AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
@@ -408,13 +408,7 @@ void AMSEvent::SetTimeCoo(integer rec){
     
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
     
-#ifdef _PGTRACK_  
-    if (IOPA.unitimegen){
-      _oldtime+=TrExtAlignDB::GetDt(IOPA.unitimegenrate);
-      _time=_oldtime/1000000LL;
-      _usec=_oldtime%1000000LL;
-    }
-#endif    
+
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
     _Yaw=0;
@@ -433,47 +427,65 @@ void AMSEvent::SetTimeCoo(integer rec){
   AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
   //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
   _VelTheta=AMSDBc::pi/2-ax2.gettheta();
-    _VelPhi=ax2.getphi();
-    
-    // Once ISS celestial coo have been calculated, obtain AMS celestial coo
-    number raf,decf;
-    const float tilt=0.20944; // tilt of about 12 degrees around forward direction 
-    
-    skyposition forwardpos(_VelTheta,fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi),_StationRad,_time); // calculate celestial position towards which ISS advances (X_lvlh)
-    forwardpos.GetRa(raf);  
-    forwardpos.GetDec(decf);  
-    
-    geant ziss[3],xiss[3],yiss[3],zams[3];
-    
-    ziss[0] = cos(_StationEqAsc)*cos(_StationEqDec); // ISS pointing direction
-    ziss[1] = sin(_StationEqAsc)*cos(_StationEqDec);
-    ziss[2] = sin(_StationEqDec);  
-    yiss[0] = -cos(raf)*cos(decf); // vector yiss points "backwards"
-    yiss[1] = -sin(raf)*cos(decf);
-    yiss[2] = -sin(decf);  
-    xiss[0] = yiss[1]*ziss[2]-ziss[1]*yiss[2]; // yiss x ziss
-    xiss[1] = -(yiss[0]*ziss[2]-ziss[0]*yiss[2]);
-    xiss[2] = yiss[0]*ziss[1]-ziss[0]*yiss[1];
-    zams[0] = sin(tilt)*xiss[0]+cos(tilt)*ziss[0]; // AMS pointing direction
-    zams[1] = sin(tilt)*xiss[1]+cos(tilt)*ziss[1];
-    zams[2] = sin(tilt)*xiss[2]+cos(tilt)*ziss[2];
+  _VelPhi=ax2.getphi();
+  
+  // Once ISS celestial coo have been calculated, obtain AMS celestial coo
+  number raf,decf;
+  const float tilt=0.20944; // tilt of about 12 degrees around forward direction 
+  
+  skyposition forwardpos(_VelTheta,fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi),_StationRad,_time); // calculate celestial position towards which ISS advances (X_lvlh)
+  forwardpos.GetRa(raf);  
+  forwardpos.GetDec(decf);  
+  
+  geant ziss[3],xiss[3],yiss[3],zams[3];
+  
+  ziss[0] = cos(_StationEqAsc)*cos(_StationEqDec); // ISS pointing direction
+  ziss[1] = sin(_StationEqAsc)*cos(_StationEqDec);
+  ziss[2] = sin(_StationEqDec);  
+  yiss[0] = -cos(raf)*cos(decf); // vector yiss points "backwards"
+  yiss[1] = -sin(raf)*cos(decf);
+  yiss[2] = -sin(decf);  
+  xiss[0] = yiss[1]*ziss[2]-ziss[1]*yiss[2]; // yiss x ziss
+  xiss[1] = -(yiss[0]*ziss[2]-ziss[0]*yiss[2]);
+  xiss[2] = yiss[0]*ziss[1]-ziss[0]*yiss[1];
+  zams[0] = sin(tilt)*xiss[0]+cos(tilt)*ziss[0]; // AMS pointing direction
+  zams[1] = sin(tilt)*xiss[1]+cos(tilt)*ziss[1];
+  zams[2] = sin(tilt)*xiss[2]+cos(tilt)*ziss[2];
+  
+  _AMSEqAsc=fmod(atan2(zams[1],zams[0])+AMSDBc::twopi,AMSDBc::twopi);
+  _AMSEqDec=asin(zams[2]);
+  skyposition amspos(_AMSEqAsc,_AMSEqDec);
+  amspos.GetLong(_AMSGalLong);
+  amspos.GetLat(_AMSGalLat);
 
-    _AMSEqAsc=fmod(atan2(zams[1],zams[0])+AMSDBc::twopi,AMSDBc::twopi);
-    _AMSEqDec=asin(zams[2]);
-    skyposition amspos(_AMSEqAsc,_AMSEqDec);
-    amspos.GetLong(_AMSGalLong);
-    amspos.GetLat(_AMSGalLat);
-  }
-  else if(AMSJob::gethead()->isSimulation() && rec){
-  if(CCFFKEY.oldformat){
-   static number StTheta=0;
+  if(CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
+    
+    OrbGen*orb=OrbGen::GetOrbGen();
     _Yaw=0;
     _Roll=0;
     _Pitch=0;
     _Alpha=0;
-    _B1a=0;
-    _B1b=0;
-    _B3a=0;
+    _StationTheta=orb->Lat;
+    _StationPhi=orb->Lon;
+    _time=orb->Time.Time_s;
+    _usec=orb->Time.Time_ns;
+  }
+
+
+
+
+
+  }
+  else if(AMSJob::gethead()->isSimulation() && rec){
+    if(CCFFKEY.oldformat){
+      static number StTheta=0;
+      _Yaw=0;
+      _Roll=0;
+      _Pitch=0;
+      _Alpha=0;
+      _B1a=0;
+      _B1b=0;
+      _B3a=0;
     _B3b=0;
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
@@ -495,8 +507,8 @@ void AMSEvent::SetTimeCoo(integer rec){
 #pragma omp threadprivate (hint)
     //get right record
     if( Array[hint].Time<=_time && 
-       _time<Array[hint+2>=sizeof(Array)/sizeof(Array[0])?
-                  sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
+	_time<Array[hint+2>=sizeof(Array)/sizeof(Array[0])?
+		    sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
       // got it
       if(_time>=Array[hint+1].Time)hint++;
     }
@@ -1283,22 +1295,22 @@ void  AMSEvent::write(int trig){
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
 	 || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime || NoMoreSpace)
 	{
-   AMSEvent::ResetThreadWait(1);
-Barrier()=true;
+	  AMSEvent::ResetThreadWait(1);
+	  Barrier()=true;
 #pragma omp barrier 
-cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
-
-if(AMSEvent::get_thread_num()==0)
-	  {
-
-	    AMSJob::gethead()->uhend();
-	    AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
-            AMSNtuple::readRSetup(this);
-            Barrier()=false;
-	  }
+	  cout <<"AMSAEvent::writefile in barrier "<<AMSEvent::get_thread_num()<<endl;
+	  
+	  if(AMSEvent::get_thread_num()==0)
+	    {
+	      
+	      AMSJob::gethead()->uhend();
+	      AMSJob::gethead()->uhinit(_run,getmid()+1,getmtime());
+	      AMSNtuple::readRSetup(this);
+	      Barrier()=false;
+	    }
 #pragma omp barrier 
 	  if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
-
+	  
 	}
     }        
   }
@@ -1355,37 +1367,37 @@ void AMSEvent::copy(){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
-if(GCFLAG.IEVENT==1000){
-}
+  if(GCFLAG.IEVENT==1000){
+  }
   addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){
 
     if(_SelectedEvents->Run==0){
 #pragma omp critical (g4)
-{
-      GCFLAG.IEORUN=1;
-      GCFLAG.IEOTRI=1;
-}
+      {
+	GCFLAG.IEORUN=1;
+	GCFLAG.IEOTRI=1;
+      }
       return;
     }
     else{
       EventId o(getrun(),getid());
       if(_SelectedEvents->Run > o.Run){
 #pragma omp critical (g4)
-{
-	if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
-}
+	{
+	  if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+	}
 	return;
       }
       else if(*_SelectedEvents < o){
 #pragma omp critical (g4)
-{
-	while(*_SelectedEvents<o && _SelectedEvents->Run){
-	  if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
-	  _SelectedEvents++;
+	{
+	  while(*_SelectedEvents<o && _SelectedEvents->Run){
+	    if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
+	    _SelectedEvents++;
+	  }
 	}
-}
 	if(_SelectedEvents->Run!=o.Run){
           return;
 	}
@@ -1393,24 +1405,24 @@ if(GCFLAG.IEVENT==1000){
       if(_SelectedEvents->Event){
 	if(o!=*_SelectedEvents){
 #pragma omp critical (g4)
-{
-	  if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
-	    SELECTFFKEY.Run=_SelectedEvents->Run;
-	    SELECTFFKEY.Event=_SelectedEvents->Event;
-	    DAQEvent::select();
+	  {
+	    if(! AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event)){
+	      SELECTFFKEY.Run=_SelectedEvents->Run;
+	      SELECTFFKEY.Event=_SelectedEvents->Event;
+	      DAQEvent::select();
+	    }
 	  }
-}
 	  return;
 	}
 #pragma omp critical (g4)
-{
-	_SelectedEvents++;
-}
+	{
+	  _SelectedEvents++;
+	}
       }       
     }
   }
   AMSgObj::BookTimer.start("EventStatus");
-        const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
+  const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);
   if(STATUSFFKEY.status[size-2]){
     int ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
     int skipped=0;
@@ -1435,7 +1447,7 @@ if(GCFLAG.IEVENT==1000){
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
 
       if(_id<=IOPA.skip) return;
-	_reamsevent();
+      _reamsevent();
       if(AMSJob::gethead()->isCalibration())_caamsevent();
 
       _trdgain();
@@ -1475,7 +1487,8 @@ void AMSEvent::_siamsevent(){
 #ifdef _PGTRACK_
   if(IOPA.unitimegen){
     unsigned int tt[2];
-    tt[0]=_time; tt[1]=_usec;
+    OrbGen* orb=OrbGen::GetOrbGen();
+    tt[0]=orb->Time.Time_ns; tt[1]=orb->Time.Time_ns;
     TrExtAlignDB::ProduceDisalignment(tt);
   }
 #endif
@@ -1488,6 +1501,11 @@ void AMSEvent::_siamsevent(){
   _sitkevent(); 
   _sitrigevent();//create lev1/lev3 trig.object
   _sidaqevent(); //DAQ-simulation 
+  Trigger2LVL1 *ptrt=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
+  if(ptrt && CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
+    OrbGen::GetOrbGen()->NextTime();
+  }    
+
   AMSgObj::BookTimer.stop("SIAMSEVENT");
 }
 //------------------------------------------------------------------------------------------------------------------------
@@ -1528,21 +1546,21 @@ void AMSEvent::_reamsevent(){
 
 
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
-// copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
-if(DAQCFFKEY.SkipRec && AMSJob::gethead()->isSimulation()){
-static int ist=0;
-   if(ist++<10)
-    cout <<"AMSEvent::_reamsevent-W-ReconstructionWillNotBeDoneBecauseofDAQCCFFKEY.SkipRecRequired"<<endl;
+  // copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
+  if(DAQCFFKEY.SkipRec && AMSJob::gethead()->isSimulation()){
+    static int ist=0;
+    if(ist++<10)
+      cout <<"AMSEvent::_reamsevent-W-ReconstructionWillNotBeDoneBecauseofDAQCCFFKEY.SkipRecRequired"<<endl;
     return;
-   }
-//
-//----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
+  }
+  //
+  //----> below is a tempor.solution to speedup ped-type calibrations for tof/acc/ecal:
   bool calltrk(true),calltrd(true),callrich(true),callax(true),callecal(true),calluser(true);
   bool ecpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]==5);
   bool tftdccal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==1);
   bool tfcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]>0);
   bool tfpedcal=((AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && TFREFFKEY.relogic[0]==6);
-//
+  //
   calltrk  = (!(ecpedcal || tftdccal || tfpedcal));
   calltrd  = (!(ecpedcal || tftdccal || tfpedcal));
   callrich = (!(ecpedcal || tftdccal || tfpedcal));
@@ -1554,30 +1572,29 @@ static int ist=0;
 
 
 
-
   if(getC("TriggerLVL1",0)->getnelem() ){
-try{
-    _retof2event();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
- seterror(2);
-}
-try{
-    _reanti2event();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reantievent"<<endl;
- seterror(2);
-}
+    try{
+      _retof2event();
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
+      seterror(2);
+    }
+    try{
+      _reanti2event();
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reantievent"<<endl;
+      seterror(2);
+    }
 
-try{
-    if(calltrd)_retrdevent();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdevent"<<endl;
- seterror(2);
-}
+    try{
+      if(calltrd)_retrdevent();
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdevent"<<endl;
+      seterror(2);
+    }
     
     if(calltrk){
       try{
@@ -1590,40 +1607,40 @@ catch(std::bad_alloc a){
 	
       }
 
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
- seterror(2);
-}
-} 
-try{
-    if(callrich)_rerichevent();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
- seterror(2);
-}
-try{
-    if(callecal)_reecalevent();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reecalevent"<<endl;
- seterror(2);
-}
- }
-try{
-  if(callax)_reaxevent();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reaxevent"<<endl;
- seterror(2);
-}
-try{
-  if(calluser)AMSUser::Event();
-}
-catch(std::bad_alloc a){
- cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" AMSUser::Event"<<endl;
- seterror(2);
-}
+      catch(std::bad_alloc a){
+	cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
+	seterror(2);
+      }
+    } 
+    try{
+      if(callrich)_rerichevent();
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
+      seterror(2);
+    }
+    try{
+      if(callecal)_reecalevent();
+    }
+    catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reecalevent"<<endl;
+      seterror(2);
+    }
+  }
+  try{
+    if(callax)_reaxevent();
+  }
+  catch(std::bad_alloc a){
+    cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reaxevent"<<endl;
+    seterror(2);
+  }
+  try{
+    if(calluser)AMSUser::Event();
+  }
+  catch(std::bad_alloc a){
+    cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" AMSUser::Event"<<endl;
+    seterror(2);
+  }
 #ifndef _PGTRACK_
   if(calltrk)AMSTrTrack::cleanup(); 
 #endif
@@ -2876,7 +2893,7 @@ void AMSEvent::_writeEl(){
      AMSmceventg *p =(AMSmceventg*)getheadC("AMSmceventg",0);
      if(p){
       EN->RunType=p->getseed(0);
-      EN->RNDMSeed[1]=p->getseed(0);
+      EN->RNDMSeed[0]=p->getseed(0);
       EN->RNDMSeed[1]=p->getseed(1);
      }
      
