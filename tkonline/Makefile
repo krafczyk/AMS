@@ -3,6 +3,7 @@ SRCDIR         := CC
 INCDIR         := include
 OBJDIR         := obj
 BINDIR         := bin
+CXX            :=$(shell root-config --cxx)
 
 ### Options
 CINT           := $(ROOTSYS)/bin/rootcint
@@ -62,8 +63,8 @@ $(BINDIR)/tkprinter$(DEV): $(OBJDIR)/tkprinter.o $(COMMONOBJS)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $^ $(LIBS) -o $@
 
 ### Rules for symbolic linking for few needed classes from GBATCH
-$(SRCDIR)/%.C : $(AMSWD)/CC/%.C 
-	@if [ ! -f $@ ] ; then echo Creating symbolic link  $< ...; ln -s $< $@; fi
+$(SRCDIR)/%.C : $(AMSSRC)/CC/%.C 
+	if [ ! -f $@ ] ; then echo Creating symbolic link  $< ...; ln -s $< $@; fi
 
 ### Rules for compilation  
 $(OBJDIR)/%.o: $(SRCDIR)/%.cxx
