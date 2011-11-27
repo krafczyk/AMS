@@ -150,6 +150,12 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
     AMSRotMat rot;
     pars.GetParameters(time,0,pos,rot);
 
+    // Take into account the difference in the reference frames
+    // between the local geometry and the one used in the computation
+    double delta=pl->GetPos()[2]-pars.ZOffset;
+    AMSPoint correction(rot.GetEl(0,2)*delta,rot.GetEl(1,2)*delta,0);
+    pos=pos+correction;
+
     // Set plane parameters
     pl->posA=pos;
     pl->rotA=rot;
