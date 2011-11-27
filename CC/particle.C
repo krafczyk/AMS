@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.240 2011/09/28 07:50:04 choutko Exp $
+//  $Id: particle.C,v 1.241 2011/11/27 22:03:56 mmilling Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -509,12 +509,6 @@ void AMSParticle::trd_Hlikelihood(){
 	if(tr){
 	  tr->status=3;
 	  TrdHReconR::gethead(AMSEvent::get_thread_num())->AddTrack(tr);
-	  _TRDHLikelihood=TrdHChargeR::gethead()->GetELikelihood(tr);
-	  _TRDHElik=TrdHChargeR::gethead()->GetELikelihood(tr,0.,1);
-	  _TRDHPlik=TrdHChargeR::gethead()->GetELikelihood(tr,0.,2);
-	  _TRDCCnhit=TrdHChargeR::gethead()->GetNCC(tr);
-
-
 	  AMSTRDHTrack* ptr=(AMSTRDHTrack*)AMSEvent::gethead()->getC("AMSTRDHTrack",0)->getlast();
 	  _phtrd=ptr;
 	}
@@ -524,11 +518,12 @@ void AMSParticle::trd_Hlikelihood(){
 
 
   if(!_phtrd)return;
+  
   _TRDHLikelihood=_phtrd->elikelihood;
-  _TRDHElik=TrdHChargeR::gethead()->GetELikelihood(_phtrd,0.,1);
-  _TRDHPlik=TrdHChargeR::gethead()->GetELikelihood(_phtrd,0.,2);
-  _TRDCCnhit=TrdHChargeR::gethead()->GetNCC(_phtrd);
-  if(debug)printf("likelihood %.2f\n",_TRDHLikelihood);
+  _TRDHElik=_phtrd->GetProb(0,debug);
+  _TRDHPlik=_phtrd->GetProb(1,debug);
+  _TRDCCnhit=_phtrd->GetNCC(200,debug);
+   if(debug)printf("likelihood %.2f\n",_TRDHLikelihood);
 }
 
 void AMSParticle::trd_likelihood(){
@@ -1441,4 +1436,3 @@ AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
   
 }
   
-

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.549 2011/11/27 17:44:51 choutko Exp $
+//  $Id: event.C,v 1.550 2011/11/27 22:03:56 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -253,6 +253,15 @@ if(AMSEvent::get_thread_num()==0)
    _validate(1);
   }
 
+  // TRD calibration / energy deposition correction / particle identification related TDV readback
+  {
+    TrdHChargeR::gethead()->closeTDV();
+    TrdHCalibR::gethead()->closeTDV();
+    
+    TrdHChargeR::gethead()->FillPDFsFromTDV();
+    for(int i=0;i<6064;i++)TrdHCalibR::gethead()->tube_gain[i]=AMSTRDIdSoft::_gain[i];
+    TrdHCalibR::gethead()->FillMedianFromTDV();
+  }
 
    cout <<" AMS-I-New Run "<<_run<<endl;
         const int size=sizeof(STATUSFFKEY.status)/sizeof(STATUSFFKEY.status[0]);

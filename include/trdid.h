@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.15 2011/05/24 13:14:43 choutko Exp $
+//  $Id: trdid.h,v 1.16 2011/11/27 22:04:32 mmilling Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include "typedefs.h"
@@ -68,11 +68,11 @@ void _mkcrate();
  static integer _GetHard[trdconst::maxlay][trdconst::maxlad][4];     // layer,ladder ->// nute,nufe,nudr, crate
 static geant *_ped;
 static geant *_sig;
-static geant *_gain;
 static geant *_mcgain;
 static uinteger *_status;
 static integer _NROCh;
 public:
+static geant *_gain;
 integer getchannel() const {return _address+_tube;}
 bool dead()const{return _dead==1;}
 friend ostream &operator << (ostream &o, const  AMSTRDIdSoft &b )

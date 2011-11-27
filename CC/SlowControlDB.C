@@ -92,7 +92,7 @@ int SlowControlDB::AppendNode(Node* copynode,unsigned int minT,unsigned int maxT
     std::cerr<<"AppendNode node "<<copynode->GetName()<<" has "<<copynode->getnelem()<<" entries" << std::endl;
     return 2;
   }
-  std::cout<<"node "<<copynode->GetName()<<std::endl;
+  //  std::cout<<"node "<<copynode->GetName()<<std::endl;
 
   std::map<std::string,Node>::iterator it = nodemap.find(std::string(copynode->GetName())); 
   if(it==nodemap.end()){
@@ -125,7 +125,7 @@ bool SlowControlDB::BuildSearchIndex(int debug){
       unsigned int node=it->second/100000;
       unsigned int dt=it->second%100000/1000;
       unsigned int st=it->second%1000;
-      std::cout<<"subtype "<<it->first<<" - NA 0x"<<std::hex<<node<<" DT 0x"<<std::hex<<dt<<" ST "<<st<<std::endl; 
+      if(debug)std::cout<<"subtype "<<it->first<<" - NA 0x"<<std::hex<<node<<" DT 0x"<<std::hex<<dt<<" ST "<<st<<std::endl; 
     }
   
   

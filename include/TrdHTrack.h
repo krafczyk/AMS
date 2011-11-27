@@ -4,6 +4,7 @@
 #include "TrdHSegment.h"
 #include "typedefs.h"
 #include "TrElem.h"
+#include <map>
 
 /// class to store 3D TRD track
 class TrdHTrackR:public TrElem{
@@ -24,18 +25,22 @@ class TrdHTrackR:public TrElem{
   /// reconstructed charge
   float charge;
 
-  // reconstructed electron likelihood (-log(like/(like+likp)))
+  /// reconstructed electron likelihood (-log(like/(like+likp)))
   float elikelihood;
 
   /// Track fit status (1 - only TRD, 2- only TRD & matching TKtrack found, 3 - TRD fitted according to TKtrack)
   int status;
 
+  /// energy depositions [ADC] on track per layer
+  float elayer[20]; //!
+  
   /// vector of TrdHSegment iterators
   vector<int> fTrdHSegment;
-  vector<TrdHSegmentR> segments; //!'
+  vector<TrdHSegmentR> segments; //!
 
-  float         elayer[20]; //!
-  
+  /// container to store charge probabilities
+  map<double,int> charge_probabilities; //!
+
   /// return number of segments (should be 2)
   int NTrdHSegment();
   /// return number of segments (should be 2)
@@ -101,16 +106,28 @@ class TrdHTrackR:public TrElem{
   float TubePath(TrdRawHitR* hit, int method=0,int  opt=0,int debug=0);
 
   float GetPathLengthMH(int layer, int ladder, int tube, int i);
+
+  int UpdateLayerEdep(int corr, float bg,int charge, int debug=0);
+
+  /// get probability for 'charge' (0:e, 1:p, 2:He)
+  double GetProb(int charge, int debug=0);
+
+  /// new likelihood method - multihypothesis - sig selected by 0/1/2 e/p/he - bkg bitwise flagged by -1:all 0:use electron 1:use proton 2:use helium etc. 
+  float GetLikelihood(int sig=0,int bkg=1,int debug=0);
+  
+  /// get number of layers above CC amplitude cut
+  int GetNCC(float cut=200.,int debug=0);
   
   /// virtual dtor 
   virtual ~TrdHTrackR(){
     segments.clear();
     fTrdHSegment.clear();
-    };
+    charge_probabilities.clear();
+  };
 
   void clear();
 
-  void   Print(int opt=0);
+  void Print(int opt=0);
 
   void _PrepareOutput(int opt=0){
     sout.clear();
@@ -160,7 +177,7 @@ p=0;
 }
 } 
 #endif
-  ClassDef(TrdHTrackR, 9);
+  ClassDef(TrdHTrackR, 10);
 };
 
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.837 2011/11/27 17:44:51 choutko Exp $
+// $Id: job.C,v 1.838 2011/11/27 22:03:56 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3457,6 +3457,42 @@ void AMSJob::_timeinitjob(){
   }
 
 
+  //----------------------------
+  //
+  // TrdHCharge 
+  //      
+  
+  {
+    tm begin;
+    tm end;
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec=TRDMCFFKEY.sec[0];
+    begin.tm_min=TRDMCFFKEY.min[0];
+    begin.tm_hour=TRDMCFFKEY.hour[0];
+    begin.tm_mday=TRDMCFFKEY.day[0];
+    begin.tm_mon=TRDMCFFKEY.mon[0];
+    begin.tm_year=TRDMCFFKEY.year[0];
+    
+    end.tm_sec=TRDMCFFKEY.sec[1];
+    end.tm_min=TRDMCFFKEY.min[1];
+    end.tm_hour=TRDMCFFKEY.hour[1];
+    end.tm_mday=TRDMCFFKEY.day[1];
+    end.tm_mon=TRDMCFFKEY.mon[1];
+    end.tm_year=TRDMCFFKEY.year[1];
+    
+    for(int n=1;n<3;n++)
+      TID.add (new AMSTimeID(AMSID(TrdHChargeR::gethead()->GetStringForTDVEntry(n).c_str(),isRealData()),
+			     begin,end,sizeof(TrdHChargeR::charge_hist_array[n][0])*1000,
+			     (void*)TrdHChargeR::charge_hist_array[n],server));
+    
+    // single layers electron
+    TID.add( new AMSTimeID(AMSID("TRDElectron",isRealData()),
+			   begin,end,sizeof(TrdHChargeR::electron_hist_array[0])*10000,
+			   (void*)TrdHChargeR::electron_hist_array,server));
+  }
+  
+  
 
 
 

@@ -642,7 +642,6 @@ int TrdHReconR::combine_segments(int debug){
 	TrdHTrackR *tr=SegToTrack(i,j);
 	if(tr){
 	  tr->status=1;
-	  //	  htrvec.push_back(tr);
 	  AddTrack(tr);
 	  delete tr;
 	}
@@ -856,7 +855,6 @@ int TrdHReconR::retrdhevent(int debug){
       TrdHTrackR *tr=SegToTrack(segiter_sel[0],segiter_sel[1],debug);
       if(tr){
 	tr->status=1;
-	//	htrvec.push_back(tr);
 	AddTrack(tr);
 	delete tr;
       }
@@ -871,28 +869,22 @@ int TrdHReconR::retrdhevent(int debug){
 
 void TrdHReconR::AddTrack(TrdHTrackR* tr){
   if(tr){
-
-    for(int i=0;i<20;i++)tr->elayer[i]=0.;
-    for(int s=0;s<tr->fTrdHSegment.size();s++){
-      for(int h=0;h<tr->pTrdHSegment(s)->fTrdRawHit.size();h++){
-	tr->elayer[tr->pTrdHSegment(s)->hits.at(h).Layer]+=tr->pTrdHSegment(s)->hits.at(h).Amp;
-      }
-    }
-   
+    unsigned int mytime;
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
+    mytime=(unsigned int)AMSEvent::gethead()->gettime();
 #else
     TrdHTrackR* amstr=tr;
+    mytime=(unsigned int)AMSEventR::Head()->fHeader.Time[0];
 #endif
-    
-    amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr);
-    amstr->elikelihood=TrdHChargeR::gethead()->GetELikelihood(amstr);
+
+    amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr,mytime);
+    amstr->elikelihood=amstr->GetLikelihood();
 
 #ifndef __ROOTSHAREDLIBRARY__
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");
-    if(amstr){
+    if(amstr)
       cont2->addnext(amstr);
-    }
     delete cont2;
 #endif
 
@@ -912,7 +904,6 @@ void TrdHReconR::AddSegment(TrdHSegmentR* seg){
 #endif
 
     cont2->addnext(amsseg);
-    //    hsegvec.push_back(*amsseg);
     delete cont2;
   }
 }
@@ -965,7 +956,7 @@ int TrdHReconR::SelectEvent(int level){
       for(int i=0;i<(int)htrvec[tr].pTrdHSegment(seg)->fTrdRawHit.size();i++){
 	TrdRawHitR* hit=htrvec[tr].pTrdHSegment(seg)->pTrdRawHit(i);
 	if(!hit)continue;
-	if(hit->Amp>5)nhit_ontrack++;
+	if(hit->Amp>15)nhit_ontrack++;
       }
     }
   
@@ -973,12 +964,12 @@ int TrdHReconR::SelectEvent(int level){
   for(int i=0;i!=rhits.size();i++){
     TrdRawHitR* rhit=&rhits.at(i);
     if(!rhit)continue;
-    if(rhit->Amp>5)nhit++;
+    if(rhit->Amp>15)nhit++;
   }
   
   float fraction=float(nhit_ontrack)/float(nhit);
   if(!level&&fraction>0.5) return 1;
-  else if(level==1&&fraction>0.5&&(int)hsegvec.size()==2&&(int)htrvec.size()==1)return 1;
+  else if(level==1&&fraction>0.5&&(int)hsegvec.size()<4&&(int)htrvec.size()==1)return 1;
   else return 0;
 }
 

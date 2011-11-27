@@ -1,7 +1,8 @@
 #include "TrdHRecon.h"
+#include "TrdHCalib.h"
 ClassImp(TrdHTrackR)
 
-  TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0),charge(0.),elikelihood(0.)
+  TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0),charge(-1.),elikelihood(0.)
 {
   float mag=0.;
   for (int i=0;i!=3;i++){
@@ -37,8 +38,9 @@ TrdHTrackR::TrdHTrackR(TrdHTrackR *tr){
     Dir[i]=tr->Dir[i];
   }
   for(int i=0;i<20;i++)elayer[i]=tr->elayer[i];
-  clear();
+  charge_probabilities=tr->charge_probabilities;
 
+  clear();
   fTrdHSegment=tr->fTrdHSegment;
   segments=tr->segments;
 };
@@ -414,4 +416,95 @@ float TrdHTrackR::GetPathLengthMH(int layer, int ladder, int tube, int i){
   else return 0.;
 }
 
+int TrdHTrackR::UpdateLayerEdep(int corr, float bg,int charge, int debug){
+  for(int i=0;i<20;i++)elayer[i]=0.;
+  for(int s=0;s<2;s++)
+    for(int n=0;n<pTrdHSegment(s)->nTrdRawHit();n++){
+      TrdRawHitR* hit=pTrdHSegment(s)->pTrdRawHit(n);
+      float hitamp=hit->Amp;
+      
+      if(hitamp<15)continue;
+      
+      if(debug)cout<<" edep "<< hitamp; 
+      if(corr&(1<<0)){
+	int tubeid=-1;
+	TrdHCalibR::gethead()->GetTubeIdFromLLT(hit->Layer,hit->Ladder,hit->Tube,tubeid);
+	int mod=tubeid/16;
+
+	float gaincorr=TrdHCalibR::gethead()->GetGainCorr(hit,2);
+	hitamp*=gaincorr;
+	if(debug)cout<<" gain corr "<< gaincorr;
+      }
+      if(corr&(1<<1)){
+	float path=TubePath(hit,0,0,debug);
+	if(path<0.3)continue;
+	float amp_scaled=hitamp/pow(float(charge==0?1:charge),2);
+	float pcorr=TrdHCalibR::gethead()->GetPathCorr(path*10.,amp_scaled,3);
+	hitamp*=pcorr;
+	if(debug)cout<<" path corr "<< pcorr;
+      }
+      if(corr&(1<<2)&&bg>0){
+	float bgcorr=1.;
+	if(charge==1)bgcorr=TrdHCalibR::gethead()->GetBetaGammaCorr(bg,hitamp);
+	if(charge==2)bgcorr=TrdHCalibR::gethead()->bgcorr_helium(log10(bg));
+
+	hitamp*=bgcorr;
+	if(debug)cout<<" bg corr "<< bgcorr;
+      }
+      
+      if(debug)cout<<" corrected edep: "<< hitamp <<endl;
+      elayer[hit->Layer]+=hitamp;
+    }
+  
+  if(debug>1)
+    for(int l=0;l<20;l++)
+      printf(" Update Layer Edep: CHG %i L%02i EDEP %.2f\n",charge,l,elayer[l]);
+  
+  return 0;
+}
+
+double TrdHTrackR::GetProb(int charge, int debug){
+  if(debug)printf("TrdHTrackR::GetProb - map size %i\n",(int)charge_probabilities.size());
+  for(std::map<double,int>::const_iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++)
+    if(it->second==charge)return it->first;
+  if(debug)printf("TrdHTrackR::GetProb - charge %i not found\n",charge);
+  return 0.;
+}
+
+float TrdHTrackR::GetLikelihood(int sig,int bkg, int debug){
+  if(debug)
+    cout<<"Entering TrdHTrackR::GetLikelihood - signal "<<sig<<" background "<<bkg<<endl;
+  
+  if(charge_probabilities.size()<2){
+    cerr<<"please execute GetCharge first to fill charge probabilities"<<endl;
+    return -1.;
+  }
+  
+  double siglik=0.;
+  double bkglik=0.;
+  if(debug)printf("probabilities size %i\n",(int)charge_probabilities.size());
+  for(map<double,int>::iterator it=charge_probabilities.begin();it!=charge_probabilities.end();it++){
+    if(debug)printf("chg %i : prob %.2e\n",it->second,it->first);
+    if(it->second==sig)
+      siglik=it->first;
+    else if(bkg==-1)bkglik+=it->first;
+    else if((bkg==0 && it->second==0) ||
+	    ((it->second%10) & (1 << bkg-1)))bkglik+=it->first;
+  }
+  if(siglik==0.||bkglik==0.)
+    cerr<<"probabilities zero - signal "<<siglik<<" background "<<bkglik<<endl;
+  
+  if(debug)printf("siglik %.2e bkglik %.2e - loglik %.2f\n",siglik,bkglik,-log(siglik/(siglik+bkglik)));
+  return -log(siglik/(siglik+bkglik));
+}
+
+int TrdHTrackR::GetNCC(float cut,int debug){
+  int n=0;
+  for(int l=0;l<20;l++)
+    if(elayer[l]>cut)n++;
+  
+  if(debug)printf("TrdHTrackR::GetNCC - cut %.2f nlayer %i\n",cut,n);
+
+  return n;
+}
 
