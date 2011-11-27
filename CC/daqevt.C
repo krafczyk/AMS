@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.230 2011/08/22 13:34:29 choutko Exp $
+//  $Id: daqevt.C,v 1.231 2011/11/27 17:44:51 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -79,6 +79,7 @@ uinteger DAQEvent::_PEvent=0;
 integer DAQEvent::_Buffer[50000];
 int16u DAQEvent::_Buffer2[100000];
 integer DAQEvent::_BufferLock=0;
+size_t DAQEvent::_FileSize=0;
 integer DAQEvent::_Buffer2Lock=0;
 integer DAQEvent::_Length2=0;
 const integer lover=2;
@@ -111,7 +112,10 @@ int16u DAQEvent::calculate_CRC16(int16u *dat, int16u len) {
 
 void DAQEvent::shrink(){
 
-  if(_pData && !_BufferOwner)UPool.udelete(_pData);
+  if(_pData && !_BufferOwner){
+       UPool.udelete(_pData);
+       if (UPool.size()>10000000)UPool.erase(1);
+  }
   if(_BufferOwner)_BufferLock=0;
   _pData=0;
   //_Length=0;
@@ -1775,7 +1779,9 @@ integer DAQEvent::read(){
       if(fnam){
 	for(;;){
 	  fbin.open(fnam,ios::in);
+          _FileSize=0;
 	  if(fbin){ 
+            SetFileSize(fnam);
 	    cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
 	    GCFLAG.IEORUN=0;
 	    break;
@@ -1809,7 +1815,9 @@ integer DAQEvent::read(){
 #endif
 	  for(;;){
 	    fbin.open(fnam,ios::in);
+          _FileSize=0;
 	    if(fbin){ 
+              SetFileSize(fnam);
 	      cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
 	      GCFLAG.IEORUN=0;
 	      fbin.read(( char*)(l16),sizeof(l16));
@@ -1873,6 +1881,7 @@ integer DAQEvent::read(){
 
 
 void DAQEvent::select(){
+  DAQEvent::_BufferLock=0;
   DAQEvent daq;
   int ok;
   while(ok=daq.read()){
@@ -1910,8 +1919,10 @@ DAQEvent::InitResult DAQEvent::init(){
     if(fbin.is_open())fbin.close();
 #endif
     fbin.open(fnam,ios::in);
+          _FileSize=0;
     if(fbin){ 
       cout <<"DAQEvent::init-I-opened file "<<fnam<<endl;
+      SetFileSize(fnam);
       GCFLAG.IEORUN=0;
       if(Run){
 	DAQEvent daq;
@@ -2712,8 +2723,10 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
       strcpy(rootdir,ifnam[KIFiles]);
     }
     const int cl=161;
-    char bd[cl];
-    bd[cl-1]='\0';
+    static char bd[cl]="";
+    static unsigned int initbd=0;
+    #pragma omp threadprivate(bd,initbd)
+    if(!initbd++){
     UHTOC(DAQCFFKEY.BlocksDir,(cl-1)/sizeof(integer),bd,cl-1);
     for (int i=cl-2; i>=0; i--) {
       if(bd[i] == ' ') bd[i]='\0';
@@ -2726,6 +2739,7 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
 	break;
       }
     }    
+   }
     cout <<"  BlocksDir "<<bd<<endl;
     char *last=strstr(rootdir,bd);
     if(last && strlen(bd)>0){
@@ -3314,3 +3328,15 @@ bool DAQEvent::CalibInit(int id){
 
 
 unsigned int DAQEvent::_CalibDataS[7*3+1];
+
+bool DAQEvent::SetFileSize(const char *fnam){
+	struct stat64 statbuf;
+	if(fnam && !stat64 (fnam,&statbuf) && statbuf.st_size>0){
+          _FileSize=statbuf.st_size;
+          return true;
+        }
+        else{
+          _FileSize=0;
+          return false;
+        }
+}

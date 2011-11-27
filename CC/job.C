@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.836 2011/11/26 10:46:56 pzuccon Exp $
+// $Id: job.C,v 1.837 2011/11/27 17:44:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -234,6 +234,8 @@ void AMSJob::_siamsdata(){
   IOPA.ntuple=1;//42
   IOPA.WriteAll=101;//43
   IOPA.Portion=.2;//44
+IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
+
   VBLANK(IOPA.TriggerC,40);
   VBLANK(AMSFFKEY.TDVC,400);
   char amsp[12]="AMSParticle";

@@ -211,7 +211,7 @@ try{
 //       TrTrackFitR::SetAligDB("TrAligglDBP_lay",nMCEventg()>0?0:1);
 //      TrTrackFitR::SetAligDB_TDVR("TrAligglDBP",nMCEventg()>0?0:1,true);
 //        TrTrackFitR::SetAligDB("TrAligglDBP_lad",nMCEventg()>0?0:1);
-       TrTrackFitR::SetAligDB("TrAligglDBP_sen",nMCEventg()>0?0:1);
+       TrTrackFitR::SetAligDB("TrAligglDBP_senc",nMCEventg()>0?0:1);
 //       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
 
        TrTrackFitR fiii(-3,0,3,0);
@@ -229,7 +229,7 @@ try{
        int ifms=tr.iTrTrackFit(fms);
        int iftot=tr.iTrTrackFit(ftot);
        int ifi=tr.iTrTrackFit(fi);
-       //cout <<" Rig0 "<<fi.Rigidity<<" "<<fi.NHits()<<" "<<Event()<<endl;
+       cout <<" Rig0 "<<fi.Rigidity<<" "<<fi.NHits()<<" "<<Event()<<endl;
   //forced refit of fii object
        int ifi1=tr.iTrTrackFit(fii,2);
        //cout <<" Rig1 "<<fii.Rigidity<<" "<<fii.NHits()<<" "<<Event()<<endl;
@@ -553,7 +553,7 @@ int thread=1;
 unsigned long long pp=1;
 if(order==0 || order/pp%10==1){
       AMSChain chain("AMSRoot",thread,sizeof(daqec));
-chain.Add("/afs/cern.ch/ams//Offline/DataSetsDir/Data/AMS02/2011A/ISS.B538.v4/pass2_v5_lay/*.root");
+chain.Add("/afs/cern.ch/ams//Offline/DataSetsDir/Data/AMS02/2011A/ISS.B538.v4/pass2_v5c_lay/*.root");
 string fileoutput(fout);
 fileoutput+=".v4";
 cout <<" fileoutpot "<<fileoutput.c_str()<<endl;

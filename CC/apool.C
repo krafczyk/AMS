@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.23 2011/04/01 13:25:40 choutko Exp $
+//  $Id: apool.C,v 1.24 2011/11/27 17:44:51 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -93,9 +93,9 @@ void * AMSaPool::insert(size_t st){
   st=st+sizeof(ALIGN)-1;
   st=st-st%sizeof(ALIGN)+sizeof(ALIGN);
   char * ptr=poolMap.get(st);
-#ifdef __AMSDEBUG__
+//#ifdef __DEBUGFLAG__
   _Count++;
-#endif
+//#endif
   if(ptr) return ptr+sizeof(ALIGN);
   else{
     try{
@@ -218,9 +218,9 @@ void AMSaPool::erase(integer tol){
 }
 
 void AMSaPool::udelete(void *p){
-#ifdef __AMSDEBUG__
+//#ifdef __DEBUGFLAG__
   _Count--;
-#endif
+//#endif
   union ALIGN{void*p; long l; long double d;};
   if(p){
     if (*((integer*)((char*)p-sizeof(ALIGN))+1) !=_Mask){

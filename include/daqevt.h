@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.90 2011/08/22 13:34:30 choutko Exp $
+//  $Id: daqevt.h,v 1.91 2011/11/27 17:44:53 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -171,6 +171,7 @@ protected:
   static integer _Length2;
 #pragma omp threadprivate(_Buffer2,_Buffer2Lock,_Length2)
   static integer _Buffer[50000];
+  static size_t  _FileSize;
   static integer _BufferLock;
 #pragma omp threadprivate(_Buffer,_BufferLock)
   void _setcalibdata(int mask){
@@ -205,6 +206,8 @@ public:
     for(int k=0;k<sizeof(_gps)/sizeof(_gps[0]);k++)_gps[k]=0;
     _gpsl=0;
   }
+  static size_t FileSize(){return _FileSize;}
+  static bool SetFileSize(const char *fnam);
   static bool ismynode(int16u id,char * sstr){return id<32?strstr(_getportnamej(id),sstr)!=0:(strstr(_getnodename(id),sstr)!=0);}
   static bool isRawMode(int16u id){return (id&64)>0;}
   static bool isCompMode(int16u id){return (id&128)>0;}

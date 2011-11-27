@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.548 2011/11/26 10:46:56 pzuccon Exp $
+//  $Id: event.C,v 1.549 2011/11/27 17:44:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1531,7 +1531,9 @@ void AMSEvent::_reamsevent(){
   }
 #endif
   geant d;
-  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
+  static double addon=1;
+  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>addon*IOPA.Portion && GCFLAG.NEVENT>100){
+     
     // skip event
     for(int i=0;;i++){
       AMSContainer *pctr=getC("TriggerLVL1",i);
@@ -1543,8 +1545,14 @@ void AMSEvent::_reamsevent(){
     return;    
   }
 
-
-
+  else if(AMSJob::gethead()->isMonitoring()){
+  double maxsize=IOPA.MaxOneMinuteRootFileSize; //  max file size;
+#pragma omp critical (fchange)
+if(DAQEvent::FileSize()){
+  addon=maxsize/DAQEvent::FileSize();
+  if(addon>1)addon=1;  
+}
+}
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();//attach needed subdets parts to existing lvl1-obj
   // copy some subdet-related info from lvl1 to subdet-objects(for example AntiRawEvent)
   if(DAQCFFKEY.SkipRec && AMSJob::gethead()->isSimulation()){
@@ -2299,6 +2307,7 @@ void AMSEvent::_reaxevent(){
 #ifdef _PGTRACK_
   //PZ FIXME DEBUG 
   //   TrRecon::gethead()->BuildVertex();
+  buildC("AMSVtx");
 #else
   buildC("AMSVtx");
 #endif

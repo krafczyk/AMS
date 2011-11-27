@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.123 2011/06/07 14:05:21 choutko Exp $
+//  $Id: gbatch.C,v 1.124 2011/11/27 17:44:51 choutko Exp $
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> 
@@ -247,7 +247,7 @@ lasthope:
   }
 #endif
   cerr <<"gbatch-SIGTERMSIMULATION "<<endl;
-  if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
+  //if(AMSEvent::gethead())AMSEvent::gethead()->Recovery(true);
   gams::UGLAST("SIGTERMSIM ");
   exit(1);
 //#endif

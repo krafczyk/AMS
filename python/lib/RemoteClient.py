@@ -3284,10 +3284,14 @@ class RemoteClient:
                 if(not os.path.isfile(pfile)):
                     print "file not found ",pfile
                     continue
-                sql="select path,run from datafiles where path like '%"+file+"'"
+                sql="select path,run,nevents,type from datafiles where path like '%"+file+"'"
                 ret=self.sqlserver.Query(sql);
                 if(len(ret)>0):
-                    if(replace and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
+                    calibnotfull=false
+                    if(ret[0][3].find("CAL")>=0 and ret[[0][2]>200 and ret[0][2]<247):
+                        calibnotfull=true
+                            
+                    if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
                       fd=ret[0][0] 
                       cmd="rm -rf "+fd
                       i=os.system(cmd)

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.189 2011/09/28 07:50:04 choutko Exp $
+//  $Id: server.C,v 1.190 2011/11/27 17:44:52 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1043,9 +1043,10 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
 if(li!=_acl.end()){
-   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
+   if(1 || _pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
    if(_parent->Debug())_parent->EMessage(AMSClient::print(*li, " KILL -9"));
+   _parent->EMessage(AMSClient::print(*li, " KILL -9"));
     int iret=_pser->Kill((*li),SIGKILL,true);
     if(iret){
      _parent->EMessage(AMSClient::print(*li,"Server::Unable To Kill Client"));
@@ -2603,17 +2604,6 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
 }
     submit+=" &";
     int threads=ac.id.threads;
-    if(singlethread){
-      cout<<"AMSProducer::StartClients-I-singleThreadDetected "<<submit<<endl;
-      string s=(const char*)submit;
-      char pat[]="bsub -n ";
-      int pos=s.find(pat);
-      if(pos>=0){
-        string s1=s.replace(pos,strlen(pat)+1,"bsub -n 1 ");
-        submit=s1.c_str();
-         cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
-      }
-    }
     {
     char *lxplus5=getenv("AMSPublicBatch");
     if(!lxplus5 || !strlen(lxplus5))setenv("AMSPublicBatch","lxplus5.cern.ch",1);
@@ -2621,7 +2611,8 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
       string s=(const char*)submit;
       char pat[]="bsub -n ";
       int pos=s.find(pat);
-      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
+      if( 1){
+//      if( !strstr((const char*)ahlv->HostName,lxplus5) || !singlethread){
 //         read script put max cpu number for given host
            ifstream ftxt;
            ftxt.clear();
@@ -2646,7 +2637,8 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                     else{
                      cerr<<"AMSProducer::StartClients-E-UnableToGetNominalHostFor "<<ahlv->HostName<<endl;
                     }
-                    cout <<"AMSProducer-I-getthreads "<<tr<<" "<<maxn<<" "<<ahlv->HostName<<endl;;
+                    cout <<"AMSProducer-I-getthreads "<<tr<<" "<<maxn<<" "<<ahlv->HostName<<endl;
+                    singlethread=false;
                     if(tr>maxn || tr<=0 )tr=maxn; 
                     if(tr>32)tr=32;
                      char cmaxn[33];
@@ -2671,6 +2663,18 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
            }
      }
     }
+    if(singlethread){
+      cout<<"AMSProducer::StartClients-I-singleThreadDetected "<<submit<<endl;
+      string s=(const char*)submit;
+      char pat[]="bsub -n ";
+      int pos=s.find(pat);
+      if(pos>=0){
+        string s1=s.replace(pos,strlen(pat)+1,"bsub -n 1 ");
+        submit=s1.c_str();
+         cout<<"AMSProducer::StartClients-I-threadChangedTo "<<(const char*)submit<<endl;
+      }
+    }
+
     int out=system(submit);
      time(&tt);
      (ahlv)->LastUpdate=tt;     
