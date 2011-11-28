@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.838 2011/11/27 22:03:56 mmilling Exp $
+// $Id: job.C,v 1.839 2011/11/28 15:31:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3456,11 +3456,15 @@ void AMSJob::_timeinitjob(){
 			   (void*)AMSTRDIdSoft::_sig,server,1));
   }
 
-
   //----------------------------
   //
   // TrdHCharge 
+
+
   //      
+
+
+// changed by VC - remove them for MC
   
   {
     tm begin;
@@ -3484,14 +3488,14 @@ void AMSJob::_timeinitjob(){
     for(int n=1;n<3;n++)
       TID.add (new AMSTimeID(AMSID(TrdHChargeR::gethead()->GetStringForTDVEntry(n).c_str(),isRealData()),
 			     begin,end,sizeof(TrdHChargeR::charge_hist_array[n][0])*1000,
-			     (void*)TrdHChargeR::charge_hist_array[n],server));
+			     (void*)TrdHChargeR::charge_hist_array[n],server,isRealData()));
     
     // single layers electron
     TID.add( new AMSTimeID(AMSID("TRDElectron",isRealData()),
 			   begin,end,sizeof(TrdHChargeR::electron_hist_array[0])*10000,
-			   (void*)TrdHChargeR::electron_hist_array,server));
+			   (void*)TrdHChargeR::electron_hist_array,server,isRealData()));
   }
-  
+
   
 
 
