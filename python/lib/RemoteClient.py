@@ -3366,23 +3366,22 @@ class RemoteClient:
                            calibnotfull=True
                         if(ret[0][3].find("SCI")>=0 and ret[0][2]<eventsi):
                            calibnotfull=True
-                    if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
-                      fd=ret[0][0] 
-                      cmd="rm -rf "+fd
-                      i=os.system(cmd)
-                      if(i):
-                        print "command failed ",cmd
-                        if(replace>1):
-                            sql="delete from datafiles where path='"+fd+"'"  
-                            self.sqlserver.Update(sql)
+                        if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
+                            fd=ret[0][0] 
+                            cmd="rm -rf "+fd
+                            i=os.system(cmd)
+                            if(i):
+                                print "command failed ",cmd
+                                if(replace>1):
+                                    sql="delete from datafiles where path='"+fd+"'"  
+                                    self.sqlserver.Update(sql)
+                                else:
+                                    continue
+                            else:
+                                sql="delete from datafiles where path='"+fd+"'"  
+                                self.sqlserver.Update(sql)
                         else:
                             continue
-                      else:
-                        sql="delete from datafiles where path='"+fd+"'"  
-                        self.sqlserver.Update(sql)
-                    else:
-                      continue
-
                     (outputpath,ret,castortime)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
@@ -3440,7 +3439,10 @@ class RemoteClient:
                         orig=f2.split('/')
                         if(len(orig)>2):
                              origpath=origpath+" "+orig[len(orig)-3]+"/"+orig[len(orig)-2]+"/"+orig[len(orig)-1] 
-                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'OK','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath)
+                        status='OK'
+                        if(type.find('SCI')>=0 and int(tlevent)-int(tfevent)<60):
+                            status='SHORT'
+                        sql ="insert into datafiles values(%s,'%s','%s',%s,%s,%s,%s,%s,%d,'%s','%s','%s',%s,%s,%d,0,%s,%s,%s,'%s')" %(run,version,type,fevent,levent,events,errors,rtime,sizemb,status,outputpath,origpath,crc,int(timenow),castortime,tag,tfevent,tlevent,bpath)
                         self.sqlserver.Update(sql)
                         self.sqlserver.Commit(1)
                         cmd="rm -rf "+pfile
