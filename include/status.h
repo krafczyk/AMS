@@ -1,4 +1,4 @@
-//  $Id: status.h,v 1.19 2011/07/01 10:01:07 choutko Exp $
+//  $Id: status.h,v 1.20 2011/11/28 17:06:10 choutko Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
 #include "node.h"
@@ -8,7 +8,7 @@
 #include "amsdbc.h"
 #include <time.h>
 class DAQEvent;
-const integer STATUSSIZE=250000;
+const integer STATUSSIZE=500000;
 const integer MAXDAQRATE=5000;
 class AMSStatus : public AMSNode {
 protected:

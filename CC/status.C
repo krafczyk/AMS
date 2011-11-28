@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.53 2011/07/01 10:01:01 choutko Exp $
+//  $Id: status.C,v 1.54 2011/11/28 17:06:07 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -22,10 +22,18 @@ AMSStatus* AMSStatus::create(int version){
    return &tstatus;
  }
 else{
+cout <<"  statussize "<<sizeof(AMSStatus)<<endl;
+if(sizeof(AMSStatus)<8000000){
    static AMSStatus tstatus("EventStatusTable02",version);
+
    return &tstatus;
 }
-
+else{
+   static AMSStatus tstatus("EventStatusTable03",version);
+   cout<<"AMSStatus::create-I-EventStatusTable03 Created "<<endl;
+   return &tstatus;
+}
+}
 }
 
 integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time,DAQEvent*pdaq,bool force){
