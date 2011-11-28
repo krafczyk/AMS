@@ -1,301 +1,237 @@
 #include "root.h"
 #ifdef _ECALBDT_
- #include "ecalBDT.h"
+#include "ecalBDT.h"
 #endif
+#include "TMath.h"
 
-float EcalShowerR::GetEcalBDT(){
-
+float EcalShowerR::GetEcalBDT()
+{
 #ifdef _ECALBDT_
-  const int nECAL_VIEWs = 2;
-  const int nECAL_LAYERs = 18;
-  const int nECAL_CELLs = 72;
-  const int nECALBDTVARs = 12;
-  
-  EcalHitR *hit = NULL;
+   const int nECAL_VIEWs  = 2;
+   const int nLAYERs = 18;
+   const int nCELLs  = 72;
 
+   float EneDep = 0.; // Total energy deposited [GeV] (sum of every cell of every layer)
 
-  ReadBDT* BDTResponse = new ReadBDT( );
-  std::vector<double> InputVec(nECALBDTVARs);
+   float F2LEneDep = 0.; // Energy deposit [GeV] in the first 2 layer
 
-  //ECAL variables
-  float LayerCOG=0.;            // Center Of Gravity (layer number)
-  float LayerSigma=0.;
-  float LayerSkewness=0.;
-  float LayerKurtosis=0.;
-  float ShowEne; 
-  float Enedep=0.;
-  float L2LFrac=0.;
-  float F2LFrac=0.;
-  float F2LEnedep=0.;
-  float S1S3x;
-  float S1S3y;
+   float NEcalHits = Nhits;
 
+   float L2LFrac = 0.; // Energy fraction of last 2 layer wrt energy deposit
+   float F2LFrac = 0.; // Energy fraction of first 2 layer wrt energy deposit
 
-  float L2LFracCorr;
-  float F2LEnedepCorr;
-  float F2LFracCorr;
-  float LayerCOGCorr;
-  float LayerSigmaCorr;
-  float LayerSkewnessCorr;
-  float LayerKurtosisCorr;
-  float Chi2ProfileCorr;
-  float ShowerRadiusEnergy3cmCorr;
-  float ShowerRadiusEnergy5cmCorr;
-  float S1S3xCorr;
-  float S1S3yCorr;
-  float DifoSumCorr;
+   float ShowerFootprintX = ShowerFootprint[1];
+   float ShowerFootprintY = ShowerFootprint[2];
 
-  float ECALBDT;  // from the classifier
-  
-  float LayerEneDep[nECAL_LAYERs]={0};     // Energy in one layer
-  float LayerCentroid[nECAL_LAYERs]={0}; 
-  float LayerLateralSigma[nECAL_LAYERs]={0}; 
-  float LayerTruncLateralSigma[nECAL_LAYERs]={0}; 
-  float LayerTruncEneDep[nECAL_LAYERs]={0}; 
-  float HitEneDep[nECAL_LAYERs][nECAL_CELLs]={0};
+   float S1S3x  = S13Rpi[0]; // Energy fraction in the cells near the maximum deposit cell on x wrt maximum deposit
+   float S1S3y  = S13Rpi[1]; // Energy fraction in the cells near the maximum deposit cell on y wrt maximum deposit
+   float S3totx = S3tot[1];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S3toty = S3tot[2];  // Energy fraction of the 2 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S5totx = S5tot[1];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
+   float S5toty = S5tot[2];  // Energy fraction of the 4 cells near the maximum deposit cell on x wrt to total energy deposit
 
-  float edepl[nECAL_LAYERs]={0};
+   float R3cmFrac = Energy3C[0]; // Energy fraction in a circle +- 3 cm around maximum wrt to total energy
+   float R5cmFrac = Energy3C[1]; // Energy fraction in a circle +- 5 cm around maximum wrt to total energy
 
-  ShowEne=EnergyC;
-  
+   float MapEneDep[nLAYERs][nCELLs];       // Energy deposit in every cell [MeV]
+   float LayerEneDep[nLAYERs];             // Energy deposit [GeV] in each layer (sum of every cell of each layer)
+   float LayerClusterEnergy[nLAYERs];      // Corrected energy deposit [GeV] in each layer (sum of clusters' energy for each layer)
+   float LayerTruncClusterEnergy[nLAYERs]; // Corrected energy [GeV] for each layer between 3 sigma from the maximum
 
-  // Build MVA variables
-  int icellmax[nECAL_LAYERs]; //cell with max deposit
-  float s1[nECAL_LAYERs], s3[nECAL_LAYERs];
-  for(int ilayer=0; ilayer<nECAL_LAYERs;ilayer++) {icellmax[ilayer]=0; s1[ilayer]=0; s3[ilayer]=0;}
+   float ShowerMean  = 0.; // Longitudinal mean [layer]: (sum_i i*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
+   float ShowerSigma = 0.; // Longitudinal sigma [layer]: TMath::Sqrt((sum_i (i-ShowerMean)^2*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i]))
+   float ShowerSkewness = 0.; // Longitudinal skewness [layer^3]: (sum_i (i-ShowerMean)^3*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
+   float ShowerKurtosis = 0.; // Longitudinal kurtosis [layer^4]: (sum_i (i-ShowerMean)^4*LayerClusterEnergy[i])/(sum_i LayerClusterEnergy[i])
 
-  //look for max energy deposit per layer
-  int n2DCLUSTERs= NEcal2DCluster();
-  for (int i2dcluster=0; i2dcluster<n2DCLUSTERs; i2dcluster++){
-    Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
-    int nCLUSTERs= cluster2d->NEcalCluster();
-    for (int icluster=0; icluster<nCLUSTERs; icluster++){
-      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);		  
-      int nclHITs = cluster->NEcalHit();
-      for(int ihit=0; ihit<nclHITs;ihit++){
-	hit = cluster->pEcalHit(ihit);
-	if(hit->Edep > s1[hit->Plane]){
-	  icellmax[hit->Plane]=hit->Cell;
-	  s1[hit->Plane]=hit->Edep;
-	  s3[hit->Plane]=hit->Edep;
-	}
+   float LayerEnergy = 0.; // sum_i LayerClusterEnergy[i]
+
+   float LayerMean[nLAYERs];       // Mean [cell] for each layer: (sum_j j*MapEneDep[i][j])/(sum_ij MapEneDep[i][j])
+   float LayerSigma[nLAYERs];      // Sigma [cell] for each layer: TMath::Sqrt((sum_j (j-LayerMean[i])^2*MapEneDep[i][j])/(sum_ij MapEneDep[i][j]))
+   float LayerTruncSigma[nLAYERs]; // Sigma [cell] for each layer, between 3 sigma from the maximum
+
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {
+      LayerClusterEnergy[ilayer] = 0.;
+      for (Int_t icell = 0; icell < nCELLs; ++icell) MapEneDep[ilayer][icell] = 0.;
+   }
+
+   Int_t n2DCLUSTERs = NEcal2DCluster();
+   for (Int_t i2dcluster = 0; i2dcluster < n2DCLUSTERs; ++i2dcluster)
+   {
+      Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
+
+      Int_t nCLUSTERs = cluster2d->NEcalCluster();
+      for (Int_t icluster = 0; icluster < nCLUSTERs; ++icluster)
+      {
+         EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
+
+         LayerClusterEnergy[cluster->Plane] += cluster->Edep;
+
+         Int_t nclHITs = cluster->NEcalHit();
+         for (Int_t ihit = 0; ihit < nclHITs; ++ihit)
+         {
+            EcalHitR *hit = cluster->pEcalHit(ihit);
+            if (hit->ADC[0] > 4) MapEneDep[hit->Plane][hit->Cell] = hit->Edep;
+         }
       }
-    }
-  }
-  
-  // compute S3
-  for (int i2dcluster=0; i2dcluster<n2DCLUSTERs; i2dcluster++){
-    Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
-    int nCLUSTERs= cluster2d->NEcalCluster();
-    for (int icluster=0; icluster<nCLUSTERs; icluster++){
-      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
-      int nclHITs = cluster->NEcalHit();
-      for(int ihit=0; ihit<nclHITs;ihit++){
-	hit = cluster->pEcalHit(ihit);
-	if(TMath::Abs( (hit->Cell) - (icellmax[hit->Plane])) == 1) s3[hit->Plane]+=hit->Edep;
+   }
+
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+      for (Int_t icell = 0; icell < nCELLs; ++icell) EneDep += MapEneDep[ilayer][icell];
+
+   EneDep /= 1000.;
+
+   if (EneDep <= 0.) return -2.;
+
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {
+      LayerEneDep[ilayer] = 0.;
+      for (Int_t icell = 0; icell < nCELLs; ++icell)
+      {
+         MapEneDep[ilayer][icell] /= 1000.;
+
+         LayerEneDep[ilayer] += MapEneDep[ilayer][icell];
+
+         if (ilayer == 16 || ilayer == 17) L2LFrac += MapEneDep[ilayer][icell];
+         if (ilayer ==  0 || ilayer ==  1) F2LFrac += MapEneDep[ilayer][icell];
       }
-    }
-  }
 
-  //S1S3 per view
-  float ss1[nECAL_VIEWs]={0};
-  float ss3[nECAL_VIEWs]={0};
-  for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-    int sl=(int) ilayer/2;
-    int view=(int) sl%2;    //0->Y, 1->X
-    ss1[view]+=s1[ilayer];
-    ss3[view]+=s3[ilayer];
-  }            
-  ss3[1]!=0 ? S1S3x=ss1[1]/ss3[1] : S1S3x=-9999.;
-  ss3[0]!=0 ? S1S3y=ss1[0]/ss3[0] : S1S3y=-9999.;
-  //
+      LayerClusterEnergy[ilayer] /= 1000.;
+      LayerEnergy += LayerClusterEnergy[ilayer];
+      ShowerMean  += ilayer*LayerClusterEnergy[ilayer];
+   }
 
-  int HitPerLayer[nECAL_LAYERs]={0};//auxiliary variable for sigma calc
+   if (LayerEnergy <= 0) return -2.;
 
-  for (int i2dcluster=0; i2dcluster<n2DCLUSTERs; i2dcluster++){
-    Ecal2DClusterR *cluster2d = pEcal2DCluster(i2dcluster);
-    int nCLUSTERs= cluster2d->NEcalCluster();
-    for (int icluster=0; icluster<nCLUSTERs; icluster++){
-      EcalClusterR *cluster = cluster2d->pEcalCluster(icluster);
-      LayerEneDep[cluster->Plane]+=cluster->Edep;
-      int nclHITs = cluster->NEcalHit();
-      for(int ihit=0; ihit<nclHITs;ihit++){
-	hit = cluster->pEcalHit(ihit);	
-	if(hit->ADC[0]>4){ //Cell is hit
-	  //if(HitEneDep[hit->Plane][hit->Cell]!=0) printf("Warning: Run:%d Event%d Rewriting HitEneDep[%d][%d]\n",Run(),Event(),hit->Plane,hit->Cell); 
-	  HitPerLayer[hit->Plane]++;
-	  HitEneDep[hit->Plane][hit->Cell]=+hit->Edep;
-	  Enedep+=hit->Edep;
-	  if(hit->Plane==16 || hit->Plane==17) L2LFrac+=hit->Edep;
-	  if(hit->Plane==0 || hit->Plane==1) F2LFrac+=hit->Edep;
-	}
-      }
-    }
-  }
+   F2LEneDep   = F2LFrac;
+   L2LFrac     = L2LFrac/EneDep;
+   F2LFrac     = F2LFrac/EneDep;
+   ShowerMean /= LayerEnergy;
 
-  for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-    for(int icell=0; icell<72; icell++){
-      LayerCentroid[ilayer]+=icell*HitEneDep[ilayer][icell];
-      edepl[ilayer]+=HitEneDep[ilayer][icell];
-    }
-    LayerCentroid[ilayer]/=edepl[ilayer];	  
-  }
-      
-  F2LEnedep=F2LFrac/1000.;   //MeV to GeV
+   for (Int_t ilayer = 0; ilayer < nLAYERs; ++ilayer)
+   {
+      ShowerSigma    += TMath::Power(ilayer-ShowerMean, 2)*LayerClusterEnergy[ilayer];
+      ShowerSkewness += TMath::Power(ilayer-ShowerMean, 3)*LayerClusterEnergy[ilayer];
+      ShowerKurtosis += TMath::Power(ilayer-ShowerMean, 4)*LayerClusterEnergy[ilayer];
+   }
+   ShowerSigma    /= LayerEnergy;
+   ShowerSigma     = TMath::Sqrt(ShowerSigma);
+   ShowerSkewness /= LayerEnergy;
+   ShowerKurtosis /= LayerEnergy;
 
-  if(Enedep!=0){    
-    L2LFrac=L2LFrac/Enedep;
-    F2LFrac=F2LFrac/Enedep;
-    Enedep=Enedep/1000.;   //MeV to GeV
-    for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-      LayerEneDep[ilayer]/=1000.;   //MeV to GeV
-      LayerCOG+=LayerEneDep[ilayer]*ilayer;
-    }
-    LayerCOG/=Enedep;
-	  
-    for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-      LayerSigma+=pow(ilayer-LayerCOG,2)*LayerEneDep[ilayer];
-      LayerSkewness+=pow(ilayer-LayerCOG,3)*LayerEneDep[ilayer];
-      LayerKurtosis+=pow(ilayer-LayerCOG,4)*LayerEneDep[ilayer];
-    }
-    LayerSigma/=Enedep;
-    LayerSigma=sqrt(LayerSigma);
-    LayerSkewness/=Enedep;
-    LayerKurtosis/=Enedep;
-    
-    //LayerLateralSigma
-    for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-      if(HitPerLayer[ilayer]>1){
-	for(int icell=0;icell<72;icell++){
-	  LayerLateralSigma[ilayer]+=pow(icell-LayerCentroid[ilayer],2)*(HitEneDep[ilayer][icell]/1000.);
-	  //		  if(fabs(diff)<0.01) cout<<ilayer<<" "<<icell<<" "<<" "<<HitEneDep[ilayer][icell]<<" "<<LayerCentroid[ilayer]<<" "<<LayerLateralSigma[ilayer]<<endl;
-	}
-	if(LayerEneDep[ilayer]>0){
-	  LayerLateralSigma[ilayer]/=LayerEneDep[ilayer];
-	  //cout<<ilayer<<" "<<LayerLateralSigma[ilayer]<<endl;
-	  LayerLateralSigma[ilayer]=sqrt(LayerLateralSigma[ilayer]);
-	  //cout<<ilayer<<" "<<LayerLateralSigma[ilayer]<<endl;
-	}
-	else{
-	  LayerLateralSigma[ilayer]=-1.;
-	}
-      }
-    }
-    
-    //LayerLateralSigma Truncated
-    float LayerTruncEneDep[nECAL_LAYERs];	  
-    for(int ilayer=0; ilayer<nECAL_LAYERs; ilayer++){
-      if(LayerLateralSigma[ilayer]==-1) LayerTruncLateralSigma[ilayer]=-1;
-      else{
-	if(LayerLateralSigma[ilayer]==0) LayerTruncLateralSigma[ilayer]=0;
-	else {
-	  int icellmin = (int)(LayerCentroid[ilayer] -  3*LayerLateralSigma[ilayer]);
-	  int icellmax = (int)(LayerCentroid[ilayer] +  3*LayerLateralSigma[ilayer]);
-	  //if(icellmin==icellmax-1) for(int icell=0;icell<72;icell++) cout<<HitEneDep[ilayer][icell]<<" ";
-	  //   if(icellmin==icellmax-1)  cout<<ilayer<<" "<<LayerCentroid[ilayer]<<" "<<LayerLateralSigma[ilayer]<<" "<<LayerEneDep[ilayer]<<" "<<icellmin<<" "<<HitEneDep[ilayer][icellmin]<<" "<<HitEneDep[ilayer][icellmax]<<" "<<icellmax<<endl;
-	  LayerTruncEneDep[ilayer]=0;	  
-	  for(int icell=icellmin;icell<=icellmax;icell++){
-	    LayerTruncLateralSigma[ilayer]+=pow(icell-LayerCentroid[ilayer],2)*(HitEneDep[ilayer][icell]/1000.);
-	    LayerTruncEneDep[ilayer]+=HitEneDep[ilayer][icell]/1000.;
-	  }
-	  if(LayerTruncEneDep[ilayer]>0){
-	    LayerTruncLateralSigma[ilayer]/=LayerTruncEneDep[ilayer];
-	    LayerTruncLateralSigma[ilayer]=sqrt(LayerTruncLateralSigma[ilayer]);
-	  }
-	}
-	
-      }
-      //if(LayerLateralSigma[ilayer]<0.001 && LayerLateralSigma[ilayer]>0) cout<<LayerLateralSigma[ilayer]<<" "<<LayerTruncLateralSigma[ilayer]<<endl;
-    }
-  }
-  
+   ReadBDTG* BDTGResponse = new ReadBDTG( );
+   std::vector<double> InputVec(17);
 
-  // Shower energy overflow correction
-  if(TMath::Log10(ShowEne)>10) 
-    ShowEne = Enedep *(0.993248 + 0.0188282 * TMath::Log(Enedep)); 
+   float mean;
+   float sigma;
+   unsigned int ivar = 0;
 
-  // Define energy-independent variables
-  float mean;
-  float sigma;  
+   mean = 4.6675+(0.979051*log(EnergyE+1.18325));
+   sigma = 0.852135+(-0.0431518*log(EnergyE));
+   float ShowerMeanNorm = (ShowerMean - mean)/sigma;
 
-  mean = 0.617265 + (-0.643634) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.030115);
-  sigma = 0.017119 + (-0.047646) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.648504);
-  L2LFracCorr = (L2LFrac - mean) / sigma;
+   mean = 3.53852+(0.0296595*log(EnergyE-4.87199));
+   sigma = 0.287891+(-0.0394277*log(EnergyE-4.37052));
+   float ShowerSigmaNorm = (ShowerSigma - mean)/sigma;
 
-  mean = 0.001111 + (0.175785) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.706562);
-  sigma = 0.000517 + (0.088094) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.724408);
-  F2LFracCorr = (F2LFrac - mean) / sigma;
+   mean = 50.7688+(-8.72425*log(EnergyE+10.0236));
+   sigma = 8.88718+(-0.533865*log(EnergyE-4.9));
+   float ShowerSkewnessNorm = (ShowerSkewness - mean)/sigma;
 
-  mean = 14.597099 + (-14.844641) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.015038);
-  sigma = 7.727252 + (-7.831882) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.013117);
-  F2LEnedepCorr = (F2LEnedep - mean) / sigma;
-  
-  mean = 0.534625 + (12.974988) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.967365);
-  sigma = 0.139916 + (6.070468) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.933346);
-  Chi2ProfileCorr = (Chi2Profile - mean) / sigma;
+   mean = (523.084+(-239.06/EnergyE))+(-59.4085*atan(0.0467487*EnergyE));
+   sigma = 141.4+(-61.9827*atan(0.132307*EnergyE));
+   float ShowerKurtosisNorm = (ShowerKurtosis - mean)/sigma;
 
-  mean = -28.826965 + (34.054758) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , 0.023294);
-  sigma = -5.054101 + (5.906145) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.008423);
-  LayerCOGCorr = (LayerCOG - mean) / sigma;
+   mean = 0.00632314+(0.123049*log(EnergyE+0.353085));
+   sigma = -0.110641+(0.0866421*log(EnergyE+7.60773));
+   float F2LEneDepNorm = (F2LEneDep - mean)/sigma;
 
-  mean = 0.097237 + (3.610085) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , 0.001628);
-  sigma = 0.110153 + (1.169860) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.935832);
-  LayerSigmaCorr = (LayerSigma - mean) / sigma;
-  
-  mean = -177.523116 + (227.487222) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.043674);
-  sigma = -100.412388 + (109.622530) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.003906);
-  LayerSkewnessCorr = (LayerSkewness - mean) / sigma;
+   mean = 0.00981856+(0.00470305*sqrt(EnergyE-3.35461));
+   sigma = 0.0129705+(0.00166802*sqrt(EnergyE+8.22741));
+   float L2LFracNorm = (L2LFrac - mean)/sigma;
 
-  mean = 849.242604 + (-285.617632) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , 0.064228);
-  sigma = 828.084113 + (-730.358404) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , 0.013514);
-  LayerKurtosisCorr = (LayerKurtosis - mean) / sigma;
+   mean = -0.00453365+(0.122221*(pow(EnergyE,(float)-0.513752)));
+   sigma = -0.00315033+(0.107401*(pow(EnergyE,(float)-0.543919)));
+   float F2LFracNorm = (F2LFrac - mean)/sigma;
 
-  mean = 0.962830 + (0.038170) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.559655);
-  sigma = 0.002703 + (0.035826) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.724716);
-  ShowerRadiusEnergy3cmCorr = (Energy3C[0] - mean) / sigma;
+   mean = (0.71741+(-0.0251886*atan(EnergyE-3.57118)))+(2.3133e-05*EnergyE);
+   sigma = 0.218953+(-0.113094*atan(EnergyE));
+   float S1S3xNorm = (S1S3x - mean)/sigma;
 
-  mean = 0.986180 + (0.036482) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.502468);
-  sigma = 0.001080 + (0.015345) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.725059);
-  ShowerRadiusEnergy5cmCorr = (Energy3C[1] - mean) / sigma;
-  
-  mean = 0.694679 + (-0.017440) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.167898);
-  sigma = 0.049645 + (56.399974) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -2.890351);
-  S1S3xCorr = (S1S3x - mean) / sigma;
+   mean = (0.626107+(0.0189872*log(EnergyE)))+(-0.0260725*atan((EnergyE*0.439958)-3.27219));
+   sigma = (-0.150083+(0.152807*atan(EnergyE)))+(-0.000646416*EnergyE);
+   float S1S3yNorm = (S1S3y - mean)/sigma;
 
-  mean = 0.798384 + (-0.192606) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.089215);
-  sigma = 0.050891 + (6.223029) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -1.702355);
-  S1S3yCorr = (S1S3y - mean) / sigma;
+   mean = 0.972864+(-0.00499681*atan((EnergyE*0.0362795)-0.459303));
+   sigma = 0.0104377+(-0.00140507*log(EnergyE-3.97738));
+   float R3cmFracNorm = (R3cmFrac - mean)/sigma;
 
-  mean = -0.026374 + (0.154984) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -0.708300);
-  sigma = 0.024670 + (4.395653) * TMath::Power(TMath::Max((float)ShowEne,(float)17.5) , -1.942318);
-  DifoSumCorr = (DifoSum - mean) / sigma;
-  
-  InputVec[0] =(double) L2LFracCorr;
-  InputVec[1] =(double) F2LEnedepCorr;
-  InputVec[2] =(double) F2LFracCorr;
-  InputVec[3] =(double) LayerCOGCorr;
-  InputVec[4] =(double) LayerSigmaCorr;
-  InputVec[5] =(double) LayerSkewnessCorr;
-  InputVec[6] =(double) LayerKurtosisCorr;
-  InputVec[7] =(double) ShowerRadiusEnergy3cmCorr;
-  InputVec[8] =(double) ShowerRadiusEnergy5cmCorr;
-  InputVec[9] =(double) S1S3xCorr;
-  InputVec[10]=(double) S1S3yCorr;
-  InputVec[11]=(double) DifoSumCorr;
-     
+   mean = (1.01319+(-0.00461599*log(EnergyE)))+(-0.113443/(EnergyE+4.50707));
+   sigma = 0.0043004+(-0.000536274*log(EnergyE-4.9));
+   float R5cmFracNorm = (R5cmFrac - mean)/sigma;
 
-  //Get ECALBDT
-  ECALBDT = (float) BDTResponse->GetMvaValue( InputVec );
-  
-  delete BDTResponse;
+   mean = 0.0180086+(-0.0100441*log(EnergyE+9.07422));
+   sigma = 0.505472+(-0.311353*atan((0.518772*EnergyE)+3.74849));
+   float DifoSumNorm = (DifoSum - mean)/sigma;
 
-  return ECALBDT;
+   mean = 0.91946+(-0.022189*atan((2.52632*EnergyE)-7.67717));
+   sigma = 0.00789299+(0.0720622*(pow(EnergyE,(float)-0.733793)));
+   float S3totxNorm = (S3totx - mean)/sigma;
+
+   mean = (-0.0136692*exp(-0.128828*EnergyE))+0.874554;
+   sigma = 0.501058+(-0.314568*atan((1.2783*EnergyE)+2.90362));
+   float S3totyNorm = (S3toty - mean)/sigma;
+
+   mean = 0.960591+(-0.00355234*log(EnergyE));
+   sigma = 0.0217616+(-0.0107094*atan(0.079457*EnergyE));
+   float S5totxNorm = (S5totx - mean)/sigma;
+
+   mean = 0.948521+(-0.00193183*log(EnergyE));
+   sigma = 0.0227471+(-0.00393239*log(EnergyE-4.78839));
+   float S5totyNorm = (S5toty - mean)/sigma;
+
+   mean = (55.4579+(21.667*log(EnergyE)))+(4.34059*(log(EnergyE)*log(EnergyE)));
+   sigma = (6.88496+(0.316054*log(EnergyE)))+(0.349772*(log(EnergyE)*log(EnergyE)));
+   float NEcalHitsNorm = (NEcalHits - mean)/sigma;
+
+   mean = 3.94369+(0.00837397*(pow(EnergyE,(float)0.888997)));
+   sigma = 2.04609+(-1.15052*atan((0.278696*EnergyE)+0.639821));
+   float ShowerFootprintXNorm = (ShowerFootprintX - mean)/sigma;
+
+   mean = (5.23776+(-0.210765*log(EnergyE)))+(0.00721687*EnergyE);
+   sigma = 1.54466+(-0.845935*atan(EnergyE*0.116966));
+   float ShowerFootprintYNorm = (ShowerFootprintY - mean)/sigma;
+
+   // cc bdtg
+   InputVec[ivar++] = ShowerMeanNorm;
+   InputVec[ivar++] = ShowerSigmaNorm;
+   InputVec[ivar++] = ShowerSkewnessNorm;
+   InputVec[ivar++] = ShowerKurtosisNorm;
+   InputVec[ivar++] = F2LEneDepNorm;
+   InputVec[ivar++] = L2LFracNorm;
+   InputVec[ivar++] = F2LFracNorm;
+   InputVec[ivar++] = R3cmFracNorm;
+   InputVec[ivar++] = R5cmFracNorm;
+   InputVec[ivar++] = DifoSumNorm;
+   InputVec[ivar++] = S3totxNorm;
+   InputVec[ivar++] = S3totyNorm;
+   InputVec[ivar++] = S5totxNorm;
+   InputVec[ivar++] = S5totyNorm;
+   InputVec[ivar++] = NEcalHitsNorm;
+   InputVec[ivar++] = ShowerFootprintXNorm;
+   InputVec[ivar++] = ShowerFootprintYNorm;
+
+   //Get ECALBDTG
+   float ECALBDTG = (float) BDTGResponse->GetMvaValue( InputVec );
+
+   delete BDTGResponse;
+
+   return ECALBDTG;
 #else
-  cout << "*************** WARNING *****************" << endl;
-  cout << "FUNCTION GetEcalBDT is dummy in your current executable or  shared library"<< endl;
-  cout << "if you want the method to work remove ecalBDT.o and link again your shared library with the variable ECALBDT set to 1" << endl;
-  cout << "CAVEAT: the linking of this method only requires about 6 minutes on ams.cern.ch with icc64" << endl; 
-  return -1.;
-#endif  
+   cout << "*************** WARNING *****************" << endl;
+   cout << "FUNCTION GetEcalBDT is dummy in your current executable or  shared library"<< endl;
+   cout << "if you want the method to work remove ecalBDT.o and link again your shared library with the variable ECALBDT set to 1" << endl;
+   cout << "CAVEAT: the linking of this method only requires about 6 minutes on ams.cern.ch with icc64" << endl;
+   return -2.;
+#endif
 }
-
