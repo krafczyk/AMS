@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.178 2011/11/26 10:48:01 pzuccon Exp $
+#  $Id: Makefile,v 1.179 2011/11/28 14:14:37 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -578,8 +578,8 @@ SHLIBBO:=$(SHLIBO)
 
 
 else
-SHLIBBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)DynAlignment_s.o
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o $(BIN)pfunction_s.o
+SHLIBBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o  $(BIN)OrbGen.o $(BIN)/pfunction.o
+SHLIBO := $(BIN)point.o $(BIN)amschain_s.o	$(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o
 
 endif
 
