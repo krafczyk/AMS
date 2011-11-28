@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.20 2011/11/26 10:47:06 pzuccon Exp $
+//  $Id: linkdefs.h,v 1.21 2011/11/28 15:50:16 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -23,13 +23,21 @@
 #pragma link C++ class VCon;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma link C++ class VCon_root;
-
 #endif
 #pragma link C++ class TrTrackPar+;
 #else
 #pragma link C++ class TrTrackFitR+;
 #pragma link C++ class TrTrackFitR::TrSCooR+;
 #endif
+////////////// Ext. alignment
+#pragma link C++ class DynAlContinuity;
+#pragma link C++ class DynAlFit;
+#pragma link C++ class DynAlHistory+;
+#pragma link C++ class DynAlEvent+;
+#pragma link C++ class DynAlFitParameters+;
+#pragma link C++ class DynAlFitContainer+;
+#pragma link C++ class DynAlManager;
+//////////////////////////////////////
 #pragma link C++ class TrElem+;
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;
@@ -39,8 +47,8 @@
 #pragma link C++ class ChargeSubDR+;
 
 #ifdef __ROOTSHAREDLIBRARY__
-//#pragma link C++ class AMSChain+;
-//#pragma link C++ class AMSEventList+;
+#pragma link C++ class AMSChain+;
+#pragma link C++ class AMSEventList+;
 #endif
 
 #pragma link C++ class ScalerMon+;

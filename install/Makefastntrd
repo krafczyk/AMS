@@ -80,9 +80,9 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)root_setup.c $(SCC)/SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o   $(BIN)TrdHTrack.o   $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)/SlowControlDB.o
-$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o     $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)root_setup.c $(SCC)/SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C
+OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o   $(BIN)TrdHTrack.o   $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)/SlowControlDB.o $(BIN)amschain.o $(BIN)DynAlignment_s.o
+$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o     $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)amschain.o $(BIN)DynAlignment_s.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
@@ -134,9 +134,16 @@ $(BIN)ctype.o:    	 $(SCC)ctype.c
 $(BIN)rootread.o:    	 $(SCC)rootread.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
 
+$(BIN)amschain.o:	 $(SCC)amschain.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)amschain.C -o $(BIN)amschain.o
+
+$(BIN)DynAlignment_s.o:	 $(SCC)DynAlignment.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)DynAlignment.C -o $(BIN)DynAlignment_s.o
+
+
 $(BIN)rootdict_s.C:    ../include/point.h ../include/linkdefs.h  ../include/root_RVS.h ../include/root.h  ../include/TrElem.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/linkdefs.h 
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/point.h ../include/root_RVS.h  ../include/amschain.h ../include/VCon.h ../include/TrElem.h  ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/DynAlignment.h ../include/linkdefs.h 
 	@echo "OK"
 
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
