@@ -3284,29 +3284,6 @@ class RemoteClient:
                 if(not os.path.isfile(pfile)):
                     print "file not found ",pfile
                     continue
-                sql="select path,run,nevents,type from datafiles where path like '%"+file+"'"
-                ret=self.sqlserver.Query(sql);
-                if(len(ret)>0):
-                    calibnotfull=false
-                    if(ret[0][3].find("CAL")>=0 and ret[[0][2]>200 and ret[0][2]<247):
-                        calibnotfull=true
-                            
-                    if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
-                      fd=ret[0][0] 
-                      cmd="rm -rf "+fd
-                      i=os.system(cmd)
-                      if(i):
-                        print "command failed ",cmd
-                        if(replace>1):
-                            sql="delete from datafiles where path='"+fd+"'"  
-                            self.sqlserver.Update(sql)
-                        else:
-                            continue
-                      else:
-                        sql="delete from datafiles where path='"+fd+"'"  
-                        self.sqlserver.Update(sql)
-                    else:
-                      continue
                 fltdvo=open(pfilej,'r')
                 good=0
                 crc=""
@@ -3369,7 +3346,10 @@ class RemoteClient:
                     elif(line.find("FileL")>=0):
                         f2=line.split("=")[1]
                 fltdvo.close()
+
                 if(len(size)>0 and len(crc)>0 and len(events)>0 and len(tlevent)>0 and len(tfevent)>0 and len(levent)>0 and len(fevent)>0 and len(run)>0 and len(rtime)>0):
+
+                    print "Run ",run;
                     if(run2p!=0 and int(run)!=run2p):
                         continue
 		    if(abs(int(tfevent)-int(run)) >3600):
@@ -3377,6 +3357,32 @@ class RemoteClient:
 			cmd="mv "+pfilej+" "+pfilej+".0"
                         os.system(cmd)
 		        continue 
+                    sql="select path,run,nevents,type from datafiles where path like '%"+file+"'"
+                    ret=self.sqlserver.Query(sql);
+                    eventsi=int(events)
+                    calibnotfull=False
+                    if(len(ret)>0):
+                        if(ret[0][3].find("CAL")>=0 and ret[0][2]<247 and eventsi==247):
+                           calibnotfull=True
+                        if(ret[0][3].find("SCI")>=0 and ret[0][2]<eventsi):
+                           calibnotfull=True
+                    if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
+                      fd=ret[0][0] 
+                      cmd="rm -rf "+fd
+                      i=os.system(cmd)
+                      if(i):
+                        print "command failed ",cmd
+                        if(replace>1):
+                            sql="delete from datafiles where path='"+fd+"'"  
+                            self.sqlserver.Update(sql)
+                        else:
+                            continue
+                      else:
+                        sql="delete from datafiles where path='"+fd+"'"  
+                        self.sqlserver.Update(sql)
+                    else:
+                      continue
+
                     (outputpath,ret,castortime)=self.doCopyRaw(run,pfile,int(crc),'/Data')
                     if(ret==1):
                         sizemb=int(size)/2
@@ -3400,6 +3406,8 @@ class RemoteClient:
                         elif (t0=="27" or t0=="896"):
                             type="CAB"
                         bpath=runsdir+"/"+type
+                        if(calibnotfull):
+                            type=type+" MERGED "
                         if(type!="UNK"):
                                 isdir=int(run)/1000000;
                                 isdir=isdir*1000000;
