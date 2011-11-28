@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.550 2011/11/27 22:03:56 mmilling Exp $
+//  $Id: event.C,v 1.551 2011/11/28 18:47:17 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1494,7 +1494,7 @@ void AMSEvent::_siamsevent(){
     }
   }
 #ifdef _PGTRACK_
-  if(IOPA.unitimegen){
+  if(TKGEOMFFKEY.EnableExtMov){
     unsigned int tt[2];
     OrbGen* orb=OrbGen::GetOrbGen();
     tt[0]=orb->Time.Time_ns; tt[1]=orb->Time.Time_ns;

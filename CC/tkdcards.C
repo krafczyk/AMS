@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.66 2011/09/28 02:04:51 pzuccon Exp $
+// $Id: tkdcards.C,v 1.67 2011/11/28 18:47:17 pzuccon Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -27,6 +27,17 @@ void TKGEOMFFKEY_DEF::init(){
   memset(disfname,400,sizeof(disfname[0]));
   alignver=2;
   LoadMCDisalign=0;
+  EnableExtMov=0;
+  float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
+  float phase1[6]={1.,2.,3.,2.1,3.4,4.5};
+  float p9[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
+  float phase9[6]={1.4,2.3,3.2,2.11,3.14,4.85};
+  for (int ii=0;ii<6;ii++){
+    L1Amp[ii]=p1[ii];
+    L1Phase[ii]=phase1[ii];
+    L9Amp[ii]=p9[ii];
+    L9Phase[ii]=phase9[ii];
+  }
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
@@ -356,6 +367,7 @@ void TRALIG_DEF::init(){
   LayersOnly=0;
   GlobalGoodLimit=0.085;
   SingleLadderEntryLimit=10000;
+
 }
 
 TRALIG_DEF TRALIG;

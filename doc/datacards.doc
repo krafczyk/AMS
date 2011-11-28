@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.367 2011/11/27 17:44:39 choutko Exp $
+#  $Id: datacards.doc,v 1.368 2011/11/28 18:47:26 pzuccon Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -83,7 +83,7 @@ I173 WriteTGeometry(0)           // Write TGeometry (0: no, 1: yes)
 I174 TGeometryFileName('ams02.root')  // TGeometry file name
 I214 WriteTDVDataInRoot(0)             // Write/NotWrite TDVData in Root (not to be mixed with names
 I215 ReadAMI(0)                   //  0,1,2 not read/Read/force read AMI interface with standalone program
-I216 unitimegen(0)                    // activate time generation with exponential DT
+I216 unitimegen(0)                    // dummy datacard entry for future use 
 I217 MaxOneMinuteRootFileSize(100000000)  //  in bytes
 //-------------------------------------------------------------------------------
 

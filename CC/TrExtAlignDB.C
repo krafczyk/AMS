@@ -2,6 +2,7 @@
 #include "TkDBc.h"
 #include "TFile.h"
 #include "random.h"
+#include "tkdcards.h"
 
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -298,8 +299,14 @@ void TrExtAlignDB::ProduceDisalignment(unsigned int * tt){
   double time=tt[0];
   time+=(tt[1]*0.000000001L);
   TrExtAlignPar par[2];
-  double p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
-  double phase1[6]={1.,2.,3.,2.1,3.4,4.5};
+  float p1[6],p9[6];
+  float phase1[6],phase9[6];
+  for (int ii=0;ii<6;ii++){
+    p1[ii]     = TKGEOMFFKEY.L1Amp[ii];
+    phase1[ii] = TKGEOMFFKEY.L1Phase[ii];
+    p9[ii]     = TKGEOMFFKEY.L9Amp[ii];
+    phase9[ii] = TKGEOMFFKEY.L9Phase[ii];
+  }
   //par[0].dpos[1]=p1[1];
   par[0].dpos[0]=p1[0]*sin(time*period+phase1[0]);
   par[0].dpos[1]=p1[1]*sin(time*period+phase1[1]);
@@ -309,8 +316,7 @@ void TrExtAlignDB::ProduceDisalignment(unsigned int * tt){
   par[0].angles[2]=p1[5]*sin(time*period+phase1[5]);
 //   Printf("Time: %d %d\n",tt[0],tt[1]);
 //   par[0].Print();
-  float p9[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};
-  float phase9[6]={1.4,2.3,3.2,2.11,3.14,4.85};
+
   par[1].dpos[0]=p9[0]*sin(time*period+phase9[0]);
   par[1].dpos[1]=p9[1]*sin(time*period+phase9[1]);
   par[1].dpos[2]=p9[2]*sin(time*period+phase9[2]);

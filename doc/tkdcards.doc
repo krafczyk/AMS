@@ -21,6 +21,13 @@ I 806 alignver(def 2)  Alignment version; 1 :preflight, >1 flight
 I 807 LoadMCDisalign   MN Enable MC disalign (
                         N=0 disabled(default), N=1 from file, N=2 from TDV)
                        M=0 no aligment loded M=1 Aligment from MC TDV
+I 808 EnableExtMov     Enable ext planes time dependent disalignment
+F [809,814] L1Amp[6]   L1 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+F [815,820] L1Phase[6] L1 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+F [821,826] L9Amp[6]   L9 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+F [827,832] L9Phase[6] L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+
+
 
 TRMC
 I 564        SimulationType            0 GBATCH: old algorythm
@@ -256,44 +263,23 @@ void TRCALIB_DEF::init(){
 TRCALIB_DEF TRCALIB;
 //=============================
 void TRALIG_DEF::init(){
-  One=1.025;
-  GlobalFit=0;
-  InitDB=0;
-  ReWriteDB=0;
-  UpdateDB=0;
-  MaxPatternsPerJob=50;
-  MaxEventsPerFit=9999;
-  MinEventsPerFit=999;
-  for(int i=0;i<9;i++){
-    Cuts[i][0]=0;
-    Cuts[i][1]=0;
-  }
-  Cuts[0][1]=1;      // chi2 cut for alg=0
-  Cuts[1][0]=0.992;   // cos  cut for alg =0 
-  Cuts[2][0]=0.5;     //rel mom cut
-  Cuts[2][1]=2;
-  Cuts[3][0]=0;      // beta cut
-  Cuts[3][1]=1.4;    
-  Cuts[4][0]=0;      // beta pattern cut
-  Cuts[4][1]=0;    
-  Cuts[5][0]=0.5;      // mass cut
-  Cuts[5][1]=2.0;    
-  Cuts[6][0]=0.;         // betaerror cut
-  Cuts[6][1]=0.04;   
-
-  Algorithm=0;
-  for( int i=0;i<6;i++){
-    ActiveParameters[i][0]=1;   // x
-    ActiveParameters[i][1]=1;   // y
-    ActiveParameters[i][2]=1;   // z
-    ActiveParameters[i][3]=1;   // pitch  zx
-    ActiveParameters[i][4]=1;   // yaw    xy
-    ActiveParameters[i][5]=1;   // roll   yz
-  }
-  EventsPerRun=1001;
-  LayersOnly=0;
-  GlobalGoodLimit=0.085;
+I 1  		InitDB(0);
+I 2  		ReWriteDB=0;
+I 3  		UpdateDB=0;
+I 4  		MaxEventsPerFit=9999;
+I 5  		MinEventsPerFit=999;
+I 6  		MaxPatternsPerJob=50;
+D [7,26]  	Cuts[10][2];
+I 27  		Algorithm=0;
+I [28,75]       ActiveParameters
+I 76            GlobalFit
+I 77            EventsPerRun=1001;
+I 78  		LayersOnly=0;
+D 79		GlobalGoodLimit=0.085;
   SingleLadderEntryLimit=10000;
+  One=1.025;
+
+
 }
 
 TRALIG_DEF TRALIG;

@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.44 2011/09/28 18:22:12 pzuccon Exp $
+// $Id: tkdcards.h,v 1.45 2011/11/28 18:47:02 pzuccon Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -39,9 +39,19 @@ public:
   integer alignver;
   ///[807]; Enable MC disalign (0 disabled(default), 1 from file, 2 from TDV)
   integer LoadMCDisalign;
+  ///[808]; Enable ext planes time dependent disalignment
+  integer EnableExtMov;
+  ///[809,814]; L1 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+  float L1Amp[6];
+  ///[815,820]; L1 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+  float L1Phase[6];
+  ///[821,826]; L9 Amplitude(cm,rad) of dx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+  float L9Amp[6];
+  ///[827,832]; L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
+  float L9Phase[6];
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,3);
+  ClassDef(TKGEOMFFKEY_DEF,4);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
@@ -209,10 +219,11 @@ public:
   geant GlobalGoodLimit;
   integer SingleLadderEntryLimit;
   geant One;
+
   void init();
   
   TRALIG_DEF():TObject(){init();}
-  ClassDef(TRALIG_DEF,1);
+  ClassDef(TRALIG_DEF,2);
 
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
