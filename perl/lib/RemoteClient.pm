@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.703 2011/11/18 14:24:53 ams Exp $
+# $Id: RemoteClient.pm,v 1.704 2011/11/29 12:55:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -345,7 +345,7 @@ sub Init{
       }
       $self->{q}=new CGI;
 #cpu types
-      my $cachetime=60;
+      my $cachetime=3600;
      if(defined $self->{initdone} ){
       if(time()-$self->{initdone}<$cachetime and $self->{initdone} >$self->dblupdate()){
         return 1;
@@ -693,7 +693,7 @@ my %mv=(
                push @{$self->{DataSetsT}},$dss;
               }
              }
-            }
+         }
         my $reputation=1;
         my $ret = $self->{sqlserver}->Query("select capacity, reputation from cites where cid=".$self->{CCID});
 	if ( defined $ret->[0][0] ) {
@@ -753,7 +753,6 @@ jjid=datafiles.run and datafiles.type like '%MC%'  and jpid=productionset.did an
         }
           }
         }
-
 
 if($#{$self->{DataSetsT}}==-1){
    my $ndatasets  =0; # total datasets scanned
@@ -1370,6 +1369,9 @@ foreach my $file (@allfiles){
         $self->{IORP}=undef;
       }
   }
+#if($cem=~/afl3u1/){
+#die " $max_jobs\n";
+#}
     $self->{initdone}=time();
  if( not defined $self->{IOR}){
   return $self->{ok};
@@ -5147,7 +5149,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         }
       }
    htmlTop();
-    $self->htmlAMSHeader("AMS-02 MC Database Query Form");
+    $self->htmlAMSHeader("AMS-02 Production Database Query Form");
     print "<ul>\n";
     htmlMCWelcome();
     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
@@ -6801,7 +6803,12 @@ DDTAB:          $self->htmlTemplateTable(" ");
               htmlTextField("CPU Time Limit Per Job","number",9,300000,"QCPUTime"," seconds (Native).");
               my $jbs=99;
 if($self->{CCT} eq "local"){
-                $jbs=69;
+               if($dataset->{datamc} !=0 and not defined $dataset->{MC}){
+                 $jbs=69;
+                 if($dataset->{name}=~/laser/ or $dataset->{name}=~/ecal/ or $dataset->{name}=~/zg1/){
+                 $jbs=199;
+                } 
+               }
 }
               if($max_jobs<$jbs){
                 $jbs=$max_jobs;

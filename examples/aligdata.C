@@ -215,6 +215,8 @@ try{
 //       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
 
        TrTrackFitR fiii(-3,0,3,0);
+       TrTrackFitR fiiia(-3,1,1,0);
+       TrTrackFitR fiiic(-3,2,1,0);
        TrTrackFitR fms(-3,2,1,0);
 // noalignd  internal tracker only int residuals  VC fit  
        TrTrackFitR fnoalig(-3,0,0,0);
@@ -235,8 +237,10 @@ try{
        //cout <<" Rig1 "<<fii.Rigidity<<" "<<fii.NHits()<<" "<<Event()<<endl;
   //refit of fiii object
        int ifi3=tr.iTrTrackFit(fiii,1);
+       int ifi3a=tr.iTrTrackFit(fiiia,2);
+       int ifi3c=tr.iTrTrackFit(fiiic,2);
        int ifi3ext=tr.iTrTrackFit(fiiiext,1);
-       //cout <<" Rig3 "<<fiii.Rigidity<<" "<<fiii.NHits()<<" "<<Event()<<endl;
+       cout <<" Rig3 "<<fiii.Rigidity<<" "<<fiii.NHits()<<" "<<Event()<<fiiia.Rigidity<<" "<<fiiic.Rigidity<<endl;
        int ifia=tr.iTrTrackFit(fia);
        //cout <<" rig a "<<fia.Rigidity<<endl;
        int ific=tr.iTrTrackFit(fic);
