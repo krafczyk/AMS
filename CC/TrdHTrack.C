@@ -18,7 +18,7 @@ ClassImp(TrdHTrackR)
 };
 
 
-TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0),charge(0.),elikelihood(0.){
+TrdHTrackR::TrdHTrackR():status(0),Chi2(0.),Nhits(0),charge(-1.),elikelihood(0.){
   for(int i=0;i!=3;i++){
     Coo[i]=0.;
     Dir[i]=0.;

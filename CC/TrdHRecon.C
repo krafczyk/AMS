@@ -869,16 +869,13 @@ int TrdHReconR::retrdhevent(int debug){
 
 void TrdHReconR::AddTrack(TrdHTrackR* tr){
   if(tr){
-    unsigned int mytime;
 #ifndef __ROOTSHAREDLIBRARY__
     AMSTRDHTrack *amstr=new AMSTRDHTrack(tr);
-    mytime=(unsigned int)AMSEvent::gethead()->gettime();
 #else
     TrdHTrackR* amstr=tr;
-    mytime=(unsigned int)AMSEventR::Head()->fHeader.Time[0];
 #endif
 
-    amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr,mytime);
+    amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr);
     amstr->elikelihood=amstr->GetLikelihood();
 
 #ifndef __ROOTSHAREDLIBRARY__

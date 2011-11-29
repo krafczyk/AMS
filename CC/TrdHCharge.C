@@ -50,7 +50,7 @@ double p_par(int p){
 
 int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   if(debug)printf("Enter TrdHChargeR::GetCharge\n");
-  if(pdfs.size()<2)return 0;
+  if(pdfs.size()<2)return -1;
   
   map<int,double> map_charge_prob;
   map<int,double>::iterator mit;
