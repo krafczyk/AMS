@@ -1,4 +1,4 @@
-* $Id: TrFitF.F,v 1.2 2011/10/26 14:00:13 choutko Exp $
+* $Id: TrFitF.F,v 1.3 2011/11/29 14:29:49 choutko Exp $
       SUBROUTINE DMM55(A,B,C)
 C *** ---------------------------------------------                     05/07/81
 C *** MULTIPLICATION OF 5X5 MATRICES: A*B -> C.
@@ -538,6 +538,7 @@ CDECK  ID>, TKFITG.
          end    
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
      +   ialgo,imsa,layer,out)
+          real*4 yysigma(3,9)
 *
 *
 **
@@ -672,11 +673,11 @@ c     +       ipart,out,ialg-1)
      +        IMSa, xmz, OUT, chi2, ndof, IERR)
               call tksetres(xhits,npt)
               do k=1,npt
-              ysigma(1,k)=out(3)
-              ysigma(2,k)=out(4)
-              ysigma(3,k)=-sqrt(1-out(3)**2-out(4)**2)
+              yysigma(1,k)=out(3)
+              yysigma(2,k)=out(4)
+              yysigma(3,k)=-sqrt(1-out(3)**2-out(4)**2)
               enddo
-              call tksetresd(ysigma,npt) 
+              call tksetresd(yysigma,npt) 
               theta=aycos(-sqrt(1-out(3)**2-out(4)**2))
               phi=atan2(out(4),out(3))
               z0=xhits(3,1)

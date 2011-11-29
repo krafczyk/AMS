@@ -211,6 +211,7 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
    if(npt>maxhits)return 1;
 
    float hits[maxhits][3];
+   float hitss[maxhits][3];
    float sigma[maxhits][3];
    float normal[maxhits][3];
    int layer[maxhits];
@@ -309,7 +310,10 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
     else if(Algo==1)algo=4;
     else if(Algo==2)algo=5;
      int ms=MS%100;
-      TKFITG(nh,hits,sigma,normal,ipart,algo,ms,layer,out);
+      for(int i=0;i<maxhits;i++){
+          for(int j=0;j<3;j++)hitss[i][j]=hits[i][j];
+      }
+      TKFITG(nh,hitss,sigma,normal,ipart,algo,ms,layer,out);
       Rigidity=out[5];
       ErrRigidity=out[8];
       Chi2=(out[7]!=0 && out[7]!=2)?FLT_MAX:out[6];
@@ -366,7 +370,11 @@ for(int ik=0;ik<nh;ik++){
   }
 }
 if(!fitdone){
-          TKFITG(nh,hits,sigma,normal,ipart,algo,ms,layer,out);
+     for(int i=0;i<maxhits;i++){
+          for(int j=0;j<3;j++)hitss[i][j]=hits[i][j];
+      }
+
+          TKFITG(nh,hitss,sigma,normal,ipart,algo,ms,layer,out);
 }
 
 
