@@ -1,5 +1,6 @@
 #include "TrdHRecon.h"
 #include "TrdHCalib.h"
+#include "TrdHCharge.h"
 ClassImp(TrdHTrackR)
 
   TrdHTrackR::TrdHTrackR(float Coo_[3],float Dir_[3]):status(0),Chi2(0.),Nhits(0),charge(-1.),elikelihood(0.)
@@ -476,7 +477,8 @@ float TrdHTrackR::GetLikelihood(int sig,int bkg, int debug){
     cout<<"Entering TrdHTrackR::GetLikelihood - signal "<<sig<<" background "<<bkg<<endl;
   
   if(charge_probabilities.size()<2){
-    cerr<<"please execute GetCharge first to fill charge probabilities"<<endl;
+    if(TrdHChargeR::gethead()->pdfs.size()>0)
+      cerr<<"please execute GetCharge first to fill charge probabilities"<<endl;
     return -1.;
   }
   
