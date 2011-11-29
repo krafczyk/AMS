@@ -10,6 +10,7 @@ const integer ny=41;
 const integer nz=180;
 extern "C" void resetmagstat_();
 extern "C" void setmagstat_();
+extern "C" void rkmsinit_(float*);
 class TKFIELD_DEF{
 public:
 int mfile[40];
@@ -520,6 +521,8 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
   setmagstat_();
   resetmagstat_();
   cout <<"TrTrackFitR-I-MagneticFieldMap "<<FieldMapName <<" initialized "<<time<<endl;
+  float zposl[9]={160.,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-136.0};
+  rkmsinit_(zposl);
   initdone=1;
 }
 while(!initdone){

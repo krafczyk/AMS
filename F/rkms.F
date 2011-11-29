@@ -540,6 +540,10 @@ c          if(vect(6)*vout(6).lt.0.) write(6,*)'ve,vo',vect(6),vout(6)
 *     ============================
       NMSpl = iabs(npl(npo)-npl(1))+1 ! # Mult.Scatt.planes
       call gfpart(ipa,pname,itr,ama,cha,tl,ub,nw)
+      if(cha.eq.0)then
+        cha=1
+        ama=0.938
+      endif
       RR=max(R,Rmin)
       P  =  RR*cha
       E  =  sqrt(P**2+ama**2)
