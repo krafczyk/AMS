@@ -134,6 +134,7 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
       pl->posA.setp(0,0,0);
       pl->rotA.Reset();
     }
+    return;
   }
   
   // Retrieve the parameters
