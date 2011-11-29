@@ -826,12 +826,14 @@ void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,
 
   double matrix[3][3];
   for(int i=0;i<3;i++) matrix[i][i]=1;
+  
   matrix[0][1]=-_THETA;
   matrix[0][2]=-_ALPHA;
   matrix[1][0]=_THETA;
   matrix[1][2]=-_BETA;
   matrix[2][0]=_ALPHA;
   matrix[2][1]=_BETA;
+
   rotA.SetMat(matrix);
 }
 
@@ -1136,6 +1138,14 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
 
       dynAlFitContainers[1]=pars[1];
       dynAlFitContainers[9]=pars[9];
+
+      if(!pars[1].FitParameters.size() ||
+	 !pars[9].FitParameters.size()){
+	cout<<"DynAlManager::UpdateParameters-W-Parameters seem to be missing"<<endl;
+	skipRun=currentRun;
+	return false;
+      }
+
       return true;
     }
 
