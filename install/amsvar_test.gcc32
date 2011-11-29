@@ -32,6 +32,9 @@ setenv amsedcPG           $Offline/vdev/exe/linux/amsedcPG
 
 setenv offmon        $Offline/vdev/exe/linux/offmon      
 setenv offmonc        $Offline/vdev/exe/linux/offmonc      
+
+setenv AMSDynAlignment /afs/cern.ch/ams/local/ExtAlig/AlignmentFiles/
+
 setenv AMSICC 1
 setenv AMSP 1
 limit core 0
