@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.50 2011/11/25 22:37:06 mdelgado Exp $
+//  $Id: event_tk.C,v 1.51 2011/11/29 20:59:28 mdelgado Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -36,8 +36,8 @@ void AMSEvent::_retkevent(integer refit){
   try{
     if (TrExtAlignDB::GetHead()->GetSize(8) > 0 &&
 	TrExtAlignDB::GetHead()->GetSize(9) > 0){
-      //      TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
-      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime());
+      TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
+      //      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime());
     }
     
     trstat = rec.Build(TRCLFFKEY.recflag, 0, TRCLFFKEY.statflag);
