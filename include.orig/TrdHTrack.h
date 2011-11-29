@@ -22,7 +22,7 @@ class TrdHTrackR:public TrElem{
   /// Number of hits on track
   int Nhits;
 
-  /// reconstructed charge
+  /// reconstructed absolute charge (positive! 0:e 1:p 2:He etc. -1:N/A)
   float charge;
 
   /// reconstructed electron likelihood (-log(like/(like+likp)))
