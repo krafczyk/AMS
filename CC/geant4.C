@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.82 2011/04/26 18:41:49 choumilo Exp $
+//  $Id: geant4.C,v 1.83 2011/11/29 13:18:48 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1046,7 +1046,7 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
     double e=aTrack->GetTotalEnergy()/GeV;
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }
-  
+  AMSmceventg::FillMCInfoG4( aTrack );
   return fWaiting;
 }
 

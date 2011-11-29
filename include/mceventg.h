@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.49 2011/11/26 10:47:06 pzuccon Exp $
+//  $Id: mceventg.h,v 1.50 2011/11/29 13:18:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -18,6 +18,7 @@
 #include "io.h"
 #include <time.h>
 #include "astro.h"
+class G4Track;
 class orbit{
 public:
 integer Nskip;
@@ -134,6 +135,9 @@ static integer fixeddir(){return _fixeddir;}
 static void FillMCInfo();
 static int    readposfromfile(char* filename,vector<tbpos> &poslist);
 static double extract(float m, float s);
+#ifdef __G4AMS__
+static void FillMCInfoG4( G4Track const * );
+#endif
 
 
 #ifdef __AMSVMC__

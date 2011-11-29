@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.169 2011/11/26 10:46:56 pzuccon Exp $
+//  $Id: mceventg.C,v 1.170 2011/11/29 13:18:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1852,6 +1852,23 @@ else
 }
 
 #endif
+
+double find_ecal_z()
+{
+   double ECALZ = -140; ///FLT_MAX;
+   AMSgvolume * p
+      = AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
+   if( p != NULL ){
+      ECALZ = p->getcooA(2) * 0.95;
+      cout << "AMSmceventg::FillMCInfo-I-LowestZSetTo " << ECALZ << endl;
+   }
+   else{
+      cerr << "AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound" << endl;
+   }
+   return ECALZ;
+}
+
+
 extern "C" void getscanfl_(int &scan);
 void AMSmceventg::FillMCInfo(){
 static number radl=0;
@@ -1916,6 +1933,77 @@ if(GCKINE.itra==1 && CCFFKEY.SpecialCut/10 && GCKINE.ikine==GCKINE.ipart){
      }
 
 }
+
+
+
+#ifdef __G4AMS__
+#include "job.h"
+#include "g4physics.h"
+void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
+{
+   /**
+    *
+    * Record *secondary* particles generated in the simulation 
+    * no need for all the particles, e.g. particles in the ecal shower
+    * so just follow the logic of G3 version [ AMSmceventg::FillMCInfo() ]
+    *
+    * tzc. Nov 2011.
+    *
+   **/
+
+   //
+   // simple postional cut value of ecal top
+   //
+   static double ECAL_Z = find_ecal_z();
+   //G4cerr << "ecal_z = " << ECAL_Z << G4endl;
+
+   G4ThreeVector pos = aTrack->GetPosition();
+   bool isPrimary = aTrack->GetParentID() == 0;
+   G4ParticleDefinition * pdef = aTrack->GetDynamicParticle()->GetDefinition();
+   G4int pdgid = aTrack->GetDynamicParticle()->GetDefinition()->GetPDGEncoding();
+   //bool isNeutrino = abs(pdgid)==14 or abs(pddid)==16 or abs(pdgid)==18;
+   bool isNeutrino = pdef->GetPDGCharge()==0 and pdef->GetLeptonNumber()!=0;
+
+   G4double ekin = aTrack->GetKineticEnergy();
+   ///G4clog << Form( "tracking  particle %s (%d<-%d) %g MeV @ ", name.c_str(), aTrack->GetTrackID(), aTrack->GetParentID(), aTrack->GetKineticEnergy() ) << pos/cm << G4endl;
+   
+   //
+   // to save resources do a precut
+   // skip the particles which ould be generated in ECAL shower, 
+   // or particles with too small energy
+   // or neutrino ( not too many, but their G3 ids are too large for plot
+   //
+   if( isPrimary or pos.z() < ECAL_Z*cm or ekin < 1*MeV or isNeutrino ) return;
+   ///if( pdgid != -11 /*e+*/) return;
+
+   ///G4clog << Form( "secondary particle %s (%d<-%d) @ ", name.c_str(), aTrack->GetTrackID(), aTrack->GetParentID() ) << pos/cm << G4endl;
+   G4String name = aTrack -> GetDynamicParticle() -> GetDefinition() -> GetParticleName();
+   G4ThreeVector mom = aTrack->GetMomentumDirection();
+
+   // 
+   // ams form of the track/particle information
+   //
+   int g3code = AMSJob::gethead()->getg4physics()->G4toG3( name );
+   if( g3code > 100 ){
+      G4cout << "AMSmceventg::FillMCInfoG4-I-LargeParticleCodeFound: " << name << " g3code: " << g3code << '\n';
+      // too bad, could be nuclei
+   }
+   AMSPoint point( pos.x(), pos.y(), pos.z() );
+   float parr[3] = { pos.x(), pos.y(), pos.z() };
+   AMSDir dir( mom.x(), mom.y(), mom.z() );
+
+   //
+   // just record it
+   //
+   AMSEvent::gethead()->addnext(
+         AMSID("AMSmctrack",0),
+         new AMSmceventg( -g3code, ekin/GeV, point/cm, dir ) // negetive code for secondary
+         );
+
+
+}
+#endif
+
 
 
 
