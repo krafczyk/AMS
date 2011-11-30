@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.704 2011/11/29 12:55:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.705 2011/11/30 12:13:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -704,7 +704,7 @@ my %mv=(
         $ret = $self->{sqlserver}->Query("select count(*) as total from
 (select cid as jcid, pid, time as jtime from jobs union all select cid
 as jcid, pid, time as jtime from jobs_deleted), productionset where
-jcid=".$self->{CCID}." and pid=productionset.did and productionset.did in (select did from productionset where status='Active')");
+jcid=".$self->{CCID}." and pid=productionset.did and productionset.status='Active'");
 	if ( defined $ret->[0][0] ) {
 		$total_jobs = $ret->[0][0];
 	}
@@ -1378,6 +1378,26 @@ foreach my $file (@allfiles){
  }
     return 1;
 }
+
+sub ServerConnectDB{
+    my $ref = shift;
+    my $ver=shift;
+    my $datamc=0;
+    if(defined $ver){
+      if($ver=~/v5/){
+          $datamc=1;
+      }
+    }
+    my $ret="";
+    my $sql="select dbfilename,lastupdate,IORS,IORP,hostname from Servers where status='Active' and datamc=$datamc order by lastupdate desc";
+     my $ret=$ref->{sqlserver}->Query($sql);
+    if(defined $ret->[0][0]){
+            $ret=$ret->[0][0];
+        }
+    return $ret;
+}
+
+
 
 sub ServerConnect{
     my $ref = shift;
@@ -6809,7 +6829,33 @@ if($self->{CCT} eq "local"){
                  $jbs=199;
                 } 
                }
+              
+my $dbserver=$self->{dbserver};
+if( not defined $dbserver->{dbfile}){
+     $dbserver=blessdb();
+     $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{version});
 }
+               my $rn=DBServer::GetRunsNumber($dbserver);
+               if($rn>=0){
+                if($rn<512){
+                 $jbs=512-$rn;
+                 if($jbs<99){
+                   $jbs=99;
+                 }
+                }
+                else{
+                 my $rntbr=DBServer::GetRunsNumber($dbserver,"ToBeRerun");
+                 my $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
+                 if($rntbr>=0 and $rntfi>=0){
+                   my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
+                   $jbs=512-$tot;
+                   if($jbs<=0){
+                    $jbs=9;
+                   }
+                 }
+                }
+               }
+          }
               if($max_jobs<$jbs){
                 $jbs=$max_jobs;
               }
@@ -8189,7 +8235,7 @@ try{
             catch CORBA::SystemException with{
                 $self->ErrorPlus( "sendback corba exc while creating run $ri->{Run}");
             };
-    }
+}
 else{
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
 }

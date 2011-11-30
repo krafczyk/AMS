@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.23 2011/06/10 23:20:41 choutko Exp $
+# $Id: DBServer.pm,v 1.24 2011/11/30 12:13:30 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -15,7 +15,7 @@ use POSIX qw(tmpnam);
 use MLDBM qw(DB_File Storable);
 
 
-@DBServer::EXPORT= qw(new Update Init InitDBFile InitDBFileNew);
+@DBServer::EXPORT= qw(new Update Init InitDBFile InitDBFileNew GetRunsNumber);
 my %lock=(
  dblock=>0,
  uid=>0,
@@ -850,7 +850,7 @@ OUT:
                          close(LOCK);
                          return;
       
-             }
+                }
                          untie %hash;
               $ref->Exiting ("DPS::DBProblem message=>Unable to $rc the rtb $ri->{uid}");
           }
@@ -858,6 +858,88 @@ OUT:
              $ref->Exiting ("DPS::DBProblem Unable to Open DB File $ref->{dbfile}");
           } 
 }
+
+
+sub GetRunsNumber{
+    my $ref=shift;
+    if(not ref($ref)){
+         $ref=shift;
+    }
+    my $ri=shift;
+#        my ($ok,%hash)=$ref->OpenDBFile();
+# need to explicitely open db file in every sub 
+    my $ok=0;
+    my %hash;
+    local *DBM;
+    my $db;
+#    die "$ref->{dbfile}";
+    if (defined $ref->{dbfile}){
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+     until (flock LOCK, LOCK_EX|LOCK_NB){
+         sleep 1;
+         $ntry=$ntry+1;
+         if($ntry>3){
+#            die("Unable to get lock for $lock","CInAbort");
+#           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+           goto OUT;
+         }
+     }
+        
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDONLY;
+#        die " db $db";
+    }
+    else{
+        goto OUT;
+    }
+     if(not $db){
+        goto OUT;
+      }
+#      my $fd=$db->fd;
+#      $ok=open DBM, "<&=$fd";
+#      if( not $ok){
+#        untie %hash;
+#        goto OUT;
+#      }
+#     my $ntry=0;
+#     $ok=0;
+#     until (flock DBM, LOCK_EX|LOCK_NB){
+#         sleep 2;
+#         $ntry=$ntry+1;
+#         if($ntry>10){
+#             untie %hash;
+#             goto OUT;
+#         }
+#     }
+    $ok=1;
+OUT:
+      undef $db;
+          if($ok){
+              $ref->{rtb}=$hash{rtb};           
+              if(not defined $ri){
+                         untie %hash;
+                        close(LOCK);
+                  return $#{$ref->{rtb}};
+              }
+        
+              my $tot=0;
+                 for my $i (0 ... $#{$ref->{rtb}} ){
+                         if($ref->{rtb}[$i]->{Status} eq $ri){
+                           $tot++;
+                 }
+                     }
+                         untie %hash;
+                        close(LOCK);
+                        return $tot;
+          }
+                         untie %hash;
+                        close(LOCK);
+    return -1;
+}
+
+
 sub InitDBFileNew{
     my %hash;
     local *DBM;
