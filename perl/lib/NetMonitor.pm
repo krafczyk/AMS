@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.60 2011/10/14 13:34:05 ams Exp $
+# $Id: NetMonitor.pm,v 1.61 2011/11/30 12:37:58 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -49,9 +49,9 @@ my $dmfeilds={
         src_dirs=>['/afs/cern.ch/ams/local/logs','/afs/cern.ch/ams/local/bsubs','/afs/cern.ch/ams/Offline/AMSDataDirRW/prod.log/scripts','/afs/cern.ch/ams/local/prod.log/Producer','/afs/cern.ch/ams/local/prod.log/MCProducer'],
         dst_dir=>'/fc02dat0/scratch/MC/afsbackup',
         dst_dir2=>'/f2users/scratch/MC/backupafs',
-        max_nfiles=>4578,
+        max_nfiles=>30000,
         file_life=>604800,
-        rm_mode=>0
+        rm_mode=>1
         };
 $self->{dir_monitor}=new DirMonitor($dmfeilds);
 
