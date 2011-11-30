@@ -192,6 +192,7 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
     if( tube_medians[i] < 0. )
       toReturn = false;
     
+    if(debug>1)printf("TUBE %i %.2f\n",i,tube_medians[i]);
     if (tube_gain[ntdv]!=1.)allone=false;
   }
   

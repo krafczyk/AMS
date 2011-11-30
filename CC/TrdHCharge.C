@@ -72,7 +72,8 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
     map<int,TrPdf*>::iterator it=pdfs.find(c);
     if(it==pdfs.end()&&(c>0||!use_single_layer_pdfs))
       continue;
-
+    
+    int nhit=0;
     for(int i=0;i<20;i++){
       if(track->elayer[i]<15)continue;
       
@@ -88,7 +89,6 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
 	}
       }
 
-      //      double prob=it->second->GetGraph()->Eval(track->elayer[i],0,"S");
       double prob=it->second->Eval(track->elayer[i]);
       if(prob<=1.e-8)prob=1.e-8;
 
@@ -99,18 +99,11 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
       }
       else
 	mit->second*=prob;
+      nhit++;
       
       if(debug>1)printf(" c %i amp %.2f prob %.2e accum %.2e\n",c,track->elayer[i],prob,mit->second);
     }
-  }
-
-  int nhit=0;
-  for(int i=0;i<20;i++)
-    if(track->elayer[i]>=10)nhit++;
-  if(debug)printf("nlayer %i\n",nhit);
-
-  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
-    it->second=pow((double)it->second,(1./(double)nhit));
+    mit->second=pow((double)mit->second,(1./(double)nhit));
     if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
   }
   
@@ -120,7 +113,6 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
     it->second/=totalprob;
-  
   
   int toReturn=0;double maxprob=0.;
   track->charge_probabilities.clear();                                              
