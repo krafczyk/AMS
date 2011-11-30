@@ -112,7 +112,7 @@ sub run{
                 	if($num>$self->{max_nfiles}){
                         foreach my $file (@files){
                                 chomp $file;
-                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
+                                $atime=`ls -lr  --time-style=+\%s $file| awk '{print \$6}'`;
                                 chomp $atime;
                                 if($cur_time-$atime>$self->{file_life}){
                                         my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -139,7 +139,7 @@ sub run{
 	                  $num=$#files+1;
 				foreach my $file (@files){
                                 	chomp $file;
-	                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
+	                                $atime=`ls -lr  --time-style=+\%s $file| awk '{print \$6}'`;
         	                        chomp $atime;
                 	                if($cur_time-$atime>0.1*$self->{file_life}){
                         	                my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -160,7 +160,10 @@ sub run{
                                                         $num--;
                                                 }
                               		}
-                        	}
+                                        if($num<$self->{max_nfiles}){
+                                            break;
+                                        }
+                                    }
 				if($num>$self->{warn_level}){
 					$self->{error_counter}++;
 		                        $self->{error_message}=$self->{error_message}."$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc";
