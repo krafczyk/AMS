@@ -500,8 +500,9 @@ c          if(vect(6)*vout(6).lt.0.) write(6,*)'ve,vo',vect(6),vout(6)
       real ama,cha,tl,ub
       character*20 pname
 *     -----------------------
+      integer errorcount
       logical first
-      data    first/.true./
+      data    first/.true./,errorcount/0/
       save    first,dz,dms,NMSpl
       !$OMP threadprivate (first,dz,dms,NMSpl)
 *     ----------------------------------------
@@ -578,9 +579,15 @@ c          if(vect(6)*vout(6).lt.0.) write(6,*)'ve,vo',vect(6),vout(6)
       enddo
 *     -------------------------------- Inversion
       call rsinv(NMSpl,vx,NPma,ifail) ! F012 Symm.Matr.Inversion
-      if(ifail.ne.0) write(6,*)'### rsinv x: ifail=',ifail
+      if(ifail.ne.0.and.errorcount.lt.100) then
+           write(6,*)'### rsinv x: ifail=',ifail
+           errorcount=errorcount+1
+      endif
       call rsinv(NMSpl,vy,NPma,ifail) ! F012 Symm.Matr.Inversion
-      if(ifail.ne.0) write(6,*)'### rsinv y: ifail=',ifail
+      if(ifail.ne.0.and.errorcount.lt.100) then
+           write(6,*)'### rsinv y: ifail=',ifail
+           errorcount=errorcount+1
+      endif
 *     --------------------- Matrix Shrinking
       wx(1,1)=vx(1,1)
       wy(1,1)=vy(1,1)
