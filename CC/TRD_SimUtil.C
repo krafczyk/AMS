@@ -137,12 +137,12 @@ void TrdSimUtil::DefineRadiator( void ) {
   else if (trdFleeceGasConf==1){
     trdFleeceGasMaterial = new G4Material("Galactic", z=1., a=1.01*g/mole,density=universe_mean_density,kStateGas, 3.e-18*pascal, trdGasTemperature);
 
-    G4double totRadDensity = trdFleeceMaterial->GetDensity() + trdFleeceGasMaterial->GetDensity()*(1.0-fibreGasRatio);
-    G4double fractionFibre = trdFleeceMaterial->GetDensity()/totRadDensity;
+    G4double totRadDensity = LRP375BK->GetDensity() + trdFleeceGasMaterial->GetDensity()*(1.0-fibreGasRatio);
+    G4double fractionFibre = LRP375BK->GetDensity()/totRadDensity;
     G4double fractionGas   = trdFleeceGasMaterial->GetDensity()*(1.0-fibreGasRatio)/totRadDensity;
 
     trdRadiatorArtificial = new G4Material("LRP 375 BK + Vacuum",totRadDensity,ncomponents = 2 );
-    trdRadiatorArtificial->AddMaterial( trdFleeceMaterial, fractionFibre );
+    trdRadiatorArtificial->AddMaterial( LRP375BK, fractionFibre );
     trdRadiatorArtificial->AddMaterial( trdFleeceGasMaterial,      fractionGas  );
   }
   if(TRDMCFFKEY.debug)printf("Exit TrdSimUtil::DefineRadiator\n");
