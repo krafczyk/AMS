@@ -106,13 +106,13 @@ sub run{
         	my $ans=dir_ok($self,$dir);
 	        my $num=-1;
         	if($ans==1){
-                	my @files=`ls -c $dir/* 2>/dev/null`;
+                	my @files=`ls -ctr $dir/* 2>/dev/null`;
 	                $num=$#files+1;
         	        #when the number of files in this directory is larger than $max_nfiles, remove old files
                 	if($num>$self->{max_nfiles}){
                         foreach my $file (@files){
                                 chomp $file;
-                                $atime=`ls -lr  --time-style=+\%s $file| awk '{print \$6}'`;
+                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
                                 chomp $atime;
                                 if($cur_time-$atime>$self->{file_life}){
                                         my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -135,11 +135,11 @@ sub run{
                         	}
                         }
                         if($num>$self->{warn_level}){
-                  	  @files=`ls -c $dir/* 2>/dev/null`;
+                  	  @files=`ls -ctr $dir/* 2>/dev/null`;
 	                  $num=$#files+1;
 				foreach my $file (@files){
                                 	chomp $file;
-	                                $atime=`ls -lr  --time-style=+\%s $file| awk '{print \$6}'`;
+	                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
         	                        chomp $atime;
                 	                if($cur_time-$atime>0.1*$self->{file_life}){
                         	                my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
@@ -155,13 +155,13 @@ sub run{
                                  	                                       $num--;
                                         	                        }
                                                 	       }
-                                                }
+                                                    }
                                                 else{
                                                         $num--;
                                                 }
-                              		}
+                                            }
                                         if($num<$self->{max_nfiles}){
-                                            break;
+                                            last;
                                         }
                                     }
 				if($num>$self->{warn_level}){

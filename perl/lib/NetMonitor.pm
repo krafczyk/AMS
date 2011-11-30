@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.62 2011/11/30 14:31:41 ams Exp $
+# $Id: NetMonitor.pm,v 1.63 2011/11/30 15:19:20 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -227,7 +227,7 @@ if(not open(FILE,"<".$self->{hostfile})){
             }
 
     }
-
+{
 #director monitor
         my $period = '';
     open (PERIOD, "/afs/cern.ch/user/a/ams/vc/perl/period");
@@ -239,7 +239,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                                             push @{$self->{bad}}, $self->{dir_monitor}->{error_message};
                                 }
     }
-
+}
 # AMI check
 my $localtime = '';
 my $delta = '';
