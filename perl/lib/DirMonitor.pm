@@ -135,6 +135,8 @@ sub run{
                         	}
                         }
                         if($num>$self->{warn_level}){
+                  	  @files=`ls -c $dir/* 2>/dev/null`;
+	                  $num=$#files+1;
 				foreach my $file (@files){
                                 	chomp $file;
 	                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
