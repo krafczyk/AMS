@@ -132,10 +132,38 @@ sub run{
 	                                        else{
         	                                        $num--;
                 	                        }
-                        	        }
+                        	}
                         }
                         if($num>$self->{warn_level}){
-                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc",1);
+				foreach my $file (@files){
+                                	chomp $file;
+	                                $atime=`ls -l  --time-style=+\%s $file| awk '{print \$6}'`;
+        	                        chomp $atime;
+                	                if($cur_time-$atime>0.1*$self->{file_life}){
+                        	                my $ret=cp_rm($self,$file,$self->{dst_dir},$self->{rm_mode});
+                                	        if($ret==0){
+                                        	        #ergent case, try the secondary dst dir
+                                                	if($num>$self->{warn_level}){
+                                                        	  $self->{error_counter}--;
+                                                                	$ret=cp_rm($self,$file,$self->{dst_dir2},$self->{rm_mode});
+	                                                                if($ret==0){
+        	                                                                send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to rm fail",1);
+                	                                                }
+                        	                                        else{
+                                 	                                       $num--;
+                                        	                        }
+                                                	       }
+                                                }
+                                                else{
+                                                        $num--;
+                                                }
+                              		}
+                        	}
+				if($num>$self->{warn_level}){
+					$self->{error_counter}++;
+		                        $self->{error_message}=$self->{error_message}."$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc";
+                                	send_message($self,"$temp Directory: $dir has $num (warn_level $self->{warn_level}) files! Failed Remove Files due to file age|can not rm|dst directory untouchable etc",1);
+				}
                         }
                     }
         }
