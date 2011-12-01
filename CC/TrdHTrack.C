@@ -428,10 +428,6 @@ int TrdHTrackR::UpdateLayerEdep(int corr, float bg,int charge, int debug){
       
       if(debug)cout<<" edep "<< hitamp; 
       if(corr&(1<<0)){
-	int tubeid=-1;
-	TrdHCalibR::gethead()->GetTubeIdFromLLT(hit->Layer,hit->Ladder,hit->Tube,tubeid);
-	int mod=tubeid/16;
-
 	float gaincorr=TrdHCalibR::gethead()->GetGainCorr(hit,2);
 	hitamp*=gaincorr;
 	if(debug)cout<<" gain corr "<< gaincorr;
@@ -448,7 +444,6 @@ int TrdHTrackR::UpdateLayerEdep(int corr, float bg,int charge, int debug){
 	float bgcorr=1.;
 	if(charge==1)bgcorr=TrdHCalibR::gethead()->GetBetaGammaCorr(bg,hitamp);
 	if(charge==2)bgcorr=TrdHCalibR::gethead()->bgcorr_helium(log10(bg));
-
 	hitamp*=bgcorr;
 	if(debug)cout<<" bg corr "<< bgcorr;
       }

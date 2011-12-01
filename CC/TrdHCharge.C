@@ -56,22 +56,22 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   map<int,double>::iterator mit;
   
   for(int pid=0;pid<7;pid++){
+    int c=pid;
+    if(rig!=0.&&c)c+=10;
+
+    map<int,TrPdf*>::iterator it=pdfs.find(c);
+    if(it==pdfs.end()&&(c>0||!use_single_layer_pdfs))
+      continue;
+
     float bg=0.;
     if(pid==1)bg=fabs(rig)/0.938;
     if(pid==2)bg=fabs(rig)*2./3.727;
     
-    int c=pid;
-    if(rig!=0.&&c){
-      c+=10;
+    if(c>=10)
       track->UpdateLayerEdep(7,bg,pid);
-    }
-    else{
+    else
       track->UpdateLayerEdep(3,bg,pid);
-    }
     
-    map<int,TrPdf*>::iterator it=pdfs.find(c);
-    if(it==pdfs.end()&&(c>0||!use_single_layer_pdfs))
-      continue;
     
     int nhit=0;
     for(int i=0;i<20;i++){
