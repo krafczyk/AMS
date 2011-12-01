@@ -108,20 +108,21 @@ Bool_t  TrExtAlignDB::Load(const char *fname)
 #ifdef __ROOTSHAREDLIBRARY__
 #include "root.h"
 #endif
-void TrExtAlignDB::UpdateTkDBcDyn(){
+int TrExtAlignDB::UpdateTkDBcDyn(int plane){
 #ifdef __ROOTSHAREDLIBRARY__
   if(!AMSEventR::Head()){
     std::cerr << "AMSEventR::Head is null" << std::endl;
-    return;
+    return -1;
   }
-  UpdateTkDBcDyn(AMSEventR::Head()->fHeader.Run,AMSEventR::Head()->fHeader.Time[0]);
+  return UpdateTkDBcDyn(AMSEventR::Head()->fHeader.Run,AMSEventR::Head()->fHeader.Time[0],plane);
 #endif
+return -5;
 }
 
-void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
+int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln){
   if (!TkDBc::Head) {
     std::cerr << "TkDBc::Head is null" << std::endl;
-    return;
+    return -2;
   }
 
   // Update the alignment
@@ -129,12 +130,13 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
     // Set the alignment to zero: useful to create the alignment
     int plane[2]={5,6};
     for(int i=0;i<2;i++){
+      if(!(pln & (1<<i)))continue;
       TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
-      if (!pl) continue;
+      if (!pl) return i==0?-3:-13;
       pl->posA.setp(0,0,0);
       pl->rotA.Reset();
     }
-    return;
+    return 1;
   }
   
   // Retrieve the parameters
@@ -142,12 +144,13 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
   int plane[2]={5,6};
   int layer[2]={8,9};
   for(int i=0;i<2;i++){
+      if(!(pln & (1<<i)))continue;
     TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
-    if (!pl) continue;
+    if (!pl) return i==0?-3:-13;
     
     // Retrieve alignment parameters
     DynAlFitParameters pars;
-    if(!DynAlManager::dynAlFitContainers[layerJ[i]].Find(time,pars)) continue;
+    if(!DynAlManager::dynAlFitContainers[layerJ[i]].Find(time,pars)) return i==0?-4:-14;
     AMSPoint pos;
     AMSRotMat rot;
     pars.GetParameters(time,0,pos,rot);
@@ -162,6 +165,7 @@ void TrExtAlignDB::UpdateTkDBcDyn(int run,uint time){
     pl->posA=pos;
     pl->rotA=rot;
   }
+  return 0;
 }
 
 
