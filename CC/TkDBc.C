@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.44 2011/05/23 18:37:54 choutko Exp $
+//  $Id: TkDBc.C,v 1.45 2011/12/01 17:01:36 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/05/23 18:37:54 $
+///$Date: 2011/12/01 17:01:36 $
 ///
-///$Revision: 1.44 $
+///$Revision: 1.45 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -154,8 +154,9 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
   
     const number  xposl[maxplanes]={0,0,0,0,0,0.};
     memcpy(_xpos,xposl,maxplanes*sizeof(xposl[0]));
-    //                                      1/5N   2     3     4     1N   6    
-    const number sup_hc_skin_w[maxplanes]={0.06, 0.02, 0.02, 0.02, 0.06, 0.06};
+     // 30/11/2011  updated with info from Lubelsmeyer
+    //                                      1/5N   2       3     4      1N     6    
+    const number sup_hc_skin_w[maxplanes]={0.069, 0.015, 0.015, 0.015, 0.069, 0.06};
     memcpy(_sup_hc_skin_w,sup_hc_skin_w,maxplanes*sizeof(sup_hc_skin_w[0]));
 
     const number  yposl[maxplanes]={0,0,0,0,0,0};

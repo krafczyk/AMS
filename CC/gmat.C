@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.115 2011/05/04 18:57:15 mmilling Exp $
+//  $Id: gmat.C,v 1.116 2011/12/01 17:01:36 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -300,22 +300,21 @@ void AMSgmat::amsmat(){
 
 //---------------------------------
 //  Tracker Materials by P. Zuccon from datasheets
-
-  // AL honeycomb structure for Tracker (as for TOF now !) :
+// 30/11/2011  updated with info from Lubelsmeyer
 #ifdef _PGTRACK_
   geant scl = 1;//5;  // Density scaling factor to reproduce CR resolution
   // inner planes honeycomb CRIII-3/8-5056-0.0007P - 1.0 
-  float density=0.016/scl;
+  float density=0.017/scl;
   mat.add (new AMSgmat( "AL-HONEYC-TrIn" ,26.98, 13., density, 8.9*2.7/density,  38.5*2.7/density));
   // Outer planes honeycomb CRIII-3/16-5056-0.001P - 3.1 
-  density=0.0496/scl;
+  density=0.052/scl;
   mat.add (new AMSgmat( "AL-HONEYC-TrOut",26.98, 13., density, 8.9*2.7/density,  38.5*2.7/density));
 
   density=1.8/scl;
   mat.add (new AMSgmat( "CSkin-Tr",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
   density=1.5/scl;
   mat.add (new AMSgmat( "CSkin-Trpl6",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
-  density=1.6/scl;
+  density=1.65/scl;
   mat.add (new AMSgmat( "CSkin-P1NS",12.01, 6., density, 18.8*2.265/density,  38.5*2.265/density));
 
 
