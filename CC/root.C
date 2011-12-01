@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.338 2011/11/03 09:10:17 choutko Exp $
+//  $Id: root.C,v 1.339 2011/12/01 16:28:41 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6057,5 +6057,26 @@ return false;
   }
 
 
+
+#endif
+
+#ifdef _PGTRACK_
+void UpdateExtLayer(int type=0){
+  //type 0 PG; 1 Madrid
+  uint time,run;
+#ifdef __ROOTSHAREDLIBRARY__ 
+  time=AMSEventR::Head()->UTime();
+  run=AMSEventR::Head()->Run();
+#else
+  time=AMSEvent::gethead()->gettime();
+  run=AMSEvent::gethead()->getrun();
+#endif
+
+  if(type==0)
+    TrExtAlignDB::GetHead()->UpdateTkDBc(time);
+  else
+    TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time);
+  return;
+} 
 
 #endif

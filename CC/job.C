@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.839 2011/11/28 15:31:40 choutko Exp $
+// $Id: job.C,v 1.840 2011/12/01 16:28:40 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -37,6 +37,7 @@
 #include "trdaq.h"
 #include "MagField.h"
 #include "TrExtAlignDB.h"
+#include "OrbGen.h"
 
 #else
 
@@ -86,7 +87,6 @@
 #include "tofid.h"
 #include "charge.h"
 #include "TrdHCalib.h"
-#include "OrbGen.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1712,7 +1712,7 @@ void AMSJob::udata(){
     }
   }
 
-
+#ifdef _PGTRACK_
   if(CCFFKEY.low==10){
     OrbGen*orb=OrbGen::GetOrbGen();
     tm begin;
@@ -1727,7 +1727,7 @@ void AMSJob::udata(){
     orb->SetTime(bb,0);
 
   }
-
+#endif
 
 #ifdef _WEBACCESS_
   if (char * pp=getenv("WEBACCESS")){

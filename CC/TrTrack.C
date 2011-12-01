@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.120 2011/11/16 14:35:42 mdelgado Exp $
+// $Id: TrTrack.C,v 1.121 2011/12/01 16:28:40 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/11/16 14:35:42 $
+///$Date: 2011/12/01 16:28:40 $
 ///
-///$Revision: 1.120 $
+///$Revision: 1.121 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +37,9 @@
 #include "TrRecon.h"
 #include <cmath>
 #include <algorithm>
+
+void UpdateExtLayer(int type=0);
+
 
 int my_int_pow(int base, int exp){
   if (exp<0) return -1;
@@ -1366,6 +1369,9 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
   
   bool FitExists=ParExists(fittype);
+  if(refit==4) UpdateExtLayer(0);
+  if(refit==5) UpdateExtLayer(1);
+    
   if(refit>=2 || (!FitExists && refit==1)) { 
     if(refit>2){
       for (int ii=0;ii<getnhits () ;ii++)

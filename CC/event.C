@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.551 2011/11/28 18:47:17 pzuccon Exp $
+//  $Id: event.C,v 1.552 2011/12/01 16:28:40 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -19,6 +19,7 @@ extern "C" void setbcorr_(float *p);
 #include "TrRecon.h"
 #include "HistoMan.h"
 #include "TrExtAlignDB.h"
+#include "OrbGen.h"
 #endif
 extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *vp, float *grmedphi, double time);
 
@@ -82,7 +83,7 @@ extern LMS* lms;
 #endif
 //
 //
-#include "OrbGen.h"
+
 
 //#include "HistoMan.h"
 
@@ -467,6 +468,7 @@ void AMSEvent::SetTimeCoo(integer rec){
   amspos.GetLong(_AMSGalLong);
   amspos.GetLat(_AMSGalLat);
 
+#ifdef _PGTRACK_
   if(CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
     
     OrbGen*orb=OrbGen::GetOrbGen();
@@ -479,7 +481,7 @@ void AMSEvent::SetTimeCoo(integer rec){
     _time=orb->Time.Time_s;
     _usec=orb->Time.Time_ns;
   }
-
+#endif
 
 
 
@@ -1510,10 +1512,15 @@ void AMSEvent::_siamsevent(){
   _sitkevent(); 
   _sitrigevent();//create lev1/lev3 trig.object
   _sidaqevent(); //DAQ-simulation 
+
+#ifdef _PGTRACK_
+
   Trigger2LVL1 *ptrt=(Trigger2LVL1*)getheadC("TriggerLVL1",0);
+
   if(ptrt && CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
     OrbGen::GetOrbGen()->NextTime();
   }    
+#endif
 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
 }

@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.70 2011/09/27 23:50:08 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.71 2011/12/01 16:28:42 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/09/27 23:50:08 $
+///$Date: 2011/12/01 16:28:42 $
 ///
-///$Revision: 1.70 $
+///$Revision: 1.71 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -385,10 +385,18 @@ public:
     900990090  corresponds to layers
     2,5,6,9 J-Scheme. (DEPRECATED) if you want to use OLD scheme replace everywhere 9 with 1)
     \param refit    
-    0   do not refit
-    1    refit if does not exist
-    2  refit
-    3  refit and rebuild of coordinates (useful for tricked alignment)
+    \li 0   do not refit
+    \li 1    refit if does not exist
+    \li 2  refit
+    \li 3  refit and rebuild of coordinates (useful for tricked alignment)
+    \li 4  refit and rebuild of coordinates with PG    ExtPlanes Alignment 
+    \li 5  refit and rebuild of coordinates with CIEMAT ExtPlanes Alignment 
+    
+    To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetAlign(); and refit with 3
+
+    To correctly perform the refit, the FieldMap file is needed.
+    If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
+    check to have this file on your disk.
     \param mass (optional) the particle mass. (default= 0.938272297)
      
     \param chrg (optional) the particle charge. (default = 1)
@@ -400,9 +408,7 @@ public:
     \retval -3 --> The refit failed
     \retval -4 --> Should not happen!! contact the developpers
 
-    To correctly perform the refit, the FieldMap file is needed.
-    If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
-    check to have this file on your disk.
+    
     !*/
   int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge);
 

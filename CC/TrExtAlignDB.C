@@ -169,6 +169,19 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln){
 }
 
 
+void TrExtAlignDB::ResetExtAlign() 
+{
+
+  for (int layer = 8; layer <= 9; layer++) {
+    int plane = (layer == 8) ? 5 : 6;
+    TkPlane* pl = TkDBc::Head->GetPlane(plane);
+    if (!pl) continue;
+
+    pl->posA.setp(0,0,0);
+    pl->rotA.SetRotAngles(0,0,0);
+  }
+  return;
+}
 void TrExtAlignDB::UpdateTkDBc(uint time) const
 {
   if (!TkDBc::Head) {

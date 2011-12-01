@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.170 2011/11/29 13:18:48 choutko Exp $
+//  $Id: mceventg.C,v 1.171 2011/12/01 16:28:41 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -202,6 +202,7 @@ void AMSmceventg::gener(){
 // 	   _coo[0],_coo[1],_coo[2],
 // 	   _dir[0],_dir[1],_dir[2]);
 
+#ifdef _PGTRACK_
   }else if(CCFFKEY.low==10){ // realistic orbit generator for plaen1/9 movement studies
 
     OrbGen*orb=OrbGen::GetOrbGen();
@@ -214,7 +215,7 @@ void AMSmceventg::gener(){
     _tbline=0;
     init(orb->Pid);
     _mom=orb->Rigidity*abs(_charge);
-
+#endif
   }else  if(CCFFKEY.low==-2){
     //
     //  wrong method do not use  (VC)

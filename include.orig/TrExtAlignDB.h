@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.11 2011/12/01 15:41:30 choutko Exp $
+//  $Id: TrExtAlignDB.h,v 1.12 2011/12/01 16:28:41 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -167,6 +167,9 @@ public:
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   void UpdateTkDBc(uint time) const;
+
+  /// Set Ext align paremeters to 0
+  static void ResetExtAlign();
 
   /// Read from AMSRoot file or not
   static int OverLoadFlag;
