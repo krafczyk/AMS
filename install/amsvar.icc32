@@ -26,7 +26,7 @@ setenv amsedcPG           $Offline/vdev/exe/linuxicc/amsedcPG
 setenv offmon        $Offline/vdev/exe/linux/offmon      
 setenv offmonc        $Offline/vdev/exe/linux/offmonc      
 
-setenv AMSDynAlignment /afs/cern.ch/ams/local/ExtAlig/AlignmentFiles/
+setenv AMSDynAlignment $AMSDataDirRW/ExtAlig/AlignmentFiles/
 
 setenv AMSICC 1
 setenv AMSP 1
