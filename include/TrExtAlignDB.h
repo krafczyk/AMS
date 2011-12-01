@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.10 2011/12/01 14:19:56 choutko Exp $
+//  $Id: TrExtAlignDB.h,v 1.11 2011/12/01 15:41:30 choutko Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -149,7 +149,7 @@ public:
   ///  return -14 if no alig info for lower plane 
   //   return 1 if alignment reset was done
  
-  int UpdateTkDBcDyn(int run,uint time, int plane=3);
+  static int UpdateTkDBcDyn(int run,uint time, int plane=3);
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   /// Takes the required information from AMSEventR
@@ -163,7 +163,7 @@ public:
   ///  return -14 if no alig info for lower plane 
   ///  return -5 if called outside ROOTSHAREDLIB env
   //   return 1 if alignment reset was done
-  int  UpdateTkDBcDyn(int plane=3);
+  static int  UpdateTkDBcDyn(int plane=3);
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   void UpdateTkDBc(uint time) const;
