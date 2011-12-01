@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.24 2011/09/27 23:50:08 pzuccon Exp $
+// $Id: TkDBc.h,v 1.25 2011/12/01 12:07:17 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -384,12 +384,12 @@ public:
 
   //! Get Aligned Z-coordinate of layer J-scheme
   double GetZlayerAJ(int i) {
-    int lay=GetJFromLayer(i);
+    int lay=GetLayerFromJ(i);
     return GetZlayerA(lay);
   }
   //! Get Z-coordinate of layer J-scheme
   double GetZlayerJ(int i) {
-    int lay=GetJFromLayer(i);
+    int lay=GetLayerFromJ(i);
     return GetZlayer(lay);
   }
   //! Get Aligned Z-coordinate of layer OLD scheme
