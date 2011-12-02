@@ -103,7 +103,8 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
       
       if(debug>1)printf(" c %i amp %.2f prob %.2e accum %.2e\n",c,track->elayer[i],prob,mit->second);
     }
-    mit->second=pow((double)mit->second,(1./(double)nhit));
+    if(nhit>0)mit->second=pow((double)mit->second,(1./(double)nhit));
+
     if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
   }
   
@@ -114,7 +115,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
     it->second/=totalprob;
   
-  int toReturn=0;double maxprob=0.;
+  int toReturn=-1;double maxprob=0.;
   track->charge_probabilities.clear();                                              
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
     if(it->second>maxprob){
@@ -124,7 +125,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
     track->charge_probabilities.insert(pair<double,int>(it->second,it->first));
   }
 
-  return toReturn%10;
+  return toReturn<0?toReturn:toReturn%10;
 }
 
 float TrdHChargeR::GetELikelihood(TrdHTrackR *tr, int opt,int debug){
