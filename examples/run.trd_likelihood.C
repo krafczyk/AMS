@@ -6,7 +6,7 @@
       gSystem->Load(gSystem->ExpandPathName("${AMSWD}/lib/linuxx8664icc/ntuple_slc4_PG.so"));
 
       TChain chain("AMSRoot");
-      chain.Add("root://castorpublic.cern.ch///castor/cern.ch/user/m/mmilling/lxbatch_out/filter/onegev_tktrdacc/list.1309074994.root");
+      chain.Add("root://castorpublic.cern.ch///castor/cern.ch/ams/Data/AMS02/2011B/ISS.B530/std/1313111683.00000001.root");
       
       chain.Process("trd_likelihood.C+");
 }

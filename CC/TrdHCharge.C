@@ -8,7 +8,7 @@ ClassImp(TrdHChargeR);
 TrdHChargeR *TrdHChargeR::head=0;
 
 float TrdHChargeR::charge_hist_array[10][1000];
-float TrdHChargeR::electron_hist_array[20000];
+float TrdHChargeR::electron_hist_array[10000];
 
 Double_t pfun(Double_t x, Double_t *par) {
 Double_t mpshift  = -0.22278298;
@@ -50,16 +50,16 @@ double p_par(int p){
 
 int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   if(debug)printf("Enter TrdHChargeR::GetCharge\n");
+  track->charge_probabilities.clear();
   if(pdfs.size()<2)return -1;
   
   map<int,double> map_charge_prob;
-  map<int,double>::iterator mit;
-  
+  map<int,TrPdf*>::iterator it;
   for(int pid=0;pid<7;pid++){
     int c=pid;
     if(rig!=0.&&c)c+=10;
 
-    map<int,TrPdf*>::iterator it=pdfs.find(c);
+    it=pdfs.find(c);
     if(it==pdfs.end()&&(c>0||!use_single_layer_pdfs))
       continue;
 
@@ -72,8 +72,8 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
     else
       track->UpdateLayerEdep(3,bg,pid);
     
-    
     int nhit=0;
+    double prob=1.;
     for(int i=0;i<20;i++){
       if(track->elayer[i]<15)continue;
       
@@ -89,34 +89,28 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
 	}
       }
 
-      double prob=it->second->Eval(track->elayer[i]);
-      if(prob<=1.e-8)prob=1.e-8;
+      double single_prob=it->second->Eval(track->elayer[i]);
+      if(single_prob<=1.e-7)single_prob=1.e-7;
 
-      mit=map_charge_prob.find(c);
-      if(mit==map_charge_prob.end()){
-	map_charge_prob.insert(pair<int,double>(c,prob));
-	mit=map_charge_prob.find(c);
-      }
-      else
-	mit->second*=prob;
+      prob*=single_prob;
       nhit++;
       
-      if(debug>1)printf(" c %i amp %.2f prob %.2e accum %.2e\n",c,track->elayer[i],prob,mit->second);
+      if(debug>1)printf(" c %i amp %.2f prob %.2e accum %.2e\n",c,track->elayer[i],single_prob,prob);
     }
-    if(nhit>0)mit->second=pow((double)mit->second,(1./(double)nhit));
-
-    if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
+    
+    if(nhit>0)prob=pow((double)prob,(1./(double)nhit));
+    map_charge_prob.insert(pair<int,double>(c,prob));
   }
   
   double totalprob=0.;
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
     totalprob+=it->second;
   
-  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++)
+  for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
     it->second/=totalprob;
-  
+    if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
+  }
   int toReturn=-1;double maxprob=0.;
-  track->charge_probabilities.clear();                                              
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
     if(it->second>maxprob){
       maxprob=it->second;

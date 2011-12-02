@@ -569,7 +569,7 @@ float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
 }
 
 float TrdHCalibR::GetBetaGammaCorr(double betagamma,double dE, int opt,int debug){
-  double toReturn=bgcorr(log10(betagamma),dE)*0.9;
+  double toReturn=pow(bgcorr(log10(betagamma),dE),0.9);//remove slight overcorrection
   if(debug)cout<<"TrdHCalibR::GetBetaGammaCorr - bg "<<betagamma<<" dE "<< dE <<" correction "<< toReturn <<endl;
   return toReturn;
 }
@@ -950,7 +950,7 @@ double TrdHCalibR::GraphXmax(TGraph *g){
 }
 double TrdHCalibR::bgval(float x,float dE){
   //  if(x>s_bg_p0->GetXmax())x=s_bg_p0->GetXmax();
-  if(x>GraphXmax(s_bg_p0))x=GraphXmax(s_bg_p0);
+  //  if(x>GraphXmax(s_bg_p0))x=GraphXmax(s_bg_p0);
   return s_bg_p0->Eval(x)+s_bg_p1->Eval(x)*dE+s_bg_p2->Eval(x)*dE*dE;
 }
 double TrdHCalibR::bgcorr(float x,float dE){
@@ -1058,7 +1058,7 @@ int TrdHCalibR::bgmap(int opt){
 }
 
 double TrdHCalibR::pathval(float x,float dE){
-  if(x>GraphXmax(s_path_p0))x=GraphXmax(s_path_p0);
+  //  if(x>GraphXmax(s_path_p0))x=GraphXmax(s_path_p0);
   return s_path_p0->Eval(x)+s_path_p1->Eval(x)*dE+s_path_p2->Eval(x)*dE*dE+s_path_p3->Eval(x)*sqrt(dE);
 }
 
@@ -1125,12 +1125,12 @@ int TrdHCalibR::pathmap(char *fname){
 int TrdHCalibR::pathmap(int opt){
   float x,p0,p1,p2,p3;
 
-  double xarr[71];
-  double p0arr[71];
-  double p1arr[71];
-  double p2arr[71];
-  double p3arr[71];
-  int n=71;
+  double xarr[69];
+  double p0arr[69];
+  double p1arr[69];
+  double p2arr[69];
+  double p3arr[69];
+  int n=69;
   xarr[0]=0.350; p0arr[0]=-3.03e+01; p1arr[0]=-1.91e-01; p2arr[0]= 6.80e-04; p3arr[0]= 1.71e+01;
   xarr[1]=0.450; p0arr[1]=-2.64e+01; p1arr[1]=-7.21e-02; p2arr[1]= 5.80e-04; p3arr[1]= 1.64e+01;
   xarr[2]=0.550; p0arr[2]=-3.71e+01; p1arr[2]=-2.93e-01; p2arr[2]= 7.12e-04; p3arr[2]= 1.95e+01;
@@ -1187,9 +1187,9 @@ int TrdHCalibR::pathmap(int opt){
   xarr[53]=5.650; p0arr[53]=-2.88e+00; p1arr[53]=9.80e-01 ; p2arr[53]=-2.76e-05; p3arr[53]= 1.58e+00;
   xarr[54]=5.750; p0arr[54]=-3.31e+00; p1arr[54]=9.77e-01 ; p2arr[54]=-1.83e-05; p3arr[54]= 1.41e+00;
   xarr[55]=5.850; p0arr[55]=-3.70e+00; p1arr[55]=9.73e-01 ; p2arr[55]=-9.13e-06; p3arr[55]= 1.27e+00;
-  xarr[56]=5.950; p0arr[56]=-1.65e+00; p1arr[56]=1.02e+00 ; p2arr[56]=-3.35e-05; p3arr[56]= 4.54e-01;
-  xarr[57]=6.050; p0arr[57]= 1.92e+00; p1arr[57]=1.07e+00 ; p2arr[57]=-6.07e-05; p3arr[57]= -4.17e-0;
-  xarr[58]=6.150; p0arr[58]=-9.10e-02; p1arr[58]=1.01e+00 ; p2arr[58]=-1.53e-05; p3arr[58]= 6.73e-02;
+  //  xarr[56]=5.950; p0arr[56]=-1.65e+00; p1arr[56]=1.02e+00 ; p2arr[56]=-3.35e-05; p3arr[56]= 4.54e-01;
+  //  xarr[57]=6.050; p0arr[57]= 1.92e+00; p1arr[57]=1.07e+00 ; p2arr[57]=-6.07e-05; p3arr[57]= -4.17e-0;
+  /*  xarr[58]=6.150; p0arr[58]=-9.10e-02; p1arr[58]=1.01e+00 ; p2arr[58]=-1.53e-05; p3arr[58]= 6.73e-02;
   xarr[59]=6.350; p0arr[59]= 9.88e-02; p1arr[59]=9.90e-01 ; p2arr[59]=1.34e-05 ; p3arr[59]=-1.06e-01;
   xarr[60]=6.450; p0arr[60]= 7.93e-01; p1arr[60]=9.82e-01 ; p2arr[60]=2.65e-05 ; p3arr[60]=-2.82e-01;
   xarr[61]=6.550; p0arr[61]= 6.79e-01; p1arr[61]=9.71e-01 ; p2arr[61]=3.91e-05 ; p3arr[61]=-3.40e-01;
@@ -1201,7 +1201,21 @@ int TrdHCalibR::pathmap(int opt){
   xarr[67]=7.150; p0arr[67]=-4.66e-01; p1arr[67]=8.74e-01 ; p2arr[67]=1.33e-04 ; p3arr[67]=-1.94e-01;
   xarr[68]=7.250; p0arr[68]= 3.98e+00; p1arr[68]=9.42e-01 ; p2arr[68]=9.94e-05 ; p3arr[68]=-1.41e+00;
   xarr[69]=7.350; p0arr[69]= 6.09e+00; p1arr[69]=9.60e-01 ; p2arr[69]=9.47e-05 ; p3arr[69]=-1.90e+00;
-  xarr[70]=7.450; p0arr[70]=-1.41e+00; p1arr[70]=8.20e-01 ; p2arr[70]=1.90e-04 ; p3arr[70]=8.20e-02 ;
+  xarr[70]=7.450; p0arr[70]=-1.41e+00; p1arr[70]=8.20e-01 ; p2arr[70]=1.90e-04 ; p3arr[70]=8.20e-02 ;*/
+
+  xarr[56]=6.150; p0arr[56]=-9.10e-02; p1arr[56]=1.01e+00 ; p2arr[56]=-1.53e-05; p3arr[56]= 6.73e-02;
+  xarr[57]=6.350; p0arr[57]= 9.88e-02; p1arr[57]=9.90e-01 ; p2arr[57]=1.34e-05 ; p3arr[57]=-1.06e-01;
+  xarr[58]=6.450; p0arr[58]= 7.93e-01; p1arr[58]=9.82e-01 ; p2arr[58]=2.65e-05 ; p3arr[58]=-2.82e-01;
+  xarr[59]=6.550; p0arr[59]= 6.79e-01; p1arr[59]=9.71e-01 ; p2arr[59]=3.91e-05 ; p3arr[59]=-3.40e-01;
+  xarr[60]=6.650; p0arr[60]=-2.48e-02; p1arr[60]=9.38e-01 ; p2arr[60]=6.59e-05 ; p3arr[60]=-1.06e-01;
+  xarr[61]=6.750; p0arr[61]=-1.26e+00; p1arr[61]=9.13e-01 ; p2arr[61]=8.52e-05 ; p3arr[61]=1.05e-01 ;
+  xarr[62]=6.850; p0arr[62]=-8.75e-01; p1arr[62]=9.03e-01 ; p2arr[62]=9.83e-05 ; p3arr[62]=-1.07e-02;
+  xarr[63]=6.950; p0arr[63]= 4.11e-01; p1arr[63]=9.18e-01 ; p2arr[63]=9.53e-05 ; p3arr[63]=-4.20e-01;
+  xarr[64]=7.050; p0arr[64]=-2.30e+00; p1arr[64]=8.59e-01 ; p2arr[64]=1.34e-04 ; p3arr[64]=2.81e-01 ;
+  xarr[65]=7.150; p0arr[65]=-4.66e-01; p1arr[65]=8.74e-01 ; p2arr[65]=1.33e-04 ; p3arr[65]=-1.94e-01;
+  xarr[66]=7.250; p0arr[66]= 3.98e+00; p1arr[66]=9.42e-01 ; p2arr[66]=9.94e-05 ; p3arr[66]=-1.41e+00;
+  xarr[67]=7.350; p0arr[67]= 6.09e+00; p1arr[67]=9.60e-01 ; p2arr[67]=9.47e-05 ; p3arr[67]=-1.90e+00;
+  xarr[68]=7.450; p0arr[68]=-1.41e+00; p1arr[68]=8.20e-01 ; p2arr[68]=1.90e-04 ; p3arr[68]=8.20e-02 ;
 
 
   if(s_path_p0) delete s_path_p0;

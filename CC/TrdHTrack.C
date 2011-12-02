@@ -434,7 +434,7 @@ int TrdHTrackR::UpdateLayerEdep(int corr, float bg,int charge, int debug){
       }
       if(corr&(1<<1)){
 	float path=TubePath(hit,0,0,debug);
-	if(path<0.3)continue;
+	if(path<0.1)continue;
 	float amp_scaled=hitamp/pow(float(charge==0?1:charge),2);
 	float pcorr=TrdHCalibR::gethead()->GetPathCorr(path*10.,amp_scaled,3);
 	hitamp*=pcorr;
@@ -448,6 +448,8 @@ int TrdHTrackR::UpdateLayerEdep(int corr, float bg,int charge, int debug){
 	if(debug)cout<<" bg corr "<< bgcorr;
       }
       
+      hitamp*=1.2;//correct MPV of 8 GeV protons to 60 ADC
+
       if(debug)cout<<" corrected edep: "<< hitamp <<endl;
       elayer[hit->Layer]+=hitamp;
     }

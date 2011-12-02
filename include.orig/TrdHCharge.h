@@ -36,7 +36,7 @@ class TrdHChargeR{
   static float charge_hist_array[10][1000];
   
   /// array for TDV interaction (electrons)
-  static float electron_hist_array[20000];
+  static float electron_hist_array[10000];
 
   /// number of bins in logarithmic binning (optional)
   int nlogbins;
