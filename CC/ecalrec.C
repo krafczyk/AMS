@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.160 2011/11/18 13:25:08 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.161 2011/12/02 13:14:06 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1989,7 +1989,7 @@ integer AMSEcalShower::build(int rerun){
 	number difosum=fabs(enx-eny+adden)/(enx+eny+fabs(adden));
 	if(difosum<difosumMin){
 	  peca=pes;
-	  difosum=difosumMin;
+	  difosumMin=difosum;
 	}
       }
       if(peca){
