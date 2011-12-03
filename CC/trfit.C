@@ -8,6 +8,7 @@
 const integer nx=41;
 const integer ny=41;
 const integer nz=180;
+extern "C" void tkgetres_(float res[][7], int &nplan);
 extern "C" void resetmagstat_();
 extern "C" void setmagstat_();
 extern "C" void rkmsinit_(float*);
@@ -314,13 +315,19 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
           for(int j=0;j<3;j++)hitss[i][j]=hits[i][j];
       }
       TKFITG(nh,hitss,sigma,normal,ipart,algo,ms,layer,out);
+      float _res[9][7];
+      TrSCooR coos[9]; 
+      int ml=9;      
+      tkgetres_(_res,ml);
+      for(int k=0;k<nh;k++){
+         coos[k].Coo=AMSPoint(_res[k][0],_res[k][1],_res[k][2]);
+      }
       Rigidity=out[5];
       ErrRigidity=out[8];
       Chi2=(out[7]!=0 && out[7]!=2)?FLT_MAX:out[6];
       Coo=AMSPoint(out[0],out[1],out[2]);  
       Theta=out[3];
       Phi=out[4];     
-      TrSCooR coos[9]; 
 
       int extres=MS/100;
       const int maxlay=9;
@@ -529,7 +536,7 @@ int ssize=sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile)-sizeof(TKFIELD.iniok);
   setmagstat_();
   resetmagstat_();
   cout <<"TrTrackFitR-I-MagneticFieldMap "<<FieldMapName <<" initialized "<<time<<endl;
-  float zposl[9]={160.,52.985,29.185,25.215,1.685,-2.285,-25.215,-29.185,-136.0};
+  float zposl[9]={159.,53.,29.2,25.2,1.71,-2.29,-25.2,-29.2,-136};
   rkmsinit_(zposl);
   initdone=1;
 }

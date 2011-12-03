@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.161 2011/12/02 13:14:06 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.162 2011/12/03 09:43:27 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -944,7 +944,7 @@ void AMSEcalHit::build(int &stat){
  	  deltaT=T_PMT-ECREFFKEY.Tref;
  	}
  	else{
- 	  cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
+ 	  //cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
 	  deltaT=0;
 	}
       }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.339 2011/12/01 16:28:41 pzuccon Exp $
+//  $Id: root.C,v 1.340 2011/12/03 09:43:27 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5853,7 +5853,7 @@ if(BitPattern &( 1<<k)){
  if(ret++==i)return k;
 }
 }
-return 0;
+return -1;
 }
 
 int TrTrackR::ToBitPattern(int patl){
