@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.83 2011/11/29 13:18:48 choutko Exp $
+//  $Id: geant4.C,v 1.84 2011/12/05 10:51:45 sdifalco Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -25,6 +25,7 @@
 #include "G4ClassicalRK4.hh"
 #include "G4TransportationManager.hh"
 #include "G4Material.hh"
+#include "G4MaterialScanner.hh"
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
@@ -93,6 +94,37 @@ G4RunManager * pmgr = new G4RunManager();
 
 }
 void g4ams::G4RUN(){
+  if (MISCFFKEY.DoMatScan==1) {
+    G4MaterialScanner *scanner=new G4MaterialScanner();
+    scanner->SetNTheta(1);
+    scanner->SetThetaMin(MISCFFKEY.StartScanTheta*deg);
+    scanner->SetThetaSpan(0*deg);
+    scanner->SetNPhi(1);
+    scanner->SetPhiMin(MISCFFKEY.StartScanPhi*deg);
+    scanner->SetPhiSpan(0*deg);
+    scanner->SetRegionName("DefaultRegionForTheWorld");
+    cout << scanner->GetRegionName() << endl;
+    cout<<"~~~~~~~~~~~~~~~Start scanning the materials"<<endl;
+    float X,Y,Z;
+    X=  MISCFFKEY.StartScanXstart;
+    while ( X<=MISCFFKEY.StartScanXstop){
+      Y=  MISCFFKEY.StartScanYstart;
+      while ( Y<=MISCFFKEY.StartScanYstop){
+	Z=  MISCFFKEY.StartScanZstart;
+	while ( Z<=MISCFFKEY.StartScanZstop){
+	  scanner->SetEyePosition(G4ThreeVector(X*cm,Y*cm,Z*cm));
+	  cout << " X= " << X << " Y= " << Y << " Z= " << Z << endl;
+	  scanner->Scan();
+	  Z+= MISCFFKEY.StartScanZstep;
+	}
+	Y+= MISCFFKEY.StartScanYstep;
+      }
+      X+= MISCFFKEY.StartScanXstep;
+    }
+    
+    cout<<"~~~~~~~~~~~~~~~Finish scanning the materials _____________________________"<<endl;
+  }
+
 // Initialize GEANT3
     
     GCFLAG.IEVENT=1;

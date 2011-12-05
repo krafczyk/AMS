@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.332 2011/11/27 17:44:53 choutko Exp $
+//  $Id: commons.h,v 1.333 2011/12/05 10:52:41 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -54,7 +54,20 @@ class MISCFFKEY_DEF{
   integer ChunkThreads;
   integer DivideBy;
   integer RaiseFPE;
+  integer DoMatScan;
+  float StartScanXstart;
+  float StartScanXstop;
+  float StartScanXstep;
+  float StartScanYstart;
+  float StartScanYstop;
+  float StartScanYstep;
+  float StartScanZstart;
+  float StartScanZstop;
+  float StartScanZstep;
+  float StartScanTheta;
+  float StartScanPhi;
 };
+
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
 
 
