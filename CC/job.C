@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.840 2011/12/01 16:28:40 pzuccon Exp $
+// $Id: job.C,v 1.840.2.1 2011/12/05 11:07:45 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -855,7 +855,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   //  ECMCFFKEY.mev2mev=58.86;
-  ECMCFFKEY.mev2mev=30.12;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
+  ECMCFFKEY.mev2mev=28.96;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
   //                                                   to have Tot.MCMeas=Einp(at center,at 500 kev geant3 cut)
   //  ECMCFFKEY.mev2adc=2.042; //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
   ECMCFFKEY.mev2adc=2.12585;  //inverse of adc2mev from Test Beam
