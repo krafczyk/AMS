@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.162 2011/12/03 09:43:27 choutko Exp $
+//  $Id: ecalrec.C,v 1.162.2.1 2011/12/05 10:57:47 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -371,11 +371,11 @@ void AMSEcalRawEvent::mc_build(int &stat){
       for(ic=0;ic<4;ic++)pmedepr[ic]=0; 
       Tref= ECREFFKEY.Tref;
       Tsim= ECMCFFKEY.Tsim;
-      deltaT=0.; // deltaT=Tsim-Tref; (not implemented yet)        
+      deltaT=Tsim-Tref;         
       for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
         if(sum[ipm][ic]>0){
 	  scgn=ECcalib::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
-  	  // include Gain dependence on Temperature (not implemented: deltaT=0)
+  	  // include Gain dependence on Temperature
  	  Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
  	  if ( Tcorr > 0 ){
   	    scgn/=Tcorr;
@@ -414,7 +414,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	h2lr=ECcalib::ecpmcal[il][ipm].hi2lowr(k);//PM subcell high/low ratio from DB
 	h2lo=ECcalib::ecpmcal[il][ipm].hi2lowo(k);//PM subcell high/low ratio from DB
 	scgn=ECcalib::ecpmcal[il][ipm].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
- 	// Gain dependence on Temperature (not implemented yet: deltaT=0)
+ 	// Gain dependence on Temperature
  	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
   	if ( Tcorr > 0 ){
   	  scgn/=Tcorr;
@@ -954,7 +954,6 @@ void AMSEcalHit::build(int &stat){
       //
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
-      deltaT=0.; // T correction not implemented yet
       Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
       if ( Tcorr > 0 ){
   	scgn/=Tcorr;
@@ -1087,8 +1086,108 @@ void AMSEcalHit::build(int &stat){
     }
   }
   if(nhits>0)stat=0;
+  Smooth();
   // DEBUG
   if (ECREFFKEY.reprtf[1]==2) cout << "****************************** MEVTOT=" << mevtot << " ******" << endl; 
+}
+//-------------------------------------------------
+// Function to find and correct hot cells
+// A cell identified as Hot is tagged as BAD (hit status BAD)
+integer AMSEcalHit::Smooth(){
+
+  const integer  maxpl=2*ECALDBc::slstruc(3);//real planes
+  const integer Maxcell=2*ecalconst::ECPMSMX;//numebr of cells
+  const number maxfractions1s3 = 0.98; // max s1s3 fraction to not reject the hit
+  const number maxfractions1s6 = 0.98; // max s1s6 fraction to not reject the hit
+
+  number enemins1s3 = 1000; // 1000 MeV s1s3 
+  number enemins1s6 = 1000; // 1000 MeV s1s6
+  bool badfractions1s3 = false;
+  bool badfractions1s6 = false;
+  number planemap[Maxcell];
+  number superlayermap[2][Maxcell];
+  
+  for(int iplane=0;iplane<maxpl;iplane++){
+    //list of hits in the plane iplane
+    AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->getheadC("AMSEcalHit",iplane,1);
+    if(!ptr)continue;//ptr doesn't exit, move to next plane 
+
+    AMSEcalHit *temp = ptr;
+    AMSEcalHit *temp2=NULL;
+    //list of hits in the plane of iplane SuperLayer
+    if((iplane%2)==0)
+      temp2=(AMSEcalHit*)AMSEvent::gethead()->
+	getheadC("AMSEcalHit",iplane+1,1);
+    else
+      temp2=(AMSEcalHit*)AMSEvent::gethead()->
+	getheadC("AMSEcalHit",iplane-1,1);
+  
+    //Init hitmap matrix
+    for(int icell=0;icell<Maxcell;icell++){
+      planemap[icell]=0;
+      superlayermap[0][icell]=0;
+      superlayermap[1][icell]=0;
+    }
+
+    //Fill planemap matrix
+    while(temp){
+      number edep = temp->getedep();
+      if(!temp->checkstatus(AMSDBc::BAD) && edep>0){
+	planemap[temp->getcell()]=edep;
+	superlayermap[0][temp->getcell()]=edep;//the layer of ptr is always 0 in superlayermap
+	// the layer in the same superlayer of ptr layer is always 1 in superlayermap
+	//indipendent by the real disposition (before or after in the real geometry)
+      }
+      else // if hit channel is BAD, put in hitmap energy = - edep
+	planemap[temp->getcell()]=-edep;
+      temp=temp->next();
+    }//end while on temp  
+    //Fill superlayer map
+    while(temp2){
+      number edep = temp2->getedep();
+      if(!temp2->checkstatus(AMSDBc::BAD) && edep>0)
+	superlayermap[1][temp2->getcell()]=edep;
+      else // if hit channel is BAD, put energy = - edep
+	superlayermap[1][temp2->getcell()]=-edep;
+      temp2=temp2->next();
+    }//end while on temp2
+    
+    AMSEcalHit *temp3 = ptr;
+    //check for hot cells (using only cell on same plane)
+    while(temp3){
+      badfractions1s3 = false;
+      badfractions1s6 = false;
+      number edep=temp3->getedep();  
+      int cell = temp3->getcell();
+      // check on s1s3
+      if(!temp3->checkstatus(AMSDBc::BAD) && cell!=0 && cell!=Maxcell-1){
+	if(edep>enemins1s3)
+	  if(planemap[cell-1]>=0 && planemap[cell+1]>=0){
+	    number fractions1s3 = edep / (planemap[cell-1]+ edep + planemap[cell+1]);
+	    if(fractions1s3 >= maxfractions1s3)
+	      badfractions1s3 = true;
+	  }// end if on cell-1 and cell+1
+	//end check on s1s3
+	//check on s1s6
+	if(edep>enemins1s6)
+	  if(superlayermap[0][cell-1]>=0 && superlayermap[0][cell+1]>=0 &&
+	     superlayermap[1][cell-1]>=0 && superlayermap[1][cell] >=0 && superlayermap[1][cell+1]>=0){
+	    number fractions1s6 = edep / (superlayermap[0][cell-1]+ edep + superlayermap[0][cell+1]+
+					  superlayermap[1][cell-1]+superlayermap[1][cell]+superlayermap[0][cell+1]
+					  );
+	    if(fractions1s6 >= maxfractions1s6)
+	      badfractions1s6 = true;
+	  }// end if on cell-1 and cell+1
+	//end check on s1s6
+      }//end if temp3 is good
+      // if one of two fraction is bad, tag the hit as BAD
+      if(badfractions1s6 == true || badfractions1s3 == true)
+	temp3->setstatus(AMSDBc::BAD);
+      temp3=temp3->next();
+    }//end while on temp3
+  }// end loop on planes
+  return 1;// good exit
+
 }
 
 //---------------------------------------------------
