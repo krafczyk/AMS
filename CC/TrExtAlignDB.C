@@ -30,14 +30,15 @@ uint TrExtAlignDB::Find(int lay, uint time) const
   return 0;
 }
 
-const TrExtAlignPar &TrExtAlignDB::Get(int lay, uint time) const
+const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
 {
   ealgITc it;
-  if (lay == 8 && (it = L8.lower_bound(time)) != L8.end()) return it->second;
-  if (lay == 9 && (it = L9.lower_bound(time)) != L9.end()) return it->second;
+  if (lay == 8 && (it = L8.lower_bound(time)) != L8.end()) return &(it->second);
+  if (lay == 9 && (it = L9.lower_bound(time)) != L9.end()) return &(it->second);
 
-  static TrExtAlignPar dummy;
-  return dummy;
+  return 0;
+//  static TrExtAlignPar dummy;
+//  return dummy;
 }
 
 TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time)
@@ -182,11 +183,12 @@ void TrExtAlignDB::ResetExtAlign()
   }
   return;
 }
-void TrExtAlignDB::UpdateTkDBc(uint time) const
+
+int  TrExtAlignDB::UpdateTkDBc(uint time) const
 {
   if (!TkDBc::Head) {
     std::cerr << "TkDBc::Head is null" << std::endl;
-    return;
+    return -1;
   }
 
   uint tf8 = Find(8, time);
@@ -207,10 +209,13 @@ void TrExtAlignDB::UpdateTkDBc(uint time) const
     TkPlane* pl = TkDBc::Head->GetPlane(plane);
     if (!pl) continue;
 
-    TrExtAlignPar par = Get(layer, time);
-    pl->posA.setp(par.dpos[0], par.dpos[1], par.dpos[2]);
-    pl->rotA.SetRotAngles(par.angles[0], par.angles[1], par.angles[2]);
+    const TrExtAlignPar *par = Get(layer, time);
+    if(!par) return -2;
+    pl->posA.setp(par->dpos[0], par->dpos[1], par->dpos[2]);
+    pl->rotA.SetRotAngles(par->angles[0], par->angles[1], par->angles[2]);
   }
+
+  return 0;
 }
 
 void TrExtAlignDB::Print(Option_t *) const

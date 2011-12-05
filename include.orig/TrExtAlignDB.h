@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.12 2011/12/01 16:28:41 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.13 2011/12/05 14:54:24 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -103,7 +103,7 @@ public:
   uint Find(int lay, uint time) const;
 
   /// Get the closest TrExtAlignPar to time
-  const TrExtAlignPar &Get(int lay, uint time) const;
+  const TrExtAlignPar *Get(int lay, uint time) const;
 
   /// Get a list of time in range
   std::vector<uint> GetVt(int lay, uint tmin = 0, uint tmax = 2000000000);
@@ -166,7 +166,7 @@ public:
   static int  UpdateTkDBcDyn(int plane=3);
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
-  void UpdateTkDBc(uint time) const;
+  int UpdateTkDBc(uint time) const;
 
   /// Set Ext align paremeters to 0
   static void ResetExtAlign();
