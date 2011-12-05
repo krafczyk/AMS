@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.340 2011/12/03 09:43:27 choutko Exp $
+//  $Id: root.C,v 1.341 2011/12/05 09:39:53 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4922,14 +4922,14 @@ Int_t AMSEventR::Fill()
     if (_ClonedTree==NULL) {
   TFile * input=_Tree->GetCurrentFile();
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-  char objlist[5][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar"};
-  TObject* obj[5]={0,0,0,0,0}; 
+  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+  TObject* obj[6]={0,0,0,0,0,0}; 
   TObjString* obj2=0;
   TObjString* obj3=0;
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
   else{
        cout <<input->GetName()<<endl;
-   for(int ii=4;ii>=0;ii--){
+   for(int ii=5;ii>=0;ii--){
     obj[ii]=input->Get(objlist[ii]);
      input->Get("TrParDB");
    }
@@ -4945,7 +4945,7 @@ Int_t AMSEventR::Fill()
       cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
            if(obj3)obj3->Write("DataCards");
-         for(int i=0;i<5;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
+         for(int i=0;i<6;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
         gDirectory=gdir;
 //    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
 //    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
