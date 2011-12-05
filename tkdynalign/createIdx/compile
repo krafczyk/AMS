@@ -1,0 +1,2 @@
+icc -Wl,--no-undefined -O2 -openmp -DSTANDALONE -D_PGTRACK_  -D__ROOTSHAREDLIBRARY__ -I$AMSWD/include -I`root-config --incdir --libs` -lRFIO -lXMLIO -lTMVA -lMLP -lTreePlayer main.C $AMSWD/lib/linuxx8664icc/ntuple_slc4_PG.so -o create_idx.exe
+
