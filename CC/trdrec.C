@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.59 2011/06/14 15:23:52 choutko Exp $
+//  $Id: trdrec.C,v 1.60 2011/12/05 16:56:41 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -535,7 +535,7 @@ integer AMSTRDTrack::build(int rerun){
   }
   if(nrh>=TRDFITFFKEY.MaxSegAllowed){
     static int qprint=0; 
-    if(qprint++<100)cout <<" Too many segments "<<nrh<<endl;
+    if(qprint++<100)cout <<"AMSTRDTrack::build-E-Too many segments "<<nrh<<endl;
     TriggerLVL302 *plvl3;
     plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
     if(!plvl3 || plvl3->skip()){
