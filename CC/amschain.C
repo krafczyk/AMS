@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.46 2011/12/05 09:39:54 choutko Exp $
+//  $Id: amschain.C,v 1.45.2.1 2011/12/05 09:42:12 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
