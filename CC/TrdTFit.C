@@ -40,7 +40,7 @@ int TrdTFit::DoFit(int time){
   sprintf(updtxt,"%02d/%02d %02d:%02d:%02d",t->tm_mday,t->tm_mon+1,t->tm_hour, t->tm_min, t->tm_sec);
 
   if(debug)
-    printf("starting fit for %i values - time %s\n",(int)SensPosAmpVec->size(),updtxt);
+    cout<<"TrdTFit::DoFit-I-starting fit for "<<SensPosAmpVec->size()<<" values - time "<<updtxt<<endl;;
 
   int fitted=GlobalTFit(fitfunc, SensPosAmpVec);
 
@@ -50,7 +50,7 @@ int TrdTFit::DoFit(int time){
     for(vector<double>::iterator it=fitfunc->getResiduals().begin(); it!=fitfunc->getResiduals().end();it++)chi2+=*it/0.1;
     if(debug){
       fitfunc->Info();
-      printf("chi2 %.2f\n",chi2);
+      if(debug)cout<<"TrdTFit::DoFit-I-chi2 "<<chi2<<endl;
     }
     // reset 
     fitfunc->clearResiduals();
@@ -67,7 +67,7 @@ int TrdTFit::ReadAndFitTemperatures(AMSEventR *pev){
 
   AMSSetupR::SlowControlR *cr=&pev->getsetup()->fSlowControl;
   if(!cr){
-    printf("SlowControlR pointer not found - exitting\n");
+    cerr<<"TrdTFit::DoFit-E-SlowControlR pointer not found"<<endl;
     exit(1);
   }
   for(AMSSetupR::SlowControlR::etable_i it=cr->fETable.begin();it!=cr->fETable.end();it++){
@@ -76,7 +76,7 @@ int TrdTFit::ReadAndFitTemperatures(AMSEventR *pev){
       vector<float> values;
       int stat=pev->getsetup()->fSlowControl.GetData(it->first.c_str(),time, 100.,  values);//,it->second.datatype,it->second.subtype);
       if(stat!=0){
-	printf("stat %i - begin %i end %i time %i\n",stat,cr->fBegin,cr->fEnd,time);
+	cout<<"TrdTFit::DoFit-I-stat "<<stat<<" - begin "<<cr->fBegin<<" end "<<cr->fEnd<<" time "<<time<<endl;
 	continue;
       }
       
@@ -88,8 +88,7 @@ int TrdTFit::ReadAndFitTemperatures(AMSEventR *pev){
   int stat=-1;
   if(SensPosAmpVec){
     if(debug)
-      printf("sensposampvec size %i\n",(int)SensPosAmpVec->size());
-
+      cout<<"TrdTFit::DoFit-I-vector of sensors size "<<SensPosAmpVec->size()<<endl;
     stat=DoFit(time);
   }
   return stat;
@@ -169,7 +168,7 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
       FSTAR[i] = 1.0E20;
     }
     if(T <= 0.0){
-      std::cout << "T < 0!" << std::endl;
+      std::cout << "TrdTFit::SA-E-T < 0!" << std::endl;
       IER = 3;
       return;
     }
@@ -228,8 +227,8 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
 	      NUP++;
 	      if(FP > FOPT){
 		if(IPRINT >= 4){
-		  std::cout << "NEW OPTIMUM!" << std::endl;
-		  std::cout << "FP: " << FP << std::endl;
+		  std::cout << "TrdTFit::SA-I-NEW OPTIMUM!" << std::endl;
+		  std::cout << "TrdTFit::SA-I-FP: " << FP << std::endl;
 		}
 		for(int I=0; I<N; I++){
 		  XOPT[I] = XP[I];
@@ -404,7 +403,7 @@ void TrdTFit::SA(int& N, double* X, double& RT, double& EPS, int& NS, int& NT,
 
     double t_cpu = timer.CpuTime();
     
-    std::cout << "Time at the end of job = " 
+    std::cout << "TrdTFit::SA-I-cpu time spend = " 
     	      << t_cpu << " seconds" << std::endl << std::flush; 
 
     fitfunc->modify(x);
@@ -471,7 +470,7 @@ void TrdTFit::makeSensorMap(char* mapnam){
   ifstream maps;
   maps.open(mapnam, ifstream::in);
   
-  if(!maps.is_open())printf("file %s not found\n",mapnam);
+  if(!maps.is_open())cerr<<"TrdTFit::makeSensorMap-E-file "<<mapnam<<endl;
   if(!sensMap)sensMap=new map<string, AMSPoint>;
   
   sensMap->clear();
@@ -496,16 +495,18 @@ void TrdTFit::makeSensorMap(char* mapnam){
 }
 
 // show TRD DTS map 
-  void TrdTFit::showSensorMap() {
-    map<string, AMSPoint>::iterator itr;
-    int i = 0;
-    for(itr=sensMap->begin(); itr != sensMap->end(); ++itr) {
-      cout << "I= " << i  << " "<< itr->first << ": " 
-	   << "X=" <<itr->second.x() << " " << "Y=" <<itr->second.y() << " " << "Z=" << itr->second.z() << endl;
-      i++;
-    }
-    cout << endl;
+void TrdTFit::showSensorMap() {
+  map<string, AMSPoint>::iterator itr;
+  int i = 0;
+
+  cout<<"TrdTFit::showSensorMap-I-Number of sensors in vector "<<sensMap->size()<<endl;
+  for(itr=sensMap->begin(); itr != sensMap->end(); ++itr) {
+    cout << " I= " << i  << " "<< itr->first << ": " 
+	 << "X=" <<itr->second.x() << " " << "Y=" <<itr->second.y() << " " << "Z=" << itr->second.z() << endl;
+    i++;
   }
+  cout << endl;
+}
 
 // Fill temperature sensor informations into map
 int TrdTFit::fill(const char *name,float temp){
@@ -513,8 +514,8 @@ int TrdTFit::fill(const char *name,float temp){
   sit=sensMap->find( (string)name );
 
   if(sit==sensMap->end()){
-    printf("sensor %s not found\n",name);
-    //    exit(1);
+    cerr<<"TrdTFit::fill-E-sensor "<<name<<" not found"<<endl;
+    return 1;
   }
   else if(temp>-100&&temp<100){
     if(!SensPosAmpVec)SensPosAmpVec=new ownvector;
@@ -530,6 +531,6 @@ int TrdTFit::fill(const char *name,float temp){
     if(!got)
       SensPosAmpVec->push_back(make_pair<AMSPoint,float>(sit->second,temp));
   }
-  return 1;
+  return 0;
 }
 

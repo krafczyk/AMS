@@ -121,11 +121,10 @@ void TrdHSegmentR::calChi2(){
   
    
 void TrdHSegmentR::Print(int level){
-  printf("TrdHSegmentR - Info\n");
-  printf("TrdHSegmentR d %i m %f r %f z %f w %f Nhits %i Chi2 %f\n", d, m,r,z,w,Nhits,Chi2);
+  cout<<"TrdHSegmentR::Print-I-d "<<d<<" m "<<m<<" r "<<r<<" z "<<z<<" w "<<w<<" Nhits "<<Nhits<<" Chi2 "<<Chi2<<endl;
   if(level>0){
     for(int i=0;i!=nTrdRawHit();i++){
-      printf("  RawHit %i LLT %i %i %i\n",i,pTrdRawHit(i)->Layer,pTrdRawHit(i)->Ladder,pTrdRawHit(i)->Tube);
+      cout<<"  RawHit "<<i<<" LLT "<<pTrdRawHit(i)->Layer<<" "<<pTrdRawHit(i)->Ladder<<" "<<pTrdRawHit(i)->Tube<<endl;
     }
   }
 };
@@ -133,7 +132,7 @@ void TrdHSegmentR::Print(int level){
 // fit  Hit.rz   with  r = A*z + B
 int TrdHSegmentR::LinReg(int debug)
 { 
-  if(debug>0)printf("Entering LinReg - %i RawHits\n",nTrdRawHit());
+  if(debug>0)cout<<"TrdHSegmentR::LinReg-I-RawHits"<<nTrdRawHit()<<endl;
   double WSr=0.,WSz=0.,WSrr=0.,WSzz=0.,WSrz=0.,WS=0.,W=1.;
   if(nTrdRawHit()<3)return -1;
     
@@ -167,7 +166,7 @@ int TrdHSegmentR::LinReg(int debug)
       rzd.r=rmean;rzd.z=zi,rzd.d=rzdi.d;
     }
       
-    if(debug>0)printf("rzd %i d %i r %.2f z %.2f sigma %.2f double? %i\n",i,rzd.d,rzd.r,rzd.z,sigma,nz>1);
+    if(debug>0)cout<<"TrdHSegmentR::LinReg-I-rzd "<<i<<" d "<<rzd.d<<" r "<<rzd.r<<" z "<<rzd.z<<" sigma "<<sigma<<" double? "<<(nz>1)<<endl;
       
     W = 1./(sigma*sigma);
       
@@ -183,11 +182,11 @@ int TrdHSegmentR::LinReg(int debug)
   }
 
   if(debug>1)
-    printf("WSr %.2f WSz %.2f WSrr %.2f WSZZ %.2f WSrz %.2f WS %.2f\n",WSr,WSz,WSrr,WSzz,WSrz,WS);
+    cout<<"TrdHSegmentR::LinReg-I-WSr "<<WSr<<" WSz "<<WSz<<" WSrr "<<WSrr<<" WSzz "<<WSzz<<" WSrz "<<WSrz<<" WS "<<WS<<endl;
 
 
   if(WS<=0.){
-    if(debug>0)printf("LinReg Sum of weights WS = 0.\n");
+    cout<<"TrdHSegmentR::LinReg-E-LinReg Sum of weights WS "<<WS<<endl;
     return -1;
   }
 
@@ -198,7 +197,7 @@ int TrdHSegmentR::LinReg(int debug)
   double WMrz = WSrz / WS;
  
   if(debug>1)
-    printf("WMr %.2f WMz %.2f WMrr %.2f WMZZ %.2f WMrz %.2f \n",WMr,WMz,WMrr,WMzz,WMrz);
+    cout<<"TrdHSegmentR::LinReg-I-WMr "<<WMr<<" WMz "<<WMz<<" WMrr "<<WMrr<<" WMzz "<<WMzz<<" WMrz "<<WMrz<<endl;
 
 
   double SDr = 0.0;
@@ -207,15 +206,17 @@ int TrdHSegmentR::LinReg(int debug)
   if(WMz*WMz<WMzz)SDz=sqrt(WMzz - WMz * WMz);
     
   if(debug>1)
-    printf("SDr %.2e SDz %.2e",SDr,SDz);
+    cout<<"TrdHSegmentR::LinReg-I-SDr "<<SDr<<" SDz "<<SDz<<endl;
 
 
   if(SDr == 0.0 || isnan(SDr)){
     r=WMr;m=0.;Chi2=0.;er=0.6/sqrt(12);
-    if(debug)printf("problem occured SDr %f -> r %.2f m %.2f Chi2 %.2f er %.2f\n",SDr,r,m,Chi2,er);
+    if(debug)
+      cerr<<"TrdHSegmentR::LinReg-E- SDr "<<SDr<<" -> r "<<r<<" m "<<m<<" Chi2 "<<Chi2<<" er "<<er<<endl;
   }
   if(SDr*SDz == 0.0 || isnan(SDr*SDz)){
-    if(debug>0)printf("ERROR SDr %f SDz %f\n",SDr,SDz);
+    if(debug>0)
+      cerr<<"TrdHSegmentR::LinReg-E-SDr "<<SDr<<" SDz "<<SDz<<endl;
     return -1;
   }
 
@@ -226,13 +227,15 @@ int TrdHSegmentR::LinReg(int debug)
   er = em*sqrt(WMzz);
   Chi2 = WS*SDr*SDr*(1.-Rrz*Rrz);
 
-  if(debug>0)printf("linreg result m %.2e (+/- %.2e ) r %.2e (+/- %.2e)\n",m,em,r,er);
+  if(debug>0)
+    cout<<"TrdHSegmentR::LinReg-I-linreg result m "<<m<<" (+/- "<<em<<" ) r "<<r<<" (+/- "<<er<<")"<<endl;
   return 1;
 }
 
 
 int TrdHSegmentR::Refit(int debug){
-  if(debug>0)printf("Enter Refit - hit size %i\n",nTrdRawHit());
+  if(debug>0)
+    cout<<"TrdHSegmentR::Refit-I-Number of RawHits "<<nTrdRawHit()<<endl;
   int lr=LinReg(debug);
   
   int lay[20];for(int l=0;l!=20;l++)lay[l]=0;
@@ -255,7 +258,8 @@ int TrdHSegmentR::Refit(int debug){
   
   int lsum=0;
   for(int l=0;l!=20;l++)if(lay[l]>0)lsum++;
-  if(debug)printf("linreg stat %i dz %.2f layers %i\n",lr,zmax-zmin,lsum);
+  if(debug)
+    cout<<"TrdHSegmentR::Refit-I-linreg stat "<<lr<<" dz "<<zmax-zmin<<" layers "<<lsum<<endl;
   if(lr==1&&zmax-zmin>8.&&lsum>2){
     calChi2();
     return 1;
@@ -270,7 +274,8 @@ void TrdHSegmentR::AddHit(TrdRawHitR hit,int iter){
 }
 
 void TrdHSegmentR::RemoveHit(int iter){
-  if(iter>hits.size())printf("trying to delete hit %i of %i hits\n",iter,(int)hits.size()); if(iter>fTrdRawHit.size())printf("trying to delete hit %i of %i hits\n",iter,(int)fTrdRawHit.size());
+  if(iter>hits.size())
+    cerr<<"TrdHSegmentR::RemoveHit-E-trying to delete hit "<<iter<<" of "<<hits.size()<<endl;
   hits.erase(hits.begin()+iter);
   fTrdRawHit.erase(fTrdRawHit.begin()+iter);
   Nhits=fTrdRawHit.size();
