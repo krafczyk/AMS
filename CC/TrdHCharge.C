@@ -49,7 +49,6 @@ double p_par(int p){
 
 
 int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
-  if(debug)printf("Enter TrdHChargeR::GetCharge\n");
   track->charge_probabilities.clear();
   if(pdfs.size()<2)return -1;
   
@@ -78,13 +77,13 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
       if(track->elayer[i]<15)continue;
       
       if(debug&&c==0&&i==0){
-	if(use_single_layer_pdfs)cout<<"Using single layer electron pdfs"<<endl;
-	else cout<<"Using all layer electron pdfs"<<endl;
+	if(use_single_layer_pdfs)cout<<"TrdHChargeR::GetCharge-I-single layer electron pdfs"<<endl;
+	else cout<<"TrdHChargeR::GetCharge-I-all layer electron pdfs"<<endl;
       }
       if(c==0&&use_single_layer_pdfs){
 	it=pdfs.find(-i-1);
 	if(it==pdfs.end()){
-	  cerr<<"electron pdf for layer "<<-i-1<<" not found"<<endl; 
+	  cerr<<"TrdHChargeR::GetCharge-E-electron pdf for layer "<<-i-1<<" not found"<<endl; 
 	  continue;
 	}
       }
@@ -95,7 +94,8 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
       prob*=single_prob;
       nhit++;
       
-      if(debug>1)printf(" c %i amp %.2f prob %.2e accum %.2e\n",c,track->elayer[i],single_prob,prob);
+      if(debug>1)
+	cout<<" c "<<c<<" amp "<<track->elayer[i]<<" prob "<<single_prob<<" accum "<<prob<<endl;
     }
     
     if(nhit>0)prob=pow((double)prob,(1./(double)nhit));
@@ -108,7 +108,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
   
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
     it->second/=totalprob;
-    if(debug)printf("normalized prob %i: %.4e\n",it->first,it->second);
+    if(debug)cout<<"TrdHChargeR::GetCharge-I-normalized prob "<<it->first<<" : "<<it->second<<endl;
   }
   int toReturn=-1;double maxprob=0.;
   for(map<int,double>::iterator it=map_charge_prob.begin();it!=map_charge_prob.end();it++){
@@ -123,7 +123,6 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
 }
 
 float TrdHChargeR::GetELikelihood(TrdHTrackR *tr, int opt,int debug){
-  if(debug)printf("Enter TrdHChargeR::GetELikelihood\n");
   double elik=1., plik=1.,loglik=0.;
   
   // old likelihood methods
@@ -141,26 +140,28 @@ float TrdHChargeR::GetELikelihood(TrdHTrackR *tr, int opt,int debug){
       elik*=(e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+
 	     e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)))*exp(e_par(6)+e_par(7)*amp);
       
-      if(debug)printf(" layer %i amp %.2f elik %.2e accum %.2e ",l,amp,e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+e_par(3)*TMath::Landau(amp,e_par(4),e_par(5)),elik);
+      if(debug)
+	cout<<"TrdHChargeR::GetELikelihood-I-Old Method- layer "<<l<<" amp "<<amp<<" elik "<<e_par(0)*TMath::Landau(amp,e_par(1),e_par(2))+e_par(3)*TMath::Landau(amp,e_par(4),e_par(5))<<" accum "<<elik<<endl;
       
       // multiply proton likelihoods per layer
       plik*=pfun(amp,pars);
       
-      if(debug)printf(" plik %.2e accum %.2e\n",pfun(amp,pars),plik);
+      if(debug)
+	cout<<" plik "<<pfun(amp,pars)<<" accum "<<plik<<endl;
     }
     
     if(n==0||elik<=0.||plik<=0.){
-      if(debug)printf("Error in AMSParticle::trd_Hlikelihood(): n %i elik %.2e plik %.2e \n",n,elik,plik);
+      if(debug)cerr<<"TrdHChargeR::GetELikelihood-E-n "<<n<<" elik "<<elik<<" plik "<<plik<<endl;
       return 0.;
     }
-    if(debug)printf("before norm: elik %.2e plik %.2e \n",elik,plik);
+    if(debug)cout<<"TrdHChargeR::GetELikelihood-I-unnormalized probabilities: elik "<<elik<<" plik "<<plik<<endl;
     
     // normalize probabilities to number of hits
     elik=pow(elik,(double)(1./(double)n));
     plik=pow(plik,(double)(1./(double)n));
     
     loglik=-log(elik/(elik+plik));
-    if(debug)printf("elik %.2f plik %.2f likelihood %.2f\n",elik,plik,loglik);
+    if(debug)cout<<"TrdHChargeR::GetELikelihood-I-normalized probabilities elik "<<elik<<" plik "<<plik<<" -loglikelihood "<<loglik<<endl;
   }
   else{
     for(map<double,int>::iterator it=tr->charge_probabilities.begin();it!=tr->charge_probabilities.end();it++){
@@ -178,9 +179,9 @@ float TrdHChargeR::GetELikelihood(TrdHTrackR *tr, int opt,int debug){
 
 
 bool TrdHChargeR::FillPDFsFromTDV(int debug){
-  if(debug)printf("TrdHChargeR::FillPDFsFromTDV\n");
+  if(debug)cout<<"TrdHChargeR::FillPDFsFromTDV-I-Enter method"<<endl;
   for(int n=0;n<7;n++){
-    if(debug)printf("n %i\n",n);
+    if(debug)cout<<" n "<<n<<endl;
     
     int i=0;
     while(i<1000)
@@ -189,7 +190,7 @@ bool TrdHChargeR::FillPDFsFromTDV(int debug){
 	
 	int c=(int)charge_hist_array[n][i++];
 	int npnt=(int)charge_hist_array[n][i++];
-	if(debug)cout<<"c "<<c<<" npnt "<<npnt<<endl;
+	if(debug)cout<<" c "<<c<<" npnt "<<npnt<<endl;
 	TrPdf *pdf=new TrPdf((char*)GetStringForTDVEntry(c).c_str());
 
 	int p=0;
@@ -215,10 +216,10 @@ bool TrdHChargeR::FillPDFsFromTDV(int debug){
       
       int l=(int)electron_hist_array[i++];
       int arrl=-l-1;
-      if(l>-1||l<-20)cerr<<"TrdHChargeR::FillPDFsFromTDV - l expected to be between -20 and -1 but it is "<<l <<endl;
-      if(arrl<0||arrl>19)cerr<<"TrdHChargeR::FillPDFsFromTDV - arrl expected to be between 0 and 19 but it is"<< arrl<<endl;
+      if(l>-1||l<-20)cerr<<"TrdHChargeR::FillPDFsFromTDV-F-variable l expected to be between -20 and -1 but it is "<<l <<endl;
+      if(arrl<0||arrl>19)cerr<<"TrdHChargeR::FillPDFsFromTDV-F-variable arrl expected to be between 0 and 19 but it is"<< arrl<<endl;
       int npnt=(int)electron_hist_array[i++];
-      if(debug)cout<<"l "<<l<< " npnt "<<npnt<<endl;
+      if(debug)cout<<" l "<<l<< " npnt "<<npnt<<endl;
       if(!epdf[arrl])
 	epdf[arrl]=new TrPdf((char*)GetStringForTDVEntry(l).c_str());
 
@@ -236,7 +237,7 @@ bool TrdHChargeR::FillPDFsFromTDV(int debug){
 	pdfs.insert(pair<int,TrPdf*>(l,epdf[arrl]));
     }
 
-  cout<<"TrdHChargeR::FillPDFsFromTDV - PDFs loaded from TDV: "<<pdfs.size()<<endl;
+  cout<<"TrdHChargeR::FillPDFsFromTDV-I-PDFs loaded from TDV: "<<pdfs.size()<<endl;
   return true;
 }
 
@@ -262,9 +263,9 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
       charge_hist_array[n][iter[n]++]=it->first;
       charge_hist_array[n][iter[n]++]=(int)it->second->GetN();
       
-      if(debug)printf("TrdHChargeR::FillTDVFromPDFs - c %i ntdv %i pnt %i\n",it->first,n,it->second->GetN());
+      if(debug)cout<<"TrdHChargeR::FillTDVFromPDFs-I-c "<<it->first<<" ntdv "<<n<<" pnt "<<it->second->GetN()<<endl;
       for(int p=0;p<(int)it->second->GetN();p++){
-	if(debug)printf(" p %i - %.2f %.2e\n",p,it->second->GetX(p),it->second->GetY(p));
+	if(debug)cout<<" p "<<p<<" - "<<it->second->GetX(p)<<" "<<it->second->GetY(p)<<endl;
 	charge_hist_array[n][iter[n]++]=it->second->GetX(p);
 	charge_hist_array[n][iter[n]++]=it->second->GetY(p);
       }
@@ -272,9 +273,9 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
     else{//electron
       electron_hist_array[eliter++]=it->first;
       electron_hist_array[eliter++]=(int)it->second->GetN();
-      if(debug)printf("TrdHChargeR::FillTDVFromPDFs - L %i ntdv %i pnt %i\n",-it->first,n,it->second->GetN());
+      if(debug)cout<<"TrdHChargeR::FillTDVFromPDFs-I- layer "<<-it->first<<" ntdv "<<n<<" pnt "<<it->second->GetN()<<endl;
       for(int p=0;p<(int)it->second->GetN();p++){
-	if(debug)printf(" p %i - %.2f %.2e\n",p,it->second->GetX(p),it->second->GetY(p));
+	if(debug)cout<<" p "<<p<<" - "<<it->second->GetX(p)<<" "<<it->second->GetY(p)<<endl;
 	electron_hist_array[eliter++]=it->second->GetX(p);
 	electron_hist_array[eliter++]=it->second->GetY(p);
       }
@@ -285,7 +286,6 @@ bool TrdHChargeR::FillTDVFromPDFs(int debug){
 
 
 int TrdHChargeR::AddEvent(TrdHTrackR *track,int pid, int debug){
-  if(debug)cout<<"Entering TrdHChargeR::AddEvent"<<endl;
   if(!track)return 1;
 
   if(pid>=0){
@@ -293,7 +293,7 @@ int TrdHChargeR::AddEvent(TrdHTrackR *track,int pid, int debug){
     if(it==spectra.end()){
       char name[20] ;
       sprintf(name,"h_spectrum_%i%s",pid,tag.c_str());
-      if(debug)printf("TrdHChargeR::AddEvent - adding %s\n",name);
+      if(debug)cout<<"TrdHChargeR::AddEvent-I-adding "<<name<<endl;;
       
       TH1F *h=0;
       if(nlogbins>0)h=new TH1F(name,"",nlogbins-1,logbins);
@@ -314,6 +314,7 @@ int TrdHChargeR::AddEvent(TrdHTrackR *track,int pid, int debug){
       if(it==spectra.end()){
 	char name[20] ;
 	sprintf(name,"h_spectrum_el_L%i%s",l,tag.c_str());
+	if(debug)cout<<"TrdHChargeR::AddEvent-I-adding "<<name<<endl;;
 	
 	TH1F *h=new TH1F(name,"",399,10,4000);
 	if(nlogbins)h->SetBins(nlogbins-1,logbins);
@@ -329,7 +330,7 @@ int TrdHChargeR::AddEvent(TrdHTrackR *track,int pid, int debug){
 }
 
 int TrdHChargeR::CreatePDFs(int debug){
-  if(debug)cout<<"Entering TrdHChargeR::CreatePDFs - spectra size "<<spectra.size()<<endl;
+  if(debug)cout<<"TrdHChargeR::CreatePDFs-I-spectra size "<<spectra.size()<<endl;
   pdfs.clear();
   char name[20];
   
@@ -340,14 +341,12 @@ int TrdHChargeR::CreatePDFs(int debug){
     else
       sprintf(name,"TRDHPDF%i",it->first);
     
-    if(debug)printf("name %s\n",name);
-
+    if(debug)cout<<"TrdHChargeR::CreatePDFs-I-new PDF "<<name<<endl;
     TrPdf *pdf=new TrPdf(name,it->second,true,true);
-
     pdfs.insert(pair<int,TrPdf*>(it->first,pdf));
   }
-
-  cout<<"pdfs size "<<pdfs.size()<<endl;
+  
+  cout<<"TrdHChargeR::CreatePDFs-I-Number of pdfs "<<pdfs.size()<<endl;
   return 0;
 }
 
@@ -396,15 +395,15 @@ int TrdHChargeR::readAllTDV(unsigned int t, int debug){
   time_t thistime=(time_t)t;
   
   int error=0;
-  if(debug)printf("map size %i\n",(int)tdvmap.size());
+  if(debug)cout<<"TrdHChargeR::readAllTDV-I-map size "<<tdvmap.size()<<endl;
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     if(debug){
       time_t insert,begin,end;
       it->second->gettime(insert,begin,end);
-      printf("request %i insert %u begin %u end %u\n",t,insert,begin,end);
+      cout<<"TrdHChargeR::readAllTDV-I-request "<<t<<" insert "<<insert<<" begin "<<begin<<" end "<<end<<endl;
     }
     if(!it->second->validate(thistime)){
-      cerr<<"TrdHChargeR::readAllTDV - "<<it->first<<" not validated"<<endl;
+      cerr<<"TrdHChargeR::readAllTDV-E-"<<it->first<<" not validated"<<endl;
       error++;
     }
   }
@@ -458,7 +457,7 @@ int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,c
   }
   
   if( readAllTDV(bgtime+5) ){
-    cerr<<"TrdHChargeR::initAllTDV - readTDV error"<<endl;
+    cerr<<"TrdHChargeR::initAllTDV-W-can not read TDVs"<<endl;
     return 1;
   }
   
@@ -469,7 +468,7 @@ int TrdHChargeR::initAllTDV(unsigned int bgtime, unsigned int edtime, int type,c
 // write calibration to TDV
 int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug, char * databasedirname){
   if( !FillTDVFromPDFs() ){
-    printf("Warning: FillTDVFromMedian inside writeTDV\n");
+    cout<<"TrdHChargeR::writeAllTDV-W-FillTDVFromMedian returned error"<<endl;
     return 1;
   }
 
@@ -481,17 +480,17 @@ int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug
     unsigned int crcold=it->second->getCRC();
     it->second->UpdCRC();
     
-    printf("crcold %u new %u\n",crcold,it->second->getCRC());
+    if(debug)cout<<"TrdHChargeR::writeAllTDV-I-crc old "<<crcold<<" new "<<it->second->getCRC()<<endl;
     if(crcold!=it->second->getCRC()){
       // valid for 1 day
       time(&insert);
       begin=(time_t)bgtime;
       end=(time_t)edtime;
       it->second->SetTime(insert,begin+10,end+86400);
-      cout <<" Write time:" << endl;
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+      cout <<"TrdHChargeR::writeAllTDV-I-Write time:" << endl;
+      cout <<"TrdHChargeR::writeAllTDV-I-Time Insert "<<ctime(&insert);
+      cout <<"TrdHChargeR::writeAllTDV-I-Time Begin "<<ctime(&begin);
+      cout <<"TrdHChargeR::writeAllTDV-I-Time End "<<ctime(&end);
       
       char tdname[200] = "";
       if(strlen(databasedirname))sprintf(tdname, "%s/DataBase/", databasedirname);
@@ -501,7 +500,7 @@ int TrdHChargeR::writeAllTDV(unsigned int bgtime, unsigned int edtime, int debug
       }
       
       if(!it->second->write(tdname)) {
-	cerr <<"TrdHChargeR::writeAllTDV - problem to update tdv "<<it->first<<endl;
+	cerr <<"TrdHChargeR::writeAllTDV-E-can not update tdv "<<it->first<<endl;
 	ok=false;
       }
     }
@@ -536,7 +535,7 @@ int TrdHChargeR::writeSpecificTDV(string which,unsigned int bgtime, unsigned int
       }
 
       if(!it->second->write(tdname)) {
-	cerr <<"TrdHChargeR::writeSpecificTDV - problem to update tdv "<<it->first<<endl;
+	cerr <<"TrdHChargeR::writeSpecificTDV-E-can not update tdv "<<it->first<<endl;
 	ok=false;
       }
     }

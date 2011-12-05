@@ -65,8 +65,8 @@ void TrdHCalibR::update_medians(TrdHTrackR* track,int version,int opt,float beta
 
 	if(debug){
 	  float current_median=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[tubeid];
-	  printf("LLT %02i%02i%02i id %i amp %.2f -> med %.2f\n",hit->Layer,hit->Ladder,hit->Tube,tubeid,amp,current_median);
-	  printf(" (DET %.2f MF %i %.2e HV %i %.2e MOD %i %.2e TUBE %i %.2e)\n",det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],tubeid,tube_medians[tubeid]);
+	  cout<<"TrdHCalibR::update_medians-I-LLT "<<hit->Layer<<""<<hit->Ladder<<""<<hit->Tube<<" id "<<tubeid<<" amp "<<amp<<" -> median "<<current_median<<endl;
+	  cout<<" DET "<<det_median<<" MF "<<mf<<" gain "<<mf_medians[mf]<<" HV "<<hv<<" gain "<< hv_medians[hv] <<" MOD "<<mod<<" gain "<<mod_medians[mod]<<" TUBE "<<tubeid<<" gain "<<tube_medians[tubeid]<<endl;
 	}
 	tube_occupancy[tubeid]++;
       }
@@ -135,7 +135,6 @@ float TrdHCalibR::MeanGaussGain(int opt){
 }
 
 int TrdHCalibR::FillMedianFromTDV(int debug){
-  if(debug)cout<<"Enter TrdHCalibR::FillMedianFromTDV"<<endl;
   bool toReturn = true;
   int layer,ladder,tube;
   
@@ -147,18 +146,18 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
   else
     det_median=norm_mop;
   
-  if(debug)printf("DET %.2f (in TDV %.2f)\n",det_median,tube_gain[5789]);
-
+  if(debug)cout<<"TrdHCalibR::FillMedianFromTDV-I-DET median "<<det_median<<" (in TDV "<<tube_gain[5789]<<")"<<endl;
+  
   // manifold median stored in tdv array
   for(int i=0;i<10;i++){
     mf_medians[i]=tube_gain[5790+i];
-    if(debug)printf("MF %i %.2f\n",i,mf_medians[i]);
+    if(debug)cout<<" MF "<<i<<" "<<mf_medians[i]<<endl;
   }
 
   // high voltage median stored in tdv array
   for(int i=0;i<82;i++){
     hv_medians[i]=tube_gain[5800+i];
-    if(debug)printf("HV %i %.2f\n",i,hv_medians[i]);
+    if(debug)cout<<" HV "<<i<<" "<<hv_medians[i]<<endl;
   }  
 
   // module median NOT stored - needs to be calculated - first sum up tube amps of modules
@@ -177,7 +176,8 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
     float mean=mod_medians[i]/16.;
     float hv_amp=det_median*mf_medians[mf]*hv_medians[hv];
     mod_medians[i]=mean/hv_amp;// mean module tube amp / HV group amp
-    if(debug)printf("MOD %i %.2f (mean %.2f HV %.2f)\n",i,mod_medians[i],mean,hv_amp);
+    if(debug)
+      cout<<" MOD "<<i<<" "<<mod_medians[i]<<" (mean "<<mean<<" HV "<<hv_amp<<")"<<endl;
   }
   
   // divide tube amplitude by module mean amplitude 
@@ -192,17 +192,14 @@ int TrdHCalibR::FillMedianFromTDV(int debug){
     if( tube_medians[i] < 0. )
       toReturn = false;
     
-    if(debug>1)printf("TUBE %i %.2f\n",i,tube_medians[i]);
+    if(debug>1)cout<<"TrdHCalibR::FillMedianFromTDV-I-TUBE "<<i<<" median "<<tube_medians[i]<<endl;
     if (tube_gain[ntdv]!=1.)allone=false;
   }
   
-  if(debug)cout<<"Exit TrdHCalibR::FillMedianFromTDV"<<endl;
   return toReturn+2*allone;
 }
 
 int TrdHCalibR::FillTDVFromMedian(int debug){
-  if(debug)cout<<"Enter TrdHCalibR::FillTDVFromMedian"<<endl;
-
   tube_gain[5788]=norm_mop;
   tube_gain[5789]=det_median;
   for(int i=0;i<10;i++)tube_gain[5790+i]=mf_medians[i];
@@ -218,14 +215,13 @@ int TrdHCalibR::FillTDVFromMedian(int debug){
     
     float current_median=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[i];
 
-    if(debug)printf("DET %3.2f MF %i %.2e HV %i %.2e % MOD %i %.2e TUBE %i %.2e-> A %.2f\n",det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],i,tube_medians[i],current_median);
-
+    if(debug)cout<<"TrdHCalibR::FillTDVFromMedian-I-DET "<<det_median<<" MF "<<mf<<" "<<mf_medians[mf]<<" HV "<<hv<<" "<<hv_medians[hv]<<" MOD "<<mod<<" "<<mod_medians[mod]<<" TUBE "<<i<<" "<<tube_medians[i]<<" -> A "<<current_median<<endl;
+    
     tube_gain[ntdv]=current_median/norm_mop;
     mean+=current_median;
   }
   
-  if(debug)printf("detector mean %.2f",mean/5248.);
-  if(debug)cout<<"Exit TrdHCalibR::FillTDVFromMedian"<<endl;
+  if(debug)cout<<"TrdHCalibR::FillTDVFromMedian-detector mean "<<mean/5248.<<endl;
   return 0;
 }
 
@@ -256,9 +252,8 @@ bool TrdHCalibR::readTDV(unsigned int t, int debug){
 	int hv=mod/4;
 	int gc=hv/2;
 	int mf=GetManifold(gc);
-	printf("TrdHCalibR::readTDV - tube %4i reading gain %.2f stat %u - total tube median %.2f\n",i,tube_gain[ntdv],tube_status[ntdv],
-	       det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[i]);
-	printf(" (DET %.2f MF %i %.2e HV %i %.2e MOD %i %.2e TUBE %i %.2e)\n",det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],i,tube_medians[i]);
+	cout<<"TrdHCalibR::readTDV-I-tube "<<i<<" reading gain "<<tube_gain[ntdv]<<" stat "<<tube_status[ntdv]<<" - total tube median "<<det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[i]<<endl;
+	cout<<" (DET "<<det_median<<" MF "<<mf<<" "<<mf_medians[mf]<<" HV "<<hv<<" "<<hv_medians[hv]<<" MOD "<<mod<<" "<<mod_medians[mod]<<" TUBE "<<i<<" "<<tube_medians[i]<<")"<<endl;
 
       }
     }
@@ -271,10 +266,10 @@ bool TrdHCalibR::readSpecificTDV(string which,unsigned int t, int debug){
   for(map<string,AMSTimeID*>::iterator it=tdvmap.begin();it!=tdvmap.end();it++)
     if(it->first==which){
       if(it->second->validate(thistime)){
-	if(debug)cout<<"TDV "<<which<<" found and validated"<<endl;
+	if(debug)cout<<"TrdHCalibR::readSpecificTDV-I-TDV "<<which<<" found and validated"<<endl;
 	return true;
       }
-      if(debug)cout<<"TDV "<<which<<" found but NOT validated"<<endl;
+      if(debug)cerr<<"TrdHCalibR::readSpecificTDV-W-TDV "<<which<<" found but NOT validated"<<endl;
     }
   
   return false;
@@ -338,7 +333,7 @@ bool TrdHCalibR::InitTDV(unsigned int bgtime, unsigned int edtime, int type,char
 								       (void*)tube_status,server)));
   
   if( ! readTDV(bgtime) ){
-    cerr<<"Warning: readTDV inside InitTDV"<<endl;
+    cerr<<"TrdHCalibR::InitTDV-W-readTDV not successful"<<endl;
     return false;
   }
 
@@ -371,7 +366,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, float *arr,unsigned int 
   tdvmap.insert(pair<string,AMSTimeID*>(which,ptdv));
   
   if( ! readSpecificTDV(which,bgtime) ){
-    cerr<<"Warning: readSpecificTDV inside InitTDV"<<endl;
+    cerr<<"TrdHCalibR::InitSpecificTDV-W-readSpecificTDV not successfulB"<<endl;
     return false;
   }
 
@@ -401,7 +396,7 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsign
   tdvmap.insert(pair<string,AMSTimeID*>(which,ptdv));
   
   if( ! readSpecificTDV(which,bgtime) ){
-    cerr<<"Warning: readSpecificTDV inside InitTDV"<<endl;
+    cerr<<"TrdHCalibR::InitSpecificTDV-W-readSpecificTDV not successful"<<endl;
     return false;
   }
 
@@ -411,15 +406,15 @@ bool TrdHCalibR::InitSpecificTDV(string which,int size, unsigned int *arr,unsign
 // write calibration to TDV
 int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
   if( int nchan=FillTDVFromMedian() ){
-    printf("TrdHCalibR::writeTDV - Warning: contains %i low occupancy channls\n",nchan);
+    cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls "<<nchan<<endl;
   }
-
+  
   time_t begin,end,insert;
   if(debug)
     for(int i=0;i<5248;i++){
       if(i%500==0){
 	int ntdv=GetNTDV(i);
-	printf("TrdHCalibR::writeTDV - tube %4i occ %4i median %.2f - writing gain %.2f stat %u\n",i,tube_occupancy[i],tube_medians[i],tube_gain[ntdv],tube_status[ntdv]);
+	cout<<"TrdHCalibR::writeTDV-I-tube "<<i<<" occ "<<tube_occupancy[i]<<" median "<<tube_medians[i]<<" - writing gain "<<tube_gain[ntdv]<<" status "<<tube_status[ntdv]<<endl;
       }
     }
   
@@ -435,22 +430,22 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, ch
       end=(time_t)edtime;
       it->second->SetTime(insert,begin,end);
       if(debug){
-	cout <<" Write time:" << endl;
-	cout <<" Time Insert "<<ctime(&insert);
-	cout <<" Time Begin "<<ctime(&begin);
-	cout <<" Time End "<<ctime(&end);
+	cout <<"TrdHCalibR::writeTDV-I-Write time:" << endl;
+	cout <<"TrdHCalibR::writeTDV-I-Time Insert "<<ctime(&insert);
+	cout <<"TrdHCalibR::writeTDV-I-Time Begin "<<ctime(&begin);
+	cout <<"TrdHCalibR::writeTDV-I-Time End "<<ctime(&end);
       }
       
       char tdname[200] = "";
       sprintf(tdname, "%s/DataBase/", tempdirname);
       
       if(!it->second->write(tdname)) {
-	cerr <<"TrdHCalibR::writeTDV - problem to update tdv "<<it->first<<endl;
+	cerr <<"TrdHCalibR::writeTDV-W-can not update tdv "<<it->first<<endl;
 	return false;
       }
 
       if(!it->second->updatemap(tdname,true)){
-	cerr <<"TrdHCalibR::writeTDV - problem to update map file for "<<it->first<<endl;
+	cerr <<"TrdHCalibR::writeTDV-W-can not update map file for "<<it->first<<endl;
 	return false;
       }
     }
@@ -461,13 +456,12 @@ int TrdHCalibR::writeTDV(unsigned int bgtime, unsigned int edtime, int debug, ch
 
 int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int bgtime, unsigned int edtime, int debug, char * tempdirname){
   if( int nchan=FillTDVFromMedian() ){
-    printf("TrdHCalibR::writeTDV - Warning: contains %i low occupancy channls\n",nchan);
+    cerr<<"TrdHCalibR::writeTDV-W-Number of low occupancy channls"<<nchan<<endl;
     //    return 2;
   }
   time_t begin,end,insert;
   for(map<string,AMSTimeID*>::const_iterator it=tdvmap.begin();it!=tdvmap.end();it++){
     if(it->first!=which)continue;
-    printf("TrdHCalibR::writeSpecificTDV %s\n",which.c_str());
     
     it->second->UpdateMe()=1;
     it->second->UpdCRC();
@@ -479,22 +473,22 @@ int TrdHCalibR::writeSpecificTDV(string which,unsigned int intime,unsigned int b
     end=(time_t)edtime;
     it->second->SetTime(insert,begin,end);
     if(debug){
-      cout <<" Write time:" << endl;
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+      cout <<"TrdHCalibR::writeTDV-I-Write time:" << endl;
+      cout <<"TrdHCalibR::writeTDV-I-Time Insert "<<ctime(&insert);
+      cout <<"TrdHCalibR::writeTDV-I-Time Begin "<<ctime(&begin);
+      cout <<"TrdHCalibR::writeTDV-I-Time End "<<ctime(&end);
     }
     
     char tdname[200] = "";
     sprintf(tdname, "%s/DataBase/", tempdirname);
     
     if(!it->second->write(tdname)) {
-      cerr <<"TrdHCalibR::writeTDV - problem to update tdvc"<<it->first<<endl;
+      cerr <<"TrdHCalibR::writeTDV-W-can not update tdvc"<<it->first<<endl;
       return false;
     }
     
     if(!it->second->updatemap(tdname,true)){
-      cerr <<"TrdHCalibR::writeTDV - problem to update map file for "<<it->first<<endl;
+      cerr <<"TrdHCalibR::writeTDV-W-can not update map file for "<<it->first<<endl;
       return false;
     }
   }
@@ -563,14 +557,14 @@ float TrdHCalibR::GetBetaCorr(double beta, double tobeta, int opt,int debug){
   else if (fabs(beta)<0.5)toReturn =0.;
   else toReturn =BetaParametrization(tobeta,opt)/BetaParametrization(fabs(beta),opt);
 
-  if(debug)cout<<"TrdHCalibR::GetBetaCorr - beta "<<beta<<" betagamma "<<beta/sqrt(1-beta*beta)<<" dEdx "<< BetaParametrization(beta) <<" correction "<< toReturn <<endl;
+  if(debug)cout<<"TrdHCalibR::GetBetaCorr-I-beta "<<beta<<" betagamma "<<beta/sqrt(1-beta*beta)<<" dEdx "<< BetaParametrization(beta) <<" correction "<< toReturn <<endl;
   
   return toReturn;
 }
 
 float TrdHCalibR::GetBetaGammaCorr(double betagamma,double dE, int opt,int debug){
   double toReturn=pow(bgcorr(log10(betagamma),dE),0.9);//remove slight overcorrection
-  if(debug)cout<<"TrdHCalibR::GetBetaGammaCorr - bg "<<betagamma<<" dE "<< dE <<" correction "<< toReturn <<endl;
+  if(debug)cout<<"TrdHCalibR::GetBetaGammaCorr-I-bg "<<betagamma<<" dE "<< dE <<" correction "<< toReturn <<endl;
   return toReturn;
 }
 
@@ -582,32 +576,30 @@ float TrdHCalibR::GetPathCorr(float path, float val,int opt,int debug){
   if(path<0.3||path>0.7)toReturn=0.;
   else toReturn=PathParametrization(val,opt)/PathParametrization(path,opt);
 
-  if(debug)cout<<"TrdHCalibR::GetPathCorr - path "<<path<<" correction "<<toReturn<<endl;
-  if(debug>1)cout<<"topath: "<<val<<" val(path):"<<PathParametrization(path,opt)<<" val(topath):"<<PathParametrization(val,opt)<<endl;
+  if(debug)cout<<"TrdHCalibR::GetPathCorr-I-path "<<path<<" correction "<<toReturn<<endl;
+  if(debug>1)cout<<" topath: "<<val<<" val(path):"<<PathParametrization(path,opt)<<" val(topath):"<<PathParametrization(val,opt)<<endl;
   return toReturn;
 }
 
 
 unsigned int TrdHCalibR::GetStatus(TrdRawHitR* hit,int opt, int debug){
-  if(!hit)cerr<<"TrdHCalibR::GetStatus - hit not found"<<endl;
+  if(!hit)cerr<<"TrdHCalibR::GetStatus-W-hit not found"<<endl;
   return GetStatus(hit->Layer,hit->Ladder,hit->Tube,opt,debug);
 }
 
 unsigned int TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int debug){
-  if(debug)cout<<"Entering TrdHCalibR::GetStatus"<<endl;
-  
   //  int ntdv=layer*18*16+ladder*16+tube;
   int ntdv=GetNTDV(layer,ladder,tube);
-  if(debug)printf("hit %02i%02i%02i - tdvid %i\n",layer,ladder,tube,ntdv);
+  if(debug)cout<<"TrdHCalibR::GetStatus-I-hit "<<layer<<""<<ladder<<""<<tube<<" - tdvid "<<ntdv<<endl;
   
   // check in ROOT file
   if(opt<2){
-    if(debug)cout<<"TDV from ROOT file"<<endl;
+    if(debug)cout<<"TrdHCalibR::GetStatus-I-Read tdv from ROOT file"<<endl;
     AMSEventR::if_t value;
     value.u=0;
     int stat=AMSEventR::Head()->GetTDVEl("TRDStatus",ntdv,value);
     if(!stat){
-      if(debug)cout<<"from tdvr" <<value.f<<endl;
+      if(debug)cout<<" value read: " <<value.f<<endl;
       return (unsigned int)value.f;
     }
   }
@@ -617,12 +609,12 @@ unsigned int TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int d
     map<string,AMSTimeID*>::iterator it ;
     it=tdvmap.find("TRDStatus");
     if(it!=tdvmap.end()){
-      if(debug)cout<<"TDV from Database"<<endl;
-
+      if(debug)cout<<"TrdHCalibR::GetStatus-I-Read tdv from DATABASE"<<endl;
+      
       // check if ptdv contains useful values
       bool ok=true;
       if(ok){
-	if(debug)cout<<"from DataBase " <<tube_status[ntdv]<<endl;
+	if(debug)cout<<" value read: " <<tube_status[ntdv]<<endl;
 	return (unsigned int)tube_status[ntdv];
       }
     }
@@ -631,33 +623,31 @@ unsigned int TrdHCalibR::GetStatus(int layer, int ladder, int tube,int opt,int d
 }
 
 float TrdHCalibR::GetGainCorr(TrdRawHitR* hit,int opt, int debug){
-  if(!hit)cerr<<"TrdHCalibR::GetGainCorr - hit not found"<<endl;
+  if(!hit)cerr<<"TrdHCalibR::GetGainCorr-W-hit not found"<<endl;
   return GetGainCorr(hit->Layer,hit->Ladder,hit->Tube,opt,debug);
 }
 
 float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug){
-  if(debug)cout<<"Entering TrdHCalibR::GetGainCorr"<<endl;
-  
   int ntdv=GetNTDV(layer,ladder,tube);
   int tubeid;
   GetTubeIdFromLLT(layer,ladder,tube,tubeid);
-  if(debug)printf("hit %02i%02i%02i - tdvid %i\n",layer,ladder,tube,ntdv);
+  if(debug)cout<<"TrdHCalibR::GetGainCorr-I-hit "<<layer<<""<<ladder<<""<<tube<<" - tdvid "<<ntdv<<endl;
 
   float gaincorr=1.;
   
   // check in ROOT file
   if(opt<2){
-    if(debug)cout<<"TDV from ROOT file"<<endl;
+    if(debug)cout<<"TrdHCalibR::GetGainCorr-I-Read tdv from ROOT file"<<endl;
     AMSEventR::if_t value;
     value.u=0;
     int stat=AMSEventR::Head()->GetTDVEl("TRDGains2",ntdv,value);
     if(!stat){
-      if(debug)cout<<"from tdvr" <<1./value.f<<endl;
+      if(debug)cout<<" value read: " <<1./value.f<<endl;
       gaincorr=1./value.f;
     }
     stat=AMSEventR::Head()->GetTDVEl("TRDGains",ntdv,value);
     if(!stat){
-      if(debug)cout<<"from tdvr" <<1./value.f<<endl;
+      if(debug)cout<<" value read: " <<1./value.f<<endl;
       gaincorr=1./value.f;
     } 
   }
@@ -667,7 +657,7 @@ float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug)
     map<string,AMSTimeID*>::iterator it ;
     it=tdvmap.find("TRDGains2");
     if(it!=tdvmap.end()){
-      if(debug)cout<<"TDV from Database"<<endl;
+      if(debug)cout<<"TrdHCalibR::GetGaincorr-I-Read tdv from DATABASE"<<endl;
 
       int mod=tubeid/16;
       int hv=mod/4;
@@ -675,8 +665,8 @@ float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug)
       int mf=GetManifold(gc);
       
       float current_amp=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[tubeid];
-
-      if(debug)printf("GetGainCorr LLT %02i%02i%02i DET %3.2f MF %i %.2e HV %i %.2e % MOD %i %.2e TUBE %i %.2e-> A %.2f\n",layer,ladder,tube,det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],tubeid,tube_medians[tubeid],current_amp);
+      
+      if(debug)cout<<" DET "<<det_median<<" MF "<<mf<<" "<<mf_medians[mf]<<" HV "<<hv<<" "<<hv_medians[hv]<<" MOD "<<mod<<" "<<mod_medians[mod]<<" TUBE "<<tubeid<<" "<<tube_medians[tubeid]<<" -> A "<<current_amp<<endl;
 
       gaincorr=norm_mop/current_amp;//1./tube
       gaincorr*=additional_modcorr(tubeid/16);
@@ -684,7 +674,7 @@ float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug)
     else{
       it=tdvmap.find("TRDGains");
       if(it!=tdvmap.end()){
-	if(debug)cout<<"TDV from Database"<<endl;
+	if(debug)cout<<"TrdHCalibR::GetGaincorr-I-Read tdv from DATABASE"<<endl;
 	
 	int tubeid;
 	GetTubeIdFromLLT(layer,ladder,tube,tubeid);
@@ -695,7 +685,7 @@ float TrdHCalibR::GetGainCorr(int layer, int ladder, int tube,int opt,int debug)
 	
 	float current_amp=det_median*mf_medians[mf]*hv_medians[hv]*mod_medians[mod]*tube_medians[tubeid];
 	
-	if(debug)printf("GetGainCorr LLT %02i%02i%02i DET %3.2f MF %i %.2e HV %i %.2e % MOD %i %.2e TUBE %i %.2e-> A %.2f\n",layer,ladder,tube,det_median,mf,mf_medians[mf],hv,hv_medians[hv],mod,mod_medians[mod],tubeid,tube_medians[tubeid],current_amp);
+	if(debug)cout<<" DET "<<det_median<<" MF "<<mf<<" "<<mf_medians[mf]<<" HV "<<hv<<" "<<hv_medians[hv]<<" MOD "<<mod<<" "<<mod_medians[mod]<<" TUBE "<<tubeid<<" "<<tube_medians[tubeid]<<" -> A "<<current_amp<<endl;
 	
 	gaincorr=norm_mop/current_amp;
       }
@@ -737,7 +727,7 @@ int TrdHCalibR::GetManifold(int gascirc){
       if(gascirc==mnf7_5[i])return 9;
     }
   }
-  cerr << "manifold for gascirc " << gascirc << "not found!" << endl;
+  cerr << "TrdHCalibR::GetManifold-E-manifold for gascirc " << gascirc << "not found!" << endl;
   return -1;
 }
 
@@ -769,7 +759,7 @@ int TrdHCalibR::GetInletGeom(int gascirc){
     }
   }
   if(inletgeom==-1){
-    cerr << "no inlet geometry for gascirc " << gascirc << endl; 
+    cerr << "TrdHCalibR::GetInletGeom-E-no inlet geometry for gascirc " << gascirc << endl; 
     return -1;
   }
   return inletgeom;
@@ -783,7 +773,7 @@ void TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod){
   if(layer>15)templadder+=18;
   
   if(layer>19)
-    cerr << "layer 19+ found! layers should be 0-19 here" << endl;
+    cerr << "TrdHCalibR::LLT2GCM-F-layer 19+ found! layers defined as 0-19 here" << endl;
   
   if(templadder%2==1) gascirc_=(templadder-1)/2;
   else gascirc_=templadder/2;
@@ -815,9 +805,9 @@ void TrdHCalibR::LLT2GCM(int layer, int ladder, int &gascirc_, int &gasmod){
     if(side)gasmod=3-layer%4;
     if(!side)gasmod=4+layer%4;
   }
-  else cerr << "ERROR ! Inlet for gascirc " << gascirc_ << "not found" << endl;
+  else cerr << "TrdHCalibR::LLT2GCM-E-inlet for gascirc " << gascirc_ << "not found" << endl;
 
-  if(gasmod==-1)cerr << "gasmodule not found!" << endl;
+  if(gasmod==-1)cerr << "TrdHCalibR::LLT2GCM-E-gas module not found!" << endl;
 }
 
 int TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt){
@@ -913,7 +903,7 @@ int TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt){
 
 int TrdHCalibR::GetNTDV(int tubeid){
   if(tubeid<0||tubeid>5247){
-    cerr<<"TrdHCalibR::GetNTDV - undefined tube id "<<tubeid<<endl;
+    cerr<<"TrdHCalibR::GetNTDV-E-undefined tube id "<<tubeid<<endl;
     return -1;
   }
   int layer,ladder,tube;
@@ -923,7 +913,7 @@ int TrdHCalibR::GetNTDV(int tubeid){
 
 int TrdHCalibR::GetNTDV(TrdRawHitR* hit){
   if(!hit){
-    cerr<<"TrdHCalibR::GetNTDV - hit poiter not found "<<hit<<endl;
+    cerr<<"TrdHCalibR::GetNTDV-E-hit poiter not found "<<hit<<endl;
     return -1;
   }
   return GetNTDV(hit->Layer,hit->Ladder,hit->Tube);
@@ -931,13 +921,13 @@ int TrdHCalibR::GetNTDV(TrdRawHitR* hit){
 
 int TrdHCalibR::GetNTDV(int layer, int ladder, int tube){
   if(layer<0||layer>19)
-    cerr<<"TrdHCalibR::GetNTDV - undefined layer "<<layer<<endl;
+    cerr<<"TrdHCalibR::GetNTDV-F-undefined layer "<<layer<<endl;
   
   if(ladder<0||ladder>17)
-    cerr<<"TrdHCalibR::GetNTDV - undefined ladder "<<ladder<<endl;
+    cerr<<"TrdHCalibR::GetNTDV-F-undefined ladder "<<ladder<<endl;
   
   if(tube<0||tube>15)
-    cerr<<"TrdHCalibR::GetNTDV - undefined tube "<<tube<<endl;
+    cerr<<"TrdHCalibR::GetNTDV-F-undefined tube "<<tube<<endl;
   
   return 16*18*layer+16*ladder+tube;
 }

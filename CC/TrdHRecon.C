@@ -55,11 +55,11 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   TrdHSegmentR* s2=&hsegvec.at(is2);
 #endif
 
-  if(debug)printf("Entering TrdHReconR::SegToTrack s1 %d (i %i) s2 %d (i %i)\n",s1,is1,s2,is2);
+  if(debug)cout<<"TrdHReconR::SegToTrack-I-segment1 "<<s1<<"(i "<<is1<<") segment2 "<<s2<<"(i "<<is2<<")"<<endl;
   if(!s1||!s2)return 0;
   if(s1->d+s2->d!=1)return 0;
   if(isnan(s1->m)||isnan(s2->m))return 0;
-  if(debug)printf("segments seem to be ok\n");
+  if(debug)cout<<"TrdHReconR::SegToTrack-I-valid segments of different projections"<<endl;
 
   float m[2]={0.,0.};
   float em[2]={0.,0.};
@@ -71,21 +71,21 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   em[s2->d]=s2->em;m[s2->d]=s2->m;r[s2->d]=s2->r;er[s2->d]=s2->er;z[s2->d]=s2->z;
   
   if(debug)for(int d=0;d!=2;d++)
-    printf("d %i m %.2f em %.2f r %.2f z %.2f\n",d,m[d],em[d],r[d],z[d]);
-
+    cout<<"TrdHReconR::SegToTrack-I-d "<<d<<" m "<<m[d]<<" em "<<em[d]<<" r "<<r[d]<<" z "<<z[d]<<endl;
+  
   // same center of segments
   float zcent=(s1->z * (float) s1->fTrdRawHit.size() + s2->z * (float) s2->fTrdRawHit.size()) /
     ((float) s1->fTrdRawHit.size() + (float) s2->fTrdRawHit.size());
   
   for(int d=0;d!=2;d++)
     r[d]=r[d] + m[d] * ( zcent - z[d] );
-
+  
   float Dir[3],Coo[3];
   Dir[0]=-m[0];Dir[1]=-m[1],Dir[2]=-1.;
   Coo[0]=r[0];Coo[1]=r[1],Coo[2]=zcent;
 
-  if(debug)printf("built track Coo %.2f %.2f %.2f mx %.2f my %.2f\n",Coo[0],Coo[1],Coo[2],Dir[0]/Dir[2],Dir[1]/Dir[2]);
-
+  if(debug)
+    cout<<"TrdHReconR::SegToTrack-I-build track Coo ("<<Coo[0]<<","<<Coo[1]<<","<<Coo[2]<<") - mx "<<Dir[0]/Dir[2]<<" my "<<Dir[1]/Dir[2]<<endl;
 
   TrdHTrackR *tr=new TrdHTrackR(Coo,Dir);
   tr->fTrdHSegment.clear();
@@ -106,7 +106,6 @@ TrdHTrackR *TrdHReconR::SegToTrack(int is1, int is2, int debug){
   tr->Nhits=(int)s1->fTrdRawHit.size()+(int)s2->fTrdRawHit.size();
   tr->Chi2=s1->Chi2+s2->Chi2; 
   
-  if(debug)printf("Leaving SegToTrack - return AMSTRDHTrack\n");
   return tr;
 }
 
@@ -133,7 +132,8 @@ int TrdHReconR::DoPrefit(int debug){
     }
   }
   
-  if(debug)printf("pairs x %i y %i\n",pairs_x,pairs_y);
+  if(debug)
+    cout<<"TrdHReconR::DoPrefit-I-hit pairs x "<<pairs_x<<" y "<<pairs_y<<endl;
   if(pairs_x<5&&pairs_y<5)return -1;
   
   vector<PeakXYZW> peakvec[2];
@@ -145,7 +145,8 @@ int TrdHReconR::DoPrefit(int debug){
     if(d==0)hist=&H2V_mvrx;
     if(d==1)hist=&H2V_mvry;
     
-    if(debug)printf("findpeaks d %i histo size %i integral %.2f\n",d,(int)hist->bins.size(),hist->Integral());
+    if(debug)
+      cout<<"TrdHReconR::DoPrefit-I-findpeaks d "<<d<<" histo size "<<hist->bins.size()<<" integral "<<hist->Integral()<<endl;
     if(!hist||hist->bins.size()==0)continue;
     
     for(vector<BIN>::iterator i=hist->bins.begin(); i!=hist->bins.end(); i++){
@@ -179,14 +180,16 @@ int TrdHReconR::DoPrefit(int debug){
     // sort maxima in decreasing c (entries) order
     sort(maxima.begin(),maxima.end());
     
-    if(debug)printf("found %i maxima:\n",(int)maxima.size());
+    if(debug)
+      cout<<"TrdHReconR::DoPrefit-I-found "<<maxima.size()<<" maxima:"<<endl;
     int miter1=0;
     if(debug)for(vector<BIN>::iterator i=maxima.begin();i!=maxima.end();i++,miter1++){
       float x=0.,y=0.;
       x=(hist->Xlo+(hist->Xup-hist->Xlo)*((float)i->x+0.5)/(float)hist->nbx);
       y=(hist->Ylo+(hist->Yup-hist->Ylo)*((float)i->y+0.5)/(float)hist->nby);
-      printf("max %i s %.2f o %.2f z %.2f c %.2f\n",miter1,x,y,i->z,i->c);
-      if(i->c<=0.)printf("ERROR maximum size <= 0!!\n");
+      cout<<" max "<<miter1<<" s "<<x<<" o "<<y<<" z "<<i->z<<" c "<<i->c<<endl;
+      if(i->c<=0.)
+	cerr<<"TrdHReconR::DoPrefit-F-maximum content <= 0!!"<<endl;
     }
     if(numpeaks>0)while(maxima.size()>numpeaks)maxima.pop_back();
     else while(maxima.size()>1&&maxima.back().c<5)maxima.pop_back();
@@ -209,7 +212,9 @@ int TrdHReconR::DoPrefit(int debug){
 	}
       }
 
-      if(debug)printf("maxima %i sw %.2f dz %.2f\n",miter2,sw,zmax-zmin);
+      if(debug)
+	cout<<"TrdHReconR::DoPrefit-I-maxima "<<miter2<<" sw "<<sw<<" dz "<<zmax-zmin<<endl;
+      
       if(sw==0.||zmax-zmin==0.)continue;
       //      if((peakvec[d].size()>0&&sw<300)||zmax-zmin<8.)continue;
       if(sw<15||zmax-zmin<8.)continue;
@@ -227,11 +232,12 @@ int TrdHReconR::DoPrefit(int debug){
     }
   }
   
-  if(debug)printf("DoPrefit segx %i segy %i\n",(int)peakvec[0].size(),(int)peakvec[1].size());
+  if(debug)
+    cout<<"TrdHReconR::DoPrefit-I-segments in x/y "<<peakvec[0].size()<<"/"<<(int)peakvec[1].size()<<endl;
   
   int prefit=peakvec[0].size()+peakvec[1].size();
   while(prefit>100){
-    cerr<<"TrdHRecon::DoPrefit - too many prefit candidates x "<<peakvec[0].size()<<" y "<<peakvec[1].size()<<endl;
+    cerr<<"TrdHRecon::DoPrefit-W-too many prefit candidates x "<<peakvec[0].size()<<" y "<<peakvec[1].size()<<endl;
     if(peakvec[0].size()>peakvec[1].size())peakvec[0].pop_back();
     else if(peakvec[1].size()>peakvec[0].size())peakvec[1].pop_back();
     else{
@@ -242,14 +248,12 @@ int TrdHReconR::DoPrefit(int debug){
   }
   
   if(prefit<=0||prefit>100){
-    if(debug)printf("skipping \n");
+    if(debug)cout<<"TrdHReconR::DoPrefit-I-skipping event"<<endl;
     return -2;
   }
 
-  if(debug>0)printf("Entering DoLinReg\n");
-
   int nrh=rhits.size();
-  if(debug>0)printf("Total number of hits %i\n",nrh);
+  if(debug>0)cout<<"TrdHReconR::DoPrefit-I-Total number of hits "<<nrh<<endl;
   
   int i=0;
   for(int d=0;d<2;d++){
@@ -268,15 +272,15 @@ int TrdHReconR::DoPrefit(int debug){
 	float expos=seg->r+ seg->m*dz;//*cos(atan(seg->m));
 	float resid=rzd.r - expos;
 	float maxresid=0.6+fabs(dz)* seg->em;
-	if(debug>0)printf("d %i hit %i r %.2f expos %.2f resid %f < %f ok %i\n",d,h,rzd.r,expos,resid,maxresid,fabs(resid)<maxresid);
+	if(debug)
+	  cout<<"TrdHReconR::DoPrefit-I-d "<<d<<" hit "<<h<<" r "<<rzd.r<<" expos "<<expos<<" resid |"<<resid<<"| < "<<maxresid<<" ? "<<(fabs(resid)<maxresid)<<endl;
 	
 	if(fabs(resid)<maxresid)
 	  seg->AddHit(rhits.at(h),h);
       }
       
-      if(debug>0){
-	printf("seg %i m %.2f r %.2f z %.2f hits %i\n",i,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
-      }
+      if(debug)
+	cout<<"TrdHReconR::DoPrefit-I-seg "<<i<<" m "<<seg->m<<" r "<<seg->r<<" z "<<seg->z<<" hits "<<seg->fTrdRawHit.size()<<endl;
       
       int nlr=0;
       int lr=1;
@@ -297,56 +301,50 @@ int TrdHReconR::DoPrefit(int debug){
 	  float resid=(rzd.r - (seg->r+ seg->m*dz));//*cos(atan(seg->m));
 	  float maxresid=0.6+fabs(dz)*seg->em;//0.6/(segvec->at(i).zmax-segvec->at(i).zmin);
 	  
-	  if(debug>0)printf("Lin Reg residuals %.2f < %.2f %i (dz %.2f em %.2e)\n",resid,maxresid,fabs(resid)<maxresid,rzd.z-seg->z,seg->em);
+	  if(debug)
+	    cout<<"TrdHReconR::DoPrefit-I-Lin Reg residuals |"<<resid<<"| < "<<maxresid<<" ? "<<(fabs(resid)<maxresid)<<" (dz "<<rzd.z-seg->z<<" em "<<seg->em<<endl;
+
 	  if(fabs(resid)<maxresid)
 	    seg->AddHit(rhits.at(h),h);
 	  
 	}
 	
 	if(n0==(int)seg->fTrdRawHit.size()){
-	  if(debug)printf("no change in number of hits - breaking loop\n");
+	  if(debug>0)
+	    cout<<"TrdHReconR::DoPrefit-I-no change in number of hits - breaking loop"<<endl;
 	  break;
 	}
 	else if(nlr>3&&seg->fTrdRawHit.size()>0){
-	  if(debug)printf("nlr %i - more hits than in last iteration %i>%i - breaking loop\n",nlr,(int)seg->fTrdRawHit.size(),n0);
+	  if(debug>1)
+	    cout<<"TrdHReconR::DoPrefit-I-more than 3 linear regression iterations-breaking loop-hits on segment"<<seg->fTrdRawHit.size()<<endl;
 	  break;
 	}
-	if(debug)printf("d %i n0 %i n1 %i - refitting\n",d,n0,(int)seg->fTrdRawHit.size());
+	if(debug)
+	  cout<<"TrdHReconR::DoPrefit-I-Refitting segment d "<<d<<" number of hits "<<n0<<" -> "<<seg->fTrdRawHit.size()<<endl;
       }
-      if(debug)printf("number of linreg %i\n",nlr);
       if(seg->fTrdRawHit.size()>3){
 	seg->calChi2();
 	
 	if(debug>0){
-	  printf("d %i after linreg loop: segment %i hits %i\n",d,i,(int)seg->fTrdRawHit.size());
-	  printf("After linreg: seg %i d %i m %.2f r %.2f z %.2f hits %i\n",i,d,seg->m,seg->r,seg->z,(int)seg->fTrdRawHit.size());
+	  cout<<"TrdHReconR::DoPrefit-I-d "<<d<<" after linreg loop: segment "<<i<<" hits "<<seg->fTrdRawHit.size()<<endl;
+	  cout<<" seg "<<i<<" d "<<d<<" m "<<seg->m<<" r "<<seg->r<<" z "<<seg->z<<" hits "<<seg->fTrdRawHit.size()<<endl;
 	}
 	
 	//	AddSegment(seg);
 	hsegvec.push_back(*seg);
       }
-            //if(seg)delete seg;
     }
   }
 
-  return 1;
+return 1;
 }
   
-int TrdHReconR::DoLinReg(int debug){
-  if(debug>0)printf("Entering DoLinReg\n");
-  return 0;
-}
-
- 
 int TrdHReconR::clean_segvec(int debug){
-  if(debug>0){
-    printf("Enter clean_segvec\n");
-    printf("before clean %i\n",(int)hsegvec.size());
+  if(debug){
+    cout<<"TrdHReconR::clean_segvec-I-segments before clean "<<hsegvec.size()<<endl;
     int n=0;
-    for(vector<TrdHSegmentR>::iterator s1=hsegvec.begin();s1!=hsegvec.end();s1++,n++){
-      printf("segment %i d %i n %i m %.2f r %.2f z %.2f Chi2 %.2e\n",
-	     n,s1->d,(int)s1->fTrdRawHit.size(),s1->m,s1->r,s1->z,s1->Chi2);
-    }
+    for(vector<TrdHSegmentR>::iterator s1=hsegvec.begin();s1!=hsegvec.end();s1++,n++)
+      cout<<"  segment "<<n<<" d "<<s1->d<<" n "<<s1->fTrdRawHit.size()<<" m "<<s1->m<<" r "<<s1->r<<" z "<<s1->z<< "Chi2 "<<s1->Chi2<<endl;
   }
 
   bool keepseg[hsegvec.size()];
@@ -355,7 +353,7 @@ int TrdHReconR::clean_segvec(int debug){
   int c1=0;
   for(vector<TrdHSegmentR>::iterator s1=hsegvec.begin();s1!=hsegvec.end();s1++,c1++){
     if(hsegvec.size()>2&&s1->Chi2/((float)s1->nTrdRawHit()-2)>6){
-      if(debug>0)printf("removing segment %i because of high Chi2/ndof %f\n",c1,s1->Chi2/((float)s1->fTrdRawHit.size()-2));
+      if(debug>0)cout<<"TrdHReconR::clean_segvec-I-removing segment "<<c1<<" because of high Chi2/ndf "<<s1->Chi2<<"/"<<(s1->fTrdRawHit.size()-2)<<endl;
       keepseg[c1]=0;
     }
     if(keepseg[c1]==0)continue;
@@ -377,7 +375,7 @@ int TrdHReconR::clean_segvec(int debug){
 	for(int hit2=0;hit2<n2;hit2++){
 	  TRDHitRZD rzd2=TRDHitRZD(s2->hits.at(hit2)); 
 	  
-	  if(debug>1) printf("hit1 %i r %.2f z %.2f hit2 %i r %.2f z %.2f both %i\n",hit1,rzd1.r,rzd1.z,hit2,rzd2.r,rzd2.z,rzd1.r == rzd2.r && rzd1.z == rzd2.z);
+	  if(debug>1)cout<<"TrdHReconR::clean_segvec-I-hit1 "<<hit1<<" r "<<rzd1.r<<" z "<<rzd1.z<<" hit2 "<<hit2<<" r "<<rzd2.r<<" z "<<rzd2.z<<" same? "<<(rzd1.r == rzd2.r && rzd1.z == rzd2.z)<<endl;
 	  if( rzd1.r == rzd2.r &&
 	      rzd1.z == rzd2.z){
 	    hiter1[hit1]=1;hiter2[hit2]=1;
@@ -386,7 +384,8 @@ int TrdHReconR::clean_segvec(int debug){
 	}
       }
       
-      if(debug>0)printf("d %i s1 %i n1 %i m1 %.2f Chi2/ndof %.2e s2 %i n2 %i m2 %.2f Chi2/ndof %.2e nboth %i\n",s1->d,c1,n1,s1->m,s1->Chi2/((float)s1->fTrdRawHit.size()-2.),c2,n2,s2->m,s2->Chi2/((float)s2->fTrdRawHit.size()-2.),nboth);
+      if(debug>0)
+	cout<<"TrdHReconR::clean_segvec-I-d "<<s1->d<<" s1 "<<c1<<" n1 "<<n1<<" m1 "<<s1->m<<" Chi2/ndof "<<s1->Chi2/((float)s1->fTrdRawHit.size()-2.)<<" s2 "<<c2<<" n2 "<<n2<<" m2 "<<s2->m<<" Chi2/ndof "<<s2->Chi2/((float)s2->fTrdRawHit.size()-2.)<<" nboth "<<nboth<<endl;
       
       if(n1<=2){keepseg[c1]=0;}
       if(n2<=2){keepseg[c2]=0;}
@@ -396,7 +395,7 @@ int TrdHReconR::clean_segvec(int debug){
       float exp2=s2->r+s2->m*(113.5-s2->z);
       
       if((n1==n2&&nboth==n2)||((s1->d==s2->d)&&(fabs(exp1-exp2)<0.01)&&fabs(s1->r-s2->r)<0.01)){
-	if(debug>0)printf("same segments\n");
+	if(debug>0)cout<<"TrdHReconR::clean_segvec-I-same segments"<<endl;
 	if (s1->Chi2==0||s1->nTrdRawHit()<3)keepseg[c1]=0;
 	else if(s2->Chi2==0.||s2->nTrdRawHit()<3)keepseg[c2]=0;
 	else if(s1->Chi2/((float)s1->nTrdRawHit()-2.) > s2->Chi2/((float)s2->nTrdRawHit()-2.))keepseg[c1]=0;
@@ -404,14 +403,14 @@ int TrdHReconR::clean_segvec(int debug){
 	continue;
       }
       else if(nboth>1){
-	if(debug>0)printf("nboth %i > 1 !\n",nboth);
+	if(debug>0)cout<<"TrdHReconR::clean_segvec-I-nboth %i"<<endl;
 	float s1_Chi2ndof=s1->Chi2/((float)s1->nTrdRawHit()-2.);
 	float s2_Chi2ndof=s1->Chi2/((float)s2->nTrdRawHit()-2.);
 	
 	if(s2_Chi2ndof==0.)keepseg[c2]=0;
 	else if(s1_Chi2ndof==0.)keepseg[c1]=0;
 	else if(s2_Chi2ndof>s1_Chi2ndof){
-	  if(debug>0)printf("Refit s2\n");
+	  if(debug)cout<<"TrdHReconR::clean_segvec-I-Refit segment 2"<<endl;
 	  for(int i=n2-1;i>=0;i--) if(hiter2[i]==1){
 	    s2->RemoveHit(i);
 	  }
@@ -423,7 +422,7 @@ int TrdHReconR::clean_segvec(int debug){
 	  else keepseg[c2]=0;
 	}
 	else {
-	  if(debug)printf("Refit s1\n");
+	  if(debug)cout<<"TrdHReconR::clean_segvec-I-Refit segment 1"<<endl;
 	  for(int i=n1-1;i>=0;i--) if(hiter1[i]==1){
 	    s1->RemoveHit(i);
 	  }
@@ -444,13 +443,10 @@ int TrdHReconR::clean_segvec(int debug){
     }
 
   if(debug>0){
-    printf ("REMAINING SEGMENTS:\n");
+    cout<<"TrdHReconR::clean_segvec-I-remaining "<<hsegvec.size()<<" segments:"<<endl;
     int n=0;
     for(vector<TrdHSegmentR>::iterator i=hsegvec.begin();i!=hsegvec.end();i++,n++)
-      printf("d %i s %i n %i m %.2f r %.2f Chi2 %.2f nhits %i \n",i->d,n,i->nTrdRawHit(),i->m,i->r,i->Chi2,i->nTrdRawHit());
-    
-    printf("after clean %i\n",(int)hsegvec.size());
-    printf("Exiting clean_hsegvec\n");
+      cout<<" d "<<i->d<<" s "<<n<<" n "<<i->nTrdRawHit()<<" m "<<i->m<<" r "<<i->r<<" Chi2 "<<i->Chi2<<" nhits "<<i->nTrdRawHit()<<endl;
   } 
   return hsegvec.size();
 }
@@ -459,12 +455,12 @@ int TrdHReconR::clean_segvec(int debug){
 bool TrdHReconR::check_hits(int is1,int is2,int debug){
   TrdHTrackR *tr=SegToTrack(is1,is2);
   if(!tr){
-    if(debug>0)printf("No track found / Segments not compatible\n");
+    if(debug>0)cerr<<"TrdHReconR::check_hits-W-no track found for combination of segments"<<endl;
     return 0;
   }
-
+  
   int nref=refhits.size();
-
+  
   int hit_ok[nref];
   int nhitsok=0;
   for(int i=0;i!=nref;i++){
@@ -481,18 +477,20 @@ bool TrdHReconR::check_hits(int is1,int is2,int debug){
     float sig_x = (pos_x-refhits[i].x())/(referr[i].x()+ex); 
     float sig_y = (pos_y-refhits[i].y())/(referr[i].y()+ey);
     
-    if(debug>0){
-      printf("x - hit %i %.2f expos %.2f err %.2f sig %.2f\n",i,refhits[i].x(),pos_x,ex, sig_x);
-      printf("y - hit %i %.2f expos %.2f err %.2f sig %.2f\n",i,refhits[i].y(),pos_y,ey, sig_y);
-      printf("Hit found - dx %.2f dy %.2f sigma ok ? %i\n",sig_x,sig_y,fabs(sig_x)<=2&&fabs(sig_y)<=2);
-    }
-    if(fabs(sig_x)<=2&&fabs(sig_y)<=2){
+    if(fabs(sig_x)<=3&&fabs(sig_y)<=3){
       hit_ok[i]=1;
       nhitsok++;
     }
+
+    if(debug>0){
+      cout<<"TrdHReconR::check_hits-I-reference hit "<<i<<endl;
+      cout<<" x "<<refhits[i].x()<<" expos "<<pos_x<<" ex "<<ex<<" sigma "<<sig_x<<endl;
+      cout<<" y "<<refhits[i].y()<<" expos "<<pos_y<<" ey "<<ey<<" sigma "<<sig_y<<endl;
+      cout<<" matching hit (sigma<=3) ? %i\n",hit_ok[i];
+    }
   }
 
-  if(debug)printf("return - all hits found? %i\n",nhitsok==nref);
+  if(debug)cout<<"TrdHReconR::check_hits-I-hits compatible with track: "<<nhitsok<<" of "<<nref<<endl;
   if(tr)delete tr;
   return (nhitsok==nref);
 }
@@ -531,19 +529,19 @@ vector<pair<int,int> > TrdHReconR::check_secondaries(int debug){
 	}
 
 	if(s1zmax<z_cross+3){
-	  if(debug)printf("vertex z %.2f s1 downward\n",z_cross);
+	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary downward track s1 at z "<<z_cross<<endl;
 	  toReturn.push_back(make_pair<int, int>(s2,-s1));
 	}
 	else if(s2zmax<z_cross+3){
-	  if(debug)printf("vertex z %.2f s2 downward\n",z_cross);
+	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary downward track s2 at z "<<z_cross<<endl;
 	  toReturn.push_back(make_pair<int, int>(s1,-s2));
 	}
 	else if(s1zmin>z_cross-3){
-	  if(debug)printf("vertex z %.2f s1 upward\n",z_cross);
+	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary upward track s1 at z "<<z_cross<<endl;
 	  toReturn.push_back(make_pair<int, int>(s2,s1));
 	}
 	else if(s2zmin>z_cross-3){
-	  if(debug)printf("vertex z %.2f s2 upward\n",z_cross);
+	  if(debug)cout<<"TrdHReconR::check_secondaries-I-secondary upward track s2 at z "<<z_cross<<endl;
 	  toReturn.push_back(make_pair<int, int>(s1,s2));
 	}
       }
@@ -673,9 +671,9 @@ int TrdHReconR::combine_segments(int debug){
   n_done=0;
   for(int i=0;i!=hsegvec.size();i++)if(s_done[i]==1)n_done++;
 
-  if(debug)printf("%i segment(s) not done after sec. search \n",(int)hsegvec.size()-n_done);
-
-  return htrvec.size();
+  if(debug)cout<<"TrdHReconR::combine_segments-I-associated segments :"<<n_done<<" of "<<hsegvec.size()<<endl;
+  
+  return (int)htrvec.size();
 }
 
 
@@ -808,7 +806,7 @@ int TrdHReconR::retrdhevent(int debug){
   //  double Hcut=tracking_min_amp;
   //  if(pev->nTRDRawHit()>100) Hcut=10.0;
   
-  if(debug)printf("RawHits %i\n",(int)rhits.size());
+  if(debug)cout<<"TrdHReconR::retrdhevent-I-Number of RawHits "<<rhits.size()<<endl;;
   if(rhits.size()<4||rhits.size()>100) return 0;
 
   int prefit=DoPrefit(debug);
@@ -820,11 +818,10 @@ int TrdHReconR::retrdhevent(int debug){
   for(int i=0;i<hsegvec.size();i++)
     AddSegment((TrdHSegmentR*)&hsegvec.at(i));
 #endif
-
-  if(debug) printf("got %i segment(s)\n",(int)hsegvec.size());
-
-  int nhseg=hsegvec.size();
   
+  if(debug)cout<<"TrdHReconR::retrdhevent-I-Number of segments found "<<hsegvec.size()<<endl;
+  
+  int nhseg=hsegvec.size();
   if(nhseg==2||nhseg==3){
     int segiter_sel[2]={-1,-1};
     
@@ -833,24 +830,24 @@ int TrdHReconR::retrdhevent(int debug){
 
       float chi2ndofs=1.e6;
       if(hsegvec.at(s).nTrdRawHit()>2)
-	chi2ndofs=(float) hsegvec.at(s).Chi2 / (float) hsegvec.at(s).nTrdRawHit();
+	chi2ndofs=(float) hsegvec.at(s).Chi2 / (float) (hsegvec.at(s).nTrdRawHit()-2);
       
       if(segiter_sel[d]>-1){
 	float chi2ndof=1.e6;
 	if(hsegvec.at(segiter_sel[d]).nTrdRawHit()>2)
-	  chi2ndof=(float) hsegvec.at(segiter_sel[d]).Chi2 / (float) hsegvec.at(segiter_sel[d]).nTrdRawHit();
+	  chi2ndof=(float) hsegvec.at(segiter_sel[d]).Chi2 / (float) (hsegvec.at(segiter_sel[d]).nTrdRawHit()-2);
 	
-	if(debug)printf("cand s %.2f < %.2f ?\n",chi2ndof,chi2ndofs);
+	if(debug)cout<<"TrdHReconR::retrdhevent-I-new candidate for projection "<<d<<" chi2/ndf "<<chi2ndof<<" < "<<chi2ndofs<<" ?"<<endl;
 	if( ( hsegvec.at(s).nTrdRawHit() >  hsegvec.at(segiter_sel[d]).nTrdRawHit()) ||
 	    ((hsegvec.at(s).nTrdRawHit() == hsegvec.at(segiter_sel[d]).nTrdRawHit()) &&
 	     (chi2ndof < chi2ndofs))) segiter_sel[d]=s;
       }
       else if(hsegvec.at(s).nTrdRawHit()>0)segiter_sel[d]=s;
       
-      if(debug)printf("sel %i d %i nTrdRawHit() %i chi2ndof %.2f\n",s,d,hsegvec.at(segiter_sel[d]).nTrdRawHit(),chi2ndofs);
+      if(debug)cout<<"TrdHReconR::retrdhevent-I-sel "<<s<<" d "<<d<<" nTrdRawHit() "<<hsegvec.at(segiter_sel[d]).nTrdRawHit()<<" chi2/ndf "<<chi2ndofs<<endl;
     }
-
-    if(debug) printf("segiter %i %i\n",segiter_sel[0],segiter_sel[1]);
+    
+    if(debug)cout<<"TrdHReconR::retrdhevent-I-associate segments "<<segiter_sel[0]<<" & "<<segiter_sel[1]<<endl;
     if(segiter_sel[0]>-1&&segiter_sel[1]>-1){
       TrdHTrackR *tr=SegToTrack(segiter_sel[0],segiter_sel[1],debug);
       if(tr){
@@ -862,7 +859,7 @@ int TrdHReconR::retrdhevent(int debug){
   }
   else if(nhseg>2) combine_segments();
 
-  if(debug)printf("TrdHTrackR::build tracks %i\n",(int)htrvec.size());
+  if(debug)cout<<"TrdHReconR::retrdhevent-I-Number of tracks built "<<htrvec.size()<<endl;
   
   return 1;
 }
@@ -876,7 +873,7 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
 #endif
 
     amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr);
-    amstr->elikelihood=amstr->GetLikelihood();
+    if(amstr->charge>=0)amstr->elikelihood=amstr->GetLikelihood();
 
 #ifndef __ROOTSHAREDLIBRARY__
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");
@@ -987,16 +984,13 @@ bool TrdHReconR::update_tdv_array(int debug){
 	if(debug){
 #pragma omp critical (dbggains)
 	  {
-	    printf("LLT %02i%02i%02i id %i median %.2f = %.2f occ %i -> gain %.2f\n",layer,ladder,tube,id.getchannel(),id.getgain(),TrdHCalibR::gethead()->tube_medians[i],TrdHCalibR::gethead()->tube_occupancy[i],id.getgain());
+	    cout<<"TrdHReconR::update_tdv_array-I-LLT "<<layer<<" "<<ladder<<" "<<tube<<" tdvid "<<id.getchannel()<<" median "<<id.getgain()<<" == "<<TrdHCalibR::gethead()->tube_medians[i]<<" occ "<<TrdHCalibR::gethead()->tube_occupancy[i] <<" -> gain "<<id.getgain()<<endl;
 	  }
 	}
       }
     }
   }
 #else
-  cout<<"Entering TrdHReconR::update_tdv_array"<<endl;
-  cout<<"Currently testing shared library version"<<endl;
-  
 #endif
   return toReturn;;
 }
