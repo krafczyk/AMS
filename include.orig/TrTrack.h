@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.71 2011/12/01 16:28:42 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.71.2.1 2011/12/05 14:47:51 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/12/01 16:28:42 $
+///$Date: 2011/12/05 14:47:51 $
 ///
-///$Revision: 1.71 $
+///$Revision: 1.71.2.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -367,8 +367,8 @@ public:
     \li 2 Alcaraz;
     \li 3 ChikanianF (the original A. Chikanian algo not for refit);
     \li 4 ChikanianC (Chikanin C version, in development not for general use);
-    \li +10 mscattering off;
-    \li +20 same weight;
+    \li +10 mscattering off. Means that the MScat inside the algo is off and some manual weighting is applied;
+    \li +20 same weight. No MScat treatment at all;
     \param pattern    Hit Pattern= 
     \li  0   all hits belonginf to track; (maximum span)
     \li  1   inner upper half;
@@ -407,6 +407,7 @@ public:
     \retval -2 --> The requested fit it is not available without refitting    
     \retval -3 --> The refit failed
     \retval -4 --> Should not happen!! contact the developpers
+    \retval -5 --> The Refit failed beacause there was a problem retrieving dynamic alignemt for Ext Layers
 
     
     !*/
