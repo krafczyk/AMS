@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.840 2011/12/01 16:28:40 pzuccon Exp $
+// $Id: job.C,v 1.841 2011/12/05 10:49:31 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -268,11 +268,25 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   MISCFFKEY.G4On=0;//(5)
   MISCFFKEY.dbwrbeg=0;//(6)DBwriter UTC-time begin 
   MISCFFKEY.dbwrend=0;//(7)DBwriter UTC-time end
-  MISCFFKEY.NumThreads=1;
-  MISCFFKEY.DynThreads=0;
-  MISCFFKEY.DivideBy=1;
-  MISCFFKEY.ChunkThreads=8192;
-  MISCFFKEY.RaiseFPE=0;
+  MISCFFKEY.NumThreads=1; // (8)
+  MISCFFKEY.DynThreads=0; // (9)
+  MISCFFKEY.DivideBy=1; // (10)
+  MISCFFKEY.ChunkThreads=8192; // (11)
+  MISCFFKEY.RaiseFPE=0;        // (12)
+  MISCFFKEY.DoMatScan=0;       // (13) 1/0 Perform/not the material scan
+  MISCFFKEY.StartScanXstart=0.;   // (14) minimum eye z (cm)
+  MISCFFKEY.StartScanXstop=0.;   // (15) maximum eye z (cm)
+  MISCFFKEY.StartScanXstep=0.5;   // (16)  eye z step (cm) must be positive
+  MISCFFKEY.StartScanYstart=0.;   // (17) minimum eye z (cm)
+  MISCFFKEY.StartScanYstop=0.;   // (18) maximum eye z (cm)
+  MISCFFKEY.StartScanYstep=0.5;   // (19)  eye z step (cm) must be positive
+  MISCFFKEY.StartScanZstart=195.;   // (20) minimum eye z (cm)
+  MISCFFKEY.StartScanZstop=195.;   // (21) maximum eye z (cm)
+  MISCFFKEY.StartScanZstep=0.5;   // (22)  eye z step (cm) must be positive
+  MISCFFKEY.StartScanTheta=-90.;   // (23) Line of View direction (in fact is theta=theta +90 )
+  MISCFFKEY.StartScanPhi=0.;   // (24)
+
+
   FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -855,7 +869,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   //  ECMCFFKEY.mev2mev=58.86;
-  ECMCFFKEY.mev2mev=30.12;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
+  ECMCFFKEY.mev2mev=28.96;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
   //                                                   to have Tot.MCMeas=Einp(at center,at 500 kev geant3 cut)
   //  ECMCFFKEY.mev2adc=2.042; //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
   ECMCFFKEY.mev2adc=2.12585;  //inverse of adc2mev from Test Beam
