@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.58 2011/11/18 11:23:52 sdifalco Exp $
+//  $Id: ecalrec.h,v 1.59 2011/12/05 11:04:34 sdifalco Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -192,6 +192,7 @@ class AMSEcalHit: public AMSlink{
       //
       static void build(int &stat);
       static integer Out(integer);
+      static integer Smooth();
       //
  protected:
       void _printEl(ostream &stream){
