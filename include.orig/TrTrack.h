@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.71.2.1 2011/12/05 14:47:51 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.71.2.2 2011/12/06 11:17:39 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2011/12/05 14:47:51 $
+///$Date: 2011/12/06 11:17:39 $
 ///
-///$Revision: 1.71.2.1 $
+///$Revision: 1.71.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -395,7 +395,7 @@ public:
     To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetAlign(); and refit with 3
 
     To correctly perform the refit, the FieldMap file is needed.
-    If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPM_NEW.bin
+    If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPermanent_NEW.bin
     check to have this file on your disk.
     \param mass (optional) the particle mass. (default= 0.938272297)
      
