@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.37 2011/11/16 14:35:43 mdelgado Exp $
+//  $Id: TrRecHit.h,v 1.37.2.1 2011/12/06 12:48:03 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -196,8 +196,10 @@ public:
   }
   /// Returns the hit signal (0: x, 1: y, 2: weighted mean, 3: simple mean)
   float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt);
-  /// Returns the hit signal correlation (OLD)
-  float GetSignalDifference(int opt = TrClusterR::DefaultCorrOpt);
+  /// Returns the hit signal signal (on side p scale) 
+  float GetSignalDifference();
+  /// Returns the hit correlation for a gaussian p-value
+  float GetCorrelationProb();
   /// Get correlation between the X and Y clusters (DEPRECATED)
   float GetCorrelation();
   /// Get probability of correlation between the X and Y clusters (DEPRECATED)
@@ -232,6 +234,7 @@ public:
   void Clear();
   /// Rebuild the current coordinate; _coord
   void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
+	
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
   /// Set dummy strip position
@@ -291,7 +294,7 @@ public:
   /// Print hit info (verbose if opt !=0 )
   void  Print(int opt=0);	
   /// ROOT definition
-  ClassDef(TrRecHitR,6)
+  ClassDef(TrRecHitR,7)
   /**@}*/
 };
 

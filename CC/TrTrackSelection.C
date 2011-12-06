@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.6 2011/09/03 08:40:59 shaino Exp $
+// $Id: TrTrackSelection.C,v 1.6.4.1 2011/12/06 12:48:03 oliva Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -228,5 +228,45 @@ double TrTrackSelection::GetHalfRdiff(int fitid, TrTrackR *track, int refit)
 double TrTrackSelection::GetHalfRessq(int fitid, TrTrackR *track, int refit)
 {
   return GetHalfRessq(track, FitidToSpan(fitid), FitidToAlgo(fitid), refit);
+}
+
+int  TrTrackSelection::GetPatternForGoodHelium(TrTrackR* track, float beta) {
+  if (track==0) return -1;
+  // charge selection (raw estimation) 
+  float x = sqrt(TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner,track,TrCharge::kX,beta).Mean);
+  float z = -0.129643 + 0.202016*x - 0.00208005*x*x + 2.60621e-05*x*x*x;
+  if ( (z<1.7)||(z>2.5) ) return -2;
+  // pattern loop 
+  int pattern = 0;
+  int ngoodhits = 0;
+  for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+    TrRecHitR* hit = track->GetHit(ihit);
+    int layerj = hit->GetLayerJ();
+    if (IsGoodHeliumHit(hit)) {
+      pattern += 9*int(pow(10.,layerj-1));
+      ngoodhits++;
+    }
+  }
+  // minimum amount of hits
+  if (ngoodhits<4) return -3;
+  // try to fit
+  int id = track->iTrTrackPar(21,pattern,2); 
+  if (id<0) return -4;
+  return pattern;
+}
+
+bool TrTrackSelection::IsGoodHeliumHit(TrRecHitR* hit) {
+  if (hit==0) return false;
+  TrClusterR* clx = hit->GetXCluster();
+  TrClusterR* cly = hit->GetYCluster();
+  // no only
+  if ( (clx==0)||(cly==0) ) return false;
+  // bad correlation
+  if (hit->GetCorrelationProb()<0.001) return false;
+  // signal over a simple threshold
+  float sigx = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  float sigy = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  if ( (sigx<90)||(sigy<90) ) return false; 
+  return true;
 }
 

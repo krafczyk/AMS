@@ -1,7 +1,8 @@
-//  $Id: TrTrackSelection.h,v 1.3 2011/03/02 09:04:09 shaino Exp $
+//  $Id: TrTrackSelection.h,v 1.3.18.1 2011/12/06 12:48:03 oliva Exp $
 #ifndef __TrTrackSelection__
 #define __TrTrackSelection__
 
+#include "TrCharge.h"
 #include "TrTrack.h"
 
 class TrTrackSelection {
@@ -98,6 +99,12 @@ public:
 
   /// It converts fitid into algo
   static int FitidToAlgo(int fitid);
+
+  /// ISS rough selection: returns a good hit pattern if it is a good track (nine-nine pattern)
+  /// (-1 no track, -2 no charge 2, -3 low number of hits, -4 bad default fit)
+  static int  GetPatternForGoodHelium(TrTrackR* track, float beta = 1);
+  /// ISS rough selection: XY hits, a good correlation, no low signal
+  static bool IsGoodHeliumHit(TrRecHitR* hit);
 
   ClassDef(TrTrackSelection, 1);
 };
