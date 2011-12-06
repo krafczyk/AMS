@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.12.2.1 2011/12/05 14:47:51 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.12.2.2 2011/12/06 18:02:32 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -186,7 +186,8 @@ public:
 
   /// Print all the entries
   void Print(Option_t *option = "") const;
-
+  /// Load from TDV
+  static int GetFromTDV(uint time);
 
   /// interface to GBTACH TDV database
   static float* fLinear;
@@ -207,6 +208,7 @@ public:
 
   /// Setup the linear space for the DB
   static void CreateLinear() {
+    if(fLinear) delete[] fLinear;
     int nlin = GetLinearSize()/4;
     fLinear = new float[nlin];
     for (int i = 0; i < nlin; i++) fLinear[i] = 0;

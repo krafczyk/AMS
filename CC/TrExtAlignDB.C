@@ -3,6 +3,7 @@
 #include "TFile.h"
 #include "random.h"
 #include "tkdcards.h"
+#include "timeid.h"
 
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -190,19 +191,40 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -1;
   }
-
+  int errlim=100;
   uint tf8 = Find(8, time);
   uint tf9 = Find(9, time);
   int  dt8 = (int)tf8-(int)time;
   int  dt9 = (int)tf9-(int)time;
 
   static int nwar = 0;
-  if ((dt8 < -200 || 200 < dt8) && nwar++ < 10)
+  if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
     std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
 	      << tf8 << " " << time << " " << tf8-time << std::endl;
-  if ((dt9 < -200 || 200 < dt9) && nwar++ < 10)
+  if ((dt9 < -200 || 200 < dt9) && nwar++ < errlim)
     std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
 	      << tf9 << " " << time << " " << tf9-time << std::endl;
+
+  if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
+    if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
+    int ret=GetFromTDV(time);
+    if(ret<=0) {printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");return -2;}
+    tf8 = Find(8, time);
+    tf9 = Find(9, time);
+    dt8 = (int)tf8-(int)time;
+    dt9 = (int)tf9-(int)time;
+    if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
+      std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		<< tf8 << " " << time << " " << tf8-time << std::endl;
+    if ((dt9 < -200 || 200 < dt9) && nwar++ < errlim)
+      std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		<< tf9 << " " << time << " " << tf9-time << std::endl;
+    if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
+      if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E- Also TDV is not valid for this event \n");
+      return -3;
+    }
+    if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
+  }
 
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
@@ -366,4 +388,36 @@ long long TrExtAlignDB::GetDt(float rate){
   double aa= -1/rate*log(1-x);
   long long out=aa*1E6;
   return out;
+}
+
+
+int  TrExtAlignDB::GetFromTDV(uint time){
+  
+  time_t tt=time;
+  tm begin;
+  tm end;
+  
+  begin.tm_isdst=0;
+  end.tm_isdst=0;    
+  begin.tm_sec  =0;
+  begin.tm_min  =0;
+  begin.tm_hour =0;
+  begin.tm_mday =0;
+  begin.tm_mon  =0;
+  begin.tm_year =0;
+      
+  end.tm_sec=0;
+  end.tm_min=0;
+  end.tm_hour=0;
+  end.tm_mday=0;
+  end.tm_mon=0;
+  end.tm_year=0;
+  TrExtAlignDB::CreateLinear();
+  AMSTimeID* db=new AMSTimeID(AMSID("TrackerExtAlign",1),begin,end,
+			      TrExtAlignDB::GetLinearSize(),
+			      TrExtAlignDB::fLinear,
+			      AMSTimeID::Standalone,1,SLin2ExAlign);
+  int ret=db->validate(tt);
+  if(db) delete db;
+  return ret;
 }

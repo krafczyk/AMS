@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.121.2.1 2011/12/05 14:47:50 pzuccon Exp $
+// $Id: TrTrack.C,v 1.121.2.2 2011/12/06 18:02:32 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/12/05 14:47:50 $
+///$Date: 2011/12/06 18:02:32 $
 ///
-///$Revision: 1.121.2.1 $
+///$Revision: 1.121.2.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1372,7 +1372,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   int rret=0;
   if(refit==4) rret=UpdateExtLayer(0);
   if(refit==5) rret=UpdateExtLayer(1);
-if(rret!=0) return -5;    
+  if(rret!=0) return -5;    
 
   if(refit>=2 || (!FitExists && refit==1)) { 
     if(refit>2){
