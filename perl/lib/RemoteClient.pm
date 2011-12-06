@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.705 2011/11/30 12:13:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.706 2011/12/06 12:43:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1135,18 +1135,22 @@ if($#{$self->{DataSetsT}}==-1){
              if(defined $template->{OPENCLOSE}){
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
            }
        elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote' and $self->{CCID}!=2){
              $template->{RUNMAX}=1;
          }
        elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
          }
        elsif($template->{OPENCLOSE}<0 and $self->{CCID} ne -$template->{OPENCLOSE}){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
          }
        elsif($max_jobs <= 0 and $self->{CCID}!=1){
             $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
          }
        }
        if(defined $template->{ROOTNTUPLE}  ){
@@ -7346,8 +7350,11 @@ print qq`
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
                 my $runno=$q->param("QRun");
-                if(not $runno =~/^\d+$/ or $runno <1 or $runno>500 ){
+                if(not $runno =~/^\d+$/ or $runno <1){
                     $runno=1;
+                }
+                if($runno>500 ){
+                    $runno=500;
                 }
                 if($max_jobs<$runno){
                     $runno=$max_jobs;
@@ -16713,12 +16720,15 @@ sub calculateMipsVC {
            }
            if($template->{OPENCLOSE}==0){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
            }
        elsif($template->{OPENCLOSE}==1 and $self->{CCT} eq 'remote'){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
          }
        elsif($template->{OPENCLOSE}==2 and $self->{CCT} eq 'local'){
              $template->{RUNMAX}=1;
+             $template->{RUNLIST}=undef;
          }
 
        if(defined $template->{ROOTNTUPLE}  ){

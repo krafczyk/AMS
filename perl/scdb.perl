@@ -86,6 +86,10 @@ my $maxtime=2000000000;
                     $tmp->{b}=$t1;
                     $tmp->{e}=$t2;
                     $tmp->{file}="$output/$file";
+                    if($t2<$t1){
+                        print "  Begin>End file found $file , removing \n";
+                      system("mv  $output/$file $output/$file.0");
+                    }
                     push @tmpa,$tmp;
                     
 #                    if($t1<$tmin){
@@ -119,6 +123,7 @@ my $i=1;
 while ($i <$#tmpb){
     if($tmpb[$i-1]->{e}>$tmpb[$i+1]->{b}){
     my $cmd ="rm $tmpb[$i]->{file}";
+    print "Removing $tmpb[$i-1]->{e} $tmpb[$i+1]->{b} $cmd \n";
     system($cmd);
     $i=$i+1;
 }
@@ -160,7 +165,7 @@ while ($beg<$end and $end<=$max){
      my $i=system($cmd);
     if($i){
         if(($i&255) or ($i>>8)!=4){
-                 my $ctime=localtime(time());
+                  my $ctime=localtime(time());
             warn " scdb.perl-E-UnableTo-T-$ctime $cmd \n";
 #                 here add mail message
             sleep 600;
