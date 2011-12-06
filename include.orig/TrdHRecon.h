@@ -222,10 +222,6 @@ class TrdHReconR{
   /// run prefit
   int DoPrefit(int debug=0);
 
-  /// run linear regression
-  //  vector<TrdHSegmentR> 
-  int DoLinReg(int debug=0);
-  
   /// check if combined 3D track would have hits outside TRD volume 
   bool check_geometry(int is1, int is2);
 
@@ -265,7 +261,7 @@ class TrdHReconR{
   
   bool update_tdv_array(int debug=0);
 
-  ClassDef(TrdHReconR,12)
+  ClassDef(TrdHReconR,13)
 };
 #endif
 
