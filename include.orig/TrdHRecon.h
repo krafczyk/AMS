@@ -224,7 +224,7 @@ class TrdHReconR{
 
   /// run linear regression
   //  vector<TrdHSegmentR> 
-  int DoLinReg(int debug=0);
+  //int DoLinReg(int debug=0);
   
   /// check if combined 3D track would have hits outside TRD volume 
   bool check_geometry(int is1, int is2);
