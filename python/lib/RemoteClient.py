@@ -3357,14 +3357,16 @@ class RemoteClient:
 			cmd="mv "+pfilej+" "+pfilej+".0"
                         os.system(cmd)
 		        continue 
-                    sql="select path,run,nevents,type from datafiles where path like '%"+file+"'"
+                    sql="select path,run,nevents,type,fevent,levent from datafiles where path like '%"+file+"'"
                     ret=self.sqlserver.Query(sql);
                     eventsi=int(events)
+                    feventi=int(fevent)
+                    leventi=int(levent)
                     calibnotfull=False
                     if(len(ret)>0):
                         if(ret[0][3].find("CAL")>=0 and ret[0][2]<247 and eventsi==247):
                            calibnotfull=True
-                        if(ret[0][3].find("SCI")>=0 and ret[0][2]<eventsi):
+                        if(ret[0][3].find("SCI")>=0 and ret[0][2]<eventsi and ret[0][4]>=feventi and ret[0][5]<=leventi):
                            calibnotfull=True
                         if((calibnotfull or replace) and (run2p==0 or ret[0][1] == run2p) and (disk==None or ret[0][0].find(disk)>=0)):
                             fd=ret[0][0] 

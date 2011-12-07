@@ -37,10 +37,10 @@ setenv PGTRACK 1
 source  $PREFIX/amsvar$TESTFLAG.icc64
 source  $PREFIX/g4i$TESTFLAG.icc64
 gmake allg4
+echo "here"
 source  $PREFIX/amsvar$TESTFLAG.gcc32
 source  $PREFIX/g4i$TESTFLAG.gcc32
 gmake allg4
-gmake server
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp

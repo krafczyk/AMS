@@ -210,11 +210,11 @@ try{
 //     internal tracker only ext align
 //       TrTrackFitR::SetAligDB("TrAligglDBP_lay",nMCEventg()>0?0:1);
 //      TrTrackFitR::SetAligDB_TDVR("TrAligglDBP",nMCEventg()>0?0:1,true);
-//        TrTrackFitR::SetAligDB("TrAligglDBP_lad",nMCEventg()>0?0:1);
+//        TrTrackFitR::SetAligDB("TrAligglDBP_ladc",nMCEventg()>0?0:1);
        TrTrackFitR::SetAligDB("TrAligglDBP_senc",nMCEventg()>0?0:1);
 //       TrTrackFitR::SetAligDB("TrAligglDBP",nMCEventg()>0?0:1);
 
-       TrTrackFitR fiii(-3,0,3,100);
+       TrTrackFitR fiii(-3,0,3,0);
        TrTrackFitR fiiia(-3,1,1,100);
        TrTrackFitR fiiic(-3,2,1,100);
        TrTrackFitR fms(-3,2,1,0);
