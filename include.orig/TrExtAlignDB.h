@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.14 2011/12/07 17:21:51 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.15 2011/12/07 17:33:45 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -83,6 +83,9 @@ protected:
 
   /// Static Accessor to the DB
   static TrExtAlignDB* Head;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (Head)
+#endif
 
 public:
   /// Std dummy constructor

@@ -221,7 +221,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 		<< tf9 << " " << time << " " << tf9-time << std::endl;
     if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
       if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E- Also TDV is not valid for this event \n");
-      return -3;
+      return -2;
     }
     if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
   }
@@ -229,10 +229,10 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
     TkPlane* pl = TkDBc::Head->GetPlane(plane);
-    if (!pl) continue;
+    if (!pl) return -3 ;
 
     const TrExtAlignPar *par = Get(layer, time);
-    if(!par) return -2;
+    if(!par) return -4;
     pl->posA.setp(par->dpos[0], par->dpos[1], par->dpos[2]);
     pl->rotA.SetRotAngles(par->angles[0], par->angles[1], par->angles[2]);
   }
