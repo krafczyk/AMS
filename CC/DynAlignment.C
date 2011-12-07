@@ -133,12 +133,8 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   event.Rigidity=trPar.Rigidity;
 #endif  
 
-  event.Beta=part.pRichRing()?part.pRichRing()->getBeta():0;
+  event.Beta=part.pRichRing() && part.pRichRing()->IsClean()?part.pRichRing()->getBeta():0;
   
-  // Final cuts 
-  if(event.Beta==0) return false;
-  if(event.Rigidity<5) return false;
-
   return true;  // Success 
 }
 
@@ -475,10 +471,10 @@ void DynAlFit::Eval(DynAlEvent &event,double &x,double &y,double &z){
 ClassImp(DynAlContinuity);
 // Number of seconds in a week
 #define magicNumber 605800
-double DynAlContinuity::BetaCut=0.99;
+double DynAlContinuity::BetaCut=0.995;
 double DynAlContinuity::RigidityCut=5;
 int    DynAlContinuity::FitOrder=0;
-int    DynAlContinuity::FitWindow=20;
+int    DynAlContinuity::FitWindow=25;
 
 int DynAlContinuity::getBin(int run){
   return (run/magicNumber)*magicNumber;
@@ -497,17 +493,13 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}
 #define fStatus (ev->fStatus)  
 
-  SELECT("1 Tracker+RICH particle",(fStatus&0x33)==0x31);
+  SELECT("1 Tracker+RICH particle",(fStatus&0x13)==0x11);
   SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
   SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
   SELECT("At least 1 tr track",fStatus&(0x3<<13));
   SELECT("At most 1 crossing particle at rich",ev->pParticle(0)->RichParticles<=1);
   SELECT("At least 3 out of 4 for beta",ev->Particle(0).pBeta()->Pattern<=4);
   SELECT("TOF beta>0.9",ev->Particle(0).pBeta()->Beta>0.9);  
-  SELECT("Has rich ring",ev->Particle(0).pRichRing());
-  RichRingR *ring=ev->Particle(0).pRichRing();
-  SELECT("Ring is good", ring->IsGood());
-  //  SELECT("Beta>BetaCut",ring->Beta>BetaCut); // delayed 
 
   bool layerUsed[10];
   for(int l=0;l<10;l++) layerUsed[l]=false;
