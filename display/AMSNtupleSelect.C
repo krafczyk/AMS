@@ -11,6 +11,10 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+if(ev && ev->nParticle()){
+cout <<ev->Particle(0).TRDCoo[0][2]<<" "<<ev->Particle(0).TRDCoo[1][2]<<endl;
+return true;
+}else return false;
 if(ev && ev->nEcalShower() &&   ev->EcalShower(0).EnergyC>180 &&    ev->EcalShower(0).EnergyC<220 && ev->EcalShower(0).EnergyC/fabs(ev->Particle(0).Momentum)>1 ){
       cout <<ev->Event()<<" "<<ev->EcalShower(0).EnergyC<<endl;
 return true;

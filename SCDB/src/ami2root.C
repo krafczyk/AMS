@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.17 2011/07/06 08:21:35 choutko Exp $
+//  $Id: ami2root.C,v 1.18 2011/12/07 18:04:49 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -315,11 +315,11 @@ retry:
            
 //           tm=true;
 //           goto finish;
-if(retry++>1){
+if(retry++>0){
               continue;
 }
 else{
-             sleep(3);
+             sleep(1);
              goto retry;
 }
          }      
