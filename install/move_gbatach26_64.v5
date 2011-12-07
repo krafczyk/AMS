@@ -1,2 +1,3 @@
 mv $AMSWD/exe/linuxx8664icc/gbatch-orbitPG.exe $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.64
+ln -sf  $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.1.64  $AMSDataDir/DataManagement/exe/linux/gbatch-orbit.exe.v5.00.0.64
 cp $AMSWD/exe/linuxx8664icc/gbatchPG.exe $AMSDataDir/DataManagement/exe/linux

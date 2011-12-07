@@ -9,9 +9,9 @@ else
 unsetenv ADDBUILDNO
 endif
 
-setenv PREFIX /Offline/vdev/install
+setenv PREFIX /Offline/vdev/install 
+setenv TESTFLAG _test
 setenv TESTFLAG 
-
 
 unsetenv MARCH
 unsetenv PGTRACK
@@ -44,9 +44,11 @@ gmake server
 source  $PREFIX/amsvar$TESTFLAG.gcc64
 source  $PREFIX/g4i$TESTFLAG.gcc64
 gmake allp
+echo "qq"
 source $PREFIX/amsvar$TESTFLAG.icc32
 gmake allold 
 setenv MARCH linuxicc26
+setenv PGTRACK 1
 gmake -j
 gmake producer -i
 unsetenv MARCH

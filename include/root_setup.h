@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.29 2011/11/25 22:37:06 mdelgado Exp $
+//  $Id: root_setup.h,v 1.29.2.1 2011/12/07 18:07:09 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -340,7 +340,7 @@ public:
 
 int getScalers(unsigned int time,unsigned int usec );
 void Purge();
-static    AMSSetupR * gethead(){return _Head;}
+static    AMSSetupR * &gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
