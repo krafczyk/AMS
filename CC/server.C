@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.190 2011/11/27 17:44:52 choutko Exp $
+//  $Id: server.C,v 1.191 2011/12/07 18:04:27 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -350,6 +350,9 @@ if(niface){
  if(_orbmap.size()<1){
    FMessage("AMSServer::AMSServer-F-NoInterfacesOpen ",DPS::Client::CInAbort);
  }
+else{
+cout<<" OrbMapSize "<<_orbmap.size()<<endl;
+}
  if(!match){
   FMessage("AMSServer::AMSServer-F-UnableToMatchInterace ",DPS::Client::CInAbort);
  }

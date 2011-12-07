@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.342 2011/12/05 14:54:19 pzuccon Exp $
+//  $Id: root.C,v 1.343 2011/12/07 18:04:27 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4855,6 +4855,7 @@ void AMSEventR::Terminate()
       //_Tree->SetMakeClass(0);
       UTerminate();
       _ClonedTree=0; 
+      _ClonedTreeSetup=0; 
       (*pService)._w.Stop();
       if(fgThickMemory)hjoin();
       cout <<"AMSEventR::Terminate-I-CputimeSpent "<<(*pService)._w.CpuTime()<<" sec"<<endl;
@@ -4957,6 +4958,28 @@ Int_t AMSEventR::Fill()
       i= _ClonedTree->Fill();
 //      cout <<"  i "<<i<<endl;
     }
+
+
+// save root setup here
+
+    if (_ClonedTreeSetup==NULL) {
+        if(_TreeSetup){
+        }
+        else{
+           TFile * input=_Tree->GetCurrentFile();
+         if(input){
+            _TreeSetup=dynamic_cast<TTree*>(input->Get("AMSRootSetup"));
+         }
+        }
+         if(_TreeSetup){
+           _ClonedTreeSetup = _TreeSetup->GetTree()->CloneTree(0);
+           _ClonedTreeSetup->SetDirectory(AMSEventR::OFD());
+            _ClonedTreeSetup->SetBranchAddress("run.",&AMSSetupR::gethead());
+        i= _ClonedTreeSetup->Fill();
+         }
+        }
+    
+
   }
   return i;
 }
@@ -5355,10 +5378,17 @@ master=1;
 }
 
 bool AMSEventR::UpdateSetup(uinteger run){
+beg:
+     bool beg=_EntrySetup==-1;
      while(getsetup() && _TreeSetup && _EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
       _TreeSetup->GetEntry(++_EntrySetup);
      };
-return (getsetup()?getsetup()->fHeader.Run==run:false);
+     bool ret=(getsetup()?getsetup()->fHeader.Run==run:false);
+     if(!ret){
+        _EntrySetup=-1;
+        if(!beg)goto beg;
+     }
+return ret;
 }
 bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
 static int master=0;
@@ -5395,6 +5425,7 @@ bool suc=false;
 
 }
 }
+if(!suc)_EntrySetup=-1;
 master=1;  
 }
  while (master==0){
