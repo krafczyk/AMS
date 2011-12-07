@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.241 2011/11/27 17:44:51 choutko Exp $
+//  $Id: ntuple.C,v 1.241.2.1 2011/12/07 18:07:01 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -982,7 +982,7 @@ else{
 string slf;
 Get_setup02()->getSlowControlFilePath(slf);
 Get_setup02()->updateSlowControlFilePath(slf);
-if(slf!=slc){
+if(slf!=slc&& IOPA.ReadAMI){
 cout<<"  transferring slow control "<<slf<<" "<<slc<<endl;
 #ifdef __CORBA__
 if(!AMSProducer::gethead()->SendFile(slf.c_str(),slc.c_str())){

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.552 2011/12/01 16:28:40 pzuccon Exp $
+//  $Id: event.C,v 1.552.2.1 2011/12/07 18:07:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -184,6 +184,9 @@ if(AMSEvent::get_thread_num()==0)
    }
    DAQEvent::initO(_run,getid(),gettime());
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
+    if(SRun){
+       AMSNtuple::writeRSetup();
+    }
    _reamsinitrun();
 #ifdef _PGTRACK_
    //PZ Book the histos of the Histo facility
@@ -235,9 +238,6 @@ if(AMSEvent::get_thread_num()==0)
        cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*offspring;
       offspring=(AMSTimeID*)offspring->next();
      }
-    }
-    if(SRun){
-       AMSNtuple::writeRSetup();
     }
 #ifndef _PGTRACK_
     //PZ FIXME CALIB
