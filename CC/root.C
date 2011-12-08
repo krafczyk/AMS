@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.343 2011/12/07 18:04:27 choutko Exp $
+//  $Id: root.C,v 1.344 2011/12/08 16:38:28 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4974,13 +4974,18 @@ Int_t AMSEventR::Fill()
          if(_TreeSetup){
            _ClonedTreeSetup = _TreeSetup->GetTree()->CloneTree(0);
            _ClonedTreeSetup->SetDirectory(AMSEventR::OFD());
-            _ClonedTreeSetup->SetBranchAddress("run.",&AMSSetupR::gethead());
+        }
+      }
+      if(_ClonedTreeSetup && _EntrySetup!=-1){
+        _ClonedTreeSetup->SetBranchAddress("run.",&AMSSetupR::gethead());
         i= _ClonedTreeSetup->Fill();
+         cout <<" Setup written for run "<<AMSSetupR::gethead()->fHeader.Run<<" "<<i<<endl;
+         _EntrySetup=-1;
          }
         }
     
 
-  }
+  
   return i;
 }
 
@@ -5418,7 +5423,7 @@ bool suc=false;
      _EntrySetup=-1;
      while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
       _TreeSetup->GetEntry(++_EntrySetup);
-    
+     //cout <<"setup "<<getsetup()->fHeader.Run<<" "<<_EntrySetup<<endl; 
      suc=!(getsetup()->fHeader.Run!=run);
      
 }
