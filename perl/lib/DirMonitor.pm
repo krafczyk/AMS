@@ -109,6 +109,10 @@ sub run{
                 	my @files=`ls -ctr $dir/* 2>/dev/null`;
 	                $num=$#files+1;
         	        #when the number of files in this directory is larger than $max_nfiles, remove old files
+                        my $timenew=time();
+                        my $timeout=300;
+                        my $maxfiles2delete=1000;
+                        my $num0=$num;
                 	if($num>$self->{max_nfiles}){
                         foreach my $file (@files){
                                 chomp $file;
@@ -133,7 +137,11 @@ sub run{
         	                                        $num--;
                 	                        }
                         	}
-                        }
+                                my $time=time();
+                                if($time-$timenow>$timeout ||  $num0-$num> $maxfiles2delete){
+                                    last;
+                                }
+                            }
                         if($num>$self->{warn_level}){
                   	  @files=`ls -ctr $dir/* 2>/dev/null`;
 	                  $num=$#files+1;

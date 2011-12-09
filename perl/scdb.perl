@@ -12,8 +12,8 @@ my $len=86400*2;
 my $v=0;
 my $HelpTxt=" -min -max -len ";
 $ENV{AMISERVER}="http://pcamss0.cern.ch:8081";
-my $scdbp="/afs/cern.ch/ams/local/bin/timeout --signal 9 3600 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe ";
-my $tmout=1200;
+my $scdbp="/afs/cern.ch/ams/local/bin/timeout --signal 9 7200 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe ";
+my $tmout=7200;
 my $force=0;
 
    foreach my $chop  (@ARGV){
