@@ -109,7 +109,7 @@ sub run{
                 	my @files=`ls -ctr $dir/* 2>/dev/null`;
 	                $num=$#files+1;
         	        #when the number of files in this directory is larger than $max_nfiles, remove old files
-                        my $timenew=time();
+                        my $timenow=time();
                         my $timeout=300;
                         my $maxfiles2delete=1000;
                         my $num0=$num;
