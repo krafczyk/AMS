@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.30 2011/12/07 18:01:13 choutko Exp $
+//  $Id: root_setup.h,v 1.31 2011/12/09 17:51:32 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -170,7 +170,7 @@ public:
 unsigned int Run;  ///< Run
 unsigned int Event;  ///<Event
 vector<unsigned int> Epoche; ///< GPS Time Epoche Format
-ClassDef(GPS,1)
+ClassDef(GPS,2)
 };
 
 class ISSData{
@@ -357,7 +357,7 @@ static    AMSSetupR * & gethead(){return _Head;}
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
  int LoadDynAlignment(unsigned int run);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,13)       //AMSSetupR
+ClassDef(AMSSetupR,14)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

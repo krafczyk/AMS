@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.395 2011/11/03 09:10:20 choutko Exp $
+//  $Id: root.h,v 1.396 2011/12/09 17:51:32 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -17,6 +17,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include <map>
 #include <list>
 #include <vector>
 #include <iostream>
@@ -1264,7 +1265,6 @@ ClassDef(RichHitR,6)       // RichHitR
 
 //!  Rich Ring Structure
 
-#include <map>
 #include "TH1F.h"
 
 /*!
@@ -2748,6 +2748,7 @@ static vector<unsigned int>RunType;
 static vector<unsigned int>BadRunList; 
 static unsigned int MinRun;
 static unsigned int MaxRun;
+static int ProcessSetup;
 static bool isBadRun(unsigned int run);
 static bool RunTypeSelected(unsigned int runtype);
 protected:
@@ -2896,10 +2897,16 @@ static int         _Count;
 static int _NFiles;
 static int         _Entry;
 static int _EntrySetup;
+
+struct MY_TLS_ITEM{
+  std::map<unsigned int,int> theMap;
+};
+
+static MY_TLS_ITEM _RunSetup;
 static char      * _Name;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(_Tree,_Entry,_Head)
-#pragma omp threadprivate(_TreeSetup,_EntrySetup)
+#pragma omp threadprivate(_TreeSetup,_EntrySetup,_RunSetup)
 #endif
 public:
 static unsigned long long & Lock(){return 

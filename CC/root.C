@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.344 2011/12/08 16:38:28 choutko Exp $
+//  $Id: root.C,v 1.345 2011/12/09 17:51:29 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1445,6 +1445,7 @@ int AMSEventR::_NFiles=-1;
 int AMSEventR::_Entry=-1;
 unsigned long long  AMSEventR::_Lock=0;
 int AMSEventR::_EntrySetup=-1;
+AMSEventR::MY_TLS_ITEM  AMSEventR::_RunSetup;
 char* AMSEventR::_Name="ev.";   
 
 // Dynamic calibration
@@ -5383,16 +5384,28 @@ master=1;
 }
 
 bool AMSEventR::UpdateSetup(uinteger run){
+/*
+int ttry=0; 
 beg:
      bool beg=_EntrySetup==-1;
      while(getsetup() && _TreeSetup && _EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
       _TreeSetup->GetEntry(++_EntrySetup);
-     };
+      if(ttry==0 || getsetup()->fHeader.Run!=run){
+       --_EntrySetup;
+      _TreeSetup->GetEntry(--_EntrySetup);
+      ttry=1;
+      }
+  }
      bool ret=(getsetup()?getsetup()->fHeader.Run==run:false);
      if(!ret){
         _EntrySetup=-1;
         if(!beg)goto beg;
      }
+*/
+map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
+     bool ret=it!=_RunSetup.theMap.end();
+     if(ret)_TreeSetup->GetEntry(it->second);
+
 return ret;
 }
 bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
@@ -5421,12 +5434,36 @@ bool suc=false;
      }
    }
      _EntrySetup=-1;
-     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
-      _TreeSetup->GetEntry(++_EntrySetup);
-     //cout <<"setup "<<getsetup()->fHeader.Run<<" "<<_EntrySetup<<endl; 
-     suc=!(getsetup()->fHeader.Run!=run);
-     
-}
+     _RunSetup.theMap.clear();
+     int entry=-1;
+     _TreeSetup->SetBranchStatus("*",false);
+     if(ProcessSetup>0){
+     _TreeSetup->SetBranchStatus("run.fHeader",true);
+     while(entry+1<_TreeSetup->GetEntries() ) {
+      _TreeSetup->GetEntry(++entry);   
+      map <unsigned int,int>::iterator it= _RunSetup.theMap.find(getsetup()->fHeader.Run);
+      
+      if(it==_RunSetup.theMap.end()){
+        _RunSetup.theMap[getsetup()->fHeader.Run]=entry;
+      }
+      else{
+       unsigned int levent=getsetup()->fHeader.LEvent;
+        _TreeSetup->GetEntry(it->second);
+        if(levent>getsetup()->fHeader.LEvent){
+          _TreeSetup->GetEntry(entry);   
+          _RunSetup.theMap[getsetup()->fHeader.Run]=entry;
+        }
+       }
+     }
+     }
+     if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
+      map <unsigned int,int>::iterator it=_RunSetup.theMap.find(run);
+     suc=it!=_RunSetup.theMap.end();
+     if(suc)_TreeSetup->GetEntry(it->second);
+//     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
+//      _TreeSetup->GetEntry(++_EntrySetup);
+//     suc=!(getsetup()->fHeader.Run!=run);
+//     }
 
 }
 }
@@ -5479,7 +5516,8 @@ vector <unsigned int>AMSEventR::RunType;
 vector <unsigned int>AMSEventR::BadRunList;
 
 unsigned int AMSEventR::MinRun=0;
-unsigned int AMSEventR::MaxRun=INT_MAX;
+unsigned int AMSEventR::MaxRun=4294967295;
+int AMSEventR::ProcessSetup=2;
 
 bool AMSEventR::isBadRun(unsigned int run){
  
