@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.162.2.1 2011/12/05 10:57:47 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.162.2.2 2011/12/12 15:25:01 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2248,11 +2248,11 @@ void AMSEcalShower::DirectionFit(){
   number cl,ct;
   if(_Direction==0){
     ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,_EntryPoint[2]);
-    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,2,0,pr,pl,ce,ct,cl,_ExitPoint[2]);
+    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,0,2,pr,pl,ce,ct,cl,_ExitPoint[2]);
   }
   else{
     ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,_ExitPoint[2]);
-    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,2,0,pr,pl,ce,ct,cl,_EntryPoint[2]);
+    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,0,2,pr,pl,ce,ct,cl,_EntryPoint[2]);
   }
   bool zcorr[2]={true,true};      
   for (int proj=0;proj<2;proj++){
