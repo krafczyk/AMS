@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.164 2011/12/12 15:05:46 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.165 2011/12/12 15:15:23 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -1097,11 +1097,11 @@ integer AMSEcalHit::Smooth(){
 
   const integer  maxpl=2*ECALDBc::slstruc(3);//real planes
   const integer Maxcell=2*ecalconst::ECPMSMX;//numebr of cells
-  number maxfractions1s3 = ECREFFKEY.maxs1s3; // max s1s3 fraction to not reject the hit
-  number maxfractions1s6 = ECREFFKEY.maxs1s6; // max s1s6 fraction to not reject the hit
+  const number maxfractions1s3 = 0.98; // max s1s3 fraction to not reject the hit
+  const number maxfractions1s6 = 0.98; // max s1s6 fraction to not reject the hit
 
-  number enemins1s3 = ECREFFKEY.Emins1s3; // 1000 MeV s1s3 
-  number enemins1s6 = ECREFFKEY.Emins1s6; // 1000 MeV s1s6
+  number enemins1s3 = 1000; // 1000 MeV s1s3 
+  number enemins1s6 = 1000; // 1000 MeV s1s6
   bool badfractions1s3 = false;
   bool badfractions1s6 = false;
   number planemap[Maxcell];
@@ -2251,7 +2251,8 @@ void AMSEcalShower::DirectionFit(){
     ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,0,2,pr,pl,ce,ct,cl,_ExitPoint[2]);
   }
   else{
-    ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,_ExitPoint[2]);   
+    ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,_ExitPoint[2]);
+    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,0,2,pr,pl,ce,ct,cl,_EntryPoint[2]);
   }
   bool zcorr[2]={true,true};      
   for (int proj=0;proj<2;proj++){
