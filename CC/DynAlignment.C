@@ -701,6 +701,7 @@ void DynAlContinuity::Fill(TString dir,TString prefix,int run){
 #ifdef VERBOSE__
   cout<<"     READ "<<h->Size()<<" events"<<endl;
 #endif
+  delete h;
   file.Close();
 }
 
@@ -1171,6 +1172,9 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       dynAlFitContainers[9]=*l9;
       dynAlFitContainers[1].Layer=1;
       dynAlFitContainers[9].Layer=9;
+      delete l1;
+      delete l9;
+      file.Close();
     }else{
       // Look for the AMSSetup object and try to get the containers from it
       cout<<"IN DynAlManager::UpdateParameters. Trying to  update run "<<run<<" time "<<time<<endl;
