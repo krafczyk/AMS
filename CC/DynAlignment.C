@@ -517,8 +517,8 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
   if(!DynAlEvent::buildEvent(*ev,layer,event)) return false;
   if(event.Id<0) return false;
   event.extrapolateTrack();
-  if(fabs(event.RawHit[0]-event.TrackHit[0])>1 ||
-     fabs(event.RawHit[1]-event.TrackHit[1])>1) return false;
+  if(fabs(event.RawHit[0]-event.TrackHit[0])>5 ||
+     fabs(event.RawHit[1]-event.TrackHit[1])>5) return false;
 
   return true;
 #undef SELECT
