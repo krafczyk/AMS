@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.346 2011/12/16 10:04:29 choutko Exp $
+//  $Id: root.C,v 1.347 2011/12/16 14:22:33 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -640,7 +640,7 @@ void AMSEventR::hfp(int idd, float a, float w=1){
   if(i1 != Service::hbp.end()){
     if(fgThickMemory)i1->second->Fill(a,w);
     else{
-#pragma omp critical (hfp)
+//#pragma omp critical (hfp)
       i1->second->Fill(a,w);
     }
   }
@@ -5337,8 +5337,8 @@ int ret=0;
 
 
   char * HeaderR::Info(unsigned long long status){
-                         if(Pitch==0 & Yaw==0 && Roll==0){
-                            int ret=getISSAtt(Roll,Pitch,Yaw);
+                         if(Pitch==0 && Yaw==0 && Roll==0){
+                            int ret=getISSAtt();
                           }
                          double cp=cos(Pitch);
                          double sp=sin(Pitch);
@@ -5744,6 +5744,14 @@ unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
 double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
 return AMSEventR::getsetup()->getISSAtt(roll,pitch,yaw,xtime);
+
+}
+int HeaderR::getISSAtt(){
+unsigned int gpsdiff=15;
+if(!AMSEventR::getsetup())return 2;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+
+return AMSEventR::getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
 
 }
 

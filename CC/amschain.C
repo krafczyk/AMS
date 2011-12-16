@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.46 2011/12/05 09:39:54 choutko Exp $
+//  $Id: amschain.C,v 1.47 2011/12/16 14:22:33 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -290,8 +290,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     if(ntree>fNtrees)ntree=fNtrees;
     nentries=10000000000LL;
   }
-  typedef multimap<uinteger,TString> fmap_d;
-  typedef multimap<uinteger,TString>::iterator fmapi;
+  typedef multimap<uinteger,TChainElement*> fmap_d;
+  typedef multimap<uinteger,TChainElement*>::iterator fmapi;
   fmap_d fmap;
   for(int i=0;i<fNtrees;i++){
     TString t1("/");
@@ -308,7 +308,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
              break;
          }
     }
-    if(!bad && k>=AMSEventR::MinRun && k<AMSEventR::MaxRun)fmap.insert(make_pair(k,name) );
+    if(!bad && k>=AMSEventR::MinRun && k<AMSEventR::MaxRun)fmap.insert(make_pair(k,(TChainElement*) fFiles->At(i)) );
     delete arr;
     delete ar1;
   }
@@ -347,16 +347,18 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 #ifdef CASTORSTATIC
         TRegexp d("^root:",false);
         TRegexp e("^rfio:",false);
-        if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
-        else if(it->second.Contains(e))file=new TRFIOFile(it->second.Data(),"READ");
-        else file=new TFile(it->second.Data(),"READ");
+       TString name(it->second->GetTitle());
+          
+        if(name.Contains(d))file=new TXNetFile(it->second->GetTitle(),"READ");
+        else if(name.Contains(e))file=new TRFIOFile(it->second->GetTitle(),"READ");
+        else file=new TFile(it->second->GetTitle(),"READ");
 #else 
-	file= TFile::Open(it->second.Data(),"READ");
+	file= TFile::Open(it->second->GetTitle(),"READ");
 #endif
           tree=0;
-	if(file)tree=(TTree*)file->Get(_NAME);
+	if(file)tree=(TTree*)file->Get(it->second->GetName());
         if(!tree){
-          cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
+          cerr<<"  AMSChain::Process-E-NoTreeFound file tree "<<it->second->GetTitle()<<" "<<it->second->GetName()<<endl;
 	}
 	else{
 	  curp->SetOption(option);

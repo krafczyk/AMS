@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.397 2011/12/16 10:04:34 choutko Exp $
+//  $Id: root.h,v 1.398 2011/12/16 14:22:34 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -307,6 +307,7 @@ int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, floa
 int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
+int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
