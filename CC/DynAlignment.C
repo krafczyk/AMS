@@ -1,3 +1,4 @@
+//  $Id: DynAlignment.C,v 1.17 2011/12/16 14:21:36 choutko Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1124,7 +1125,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       }
       AMSSetupR::DynAlignment_m &pars=setup->fDynAlignment;
       if(pars.find(1)==pars.end() || pars.find(9)==pars.end()){
-	cout<<"DynAlManager::UpdateParameters-W-Parameters seem to be missing"<<endl;
+	cout<<"DynAlManager::UpdateParameters-W-Parameters seem to be missing "<<currentRun<<endl;
 	skipRun=currentRun;
 	return false;
       }
@@ -1146,16 +1147,22 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
     // If the directory name is not empty go ahead
     if(dir.Length()){
       // Update the map
+      bool suc=true;
+ {
+
+#pragma omp critical 
+{
+//      cout <<" start "<<currentRun<<endl;
       int subdir=DynAlContinuity::getBin(currentRun);
-      TFile file(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
-      DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
-      DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
+      TFile *file= new TFile(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
+      if(file){
+      DynAlFitContainer *l1=(DynAlFitContainer*)file->Get("layer_1");
+      DynAlFitContainer *l9=(DynAlFitContainer*)file->Get("layer_9");
       if(!l1 || !l9){
 	cout<<"DynAlFitContainer::UpdateParameters-W-Unable to get \"layer_1\" and \"layer_9\" objects from "<<(Form("%s/%i/%i",dir.Data(),subdir,currentRun))<<endl;
-	skipRun=currentRun;
-	return false;
+	suc=false;
       }
-
+      else{
       if(time<=0){
 	cout<<"DynAlFitContainer::UpdateParameters--M--Reading file "<<Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun)<<endl;
       }
@@ -1166,8 +1173,18 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       dynAlFitContainers[9].Layer=9;
       delete l1;
       delete l9;
-      file.Close();
-    }else{
+      file->Close();
+      delete file;
+      }
+}
+}
+}
+if(!suc){
+	skipRun=currentRun;
+        return false; 
+}
+}
+else{
       // Look for the AMSSetup object and try to get the containers from it
       cout<<"IN DynAlManager::UpdateParameters. Trying to  update run "<<run<<" time "<<time<<endl;
       return false;
