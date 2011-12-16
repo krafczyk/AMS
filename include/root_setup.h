@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.31 2011/12/09 17:51:32 choutko Exp $
+//  $Id: root_setup.h,v 1.32 2011/12/16 10:04:34 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -295,6 +295,20 @@ static AMSSetupR * _Head;
 #endif
 static int _select (const dirent64 * entry);
 public:
+         //! ISS Att roll,pitch,yaw accessor
+	/*! 
+            
+
+	 \param double xtime (unix time + fraction of second)
+         \param roll,pitch,yaw interpolated values      
+	   
+             
+           \return 
+               0   ok (interpolation)
+               1   ok  (extrapolation)
+               2   no data                  
+	 */
+  int getISSAtt( float& roll,float&pitch,float&yaw, double xtime); 
          //! ISS Coo & Velocity CTRS accessor
 	/*! 
             

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.396 2011/12/09 17:51:32 choutko Exp $
+//  $Id: root.h,v 1.397 2011/12/16 10:04:34 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -306,52 +306,15 @@ int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, floa
 
 int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
 
+int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
+
   //#ifdef _PGTRACK_
   friend class VCon_root;
   //#endif
    /*!
     \return human readable info about HeaderR
   */
-  char * Info(unsigned long long status){
-                         double cp=cos(Pitch);
-                         double sp=sin(Pitch);
-                         double cy=cos(Yaw);
-                         double sy=sin(Yaw);
-                         double cr=cos(Roll);
-                         double sr=sin(Roll);
-                         const float angle=-10./180*3.1415926;
-                         double crp=cos(angle);
-                         double srp=sin(angle);     
-                         double cams=(-sr*sy*sp+cr*cp)*crp+srp*sr*cy;
-                         cams=acos(cams)*180/3.1415926; 
-                         unsigned int comp=0;
-                         unsigned long long one=1;
-                         char bits[66];
-                         for(int k=0;k<32;k++){
-                          if(status&(one<<k))bits[k]='1';
-                          else bits[k]='0';
-                         }
-                         bits[32]=' ';
-                         for(int k=32;k<64;k++){
-                          if(status&(one<<k))bits[k+1]='1';
-                          else bits[k+1]='0';
-                         }
-                         bits[65]='\0';  
-                       for(int i=0;i<6;i++){
-                          if(status&(1<<(i+2)))comp+=int(pow(10.,i));
-                         }
-    float alpha,b1a,b3a,b1b,b3b;
-    alpha=0;
-    b1a=0;
-    b3a=0;
-    int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
-    float r,phi,theta,v,vphi,vtheta;
-    int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
-
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
-  return _Info;
-  }
+  char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
   ClassDef(HeaderR,18)       //HeaderR
@@ -2781,6 +2744,9 @@ Service():_pOut(0),_pDir(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 public:
 static bool fgThickMemory;
 static int fgThreads;
+ static TFile* fgOutSep[32];
+ static TDirectory* fgOutSepDir[32];
+static int fgSeparateOutputFile;  //< 0 one file ; 1 one file different directories ;2 diff files 
 static TString gWDir;
 long long Size();
      union if_t{
@@ -2889,8 +2855,8 @@ static void*  vAux;
 
 static TTree     * _Tree;
 static TTree     * _TreeSetup;
-static TTree     * _ClonedTree;
-static TTree     * _ClonedTreeSetup;
+static TTree     * _ClonedTree[32];   //max 32 threads
+static TTree     * _ClonedTreeSetup[32]; //max 32 threads
 static unsigned long long  _Lock;
 static AMSEventR * _Head;
 static int         _Count;
@@ -3002,7 +2968,7 @@ bool GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_
  void SetCont(); 
  int & Entry(){return _Entry;}
  static TTree* & Tree()  {return _Tree;}
- static TTree* & ClonedTree()  {return _ClonedTree;}
+// static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
  TFile* & OutputFile(){return (*pService)._pOut;};
  static TDirectory *OFD(){ return pService?(*pService)._pDir:0;}

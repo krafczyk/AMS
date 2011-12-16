@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.50 2011/11/25 23:20:55 mdelgado Exp $
+//  $Id: root_setup.C,v 1.51 2011/12/16 10:04:29 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -984,10 +984,10 @@ return fScalersReturn.size();
 
 
 int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
-#ifdef __ROOTSHAREDLIBRARY__
-return 0;
-}
-#else
+//#ifdef __ROOTSHAREDLIBRARY__
+//return 0;
+//}
+//#else
 
  char AMSISSlocal[]="/afs/cern.ch/ams/local/altec/";
 char * AMSISS=getenv("AMSISS");
@@ -1124,7 +1124,7 @@ else ret=1;
 
 return ret;
 }
-#endif
+//#endif
 
 int AMSSetupR::getISSSA(AMSSetupR::ISSSA & a, double xtime){
 if (fISSSA.size()==0)return 2;
@@ -1216,6 +1216,48 @@ return 1;
 }
 
 
+  return 0;
+
+
+}
+
+int AMSSetupR::getISSAtt(float &roll, float&pitch,float &yaw,double xtime){
+if(fISSAtt.size()==0){
+if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
+}
+else LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+if(fISSAtt.size()==0)return 2;
+}
+AMSSetupR::ISSAtt_i k=fISSAtt.lower_bound(xtime);
+if(k==fISSAtt.begin()){
+roll=k->second.Roll;
+pitch=k->second.Pitch;
+yaw=k->second.Yaw;
+return 1;
+}
+if(k==fISSAtt.end()){
+k--;
+roll=k->second.Roll;
+pitch=k->second.Pitch;
+yaw=k->second.Yaw;
+return 1;
+}
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  AMSSetupR::ISSAtt_i l=k;
+  l++;
+  tme[1]=l->first;
+  s0[0]=k->second.Roll;
+  s0[1]=l->second.Roll;
+  roll=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=k->second.Pitch;
+  s0[1]=l->second.Pitch;
+  pitch=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  s0[0]=k->second.Yaw;
+  s0[1]=l->second.Yaw;
+  yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   return 0;
 
 

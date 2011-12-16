@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.242 2011/12/07 18:04:27 choutko Exp $
+//  $Id: ntuple.C,v 1.243 2011/12/16 10:04:29 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -882,37 +882,10 @@ return false;
 
 
 int AMSNtuple::ISSAtt(float &roll, float&pitch, float &yaw,double xtime){
-if(!Get_setup02() || Get_setup02()->fISSAtt.size()==0)return 2;
-AMSSetupR::ISSAtt_i k=Get_setup02()->fISSAtt.lower_bound(xtime);
-if(k==Get_setup02()->fISSAtt.begin()){
-roll=k->second.Roll;
-pitch=k->second.Pitch;
-yaw=k->second.Yaw;
-return 1;
+if(!Get_setup02())return 2;
+else {
+ return Get_setup02()->getISSAtt(roll,pitch,yaw,xtime);
 }
-if(k==Get_setup02()->fISSAtt.end()){
-k--;
-roll=k->second.Roll;
-pitch=k->second.Pitch;
-yaw=k->second.Yaw;
-return 1;
-}
-  float s0[2]={-1.,-1};
-  double tme[2]={0,0};
-  tme[0]=k->first;
-  AMSSetupR::ISSAtt_i l=k;
-  l++;
-  tme[1]=l->first;
-  s0[0]=k->second.Roll;
-  s0[1]=l->second.Roll;
-  roll=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  s0[0]=k->second.Pitch;
-  s0[1]=l->second.Pitch;
-  pitch=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  s0[0]=k->second.Yaw;
-  s0[1]=l->second.Yaw;
-  yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  return 0;
 }   
  
 

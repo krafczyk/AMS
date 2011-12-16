@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.345 2011/12/09 17:51:29 choutko Exp $
+//  $Id: root.C,v 1.346 2011/12/16 10:04:29 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -105,6 +105,13 @@ AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 //char AMSEventR::Service::Dir[]="";
 bool AMSEventR::fgThickMemory=false;
+TFile* AMSEventR::fgOutSep[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+TDirectory* AMSEventR::fgOutSepDir[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+#ifndef __ROOTSHAREDLIBRARY__
+int AMSEventR::fgSeparateOutputFile=0;
+#else
+int AMSEventR::fgSeparateOutputFile=2;
+#endif
 int AMSEventR::fgThreads=1;
 TString AMSEventR::Dir="";
 TString AMSEventR::gWDir="";
@@ -1436,8 +1443,8 @@ char HeaderR::_Info[255];
 
 TTree*     AMSEventR::_Tree=0;
 TTree*     AMSEventR::_TreeSetup=0;
-TTree*     AMSEventR::_ClonedTree=0;
-TTree*     AMSEventR::_ClonedTreeSetup=0;
+TTree*     AMSEventR::_ClonedTree[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+TTree*     AMSEventR::_ClonedTreeSetup[32]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 AMSEventR* AMSEventR::_Head=0;
 AMSEventR::Service*    AMSEventR::pService=0;
 int AMSEventR::_Count=0;
@@ -4855,10 +4862,10 @@ void AMSEventR::Terminate()
       // Function called at the end of the event loop.
       //_Tree->SetMakeClass(0);
       UTerminate();
-      _ClonedTree=0; 
-      _ClonedTreeSetup=0; 
       (*pService)._w.Stop();
       if(fgThickMemory)hjoin();
+      for(int k=0;k<sizeof(_ClonedTree)/sizeof(_ClonedTree[0]);k++)_ClonedTree[k]=0;
+      for(int k=0;k<sizeof(_ClonedTreeSetup)/sizeof(_ClonedTreeSetup[0]);k++)_ClonedTreeSetup[k]=0;
       cout <<"AMSEventR::Terminate-I-CputimeSpent "<<(*pService)._w.CpuTime()<<" sec"<<endl;
       cout <<"AMSEventR::Terminate-I-Total/Bad "<<(*pService).TotalEv<<"/"<<(*pService).BadEv<<" events processed "<<endl;
       cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<(*pService).TotalTrig<<" triggers processed "<<endl;
@@ -4866,6 +4873,15 @@ void AMSEventR::Terminate()
 	(*pService)._pDir->cd(); 
 	(*pService)._pOut->Write();
 	cout <<"AMSEventR::Terminate-I-WritedFile "<<GetOption()<<endl;
+      for(int k=0;k<sizeof(fgOutSep)/sizeof(fgOutSep[0]);k++){
+	if(fgOutSep[k]){
+         fgOutSep[k]->Write();
+         fgOutSep[k]->Close();
+ 	cout <<"AMSEventR::Terminate-I-ClosedFile "<<fgOutSep[k]->GetName()<<endl;
+         delete fgOutSep[k];
+         fgOutSep[k]=0;
+      }        
+      }
           hdelete(0);
 	 (*pService)._pOut->Close();
 	cout <<"AMSEventR::Terminate-I-ClosedFile "<<(*pService)._pOut->GetName()<<endl;
@@ -4894,6 +4910,7 @@ void AMSEventR::Terminate()
 
 
   
+         delete (*pService)._pOut;
 	(*pService)._pOut=0;
 	//for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 	//delete i->second;
@@ -4920,8 +4937,12 @@ Int_t AMSEventR::Fill()
   int i;
 #pragma omp critical 
   {
-//    cout <<"  cloned treee "<<_ClonedTree<<endl;
-    if (_ClonedTree==NULL) {
+  int thr=0;
+#ifdef _OPENMP
+  if(fgSeparateOutputFile)thr=omp_get_thread_num();
+#endif
+   
+    if (_ClonedTree[thr]==NULL) {
   TFile * input=_Tree->GetCurrentFile();
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
   char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
@@ -4938,12 +4959,35 @@ Int_t AMSEventR::Fill()
    obj2=(TObjString*)input->Get("AMS02Geometry");
    obj3=(TObjString*)input->Get("DataCards");
   }
-      _ClonedTree = _Tree->GetTree()->CloneTree(0);
+      _ClonedTree[thr] = _Tree->GetTree()->CloneTree(0);
 //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
-      AMSEventR::_ClonedTree->SetDirectory(AMSEventR::OFD());
       TDirectory *gdir=gDirectory;
+if(thr!=0){
+  if(!fgOutSep[thr]){
+  char dir[1024];
+  sprintf(dir,"_%d",thr);
+	  string fname(GetOption());
+          fname+=dir;
+          TFile *f=new TFile(fname.c_str(),"RECREATE");
+          if(!f){
+           cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
+           thr=0;
+          }  
+          else{
+           fgOutSep[thr]=f;
+           AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+           fgOutSepDir[thr]=gDirectory;
+          }
+    }
+    else{
+      AMSEventR::_ClonedTree[thr]->SetDirectory(fgOutSepDir[thr]);
+      gDirectory=fgOutSepDir[thr];
+    }
+if(thr==0){
+      AMSEventR::_ClonedTree[thr]->SetDirectory(AMSEventR::OFD());
       gDirectory=AMSEventR::OFD();
-
+}
+}
       cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
            if(obj3)obj3->Write("DataCards");
@@ -4955,15 +4999,16 @@ Int_t AMSEventR::Fill()
 //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
 
     {
-      _ClonedTree->SetBranchAddress(_Name,&Head());
-      i= _ClonedTree->Fill();
-//      cout <<"  i "<<i<<endl;
+      _ClonedTree[thr]->SetBranchAddress(_Name,&Head());
+      i= _ClonedTree[thr]->Fill();
+//      cout <<"  i "<<i<<" thr "<<thr<<endl;
     }
 
 
 // save root setup here
 
-    if (_ClonedTreeSetup==NULL) {
+      TDirectory *gdir=gDirectory;
+    if (_ClonedTreeSetup[thr]==NULL) {
         if(_TreeSetup){
         }
         else{
@@ -4973,13 +5018,38 @@ Int_t AMSEventR::Fill()
          }
         }
          if(_TreeSetup){
-           _ClonedTreeSetup = _TreeSetup->GetTree()->CloneTree(0);
-           _ClonedTreeSetup->SetDirectory(AMSEventR::OFD());
+           _ClonedTreeSetup[thr] = _TreeSetup->GetTree()->CloneTree(0);
+if(thr!=0){
+  if(!fgOutSep[thr]){
+  char dir[1024];
+  sprintf(dir,"_%d",thr);
+	  string fname(GetOption());
+          TFile *f=new TFile(fname.c_str(),"RECREATE");
+          if(!f){
+           cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
+           thr=0;
+          }  
+          else{
+           fgOutSep[thr]=f;
+           AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(gDirectory);
+           fgOutSepDir[thr]=gDirectory;
+          }
+}
+else{
+      AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(fgOutSepDir[thr]);
+      gDirectory=fgOutSepDir[thr];
+}
+}
+if(thr==0){
+      AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(AMSEventR::OFD());
+}
         }
-      }
-      if(_ClonedTreeSetup && _EntrySetup!=-1){
-        _ClonedTreeSetup->SetBranchAddress("run.",&AMSSetupR::gethead());
-        i= _ClonedTreeSetup->Fill();
+}
+        gDirectory=gdir;
+      
+      if(_ClonedTreeSetup[thr] && _EntrySetup!=-1){
+        _ClonedTreeSetup[thr]->SetBranchAddress("run.",&AMSSetupR::gethead());
+        i= _ClonedTreeSetup[thr]->Fill();
          cout <<" Setup written for run "<<AMSSetupR::gethead()->fHeader.Run<<" "<<i<<endl;
          _EntrySetup=-1;
          }
@@ -5266,6 +5336,52 @@ int ret=0;
 
 
 
+  char * HeaderR::Info(unsigned long long status){
+                         if(Pitch==0 & Yaw==0 && Roll==0){
+                            int ret=getISSAtt(Roll,Pitch,Yaw);
+                          }
+                         double cp=cos(Pitch);
+                         double sp=sin(Pitch);
+                         double cy=cos(Yaw);
+                         double sy=sin(Yaw);
+                         double cr=cos(Roll);
+                         double sr=sin(Roll);
+                   
+                         const float angle=-12./180*3.1415926;
+                         double crp=cos(angle);
+                         double srp=sin(angle);     
+                         double cams=(-sr*sy*sp+cr*cp)*crp+srp*sr*cy;
+                         cams=acos(cams)*180/3.1415926; 
+                         unsigned int comp=0;
+                         unsigned long long one=1;
+                         char bits[66];
+                         for(int k=0;k<32;k++){
+                          if(status&(one<<k))bits[k]='1';
+                          else bits[k]='0';
+                         }
+                         bits[32]=' ';
+                         for(int k=32;k<64;k++){
+                          if(status&(one<<k))bits[k+1]='1';
+                          else bits[k+1]='0';
+                         }
+                         bits[65]='\0';  
+                       for(int i=0;i<6;i++){
+                          if(status&(1<<(i+2)))comp+=int(pow(10.,i));
+                         }
+    float alpha,b1a,b3a,b1b,b3b;
+    alpha=0;
+    b1a=0;
+    b3a=0;
+    int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
+    float r,phi,theta,v,vphi,vtheta;
+    int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
+
+                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
+			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
+  return _Info;
+  }
+
+
 
 char * ParticleR::Info(int number, AMSEventR* pev){
   double anti=AntiCoo[0][2];
@@ -5459,7 +5575,10 @@ bool suc=false;
      if(ProcessSetup>1)_TreeSetup->SetBranchStatus("*",true);
       map <unsigned int,int>::iterator it=_RunSetup.theMap.find(run);
      suc=it!=_RunSetup.theMap.end();
-     if(suc)_TreeSetup->GetEntry(it->second);
+     if(suc){
+          _TreeSetup->GetEntry(it->second);
+          _EntrySetup=it->second;
+     } 
 //     while(_EntrySetup+1<_TreeSetup->GetEntries() && (getsetup()->fHeader.Run!=run)) {
 //      _TreeSetup->GetEntry(++_EntrySetup);
 //     suc=!(getsetup()->fHeader.Run!=run);
@@ -5617,6 +5736,14 @@ v=a.v;
 vphi=a.vphi;
 vtheta=a.vtheta;
 return ret;
+
+}
+
+int HeaderR::getISSAtt(float & roll, float &pitch, float &yaw){
+unsigned int gpsdiff=15;
+if(!AMSEventR::getsetup())return 2;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff;
+return AMSEventR::getsetup()->getISSAtt(roll,pitch,yaw,xtime);
 
 }
 
