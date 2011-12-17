@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.17 2011/12/16 14:21:36 choutko Exp $
+//  $Id: DynAlignment.C,v 1.18 2011/12/17 04:01:30 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -58,7 +58,30 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   TrRecHitR *hitp=0;
 
 #ifdef _PGTRACK_
-  hitp=track.GetHitLJ(layer);
+  //  hitp=track.GetHitLJ(layer);
+
+  // Try to avoid biasing due to a wrong window in pattern recognition by building our own pattern recognition
+  // We delegate thet election of the proper range to the DoFit function  
+  // This also guarantees that the alignment does not depend in such parameters
+  int trId=track.iTrTrackPar(1,3,3);
+  if(trId<0) return false;
+  double bestDist=HUGE_VAL;
+  for(int hi=0;hi<ev.nTrRecHit();hi++){
+    TrRecHitR &hit=ev.TrRecHit(hi);
+    if(hit.GetLayerJ()!=layer) continue;
+    if(hit.FalseX() || hit.OnlyY() || hit.OnlyX()) continue;
+    int imult=hit.GetResolvedMultiplicity();	
+    AMSPoint punto=hit.GetGlobalCoordinate(imult,"A");
+    AMSPoint pnt;
+    AMSDir dir;
+    track.Interpolate(punto[2],pnt,dir,trId);
+    double d=pnt.dist(punto);
+    if(d<bestDist) {bestDist=d;hitp=&hit;}
+  }
+
+
+
+
 #else
   int whichHit=-1;
   for(int hi=0;hi<track.NTrRecHit();hi++){
@@ -108,14 +131,19 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   ///////////////////////////////////////////////////////////////////////
 
 #ifdef _PGTRACK_
-  int id=track.iTrTrackPar(1,3,3);
-  if(id<0) return false;
+  //  int id=track.iTrTrackPar(1,3,3);
+  //  if(id<0) return false;
+  int &id=trId;
   const TrTrackPar &trPar=track.gTrTrackPar(id);
   track.Interpolate(event.RawHit[2], pnt, dir, id) ;
   for(int i=0;i<3;i++) event.TrackHit[i]=pnt[i];
   event.TrackTheta=dir.gettheta();
   event.TrackPhi=dir.getphi();
   event.Rigidity=trPar.Rigidity;
+
+  //  if(1e4*fabs(event.RawHit[0]-event.TrackHit[0])>5*sqrt(100*100+5000*5000/event.Rigidity/event.Rigidity)) return false;
+
+
 #else
   TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
   int id=track.iTrTrackFit(fit,0);
@@ -300,29 +328,49 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
 
 
   /////////////////////////////////////////////
-  // Exclude outliers
- 
-  double sum[2]={0,0};
-  double sum2[2]={0,0};
-  int totalCount=0;
+  // Exclude outliers and symmetrice the pdf
+  
+  // Get the median
+  vector<float> delta[2];
   for(int i=first;i<=last;i++){
-    if(excluded.count(i)) continue;
+      if(excluded.count(i)) continue;
+      for(int j=0;j<2;j++) delta[j].push_back(history.Events.at(i).RawHit[j]-history.Events.at(i).TrackHit[j]);
+  }
+  
+  if(delta[0].size()>2 && delta[1].size()>2){
+    for(int j=0;j<2;j++) sort(delta[j].begin(),delta[j].end());
+    
+    double median[2];
     for(int j=0;j<2;j++){
-      sum[j]+=history.Events.at(i).RawHit[j];
-      sum2[j]+=history.Events.at(i).RawHit[j]*history.Events.at(i).RawHit[j];
+      if(delta[j].size()&1){
+	median[j]=delta[j].at((delta[j].size()-1)/2);
+      }else{
+	int i=(delta[j].size()-1)/2;
+	median[j]=0.5*(delta[j].at(i)+delta[j].at(i+1));
+      }
     }
-    totalCount++;
+    
+    // We already have the median, search the extremes 
+    const double threshold=0.75; // This is the fraction of events to retaint
+    double minV[2];
+    double maxV[2];
+    for(int j=0;j<2;j++){
+      int start=(1-threshold)*0.5*delta[j].size();
+      minV[j]=delta[j].at(start);
+      maxV[j]=delta[j].at(delta[j].size()-1-start);
+    }
+    
+    //      for(int j=0;j<2;j++) cout<<"FOUND MEAN  "<<median[j]<<" "<<minV[j]<<" "<<maxV[j]<<endl;
+    
+    for(int i=first;i<=last;i++){
+      if(excluded.count(i)) continue;
+      for(int j=0;j<2;j++){
+	double x=history.Events.at(i).RawHit[j]-history.Events.at(i).TrackHit[j];
+	if(x<minV[j] || x>maxV[j]) excluded.insert(i);
+      }
+    }
   }
 
-  for(int j=0;j<2;j++) {sum[j]/=totalCount;sum2[j]/=totalCount;sum2[j]-=sum[j]*sum[j];}
-  
-  for(int i=first;i<=last;i++){
-    if(excluded.count(i)) continue;
-    double delta[2];
-    const double threshold=5*5;
-    for(int j=0;j<2;j++) {delta[j]=history.Events.at(i).RawHit[j]-sum[j];}
-    if(delta[0]*delta[0]>threshold*sum2[0] || delta[1]*delta[1]>threshold*sum2[1]) excluded.insert(i); 
-  }
 
   return ForceFit(history,first,last,excluded);
 }
@@ -356,6 +404,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   for(int i=first;i<=last;i++){
     DynAlEvent event=history.Events.at(i); // Take a copy of the event
     if(event.Beta<MinBeta || fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
+    if(event.Rigidity<1.5 && event.Rigidity>-20) continue; // Cut compatible with TOF cut
     
     if(exclude.count(i)>0){
 #ifdef VERBOSE__
