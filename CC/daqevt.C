@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.231 2011/11/27 17:44:51 choutko Exp $
+//  $Id: daqevt.C,v 1.231.2.1 2011/12/19 14:12:59 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -114,7 +114,7 @@ void DAQEvent::shrink(){
 
   if(_pData && !_BufferOwner){
        UPool.udelete(_pData);
-       if (UPool.size()>10000000)UPool.erase(1);
+       //if (UPool.size()>10000000)UPool.erase(1);
   }
   if(_BufferOwner)_BufferLock=0;
   _pData=0;
