@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.347 2011/12/16 14:22:33 choutko Exp $
+//  $Id: root.C,v 1.348 2011/12/20 12:51:18 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4962,10 +4962,12 @@ Int_t AMSEventR::Fill()
       _ClonedTree[thr] = _Tree->GetTree()->CloneTree(0);
 //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
       TDirectory *gdir=gDirectory;
+//  cout <<" ************8thr "<<thr<<" "<<fgOutSepDir[thr]<<endl;
 if(thr!=0){
-  if(!fgOutSep[thr]){
+  if(!fgOutSepDir[thr] ){
   char dir[1024];
   sprintf(dir,"_%d",thr);
+if(fgSeparateOutputFile==2){
 	  string fname(GetOption());
           fname+=dir;
           TFile *f=new TFile(fname.c_str(),"RECREATE");
@@ -4978,6 +4980,16 @@ if(thr!=0){
            AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
            fgOutSepDir[thr]=gDirectory;
           }
+       }
+ else{
+     gDirectory=AMSEventR::OFD();
+     if(gDirectory){
+      gDirectory=gDirectory->mkdir(dir);
+      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+      fgOutSepDir[thr]=gDirectory;
+//      cout <<" gdirectory "<<gDirectory->GetName()<<endl;
+     }
+ }
     }
     else{
       AMSEventR::_ClonedTree[thr]->SetDirectory(fgOutSepDir[thr]);
@@ -5020,9 +5032,10 @@ if(thr==0){
          if(_TreeSetup){
            _ClonedTreeSetup[thr] = _TreeSetup->GetTree()->CloneTree(0);
 if(thr!=0){
-  if(!fgOutSep[thr]){
+  if(!fgOutSepDir[thr]){
   char dir[1024];
   sprintf(dir,"_%d",thr);
+  if(fgSeparateOutputFile==2){
 	  string fname(GetOption());
           TFile *f=new TFile(fname.c_str(),"RECREATE");
           if(!f){
@@ -5034,6 +5047,21 @@ if(thr!=0){
            AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(gDirectory);
            fgOutSepDir[thr]=gDirectory;
           }
+}
+else{
+    gDirectory=AMSEventR::OFD();
+    if(!gDirectory->cd(dir)){
+     gDirectory=gDirectory->mkdir(dir);
+      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+     fgOutSepDir[thr]=gDirectory;
+//      cout <<" gdirectory2 "<<gDirectory->GetName()<<endl;
+    }
+    else{
+//      cout <<" gdirectory3 "<<gDirectory->GetName()<<endl;
+     AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+    } 
+ 
+}
 }
 else{
       AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(fgOutSepDir[thr]);

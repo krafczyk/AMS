@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.47 2011/12/16 14:22:33 choutko Exp $
+//  $Id: amschain.C,v 1.48 2011/12/20 12:51:18 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -309,7 +309,7 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
          }
     }
     if(!bad && k>=AMSEventR::MinRun && k<AMSEventR::MaxRun)fmap.insert(make_pair(k,(TChainElement*) fFiles->At(i)) );
-    delete arr;
+      delete arr;
     delete ar1;
   }
   fmapi it=fmap.begin();
@@ -337,8 +337,14 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
       TFile* file;
       TTree *tree;
       TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
+        TDirectory *gdir=0;
+      fmapi itt=it;
+        it++;
+        for(int subdir=0;subdir<32;subdir++){
+
 #pragma omp critical 
       {
+      if(subdir==0){
 	//  if(ts[thr]==0){
 	//TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
 	// }
@@ -347,27 +353,44 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 #ifdef CASTORSTATIC
         TRegexp d("^root:",false);
         TRegexp e("^rfio:",false);
-       TString name(it->second->GetTitle());
-          
-        if(name.Contains(d))file=new TXNetFile(it->second->GetTitle(),"READ");
-        else if(name.Contains(e))file=new TRFIOFile(it->second->GetTitle(),"READ");
-        else file=new TFile(it->second->GetTitle(),"READ");
+       TString name(itt->second->GetTitle());
+        //cout << " thr "<<thr<<" "<<name<<endl;          
+        if(name.Contains(d))file=new TXNetFile(itt->second->GetTitle(),"READ");
+        else if(name.Contains(e))file=new TRFIOFile(itt->second->GetTitle(),"READ");
+        else file=new TFile(itt->second->GetTitle(),"READ");
 #else 
-	file= TFile::Open(it->second->GetTitle(),"READ");
+	file= TFile::Open(itt->second->GetTitle(),"READ");
 #endif
+          gdir=gDirectory;
+//          cout <<"gdirectory!!!! "<<gdir->GetName()<<" " <<endl;
+}
           tree=0;
-	if(file)tree=(TTree*)file->Get(it->second->GetName());
+        bool subdirexist=false;
+//        cout <<"  SUBDIR****** "<<subdir<<endl;
+//          cout <<"gdirectory!!!! "<<gdir<<endl;
+//          cout <<"gdirectory!!!!!! "<<gdir->GetName()<<" " <<endl;
+        if(subdir>0){
+         char dir[1024];
+          sprintf(dir,"_%d",subdir);
+          TDirectory*ok=gdir->GetDirectory(dir,false,"cd");
+          if(ok){
+             ok->cd();
+             subdirexist=true;
+          }
+//          cout <<"gdirectory "<<gdir->GetName()<<" "<<subdirexist <<endl;
+        }
+        else subdirexist=true;
+	if(file && subdirexist)tree=(TTree*)file->Get(itt->second->GetName());
         if(!tree){
-          cerr<<"  AMSChain::Process-E-NoTreeFound file tree "<<it->second->GetTitle()<<" "<<it->second->GetName()<<endl;
+          if(subdirexist)cerr<<"  AMSChain::Process-E-NoTreeFound file tree "<<itt->second->GetTitle()<<" "<<itt->second->GetName()<<endl;
 	}
 	else{
 	  curp->SetOption(option);
 	  curp->Init(tree);
 	  curp->Notify();
-	  cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
+	  cout <<"  "<<i<<" "<<itt->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
 	  //cout <<"  "<<i<<" "<<element->GetTitle()<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
         }
-	it++;
       }
       if(tree){
         curp->Begin(tree);
@@ -392,14 +415,17 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	  }
 	}
       }
+
 #pragma omp critical (cls)  
       {
 	if(tree && AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
-	if(file)file->Close("R");
-        if(file)delete file;
 	//        cout <<" finished "<<i<<" "<<endl;
       }
     }
+	if(file)file->Close("R");
+        if(file)delete file;
+
+}  
 #ifdef _OPENMP        
     //  this clause is because intel throutput mode deoesn;t work
     //   so simulating it
