@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.162.2.2 2011/12/12 15:25:01 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.162.2.3 2011/12/21 23:16:16 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -378,7 +378,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   	  // include Gain dependence on Temperature
  	  Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
  	  if ( Tcorr > 0 ){
-  	    scgn/=Tcorr;
+  	    scgn*=Tcorr;
   	  }
   	  else{
   	    cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
@@ -417,7 +417,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
  	// Gain dependence on Temperature
  	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
   	if ( Tcorr > 0 ){
-  	  scgn/=Tcorr;
+  	  scgn*=Tcorr;
   	}
   	else{
   	  cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
@@ -944,7 +944,7 @@ void AMSEcalHit::build(int &stat){
  	  deltaT=T_PMT-ECREFFKEY.Tref;
  	}
  	else{
- 	  //cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
+	  //	  cout << "AMSEcalHit::build - No T sensor found for SL " << isl << " PMT " << pmc  << endl;
 	  deltaT=0;
 	}
       }
@@ -954,9 +954,9 @@ void AMSEcalHit::build(int &stat){
       //
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
-      Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
+      Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;    
       if ( Tcorr > 0 ){
-  	scgn/=Tcorr;
+  	scgn*=Tcorr;
       }
       else{
   	cout << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
