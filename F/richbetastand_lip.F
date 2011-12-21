@@ -489,11 +489,18 @@
 
 * --- Generate TOF track from sets of clusters
 
+      nusedclu_tof = 0
+      do i=1,10
+         iusedclu_tof(i) = -999
+      enddo
+
       if(ncand4p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 4
 
          do i=1,4
+            iusedclu_tof(i) = cand4p(1,i)
             px(i) = coo_tof(1,cand4p(1,i))
             py(i) = coo_tof(2,cand4p(1,i))
             pz(i) = coo_tof(3,cand4p(1,i))
@@ -517,8 +524,10 @@
       else if(ncand4p.eq.0.and.ncand3p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 3
 
          do i=1,3
+            iusedclu_tof(i) = cand3p(1,i)
             px(i) = coo_tof(1,cand3p(1,i))
             py(i) = coo_tof(2,cand3p(1,i))
             pz(i) = coo_tof(3,cand3p(1,i))
@@ -833,11 +842,18 @@
 
 * --- Generate TOF track from sets of clusters
 
+      nusedclu_tof = 0
+      do i=1,10
+         iusedclu_tof(i) = -999
+      enddo
+
       if(ncand4p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 5
 
          do i=1,5
+            iusedclu_tof(i) = cand4p(1,i)
             px(i) = coo_tof(1,cand4p(1,i))
             py(i) = coo_tof(2,cand4p(1,i))
             pz(i) = coo_tof(3,cand4p(1,i))
@@ -861,8 +877,10 @@
       else if(ncand4p.eq.0.and.ncand3p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 4
 
          do i=1,4
+            iusedclu_tof(i) = cand3p(1,i)
             px(i) = coo_tof(1,cand3p(1,i))
             py(i) = coo_tof(2,cand3p(1,i))
             pz(i) = coo_tof(3,cand3p(1,i))
@@ -1083,11 +1101,18 @@
 
 * --- Generate TOF track from sets of clusters
 
+      nusedclu_tof = 0
+      do i=1,10
+         iusedclu_tof(i) = -999
+      enddo
+
       if(ncand2p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 3
 
          do i=1,3
+            iusedclu_tof(i) = cand2p(1,i)
             px(i) = coo_tof(1,cand2p(1,i))
             py(i) = coo_tof(2,cand2p(1,i))
             pz(i) = coo_tof(3,cand2p(1,i))
@@ -1111,8 +1136,10 @@
       else if(ncand2p.eq.0.and.ncand1p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 2
 
          do i=1,2
+            iusedclu_tof(i) = cand1p(1,i)
             px(i) = coo_tof(1,cand1p(1,i))
             py(i) = coo_tof(2,cand1p(1,i))
             pz(i) = coo_tof(3,cand1p(1,i))
@@ -1334,11 +1361,18 @@
 
 * --- Generate TOF track from sets of clusters
 
+      nusedclu_tof = 0
+      do i=1,10
+         iusedclu_tof(i) = -999
+      enddo
+
       if(ncand2p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 3
 
          do i=1,3
+            iusedclu_tof(i) = cand2p(1,i)
             px(i) = coo_tof(1,cand2p(1,i))
             py(i) = coo_tof(2,cand2p(1,i))
             pz(i) = coo_tof(3,cand2p(1,i))
@@ -1362,8 +1396,10 @@
       else if(ncand2p.eq.0.and.ncand1p.eq.1) then
 
          iflag_tof = 1
+         nusedclu_tof = 2
 
          do i=1,2
+            iusedclu_tof(i) = cand1p(1,i)
             px(i) = coo_tof(1,cand1p(1,i))
             py(i) = coo_tof(2,cand1p(1,i))
             pz(i) = coo_tof(3,cand1p(1,i))

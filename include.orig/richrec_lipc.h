@@ -43,7 +43,8 @@
      +        nradts_c2f,
      +        nmirsec_c2f,idmirs_c2f,ipmtstat_c2f,
      +        nbhits_ev, nbhitsmax_ntup_ev, hitspmt_ev, hitstat_ev,
-     +        prad_main,iflag_tof,prad_tof,ntofclu,istatus_tof,ilayer_tof,
+     +        prad_main,iflag_tof,prad_tof,nusedclu_tof,iusedclu_tof,
+     +        ntofclu,istatus_tof,ilayer_tof,
      +        ibar_tof,irecnumb,itrknumb,idispflag
 
       common /lipc2f/ 
@@ -127,6 +128,8 @@
      +                  epphi_tof,                 ! TOF track: error in phi
      +                  pmom_tof,                  ! TOF track: momentum
      +                  prad_tof,                  ! TOF track: radiator (1=aerogel, 2=NaF)
+     +                  nusedclu_tof,              ! TOF track: number of used clusters
+     +                  iusedclu_tof(10),          ! TOF track: index of used clusters (first=1)
                       ! [ TOF CLUSTER DATA ]
      +                  ntofclu,                   ! number of TOF clusters
      +                  istatus_tof(nmaxtofclu),   ! TOF cluster status

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.333 2011/12/05 10:52:41 sdifalco Exp $
+//  $Id: commons.h,v 1.334 2011/12/21 12:02:12 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1343,6 +1343,8 @@ class LIPC2F_DEF{
   geant epphi_tof;                 
   geant pmom_tof;                 
   int prad_tof;                 
+  int nusedclu_tof;
+  int iusedclu_tof[10];
 
   // TOF cluster data
   int ntofclu;                   

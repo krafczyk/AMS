@@ -1423,30 +1423,6 @@ c      print*,' prob ',prob
 
 ********************************************************************
 *
-* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
-*
-* $Log: richutil_lip.F,v $
-* Revision 1.8  2011/10/05 18:52:20  pzuccon
-* propagate B542 updates to vdev
-*
-* Revision 1.7.14.1  2011/10/04 17:28:06  barao
-* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
-*
-* Revision 1.7  2011/04/19 15:45:34  barao
-* Update of LIP RICH rec to support bad PMT/pixel flagging
-*
-* Revision 1.6  2011/01/17 17:57:23  barao
-* bug fix in RICH LIP reconstruction
-*
-* Revision 1.5  2011/01/14 18:58:44  barao
-* bug fig in LIP RICH reconstruction
-*
-* Revision 1.4  2010/11/03 18:25:22  barao
-* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
-*
-* Revision 1.1.1.1  1996/04/01 15:02:15  mclareni
-* Mathlib gen
-*
 *
 
 #if defined(CERNLIB_IBMRT)
@@ -1676,29 +1652,6 @@ C   arising on parallelization (LIP)
 *********************************************************************+
 
 *
-* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
-*
-* $Log: richutil_lip.F,v $
-* Revision 1.8  2011/10/05 18:52:20  pzuccon
-* propagate B542 updates to vdev
-*
-* Revision 1.7.14.1  2011/10/04 17:28:06  barao
-* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
-*
-* Revision 1.7  2011/04/19 15:45:34  barao
-* Update of LIP RICH rec to support bad PMT/pixel flagging
-*
-* Revision 1.6  2011/01/17 17:57:23  barao
-* bug fix in RICH LIP reconstruction
-*
-* Revision 1.5  2011/01/14 18:58:44  barao
-* bug fig in LIP RICH reconstruction
-*
-* Revision 1.4  2010/11/03 18:25:22  barao
-* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
-*
-* Revision 1.1.1.1  1996/02/15 17:49:07  mclareni
-* Kernlib
 *
 *
 #if defined(CERNLIB_IBMRT)
@@ -1792,29 +1745,6 @@ C   arising on parallelization (LIP)
 
 
 
-* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
-*
-* $Log: richutil_lip.F,v $
-* Revision 1.8  2011/10/05 18:52:20  pzuccon
-* propagate B542 updates to vdev
-*
-* Revision 1.7.14.1  2011/10/04 17:28:06  barao
-* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
-*
-* Revision 1.7  2011/04/19 15:45:34  barao
-* Update of LIP RICH rec to support bad PMT/pixel flagging
-*
-* Revision 1.6  2011/01/17 17:57:23  barao
-* bug fix in RICH LIP reconstruction
-*
-* Revision 1.5  2011/01/14 18:58:44  barao
-* bug fig in LIP RICH reconstruction
-*
-* Revision 1.4  2010/11/03 18:25:22  barao
-* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
-*
-* Revision 1.1.1.1  1996/02/15 17:49:07  mclareni
-* Kernlib
 *
 *
 #ifndef CERNLIB_KERNNUM_C205BODY_INC
@@ -1956,29 +1886,6 @@ C   arising on parallelization (LIP)
 
 ***********************************************************************
 *
-* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
-*
-* $Log: richutil_lip.F,v $
-* Revision 1.8  2011/10/05 18:52:20  pzuccon
-* propagate B542 updates to vdev
-*
-* Revision 1.7.14.1  2011/10/04 17:28:06  barao
-* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
-*
-* Revision 1.7  2011/04/19 15:45:34  barao
-* Update of LIP RICH rec to support bad PMT/pixel flagging
-*
-* Revision 1.6  2011/01/17 17:57:23  barao
-* bug fix in RICH LIP reconstruction
-*
-* Revision 1.5  2011/01/14 18:58:44  barao
-* bug fig in LIP RICH reconstruction
-*
-* Revision 1.4  2010/11/03 18:25:22  barao
-* LIP reconstrunction algorithms for RICH detector ada pted to parallelised scheme
-*
-* Revision 1.1.1.1  1996/02/15 17:48:36  mclareni
-* Kernlib
 *
 *
 
@@ -2171,24 +2078,6 @@ C
 
 ***********************************************************************
 
-* $Id: richutil_lip.F,v 1.8 2011/10/05 18:52:20 pzuccon Exp $
-*
-* $Log: richutil_lip.F,v $
-* Revision 1.8  2011/10/05 18:52:20  pzuccon
-* propagate B542 updates to vdev
-*
-* Revision 1.7.14.1  2011/10/04 17:28:06  barao
-* array hitstat_ev added to RICH LIP code, corresponding adjustments in LIP code
-*
-* Revision 1.7  2011/04/19 15:45:34  barao
-* Update of LIP RICH rec to support bad PMT/pixel flagging
-*
-* Revision 1.6  2011/01/17 17:57:23  barao
-* bug fix in RICH LIP reconstruction
-*
-* Revision 1.1.1.1  1996/02/15 17:49:50  mclareni
-* Kernlib
-*
 *
 #include "kerngen/pilot.h"
       SUBROUTINE SORTZV_ALT (A,INDEX,N1,MODE,NWAY,NSORT)
