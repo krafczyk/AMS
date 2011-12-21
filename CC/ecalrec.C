@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.166 2011/12/21 23:19:54 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.167 2011/12/21 23:31:07 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -945,7 +945,7 @@ void AMSEcalHit::build(int &stat){
  	}
  	else{
  	  //cout << "WARNING: No T sensor found for SL " << isl << " PMT " << pmc  << endl;
-	  deltaT=0;
+	  deltaT=-13.;
 	}
       }
       else{
