@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.165 2011/12/12 15:15:23 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.166 2011/12/21 23:19:54 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -378,7 +378,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   	  // include Gain dependence on Temperature
  	  Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
  	  if ( Tcorr > 0 ){
-  	    scgn/=Tcorr;
+  	    scgn*=Tcorr;
   	  }
   	  else{
   	    cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
@@ -417,7 +417,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
  	// Gain dependence on Temperature
  	Tcorr=1.+ECTslope::ecpmtslo[il][ipm].tslope(ic)/100.*deltaT;
   	if ( Tcorr > 0 ){
-  	  scgn/=Tcorr;
+  	  scgn*=Tcorr;
   	}
   	else{
   	  cerr << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
@@ -956,7 +956,7 @@ void AMSEcalHit::build(int &stat){
       // correct for Gain dependence on Temperature
       Tcorr=1.+ECTslope::ecpmtslo[isl][pmc].tslope(subc)/100.*deltaT;
       if ( Tcorr > 0 ){
-  	scgn/=Tcorr;
+  	scgn*=Tcorr;
       }
       else{
   	cout << "WRONG Sub cell gain correction with T:" << Tcorr << endl;
