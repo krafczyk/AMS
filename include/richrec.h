@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.75 2011/07/06 11:24:32 mdelgado Exp $
+//  $Id: richrec.h,v 1.76 2011/12/22 13:23:00 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -354,7 +354,7 @@ class AMSRichRingNew: public AMSlink{
   // velocity reconstruction
   float _Beta;            // reconstructed velocity
   float _AngleRec;        // reconstructed Cerenkov angle
-  float _Chi2;            // chi2 for reconstruction
+  float _AngleRecErr;     // error in reconstructed Cerenkov angle
   float _Likelihood;      // likelihood for reconstruction
   int _Used;              // number of hits used in reconstruction
   float _ProbKolm;        // Kolmogorov probability for reconstruction
@@ -425,7 +425,7 @@ class AMSRichRingNew: public AMSlink{
   int getStatus(){return _Status;}
   float getBeta(){return _Beta;}
   float getAngleRec(){return _AngleRec;}
-  float getChi2(){return _Chi2;}
+  float getAngleRecErr(){return _AngleRecErr;}
   float getLikelihood(){return _Likelihood;}
   float getUsed(){return _Used;}
   float getProbKolm(){return _ProbKolm;}

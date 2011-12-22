@@ -173,7 +173,8 @@
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
      +        resb_used,resc_iflag,resc_nmirsec
-      real resb_beta,resb_thc,resb_chi2,resb_like,resb_d2like,
+      real resb_beta,resb_thc,resb_thcerr,resb_chi2,
+     +     resb_like,resb_d2like,
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
@@ -195,6 +196,7 @@
      +                 resb_itrk(nmaxliprec),           ! track used (0-N=from global rec, -1=LIP-TOF, -2=standalone)
      +                 resb_beta(nmaxliprec),           ! rec velocity
      +                 resb_thc(nmaxliprec),            ! rec Cerenkov angle
+     +                 resb_thcerr(nmaxliprec),         ! error in rec Cerenkov angle
      +                 resb_chi2(nmaxliprec),           ! chi2 of reconstruction
      +                 resb_like(nmaxliprec),           ! likelihood value
      +                 resb_d2like(nmaxliprec),         ! likelihood 2nd derivative

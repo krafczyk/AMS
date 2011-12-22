@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.335 2011/12/22 11:31:51 barao Exp $
+//  $Id: commons.h,v 1.336 2011/12/22 13:23:00 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1398,6 +1398,7 @@ class LIPF2C_DEF{
   int resb_itrk[LIP_NMAXLIPREC];          
   geant resb_beta[LIP_NMAXLIPREC];           
   geant resb_thc[LIP_NMAXLIPREC];
+  geant resb_thcerr[LIP_NMAXLIPREC];
   geant resb_chi2[LIP_NMAXLIPREC];           
   geant resb_like[LIP_NMAXLIPREC];           
   geant resb_d2like[LIP_NMAXLIPREC];

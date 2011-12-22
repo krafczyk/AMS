@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.138 2011/12/22 11:31:51 barao Exp $
+//  $Id: ntuple.h,v 1.139 2011/12/22 13:23:00 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -781,6 +781,7 @@ public:
   int   resb_itrk[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_beta[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_thc[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_thcerr[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_chi2[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_like[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_d2like[MAXRICHRIN][LIP_NMAXLIPREC];
@@ -851,7 +852,7 @@ public:
   int Status[MAXRICHRINLIP];
   float Beta[MAXRICHRINLIP];
   float AngleRec[MAXRICHRINLIP];
-  float Chi2[MAXRICHRINLIP];
+  float AngleRecErr[MAXRICHRINLIP];
   float Likelihood[MAXRICHRINLIP];
   float Used[MAXRICHRINLIP];
   float ProbKolm[MAXRICHRINLIP];

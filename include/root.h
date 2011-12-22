@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.398 2011/12/16 14:22:34 choutko Exp $
+//  $Id: root.h,v 1.399 2011/12/22 13:23:00 barao Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1478,7 +1478,7 @@ static char _Info[255];
                                        ///<          j = 1    (on)
   float Beta;                          ///< reconstructed velocity
   float AngleRec;                      ///< reconstructed Cerenkov angle (rad)
-  float Chi2;                          ///< chi2 for reconstruction
+  float AngleRecErr;                   ///< error in reconstructed Cerenkov angle (rad)
   float Likelihood;                    ///< likelihood prob for reconstruction
   int Used;                            ///< number of hits used in reconstruction
   float ProbKolm;                      ///< Kolmogorov prob for ring hits uniformity
@@ -1579,7 +1579,7 @@ static char _Info[255];
     return _Info;
   } 
   virtual ~RichRingBR(){};
-  ClassDef(RichRingBR,2)           // RichRingBR
+  ClassDef(RichRingBR,3)           // RichRingBR
 #pragma omp threadprivate(fgIsA)
 }; 
 

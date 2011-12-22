@@ -769,6 +769,11 @@ C ------------------------------------------------------------------
                resb_itrk(irecnumb+1) = itrknumb
                resb_beta(irecnumb+1) = betarec
                resb_thc(irecnumb+1) = cangrec(ipthetac)
+               if(d2loglike.gt.1.e-5) then
+                  resb_thcerr(irecnumb+1) = 1./sqrt(d2loglike)
+               else
+                  resb_thcerr(irecnumb+1) = -999.
+               endif
                resb_chi2(irecnumb+1) = chi2rec(ipthetac)
                resb_like(irecnumb+1) = resvlike
                resb_d2like(irecnumb+1) = d2loglike
@@ -963,6 +968,11 @@ C ------------------------------------------------------------------
             resb_itrk(irecnumb+1) = itrknumb
             resb_beta(irecnumb+1) = beta_rectof
             resb_thc(irecnumb+1) = thc_rectof
+            if(d2loglike.gt.1.e-5) then
+               resb_thcerr(irecnumb+1) = 1./sqrt(d2loglike)
+            else
+               resb_thcerr(irecnumb+1) = -999.
+            endif
             resb_chi2(irecnumb+1) = chi2_rectof
             resb_like(irecnumb+1) = resvlike
             resb_d2like(irecnumb+1) = d2loglike
@@ -1134,6 +1144,11 @@ C ------------------------------------------------------------------
             resb_itrk(irecnumb+1) = itrknumb
             resb_beta(irecnumb+1) = beta_recstd
             resb_thc(irecnumb+1) = thc_recstd
+            if(d2loglike.gt.1.e-5) then
+               resb_thcerr(irecnumb+1) = 1./sqrt(d2loglike)
+            else
+               resb_thcerr(irecnumb+1) = -999.
+            endif
             resb_chi2(irecnumb+1) = chi2_recstd
             resb_like(irecnumb+1) = resvlike
             resb_d2like(irecnumb+1) = d2loglike
@@ -1294,6 +1309,7 @@ C ------------------------------------------------------------------
          print*,'resb_itrk     = ',resb_itrk(k)
          print*,'resb_beta     = ',resb_beta(k)
          print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
+         print*,'resb_thcerr(d)= ',resb_thcerr(k)*RADDEG
          print*,'resb_chi2     = ',resb_chi2(k)
          print*,'resb_like     = ',resb_like(k)
          print*,'resb_d2like   = ',resb_d2like(k)

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.348 2011/12/20 12:51:18 choutko Exp $
+//  $Id: root.C,v 1.349 2011/12/22 13:22:59 barao Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4490,7 +4490,7 @@ RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
     Status = ptr->_Status;
     Beta = ptr->_Beta;
     AngleRec = ptr->_AngleRec;
-    Chi2 = ptr->_Chi2;
+    AngleRecErr = ptr->_AngleRecErr;
     Likelihood = ptr->_Likelihood;
     Used = ptr->_Used;
     ProbKolm = ptr->_ProbKolm;

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.160 2011/11/16 11:19:16 choutko Exp $
+//  $Id: richrec.C,v 1.161 2011/12/22 13:22:59 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2436,7 +2436,7 @@ void AMSRichRingNew::fillresult(){
   
   _Beta = LIPF2C.resb_beta[nr];
   _AngleRec = LIPF2C.resb_thc[nr];
-  _Chi2 = LIPF2C.resb_chi2[nr];
+  _AngleRecErr = LIPF2C.resb_thcerr[nr];
   _Likelihood = LIPF2C.resb_like[nr];
   _Used = LIPF2C.resb_nhit[nr];
   _ProbKolm = LIPF2C.resb_probkl[nr];
@@ -2510,7 +2510,7 @@ void AMSRichRingNew::fillresult(){
   cout << "Status = " << this->getStatus() << endl;
   cout << "Beta = " << this->getBeta() << endl;
   cout << "AngleRec (deg) = " << 180./3.14159265*this->getAngleRec() << endl;
-  cout << "Chi2 = " << this->getChi2() << endl;
+  cout << "AngleRecErr (deg) = " << 180./3.14159265*this->getAngleRecErr() << endl;
   cout << "Likelihood = " << this->getLikelihood() << endl;
   cout << "Used = " << this->getUsed() << endl;
   cout << "ProbKolm = " << this->getProbKolm() << endl;
