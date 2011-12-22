@@ -627,7 +627,7 @@ class RemoteClient:
             self.delete=2
         if(self.delete==2):
             for run in self.dbclient.rtb:
-                if(run2p!=0 and run2p!=run.Run):
+                if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p)):
                     continue
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
@@ -724,7 +724,7 @@ class RemoteClient:
         fsmutexes = {}
         maxt=5
         for run in self.dbclient.rtb:
-            if((run2p!=0 and run.Run != run2p) ):
+            if((run2p!=0 and run.Run != run2p) and not (run2p<0 and run.Run>-run2p)):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
             if( run.DataMC==datamc and mt==1 ):
@@ -798,7 +798,7 @@ class RemoteClient:
         self.setprocessingflag(0,timenow,1)
         if(self.delete):
             for run in self.dbclient.rtb:
-                if(run2p!=0 and run2p!=run.Run):
+                if((run2p!=0 and run2p!=run.Run) and not (run2p<0 and run.Run>-run2p)):
                     continue
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
@@ -823,7 +823,7 @@ class RemoteClient:
                         
         if(self.deletebad):
               for run in self.dbclient.rtb:
-                if(run2p!=0 and run2p!=run.Run):
+                if((run2p!=0 and run2p!=run.Run) and not (run2p<0 and run.Run>-run2p)):
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
@@ -842,7 +842,7 @@ class RemoteClient:
 
         if(self.deleteunc):
               for run in self.dbclient.rtb:
-                if(run2p!=0 and run2p!=run.Run):
+                if((run2p!=0 and run2p!=run.Run) and not (run2p<0 and run.Run>-run2p)):
                     continue
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' and datamc==1):
@@ -862,7 +862,7 @@ class RemoteClient:
 
         if(self.deleteuncnt):
               for run in self.dbclient.rtb:
-                if(run2p!=0 and run2p!=run.Run):
+                if((run2p!=0 and run2p!=run.Run) and not (run2p<0 and run.Run>-run2p)):
                     continue
                 status=self.dbclient.cr(run.Status)
                 dataruns="dataruns"
