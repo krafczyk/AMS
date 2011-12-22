@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.137 2011/09/27 23:49:20 pzuccon Exp $
+//  $Id: ntuple.h,v 1.138 2011/12/22 11:31:51 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -783,6 +783,7 @@ public:
   float resb_thc[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_chi2[MAXRICHRIN][LIP_NMAXLIPREC];
   float resb_like[MAXRICHRIN][LIP_NMAXLIPREC];
+  float resb_d2like[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_nhit[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_phit[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];
   int   resb_used[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NHITMAX];

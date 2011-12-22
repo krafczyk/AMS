@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.334 2011/12/21 12:02:12 barao Exp $
+//  $Id: commons.h,v 1.335 2011/12/22 11:31:51 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1364,6 +1364,23 @@ class LIPC2F_DEF{
 
   // flags for lip code
   int idispflag;
+
+  // parameters for alternative velocity algorithm
+  geant facthcminscanagl_c2f;
+  geant facthcmaxscanagl_c2f;
+  geant facthcminscannaf_c2f;
+  geant facthcmaxscannaf_c2f;
+  geant thcminscanagl_c2f;
+  geant thcmaxscanagl_c2f;
+  geant thcstepscanagl_c2f;
+  geant thcminscannaf_c2f;
+  geant thcmaxscannaf_c2f;
+  geant thcstepscannaf_c2f;
+  geant dvmaxagl_c2f;
+  geant dvmaxnaf_c2f;
+  geant tollinagl_c2f;
+  geant tollinnaf_c2f;
+
 };
 #define LIPC2F COMMON_BLOCK(LIPC2F,lipc2f)
 COMMON_BLOCK_DEF(LIPC2F_DEF,LIPC2F);
@@ -1383,6 +1400,7 @@ class LIPF2C_DEF{
   geant resb_thc[LIP_NMAXLIPREC];
   geant resb_chi2[LIP_NMAXLIPREC];           
   geant resb_like[LIP_NMAXLIPREC];           
+  geant resb_d2like[LIP_NMAXLIPREC];
   int resb_nhit[LIP_NMAXLIPREC];           
   int resb_phit[LIP_NMAXLIPREC][LIP_NHITMAX];  
   int resb_used[LIP_NMAXLIPREC][LIP_NHITMAX];

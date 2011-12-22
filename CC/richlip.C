@@ -219,6 +219,23 @@ void RichLIPRec::InitGlobal(){
   LIPC2F.yef_c2f = 60.3;
   LIPC2F.xpc_c2f = 0.25;
 
+  // parameters for alternative velocity algorithm
+  // negative values mean defaults (initialized in Fortran)
+  LIPC2F.facthcminscanagl_c2f = -999.;  // default 0.0
+  LIPC2F.facthcmaxscanagl_c2f = -999.;  // default 1.2
+  LIPC2F.facthcminscannaf_c2f = -999.;  // default 0.0
+  LIPC2F.facthcmaxscannaf_c2f = -999.;  // default 1.2
+  LIPC2F.thcminscanagl_c2f = -999.;  // default 2 deg
+  LIPC2F.thcmaxscanagl_c2f = -999.;  // default 80 deg
+  LIPC2F.thcstepscanagl_c2f = -999.;  // default 0.5 deg
+  LIPC2F.thcminscannaf_c2f = -999.;  // default 2 deg
+  LIPC2F.thcmaxscannaf_c2f = -999.;  // default 80 deg
+  LIPC2F.thcstepscannaf_c2f = -999.;  // default 0.25 deg
+  LIPC2F.dvmaxagl_c2f = -999.;  // default 3 cm/deg
+  LIPC2F.dvmaxnaf_c2f = -999.;  // default 10 cm/deg
+  LIPC2F.tollinagl_c2f = -999.;  // default 0.01*dvmaxagl*thcstepscanagl
+  LIPC2F.tollinnaf_c2f = -999.;  // default 0.01*dvmaxnaf*thcstepscannaf
+
   // PMT and pixel status
 
   int maxbadpix = 3;  // max no. bad pixels for PMT to be flagged as good

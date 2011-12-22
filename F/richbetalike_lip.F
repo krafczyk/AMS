@@ -276,6 +276,7 @@ CC            prob_evt = fliketotall(cangrecmin)
       enddo
 
 * ... compute minimum second derivative
+* ... (there is currently a bug here since hits are not untagged)
       h   = 1.E-3
       df2 = 0.0
       if (ipthetac.ne.0) cangrecmin = cangrec(ipthetac)
@@ -286,6 +287,8 @@ CC            prob_evt = fliketotall(cangrecmin)
          df1 = (f1-f2)/h
          h   = 2.*h
       enddo
+
+      d2loglike = df2
 
 * PRINT
 #ifdef DEBUGPRINT
@@ -361,7 +364,8 @@ CC            prob_evt = fliketotall(cangrecmin)
       if (nbhits.eq.0          .or.
      &    nbhits_nass.eq.0     .or.    ! added 06-Mar-2007 by R. Pereira
      &    hypthc.lt.cangreclow .or.
-     &    hypthc.gt.cangrecup
+CC     &    hypthc.gt.cangrecup
+     &    hypthc.gt.cangrecup*13./11.
      &    ) then
          fliketotall = 1.E8
 *         print*,'---> likelihood value set to 1E8 (1st exception)'
@@ -1837,3 +1841,785 @@ C  (C) Copr. 1986-92 Numerical Recipes Software 7L`2.d0
 
       return
       END
+
+
+* ===============================================================
+      subroutine richbetarec_alt(itype)
+* ===============================================================
+* ***************************************************************
+* Velocity reconstruction (LIP rec), alternative method
+*
+* itype = 1: full scan
+* itype = 2: optimized scan
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+* ***************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      integer itype
+
+      real flikefinal
+
+      betarec = -999.
+
+      if(rad_kind.eq.-1) return
+
+      if (nbhits_nass.eq.0) return
+
+      if(itype.ne.1 .and. itype.ne.2) return
+
+*      print*,'Entering RICHBETAREC_ALT, arg ',itype
+
+* --- max number of hits to scan
+      nhitscan     = 0 !number of hits to be used on likelihood evaluation
+
+* --- set particle rotation matrix
+      if (irotflg.eq.0) then
+         call patmatr
+         irotflg = 1
+      endif
+
+* --- defaults for general parameters
+*     (used if values passed in common are negative)
+
+      if(facthcminscanagl.lt.0.) facthcminscanagl = 0.0
+      if(facthcmaxscanagl.lt.0.) facthcmaxscanagl = 1.2
+
+      if(facthcminscannaf.lt.0.) facthcminscannaf = 0.0
+      if(facthcmaxscannaf.lt.0.) facthcmaxscannaf = 1.2
+
+      if(thcminscanagl.lt.0.) thcminscanagl = 2.*DEGRAD
+      if(thcmaxscanagl.lt.0.) thcmaxscanagl = 80.*DEGRAD
+      if(thcstepscanagl.lt.0.) thcstepscanagl = 0.5*DEGRAD
+
+      if(thcminscannaf.lt.0.) thcminscannaf = 2.*DEGRAD
+      if(thcmaxscannaf.lt.0.) thcmaxscannaf = 80.*DEGRAD
+      if(thcstepscannaf.lt.0.) thcstepscannaf = 0.25*DEGRAD
+
+      if(dvmaxagl.lt.0.) dvmaxagl = 3.*RADDEG
+      if(dvmaxnaf.lt.0.) dvmaxnaf = 10.*RADDEG
+
+* ... default for linearity deviation:
+* ... 2 percent of maximum slope in interval (2 steps)
+      if(tollinagl.lt.0.)
+     +   tollinagl = 0.01*dvmaxagl*thcstepscanagl  ! cm
+      if(tollinnaf.lt.0.)
+     +   tollinnaf = 0.01*dvmaxnaf*thcstepscannaf  ! cm
+
+* --- scanning of ring-hit distances at several Cerenkov angles
+*     (similar to the one performed in richlikemin
+*      but steps are different and hit data are stored)
+      if(itype.eq.1) call richscandist
+      if(itype.eq.2) call richscandist_opt
+
+* --- get data for distance zeros of each hit
+      call richgethitzero
+
+* --- get best likelihood using linearized distances
+*     (in principle through fine scan + final quadratic fit)
+      call richlikemin_alt
+
+* --- final call to standard likelihood using the previous result
+*     to store all hit residuals, etc.
+
+*      print*,'Final result: thcres = ',thcres*RADDEG,' deg'
+*      print*,'Final derivative: d2loglike = ',
+*     +                          d2loglike*DEGRAD**2,' /deg2'
+
+      flikefinal = fliketotall(thcres)
+
+      if (nbushits_fit.gt.0) then
+         ipthetac = 1
+         ntherec  = 1
+         cangrec(ipthetac)    = thcres
+         likerec(ipthetac)    = flikefinal
+         cangrecdif(ipthetac) = -999.
+         chi2rec(ipthetac)    = chi2rec_fit/real(nbushits_fit)
+         nbushits(ipthetac)   = nbushits_fit
+         do nn=1,nbushits_fit
+            ipushits(ipthetac,nn) = ipushits_fit(nn)
+            iflghit(ipushits_fit(nn)) = 2
+         enddo
+         do nn=1,min(nbhits,nhitmax)
+            chi2hit(ipthetac,nn)    = chi2hit_fit(nn)
+            nbminshit(ipthetac,nn)  = nbminshit_fit(nn)
+            phihit(ipthetac,nn)     = phihit_fit(nn)
+            ireflechit(ipthetac,nn) = ireflechit_fit(nn)
+            imsechit(ipthetac,nn)   = imsechit_fit(nn)
+         enddo
+* -----> store beta reconstruction
+         betarec = 1./refindex/cos(cangrec(ipthetac))
+* -----> store likelihood value
+         resvlike = flikefinal
+      else
+         ipthetac = 0
+         ntherec  = 0
+         betarec = -999.
+         call vfill(cangrec,ntherecmax,-999.)
+         call vzero(nbushits,ntherecmax)
+         call vfill(cangrec,ntherecmax,-999.)
+         resvlike = -999.
+      endif
+
+      return
+      end
+
+
+* ===============================================================
+      subroutine richscandist
+* ===============================================================
+* ***************************************************************
+* Scanning of ring-hit distances at several Cerenkov angles
+* (similar to the one performed in richlikemin
+* but steps are different and hit data are stored)
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+* ***************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      real facthcminscan,facthcmaxscan
+      real thcminscan,thcmaxscan,thcstepscan
+
+      real cangrecup_alt,cangreclow_alt
+      real thcstep_alt
+
+      real fliketot_dummy
+
+      if(refindex.lt.1.1) then  ! aerogel
+         facthcminscan = facthcminscanagl
+         facthcmaxscan = facthcmaxscanagl
+         thcminscan = thcminscanagl
+         thcmaxscan = thcmaxscanagl
+         thcstepscan = thcstepscanagl
+      else  ! NaF
+         facthcminscan = facthcminscannaf
+         facthcmaxscan = facthcmaxscannaf
+         thcminscan = thcminscannaf
+         thcmaxscan = thcmaxscannaf
+         thcstepscan = thcstepscannaf
+      endif
+
+      cangrecup_alt = facthcmaxscan*acos(1./refindex)
+      cangreclow_alt = facthcminscan*acos(1./refindex)
+
+      if(thcmaxscan.lt.cangrecup_alt) cangrecup_alt = thcmaxscan
+      if(thcminscan.gt.cangreclow_alt) cangreclow_alt = thcminscan
+
+      thcstep_alt = thcstepscan
+
+      IPHIHINTKIND = 1 !phi hint obtained by scanning at thc max
+      ipmin = 0
+      fliketot_bufmin = 1.E6
+
+* --> init phi hint flag (used in richgetphihint.F)
+      IPHIHINTFLAG = 0
+
+* --> scan
+      npscan = 0
+
+      do i=1,min(nbhits,nhitmax)
+         nthchit_scan(i) = 0
+      enddo
+
+      do xthet = cangrecup_alt,cangreclow_alt,-thcstep_alt
+*         print*,'Scan in xthet: ',xthet*RADDEG,' deg'
+         npscan = npscan+1
+         if(npscan.le.npscanmax) then
+            fliketot_dummy = fliketotall(xthet)
+            do i=1,min(nbhits,nhitmax)
+               nthchit_scan(i) = nthchit_scan(i)+1
+               thchit_scan(i,npscan) = xthet
+               chi2hit_scan(i,npscan) = chi2hit_fit(i)
+*               print*,'Hit ',i,', dist = ',sqrt(chi2hit_scan(i,npscan))
+               phihit_scan(i,npscan) = phihit_fit(i)
+               ireflechit_scan(i,npscan) = ireflechit_fit(i)
+               imsechit_scan(i,npscan) = imsechit_fit(i)
+            enddo
+         endif
+         if (IPHIHINTKIND.ne.0) IPHIHINTFLAG = 1 !phi hint just done once
+      enddo
+
+*      do i=1,min(nbhits,nhitmax)
+*         print*,'Scanning for hit ',i
+*         do j=1,nthchit_scan(i)
+*            print*,'thc (deg) = ',thchit_scan(i,j)*RADDEG,
+*     +             ': d = ',sqrt(chi2hit_scan(i,j))
+*         enddo
+*      enddo
+
+      return
+      end
+
+
+* ===============================================================
+      subroutine richscandist_opt
+* ===============================================================
+* ***************************************************************
+* Optimized version of RICHSCANDIST
+*
+* R. Pereira 30-Nov-2011, added to AMS software in December 2011
+* ***************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      integer iflghit_bak(nhitmax)
+
+      real facthcminscan,facthcmaxscan
+      real thcminscan,thcmaxscan,thcstepscan
+
+      real cangrecup_alt,cangreclow_alt
+      real thcstep_alt
+
+      real fliketot_dummy
+
+      integer npnexc
+      integer ipexc(npscanmax)
+
+      integer inexc,lnexc
+      integer imaxnexc,lmaxnexc
+
+      integer npcalc
+
+      real dvmax
+      real dpcalc
+
+      integer ipdone(npscanmax)
+
+*      print*,'entering RICHSCANDIST_OPT'
+
+      if(refindex.lt.1.1) then  ! aerogel
+         facthcminscan = facthcminscanagl
+         facthcmaxscan = facthcmaxscanagl
+         thcminscan = thcminscanagl
+         thcmaxscan = thcmaxscanagl
+         thcstepscan = thcstepscanagl
+      else  ! NaF
+         facthcminscan = facthcminscannaf
+         facthcmaxscan = facthcmaxscannaf
+         thcminscan = thcminscannaf
+         thcmaxscan = thcmaxscannaf
+         thcstepscan = thcstepscannaf
+      endif
+
+      cangrecup_alt = facthcmaxscan*acos(1./refindex)
+      cangreclow_alt = facthcminscan*acos(1./refindex)
+
+      if(thcmaxscan.lt.cangrecup_alt) cangrecup_alt = thcmaxscan
+      if(thcminscan.gt.cangreclow_alt) cangreclow_alt = thcminscan
+
+      thcstep_alt = thcstepscan
+
+      if(refindex.lt.1.1) then  ! aerogel
+         dvmax = dvmaxagl
+      else  ! NaF
+         dvmax = dvmaxnaf
+      endif
+
+      IPHIHINTKIND = 1 !phi hint obtained by scanning at thc max
+      ipmin = 0
+      fliketot_bufmin = 1.E6
+
+* --> init phi hint flag (used in richgetphihint.F)
+      IPHIHINTFLAG = 0
+
+* --> fill test grid angles for each hit
+*     (currently each hit uses same grid but this may change)
+      npscan = 0
+      do i=1,min(nbhits,nhitmax)
+         nthchit_scan(i) = 0
+      enddo
+
+      do xthet = cangrecup_alt,cangreclow_alt,-thcstep_alt
+         npscan = npscan+1
+*         print*,'Test angle ',npscan,' at ',xthet*RADDEG,' deg'
+         if(npscan.le.npscanmax) then
+            do i=1,min(nbhits,nhitmax)
+               nthchit_scan(i) = nthchit_scan(i)+1
+               thchit_scan(i,npscan) = xthet
+               chi2hit_scan(i,npscan) = -999.
+            enddo
+         endif
+      enddo
+
+* --> initial scan at maximum angle
+      fliketot_dummy = fliketotall(cangrecup_alt)
+      do i=1,min(nbhits,nhitmax)
+         chi2hit_scan(i,1) = chi2hit_fit(i)
+*         print*,'Hit ',i,',point ',1,', thc = ',
+*     +        thchit_scan(i,1)*RADDEG,
+*     +        ' deg, d = ',sqrt(chi2hit_scan(i,1))
+         phihit_scan(i,1) = phihit_fit(i)
+         ireflechit_scan(i,1) = ireflechit_fit(i)
+         imsechit_scan(i,1) = imsechit_fit(i)
+      enddo
+      if (IPHIHINTKIND.ne.0) IPHIHINTFLAG = 1 !phi hint just done once
+
+* --> locate zeros for each hit
+
+* --> replace standard hit flags with mask
+      do i=1,min(nbhits,nhitmax)
+         iflghit_bak(i) = iflghit(i)
+         if(iflghit(i).eq.0) iflghit(i) = 5  ! dummy value to stop calc
+      enddo
+
+* --> cycle over hits
+
+      do i=1,min(nbhits,nhitmax)
+
+*         print*,'RICHSCANDIST_OPT: hit ',i,'/',min(nbhits,nhitmax),
+*     +        'flag ',iflghit_bak(i)
+         if(iflghit_bak(i).gt.0) continue  ! exclude particle/bad hits
+
+* -----> perform chi2 calculation where needed, exclude other regions
+
+         iflghit(i) = 0  ! flag hit to be used in fliketotall
+         npnexc = nthchit_scan(i)-1
+         ipexc(1) = 1  ! first point treated above
+         do j=2,nthchit_scan(i)
+            ipexc(j) = 0  ! point not treated/excluded (yet)
+         enddo
+
+* -----> exclude points near maximum where possible
+
+         do j=1,nthchit_scan(i)
+            if(ipexc(j).eq.0
+     +           .and. chi2hit_scan(i,1).lt.1.e6
+     +           .and. dvmax*abs(thchit_scan(i,j)
+     +           -thchit_scan(i,1))
+     +           .lt.sqrt(chi2hit_scan(i,1))) then
+*               print*,'Point ',1,' at ',
+*     +              thchit_scan(i,1)*RADDEG,'deg',
+*     +              ' with d = ',sqrt(chi2hit_scan(i,1)),
+*     +              ' excludes point ',j,' at ',
+*     +              thchit_scan(i,j)*RADDEG,'deg'
+               ipexc(j) = 1     ! exclude neighbour
+            endif
+         enddo
+
+* -----> cycle of calculations/exclusions until points are exhausted
+
+         do while(npnexc.gt.0)  ! some points not treated/excluded
+
+*            print*,'npnexc = ',npnexc
+
+            npnexc = 0
+
+            imaxnexc = 0  ! first pending point in longest sequence
+            lmaxnexc = 0  ! longest pending sequence
+
+            inexc = 0
+            lnexc = 0
+
+            do j=1,nthchit_scan(i)
+               if(ipexc(j).eq.0) then
+                  npnexc = npnexc+1
+                  if(lnexc.gt.0) then
+                     lnexc = lnexc+1
+                  else
+                     inexc = j
+                     lnexc = 1
+                  endif
+                  if(lnexc.gt.lmaxnexc) then  ! record length
+                     imaxnexc = inexc
+                     lmaxnexc = lnexc
+                  endif
+               else
+                  inexc = 0
+                  lnexc = 0
+               endif
+            enddo
+
+            if(npnexc.gt.0) then  ! evaluate next point
+
+               npcalc = imaxnexc+lmaxnexc/2
+
+               fliketot_dummy = fliketotall(thchit_scan(i,npcalc))
+               chi2hit_scan(i,npcalc) = chi2hit_fit(i)
+*               print*,'Hit ',i,',point ',npcalc,', thc = ',
+*     +              thchit_scan(i,npcalc)*RADDEG,
+*     +              ' deg, d = ',sqrt(chi2hit_scan(i,npcalc))
+               phihit_scan(i,npcalc) = phihit_fit(i)
+               ireflechit_scan(i,npcalc) = ireflechit_fit(i)
+               imsechit_scan(i,npcalc) = imsechit_fit(i)
+
+               ipexc(npcalc) = 1
+
+               do j=1,nthchit_scan(i)
+                  if(ipexc(j).eq.0
+     +                 .and. chi2hit_scan(i,npcalc).lt.1.e6
+     +                 .and. dvmax*abs(thchit_scan(i,j)
+     +                 -thchit_scan(i,npcalc))
+     +                 .lt.sqrt(chi2hit_scan(i,npcalc))) then
+*                     print*,'Point ',npcalc,' at ',
+*     +                    thchit_scan(i,npcalc)*RADDEG,'deg',
+*     +                    ' with d = ',sqrt(chi2hit_scan(i,npcalc)),
+*     +                    ' excludes point ',j,' at ',
+*     +                    thchit_scan(i,j)*RADDEG,'deg'
+                     ipexc(j) = 1  ! exclude neighbour
+                  endif
+               enddo
+
+            endif
+
+         enddo
+
+* -----> perform chi2 calculation for neighbors of possible minima
+
+         do j=1,nthchit_scan(i)
+            if(chi2hit_scan(i,j).lt.-1) then  ! distance not calculated
+               ipdone(j) = 0
+            else
+               ipdone(j) = 1
+            endif
+*            print*,'>>> hit ',i,', point ',j,', done ',ipdone(j)
+         enddo
+
+         do j=1,nthchit_scan(i)
+            if(ipdone(j).eq.0 .and.
+     +           ((ipdone(j-1).eq.1 .and.
+     +           sqrt(chi2hit_scan(i,j-1)).lt.dvmax
+     +           *abs(thchit_scan(i,j)-thchit_scan(i,j-1)))
+     +           .or.(ipdone(j+1).eq.1 .and.
+     +           sqrt(chi2hit_scan(i,j+1)).lt.dvmax
+     +           *abs(thchit_scan(i,j+1)-thchit_scan(i,j))))) then
+
+*               print*,'>>> hit ',i,', point ',j,', done at final pass'
+
+               fliketot_dummy = fliketotall(thchit_scan(i,j))
+               chi2hit_scan(i,j) = chi2hit_fit(i)
+               phihit_scan(i,j) = phihit_fit(i)
+               ireflechit_scan(i,j) = ireflechit_fit(i)
+               imsechit_scan(i,j) = imsechit_fit(i)
+
+            endif
+         enddo
+
+         iflghit(i) = 5  ! reset flag
+
+      enddo
+
+* --> restore standard hit flags
+      do i=1,min(nbhits,nhitmax)
+         iflghit(i) = iflghit_bak(i)
+      enddo
+
+*      print*,'leaving RICHSCANDIST_OPT'
+
+      return
+      end
+
+
+* ===============================================================
+      subroutine richgethitzero
+* ===============================================================
+* ***************************************************************
+* Get distance zeros of each hit
+* using data stored during richscandist
+*
+* NOTICE THAT THIS ASSUMES EQUAL SPACING IN POINTS!
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+* ***************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      real tollin
+
+      real dcenter,dprev,dnext
+      real xcenter,xprev,xnext
+      real zeroval,zeroderiv
+
+      if(refindex.lt.1.1) then  ! aerogel
+         tollin = tollinagl
+      else  ! NaF
+         tollin = tollinnaf
+      endif
+
+*      print*,'Entering RICHGETHITZERO: nbhits,nhitmax =',
+*     +        nbhits,nhitmax
+
+      do i=1,min(nbhits,nhitmax)
+*         print*,'Data list for hit ',i
+         do j=1,nthchit_scan(i)
+            if(chi2hit_scan(i,j).gt.-1.) then
+*               print*,'... hit ',i,', point ',j,', d = ',
+*     +              sqrt(chi2hit_scan(i,j))
+            else
+*               print*,'... hit ',i,', point ',j,', d = [N/A]'
+            endif
+         enddo
+      enddo
+
+      do i=1,min(nbhits,nhitmax)
+
+         nchizero(i) = 0
+
+         do j=2,nthchit_scan(i)-1
+
+* ......... Condition to skip excluded regions (points have chi2=-999)
+            if(chi2hit_scan(i,j).lt.-1.
+     +         .or. chi2hit_scan(i,j-1).lt.-1. 
+     +         .or. chi2hit_scan(i,j+1).lt.-1.) continue
+
+            dcenter = sqrt(chi2hit_scan(i,j))
+            dprev = sqrt(chi2hit_scan(i,j-1))
+            dnext = sqrt(chi2hit_scan(i,j+1))
+
+            xcenter = thchit_scan(i,j)
+            xprev = thchit_scan(i,j-1)
+            xnext = thchit_scan(i,j+1)
+
+            if((dcenter.lt.dprev).and.(dcenter.lt.dnext)) then  ! local minimum
+
+               if(abs(dcenter-0.5*abs(dprev-dnext)).lt.tollin) then  ! good linearity
+                  if(dprev.lt.dnext) then
+                     zeroval = xprev
+     +                    +(xcenter-xprev)*dprev/(dprev+dcenter)
+                     zeroderiv = abs((dprev+dcenter)/(xcenter-xprev))
+                  else
+                     zeroval = xcenter
+     +                    +(xnext-xcenter)*dcenter/(dcenter+dnext)
+                     zeroderiv = abs((dcenter+dnext)/(xnext-xcenter))
+                  endif
+
+                  if(nchizero(i).lt.nchizeromax) then
+                     nchizero(i) = nchizero(i)+1
+                     chizero(i,nchizero(i)) = zeroval
+                     chideriv(i,nchizero(i)) = zeroderiv
+
+*                     print*,'Hit ',i,': zero at ',
+*     +                      zeroval*RADDEG,' deg, deriv = ',
+*     +                      zeroderiv*DEGRAD,' cm/deg'
+
+                  endif
+
+               endif
+            endif
+
+         enddo
+      enddo
+
+      return
+      end
+
+
+* ===============================================================
+      subroutine richlikemin_alt
+* ===============================================================
+* ***************************************************************
+* Get best Cerenkov angle with likelihood value using linearized
+* distances (through fine scan + final quadratic fit)
+*
+* Result is stored in thcres
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+* ***************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      real cangrecup_lscan,cangreclow_lscan
+      real thcstep_lscan
+
+      integer nlikeval
+      real vthe(10000)
+      real vlike(10000)
+
+      integer nlikebest
+      real vthebest
+      real vlikebest
+
+      cangrecup_lscan = acos(1./refindex)*1.20
+      cangreclow_lscan = 2.*DEGRAD
+      thcstep_lscan = 0.1*DEGRAD
+
+      nlikeval = 0
+
+      do xthet = cangreclow_lscan,cangrecup_lscan,thcstep_lscan
+         if(nlikeval.lt.10000) then
+            nlikeval = nlikeval+1
+            vthe(nlikeval) = xthet
+            vlike(nlikeval) = fliketotall_alt(xthet)
+*            print*,'At ',xthet*RADDEG,' deg, vlike = ',vlike(nlikeval)
+         endif
+      enddo
+
+      nlikebest = -999
+      vthebest = -999.
+      vlikebest = 1.e20
+
+      do i=2,nlikeval-1
+         if(vlike(i).lt.vlikebest) then
+            nlikebest = i
+            vthebest = vthe(i)
+            vlikebest = vlike(i)
+         endif
+      enddo
+
+      thcres = 1.e20
+      d2loglike = -1.e20
+
+      if(nlikebest.gt.1) then
+
+         vlikeprev = vlike(nlikebest-1)
+         vlikenext = vlike(nlikebest+1)
+
+         thcres = vthebest+(vlikeprev-vlikenext)*thcstep_lscan
+     +        /(2.*vlikeprev-4.*vlikebest+2.*vlikenext)
+
+         d2loglike = (vlikeprev-2.*vlikebest+vlikenext)
+     +        /thcstep_lscan**2.
+
+*      print*,'Data on final minimization:'
+*      print*,'thc points (deg): ',(vthebest-thcstep_lscan)*RADDEG,
+*     +                            " ",vthebest*RADDEG," ",
+*     +                            (vthebest+thcstep_lscan)*RADDEG
+*      print*,'likelihood values: ',vlikeprev," ",
+*     +                             vlikebest," ",vlikenext
+*      print*,'optimal thc (deg): ',thcres*RADDEG
+*      print*,'likelihood 2nd derivative (/deg2): ',
+*     +                            d2loglike*DEGRAD**2
+
+      endif
+
+      return
+      end
+
+
+*********************************************************************
+      real function fliketotall_alt(cangrecx)
+*********************************************************************
+*
+* AIMS: likelihood function computed as the product of the hits
+*       probability to belong to the tested pattern(cangrecx),
+*       uses linearized distances instead of fchi2hit
+*
+*   IN: cangrecx = cerenkov angle
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+*
+*********************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      real chi2hit_lin
+      integer nbushits_alt
+      real chi2rec_alt
+
+      real gcte, fgaussct, gcte1, gcte2, fact_weight
+
+* --- init
+      fliketotall_alt  = 0.0
+      nbushits_alt = 0
+      chi2rec_alt  = 0.0
+
+* --- pass variable
+      hypthc = cangrecx
+      if (hypthc.eq.0.0) hypthc = 0.001
+
+* --- exception conditions
+      if (nbhits.eq.0          .or.
+     &    nbhits_nass.eq.0     .or.
+     &    hypthc.lt.cangreclow .or.
+CC     &    hypthc.gt.cangrecup
+     &    hypthc.gt.cangrecup*13./11.
+     &    ) then
+         fliketotall = 1.E8
+         return
+      endif
+
+* --- how many hits to use on likelihood computation
+      if (nhitscan.eq.0) nhitscan = nbhits_nass
+      istephit = int(nbhits_nass/nhitscan)
+      if (istephit.eq.0) istephit = 1
+
+* --- loop on data hits non-associated to particle
+      do 1 n=1,min(nbhits_nass,nhitscan*istephit),istephit
+* ...... get pointer to data hits (non-assoc)
+         i = ip_nass(n)
+* ...... exclude associated hits to track (dummy!!!)
+         if (iflghit(i).eq.1) goto 1 !next hit
+* ...... exclude hits already used by some reconstruction
+         if (iflghit(i).eq.2) goto 1 !next hit
+* ...... exclude hits farther than 10 cm for maximum cerenkov pattern
+         if (iflghit(i).eq.3) goto 1 !next hit
+* ...... exclude any other anomalous hits
+         if (iflghit(i).gt.0) goto 1 !next hit
+
+         chi2hit_lin = flindist(cangrecx,i)**2.
+
+* ----> DOUBLE GAUSSIAN
+         gcte1   = F1NORMG/sqrt(twopi*F1SIGMA2)
+         gcte2   = (1.-F1NORMG)/sqrt(twopi*F2SIGMA2)
+         fgaussct = -log(
+     +                   (1.-FBACKGR)*(
+     +                   gcte1*exp(-0.5*chi2hit_lin/F1SIGMA2)+
+     +                   gcte2*exp(-0.5*chi2hit_lin/F2SIGMA2))+
+     +                   FBACKGR/FDISTAN
+     +                  )
+* ----> weight probability with signal
+         if (hitsnpe(i).lt.1.)then
+            fact_weight=1.
+         else
+cc            fact_weight=nint(hitsnpe(i))
+            fact_weight=hitsnpe(i)
+         endif
+         fgaussct = fgaussct*fact_weight
+* -----> Compute likelihood function
+         fliketotall_alt = fliketotall_alt + fgaussct
+* ...... tag hits associated to ring
+         if (chi2hit_lin.lt.CHI2HTCUT) then
+            nbushits_alt = nbushits_alt + 1
+            chi2rec_alt = chi2rec_alt + chi2hit_lin
+         endif
+
+* --- loop on hits
+ 1    continue
+
+* ... no likelihood was calculated
+      if (fliketotall.eq.0..and.nbushits_alt.eq.0) then
+         fliketotall = 1.E8
+         return
+      endif
+
+      return
+      end
+
+
+*********************************************************************
+      real function flindist(cangrecx,j)
+*********************************************************************
+*
+* AIMS: result of linearized distance from hit 'j' to pattern
+*       for Cerenkov angle cangrecx
+*
+*   IN: cangrecx = Cerenkov angle
+*       ihit = hit number
+*
+* R. Pereira 25-Nov-2011, added to AMS software in December 2011
+*
+*********************************************************************
+
+#include "../include/richrec_lipf.h"
+C #include "../include/richrec_lipnew.h"
+
+      real dist
+
+      flindist = 1000.  ! equivalent to infinity
+
+      do i=1,nchizero(j)  ! cycle over zeros
+         dist = abs(cangrecx-chizero(j,i))*chideriv(j,i)
+         if(dist.lt.flindist) then
+            flindist = dist
+         endif
+      enddo
+
+      return
+      end

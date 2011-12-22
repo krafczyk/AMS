@@ -476,6 +476,22 @@ C     -------------------------------------------------------------------------
          DMECY = YEF - 16*PITCHY
          DX0   = PITCHX/2. - XPC
 
+* ------ store parameters for alternative velocity algorithm
+         facthcminscanagl = facthcminscanagl_c2f
+         facthcmaxscanagl = facthcmaxscanagl_c2f
+         facthcminscannaf = facthcminscannaf_c2f
+         facthcmaxscannaf = facthcmaxscannaf_c2f
+         thcminscanagl    = thcminscanagl_c2f  
+         thcmaxscanagl    = thcmaxscanagl_c2f  
+         thcstepscanagl   = thcstepscanagl_c2f 
+         thcminscannaf    = thcminscannaf_c2f  
+         thcmaxscannaf    = thcmaxscannaf_c2f  
+         thcstepscannaf   = thcstepscannaf_c2f 
+         dvmaxagl         = dvmaxagl_c2f       
+         dvmaxnaf         = dvmaxnaf_c2f       
+         tollinagl        = tollinagl_c2f      
+         tollinnaf        = tollinnaf_c2f
+
          return
 
       endif
@@ -578,8 +594,8 @@ C ------------------------------------------------------------------
          irecaux = 3
       endif
 
-      if(irecaux.eq.2) then
-         idobeta = 1
+      if(irecaux.eq.2) then  ! alternative beta rec, optimized (now standard)
+         idobeta = 3
       endif
 
       if(irecaux.eq.3) then
@@ -588,6 +604,14 @@ C ------------------------------------------------------------------
 
       if(irecaux.eq.4) then
          idostd = 1
+      endif
+
+      if(irecaux.eq.8) then  ! alternative beta rec, non-optimized
+         idobeta = 2
+      endif
+
+      if(irecaux.eq.9) then  ! original beta rec
+         idobeta = 1
       endif
 
 * --- re-initialize track dependent parameters: radiator thickness, n, clarity
@@ -664,7 +688,7 @@ C ------------------------------------------------------------------
 * --- conventional velocity reconstruction
 *******************************************
 
-      if(idobeta.eq.1) then
+      if(idobeta.eq.1 .or. idobeta.eq.2 .or. idobeta.eq.3) then
 
 * ------ count one more reconstruction
          irecnumb = irecnumb+1
@@ -696,8 +720,16 @@ C ------------------------------------------------------------------
 * ------ track/hit association
          call richtrkhitassoc
 
-* ------ beta rec
-         call richbetarec
+* ------ beta recs
+         if(idobeta.eq.1) then
+            call richbetarec
+         endif
+         if(idobeta.eq.2) then
+            call richbetarec_alt(1)
+         endif
+         if(idobeta.eq.3) then
+            call richbetarec_alt(2)
+         endif
 
 * ------ Kolmogorov probability
          if (ipthetac.ne.0) then
@@ -739,6 +771,7 @@ C ------------------------------------------------------------------
                resb_thc(irecnumb+1) = cangrec(ipthetac)
                resb_chi2(irecnumb+1) = chi2rec(ipthetac)
                resb_like(irecnumb+1) = resvlike
+               resb_d2like(irecnumb+1) = d2loglike
                resb_nhit(irecnumb+1) = nbushits(ipthetac)
 
                do j=1,min(nbhits,nhitmax)
@@ -932,6 +965,7 @@ C ------------------------------------------------------------------
             resb_thc(irecnumb+1) = thc_rectof
             resb_chi2(irecnumb+1) = chi2_rectof
             resb_like(irecnumb+1) = resvlike
+            resb_d2like(irecnumb+1) = d2loglike
             resb_nhit(irecnumb+1) = nuhits_rectof
             do i=1,nhitmax
                resb_phit(i,irecnumb+1) = phit_rectof(i)
@@ -1102,6 +1136,7 @@ C ------------------------------------------------------------------
             resb_thc(irecnumb+1) = thc_recstd
             resb_chi2(irecnumb+1) = chi2_recstd
             resb_like(irecnumb+1) = resvlike
+            resb_d2like(irecnumb+1) = d2loglike
             resb_nhit(irecnumb+1) = nuhits_recstd
             do i=1,nhitmax
                resb_phit(i,irecnumb+1) = phit_recstd(i)
@@ -1261,6 +1296,7 @@ C ------------------------------------------------------------------
          print*,'resb_thc (d)  = ',resb_thc(k)*RADDEG
          print*,'resb_chi2     = ',resb_chi2(k)
          print*,'resb_like     = ',resb_like(k)
+         print*,'resb_d2like   = ',resb_d2like(k)
          print*,'resb_nhit     = ',resb_nhit(k)
          print*,'resb_phit     = ',(resb_phit(i,k),i=1,resb_nhit(k))
          print*,'resb_used     = ',(resb_used(i,k),

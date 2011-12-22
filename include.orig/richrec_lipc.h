@@ -36,7 +36,13 @@
      +     pimp_tof,epimp_tof,pthe_tof,ethe_tof,pphi_tof,
      +     epphi_tof,pmom_tof,
      +     edep_tof,edepd_tof,time_tof,
-     +     errtime_tof,coo_tof,errcoo_tof
+     +     errtime_tof,coo_tof,errcoo_tof,
+     +     facthcminscanagl_c2f,facthcmaxscanagl_c2f,
+     +     facthcminscannaf_c2f,facthcmaxscannaf_c2f,
+     +     thcminscanagl_c2f,thcmaxscanagl_c2f,thcstepscanagl_c2f,
+     +     thcminscannaf_c2f,thcmaxscannaf_c2f,thcstepscannaf_c2f,
+     +     dvmaxagl_c2f,dvmaxnaf_c2f,
+     +     tollinagl_c2f,tollinnaf_c2f
 
       integer jobc_cp_c2f,
      +        rcgeom_c2f,levgeom_c2f,levgrad_c2f,levacc_c2f,levghit_c2f,
@@ -145,15 +151,29 @@
      +                  irecnumb,                  ! Number of LIP recs performed so far (minus one)
      +                  itrknumb,                  ! Number of tracks used by LIP so far (minus one)
                       ! [ FLAGS FOR LIP CODE ]
-     +                  idispflag                  ! LIP display flag: 0=off, 1=on
-
+     +                  idispflag,                 ! LIP display flag: 0=off, 1=on
+                      ! [ PARAMETERS FOR ALTERNATIVE VELOCITY ALGORITHM ]
+     +                  facthcminscanagl_c2f,      ! Minimum angle factor for aerogel scan
+     +                  facthcmaxscanagl_c2f,      ! Maximum angle factor for aerogel scan
+     +                  facthcminscannaf_c2f,      ! Minimum angle factor for NaF scan
+     +                  facthcmaxscannaf_c2f,      ! Maximum angle factor for NaF scan
+     +                  thcminscanagl_c2f,         ! Minimum angle for aerogel scan
+     +                  thcmaxscanagl_c2f,         ! Maximum angle for aerogel scan
+     +                  thcstepscanagl_c2f,        ! Step for aerogel scan
+     +                  thcminscannaf_c2f,         ! Minimum angle for NaF scan
+     +                  thcmaxscannaf_c2f,         ! Maximum angle for NaF scan
+     +                  thcstepscannaf_c2f,        ! Step for NaF scan
+     +                  dvmaxagl_c2f,              ! Maximum distance derivative for aerogel
+     +                  dvmaxnaf_c2f,              ! Maximum distance derivative for NaF
+     +                  tollinagl_c2f,             ! Tolerance in linearity for aerogel
+     +                  tollinnaf_c2f              ! Tolerance in linearity for NaF
 
       !$OMP THREADPRIVATE (/lipc2f/) 
 * ===============================================================================================
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
      +        resb_used,resc_iflag,resc_nmirsec
-      real resb_beta,resb_thc,resb_chi2,resb_like,
+      real resb_beta,resb_thc,resb_chi2,resb_like,resb_d2like,
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
@@ -177,6 +197,7 @@
      +                 resb_thc(nmaxliprec),            ! rec Cerenkov angle
      +                 resb_chi2(nmaxliprec),           ! chi2 of reconstruction
      +                 resb_like(nmaxliprec),           ! likelihood value
+     +                 resb_d2like(nmaxliprec),         ! likelihood 2nd derivative
      +                 resb_nhit(nmaxliprec),           ! number of used hits
      +                 resb_phit(nhitmax,nmaxliprec),   ! pointers to used hits
      +                 resb_used(nhitmax,nmaxliprec),   ! flags of used hits

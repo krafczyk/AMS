@@ -741,3 +741,57 @@ C      data irotflg /0/
 
 
       !$OMP THREADPRIVATE (/rstddet/)
+
+
+***************************************************************************
+*** NEW CODE: alternative velocity reconstruction (added December 2011) ***
+***************************************************************************
+
+      integer npscanmax
+      PARAMETER(NPSCANMAX=1000)
+
+      integer nchizeromax
+      PARAMETER(NCHIZEROMAX=100)
+
+      integer nthchit_scan,ireflechit_scan,imsechit_scan,
+     +        nchizero
+      real thchit_scan,chi2hit_scan,phihit_scan,
+     +     chizero,chideriv,thcres,d2loglike
+
+      common /richraltres/
+     +                 nthchit_scan(nhitmax),
+     +                 thchit_scan(nhitmax,npscanmax),
+     +                 chi2hit_scan(nhitmax,npscanmax),
+     +                 phihit_scan(nhitmax,npscanmax),
+     +                 ireflechit_scan(nhitmax,npscanmax),
+     +                 imsechit_scan(nhitmax,npscanmax),
+     +                 nchizero(nhitmax),
+     +                 chizero(nhitmax,nchizeromax),
+     +                 chideriv(nhitmax,nchizeromax),
+     +                 thcres,
+     +                 d2loglike
+      !$OMP THREADPRIVATE (/richraltres/)
+
+      real facthcminscanagl,facthcmaxscanagl,
+     +     facthcminscannaf,facthcmaxscannaf,
+     +     thcminscanagl,thcmaxscanagl,thcstepscanagl,
+     +     thcminscannaf,thcmaxscannaf,thcstepscannaf,
+     +     dvmaxagl,dvmaxnaf,
+     +     tollinagl,tollinnaf
+
+      common /richraltpar/
+     +                 facthcminscanagl,
+     +                 facthcmaxscanagl,
+     +                 facthcminscannaf,
+     +                 facthcmaxscannaf,
+     +                 thcminscanagl,
+     +                 thcmaxscanagl,
+     +                 thcstepscanagl,
+     +                 thcminscannaf,
+     +                 thcmaxscannaf,
+     +                 thcstepscannaf,
+     +                 dvmaxagl,
+     +                 dvmaxnaf,
+     +                 tollinagl,
+     +                 tollinnaf
+      !$OMP THREADPRIVATE (/richraltpar/)
