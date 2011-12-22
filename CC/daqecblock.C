@@ -38,16 +38,24 @@ void DAQECBlock::node2crs(int16u nodeid, int16u &crat){//called by me only
   crat=atoi(DAQEvent::getportname(nodeid)+5)+1;//1-2, no validity check -> all is verified during VC's call to checkblockid
 }
 //---
+
+
 integer DAQECBlock::checkblockid(int16u blid){//JINF's ids as Ports("VC"'s blid), return crt#(1-2)
   int valid(0);
   char sstr[128];
   for(int i=0;i<ecalconst::ECRT;i++){
     sprintf(sstr,"JINFE%X",i);
     valid=DAQEvent::ismynode(blid,sstr)?(i+1):0;
-    if(valid>0)break;
+    if(valid>0)return valid;
   }
-  return valid;
+   for(int i=0;i<ecalconst::ECRT;i++){
+  sprintf(sstr,"JF-E%d",i);
+  if(DAQEvent::ismynode(blid,sstr))return i+1; 
+ }
+ return 0;
 }
+
+
 integer DAQECBlock::getportid(int16u crat){
 // on input crat=0,1; return portid >=0, -1 if not found
   integer valid(-1);
