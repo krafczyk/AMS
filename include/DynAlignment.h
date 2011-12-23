@@ -48,8 +48,9 @@ class DynAlEvent: public TObject{
   bool operator<(const DynAlEvent &b) const {return Time[0]!=b.Time[0]?Time[0]<b.Time[0]:Time[1]<b.Time[1];}
   static bool buildEvent(AMSEventR &ev,int layer,DynAlEvent &event);
   static bool buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event);
+  int getClass();
 
-  ClassDef(DynAlEvent,2);
+  ClassDef(DynAlEvent,3);
 };
 
 
@@ -81,7 +82,6 @@ class DynAlHistory: public TObject{
 //
 //  The class DynAlFit performs the fit for to obtain the alignment for a single event 
 //
-
 
 class DynAlFit: public TObject{
  public:
@@ -116,10 +116,26 @@ class DynAlFit: public TObject{
   bool ForceFit(DynAlHistory &history,int first,int last,set<int> &exclude);
   void Eval(DynAlEvent &event,double &x,double &y,double &z);
   void RetrieveFitPar(int t0=0,int t1=0);
+
   //  void ApplyLocalAlignment(int id,double &x,double &y,double &z);
   //  void ApplyLocalAlignment(int id,float &x,float &y,float &z);
   void Eval(AMSEventR &ev,double &x,double &y,double &z);
-  ClassDef(DynAlFit,1);
+
+  struct CLASSINFO{
+    double mean[2];
+    double rms[2];
+    double entries[2];
+  };
+
+  // UTILS
+  static void getRange(vector<double> &array,double &Min,double &Max,int buckets=10000);
+  static bool bucketSort(vector<double> &array,const int buckets=10000);
+  static bool bucketSort(vector<double> &array,double Min,double Max,const int buckets=10000);
+  static bool findPeak(vector<double> &array,const double fraction,double &peak,double &width,int buckets=10000);
+  static bool findPeak(vector<double> array,const double fraction,double Min,double Max,double &peak,double &width,int buckets=10000);
+
+
+  ClassDef(DynAlFit,4);
 };
 
 

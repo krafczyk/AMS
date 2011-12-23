@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.18 2011/12/17 04:01:30 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.19 2011/12/23 01:45:12 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -10,11 +10,15 @@
 #include "limits.h"
 #include "stdlib.h"
 #include "root.h"
+#include <map>
 #ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
 #endif
 
-//#define VERBOSE__
+
+#define TIMEUNIT (60*90)
+#define PEAKFRACTION (0.68)
+#define EXCLUSION 3.0
 
 ClassImp(DynAlEvent);
 
@@ -65,6 +69,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   // This also guarantees that the alignment does not depend in such parameters
   int trId=track.iTrTrackPar(1,3,3);
   if(trId<0) return false;
+  int counter=0;
   double bestDist=HUGE_VAL;
   for(int hi=0;hi<ev.nTrRecHit();hi++){
     TrRecHitR &hit=ev.TrRecHit(hi);
@@ -76,12 +81,11 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
     AMSDir dir;
     track.Interpolate(punto[2],pnt,dir,trId);
     double d=pnt.dist(punto);
+    if(d<EXCLUSION) counter++;
     if(d<bestDist) {bestDist=d;hitp=&hit;}
   }
 
-
-
-
+  if(counter>1) return false; // TEST
 #else
   int whichHit=-1;
   for(int hi=0;hi<track.NTrRecHit();hi++){
@@ -131,8 +135,6 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   ///////////////////////////////////////////////////////////////////////
 
 #ifdef _PGTRACK_
-  //  int id=track.iTrTrackPar(1,3,3);
-  //  if(id<0) return false;
   int &id=trId;
   const TrTrackPar &trPar=track.gTrTrackPar(id);
   track.Interpolate(event.RawHit[2], pnt, dir, id) ;
@@ -140,10 +142,6 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   event.TrackTheta=dir.gettheta();
   event.TrackPhi=dir.getphi();
   event.Rigidity=trPar.Rigidity;
-
-  //  if(1e4*fabs(event.RawHit[0]-event.TrackHit[0])>5*sqrt(100*100+5000*5000/event.Rigidity/event.Rigidity)) return false;
-
-
 #else
   TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
   int id=track.iTrTrackFit(fit,0);
@@ -191,7 +189,6 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
     AMSPoint pnt;
 #ifdef _PGTRACK_
   int imult=hit.GetResolvedMultiplicity();
-  //  pnt=hit.GetGlobalCoordinate(imult,"");
   pnt=hit.GetGlobalCoordinate(imult,"A");
 #else
   for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
@@ -212,6 +209,14 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,TrRecHitR &hit,DynAlEvent &event){
   return true;  // Success 
 }
 
+
+int DynAlEvent::getClass(){
+  if(Id<0) return -1; // False X
+  if(Beta>0.995) return 0;
+  if(Beta>0.97) return 1;
+  if(Cutoff>15) return 2;
+  return 3;
+}
 
 
 ClassImp(DynAlHistory);
@@ -326,59 +331,15 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
     excluded.insert(i);
   }
 
-
-  /////////////////////////////////////////////
-  // Exclude outliers and symmetrice the pdf
-  
-  // Get the median
-  vector<float> delta[2];
-  for(int i=first;i<=last;i++){
-      if(excluded.count(i)) continue;
-      for(int j=0;j<2;j++) delta[j].push_back(history.Events.at(i).RawHit[j]-history.Events.at(i).TrackHit[j]);
-  }
-  
-  if(delta[0].size()>2 && delta[1].size()>2){
-    for(int j=0;j<2;j++) sort(delta[j].begin(),delta[j].end());
-    
-    double median[2];
-    for(int j=0;j<2;j++){
-      if(delta[j].size()&1){
-	median[j]=delta[j].at((delta[j].size()-1)/2);
-      }else{
-	int i=(delta[j].size()-1)/2;
-	median[j]=0.5*(delta[j].at(i)+delta[j].at(i+1));
-      }
-    }
-    
-    // We already have the median, search the extremes 
-    const double threshold=0.75; // This is the fraction of events to retaint
-    double minV[2];
-    double maxV[2];
-    for(int j=0;j<2;j++){
-      int start=(1-threshold)*0.5*delta[j].size();
-      minV[j]=delta[j].at(start);
-      maxV[j]=delta[j].at(delta[j].size()-1-start);
-    }
-    
-    //      for(int j=0;j<2;j++) cout<<"FOUND MEAN  "<<median[j]<<" "<<minV[j]<<" "<<maxV[j]<<endl;
-    
-    for(int i=first;i<=last;i++){
-      if(excluded.count(i)) continue;
-      for(int j=0;j<2;j++){
-	double x=history.Events.at(i).RawHit[j]-history.Events.at(i).TrackHit[j];
-	if(x<minV[j] || x>maxV[j]) excluded.insert(i);
-      }
-    }
-  }
-
-
   return ForceFit(history,first,last,excluded);
 }
 
-
-bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclude){
+bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &excluded){
+  cout<<"IN FORCE FIT "<<endl;
+  // Fit taking into account different classes
   Fail=true;
   Fit.ClearPoints();
+
   Double_t x[8]; // variables
 
   // Use meaningful names
@@ -393,29 +354,69 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   double y=0;
   double error=0;
 
+  // Store the following informatio per class
+
+
+  map<int,CLASSINFO> classInfo;
+  map<int,vector<double> > dx[2];
+  
+  // Fill the class information
+  for(int i=first;i<=last;i++){
+    if(excluded.count(i)>0) continue;
+    DynAlEvent &ev=history.Events.at(i);
+    ev.extrapolateTrack();
+    int Class=ev.getClass();
+    if(Class<0) continue;
+
+    for(int c=0;c<2;c++) dx[c][Class].push_back(ev.TrackHit[c]-ev.RawHit[c]);
+  }
+
+
+  // Compute the classInfo
+  for(int which=0;which<2;which++)
+    for(map<int,vector<double> >::iterator i=dx[which].begin();i!=dx[which].end();i++){
+      int Class=i->first;
+      
+      CLASSINFO &info=classInfo[Class];
+      
+      info.mean[which]=0;
+      info.rms[which]=1;
+      info.entries[which]=0;
+
+      findPeak(dx[which][Class],PEAKFRACTION,-3,3,info.mean[which],info.rms[which],10000);
+      info.rms[which]/=2;  // findPeak returns the full width
+      info.entries[which]=dx[which][Class].size();
+      //#define VERBOSE__
+#ifdef VERBOSE__
+      if(which==1)
+	cout<<"INFO FOR CLASS "<<Class<<endl
+	    <<" MEAN X="<<info.mean[0]<<" Y="<<info.mean[1]<<endl
+	    <<" RMS X="<<info.rms[0]<<" Y="<<info.rms[1]<<endl
+	    <<" ENTRIES "<<info.entries[0]<<" "<<info.entries[1]<<endl;
+#endif
+
+    }
+  
   // Compute ZOffset
   ZOffset=0;
   const int total=1+last-first;
   for(int i=first;i<=last;i++) ZOffset+=history.Events.at(i).RawHit[2];
   ZOffset/=total;
 
-  // Get the reference time
+  // Compute the fit
   Events=0;
+
+#ifdef VERBOSE__
+  int entriesPerClass[10]={0,0,0,0,0,0,0,0,0,0};
+  double meanTime=0;
+#endif
+
   for(int i=first;i<=last;i++){
     DynAlEvent event=history.Events.at(i); // Take a copy of the event
-    if(event.Beta<MinBeta || fabs(event.Rigidity)<MinRigidity || fabs(event.Rigidity)>MaxRigidity) continue;  // Exclude using the rigidity criteria
-    if(event.Rigidity<1.5 && event.Rigidity>-20) continue; // Cut compatible with TOF cut
-    
-    if(exclude.count(i)>0){
-#ifdef VERBOSE__
-      cout<<"EXCLUDED --- "<<i<<endl;
-#endif      
-      continue;  // Exclude using the mask
-    }
-
-    // Exclude interleave events for a test
-    if(ControlGroup>0) if((event.Time[0]%ControlGroup)==0) continue;
-    event.extrapolateTrack(); // Just in case
+    int Class=event.getClass();
+    if(Class<0) continue;
+    if(classInfo[Class].entries[0]<300) continue;
+    if(classInfo[Class].entries[1]<300) continue;
 
     // Shift the Z origin
     double zHit=event.RawHit[2]-ZOffset;
@@ -428,12 +429,15 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     float &yTr=event.TrackHit[1];
     
     time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
-    time/=60*90;  // Simplify a bit the computation
+    time/=TIMEUNIT;  // Simplify a bit the computation
+
+    if(fabs(xTr-xHit-classInfo[Class].mean[0])>classInfo[Class].rms[0] ||
+       fabs(yTr-yHit-classInfo[Class].mean[1])>classInfo[Class].rms[1]) continue; 
 
     double v;
     //////////////////////////////////////////////
     // First the x component
-    y=xTr-xHit;   //ztr-zhit==0
+    y=xTr-xHit;   
     Dx=1;
     Dy=0;
     v=tan(event.TrackTheta)*cos(event.TrackPhi);
@@ -441,7 +445,10 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     theta=-yHit;
     alpha=-zHit  -xHit*v;
     beta=        -yHit*v;
-    error=1;      
+
+    // Compute the probabity of being signal for this event and get the expected error
+
+    error=classInfo[Class].rms[0];
     Fit.AddPoint(x,y,error);
 
     //////////////////////////////////////////////
@@ -454,18 +461,32 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     theta=xHit;
     alpha=-xHit*v;
     beta=-zHit-yHit*v;
-    error=1;
+
+    error=classInfo[Class].rms[1];
     Fit.AddPoint(x,y,error);
 
-    // Increase the event counter
     Events++;
+#ifdef VERBOSE__
+    meanTime+=history.Events.at(i).Time[0];
+    entriesPerClass[Class]++;
+#endif
   }
 
   if(Fit.Eval()) return false;
 
+#ifdef VERBOSE__
+  //////////// TEST
+  RetrieveFitPar(meanTime/Events,0);
+  cout<<"FINAL POSITION DX "<<DX<<" DY "<<DY<<" "<<DZ<<endl;
+  cout<<"               THETA "<<THETA<<" A "<<ALPHA<<" B "<<BETA<<endl;
+  for(int i=0;i<5;i++) cout<<"    Class "<<i<<" " <<entriesPerClass[i]<<endl;
+#endif
+  //#undef VERBOSE__
+
   Fail=false;
   return true;
 }
+
 
 void DynAlFit::RetrieveFitPar(int t0,int t1){
   TVectorD par;
@@ -479,7 +500,7 @@ void DynAlFit::RetrieveFitPar(int t0,int t1){
   BETA=par[p++];
 
   double time=(t0-TOffset)+1e-6*t1;
-  time/=60*90;  // Simplify a bit the computation
+  time/=TIMEUNIT;  // Simplify a bit the computation
 
   for(int i=0;i<Order;i++){
     double dt=pow(time,i+1);
@@ -515,6 +536,108 @@ void DynAlFit::Eval(DynAlEvent &event,double &x,double &y,double &z){
   x=event.RawHit[0]+dx;
   y=event.RawHit[1]+dy;
   z=event.RawHit[2]+dz;
+}
+
+
+void DynAlFit::getRange(vector<double> &array,double &Min,double &Max,int buckets){
+  // Get the range
+  Min=HUGE_VAL;
+  Max=-HUGE_VAL;
+  for(int i=0;i<array.size();i++){
+    if(array[i]<Min) Min=array[i];
+    if(array[i]>Max) Max=array[i];
+  }
+
+  double binSize=(Max-Min)/buckets;
+  Min-=binSize/2;
+  Max+=binSize/2;
+}
+
+bool DynAlFit::bucketSort(vector<double> &array,const int buckets){
+  if(!buckets) return true;
+
+  double Min,Max;
+  getRange(array,Min,Max,buckets);
+
+  if(Min==Max) return true;
+
+  return bucketSort(array,Min,Max,buckets);
+}
+
+
+bool DynAlFit::bucketSort(vector<double> &array,double Min,double Max,const int buckets){
+  if(!buckets) return true;
+
+  int bucket[buckets];
+  const double binSize=(Max-Min)/buckets;
+#define getbin(_x) int(floor(((_x)-Min)/binSize));  
+
+  // Empty the buckets
+  for(int i=0;i<buckets;i++) bucket[i]=0;
+
+  // Fill the buckets
+  for(int i=0;i<array.size();i++){
+    int b=getbin(array[i]); 
+    if(b<0 || b>=buckets) continue;
+    bucket[b]++;
+  }
+  
+  // Dump the sorted array
+  array.clear();
+  for(int i=0;i<buckets;i++){
+    if(!bucket[i]) continue;
+    double x0=Min+(i+0.5)*binSize;
+    double delta=binSize/bucket[i];
+    for(int n=0;n<bucket[i];n++){
+      double x=x0+n*delta;
+      array.push_back(x);
+    }
+  }
+  return true;
+#undef getbin
+}
+
+bool DynAlFit::findPeak(vector<double> &array,const double fraction,double &peak,double &width,int buckets){
+  double Min,Max;
+  getRange(array,Min,Max,buckets);
+
+  if(Min==Max){peak=Min;width=0;return true;}
+  
+  return findPeak(array,fraction,Min,Max,peak,width,buckets);
+}
+
+
+bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,double Max,double &peak,double &width,int buckets){
+  if(fraction>=1 || fraction<0) return false;
+
+  // Sort the array
+  if(!bucketSort(array,Min,Max,buckets)) return false;
+  
+  // Get the search window size
+  const int window=int(array.size()*fraction);
+  
+  if(!window) return false;
+
+  width=HUGE_VAL;
+  int maxPosition=-1;
+  for(int i=window;i<array.size();i++){
+    double l=array[i]-array[i-window];
+    if(l<width){
+      width=l;
+      maxPosition=i;
+    }
+  }
+  
+  peak=0.5*(array[maxPosition]+array[maxPosition-window]);
+  return true;
+
+  // Refine the mean
+  peak=0;
+  int counter=0;
+  for(int i=0;i<=window;i++) {peak+=array[maxPosition-i];counter++;}
+  peak/=counter;
+
+  return true;
 }
 
 
@@ -559,16 +682,15 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
     layerUsed[hit.lay()]=true;
   }
 
-  SELECT("Has the right external layer",layerUsed[layer]);
-  SELECT("The inner tracker has layer 2 and plane(7,8) and other inner hit",layerUsed[2] && (layerUsed[7] || layerUsed[8]) && (layerUsed[3] || layerUsed[4] || layerUsed[5] || layerUsed[6]));
+  SELECT("The inner tracker has layer 2 and plane(7,8) and other inner hit",layerUsed[2] && (layerUsed[7] || layerUsed[8]) && (layerUsed[3] || layerUsed[4]) && (layerUsed[5] || layerUsed[6])); // CHANGED
 
   // Finally use the implicit cuts in DynAlEvent::buildEvent
   DynAlEvent event;
   if(!DynAlEvent::buildEvent(*ev,layer,event)) return false;
   if(event.Id<0) return false;
   event.extrapolateTrack();
-  if(fabs(event.RawHit[0]-event.TrackHit[0])>5 ||
-     fabs(event.RawHit[1]-event.TrackHit[1])>5) return false;
+  if(fabs(event.RawHit[0]-event.TrackHit[0])>EXCLUSION ||
+     fabs(event.RawHit[1]-event.TrackHit[1])>EXCLUSION) return false;
 
   return true;
 #undef SELECT
@@ -1106,7 +1228,6 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   }
 
   // Default fit parameters
-
   DynAlFit fit(DynAlContinuity::FitOrder);
   int minutes=DynAlContinuity::FitWindow;
   fit.MinRigidity=DynAlContinuity::RigidityCut;
@@ -1125,7 +1246,7 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
     // Find the time window
     int first,last;
     history.FindTimeWindow(current,minutes*30,first,last);
-    
+
     // Fit
     fit.DoFit(history,first,last,ev);
     
