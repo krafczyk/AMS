@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.400 2011/12/23 17:13:21 chchung Exp $
+//  $Id: root.h,v 1.401 2011/12/23 17:25:41 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2428,7 +2428,7 @@ public:
   /// \return true if position at z=(center of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 
-  ClassDef(ParticleR,13)       //ParticleR
+  ClassDef(ParticleR,14)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
