@@ -31,7 +31,7 @@ int TrdHTrackR::numa=0;
 
 ClassImp(TrdHReconR)
 
-  TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
+TrdHReconR* TrdHReconR::_trdhrecon[maxtrdhrecon]=
 {0,0,0,0,0,0,0,0,0,0,
  0,0,0,0,0,0,0,0,0,0,
  0,0,0,0,0,0,0,0,0,0,
