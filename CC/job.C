@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.843 2011/12/23 17:13:20 chchung Exp $
+// $Id: job.C,v 1.844 2011/12/23 18:06:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -87,7 +87,9 @@
 #include "tofid.h"
 #include "charge.h"
 #include "TrdHCalib.h"
+#ifdef _PGTRACK_
 #include "TrdSCalib.h"
+#endif
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -2196,8 +2198,9 @@ void AMSJob::init(){
   _timeinitjob();
 
   /// TrdSCalib Ver(4) use TrdHTrack(0) and Debug(0)
+#ifdef _PGTRACK_
   TrdSCalibR::gethead()->InitTrdSCalib(4,0,0);	
-
+#endif
   map(1);
   if(isCalibration())_caamsinitjob();
   _dbinitjob();
