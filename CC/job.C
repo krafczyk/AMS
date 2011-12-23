@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.841 2011/12/05 10:49:31 sdifalco Exp $
+// $Id: job.C,v 1.842 2011/12/23 12:30:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4787,6 +4787,7 @@ void AMSJob::_redaq2initjob(){
     //ecal
      
     DAQEvent::addsubdetector(&DAQECBlock::checkblockid,&DAQECBlock::buildraw);// for RD
+    DAQEvent::addsubdetector(&DAQECBlock::checkblockidJ,&DAQECBlock::buildrawJ);// for RD
     DAQEvent::addblocktype(&DAQECBlock::getmaxblocks,&DAQECBlock::calcblocklength,&DAQECBlock::buildblock);//for MC ?
     // rich
     DAQEvent::addsubdetector(&DAQRichBlock::checkdaqid,&DAQRichBlock::buildraw);

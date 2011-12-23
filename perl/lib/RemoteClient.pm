@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.706 2011/12/06 12:43:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.707 2011/12/23 12:30:44 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6840,9 +6840,10 @@ if( not defined $dbserver->{dbfile}){
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{version});
 }
                my $rn=DBServer::GetRunsNumber($dbserver);
+               my $maxr=256;
                if($rn>=0){
-                if($rn<512){
-                 $jbs=512-$rn;
+                if($rn<$maxr){
+                 $jbs=$maxr-$rn;
                  if($jbs<99){
                    $jbs=99;
                  }
@@ -6852,7 +6853,7 @@ if( not defined $dbserver->{dbfile}){
                  my $rntfi=DBServer::GetRunsNumber($dbserver,"Finished");
                  if($rntbr>=0 and $rntfi>=0){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
-                   $jbs=512-$tot;
+                   $jbs=$maxr-$tot;
                    if($jbs<=0){
                     $jbs=9;
                    }

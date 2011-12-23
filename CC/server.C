@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.191 2011/12/07 18:04:27 choutko Exp $
+//  $Id: server.C,v 1.192 2011/12/23 12:30:35 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2635,7 +2635,7 @@ if(reinfo->DataMC==0 || (reinfo->CounterFail>minr && reinfo->History==DPS::Produ
                     NHLI li=find_if(_pser->getnhl().begin(),_pser->getnhl().end(),NHL_find((const char *)(ahlv)->HostName)); 
                     int maxn=12;
                      if(li!=_pser->getnhl().end()){
-                        int maxn=(*li)->CPUNumber;
+                         maxn=(*li)->CPUNumber;
                     }
                     else{
                      cerr<<"AMSProducer::StartClients-E-UnableToGetNominalHostFor "<<ahlv->HostName<<endl;

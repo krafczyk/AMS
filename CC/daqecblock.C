@@ -46,6 +46,13 @@ integer DAQECBlock::checkblockid(int16u blid){//JINF's ids as Ports("VC"'s blid)
     valid=DAQEvent::ismynode(blid,sstr)?(i+1):0;
     if(valid>0)return valid;
   }
+ return 0;
+}
+
+
+
+integer DAQECBlock::checkblockidJ(int16u blid){//JINF's ids as Ports("VC"'s blid), return crt#(1-2)
+  char sstr[128];
    for(int i=0;i<ecalconst::ECRT;i++){
   sprintf(sstr,"JF-E%d",i);
   if(DAQEvent::ismynode(blid,sstr))return i+1; 
@@ -120,13 +127,21 @@ integer DAQECBlock::checkblockidP(int16u blid){//EDR's and JINF's ids as Nodes("
   return 0;
 }
 //-------------------------------------------------------
-void DAQECBlock::buildraw(integer leng, int16u *p){
+void DAQECBlock::buildrawJ(int n , int16u *pbeg){
+ buildraw(-n+1,pbeg+1);
+}
+
+
+
+void DAQECBlock::buildraw(integer leng_j, int16u *p){
 // it is implied that event_fragment is EC-JINF's one (validity is checked in calling procedure)
 //           *p=pointer_to_beggining_of_block_data(i.e. NEXT to len-word !!!)
 // this event fragment may keep EDR2,ETRG blocks in arbitrary order;
 // Length counting does not include length-word itself !!!
 //
   integer i,j,ic,icn;
+  bool jinf=leng_j<0;
+  int leng=abs(leng_j);
   integer swid,hwid,crsta(0);
   int16u swch,rdch,slot,aslt,crat,val16,ibit,slay,pmt,pix,gain,trppmt;
   int16u dtyp,datyp,lenraw(0),lencom(0),formt,evnum;
@@ -181,12 +196,13 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
   p=p-1;//to follow VC-convention
   jleng=int16u(leng&(0xFFFFL));//fragment's 1st word(block length) call value
   jblid=*(p+jleng);// JINF fragment's last word: Status+slaveID(its id)
+  crat=(leng>>16) +1;
   if(newdataf){
     cdpmsk2=*(p+jleng-1);
     cdpmsk1=*(p+jleng-2);
   }
 //
-  bool dataf=((jblid&(0x8000))>0);//data-fragment
+  bool dataf=((jblid&(0x8000))>0) || jinf;//data-fragment
   bool crcer=((jblid&(0x4000))>0);//CRC-error
   bool asser=((jblid&(0x2000))>0);//assembly-error
   bool amswer=((jblid&(0x1000))>0);//amsw-error   
@@ -207,7 +223,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     if(ECREFFKEY.reprtf[2]>2)EventBitDump(jleng,p,"Complete JINF-block:");
   }
 //
-  node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
+//  node2crs(jaddr,crat);//get crate#(1-2, =0,if notfound)
   csid=1;//here is dummy(no redundancy for JINFs), later it is defined from card_id(EDR(a,b),ETRG(a,b))
 //  cout<<"      crate="<<crat<<endl;
 //modify jleng(to skip 2 msk-words) if new dataformat:
@@ -279,7 +295,7 @@ void DAQECBlock::buildraw(integer leng, int16u *p){
     slot=int16u(slots);//0-5,6
     EcalJobStat::daqs3(crat-1,slot,formt);//entries per crate/slot vs fmt
 //edr/etrg status-bits:
-    dataf=((eblid&(0x8000))>0);//data-fragment
+    dataf=((eblid&(0x8000))>0) || jinf;//data-fragment
     crcer=((eblid&(0x4000))>0);//CRC-error
     asser=((eblid&(0x2000))>0);//assembly-error
     amswer=((eblid&(0x1000))>0);//amsw-error   

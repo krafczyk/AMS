@@ -207,8 +207,12 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
   if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
     if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
-    int ret=GetFromTDV(time);
-    if(ret<=0) {printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");return -2;}
+#ifdef __ROOTSHAREDLIBRARY__
+int ret=GetFromTDV(time);
+    if(ret<=0) {if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");return -2;}
+#else
+return -2;
+#endif;
     tf8 = Find(8, time);
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
