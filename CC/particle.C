@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.242 2011/12/23 17:13:21 chchung Exp $
+//  $Id: particle.C,v 1.243 2011/12/23 18:06:53 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -37,7 +37,9 @@
 #include "TMath.h"
 #include "TrdHRecon.h"
 #include "TrdHCharge.h"
+#ifdef _PGTRACK_
 #include "TrdSCalib.h"
+#endif
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -234,7 +236,7 @@ integer AMSParticle::build(integer refit){
       ppart->trdfit();
       ppart->trd_likelihood();
       if(TRDFITFFKEY.FitMethod)ppart->trd_Hlikelihood();
-
+#ifdef _PGTRACK_
       if( TrdSCalibR::gethead() && AMSEvent::gethead() ) {
 	int isdebug = 0;
 	ppart->_TrdSH_E2P_lik = ppart->_TrdSH_He2P_lik = ppart->_TrdSH_E2He_lik = 0;
@@ -250,7 +252,7 @@ integer AMSParticle::build(integer refit){
 		     << endl; 
 	  }
       }
-
+#endif
       AMSgObj::BookTimer.stop("ReTRDRefit");
       ppart=ppart->next();
     }
