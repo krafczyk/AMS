@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.65.16.1 2011/12/23 14:54:51 chchung Exp $
+//  $Id: particle.h,v 1.65.16.2 2011/12/23 15:06:31 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -79,10 +79,6 @@ protected:
   number _TRDHElik;
   number _TRDHPlik;
   integer _TRDCCnhit;
-
-  number _TrdSH_E2P_lik;
-  number _TrdSH_He2P_lik;
-  number _TrdSH_E2He_lik;
 
   // new
    

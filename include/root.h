@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.395.2.1 2011/12/23 14:54:51 chchung Exp $
+//  $Id: root.h,v 1.395.2.2 2011/12/23 15:06:31 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2343,11 +2343,6 @@ endif
   float TRDHElik; ///< normalized product of single layer electron probability
   float TRDHPlik; ///< normalized product of single layer proton probability
   float TRDCCnhit; ///< CC number of layers with edep above cut
-
-  float TrdSH_E2P_Likelihood;  ///< TrdSCalib  e/p likelihood using TrdHTrack
-  float TrdSH_He2P_Likelihood; ///< TrdSCalib He/p likelihood using TrdHTrack
-  float TrdSH_E2He_Likelihood; ///< TrdSCalib e/He likelihood using TrdHTrack
-
 protected: 
   int  fBeta;          ///<index of  BetaR used
   int  fCharge;        ///<index of  ChargeR used

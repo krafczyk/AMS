@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.241.2.1 2011/12/23 14:54:51 chchung Exp $
+//  $Id: particle.C,v 1.241.2.2 2011/12/23 15:06:47 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -37,7 +37,6 @@
 #include "TMath.h"
 #include "TrdHRecon.h"
 #include "TrdHCharge.h"
-#include "TrdSCalib.h"
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -234,25 +233,8 @@ integer AMSParticle::build(integer refit){
       ppart->trdfit();
       ppart->trd_likelihood();
       if(TRDFITFFKEY.FitMethod)ppart->trd_Hlikelihood();
-
-      if( TrdSCalibR::gethead() && AMSEvent::gethead() ) {
-	int isdebug = 0;
-	ppart->_TrdSH_E2P_lik = ppart->_TrdSH_He2P_lik = ppart->_TrdSH_E2He_lik = 0;
-	if( ppart->_phtrd && ppart->_ptrack && fabs(ppart->_Momentum) >= 3.0 && fabs(ppart->_Momentum) <= 100.0) 
-	  {
-	    if( !TrdSCalibR::gethead()->BuildTrdSCalib(AMSEvent::gethead()->gettime(), fabs(ppart->_Momentum),
-						       ppart->_phtrd, ppart->_ptrack,
-						       ppart->_TrdSH_E2P_lik, ppart->_TrdSH_He2P_lik, ppart->_TrdSH_E2He_lik, isdebug) )
-	      
-	      if(isdebug)
-		cout <<"### TrdSCalib Likelihood "<< AMSEvent::gethead()->gettime() <<" "  
-		     <<ppart->_TrdSH_E2P_lik<<" "<<ppart->_TrdSH_He2P_lik <<" "<<ppart->_TrdSH_E2He_lik 
-		     << endl; 
-	  }
-      }
-
       AMSgObj::BookTimer.stop("ReTRDRefit"); 
-      ppart=ppart->next(); 
+      ppart=ppart->next();
     }
   }   
   AMSgObj::BookTimer.stop("ReAxRefit");

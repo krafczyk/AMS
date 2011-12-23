@@ -32,9 +32,11 @@ public:
   static int16u getformat(){return format;}
   static void node2crs(int16u nodeid, int16u &cr);
   static integer checkblockid(int16u id);
+  static integer checkblockidJ(int16u id);
   static integer checkblockidP(int16u id);
   static integer getportid(int16u crat);
   static void buildraw(integer len, int16u *p);
+  static void buildrawJ(integer len, int16u *p);
   static void buildonbP(integer len, int16u *p);
   static void buildonbP2(integer len, int16u *p);
   static void buildonbP1(integer len, int16u *p);
