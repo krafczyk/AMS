@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.20 2011/12/23 01:47:29 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.21 2011/12/23 17:19:55 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -14,6 +14,14 @@
 #ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// TODO: starting of interface to TDV implemented (only the dump to a linear array)
+// in findpeak - Which one to use, the mean or the other
+// Should I relax my cuts in distance to the preliminary center (now I have 2 sigmas, should I go to 3, or return to 1)
+///////////////////////////////////////////////////////////////////77
+
 
 
 #define TIMEUNIT (60*90)
@@ -303,6 +311,7 @@ void DynAlFit::Init(){
     formula+=TString(Form(" ++ x[0]*x[6]**%i ++ x[1]*x[6]**%i ++x[2]*x[6]**%i ++ x[3]*x[6]**%i ++ x[4]*x[6]**%i ++ x[5]*x[6]**%i",i+1,i+1,i+1,i+1,i+1,i+1));
   Fit.SetFormula(formula);
   Fit.StoreData(false);
+
 }
 
 
@@ -353,26 +362,38 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   double y=0;
   double error=0;
 
+  // Compute ZOffset
+  ZOffset=0;
+  const int total=1+last-first;
+  for(int i=first;i<=last;i++) ZOffset+=history.Events.at(i).RawHit[2];
+  ZOffset/=total;
+
+  // Counter
+  Events=0;
+
+
   // Store the following informatio per class
-
-
   map<int,CLASSINFO> classInfo;
   map<int,vector<double> > dx[2];
   
-  // Fill the class information
-  for(int i=first;i<=last;i++){
-    if(excluded.count(i)>0) continue;
-    DynAlEvent &ev=history.Events.at(i);
-    ev.extrapolateTrack();
-    int Class=ev.getClass();
-    if(Class<0) continue;
+#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0])>0.03?100+_class:_class)
+  
 
-    for(int c=0;c<2;c++) dx[c][Class].push_back(ev.TrackHit[c]-ev.RawHit[c]);
-  }
-
-
-  // Compute the classInfo
-  for(int which=0;which<2;which++)
+  for(int which=0;which<2;which++){  // Loop in the axis
+    // Fill the information to determine each class qualities
+    for(int i=first;i<=last;i++){
+      if(excluded.count(i)>0) continue;
+      DynAlEvent &ev=history.Events.at(i);
+      ev.extrapolateTrack();
+      int Class=ev.getClass();
+      if(Class<0) continue;
+      if(which==0)
+	dx[which][Class].push_back(ev.TrackHit[which]-ev.RawHit[which]);
+      else
+	dx[which][SubClass(Class,ev)].push_back(ev.TrackHit[which]-ev.RawHit[which]);
+    }
+    
+    // Determine mean and rms for each class
     for(map<int,vector<double> >::iterator i=dx[which].begin();i!=dx[which].end();i++){
       int Class=i->first;
       
@@ -381,7 +402,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       info.mean[which]=0;
       info.rms[which]=1;
       info.entries[which]=0;
-
+      
       findPeak(dx[which][Class],PEAKFRACTION,-3,3,info.mean[which],info.rms[which],10000);
       info.rms[which]/=2;  // findPeak returns the full width
       info.entries[which]=dx[which][Class].size();
@@ -393,96 +414,89 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 	    <<" RMS X="<<info.rms[0]<<" Y="<<info.rms[1]<<endl
 	    <<" ENTRIES "<<info.entries[0]<<" "<<info.entries[1]<<endl;
 #endif
-
+      
     }
-  
-  // Compute ZOffset
-  ZOffset=0;
-  const int total=1+last-first;
-  for(int i=first;i<=last;i++) ZOffset+=history.Events.at(i).RawHit[2];
-  ZOffset/=total;
 
-  // Compute the fit
-  Events=0;
 
-#ifdef VERBOSE__
-  int entriesPerClass[10]={0,0,0,0,0,0,0,0,0,0};
-  double meanTime=0;
-#endif
-
-  for(int i=first;i<=last;i++){
-    DynAlEvent event=history.Events.at(i); // Take a copy of the event
-    int Class=event.getClass();
-    if(Class<0) continue;
-    if(classInfo[Class].entries[0]<300) continue;
-    if(classInfo[Class].entries[1]<300) continue;
-
-    // Shift the Z origin
-    double zHit=event.RawHit[2]-ZOffset;
-    double zTr=event.TrackHit[2]-ZOffset;
-
-    // Fit in Y axis
-    float &xHit=event.RawHit[0];
-    float &yHit=event.RawHit[1];
-    float &xTr=event.TrackHit[0];
-    float &yTr=event.TrackHit[1];
     
-    time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
-    time/=TIMEUNIT;  // Simplify a bit the computation
-
-    if(fabs(xTr-xHit-classInfo[Class].mean[0])>classInfo[Class].rms[0] ||
-       fabs(yTr-yHit-classInfo[Class].mean[1])>classInfo[Class].rms[1]) continue; 
-
-    double v;
-    //////////////////////////////////////////////
-    // First the x component
-    y=xTr-xHit;   
-    Dx=1;
-    Dy=0;
-    v=tan(event.TrackTheta)*cos(event.TrackPhi);
-    Dz=               -v;
-    theta=-yHit;
-    alpha=-zHit  -xHit*v;
-    beta=        -yHit*v;
-
-    // Compute the probabity of being signal for this event and get the expected error
-
-    error=classInfo[Class].rms[0];
-    Fit.AddPoint(x,y,error);
-
-    //////////////////////////////////////////////
-    // Second the y component 
-    y=yTr-yHit;
-    Dx=0;
-    Dy=1;
-    v=tan(event.TrackTheta)*sin(event.TrackPhi);
-    Dz=-v;
-    theta=xHit;
-    alpha=-xHit*v;
-    beta=-zHit-yHit*v;
-
-    error=classInfo[Class].rms[1];
-    Fit.AddPoint(x,y,error);
-
-    Events++;
 #ifdef VERBOSE__
-    meanTime+=history.Events.at(i).Time[0];
-    entriesPerClass[Class]++;
+    int entriesPerClass[10]={0,0,0,0,0,0,0,0,0,0};
+    double meanTime=0;
 #endif
+    
+    for(int i=first;i<=last;i++){
+      DynAlEvent event=history.Events.at(i); // Take a copy of the event
+      int Class=event.getClass();
+      if(Class<0) continue;
+      if(which==1) Class=SubClass(Class,event);
+      if(classInfo[Class].entries[which]<100) continue;
+      
+      // Shift the Z origin
+      double zHit=event.RawHit[2]-ZOffset;
+      double zTr=event.TrackHit[2]-ZOffset;
+      
+      // Fit in Y axis
+      float &xHit=event.RawHit[0];
+      float &yHit=event.RawHit[1];
+      float &xTr=event.TrackHit[0];
+      float &yTr=event.TrackHit[1];
+      
+      time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
+      time/=TIMEUNIT;  // Simplify a bit the computation
+      
+
+      if(classInfo[Class].rms[0]>1e-6)
+	if(fabs(xTr-xHit-classInfo[Class].mean[0])>2*classInfo[Class].rms[0]) continue;
+
+      if(classInfo[Class].rms[1]>1e-6)
+		if(fabs(yTr-yHit-classInfo[Class].mean[1])>2*classInfo[Class].rms[1]) continue;
+
+
+      double v;
+      if(which==0){
+	//////////////////////////////////////////////
+	// First the x component
+	y=xTr-xHit;   
+	Dx=1;
+	Dy=0;
+	v=tan(event.TrackTheta)*cos(event.TrackPhi);
+	Dz=               -v;
+	theta=-yHit;
+	alpha=-zHit  -xHit*v;
+	beta=        -yHit*v;
+	
+    // Compute the probabity of being signal for this event and get the expected error
+      }else{
+	//////////////////////////////////////////////
+	// Second the y component 
+	y=yTr-yHit;
+	Dx=0;
+	Dy=1;
+	v=tan(event.TrackTheta)*sin(event.TrackPhi);
+	Dz=-v;
+	theta=xHit;
+	alpha=-xHit*v;
+	beta=-zHit-yHit*v;
+      }
+      error=classInfo[Class].rms[which];
+      if(error<1e-6) continue;
+      Fit.AddPoint(x,y,error);
+      Events++;
+    }
   }
-
+  
   if(Fit.Eval()) return false;
-
+  
 #ifdef VERBOSE__
   //////////// TEST
-  RetrieveFitPar(meanTime/Events,0);
+  RetrieveFitPar(0,0);
   cout<<"FINAL POSITION DX "<<DX<<" DY "<<DY<<" "<<DZ<<endl;
   cout<<"               THETA "<<THETA<<" A "<<ALPHA<<" B "<<BETA<<endl;
-  for(int i=0;i<5;i++) cout<<"    Class "<<i<<" " <<entriesPerClass[i]<<endl;
 #endif
   //#undef VERBOSE__
 
   Fail=false;
+#undef SubClass
   return true;
 }
 
@@ -630,6 +644,8 @@ bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,do
   peak=0.5*(array[maxPosition]+array[maxPosition-window]);
   return true;
 
+  //TEST: this seems to introduce a bias in B550 wrt B530
+  // However the residuals width are smaller 
   // Refine the mean
   peak=0;
   int counter=0;
@@ -1002,9 +1018,67 @@ void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,
 }
 
 
+void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id){
+  fit.id=id;
+  fit.time=when;
 
+  double elapsed=GetTime(when,0);
+  double dt=1;
+
+#define CL(_x) fit._x=0
+  CL(DX);     CL(DY);     CL(DZ);
+  CL(THETA);  CL(ALPHA);  CL(BETA);
+#undef CL
+  
+#define Do(_xx) fit._xx+=dt*_xx.at(i) 
+  for(int i=0;i<DX.size();i++){
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+    dt*=elapsed;
+  }
+#undef Do
+
+  fit.ZOffset=ZOffset;
+  fit.TOffset=TOffset;
+}
 
 ClassImp(DynAlFitContainer);
+
+DynAlFitContainer::LinearSpace DynAlFitContainer::tdvBuffer;
+
+bool DynAlFitContainer::dumpToLinearSpace(bool layer9){
+  if(FitParameters.size()+LocalFitParameters.size()==0) return false;
+  if(FitParameters.size()+LocalFitParameters.size()>LinearSpaceMaxRecords){
+    cout<<"DynAlFitContainer::dumpToLinearSpace--E-To many records. No dump."<<endl;
+    return false;
+  }
+  tdvBuffer.id=INT_MAX;
+  tdvBuffer.records=0;
+
+  // Dump local alignment (if any)
+  for(map<int,DynAlFitParameters>::iterator i=LocalFitParameters.begin();
+      i!=LocalFitParameters.end();i++, tdvBuffer.records++){
+    int id=i->first;
+    DynAlFitParameters &current=i->second;
+    if(!current.DX.size()) continue;
+    current.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][layer9?1:0],0,id);
+  }
+
+  // Dump alignment parameters
+  for(map<int,DynAlFitParameters>::iterator i=FitParameters.begin();
+      i!=FitParameters.end();i++, tdvBuffer.records++){
+    int when=i->first;
+    if(when<tdvBuffer.id) tdvBuffer.id=when;
+    DynAlFitParameters &current=i->second;
+    if(!current.DX.size()) continue;
+    current.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][layer9?1:0],when,-1);
+  }
+  return true;
+}
 
 
 int DynAlFitContainer::GetId(TrRecHitR &hit){

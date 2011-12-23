@@ -198,7 +198,24 @@ class DynAlFitParameters: public TObject{
   // Return the parameters without local alignment
   void GetParameters(int seconds,int musecodns,AMSPoint &posA,AMSRotMat &rotA);
 
-  ClassDef(DynAlFitParameters,1);
+  // Structure to store the whole information needed by a single
+  // fit linearly    
+  struct SingleFitLinear{
+    int time;
+    double DX;
+    double DY;
+    double DZ;
+    double THETA;
+    double ALPHA;
+    double BETA;
+    double ZOffset;
+    double TOffset;
+    int id; // To be use in case of local alignment, -1 otherwise
+  };
+
+  void dumpToLinearSpace(SingleFitLinear &single,int when=0,int id=-1); 
+
+  ClassDef(DynAlFitParameters,2);
 };
 
 class DynAlFitContainer:public TObject{
@@ -217,7 +234,25 @@ class DynAlFitContainer:public TObject{
   void BuildAlignment(TString dir,TString prefix,int run);
   
   DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
-  ClassDef(DynAlFitContainer,1);
+
+
+
+  // Enough space to store one hour of data
+#define LinearSpaceMaxRecords (60*60)
+    
+  struct LinearSpace{
+    int id;         // Internal use. 
+    int records;    // How many recors
+    DynAlFitParameters::SingleFitLinear Alignment[LinearSpaceMaxRecords][2];
+  };
+  
+  static LinearSpace tdvBuffer;
+
+  bool dumpToLinearSpace(bool layer=false);
+  //  static DynAlFitContainer getFromLinearSpace();
+
+#pragma omp threadprivate(tdvBuffer)  
+  ClassDef(DynAlFitContainer,2);
 };
   
 class DynAlManager:public TObject{
