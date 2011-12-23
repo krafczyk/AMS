@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.82 2011/05/12 15:42:49 choumilo Exp $
+//  $Id: tofrec02.C,v 1.83 2011/12/23 14:48:27 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1163,8 +1163,9 @@ void TOF2RawCluster::build(int &ostatus){
 //--> Find Eloss from combined Dynode(h+l)-adc :
 //
               elosd=0.;
-              if(dychok)elosd=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(1,amd)
-                                            /pcorr;//Dynode Edep(mev)(normalized to center)
+              if(dychok){
+	        elosd=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(1,amd)/pcorr;//Dynode Edep(mev)(normalized to center)
+	      }
               dedep=elosd;
 //---> store raw(adc-counts, but float) ADCs in RawCl-obj for calibr.purpose:
 	      for(int ip=0;ip<npmts;ip++){

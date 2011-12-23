@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.47 2011/07/19 11:56:20 choumilo Exp $
+//  $Id: tofuser02.C,v 1.48 2011/12/23 14:48:27 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -149,7 +149,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
       am1[ilay]=am[0];
       am2[ilay]=am[1];
-      TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amd,am);// dynode(sum)-ADC convert to charge
+      am[0]=0;
+      am[1]=0;
+      if(amd[0]>0 && amd[1]>0)TOF2Brcal::scbrcal[ilay][ibar].adc2q(1,amd,am);// dynode(sum)-ADC convert to charge
       am1d[ilay]=am[0];
       am2d[ilay]=am[1];
       nbrl[ilay]+=1;

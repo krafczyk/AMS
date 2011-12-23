@@ -295,7 +295,7 @@ void DAQECBlock::buildraw(integer leng_j, int16u *p){
     slot=int16u(slots);//0-5,6
     EcalJobStat::daqs3(crat-1,slot,formt);//entries per crate/slot vs fmt
 //edr/etrg status-bits:
-    dataf=((eblid&(0x8000))>0) || jinf;//data-fragment
+    dataf=((eblid&(0x8000))>0);//data-fragment
     crcer=((eblid&(0x4000))>0);//CRC-error
     asser=((eblid&(0x2000))>0);//assembly-error
     amswer=((eblid&(0x1000))>0);//amsw-error   
