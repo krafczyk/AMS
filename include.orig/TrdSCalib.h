@@ -761,7 +761,7 @@ class TrdSCalibR: public TObject{
   }
  
 
-  ClassDef(TrdSCalibR,2)
+  ClassDef(TrdSCalibR,3)
 };
 
 #endif
