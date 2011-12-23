@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.19 2011/12/23 01:45:12 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.20 2011/12/23 01:47:29 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -335,7 +335,6 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
 }
 
 bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &excluded){
-  cout<<"IN FORCE FIT "<<endl;
   // Fit taking into account different classes
   Fail=true;
   Fit.ClearPoints();
