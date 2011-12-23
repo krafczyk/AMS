@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.349 2011/12/22 13:22:59 barao Exp $
+//  $Id: root.C,v 1.350 2011/12/23 17:13:21 chchung Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3345,10 +3345,14 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   RichLength = ptr->_RichLength;
   RichParticles= ptr->_RichParticles;
 
-    TRDHLikelihood = ptr->_TRDHLikelihood;
+  TRDHLikelihood = ptr->_TRDHLikelihood;
   TRDHElik = ptr->_TRDHElik;
   TRDHPlik = ptr->_TRDHPlik;
   TRDCCnhit = ptr->_TRDCCnhit;
+
+  TrdSH_E2P_Likelihood  = ptr->_TrdSH_E2P_lik;
+  TrdSH_He2P_Likelihood = ptr->_TrdSH_He2P_lik;
+  TrdSH_E2He_Likelihood = ptr->_TrdSH_E2He_lik;
 
 #endif
 }
