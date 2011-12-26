@@ -1,4 +1,4 @@
-//  $Id: trdsim.C,v 1.49 2011/05/24 14:52:45 choutko Exp $
+//  $Id: trdsim.C,v 1.50 2011/12/26 14:46:25 choutko Exp $
 #include "trdsim.h"
 #include "event.h"
 #include "extC.h"
@@ -118,6 +118,7 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
               AMSTRDIdSoft idsoft(id);
               AMSTRDRawHit *p =new AMSTRDRawHit(idsoft,amp*idsoft.getsig()*TRDMCFFKEY.f2i);
               AMSTRDRawHit *ph= (AMSTRDRawHit *)AMSEvent::gethead()->getheadC(AMSID("AMSTRDRawHit",idsoft.getcrate()));
+              if(!ph)delete p;
               while(ph){
                 if(ph<p){
                   AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),p);
@@ -126,6 +127,7 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
                 }
                 else if(!(p<ph)){
                   delete p;
+                  p=0;
                   break;
                 }
                 ph=ph->next();
