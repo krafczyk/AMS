@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.192 2011/12/23 12:30:35 choutko Exp $
+//  $Id: server.C,v 1.193 2011/12/26 11:12:07 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3995,7 +3995,6 @@ else{
   if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
  break;
  case DPS::Client::Delete:
-         cout <<" entering deletee"<<endl;
  for(DSTLI li=b.first;li!=b.second;++li){
   if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
       if(ci.Type!=DPS::Client::Server)PropagateDST((*li).second,rc,DPS::Client::AnyButSelf,_parent->getcid().uid);

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.171 2011/12/01 16:28:41 pzuccon Exp $
+//  $Id: mceventg.C,v 1.172 2011/12/26 11:11:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1997,7 +1997,7 @@ void AMSmceventg::FillMCInfoG4( G4Track const * aTrack )
    // just record it
    //
    AMSEvent::gethead()->addnext(
-         AMSID("AMSmctrack",0),
+         AMSID("AMSmceventg",0),
          new AMSmceventg( -g3code, ekin/GeV, point/cm, dir ) // negetive code for secondary
          );
 
