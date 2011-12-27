@@ -157,30 +157,26 @@ void TrdSCalibR::GenmStrawMatrix(int Debug) {
 //--------------------------------------------------------------------------------------------------
 /// Straw 0 - 5247
 int AC_TrdHits::GetTrdStrawNumber(TrdRawHitR *rhit) {
-  static int straw   = -1;
   int module  = GetTrdModule(rhit->Layer, rhit->Ladder);
   
   if(module >= 0 && module < nTrdModules)
-    straw = module*16 + rhit->Tube;
-  
-  return straw;
+    return module*16 + rhit->Tube;
+  else return -1;  
 }
 
 int AC_TrdHits::GetTrdStrawNumber() {
-  static int straw   = -1;
   int module  = GetTrdModule(Lay, Lad);
   
   if(module >= 0 && module < nTrdModules)
-    straw = module*16 + Tub;
-  
-  return straw;
+    return module*16 + Tub;
+  else return -1;
 }
 
 //--------------------------------------------------------------------------------------------------
 /// Module 0 -327
 int AC_TrdHits::GetTrdModule(int layer, int ladder) {     
  
-  static int module 	= -1;
+   int module 	= -1;
   
   if (layer<0 || layer>=trdconst::nTrdLayers || ladder<0 || ladder>=trdconst::nTrdLadders) 
     std::cerr << "Error  GetTrdModule: Lay=" << layer 
@@ -197,7 +193,7 @@ int AC_TrdHits::GetTrdModule(int layer, int ladder) {
 
 int AC_TrdHits::GetTrdModule() {     
   
-  static int module 	= -1;
+   int module 	= -1;
   
   if (Lay<0 || Lay>=trdconst::nTrdLayers || Lad<0 || Lad>=trdconst::nTrdLadders) 
     std::cerr << "Error  GetTrdModule: Lay=" << Lay 
@@ -244,8 +240,8 @@ int AC_TrdHits::TrdStraw2LayLad(int Straw, int &Lad, int &Lay) {
 //--------------------------------------------------------------------------------------------------
 /// Straw 0 - 5247 => Lay 0 - 19
 int AC_TrdHits::TrdStraw2Layer(int Straw) {
-  static int Lad = -1;
-  static int Lay = -1;
+   int Lad = -1;
+   int Lay = -1;
   TrdStraw2LayLad(Straw, Lad, Lay);
   return Lay;
 }
@@ -253,8 +249,8 @@ int AC_TrdHits::TrdStraw2Layer(int Straw) {
 //--------------------------------------------------------------------------------------------------
 /// Straw 0 - 5247 => Lad 0 - 17
 int AC_TrdHits::TrdStraw2Ladder(int Straw) { 
-  static int Lad = -1;
-  static int Lay = -1;
+   int Lad = -1;
+   int Lay = -1;
   TrdStraw2LayLad(Straw, Lad, Lay);
   return Lad;
 }
@@ -262,7 +258,7 @@ int AC_TrdHits::TrdStraw2Ladder(int Straw) {
 //--------------------------------------------------------------------------------------------------
 /// TRD Gas Group from 0-40
 int AC_TrdHits::GetTrdGasGroup(int layer, int ladder) {
-  static int GasGroup = -1;
+   int GasGroup = -1;
   if (layer>19)	{
     std::cerr << "Error  GetTrdGasGroup: layer 19+ found! layers should be 0-19" << std::endl;
     return GasGroup;
@@ -292,7 +288,7 @@ int AC_TrdHits::GetTrdGasGroup(int layer, int ladder) {
 }
 
 int AC_TrdHits::GetTrdGasGroup(void) {
-  static int GasGroup = -1;
+   int GasGroup = -1;
   if (Lay>19)	{
     std::cerr << "Error  GetTrdGasGroup: layer 19+ found! layers should be 0-19" << std::endl;
     return GasGroup;
@@ -398,7 +394,7 @@ int  AC_TrdHits::GetTrdGasCircuit(void) {
 //--------------------------------------------------------------------------------------------------
 /// return correction in cm
 double  AC_TrdHits::GetTrdModuleAlignmentCorrection(int Layer, int Module) {
-  static double  Corr 	= 0.0;
+   double  Corr 	= 0.0;
 
   // Trd Alignment relative to tracker
   if (Layer>=0 && Layer<4) {
@@ -436,7 +432,7 @@ double AC_TrdHits::DistanceFromLine(double cx, double cy,
 
 //--------------------------------------------------------------------------------------------------
 double AC_TrdHits::GetTrdHitTrkDistance(int d, float xy, float z, AMSPoint cPtrk, AMSDir dPtrk) {	
-  static double Distance = -1.0;
+   double Distance = -1.0;
  
   double   xl 	= (z + 20.0 - cPtrk[2]) / dPtrk[2];
   
@@ -503,8 +499,8 @@ double AC_TrdHits::GetTrdPathLen3D(int lay, float xy, float z, AMSPoint cP, AMSD
 bool TrdSCalibR::GetcTrd(TrdHTrackR *trdht) {
   if(! trdht) return false; 
   c0Trd[0]=trdht->Coo[0]; c0Trd[1]=trdht->Coo[1]; c0Trd[2]=trdht->Coo[2];
-  static float cpx = 0; 
-  static float cpy = 0;
+   float cpx = 0; 
+   float cpy = 0;
   trdht->propagateToZ(trdconst::ToFLayer1Z, cpx,  cpy);
   cTrd[0] = cpx; cTrd[1] = cpy;
   cTrd[2] = trdconst::ToFLayer1Z;
@@ -574,7 +570,7 @@ void TrdSCalibR::ReadLFname(void){
 }
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::GetEvthTime(AMSEventR *ev, int Debug){
-  static int hTime = 0;
+   int hTime = 0;
   time_t  EvtTime = ev->fHeader.Time[0];
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
@@ -593,7 +589,7 @@ int TrdSCalibR::GetEvthTime(AMSEventR *ev, int Debug){
 
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::GetEvthTime(time_t EvtTime, int Debug){
-  static int hTime = 0;
+   int hTime = 0;
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
   int	Hour	= TimeInfo->tm_hour;
@@ -610,7 +606,7 @@ int TrdSCalibR::GetEvthTime(time_t EvtTime, int Debug){
 }
 //--------------------------------------------------------------------------------------------------
 float TrdSCalibR::GetEvtxTime(AMSEventR *ev, int Debug){
-  static float xTime = 0;
+   float xTime = 0;
   time_t  EvtTime = ev->fHeader.Time[0];
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
@@ -632,7 +628,7 @@ float TrdSCalibR::GetEvtxTime(AMSEventR *ev, int Debug){
 }
 //--------------------------------------------------------------------------------------------------
 float TrdSCalibR::GetEvtxTime(time_t EvtTime, int Debug){
-  static float xTime = 0;
+   float xTime = 0;
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
   int	Hour	= TimeInfo->tm_hour;
@@ -1289,15 +1285,17 @@ vector<double> TrdSCalibR::GenLogBinning(int nBinLog, double Tmin, double Tmax) 
 ///	x[0] = Eadc, par[0] = iP = Momentum Bin
 double TrdSCalibR::TrdLR_fProton(double *x, double *par) {
 	
-  static double L_Proton = 0.0;
+   double L_Proton = 0.0;
   int	 iP  		 = (int) par[0];
   if (iP<0 || iP>=TrdLR_xProt.size()) {
-    std::cout << "Error in TrdLR_fProton: iP=" << iP << std::endl;
-    exit(-1);
+    std::cerr << "TrdSCalibR::TrdLR_fProton-E-Error in TrdLR_fProton: iP=" << iP << std::endl;
+//    exit(-1);
+      return 0; 
   }
   
   static bool Graph[100] = {false};
   static TGraph *gr_L[100];
+#pragma omp threadprivate( Graph,gr_L)
   if (Graph[iP]) 
     {
       L_Proton = gr_L[iP]->Eval(x[0]);
@@ -1338,13 +1336,15 @@ double TrdSCalibR::TrdLR_fHelium(double *x, double *par) {
   double L_Helium 	= 0.0;
   int 	 iP 		= (int) par[0];
   if (iP<0 || iP>=TrdLR_xHeli.size()) {
-    std::cout << "Error in TrdLR_fHelium: iP=" << iP << std::endl;
-    exit(-1);
+    std::cerr << "TrdSCalibR::TrdLR_fHelium-E-Error in TrdLR_fHelium: iP=" << iP << std::endl;
+  //  exit(-1);
+    return 0;
   }
   
   static bool Graph[100] = {false};
   static TGraph *gr_L[100];
-  if (Graph[iP]) {
+  #pragma omp threadprivate( Graph,gr_L)
+if (Graph[iP]) {
     L_Helium = gr_L[iP]->Eval(x[0]);
     
   } else {
@@ -1379,6 +1379,7 @@ double TrdSCalibR::TrdLR_fElectron(double *x, double *par) {
 	
   static bool Graph[nTrdLayers] = {false};
   static TGraph *gr_L[nTrdLayers];
+#pragma omp threadprivate( Graph,gr_L)
   
   double  L_Electron 	= 0.0;
   int 	  Layer 	= (int) par[0];

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.707 2011/12/23 12:30:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.708 2011/12/27 15:04:00 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6828,7 +6828,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
               my $jbs=99;
 if($self->{CCT} eq "local"){
                if($dataset->{datamc} !=0 and not defined $dataset->{MC}){
-                 $jbs=69;
+                 $jbs=19;
                  if($dataset->{name}=~/laser/ or $dataset->{name}=~/ecal/ or $dataset->{name}=~/zg1/){
                  $jbs=199;
                 } 
@@ -6855,7 +6855,10 @@ if( not defined $dbserver->{dbfile}){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
                    $jbs=$maxr-$tot;
                    if($jbs<=0){
-                    $jbs=9;
+                    $jbs=1;
+                    if($rntbr<=0){
+                     $jbs=19;
+                    } 
                    }
                  }
                 }

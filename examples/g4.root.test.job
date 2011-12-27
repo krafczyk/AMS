@@ -2,6 +2,7 @@
 [ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
 [ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
 
+
 if [ "$UNAME" = "AIX" ] ; then
    MACHINE="aix"
 elif [ "$UNAME" = "OSF1" ] ; then
@@ -13,10 +14,17 @@ echo $UNAME is not supported yet
 
 fi
 
+[[ -z "$ARCH" ]]      && ARCH=`($ROOTSYS/bin/root-config --arch)  2>/dev/null`
+if [ -z "$PGTRACK" ] ; then 
+PG=
+else 
+PG=G4PG
+    MACHINE="linuxx8664icc"
+fi
 
-$AMSWD/exe/linuxx8664icc/gbatchG4PG.exe <<!
+$AMSWD/exe/$MACHINE/gbatch$PG.exe <<!
 LIST
-KINE 3 
+KINE 1 
 LOSS 1
 HADR 1
 MULS 1
@@ -30,14 +38,16 @@ MISC 4=0 5=1
 MCGEN 1=-10. 2=-10. 3=160. 4=10. 5=10. 6=160.
 7=0. 8=0. 9=-1. 10=0. 11=0. 12=-1.
 C 12=-0.95 
-13=100. 14=100. 15=0 16=1. 19=101 20=5 21=0  
+13=10. 14=10. 15=0 16=1. 19=101 20=5 21=0  
+25=20102011 27=21102011
+
 IOPA 1=0 127=2 128='/f2users/choutko/g4v1g4d.root' 43=101
 45='TriggerLVL1   ' 126=10000 
 C RNDM 191483493 13582325
 C RNDM  2010916395 53071516
 RNDM  87027471 173988007
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0     3=50.   4=0  5=0 46='AMS02P'
+AMSJOB 1=0   2=0    3=50.   4=0  5=0 46='AMS02P'
 C Special HP-UX
 TIME 3=10000000
 TERM 1234567890

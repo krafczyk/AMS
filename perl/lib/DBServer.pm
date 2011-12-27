@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.25 2011/12/09 14:46:01 ams Exp $
+# $Id: DBServer.pm,v 1.26 2011/12/27 15:04:00 choutko Exp $
 
 package DBServer;
  use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -875,7 +875,7 @@ sub GetRunsNumber{
 #    die "$ref->{dbfile}";
     if (defined $ref->{dbfile}){
         my $lock="$ref->{dbfile}.lock";
-        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        sysopen(LOCK,$lock,O_RDONLY) or die " Unable to open lock file $lock\n";
         my $ntry=0;
      until (flock LOCK, LOCK_EX|LOCK_NB){
          sleep 1;
@@ -897,22 +897,6 @@ sub GetRunsNumber{
      if(not $db){
         goto OUT;
       }
-#      my $fd=$db->fd;
-#      $ok=open DBM, "<&=$fd";
-#      if( not $ok){
-#        untie %hash;
-#        goto OUT;
-#      }
-#     my $ntry=0;
-#     $ok=0;
-#     until (flock DBM, LOCK_EX|LOCK_NB){
-#         sleep 2;
-#         $ntry=$ntry+1;
-#         if($ntry>10){
-#             untie %hash;
-#             goto OUT;
-#         }
-#     }
     $ok=1;
 OUT:
       undef $db;

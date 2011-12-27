@@ -209,13 +209,13 @@ class AC_TrdHits: public TObject{
   };
 
   float GetXY(){
-    static float r = 0;
+    //static float r = 0;
     int   lad = _iladder;
     
     if(_ilayer<12) lad++;
     if(_ilayer< 4) lad++;
     
-    r = 10.1*(float)(lad-9);
+    float r = 10.1*(float)(lad-9);
     
     if( _ihitD==1 ){        /// y-measurement
       if( lad>=12 ) r+=0.78; /// bulkhead
@@ -234,13 +234,13 @@ class AC_TrdHits: public TObject{
   };
 
   float GetZ(){
-    static float z = 0.;
+    //static float z = 0.;
     int   lad = _iladder;
     
     if(_ilayer<12) lad++;
     if(_ilayer< 4) lad++;
     
-    z = 85.275 + 2.9*(float)_ilayer;
+    float z = 85.275 + 2.9*(float)_ilayer;
     if(lad%2==0) z += 1.45;
 
     return z;
