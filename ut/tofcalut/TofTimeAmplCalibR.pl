@@ -324,7 +324,7 @@ $set_fram->Label(-text=>"CalibrGap(hours):",-font=>$font2,-relief=>'groove')
 					       -relwidth=>0.3, -relheight=>$drh2,
                                                -relx=>0., -rely=>($shf2+3*$drh2));
 #
-$CalibrGap="12";#def.calibr.gap(h) 
+$CalibrGap="22";#def.calibr.gap(h) 
 $set_fram->Optionmenu(-textvariable => \$CalibrGap, 
                                -background=>yellow,
                                -activebackground=>yellow,
@@ -1250,7 +1250,7 @@ sub SetDefaultPars
   $RunType="SCI";# required Daq Files type
   $SubDetMsk=41;#bit-patt: (msb T8/U2/S4/R4/E2/L1 lsb)
   $FileSize=300;# mb
-  $MinEvsInFile=150000;
+  $MinEvsInFile=200000;
   $CalibrGap=$CalibrGapList[6];
 #
 #-------------
@@ -3704,7 +3704,7 @@ sub WatchDog
 					     -relwidth=>1, -relheight=>0.95,
                                              -relx=>0, -rely=>0.05);
 #------
-  my $period=120000;# 120 sec
+  my $period=180000;# 180 sec
   my $id;
   $topl5->update();#WDW
   $topl5->repeat($period,\&Analyze);  

@@ -1,7 +1,8 @@
 #define TofCalibPG_cxx
 #define _PGTRACK_
 //#include "/Offline/vdev/include/root_RVSP.h"
-#include "/afs/cern.ch/user/c/choumilo/AMS/include/root_RVSP.h"
+//#include "/afs/cern.ch/user/c/choumilo/AMS/include/root_RVSP.h"
+#include "root_RVSP.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TRandom.h"
@@ -42,6 +43,7 @@ const UInt_t kAnalyse[10]={      0,        0,        0,        0,       0,      
 const UInt_t kTofCalibType[3]={1,1,1};//Tdlv/Tzslw/Ampl
 const UInt_t kTofCalibPrint[3]={1,1,1};//print level for Tdlv/Tzslw/Ampl-calib(0/1/2->no/norm/debug)
 const Int_t kSpaceCalib=1;//0/1-> Earth/Space calib
+const Bool_t kUseHe4Calib(kFALSE);
 const Float_t kEvsPortionToUse=0.6;//use this % of 3.5mln inp.evs to cover complete orbit
 const Int_t kRDCalib=1;//1/0->rd/mc-calib
 const UInt_t kRefFileN=1305815610;//tempor for RD
@@ -52,7 +54,7 @@ const Float_t kTdlvMomLims[2][2]={0.2,50., //earth
 const Float_t kTzslMomLims[2][2]={1.,50., //earth
                                   10.,100.}; //space
 const Float_t kAmplMomLims[2][2]={0.1,50., //earth
-                                  2.,50.}; //space(B>0.9)
+                                  2.,50.}; //space(Beta>0.9)
 //
 //---------------------------------------------------------------------------------------------------------------------
 //
@@ -93,8 +95,8 @@ const Int_t kNtrkl=9;//TRK layers
 const Int_t kNladl[kNtrkl]={15,15,14,12,10,10,12,14,10};//TRK ladders/layer
 const Int_t kNtradd=10000;//max TRK-track addresses list length
 const Int_t kNtremx=200;//max stored TRK-track params/address(for histogramming)
-const Int_t kTrkFitMInUse=9;//max.existing methodes
-const Int_t kTrkFitMet=0;//currently used methode 0/1/2/...->VC/Geane/GeaneK/JA/Chik/ChikF/Linear/Circle/Simple)
+const Int_t kTrkFitMInUse=1;//max.existing methodes
+const Int_t kTrkFitMet=0;//currently used methode 0/1/2/->VC/JA/Chik/
 //-----> TRD:
 const Float_t kTrdBotZ=83.5;
 //const Float_t kTrdBotZ=85.3;
@@ -118,7 +120,8 @@ const Float_t kTofTzref=0;//T0 for ref.counter (0)
 const Int_t kTofLref=1;//ref1ayer(1)/2, =2 means 1st layer in not functional, 2nd used as ref
 const Bool_t kTofStrictLPatt=kFALSE;// (0)/1-> Use Weak(>=3of4)/Strict(4of4) LayerPattern
 const Int_t kTofLcRelax=0;//relaxe long.cut for tof-trk matching
-const Float_t kTofDefTzslop=6.5;//def.Tzsl-slope param.value
+const Float_t kTofDefTzslop=6.7;//def.Tzsl-slope param.value(Pr)
+const Float_t kTofDefTzslopHe=9.5;//def.Tzsl-slope param.value
 const Int_t kTofTzSlopRel=1;//0/1 to fix/release slope param.
 const Int_t kTofTzFitm=0;//fit-mode: 0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
 const Int_t kAmProfBins=17;//max Longit-profile bins
@@ -134,16 +137,20 @@ const Int_t kTofIDr[kNTofIDr]={1011,1012,2011,2012,3011,3012,4011,4012,1041,1042
 const Int_t kPDFBnmx=100;//Max.bins in ElosPDF distribution
 const Int_t kZindmx=14;//max Z-values for ElosPDF's
 const Int_t kZpdfs[kZindmx]={1,1,2,3,4,5,6,7,8,9,10,11,12,13};
-//                  Z-index:       1    2    3    4    5    6    7    8    9   10   11   12    13   14
-const Float_t kBpowTof[kZindmx]={1.83,1.83,1.75,1.68,1.60,1.53,1.47,1.38,1.34,1.33,1.30,1.26,1.26,1.24};
-const Float_t kBpowTrk[kZindmx]={1.78,1.78,1.78,1.78,1.78,1.78,1.78,1.76,1.72,1.70,1.70,1.70,1.70,1.70};
-const Float_t kBeta0=0.94;//beta0 in beta-correction
-const Int_t kZrefInd=1;//<===== index(1,2,...) of Z to select for TOF PDF's
+//                  Z-index:     1(e)  2(p)  3(He) 4(Li) 5(Be) 6(B)  7(C)   8(N) 9(O) 10   11   12    13   14
+const Float_t kBpowTof[kZindmx]={1.60, 1.59, 1.30, 1.06, 0.93, 0.77, 0.667, 0.66,0.51,1.33,1.30,1.26,1.26,1.24};
+const Float_t kBpowTrk[kZindmx]={1.92, 1.90, 1.94, 1.90, 1.80, 1.70, 1.65,  1.70,1.50,1.70,1.70,1.70,1.70,1.70};
+const Float_t kBeta0=0.95;//TOF beta0 in beta-correction
+const Float_t kBeta0tk=0.92;//TRK beta0 in beta-correction
+const Int_t kZrefInd=2;//<===== index(1,2,...) of Z to select for TOF PDF's
 const Float_t kTofTbw=0.0244141;//tof-tdc bin-width(ns)
 //
 const Double_t raddeg=57.295779;
 const Double_t pi=3.14159265358979;
-const Int_t kEvSelCDim=180;//ev.sel counters array dimension
+const Int_t kEvSelCDim=200;//ev.sel counters array dimension
+const Float_t kProtMass=0.93827;
+const Float_t kHeliumMass=3.726;
+const Float_t kMuMass=0.1057;
 //
 //--------------------
 //
@@ -546,12 +553,12 @@ public:
     
     genc[4]=10.;  // (5)max tof-clusters
      
-    genc[5]=50000.;  // (6)trk max chi2
+    genc[5]=50.;  // (6)trk max chi2
     genc[6]=20.;  // (7)trk max chi2sz
     genc[7]=10000.;  // (8)trk max chi2(noMS)
     
     genc[8]=12.;// (9)max long tof-trk matching(10)
-    genc[9]=0.;  // (10)spare
+    genc[9]=0.8;  // (10) HalfRigsAssim cut (+-)
     
     genc[10]=2.5;  // (11)SectEdep-thresh(if> -> Active)
     genc[11]=1.;  // (12)NAntiSectors>thresh(if> -> Active)
@@ -678,12 +685,17 @@ public:
     printf("      JorgePointerQ>0          : % 8d\n",evsel[162]);
     printf("      TofCahrge>0              : % 8d\n",evsel[163]);
     printf("      TrkCahrge>0              : % 8d\n",evsel[164]);
+    printf("      TrdCharge>0              : % 8d\n",evsel[165]);
+    printf("      RicCharge>0              : % 8d\n",evsel[166]);
     printf("---------- TofBeta quality --------------------\n");
     printf(" Particle contains TOF-beta    : % 8d\n",evsel[1]);
     printf(" TOF fed. volume OK            : % 8d\n",evsel[2]);
     printf(" TOF-Beta sign,quality OK      : % 8d\n",evsel[3]);
     printf("---------- TrkTrack quality -------------------\n");
     printf(" Particle contains TRKtrack    : % 8d\n",evsel[90]);
+    printf(" Methode-1 fit OK              : % 8d\n",evsel[192]);
+    printf(" Methode-2 fit OK              : % 8d\n",evsel[193]);
+    printf(" Methode-3 fit OK              : % 8d\n",evsel[194]);
     printf(" ... track with TrueX          : % 8d\n",evsel[91]);
     printf(" ... track with AddrOK         : % 8d\n",evsel[92]);
     printf(" ... track with AdvancedFit    : % 8d\n",evsel[93]);
@@ -716,6 +728,8 @@ public:
     printf(" + RawClust OK(rejected if not): % 8d\n",evsel[33]);
     printf(" ACC OK for A2Dratious(Nacc<7) : % 8d\n",evsel[34]);
     printf(" ...for Td/Tz/Again/Aabsn(Na<2): % 8d\n",evsel[35]);
+    printf(" + ProtCharge                  : % 8d\n",evsel[36]);
+    printf(" + HeliumCharge                : % 8d\n",evsel[37]);
     } 
     if(kTofCalibType[0]>0){
     printf("-------------- Tdlv-CALIB ---------------\n");
@@ -748,7 +762,8 @@ public:
     if(kTofCalibType[1]>0){
     printf("-------------- Ampl-CALIB ---------------\n");
     printf(" Entries to calib              : % 8d\n",evsel[70]);
-    printf(" An2Dyn: selected              : % 8d\n",evsel[71]);
+    printf(" An2Dyn: TofTrkMatchOK         : % 8d\n",evsel[71]);
+    printf(" An2Dyn: TopHeHiMom(selected)  : % 8d\n",evsel[72]);
     printf(" AnRelGains/AttLen:  partQ=1   : % 8d\n",evsel[75]);
     printf("          +MomRange(pos) OK    : % 8d\n",evsel[76]);
     printf("          +BetRange(tophem) OK : % 8d\n",evsel[77]);
@@ -1198,6 +1213,7 @@ Int_t proentr[4][10]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     TH1F * trkh11[kNtrkl]={0,0,0,0,0,0,0,0,0};
     TH1F * trkh12[kNtrkl]={0,0,0,0,0,0,0,0,0};
     TH1F * trkh13[kNtrkl]={0,0,0,0,0,0,0,0,0};
+    TH1F * trkh24=0;
 //MCGen-hist reserv:
     TH1F * mcgh1=0;
     TH1F * mcgh2=0;
@@ -1261,6 +1277,16 @@ Int_t proentr[4][10]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
    TH1F * tftzh8=0; 
    TH1F * tftzh9=0; 
    TH1F * tftzh10=0; 
+   TProfile * tftzh11=0;
+   TProfile * tftzh12=0;
+   TH2F * tftzh13=0;
+   TH2F * tftzh14=0;
+   TProfile * tftzh15=0;
+   TProfile * tftzh16=0;
+   TProfile * tftzh17=0;
+   TProfile * tftzh18=0;
+   TProfile * tftzh19=0;
+   TProfile * tftzh20=0;
 //--- Ampl-calib hist:
    TH1F * tfamh1=0; 
    TH1F * tfamh2=0; 
@@ -1279,7 +1305,21 @@ Int_t proentr[4][10]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
    TH1F * tfamh15=0; 
    TH1F * tfamh16=0; 
    TH1F * tfamh17=0; 
-   TH1F * tfamh18=0; 
+   TH1F * tfamh18=0;
+/*   
+   TProfile * tfamh20[68]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                           0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+*/
+/*                                                                                              };
+   TH1F * tfamh21=0;											       
+   TH1F * tfamh22=0;											       
+   TH1F * tfamh23=0;											       
+   TH1F * tfamh24=0;											       
+   TH1F * tfamh25=0;											       
+   TH1F * tfamh26=0;											       
+   TH1F * tfamh27=0;											       
+   TH1F * tfamh28=0;
+*/											       
 //------------------------------------------------
 void TofCalibPG::UBegin(){
     cout << "----> Enter UBegin "<<endl;
@@ -1485,9 +1525,9 @@ void TofCalibPG::UBegin(){
    if(trkh1)delete trkh1;
    trkh1=new TH1F("trkh1","TRKChi2(TrueX+AdvFitOK)",100,0.,50.);
    if(trkh2)delete trkh2;
-//   trkh2=new TH1F("trkh2","TRKChi2sz(TrueX+AdvFitOK)",100,0.,50.);
-//   if(trkh3)delete trkh3;
-   trkh3=new TH1F("trkh3","TRKChi2(TrueX+AdvFitOK,NoMScat)",80,0.,8000.);
+   trkh2=new TH1F("trkh2","TRKMethOK(1/2/3->Chut/JAlk/Chik)(+10=>2H_FitDone)",30,1.,31.);
+   if(trkh3)delete trkh3;
+   trkh3=new TH1F("trkh3","TRKChi2(TrueX+AdvFitOK,NoMScat)",80,0.,2000.);
    if(trkh4)delete trkh4;
    trkh4=new TH1F("trkh4","TRKHalfRigAss(TrueX+AdvFitOK)",50,-1.,1.);
    if(trkh5)delete trkh5;
@@ -1520,6 +1560,9 @@ void TofCalibPG::UBegin(){
      sprintf(title,"TRK:Yresiduals, Layer=%01d",j);
      trkh13[j]=new TH1F(hname,title,50,-0.01,0.01);
    }
+   
+   if(trkh24)delete trkh24;
+   trkh24=new TH1F("trkh24","TRK Used layers visibility(all tracks, Meth-1",10,0.,10.);
 //
 //
 //                       <-----Book MCGen-hist:
@@ -1685,13 +1728,33 @@ void TofCalibPG::UBegin(){
        if(tftzh7)delete tftzh7;
        tftzh7=new TH1F("tftzh7","Tzslw: TrkBeta(implied mass)",80,0.,1.2);
        if(tftzh7a)delete tftzh7a;
-       tftzh7a=new TH1F("tftzh7a","Tzslw: TofEdepTrunc(PartCharge=1)",80,0.,8.);
+       tftzh7a=new TH1F("tftzh7a","Tzslw: TofEdepTrunc(PartCharge=Requested)",60,0.,12.);
        if(tftzh8)delete tftzh8;
        tftzh8=new TH1F("tftzh8","Tzslw: PaddleNumber(final)",40,1.,41.);
        if(tftzh9)delete tftzh9;
        tftzh9=new TH1F("tftzh9","Tzslw: TofBetaChi2time(...+MomRange/TofBetPresel OK",50,0.,10.);
        if(tftzh10)delete tftzh10;
        tftzh10=new TH1F("tftzh10","Tzslw: TofBetaChi2Space(...+MomRange/TofBetPresel OK",50,0.,10.);
+       if(tftzh11)delete tftzh11;
+       tftzh11=new TProfile("tftzh11","Tzslw: Beta vs BetaImplied(Prot)",80,0.2,1.,0.2,2.);
+       if(tftzh12)delete tftzh12;
+       tftzh12=new TProfile("tftzh12","Tzslw: Beta vs BetaImplied(He)",80,0.2,1.,0.2,2.);
+       if(tftzh13)delete tftzh13;
+       tftzh13=new TH2F("tftzh13","TofBeta vs TrkMom(Pr)",100,0.,15.,50,0.2,1.2);
+       if(tftzh14)delete tftzh14;
+       tftzh14=new TH2F("tftzh14","TofBeta vs TrkMom(He)",100,0.,40.,50,0.2,1.2);
+       if(tftzh15)delete tftzh15;
+       tftzh15=new TProfile("tftzh15","TofBeta vs TrkMom(Pr)",100,0.,25.,0.2,1.2);
+       if(tftzh16)delete tftzh16;
+       tftzh16=new TProfile("tftzh16","TofBeta vs TrkMom(He)",100,0.,50.,0.2,1.2);
+       if(tftzh17)delete tftzh17;
+       tftzh17=new TProfile("tftzh17","1-TofBeta/ImplBeta vs ImplBeta(Pr)",80,0.2,1.,-0.5,0.5);
+       if(tftzh18)delete tftzh18;
+       tftzh18=new TProfile("tftzh18","1-TofBeta/ImplBeta vs ImplBeta(He)",80,0.2,1.,-0.5,0.5);
+       if(tftzh19)delete tftzh19;
+       tftzh19=new TProfile("tftzh19","1-TofBeta/ImplBeta vs TrkMom(Pr)",100,0.,15.,-0.6,0.6);
+       if(tftzh20)delete tftzh20;
+       tftzh20=new TProfile("tftzh20","1-TofBeta/ImplBeta vs TrkMom(He)",100,0.,50.,-0.6,0.6);
      }
    }
 //Ampl
@@ -1699,7 +1762,7 @@ void TofCalibPG::UBegin(){
      TofCalib::initam();
      if(kTofCalibPrint[2]>0){
        if(tfamh1)delete tfamh1;
-       tfamh1=new TH1F("tfamh1","Ampl: Instant An/Dyn(sum) ratio(all bar/sides)",50,0.,25.);
+       tfamh1=new TH1F("tfamh1","Ampl: Instant An/Dyn(sum) ratio(all bar/sides)",80,0.,20.);
        if(tfamh2)delete tfamh2;
        tfamh2=new TH1F("tfamh2","Ampl: Instant Dyn(p1)/Dyn(p1/2 aver) ratio(all bar/sides, pm1)",50,0.,2.);
        if(tfamh3)delete tfamh3;
@@ -1754,15 +1817,52 @@ void TofCalibPG::UBegin(){
        if(tfamh14)delete tfamh14;
        tfamh14=new TH1F("tfamh14","Ampl: AbsNormFit(11 btypes) Chi2",50,0.,10.);
        
+//       if(tfamh15)delete tfamh15;
+//       tfamh15=new TH1F("tfamh15","Ampl: A2D(pm-sum) Fit par-1 (all chan)",80,0.,2.);
+//       if(tfamh16)delete tfamh16;
+//       tfamh16=new TH1F("tfamh16","Ampl: A2D(pm-sum) Fit par-2 (all chan)",50,0.,1.);
        if(tfamh15)delete tfamh15;
-       tfamh15=new TH1F("tfamh15","Ampl: Average Ah/D(pm-sum) (all chan)",80,0.,20.);
+       tfamh15=new TH1F("tfamh15","Ampl: A2D(pm-sum) Average(all chan)",80,0.,16.);
        if(tfamh16)delete tfamh16;
-       tfamh16=new TH1F("tfamh16","Ampl: RelatRMS of Aveage Ah/D(pm-sum) (all chan)",50,0.,0.5);
+       tfamh16=new TH1F("tfamh16","Ampl: A2D(pm-sum) RelRms(all chan)",50,0.,1.);
        
        if(tfamh17)delete tfamh17;
        tfamh17=new TH1F("tfamh17","Ampl: Average Dh(pm) rel.gains(all chan/pm)",50,0.,2.);
        if(tfamh18)delete tfamh18;
        tfamh18=new TH1F("tfamh18","Ampl: RelatRMS of aver. Dh(pm) rel.gains(all chan/pm)",50,0.,0.5);
+/*       
+       Int_t ii=0;
+       for(int i=0;i<kNtofl;i++){
+       for(int j=0;j<kNtofb[i];j++){
+       for(int k=0;k<2;k++){//side-loop
+         if(tfamh20[ii])delete tfamh20[ii];
+         sprintf(hname,"tfamh20%02d",ii);
+         sprintf(title,"Ampl: Log(A) vs Log(Dsum), Layer=%01d, Bar=%02d, Side=%1d",i,j,k);
+         tfamh20[ii]=new TProfile(hname,title,150,0.,3.,0.,3.6);
+	 ii+=1;  
+       }
+       }
+       }
+*/
+/*       
+       if(tfamh21)delete tfamh21;
+       tfamh21=new TH1F("tfamh21","Ampl: DynAdc L1B6S1(P1)",100,0.,200.);
+       if(tfamh22)delete tfamh22;
+       tfamh22=new TH1F("tfamh22","Ampl: DynAdc L1B6S1(P2)",100,0.,200.);
+       if(tfamh23)delete tfamh23;
+       tfamh23=new TH1F("tfamh23","Ampl: DynAdc L1B6S2(P1)",100,0.,200.);
+       if(tfamh24)delete tfamh24;
+       tfamh24=new TH1F("tfamh24","Ampl: DynAdc L1B6S2(P2)",100,0.,200.);
+
+       if(tfamh25)delete tfamh25;
+       tfamh25=new TH1F("tfamh25","Ampl: DynAdc L2B6S1(P1)",100,0.,200.);
+       if(tfamh26)delete tfamh26;
+       tfamh26=new TH1F("tfamh26","Ampl: DynAdc L2B6S1(P2)",100,0.,200.);
+       if(tfamh27)delete tfamh27;
+       tfamh27=new TH1F("tfamh27","Ampl: DynAdc L2B6S2(P1)",100,0.,200.);
+       if(tfamh28)delete tfamh28;
+       tfamh28=new TH1F("tfamh28","Ampl: DynAdc L2B6S2(P2)",100,0.,200.);
+*/
      }
    }
 //------------------------------------------------------------------------
@@ -2158,8 +2258,11 @@ try{
 //---> check Jorge Charges:
 //
   Int_t trkcha(0),tofcha(0),TofCUsed(0),TrkCUsed(0);
+  Int_t trdcha(0),riccha(0),TrdCUsed(0),RicCUsed(0);
   Float_t toftre(0),trktre(0);
+  Float_t trdtre(0),rictre(0);
   Int_t TofQ(0),TrkQ(0);
+  Int_t TrdQ(0),RicQ(0);
 //
   if(nCharge()<=0){
     cout<<"<--- No JQ: prtcha="<<prtcha<<endl;
@@ -2190,6 +2293,26 @@ try{
       TrkCUsed = (((zTrk->Status)>>5)&1);
   }
   if(trkcha>0)RunPar::addsev(164);
+//
+  ChargeSubDR *zTrd=JZ->getSubD("AMSChargeTRD");
+  if(zTrd){
+      trdcha = TMath::Max(Int_t(zTrd->ChargeI[0]),1);// <--- Trd-charge
+//      trdtre =zTrd->getAttr("TruncatedMean");//trd Edep truncated average 
+      TrdQ = zTrk->Q;
+      TrdCUsed = (((zTrd->Status)>>5)&1);
+  }
+//  cout<<"<--- TrdCharge: trdcha="<<trdcha<<"  trdtrune="<<trdtre<<" used="<<TrdCUsed<<" TrdQ="<<TrdQ<<endl; 
+  if(trdcha>0)RunPar::addsev(165);
+//
+  ChargeSubDR *zRic=JZ->getSubD("AMSChargeRich");
+  if(zRic){
+      riccha = TMath::Max(Int_t(zRic->ChargeI[0]),1);// <--- Rich-charge
+//      rictre =zTrd->getAttr("TruncatedMean");//trd Edep truncated average 
+      RicQ = zRic->Q;
+      RicCUsed = (((zRic->Status)>>5)&1);
+  }
+//  cout<<"<--- RichCharge: riccha="<<riccha<<"  rictrune="<<rictre<<" used="<<RicCUsed<<" RicQ="<<RicQ<<endl; 
+  if(trdcha>0)RunPar::addsev(166);
 //----------------------------------------------------------------------
 //
 //<------ check/select  TofRawClusters for TAU-calib :
@@ -2219,6 +2342,10 @@ try{
   Int_t tofbrnl[4]={-1,-1,-1,-1};
 //
 //cout<<"  nTofRawClust="<<ntofrcl<<endl;
+  Float_t defTzslop;
+  if(kUseHe4Calib)defTzslop=kTofDefTzslopHe;
+  else defTzslop=kTofDefTzslop;
+//---
   for(int ic=0;ic<ntofrcl;ic++){//<-- TofRawClusters loop
     p2tofrcl=pTofRawCluster(ic);
     il=p2tofrcl->Layer;//1-4
@@ -2242,7 +2369,7 @@ try{
 	sidetm[1]=p2tofrcl->sdtm[1];
 	toftim[il-1]=p2tofrcl->time;//paddle corrected times (prev.calibration)
 	toftimr[il-1]=0.5*(sidetm[0]+sidetm[1]);//paddle raw times
-	toftimd[il-1]=0.5*(sidetm[0]-sidetm[1])+kTofDefTzslop*(1/sqrt(tofsd1q[il-1])-1/sqrt(tofsd2q[il-1]));//corrected side times diff.
+	toftimd[il-1]=0.5*(sidetm[0]-sidetm[1])+defTzslop*(1/sqrt(tofsd1q[il-1])-1/sqrt(tofsd2q[il-1]));//corrected side times diff.
         tofedep[il-1]=p2tofrcl->edepa;//anode(mev)
 	tofcool[il-1]=p2tofrcl->cool;//long.coo(from prev.calib)
 	tofadca[il-1][0]=radca[0];//for ampl.cals
@@ -2391,22 +2518,23 @@ try{
   AMSDir TrkD0(0,0,0);
   Float_t TrkXAng(0),TrkYAng(0);
 // 
-  Int_t ialgor[9][2]={-1,-1,-1,-1,-1,-1,-1,-1,-1,
-                      -1,-1,-1,-1,-1,-1,-1,-1,-1};//indexes(fitcodes) of fit methods[9], yes/noMS[2]
-  TrTrackPar algor,thalf,tpext;//refs to TRK-track params.objects
-  Int_t ithalf[9][2]={-1,-1,-1,-1,-1,-1,-1,-1,-1,
-                      -1,-1,-1,-1,-1,-1,-1,-1,-1};//top/bot_half:indexes to fit methods[9]
-  Int_t itpext[9][2]={-1,-1,-1,-1,-1,-1,-1,-1,-1,
-                      -1,-1,-1,-1,-1,-1,-1,-1,-1};//drop_ext_pl/2+2:ref.index to fit methods[9]
-  double MRigid[9]={-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999};//max 9 methodes rigid.
-  Int_t LBitPatt[9]={0,0,0,0,0,0,0,0,0};
-  double MErrRinv[9];//max5 methods err on 1/Rig
-  double MChisq[9][2]={-1,-1,-1,-1,-1,-1,-1,-1,-1
-                       -1,-1,-1,-1,-1,-1,-1,-1,-1};//9meth*(wMS/nMS)
-  double MRigidH[9][2]={-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,
-                        -9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999};  
-  Bool_t MFitDone[9]={0,0,0,0,0,0,0,0,0};
-  Bool_t MFitDoneH[9][2]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//for halfs 
+  Int_t fitcode;
+  TrTrackPar algref;
+  Double_t MRigid[3]={9999,9999,9999};
+  Double_t MRigidH[3][2]={9999,9999,9999,9999,9999,9999};//for halfs
+  Bool_t MFitDone[3]={0,0,0};
+  Bool_t MFitDoneH[3][2]={0,0,0,0,0,0};//for halfs 
+  Double_t MChisq[3][2]={-1,-1,-1,-1,-1,-1};//wMS/nMS(only for all layers)
+  Double_t MChisqH[3][2]={-1,-1,-1,-1,-1,-1};
+  Double_t MErrRinv[3]={0,0,0};//max3 methods err on 1/Rig
+  Float_t ResidX[3][9]={9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,
+                        9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999};
+  Float_t ResidY[3][9]={9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,
+                        9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999,9999};
+  Int_t TrkLBitPatt[3]={0,0,0};
+  Int_t TrkIntLays[3]={0,0,0};
+  Int_t TrkLBit10Patt[3]={0,0,0};
+//---- 
   Float_t trkrig(0),trkrige(0),rerig(0),hrigass(-999),trkch2(-1),trkch2ms(-1);
   Float_t trkthe(0),trkphi(0);
   Int_t trkpatx(0),trkpaty(0);
@@ -2414,47 +2542,71 @@ try{
   Float_t trkhrig[2]={0.,0.};//2 halves rigs
   Bool_t TrkXOK(0),TrkAfOK(0),TrkIsGood(0);
   Bool_t AddrOK(kTRUE);
+  Int_t TrkRefitFlg[3]={1,1,0};
 //
   itrktr = Particle(pindex).iTrTrack();//TRKtrack index used by i-th Part(-1 if missing) 
 //
   if(itrktr>=0){//<---- TRKtrack in Particle presence check
+//cout<<"<==== TrkTrack in particle, EVNUM="<<evnum<<endl;
     RunPar::addsev(90);//<--found TRKtrack in part
     TrTrackR trktr=TrTrack(itrktr);//ref to TrkTrack object used by particle
     TrTrackR *p2trktr = Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
 //    TrTrackR *p2trktr = pTrTrack(itrktr);//the same
 //  
-//---> create refs to track pars.objects:
+//---> get Fit-parameters for 3 algorithms :
 //
-//
-      for(int i=0;i<kTrkFitMInUse;i++){//<---fit methode loop(VC/Geane/GeaneK/JA/Chik/ChikF/Linear/Circle/Simple)
-      if(i==2 || i==5 || i==6)continue;//skip not developed/needed methodes
-      for(int j=0;j<2;j++){//<---with/no MS (+10 ->MS off) || top/bot_halfs || drop_ext_pl/2+2
-        ialgor[i][j]=trktr.iTrTrackPar(10*j+i+1,0,0);//w/nMS,0->all_hits, 1->refit_ifnotexist(no refit->0)
-        ithalf[i][j]=trktr.iTrTrackPar(i+1,j+1,0);//wMS,top/bot_halfs,refit_ifnotexist
-        itpext[i][j]=trktr.iTrTrackPar(i+1,j+3,0);//wMS,drop_extpl/2+2,refit_ifnotexist
-	if(ialgor[i][j] >= 0){
-          algor=trktr.gTrTrackPar(ialgor[i][j]);//ref.to TrTrackPar object
-          MChisq[i][j]=algor.Chisq;//w/n MS
-	  if(j==0){
-            MRigid[i]=algor.Rigidity;//only withMS
-            MErrRinv[i]=algor.ErrRinv;//only withMS
-            MFitDone[i]=algor.FitDone;//total Rig
-//	    LBitPatt[i]=algor.HitBits;//Used Layers Bit Pattern.
+    for(int i=0;i<kTrkFitMInUse;i++){//<---fit methode loop(VC/JA/Chik)
+      fitcode=trktr.iTrTrackPar(i+1,3,TrkRefitFlg[i]);//wMS/allL/nRef (wMS/nMS(+10),0->all_hits, 1->refit_ifnotexist(no refit->0))
+      if(fitcode >= 0){
+	trkh2->Fill(i+1,1.);
+        algref=trktr.gTrTrackPar(fitcode);//ref.to TrTrackPar object
+        MChisq[i][0]=algref.Chisq;//wMS
+        MRigid[i]=algref.Rigidity;
+        MErrRinv[i]=algref.ErrRinv;
+        MFitDone[i]=algref.FitDone;
+	if(MFitDone[i]){
+          RunPar::addsev(192+i);//FitDone for Meth-i
+	  for(int il=0;il<9;il++){//<-- lay-loop
+///	    if(algref.TestHitLayerJ(il+1)){//layer with used hit
+	      TrkLBitPatt[i]+=Int_t(pow(2.,il));
+	      TrkLBit10Patt[i]+=Int_t(pow(10.,il));
+	      trkh24->Fill(il+1,1.);
+	      if(il>0 && il<8)TrkIntLays[i]+=1;
+	      ResidX[i][il]=10000*algref.GetResidualX_LayJ(il+1);//cm->mkm
+	      ResidY[i][il]=10000*algref.GetResidualY_LayJ(il+1);
+///	    }//--->endof "layer with used hit"	    
+	  }//--> endof "lay-loop"	  
+	  fitcode=trktr.iTrTrackPar(10+i+1,0,TrkRefitFlg[i]);//nMS Chi2
+	  if(fitcode >= 0){
+            algref=trktr.gTrTrackPar(fitcode);//ref.to TrTrackPar object
+	    MChisq[i][1]=algref.Chisq;//wMS
 	  }
-        }
-
-	if(ithalf[i][j]>=0){  
-//cout<<"   -> half="<<j+1<<endl;
-          thalf=trktr.gTrTrackPar(ithalf[i][j]);
-          MRigidH[i][j]=thalf.Rigidity;//half Rigs
-          MFitDoneH[i][j]=thalf.FitDone;//done for half Rigids
-//cout<<"     HfitDone="<<MFitDoneH[i][j]<<"  Hrig="<<MRigidH[i][j]<<endl;
-        }
 //
-        if(itpext[i][j]>=0){
-	  tpext=trktr.gTrTrackPar(itpext[i][j]);
-        }
-      }//---> endof half(ms/noms/pat) loop
+	}//--->endof "fit done ?"
+      }//---> endof "fitcode ok ?"
+      else{
+        if(fitcode==-1)RunPar::addsev(180+4*i);//requested fit impossible for this track
+        if(fitcode==-2)RunPar::addsev(181+4*i);//requested fit not available without refit
+        if(fitcode==-3)RunPar::addsev(182+4*i);//refit failed
+        if(fitcode==-4)RunPar::addsev(183+4*i);//something crazy
+      }
+//--
+      fitcode=trktr.iTrTrackPar(i+1,1,TrkRefitFlg[i]);//inner upper half
+      if(fitcode >= 0){
+        algref=trktr.gTrTrackPar(fitcode);
+        MRigidH[i][0]=algref.Rigidity;//up-half Rig
+        MFitDoneH[i][0]=algref.FitDone;//done for up-half
+//cout<<"     UpHfitDone="<<MFitDoneH[i][0]<<"  Hrig="<<MRigidH[i][0]<<endl;
+      }
+      fitcode=trktr.iTrTrackPar(i+1,2,TrkRefitFlg[i]);//inner lower half
+      if(fitcode >= 0){
+        algref=trktr.gTrTrackPar(fitcode);
+        MRigidH[i][1]=algref.Rigidity;//up-half Rig
+        MFitDoneH[i][1]=algref.FitDone;//done for up-half
+//cout<<"     LoHfitDone="<<MFitDoneH[i][1]<<"  Hrig="<<MRigidH[i][1]<<endl;
+      }
+      if(MFitDoneH[i][0] && MFitDoneH[i][1])trkh2->Fill(i+1+10,1.);
+//
     }//--->endof methodes loop
 //------------------------------------------------------   
 //
@@ -2512,6 +2664,7 @@ try{
         if(
 	   trkch2<RunPar::GetGenc(6)
 //            && trkch2ms<RunPar::GetGenc(8)
+	   && fabs(hrigass)<RunPar::GetGenc(10)
 	    && AddrOK
 	                                  ){//<---- chi2's check
 //
@@ -2656,16 +2809,21 @@ try{
   absbet=fabs(tofbet);
   Float_t betptof,betptrk;
 // ===> Beta-corr for general analysis(Z~1)
+  
   betptof=kBpowTof[1];//Beta-power in dE/dX 1/beta**pow beta-dependence (as for prot)  
   betptrk=kBpowTrk[1];//...                                             (as for prot)  
   if(absbet<kBeta0){
     betctof=pow(absbet,betptof)
                        /pow(Float_t(kBeta0),betptof);//TOF beta-corr for general analysis
+  }
+  else{
+     betctof=1;
+  }
+  if(absbet<kBeta0tk){
     betctrk=pow(absbet,betptrk)
                        /pow(Float_t(kBeta0),betptrk);//TRK beta-corr for general analysis
   }
   else{
-     betctof=1;
      betctrk=1;
   }
   Bool_t TOFTRKnormOK(0);
@@ -2806,7 +2964,7 @@ try{
     RunPar::addsev(14);//<--- count Part. with TRD-track
     TrdTrackR *p2trdtr = Particle(pindex).pTrdTrack();//pointer to part-used TRD-track
     
-    trdllh=Particle(pindex).TRDLikelihood;
+    trdllh=Particle(pindex).TRDHLikelihood;
     UInt_t trdsta=p2trdtr->Status;
     
     Float_t trdcoo[3];
@@ -2938,6 +3096,22 @@ try{
   Bool_t AccOK4A2D=(nasthr<7);
   Bool_t AccOK4TG=(nasthr<2);
   Bool_t DownPart=(tofbet>0.2);
+  Bool_t PrCharge=(trkcha==1 
+                   && tofcha==1 
+		   && (trdcha==0 || trdcha==1) 
+		   && (riccha==0 || riccha==1) 
+		                            );
+  Bool_t HeCharge=(trkcha==2 
+                   && tofcha==2 
+		   && (trdcha==0 || trdcha==2) 
+		   && (riccha==0 || riccha==2) 
+		                            );
+  Bool_t LiCharge=(trkcha==3 
+                   && tofcha==3 
+		   && (trdcha==0 || trdcha==3) 
+		   && (riccha==0 || riccha==3) 
+		                            );
+  Float_t BetaImpl(0),bhcutpr,bhcuthe,blcutpr,blcuthe;
 //----> few common rates:
   RunPar::addsev(30);
   if(!TRKtrOK)return;
@@ -2948,6 +3122,38 @@ try{
   RunPar::addsev(33);
   if(AccOK4A2D)RunPar::addsev(34);
   if(AccOK4TG)RunPar::addsev(35);
+  if(PrCharge)RunPar::addsev(36);
+  if(HeCharge)RunPar::addsev(37);
+//
+  Bool_t TopProt(0);
+  Bool_t TopHelium(0);
+  Bool_t TopLitium(0);
+  if(PrCharge && tofbet>0 && prtmom>0 && betapatt<5){
+    BetaImpl=fabs(prtmom)/sqrt(prtmom*prtmom+kProtMass*kProtMass);
+    bhcutpr=1.2*BetaImpl+0.02;
+    blcutpr=0.8*BetaImpl-0.02;
+    TopProt=(tofbet<bhcutpr && tofbet>blcutpr);
+    if(TopProt){
+      tftzh11->Fill(BetaImpl,tofbet,1.);
+      tftzh13->Fill(prtmom,tofbet,1.);
+      tftzh15->Fill(prtmom,tofbet,1.);
+      tftzh17->Fill(BetaImpl,1-tofbet/BetaImpl,1.);
+      tftzh19->Fill(prtmom,1-tofbet/BetaImpl,1.);
+    }
+  }
+  if(HeCharge && tofbet>0 && prtmom>0 && betapatt<5){
+    BetaImpl=fabs(prtmom)/sqrt(prtmom*prtmom+kHeliumMass*kHeliumMass);
+    bhcuthe=1.2*BetaImpl+0.02;
+    blcuthe=0.8*BetaImpl-0.02;
+    TopHelium=(tofbet<bhcuthe && tofbet>blcuthe);
+    if(TopHelium){
+      tftzh12->Fill(BetaImpl,tofbet,1.);
+      tftzh14->Fill(prtmom,tofbet,1.);
+      tftzh16->Fill(prtmom,tofbet,1.);
+      tftzh18->Fill(BetaImpl,1-tofbet/BetaImpl,1.);
+      tftzh20->Fill(prtmom,1-tofbet/BetaImpl,1.);
+    }
+  }
 //  
 //---------------> Tdlv-calib:
 //
@@ -2956,9 +3162,9 @@ try{
     RunPar::addsev(40);
     if(TOFRawClustOK){//<--- 1rawcl/layer
       RunPar::addsev(41);
-      if(prtcha==1
-                   && prtmom>0.3
-		                ){//<--- chargeOK(=1,positive =prot)
+      if(((!kUseHe4Calib && TopProt)||(kUseHe4Calib && TopHelium))
+                 && prtmom>kTdlvMomLims[kSpaceCalib][0]
+		                                        ){//<--- chargeOK(=1/2,positive =prot/He from top)
         RunPar::addsev(42);
         if(TOFBetaOK && (tofbet>0.7 && tofbet<1.15)){//<--- prev.cal beta ok
           RunPar::addsev(43);
@@ -3000,9 +3206,22 @@ try{
 //
 //---> get trk-based beta, check mom-range (imply prot/mu),...
 //
-  if(kSpaceCalib==0)imass=mumas;//earth calib (mu)
-  else imass=pmas;//space calib(pr)
+  if(kSpaceCalib==0)imass=kMuMass;//earth calib (mu)
+  else{//space calib
+    if(kUseHe4Calib)imass=kHeliumMass;
+    else imass=kProtMass;
+  }
   Float_t TofTruncEd(0);
+  if(kUseHe4Calib){
+    betptof=kBpowTof[2];
+    if(absbet<kBeta0){
+      betctof=pow(absbet,betptof)
+                       /pow(Float_t(kBeta0),betptof);//TOF beta-corr for calub (used in cut for Tzslw)
+    }
+    else{
+      betctof=1;
+    }
+  }
   if(TOFBetaOK && TRKtrOK && TOFTRKnormOK)TofTruncEd=etrtof1*betctof;
 //
   betm=1; 
@@ -3015,7 +3234,7 @@ try{
     AmplMomOK=(pmom>=kAmplMomLims[kSpaceCalib][0] && pmom<=kAmplMomLims[kSpaceCalib][1]);//check low/high mom.
     betgam=fabs(pmom)/imass;//beta*gamma=mom/mass
   }
-  betm=0.998;
+  betm=0.998;//tempor (p>10gev/c)
 //
 //---> check final TofClust/Trk-matching AND TofRawClust:
 //
@@ -3125,7 +3344,8 @@ try{
 	}
       }
       RunPar::addsev(56);
-      if(prtcha==1){//<--- chargeOK(=1,positive =prot)
+//      if(prtcha==1){//<--- select Pr/Hel from top
+      if((!kUseHe4Calib && TopProt)||(kUseHe4Calib && TopHelium)){//<--- select Pr/Hel from top
         if(kTofCalibPrint[1]>0)tftzh3->Fill(prtmom,1);
         RunPar::addsev(57);
         if(TzslMomOK){//<--- MomRangeOK (select only pos. for space)
@@ -3164,7 +3384,7 @@ try{
 	        }
               }
               RunPar::addsev(60);
-	      if(TofTruncEd<4.5){
+	      if((!kUseHe4Calib && TofTruncEd<4.5)||(kUseHe4Calib && TofTruncEd>5.)){
                 RunPar::addsev(61);
 //cout<<"-----> Entry2filltz: event="<<evnum<<" Bars:"<<tofbrnl[0]<<" "<<tofbrnl[1]<<" "<<tofbrnl[2]<<" "<<tofbrnl[3]<<endl;
 //cout<<"       trlen:"<<toftrklen[0]<<" "<<toftrklen[1]<<" "<<toftrklen[2]<<" "<<toftrklen[3]<<endl;
@@ -3209,6 +3429,9 @@ try{
         TOFBetaOK && 
 	              TRKtrOK){//<--- An2Dyn-calib
       RunPar::addsev(71);
+      BetaImpl=fabs(prtmom)/sqrt(prtmom*prtmom+kHeliumMass*kHeliumMass);
+//      if(TopHelium && BetaImpl>0.85){//<--- TopHe, almost relativistic
+      RunPar::addsev(72);
 //
 // ---> Fill arrays for a2dr/dgains calculations(no mip-selection upto here,
 //                           will use bar mid-bin only) and do calibration:
@@ -3227,6 +3450,7 @@ try{
           TofCalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip)
         }
       }
+//      }//--->endof He-selection 
     }//--->endof An2Dyn-calib 
 //---
 //
@@ -3242,7 +3466,7 @@ try{
       for(il=0;il<kNtofl;il++){
         ib=tofbrnl[il];
         if(ib < 0)continue;
-        if(!(TOFTRKTmatchOK[il] && TOFTRKTmatchOK[il]))continue;//need both matching
+        if(!(TOFTRKLmatchOK[il] && TOFTRKTmatchOK[il]))continue;//need both matching
         ainp[0]=qnorm1[il];//q(pC)
         ainp[1]=qnorm2[il];
         cinp=longimp[il];// longit.coo of trk crossing, paddle loc.r.s.!!!
@@ -3266,7 +3490,7 @@ try{
       for(il=0;il<kNtofl;il++){
         ib=tofbrnl[il];
         if(ib < 0)continue;
-        if(!(TOFTRKTmatchOK[il] && TOFTRKTmatchOK[il]))continue;//need both matching
+        if(!(TOFTRKLmatchOK[il] && TOFTRKTmatchOK[il]))continue;//need both matching
         ainp[0]=qnorm1[il]*betctof;//beta-correction for tof(prot)
         ainp[1]=qnorm2[il]*betctof;
         cinp=longimp[il];// longit.coo of trk crossing, paddle loc.r.s.!!!
@@ -4935,7 +5159,7 @@ Int_t TofCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tzero
   printf("      Resolution1(ns): %6.3e\n",resol1);
   printf("      Slope          : %6.3e\n",slope);
 //
-  if(resol1<0.35)cstatus=0;//good final resolution
+  if(resol1<0.38)cstatus=0;//good final resolution
 exit:
   cout<<"----> TofCalib:fittz is over !"<<endl;
   return cstatus;
@@ -5026,6 +5250,86 @@ void TofCalib::TzslwHist(){  // Tzslw-calibr. histograms
   gStyle->SetOptStat(1111111);
   tftzh8->Draw();
   
+  TCanvas *tz5=new TCanvas("TZ5","Tzslw preselection-5",1);
+  tz5->Divide(2,2);
+  tz5->cd(1);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh11->SetMarkerStyle(20);
+  tftzh11->SetMarkerSize(0.25);
+  tftzh11->Draw("P");
+  tz5->cd(2);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh12->SetMarkerStyle(20);
+  tftzh12->SetMarkerSize(0.25);
+  tftzh12->Draw("P");
+  tz5->cd(3);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+//  tftzh13->SetMarkerStyle(20);
+//  tftzh13->SetMarkerSize(0.25);
+  tftzh13->Draw();
+  tz5->cd(4);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+//  tftzh14->SetMarkerStyle(20);
+//  tftzh14->SetMarkerSize(0.25);
+  tftzh14->Draw();
+  
+  TCanvas *tz6=new TCanvas("TZ6","Tzslw preselection-6",1);
+  tz6->Divide(2,2);
+  tz6->cd(1);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh15->SetMarkerStyle(20);
+  tftzh15->SetMarkerSize(0.5);
+  tftzh15->SetMinimum(0.6);
+  tftzh15->SetMaximum(1.1);
+  tftzh15->Draw("P");
+  tz6->cd(2);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh16->SetMarkerStyle(20);
+  tftzh16->SetMarkerSize(0.5);
+  tftzh16->SetMinimum(0.6);
+  tftzh16->SetMaximum(1.1);
+  tftzh16->Draw("P");
+  tz6->cd(3);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh17->SetMarkerStyle(20);
+  tftzh17->SetMarkerSize(0.5);
+  tftzh17->SetMinimum(-0.2);
+  tftzh17->SetMaximum(0.2);
+  tftzh17->Draw("P");
+  tz6->cd(4);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh18->SetMarkerStyle(20);
+  tftzh18->SetMarkerSize(0.5);
+  tftzh18->SetMinimum(-0.2);
+  tftzh18->SetMaximum(0.2);
+  tftzh18->Draw("P");
+  
+  TCanvas *tz7=new TCanvas("TZ7","Tzslw preselection-7",1);
+  tz7->Divide(1,2);
+  tz7->cd(1);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh19->SetMarkerStyle(20);
+  tftzh19->SetMarkerSize(0.5);
+  tftzh19->SetMinimum(-0.2);
+  tftzh19->SetMaximum(0.2);
+  tftzh19->Draw("P");
+  tz7->cd(2);
+  gPad->SetGrid();
+  gStyle->SetOptStat(111);
+  tftzh20->SetMarkerStyle(20);
+  tftzh20->SetMarkerSize(0.5);
+  tftzh20->SetMinimum(-0.2);
+  tftzh20->SetMaximum(0.2);
+  tftzh20->Draw("P");
 }
 //========================================== Ampl-calib zone:
 //
@@ -5146,39 +5450,6 @@ cout<<"<--- BrType="<<i+1<<" BarLen="<<blen<<" Nbins="<<nbnr<<" equal bars width
     aprofp[i][10]=aprofp[i][4];               
     aprofp[i][11]=aprofp[i][5];               
   }
-/*
-  if(TFCAFFKEY.hprintf>0){
-    HBOOK1(1262,"Relative anode-gains(all channels)",80,0.3,2.5,0.);
-    if(TFCAFFKEY.hprintf>1){
-      HBOOK1(1264,"Ref.bar A-profile (s1,type-1)",70,-70.,70.,0.);        
-      HBOOK1(1265,"Ref.bar A-profile (s2,type-1)",70,-70.,70.,0.);        
-      HBOOK1(1266,"Ref.bar A-profile (s1,type-2)",70,-70.,70.,0.);        
-      HBOOK1(1267,"Ref.bar A-profile (s2,type-2)",70,-70.,70.,0.);        
-      HBOOK1(1268,"Ref.bar A-profile (s1,type-3)",70,-70.,70.,0.);        
-      HBOOK1(1269,"Ref.bar A-profile (s2,type-3)",70,-70.,70.,0.);        
-      HBOOK1(1270,"Ref.bar A-profile (s1,type-4)",70,-70.,70.,0.);        
-      HBOOK1(1271,"Ref.bar A-profile (s2,type-4)",70,-70.,70.,0.);        
-      HBOOK1(1272,"Ref.bar A-profile (s1,type-5)",70,-70.,70.,0.);        
-      HBOOK1(1273,"Ref.bar A-profile (s2,type-5)",70,-70.,70.,0.);        
-      HBOOK1(1274,"Ref.bar A-profile (s1,type-6)",70,-70.,70.,0.);        
-      HBOOK1(1275,"Ref.bar A-profile (s2,type-6)",70,-70.,70.,0.);        
-      HBOOK1(1276,"Ref.bar A-profile (s1,type-7)",70,-70.,70.,0.);        
-      HBOOK1(1277,"Ref.bar A-profile (s2,type-7)",70,-70.,70.,0.);        
-      HBOOK1(1278,"Ref.bar A-profile (s1,type-8)",70,-70.,70.,0.);        
-      HBOOK1(1279,"Ref.bar A-profile (s2,type-8)",70,-70.,70.,0.);        
-      HBOOK1(1280,"Ref.bar A-profile (s1,type-9)",70,-70.,70.,0.);        
-      HBOOK1(1281,"Ref.bar A-profile (s2,type-9)",70,-70.,70.,0.);        
-      HBOOK1(1282,"Ref.bar A-profile (s1,type-10)",70,-70.,70.,0.);        
-      HBOOK1(1283,"Ref.bar A-profile (s2,type-10)",70,-70.,70.,0.);        
-      HBOOK1(1284,"Ref.bar A-profile (s1,type-11)",70,-70.,70.,0.);        
-      HBOOK1(1285,"Ref.bar A-profile (s2,type-11)",70,-70.,70.,0.);
-    }          
-    HBOOK1(1286,"Average Ah/Al(all chan, midd.bin)",50,2.5,7.5,0.);
-    HBOOK1(1287,"RelatRMS of aver. Ah/Al(all chan, midd.bin)",50,0.,5.,0.);
-    HBOOK1(1288,"Average Dh/Dl(all chan/pm, midd.bin)",50,2.5,7.5,0.);
-    HBOOK1(1289,"RelatRMS of aver. Dh/Dl(all chan/pm, midd.bin)",50,0.,2.5,0.);
-  }
-*/
 }
 //-------
 void TofCalib::filla2dg(Int_t il, Int_t ib, Float_t cin, Float_t ain[2], Float_t din[2][kTofPmtMX]){
@@ -5198,6 +5469,20 @@ void TofCalib::filla2dg(Int_t il, Int_t ib, Float_t cin, Float_t ain[2], Float_t
       if(din[is][ip]>0)din[is][ip]+=0.5;
     }
   }
+/*
+  if(il==0 && ib==5){
+    if(ain[0]>100)tfamh21->Fill(din[0][0],1.);
+    if(ain[0]>100)tfamh22->Fill(din[0][1],1.);
+    if(ain[1]>100)tfamh23->Fill(din[1][0],1.);
+    if(ain[1]>100)tfamh24->Fill(din[1][1],1.);
+  }
+  if(il==1 && ib==5){
+    if(ain[0]>100)tfamh25->Fill(din[0][0],1.);
+    if(ain[0]>100)tfamh26->Fill(din[0][1],1.);
+    if(ain[1]>100)tfamh27->Fill(din[1][0],1.);
+    if(ain[1]>100)tfamh28->Fill(din[1][1],1.);
+  }
+*/
 //
     for(is=0;is<2;is++){//<-- side loop
       if(is==0 && cin<-cbin)continue;//take far away impact from given side
@@ -5205,11 +5490,11 @@ void TofCalib::filla2dg(Int_t il, Int_t ib, Float_t cin, Float_t ain[2], Float_t
       chn=chnum+is;
       dsum[is]=0;
       ngdp[is]=0;
-      mina=200;//tempor(to have(at default_a2d=5-10) Ad1,2,3>20 to avoid nonlin of beg.of D-signals scale)
+      mina=100;//tempor(to have(at default_a2d=6) Ad1,2,3>15 to avoid nonlin of beg.of D-signals scale)
       maxa=kTofAdcMX-50;//to avoid ovfls(anode saturation area)
       if(ain[is]>mina && ain[is]<maxa){// Ah ok
         for(ip=0;ip<npmts;ip++){
-          mind=20;//~4sig
+          mind=15;//~4sig
 	  maxd=kTofAdcMX-mind;
           if(din[is][ip]>mind && din[is][ip]<maxd)ngdp[is]+=1;//Dh[ip] ok
         }
@@ -5219,7 +5504,10 @@ void TofCalib::filla2dg(Int_t il, Int_t ib, Float_t cin, Float_t ain[2], Float_t
 	  dsum[is]+=din[is][ip];
         }
 	r=ain[is]/dsum[is];
-        if(kTofCalibPrint[2]>0)tfamh1->Fill(r,1.);//inst.Ah/Dh(pm-sum) for bar/sides 
+//	tfamh20[chn]->Fill(log10(dsum[is]),log10(ain[is]),1.);//inst.Log(Ah) vs Log(Dyn)
+        if(kTofCalibPrint[2]>0){
+	  tfamh1->Fill(r,1.);//inst.Ah/Dh(pm-sum) for bar/sides
+	} 
 	a2dr[chn]+=r;
 	a2dr2[chn]+=r*r;
 	neva2d[chn]+=1;
@@ -5367,6 +5655,7 @@ void TofCalib::AmplHist(){  // Ampl-calibr. histograms
   gPad->SetGrid();
   gStyle->SetOptStat(1111111);
   tfamh3a->Draw();
+
   
   TCanvas *am2=new TCanvas("AM2","Ampl preselection-2",1);
   am2->Divide(2,2);
@@ -6401,18 +6690,71 @@ Int_t TofCalib::fitam(){
 // ---> calculate/print Anode/Dynode chan.gain ratios:
 //
   number a2d[kTofChanMx],a2ds[kTofChanMx],avr,avr2,a2dsig,rsig;
-//
+  Int_t gchan(0);
+  Double_t p0,p1;
+  Int_t p0i,p1i;
+  Float_t a2dcom,a2dgchan;
+/*
 // ---> calculate/print Ah2D(sum) ratios:
+  TCanvas *a2d1=new TCanvas("a2d1","Ampl A2D Fit L1",1);
+  a2d1->Divide(4,4);
+  TCanvas *a2d2=new TCanvas("a2d2","Ampl A2D Fit L2",1);
+  a2d2->Divide(4,4);
+  TCanvas *a2d3=new TCanvas("a2d3","Ampl A2D Fit L3",1);
+  a2d3->Divide(5,4);
+  TCanvas *a2d4=new TCanvas("a2d4","Ampl A2D Fit L4",1);
+  a2d4->Divide(4,4);
 //
-//
-  integer gchan(0);
+  chan=0;
+  for(il=0;il<kNtofl;il++){
+    for(ib=0;ib<kNtofb[il];ib++){
+      for(i=0;i<2;i++){
+	a2dcom=152650;//default value
+        if(neva2d[chan]>=10){
+	  if(il==0)a2d1->cd(2*ib+i+1);
+	  if(il==1)a2d2->cd(2*ib+i+1);
+	  if(il==2)a2d3->cd(2*ib+i+1);
+	  if(il==3)a2d4->cd(2*ib+i+1);
+          gPad->SetGrid();
+          gStyle->SetOptStat(11);
+          gStyle->SetOptFit(111);
+	  tfamh20[chan]->Fit("pol1","","", 1.7,2.7);
+          tfamh20[chan]->SetMarkerStyle(20);
+          tfamh20[chan]->SetMarkerSize(0.7);
+          tfamh20[chan]->SetMinimum(1.);
+          tfamh20[chan]->SetMaximum(4.);
+          tfamh20[chan]->Draw("P");
+	  p0=tfamh20[chan]->GetFunction("pol1")->GetParameter(0);
+	  p1=tfamh20[chan]->GetFunction("pol1")->GetParameter(1);
+	  tfamh15->Fill(p0,1.);
+	  tfamh16->Fill(p1,1.);
+	  p0i=floor(p0*100+0.5);
+	  p1i=floor(p1*1000+0.5);
+	  if(p1i>999 || p0i>999){
+	    cout<<"<Ampl:A2DFit-Err-ParOvfl:"<<p0i<<" "<<p1i<<" L/B/S="<<il+1<<" "<<ib+1<<" "<<is+1<<endl;
+	  }
+	  a2dcom=Float_t(p0i*1000+p1i);
+//	  cout<<"<---FitPars:Ch/L/B/S="<<chan<<" "<<il<<" "<<ib<<" "<<i<<" p0/1="<<p0<<" "<<p1<<" a2d="<<a2dcom<<endl;
+	  gchan+=1;
+	}
+	else{
+	  cout<<"  <-- Ampl:A2DFit: LowStat="<<neva2d[chan]<<" for L/B/S="<<il+1<<" "<<ib+1<<" "<<is+1<<endl;
+	  cout<<"      Default value will be used "<<a2dcom<<endl;
+	}
+        a2d[chan]=a2dcom;
+	chan+=1;//seq.numbering of bar sides
+      }
+    }
+    gPad->Update();
+  }
+*/
   chan=0;
   for(il=0;il<kNtofl;il++){
     for(ib=0;ib<kNtofb[il];ib++){
       for(i=0;i<2;i++){
         a2d[chan]=6;//default value
         a2ds[chan]=0;
-        if(neva2d[chan]>=10){
+        if(neva2d[chan]>=5){
 	  avr=a2dr[chan]/neva2d[chan];//aver x
 	  avr2=a2dr2[chan]/neva2d[chan];//aver x**2
 	  a2dsig=avr2-avr*avr;
@@ -6423,13 +6765,14 @@ Int_t TofCalib::fitam(){
 	      tfamh15->Fill(avr,1.);
 	      tfamh16->Fill(rsig,1.);
 	    }
-	    if(rsig<0.25){//good measurement, tempor
+	    if(rsig<0.3){//good measurement, tempor
 	      a2d[chan]=avr;
 	      a2ds[chan]=a2dsig;
 	      gchan+=1;
 	    }
 	    else{
-	      a2ds[chan]=99;//tempor later def.val
+	      cout<<"Amplf:A2D-Warn-IL/IB/IS="<<il+1<<" "<<ib+1<<" "<<i+1<<" bad rel.sig="<<a2ds[chan]<<endl;
+	      a2ds[chan]=0.3;//tempor
 	    }
 	  }
 	}
@@ -6438,7 +6781,11 @@ Int_t TofCalib::fitam(){
     }
   }
 //
-//  if(chan>0)TOF2JobStat::cqual(2,2)=geant(gchan)/chan;//for cal-quality
+//---
+  if(chan>0){
+    a2dgchan=Float_t(gchan)/chan;//for cal-quality
+    cout<<"<--- Ampl:A2DFit:good channel "<<gchan<<" from total "<<chan<<endl;
+  }
 //
   if(kTofCalibPrint[2]>1){
   printf("\n");
@@ -6470,7 +6817,7 @@ Int_t TofCalib::fitam(){
     }
     printf("\n");
     printf("\n");
-    
+//    
     for(ib=0;ib<kNtofb[il];ib++){
       chan=ich+2*ib;
       printf("%6.2f",a2ds[chan]);
@@ -6482,6 +6829,7 @@ Int_t TofCalib::fitam(){
     }
     printf("\n");
     printf("\n");
+//
     ich+=2*kNtofb[il];//skip to next layer
   }
   }
@@ -6684,6 +7032,8 @@ Int_t TofCalib::fitam(){
 //
 //                      <------ write Anode/Sum(Dynode(ipm))-ratios 
 //
+    tcfile.width(7);
+//    tcfile.precision(0);// precision for A/D ratio (for Log/Log Algorithm)
     tcfile.precision(2);// precision for A/D ratio
     ic=0;
     for(il=0;il<kNtofl;il++){ //
@@ -6703,6 +7053,7 @@ Int_t TofCalib::fitam(){
 //
 //                      <------ write Dynode-pmts rel.gains :
 //
+    tcfile.width(6);
     tcfile.precision(2);// precision for  D-gains
     ic=0;
     for(il=0;il<kNtofl;il++){//<---layer-loop
@@ -6839,7 +7190,8 @@ void TofCalib::melfun(Int_t &np, Double_t grad[], Double_t &f, Double_t x[], Int
 //
 //==============> Main :
 //
-#include "/afs/cern.ch/user/c/choumilo/AMS/include/amschain.h"
+//#include "/afs/cern.ch/user/c/choumilo/AMS/include/amschain.h"
+#include "/Offline/vdev/include/amschain.h"
 #include <getopt.h>
 #include <signal.h>
 #include <unistd.h>
@@ -6930,9 +7282,9 @@ int main(int argc, char *argv[]){
 //
   if(order==0 || order/pp%10==1){
     AMSChain chain("AMSRoot",thread,sizeof(TofCalibPG));
-    chain.Add("/fcdat1/Data/AMS02/2011B/ISS.B524/std/*.root");
-    chain.Add("/fc02dat1/Data/AMS02/2011B/ISS.B524/std/*.root");
-    chain.Add("/r0fc00/Data/AMS02/2011B/ISS.B524/std/*.root");
+    chain.Add("/afs/cern.ch/ams//Offline/DataSetsDir/Data/AMS02/2011B/ISS.B550/std/*.*.root");
+//    chain.Add("rfio:/castor/cern.ch/ams/Data/AMS02/2011B/ISS.B538/std/13*.*.root");//
+ 
     string fileoutput(brname);
     fileoutput+=xtname;
     fileoutput+=".his";

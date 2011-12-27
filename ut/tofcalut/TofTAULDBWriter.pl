@@ -732,7 +732,7 @@ sub TAUL2DB_Welcome
   my $dbd=$AMSDD.$DBDir;
   show_messg("   <--- Current DB-directory is $dbd","Big");
 #-----
-  $fn="TofRefCflistList.TAUC";
+  $fn="TofRefCflistList.TACR";
   open(CFLIST,"< $fn") or show_warn("   <-- Cannot open $fn for reading $!");
   while(defined ($line = <CFLIST>)){
     chomp $line;
@@ -1038,7 +1038,7 @@ sub scand{
     $AmsPos=1;# on earth
   } 
   elsif($runmn>1284069601 && $runmx>1284069601){#--->2010 > 10sept
-    $SetupName="AMS02Space";
+    $SetupName="AMS02P";
     $MagStat=1;# cold(=on)
     $AmsPos=0;# in space
   }
@@ -2938,7 +2938,7 @@ sub item_mark1
       $runn=$arr[$nel-1];#number after last "."
       $fn=$arr[0];
       if($fn eq $cfilenames[0]){#Cflist
-        $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTAUC*.".$runn.".log.*[0-9] |";
+        $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTACR*.".$runn.".log.*[0-9] |";
       }
       elsif($fn eq $cfilenames[6]){#Tdcor
         $cmd="ls -ogt --time-style=long-iso ".$dir."/TofTDCL*.".$runn.".log.*[0-9] |";
