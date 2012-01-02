@@ -37,12 +37,12 @@ class DynAlEvent: public TObject{
   float Cutoff;
 
   void extrapolateTrack(); // Propagate the track to the hit z
-#define abs(_x) ((_x)<0?-(_x):(_x))
+  //#define abs(_x) ((_x)<0?-(_x):(_x))
   int lay()const{return abs(Id)%10;}
   int lad()const{return (abs(Id)/100)%100;}
   int half()const{return (abs(Id)/10)%10;}
   int sen()const{return (abs(Id)/10000)%100;}
-#undef abs
+  //#undef abs
   bool falsex(){return Id<0;}
 
   bool operator<(const DynAlEvent &b) const {return Time[0]!=b.Time[0]?Time[0]<b.Time[0]:Time[1]<b.Time[1];}
@@ -246,13 +246,10 @@ class DynAlFitContainer:public TObject{
     DynAlFitParameters::SingleFitLinear Alignment[LinearSpaceMaxRecords][2];
   };
   
-  static LinearSpace tdvBuffer;
-
-  bool dumpToLinearSpace(bool layer=false);
+  bool dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer=false);
   //  static DynAlFitContainer getFromLinearSpace();
 
-#pragma omp threadprivate(tdvBuffer)  
-  ClassDef(DynAlFitContainer,2);
+  ClassDef(DynAlFitContainer,3);
 };
   
 class DynAlManager:public TObject{
@@ -265,9 +262,11 @@ class DynAlManager:public TObject{
   static int currentRun;
   static int skipRun;
   static TString defaultDir;
+  static DynAlFitContainer::LinearSpace tdvBuffer;
   static void ForceUpdating() {currentRun=skipRun=-1;}
-#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun)  
-  ClassDef(DynAlManager,1);
+
+#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer)  
+  ClassDef(DynAlManager,2);
 };
 
 

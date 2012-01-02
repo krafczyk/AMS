@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.21 2011/12/23 17:19:55 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.22 2012/01/02 11:05:20 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -23,10 +23,13 @@
 ///////////////////////////////////////////////////////////////////77
 
 
-
+// Time unit is the fraction of a 90 minutes orbit
 #define TIMEUNIT (60*90)
+// Fraction of events in ~1 sigma events
 #define PEAKFRACTION (0.68)
+// Half width of the initial window to search for the residuals (in cm) 
 #define EXCLUSION 3.0
+ 
 
 ClassImp(DynAlEvent);
 
@@ -340,7 +343,50 @@ bool DynAlFit::DoFit(DynAlHistory &history,int first,int last,DynAlEvent &exclud
     excluded.insert(i);
   }
 
-  return ForceFit(history,first,last,excluded);
+  //#define VERBOSE__
+#ifdef VERBOSE__
+  int output=ForceFit(history,first,last,excluded);  
+
+  if(Order!=0) return output;
+  // Compute the statistical error for current event X and Y after correction
+  TMatrixD matrix;
+  Fit.GetCovarianceMatrix(matrix);
+  TVectorD v(6);
+  v[0]=1; //DX
+  v[1]=0;
+  v[2]=0;
+  v[3]=exclude.RawHit[1];
+  v[4]=fabs(exclude.RawHit[2]-ZOffset);
+  v[5]=0;
+  double errx=0;
+  TVectorD r=matrix*v;
+  for(int i=0;i<6;i++) errx+=r[i];
+
+
+  v[0]=0; //DY
+  v[1]=1;
+  v[2]=0;
+  v[3]=exclude.RawHit[0];
+  v[4]=0;
+  v[5]=fabs(exclude.RawHit[2]-ZOffset);
+
+  double erry=0;
+  r=matrix*v;
+  for(int i=0;i<6;i++) erry+=r[i];
+  {
+    static int counter=0;
+    if(counter==0)
+      cout<<"Errors "<<exclude.Time[0]<<" "<<sqrt(errx)<<" "<<sqrt(erry)<<" "<<ZOffset<<endl;
+    counter++;if(counter==10) counter=0;
+  }
+  return output;
+#undef VERBOSE__
+#else
+  return ForceFit(history,first,last,excluded);  
+#endif
+
+
+
 }
 
 bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &excluded){
@@ -478,6 +524,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 	alpha=-xHit*v;
 	beta=-zHit-yHit*v;
       }
+
       error=classInfo[Class].rms[which];
       if(error<1e-6) continue;
       Fit.AddPoint(x,y,error);
@@ -492,8 +539,27 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   RetrieveFitPar(0,0);
   cout<<"FINAL POSITION DX "<<DX<<" DY "<<DY<<" "<<DZ<<endl;
   cout<<"               THETA "<<THETA<<" A "<<ALPHA<<" B "<<BETA<<endl;
+  TVectorD errors;
+  Fit.GetErrors(errors);
+  cout<<"ERRORS: "<<endl
+      <<"    DX: "<<errors[0]<<endl
+      <<"    DY: "<<errors[1]<<endl
+      <<"    DZ: "<<errors[2]<<endl
+      <<" THETA: "<<errors[3]<<endl
+      <<" ALPHA: "<<errors[4]<<endl
+      <<"  BETA: "<<errors[5]<<endl
+      <<"                   CHI2 "<<Fit.GetChisquare()<<"  DOF "<<Fit.GetNpoints()<<endl;
+
+
+  Double_t *matr=Fit.GetCovarianceMatrix();
+  for(int i=0;i<6;i++){
+    for(int j=0;j<6;j++) cout<<matr[6*i+j]<<" ";
+    cout<<endl;
+  };cout<<endl;
+
+#undef VERBOSE__
 #endif
-  //#undef VERBOSE__
+  
 
   Fail=false;
 #undef SubClass
@@ -659,10 +725,10 @@ bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,do
 ClassImp(DynAlContinuity);
 // Number of seconds in a week
 #define magicNumber 605800
-double DynAlContinuity::BetaCut=0.995;
-double DynAlContinuity::RigidityCut=5;
+double DynAlContinuity::BetaCut=0.995;  // Unused
+double DynAlContinuity::RigidityCut=5;  // Unused
 int    DynAlContinuity::FitOrder=0;
-int    DynAlContinuity::FitWindow=25;
+int    DynAlContinuity::FitWindow=20;
 
 int DynAlContinuity::getBin(int run){
   return (run/magicNumber)*magicNumber;
@@ -1048,9 +1114,9 @@ void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id)
 
 ClassImp(DynAlFitContainer);
 
-DynAlFitContainer::LinearSpace DynAlFitContainer::tdvBuffer;
 
-bool DynAlFitContainer::dumpToLinearSpace(bool layer9){
+
+bool DynAlFitContainer::dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer9){
   if(FitParameters.size()+LocalFitParameters.size()==0) return false;
   if(FitParameters.size()+LocalFitParameters.size()>LinearSpaceMaxRecords){
     cout<<"DynAlFitContainer::dumpToLinearSpace--E-To many records. No dump."<<endl;
@@ -1342,7 +1408,7 @@ DynAlFitContainer DynAlManager::dynAlFitContainers[10];
 int DynAlManager::currentRun=-1;
 int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir="";
-
+DynAlFitContainer::LinearSpace DynAlManager::tdvBuffer;
 
 bool DynAlManager::UpdateParameters(int run,int time,TString dir){
   if(run==skipRun) return false;
