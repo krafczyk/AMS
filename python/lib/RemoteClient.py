@@ -643,6 +643,11 @@ class RemoteClient:
                         ret2=self.sqlserver.Query(sql)
                     if(len(ret)>0 or len(ret2)>0):
                         for ntuple in self.dbclient.dsts:
+                            if(self.dbclient.ct(ntuple.Type)=="EventTag"):
+                                if(ntuple.Run==run.Run):
+                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                    print " deleting eventtag ",ntuple.Name
+                                    continue
                             if(self.dbclient.cn(ntuple.Status)=="Validated"):
                                 if(ntuple.Run==run.Run):
                                     self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
@@ -814,6 +819,11 @@ class RemoteClient:
                         ret2=self.sqlserver.Query(sql)
                     if(len(ret)>0 or len(ret2)>0):
                         for ntuple in self.dbclient.dsts:
+                            if(self.dbclient.ct(ntuple.Type)=="EventTag"):
+                                if(ntuple.Run==run.Run):
+                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                    print " deleting eventtag ",ntuple.Name
+                                    continue
                             if(self.dbclient.cn(ntuple.Status)=="Validated"):
                                 if(ntuple.Run==run.Run):
                                     self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)

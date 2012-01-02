@@ -59,7 +59,7 @@ class DBServer:
                     (l,self.dst)=self.iorp.getDSTSR(self.cid,run.Run)
                     len=len+l
                     for ntuple in self.dst:
-                        if(ntuple.Type!=self.iorp.EventTag):
+                        if(1 or ntuple.Type!=self.iorp.EventTag):
                             self.dsts.append(ntuple)
                             l1=l1+1
                 except:

@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.63 2011/08/25 14:16:41 ams Exp $
+#  $Id: monitorUI.pm,v 1.64 2012/01/02 09:15:35 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -434,6 +434,7 @@ if (not $Monitor::Singleton->{ok}){
 }		
 Gtk->timeout_add(3600000,\&AFS);
 Gtk->timeout_add(900000,\&Update);
+Gtk->timeout_add(800000,\&DVDST);
 Gtk->timeout_add(3600000,\&ReCreate);
 return $mybless;
 }
@@ -794,6 +795,9 @@ sub create_clist {
 sub ReCreate{
              $Monitor::Singleton->RemoveRuns();
              DBServer::InitDBFileNew(undef,$Monitor::Singleton);
+}
+sub DVDST{
+             $Monitor::Singleton->DeleteValidatedDst();
 }
 sub AFS{
              system("kinit -R");

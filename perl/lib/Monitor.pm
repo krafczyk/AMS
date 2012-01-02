@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.155 2011/12/09 14:46:01 ams Exp $
+# $Id: Monitor.pm,v 1.156 2012/01/02 09:15:35 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1689,26 +1689,26 @@ sub RemoveRuns{
       print "herewr\n"; 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-#     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/pass2/){
+     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/calib/){
 #    print "  $rdst{FilePath}   $rdst{Status} \n";
-
-     if(  $rdst{Status} eq "XAllocated" ){
-         print "restoring $rdst{uid} \n";
-         $rdst{Status} = "Finished";
+#
+#     if(  $rdst{Status} eq "XAllocated" ){
+#         print "restoring $rdst{uid} \n";
+#         $rdst{Status} = "Finished";
 #     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
 #     if($rdst{Status} eq "Finished"){
-         foreach my $hash (@{$ref->{acl}}){
-             if ($hash->{id}->{uid} == $rdst{uid}){
-                 print " $hash->{id}->{HostName} $hash->{id}->{pid} $rdst{Run} $rdst{uid} \n";
-                 my $cmd="ssh $hash->{id}->{HostName} kill -9  $hash->{id}->{pid} ";
-#                 system($cmd);
-             }
-         }
+#         foreach my $hash (@{$ref->{acl}}){
+#             if ($hash->{id}->{uid} == $rdst{uid}){
+#                 print " $hash->{id}->{HostName} $hash->{id}->{pid} $rdst{Run} $rdst{uid} \n";
+#                 my $cmd="ssh $hash->{id}->{HostName} kill -9  $hash->{id}->{pid} ";
+##                 system($cmd);
+#             }
+#         }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
-#                $arsref->sendRunEvInfo(\%rdst,"Delete");
-                $arsref->sendRunEvInfo(\%rdst,"Update");
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
+#                $arsref->sendRunEvInfo(\%rdst,"Update");
                 last;
             }
             catch CORBA::SystemException with{
@@ -1717,7 +1717,7 @@ sub RemoveRuns{
         }
         foreach $arsref (@{$ref->{ardref}}){
             try{
-#                $arsref->sendRunEvInfo(\%rdst,"Delete");
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
                 last;
             }
             catch CORBA::SystemException with{
