@@ -219,17 +219,17 @@ void TrRecHitR::Print(int opt){
 void TrRecHitR::_PrepareOutput(int opt) { 
   sout.clear();
   if(_imult>0) 
-    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f) AmpP: %5.0f AmpN: %5.0f corr: %8.4f  prob: %7.5f  stat: %2d\n",
+    sout.append(Form("tkid: %+03d Right Coo %d (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d\n",
 		     _tkid,_imult,GetCoord(_imult).x(),GetCoord(_imult).y(),GetCoord(_imult).z(),
-		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
-		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
-		     GetCorrelation(),GetProb(),getstatus()));
+		     (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
+		     (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
+		     GetCorrelationProb(),getstatus()));
   else 
-    sout.append(Form("tkid: %+03d Base Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f) AmpP: %5.0f AmpN:%5.0f  corr: %8.4f  prob: %7.5f  stat: %2d\n",
+    sout.append(Form("tkid: %+03d Base  Coo 0 (x,y,z)=(%10.4f,%10.4f,%10.4f)  AmpY: %8.2f  AmpX: %8.2f  Prob: %8.5f  Status: %4d\n",
 		     _tkid,GetCoord(0).x(),GetCoord(0).y(),GetCoord(0).z(),
-		     (GetYCluster())?GetYCluster()->GetTotSignal():0,
-		     (GetXCluster())?GetXCluster()->GetTotSignal():0,
-		     GetCorrelation(),GetProb(),getstatus()));
+                     (GetYCluster()) ? GetYCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
+                     (GetXCluster()) ? GetXCluster()->GetTotSignal(TrClusterR::DefaultCorrOpt) : 0,
+		     GetCorrelationProb(),getstatus()));
   if(!opt) return;
   for(int ii=0;ii<_mult;ii++)
     sout.append(Form("mult %d (x,y,z)=(%10.4f,%10.4f,%10.4f)\n",
@@ -283,6 +283,21 @@ void TrRecHitR::ClearUsed() {
   if (GetXCluster()) GetXCluster()->ClearUsed();
   if (GetYCluster()) GetYCluster()->ClearUsed();
 }
+
+#include "root.h"
+#include "DynAlignment.h"
+void     TrRecHitR::BuildCoordinateDynExt(){
+  if(GetLayerJ()!=1 && GetLayerJ()!=9) {BuildCoordinate();return;}  // Apply the patch only for layer 1 and 9
+  if(_imult<0) return;
+  
+  double newcoor[3]={0,0,0};
+  if(DynAlManager::FindAlignment(*AMSEventR::Head(),*this,newcoor[0],newcoor[1],newcoor[2])){
+    for(int i=0;i<3;i++) _coord[i]=newcoor[i];
+  }else{
+    cout<<"TrRecHitR::BuildCoordinateDynExt-W-DynAlManager::FindAlignment did not find an alignment for run "<<AMSEventR::Head()->fHeader.Run<<" hit at layer "<<this->GetLayerJ()<<endl;
+  }
+}
+
 
 AMSPoint TrRecHitR::GetGlobalCoordinate(int imult, const char* options,
 					int nstripsx, int nstripsy) {
@@ -338,11 +353,11 @@ float TrRecHitR::GetProb()   {
 }
 
 
-float TrRecHitR::GetSignalCombination(int iside, int opt) {
+float TrRecHitR::GetSignalCombination(int iside, int opt, float beta) {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
-  float sig_x = (clx!=0) ? clx->GetTotSignal(opt) : 0;
-  float sig_y = (cly!=0) ? cly->GetTotSignal(opt) : 0;
+  float sig_x = (clx!=0) ? clx->GetTotSignal(opt,beta) : 0;
+  float sig_y = (cly!=0) ? cly->GetTotSignal(opt,beta) : 0;
   float wei_x = 1; // to be tuned (wei(adc) ...)
   float wei_y = 1; // to be tuned (wei(adc) ...)
   if      (iside==0) return sig_x;
@@ -353,12 +368,12 @@ float TrRecHitR::GetSignalCombination(int iside, int opt) {
 }
 
 
-float TrRecHitR::GetSignalDifference(int opt) {
+float TrRecHitR::GetSignalDifference() {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
   if ( (clx!=0)&&(cly!=0) ) {
-    float sig_x = clx->GetTotSignal(opt);
-    float sig_y = cly->GetTotSignal(opt);
+    float sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
     return sig_x - sig_y;
   }
   else if (clx!=0) return -10000;
@@ -367,3 +382,39 @@ float TrRecHitR::GetSignalDifference(int opt) {
 }
 
 
+/* 
+  Hit Correlation: 
+  - Hypothesys: for a fixed x the y distribution is gaussian
+  - Plot sqrt(signal y) VS sqrt(signal x) with only basic corrections (gain, loss and asymmetry)
+  - Gaussian slice fit 
+  - Polynomial fit of the mean (through 0,0) and sigma behaviour
+*/
+
+static double HisCorrelation_XMax = 134; // after this value I give always 1 as probability
+static double HitCorrelation_MeanPar[7] = {0,1.15735,-1.36923e-02,7.01365e-05,0,0,0};
+static double HitCorrelation_SigmPar[7] = {0.943443,-0.0388644,0.00313217,-5.64444e-06,-1.0751e-06,1.35689e-08,-4.64308e-11};
+static double HitCorrelation_SigmMin = 0.8; // evaluated by hand for very low x
+
+float TrRecHitR::GetCorrelationProb() {
+  TrClusterR* clx = GetXCluster();
+  TrClusterR* cly = GetYCluster();
+  if ( (clx==0)||(cly==0) ) return -1; // no definition, default value!
+  // cluster signal
+  double sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  double x = sqrt(sig_x);
+  if (x>HisCorrelation_XMax) return 1; // good if out of range
+  double sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  double y = sqrt(sig_y);
+  // parameters for the test
+  double mean = 0.;
+  double sigma = 0.;
+  for (int ipar=0; ipar<7; ipar++) {
+    double tmp = pow(x,ipar);
+    mean  += HitCorrelation_MeanPar[ipar]*tmp;
+    sigma += HitCorrelation_SigmPar[ipar]*tmp;
+  }
+  sigma = TMath::Max(sigma,HitCorrelation_SigmMin);
+  // gaussian p-value
+  float n = fabs(y - mean)/sigma;
+  return 1-TMath::Erf(n/sqrt(2));
+}

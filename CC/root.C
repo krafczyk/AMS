@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.350 2011/12/23 17:13:21 chchung Exp $
+//  $Id: root.C,v 1.351 2012/01/04 19:35:48 oliva Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5498,6 +5498,9 @@ try{
     TRCLFFKEY   =*((TRCLFFKEY_DEF*)  _FILE->Get("datacards/TRCLFFKEY_DEF"));
       if (TRFITFFKEY.ReadFromFile && _FILE->Get("datacards/TRFITFFKEY_DEF"))
     TRFITFFKEY  =*((TRFITFFKEY_DEF*) _FILE->Get("datacards/TRFITFFKEY_DEF"));
+                                 if (_FILE->Get("datacards/TRCHAFFKEY_DEF"))
+    TRCHAFFKEY  =*((TRCHAFFKEY_DEF*) _FILE->Get("datacards/TRCHAFFKEY_DEF"));
+
 }
 catch (...){
 cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
@@ -5517,7 +5520,7 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     TrRecon::SetParFromDataCards();
     TrRecon::UsingTrCalDB(TrCalDB::Head);
 
-    TrPdfDB::Load(_FILE);
+    if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
 }
 master=1;  
 }

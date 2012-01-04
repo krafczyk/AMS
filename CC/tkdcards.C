@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.67 2011/11/28 18:47:17 pzuccon Exp $
+// $Id: tkdcards.C,v 1.68 2012/01/04 19:35:48 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -11,13 +11,13 @@ ClassImp(TRCALIB_DEF);
 ClassImp(TRALIG_DEF);
 ClassImp(TRCLFFKEY_DEF);
 ClassImp(TRFITFFKEY_DEF);
+ClassImp(TRCHAFFKEY_DEF);
 
 
 //==============================
 //  TRACKER SIMULATION
 //==============================
 void TKGEOMFFKEY_DEF::init(){
-
   ReadGeomFromFile=0;
   WriteGeomToFile=0;
   UpdateGeomFile=0;
@@ -45,7 +45,7 @@ TKGEOMFFKEY_DEF TKGEOMFFKEY;
 #pragma omp threadprivate (tkgeomffkey_)
 #endif
 
-//=============================
+
 //==============================
 //  TRACKER RECONSTRUCTION
 //==============================
@@ -107,17 +107,31 @@ for (int ii=0;ii<9;ii++){
   ExtMatch = 11;
   UseSensorAlign=1;
   statflag = 1;
-  
+
+  ReorderTrClusters = 0; // inactive (1)
+  ChargeSeedTagActive = 0; // inactive (1)
+  ChargeSeedSelActive = 0; // inactive (0)
+  CorrelationProbThr = 0; // inactive (0.001)
+  YClusterSNThr = 0; // inactive (5)
+  YClusterNStripThr = 0; // inactive (1)
+  ReorderTrRecHits = 0; // inactive (2)
+  BuildTracksSimpleChargeSeedTag = 0; // inactive (1)
+  TrackFindChargeCutActive = 0; // inactive (1)
+
+  //! Build: Reorder cluster by signal 
+  int   ReorderTrClusters;
+
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (trclffkey_)
 #endif
+
+
 //==============================
-
-
-
+//  TRACKER CLUSTER SIMULATION
+//==============================
 void TRMCFFKEY_DEF::init(){
   //used
   alpha=250;
@@ -131,15 +145,12 @@ void TRMCFFKEY_DEF::init(){
   gammaA[1]=0.1;
   /// Give the conversion ADC count keV
 
-
-
   //! Seed Threshold (0=S 1=K) for the MC DSP like clusterization
   th1sim[0]=4.0;
   th1sim[1]=4.0;
   //! Enlargement Threshold (0=S 1=K) for the MC DSP like clusterization
   th2sim[0]=1.0;
   th2sim[1]=1.0;
-  
   
   //unknown
   ped[0]=500;
@@ -259,6 +270,8 @@ TRMCFFKEY_DEF TRMCFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (trmcffkey_)
 #endif
+
+
 //=============================
 void TRCALIB_DEF::init(){
   CalibProcedureNo=0;
@@ -327,6 +340,8 @@ TRCALIB_DEF TRCALIB;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (trcalib_)
 #endif
+
+
 //=============================
 void TRALIG_DEF::init(){
   One=1.025;
@@ -375,9 +390,12 @@ TRALIG_DEF TRALIG;
 #pragma omp threadprivate (tralig_)
 #endif
 
+
+//==============================
+//  TRACKER FITTING
+//==============================
 #include "TrTrack.h"
 
-//=============================
 void TRFITFFKEY_DEF::init(){
   // Fit Par
 
@@ -414,4 +432,25 @@ TRFITFFKEY_DEF TRFITFFKEY;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (trfitffkey_)
 #endif
+
+
 //=============================
+//  TRACKER CHARGE RECON.
+//=============================
+void TRCHAFFKEY_DEF::init(){
+  /// I 1 reconstruction type (default 2): 0 = no recon, 1 = trunc. mean, 2 = likelihood
+  ReconType = 1;
+  /// I 2 pdf version used (default 1): 0 = original (v5.00 dbase, from MC), 1 = first implementation (sep. 2011)
+  PdfVersion = 1;
+  /// I 3 max charge recontructed (default 8)
+  MaxCharge = 8;
+  /// I 4 enable histograms (default 0): 0 = disabled, 1 = enabled
+  EnableHisto = 0;
+}
+   
+TRCHAFFKEY_DEF TRCHAFFKEY;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (trchaffkey_)
+#endif
+
+

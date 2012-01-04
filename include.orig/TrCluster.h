@@ -12,6 +12,8 @@
 
 #include "amsdbc.h"
 
+#include "TSpline.h"
+
 #include <cmath>
 #include <vector>
 #include <string>
@@ -26,9 +28,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2011/05/05 23:14:39 $
+ $Date: 2012/01/04 19:35:49 $
 
- $Revision: 1.25 $
+ $Revision: 1.26 $
 
 */
 
@@ -39,29 +41,35 @@ class TrClusterR :public TrElem{
   
   enum CorrectionOptions {
     /// No Correction Applied
-    kNoCorr       = 0x00,       
+    kNoCorr       =    0x00,       
     /// Signal Corr.: Cluster Asymmetry Correction (left/right)
-    kAsym         = 0x01, 
+    kAsym         =    0x01, 
     /// Signal Corr.: P-Strip Correction (inactive)
-    kPStrip       = 0x02,
+    kPStrip       =    0x02,
     /// Total Signal Corr.: Energy Loss Normalization at 300 um [cos(Theta)^-1]
-    kAngle        = 0x04,
+    kAngle        =    0x04,
     /// Total Signal Corr.: Gain Correction
-    kGain         = 0x08, 
+    kGain         =    0x08, 
     /// Total Signal Corr.: VA Gain Correction 
-    kVAGain       = 0x10, 
+    kVAGain       =    0x10, 
     /// Total Signal Corr.: Charge Loss Correction 
-    kLoss         = 0x20,
-    /// Total Signal Corr.: Normalization to P-Side      
-    kPN           = 0x40,
+    kLoss         =    0x20,
+    /// Total Signal Corr.: Normalization to P-Side (not needed)    
+    kPN           =    0x40,
     /// Total Signal Corr.: Normalization to number of MIP
-    kMIP          = 0x80,
+    kMIP          =    0x80,
+    /// Total Signal Corr.: Multiply by 300 um MIP energy deposition (estimated to be 81 keV)
+    kMeV          =   0x100,
+    /// Total Signal Corr.: Beta correction 
+    kBeta         =   0x200,
+    /// Total Signal Corr.: Rigidity correction (inactive)
+    kRigidity     =   0x400,
     /// Coordinate Corr.: Flip the eta used strips
-    kFlip         = 0x100,
-    /// Coordinate Corr.: Correct for the charge coupling (4%)
-    kCoupl        = 0x200,
-    /// Coordinate Corr.: Belau correction
-    kBelau        = 0x400
+    kFlip         =   0x800,
+    /// Coordinate Corr.: Correct for the charge coupling (4%) (inactive)
+    kCoupl        =  0x1000,
+    /// Coordinate Corr.: Belau correction (inactive)
+    kBelau        =  0x2000
   };
 
   enum { TASCLS = 0x400 };
@@ -95,16 +103,20 @@ class TrClusterR :public TrElem{
   static TrParDB* _trpardb;
   /// load the std::string sout with the info for a future output
   void _PrepareOutput(int full=0);
-  
+
+  /// Conversion between sqrt(ADC) and number of MIPs
+  static TSpline3* sqrtadc_to_sqrtmip_spline[2];
+ 
  public:
 
-  /// Default signal correction option
+  /// Silicon intrinsic corrections
   static int DefaultCorrOpt;
-  /// Default signal MIP scale correction
-  static int DefaultMipCorrOpt;
+  /// Normalization up to Z^2 scale 
+  static int DefaultChargeCorrOpt;
+  /// Energy deposition corrections      
+  static int DefaultEdepCorrOpt;
   /// Default number of strips used for CofG
   static int DefaultUsedStrips;
-
   /// _dxdz threshold for 2/3-steip CofG
   static float TwoStripThresholdX;
   /// _dydz threshold for 2/3-steip CofG
@@ -193,9 +205,21 @@ class TrClusterR :public TrElem{
   /**@{*/	
 
   /// Get cluster amplitude
-  float GetTotSignal(int opt = DefaultCorrOpt);
-  /// Convert an ADC signal to a number of MIPs (each MIP is approximately 81 keV)
-  static float GetNumberOfMIPs(int iside, float adc);
+  float GetTotSignal(int opt = DefaultCorrOpt, float beta = 1);
+  /// Convert an ADC signal to the ADC scale of p-side 
+  float ConvertToPSideScale(float adc/*n-side*/);
+  /// Convert an ADC signal to the ADC scale of n-side
+  float ConvertToNSideScale(float adc/*p-side*/);
+  /// Convert an ADC signal to a number of MIPs
+  float GetNumberOfMIPs(float adc);
+  /// Convert an ADC signal to a number of MIPs (TB03)
+  float GetNumberOfMIPs_TB03(float adc);
+  /// Beta correction
+  float BetaCorrection(float beta);
+  /// Get energy deposition (MeV)
+  float GetEdep() { return GetTotSignal(TrClusterR::DefaultEdepCorrOpt); }
+  /// Get floating charge estimation
+  float GetQ(float beta = 1) { return sqrt(GetTotSignal(TrClusterR::DefaultChargeCorrOpt,beta)); }
 
   /// Get i-th strip signal
   float GetSignal(int ii, int opt = DefaultCorrOpt);
@@ -203,11 +227,14 @@ class TrClusterR :public TrElem{
   float GetSigma(int ii) { return GetNoise(ii);  }
   /// Get i-th strip noise (from calibration)
   float GetNoise(int ii);   
-  /// Get i-th signal to noise ratio 
+  /// Get i-th signal-to-noise ratio 
   float GetSN(int ii, int opt = DefaultCorrOpt) { 
     return (GetNoise(ii)<=0.) ? -9999. : GetSignal(ii,opt)/GetNoise(ii); 
   }
- 
+  /// Get the signal-to-noise ratio of the cluster (sum-signals/sqrt(sum-sigma^2))
+  float GetClusterSN(int opt = 0);
+
+
   /**@}*/	
 
 

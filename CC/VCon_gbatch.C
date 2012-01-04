@@ -40,8 +40,7 @@ TrElem* VCon_gb::getelem(int ii){
   return dynamic_cast<TrElem*> (primo);
 }
 
-void  VCon_gb::addnext(TrElem* aa){
-  
+void VCon_gb::addnext(TrElem* aa){
   if(!con) return;
   con->addnext(dynamic_cast<AMSlink*> (aa));
 }
@@ -55,3 +54,9 @@ int  VCon_gb::getindex(TrElem* aa){
   }
   return -1;
 }
+
+void VCon_gb::exchangeEl(TrElem* el1, TrElem* el2) {
+  if(!con) return;
+  con->exchangeEl(dynamic_cast<AMSlink*>(el1),dynamic_cast<AMSlink*>(el2));
+}
+

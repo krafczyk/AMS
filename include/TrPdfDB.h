@@ -8,10 +8,12 @@
  \class TrPdfDB
  \brief The tracker PDF manager
  
- $Date: 2011/05/26 01:30:29 $
+ $Date: 2012/01/04 19:35:49 $
 
- $Revision: 1.4 $
+ $Revision: 1.5 $
 */
+
+#include "tkdcards.h"
 
 #include "TkDBc.h"
 #include "TrPdf.h"
@@ -45,10 +47,17 @@ class TrPdfDB : public TObject {
   /////////////////////////
 
   //! Available PDF types
-  enum PdfType { kSingleLayer = 0, kTruncatedMean = 1 };
+  enum PdfType { 
+    // ver01: pdf for single layers from MC [sqrt(ADC)] for x, y and xy
+    kPdf01_SingleLayer   = 0, 
+    // ver01: pdf for truncated mean from MC [sqrt(ADC)] for x
+    kPdf01_TruncatedMean = 1,
+    // ver02: pdf for single layers from data layer-by-layer [ADC/Z^2] for x
+    kPdf02_SingleLayer   = 2
+  };
 
   /////////////////////////
-  // Accessors 
+  // Accessors and management
   /////////////////////////
 
   //! Constructor (declared public because of ROOT I/O)
@@ -57,8 +66,10 @@ class TrPdfDB : public TObject {
   ~TrPdfDB() { Clear(); }
   //! Get self-pointer
   static TrPdfDB* GetHead();
+  //! Existence checker
+  static bool IsNull() { return (fHead==0) ? true : false; } 
   //! Clear
-  void   Clear(Option_t* oo="");
+  void   Clear(Option_t* option="");
   //! Get a list of available pdfs
   void   Info();
   //! Default setting for GBATCH (called in job.C) 
@@ -72,44 +83,60 @@ class TrPdfDB : public TObject {
 
   //! Entries in the database 
   int    GetEntries() { return fTrPdfMap.size(); }
-  //! Get a pdf by map index
+  //! Get the pdf from the map entry number
   TrPdf* GetEntryPdf(int ii);
-  //! Get the pdf index [Z (from 0 to 26) + side*100 (0/1/2 = x/y/xy) + type*1000 (0/1/... = single/truncated/...)]
+  //! Get the pdf index from map entry number
   int    GetEntryIndex(int ii);
-
+  //! Get the pdf from Z, side and layer
+  TrPdf* GetPdf(int Z, int iside, int itype, int layer = 0) { return GetPdf(GenerateIndex(Z,iside,itype,layer)); }
+  //! Get the pdf by index 
+  TrPdf* GetPdf(int index);
   //! Add or override a pdf 
-  void   Add(TrPdf* pdf, int Z, int iside, int itype) { Add(pdf,GenerateIndex(Z,iside,itype)); } 
+  void   AddPdf(TrPdf* pdf, int Z, int iside, int itype, int layer = 0) { AddPdf(pdf,GenerateIndex(Z,iside,itype,layer)); } 
   //! Add or override a pdf 
-  void   Add(TrPdf* pdf, int index);
-  //! Get the pdf from Z and side
-  TrPdf* Get(int Z, int iside, int itype) { return Get(GenerateIndex(Z,iside,itype)); } 
-  //! Get the pdf by index (Z + side*100 + type*1000)
-  TrPdf* Get(int index); 
-  //! Generate index Z (from 0 to 26) + side*100 (0/1/2 = x/y/xy) + type*1000 (0/1/... = single/truncated/...)
-  int    GenerateIndex(int Z, int iside, int itype) { return Z + iside*100 + itype*1000; } 
+  void   AddPdf(TrPdf* pdf, int index);
+  //! Generate index
+  /*  + Z (charge up to TRCHAFFKEY.MaxCharge) 
+      + iside*100 (TrCharge::SideType) 
+      + itype*1000 (0, ..., 9: PdfType) 
+      + layer*10000 (0: no dependence from layer, from 1 to 9: layers)
+  */
+  int    GenerateIndex(int Z, int iside, int itype, int layer = 0) { return Z + iside*100 + itype*1000 + layer*10000; } 
   //! Get Z from index
   int    GetZ(int index) { return index%100; }
   //! Get side from index
   int    GetSide(int index) { return int(index/100)%10; }
   //! Get type from index
-  int    GetType(int index) { return int(index/1000); }
+  int    GetType(int index) { return int(index/1000)%10; }
+  //! Get layer from index
+  int    GetLayer(int index) { return int(index/10000); }
 
   //////////////////////////
-  /// Reading 
+  /// Reading and loading
   //////////////////////////
 
-  //! Load the Pierre's ROOT file with PDFs
-  void   LoadPierrePdf(char* filename);
-  //! Load the Pierre's ROOT file with PDFs
-  void   LoadPierrePdf(TFile* file = 0);
+  //! Load the Pierre's ROOT file with PDFs (extracted from MC)
+  void   LoadPierrePdf01(char* filename);
+  //! Load the Pierre's ROOT file with PDFs (extracted from MC)
+  void   LoadPierrePdf01(TFile* file = 0);
+  //! Load the layer-by-layer Pierre PDFs (from data, corrections from KSC)
+  void   LoadPierrePdf02(); 
+
+  //////////////////////////
+  /// Service
+  //////////////////////////
+
+  //! Function used for Pdf02 fitting
+  static double newlangauexpfun(double *x, double *par);
   //! Service function for the PDF management
   TH1D*  GetSliceY(TH2D* th2, int ixbin);
+
+  //! ROOT stuff
   using TObject::Info;
 
-  /// ROOT definition
   ClassDef(TrPdfDB,1);
-
 };
+
 
 #endif
 

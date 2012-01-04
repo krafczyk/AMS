@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.49 2011/05/08 16:52:46 pzuccon Exp $ 
+// $Id: TrRecon.h,v 1.50 2012/01/04 19:35:49 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2011/05/08 16:52:46 $
+/// $Date: 2012/01/04 19:35:49 $
 ///
-/// $Revision: 1.49 $
+/// $Revision: 1.50 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -31,6 +31,7 @@
 #include "TrTrack.h"
 #include "TrRecHit.h"
 #include "TrFit.h"
+#include "TrCharge.h"
 #include "TkSens.h"
 #include "TMath.h"
 #include "TrTasDB.h"
@@ -166,7 +167,9 @@ protected:
   
   static int   _stabuf2[BUFSIZE];
   
-  
+  /// track finding - charge seeds 
+  static float _htmy;
+  static float _htmx;
 
 private:
   
@@ -236,8 +239,8 @@ public:
 
   /// Builds all the TrClusters (returns the number of TrCluster built) 
   int  BuildTrClusters(int rebuild=0);
-
-
+  // Reorder TrCluster container (higher signal first)  
+  void ReorderTrClusters();
   /// Builds the TrClusters in a buffer interval (cyclicity if !=0) 
   int  BuildTrClustersInSubBuffer(int tkid, int first, int last, int cyclicity = 0);
   /// Builds the seed list in the buffer interval (cyclicity if !=0) 
@@ -247,11 +250,7 @@ public:
   /// Get a well defined address inside an interval (imposing cyclicity if !=0) 
   int  GetAddressInSubBuffer(int address, int first, int last, int ciclicity = 0);
 
-
- // --- Hit Signal Correlation (only muons for the moment) --- //
-  // --- No reordering implemented --- // 
-
-  /// Set the correlation probability threshold
+  /// Set the correlation probability threshold (DEPRECATED)
   void  SetThrProb(float prob) { RecPar.ThrProb = prob; }
  
   /// Builds the Cluster TkId map (for the binary fast search of clusters)
@@ -267,6 +266,8 @@ public:
 public:
   /// Builds all the TrRecHits (combinations and spares) (returns the number of TrRecHits built)
   int  BuildTrRecHits(int rebuild = 0);
+  // Reorder TrRecHit container (0: no reordering, 1: probability, 2: y-signal, 3: x-signal) 
+  void ReorderTrRecHits(int type);
 
   /// Fild a hit with the combination of xcls and ycls
   TrRecHitR* FindHit(TrClusterR* xcls,TrClusterR* ycls);
@@ -487,10 +488,10 @@ public:
   int BuildTrTracks(int rebuild = 0);
 
   /// Reconstruct tracks, simple version
-  int BuildTrTracksSimple(int rebuild = 0);
+  int BuildTrTracksSimple(int rebuild = 0, int select_tag = 0);
  
   /// Merge hits shared by two tracks
-//int MergeSharedHits(TrTrackR *track, int fit_method);
+  //int MergeSharedHits(TrTrackR *track, int fit_method);
 
   /// Merge hits with seed SN clusters lower than TrackThrSeed
   int MergeLowSNHits(TrTrackR *track, int fit_method);
@@ -629,6 +630,21 @@ public:
           +(x-x1)*(x-x3)/(x2-x1)/(x2-x3)*y2
           +(x-x1)*(x-x2)/(x3-x1)/(x3-x2)*y3;
   }
+
+//========================================================
+// Charge methods
+//========================================================
+
+ public:
+  
+  //! Calculate the charge seeds
+  static void  FillChargeSeeds();
+  //! Get the charge seed
+  static float GetChargeSeed(int iside) { return (iside==0) ? _htmx : _htmy;}
+  //! Compatibility between cluster and the calculated charge seed
+  static bool  CompatibilityWithChargeSeed(TrClusterR* cluster);
+  //! Compatibility between hit and the calculated charge seed
+  static bool  CompatibilityWithChargeSeed(TrRecHitR* hit);
 
 //========================================================
 // Utilities for debugging

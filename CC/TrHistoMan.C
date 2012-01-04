@@ -623,7 +623,7 @@ TNamed* TrHistoMan::Get(const char* name){
   uint32_t ihash = CalcHash(name);
   // existence check
   if (fHashTable.find(ihash)==fHashTable.end()) {
-    printf("TrHistoMan::Get-W object named %s not found. Returning 0.\n");
+    printf("TrHistoMan::Get-W object named %s not found. Returning 0.\n",name);
     return 0; 
   }
   return fHashTable.find(ihash)->second;

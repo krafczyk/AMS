@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.38 2011/10/15 16:30:37 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.39 2012/01/04 19:35:47 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -335,7 +335,33 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,   10, 1e4, 120, 1e-2, 1e2));
   Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,   10, 1e4, 120, 1e-2, 1e2));
 
-  // residuals vs ladder
+  Add(TH2D_L("XvsR1",  "XvsR1",         100, 1e-2, 1e3, 120, 1e-2, 1e4));
+
+  // Reconstruction summary  
+  Add(new TH2D("TrSimple","; rec. step; n. candidates",10,-0.5,9.5,100,-0.5,99.5));
+
+  // Charge seed plot
+  Add(new TH2D("CSxCSy","; x charge seed (#sqrt{ADC}); y charge seed (#sqrt{ADC})",200,0,200,200,0,200));
+  Add(new TH2D("CSrCSy","; y charge seed (#sqrt{ADC}); x charge seed (#sqrt{ADC}) / y charge seed (#sqrt{ADC})",200,0,200,200,0,4));
+  Add(new TH2D("CSrCSx","; x charge seed (#sqrt{ADC}); y charge seed (#sqrt{ADC}) / x charge seed (#sqrt{ADC})",200,0,200,200,0,4));
+  // Charge seed cut
+  Add(new TH2D("AmpyCSy", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",400,0,200,400,0,200));
+  Add(new TH2D("AmpxCSx", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",400,0,200,400,0,200));
+  // Hit compatibility plots
+  Add(new TH2D("AmpyAmpx","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
+  Add(new TH2D("ProbAmpx","; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
+  // Y Clusters Signal-to-noise ratio
+  Add(new TH2D("SeedSNyN","; number of strips; seed SN",10,0.5,10.5,200,0,100));
+  Add(new TH2D("SignalyN","; number of strips; cluster signal (ADC)",10,0.5,10.5,200,0,200));
+  Add(new TH2D("ClSNyN","; number of strips; cluster SN",10,0.5,10.5,200,0,100));
+  // Hits signal compatibility
+  Add(new TH2D("ySig0","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig1","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig2","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig3","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig4","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+
+  // Residuals per layer
   Add(new TH2D("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
   Add(new TH2D("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
 

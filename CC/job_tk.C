@@ -29,6 +29,9 @@ void AMSJob::_retkdata(){
   TRFITFFKEY.init();
   FFKEY("TRFIT",(float*)&(TRFITFFKEY.ErrX),(sizeof(TRFITFFKEY_DEF)-4)/sizeof(integer),"MIXED");
 
+  TRCHAFFKEY.init();
+  FFKEY("TRCHA",(float*)&(TRCHAFFKEY.ReconType),(sizeof(TRCHAFFKEY_DEF)-4)/sizeof(integer),"MIXED");
+
 }
 
 void AMSJob::_retkinitjob(){
@@ -43,7 +46,9 @@ void AMSJob::_retkinitjob(){
   AMSgObj::BookTimer.book("TrTrack6FitE");
   AMSgObj::BookTimer.book("TrCluster");
   AMSgObj::BookTimer.book("TrClusterRefit");
+  AMSgObj::BookTimer.book("TrClusterReorder");
   AMSgObj::BookTimer.book("TrRecHit");
+  AMSgObj::BookTimer.book("TrRecHitReorder");
   AMSgObj::BookTimer.book("TrFitRkmsF");
   AMSgObj::BookTimer.book("TrFitRkmsT");
 //PZ FIXME CHARGE  if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files

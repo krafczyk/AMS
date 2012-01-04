@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.102 2011/12/01 16:28:42 pzuccon Exp $
+//  $Id: linkdef.h,v 1.103 2012/01/04 19:35:49 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -47,6 +47,7 @@
 #pragma link C++ class TRALIG_DEF+;
 #pragma link C++ class TRCLFFKEY_DEF+;
 #pragma link C++ class TRFITFFKEY_DEF+;
+#pragma link C++ class TRCHAFFKEY_DEF+;
 
 #pragma link C++ class HistoMan;
 #else

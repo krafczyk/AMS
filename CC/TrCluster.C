@@ -8,11 +8,14 @@ TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
 
-int      TrClusterR::DefaultCorrOpt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss;
-int      TrClusterR::DefaultMipCorrOpt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP;
-int      TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
-float    TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
-float    TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
+int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss;
+int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kMIP;
+int   TrClusterR::DefaultEdepCorrOpt   = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kMeV;
+
+
+int   TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
+float TrClusterR::TwoStripThresholdX = 0.70;  // tan(35deg)
+float TrClusterR::TwoStripThresholdY = 0.36;  // tan(20deg)
 
 
 TrClusterR::TrClusterR(void) {
@@ -132,14 +135,32 @@ void TrClusterR::Print(int opt) {
 
 void TrClusterR::_PrepareOutput(int opt){
   sout.clear();
-  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %d Signal:  %f\n",
-		   GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(DefaultCorrOpt)));
+  sout.append(Form("TkId: %5d  Side: %1d  Address: %4d  Nelem: %3d  Status: %3d  Signal: %10.3f\n",
+    GetTkId(),GetSide(),GetAddress(),GetNelem(),getstatus(),GetTotSignal(TrClusterR::DefaultCorrOpt)));
   if(!opt) return;
+  if (opt>1) {
+    int strip = -1;
+    int address = GetAddress(strip);
+    if ( (GetSide()==0)&&(address>1023) ) address = -1;
+    if ( (GetSide()==1)&&(address> 639) ) address = -1;
+    if (address>0) 
+      sout.append(Form("Address: %4d                      Sigma: %10.5f                   Status: %3d\n",
+        address,GetSigma(strip),GetStatus(strip)));                      
+  }
   for (int ii=0; ii<GetNelem(); ii++) {
     sout.append(Form("Address: %4d  Signal: %10.5f  Sigma: %10.5f  S/N: %10.5f  Status: %3d  ",
-		      GetAddress(ii),GetSignal(ii,DefaultCorrOpt),GetSigma(ii),GetSN(ii,DefaultCorrOpt),GetStatus(ii)));
+      GetAddress(ii),GetSignal(ii,DefaultCorrOpt),GetSigma(ii),GetSN(ii,TrClusterR::kAsym),GetStatus(ii)));
     if (ii==GetSeedIndex()) sout.append("<<< SEED\n");
     else sout.append(" \n");
+  }
+  if (opt>1) {
+    int strip = GetNelem();
+    int address = GetAddress(strip);
+    if ( (GetSide()==0)&&(address>1023) ) address = -1;
+    if ( (GetSide()==1)&&(address> 639) ) address = -1;
+    if (address>0)
+      sout.append(Form("Address: %4d                      Sigma: %10.5f                   Status: %3d\n",
+        address,GetSigma(strip),GetStatus(strip))); 
   }
 }
 
@@ -195,7 +216,7 @@ int TrClusterR::GetSeedIndex(int opt) {
 }
 
 
-float TrClusterR::GetTotSignal(int opt) {
+float TrClusterR::GetTotSignal(int opt, float beta) {
   float sum = 0.;
   if (!(kVAGain&opt)) {
     for (int ii=0; ii<GetNelem(); ii++) {
@@ -208,28 +229,135 @@ float TrClusterR::GetTotSignal(int opt) {
        sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(iva); 
     }
   }
-  if (kAngle&opt) sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
   if (kGain&opt)  sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
   if (kLoss&opt)  sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
-  if (kMIP&opt)   sum = GetNumberOfMIPs(GetSide(),sum);
-  if ((kPN&opt)&&(GetSide()==0)) sum = sum*GetTrParDB()->GetPNGain();
+  if (kPN&opt)    sum = ConvertToPSideScale(sum); 
+  if (kMIP&opt)   sum = GetNumberOfMIPs(sum);
+  if (kAngle&opt) sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
+  if (kBeta&opt)  sum /= BetaCorrection(beta);
+  if (kMeV&opt)   sum *= 0.081; // 81 keV per MIP 
   return sum;
 }
 
 
-float TrClusterR::GetNumberOfMIPs(int iside, float adc) {
+// function derived from truncated mean X/Y comparison of ISS data B538 (Oct 2011) 
+static float n_to_p_pars[7] = {0.99925,0.00125804,-0.000345359,4.77114e-06,-2.04879e-08,-6.26803e-12,1.71962e-13};
+float TrClusterR::ConvertToPSideScale(float adc) {
+  if (GetSide()==1) return adc; // already p-side
+  double x = sqrt(adc);
+  double corr = 0;
+  for (int ipar=0; ipar<7; ipar++) corr += pow(x,ipar)*n_to_p_pars[ipar];
+  double sqrt_p = corr*x;
+  return sqrt_p*sqrt_p;
+}
+
+
+// function derived from truncated mean X/Y comparison of ISS data B538 (Oct 2011) 
+static float p_to_n_pars[10] = {2.00371,-0.36054,0.0536171,-0.00417238,0.000186663,-4.94765e-06,7.89718e-08,-7.46039e-10,3.84518e-12,-8.33832e-15};
+float TrClusterR::ConvertToNSideScale(float adc) {
+  if (GetSide()==0) return adc; // already n-side
+  double x = sqrt(adc);
+  double corr = 0;
+  for (int ipar=0; ipar<10; ipar++) corr += pow(x,ipar)*p_to_n_pars[ipar];
+  double sqrt_n = corr*x;
+  return sqrt_n*sqrt_n;
+}
+
+
+/* 
+  Beta Correction Parameters
+  - KSC 2010, muons + proton signal   
+  - Plane-by-plane vs beta TOF normalized
+  - Three values for 1st plane, anyone of the inner, 9th plane
+  - Physical folding
+*/
+static float A_BetaCorr[3]  = { 1.14505, 0.73906, -0.39480};
+static float B_BetaCorr[3]  = { 0.67118, 0.05288, -1.47569};
+static float b0_BetaCorr[3] = { 0.85387, 0.89147,  0.93449};
+float TrClusterR::BetaCorrection(float beta) {
+  /*
+     - Maximum Probability Energy Loss:
+       MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * 
+                            * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
+     - Simplified fitting function:
+       f(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + C
+                 beta>beta0, k (the TOF beta "saturates")     
+       Continuity imposed on beta0 (no derivative continuity)
+       C = k - A/beta0^2 - B*log(beta0)/beta0^2
+     - Beta Correction:
+       g(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + 1 - A/beta0^2 - B*log(beta0)/beta0^2
+                 beta>beta0, 1
+     - Physical folding:
+       use abs(beta) instead of beta 
+       use the upper plane coefficient for the lower one and viceversa in case of negative beta
+  */
+  int jlayer = GetLayerJ();
+  int index  = 0;        // 0 for the layer over TRD
+  if (jlayer>1) index++; // 1 for any inner tracker layer 
+  if (jlayer>8) index++; // 2 for the layer over ECAL
+  if ( (jlayer<1)||(jlayer>9) ) {
+    printf("TrClusterR::BetaCorrection-W invalid layer index number (%d), returning 1.\n",index);
+    return 1.;
+  }
+  if (beta<0) index = 2 - index; // physical folding
+  beta = fabs(beta);
+  if (beta>=b0_BetaCorr[index]) return 1.; // beta "saturation" region
+  return A_BetaCorr[index]/pow(beta,2) +
+         B_BetaCorr[index]*log(beta)/pow(beta,2) +
+         1 -
+         A_BetaCorr[index]/pow(b0_BetaCorr[index],2) -
+         B_BetaCorr[index]*log(b0_BetaCorr[index])/pow(b0_BetaCorr[index],2);
+}
+
+
+/* 
+  MIP Correction Parameters
+  - Extracted by preliminar charge reconstruction ISS data (Nov 2011)
+  - No p-strip correction
+  - Forced o pass through 0,0
+  - A point at charge 100 is added extrapolating linerly from the two last points (for around Iron stuff)
+*/
+static Int_t    npoints_x_iss11 = 13;
+static Double_t sqrtmip_x_iss11[13] = {0,   1,    2,    3,    4,    5,    6,    7,    8,   10,   12,   26,   100};
+static Double_t sqrtadc_x_iss11[13] = {0,5.77,11.85,17.63,26.35,33.27,40.04,46.75,52.89,63.82,72.94,121.4,377.55};
+static Int_t    npoints_y_iss11 = 15;
+static Double_t sqrtmip_y_iss11[15] = {0,   1,    2,    3,    4,    5,    6,    7,    8,   10,   12,   14,   16,   26,   100};
+static Double_t sqrtadc_y_iss11[15] = {0,5.83,11.86,17.58,22.00,25.38,27.72,29.43,31.05,34.29,37.96,41.74,45.65,66.06,217.10};
+TSpline3* TrClusterR::sqrtadc_to_sqrtmip_spline[2] = {0,0};
+
+float TrClusterR::GetNumberOfMIPs(float adc) {
+  // initialize if needed
+  if (!sqrtadc_to_sqrtmip_spline[0]) sqrtadc_to_sqrtmip_spline[0] = new TSpline3("sqrtadc_to_sqrtmip_x",sqrtadc_x_iss11,sqrtmip_x_iss11,npoints_x_iss11);
+  if (!sqrtadc_to_sqrtmip_spline[1]) sqrtadc_to_sqrtmip_spline[1] = new TSpline3("sqrtadc_to_sqrtmip_y",sqrtadc_y_iss11,sqrtmip_y_iss11,npoints_y_iss11);
+  int   iside = GetSide();
+  float sqrtadc = (adc>0) ? sqrt(adc) : 0;
+  float sqrtmip = sqrtadc_to_sqrtmip_spline[iside]->Eval(sqrtadc); 
+  return pow(sqrtmip,2);
+}
+
+
+/* 
+  MIP Correction Parameters (DEPRECATED)
+  - These parameters are extracted from TB2003.
+  - Straight tracks 
+  - On readout strip 
+  - No p-strip correction
+*/
+static float adc_vs_z_tb03[2][12] = {
+  {  40.50, 167.92, 387.77, 713.61,1124.73,1615.55,2166.01,2734.12,3257.81,3671.87,4021.40,4290.52}, // n-side
+  {  31.50, 106.58, 214.47, 304.94, 368.64, 413.37, 472.73, 575.47, 702.39, 854.23,1039.92,1233.86}  // p-side
+  // {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
+};
+
+float TrClusterR::GetNumberOfMIPs_TB03(float adc) {
   /*
     These parameters are extracted from TB2003.
     - straight tracks 
     - readout strip 
     - no p-strip correction
   */
+  int iside = GetSide();
   double x = adc;
-  double adc_vs_z_tb03[2][12] = {
-    {  40.50, 167.92, 387.77, 713.61,1124.73,1615.55,2166.01,2734.12,3257.81,3671.87,4021.40,4290.52}, // n-side
-    {  31.50, 106.58, 214.47, 304.94, 368.64, 413.37, 472.73, 575.47, 702.39, 854.23,1039.92,1233.86}  // p-side
-    // {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
-  };
   // lower extrapolation 
   if (adc<adc_vs_z_tb03[iside][0]) {
     double x0 = adc_vs_z_tb03[iside][0];
@@ -435,3 +563,14 @@ float TrClusterR::GetEta(int opt) {
 }
 
 
+float TrClusterR::GetClusterSN(int opt) {
+  if (GetNelem()<1) return -1;
+  float sum = 0;
+  float sigma = 0;
+  for (int ii=0; ii<GetNelem(); ii++) {
+    sum += GetSignal(ii,opt);
+    // if problems this sum will blow-up (default sigma is -9999)
+    sigma += pow(GetSigma(ii),2); 
+  }
+  return sum/sqrt(sigma);
+}

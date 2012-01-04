@@ -1,50 +1,8 @@
 #include "TrCharge.h"
 
-
-// Maximum charge to be analyzed
-int   TrCharge::MaxCharge = 26; 
-
-
-/*
-  - Beta Correction Parameters:
-    KSC 2010, muons + proton signal   
-    plane-by-plane vs beta TOF normalized
-    three values for 1st plane, anyone of the inner, 9th plane
-*/
-float TrCharge::A_BetaCorr[3]  = { 1.14505, 0.73906, -0.39480}; 
-float TrCharge::B_BetaCorr[3]  = { 0.67118, 0.05288, -1.47569};
-float TrCharge::b0_BetaCorr[3] = { 0.85387, 0.89147,  0.93449}; 
-
-
-float TrCharge::BetaCorrection(float beta, int jlayer) {
-  /*
-     - Maximum Probability Energy Loss:
-       MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * 
-                            * [max(0,2.8716-log(beta gamma)/log(10))]^3.2546}, beta > 0.20
-     - Simplified fitting function:
-       f(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + C
-                 beta>beta0, k (the TOF beta "saturates")     
-       Continuity imposed on beta0 (no derivative continuity)
-       C = k - A/beta0^2 - B*log(beta0)/beta0^2
-     - Beta Correction:
-       g(beta) = beta<beta0, A/beta^2 + B*log(beta)/beta^2 + 1 - A/beta0^2 - B*log(beta0)/beta0^2
-                 beta>beta0, 1
-  */
- 
-  int index  = 0;        // 0 for the layer over TRD
-  if (jlayer>1) index++; // 1 for any inner tracker layer 
-  if (jlayer>8) index++; // 2 for the layer over ECAL
-  if ( (jlayer<1)||(jlayer>9) ) {
-    printf("TrCharge::BetaCorrection-W invalid layer index number (%d), returning 1.\n",index);
-    return 1.;
-  }
-  if (beta>=b0_BetaCorr[index]) return 1.; // beta "saturation" region
-  return A_BetaCorr[index]/pow(beta,2) + 
-         B_BetaCorr[index]*log(beta)/pow(beta,2) + 
-         1 - 
-         A_BetaCorr[index]/pow(b0_BetaCorr[index],2) - 
-         B_BetaCorr[index]*log(b0_BetaCorr[index])/pow(b0_BetaCorr[index],2);
-}
+// Histogramming stuff
+bool     TrCharge::EnabledHistograms = TRCHAFFKEY.EnableHisto;
+HistoMan TrCharge::Histograms;
 
 
 float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
@@ -52,55 +10,57 @@ float TrCharge::GetBetaFromRigidity(float rigidity, int Z, float mass) {
 }
 
 
-float TrCharge::GetSignalWithBetaCorrection(TrRecHitR* hit, int iside, float beta, int opt) {
-  // pointer check
-  if (hit==0) {
-    printf("TrCharge::GetSignalWithBetaCorrection-W hit with NULL pointer, returning 1\n");
-    return 1;
-  }
-  // beta over 1?
-  if (fabs(beta)>=1) return hit->GetSignalCombination(iside,opt);
-  int jlayer = hit->GetLayerJ();
-  return hit->GetSignalCombination(iside,opt)/TrCharge::BetaCorrection(beta,jlayer);
-}
-
-
-float TrCharge::GetSignalWithBetaCorrection(TrClusterR* cluster, float beta, int opt) {
-  // pointer check
-  if (cluster==0) {
-    printf("TrCharge::GetSignalWithBetaCorrection-W cluster with NULL pointer, returning 1\n");
-    return 1;
-  }
-  // beta over 1?
-  if (fabs(beta)>=1) return cluster->GetTotSignal(opt);
-  int jlayer = cluster->GetLayerJ();
-  return cluster->GetTotSignal(opt)/TrCharge::BetaCorrection(beta,jlayer);
-}
-
-
-float TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
+double TrCharge::GetProbToBeZ(TrRecHitR* hit, int iside, int Z, float beta) {
   // pointer check
   if (hit==0) {
     printf("TrCharge::GetPropToBeZ-W hit with NULL pointer, returning 0\n");
     return 0; 
   }
   // Z = 0 means electrons (approximately no rise)
-  if (Z==0) { 
-    Z = 1; 
-    beta = 1; 
+  if (Z==0) { Z = 1; beta = 1; }
+  // choose the pdf version 
+  switch (TRCHAFFKEY.PdfVersion) { 
+    case 1: { 
+      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf01_SingleLayer);
+      if (pdf==0) {
+        // this frequently happens ... maybe is better to put a counter
+        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
+        //   iside,Z,TRCHAFFKEY.PdfVersion);
+        return 0;
+      }
+      // in this version the pdf are in sqrt(ADC) scale
+      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
+      return pdf->Eval(sqrt(signal));
+      break;
+    }
+    case 2: {
+      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
+      // TMP (MAYBE BETTER)
+      // TrPdf* pdf = (Z<2) ? TrPdfDB::GetHead()->GetPdf(1,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) : 
+      //                      TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ()) ;
+      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,hit->GetLayerJ());
+      // TAKING JUST ONE PDF FOR EACH CHARGE AND EACH LAYER ... SEEMS BETTER!!!
+      // TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(2,iside,TrPdfDB::kPdf02_SingleLayer,2);
+      if (pdf==0) {
+        // this frequently happens ... maybe is better to put a counter
+        // printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf for a single measurement (iside=%d, Z=%d, version=%d, layer=%d), returning 0.\n",
+        //    iside,Z,TRCHAFFKEY.PdfVersion,hit->GetLayerJ());
+        return 0;
+      }
+      // in this version the pdf are in ADC/Z^2 scale
+      double signal = hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta);
+      return pdf->Eval(signal/pow(Z,2.),false,true); // interpolation x-logy (better for tails)  
+      break;
+    }
+    default: {
+      printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf version for a single measurement (iside=%d, Z=%d, version=%d), returning 0.\n",
+        iside,Z,TRCHAFFKEY.PdfVersion);
+      return 0;
+      break;
+    }
   }
-  /* ATTENTION: 
-     the requested PDF should be in MIP scale,
-     for the time being it is not! 
-  */
-  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,iside,TrPdfDB::kSingleLayer);
-  if (pdf==0) {
-    printf("TrCharge::GetProbToBeZ-W requesting a not-existing pdf (iside=%d,Z=%d,type=%d), returning -1.\n",
-           iside,Z,TrPdfDB::kSingleLayer);
-    return 0;
-  }
-  float signal = GetSignalWithBetaCorrection(hit,iside,beta,TrClusterR::DefaultMipCorrOpt);
-  return pdf->Eval(signal);
+  // default return 
+  return 0;
 }
 
 
@@ -127,7 +87,7 @@ bool TrCharge::GoodChargeReconCluster(TrClusterR* cluster) {
   // good cluster shape: not implemented for now
   bool badshape = false;
   // return
-  return !(dead||bad||badshape);
+  return (!dead)&&(!bad)&&(!badshape);
 }
 
 
@@ -160,7 +120,7 @@ mean_t TrCharge::GetPlainMean(vector<float> signal) {
   rms  /= n;
   rms = sqrt(rms - mean*mean);
   if (n==0) return mean_t();
-  return mean_t(kPlainMean,-1,n,mean,rms);
+  return mean_t(kPlainMean,-1,-1,n,mean,rms);
 }
 
 
@@ -180,7 +140,7 @@ mean_t TrCharge::GetTruncMean(vector<float> signal) {
   mean = (mean - maxampl)/(n-1);
   rms  = (rms - pow(maxampl,2))/(n-1);
   rms  = sqrt(rms - mean*mean);    
-  return mean_t(kTruncMean,-1,n-1,mean,rms);
+  return mean_t(kTruncMean,-1,-1,n-1,mean,rms);
 }
 
 
@@ -214,82 +174,121 @@ mean_t TrCharge::GetGaussMean(vector<float> signal) {
   gaussmean /= gaussn;
   gaussrms  /= gaussn;
   gaussrms = sqrt(gaussrms - gaussmean*gaussmean);
-  return mean_t(kGaussMean,-1,gaussn,gaussmean,gaussrms);
+  return mean_t(kGaussMean,-1,-1,gaussn,gaussmean,gaussrms);
 }
 
 
 mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int layerj, int opt) {
-  // Signal Selection
-  vector<float> signal;  
+  // check
+  if (track==0) {
+    printf("TrCharge::GetMean-W track with NULL pointer, return empty mean_t.\n");
+    return mean_t();
+  }
+
+  // track hit loop
+  vector<float> signal;
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
     TrRecHitR* hit = track->GetHit(ihit);
     if (hit==0) {
       printf("TrCharge::GetMean-W hit in the track with NULL pointer, skipping it.\n");
       continue;
     }
-    // requested inner
+
+    // requested configuration (upper/inner/lower)
     int LayerJ = hit->GetLayerJ();
-    if ( (type&kInner)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
-    // if hit analysis
+    if ( !( ((type&kInner)&&(LayerJ>1)&&(LayerJ<9))||
+            ((type&kLower)&&(LayerJ==9))||
+            ((type&kUpper)&&(LayerJ==1)) )
+    ) continue;
+    // if excluded layer 
+    if (LayerJ==layerj) continue;
+
+    // selection
+    // - if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
-    // if cluster analysis
+    // - if cluster analysis
     TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
-    // an excluded layer 
-    if (LayerJ==layerj) continue;
-    // add 
-    signal.push_back(GetSignalWithBetaCorrection(hit,iside,beta,opt));
+
+    // add signal to the vector 
+    float asignal = hit->GetSignalCombination(iside,opt,beta); 
+    if (type&kSqrt) asignal = (asignal>0) ? sqrt(asignal) : 0;
+    signal.push_back(asignal);
   }
-  // Mean Computation
-  mean_t mean;
-  if      (type&kPlainMean) mean = GetPlainMean(signal);
-  else if (type&kTruncMean) mean = GetTruncMean(signal);
-  else if (type&kGaussMean) mean = GetGaussMean(signal);
-  // set side  
+
+  // computation
+  mean_t mean = GetMean(type,signal);
+
+  // set additional infos
+  mean.Type = type;
+  mean.Opt  = opt;
   mean.Side = iside;
+
   return mean;
 }   
 
 
 like_t TrCharge::GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta) { 
-  /* calculating it every time: TO BE FIXED */
   // Z=0 means electrons (approximately no rise)
   if (Z==0) { Z = 1; beta = 1; }
-  // Truncated mean computation (X side)
-  mean_t mean = GetMean(kTruncMean|kInner,track,kX,beta,-1,TrClusterR::DefaultCorrOpt);
+  /* calculating this mean every time: TO BE FIXED */
   // Take the corresponding PDF
-  TrPdf* pdf = TrPdfDB::GetHead()->Get(Z,kX,TrPdfDB::kTruncatedMean);
-  if (pdf==0) {
-    // printf("TrCharge::GetMeanProbToBeZ-W requesting a not-existing pdf (Z=%d,type=%d), returning -1.\n",
-    //        Z,TrPdfDB::kTruncatedMean);
-    return like_t();
+  switch (TRCHAFFKEY.PdfVersion) {
+    case 1: {
+      // in this PDF version scale is sqrt(ADC) 
+      int    type = kTruncMean|kInner|kSqrt;
+      int    opt  = TrClusterR::DefaultCorrOpt|TrClusterR::kBeta;
+      mean_t mean = GetMean(type,track,kX,beta,-1,opt);
+      TrPdf* pdf = TrPdfDB::GetHead()->GetPdf(Z,kX,TrPdfDB::kPdf01_TruncatedMean);
+      if (pdf==0) {
+        // printf("TrCharge::GetTruncMeanProbToBeZ-W requesting a not-existing pdf (Z=%d,type=%d), returning empty like_t.\n",
+        //       Z,TrPdfDB::kPdf01_TruncatedMean);
+        return like_t();
+      }
+      // Evaluate
+      float value = mean.Mean;
+      float prob  = pdf->Eval(value);
+      return like_t(type,opt,kX,Z,mean.NPoints,prob,prob,mean.Mean);
+      break;
+    }
+    default: {
+      printf("TrCharge::GetTruncMeanProbToBeZ-W requesting a not-existing pdf version (version=%d), returning empty like_t.\n",TRCHAFFKEY.PdfVersion);
+      return like_t(); 
+      break;
+    }
   }
-  // Evaluate
-  float value = sqrt(mean.Mean);
-  float prob  = pdf->Eval(value);
-  return like_t(kTruncMean|kInner,kX,mean.NPoints,prob,prob,mean.Mean);
+  return like_t();
 }
 
 
 int TrCharge::GetTruncMeanCharge(TrTrackR* track, float beta) {
+  // if the probability of electron/proton is exactly the same return proton
   int bestz = -1;
   float maxprob = 0;
-  for (int z=1; z<=MaxCharge; z++) {
+  for (int z=0; z<=TRCHAFFKEY.MaxCharge; z++) {
     float prob = GetTruncMeanProbToBeZ(track,z,beta).LogLike;
-    if (prob>maxprob) bestz = z;
+    if (prob>=maxprob) {
+      bestz = z; 
+      maxprob = prob; 
+    }
   } 
   return bestz;
 }
 
 
-float TrCharge::GetQ(TrTrackR* track, int iside, float beta) {
-  // To be keep updated
-  mean_t mean = GetMean(kTruncMean,track,iside,beta,-1,TrClusterR::DefaultMipCorrOpt);
-  return mean.GetQ();
+float TrCharge::GetQ(TrTrackR* track, int iside, float beta) {  
+  mean_t mean = GetMean(kTruncMean|kInner|kSqrt,track,iside,beta,-1,TrClusterR::DefaultChargeCorrOpt);
+  return mean.Mean;
 }
 
 
 like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int Z, float beta) {
+  // check
+  if (track==0) {
+    printf("TrCharge::GetLogLikelihoodToBeZ-W track with NULL pointer, return empty mean_t.\n");
+    return like_t();
+  }
+  // loop
   like_t likelihood;
   for (int ihit=0; ihit<track->GetNhits(); ihit++) {
     TrRecHitR* hit = track->GetHit(ihit);
@@ -297,21 +296,122 @@ like_t TrCharge::GetLogLikelihoodToBeZ(int type, TrTrackR* track, int iside, int
       printf("TrCharge::GetLogLikelihoodToBeZ-W hit in the track with NULL pointer, skipping it.\n");
       continue;
     }
-    // requested inner
+    // requested configuration (upper/inner/lower)
     int LayerJ = hit->GetLayerJ();
-    if ( (type&kInner!=0)&&( (LayerJ==1)||(LayerJ==9) ) ) continue;
-    // if hit analysis
+    if ( !( ((type&kInner)&&(LayerJ>1)&&(LayerJ<9))||
+            ((type&kLower)&&(LayerJ==9))||
+            ((type&kUpper)&&(LayerJ==1)) )
+    ) continue;
+    /* could be useful ... 
+       if excluded layedd 
+       if (LayerJ==layerj) continue; */
+    // selection
+    // - if hit analysis
     if ( (iside>1)&&(!GoodChargeReconHit(hit)) ) continue;
-    // if cluster analysis
+    // - if cluster analysis
     TrClusterR* cluster = (iside==0) ? hit->GetXCluster() : hit->GetYCluster();
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
     // calculate probability 
-    float logprob = GetProbToBeZ(hit,iside,Z,beta);
-    
+    double prob = GetProbToBeZ(hit,iside,Z,beta);
+    double logprob = (prob>1e-300) ? log10(prob) : -300; // double minimum 
+    /*
+    cout << ihit << " " << hit->GetLayerJ() << " "  
+         << hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta) << " " 
+         << hit->GetSignalCombination(iside,TrClusterR::DefaultCorrOpt|TrClusterR::kBeta,beta)/Z/Z << " " 
+         << Z << " " << " " << prob << endl;
+    */
+    likelihood.NPoints++;
     likelihood.LogLike += logprob;
-    // vector for the mean ... 
+    likelihood.Mean = hit->GetSignalCombination(iside,TrClusterR::DefaultChargeCorrOpt,beta);
   }
+  // calculation and update exit values
+  likelihood.Side = iside;
+  likelihood.Z    = Z;
+  likelihood.Ver  = TRCHAFFKEY.PdfVersion;
+  likelihood.Type = type;
+  likelihood.Mean = likelihood.Mean/likelihood.NPoints; 
   return likelihood;
 }
 
+
+like_t TrCharge::GetLogLikelihoodCharge(int type, TrTrackR* track, int iside, float beta) {
+  if (track==0) {
+    printf("TrCharge::GetLogLikelihoodCharge-W NULL track pointer. Return an empty like_t.\n");
+    return like_t();
+  }
+  // if the probability of electron/proton is exactly the same return proton
+  like_t bestlikelihood;
+  for (int z=0; z<=TRCHAFFKEY.MaxCharge; z++) {
+    like_t likelihood = GetLogLikelihoodToBeZ(type,track,iside,z,beta); 
+    if (likelihood>=bestlikelihood) {
+      bestlikelihood = likelihood;
+    }	
+  }
+  return bestlikelihood;
+}
+
+
+mean_t TrCharge::GetMean(int type, vector<float> signal) {
+  if      ( ( (type&kPlainMean))&&(!(type&kTruncMean))&&(!(type&kGaussMean)) ) return GetPlainMean(signal);
+  else if ( (!(type&kPlainMean))&&( (type&kTruncMean))&&(!(type&kGaussMean)) ) return GetTruncMean(signal);
+  else if ( (!(type&kPlainMean))&&(!(type&kTruncMean))&&( (type&kGaussMean)) ) return GetGaussMean(signal);
+  else    printf("TrCharge::GetMean-W not a valid mean type selected, returning empty mean_t, %2x.\n",type);
+  return mean_t();
+}
+
+
+mean_t TrCharge::GetMeanHighestFourClusters(int type, int iside, int opt) {
+  // TrCluster container
+  VCon* cont = GetVCon()->GetCont("AMSTrCluster");
+  if (!cont) {
+    printf("TrCharge::GetMeanHighestFourClusters-W no AMSTrCluster container available. Return empty mean_t.\n");
+    return mean_t();
+  }
+  // Highest clusters per layer
+  TrClusterR* max_clu[9] = {0,0,0,0,0,0,0,0,0};
+  float       max_sig[9] = {0,0,0,0,0,0,0,0,0};
+  for (int icont = 0; icont<cont->getnelem(); icont++){
+    TrClusterR* cluster = (TrClusterR*) cont->getelem(icont);
+    if (cluster==0) {
+      printf("TrCharge::GetMeanHighestFourClusters-W invalid TrClusterR pointer. Skipping.\n");                    
+      continue;
+    }
+    int   jside   = cluster->GetSide();
+    if (jside!=iside) continue;
+    int   jlayer = cluster->GetLayerJ() - 1;
+    float signal = cluster->GetTotSignal(opt);
+    if (type&kSqrt) signal = (signal>0) ? sqrt(signal) : 0;
+    if (signal>max_sig[jlayer]) {
+      max_sig[jlayer] = signal;
+      max_clu[jlayer] = cluster;
+    }
+  }
+  if (cont) delete cont;
+  // order signals
+  vector<float> signal;
+  for (int jlayer=0; jlayer<9; jlayer++) {
+    if (max_clu[jlayer]!=0) signal.push_back(max_sig[jlayer]);
+  }
+  if (int(signal.size()<4)) return mean_t();
+  sort(signal.begin(),signal.end());
+  reverse(signal.begin(),signal.end());
+  signal.erase(signal.begin()+4,signal.end());
+  mean_t result = GetMean(type,signal);
+  // monitoring plots
+  if (EnabledHistograms) {
+    if (iside==0) {
+      if (!Histograms.Get("HighFourMean_RMS_vs_Mean_X")) Histograms.Add(new TH2F("HighFourMean_RMS_vs_Mean_X","; Mean; RMS",500,0,5000,200,0,1000));
+      if (Histograms.Get("HighFourMean_RMS_vs_Mean_X"))  Histograms.Fill("HighFourMean_RMS_vs_Mean_X",result.Mean,result.RMS);
+    }
+    else {
+      if (!Histograms.Get("HighFourMean_RMS_vs_Mean_Y")) Histograms.Add(new TH2F("HighFourMean_RMS_vs_Mean_Y","; Mean; RMS",500,0,5000,200,0,1000));
+      if (Histograms.Get("HighFourMean_RMS_vs_Mean_Y"))  Histograms.Fill("HighFourMean_RMS_vs_Mean_Y",result.Mean,result.RMS);
+    }
+  }
+  // update infos
+  result.Type = type;
+  result.Opt  = opt;
+  result.Side = iside;
+  return result;
+}
 

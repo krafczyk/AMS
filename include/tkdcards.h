@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.45 2011/11/28 18:47:02 pzuccon Exp $
+// $Id: tkdcards.h,v 1.46 2012/01/04 19:35:49 oliva Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -321,6 +321,28 @@ public:
   int UseSensorAlign;
   //! I 63  ReconStats flag  0=no 1=yes (default 1)
   int statflag;
+
+  //! BuildRecHits: tagging hits and clusters compatible with charge seed 
+  int   ChargeSeedTagActive;
+  //! BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
+  int   ChargeSeedSelActive;
+  //! BuildRecHits: hit correlation probability threshold
+  float CorrelationProbThr;
+  //! BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold 
+  float YClusterSNThr;
+  //! BuildRecHits: minimum number of strips for only-Y hits 
+  int   YClusterNStripThr;
+
+  //! Build: reorder cluster by signal 
+  int   ReorderTrClusters;
+  //! Build: reorder hits by correlation probability (1), by y-signal and probability (2) or by y-signal and x-signal 
+  int   ReorderTrRecHits;
+  //! Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
+  int   BuildTracksSimpleChargeSeedTag;
+ 
+  //! BuildTrTracksSimple: charge cut during track finding
+  int   TrackFindChargeCutActive;
+
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
   ClassDef(TRCLFFKEY_DEF,3);
@@ -372,8 +394,31 @@ public:
 };
 //
 
-
 #define TRFITFFKEY COMMON_BLOCK(TRFITFFKEY,trfitffkey)
 COMMON_BLOCK_DEF(TRFITFFKEY_DEF,TRFITFFKEY);
+
+//=============================================================
+//! Data card driving the Tracker charge reconstruction 
+class TRCHAFFKEY_DEF : public TObject {
+ public:
+  /// I 1 reconstruction type (default 2): 0 = no recon, 1 = trunc. mean, 2 = likelihood
+  int ReconType;
+  /// I 2 pdf version used (default 1): 0 = original (v5.00 dbase, from MC), 1 = first implementation (sep. 2011)
+  int PdfVersion;
+  /// I 3 max charge recontructed (default 8)
+  int MaxCharge;
+  /// I 4 enable histograms (default 0): 0 = disabled, 1 = enabled
+  int EnableHisto;
+  /// c-tor
+  TRCHAFFKEY_DEF() : TObject() { init(); }
+  /// initializer
+  void init();
+  /// ROOT class definition
+  ClassDef(TRCHAFFKEY_DEF,1);
+};
+//
+
+#define TRCHAFFKEY COMMON_BLOCK(TRCHAFFKEY,trchaffkey)
+COMMON_BLOCK_DEF(TRCHAFFKEY_DEF,TRCHAFFKEY);
 
 #endif

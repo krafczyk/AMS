@@ -30,7 +30,7 @@ F [827,832] L9Phase[6] L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_X
 
 
 TRMC
-I 564        SimulationType            0 GBATCH: old algorythm
+I 564        SimulationType            0 GBATCH: old algorythm (DEPRECATED)
              (def=2)                   1 SkipRawSim: no TrRawClusters, very fast 
                                        2 TrSim2010: a detailed simulation
 I 565        MinMCClusters             Minimum number of MC Clusters needed  
@@ -111,6 +111,46 @@ I 60 TAS LDDR mode; put dec number as if hex (e.g. 0100 for 0x0100)
 I 61 TRD TOF Matching  mn;  m=1 TOF_match ON; n=1 Trd mathcing On; 
 I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
 I 63 ReconStats flag  0 no 1 yes
+
+// Additional datacard members for track finding improvement (Jan 2012)
+I 64 ReorderTrClusters              (Default: 0)  Build: reorder cluster by signal
+                                                  0 inactive
+                                                  !=0 active
+I 65 ChargeSeedTagActive            (Default: 0)  BuildRecHits: tagging hits and clusters compatible with charge seed 
+                                                  0 inactive
+                                                  !=0 active
+I 66 ChargeSeedSelActive            (Default: 0)  BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
+                                                  0 inactive
+                                                  !=0 active
+R 67 CorrelationProbThr             (Default: 0)  BuildRecHits: hit correlation probability threshold
+R 68 YClusterSNThr                  (Default: 0)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
+I 69 YClusterNStripThr              (Default: 0)  BuildRecHits: minimum number of strips for only-Y hits
+I 70 ReorderTrRecHits               (Default: 0)  Build: reorder hits 
+                                                  0 inactive
+                                                  1 by correlation probability 
+                                                  2 by y-signal and probability 
+                                                  3 or by y-signal and x-signal 
+I 71 BuildTracksSimpleChargeSeedTag (Default: 0)  Build: reconstruct first a track with hits compatible with the unbiased charge seed (only for TrTracksSimple) 
+                                                  0 inactive
+                                                  !=0 active 
+I 72 TrackFindChargeCutActive       (Default: 0)  BuildTrTracksSimple: charge cut during track finding
+                                                  0 inactive
+                                                  !=0 active
+
+TRCHA
+I 1  ReconType  (Default: 1)  tracker charge reconstruction type 
+                              0 no recon
+                              1 trunc. mean 
+                              2 likelihood
+I 2  PdfVersion (Default: 1)  pdf type 
+                              1 original (v5.00 dbase, from MC) 
+                              2 another implementation (sep. 2011)
+I 3  MaxCharge (Default: 8)   max reconstructed charge
+I 4  EnableHisto (Default: 0) fill histograms during reconstruction
+                              0 inactive
+                              !=0 active
+
+
 //==============================
 
 //=============================
