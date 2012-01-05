@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.708 2011/12/27 15:04:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.709 2012/01/05 12:46:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -917,7 +917,18 @@ if($#{$self->{DataSetsT}}==-1){
              }
              last;
          }
-      }
+     }
+     foreach my $job (@jobs){
+         if($job=~/^serverno=/){
+             my @vrs= split '=',$job;
+             $dataset->{serverno}=$vrs[1];
+             last;
+         }
+     }
+     if(not defined $dataset->{serverno}){
+         $dataset->{serverno}=$dataset->{version};
+     }
+
       foreach my $job (@jobs){
       if($job =~ /\.job$/){
        if($job =~ /^\./){
@@ -1092,6 +1103,7 @@ if($#{$self->{DataSetsT}}==-1){
              }
 #            die " $dataset->{version} $self->{DataMC} "
          }
+
       if($job =~ /\.job$/){
        if($job =~ /^\./){
             next;
@@ -1258,9 +1270,19 @@ if($#{$self->{DataSetsT}}==-1){
    }
    }
      } # end jobs of jobs
+     foreach my $job (@jobs){
+         if($job=~/^serverno=/){
+             my @vrs= split '=',$job;
+             $dataset->{serverno}=$vrs[1];
+             last;
+         }
+     }
+     if(not defined $dataset->{serverno}){
+         $dataset->{serverno}=$dataset->{version};
+     }
 
 
- }
+     }
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
@@ -1391,7 +1413,14 @@ sub ServerConnectDB{
       if($ver=~/v5/){
           $datamc=1;
       }
-    }
+      elsif($ver=~/v4/){
+          $datamc=0;
+      }
+      else{
+          $datamc=$ver;
+      }
+       
+  }
     my $ret="";
     my $sql="select dbfilename,lastupdate,IORS,IORP,hostname from Servers where status='Active' and datamc=$datamc order by lastupdate desc";
      my $ret=$ref->{sqlserver}->Query($sql);
@@ -1414,6 +1443,12 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
     if(defined $ver){
       if($ver=~/v5/){
           $datamc=1;
+      }
+      elsif($ver=~/v4/){
+          $datamc=0;
+      }
+      else{
+          $datamc=$ver;
       }
     }
     if($datamc!=$ref->{DataMC}){   
@@ -6837,10 +6872,10 @@ if($self->{CCT} eq "local"){
 my $dbserver=$self->{dbserver};
 if( not defined $dbserver->{dbfile}){
      $dbserver=blessdb();
-     $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{version});
+     $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
                my $rn=DBServer::GetRunsNumber($dbserver);
-               my $maxr=256;
+               my $maxr=208;
                if($rn>=0){
                 if($rn<$maxr){
                  $jbs=$maxr-$rn;
@@ -6855,10 +6890,10 @@ if( not defined $dbserver->{dbfile}){
                    my $tot=int(($rn-$rntbr-$rntfi)/2+$rntfi/4+$rntbr);
                    $jbs=$maxr-$tot;
                    if($jbs<=0){
-                    $jbs=1;
-                    if($rntbr<=0){
-                     $jbs=19;
-                    } 
+                    $jbs=49-$rntbr;
+                    if($jbs<=0){
+                    $jbs=9;
+                    }
                    }
                  }
                 }
@@ -7489,7 +7524,7 @@ print qq`
 
 #       now everything is o.k except server check
 
-        if (not $self->ServerConnect($dataset->{version})){
+        if (not $self->ServerConnect($dataset->{serverno})){
         foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
@@ -8022,7 +8057,7 @@ if(defined $dataset->{buildno} ){
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
             $q->param("FEM",$save);
-            $q->param("Version",$dataset->{version}); 
+            $q->param("Version",$dataset->{serverno}); 
              save_state($q,$save);
              htmlTop();
             $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
@@ -8235,7 +8270,7 @@ if($ri->{TLEvent}==0){
             if($self->{dwldaddon}==0 ){
     my $hostname=hostname();
     if($#{$self->{arpref}} <0 and (not ($self->{hostdbfile}=~/$hostname/))){
-       $self->ServerConnect($dataset->{version});
+       $self->ServerConnect($dataset->{serverno});
     }
     if($#{$self->{arpref}} >=0){
         my $ard=${$self->{arpref}}[0];
@@ -8755,7 +8790,7 @@ if(defined $dataset->{buildno} ){
 
 #       now everything is o.k except server check
 
-        if (not $self->ServerConnect($dataset->{version})){
+        if (not $self->ServerConnect($dataset->{serverno})){
         foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
@@ -9305,7 +9340,7 @@ if(defined $dataset->{buildno} ){
              my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
-            $q->param("Version",$dataset->{version}); 
+            $q->param("Version",$dataset->{serverno}); 
             $q->param("FEM",$save);
             if($Any>=0){
              $q->param("QRun",$srunno); 
@@ -9598,7 +9633,7 @@ anynext:
     my $hostname=hostname();  
     
     if($#{$self->{arpref}} <0 and (not ($self->{hostdbfile}=~/$hostname/))){
-       $self->ServerConnect($dataset->{version});
+       $self->ServerConnect($dataset->{serverno});
     }
 
             foreach my $ri (@{$self->{Runs}}){

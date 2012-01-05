@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.193 2011/12/26 11:12:07 choutko Exp $
+//  $Id: server.C,v 1.194 2012/01/05 12:46:21 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -133,8 +133,8 @@ AMSServer::AMSServer(int argc, char* argv[]){
     case 'o':    // OraclePerl
      _Oraperl=true;
      break;
-    case 'v':    // OraclePerl
-     _v5=true;
+    case 'v':    // version
+     _v5=atol(*(pchar+1));
      break;
     case 'O':    // Oracle
 /*     
@@ -221,7 +221,9 @@ if(!__MT){
      char tmpbuf[256];
      fbin>>tmpbuf;
      if(_v5){
-     if(strstr(tmpbuf,"amsprodserverv5.exe")){
+     char tmpbuf1[128];
+     sprintf(tmpbuf1,"amsprodserverv%d.exe",_v5+4);
+     if(strstr(tmpbuf,tmpbuf1)){
       count++;
      } 
      }
@@ -3554,8 +3556,18 @@ int crun=0;
        int thr=atol(lps.c_str());
        cout <<"  found max "<<thr<<" Threads for host "<<(const char *)cid.HostName<<endl;
        if(threads>thr && strstr((const char *)cid.HostName,lxplus5))threads=thr;        
+//       if(threads>thr && strstr((const char *)cid.HostName,lxplus5))threads=thr;        
       }
     }
+
+                    NHLI li=find_if(_nhl.begin(),_nhl.end(),NHL_find((const char *)cid.HostName)); 
+                    int maxn=12;
+                     if(li!=_nhl.end()){
+                         maxn=(*li)->CPUNumber;
+                    }
+       if(threads>maxn && strstr((const char *)cid.HostName,lxplus5))threads=maxn;        
+                    
+               
    
       cout << "  Threads allowed "<<threads<<" "<<cid.uid<<" "<<(const char *)cid.HostName<<endl;
 
@@ -4862,7 +4874,10 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                submit+=tmp;
                _pser->UpdateDBFileName();
                if(_parent->Isv5()){
-                submit+=" -v5 ";
+                char tmp[128];
+                sprintf(tmp," -v%d ",_parent->Isv5()+4);
+//                submit+=" -v5 ";
+                submit+=tmp;
                }
                if(_parent->getdbfile()){
                  submit+=" ls -F";
@@ -4871,6 +4886,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                if(_parent->IsOraperl()){
                  submit+=" -o";
                }
+
                 submit+=" -A";
                 submit+=getenv("AMSDataDir");
                 submit+="/prod.log/";

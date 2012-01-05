@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.28 2009/12/08 09:15:11 choutko Exp $
+//  $Id: client.h,v 1.29 2012/01/05 12:46:24 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include "typedefs.h"
@@ -30,7 +30,7 @@ bool _GlobalError;
  bool _OracleW;
  bool _OracleWarm;
  bool _MC;
- bool _v5;
+ int _v5;
 uinteger _LastServiceTime;
  char * _DBFileName;
  int _MaxDBProcesses;
@@ -44,7 +44,7 @@ uinteger _LastServiceTime;
  static char _streambuffer[1024]; 
  static std::ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_Oracle(false),_Oraperl(false),__MT(false),_MC(false),_v5(false),_OracleW(false),_OracleWarm(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
+AMSClient(int debug=0):_debug(debug),_Oracle(false),_Oraperl(false),__MT(false),_MC(false),_v5(0),_OracleW(false),_OracleWarm(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
 {_pid.Status=DPS::Client::NOP;_pid.StatusType=DPS::Client::Permanent;};
 virtual ~AMSClient(){};
 const char * getdbfile() const {return _DBFileName;}
@@ -55,7 +55,7 @@ bool IsOracle() const {return _Oracle;}
 bool IsOraperl() const {return _Oraperl;}
 bool MT() const { return __MT;} 
 bool IsMC() const { return _MC;}
-bool Isv5() const { return _v5;}
+int Isv5() const { return _v5;}
 bool & GlobalError(){return _GlobalError;}
 uinteger & LastServiceTime(){return _LastServiceTime;}
 bool InitOracle()     const {return _OracleW;}

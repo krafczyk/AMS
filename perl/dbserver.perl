@@ -25,10 +25,12 @@ foreach my $chop  (@ARGV){
         $oracle=1;
         last;
     }
-    if($chop=~/^-v5/){
-        $datamc=1;
+    if($chop=~/^-v/){
+        $datamc=unpack("x2 A*",$chop);
+        $datamc-=4;
     }
 }
+
     $#ARGV=-1;
     if($oracle){
      unshift @ARGV, "-DOracle:";

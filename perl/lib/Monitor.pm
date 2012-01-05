@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.156 2012/01/02 09:15:35 ams Exp $
+# $Id: Monitor.pm,v 1.157 2012/01/05 12:46:29 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -87,6 +87,15 @@ foreach my $chop  (@ARGV){
 #amsdatadir
     }
 }
+foreach my $chop  (@ARGV){
+    if($chop =~/^-v/){
+        my $datamc=unpack("x2 A*",$chop);
+        $datamc-=4;
+        $self->{DataMC}=$datamc;
+    }
+}
+
+
     if($self->{updatesviadb}==1){
         my $dir=$ENV{AMSataDir};
         if (defined $dir){
