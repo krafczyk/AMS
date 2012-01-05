@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.150 2011/04/25 16:03:42 shaino Exp $
+//  $Id: geant3.C,v 1.151 2012/01/05 17:54:55 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1172,7 +1172,7 @@ try{
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
-      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+//      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
   }

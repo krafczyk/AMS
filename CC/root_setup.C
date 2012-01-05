@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.52 2011/12/20 14:58:21 mdelgado Exp $
+//  $Id: root_setup.C,v 1.53 2012/01/05 17:51:32 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1222,11 +1222,14 @@ return 1;
 }
 
 int AMSSetupR::getISSAtt(float &roll, float&pitch,float &yaw,double xtime){
+
 if(fISSAtt.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
 LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
 }
 else LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+#endif
 if(fISSAtt.size()==0)return 2;
 }
 AMSSetupR::ISSAtt_i k=fISSAtt.lower_bound(xtime);
