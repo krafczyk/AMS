@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.709 2012/01/05 12:46:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.710 2012/01/05 12:47:34 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1423,7 +1423,7 @@ sub ServerConnectDB{
   }
     my $ret="";
     my $sql="select dbfilename,lastupdate,IORS,IORP,hostname from Servers where status='Active' and datamc=$datamc order by lastupdate desc";
-     my $ret=$ref->{sqlserver}->Query($sql);
+      $ret=$ref->{sqlserver}->Query($sql);
     if(defined $ret->[0][0]){
             $ret=$ret->[0][0];
         }
