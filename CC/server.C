@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.194 2012/01/05 12:46:21 choutko Exp $
+//  $Id: server.C,v 1.195 2012/01/05 13:16:15 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -134,7 +134,8 @@ AMSServer::AMSServer(int argc, char* argv[]){
      _Oraperl=true;
      break;
     case 'v':    // version
-     _v5=atol(*(pchar+1));
+      
+     _v5=atol((pchar+1));
      break;
     case 'O':    // Oracle
 /*     
@@ -4875,7 +4876,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                _pser->UpdateDBFileName();
                if(_parent->Isv5()){
                 char tmp[128];
-                sprintf(tmp," -v%d ",_parent->Isv5()+4);
+                sprintf(tmp," -v%d ",_parent->Isv5());
 //                submit+=" -v5 ";
                 submit+=tmp;
                }
