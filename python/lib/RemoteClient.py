@@ -641,12 +641,17 @@ class RemoteClient:
                         ret=self.sqlserver.Query(sql)
                         sql=" select datafiles.path from datafiles,runs where datafiles.run=runs.run and runs.status='Completed' and datafiles.type like 'MC%%' and runs.jid=%d " %(uid)
                         ret2=self.sqlserver.Query(sql)
+                    for ntuple in self.dbclient.dsts:
+                        if(self.dbclient.ct(ntuple.Type)=="EventTag"):
+                            if(ntuple.Run==run.Run):
+                                self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+                                print " deleting eventtag ",ntuple.Name
                     if(len(ret)>0 or len(ret2)>0):
                         for ntuple in self.dbclient.dsts:
                             if(self.dbclient.ct(ntuple.Type)=="EventTag"):
                                 if(ntuple.Run==run.Run):
-                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
-                                    print " deleting eventtag ",ntuple.Name
+#                                    self.dbclient.iorp.sendDSTEnd(self.dbclient.cid,ntuple,self.dbclient.tm.Delete)
+#                                    print " deleting eventtag ",ntuple.Name
                                     continue
                             if(self.dbclient.cn(ntuple.Status)=="Validated"):
                                 if(ntuple.Run==run.Run):
@@ -3031,6 +3036,11 @@ class RemoteClient:
                 rund=" and dataruns.run>=%d " %(-run2p)
                 runn=" and ntuples.run>=%d " %(-run2p)
                 runnd=" and ntuples_deleted.run>=%d " %(-run2p)
+            if(run2p/10000000000>0):
+                run2p=run2p%10000000000
+                rund=" and dataruns.run<%d " %(run2p)
+                runn=" and ntuples.run<%d " %(run2p)
+                runnd=" and ntuples_deleted.run<%d " %(run2p)
         else:
             runsname="runs"
             if(self.force==0):
@@ -3045,6 +3055,11 @@ class RemoteClient:
                 runn=" and ntuples.run>=%d " %(-run2p)
                 runnd=" and ntuples_deleted.run>=%d " %(-run2p)
                 runndf=" and run>=%d " %(-run2p)
+            if(run2p/10000000000>0):
+                run2p=run2p%10000000000
+                rund=" and runs.run<%d " %(run2p)
+                runn=" and ntuples.run<%d " %(run2p)
+                runnd=" and ntuples_deleted.run<%d " %(run2p)
         sql="select path,castortime from ntuples where path like '%%%s/%%' and datamc=%d %s " %(dataset,datamc%10,runn) 
         df=0
         files=self.sqlserver.Query(sql)
