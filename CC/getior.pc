@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.14 2011/03/30 14:50:50 choutko Exp $
+//  $Id: getior.pc,v 1.15 2012/01/07 21:31:07 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -127,10 +127,77 @@ if(datamc==0){
  EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=0 ORDER BY createtime DESC;
 
 }
-else
+else if(datamc==1)
 {
+
  EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=1 ORDER BY createtime DESC;
 }
+else if(datamc==2)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=2 ORDER BY createtime DESC;
+}
+
+else if(datamc==3)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=3 ORDER BY createtime DESC;
+}
+
+else if(datamc==4)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=4 ORDER BY createtime DESC;
+}
+
+else if(datamc==5)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=5 ORDER BY createtime DESC;
+}
+
+else if(datamc==6)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=6 ORDER BY createtime DESC;
+}
+else if(datamc==7)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=7 ORDER BY createtime DESC;
+}
+else if(datamc==8)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=8 ORDER BY createtime DESC;
+}
+else if(datamc==9)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=9 ORDER BY createtime DESC;
+}
+else if(datamc==10)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=10 ORDER BY createtime DESC;
+}
+else if(datamc==11)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=11 ORDER BY createtime DESC;
+}
+else if(datamc==12)
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=12 ORDER BY createtime DESC;
+}
+else 
+{
+
+ EXEC SQL SELECT iorp, createtime INTO :iorp FROM amsdes.servers WHERE status='Active' and datamc=13 ORDER BY createtime DESC;
+}
+
+
   int niorp  = sqlca.sqlerrd[2];
   if (verbose) {
    cout<<"getior -I- found "<<niorp<<" IORP"<<endl;
@@ -216,6 +283,9 @@ int main(int argc, char* argv[])
    for (int i=0; i<argc; i++) {
      if(strcmp(argv[i],"-m") ==0){
        datamc=0;
+     }
+     if(strstr(argv[i],"-s") ){
+       datamc=atol(argv[i]+2);
      }
      if (strcmp(argv[i],"-o") == 0) {
       if (i+1 < argc) {

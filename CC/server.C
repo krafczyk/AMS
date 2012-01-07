@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.195 2012/01/05 13:16:15 choutko Exp $
+//  $Id: server.C,v 1.196 2012/01/07 21:31:08 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -255,15 +255,19 @@ _pid.Type=DPS::Client::Server;
 if(iface)_pid.Interface = (const char *)iface;
 else _pid.Interface= (const char *)"default";
    AString amsdatadir; 
+   char* gtb=getenv("AMSDataBase");
+   if(!gtb || !strlen(gtb)){
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
      amsdatadir=gtv;
    }
     else FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
     amsdatadir+="/DataBase/";
+   }
+   else amsdatadir=gtb;
      AMSDBc::amsdatabase=new char[strlen((const char*)amsdatadir)+1];
      strcpy(AMSDBc::amsdatabase,(const char *)amsdatadir);
-     cout <<"amsdatadir  "<<AMSDBc::amsdatabase<<endl;
+     cout <<"amsdatabase  "<<AMSDBc::amsdatabase<<endl;
 if(niface){
  bool match=false;
  ifstream fbin;
@@ -3753,8 +3757,8 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        }
    catch (CORBA::SystemException &ex){
       cerr<<"Producer_impl::sendRunEvInfo-E- exception catched"<<endl;
-      sleep(4);
-      if(ntry++<15)goto again;
+      sleep(1);
+      if(ntry++<5)goto again;
       cerr<<"Producer_impl::sendRunEvInfo-F-TooManyExceptions-Exiting "<<endl;
      // Have to Kill Servers Here
    }
@@ -5126,7 +5130,7 @@ return _pser->Master(advanced);
 void Server_impl::setEnv(const DPS::Client::CID & cid, const char * env, const char *path)throw (CORBA::SystemException){
   setenv(env,path,1);
 if(!strcmp(env,"AMSServerSleepTime"))AMSServer::Singleton()->setSleepTime();
-if(!strcmp(env,"AMSDataDir")){
+if(!strcmp(env,"AMSDataDir") && !getenv("AMSDataBase")){
    AString amsdatadir(path); 
    amsdatadir+="/DataBase/";
      if(AMSDBc::amsdatabase)delete[] AMSDBc::amsdatabase;

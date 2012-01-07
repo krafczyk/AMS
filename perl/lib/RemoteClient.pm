@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.710 2012/01/05 12:47:34 ams Exp $
+# $Id: RemoteClient.pm,v 1.711 2012/01/07 21:31:12 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8107,8 +8107,12 @@ if(defined $dataset->{buildno} ){
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
+         if($dataset->{version}=~/^v/){
+          }
+          else{
+              print FILE "export AMSServerNo=$dataset->{version} \n";
+             }
       }
-      
 #
 # check here custom/generic
 #
@@ -9393,6 +9397,11 @@ if(defined $dataset->{buildno} ){
            @tmpa=split '/', $ret->[0][0];
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
+            if($dataset->{version}=~/^v/){
+          }
+          else{
+              print FILE "export AMSServerNo=$dataset->{version} \n";
+          }        
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
 #

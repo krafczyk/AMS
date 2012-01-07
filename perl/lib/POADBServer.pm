@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.47 2012/01/05 12:46:29 choutko Exp $
+#  $Id: POADBServer.pm,v 1.48 2012/01/07 21:31:11 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1127,12 +1127,12 @@ sub getACS{
                     else{  
                         my $cb=($b->{ClientsAllowed}-$b->{ClientsRunning});
                         my $ca=($a->{ClientsAllowed}-$a->{ClientsRunning});
-                        if($a->{HostName}=~/lxplus5/ and $ca>0){
-                         $ca=1;  
-                        }
-                        if($b->{HostName}=~/lxplus5/ and $cb>0){
-                         $cb=1;  
-                        }
+#                        if($a->{HostName}=~/lxplus5/ and $ca>0){
+#                         $ca=1;  
+#                        }
+#                        if($b->{HostName}=~/lxplus5/ and $cb>0){
+#                         $cb=1;  
+#                        }
                      return $b->{Clock}*$cb<=>$a->{Clock}*$ca;
                     }
                 }
@@ -1245,6 +1245,19 @@ OUT:
                     last;
                 }
             }
+#
+#    prioritize host also taken into acc max cpu number
+#
+            foreach my $nhl (@{$ref->{nhl}}){
+                if($ahl->{HostName} eq $nhl->{HostName}){
+                    my $ca=($ahl->{ClientsAllowed}-$ahl->{ClientsRunning});
+                    if($ca>$nhl->{CPUNumber}){
+                        $ahl->{CA}=$ahl->{ClientsAllowed};
+                        $ahl->{ClientsAllowed}=$ahl->{ClientsRunning}+$nhl->{CPUNumber};
+                    }
+                    last;
+                }
+            }
         }
             my @sortedahl=sort Clock @presortedahl;
               foreach my $ahl (@sortedahl){
@@ -1258,9 +1271,20 @@ OUT:
                           $ahl->{ClientsRunning}=0;
                       }
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
+#                          foreach my $ahlo (@{$ref->{ahlp}}){
+#                             if($ahl->{HostName} eq $ahlo->{HostName}){
+#                                 $ahl->{ClientsAllowed}=$ahlo->{ClientsAllowed};
+#                               last;
+#                             }
+#                         }
+                          if(defined $ahl->{CA}){
+                           #warn " getfree host redefined!!!!!! $ahl->{ClientsAllowed}";
+                              $ahl->{ClientsAllowed}=$ahl->{CA};
+                              $ahl->{CA}=undef;
+                          }
                           $ahl->{Status}="InActive";
                            sendAH("Class",$cid,$ahl,"Update");
-                          warn " getfree host ok!!!!!!";
+                          #warn " getfree host ok!!!!!! $ahl->{ClientsAllowed}";
                           return (1,$ahl);                
                       }
                   }
