@@ -627,7 +627,7 @@ class RemoteClient:
             self.delete=2
         if(self.delete==2):
             for run in self.dbclient.rtb:
-                if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p)):
+                if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%1000000000))):
                     continue
                 status=self.dbclient.cr(run.Status)
                 if(status=='Finished' or status=='Foreign' or status == 'Canceled'):
