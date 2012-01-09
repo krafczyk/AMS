@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.22 2012/01/02 11:05:20 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.23 2012/01/09 13:33:13 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -439,6 +439,9 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 	dx[which][SubClass(Class,ev)].push_back(ev.TrackHit[which]-ev.RawHit[which]);
     }
     
+    int worstClass[2]={-1,1};
+    double worstRMS[2]={0,0};
+
     // Determine mean and rms for each class
     for(map<int,vector<double> >::iterator i=dx[which].begin();i!=dx[which].end();i++){
       int Class=i->first;
@@ -452,6 +455,12 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       findPeak(dx[which][Class],PEAKFRACTION,-3,3,info.mean[which],info.rms[which],10000);
       info.rms[which]/=2;  // findPeak returns the full width
       info.entries[which]=dx[which][Class].size();
+
+      if(info.rms[which]>worstRMS[which]){
+	worstRMS[which]=info.rms[which];
+	worstClass[which]=Class;
+      }
+
       //#define VERBOSE__
 #ifdef VERBOSE__
       if(which==1)
@@ -475,7 +484,8 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       int Class=event.getClass();
       if(Class<0) continue;
       if(which==1) Class=SubClass(Class,event);
-      if(classInfo[Class].entries[which]<100) continue;
+      //      if(classInfo[Class].entries[which]<100) continue;
+      if(classInfo[Class].entries[which]<100) Class=worstClass[which]; // Recover the events
       
       // Shift the Z origin
       double zHit=event.RawHit[2]-ZOffset;
@@ -900,7 +910,9 @@ void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run){
   if(position>0 && position<runs.size()-1){
     // Normal case
     if(position-1>=0) Fill(dir,prefix,runs.at(position-1));
+    FirstOfCurrentRun=History.Size();
     Fill(dir,prefix,runs.at(position));
+    LastOfCurrentRun=History.Size()-1;
     if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
     return;
   }
@@ -911,13 +923,18 @@ void DynAlContinuity::ForceUpdate(TString dir_name,TString prefix,int run){
     vector<int> list;
     GetFileList(mydir,list);
     if(list.size()>0) Fill(mydir,prefix,list.at(list.size()-1));
+    FirstOfCurrentRun=History.Size();
     Fill(dir,prefix,runs.at(position));
+    LastOfCurrentRun=History.Size()-1;
     if(position+1<runs.size()) Fill(dir,prefix,runs.at(position+1));
     return;
   }
+
   
   if(position-1>=0) Fill(dir,prefix,runs.at(position-1));
+  FirstOfCurrentRun=History.Size();
   if(position>=0)  Fill(dir,prefix,runs.at(position));
+  LastOfCurrentRun=History.Size()-1;
   TString mydir=Form("%s/%i/",dir_name.Data(),getNextBin(CurrentRun));
   // Get the list of files in current directory
   vector<int> list;
@@ -1112,6 +1129,23 @@ void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id)
   fit.TOffset=TOffset;
 }
 
+
+DynAlFitParameters::DynAlFitParameters(SingleFitLinear &fit){
+#define Do(_xx) _xx.push_back(fit._xx);
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+#undef Do
+
+  ZOffset=fit.ZOffset;
+  TOffset=fit.TOffset;
+}
+
+
+
 ClassImp(DynAlFitContainer);
 
 
@@ -1144,6 +1178,46 @@ bool DynAlFitContainer::dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer9){
     current.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][layer9?1:0],when,-1);
   }
   return true;
+}
+
+DynAlFitContainer::DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9){
+  int records=0;
+  for(int i=0;i<tdvBuffer.records;i++){
+    // Skip local alignment by the moment
+    if(tdvBuffer.Alignment[i][layer9?1:0].id!=-1) continue;
+    FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
+    records++;
+  }
+  cout<<"DynAlFitContainer::DynAlFitContainer--Got "<<records<<" for layer "<<(layer9?9:1)<<endl; 
+}
+
+
+void DynAlFitContainer::TestDump(){
+  // First dump to the tdvspace and retrieve it again
+  dumpToLinearSpace(DynAlManager::tdvBuffer,false);
+  dumpToLinearSpace(DynAlManager::tdvBuffer,true);
+
+  DynAlFitContainer layer9(DynAlManager::tdvBuffer,true);
+  DynAlFitContainer layer1(DynAlManager::tdvBuffer,false);
+
+  // Loop of them and check that are OK
+  cout<<"CURRENT NUMBER OF RECORDS "<<FitParameters.size()<<endl
+      <<"              RETRIEVED 1 "<<layer1.FitParameters.size()<<endl
+      <<"              RETRIEVED 9 "<<layer9.FitParameters.size()<<endl;
+
+
+  for(map<int,DynAlFitParameters>::iterator i=FitParameters.begin();i!=FitParameters.end();i++){
+    cout<<"ZOffset "<<i->second.ZOffset<<" "<<layer1.FitParameters[i->first].ZOffset<<" "<<layer9.FitParameters[i->first].ZOffset<<endl;
+    cout<<"TOffset "<<i->second.TOffset<<" "<<layer1.FitParameters[i->first].TOffset<<" "<<layer9.FitParameters[i->first].TOffset<<endl;
+#define Do(xx) for(int j=0;j<i->second.xx.size();j++) cout<<#xx<<" "<<j<<" "<<i->second.xx[j]<<" "<<layer1.FitParameters[i->first].xx[j]<<" "<<layer9.FitParameters[i->first].xx[j]<<endl;
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+  }
+
 }
 
 
@@ -1343,6 +1417,7 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
 }
 
 
+#define VERBOSE__
 void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   // Use the continuity tool to get the history
   FitParameters.clear();
@@ -1353,7 +1428,6 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   DynAlHistory history;
   for(int i=0;i<historyC.History.Size();i++){
     DynAlEvent ev=historyC.History.Get(i);
-    //    if(ev.lay()!=Layer) continue;
     if(ApplyLocalAlignment){
       int Id=GetId(ev);
       if(LocalFitParameters.find(Id)!=LocalFitParameters.end()){
@@ -1373,7 +1447,9 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   fit.MinBeta=DynAlContinuity::BetaCut;
   int prev_second=0;   // Keep track of every second already fit
 
-  for(int point=0;point<history.Size();point++){
+  //  for(int point=0;point<history.Size();point++){
+  // Loop only on events in current run
+  for(int point=historyC.FirstOfCurrentRun;point<=historyC.LastOfCurrentRun;point++){
     // Take the time of the event
     DynAlEvent ev=history.Get(point);
     int Id=GetId(ev);
@@ -1393,15 +1469,21 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
     prev_second=ev.Time[0];
 
     // Retrieve the fit parameters and store them
+#ifdef VERBOSE__
+    cout<<"STORING FIT FOR TIME "<<ev.Time[0]<<endl;
+#endif
     FitParameters[ev.Time[0]]=DynAlFitParameters(fit);    
   }
-
+#ifdef VERBOSE__
+#undef VERBOSE__
+#endif
 }
 
 /////////////////// Finally the tools to provide the alignment as a function of time
 ClassImp(DynAlManager);
 
 #include "commonsi.h"
+#include "timeid.h"
 
 //map<int,DynAlFitContainer> DynAlManager::dynAlFitContainers;
 DynAlFitContainer DynAlManager::dynAlFitContainers[10];
@@ -1409,12 +1491,227 @@ int DynAlManager::currentRun=-1;
 int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir="";
 DynAlFitContainer::LinearSpace DynAlManager::tdvBuffer;
+AMSTimeID* DynAlManager::tdvdb=0;
+bool DynAlManager::useTDV=true;
+
+#ifdef _PGTRACK_
+#define TDVNAME "DynAlignmentTestPG"
+#else
+#define TDVNAME "DynAlignmentTest"
+#endif
+
+void _ToAlign(){
+  DynAlManager::dynAlFitContainers[1]=DynAlFitContainer(DynAlManager::tdvBuffer,false);
+  DynAlManager::dynAlFitContainers[9]=DynAlFitContainer(DynAlManager::tdvBuffer,true);
+}
+
+bool DynAlManager::FinishLinear(){
+  if(tdvBuffer.records==0) return true;
+  // Get the time range
+  int minTime=INT_MAX;
+  int maxTime=0;
+  for(int which=0;which<2;which++)
+    for(int i=0;i<tdvBuffer.records;i++){
+      int t=tdvBuffer.Alignment[i][which].time;
+      if(t<minTime) minTime=t;
+      if(t>maxTime) maxTime=t;
+    }
+  
+
+  // Stablish the validity time
+  if(tdvdb) delete tdvdb;
+  tm begin;
+  tm end;
+
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  begin.tm_sec  =0;
+  begin.tm_min  =0;
+  begin.tm_hour =0;
+  begin.tm_mday =0;
+  begin.tm_mon  =0;
+  begin.tm_year =0;
+  
+  end.tm_sec=0;
+  end.tm_min=0;
+  end.tm_hour=0;
+  end.tm_mday=0;
+  end.tm_mon=0;
+  end.tm_year=0;
+  
+  tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
+		      AMSTimeID::Standalone,1,_ToAlign);
+
+  if(!tdvdb) return false;
+
+  time_t insert;
+  time(&insert);
+  tdvdb->SetTime(insert,minTime-1,maxTime+1);
+  tdvdb->UpdCRC();
+  // Write it
+  //  tdvdb->write(AMSDBc::amsdatabase,1);
+#warning DEV code inhibited
+  tdvdb->write("amsdatabase/",1);
+
+  time_t in,be,en;
+  tdvdb->gettime( in,  be, en);
+  printf(" Begin : %s ",ctime(&be));
+  printf(" End   : %s ",ctime(&en));
+  printf(" Insert: %s ",ctime(&in));  
+
+  tdvBuffer.records=0;
+  return true;
+}
+
+
+bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9){
+  tdvBuffer.id=INT_MAX;
+  layer1.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][0],time,-1);
+  layer9.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][1],time,-1);
+  tdvBuffer.records++;
+  if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear();
+  return true;
+}
+
+
+bool DynAlManager::UpdateWithTDV(int time){
+  if(!tdvdb){
+    tm begin;
+    tm end;
+    
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+    
+    tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
+			AMSTimeID::Standalone,1,_ToAlign);
+
+    if(!tdvdb){
+      cout<<"DynAlManager::UpdateWithTDV-- AMSTimeId cannot be created"<<endl;
+      return false;
+    }
+  }
+  time_t Time=time;
+  if(!tdvdb->validate(Time)) return false;
+  
+  
+
+  //  time_t in,be,en;
+  //  tdvdb->gettime( in,  be, en);
+  //  printf(" Begin : %s ",ctime(&be));
+  //  printf(" End   : %s ",ctime(&en));
+  //  printf(" Insert: %s ",ctime(&in));
+  
+  return true;
+}
+
+
+bool DynAlManager::DumpDirToLinear(TString dir){
+  // Get the file list
+  void *dirp=gSystem->OpenDirectory(dir);
+  if(!dirp) return false;
+  ResetLinear();
+  int counter=0;
+  vector<TString> files;
+  for(const char *name=gSystem->GetDirEntry(dirp);name!=0;name=gSystem->GetDirEntry(dirp)){
+    counter++;
+    if(counter>=10) break;
+    TString entry(name);
+    if(!entry.Contains(".align.root")) continue;
+    files.push_back(entry);
+  }
+  sort(files.begin(),files.end());
+
+  for(int ii=0;ii<files.size();ii++){
+    TString &entry=files[ii];
+    const char *name=entry.Data();
+    // Open the file
+    cout<<"DEALING WITH "<<Form("%s/%s",dir.Data(),name)<<endl;
+    TFile file(Form("%s/%s",dir.Data(),name));
+    DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
+    DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
+
+    if(!l1 || !l9){
+      cout<<"ERROR-- file "<<Form("%s/%s",dir.Data(),name)<<" is truncated"<<endl;
+      continue;
+    }
+
+    // Get the time range
+    int minkey=INT_MAX;
+    int maxkey=0;
+    for(map<int,DynAlFitParameters>::iterator i=l1->FitParameters.begin();
+	i!=l1->FitParameters.end();i++){
+      long key=i->first;
+      if(key<minkey) minkey=key;
+      if(key>maxkey) maxkey=key;
+    }
+    cout<<"TIME RANGE FOR L1"<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
+
+    minkey=INT_MAX;
+    maxkey=0;
+    for(map<int,DynAlFitParameters>::iterator i=l9->FitParameters.begin();
+	i!=l9->FitParameters.end();i++){
+      long key=i->first;
+      if(key<minkey) minkey=key;
+      if(key>maxkey) maxkey=key;
+    }
+    cout<<"TIME RANGE FOR L9"<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
+
+    //    cout<<ctime(&minkey)<<" TO "<<ctime(&maxkey)<<endl;
+
+    cout<<"TIME RANGE "<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
+    for(int key=minkey;key<=maxkey;key++){
+      // Get the parameters
+      DynAlFitParameters l1P;
+      DynAlFitParameters l9P;
+      if(!l1->Find(key,l1P)) continue;
+      if(!l9->Find(key,l9P)) continue;
+
+      // Dump to linear space
+      DynAlManager::AddToLinear(key,l1P,l9P);
+    }
+    
+    delete l1;
+    delete l9;
+  }
+
+  if(tdvBuffer.records) DynAlManager::FinishLinear();
+  return true;
+}
+
+
 
 bool DynAlManager::UpdateParameters(int run,int time,TString dir){
-  if(run==skipRun) return false;
-
   // If directory name is empty, use the default
   if(dir.Length()==0) dir=defaultDir;
+
+
+#ifdef DEV
+  if(dir.Length()==0 && useTDV){  // No default dir to be read. 
+    // Try using the TDVs
+    if(UpdateWithTDV(time)){
+      dynAlFitContainers[1].Layer=1;
+      dynAlFitContainers[9].Layer=9;
+    }
+  }
+
+#else
+#warning DEV code inhibited
+#endif
+
+  if(run==skipRun) return false;
 
   if(run!=currentRun){
     currentRun=run;

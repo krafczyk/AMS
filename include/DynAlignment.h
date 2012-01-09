@@ -161,6 +161,8 @@ class DynAlContinuity{
   DynAlFit Fit;
   DynAlHistory History;          // Current history
   int CurrentRun;                 // Current run   
+  int FirstOfCurrentRun;         // First event of current run in the history
+  int LastOfCurrentRun;          // Last event of curren run in the history  
   TString DirName;
   TString Prefix;
   int Layer;
@@ -202,20 +204,21 @@ class DynAlFitParameters: public TObject{
   // fit linearly    
   struct SingleFitLinear{
     int time;
-    double DX;
-    double DY;
-    double DZ;
-    double THETA;
-    double ALPHA;
-    double BETA;
-    double ZOffset;
-    double TOffset;
+    float DX;
+    float DY;
+    float DZ;
+    float THETA;
+    float ALPHA;
+    float BETA;
+    float ZOffset;
+    float TOffset;
     int id; // To be use in case of local alignment, -1 otherwise
   };
 
   void dumpToLinearSpace(SingleFitLinear &single,int when=0,int id=-1); 
+  DynAlFitParameters(SingleFitLinear &single);
 
-  ClassDef(DynAlFitParameters,2);
+  ClassDef(DynAlFitParameters,3);
 };
 
 class DynAlFitContainer:public TObject{
@@ -236,9 +239,8 @@ class DynAlFitContainer:public TObject{
   DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
 
 
-
-  // Enough space to store one hour of data
-#define LinearSpaceMaxRecords (60*60)
+  // Enough space to store one day of data
+#define LinearSpaceMaxRecords (60*60*24)
     
   struct LinearSpace{
     int id;         // Internal use. 
@@ -247,25 +249,39 @@ class DynAlFitContainer:public TObject{
   };
   
   bool dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer=false);
-  //  static DynAlFitContainer getFromLinearSpace();
-
-  ClassDef(DynAlFitContainer,3);
+  DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9=false);
+  void TestDump();
+  ClassDef(DynAlFitContainer,4);
 };
+
+
+
+
+class AMSTimeID;
   
 class DynAlManager:public TObject{
  public:
   static bool UpdateParameters(int run,int time,TString dir=""); 
+  static bool UpdateWithTDV(int time);
   static bool FindAlignment(int run,int time,int layer,float hit[3],float hitA[3],int Id=-1,TString dir="");
   static bool FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z,TString dir="");
-  //  static map<int,DynAlFitContainer> dynAlFitContainers; // STL containers are not thread safe 
   static DynAlFitContainer dynAlFitContainers[10];
   static int currentRun;
   static int skipRun;
   static TString defaultDir;
   static DynAlFitContainer::LinearSpace tdvBuffer;
+  static AMSTimeID *tdvdb;
+  static bool useTDV;
   static void ForceUpdating() {currentRun=skipRun=-1;}
 
-#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer)  
+
+  // TDV interface
+  static void ResetLinear(){tdvBuffer.records=0;}
+  static bool AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9);
+  static bool FinishLinear();
+  static bool DumpDirToLinear(TString dir); // Dump a while directory ti a TDV
+
+#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
   ClassDef(DynAlManager,2);
 };
 
