@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.351 2012/01/04 19:35:48 oliva Exp $
+//  $Id: root.C,v 1.352 2012/01/10 14:00:33 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3086,97 +3086,218 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   Zprofile[2] = ptr->_Zprofile[2];
   Zprofile[3] = ptr->_Zprofile[3];
 
-
 #endif
 }
 
+
+/// Normalise variable as a function of the energy
+void EcalShowerR::NormaliseVariableLAPP(){
+  float log10E = TMath::Log10(EnergyC);
+  
+  Ecal2DClusterR *tc2D;
+  EcalClusterR *tc1D;
+  EcalHitR *thit;
+  float etot=0.;
+
+  for(int a=0;a<18;a++)
+        EnergyFractionLayer[a]=0.;
+  for(int a=0;a<NEcal2DCluster();a++){
+    tc2D = pEcal2DCluster(a);
+    for(int b=0;b<tc2D->NEcalCluster();b++){
+      tc1D = tc2D->pEcalCluster(b);
+      for(int c=0;c<tc1D->NEcalHit();c++){
+        thit = tc1D->pEcalHit(c);
+	if(!isnan(thit->Edep)){
+        	etot += thit->Edep;
+        	EnergyFractionLayer[thit->Plane] += thit->Edep;
+	}
+      }
+    }
+  }
+
+
+ for(int a=0;a<18;a++){
+    if(etot!=0.)
+      EnergyFractionLayer[a] = EnergyFractionLayer[a] / etot;
+    else
+      EnergyFractionLayer[a]=0.;
+  }
+
+  //Normalisation not defined outside the energy range ~4.5->~316 GeV
+  if(log10E<0.65||log10E>2.5){
+    for(int a=0;a<3;a++){
+	NZprofile[a]=-20.;
+    	NShowerFootprint[a]=-20.;
+	NShowerLatDisp[a]=-20.;
+	NS3S5[a]=-20.;
+	NS1S3[a]=-20.;
+	NS1tot[a]=-20.;
+    }
+    NZprofile[3]=-20.;	
+    NZprofileChi2=-20.; 
+    NShowerLongDisp=-20.;
+    NEnergy3C3=-20.;
+    NEnergy3C2=-20.;	
+    NS13R=-20.;
+    for(int a=0;a<18;a++)
+	NEnergyFractionLayer[a]=-20.;
+    return;
+  }
+
+  if(Zprofile[3]!=0.)
+  	NZProfileMaxRatio = (Zprofile[2]/Zprofile[3] - (0.893418+log10E*-0.185014+pow(log10E,2)*0.173813+pow(log10E,3)*-0.0377678))/(0.119254+log10E*0.100735+pow(log10E,2)*-0.178089+pow(log10E,3)*0.102479+pow(log10E,4)*-0.0189757);
+  else NZProfileMaxRatio = -20.; 
+  NZprofile[3] = (Zprofile[3]-(4.6038+log10E*2.18661+pow(log10E,2)*0.232865+pow(log10E,3)*-0.0756714))/(-0.666721+log10E*2.29757+pow(log10E,2)*-2.6375+pow(log10E,3)*1.25471+pow(log10E,4)*-0.201141);
+  NZprofile[2] = (Zprofile[2]-(2.58378+log10E*5.6755+pow(log10E,2)*-3.43793+pow(log10E,3)*1.2026))/(0.088173+log10E*4.29587+pow(log10E,2)*-5.2607+pow(log10E,3)*2.59343+pow(log10E,4)*-0.325017);
+  NZprofile[1] = (Zprofile[1]-(0.595077+log10E*-0.33609+pow(log10E,2)*0.274155+pow(log10E,3)*-0.0638039))/(0.155689+log10E*0.118769+pow(log10E,2)*-0.25295+pow(log10E,3)*0.141587+pow(log10E,4)*-0.020465);
+  NZprofile[0] = (Zprofile[0]-(0.938884+log10E*0.0879708+pow(log10E,2)*-0.0410125+pow(log10E,3)*0.0104611))/(0.263762+log10E*-0.56278+pow(log10E,2)*0.674824+pow(log10E,3)*-0.345726+pow(log10E,4)*0.0651346);
+  NZprofileChi2 = (ZprofileChi2-(6.93363+log10E*-8.81057+pow(log10E,2)*4.10661+pow(log10E,3)*-0.655118))/(5.95343+log10E*-12.4466+pow(log10E,2)*11.8791+pow(log10E,3)*-4.87835+pow(log10E,4)*0.707919);
+  NShowerFootprint[2] = (ShowerFootprint[2]-(4.56276+log10E*2.79923+pow(log10E,2)*-3.49012+pow(log10E,3)*1.17603))/(-3.83273+log10E*18.894+pow(log10E,2)*-23.9165+pow(log10E,3)*11.8707+pow(log10E,4)*-1.96426);
+  NShowerFootprint[1] = (ShowerFootprint[1]-(4.02813+log10E*0.924191+pow(log10E,2)*-1.26475+pow(log10E,3)*0.479156))/(-0.242628+log10E*5.36033+pow(log10E,2)*-7.88255+pow(log10E,3)*4.13856+pow(log10E,4)*-0.684636);
+  NShowerFootprint[0] = (ShowerFootprint[0]-(8.48389+log10E*4.37138+pow(log10E,2)*-5.5595+pow(log10E,3)*1.94879))/(-6.88814+log10E*32.6109+pow(log10E,2)*-42.0799+pow(log10E,3)*21.5081+pow(log10E,4)*-3.65795);
+  NShowerLatDisp[2] = (ShowerLatDisp[2]-(-16.96+log10E*124.363+pow(log10E,2)*-106.846+pow(log10E,3)*28.303))/(-39.2136+log10E*181.489+pow(log10E,2)*-210.614+pow(log10E,3)*96.5514+pow(log10E,4)*-14.7641);
+  NShowerLatDisp[1] = (ShowerLatDisp[1]-(2.24942+log10E*55.3929+pow(log10E,2)*-57.9721+pow(log10E,3)*17.6346))/(-31.3107+log10E*155.292+pow(log10E,2)*-204.306+pow(log10E,3)*105.489+pow(log10E,4)*-17.9817);
+  NShowerLatDisp[0] = (ShowerLatDisp[0]-(-10.6173+log10E*168.02+pow(log10E,2)*-152.836+pow(log10E,3)*41.8257))/(-57.6265+log10E*260.525+pow(log10E,2)*-305.665+pow(log10E,3)*141.884+pow(log10E,4)*-21.8149);
+  if(S5tot[2]!=0.) NS3S5[2] = (S3tot[2]/S5tot[2]-(0.900994+log10E*-0.0351425+pow(log10E,2)*0.067597+pow(log10E,3)*-0.0228938))/(-0.0775086+log10E*0.41959+pow(log10E,2)*-0.527143+pow(log10E,3)*0.257775+pow(log10E,4)*-0.0428106);
+  else NS3S5[2] = -1.;
+  if(S5tot[1]!=0.) NS3S5[1] = (S3tot[1]/S5tot[1]-(0.941223+log10E*-0.0518037+pow(log10E,2)*0.056474+pow(log10E,3)*-0.0177348))/(-0.0378472+log10E*0.254035+pow(log10E,2)*-0.35294+pow(log10E,3)*0.188781+pow(log10E,4)*-0.0335423);
+  else NS3S5[1] = -1.;
+  if(S5tot[0]!=0.) NS3S5[0] = (S3tot[0]/S5tot[0]-(0.902154+log10E*-0.0214723+pow(log10E,2)*0.056905+pow(log10E,3)*-0.0214067))/(-0.204989+log10E*0.854424+pow(log10E,2)*-1.07686+pow(log10E,3)*0.549502+pow(log10E,4)*-0.0964843);
+  else NS3S5[0] = -1.;
+  if(S3tot[0]!=0.)  NS1S3[0] = (S1tot[0]/S3tot[0]-(0.767901+log10E*-0.489178+pow(log10E,2)*0.442909+pow(log10E,3)*-0.115515))/(-0.488682+log10E*1.8756+pow(log10E,2)*-2.1674+pow(log10E,3)*1.02595+pow(log10E,4)*-0.169443);
+  else NS1S3[0] = -1.;	
+  // Not done yet
+  NS1S3[1]=-1.;
+  NS1S3[2]=-1.;
+  NShowerLongDisp = (ShowerLongDisp-(11.1025+log10E*3.25752+pow(log10E,2)*-0.997847+pow(log10E,3)*-0.0267775))/(0.919455+log10E*6.83936+pow(log10E,2)*-9.99839+pow(log10E,3)*4.92373+pow(log10E,4)*-0.706398);
+  NS1tot[0] = (S1tot[0]-(0.598873+log10E*-0.342752+pow(log10E,2)*0.372974+pow(log10E,3)*-0.108247))/(-0.360685+log10E*1.74558+pow(log10E,2)*-2.22315+pow(log10E,3)*1.12403+pow(log10E,4)*-0.194263);
+  // Not done yet
+  NS1tot[1]=-1.;
+  NS1tot[2]=-1.;
+  NEnergy3C3 = (Energy3C[2]-(0.848462+log10E*-0.184872+pow(log10E,2)*0.205634+pow(log10E,3)*-0.0636298))/(-0.452453+log10E*1.76401+pow(log10E,2)*-2.15624+pow(log10E,3)*1.0807+pow(log10E,4)*-0.187112);
+  NEnergy3C2 = (Energy3C[1]-(0.986097+log10E*0.00567924+pow(log10E,2)*0.00639086+pow(log10E,3)*-0.00467772))/(-0.0102002+log10E*0.0664985+pow(log10E,2)*-0.0939351+pow(log10E,3)*0.0506715+pow(log10E,4)*-0.00880054);
+  NS13R = (S13R-(0.896068+log10E*-0.519294+pow(log10E,2)*0.362811+pow(log10E,3)*-0.0822381))/(-0.0499018+log10E*0.286575+pow(log10E,2)*-0.306258+pow(log10E,3)*0.132597+pow(log10E,4)*-0.0191218);
+  NEnergyFractionLayer[9] = (EnergyFractionLayer[9]-(0.0616903+log10E*-0.0174509+pow(log10E,2)*0.0471086+pow(log10E,3)*-0.0156655))/(0.013873+log10E*0.0383099+pow(log10E,2)*-0.0583929+pow(log10E,3)*0.0279095+pow(log10E,4)*-0.00400579);
+  NEnergyFractionLayer[8] = (EnergyFractionLayer[8]-(0.0667993+log10E*0.00561868+pow(log10E,2)*0.0282832+pow(log10E,3)*-0.0124659))/(0.0118501+log10E*0.0572122+pow(log10E,2)*-0.0917456+pow(log10E,3)*0.0487935+pow(log10E,4)*-0.00819485);
+  NEnergyFractionLayer[7] = (EnergyFractionLayer[7]-(.0707861+log10E*0.0309512+pow(log10E,2)*0.00591091+pow(log10E,3)*-0.00937915))/(0.00685963+log10E*0.0823392+pow(log10E,2)*-0.128769+pow(log10E,3)*0.072947+pow(log10E,4)*-0.0131891);
+  NEnergyFractionLayer[2] = (EnergyFractionLayer[2]-(0.113831+log10E*-0.0664229+pow(log10E,2)*0.0039547+pow(log10E,3)*0.00239836))/(0.0206638+log10E*0.049813+pow(log10E,2)*-0.0841076+pow(log10E,3)*0.0420049+pow(log10E,4)*-0.00681568);
+  NEnergyFractionLayer[1] = (EnergyFractionLayer[1]-(0.0815388+log10E*-0.0761681+pow(log10E,2)*0.0241524+pow(log10E,3)*-0.00232803))/(0.0226358+log10E*0.0232661+pow(log10E,2)*-0.0623346+pow(log10E,3)*0.0364453+pow(log10E,4)*-0.00653768);
+ 
+
+  NEnergyFractionLayer[0] = (EnergyFractionLayer[0]-(0.0263059+log10E*-0.0222291+pow(log10E,2)*0.00459452+pow(log10E,3)*0.00028022))/(-0.0087581+log10E*0.0604421+pow(log10E,2)*-0.0776135+pow(log10E,3)*0.0372794+pow(log10E,4)*-0.00605276);
+  NEnergyFractionLayer[17] = (EnergyFractionLayer[17] - (-0.00697372+log10E*0.0399547+pow(log10E,2)*-0.0354845+pow(log10E,3)*0.0133338))/( -0.0225656+log10E*0.107272+pow(log10E,2)*-0.131483+pow(log10E,3)*0.0655059+pow(log10E,4)*-0.00993156);
+  NEnergyFractionLayer[16] = (EnergyFractionLayer[16] - (-0.00701472+log10E*0.045764+pow(log10E,2)*-0.0387198+pow(log10E,3)*0.0144802))/( -0.0200684+log10E*0.10307+pow(log10E,2)*-0.126546+pow(log10E,3)*0.0630652+pow(log10E,4)*-0.00952961);
+  NEnergyFractionLayer[15] = (EnergyFractionLayer[15] - (-0.00513213+log10E*0.0474593+pow(log10E,2)*-0.037675+pow(log10E,3)*0.0141781))/( -0.0220574+log10E*0.117021+pow(log10E,2)*-0.146629+pow(log10E,3)*0.0747321+pow(log10E,4)*-0.0119933);
+  NEnergyFractionLayer[14] = (EnergyFractionLayer[14] - (0.0022702+log10E*0.0359843+pow(log10E,2)*-0.0243196+pow(log10E,3)*0.0101739))/( -0.0102708+log10E*0.0853348+pow(log10E,2)*-0.112035+pow(log10E,3)*0.0595469+pow(log10E,4)*-0.0100892);
+  NEnergyFractionLayer[13] = (EnergyFractionLayer[13] - (0.0113565+log10E*0.0244452+pow(log10E,2)*-0.00808283+pow(log10E,3)*0.00494669))/( -0.00151284+log10E*0.0673545+pow(log10E,2)*-0.0931804+pow(log10E,3)*0.0512705+pow(log10E,4)*-0.00922647);
+  NEnergyFractionLayer[12] = (EnergyFractionLayer[12] - (0.0268613+log10E*-0.00148632+pow(log10E,2)*0.0187658+pow(log10E,3)*-0.00324979))/( 0.0212245+log10E*-0.00422532+pow(log10E,2)*-0.00604992+pow(log10E,3)*0.00592189+pow(log10E,4)*-0.00107765);
+  NEnergyFractionLayer[11] = (EnergyFractionLayer[11] - (0.0400763+log10E*-0.0195611+pow(log10E,2)*0.0407237+pow(log10E,3)*-0.0108408))/( 0.0374668+log10E*-0.052617+pow(log10E,2)*0.0516337+pow(log10E,3)*-0.0247812+pow(log10E,4)*0.00475269);
+  NEnergyFractionLayer[10] = (EnergyFractionLayer[10] - (0.0527833+log10E*-0.0297875+pow(log10E,2)*0.0543798+pow(log10E,3)*-0.0161649))/( 0.0285186+log10E*-0.0164225+pow(log10E,2)*0.00842615+pow(log10E,3)*-0.00529222+pow(log10E,4)*0.00193954);
+  NEnergyFractionLayer[6] = (EnergyFractionLayer[6] - (0.0838441+log10E*0.0444102+pow(log10E,2)*-0.0192247+pow(log10E,3)*-0.00272435))/( 0.0170528+log10E*0.0608813+pow(log10E,2)*-0.103429+pow(log10E,3)*0.0600095+pow(log10E,4)*-0.0109843);
+  NEnergyFractionLayer[5] = (EnergyFractionLayer[5] - (0.099613+log10E*0.052699+pow(log10E,2)*-0.0499309+pow(log10E,3)*0.00688721))/( 0.033449+log10E*0.00958178+pow(log10E,2)*-0.0421113+pow(log10E,3)*0.0292516+pow(log10E,4)*-0.00573698);
+  NEnergyFractionLayer[4] = (EnergyFractionLayer[4] - (0.114548+log10E*0.0231941+pow(log10E,2)*-0.0484808+pow(log10E,3)*0.00970349))/( 0.0363273+log10E*0.00567759+pow(log10E,2)*-0.0318358+pow(log10E,3)*0.019821+pow(log10E,4)*-0.00357058);
+  NEnergyFractionLayer[3] = (EnergyFractionLayer[3] - (0.131139+log10E*-0.0419316+pow(log10E,2)*-0.015678+pow(log10E,3)*0.00552745))/( 0.0429826+log10E*-0.00488818+pow(log10E,2)*-0.0246421+pow(log10E,3)*0.0153291+pow(log10E,4)*-0.00257683);
+
+  return;
+}
+
+
+
+
 TMVA::Reader *ecallappreader;
 float varBDT[23];
+float cEnergyC;
+float cMomentum;
+
+
 
 float EcalShowerR::EcalStandaloneEstimator(){
-	double estimator = -2.;
-	float ECalEdepFrac[18];
-	float etot;
-	Ecal2DClusterR *tc2D;
-	EcalClusterR *tc1D;
-	EcalHitR *thit;
-	for(int a=0;a<NEcal2DCluster();a++){
-		tc2D = pEcal2DCluster(a);
-		for(int b=0;b<tc2D->NEcalCluster();b++){
-			tc1D = tc2D->pEcalCluster(b); 
-			for(int c=0;c<tc1D->NEcalHit();c++){
-				thit = tc1D->pEcalHit(c);
-				etot += thit->Edep;
-				ECalEdepFrac[thit->Plane] += thit->Edep;
-			}
-		}
-	}
-	for(int a=0;a<18;a++){
-		if(etot!=0.)
-			ECalEdepFrac[a] = ECalEdepFrac[a] / etot;
-		else
-			ECalEdepFrac[a]=0.;
-	}
-	varBDT[0] = ECalEdepFrac[0];         
-	varBDT[1] = ECalEdepFrac[1];        
-	varBDT[2] = ECalEdepFrac[2];        
-	varBDT[3] = ECalEdepFrac[7];        
-	varBDT[4] = ECalEdepFrac[8];        
-	varBDT[5] = ECalEdepFrac[9];        
-	varBDT[6] = Energy3C[1];          
-	varBDT[7] = S13R;           
-	varBDT[8] = Energy3C[2];           
-	varBDT[9] = S1tot[0];           
-	varBDT[10] = ShowerLongDisp;       
-	varBDT[11] = S1tot[0]/S3tot[0];   
-	varBDT[12] = S3tot[0]/S5tot[0];                 
-	varBDT[13] = S3tot[1]/S5tot[1];                
-	varBDT[14] = S3tot[2]/S5tot[2];                
-	varBDT[15] = ShowerLatDisp[0];        
-	varBDT[16] = ShowerLatDisp[1];       
-	varBDT[17] = ShowerLatDisp[2];       
-	varBDT[18] = ShowerFootprint[0];     
-	varBDT[19] = ShowerFootprint[1];    
-	varBDT[20] = ShowerFootprint[2];
-	if(Zprofile[3]!=0.)
-		varBDT[21] = Zprofile[2]/Zprofile[3]; 
-	else varBDT[21]=0.;
-	varBDT[22] = Zprofile[0];
+	// Normalise variables first	
+     	NormaliseVariableLAPP();
 
+	double estimator = -20.;
+	float log10E = TMath::Log10(EnergyC);
+	if(log10E<=0.65||log10E>=2.5)
+		return estimator;
+
+
+	cEnergyC = EnergyC;
+	
+	varBDT[0] = NEnergyFractionLayer[0];         
+	varBDT[1] = NEnergyFractionLayer[1];        
+	varBDT[2] = NEnergyFractionLayer[2];        
+	varBDT[3] = NEnergyFractionLayer[7];        
+	varBDT[4] = NEnergyFractionLayer[8];        
+	varBDT[5] = NEnergyFractionLayer[9];        
+	varBDT[6] = NEnergy3C2;          
+	varBDT[7] = NS13R;           
+	varBDT[8] = NEnergy3C3;           
+	varBDT[9] = NS1tot[0];           
+	varBDT[10] = NShowerLongDisp;       
+	varBDT[11] = NS1S3[0];   
+	varBDT[12] = NS3S5[0];                 
+	varBDT[13] = NS3S5[1];                
+	varBDT[14] = NS3S5[2];                
+	varBDT[15] = NShowerLatDisp[0];        
+	varBDT[16] = NShowerLatDisp[1];       
+	varBDT[17] = NShowerLatDisp[2];       
+	varBDT[18] = NShowerFootprint[0];     
+	varBDT[19] = NShowerFootprint[1];    
+	varBDT[20] = NShowerFootprint[2];
+	varBDT[21] = NZProfileMaxRatio; 
+	varBDT[22] = NZprofile[0];
+	float Momentum = 1.;
 	if(!ecallappreader){ 
 		ecallappreader = new TMVA::Reader( "!Color:!Silent" );
 		std::cout << "##############################################################" << std::endl;
-		std::cout << "                   Create ECAL LAPP Reader" << std::endl;
+		std::cout << "                   Create ECAL LAPP Reader  v02 " << std::endl;
 		std::cout << "##############################################################" << std::endl;
 		
-		ecallappreader->AddVariable("ECalEdepFrac0",&varBDT[0]);         
-		ecallappreader->AddVariable("ECalEdepFrac1",&varBDT[1]);        
-		ecallappreader->AddVariable("ECalEdepFrac2",&varBDT[2]);        
-		ecallappreader->AddVariable("ECalEdepFrac7",&varBDT[3]);        
-		ecallappreader->AddVariable("ECalEdepFrac8",&varBDT[4]);        
-		ecallappreader->AddVariable("ECalEdepFrac9",&varBDT[5]);        
-		ecallappreader->AddVariable("Energy3C2",&varBDT[6]);          
-		ecallappreader->AddVariable("S13R",&varBDT[7]);           
-		ecallappreader->AddVariable("Energy3C3",&varBDT[8]);           
-		ecallappreader->AddVariable("MS1Etot",&varBDT[9]);      
-		ecallappreader->AddVariable("MShowerLongDisp",&varBDT[10]);       
-		ecallappreader->AddVariable("MS1S3",&varBDT[11]);   
-		ecallappreader->AddVariable("MS3S5",&varBDT[12]);                 
-		ecallappreader->AddVariable("MS3S5x",&varBDT[13]);                
-		ecallappreader->AddVariable("MS3S5y",&varBDT[14]);                
-		ecallappreader->AddVariable("MShowerLatDisp",&varBDT[15]);        
-		ecallappreader->AddVariable("MShowerLatDispx",&varBDT[16]);       
-		ecallappreader->AddVariable("MShowerLatDispy",&varBDT[17]);       
-		ecallappreader->AddVariable("Mshower_footprint",&varBDT[18]);     
-		ecallappreader->AddVariable("Mshower_footprintx",&varBDT[19]);  
-		ecallappreader->AddVariable("Mshower_footprinty",&varBDT[20]);    
-		ecallappreader->AddVariable("Zprofile2A/Zprofile3A",&varBDT[21]);          
-		ecallappreader->AddVariable("Zprofile0A",&varBDT[22]);          
-        char name[801]="";
-        //sprintf(name,"%s/%s/ECAL_LAPP_BDT.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
-		ecallappreader->BookMVA("BDTG method" , name);
+
+                ecallappreader->AddVariable("NEnergyFractionLayer[0]",&varBDT[0]);
+                ecallappreader->AddVariable("NEnergyFractionLayer[1]",&varBDT[1]);
+                ecallappreader->AddVariable("NEnergyFractionLayer[2]",&varBDT[2]);
+                ecallappreader->AddVariable("NEnergyFractionLayer[7]",&varBDT[3]);
+                ecallappreader->AddVariable("NEnergyFractionLayer[8]",&varBDT[4]);
+                ecallappreader->AddVariable("NEnergyFractionLayer[9]",&varBDT[5]);
+                ecallappreader->AddVariable("NEnergy3C2",&varBDT[6]);
+                ecallappreader->AddVariable("NS13R",&varBDT[7]);
+                ecallappreader->AddVariable("NEnergy3C3",&varBDT[8]);
+                ecallappreader->AddVariable("NS1tot[0]",&varBDT[9]);
+                ecallappreader->AddVariable("NShowerLongDisp",&varBDT[10]);
+                ecallappreader->AddVariable("NS1S3",&varBDT[11]);
+                ecallappreader->AddVariable("NS3S5",&varBDT[12]);
+                ecallappreader->AddVariable("NS3S5x",&varBDT[13]);
+                ecallappreader->AddVariable("NS3S5y",&varBDT[14]);
+                ecallappreader->AddVariable("NShowerLatDispx",&varBDT[16]);
+                ecallappreader->AddVariable("NShowerLatDispy",&varBDT[17]);
+                ecallappreader->AddVariable("NShowerFootprint",&varBDT[18]);
+                ecallappreader->AddVariable("NShowerFootprintx",&varBDT[19]);
+                ecallappreader->AddVariable("NShowerFootprinty",&varBDT[20]);
+                ecallappreader->AddVariable("NZProfileMaxRatio",&varBDT[21]);
+                ecallappreader->AddVariable("NZprofile0",&varBDT[22]);
+        	ecallappreader->AddSpectator("EnergyC",&cEnergyC);
+        	ecallappreader->AddSpectator("Momentum",&Momentum);
+
+
+		char name[801]="";
+        	sprintf(name,"%s/%s/ECAL_LAPP_BDT_v02.weights.xml",getenv("AMSDataDir"),AMSCommonsI::getversion());
+		ecallappreader->BookMVA("BCat method" , name);
 	}
-	estimator = ecallappreader->EvaluateMVA("BDTG method");
+
+	estimator = ecallappreader->EvaluateMVA("BCat method");
+
+	// Normalise output in energy bins
+	if(log10E>0.65 && log10E<0.8) estimator = (estimator - 0.0887863) / 0.0332431; 
+	if(log10E>=0.8 && log10E<1.) estimator = (estimator - 0.0929854) / 0.0319299; 
+	if(log10E>=1. && log10E<1.2) estimator = (estimator - 0.0977055) / 0.0333698; 
+	if(log10E>=1.2 && log10E<1.4) estimator = (estimator - 0.157461) / 0.0599707; 
+	if(log10E>=1.4 && log10E<1.6) estimator = (estimator - 0.197333) / 0.0701744; 
+	if(log10E>=1.6 && log10E<1.8) estimator = (estimator - 0.287696) / 0.0939257; 
+	if(log10E>=1.8 && log10E<2.) estimator = (estimator - 0.444025) / 0.119273; 
+	if(log10E>=2. && log10E<2.5) estimator = (estimator - 0.529917) / 0.120451; 
+
+
 	return estimator;
 }
 

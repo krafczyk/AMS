@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.167 2011/12/21 23:31:07 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.168 2012/01/10 14:00:33 afiasson Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2999,7 +2999,7 @@ void AMSEcalShower::ZProfile()
   int necalcl=0;
   int ihit,cell,plane,proj;
   int nhits_cl;
-  float etot;
+  float etot=0.;
   float err;
   float par0,par1,par2;
   float xmin, xmax; 
@@ -3043,6 +3043,7 @@ void AMSEcalShower::ZProfile()
 	}
       }
     }
+
     if(nbins>3){
 	 
       // The z values	
@@ -3093,6 +3094,17 @@ void AMSEcalShower::ZProfile()
       _ZprofileChi2 = amin/(nbins-3);
     }
   }
+
+  // Normalised energy dep frac
+  if(etot>0.&&etot<10000000.){
+    for(int a=0;a<18;a++)
+	_EcalEdepFrac[a] = ECalEdepFrac[a] / etot;
+  }
+  else{
+    for(int a=0;a<18;a++)
+	_EcalEdepFrac[a] = -1.;
+  }	
+  return;
 }
 
 
@@ -3138,22 +3150,22 @@ void AMSEcalShower::LAPPVariables(){
   _ShowerLatDispx=0.;
   _ShowerLatDispy=0.;
   _ShowerLongDisp=0.;
-  float bplane=0;
-  float bplane2=0;
-  float bcell_latmx=0, bcell_latmy=0;
-  _S1tot=0; _S1totx=0; _S1toty=0;
-  _S3tot=0; _S3totx=0; _S3toty=0;
-  _S5tot=0; _S5totx=0; _S5toty=0; 
-  float edep_tot=0, edep_totx=0, edep_toty=0;
+  float bplane=0.;
+  float bplane2=0.;
+  float bcell_latmx=0., bcell_latmy=0.;
+  _S1tot=0.; _S1totx=0.; _S1toty=0.;
+  _S3tot=0.; _S3totx=0.; _S3toty=0.;
+  _S5tot=0.; _S5totx=0.; _S5toty=0.; 
+  float edep_tot=0., edep_totx=0., edep_toty=0.;
 
-  float shower_depth_op=0;
-  float S1=0;
-  float S3=0;
-  float S5=0; 
-  int bcell_i=0.;
+  float shower_depth_op=0.;
+  float S1=0.;
+  float S3=0.;
+  float S5=0.; 
+  int bcell_i=0;
   int nbcellx=0,nbcelly=0;
   for (int jj=0; jj<18; jj++){
-    S1=0;S3=0;S5=0; 
+    S1=0.;S3=0.;S5=0.; 
     if (edep_layer[jj]!=0){
       edep_tot+=edep_layer[jj];
       // Calculate shower longitudinal dispersion
@@ -3212,8 +3224,10 @@ void AMSEcalShower::LAPPVariables(){
   _ShowerLatDispy=_ShowerLatDispy;
   
   //Calculate longitudinal dispersions
-  _ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
-  
+  if(edep_tot>0.)
+  	_ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
+  else
+	_ShowerLongDisp = -1.;  
 
   _S1tot=_S1totx+_S1toty;
   _S3tot=_S3totx+_S3toty;
@@ -3225,22 +3239,25 @@ void AMSEcalShower::LAPPVariables(){
   _ShowerDepth = TMath::Log(shower_depth_op);
 
   //Calculate shower shower Cofg_z
-  bplane=bplane/edep_tot;
+  if(edep_tot>0.)	
+    bplane=bplane/edep_tot;
+  bplane = -1000.;  
+
 
   //Calculate shower CofG x,y 
-  if (edep_totx>0){
+  if (edep_totx>0.){
     bcell_latmx=bcell_latmx/edep_totx;
     _S1totx=_S1totx/edep_totx;
     _S3totx=_S3totx/edep_totx; 
     _S5totx=_S5totx/edep_totx;
   }
-  if (edep_toty>0){
+  if (edep_toty>0.){
     bcell_latmy=bcell_latmy/edep_toty;
     _S1toty=_S1toty/edep_toty;
     _S3toty=_S3toty/edep_toty; 
     _S5toty=_S5toty/edep_toty;
   }
-  if (edep_tot>0){
+  if (edep_tot>0.){
     _S1tot=_S1tot/edep_tot;
     _S3tot=_S3tot/edep_tot; 
     _S5tot=_S5tot/edep_tot;
@@ -3279,17 +3296,21 @@ void AMSEcalShower::LAPPVariables(){
 	    }
 	}
     }
-  
-  sigmax2=sigmax2/edep_totx;
-  sigmaxz=sigmaxz/edep_totx;
-  sigmaz2_x=sigmaz2_x/edep_totx;
-  
-  sigmay2=sigmay2/edep_toty;
-  sigmayz=sigmayz/edep_toty;
-  sigmaz2_y=sigmaz2_y/edep_toty;
-
-  _ShowerFootprintx=TMath::Sqrt(TMath::Abs(sigmax2*sigmaz2_x-pow(sigmaxz,2)));
-  _ShowerFootprinty=TMath::Sqrt(TMath::Abs(sigmay2*sigmaz2_y-pow(sigmayz,2)));
+  _ShowerFootprintx = 0.;	
+  _ShowerFootprinty = 0.;	
+  _ShowerFootprint = 0.;	
+  if(edep_totx>0.){ 
+    sigmax2=sigmax2/edep_totx;
+    sigmaxz=sigmaxz/edep_totx;
+    sigmaz2_x=sigmaz2_x/edep_totx;
+    _ShowerFootprintx=TMath::Sqrt(TMath::Abs(sigmax2*sigmaz2_x-pow(sigmaxz,2)));
+  }
+  if(edep_toty>0.){ 
+    sigmay2=sigmay2/edep_toty;
+    sigmayz=sigmayz/edep_toty;
+    sigmaz2_y=sigmaz2_y/edep_toty;
+    _ShowerFootprinty=TMath::Sqrt(TMath::Abs(sigmay2*sigmaz2_y-pow(sigmayz,2)));
+  }
   _ShowerFootprint= _ShowerFootprintx + _ShowerFootprinty;	 
 
   return;

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.401 2011/12/23 17:25:41 choutko Exp $
+//  $Id: root.h,v 1.402 2012/01/10 14:00:34 afiasson Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -566,20 +566,51 @@ public:
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
+  
+// LAPP Variables
   int NbLayerX;
   int NbLayerY;
-  float S1tot[3];		  
-  float S3tot[3];		  
-  float S5tot[3];		  
-  float ShowerLatDisp[3];	  
-  float ShowerLongDisp;  
-  float ShowerDepth;	  
-  float ShowerFootprint[3]; 
-  float ZprofileChi2; 
-  float Zprofile[4]; 
-	
-	float EcalStandaloneEstimator();	///<LAPP Ecal Estimator 
+  float S1tot[3];  ///< Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y 		  
+  float S3tot[3];  ///< Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
+  float S5tot[3];  ///< Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
+  float ShowerLatDisp[3];  ///< Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y 	  
+  float ShowerLongDisp;  ///< Shower Longitudinal Dispersion  
+  float ShowerDepth;  ///< Shower Depth 	  
+  float ShowerFootprint[3]; ///< Shower Footprint - 0=X - 1=Y - 2=X+Y  
+  float ZprofileChi2; ///< Chi2 of Zprofile
+  float Zprofile[4]; ///< Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=??????? 
+  float EnergyFractionLayer[18];  ///< Energy fraction per layer	
 
+// LAPP Variables Normalised (Filled only if NormaliseVariableLAPP() or EcalStandaloneEstimator() functions are called)
+  float NS1tot[3]; ///< Normalised Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y		  
+  float NS3tot[3]; ///< Normalised Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
+  float NS5tot[3]; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
+  float NShowerLatDisp[3]; ///< Normalised Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y 	  
+  float NShowerLongDisp; ///< Normalised Shower Longitudinal Dispersion  
+  float NShowerFootprint[3]; ///< Normalised Shower Footprint - 0=X - 1=Y - 2=X+Y
+  float NZprofile[4];  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=??????? 
+  float NZprofileChi2; ///< Normalised Chi2 of Zprofile
+  float NZProfileMaxRatio; ///< Ratio between profile fitted and expected Zmax
+  float NEnergyFractionLayer[18];  ///< Normalised energy fraction per layer	
+  float NS1S3[3];
+  float NS3S5[3];	
+
+// Other normalised variables
+  float NS13R;
+  float NEnergy3C2;
+  float NEnergy3C3;
+	
+  void NormaliseVariableLAPP();
+  ///< LAPP function to normalise several variables
+  ///< Remove the energy dependence (Mean and RMS deduced from electron selection May19->August31)
+  ///< Fill variables Nxxx
+  ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() ) 
+
+  float EcalStandaloneEstimator();	
+  ///< LAPP Ecal Estimator -
+  ///< Updated December 2011 -
+  ///< 90% efficiency cut (based on electron-like flight events) is -1.49  
+  ///< Relies on normalised variables (Nxxx) -
 	
 	
 	/// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
@@ -613,7 +644,7 @@ friend class AMSEcalShower;
 friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,9)       //EcalShowerR
+ClassDef(EcalShowerR,10)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

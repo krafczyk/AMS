@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.59 2011/12/05 11:04:34 sdifalco Exp $
+//  $Id: ecalrec.h,v 1.60 2012/01/10 14:00:34 afiasson Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -482,6 +482,8 @@ class AMSEcalShower: public AMSlink{
   number _ZprofileChi2;
   integer _NbLayerX;
   integer _NbLayerY;
+  number _EcalEdepFrac[18];	
+
 
 
   void LAPPVariables();
