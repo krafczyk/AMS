@@ -216,8 +216,8 @@ bool Clean_Event(AMSEventR *pev){
     }
     if(good_c) goodlayer[layer]=true;
   }
-  //minimum_bias=(goodlayer[0] && goodlayer[1] && goodlayer[2] && goodlayer[3]);
-  if(!minimum_bias) return false;
+  minimum_bias=(goodlayer[0] && goodlayer[1] && goodlayer[2] && goodlayer[3]);
+  //if(!minimum_bias) return false;
 
   float LONGCUT[4][10]={
     9.,8.,8.,8.,8.,8.,8.,9.,0.,0.,
