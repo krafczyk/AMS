@@ -76,19 +76,19 @@ I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 
 R [2,19] Seed S/N Threshold per layer (1-9)  for 2-10:n(X) 11-19:p(Y) side
 R [20,21] expansion S/N Threshold for 4:n(X) 5:p(Y) side
 I [22,23] Min Distance between seeds for 6:n(X) 7:p(Y) side
-R [24 - 29] hit signal correlation (only muons/protons)
+R [24,29] hit signal correlation (only muons/protons)
 R 30 Threshold on the S/K Correlation probability
 R 31 Threshold on the S/K Correlation probability
 I 32 Signal correction option (TrClusterR::DefaultCorrOpt)
 I 33 Default number of strips for CofG (TrClusterR::DefaultUsedStrips)
-R 44 _dxdz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdX)
+R 34 _dxdz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdX)
 R 35 _dydz threshold for 2/3-strip CofG (TrClusterR::TwoStripThresholdY)
 I 36 MaxNrawCls       (Default: 2000) MaxNumber of Raw Cluster allowed to proceed with the reconstruction
 I 37 lowdt            (Default:  200) Threeshold used to define a small dt event
 I 38 MaxNtrCls        (Default: 1000) MaxNumber of Cluster allowed to proceed with the reconstruction
 I 39 MaxNtrCls_ldt    (Default: 150) MaxNumber of Cluster allowed to proceed with the reconstruction
 I 40 MaxNtrHit        (Default: 1000) MaxNumber of RecHit allowed to proceed with the reconstruction
-F 41 TrTimeLim        (Default: 1000) Tracking Cpu time limit in sec
+R 41 TrTimeLim        (Default: 1000) Tracking Cpu time limit in sec
 I 42 MaxNtrack        (Default: 2)
 I 43 MinNhitX         (Default: 4)
 I 44 MinNhitY         (Default: 5)
@@ -100,7 +100,7 @@ R 49 ClusterScanRange (Default: 0.5)
 R 50 MaxChisqForLScan (Default: 2.2)
 R 51 ErrXForScan      (Default: 300e-4)
 R 52 ErrYForScan      (Default: 300e-4)
-R 53,54 TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 37:n(X) 38:p(Y) side
+R [53,54] TrackThrSeed  (Default: 4.0) Seed S/N Threshold for 53:n(X) 54:p(Y) side
 I 55 AdvancedFitFlag  (Default: 0x0f) TrTrackR::AdvancedFitFlags[i] is activated when (AdvancedFitFlag & (1<<i))!=0.
 I 56 TrDEBUG
 I 57 PZDEBUG
@@ -113,18 +113,18 @@ I 62 Use Sensor Alignement 1=yes 0=no; must be 0 for MC
 I 63 ReconStats flag  0 no 1 yes
 
 // Additional datacard members for track finding improvement (Jan 2012)
-I 64 ReorderTrClusters              (Default: 0)  Build: reorder cluster by signal
+I 64 ChargeSeedTagActive            (Default: 0)  BuildRecHits: tagging hits and clusters compatible with charge seed 
                                                   0 inactive
                                                   !=0 active
-I 65 ChargeSeedTagActive            (Default: 0)  BuildRecHits: tagging hits and clusters compatible with charge seed 
+I 65 ChargeSeedSelActive            (Default: 0)  BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
                                                   0 inactive
                                                   !=0 active
-I 66 ChargeSeedSelActive            (Default: 0)  BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
+R 66 CorrelationProbThr             (Default: 0)  BuildRecHits: hit correlation probability threshold
+R 67 YClusterSNThr                  (Default: 0)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
+I 68 YClusterNStripThr              (Default: 0)  BuildRecHits: minimum number of strips for only-Y hits
+I 69 ReorderTrClusters              (Default: 0)  Build: reorder cluster by signal
                                                   0 inactive
                                                   !=0 active
-R 67 CorrelationProbThr             (Default: 0)  BuildRecHits: hit correlation probability threshold
-R 68 YClusterSNThr                  (Default: 0)  BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold
-I 69 YClusterNStripThr              (Default: 0)  BuildRecHits: minimum number of strips for only-Y hits
 I 70 ReorderTrRecHits               (Default: 0)  Build: reorder hits 
                                                   0 inactive
                                                   1 by correlation probability 

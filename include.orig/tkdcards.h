@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.46 2012/01/04 19:35:49 oliva Exp $
+// $Id: tkdcards.h,v 1.47 2012/01/11 09:30:51 oliva Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -237,20 +237,20 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 class TRCLFFKEY_DEF : public TObject{
 public:
   //! I 1 Drive the tracker Recon =0 No recon; =1 Cluster; =11 Cluster and hits; =111 Cluster, Hits and Tracks; if negative the MC digitization is redone
-  integer recflag;
+  integer   recflag;
   //! R [2,19] Seed S/N Threshold per layer(1-9 -> 0-8)for 2-10:n(X) 11-19:p(Y) side
   geant     ThrSeed[2][9];  
   //! R [20,21] expansion S/N Threshold for 4:n(X) 5:p(Y) side
-  geant     ThrNeig[2] ;
+  geant     ThrNeig[2];
   //! I [22,23] Min Distance between seeds for 6:n(X) 7:p(Y) side
-  integer   SeedDist[2] ;
+  integer   SeedDist[2];
   
-  //! R [24 - 29] hit signal correlation (only muons/protons)
-  geant GGpars[6]  ;//! {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
-  //! R 30 hit signal correlation (only muons/protons)
-  geant GGintegral ;//! 91765.;
-  //! R 31 Threshold on the S/K Correlation probability
-  geant ThrProb    ;//! 0.00001;
+  //! R [24,29] hit signal correlation (only muons/protons) (DEPRECATED)
+  geant GGpars[6]; //! {1428.,0.0000,0.1444,1645.,0.0109,0.0972};
+  //! R 30 hit signal correlation (only muons/protons) (DEPRECATED)
+  geant GGintegral; //! 91765.; 
+  //! R 31 Threshold on the S/K Correlation probability (DEPRECATED)
+  geant ThrProb; //! 0.00001;
 
   //! I 32 TrClusterR::DefaultCorrOpt
   int ClusterSigCorrOpt;
@@ -264,51 +264,52 @@ public:
   // HIT PARS
   //PRE-SELECTION PARS
   //! I 36 MaxNrawCls 
-  int MaxNrawCls ;// 2000
+  int MaxNrawCls; // 2000
   //! I 37 Threeshold used to define a small dt event
-  int lowdt    ;// 200
+  int lowdt; // 200
   //! I 38 MaxNtrCls
-  int MaxNtrCls  ;// 1000
+  int MaxNtrCls; // 1000
   //! I 39 MaxNtrCls_ldt
   int MaxNtrCls_ldt;// 150
   //! I 40 MaxNtrHit
-  int MaxNtrHit  ;// 1000
-  //! F 41  Trackin time limit
-  float TrTimeLim  ;// 1000
+  int MaxNtrHit; // 1000
+  //! R 41  Trackin time limit
+  geant TrTimeLim; // 1000
   //TRACK PARS
   //! I 42 MaxNtrack 
-  int    MaxNtrack ;//4
+  int    MaxNtrack; //4
   //! I 43 MinNhitX
-  int    MinNhitX  ;//4
+  int    MinNhitX; //4
   //! I 44 MinNhitY
-  int    MinNhitY  ;//5
+  int    MinNhitY; //5
   //! I 45 MinNhitXY
-  int    MinNhitXY ;//4
+  int    MinNhitXY; //4
   //! I 46 PatAllowOption
-  int    PatAllowOption ;//0
+  int    PatAllowOption; //0
   //! R 47 MaxChisqAllowed
-  float MaxChisqAllowed   ;//300
+  geant MaxChisqAllowed; //300
   //! R 48  LadderScanRange
-  float LadderScanRange   ;//7.3 = TkDBc::Head->_ladder_Ypitch
+  geant LadderScanRange; //7.3 = TkDBc::Head->_ladder_Ypitch
   //! R 49 ClusterScanRange
-  float ClusterScanRange  ;//0.5
+  geant ClusterScanRange; //0.5
   //! R 50 MaxChisqForLScan
-  float MaxChisqForLScan  ;//2.2
+  geant MaxChisqForLScan; //2.2
   //! R 51 ErrXForScan
-  float ErrXForScan       ;//300e-4
+  geant ErrXForScan; //300e-4
   //! R 52 ErrYForScan
-  float ErrYForScan       ;//300e-4
+  geant ErrYForScan; //300e-4
   //! R [53,54] Seed S/N Threshold for 37:n(X) 38:p(Y) side
-  geant TrackThrSeed[2] ;  
-
+  geant TrackThrSeed[2];  
   //! I 55 Advanced fit bits
   int AdvancedFitFlag;  // 0xffff
 
-  //DEBUG
+  // DEBUG
   //! I 56 TrDEBUG (DEBUG on Track finding)
-  int TrDEBUG ;
+  int TrDEBUG;
   //! I 57 PZDEBUG
-  int PZDEBUG ;
+  int PZDEBUG;
+
+  // TAS
   //! I 58 TAS reconstruction
   int TasRecon;
   //! I 59 TAS current intensity
@@ -322,14 +323,15 @@ public:
   //! I 63  ReconStats flag  0=no 1=yes (default 1)
   int statflag;
 
+  // New parameters for reconstruction (2012)
   //! BuildRecHits: tagging hits and clusters compatible with charge seed 
   int   ChargeSeedTagActive;
   //! BuildRecHits: eliminate hits not compatible with charge seed (high-z clean rec.)
   int   ChargeSeedSelActive;
   //! BuildRecHits: hit correlation probability threshold
-  float CorrelationProbThr;
+  geant CorrelationProbThr;
   //! BuildRecHits: choose only-Y hits with a cluster Signal-to-Noise over the threshold 
-  float YClusterSNThr;
+  geant YClusterSNThr;
   //! BuildRecHits: minimum number of strips for only-Y hits 
   int   YClusterNStripThr;
 
