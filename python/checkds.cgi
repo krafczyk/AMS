@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: checkds.cgi,v 1.4 2011/03/31 08:01:52 choutko Exp $
+#  $Id: checkds.cgi,v 1.5 2012/01/12 17:05:03 ams Exp $
 # this script suppose to check datasets
 #
 import sys, os
@@ -114,7 +114,7 @@ Use DataFiles : </td><td><font size="-1"><input type=checkbox size="4" name="cem
 form = cgi.FieldStorage()
 if not (form.has_key("CEM") and form.has_key("RemoteClientDSTCheck") ):
     print body
-    sys.exit()
+    #sys.exit()
 #print "<p>name:", form["CEM"].value
 source=form["CEM"].value
 print body
@@ -130,6 +130,7 @@ for x in sys.argv:
     if x == "-h": h=1
     elif x == "-v": v=1
     elif x == "-f": f=1
+    elif x == "-t": tabulated=0
     elif x[0:2] == "-r" :
         run2p=int(x[2:len(x)])
 html= RemoteClient.RemoteClient()
