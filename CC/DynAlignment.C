@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.25 2012/01/12 09:08:39 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.26 2012/01/12 10:24:28 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -795,9 +795,17 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
   SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
   SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
   SELECT("At least 1 tr track",fStatus&(0x3<<13));
+
+#ifndef _PGTRACK_
+  SELECT("XCheck",ev->pParticle(0) && ev->pParticle(0)->pTrTrack());  
+#endif
+
   SELECT("At most 1 crossing particle at rich",ev->pParticle(0)->RichParticles<=1);
   SELECT("At least 3 out of 4 for beta",ev->Particle(0).pBeta()->Pattern<=4);
   SELECT("TOF beta>0.9",ev->Particle(0).pBeta()->Beta>0.9);  
+
+
+
 
   bool layerUsed[10];
   for(int l=0;l<10;l++) layerUsed[l]=false;
