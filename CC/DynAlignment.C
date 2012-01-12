@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.24 2012/01/10 22:36:41 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.25 2012/01/12 09:08:39 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1280,7 +1280,8 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
       return false;
     }
   }
-
+  
+  if(abs(lower->first-seconds)>30) return false; // Not found
   fit=lower->second;
   return true;
 }
@@ -1691,7 +1692,11 @@ bool DynAlManager::DumpDirToLinear(TString dir){
       if(key>maxkey) maxkey=key;
     }
     //    cout<<"TIME RANGE FOR L9 "<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
-    //    cout<<"TIME RANGE "<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
+
+    if(maxkey)
+      cout<<"TIME RANGE "<<minkey<<" TO "<<maxkey<<" "<<(maxkey-minkey)/60<<" minutes"<<endl;
+    else
+      cout<<"Problem for "<<name<<endl;
 
     for(int key=minkey;key<=maxkey;key++){
       // Get the parameters
