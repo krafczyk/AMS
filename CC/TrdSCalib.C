@@ -21,13 +21,36 @@
 #include "TrdSCalib.h"
 
 #include "root.h"
-#include "timeid.h"
-#include "amsdbc.h"
+#ifndef __ROOTSHAREDLIBRARY__
+#include "commons.h"
+#endif
 
 ClassImp(AC_TrdHits);
 ClassImp(TrdSCalibR);
 
-TrdSCalibR *TrdSCalibR::head=0;
+TrdSCalibR *TrdSCalibR::head[64]=
+  {0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0};
+
+TrdSCalibR* TrdSCalibR::gethead(int i){
+#ifdef _OPENMP
+  if(i==0)
+    i=omp_get_thread_num();
+#endif
+  if(!head[i]){
+    head[i] = new TrdSCalibR();
+#ifndef __ROOTSHAREDLIBRARY__
+    head[i]->InitTrdSCalib(TRDCALIB.TrdSCalibVersion,TRDCALIB.TrdSCalibTrack,TRDCALIB.TrdSCalibDebug);	
+#endif    
+
+  }
+  return head[i];
+}
 
 const char *TrdSCalibR::TrdDBUpdateDir[] =
   {
@@ -67,13 +90,84 @@ const char *TrdSCalibR::TrdSum8name[] = {"TrdSum8Raw", "TrdSum8New"};
 const char *TrdSCalibR::EvtPartID[]   = {"Proton", "Helium","Electron","Positron","AntiProton"};
 
 const char *TrdSCalibR::TrdTrackTypeName[] = {"TrdHTrack", "TrdTrack"};
-    
+
+TrdSCalibR::TrdSCalibR(): iFlag(3), Pabs(0), algo(1), patt(3), refit(1),
+			  dummy(0) {
+
+  FirstCall   = true;
+  FirstLLCall = true;
+  FirstMCCall = true;
+  h_TrdGasCirMPV.clear();
+  h_TrdModuleMPV.clear();
+
+  g_TrdCalibMPV.clear();
+
+  FirstCalRunTime  = 2000000000;
+  LastCalRunTime   = 0;
+
+  FirstXday = -1;
+  LastXday  = -1;
+   
+  Lprod_Proton     = 1.0;
+  Lprod_Helium     = 1.0;
+  Lprod_Electron   = 1.0;
+
+  Lprod_ProtonMC   = 1.0;
+  Lprod_HeliumMC   = 1.0;
+  Lprod_ElectronMC = 1.0;
+   
+  TrdLR_xProt.clear();
+  TrdLR_xHeli.clear();
+  TrdLR_xElec.clear();
+
+  TrdLR_nProt.clear();
+  TrdLR_nHeli.clear();
+  TrdLR_nElec.clear();
+
+  TrdLR_pProt.clear();
+  TrdLR_pHeli.clear();
+  TrdLR_pElec.clear();
+
+  TrdLR_Gr_Prot.clear();
+  TrdLR_Gr_Elec.clear();
+  TrdLR_Gr_Heli.clear();
+
+  nTrdHitLayer.clear();
+  TrdScalibXdays.clear();
+  TrdScalibMpv.clear();
+
+  for(int i=0;i<100;i++){
+    p_Graph[i]=0;
+    p_gr_L[i]=0;
+    he_Graph[i]=0;
+    he_gr_L[i]=0;
+    e_Graph[i]=0;
+    e_gr_L[i]=0;
+  }
+
+  for(int i=0;i<3;i++) cTrd[i]=dTrd[i]=cTrk[i]=dTrk[i]=0.0;
+
+  /// matching trd and tk
+  fTrdSigmaDy = new TF1("fTrdSigmaDy",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
+  fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347); 
+  fTrdSigmaDx = new TF1("fTrdSigmaDx",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
+  fTrdSigmaDx->SetParameters(2.484,0.1183,0.3487);
+  fTrd95Da = new TF1("fTrd95Da",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);  
+  fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
+
+  fTrdLR      = 0;
+  //fTrdLR = new TF1("fTrdLR",this,&TrdSCalibR::Fun2Landau3Expo, 0.0,4000.0, 0);
+  ///avoids being deleted next time a new one with the same name is constructed 
+  //gROOT->GetListOfFunctions()->Remove(fTrdLR);
+
+}
+
 
 //--------------------------------------------------------------------------------------------------
 
 void AC_TrdHits::PrintTrdHit(Option_t *) const{
   std::cout << Form("Lad=%5d Lay=%5d Tub=%5d Mod=%5d Straw=%d GC=%5d ",
-	       Lad, Lay, Tub, Mod, Straw, GC);
+		    Lad, Lay, Tub, Mod, Straw, GC);
   std::cout << std::endl;
 
   std::cout << Form("EadcR=%5.1f, EadcCM=%5.1f, EadcC1=%5.1f, EadcCS=%5.1f,",
@@ -90,7 +184,7 @@ void AC_TrdHits::PrintTrdHit(Option_t *) const{
 vector<int> TrdSCalibR::nTrdModulesPerLayer(20);
 vector< vector<int> > TrdSCalibR::mStraw(18, vector<int>(20)); 
 
-vector<int> TrdSCalibR::aP(328);   
+//vector<int> TrdSCalibR::aP(328);   
 
 void TrdSCalibR::GenmStrawMatrix(int Debug) {
   std::cout << "TrdSCalib:: Generate mStraw-Matrix." << std::endl;
@@ -176,7 +270,7 @@ int AC_TrdHits::GetTrdStrawNumber() {
 /// Module 0 -327
 int AC_TrdHits::GetTrdModule(int layer, int ladder) {     
  
-   int module 	= -1;
+  int module 	= -1;
   
   if (layer<0 || layer>=trdconst::nTrdLayers || ladder<0 || ladder>=trdconst::nTrdLadders) 
     std::cerr << "Error  GetTrdModule: Lay=" << layer 
@@ -193,7 +287,7 @@ int AC_TrdHits::GetTrdModule(int layer, int ladder) {
 
 int AC_TrdHits::GetTrdModule() {     
   
-   int module 	= -1;
+  int module 	= -1;
   
   if (Lay<0 || Lay>=trdconst::nTrdLayers || Lad<0 || Lad>=trdconst::nTrdLadders) 
     std::cerr << "Error  GetTrdModule: Lay=" << Lay 
@@ -240,8 +334,8 @@ int AC_TrdHits::TrdStraw2LayLad(int Straw, int &Lad, int &Lay) {
 //--------------------------------------------------------------------------------------------------
 /// Straw 0 - 5247 => Lay 0 - 19
 int AC_TrdHits::TrdStraw2Layer(int Straw) {
-   int Lad = -1;
-   int Lay = -1;
+  int Lad = -1;
+  int Lay = -1;
   TrdStraw2LayLad(Straw, Lad, Lay);
   return Lay;
 }
@@ -249,8 +343,8 @@ int AC_TrdHits::TrdStraw2Layer(int Straw) {
 //--------------------------------------------------------------------------------------------------
 /// Straw 0 - 5247 => Lad 0 - 17
 int AC_TrdHits::TrdStraw2Ladder(int Straw) { 
-   int Lad = -1;
-   int Lay = -1;
+  int Lad = -1;
+  int Lay = -1;
   TrdStraw2LayLad(Straw, Lad, Lay);
   return Lad;
 }
@@ -258,7 +352,7 @@ int AC_TrdHits::TrdStraw2Ladder(int Straw) {
 //--------------------------------------------------------------------------------------------------
 /// TRD Gas Group from 0-40
 int AC_TrdHits::GetTrdGasGroup(int layer, int ladder) {
-   int GasGroup = -1;
+  int GasGroup = -1;
   if (layer>19)	{
     std::cerr << "Error  GetTrdGasGroup: layer 19+ found! layers should be 0-19" << std::endl;
     return GasGroup;
@@ -288,7 +382,7 @@ int AC_TrdHits::GetTrdGasGroup(int layer, int ladder) {
 }
 
 int AC_TrdHits::GetTrdGasGroup(void) {
-   int GasGroup = -1;
+  int GasGroup = -1;
   if (Lay>19)	{
     std::cerr << "Error  GetTrdGasGroup: layer 19+ found! layers should be 0-19" << std::endl;
     return GasGroup;
@@ -394,7 +488,7 @@ int  AC_TrdHits::GetTrdGasCircuit(void) {
 //--------------------------------------------------------------------------------------------------
 /// return correction in cm
 double  AC_TrdHits::GetTrdModuleAlignmentCorrection(int Layer, int Module) {
-   double  Corr 	= 0.0;
+  double  Corr 	= 0.0;
 
   // Trd Alignment relative to tracker
   if (Layer>=0 && Layer<4) {
@@ -432,7 +526,7 @@ double AC_TrdHits::DistanceFromLine(double cx, double cy,
 
 //--------------------------------------------------------------------------------------------------
 double AC_TrdHits::GetTrdHitTrkDistance(int d, float xy, float z, AMSPoint cPtrk, AMSDir dPtrk) {	
-   double Distance = -1.0;
+  double Distance = -1.0;
  
   double   xl 	= (z + 20.0 - cPtrk[2]) / dPtrk[2];
   
@@ -499,8 +593,8 @@ double AC_TrdHits::GetTrdPathLen3D(int lay, float xy, float z, AMSPoint cP, AMSD
 bool TrdSCalibR::GetcTrd(TrdHTrackR *trdht) {
   if(! trdht) return false; 
   c0Trd[0]=trdht->Coo[0]; c0Trd[1]=trdht->Coo[1]; c0Trd[2]=trdht->Coo[2];
-   float cpx = 0; 
-   float cpy = 0;
+  float cpx = 0; 
+  float cpy = 0;
   trdht->propagateToZ(trdconst::ToFLayer1Z, cpx,  cpy);
   cTrd[0] = cpx; cTrd[1] = cpy;
   cTrd[2] = trdconst::ToFLayer1Z;
@@ -540,15 +634,15 @@ bool TrdSCalibR::GetcTrkdTrk(TrTrackR *trt){
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::MatchingTrdTKtrack(float Pabs, int Debug){
   double TrdTkD  = TMath::Sqrt(TMath::Power(cTrk.x()-cTrd.x(),2)+
-			   TMath::Power(cTrk.y()-cTrd.y(),2)+
-			   TMath::Power(cTrk.z()-cTrd.z(),2));
+			       TMath::Power(cTrk.y()-cTrd.y(),2)+
+			       TMath::Power(cTrk.z()-cTrd.z(),2));
 
   double TrdTkDx = cTrk.x() - c0Trd.x() + trdconst::TrdOffsetDx;
   double TrdTkDy = cTrk.y() - c0Trd.y() + trdconst::TrdOffsetDy;
   double SigmaTrdTrackerX = fTrdSigmaDx->Eval(Pabs);
   double SigmaTrdTrackerY = fTrdSigmaDy->Eval(Pabs);
   double TrdTkDr 	  = TMath::Sqrt( TMath::Power(TrdTkDx/SigmaTrdTrackerX,2) + 
-			       TMath::Power(TrdTkDy/SigmaTrdTrackerY,2) );
+					 TMath::Power(TrdTkDy/SigmaTrdTrackerY,2) );
 
   double CutTrdTkDa       = 10.0*fTrd95Da->Eval(Pabs);
 
@@ -570,7 +664,7 @@ void TrdSCalibR::ReadLFname(void){
 }
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::GetEvthTime(AMSEventR *ev, int Debug){
-   int hTime = 0;
+  int hTime = 0;
   time_t  EvtTime = ev->fHeader.Time[0];
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
@@ -589,14 +683,13 @@ int TrdSCalibR::GetEvthTime(AMSEventR *ev, int Debug){
 
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::GetEvthTime(time_t EvtTime, int Debug){
-   int hTime = 0;
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
   int	Hour	= TimeInfo->tm_hour;
   int   Minute 	= TimeInfo->tm_min;
   int   Second	= TimeInfo->tm_sec;
 
-  hTime	= Day*24 + Hour; 
+  int hTime	= Day*24 + Hour; 
 
   if(Debug > 1)
     std::cout << Form("EvtTime  Day= %3d Time= %02d:%02d:%02d hTime=%8d", Day, Hour,Minute, Second, hTime) 
@@ -606,7 +699,7 @@ int TrdSCalibR::GetEvthTime(time_t EvtTime, int Debug){
 }
 //--------------------------------------------------------------------------------------------------
 float TrdSCalibR::GetEvtxTime(AMSEventR *ev, int Debug){
-   float xTime = 0;
+  float xTime = 0;
   time_t  EvtTime = ev->fHeader.Time[0];
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
@@ -628,7 +721,7 @@ float TrdSCalibR::GetEvtxTime(AMSEventR *ev, int Debug){
 }
 //--------------------------------------------------------------------------------------------------
 float TrdSCalibR::GetEvtxTime(time_t EvtTime, int Debug){
-   float xTime = 0;
+  float xTime = 0;
   struct tm*  TimeInfo = gmtime ( &EvtTime );
   int 	Day     = TimeInfo->tm_yday;
   int	Hour	= TimeInfo->tm_hour;
@@ -650,7 +743,6 @@ float TrdSCalibR::GetEvtxTime(time_t EvtTime, int Debug){
 //--------------------------------------------------------------------------------------------------
 
 int TrdSCalibR::GetModCalibTimePeriod(TString fname, TString hname, int Debug) {
-	
   TFile *input = TFile::Open(fname);
   if (!input->IsOpen()) {  
     std::cout << "GetCalibTimePeriod: No " << fname << std::endl;
@@ -682,8 +774,8 @@ int TrdSCalibR::GetModCalibTimePeriod(TString fname, TString hname, int Debug) {
 
 //--------------------------------------------------------------------------------------------------
 
-TObjArray* TrdSCalibR::ObjTrdGasCirMPV_list = new TObjArray();
-TObjArray* TrdSCalibR::ObjTrdModuleMPV_list = new TObjArray();
+//TObjArray* TrdSCalibR::ObjTrdGasCirMPV_list = new TObjArray();
+//TObjArray* TrdSCalibR::ObjTrdModuleMPV_list = new TObjArray();
 
 
 bool TrdSCalibR::Get01TrdCalibration(TString fname, int Debug) {
@@ -718,20 +810,20 @@ bool TrdSCalibR::Get01TrdCalibration(TString fname, int Debug) {
   delete input;
 
   /*
-  /// use TObjArray instead of vector <TH1F*>
-  TObjArrayIter next(ObjTrdGasCirMPV_list);
-  TObject* object;
-  TH1F *p = NULL;
-  int ii = 0;
-  while ( ( object = next() ) ) {
-    p = (TH1F*) object;
-    if(!p) break;
-    if(Debug > 0)
-    std::cout << Form("+-+- %s [%02d] M=%d", p->GetName(), ii++, (int) p->GetMean()) 
-	      << std::endl;
-  } 
-  delete object;
-  delete p;
+ /// use TObjArray instead of vector <TH1F*>
+ TObjArrayIter next(ObjTrdGasCirMPV_list);
+ TObject* object;
+ TH1F *p = NULL;
+ int ii = 0;
+ while ( ( object = next() ) ) {
+ p = (TH1F*) object;
+ if(!p) break;
+ if(Debug > 0)
+ std::cout << Form("+-+- %s [%02d] M=%d", p->GetName(), ii++, (int) p->GetMean()) 
+ << std::endl;
+ } 
+ delete object;
+ delete p;
   */
 
   if (nLost==0) {
@@ -789,7 +881,7 @@ bool TrdSCalibR::Get02TrdCalibration(TString fname, int Debug) {
 
 }
 //--------------------------------------------------------------------------------------------------
-TObjArray* TrdSCalibR::ObjTrdCalibMPV = new TObjArray();
+//TObjArray* TrdSCalibR::ObjTrdCalibMPV = new TObjArray();
 
 bool TrdSCalibR::Get03TrdCalibration(TString fname, int Debug) {
 	
@@ -838,7 +930,7 @@ bool TrdSCalibR::Get03TrdCalibration(TString fname, int Debug) {
       TGraphErrors *grTrdCalibMpv = new TGraphErrors(vecX.size(),&vecX[0],&vecY[0],0,&vecEy[0]);
       g_TrdCalibMPV.push_back(grTrdCalibMpv);
       
-      ObjTrdCalibMPV->Add(grTrdCalibMpv);
+      //      ObjTrdCalibMPV->Add(grTrdCalibMpv);
 
       vecX.clear();
       vecY.clear();
@@ -873,26 +965,25 @@ bool TrdSCalibR::Init(int CalibLevel, int Debug){
   
   /// get TRD calibration histos / each module level (v3)
   else if(CalibLevel < 4) GetTrdV3CalibHistos(CalibLevel, Debug);
-
+  
   /// get TRD calibration graphs / each module level (v4)
   else GetTrdV4CalibHistos(CalibLevel, Debug);
-
+  
   /// initiate TRD loglikelihood calculator
   TrdLR_CalcIni(Debug);
-
+  
   /// initiate ToyMC loglikelihood calculator
   TrdLR_MC_CalcIni(Debug);
-
+  
   /// check each initiate procedure
   if(FirstCall || FirstLLCall || FirstMCCall)
     return false;
-
   else return true;
 }
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetTrdCalibHistos(int CalibLevel, int Debug) {
   
-  FirstCall = true;  TrdCalib_01 = false;  TrdCalib_02 = false;
+  TrdCalib_01 = false;  TrdCalib_02 = false;
   /// Get TRD Calibration Histograms
   if (FirstCall) {
     if(Debug) 
@@ -919,19 +1010,19 @@ bool TrdSCalibR::GetTrdCalibHistos(int CalibLevel, int Debug) {
       std::cout <<Form("TrdCalib1=%s TrdCalib2=%s",
 		       TrdCalib_01?"true":"false",
 		       TrdCalib_01?"true":"false") <<std::endl;
-    FirstCall = false;
     
+    FirstCall = false;
   }
 
   if (  (TrdCalib_01 && CalibLevel>0) || (TrdCalib_02 && CalibLevel>1) ) 
-      return true;
+    return true;
   else return false;
     
 }
 //-------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetTrdV3CalibHistos(int CalibLevel, int Debug) {
   
-  FirstCall = true;  TrdCalib_01 = false;  TrdCalib_02 = false; TrdCalib_03 = false;
+  TrdCalib_01 = false;  TrdCalib_02 = false; TrdCalib_03 = false;
   /// Get TRD Calibration Histograms
   if (FirstCall) {
     if(Debug) 
@@ -957,7 +1048,6 @@ bool TrdSCalibR::GetTrdV3CalibHistos(int CalibLevel, int Debug) {
 		       TrdCalib_02?"true":"false",
 		       TrdCalib_03?"true":"false") <<std::endl;
     FirstCall = false;
-   
   }
 
   if (  TrdCalib_03 && CalibLevel>2 ) 
@@ -982,16 +1072,16 @@ void TrdSCalibR::GetBinGasCirModule(int hTime, int CalibLevel, int iCir, int iMo
 		      TrdCalib_01?"true":"false",TrdCalib_02?"true":"false", CalibLevel)
 	      << std::endl;
   if (TrdCalib_01 && CalibLevel>0) 
-      iBinGasCir = h_TrdGasCirMPV.at(iCir)->FindBin(double(hTime));
+    iBinGasCir = h_TrdGasCirMPV.at(iCir)->FindBin(double(hTime));
 
   if (TrdCalib_02 && CalibLevel>1) 
-      iBinModule = h_TrdModuleMPV.at(iMod)->FindBin(double(hTime)); 
+    iBinModule = h_TrdModuleMPV.at(iMod)->FindBin(double(hTime)); 
   
   if(Debug > 1)
-  std::cout << "hTime=" << (int)hTime 
-	    << " iBinGasCir= " << iBinGasCir 
-	    << " iBinModule= " << iBinModule 
-	    << std::endl; 
+    std::cout << "hTime=" << (int)hTime 
+	      << " iBinGasCir= " << iBinGasCir 
+	      << " iBinModule= " << iBinModule 
+	      << std::endl; 
 
 
   if (TrdCalib_02 && CalibLevel>1 && Debug > 1) {
@@ -1119,7 +1209,7 @@ void TrdSCalibR::TrdLR_CalcIni_v01(int Debug) {
 	  for (int j=0; j<trdconst::TrdLR_Elec_nPar; j++)
 	    std::cout << Form(" %+10.4E ",TrdLR_pElec[j][iLay]);
 	  std::cout << std::endl;
-      }
+	}
       std::cout << std::endl;
     }
     hname.clear();
@@ -1217,6 +1307,7 @@ vector<double> TrdSCalibR::TrdLR_Calc_v01(float Pabs, vector<AC_TrdHits*> TrdHit
     //double L_Proton 	= max(1E-8, TrdSCalibR::TrdLR_fProton(x,par));
     myPair <double> myProtonL  (1E-8, TrdSCalibR::TrdLR_fProton(x,par));
     myPair <double> myHeliumL  (1E-8, TrdSCalibR::TrdLR_fHelium(x,par));
+    par[0]              = Layer;
     myPair <double> myElectronL(1E-8, TrdSCalibR::TrdLR_fElectron(x,par));
     double L_Proton   = myProtonL.GetMax();
     double L_Helium   = myHeliumL.GetMax();
@@ -1285,20 +1376,17 @@ vector<double> TrdSCalibR::GenLogBinning(int nBinLog, double Tmin, double Tmax) 
 ///	x[0] = Eadc, par[0] = iP = Momentum Bin
 double TrdSCalibR::TrdLR_fProton(double *x, double *par) {
 	
-   double L_Proton = 0.0;
+  double L_Proton = 0.0;
   int	 iP  		 = (int) par[0];
   if (iP<0 || iP>=TrdLR_xProt.size()) {
     std::cerr << "TrdSCalibR::TrdLR_fProton-E-Error in TrdLR_fProton: iP=" << iP << std::endl;
-//    exit(-1);
-      return 0; 
+    //    exit(-1);
+    return 0; 
   }
   
-  static bool Graph[100] = {false};
-  static TGraph *gr_L[100];
-#pragma omp threadprivate( Graph,gr_L)
-  if (Graph[iP]) 
+  if (p_Graph[iP]) 
     {
-      L_Proton = gr_L[iP]->Eval(x[0]);
+      L_Proton = p_gr_L[iP]->Eval(x[0]);
       
     } else {
     vector<double> parx;
@@ -1321,9 +1409,9 @@ double TrdSCalibR::TrdLR_fProton(double *x, double *par) {
 	vecAdc.push_back(xadc[0]);
 	vecLR.push_back(lr);
       }
-    gr_L[iP]    = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
-    Graph[iP] 	= true;
-    L_Proton 	= gr_L[iP]->Eval(x[0]);
+    p_gr_L[iP]    = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
+    p_Graph[iP] 	= true;
+    L_Proton 	= p_gr_L[iP]->Eval(x[0]);
   }
   
   return L_Proton;
@@ -1337,15 +1425,12 @@ double TrdSCalibR::TrdLR_fHelium(double *x, double *par) {
   int 	 iP 		= (int) par[0];
   if (iP<0 || iP>=TrdLR_xHeli.size()) {
     std::cerr << "TrdSCalibR::TrdLR_fHelium-E-Error in TrdLR_fHelium: iP=" << iP << std::endl;
-  //  exit(-1);
+    //  exit(-1);
     return 0;
   }
   
-  static bool Graph[100] = {false};
-  static TGraph *gr_L[100];
-  #pragma omp threadprivate( Graph,gr_L)
-if (Graph[iP]) {
-    L_Helium = gr_L[iP]->Eval(x[0]);
+  if (he_Graph[iP]) {
+    L_Helium = he_gr_L[iP]->Eval(x[0]);
     
   } else {
     vector<double> parx;
@@ -1365,9 +1450,9 @@ if (Graph[iP]) {
       vecAdc.push_back(xadc[0]);
       vecLR.push_back(lr);
     }
-    gr_L[iP]  = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
-    Graph[iP] = true;
-    L_Helium  = gr_L[iP]->Eval(x[0]);
+    he_gr_L[iP]  = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
+    he_Graph[iP] = true;
+    L_Helium  = he_gr_L[iP]->Eval(x[0]);
   }
   
   return L_Helium;
@@ -1377,15 +1462,11 @@ if (Graph[iP]) {
 ///	x[0] = Eadc, par[0] = Layer
 double TrdSCalibR::TrdLR_fElectron(double *x, double *par) {
 	
-  static bool Graph[nTrdLayers] = {false};
-  static TGraph *gr_L[nTrdLayers];
-#pragma omp threadprivate( Graph,gr_L)
-  
   double  L_Electron 	= 0.0;
   int 	  Layer 	= (int) par[0];
   
-  if (Graph[Layer]) {
-    L_Electron = gr_L[Layer]->Eval(x[0]);
+  if (e_Graph[Layer]) {
+    L_Electron = e_gr_L[Layer]->Eval(x[0]);
     
   } else {
     vector<double> parx;
@@ -1404,9 +1485,9 @@ double TrdSCalibR::TrdLR_fElectron(double *x, double *par) {
       vecAdc.push_back(xadc[0]);
       vecLR.push_back(lr);
     }
-    gr_L[Layer]   = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
-    Graph[Layer]  = true;
-    L_Electron 	  = gr_L[Layer]->Eval(x[0]);
+    e_gr_L[Layer]   = new TGraph(vecAdc.size(),&vecAdc[0],&vecLR[0]);
+    e_Graph[Layer]  = true;
+    L_Electron 	  = e_gr_L[Layer]->Eval(x[0]);
   }
   
   return L_Electron;
@@ -1473,7 +1554,8 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       sprintf(hpName,"h_TrdLR_Prot_%d",iBinY);
       h_TrdLR_Prot.push_back(h_TrdProt->ProjectionX(hpName,iBinY,iBinY));
     }
-    
+    delete h_TrdProt;
+
     TrdLR_nProt.assign(h_TrdLR_Prot.size(),1.0);
     for (unsigned int i=0; i<h_TrdLR_Prot.size(); i++) {
       h_TrdLR_Prot.at(i)->Sumw2();
@@ -1482,10 +1564,12 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       TGraph 		*grin 	= new TGraph(h_TrdLR_Prot.at(i));
       TGraphSmooth 	*gs 	= new TGraphSmooth("normal");
       TrdLR_Gr_Prot.push_back(gs->SmoothSuper(grin,"",6,0.025));			    
+      delete grin,gs;
       TF1 *fTrdLR = new TF1("fTrdLR", this, &TrdSCalibR::TrdLR_fProton_v02,0.0,4000.0,1);
       fTrdLR->SetParameter(0,double(i));	
       fTrdLR->SetNpx(1000);	
       TrdLR_nProt.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
+      delete fTrdLR;
     }
     
     //------------------- Electrons -----------------------------------------------------------
@@ -1496,6 +1580,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       sprintf(hpName,"h_TrdLR_Elec_%d",iBinY);
       h_TrdLR_Elec.push_back(h_TrdElec->ProjectionX(hpName,iBinY,iBinY));
     }
+    delete h_TrdElec;
     
     TrdLR_nElec.assign(h_TrdLR_Elec.size(),1.0);
     for (unsigned int i=0; i<h_TrdLR_Elec.size(); i++) {
@@ -1505,10 +1590,12 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       TGraph 		*grin 	= new TGraph(h_TrdLR_Elec.at(i));
       TGraphSmooth 	*gs 	= new TGraphSmooth("normal");
       TrdLR_Gr_Elec.push_back(gs->SmoothSuper(grin,"",6,0.025));			 	
+      delete grin,gs;
       TF1 *fTrdLR = new TF1("fTrdLR", this, &TrdSCalibR::TrdLR_fElectron_v02,0.0,4000.0,1);
       fTrdLR->SetParameter(0,double(i));	
       fTrdLR->SetNpx(1000);	
       TrdLR_nElec.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
+      delete fTrdLR;
     }
     
     //------------------- Helium -----------------------------------------------------------
@@ -1519,6 +1606,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       sprintf(hpName,"h_TrdLR_Heli_%d",iBinY);
       h_TrdLR_Heli.push_back(h_TrdHeli->ProjectionX(hpName,iBinY,iBinY));
     }
+    delete h_TrdHeli;
     
     TrdLR_nHeli.assign(h_TrdLR_Heli.size(),1.0);
     for (unsigned int i=0; i<h_TrdLR_Heli.size(); i++) {
@@ -1528,12 +1616,17 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
       TGraph 		*grin 	= new TGraph(h_TrdLR_Heli.at(i));
       TGraphSmooth 	*gs 	= new TGraphSmooth("normal");
       TrdLR_Gr_Heli.push_back(gs->SmoothSuper(grin,"",6,0.025));			
+      delete grin,gs;
       TF1 *fTrdLR = new TF1("fTrdLR", this, &TrdSCalibR::TrdLR_fHelium_v02,0.0,4000.0,1);
       fTrdLR->SetParameter(0,double(i));	
       fTrdLR->SetNpx(1000);	
       TrdLR_nHeli.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
+      delete fTrdLR;
     }
     FirstLLCall = false;
+    delete h_Norm;
+
+    delete input;
   }
   
   return true;
@@ -1680,8 +1773,8 @@ bool TrdSCalibR::TrdLR_MC_CalcIni(int Debug) {
 }
 //--------------------------------------------------------------------------------------------------
 vector<double> TrdSCalibR::TrdLR_MC_Calc(float Pabs,  
-					     vector<AC_TrdHits*> TrdHits, vector<bool> PartId, 
-					     int iFlag, int Debug) {
+					 vector<AC_TrdHits*> TrdHits, vector<bool> PartId, 
+					 int iFlag, int Debug) {
 
   vector<double> TrdLR_MC;
   TrdLR_MC.assign(3,-1.0);
@@ -1757,51 +1850,53 @@ vector<double> TrdSCalibR::TrdLR_MC_Calc(float Pabs,
       nCount ++;
     }
 
-    if(Debug > 1) 
+  if(Debug > 1) 
     std::cout << Form("Step 1. |P|=%6.2f(GeV/c) MC Lprod_ElectronMC=%12.4E Lprod_HeliumMC=%12.4E Lprod_ProtonMC=%12.4E", 
 		      Pabs, Lprod_ElectronMC, Lprod_HeliumMC, Lprod_ProtonMC) << std::endl;
   
-    Lprod_ProtonMC 	= TMath::Power(Lprod_ProtonMC,  1.0/float(nCount));
-    Lprod_HeliumMC 	= TMath::Power(Lprod_HeliumMC,  1.0/float(nCount));
-    Lprod_ElectronMC 	= TMath::Power(Lprod_ElectronMC,1.0/float(nCount));
+  Lprod_ProtonMC 	= TMath::Power(Lprod_ProtonMC,  1.0/float(nCount));
+  Lprod_HeliumMC 	= TMath::Power(Lprod_HeliumMC,  1.0/float(nCount));
+  Lprod_ElectronMC 	= TMath::Power(Lprod_ElectronMC,1.0/float(nCount));
     
-    if(Debug > 1) 
-      std::cout << Form("Step 2. |P|=%6.2f(GeV/c) MC Lprod_ElectronMC=%12.4E Lprod_HeliumMC=%12.4E Lprod_ProtonMC=%12.4E", 
-			Pabs, Lprod_ElectronMC, Lprod_HeliumMC, Lprod_ProtonMC) << std::endl;
+  if(Debug > 1) 
+    std::cout << Form("Step 2. |P|=%6.2f(GeV/c) MC Lprod_ElectronMC=%12.4E Lprod_HeliumMC=%12.4E Lprod_ProtonMC=%12.4E", 
+		      Pabs, Lprod_ElectronMC, Lprod_HeliumMC, Lprod_ProtonMC) << std::endl;
     
-    double LR_Elec_Prot = Lprod_ElectronMC/(Lprod_ElectronMC+Lprod_ProtonMC);
-    double LR_Heli_Prot	= Lprod_HeliumMC/(Lprod_HeliumMC+Lprod_ProtonMC);
-    double LR_Elec_Heli	= Lprod_ElectronMC/(Lprod_ElectronMC+Lprod_HeliumMC);
+  double LR_Elec_Prot = Lprod_ElectronMC/(Lprod_ElectronMC+Lprod_ProtonMC);
+  double LR_Heli_Prot	= Lprod_HeliumMC/(Lprod_HeliumMC+Lprod_ProtonMC);
+  double LR_Elec_Heli	= Lprod_ElectronMC/(Lprod_ElectronMC+Lprod_HeliumMC);
     
-    TrdLR_MC.at(0) = -log(LR_Elec_Prot);
-    TrdLR_MC.at(1) = -log(LR_Heli_Prot);
-    TrdLR_MC.at(2) = -log(LR_Elec_Heli);
+  TrdLR_MC.at(0) = -log(LR_Elec_Prot);
+  TrdLR_MC.at(1) = -log(LR_Heli_Prot);
+  TrdLR_MC.at(2) = -log(LR_Elec_Heli);
     
-    if(Debug > 1) 
-      {
-	int j = 0;
-	std::cout << "MC " ;
-	for(vector<double>::iterator lr = TrdLR_MC.begin(); lr != TrdLR_MC.end(); ++lr )
-	  {
-	    std::cout << Form("%s=%4.2f  ", TrdLLname[j++], *lr);
-	  }
-	std::cout << std::endl;
-      }
+  if(Debug > 1) 
+    {
+      int j = 0;
+      std::cout << "MC " ;
+      for(vector<double>::iterator lr = TrdLR_MC.begin(); lr != TrdLR_MC.end(); ++lr )
+	{
+	  std::cout << Form("%s=%4.2f  ", TrdLLname[j++], *lr);
+	}
+      std::cout << std::endl;
+    }
   
   return TrdLR_MC;
 }
 //--------------------------------------------------------------------------------------------------
 double TrdSCalibR::GetProtonBetheBlochCorrFactor(float Pabs){
-  
-  TF1 *fBetheBlochProton = new TF1("fBetheBlochProton",this, &TrdSCalibR::FunBetheBloch,0.1,1000.0,5);
-  fBetheBlochProton->SetParameters(2.97171e+00,9.67198e+04,-3.14408e+00,trdconst::mProt,+1.0);  
+  if(!fBetheBlochProton){
+    fBetheBlochProton = new TF1("fBetheBlochProton",this, &TrdSCalibR::FunBetheBloch,0.1,1000.0,5);
+    fBetheBlochProton->SetParameters(2.97171e+00,9.67198e+04,-3.14408e+00,trdconst::mProt,+1.0);  
+  }
   return fBetheBlochProton->Eval(Pabs);
 }
 
 double TrdSCalibR::GetHeliumBetheBlochCorrFactor(float Pabs){
-
-  TF1 *fBetheBlochHelium = new TF1("fBetheBlochHelium",this, &TrdSCalibR::FunBetheBloch,0.1,1000.0,5);
-  fBetheBlochHelium->SetParameters(3.32153e+00,9.62920e+07,-3.21979e+00,trdconst::mHeli,+2.0);
+  if(!fBetheBlochHelium){
+    fBetheBlochHelium = new TF1("fBetheBlochHelium",this, &TrdSCalibR::FunBetheBloch,0.1,1000.0,5);
+    fBetheBlochHelium->SetParameters(3.32153e+00,9.62920e+07,-3.21979e+00,trdconst::mHeli,+2.0);
+  }
   return  fBetheBlochHelium->Eval(Pabs);
 }
 //--------------------------------------------------------------------------------------------------
@@ -1856,8 +1951,8 @@ bool TrdSCalibR::Get04TrdCalibration(TString fname, int Debug) {
     LastXday 	        = GetEvtxTime((time_t) LastCalRunTime,  Debug); //GetStime((time_t)LastRun)/86400.0;
   }
   //if(Debug)
-    std::cout << Form("### Trd Calibration Runs=%6d Interval %5d - %5d <=> %7.4f - %7.4f days ###", 
-		      nCalibRuns, FirstCalRunTime, LastCalRunTime, FirstXday, LastXday) << std::endl;
+  std::cout << Form("### Trd Calibration Runs=%6d Interval %5d - %5d <=> %7.4f - %7.4f days ###", 
+		    nCalibRuns, FirstCalRunTime, LastCalRunTime, FirstXday, LastXday) << std::endl;
   
   if(FirstXday < 0 || LastXday < 0) return false;
   
@@ -1904,7 +1999,7 @@ bool TrdSCalibR::Get04TrdCalibration(TString fname, int Debug) {
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetTrdV4CalibHistos(int CalibLevel, int Debug) {
   
-  FirstCall = true;  TrdCalib_01 = false;  TrdCalib_02 = false; TrdCalib_03 = false; TrdCalib_04 = false;
+  TrdCalib_01 = false;  TrdCalib_02 = false; TrdCalib_03 = false; TrdCalib_04 = false;
   /// Get TRD Calibration Histograms
   if (FirstCall) {
     if(Debug) 
@@ -1927,8 +2022,8 @@ bool TrdSCalibR::GetTrdV4CalibHistos(int CalibLevel, int Debug) {
 		       TrdCalib_01?"true":"false",
 		       TrdCalib_02?"true":"false",
 		       TrdCalib_03?"true":"false") <<std::endl;
+    
     FirstCall = false;
-   
   }
 
   if (  TrdCalib_04 && CalibLevel>3 ) 
@@ -1992,7 +2087,7 @@ int TrdSCalibR::TrdScalibBinarySearch(double key, int iMod, int Debug) {
 	  Distance2 = std::fabs(TrdScalibXdays[iMod].at(iP)-key);
 	  if(Debug > 1)
 	    std::cout << Form("2. iP=%4d %8.4f Distance1=%8.4f Distance2=%8.4f\n",
-			    iP,TrdScalibXdays[iMod].at(iP),Distance1,Distance2) << std::endl;
+			      iP,TrdScalibXdays[iMod].at(iP),Distance1,Distance2) << std::endl;
 	} while (Distance2<Distance1 && iP>0);
       iP++;
     }
@@ -2047,13 +2142,12 @@ double TrdSCalibR::TrdScalibInterpolate(int iMod, double xDayRef, int &aP, int D
 //--------------------------------------------------------------------------------------------------
 
 int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug){
- 
   s1 = s2 = s3 = 0.0;
 
   if(fMom < 3.0 || fMom > 100)  return 1;
 
-  Htime = GetEvthTime(evut, Debug); 
-  Xtime = GetEvtxTime(evut, Debug); 
+  int Htime = GetEvthTime(evut, Debug); 
+  float Xtime = GetEvtxTime(evut, Debug); 
 
   if ( SCalibLevel == 3 && (Xtime < FirstCalRunTime || Xtime > LastCalRunTime) ) 
     return 3;
@@ -2061,7 +2155,11 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
     return 4;
 
   if(Debug > 1) {
-    std::cout << Form("TrdSCalibLevel=%d TrdTrackLevel=%d TrdiFlag=%d ", SCalibLevel, TrdTrackLevel, iFlag)
+    int thread=0;
+#ifdef _OPENMP
+    thread=omp_get_thread_num();
+#endif
+    std::cout << Form("TrdSCalibLevel=%d TrdTrackLevel=%d TrdiFlag=%d Thread %i", SCalibLevel, TrdTrackLevel, iFlag, thread)
 	      << Form("Pabs=%6.3f Htime=%6d Xtime=%8.4f", Pabs, Htime, Xtime)
 	      << std::endl;
   }
@@ -2076,7 +2174,7 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
     std::cout << Form("TrdHTrack Coo=(%+5.2f, %5.2f %5.2f)",
 		      TrdHtrk->Coo[0],TrdHtrk->Coo[1],TrdHtrk->Coo[2]) << std::endl;
 
-  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
+  //  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
   TrdSHits.clear();
 
@@ -2158,7 +2256,7 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
 	  }
   
 	  TrdSHits.push_back(AC);
-	  nTrdHitLayer[AC->Lay]++;        
+	  //	  nTrdHitLayer[AC->Lay]++;        
 
 	  itrdhit++;
 	}
@@ -2172,8 +2270,8 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
   
   TrdLRs     = TrdLR_Calc(fMom, TrdSHits, iFlag, Debug); 
   
-  if ( TrdSHits.size() != 0) 
-    for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
+  //  if ( TrdSHits.size() != 0) 
+  for(int i=0; i< TrdSHits.size();i++)  delete TrdSHits[i];
 
   s1 = TrdLRs[0]; //TrdLRLprod_Proton;
   s2 = TrdLRs[1]; //Lprod_Helium;
@@ -2199,7 +2297,7 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
     std::cout << Form("TrdHTrack Coo=(%+5.2f, %5.2f %5.2f)",
 		      TrdHtrk->Coo[0],TrdHtrk->Coo[1],TrdHtrk->Coo[2]) << std::endl;
 
-  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
+  //  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
 
   TrdSHits.clear();
 
@@ -2228,8 +2326,8 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
 	  
 	  if(Debug > 1) { 
 	    std::cout << std::endl
-		 << Form("+-+ [%02d] iSeg=%d Layer=%2d Ladder=%2d Tube=%2d EadcR=%4d D=%d XY=%5.1f Z=%5.1f ", 
-			 itrdhit, iseg, AC->Lay, AC->Lad, AC->Tub, (int)AC->EadcR, AC->hitD, AC->hitXY, AC->hitZ); 
+		      << Form("+-+ [%02d] iSeg=%d Layer=%2d Ladder=%2d Tube=%2d EadcR=%4d D=%d XY=%5.1f Z=%5.1f ", 
+			      itrdhit, iseg, AC->Lay, AC->Lad, AC->Tub, (int)AC->EadcR, AC->hitD, AC->hitXY, AC->hitZ); 
 	    std::cout << Form("DHitTrk=%5.2f DHitTrd=%5.2f ", AC->TrkD, AC->TrdD);	   
 	    std::cout << Form("StrawNr=%4d Mod=%3d GasCir=%2d ", 
 			      AC->Straw, AC->Mod, AC->GC );	   		   
@@ -2284,7 +2382,7 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
 		      << std::endl;
   
 	  TrdSHits.push_back(AC);
-	  nTrdHitLayer[AC->Lay]++;        
+	  //	  nTrdHitLayer[AC->Lay]++;        
 
 	  itrdhit++;
 	}
@@ -2295,8 +2393,8 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
   
   TrdLRs     = TrdLR_Calc(Pabs, TrdSHits, iFlag, Debug); 
  
-  if ( TrdSHits.size() != 0) 
-    for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
+  //  if ( TrdSHits.size() != 0) 
+  for(int i=0; i< TrdSHits.size();i++)  delete TrdSHits[i];
 
 
   return 0;
@@ -2305,8 +2403,8 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
 //--------------------------------------------------------------------------------------------------
 int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug){
  
-  Htime = GetEvthTime(evut, Debug); 
-  Xtime = GetEvtxTime(evut, Debug); 
+  int Htime = GetEvthTime(evut, Debug); 
+  float Xtime = GetEvtxTime(evut, Debug); 
 
   if ( SCalibLevel == 3 && (Xtime < FirstCalRunTime || Xtime > LastCalRunTime) ) 
     return 3;
@@ -2331,7 +2429,7 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTr
 		      Trdtrk->Coo[0],Trdtrk->Coo[1],Trdtrk->Coo[2]) 
 	      << std::endl;
 
-  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
+  //  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
   
   TrdSHits.clear();
   
@@ -2419,7 +2517,7 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTr
 		      << std::endl;
   
 	  TrdSHits.push_back(AC);
-	  nTrdHitLayer[AC->Lay]++;       
+	  //	  nTrdHitLayer[AC->Lay]++;       
 
 	  itrdhit++;
 
@@ -2431,8 +2529,8 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTr
  
   TrdLRs     = TrdLR_Calc(Pabs, TrdSHits, iFlag, Debug); 
   
-  if ( TrdSHits.size() != 0) 
-    for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
+  //  if ( TrdSHits.size() != 0) 
+  for(int i=0; i< TrdSHits.size();i++)  delete TrdSHits[i];
 
   s1 = TrdLRs[0]; //TrdLRLprod_Proton;
   s2 = TrdLRs[1]; //Lprod_Helium;
@@ -2458,7 +2556,7 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
 	      << std::endl;
     
 
-  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
+  //  nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
   
   TrdSHits.clear();
 
@@ -2546,7 +2644,7 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
 		      << std::endl;
   
 	  TrdSHits.push_back(AC);
-	  nTrdHitLayer[AC->Lay]++;       
+	  //	  nTrdHitLayer[AC->Lay]++;       
 
 	  itrdhit++;
 
@@ -2558,8 +2656,8 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
  
   TrdLRs     = TrdLR_Calc(Pabs, TrdSHits, iFlag, Debug); 
   
-  if ( TrdSHits.size() != 0) 
-    for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
+  //  if ( TrdSHits.size() != 0) 
+  for(int i=0; i< TrdSHits.size();i++)  delete TrdSHits[i];
 
   return 0;
 }
@@ -2617,12 +2715,21 @@ int TrdSCalibR::InitTrdSCalib(int CalVer, int TrdTrackType, int Debug) {
   TrdTrackLevel = TrdTrackType;
   iFlag         = 3;
 
-  std::cout << Form("### Initiate ... TrdCalibLevel = %d   ", SCalibLevel )
-	    << Form("TrdTrackType  = %s  iFlag=%d ###", TrdTrackTypeName[TrdTrackLevel], iFlag )
-	    << std::endl;
- 
+  int thread=0;
+#ifdef _OPENMP
+  thread=omp_get_thread_num();
+#endif
 
-  if( !Init(SCalibLevel, Debug) ) {
+  if(Debug){
+    std::cout << Form("### Initiate ... TrdCalibLevel = %d   ", SCalibLevel )
+	      << Form("TrdTrackType  = %s  iFlag=%d thread %i ###", TrdTrackTypeName[TrdTrackLevel], iFlag, thread )
+	      << std::endl;
+  }
+  bool ok=true;
+#pragma omp single
+    ok=Init(SCalibLevel, Debug) ;
+
+  if( !ok ) {
     cerr << "Error in TrdSCalib Initialization" << endl;
     return 1;
   }

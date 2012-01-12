@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "TObject.h"
+//#include "TObject.h"
 #include "point.h"
 #include "TrdRawHit.h"
 #include "TrdHRecon.h"
@@ -26,7 +26,10 @@
 #include "TGraph.h"
 #include "TGraphErrors.h"
 #include "TGraphSmooth.h"
-#include "TObjArray.h"
+//#include "TObjArray.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 namespace trdconst{
@@ -143,7 +146,7 @@ T myPair<T>::GetMax() {
 //--------------------------------------------------
 //--- Extension of TrdRawHitR  
 //--------------------------------------------------
-class AC_TrdHits: public TObject{
+class AC_TrdHits{
   
  protected:
   int _ilayer, _iladder, _itube, _ihaddr, _igasgrp, _igascir, _imodule, _ihitD;
@@ -290,16 +293,15 @@ class AC_TrdHits: public TObject{
 //--------------------------------------------------
 //--------------------------------------------------
 
-class TrdSCalibR: public TObject{
+class TrdSCalibR{
   
  private:
   int algo,patt,refit, pmass, pcharge;
-  static TrdSCalibR* head;
+  static TrdSCalibR* head[64];
 
-  
  private:
   /// filename for GetTrdHits
-  static const char* TrdDBUpdateDir[];
+  static const char* TrdDBUpdateDir[2];
   static const char* TrdCalDBUpdate[];
   /// filename for TrdLR_CalcIni
   static const char* TrdElectronProtonHeliumLFname[];
@@ -312,10 +314,20 @@ class TrdSCalibR: public TObject{
   /// ordering name of Trd Track
   static const char* TrdTrackTypeName[];
  
+  
+  bool p_Graph[100];
+  TGraph *p_gr_L[100];
+  
+  bool he_Graph[100];
+  TGraph *he_gr_L[100];
+
+  bool e_Graph[100];
+  TGraph *e_gr_L[100];
 
   /// extended TrdRawHit class
  public:
 
+  TF1 *fBetheBlochProton,*fBetheBlochHelium;
   unsigned int SCalibLevel;
   unsigned int TrdTrackLevel;
 
@@ -335,13 +347,13 @@ class TrdSCalibR: public TObject{
   vector<TF1*> fTrdLR_fElectron, fTrdLR_fProton, fTrdLR_fHelium;
  
   /// use for ver.03
-  static TObjArray *ObjTrdCalibMPV;
+  //  TObjArray *ObjTrdCalibMPV;
   vector<TGraphErrors*> g_TrdCalibMPV;
 
   /// use for ver.04
   vector<AC_TrdHits*> TrdSHits;
 
-  static vector<int> aP;
+  vector<int> aP;
   vector<int> nTrdHitLayer;
   vector< vector<double> > TrdScalibXdays;
   vector< vector<double> > TrdScalibMpv;
@@ -352,8 +364,8 @@ class TrdSCalibR: public TObject{
 
   unsigned int FirstCalRunTime, LastCalRunTime;
 
-  static TObjArray *ObjTrdGasCirMPV_list;
-  static TObjArray *ObjTrdModuleMPV_list;
+  //  TObjArray *ObjTrdGasCirMPV_list;
+  //  TObjArray *ObjTrdModuleMPV_list;
 
   int iBinGasCir, iBinModule;
 
@@ -381,67 +393,7 @@ class TrdSCalibR: public TObject{
   /// Likelihoods normalized from ToyMC
   double Lprod_ProtonMC, Lprod_HeliumMC, Lprod_ElectronMC;
 
- TrdSCalibR(): SCalibLevel(4), TrdTrackLevel(0), iFlag(3), Pabs(0), algo(1), patt(3), refit(1),
-  dummy(0) {
-    FirstCall   = true;
-    FirstLLCall = true;
-    FirstMCCall = true;
-    h_TrdGasCirMPV.clear();
-    h_TrdModuleMPV.clear();
-
-    g_TrdCalibMPV.clear();
-
-    FirstCalRunTime  = 2000000000;
-    LastCalRunTime   = 0;
-
-    FirstXday = -1;
-    LastXday  = -1;
-   
-    Lprod_Proton     = 1.0;
-    Lprod_Helium     = 1.0;
-    Lprod_Electron   = 1.0;
-
-    Lprod_ProtonMC   = 1.0;
-    Lprod_HeliumMC   = 1.0;
-    Lprod_ElectronMC = 1.0;
-   
-    TrdLR_xProt.clear();
-    TrdLR_xHeli.clear();
-    TrdLR_xElec.clear();
-
-    TrdLR_nProt.clear();
-    TrdLR_nHeli.clear();
-    TrdLR_nElec.clear();
-
-    TrdLR_pProt.clear();
-    TrdLR_pHeli.clear();
-    TrdLR_pElec.clear();
-
-    TrdLR_Gr_Prot.clear();
-    TrdLR_Gr_Elec.clear();
-    TrdLR_Gr_Heli.clear();
-
-    nTrdHitLayer.clear();
-    TrdScalibXdays.clear();
-    TrdScalibMpv.clear();
-
-    for(int i=0;i<3;i++) cTrd[i]=dTrd[i]=cTrk[i]=dTrk[i]=0.0;
-
-    /// matching trd and tk
-    fTrdSigmaDy = new TF1("fTrdSigmaDy",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
-    fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347); 
-    fTrdSigmaDx = new TF1("fTrdSigmaDx",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);
-    fTrdSigmaDx->SetParameters(2.484,0.1183,0.3487);
-    fTrd95Da = new TF1("fTrd95Da",this, &TrdSCalibR::FunTrdSigmaDy,0.0,1000.0,3);  
-    fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
-
-    fTrdLR      = 0;
-    //fTrdLR = new TF1("fTrdLR",this,&TrdSCalibR::Fun2Landau3Expo, 0.0,4000.0, 0);
-    ///avoids being deleted next time a new one with the same name is constructed 
-    //gROOT->GetListOfFunctions()->Remove(fTrdLR);
-
-  }
-  
+  TrdSCalibR();
 
   virtual ~TrdSCalibR(){
     if ( h_TrdGasCirMPV.size() != 0) 
@@ -750,14 +702,15 @@ class TrdSCalibR: public TObject{
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug);
   int BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug);
 
-  static TrdSCalibR* gethead(){
-    if(!head) head = new TrdSCalibR();
-    return head;
-  }
+  static TrdSCalibR* gethead(int i=0);
   
   static void  KillPointer(){
-    delete head;
-    head=0; 
+    int i=0;
+#ifdef _OPENMP
+    i=omp_get_thread_num();
+#endif
+    delete head[i];
+    head[i]=0; 
   }
  
 

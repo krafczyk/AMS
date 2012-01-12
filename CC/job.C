@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.844 2011/12/23 18:06:43 choutko Exp $
+// $Id: job.C,v 1.845 2012/01/12 17:01:28 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -87,9 +87,6 @@
 #include "tofid.h"
 #include "charge.h"
 #include "TrdHCalib.h"
-#ifdef _PGTRACK_
-#include "TrdSCalib.h"
-#endif
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1263,6 +1260,9 @@ void AMSJob::_sitrddata(){
   TRDCALIB.Validity[0]=1;
   TRDCALIB.Validity[1]=86400;
   TRDCALIB.BadChanThr=3.3;
+  TRDCALIB.TrdSCalibVersion=4;
+  TRDCALIB.TrdSCalibTrack=0;
+  TRDCALIB.TrdSCalibDebug=0;
   FFKEY("TRDALIB",(float*)&TRDCALIB,sizeof(TRDCALIB_DEF)/sizeof(integer),"MIXED");
 
 
@@ -2197,10 +2197,6 @@ void AMSJob::init(){
   _reamsinitjob();
   _timeinitjob();
 
-  /// TrdSCalib Ver(4) use TrdHTrack(0) and Debug(0)
-#ifdef _PGTRACK_
-  TrdSCalibR::gethead()->InitTrdSCalib(4,0,0);	
-#endif
   map(1);
   if(isCalibration())_caamsinitjob();
   _dbinitjob();

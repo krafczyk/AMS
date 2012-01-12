@@ -89,7 +89,7 @@ int SlowControlDB::AppendNode(Node* copynode,unsigned int minT,unsigned int maxT
     return 1;
   }
   if(copynode->getnelem()<=0){
-    std::cerr<<"AppendNode node "<<copynode->GetName()<<" has "<<copynode->getnelem()<<" entries" << std::endl;
+    if(debug)std::cerr<<"AppendNode node "<<copynode->GetName()<<" has "<<copynode->getnelem()<<" entries" << std::endl;
     return 2;
   }
   //  std::cout<<"node "<<copynode->GetName()<<std::endl;
