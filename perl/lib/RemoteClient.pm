@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.712 2012/01/13 14:30:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.713 2012/01/13 17:01:12 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -19138,9 +19138,9 @@ sub UploadToCastor{
                 my @junk=split $name_s,$ntuple->[0];
                 my $castor=$castorPrefix."/$name$junk[1]";
                 my $tms=time(); 
-                $sql="update ntuples set castortime=$timenow, timestamp=$tms where path='$ntuple->[0]'";
+                $sql="update ntuples set castortime=$timenow where path='$ntuple->[0]'";
                 if($datamc>1){
-                $sql="update datafiles set castortime=$timenow, timestamp=$tms where path='$ntuple->[0]'";
+                $sql="update datafiles set castortime=$timenow  where path='$ntuple->[0]'";
                 }
                 $self->{sqlserver}->Update($sql);
               }
