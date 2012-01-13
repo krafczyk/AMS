@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.29 2012/01/13 12:45:44 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.30 2012/01/13 16:33:16 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1535,7 +1535,10 @@ int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir="";
 DynAlFitContainer::LinearSpace DynAlManager::tdvBuffer;
 AMSTimeID* DynAlManager::tdvdb=0;
-bool DynAlManager::useTDV=true;
+bool DynAlManager::useTDV=false;  // Set to tru to use external TDV
+unsigned int DynAlManager::begin=0;
+unsigned int DynAlManager::end=0;
+unsigned int DynAlManager::insert=0;
 
 #ifdef _PGTRACK_
 #define TDVNAME "DynAlignmentPG"
@@ -1640,14 +1643,16 @@ bool DynAlManager::UpdateWithTDV(int time){
     tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
 			AMSTimeID::Standalone,1,_ToAlign);
 
+    
     if(!tdvdb){
       cout<<"DynAlManager::UpdateWithTDV-- AMSTimeId cannot be created"<<endl;
       return false;
     }
   }
+  
   time_t Time=time;
   if(!tdvdb->validate(Time)) return false;
-
+  
   return true;
 }
 
@@ -1731,62 +1736,42 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
   // If directory name is empty, use the default
   if(dir.Length()==0) dir=defaultDir;
   
-  
-  if(dir.Length()==0 && useTDV){  // No default dir to be read. 
-    // Try using the TDVs
-    if(UpdateWithTDV(time)){
-      dynAlFitContainers[1].Layer=1;
-      dynAlFitContainers[9].Layer=9;
+
+#define TDVUPDATE     {                                   \  
+  if(UpdateWithTDV(time)){				  \
+    dynAlFitContainers[1].Layer=1;			  \
+    dynAlFitContainers[9].Layer=9;			  \
+    return true;					  \
+  }else return false;                                     \
+}
+
+  if(dir.Length()==0){
+    if(useTDV) TDVUPDATE
+    else{
+      // Use the information if AMSSetup
+      AMSSetupR *setup=AMSSetupR::gethead();
+      if(!setup) TDVUPDATE;
+      // Search for the proper TDV
+      AMSSetupR::TDVR tdv;
+      if(setup->getTDV (TDVNAME,time, tdv)) TDVUPDATE;
+      
+      // Check that we have to copy out everything again
+      if(tdv.Begin!=begin || tdv.End!=end || tdv.Insert!=insert){
+	begin=tdv.Begin;
+	end=tdv.End;
+	insert=tdv.Insert;
+	tdv.CopyOut(&tdvBuffer);
+	_ToAlign();
+      }
       return true;
-    }else useTDV=false; // skip the TDV by the moment
+    }
   }
   
   if(run==skipRun) return false;
-  
+
   if(run!=currentRun){
     currentRun=run;
-    useTDV=true;  // retry with tdv in next trial
-    
-    if(dir.Length()==0){
-      // Try using the AMSSetup information
-      AMSSetupR *setup=AMSSetupR::gethead();
-      if(!setup){
-	//	cout<<"DynAlManager::UpdateParameters-W-No way to get the alignment parameters for run "<<currentRun<<endl; 
-	//	skipRun=currentRun;
-	//	return false;
 
-	// Retry using the default directory
-	char *lastChance=getenv("AMSDynAlignment");
-	if(lastChance) dir=lastChance;
-	goto retry;
-      }
-
-      if(setup->fHeader.Run!=currentRun){
-	cout<<"DynAlManager::UpdateParameters-W-Current run and AMSSetupR one do not agree "<<currentRun<<" "<<setup->fHeader.Run<<endl;
-	skipRun=currentRun;
-	return false;
-      }
-      AMSSetupR::DynAlignment_m &pars=setup->fDynAlignment;
-      if(pars.find(1)==pars.end() || pars.find(9)==pars.end()){
-	cout<<"DynAlManager::UpdateParameters-W-Parameters seem to be missing "<<currentRun<<endl;
-	skipRun=currentRun;
-	return false;
-      }
-      
-      dynAlFitContainers[1]=pars[1];
-      dynAlFitContainers[9]=pars[9];
-      
-      if(!pars[1].FitParameters.size() ||
-	 !pars[9].FitParameters.size()){
-	cout<<"DynAlManager::UpdateParameters-W-Parameters seem to be missing"<<endl;
-	skipRun=currentRun;
-	return false;
-      }
-      
-      return true;
-    }
-    
-  retry:
 
     // If the directory name is not empty go ahead
     if(dir.Length()){
@@ -1834,7 +1819,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       return false;
     }
   }    
-  return true;
+return true;
 }
 
 

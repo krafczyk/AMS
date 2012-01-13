@@ -258,7 +258,7 @@ class DynAlFitContainer:public TObject{
 
 
 class AMSTimeID;
-  
+
 class DynAlManager:public TObject{
  public:
   static bool UpdateParameters(int run,int time,TString dir=""); 
@@ -272,6 +272,9 @@ class DynAlManager:public TObject{
   static DynAlFitContainer::LinearSpace tdvBuffer;
   static AMSTimeID *tdvdb;
   static bool useTDV;
+  static unsigned int begin;
+  static unsigned int insert;
+  static unsigned int end;
   static void ForceUpdating() {currentRun=skipRun=-1;}
 
 
@@ -285,5 +288,6 @@ class DynAlManager:public TObject{
   ClassDef(DynAlManager,2);
 };
 
+void _ToAlign();
 
 #endif
