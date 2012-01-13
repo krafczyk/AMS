@@ -288,7 +288,7 @@ class SlowControlDB//: public TTree
 
   bool SaveToFile(const char* fname,int debug=0);
   
-  int AppendNode(Node* copynode,unsigned int minT=0,unsigned int maxT=UINT_MAX);
+  int AppendNode(Node* copynode,unsigned int minT=0,unsigned int maxT=UINT_MAX, int debug=0);
   
   bool BuildSearchIndex(int debug=0);
 

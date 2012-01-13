@@ -82,7 +82,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
 
 }
 
-int SlowControlDB::AppendNode(Node* copynode,unsigned int minT,unsigned int maxT)
+int SlowControlDB::AppendNode(Node* copynode,unsigned int minT,unsigned int maxT, int debug)
 {
   if(!copynode){
     std::cerr<<"AppendNode ptr "<<copynode<<" not found"<<std::endl;
