@@ -298,7 +298,7 @@ bool Clean_Event(AMSEventR *pev){
   bool sen[4][2];
   AMSPoint a[4], b[4];
   
-  a[0].setp(pnt[0].x()+err, pnt[0].y(),pnt[0],pnt[0].z());
+  a[0].setp(pnt[0].x()+err, pnt[0].y(),pnt[0].z());
   a[1].setp(pnt[0].x(), pnt[0].y()+err,pnt[0].z());
   a[2].setp(pnt[0].x()-err, pnt[0].y(),pnt[0].z());
   a[3].setp(pnt[0].x(), pnt[0].y()-err,pnt[0].z());
