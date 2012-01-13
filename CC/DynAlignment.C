@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.27 2012/01/12 10:55:40 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.28 2012/01/13 10:07:51 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1230,7 +1230,7 @@ DynAlFitContainer::DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9){
     FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
     records++;
   }
-  cout<<"DynAlFitContainer::DynAlFitContainer--Got "<<records<<" for layer "<<(layer9?9:1)<<endl; 
+  //  cout<<"DynAlFitContainer::DynAlFitContainer--Got "<<records<<" for layer "<<(layer9?9:1)<<endl; 
 }
 
 
