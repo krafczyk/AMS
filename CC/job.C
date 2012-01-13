@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.846 2012/01/13 16:33:16 mdelgado Exp $
+// $Id: job.C,v 1.847 2012/01/13 16:35:16 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3214,7 +3214,7 @@ void AMSJob::_timeinitjob(){
 			     TrExtAlignDB::fLinear,
 			     server,need,SLin2ExAlign));
       
-      TID.add (new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,
+      TID.add (new AMSTimeID(AMSID("DynAlignmentPG",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,
 			     server,need,_ToAlign));
     }
     begin.tm_isdst=0;
