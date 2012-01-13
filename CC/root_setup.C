@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.54 2012/01/13 09:23:10 mdelgado Exp $
+//  $Id: root_setup.C,v 1.55 2012/01/13 12:02:35 mdelgado Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1692,23 +1692,44 @@ int AMSSetupR::LoadDynAlignment(unsigned int run){
    char defaultDir[]="/afs/cern.ch/ams/local/ExtAlig/AlignmentFiles";
    char *directory=getenv("AMSDynAlignment");
    if(!directory || !strlen(directory)) directory=defaultDir;
+
+#define USETDVFIRST
+#ifdef USETDVFIRST
    bool prev=DynAlManager::useTDV;
+   TString prevString=DynAlManager::defaultDir;
+   DynAlManager::useTDV=true;
+   DynAlManager::defaultDir="";
+   if(!DynAlManager::UpdateParameters(run,run+30)){
+     if(runError!=run){
+       cout<<"AMSSetupR::LoadDynAlignment-W-Failed to find TDV external alignment in "<<directory<<" for run "<<run<<endl;
+       runError=run;
+     }
+#else
+   bool prev=DynAlManager::useTDV;
+   TString prevString=DynAlManager::defaultDir;
    DynAlManager::useTDV=false;
+   DynAlManager::defaultDir="";
    if(!DynAlManager::UpdateParameters(run,0,directory)){
      if(runError!=run){
        cout<<"AMSSetupR::LoadDynAlignment-W-Failed to find external alignment in "<<directory<<" for run "<<run<<endl;
        runError=run;
      }
+#endif
+
+
      DynAlManager::useTDV=prev;
+     DynAlManager::defaultDir=prevString;
+
      return false;
    }
 
-// Copy the objects into the map
+   // Copy the objects into the map
    fDynAlignment[1]=DynAlManager::dynAlFitContainers[1];
    fDynAlignment[9]=DynAlManager::dynAlFitContainers[9];
    DynAlManager::useTDV=prev;
+   DynAlManager::defaultDir=prevString;
    return true;
-}
+   }
 #endif
 
 
