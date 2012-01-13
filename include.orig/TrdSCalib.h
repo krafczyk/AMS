@@ -12,9 +12,12 @@
 #include "TrdRawHit.h"
 #include "TrdHRecon.h"
 #include "TrdHTrack.h"
+#ifdef  _PGTRACK_
 #include "TrTrack.h"
 #include "TrTrackSelection.h"
-
+#else
+#include "trrec.h"
+#endif
 #include "TFile.h"
 #include "TH1.h"
 #include "TH2.h"
