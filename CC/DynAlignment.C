@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.28 2012/01/13 10:07:51 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.29 2012/01/13 12:45:44 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1756,7 +1756,8 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
 	//	return false;
 
 	// Retry using the default directory
-	dir=getenv("AMSDynAlignment");
+	char *lastChance=getenv("AMSDynAlignment");
+	if(lastChance) dir=lastChance;
 	goto retry;
       }
 
