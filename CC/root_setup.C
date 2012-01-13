@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.53 2012/01/05 17:51:32 choutko Exp $
+//  $Id: root_setup.C,v 1.54 2012/01/13 09:23:10 mdelgado Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1689,20 +1689,24 @@ int AMSSetupR::LoadDynAlignment(unsigned int run){
 }
 #else
    static int runError=-1;
-   char defaultDir[]="/afs/cern.ch/ams/local/ExtAlig/Align";
+   char defaultDir[]="/afs/cern.ch/ams/local/ExtAlig/AlignmentFiles";
    char *directory=getenv("AMSDynAlignment");
    if(!directory || !strlen(directory)) directory=defaultDir;
+   bool prev=DynAlManager::useTDV;
+   DynAlManager::useTDV=false;
    if(!DynAlManager::UpdateParameters(run,0,directory)){
      if(runError!=run){
        cout<<"AMSSetupR::LoadDynAlignment-W-Failed to find external alignment in "<<directory<<" for run "<<run<<endl;
        runError=run;
      }
+     DynAlManager::useTDV=prev;
      return false;
    }
 
 // Copy the objects into the map
    fDynAlignment[1]=DynAlManager::dynAlFitContainers[1];
    fDynAlignment[9]=DynAlManager::dynAlFitContainers[9];
+   DynAlManager::useTDV=prev;
    return true;
 }
 #endif
