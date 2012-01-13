@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.171 2012/01/07 21:31:08 choutko Exp $
+//  $Id: producer.C,v 1.172 2012/01/13 14:21:50 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2065,7 +2065,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
   if(strstr(version,"v4.00")){
     systemc+=" -m ";
   }
-  else if(getenv("AMServerNo")){
+  else if(getenv("AMSServerNo")){
     systemc+=" -s";
     systemc+=getenv("AMSServerNo");
   }

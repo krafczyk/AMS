@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.246 2012/01/12 17:01:28 mmilling Exp $
+//  $Id: particle.C,v 1.247 2012/01/13 14:21:43 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -37,9 +37,7 @@
 #include "TMath.h"
 #include "TrdHRecon.h"
 #include "TrdHCharge.h"
-#ifdef _PGTRACK_
 #include "TrdSCalib.h"
-#endif
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -54,7 +52,6 @@ PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
   extern "C" void e04ccf_(int &n, number x[], number &f, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void *alfun, void * monit, int & maxcal, int &ifail, void * p);
 
 
-#ifdef _PGTRACK_
 bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   number SearchReg[2]={12,4};
   number MaxCos(0.95);
@@ -72,7 +69,13 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   // Tracker point and direction at Z= zpl
   AMSPoint tk_pnt;
   AMSDir   tk_dir;
-  ptrack->Interpolate(zpl, tk_pnt, tk_dir); 
+#ifdef _PGTRACK_
+    ptrack->Interpolate(zpl, tk_pnt,tk_dir);
+#else
+      AMSPoint coo(0,0,zpl);
+      double theta,phi,sleng;
+      ptrack->interpolate(coo,tk_dir,tk_pnt,theta,phi,sleng);
+#endif
 
   // angle between the tracks
   number c=tk_dir.prod(trd_dir);
@@ -89,7 +92,6 @@ bool TkTRDMatch(AMSTrTrack* ptrack,AMSTRDTrack *ptrd){
   return false;
 }
 
-#endif
 
 
 integer sign(number a){
