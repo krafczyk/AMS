@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.711 2012/01/07 21:31:12 choutko Exp $
+# $Id: RemoteClient.pm,v 1.712 2012/01/13 14:30:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6875,7 +6875,7 @@ if( not defined $dbserver->{dbfile}){
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
                my $rn=DBServer::GetRunsNumber($dbserver);
-               my $maxr=208;
+               my $maxr=236;
                if($rn>=0){
                 if($rn<$maxr){
                  $jbs=$maxr-$rn;
@@ -8107,10 +8107,10 @@ if(defined $dataset->{buildno} ){
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
-         if($dataset->{version}=~/^v/){
+         if($dataset->{serverno}=~/^v/){
           }
           else{
-              print FILE "export AMSServerNo=$dataset->{version} \n";
+              print FILE "export AMSServerNo=$dataset->{serverno} \n";
              }
       }
 #
@@ -9397,10 +9397,10 @@ if(defined $dataset->{buildno} ){
            @tmpa=split '/', $ret->[0][0];
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
-            if($dataset->{version}=~/^v/){
+            if($dataset->{serverno}=~/^v/){
           }
           else{
-              print FILE "export AMSServerNo=$dataset->{version} \n";
+              print FILE "export AMSServerNo=$dataset->{serverno} \n";
           }        
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
