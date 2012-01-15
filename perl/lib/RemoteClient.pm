@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.713 2012/01/13 17:01:12 choutko Exp $
+# $Id: RemoteClient.pm,v 1.714 2012/01/15 19:15:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4974,7 +4974,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               $ns+=$dirs_ntuples[$ind];
               $ntr+=$dirs_triggers[$ind];
           }
-          my $s="  // Total Of  runs: $rs  ntuples: $ns   triggers: $ntr";
+          my $s="  // Total Of  Runs: $rs  ntuples: $ns   triggers: $ntr";
           print "<tr><td> $s </tr></td><br>";
           $buff = $buff.$s."\n";
           for my $ind (0...$#dirs){
@@ -5080,8 +5080,10 @@ CheckCite:            if (defined $q->param("QCite")) {
            $sqlamom=~s/dataruns\.run/ntuples\.run/;
            if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
                $sqlamom=~s/not LIKE/LIKE/;
+                  $sqlamom=~s/not like/like/;
            }
-           my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and  datasets.did=jobs.did and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
+       #    die "$sqlamom job";
+my $negative= "SELECT ntuples.run From Ntuples,datasetsdesc,jobs,datasets WHERE Path like '%$dirs[$ind]/%' and  datasets.did=jobs.did and ntuples.jid=jobs.jid  $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
@@ -6875,7 +6877,7 @@ if( not defined $dbserver->{dbfile}){
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
                my $rn=DBServer::GetRunsNumber($dbserver);
-               my $maxr=236;
+               my $maxr=256*2;
                if($rn>=0){
                 if($rn<$maxr){
                  $jbs=$maxr-$rn;
