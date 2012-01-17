@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.12.2.3 2011/12/07 18:00:37 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.12.2.4 2012/01/17 16:42:38 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -85,6 +85,13 @@ protected:
   static TrExtAlignDB* Head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (Head)
+#endif
+
+public:
+  /// Static flag used to force the used of ext align data from TDV
+  static int ForceFromTDV;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ForceFromTDV)
 #endif
 
 public:
@@ -221,7 +228,7 @@ public:
   static long long GetDt(float rate);
 
 
-  ClassDef(TrExtAlignDB,1);
+  ClassDef(TrExtAlignDB,2);
 };
 
 void SLin2ExAlign();
