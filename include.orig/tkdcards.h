@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.47 2012/01/11 09:30:51 oliva Exp $
+// $Id: tkdcards.h,v 1.48 2012/01/17 19:31:46 oliva Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -347,7 +347,7 @@ public:
 
   TRCLFFKEY_DEF():TObject(){init();}
   void init();
-  ClassDef(TRCLFFKEY_DEF,3);
+  ClassDef(TRCLFFKEY_DEF,4);
 
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
