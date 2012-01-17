@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.30 2012/01/13 16:33:16 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.31 2012/01/17 13:35:54 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -481,6 +481,10 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     
     for(int i=first;i<=last;i++){
       DynAlEvent event=history.Events.at(i); // Take a copy of the event
+
+      // Allow to have a control group easily
+      if(DynAlManager::ControlGroup>0 && (event.Time[0]%DynAlManager::ControlGroup)==0) continue;
+
       int Class=event.getClass();
       if(Class<0) continue;
       if(which==1) Class=SubClass(Class,event);
@@ -1460,6 +1464,21 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
 }
 
 
+void DynAlFitContainer::DumpLocalAlignment(){
+  for(map<int,DynAlFitParameters>::iterator i=LocalFitParameters.begin();
+      i!=LocalFitParameters.end();i++){
+    cout<<"Layer "<<Layer<<" ID "<<i->first<<endl;
+    DynAlFitParameters &pars=i->second;
+    cout<<"       DX "<<pars.DX[0]<<endl
+	<<"       DY "<<pars.DY[0]<<endl
+	<<"       DZ "<<pars.DZ[0]<<endl
+	<<"       THETA "<<pars.THETA[0]<<endl
+	<<"       ALPHA "<<pars.THETA[0]<<endl
+	<<"       BETA "<<pars.THETA[0]<<endl
+	<<"  ZOffset "<<pars.ZOffset<<" size "<<pars.DX.size()<<endl<<endl;
+  }
+}
+
 //#define VERBOSE__
 void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
   // Use the continuity tool to get the history
@@ -1539,6 +1558,7 @@ bool DynAlManager::useTDV=false;  // Set to tru to use external TDV
 unsigned int DynAlManager::begin=0;
 unsigned int DynAlManager::end=0;
 unsigned int DynAlManager::insert=0;
+int DynAlManager::ControlGroup=-1;
 
 #ifdef _PGTRACK_
 #define TDVNAME "DynAlignmentPG"
@@ -1549,6 +1569,10 @@ unsigned int DynAlManager::insert=0;
 void _ToAlign(){
   DynAlManager::dynAlFitContainers[1]=DynAlFitContainer(DynAlManager::tdvBuffer,false);
   DynAlManager::dynAlFitContainers[9]=DynAlFitContainer(DynAlManager::tdvBuffer,true);
+  DynAlManager::dynAlFitContainers[1].Layer=1;
+  DynAlManager::dynAlFitContainers[9].Layer=9;
+  DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=false; // Default value. To be changed in the future
+  DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=false; // Default value. To be changed in the future
 }
 
 bool DynAlManager::FinishLinear(){
@@ -1652,7 +1676,7 @@ bool DynAlManager::UpdateWithTDV(int time){
   
   time_t Time=time;
   if(!tdvdb->validate(Time)) return false;
-  
+
   return true;
 }
 

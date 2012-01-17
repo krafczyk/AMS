@@ -235,6 +235,8 @@ class DynAlFitContainer:public TObject{
   
   void BuildLocalAlignment(DynAlHistory &history);
   void BuildAlignment(TString dir,TString prefix,int run);
+
+  void DumpLocalAlignment();
   
   DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
 
@@ -276,7 +278,7 @@ class DynAlManager:public TObject{
   static unsigned int insert;
   static unsigned int end;
   static void ForceUpdating() {currentRun=skipRun=-1;}
-
+  static int ControlGroup;
 
   // TDV interface
   static void ResetLinear(){tdvBuffer.records=0;}
