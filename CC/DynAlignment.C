@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.31 2012/01/17 13:35:54 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.32 2012/01/17 21:32:18 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1263,7 +1263,7 @@ void DynAlFitContainer::TestDump(){
     Do(ALPHA);
     Do(BETA);
   }
-
+#undef Do
 }
 
 
@@ -1895,4 +1895,89 @@ bool DynAlManager::FindAlignment(AMSEventR &ev,TrRecHitR &hit,double &x,double &
   return true;
 }
 
+DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
+  DynAlFit fit(DynAlContinuity::FitOrder);
+  fit.MinRigidity=DynAlContinuity::RigidityCut;
+  fit.MinBeta=DynAlContinuity::BetaCut;
+  int minutes=DynAlContinuity::FitWindow;
+  sort(history.Events.begin(),history.Events.end());
+  map<int,DynAlHistory> historyPerLadder;
+  for(int point=0;point<history.Size();point++){
+    // Take the time of the event
+    DynAlEvent event=history.Get(point);
+    if(!UpdateParameters(0,event.Time[0])) continue;
+    event.extrapolateTrack();
 
+    int layer=event.lay();
+    int Id=DynAlFitContainer::GetId(event);
+    
+    // Find the fit parameters 
+    DynAlFitParameters fit;
+    DynAlManager::dynAlFitContainers[layer].Find(event.Time[0],fit);
+
+    double _DX=0;
+    double _DY=0;
+    double _DZ=0;
+    double _THETA=0;
+    double _ALPHA=0;
+    double _BETA=0;
+    
+    double elapsed=fit.GetTime(event.Time[0],event.Time[1]);
+    double dt=1;
+
+#define Do(xx) _##xx+=dt* fit.xx.at(i) 
+    for(int i=0;i<fit.DX.size();i++){
+      Do(DX);
+      Do(DY);
+      Do(DZ);
+      Do(THETA);
+      Do(ALPHA);
+      Do(BETA);
+      dt*=elapsed;
+    }
+#undef Do
+
+    // Derotate the track vector 
+    double trVect[3];
+    trVect[0]=sin(event.TrackTheta)*cos(event.TrackPhi);
+    trVect[1]=sin(event.TrackTheta)*sin(event.TrackPhi);
+    trVect[2]=cos(event.TrackTheta);
+    double trNewVect[3];
+    trNewVect[0]=trVect[0]+_THETA*trVect[1]+_ALPHA*trVect[2];
+    trNewVect[1]=trVect[1]-_THETA*trVect[1]+_BETA*trVect[2];
+    trNewVect[2]=trVect[2]-_ALPHA*trVect[0]-_BETA*trVect[1];
+
+    // Normalize to compensate the approximations of the fit
+    double norma=sqrt(ESC(trNewVect,trNewVect));
+    for(int i=0;i<3;i++) trNewVect[i]/=norma;
+
+    // InvTransform the position
+    double zTr=event.TrackHit[2]-fit.ZOffset;
+    double trNewPos[3];
+    trNewPos[0]=(event.TrackHit[0]-_DX)+_THETA*(event.TrackHit[1]-_DY)+_ALPHA*(zTr-_DZ);
+    trNewPos[1]=(event.TrackHit[1]-_DY)-_THETA*(event.TrackHit[0]-_DX)+_BETA*(zTr-_DZ);
+    trNewPos[2]=(zTr-_DZ)-_ALPHA*(event.TrackHit[0]-_DX)-_BETA*(event.TrackHit[1]-_DY);
+    trNewPos[2]+=fit.ZOffset;
+
+    DynAlEvent originalPoint=event;
+    for(int i=0;i<3;i++)  originalPoint.TrackHit[i]=trNewPos[i];
+    originalPoint.TrackTheta=acos(trNewVect[2]);
+    originalPoint.TrackPhi=atan2(trNewVect[1],trNewVect[0]);
+    originalPoint.extrapolateTrack();
+    historyPerLadder[Id].Push(originalPoint);
+  }
+
+  // Perform all the local alignment fits and store them
+  DynAlFitContainer local;
+  for(map<int,DynAlHistory>::iterator i=historyPerLadder.begin();i!=historyPerLadder.end();i++){
+    DynAlFit ladFit(0);
+    set<int> excluded;
+    ladFit.MinRigidity=DynAlContinuity::RigidityCut;
+    ladFit.MinBeta=DynAlContinuity::BetaCut;
+    if(ladFit.ForceFit(i->second,0,i->second.Size()-1,excluded)){
+      local.LocalFitParameters[i->first]=DynAlFitParameters(ladFit);
+    }
+  }
+  local.ApplyLocalAlignment=true;
+  return local;
+}

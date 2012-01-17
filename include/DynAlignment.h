@@ -231,7 +231,7 @@ class DynAlFitContainer:public TObject{
   void Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,double &z);
   void Eval(DynAlEvent &ev,double &x,double &y,double &z);
   int GetId(TrRecHitR &hit);
-  int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
+  static int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
   
   void BuildLocalAlignment(DynAlHistory &history);
   void BuildAlignment(TString dir,TString prefix,int run);
@@ -285,7 +285,7 @@ class DynAlManager:public TObject{
   static bool AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9);
   static bool FinishLinear();
   static bool DumpDirToLinear(TString dir); // Dump a while directory ti a TDV
-
+  static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
   ClassDef(DynAlManager,2);
 };
