@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.142 2012/01/04 19:35:47 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.143 2012/01/17 13:32:45 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/01/04 19:35:47 $
+/// $Date: 2012/01/17 13:32:45 $
 ///
-/// $Revision: 1.142 $
+/// $Revision: 1.143 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -279,9 +279,6 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 
   // Check small-deltaT event
   bool lowdt = (GetTrigTime(4) <= RecPar.lowdt);
-
-  //////////////////// Unbiased charge calculation ////////////////////  
-  FillChargeSeeds();
 
   //////////////////// TrCluster reconstruction ////////////////////
   if (flag%10 >= 1 && nraw < RecPar.MaxNrawCls) {
@@ -759,6 +756,9 @@ int TrRecon::BuildTrRecHits(int rebuild)
   BuildClusterTkIdMap();
   // number of hits created
   int ntrrechits = 0;
+
+  // Unbiased charge calculation (needed for tagging)
+  FillChargeSeeds();
 
   ///////////////////////
   // first hits from all combinations
@@ -2533,6 +2533,29 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	  hman.Fill("TfMrg4", csqy, dymrg[j]);
 	}
       }
+    }
+
+    // more histos for charge reconstruction check
+    float qx = TrCharge::GetQ(track,TrCharge::kX,1);
+    float qy = TrCharge::GetQ(track,TrCharge::kY,1);
+    hman.Fill("QxQy_final",qx,qy);
+    float qq = TrCharge::GetQ(track,TrCharge::kXY,1); 
+    hman.Fill("Q_final",qq);
+    for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+      TrRecHitR* hit = track->GetHit(ihit);
+      if (hit==0) continue; 
+      if (hit->OnlyY()) continue;
+      TrClusterR* clX = hit->GetXCluster();
+      TrClusterR* clY = hit->GetYCluster();
+      if ( (clX==0)||(clY==0) ) continue;
+      float sigx = clX->GetTotSignal(TrClusterR::DefaultCorrOpt);
+      float sigy = clY->GetTotSignal(TrClusterR::DefaultCorrOpt);
+      float prob = hit->GetCorrelationProb();
+      float logprob = (prob<=0.) ? -30 : log10(prob);
+      hman.Fill("AmpxCSx_final",sqrt(_htmx),sqrt(sigx));
+      hman.Fill("AmpyCSy_final",sqrt(_htmy),sqrt(sigy));
+      hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
+      hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
     }
     
 #ifndef __ROOTSHAREDLIBRARY__

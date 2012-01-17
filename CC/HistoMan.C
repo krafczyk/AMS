@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.39 2012/01/04 19:35:47 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.40 2012/01/17 13:32:45 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -364,6 +364,15 @@ void HistoMan::BookHistos(int simmode){
   // Residuals per layer
   Add(new TH2D("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
   Add(new TH2D("TrResLayy","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
+  // TO-BE-DONE: Residuals versus charge, angle, layer)
+
+  // Plots after reconstruction
+  Add(new TH2D("QxQy_final","; Q_{x}; Q_{y}",300,0,30,300,0,30));
+  Add(new TH1D("Q_final","; Q",300,0,30));
+  Add(new TH2D("AmpyCSy_final", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",400,0,200,400,0,200));
+  Add(new TH2D("AmpxCSx_final", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",400,0,200,400,0,200));
+  Add(new TH2D("AmpyAmpx_final","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
+  Add(new TH2D("ProbAmpx_final","; x signal corr. (#sqrt{ADC}); log_{10}(correlation probability)",150,0,150,100,-15,1));
 
   // Sim. reconstruction
   if (simmode & 2) {

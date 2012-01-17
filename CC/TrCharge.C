@@ -278,7 +278,27 @@ int TrCharge::GetTruncMeanCharge(TrTrackR* track, float beta) {
 
 float TrCharge::GetQ(TrTrackR* track, int iside, float beta) {  
   mean_t mean = GetMean(kTruncMean|kInner|kSqrt,track,iside,beta,-1,TrClusterR::DefaultChargeCorrOpt);
-  return mean.Mean;
+  if ( (iside==kX)||(iside==kY) ) return mean.Mean;
+  // temporary solution (January 2012) for mixing the two measurements
+  if (iside==kXY) {
+    float q_x = GetMean(kTruncMean|kInner|kSqrt,track,kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+    float q_y = GetMean(kTruncMean|kInner|kSqrt,track,kY,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+    // first simple guess
+    float q = q_x;
+    if ( (q>12.5)&&(q_y>0.) ) q = q_y;
+    for (int iiter=0; iiter<1; iiter++) {
+      // get sigma (parametrization from preliminary charge analysis)
+      float sigma_x = 0.0958899 - 0.0232748*q + 0.00753501*q*q;
+      float sigma_y = 0.135193 + 0.0646057*q;
+      // evaluate weights
+      float w_x = 1./(sigma_x*sigma_x)/(1./(sigma_x*sigma_x) + 1./(sigma_y*sigma_y));
+      float w_y = 1./(sigma_y*sigma_y)/(1./(sigma_x*sigma_x) + 1./(sigma_y*sigma_y));
+      // update     
+      q = q_x*w_x+ q_y*w_y;
+    }
+    return q;
+  }
+  return -1;
 }
 
 
