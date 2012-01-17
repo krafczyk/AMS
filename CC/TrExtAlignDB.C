@@ -10,6 +10,7 @@ ClassImp(TrExtAlignDB);
 
 using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
+int TrExtAlignDB::ForceFromTDV=0;
 
 void TrExtAlignPar::Print(Option_t *) const
 {
@@ -192,27 +193,59 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     return -1;
   }
   int errlim=100;
-  uint tf8 = Find(8, time);
-  uint tf9 = Find(9, time);
-  int  dt8 = (int)tf8-(int)time;
-  int  dt9 = (int)tf9-(int)time;
-
   static int nwar = 0;
-  if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
-    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
-	      << tf8 << " " << time << " " << tf8-time << std::endl;
-  if ((dt9 < -200 || 200 < dt9) && nwar++ < errlim)
-    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
-	      << tf9 << " " << time << " " << tf9-time << std::endl;
-
-  if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
-    if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
+  uint tf8,tf9;
+  int dt8,dt9;
+  if(!ForceFromTDV){ // Access the data available in memory(from ROOT file) unless forced not to do it
+    tf8 = Find(8, time);
+    tf9 = Find(9, time);
+    dt8 = (int)tf8-(int)time;
+    dt9 = (int)tf9-(int)time;
+    
+    if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
+      std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		<< tf8 << " " << time << " " << tf8-time << std::endl;
+    if ((dt9 < -200 || 200 < dt9) && nwar++ < errlim)
+      std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		<< tf9 << " " << time << " " << tf9-time << std::endl;
+    
+    if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){  // Try to fall back to TDV if data in memory are no good
+      if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
+      int ret=-1;
 #ifdef __ROOTSHAREDLIBRARY__
-int ret=GetFromTDV(time);
-    if(ret<=0) {if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");return -2;}
-#else
-return -2;
-#endif;
+      ret=GetFromTDV(time);
+#endif
+      if(ret<=0) {
+	if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");
+	return -2;
+      }
+      tf8 = Find(8, time);
+      tf9 = Find(9, time);
+      dt8 = (int)tf8-(int)time;
+      dt9 = (int)tf9-(int)time;
+      if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
+	std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		  << tf8 << " " << time << " " << tf8-time << std::endl;
+      if ((dt9 < -200 || 200 < dt9) && nwar++ < errlim)
+	std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
+		  << tf9 << " " << time << " " << tf9-time << std::endl;
+      if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
+	if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E- Also TDV is not valid for this event \n");
+	return -2;
+      }
+      if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
+    }
+  }else{ // FORCED reading from TDV
+ 
+    if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I-FORCED Reading From TDV\n");
+    int ret=-1;
+
+    ret=GetFromTDV(time);
+
+    if(ret<=0) {
+      if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");
+      return -2;
+    }
     tf8 = Find(8, time);
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
@@ -224,11 +257,14 @@ return -2;
       std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
 		<< tf9 << " " << time << " " << tf9-time << std::endl;
     if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
-      if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E- Also TDV is not valid for this event \n");
+      if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E-  TDV is not valid for this event \n");
       return -2;
     }
     if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
   }
+
+
+
 
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
