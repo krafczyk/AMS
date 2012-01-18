@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.352 2012/01/10 14:00:33 afiasson Exp $
+//  $Id: root.C,v 1.353 2012/01/18 13:51:47 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5607,7 +5607,7 @@ static int master=0;
 	TkDBc::Head->init(setup);
       }
     }
-    TrExtAlignDB::Load(_FILE);
+    if(!TrExtAlignDB::ForceFromTDV) TrExtAlignDB::Load(_FILE);
 try{
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
