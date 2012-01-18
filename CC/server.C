@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.196 2012/01/07 21:31:08 choutko Exp $
+//  $Id: server.C,v 1.197 2012/01/18 08:37:57 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -641,7 +641,12 @@ void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHos
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+    if(strlen(ah.HostName) && strlen(ah.Interface) && strlen(pid.HostName)){
     _pvar->sendAH(pid,ah,rc);
+    }
+    else{
+      cerr<<"**sendah not send "<< strlen(ah.HostName) <<" "<< strlen(ah.Interface) <<" "<<strlen(pid.HostName)<<endl;
+   }
    }
    catch (CORBA::SystemException &ex){
      cerr<<"oops corba exc found for "<<i<<" "<<ctime(&tt)<<endl;
@@ -1679,9 +1684,9 @@ return 0;
 
    void Server_impl::sendAH(const DPS::Client::CID &  cid,  const DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-cout <<" entering Server_impl::sendAH "<<endl;
-cout <<" entering Server_impl::sendAH "<<strlen(ah.HostName)<<endl;
-cout <<" entering Server_impl::sendAH "<<ah.HostName<<endl;
+//cout <<" entering Server_impl::sendAH "<<endl;
+//cout <<" entering Server_impl::sendAH "<<strlen(ah.HostName)<<endl;
+//cout <<" entering Server_impl::sendAH "<<ah.HostName<<endl;
 
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
