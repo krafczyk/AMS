@@ -273,7 +273,8 @@ class DynAlManager:public TObject{
   static TString defaultDir;
   static DynAlFitContainer::LinearSpace tdvBuffer;
   static AMSTimeID *tdvdb;
-  static bool useTDV;
+  static bool useTDV;    // Force usage of TDV and ignoring of AMSSetup
+  static bool need2bookTDV; // igonore booking of TDV if set to true: warning this is not for general use
   static unsigned int begin;
   static unsigned int insert;
   static unsigned int end;
@@ -287,6 +288,9 @@ class DynAlManager:public TObject{
   static bool DumpDirToLinear(TString dir); // Dump a while directory ti a TDV
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
+
+  static void LocalAlignmentTest();  // A simple test
+
   ClassDef(DynAlManager,2);
 };
 

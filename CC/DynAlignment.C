@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.32 2012/01/17 21:32:18 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.33 2012/01/18 20:15:37 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1554,7 +1554,8 @@ int DynAlManager::skipRun=-1;
 TString DynAlManager::defaultDir="";
 DynAlFitContainer::LinearSpace DynAlManager::tdvBuffer;
 AMSTimeID* DynAlManager::tdvdb=0;
-bool DynAlManager::useTDV=false;  // Set to tru to use external TDV
+bool DynAlManager::useTDV=false;  // Set to true to use external TDV intesad the one stored int he root file
+bool DynAlManager::need2bookTDV=true;  // Set to true to avoid even booking the TDV
 unsigned int DynAlManager::begin=0;
 unsigned int DynAlManager::end=0;
 unsigned int DynAlManager::insert=0;
@@ -1610,7 +1611,7 @@ bool DynAlManager::FinishLinear(){
   end.tm_year=0;
   
   tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
-		      AMSTimeID::Standalone,1,_ToAlign);
+		      AMSTimeID::Standalone,need2bookTDV,_ToAlign);
 
   if(!tdvdb) return false;
 
@@ -1981,3 +1982,36 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
   local.ApplyLocalAlignment=true;
   return local;
 }
+
+
+#ifdef _PGTRACK_
+void DynAlManager::LocalAlignmentTest(){
+  int layers[2]={1,9};
+  int slots[2]={15,8};
+  int oldlayers[2]={8,9};
+  for(int l=0;l<2;l++){
+    int layer=layers[l];
+    cout<<"DEALING WITH LAYER "<<layer<<endl;
+
+    // Pick all the ladders
+    for(int s=1;s<=slots[l];s++)
+      for(int side=-1;side<=1;side+=2){
+	int hwid=side*(oldlayers[l]*100+s);
+	TkLadder* ll=TkDBc::Head->FindTkId(hwid);	
+	if(!ll) continue;
+	
+	cout<<"DEALING WITH SIDE "<<side<<" slot "<<s<<" id "<<hwid<<endl;
+
+	cout<<"    Pos "<<ll->GetPos()<<endl
+	    <<"    PosA "<<ll->GetPosA()<<endl
+	    <<"    Rot  "<<ll->GetRotMat()<<endl
+	    <<"    RotA "<<ll->GetRotMatA()<<endl;
+      }
+
+    
+  }
+
+}
+#else
+void DynAlManager::LocalAlignmentTest(){}
+#endif
