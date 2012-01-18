@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.143 2012/01/17 13:32:45 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.144 2012/01/18 13:10:08 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/01/17 13:32:45 $
+/// $Date: 2012/01/18 13:10:08 $
 ///
-/// $Revision: 1.143 $
+/// $Revision: 1.144 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -311,6 +311,9 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     AMSgObj::BookTimer.start("TrClusterReorder");
 #endif
   }
+
+  //////////////////// Unbiased charge calculation ////////////////////
+  FillChargeSeeds();
 
   //////////////////// TrRecHit reconstruction ////////////////////
   if (flag%100 >= 10 &&
@@ -730,6 +733,7 @@ TrClusterR* TrRecon::GetTrCluster(int tkid, int side, int iclus) {
 
 int TrRecon::BuildTrRecHits(int rebuild) 
 {
+
   if (TasRecon) return BuildTrTasHits(rebuild);
   // get the pointer to the TrCluster container
   VCon* cont=GetVCon()->GetCont("AMSTrCluster");
@@ -750,15 +754,11 @@ int TrRecon::BuildTrRecHits(int rebuild)
     return -1;
   }
   //empty the destination container
-  if (rebuild)
-    cont2->eraseC();
+  if (rebuild) cont2->eraseC();
   // build cluster map
   BuildClusterTkIdMap();
   // number of hits created
   int ntrrechits = 0;
-
-  // Unbiased charge calculation (needed for tagging)
-  FillChargeSeeds();
 
   ///////////////////////
   // first hits from all combinations
@@ -836,12 +836,25 @@ int TrRecon::BuildTrRecHits(int rebuild)
       // compatibility between hit clusters and charge seeds in status
       if ( (TRCLFFKEY.ChargeSeedTagActive!=0)&&(CompatibilityWithChargeSeed(clY)) ) hit->setstatus(TrRecHitR::ZSEED);
       // eliminate hit based on charge seed (high-z clean rec.)
-      if ( (TRCLFFKEY.ChargeSeedSelActive!=0)&&(!CompatibilityWithChargeSeed(clY)) ) { delete hit; continue; }
+      if ( (TRCLFFKEY.ChargeSeedSelActive!=0)&&(!CompatibilityWithChargeSeed(clY)) ) { 
+        delete hit; 
+        continue; 
+      }
       // add
       cont2->addnext(hit);
       ntrrechits++;
     }    
   }
+
+  /* // DUMP
+  printf("NHits: %2d    ChargeSeedX = %7.2f   ChargeSeedY = %7.2f\n",cont2->getnelem(),GetChargeSeed(0),GetChargeSeed(1));
+  for (int ihit=0; ihit<cont2->getnelem(); ihit++) {
+    TrRecHitR* hit = (TrRecHitR*) cont2->getelem(ihit);
+    if (hit==0) continue;
+    hit->Print(0);
+  }
+  */
+
   // delete containers 
   if(cont) delete cont;
   if(cont2) delete cont2;
@@ -891,6 +904,7 @@ void TrRecon::ReorderTrRecHits(int type) {
       if (value2>value1) cont->exchangeEl(hit1,hit2);
     }
   }
+
   if (cont) delete cont;
 }
 
@@ -2552,10 +2566,17 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       float sigy = clY->GetTotSignal(TrClusterR::DefaultCorrOpt);
       float prob = hit->GetCorrelationProb();
       float logprob = (prob<=0.) ? -30 : log10(prob);
-      hman.Fill("AmpxCSx_final",sqrt(_htmx),sqrt(sigx));
-      hman.Fill("AmpyCSy_final",sqrt(_htmy),sqrt(sigy));
+      hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
+      hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
       hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
       hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
+      /*
+      if ( (sqrt(sigx)<(0.8*sqrt(GetChargeSeed(0))-4))||
+           (sqrt(sigy)<(0.8*sqrt(GetChargeSeed(1))-4)) ) {
+        printf("ERROR ---   ChargeSeedX = %7.2f   ChargeSeedY = %7.2f\n",GetChargeSeed(0),GetChargeSeed(1));  
+        hit->Print(0);
+      }
+      */
     }
     
 #ifndef __ROOTSHAREDLIBRARY__
@@ -5123,8 +5144,10 @@ int TrRecon::BuildVertex(integer refit){
 // Charge methods
 //========================================================
 
-float TrRecon::_htmy = 0;
-float TrRecon::_htmx = 0;
+void TrRecon::ClearChargeSeeds() {
+  _htmy = 0;
+  _htmx = 0;
+}
 
 void TrRecon::FillChargeSeeds() {
   // unbiased charge 
@@ -5146,7 +5169,7 @@ void TrRecon::FillChargeSeeds() {
 bool TrRecon::CompatibilityWithChargeSeed(TrClusterR* cluster) {
   int   iside  = cluster->GetSide();
   float signal = cluster->GetTotSignal(TrClusterR::DefaultCorrOpt);
-  float chseed = (iside==0) ? _htmx : _htmy;
+  float chseed = GetChargeSeed(iside);
   float ratio  = signal/chseed;
   // fill some plot
   if (iside==0) hman.Fill("AmpxCSx",sqrt(chseed),sqrt(signal)); 

@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.50 2012/01/04 19:35:49 oliva Exp $ 
+// $Id: TrRecon.h,v 1.51 2012/01/18 13:10:09 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2012/01/04 19:35:49 $
+/// $Date: 2012/01/18 13:10:09 $
 ///
-/// $Revision: 1.50 $
+/// $Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -152,24 +152,19 @@ protected:
   enum { BUFSIZE = 1024 };
   /// clustering - ADC buffer to expand raw clusters
   float _adcbuf[BUFSIZE];
-  
-  float _sigbuf[BUFSIZE];
-  
+  float _sigbuf[BUFSIZE]; 
   /// clustering - status buffer to expand raw clusters
   int   _stabuf[BUFSIZE];
-
   /// clustering - list of the seeds in the subbuffer
-  vector<int> _seedaddresses;   
-  
+  vector<int> _seedaddresses;
+  /// clustering - default values for buffers
   static float _adcbuf2[BUFSIZE];
-  
   static float _sigbuf2[BUFSIZE];
-  
   static int   _stabuf2[BUFSIZE];
   
   /// track finding - charge seeds 
-  static float _htmy;
-  static float _htmx;
+  float _htmy;
+  float _htmx;
 
 private:
   
@@ -195,13 +190,10 @@ public:
   /// It sets the Reconstruction Paramenters from the data card
   static void SetParFromDataCards();
 
-
-
- /// Using this calibration file
+  /// Using this calibration file
   static void UsingTrCalDB(TrCalDB* trcaldb) { _trcaldb = trcaldb; }
   /// Get the current calibration database
   static TrCalDB*    GetTrCalDB() { return _trcaldb; }
-
 
   /*!
     \brief Start full track reconstruction (TrCluster, TrRecHit and TrTrack)
@@ -636,20 +628,24 @@ public:
 //========================================================
 
  public:
-  
+ 
+  //! Clear the charge seeds
+  void  ClearChargeSeeds(); 
   //! Calculate the charge seeds
-  static void  FillChargeSeeds();
+  void  FillChargeSeeds();
   //! Get the charge seed
-  static float GetChargeSeed(int iside) { return (iside==0) ? _htmx : _htmy;}
+  float GetChargeSeed(int iside) { return (iside==0) ? _htmx : _htmy;}
   //! Compatibility between cluster and the calculated charge seed
-  static bool  CompatibilityWithChargeSeed(TrClusterR* cluster);
+  bool  CompatibilityWithChargeSeed(TrClusterR* cluster);
   //! Compatibility between hit and the calculated charge seed
-  static bool  CompatibilityWithChargeSeed(TrRecHitR* hit);
+  bool  CompatibilityWithChargeSeed(TrRecHitR* hit);
 
 //========================================================
 // Utilities for debugging
 //========================================================
-public:
+
+ public:
+
   /// FFKEY.init() called from ROOT CINT
   static void InitFFKEYs(int magstat);
   /// TrField::Read() called from ROOT CINT
@@ -660,7 +656,7 @@ public:
   /// TrField::TkFld() called from ROOT CINT
   static void GetTkFld(float *pos, float **hxy);
   /// Add magnetic field correction
-//  static void MagFieldCorr(AMSPoint pp, AMSPoint bc);
+  //  static void MagFieldCorr(AMSPoint pp, AMSPoint bc);
 
   /// Get Tracker Data size in current event
   static int GetTrackerSize();
