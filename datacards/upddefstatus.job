@@ -7,7 +7,7 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc2"
+    MACHINE="linuxx8664icc"
 else
 echo $UNAME is not supported yet
 
@@ -38,7 +38,7 @@ C 45='TriggerLVL1&AMSTOFMCCluster  '
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v203 Protons ' 87=88
-88='EventStatusTable02'
+88='EventStatusTable03'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890

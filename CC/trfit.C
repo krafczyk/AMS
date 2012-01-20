@@ -186,10 +186,22 @@ int TrTrackFitR::getHit(unsigned int lay, AMSPoint & hit){
     else return 5;
     for(int i=0;i<ptr->NHits();i++){
       TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
+       if(lay==1 || lay==9){
+	 if(rh.lay()==lay){
+	   int ret=DynHit(&rh,hit,SAp);
+           if(ret)return 4;
+           TrRecHitR rh2(rh);
+           for(int k=0;k<3;k++)rh2.Hit[k]=hit[k];
+           hit=CrHit(&rh2);
+           return 0;
+	 }
+       }
+      else{
       if(rh.lay()==lay){
         hit=CrHit(&rh);
         return 0;
       }
+     }
     }
    }
     else{
@@ -296,7 +308,15 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
       TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
       int lay=ptr->Layer(i)+1;
       if(CheckLayer(lay)){
-        AMSPoint Hit=CrHit(&rh);
+        AMSPoint Hit;
+	 if(lay==1 || lay==9){
+	   int ret=DynHit(&rh,Hit);
+	   if(!ret) return 2;
+            TrRecHitR rh2(rh);
+           for(int k=0;k<3;k++)rh2.Hit[k]=Hit[k];
+           Hit=CrHit(&rh2);
+        }
+        else Hit=CrHit(&rh);
         for(int k=0;k<3;k++)hits[nh][k]=Hit[k]; 
         for(int k=0;k<3;k++)sigma[nh][k]=rh.EHit[k]; 
         layer[nh]=lay;
@@ -549,7 +569,7 @@ while(!initdone){
 }
 
 
-int TrTrackFitR::DynHit(TrRecHitR * rh,AMSPoint &HitA){
+int TrTrackFitR::DynHit(TrRecHitR * rh,AMSPoint &HitA,AMSTimeID*sap){
   AMSEventR *h=AMSEventR::Head();
   double x=0,y=0,z=0; 
   if(!DynAlManager::FindAlignment(*h,*rh,x,y,z)) return -1;
@@ -653,7 +673,7 @@ double roll=angles[2];
 
 }
 #else
-int TrTrackFitR::DynHit(TrRecHitR * rh,AMSPoint &HitA){
+int TrTrackFitR::DynHit(TrRecHitR * rh,AMSPoint &HitA,AMSTimeID*sap){
 return 0;
 }
 AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.714 2012/01/15 19:15:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.715 2012/01/20 12:40:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1118,10 +1118,11 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
           $template->{RUNMAX}=4000000000;   
+          $template->{EVENTMIN}=1; 
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -1231,7 +1232,7 @@ if($#{$self->{DataSetsT}}==-1){
            if($template->{QTYPE} ne ""){
                $qtype="and $datafiles.type like '$template->{QTYPE}%'";
             }
-                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX}  and ($datafiles.status='OK' or $datafiles.status='Validated') $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
+                   my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and $datafiles.nevents>$template->{EVENTMIN} and run<=$template->{RUNMAX}  and ($datafiles.status='OK' or $datafiles.status='Validated') $qtype $runlist  $runalist and $datafiles.nevents>0 and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template->{filename}') ";
               if($template->{TAG}>=0){
                   $sql=$sql." and $datafiles.tag=$template->{TAG} ";
               }
@@ -7401,6 +7402,7 @@ print qq`
                     $runno=$max_jobs;
                 }
                 $q->param("QRun",$runno);
+                $q->param("QEventMi",$tmp->{EVENTMIN});
                 $q->param("QRunMi",$tmp->{RUNMIN});
                 $q->param("QRunMa",$tmp->{RUNMAX});
                 if($tmp->{QTYPE} ne ""){
@@ -16748,9 +16750,10 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG");
+       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
+          $template->{EVENTMIN}=1;   
           $template->{RUNMAX}=4000000000;   
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
@@ -16820,7 +16823,7 @@ sub calculateMipsVC {
                 }
                 $runalist=$runalist." run!=-1)";
             }
-                 $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'   $qtype $runlist $runalist";
+                 $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK'  and $datafiles.nevents>$template->{EVENTMIN} $qtype $runlist $runalist";
 #                 my $sql="select sum($datafiles.nevents),count($datafiles.run) from $datafiles where run>=$template->{RUNMIN} and run<=$template->{RUNMAX} and status='OK' $qtype $runlist $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid  and  jobs.did='dataset->{did} and jobs.jobname like '%$template->{filename}') ";
                  my $rtn=$self->{sqlserver}->Query($sql);
                  if(defined $rtn){

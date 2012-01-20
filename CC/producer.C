@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.172 2012/01/13 14:21:50 choutko Exp $
+//  $Id: producer.C,v 1.173 2012/01/20 12:40:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -292,8 +292,8 @@ again:
          
     if(_dstinfo->DieHard){
      if(!mtry){
-      cerr <<" problem with runevinfo sleep 20 sec "<<_dstinfo->DieHard<<endl;
-       sleep(20);
+      cerr <<" problem with runevinfo sleep 2 sec "<<_dstinfo->DieHard<<endl;
+       sleep(2);
        mtry=true;
        goto again;
     } 

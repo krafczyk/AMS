@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.197 2012/01/18 08:37:57 choutko Exp $
+//  $Id: server.C,v 1.198 2012/01/20 12:40:13 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -641,11 +641,11 @@ void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHos
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
-    if(strlen(ah.HostName) && strlen(ah.Interface) && strlen(pid.HostName)){
+    if(strlen(ah.HostName) && strlen(ah.Interface)){
     _pvar->sendAH(pid,ah,rc);
     }
     else{
-      cerr<<"**sendah not send "<< strlen(ah.HostName) <<" "<< strlen(ah.Interface) <<" "<<strlen(pid.HostName)<<endl;
+      cerr<<"**sendah not send "<< strlen(ah.HostName) <<" "<< strlen(ah.Interface) <<endl;
    }
    }
    catch (CORBA::SystemException &ex){
