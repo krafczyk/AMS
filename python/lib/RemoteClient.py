@@ -406,6 +406,10 @@ class RemoteClient:
         ret=self.sqlserver.Query(sql);
         if(updatedb<2 and time.time()-cachetime < self.dbfsupdate() and len(ret)>0 ):
             return ret[0][0]
+        if updatedb>0:
+            sql="update mods set modtime=sysdate where tabname='fs'"
+            self.sqlserver.Update(sql)
+            self.sqlserver.Commit()
         if(path == ""):
            sql="select disk,host,status,allowed  from filesystems " 
         else:
@@ -435,6 +439,7 @@ class RemoteClient:
                        print stf," Is Offline"
                    if updatedb!=0:
                        self.sqlserver.Update(sql)
+                       self.sqlserver.Commit()
                    continue
                res=""
                try:
