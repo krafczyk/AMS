@@ -598,7 +598,8 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0):
+        self.needfsmutex=nfs
         self.crczero=0
         self.failedcp=0
         self.thrusted=0
@@ -1856,19 +1857,20 @@ class RemoteClient:
                     gb=disk[2]
                     break
         timew=time.time()
-        if(fsmutexes.has_key(outputdisk)):
-            print "acquirng fs mutex for ",outputdisk,sql
-            mutex.release()
-            fsmutexes[outputdisk].acquire()
-            mutex.acquire()
-            print "got fs mutex for ",outputdisk
-        else:
-            fsmutexes[outputdisk]=thread.allocate_lock()
-            mutex.release()
-            print "acquirng first fs mutex for ",outputdisk,sql
-            fsmutexes[outputdisk].acquire()
-            mutex.acquire()
-            print "got first fs mutex for ",outputdisk
+        if(self.needfsmutex):
+            if(fsmutexes.has_key(outputdisk)):
+                print "acquirng fs mutex for ",outputdisk,sql
+                mutex.release()
+                fsmutexes[outputdisk].acquire()
+                mutex.acquire()
+                print "got fs mutex for ",outputdisk
+            else:
+                fsmutexes[outputdisk]=thread.allocate_lock()
+                mutex.release()
+                print "acquirng first fs mutex for ",outputdisk,sql
+                fsmutexes[outputdisk].acquire()
+                mutex.acquire()
+                print "got first fs mutex for ",outputdisk
         return outputpath,gb,outputdisk,time.time()-timew
            
            
