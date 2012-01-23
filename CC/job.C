@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.849 2012/01/18 20:15:36 mdelgado Exp $
+// $Id: job.C,v 1.850 2012/01/23 10:46:49 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3428,7 +3428,10 @@ void AMSJob::_timeinitjob(){
 	end.tm_mday=0;
 	end.tm_mon=0;
 	end.tm_year=0;
-	TID.add (new AMSTimeID(AMSID("DynAlignment",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,need));
+
+	DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
+	DynAlManager::tdvdb=new AMSTimeID(AMSID("DynAlignment",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
+	TID.add(DynAlManager::tdvdb);
       }
       
     }
