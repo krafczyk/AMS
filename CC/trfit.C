@@ -277,7 +277,7 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
 	   TrRecHitR rh=h->TrRecHit(ptr->iTrRecHit(i));
 	   AMSPoint hit;
 	   int ret=DynHit(&rh,hit);
-	   if(!ret) return 2;
+	   if(ret) return 2;
 	   for(int k=0;k<3;k++)hits[nh][k]=hit[k]; 
 	   for(int k=0;k<3;k++)sigma[nh][k]=rh.EHit[k]; 
 	 }else{
@@ -311,7 +311,7 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
         AMSPoint Hit;
 	 if(lay==1 || lay==9){
 	   int ret=DynHit(&rh,Hit);
-	   if(!ret) return 2;
+	   if(ret) return 2;
             TrRecHitR rh2(rh);
            for(int k=0;k<3;k++)rh2.Hit[k]=Hit[k];
            Hit=CrHit(&rh2);
