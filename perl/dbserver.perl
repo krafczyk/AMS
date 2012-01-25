@@ -67,7 +67,7 @@ foreach my $chop  (@ARGV){
           if(defined $sqls->{IORP} and defined $sqls->{IORS}){
             warn " updating sql \n"; 
             my $createt=time();
-            my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
+            my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}' and datamc=$datamc";
             $sqls->Update($sql);
             my $host=$sqls->ior2host($sqls->{IORS});
             $sql="insert into Servers values('$dbserver->{dbfile}','$sqls->{IORS}','$sqls->{IORP}','$sqls->{IORD}','Active',$ac->{Start},$createt,$datamc,'$host')";
