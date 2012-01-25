@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.32 2011/12/16 10:04:34 choutko Exp $
+//  $Id: root_setup.h,v 1.33 2012/01/25 12:41:37 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -77,7 +77,7 @@ typedef map<unsigned long long,string> rtable_m;
 typedef map<unsigned long long,string>::iterator rtable_i;
 rtable_m fRTable;  ///< Conversion Map (To speed up the search)
 void print(); ///< print element info for elements with non-zero entries
-void printElementNames(); ///< print element names using in GetData
+void printElementNames(const char*name=0); ///< print element names using in GetData
 SlowControlR():fBegin(0),fEnd(0){}
 
          //! SlowControlElement Accessor

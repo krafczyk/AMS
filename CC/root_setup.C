@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.56 2012/01/13 16:33:16 mdelgado Exp $
+//  $Id: root_setup.C,v 1.57 2012/01/25 12:41:05 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -898,9 +898,9 @@ void AMSSetupR::SlowControlR::print(){
     if(i->second.fTable.size())cout <<i->first<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.fTable.size()<<endl;
   }
 }
-void AMSSetupR::SlowControlR::printElementNames(){
+void AMSSetupR::SlowControlR::printElementNames(const char *name){
   for( etable_i i=fETable.begin();i!=fETable.end();i++){
-    cout <<i->first<<" "<<i->second.datatype<<" "<<i->second.subtype<<" "<<i->second.NodeName<<" "<<i->second.BranchName<<" "<<i->second.fTable.size()<<endl;
+    if(!name || !strlen(name) || strstr(i->first.c_str(),name))cout <<i->first<<" DT "<<i->second.datatype<<" ST "<<i->second.subtype<<" NN "<<i->second.NodeName<<"  SIZE "<<i->second.fTable.size()<<endl;
   }
 }
 
