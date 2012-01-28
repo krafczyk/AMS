@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.45 2011/12/01 17:01:36 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.46 2012/01/28 09:54:18 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2011/12/01 17:01:36 $
+///$Date: 2012/01/28 09:54:18 $
 ///
-///$Revision: 1.45 $
+///$Revision: 1.46 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1009,6 +1009,68 @@ int TkDBc::readAlignmentAngles(const char* filename, int pri){
   return 0;
 }
 
+int TkDBc::writeAlignmentLadFF(int tkid, const char* filename, int overwrite){
+  
+  ofstream *fileout;
+  
+  if(!overwrite) 
+    fileout=new ofstream(filename,ios::app);
+  else
+    fileout=new ofstream(filename,ios::trunc);
+  
+  
+  if(!fileout->is_open()){
+    printf(" TkDBc::writeAlignmentLadFF -E- problems opeinf file %s\n",filename);
+    if(fileout) delete fileout;
+    return -1;
+  }
+
+  TkLadder *ll=FindTkId(tkid);
+  if(!ll) {printf(" TkDBc::writeAlignmentLadFF -E- ladder %d not found ! \n",tkid);if(fileout)delete fileout;return -2;}
+  
+  (*fileout) << (*ll);
+  //(*ll)>> (*fileout);
+  
+  if(!fileout->good()){
+    printf(" TkDBc::writeAlignmentLadFF -E- problems opeinf file %s\n",filename);
+    fileout->close();
+    if(fileout) delete fileout;
+    return -1;
+  }
+  
+  fileout->close();
+  if(fileout) delete fileout;
+  return 0;
+}
+
+int TkDBc::readAlignmentLadFF(const char* filename, int pri){
+  ifstream  fileout(filename);
+  if (!fileout) {
+    printf("Error: tkdbc alignemnt file not found: %s\n", filename);
+    return -1;
+  }
+  int count=0;
+  while(1){
+    TkLadder  aa;
+    fileout >> aa;
+    if(fileout.eof()){  break;}
+    if(!fileout.good()) cerr <<" Error in TkDBc::readAlignment the channel is not good"<<endl;
+    int tkid=aa.GetTkId();
+    TkLadder *bb=FindTkId(tkid);
+    if(!bb) continue;
+    bb->pos=aa.pos;
+    bb->rot=aa.rot;
+    bb->posA=aa.posA;
+    bb->rotA=aa.rotA;
+    count++;
+    if (pri) aa.WriteA(cout);
+
+  }
+  cout << count <<" Ladders ALIGNMENTFree  have been read from file "<<filename<<endl;
+
+  fileout.close();
+  return 0;
+}
 
 int TkDBc::readAlignment(const char* filename, int pri){
   ifstream  fileout(filename);

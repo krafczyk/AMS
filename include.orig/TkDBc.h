@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.25 2011/12/01 12:07:17 pzuccon Exp $
+// $Id: TkDBc.h,v 1.26 2012/01/28 09:54:18 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -327,6 +327,15 @@ public:
   int  write(const char* filename);
   //!  Read the  content of the DB from an ascii file
   int  read(const char* filename, int pri=0);
+  //!  Read Ladder alignement data (pos/rot posA/rotA) from a file Free Format  
+  //!   aka  you can put any number of ladder  here 
+  //! ( useful for local ext alignment)
+  int readAlignmentLadFF(const char* filename, int pri);
+  
+  //!  Write Ladder alignement data (pos/rot posA/rotA) from a file Free Format  
+  //!   aka  you can add any laddder you want in the order you prefer
+  //! ( useful for local ext alignment)
+  int writeAlignmentLadFF(int tkid, const char* filename, int overwrite=0);
   //!  Read the alignement data (posA/rotA) from a file
   int readAlignment(const char* filename, int pri=0);
   //!  Read the (Dis)alignement data (posT/rotT) from a file
