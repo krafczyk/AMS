@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.353 2012/01/18 13:51:47 pzuccon Exp $
+//  $Id: root.C,v 1.354 2012/01/28 11:55:35 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4575,6 +4575,54 @@ double RichRingR::RingWidth(bool usedInsteadNpCol){
     sum+=(0.5+i)*(0.5+i)*w;
   }
   if(weight) return sqrt(sum/weight); else return -1;
+}
+
+
+RichRingTables::RichRingTables(){
+#define Do(_x) _x[i]=RichRingR::_x[i]
+  for(int i=0;i<122;i++){
+    Do(indexHistos);
+    Do(_sumIndex); 
+    Do(_totalIndex); 
+    Do(indexCorrection);
+    Do(_lastUpdate); 
+    Do(_numberUpdates);
+  }
+#undef Do
+}
+
+void RichRingTables::Save(TString fileName){
+#pragma omp critical
+  {
+  TFile file(fileName,"RECREATE");
+  RichRingTables tables;
+  tables.Write("RichRingTables");
+  file.Close();
+  }
+}
+
+bool RichRingTables::Load(TString fileName){
+
+  RichRingTables *tables=0;
+#pragma omp critical
+  {
+  TFile file(fileName);
+  tables=(RichRingTables*)file.Get("RichRingTables");
+  file.Close();
+  }
+  if(!tables) return false;
+#define Do(_x) RichRingR::_x[i]=tables->_x[i]
+  for(int i=0;i<122;i++){
+    Do(indexHistos);
+    Do(_sumIndex); 
+    Do(_totalIndex); 
+    Do(indexCorrection);
+    Do(_lastUpdate); 
+    Do(_numberUpdates);
+  }
+#undef Do
+  delete tables;
+  return true;
 }
 
 

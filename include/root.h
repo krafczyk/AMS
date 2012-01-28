@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.402 2012/01/10 14:00:34 afiasson Exp $
+//  $Id: root.h,v 1.403 2012/01/28 11:55:35 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1258,13 +1258,16 @@ ClassDef(RichHitR,6)       // RichHitR
 };
 
 
-//!  Rich Ring Structure
-
 #include "TH1F.h"
+
+
+
+//!  Rich Ring Structure
 
 /*!
  \author Carlos.Jose.Delgado.Mendez@cern.ch
 */
+
 
 class RichRingR {
 static bool _updateDynamicCalibration;
@@ -1281,6 +1284,7 @@ static bool calSelect(AMSEventR &event);
 int getTileIndex();
 static int getTileIndex(float x,float y);
 static void updateCalibration( AMSEventR &event);
+public:
 static TH1F indexHistos[122]; 
 static double _sumIndex[122]; 
 static int _totalIndex[122]; 
@@ -1288,7 +1292,6 @@ static double indexCorrection[122];
 static int _lastUpdate[122]; 
 static int _numberUpdates[122];
 public:
-
 /** @name Dynamic calibration utilities
  *  These methods provide switchs to control the RICH dynamic calibration
  */
@@ -1483,6 +1486,23 @@ public:
   ClassDef(RichRingR,24)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
+
+//!  A class to dump and retrieve dynamic calibration values
+
+class RichRingTables:public TObject{
+ public:
+  TH1F indexHistos[122]; 
+  double _sumIndex[122]; 
+  int _totalIndex[122]; 
+  double indexCorrection[122];
+  int _lastUpdate[122]; 
+  int _numberUpdates[122];
+
+  RichRingTables();
+  static void Save(TString fileName);
+  static bool Load(TString fileName);
+  ClassDef(RichRingTables,1)
+};
 
 
 //!  LIP Rich Ring Structure
