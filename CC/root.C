@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.354 2012/01/28 11:55:35 mdelgado Exp $
+//  $Id: root.C,v 1.355 2012/01/29 14:50:41 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4374,9 +4374,11 @@ void RichRingR::updateCalibration(AMSEventR &event){
   //
   int now=event.fHeader.Time[0];
   if(now<_lastUpdate[tile]-30*60 || _lastUpdate[tile]==1)
-    indexCorrection[tile]=sum*mean_index;
+    //    indexCorrection[tile]=sum*mean_index;
+    indexCorrection[tile]=sum;
   else
-    indexCorrection[tile]=sum*mean_index*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+    //    indexCorrection[tile]=sum*mean_index*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
+    indexCorrection[tile]=sum*_tileLearningFactor+indexCorrection[tile]*(1-_tileLearningFactor); 
 
   _lastUpdate[tile]=now;
   _numberUpdates[tile]++;
@@ -4402,7 +4404,8 @@ double RichRingR::betaCorrection(float index,float x,float y){
   int t=getTileIndex(x,y);
   if(t<0) return 1;
   if(_lastUpdate[t]==1) return 1; // defaults to no correction
-  return index/indexCorrection[t];
+  //  return index/indexCorrection[t];
+  return 1.0/indexCorrection[t];
 }
 
 double RichRingR::betaCorrection(){
@@ -4410,7 +4413,8 @@ double RichRingR::betaCorrection(){
   if(t<0) return 1;
   if(_lastUpdate[t]==1) return 1;
   if(IsNaF()) t=121;
-  return getRawIndexUsed()/indexCorrection[t];
+  //  return getRawIndexUsed()/indexCorrection[t];
+  return 1.0/indexCorrection[t];
 }
 
 int RichRingR::getTileIndex(float x,float y){
