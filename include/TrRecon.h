@@ -1,4 +1,4 @@
-// $Id: TrRecon.h,v 1.51 2012/01/18 13:10:09 oliva Exp $ 
+// $Id: TrRecon.h,v 1.52 2012/01/31 19:37:24 oliva Exp $ 
 #ifndef __TrRecon__
 #define __TrRecon__
 
@@ -18,9 +18,9 @@
 ///\date  2008/07/01 PZ  Global review and various improvements 
 ///\date  2009/12/17 SH  TAS reconstruction added
 ///
-/// $Date: 2012/01/18 13:10:09 $
+/// $Date: 2012/01/31 19:37:24 $
 ///
-/// $Revision: 1.51 $
+/// $Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include "typedefs.h"
@@ -258,6 +258,8 @@ public:
 public:
   /// Builds all the TrRecHits (combinations and spares) (returns the number of TrRecHits built)
   int  BuildTrRecHits(int rebuild = 0);
+  /// Count the number of hits in the container with a given tag
+  int  GetNHitsWithTag(int tag);
   // Reorder TrRecHit container (0: no reordering, 1: probability, 2: y-signal, 3: x-signal) 
   void ReorderTrRecHits(int type);
 
@@ -486,16 +488,16 @@ public:
   //int MergeSharedHits(TrTrackR *track, int fit_method);
 
   /// Merge hits with seed SN clusters lower than TrackThrSeed
-  int MergeLowSNHits(TrTrackR *track, int fit_method);
+  int MergeLowSNHits(TrTrackR *track, int fit_method, int select_tag=0);
 
   /// Merge hits on the external layers
-  int MergeExtHits(TrTrackR *track, int fit_method);
+  int MergeExtHits(TrTrackR *track, int fit_method, int select_tag=0);
 
   /// Build one track from the best candidate iterator
   int BuildATrTrack(TrHitIter &cand);
 
   /// Process track
-  int ProcessTrack(TrTrackR *track, int merge_low = 1);
+  int ProcessTrack(TrTrackR *track, int merge_low = 1, int select_tag = 0);
 
   /// Try to drop one hit in case ChisqX is very large
   int TryDropX(TrTrackR *track, int fit_method);
@@ -548,27 +550,22 @@ public:
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+
   /// Try to extend to external planes for AMS-02P
-  int  MatchTOF_TRD(TrTrackR* tr);
+  int  MatchTOF_TRD(TrTrackR* tr, int select_tag=0);
 
-
- /// Check the Match between Tracker and TRD tracks
+  /// Check the Match between Tracker and TRD tracks
   /// Returns an AMSPoint with
   /// [0] X distance
   /// [1] Y distance
   /// [2] Cos(angle)
-  static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, 
-				  AMSPoint& trdcoo, AMSDir& trddir, 
-                                  int fit_id=0);
+  static AMSPoint BasicTkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir, int fit_id=0);
 
   /// Check the match Tracker and TRD tracks and shift TrTrack
-  static int TkTRDMatch(TrTrackR* ptrack, 
-                         AMSPoint& trdcoo, AMSDir& trddir);
-
+  static int TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir, int select_tag=0);
 
   /// Try to ajust the X multiplicity using a road from other detectors
-  static bool MoveTrTrack(TrTrackR* ptr, AMSPoint& pp, AMSDir& dir, float err);
-
+  static bool MoveTrTrack(TrTrackR* ptr, AMSPoint& pp, AMSDir& dir, float err, int select_tag=0);
   
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

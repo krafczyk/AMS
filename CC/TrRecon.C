@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.144 2012/01/18 13:10:08 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.145 2012/01/31 19:37:23 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/01/18 13:10:08 $
+/// $Date: 2012/01/31 19:37:23 $
 ///
-/// $Revision: 1.144 $
+/// $Revision: 1.145 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -358,8 +358,14 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 
     if (simple) {
       if (TRCLFFKEY.BuildTracksSimpleChargeSeedTag==1) { 
-        ntrk += BuildTrTracksSimple(rebuild,TrRecHitR::ZSEED); // no number of hits check (should be very low)
-        if (nhit<RecPar.MaxNtrHit) ntrk += BuildTrTracksSimple(0); // avoid to destruct again track container
+        if (GetNHitsWithTag(TrRecHitR::ZSEED)<RecPar.MaxNtrHit) 
+          ntrk += BuildTrTracksSimple(rebuild,TrRecHitR::ZSEED); 
+        if (nhit<RecPar.MaxNtrHit)             
+          ntrk += BuildTrTracksSimple(0);
+        /* AO Bug-fix: it could happen that GetHits(tag)<RecPar.MaxNtrHit and nhit>RecPar.MaxNtrHit.
+                       In such case is possible that the hits associated to the track are NOT
+                       stored in the rootple. --> Save all hits, or at least save all hits associated to tracks. 
+        */
       }
       else {
         if (nhit<RecPar.MaxNtrHit) ntrk += BuildTrTracksSimple(rebuild);
@@ -367,11 +373,30 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
     } 
     else { // old algo.
       ntrk += BuildTrTracks(rebuild);
+      if (!CpuTimeUp()) {
+#ifndef __ROOTSHAREDLIBRARY__
+        AMSgObj::BookTimer.start("TrTrack3Extension");
+#endif
+        VCon* cont = GetVCon()->GetCont("AMSTrTrack"); 
+        // extend the tracks to the external planes
+        if (cont){
+          int ntks = cont->getnelem();
+          for (int itr=0;itr<ntks;itr++){
+            TrTrackR* tr=(TrTrackR*) cont->getelem(itr);
+            MergeExtHits(tr, tr->Gettrdefaultfit());        
+          }
+          delete cont;
+        }
+#ifndef __ROOTSHAREDLIBRARY__
+        AMSgObj::BookTimer.stop("TrTrack3Extension");
+#endif
+      }
     }
 
     if (TrDEBUG >= 2)
       cout << "Event " << GetEventID() << " ntrk= " << ntrk << endl;
 
+    /*
     if (!CpuTimeUp()) {
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack3Extension");
@@ -391,7 +416,8 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
   AMSgObj::BookTimer.stop("TrTrack3Extension");
 #endif
     }
-      
+    */    
+  
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop("TrTrack");
 #endif
@@ -560,9 +586,9 @@ void TrRecon::ReorderTrClusters() {
   for (int iclu=0; iclu<nclu-1; iclu++) {
     for (int jclu=iclu+1; jclu<nclu; jclu++) {
       TrClusterR* clu1 = (TrClusterR*) cont->getelem(iclu);
-      float       s1   = clu1->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+      float       s1   = clu1->GetTotSignal();
       TrClusterR* clu2 = (TrClusterR*) cont->getelem(jclu);
-      float       s2   = clu2->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+      float       s2   = clu2->GetTotSignal();
       if (s2>s1) cont->exchangeEl(clu1,clu2);
     }
   }
@@ -782,8 +808,8 @@ int TrRecon::BuildTrRecHits(int rebuild)
         TrRecHitR* hit  = new TrRecHitR(tkid,clX,clY,0);
 #endif
         // x/y association
-        float sigx = clX->GetTotSignal(TrClusterR::DefaultCorrOpt);
-        float sigy = clY->GetTotSignal(TrClusterR::DefaultCorrOpt);
+        float sigx = clX->GetTotSignal();
+        float sigy = clY->GetTotSignal();
         float prob = hit->GetCorrelationProb();
         float logprob = (prob<=0.) ? -30 : log10(prob);
         hman.Fill("AmpyAmpx",sqrt(sigx),sqrt(sigy));
@@ -822,10 +848,10 @@ int TrRecon::BuildTrRecHits(int rebuild)
     for (int iy=0; iy<ny; iy++) {
       TrClusterR* clY = GetTrCluster(tkid,1,iy);
       // histos
-      hman.Fill("SeedSNyN",clY->GetNelem(),clY->GetSeedSN(0));
-      hman.Fill("SignalyN",clY->GetNelem(),clY->GetTotSignal(0));
+      hman.Fill("SeedSNyN",clY->GetNelem(),clY->GetSeedSN());
+      hman.Fill("SignalyN",clY->GetNelem(),clY->GetTotSignal());
       // y cluster reasonable signal-to-noise (we want to be sure of what we get!)
-      hman.Fill("ClSNyN",clY->GetNelem(),clY->GetClusterSN(0));
+      hman.Fill("ClSNyN",clY->GetNelem(),clY->GetClusterSN());
       if (clY->GetClusterSN()<TRCLFFKEY.YClusterSNThr) continue; 
       if (clY->GetNelem()<=TRCLFFKEY.YClusterNStripThr) continue;
 #ifndef __ROOTSHAREDLIBRARY__
@@ -861,6 +887,20 @@ int TrRecon::BuildTrRecHits(int rebuild)
   return ntrrechits;
 } 
 
+int TrRecon::GetNHitsWithTag(int tag) {
+  VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont) { 
+    printf("TrRecon::GetNHitsWithTag-W no valid hit container. Return 0.\n");
+    return 0;
+  }
+  int ntag = 0;
+  int nhit = cont->getnelem();
+  for (int ihit=0; ihit<nhit; ihit++) {
+    TrRecHitR* hit = (TrRecHitR*) cont->getelem(ihit);
+    if (hit->checkstatus(tag)) ntag++;
+  }
+  return ntag;
+}
 
 void TrRecon::ReorderTrRecHits(int type) {
   if (type<=0) return;
@@ -904,7 +944,6 @@ void TrRecon::ReorderTrRecHits(int type) {
       if (value2>value1) cont->exchangeEl(hit1,hit2);
     }
   }
-
   if (cont) delete cont;
 }
 
@@ -2430,7 +2469,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 		       patt->GetHitPatternIndex(maskc),
 		       patt->GetHitPatternIndex(masky));
     
-    if (ProcessTrack(track, 0) > 0) {
+    if (ProcessTrack(track, 0, select_tag) > 0) {
 
 #ifdef __ROOTSHAREDLIBRARY__
       track = (TrTrackR*) cont_trk->getelem(cont_trk->getnelem()-1);
@@ -2562,8 +2601,8 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       TrClusterR* clX = hit->GetXCluster();
       TrClusterR* clY = hit->GetYCluster();
       if ( (clX==0)||(clY==0) ) continue;
-      float sigx = clX->GetTotSignal(TrClusterR::DefaultCorrOpt);
-      float sigy = clY->GetTotSignal(TrClusterR::DefaultCorrOpt);
+      float sigx = clX->GetTotSignal();
+      float sigy = clY->GetTotSignal();
       float prob = hit->GetCorrelationProb();
       float logprob = (prob<=0.) ? -30 : log10(prob);
       hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
@@ -2585,6 +2624,17 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     
     if (ntrack >= RecPar.MaxNtrack) break;
     tracks_simple_stat[6]++;
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("TrTrack3Extension");
+#endif
+      
+    // extend the tracks to the external planes
+    MergeExtHits(track, track->Gettrdefaultfit(), select_tag);
+
+#ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.stop("TrTrack3Extension");
+#endif
     
   } // ENDOF: for (int jc = 0; jc < NC; jc++)
   
@@ -3865,8 +3915,10 @@ int TrRecon::EstimateXCoord(int il, TrHitIter &it) const
   return tks.GetStripX();
 }
 
-int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
+int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit, int select_tag)
 {
+  // TMP: AO for old reconstruction selection tag doesn't work
+
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
 
@@ -3949,7 +4001,7 @@ int TrRecon::MergeLowSNHits(TrTrackR *track, int mfit)
   return nadd;
 }
 
-int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
+int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
 {
   VCon* cont = GetVCon()->GetCont("AMSTrRecHit");
   if (!cont) return -1;
@@ -3981,15 +4033,34 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
   float rig= std::fabs(track->GetRigidity(mfit));
   if (rig == 0) return -2;
 
-  int nhit = cont->getnelem();
+  // average charge (previous)
+  float mean = 0.;
+  for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+    TrRecHitR *hit = (TrRecHitR*) track->GetHit(ihit);
+    if (!hit) continue;
+    if (!hit->GetYCluster()) continue; 
+    mean += hit->GetYCluster()->GetTotSignal(); 
+  }
+  mean /= track->GetNhits(); 
 
-  //1. Search the XY and Y-only hits closest to the track extrapolation on Y
+  // 1. Search the XY and Y-only hits closest to the track extrapolation on Y 
+  //    (discarding bad hits for charge compatibility)
+  int nhit = cont->getnelem();
   for (int i = 0; i < nhit; i++) {
     TrRecHitR *hit = (TrRecHitR*)cont->getelem(i);
 
-    if (!hit || hit->OnlyX() || hit->Used()) continue;
+    if (!hit) continue;
+    if ( (select_tag!=0)&&(!hit->checkstatus(select_tag)) ) continue;
+    if (hit->OnlyX() || hit->Used()) continue;
+
+    // charge compatibility test
+    float xxx = sqrt(mean);
+    float yyy = sqrt(hit->GetYCluster()->GetTotSignal());
+    hman.Fill("ySig5",xxx,yyy);
+    if ( (TRCLFFKEY.TrackFindChargeCutActive)&&( (yyy>xxx+15)||(yyy<xxx-15) ) ) continue;
+
     int idx=0;
-    if(hit->OnlyY())idx=1;
+    if (hit->OnlyY()) idx=1;
 
     int il = -1;
     if (hit->GetLayer() == lyext[0]) il = 0;
@@ -4000,7 +4071,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     float dxy=sqrt(DD[0]*DD[0]+DD[1]*DD[1]);
     float dy=fabs(DD[1]);
     
-    if(hit->OnlyY()){
+    if (hit->OnlyY()) {
       if (dy < DY[il].rymin) {
 	DY[il].ihmin = i;
 	DY[il].icmin = hit->GetYClusterIndex();
@@ -4008,7 +4079,8 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
 	DY[il].ncmin = 1;
 	DY[il].diff  = DD;
       }
-    }else{
+    }
+    else{
       if (dxy < DXY[il].rymin) {
 	DXY[il].ihmin = i;
 	DXY[il].icmin = hit->GetYClusterIndex();
@@ -4020,7 +4092,7 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit)
     }
   }
   
-  //2. XY or Y
+  // 2. XY or Y
   float limx = TRFITFFKEY.MergeExtLimX;
   float limy = TRFITFFKEY.MergeExtLimY;
 
@@ -4199,7 +4271,7 @@ int TrRecon::BuildATrTrack(TrHitIter &itcand)
   return bb;
 }
 
-int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
+int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 {
  if (PZDEBUG){
   cout<< " PZDEBUG track info\n";
@@ -4268,7 +4340,7 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low)
 #endif
 
   // Check it the X matching with the TRD and/or TOF direction
-  int ret3=MatchTOF_TRD(track);
+  int ret3=MatchTOF_TRD(track,select_tag);
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("TrTrack4Match"); 
@@ -4812,7 +4884,7 @@ AMSPoint TrRecon::BasicTkTRDMatch(TrTrackR* ptrack,
   //PZ DEBUG  printf(" TRDTK MATCH  cos %f dist %f\n",c,d);
 }
 
-int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
+int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir, int select_tag)
 {
   int mfit = TrTrackR::DefaultFitID;
   if (!ptrack->ParExists(mfit)) mfit = ptrack->Gettrdefaultfit();
@@ -4831,7 +4903,7 @@ int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
   if (fabs(dst0[0]) < SearchReg) return 1;
   //printf("The distance is X: %f Y: %f Angle: %f try to move ..\n",dst[0],dst[1],dst[2]);
 
-  bool moved=MoveTrTrack(ptrack, trdcoo, trddir,  5.);
+  bool moved=MoveTrTrack(ptrack, trdcoo, trddir,  5., select_tag);
   if(moved){
     ptrack->FitT(mfit);
     AMSPoint dst1 = BasicTkTRDMatch(ptrack, trdcoo, trddir, mfit);
@@ -4846,15 +4918,15 @@ int TrRecon::TkTRDMatch(TrTrackR* ptrack, AMSPoint& trdcoo, AMSDir& trddir)
 
 
 
-bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
+bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err, int select_tag){
   // search if the XY hits are laying with the X road
   int good_mult[9][2];
   int ngood=0;
   int nxy=0;
   for(int jj=0;jj<ptr->getnhits();jj++){
     TrRecHitR* phit=ptr->GetHit(jj);
-    if(phit->OnlyY()) continue;
-    if(phit->GetLayer()==1) continue;
+    if (phit->OnlyY()) continue;
+    if (phit->GetLayer()==1) continue;
     nxy++;
     float X=pp[0]+dir[0]/dir[2]*(phit->GetCoord().z()-pp[2]);
     int mm;
@@ -4878,8 +4950,6 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
   }
   if(ngood!=nxy || ngood<2) return false;
 
-
-  
 //   // prepare a simple fit fit with the moved point
 //   TrFit fit1, fit2;
 //   double ferr = 300e-4;
@@ -4897,7 +4967,6 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
     TrRecHitR* phit=ptr->GetHit(good_mult[ii][0]);
     phit->SetResolvedMultiplicity(good_mult[ii][1]);
   }
-
   
   double sx=0;
   double sx2=0;
@@ -4921,8 +4990,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 
   //  Lets try to find the best hit for the new track on layer 1
 
-
-  TrRecHitR * 	phit2=ptr->GetHitLJ(2);
+  TrRecHitR* phit2=ptr->GetHitLJ(2);
   // Check that hit on lay 1 exists and it is not Y only
   if(phit2 && !phit2->OnlyY()){
     TrClusterR*   cl1y=phit2->GetYCluster();
@@ -4933,10 +5001,14 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
     float max=9999.;
     
     for (int kk=0;kk< cont->getnelem();kk++){
-      TrRecHitR*  hit=(TrRecHitR*)cont->getelem(kk);
-      if(hit->GetYCluster()!=cl1y) continue;
-      for (int mult=0;mult<hit->GetMultiplicity();mult++){
-	float diff=X- hit->GetCoord(mult).x();
+      // loop on all the hits containing y, searching for a better x 
+      TrRecHitR* hit = (TrRecHitR*) cont->getelem(kk);
+      if (!hit) continue;
+      if (hit->Used()) continue;
+      if ( (select_tag!=0)&&(!hit->checkstatus(select_tag)) ) continue;
+      if (hit->GetYCluster()!=cl1y) continue;
+      for (int mult=0; mult<hit->GetMultiplicity(); mult++){
+	float diff = X - hit->GetCoord(mult).x();
 	if(fabs(diff)<max){
 	  max=fabs(diff);
 	  idx=kk;
@@ -4946,18 +5018,16 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
     }
     
     if(idx!=-1&&mm!=-1){
-      TrRecHitR*  hit_new=(TrRecHitR*)cont->getelem(idx);
+      TrRecHitR* hit_new = (TrRecHitR*) cont->getelem(idx);
       if (hit_new!=phit2){
 	//add the new one
 	ptr->AddHit(hit_new,mm);
 	hit_new->SetUsed();
-      }
-      
+      }  
       hit_new->SetResolvedMultiplicity(mm);
     }
     if(cont) delete cont;
   }
-
 
 
   sx=0;
@@ -4975,9 +5045,7 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
     sxy+=coo1[2]*coo1[0];
     N++;
   } 
-
-  Delta=N*sx2-sx*sx;
-  
+  Delta=N*sx2-sx*sx; 
   q=1/Delta*(sx2*sy - sx *sxy);
   m=1/Delta*(N*sxy - sx *sy);
 
@@ -5003,41 +5071,37 @@ bool TrRecon::MoveTrTrack(TrTrackR* ptr,AMSPoint& pp, AMSDir& dir, float err){
 }
 
 
-bool TkTOFMatch(TrTrackR* tr);
+bool TkTOFMatch(TrTrackR* tr, int select_tag);
 
-int TrRecon::MatchTOF_TRD(TrTrackR* tr){
+int TrRecon::MatchTOF_TRD(TrTrackR* tr, int select_tag){
   int  TRDdone = -10;
   bool TOFdone = false;
 #ifndef __ROOTSHAREDLIBRARY__
-    if((TRCLFFKEY.ExtMatch%10)>0){
-      for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1)
-	     ;trd;trd=trd->next())
-	{
-          AMSPoint pp= trd->getCooStr();
-          AMSDir dd=trd->getCooDirStr(); 
-          TRDdone=TkTRDMatch(tr, pp,dd);; 
-        if(TRDdone>0) 
-            break;
-        }
+  if ((TRCLFFKEY.ExtMatch%10)>0) {
+    for (AMSTRDTrack*  trd=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1); trd; trd=trd->next()) {
+      AMSPoint pp= trd->getCooStr();
+      AMSDir dd=trd->getCooDirStr(); 
+      TRDdone=TkTRDMatch(tr,pp,dd,select_tag); 
+      if (TRDdone>0) break;
     }
-  if(TRDdone<=0 &&(TRCLFFKEY.ExtMatch/10)>0)   TOFdone=TkTOFMatch(tr);
+  }
+  if(TRDdone<=0 &&(TRCLFFKEY.ExtMatch/10)>0) TOFdone = TkTOFMatch(tr, select_tag);
 #else
-    if((TRCLFFKEY.ExtMatch%10)>0){
-      AMSEventR *evt = AMSEventR::Head();
-      for (int i = 0; evt && i < evt->nTrdTrack(); i++) {
-	TrdTrackR *trd = evt->pTrdTrack(i);
-        AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
-        AMSDir   dd(trd->Theta,  trd->Phi);
-        TRDdone = TkTRDMatch(tr, pp,dd);; 
-      if(TRDdone>0) break;
-      }
+  if((TRCLFFKEY.ExtMatch%10)>0){
+    AMSEventR *evt = AMSEventR::Head();
+    for (int i = 0; evt && i < evt->nTrdTrack(); i++) {
+      TrdTrackR *trd = evt->pTrdTrack(i);
+      AMSPoint pp(trd->Coo[0], trd->Coo[1], trd->Coo[2]);
+      AMSDir   dd(trd->Theta,  trd->Phi);
+      TRDdone = TkTRDMatch(tr,pp,dd,select_tag); 
+      if (TRDdone>0) break;
     }
+  }
 #endif
   if(TRDdone/10>0||TOFdone) {
     tr->FitT(tr->Gettrdefaultfit());
     tr->RecalcHitCoordinates(tr->Gettrdefaultfit());
   }
-  
   return 0;
 }
 //-----------------------------------------------------------------------
@@ -5168,7 +5232,7 @@ void TrRecon::FillChargeSeeds() {
 
 bool TrRecon::CompatibilityWithChargeSeed(TrClusterR* cluster) {
   int   iside  = cluster->GetSide();
-  float signal = cluster->GetTotSignal(TrClusterR::DefaultCorrOpt);
+  float signal = cluster->GetTotSignal();
   float chseed = GetChargeSeed(iside);
   float ratio  = signal/chseed;
   // fill some plot

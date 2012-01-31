@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.92 2011/06/09 16:53:38 choutko Exp $
+//  $Id: beta.C,v 1.93 2012/01/31 19:37:23 oliva Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -218,8 +218,8 @@ int FindCloserTOF(TrTrackR* ptrack,mtof_hit* tmhit){
 }
 
 
-bool TkTOFMatch(TrTrackR* tr);
-bool TkTOFMatch(TrTrackR* ptrack){
+bool TkTOFMatch(TrTrackR* tr,int select_tag=0);
+bool TkTOFMatch(TrTrackR* ptrack,int select_tag) {
   int mfit = TrTrackR::kSimple;
   mtof_hit tofhit[4];  
   FindCloserTOF( ptrack,tofhit);
@@ -230,7 +230,7 @@ bool TkTOFMatch(TrTrackR* ptrack){
     AMSPoint p0(tofhit[0].phit->getcoo());
     AMSPoint p1(tofhit[3].phit->getcoo());
     AMSDir dir(p0-p1);
-    return TrRecon::MoveTrTrack(ptrack, p0, dir,  3.8);
+    return TrRecon::MoveTrTrack(ptrack, p0, dir,  3.8, select_tag);
 
 //     // Try to move TrTrack along X
 //     int left = 0, right = 0;
@@ -255,10 +255,6 @@ bool TkTOFMatch(TrTrackR* ptrack){
   return false;
 
 }
-
-
-
-
 
 
 int AMSBeta::BuildBeta(AMSTrTrack* ptrack, integer Master){

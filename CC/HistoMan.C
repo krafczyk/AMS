@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.40 2012/01/17 13:32:45 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.41 2012/01/31 19:37:23 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -355,11 +355,12 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("SignalyN","; number of strips; cluster signal (ADC)",10,0.5,10.5,200,0,200));
   Add(new TH2D("ClSNyN","; number of strips; cluster SN",10,0.5,10.5,200,0,100));
   // Hits signal compatibility
-  Add(new TH2D("ySig0","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
-  Add(new TH2D("ySig1","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
-  Add(new TH2D("ySig2","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
-  Add(new TH2D("ySig3","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
-  Add(new TH2D("ySig4","; previous (sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig0","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig1","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig2","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig3","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig4","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
+  Add(new TH2D("ySig5","; previous (#sqrt{ADC}); next (#sqrt{ADC})",200,0,100,200,0,100));
 
   // Residuals per layer
   Add(new TH2D("TrResLayx","residual vs layer; layer; residual (#mum)",9,0,9,250,-500,500));
