@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.57 2012/01/25 12:41:05 choutko Exp $
+//  $Id: root_setup.C,v 1.58 2012/01/31 10:49:47 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -304,7 +304,7 @@ a.Insert=tdv->_Insert;
 a.End=tdv->_End;
 a.Size=tdv->_Nbytes;
 a.CRC=tdv->_CRC;
-a.DataMC=tdv->getid();
+a.DataMC=tdv->getid()?2:0;
 a.Name=tdv->getname();
 a.FilePath=(const char*)tdv->_fname;
 if(AMSJob::gethead()->isProduction() || IOPA.WriteTDVDataInRoot){
