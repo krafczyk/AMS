@@ -122,7 +122,10 @@ int TrExtAlignDB::UpdateTkDBcDyn(int plane){
 return -5;
 }
 
+
 int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln){
+  if(DynAlManager::ignoreAlignment) return 0;
+
   if (!TkDBc::Head) {
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -2;

@@ -278,20 +278,22 @@ class DynAlManager:public TObject{
   static unsigned int begin;
   static unsigned int insert;
   static unsigned int end;
+  static bool ignoreAlignment;
   static void ForceUpdating() {currentRun=skipRun=-1;}
   static int ControlGroup;
 
   // TDV interface
   static void ResetLinear(){tdvBuffer.records=0;}
   static bool AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9);
-  static bool FinishLinear();
+  static bool FinishLinear(TString tdvname);
+  static bool SetTDVName(TString tdvname);
   static bool DumpDirToLinear(TString dir); // Dump a while directory ti a TDV
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
 
   static void LocalAlignmentTest();  // A simple test
 
-  ClassDef(DynAlManager,2);
+  ClassDef(DynAlManager,3);
 };
 
 void _ToAlign();

@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.33 2012/01/18 20:15:37 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.34 2012/02/01 14:21:31 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -154,8 +154,10 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   event.TrackPhi=dir.getphi();
   event.Rigidity=trPar.Rigidity;
 #else
-  TrTrackFitR fit(-TrTrackFitR::kI,2,1,1);  // Chikanian fit with MS and alignment
-  int id=track.iTrTrackFit(fit,0);
+  
+  TrTrackFitR fit(-TrTrackFitR::kI,0,3,1);  
+  int id=track.iTrTrackFit(fit);
+
   if(id<0) return false;
   TrTrackFitR &trPar=track.fTrTrackFit.at(id);
   int which=-1;
@@ -1560,6 +1562,7 @@ unsigned int DynAlManager::begin=0;
 unsigned int DynAlManager::end=0;
 unsigned int DynAlManager::insert=0;
 int DynAlManager::ControlGroup=-1;
+bool DynAlManager::ignoreAlignment=false;
 
 #ifdef _PGTRACK_
 #define TDVNAME "DynAlignmentPG"
@@ -1576,7 +1579,7 @@ void _ToAlign(){
   DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=false; // Default value. To be changed in the future
 }
 
-bool DynAlManager::FinishLinear(){
+bool DynAlManager::FinishLinear(TString TDVname=TDVNAME){
   if(tdvBuffer.records==0) return true;
   // Get the time range
   int minTime=INT_MAX;
@@ -1610,7 +1613,7 @@ bool DynAlManager::FinishLinear(){
   end.tm_mon=0;
   end.tm_year=0;
   
-  tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
+  tdvdb=new AMSTimeID(AMSID(TDVname,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
 		      AMSTimeID::Standalone,need2bookTDV,_ToAlign);
 
   if(!tdvdb) return false;
@@ -1642,33 +1645,42 @@ bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitPara
   if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear();
   return true;
 }
+bool DynAlManager::SetTDVName(TString tdvname){
+  if(tdvdb) delete tdvdb;
+  tm begin;
+  tm end;
+  
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  begin.tm_sec  =0;
+  begin.tm_min  =0;
+  begin.tm_hour =0;
+  begin.tm_mday =0;
+  begin.tm_mon  =0;
+  begin.tm_year =0;
+  
+  end.tm_sec=0;
+  end.tm_min=0;
+  end.tm_hour=0;
+  end.tm_mday=0;
+  end.tm_mon=0;
+  end.tm_year=0;
+  
+  tdvdb=new AMSTimeID(AMSID(tdvname,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
+		      AMSTimeID::Standalone,1,_ToAlign);
+
+  
+  if(!tdvdb){
+    cout<<"DynAlManager::SetTDVName-- AMSTimeId cannot be created with name "<<tdvname<<endl;
+    return false;
+  }    
+  return true;
+}
 
 
 bool DynAlManager::UpdateWithTDV(int time){
   if(!tdvdb){
-    tm begin;
-    tm end;
-    
-    begin.tm_isdst=0;
-    end.tm_isdst=0;
-    begin.tm_sec  =0;
-    begin.tm_min  =0;
-    begin.tm_hour =0;
-    begin.tm_mday =0;
-    begin.tm_mon  =0;
-    begin.tm_year =0;
-    
-    end.tm_sec=0;
-    end.tm_min=0;
-    end.tm_hour=0;
-    end.tm_mday=0;
-    end.tm_mon=0;
-    end.tm_year=0;
-    
-    tdvdb=new AMSTimeID(AMSID(TDVNAME,1),begin,end,sizeof(tdvBuffer),&tdvBuffer,
-			AMSTimeID::Standalone,1,_ToAlign);
-
-    
+    SetTDVName(TDVNAME);
     if(!tdvdb){
       cout<<"DynAlManager::UpdateWithTDV-- AMSTimeId cannot be created"<<endl;
       return false;
