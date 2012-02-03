@@ -570,21 +570,26 @@ while(!initdone){
 int TrTrackFitR::DynHit(TrRecHitR * rh,AMSPoint &HitA,AMSTimeID*sap){
   AMSEventR *h=AMSEventR::Head();
   double x=0,y=0,z=0; 
-  if(!DynAlManager::ignoreAlignment)
+  if(!DynAlManager::ignoreAlignment){
     if(!DynAlManager::FindAlignment(*h,*rh,x,y,z)) return -1;
+  }
+  else{
+    x=rh->Hit[0];
+    y=rh->Hit[1];
+    z=rh->Hit[2];
+  }
   HitA=AMSPoint(x,y,z);
   return 0;
 }
 
 AMSPoint TrTrackFitR::CrHit(TrRecHitR * rh){
   AMSPoint Hit=AMSPoint(rh->Hit[0],rh->Hit[1],rh->Hit[2]);
-  
+
   gldb_par *par(0);
   if( (par=SearchDB(rh))){
     AMSPoint HitA;
     for(int j=0;j<3;j++)HitA[j]=(par->getcoo())[j]+
       (par->getmtx(j)).prod(Hit);
-    
     return HitA;
   }
   else return Hit;

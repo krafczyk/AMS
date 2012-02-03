@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.34 2012/02/01 14:21:31 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.35 2012/02/03 23:14:22 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -118,7 +118,11 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   //  pnt=hit.GetGlobalCoordinate(imult,"");
   pnt=hit.GetGlobalCoordinate(imult,"A");
 #else
-  for(int i=0;i<3;i++) pnt[i]=hit.Hit[i];
+  TrTrackFitR fitAll(0,0,3,1);    // Full span with alignment
+  int idAll=track.iTrTrackFit(fitAll);
+  if(idAll<0) return false;
+  TrTrackFitR &trParAll=track.fTrTrackFit.at(idAll);
+  if(trParAll.getHit(layer,pnt)!=0) return false;
 #endif
   
   ///////////////////////////
@@ -1354,7 +1358,6 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
   // Get the Id 
   int Id=GetId(hit);
 
-  // Find the candidate
   map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
   if(lower==FitParameters.end()){
     lower=FitParameters.upper_bound(seconds);
@@ -1818,7 +1821,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
 	
 #pragma omp critical 
 	{
-	  //      cout <<" start "<<currentRun<<endl;
+	  //	        cout <<" start "<<currentRun<<endl;
 	  int subdir=DynAlContinuity::getBin(currentRun);
 	  TFile *file= new TFile(Form("%s/%i/%i.align.root",dir.Data(),subdir,currentRun));
 	  if(file){
