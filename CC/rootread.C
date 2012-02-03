@@ -28,6 +28,17 @@ int firstevent=-1;
         if(iver>0)cout <<"problem to find tree AMSRoot "<<endl;
 	return -1;
  }
+
+ rfile->Get("datacards/TKGEOMFFKEY_DEF");
+ rfile->Get("datacards/TRMCFFKEY_DEF");
+ rfile->Get("datacards/TRMCFFKEY_DEF");
+ rfile->Get("datacards/TRCALIB_DEF");
+ rfile->Get("datacards/TRCALIB_DEF");
+ rfile->Get("datacards/TRCLFFKEY_DEF");
+ rfile->Get("datacards/TRFITFFKEY_DEF");
+ rfile->Get("datacards/TRCHAFFKEY_DEF");
+
+
  if(jou){
    TObjString s("");
    s.Read("DataCards");

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.237 2011/09/28 07:50:04 choutko Exp $
+//  $Id: trrec.C,v 1.238 2012/02/03 14:49:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3005,7 +3005,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
    integer layer[maxhits];
   integer ialgo=TRFITFFKEY.MainAlg%10;
    
-  geant out[9];
+  geant out[40];
   integer i;
     integer fit =abs(fits)%10;
     integer ie=(abs(fits)/10)%10;

@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.73 2011/09/28 07:50:04 choutko Exp $
+//  $Id: tralig.C,v 1.74 2012/02/03 14:49:16 choutko Exp $
 #include "tralig.h"
 #include <math.h>
 #include "timeid.h"
@@ -797,7 +797,7 @@ next:
                   sigma[i][j]=((pal->_pData)[ip]._EHits[0])[j];
                 }
               }
-              geant out[9];
+              geant out[40];
               int pid=5;
               out[0]=1./10000000.;
                         int ialgg=ialgo%10;
@@ -1678,7 +1678,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
   static integer layer[maxhits];
   integer ialgo=11;
   integer ims=0;
-  geant out[9];
+  geant out[40];
   for(i=0;i<TKDBc::nlay();i++){
      normal[i][0]=0;
      normal[i][1]=0;
@@ -1811,7 +1811,7 @@ if(MAGSFFKEY.magstat>0){
   static integer layer[maxhits];
   integer ialgo=11;
   integer ims=0;
-  geant out[9];
+  geant out[40];
   for(i=0;i<TKDBc::nlay();i++){
      normal[i][0]=0;
      normal[i][1]=0;
@@ -1959,7 +1959,7 @@ else{
   static integer layer[maxhits];
   integer ialgo=11;
   integer ims=0;
-  geant out[9];
+  geant out[40];
   for(i=0;i<TKDBc::nlay();i++){
      normal[i][0]=0;
      normal[i][1]=0;

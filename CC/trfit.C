@@ -231,7 +231,7 @@ int TrTrackFitR::Fit( TrTrackR *ptr){
    int ipart=14;
     if(ipart==2)ipart=5;
     if(ipart==3)ipart=6;
-    float out[9];
+    float out[40];
     for(int i=0;i<npt;i++){
      normal[i][0]=0;
      normal[i][1]=0;

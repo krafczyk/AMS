@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.61 2011/12/23 12:30:35 choutko Exp $
+//  $Id: trdrec.C,v 1.62 2012/02/03 14:49:16 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -949,7 +949,7 @@ void AMSTRDTrack::RealFit(){
   geant normal[maxhits][3];
   integer layer[maxhits];
   integer ialgo=1;
-  geant out[9];
+  geant out[40];
   for(int i=0;i<npt;i++){
     normal[i][0]=0;
     normal[i][1]=0;

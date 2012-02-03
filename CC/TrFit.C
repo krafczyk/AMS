@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.58 2011/09/27 23:50:04 pzuccon Exp $
+//  $Id: TrFit.C,v 1.59 2012/02/03 14:49:16 choutko Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2011/09/27 23:50:04 $
+///$Date: 2012/02/03 14:49:16 $
 ///
-///$Revision: 1.58 $
+///$Revision: 1.59 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1556,7 +1556,7 @@ double TrFit::ChikanianFit(int type)
 }
 
 #ifndef __ROOTSHAREDLIBRARY__
-extern "C" void rkms_rig_(int*,int*,float*,float*,int*,float*,float*);
+extern "C" void rkms_rig_(int*,int*,float*,float*,float*,float*,float*,float*);
 extern "C" void rkmsinit_(float*);
 
 void TrFit::RkmsFitF(double *out)
@@ -1596,8 +1596,10 @@ void TrFit::RkmsFitF(double *out)
   }
 
   float rini = 10000.00;// GetRigidity(); // Compatible with TrackFit_Utils
-  float outf[9];
-  rkms_rig_(&npo, npl, xyz, dxyz, &ipa, &rini, outf);
+  float outf[31];
+  float beta=1;
+  float charge=1;
+  rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, outf);
   for (int i = 0; i < 9; i++) out[i] = outf[i];
 }
 #else

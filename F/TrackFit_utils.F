@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
+* $Id: TrackFit_utils.F,v 1.49 2012/02/03 14:49:19 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.49  2012/02/03 14:49:19  choutko
+* add new rkms_rig routine
+*
 * Revision 1.48  2011/10/05 18:52:19  pzuccon
 * propagate B542 updates to vdev
 *
@@ -236,7 +239,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
+*  $Id: TrackFit_utils.F,v 1.49 2012/02/03 14:49:19 choutko Exp $
 
 
 c. Add by Zhili.Weng 2009-11-11
@@ -4252,6 +4255,24 @@ CDECK  ID>, TKFITG.
                  enddo 
               enddo
          end    
+         subroutine setbeta(xbeta)
+       !$OMP THREADPRIVATE (/tkgdefC/,/tftimeC/,/tkcorrC/,/tkfrunC/)
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
+     +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
+     +        bound,scale,cfld,sms,pii
+              real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
+     +        scale(6)
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
+     +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
+              real *8 xxn,vpar2,vpar,vxy
+              parameter (maxpl=20)
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
+     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl),beta
+              beta=abs(xbeta)
+          end
+
+
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
      +   ialgo,imsa,layer,out)
 *
@@ -4288,7 +4309,7 @@ CDECK  ID>, TKFITG.
               real *8 xxn,vpar2,vpar,vxy
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
-     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
+     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl),beta
          integer npt
          real xhits(3,*),ysigma(3,*),ynormal(3,*),pinit
          real out(*)
@@ -4406,7 +4427,11 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               out(9)=erig
               goto 999
              else if(ialg.eq.5)then
-              call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
+              xbeta=1
+              if(beta.gt.0.1.and.beta.lt.1)xbeta=beta
+              xchrg=abs(chrg)
+              call rkms_rig
+     +        (npt,layer,xhits,ysigma,xbeta,xchrg,pinit,out)
               call tksetres(xhits,npt)
               call tksetresd(ysigma,npt)
               out(8)=0
@@ -7900,9 +7925,12 @@ c                 write(*,*)i,l,parav/(nparav+1),nparav
 
 
 
-* $Id: TrackFit_utils.F,v 1.48 2011/10/05 18:52:19 pzuccon Exp $
+* $Id: TrackFit_utils.F,v 1.49 2012/02/03 14:49:19 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.49  2012/02/03 14:49:19  choutko
+* add new rkms_rig routine
+*
 * Revision 1.48  2011/10/05 18:52:19  pzuccon
 * propagate B542 updates to vdev
 *

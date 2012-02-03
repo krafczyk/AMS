@@ -23,6 +23,26 @@ int s2=  AMSSetupR::gethead()->fSlowControl.GetData("L03T+01X+08 / L06T+02Y-03",
 
 AMSSetupR::gethead()->fSlowControl.printElementNames("L03T+01X+08 / L06T+02Y-03");
 
+AMSSetupR::TDVR tdv;
+    int r = AMSSetupR::gethead()->getTDV("TRDStatus2",ev->UTime(),tdv);
+
+
+
+vector<float> values;
+ for(AMSSetupR::SlowControlR::etable_i it=AMSSetupR::gethead()->fSlowControl.fETable.begin();it!=AMSSetupR::gethead()->fSlowControl.fETable.end();it++){
+   
+    if(strstr(it->second.NodeName.Data(),"USCM_UG")&&it->second.datatype==25&&it->second.subtype<202){
+
+      int stat=ev->getsetup()->fSlowControl.GetData(it->first.c_str(), ev->UTime(), 100., values);
+      cout<<stat<<' '<<it->second.NodeName.Data()<<' '<<it->second.BranchName.Data()<<endl;
+      cout<<it->first.c_str()<<"  -- stat "<<stat<<endl;
+
+    }
+  }
+
+ cout <<" DataMc" <<tdv.DataMC<<" "<<tdv.FilePath<<  endl;
+
+
  AMSSetupR::DynAlignment_m &pars=AMSSetupR::gethead()->fDynAlignment;
  cout <<" size "<<pars[1].FitParameters.size()<<" "<<pars[9].FitParameters.size()<<endl;
 cout <<k<<" "<<ev->Particle(0).TRDCoo[0][2]<<" "<<ev->Particle(0).TRDCoo[1][2]<<endl;

@@ -1,4 +1,4 @@
-* $Id: TrFitF.F,v 1.3 2011/11/29 14:29:49 choutko Exp $
+* $Id: TrFitF.F,v 1.4 2012/02/03 14:49:18 choutko Exp $
       SUBROUTINE DMM55(A,B,C)
 C *** ---------------------------------------------                     05/07/81
 C *** MULTIPLICATION OF 5X5 MATRICES: A*B -> C.
@@ -573,7 +573,7 @@ CDECK  ID>, TKFITG.
               real *8 xxn,vpar2,vpar,vxy
               parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
-     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl)
+     +        yn(3,maxpl),xmass,chrg,outa(7,maxpl),beta
          integer npt
          real xhits(3,*),ysigma(3,*),ynormal(3,*),pinit
          real out(*)
@@ -693,7 +693,11 @@ c     +       ipart,out,ialg-1)
               out(9)=erig
               goto 999
              else if(ialg.eq.5)then
-              call rkms_rig(npt,layer,xhits,ysigma,ipart,pinit,out)
+              xbeta=1
+              if(beta.gt.0.1.and.beta.lt.1)xbeta=beta
+              xchrg=abs(chrg)
+              call rkms_rig
+     +        (npt,layer,xhits,ysigma,xbeta,xchrg,pinit,out)
               call tksetres(xhits,npt)
               call tksetresd(ysigma,npt)
               out(8)=0

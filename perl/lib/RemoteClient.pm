@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.715 2012/01/20 12:40:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.716 2012/02/03 14:49:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11095,15 +11095,16 @@ sub listAll {
 
     $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
-    $self -> listStat();
-     $self -> listCites();
-      $self -> listMails();
+    $self -> listProductionSetPeriods();
+#    $self -> listStat();
+#     $self -> listCites();
+#      $self -> listMails();
       $self -> listNetMonitor();
        $self -> listServers();
        $self -> listDataServers();
-        $self -> listJobs();
-         $self -> listRuns();
-          $self -> listNtuples();
+#        $self -> listJobs();
+#         $self -> listRuns();
+#          $self -> listNtuples();
    my $time = localtime;
    print "<tr><td><font size=\"-1\"><b>Page Update : $time</b></td>\n";
             $self -> listDisks();
