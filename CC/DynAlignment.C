@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.35 2012/02/03 23:14:22 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.36 2012/02/06 15:41:31 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1640,12 +1640,12 @@ bool DynAlManager::FinishLinear(TString TDVname=TDVNAME){
 }
 
 
-bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9){
+bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9,TString name=TDVNAME){
   tdvBuffer.id=INT_MAX;
   layer1.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][0],time,-1);
   layer9.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][1],time,-1);
   tdvBuffer.records++;
-  if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear();
+  if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear(name);
   return true;
 }
 bool DynAlManager::SetTDVName(TString tdvname){
@@ -1697,7 +1697,7 @@ bool DynAlManager::UpdateWithTDV(int time){
 }
 
 
-bool DynAlManager::DumpDirToLinear(TString dir){
+bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME){
   // Get the file list
   void *dirp=gSystem->OpenDirectory(dir);
   if(!dirp) return false;
@@ -1759,14 +1759,14 @@ bool DynAlManager::DumpDirToLinear(TString dir){
       if(!l9->Find(key,l9P)) continue;
 
       // Dump to linear space
-      DynAlManager::AddToLinear(key,l1P,l9P);
+      DynAlManager::AddToLinear(key,l1P,l9P,tdvname);
     }
     
     delete l1;
     delete l9;
   }
 
-  if(tdvBuffer.records) DynAlManager::FinishLinear();
+  if(tdvBuffer.records) DynAlManager::FinishLinear(tdvname);
   return true;
 }
 
