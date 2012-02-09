@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.36 2012/02/06 15:41:31 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.37 2012/02/09 17:08:23 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1649,7 +1649,10 @@ bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitPara
   return true;
 }
 bool DynAlManager::SetTDVName(TString tdvname){
-  if(tdvdb) delete tdvdb;
+  if(tdvdb){
+    if(strcmp(tdvname.Data(),tdvdb->getname())==0) return true;  // Already booked
+    delete tdvdb;
+  }
   tm begin;
   tm end;
   
