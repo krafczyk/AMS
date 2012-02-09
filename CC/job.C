@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.850 2012/01/23 10:46:49 mdelgado Exp $
+// $Id: job.C,v 1.851 2012/02/09 09:20:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1453,7 +1453,7 @@ void AMSJob::_retof2data(){
   //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4/5/6/7 ->normal/TDCL/TDIF/TZSL/AMPL/PEDScl/ds/OnBoardTable-calibr. run.
   //                       (when =7 confirm ped-file writing + hist when glob. CALIB-flag >1 to be independent on ACC !) 
-  TFREFFKEY.relogic[1]=1;//(9) 1/0-> permit/not LT/SumHT matching criterion for multi-LTs case 
+  TFREFFKEY.relogic[1]=0;//(9) 1/0/-1-> force/not/forbid LT/SumHT matching criterion for multi-LTs case 
   TFREFFKEY.relogic[2]=1;//(10) 1/0->use/not TofTdc NonLin-corrections at RECO-stage(RawClust creation)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->write/not TOF2RawSideObject-info into ntuple
@@ -1466,10 +1466,10 @@ void AMSJob::_retof2data(){
   //
   TFREFFKEY.cuts[0]=6.;//(18) window(+-ns) around (LT-SumHT)-m.p for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
-  TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
+  TFREFFKEY.cuts[2]=50.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=3.33;//(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
   TFREFFKEY.cuts[4]=70.;//(22) JLV1 globFT decision_time + delay(JLV1-> S-crate, ns), i.e. glFT-time at S-crate
-  TFREFFKEY.cuts[5]=5.;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
+  TFREFFKEY.cuts[5]=4.5;//(23) (LT-SumHT)-m.p to use with window(cuts[0])  for pairing of LT-/sumHT-hits in channels
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=0.;// (25) T-type def.temperature (see card #29)
   TFREFFKEY.cuts[8]=0.;// (26) P-type def.temperature 

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.89 2011/07/19 11:56:19 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.90 2012/02/09 09:20:31 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -3160,7 +3160,7 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1138,"TofValid:LTtime for LBBS=1042",100,5000.,20000.,0.);
       HBOOK1(1139,"TofValid:FTtime for LBBS=1042",100,5000.,20000.,0.);
     }
-    HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits, 1st FT-hit if multiple)",80,-60.,740.,0.);
+    HBOOK1(1136,"RawCluster: FTtime-LTime(all LT-hits, last FT-hit if multiple)",80,-60.,740.,0.);
     HBOOK1(1106,"RawCluster: FTtime-LTime(finaly selected LT-hit)",80,-60.,740.,0.);
     HBOOK1(1103,"RawCluster: LTime-SumHTtime(final LT-hit(Single LT case, FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);
     HBOOK1(1109,"RawCluster: LTime-SumHTtime(final LT-hit(best LT of all FT-matched),ovfl=noSumHTmatch)",80,-6.,14.,0.);

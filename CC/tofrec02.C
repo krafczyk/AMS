@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.83 2011/12/23 14:48:27 choumilo Exp $
+//  $Id: tofrec02.C,v 1.84 2012/02/09 09:20:31 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -649,7 +649,8 @@ void TOF2RawCluster::build(int &ostatus){
 //---
       for(i=0;i<nwftt;i++)ftdc[isid][i]=fwftt[i]*TOF2DBc::tdcbin(1);//FTtime TDCch->ns
       nftdc[isid]=nwftt;
-      fttm=ftdc[isid][0];// tempor use 1st FTtime-hit
+//      fttm=ftdc[isid][0];// tempor use 1st FTtime-hit
+      fttm=ftdc[isid][nwftt-1];// use last FTtime-hit if there are few
       if(TFREFFKEY.reprtf[3]>0 && TFREFFKEY.reprtf[4]>0)cout<<"     FTtime(ns)="<<fttm<<endl;
 //
       for(i=0;i<nwltt;i++)stdc[isid][i]=fttm-fwltt[i]*TOF2DBc::tdcbin(1);//Rel.LTtime(+ means befor FTtime)(+TDCch->ns)
@@ -729,11 +730,11 @@ void TOF2RawCluster::build(int &ostatus){
         SumHTuse=TFREFFKEY.relogic[1];// permit/not(1/0) LT/SumHT-matching criterion for multi-LTs case 
         if((nttdc[0]>0 || PMEQmode)  
 	    && (nadca[0]>0 || nadcd[0]>0)
-	    && (nhtdc[0]>0 || SumHTuse==0)
+	    && (nhtdc[0]>0 || SumHTuse<=0)
 	                                  )smty[0]=1;//side has "complete" t,amp,[hist] measurement
         if((nttdc[1]>0 || PMEQmode)  
 	    && (nadca[1]>0 || nadcd[1]>0)
-	    && (nhtdc[1]>0 || SumHTuse==0)
+	    && (nhtdc[1]>0 || SumHTuse<=0)
 	                                  )smty[1]=1;//...
 //----------------------
 //bbb--->
@@ -836,8 +837,10 @@ void TOF2RawCluster::build(int &ostatus){
 	    dtbest[isd]=9999;
 	    sdtbest[isd]=9999;
 	    if(smty[isd]>0 && nttdc[isd]>0){// use only FT-matched LT-hits
-	      tmbest[isd]=ttdc[isd][0];//these are default values
+	      tmbest[isd]=ttdc[isd][0];//use first as default values
 	      itmbest[isd]=ittdc[isd][0];//index in stdc-array
+//	        tmbest[isd]=ttdc[isd][nttdc[isd]-1];//use last(latest) as default
+//	        itmbest[isd]=ittdc[isd][nttdc[isd]-1];
 	      if(nttdc[isd]==1){//single FT-correlated LT-hit case(use default), just see distribution
 		j=itmatch[isd][ittdc[isd][0]];//SumHT-hit index in htdc-array, if match ok
 		if(j>=0){ 
@@ -852,7 +855,7 @@ void TOF2RawCluster::build(int &ostatus){
 		}
 	      }//--->endof "Single FT-matched LT-hit"
 	      else{//many FT-correlated LT-hits, try to use history to select best(true) LT
-	        if(SumHTuse==1){//try to use best SumHT-matched LT-hit, if SumHTuse is permitted
+	        if(SumHTuse!=-1 && nhtdc[isd]>0){//try to use best SumHT-matched LT-hit, if SumHTuse is not forbidden
 		  for(i=0;i<nttdc[isd];i++){//FT-correlated LTtime-hits loop
 		    j=itmatch[isd][ittdc[isd][i]];// >=0 if LT-SumHT matching OK
 		    dt=dtmin[isd][ittdc[isd][i]];//best dt LT-sumHT matching for this hit
@@ -870,10 +873,10 @@ void TOF2RawCluster::build(int &ostatus){
 }
 		  }
 	        }
-	        else{//SumHTuse not permitted - use 1st(youngest) LT-hit as true(best)
+	        else{//SumHTuse=forbid or SumHT missing - use 1st(youngest) LT-hit as true(best)
 	          tmbest[isd]=ttdc[isd][0];
 	          itmbest[isd]=ittdc[isd][0];//its index in stdc-array
-//	                 tmbest[isd]=ttdc[isd][nttdc[isd]-1];//use last(oldest)
+//	                 tmbest[isd]=ttdc[isd][nttdc[isd]-1];//use last(latest)
 //	                 itmbest[isd]=ittdc[isd][nttdc[isd]-1];
                 }
 	      }//--->endof "many FT-corr. LT-hits" case
@@ -915,42 +918,44 @@ void TOF2RawCluster::build(int &ostatus){
           rej2=0;
 	  rej3=0;
           for(isd=0;isd<2;isd++){
-	    if(smty[isd]>0 && (itmatch[isd][itmbest[isd]]>=0 || SumHTuse==0)){//use sides with FT- and SumHT-matched(if permitted) LT-hit
+	    if(smty[isd]>0 && itmatch[isd][itmbest[isd]]>=0){//use sides with FT- and SumHT-matched LT-hit
 	      if(itmbest[isd]>0){//check that "best" LT-hit is not the 1st one in stdc-arr
 	        ibef=itmbest[isd]-1;//previous(to "best") LT-hit(stdc)
-		for(i=ibef;i>=0;i--){//find 1st LT-hit which is: (matched,if permitted) and too close to "best" 
-		  tbef=stdc[isd][ibef];
-		  dt=tbef-tmbest[isd];//dist befor the "best"
-		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscutb()){
-                    if(TFREFFKEY.reprtf[1]>0){
+		for(i=ibef;i>=0;i--){//loop over all LT-hit before "best" one (best HT-matched) 
+		  tbef=stdc[isd][i];
+		  dt=tbef-tmbest[isd];//dist befor the "best" (>0)
+                  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-		      HF1(1101,geant(dt),1.);
+		    HF1(1101,geant(dt),1.);
 }
+		  }
+		  if(dt<TOF2Varp::tofvpar.hiscutb()){//mark if some previous hit too close to the "best"
+		    if(rej2==0){//count only first occurence of dt<cut
+                      chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;
+		      TOF2JobStat::addch(chnum,23);//count "before"-hit presence
 		    }
 		    rej2=1;
-                    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;
-		    TOF2JobStat::addch(chnum,23);//count "before"-hit presence
-		    break;
 		  }
 		}
 	      }
 	      if(itmbest[isd]<(nstdc[isd]-1)){//check that "best" hit is not the last in stdc-arr
 	        iaft=itmbest[isd]+1;//next(to "best") LT-hit
-		for(i=iaft;i<nstdc[isd];i++){//find 1st LT-hit which is: (matched,if permitted) and too close to "best"
-		  taft=stdc[isd][iaft];
-		  dt=tmbest[isd]-taft;//dist after the "best"
-		  if((itmatch[isd][i]>=0 || SumHTuse==0) && dt<TOF2Varp::tofvpar.hiscuta()){
-                    if(TFREFFKEY.reprtf[1]>0){
+		for(i=iaft;i<nstdc[isd];i++){//loop over all LT-hit after "best" one (best HT-matched)
+		  taft=stdc[isd][i];
+		  dt=tmbest[isd]-taft;//dist after the "best" (>0)
+                  if(TFREFFKEY.reprtf[1]>0){
 #pragma omp critical (hf1)
 {
-		      HF1(1102,geant(dt),1.);
+		    HF1(1102,geant(dt),1.);
 }
+		  }
+		  if(dt<TOF2Varp::tofvpar.hiscuta()){
+		    if(rej3==0){//count only first occurence of dt<cut
+                      chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;//channel numbering for job-stat counters
+		      TOF2JobStat::addch(chnum,24);;//count "after"-hit presence
 		    }
 		    rej3=1;
-                    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isd;//channel numbering for job-stat counters
-		    TOF2JobStat::addch(chnum,24);;//count "after"-hit presence
-		    break;
 		  }
 		}
 	      }
@@ -960,7 +965,7 @@ void TOF2RawCluster::build(int &ostatus){
 //===========>>> set time-history status of sc.bar :
 //
             if(rej2==1 || rej3==1)sta|=TOFGC::SCBADB1;// set bit "bad time-history" on any of complete sides
-	    if(rej1==1 && SumHTuse==1)sta|=TOFGC::SCBADB6;// set bit "no TrueLT-hit/SumHT matching"(if was permitted) on any side"
+	    if(rej1==1 && SumHTuse==1)sta|=TOFGC::SCBADB6;// set bit "no TrueLT-hit/SumHT matching"(if was forced) on any side"
             if(rej2==0 && rej3==0)TOF2JobStat::addbr(brnum,2);//"good time-history" on each of complete sides
             if(rej1==0)TOF2JobStat::addbr(brnum,3);//"True LT-hit" matching OK(when requested) on each of complete sides
             if(rej1==0&&rej2==0&&rej3==0 && isds==2)TOF2JobStat::addbr(brnum,4);//all is OK on both sides
