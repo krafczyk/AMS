@@ -23,8 +23,8 @@
       do k=1,NPma
         trkZ0(k)=zposl(k)
       enddo
-      write(*,*)'RKMS-I-InitTo '
-      write(6,'(8f8.3,f9.3)')trkZ0
+*      write(*,*)'RKMS-I-InitTo '
+*      write(6,'(8f8.3,f9.3)')trkZ0
       end
 
 *------------------------------
