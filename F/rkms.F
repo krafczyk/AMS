@@ -8,7 +8,7 @@
 * Jan.2012: argument "ipa" replaced by "be,cha"
 *           dE/dx integrated in rkms.F
 * Feb.2012: CERNlib free version (DSEQN DSINV RSINV TMPRNT)
-*           Calculated paremeter's errors sqrt(2) bigger.
+*           Calculated parameter's errors are sqrt(2) bigger.
 *---------------------------------------------------------------
 * Rigidity reconstruction program for AMS02 with permanent magnet
 * Taking care of the Multipole Scattering in AMS Tracking detector:
@@ -1253,20 +1253,21 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
 *----------------
 #include "rkms.h"
 *----------------
-      real gauss,Fu,Bx
-      external   Fu
+c      real gauss,Fu,Bx
+c      external   Fu
+      real Bx/0.465019941/
       real Chi2,Rc,sgn,Rad,Rx,Ry,w1(NPma)
       data                       w1/NPma*1./
       real Sl,dSl,AA,dAA,Cor,Ch2L  ! for linear fit
-      save Bx
-      !OMP threadprivate(Bx)
-      logical first
-      data    first/.true./
+c      save Bx
+c      !OMP threadprivate(Bx)
+c      logical first
+c      data    first/.true./
 *     ---------------------
-      if(first) then
-        first = .false.
-        Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
-      endif ! first
+c      if(first) then
+c        first = .false.
+c        Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
+c      endif ! first
 
       Rc=10000000.
       if(Bx.eq.0.or.npo.lt.3) return                            !!!!
