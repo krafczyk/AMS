@@ -5,8 +5,10 @@
 * Apr.2011: dx=300cm
 * Nov.2011: dE/dx, restoring file from Oct.2011
 * Dec.2011: "final" dE/dx version "rkms.F"+"rkms_de.F"
-* Jan.2012:  argument "ipa" replaced by "be,cha"
-*            dE/dx integrated in rkms.F
+* Jan.2012: argument "ipa" replaced by "be,cha"
+*           dE/dx integrated in rkms.F
+* Feb.2012: CERNlib free version (DSEQN DSINV RSINV TMPRNT)
+*           Calculated paremeter's errors sqrt(2) bigger.
 *---------------------------------------------------------------
 * Rigidity reconstruction program for AMS02 with permanent magnet
 * Taking care of the Multipole Scattering in AMS Tracking detector:
@@ -23,8 +25,8 @@
       do k=1,NPma
         trkZ0(k)=zposl(k)
       enddo
-*      write(*,*)'RKMS-I-InitTo '
-*      write(6,'(8f8.3,f9.3)')trkZ0
+      write(*,*)'RKMS-I-InitTo '
+      write(6,'(8f8.3,f9.3)')trkZ0
       end
 
 *------------------------------
@@ -209,11 +211,19 @@ c                          ENDIF
 *----------------
 #include "rkms.h"
 *----------------
-*---- Special case, different from other /rktrk/
+c*---- Special case, different from other /rktrk/
+c      integer iDE
+c      double precision      ama,beta,cha,sigcha
+c      common        /rktrk/ ama,beta,cha,sigcha,iDE
+c!$OMP threadprivate(/rktrk/)
+
+
       integer iDE
-      double precision      ama,beta,cha,sigcha
-      common        /rktrk/ ama,beta,cha,sigcha,iDE
+      double precision      ama,beta,charge,sigcha
+      common        /rktrk/ ama,beta,charge,sigcha,iDE
 !$OMP threadprivate(/rktrk/)
+
+
 *---------------------------
       real z1,Rini,Chi2,Rad,doR
 *     -------------------------
@@ -566,12 +576,12 @@ cxy3 ---
       common        /rktrk/ ama,beta,charge,sigcha,iDE
 !$OMP threadprivate(/rktrk/)
 *     ----------------------
-      real*8       Edet                                             ! Debug
-      common/dEcom/Edet(10)                                         ! Debug
-*     ------------ detector's names (for debugging) -----------     ! Debug
-*                      Si    TRD     TOF     RICH                   ! Debug
-      character*4 DNam(10)/'Si01','Si02','Si34','Si56','Si78','Si09'! Debug
-     +                    ,'TRD ','TOF1','TOF2','RICH'/             ! Debug
+c      real*8       Edet                                             ! Debug
+c      common/dEcom/Edet(10)                                         ! Debug
+c*     ------------ detector's names (for debugging) -----------     ! Debug
+c*                      Si    TRD     TOF     RICH                   ! Debug
+c      character*4 DNam(10)/'Si01','Si02','Si34','Si56','Si78','Si09'! Debug
+c     +                    ,'TRD ','TOF1','TOF2','RICH'/             ! Debug
 *     ==============================================================
 *     ------------ detector's boundaries (for dE/dX) -------------
       real*8 zMa(10)/166.935,58.04, 29.21, 1.72,-25.20,-135.69    ! Si
@@ -1349,7 +1359,7 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
       enddo
       call DerivNum(p0,npa,npo,IER)
       if(ier.ne.0) return
-*     ---------- Normal equation preparation
+*     ---------- Normal equation preparation (see notebook, p.156)
       do k=1,npa
         BN(k)=0.
         do i=1,npo
@@ -1357,7 +1367,7 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
             do j=1,npo
               if(dx3(j).lt.30.) then
                 if(w(i,j).ne.0.) then
-                  BN(k)=BN(k)+w(i,j)*2.*der(k,j)*(he(i)-ht(i))
+                  BN(k)=BN(k)+w(i,j)*der(k,j)*(he(i)-ht(i))
                 endif
               endif
             enddo
@@ -1370,7 +1380,7 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
               do j=1,npo
                 if(dx3(j).lt.30.) then
                   if(w(i,j).ne.0.) then
-                    CN(m,k) = CN(m,k) + 2.*w(i,j)*der(k,j)*der(m,i)
+                    CN(m,k) = CN(m,k) + w(i,j)*der(k,j)*der(m,i)
                   endif
                 endif
               enddo
@@ -1428,7 +1438,7 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
               do j=1,npo
                 if(dx3(j).lt.30.) then
                   if(w(i,j).ne.0.) DP(m,k) = DP(m,k)
-     +                           + 2.*w(i,j)*der(k,j)*der(m,i)
+     +                           + w(i,j)*der(k,j)*der(m,i)
                 endif
               enddo
             endif
@@ -1838,8 +1848,221 @@ C.
         if(SigmaY(i).gt.1.e-15)
      +     Chi2=Chi2+((A+B*X(i)-Y(i))/SigmaY(i))**2
       enddo
-
       END
+
+*===================================================================
+*/home/hep/sandweiss/ac48/2006b/src/packlib/kernlib/kernnum/f012for/
+*     ================================================= f012fort
+          SUBROUTINE          DSEQN(N,A,IDIM,IFAIL,K,B)
+          DOUBLE PRECISION    A(IDIM,*), B(IDIM,*),  ONE,  X, Y
+          DOUBLE PRECISION    S1, S21, S22,       DOTF
+          CHARACTER*6         HNAME
+          DATA      HNAME               /  'DSEQN '  /
+          DOTF(X,Y,S1)  =  X * Y + S1
+          DATA      ZERO, ONE           /  0.D0, 1.D0 /
+          IF(IDIM .LT. N  .OR.  N .LE. 0  .OR.  K .LT. 0)  GOTO 900
+
+*         -----------------------------  sfact.inc
+          IFAIL  =  0
+          DO 144    J  =  1, N
+             IF((A(J,J)) .LE. ZERO)  GOTO 150
+             A(J,J)  =  ONE / A(J,J)
+             IF(J .EQ. N)  GOTO 199
+ 140         JP1  =  J+1
+             DO 143   L  =  JP1, N
+                A(J,L)  =  A(J,J)*A(L,J)
+                S1      =  -A(L,J+1)
+                DO 141  I  =  1, J
+                   S1  =  DOTF(A(L,I),A(I,J+1),S1)
+ 141               CONTINUE
+                A(L,J+1)  =  -S1
+ 143            CONTINUE
+ 144         CONTINUE
+ 150      IFAIL  =  -1
+          RETURN
+ 199      CONTINUE
+
+*         ---------------------------- sfeqn.inc
+          IF(K .LE. 0)  GOTO 299
+          DO 220    L  =  1, K
+             B(1,L)  =  A(1,1)*B(1,L)
+ 220         CONTINUE
+          IF(N .EQ. 1)  GOTO 299
+          DO 243    L  =  1, K
+             DO 232   I  =  2, N
+                IM1  =  I-1
+                S21  =  - B(I,L)
+                DO 231   J  =  1, IM1
+                   S21  =  DOTF(A(I,J),B(J,L),S21)
+ 231               CONTINUE
+                B(I,L)  =  - A(I,I)*S21
+ 232            CONTINUE
+             NM1  =  N-1
+             DO 242   I  =  1, NM1
+                NMI  =  N-I
+                S22  =  - B(NMI,L)
+                DO 241   J  =  1, I
+                   NMJP1  =  N - J+1
+                   S22    =  DOTF(A(NMI,NMJP1),B(NMJP1,L),S22)
+ 241               CONTINUE
+                B(NMI,L)  =  - S22
+ 242            CONTINUE
+ 243         CONTINUE
+ 299      CONTINUE
+          RETURN
+ 900      write(6,*)'DSINV: ,IDIM,N',IDIM,N
+c 900      CALL TMPRNT(HNAME,N,IDIM,K)
+          END
+
+*     ============================================  f012fort
+          SUBROUTINE          DSINV(N,A,IDIM,IFAIL)
+          DOUBLE PRECISION    A(IDIM,*),  ZERO,  ONE,  X, Y
+          CHARACTER*6         HNAME
+          DOUBLE PRECISION    S1, S31, S32, S33,  DOTF
+          DOTF(X,Y,S1)  =  X * Y + S1
+          DATA      HNAME               /  'DSINV '  /
+          DATA      ZERO, ONE           /  0.D0, 1.D0 /
+          IF(IDIM .LT. N  .OR.  N .LE. 0)  GOTO 900
+
+*         -------------------------  sfact.inc
+          IFAIL  =  0
+          DO 144    J  =  1, N
+             IF((A(J,J)) .LE. ZERO)  GOTO 150
+             A(J,J)  =  ONE / A(J,J)
+             IF(J .EQ. N)  GOTO 199
+ 140         JP1  =  J+1
+             DO 143   L  =  JP1, N
+                A(J,L)  =  A(J,J)*A(L,J)
+                S1      =  -A(L,J+1)
+                DO 141  I  =  1, J
+                   S1  =  DOTF(A(L,I),A(I,J+1),S1)
+ 141               CONTINUE
+                A(L,J+1)  =  -S1
+ 143            CONTINUE
+ 144         CONTINUE
+ 150      IFAIL  =  -1
+          RETURN
+ 199      CONTINUE
+
+*         ------------------------------- sfinv.inc
+          IF(N .EQ. 1)  GOTO 399
+          A(1,2)  =  -A(1,2)
+          A(2,1)  =   A(1,2)*A(2,2)
+          IF(N .EQ. 2)  GOTO 320
+          DO 314    J  =  3, N
+             JM2  =  J - 2
+             DO 312 K  =  1, JM2
+                S31  =  A(K,J)
+                DO 311  I  =  K, JM2
+                   S31  =  DOTF(A(K,I+1),A(I+1,J),S31)
+ 311               CONTINUE
+                A(K,J)  =  -S31
+                A(J,K)  =  -S31*A(J,J)
+ 312            CONTINUE
+             A(J-1,J)  =  -A(J-1,J)
+             A(J,J-1)  =   A(J-1,J)*A(J,J)
+ 314         CONTINUE
+ 320      J  =  1
+ 323         S33  =  A(J,J)
+             IF(J .EQ. N)  GOTO 325
+             JP1  =  J + 1
+             DO 324 I  =  JP1, N
+                S33  =  DOTF(A(J,I),A(I,J),S33)
+ 324            CONTINUE
+ 325         A(J,J)  =  S33
+          JM1  =  J
+          J    =  JP1
+             DO 328 K  =  1, JM1
+                S32  =  ZERO
+                DO 327  I  =  J, N
+                   S32  =  DOTF(A(K,I),A(I,J),S32)
+ 327               CONTINUE
+                A(K,J)  =  S32
+                A(J,K)  =  S32
+ 328            CONTINUE
+          IF(J .LT. N)  GOTO 323
+ 399      CONTINUE
+          RETURN
+*         ---------------------------------
+ 900      write(6,*)'DSINV: ,IDIM,N',IDIM,N
+c 900      CALL TMPRNT(HNAME,N,IDIM,0)
+          END
+
+*     ============================================  f012fort
+          SUBROUTINE          RSINV(N,A,IDIM,IFAIL)
+          REAL                A(IDIM,*),  ZERO,  ONE,  X, Y
+          CHARACTER*6         HNAME
+
+          DOUBLE PRECISION    S1, S31, S32, S33,     DOTF
+          DOTF(X,Y,S1)  =  DBLE(X)*DBLE(Y) + S1
+
+          DATA      HNAME               /  'RSINV '  /
+          DATA      ZERO, ONE           /  0., 1. /
+          IF(IDIM .LT. N  .OR.  N .LE. 0)  GOTO 900
+
+*         -------------------------  sfact.inc
+          IFAIL  =  0
+          DO 144    J  =  1, N
+             IF((A(J,J)) .LE. ZERO)  GOTO 150
+             A(J,J)  =  ONE / A(J,J)
+             IF(J .EQ. N)  GOTO 199
+ 140         JP1  =  J+1
+             DO 143   L  =  JP1, N
+                A(J,L)  =  A(J,J)*A(L,J)
+                S1      =  -A(L,J+1)
+                DO 141  I  =  1, J
+                   S1  =  DOTF(A(L,I),A(I,J+1),S1)
+ 141               CONTINUE
+                A(L,J+1)  =  -S1
+ 143            CONTINUE
+ 144         CONTINUE
+ 150      IFAIL  =  -1
+          RETURN
+ 199      CONTINUE
+
+*         ---------------------------- sfinv.inc
+          IF(N .EQ. 1)  GOTO 399
+          A(1,2)  =  -A(1,2)
+          A(2,1)  =   A(1,2)*A(2,2)
+          IF(N .EQ. 2)  GOTO 320
+          DO 314    J  =  3, N
+             JM2  =  J - 2
+             DO 312 K  =  1, JM2
+                S31  =  A(K,J)
+                DO 311  I  =  K, JM2
+                   S31  =  DOTF(A(K,I+1),A(I+1,J),S31)
+ 311               CONTINUE
+                A(K,J)  =  -S31
+                A(J,K)  =  -S31*A(J,J)
+ 312            CONTINUE
+             A(J-1,J)  =  -A(J-1,J)
+             A(J,J-1)  =   A(J-1,J)*A(J,J)
+ 314         CONTINUE
+ 320      J  =  1
+ 323         S33  =  A(J,J)
+             IF(J .EQ. N)  GOTO 325
+             JP1  =  J + 1
+             DO 324 I  =  JP1, N
+                S33  =  DOTF(A(J,I),A(I,J),S33)
+ 324            CONTINUE
+ 325         A(J,J)  =  S33
+          JM1  =  J
+          J    =  JP1
+             DO 328 K  =  1, JM1
+                S32  =  ZERO
+                DO 327  I  =  J, N
+                   S32  =  DOTF(A(K,I),A(I,J),S32)
+ 327               CONTINUE
+                A(K,J)  =  S32
+                A(J,K)  =  S32
+ 328            CONTINUE
+          IF(J .LT. N)  GOTO 323
+ 399      CONTINUE
+*         ---------------------------------
+          RETURN
+ 900      write(6,*)'RSINV: ,IDIM,N',IDIM,N
+c 900      CALL TMPRNT(HNAME,N,IDIM,0)
+          END
 
 *---  /group/yaug1/prj/shik/MYLIB/GENERAL/circle_fit.f
 *===========================================================================
