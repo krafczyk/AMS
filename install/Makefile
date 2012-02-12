@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.182 2012/01/13 09:02:08 choutko Exp $
+#  $Id: Makefile,v 1.183 2012/02/12 22:10:48 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -590,7 +590,6 @@ $(SHLD):  $(SHLIBO)   ../include/root_RV.h ../include/root.h
 static : amswd $(NTLD)
 $(NTLD): $(SHLIBBO)
 	@if ! [ -d $(LIB) ] ; then mkdir -p $(LIB); fi; echo "Creating the $(LIB) directory ...."
-	$(AR) dv   $(NTLD) TrdSCalib.o
 	$(AR) rv   $(NTLD) $(SHLIBBO)
 
 
