@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.47 2012/02/13 16:44:22 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.48 2012/02/13 16:49:32 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/02/13 16:44:22 $
+///$Date: 2012/02/13 16:49:32 $
 ///
-///$Revision: 1.47 $
+///$Revision: 1.48 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1175,7 +1175,7 @@ int TkDBc::readDisalignment(const char* filename, int pri){
 int TkDBc::writeAlignment(const char* filename){
 
   ofstream  fileout(filename);
-  if(TkLadder::version>=2) (*fileout) << "VVV"<<TkLadder::version<<endl; 
+  if(TkLadder::version>=2) (fileout) << "VVV"<<TkLadder::version<<endl; 
 
   for (int ii=0;ii<nplanes;ii++)
     planes[ii]->WriteA(fileout);
