@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.26 2012/01/28 09:54:18 pzuccon Exp $
+// $Id: TkDBc.h,v 1.27 2012/02/13 16:44:22 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -225,6 +225,7 @@ public:
   
 
 public:
+  
   //! It returns true if a slot contains a ladder
   bool filled_slot(int side,int layer, int slot){return _nsen[side][layer][slot]>0;}
  
@@ -321,8 +322,14 @@ public:
   //! Static function used to create the TkDBc Singleton. If force_delete>0 it deletes and recreates  the single istance of the class
   static void CreateTkDBc(int force_delete=0);
   ~TkDBc();
+
   //! Do all the initialization stuff
   void init(int setup=3,const char* inputfilename=0, int pri=0);
+
+  //! Returns  pointer to the TkDBc singleton. If no TkDBc object exists, 
+  //!  a new one is created and initialized with the par passed (see init documentation)
+  static TkDBc* GetHead(int setup=3,const char* inputfilename=0, int pri=0);
+
   //!  Write the content of the DB to an ascii file
   int  write(const char* filename);
   //!  Read the  content of the DB from an ascii file
@@ -431,7 +438,7 @@ public:
 //     if(_setup==3)
 //       return ((192+5)*(1+TkObject::GetSize())*sizeof(float));
 //     else
-      return ((192+6)*(1+TkObject::GetSize())*sizeof(float));
+      return ((192*(1+TkLadder::GetSize())+6*(1+TkObject::GetSize()))*sizeof(float));
   }
 
   //!interface to GBTACH TDV database

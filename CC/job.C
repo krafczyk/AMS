@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.851 2012/02/09 09:20:31 choumilo Exp $
+// $Id: job.C,v 1.852 2012/02/13 16:44:22 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2005,6 +2005,7 @@ void AMSJob::udata(){
       pgtrack_DB_ver=2;
     }
 #ifdef _PGTRACK_
+    if(TKGEOMFFKEY.alignver>2) TkLadder::version=2;
     if(TKGEOMFFKEY.ReadGeomFromFile%10==1){
       char fname[1601];
       UHTOC(TKGEOMFFKEY.fname,400,fname,1600);
@@ -3262,8 +3263,12 @@ void AMSJob::_timeinitjob(){
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
-	  else 
+	  else 	  if(TKGEOMFFKEY.alignver==2)
 	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM2",isRealData()),begin,end,
+				   TkDBc::GetLinearSize(),TkDBc::linear,
+				   server,need,SLin2Align));
+	  else 	  if(TKGEOMFFKEY.alignver>2)
+	    TID.add (new AMSTimeID(AMSID("TrackerAlignPM3",isRealData()),begin,end,
 				   TkDBc::GetLinearSize(),TkDBc::linear,
 				   server,need,SLin2Align));
 	}

@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.46 2012/01/28 09:54:18 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.47 2012/02/13 16:44:22 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/01/28 09:54:18 $
+///$Date: 2012/02/13 16:44:22 $
 ///
-///$Revision: 1.46 $
+///$Revision: 1.47 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +49,14 @@ void TkDBc::CreateTkDBc(int force_delete){
   else{
     printf("Error a TkDBc instance already exists and \nonly one TkDBc object is allowed (singleton)!! \n" );
   }
+}
+
+
+TkDBc* TkDBc::GetHead(int setup,const char* inputfilename, int pri){
+  if(TkDBc::Head) return TkDBc::Head;
+  CreateTkDBc();
+  TkDBc::Head->init(setup,inputfilename,pri);
+  return TkDBc::Head;
 }
 
 
@@ -785,6 +793,7 @@ number TkDBc::GetSlotX(int layer, int slot,int side){
 int TkDBc::write(const char* filename){
 
   ofstream  fileout(filename);
+  if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
     fileout<<*(planes[ii]);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
@@ -818,6 +827,18 @@ int TkDBc::read(const char* filename, int pri){
   tkassemblymap.clear();
   //  pgidmap.clear();
   JMDCNumMap.clear();
+
+  string test;
+  
+  fileout>> test;
+  if(test[0]=='V'&&test[1]=='V'&&test[2]=='V') {
+    TkLadder::version=atoi(&(test[3]));
+    printf("TkDBc::read-I- New Sensor Aligment Aware TkLadder format detected\n");
+  }else{
+    TkLadder::version=0;
+    fileout.seekg(0,ios_base::beg);
+  }
+
 
   for (int ii=0;ii<nplanes;ii++){
     planes[ii]= new TkPlane();
@@ -1018,15 +1039,17 @@ int TkDBc::writeAlignmentLadFF(int tkid, const char* filename, int overwrite){
   else
     fileout=new ofstream(filename,ios::trunc);
   
-  
   if(!fileout->is_open()){
     printf(" TkDBc::writeAlignmentLadFF -E- problems opeinf file %s\n",filename);
     if(fileout) delete fileout;
     return -1;
   }
 
+
   TkLadder *ll=FindTkId(tkid);
   if(!ll) {printf(" TkDBc::writeAlignmentLadFF -E- ladder %d not found ! \n",tkid);if(fileout)delete fileout;return -2;}
+
+  if(TkLadder::version>=2) (*fileout) << "VVV"<<TkLadder::version<<endl; 
   
   (*fileout) << (*ll);
   //(*ll)>> (*fileout);
@@ -1049,6 +1072,17 @@ int TkDBc::readAlignmentLadFF(const char* filename, int pri){
     printf("Error: tkdbc alignemnt file not found: %s\n", filename);
     return -1;
   }
+  string test;
+  
+  fileout>> test;
+  if(test[0]=='V'&&test[1]=='V'&&test[2]=='V') {
+    TkLadder::version=atoi(&(test[3]));
+    printf("TkDBc::read-I- New Sensor Aligment Aware TkLadder format detected\n");
+  }else{
+    TkLadder::version=0;
+    fileout.seekg(0,ios_base::beg);
+  }
+
   int count=0;
   while(1){
     TkLadder  aa;
@@ -1078,7 +1112,16 @@ int TkDBc::readAlignment(const char* filename, int pri){
     printf("Error: tkdbc alignemnt file not found: %s\n", filename);
     return -1;
   }
+  string test;
   
+  fileout>> test;
+  if(test[0]=='V'&&test[1]=='V'&&test[2]=='V') {
+    TkLadder::version=atoi(&(test[3]));
+    printf("TkDBc::read-I- New Sensor Aligment Aware TkLadder format detected\n");
+  }else{
+    TkLadder::version=0;
+    fileout.seekg(0,ios_base::beg);
+  }
 
   for (int ii=0;ii<nplanes;ii++){
     planes[ii]->ReadA(fileout);
@@ -1132,6 +1175,8 @@ int TkDBc::readDisalignment(const char* filename, int pri){
 int TkDBc::writeAlignment(const char* filename){
 
   ofstream  fileout(filename);
+  if(TkLadder::version>=2) (*fileout) << "VVV"<<TkLadder::version<<endl; 
+
   for (int ii=0;ii<nplanes;ii++)
     planes[ii]->WriteA(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
@@ -1145,6 +1190,7 @@ int TkDBc::writeAlignment(const char* filename){
 int TkDBc::writeDisalignment(const char* filename){
 
   ofstream  fileout(filename);
+  if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
     planes[ii]->WriteT(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
@@ -1204,7 +1250,7 @@ void TkDBc::Align2Lin(){
     if(!aa->second->IsActive()) continue;
     linear[off]=(float)(aa->first);
     aa->second->Align2Lin(&(linear[off+1]));
-    off+=7;
+    off+=(TkLadder::GetSize()+1);
   }
 
 }
@@ -1232,7 +1278,7 @@ void TkDBc::Lin2Align(){
     }
     else
       ll->Lin2Align(&(linear[off+1]));
-    off+=7;
+    off+=(TkLadder::GetSize()+1);
   }
 
 }

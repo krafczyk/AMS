@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.10 2011/03/22 17:46:24 pzuccon Exp $
+// $Id: TkLadder.h,v 1.11 2012/02/13 16:44:22 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2011/03/22 17:46:24 $
+///$Date: 2012/02/13 16:44:22 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -35,7 +35,7 @@ namespace trconst{
 
 class TkLadder :public TkObject{
 
-protected:
+public:
   //                  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
   static int pwg[24];
   //                   0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
@@ -76,18 +76,23 @@ private:
   int _crate;
   //! The TDR number within the crate
   int _tdr;
-  //! The number of sensors composing the ladder
+  //! The number of sensors composing the ladder(0xFF) 
+  //! IsAlignment(LASER)  (0x800), IsK7 (0x400)
   int _nsensors;
   //! Pointer to the plane object the ladder is mounted to
   TkPlane* _plane;
 
 public:
-
+  //! version >=2 support sensor alignment (XYZ) TDV and file IO interface 
+  //! version <2 old interface (before feb 2012)
+  static int version;
   //! Sensor alignment correction (X in cm)
   float _sensx[trconst::maxsen];
 
   //! Sensor alignment correction (Y in cm)
   float _sensy[trconst::maxsen];
+  //! Sensor alignment correction (Z in cm)
+  float _sensz[trconst::maxsen];
   //! Default constructor set all properties to zero
   TkLadder();
   //! explicit constructor
@@ -135,6 +140,8 @@ public:
   //! it Sets the pointer to the plane object
   void SetPlane(TkPlane* pl) { _plane=pl;}
 
+  //! Sets the Sensor align pars to XY Metrology data (dz=0)
+  void ResetSensorAlign();
 
   //! it sets the Hwid
   void SetHwId(int HwId);
@@ -177,6 +184,10 @@ public:
   //! writes out the Alignement pars to file
   void WriteS(ostream &o){putoutS(o);}
 
-  ClassDef(TkLadder,3);
+  void Align2Lin(float * off);
+  void Lin2Align(float * off);
+  static int GetSize(){return (version<2)?6:6+trconst::maxsen*3;}
+  ClassDef(TkLadder,4);
 };
 #endif
+
