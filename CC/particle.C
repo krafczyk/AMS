@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.247 2012/01/13 14:21:43 choutko Exp $
+//  $Id: particle.C,v 1.248 2012/02/13 15:39:44 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -1149,17 +1149,30 @@ integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
 				 168,69,169,70,170};
 
 
+
+
 void AMSParticle::_loc2gl(){
-  AMSgObj::BookTimer.start("part::loc2gl");
-  // Get current station position from event bank
-  number polephi,theta,phi;
+	AMSgObj::BookTimer.start("part::loc2gl");
+	// Get current station position from event bank
 
-  AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
-  geant StationRad=AMSEvent::gethead()->GetStationRad();
-  geant pitch=AMSEvent::gethead()->getpitch();
-  geant roll=AMSEvent::gethead()->getroll();
-  geant yaw=AMSEvent::gethead()->getyaw();
+	// Define transformation matrices
+	////////////
+	// AMS->ISS
+	number alpha = 12 * TMath::DegToRad();
+	number mAMS2ISS[3][3];
+	mAMS2ISS[0][0] = 0;
+	mAMS2ISS[0][1] = -1;
+	mAMS2ISS[0][2] = 0;
+	mAMS2ISS[1][0] = -cos(alpha);
+	mAMS2ISS[1][1] = 0;
+	mAMS2ISS[1][2] = -sin(alpha);
+	mAMS2ISS[2][0] = sin(alpha);
+	mAMS2ISS[2][1] = 0;
+	mAMS2ISS[2][2] = -cos(alpha);
+	AMSRotMat TrAMS2ISS(mAMS2ISS);
 
+	////////////
+	// ISS->LVLH
   number EarthR       =AMSmceventg::Orbit.EarthR;
   number DipoleR      =AMSmceventg::Orbit.DipoleR;
   number DipoleTheta  =AMSmceventg::Orbit.DipoleTheta;
@@ -1167,97 +1180,69 @@ void AMSParticle::_loc2gl(){
   number PoleTheta    =AMSmceventg::Orbit.PoleTheta;
   number PolePhiStatic=AMSmceventg::Orbit.PolePhiStatic;
 
-  AMSDir amszg(AMSDBc::pi/2-theta,phi);
-  AMSDir amsxg(AMSDBc::pi/2-AMSEvent::gethead()->getveltheta(),
-	       AMSEvent::gethead()->getvelphi());
-  AMSDir amsyg=amszg.cross(amsxg);
-  number prod=amsxg.prod(amszg);
-  integer _errors=0;
-  if(fabs(prod)>0.03 && !MISCFFKEY.BeamTest){
-    cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<" "<<amsxg<<" "<<amsyg<<" "<<amszg<<endl;
-    AMSEvent::gethead()->_printEl(cerr);
-    AMSEvent::gethead()->seterror(_errors++>100?3:2);
-  }
-  else{
-    _errors=0;
-  }
-  number cp=cos(pitch);
-  number sp=sin(pitch);
-  number cy=cos(yaw);
-  number sy=sin(yaw);
-  number cr=cos(roll);
-  number sr=sin(roll);
-  number l1=cy*cp;
-  number m1=-sy;
-  number n1=cy*sp;
-  number l2=cr*sy*cp-sr*sp;
-  number m2=cr*cy;
-  number n2=cr*sy*sp+sr*cp;
-  number l3=-sr*sy*cp-cr*sp;
-  number m3=-sr*cy;
-  number n3=-sr*sy*sp+cr*cp;
-  number amsx[3],amsy[3],amsz[3];
-  // (-) due to fact that ams coo system is rotated by 180^o with
-  //    respect to shuttle one
-  amsx[0]=-(l1*amsxg[0]+l2*amsyg[0]+l3*amszg[0]);
-  amsx[1]=-(l1*amsxg[1]+l2*amsyg[1]+l3*amszg[1]);
-  amsx[2]=-(l1*amsxg[2]+l2*amsyg[2]+l3*amszg[2]);
-  amsy[0]=-(m1*amsxg[0]+m2*amsyg[0]+m3*amszg[0]);
-  amsy[1]=-(m1*amsxg[1]+m2*amsyg[1]+m3*amszg[1]);
-  amsy[2]=-(m1*amsxg[2]+m2*amsyg[2]+m3*amszg[2]);
-  amsz[0]=n1*amsxg[0]+n2*amsyg[0]+n3*amszg[0];
-  amsz[1]=n1*amsxg[1]+n2*amsyg[1]+n3*amszg[1];
-  amsz[2]=n1*amsxg[2]+n2*amsyg[2]+n3*amszg[2];
+
+	geant pitch=AMSEvent::gethead()->getpitch();
+	geant roll=AMSEvent::gethead()->getroll();
+	geant yaw=AMSEvent::gethead()->getyaw();
+	number ca = cos(yaw);
+	number sa = sin(yaw);
+	number cb = cos(pitch);
+	number sb = sin(pitch);
+	number cg = cos(roll);
+	number sg = sin(roll);
+	number mISS2LVLH[3][3];
+	mISS2LVLH[0][0] = ca*cb;           
+	mISS2LVLH[0][1] = ca*sb*sg-sa*cg;  
+	mISS2LVLH[0][2] = ca*sb*cg+sa*sg;  
+	mISS2LVLH[1][0] = sa*cb;           
+	mISS2LVLH[1][1] = sa*sb*sg+ca*cg;  
+	mISS2LVLH[1][2] = sa*sb*cg-ca*sg;  
+	mISS2LVLH[2][0] = -sb;             
+	mISS2LVLH[2][1] = cb*sg;           
+	mISS2LVLH[2][2] = cb*cg;           
+	AMSRotMat TrISS2LVLH(mISS2LVLH);
+
+	////////////
+	// LVLH->GEO
+	number polephi,theta,phi;
+	AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+	geant StationRad=AMSEvent::gethead()->GetStationRad();
+	AMSDir amszg(AMSDBc::pi/2+theta,phi+AMSDBc::pi);  // z points toward the Earth's center 
+	AMSDir amsxg(AMSDBc::pi/2-AMSEvent::gethead()->getveltheta(),
+			AMSEvent::gethead()->getvelphi()); // x points along the orbital velocity
+	AMSDir amsyg=amszg.cross(amsxg);
+	number prod=amsxg.prod(amszg);
+	integer _errors=0;
+	if(fabs(prod)>0.03 && !MISCFFKEY.BeamTest){
+		cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<" "<<amsxg<<" "<<amsyg<<" "<<amszg<<endl;
+		AMSEvent::gethead()->_printEl(cerr);
+		AMSEvent::gethead()->seterror(_errors++>100?3:2);
+	}
+    number mLVLH2GEO[3][3];
+	for(int i=0 ; i < 3 ; i++) {
+		mLVLH2GEO[i][0] = amsxg[i];
+		mLVLH2GEO[i][1] = amsyg[i];
+		mLVLH2GEO[i][2] = amszg[i];
+	}
+	AMSRotMat TrLVLH2GEO(mLVLH2GEO);
 
 
+	////////////
+	AMSDir _dir(_Theta,_Phi);
+	AMSDir global = TrLVLH2GEO * (TrISS2LVLH * (TrAMS2ISS * _dir));
 
+	_ThetaGl=global.gettheta();
+	_PhiGl=global.getphi()-(polephi-PolePhiStatic);
 
-// additional roll 12 deg
-
-    for(int i=0;i<3;i++)amsxg[i]=amsx[i];
-    for(int i=0;i<3;i++)amsyg[i]=amsy[i];
-    for(int i=0;i<3;i++)amszg[i]=amsz[i];
-   pitch=0;
-   yaw=0;
-   roll=CCFFKEY.Angle/180*3.1415926;
-   cp=cos(pitch);
-   sp=sin(pitch);
-   cy=cos(yaw);
-   sy=sin(yaw);
-   cr=cos(roll);
-   sr=sin(roll);
-   l1=cy*cp;
-   m1=-sy;
-   n1=cy*sp;
-   l2=cr*sy*cp-sr*sp;
-   m2=cr*cy;
-   n2=cr*sy*sp+sr*cp;
-   l3=-sr*sy*cp-cr*sp;
-   m3=-sr*cy;
-   n3=-sr*sy*sp+cr*cp;
-
-  amsx[0]=(l1*amsxg[0]+l2*amsyg[0]+l3*amszg[0]);
-  amsx[1]=(l1*amsxg[1]+l2*amsyg[1]+l3*amszg[1]);
-  amsx[2]=(l1*amsxg[2]+l2*amsyg[2]+l3*amszg[2]);
-  amsy[0]=(m1*amsxg[0]+m2*amsyg[0]+m3*amszg[0]);
-  amsy[1]=(m1*amsxg[1]+m2*amsyg[1]+m3*amszg[1]);
-  amsy[2]=(m1*amsxg[2]+m2*amsyg[2]+m3*amszg[2]);
-  amsz[0]=n1*amsxg[0]+n2*amsyg[0]+n3*amszg[0];
-  amsz[1]=n1*amsxg[1]+n2*amsyg[1]+n3*amszg[1];
-  amsz[2]=n1*amsxg[2]+n2*amsyg[2]+n3*amszg[2];
-
-
-  AMSDir _dir(_Theta,_Phi);
-  number ue=_dir[0]*amsx[0]+_dir[1]*amsy[0]+_dir[2]*amsz[0];
-  number ve=_dir[0]*amsx[1]+_dir[1]*amsy[1]+_dir[2]*amsz[1];
-  number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
-  AMSDir global(ue,ve,we);
-  _ThetaGl=global.gettheta();
-  _PhiGl=global.getphi()-(polephi-PolePhiStatic);
+         number ue=global[0];
+         number ve=global[1];
+         number we=global[2];
 
   //
   // Dipole direction
   //
+
+
   number um=sin(AMSDBc::pi/2-PoleTheta)*cos(polephi);
   number vm=sin(AMSDBc::pi/2-PoleTheta)*sin(polephi);
   number wm=cos(AMSDBc::pi/2-PoleTheta);
