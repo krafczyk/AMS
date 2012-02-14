@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.356 2012/02/14 08:42:51 choutko Exp $
+//  $Id: root.C,v 1.357 2012/02/14 09:23:54 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3527,7 +3527,7 @@ int ParticleR::Loc2Gl(AMSEventR *pev){
          double pi=3.1415926;
          static int err=0;         
          k=pev->fHeader.getISSCTRS(StationRad,theta, phi, v, vtheta, vphi);
-         if(){
+         if(k){
              if(err++<10)cerr<<"AMSParticleR-E-UnableToLoadCTRS "<<k<<endl;
              //return 2;
              StationRad=pev->fHeader.RadS; 
