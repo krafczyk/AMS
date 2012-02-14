@@ -13,14 +13,14 @@ public:
   bool IsGolden(AMSEventR *ev){
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
  TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
-   cout <<" ok "<<endl;
-  int k=tr.iTrTrackPar(1,0,5);
+   cout <<" ok "<<AMSSetupR::gethead()<<" "<<ev->UTime()<<endl;
+  
 vector<float>value;
- int s=ev->GetSlowControlData("L03T+01X+08 / L06T+02Y-03",value,1);
- cout <<" res "<<s<<" "<<value.size()<<" value "<<value[0]<<endl;
 int s2=  AMSSetupR::gethead()->fSlowControl.GetData("L03T+01X+08 / L06T+02Y-03",ev->UTime(),100.,value);
- cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<value[0]<<endl;
+ cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
 
+ int s=ev->GetSlowControlData("L03T+01X+08 / L06T+02Y-03",value,1);
+ cout <<" res "<<s<<" "<<value.size()<<" value "<<endl;
 AMSSetupR::gethead()->fSlowControl.printElementNames("L03T+01X+08 / L06T+02Y-03");
 
 AMSSetupR::TDVR tdv;
@@ -45,6 +45,7 @@ vector<float> values;
 
  AMSSetupR::DynAlignment_m &pars=AMSSetupR::gethead()->fDynAlignment;
  cout <<" size "<<pars[1].FitParameters.size()<<" "<<pars[9].FitParameters.size()<<endl;
+  int k=tr.iTrTrackPar(1,0,5);
 cout <<k<<" "<<ev->Particle(0).TRDCoo[0][2]<<" "<<ev->Particle(0).TRDCoo[1][2]<<endl;
 return true;
 }else return false;

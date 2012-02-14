@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.355 2012/01/29 14:50:41 mdelgado Exp $
+//  $Id: root.C,v 1.356 2012/02/14 08:42:51 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3478,6 +3478,90 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 #endif
 }
 
+int ParticleR::Loc2Gl(AMSEventR *pev){
+	// Define transformation matrices
+	////////////
+	// AMS->ISS
+	number alpha = 12 * TMath::DegToRad();
+	number mAMS2ISS[3][3];
+	mAMS2ISS[0][0] = 0;
+	mAMS2ISS[0][1] = -1;
+	mAMS2ISS[0][2] = 0;
+	mAMS2ISS[1][0] = -cos(alpha);
+	mAMS2ISS[1][1] = 0;
+	mAMS2ISS[1][2] = -sin(alpha);
+	mAMS2ISS[2][0] = sin(alpha);
+	mAMS2ISS[2][1] = 0;
+	mAMS2ISS[2][2] = -cos(alpha);
+	AMSRotMat TrAMS2ISS(mAMS2ISS);
+
+	////////////
+	// ISS->LVLH
+        float pitch,roll,yaw;
+        int k=pev->fHeader.getISSAtt(roll,pitch, yaw); 
+         if(k){
+             cerr<<"AMSParticleR-E-UnableToLoadRPY "<<k<<endl;
+             return 1;
+         }         
+	double ca = cos(yaw);
+	double sa = sin(yaw);
+	double cb = cos(pitch);
+	double sb = sin(pitch);
+	double cg = cos(roll);
+	double sg = sin(roll);
+	double mISS2LVLH[3][3];
+	mISS2LVLH[0][0] = ca*cb;           
+	mISS2LVLH[0][1] = ca*sb*sg-sa*cg;  
+	mISS2LVLH[0][2] = ca*sb*cg+sa*sg;  
+	mISS2LVLH[1][0] = sa*cb;           
+	mISS2LVLH[1][1] = sa*sb*sg+ca*cg;  
+	mISS2LVLH[1][2] = sa*sb*cg-ca*sg;  
+	mISS2LVLH[2][0] = -sb;             
+	mISS2LVLH[2][1] = cb*sg;           
+	mISS2LVLH[2][2] = cb*cg;           
+	AMSRotMat TrISS2LVLH(mISS2LVLH);
+
+	////////////
+	// LVLH->GEO
+	 float StationRad,theta,phi,v,vtheta,vphi;
+         double pi=3.1415926;
+         static int err=0;         
+         k=pev->fHeader.getISSCTRS(StationRad,theta, phi, v, vtheta, vphi);
+         if(){
+             if(err++<10)cerr<<"AMSParticleR-E-UnableToLoadCTRS "<<k<<endl;
+             //return 2;
+             StationRad=pev->fHeader.RadS; 
+             theta=pev->fHeader.ThetaS;
+             phi=pev->fHeader.PhiS;
+             v=pev->fHeader.VelocityS;
+             vtheta=pev->fHeader.VelTheta;
+             vphi=pev->fHeader.VelPhi;
+         }         
+	AMSDir amszg(pi/2+theta,phi+pi);  // z points toward the Earth's center 
+	AMSDir amsxg(pi/2-vtheta,vphi); // x points along the orbital velocity
+	AMSDir amsyg=amszg.cross(amsxg);
+	double prod=amsxg.prod(amszg);
+	if(fabs(prod)>0.03 ){
+		cerr<<"AMSParticleR::Loc2Gl-E-AMSGlobalCoosystemIllDefined "<<prod<<" "<<amsxg<<" "<<amsyg<<" "<<amszg<<endl;
+	}
+    double mLVLH2GEO[3][3];
+	for(int i=0 ; i < 3 ; i++) {
+		mLVLH2GEO[i][0] = amsxg[i];
+		mLVLH2GEO[i][1] = amsyg[i];
+		mLVLH2GEO[i][2] = amszg[i];
+	}
+	AMSRotMat TrLVLH2GEO(mLVLH2GEO);
+
+
+	////////////
+	AMSDir _dir(Theta,Phi);
+	AMSDir global = TrLVLH2GEO * (TrISS2LVLH * (TrAMS2ISS * _dir));
+
+	ThetaGl=global.gettheta();
+	PhiGl=global.getphi();
+        return 0;
+}
+
 bool ParticleR::IsInsideTRD()
 {
   // 8 points of the acceptance octagon at z = zTrd
@@ -4527,7 +4611,7 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
 	for(int j=0;j<hits;j++){
 	  if((ptr->_hit_pointer)[j]==i){
 #ifdef __AMSDEBUG__
-	    cout<<"FOUND "<<(ptr->_hit_pointer)[j]<<" HIT NUMBER "<<i<<endl;
+	    cout<<"FOUND "<<(ptr->_hit_pointer)[j]<<" HIT DOUBLE "<<i<<endl;
 #endif	  
 	    if((ptr->_hit_used)[j]==0)
 	      value=(ptr->_beta_direct)[j];
@@ -5596,9 +5680,12 @@ char * ParticleR::Info(int number, AMSEventR* pev){
      BetaR bta=pev->Beta(iBeta());
     btof=bta.Beta;
    }}
+   if(pev && pev->Version()<566){
+    int k=Loc2Gl(pev);
+   }
    if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
     float lt=pev?pev->LiveTime():1;
-    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LiveTime %4.2f ",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt);
+    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
 return _Info;
 
 

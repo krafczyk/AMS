@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.232 2011/12/20 12:51:18 choutko Exp $
+//  $Id: daqevt.C,v 1.233 2012/02/14 08:42:51 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1990,7 +1990,7 @@ DAQEvent::InitResult DAQEvent::init(){
     }
     else{ 
     cerr<<"DAQEvent::init-E-cannot open file "<<fnam<<" in mode input"<<endl;
-
+againcp:
       //    try castor
       if(getenv("NtupleDir") && !strstr(fnam,getenv("NtupleDir"))){
         setenv("NtupleDir0",getenv("NtupleDir"),1);
@@ -2073,6 +2073,12 @@ DAQEvent::InitResult DAQEvent::init(){
 //
 //  try scp once more
 //
+  if(getenv("TransferRawByB") and strlen(getenv("TransferRawByB"))){
+    setenv("TransferBy",getenv("TransferRawByB"),1);
+    unsetenv("TransferRawByB");
+    goto againcp;
+  }
+  
 strcpy(fnam,fnamei.c_str());
       if(ntryscp++>3)return UnableToOpenFile; 
       if(getenv("NtupleDir0"))setenv("NtupleDir",getenv("NtupleDir0"),1);

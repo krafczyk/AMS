@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.403 2012/01/28 11:55:35 mdelgado Exp $
+//  $Id: root.h,v 1.404 2012/02/14 08:42:51 choutko Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -2436,6 +2436,7 @@ public:
   /// access function to VertexR object used
   /// \return pointer to VertexR object or 0
   VertexR * pVertex();
+  int Loc2Gl(AMSEventR* pev); ///< recompute ThetaGl,PhiGl;
 
   char * pType(){
    static char type[63];
