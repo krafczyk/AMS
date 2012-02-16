@@ -162,7 +162,7 @@ class DataType{
       subtypes.insert(std::pair<int,SubType>(st->number,*st));
       it=subtypes.find(st->number);
     }
-    it->second._table.clear();
+    //it->second._table.clear();
     
     std::map<unsigned int,float>::iterator begin_it=st->_table.begin();
     if(minT>0&&st->_table.lower_bound(minT)!=st->_table.end()){
