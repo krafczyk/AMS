@@ -1,128 +1,45 @@
 #include "TkSens.h"
+#include "TrCharge.h"
 
-static Double_t Corr1[40][40] = {
-  1.072,1.067,1.065,1.060,1.061,1.068,1.085,1.099,1.116,1.124,1.131,1.132,1.131,1.132,1.137,1.130,1.122,1.105,1.084,1.068,
-  1.063,1.067,1.075,1.081,1.086,1.085,1.080,1.076,1.072,1.069,1.070,1.073,1.080,1.087,1.092,1.101,1.109,1.100,1.088,1.077,
-  1.072,1.067,1.065,1.060,1.061,1.068,1.085,1.099,1.116,1.124,1.131,1.132,1.131,1.132,1.137,1.130,1.122,1.105,1.084,1.068,
-  1.063,1.067,1.075,1.081,1.086,1.085,1.080,1.076,1.072,1.069,1.070,1.073,1.080,1.087,1.092,1.101,1.109,1.100,1.088,1.077,
-  1.068,1.067,1.068,1.066,1.064,1.066,1.074,1.090,1.110,1.119,1.124,1.128,1.130,1.140,1.138,1.125,1.115,1.095,1.071,1.060,
-  1.062,1.070,1.077,1.082,1.084,1.082,1.077,1.072,1.067,1.064,1.064,1.068,1.072,1.077,1.090,1.112,1.115,1.103,1.083,1.073,
-  1.062,1.066,1.073,1.074,1.071,1.068,1.060,1.050,1.064,1.080,1.096,1.110,1.107,1.106,1.101,1.091,1.061,1.054,1.060,1.067,
-  1.070,1.075,1.079,1.081,1.080,1.076,1.070,1.063,1.057,1.054,1.054,1.058,1.061,1.059,1.023,1.015,1.078,1.088,1.080,1.063,
-  1.049,1.059,1.076,1.082,1.081,1.076,1.071,1.067,1.065,1.063,1.062,1.061,1.062,1.063,1.064,1.066,1.068,1.069,1.071,1.073,
-  1.075,1.077,1.077,1.076,1.072,1.066,1.059,1.052,1.045,1.042,1.042,1.045,1.055,1.000,0.960,0.882,0.989,1.024,1.048,1.040,
-  1.024,1.044,1.074,1.084,1.086,1.084,1.079,1.075,1.071,1.071,1.073,1.076,1.078,1.076,1.074,1.072,1.072,1.073,1.075,1.077,
-  1.076,1.074,1.071,1.067,1.061,1.054,1.046,1.039,1.034,1.032,1.033,1.038,1.046,0.983,0.000,0.000,0.000,0.970,0.950,1.010,
-  0.950,0.975,1.061,1.085,1.086,1.087,1.085,1.082,1.079,1.079,1.081,1.083,1.083,1.080,1.079,1.077,1.077,1.077,1.076,1.073,
-  1.068,1.064,1.059,1.054,1.048,1.040,1.033,1.028,1.025,1.023,1.025,1.035,1.053,1.100,0.000,0.000,0.000,0.000,0.840,0.877,
-  0.800,0.900,1.040,1.076,1.078,1.081,1.082,1.081,1.081,1.081,1.084,1.085,1.085,1.083,1.081,1.078,1.076,1.074,1.069,1.064,
-  1.057,1.051,1.046,1.041,1.035,1.028,1.022,1.017,1.017,1.018,1.022,1.035,1.070,0.000,0.000,0.000,0.000,0.000,0.788,0.744,
-  0.726,0.816,1.030,1.066,1.068,1.071,1.072,1.072,1.075,1.076,1.079,1.078,1.079,1.076,1.072,1.070,1.068,1.064,1.059,1.051,
-  1.042,1.036,1.031,1.030,1.024,1.018,1.012,1.008,1.009,1.013,1.028,1.046,1.080,0.000,0.000,0.000,0.000,0.000,0.000,0.685,
-  0.762,0.880,1.049,1.054,1.055,1.057,1.058,1.059,1.062,1.063,1.065,1.064,1.064,1.063,1.059,1.057,1.053,1.049,1.043,1.035,
-  1.027,1.023,1.019,1.018,1.014,1.009,1.005,1.003,1.004,1.011,1.020,1.055,1.090,0.000,0.000,0.000,0.000,0.000,0.740,0.740,
-  0.941,1.024,1.041,1.041,1.041,1.041,1.041,1.043,1.045,1.047,1.047,1.047,1.047,1.046,1.043,1.041,1.037,1.031,1.024,1.017,
-  1.011,1.008,1.007,1.007,1.004,1.000,0.999,0.999,1.002,1.009,1.015,1.090,1.079,0.000,0.000,0.000,0.000,0.818,0.803,0.864,
-  1.019,1.026,1.033,1.029,1.025,1.023,1.023,1.026,1.026,1.028,1.027,1.027,1.027,1.026,1.025,1.023,1.020,1.015,1.009,1.003,
-  0.999,0.997,0.997,0.997,0.997,0.996,0.998,1.000,1.003,1.008,1.010,1.120,1.100,0.000,0.000,0.000,0.000,0.887,0.929,1.010,
-  1.018,1.021,1.022,1.017,1.012,1.008,1.007,1.009,1.008,1.010,1.008,1.008,1.008,1.008,1.008,1.006,1.005,1.002,0.997,0.992,
-  0.988,0.986,0.988,0.991,0.992,0.995,0.999,1.003,1.007,1.011,1.018,1.159,1.040,0.000,0.000,0.000,0.995,0.970,1.012,1.018,
-  1.014,1.013,1.010,1.005,1.000,0.994,0.994,0.994,0.995,0.995,0.993,0.993,0.993,0.994,0.994,0.993,0.993,0.994,0.989,0.984,
-  0.980,0.978,0.983,0.986,0.991,0.997,1.001,1.006,1.009,1.024,1.038,1.238,1.247,0.000,0.000,0.000,1.000,1.020,1.020,1.013,
-  1.005,1.002,0.999,0.995,0.991,0.985,0.985,0.984,0.984,0.983,0.982,0.981,0.981,0.983,0.984,0.985,0.987,0.986,0.983,0.977,
-  0.974,0.974,0.980,0.985,0.990,0.997,1.002,1.007,1.011,1.016,1.045,1.250,1.193,0.000,0.000,1.020,1.009,1.006,1.008,1.008,
-  0.997,0.994,0.992,0.989,0.985,0.981,0.979,0.978,0.977,0.975,0.974,0.973,0.973,0.974,0.976,0.978,0.980,0.980,0.978,0.974,
-  0.974,0.976,0.982,0.987,0.991,0.999,1.006,1.011,1.015,1.019,1.025,1.248,1.201,1.229,1.079,1.028,1.012,1.004,1.002,0.999,
-  0.992,0.989,0.987,0.985,0.981,0.978,0.976,0.975,0.973,0.971,0.970,0.970,0.969,0.970,0.971,0.975,0.978,0.977,0.977,0.975,
-  0.977,0.981,0.986,0.992,0.997,1.005,1.010,1.014,1.017,1.020,1.024,1.080,1.235,1.231,1.193,1.050,0.990,1.002,0.997,0.994,
-  0.987,0.986,0.984,0.983,0.979,0.978,0.977,0.976,0.973,0.970,0.969,0.969,0.969,0.970,0.971,0.975,0.978,0.979,0.981,0.982,
-  0.985,0.989,0.993,1.000,1.004,1.010,1.014,1.015,1.016,1.015,1.014,0.996,1.050,1.219,1.180,1.060,1.013,1.001,0.993,0.990,
-  0.984,0.984,0.983,0.983,0.981,0.981,0.980,0.979,0.976,0.971,0.970,0.970,0.972,0.973,0.974,0.978,0.981,0.982,0.986,0.988,
-  0.992,0.998,1.001,1.007,1.011,1.015,1.016,1.014,1.013,1.009,1.005,1.004,1.000,1.015,1.065,1.045,1.010,0.992,0.985,0.980,
-  0.985,0.986,0.986,0.987,0.985,0.984,0.983,0.981,0.977,0.974,0.974,0.974,0.976,0.978,0.978,0.982,0.986,0.988,0.993,0.997,
-  1.000,1.004,1.006,1.011,1.014,1.014,1.013,1.011,1.008,1.004,0.996,0.993,0.996,1.000,1.010,1.014,1.007,0.998,0.991,0.988,
-  0.988,0.989,0.991,0.992,0.990,0.990,0.987,0.985,0.982,0.981,0.980,0.981,0.981,0.985,0.986,0.990,0.992,0.994,0.998,1.003,
-  1.007,1.010,1.011,1.014,1.015,1.013,1.010,1.007,1.003,0.999,0.990,0.985,0.985,0.988,0.997,1.003,1.002,0.999,0.993,0.991,
-  0.993,0.994,0.995,0.994,0.993,0.992,0.990,0.988,0.986,0.987,0.986,0.986,0.987,0.991,0.993,0.996,0.997,1.000,1.003,1.008,
-  1.011,1.013,1.012,1.014,1.013,1.009,1.006,1.003,1.000,0.995,0.985,0.980,0.977,0.977,0.984,0.994,0.998,1.000,0.997,0.995,
-  0.998,0.999,1.000,0.997,0.995,0.993,0.992,0.991,0.991,0.992,0.990,0.990,0.990,0.994,0.997,0.999,1.000,1.003,1.005,1.009,
-  1.010,1.011,1.010,1.011,1.009,1.006,1.002,1.000,0.997,0.993,0.984,0.978,0.973,0.973,0.977,0.988,0.994,0.998,0.998,0.998,
-  0.999,1.000,0.999,0.995,0.991,0.988,0.988,0.988,0.989,0.992,0.991,0.989,0.990,0.992,0.996,1.000,1.004,1.006,1.006,1.006,
-  1.005,1.005,1.005,1.005,1.003,1.002,0.999,0.999,0.998,0.996,0.988,0.982,0.974,0.970,0.972,0.980,0.988,0.994,0.997,0.998,
-  0.995,0.995,0.993,0.989,0.985,0.983,0.982,0.983,0.985,0.988,0.989,0.987,0.987,0.987,0.993,0.999,1.004,1.005,1.003,1.002,
-  1.001,1.001,1.002,1.002,1.001,1.001,1.001,1.001,1.003,1.003,0.997,0.987,0.977,0.970,0.970,0.974,0.983,0.989,0.994,0.995,
-  0.990,0.990,0.985,0.981,0.977,0.977,0.978,0.978,0.979,0.981,0.983,0.983,0.983,0.984,0.989,0.997,1.002,1.002,0.998,0.996,
-  0.995,0.997,0.999,1.000,1.000,1.002,1.003,1.006,1.012,1.013,1.009,0.998,0.985,0.974,0.969,0.969,0.973,0.980,0.986,0.989,
-  0.981,0.980,0.973,0.970,0.967,0.969,0.973,0.975,0.975,0.977,0.979,0.981,0.980,0.982,0.985,0.993,0.996,0.996,0.995,0.994,
-  0.994,0.996,0.998,1.001,1.001,1.005,1.010,1.014,1.021,1.024,1.021,1.009,0.995,0.982,0.972,0.968,0.967,0.972,0.978,0.981,
-  0.973,0.972,0.966,0.963,0.962,0.966,0.970,0.972,0.972,0.974,0.976,0.978,0.979,0.981,0.983,0.989,0.993,0.995,0.996,0.994,
-  0.994,0.996,0.998,1.002,1.004,1.009,1.017,1.024,1.032,1.035,1.032,1.022,1.006,0.991,0.978,0.969,0.964,0.965,0.970,0.974,
-  0.970,0.968,0.963,0.961,0.960,0.964,0.969,0.972,0.973,0.974,0.976,0.978,0.978,0.980,0.981,0.986,0.990,0.993,0.996,0.996,
-  0.996,0.998,1.002,1.007,1.011,1.018,1.026,1.034,1.041,1.046,1.043,1.034,1.019,1.003,0.987,0.975,0.967,0.965,0.968,0.972,
-  0.973,0.970,0.967,0.965,0.964,0.967,0.971,0.974,0.976,0.976,0.977,0.978,0.979,0.981,0.982,0.985,0.990,0.994,0.998,1.001,
-  1.003,1.006,1.010,1.017,1.022,1.031,1.040,1.049,1.056,1.059,1.055,1.048,1.033,1.016,1.000,0.985,0.976,0.971,0.972,0.973,
-  0.980,0.977,0.976,0.973,0.972,0.974,0.978,0.980,0.982,0.982,0.982,0.982,0.982,0.985,0.987,0.990,0.994,0.999,1.004,1.009,
-  1.012,1.015,1.021,1.030,1.038,1.046,1.055,1.063,1.068,1.070,1.066,1.059,1.047,1.031,1.015,0.999,0.988,0.981,0.980,0.980,
-  0.989,0.988,0.987,0.985,0.984,0.985,0.988,0.990,0.991,0.991,0.990,0.990,0.991,0.992,0.994,0.995,1.000,1.006,1.013,1.019,
-  1.023,1.028,1.035,1.044,1.052,1.060,1.068,1.075,1.078,1.079,1.074,1.068,1.058,1.044,1.030,1.015,1.004,0.996,0.992,0.990,
-  1.000,0.999,1.000,1.000,1.000,1.001,1.004,1.005,1.005,1.005,1.005,1.004,1.005,1.004,1.005,1.006,1.011,1.016,1.022,1.029,
-  1.036,1.041,1.050,1.058,1.066,1.072,1.078,1.083,1.084,1.082,1.078,1.074,1.066,1.056,1.044,1.032,1.021,1.012,1.007,1.003,
-  1.014,1.013,1.014,1.016,1.018,1.021,1.023,1.025,1.025,1.023,1.022,1.021,1.020,1.020,1.019,1.020,1.024,1.029,1.035,1.042,
-  1.050,1.056,1.064,1.071,1.078,1.082,1.084,1.085,1.083,1.080,1.076,1.073,1.069,1.064,1.055,1.046,1.037,1.029,1.023,1.018,
-  1.031,1.029,1.030,1.033,1.036,1.040,1.042,1.044,1.043,1.042,1.041,1.039,1.039,1.038,1.038,1.038,1.042,1.046,1.051,1.057,
-  1.064,1.070,1.076,1.082,1.086,1.088,1.087,1.083,1.079,1.074,1.071,1.068,1.066,1.064,1.060,1.056,1.050,1.044,1.039,1.034,
-  1.045,1.044,1.046,1.049,1.052,1.056,1.059,1.060,1.061,1.060,1.058,1.057,1.057,1.057,1.057,1.057,1.060,1.063,1.067,1.072,
-  1.076,1.081,1.085,1.088,1.089,1.087,1.083,1.080,1.077,1.072,1.060,1.054,1.058,1.062,1.065,1.063,1.061,1.058,1.052,1.047,
-  1.057,1.057,1.059,1.062,1.065,1.069,1.071,1.073,1.074,1.076,1.076,1.074,1.073,1.073,1.073,1.073,1.075,1.077,1.080,1.083,
-  1.086,1.088,1.089,1.089,1.086,1.082,1.076,1.062,1.062,1.080,1.080,1.060,1.045,1.050,1.058,1.065,1.070,1.062,1.060,1.058,
-  1.065,1.070,1.070,1.071,1.073,1.077,1.080,1.082,1.086,1.090,1.083,1.082,1.082,1.083,1.083,1.083,1.084,1.086,1.089,1.091,
-  1.092,1.092,1.090,1.086,1.080,1.070,1.075,1.097,1.125,1.155,1.145,1.115,1.074,1.055,1.050,1.056,1.065,1.065,1.065,1.065,
-  1.069,1.071,1.072,1.075,1.078,1.082,1.086,1.087,1.089,1.088,1.088,1.086,1.086,1.086,1.087,1.087,1.089,1.091,1.093,1.095,
-  1.095,1.093,1.089,1.084,1.065,1.065,1.080,1.124,1.160,1.180,1.210,1.120,1.085,1.066,1.040,1.048,1.055,1.062,1.066,1.067,
-  1.069,1.071,1.072,1.075,1.078,1.082,1.086,1.087,1.089,1.088,1.088,1.086,1.086,1.086,1.087,1.087,1.089,1.091,1.093,1.095,
-  1.095,1.093,1.089,1.084,1.065,1.065,1.080,1.124,1.160,1.180,1.210,1.120,1.085,1.066,1.040,1.048,1.055,1.062,1.066,1.067};
+/// set TrdSCalib options
+int CalibLevel   = 4;
+int TrdTrackType = 1; //0: trdhtrack, 1:trdtrack
+int Debug        = 0;
 
-bool ssa(float phi,float theta) {
-  double const Pi=4*atan(1);
-  phi=(phi-2*Pi)*100;
-  theta=theta*100;
-  // phi, theta geographic
-  bool ssa_good=true;
-  if(phi>=-74 && phi<-72 && theta>=-23 && theta<-18) ssa_good=false;
-  if(phi>=-72 && phi<-70 && theta>=-27 && theta<-15) ssa_good=false;
-  if(phi>=-70 && phi<-68 && theta>=-31 && theta<-13) ssa_good=false;
-  if(phi>=-68 && phi<-66 && theta>=-34 && theta<-12) ssa_good=false;
-  if(phi>=-66 && phi<-64 && theta>=-36 && theta<-11) ssa_good=false;
-  if(phi>=-64 && phi<-62 && theta>=-38 && theta<-10) ssa_good=false;
-  if(phi>=-62 && phi<-60 && theta>=-40 && theta<-10) ssa_good=false;
-  if(phi>=-60 && phi<-58 && theta>=-40 && theta<-9) ssa_good=false;
-  if(phi>=-58 && phi<-56 && theta>=-42 && theta<-8) ssa_good=false;
-  if(phi>=-56 && phi<-54 && theta>=-43 && theta<-8) ssa_good=false;
-  if(phi>=-54 && phi<-52 && theta>=-43 && theta<-8) ssa_good=false;
-  if(phi>=-52 && phi<-50 && theta>=-43 && theta<-8) ssa_good=false;
-  if(phi>=-50 && phi<-48 && theta>=-43 && theta<-8) ssa_good=false;
-  if(phi>=-48 && phi<-46 && theta>=-44 && theta<-8) ssa_good=false;
-  if(phi>=-46 && phi<-44 && theta>=-44 && theta<-8) ssa_good=false;
-  if(phi>=-44 && phi<-42 && theta>=-44 && theta<-9) ssa_good=false;
-  if(phi>=-42 && phi<-40 && theta>=-43 && theta<-9) ssa_good=false;
-  if(phi>=-40 && phi<-38 && theta>=-43 && theta<-11) ssa_good=false;
-  if(phi>=-38 && phi<-36 && theta>=-42 && theta<-13) ssa_good=false;
-  if(phi>=-36 && phi<-34 && theta>=-42 && theta<-12) ssa_good=false;
-  if(phi>=-34 && phi<-32 && theta>=-42 && theta<-14) ssa_good=false;
-  if(phi>=-32 && phi<-30 && theta>=-41 && theta<-16) ssa_good=false;
-  if(phi>=-30 && phi<-28 && theta>=-40 && theta<-17) ssa_good=false;
-  if(phi>=-28 && phi<-26 && theta>=-40 && theta<-18) ssa_good=false;
-  if(phi>=-26 && phi<-24 && theta>=-39 && theta<-19) ssa_good=false;
-  if(phi>=-24 && phi<-22 && theta>=-38 && theta<-20) ssa_good=false;
-  if(phi>=-22 && phi<-20 && theta>=-37 && theta<-21) ssa_good=false;
-  if(phi>=-20 && phi<-18 && theta>=-36 && theta<-22) ssa_good=false;
-  if(phi>=-18 && phi<-16 && theta>=-35 && theta<-24) ssa_good=false;
-  if(phi>=-16 && phi<-14 && theta>=-34 && theta<-25) ssa_good=false;
-  if(phi>=-14 && phi<-12 && theta>=-32 && theta<-26) ssa_good=false;
-  if(phi>=-12 && phi<-10 && theta>=-31 && theta<-27) ssa_good=false;
-  if(phi>=-10 && phi<-8 && theta>=-28 && theta<-27) ssa_good=false;
-  return ssa_good;
+/// construct TrdSCalib
+TrdSCalibR* trdS = new TrdSCalibR();
+
+TF1 *fTrdSigmaDx;
+TF1 *fTrdSigmaDy;
+TF1 *fTrd95Da;
+
+//===================================================================================
+
+double FunTrdSigma(double *x, double *par) {
+  return 0.1*(par[0] + par[1]*exp(-par[2]*x[0]));
 }
+
+
+void Init_selection(){
+
+  fTrdSigmaDx = new TF1("fTrdSigmaDx",FunTrdSigma,0.0,1000.0,3);
+  fTrdSigmaDx->SetParameters(2.484,0.1183,0.3487);
+  fTrdSigmaDy = new TF1("fTrdSigmaDy",FunTrdSigma,0.0,1000.0,3);
+  fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347);
+  
+  fTrd95Da = new TF1("fTrd95Da",FunTrdSigma,0.0,1000.0,3);
+  fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
+  
+
+  if( trdS->InitTrdSCalib(CalibLevel, TrdTrackType, Debug) ) {
+    cerr << "Error in TrdSCalib Initialization" << endl;
+  }
+  
+  TrExtAlignDB::ForceFromTDV=1;
+  
+}
+
+
 bool Clean_Event(AMSEventR *pev){
 
   //sciense runtag
@@ -135,22 +52,6 @@ bool Clean_Event(AMSEventR *pev){
   Level1R * trig=pev-> pLevel1(0);
   if( trig->LiveTime <=0.65) return false;
 
-  //SAA exclusion
-  //kounin
-  int i = (int)((header->ThetaS + 1.0)/0.05);
-  if(i<0)  i = 0;
-  if(i>39) i = 39;
-  int j = (int)(header->PhiS/0.1571);
-  if(j<0)  j = 0;
-  if(j>39) j = 39;
-
-  float cr = Corr1[i][j];
-
-  // if ( cr == 0.000 ) return false;
-  
-  //contin
-  // if(!ssa(header->PhiS,header->ThetaS)) return false;
- 
 
   // 1! Tracker track
   if(pev->nTrTrack()!=1) return false;
@@ -162,33 +63,25 @@ bool Clean_Event(AMSEventR *pev){
   // Rigidity > 3 GeV 
   if(fabs(track->GetRigidity(id))<=3.0) return false;
 
-
   //downgoing particle with good beta
    
   BetaR *beta;
   int track_beta=0;   
   float Beta=0;
   float betasum=0;
-  if(pev->nBeta()>1){
-    vector<float> betadiff;
+  if(pev->nBeta()>0){
     for( int i=0; i<pev->nBeta(); i++){
-      beta=pev->pBeta(i);
-      
+      beta=pev->pBeta(i);      
       if(beta->iTrTrack()!=-1){
-	betadiff.push_back(beta->Beta);
-	betasum+=beta->Beta;
+	betasum+=1;
+	track_beta=beta->iTrTrack();
       }
     }
-    for(int i=0; i<betadiff.size(); i++){
-      if(betadiff[i]>0.6 && betasum<betadiff[i]*betadiff.size()){
-	beta=pev->pBeta(i);
+    if(betasum!=1) return false;
+    else{
+	beta=pev->pBeta(track_beta);
 	Beta=beta->Beta;
-      }
     }
-  }
-  else if(pev->nBeta()==1){
-    beta=pev->pBeta(0);
-    Beta=beta->Beta;
   }
   
   if(Beta<=0.6 || Beta >=1.2) return false;
@@ -285,7 +178,7 @@ bool Clean_Event(AMSEventR *pev){
   
   
   // if(track->GetChisqX(id)/ n_layers[0] >5 ) return false;
-  if(track->GetNormChisqY(id) >=10. ) return false;
+  if(track->GetNormChisqY(id) >=15. ) return false;
 
   AMSPoint pnt[2];
 
@@ -321,12 +214,12 @@ bool Clean_Event(AMSEventR *pev){
     ss.SetGlobalCoo(b[i]);    
     if(ss.LadFound ()) sen[i][1]=true;
   }
-  if(!((sen[0][1] || sen[1][1] || sen[2][1] || sen[3][1]) && fabs(pnt[1].x())<30.)) return false;
+  if(!((sen[0][1] || sen[1][1] || sen[2][1] || sen[3][1]) /*&& fabs(pnt[1].x())<30.*/)) return false;
   
 
   AMSPoint ecaltop;
   AMSDir ecal;
-  float z=-142.8;  //EcalTop?
+  float z=-142.8; 
   
   track->Interpolate(z, ecaltop, ecal, id);
   
@@ -338,33 +231,49 @@ bool Clean_Event(AMSEventR *pev){
 }
 
 
-
-// x[0] = fabs(P)
-double FunTrdSigmaDy(double *x, double *par) {
-  return 0.1*(par[0] + par[1]*exp(-par[2]*x[0]));
-}
-
 bool good_trd_event(AMSEventR *pev){
   
-  if( pev->nTrdHTrack()!=1) return false;
-  
-  if( pev->nTrdHSegment() !=2) return false;
+  if( pev->nTrdTrack()!=1) return false;
+  TrdTrackR *trd_track=pev->pTrdTrack(0);
 
-  TrdHTrackR *trd_track=pev->pTrdHTrack(0);
+  bool bad=false;
+  if(pev->nTrdSegment()>4){
+    int arr[20][18][16]={((20*18)*16)*0};
+    
+    for(int i=0; i<pev->nTrdSegment(); i++){
+      TrdSegmentR *seg=pev->pTrdSegment(i);
+      for(int j=0; j<seg->NTrdCluster(); j++){
+	TrdClusterR *clu=seg->pTrdCluster(j);
+	TrdRawHitR *hit =clu->pTrdRawHit();
+	if(hit->Amp>15){
+	  arr[hit->Layer][hit->Ladder][hit->Tube]+=1;
+	}
+      }
+    }
+    for( int i=0; i<20; i++){
+      for(int j=0; j<18; j++){
+	for(int k=0; k<16; k++){
+	  if(arr[i][j][k]>1) bad=true;
+	}
+      }
+    }
+  }
+  if( (pev->nTrdSegment() >4 && bad) || pev->pTrdTrack(0)->NTrdSegment()!=4) return false;
+
   float TrdChi2=trd_track->Chi2;
-  int nTrdHits=trd_track->Nhits;
-
-  if (TrdChi2<0.0 || TrdChi2/nTrdHits>=3.0) return false;
+ 
+  if (TrdChi2<0.0 || TrdChi2>=3.0) return false;
   
   int hitsontrack=0;
   int pat[3]={0,0,0};
   int lay[20];
   for(int i=0; i<20;i++) lay[i]=0;
 
-  for(int is=0; is<trd_track->nTrdHSegment(); is++){
-    TrdHSegmentR *seg=trd_track->pTrdHSegment(is);
-    for(int ih=0; ih<seg->nTrdRawHit(); ih++){
-      TrdRawHitR *hit=seg->pTrdRawHit(ih);
+  for(int is=0; is<trd_track->NTrdSegment(); is++){
+    TrdSegmentR *seg=trd_track->pTrdSegment(is);
+    for(int ih=0; ih<seg->NTrdCluster(); ih++){
+      TrdClusterR *clu=seg->pTrdCluster(ih);
+      TrdRawHitR *hit=clu->pTrdRawHit();
       if(hit->Amp>10){
 	hitsontrack++;
 	lay[hit->Layer]++;
@@ -384,9 +293,6 @@ bool good_trd_event(AMSEventR *pev){
      
   if(!(pat[0]>2 && pat[1]>8 && pat[2]>2)) return false;
   
-  //still not clear if needed
-  //if( (float)(hitsontrack)/ (float)(pev->nTrdRawHit()) <0.5) return false;
-
   TrTrackR *tr_track=pev->pTrTrack(0);
   int id=tr_track->iTrTrackPar(1,3,1);
   float P=tr_track->GetRigidity(id);
@@ -394,7 +300,7 @@ bool good_trd_event(AMSEventR *pev){
   // TRD point and direction at z=UToF;
   float zpl= 65.2 ;  // UToF;
   AMSPoint trd_pnt0(trd_track->Coo[0], trd_track->Coo[1], trd_track->Coo[2]);
-  AMSDir   trd_dir(trd_track->Dir[0], trd_track->Dir[1], trd_track->Dir[2]);
+  AMSDir   trd_dir(sin(trd_track->Theta)*cos(trd_track->Phi),sin(trd_track->Theta)*sin(trd_track->Phi), cos(trd_track->Theta) );
 
   double X_TRD= (zpl-trd_pnt0[2])*trd_dir[0]/trd_dir[2]+trd_pnt0[0];
   double Y_TRD= (zpl-trd_pnt0[2])*trd_dir[1]/trd_dir[2]+trd_pnt0[1];
@@ -407,31 +313,20 @@ bool good_trd_event(AMSEventR *pev){
   tr_track->Interpolate(zpl, tk_pnt, tk_dir, id);
 
   //float TrdTrkDr=sqrt(pow(trd_pnt[0]-tk_pnt[0],2)+pow(trd_pnt[1]-tk_pnt[1],2));
-  //float TrdTrkDa=tk_dir.prod(trd_dir);
+  float TrdTrkDa=fabs(TMath::ACos(tk_dir.prod(trd_dir))*TMath::RadToDeg()-180);
   
   double const Pi=4*atan(1);
   float TrdTrkDx=trd_pnt[0]-tk_pnt[0];
   float TrdTrkDy=trd_pnt[1]-tk_pnt[1];
-  float TrdTrktheta=tk_dir.gettheta()-Pi+trd_dir.gettheta();
-  float TrdTrkphi=tk_dir.getphi()+Pi-trd_dir.getphi();
-  if(TrdTrkphi>Pi) TrdTrkphi=TrdTrkphi-2*Pi;
 
-  TF1 *fTrdSigmaDx = new TF1("fTrdSigmaDx",FunTrdSigmaDy,0.0,1000.0,3);
-  fTrdSigmaDx->SetParameters(2.484,0.1183,0.3487);
-  TF1 *fTrdSigmaDy = new TF1("fTrdSigmaDy",FunTrdSigmaDy,0.0,1000.0,3);
-  fTrdSigmaDy->SetParameters(1.686,0.1505,0.2347);
-
-  TF1 *fTrd95Da = new TF1("fTrd95Da",FunTrdSigmaDy,0.0,1000.0,3);
-  fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
-
-  double TrdCutDa = 10.0*fTrd95Da->Eval(fabs(P));
+  double TrdCutDa =  10.0*fTrd95Da->Eval(fabs(P));
   double TrdCutDx =  10.0*fTrdSigmaDx->Eval(fabs(P));
   double TrdCutDy =  10.0*fTrdSigmaDy->Eval(fabs(P));
      
       
   if (fabs(TrdTrkDx)>TrdCutDx || fabs(TrdTrkDy)>TrdCutDy) return false;
-  if( fabs(TrdTrktheta)>TrdCutDa || fabs(TrdTrkphi)>TrdCutDa) return false;
- 
+  if( TrdTrkDa>TrdCutDa ) return false;
+
   return true;
 }
 
@@ -447,7 +342,7 @@ bool good_ecal_event(AMSEventR *pev){
   for(int i=0; i<pev->nEcalShower(); i++){
     shr=pev->pEcalShower(i);
     
-    float Edep=shr->EnergyE; // or EnergyD?
+    float Edep=shr->EnergyE;
     if(Edep>Ehigh) {
       highE=i;
       Ehigh=Edep;
@@ -474,3 +369,100 @@ bool good_ecal_event(AMSEventR *pev){
   return true;
 
 }
+
+float GetTrackerCharge(ParticleR* particle) {  
+  BetaR* tof = particle->pBeta();
+  float tof_beta = tof->Beta;
+  TrTrackR *track=particle->pTrTrack();
+  float xx = sqrt(TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner,track,TrCharge::kX,tof_beta).Mean);
+  float trk_q_x  = -0.129643 + 0.202016*xx - 0.00208005*xx*xx + 2.60621e-05*xx*xx*xx;
+  return trk_q_x;
+}
+
+float GetTofCharge(ParticleR* particle) {
+  float q_tof = -1;
+  if (particle->pCharge()==0) return q_tof;
+  ChargeR* charge = particle->pCharge();
+  ChargeSubDR* charge_tof = (ChargeSubDR*) charge->getSubD("AMSChargeTOF");
+  if (charge_tof==0) return q_tof;
+  q_tof = charge_tof->Q;
+  return q_tof;
+}
+
+int trd_particle(AMSEventR *pev){
+
+  if(pev->nParticle()==1){
+    ParticleR *par=pev->pParticle(0);
+    
+    float tof_charge=GetTofCharge(par);
+    float tr_charge=GetTrackerCharge(par);
+    
+    TrTrackR* track=pev->pTrTrack(0);
+    int id=track->iTrTrackPar(1,3,1);
+    float rig=track->GetRigidity(id);
+  
+    double like_ep=0, like_eh=0, like_ph=0;
+    if(rig>99.) pev->pParticle(0)->Momentum=99.;
+    if(rig<-99.) pev->pParticle(0)->Momentum=-99.;
+    // calculate likelihoods 
+    //  if(fabs(rig)<100.){
+      if(! trdS->ProcessTrdEvt(pev, Debug) ) {
+	vector<double>::iterator lr = trdS->TrdLRs.begin();
+	//	lr++;
+	like_ep= *lr;
+	lr++;
+	like_ph= *lr;
+	lr++;
+	like_eh= *lr;
+      } 
+      // }
+      // printf("mom: %f tof charge: %f like_ep: %f like_eh: %f like_ph: %f \n", pev->pParticle(0)->Momentum, tof_charge, like_ep, like_eh, like_ph);
+    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && like_ep <0.54 && like_eh <0.6) return 0; 
+    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && like_ep >0.85 && like_ph >1.9) return 1; 
+    else if(tr_charge>1.5 && tof_charge>1.5 && like_ph < 0.24 && like_eh > 0.8) return 2; 
+    else return -1;
+  }
+  return -1; 
+}
+
+int ecal_particle(AMSEventR *pev){
+  
+  if(pev->nParticle()==1){
+    ParticleR *par=pev->pParticle(0);
+    
+    TrTrackR *track=pev->pTrTrack(0);
+    int id=track->iTrTrackPar(1,3,1);
+    float rig=track->GetRigidity(id);    
+   
+    float tof_charge=GetTofCharge(par);
+    float tr_charge=GetTrackerCharge(par);  
+   
+    EcalShowerR *shr;
+    int highE=0;
+    float Ehigh=0;
+    
+    for(int i=0; i<pev->nEcalShower(); i++){
+      shr=pev->pEcalShower(i);
+      
+      float Edep=shr->EnergyE;
+      float ecal_E=0;
+      
+      if(Edep>Ehigh){
+	highE=i;
+	Ehigh=Edep;
+      }
+    }
+    
+    shr=pev->pEcalShower(highE);
+    
+    float ecalbdt=shr->GetEcalBDT();
+    float ecal_Ec=shr->EnergyE;
+    
+    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)>0.85 && fabs(ecal_Ec/rig)<1.45 && ecalbdt>0.5 ) return 0;
+    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)<0.1  && ecalbdt<-0.8) return 1; 
+    else if(tr_charge>1.5 && tof_charge>1.5 &&  fabs(ecal_Ec/rig)<0.1  && ecalbdt<-0.8) return 2;
+    else return -1;
+  }
+  return -1;
+}
+  
