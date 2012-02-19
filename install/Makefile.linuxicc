@@ -162,7 +162,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lTMVA -lMinuit -lHistPainter -lGraf -lMatrix 
+ SOFLAGS+= -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lTMVA -lMLP -lXMLIO -lTreePlayer -lMinuit -lHistPainter -lGraf -lMatrix -lgfortran 
 endif
 endif
 

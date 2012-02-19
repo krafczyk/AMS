@@ -25,8 +25,10 @@
       do k=1,NPma
         trkZ0(k)=zposl(k)
       enddo
+#ifndef __ROOTSHAREDLIBRARY__
       write(*,*)'RKMS-I-InitTo '
       write(6,'(8f8.3,f9.3)')trkZ0
+#endif
       end
 
 *------------------------------
@@ -266,7 +268,9 @@ c!$OMP threadprivate(/rktrk/)
         if(it.eq.1) sigcha= 1.                        ! for R/K
         if(it.eq.2) sigcha=-1.                        ! for R/K
         if(it.eq.3.and.jB.gt.0) then
+#ifndef __ROOTSHAREDLIBRARY__
           if(jB.gt.2) write(6,*)'### jB',jB      ! ### deb
+#endif
           rkstep=2.
           sigcha=sig(jB)
 
@@ -933,11 +937,15 @@ c        write(6,*)'### wxy_matr: # of planes',npo
       enddo
 *     -------------------------------- Inversion
       call rsinv(NMSpl,vx,NPma,ifail) ! F012 Symm.Matr.Inversion
+#ifndef __ROOTSHAREDLIBRARY__
       if(ifail.ne.0) write(6,*)'### rsinv x: ifail=',ifail
+#endif
       ier=ifail
       if(ier.ne.0) return
       call rsinv(NMSpl,vy,NPma,ifail) ! F012 Symm.Matr.Inversion
+#ifndef __ROOTSHAREDLIBRARY__
       if(ifail.ne.0) write(6,*)'### rsinv y: ifail=',ifail
+#endif
       ier=ifail
       if(ier.ne.0) return
 *     --------------------- Matrix Shrinking
@@ -1079,7 +1087,9 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
             enddo
           enddo
         enddo
+#ifndef __ROOTSHAREDLIBRARY__
         write(6,*)'--- matr_scatN9 initialization completed ----'
+#endif
         first=.false.
       endif  !  -----------   end first
 *     ---------------------------------
@@ -1220,7 +1230,9 @@ c      real  xRL(16)/0.0032054, 0.04,  0.03 ,11*0.0032054,0.03 ,0.02/
             enddo
           enddo
         enddo
+#ifndef __ROOTSHAREDLIBRARY__
         write(6,*)'--- matr_scatN1 initialization completed ----'
+#endif
         first=.false.
       endif  !  -----------   end first
 *     ---------------------------------
@@ -1272,7 +1284,9 @@ c      endif ! first
       Rc=10000000.
       if(Bx.eq.0.or.npo.lt.3) return                            !!!!
       cfit = utcfit(z,y,w1,npo,sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
+#ifndef __ROOTSHAREDLIBRARY__
       if(cfit.ne.0) write(6,*)'### utcfit: cfit.ne.0 !!!'
+#endif
       Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
       call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
       Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
@@ -1453,7 +1467,9 @@ c      endif ! first
       if(ier.eq.0) return
       if(ncou.le.10) then
         ncou=ncou+1
+#ifndef __ROOTSHAREDLIBRARY__
         write(6,*)'### ParEM: dsinv: ier=',ier
+#endif
       endif
       end
 
@@ -1911,7 +1927,10 @@ C.
  243         CONTINUE
  299      CONTINUE
           RETURN
- 900      write(6,*)'DSINV: ,IDIM,N',IDIM,N
+ 900      continue
+#ifndef __ROOTSHAREDLIBRARY__
+          write(6,*)'DSINV: ,IDIM,N',IDIM,N
+#endif
 c 900      CALL TMPRNT(HNAME,N,IDIM,K)
           END
 
@@ -1985,7 +2004,10 @@ c 900      CALL TMPRNT(HNAME,N,IDIM,K)
  399      CONTINUE
           RETURN
 *         ---------------------------------
- 900      write(6,*)'DSINV: ,IDIM,N',IDIM,N
+ 900      continue
+#ifndef __ROOTSHAREDLIBRARY__
+         write(6,*)'DSINV: ,IDIM,N',IDIM,N
+#endif
 c 900      CALL TMPRNT(HNAME,N,IDIM,0)
           END
 
@@ -2061,7 +2083,10 @@ c 900      CALL TMPRNT(HNAME,N,IDIM,0)
  399      CONTINUE
 *         ---------------------------------
           RETURN
- 900      write(6,*)'RSINV: ,IDIM,N',IDIM,N
+ 900      continue
+#ifndef __ROOTSHAREDLIBRARY__
+         write(6,*)'RSINV: ,IDIM,N',IDIM,N
+#endif
 c 900      CALL TMPRNT(HNAME,N,IDIM,0)
           END
 

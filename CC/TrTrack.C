@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.123 2011/12/07 17:21:50 pzuccon Exp $
+// $Id: TrTrack.C,v 1.124 2012/02/19 18:59:07 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2011/12/07 17:21:50 $
+///$Date: 2012/02/19 18:59:07 $
 ///
-///$Revision: 1.123 $
+///$Revision: 1.124 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1309,10 +1309,10 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     if (           wsame) fittype|=kSameWeight;
   }
 
-   if(fittype==kChikanianF &&refit>0){
-     printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
-     return -1;
-   }
+//   if(fittype==kChikanianF &&refit>0){
+//     printf("TrTrackR::iTrTrackPar -E- Error ChikanianF refit not YET available!\n");
+//     return -1;
+//   }
   int fflayer[9]={
       kFitLayer1, kFitLayer2,   kFitLayer3, kFitLayer4, kFitLayer5,
       kFitLayer6, kFitLayer7, kFitLayer8, kFitLayer9 };
@@ -1467,4 +1467,6 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     hit->BuildCoordinate();
   }
 }
-    
+   
+
+

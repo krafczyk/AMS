@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.25 2011/04/26 16:11:23 shaino Exp $
+//  $Id: TrFit.h,v 1.26 2012/02/19 18:59:08 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2011/04/26 16:11:23 $
+///$Date: 2012/02/19 18:59:08 $
 ///
-///$Revision: 1.25 $
+///$Revision: 1.26 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -336,8 +336,11 @@ public:
   /// Choutko fit
   double ChoutkoFit(void);
 
-  /// Chikanian fit  type= 1:C++  2:Fortan(only with gbatch.exe)
-  double ChikanianFit(int type = 1);
+  /// Chikanian fit C++ (may be outdated)  
+  double ChikanianFitCInt(int type = 1);
+
+  /// Chikanian fit Fortran
+  double ChikanianFitFInt(int type = 1);
 
   /// Linear fitting for X-Z (side=1), Y-Z (side=2) or X-S (side=3)
   double LinearFit(int side);

@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.27 2011/09/27 23:44:00 pzuccon Exp $
+#  $Id: Makefile.linux,v 1.28 2012/02/19 18:59:08 pzuccon Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -180,7 +180,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+=$(shell root-config --libs )
+ SOFLAGS+=$(shell root-config --libs ) 
 # -L$(CERNDIR)/lib -lmathlib -lgeant -lpacklib -lgfortran
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2

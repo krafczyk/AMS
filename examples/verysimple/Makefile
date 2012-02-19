@@ -16,7 +16,7 @@ static: analyze
 shared: analyze_shared
 
 analyze:  $(SRC_U) 
-	$(CXX) -o $@ $(CXXFLAGS) $^  -L$(AMSWD)/lib/$(MARCH)/ -lntuple_slc4_PG `root-config --libs` -lMinuit -lNetx -lProof -lProofPlayer
+	$(CXX) -o $@ $(CXXFLAGS) $^  -L$(AMSWD)/lib/$(MARCH)/ -lntuple_slc4_PG `root-config --libs` -lMinuit -lNetx -lProof -lProofPlayer -lTMVA -lXMLIO -lMLP -lTreePlayer
 analyze_shared:  $(SRC_U) 
 	$(CXX) -o $@ $(CXXFLAGS) $^  -L$(AMSWD)/lib/$(MARCH)/ntuple_slc4_PG.so `root-config --libs` -lMinuit -lNetx -lProof -lProofP
 

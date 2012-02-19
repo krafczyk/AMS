@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.59 2012/02/03 14:49:16 choutko Exp $
+//  $Id: TrFit.C,v 1.60 2012/02/19 18:59:07 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/02/03 14:49:16 $
+///$Date: 2012/02/19 18:59:07 $
 ///
-///$Revision: 1.59 $
+///$Revision: 1.60 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -94,8 +94,8 @@ double TrFit::Fit(int method)
   if (method ==    SIMPLE)  ret = SimpleFit();
   if (method ==   ALCARAZ)  ret = AlcarazFit();
   if (method ==   CHOUTKO)  ret = ChoutkoFit();
-  if (method == CHIKANIAN)  ret = ChikanianFit(1);
-  if (method == CHIKANIANF) ret = ChikanianFit(2);
+  if (method == CHIKANIAN)  ret = ChikanianFitCInt(1);
+  if (method == CHIKANIANF) ret = ChikanianFitFInt(2);
 
   ParLimits();
   return ret;
@@ -1471,7 +1471,7 @@ int TrFit::RkmsDebug = -1;
 #include "amsgobj.h"
 #endif
 
-double TrFit::ChikanianFit(int type)
+double TrFit::ChikanianFitCInt(int type)
 /*
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
@@ -1488,6 +1488,7 @@ double TrFit::ChikanianFit(int type)
 *     OR do final (additional) minimization loop with Rini~Rrec
 
    Imported to C++ by SH
+ Feb 2012 Interface modified by PZ -- C Algo is probably outdated
 */
 {
   _ndofx = -2;
@@ -1503,27 +1504,13 @@ double TrFit::ChikanianFit(int type)
   double out[9];
 
 #ifndef __ROOTSHAREDLIBRARY__
-  // Original Fortran version
-  if (type == 2) {
-    AMSgObj::BookTimer.start("TrFitRkmsF");
-    RkmsFitF(out);
-    AMSgObj::BookTimer.stop("TrFitRkmsF");
-  }
 
   // Imported C++ version
-  else {
     AMSgObj::BookTimer.start("TrFitRkmsT");
     RkmsFit(out);
     AMSgObj::BookTimer.stop("TrFitRkmsT");
-  }
 #else
-// PZ
-   if (type == 2) {
-     printf(" ChikanianF Fit not yet allowed for refit\n");
 
-     RkmsFit(out);
-   }
-  else
   RkmsFit(out);
 #endif
 
@@ -1555,18 +1542,92 @@ double TrFit::ChikanianFit(int type)
   return flag;
 }
 
+double TrFit::ChikanianFitFInt(int type)
+/*
+*-----------------------------------------------------------------------
+* A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
+*-----------------------------------------------------------------------
+* Rigidity reconstruction program for AMS02 with permanet magnet
+* Taking care of the Multipole Scattering in AMS Tracking detector:
+* Reconstruct track's kinematical parameters with full (nondiagonal)
+* Covar.Error Metrix due to Multipole Scattering in Si tracking planes
+* as well as in TRD, TOF and RICH.
+*------------------------------------------------------
+
+*     WARNING ========================================================
+*     Due to Error Matrix depends on Rini, pick the best possible Rini
+*     OR do final (additional) minimization loop with Rini~Rrec
+
+   Imported to C++ by SH
+Feb 2012 PZ update interface to new RKMS.F format
+*/
+{
+  _ndofx = -2;
+  _ndofy = -3;
+  for (int i = 0; i < _nhit; i++) {
+    if (0 < _xs[i]) _ndofx++;
+    if (0 < _ys[i]) _ndofy++;
+    if (_zs[i] <= 0) _zs[i] = 300e-4;
+    if (_xs[i] <= 0) _xs[i] = _zs[i]*1e4;
+    if (_ys[i] <= 0) _ys[i] = _zs[i]*1e4;
+  }
+
+  double out[9];
+
 #ifndef __ROOTSHAREDLIBRARY__
+    AMSgObj::BookTimer.start("TrFitRkmsF");
+    RkmsFitF(out);
+    AMSgObj::BookTimer.stop("TrFitRkmsF");
+
+#else
+
+     RkmsFitF(out);
+#endif
+
+  if (RkmsDebug >= 1)
+    cout << "RkmsFit: rini,rgt,chi2= "
+	 << _rigidity << " " << out[5] << " " << out[6] << endl;
+
+  _p0x = out[0]; 
+  _p0y = out[1]; 
+  _p0z = out[2];
+
+  AMSDir dir(out[3], out[4]);
+  _dxdz = -dir.x();
+  _dydz = -dir.y();
+
+  _rigidity = out[5];
+  _chisq    = (_ndofx+_ndofy > 0) ? out[6]/(_ndofx+_ndofy) : out[6];
+  _errrinv  = out[8];
+
+  if (_chisqx < 0) _chisqx = out[9];
+  if (_chisqy < 0) _chisqy = out[10];
+
+  //-------------------------------------------- A.Ch. Apr.2011
+  //After dropping MINUIT rkms flagging over out[7] insted chisq
+  //return _chisq;
+  float flag=1.;
+  if(out[7]!=0.) flag=-1.;
+  //cout<<"flag "<<flag<<" rigidity "<<_rigidity<<endl;
+  return flag;
+}
+
+// #ifndef __ROOTSHAREDLIBRARY__
 extern "C" void rkms_rig_(int*,int*,float*,float*,float*,float*,float*,float*);
 extern "C" void rkmsinit_(float*);
 
 void TrFit::RkmsFitF(double *out)
 {
-  float zpos[trconst::maxlay];
+  static int initialized=0;
+  static float zpos[trconst::maxlay];
   int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
-  for (int i = 0; i < trconst::maxlay; i++)
-    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+  if(!initialized){
+    initialized=1;
+    for (int i = 0; i < trconst::maxlay; i++)
+	    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
 
-  rkmsinit_(zpos);
+    rkmsinit_(zpos);
+  }
 
   int npo = 0, npl[NPma], ipa = 14;
   float xyz[NPma*3], dxyz[NPma*3];
@@ -1602,7 +1663,7 @@ void TrFit::RkmsFitF(double *out)
   rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, outf);
   for (int i = 0; i < 9; i++) out[i] = outf[i];
 }
-#else
+/* //else
 void TrFit::RkmsFitF(double *out)
 { 
   static int nerr = 1;
@@ -1613,8 +1674,8 @@ void TrFit::RkmsFitF(double *out)
   return;
 }
 
-#endif
-
+// #endif
+*/
 #include "TMinuit.h"
 
 namespace TrFit_RKMS {

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.183 2012/02/12 22:10:48 pzuccon Exp $
+#  $Id: Makefile,v 1.184 2012/02/19 18:59:08 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -572,8 +572,8 @@ SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o\
         $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
         $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)commonsi.o \
-$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o
-#$(BIN)rkms.o $(BIN)gufld.o
+$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o \
+$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o
 SHLIBBO:=$(SHLIBO)
 
 
