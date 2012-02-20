@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.357 2012/02/14 09:23:54 choutko Exp $
+//  $Id: root.C,v 1.358 2012/02/20 15:25:53 sdellato Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -54,6 +54,7 @@
 #include <float.h>
 #endif
 #endif
+#include "Sunposition.h"
 using namespace root;
 #ifdef __WRITEROOT__
 /*
@@ -6050,6 +6051,38 @@ return AMSEventR::getsetup()->getISSAtt(Roll,Pitch,Yaw,xtime);
 
 }
 
+   ///<get solar beta angle via geometrical calculation
+double HeaderR::getBetaSun(){
+ SunPosition sunPos;
+ unsigned int time,nanoTime;
+ double Beta;
+ if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
+   time=HeaderR::Time[0];
+   sunPos.setUTCTime((double)time);
+   }
+ else{
+ sunPos.setGPSTime((double)time);
+ }
+ sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll);
+Beta=sunPos.GetBetaAngle();
+ return Beta;
+}
+   ///<get sun position in AMS coordinate
+int HeaderR::getSunAMS(double & azimut, double & elevation ){
+ SunPosition sunPos;
+ unsigned int time,nanoTime;
+ int res;
+ if (HeaderR::GetGPSEpoche( time, nanoTime)!=0 ){
+   time=HeaderR::Time[0];
+   sunPos.setUTCTime((double)time);
+   }
+ else{
+ sunPos.setGPSTime((double)time);
+ }
+sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
+ res=sunPos.GetSunFromAMS(elevation,azimut);
+ return res;
+}
 
 float AMSEventR::LiveTime(){
 
