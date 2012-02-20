@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.145 2012/01/31 19:37:23 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.146 2012/02/20 17:16:51 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/01/31 19:37:23 $
+/// $Date: 2012/02/20 17:16:51 $
 ///
-/// $Revision: 1.145 $
+/// $Revision: 1.146 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -362,10 +362,8 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
           ntrk += BuildTrTracksSimple(rebuild,TrRecHitR::ZSEED); 
         if (nhit<RecPar.MaxNtrHit)             
           ntrk += BuildTrTracksSimple(0);
-        /* AO Bug-fix: it could happen that GetHits(tag)<RecPar.MaxNtrHit and nhit>RecPar.MaxNtrHit.
-                       In such case is possible that the hits associated to the track are NOT
-                       stored in the rootple. --> Save all hits, or at least save all hits associated to tracks. 
-        */
+        /* AO Warning: it could happen that GetHits(tag)<RecPar.MaxNtrHit and nhit>RecPar.MaxNtrHit.
+           Fixed saving all hits for v5. */
       }
       else {
         if (nhit<RecPar.MaxNtrHit) ntrk += BuildTrTracksSimple(rebuild);
@@ -417,7 +415,7 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 #endif
     }
     */    
-  
+
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.stop("TrTrack");
 #endif
@@ -1699,6 +1697,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
     if ( (hit->Used()) || (!hit->OnlyY()) || (hit->GetLayer()>=8) ) continue; 
     TrClusterR* cls = (TrClusterR*) hit->GetYCluster();
     if (!cls) continue;
+    if (cls->Used()) continue;
     int j = hit->GetYClusterIndex();
 
     cls->SetDxDz(0);

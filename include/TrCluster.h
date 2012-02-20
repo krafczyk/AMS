@@ -28,9 +28,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2012/01/04 19:35:49 $
+ $Date: 2012/02/20 17:16:52 $
 
- $Revision: 1.26 $
+ $Revision: 1.27 $
 
 */
 
@@ -287,6 +287,8 @@ class TrClusterR :public TrElem{
   inline float GetDyDz()  { return _dydz; }
   /// Get track impact angle (degrees) 
   inline float GetImpactAngle() { return (GetSide()==0) ? atan(_dxdz)*180./3.14159265 : atan(_dydz)*180./3.14159265; }
+  /// Get the zenith angle cosine
+  inline float GetCosTheta() { return sqrt(1./(1.+GetDxDz()*GetDxDz()+GetDyDz()*GetDyDz())); } 
 
   /// chek some bits into cluster status
   uinteger checkstatus(integer checker) const { return Status & checker; }

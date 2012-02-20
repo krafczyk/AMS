@@ -233,7 +233,7 @@ float TrClusterR::GetTotSignal(int opt, float beta) {
   if (kLoss&opt)  sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
   if (kPN&opt)    sum = ConvertToPSideScale(sum); 
   if (kMIP&opt)   sum = GetNumberOfMIPs(sum);
-  if (kAngle&opt) sum = sum*sqrt(1./(1.+_dxdz*_dxdz+_dydz*_dydz));
+  if (kAngle&opt) sum = sum*GetCosTheta();
   if (kBeta&opt)  sum /= BetaCorrection(beta);
   if (kMeV&opt)   sum *= 0.081; // 81 keV per MIP 
   return sum;
@@ -449,8 +449,8 @@ void TrClusterR::GetBoundsAsym(int &leftindex, int &rightindex, int nstrips, int
 float TrClusterR::GetXCofG(int nstrips, int imult, int opt) {
   if (nstrips==-1) {
     nstrips = 2;
-    if (GetSide() == 0 && fabs(_dxdz) > TwoStripThresholdX) nstrips = 3;
-    if (GetSide() == 1 && fabs(_dydz) > TwoStripThresholdY) nstrips = 3;
+    if (GetSide() == 0 && fabs(GetDxDz()) > TwoStripThresholdX) nstrips = 3;
+    if (GetSide() == 1 && fabs(GetDyDz()) > TwoStripThresholdY) nstrips = 3;
   } 
   if (nstrips==1) return 0.;
   int leftindex;  
@@ -512,8 +512,8 @@ float TrClusterR::GetXCofG(int nstrips, int imult, int opt) {
 float TrClusterR::GetCofG(int nstrips, int opt) {
   if (nstrips==-1) {
     nstrips = 2;
-    if (GetSide() == 0 && fabs(_dxdz) > TwoStripThresholdX) nstrips = 3;
-    if (GetSide() == 1 && fabs(_dydz) > TwoStripThresholdY) nstrips = 3;
+    if (GetSide() == 0 && fabs(GetDxDz()) > TwoStripThresholdX) nstrips = 3;
+    if (GetSide() == 1 && fabs(GetDyDz()) > TwoStripThresholdY) nstrips = 3;
   }
   if (nstrips==1) return 0.;
   int leftindex; 

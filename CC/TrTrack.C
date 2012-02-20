@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.124 2012/02/19 18:59:07 pzuccon Exp $
+// $Id: TrTrack.C,v 1.125 2012/02/20 17:16:52 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/02/19 18:59:07 $
+///$Date: 2012/02/20 17:16:52 $
 ///
-///$Revision: 1.124 $
+///$Revision: 1.125 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1447,18 +1447,29 @@ int TrTrackR::Pattern(int input) const {
 
 
 void TrTrackR::RecalcHitCoordinates(int id) {
+  // check for invalid pointers
+  if (!ValidTrRecHitsPointers()) {
+    printf("TrTrackR::RecalcHitCoordinates-W invalid pointers on track.\n");
+    return;
+  }
+  // check for valid id
+  if (id<0) {
+    printf("TrTrackR::RecalcHitCoordinates-W negative fit id requested.\n");
+    return;
+  }
   // Get interpolated positions/dirs
   double   zhit[trconst::maxlay];
   AMSPoint dpoi[trconst::maxlay];
   AMSDir   dtrk[trconst::maxlay];
+  // computation
   for (int i = 0; i < GetNhits(); i++)
     zhit[i] = GetHit(i)->GetCoord().z();
   Interpolate(GetNhits(), zhit, dpoi, dtrk, 0, id);
   // Set cluster angles and re-build coordinates
   for (int i = 0; i < GetNhits(); i++) {
-    TrRecHitR  *hit  = GetHit(i);
-    TrClusterR *xcls = hit->GetXCluster();
-    TrClusterR *ycls = hit->GetYCluster();
+    TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
+    TrClusterR *xcls = (TrClusterR*) hit->GetXCluster();
+    TrClusterR *ycls = (TrClusterR*) hit->GetYCluster();
     TkSens sens(hit->GetTkId(),dpoi[i],dtrk[i],0);
     if (xcls) { xcls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
                 xcls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
@@ -1467,6 +1478,13 @@ void TrTrackR::RecalcHitCoordinates(int id) {
     hit->BuildCoordinate();
   }
 }
-   
 
 
+bool TrTrackR::ValidTrRecHitsPointers() {
+  bool invalid_pointers = false;
+  for (int i = 0; i < GetNhits(); i++) {
+    TrRecHitR  *hit = (TrRecHitR*) GetHit(i);
+    if (!hit) invalid_pointers = true; 
+  }
+  return (!invalid_pointers);
+}  
