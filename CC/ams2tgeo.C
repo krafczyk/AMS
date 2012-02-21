@@ -282,7 +282,8 @@ TGeoManager* ams2tgeo::Build(char* name, char* title, char* filename) {
     sprintf(matname,"%s",amsmat->getname());
     ToUpper(matname);
 
-    if (debug_mat) cout << "AMSgmat " << matname << " " << amsmat->getnpar() << " " << amsmat->getdensity() << " " << amsmat->getradlen() << " " << amsmat->getintlen() << endl;
+    if (debug_mat) cout << "AMSgmat " << matname << "   nelem: " << amsmat->getnpar() << "   rho(g/cm3): " << amsmat->getdensity() 
+                        << "   radlen(cm): " << amsmat->getradlen() << "    intlen(cm): " << amsmat->getintlen() << endl;
     int nelem = amsmat->getnpar();
     float* a = new float[nelem];
     float* z = new float[nelem];
@@ -300,17 +301,23 @@ TGeoManager* ams2tgeo::Build(char* name, char* title, char* filename) {
       sprintf(elename,"%s_ELEM0",matname);
       TGeoElement* tel = teltab->FindElement(elename);
       TGeoMaterial* tmat = new TGeoMaterial(matname,tel,amsmat->getdensity());
-      tmat->SetRadLen(amsmat->getradlen(),amsmat->getintlen());
+      tmat->SetRadLen(-amsmat->getradlen(),-amsmat->getintlen());
+      if (debug_mat) cout << "  Material " << matname << " created    A: " << tmat->GetA() << "   Z: " << tmat->GetZ() 
+                          << "   rho(g/cm3): " << tmat->GetDensity()
+                          << "   radlen(cm): " << tmat->GetRadLen() << "   intlen(cm): " << tmat->GetIntLen() << endl; 
     }
     else { // Mixture 
       TGeoMixture* tmix = new TGeoMixture(matname,nelem,amsmat->getdensity());
       for (int i=0; i<nelem; i++) {
         sprintf(elename,"%s_ELEM%d",matname,i);
         TGeoElement* tel = teltab->FindElement(elename);
-        tmix->AddElement(tel,w[i]);
-        if (debug_mat) cout << "    Adding " << tel->GetName() << " with weight " << w[i] << endl;        
-        tmix->SetRadLen(amsmat->getradlen(),amsmat->getintlen());
+        tmix->AddElement(tel,(int)w[i]);
+        if (debug_mat) cout << "    Adding " << tel->GetName() << " with weight " << w[i] << " " << endl;        
       }
+      tmix->SetRadLen(-amsmat->getradlen(),-amsmat->getintlen());
+      if (debug_mat) cout << "  Mixture " << matname << " created    A: " << tmix->GetA() << "   Z: " << tmix->GetZ() 
+                          << "   rho(g/cm3): " << tmix->GetDensity()
+                          << "   radlen(cm): " << tmix->GetRadLen() << "   intlen(cm): " << tmix->GetIntLen() << endl;    
     }
 
     delete[] a;
