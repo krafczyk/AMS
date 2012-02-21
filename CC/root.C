@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.359 2012/02/21 13:16:41 oliva Exp $
+//  $Id: root.C,v 1.360 2012/02/21 15:10:25 lderome Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5627,74 +5627,72 @@ int ret=0;
 
 
 
-  char * HeaderR::Info(unsigned long long status){
-                         if(Pitch==0 && Yaw==0 && Roll==0){
-                            int ret=getISSAtt();
-                          }
-                         double cp=cos(Pitch);
-                         double sp=sin(Pitch);
-                         double cy=cos(Yaw);
-                         double sy=sin(Yaw);
-                         double cr=cos(Roll);
-                         double sr=sin(Roll);
-                   
-                         const float angle=-12./180*3.1415926;
-                         double crp=cos(angle);
-                         double srp=sin(angle);     
-                         double cams=(-sr*sy*sp+cr*cp)*crp+srp*sr*cy;
-                         cams=acos(cams)*180/3.1415926; 
-                         unsigned int comp=0;
-                         unsigned long long one=1;
-                         char bits[66];
-                         for(int k=0;k<32;k++){
-                          if(status&(one<<k))bits[k]='1';
-                          else bits[k]='0';
-                         }
-                         bits[32]=' ';
-                         for(int k=32;k<64;k++){
-                          if(status&(one<<k))bits[k+1]='1';
-                          else bits[k+1]='0';
-                         }
-                         bits[65]='\0';  
-                       for(int i=0;i<6;i++){
-                          if(status&(1<<(i+2)))comp+=int(pow(10.,i));
-                         }
-    float alpha,b1a,b3a,b1b,b3b;
-    alpha=0;
-    b1a=0;
-    b3a=0;
-    int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
-    float r,phi,theta,v,vphi,vtheta;
-    int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
+char * HeaderR::Info(unsigned long long status){
+	if(Pitch==0 && Yaw==0 && Roll==0){
+		int ret=getISSAtt();
+	}
+	double  cb = cos(Pitch);
+	double  sb = sin(Pitch);
+	double  cg = cos(Roll);
+	double  sg = sin(Roll);
 
-                         sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
-			     bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
-  return _Info;
-  }
+	const float angle=12./180*3.1415926;
+	double crp=cos(angle);
+	double srp=sin(angle);     
+	double cams=(sg*cb*srp+cg*cb*crp);
+	cams=acos(cams)*180/3.1415926; 
+	unsigned int comp=0;
+	unsigned long long one=1;
+	char bits[66];
+	for(int k=0;k<32;k++){
+		if(status&(one<<k))bits[k]='1';
+		else bits[k]='0';
+	}
+	bits[32]=' ';
+	for(int k=32;k<64;k++){
+		if(status&(one<<k))bits[k+1]='1';
+		else bits[k+1]='0';
+	}
+	bits[65]='\0';  
+	for(int i=0;i<6;i++){
+		if(status&(1<<(i+2)))comp+=int(pow(10.,i));
+	}
+	float alpha,b1a,b3a,b1b,b3b;
+	alpha=0;
+	b1a=0;
+	b3a=0;
+	int ret=getISSSA(alpha,b1a,b3a,b1b,b3b);
+	float r,phi,theta,v,vphi,vtheta;
+	int ret2=getISSCTRS(r,theta,phi,v,vtheta,vphi);
+
+	sprintf(_Info,"Header:  Status %s %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}  #alpha %d #beta_{1a}%d #beta_{3a} %d TrRH %d  TrStat %x ",
+			bits,(status & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams,int(alpha),int(b1a),int(b3a),TrRecHits,TrStat);
+	return _Info;
+}
 
 
 
 char * ParticleR::Info(int number, AMSEventR* pev){
-  double anti=AntiCoo[0][2];
-   float btof=0;
-   if(iBeta()>=0){
-    if(pev){
-     BetaR bta=pev->Beta(iBeta());
-    btof=bta.Beta;
-   }}
-   if(pev && pev->Version()<566){
-    int k=Loc2Gl(pev);
-   }
-   if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
-    float lt=pev?pev->LiveTime():1;
-    sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
-return _Info;
+	double anti=AntiCoo[0][2];
+	float btof=0;
+	if(iBeta()>=0){
+		if(pev){
+			BetaR bta=pev->Beta(iBeta());
+			btof=bta.Beta;
+		}}
+	if(pev && pev->Version()<566){
+		int k=Loc2Gl(pev);
+	}
+	if(fabs(anti)>fabs(AntiCoo[1][2]))anti=AntiCoo[1][2];
+	float lt=pev?pev->LiveTime():1;
+	sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f/%6.2f  Coo=(%5.2f,%5.2f,%5.2f) LT %4.2f #theta_G %4.2f #phi_G %4.2f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,btof,Coo[0],Coo[1],Coo[2],lt,ThetaGl,PhiGl);
+	return _Info;
 
 
 
 
 
- }
+}
 
 char * DaqEventR::Info(int number){
     int sc=L3dr&1;
