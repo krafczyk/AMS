@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.60 2012/02/19 18:59:07 pzuccon Exp $
+//  $Id: TrFit.C,v 1.61 2012/02/21 13:45:32 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/02/19 18:59:07 $
+///$Date: 2012/02/21 13:45:32 $
 ///
-///$Revision: 1.60 $
+///$Revision: 1.61 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1572,7 +1572,7 @@ Feb 2012 PZ update interface to new RKMS.F format
     if (_ys[i] <= 0) _ys[i] = _zs[i]*1e4;
   }
 
-  double out[9];
+  double out[31];
 
 #ifndef __ROOTSHAREDLIBRARY__
     AMSgObj::BookTimer.start("TrFitRkmsF");
@@ -1661,7 +1661,7 @@ void TrFit::RkmsFitF(double *out)
   float beta=1;
   float charge=1;
   rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, outf);
-  for (int i = 0; i < 9; i++) out[i] = outf[i];
+  for (int i = 0; i < 31; i++) out[i] = outf[i];
 }
 /* //else
 void TrFit::RkmsFitF(double *out)
