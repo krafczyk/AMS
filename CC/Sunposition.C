@@ -17,7 +17,7 @@
 #define x3pio2		4.71238898038468967	/* 3*Pi/2 */
 #define twopi		6.28318530717958623	/* 2*Pi  */
 //#define AU		1.49597870691E8	/* Astronomical unit - km (IAU 76) */
-#define AU		14959787070030  /*Astronomical unit - cm - Particle Physics booklet 2010*/
+#define AU		14959787070030.  /*Astronomical unit - cm - Particle Physics booklet 2010*/
 
 /** Constructor */
 SunPosition::SunPosition()

@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.126 2011/12/02 20:21:15 choutko Exp $
+#  $Id: Moptg4,v 1.127 2012/02/21 06:44:12 sdellato Exp $
 #
 SHELL=/bin/sh
 #
@@ -363,7 +363,8 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C $(SCC)trmccluster.C \
 	$(SCC)tkgeom.C $(SCC)trdcalib.C $(SCC)richcal.C $(SCC)anticalib02.C \
 	$(SCC)richdaq.C	$(SCC)astro.C  $(SCC)job.C $(SCC)event.C $(SCC)timeid.C \
-	$(SCC)g4rich.C 
+	$(SCC)g4rich.C \
+	$(SCC)Sunposition.C
 
 
 FILES+=$(SCC)DynAlignment.C
@@ -430,7 +431,8 @@ MYOBJSC1:=$(FILESC:$(SFF)%.F=$(BIN)%.o)
 MYOBJSC:=$(MYOBJSC1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTSC:=$(MYOBJSC:$(SFF)%.f=$(BIN)%.o) 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o $(BIN)geant4_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o  $(BIN)predict.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o  $(BIN)daqevt_c.o  $(BIN)rootdict.o  $(BIN)predict.o \
+		$(BIN)Sunposition.o
 
 # PGTRACVK not supported by the moment
 OBJECTSC += $(BIN)TrackFit_utils_c.o
