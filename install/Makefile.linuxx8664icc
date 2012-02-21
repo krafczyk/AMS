@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.14 2012/02/19 18:59:08 pzuccon Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.15 2012/02/21 11:30:28 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -163,7 +163,7 @@ SOFLAGS = -shared
 ifdef SLC4system
 ifdef VER
 else
- SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a -L/$(ROOTSYS)/lib   -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA -lMLP -lXMLIO -lTreePlayer  
+ SOFLAGS+= $(INTELDIR)/$(INTELVER)/lib/intel64/libimf.a -L/$(ROOTSYS)/lib   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
 endif
