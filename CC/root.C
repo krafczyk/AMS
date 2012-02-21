@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.358 2012/02/20 15:25:53 sdellato Exp $
+//  $Id: root.C,v 1.359 2012/02/21 13:16:41 oliva Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2534,10 +2534,11 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
-    if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
 #ifdef _PGTRACK_
+    // Bug-Fix AO: all TrRecHits for PGTRACK, enjoy!
     fTrRecHit.push_back(TrRecHitR(*ptr));
 #else
+    if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
     fTrRecHit.push_back(TrRecHitR(ptr));
 #endif
     ptr->SetClonePointer(fTrRecHit.size()-1);
