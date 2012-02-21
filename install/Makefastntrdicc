@@ -80,9 +80,9 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)astring.C $(SCC)root_setup.C $(SCC)ecalBDT.C $(SCC)SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHCalib.C $(SCC)TrdHRecon.C $(SCC)TrdHCharge.C $(SCC)TrPdf.C $(SCC)commonsi.C  $(SCC)amsdbc.C $(SCC)timeid.C $(SCC)trfit.C $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)trfit.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)ecalBDT.o  $(BIN)SlowControlDB.o $(BIN)commonsi.o $(BIN)amsdbc.o $(BIN)timeid.o $(BIN)amschain.o $(BIN)DynAlignment_s.o
-$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)ecalBDT.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)trfit.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)commonsi.o $(BIN)timeid.o $(BIN)amsdbc.o $(BIN)amschain.o $(BIN)DynAlignment_s.o
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)astring.C $(SCC)root_setup.C $(SCC)ecalBDT.C $(SCC)SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHCalib.C $(SCC)TrdHRecon.C $(SCC)TrdHCharge.C $(SCC)TrPdf.C $(SCC)commonsi.C  $(SCC)amsdbc.C $(SCC)timeid.C $(SCC)trfit.C $(SCC)TrdHTrack.C  $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C $(SCC)Sunposition.C
+OBJECTS= $(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)trfit.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)ecalBDT.o  $(BIN)SlowControlDB.o $(BIN)commonsi.o $(BIN)amsdbc.o $(BIN)timeid.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)Sunposition.o
+$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)astring.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)ecalBDT.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)trfit.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrPdf.o $(BIN)TrdHRecon.o $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)commonsi.o $(BIN)timeid.o $(BIN)amsdbc.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)Sunposition.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
 	$(LD) -v -o $(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
@@ -102,6 +102,9 @@ $(BIN)root_rs.o:    	 $(SCC)root.C
 
 $(BIN)root_setup.o:    	 $(SCC)root_setup.C
 	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)root_setup.C -o $(BIN)root_setup.o
+
+$(BIN)Sunposition.o:    	 $(SCC)Sunposition.C
+	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)Sunposition.C -o $(BIN)Sunposition.o
 
 $(BIN)commonsi.o:    	 $(SCC)commonsi.C
 	$(CC) -c $(CFLAGS)  -D__ROOTSHAREDLIBRARY__ $(SCC)commonsi.C -o $(BIN)commonsi.o
