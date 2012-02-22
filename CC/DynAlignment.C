@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.37 2012/02/09 17:08:23 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.38 2012/02/22 11:47:50 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1398,6 +1398,7 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
 
 void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
   // Compute the local alignment nfirst
+  const long timeStep=5; // seconds
   DynAlFit fit(DynAlContinuity::FitOrder);
   fit.MinRigidity=DynAlContinuity::RigidityCut;
   fit.MinBeta=DynAlContinuity::BetaCut;
@@ -1405,23 +1406,30 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
   sort(history.Events.begin(),history.Events.end());
   map<int,DynAlHistory> historyPerLadder;
   Layer=history.Layer;
+  long lastTime=0;
   for(int point=0;point<history.Size();point++){
+    if(point%10000==0)
+      fprintf(stderr,"%i of %i\r",point,history.Size()-1);
     // Take the time of the event
     DynAlEvent event=history.Get(point);
     //    if(event.lay()!=Layer) continue;
     event.extrapolateTrack();
     int Id=GetId(event);
-    int current=history.FindCloser(event.Time[0],event.Time[1],fit.First);
-    
-    // Find the time window
-    int first,last;
-    history.FindTimeWindow(current,minutes*30,first,last);
-    
-    // Fit
-    fit.DoFit(history,first,last,event);
-    if(fit.Fail) continue;
 
-
+    if(long(event.Time[0])-lastTime>timeStep){
+      lastTime=long(event.Time[0]);
+      int current=history.FindCloser(event.Time[0],event.Time[1],fit.First);
+      
+      // Find the time window
+      int first,last;
+      
+      history.FindTimeWindow(current,minutes*30,first,last);
+      
+      // Fit
+      fit.DoFit(history,first,last,event);
+      if(fit.Fail) continue;
+    }
+      
     fit.RetrieveFitPar(event.Time[0],event.Time[1]);
 #define ESC(_x,_y) (_x[0]*_y[0]+_x[1]*_y[1]+_x[2]*_y[2])
 
@@ -1466,6 +1474,7 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
     }
   }
   ApplyLocalAlignment=true;
+  cout<<endl;
 }
 
 
@@ -1478,8 +1487,8 @@ void DynAlFitContainer::DumpLocalAlignment(){
 	<<"       DY "<<pars.DY[0]<<endl
 	<<"       DZ "<<pars.DZ[0]<<endl
 	<<"       THETA "<<pars.THETA[0]<<endl
-	<<"       ALPHA "<<pars.THETA[0]<<endl
-	<<"       BETA "<<pars.THETA[0]<<endl
+	<<"       ALPHA "<<pars.ALPHA[0]<<endl
+	<<"       BETA "<<pars.BETA[0]<<endl
 	<<"  ZOffset "<<pars.ZOffset<<" size "<<pars.DX.size()<<endl<<endl;
   }
 }
