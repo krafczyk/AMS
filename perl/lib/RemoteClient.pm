@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.716 2012/02/03 14:49:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.717 2012/02/22 12:37:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -873,6 +873,7 @@ if($#{$self->{DataSetsT}}==-1){
      $dataset->{build}="";
      $dataset->{delta}=0;
      $dataset->{singlejob}=0;
+     $dataset->{closed}=0;
      foreach my $job (@jobs){
          if($job=~/^data=true/){
              $dataset->{datamc}=1;
@@ -884,6 +885,9 @@ if($#{$self->{DataSetsT}}==-1){
          }
          if($job=~/^g4=true/){
              $dataset->{g4}="g4";
+         }
+         if($job=~/^closed=true/){
+             $dataset->{closed}=1;
          }
          if($job=~/^build=/){
             my @vrs= split '=',$job;
@@ -907,7 +911,10 @@ if($#{$self->{DataSetsT}}==-1){
          }
         
      }
-     if($dataset->{datamc}==0){
+     if($dataset->{closed}){
+         next;
+     }
+     if($dataset->{datamc}==0 ){
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
