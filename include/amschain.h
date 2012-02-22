@@ -77,7 +77,7 @@ public:
   Int_t ReadOneEvent(Int_t entry);
   
   ///Get AMSEventR with run number "run" and event number "ev"
-  AMSEventR* GetEvent(Int_t run, Int_t ev, bool fDontRewind=false); 
+  AMSEventR* GetEvent(Int_t run, Int_t ev); 
   //  bool   getevent(unsigned int run, unsigned int event);
   
   ///Rewind the chain (go back before first entry)
@@ -107,8 +107,7 @@ public:
   /// Properly closes the Output File for selected events
   void CloseOutputFile();
 
-   using TTree::Process;
-   Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=1000000000000LL, Long64_t firstentry=0); // *MENU*
+  virtual Long64_t  Process(TSelector*pev, Option_t *option="", Long64_t nentries=kBigNumber, Long64_t firstentry=0); // *MENU*
   
   ClassDef(AMSChain,5);       //AMSChain
 #pragma omp threadprivate(fgIsA)

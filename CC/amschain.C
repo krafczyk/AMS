@@ -1,16 +1,10 @@
-//  $Id: amschain.C,v 1.49 2012/02/22 11:39:18 mduranti Exp $
+//  $Id: amschain.C,v 1.50 2012/02/22 13:15:53 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
-#ifdef CASTORSTATIC 
-#include "TRFIOFile.h"
 #include "TXNetFile.h"
-#else
-#include "TSystem.h"
-#endif
 #ifdef _PGTRACK_
 #include "TrRecon.h"
-#include "TrExtAlignDB.h"
 #endif
 #include <dlfcn.h>
 bool AMSNtupleHelper::IsGolden(AMSEventR *o){
@@ -158,8 +152,8 @@ AMSEventR* AMSChain::GetEvent(){
   return _EVENT;
 };
 
-AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev, bool fDontRewind){
-  if (!fDontRewind) Rewind();//Go to start of chain
+AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
+  Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&
 	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ){
@@ -188,44 +182,36 @@ int  AMSChain::LoadUF(char* fname){
   if(!CC){
     setenv("CC","g++",0);
   }
-  char *AMSSRC=getenv("AMSSRC");
+ char *AMSSRC=getenv("AMSSRC");
   if(!AMSSRC){
     setenv("AMSSRC","..",0);
   }
 #ifdef __X8664__
-  char m32[6]="-fPIC";
-  char elf[11]="";
+char m32[6]="-fPIC";
+char elf[11]="";
 #else
-  char m32[11]="-m32 -fPIC";
-  char elf[11]="-melf_i386";
+char m32[5]="-m32";
+char elf[11]="-melf_i386";
 #endif
 #ifdef _PGTRACK_
-  sprintf(cmd,"$CC %s -g -D_PGTRACK_ -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+  sprintf(cmd,"$CC %s -D_PGTRACK_ -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #else
-  sprintf(cmd,"$CC %s  -Wno-deprecated -I. -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
+  sprintf(cmd,"$CC %s  -Wno-deprecated -I$ROOTSYS/include -I$AMSSRC/include -c %s.C",m32,nameonly.c_str());
 #endif
-  cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
-  int $i=system(cmd);
+ cout<< " Launching the Handle compilation with command: "<<cmd<<endl; 
+int $i=system(cmd);
   if(!$i){
 #ifdef __APPLE__
-    sprintf(cmd1,"ld  -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
+    sprintf(cmd1,"ld  -init _fgSelect -dylib -ldylib1.o -undefined dynamic_lookup %s.o -o libuser.so",nameonly.c_str());
 #else
-    sprintf(cmd1,"ld %s  -shared %s.o -o libuserAMSEVD.so",elf,nameonly.c_str());
+    sprintf(cmd1,"ld %s  -init fgSelect  -shared %s.o -o libuser.so",elf,nameonly.c_str());
 #endif
-    char * error;
     $i=system(cmd1);
     if( !$i){  
       if(handle){
 	dlclose(handle);
       }
-      if(handle=dlopen("./libuserAMSEVD.so",RTLD_NOW)){
-	void (*fhandler)()=(void (*)())
-		dlsym(handle,"fgSelect");
-	if((error=dlerror())!=0){
-           fputs(error,stderr);
-	   return 1;
-	} else
-	   fhandler();
+      if(handle=dlopen("libuser.so",RTLD_NOW)){
 	return 0;
       }
       cout <<dlerror()<<endl;
@@ -290,8 +276,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     if(ntree>fNtrees)ntree=fNtrees;
     nentries=10000000000LL;
   }
-  typedef multimap<uinteger,TChainElement*> fmap_d;
-  typedef multimap<uinteger,TChainElement*>::iterator fmapi;
+  typedef multimap<uinteger,TString> fmap_d;
+  typedef multimap<uinteger,TString>::iterator fmapi;
   fmap_d fmap;
   for(int i=0;i<fNtrees;i++){
     TString t1("/");
@@ -301,15 +287,8 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
     TObjString *s=(TObjString*)arr->At(arr->GetEntries()-1); 
     TObjArray *ar1=s->GetString().Tokenize(t2);
     unsigned int k=atoi(((TObjString* )ar1->At(0))->GetString().Data());
-    bool bad=false;
-    for(int is=0;is<AMSEventR::BadRunList.size();is++){
-         if(k==AMSEventR::BadRunList[is]){
-           bad=true;
-             break;
-         }
-    }
-    if(!bad && k>=AMSEventR::MinRun && k<AMSEventR::MaxRun)fmap.insert(make_pair(k,(TChainElement*) fFiles->At(i)) );
-      delete arr;
+    fmap.insert(make_pair(k,name) );
+    delete arr;
     delete ar1;
   }
   fmapi it=fmap.begin();
@@ -337,73 +316,36 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
       TFile* file;
       TTree *tree;
       TSelector *curp=(TSelector*)((char*)pev+thr*fSize);
-        TDirectory *gdir=0;
-      fmapi itt=it;
-        it++;
-        for(int subdir=0;subdir<32;subdir++){
-
 #pragma omp critical 
       {
-      if(subdir==0){
 	//  if(ts[thr]==0){
 	//TStreamerInfo::fgInfoFactory=ts[thr]=new TStreamerInfo();
 	// }
 	//cout <<"thr "<<thr<<endl;
         // element=(TChainElement*) fFiles->At(i);
-#ifdef CASTORSTATIC
         TRegexp d("^root:",false);
-        TRegexp e("^rfio:",false);
-       TString name(itt->second->GetTitle());
-        //cout << " thr "<<thr<<" "<<name<<endl;          
-        if(name.Contains(d))file=new TXNetFile(itt->second->GetTitle(),"READ");
-        else if(name.Contains(e))file=new TRFIOFile(itt->second->GetTitle(),"READ");
-        else file=new TFile(itt->second->GetTitle(),"READ");
-#else 
-	file= TFile::Open(itt->second->GetTitle(),"READ");
-#endif
-          gdir=gDirectory;
-//          cout <<"gdirectory!!!! "<<gdir->GetName()<<" " <<endl;
-}
+        if(it->second.Contains(d))file=new TXNetFile(it->second.Data(),"READ");
+        else file=new TFile(it->second.Data(),"READ");
           tree=0;
-        bool subdirexist=false;
-//        cout <<"  SUBDIR****** "<<subdir<<endl;
-//          cout <<"gdirectory!!!! "<<gdir<<endl;
-//          cout <<"gdirectory!!!!!! "<<gdir->GetName()<<" " <<endl;
-        if(subdir>0){
-         char dir[1024];
-          sprintf(dir,"_%d",subdir);
-          TDirectory*ok=gdir->GetDirectory(dir,false,"cd");
-          if(ok){
-             ok->cd();
-             subdirexist=true;
-          }
-//          cout <<"gdirectory "<<gdir->GetName()<<" "<<subdirexist <<endl;
-        }
-        else subdirexist=true;
-	if(file && subdirexist)tree=(TTree*)file->Get(itt->second->GetName());
+	if(file)tree=(TTree*)file->Get(_NAME);
         if(!tree){
-          if(subdirexist)cerr<<"  AMSChain::Process-E-NoTreeFound file tree "<<itt->second->GetTitle()<<" "<<itt->second->GetName()<<endl;
+          cerr<<"  AMSChain::Process-E-NoTreeFound file "<<it->second<<endl;
 	}
 	else{
 	  curp->SetOption(option);
 	  curp->Init(tree);
 	  curp->Notify();
-	  cout <<"  "<<i<<" "<<itt->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
+	  cout <<"  "<<i<<" "<<it->second<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
 	  //cout <<"  "<<i<<" "<<element->GetTitle()<<" "<<AMSEventR::_Tree->GetEntries()<<" "<<nentr<<" "<<nentries<<endl;
         }
+	it++;
       }
       if(tree){
         curp->Begin(tree);
         for(int n=0;n<AMSEventR::_Tree->GetEntries();n++){
            if(nentr>nentries)break;
 	  try{
-//            while(AMSEventR::_Lock&0x100000000){
-//            }
-//#pragma omp atomic 
-//           AMSEventR::_Lock+=(1<<thr);
 	    curp->Process(n);
-//#pragma omp atomic 
-//           AMSEventR::_Lock-=(1<<thr);
 	  }
 	  catch (...){
 #pragma omp critical(rd)
@@ -415,27 +357,19 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 	  }
 	}
       }
-
 #pragma omp critical (cls)  
       {
 	if(tree && AMSEventR::_Tree)nentr+=AMSEventR::_Tree->GetEntries();
+	if(file)file->Close("R");
+        if(file)delete file;
 	//        cout <<" finished "<<i<<" "<<endl;
       }
     }
-	if(file)file->Close("R");
-        if(file)delete file;
-
-}  
 #ifdef _OPENMP        
     //  this clause is because intel throutput mode deoesn;t work
     //   so simulating it
     ia[thr]=1;
-      int nt=0;
-      for(int j=0;j<nthreads;j++){
-        if(!ia[j])nt++;
-      } 
-    cout <<" Thread "<<thr<<" Deactivated "<<nt <<" Threads Left"<<endl;
-  for(;;){
+    for(;;){
       bool work=false;
       for(int j=0;j<nthreads;j++){
 	if(!ia[j]){
@@ -468,8 +402,8 @@ void AMSChain::OpenOutputFile(const char* filename){
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
   // Parameters
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
-  for(int ii=0;ii<6;ii++){
+  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
+  for(int ii=0;ii<4;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
   }
@@ -489,8 +423,6 @@ void AMSChain::OpenOutputFile(const char* filename){
     fout->cd();
   }
 #endif
-  TTree* rsetup=(TTree*) input->Get("AMSRootSetup");
-  if(rsetup){fout->cd();rsetup->Write("AMSRootSetup");}
   TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
   if(obj2) {fout->cd();obj2->Write("AMS02Geometry");}
   TObjString* obj3=(TObjString*)input->Get("DataCards");
@@ -629,23 +561,14 @@ void AMSEventList::Write(const char* filename){
 };
 
 void AMSEventList::Write(AMSChain* chain, TFile* file){
-if(!dynamic_cast<AMSChain*>(chain)){
-cerr<<"AMSEventList::Write-E-ChainIsNULL "<<endl;
-return;
-}
-if(!dynamic_cast<TFile*>(file)){
-cerr<<"AMSEventList::Write-E-TfileIsNULL "<<endl;
-return;
-}
-
   TTree *amsnew = chain->CloneTree(0);
   chain->Rewind();
   AMSEventR* ev = NULL;
   TFile * input=chain->GetFile();
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
 #ifdef _PGTRACK_
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
-  for(int ii=0;ii<6;ii++){
+  char objlist[4][40]={"TkDBc","TrCalDB","TrParDB","TrReconPar"};
+  for(int ii=0;ii<4;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {file->cd();obj->Write();}
   }
@@ -656,39 +579,31 @@ return;
   if(obj3) {file->cd();obj3->Write("DataCards");}
   
   // Required to solve a bug (or feature) in GetEvent: it never returns NULL 
-  //int current_run=-1;
-  //int current_event=-1; 
-  int nfound=0;
+  int current_run=-1;
+  int current_event=-1; 
+  
   while ((ev=chain->GetEvent())) {
 
-    /* Old Patch (fails when HeaderR-W-EventSeqSeemsToBeBroken) 
-    if(ev->Run()==current_run && ev->Event()==current_event) {
-      cerr << "BREAK AT RUN " << ev->Run() << " EVENT " << ev->Event() << endl;
-            break;
-    }
+    // Patch
+    if(ev->Run()==current_run && ev->Event()==current_event) break;
     current_run=ev->Run();
     current_event=ev->Event();
-    */
 
     bool found = false;
     for (int j=0; j<_RUNs.size(); j++) {
       if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
 	found=true;
-	nfound++;
 	break;
       }
     }
     if (!found) continue;
     printf("AMSEventList::Writing event ............ %12d %12d\n"
-    	   , ev->Run(), ev->Event());
+	   , ev->Run(), ev->Event());
     ev->GetAllContents();
     amsnew->Fill();
-    // New Patch
-    if (nfound ==_RUNs.size()) break;
   }
   cout << "AMSEventList::Writing AMS ROOT file \"";
-  //  cout << file->GetName() << "\" with " << this->GetEntries(); 
-  cout << file->GetName() << "\" with " << nfound; 
+  cout << file->GetName() << "\" with " << this->GetEntries(); 
   cout << " selected events" << endl;
   file->Write();
 };
