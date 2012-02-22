@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.58 2012/01/31 10:49:47 choutko Exp $
+//  $Id: root_setup.C,v 1.59 2012/02/22 12:37:07 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1296,6 +1296,12 @@ k--;
 a=ISSCTRSR(k->second);
 return 1;
 }
+
+if(xtime==k->first){
+a=ISSCTRSR(k->second);
+return 0;
+}
+
   AMSSetupR::ISSCTRS b;
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
