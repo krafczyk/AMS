@@ -77,7 +77,7 @@ public:
   Int_t ReadOneEvent(Int_t entry);
   
   ///Get AMSEventR with run number "run" and event number "ev"
-  AMSEventR* GetEvent(Int_t run, Int_t ev); 
+  AMSEventR* GetEvent(Int_t run, Int_t ev, bool fDontRewind=false); 
   //  bool   getevent(unsigned int run, unsigned int event);
   
   ///Rewind the chain (go back before first entry)
