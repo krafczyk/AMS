@@ -856,15 +856,15 @@ int TrdSCalibR::GetModCalibTimePeriod(TString fname, TString hname, int Debug) {
   int nBin = h_Nevts->GetNbinsX();
   for (int iBin=1; iBin<=nBin; iBin++) 
     {
-      unsigned int iBCnt  = h_Nevts->GetBinContent(iBin);
+      unsigned int iBCnt  = (unsigned int) h_Nevts->GetBinContent(iBin);
       float        iTime  = h_Nevts->GetBinCenter(iBin);
       if(iBCnt == 0) continue;
       
       if(Debug > 1) 
 	std::cout << Form("GetCalibTimePeriod iBin=%4u iTime=%5.2f iBCnt=%10u", iBin, iTime, iBCnt) << std::endl;
       
-      if (iTime < FirstCalRunTime)  FirstCalRunTime = iTime;
-      if (iTime > LastCalRunTime )  LastCalRunTime  = iTime; 
+      if (iTime < FirstCalRunTime)  FirstCalRunTime = (unsigned int) iTime;
+      if (iTime > LastCalRunTime )  LastCalRunTime  = (unsigned int) iTime; 
     }	
   input->Close();
   delete input;
@@ -1852,7 +1852,7 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
     
     if (CheckNormPDF) {
       TF1 *fTrdLR = new TF1("fTrdLR",this, &TrdSCalibR::TrdS_PDF_fElectron,0.0,4000.0,2);
-      fTrdLR->SetParameter(double(i),3.0);	
+      fTrdLR->SetParameter(i,3.0);	
       fTrdLR->SetNpx(1000);	
       TrdPDF_nElec_Xe3.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
       if(Debug) std::cout << Form("%12.4E, ",TrdPDF_nElec_Xe3.at(i));
@@ -1876,7 +1876,7 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
     
     if (CheckNormPDF) {
       TF1 *fTrdLR = new TF1("fTrdLR",this, &TrdSCalibR::TrdS_PDF_fElectron,0.0,4000.0,2);
-      fTrdLR->SetParameter(double(i),4.0);	
+      fTrdLR->SetParameter(i, 4.0);	
       fTrdLR->SetNpx(1000);	
       TrdPDF_nElec_Xe4.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
       if(Debug) std::cout << Form("%12.4E, ",TrdPDF_nElec_Xe4.at(i));
@@ -1899,7 +1899,7 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
     
     if (CheckNormPDF) {
       TF1 *fTrdLR = new TF1("fTrdLR",this, &TrdSCalibR::TrdS_PDF_fElectron,0.0,4000.0,2);
-      fTrdLR->SetParameter(double(i),5.0);	
+      fTrdLR->SetParameter(i,5.0);	
       fTrdLR->SetNpx(1000);	
       TrdPDF_nElec_Xe5.at(i) = fTrdLR->Integral((double)trdconst::TrdMinAdc,(double)trdconst::TrdMaxAdc);
       if(Debug) std::cout << Form("%12.4E, ",TrdPDF_nElec_Xe5.at(i));
@@ -2992,8 +2992,8 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
 	  /// Trd alignment correction on 2012.02.21
 	  if(SetTrdAlign) {
 	    int PassAlign = ProcessAlignCorrection(TrdHtrk, AC, Debug);
-	    if( !PassAlign ) 
-	      std::cout << Form("+-+- Fail ProcessAlignCorrection = %d", PassAlign) << std::endl; 
+	    if( Debug && PassAlign ) 
+	      std::cout << Form("+-+- Fail TrdAlign_01 ProcessAlignCorrection = %d", PassAlign) << std::endl; 
 	  
 	    /// call Trd T-dependent alignment DB
 	    double TrdAlignDxy = 0.0;
@@ -3154,8 +3154,8 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
 	  /// Trd alignment correction on 2012.01.13
 	  if(SetTrdAlign) {
 	    int PassAlign = ProcessAlignCorrection(TrdHtrk, AC, Debug);
-	    if( !PassAlign ) 
-	      std::cout << Form("+-+- Fail ProcessAlignCorrection = %d", PassAlign) << std::endl; 
+	    if( Debug && PassAlign ) 
+	      std::cout << Form("+-+- Fail TrdAlign_01 ProcessAlignCorrection = %d", PassAlign) << std::endl; 
 	    
 	    /// call Trd T-dependent alignment DB
 	    double TrdAlignDxy = 0.0;
@@ -3470,8 +3470,8 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
 	  /// Trd alignment correction on 2012.01.13
 	  if(SetTrdAlign) {
 	    int PassAlign = ProcessAlignCorrection(Trdtrk, AC, Debug);
-	    if( !PassAlign ) 
-	      std::cout << Form("+-+- Fail ProcessAlignCorrection = %d", PassAlign) << std::endl; 
+	    if( Debug && PassAlign ) 
+	      std::cout << Form("+-+- Fail TrdAlign_01 ProcessAlignCorrection = %d", PassAlign) << std::endl; 
 	  
 	    /// call Trd T-dependent alignment DB
 	    double TrdAlignDxy = 0.0;
@@ -3636,7 +3636,6 @@ int TrdSCalibR::ProcessAlignCorrection(TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int
 
   if( fabs(ACHit->hitXYraw - ACHit->hitXY) > 0.2 ) return 2;
   if( fabs(ACHit->hitZraw - ACHit->hitZ)   > 0.2 ) return 3; 
-    return 3;
 
   return 0;
 
