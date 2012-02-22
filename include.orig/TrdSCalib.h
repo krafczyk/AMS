@@ -7,17 +7,19 @@
 #include <algorithm>
 #include <cmath>
 
-//#include "TObject.h"
 #include "point.h"
 #include "TrdRawHit.h"
 #include "TrdHRecon.h"
 #include "TrdHTrack.h"
+#include "TrExtAlignDB.h"
+
 #ifdef  _PGTRACK_
 #include "TrTrack.h"
 #include "TrTrackSelection.h"
 #else
 #include "trrec.h"
 #endif
+
 #include "TFile.h"
 #include "TH1.h"
 #include "TH2.h"
@@ -29,7 +31,7 @@
 #include "TGraph.h"
 #include "TGraphErrors.h"
 #include "TGraphSmooth.h"
-//#include "TObjArray.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -57,7 +59,7 @@ namespace trdconst{
 
   const integer nParLR           = 20;         // iP range[3-100 GeV/c] || 20 layers
   
-  const integer	TrdMinAdc	 = 12; //15; //12;
+  const integer	TrdMinAdc	 = 10; //12; //15;
   const integer	TrdMaxAdc	 = 4048; //3500;//4048;
 
   const integer mTrdHits	 = 30;
@@ -66,11 +68,11 @@ namespace trdconst{
 
   const integer FirstDayAMSonISS = 138;	         // day in the year 2011
 
-  const number  TrdStrawRadius 	 = 0.3;		 // in cm
+  const number  TrdStrawRadius 	 = 0.31;	 // in cm 
   const number  TrdOffsetDx 	 = 0.047;	 // cm
   const number  TrdOffsetDy 	 = 0.039;	 // cm
 
-  const number  ToFLayer1Z       = 65.2;          // cm
+  const number  ToFLayer1Z       = 63.65;// 65.2;          // cm
 
   const number  CalMomMin        =   3.0;
   const number  CalMomMax        = 100.0;
@@ -113,6 +115,32 @@ namespace trdconst{
     -0.4723,-0.5368,-0.3743,-0.1955,-0.2763,-0.5589,-0.4703,-0.5320,-0.6978,-0.6035,-0.6572,-0.5556,
     -0.8837, 0.0000, 0.0000, 0.0000}; 
 
+  //== imported from ACroot3.h on 2011.01.10
+  const number Zutof   = +63.65;  	// for extrapolation to Z-UTOF
+  const number Zecal   = -150.0;  	// for extrapolation to ECAL-COG
+  const number Zrich   =  -73.6;   	// for extrapolation to RICH-Radiator
+  const number Z_l1n   = +159.1;   	// for extrapolation to Tracker Layer-1n
+  const number Z_l9    = -136.0 ;  	// for extrapolation to Tracker Layer-9
+  const number Ztrd    = 113.55;  	// for extrapolation to TRD Center
+  const number ZtrdU   = 136.75;  	// for extrapolation to TRD Upper
+  const number ZtrdL   =  90.35;  	// for extrapolation to TRD Lower
+  const number TRD_Dx  = -220.e-4;    // global TRD X-Shift/cm        -220 mu
+  const number TRD_Dy  = -240.e-4;      // global TRD Y-Shift/cm        -240 mu
+  const number TRD_Dz  = 1100.e-4;      // global TRD Z-Shift/cm        1100 mu 
+    
+  const number TRD_Ax0 = -200.e-6;      // global TRD X-Rot (YZ-Tilt)   -340 mu-rad const.
+  const number TRD_Ax1 = -120.e-6;      // global TRD X-Rot (YZ-Tilt)   -280 mu-rad linear
+  const number TRD_Ax2 = 210.e-6 ;      // global TRD X-Rot (YZ-Tilt)    580 mu-rad quadr.
+  
+  const number TRD_Ay0 = -340.e-6;      // global TRD Y-Rot (XZ-Tilt)   -340 mu-rad const.
+  const number TRD_Ay1 = 160.e-6;       // global TRD Y-Rot (XZ-Tilt)    300 mu-rad linear
+  const number TRD_Ay2 = 280.e-6;       // global TRD Y-Rot (XZ-Tilt)    240 mu-rad quadr.
+  
+  const number TRD_Az  = 330.e-6;       // global TRD Z-Rot              375 mu-rad       
+  const number TRD_As  = 0.e-6;         // global TRD XvsY module shear  100 mu-rad 
+
+
+  const integer nDataRuns = 13336;      // updated on 2011.12.23
  
 }
 using namespace trdconst;
@@ -129,7 +157,7 @@ class TrdSCalibR;
 //--------------------------------------------------
 //--------------------------------------------------
 //--------------------------------------------------
-
+ 
 template <class T>
 class myPair {
   T a, b;
@@ -149,27 +177,30 @@ T myPair<T>::GetMax() {
 //--------------------------------------------------
 //--- Extension of TrdRawHitR  
 //--------------------------------------------------
-class AC_TrdHits{
+class AC_TrdHits {
   
  protected:
   int _ilayer, _iladder, _itube, _ihaddr, _igasgrp, _igascir, _imodule, _ihitD;
-  float  _iamp, _ihitXY, _ihitZ; 
+  float  _iamp, _ihitXY, _ihitR, _ihitZ;
   double _iTrdD, _iTrkD, _iLen2D, _iLen3D;
-
+ 
  public:
   int Lad, Lay, Tub, Had; 
-  int Mod, Straw, GC, GG, hitD;
-  float hitXY, hitZ;              //==hitD: segments
+  int Mod, Straw, GC, GG, hitD;   //== hitD: segments
+  float hitXY, hitZ, hitR;              
+  float hitXYraw, hitZraw;        //== hit positions before align
   float	EadcR, EadcCM, EadcC1, EadcCS;
   double TrdD, TrkD, Len2D, Len3D;
+  double TrdDraw, TrkDraw;
 
  AC_TrdHits(): Lad(-1), Lay(-1), Tub(-1), Mod(-1), Straw(-1), GC(-1),GG(-1), 
-    hitD(-1), hitXY(0), hitZ(0),
+    hitD(-1), hitXY(0), hitZ(0), hitR(0), hitXYraw(0), hitZraw(0),
     EadcR(0), EadcCM(0), EadcC1(0), EadcCS(0),
-    TrdD(0), TrkD(0), Len2D(0), Len3D(0){
+    TrdD(0), TrkD(0), TrdDraw(0), TrkDraw(0),
+    Len2D(0), Len3D(0) {
    
     _ilayer=_iladder=_itube=_ihaddr=_igasgrp=_igascir=_imodule=0;
-    _ihitD=_ihitXY =_ihitZ= -1;
+    _ihitD=_ihitXY =_ihitZ=_ihitR= -1;
     _iamp=0.;
     _iTrdD=_iTrkD=_iLen2D=_iLen3D=0.;
   };
@@ -189,42 +220,44 @@ class AC_TrdHits{
   void GetHitInfo(TrdRawHitR *rhit) {
     _iladder=rhit->Ladder; _ilayer=rhit->Layer; _itube=rhit->Tube; _iamp=rhit->Amp; _ihaddr=rhit->Haddr;
     _ihitD  = GetD();  
-    _ihitXY = GetXY();  
-    _ihitZ  = GetZ();
+    _ihitXY = GetXY(0);  
+    _ihitZ  = GetZ(0);
     return;
   };
   
   void SetHitPos() {
     Lay = _ilayer; Lad = _iladder; Tub = _itube; EadcR = _iamp; Had = _ihaddr;
-    hitD= _ihitD; hitZ = _ihitZ; hitXY = _ihitXY;
-    
-    GC    = GetTrdGasCircuit();
+    hitD= _ihitD; hitZ = _ihitZ; hitXY = _ihitXY, hitR = _ihitR;
+    hitXYraw = hitXY; hitZraw  = hitZ; //== hit positions before align
+
+    GC    = GetTrdGasCircuit();    //== 0 -  9
+    GG    = GetTrdGasGroup();      //== 0 - 40 
     Straw = GetTrdStrawNumber();
 
     /// correction module alignment
     Mod   = GetTrdModule();
-    hitZ += GetTrdModuleAlignmentCorrection(Lay, Mod);
+    /// disable to use  time dependent align DB on 2012.01.12
+    //hitZ += GetTrdModuleAlignmentCorrection(Lay, Mod);
 
     return;
   };
 
   
   int GetD(){
-    if( (_ilayer>=16) || (_ilayer<=3) ) return 1; 
-    else                                return 0; 
+    if( (_ilayer>=16) || (_ilayer<=3) ) return 1;  //== YZ
+    else                                return 0;  //== XZ
   };
 
-  float GetXY(){
-    //static float r = 0;
+  float GetXY(int corr){
     int   lad = _iladder;
     
     if(_ilayer<12) lad++;
     if(_ilayer< 4) lad++;
     
     float r = 10.1*(float)(lad-9);
-    
-    if( _ihitD==1 ){        /// y-measurement
-      if( lad>=12 ) r+=0.78; /// bulkhead
+   
+    if( hitD==1 ){           /// y-measurement
+      if( lad>=12 ) r+=0.78; /// bulkheads
       if( lad<= 5 ) r-=0.78; 
     }      
     
@@ -235,12 +268,11 @@ class AC_TrdHits{
     if(_itube >=  9) r+=0.03;
     if(_itube >= 12) r+=0.03;
     if(_itube >= 15) r+=0.03;
-    
+
     return r;
   };
 
-  float GetZ(){
-    //static float z = 0.;
+  float GetZ(int corr){
     int   lad = _iladder;
     
     if(_ilayer<12) lad++;
@@ -248,7 +280,7 @@ class AC_TrdHits{
     
     float z = 85.275 + 2.9*(float)_ilayer;
     if(lad%2==0) z += 1.45;
-
+    
     return z;
   };
 
@@ -286,7 +318,7 @@ class AC_TrdHits{
 
   friend class TrdSCalib;
 
-  ClassDef(AC_TrdHits,1)
+  ClassDef(AC_TrdHits,2)
 };
 
 
@@ -296,16 +328,18 @@ class AC_TrdHits{
 //--------------------------------------------------
 //--------------------------------------------------
 
-class TrdSCalibR{
-  
+class TrdSCalibR { 
+
  private:
   int algo,patt,refit, pmass, pcharge;
   static TrdSCalibR* head[64];
-
+ 
  private:
   /// filename for GetTrdHits
-  static const char* TrdDBUpdateDir[2];
+  static const char* TrdDBUpdateDir[];
   static const char* TrdCalDBUpdate[];
+  /// filename for TrdAlignDB
+  static const char *TrdAlignDBUpdate[];
   /// filename for TrdLR_CalcIni
   static const char* TrdElectronProtonHeliumLFname[];
   /// ordering name of TrdLL Calculator
@@ -317,25 +351,26 @@ class TrdSCalibR{
   /// ordering name of Trd Track
   static const char* TrdTrackTypeName[];
  
+  bool p_Graph[nParLR];
+  TGraph *p_gr_L[nParLR];
   
-  bool p_Graph[100];
-  TGraph *p_gr_L[100];
-  
-  bool he_Graph[100];
-  TGraph *he_gr_L[100];
+  bool he_Graph[nParLR];
+  TGraph *he_gr_L[nParLR];
 
-  bool e_Graph[100];
-  TGraph *e_gr_L[100];
+  bool e_Graph[nParLR];
+  TGraph *e_gr_L[nParLR];
+
 
   /// extended TrdRawHit class
  public:
-
   TF1 *fBetheBlochProton,*fBetheBlochHelium;
   unsigned int SCalibLevel;
   unsigned int TrdTrackLevel;
 
   int Htime, iFlag;
-  float Xtime, Pabs;
+  double Xtime; 
+  float iPabs, iQabs, iRsigned, iChisq;
+  double TrdTkD, TrdTkDa;
 
   static vector<int> nTrdModulesPerLayer;
   static vector< vector<int> > mStraw; 	
@@ -350,25 +385,27 @@ class TrdSCalibR{
   vector<TF1*> fTrdLR_fElectron, fTrdLR_fProton, fTrdLR_fHelium;
  
   /// use for ver.03
-  //  TObjArray *ObjTrdCalibMPV;
   vector<TGraphErrors*> g_TrdCalibMPV;
 
   /// use for ver.04
   vector<AC_TrdHits*> TrdSHits;
 
-  vector<int> aP;
-  vector<int> nTrdHitLayer;
-  vector< vector<double> > TrdScalibXdays;
-  vector< vector<double> > TrdScalibMpv;
 
-  vector<float> TrdSum8Amp;
-  vector<double> TrdLRs;
-  vector<double> TrdLRs_MC;
+  vector< vector<double> > TrdScalibXdaysMpv; //== vector array for gain run period
+  vector< vector<double> > TrdScalibMpv;      //== vector array for gain calib mop
 
-  unsigned int FirstCalRunTime, LastCalRunTime;
+  vector< vector<double> > TrdScalibXdaysPos; //== vector array for align run period
+  vector< vector<double> > TrdScalibPos;      //== vector array for align position
 
-  //  TObjArray *ObjTrdGasCirMPV_list;
-  //  TObjArray *ObjTrdModuleMPV_list;
+  vector<int> nTrdHitLayer;  //== number of trd hit layer [1-20]
+  vector<float> TrdSum8Amp;  //== the largest 8 sum of signals after sorting
+  vector<float> TruncatedMean;   //== truncated mean of signals after sorting
+  vector<double> TrdLRs;     //== log likelihoods (e/p, He/p, e/He)
+  vector<double> TrdLRs_MC;  //== log likelihoods from toyMC
+  
+  unsigned int FirstCalRunTime, LastCalRunTime;     //== gain calibration run time period
+  unsigned int FirstAlignRunTime, LastAlignRunTime; //== trd alignment run time period
+  unsigned int FirstPdfRunTime, LastPdfRunTime;     //== used PDF run time period
 
   int iBinGasCir, iBinModule;
 
@@ -378,27 +415,46 @@ class TrdSCalibR{
  public:  
   int  dummy;
   bool FirstCall, TrdCalib_01, TrdCalib_02, TrdCalib_03, TrdCalib_04;
+  bool SetTrdAlign, TrdAlign_01;
   bool FirstLLCall, FirstMCCall;
-  float  FirstXday, LastXday;    //== ver.4
+  float  FirstCalXday, LastCalXday, FirstAlignXday, LastAlignXday;    //== ver.4
+  float  FirstPdfXday, LastPdfXday;    //== ver.4
   
   vector<double>	   TrdLR_xProt, TrdLR_xHeli, TrdLR_xElec;
   vector<double>	   TrdLR_nProt, TrdLR_nHeli, TrdLR_nElec;
   vector< vector<double> > TrdLR_pProt, TrdLR_pHeli, TrdLR_pElec;
-
+  
   vector<TGraph *> TrdLR_Gr_Prot, TrdLR_Gr_Elec, TrdLR_Gr_Heli;
 
+  /// add on 2012.02.01 to consider partial Xe pressure
+  vector<double>  TrdPDF_xProt, TrdPDF_nProt;
+  vector<double>  TrdPDF_xHeli, TrdPDF_nHeli;
+  vector<double>  TrdPDF_nElec_Xe0, TrdPDF_nElec_Xe1, TrdPDF_nElec_Xe2; 
+  vector<double>  TrdPDF_nElec_Xe3, TrdPDF_nElec_Xe4, TrdPDF_nElec_Xe5;
+  vector<TGraph *> grTrdS_PDF_Prot, grTrdS_PDF_Heli; 
+  vector<TGraph *> grTrdS_PDF_Elec_Xe0, grTrdS_PDF_Elec_Xe1, grTrdS_PDF_Elec_Xe2;
+  vector<TGraph *> grTrdS_PDF_Elec_Xe3, grTrdS_PDF_Elec_Xe4, grTrdS_PDF_Elec_Xe5;
+  TGraph *grTrdS_Xe;
 
   TF1 *fTrdSigmaDx, *fTrdSigmaDy, *fTrd95Da;
   TF1 *fTrdLR;
   
   /// Likelihoods normalized
   double Lprod_Proton, Lprod_Helium, Lprod_Electron;
+  double L4prod_Proton, L4prod_Helium, L4prod_Electron;
   /// Likelihoods normalized from ToyMC
   double Lprod_ProtonMC, Lprod_HeliumMC, Lprod_ElectronMC;
+  /// external input to set trd low amplitude threshold
+  float ExtTrdMinAdc;
 
   TrdSCalibR();
 
   virtual ~TrdSCalibR(){
+
+    delete fTrdSigmaDx;
+    delete fTrdSigmaDy;
+    delete fTrd95Da;
+
     if ( h_TrdGasCirMPV.size() != 0) 
       for(int i=0; i< trdconst::nTrdGasCir;i++)  delete h_TrdGasCirMPV[i];
     if ( h_TrdModuleMPV.size() != 0) 
@@ -426,9 +482,44 @@ class TrdSCalibR{
     if( fTrdLR_fHelium.size() !=0) 
       for(int i=0; i< trdconst::nParLR;i++) delete fTrdLR_fHelium[i];
 
+    TrdPDF_xProt.clear();
+    TrdPDF_nProt.clear();
+    TrdPDF_xHeli.clear();
+    TrdPDF_nHeli.clear();
+    TrdPDF_nElec_Xe0.clear();
+    TrdPDF_nElec_Xe1.clear();
+    TrdPDF_nElec_Xe2.clear(); 
+    TrdPDF_nElec_Xe3.clear();
+    TrdPDF_nElec_Xe4.clear();
+    TrdPDF_nElec_Xe5.clear();
+
+    if(grTrdS_PDF_Elec_Xe0.size() != 0)
+      for(int i=0; i< trdconst::nTrdLayers;i++) {
+	delete TrdLR_Gr_Prot[i];
+	delete TrdLR_Gr_Heli[i];
+	delete grTrdS_PDF_Elec_Xe0[i];
+	delete grTrdS_PDF_Elec_Xe1[i];
+	delete grTrdS_PDF_Elec_Xe2[i];
+	delete grTrdS_PDF_Elec_Xe3[i];
+	delete grTrdS_PDF_Elec_Xe4[i];
+	delete grTrdS_PDF_Elec_Xe5[i];
+      }
+
+    delete grTrdS_Xe;
 
   }
  
+  void Clear(){
+
+    nTrdHitLayer.clear();  
+    TrdSum8Amp.clear(); 
+    TruncatedMean.clear();  
+    TrdLRs.clear();    
+    TrdLRs_MC.clear(); 
+
+    if ( TrdSHits.size() != 0) 
+      for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
+  }
   
   int Isitsame (TrdSCalibR& ObjRawHit) {
     if (&ObjRawHit == this) return true;
@@ -440,6 +531,8 @@ class TrdSCalibR{
 
   void GenmStrawMatrix(int Debug);
   void ReadLFname();
+
+  void SetExtTrdMinAdc(float trdamp){ ExtTrdMinAdc = trdamp;};
 
   ///(Z= upper TOF)
   bool GetcTrd(TrdHTrackR *trdht); 
@@ -454,8 +547,8 @@ class TrdSCalibR{
   int GetEvthTime(AMSEventR *ev, int Debug);
   int GetEvthTime(time_t EvtTime, int Debug);
 
-  float GetEvtxTime(AMSEventR *ev, int Debug);
-  float GetEvtxTime(time_t EvtTime, int Debug);
+  double GetEvtxTime(AMSEventR *ev, int Debug);
+  double GetEvtxTime(time_t EvtTime, int Debug);
 
   int GetModCalibTimePeriod(TString fname, TString hname, int Debug);
   
@@ -463,15 +556,19 @@ class TrdSCalibR{
   bool Get02TrdCalibration(TString fname, int Debug);
   bool Get03TrdCalibration(TString fname, int Debug);
   bool Get04TrdCalibration(TString fname, int Debug);
-
+ 
   bool GetTrdCalibHistos(int CalibLevel, int Debug);
   bool GetTrdV3CalibHistos(int CalibLevel, int Debug);
   bool GetTrdV4CalibHistos(int CalibLevel, int Debug);
   
+  bool Get01TrdAlignment(TString fname, int Debug);
+
   
   void GetBinGasCirModule(int hTime, int CalibLevel, int iCir, int iMod, int Debug);
 
-  vector<float> GetTrdSum8(vector<AC_TrdHits*> TrdHits, int Debug);
+  int GetTrdSum8(int Debug);
+
+  int GetTruncatedMean(int Debug);
 
 
  private:
@@ -572,7 +669,7 @@ class TrdSCalibR{
     
     return Fun1*Fun2;
   };
-
+  
   double Fun2Landau3Expo(double *x, double *par){  
     double cLan1   = par[ 0];    double MPV1    = par[ 1];
     double Sigma1  = par[ 2];    double cLan2   = par[ 3];
@@ -591,23 +688,23 @@ class TrdSCalibR{
   };
   
   double FunBetheBloch(double *x, double *par) {
-	double 	P      = x[0];
-	double 	XX1    = par[0];
-	double 	XX2    = par[1];
-	double 	XX3    = par[2];
-	double	M      = par[3];
-	double	Z      = par[4];
-	double 	E      = TMath::Sqrt(P*P + M*M);
-	double 	Beta   = P/E;
-	double 	Gamma  = E/M;
+    double 	P      = x[0];
+    double 	XX1    = par[0];
+    double 	XX2    = par[1];
+    double 	XX3    = par[2];
+    double	M      = par[3];
+    double	Z      = par[4];
+    double 	E      = TMath::Sqrt(P*P + M*M);
+    double 	Beta   = P/E;
+    double 	Gamma  = E/M;
 	
-	//double dEdX  = XX1*pow(Z,2)/pow(Beta,2)*(0.5*log(XX2*pow(Beta,2))-pow(Beta,2)-XX3*log(Beta*Gamma));
-	double dEdX    = XX1 * TMath::Power(Z,2) / TMath::Power(Beta,2)
-	  * (TMath::Log(XX2*Beta) - TMath::Power(Beta,2) - XX3 * TMath::Log(Beta*Gamma) );
-	
-	return dEdX;
-}
-
+    //double dEdX  = XX1*pow(Z,2)/pow(Beta,2)*(0.5*log(XX2*pow(Beta,2))-pow(Beta,2)-XX3*log(Beta*Gamma));
+    double dEdX    = XX1 * TMath::Power(Z,2) / TMath::Power(Beta,2)
+      * (TMath::Log(XX2*Beta) - TMath::Power(Beta,2) - XX3 * TMath::Log(Beta*Gamma) );
+    
+    return dEdX;
+  }
+  
   //--------------------------------------------------
   ///	x[0] = Eadc, par[0] = iP = Momentum Bin
   double TrdLR_fProton_v02(double *x, double *par) {
@@ -637,7 +734,7 @@ class TrdSCalibR{
     } else {
       L = TrdLR_Gr_Heli.at(iP)->Eval(x[0]);
     }
-  return L/TrdLR_nHeli.at(iP);
+    return L/TrdLR_nHeli.at(iP);
   }
   
   //--------------------------------------------------
@@ -656,17 +753,96 @@ class TrdSCalibR{
     return L/TrdLR_nElec.at(Layer);
   }
   //--------------------------------------------------
+  ///	x[0] = Eadc, par[0] = iP = Momentum Bin
+  double TrdS_PDF_fProton(double *x, double *par) { 
+    
+    int         iP    = (int) par[0];	
+    double 	L     = 0.0;	
+    if (x[0]<TrdMinAdc) {
+      L = TrdLR_Gr_Prot.at(iP)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
+    } else if (x[0]>TrdMaxAdc) {
+      L = TrdLR_Gr_Prot.at(iP)->Eval(TrdMaxAdc) * 1.0/(1.0+TMath::Exp(-1.0*(TrdMaxAdc-x[0])));
+    } else {
+      L = TrdLR_Gr_Prot.at(iP)->Eval(x[0]);
+    }
+    return L/TrdPDF_nProt.at(iP);
+  }
+
+  //--------------------------------------------------
+  ///	x[0] = Eadc, par[0] = iP = Momentum Bin
+  double TrdS_PDF_fHelium(double *x, double *par) {
+    
+    int 	iP    = (int) par[0];	
+    double 	L     = 0.0;	
+    if (x[0]<TrdMinAdc) {
+      L = TrdLR_Gr_Heli.at(iP)->Eval(TrdMinAdc) * 1.0/(1.0+TMath::Exp(-10.0*(x[0]-TrdMinAdc)));	
+    } else if (x[0]>TrdMaxAdc) {
+      L = TrdLR_Gr_Heli.at(iP)->Eval(TrdMaxAdc) * 1.0/(1.0+TMath::Exp(-1.0*(TrdMaxAdc-x[0])));
+    } else {
+      L = TrdLR_Gr_Heli.at(iP)->Eval(x[0]);
+    }
+    return L/TrdPDF_nHeli.at(iP);
+  }
   
+  //--------------------------------------------------
+  //	x[0] = Eadc, par[0] = iP = Momentum Bin
+  //
+  double TrdS_PDF_fElectron(double *x, double *par) {
+    
+    int 		iL 	= par[0];		//	which TRD Layer
+    int			iXe	= par[1];		// 	which Xe pressure Bin
+    double 	L 		= 0.0;	
+    if (x[0]<TrdMinAdc) {
+      switch (iXe) {
+      case 0: L = grTrdS_PDF_Elec_Xe0.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      case 1: L = grTrdS_PDF_Elec_Xe1.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      case 2: L = grTrdS_PDF_Elec_Xe2.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      case 3: L = grTrdS_PDF_Elec_Xe3.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      case 4: L = grTrdS_PDF_Elec_Xe4.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      case 5: L = grTrdS_PDF_Elec_Xe5.at(iL)->Eval(TrdMinAdc) * 1.0/(1.0+exp(-10.0*(x[0]-TrdMinAdc)));	break;
+      }
+    } else if (x[0]>TrdMaxAdc) {
+      switch (iXe) {
+      case 0: L = grTrdS_PDF_Elec_Xe0.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      case 1: L = grTrdS_PDF_Elec_Xe1.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      case 2: L = grTrdS_PDF_Elec_Xe2.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      case 3: L = grTrdS_PDF_Elec_Xe3.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      case 4: L = grTrdS_PDF_Elec_Xe4.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      case 5: L = grTrdS_PDF_Elec_Xe5.at(iL)->Eval(TrdMaxAdc) * 1.0/(1.0+exp(-1.0*(TrdMaxAdc-x[0]))); break;
+      }
+    } else {
+      switch (iXe) {
+      case 0: L = grTrdS_PDF_Elec_Xe0.at(iL)->Eval(x[0]); break;
+      case 1: L = grTrdS_PDF_Elec_Xe1.at(iL)->Eval(x[0]); break;
+      case 2: L = grTrdS_PDF_Elec_Xe2.at(iL)->Eval(x[0]); break;
+      case 3: L = grTrdS_PDF_Elec_Xe3.at(iL)->Eval(x[0]); break;
+      case 4: L = grTrdS_PDF_Elec_Xe4.at(iL)->Eval(x[0]); break;
+      case 5: L = grTrdS_PDF_Elec_Xe5.at(iL)->Eval(x[0]); break;
+      }
+    }
+  
+    switch (iXe) {
+    case 0: return 	max(1E-10,L/TrdPDF_nElec_Xe0.at(iL));
+    case 1: return 	max(1E-10,L/TrdPDF_nElec_Xe1.at(iL));
+    case 2: return 	max(1E-10,L/TrdPDF_nElec_Xe2.at(iL));
+    case 3: return 	max(1E-10,L/TrdPDF_nElec_Xe3.at(iL));
+    case 4: return 	max(1E-10,L/TrdPDF_nElec_Xe4.at(iL));
+    case 5: return 	max(1E-10,L/TrdPDF_nElec_Xe5.at(iL));
+    }
+    std::cout << "Error in TrdS_PDF_fElectron: Xe=" << iXe << std::endl;
+    return 1E-10;
+  }
+  //--------------------------------------------------
+
 
  public:
-
+  
   bool Init(int CalibLevel, int Debug);
-
+  
   bool TrdLR_GetParameters(string fName, string hName, int nPar, vector<double> &xMin, vector< vector<double> > &Par);
   
-  void TrdLR_CalcIni(int Debug) {TrdLR_CalcIni_v02(Debug);}
-
-
+  void TrdLR_CalcIni(int Debug);
+  
   void TrdLR_CalcIni_v01(int Debug);
   vector<double> TrdLR_Calc_v01(float Pabs, vector<AC_TrdHits*> ACTrdHits, int iFlag, int Debug);
 
@@ -679,23 +855,37 @@ class TrdSCalibR{
   /// ver.2 released on 2011.10.28
   vector<double> RootGetYbinsTH2(TH2 *hist, int Debug);
   bool TrdLR_CalcIni_v02(int Debug);
-  vector<double> TrdLR_Calc(float Pabs, vector<AC_TrdHits*> TrdHits, int iFlag, int Debug);
+  vector<double> TrdLR_Calc(float Pabs, int iFlag, int Debug);
 
   /// toyMC add on 2011.11.02
   bool TrdLR_MC_CalcIni(int Debug);
-  vector<double> TrdLR_MC_Calc(float Pabs,  vector<AC_TrdHits*> TrdHits, vector<bool> PartId, int iFlag, int Debug);
+  vector<double> TrdLR_MC_Calc(float Pabs, vector<bool> PartId, int iFlag, int Debug);
  
   /// add BetheBloch Correction on 2011.11.27
   double GetProtonBetheBlochCorrFactor(float Pabs);
   double GetHeliumBetheBlochCorrFactor(float Pabs);
 
-  /// move to ver.4 
+  /// add new for Xe PDFs on 2012.02.01
+  bool TrdLR_CalcIniPDF(int Debug);
+  int TrdScalibGetXeInterval(double xDay); 
+  int TrdLR_CalcXe(double xDay, float Pabs, int iFlag, int Debug);
+ 
+  /// add new module correction on 2012.02.07
+  int ProcessAlignCorrection(TrdHTrackR *TrdHtrk, AC_TrdHits *ACHit, int Debug);
+  int ProcessAlignCorrection(TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int Debug);
+  
   int RootTGraph2VectorX(TGraph *gr, vector<double> &vx);
   int RootTGraph2VectorY(TGraph *gr, vector<double> &vy);
+  vector<double> RootGetXbinsTH1(TH1 *hist);
 
-  bool TrdScalibMinDist(double xDayRef, int aP, int iMod);
+  bool TrdScalibMinDist(double xDayRef, int xP, int iMod);
+  bool TrdScalibMinDist(double xDayRef, int xP, vector<double> &TrdScalibXdays);
+
   int TrdScalibBinarySearch(double key, int iMod, int Debug); 
-  double TrdScalibInterpolate(int iMod, double xDayRef, int &aP, int Debug);
+  int TrdScalibBinarySearch(double key, vector<double> &TrdScalibXdays, int Debug);
+
+  double TrdScalibInterpolate(int iMod, double xDayRef, int &xP, int Debug);
+  double TrdScalibInterpolate(double xDayRef, int &xP, vector<double> &TrdScalibXdays, vector<double> &TrdScalibVal, int Debug);
 
   int InitTrdSCalib(int CalVer, int TrdTrackType, int Debug);
   int ProcessTrdEvt(AMSEventR *pev, int Debug);
@@ -705,6 +895,7 @@ class TrdSCalibR{
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug);
   int BuildTrdSCalib(time_t evut, double fMom, TrdTrackR *Trdtrk, TrTrackR *Trtrk, double &s1, double &s2, double &s3, int Debug);
 
+  
   static TrdSCalibR* gethead(int i=0);
   
   static void  KillPointer(){
@@ -717,8 +908,8 @@ class TrdSCalibR{
   }
  
 
-  ClassDef(TrdSCalibR,3)
-};
+  ClassDef(TrdSCalibR,4)
+    };
 
 #endif
 
