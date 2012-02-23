@@ -1,4 +1,4 @@
-#  $Id: Makefile.linux,v 1.29 2012/02/23 09:22:35 choutko Exp $
+#  $Id: Makefile.linux,v 1.30 2012/02/23 10:48:11 choutko Exp $
 # P.Zuccon june 2005
 # General clean up and reorganization
 # F.Barao: gcc version numbering changed (Oct, 2010)
@@ -181,7 +181,7 @@ ifdef SLC4system
 ifdef VER
 else
 # SOFLAGS+=$(shell root-config --libs ) 
- SOFLAGS+=   -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
+ SOFLAGS+=   -L/$(ROOTSYS)/lib -lRIO -lTree -lThread -lGpad   -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO   -lTMVA -lMLP -lXMLIO -lTreePlayer
 # -L$(CERNDIR)/lib -lmathlib -lgeant -lpacklib -lgfortran
 ifdef MINUIT2
  SOFLAGS+= -lMinuit2
