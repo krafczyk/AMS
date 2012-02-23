@@ -27,6 +27,7 @@
 //  2012.02.03 solve memory leakage in managing TrdHits for LR, Sum8 and truncated mean
 //  2012.02.17 remove limited momentum ranges but PDFs are same
 //  2012.02.22 released version 4
+//  2012.02.23 TrTracker refit = 0 within GBATCH from P.Zucoon
 // 
 //  To do Lists: 
 //              1. interface with other TrdAlignmentDB (Z.Weng, V.Zhukov)
@@ -131,7 +132,7 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(4), TrdTrackLevel(0), iFlag(3),
 			  iPabs(0), iQabs(0), iRsigned(0),iChisq(-1), 
 			  TrdTkD(0), TrdTkDa(0), 
 			  //algo(1), patt(3), refit(1), 
-			  algo(1), patt(0), refit(4),
+			  algo(1), patt(0), refit(0),
 			  
 			  
   dummy(0) {
