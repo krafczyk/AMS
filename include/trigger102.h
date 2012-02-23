@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.37 2012/02/23 09:22:35 choutko Exp $
+//  $Id: trigger102.h,v 1.38 2012/02/23 09:51:52 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #define __ROOTINC__
@@ -90,7 +90,7 @@ public:
  void settofpat2(int patt[]){ for(int i=0;i<TOF2GC::SCLRS;i++)_tofpatt2[i]=patt[i];}
  void setecpat(int16u patt[6][3]){for(int i=0;i<6;i++)for(int j=0;j<3;j++)_ectrpatt[i][j]=patt[i][j];}
  void setectrs(geant trs){_ectrsum=trs;}
- integer getl1strpatt(){return _PhysBPatt;}
+ uinteger getl1strpatt(){return _PhysBPatt;}
  integer checktofpattor(integer tofc, integer paddle);
  integer checktofpattand(integer tofc, integer paddle);
  integer checkantipatt(integer counter){return _antipatt & (1<<counter);}

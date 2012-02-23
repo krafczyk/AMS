@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.554 2012/01/05 17:54:55 choutko Exp $
+//  $Id: event.C,v 1.555 2012/02/23 09:51:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3845,7 +3845,14 @@ void AMSEvent::_collectstatus(){
 //         __status1|=z1;
 //        }
           if(ptrt){
-           int z1=(ptrt->JMembPattBitSet(0) ||ptrt->JMembPattBitSet(11) )?1:0;
+           int z1=0;
+           unsigned int physbpat=ptrt->getl1strpatt();
+           if(physbpat==0){
+              z1=(ptrt->JMembPattBitSet(0) ||ptrt->JMembPattBitSet(11) )?1:0;
+           }
+           else{
+            z1= ((physbpat &1) || (physbpat &  0x0040))?1:0;
+           }
            __status1|=z1;
          }              
   

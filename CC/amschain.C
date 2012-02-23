@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.51 2012/02/23 09:22:30 choutko Exp $
+//  $Id: amschain.C,v 1.52 2012/02/23 09:51:48 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -158,8 +158,9 @@ AMSEventR* AMSChain::GetEvent(){
   return _EVENT;
 };
 
-AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
-  Rewind();//Go to start of chain
+AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev, bool
+fDontRewind){
+  if (!fDontRewind)Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&
 	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ){
