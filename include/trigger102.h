@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.36 2010/12/11 18:30:39 choutko Exp $
+//  $Id: trigger102.h,v 1.37 2012/02/23 09:22:35 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #define __ROOTINC__
@@ -20,9 +20,9 @@ protected:
    geant getlifetime(time_t time)   {return _Tls[1][_GetIndex(time)]/16384.;}
  };
 // 
- integer _PhysBPatt;//LVL1 Phys. Branches Pattern(bits 0-7)(unbiased,p,Ion,SlowIon,e,gamma, etc)
- integer _JMembPatt;//LVL1 Joined Members Pattern(bits 1-16)(FTC,FTZ,FTE,ACC0,ACC1,BZ,ECAL-F_and,...)
- integer _AuxTrigPatt;//Aux.Trig. members pattern (LA1/2,DSP,Int)
+ unsigned int _PhysBPatt;//LVL1 Phys. Branches Pattern(bits 0-7)(unbiased,p,Ion,SlowIon,e,gamma, etc)
+ unsigned int _JMembPatt;//LVL1 Joined Members Pattern(bits 1-16)(FTC,FTZ,FTE,ACC0,ACC1,BZ,ECAL-F_and,...)
+ unsigned int _AuxTrigPatt;//Aux.Trig. members pattern (LA1/2,DSP,Int)
  integer _tofflag1;//Tof-layers contrib. in FTC(z>=1) (<0/0/1/2...=>none/all4/miss.layer#)  
  integer _tofflag2;//Tof-layers contrib. in BZ(z>=2) (<0/0/1/2...=>none/all4/miss.layer#)  
  integer _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1(when globFT)

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.852 2012/02/13 16:44:22 pzuccon Exp $
+// $Id: job.C,v 1.853 2012/02/23 09:22:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -24,6 +24,7 @@
 #include "commons.h"
 #include "extC.h"
 #include <fenv.h>
+#include "DynAlignment.h"
 #ifdef _PGTRACK_
 #include "patt.h"
 #include "TrRecon.h"

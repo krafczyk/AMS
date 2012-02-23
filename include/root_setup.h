@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.33 2012/01/25 12:41:37 choutko Exp $
+//  $Id: root_setup.h,v 1.34 2012/02/23 09:22:35 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -9,10 +9,10 @@
 #include "TString.h"
 #include "TTree.h"
 #include "trigger102_setup.h"
-#include "DynAlignment.h"
 
 
 class SlowControlDB;
+class DynAlFitContainer;
 class AMSEventR;
 class AMSTimeID;
 struct dirent64;

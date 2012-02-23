@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.244 2012/01/04 19:35:48 oliva Exp $
+//  $Id: ntuple.C,v 1.245 2012/02/23 09:22:30 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -11,6 +11,7 @@
 #include "job.h"
 #include "ecaldbc.h"
 #include "event.h"
+#include "DynAlignment.h"
 extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #ifndef _PGTRACK_
 #include "tralig.h"
