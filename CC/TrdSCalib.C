@@ -3597,8 +3597,8 @@ int TrdSCalibR::ProcessAlignCorrection(TrdTrackR *Trdtrk, AC_TrdHits *ACHit, int
   float alx, aly, TRD_Ax, TRD_Ay, TrdAlignDxy;
   alx = aly = TRD_Ax = TRD_Ay = 0.;
   if(dTrd[2] == 0) return 1;
-  alx = Trdtrk->Coo[0]+dTrd[0]/dTrd[2]*(trdconst::ToFLayer1Z - Trdtrk->Coo[2]);
-  aly = Trdtrk->Coo[1]+dTrd[1]/dTrd[2]*(trdconst::ToFLayer1Z - Trdtrk->Coo[2]);
+  alx = Trdtrk->Coo[0]+dTrd[0]/dTrd[2]*(ACHit->hitZraw - Trdtrk->Coo[2]);
+  aly = Trdtrk->Coo[1]+dTrd[1]/dTrd[2]*(ACHit->hitZraw - Trdtrk->Coo[2]);
   
   /// correction Z coord. imported from ACroot3.h 
   ACHit->hitZ   = ACHit->hitZraw + trdconst::TRD_Dz;   	    
