@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.127 2012/02/21 06:44:12 sdellato Exp $
+#  $Id: Moptg4,v 1.128 2012/02/24 13:59:06 mdelgado Exp $
 #
 SHELL=/bin/sh
 #
@@ -367,7 +367,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)Sunposition.C
 
 
-FILES+=$(SCC)DynAlignment.C
+FILES+=$(SCC)DynAlignment.C $(SCC)RichCharge.C
 
 FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
@@ -406,7 +406,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
 	$(SCC)g4rich.C
 
-FILESC+=$(SCC)DynAlignment.C
+FILESC+=$(SCC)DynAlignment.C $(SCC)RichCharge.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \

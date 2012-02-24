@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.360 2012/02/21 15:10:25 lderome Exp $
+//  $Id: root.C,v 1.361 2012/02/24 13:59:05 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -16,6 +16,7 @@
 #endif
 #include "timeid.h"
 #include "commonsi.h"
+#include "RichCharge.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
 #include "beta.h"
@@ -1525,6 +1526,9 @@ double RichRingR::_sumIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0};
+
+TString RichRingR::correctionsDir=".";  // Rich charge correction directory
+
 
 void AMSEventR::GetBranch(TTree *fChain){
   char tmp[255];
@@ -4484,6 +4488,78 @@ int RichRingR::updates(float x,float y){
   int t=getTileIndex(x,y);
   if(t<0) return 0;
   return _numberUpdates[t];
+}
+
+
+
+bool RichRingR::buildChargeCorrections(){
+  NpColCorr.clear();
+  NpExpCorr.clear();
+
+  // If it is MC skip use a trivial compuation
+  if(AMSEventR::Head()->nMCEventg()){
+    for(map<unsigned short,float>::iterator it=NpColPMT.begin();
+	it!=NpColPMT.end();it++) NpColCorr[it->first]=1;
+    for(map<unsigned short,float>::iterator it=NpExpPMT.begin();
+	it!=NpExpPMT.end();it++) NpExpCorr[it->first]=1;
+    return true;
+  }
+
+
+  // If it is data, check that the required tools are OK
+  if(!RichCharge::getHead() &&!RichCharge::Init(correctionsDir)) return false;
+
+  RichCharge *corr=RichCharge::getHead();
+  if(!corr->retrieve(AMSEventR::Head()->fHeader.Run)) return false;
+
+  // Correct the collected 
+  for(map<unsigned short,float>::iterator it=NpColPMT.begin();
+      it!=NpColPMT.end();it++){
+    int pmt=it->first;
+    if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpColCorr[pmt]=0;
+    else NpColCorr[pmt]=1.0/corr->GainCorrection(pmt)/corr->TemperatureCorrection(pmt);
+  }
+
+  // Correct the expected
+  for(map<unsigned short,float>::iterator it=NpExpPMT.begin();
+      it!=NpExpPMT.end();it++){
+    int pmt=it->first;
+    if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpCorr[pmt]=0;
+    else NpExpCorr[pmt]=corr->EfficiencyCorrection(pmt);
+  }
+
+  return true;
+}
+
+
+
+float RichRingR::getExpectedPhotoelectrons(bool corr){
+  if(!corr) return NpExp;
+
+  if(NpExpPMT.size() && !NpExpCorr.size()) if(!buildChargeCorrections()) return 0;
+
+  float sum=0;
+  for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
+      i!=NpExpPMT.end();i++){
+    map<unsigned short,float>::iterator correction=NpExpCorr.find(i->first);
+    sum+=i->second*(correction==NpExpCorr.end()?1:correction->second);
+  }
+  return sum;
+}
+
+
+float RichRingR::getPhotoElectrons(bool corr){
+  if(!corr) return NpCol;
+
+  if(NpColPMT.size() && !NpColCorr.size()) if(!buildChargeCorrections()) return 0;
+
+  float sum=0;
+  for(map<unsigned short,float>::iterator i=NpColPMT.begin();
+      i!=NpColPMT.end();i++){
+    map<unsigned short,float>::iterator correction=NpColCorr.find(i->first);
+    sum+=i->second*(correction==NpColCorr.end()?1:correction->second);
+  }
+  return sum;
 }
 
 double RichRingR::betaCorrection(float index,float x,float y){

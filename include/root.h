@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.405 2012/02/20 15:25:57 sdellato Exp $
+//  $Id: root.h,v 1.406 2012/02/24 13:59:06 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1331,6 +1331,8 @@ public:
   static void calPush(double beta,double index,float x,float y);
   ///@}
 
+  /// Directory containing charge corrections values
+  static TString correctionsDir; 
 
  unsigned int Status;     ///< status word
                            /*!<
@@ -1368,7 +1370,8 @@ public:
   float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
   map<unsigned short,float>NpColPMT;     /// Collected photoelectrons in the ring per PMT
   map<unsigned short,float>NpExpPMT;     /// Expected photoelectrons in the ring per PMT
-
+  map<unsigned short,float> NpColCorr;     /// Efficiency correction to NpExpPMT
+  map<unsigned short,float> NpExpCorr;   /// Temperature correction to npcol
 
 
  protected:
@@ -1434,14 +1437,17 @@ public:
   /// Beta of the event
   /// \return Beta
   float getBeta()          {return BetaRefit*betaCorrection();}
+  /// Build charge corrections
+  bool buildChargeCorrections();
   /// Total number of photoelectrons in the ring. 
-  float   getPhotoElectrons(){return NpCol;}
+  float getPhotoElectrons(bool corr=false);
+  float getPhotoelectrons(bool corr=false){return getPhotoElectrons(corr);}
   float getPhotoElectrons(int pmt){map<unsigned short,float>::iterator i=NpColPMT.find(pmt);return i==NpColPMT.end()?0:i->second;}
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
-  float getExpectedPhotoelectrons() {return NpExp;}
+  float getExpectedPhotoelectrons(bool corr=false);
   float getExpectedPhotoelectrons(int pmt){map<unsigned short,float>::iterator i=NpExpPMT.find(pmt);return i==NpExpPMT.end()?0:i->second;}
   /// Continuous Z^2 estimate for this ring
-  float getCharge2Estimate() {return getExpectedPhotoelectrons()>0?getPhotoElectrons()/getExpectedPhotoelectrons():0;}
+  float getCharge2Estimate(bool corr=false) {return getExpectedPhotoelectrons(corr)>0?getPhotoElectrons(corr)/getExpectedPhotoelectrons(corr):0;}
   /// Estimation of the error of the reconstructed beta
   /// \return Estimate of the error of the reconstructed beta
   float getBetaError()     {return sqrt(2.5e-3*2.5e-3*(IsNaF()?9.0:1.0)/getPhotoElectrons()+1e-4*1e-4);}
@@ -1484,7 +1490,7 @@ public:
 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,24)           // RichRingR
+  ClassDef(RichRingR,25)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
