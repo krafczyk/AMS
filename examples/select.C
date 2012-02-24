@@ -385,7 +385,7 @@ int trd_particle(AMSEventR *pev){
 
       // printf("mom: %f tof charge: %f like_ep: %f like_eh: %f like_ph: %f \n", pev->pParticle(0)->Momentum, tof_charge, like_ep, like_eh, like_ph);
     if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && eplik < 0.54) return 0;
-       else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && eplik > 0.7) return 1
+    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && eplik > 0.7) return 1;
     else if(tr_charge>1.5 && tof_charge>1.5 && tr_charge<2.5 && tof_charge<2.5 && Heplik<0.24  ) return 2; 
     else return -1;
   }
