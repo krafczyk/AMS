@@ -217,35 +217,8 @@ bool good_trd_event(AMSEventR *pev){
   if( pev->nTrdTrack()!=1) return false;
   TrdTrackR *trd_track=pev->pTrdTrack(0);  
 
-  bool bad=false;
-  if(pev->nTrdSegment()>4){
-    int arr[20][18][16]={((20*18)*16)*0};
-    
-    for(int i=0; i<pev->nTrdSegment(); i++){
-      TrdSegmentR *seg=pev->pTrdSegment(i);
-      for(int j=0; j<seg->NTrdCluster(); j++){
-	TrdClusterR *clu=seg->pTrdCluster(j);
-	TrdRawHitR *hit =clu->pTrdRawHit();
-	if(hit->Amp>15){
-	  arr[hit->Layer][hit->Ladder][hit->Tube]+=1;
-	}
-      }
-    }
-    for( int i=0; i<20; i++){
-      for(int j=0; j<18; j++){
-	for(int k=0; k<16; k++){
-	  if(arr[i][j][k]>1) bad=true;
-	}
-      }
-    }
-  }
+  if( trd_track->NTrdSegment()!=4 || trd_track->Chi2>4.) return false;
 
-  if( (pev->nTrdSegment() >4 && bad) || pev->pTrdTrack(0)->NTrdSegment()!=4) return false;
-
-  float TrdChi2=trd_track->Chi2;
- 
-  if (TrdChi2<0.0 || TrdChi2>=3.0) return false;
-  
   int hitsontrack=0;
   int pat[3]={0,0,0};
   int lay[20];
@@ -390,25 +363,20 @@ int trd_particle(AMSEventR *pev){
       rig=track->GetRigidity(id);    
     }
   
-    double like_ep=0, like_eh=0, like_ph=0;
-    if(rig>99.) pev->pParticle(0)->Momentum=99.;
-    if(rig<-99.) pev->pParticle(0)->Momentum=-99.;
+    //  if(rig>99.) pev->pParticle(0)->Momentum=99.;
+    //  if(rig<-99.) pev->pParticle(0)->Momentum=-99.;
+   
+
     // calculate likelihoods 
-    //  if(fabs(rig)<100.){
-      if(! trdS->ProcessTrdEvt(pev, Debug) ) {
-	vector<double>::iterator lr = trdS->TrdLRs.begin();
-	//	lr++;
-	like_ep= *lr;
-	lr++;
-	like_ph= *lr;
-	lr++;
-	like_eh= *lr;
-      } 
-      // }
-      // printf("mom: %f tof charge: %f like_ep: %f like_eh: %f like_ph: %f \n", pev->pParticle(0)->Momentum, tof_charge, like_ep, like_eh, like_ph);
-    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && like_ep <0.54 && like_eh <0.6) return 0; 
-    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && like_ep >0.85 && like_ph >1.9) return 1; 
-    else if(tr_charge>1.5 && tof_charge>1.5 && like_ph < 0.24 && like_eh > 0.8) return 2; 
+    double eplik    = trdS->TrdLRs.at(0);
+    double Heplik   = trdS->TrdLRs.at(1);
+    double eHelik   = trdS->TrdLRs.at(2);
+    
+      // printf("mom: %f tof charge: %f like_ep: %f like_eh: %f like_ph: %f \n", pev->pParticle(0)->Momentum, tof_charge, eplik, eHelik, Heplik);
+
+    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && eplik <0.54 ) return 0; 
+    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 && eplik >0.7 ) return 1; 
+    else if(tr_charge>1.5 && tof_charge>1.5 && tr_charge<2.5 && tof_charge<2.5 && Heplik < 0.24) return 2; 
     else return -1;
   }
   return -1; 
