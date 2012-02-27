@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.125 2012/02/20 17:16:52 oliva Exp $
+// $Id: TrTrack.C,v 1.126 2012/02/27 17:16:46 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/02/20 17:16:52 $
+///$Date: 2012/02/27 17:16:46 $
 ///
-///$Revision: 1.125 $
+///$Revision: 1.126 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -68,8 +68,8 @@ void  TrTrackPar::Print_stream(std::string &ostr,int full) const {
   ostr.append(Form("Rigidity:  %6.3f Err(1/R):  %7.5f P0: %6.3f %6.3f %6.3f  Dir:  %6.4f %6.4f %6.4f\n",
 		   Rigidity,ErrRinv,P0[0],P0[1],P0[2],Dir[0],Dir[1],Dir[2]));
   if(!full)return;
-  ostr.append(Form("HitBits: %06d, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
-		   HitBits,ChisqX,NdofX,ChisqY,NdofY,Chisq));
+  ostr.append(Form("HitBits: 0x%04x %s, Chi2X/Ndf: %f/%d, Chi2Y/Ndf: %f/%d, Chi2: %f \n",
+		   HitBits,TrTrackR::HitBitsString(HitBits),ChisqX,NdofX,ChisqY,NdofY,Chisq));
   return ;
 }
 

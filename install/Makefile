@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.187 2012/02/27 05:42:49 pzuccon Exp $
+#  $Id: Makefile,v 1.188 2012/02/27 17:16:46 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -881,7 +881,7 @@ endif
 	mv $(BIN)Make-depend.new $(BIN)Make-depend
 
 special-links:
-	@mkdir $(AMSWD)/$(MARCH)
+	@if ! [ -d $(AMSWD)/$(MARCH) ] ; then mkdir $(AMSWD)/$(MARCH); fi
 	@ln -s $(AMSWD)/exe/$(MARCH) $(AMSWD)/$(MARCH)/exe
 	@ln -s $(AMSWD)/lib/$(MARCH) $(AMSWD)/$(MARCH)/lib
 	@ln -s $(AMSWD)/bin/$(MARCH) $(AMSWD)/$(MARCH)/bin
@@ -902,6 +902,7 @@ cleanALL :
 	rm -rf $(AMSWD)/exe 
 	rm -rf $(AMSWD)/$(ARCH) 
 	rm ../include/root_methods*.h
+
 cleanlibs:
 	rm -f $(NTLD) $(SHLD)
 	rm -f $(BIN)/root*.o
