@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.248 2012/02/13 15:39:44 choutko Exp $
+//  $Id: particle.C,v 1.249 2012/02/27 05:42:49 pzuccon Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -242,7 +242,7 @@ integer AMSParticle::build(integer refit){
       if( TRDCALIB.TrdSCalibVersion && TrdSCalibR::gethead() && AMSEvent::gethead() ) {
 	int isdebug = 0;
 	ppart->_TrdSH_E2P_lik = ppart->_TrdSH_He2P_lik = ppart->_TrdSH_E2He_lik = 0;
-	if( ppart->_phtrd && ppart->_ptrack ) 
+	if( ppart->_phtrd && ppart->_ptrack  && !ppart->_ptrack->IsFake()) 
 	  {
 // VC Dec-27-2011 No hardwired limits in user functionsw
             double fmom=fabs(ppart->_Momentum);

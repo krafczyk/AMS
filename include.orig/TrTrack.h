@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.74 2012/02/20 17:16:52 oliva Exp $
+//  $Id: TrTrack.h,v 1.75 2012/02/27 05:42:49 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/02/20 17:16:52 $
+///$Date: 2012/02/27 05:42:49 $
 ///
-///$Revision: 1.74 $
+///$Revision: 1.75 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -301,7 +301,8 @@ public:
 
   /// Destructor
   virtual ~TrTrackR();
-
+  /// Return true if the track is a fake one built from TRD or TOF
+  bool IsFake(){ return (_bit_pattern==0);}
   /**@}*/
 	
   /** @name Track Data Accessors	 */

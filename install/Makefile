@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.186 2012/02/24 13:59:06 mdelgado Exp $
+#  $Id: Makefile,v 1.187 2012/02/27 05:42:49 pzuccon Exp $
 
 #P.Zuccon june 2005
 
@@ -880,6 +880,12 @@ endif
 		rm -f $(BIN)Make-depend
 	mv $(BIN)Make-depend.new $(BIN)Make-depend
 
+special-links:
+	@mkdir $(AMSWD)/$(MARCH)
+	@ln -s $(AMSWD)/exe/$(MARCH) $(AMSWD)/$(MARCH)/exe
+	@ln -s $(AMSWD)/lib/$(MARCH) $(AMSWD)/$(MARCH)/lib
+	@ln -s $(AMSWD)/bin/$(MARCH) $(AMSWD)/$(MARCH)/bin
+
 clean : 
 	rm -f $(BIN)*.o 
 	rm -f $(BIN)Make-depend 
@@ -894,6 +900,7 @@ cleanALL :
 	rm -rf $(AMSWD)/bin 
 	rm -rf $(AMSWD)/lib
 	rm -rf $(AMSWD)/exe 
+	rm -rf $(AMSWD)/$(ARCH) 
 	rm ../include/root_methods*.h
 cleanlibs:
 	rm -f $(NTLD) $(SHLD)

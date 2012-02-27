@@ -722,8 +722,11 @@ bool TrdSCalibR::GetdTrd(TrdTrackR *trdt) {
 //--------------------------------------------------------------------------------------------------
 bool TrdSCalibR::GetcTrkdTrk(TrTrackR *trt){
   if(! trt) return false;
-  int fitcode = trt->iTrTrackPar(algo, patt, refit);
-  if(fitcode < 0) return false;
+  int fitcode = trt->iTrTrackPar(algo, patt, 0);
+  if(fitcode < 0) {
+     printf("TrdSCalibR::ProcessTrdEvt-W-  TrackFit algo %d and patt %d Not AVAILABLE Fitcode=%d !!!!\n",algo,patt,fitcode);
+    return false;
+  }
   trt->Interpolate(trdconst::ToFLayer1Z,cTrk,dTrk, fitcode);
   return true;
 }
@@ -3698,8 +3701,12 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
 
   if(!pev->pParticle(0)->pTrTrack())    return 2;  
   TrTrackR    *Trtrk   = pev->pParticle(0)->pTrTrack();
-  iRsigned = Trtrk->GetRigidity(Trtrk->iTrTrackPar(algo, patt, refit));  
-  
+  int fcode=Trtrk->iTrTrackPar(algo, patt, 0);
+  iRsigned=100;
+  if( fcode>=0) 
+    iRsigned = Trtrk->GetRigidity(fcode);
+  else
+    printf("TrdSCalibR::ProcessTrdEvt-W-  TrackFit algo %d and patt %d Not AVAILABLE Fitcode=%d !!!!\n",algo,patt,fcode);
   iQabs = pev->pParticle(0)->Charge;
 
   //if( iPabs<CalMomMin || iPabs>CalMomMax ) return 3;
@@ -3747,8 +3754,10 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
 //--------------------------------------------------------------------------------------------------
 
 int TrdSCalibR::InitTrdSCalib(int CalVer, int TrdTrackType, int Debug) {
-
-  TrExtAlignDB::ForceFromTDV=1; /// load external alignment TDV
+// PZ  FIXED THIS
+//  force from TDV Cannot be used this way!!! it is a very special feature that must be used only
+//  in special cases and never inside GBATCH
+//  TrExtAlignDB::ForceFromTDV=1; /// load external alignment TDV
 
   SCalibLevel   = CalVer;
   TrdTrackLevel = TrdTrackType;
