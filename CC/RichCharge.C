@@ -7,34 +7,38 @@
 
 
 using namespace std;
-using namespace RichChargeConstants;
+using namespace RichPMTCalibConstants;
 
 
 // Singleton pointer
-RichCharge* RichCharge::_header=NULL;
+RichPMTCalib* RichPMTCalib::_header=NULL;
 
 // Directory where the input files are 
-TString RichCharge::currentDir=".";
+TString RichPMTCalib::currentDir=".";
 
 // General Settings
-bool RichCharge::useRichRunTag = true;
-bool RichCharge::usePmtStat = true;
-bool RichCharge::useGainCorrections = false;
-bool RichCharge::useEfficiencyCorrections = true;
-bool RichCharge::useTemperatureCorrections = true; 
-unsigned short RichCharge::richRunBad = (1<<RichCharge::kTagJ) | (1<<RichCharge::kTagR); //  JINFR & RDR Configuration  
-unsigned short RichCharge::richPmtBad = (1<<RichCharge::kPmtFE) | (1<<RichCharge::kPmtHV) | (1<<RichCharge::kPmtJ) | (1<<RichCharge::kPmtR); //  FE On & HV Nominal & No Config Err/Mismatch 
+bool RichPMTCalib::useRichRunTag = true;
+bool RichPMTCalib::usePmtStat = true;
+bool RichPMTCalib::useGainCorrections = false;
+bool RichPMTCalib::useEfficiencyCorrections = true;
+bool RichPMTCalib::useTemperatureCorrections = true; 
+unsigned short RichPMTCalib::richRunBad = (1<<RichPMTCalib::kTagJ) | (1<<RichPMTCalib::kTagR); //  JINFR & RDR Configuration  
+unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtHV) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & HV Nominal & No Config Err/Mismatch 
 
-bool RichCharge::Init(TString dir){
+bool RichPMTCalib::Init(TString dir){
   if(_header) delete _header;
   currentDir=dir;
-  _header=new RichCharge();
+  _header=new RichPMTCalib();
   return _header->init();
 }
 
+RichPMTCalib* RichPMTCalib::Update(){
+  if(!RichPMTCalib::getHead() &&!RichPMTCalib::Init(currentDir)) return 0;
+  if(!RichPMTCalib::getHead()->retrieve(AMSEventR::Head()->fHeader.Run)) return 0;
+  return RichPMTCalib::getHead();
+}
 
-
-bool RichCharge::init(){
+bool RichPMTCalib::init(){
   // Read Pmt DB
   ReadPmtDB();
 
@@ -45,7 +49,7 @@ bool RichCharge::init(){
 }
 
 
-bool RichCharge::retrieve(int run){
+bool RichPMTCalib::retrieve(int run){
   // retrieve the information for the given run
   static int prevRun=0;
   static bool retValue=true;
@@ -63,88 +67,7 @@ bool RichCharge::retrieve(int run){
 }
 
 
-/*
-float RichCharge::correctedNpExp(RichRingR *ring) {
-  map<unsigned short,float>::iterator it;
-  if (!ring) return 0;
-  double sum = 0;
-  for (it=ring->NpExpPMT.begin(); it!=ring->NpExpPMT.end(); it++) {
-    int   pmt = it->first;
-    float npexp = it->second;
-    if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end())
-      sum += npexp * EfficiencyCorrection(pmt);
-  }
-  return (float)sum;
-}
-
-
-float RichCharge::correctedNpExp(::RichRing *ring) {
-  if (!ring) return 0;
-  double sum = 0;
-  for (int pmt=0; pmt<680; pmt++) {
-    if (ring->NpExpPMT[pmt] > 0) 
-      if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end())
-	sum += ring->NpExpPMT[pmt] * EfficiencyCorrection(pmt);
-  }
-  return (float)sum;
-}
-
-
-int RichCharge::correctedUsed(RichRingR *ring) {
-  map<unsigned short,float>::iterator it;
-  if (!ring) return 0;
-  int sum = 0;
-  for (it=ring->NpColPMT.begin(); it!=ring->NpColPMT.end(); it++) {
-    int pmt = it->first;
-    if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end()) 
-      sum++;
-  }
-  return sum;
-}
-
-
-int RichCharge::correctedUsed(::RichRing *ring) {
-  if (!ring) return 0;
-  int sum = 0;
-  for (int pmt=0; pmt<680; pmt++) {
-    if (ring->NpColPMT[pmt] > 0) {
-      if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end()) 
-	sum++;
-    }
-  }
-  return (int)sum;
-}
-
-
-float RichCharge::correctedNpCol(RichRingR *ring) {
-  map<unsigned short,float>::iterator it;
-  if (!ring) return 0;
-  double sum = 0;
-  for (it=ring->NpColPMT.begin(); it!=ring->NpColPMT.end(); it++) {
-    int    pmt = it->first;
-    double npe = it->second;
-    if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end())
-      sum += npe / GainCorrection(pmt) / TemperatureCorrection(pmt);
-  }
-  return (float)sum;
-}
-
-
-float RichCharge::correctedNpCol(::RichRing *ring) {
-  if (!ring) return 0;
-  double sum = 0;
-  for (int pmt=0; pmt<680; pmt++) {
-    if (ring->NpColPMT[pmt] > 0) {
-      if (find(BadPMTs.begin(), BadPMTs.end(), pmt) == BadPMTs.end()) 
-	sum += ring->NpColPMT[pmt] / GainCorrection(pmt) / TemperatureCorrection(pmt);
-    }
-  }
-  return (float)sum;
-}
-*/
-
-
-float RichCharge::EfficiencyCorrection(int pmt) {
+float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
   float efficiencyCorrection = useEfficiencyCorrections? v_pmt_ecor[pmt] : 1;
 
@@ -156,7 +79,7 @@ float RichCharge::EfficiencyCorrection(int pmt) {
 }
 
 
-float RichCharge::GainCorrection(int pmt) {
+float RichPMTCalib::GainCorrection(int pmt) {
 
   //float gainCorrection = useGainCorrections? v_pmt_gcor[pmt] : 1; // USE CORR. FROM MEAN
   float gainCorrection = useGainCorrections? v_pmt_gmcor[pmt] : 1; // USE CORR. FROM MEDIAN
@@ -170,7 +93,7 @@ float RichCharge::GainCorrection(int pmt) {
 }
 
 
-float RichCharge::TemperatureCorrection(int pmt) {
+float RichPMTCalib::TemperatureCorrection(int pmt) {
 
   float temperatureCorrection = 1;
 
@@ -190,7 +113,7 @@ float RichCharge::TemperatureCorrection(int pmt) {
 }
 
 
-bool RichCharge::initPMTs() {
+bool RichPMTCalib::initPMTs() {
 
   bool initPMTs = false;
   int pmt, npmt;
@@ -202,10 +125,10 @@ bool RichCharge::initPMTs() {
   //
   // Gain Temperature Corrections (Computed on PeriodA...should be validated for others)
   PmtCorrectionsFileName = DBDir + TString("DefaultGainTemp.txt");
-  cout << "RichCharge::initPMTs: Open PMT Gain Temperature Corrections File " << PmtCorrectionsFileName << endl;
+  cout << "RichPMTCalib::initPMTs: Open PMT Gain Temperature Corrections File " << PmtCorrectionsFileName << endl;
   PmtCorrectionsFile.open(PmtCorrectionsFileName);
   if (!PmtCorrectionsFile.good()) {
-    cout << "RichCharge::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
     return initPMTs;
   }
 
@@ -220,7 +143,7 @@ bool RichCharge::initPMTs() {
       if (dGdT<0) v_pmt_dGdT[pmt] = dGdT;
     }
     else {
-      cout << "RichCharge::initPMTs: Error in " << PmtCorrectionsFileName 
+      cout << "RichPMTCalib::initPMTs: Error in " << PmtCorrectionsFileName 
 	   << ". pmt: " << pmt << " dGdT: " << dGdT << endl;
       return initPMTs;
     }
@@ -229,19 +152,19 @@ bool RichCharge::initPMTs() {
 
   PmtCorrectionsFile.close();
 
-  cout << "RichCharge::initPMTs: Number of PMT Gain Temperature Corrections Read : " << npmt << endl;
+  cout << "RichPMTCalib::initPMTs: Number of PMT Gain Temperature Corrections Read : " << npmt << endl;
   if (npmt != NPMT) {
-    cout << "RichCharge::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
+    cout << "RichPMTCalib::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
     return initPMTs;
   }
 
   //
   // Efficiency & Gain Corrections (Computed on PeriodB...should be validated for others)
   PmtCorrectionsFileName = DBDir + TString("DefaultEffGain.txt");
-  cout << "RichCharge::initPMTs: Open PMT Eff & Gain Corrections File " << PmtCorrectionsFileName << endl;
+  cout << "RichPMTCalib::initPMTs: Open PMT Eff & Gain Corrections File " << PmtCorrectionsFileName << endl;
   PmtCorrectionsFile.open(PmtCorrectionsFileName);
   if (!PmtCorrectionsFile.good()) {
-    cout << "RichCharge::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
     return initPMTs;
   }
 
@@ -263,7 +186,7 @@ bool RichCharge::initPMTs() {
       //cout << v_pmt_ecor[pmt] << " " << v_pmt_gcor[pmt] << " " << v_pmt_gmcor[pmt] << " " << v_pmt_temp_ref[pmt] << endl;
     }
     else {
-      cout << "RichCharge::initPMTs: Error in " << PmtCorrectionsFileName 
+      cout << "RichPMTCalib::initPMTs: Error in " << PmtCorrectionsFileName 
 	   << ". pmt: " << pmt << " eCor: " << eCor << " gCor: " << gCor << " gmCor: " << gmCor << endl;
       return initPMTs;
     }
@@ -272,9 +195,9 @@ bool RichCharge::initPMTs() {
 
   PmtCorrectionsFile.close();
 
-  cout << "RichCharge::initPMTs: Number of PMT Eff & Gain Corrections Read : " << npmt << endl;
+  cout << "RichPMTCalib::initPMTs: Number of PMT Eff & Gain Corrections Read : " << npmt << endl;
   if (npmt != NPMT) {
-    cout << "RichCharge::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
+    cout << "RichPMTCalib::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
     return initPMTs;
   }
 
@@ -285,9 +208,9 @@ bool RichCharge::initPMTs() {
 
   if (DEBUG)
   {
-    cout << "RichCharge::initPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
+    cout << "RichPMTCalib::initPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
     for (int i=0; i<BadPMTs.size(); i++) 
-      cout << "RichCharge::initPMTs :  " << i << " : " << BadPMTs[i] << endl;
+      cout << "RichPMTCalib::initPMTs :  " << i << " : " << BadPMTs[i] << endl;
   }
 
   initPMTs = true;
@@ -296,7 +219,7 @@ bool RichCharge::initPMTs() {
 }
 
 
-void RichCharge::initBadPMTs() {
+void RichPMTCalib::initBadPMTs() {
 
   // List of BadPMTs ( should be extended to pmt, begin_time, end_time)
   int badpmts[] = {
@@ -332,16 +255,16 @@ void RichCharge::initBadPMTs() {
 
   if (DEBUG)
   {
-    cout << "RichCharge::initBadPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
+    cout << "RichPMTCalib::initBadPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
     for (int i=0; i<BadPMTs.size(); i++) 
-      cout << "RichCharge::initBadPMTs :  " << i << " : " << BadPMTs[i] << endl;
+      cout << "RichPMTCalib::initBadPMTs :  " << i << " : " << BadPMTs[i] << endl;
   }
 
 }
 
 
 
-bool RichCharge::checkRichPmtTemperatures() {
+bool RichPMTCalib::checkRichPmtTemperatures() {
 
   int dts, id, pos, pmt, brick, grid, utime, age;
   float x, y, temp;
@@ -379,10 +302,10 @@ bool RichCharge::checkRichPmtTemperatures() {
 
     // DTS Positions
     DtsPositionsFileName = DBDir + TString("PmtPlaneDtsPositions.0.txt");
-    cout << "RichCharge::checkRichPmtTemperatures: Open DTS Positions File " << DtsPositionsFileName << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Open DTS Positions File " << DtsPositionsFileName << endl;
     ifstream DtsPositionsFile(DtsPositionsFileName);
     if (!DtsPositionsFile.good()) {
-      cout << "RichCharge::checkRichPmtTemperatures: Problems Opening " << DtsPositionsFileName << endl;
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Problems Opening " << DtsPositionsFileName << endl;
       return checkRichPmtTemperatures;
     }
 
@@ -399,7 +322,7 @@ bool RichCharge::checkRichPmtTemperatures() {
 	v_dts_y[dts] = y;
       }
       else {
-	cout << "RichCharge::checkRichPmtTemperatures: Error in DTS Positions File. " 
+	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in DTS Positions File. " 
 	     << "dts: " << dts << " id: " << id << " pos: " << pos << " x: " << x << " y: " << y << endl;
 	return checkRichPmtTemperatures;
       }
@@ -408,18 +331,18 @@ bool RichCharge::checkRichPmtTemperatures() {
 
     DtsPositionsFile.close();
 
-    cout << "RichCharge::checkRichPmtTemperatures: Number of DTS Positions Read : " << ndts << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Number of DTS Positions Read : " << ndts << endl;
     if (ndts != NDTS) {
-      cout << "RichCharge::checkRichPmtTemperatures: Error Expected DTS Positions : " << NDTS << endl;
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Error Expected DTS Positions : " << NDTS << endl;
       return checkRichPmtTemperatures;
     }
 
     // PMT Positions
     PmtPositionsFileName = DBDir + TString("PmtPositions.txt");
-    cout << "RichCharge::checkRichPmtTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
     ifstream PmtPositionsFile(PmtPositionsFileName);
     if (!PmtPositionsFile.good()) {
-      cout << "RichCharge::checkRichPmtTemperatures: Problems Opening " << PmtPositionsFileName << endl;
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Problems Opening " << PmtPositionsFileName << endl;
       return checkRichPmtTemperatures;
     }
 
@@ -438,7 +361,7 @@ bool RichCharge::checkRichPmtTemperatures() {
 	v_pmt_y[pmt] = y;
       }
       else {
-	cout << "RichCharge::checkRichPmtTemperatures: Error in PMT Positions File. " 
+	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in PMT Positions File. " 
 	     << "pmt: " << pmt << " brick : " << brick << " grid : " << grid
 	     << " x: " << x << " y: " << y << endl;
 	return checkRichPmtTemperatures;
@@ -448,9 +371,9 @@ bool RichCharge::checkRichPmtTemperatures() {
 
     PmtPositionsFile.close();
 
-    cout << "RichCharge::checkRichPmtTemperatures: Number of PMT Positions Read : " << npmt << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Number of PMT Positions Read : " << npmt << endl;
     if (npmt != NPMT) {
-      cout << "RichCharge::checkRichPmtTemperatures: Error Expected PMT Positions : " << NPMT << endl;
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Error Expected PMT Positions : " << NPMT << endl;
       return checkRichPmtTemperatures;
     }
 
@@ -475,17 +398,17 @@ bool RichCharge::checkRichPmtTemperatures() {
 
       if (dts>=0) v_pmt_dts[i] = dts; 
       else {
-	cout << "RichCharge::checkRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << i << endl;
+	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << i << endl;
 	return checkRichPmtTemperatures;
       }
     }
 
     // DTS Temperatures - File size still affordable ...
     TemperaturesFileName = DBDir + TString("PmtPlaneTemperatures.0.txt");
-    cout << "RichCharge::checkRichPmtTemperatures: Open DTS Temperatures File " << TemperaturesFileName << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Open DTS Temperatures File " << TemperaturesFileName << endl;
     ifstream TemperaturesFile(TemperaturesFileName);
     if (!TemperaturesFile.good()) {
-      cout << "RichCharge::checkRichPmtTemperatures: Problems Opening " << TemperaturesFileName << endl;
+      cout << "RichPMTCalib::checkRichPmtTemperatures: Problems Opening " << TemperaturesFileName << endl;
       return checkRichPmtTemperatures;
     }
 
@@ -499,7 +422,7 @@ bool RichCharge::checkRichPmtTemperatures() {
 
 	if (dts<NDTS) v_temp[dts].push_back(temp);
 	else {
-	cout << "RichCharge::checkRichPmtTemperatures: Error in DTS Temperatures File. " 
+	cout << "RichPMTCalib::checkRichPmtTemperatures: Error in DTS Temperatures File. " 
 	     << "utime: " << utime << " dts: " << dts << " temp: " << temp << " age: " << age << endl;
 	  return checkRichPmtTemperatures;
 	}
@@ -510,7 +433,7 @@ bool RichCharge::checkRichPmtTemperatures() {
 
     TemperaturesFile.close();
 
-    cout << "RichCharge::checkRichPmtTemperatures: Number of Temperature Records Read : " << v_utime.size() << endl;
+    cout << "RichPMTCalib::checkRichPmtTemperatures: Number of Temperature Records Read : " << v_utime.size() << endl;
     if (!v_utime.size()) 
       return checkRichPmtTemperatures;
 
@@ -545,7 +468,7 @@ bool RichCharge::checkRichPmtTemperatures() {
   }
 
   if (last_rec != prev_rec) {
-    cout << "RichCharge::checkRichPmtTemperatures: NewRecord found for time " << utime 
+    cout << "RichPMTCalib::checkRichPmtTemperatures: NewRecord found for time " << utime 
          << ". Record Utime " << v_utime[last_rec]
 	 << " Temp[ 0] " << v_temp[ 0][last_rec] << " Temp[ 9] " << v_temp[ 9][last_rec] 
 	 << " Temp[12] " << v_temp[12][last_rec] << " Temp[21] " << v_temp[21][last_rec] 
@@ -560,9 +483,9 @@ bool RichCharge::checkRichPmtTemperatures() {
       dts = v_pmt_dts[pmt];
       v_pmt_temp[pmt] = v_temp[dts][last_rec];
       if (DEBUG)
-	cout << "RichCharge::checkRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
+	cout << "RichPMTCalib::checkRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
       if (v_pmt_temp[pmt]<pmtMinTemperature || v_pmt_temp[pmt]>pmtMaxTemperature) 
-	cout << "RichCharge::checkRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
+	cout << "RichPMTCalib::checkRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
     }
   }
   else v_pmt_temp.assign(NPMT, pmtRefTemperature); // Default
@@ -574,7 +497,7 @@ bool RichCharge::checkRichPmtTemperatures() {
 }
 
 
-bool RichCharge::getRichPmtTemperatures() {
+bool RichPMTCalib::getRichPmtTemperatures() {
 
   int dts, id, pos, pmt, brick, grid, utime, rc;
   float x, y, dx, dy, d2;
@@ -620,10 +543,10 @@ bool RichCharge::getRichPmtTemperatures() {
 
     // DTS Positions
     DtsPositionsFileName = DBDir + TString("PmtPlaneDtsPositions.txt");
-    cout << "RichCharge::getRichPmtTemperatures: Open DTS File " << DtsPositionsFileName << endl;
+    cout << "RichPMTCalib::getRichPmtTemperatures: Open DTS File " << DtsPositionsFileName << endl;
     ifstream DtsPositionsFile(DtsPositionsFileName);
     if (!DtsPositionsFile.good()) {
-      cout << "RichCharge::getRichPmtTemperatures: Problems Opening " << DtsPositionsFileName << endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: Problems Opening " << DtsPositionsFileName << endl;
       return RichPmtTemperatures;
     }
 
@@ -647,7 +570,7 @@ bool RichCharge::getRichPmtTemperatures() {
 	//     << " " << v_dts_el[dts] << " " << v_dts_nn[dts] << endl;
       }
       else {
-	cout << "RichCharge::getRichPmtTemperatures: Error in DTS File. " 
+	cout << "RichPMTCalib::getRichPmtTemperatures: Error in DTS File. " 
 	     << "dts: " << dts << " id: " << id 
 	     << " pos: " << pos << " x: " << x << " y: " << y 
 	     << " element:  " << element << " node: " << node << endl;
@@ -658,18 +581,18 @@ bool RichCharge::getRichPmtTemperatures() {
 
     DtsPositionsFile.close();
 
-    cout << "RichCharge::getRichPmtTemperatures: Number of DTS Positions Read : " << ndts << endl;
+    cout << "RichPMTCalib::getRichPmtTemperatures: Number of DTS Positions Read : " << ndts << endl;
     if (ndts != NDTS) {
-      cout << "RichCharge::getRichPmtTemperatures: Error Expected DTS Positions : " << NDTS << endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: Error Expected DTS Positions : " << NDTS << endl;
       return RichPmtTemperatures;
     }
 
     // PMT Positions
     PmtPositionsFileName = DBDir + TString("PmtPositions.txt");
-    cout << "RichCharge::getRichPmtTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
+    cout << "RichPMTCalib::getRichPmtTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
     ifstream PmtPositionsFile(PmtPositionsFileName);
     if (!PmtPositionsFile.good()) {
-      cout << "RichCharge::getRichPmtTemperatures: Problems Opening " << PmtPositionsFileName << endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: Problems Opening " << PmtPositionsFileName << endl;
       return RichPmtTemperatures;
     }
 
@@ -690,7 +613,7 @@ bool RichCharge::getRichPmtTemperatures() {
 	//     << " X " << v_pmt_x[pmt] << " Y " << v_pmt_y[pmt] << endl; 
       }
       else {
-	cout << "RichCharge::getRichPmtTemperatures: Error in PMT Positions File. " 
+	cout << "RichPMTCalib::getRichPmtTemperatures: Error in PMT Positions File. " 
 	     << "pmt: " << pmt << " brick : " << brick << " grid : " << grid
 	     << " x: " << x << " y: " << y << endl;
 	return RichPmtTemperatures;
@@ -700,9 +623,9 @@ bool RichCharge::getRichPmtTemperatures() {
 
     PmtPositionsFile.close();
 
-    cout << "RichCharge::getRichPmtTemperatures: Number of PMT Positions Read : " << npmt << endl;
+    cout << "RichPMTCalib::getRichPmtTemperatures: Number of PMT Positions Read : " << npmt << endl;
     if (npmt != NPMT) {
-      cout << "RichCharge::getRichPmtTemperatures: Error Expected PMT Positions : " << NPMT << endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: Error Expected PMT Positions : " << NPMT << endl;
       return RichPmtTemperatures;
     }
 
@@ -718,7 +641,7 @@ bool RichCharge::getRichPmtTemperatures() {
 	}
       }
       if (!m_pmt_d2_dts[pmt].size()) {
-	cout << "RichCharge::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
+	cout << "RichPMTCalib::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
 	return RichPmtTemperatures;
       }
       //for (it=m_pmt_d2_dts[pmt].begin(); it!=m_pmt_d2_dts[pmt].end(); it++)
@@ -759,7 +682,7 @@ bool RichCharge::getRichPmtTemperatures() {
     }
     if (v_pmt_temp[pmt]==HUGE_VALF) {
       if (v_pmt_rep[pmt]++ < MAX_REP) 
-	cout << "RichCharge::getRichPmtTemperatures: "
+	cout << "RichPMTCalib::getRichPmtTemperatures: "
 	     << " Run "   << AMSEventR::Head()->fHeader.Run 
 	     << " Event " << AMSEventR::Head()->fHeader.Event 
 	     << " NoValidTempFoundForPMT " << pmt 
@@ -768,9 +691,9 @@ bool RichCharge::getRichPmtTemperatures() {
       RichPmtTemperatures = false;
     }
     if (DEBUG)
-      cout << "RichCharge::getRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" <<  endl;
     if (v_pmt_temp[pmt]<pmtMinTemperature || v_pmt_temp[pmt]>pmtMaxTemperature) 
-      cout << "RichCharge::getRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
+      cout << "RichPMTCalib::getRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
   }
 
   return RichPmtTemperatures;
@@ -778,7 +701,7 @@ bool RichCharge::getRichPmtTemperatures() {
 }
 
 
-bool RichCharge::getRichBrickTemperatures() {
+bool RichPMTCalib::getRichBrickTemperatures() {
 
   int dts, id, pos, pmt, brick, grid, utime, rc;
   float x, y, dx, dy, d2;
@@ -822,10 +745,10 @@ bool RichCharge::getRichBrickTemperatures() {
 
     // DTS Brick
     DtsPositionsFileName = DBDir + TString("HVBrickDtsPositions.txt");
-    cout << "RichCharge::getRichBrickTemperatures: Open DTS File " << DtsPositionsFileName << endl;
+    cout << "RichPMTCalib::getRichBrickTemperatures: Open DTS File " << DtsPositionsFileName << endl;
     ifstream DtsPositionsFile(DtsPositionsFileName);
     if (!DtsPositionsFile.good()) {
-      cout << "RichCharge::getRichBrickTemperatures: Problems Opening " << DtsPositionsFileName << endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: Problems Opening " << DtsPositionsFileName << endl;
       return RichBrickTemperatures;
     }
 
@@ -844,7 +767,7 @@ bool RichCharge::getRichBrickTemperatures() {
 	//     << " " << v_dts_el[dts] << " " << v_dts_nn[dts] << endl;
       }
       else {
-	cout << "RichCharge::getRichBrickTemperatures: Error in DTS File. " 
+	cout << "RichPMTCalib::getRichBrickTemperatures: Error in DTS File. " 
 	     << "dts: " << dts << " brick: " << brick
 	     << " element:  " << element << " node: " << node << endl;
 	return RichBrickTemperatures;
@@ -854,18 +777,18 @@ bool RichCharge::getRichBrickTemperatures() {
 
     DtsPositionsFile.close();
 
-    cout << "RichCharge::getRichBrickTemperatures: Number of DTS Positions Read : " << ndts << endl;
+    cout << "RichPMTCalib::getRichBrickTemperatures: Number of DTS Positions Read : " << ndts << endl;
     if (ndts != NDTS) {
-      cout << "RichCharge::getRichBrickTemperatures: Error Expected DTS Positions : " << NDTS << endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: Error Expected DTS Positions : " << NDTS << endl;
       return RichBrickTemperatures;
     }
 
     // PMT Positions
     PmtPositionsFileName = DBDir + TString("PmtPositions.txt");
-    cout << "RichCharge::getRichBrickTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
+    cout << "RichPMTCalib::getRichBrickTemperatures: Open PMT Positions File " << PmtPositionsFileName << endl;
     ifstream PmtPositionsFile(PmtPositionsFileName);
     if (!PmtPositionsFile.good()) {
-      cout << "RichCharge::getRichBrickTemperatures: Problems Opening " << PmtPositionsFileName << endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: Problems Opening " << PmtPositionsFileName << endl;
       return RichBrickTemperatures;
     }
 
@@ -886,7 +809,7 @@ bool RichCharge::getRichBrickTemperatures() {
 	//     << " X " << v_pmt_x[pmt] << " Y " << v_pmt_y[pmt] << endl; 
       }
       else {
-	cout << "RichCharge::getRichBrickTemperatures: Error in PMT Positions File. " 
+	cout << "RichPMTCalib::getRichBrickTemperatures: Error in PMT Positions File. " 
 	     << "pmt: " << pmt << " brick : " << brick << " grid : " << grid 
 	     << " x: " << x << " y: " << y << endl;
 	return RichBrickTemperatures;
@@ -896,9 +819,9 @@ bool RichCharge::getRichBrickTemperatures() {
 
     PmtPositionsFile.close();
 
-    cout << "RichCharge::getRichBrickTemperatures: Number of PMT Positions Read : " << npmt << endl;
+    cout << "RichPMTCalib::getRichBrickTemperatures: Number of PMT Positions Read : " << npmt << endl;
     if (npmt != NPMT) {
-      cout << "RichCharge::getRichBrickTemperatures: Error Expected PMT Positions : " << NPMT << endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: Error Expected PMT Positions : " << NPMT << endl;
       return RichBrickTemperatures;
     }
 
@@ -910,7 +833,7 @@ bool RichCharge::getRichBrickTemperatures() {
 	  m_pmt_d2_dts[pmt].insert( pair<float,int>(1,dts) );
       }
       if (!m_pmt_d2_dts[pmt].size()) {
-	cout << "RichCharge::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
+	cout << "RichPMTCalib::getRichPmtTemperatures: Error in PMT-DST Mapping : PMT " << pmt << endl;
 	return RichBrickTemperatures;
       }
       //for (it=m_pmt_d2_dts[pmt].begin(); it!=m_pmt_d2_dts[pmt].end(); it++)
@@ -955,7 +878,7 @@ bool RichCharge::getRichBrickTemperatures() {
     if (n) v_brick_temp[pmt] = sum/n; 
     if (v_brick_temp[pmt]==HUGE_VALF) {
       if (v_pmt_rep[pmt]++ < MAX_REP) 
-	cout << "RichCharge::getRichBrickTemperatures: "
+	cout << "RichPMTCalib::getRichBrickTemperatures: "
 	     << " Run "   << AMSEventR::Head()->fHeader.Run 
 	     << " Event " << AMSEventR::Head()->fHeader.Event 
 	     << " NoValidTempFoundForPMT " << pmt 
@@ -964,9 +887,9 @@ bool RichCharge::getRichBrickTemperatures() {
       RichBrickTemperatures = false;
     }
     if (DEBUG)
-      cout << "RichCharge::getRichBrickTemperatures: PMT " << pmt << " (T=" << v_brick_temp[pmt] << ")" <<  endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: PMT " << pmt << " (T=" << v_brick_temp[pmt] << ")" <<  endl;
     if (v_brick_temp[pmt]<brickMinTemperature || v_brick_temp[pmt]>brickMaxTemperature) 
-      cout << "RichCharge::getRichBrickTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_brick_temp[pmt] << ")" << endl;
+      cout << "RichPMTCalib::getRichBrickTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_brick_temp[pmt] << ")" << endl;
   }
 
   return RichBrickTemperatures;
@@ -974,7 +897,7 @@ bool RichCharge::getRichBrickTemperatures() {
 }
 
 
-unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_stat, vector<unsigned short> &v_pmt_volt) {
+unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt_stat, vector<unsigned short> &v_pmt_volt) {
 
   /////////////////////////////////////
   //
@@ -1067,11 +990,11 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
       m_tag[tag].clear();
 
       RunTagFileName = TAGDir + TString(fName[tag]);
-      cout << "RichCharge::CheckRichRun: Open File " << RunTagFileName << endl;
+      cout << "RichPMTCalib::CheckRichRun: Open File " << RunTagFileName << endl;
 
       ifstream RunTagFile(RunTagFileName);
       if (!RunTagFile.good()) {
-	cout << "RichCharge::CheckRichRun: Problems Opening " << RunTagFileName << endl;
+	cout << "RichPMTCalib::CheckRichRun: Problems Opening " << RunTagFileName << endl;
 	return richRunTag;
       }
 
@@ -1085,7 +1008,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 
       RunTagFile.close();
 
-      cout << "RichCharge::CheckRichRun: Number of Entries Read : " << m_tag[tag].size() << endl;
+      cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag].size() << endl;
       //for (it=m_tag[tag].begin(); it!=m_tag[tag].end(); it++)
       //cout << it->first << " : " << it->second << endl;
 
@@ -1096,11 +1019,11 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 
     TString HVBrickMapFileName;
     HVBrickMapFileName = TAGDir + TString("HVBrickMap.txt");
-    cout << "RichCharge::CheckRichRun: Open File " << HVBrickMapFileName << endl;
+    cout << "RichPMTCalib::CheckRichRun: Open File " << HVBrickMapFileName << endl;
 
     ifstream HVBrickMapFile(HVBrickMapFileName);
     if (!HVBrickMapFile.good()) {
-      cout << "RichCharge::CheckRichRun: Problems Opening " << HVBrickMapFileName << endl;
+      cout << "RichPMTCalib::CheckRichRun: Problems Opening " << HVBrickMapFileName << endl;
       return richRunTag;
     }
 
@@ -1126,9 +1049,9 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 
     HVBrickMapFile.close();
 
-    cout << "RichCharge::CheckRichRun: Number of Entries Read : " << nbside << endl;
+    cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << nbside << endl;
     if (nbside != NSIDE*NBRICK) {
-      cout << "RichCharge::CheckRichRun: Error Expected HVBrick Records : " << NSIDE*NBRICK << endl;
+      cout << "RichPMTCalib::CheckRichRun: Error Expected HVBrick Records : " << NSIDE*NBRICK << endl;
       return richRunTag;
     }
 
@@ -1168,7 +1091,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
     case kTagJ:
       it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay)
-	cout << "RichCharge::CheckRichRun : CNF-J-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
+	cout << "RichPMTCalib::CheckRichRun : CNF-J-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
       else {
 	richRunTag ^= (1<<kTagJ);
         RichDecodeJ(it->second, v_brick_fgin, v_pmt_stat, v_pmt_volt);
@@ -1177,7 +1100,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 
     case kTagJHK:
       if (it->first-run<0 || it->first-run>MaxRunSpan)
-	//cout << "RichCharge::CheckRichRun : HKD-J-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
+	//cout << "RichPMTCalib::CheckRichRun : HKD-J-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
 	break;
       else {
 	richRunTag ^= (1<<kTagJHK);
@@ -1188,7 +1111,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
     case kTagR:
       it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay)
-	cout << "RichCharge::CheckRichRun : CNF-R-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
+	cout << "RichPMTCalib::CheckRichRun : CNF-R-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
       else {
 	richRunTag ^= (1<<kTagR);
 	RichDecodeR(it->second, v_pmt_stat);
@@ -1197,7 +1120,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 
     case kTagRHK:
       if (it->first-run<0 || it->first-run>MaxRunSpan)
-	//cout << "RichCharge::CheckRichRun : HKD-R-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
+	//cout << "RichPMTCalib::CheckRichRun : HKD-R-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
 	break;
       else {
 	richRunTag ^= (1<<kTagRHK);
@@ -1211,7 +1134,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
   // Occupancy based bits should be set here
 
   if (DEBUG) {
-    cout << "RichCharge::CheckRichRun : richRunTag ";
+    cout << "RichPMTCalib::CheckRichRun : richRunTag ";
     bin(richRunTag, cout);
     cout << endl;
     for (int pmt=0; pmt<NPMT; pmt++) {
@@ -1231,7 +1154,7 @@ unsigned short RichCharge::CheckRichRun(int run, vector<unsigned short> &v_pmt_s
 }
 
 
-void RichCharge::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
+void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
 			     vector<unsigned short>& v_pmt_stat,
 			     vector<unsigned short>& v_pmt_volt) {
 
@@ -1280,7 +1203,7 @@ void RichCharge::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
 }
 
 
-void RichCharge::RichDecodeJHK(string sline, vector<int> v_brick_busa[], vector<int> v_brick_busb[], 
+void RichPMTCalib::RichDecodeJHK(string sline, vector<int> v_brick_busa[], vector<int> v_brick_busb[], 
 			       vector<unsigned short>& v_pmt_stat) {
 
   istringstream ssline(sline);
@@ -1320,7 +1243,7 @@ void RichCharge::RichDecodeJHK(string sline, vector<int> v_brick_busa[], vector<
 }
 
 
-void RichCharge::RichDecodeR(string sline,
+void RichPMTCalib::RichDecodeR(string sline,
 			     vector<unsigned short>& v_pmt_stat) {
 
   istringstream ssline(sline);
@@ -1344,7 +1267,7 @@ void RichCharge::RichDecodeR(string sline,
 }
 
 
-void RichCharge::RichDecodeRHK(string sline,
+void RichPMTCalib::RichDecodeRHK(string sline,
 			       vector<unsigned short>& v_pmt_stat) {
 
   istringstream ssline(sline);
@@ -1365,7 +1288,7 @@ void RichCharge::RichDecodeRHK(string sline,
 }
 
 
-bool RichCharge::ReadPmtDB() {
+bool RichPMTCalib::ReadPmtDB() {
 
   int pmt;
   unsigned short rdr, brick, hvchn, vnom;
@@ -1383,10 +1306,10 @@ bool RichCharge::ReadPmtDB() {
     TString PmtDBFileName;
 
     PmtDBFileName = DBDir + TString("RichPmtDB.txt");
-    cout << "RichCharge::ReadPmtDB: Open DB File " << PmtDBFileName << endl;
+    cout << "RichPMTCalib::ReadPmtDB: Open DB File " << PmtDBFileName << endl;
     ifstream PmtDBFile(PmtDBFileName);
     if (!PmtDBFile.good()) {
-      cout << "RichCharge::ReadPmtDB: Problems Opening " << PmtDBFileName << endl;
+      cout << "RichPMTCalib::ReadPmtDB: Problems Opening " << PmtDBFileName << endl;
       return readPmtDB;
     }
 
@@ -1405,7 +1328,7 @@ bool RichCharge::ReadPmtDB() {
         v_pmt_vnom[pmt] = vnom;
       } 
       else {
-        cout << "RichCharge::ReadPmtDB: Error in PMT DB File. "
+        cout << "RichPMTCalib::ReadPmtDB: Error in PMT DB File. "
              << "pmt: " << pmt << " brick: " << brick << " hvchn: " << hvchn << " vnom: " << vnom << endl;
         return readPmtDB;
       }
@@ -1414,9 +1337,9 @@ bool RichCharge::ReadPmtDB() {
 
     PmtDBFile.close();
 
-    cout << "RichCharge::ReadPmtDB: Number of PMT Records Read : " << npmt << endl;
+    cout << "RichPMTCalib::ReadPmtDB: Number of PMT Records Read : " << npmt << endl;
     if (npmt != NPMT) {
-      cout << "RichCharge::ReadPmtDB: Error Expected PMT Records : " << NPMT << endl;
+      cout << "RichPMTCalib::ReadPmtDB: Error Expected PMT Records : " << NPMT << endl;
       return readPmtDB;
     }
 

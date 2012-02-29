@@ -1,7 +1,7 @@
 #ifndef __RICHCHARGE__
 #define __RICHCHARGE__
 /**********************************************************
-Implementatation of the analysis routines themselves
+Implementation of tools for rich charge 
  **********************************************************/
 
 #include <vector>
@@ -27,7 +27,7 @@ std::ostream& bin(T& value, std::ostream &o) {
   return o;
 }
 
-namespace RichChargeConstants{
+namespace RichPMTCalibConstants{
   const int DEBUG = false;
   const int NPMT = 680;
   const int NRDR = 24;
@@ -45,16 +45,17 @@ namespace RichChargeConstants{
   const int NewTrackAMSVersion = 565; // First Production Version w/ new TrTrack 
 }
 
-class RichCharge{
+class RichPMTCalib{
  private:
-  RichCharge(){};
-  ~RichCharge(){};
-  static RichCharge *_header;     // This is used to make it singleton
+  RichPMTCalib(){};
+  ~RichPMTCalib(){};
+  static RichPMTCalib *_header;     // This is used to make it singleton
 #pragma omp threadprivate(_header)
  public:
-  static RichCharge* getHead(){return _header;};
+  static RichPMTCalib* getHead(){return _header;};
   static TString currentDir;
   static bool Init(TString dir="."); // Start the singleton or modify it
+  static RichPMTCalib* Update();
 
   // Configuration settings
   static bool useRichRunTag;
@@ -108,14 +109,6 @@ class RichCharge{
   bool init();
   bool retrieve(int);
 
-  /*
-  float  correctedNpExp(RichRingR *);
-  float  correctedNpExp(::RichRing *);
-  float  correctedNpCol(RichRingR *);
-  float  correctedNpCol(::RichRing *);
-  int    correctedUsed(RichRingR *);
-  int    correctedUsed(::RichRing *);
-  */
   float  EfficiencyCorrection(int );
   float  GainCorrection(int );
   float  TemperatureCorrection(int );

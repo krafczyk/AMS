@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.361 2012/02/24 13:59:05 mdelgado Exp $
+//  $Id: root.C,v 1.362 2012/02/29 10:50:18 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4507,10 +4507,17 @@ bool RichRingR::buildChargeCorrections(){
 
 
   // If it is data, check that the required tools are OK
-  if(!RichCharge::getHead() &&!RichCharge::Init(correctionsDir)) return false;
+  RichPMTCalib::currentDir=correctionsDir;
+  RichPMTCalib *corr=RichPMTCalib::Update();
+  if(!corr) return false;
 
-  RichCharge *corr=RichCharge::getHead();
+
+  /*
+  if(!RichPMTCalib::getHead() &&!RichPMTCalib::Init(correctionsDir)) return false;
+  RichPMTCalib *corr=RichPMTCalib::getHead();
   if(!corr->retrieve(AMSEventR::Head()->fHeader.Run)) return false;
+  */
+
 
   // Correct the collected 
   for(map<unsigned short,float>::iterator it=NpColPMT.begin();
