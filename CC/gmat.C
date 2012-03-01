@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.116 2011/12/01 17:01:36 pzuccon Exp $
+//  $Id: gmat.C,v 1.117 2012/03/01 17:00:08 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -892,7 +892,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
       index[iw]=1;
     }
     pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
-    rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+    //    rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
 // LG mirrors
@@ -967,14 +967,14 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // transparent vaccum
-
+/*
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e10;
       index[iw]=1;
     }
   rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);  
-
+*/
 }
 //---------------
 //  ECAL media

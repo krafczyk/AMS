@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.51 2011/06/13 08:56:03 mdelgado Exp $
+//  $Id: richgeom.C,v 1.52 2012/03/01 17:00:09 mdelgado Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -47,14 +47,7 @@ using namespace amsgeom;
 #define _MANY_ "MANY"
 #endif
 
-// HOW CAN THE VMC WORK USING AN OPTICAL PHOTON ABSORBER WHEN A TRANPARENT ONE IS NEEDED?
-// MAYBE THIS EXPLAINS THE DIFFERENCE IN THE NUMBER OF HITS SEEN IN THE VMC. I KEEP THIS TO BE
-// UNDERSTOOD BY VMC IMPLEMENTORS
-#ifdef __AMSVMC__
 #define _VACUUM_ "RICH VACUUM"
-#else
-#define _VACUUM_ "VACUUM"
-#endif
 
 
 void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int tile)
