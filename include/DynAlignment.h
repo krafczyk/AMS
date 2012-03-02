@@ -233,7 +233,7 @@ class DynAlFitContainer:public TObject{
   int GetId(TrRecHitR &hit);
   static int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
   
-  void BuildLocalAlignment(DynAlHistory &history);
+  void BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors=0);
   void BuildAlignment(TString dir,TString prefix,int run);
 
   void DumpLocalAlignment();

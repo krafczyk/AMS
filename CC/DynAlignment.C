@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.38 2012/02/22 11:47:50 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.39 2012/03/02 12:38:00 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1396,7 +1396,7 @@ void DynAlFitContainer::Eval(AMSEventR &ev,TrRecHitR &hit,double &x,double &y,do
   fit.ApplyAlignment(seconds,museconds,x,y,z);
 }
 
-void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
+void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors){
   // Compute the local alignment nfirst
   const long timeStep=5; // seconds
   DynAlFit fit(DynAlContinuity::FitOrder);
@@ -1471,6 +1471,13 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history){
     ladFit.MinBeta=DynAlContinuity::BetaCut;
     if(ladFit.ForceFit(i->second,0,i->second.Size()-1,excluded)){
       LocalFitParameters[i->first]=DynAlFitParameters(ladFit);
+      if(errors){
+	map<Int_t,Double_t > &rep=*errors;
+	// Get the errors from the fit 
+	TVectorD e;
+	ladFit.Fit.GetErrors(e);
+	for(int k=0;k<6;k++) rep[(i->first)*10+k]=e[k];
+      }
     }
   }
   ApplyLocalAlignment=true;
