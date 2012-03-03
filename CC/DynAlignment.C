@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.39 2012/03/02 12:38:00 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.40 2012/03/03 23:51:01 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1063,7 +1063,7 @@ DynAlFitParameters::DynAlFitParameters(DynAlFit &fit){
 }
 
 void DynAlFitParameters::ApplyAlignment(double &x,double &y,double &z){
-  ApplyAlignment(TOffset,0,x,y,z);
+  ApplyAlignment(int(TOffset),0,x,y,z);
 }
 
 void DynAlFitParameters::ApplyAlignment(int seconds,int museconds,double &x,double &y,double &z){
@@ -1796,7 +1796,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
   if(dir.Length()==0) dir=defaultDir;
   
 
-#define TDVUPDATE     {                                   \  
+#define TDVUPDATE     {                                   \
   if(UpdateWithTDV(time)){				  \
     dynAlFitContainers[1].Layer=1;			  \
     dynAlFitContainers[9].Layer=9;			  \
