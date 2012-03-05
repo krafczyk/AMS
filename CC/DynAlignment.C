@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.40 2012/03/03 23:51:01 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.41 2012/03/05 11:50:54 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1236,8 +1236,11 @@ DynAlFitContainer::DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9){
   int records=0;
   for(int i=0;i<tdvBuffer.records;i++){
     // Skip local alignment by the moment
-    if(tdvBuffer.Alignment[i][layer9?1:0].id!=-1) continue;
-    FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
+    if(tdvBuffer.Alignment[i][layer9?1:0].id>0) // Local alignment
+      LocalFitParameters[tdvBuffer.Alignment[i][layer9?1:0].id]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
+    
+    if(tdvBuffer.Alignment[i][layer9?1:0].id==-1) // Layer alignment
+      FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
     records++;
   }
   //  cout<<"DynAlFitContainer::DynAlFitContainer--Got "<<records<<" for layer "<<(layer9?9:1)<<endl; 
@@ -1716,7 +1719,7 @@ bool DynAlManager::UpdateWithTDV(int time){
 }
 
 
-bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME){
+bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME,DynAlFitContainer *local1=0,DynAlFitContainer *local9=0){
   // Get the file list
   void *dirp=gSystem->OpenDirectory(dir);
   if(!dirp) return false;
@@ -1743,6 +1746,10 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME){
       cout<<"ERROR-- file "<<Form("%s/%s",dir.Data(),name)<<" is truncated"<<endl;
       continue;
     }
+
+    if(local1) l1->LocalFitParameters=local1->LocalFitParameters;
+    if(local9) l9->LocalFitParameters=local9->LocalFitParameters;
+    
 
     // Get the time range
     int minkey=INT_MAX;
@@ -1771,6 +1778,31 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME){
       cout<<"Problem for "<<name<<endl;
 
     for(int key=minkey;key<=maxkey;key++){
+      if(!tdvBuffer.records)
+	// Add the local alignment information if necessary
+	if(l1->LocalFitParameters.size() || l9->LocalFitParameters.size()){
+	  tdvBuffer.records=max(l1->LocalFitParameters.size(),l9->LocalFitParameters.size());
+	  
+	  // First, fill with dummy entries
+	  for(int i=0;i<tdvBuffer.records;i++){
+	    tdvBuffer.Alignment[i][0].id=-11111;
+	    tdvBuffer.Alignment[i][1].id=-11111;
+	  }
+
+	  // Now, fill the local alignment for each one
+	  int counter=0;
+	  for(map<int,DynAlFitParameters>::iterator it=l1->LocalFitParameters.begin();
+	      it!=l1->LocalFitParameters.end();it++,counter++)
+	    it->second.dumpToLinearSpace(tdvBuffer.Alignment[counter][0],0,it->first);
+
+	  counter=0;
+	  for(map<int,DynAlFitParameters>::iterator it=l9->LocalFitParameters.begin();
+	      it!=l9->LocalFitParameters.end();it++,counter++)
+	    it->second.dumpToLinearSpace(tdvBuffer.Alignment[counter][1],0,it->first);
+
+	}
+      
+
       // Get the parameters
       DynAlFitParameters l1P;
       DynAlFitParameters l9P;

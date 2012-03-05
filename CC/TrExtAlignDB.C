@@ -5,6 +5,7 @@
 #include "tkdcards.h"
 #include "timeid.h"
 
+
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
@@ -123,7 +124,7 @@ return -5;
 }
 
 
-int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln){
+int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   if(DynAlManager::ignoreAlignment) return 0;
 
   if (!TkDBc::Head) {
@@ -170,6 +171,14 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln){
     // Set plane parameters
     pl->posA=pos;
     pl->rotA=rot;
+
+    int ladderId=layerJ[i]==1?lad1:lad9;
+    if(ladderId!=-1){
+      //      TrRecHitR &hit=*tr->GetHitLJ(layerJ[i]);
+      //      int ladderId=hit.GetLayerJ()+hit.GetSlotSide()*10+hit.lad()*100;
+    }
+
+
   }
   return 0;
 }

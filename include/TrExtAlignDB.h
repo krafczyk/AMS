@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.16 2012/01/17 18:52:56 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.17 2012/03/05 11:50:43 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -159,7 +159,7 @@ public:
   ///  return -14 if no alig info for lower plane 
   //   return 1 if alignment reset was done
  
-  static int UpdateTkDBcDyn(int run,uint time, int plane=3);
+  static int UpdateTkDBcDyn(int run,uint time, int plane=3,int lad1=-1,int lad9=-1);
 
   /// Fill up the TkDBc with the most up-to-date alignment pars for ext planes
   /// Takes the required information from AMSEventR
@@ -228,7 +228,7 @@ public:
   static long long GetDt(float rate);
 
 
-  ClassDef(TrExtAlignDB,2);
+  ClassDef(TrExtAlignDB,3);
 };
 
 void SLin2ExAlign();

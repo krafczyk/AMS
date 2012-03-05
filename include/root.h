@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.406 2012/02/24 13:59:06 mdelgado Exp $
+//  $Id: root.h,v 1.407 2012/03/05 11:50:41 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1271,6 +1271,19 @@ ClassDef(RichHitR,6)       // RichHitR
 
 
 class RichRingR {
+public:
+enum{noCorrection=0,tileCorrection,fullUniformityCorrection};
+static int shouldLoadCorrection; 
+/** @name Sets the initial correction to reconstrcuted beta.There are three possibilities foreseen, and only two implementes:
+ *   RichRingR::noCorrection - No initial information is loaded. The dynamic calibration can be used to update the refractive index on the tiles on the flight
+ *   RichRingR::tileCorrection - A default initial correction to the refractive indexes are loaded. These values can be subsequently corrected using the dynamic calibration, although it is not necessary. This is loaded by default.
+ *   RichRingR::fullUniformityCorrection -  A fine grained correction to the refractive index, which also takes into account the direction of the incident particle, is loaded. Further corrections using the dynamic calibration are not possible. (NOT YET IMPLEMENTED)    
+ */
+  ///@{
+  /// Sets the initial correction
+  ///\ param Modes:  RichRingR::noCorrection, RichRingR::tileCorrection, RichRing::fullUniformityCorrection 
+static void setBetaCorrection(int mode){shouldLoadCorrection=mode;}
+
 static bool _updateDynamicCalibration;
 static double _pThreshold;
 static int    _tileCalEvents;
@@ -1487,8 +1500,6 @@ public:
     return _Info;
   } 
 
-
-
   virtual ~RichRingR(){};
   ClassDef(RichRingR,25)           // RichRingR
 #pragma omp threadprivate(fgIsA)
@@ -1508,7 +1519,8 @@ class RichRingTables:public TObject{
   RichRingTables();
   static void Save(TString fileName);
   static bool Load(TString fileName);
-  ClassDef(RichRingTables,1)
+  ClassDef(RichRingTables,2)
+#pragma omp threadprivate(fgIsA)
 };
 
 

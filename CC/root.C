@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.362 2012/02/29 10:50:18 mdelgado Exp $
+//  $Id: root.C,v 1.363 2012/03/05 11:50:53 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1457,6 +1457,9 @@ int AMSEventR::_EntrySetup=-1;
 AMSEventR::MY_TLS_ITEM  AMSEventR::_RunSetup;
 char* AMSEventR::_Name="ev.";   
 
+// Calibration correction modes
+int RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
+
 // Dynamic calibration
 bool RichRingR::_updateDynamicCalibration=false;
 bool RichRingR::_isCalibrationEvent=false;
@@ -2196,6 +2199,21 @@ TrTrackFitR::InitMF(UTime());
 	ring->FillRichHits(i);
       }
     }
+
+    // Rich Default Correction Loading. Only once per run
+    if(fHeader.Run!=runo && !nMCEventg())
+#pragma omp critical(rd)
+      if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
+	RichRingR::shouldLoadCorrection=-1; // Done
+#ifndef _PGTRACK_
+	TString filename=Form("%s/v4.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
+#else
+	TString filename=Form("%s/v5.00/RichDefaultTileCorrection.root",getenv("AMSDataDir"));
+#endif
+	if(!RichRingTables::Load(filename)) cout<<"Problem loading "<<filename<<endl;
+	else cout<<"Rich Default Refractive Index correction loaded"<<endl; 
+      }
+
     // Rich Dynamic Calibration
     RichRingR::_isCalibrationEvent=false;
     if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
@@ -4775,26 +4793,31 @@ void RichRingTables::Save(TString fileName){
 }
 
 bool RichRingTables::Load(TString fileName){
-
-  RichRingTables *tables=0;
+  bool fail=false;  
 #pragma omp critical
   {
-  TFile file(fileName);
-  tables=(RichRingTables*)file.Get("RichRingTables");
-  file.Close();
-  }
-  if(!tables) return false;
+    fail=false;
+    RichRingTables *tables=0;
+    TFile file(fileName);
+    tables=(RichRingTables*)file.Get("RichRingTables");
+    file.Close();
+    if(!tables) fail=true;
+    
 #define Do(_x) RichRingR::_x[i]=tables->_x[i]
-  for(int i=0;i<122;i++){
-    Do(indexHistos);
-    Do(_sumIndex); 
-    Do(_totalIndex); 
-    Do(indexCorrection);
-    Do(_lastUpdate); 
-    Do(_numberUpdates);
-  }
+    if(!fail)
+      for(int i=0;i<122;i++){
+	Do(indexHistos);
+	Do(_sumIndex); 
+	Do(_totalIndex); 
+	Do(indexCorrection);
+	Do(_lastUpdate); 
+	Do(_numberUpdates);
+      }
 #undef Do
-  delete tables;
+    if(tables) delete tables;
+  }
+  
+  if(fail) return false;
   return true;
 }
 
@@ -6680,7 +6703,7 @@ return false;
 #endif
 
 #ifdef _PGTRACK_
-int  UpdateExtLayer(int type=0){
+int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   //type 0 PG; 1 Madrid
   uint time,run;
 #ifdef __ROOTSHAREDLIBRARY__ 
@@ -6694,7 +6717,7 @@ int  UpdateExtLayer(int type=0){
   if(type==0)
     ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);
   else
-    ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time);
+    ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,lad1,lad9);
   return ret;
 } 
 
