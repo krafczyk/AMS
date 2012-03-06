@@ -80,7 +80,7 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)root_setup.c $(SCC)/SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)pfunction.C $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C $(SCC)$RichCharge.C (SCC)Sunposition.C
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)root_setup.c $(SCC)/SlowControlDB.C $(SCC)rootread.C $(SCC)id.C $(SCC)point.C $(SCC)ctype.c $(SCC)TrdHSegment.C  $(SCC)TrdHTrack.C  $(SCC)pfunction.C $(SCC)Vcon.C  $(SCC)Vcon_root.C $(SCC)TrElem.C $(SCC)amschain.C $(SCC)DynAlignment.C $(SCC)RichCharge.C (SCC)Sunposition.C
 OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o $(BIN)pfunction.o  $(BIN)TrdHTrack.o   $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)root_setup.o $(BIN)/SlowControlDB.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)Sunposition.o
 $(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)root_setup.o $(BIN)SlowControlDB.o ../include/root_RVS.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o $(BIN)point.o $(BIN)ctype.o  $(BIN)TrdHSegment.o  $(BIN)pfunction.o  $(BIN)TrdHTrack.o  $(BIN)VCon.o $(BIN)VCon_root.o $(BIN)TrElem.o $(BIN)amschain.o $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)Sunposition.o
 	@if ! [ -d $(EXE) ] ; then mkdir -p $(EXE); fi
