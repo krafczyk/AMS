@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.407 2012/03/05 11:50:41 mdelgado Exp $
+//  $Id: root.h,v 1.408 2012/03/07 11:57:48 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1383,9 +1383,6 @@ public:
   float AMSTrPars[5];///< Radiator crossing track parameters (in AMS frame): x y z theta phi
   map<unsigned short,float>NpColPMT;     /// Collected photoelectrons in the ring per PMT
   map<unsigned short,float>NpExpPMT;     /// Expected photoelectrons in the ring per PMT
-  map<unsigned short,float> NpColCorr;     /// Efficiency correction to NpExpPMT
-  map<unsigned short,float> NpExpCorr;   /// Temperature correction to npcol
-
 
  protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
@@ -1395,6 +1392,12 @@ public:
  public:
    int   UsedWindow[10];      ///< Hits asociated to the ring for different windows sizes (1,2,3...10)  
    float NpColWindow[10];       ///< Photoelectrons asociated to the ring for different windows sizes (1,2,3...10)  
+
+  // Time dependent charge corrections
+  map<unsigned short,float> NpColCorr;   //!  Efficiency correction to NpExpPMT
+  map<unsigned short,float> NpExpCorr;   //!  Temperature correction to npcol
+
+  // Add new variables here.
 
 
   public:
@@ -1501,7 +1504,7 @@ public:
   } 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,25)           // RichRingR
+  ClassDef(RichRingR,26)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
