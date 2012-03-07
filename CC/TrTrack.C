@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.127 2012/03/05 11:50:54 mdelgado Exp $
+// $Id: TrTrack.C,v 1.128 2012/03/07 11:21:17 mdelgado Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/03/05 11:50:54 $
+///$Date: 2012/03/07 11:21:17 $
 ///
-///$Revision: 1.127 $
+///$Revision: 1.128 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1371,10 +1371,13 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool FitExists=ParExists(fittype);
   int rret=0;
   if(refit==4) rret=UpdateExtLayer(0);
-  if(refit==5) rret=UpdateExtLayer(1,
-				   GetHitLJ(1)?1+GetHitLJ(1)->GetSlotSide()*10+GetHitLJ(1)->lad()*100:-1,
-GetHitLJ(9)?9+GetHitLJ(9)->GetSlotSide()*10+GetHitLJ(9)->lad()*100:-1
-				   );
+  if(refit==5){
+    TrRecHitR *hit1=GetHitLJ(1);
+    TrRecHitR *hit9=GetHitLJ(9);
+    int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+    int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+    rret=UpdateExtLayer(1,l1,l9);
+  }
   if(rret!=0) return -5;    
 
   if(refit>=2 || (!FitExists && refit==1)) { 

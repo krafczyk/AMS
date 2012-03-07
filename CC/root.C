@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.363 2012/03/05 11:50:53 mdelgado Exp $
+//  $Id: root.C,v 1.364 2012/03/07 11:21:17 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6717,7 +6717,7 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   if(type==0)
     ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);
   else
-    ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,lad1,lad9);
+    ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,3,lad1,lad9);
   return ret;
 } 
 

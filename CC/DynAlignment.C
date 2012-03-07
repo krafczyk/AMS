@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.41 2012/03/05 11:50:54 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.42 2012/03/07 11:21:03 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1296,8 +1296,13 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
   if(lower==FitParameters.end()){
     lower=FitParameters.upper_bound(seconds);
     if(lower==FitParameters.end()){
+      static int counter=0;
+      counter++;
+      if(counter<=50)
       // Not possible to find anything -- return
-      cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+	cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+      if(counter==50)
+	cout<<"DynAlFitContainer::Eval-W-Skipping further errors"<<endl;
       return false;
     }
   }
@@ -1597,8 +1602,12 @@ void _ToAlign(){
   DynAlManager::dynAlFitContainers[9]=DynAlFitContainer(DynAlManager::tdvBuffer,true);
   DynAlManager::dynAlFitContainers[1].Layer=1;
   DynAlManager::dynAlFitContainers[9].Layer=9;
-  DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=false; // Default value. To be changed in the future
-  DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=false; // Default value. To be changed in the future
+  DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=false;
+  DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=false;
+
+  if(DynAlManager::dynAlFitContainers[1].LocalFitParameters.size()) DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=true;
+  if(DynAlManager::dynAlFitContainers[9].LocalFitParameters.size()) DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=true;
+
 }
 
 bool DynAlManager::FinishLinear(TString TDVname=TDVNAME){
@@ -1608,6 +1617,7 @@ bool DynAlManager::FinishLinear(TString TDVname=TDVNAME){
   int maxTime=0;
   for(int which=0;which<2;which++)
     for(int i=0;i<tdvBuffer.records;i++){
+      if(tdvBuffer.Alignment[i][which].id!=-1) continue;
       int t=tdvBuffer.Alignment[i][which].time;
       if(t<minTime) minTime=t;
       if(t>maxTime) maxTime=t;

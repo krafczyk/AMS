@@ -161,24 +161,61 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     AMSPoint pos;
     AMSRotMat rot;
     pars.GetParameters(time,0,pos,rot);
+    double offset=pars.ZOffset;
+
+    // Apply local alignment
+    int ladderId=layerJ[i]==1?lad1:lad9;
+    if(ladderId!=-1){
+      //      cout<<"LADDERS NUMBERS "<<lad1<<" "<<lad9<<endl;
+      //      cout<<"APPLYING LADDER ALIGNMENT FOR LAYER "<<layerJ[i]<<" ladder "<<ladderId<<endl;
+      //      cout<<"DUMPING IDs found"<<endl;
+      //      for( map<Int_t,DynAlFitParameters>::iterator it=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.begin();
+      //	   it!=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.end();it++){
+      //	cout<<"ID "<<it->first<<endl;
+      //      }
+
+      // Apply local alignment for the hit: modify the rotation matrix
+      map<Int_t,DynAlFitParameters>::iterator it=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.find(ladderId);
+      if(it!=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.end()){
+	AMSPoint lpos;
+	AMSRotMat lrot;
+	it->second.GetParameters(0,0,lpos,lrot);
+	
+	// Compute the new delta
+	AMSPoint newDelta=rot*(lpos+AMSPoint(0,0,it->second.ZOffset-pars.ZOffset))
+	  +pos+AMSPoint(0,0,pars.ZOffset-it->second.ZOffset);
+	double newOffset=it->second.ZOffset;
+	AMSRotMat newRot=rot*lrot;
+
+	//	cout<<"BEFORE LOCAL ALIGNMENT "<<endl
+	//	    <<"OFFSET: "<<offset<<endl
+	//	    <<"DELTA: "<<pos<<endl
+	//	    <<"ROT MATRIX:"<<endl<<rot<<endl;
+	
+	// Copy back
+	pos=newDelta;
+	offset=newOffset;
+	rot=newRot;
+
+	//	cout<<"AFTER LOCAL ALIGNMENT "<<endl
+	//	    <<"OFFSET: "<<offset<<endl
+	//	    <<"DELTA: "<<pos<<endl
+	//	    <<"ROT MATRIX:"<<endl<<rot<<endl;
+      }
+    }
+
 
     // Take into account the difference in the reference frames
     // between the local geometry and the one used in the computation
-    double delta=pl->GetPos()[2]-pars.ZOffset;
+    double delta=pl->GetPos()[2]-offset;
+
+
     AMSPoint correction(rot.GetEl(0,2)*delta,rot.GetEl(1,2)*delta,0);
     pos=pos+correction;
 
     // Set plane parameters
     pl->posA=pos;
     pl->rotA=rot;
-
-    int ladderId=layerJ[i]==1?lad1:lad9;
-    if(ladderId!=-1){
-      //      TrRecHitR &hit=*tr->GetHitLJ(layerJ[i]);
-      //      int ladderId=hit.GetLayerJ()+hit.GetSlotSide()*10+hit.lad()*100;
-    }
-
-
   }
   return 0;
 }
