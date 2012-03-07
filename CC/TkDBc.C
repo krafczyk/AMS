@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.48 2012/02/13 16:49:32 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.49 2012/03/07 15:50:21 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/02/13 16:49:32 $
+///$Date: 2012/03/07 15:50:21 $
 ///
-///$Revision: 1.48 $
+///$Revision: 1.49 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,6 +62,8 @@ TkDBc* TkDBc::GetHead(int setup,const char* inputfilename, int pri){
 
 
 TkDBc::~TkDBc(){
+  PGlocal.clear();
+  MDlocal.clear();
   for (int ii=0;ii<maxplanes;ii++)
     if(planes[ii]) delete planes[ii];
   
@@ -1000,6 +1002,72 @@ void TkDBc::GetLayerRot(int lay, number nrm[][3]){
   return;
 }
 
+int TkDBc::LoadExtLocalAlign(char *fname, int type,int pri){
+  static int wcount=0;
+  static int firsttime[2]={1,1};
+  if(type!=0) type=1;
+
+  if(firsttime[type] ){
+    ifstream  fileout(fname);
+    if(!fileout.is_open() && (wcount++)<100) {
+      fprintf(stderr,"TkDBc:::LoadExtLocalAlign- WARNING Cannot open the alignemt file %s!!!\n",fname);
+      return -1;
+    }
+    printf("TkDBc::LoadExtLocalAlign: open the alignemt file %s\n",fname);
+
+    string test;
+  
+    fileout>> test;
+    if(test[0]=='V'&&test[1]=='V'&&test[2]=='V') {
+      TkLadder::version=atoi(&(test[3]));
+      printf("TkDBc::read-I- New Sensor Aligment Aware TkLadder format detected\n");
+    }else{
+      TkLadder::version=0;
+      fileout.seekg(0,ios_base::beg);
+    }
+    int count=0;
+    while(1){
+      TkLadder  aa;
+      fileout >> aa;
+      if(fileout.eof()){  break;}
+      if(!fileout.good()) cerr <<" Error in TkDBc::readAlignment the channel is not good"<<endl;
+      int tkid=aa.GetTkId();
+      TkLadder *bb=FindTkId(tkid);
+      if(!bb) continue;
+      bb->pos=aa.pos;
+      bb->rot=aa.rot;
+      bb->posA=aa.posA;
+      bb->rotA=aa.rotA;
+      count++;
+      aa=*bb;
+      
+      if (pri) aa.WriteA(cout);
+      if(type==0)PGlocal.push_back(aa);
+      else 
+	MDlocal.push_back(aa);
+    }
+
+    cout << count <<" Ladders ALIGNMENTFree  have been read from file "<<fname<<endl;
+    firsttime[type]=0;
+ 
+    fileout.close();
+  }  
+
+  if (type==0){
+    for(int ii=0;ii<PGlocal.size();ii++){
+      int ttkid=PGlocal[ii].GetTkId();
+      TkLadder* orig= FindTkId(ttkid);
+      (*orig)= PGlocal[ii];
+    }
+  }else{
+    for(int ii=0;ii<MDlocal.size();ii++){
+      int ttkid=MDlocal[ii].GetTkId();
+      TkLadder* orig= FindTkId(ttkid);
+      (*orig)= MDlocal[ii];
+    }
+  }
+  return 0;
+}
 
 
 int TkDBc::readAlignmentAngles(const char* filename, int pri){
@@ -1068,7 +1136,7 @@ int TkDBc::writeAlignmentLadFF(int tkid, const char* filename, int overwrite){
 
 int TkDBc::readAlignmentLadFF(const char* filename, int pri){
   ifstream  fileout(filename);
-  if (!fileout) {
+  if (!fileout.is_open()) {
     printf("Error: tkdbc alignemnt file not found: %s\n", filename);
     return -1;
   }

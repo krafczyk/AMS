@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.366 2012/03/07 14:49:21 mdelgado Exp $
+//  $Id: root.C,v 1.367 2012/03/07 15:50:21 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6720,6 +6720,20 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   time=AMSEvent::gethead()->gettime();
   run=AMSEvent::gethead()->getrun();
 #endif
+  if(TrExtAlignDB::ForceLocalAlign){
+    int ret2=0;
+    char filenam[400];
+    if (type==0) {
+      sprintf(filenam,"%s/v5.00/PGExtLocalAlign.txt",getenv("AMSDataDir"));
+      ret2=TkDBc::Head->LoadPGExtAlign(filenam);
+    }
+    else{
+      sprintf(filenam,"%s/v5.00/MDExtLocalAlign.txt",getenv("AMSDataDir"));
+      ret2=TkDBc::Head->LoadMDExtAlign(filenam);
+    }
+    if(ret2!=0) return ret2;
+  } 
+
   int ret;
   if(type==0)
     ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);

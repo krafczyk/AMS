@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.27 2012/02/13 16:44:22 pzuccon Exp $
+// $Id: TkDBc.h,v 1.28 2012/03/07 15:50:22 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -302,6 +302,12 @@ private:
   //! Map for fast binary search based on JMDCNum
   map<int,TkLadder*> JMDCNumMap;      //! it is rebuilt when loaded
 
+//! Map for special local alignement of external layers PG
+  vector<TkLadder> PGlocal;
+//! Map for special local alignement of external layers Madrid 
+  vector<TkLadder> MDlocal;
+
+
   TkLadder* Findmap(map<int,TkLadder*> & tkmap, int key);
 
   int GetOctant(int side,int _layer,int _slot);
@@ -358,6 +364,17 @@ public:
 
   //!  Read the sensor alignement data from a file with a format "tkid sx[0-14] sy[0-14]"
   int readAlignmentSensor(const char* filename, int pri=0);
+  //! Special function to load PG local external alignment from Files
+  int LoadPGExtAlign(char *ff="PGExtLocalAlign.txt"){
+    return LoadExtLocalAlign(ff,0);
+  }
+  //! Special function to load PG local external alignment from Files
+  int LoadMDExtAlign(char *ff="MDExtLocalAlign.txt"){
+    return LoadExtLocalAlign(ff,1);
+  }  
+  int LoadExtLocalAlign(char *fname, int type,int pri=0);
+  
+  
   //! Returns the number of active planes
   int GetNPlanes() const { return nplanes;} 
   //! Return the pointer to the iith (ii [1-6]) TkPlane object 
@@ -464,7 +481,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 7);
+  ClassDef(TkDBc, 8);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

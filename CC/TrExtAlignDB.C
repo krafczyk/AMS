@@ -12,6 +12,7 @@ ClassImp(TrExtAlignDB);
 using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
+int TrExtAlignDB::ForceLocalAlign=0;
 
 void TrExtAlignPar::Print(Option_t *) const
 {

@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.17 2012/03/05 11:50:43 mdelgado Exp $
+//  $Id: TrExtAlignDB.h,v 1.18 2012/03/07 15:50:30 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -92,6 +92,11 @@ public:
   static int ForceFromTDV;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (ForceFromTDV)
+#endif
+
+  static int ForceLocalAlign;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (ForceLocalAlign)
 #endif
 
 public:
