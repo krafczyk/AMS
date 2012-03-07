@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.364 2012/03/07 11:21:17 mdelgado Exp $
+//  $Id: root.C,v 1.365 2012/03/07 14:38:29 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5364,12 +5364,15 @@ if(fgSeparateOutputFile==2){
       AMSEventR::_ClonedTree[thr]->SetDirectory(fgOutSepDir[thr]);
       gDirectory=fgOutSepDir[thr];
     }
+}
 if(thr==0){
       AMSEventR::_ClonedTree[thr]->SetDirectory(AMSEventR::OFD());
       gDirectory=AMSEventR::OFD();
 }
-}
-      cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
+
+      cout <<" ofd "<<AMSEventR::OFD()<<endl;
+      cout <<" gdir "<<gDirectory->GetFile()<<endl;
+      //cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
            if(obj3)obj3->Write("DataCards");
          for(int i=0;i<6;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
