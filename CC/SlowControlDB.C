@@ -7,15 +7,15 @@ ClassImp(Node);
 ClassImp(DataType);
 ClassImp(SubType);
 
-bool SlowControlDB::Load(const char* fname,unsigned int minT,unsigned int maxT, int debug){
+bool SlowControlDB::Load(const char* fname,unsigned int minT,unsigned int maxT, int idebug){
  
  TFile *f=TFile::Open(fname);
-  if(debug)std::cerr <<"opening file "<<fname<<" ptr "<<f<<std::endl;
-  if(debug)std::cout<<"requesting time min "<<minT<<" max "<<maxT<< std::endl;
-return Load(f,minT,maxT,debug);
+  if(idebug)std::cerr <<"opening file "<<fname<<" ptr "<<f<<std::endl;
+  if(idebug)std::cout<<"requesting time min "<<minT<<" max "<<maxT<< std::endl;
+return Load(f,minT,maxT,idebug);
 }
 
-bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug){
+bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int idebug){
   int n_add=0;
 
   if(!f){
@@ -32,30 +32,36 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
     std::cerr<<"tree entries: "<<_tree->GetEntries()<<std::endl;
     return false;
   }
+  else{
+   if(idebug)std::cout<<" slowcontroldir entries "<<_tree->GetEntries()<<std::endl;
+  }
 
-  unsigned int tree_begin,tree_end; 
+  unsigned int tree_begin=0;
+  unsigned tree_end=0;
   //_tree->SetBranchStatus("*",0);
   _tree->SetBranchAddress("begin",&tree_begin);
   _tree->SetBranchAddress("end",&tree_end);
   _tree->SetBranchAddress("uncompleted",&uncompleted);
-  _tree->SetBranchStatus("begin",1);
-  _tree->SetBranchStatus("end",1);
-  _tree->SetBranchStatus("uncompleted",1);
   TObjArray *branchlist=_tree->GetListOfBranches();
   Node* nodearr[branchlist->GetEntries()];
   for(int i=0;i<(int)branchlist->GetEntries();i++){
     nodearr[i]=0;
     TObject* obj=(TObject*)branchlist->At(i);
+if((strcmp(obj->ClassName(),"TBranchElement")==0))
     _tree->SetBranchAddress(branchlist->At(i)->GetName(),&nodearr[i]);
-      if(!(strcmp(obj->ClassName(),"TBranchElement")==0)){
-      _tree->SetBranchStatus(branchlist->At(i)->GetName(),0);
-       if(debug)std::cout << "name: "<< branchlist->At(i)->GetName() << std::endl;
-    }  
+       if(idebug)std::cout << "name: "<< branchlist->At(i)->GetName() << " "<<obj->ClassName()<<std::endl;
+//      if(!(strcmp(obj->ClassName(),"TBranchElement")==0)){
+//      _tree->SetBranchStatus(branchlist->At(i)->GetName(),0);
+//       if(idebug)std::cout << "namezero: "<< branchlist->At(i)->GetName() << std::endl;
+//    }  
 }
   
+  _tree->SetBranchStatus("begin",1);
+  _tree->SetBranchStatus("end",1);
+  _tree->SetBranchStatus("uncompleted",1);
   for(int i=0;i<(int)_tree->GetEntries();i++){
     int nb=_tree->GetEntry(i);
-    if(debug)std::cout<<"entry "<<i<<" begin "<<tree_begin<<" end "<<tree_end <<" - add? "<<(tree_begin<maxT&&tree_end>minT)<<" nb "<<nb<<std::endl;
+    if(idebug)std::cout<<"entry "<<i<<" begin "<<tree_begin<<" end "<<tree_end <<" - add? "<<(tree_begin<maxT&&tree_end>minT)<<" nb "<<nb<<std::endl;
     //if(tree_begin>maxT||tree_end<minT)continue;
     
     n_add++;
@@ -77,7 +83,7 @@ bool SlowControlDB::Load(TFile* f,unsigned int minT,unsigned int maxT,int debug)
   if(f)f->Close("R");
   if(f) delete f;
 
-  if(debug)std::cout<<"files merged to SlowControlDB "<<n_add<<std::endl;
+  if(idebug)std::cout<<"files merged to SlowControlDB "<<n_add<<std::endl;
   return n_add;
 
 }

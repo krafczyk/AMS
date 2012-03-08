@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.34 2012/02/23 09:22:35 choutko Exp $
+//  $Id: root_setup.h,v 1.35 2012/03/08 12:04:46 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -359,6 +359,7 @@ static    AMSSetupR * & gethead(){return _Head;}
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
  bool FillSlowcontrolDB( string & file);
+ int LoadExt();
  void getSlowControlFilePath( string & file);
  void updateSlowControlFilePath( string & file);
  bool LoadSlowcontrolDB(const char *file);

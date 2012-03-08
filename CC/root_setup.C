@@ -1,14 +1,17 @@
-//  $Id: root_setup.C,v 1.59 2012/02/22 12:37:07 choutko Exp $
+//  $Id: root_setup.C,v 1.60 2012/03/08 12:04:40 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
 #include "SlowControlDB.h"
 #include "ntuple.h"
 #include "DynAlignment.h"
+#include "dirent.h"
+#include <sys/stat.h>
 #ifndef __ROOTSHAREDLIBRARY__
 #include "job.h"
 #include "commons.h"
 #include "commonsi.h"
+#endif
 #include "timeid.h"
         class trio{
            public: 
@@ -17,11 +20,6 @@
            unsigned int tmod;
            string filename;
         };
-#include "dirent.h"
-#include <sys/stat.h>
-#else
-#include "timeid.h"
-#endif
 
 
 AMSSetupR* AMSSetupR::_Head=0;
@@ -201,6 +199,12 @@ else{
 fSlowControl.print();
 }
 
+int AMSSetupR::LoadExt(){
+
+string slc;
+getSlowControlFilePath(slc);
+return LoadSlowcontrolDB(slc.c_str())?0:1;
+}
 
 int AMSSetupR::SlowControlR::GetData(const char * elementname, unsigned int time, float frac,  vector<float> &value,int method , const char *nodename,int dt, int st){
 const int le=-1;
@@ -211,7 +215,12 @@ bool usenodename=false;
 if(nodename && strlen(nodename)){
  usenodename=true;
 }
+static bool loadextdone=false;
+#pragma omp threadprivate(loadextdone)
+if(!loadextdone && _Head && (!fRTable.size() || !fETable.size())){
+ _Head->LoadExt();
 
+}
 
 if(elementname && strlen(elementname)>0){
  elem=elementname;
@@ -223,8 +232,8 @@ else{
  rtable_i it=fRTable.find(key);
 if(it!=fRTable.end())elem=it->second;
 else{
- retcode=3;
- return retcode;
+    retcode=3;
+    return retcode;
 }
 }
  pair<etable_i,etable_i> ret=fETable.equal_range(elem);
@@ -640,7 +649,7 @@ void AMSSetupR::updateSlowControlFilePath(string & slc){
 
 
 void AMSSetupR::getSlowControlFilePath(string & slc){
-#ifndef __ROOTSHAREDLIBRARY__
+//#ifndef __ROOTSHAREDLIBRARY__
 // check first if needed file exists in 
 //
 const char * local=getenv("SlowControlDir");
@@ -735,7 +744,7 @@ slc+="/SlowControlDir";
 //          sprintf(tmps,"/%u/SCDB.%u.%u.root",mktime(tmp)-3600-tzz,fHeader.FEventTime,fHeader.LEventTime);
 //         slc+=tmps;
           cout <<"AMSSetupR::getslowcontrolfilepath-I-"<<slc<<endl;                    
-#endif
+//#endif
 }
 #ifndef __ROOTSHAREDLIBRARY__
 bool AMSSetupR::FillSlowcontrolDB(string & slc){
@@ -904,15 +913,9 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
   }
 }
 
-#ifndef __ROOTSHAREDLIBRARY__
 integer AMSSetupR::_select(  const dirent64 *entry){
  return strstr(entry->d_name,"SCDB.")!=NULL;
 }
-#else
-integer AMSSetupR::_select(  const dirent64 *entry){
- return 0;
-}
-#endif
 
 void AMSSetupR::LoadISS(unsigned int t1, unsigned int t2){
 #ifdef __ROOTSHAREDLIBRARY__

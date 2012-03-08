@@ -1,6 +1,7 @@
 //#define _PGTRACK_
 #include "AMSNtupleHelper.h"
 #include "../include/root_setup.h"
+#include "../include/DynAlignment.h"
 static AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
@@ -11,14 +12,24 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
-if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
+if(ev && ev->nParticle()){
+unsigned int eventSec, eventNanoSec;
+ev->GetGPSTime(eventSec, eventNanoSec);
+double xtime=ev->UTime()+ev->Frac();
+AMSSetupR::ISSCTRSR setup;
+if(ev->getsetup()){
+ev->getsetup()->getISSCTRS(setup, xtime);
+cout <<" qq "<<setup.r<<" "<<setup.v<<endl;
+}
+}
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 ){
  TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
    cout <<" ok "<<AMSSetupR::gethead()<<" "<<ev->UTime()<<endl;
-  
+//  return true;
+  cout << " fheader "<<AMSSetupR::gethead()->fHeader.FEventTime<<" "<<AMSSetupR::gethead()->fHeader.LEventTime<<endl;
 vector<float>value;
 int s2=  AMSSetupR::gethead()->fSlowControl.GetData("L03T+01X+08 / L06T+02Y-03",ev->UTime(),100.,value);
  cout <<" res2 "<<s2<<" "<<value.size()<<" value "<<endl;
-
  int s=ev->GetSlowControlData("L03T+01X+08 / L06T+02Y-03",value,1);
  cout <<" res "<<s<<" "<<value.size()<<" value "<<endl;
 AMSSetupR::gethead()->fSlowControl.printElementNames("L03T+01X+08 / L06T+02Y-03");
