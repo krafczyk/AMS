@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.60 2012/03/08 12:04:40 choutko Exp $
+//  $Id: root_setup.C,v 1.61 2012/03/08 13:21:21 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1285,6 +1285,14 @@ r*=100000;
 
 
 int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
+if(fISSCTRS.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
+if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
+}
+else LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
+#endif
+}
 if (fISSCTRS.size()==0)return 2;
 
 
@@ -1532,10 +1540,6 @@ return ret;
 
 
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
-#ifdef __ROOTSHAREDLIBRARY__
-return 0;
-}
-#else
 
  char AMSISSlocal[]="/afs/cern.ch/ams/local/isssa/";
 char * AMSISS=getenv("AMSISSSA");
@@ -1550,6 +1554,7 @@ else if(t2-t1>864000){
    t2=t1+864000;
 }
 const char fpatb[]="ISS_CTRS_Vectors_";
+const char fpatb2[]="ISS_CTRS_vectors_";
 const char fpate[]="-24H.csv";
 const char fpate2[]="-24h.csv";
 
@@ -1601,6 +1606,32 @@ char tmp2[255];
 // change 24H to 24h
       fname=AMSISS;
       fname+=fpatb;
+      char utmp[80];
+      sprintf(utmp,"%u_%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(!fbin){
+// change Vec to vec
+      fname=AMSISS;
+      fname+=fpatb2;
+      char utmp[80];
+      sprintf(utmp,"%u_%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(!fbin){
+// change 24h back
+      fname=AMSISS;
+      fname+=fpatb2;
       char utmp[80];
       sprintf(utmp,"%u_%03u",yc,dc);
       fname+=utmp;
@@ -1690,7 +1721,6 @@ else ret=1;
 
 return ret;
 }
-#endif
 
 int AMSSetupR::LoadDynAlignment(unsigned int run){
 #ifdef __ROOTSHAREDLIBRARY__
