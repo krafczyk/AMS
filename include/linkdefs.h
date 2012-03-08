@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.24 2012/01/28 11:55:35 mdelgado Exp $
+//  $Id: linkdefs.h,v 1.25 2012/03/08 10:31:02 jorgec Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -39,6 +39,8 @@
 #pragma link C++ class DynAlFitContainer+;
 #pragma link C++ class DynAlManager;
 //////////////////////////////////////
+#pragma link C++ class RichPMTCalib;
+///////////////////////////////////////
 #pragma link C++ class TrElem+;
 #pragma link C++ class TrMCClusterR+;
 #pragma link C++ class TrRawClusterR+;

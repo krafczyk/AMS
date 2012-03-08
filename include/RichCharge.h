@@ -37,12 +37,11 @@ namespace RichPMTCalibConstants{
   const int NHVCHN = 40;
   const int NTAG = 4;
   
-  const float pmtMinTemperature = -20, pmtMaxTemperature = 40;
-  const float pmtRefTemperature = 25, pmtRefdGdT = -0.56e-2;
-  const float brickMinTemperature = -20, brickMaxTemperature = 40;
-  const float brickRefTemperature = 25, brickRefdVdT = -1.e-3;
-  
-  const int NewTrackAMSVersion = 565; // First Production Version w/ new TrTrack 
+  const float pmtRefTemperature = 25, pmtMinTemperature = -20, pmtMaxTemperature = 40;
+  const float pmtRefdGdT = -0.56e-2, pmtMindGdT = -1.00e-2, pmtMaxdGdT = 0.00e-2;
+  const float pmtRefdEdT =  0.08e-2, pmtMindEdT = -0.10e-2, pmtMaxdEdT = 0.30e-2;
+  const float brickRefTemperature = 25, brickMinTemperature = -20, brickMaxTemperature = 40;
+  //const float brickRefdVdT = -1.e-3;
 }
 
 class RichPMTCalib{
@@ -57,11 +56,15 @@ class RichPMTCalib{
   static bool Init(TString dir="."); // Start the singleton or modify it
   static RichPMTCalib* Update();
 
+  // Corrections fail status
+  static int pmtCorrectionsFailed;
+
   // Configuration settings
   static bool useRichRunTag;
   static bool usePmtStat;
-  static bool useEfficiencyCorrections;
+  static bool useSignalMean;
   static bool useGainCorrections;
+  static bool useEfficiencyCorrections;
   static bool useTemperatureCorrections;
   static unsigned short richRunBad;
   static unsigned short richPmtBad;
@@ -80,22 +83,29 @@ class RichPMTCalib{
   enum { kPmtFE = 0, kPmtHV = 1, kPmtJ = 2, kPmtR = 3, kPmtOcc = 4 };
   enum { A = 0, B = 1 };
 
+  //
+  // List of PMT Periods for Nominal HV
+  multimap<int,string> m_pmt_periods;
 
   //
-  // List of BadPMTs ( should be extended to pmt, begin_time, end_time)
+  // List of Non Nominal HV 
+  multimap<int,string> m_pmt_voltages;
+
+  //
+  // List of BadPMTs ( dynamic )
   vector<int> BadPMTs;
 
   //
   // Efficiency & Gain corrections
-
   vector<float> v_pmt_ecor, v_pmt_gcor, v_pmt_gmcor;
   vector<float> v_brick_temp_ref, v_pmt_temp_ref;
+  vector<float> v_pmt_ecor_dflt, v_pmt_gcor_dflt, v_pmt_gmcor_dflt;
+  vector<float> v_pmt_temp_ref_dflt;
 
   //
   // Temperature Corrections
-
   bool pmtTemperatures;
-  vector<float> v_pmt_dGdT, v_pmt_dGdV, v_pmt_temp;
+  vector<float> v_pmt_dGdT, v_pmt_dEdT, v_pmt_temp;
   bool brickTemperatures;
   vector<float> v_brick_dVdT, v_brick_temp;
 
@@ -111,11 +121,12 @@ class RichPMTCalib{
 
   float  EfficiencyCorrection(int );
   float  GainCorrection(int );
-  float  TemperatureCorrection(int );
+  float  EfficiencyTemperatureCorrection(int );
+  float  GainTemperatureCorrection(int );
   bool   initPMTs();
-  void   initBadPMTs();
+  void   updatePMTs(int );
   bool   checkRichPmtTemperatures();
-  bool   checkRichBrickTemperatures();
+  //bool   checkRichBrickTemperatures();
   bool   getRichPmtTemperatures();
   bool   getRichBrickTemperatures();
   bool   ReadPmtDB();
@@ -133,6 +144,17 @@ class RichPMTCalib{
 			      vector<unsigned short> &v_pmt_volt);
   bool richRunGood() {return !(richRunTag&richRunBad);}
   bool richPmtGood(int pmt) {return !(v_pmt_stat[pmt]&richPmtBad);}
+
+
+  static int lastRun;
+  static int lastEvent;
+  static float NpColPMTCorr[680];
+  static float NpExpPMTCorr[680];
+  static bool buildCorrections();
+  static float getNpColPMTCorr(int pmt){if(buildCorrections()) return NpColPMTCorr[pmt];return -1;}
+  static float getNpExpPMTCorr(int pmt){if(buildCorrections()) return NpExpPMTCorr[pmt];return -1;}
+
+  ClassDef(RichPMTCalib,1);
 };
 
 #endif

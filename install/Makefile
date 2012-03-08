@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.188 2012/02/27 17:16:46 pzuccon Exp $
+#  $Id: Makefile,v 1.189 2012/03/08 10:30:57 jorgec Exp $
 
 #P.Zuccon june 2005
 
@@ -361,7 +361,7 @@ ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h  ../include/trigger102_se
 
 ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdHTrack.h ../include/TrdHRecon.h ../include/TrdHCalib.h ../include/TrdHCharge.h ../include/TrdTFit.h ../include/SlowControlDB.h
 
-ROOTDICTFILES += ../include/DynAlignment.h 
+ROOTDICTFILES += ../include/DynAlignment.h ../include/RichCharge.h 
 
 ifdef PGTRACK
 ROOTDICTFILES += ../include/TrdSCalib.h
@@ -631,12 +631,12 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C:    ../include/point.h     ../include/root_RV.h ../include/root.h         ../include/root_setup.h ../include/trigger102_setup.h  ../include/trfit.h  ../include/DynAlignment.h  ../include/linkdef.h  
+$(BIN)rootdict.C:    ../include/point.h     ../include/root_RV.h ../include/root.h         ../include/root_setup.h ../include/trigger102_setup.h  ../include/trfit.h  ../include/DynAlignment.h  ../include/RichCharge.h ../include/linkdef.h  
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h  ../include/DynAlignment.h  ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h   ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h  ../include/DynAlignment.h  ../include/RichCharge.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
 	@echo "OK"

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.367 2012/03/07 15:50:21 pzuccon Exp $
+//  $Id: root.C,v 1.368 2012/03/08 10:31:02 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1530,7 +1530,15 @@ double RichRingR::_sumIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0};
 
-TString RichRingR::correctionsDir=".";  // Rich charge correction directory
+// Rich Charge Corrections Settings & Flags
+int RichRingR::pmtCorrectionsFailed = -1;
+TString RichRingR::correctionsDir=".";  // Directory
+bool RichRingR::useRichRunTag = false;           // good Rich runs 
+bool RichRingR::usePmtStat = true;               // good PMT status
+bool RichRingR::useSignalMean = false;           // Equalize PMT Gains to mean (median)
+bool RichRingR::useGainCorrections = true;       // PMT Gain equalization
+bool RichRingR::useEfficiencyCorrections = true; // PMT Efficiency equalization
+bool RichRingR::useTemperatureCorrections = true;// PMT Temperature corrections
 
 
 void AMSEventR::GetBranch(TTree *fChain){
@@ -2200,6 +2208,10 @@ TrTrackFitR::InitMF(UTime());
       }
     }
 
+    // Build corrections for each PMT 
+    RichPMTCalib::buildCorrections();
+    // Set dafult flag value
+    RichRingR::pmtCorrectionsFailed = -1;
     // Rich Default Correction Loading. Only once per run
     if(fHeader.Run!=runo && !nMCEventg())
 #pragma omp critical(rd)
@@ -2219,7 +2231,8 @@ TrTrackFitR::InitMF(UTime());
     if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
 #pragma omp critical (rd)
 	 RichRingR::updateCalibration(*this); 
-    } 
+    }
+
 
     if(fHeader.Run!=runo){
       cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
@@ -4332,6 +4345,7 @@ int RichHitR::PhotoElectrons(double sigmaOverQ){
   return best;
 }
 
+
 float RichHitR::getCollectedPhotoElectrons(){
   AMSEventR *event=AMSEventR::Head();
   if(!event) return 0;
@@ -4514,27 +4528,29 @@ bool RichRingR::buildChargeCorrections(){
   NpColCorr.clear();
   NpExpCorr.clear();
 
+  pmtCorrectionsFailed = 1;
+
   // If it is MC skip use a trivial compuation
   if(AMSEventR::Head()->nMCEventg()){
     for(map<unsigned short,float>::iterator it=NpColPMT.begin();
 	it!=NpColPMT.end();it++) NpColCorr[it->first]=1;
     for(map<unsigned short,float>::iterator it=NpExpPMT.begin();
 	it!=NpExpPMT.end();it++) NpExpCorr[it->first]=1;
+    pmtCorrectionsFailed = 0;
     return true;
   }
 
-
   // If it is data, check that the required tools are OK
   RichPMTCalib::currentDir=correctionsDir;
+  RichPMTCalib::useRichRunTag = useRichRunTag;
+  RichPMTCalib::usePmtStat = usePmtStat;
+  RichPMTCalib::useSignalMean = useSignalMean;
+  RichPMTCalib::useGainCorrections = useGainCorrections;
+  RichPMTCalib::useEfficiencyCorrections = useEfficiencyCorrections;
+  RichPMTCalib::useTemperatureCorrections = useTemperatureCorrections;
+
   RichPMTCalib *corr=RichPMTCalib::Update();
   if(!corr) return false;
-
-
-  /*
-  if(!RichPMTCalib::getHead() &&!RichPMTCalib::Init(correctionsDir)) return false;
-  RichPMTCalib *corr=RichPMTCalib::getHead();
-  if(!corr->retrieve(AMSEventR::Head()->fHeader.Run)) return false;
-  */
 
 
   // Correct the collected 
@@ -4542,7 +4558,8 @@ bool RichRingR::buildChargeCorrections(){
       it!=NpColPMT.end();it++){
     int pmt=it->first;
     if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpColCorr[pmt]=0;
-    else NpColCorr[pmt]=1.0/corr->GainCorrection(pmt)/corr->TemperatureCorrection(pmt);
+    else NpColCorr[pmt] = (corr->GainCorrection(pmt)>0 && corr->GainTemperatureCorrection(pmt)>0) ?
+      1.0 / corr->GainCorrection(pmt) / corr->GainTemperatureCorrection(pmt) : 0;
   }
 
   // Correct the expected
@@ -4550,42 +4567,100 @@ bool RichRingR::buildChargeCorrections(){
       it!=NpExpPMT.end();it++){
     int pmt=it->first;
     if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpCorr[pmt]=0;
-    else NpExpCorr[pmt]=corr->EfficiencyCorrection(pmt);
+    else NpExpCorr[pmt]=corr->EfficiencyCorrection(pmt) * corr->EfficiencyTemperatureCorrection(pmt);
   }
 
+  pmtCorrectionsFailed = 0;
   return true;
 }
 
 
+int RichRingR::getUsedHits(bool corr) {
+  if (!corr) return Used;
 
-float RichRingR::getExpectedPhotoelectrons(bool corr){
-  if(!corr) return NpExp;
+  if(NpColPMT.size() && !NpColCorr.size())
+    if(!buildChargeCorrections()) return Used;
 
-  if(NpExpPMT.size() && !NpExpCorr.size()) if(!buildChargeCorrections()) return 0;
+  AMSEventR *event=AMSEventR::Head();
+  if(!event) return 0;
+  int sum=0;
+  for(int i=0; i<Used; i++){
+    RichHitR *hit = event->pRichHit(iRichHit(i));
+    if (!hit) continue;
+    int pmt=hit->Channel/16;
+    if (NpColCorr.find(pmt) == NpColCorr.end()) continue;
+    sum += (NpColCorr[pmt]>0);
+  }
+  return sum;
+}
 
-  float sum=0;
-  for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
-      i!=NpExpPMT.end();i++){
-    map<unsigned short,float>::iterator correction=NpExpCorr.find(i->first);
-    sum+=i->second*(correction==NpExpCorr.end()?1:correction->second);
+
+int RichRingR::getUsedHits(int pmt, bool corr) {
+  AMSEventR *event=AMSEventR::Head();
+  if(!event) return 0;
+  int sum=0;
+  for(int i=0; i<Used; i++){
+    RichHitR *hit = event->pRichHit(iRichHit(i));
+    if (!hit || hit->Channel/16!=pmt) continue;
+    if (!corr && ++sum) continue;
+    if(NpColPMT.size() && !NpColCorr.size())
+      if(!buildChargeCorrections() && ++sum) continue;
+    if (NpColCorr.find(pmt) == NpColCorr.end()) continue;
+    sum += (NpColCorr[pmt]>0);
   }
   return sum;
 }
 
 
 float RichRingR::getPhotoElectrons(bool corr){
-  if(!corr) return NpCol;
-
-  if(NpColPMT.size() && !NpColCorr.size()) if(!buildChargeCorrections()) return 0;
+ if(!corr) return NpCol;
 
   float sum=0;
   for(map<unsigned short,float>::iterator i=NpColPMT.begin();
-      i!=NpColPMT.end();i++){
-    map<unsigned short,float>::iterator correction=NpColCorr.find(i->first);
-    sum+=i->second*(correction==NpColCorr.end()?1:correction->second);
-  }
+      i!=NpColPMT.end();i++)
+    sum+=getPhotoElectrons(i->first, corr);
   return sum;
 }
+
+
+float RichRingR::getPhotoElectrons(int pmt, bool corr){
+  map<unsigned short,float>::iterator i=NpColPMT.find(pmt);
+  if (i==NpColPMT.end()) return 0;
+
+  if (!corr) return i->second;
+
+  if(NpColPMT.size() && !NpColCorr.size()) 
+    if(!buildChargeCorrections()) return i->second;
+
+  map<unsigned short,float>::iterator correction=NpColCorr.find(i->first);
+  return i->second*(correction==NpColCorr.end()?0:correction->second);
+}
+
+
+float RichRingR::getExpectedPhotoElectrons(bool corr){
+  if(!corr) return NpExp;
+
+  float sum=0;
+  for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
+      i!=NpExpPMT.end();i++)
+    sum+=getExpectedPhotoElectrons(i->first, corr);
+  return sum;
+}
+
+
+float RichRingR::getExpectedPhotoElectrons(int pmt, bool corr){
+  map<unsigned short,float>::iterator i=NpExpPMT.find(pmt);
+  if (i==NpExpPMT.end()) return 0;
+
+  if (!corr) return i->second;
+
+  if(NpExpPMT.size() && !NpExpCorr.size())
+    if(!buildChargeCorrections()) return i->second;
+
+  map<unsigned short,float>::iterator correction=NpExpCorr.find(i->first);
+  return i->second*(correction==NpExpCorr.end()?0:correction->second);
+}
+
 
 double RichRingR::betaCorrection(float index,float x,float y){
   int t=getTileIndex(x,y);
@@ -4740,7 +4815,7 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
       UsedWindow[i]=ptr->_collected_hits_window[i];
       NpColWindow[i]=ptr->_collected_pe_window[i];
     }
-    
+
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }
@@ -4751,7 +4826,6 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
     if(ptr->NpExpPMT[pmtNb]>1e-6) NpExpPMT[pmtNb]=ptr->NpExpPMT[pmtNb];
   }
   
-
 #endif
 }
 

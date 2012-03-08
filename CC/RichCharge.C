@@ -10,6 +10,8 @@ using namespace std;
 using namespace RichPMTCalibConstants;
 
 
+ClassImp(RichPMTCalib);
+
 // Singleton pointer
 RichPMTCalib* RichPMTCalib::_header=NULL;
 
@@ -17,13 +19,20 @@ RichPMTCalib* RichPMTCalib::_header=NULL;
 TString RichPMTCalib::currentDir=".";
 
 // General Settings
-bool RichPMTCalib::useRichRunTag = true;
+bool RichPMTCalib::useRichRunTag = false;
 bool RichPMTCalib::usePmtStat = true;
-bool RichPMTCalib::useGainCorrections = false;
+bool RichPMTCalib::useSignalMean = false;
+bool RichPMTCalib::useGainCorrections = true;
 bool RichPMTCalib::useEfficiencyCorrections = true;
 bool RichPMTCalib::useTemperatureCorrections = true; 
 unsigned short RichPMTCalib::richRunBad = (1<<RichPMTCalib::kTagJ) | (1<<RichPMTCalib::kTagR); //  JINFR & RDR Configuration  
-unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtHV) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & HV Nominal & No Config Err/Mismatch 
+unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & No Config Err/Mismatch 
+int RichPMTCalib::lastEvent=-1;
+int RichPMTCalib::lastRun=-1;
+int RichPMTCalib::pmtCorrectionsFailed=-1;
+float RichPMTCalib::NpColPMTCorr[680];
+float RichPMTCalib::NpExpPMTCorr[680];
+
 
 bool RichPMTCalib::Init(TString dir){
   if(_header) delete _header;
@@ -39,13 +48,15 @@ RichPMTCalib* RichPMTCalib::Update(){
 }
 
 bool RichPMTCalib::init(){
+  bool retValue=true;
+
   // Read Pmt DB
-  ReadPmtDB();
+  if (!ReadPmtDB()) retValue=false;
 
   // Init PMTs List
-  if (!initPMTs()) return false;
-  //initBadPMTs(dir);
-  return true;
+  if (!initPMTs()) retValue=false;
+
+  return retValue;
 }
 
 
@@ -53,16 +64,31 @@ bool RichPMTCalib::retrieve(int run){
   // retrieve the information for the given run
   static int prevRun=0;
   static bool retValue=true;
+
+  //
+  // PMT Temperatures
+  //
+  if (useTemperatureCorrections) {
+    pmtTemperatures=getRichPmtTemperatures();
+    //brickTemperatures=getRichBrickTemperatures();
+    if(!pmtTemperatures) retValue=false;
+  }
+  
   if(run==prevRun) return retValue;
   prevRun=run;
 
+  //
+  // RICH Config & Status
+  //
   richRunTag=CheckRichRun(run, v_pmt_stat, v_pmt_volt);
-  pmtTemperatures=getRichPmtTemperatures();
-  brickTemperatures=getRichBrickTemperatures();
+  if (useRichRunTag && !richRunGood()) 
+    retValue=false;
 
-  if(!pmtTemperatures || !brickTemperatures) retValue=false;
-  if(!richRunGood()) retValue=false;
-  
+  //
+  // Update PMT Info
+  //
+  updatePMTs(run);
+
   return retValue;
 }
 
@@ -71,8 +97,7 @@ float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
   float efficiencyCorrection = useEfficiencyCorrections? v_pmt_ecor[pmt] : 1;
 
-  efficiencyCorrection *= usePmtStat? richPmtGood(pmt) : 1; // here we should consider non-nominal HV
-                                                            // by adding dG = Go * k * dV/Vo (??)
+  efficiencyCorrection *= usePmtStat? richPmtGood(pmt) : 1;
 
   return efficiencyCorrection;
 
@@ -81,29 +106,54 @@ float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
 float RichPMTCalib::GainCorrection(int pmt) {
 
-  //float gainCorrection = useGainCorrections? v_pmt_gcor[pmt] : 1; // USE CORR. FROM MEAN
-  float gainCorrection = useGainCorrections? v_pmt_gmcor[pmt] : 1; // USE CORR. FROM MEDIAN
+  float gainCorrection = 1;
+  if (useGainCorrections)
+    gainCorrection = useSignalMean? v_pmt_gcor[pmt] : v_pmt_gmcor[pmt];
 
-  gainCorrection *= usePmtStat? richPmtGood(pmt) : 1; // here we should consider non-nominal HV
-                                                      // by adding dG = Go * k * dV/Vo
-
+  gainCorrection *= usePmtStat? richPmtGood(pmt) : 1;
 
   return gainCorrection;
 
 }
 
 
-float RichPMTCalib::TemperatureCorrection(int pmt) {
+float RichPMTCalib::EfficiencyTemperatureCorrection(int pmt) {
+
+  float temperatureCorrection = 1;
+
+  float dE = 0;
+  if (useTemperatureCorrections) {
+    dE = -1;
+    if (pmtTemperatures) {
+      float temp = v_pmt_temp[pmt];
+      float temp_ref = v_pmt_temp_ref[pmt];
+      float dEdT = v_pmt_dEdT[pmt];
+      if (temp>pmtMinTemperature && temp<pmtMaxTemperature)
+	dE = (temp - temp_ref) * dEdT;
+    }
+  }
+
+  temperatureCorrection = 1 + dE;
+
+  return temperatureCorrection;
+
+}
+
+
+float RichPMTCalib::GainTemperatureCorrection(int pmt) {
 
   float temperatureCorrection = 1;
 
   float dG = 0;
-  if (useTemperatureCorrections && pmtTemperatures) {
-    float temp = v_pmt_temp[pmt];
-    float temp_ref = v_pmt_temp_ref[pmt];
-    float dGdT = v_pmt_dGdT[pmt];
-    if (temp>pmtMinTemperature && temp<pmtMaxTemperature)
-      dG = (temp - temp_ref) * dGdT;
+  if (useTemperatureCorrections) {
+    dG = -1;
+    if (pmtTemperatures) {
+      float temp = v_pmt_temp[pmt];
+      float temp_ref = v_pmt_temp_ref[pmt];
+      float dGdT = v_pmt_dGdT[pmt];
+      if (temp>pmtMinTemperature && temp<pmtMaxTemperature)
+	dG = (temp - temp_ref) * dGdT;
+    }
   }
 
   temperatureCorrection = 1 + dG;
@@ -113,53 +163,117 @@ float RichPMTCalib::TemperatureCorrection(int pmt) {
 }
 
 
+void RichPMTCalib::updatePMTs(int run) {
+
+  int utime, dV, pmt, pm;
+  float ecor, gcor, gmcor, temp, dtemp;
+  multimap<int,string>::iterator it;
+
+  static int run_prev = 0;
+  if (run == run_prev) return;
+  run_prev = run;
+
+  // Set Defaults
+  v_pmt_ecor = v_pmt_ecor_dflt;
+  v_pmt_gcor = v_pmt_gcor_dflt;
+  v_pmt_gmcor = v_pmt_gmcor_dflt;
+  v_pmt_temp_ref = v_pmt_temp_ref_dflt;
+
+  // PMT Status & HV
+  for (int pmt=0; pmt<NPMT; pmt++) {
+    if (usePmtStat && !richPmtGood(pmt))           v_pmt_ecor[pmt] = 0;
+    if      (v_pmt_volt[pmt] < v_pmt_vnom[pmt]-50) v_pmt_ecor[pmt] = 0;
+    else if (v_pmt_volt[pmt] != v_pmt_vnom[pmt]) {
+      for (it=m_pmt_voltages.begin(); it!=m_pmt_voltages.end(); it++) {
+	if (it->first!=v_pmt_vnom[pmt]-v_pmt_volt[pmt]) continue;
+	istringstream ssline(it->second);
+	ssline >> dV >> pm >> ecor >> gcor >> gmcor >> temp >> dtemp; 
+	if (pm == pmt) {
+	  v_pmt_ecor[pmt]  = ecor;
+	  v_pmt_gcor[pmt]  = gcor;
+	  v_pmt_gmcor[pmt] = gmcor;
+	  v_pmt_temp_ref[pmt] = temp;
+	  break;
+	}
+      }
+      if (it==m_pmt_voltages.end()) v_pmt_ecor[pmt] = 0;
+    }
+  }
+
+  // PMT Periods (for Nom HV)
+  for (it=m_pmt_periods.begin(); it!=m_pmt_periods.end(); it++) {
+    if (it->first>run) break;
+    istringstream ssline(it->second);
+    ssline >> utime >> pmt >> ecor >> gcor >> gmcor;
+    if (v_pmt_volt[pmt] == v_pmt_vnom[pmt]) {
+      v_pmt_ecor[pmt]  = ecor;
+      v_pmt_gcor[pmt]  = gcor;
+      v_pmt_gmcor[pmt] = gmcor;
+    }
+  }
+
+  if (DEBUG)
+    for (int pmt=0; pmt<NPMT; pmt++) {
+      if (v_pmt_ecor[pmt] != v_pmt_ecor_dflt[pmt] || 
+	  v_pmt_gcor[pmt] != v_pmt_gcor_dflt[pmt] ||
+	  v_pmt_gmcor[pmt] != v_pmt_gmcor_dflt[pmt]) {
+	cout << "RichPMTCalib::updatePMTs : Calibration Constants Changed for pmt " << pmt << endl;
+	cout << Form("  Stat: 0x%04x, Volt: %d (%d), Eff: %.03f (%.03f), Gain: %03f (%03f), Gainm %.03f (%.03f), Tref %.02f (%.02f)",
+		     v_pmt_stat[pmt],
+		     v_pmt_volt[pmt], v_pmt_vnom[pmt],
+		     v_pmt_ecor[pmt], v_pmt_ecor_dflt[pmt],
+		     v_pmt_gcor[pmt], v_pmt_gcor_dflt[pmt],
+		     v_pmt_gmcor[pmt], v_pmt_gmcor_dflt[pmt],
+		     v_pmt_temp_ref[pmt], v_pmt_temp_ref_dflt[pmt])
+	     << endl;
+      }
+    }
+
+
+  // Update Bad PMT List
+  BadPMTs.clear();
+  for (int i=0; i<NPMT; i++)
+    if (v_pmt_ecor[i] == 0) BadPMTs.push_back(i);
+
+  cout << "RichPMTCalib::UpdatePMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
+  if (DEBUG)
+    for (int i=0; i<BadPMTs.size(); i++) 
+      cout << "RichPMTCalib::UpdatePMTs :  " << i << " : " << BadPMTs[i] << endl;
+
+}
+
+
 bool RichPMTCalib::initPMTs() {
 
   bool initPMTs = false;
   int pmt, npmt;
 
-  TString DBDir=currentDir+TString("/RichPmtCorrections/");
+  TString DBDir=currentDir+TString("/RichPMTCalib/");
   TString PmtCorrectionsFileName;
   ifstream PmtCorrectionsFile;
 
-  //
-  // Gain Temperature Corrections (Computed on PeriodA...should be validated for others)
-  PmtCorrectionsFileName = DBDir + TString("DefaultGainTemp.txt");
-  cout << "RichPMTCalib::initPMTs: Open PMT Gain Temperature Corrections File " << PmtCorrectionsFileName << endl;
-  PmtCorrectionsFile.open(PmtCorrectionsFileName);
-  if (!PmtCorrectionsFile.good()) {
-    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
-    return initPMTs;
-  }
+  char line[256];
 
+  // Clear
+  v_pmt_ecor.assign(NPMT, 1);
+  v_pmt_gcor.assign(NPMT, 1);
+  v_pmt_gmcor.assign(NPMT, 1);
+  v_pmt_temp_ref.assign(NPMT, pmtRefTemperature);
+  v_pmt_ecor_dflt.assign(NPMT, 1);
+  v_pmt_gcor_dflt.assign(NPMT, 1);
+  v_pmt_gmcor_dflt.assign(NPMT, 1);
+  v_pmt_temp_ref_dflt.assign(NPMT, pmtRefTemperature);
+
+  BadPMTs.clear();
+
+  v_pmt_dEdT.assign(NPMT, pmtRefdEdT);
   v_pmt_dGdT.assign(NPMT, pmtRefdGdT);
-  npmt = 0;
-  float dGdT, dGdTe, off, offe, tlow, thgh, chi2;
-  int nbn;
-  while ( PmtCorrectionsFile >> pmt >> dGdT >> dGdTe >> off >> offe >> tlow >> thgh >> nbn >> chi2 ) {
 
-    if (pmt<NPMT) {
-      npmt++;
-      if (dGdT<0) v_pmt_dGdT[pmt] = dGdT;
-    }
-    else {
-      cout << "RichPMTCalib::initPMTs: Error in " << PmtCorrectionsFileName 
-	   << ". pmt: " << pmt << " dGdT: " << dGdT << endl;
-      return initPMTs;
-    }
-
-  }
-
-  PmtCorrectionsFile.close();
-
-  cout << "RichPMTCalib::initPMTs: Number of PMT Gain Temperature Corrections Read : " << npmt << endl;
-  if (npmt != NPMT) {
-    cout << "RichPMTCalib::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
-    return initPMTs;
-  }
+  m_pmt_periods.clear();
+  m_pmt_voltages.clear();
 
   //
-  // Efficiency & Gain Corrections (Computed on PeriodB...should be validated for others)
+  // Efficiency & Gain Corrections
   PmtCorrectionsFileName = DBDir + TString("DefaultEffGain.txt");
   cout << "RichPMTCalib::initPMTs: Open PMT Eff & Gain Corrections File " << PmtCorrectionsFileName << endl;
   PmtCorrectionsFile.open(PmtCorrectionsFileName);
@@ -168,15 +282,11 @@ bool RichPMTCalib::initPMTs() {
     return initPMTs;
   }
 
-  v_pmt_ecor.assign(NPMT, 1);
-  v_pmt_gcor.assign(NPMT, 1);
-  v_pmt_gmcor.assign(NPMT, 1);
-  v_pmt_temp_ref.assign(NPMT, pmtRefTemperature);
   npmt = 0;
   float eCor, gCor, gmCor, temp, dtemp;
   while ( PmtCorrectionsFile >> pmt >> eCor >> gCor >> gmCor >> temp >> dtemp ) {
 
-    if (pmt<NPMT) {
+    if (pmt<NPMT && eCor>=0 && gCor>=0 && gmCor>=0) {
       npmt++;
       v_pmt_ecor[pmt] = eCor;
       v_pmt_gcor[pmt] = gCor;
@@ -195,6 +305,11 @@ bool RichPMTCalib::initPMTs() {
 
   PmtCorrectionsFile.close();
 
+  v_pmt_ecor_dflt = v_pmt_ecor;
+  v_pmt_gcor_dflt = v_pmt_gcor;
+  v_pmt_gmcor_dflt = v_pmt_gmcor;
+  v_pmt_temp_ref_dflt = v_pmt_temp_ref;
+
   cout << "RichPMTCalib::initPMTs: Number of PMT Eff & Gain Corrections Read : " << npmt << endl;
   if (npmt != NPMT) {
     cout << "RichPMTCalib::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
@@ -202,66 +317,104 @@ bool RichPMTCalib::initPMTs() {
   }
 
   // Fill in List of BadPMTs
-  BadPMTs.clear();
   for (int i=0; i<NPMT; i++)
     if (v_pmt_ecor[i] == 0) BadPMTs.push_back(i);
 
+  cout << "RichPMTCalib::initPMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
   if (DEBUG)
-  {
-    cout << "RichPMTCalib::initPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
     for (int i=0; i<BadPMTs.size(); i++) 
       cout << "RichPMTCalib::initPMTs :  " << i << " : " << BadPMTs[i] << endl;
+
+  //
+  // Efficiency & Gain Temperature Corrections 
+  PmtCorrectionsFileName = DBDir + TString("DefaultEffGainTemp.txt");
+  cout << "RichPMTCalib::initPMTs: Open PMT Eff&Gain Temperature Corrections File " << PmtCorrectionsFileName << endl;
+  PmtCorrectionsFile.open(PmtCorrectionsFileName);
+  if (!PmtCorrectionsFile.good()) {
+    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    return initPMTs;
   }
+
+  npmt = 0;
+  float dGdT, dGdTe, dEdT, dEdTe, offe, tlow, thgh, chi2E, chi2G;
+  int nbn;
+  while ( PmtCorrectionsFile >> pmt >> dEdT >> dEdTe >> dGdT >> dGdTe >> tlow >> thgh >> nbn >> chi2E >> chi2G ) {
+    if (pmt<NPMT) {
+      npmt++;
+      if (dEdT>pmtMindEdT && dEdT<pmtMaxdEdT) v_pmt_dEdT[pmt] = dEdT;
+      if (dGdT>pmtMindGdT && dGdT<pmtMaxdGdT) v_pmt_dGdT[pmt] = dGdT;
+    }
+    else {
+      cout << "RichPMTCalib::initPMTs: Error in " << PmtCorrectionsFileName 
+	   << ". pmt: " << pmt << " dEdT: " << dEdT << " dGdT: " << dGdT << endl;
+      return initPMTs;
+    }
+
+  }
+
+  PmtCorrectionsFile.close();
+
+  cout << "RichPMTCalib::initPMTs: Number of PMT Eff&Gain Temperature Corrections Read : " << npmt << endl;
+  if (npmt != NPMT) {
+    cout << "RichPMTCalib::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
+    return initPMTs;
+  }
+
+
+  //
+  // PMT Periods
+  PmtCorrectionsFileName = DBDir + TString("DefaultPmtPeriods.txt");
+  cout << "RichPMTCalib::initPMTs: Open PMT Periods File " << PmtCorrectionsFileName << endl;
+  PmtCorrectionsFile.open(PmtCorrectionsFileName);
+  if (!PmtCorrectionsFile.good()) {
+    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    return initPMTs;
+  }
+
+  while ( PmtCorrectionsFile.getline( line, sizeof(line)) ) {
+    string sline(line);
+    istringstream ssline(sline);
+    int run;
+    ssline >> run;
+    m_pmt_periods.insert(pair<int,string>(run,sline));
+  }
+
+  PmtCorrectionsFile.close();
+
+  cout << "RichPMTCalib::initPMTs: Number of PMT Periods Read : " << m_pmt_periods.size() << endl;
+  if (DEBUG)
+    for (multimap<int,string>::iterator it = m_pmt_periods.begin(); it!= m_pmt_periods.end(); it++)
+      cout << it->second << endl;
+
+  //
+  // PMT HV (Non Nominal)
+  PmtCorrectionsFileName = DBDir + TString("DefaultPmtVoltages.txt");
+  cout << "RichPMTCalib::initPMTs: Open PMT Voltages File " << PmtCorrectionsFileName << endl;
+  PmtCorrectionsFile.open(PmtCorrectionsFileName);
+  if (!PmtCorrectionsFile.good()) {
+    cout << "RichPMTCalib::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    return initPMTs;
+  }
+
+  while ( PmtCorrectionsFile.getline( line, sizeof(line)) ) {
+    string sline(line);
+    istringstream ssline(sline);
+    int dV;
+    ssline >> dV;
+    m_pmt_voltages.insert(pair<int,string>(dV,sline));
+  }
+
+  PmtCorrectionsFile.close();
+
+  cout << "RichPMTCalib::initPMTs: Number of PMT Voltages Read : " << m_pmt_voltages.size() << endl;
+  if (DEBUG)
+    for (multimap<int,string>::iterator it = m_pmt_voltages.begin(); it!= m_pmt_voltages.end(); it++)
+      cout << it->second << endl;
 
   initPMTs = true;
 
   return initPMTs;
 }
-
-
-void RichPMTCalib::initBadPMTs() {
-
-  // List of BadPMTs ( should be extended to pmt, begin_time, end_time)
-  int badpmts[] = {
-    // Grid A
-     29,  43, 
-    // Grid B
-    // Grid C
-    205, 225, 305, 
-    // Grid D
-    323,
-    // Grid E
-    358, 366, 373, 439, 446, 458, 466, 473, 
-    // Grid F
-    493, 
-    // Grid G 
-    510, 511, 512, 513, 514, 515, 628, 647, 652,
-    // Grid H
-    664 
-  };
-
-  /*
-  PMTs 1-50% bad : 6
-    pmt : 121 0.09
-    pmt : 123 0.09
-    pmt : 125 0.09
-    pmt : 127 0.09
-    pmt : 452 0.02
-    pmt : 460 0.15
-  */
-
-  BadPMTs.clear();
-  for (int i=0; i<sizeof(badpmts)/sizeof(int); BadPMTs.push_back(badpmts[i++]));
-
-  if (DEBUG)
-  {
-    cout << "RichPMTCalib::initBadPMTs :  declared Bad PMTs = " << BadPMTs.size() << endl;
-    for (int i=0; i<BadPMTs.size(); i++) 
-      cout << "RichPMTCalib::initBadPMTs :  " << i << " : " << BadPMTs[i] << endl;
-  }
-
-}
-
 
 
 bool RichPMTCalib::checkRichPmtTemperatures() {
@@ -297,7 +450,7 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
     v_pmt_temp.assign(NPMT, 25); // Default PMT Temperatures
 
-    TString DBDir=currentDir+("/RichTemperatures/");
+    TString DBDir=currentDir+("/RichPMTCalib/");
     TString DtsPositionsFileName, PmtPositionsFileName, TemperaturesFileName;
 
     // DTS Positions
@@ -538,7 +691,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
     v_pmt_temp.assign(NPMT, pmtRefTemperature); // Default PMT Temperatures
     v_pmt_rep.assign(NPMT, 0);
 
-    TString DBDir=currentDir+TString("/RichTemperatures/");
+    TString DBDir=currentDir+TString("/RichPMTCalib/");
     TString DtsPositionsFileName, PmtPositionsFileName;
 
     // DTS Positions
@@ -654,6 +807,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   }
 
   if (!initok || !AMSSetupR::gethead()) return RichPmtTemperatures;
+
   RichPmtTemperatures = true;
 
   // Retrieve DTS temperatures
@@ -681,12 +835,13 @@ bool RichPMTCalib::getRichPmtTemperatures() {
       break;
     }
     if (v_pmt_temp[pmt]==HUGE_VALF) {
-      if (v_pmt_rep[pmt]++ < MAX_REP) 
-	cout << "RichPMTCalib::getRichPmtTemperatures: "
-	     << " Run "   << AMSEventR::Head()->fHeader.Run 
-	     << " Event " << AMSEventR::Head()->fHeader.Event 
-	     << " NoValidTempFoundForPMT " << pmt 
-	     << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
+      if (DEBUG)
+	if (v_pmt_rep[pmt]++ < MAX_REP) 
+	  cout << "RichPMTCalib::getRichPmtTemperatures: "
+	       << " Run "   << AMSEventR::Head()->fHeader.Run 
+	       << " Event " << AMSEventR::Head()->fHeader.Event 
+	       << " NoValidTempFoundForPMT " << pmt 
+	       << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
       v_pmt_temp[pmt] = pmtRefTemperature;
       RichPmtTemperatures = false;
     }
@@ -740,7 +895,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     v_brick_temp.assign(NPMT, brickRefTemperature); // Default HV Brick Temperatures
     v_pmt_rep.assign(NPMT, 0);
 
-    TString DBDir=currentDir+TString("/RichTemperatures/");
+    TString DBDir=currentDir+TString("/RichPMTCalib/");
     TString DtsPositionsFileName, PmtPositionsFileName;
 
     // DTS Brick
@@ -877,12 +1032,13 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     }
     if (n) v_brick_temp[pmt] = sum/n; 
     if (v_brick_temp[pmt]==HUGE_VALF) {
-      if (v_pmt_rep[pmt]++ < MAX_REP) 
-	cout << "RichPMTCalib::getRichBrickTemperatures: "
-	     << " Run "   << AMSEventR::Head()->fHeader.Run 
-	     << " Event " << AMSEventR::Head()->fHeader.Event 
-	     << " NoValidTempFoundForPMT " << pmt 
-	     << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
+      if (DEBUG)
+	if (v_pmt_rep[pmt]++ < MAX_REP) 
+	  cout << "RichPMTCalib::getRichBrickTemperatures: "
+	       << " Run "   << AMSEventR::Head()->fHeader.Run 
+	       << " Event " << AMSEventR::Head()->fHeader.Event 
+	       << " NoValidTempFoundForPMT " << pmt 
+	       << " (Reported/Max " << v_pmt_rep[pmt] << "/" << MAX_REP << ")" << endl;
       v_brick_temp[pmt] = brickRefTemperature;
       RichBrickTemperatures = false;
     }
@@ -909,7 +1065,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   // .... .... .... .v.. : RDR   CNF Missing 
   // .... .... .... v... : RDR   HKD Missing
   // 
-  // .... .... ...v .... : Low Rich Occupancy
+  // .... .... ...v .... : Low Rich Occupancy (not yet in)
   //
   //
   // PMT Status :
@@ -927,16 +1083,14 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   // .... .v.. .... .... : RDR   CNF Missing 
   // .... v... .... .... : RDR   HKD Missing
   //
-  // ...v .... .... .... : Low Rich Occupancy 
+  // ...v .... .... .... : Low Rich Occupancy (not yet in)
   //
   /////////////////////////////////////
 
   // Rich Tag Files
   char *fName[NTAG] = {
-    //"RunClassifierJ.txt", "RunClassifierJHK.txt",
-    //"RunClassifierR.txt", "RunClassifierRHK.txt"
-    "RunClassifierJ_merged.txt", "RunClassifierJHK.txt",
-    "RunClassifierR_merged.txt", "RunClassifierRHK.txt"
+    "RunClassifierJ_merged.txt", "RunClassifierJHK_merged.txt",
+    "RunClassifierR_merged.txt", "RunClassifierRHK_merged.txt"
   };
 
 
@@ -962,7 +1116,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 
   unsigned short richRunTag = richRunDflt; 
 
-  static int run_prev;
+  static int run_prev = 0;
   static unsigned short richRunTag_prev; 
   static vector<unsigned short> v_pmt_stat_prev, v_pmt_volt_prev;
 
@@ -980,7 +1134,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
     v_pmt_stat_prev = v_pmt_stat;
     v_pmt_volt_prev = v_pmt_volt;
 
-    TString TAGDir=currentDir+("/RichRunTags/");
+    TString TAGDir=currentDir+("/RichPMTCalib/");
 
     for (int tag=0; tag<NTAG; tag++) {
 
@@ -1166,6 +1320,7 @@ void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
   for (int pmt=0; pmt<NPMT; pmt++) {
     v_pmt_stat[pmt] ^= ((1<<kTagJ) << 8);
     v_pmt_stat[pmt] |= (1<<kPmtHV);
+    v_pmt_stat[pmt] |= (1<<kPmtJ);
     v_pmt_volt[pmt] = 0;
   }
 
@@ -1175,16 +1330,12 @@ void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
 
     brick = v_pmt_brick[pmt];
     hvchn = v_pmt_hvchn[pmt];
-
     fgin = v_brick_fgin[brick][0];
-    if (!strncmp(&code[fgin][0], "B", 1)) 
-      fgin = fgin<2 ? fgin+2 : fgin-2;    // Temporary fix till FG fixes format
 
     //cout << pmt << " " << fgin << " " << strlen(code[fgin]) << " " << code[fgin] << endl; 
     if (strlen(code[fgin]) != NHVCHN+2) continue;
 
-    v_pmt_stat[pmt] ^= (1<<kPmtJ); // this should be done only by RichDecodeJHK
-                                   // when(if) available for all runs
+    v_pmt_stat[pmt] ^= (1<<kPmtJ);
 
     if (!strncmp(&code[fgin][0]      , "0", 1)) continue; // DCDC Off
     if ( strncmp(&code[fgin][1]      , "1", 1)) continue; // DCDC HV<>950
@@ -1226,17 +1377,29 @@ void RichPMTCalib::RichDecodeJHK(string sline, vector<int> v_brick_busa[], vecto
     busb = v_brick_busb[brick][B];
 
     half = brick/2;
-    jinf = 2*half;
-    if (!strcmp(code[jinf],"00000")) jinf++;
 
-    if (strlen(code[jinf]) != 5) continue;
+    bool isok = true;
+    for (jinf=2*half; jinf<2*half+2; jinf++) {
 
-    if (strncmp(&code[jinf][0], "1", 1)) continue;
+      if (!strcmp(code[jinf],"0000000000")) continue;
 
-    if (strncmp(&code[jinf][1+busa], "1", 1) &&
-	strncmp(&code[jinf][1+busb], "1", 1)) continue;
+      if (strlen(code[jinf])!=10) isok = false;
 
-    v_pmt_stat[pmt] ^= (1<<kPmtJ);
+      if (isok) {
+
+	if (strncmp(&code[jinf][0], "11", 2)) isok = false;  // Slave Masks / IO Registers
+
+	if ( (!strncmp(&code[jinf][6+busa], "1", 1) &&   // Brick A-side On 
+ 	       strncmp(&code[jinf][2+busa], "1", 1)) ||  //       & mismatch
+	     (!strncmp(&code[jinf][6+busb], "1", 1) &&   // Brick B-side On
+ 	       strncmp(&code[jinf][2+busb], "1", 1)))    //       & mismatch
+	     isok = false;
+
+      }
+
+    }
+
+    if (isok) v_pmt_stat[pmt] ^= (1<<kPmtJ);
 
   }
 
@@ -1253,15 +1416,18 @@ void RichPMTCalib::RichDecodeR(string sline,
   for (int pmt=0; pmt<NPMT; pmt++) {
     v_pmt_stat[pmt] ^= ((1<<kTagR) << 8);
     v_pmt_stat[pmt] |= (1<<kPmtFE);
+    v_pmt_stat[pmt] |= (1<<kPmtR);
   }
 
   ssline >> utime >> code;
   if (strlen(code) != NRDR) return;
 
   for (int pmt=0; pmt<NPMT; pmt++) {
-    v_pmt_stat[pmt] ^= (1<<kPmtR); // this should be done only by RichDecodeRHK
-                                   // when available for all runs
+
     if (strncmp(&code[v_pmt_rdr[pmt]], "0", 1)) v_pmt_stat[pmt] ^= (1<<kPmtFE);
+
+    if (strncasecmp(&code[v_pmt_rdr[pmt]], "D", 1)) v_pmt_stat[pmt] ^= (1<<kPmtR);
+
   }
 
 }
@@ -1272,18 +1438,19 @@ void RichPMTCalib::RichDecodeRHK(string sline,
 
   istringstream ssline(sline);
   int utime;
-  char code[100];
+  char code[NRDR][10];
 
   for (int pmt=0; pmt<NPMT; pmt++) {
     v_pmt_stat[pmt] ^= ((1<<kTagRHK) << 8);
     v_pmt_stat[pmt] |= (1<<kPmtR);
   }
 
-  ssline >> utime >> code;
-  if (strlen(code) != NRDR) return;
+  ssline >> utime;
+  for (int rdr=0; rdr<NRDR; rdr++) ssline >> code[rdr];
 
   for (int pmt=0; pmt<NPMT; pmt++)
-    if (!strncmp(&code[v_pmt_rdr[pmt]], "0", 1)) v_pmt_stat[pmt] ^= (1<<kPmtR);
+    if (!strcmp(code[v_pmt_rdr[pmt]], "00")) // No Config/Calib mismatch
+      v_pmt_stat[pmt] ^= (1<<kPmtR);
 
 }
 
@@ -1302,7 +1469,12 @@ bool RichPMTCalib::ReadPmtDB() {
 
     init = false;
 
-    TString DBDir=currentDir+TString("/RichDB/");
+    v_pmt_rdr.assign(NPMT, 0);
+    v_pmt_brick.assign(NPMT, 0);
+    v_pmt_hvchn.assign(NPMT, 0);
+    v_pmt_vnom.assign(NPMT, 0); 
+
+    TString DBDir=currentDir+TString("/RichPMTCalib/");
     TString PmtDBFileName;
 
     PmtDBFileName = DBDir + TString("RichPmtDB.txt");
@@ -1313,10 +1485,6 @@ bool RichPMTCalib::ReadPmtDB() {
       return readPmtDB;
     }
 
-    v_pmt_rdr.assign(NPMT, 0);
-    v_pmt_brick.assign(NPMT, 0);
-    v_pmt_hvchn.assign(NPMT, 0);
-    v_pmt_vnom.assign(NPMT, 0); 
     int npmt = 0;
     while ( PmtDBFile >> pmt >> rdr >> brick >> hvchn >> vnom ) {
 
@@ -1351,5 +1519,28 @@ bool RichPMTCalib::ReadPmtDB() {
 
   return readPmtDB;
 
+}
+
+bool RichPMTCalib::buildCorrections(){
+  if(AMSEventR::Head()->fHeader.Event==lastEvent && AMSEventR::Head()->fHeader.Run==lastRun) return true;
+  lastEvent=AMSEventR::Head()->fHeader.Event;
+  lastRun=AMSEventR::Head()->fHeader.Run;
+  RichPMTCalib *corr=RichPMTCalib::Update();
+  if(!corr) return false;
+
+    // Correct the collected 
+  for(int pmt=0; pmt<680; pmt++){
+    if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpColPMTCorr[pmt]=0;
+    else NpColPMTCorr[pmt] = (corr->GainCorrection(pmt)>0 && corr->GainTemperatureCorrection(pmt)>0) ?
+      1.0 / corr->GainCorrection(pmt) / corr->GainTemperatureCorrection(pmt) : 0;
+  }
+
+  // Correct the expected
+  for(int pmt=0; pmt<680; pmt++){
+    if(find(corr->BadPMTs.begin(), corr->BadPMTs.end(), pmt)!=corr->BadPMTs.end()) NpExpPMTCorr[pmt]=0;
+    else NpExpPMTCorr[pmt]=corr->EfficiencyCorrection(pmt) * corr->EfficiencyTemperatureCorrection(pmt);
+  }
+ 
+  return true;
 }
 

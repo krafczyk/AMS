@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.408 2012/03/07 11:57:48 mdelgado Exp $
+//  $Id: root.h,v 1.409 2012/03/08 10:31:00 jorgec Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1248,6 +1248,7 @@ public:
   bool IsCrossed(){return (Status&(1<<30))!=0;}
   bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
   bool IsHighGain(int){return (Status&(1<<29))!=0;}
+  /// Number of photoelectrons 
   int  PhotoElectrons(double sigmaOverQ=0.6);
   /// Return the number of photoelectrons in the event, discarding those PMTs crossed by charged particles
   static float getCollectedPhotoElectrons();
@@ -1344,9 +1345,6 @@ public:
   static void calPush(double beta,double index,float x,float y);
   ///@}
 
-  /// Directory containing charge corrections values
-  static TString correctionsDir; 
-
  unsigned int Status;     ///< status word
                            /*!<
 
@@ -1396,6 +1394,16 @@ public:
   // Time dependent charge corrections
   map<unsigned short,float> NpColCorr;   //!  Efficiency correction to NpExpPMT
   map<unsigned short,float> NpExpCorr;   //!  Temperature correction to npcol
+
+  /// Rich Charge Corrections Settings & Flags 
+  static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed) 
+  static TString correctionsDir;  ///< Directory containing corrections
+  static bool useRichRunTag;      ///< Define corrections only for good runs 
+  static bool usePmtStat;         ///< Define correnctions only for good PMT
+  static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median) 
+  static bool useGainCorrections; ///< Activate PMT Gain equalization
+  static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
+  static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
 
   // Add new variables here.
 
@@ -1455,15 +1463,21 @@ public:
   float getBeta()          {return BetaRefit*betaCorrection();}
   /// Build charge corrections
   bool buildChargeCorrections();
+  /// Charge corrections fail flag (-1/0/1 : Not/Done/Failed)
+  int PmtCorrectionsFailed(){return pmtCorrectionsFailed;}
+  /// Total number of used hits in the ring
+  int getUsedHits(bool corr=true);
+  int getUsedHits(int pmt, bool corr);
   /// Total number of photoelectrons in the ring. 
-  float getPhotoElectrons(bool corr=false);
-  float getPhotoelectrons(bool corr=false){return getPhotoElectrons(corr);}
-  float getPhotoElectrons(int pmt){map<unsigned short,float>::iterator i=NpColPMT.find(pmt);return i==NpColPMT.end()?0:i->second;}
+  float getPhotoelectrons(bool corr=true){return getPhotoElectrons(corr);}
+  float getPhotoElectrons(bool corr=true);
+  float getPhotoElectrons(int pmt, bool corr);
   /// Number of expected photoelectrons for a Z=1 ring with the reconstruction input parameters of the current event.
-  float getExpectedPhotoelectrons(bool corr=false);
-  float getExpectedPhotoelectrons(int pmt){map<unsigned short,float>::iterator i=NpExpPMT.find(pmt);return i==NpExpPMT.end()?0:i->second;}
+  float getExpectedPhotoelectrons(bool corr=true){return getExpectedPhotoElectrons(corr);}
+  float getExpectedPhotoElectrons(bool corr=true);
+  float getExpectedPhotoElectrons(int pmt, bool corr);
   /// Continuous Z^2 estimate for this ring
-  float getCharge2Estimate(bool corr=false) {return getExpectedPhotoelectrons(corr)>0?getPhotoElectrons(corr)/getExpectedPhotoelectrons(corr):0;}
+  float getCharge2Estimate(bool corr=true) {return getExpectedPhotoelectrons(corr)>0?getPhotoElectrons(corr)/getExpectedPhotoelectrons(corr):0;}
   /// Estimation of the error of the reconstructed beta
   /// \return Estimate of the error of the reconstructed beta
   float getBetaError()     {return sqrt(2.5e-3*2.5e-3*(IsNaF()?9.0:1.0)/getPhotoElectrons()+1e-4*1e-4);}
@@ -1504,7 +1518,7 @@ public:
   } 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,26)           // RichRingR
+  ClassDef(RichRingR,27)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 
