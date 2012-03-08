@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.10 2011/03/30 14:53:25 mdelgado Exp $
+//  $Id: AMSRICHHist.cxx,v 1.11 2012/03/08 17:26:51 jorgec Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -11,6 +11,7 @@
 #include "AMSRICHHist.h"
 #include <TProfile2D.h>
 #include <algorithm>
+#include "root.h"
 
 //#define MUONS
 
