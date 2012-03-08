@@ -24,6 +24,7 @@ geant RichRadiatorTile::LocalIndex(geant dx,geant dy){
 
 
 
+
 /////////////////////////////////////////////////
 
 
@@ -304,6 +305,16 @@ RichRadiatorTileManager::RichRadiatorTileManager(TrTrack *track){
     return;
   }
 
+
+  // Use the mean position for the direct photons to estimate the
+  // local mean index
+  double dx=point[0]-_tiles[_current_tile]->position[0];
+  double dy=point[1]-_tiles[_current_tile]->position[1];
+
+  // Compute the distance to the tile border
+  _distance2border=fmin(fabs(get_tile_boundingbox(_current_tile,0)-fabs(dx)),
+			fabs(get_tile_boundingbox(_current_tile,1)-fabs(dy)));
+
   pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+getheight());
 
   // Transform to AMS
@@ -348,11 +359,7 @@ RichRadiatorTileManager::RichRadiatorTileManager(TrTrack *track){
   d=AMSDir(theta,phi);
   _d_reflected=RichAlignment::AMSToRich(d);
   
-  // Use the mean position for the direct photons to estimate the
-  // local mean index
-  double dx=_p_direct[0]-_tiles[_current_tile]->position[0];
-  double dy=_p_direct[1]-_tiles[_current_tile]->position[1];
-  
+ 
   if(_tiles[_current_tile]->kind==naf_kind) _local_index=_tiles[_current_tile]->mean_refractive_index;
   else _local_index=1+(_tiles[_current_tile]->mean_refractive_index-1)*
     (_tiles[_current_tile]->LocalIndex(dx,dy)-1)/

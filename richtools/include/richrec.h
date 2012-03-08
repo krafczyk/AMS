@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.8 2011/04/01 11:04:47 mdelgado Exp $
+//  $Id: richrec.h,v 1.9 2012/03/08 10:33:40 jorgec Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -98,6 +98,8 @@ public:
   float getchannelsigagain(){return 0;}
   int getchannelgainmode(){return 0;}
 
+  int photoElectrons(double sigmaOverQ=0.6);
+
   // Get betas from last call to reconstruct
   inline geant getbeta(integer i){
     if(i<=0) return _beta_hit[_current][0];
@@ -139,6 +141,7 @@ private:
   number  _quality;     // Chi2  
   number  _npexp;       // Number of expected photons for Z=1
   number  _collected_npe;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
+  number  _collected_npe_lkh;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
   number  _probkl;      // Kolgomorov test probability of the reconstructed ring azimuthal distribution being correct
   number  _kdist;       // Leibler-Kullback distance between the reconstructed ring and the hits for the azimuthal marginal distribution
   number _phi_spread;   //(\sum_i (phi_i-\phi_0)^2)/N_{hits} for used hits
@@ -148,6 +151,7 @@ private:
   number _errortheta;
   number _radpos[3];
   number _pmtpos[3];
+  number _crossingtrack[5];
 
 
   number  _npexpg;       // Number of expected photons for Z=1
@@ -161,6 +165,10 @@ private:
 
   integer _collected_hits_window[10];
   number  _collected_pe_window[10];
+
+  float NpColPMT[680];     /// Collected photoelectrons in the ring per PMT hits
+  float NpExpPMT[680];     /// Expected photoelectrons in the ring per PMT 
+
   number  _beta_window[10]; 
 
   number _npexplg[16];
@@ -188,6 +196,8 @@ private:
   static geant *_index_tbl;
   static int _kind_of_tile;
   static int _tile_index;
+  static geant _distance2border;
+
   // Tables for light guide response
 // Some variables used in AMSRichRing::generated
 #define _NRAD_ 400
@@ -255,6 +265,8 @@ private:
     if(b<c) {if(a<b) return 0; else return 1;}
     else    {if(a<c) return 0; else return 2;}
   }
+
+ static void getSobol(float &x,float &y,bool reset=false);
 
 protected:
   void CalcBetaError();

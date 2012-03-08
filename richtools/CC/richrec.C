@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.16 2011/11/11 21:43:22 mdelgado Exp $
+//  $Id: richrec.C,v 1.17 2012/03/08 10:33:41 jorgec Exp $
 #include <math.h>
 #include "richrec.h"
 #include "richradid.h"
@@ -14,6 +14,39 @@
 
 using namespace std;
 
+
+int RichRawEvent::photoElectrons(double sigmaOverQ){
+  const int maxComp=10;
+  static float rl[maxComp]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+  static float rs[maxComp]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+#pragma omp threadprivate(rl,rs)  
+
+  float Npe=getnpe();
+  int org=int(floor(Npe));
+  double maximum=-HUGE_VAL;
+  int best=0;
+  double sum=0;
+  double weight=0;
+  for(int n=max(org-3,1);n<=org+3;n++){
+    float mean=n;
+    float rms=n*sigmaOverQ*sigmaOverQ;
+    double lkh=0;
+    if(n>maxComp){
+      // Use gaussian approximation
+      lkh=exp(-0.5*(Npe-n)*(Npe-n)/rms-0.5*log(rms));
+    }else{
+      // Compute the true pdf
+      if(rl[n-1]==-1){rms=sqrt(rms);GETRLRS(mean,rms,rl[n-1],rs[n-1]);}
+      lkh=PDENS(Npe,rl[n-1],rs[n-1]);
+    }
+    sum+=n*lkh;
+    weight+=lkh;
+  }
+#ifdef __AMSDEBUG__
+  cout<<"NPE="<<Npe<<" RETURNING "<<sum/weight<<endl;
+#endif
+  return sum/weight;
+}
 
 
 integer RichRawEvent::_PMT_Status[RICmaxpmts];
@@ -334,8 +367,73 @@ double  RichRing::DeltaHeight=0;
 
 int     RichRing::_kind_of_tile=0;
 int     RichRing::_tile_index=0;
+geant   RichRing::_distance2border=0;
 
 AMSEventR *RichRing::_event=0;
+
+void    RichRing::getSobol(float &x,float &y,bool reset){
+  const unsigned int MAXBIT=30;
+  // Returns two quasi-random numbers for a 2-dimensional Sobel
+  // sequence. Adapted from Numerical Recipies in C.
+
+  int j, k, l;
+  unsigned long i, im,ipp;
+
+  // The following variables are "static" since we want their
+  // values to remain stored after the function returns. These
+  // values represent the state of the quasi-random number generator.
+
+  static float fac;
+  static int init=0;
+  static unsigned long in, ix[3], *iu[2*MAXBIT+1];
+  static unsigned long mdeg[3]={0,1,2};
+  static unsigned long ip[3]={0,0,1};
+  static unsigned long oiv[2*MAXBIT+1]=
+    {0,1,1,1,1,1,1,3,1,3,3,1,1,5,7,7,3,3,5,15,11,5,15,13,9};
+  static unsigned long iv[2*MAXBIT+1];
+#pragma omp threadprivate(fac,init,in,ix,iu,mdeg,ip,oiv,iv)
+
+  if(reset) init=0;
+
+  // Initialise the generator the first time the function is called.
+
+  if (!init) {
+    init = 1;
+    for(j=0;j<2*MAXBIT+1;j++) iv[j]=oiv[j];
+    for (j = 1, k = 0; j <= MAXBIT; j++, k += 2) iu[j] = &iv[k];
+    for (k = 1; k <= 2; k++) {
+      for (j = 1; j <= mdeg[k]; j++) iu[j][k] <<= (MAXBIT-j);
+      for (j = mdeg[k]+1; j <= MAXBIT; j++) {
+        ipp = ip[k];
+        i = iu[j-mdeg[k]][k];
+        i ^= (i >> mdeg[k]);
+        for (l = mdeg[k]-1; l >= 1; l--) {
+          if (ipp & 1) i ^= iu[j-l][k];
+          ipp >>= 1;
+        }
+        iu[j][k] = i;
+      }
+    }
+    fac = 1.0/(1L << MAXBIT);
+    in = 0;
+    ix[0]=ix[1]=ix[2]=0;
+  }
+  // Now calculate the next pair of numbers in the 2-dimensional
+  // Sobel sequence.
+
+  im = in;
+  for (j = 1; j <= MAXBIT; j++) {
+    if (!(im & 1)) break;
+    im >>= 1;
+  }
+  assert(j <= MAXBIT);
+  im = (j-1)*2;
+  ix[1] ^= iv[im+1];
+  ix[2] ^= iv[im+2];
+  x = ix[1] * fac;
+  y = ix[2] * fac;
+  in++;
+}
 
 
 RichRing *RichRing::build(AMSEventR *event,AMSPoint p,AMSDir d){
@@ -436,6 +534,7 @@ RichRing* RichRing::build(TrTrack *track,int cleanup){
   _index_tbl=crossed_tile.getindextable();
   _kind_of_tile=crossed_tile.getkind();
   _tile_index=crossed_tile.getcurrenttile();
+  _distance2border=crossed_tile.getdistance();
 
   
   //============================================================
@@ -727,6 +826,9 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
   AMSPoint local_pos=_entrance_p;
   AMSDir   local_dir=_entrance_d;
 
+  // Cleanup arrays containig PMT by PMT information
+  for(int i=0;i<680;i++) NpColPMT[i]=NpExpPMT[i]=0;
+
   local_pos[2]=RICHDB::rad_height-_height;
 
   // Protect against unexpected sign in _entrance_d 
@@ -790,6 +892,142 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
   integer i,j,k;
 
   memset(photons_per_channel,0,sizeof(photons_per_channel[0])*680*16);
+
+#define SOBOL
+#ifdef SOBOL
+  // COMPUTE THE NUMBER OF COLLECTED FOR A FIRST CHARGE ESTIMATE
+  _collected_npe=0.;
+  {
+    geant A=(-2.81+13.5*(_index-1.)-18.*
+	     (_index-1.)*(_index-1.))*
+      _height/(RICHDB::rich_height+RICHDB::foil_height+
+	       RICradmirgap+RIClgdmirgap)*40./2.;
+    
+    geant B=(2.90-11.3*(_index-1.)+18.*
+	     (_index-1.)*(_index-1.))*
+      _height/(RICHDB::rich_height+RICHDB::foil_height+
+	       RICradmirgap+RIClgdmirgap)*40./2.;
+    
+    if(_kind_of_tile==naf_kind) // For NaF they are understimated
+      {A*=3.44;B*=3.44;}
+    
+    geant sigma=Sigma(_beta,A,B);
+
+    for(RichRawEvent* hit=new RichRawEvent(_event)
+	;hit;hit=hit->next()){  
+      if((hit->getchannelstatus()%10)!=Status_good_channel) continue;
+      geant betas[3];
+      for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
+      geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
+
+      if(value<window_size){
+	_collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      }
+    }
+  }
+
+
+  double prev=-HUGE_VAL;
+  unsigned int counter=0;
+  getSobol(l,phi,true);  // The first is only for initialization 
+  nexp=nexpg=nexpr=nexpb=0;
+
+  int limit=4;
+  for(int step=0;step<1000 && step<limit;step++){
+    // Each computation step adds 100 points to the integral  
+    for(int i=0;i<100;i++){
+      l*=_height/local_dir[2];
+      phi*=2*M_PI;
+      r=local_pos+local_dir*l; // Move to the emission point
+      counter++;
+
+      int channel=-1,pmt=-1;
+      _emitted_rays++;
+      efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
+		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag,channel,pmt);
+
+#pragma omp critical (richrec1)
+      if(geftr){
+	float cnt=generated(lentr,lfoil,lguide,
+			    &ggen,&rgen,&bgen);
+	
+	// Store information for the FastMC 
+	if(pmt>-1 && channel>-1) 
+	  photons_per_channel[pmt*16+channel]+=efftr*cnt;
+
+	int phistep=floor(phi*NSTP/2.0/M_PI);
+	if(phistep>=NSTP) {cout<<"BIG ERROR IN PHISTEP"<<endl;phistep=NSTP-1;}
+	dfphi[phistep]+=efftr*cnt;
+
+	nexp+=efftr*cnt;
+	nexpg+=geftr*ggen;
+	nexpr+=reftr*rgen;
+	nexpb+=beftr*bgen;
+	_npexplg[channel]+=efftr*cnt;
+
+	// Add the same quantity per PMT
+	int channel=RichPMTsManager::FindChannel(xb,yb);
+	int pmt,pixel;  RichPMTsManager::UnpackGeom(channel,pmt,pixel);
+	if(pmt>-1) NpExpPMT[pmt]+=efftr*cnt;
+
+      }
+
+      for(k=0;k<nh_unused;k++){
+	geant d=sqrt(SQR(xb-unused_hits[k]->Coo[0])+
+		     SQR(yb-unused_hits[k]->Coo[1]));
+	if(d<unused_hitd[k])  unused_hitd[k]=d;
+      }
+
+
+      for(k=0;k<nh;k++){
+	geant d=sqrt(SQR(xb-used_hits[k]->Coo[0])+
+		     SQR(yb-used_hits[k]->Coo[1]));
+	if(d<hitd[k]){
+	  hitd[k]=d;
+	  hitp[k]=phi;
+	}
+      }
+      getSobol(l,phi);  
+    }
+
+    if(nexp==0) continue; // The computation failed miserably:try again
+
+    double currentValue=nexp*_height/local_dir[2]/counter;
+    double delta=fabs(currentValue-prev)*2/currentValue; // Overestimated error
+    double charge=_collected_npe/currentValue;
+    if(charge<1) charge=1;
+    double errorEstimate=(0.2*0.2*4-1.36/currentValue)/charge;
+    if(errorEstimate<1e-4/charge) errorEstimate=1e-4/charge;
+#ifdef __AMSDEBUG__
+    cout<<"SOBOL INTEGRATION STEP "<<step<<endl
+	<<"      NEXP "<<nexp*_height/local_dir[2]/counter<<" FOR NUMBER OF POINTS "<<counter<<endl
+	<<"      CURRENT VALUE "<<currentValue<<"   previous "<<prev<<" Error2 estimate "<<delta*delta<<endl
+	<<"      CURRENT CHARGE "<<charge<<endl
+	<<"      REQUIRED ERROR2 BOUND "<<errorEstimate<<endl 
+	<<"      CURRENT LIMIT "<<limit<<endl; 
+    
+    if(errorEstimate<0){
+      cout<<"BIG PROBLEM WITH THE ERROR ESTIMATE"<<endl;
+    }
+#endif
+
+    if(delta*delta>errorEstimate) limit=step+4;
+    prev=currentValue;
+  }
+
+  for(int i=0;i<680*16;photons_per_channel[i++]*=_height/local_dir[2]/counter);
+  nexp*=_height/local_dir[2]/counter;
+  nexpg*=_height/local_dir[2]/counter;
+  nexpr*=_height/local_dir[2]/counter;
+  nexpb*=_height/local_dir[2]/counter;
+  for(int i=0;i<16;_npexplg[i++]*=_height/local_dir[2]/counter);
+  for(phi=0,i=0;phi<2*PI;phi+=dphi,i++){
+    dfphi[i]*=_height/local_dir[2]/counter;
+  }
+  for(int i=0;i<680;NpExpPMT[i++]*=_height/local_dir[2]/counter);
+
+#else
+
   for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
     l=(j+.5)*dL;
 
@@ -838,6 +1076,9 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
       }
     }
   }
+
+#endif
+
 
   /*
 #ifdef __AMSDEBUG__
@@ -919,6 +1160,7 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
   _npexpb=nexpb;
 
   _collected_npe=0.;
+  _collected_npe_lkh=0;  
   
   geant A=(-2.81+13.5*(_index-1.)-18.*
 	   (_index-1.)*(_index-1.))*
@@ -953,10 +1195,15 @@ void RichRing::ReconRingNpexp(geant window_size,int cleanup){ // Number of sigma
 
 
     if(value<window_size){
+      // Computation per PMT 
+      int pmt,pixel;
+      RichPMTsManager::UnpackGeom(hit->getchannel(),pmt,pixel);
+      if(pmt>-1) NpColPMT[pmt]+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
+      
+      // General computation
       _collected_npe+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->getnpe();
-      int pmt,channel;
-      RichPMTsManager::UnpackGeom(hit->getchannel(),pmt,channel);
-      _usedlg[channel]+=1;
+      _collected_npe_lkh+=(cleanup && hit->getbit(crossed_pmt_bit))?0:hit->photoElectrons();
+      _usedlg[pixel]+=1;
 
     }
   }
@@ -1557,6 +1804,22 @@ RichRing::RichRing(TrTrack* track,
   _phi_spread=1e6;
   _unused_dist=-1;
   
+  // Fill all the track parameters (useful for alignment)
+  RichRadiatorTileManager crossed_tile(track);
+  AMSPoint dirp; AMSDir dird;
+  dirp=crossed_tile.getemissionpoint();
+  dird=crossed_tile.getemissiondir();
+
+  // Change it to AMS coordinates
+  AMSPoint amsp; AMSDir amsd;
+  amsp=RichAlignment::RichToAMS(dirp);
+  amsd=RichAlignment::RichToAMS(dird);
+  for(int i=0;i<3;i++) _crossingtrack[i]=amsp[i];
+  _crossingtrack[3]=amsd.gettheta();
+  _crossingtrack[4]=amsd.getphi();
+ 
+
+
   
   // Copy the residues plots
   _beta_direct.clear();
@@ -1627,6 +1890,7 @@ RichRing::RichRing(TrTrack* track,
     _pmtpos[2]=0;
   }
 
+  _status|=(int(_distance2border*100)&0x3ff)<<15;
 
 }
 

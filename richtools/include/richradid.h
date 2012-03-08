@@ -60,6 +60,7 @@ class RichRadiatorTileManager{
   AMSDir _d_reflected;
   AMSPoint _p_entrance;
   AMSDir   _d_entrance;
+  double _distance2border;
   double _local_index;    // Index for the current position
 
   // All the necessary numbers
@@ -129,6 +130,7 @@ class RichRadiatorTileManager{
   AMSDir getemissiondir(int reflected=0){return reflected?_d_direct:_d_reflected;};
   AMSPoint getentrancepoint(){return _p_entrance;};
   AMSDir getentrancedir(){return _d_entrance;};
+  double getdistance(){return _distance2border;}
 
   static void recompute_tables(int current,double new_index=0.0);
 };
