@@ -1,4 +1,4 @@
-//  $Id: AMSRICHHist.cxx,v 1.11 2012/03/08 17:26:51 jorgec Exp $
+//  $Id: AMSRICHHist.cxx,v 1.12 2012/03/09 07:24:09 choutko Exp $
 #include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
@@ -49,6 +49,7 @@ int AMSRICHHist::init(){
   last_run=-1;
   min_run=-1;
   max_run=-1;
+  return 0;
 }
 
 
