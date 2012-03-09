@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.409 2012/03/08 10:31:00 jorgec Exp $
+//  $Id: root.h,v 1.410 2012/03/09 17:12:51 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1273,8 +1273,19 @@ ClassDef(RichHitR,6)       // RichHitR
 
 class RichRingR {
 public:
-enum{noCorrection=0,tileCorrection,fullUniformityCorrection};
-static int shouldLoadCorrection; 
+enum{ready=-1,noCorrection=0,tileCorrection,fullUniformityCorrection};
+
+static int shouldLoadCorrection; ///< Holds the current state of the corrections loader
+
+/// Rich Charge Corrections Settings & Flags 
+static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed) 
+static TString correctionsDir;  ///< Directory containing corrections
+static bool useRichRunTag;      ///< Define corrections only for good runs 
+static bool usePmtStat;         ///< Define correnctions only for good PMT
+static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median) 
+static bool useGainCorrections; ///< Activate PMT Gain equalization
+static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
+static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
 /** @name Sets the initial correction to reconstrcuted beta.There are three possibilities foreseen, and only two implementes:
  *   RichRingR::noCorrection - No initial information is loaded. The dynamic calibration can be used to update the refractive index on the tiles on the flight
  *   RichRingR::tileCorrection - A default initial correction to the refractive indexes are loaded. These values can be subsequently corrected using the dynamic calibration, although it is not necessary. This is loaded by default.
@@ -1345,6 +1356,14 @@ public:
   static void calPush(double beta,double index,float x,float y);
   ///@}
 
+/** @name Class variables
+ *  These variables contain reconstructed quantities. However access to  them should
+ *  rely of the accessor methods instead the variables themselves, because
+ *  some corrections taken into account uniformity and time depencence is
+ *  applied within the accessor methods
+ */
+  ///@{
+
  unsigned int Status;     ///< status word
                            /*!<
 
@@ -1395,15 +1414,9 @@ public:
   map<unsigned short,float> NpColCorr;   //!  Efficiency correction to NpExpPMT
   map<unsigned short,float> NpExpCorr;   //!  Temperature correction to npcol
 
-  /// Rich Charge Corrections Settings & Flags 
-  static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed) 
-  static TString correctionsDir;  ///< Directory containing corrections
-  static bool useRichRunTag;      ///< Define corrections only for good runs 
-  static bool usePmtStat;         ///< Define correnctions only for good PMT
-  static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median) 
-  static bool useGainCorrections; ///< Activate PMT Gain equalization
-  static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
-  static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
+  ///@}
+
+
 
   // Add new variables here.
 
@@ -1510,6 +1523,20 @@ public:
   /// Number of hits which are consistent with reflected photons
   int   getReflectedHits() {return UsedM;}
   ///@}
+
+/** @name Interface to retrieve quality estimates of the uniformity corrections
+ * This is only availble if the uniformity corrections are used. Otherwise the
+ * functions return -1. 
+ */
+  ///@{
+  // Expected resolution for Z=1 particles
+  float getBetaExpectedResolution();
+  // Expected Rms of the distribution of beta for Z=1 beta=1 particles. 
+  // This gives an estimate of how likely is the event to have tails
+  float getBetaExpectedRms();
+  ///@}
+
+
   /// \param number index in container
   /// \return human readable info about RichRingR
   char * Info(int number=-1){

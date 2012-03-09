@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.369 2012/03/09 15:15:42 mdelgado Exp $
+//  $Id: root.C,v 1.370 2012/03/09 17:12:51 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4391,6 +4391,20 @@ int RichHitR::getPMTs(bool countCrossed){
   return counter;
 }
 
+
+float RichRingR::getBetaExpectedResolution(){
+  if(RichBetaUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
+    return RichBetaUniformityCorrection::getHead()->getWidth(this)*2;
+
+  return -1;
+}
+
+float RichRingR::getBetaExpectedRms(){
+  if(RichBetaUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
+    return RichBetaUniformityCorrection::getHead()->getRms(this);
+
+  return -1;
+}
 
 void RichRingR::calPush(double beta,double index,float x,float y){
   if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}
