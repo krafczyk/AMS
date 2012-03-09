@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.28 2012/03/07 15:50:22 pzuccon Exp $
+// $Id: TkDBc.h,v 1.29 2012/03/09 06:58:21 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -447,6 +447,8 @@ public:
   int NStripsDrp(int type){  return (type==0)?_NReadoutChanK: _NReadoutChanS;}
 
 
+  //! Load from TDV, ver=2: TrackerAlignPM2, ver3: TrackerAlignPM3
+  static int GetFromTDV(unsigned int time, int ver = 2);
 
   //!interface to GBTACH TDV database
   static float* linear;

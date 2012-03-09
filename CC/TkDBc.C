@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.49 2012/03/07 15:50:21 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.50 2012/03/09 06:58:25 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/03/07 15:50:21 $
+///$Date: 2012/03/09 06:58:25 $
 ///
-///$Revision: 1.49 $
+///$Revision: 1.50 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1298,6 +1298,40 @@ int TkDBc::readAlignmentSensor(const char* filename, int pri){
   return 0;
 
 }
+
+#include "timeid.h"
+
+int TkDBc::GetFromTDV(uint time, int ver)
+{
+  time_t tt = time;
+  tm begin;
+  tm end;
+  
+  begin.tm_isdst = end.tm_isdst = 0;
+  begin.tm_sec   = begin.tm_min = begin.tm_hour =
+  begin.tm_mday  = begin.tm_mon = begin.tm_year = 0;
+  end.  tm_sec   = end.  tm_min = end.  tm_hour =
+  end.  tm_mday  = end.  tm_mon = end.  tm_year = 0;
+
+  TString stn = Form("TrackerAlignPM%d", ver);
+
+  cout << "Loading " << stn.Data() << " for time " << time << endl;
+
+  TkLadder::version = ver-1;
+  
+  if (!TkDBc::Head) TkDBc::CreateTkDBc();
+  TkDBc::Head->init(3);
+
+  TkDBc::CreateLinear();
+  AMSTimeID *db = new AMSTimeID(AMSID(stn, 1), begin, end,
+				TkDBc::GetLinearSize(), TkDBc::linear,
+				AMSTimeID::Standalone, 1, SLin2Align);
+
+  int ret = db->validate(tt);
+  if (db) delete db;
+  return ret;
+}
+
 
 void TkDBc::Align2Lin(){
 
