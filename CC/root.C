@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.368 2012/03/08 10:31:02 jorgec Exp $
+//  $Id: root.C,v 1.369 2012/03/09 15:15:42 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -17,6 +17,7 @@
 #include "timeid.h"
 #include "commonsi.h"
 #include "RichCharge.h"
+#include "RichBeta.h"
 #ifndef __ROOTSHAREDLIBRARY__
 #include "antirec02.h"
 #include "beta.h"
@@ -1532,7 +1533,7 @@ double RichRingR::_sumIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
 
 // Rich Charge Corrections Settings & Flags
 int RichRingR::pmtCorrectionsFailed = -1;
-TString RichRingR::correctionsDir=".";  // Directory
+TString RichRingR::correctionsDir="";  // Directory
 bool RichRingR::useRichRunTag = false;           // good Rich runs 
 bool RichRingR::usePmtStat = true;               // good PMT status
 bool RichRingR::useSignalMean = false;           // Equalize PMT Gains to mean (median)
@@ -2210,9 +2211,20 @@ TrTrackFitR::InitMF(UTime());
 
     // Build corrections for each PMT 
     RichPMTCalib::buildCorrections();
-    // Set dafult flag value
+    // Set default flag value
     RichRingR::pmtCorrectionsFailed = -1;
-    // Rich Default Correction Loading. Only once per run
+    // Rich Uniformity Beta Correction Loading. Only once per run
+#pragma omp critical(rd)
+    if(RichRingR::shouldLoadCorrection==RichRingR::fullUniformityCorrection && 
+       !RichBetaUniformityCorrection::getHead()){
+      if(!RichBetaUniformityCorrection::Init()) cout<<"*********************** Failed to load RICH velocity uniformity corrections. Skiping."<<endl; 
+      if(RichRingR::isCalibrating()) 
+	cout<<"RICH Uniformity Corrections disable RICH dynamic calibration. If the latter is required, "<<endl
+	    <<"consider setting RichRingR::shouldLoadCorrection=RichRingR::tileCorrection before starting"<<endl
+	    <<"the event loop"<<endl; 
+      RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
+    }
+    // Rich Default Beta Correction Loading. Only once per run
     if(fHeader.Run!=runo && !nMCEventg())
 #pragma omp critical(rd)
       if(RichRingR::shouldLoadCorrection==RichRingR::tileCorrection){
@@ -2228,6 +2240,7 @@ TrTrackFitR::InitMF(UTime());
 
     // Rich Dynamic Calibration
     RichRingR::_isCalibrationEvent=false;
+    if(!RichBetaUniformityCorrection::getHead())
     if(RichRingR::isCalibrating() && RichRingR::calSelect(*this)){
 #pragma omp critical (rd)
 	 RichRingR::updateCalibration(*this); 
@@ -4671,6 +4684,10 @@ double RichRingR::betaCorrection(float index,float x,float y){
 }
 
 double RichRingR::betaCorrection(){
+  if(RichBetaUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
+    return RichBetaUniformityCorrection::getHead()->getCorrection(this);
+
+
   int t=getTileIndex();
   if(t<0) return 1;
   if(_lastUpdate[t]==1) return 1;

@@ -9,7 +9,6 @@ Implementation of tools for rich charge
 #include <string>
 #include <sstream>
 #include "TString.h" 
-#include "root.h"
 #include "RichTools.h"
 
 using namespace std;
@@ -160,6 +159,8 @@ class RichPMTCalib{
 };
 
 
+
+class RichRingR;
 
 class RichChargeUniformityCorrection{
 private:

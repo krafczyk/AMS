@@ -1,7 +1,9 @@
 #ifndef _RICHBETA_
 #define _RICHBETA_
-#include "root.h"
+#include "TString.h"
 #include "RichTools.h"
+
+class RichRingR;
 
 class RichBetaUniformityCorrection{
 private:

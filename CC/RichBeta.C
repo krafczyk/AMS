@@ -1,7 +1,7 @@
 #include "RichBeta.h"
 #include "RichTools.h"
 #include "TFile.h"
-
+#include "root.h"
 
 RichBetaUniformityCorrection* RichBetaUniformityCorrection::_head=0;
 
@@ -9,25 +9,31 @@ bool RichBetaUniformityCorrection::Init(TString file){
   if(_head) delete _head; _head=0;
   if(file==""){
     // Get default
+#ifndef _PGTRACK_
+    file=Form("%s/v4.00/RichBetaUniformityCorrection.root",getenv("AMSDataDir"));
+#else
+    file=Form("%s/v5.00/RichBetaUniformityCorrection.root",getenv("AMSDataDir"));
+#endif
   }
 
-  bool fail=true;
+  bool fail=false;
 #pragma omp critical  
   if(!_head){
     _head=new RichBetaUniformityCorrection;
-    TFile *currentFile=0;
-    if(gDirectory) currentFile=gDirectory->GetFile();
-    TFile f(file);
-    _head->_agl=(GeomHashEnsemble*)f.Get("BetaAgl");
-    _head->_naf=(GeomHashEnsemble*)f.Get("BetaNaF");
-    f.Close();
-    if(currentFile) currentFile->cd();
-
-    if(!_head->_agl || !_head->_naf) 
-      fail=true;
+    if(_head){
+      TFile *currentFile=0;
+      if(gDirectory) currentFile=gDirectory->GetFile();
+      TFile f(file);
+      _head->_agl=(GeomHashEnsemble*)f.Get("BetaAgl");
+      _head->_naf=(GeomHashEnsemble*)f.Get("BetaNaF");
+      f.Close();
+      if(currentFile) currentFile->cd();
+      
+      if(!_head->_agl || !_head->_naf) fail=true;
+    }else fail=true;
   }
 
-  if(fail){delete _head;_head=0;return false;}
+  if(fail){if(_head) delete _head;_head=0;return false;}
 
   return true;
 }
@@ -47,7 +53,6 @@ float RichBetaUniformityCorrection::getCorrection(float *x){
 }
 
 float RichBetaUniformityCorrection::getCorrection(RichRingR *ring){
-
   GeomHashEnsemble *corr=_agl;
   if(ring->IsNaF()) corr=_naf;
 

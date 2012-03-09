@@ -1,4 +1,5 @@
 #include "RichCharge.h"
+#include "root.h"
 #include "root_setup.h"
 #include <iostream>
 #include <fstream>
@@ -16,7 +17,7 @@ ClassImp(RichPMTCalib);
 RichPMTCalib* RichPMTCalib::_header=NULL;
 
 // Directory where the input files are 
-TString RichPMTCalib::currentDir=".";
+TString RichPMTCalib::currentDir="";
 
 // General Settings
 bool RichPMTCalib::useRichRunTag = false;
@@ -36,6 +37,13 @@ float RichPMTCalib::NpExpPMTCorr[680];
 
 bool RichPMTCalib::Init(TString dir){
   if(_header) delete _header;
+  if(dir=="")
+#ifndef _PGTRACK_
+    dir=Form("%s/v4.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
+#else
+    dir=Form("%s/v5.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
+#endif
+
   currentDir=dir;
   _header=new RichPMTCalib();
   return _header->init();
@@ -1557,25 +1565,31 @@ bool RichChargeUniformityCorrection::Init(TString file){
   if(_head) delete _head; _head=0;
   if(file==""){
     // Get default
+#ifndef _PGTRACK_
+    file=Form("%s/v4.00/RichChargeUniformityCorrection.root",getenv("AMSDataDir"));
+#else
+    file=Form("%s/v5.00/RichCharge<UniformityCorrection.root",getenv("AMSDataDir"));
+#endif
   }
 
-  bool fail=true;
+  bool fail=false;
 #pragma omp critical  
   if(!_head){
     _head=new RichChargeUniformityCorrection;
-    TFile *currentFile=0;
-    if(gDirectory) currentFile=gDirectory->GetFile();
-    TFile f(file);
-    _head->_agl=(GeomHashEnsemble*)f.Get("ChargeAgl");
-    _head->_naf=(GeomHashEnsemble*)f.Get("ChargeNaF");
-    f.Close();
-    if(currentFile) currentFile->cd();
-
-    if(!_head->_agl || !_head->_naf) 
-      fail=true;
+    if(_head){
+      TFile *currentFile=0;
+      if(gDirectory) currentFile=gDirectory->GetFile();
+      TFile f(file);
+      _head->_agl=(GeomHashEnsemble*)f.Get("ChargeAgl");
+      _head->_naf=(GeomHashEnsemble*)f.Get("ChargeNaF");
+      f.Close();
+      if(currentFile) currentFile->cd();
+      
+      if(!_head->_agl || !_head->_naf) 	fail=true;
+    }else fail=true;
   }
 
-  if(fail){delete _head;_head=0;return false;}
+  if(fail){if(_head) delete _head;_head=0;return false;}
 
   return true;
 }
