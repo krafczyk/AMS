@@ -15,16 +15,16 @@ bool RichBetaUniformityCorrection::Init(TString file){
 #pragma omp critical  
   if(!_head){
     _head=new RichBetaUniformityCorrection;
-    
+    TFile *currentFile=0;
+    if(gDirectory) currentFile=gDirectory->GetFile();
     TFile f(file);
     _head->_agl=(GeomHashEnsemble*)f.Get("BetaAgl");
     _head->_naf=(GeomHashEnsemble*)f.Get("BetaNaF");
+    f.Close();
+    if(currentFile) currentFile->cd();
+
     if(!_head->_agl || !_head->_naf) 
       fail=true;
-    else{
-      //      _head->_agl->SetDirectory(0);
-      //      _head->_naf->SetDirectory(0);
-    }
   }
 
   if(fail){delete _head;_head=0;return false;}

@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.25 2012/03/08 10:31:02 jorgec Exp $
+//  $Id: linkdefs.h,v 1.26 2012/03/09 08:31:53 mdelgado Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -38,6 +38,9 @@
 #pragma link C++ class DynAlFitParameters+;
 #pragma link C++ class DynAlFitContainer+;
 #pragma link C++ class DynAlManager;
+/////////////////////// Rich Tools
+#pragma link C++ class GeomHash;
+#pragma link C++ class GeomHashEnsemble;
 //////////////////////////////////////
 #pragma link C++ class RichPMTCalib;
 ///////////////////////////////////////

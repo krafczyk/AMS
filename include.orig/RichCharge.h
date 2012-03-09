@@ -9,6 +9,8 @@ Implementation of tools for rich charge
 #include <string>
 #include <sstream>
 #include "TString.h" 
+#include "root.h"
+#include "RichTools.h"
 
 using namespace std;
 
@@ -156,5 +158,37 @@ class RichPMTCalib{
 
   ClassDef(RichPMTCalib,1);
 };
+
+
+
+class RichChargeUniformityCorrection{
+private:
+  RichChargeUniformityCorrection(){_agl=_naf=0;_latest[0]=_latest[1]=_latest[2]=_latest[3]=_latest[4];};
+  ~RichChargeUniformityCorrection(){if(_agl) delete _agl;if(_naf) delete _naf;};
+public:
+  static RichChargeUniformityCorrection* _head;
+  static RichChargeUniformityCorrection *getHead(){return _head;}
+  static bool Init(TString="");
+
+  GeomHashEnsemble *_agl;
+  GeomHashEnsemble *_naf;
+
+  float _latest[5];
+
+  // Accessors to the correction
+  float getCorrection(RichRingR *ring);
+  float getCorrection(float *); 
+  float getCorrection(float beta,float x,float y,float vx,float vy);
+  // Accessors to several quality parameters
+  float getWidth(RichRingR *ring);
+  float getWidth(float *); 
+  float getWidth(float beta,float x,float y,float vx,float vy);
+  // Accessors to several quality parameters
+  float getRms(RichRingR *ring);
+  float getRms(float *); 
+  float getRms(float beta,float x,float y,float vx,float vy);
+};
+
+
 
 #endif

@@ -1,9 +1,9 @@
 #include "RichCharge.h"
-#include "root.h"
 #include "root_setup.h"
 #include <iostream>
 #include <fstream>
 #include "math.h"
+#include "TFile.h"
 
 
 using namespace std;
@@ -1521,6 +1521,7 @@ bool RichPMTCalib::ReadPmtDB() {
 
 }
 
+
 bool RichPMTCalib::buildCorrections(){
   if(AMSEventR::Head()->fHeader.Event==lastEvent && AMSEventR::Head()->fHeader.Run==lastRun) return true;
   lastEvent=AMSEventR::Head()->fHeader.Event;
@@ -1544,3 +1545,147 @@ bool RichPMTCalib::buildCorrections(){
   return true;
 }
 
+
+
+
+/////////////////////////////////// Charge corrections
+
+
+RichChargeUniformityCorrection* RichChargeUniformityCorrection::_head=0;
+
+bool RichChargeUniformityCorrection::Init(TString file){
+  if(_head) delete _head; _head=0;
+  if(file==""){
+    // Get default
+  }
+
+  bool fail=true;
+#pragma omp critical  
+  if(!_head){
+    _head=new RichChargeUniformityCorrection;
+    TFile *currentFile=0;
+    if(gDirectory) currentFile=gDirectory->GetFile();
+    TFile f(file);
+    _head->_agl=(GeomHashEnsemble*)f.Get("ChargeAgl");
+    _head->_naf=(GeomHashEnsemble*)f.Get("ChargeNaF");
+    f.Close();
+    if(currentFile) currentFile->cd();
+
+    if(!_head->_agl || !_head->_naf) 
+      fail=true;
+  }
+
+  if(fail){delete _head;_head=0;return false;}
+
+  return true;
+}
+
+float RichChargeUniformityCorrection::getCorrection(float beta,float x,float y,float vx,float vy){
+  // Determine if it is AGL or NaF
+  GeomHashEnsemble *corr=_agl;
+  if(RichRingR::getTileIndex(x,y)==121) corr=_naf;
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanPeak;
+}
+
+float RichChargeUniformityCorrection::getCorrection(float *x){
+  return getCorrection(x[0],x[1],x[2],x[3],x[4]);
+}
+
+float RichChargeUniformityCorrection::getCorrection(RichRingR *ring){
+
+  GeomHashEnsemble *corr=_agl;
+  if(ring->IsNaF()) corr=_naf;
+
+  float beta=ring->Beta;
+  float x=ring->AMSTrPars[0];
+  float y=ring->AMSTrPars[1];
+  float theta=ring->AMSTrPars[3];
+  float phi=ring->AMSTrPars[4];
+
+  float vx=sin(theta)*cos(phi);
+  float vy=sin(theta)*sin(phi);
+  if(cos(theta)>0) {vx*=-1;vy*=-1;} // Keep a coherent definition
+
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanPeak;
+}
+
+
+///////////////////////////////////////
+
+float RichChargeUniformityCorrection::getRms(float beta,float x,float y,float vx,float vy){
+  // Determine if it is AGL or NaF
+  GeomHashEnsemble *corr=_agl;
+  if(RichRingR::getTileIndex(x,y)==121) corr=_naf;
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanRms;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanRms;
+}
+
+float RichChargeUniformityCorrection::getRms(float *x){
+  return getRms(x[0],x[1],x[2],x[3],x[4]);
+}
+
+float RichChargeUniformityCorrection::getRms(RichRingR *ring){
+
+  GeomHashEnsemble *corr=_agl;
+  if(ring->IsNaF()) corr=_naf;
+
+  float beta=ring->Beta;
+  float x=ring->AMSTrPars[0];
+  float y=ring->AMSTrPars[1];
+  float theta=ring->AMSTrPars[3];
+  float phi=ring->AMSTrPars[4];
+
+  float vx=sin(theta)*cos(phi);
+  float vy=sin(theta)*sin(phi);
+  if(cos(theta)>0) {vx*=-1;vy*=-1;} // Keep a coherent definition
+
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanRms;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanRms;
+}
+
+///////////////////////////////////////
+
+float RichChargeUniformityCorrection::getWidth(float beta,float x,float y,float vx,float vy){
+  // Determine if it is AGL or NaF
+  GeomHashEnsemble *corr=_agl;
+  if(RichRingR::getTileIndex(x,y)==121) corr=_naf;
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeakWidth;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanPeakWidth;
+}
+
+float RichChargeUniformityCorrection::getWidth(float *x){
+  return getWidth(x[0],x[1],x[2],x[3],x[4]);
+}
+
+float RichChargeUniformityCorrection::getWidth(RichRingR *ring){
+
+  GeomHashEnsemble *corr=_agl;
+  if(ring->IsNaF()) corr=_naf;
+
+  float beta=ring->Beta;
+  float x=ring->AMSTrPars[0];
+  float y=ring->AMSTrPars[1];
+  float theta=ring->AMSTrPars[3];
+  float phi=ring->AMSTrPars[4];
+
+  float vx=sin(theta)*cos(phi);
+  float vy=sin(theta)*sin(phi);
+  if(cos(theta)>0) {vx*=-1;vy*=-1;} // Keep a coherent definition
+
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeakWidth;
+  _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
+  corr->Eval(beta,x,y,vx,vy);
+  return corr->MeanPeakWidth;
+}
