@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.42 2012/03/07 11:21:03 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.43 2012/03/09 12:39:55 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1177,6 +1177,8 @@ void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id)
   }
 #undef Do
 
+  if(id>=0) cout<<"LOCAL ALIGNMENT DUMPED. Id "<<id<<endl;
+
   fit.ZOffset=ZOffset;
   fit.TOffset=TOffset;
 }
@@ -1677,7 +1679,10 @@ bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitPara
   if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear(name);
   return true;
 }
-bool DynAlManager::SetTDVName(TString tdvname){
+bool DynAlManager::SetTDVName(TString tdvname,bool forceReading){
+  // If name set, fore TDV reading from disk 
+  DynAlManager::useTDV=forceReading;
+
   if(tdvdb){
     if(strcmp(tdvname.Data(),tdvdb->getname())==0) return true;  // Already booked
     delete tdvdb;
@@ -1715,7 +1720,7 @@ bool DynAlManager::SetTDVName(TString tdvname){
 
 bool DynAlManager::UpdateWithTDV(int time){
   if(!tdvdb){
-    SetTDVName(TDVNAME);
+    SetTDVName(TDVNAME,false);
     if(!tdvdb){
       cout<<"DynAlManager::UpdateWithTDV-- AMSTimeId cannot be created"<<endl;
       return false;

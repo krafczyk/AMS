@@ -286,7 +286,7 @@ class DynAlManager:public TObject{
   static void ResetLinear(){tdvBuffer.records=0;}
   static bool AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9,TString tdvname);
   static bool FinishLinear(TString tdvname);
-  static bool SetTDVName(TString tdvname);
+  static bool SetTDVName(TString tdvname,bool forceReading=true);
   static bool DumpDirToLinear(TString dir,TString tdvname,DynAlFitContainer *local1,DynAlFitContainer *local9); // Dump a while directory ti a TDV
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
