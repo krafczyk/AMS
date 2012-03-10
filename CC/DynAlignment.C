@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.43 2012/03/09 12:39:55 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.44 2012/03/10 11:16:15 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1608,7 +1608,7 @@ void _ToAlign(){
   DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=false;
 
   if(DynAlManager::dynAlFitContainers[1].LocalFitParameters.size()) DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=true;
-  if(DynAlManager::dynAlFitContainers[9].LocalFitParameters.size()) DynAlManager::dynAlFitContainers[1].ApplyLocalAlignment=true;
+  if(DynAlManager::dynAlFitContainers[9].LocalFitParameters.size()) DynAlManager::dynAlFitContainers[9].ApplyLocalAlignment=true;
 
 }
 
