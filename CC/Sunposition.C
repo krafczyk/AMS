@@ -540,13 +540,12 @@ int SunPosition::ISSday_night(){
  double elev,azim,beta;
  double Rterr=637816000; // Earth radius in cm
  if ((GetSunFromLVLH(elev,azim)!=0)){
-  if (elev>(pio2-acos(Rterr/ISSaltitude))){
-      return 0; }
+  if (elev>(acos(Rterr/ISSaltitude))){
+      return 0; }  // night
    else
-      {return 1;}
+     {return 1;}  // day
   }else
  {
    return -1;
  }
 }
-
