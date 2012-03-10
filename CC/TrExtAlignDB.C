@@ -152,7 +152,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   int plane[2]={5,6};
   int layer[2]={8,9};
   for(int i=0;i<2;i++){
-      if(!(pln & (1<<i)))continue;
+    if(!(pln & (1<<i)))continue;
     TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
     if (!pl) return i==0?-3:-13;
     
@@ -183,36 +183,37 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 	it->second.GetParameters(0,0,lpos,lrot);
 	
 	// Compute the new delta
-	AMSPoint newDelta=rot*(lpos+AMSPoint(0,0,it->second.ZOffset-pars.ZOffset))
-	  +pos+AMSPoint(0,0,pars.ZOffset-it->second.ZOffset);
+	AMSPoint newDelta=pos+
+	  rot*(lpos+AMSPoint(0,0,it->second.ZOffset-pars.ZOffset))
+	  -AMSPoint(0,0,it->second.ZOffset-pars.ZOffset);
 	double newOffset=it->second.ZOffset;
 	AMSRotMat newRot=rot*lrot;
-
-	//	cout<<"BEFORE LOCAL ALIGNMENT "<<endl
-	//	    <<"OFFSET: "<<offset<<endl
-	//	    <<"DELTA: "<<pos<<endl
-	//	    <<"ROT MATRIX:"<<endl<<rot<<endl;
 	
+	/*
+	cout<<"BEFORE LOCAL ALIGNMENT "<<endl
+	    <<"OFFSET: "<<offset<<endl
+	    <<"DELTA: "<<pos<<endl
+	    <<"ROT MATRIX:"<<endl<<rot<<endl;
+	*/
+
 	// Copy back
 	pos=newDelta;
 	offset=newOffset;
 	rot=newRot;
 
-	//	cout<<"AFTER LOCAL ALIGNMENT "<<endl
-	//	    <<"OFFSET: "<<offset<<endl
-	//	    <<"DELTA: "<<pos<<endl
-	//	    <<"ROT MATRIX:"<<endl<<rot<<endl;
+	/*
+	cout<<"AFTER LOCAL ALIGNMENT "<<endl
+	    <<"OFFSET: "<<offset<<endl
+	    <<"DELTA: "<<pos<<endl
+	    <<"ROT MATRIX:"<<endl<<rot<<endl;
+	*/
       }
     }
 
-
     // Take into account the difference in the reference frames
     // between the local geometry and the one used in the computation
-    double delta=pl->GetPos()[2]-offset;
-
-
-    AMSPoint correction(rot.GetEl(0,2)*delta,rot.GetEl(1,2)*delta,0);
-    pos=pos+correction;
+    AMSPoint o(0,0,offset);
+    pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos());
 
     // Set plane parameters
     pl->posA=pos;
