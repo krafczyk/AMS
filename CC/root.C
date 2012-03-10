@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.370 2012/03/09 17:12:51 mdelgado Exp $
+//  $Id: root.C,v 1.371 2012/03/10 16:33:46 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6297,8 +6297,8 @@ int HeaderR::getSunAMS(double & azimut, double & elevation ){
  sunPos.setGPSTime((double)time);
  }
 sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTheta, HeaderR::VelPhi, HeaderR::Yaw,HeaderR::Pitch,HeaderR::Roll); 
- res=sunPos.GetSunFromAMS(elevation,azimut);
- return res;
+ if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
+ return sunPos.ISSday_night();
 }
 
 float AMSEventR::LiveTime(){

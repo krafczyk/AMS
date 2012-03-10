@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.410 2012/03/09 17:12:51 mdelgado Exp $
+//  $Id: root.h,v 1.411 2012/03/10 16:33:49 shaino Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -308,7 +308,7 @@ int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, flo
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
 double getBetaSun();///<get solar beta angle via geometrical calculation
-int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS coordinate
+int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS coordinate, ret= -1:error, 0:night, 1:day
 
   //#ifdef _PGTRACK_
   friend class VCon_root;
