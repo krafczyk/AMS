@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.50 2012/03/09 06:58:25 shaino Exp $
+//  $Id: TkDBc.C,v 1.51 2012/03/11 21:14:10 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/03/09 06:58:25 $
+///$Date: 2012/03/11 21:14:10 $
 ///
-///$Revision: 1.50 $
+///$Revision: 1.51 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1301,7 +1301,7 @@ int TkDBc::readAlignmentSensor(const char* filename, int pri){
 
 #include "timeid.h"
 
-int TkDBc::GetFromTDV(uint time, int ver)
+int TkDBc::GetFromTDV(unsigned int time, int ver)
 {
   time_t tt = time;
   tm begin;
