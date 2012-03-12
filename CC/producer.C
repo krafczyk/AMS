@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.174 2012/02/14 08:42:51 choutko Exp $
+//  $Id: producer.C,v 1.175 2012/03/12 09:00:08 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1364,6 +1364,15 @@ sprintf(tmp," (sleep 60 ; kill -9 %u )&",_pid.pid);
 system(tmp);
 cout <<" Exiting-I-Bkill "<<tmp<<endl;
 }
+else{
+char tmp[256];
+sprintf(tmp," (sleep 7200 ; bkill %u )&",_pid.pid);
+system(tmp);
+sprintf(tmp," (sleep 7200 ; kill -9 %u )&",_pid.pid);
+system(tmp);
+cout <<" Exiting-I-Bkill "<<tmp<<endl;
+}
+
 
 }
 
