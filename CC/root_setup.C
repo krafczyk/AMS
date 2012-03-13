@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.61 2012/03/08 13:21:21 choutko Exp $
+//  $Id: root_setup.C,v 1.62 2012/03/13 02:03:09 pzuccon Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -678,8 +678,16 @@ slc+="/SlowControlDir";
 //  no sub dir anymore
 //sprintf(tmps,"/%u",mktime(tmp)-3600-tzz);
     string sdir=slc;
-      dirent64 ** namelist;
+#ifdef __DARWIN__
+    dirent ** namelist;
+    int nptr=scandir(sdir.c_str(),&namelist,_select,NULL);
+#endif
+#ifdef __LINUXGNU__
+    dirent64 ** namelist;
     int nptr=scandir64(sdir.c_str(),&namelist,_select,NULL);
+#endif
+
+
     bool found=false;
         vector <trio> tv;
 	for(int i=0;i<nptr;i++) {
@@ -913,7 +921,13 @@ void AMSSetupR::SlowControlR::printElementNames(const char *name){
   }
 }
 
-integer AMSSetupR::_select(  const dirent64 *entry){
+#ifdef __DARWIN__
+integer AMSSetupR::_select( dirent *entry)
+#endif
+#ifdef __LINUXGNU__
+integer AMSSetupR::_select(  const dirent64 *entry)
+#endif
+{
  return strstr(entry->d_name,"SCDB.")!=NULL;
 }
 

@@ -36,15 +36,29 @@ IDLCPP=orbit-idl-2 -l cpp
 
 ########################################################################
 # CERN & AMS Libraries
-########################################################################
+########################################################################CERNLIBS= -lgeant321 -lpacklib_noshift -lmathlib -lkernlib_noshift
 
-CERN_LEVEL =2006
 CERNLIBS=  -lgeant321 -lpacklib -lmathlib    
-CERNSRCDIR = /cern/$(CERN_LEVEL)
+ifndef CERN_LEVEL
+CERN_LEVEL = 2006 
+endif
 
+ifndef CERNDIR
+CERNSRCDIR = /cern/$(CERN_LEVEL)
 CERNDIR = /cern/$(CERN_LEVEL)
-AMSLIB =  ../lib/Darwin/
-NAGDIR = ../lib/Darwin/
+else
+CERNSRCDIR = $(CERNDIR)
+endif
+
+ifndef AMSLIB
+ AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+endif
+
+ifndef NAGDIR
+NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+endif
+
+
 
 
 ########################################################################
@@ -65,9 +79,9 @@ DEFINES+=  -D__TFAPEDC__
 endif
 
 
-CFLAGSB= -Wall -Wno-pragmas -Wno-deprecated -Wno-write-strings   
+CFLAGSB=  -Wno-pragmas -Wno-deprecated -Wno-write-strings   
 #CFLAGSB+= -Wall -Wfloat-equal -Wshadow -Wsign-compare -Winline 
-DEFINES+= -DNO_NAG -D__DARWIN__  -D__root_$(NEW) 
+DEFINES+=  -D__DARWIN__  -D__root_$(NEW) 
 
 ifdef AMSPROFILE
   CFLAGSB+=-pg
@@ -128,7 +142,7 @@ SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lTMVA
 TIMEL=
 
 LDFLAGSI=      $(FORTRAN2_LIBS) \
--L$(NAGDIR)  \
+-L$(NAGDIR)  -lnag \
 -L$(AMSLIB) -lamsut \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot -lMinuit -lfreetype\
@@ -137,10 +151,10 @@ LDFLAGSI=      $(FORTRAN2_LIBS) \
  $(FORTRAN2_LIBS) $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=      $(FORTRAN2_LIBS) \
--L$(NAGDIR)    \
+-L$(NAGDIR)  -lnag  \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
-`root-config --libs` -lMinuit -lGeom -lHistPainter\
+`root-config --libs` -lMinuit -lGeom -lHistPainter -lTMVA -lXMLIO -lMLP -lTreePlayer -lz\
 $(FORTRAN2_LIBS) $(FORTRAN_LIBS)  $(PFLAGS) 
 
 ifdef AMSPROFILE

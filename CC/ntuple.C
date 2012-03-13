@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.245 2012/02/23 09:22:30 choutko Exp $
+//  $Id: ntuple.C,v 1.246 2012/03/13 02:03:09 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -1004,9 +1004,14 @@ char name[256]="";
  string dir=lockdir;
 //  look for other locks
         vector<AMSNtuple::trio> tv;
-
+#ifdef __DARWIN__
+      dirent ** namelist=0;
+      int nptr=scandir(dir.c_str(),&namelist,_select,NULL);
+#endif
+#ifdef __LINUXNEW__
       dirent64 ** namelist=0;
       int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
+#endif
        time_t tnow;
        time(&tnow);
 	for(int i=0;i<nptr;i++) {
@@ -1079,6 +1084,13 @@ char name[256]="";
   dir+=tmp;
  unlink(dir.c_str());
 }
-integer AMSNtuple::_select(  const dirent64 *entry){
+
+#ifdef __DARWIN__
+integer AMSNtuple::_select(  dirent *entry)
+#endif
+#ifdef __LINUXGNU__
+integer AMSNtuple::_select(  const dirent64 *entry)
+#endif
+{
  return strstr(entry->d_name,"lock.")!=NULL;
 }
