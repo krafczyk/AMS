@@ -48,7 +48,7 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 #CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
-CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
+CFLAGS=     -D__BATCH__  -I../include  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O
 FFLAGS=   -O -I../include
 DFLAGS=    -g   -I/usr/include  -I$(AMSWD)/include -I../include/stl 
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
