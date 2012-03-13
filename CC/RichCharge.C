@@ -25,6 +25,7 @@ bool RichPMTCalib::usePmtStat = true;
 bool RichPMTCalib::useSignalMean = false;
 bool RichPMTCalib::useGainCorrections = true;
 bool RichPMTCalib::useEfficiencyCorrections = true;
+bool RichPMTCalib::useBiasCorrections = true;
 bool RichPMTCalib::useTemperatureCorrections = true; 
 unsigned short RichPMTCalib::richRunBad = (1<<RichPMTCalib::kTagJ) | (1<<RichPMTCalib::kTagR); //  JINFR & RDR Configuration  
 unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & No Config Err/Mismatch 
@@ -105,6 +106,8 @@ bool RichPMTCalib::retrieve(int run){
 float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
   float efficiencyCorrection = useEfficiencyCorrections? v_pmt_ecor[pmt] : 1;
+
+  efficiencyCorrection *= useBiasCorrections? v_pmt_bcor[pmt] : 1;
 
   efficiencyCorrection *= usePmtStat? richPmtGood(pmt) : 1;
 
@@ -267,6 +270,7 @@ bool RichPMTCalib::initPMTs() {
   v_pmt_ecor.assign(NPMT, 1);
   v_pmt_gcor.assign(NPMT, 1);
   v_pmt_gmcor.assign(NPMT, 1);
+  v_pmt_bcor.assign(NPMT, 1);
   v_pmt_temp_ref.assign(NPMT, pmtRefTemperature);
   v_pmt_ecor_dflt.assign(NPMT, 1);
   v_pmt_gcor_dflt.assign(NPMT, 1);
@@ -369,6 +373,42 @@ bool RichPMTCalib::initPMTs() {
     return initPMTs;
   }
 
+  //
+  // Efficiency Bias Correction
+  PmtCorrectionsFileName = DBDir + TString("DefaultBias.txt");
+  cout << "RichCharge::initPMTs: Open PMT Bias Corrections File " << PmtCorrectionsFileName << endl;
+  PmtCorrectionsFile.open(PmtCorrectionsFileName);
+  if (!PmtCorrectionsFile.good()) {
+    cout << "RichCharge::initPMTs: Problems Opening " << PmtCorrectionsFileName << endl;
+    return initPMTs;
+  }
+
+  v_pmt_bcor.assign(NPMT, 1);
+  npmt = 0;
+  float bUsed, bNpCol;
+  while ( PmtCorrectionsFile >> pmt >> bUsed >> bNpCol ) {
+
+    if (pmt<NPMT && bUsed>=0 && bNpCol>=0) {
+      npmt++;
+      //v_pmt_bcor[pmt] = bUsed;
+      v_pmt_bcor[pmt] = bNpCol;
+      //cout << pmt << " " << v_pmt_bcor[pmt] << endl;
+    }
+    else {
+      cout << "RichCharge::initPMTs: Error in " << PmtCorrectionsFileName 
+	   << ". pmt: " << pmt << " bUsed: " << bUsed << " bNpCol: " << bNpCol << endl;
+      return initPMTs;
+    }
+
+  }
+
+  PmtCorrectionsFile.close();
+
+  cout << "RichCharge::initPMTs: Number of PMT Bias Corrections Read : " << npmt << endl;
+  if (npmt != NPMT) {
+    cout << "RichCharge::initPMTs: Error Expected PMT Corrections : " << NPMT << endl;
+    return initPMTs;
+  }
 
   //
   // PMT Periods

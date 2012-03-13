@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.411 2012/03/10 16:33:49 shaino Exp $
+//  $Id: root.h,v 1.412 2012/03/13 15:05:46 jorgec Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1285,6 +1285,7 @@ static bool usePmtStat;         ///< Define correnctions only for good PMT
 static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median) 
 static bool useGainCorrections; ///< Activate PMT Gain equalization
 static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
+static bool useBiasCorrections; ///< Activate PMT Efficiency bias corrections
 static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
 /** @name Sets the initial correction to reconstrcuted beta.There are three possibilities foreseen, and only two implementes:
  *   RichRingR::noCorrection - No initial information is loaded. The dynamic calibration can be used to update the refractive index on the tiles on the flight

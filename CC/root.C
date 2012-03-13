@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.371 2012/03/10 16:33:46 shaino Exp $
+//  $Id: root.C,v 1.372 2012/03/13 15:06:06 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1539,6 +1539,7 @@ bool RichRingR::usePmtStat = true;               // good PMT status
 bool RichRingR::useSignalMean = false;           // Equalize PMT Gains to mean (median)
 bool RichRingR::useGainCorrections = true;       // PMT Gain equalization
 bool RichRingR::useEfficiencyCorrections = true; // PMT Efficiency equalization
+bool RichRingR::useBiasCorrections = true;       // PMT Efficiency bias corrections
 bool RichRingR::useTemperatureCorrections = true;// PMT Temperature corrections
 
 
@@ -4574,6 +4575,7 @@ bool RichRingR::buildChargeCorrections(){
   RichPMTCalib::useSignalMean = useSignalMean;
   RichPMTCalib::useGainCorrections = useGainCorrections;
   RichPMTCalib::useEfficiencyCorrections = useEfficiencyCorrections;
+  RichPMTCalib::useBiasCorrections = useBiasCorrections;
   RichPMTCalib::useTemperatureCorrections = useTemperatureCorrections;
 
   RichPMTCalib *corr=RichPMTCalib::Update();

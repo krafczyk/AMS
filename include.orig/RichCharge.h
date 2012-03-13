@@ -66,6 +66,7 @@ class RichPMTCalib{
   static bool useSignalMean;
   static bool useGainCorrections;
   static bool useEfficiencyCorrections;
+  static bool useBiasCorrections;
   static bool useTemperatureCorrections;
   static unsigned short richRunBad;
   static unsigned short richPmtBad;
@@ -102,6 +103,10 @@ class RichPMTCalib{
   vector<float> v_brick_temp_ref, v_pmt_temp_ref;
   vector<float> v_pmt_ecor_dflt, v_pmt_gcor_dflt, v_pmt_gmcor_dflt;
   vector<float> v_pmt_temp_ref_dflt;
+
+  //
+  // Bias Corrections
+  vector<float> v_pmt_bcor;
 
   //
   // Temperature Corrections
