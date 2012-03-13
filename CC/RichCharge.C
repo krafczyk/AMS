@@ -72,6 +72,7 @@ bool RichPMTCalib::retrieve(int run){
   // retrieve the information for the given run
   static int prevRun=0;
   static bool retValue=true;
+#pragma omp threadprivate(prevRun,retValue)
 
   //
   // PMT Temperatures
@@ -172,12 +173,12 @@ float RichPMTCalib::GainTemperatureCorrection(int pmt) {
 
 
 void RichPMTCalib::updatePMTs(int run) {
-
   int utime, dV, pmt, pm;
   float ecor, gcor, gmcor, temp, dtemp;
   multimap<int,string>::iterator it;
 
   static int run_prev = 0;
+#pragma omp threadprivate(run_prev)
   if (run == run_prev) return;
   run_prev = run;
 
@@ -237,11 +238,11 @@ void RichPMTCalib::updatePMTs(int run) {
       }
     }
 
-
   // Update Bad PMT List
   BadPMTs.clear();
-  for (int i=0; i<NPMT; i++)
-    if (v_pmt_ecor[i] == 0) BadPMTs.push_back(i);
+  for (int i=0; i<NPMT; i++){
+    if (v_pmt_ecor.at(i) == 0) BadPMTs.push_back(i);
+  }
 
   cout << "RichPMTCalib::UpdatePMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
   if (DEBUG)
@@ -432,6 +433,7 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
 
   static bool init = true;
   static bool initok = false;
+#pragma omp threadprivate(init,initok)
 
   const int NDTS = 48, NPMT = 680;
 
@@ -440,6 +442,8 @@ bool RichPMTCalib::checkRichPmtTemperatures() {
   static vector<float> v_temp[NDTS];
 
   static int last_rec = -1, prev_rec = -1;
+#pragma omp threadprivate(v_pmt_dts,v_utime,v_temp,last_rec,prev_rec)
+
 
   vector<float> v_dts_x;
   vector<float> v_dts_y;
@@ -666,6 +670,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   static bool init = true;
   static bool initok = false;
+#pragma omp threadprivate(init,initok)
 
   const int NDTS = 96, NPMT = 680;
 
@@ -675,6 +680,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   static vector<string> v_dts_el;
   static vector<string> v_dts_nn;
   static multimap<float,int> m_pmt_d2_dts[NPMT];
+#pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
   multimap<float,int>::iterator it;
 
@@ -872,6 +878,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
   static bool init = true;
   static bool initok = false;
+#pragma omp threadprivate(init,initok)
 
   const int NDTS = 8, NPMT = 680;
 
@@ -881,6 +888,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   static vector<string> v_dts_el;
   static vector<string> v_dts_nn;
   static multimap<float,int> m_pmt_d2_dts[NPMT];
+#pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
   multimap<float,int>::iterator it;
 
@@ -1113,21 +1121,24 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
 
   static bool init = true;
   static bool initok = false;
+#pragma omp threadprivate(init,initok)
 
   static map<int,string> m_tag[NTAG];
+#pragma omp threadprivate(m_tag)
   map<int,string>::iterator it;
 
   static vector<unsigned short> w_pmt_stat, w_pmt_volt;
 
   static vector<string> v_brick_name[NBRICK];
   static vector<int> v_brick_busa[NBRICK], v_brick_busb[NBRICK], v_brick_fgin[NBRICK];
+#pragma omp threadprivate(w_pmt_stat,w_pmt_volt,v_brick_name,v_brick_busa,v_brick_busb,v_brick_fgin)
 
   unsigned short richRunTag = richRunDflt; 
 
   static int run_prev = 0;
   static unsigned short richRunTag_prev; 
   static vector<unsigned short> v_pmt_stat_prev, v_pmt_volt_prev;
-
+#pragma omp threadprivate(run_prev,richRunTag_prev,v_pmt_stat_prev,v_pmt_volt_prev)
   if (init) {
 
     init = false;
@@ -1470,6 +1481,7 @@ bool RichPMTCalib::ReadPmtDB() {
 
   static bool init = true;
   static bool initok = false;
+#pragma omp threadprivate(init,initok)
 
   bool readPmtDB = false;
 
