@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.246 2012/03/13 02:03:09 pzuccon Exp $
+//  $Id: ntuple.C,v 1.247 2012/03/13 02:17:07 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -1008,7 +1008,7 @@ char name[256]="";
       dirent ** namelist=0;
       int nptr=scandir(dir.c_str(),&namelist,_select,NULL);
 #endif
-#ifdef __LINUXNEW__
+#ifdef __LINUXGNU__
       dirent64 ** namelist=0;
       int nptr=scandir64(dir.c_str(),&namelist,_select,NULL);
 #endif
