@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.36 2012/03/13 02:03:10 pzuccon Exp $
+//  $Id: root_setup.h,v 1.37 2012/03/13 08:41:18 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -15,12 +15,7 @@ class SlowControlDB;
 class DynAlFitContainer;
 class AMSEventR;
 class AMSTimeID;
-#ifdef __LINUXGNU__
 struct dirent64;
-#endif
-#ifdef __DARWIN__
-struct dirent;
-#endif
 class AMSSetupR{
 public:
 
@@ -298,12 +293,7 @@ static AMSSetupR * _Head;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (_Head)
 #endif
-#ifdef __DARWIN__
-static int _select ( dirent * entry);
-#endif
-#ifdef __LINUXGNU__
 static int _select (const dirent64 * entry);
-#endif
 public:
          //! ISS Att roll,pitch,yaw accessor
 	/*! 
