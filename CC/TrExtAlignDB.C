@@ -254,7 +254,10 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   }
   int errlim=100;
   static int nwar = 0;
-  static int first=0;
+  static int first=1;
+#ifdef __ROOTSHAREDLIBRARY__
+#pragma omp threadprivate (first)
+#endif
   uint tf8,tf9;
   int dt8,dt9;
   if(!ForceFromTDV){ // Access the data available in memory(from ROOT file) unless forced not to do it
