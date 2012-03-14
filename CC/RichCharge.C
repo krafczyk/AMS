@@ -1620,7 +1620,7 @@ bool RichChargeUniformityCorrection::Init(TString file){
 #ifndef _PGTRACK_
     file=Form("%s/v4.00/RichChargeUniformityCorrection.root",getenv("AMSDataDir"));
 #else
-    file=Form("%s/v5.00/RichCharge<UniformityCorrection.root",getenv("AMSDataDir"));
+    file=Form("%s/v5.00/RichChargeUniformityCorrection.root",getenv("AMSDataDir"));
 #endif
   }
 

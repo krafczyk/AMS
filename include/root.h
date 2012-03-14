@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.412 2012/03/13 15:05:46 jorgec Exp $
+//  $Id: root.h,v 1.413 2012/03/14 17:28:17 mdelgado Exp $
 //
 //  NB 
 //  Only stl vectors ,scalars and fixed size arrays 
@@ -1275,7 +1275,8 @@ class RichRingR {
 public:
 enum{ready=-1,noCorrection=0,tileCorrection,fullUniformityCorrection};
 
-static int shouldLoadCorrection; ///< Holds the current state of the corrections loader
+static int shouldLoadCorrection;           ///< Holds the current state of the corrections loader
+static bool loadChargeUniformityCorrection; ///< Allows to enable or disable using the uniformity correction for charge
 
 /// Rich Charge Corrections Settings & Flags 
 static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed) 
@@ -1535,6 +1536,8 @@ public:
   // Expected Rms of the distribution of beta for Z=1 beta=1 particles. 
   // This gives an estimate of how likely is the event to have tails
   float getBetaExpectedRms();
+  float getChargeExpectedResolution();
+  float getChargeExpectedRms();
   ///@}
 
 
@@ -1546,7 +1549,7 @@ public:
   } 
 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,27)           // RichRingR
+  ClassDef(RichRingR,28)           // RichRingR
 #pragma omp threadprivate(fgIsA)
 }; 
 

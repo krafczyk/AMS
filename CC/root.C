@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.372 2012/03/13 15:06:06 jorgec Exp $
+//  $Id: root.C,v 1.373 2012/03/14 17:28:17 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1460,6 +1460,7 @@ char* AMSEventR::_Name="ev.";
 
 // Calibration correction modes
 int RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
+bool RichRingR::loadChargeUniformityCorrection=true;
 
 // Dynamic calibration
 bool RichRingR::_updateDynamicCalibration=false;
@@ -2211,6 +2212,17 @@ TrTrackFitR::InitMF(UTime());
     }
 
     // Build corrections for each PMT 
+    if(RichRingR::correctionsDir!=RichPMTCalib::currentDir){
+      RichPMTCalib::currentDir=RichRingR::correctionsDir;
+      RichPMTCalib::useRichRunTag=RichRingR::useRichRunTag;
+      RichPMTCalib::usePmtStat=RichRingR::usePmtStat;
+      RichPMTCalib::useSignalMean=RichRingR::useSignalMean;
+      RichPMTCalib::useGainCorrections=RichRingR::useGainCorrections;
+      RichPMTCalib::useEfficiencyCorrections=RichRingR::useEfficiencyCorrections;
+      RichPMTCalib::useBiasCorrections=RichRingR::useBiasCorrections;
+      RichPMTCalib::useTemperatureCorrections=RichRingR::useTemperatureCorrections;
+      RichPMTCalib::Init(RichRingR::correctionsDir);
+    }
     RichPMTCalib::buildCorrections();
     // Set default flag value
     RichRingR::pmtCorrectionsFailed = -1;
@@ -2225,6 +2237,13 @@ TrTrackFitR::InitMF(UTime());
 	    <<"the event loop"<<endl; 
       RichRingR::shouldLoadCorrection=RichRingR::tileCorrection;
     }
+    // Rich Uniformity Charge Correction Loading. Only once per run
+#pragma omp critical(rd)
+    if(RichRingR::loadChargeUniformityCorrection && !RichChargeUniformityCorrection::getHead()){
+      if(!RichChargeUniformityCorrection::Init()) cout<<"*********************** Failed to load RICH charge uniformity corrections. Skiping."<<endl; 
+      RichRingR::loadChargeUniformityCorrection=false;
+    }
+
     // Rich Default Beta Correction Loading. Only once per run
     if(fHeader.Run!=runo && !nMCEventg())
 #pragma omp critical(rd)
@@ -4407,6 +4426,22 @@ float RichRingR::getBetaExpectedRms(){
   return -1;
 }
 
+
+float RichRingR::getChargeExpectedResolution(){
+  if(RichChargeUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
+    return RichChargeUniformityCorrection::getHead()->getWidth(this);
+
+  return -1;
+}
+
+float RichRingR::getChargeExpectedRms(){
+  if(RichChargeUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
+    return RichChargeUniformityCorrection::getHead()->getRms(this);
+
+  return -1;
+}
+
+
 void RichRingR::calPush(double beta,double index,float x,float y){
   if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}
 
@@ -4648,6 +4683,7 @@ float RichRingR::getPhotoElectrons(bool corr){
   for(map<unsigned short,float>::iterator i=NpColPMT.begin();
       i!=NpColPMT.end();i++)
     sum+=getPhotoElectrons(i->first, corr);
+
   return sum;
 }
 
@@ -4673,6 +4709,11 @@ float RichRingR::getExpectedPhotoElectrons(bool corr){
   for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
       i!=NpExpPMT.end();i++)
     sum+=getExpectedPhotoElectrons(i->first, corr);
+
+  if(RichChargeUniformityCorrection::getHead())
+    sum*=RichChargeUniformityCorrection::getHead()->getCorrection(this);
+
+
   return sum;
 }
 
