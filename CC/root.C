@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.373 2012/03/14 17:28:17 mdelgado Exp $
+//  $Id: root.C,v 1.374 2012/03/14 18:27:53 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2212,7 +2212,7 @@ TrTrackFitR::InitMF(UTime());
     }
 
     // Build corrections for each PMT 
-    if(RichRingR::correctionsDir!=RichPMTCalib::currentDir){
+    if(RichRingR::correctionsDir!=""){
       RichPMTCalib::currentDir=RichRingR::correctionsDir;
       RichPMTCalib::useRichRunTag=RichRingR::useRichRunTag;
       RichPMTCalib::usePmtStat=RichRingR::usePmtStat;
@@ -2222,6 +2222,7 @@ TrTrackFitR::InitMF(UTime());
       RichPMTCalib::useBiasCorrections=RichRingR::useBiasCorrections;
       RichPMTCalib::useTemperatureCorrections=RichRingR::useTemperatureCorrections;
       RichPMTCalib::Init(RichRingR::correctionsDir);
+      RichRingR::correctionsDir=RichPMTCalib::currentDir; // Force not calling this anymore
     }
     RichPMTCalib::buildCorrections();
     // Set default flag value
