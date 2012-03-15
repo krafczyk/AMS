@@ -117,23 +117,10 @@ float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
 
 float RichPMTCalib::GainCorrection(int pmt) {
-
-  cout<<"PMT "<<pmt<<" "<<v_pmt_gcor.size()<<" "<<v_pmt_gmcor.size()<<" "<<usePmtStat<<endl;
-
   float gainCorrection = 1;
-  cout<<"1"<<endl;
   if (useGainCorrections)
     gainCorrection = useSignalMean? v_pmt_gcor[pmt] : v_pmt_gmcor[pmt];
-
-  cout<<"2"<<endl;
-
-  cerr<<"usePmtStat "<<usePmtStat<<endl;
-  cerr<<"richPmtGood "<<v_pmt_stat.size()<<endl;
-  cerr<<richPmtBad<<endl;
   gainCorrection *= usePmtStat? richPmtGood(pmt) : 1;
-
-  cout<<"3"<<endl;
-
   return gainCorrection;
 
 }
