@@ -118,11 +118,21 @@ float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
 float RichPMTCalib::GainCorrection(int pmt) {
 
+  cout<<"PMT "<<pmt<<" "<<v_pmt_gcor.size()<<" "<<v_pmt_gmcor.size()<<" "<<usePmtStat<<endl;
+
   float gainCorrection = 1;
+  cout<<"1"<<endl;
   if (useGainCorrections)
     gainCorrection = useSignalMean? v_pmt_gcor[pmt] : v_pmt_gmcor[pmt];
 
+  cout<<"2"<<endl;
+
+  cerr<<"usePmtStat "<<usePmtStat<<endl;
+  cerr<<"richPmtGood "<<v_pmt_stat.size()<<endl;
+  cerr<<richPmtBad<<endl;
   gainCorrection *= usePmtStat? richPmtGood(pmt) : 1;
+
+  cout<<"3"<<endl;
 
   return gainCorrection;
 
@@ -1653,7 +1663,7 @@ float RichChargeUniformityCorrection::getCorrection(float beta,float x,float y,f
   if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
   _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
   corr->Eval(beta,x,y,vx,vy);
-  return corr->MeanPeak;
+  return corr->MeanPeak*corr->MeanPeak;
 }
 
 float RichChargeUniformityCorrection::getCorrection(float *x){
@@ -1678,7 +1688,7 @@ float RichChargeUniformityCorrection::getCorrection(RichRingR *ring){
   if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
   _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
   corr->Eval(beta,x,y,vx,vy);
-  return corr->MeanPeak;
+  return corr->MeanPeak*corr->MeanPeak;
 }
 
 
