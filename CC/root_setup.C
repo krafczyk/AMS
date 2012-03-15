@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.64 2012/03/13 20:30:26 pzuccon Exp $
+//  $Id: root_setup.C,v 1.65 2012/03/15 13:33:42 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -215,10 +215,10 @@ bool usenodename=false;
 if(nodename && strlen(nodename)){
  usenodename=true;
 }
-static bool loadextdone=false;
+static unsigned int loadextdone=0;
 #pragma omp threadprivate(loadextdone)
-if(!loadextdone && _Head && (!fRTable.size() || !fETable.size())){
- _Head->LoadExt();
+if(loadextdone!=time && _Head && (!fRTable.size() || !fETable.size())){
+ if(_Head->LoadExt())loadextdone=time;
 
 }
 
