@@ -719,6 +719,9 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
+  static int last_run=0, skip_run=0;
+#pragma omp threadprivate(last_run,skip_run)
+
   multimap<float,int>::iterator it;
 
   vector<float>  v_dts_x;
@@ -863,17 +866,26 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
-  int method = 1; // 1: linear interpolation, 0: no interpolation 
-  for (int dts=0; dts<NDTS; dts++) {
-    rc = AMSSetupR::gethead()->fSlowControl.GetData(
-					  v_dts_el[dts].c_str(),
-					  AMSEventR::Head()->fHeader.Time[0],
-					  0,
-					  value,
-					  method,
-					  v_dts_nn[dts].c_str()
-					  );
-    if (!rc) v_dts_temp[dts] = value[0];
+  int method = 1; // 1: linear interpolation, 0: no interpolation
+  if (!skip_run || AMSEventR::Head()->fHeader.Run!=last_run) {
+    last_run = AMSEventR::Head()->fHeader.Run;
+    skip_run = 0;
+    for (int dts=0; dts<NDTS; dts++) {
+      rc = AMSSetupR::gethead()->fSlowControl.GetData(
+	v_dts_el[dts].c_str(),
+	AMSEventR::Head()->fHeader.Time[0],
+	0,
+	value,
+	method,
+	v_dts_nn[dts].c_str()
+	);
+      if (!rc) v_dts_temp[dts] = value[0];
+      else if (rc==1) {
+	cout << "RichPMTCalib::getRichPmtTemperatures-E-NoNodeNameFound : skip this run" << endl;
+	skip_run=1; 
+	break;
+      }
+    }
   }
 
   // PMT-DTS temperature map : closest DTS in grid
@@ -926,6 +938,9 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   static vector<string> v_dts_nn;
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
+
+  static int last_run=0, skip_run=0;
+#pragma omp threadprivate(last_run,skip_run)
 
   multimap<float,int>::iterator it;
 
@@ -1059,17 +1074,26 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
-  int method = 1; // 1: linear interpolation, 0: no interpolation 
-  for (int dts=0; dts<NDTS; dts++) {
-    rc = AMSSetupR::gethead()->fSlowControl.GetData(
-					  v_dts_el[dts].c_str(),
-					  AMSEventR::Head()->fHeader.Time[0],
-					  0,
-					  value,
-					  method,
-					  v_dts_nn[dts].c_str()
-					  );
-    if (!rc) v_dts_temp[dts] = value[0];
+  int method = 1; // 1: linear interpolation, 0: no interpolation
+  if (!skip_run || AMSEventR::Head()->fHeader.Run!=last_run) {
+    last_run = AMSEventR::Head()->fHeader.Run;
+    skip_run = 0;
+    for (int dts=0; dts<NDTS; dts++) {
+      rc = AMSSetupR::gethead()->fSlowControl.GetData(
+	v_dts_el[dts].c_str(),
+	AMSEventR::Head()->fHeader.Time[0],
+	0,
+	value,
+	method,
+	v_dts_nn[dts].c_str()
+	);
+      if (!rc) v_dts_temp[dts] = value[0];
+      else if (rc==1) {
+	cout << "RichPMTCalib::getRichBrickTemperatures-E-NoNodeNameFound : skip this run" << endl;
+	skip_run=1;
+	break; 
+      }
+    }
   }
 
   // PMT-DTS temperature map : mean of DTS in brick
