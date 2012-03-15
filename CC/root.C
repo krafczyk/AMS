@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.374 2012/03/14 18:27:53 mdelgado Exp $
+//  $Id: root.C,v 1.375 2012/03/15 09:41:18 lbasara Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5105,6 +5105,85 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 
 #endif
 }
+
+
+float EcalHitR::GetECALPed(int layer, int cell, int channel) {
+
+	/* Pedestals are retrieved for each PM via
+	 * AMSEventR::Head()->GetTDVEl(rmsped,iu,value);
+	 * with rmsped="EcalPeds", iu = index and value being the return value
+	 * Each PM stores 28 informations :
+	 *	1-9  	-> initialisation ?
+	 *	10-13 	-> for each pixel, HG ped
+	 *	14-17 	-> for each pixel, LG ped
+	 *	18-21 	-> for each pixel, HG rms
+	 *	22-25 	-> for each pixel, LG rms
+	 *	26		-> dynode ped
+	 *	27		-> dynode RMS
+	 *
+	 *	Information for superlayer SL, photom. PM is thus stored btw
+	 * 	28 * (36*SL + PM) <= idx < 28 * (36*SL + (PM+1))
+	 *
+	 *
+	 * Indexes for a pixel in a PM are as follows :
+	 *	0 1
+	 * 	2 3
+	 * 	0 and 1 have the same layer idx, 0 and 2 the same cell idx
+	 */
+
+	if (layer<0||layer>17||cell<0||cell>71||channel<0||channel>2) return -1;
+
+	// SlowControlDB Initialisation :
+	//AMSEventR* ev=chain->GetEvent(0);
+	//SlowControlDB* scdb=SlowControlDB::GetPointer();
+	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
+	AMSEventR::if_t value;
+	value.u=0;
+
+	// Variables initialisation
+	int PM  = (int) cell/2;
+	int SL  = (int) layer/2;
+	int pxl = 2*(layer%2) + cell%2;
+	int iPM = 28 * (36*SL + PM);
+	int idx= iPM + 10 ;
+
+	// Getting good idx
+	if (channel==2) idx = iPM + 26; // dynode
+	else 			idx = iPM + 10 + 4*channel + pxl;
+	int err = AMSEventR::Head()->GetTDVEl("Ecalpeds",idx,value);
+	if (err)return -2.;
+	else 	return value.f;
+}
+
+
+float EcalHitR::GetECALRms(int layer, int cell, int channel) {
+	// Format description : see EcalHitR::GetECALPed
+	if (layer<0||layer>17||cell<0||cell>71||channel<0||channel>2) return -1;
+
+	// SlowControlDB Initialisation :
+	//AMSEventR* ev=chain->GetEvent(0);
+	//SlowControlDB* scdb=SlowControlDB::GetPointer();
+	AMSSetupR::SlowControlR *cr=&AMSEventR::getsetup()->fSlowControl;
+	AMSEventR::if_t value;
+	value.u=0;
+
+	// Variables initialisation
+	int PM  = (int) cell/2;
+	int SL  = (int) layer/2;
+	int pxl = 2*(layer%2) + cell%2;
+	int iPM = 28 * (36*SL + PM);
+	int idx= 0 ;
+
+	// Getting good idx
+	if (channel==2) idx = iPM + 27; // dynode
+	else 			idx = iPM + 18 + 4*channel + pxl;
+	int err = AMSEventR::Head()->GetTDVEl("Ecalpeds",idx,value);
+	if (err)return -2.;
+	else 	return value.f;
+}
+
+
+
 
 
 EcalMCHitR::EcalMCHitR(AMSEcalMCHit *ptr){

@@ -1,12 +1,12 @@
-//  $Id: root.h,v 1.413 2012/03/14 17:28:17 mdelgado Exp $
+//  $Id: root.h,v 1.414 2012/03/15 09:40:55 lbasara Exp $
 //
-//  NB 
-//  Only stl vectors ,scalars and fixed size arrays 
+//  NB
+//  Only stl vectors ,scalars and fixed size arrays
 //    are allowed as root file entries
 //
 
 //
-//  NB Please increase the version number in corr classdef 
+//  NB Please increase the version number in corr classdef
 //  for any class modification
 //
 
@@ -191,10 +191,10 @@ class AMSEventR;
   (this includes:
    ISS -z axis (LVLH) pointing direction in external reference frame
    AMS z axis (according to 12 degree tilt in roll) in external reference frame
-  The reference frames are the equatorial and galactic frames, which are fixed to the sky and not to the Earth. More info in upcoming AMS note)     
+  The reference frames are the equatorial and galactic frames, which are fixed to the sky and not to the Earth. More info in upcoming AMS note)
 
   object counters, aka arrays dimensions (protected, access via coo functions)
- \sa AMSEventR 
+ \sa AMSEventR
 
  \author vitali.choutko@cern.ch
 
@@ -220,14 +220,14 @@ static char _Info[255];
 // shuttle/ISS parameters
 
    float RadS;    ///<iss orbit altitude cm  (GTOD coo sys)
-   float ThetaS;  ///<theta (GTOD rad)  
+   float ThetaS;  ///<theta (GTOD rad)
    float PhiS;    ///<phi   (GTOD rad)
-   float Yaw;     ///<ISS yaw (LVLH rad) 
-   float Pitch;   ///<ISS pitch (LVLH rad) 
-   float Roll;   ///<ISS roll (LVLH rad)  
-   float VelocityS;     ///< ISS velocity ( rad/sec) 
-   float VelTheta;     ///< ISS speed theta (GTOD rad) 
-   float VelPhi;       ///< ISS speed phi (GTOD rad)  
+   float Yaw;     ///<ISS yaw (LVLH rad)
+   float Pitch;   ///<ISS pitch (LVLH rad)
+   float Roll;   ///<ISS roll (LVLH rad)
+   float VelocityS;     ///< ISS velocity ( rad/sec)
+   float VelTheta;     ///< ISS speed theta (GTOD rad)
+   float VelPhi;       ///< ISS speed phi (GTOD rad)
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
    float PhiM;          ///< magnetic (calculated for an eccentric dipole coo system)phi  rad
 
@@ -236,25 +236,25 @@ static char _Info[255];
    float B1b;   ///< ISS Solar Array Beta (rad)
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
-   
-   vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat; 
+
+   vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat;
 
    /*!
     \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid
     output parameters gps_time_sec, gps_time_nsec of epoche
   */
-   int  GetGPSEpoche( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);  
+   int  GetGPSEpoche( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);
 
-  
+
    // pointing direction in equatorial and galactic systems
    // removed for the moment
- 
+
    int   TrStat;     ///< SetofFlags for Problems during Tracking
    //
 
 // counters
 protected:
-int   EcalHits;              
+int   EcalHits;
 int   EcalClusters;
 int   Ecal2DClusters;
 int   EcalShowers;
@@ -263,7 +263,7 @@ int   RichRings;
 int   RichRingBs;
 int   TofRawClusters;
 int   TofRawSides;
-int   TofClusters;  
+int   TofClusters;
 int   AntiRawSides;
 int   AntiClusters;
 int   TrRawClusters;
@@ -278,11 +278,11 @@ int   TrdHSegments;
 int   TrdHTracks;
 int   Level1s;
 int   Level3s;
-int   Betas; 
-int   BetaBs; 
-int   Vertexs; 
-int   Charges;  
-int   Particles;  
+int   Betas;
+int   BetaBs;
+int   Vertexs;
+int   Charges;
+int   Particles;
 int   AntiMCClusters;
 int   TrMCClusters;
 int   TofMCClusters;
@@ -295,7 +295,7 @@ int   DaqEvents;
 public:
 
   /// A constructor.
-  HeaderR(){};  
+  HeaderR(){};
 #ifndef __ROOTSHAREDLIBRARY__
   void   Set(EventNtuple02 *ptr);
 #endif
@@ -334,17 +334,17 @@ class DaqEventR {
 static char _Info[255];
 public:
   unsigned int Length;    ///<Event length in bytes
-  unsigned int Tdr;  ///< Tracker  length in bytes 
-  unsigned int Udr;  ///< TRD  length in bytes 
-  unsigned int Sdr;  ///< TOF+Anti  length in bytes 
-  unsigned int Rdr;  ///< RICH  length in bytes 
-  unsigned int Edr;  ///< Ecal length in bytes 
+  unsigned int Tdr;  ///< Tracker  length in bytes
+  unsigned int Udr;  ///< TRD  length in bytes
+  unsigned int Sdr;  ///< TOF+Anti  length in bytes
+  unsigned int Rdr;  ///< RICH  length in bytes
+  unsigned int Edr;  ///< Ecal length in bytes
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
   unsigned int  L3VEvent; ///<Lvl3 event counter + Version
   unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
   unsigned  int JStatus; ///< 8 lower bit JINJ-P (hi8 bits of status word) 8 higher bits JINJ-S (hi8 bits of status word)
-  unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block  
+  unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}
   DaqEventR(DAQEvent *ptr);
@@ -367,7 +367,7 @@ ClassDef(DaqEventR,5)       //DaqEventR
 class EcalHitR {
 public:
   unsigned int   Status;   ///< Statusword
-  short   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4  
+  short   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  1:9/1:36/1:4
                /*!<
 Idsoft SubCells(pixels) numbering(+Z is top):\n
 ---------------|0|1|------------------\n
@@ -376,7 +376,7 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
                 */
   short   Proj;     ///< projection (0-x,1-y)
   short   Plane;    ///< ECAL plane number (0,...17)
-  short   Cell;     ///< ECAL Cell number (0,...71)    
+  short   Cell;     ///< ECAL Cell number (0,...71)
   float Edep;     ///< ECAL measured energy (MeV, includes all corrections)
   float EdCorr;   ///< ECAL PMsaturation1-correction(MeV) added to Edep
   float AttCor;   ///<  Attenuation Correction applied (w/r  to center of ecal) (MeV)
@@ -384,10 +384,26 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
   float ADC[3];   ///< ECAL (ADC-Ped) for Hi/Low/Dynode channels
   float Gain;     ///<  1/gain (!)
 
+  static float GetECALPed(int layer, int cell, int channel=0);
+  /// ECAL Ped for current run and given layer, cell, channel (Hi/Low/Dynode)
+  /// \author basara@lapp.in2p3.fr
+  /// \param layer between 0 and 17 (including for dynode)
+  /// \param cell between 0 and 71 (including for dynode)
+  /// \param channel between 0 and 2 for Hi/Low/Dynode
+  /// \return -1 if bad parameters, -2 if SlowControl error, value for Pedestal otherwise
+
+ static float GetECALRms(int layer, int cell, int channel=0);
+  /// ECAL RMS for current run and given layer, cell, channel (Hi/Low/Dynode)
+  /// \author basara@lapp.in2p3.fr
+  /// \param layer between 0 and 17 (including for dynode)
+  /// \param cell between 0 and 71 (including for dynode)
+  /// \param channel between 0 and 2 for Hi/Low/Dynode
+  /// \return -1 if bad parameters, -2 if SlowControl error, value for RMS otherwise
+
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
   virtual ~EcalHitR(){};
-ClassDef(EcalHitR,4)       //EcalHitR
+ClassDef(EcalHitR,5)       //EcalHitR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -404,7 +420,7 @@ public:
                                                      WIDE=2   \n
                                                      BAD =16  \n
                                                      USED=32  \n
-                                                     NEAR=102 \n 
+                                                     NEAR=102 \n
                                                      LEAK=16777216  \n
                                                      CATASTROPHICLEAK=33554432 \n
                                                      JUNK=67108864 \n
@@ -429,11 +445,11 @@ public:
   /// \param i index of fEcalHit vector
   /// \return index of EcalHitR object in collection or -1
   int iEcalHit(unsigned int i){return i<fEcalHit.size()?fEcalHit[i]:-1;}
-  /// access function to EcalHitR collection   
+  /// access function to EcalHitR collection
   /// \param i index of fEcalHit vector
   /// \return pointer to EcalHitR object or 0
   EcalHitR * pEcalHit(unsigned int i);
-  
+
   EcalClusterR(){};
   EcalClusterR(Ecal1DCluster *ptr);
   friend class Ecal1DCluster;
@@ -443,7 +459,7 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"EcalCluster No %d Layer=%d Proj=%d Coo=(%5.2f,%5.2f,%5.2f) E_{Dep}(MeV)=%5.2f Multip=%d",number,Plane,Proj,Coo[0],Coo[1],Coo[2],Edep,NEcalHit());
   return _Info;
-  } 
+  }
   virtual ~EcalClusterR(){};
 ClassDef(EcalClusterR,1)       //EcalClusterR
 #pragma omp threadprivate(fgIsA)
@@ -472,12 +488,12 @@ public:
   /// access function to EcalClusterR objects used
   /// \return number of EcalClusterR used
   int NEcalCluster()const {return fEcalCluster.size();}
-  /// access function to EcalClusterR collection  
-  /// \param i index of fEcalCluster vector  
+  /// access function to EcalClusterR collection
+  /// \param i index of fEcalCluster vector
   /// \return index of EcalClusterR collection or -1
   int iEcalCluster(unsigned int i){return i<fEcalCluster.size()?fEcalCluster[i]:-1;}
-  /// access function to EcalClusterR collection   
-  /// \param i index of fEcalCluster vector 
+  /// access function to EcalClusterR collection
+  /// \param i index of fEcalCluster vector
   /// \return pointer to EcalClusterR collection or 0
   EcalClusterR * pEcalCluster(unsigned int i);
 
@@ -505,7 +521,7 @@ static char _Info[255];
 public:
   unsigned int   Status;    ///< status word \sa EcalHitR status
   ///
-  float Dir[3];    ///< direction cos array 
+  float Dir[3];    ///< direction cos array
   float EMDir[3];  ///< direction cos array for emag type shower
   float Entry[3];  ///< entry point (cm)
   float Exit[3];   ///< exit point(cm)
@@ -533,7 +549,7 @@ public:
   float AttLeakPI;     ///< rel att length correction - Pisa version
 
   float NLinLeak;   ///<  rel non-lin correction - Pisa version
-  float NLinLeakPI;  ///<  rel non-lin correction 
+  float NLinLeakPI;  ///<  rel non-lin correction
   float S13Leak;   ///<  s1/s3 ratio correction;
   float S13LeakXPI;  ///< s1/s3 ratio correction for X view
   float S13LeakYPI;  ///< s1/s3 ratio correction for Y view
@@ -558,7 +574,7 @@ public:
 // LAPP (MP) end
 
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
-  float Chi2Profile;  ///< chi2 profile fit (by gamma function) 
+  float Chi2Profile;  ///< chi2 profile fit (by gamma function)
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
   float Chi2Trans;     ///< chi2 transverse fit (sum of two exp)
   float SphericityEV[3]; ///< sphericity tensor eigen values
@@ -567,58 +583,58 @@ public:
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
-  
+
 // LAPP Variables
   int NbLayerX;
   int NbLayerY;
-  float S1tot[3];  ///< Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y 		  
-  float S3tot[3];  ///< Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
-  float S5tot[3];  ///< Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
-  float ShowerLatDisp[3];  ///< Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y 	  
-  float ShowerLongDisp;  ///< Shower Longitudinal Dispersion  
-  float ShowerDepth;  ///< Shower Depth 	  
-  float ShowerFootprint[3]; ///< Shower Footprint - 0=X - 1=Y - 2=X+Y  
+  float S1tot[3];  ///< Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y
+  float S3tot[3];  ///< Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
+  float S5tot[3];  ///< Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
+  float ShowerLatDisp[3];  ///< Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y
+  float ShowerLongDisp;  ///< Shower Longitudinal Dispersion
+  float ShowerDepth;  ///< Shower Depth
+  float ShowerFootprint[3]; ///< Shower Footprint - 0=X - 1=Y - 2=X+Y
   float ZprofileChi2; ///< Chi2 of Zprofile
-  float Zprofile[4]; ///< Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=??????? 
-  float EnergyFractionLayer[18];  ///< Energy fraction per layer	
+  float Zprofile[4]; ///< Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=???????
+  float EnergyFractionLayer[18];  ///< Energy fraction per layer
 
 // LAPP Variables Normalised (Filled only if NormaliseVariableLAPP() or EcalStandaloneEstimator() functions are called)
-  float NS1tot[3]; ///< Normalised Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y		  
-  float NS3tot[3]; ///< Normalised Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
-  float NS5tot[3]; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y		  
-  float NShowerLatDisp[3]; ///< Normalised Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y 	  
-  float NShowerLongDisp; ///< Normalised Shower Longitudinal Dispersion  
+  float NS1tot[3]; ///< Normalised Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y
+  float NS3tot[3]; ///< Normalised Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
+  float NS5tot[3]; ///< Normalised Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
+  float NShowerLatDisp[3]; ///< Normalised Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y
+  float NShowerLongDisp; ///< Normalised Shower Longitudinal Dispersion
   float NShowerFootprint[3]; ///< Normalised Shower Footprint - 0=X - 1=Y - 2=X+Y
-  float NZprofile[4];  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=??????? 
+  float NZprofile[4];  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=???????
   float NZprofileChi2; ///< Normalised Chi2 of Zprofile
   float NZProfileMaxRatio; ///< Ratio between profile fitted and expected Zmax
-  float NEnergyFractionLayer[18];  ///< Normalised energy fraction per layer	
+  float NEnergyFractionLayer[18];  ///< Normalised energy fraction per layer
   float NS1S3[3];
-  float NS3S5[3];	
+  float NS3S5[3];
 
 // Other normalised variables
   float NS13R;
   float NEnergy3C2;
   float NEnergy3C3;
-	
+
   void NormaliseVariableLAPP();
   ///< LAPP function to normalise several variables
   ///< Remove the energy dependence (Mean and RMS deduced from electron selection May19->August31)
   ///< Fill variables Nxxx
-  ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() ) 
+  ///< Is automatically called if the LAPP estimator function is called ( EcalStandaloneEstimator() )
 
-  float EcalStandaloneEstimator();	
+  float EcalStandaloneEstimator();
   ///< LAPP Ecal Estimator -
   ///< Updated December 2011 -
-  ///< 90% efficiency cut (based on electron-like flight events) is -1.49  
+  ///< 90% efficiency cut (based on electron-like flight events) is -1.49
   ///< Relies on normalised variables (Nxxx) -
-	
-	
+
+
 	/// Pisa function to obtain the Boosted Decision Tree Classifier for shower:
   /// lower values correspond to hadrons, higher to electromagnetic particles
-  /// Trained on August 2010 test beam data 
-  /// WARNING: by default this function is dummy, to have it you must compile 
-  /// with the ECALBDT defined but this take about 6 minutes 
+  /// Trained on August 2010 test beam data
+  /// WARNING: by default this function is dummy, to have it you must compile
+  /// with the ECALBDT defined but this take about 6 minutes
   float GetEcalBDT();
   /// access function to Ecal2DClusterR objects used
   /// \return number of Ecal2DClusterR used
@@ -627,7 +643,7 @@ public:
   /// \param i index of fEcal2DCluster vector
   /// \return index of Ecal2DClusterR object in collection or -1
   int iEcal2DCluster(unsigned int i){return i<fEcal2DCluster.size()?fEcal2DCluster[i]:-1;}
-  /// access function to Ecal2DClusterR objects   
+  /// access function to Ecal2DClusterR objects
   /// \param i index of fEcal2DCluster vector
   /// \return pointer to Ecal2DClusterR object  or 0
   Ecal2DClusterR * pEcal2DCluster(unsigned int i);
@@ -636,7 +652,7 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"EcalShower No %d NHits %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,S13,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number,Nhits, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,S13Leak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
   return _Info;
-  } 
+  }
 
 
   EcalShowerR(){};
@@ -675,9 +691,9 @@ public:
   float adca;///<Anode signal(ADC-counts, ped-subtracted if not PedCal-run)
   int nadcd;///<number of Dynode nonzero(!) signals
   float adcd[3];///<Dynode signals(ADC-counts, positional(keep "0"s), ped-subtracted if not PedCal-run)
-  float temp;///<Anode-readout temperature (given by probe in SFET(A) slots)  
-  float tempC;///<Dynode-readout temperature (given by probe in SFEC card)  
-  float tempP;///<PM-temperature (averaged over PMTs of 1side, based on probes in TOP-plane envelop)  
+  float temp;///<Anode-readout temperature (given by probe in SFET(A) slots)
+  float tempC;///<Dynode-readout temperature (given by probe in SFEC card)
+  float tempP;///<PM-temperature (averaged over PMTs of 1side, based on probes in TOP-plane envelop)
 
   TofRawSideR(){};
   TofRawSideR(TOF2RawSide *ptr);
@@ -688,7 +704,7 @@ public:
   int getstdc(int i){return i<fstdc.size()?fstdc[i]:0;}
   int getsumht(int i){return i<fsumht.size()?fsumht[i]:0;}
   int getsumsht(int i){return i<fsumsht.size()?fsumsht[i]:0;}
-  
+
   ClassDef(TofRawSideR ,6)       //TofRawSideR
 #pragma omp threadprivate(fgIsA)
 };
@@ -714,13 +730,13 @@ public:
 					      // bit11(1024)-> missing side number(0->s1,1->s2)
                                               // bit12(2048)-> recovered from 1-sided (bit256 also set)
                                               // bit13(4096)-> no bestLT/sumHT-hit matching(when requested) on any side
-					      // bit6(32)   -> used for TofCluster 
+					      // bit6(32)   -> used for TofCluster
    */
   int   Layer;   ///< Tof plane 1(top)...4
   int   Bar;     ///< Tof Bar number 1...10
   float adca[2]; ///< Anode raw signal(adc), side=1-2
-  float adcd[2]; ///< Dynode(equilized sum of pmts on each side) raw signal(adc) 
-  float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc) 
+  float adcd[2]; ///< Dynode(equilized sum of pmts on each side) raw signal(adc)
+  float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc)
   float sdtm[2];  ///< A-noncorrected side times
   float edepa;   ///< Anode Edep (mev)
   float edepd;   ///< Dynode Edep (mev)
@@ -740,13 +756,13 @@ public:
   /// \param i index of fTofRawSide vector
   /// \return pointer to TofRawSideR object or 0
   TofRawSideR * pTofRawSide(unsigned int i);
-  
+
   TofRawClusterR(){};
   TofRawClusterR(TOF2RawCluster *ptr);
-  
+
   friend class TOF2RawCluster;
   friend class AMSEventR;
-  
+
   virtual ~TofRawClusterR(){};
   ClassDef(TofRawClusterR ,5)       //TofRawClusterR
 #pragma omp threadprivate(fgIsA)
@@ -769,7 +785,7 @@ public:
   float adca;///< anode pulse-charge hit(ADC-counts, ped-subtracted if not PedCalibJob)
   int nftdc;///< number of FastTrig(FT) hits (normally =1)
   int ftdc[8];///< FT-hits(tdc-chan),1/4-plane common, but stored for each sector
-  int ntdct;///< number of Time(LT-chan) hits 
+  int ntdct;///< number of Time(LT-chan) hits
   int tdct[16];///< Time hits
 
   AntiRawSideR(){};
@@ -777,7 +793,7 @@ public:
   friend class Anti2RawEvent;
   friend class AMSEventR;
   virtual ~AntiRawSideR(){};
-  
+
   ClassDef(AntiRawSideR ,1)       //AntiRawSideR
 #pragma omp threadprivate(fgIsA)
 };
@@ -829,7 +845,7 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"ToF Cluster No %d S%dB%d: time=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",number,Layer,Bar,Time*1.e9,ErrTime*1.e9,Edep,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2]);
   return _Info;
-  } 
+  }
   TofClusterR(){};
   TofClusterR(AMSTOFCluster *ptr );
   friend class AMSTOFCluster;
@@ -874,7 +890,7 @@ public:
     }
     sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g CTime(nsec)=%7.2f",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep,xm);
   return _Info;
-  } 
+  }
   virtual ~AntiClusterR(){};
 ClassDef(AntiClusterR,2)       //AntiClusterR
 #pragma omp threadprivate(fgIsA)
@@ -901,7 +917,7 @@ ClassDef(TrRawClusterR,2)       //TrRawClusterR
 };
 
 
-/// TrClusterR structure  
+/// TrClusterR structure
 /*!
  \author vitali.choutko@cern.ch
 
@@ -910,7 +926,7 @@ class TrClusterR {
 public:
   int Idsoft;  ///< software id
                /*!<
-                                                   \n mod(id,10) layer 
+                                                   \n mod(id,10) layer
                                                    \n mod(id/10,100) ladder
                                                    \n i=mod(id/1000,10)
                                                    \n i==0 x 1st half
@@ -919,7 +935,7 @@ public:
                                                    \n i==3 y 2nd half
                                                    \n id/10000 strip
             */
-  unsigned int Status;  ///< statusword 
+  unsigned int Status;  ///< statusword
                /*!<
  1 - REFITTED object                                     (status&1     !=0) \n
  2 - WIDE in shape (Tracker)                             (status&2     !=0) \n
@@ -944,10 +960,10 @@ public:
 21 - Track->Trladder interpol was done on plane level    (status&(65536*16)!=0) \n
 22 - Track was created using TOF only                    (status&(65536*32)!=0) \n
 23 - Object Overflow                                     (status&(65536*64)!=0) \n
-26 - CATLEAK  (Ecal only)                               (status&(65536*256)!=0) \n 
-                 */ 
+26 - CATLEAK  (Ecal only)                               (status&(65536*256)!=0) \n
+                 */
   int NelemL;   ///< Number of strips left to max
-  int StripM;   ///< Strip at Max 
+  int StripM;   ///< Strip at Max
   int NelemR;   ///< Number of strips right to max
   float Sum;    ///< Amplitude total
   float Sigma;  ///< Sigma total
@@ -1028,7 +1044,7 @@ public:
       int half()const{return (Id/10)%10;}
   /// \return sensor
       int sen()const{return (Id/10000)%100;}
-  /// 
+  ///
  ///  \return stripx
  int  stripx(){
     TrClusterR  *x=pTrCluster('x');
@@ -1060,7 +1076,7 @@ ClassDef(TrRecHitR,4)       //TrRecHitR
 
 
 
-/// /TrTrackR structure 
+/// /TrTrackR structure
 /*!
  \author j.alcaraz@cern.ch vitali.choutko@cern.ch
 
@@ -1093,7 +1109,7 @@ public:
   float ErrRigidity;  //!
 /// theta (from fast)
   float Theta;      //!
-/// phi (from fast) 
+/// phi (from fast)
   float Phi;        //!
   AMSDir GetDir(){return AMSDir(Theta,Phi);} ///< dir cos
 /// coo (from fast)
@@ -1123,15 +1139,15 @@ public:
   float FChi2MSf(){return FChi2MS;}
  /// PathInt err(1/rig) (<0 means fit was not succesful)
   float PiErrRig;    //!
-/// fast rigidity mscat off 
+/// fast rigidity mscat off
     float RigidityMS;  //!
 ///  PathInt rigidity
   float PiRigidity;  //!
-///Fast,PI,RK Rigidities with only internal or only external points 
+///Fast,PI,RK Rigidities with only internal or only external points
   float RigidityIE[3][2];  //!
   float Hit[9][3];   ///< Track Coordinate (after alignment)
   float EHit[9][3];   ///< Track Error Coordinate (after alignment)
-  AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);} 
+  AMSPoint GetCoord(unsigned int i){return i<9?AMSPoint(Hit[i]):AMSPoint(0,0,0);}
   float DBase[2];    ///< Rigidity & chi2 without alignment
   TrTrackR(AMSTrTrack *ptr); ///< GBatchConstructor
   bool Compat(int refiti=0); ///< Compatibility function to be called once to ensure old functionality
@@ -1139,19 +1155,19 @@ public:
   protected:
 vector<int> fTrRecHit;  ///< Vector of trrechit indexes
   public:
-   int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom) 
+   int PatternL();///< \return   1....9  123459 means hits in layers are present; 1 top 9 bottom)
    int Layer(unsigned int i); ///< return layer number (0...8) for the Hit[i]
   bool isSubSet(int pattern); ///< return true if pattern is subset of track Bitpattern;
    int BitPattern; ///<  bits xxxxxxxx where x =0 1 and layer 1 corresponds to the leaset significant bit
-   int ToBitPattern( int patternL);///< return bit pattern for given patternL or -1 if error  
+   int ToBitPattern( int patternL);///< return bit pattern for given patternL or -1 if error
    unsigned int NHits()const ;  ///< retutn NHits;
-   
+
   TrTrackR(){};
 /// Get and optionally refit  track using pattern bit pattern (inclusive)
 /// \return index of the fTrTrackFit vector or -1 if no such element or -2 if alig or alg or ms  not defined or -3 if pattern is not subset of BitPattern or -4 if refit failed or not yet implemented
 /// \param refit 0: do not refit, 1 refit if not present, 2 refit and replace
 /// \param fit  TrTrackFitR params  (pattern,alg,alig,ms) also returned
-int iTrTrackFit(TrTrackFitR &fit, int refit=1);   ///< !!accessor 
+int iTrTrackFit(TrTrackFitR &fit, int refit=1);   ///< !!accessor
 
 bool setFitPattern(TrTrackFitR::kAtt k, int & pattern); ///< set fit pattern for the given attribute  return false if not
 
@@ -1167,7 +1183,7 @@ bool setFitPattern(TrTrackFitR::kAtt k, int & pattern); ///< set fit pattern for
   /// \param i index of fTrRecHit vector
   /// \return index of TrRecHitR object in collection or -1
   int iTrRecHit(unsigned int i){return i<fTrRecHit.size()?fTrRecHit[i]:-1;}
-  /// access function to TrRecHitR objects   
+  /// access function to TrRecHitR objects
   /// \param i index of fTrRecHit vector
   /// \return pointer to TrRecHitR object  or 0
   TrRecHitR * pTrRecHit(unsigned int i);
@@ -1212,12 +1228,12 @@ public:
 30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
 31- Hit belongs to a PMT apparently crossed by a charged particle
 
-          
+
 */
 
-  int   Channel;    ///<  channel number (16*PMT+pixel) 
+  int   Channel;    ///<  channel number (16*PMT+pixel)
   int   Counts;     ///< ADC counts above the pedestal
-  float Npe;        ///< ADC counts above the pedestal/gain of the channel 
+  float Npe;        ///< ADC counts above the pedestal/gain of the channel
   float Coo[3];     ///<  Hit coordinates
   int   HwAddress;  ///< Hardware address
   int SoftId   ;    ///< Online software identification (PMT*16+pixel)
@@ -1241,14 +1257,14 @@ public:
 	    (Status>>30),
 	    (Status>>28)&1?"true":"false");
   return _Info;
-  } 
+  }
 
   virtual ~RichHitR(){};
 
   bool IsCrossed(){return (Status&(1<<30))!=0;}
   bool UsedInRingNumber(int number){return (Status&(1<<number))!=0;}
   bool IsHighGain(int){return (Status&(1<<29))!=0;}
-  /// Number of photoelectrons 
+  /// Number of photoelectrons
   int  PhotoElectrons(double sigmaOverQ=0.6);
   /// Return the number of photoelectrons in the event, discarding those PMTs crossed by charged particles
   static float getCollectedPhotoElectrons();
@@ -1278,12 +1294,12 @@ enum{ready=-1,noCorrection=0,tileCorrection,fullUniformityCorrection};
 static int shouldLoadCorrection;           ///< Holds the current state of the corrections loader
 static bool loadChargeUniformityCorrection; ///< Allows to enable or disable using the uniformity correction for charge
 
-/// Rich Charge Corrections Settings & Flags 
-static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed) 
+/// Rich Charge Corrections Settings & Flags
+static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed)
 static TString correctionsDir;  ///< Directory containing corrections
-static bool useRichRunTag;      ///< Define corrections only for good runs 
+static bool useRichRunTag;      ///< Define corrections only for good runs
 static bool usePmtStat;         ///< Define correnctions only for good PMT
-static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median) 
+static bool useSignalMean;      ///< Equalize PMT Gains to signal mean(median)
 static bool useGainCorrections; ///< Activate PMT Gain equalization
 static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
 static bool useBiasCorrections; ///< Activate PMT Efficiency bias corrections
@@ -1291,11 +1307,11 @@ static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
 /** @name Sets the initial correction to reconstrcuted beta.There are three possibilities foreseen, and only two implementes:
  *   RichRingR::noCorrection - No initial information is loaded. The dynamic calibration can be used to update the refractive index on the tiles on the flight
  *   RichRingR::tileCorrection - A default initial correction to the refractive indexes are loaded. These values can be subsequently corrected using the dynamic calibration, although it is not necessary. This is loaded by default.
- *   RichRingR::fullUniformityCorrection -  A fine grained correction to the refractive index, which also takes into account the direction of the incident particle, is loaded. Further corrections using the dynamic calibration are not possible. (NOT YET IMPLEMENTED)    
+ *   RichRingR::fullUniformityCorrection -  A fine grained correction to the refractive index, which also takes into account the direction of the incident particle, is loaded. Further corrections using the dynamic calibration are not possible. (NOT YET IMPLEMENTED)
  */
   ///@{
   /// Sets the initial correction
-  ///\ param Modes:  RichRingR::noCorrection, RichRingR::tileCorrection, RichRing::fullUniformityCorrection 
+  ///\ param Modes:  RichRingR::noCorrection, RichRingR::tileCorrection, RichRing::fullUniformityCorrection
 static void setBetaCorrection(int mode){shouldLoadCorrection=mode;}
 
 static bool _updateDynamicCalibration;
@@ -1304,20 +1320,20 @@ static int    _tileCalEvents;
 static int    _tileCalWindow;
 static double _tileLearningFactor;
 static char _Info[255];
-static bool _isCalibrationEvent; 
+static bool _isCalibrationEvent;
 /// Selection of events for the dynamic calibration
 static bool calSelect(AMSEventR &event);
 /// Returns an unique tile id for the tile crossed by the particle.
-/// This is is unrelated to the one used internally in the reconstruction 
+/// This is is unrelated to the one used internally in the reconstruction
 int getTileIndex();
 static int getTileIndex(float x,float y);
 static void updateCalibration( AMSEventR &event);
 public:
-static TH1F indexHistos[122]; 
-static double _sumIndex[122]; 
-static int _totalIndex[122]; 
+static TH1F indexHistos[122];
+static double _sumIndex[122];
+static int _totalIndex[122];
 static double indexCorrection[122];
-static int _lastUpdate[122]; 
+static int _lastUpdate[122];
 static int _numberUpdates[122];
 public:
 /** @name Dynamic calibration utilities
@@ -1326,13 +1342,13 @@ public:
   ///@{
   /// Activate (or deactivate) the dynamic calibration
  static void switchDynCalibration();
-  /// Get the status of the dynamic calibration 
+  /// Get the status of the dynamic calibration
   static bool isCalibrating(){return RichRingR::_updateDynamicCalibration;}
   /// Return if current event has been used for calibration
   static bool isCalibrationEvent(){return _isCalibrationEvent;}
-  /// Set the momentum threshold to consider a Z=1 particle as a beta=1 one 
+  /// Set the momentum threshold to consider a Z=1 particle as a beta=1 one
   static void setPThreshold(double th){_pThreshold=th;}
-  /// Get the momentum threshold to consider a Z=1 particle as a beta=1 one 
+  /// Get the momentum threshold to consider a Z=1 particle as a beta=1 one
   static double getPThreshold(){return _pThreshold;}
   /// Set the number of event required to update the tile calibration
   static void setTileCalEvents(int n){_tileCalEvents=n;};
@@ -1373,8 +1389,8 @@ public:
 1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
    If the rebuilding has been succesful it is stored in the next ring in the rings container.
    However to confirm that next ring is indeed a rebuilt one, both tracks, the one from the
-   current and the one from the next, should be the same. Otherwise the rebuilding was unsuccesful.    
-	    
+   current and the one from the next, should be the same. Otherwise the rebuilding was unsuccesful.
+
 2- Ring reconstructed using the NaF radiator in the double radiator configuration
 
 14 - Associated to a particle
@@ -1385,15 +1401,15 @@ public:
 
 */
 
-  int   Used;       ///< Nb. of RICH hits in the ring cluster 
-  int   UsedM;      ///< Nb. of RICH reflected hits in the ring cluster 
-  float Beta;       ///< Reconstructed velocity using only hits (no charge) 
+  int   Used;       ///< Nb. of RICH hits in the ring cluster
+  int   UsedM;      ///< Nb. of RICH reflected hits in the ring cluster
+  float Beta;       ///< Reconstructed velocity using only hits (no charge)
   float ErrorBeta;  ///< Estimate error in the velocity
   float BetaRefit;  ///< Beta estimate taking into account the number of photoelectrons for each hit
   float Prob;       ///< Kolmogorov test probability to be a good ring based on azimuthal distribution
   float UDist;      ///< (\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
   float NpExp;      ///< Number of expected photoelectrons for Z=1 charge
-  float NpCol;      ///< Number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
+  float NpCol;      ///< Number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp)
   float NpColLkh;   ///< Number of collected photoelectrons computed using a weighted mean (experts only)
   float Theta;      ///< Recontructed emission angle
   float ErrorTheta; ///< Error of the reconstructed emission angle
@@ -1409,8 +1425,8 @@ public:
    vector<float> fBetaHit;  ///<Beta Residues for each event hit. A negative value means it is reflected
    void FillRichHits(int m);
  public:
-   int   UsedWindow[10];      ///< Hits asociated to the ring for different windows sizes (1,2,3...10)  
-   float NpColWindow[10];       ///< Photoelectrons asociated to the ring for different windows sizes (1,2,3...10)  
+   int   UsedWindow[10];      ///< Hits asociated to the ring for different windows sizes (1,2,3...10)
+   float NpColWindow[10];       ///< Photoelectrons asociated to the ring for different windows sizes (1,2,3...10)
 
   // Time dependent charge corrections
   map<unsigned short,float> NpColCorr;   //!  Efficiency correction to NpExpPMT
@@ -1452,7 +1468,7 @@ public:
   /////////////////////////
 /** @name User accessor methods
  *  These methods provide user level access to the necessary RICH reconstructed quantities.
- * These are preferred to directly accessing the public attributes in the class and in some cases they provided further functionality.  
+ * These are preferred to directly accessing the public attributes in the class and in some cases they provided further functionality.
  */
   ///@{
   /// Check if the ring has been rebuilt
@@ -1462,7 +1478,7 @@ public:
   /// \return true if the ring is good
   bool IsGood(){return IsClean();}
   bool IsClean(){return (Status&1)==0;}
-  /// Bool set to true if the radiator used is NaF 
+  /// Bool set to true if the radiator used is NaF
   bool IsNaF(){return (Status&2)!=0;}
   /// Distance of the track impacto point in the radiator to the border of the radiator tile
   double DistanceTileBorder(){double value=double((Status>>15)&0x3ff)/100.;return value>8?0:value;}
@@ -1483,7 +1499,7 @@ public:
   /// Total number of used hits in the ring
   int getUsedHits(bool corr=true);
   int getUsedHits(int pmt, bool corr);
-  /// Total number of photoelectrons in the ring. 
+  /// Total number of photoelectrons in the ring.
   float getPhotoelectrons(bool corr=true){return getPhotoElectrons(corr);}
   float getPhotoElectrons(bool corr=true);
   float getPhotoElectrons(int pmt, bool corr);
@@ -1497,7 +1513,7 @@ public:
   /// \return Estimate of the error of the reconstructed beta
   float getBetaError()     {return sqrt(2.5e-3*2.5e-3*(IsNaF()?9.0:1.0)/getPhotoElectrons()+1e-4*1e-4);}
   /// Quality parameter, providing the probability result of applying a Kolmogorov test to the distribution of charge along the ring.
-  /// This quantity is almost uniformly distributed between 0 and 1 for rings correctly reconstructed, and peaks at 0 for incorrectly reconstructed ones. 
+  /// This quantity is almost uniformly distributed between 0 and 1 for rings correctly reconstructed, and peaks at 0 for incorrectly reconstructed ones.
   /// \return Kolmogorov test probability.
   float getProb()          {return Prob;}
   /// Quality parameter providing the width of the distribution of charge around the ring over the expected one.
@@ -1506,9 +1522,9 @@ public:
   /// \return Width of the ring
   float getWidth(bool usedInsteadNpCol=false){return RingWidth(usedInsteadNpCol);}
 
-  /// \return Uncorrected index associated to the track crossing point. 
+  /// \return Uncorrected index associated to the track crossing point.
   float getRawIndexUsed()     {return 1.0/Beta/cos(Theta);}
-  /// \return Index associated to the track crossing point. 
+  /// \return Index associated to the track crossing point.
   float getIndexUsed()     {return getRawIndexUsed()/betaCorrection();}
   /// The track parameters extrapolated to the radiator as used in the reconstruction.
   /// \return A pointer to an array of 5 floats, corresponding to x,y,z theta and phi of the track used in the reconstruction
@@ -1521,19 +1537,19 @@ public:
   /// Number of hits in the ring
   int   getHits()          {return Used;}
   /// Number of pmts in the ring
-  int   getPMTs();          
+  int   getPMTs();
   /// Number of hits which are consistent with reflected photons
   int   getReflectedHits() {return UsedM;}
   ///@}
 
 /** @name Interface to retrieve quality estimates of the uniformity corrections
  * This is only availble if the uniformity corrections are used. Otherwise the
- * functions return -1. 
+ * functions return -1.
  */
   ///@{
   // Expected resolution for Z=1 particles
   float getBetaExpectedResolution();
-  // Expected Rms of the distribution of beta for Z=1 beta=1 particles. 
+  // Expected Rms of the distribution of beta for Z=1 beta=1 particles.
   // This gives an estimate of how likely is the event to have tails
   float getBetaExpectedRms();
   float getChargeExpectedResolution();
@@ -1546,22 +1562,22 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Width=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Prob,RingWidth(),NpExp,NpCol);
     return _Info;
-  } 
+  }
 
   virtual ~RichRingR(){};
   ClassDef(RichRingR,28)           // RichRingR
 #pragma omp threadprivate(fgIsA)
-}; 
+};
 
 //!  A class to dump and retrieve dynamic calibration values
 
 class RichRingTables:public TObject{
  public:
-  TH1F indexHistos[122]; 
-  double _sumIndex[122]; 
-  int _totalIndex[122]; 
+  TH1F indexHistos[122];
+  double _sumIndex[122];
+  int _totalIndex[122];
   double indexCorrection[122];
-  int _lastUpdate[122]; 
+  int _lastUpdate[122];
   int _numberUpdates[122];
 
   RichRingTables();
@@ -1588,9 +1604,9 @@ static char _Info[255];
                                        ///<          i = 2    (track: standard track)
                                        ///<          i = 3    (track: TOF upper+lower || weakly constrained tracker with larger errors)
                                        ///<          i = 4    (track: from RICH standalone)
-                                       ///<          i = 5    (track: TOF upper+lower && RICH) 
-                                       ///<          i = 6    (track: TOF upper && RICH) 
-                                       ///<          i = 7    (track: TOF lower && RICH) 
+                                       ///<          i = 5    (track: TOF upper+lower && RICH)
+                                       ///<          i = 6    (track: TOF upper && RICH)
+                                       ///<          i = 7    (track: TOF lower && RICH)
                                        ///< Charge reconstruction:
                                        ///<          j = 0    (off)
                                        ///<          j = 1    (on)
@@ -1624,7 +1640,7 @@ static char _Info[255];
   float RingAccMsec2R[3];    ///< ring acceptance for mirror sectors, 2 reflection
   float RingEffMsec1R[3];    ///< ring efficiency for mirror sectors, 1 reflection
   float RingEffMsec2R[3];    ///< ring efficiency for mirror sectors, 2 reflection
-  std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits) 
+  std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits)
   std::vector<int> HitsStatus;         ///< hit status:
                                        ///<         -2 = not considered for reconstruction,
                                        ///<         -1 = not associated to ring,
@@ -1661,10 +1677,10 @@ static char _Info[255];
   /// Accessor utilities ///
   //////////////////////////
 
-  /// Bool set to true if the radiator used is NaF 
+  /// Bool set to true if the radiator used is NaF
   bool IsNaF() {return 1./(Beta*cos(AngleRec))>1.1;}
   /// Refractive index used in the reconstruction
-  /// \return Index associated to the track crossing point. 
+  /// \return Index associated to the track crossing point.
   float getIndexUsed() {return 1./(Beta*cos(AngleRec));}
   /// Compute the absolute value of the difference of the recontructed beta between the algorithm used in RichRingR class and the one used in RichRingBR
   /// \return Difference in the reconstructed beta between the two RICH reconstruction algorithms
@@ -1681,7 +1697,7 @@ static char _Info[255];
       tkStatus=Status-10;
     else
       tkStatus=Status;
-    
+
     sprintf(_Info,"RichRingB No %d Track=%d %s %s%s%s%s%s%s  N_{Hits}=%d #beta=%7.3g #theta_{c}=%6.3g ",
 	    number,fTrTrack,
 	    Status>10?"velocity+charge":"velocity only",
@@ -1695,11 +1711,11 @@ static char _Info[255];
 	    Beta,
 	    AngleRec*180./3.14159265);
     return _Info;
-  } 
+  }
   virtual ~RichRingBR(){};
   ClassDef(RichRingBR,3)           // RichRingBR
 #pragma omp threadprivate(fgIsA)
-}; 
+};
 
 
 /// TRDRawHitR structure
@@ -1713,12 +1729,12 @@ static char _Info[255];
 class TrdRawHitR {
 protected:
 public:
-  int Layer;   ///< Layer 0(bottom)...19(top) 
+  int Layer;   ///< Layer 0(bottom)...19(top)
   int Ladder;  ///<  Ladder  number
   int Tube;    ///< tube number
   float Amp;   ///< amplitude (adc counts)
   int Haddr;   ///< Hardware Address cufhh  c crate[0-1],u udr[0-6] f ufe [0-7] hh channel[0-63]
-   unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures 
+   unsigned int getid();  ///< return channel number in TRDPedestals, TRDSigmas,TRDGains structures
   float getped(int &error);   ///< return ped
   float getsig(int &error);   ///< return sigma
   float getgain(int &error);  ///< return gain from TRDGains
@@ -1742,7 +1758,7 @@ static char _Info[255];
 public:
   unsigned int   Status;    ///< statusword
   float Coo[3];    ///<cluster coo (cm)
-  int   Layer;     ///<Layer 0(bottom)...19(top) 
+  int   Layer;     ///<Layer 0(bottom)...19(top)
   int   Direction; ///<  0 == along x  1 == along y
   float ClSizeR;    ///< Tube Radius
   float ClSizeZ;    ///< Tube 1/2 Length
@@ -1758,7 +1774,7 @@ public:
   /// access function to TrdRawHitR object used
   /// \return pointer to TrdRawHitR object or 0
   TrdRawHitR * pTrdRawHit();
-  /// 
+  ///
   /// \return path length of the stright line in the trd tube
   double Range(float coo[], float Theta, float Phi);
   /// \return path length of the stright line in the trd tube
@@ -1792,7 +1808,7 @@ public:
   float FitPar[2];         ///< str line fit pars
   float Chi2;              ///< str line chi2
   int   Pattern;           ///< segment pattern no
- 
+
   protected:
   vector<int> fTrdCluster;   // used TrdClusterR's indexes
   public:
@@ -1803,7 +1819,7 @@ public:
   /// \param i index of fTrdCluster vector
   /// \return index of TrdClusterR object in collection or -1
   int iTrdCluster(unsigned int i){return i<fTrdCluster.size()?fTrdCluster[i]:-1;}
-  /// access function to TrdClusterR collection   
+  /// access function to TrdClusterR collection
   /// \param i index of fTrdCluster vector
   /// \return pointer to TrdClusterR object or 0
   TrdClusterR * pTrdCluster(unsigned int i);
@@ -1851,14 +1867,14 @@ public:
   /// \param i index of fTrdSegment vector
   /// \return index of TrdSegmentR object in collection or -1
   int iTrdSegment(unsigned int i){return i<fTrdSegment.size()?fTrdSegment[i]:-1;}
-  /// access function to TrdSegmentR collection   
+  /// access function to TrdSegmentR collection
   /// \param i index of fTrdSegment vector
   /// \return pointer to TrdSegmentR object or 0
   TrdSegmentR * pTrdSegment(unsigned int i);
   /// create pdf function from file and/or TDV
       static bool CreatePDF(const char *fnam);
   /// compute charge & likelihoods
-  void ComputeCharge(double betacorr);  
+  void ComputeCharge(double betacorr);
   TrdTrackR(AMSTRDTrack *ptr);
   TrdTrackR(const TrdTrackR & o);
   TrdTrackR(){};
@@ -1875,7 +1891,7 @@ public:
     }
     sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits,HHits}=%d,%d Q=%7.2g QC %d/%d %7.2g/%7.2g ",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np,nph,Q, Charge[0], Charge[1],exp(-ChargeP[0]),exp(-ChargeP[1]));
   return _Info;
-  } 
+  }
   friend class AMSTRDTrack;
   friend class AMSEventR;
   virtual ~TrdTrackR(){};
@@ -1885,7 +1901,7 @@ ClassDef(TrdTrackR,4)       //TrdTrackR
 
 
 
-/// Level1 trigger structure 
+/// Level1 trigger structure
 /*!
  \author e.choumilov@cern.ch
 
@@ -1898,8 +1914,8 @@ public:
  bool IsEcalFtrigOK()const {return (EcalFlag/10)>=2;}
  bool IsEcalLev1OK()const {return (EcalFlag%10)>1;}
 public:
-  int   PhysBPatt;   ///< 8 lsbits-> pattern of LVL1 sub-triggers ("predefined physics" branches) 
-                    /*!<        LVL1 is (masked) OR of above branches.		         
+  int   PhysBPatt;   ///< 8 lsbits-> pattern of LVL1 sub-triggers ("predefined physics" branches)
+                    /*!<        LVL1 is (masked) OR of above branches.
 		           The list of predefined branches(preliminary):                                         \n                    \n
 		        bit1: unbiased TOF-trig(i.e. FTC= z>=1)  \n
 			bit2: Z>=1(FTC+anti) "protons"           \n
@@ -1910,7 +1926,7 @@ public:
 		        bit7: unbECAL(FTE)                       \n
 			bit8: External                           \n
 		    */
-  int   JMembPatt; ///< 16 lsbits -> pattern of trig.system members checked by particular physics branch decision logic.  
+  int   JMembPatt; ///< 16 lsbits -> pattern of trig.system members checked by particular physics branch decision logic.
                     /*!<        The bits assignment :                              \n
 		        bit0:  FTC (TOF FT z>=1)                                   \n
 			bit1:  LUT-1 decision (used by FTC as OR with LUT-2)       \n
@@ -1927,21 +1943,21 @@ public:
 			bit12: ECAL LVL1("shower angle") using AND ........        \n
 			bit13: ECAL LVL1...................... OR .........        \n
 			bit14: EXT-trigger_1                                       \n
-			bit15: EXT-trigger_2                                       \n 		         
+			bit15: EXT-trigger_2                                       \n
 		    */
-  int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger) 
+  int   AuxTrigPatt;///< 5 lsbits-> pattern of Aux.trig.members(LA-0/LA-1/Reserv/DSP/InternTrigger)
   int   TofFlag1;   ///< FTC(z>=1) LayersPatternCode, <0:noFTC,=0:4L,(1-4):1missLnumb,5:1+3,6:1+4,7:2+3,8:2+4,9:1+2,10:3+4,(11-14):1,..4
   int   TofFlag2;   ///< BZ(z>=2) LayersPatternCode, <0:noBZ,=0:4L,(1-4):1missLnumb,..... as above
-  int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
-  int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
+  int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side)
+  int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side):
 
                     /*!<
                                                        1-10 bits  Side-1  \n
                                                        17-26      Side-2  \n
                    */
-  int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger  
-  int   EcalFlag;   ///< =MN, where 
-                    /*!< 
+  int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger
+  int   EcalFlag;   ///< =MN, where
+                    /*!<
 		          M=0/1/2/3->FTE(energ=multipl_High):no/no_in1prj@2prj-requir/FTE&in1proj/FTE&in2proj) \n
                           N=0/1/2/3->LVL1(ShowerAngleSmall):Unknown/in0proj_whenFTEok/in1proj/in2proj       \n
                     */
@@ -1949,7 +1965,7 @@ public:
   float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
   float LiveTime;  ///< Fraction of "nonBusy" time
   float TrigRates[19]; ///< TrigCompRates(Hz):FT,FTC,FTZ,FTE,NonPH,LVL1,L1M1-M8,CPmx,BZmx,ACmx,EFTmx,EANmx
-  unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec                    
+  unsigned int TrigTime[5];///< [0]-Tcalib.counter,[1]-Treset.counter,[2]-[3]-0.64mks Tcounter(32lsb+8msb), [4]-time_diff in mksec
 
   int GetGPSTime(unsigned int & gps_sec, unsigned int & gps_nsec); // return 0 if success
 
@@ -1962,16 +1978,16 @@ public:
   /// \param number index in container
   /// \return human readable info about Level1R
   char * Info(int number=-1);
-   
 
-  
+
+
   virtual ~Level1R(){};
 ClassDef(Level1R,8)       //Level1R
 #pragma omp threadprivate(fgIsA)
 };
 
 
-/// Level3 trigger structure 
+/// Level3 trigger structure
 /*!
  \author vitali.choutko@cern.ch
 
@@ -1998,8 +2014,8 @@ public:
                                                      \n   0  Nothing found
                                                      \n   bit 0:  Segment x found
                                                      \n   bit 1:  segment y found
-                                                     \n   bit 2: too many hits found  
-                                                     \n   bit 3: high gamma event found 
+                                                     \n   bit 2: too many hits found
+                                                     \n   bit 3: high gamma event found
                    */
 
   int   TrackerTr;   ///< Tracker Trigger
@@ -2008,8 +2024,8 @@ public:
                             \n 1  - No Tr Tracks found
                             \n 2  - Too Many Hits in Tracker
                             \n 3  - Positive Rigidity found
-                            \n 4  - Ambigious Comb (A) found 
-                            \n 5  - Ambigious Comb (B) found 
+                            \n 4  - Ambigious Comb (A) found
+                            \n 5  - Ambigious Comb (B) found
                             \n 6  - Negative Rigidity(Momentum) found
                             \n + 8   // Heavy Ion (Tracker)
                    */
@@ -2023,16 +2039,16 @@ public:
                             \n bit  5 Upgoing event found
                             \n bit  6 No TOF Time Information found
                             \n bit  7 Positive Rigidity(Momentum) found
-                            \n bit  8 Ambigious Comb (A) found 
-                            \n bit  9 Ambigious Comb (B) found 
+                            \n bit  8 Ambigious Comb (A) found
+                            \n bit  9 Ambigious Comb (B) found
                             \n bit  10  Negative Rigidity(Momentum) found
-                            \n bit  11  High Gamma (TRD)  
+                            \n bit  11  High Gamma (TRD)
                             \n bit  12   Heavy Ion (Tracker)
                             \n bit  13 Prescaled event
 			    \n bit  14 No ECAL activity(>=MIP) found
 			    \n bit  15 ECAL EM-object found(or Eectot>20gev)
 			    \n bit  16 ECAL track found(line fit chi2x,chi2y ok)
-			    \n bit  17 ECAL track match to TOF/TRD path  
+			    \n bit  17 ECAL track match to TOF/TRD path
                   */
   int   Direction;  ///< Particle Direction -1 Up 0 Uknown 1 Down
   int   NTrHits;    ///< Number Tracker Hits
@@ -2145,7 +2161,7 @@ class BetaR {
   float     ErrorC;  ///< error (1/betac)
   float     Chi2;    ///<chi2 of beta fit(time)
   float     Chi2S;   ///<chi2 of beta fit(space)
-  float     Len[4];  ///<the signed distance along the track from plane Z=0 to the tof cluster 
+  float     Len[4];  ///<the signed distance along the track from plane Z=0 to the tof cluster
 protected:
   int   fTrTrack;    ///< index to TrTrack used
   vector<int> fTofCluster; ///< indexes of TofClusterR's used
@@ -2163,12 +2179,12 @@ public:
   /// \param i index of fTofCluster vector < NTofCluster()
   /// \return index of TofClusterR object in collection or -1
   int iTofCluster(unsigned int i){return i<fTofCluster.size()?fTofCluster[i]:-1;}
-  /// access function to TofClusterR objects   
+  /// access function to TofClusterR objects
   /// \param i index of fTofCluster vector  < NTofCluster()
   /// \return pointer to TofClusterR object  or 0
   TofClusterR * pTofCluster(unsigned int i);
-  /// MC derived correction  function to TofClusterR objects   
-  /// \param datamc 0- MC 1-Data 
+  /// MC derived correction  function to TofClusterR objects
+  /// \param datamc 0- MC 1-Data
   /// \return dedx amplification factor for the give benta
        double GetTRDBetaCorr(int datamc=0);
 
@@ -2191,18 +2207,18 @@ public:
 */
 class ChargeSubDR{
  public:
-  TString ID;                      ///< (Sub)Subdetector ID (AMSChargeTOF, AMSChargeTracker, AMSChargeTrackerInner....)   
+  TString ID;                      ///< (Sub)Subdetector ID (AMSChargeTOF, AMSChargeTracker, AMSChargeTrackerInner....)
   unsigned int Status;             ///< Status word
   vector<unsigned short> ChargeI;  ///< Charge Indexes sorted in descending likelihood (0:e, 1:H, 2:He ...)
   vector<float> Lkhd;              ///< LogLikelihood for ordered charges
   vector<float> Prob;              ///< Probabilities for ordered charges
-  float Q;                         ///< Charge value estimator (Truncated Mean, Median ...) 
+  float Q;                         ///< Charge value estimator (Truncated Mean, Median ...)
 
   /* Subdetector Specific Information */
   map <TString,float> Attr;  //< map with additional subdetector specific information */
 
  protected:
-  int fParent;  //< Index in its corresponding container of the object used to reconstruct this charge  
+  int fParent;  //< Index in its corresponding container of the object used to reconstruct this charge
 
  public:
   /// access function to the reconstructed object used
@@ -2219,7 +2235,7 @@ class ChargeSubDR{
   float getProb(int i=0){return i<Prob.size()?Prob.at(max(i,0)):0;}
   /// print subdetector specific information (attributes and values)
   void dumpAttr(){for(map<TString,float>::iterator i=Attr.begin();i!=Attr.end();i++) cout<<i->first<<" = "<<i->second<<endl;}
-  /// return value corresponding to a subdetector specific attribute  
+  /// return value corresponding to a subdetector specific attribute
   float getAttr(TString attr);
 
   /// set function of the index of reconstructed object used
@@ -2230,7 +2246,7 @@ class ChargeSubDR{
   friend class AMSEventR;
   friend class ChargeR;
   ClassDef(ChargeSubDR,1)
-#pragma omp threadprivate(fgIsA)  
+#pragma omp threadprivate(fgIsA)
 };
 
 /// AMS Charge structure
@@ -2240,11 +2256,11 @@ class ChargeSubDR{
 */
 class ChargeR{
  public:
-  map<TString,ChargeSubDR> Charges; ///< map of the subdetector reconstructed charges 
+  map<TString,ChargeSubDR> Charges; ///< map of the subdetector reconstructed charges
   unsigned int Status;              ///< Status word
   vector<unsigned short> ChargeI;   ///< Charge Indexes sorted in descending probability (0:e, 1:H, 2:He ...)
   vector<float> Lkhd;               ///< LogLikelihood for ordered charges
-  vector<float> Prob;               ///< Probabilities for ordered charges 
+  vector<float> Prob;               ///< Probabilities for ordered charges
 
  protected:
   int fBeta;                        ///< index of BetaR used
@@ -2257,13 +2273,13 @@ class ChargeR{
   /// \return pointer to BetaR object or 0
   BetaR * pBeta();
 
-  /// most probable integer charge 
-  int Charge(){return max(1,int(ChargeI[0]));} 
+  /// most probable integer charge
+  int Charge(){return max(1,int(ChargeI[0]));}
   /// number of ChargeSubD objects stored
   int getNCharges(){return Charges.size();}
   /// number of ChargeSubD objects used
   int getNUsed(){int Nused=0;for(map<TString,ChargeSubDR>::iterator i=Charges.begin();i!=Charges.end();i++)if(i->second.Status&32)Nused++;return Nused;}
-  /// print the IDs of the ChargeSubD objects stored 
+  /// print the IDs of the ChargeSubD objects stored
   void dumpCharges(){for(map<TString,ChargeSubDR>::iterator i=Charges.begin();i!=Charges.end();i++) cout<<i->first<<endl;}
   /// number of charge hypothesis stored in charge vectors
   int    getSize(){return ChargeI.size();}
@@ -2317,7 +2333,7 @@ public:
   /// \param i index of fTrTrackR vector
   /// \return index of TrTrackR object in collection or -1
   int iTrTrack(unsigned int i)const {return i<fTrTrack.size()? fTrTrack[i]:-1;}
-  /// access function to TrTrackR objects   
+  /// access function to TrTrackR objects
   /// \param i index of fTrTrackR vector
   /// \return pointer to TrTrackR object  or 0
   TrTrackR * pTrTrack(unsigned int i);
@@ -2345,7 +2361,7 @@ public:
       -# Optionally has fRichRing sett up in case Rich was used in velocity determination
      - Particle without TrTrackR:
       -# Derived from ChargeR, BetaR and optionally TrdTrack  objects
-      -# Has rigidity set up to 100000000 gev 
+      -# Has rigidity set up to 100000000 gev
       -# Has fBeta,fCharge set up
       -# fTrTrack set to -1
       -# Optionally has fTrdTrack set up in case TrdTrackR was found
@@ -2359,15 +2375,15 @@ public:
      - Particle based on VertexR (i.e. converted photon candidate or electron/positron ):
       -# fTrTrack set to -1
       -# fVertex set up
-      -# Charge set to 0 or +-1 
+      -# Charge set to 0 or +-1
       -# Velocity may or may not be set depending on fBeta index
 
 \author vitali.choutko@cern.ch
-      
-*/     
-         
-   
-   
+
+*/
+
+
+
 class ParticleR {
 private:
 static char _Info[255];
@@ -2383,13 +2399,13 @@ pmass definition \n
 if(abs(beta)<1)mass = abs(momentum) * sqrt( 1/beta^2-1) \n
 else mass=  -abs(momentum)*sqrt(beta^2-1) \n
 */
-  float ErrMass;      ///< Error to Mass 
+  float ErrMass;      ///< Error to Mass
   float Momentum;     ///< Momentum (Gev/c) (signed), means particle with negative charge will have negative momentum
                       /*!<
 pmom definition  for fortran gurus
 
 if( pbetap(i) > 0)then
-  
+
   if(ptrackp(i)>0)then \n
      pmom(i)=ridgidity(ptrackp(i))*pcharge(i)*sign(beta(pbetap(i))) \n
   else \n
@@ -2429,7 +2445,7 @@ endif
   float TrdSH_He2P_Likelihood; ///< TrdSCalib He/p likelihood using TrdHTrack
   float TrdSH_E2He_Likelihood; ///< TrdSCalib e/He likelihood using TrdHTrack
 
-protected: 
+protected:
   int  fBeta;          ///<index of  BetaR used
   int  fCharge;        ///<index of  ChargeR used
   int  fTrTrack;      ///<index of  TrTrackR used
@@ -2602,7 +2618,7 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"TrMCCluster No %d PId=%d Coo=(%5.2f,%5.2f,%5.2f), Ampl(Mev)=%5.2f",number,TrackNo,Xgl[0],Xgl[1],Xgl[2],Sum*1000);
   return _Info;
-  } 
+  }
   virtual ~TrMCClusterR(){};
 ClassDef(TrMCClusterR,1)       //TrMCClusterR
 #pragma omp threadprivate(fgIsA)
@@ -2663,7 +2679,7 @@ public:
   float Ekin;        ///< part kin energy (gev)
   float Xgl[3];     ///< hit global coo(cm)
   float Step;        ///< step size (cm)
- 
+
   TrdMCClusterR(){};
   TrdMCClusterR(AMSTRDMCCluster *ptr);
   virtual ~TrdMCClusterR(){};
@@ -2682,7 +2698,7 @@ public:
   int   Id;            ///< Particle id, -666 if noise
   float Origin[3];     ///< Particle origin coo
   float Direction[3];  ///< Particle direction coo
-  int   Status;        ///< *******) 
+  int   Status;        ///< *******)
 
                        /*!<
 *******) For geant4 this value is 0. For geant 3 it has several meanings:
@@ -2703,8 +2719,8 @@ Cerenkov photon generated in PMT window:
 
 
 Cerenkov photon generated in light guide:
-   
-    ricstatus = -(5+100*(mother of Cerenkov if secondary?1:0)) 
+
+    ricstatus = -(5+100*(mother of Cerenkov if secondary?1:0))
 
 
 No Cerenkov photon:
@@ -2733,17 +2749,17 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 
 /// MCTrack structure
 
-/*! 
-Contains radiation/absorption length ticknesses. 
+/*!
+Contains radiation/absorption length ticknesses.
  Activated bt SCAN TRUE datacard
 \author vitali.choutko@cern.ch
 */
 
 class MCTrackR {
 public:
-float RadL;   ///< integrated radiation length 
-float AbsL;   ///< integrated nuclear absorption length 
-float Pos[3];  ///< x,y,z (cm) 
+float RadL;   ///< integrated radiation length
+float AbsL;   ///< integrated nuclear absorption length
+float Pos[3];  ///< x,y,z (cm)
 char  VolName[5];  ///< Volume name
 
  MCTrackR(){};
@@ -2775,7 +2791,7 @@ public:
   float Momentum;  ///< momentum (gev)
   float Mass;      ///< mass (gev)
   float Charge;    ///< charge (signed)
-  int tbline;      ///< For TB generation mode postion id (line number of the file of positions) 
+  int tbline;      ///< For TB generation mode postion id (line number of the file of positions)
   MCEventgR(){};
   MCEventgR(AMSmceventg *ptr);
   /// \param number index in container
@@ -2783,7 +2799,7 @@ public:
   char * Info(int number=-1){
     sprintf(_Info,"McParticle No %d Pid=%d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle,Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
   return _Info;
-  } 
+  }
   virtual ~MCEventgR(){};
 ClassDef(MCEventgR,2)       //MCEventgR
 #pragma omp threadprivate(fgIsA)
@@ -2791,7 +2807,7 @@ ClassDef(MCEventgR,2)       //MCEventgR
 
 
 
-///   AMS Event Root Class 
+///   AMS Event Root Class
 /*!   Contains instance of HeaderR class and containers
     (stl vectors) of all other AMS related classes.
     Access to most HeaderR elements are public, while
@@ -2813,26 +2829,26 @@ ClassDef(MCEventgR,2)       //MCEventgR
 
     Contains set of routines for (old fashioned) hbook like histograms manipulation: \n
 - hbook(1,2,p)
-- hlist   
+- hlist
 - hfit1
-- hftetch 
-- hreset 
-- hdelete 
-- hfill 
+- hftetch
+- hreset
+- hdelete
+- hfill
 - hf(1,2,p)
 - hcopy
 - hdivide
 - hsub
-- hscale 
+- hscale
 
     \sa ad.C \sa stlv.C \sa daqe.C
     \author vitali.choutko@cern.ch
 */
 #include <map>
-class AMSEventR: public  TSelector {   
+class AMSEventR: public  TSelector {
 public:
-static vector<unsigned int>RunType; 
-static vector<unsigned int>BadRunList; 
+static vector<unsigned int>RunType;
+static vector<unsigned int>BadRunList;
 static unsigned int MinRun;
 static unsigned int MaxRun;
 static int ProcessSetup;
@@ -2870,13 +2886,13 @@ static bool fgThickMemory;
 static int fgThreads;
  static TFile* fgOutSep[32];
  static TDirectory* fgOutSepDir[32];
-static int fgSeparateOutputFile;  //< 0 one file ; 1 one file different directories ;2 diff files 
+static int fgSeparateOutputFile;  //< 0 one file ; 1 one file different directories ;2 diff files
 static TString gWDir;
 long long Size();
      union if_t{
      float f;
      unsigned int u;
-     int i; 
+     int i;
      };
 protected:
 static TString Dir;
@@ -2999,7 +3015,7 @@ static char      * _Name;
 #pragma omp threadprivate(_TreeSetup,_EntrySetup,_RunSetup)
 #endif
 public:
-static unsigned long long & Lock(){return 
+static unsigned long long & Lock(){return
 _Lock;}
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
@@ -3009,15 +3025,15 @@ _Lock;}
 
 public:
    /// hbook like 1d histgoram booking by int id \n parameres like in classical hbook1
-static void hbook1(int id,const char title[], int ncha, float  a, float b);  
+static void hbook1(int id,const char title[], int ncha, float  a, float b);
    ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
 static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=6,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
-static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
+static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
-static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
+static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);
    ///  hbook like profile histgoram booking by int id \n  parameters like in classical maphbook1
-static void hbookp(int id,const char title[], int ncha, float  a, float b);   
+static void hbookp(int id,const char title[], int ncha, float  a, float b);
  /// expert only TH1D* accessor
  /// returns pointer to TH1D* by id
 static  TH1D *h1(int id);
@@ -3030,12 +3046,12 @@ static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
 static  void hprint(int id, char opt[]="");
-/// list histos with title contains ptit or all if ptit=="" 
+/// list histos with title contains ptit or all if ptit==""
 /// AMSEventR::hlist("xyz");
 static  void hlist(char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
-/// scale histogram id content by fac 
+/// scale histogram id content by fac
 static  void hscale(int id, double fac,bool sumw2=true);
 /// fit 1d histogram by   func = "g" "e" "pN"
 static  void hfit1(int id,char func[],double xmin=0,double xmax=0);
@@ -3089,14 +3105,14 @@ bool GetTofTrigFlags(float HT_factor, float SHT_factor,string TOF_type, int TOF_
  void CreateBranch(TTree *tree, int brs);
  void GetBranch(TTree *tree);
  void GetBranchA(TTree *tree);
- void SetCont(); 
+ void SetCont();
  int & Entry(){return _Entry;}
  static TTree* & Tree()  {return _Tree;}
 // static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
  TFile* & OutputFile(){return (*pService)._pOut;};
  static TDirectory *OFD(){ return pService?(*pService)._pDir:0;}
-#ifdef  __CINT__ 
+#ifdef  __CINT__
 public:
 #elif  defined WIN32
 public:
@@ -3123,7 +3139,7 @@ protected:
    void    SetInputList(TList *input) {fInput = input;}
    TList  *GetOutputList() const { return fOutput; }
    /// System Function called at the end of a loop on the tree
-   ///  optionally stores histos in a file \sa Begin 
+   ///  optionally stores histos in a file \sa Begin
    /// Calls UTerminate();
    void    Terminate();
    virtual void    SlaveTerminate();
@@ -3153,7 +3169,7 @@ public:
 
 
 // TSelector user functions
- 
+
    /// User Analysis function called before starting the event loop.
    /// Place to book histos etc
    /// \sa stlv.C
@@ -3186,13 +3202,13 @@ public:
    /// \return false if error;
    Bool_t ProcessCut(Long64_t entry){return ProcessCut((int)entry);}
    Bool_t ProcessCut(int entry){try{ return ReadHeader(entry);}catch(...){return false;}}
-   ///  Reads Header 
+   ///  Reads Header
    /// \param Entry - event no
    /// \return false if error;
    bool ReadHeader(int Entry);
 
 public:
- 
+
 //!  Status Word
 /*!
     Contains bits:
@@ -3206,7 +3222,7 @@ public:
 
  4   ParticleR::iTrTrack() !=-1
 
- 5  ParticleR::iRichRing() !=-1  	 
+ 5  ParticleR::iRichRing() !=-1
 
  6  ParticleR::iEcalShower() !=-1
 
@@ -3218,19 +3234,19 @@ public:
 
  13-14  nTrTrack()
 
- 15-16  nRichRing()  
+ 15-16  nRichRing()
 
- 17-18  nEcalShower()  
+ 17-18  nEcalShower()
 
- 19-20  nVertex() 
+ 19-20  nVertex()
 
- 21-22 nAntiCluster() 
+ 21-22 nAntiCluster()
 
  23-25    ParticleR::Charge
 
- 26-27 z=1 lvl1 number_of_tof_planes-1 
+ 26-27 z=1 lvl1 number_of_tof_planes-1
 
- 28-29  z>1 lvl1 number_of_tof_planes-1 
+ 28-29  z>1 lvl1 number_of_tof_planes-1
 
  30   event has errors
 
@@ -3240,7 +3256,7 @@ public:
 
 0
  0   npart
- 1   
+ 1
 
 1
  2   trd in part
@@ -3295,7 +3311,7 @@ public:
  25
 
 15
- 26 "z>=1" flag(Lvl1-info): [NtofLayers(max=4)-1] with signal above the low(z>=1) discr.threshold  
+ 26 "z>=1" flag(Lvl1-info): [NtofLayers(max=4)-1] with signal above the low(z>=1) discr.threshold
  27
 
 16
@@ -3318,26 +3334,26 @@ public:
  34  momentum <0; >0
 
 22
- 35 rig<8 ; <32 ; <128 ; >128 GV 
- 36 
- 
+ 35 rig<8 ; <32 ; <128 ; >128 GV
+ 36
+
 23
  37 ecalenergy <2; <8; <32; >32 gev
  38
- 
+
 24
  39 magnet current 0 ; <250 ; <400 ; >400  A
- 40 
+ 40
 
 24 (Perm Magnet)
- 39 external planes :no; 1;9; 1&9 
+ 39 external planes :no; 1;9; 1&9
  40
 
 
 
 
-25  trigger rate <500; <1000 ; <2000; >2000 Hz 
- 41   
+25  trigger rate <500; <1000 ; <2000; >2000 Hz
+ 41
  42
 
 26 trd hmult <1 <2 <4 >4
@@ -3362,7 +3378,7 @@ public:
  51
 
 29
- 52   0   rich  agl 1 rich naf 
+ 52   0   rich  agl 1 rich naf
 
 30
  53  beta pattern    <2 tof hits
@@ -3387,9 +3403,9 @@ public:
 
 
 
-33  
+33
       trd charge *2
-60 
+60
 61
 62
 63
@@ -3405,10 +3421,10 @@ values 0123...etc --> 1 10 100 1000    (in fact base ESTA 36)
 N.B.
 
 Due to lack of bits there is no "undefined state" bits,
-so to ensure proper functionality one has to require 
+so to ensure proper functionality one has to require
 particle (datacards: ESTA 1=1110) for most other status bits
 
-**) "z>=2" threshold is chosen to share He4 signal between 2 branches("z>=1" and "z>=2") !!! 
+**) "z>=2" threshold is chosen to share He4 signal between 2 branches("z>=1" and "z>=2") !!!
 
 
 
@@ -3418,7 +3434,7 @@ particle (datacards: ESTA 1=1110) for most other status bits
 
 */
 
-  unsigned long long  fStatus;  ///<  Event Status 
+  unsigned long long  fStatus;  ///<  Event Status
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
    ///
 // Some functions for inter root
@@ -3426,14 +3442,14 @@ particle (datacards: ESTA 1=1110) for most other status bits
 #ifdef __ROOTSHAREDLIBRARY__
 #ifdef _PGTRACK_
   #include "root_methodsPG.h"
-#else 
+#else
   #include "root_methods.h"
 #endif
 #endif
 
 
-bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set 
-bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group 
+bool Status(unsigned int bit);                  ///< \return true if corresponding bit (0-63) is set
+bool Status(unsigned int group, unsigned int bitgroup);                  ///< \return true if corresponding bitgroup set for the group
 int Version() const {return fabs(fHeader.Version/16)>465?(fHeader.Version>0?fHeader.Version/16:1023+fHeader.Version/16):fHeader.Version/4;} ///< \return producer version number
 ///
 static AMSSetupR *  getsetup(){return AMSSetupR::gethead();} ///< \return RootSetup Tree Singleton
@@ -3451,15 +3467,15 @@ unsigned int Event() const {return fHeader.Event;} ///< \return Event number
     \return 0  if succcess ; 1 if no gps time; 2 wrong time format; 3 int logic error; 4 gps time not valid; 5 no lvl1 block; 6 no coarse reg in lvl1 block
     output parameters gps_time_sec, gps_time_nsec
   */
-   int  GetGPSTime( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);  
+   int  GetGPSTime( unsigned int &gps_time_sec, unsigned int &gps_time_nsec);
 
 
 
 //!   Says if particle pass thru the ISS Solar Array
 
-/*!  
+/*!
        input ipart index (default);
-   
+
        output Coordinate of the particle crossing SA Arrays in StationAnalysisCooSystem
 
        \return 0 if not in shadow ;  1  if in ; -1 if no particle; -2 if upgoing particle, -3 if no SA data
@@ -3488,7 +3504,7 @@ int isInShadow(AMSPoint & ic,int ipart=0); ///< Says if particle pass thru the I
            5 no setup tree found
 
 */
-int GetTDVEl(const string & tdvname,unsigned int index, if_t &value); 
+int GetTDVEl(const string & tdvname,unsigned int index, if_t &value);
 
 
          //! Yet Another SlowControlElement Accessor
@@ -3514,7 +3530,7 @@ time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
 ///
 float Frac() const {return fHeader.Time[1]/1000000.;} ///< \return sec fraction
 ///
-int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
+int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)
 ///
 int   nEcalCluster()const { return fHeader.EcalClusters;} ///< \return number of EcalClusterR elements (fast)
 ///
@@ -3532,7 +3548,7 @@ int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return numbe
 ///
 int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of TofRawSideR elements (fast)
 ///
-int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)  
+int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)
 ///
 int   nAntiRawSide()const { return fHeader.AntiRawSides;} ///< \return number of AntiRawSideR elements (fast)
 ///
@@ -3562,15 +3578,15 @@ int   nLevel1()const { return fHeader.Level1s;} ///< \return number of Level1R e
 ///
 int   nLevel3()const { return fHeader.Level3s;} ///< \return number of Level3R elements (fast)
 ///
-int   nBeta()const { return fHeader.Betas;} ///< \return number of BetaR elements (fast) 
+int   nBeta()const { return fHeader.Betas;} ///< \return number of BetaR elements (fast)
 ///
-int   nBetaB()const { return fHeader.BetaBs;} ///< \return number of BetaR elements alternative rec (fast) 
+int   nBetaB()const { return fHeader.BetaBs;} ///< \return number of BetaR elements alternative rec (fast)
 ///
-int   nVertex()const { return fHeader.Vertexs;} ///< \return number of VertexR elements (fast) 
+int   nVertex()const { return fHeader.Vertexs;} ///< \return number of VertexR elements (fast)
 ///
-int   nCharge()const { return fHeader.Charges;} ///< \return number of ChargeR elements (fast)  
+int   nCharge()const { return fHeader.Charges;} ///< \return number of ChargeR elements (fast)
 ///
-int   nParticle()const { return fHeader.Particles;} ///< \return number of ParticleR elements (fast)  
+int   nParticle()const { return fHeader.Particles;} ///< \return number of ParticleR elements (fast)
 ///
 int   nAntiMCCluster()const { return fHeader.AntiMCClusters;} ///< \return number of AntiMCClusterR elements (fast)
 ///
@@ -3578,7 +3594,7 @@ int   nTrMCCluster()const { return fHeader.TrMCClusters;} ///< \return number of
 ///
 int   nTofMCCluster()const { return fHeader.TofMCClusters;} ///< \return number of TofMCClusterR elements (fast)
 ///
-int   nEcalMCHit()const { return fHeader.EcalMCHits;} ///< \return number of EcalMCHitR elements (fast)              
+int   nEcalMCHit()const { return fHeader.EcalMCHits;} ///< \return number of EcalMCHitR elements (fast)
 ///
 int   nTrdMCCluster()const { return fHeader.TrdMCClusters;} ///< \return number of TrdMCClusterR elements (fast)
 ///
@@ -3594,10 +3610,10 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
   protected:
 
-  
-  //ECAL 
 
-  vector<EcalHitR> fEcalHit;     
+  //ECAL
+
+  vector<EcalHitR> fEcalHit;
   vector<EcalClusterR> fEcalCluster;
   vector<Ecal2DClusterR> fEcal2DCluster;
   vector<EcalShowerR> fEcalShower;
@@ -3613,7 +3629,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   //TOF
   vector<TofRawClusterR> fTofRawCluster;
   vector<TofRawSideR> fTofRawSide;
-  vector<TofClusterR> fTofCluster;  
+  vector<TofClusterR> fTofCluster;
 
 
   //Anti
@@ -3645,11 +3661,11 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
 
   //AxAMS
-  vector<BetaR> fBeta; 
-  vector<BetaR> fBetaB; 
-  vector<ChargeR> fCharge;  
-  vector<VertexR> fVertex;  
-  vector<ParticleR> fParticle;  
+  vector<BetaR> fBeta;
+  vector<BetaR> fBetaB;
+  vector<ChargeR> fCharge;
+  vector<VertexR> fVertex;
+  vector<ParticleR> fParticle;
 
 
 
@@ -3667,7 +3683,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<MCTrackR>       fMCTrack;
   vector<MCEventgR>      fMCEventg;
 
-  //DAQ 
+  //DAQ
   vector<DaqEventR>      fDaqEvent;
 
   //Aux
@@ -3676,7 +3692,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
 
    public:
 
-     /// Get into memory contents for all branches 
+     /// Get into memory contents for all branches
      void GetAllContents();
 
       ///  \return number of EcalHitR
@@ -3746,7 +3762,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
       }
 
 
-      
+
       ///  Ecal2DClusterR accessor
       ///  \return number of Ecal2DClusterR
       ///
@@ -4670,7 +4686,7 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
 
 
 
- 
+
        ///  VertexR accessor
       ///  \return number of VertexR
       ///
