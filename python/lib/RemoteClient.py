@@ -1783,7 +1783,7 @@ class RemoteClient:
         output=output+buf2[1]
         cmd="nsrm "+output
         cmdstatus=os.system(cmd)
-        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1200 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
+        cmd="/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
