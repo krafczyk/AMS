@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.26 2012/02/19 18:59:08 pzuccon Exp $
+//  $Id: TrFit.h,v 1.27 2012/03/16 18:08:34 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/02/19 18:59:08 $
+///$Date: 2012/03/16 18:08:34 $
 ///
-///$Revision: 1.26 $
+///$Revision: 1.27 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -197,16 +197,18 @@ public:
     /// Parameter buffer size
     PMAX = 10
   };
-  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIAN,
+  enum EMethods{ LINEAR, CIRCLE, SIMPLE, ALCARAZ, CHOUTKO, CHIKANIANC,
 		 CHIKANIANF };
 
-  /// Multiple scattering switch
-  static int _mscat;
-#pragma omp threadprivate(_mscat)
-  /// Energy loss correction switch
-  static int _eloss;
-#pragma omp threadprivate(_eloss)
 protected:
+  /// Multiple scattering switch
+  int _mscat;
+  /// Energy loss correction switch
+  int _eloss;
+  // Beta if obtained from ext infos
+  double _beta;
+  double _rini;
+  
   int    _nhit;          ///< Number of hits
   int    _nhitx;         ///< Number of hits in X
   int    _nhity;         ///< Number of hits in Y
@@ -246,13 +248,17 @@ protected:
     return (bb > 0);
   }
 
+  void SetBetaMass(double charge=1, double mass=Mproton, double beta=999);
+
 public:
   /// Default constructor
   TrFit(void);
 
   /// Destructor
- ~TrFit();
-
+  ~TrFit();
+  double GetBeta();
+  double GetMass();
+  
   int    GetNhit  (void) const { return _nhit;   }
   int    GetNhitX (void) const { return _nhitx;  }
   int    GetNhitY (void) const { return _nhity;  }
@@ -315,8 +321,23 @@ public:
 	  double ex, double ey, double ez, 
           double bx, double by, double bz, int at = -1);
 
-  /// Do fit, fitting algorithm to be selected
-  double Fit(int method = CHOUTKO);
+  /*!
+   \brief perform  fit, fitting algorithm to be selected 
+   \param method Fitting Algoritm=
+   \li LINEAR
+   \li CIRCLE
+   \li SIMPLE
+   \li ALCARAZ
+   \li CHOUTKO
+   \li CHIKANIANC
+   \li CHIKANIANF
+   \param mscat  (0/1) activate the multiple scattering treatment
+   \param eloss  (0/1) activate the energy loss  treatment (dummy for the moment)
+   \param charge  charge of the fitted particle
+   \param mass    mass of the particle (if beta is valid the mass is calculated from it)
+   \param beta    valid if >0 and <=1, if not valid is calculated from mass
+  */
+  double DoFit(int method = CHOUTKO,int mscat=1,int  eloss=1,float charge=1,float mass=Mproton,float beta=999);
 
   /// Linear fitting in X-Z and Y-Z planes
   double LinearFit(void);
@@ -340,7 +361,7 @@ public:
   double ChikanianFitCInt(int type = 1);
 
   /// Chikanian fit Fortran
-  double ChikanianFitFInt(int type = 1);
+  double ChikanianFitF();
 
   /// Linear fitting for X-Z (side=1), Y-Z (side=2) or X-S (side=3)
   double LinearFit(int side);
@@ -396,8 +417,6 @@ public:
   /// Startup routine (for Chikanian fit)
   void RkmsFit(double *out);
 
-  /// Startup routine (for Chikanian fit, Fortran version)
-  void RkmsFitF(double *out);
 
   /// Maximum number of layers for Chikanian fit
   enum { NPma = 9 };
@@ -447,7 +466,7 @@ public:
   /// Symmetric Matrix inversion with TMatrixDSym
   static int InvSM(double *mtx, int ndim);
 
-  ClassDef(TrFit, 1);
+  ClassDef(TrFit, 2);
 };
 
 #endif

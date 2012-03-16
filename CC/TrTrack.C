@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.128 2012/03/07 11:21:17 mdelgado Exp $
+// $Id: TrTrack.C,v 1.129 2012/03/16 18:08:25 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/03/07 11:21:17 $
+///$Date: 2012/03/16 18:08:25 $
 ///
-///$Revision: 1.128 $
+///$Revision: 1.129 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -97,6 +97,7 @@ TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
   for (int i = 0; i < trconst::maxlay; i++) {
     _Hits [i] = 0;
+    _iHits[i]= -1;
     //    _iMult[i] = -1;
     //    _BField[i]=AMSPoint(0,0,0);
   }
@@ -373,6 +374,32 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
     //    _BField[ihit] = AMSPoint(0, 0, 0);
     _MagFieldOn = 0;
   }
+
+  // Update the bitted pattern
+
+#ifdef __DARWIN__
+  typedef unsigned short ushort;
+#endif
+  ushort _bit=0;
+  ushort _bitX=0;
+  ushort _bitY=0;
+  ushort _bitXY=0;
+  for (int jj=0;jj<_Nhits;jj++){
+    _bit|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetXCluster()) _bitX|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetYCluster()) _bitY|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+    if( pTrRecHit(jj)->GetYCluster()&&pTrRecHit(jj)->GetYCluster())
+      _bitXY|=(1<<(9-pTrRecHit(jj)->GetLayer()-1));
+  }
+  _bit   = _bit>>1;
+  _bitX  = _bitX>>1;
+  _bitY  = _bitY>>1;
+  _bitXY = _bitXY>>1;
+  _Pattern   = patt->GetHitPatternIndex(_bit);
+  _PatternX  = patt->GetHitPatternIndex(_bitX);
+  _PatternY  = patt->GetHitPatternIndex(_bitY);
+  _PatternXY = patt->GetHitPatternIndex(_bitXY);
+  return;
 }
 
 
@@ -575,10 +602,10 @@ void TrTrackR::EstimateDummyX(int fitid)
 }
 
 void TrTrackR::ReFit( const float *err,
-		      float mass, float chrg){
+		      float mass, float chrg, float beta){
   map<int, TrTrackPar>::iterator it=_TrackPar.begin();
   for(;it!=_TrackPar.end();it++)
-    FitT(it->first,-1,1,err,mass,chrg);
+    FitT(it->first,-1,1,err,mass,chrg,beta);
   return;
 }
 
@@ -682,8 +709,9 @@ TrRecHitR & TrTrackR::TrRecHit(int i)
 
 
 float TrTrackR::FitT(int id2, int layer, bool update, const float *err, 
-                      float mass, float chrg)
+		     float mass, float chrg, float beta)
 {
+  int mscat;
   int id=id2;
   if (id2==0) id=trdefaultfit;
 
@@ -707,21 +735,18 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   // Select fitting method
   int method = TrFit::CHOUTKO;
   if      (idf == kAlcaraz)    method = TrFit::ALCARAZ;
-  else if (idf == kChikanian)  method = TrFit::CHIKANIAN;
+  else if (idf == kChikanian)  method = TrFit::CHIKANIANC;
   else if (idf == kChikanianF) method = TrFit::CHIKANIANF;
   else if (idf == kLinear)     method = TrFit::LINEAR;
   else if (idf == kCircle)     method = TrFit::CIRCLE;
   else if (idf == kSimple)     method = TrFit::SIMPLE;
 
-  _TrFit.Clear();
-  _TrFit.SetMassChrg(mass, chrg);
-
   // Set multiple scattering option and assumed mass
   if (((id & kMultScat) && !(id & kSameWeight)) || idf == kChikanian ||
                                                    idf == kChikanianF)
-    TrFit::_mscat = 1;
+    mscat = 1;
   else
-    TrFit::_mscat = 0;
+    mscat = 0;
 
   // HIT Selection Section
 
@@ -731,7 +756,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     int    ihmin  = -1;
     for (int i = 0; i < _Nhits; i++) {
       TrRecHitR *hit = GetHit(i);
-      if (hit && FitT(idf, hit->GetLayer(), false) > 0 && 
+      if (hit && FitT(idf, hit->GetLayer(), false,err,mass,chrg,beta) > 0 && 
 	  _TrFit.GetChisqY() > 0) {
 	if (ihmin < 0 || _TrFit.GetChisqY() < csymin) {
 	  ihmin  = i;
@@ -855,7 +880,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     double fmscy = 1;
 
     // Tune fitting weight
-    if (!TrFit::_mscat && !(id & kSameWeight)) {
+    if (!mscat && !(id & kSameWeight)) {
       int    ily  = hit->GetLayer()-1;
       double fitw = TRFITFFKEY.FitwMsc[ily];
       double fwxy = (errx > 0) ? erry/errx*2 : 1;
@@ -880,7 +905,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (id != kLinear && j == 0) zh0 = coo.z();
   }
 
-  if (TrFit::_mscat) {
+  if (mscat) {
     double rini = 0;
     int idr = kChoutko;
     int idl = id & (kFitLayer8 | kFitLayer9);
@@ -891,7 +916,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   }
 
   // Perform fitting
-  float fdone = _TrFit.Fit(method);
+  float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta);
 
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);
@@ -1278,7 +1303,7 @@ void TrTrackR::PrintFitNames() const {
 }
 
 
-int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg){
+int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  chrg, float beta){
   int type=algo%10;
   bool mscat=((algo/10)==1);
   bool wsame=((algo/20)==1);
@@ -1385,7 +1410,7 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();
     }
-    float ret=FitT(fittype,-1,true,0,mass,chrg);
+    float ret=FitT(fittype,-1,true,0,mass,chrg,beta);
     if (ret>=0) 
       return fittype; 
     else 

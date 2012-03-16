@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.62 2012/03/09 06:59:37 shaino Exp $
+//  $Id: TrFit.C,v 1.63 2012/03/16 18:08:24 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/03/09 06:59:37 $
+///$Date: 2012/03/16 18:08:24 $
 ///
-///$Revision: 1.62 $
+///$Revision: 1.63 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -31,8 +31,6 @@
 ClassImp(TrProp);
 ClassImp(TrFit);
 
-int TrFit::_mscat = 0;
-int TrFit::_eloss = 0;
 
 TrFit::TrFit(void) : TrProp()
 {
@@ -45,15 +43,21 @@ TrFit::~TrFit()
 
 void TrFit::Clear()
 {
+  TrProp::Clear();
   _nhit = _nhitx = _nhity = _nhitxy = 0;
   for (int i = 0; i < PMAX; i++) _param[i] = 0;
-  for (int i = 0; i < LMAX; i++) _xh[i] = _yh[i] = _zh[i] = 0;
-  for (int i = 0; i < LMAX; i++) _xs[i] = _ys[i] = _zs[i] = 0;
-  for (int i = 0; i < LMAX; i++) _xr[i] = _yr[i] = _zr[i] = 0;
-  for (int i = 0; i < LMAX; i++) _bx[i] = _by[i] = _bz[i] = 0;
+  for (int i = 0; i < LMAX; i++){
+    _xh[i] = _yh[i] = _zh[i] = 0;
+    _xs[i] = _ys[i] = _zs[i] = 0;
+    _xr[i] = _yr[i] = _zr[i] = 0;
+    _bx[i] = _by[i] = _bz[i] = 0;
+  }
   _chisqx = _chisqy = _chisq = -1;
   _ndofx  = _ndofy  =  0;
   _errrinv = 0;
+  _mscat=0;
+  _eloss=0;
+  _beta=0;
 }
 
 int TrFit::Add(double x,  double y,  double z,
@@ -83,23 +87,81 @@ int TrFit::Add(double x,  double y,  double z,
   return _nhit;
 }
 
-double TrFit::Fit(int method)
+double TrFit::DoFit(int method,int mscat,int  eloss,float charge,float mass,float beta)
 {
-  // Check number of hits
+
+// Check number of hits
   if (_nhit < 3) return -1;
 
+
+
+  _mscat=mscat;
+  _eloss=eloss;
+  SetBetaMass(charge,mass,beta);  
   double ret = 0;
   if (method ==    LINEAR)  ret = LinearFit();
   if (method ==    CIRCLE)  ret = CircleFit();
   if (method ==    SIMPLE)  ret = SimpleFit();
   if (method ==   ALCARAZ)  ret = AlcarazFit();
   if (method ==   CHOUTKO)  ret = ChoutkoFit();
-  if (method == CHIKANIAN)  ret = ChikanianFitCInt(1);
-  if (method == CHIKANIANF) ret = ChikanianFitFInt(2);
+  if (method == CHIKANIANC)  ret = ChikanianFitCInt(1);
+  if (method == CHIKANIANF) ret = ChikanianFitF();
 
   ParLimits();
   return ret;
 }
+
+
+void TrFit::SetBetaMass(double charge, double mass, double beta){
+  _chrg=charge;
+  if(_chrg==0) { 
+    printf(" TrFit::SetBeta-W- You are fitting a particle with CHARGE=0 results can be meaningless!!!\n");
+    _beta=1;
+    _mass=Mproton;
+    return;
+  }
+  double abeta=fabs(beta);
+  if(abeta>1||abeta==0) {
+    _beta=999;
+    if(mass<=0)  _mass=Mproton;
+    else _mass=fabs(mass);
+  }else{
+    _mass=999;
+    _beta=abeta;
+  }
+  return;
+}
+
+double TrFit::GetMass(){
+  double ma=0;
+  if(_mass!=0 && _mass<999) ma=_mass;
+  else if(_beta>0){
+    if(_rigidity==0) {
+      int lmscat=_mscat;
+      _mscat=0;
+      SimpleFit();
+      _mscat=lmscat;
+    }
+    ma=sqrt(_rigidity*_chrg*_rigidity*_chrg*(1-1/_beta));
+  }
+  return ma;
+}
+
+double TrFit::GetBeta(){
+  double bb=0;
+  if(_beta<900) bb=_beta;
+  else if(_mass>0){
+    if(_rigidity==0) {
+      int lmscat=_mscat;
+      _mscat=0;
+      SimpleFit();
+      _mscat=lmscat;
+    }
+    bb=sqrt(1./(1+_mass*_mass/(_chrg*_rigidity*_chrg*_rigidity)));
+  }
+  return bb;
+}
+
 
 double TrFit::LinearFit(void)
 {
@@ -995,14 +1057,12 @@ int TrFit::FillDmsc(double *dmsc, double fact,
   for (int i = 1; i <     8; i++) WLEN[i] *= fact;
 
   if (_rigidity == 0) return -1;
-  double rpar = 1e-12*Clight/_rigidity;
 
-  // Calculate pbi2 = (pbeta)^(-2)
-  double pbi2 = 0;
-  if (_mass > 0 && _chrg != 0) {
-    double r = rpar/(1e-12*Clight)/_chrg;
-    pbi2 = r*r*(1+_mass*_mass*r*r)*_chrg*_chrg;
-  }
+  // Calculate pbi2 = (p*beta/z)^(-2)
+  double pbi= GetBeta()*_rigidity;
+  double pbi2= 0;
+  if (pbi!=0) 
+    pbi2=1/(pbi*pbi);  
   if (pbi2 <= 0) return -1;
 
   int ic = GetPcen(0);
@@ -1542,7 +1602,10 @@ double TrFit::ChikanianFitCInt(int type)
   return flag;
 }
 
-double TrFit::ChikanianFitFInt(int type)
+extern "C" void rkms_rig_(int*,int*,float*,float*,float*,float*,float*,float*);
+extern "C" void rkmsinit_(float*);
+
+double TrFit::ChikanianFitF()
 /*
 *-----------------------------------------------------------------------
 * A.Chikanian, Yale, May-June 2010   (Revised version of 2003)
@@ -1562,6 +1625,17 @@ double TrFit::ChikanianFitFInt(int type)
 Feb 2012 PZ update interface to new RKMS.F format
 */
 {
+  static int initialized=0;
+  static float zpos[trconst::maxlay];
+  int npo = 0, npl[NPma], ipa = 14;
+  float xyz[NPma*3], dxyz[NPma*3];
+  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
+  float out[41];
+
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.start("TrFitRkmsF");
+#endif
+
   _ndofx = -2;
   _ndofy = -3;
   for (int i = 0; i < _nhit; i++) {
@@ -1572,22 +1646,54 @@ Feb 2012 PZ update interface to new RKMS.F format
     if (_ys[i] <= 0) _ys[i] = _zs[i]*1e4;
   }
 
-  double out[31];
+  if(!initialized){
+    initialized=1;
+    for (int i = 0; i < trconst::maxlay; i++)
+      zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
+    rkmsinit_(zpos);
+  }
 
-#ifndef __ROOTSHAREDLIBRARY__
-    AMSgObj::BookTimer.start("TrFitRkmsF");
-    RkmsFitF(out);
-    AMSgObj::BookTimer.stop("TrFitRkmsF");
+  for (int i = 0; i < NPma; i++) {
+    xyz[i*3] =  xyz[i*3+1] =  xyz[i*3+2] = 0;
+    dxyz[i*3] = dxyz[i*3+1] = dxyz[i*3+2] = 0;
+    npl[i] = 0;
+  }
 
-#else
-
-     RkmsFitF(out);
-#endif
-
+  for (int i = 0; i < GetNhit(); i++) {
+    xyz[i*3  ] = GetXh(i);
+    xyz[i*3+1] = GetYh(i);
+    xyz[i*3+2] = GetZh(i);
+    dxyz[i*3  ] = GetXs(i);
+    dxyz[i*3+1] = GetYs(i);
+    dxyz[i*3+2] = GetZs(i);
+    
+    if (dxyz[i*3  ] < 1e-4) dxyz[i*3  ] = 0.9999;
+    if (dxyz[i*3+1] < 1e-4) dxyz[i*3+1] = 0.9999;
+    if (dxyz[i*3+2] < 1e-4) dxyz[i*3+2] = 0.9999;
+    
+    int layer = GetLayer(GetZh(i));
+    if (layer == 8) layer = 0;
+    if (layer == 9) layer = 8;
+    npl[i] = layer+1;
+    npo++;
+  }
+  
+  float rini = 10000.00;// GetRigidity(); // Compatible with TrackFit_Utils
+  if(_rigidity==0) {
+    int lmscat=_mscat;
+    _mscat=0;
+    SimpleFit();
+    _mscat=lmscat;
+  }
+  rini=_rigidity;
+  float beta=GetBeta();
+  float charge=_chrg;
+  rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, out);
+  
   if (RkmsDebug >= 1)
     cout << "RkmsFit: rini,rgt,chi2= "
 	 << _rigidity << " " << out[5] << " " << out[6] << endl;
-
+  
   _p0x = out[0]; 
   _p0y = out[1]; 
   _p0z = out[2];
@@ -1606,76 +1712,18 @@ Feb 2012 PZ update interface to new RKMS.F format
   //-------------------------------------------- A.Ch. Apr.2011
   //After dropping MINUIT rkms flagging over out[7] insted chisq
   //return _chisq;
-  float flag=1.;
+  float flag=out[6];
   if(out[7]!=0.) flag=-1.;
   //cout<<"flag "<<flag<<" rigidity "<<_rigidity<<endl;
+#ifndef __ROOTSHAREDLIBRARY__
+  AMSgObj::BookTimer.stop("TrFitRkmsF");
+#endif
+  
   return flag;
 }
 
-// #ifndef __ROOTSHAREDLIBRARY__
-extern "C" void rkms_rig_(int*,int*,float*,float*,float*,float*,float*,float*);
-extern "C" void rkmsinit_(float*);
 
-void TrFit::RkmsFitF(double *out)
-{
-  static int initialized=0;
-  static float zpos[trconst::maxlay];
-  int   lay [trconst::maxlay] = { 8, 1, 2, 3, 4, 5, 6, 7, 9 };
-  if(!initialized){
-    initialized=1;
-    for (int i = 0; i < trconst::maxlay; i++)
-	    zpos[i] = TkDBc::Head->GetZlayer(lay[i]);
 
-    rkmsinit_(zpos);
-  }
-
-  int npo = 0, npl[NPma], ipa = 14;
-  float xyz[NPma*3], dxyz[NPma*3];
-  for (int i = 0; i < NPma; i++) {
-     xyz[i*3] =  xyz[i*3+1] =  xyz[i*3+2] = 0;
-    dxyz[i*3] = dxyz[i*3+1] = dxyz[i*3+2] = 0;
-    npl[i] = 0;
-  }
-
-  for (int i = 0; i < GetNhit(); i++) {
-     xyz[i*3  ] = GetXh(i);
-     xyz[i*3+1] = GetYh(i);
-     xyz[i*3+2] = GetZh(i);
-    dxyz[i*3  ] = GetXs(i);
-    dxyz[i*3+1] = GetYs(i);
-    dxyz[i*3+2] = GetZs(i);
-
-    if (dxyz[i*3  ] < 1e-4) dxyz[i*3  ] = 0.9999;
-    if (dxyz[i*3+1] < 1e-4) dxyz[i*3+1] = 0.9999;
-    if (dxyz[i*3+2] < 1e-4) dxyz[i*3+2] = 0.9999;
-
-    int layer = GetLayer(GetZh(i));
-    if (layer == 8) layer = 0;
-    if (layer == 9) layer = 8;
-    npl[i] = layer+1;
-    npo++;
-  }
-
-  float rini = 10000.00;// GetRigidity(); // Compatible with TrackFit_Utils
-  float outf[31];
-  float beta=1;
-  float charge=1;
-  rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, outf);
-  for (int i = 0; i < 31; i++) out[i] = outf[i];
-}
-/* //else
-void TrFit::RkmsFitF(double *out)
-{ 
-  static int nerr = 1;
-  if (nerr++ < 5)
-    std::cout << "TrFit::RkmsFitF-W-RkmsFit (C++ version) is called "
-      <<"instead of Fortran version." << std::endl;
-  RkmsFit(out);
-  return;
-}
-
-// #endif
-*/
 #include "TMinuit.h"
 
 namespace TrFit_RKMS {
@@ -3517,6 +3565,8 @@ TrProp::TrProp(AMSPoint p0, AMSDir dir, double rigidity)
 
 void TrProp::Clear()
 {
+  _mass = Mproton;
+  _chrg = 1;
   _rigidity = 0;
   _p0x = _p0y = _p0z = _dxdz = _dydz = 0;
 }

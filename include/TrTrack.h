@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.75 2012/02/27 05:42:49 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.76 2012/03/16 18:08:34 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/02/27 05:42:49 $
+///$Date: 2012/03/16 18:08:34 $
 ///
-///$Revision: 1.75 $
+///$Revision: 1.76 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -402,6 +402,8 @@ public:
      
     \param chrg (optional) the particle charge. (default = 1)
 
+    \param beta (optional) if specified and if >0 and <=1, it is used and an effective mass value is calculated from it
+
     \return  the code to access the TrTrackPar object corresponding to the selected fit or <0  if errors
     \retval  >=0  --> The code corresponding to the requested fittype
     \retval -1 --> The requested fit cannot be performed on this track
@@ -412,7 +414,7 @@ public:
 
     
     !*/
-  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge);
+  int   iTrTrackPar(int algo=0, int pattern=0, int refit=0, float mass = DefaultMass, float chrg = DefaultCharge, float beta=999);
 
   /*!\brief it returns the TrTrackPar object selected with the code given by  iTrTrackPar(...)
  
@@ -761,15 +763,28 @@ public:
 
     \param[in] chrg  Particle charge (in unit of e) assumed for multiple 
     scattering. Ignored if kMultScat option is not set.
+
+    \param[in] beta  if <=0 or >1 is ignored. Otherwise the specified beta is used to compute an effective mass.
+               Ignored if kMultScat option is not set
     
     \return          Chisq(X+Y)/Ndof if succeeded, or -1 if failed
   */
   float FitT(int id = 0,
 	     int layer = -1, bool update = true, const float *err = 0, 
-	     float mass = DefaultMass, float chrg = DefaultCharge);
+	     float mass = DefaultMass, float chrg = DefaultCharge, float beta=999.);
+/*! \brief Performs again the existing fits with a different particle evaluation
+    \param[in] err   Fitting errors (0:x,1:y,2:z) to be used. 
+        If they are not specified, default values 
+	    are taken from TRFITFFKEY.ErrX, ErrY, and ErrZ
 
+    \param mass (optional) the particle mass. (default= 0.938272297)
+     
+    \param chrg (optional) the particle charge. (default = 1)
+
+    \param beta (optional) if specified and if >0 and <=1, it is used and an effective mass value is calculated from it
+    */
   void ReFit( const float *err = 0, 
-	      float mass = DefaultMass, float chrg = DefaultCharge);
+	      float mass = DefaultMass, float chrg = DefaultCharge, float beta=999);
 
 
   /// Perform simple fitting with a constant position error of 0.03 cm
