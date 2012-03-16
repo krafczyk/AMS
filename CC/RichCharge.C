@@ -1664,6 +1664,7 @@ bool RichChargeUniformityCorrection::Init(TString file){
 
   if(fail){if(_head) delete _head;_head=0;return false;}
 
+  RichPMTCalib::currentDir=file;
   return true;
 }
 
