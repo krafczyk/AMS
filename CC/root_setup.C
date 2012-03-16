@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.65 2012/03/15 13:33:42 choutko Exp $
+//  $Id: root_setup.C,v 1.66 2012/03/16 14:06:55 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -95,6 +95,8 @@ fSlowControl=b;
 Purge();
 }
 
+
+bool AMSSetupR::SlowControlR::ReadFromExternalFile=true;
 AMSSetupR::AMSSetupR(){
 Reset();
 }
@@ -200,7 +202,7 @@ fSlowControl.print();
 }
 
 int AMSSetupR::LoadExt(){
-
+if(!SlowControlR::ReadFromExternalFile)return -1;
 string slc;
 getSlowControlFilePath(slc);
 return LoadSlowcontrolDB(slc.c_str())?0:1;
