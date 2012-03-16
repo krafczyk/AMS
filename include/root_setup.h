@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.38 2012/03/13 20:30:27 pzuccon Exp $
+//  $Id: root_setup.h,v 1.39 2012/03/16 14:07:07 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -32,7 +32,7 @@ public:
 
 class SlowControlR{
 public:
-
+static bool ReadFromExternalFile;
 class Element{
 public:
 typedef map <unsigned int,float> table_m;
@@ -117,7 +117,7 @@ SlowControlR():fBegin(0),fEnd(0){}
 	 */
 int GetData(const char * elementname,unsigned int time, float frac, vector<float> &value , int imethod=1, const char *nodename="", int dt=-1, int st=-1);
 
-ClassDef (SlowControlR,2)  //slowControl
+ClassDef (SlowControlR,3)  //slowControl
 };
 
 //! AMSTimeID info used to create a given file
