@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.44 2012/03/10 11:16:15 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.45 2012/03/16 09:28:14 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -487,6 +487,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     
     for(int i=first;i<=last;i++){
       DynAlEvent event=history.Events.at(i); // Take a copy of the event
+      event.extrapolateTrack();
 
       // Allow to have a control group easily
       if(DynAlManager::ControlGroup>0 && (event.Time[0]%DynAlManager::ControlGroup)==0) continue;
@@ -1450,7 +1451,7 @@ void DynAlFitContainer::BuildLocalAlignment(DynAlHistory &history,map<Int_t,Doub
     trVect[2]=cos(event.TrackTheta);
     double trNewVect[3];
     trNewVect[0]=trVect[0]+fit.THETA*trVect[1]+fit.ALPHA*trVect[2];
-    trNewVect[1]=trVect[1]-fit.THETA*trVect[1]+fit.BETA*trVect[2];
+    trNewVect[1]=trVect[1]-fit.THETA*trVect[0]+fit.BETA*trVect[2];
     trNewVect[2]=trVect[2]-fit.ALPHA*trVect[0]-fit.BETA*trVect[1];
 
     // Normalize to compensate the approximations of the fit
@@ -2026,7 +2027,7 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
     trVect[2]=cos(event.TrackTheta);
     double trNewVect[3];
     trNewVect[0]=trVect[0]+_THETA*trVect[1]+_ALPHA*trVect[2];
-    trNewVect[1]=trVect[1]-_THETA*trVect[1]+_BETA*trVect[2];
+    trNewVect[1]=trVect[1]-_THETA*trVect[0]+_BETA*trVect[2];
     trNewVect[2]=trVect[2]-_ALPHA*trVect[0]-_BETA*trVect[1];
 
     // Normalize to compensate the approximations of the fit
