@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.175 2012/03/12 09:00:08 choutko Exp $
+//  $Id: producer.C,v 1.176 2012/03/16 08:52:08 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -2065,6 +2065,13 @@ if(exedir && nve && AMSCommonsI::getosname()){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
+ if(getenv("AMSOracle")){
+ setenv("LD_LIBRARY_PATH",getenv("AMSOracle"),1);
+}
+else{
+ setenv("LD_LIBRARY_PATH","/afs/cern.ch/ams/oracle/10205/lib",1);
+}
+
  for (int tries=0;tries<maxtries;tries++){
   sleep(delay);
   delay*=8;
@@ -2074,7 +2081,10 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
-  if(strstr(nvr,"2.6")){
+  if(strstr(nvr,".el6")){
+   systemc+=".so";
+  }
+  else if(strstr(nvr,"2.6")){
    systemc+=".6";
   }
   if(strstr(version,"v4.00")){

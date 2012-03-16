@@ -22,10 +22,10 @@ ev->getsetup()->getISSCTRS(setup, xtime);
 cout <<" qq "<<setup.r<<" "<<setup.v<<endl;
 }
 }
-if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 ){
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>280 &&ev->Run()>1320000000 ){
  TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
    cout <<" ok "<<AMSSetupR::gethead()<<" "<<ev->UTime()<<endl;
-//  return true;
+  return true;
   cout << " fheader "<<AMSSetupR::gethead()->fHeader.FEventTime<<" "<<AMSSetupR::gethead()->fHeader.LEventTime<<endl;
 vector<float>value;
 int s2=  AMSSetupR::gethead()->fSlowControl.GetData("L03T+01X+08 / L06T+02Y-03",ev->UTime(),100.,value);

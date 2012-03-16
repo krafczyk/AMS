@@ -1,5 +1,5 @@
 #include "TrdTFit.h"
-#include <fstream.h>
+#include <fstream>
 #include "root.h"
 
 //using namespace TRDTFIT;

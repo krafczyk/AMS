@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <iostream>
-
+#include <algorithm>
 #undef _DEBUG_
 #define ASSERT(x) 
 

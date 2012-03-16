@@ -39,7 +39,7 @@ time_rep& time_rep::operator-(const time_rep o){
       sign=-1;
     }
   }
-  Time_s=abs(diff);
+  Time_s=diff>0?diff:-diff;
   Time_ns=ns;
   return *this;
 }

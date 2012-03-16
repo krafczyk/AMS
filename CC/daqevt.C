@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.233 2012/02/14 08:42:51 choutko Exp $
+//  $Id: daqevt.C,v 1.234 2012/03/16 08:52:08 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -2484,6 +2484,9 @@ int DAQEvent::parser(char a[], char **& fname){
 #if defined(__DARWIN__)
     dirent ** namelist;
     ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+#elif defined(__LINUXSLC6__)
+    dirent64 ** namelist;
+    ntot=scandir64((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const dirent64 **, const dirent64 **)>(&_sort));
 #elif defined(__LINUXNEW__)
     dirent64 ** namelist;
     ntot=scandir64((const char *)fdir,&namelist,&_select,&_sort);
@@ -2685,6 +2688,9 @@ char * DAQEvent::_getNextFile(integer & run, integer &event){
 #ifdef __DARWIN__
 	  dirent ** namelist;
 	  int ntot=scandir((const char *)newdir,&namelist,&_select,&_sort);
+#elif defined(__LINUXSLC6__)
+    dirent64 ** namelist;
+    int ntot=scandir64((const char *)newdir,&namelist,&_select,reinterpret_cast<int(*)(const dirent64 **, const dirent64 **)>(&_sort));
 #elif defined( __LINUXNEW__)
 	  dirent64 ** namelist;
 	  int ntot=scandir64((const char *)newdir,&namelist,&_select,(&_sort));
