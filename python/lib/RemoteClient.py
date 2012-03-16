@@ -745,6 +745,7 @@ class RemoteClient:
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
             if( run.DataMC==datamc and mt==1 ):
                 exitmutexes[run.Run]=thread.allocate_lock()
+                timenow=int(time.time())
                 try:
                     if(datamc==0 and run.DataMC==datamc and run.Run!=run.uid):
                         thread.start_new(self.validatedatarun,(run,))
@@ -1780,6 +1781,14 @@ class RemoteClient:
         output='/castor/cern.ch/ams'
         buf2=input.split(buf[1])
         output=output+buf2[1]
+        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1200 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
+        cmdstatus=os.system(cmd)
+        if(cmdstatus):
+            print "Error uploadToCastor via xrdcp",input,output,cmdstatus
+            cmd="nsrm "+output
+            cmdstatus=os.system(cmd)
+        else:
+            return int(time.time())
         cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /usr/bin/rfcp "+input+" "+output
         cmdstatus=os.system(cmd)
         if(cmdstatus):
