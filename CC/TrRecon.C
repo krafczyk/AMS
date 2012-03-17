@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.146 2012/02/20 17:16:51 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.147 2012/03/17 20:25:42 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/02/20 17:16:51 $
+/// $Date: 2012/03/17 20:25:42 $
 ///
-/// $Revision: 1.146 $
+/// $Revision: 1.147 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2585,29 +2585,29 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
 	  hman.Fill("TfMrg4", csqy, dymrg[j]);
 	}
       }
-    }
 
-    // more histos for charge reconstruction check
-    float qx = TrCharge::GetQ(track,TrCharge::kX,1);
-    float qy = TrCharge::GetQ(track,TrCharge::kY,1);
-    hman.Fill("QxQy_final",qx,qy);
-    float qq = TrCharge::GetQ(track,TrCharge::kXY,1); 
-    hman.Fill("Q_final",qq);
-    for (int ihit=0; ihit<track->GetNhits(); ihit++) {
-      TrRecHitR* hit = track->GetHit(ihit);
-      if (hit==0) continue; 
-      if (hit->OnlyY()) continue;
-      TrClusterR* clX = hit->GetXCluster();
-      TrClusterR* clY = hit->GetYCluster();
-      if ( (clX==0)||(clY==0) ) continue;
-      float sigx = clX->GetTotSignal();
-      float sigy = clY->GetTotSignal();
-      float prob = hit->GetCorrelationProb();
-      float logprob = (prob<=0.) ? -30 : log10(prob);
-      hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
-      hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
-      hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
-      hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
+      // more histos for charge reconstruction check
+      float qx = TrCharge::GetQ(track,TrCharge::kX,1);
+      float qy = TrCharge::GetQ(track,TrCharge::kY,1);
+      hman.Fill("QxQy_final",qx,qy);
+      float qq = TrCharge::GetQ(track,TrCharge::kXY,1); 
+      hman.Fill("Q_final",qq);
+
+      for (int ihit=0; ihit<track->GetNhits(); ihit++) {
+	TrRecHitR* hit = track->GetHit(ihit);
+	if (hit==0) continue; 
+	if (hit->OnlyY()) continue;
+	TrClusterR* clX = hit->GetXCluster();
+	TrClusterR* clY = hit->GetYCluster();
+	if ( (clX==0)||(clY==0) ) continue;
+	float sigx = clX->GetTotSignal();
+	float sigy = clY->GetTotSignal();
+	float prob = hit->GetCorrelationProb();
+	float logprob = (prob<=0.) ? -30 : log10(prob);
+	hman.Fill("AmpxCSx_final",sqrt(GetChargeSeed(0)),sqrt(sigx));
+	hman.Fill("AmpyCSy_final",sqrt(GetChargeSeed(1)),sqrt(sigy));
+	hman.Fill("AmpyAmpx_final",sqrt(sigx),sqrt(sigy));
+	hman.Fill("ProbAmpx_final",sqrt(sigx),log10(hit->GetCorrelationProb()));
       /*
       if ( (sqrt(sigx)<(0.8*sqrt(GetChargeSeed(0))-4))||
            (sqrt(sigy)<(0.8*sqrt(GetChargeSeed(1))-4)) ) {
@@ -2615,6 +2615,7 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
         hit->Print(0);
       }
       */
+      }
     }
     
 #ifndef __ROOTSHAREDLIBRARY__
