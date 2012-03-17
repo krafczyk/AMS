@@ -40,7 +40,7 @@ IDLCPP=orbit-idl-2 -l cpp
 
 CERNLIBS=  -lgeant321 -lpacklib -lmathlib    
 ifndef CERN_LEVEL
-CERN_LEVEL = 2006 
+CERN_LEVEL = 2006
 endif
 
 ifndef CERNDIR
