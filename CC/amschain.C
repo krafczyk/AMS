@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.52 2012/02/23 09:51:48 choutko Exp $
+//  $Id: amschain.C,v 1.53 2012/03/17 20:15:38 mduranti Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -158,17 +158,30 @@ AMSEventR* AMSChain::GetEvent(){
   return _EVENT;
 };
 
-AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev, bool
-fDontRewind){
-  if (!fDontRewind)Rewind();//Go to start of chain
+AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
+  if (!kDontRewind) Rewind();//Go to start of chain
   // Get events in turn
   while  (GetEvent() &&
 	  !(_EVENT->Run()==run && _EVENT->Event()==ev) ){
-      if(gSystem->ProcessEvents()){
-//          cout <<"InteruptReceived"<<endl;
-//          return -1;
+    //    printf("%u) Looking for run=%u, event=%d into run=%u, event=%d...\n", _ENTRY, run, ev, _EVENT->Run(), _EVENT->Event());//only for debug
+    if (_ENTRY==(GetEntries()-1)) {
+      static bool kRewindAlreadyDid=false;
+      if (!kRewindAlreadyDid) {
+	printf("AMSChain::GetEvent(%u, %d, %s): End of chain reached! Rewinding...\n", run, ev, (kDontRewind)?"true":"false");
+	Rewind();
+	kRewindAlreadyDid=true;
       }
-}         
+      else {
+	printf("AMSChain::GetEvent(%u, %d, %s): Event not found, returning 0...\n", run, ev, (kDontRewind)?"true":"false");
+	kRewindAlreadyDid=false;
+	return 0;
+      }
+    }
+    if(gSystem->ProcessEvents()){
+      //          cout <<"InteruptReceived"<<endl;
+      //          return -1;
+    }
+  }         
   return _EVENT; 
 };
 
