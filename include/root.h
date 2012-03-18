@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.414 2012/03/15 09:40:55 lbasara Exp $
+//  $Id: root.h,v 1.415 2012/03/18 22:24:37 jorgec Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1295,6 +1295,7 @@ static int shouldLoadCorrection;           ///< Holds the current state of the c
 static bool loadChargeUniformityCorrection; ///< Allows to enable or disable using the uniformity correction for charge
 
 /// Rich Charge Corrections Settings & Flags
+static bool loadPmtCorrections; ///< Allows to enable or disable PMT corrections for charge
 static int pmtCorrectionsFailed;///< Corrections fail flag (-1/0/1 : Not/Done/Failed)
 static TString correctionsDir;  ///< Directory containing corrections
 static bool useRichRunTag;      ///< Define corrections only for good runs

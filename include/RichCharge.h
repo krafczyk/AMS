@@ -62,6 +62,7 @@ class RichPMTCalib{
 
   // Configuration settings
   static int verbosityLevel;
+  static bool loadPmtCorrections;
   static bool useRichRunTag;
   static bool usePmtStat;
   static bool useSignalMean;
@@ -158,8 +159,8 @@ class RichPMTCalib{
   static float NpColPMTCorr[680];
   static float NpExpPMTCorr[680];
   static bool buildCorrections();
-  static float getNpColPMTCorr(int pmt){if(buildCorrections()) return NpColPMTCorr[pmt];return -1;}
-  static float getNpExpPMTCorr(int pmt){if(buildCorrections()) return NpExpPMTCorr[pmt];return -1;}
+  static float getNpColPMTCorr(int pmt){if(loadPmtCorrections && buildCorrections()) return NpColPMTCorr[pmt];return -1;}
+  static float getNpExpPMTCorr(int pmt){if(loadPmtCorrections && buildCorrections()) return NpExpPMTCorr[pmt];return -1;}
 
   ClassDef(RichPMTCalib,1);
 };

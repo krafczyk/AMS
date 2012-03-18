@@ -21,6 +21,7 @@ TString RichPMTCalib::currentDir="";
 
 // General Settings
 int RichPMTCalib::verbosityLevel = 0;
+bool RichPMTCalib::loadPmtCorrections = true;
 bool RichPMTCalib::useRichRunTag = false;
 bool RichPMTCalib::usePmtStat = true;
 bool RichPMTCalib::useSignalMean = false;

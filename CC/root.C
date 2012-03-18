@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.375 2012/03/15 09:41:18 lbasara Exp $
+//  $Id: root.C,v 1.376 2012/03/18 22:24:37 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1533,6 +1533,7 @@ double RichRingR::_sumIndex[122]={0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0};
 
 // Rich Charge Corrections Settings & Flags
+bool RichRingR::loadPmtCorrections=true;
 int RichRingR::pmtCorrectionsFailed = -1;
 TString RichRingR::correctionsDir="";  // Directory
 bool RichRingR::useRichRunTag = false;           // good Rich runs 
@@ -2212,7 +2213,7 @@ TrTrackFitR::InitMF(UTime());
     }
 
     // Build corrections for each PMT 
-    if(RichRingR::correctionsDir!=""){
+    if (RichRingR::loadPmtCorrections) {
       RichPMTCalib::currentDir=RichRingR::correctionsDir;
       RichPMTCalib::useRichRunTag=RichRingR::useRichRunTag;
       RichPMTCalib::usePmtStat=RichRingR::usePmtStat;
@@ -2221,10 +2222,17 @@ TrTrackFitR::InitMF(UTime());
       RichPMTCalib::useEfficiencyCorrections=RichRingR::useEfficiencyCorrections;
       RichPMTCalib::useBiasCorrections=RichRingR::useBiasCorrections;
       RichPMTCalib::useTemperatureCorrections=RichRingR::useTemperatureCorrections;
-      RichPMTCalib::Init(RichRingR::correctionsDir);
-      RichRingR::correctionsDir=RichPMTCalib::currentDir; // Force not calling this anymore
+      if(RichRingR::correctionsDir!=""){
+	RichPMTCalib::Init(RichRingR::correctionsDir);
+	RichRingR::correctionsDir=RichPMTCalib::currentDir; // Force not calling this anymore
+      }
+      if (!RichPMTCalib::buildCorrections()) {
+	cout<<"*********************** Failed to build RICH PMT corrections. Skiping."<<endl; 
+	RichRingR::loadPmtCorrections=false;
+      }
     }
-    RichPMTCalib::buildCorrections();
+    // Set corrections flag
+    RichPMTCalib::loadPmtCorrections = RichRingR::loadPmtCorrections;
     // Set default flag value
     RichRingR::pmtCorrectionsFailed = -1;
     // Rich Uniformity Beta Correction Loading. Only once per run
@@ -4641,7 +4649,7 @@ bool RichRingR::buildChargeCorrections(){
 
 
 int RichRingR::getUsedHits(bool corr) {
-  if (!corr) return Used;
+  if (!corr || !loadPmtCorrections) return Used;
 
   if(NpColPMT.size() && !NpColCorr.size())
     if(!buildChargeCorrections()) return Used;
@@ -4667,7 +4675,7 @@ int RichRingR::getUsedHits(int pmt, bool corr) {
   for(int i=0; i<Used; i++){
     RichHitR *hit = event->pRichHit(iRichHit(i));
     if (!hit || hit->Channel/16!=pmt) continue;
-    if (!corr && ++sum) continue;
+    if ((!corr || !loadPmtCorrections) && ++sum) continue;
     if(NpColPMT.size() && !NpColCorr.size())
       if(!buildChargeCorrections() && ++sum) continue;
     if (NpColCorr.find(pmt) == NpColCorr.end()) continue;
@@ -4678,7 +4686,7 @@ int RichRingR::getUsedHits(int pmt, bool corr) {
 
 
 float RichRingR::getPhotoElectrons(bool corr){
- if(!corr) return NpCol;
+  if (!corr || !loadPmtCorrections) return NpCol;
 
   float sum=0;
   for(map<unsigned short,float>::iterator i=NpColPMT.begin();
@@ -4693,7 +4701,7 @@ float RichRingR::getPhotoElectrons(int pmt, bool corr){
   map<unsigned short,float>::iterator i=NpColPMT.find(pmt);
   if (i==NpColPMT.end()) return 0;
 
-  if (!corr) return i->second;
+  if (!corr || !loadPmtCorrections) return i->second;
 
   if(NpColPMT.size() && !NpColCorr.size()) 
     if(!buildChargeCorrections()) return i->second;
@@ -4704,7 +4712,7 @@ float RichRingR::getPhotoElectrons(int pmt, bool corr){
 
 
 float RichRingR::getExpectedPhotoElectrons(bool corr){
-  if(!corr) return NpExp;
+  if (!corr) return NpExp;
 
   float sum=0;
   for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
@@ -4723,7 +4731,7 @@ float RichRingR::getExpectedPhotoElectrons(int pmt, bool corr){
   map<unsigned short,float>::iterator i=NpExpPMT.find(pmt);
   if (i==NpExpPMT.end()) return 0;
 
-  if (!corr) return i->second;
+  if (!corr || !loadPmtCorrections) return i->second;
 
   if(NpExpPMT.size() && !NpExpCorr.size())
     if(!buildChargeCorrections()) return i->second;
