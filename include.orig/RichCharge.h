@@ -61,6 +61,7 @@ class RichPMTCalib{
   static int pmtCorrectionsFailed;
 
   // Configuration settings
+  static int verbosityLevel;
   static bool useRichRunTag;
   static bool usePmtStat;
   static bool useSignalMean;
