@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.157 2012/01/05 12:46:29 choutko Exp $
+# $Id: Monitor.pm,v 1.158 2012/03/18 10:34:24 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -761,13 +761,14 @@ sub getactivehosts{
        $total+=$rdst->{LastEvent}-$rdst->{FirstEvent}>0?$rdst->{LastEvent}+1-$rdst->{FirstEvent}:0;
        my $rdstc=$rdst->{cinfo};
        if($rdst->{Status} eq "Failed" and (not ($rdst->{FilePath} =~/laser/))){
-          warn "  Run $rdst->{Run}  $rdst->{FilePath} \n";
+#          warn "RunFaild $rdst->{Run}  $rdst->{FilePath} \n";
+          print "$rdst->{Run},";
        }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
            $evtp=$rdstc->{EventsProcessed}>$rdst->{LastEvent}-$rdst->{FirstEvent}?$rdst->{LastEvent}-$rdst->{FirstEvent}:$rdstc->{EventsProcessed};
            $lastevt+=$evtp;
            $tevt+=$evtp;
-           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt $tevt \n";
+#           print "rdstc  $rdstc->{LastEventProcessed} $rdst->{FirstEvent} $rdstc->{EventsProcessed} $lastevt $tevt \n";
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
                          if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
@@ -1698,12 +1699,13 @@ sub RemoveRuns{
       print "herewr\n"; 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
-     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/calib/){
+#     if( $rdst{Status} eq "Canceled" and $rdst{uid}>98283 and $rdst{FilePath} =~/calib/){
 #    print "  $rdst{FilePath}   $rdst{Status} \n";
 #
-#     if(  $rdst{Status} eq "XAllocated" ){
-#         print "restoring $rdst{uid} \n";
-#         $rdst{Status} = "Finished";
+#      if($rdst{Run}>1324408120 and $rdst{Run}<1330000000){
+     if(  $rdst{Status} eq "Allocated" and $rdst{FilePath} =~/calib/ ){
+         print "restoring $rdst{uid} \n";
+         $rdst{Status} = "Finished";
 #     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
 #     if($rdst{Status} eq "Finished"){
 #         foreach my $hash (@{$ref->{acl}}){
@@ -1712,7 +1714,7 @@ sub RemoveRuns{
 #                 my $cmd="ssh $hash->{id}->{HostName} kill -9  $hash->{id}->{pid} ";
 ##                 system($cmd);
 #             }
-#         }
+        # }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{

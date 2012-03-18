@@ -151,8 +151,13 @@ if($end>$max){
                $max=4000000000;
                goto begin;
             }
+            elsif($max<$maxtime){
+             warn "scdb.perl-W-MaxTimeRedefined $max $maxtime \n";
+                            $max=4000000000;
+               goto begin;
+            }
             else{
-                die "scdb.perl-I-Stop $max $maxtime \n";
+                die "scdb.perl-F-Stop $max $maxtime \n";
             }
         }
 

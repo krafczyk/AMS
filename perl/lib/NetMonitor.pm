@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.63 2011/11/30 15:19:20 ams Exp $
+# $Id: NetMonitor.pm,v 1.64 2012/03/18 10:34:25 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -24,12 +24,12 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['pcposc1','pcamsp1','pcamsj0','pcamsj1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],
   dbhoststargets=>['amsprodserver.exe','amsprodserverv5.exe','transfer.py','frame_decode','bbftpd','scdb.perl'],
-  filesystems=>['f2users','r0fc00','fc02dat1','fcdat1'],
+  filesystems=>['f2users','r0fc00','fcdat1'],
   afsvolumes=>['/afs/cern.ch/ams/local','/afs/cern.ch/ams/AMSDataBase','/afs/cern.ch/ams/Offline'],
   hostsstat=>[],
   bad=>[],
@@ -68,8 +68,8 @@ my %sfields=(
 $self->{sqlserver}={%sfields,};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Alexandre.Eline@cern.ch 41764874733@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.ch  41764870923@mail2sms.cern.ch',sent=>0,timesent=>0};
-push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
-push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
+#push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'pavel.goglov@cern.ch  41764871287@mail2sms.cern.ch',sent=>0,timesent=>0};
+#push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Jinghui.Zhang@cern.ch  41764878673@mail2sms.cern.ch',sent=>0,timesent=>0};
 #push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'dmitri.filippov@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
 push @{$self->{sendmail}},{first=>1,repet=>21600,address=>'Gabriele.Alberti@cern.ch 41764878747@mail2sms.cern.ch',sent=>0,timesent=>0};
    #  excluded hosts
