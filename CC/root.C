@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.376 2012/03/18 22:24:37 jorgec Exp $
+//  $Id: root.C,v 1.377 2012/03/19 12:02:06 shaino Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6169,6 +6169,7 @@ map <unsigned int,int>::iterator it= _RunSetup.theMap.find(run);
 return ret;
 }
 bool AMSEventR::InitSetup(TFile *_FILE, char *name,uinteger run){
+  if (ProcessSetup<0) return false;
 static int master=0;
 bool suc=false;
 #ifdef __ROOTSHAREDLIBRARY__
