@@ -336,7 +336,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
       if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-E-  TDV is not valid for this event \n");
       return -2;
     }
-    if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
+    if(nwar++ <1) printf("TrExtAlignDB::UpdateTkDBc-I- Successuflly Loaded Align info from TDV\n");
   }
 
 
