@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.377 2012/03/19 12:02:06 shaino Exp $
+//  $Id: root.C,v 1.378 2012/03/19 16:41:59 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2212,7 +2212,11 @@ TrTrackFitR::InitMF(UTime());
       }
     }
 
-    // Build corrections for each PMT 
+    // Build corrections for each PMT
+    if (RichRingR::loadPmtCorrections && AMSEventR::Head()->nMCEventg()) {
+      cout << "RICH PMT Corrections disabled for MC." << endl;
+      RichRingR::loadPmtCorrections=false;
+    }
     if (RichRingR::loadPmtCorrections) {
       RichPMTCalib::currentDir=RichRingR::correctionsDir;
       RichPMTCalib::useRichRunTag=RichRingR::useRichRunTag;
