@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.378 2012/03/19 16:41:59 jorgec Exp $
+//  $Id: root.C,v 1.379 2012/03/20 10:54:54 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -2226,7 +2226,7 @@ TrTrackFitR::InitMF(UTime());
       RichPMTCalib::useEfficiencyCorrections=RichRingR::useEfficiencyCorrections;
       RichPMTCalib::useBiasCorrections=RichRingR::useBiasCorrections;
       RichPMTCalib::useTemperatureCorrections=RichRingR::useTemperatureCorrections;
-      if(RichRingR::correctionsDir!=""){
+      if(!RichPMTCalib::getHead() &&  RichRingR::correctionsDir!=RichPMTCalib::currentDir){
 	RichPMTCalib::Init(RichRingR::correctionsDir);
 	RichRingR::correctionsDir=RichPMTCalib::currentDir; // Force not calling this anymore
       }

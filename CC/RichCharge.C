@@ -53,6 +53,7 @@ bool RichPMTCalib::Init(TString dir){
 }
 
 RichPMTCalib* RichPMTCalib::Update(){
+  //  cout<<"IN UPDATE CURRENT DIR "<<currentDir<<endl;
   if(!RichPMTCalib::getHead() &&!RichPMTCalib::Init(currentDir)) return 0;
   if(!RichPMTCalib::getHead()->retrieve(AMSEventR::Head()->fHeader.Run)) return 0;
   return RichPMTCalib::getHead();
@@ -1428,6 +1429,7 @@ void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
 			     vector<unsigned short>& v_pmt_stat,
 			     vector<unsigned short>& v_pmt_volt) {
 
+
   istringstream ssline(sline);
   int utime;
   int brick, side, hvchn, fgin;
@@ -1702,7 +1704,7 @@ bool RichChargeUniformityCorrection::Init(TString file){
 
   if(fail){if(_head) delete _head;_head=0;return false;}
 
-  RichPMTCalib::currentDir=file;
+
   return true;
 }
 
