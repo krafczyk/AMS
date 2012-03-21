@@ -67,14 +67,14 @@ bool Clean_Event(AMSEventR *pev){
    
   BetaR *beta;
   int track_beta=0;   
-  float Beta=0;
+  float Beta=-1.;
   float betasum=0;
   if(pev->nBeta()>0){
     for( int i=0; i<pev->nBeta(); i++){
       beta=pev->pBeta(i);      
       if(beta->iTrTrack()!=-1){
 	betasum+=1;
-	track_beta=beta->iTrTrack();
+	track_beta=i;
       }
     }
     if(betasum!=1) return false;
@@ -376,11 +376,16 @@ int trd_particle(AMSEventR *pev){
      
     //  if(rig>99.) pev->pParticle(0)->Momentum=99.;
     //  if(rig<-99.) pev->pParticle(0)->Momentum=-99.;
-   
-    // calculate likelihoods 
-    double eplik    = trdS->TrdLRs.at(0);
-    double Heplik   = trdS->TrdLRs.at(1);
-    double eHelik   = trdS->TrdLRs.at(2);
+    double eplik=0, Heplik=0, eHelik=0;
+
+    if(! trdS->ProcessTrdEvt(pev, Debug) ) {
+
+      // calculate likelihoods 
+      eplik    = trdS->TrdLRs.at(0);
+      Heplik   = trdS->TrdLRs.at(1);
+      eHelik   = trdS->TrdLRs.at(2);
+    }
+    else return -1;
     
 
       // printf("mom: %f tof charge: %f like_ep: %f like_eh: %f like_ph: %f \n", pev->pParticle(0)->Momentum, tof_charge, like_ep, like_eh, like_ph);
@@ -425,8 +430,8 @@ int ecal_particle(AMSEventR *pev){
     float ecalbdt=shr->GetEcalBDT();
     float ecal_Ec=shr->EnergyE;
     
-    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)>0.85 && fabs(ecal_Ec/rig)<1.45 && ecalbdt>0.5 ) return 0;
-    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)<0.1  && ecalbdt<-0.8) return 1; 
+    if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)>0.5 && fabs(ecal_Ec/rig)<100 && ecalbdt>0.142 ) return 0;
+    else if(tr_charge<1.5 && tof_charge>0 && tof_charge<1.5 &&  fabs(ecal_Ec/rig)<0.25  && ecalbdt<-0.5) return 1; 
     else if(tr_charge>1.5 && tof_charge>1.5 &&  fabs(ecal_Ec/rig)<0.1  && ecalbdt<-0.8) return 2;
     else return -1;
   }
