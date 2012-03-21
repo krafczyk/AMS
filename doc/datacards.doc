@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.368 2011/11/28 18:47:26 pzuccon Exp $
+#  $Id: datacards.doc,v 1.369 2012/03/21 14:51:23 chchung Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -663,8 +663,6 @@ HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
 
-
-
 TRDMC   
 I1 mode(1)        //0: saveliev-GenerTransportIoniz
                   //1: saveliev-GenerTransport  pai-Ioniz
@@ -748,6 +746,11 @@ I10 UseTOF(2)         //  use USeTOF tof clusters to match with trd track
 TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 
                // NB NOT included : initialization & termination
+
+TRDCALIB                // trd calibration
+I 1 TrdSCalibVersion(4) // current version = 4 relesed on Feb.22 2012
+I 2 TrdSCalibTrack(1)   // trd track for likelihoods 0:trdtrack, 1:trdhtrack
+I 3 TrdSCalibDebug(0)   // debug 
 
 //-----------------------------------------------------------------
 
