@@ -70,6 +70,7 @@ class RichPMTCalib{
   static bool useEfficiencyCorrections;
   static bool useBiasCorrections;
   static bool useTemperatureCorrections;
+  static int temperatureUpdatePeriod;
   static unsigned short richRunBad;
   static unsigned short richPmtBad;
 

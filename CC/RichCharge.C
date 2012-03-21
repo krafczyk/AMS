@@ -28,7 +28,8 @@ bool RichPMTCalib::useSignalMean = false;
 bool RichPMTCalib::useGainCorrections = true;
 bool RichPMTCalib::useEfficiencyCorrections = true;
 bool RichPMTCalib::useBiasCorrections = true;
-bool RichPMTCalib::useTemperatureCorrections = true; 
+bool RichPMTCalib::useTemperatureCorrections = true;
+int RichPMTCalib::temperatureUpdatePeriod = 60;
 unsigned short RichPMTCalib::richRunBad = (1<<RichPMTCalib::kTagJ) | (1<<RichPMTCalib::kTagR); //  JINFR & RDR Configuration  
 unsigned short RichPMTCalib::richPmtBad = (1<<RichPMTCalib::kPmtFE) | (1<<RichPMTCalib::kPmtJ) | (1<<RichPMTCalib::kPmtR); //  FE On & No Config Err/Mismatch 
 int RichPMTCalib::lastEvent=-1;
@@ -740,8 +741,9 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
-  static int last_run=0, skip_run=0;
-#pragma omp threadprivate(last_run,skip_run)
+  static int last_run=0, last_time=0, skip_run=0;
+  static bool last_stat=false;
+#pragma omp threadprivate(last_run,last_time,skip_run,last_stat)
 
   multimap<float,int>::iterator it;
 
@@ -892,8 +894,10 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
   int method = 1; // 1: linear interpolation, 0: no interpolation
-  if (!skip_run || AMSEventR::Head()->fHeader.Run!=last_run) {
+  if (AMSEventR::Head()->fHeader.Run!=last_run ||
+      (!skip_run && AMSEventR::Head()->fHeader.Time[0]>=last_time+temperatureUpdatePeriod)) {
     last_run = AMSEventR::Head()->fHeader.Run;
+    last_time = AMSEventR::Head()->fHeader.Time[0];
     skip_run = 0;
     for (int dts=0; dts<NDTS; dts++) {
       rc = AMSSetupR::gethead()->fSlowControl.GetData(
@@ -912,6 +916,8 @@ bool RichPMTCalib::getRichPmtTemperatures() {
       }
     }
   }
+  else 
+    return last_stat;
 
   // PMT-DTS temperature map : closest DTS in grid
   v_pmt_temp.assign(NPMT,HUGE_VALF);
@@ -939,6 +945,8 @@ bool RichPMTCalib::getRichPmtTemperatures() {
       cout << "RichPMTCalib::getRichPmtTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_pmt_temp[pmt] << ")" << endl;
   }
 
+  last_stat = RichPmtTemperatures;
+
   return RichPmtTemperatures;
 
 }
@@ -964,8 +972,9 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   static multimap<float,int> m_pmt_d2_dts[NPMT];
 #pragma omp threadprivate(v_pmt_rep,v_dts_el,v_dts_nn,m_pmt_d2_dts)
 
-  static int last_run=0, skip_run=0;
-#pragma omp threadprivate(last_run,skip_run)
+  static int last_run=0, last_time=0, skip_run=0;
+  static bool last_stat=false;
+#pragma omp threadprivate(last_run,last_time,skip_run,last_stat)
 
   multimap<float,int>::iterator it;
 
@@ -1104,8 +1113,10 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   // Retrieve DTS temperatures
   v_dts_temp.assign(NDTS,HUGE_VALF);
   int method = 1; // 1: linear interpolation, 0: no interpolation
-  if (!skip_run || AMSEventR::Head()->fHeader.Run!=last_run) {
+  if (AMSEventR::Head()->fHeader.Run!=last_run ||
+      (!skip_run && AMSEventR::Head()->fHeader.Time[0]>=last_time+temperatureUpdatePeriod)) {
     last_run = AMSEventR::Head()->fHeader.Run;
+    last_time = AMSEventR::Head()->fHeader.Time[0];
     skip_run = 0;
     for (int dts=0; dts<NDTS; dts++) {
       rc = AMSSetupR::gethead()->fSlowControl.GetData(
@@ -1115,7 +1126,7 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 						      value,
 						      method,
 						      v_dts_nn[dts].c_str()
-	);
+						      );
       if (!rc) v_dts_temp[dts] = value[0];
       else if (rc==1) {
 	cout << "RichPMTCalib::getRichBrickTemperatures-E-NoNodeNameFound : skip this run" << endl;
@@ -1124,6 +1135,8 @@ bool RichPMTCalib::getRichBrickTemperatures() {
       }
     }
   }
+  else 
+    return last_stat;
 
   // PMT-DTS temperature map : mean of DTS in brick
   v_brick_temp.assign(NPMT,HUGE_VALF);
@@ -1153,6 +1166,8 @@ bool RichPMTCalib::getRichBrickTemperatures() {
     if (v_brick_temp[pmt]<brickMinTemperature || v_brick_temp[pmt]>brickMaxTemperature) 
       cout << "RichPMTCalib::getRichBrickTemperatures: Temperature Alarm on PMT " << pmt << " (T=" << v_brick_temp[pmt] << ")" << endl;
   }
+
+  last_stat = RichBrickTemperatures;
 
   return RichBrickTemperatures;
 
