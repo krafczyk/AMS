@@ -2,6 +2,7 @@
 #define _AMSCHAIN_H
 
 #include <vector>
+#include <set>
 #include "TObject.h"
 #include "TChain.h"
 
@@ -57,6 +58,9 @@ public:
   /// Destructor
   virtual ~AMSChain(){ if(fout) CloseOutputFile(); fout=0;_FILE=0;if (_EVENT) delete _EVENT; };
   
+  /// Add TFiles to the chain from a text file 
+  int AddFromFile(const char* rootfilelist);
+
   ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 
   
@@ -100,7 +104,7 @@ public:
   int GenUFSkel(char* fname="AMSNtupleSelect.C");
 
   /// Opens the file to output selected events
-  void OpenOutputFile(const char* filename);
+  int OpenOutputFile(const char* filename);
   /// Saves the current entry to the output file (if it is not open, it creates SelectedEvents.root)
   void SaveCurrentEvent();
   /// Saves the current entry to the output file without GetAllContents()
@@ -127,12 +131,17 @@ public:
   \author juan.alcaraz@cern.ch
       
 */
-    
+typedef unsigned long long ull;    
+typedef set<ull>::iterator ullp;
 class AMSEventList {
+
 private:
-  vector<int> _RUNs;
-  vector<int> _EVENTs;
-  
+  set<ull> _runeve;
+  set<int> _RUNs;
+
+  ull  GetRE(int run,int event);
+  uint GetRun(ull re){ return re>>32;}
+  uint GetEvent(ull re){ return re&0xFFFFFFFF;}
 public:
   AMSEventList(); ///< Default Constructor
   AMSEventList(const char* filename); ///< Constructor with an already existing list
@@ -148,13 +157,17 @@ public:
   void Read(const char* filename); ///<Read "run event" list from ASCII file
   void Write(); ///<Write "run event" list to standard output
   void Write(const char* filename); ///<Write "run event" list to ASCII file
-  void Write(AMSChain* chain, TFile* file); ///<Write/Add selected events from a chain into a ROOT file
+  void Write(AMSChain* chain, const char * outfile="Selected.root"); ///<Write/Add selected events from a chain into a ROOT file named as desired
 
-  int GetEntries(); ///<Number of events in the list
-  int GetRun(int i); ///<Retrieve run number for entry i
-  int GetEvent(int i); ///<Retrieve event number for entry i
+  int GetEntries(){return _runeve.size();} ///<Number of events in the list
+  int GetNRuns(){ return _RUNs.size();} ///<Number of Runs in the list
+  int GetUniqeRun(int i); ///<Retrieve ith run number in the list of uniq run numbers
 
-  ClassDef(AMSEventList,2)       //AMSEventList
+  int GetRun(int i); ///<Retrieve run  number for entry ith in the list
+  int GetEvent(int i); ///<Retrieve event number for entry ith in the list
+
+  int ExtractFromDirs(char* dirlistfile);
+  ClassDef(AMSEventList,3)       //AMSEventList
 #pragma omp threadprivate(fgIsA)
     };
 

@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.53 2012/03/17 20:15:38 mduranti Exp $
+//  $Id: amschain.C,v 1.54 2012/03/21 00:04:55 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -185,7 +185,23 @@ AMSEventR* AMSChain::GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind){
   return _EVENT; 
 };
 
-
+int AMSChain::AddFromFile(const char *fname){
+  FILE* listfile = fopen(fname,"r");
+  if (listfile) {
+    char rname[600];
+    while (1){
+      fscanf(listfile,"%s\n", rname );
+      if(feof(listfile)) { fclose(listfile); break;}
+      Add(rname);
+    }
+  }
+  else {
+    cerr << "AMSChain::AddFromFile-E-  Error opening file '" << fname << "';";
+    return -1;
+  }
+  
+  return 0;
+}
 
 
 int  AMSChain::LoadUF(char* fname){
@@ -471,15 +487,15 @@ Long64_t AMSChain::Process(TSelector*pev,Option_t*option, Long64_t nentri, Long6
 
 
 
-void AMSChain::OpenOutputFile(const char* filename){
+int AMSChain::OpenOutputFile(const char* filename){
   fout= TFile::Open(filename,"RECREATE");
   if(!fout){
     cout <<" AMSChain::OpenOutpuFile-E- Cannot open "<<filename<<" for output"<<endl;
-    return;
+    return -1;
   }
   amsnew = CloneTree(0);
   TFile * input=GetFile();
-  if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
+  if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return -2;}
 #ifdef _PGTRACK_
   // Parameters
   char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
@@ -510,7 +526,7 @@ void AMSChain::OpenOutputFile(const char* filename){
   TObjString* obj3=(TObjString*)input->Get("DataCards");
   if(obj3) {fout->cd();obj3->Write("DataCards");}
   cout <<" AMSChain::OpenOutpuFile-I- The outputfile "<<filename<<" Has been opened"<<endl;
-  return;
+  return 0;
 }  
 
 void AMSChain::SaveCurrentEvent(){
@@ -556,20 +572,27 @@ void AMSChain::CloseOutputFile(){
 
 ClassImp(AMSEventList);
 
+ull  AMSEventList::GetRE(int run,int event){  
+  ull aa=run;  
+  ull aa2=aa<<32;
+  ull bb=aa2|event; 
+  return bb;
+}
 
 AMSEventList::AMSEventList(){
-  _RUNs.reserve(10000);
-  _EVENTs.reserve(10000);
+  //  _RUNs.reserve(10000);
+  //_EVENTs.reserve(10000);
 };
 
 AMSEventList::AMSEventList(const char* filename){
-  _RUNs.reserve(10000);
-  _EVENTs.reserve(10000);
+  // _RUNs.reserve(10000);
+  // _EVENTs.reserve(10000);
   Read(filename);
 };
 void AMSEventList::Add(int run, int event){
-  _RUNs.push_back(run);
-  _EVENTs.push_back(event);
+  _RUNs.insert(run);
+  //  _EVENTs.push_back(event);
+  _runeve.insert(GetRE(run,event));
 };
 
 void AMSEventList::Add(AMSEventR* pev){
@@ -577,15 +600,14 @@ void AMSEventList::Add(AMSEventR* pev){
 };
 
 void AMSEventList::Remove(int run, int event){
-  for (int j=0; j<_RUNs.size(); j++) {
-    if (run==_RUNs[j] && event==_EVENTs[j]) {
-      vector<int>::iterator jiter = _RUNs.begin() + j;
-      _RUNs.erase(jiter);
-      jiter = _EVENTs.begin() + j;
-      _EVENTs.erase(jiter);
-      j--;
-    }
+  set<ull>::iterator pp;
+  _runeve.erase(GetRE(run,event));
+  pp=_runeve.lower_bound(GetRE(run,0));
+  if((  pp      == _runeve.end()) || 
+     ((*pp)>>32 != run  )     ){
+    _RUNs.erase(run);
   }
+  return;
 };
 
 void AMSEventList::Remove(AMSEventR* pev){
@@ -593,12 +615,7 @@ void AMSEventList::Remove(AMSEventR* pev){
 };
 
 bool AMSEventList::Contains(int run, int event){
-  for (int j=0; j<_RUNs.size(); j++) {
-    if (run==_RUNs[j] && event==_EVENTs[j]) {
-      return true;
-    }
-  }
-  return false;
+  return (_runeve.count(GetRE(run,event))>0);
 };
 
 bool AMSEventList::Contains(AMSEventR* pev){
@@ -607,8 +624,31 @@ bool AMSEventList::Contains(AMSEventR* pev){
 
 void AMSEventList::Reset(){
   _RUNs.clear();
-  _EVENTs.clear();
+  //  _EVENTs.clear();
+  _runeve.clear();
 };
+
+int  AMSEventList::GetUniqeRun(int i){
+  set<int>::iterator pp=_RUNs.begin();
+  int kk=0; 
+  while(kk++<i) pp++; 
+  return *pp;
+}
+
+int  AMSEventList::GetRun(int i){
+  ullp pp=_runeve.begin();
+  int kk=0; 
+  while(kk++<i) pp++; 
+  return GetRun(*pp);
+}
+
+int  AMSEventList::GetEvent(int i){
+  ullp pp=_runeve.begin();
+  int kk=0; 
+  while(kk++<i) pp++; 
+  return GetEvent(*pp);
+}
+
 
 void AMSEventList::Read(const char* filename){
   FILE* listfile = fopen(filename,"r");
@@ -626,8 +666,9 @@ void AMSEventList::Write(){
   cout << "AMSEventList::Dumping a list with ";
   cout << this->GetEntries(); 
   cout << " selected events..." << endl;
-  for (int j=0; j<_RUNs.size(); j++) {
-    cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
+  set<ull>::iterator pp;
+  for (pp=_runeve.begin(); pp!=_runeve.end(); pp++) {
+    cout << GetRun(*pp) << "\t" << GetEvent(*pp) << endl;
   }
 };
 
@@ -636,80 +677,78 @@ void AMSEventList::Write(const char* filename){
   cout << filename << "\" with " << this->GetEntries(); 
   cout << " selected events" << endl;
   FILE* listfile = fopen(filename,"w");
-  for (int j=0; j<_RUNs.size(); j++) {
-    fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
+  set<ull>::iterator pp;
+  for (pp=_runeve.begin(); pp!=_runeve.end(); pp++) {
+    fprintf(listfile,"%10d %10d\n",GetRun(*pp),GetEvent(*pp));
   }
   fclose(listfile);
 };
 
-void AMSEventList::Write(AMSChain* chain, TFile* file){
-if(!dynamic_cast<AMSChain*>(chain)){
-cerr<<"AMSEventList::Write-E-ChainIsNULL "<<endl;
-return;
-}
-if(!dynamic_cast<TFile*>(file)){
-cerr<<"AMSEventList::Write-E-TfileIsNULL "<<endl;
-return;
-}
-
-  TTree *amsnew = chain->CloneTree(0);
+void AMSEventList::Write(AMSChain* chain,const char * outfilename){
+  if(!dynamic_cast<AMSChain*>(chain)){
+    cerr<<"AMSEventList::Write-E-ChainIsNULL "<<endl;
+    return;
+  }
+  if(chain->OpenOutputFile(outfilename)!=0) return;
+  ull max=chain->GetEntries();
+  ull grain=100;
+  ull ff=max/grain;
+  ull found=0;
+  cout <<"AMSEventList::ExtractFromDirs-I- Event int the chain are "<<max<<endl;
   chain->Rewind();
-  AMSEventR* ev = NULL;
-  TFile * input=chain->GetFile();
-  if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return;}
-#ifdef _PGTRACK_
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
-  for(int ii=0;ii<6;ii++){
-    TObject* obj=input->Get(objlist[ii]);
-    if(obj) {file->cd();obj->Write();}
-  }
-#endif
-  TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
-  if(obj2) {file->cd();obj2->Write("AMS02Geometry");}
-  TObjString* obj3=(TObjString*)input->Get("DataCards");
-  if(obj3) {file->cd();obj3->Write("DataCards");}
-  
-  // Required to solve a bug (or feature) in GetEvent: it never returns NULL 
-  //int current_run=-1;
-  //int current_event=-1; 
-  int nfound=0;
-  while ((ev=chain->GetEvent())) {
-
-    /* Old Patch (fails when HeaderR-W-EventSeqSeemsToBeBroken) 
-    if(ev->Run()==current_run && ev->Event()==current_event) {
-      cerr << "BREAK AT RUN " << ev->Run() << " EVENT " << ev->Event() << endl;
-            break;
+  for( ull  jj=0;jj< max ;jj++){
+    if(jj%ff==0) printf("AMSEventList::ExtractFromDirs-I- Done %2d %7d out of %d \n",jj/ff*grain,jj,max);
+    AMSEventR*  ev=chain->GetEvent();
+    if (ev &&  Contains(ev) ){
+      chain->SaveCurrentEvent();
+      found++;
+      printf("AMSEventList::Writing event ............ %12d %12d\n"
+	     , ev->Run(), ev->Event());
     }
-    current_run=ev->Run();
-    current_event=ev->Event();
-    */
-
-    bool found = false;
-    for (int j=0; j<_RUNs.size(); j++) {
-      if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
-	found=true;
-	nfound++;
-	break;
-      }
-    }
-    if (!found) continue;
-    printf("AMSEventList::Writing event ............ %12d %12d\n"
-    	   , ev->Run(), ev->Event());
-    ev->GetAllContents();
-    amsnew->Fill();
-    // New Patch
-    if (nfound ==_RUNs.size()) break;
   }
-  cout << "AMSEventList::Writing AMS ROOT file \"";
-  //  cout << file->GetName() << "\" with " << this->GetEntries(); 
-  cout << file->GetName() << "\" with " << nfound; 
-  cout << " selected events" << endl;
-  file->Write();
+  printf("AMSEventList found %d events out of %d\n",found,GetEntries());
+  chain->CloseOutputFile();
+  return;
 };
 
-int AMSEventList::GetEntries(){return _RUNs.size();};
-int AMSEventList::GetRun(int i){return _RUNs[i];};
-int AMSEventList::GetEvent(int i){return _EVENTs[i];};
+int AMSEventList::ExtractFromDirs(char* fname){
+
+  vector<string> dirs;
+  FILE* listfile = fopen(fname,"r");
+  if (listfile) {
+    char rname[600];
+    while (1){
+      fscanf(listfile,"%s\n", rname );
+      if(feof(listfile)) { fclose(listfile); break;}
+      dirs.push_back(string(rname));
+    }
+  }
+  else {
+    cerr << "AMSEventList::ExtractFromDirs-E-  Error opening file '" << fname << "';";
+    return -1;
+  }
+  AMSChain chain;
+  set<int>::iterator rr;
+  for (rr=_RUNs.begin();rr!=_RUNs.end();rr++){
+    for(int dd=0;dd<dirs.size();dd++){
+      char nnn[700];
+      sprintf(nnn,"%s/%d.*.root",dirs[dd].c_str(), *rr);
+      printf("AMSEventList::ExtractFromDirs-I- addinf %s\n",nnn);
+      chain.Add(nnn);
+    }
+  }
+  TObjArray* arr=chain.GetListOfFiles();
+  TChainElement* el=0;
+  TIter next(arr);
+  printf("AMSEventList::ExtractFromDirs-I- chain added with %d files\nThey are:\n",arr->GetEntries());
+  while(el=(TChainElement*) next())
+    printf("%s\n",el->GetTitle());
+
+  Write(&chain);
+  return 0;
+
+
+}
 
 
 int AMSChain::GenUFSkel(char* filename){
