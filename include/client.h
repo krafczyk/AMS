@@ -1,10 +1,11 @@
-//  $Id: client.h,v 1.29 2012/01/05 12:46:24 choutko Exp $
+//  $Id: client.h,v 1.30 2012/03/21 17:06:56 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include "typedefs.h"
 #include "astring.h"
 #include <list>
-#include <fstream.h>
+#include <fstream>
+using namespace std;
 #include <server-cpp-stubs.h>
 //#include <orb/orbitcpp_exception.h>
 #include <strstream>
