@@ -485,7 +485,7 @@ class RemoteClient:
                         ava1=tot*float(fs[3])/100-rused
                         if (fs[2].find('Reserved')>=0):
                             status='Reserved'
-                        elif ava1<=0 or ava<3000:
+                        elif ava1<=0 or ava<30000:
                             status='Full'
                         if ava1< ava: ava=ava1;
                         if ava<0: ava=0

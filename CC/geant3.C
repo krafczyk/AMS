@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.151 2012/01/05 17:54:55 choutko Exp $
+//  $Id: geant3.C,v 1.152 2012/03/21 15:43:09 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -966,7 +966,7 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
    AMSEvent::ResetThreadWait(1);
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
-      try{
+//      try{
 #pragma omp critical (g3)
       if(GCFLAG.IEOTRI){
         if(!count++)oldtime=tt;
@@ -1101,12 +1101,12 @@ try{
 }
      continue;
     }
-    }
-    catch (AMSaPoolError e){
-#pragma omp critical (g1)
-      cerr << "Oops "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
-      continue;
-    }
+//    }
+//    catch (AMSaPoolError e){
+//#pragma omp critical (g1)
+//      cerr << "Oops "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
+//      continue;
+//    }
    }
 // ---> endof "kevt<nchunk" for-loop
 #pragma omp critical (g2)

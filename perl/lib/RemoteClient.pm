@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.717 2012/02/22 12:37:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.718 2012/03/21 15:43:17 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18813,7 +18813,7 @@ sub CheckFS{
                $stf=~s/\///g;
                $stf="/tmp/$stf";
                if(defined $vrb and $vrb eq 1){
-               print " $stf \n";
+                print " $stf \n";
                }
                system("ls $fs->[0] 1>$stf 2>&1 &");
                sleep (1);
@@ -18877,7 +18877,7 @@ sub CheckFS{
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';
                  }
-                 elsif( $ava1<=0 or $ava<3000){
+                 elsif( $ava1<=0 or $ava<30000){
                   $status='Full';
                  }
                  if($ava1<$ava){
@@ -18886,7 +18886,8 @@ sub CheckFS{
                  if($ava<0){
                    $ava=0;
                  }
-                $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]' and path like '$path%' ";
+                 print " $path status $fs->[0] $status  $ava1 $bavail*$fac  =$tot*$fs->[3]/100-$rused\n";
+                  $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]' and path like '$path%' ";
             }
              else{
 offline:

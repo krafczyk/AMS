@@ -22,7 +22,8 @@ ev->getsetup()->getISSCTRS(setup, xtime);
 cout <<" qq "<<setup.r<<" "<<setup.v<<endl;
 }
 }
-if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>280 &&ev->Run()>1320000000 ){
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>2  ){
+AMSSetupR::SlowControlR::ReadFromExternalFile=false;
  TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());
    cout <<" ok "<<AMSSetupR::gethead()<<" "<<ev->UTime()<<endl;
   return true;

@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.24 2011/11/27 17:44:51 choutko Exp $
+//  $Id: apool.C,v 1.25 2012/03/21 15:43:09 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include "apool.h"
@@ -180,7 +180,10 @@ void AMSaPool::erase(integer tol){
   if(_Maxbl<_Nreq)_Maxbl=_Nreq;
   _Nreq=0;
   if(tol==0)_Count=0;
-  if(_Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
+   static unsigned int count=0;
+  if(_Count && count++<100){
+    cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
+}
   if(_head){
     tol=(tol+_size/2)/_size;
     //       cout <<" tol "<<tol<<endl;
