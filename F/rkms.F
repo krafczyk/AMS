@@ -9,6 +9,7 @@
 *           dE/dx integrated in rkms.F
 * Feb.2012: CERNlib free version (DSEQN DSINV RSINV TMPRNT)
 *           Calculated parameter's errors are sqrt(2) bigger.
+* Mar.2012: Out(31)->Out(36), Rigidity at z=0.
 *---------------------------------------------------------------
 * Rigidity reconstruction program for AMS02 with permanent magnet
 * Taking care of the Multipole Scattering in AMS Tracking detector:
@@ -49,7 +50,7 @@ c. Add by Zhili.Weng 2009-11-11
 *          cha         - particle charge
 *          Rini        - initial Rigidity value (try the best guess !!!)
 *          --------------------------------------
-* Output:  Out(*)      - reconstructed parameters
+* Output:  Out(1-31)   - reconstructed parameters at plane npl(1)
 *          Out(1-3)    - x, y, z 
 *          Out(4-5)    - Theta, Phi
 *          Out(6)      - Rigidity * charge_sign
@@ -62,7 +63,8 @@ c. Add by Zhili.Weng 2009-11-11
 *          Out(13)     - # of points in Y fit (Chi2Y)
 *          Out(14-22)  - X residuals
 *          Out(23-31)  - Y residuals
-*----------------------------------------------------
+*          Out(32-36)  - x,y,Theta,Phi,Rigidity*charge_sign at z=0
+*-----------------------------------------------------------------
       implicit none
 *----------------
 #include "rkms.h"
@@ -86,12 +88,16 @@ c. Add by Zhili.Weng 2009-11-11
       real         dx3
       common/dx300/dx3(NPm2)
 !$OMP threadprivate(/dx300/)
+*---------------------------
+      double precision      xz0,yz0,cx0,cy0,cz0,RZ0
+      common        /parz0/ xz0,yz0,cx0,cy0,cz0,RZ0
+!$OMP threadprivate(/parz0/)
 *     ------------------------------
       integer npo,npl(npo),i,ier,icou
       real xyz(3,npo),dxyz(3,npo)
       real be,cha
       real x(NPma),y(NPma),z(NPma),dx(NPma),dy(NPma)
-      real Rini,Out(31),Chi2,R,Rin,doR
+      real Rini,Out(36),Chi2,R,Rin,doR
       double precision Xout(5),Par(5),Xo(5)
 *     ------------------------------------
       sigcha = 0.
@@ -163,6 +169,12 @@ c                          ENDIF
             Out(13+i+9) = -999.
           endif
         enddo
+* ----- @ z=0
+        Out(32) = xz0                        ! x
+        Out(33) = yz0                        ! y
+        Out(34) = acos(sngl(cz0))            ! Theta
+        Out(35) = atan2(sngl(cy0),sngl(cx0)) ! Phi
+        Out(36) = RZ0*sigcha                 ! Rigidity*ChargeSign
       else
         Out( 1) = 0.
         Out( 2) = 0.
@@ -177,7 +189,7 @@ c                          ENDIF
         Out(11) = Chi2Y
         Out(12) = Xpoints
         Out(13) = Ypoints
-        do i=14,31
+        do i=14,36
           Out(i) = 0.
         enddo
       endif
@@ -468,8 +480,9 @@ c        write(6,*)'### np',np
       subroutine rk_trk(pin,xin,x0,y0,np)
 *---------------------------------------------------
 * Runge-Kutta integration for particle in Magn.field
-* A.Chikanian, Yale, Feb.,2003
-*            Revised June,2010
+* A.Chikanian, Yale, Febr.,2003
+*            Revised June ,2010
+*            Revised March,2012: Param.@ z=0
 *-------------------------------------------------------------------
 *  Input:  pin(3)   - initial Rigidity Rx,Ry,Rz (GeV/c) for tracking
 *          xin(3)   - initial Position  x, y, z (cm)    for tracking
@@ -487,6 +500,10 @@ c        write(6,*)'### np',np
       double precision      ama,beta,charge,sigcha
       common        /rktrk/ ama,beta,charge,sigcha,iDE
 !$OMP threadprivate(/rktrk/)
+*---------------------------
+      double precision      xz0,yz0,cx0,cy0,cz0,RZ0
+      common        /parz0/ xz0,yz0,cx0,cy0,cz0,RZ0
+!$OMP threadprivate(/parz0/)
 *--------------------------------
       double precision       Rpl
       common        /rinipl/ Rpl(NPma)
@@ -534,6 +551,17 @@ cxy3 ---
 
         endif  !  ---- dE/dx
 *       -------------------------------------^ dedx
+*    --- crossing z=0 plane
+        if(vect(3)*vout(3).lt.0.) then
+          w   = vect(3) / (vout(3)-vect(3))
+          xz0 = vect(1)-w*(vout(1)-vect(1)) ! x
+          yz0 = vect(2)-w*(vout(2)-vect(2)) ! y
+          cx0 = vect(4)-w*(vout(4)-vect(4)) ! cx
+          cy0 = vect(5)-w*(vout(5)-vect(5)) ! cy
+          cz0 = vect(6)-w*(vout(6)-vect(6)) ! cz
+          RZ0 = vect(7)-w*(vout(7)-vect(7)) ! Rz0
+        endif
+
         nnn=max(int(6./step),2)
         DO j=1,nnn !!!! fix close planes problem (AMS02)
           zz=zc(np+1)
@@ -607,7 +635,8 @@ c     +                    ,'TRD ','TOF1','TOF2','RICH'/             ! Debug
 
 *     ------------ correction factors for density ---------------
       real*8 dd(10)
-     + /0.89,1.056,1.033,1.042,1.077,1.089,0.93,0.877,0.602,0.981/
+     + /0.99,1.156,1.133,1.142,1.177,1.189,0.93,0.877,0.602,0.981/ ! +0.1
+c     + /0.89,1.056,1.033,1.042,1.077,1.089,0.93,0.877,0.602,0.981/
 *       <-----------   Si   ------------->  TRD  TOF1  TOF2  RICH
 *     ===========================================================
       dE=0.
@@ -1779,19 +1808,6 @@ C.
       Field(1)=F(1)
       Field(2)=F(2)
       Field(3)=F(3)
-      end
-
-*--------1---------2---------3---------4---------5---------6---------7--
-      Real function Fu(z) ! For Mag.Field integration by Gauss
-*     --------------------------------------------------------
-      Implicit none
-      real x,y,z
-      data x/0./,y/0./
-      real xyz(3)   ,fld(3)
-      data xyz/3*0./,fld/3*0./
-      xyz(3)=z
-      call Gufld(xyz,fld)
-      Fu = fld(1)
       end
 
 *=======================================================================
