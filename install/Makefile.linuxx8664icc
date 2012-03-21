@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.16 2012/03/16 08:52:14 choutko Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.17 2012/03/21 15:37:34 choutko Exp $
 
 # General clean up and reorganization
 #
@@ -61,6 +61,10 @@ endif
 
   INTELDIR=/opt/intel/
   INTELVER=Compiler/11.1/073/
+ifdef SLC6system
+  INTELVER=composer_xe_2011_sp1.9.293/compiler/
+endif
+#  INTELVER=composer_xe_2011_sp1.9.293/compiler/
   INTELOPT=-axsse4.2,ssse3 
   FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL)
   CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) -vec-report0  $(PARALLEL)
@@ -69,7 +73,7 @@ endif
   FFOLD=$(FF)  -save
   FFLAGSSAVE= -save
   FORTRAN_LIBS=
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64    -lifport -lifcoremt -limf  -lipgo -lirc_s -lguide 
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64    -lifport -lifcoremt -limf  -lipgo -lirc_s
 
 ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
