@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.45 2012/03/16 09:28:14 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.46 2012/03/22 11:24:29 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -420,6 +420,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   for(int i=first;i<=last;i++) ZOffset+=history.Events.at(i).RawHit[2];
   ZOffset/=total;
 
+
   // Counter
   Events=0;
 
@@ -427,9 +428,41 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   // Store the following informatio per class
   map<int,CLASSINFO> classInfo;
   map<int,vector<double> > dx[2];
+  vector<double>  temp;
   
-#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0])>0.03?100+_class:_class)
+  //#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0])>0.03?100+_class:_class)
+
+#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0]-dz*tan(_ev.TrackTheta)*(which==0?cos(_ev.TrackPhi):sin(_ev.TrackPhi)))>0.03?100+_class:_class)
   
+
+
+  //////////////////////// Compute the Z correction first
+  temp.clear();
+  for(int i=first;i<=last;i++){
+    if(excluded.count(i)>0) continue;
+    DynAlEvent &ev=history.Events.at(i);
+    ev.extrapolateTrack();
+    int Class=ev.getClass();
+    if(Class!=0) continue;
+    temp.push_back(ev.TrackHit[0]-ev.RawHit[0]);
+  }
+  double delta,rms;
+  findPeak(temp,PEAKFRACTION,-3,3,delta,rms,10000);
+  temp.clear();
+  for(int i=first;i<=last;i++){
+    if(excluded.count(i)>0) continue;
+    DynAlEvent &ev=history.Events.at(i);
+    ev.extrapolateTrack();
+    int Class=ev.getClass();
+    if(Class!=0) continue;
+    double v=tan(ev.TrackTheta)*cos(ev.TrackPhi);
+    temp.push_back((ev.TrackHit[0]-ev.RawHit[0]-delta)/v);
+
+  }
+  double dz;
+  findPeak(temp,PEAKFRACTION,-1,1,dz,rms,10000);
+  ////////////////////////////////////////////////////////////////
+
 
   for(int which=0;which<2;which++){  // Loop in the axis
     // Fill the information to determine each class qualities
@@ -439,10 +472,11 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       ev.extrapolateTrack();
       int Class=ev.getClass();
       if(Class<0) continue;
+      double v=dz*tan(ev.TrackTheta)*(which==0?cos(ev.TrackPhi):sin(ev.TrackPhi));
       if(which==0)
-	dx[which][Class].push_back(ev.TrackHit[which]-ev.RawHit[which]);
+	dx[which][Class].push_back(ev.TrackHit[which]-ev.RawHit[which]-v);
       else
-	dx[which][SubClass(Class,ev)].push_back(ev.TrackHit[which]-ev.RawHit[which]);
+	dx[which][SubClass(Class,ev)].push_back(ev.TrackHit[which]-ev.RawHit[which]-v);
     }
     
     int worstClass[2]={-1,1};
@@ -469,17 +503,19 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 
       //#define VERBOSE__
 #ifdef VERBOSE__
-      if(which==1)
+      //      if(which==1){
+      if(1){
 	cout<<"INFO FOR CLASS "<<Class<<endl
 	    <<" MEAN X="<<info.mean[0]<<" Y="<<info.mean[1]<<endl
 	    <<" RMS X="<<info.rms[0]<<" Y="<<info.rms[1]<<endl
 	    <<" ENTRIES "<<info.entries[0]<<" "<<info.entries[1]<<endl;
+	cout<<"DZ IS "<<dz<<endl;
+      }
+#undef VERBOSE__
 #endif
       
     }
 
-
-    
 #ifdef VERBOSE__
     int entriesPerClass[10]={0,0,0,0,0,0,0,0,0,0};
     double meanTime=0;
@@ -498,6 +534,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       //      if(classInfo[Class].entries[which]<100) continue;
       if(classInfo[Class].entries[which]<100) Class=worstClass[which]; // Recover the events
       
+
       // Shift the Z origin
       double zHit=event.RawHit[2]-ZOffset;
       double zTr=event.TrackHit[2]-ZOffset;
@@ -507,16 +544,19 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       float &yHit=event.RawHit[1];
       float &xTr=event.TrackHit[0];
       float &yTr=event.TrackHit[1];
+
       
       time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
       time/=TIMEUNIT;  // Simplify a bit the computation
       
-
+      double sigmasCut=2.5;
+      double vx=dz*tan(event.TrackTheta)*cos(event.TrackPhi);
+      double vy=dz*tan(event.TrackTheta)*sin(event.TrackPhi);
       if(classInfo[Class].rms[0]>1e-6)
-	if(fabs(xTr-xHit-classInfo[Class].mean[0])>2*classInfo[Class].rms[0]) continue;
+	if(fabs(xTr-xHit-classInfo[Class].mean[0]-vx)>sigmasCut*classInfo[Class].rms[0]) continue;
 
       if(classInfo[Class].rms[1]>1e-6)
-		if(fabs(yTr-yHit-classInfo[Class].mean[1])>2*classInfo[Class].rms[1]) continue;
+	if(fabs(yTr-yHit-classInfo[Class].mean[1]-vy)>sigmasCut*classInfo[Class].rms[1]) continue;
 
 
       double v;
