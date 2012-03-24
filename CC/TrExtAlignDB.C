@@ -223,7 +223,7 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 
     if(DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.size()){
       if(layerJ[i]==1)	pl->posA=pl->posA+AMSPoint(1.74e-4,1.95e-4,-80e-4);
-      if(layerJ[i]==9)  pl->posA=pl->posA+AMSPoint(3.54e-4,3.32e-4,47e-4);
+      if(layerJ[i]==9)  pl->posA=pl->posA+AMSPoint(3.54e-4,3.32e-4,80e-4);
     }
 
 
