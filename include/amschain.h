@@ -140,8 +140,8 @@ private:
   set<int> _RUNs;
 
   ull  GetRE(int run,int event);
-  uint GetRun(ull re){ return re>>32;}
-  uint GetEvent(ull re){ return re&0xFFFFFFFF;}
+  unsigned int GetRun(ull re){ return re>>32;}
+  unsigned int GetEvent(ull re){ return re&0xFFFFFFFF;}
 public:
   AMSEventList(); ///< Default Constructor
   AMSEventList(const char* filename); ///< Constructor with an already existing list
