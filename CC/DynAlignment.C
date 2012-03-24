@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.47 2012/03/24 07:12:57 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.48 2012/03/24 08:16:53 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -455,7 +455,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     ev.extrapolateTrack();
     int Class=ev.getClass();
     if(Class!=0) continue;
-    double v=tan(ev.TrackTheta)*cos(ev.TrackPhi);
+    double v=tan(ev.TrackTheta)*sin(ev.TrackPhi);
     temp.push_back((ev.TrackHit[1]-ev.RawHit[1]-delta)/v);
 
   }
@@ -594,7 +594,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   }
   
   if(Fit.Eval()) return false;
-  
+
 #ifdef VERBOSE__
   //////////// TEST
   RetrieveFitPar(0,0);
