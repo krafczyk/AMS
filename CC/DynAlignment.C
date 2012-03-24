@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.46 2012/03/22 11:24:29 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.47 2012/03/24 07:12:57 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -432,7 +432,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
   
   //#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0])>0.03?100+_class:_class)
 
-#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0]-dz*tan(_ev.TrackTheta)*(which==0?cos(_ev.TrackPhi):sin(_ev.TrackPhi)))>0.03?100+_class:_class)
+#define SubClass(_class,_ev) (fabs(_ev.TrackHit[0]-_ev.RawHit[0]-classInfo[_class].mean[0]-dz*tan(_ev.TrackTheta)*cos(_ev.TrackPhi))>0.03?100+_class:_class)
   
 
 
@@ -444,7 +444,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     ev.extrapolateTrack();
     int Class=ev.getClass();
     if(Class!=0) continue;
-    temp.push_back(ev.TrackHit[0]-ev.RawHit[0]);
+    temp.push_back(ev.TrackHit[1]-ev.RawHit[1]);
   }
   double delta,rms;
   findPeak(temp,PEAKFRACTION,-3,3,delta,rms,10000);
@@ -456,7 +456,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
     int Class=ev.getClass();
     if(Class!=0) continue;
     double v=tan(ev.TrackTheta)*cos(ev.TrackPhi);
-    temp.push_back((ev.TrackHit[0]-ev.RawHit[0]-delta)/v);
+    temp.push_back((ev.TrackHit[1]-ev.RawHit[1]-delta)/v);
 
   }
   double dz;
