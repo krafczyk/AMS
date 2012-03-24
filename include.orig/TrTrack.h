@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.76 2012/03/16 18:08:34 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.77 2012/03/24 15:18:47 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/03/16 18:08:34 $
+///$Date: 2012/03/24 15:18:47 $
 ///
-///$Revision: 1.76 $
+///$Revision: 1.77 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -366,7 +366,7 @@ public:
     \li 0 The default algorithm choosen at recon stage (if you select this, you cannot use the other param)
     \li 1 Choutko;
     \li 2 Alcaraz;
-    \li 3 ChikanianF (the original A. Chikanian algo not for refit);
+    \li 3 ChikanianF (the original A. Chikanian algo );
     \li 4 ChikanianC (Chikanin C version, in development not for general use);
     \li +10 mscattering off. Means that the MScat inside the algo is off and some manual weighting is applied;
     \li +20 same weight. No MScat treatment at all;
