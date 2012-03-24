@@ -5,6 +5,10 @@ OBJDIR         := obj
 BINDIR         := bin
 CXX            :=$(shell root-config --cxx)
 
+ifndef AMSWD
+AMSWD := ..
+endif
+
 ### Options
 CINT           := $(ROOTSYS)/bin/rootcint
 ROOTCFG        := $(ROOTSYS)/bin/root-config
@@ -19,7 +23,10 @@ CXXFLAGS       += $(shell $(ROOTCFG) --cflags)
 DEFINES        := -I../include -I$(INCDIR) -I$(OBJDIR)
 ARCH           := $(shell $(ROOTCFG) --arch)
 LIBS           := -L$(AMSWD)/lib/$(ARCH)/ -lntuple_slc4_PG
-LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lRFIO 
+LIBS           += $(shell $(ROOTCFG) --glibs) -lRIO -lTree -lThread -lGpad -lNet -lNetx -lHist -lMinuit -lHistPainter -lGraf -lMatrix -lTMVA
+ifneq ($(ARCH),macosx64)
+LIBS           += -lRFIO
+endif
 
 ### Additional Classes Dictionary  
 CLASSES        := CalPars SliderI CalSlider MonSlider GenericSlider ToggleButton ButtonPanel InteractionPanel SearchPanel TrackerPanel TimerPanel MonitorUI CalList
@@ -86,7 +93,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.C
 ### ROOT Dictionary
 $(DICTSOURCE):
 	@echo Creating $@ ROOT dictionary ...
-	$(CINT) -f $@ -c $(DEFINES) $(DICTINC)
+	$(CINT) -f $@ -c -p $(DEFINES) $(DICTINC)
 
 ### Clean
 clean:
