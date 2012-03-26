@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.718 2012/03/21 15:43:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.719 2012/03/26 14:57:57 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -15843,7 +15843,7 @@ sub resetFilesProcessingFlag {
 # file processing or runs validation
 #
     my $self = shift;
-
+    my $local=shift;
 
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'casadmva') {
@@ -15855,7 +15855,10 @@ sub resetFilesProcessingFlag {
    my $timenow = time();
    my $sql = "update FilesProcessing set flag = -1, timestamp=$timenow";
    $self->{sqlserver}->Update($sql);
-
+    if(defined $local){
+     $sql = "update FilesProcessing set flaglocal = -1, timestamp=$timenow";
+     $self->{sqlserver}->Update($sql);
+ }
 }
 
 sub initFilesProcessingFlag {
@@ -15869,7 +15872,6 @@ sub initFilesProcessingFlag {
 
     my $sql = "update  filesprocessing set flag=1 ";
     $self->{sqlserver}->Update($sql);
-    $sql = "update filesprocessing set timestamp=$timenow";
     $self->{sqlserver}->Update($sql);
 }
 
