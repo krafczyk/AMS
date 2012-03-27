@@ -1649,6 +1649,10 @@ class RemoteClient:
                        print e
                        print "Problem to getoutputpath file ",path
                        return None,0,None,0
+                   except OSError,e:
+                       print e
+                       print "Problem to getoutputpath file ",path
+                       return None,0,None,0
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
