@@ -708,7 +708,7 @@ class RemoteClient:
         self.valStTime=timenow
         sql = "SELECT flaglocal, timestamplocal from FilesProcessing"
         ret = self.sqlserver.Query(sql)
-        if(ret[0][0]==1 and timenow-ret[0][1]<100000 and force==0):
+        if(ret[0][0]==1 and timenow-ret[0][1]<86400 and force==0):
             print "ValidateRuns-E-ProcessingFlagSet on ",ret[0][1]," exiting"
             return 0
         else: 
@@ -1643,10 +1643,16 @@ class RemoteClient:
                while(stime>60):
                    if(odisk!=None):
                        fsmutexes[odisk].release()
-                   (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
+                   try:
+                       (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
+                   except IOError,e:
+                       print e
+                       print "Problem to getoutputpath file ",path
+                       return None,0,None,0
                    print "acquired:  ",outputpatha,gb,odisk,stime
                outputpath=outputpatha[:]
                if(outputpath.find('xyz')>=0 or gb==0):
+                   self.setprocessingflag(0,timenow,1)
                    sys.exit("doCopy-F-CannotFindAnyDisk Exit")
            else:
                junk=outputpath.split('/')
