@@ -1,5 +1,5 @@
 #include "MonSlider.h"
-
+#include "TGaxis.h"
 
 ClassImp(MonSlider);
 
@@ -439,8 +439,37 @@ void MonSlider::DrawRawEntries(int alternative) {
   pad1->SetGridx();
   TH2D* entries_n = (TH2D*) GetHisto(rootfile,"RawEntries_entries_N");
   if (entries_n==0) { canvas->Update(); return; }
+  TH2D* clone = 0;
+  clone = (TH2D*)entries_n->Clone("RawEntries_entries_N_clone");
+  for (int jj=1; jj<=clone->GetNbinsY(); jj++) {
+    int y=0;
+    if (jj==8) y=1;
+    else if (jj==9) y=9;
+    else y=jj+1;
+    for (int ii=1; ii<=clone->GetNbinsX(); ii++) {
+      clone->SetBinContent(ii, y, entries_n->GetBinContent(ii, jj));
+    }
+  }
+  //salvo nell' histo originale e inverto l'ordine, conto i bin pieni, calcolo la media 
+  int nbins_pieni=0;
+  double total_entries=0;
+  for (int ii=1; ii<=clone->GetNbinsX(); ii++) {
+    for (int jj=1; jj<=clone->GetNbinsY(); jj++) {
+      double ent=clone->GetBinContent(ii, jj);
+      total_entries+=ent;
+      if (ent) nbins_pieni++;
+      entries_n->SetBinContent(ii, 10-jj, ent);
+    }
+  }
+  entries_n->Scale(1.0/(total_entries/nbins_pieni));
+  if (clone) delete clone;
   entries_n->SetStats(kFALSE);
+  entries_n->GetYaxis()->SetLabelColor(kWhite);
+  entries_n->GetYaxis()->SetTickLength(0.0);
   entries_n->Draw("COLZ");
+  static TF1 *f1=new TF1("f1","-x", 0.5, 9.5);
+  static TGaxis *axis = new TGaxis(-15.5, 0.5, -15.5, 9.5, "f1", 510, "-");
+  axis->Draw("SAME");
   text->DrawTextNDC(0.1,0.91,"X-Side");
 
   // y-side
@@ -450,8 +479,36 @@ void MonSlider::DrawRawEntries(int alternative) {
   pad2->SetGridx();
   TH2D* entries_p = (TH2D*) GetHisto(rootfile,"RawEntries_entries_P");
   if (entries_p==0) { canvas->Update(); return; }
+  TH2D* clone2 = 0;
+  clone2 = (TH2D*)entries_p->Clone("RawEntries_entries_P_clone");
+  for (int jj=1; jj<=clone2->GetNbinsY(); jj++) {
+    int y=0;
+    if (jj==8) y=1;
+    else if (jj==9) y=9;
+    else y=jj+1;
+    for (int ii=1; ii<=clone2->GetNbinsX(); ii++) {
+      clone2->SetBinContent(ii, y, entries_p->GetBinContent(ii, jj));
+    }
+  }
+  //salvo nell' histo originale e inverto l'ordine, conto i bin pieni, calcolo la media 
+  int nbins_pieni2=0;
+  double total_entries2=0;
+  for (int ii=1; ii<=clone2->GetNbinsX(); ii++) {
+    for (int jj=1; jj<=clone2->GetNbinsY(); jj++) {
+      double ent=clone2->GetBinContent(ii, jj);
+      total_entries2+=ent;
+      if (ent) nbins_pieni2++;
+      entries_p->SetBinContent(ii, 10-jj, ent);
+    }
+  }
+  entries_p->Scale(1.0/(total_entries2/nbins_pieni2));
+  if (clone2) delete clone2;
   entries_p->SetStats(kFALSE);
+  entries_p->GetYaxis()->SetLabelColor(kWhite);
+  entries_p->GetYaxis()->SetTickLength(0.0);
   entries_p->Draw("COLZ");
+  static TGaxis *axis2 = new TGaxis(-15.5, 0.5, -15.5, 9.5, "f1", 510, "-");
+  axis2->Draw("SAME");
   text->DrawTextNDC(0.1,0.91,"Y-Side");
   canvas->Update();
 }
@@ -471,8 +528,37 @@ void MonSlider::DrawTrackEntries(int alternative) {
   pad1->SetGridx();
   TH2D* entries_n = (TH2D*) GetHisto(rootfile,"TrackEntries_entries_N");
   if (entries_n==0) { canvas->Update(); return; }
+  TH2D* clone = 0;
+  clone = (TH2D*)entries_n->Clone("TrackEntries_entries_N_clone");
+  for (int jj=1; jj<=clone->GetNbinsY(); jj++) {
+    int y=0;
+    if (jj==8) y=1;
+    else if (jj==9) y=9;
+    else y=jj+1;
+    for (int ii=1; ii<=clone->GetNbinsX(); ii++) {
+      clone->SetBinContent(ii, y, entries_n->GetBinContent(ii, jj));
+    }
+  }
+  //salvo nell' histo originale e inverto l'ordine, conto i bin pieni, calcolo la media 
+  int nbins_pieni=0;
+  double total_entries=0;
+  for (int ii=1; ii<=clone->GetNbinsX(); ii++) {
+    for (int jj=1; jj<=clone->GetNbinsY(); jj++) {
+      double ent=clone->GetBinContent(ii, jj);
+      total_entries+=ent;
+      if (ent) nbins_pieni++;
+      entries_n->SetBinContent(ii, 10-jj, ent);
+    }
+  }
+  entries_n->Scale(1.0/(total_entries/nbins_pieni));
+  if (clone) delete clone;
   entries_n->SetStats(kFALSE);
+  entries_n->GetYaxis()->SetLabelColor(kWhite);
+  entries_n->GetYaxis()->SetTickLength(0.0);
   entries_n->Draw("COLZ");
+  static TF1 *f1=new TF1("f1","-x", 0.5, 9.5);
+  static TGaxis *axis = new TGaxis(-15.5, 0.5, -15.5, 9.5, "f1", 510, "-");
+  axis->Draw("SAME");
   text->DrawTextNDC(0.1,0.91,"X-Side");
 
   // y-side
@@ -482,8 +568,36 @@ void MonSlider::DrawTrackEntries(int alternative) {
   pad2->SetGridx();
   TH2D* entries_p = (TH2D*) GetHisto(rootfile,"TrackEntries_entries_P");
   if (entries_p==0) { canvas->Update(); return; }
+  TH2D* clone2 = 0;
+  clone2 = (TH2D*)entries_p->Clone("TrackEntries_entries_P_clone");
+  for (int jj=1; jj<=clone2->GetNbinsY(); jj++) {
+    int y=0;
+    if (jj==8) y=1;
+    else if (jj==9) y=9;
+    else y=jj+1;
+    for (int ii=1; ii<=clone2->GetNbinsX(); ii++) {
+      clone2->SetBinContent(ii, y, entries_p->GetBinContent(ii, jj));
+    }
+  }
+  //salvo nell' histo originale e inverto l'ordine, conto i bin pieni, calcolo la media 
+  int nbins_pieni2=0;
+  double total_entries2=0;
+  for (int ii=1; ii<=clone2->GetNbinsX(); ii++) {
+    for (int jj=1; jj<=clone2->GetNbinsY(); jj++) {
+      double ent=clone2->GetBinContent(ii, jj);
+      total_entries2+=ent;
+      if (ent) nbins_pieni2++;
+      entries_p->SetBinContent(ii, 10-jj, ent);
+    }
+  }
+  entries_p->Scale(1.0/(total_entries2/nbins_pieni2));
+  if (clone2) delete clone2;
   entries_p->SetStats(kFALSE);
+  entries_p->GetYaxis()->SetLabelColor(kWhite);
+  entries_p->GetYaxis()->SetTickLength(0.0);
   entries_p->Draw("COLZ");
+  static TGaxis *axis2 = new TGaxis(-15.5, 0.5, -15.5, 9.5, "f1", 510, "-");
+  axis2->Draw("SAME");
   text->DrawTextNDC(0.1,0.91,"Y-Side");
   canvas->Update();
 }
