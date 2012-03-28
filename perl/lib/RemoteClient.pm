@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.720 2012/03/27 16:51:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.721 2012/03/28 13:44:58 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -115,7 +115,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks UploadToDisksDataFiles CheckCRC CheckCRCRaw CheckNTUnique MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
+@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks RemoveFromDisksDF  UploadToDisks UploadToDisksDataFiles CheckCRC CheckCRCRaw CheckNTUnique MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -19699,7 +19699,7 @@ sub UploadToDisks{
 #   1 if ok  0 otherwise
 #
 # 
-    my ($self,$dir,$verbose,$update,$run2p,$filesystem)= @_;
+    my ($self,$dir,$verbose,$update,$run2p,$filesystem,$force)= @_;
                                                                                 
     my $datamc=0;
     my $runsn='runs';
@@ -19758,7 +19758,7 @@ sub UploadToDisks{
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       $runs++;
-      if(defined $ret_nt->[0][0]){
+      if(defined $ret_nt->[0][0] && !$force){
        if($verbose){
         print "  Run $run->[0] $run->[1] has non-castor ntuples, ignored \n";
        }
@@ -19894,7 +19894,7 @@ sub UploadToDisksDataFiles{
 #   0 if ok  1 otherwise
 #
 # 
-    my ($self,$dir,$verbose,$update,$run2p,$filesystem)= @_;
+    my ($self,$dir,$verbose,$update,$run2p,$filesystem,$force)= @_;
                                                                                 
     my $datamc=0;
     my $runsn='runs';
@@ -19933,12 +19933,12 @@ sub UploadToDisksDataFiles{
     }
     if($did>0){
     if($run2p eq 0){
-    $sql = "SELECT run  from datafiles  where  datamc=$datamc and path like '$castorPrefix%$dir%'";
+    $sql = "SELECT run  from datafiles  where  path like '$dir%'";
     print " run not defined $run2p \n";
     return 1;
 }
    else{ 
-    $sql = "SELECT run  from datafiles  where  datamc=$datamc and path like '$castorPrefix%$dir%' and run=$run2p";
+    $sql = "SELECT run  from datafiles  where   path like '%$dir%' and run=$run2p";
 
 }
 }
@@ -19954,7 +19954,7 @@ sub UploadToDisksDataFiles{
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       $runs++;
-      if(defined $ret_nt->[0][0]){
+      if(defined $ret_nt->[0][0] and !$force){
        if($verbose){
         print "  Run $run->[0] $run->[1] has non-castor ntuples, ignored \n";
        }
@@ -19962,7 +19962,7 @@ sub UploadToDisksDataFiles{
 #       $bad_runs++;  
 #       next;
       }
-       $sql="select path,crc from datafiles where  run=$run->[0] and path like '$castorPrefix%' and castortime>0 "; 
+       $sql="select path,crc from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
         my $dir=undef;
@@ -19981,7 +19981,6 @@ sub UploadToDisksDataFiles{
          if($verbose){
            print "  No FileSystem Available, Exiting \n ";
          }
-         return 1;
          last;
         }
          my $cp=$castorPrefix;
@@ -19997,15 +19996,16 @@ sub UploadToDisksDataFiles{
           if($verbose){
            print "  FileSystem $dir is not writeable, Exiting \n ";
          }
-         return 1;
          last;
         }
        }
        my @files=();
        $#files=-1;
        my $local=undef;
+       my $clocal=undef;
        foreach my $ntuple (@{$ret_nt}){
          my @junk=split '\/',$ntuple->[0];
+         $clocal=$ntuple->[0];         
          $local=$dir."/$junk[$#junk]";
          my $sys=$rfcp.$ntuple->[0]." $local";
          my $i=system($sys);
@@ -20015,7 +20015,6 @@ sub UploadToDisksDataFiles{
           if($verbose){
             print " $sys failed \n";
           }
-          return 1;
           last;
          }
          else{
@@ -20027,7 +20026,6 @@ sub UploadToDisksDataFiles{
               print "$local crc error:  $rstatus \n";
            }     
            $suc=0;
-           return 1;
            last;
           }
          }
@@ -20046,13 +20044,17 @@ sub UploadToDisksDataFiles{
 # run successfully copied
 #
                foreach my $file (@files){ 
-                 system("rm $file");
+#                 system("rm $file");
               } 
               if($verbose){
                 print " Run $run->[0]  processed \n";
               }
-          }
-    return 0,$local;
+           }
+       my $ret=0;
+       if(!$suc){
+           $ret=1;
+       }
+    return $ret,$local,$clocal;
    }
 }
 
@@ -20194,13 +20196,20 @@ sub MoveBetweenDisks{
 #   
 # only for ntuples for the moment
 #
+             my @jnk=split '\/',$dir;
+             my $dird="";
+
+             for my $j (2...$#jnk){
+              $dird=$dird.'/'.$jnk[$j];
+             }
              if($ds1->[1]>0 and $ntuples eq 'ntuples'){
-                 my $ok1=$self->RemoveFromDisks($dir,$verbose,$update,$irm,$tmp,$run,1);
-                 my $ok2=$self->UploadToDisks($dir,$verbose,$update,$run,$disk);
+                 my $ok1=$self->RemoveFromDisks($dir,$verbose,$update,$irm,$tmp,$run,1,1);
+                 my $ok2=$self->UploadToDisks($dird,$verbose,$update,$run,$disk,1);
                  last;
              }
              elsif($ds1->[1]>0 and $ntuples eq 'datafiles'){
-                 ($i,$newfile)=$self->UploadToDisksDataFiles($dir,$verbose,$update,$run,$disk);
+                 my $ok1=$self->RemoveFromDisksDF($dir,$verbose,$update,$irm,$tmp,$run,1,1);
+                 ($i,$newfile,$file)=$self->UploadToDisksDataFiles($dird,$verbose,$update,$run,$disk,1);
              }
          }
          if(!$i and defined $newfile and $file ne $newfile ){
@@ -20277,7 +20286,7 @@ sub RemoveFromDisks{
 #  output par:
 #   1 if ok  0 otherwise
 #
-    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify)= @_;
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force)= @_;
     if(system("mkdir -p $tmp;touch $tmp/qq")){
       if($verbose){
         print " Unable to write $tmp \n "
@@ -20409,7 +20418,7 @@ sub RemoveFromDisks{
           }
          }
       }
-      if(!$suc){
+      if(!$suc && !$force){
        if($verbose){
           print " Run $run->[0]  failed \n";
        }
@@ -20432,7 +20441,7 @@ sub RemoveFromDisks{
                        for my $j (3...$#junk){
                         $castor=$castor."/$junk[$j]";
                     }
-              }
+                   }
                    else{
                     my @junk=split $name_s,$ntuple->[0];
                      $castor=$castor."/$name$junk[1]";
@@ -20447,6 +20456,229 @@ sub RemoveFromDisks{
                  my $newp=$ntuple->[0];
                  $newp=~s/^# //;
 #                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
+ 
+                }
+                $i=system($sys);
+                if(!$i){
+                  $self->{sqlserver}->Update($sql);
+                }
+                else{
+                 if($verbose){
+                  print " Unable to $sys \n";
+                 }
+                 $bad_runs++;
+                 last;
+                }
+
+               }
+               my $res=$self->{sqlserver}->Commit();
+               if(!$res){
+                 if($verbose){
+                   print " Commit failed for run $run->[0] \n";
+                 }
+               }
+              }
+      if($verbose){
+          print " Run $run->[0]  processed \n";
+       }
+     }
+    }
+    my $sys="$irm $tmp/*";
+    system($sys);
+    print "Total Of $runs Selected.  Total Of $bad_runs  Failed \n";
+
+}
+
+
+
+
+sub RemoveFromDisksDF{
+#
+# check castor files compare them with local ones
+# update datafiles table
+# remove files from disks disks
+# 
+# input par:
+#  $dir:   path to local files like /disk/MC/AMS02/2005A/dir
+#                                   /disk /MC  /dir are optional ones
+#  $verbose   verbose if 1 
+#  $update    do sql/file rm  if 1
+#  $irm       rm -i      if 1
+#  $tmp  path to temporarily storage castorfiles
+#  $run2p   only process run $run2p if not 0
+#  $notverify do not verify cstor file exists (only to be used to remove useless data!!!!)
+#  output par:
+#   1 if ok  0 otherwise
+#
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify,$force)= @_;
+    if(system("mkdir -p $tmp;touch $tmp/qq")){
+      if($verbose){
+        print " Unable to write $tmp \n "
+      }
+      return 0;
+    } 
+    if($irm){
+        $irm="rm -i ";
+    }
+    else{
+        $irm="rm ";
+    }
+    my $datamc=0;
+    my $runsn='runs';
+  my $castorPrefix = '/castor/cern.ch/ams/MC';
+    if ($dir=~'/Data/'){
+     $castorPrefix = '/castor/cern.ch/ams/Data';
+     $datamc=1;
+     $runsn='dataruns';
+    }
+  my $rfcp="/usr/bin/rfcp ";    
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' ) {
+  } elsif(defined $whoami) {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+   my $runs=0;
+   my $bad_runs=0;
+   my $sql ="select name,did from productionset";
+   my $ret =$self->{sqlserver}->Query($sql);
+    my $did=-1;
+    my $name="";
+   foreach my $ds (@{$ret}){
+    if($dir=~/$ds->[0]/){
+        $did=$ds->[1];
+        $name=$ds->[0];
+        last;
+    }
+   } 
+    my $name_s=$name;
+    $name_s=~s/\//\\\//g;
+    if($did<0){
+        if($verbose){
+            print "No datasets found for $dir \n";
+        }
+        if($run2p eq 0){
+           return 0;
+       }
+    }
+ if($did>0){   
+    $sql = "SELECT run from datafiles where  path like '%$dir%'";
+if($run2p){
+    $sql = "SELECT run from datafiles where  path like '%$dir%'and run=$run2p";
+}
+
+}
+    else{
+        printf "Unable to find Dataset $dir \n";
+        return 0;
+    }
+   $ret =$self->{sqlserver}->Query($sql);
+    foreach my $run (@{$ret}){
+       my $timenow = time();
+    if($run2p ne 0 and $run2p ne $run->[0]){
+      next;
+    }
+        $sql="select path,crc from datafiles where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%' ";
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+      my $suc=1;
+      if(not defined $ret_nt->[0][0]){
+        next;
+      }
+      $runs++;
+      my $sys="$irm $tmp/*";
+      my $i=system($sys);
+      foreach my $ntuple (@{$ret_nt}){
+         if($ntuple->[0]=~/^#/){
+          next;
+         }
+         my @junk=split $name_s,$ntuple->[0];
+         my $castor=$castorPrefix."/$name$junk[1]";
+         my @junk2=split /\//,$ntuple->[0];
+         $sys=$rfcp.$castor." $tmp";
+         if($notverify){
+            my $ctmp="/tmp/castor.tmp";
+           $sys="/usr/bin/nsls -l $castor 1> $ctmp 2>\&1";
+           system($sys);
+           my $ltmp="/tmp/local.tmp";
+           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          $i=system($sys);
+            if(not $i){
+                 open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
+                 my $line_c = <FILE>;
+                 close FILE;
+                 open(FILE,"<$ltmp") or die "Unable to open $ltmp \n";
+                 my $line_l = <FILE>;
+                 close FILE;
+                 unlink $ctmp;
+                 unlink $ltmp;
+                 my @size_l= split ' ',$line_l;
+                 my @size_c= split ' ',$line_c;
+                 if(($#size_c<4 or not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor $line_c $line_l \n";
+                 $i=2;       
+              }
+             }
+          }
+         else{
+          $i=system($sys);
+         }
+         if($i){
+          $suc=0;
+          if($verbose){
+            print " $sys failed \n";
+          }
+          last;     
+         }
+         else{
+          my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $tmp/$junk2[$#junk2]  $ntuple->[1]";
+          my $rstatus   = system($crccmd);
+          $rstatus=($rstatus>>8);
+          if($notverify){
+           $rstatus=1;
+          }
+          if($rstatus!=1){
+           if($verbose){
+              print "$castor crc error:  $rstatus \n";
+           }  
+           $suc=0;
+           last;
+          }
+         }
+      }
+      if(!$suc && !$force){
+       if($verbose){
+          print " Run $run->[0]  failed \n";
+       }
+       $bad_runs++;
+      }
+      else{
+#
+# run successfully copied
+# 
+              
+              if($update){
+               foreach my $ntuple (@{$ret_nt}){
+                   my $castor=$castorPrefix;
+                   if($did<0){
+                       my @junk=split '\/',$ntuple->[0];
+                       for my $j (3...$#junk){
+                        $castor=$castor."/$junk[$j]";
+                    }
+                   }
+                   else{
+                    my @junk=split $name_s,$ntuple->[0];
+                     $castor=$castor."/$name$junk[1]";
+                   }
+                $sql="update datafiles set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
+                $self->{sqlserver}->Update($sql);
+                $self->datasetlink($ntuple->[0],"/Offline/DataSetsDir",0);
+                
+                $sys=$irm." $ntuple->[0]";
+                if($ntuple->[0]=~/^#/){
+                 $sys="sleep 1";
+                 my $newp=$ntuple->[0];
+                 $newp=~s/^# //;
  
                 }
                 $i=system($sys);

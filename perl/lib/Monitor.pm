@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.158 2012/03/18 10:34:24 ams Exp $
+# $Id: Monitor.pm,v 1.159 2012/03/28 13:44:58 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '/usr/include/server.idl'];
@@ -1703,7 +1703,7 @@ sub RemoveRuns{
 #    print "  $rdst{FilePath}   $rdst{Status} \n";
 #
 #      if($rdst{Run}>1324408120 and $rdst{Run}<1330000000){
-     if(  $rdst{Status} eq "Allocated" and $rdst{FilePath} =~/calib/ ){
+     if(  $rdst{Status} eq "Canceled" and $rdst{FilePath} =~/calib/ ){
          print "restoring $rdst{uid} \n";
          $rdst{Status} = "Finished";
 #     if( $rdst{Status} eq "ToBeRerun" and  $rdst{FilePath} =~/pass2/){
