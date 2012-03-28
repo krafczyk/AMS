@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.853 2012/02/23 09:22:30 choutko Exp $
+// $Id: job.C,v 1.854 2012/03/28 07:27:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3540,12 +3540,12 @@ void AMSJob::_timeinitjob(){
     for(int n=1;n<3;n++)
       TID.add (new AMSTimeID(AMSID(TrdHChargeR::gethead()->GetStringForTDVEntry(n).c_str(),isRealData()),
 			     begin,end,sizeof(TrdHChargeR::charge_hist_array[n][0])*1000,
-			     (void*)TrdHChargeR::charge_hist_array[n],server,isRealData()));
+			     (void*)TrdHChargeR::charge_hist_array[n],server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
     
     // single layers electron
     TID.add( new AMSTimeID(AMSID("TRDElectron",isRealData()),
 			   begin,end,sizeof(TrdHChargeR::electron_hist_array[0])*10000,
-			   (void*)TrdHChargeR::electron_hist_array,server,isRealData()));
+			   (void*)TrdHChargeR::electron_hist_array,server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
   }
 
   
