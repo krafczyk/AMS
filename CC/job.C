@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.854 2012/03/28 07:27:10 choutko Exp $
+// $Id: job.C,v 1.855 2012/03/29 19:37:05 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -870,7 +870,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MC-Seeds
   //  ECMCFFKEY.mev2mev=58.86;
-  ECMCFFKEY.mev2mev=28.96;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
+  ECMCFFKEY.mev2mev=29.56;  //(6) Geant dE/dX(MeV)->MCEmeas(=Evis,MeV,noRelGainsApplied,PmCouplingIncl, PE-fluct.incl)
   //                                                   to have Tot.MCMeas=Einp(at center,at 500 kev geant3 cut)
   //  ECMCFFKEY.mev2adc=2.042; //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->16th channel)(...) (for fendr=0.0)
   ECMCFFKEY.mev2adc=2.12585;  //inverse of adc2mev from Test Beam
@@ -903,11 +903,11 @@ void AMSJob::_siecaldata(){
   // 
   ECMCFFKEY.Sl_gap=0.01; // (31) gap on top/bottom of Superlayers
   ECMCFFKEY.HoneyRelDen=1.; // (32) HoneyComb Relative Density 
-  ECMCFFKEY.SbMassFrac=0.0287; // (33) Antimonium mass fraction in Lead-Antimonium (corresponds to 98% Lead relative density);
+  ECMCFFKEY.SbMassFrac=0.02; // (33) Antimonium mass fraction in Lead-Antimonium (corresponds to 98% Lead relative density);
   ECMCFFKEY.effmn=0.6;//(34) efficiency at the anode edge
   ECMCFFKEY.deffw=0.333; //(35) width of the anode inefficiency region from the anode edge 
-  ECMCFFKEY.cladgluex=0.01135; //(36) fiber clad+glue horizontal thickness (cm)  
-  ECMCFFKEY.cladgluey=0.01135; //(37) fiber clad+glue vertical thickness (cm) 
+  ECMCFFKEY.cladgluex=0.0108; //(36) fiber clad+glue horizontal thickness (cm)  
+  ECMCFFKEY.cladgluey=0.0108; //(37) fiber clad+glue vertical thickness (cm) 
   ECMCFFKEY.gap=0.; //(38) thickness (cm) of segments of glue between fibers of the same fiber layer
   ECMCFFKEY.endplate=1; // (39) If >0 insert an Aluminum plate at the end of last superlayer
   
@@ -1130,6 +1130,7 @@ void AMSJob::_reecaldata(){
   // for OnBoardPeds:
   ECCAFFKEY.onbpedspat=11; // (75) ijkl(binary bit-patt for peds|dynampeds|threshs|widths (msb->lsb) sections in table),
   //                                i(j,..)-bitset => section present
+  ECCAFFKEY.useTslope=1; // (76) 1/0: Use/don't use Temperature corrections at cell hit level
   //
   FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -3994,13 +3995,13 @@ void AMSJob::_timeinitjob(){
 
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
 			   begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
-			   (void*)&ECcalib::ecpmcal[0][0],server,needval));
+			   (void*)&ECcalib::ecpmcal[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
     end.tm_year=ECREFFKEY.year[1];    
     //--------  
     if((ECREFFKEY.ReadConstFiles%10000)/1000==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib(MC/RD).fromDB
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibTslo(),
 			   begin,end,ecalconst::ECPMSL*sizeof(ECTslope::ecpmtslo[0][0]),
-			   (void*)&ECTslope::ecpmtslo[0][0],server,needval));
+			   (void*)&ECTslope::ecpmtslo[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
     end.tm_year=ECREFFKEY.year[1];          
     //
     //--------                                
@@ -4008,7 +4009,7 @@ void AMSJob::_timeinitjob(){
 
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
 			   begin,end,sizeof(ECALVarp::ecalvpar),
-			   (void*)&ECALVarp::ecalvpar,server,needval));
+			   (void*)&ECALVarp::ecalvpar,server,needval&&(CALIB.SubDetRequestCalib%10)));
     end.tm_year=ECREFFKEY.year[1];
     //--------
     if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
@@ -4017,7 +4018,7 @@ void AMSJob::_timeinitjob(){
 
       TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),
 			     begin,end,ecalconst::ECPMSL*sizeof(ECcalibMS::ecpmcal[0][0]),
-			     (void*)&ECcalibMS::ecpmcal[0][0],server,needval));
+			     (void*)&ECcalibMS::ecpmcal[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
 
       end.tm_year=ECREFFKEY.year[1];
     }
@@ -4029,7 +4030,7 @@ void AMSJob::_timeinitjob(){
 	     
     TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVped(),
 			   begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
-			   (void*)&ECPMPeds::pmpeds[0][0],server,needval));
+			   (void*)&ECPMPeds::pmpeds[0][0],server,needval&&(CALIB.SubDetRequestCalib%10)));
     end.tm_year=ECREFFKEY.year[1];
     //-------- 
 	}
