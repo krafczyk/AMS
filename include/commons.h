@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.337 2012/01/12 17:01:47 mmilling Exp $
+//  $Id: commons.h,v 1.338 2012/03/29 19:38:12 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -517,6 +517,7 @@ class ECCAFFKEY_DEF {
   geant trextmax[2];   // cut of distance between track and shower exit
   //
   integer onbpedspat;  // bit-patt of present sections in OnBoardPed block
+  integer useTslope; // 1/0: Use/don't use Temperature corrections at cell hit level
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
 COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);

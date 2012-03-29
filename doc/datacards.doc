@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.369 2012/03/21 14:51:23 chchung Exp $
+#  $Id: datacards.doc,v 1.370 2012/03/29 19:38:32 sdifalco Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1206,7 +1206,7 @@ R 61  siglim[1] (10.) // High lim on rms to be accepted as good
 // for OnBoardPeds:
 I 75  onbpedspat(15)  //ijkl(bit-patt for peds|dynpeds|threshs|widths sections in table),
 //                           i(j,..)-bitset => section present
- 
+I 76 useTslope (1) //  1/0: Use/don't use Temperature corrections at cell hit level
 //--------------------------------------------------------------------------------
 
  AMS02 Anti Geometry
