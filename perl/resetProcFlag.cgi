@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: resetProcFlag.cgi,v 1.1 2012/03/26 14:57:47 choutko Exp $
+#  $Id: resetProcFlag.cgi,v 1.2 2012/04/04 09:50:09 ams Exp $
 use strict;
 
 
@@ -18,7 +18,7 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
 my $ok = $html->ConnectOnlyDB();
-   $ok = $html->resetFilesProcessingFlag();
+   $ok = $html->resetFilesProcessingFlag(1);
 
 
 

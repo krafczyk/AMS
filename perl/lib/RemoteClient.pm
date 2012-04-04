@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.721 2012/03/28 13:44:58 ams Exp $
+# $Id: RemoteClient.pm,v 1.722 2012/04/04 09:50:14 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -115,7 +115,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks RemoveFromDisksDF  UploadToDisks UploadToDisksDataFiles CheckCRC CheckCRCRaw CheckNTUnique MoveBetweenDisks UploadToCastor GroupRuns TestPerl );
+@RemoteClient::EXPORT= qw(new  datasetlink Connect  Warning ConnectDB ConnectOnlyDB  checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks RemoveFromDisksDF  UploadToDisks UploadToDisksDataFiles CheckCRC CheckCRCRaw CheckNTUnique MoveBetweenDisks CastorPrestage UploadToCastor GroupRuns TestPerl );
 
 # debugging
 my $benchmarking = 0;
@@ -19685,6 +19685,89 @@ sub CheckCRC{
     }
 }
 
+sub CastorPrestage{
+#
+#  prestage castor files 
+#
+# input par: #  $dir:   path to castor files like MC/AMS02/2005A/dir
+#                                     /dir are optional ones
+#  $verbose   verbose if 1
+#  $run2p   only process run $run2p if not 0
+#  output par:
+#   1 if ok  0 otherwise
+#
+# 
+    my ($self,$dir,$verbose,$run2p)= @_;
+    my $castorPrefix = '/castor/cern.ch/ams';
+                                                                                
+    my $datamc=0;
+                                                                                
+  my $rfcp="/usr/bin/stager_get -M ";
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' or $whoami =~'casadmva') {
+  } elsif(defined $whoami) {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+   my $sql ="select name,did from productionset";
+   my $ret =$self->{sqlserver}->Query($sql);
+    my $did=-1;
+    my $name="";
+   foreach my $ds (@{$ret}){
+    if($dir=~/$ds->[0]/){
+        $did=$ds->[1];
+        $name=$ds->[0];
+        last;
+    }
+   }
+    my $name_s=$name;
+    $name_s=~s/\//\\\//g;
+    if($did<=0){
+        if($verbose){
+            print "No datasets found for $dir \n";
+        }
+           return 0;
+    }
+    my @filetypes=('ntuples','datafiles');
+    foreach my $ntuples (@filetypes){
+    if($run2p eq 0){
+    $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%'";
+}
+   else{ 
+    $sql = "SELECT path  from $ntuples where castortime>0 and path like '%$dir%' and run=$run2p";
+
+}
+   $ret =$self->{sqlserver}->Query($sql);
+    foreach my $path (@{$ret}){
+        if($path->[0]=~/^castor/){
+            my $cmd=$rfcp.$path->[0] ;
+            my $i=system($cmd);
+            if($verbose){
+                if($i){
+                    print "$cmd failed $i \n";
+                }
+            }
+        }
+        else{
+          my @junk=split '\/',$path->[0];
+          my $file=$castorPrefix;
+            for my $i (2...$#junk){
+                $file=$file.'/'.$junk[$i];
+            }
+                   my $cmd=$rfcp.$file ;
+            my $i=system($cmd);
+            if($verbose){
+                if($i){
+                    print "$cmd failed $i \n";
+                }
+            }
+      
+
+      }
+    }
+}
+}
+
 sub UploadToDisks{
 #
 #  Copy castor files to disks
@@ -19749,6 +19832,7 @@ sub UploadToDisks{
     else{
 } 
    $ret =$self->{sqlserver}->Query($sql);
+
     foreach my $run (@{$ret}){
        my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: movefiles.cgi,v 1.3 2011/07/20 11:25:07 ams Exp $
+#  $Id: movefiles.cgi,v 1.4 2012/04/04 09:50:09 ams Exp $
 use Gtk;
 use strict;
 
@@ -19,6 +19,7 @@ my $html=new RemoteClient($nocgi);
 my $ok=$html->ConnectDB();
 my $v=1;
 my $upd=1;
+my $p=0;
 my $run2p=0;
 my $tmp="/tmp/castor";
 my $irm=0;
@@ -35,6 +36,7 @@ my $new=undef;
 #  -dPath:   path to local files like /disk/MC/AMS02/2005A/dir
 #                                    /MC  /dir are optional ones
 #  -nDisk:   new disk  /disk (optional) 
+#  -p   prestage
 #  -v   verbose mode 
 #  -u    do sql/file rm  
 #  -i        rm -i  
@@ -63,6 +65,9 @@ my $new=undef;
       if ($chop =~/^-i/) {
         $irm=1;
       }
+      if ($chop =~/^-p/) {
+        $p=1;
+      }
       if($chop =~/^-n/){
       $new=unpack("x2 A*",$chop);
       } 
@@ -72,6 +77,10 @@ my $new=undef;
       return 1;
     }
  }
+
+if($p){
+$html->CastorPrestage($dir,$v,$run2p);
+}
 
 $html->MoveBetweenDisks($dir,$v,$upd,$irm,$tmp,$run2p,$new);
 
