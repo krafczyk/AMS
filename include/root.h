@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.415 2012/03/18 22:24:37 jorgec Exp $
+//  $Id: root.h,v 1.416 2012/04/05 09:39:32 choumilo Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -739,7 +739,7 @@ public:
   float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc)
   float sdtm[2];  ///< A-noncorrected side times
   float edepa;   ///< Anode Edep (mev)
-  float edepd;   ///< Dynode Edep (mev)
+  float edepd;   ///< Dynode Edep (mev, in Anode scale)
   float time;    ///< Time (ns)
   float cool;     ///< Long.coord.(cm)
 protected:
