@@ -1,3 +1,9 @@
+
+
+  Obsolete see instead ../install/00Please_Read_Before_Commit
+
+
+
 a.  No  changes in AMS software structure are allowed without approval of the  AMS software coordinator and/or his deputy.   Same is applicable for any root file structure changes.  In general, changes should be limited with the particular subdetector software the author work with. Trivial exception from this rule is the bug fxinig.
 
 b.   BEFORE to commit the changes the author must ensure:
