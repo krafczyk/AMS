@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.48 2011/12/23 14:48:27 choumilo Exp $
+//  $Id: tofuser02.C,v 1.49 2012/04/05 07:14:22 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -61,7 +61,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   Anti2RawEvent *ptrrN;
   Trigger2LVL1 * plvl1;
   AMSPoint clco[TOF2GC::SCLRS];
-  uinteger Runum(0);
+  uinteger Runum(0),Evnum(0);
   ptrt=(TOF2RawSide*)AMSEvent::gethead()->
                            getheadC("TOF2RawSide",0);
   ptr=(TOF2RawCluster*)AMSEvent::gethead()->
@@ -75,7 +75,37 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //----
   Runum=AMSEvent::gethead()->getrun();// current run number
+  Evnum=AMSEvent::gethead()->getid();
   TOF2JobStat::addre(21);
+//---> some trigger study:
+  plvl1=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  integer JMembPatt=plvl1->getJMembPatt();
+  integer PhysBPatt=plvl1->getPhysBPatt();
+/*
+//  cout<<"---> JMembPatt="<<hex<<JMembPatt<<dec<<endl;
+//  for(i=15;i>=0;i--)cout<<(plvl1->JMembPattBitSet(i))<<"|";
+//  cout<<endl;
+  if((plvl1->JMembPattBitSet(1)) || (plvl1->JMembPattBitSet(11))){
+    cout<<"------>JMBPok:run/ev="<<Runum<<" "<<Evnum<<endl;
+    cout<<"      Instant Lev1PhysBranchesPattern(masked ?) :"<<endl;
+    cout<<"|  FTC| Z>=1| Z>=2|Z>=2s|Elect|Gamma|  FTE|Extrn|"<<endl;  
+    for(i=0;i<8;i++){
+      if((PhysBPatt&(1<<i))>0)cout<<"   X  ";
+      else {cout<<"   0  ";}
+    }
+    cout<<endl<<endl;
+  }
+  if(((PhysBPatt&1)>0) || ((PhysBPatt&(1<<6))>0) || PhysBPatt==0){
+    cout<<"------>PhMBPok:run/ev="<<Runum<<" "<<Evnum<<endl;
+    cout<<"      Instant Lev1MembersPattern :"<<endl; 
+    cout<<"| FTC|FTP0|FTP1|FTT0|FTT1| FTZ| FTE|ACC0|ACC1|  BZ|ECFA|ECFO|ECAA|ECAO|EXG0|EXG1|"<<endl;
+    for(i=0;i<16;i++){
+      if((JMembPatt&1<<i)>0)cout<<"  X  ";
+      else cout<<"  0  ";
+    }
+    cout<<endl<<endl;
+  }
+*/
 //
   integer rclstok[TOF2GC::SCLRS],clstok[TOF2GC::SCLRS];
   for(i=0;i<TOF2GC::SCLRS;i++){

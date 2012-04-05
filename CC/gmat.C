@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.117 2012/03/01 17:00:08 mdelgado Exp $
+//  $Id: gmat.C,v 1.118 2012/04/05 07:14:21 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -281,6 +281,12 @@ void AMSgmat::amsmat(){
   z[0]=14.; z[1]=8.;  
   w[0]=1.;  w[1]=2.;  
   mat.add (new AMSgmat( "BETACLOTH",a,z,w,2, 1.2));
+  
+  //  Beta Cloth for MLI
+  a[0]=28.; a[1]=16.; 
+  z[0]=14.; z[1]=8.;  
+  w[0]=1.;  w[1]=2.;  
+  mat.add (new AMSgmat( "BCLOTHMLI",a,z,w,2, 1.2));
   
 
   //
@@ -789,6 +795,12 @@ tmed.add (new AMSgtmed("ATC_AEROGEL","MEWAEROGEL",1));
 //
 tmed.add (new AMSgtmed("TUNGSTEN","TUNGSTEN",0));
 //
+//---> MLI-media:
+tmed.add (new AMSgtmed("TEFLONMLI","TEFLON1",0));
+tmed.add (new AMSgtmed("BCLOTHMLI","BCLOTHMLI",0));
+tmed.add (new AMSgtmed("MYLARMLI","MYLAR",0));
+tmed.add (new AMSgtmed("ALUMLI","ALUMINIUM",0));
+//<---
 {
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));

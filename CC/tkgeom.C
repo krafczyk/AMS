@@ -736,8 +736,73 @@ void BuildPlane1NSupport(AMSgvolume* mvol){
   
   mvol->add(new AMSgvolume("P1NS_HoneySkin", _nrot++, name,
 			      "PGON", par, 10, coo, nrm, "ONLY", 1, 1, 1));
-  
-
+//
+//--->MLI on top of Plane-1 support(simplified structure,tube shape):
+//
+  int gid(1);
+  float mlidz1=0.055;//Alum-parts
+  float mlidz2=0.0089;//Mylar-parts
+  float mlidz3=0.019;//betacloth
+  float mlihdz=0.025;//hole teflon
+  float mliri=15;//tempor
+  float mliro=TkDBc::Head->P1NSupportRadius+9;// "9" to have outer radious covering whole trkL1supp.
+  float logoxs=30;
+  float logoys=50;
+  float logodz1=0.034;//logo's bcloth
+  float logodz2=0.025;//logo's teflon (neglect 25mkm Al)
+  float logoxp=40;
+//mli:              
+  coo[0]=TkDBc::Head->P1NSupportCoo[0];
+  coo[1]=TkDBc::Head->P1NSupportCoo[1];
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]+
+         TkDBc::Head->P1NSupportThickness/2.+
+         TkDBc::Head->P1NSupportSkinThickness + 0.01 + 0.01 + mlihdz + mlidz1/2;//0.01=secur.gap
+  par[0]=mliri;
+  par[1]=mliro;
+  par[2]=mlidz1/2;
+  mvol->add(new AMSgvolume("ALUMLI",0,"MLI1",
+			      "TUBE", par, 3, coo, nrm, "ONLY", 1, gid, 1));//Alum
+  par[2]=mlidz2/2;
+  coo[2]=coo[2]+mlidz1/2+mlidz2/2;
+  mvol->add(new AMSgvolume("MYLARMLI",0,"MLI2",
+			      "TUBE", par, 3, coo, nrm, "ONLY", 1, gid, 1));//Mylar
+  par[2]=mlidz3/2;
+  coo[2]=coo[2]+mlidz2/2+mlidz3/2;
+  mvol->add(new AMSgvolume("BCLOTHMLI",0,"MLI3",
+			      "TUBE", par, 3, coo, nrm, "ONLY", 1, gid, 1));//betacloth
+//hole:
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]+
+         TkDBc::Head->P1NSupportThickness/2.+
+         TkDBc::Head->P1NSupportSkinThickness + 0.01+mlihdz/2;
+  par[0]=0;
+  par[1]=mliri+5.;
+  par[2]=mlihdz/2;
+  mvol->add(new AMSgvolume("TEFLONMLI",0,"MLIH",
+			      "TUBE", par, 3, coo, nrm, "ONLY", 1, gid, 1));
+//Logos:
+  coo[0]=TkDBc::Head->P1NSupportCoo[0]-logoxp;
+  coo[1]=TkDBc::Head->P1NSupportCoo[1];
+  coo[2]=TkDBc::Head->P1NSupportCoo[2]+
+         TkDBc::Head->P1NSupportThickness/2.+
+         TkDBc::Head->P1NSupportSkinThickness + 0.01 + 0.01 + mlihdz+mlidz1+mlidz2+mlidz3+logodz1/2;
+  par[0]=logoxs/2;	 
+  par[1]=logoys/2;
+  par[3]=logodz1/2;
+  mvol->add(new AMSgvolume("BCLOTHMLI",0,"LOG1",
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"-X" logo,bcloth
+  coo[0]=TkDBc::Head->P1NSupportCoo[0]+logoxp;
+  mvol->add(new AMSgvolume("BCLOTHMLI",0,"LOG2",
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"+X" logo,bcloth
+			      
+  par[3]=logodz2/2;
+  coo[0]=TkDBc::Head->P1NSupportCoo[0]-logoxp;
+  coo[2]=coo[2]+logodz1/2+logodz2/2;
+  mvol->add(new AMSgvolume("TEFLONMLI",0,"LOG3",
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"-X" logo,teflon
+  coo[0]=TkDBc::Head->P1NSupportCoo[0]+logoxp;
+  mvol->add(new AMSgvolume("TEFLONMLI",0,"LOG4",
+			      "BOX", par, 3, coo, nrm, "ONLY", 1, gid, 1));//"+X" logo,teflon
+//
 }
 
 
