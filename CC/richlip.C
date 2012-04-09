@@ -333,9 +333,6 @@ void RichLIPRec::InitEvent() {
     totalhits++;
     hitinlip[totalhits-1] = 0;
 
-    if((hit->getchannelstatus()%10)!=Status_good_channel) continue;  // exclude hits in bad channels (from DB)
-    if(badpmt_lip[pmtconv_ams2lip[hit->getchannel()/16]]!=0) continue;  // exclude bad PMTs according to LIP criteria
-
     if(actual>=LIP_NBHITSMAX) {
       //cout << "RichLIPRec::InitEvent : Event too long."<<endl;
       //break;
@@ -358,6 +355,9 @@ void RichLIPRec::InitEvent() {
 
     LIPC2F.hitspmt_ev[actual]=10*(16*hitch.pmt_geom_id+hitch.channel_geom_id)+hgain;
     LIPC2F.hitstat_ev[actual]=0;
+
+    if((hit->getchannelstatus()%10)!=Status_good_channel) LIPC2F.hitstat_ev[actual]=1;  // flag hits in bad channels (from DB)
+    if(badpmt_lip[pmtconv_ams2lip[hit->getchannel()/16]]!=0) LIPC2F.hitstat_ev[actual]=1;  // flag hits in bad PMTs according to LIP criteria
 
     actual++;
   }

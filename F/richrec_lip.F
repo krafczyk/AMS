@@ -665,11 +665,11 @@ C ------------------------------------------------------------------
             radint = 3.
          endif
 * -----> signal window integration
-         chgwin = 2.1
+*         chgwin = 2.1  ! value now initialized in richinitrec
 * ... NAF RADIATOR
        elseif(chradid.eq.'NAF')then
          radint = 1.E2
-         chgwin = 2.76
+*         chgwin = 2.76  ! value now initialized in richinitrec
        endif
 
 * --> init charge variables
@@ -739,11 +739,7 @@ C ------------------------------------------------------------------
          endif
 
 * ------ flatness
-         if (chradid.eq.'AGL')then
-            chgwin = 1.3        !cm
-         elseif(chradid.eq.'NAF')then
-            chgwin = 2.76
-         endif
+*         chgwin = sqrt(chi2htcut)  ! value now initialized in richinitrec
          call flatness(1,chgwin,flatsin,flatcos)
          flatevt(1) = flatsin
          flatevt(2) = flatcos
@@ -788,6 +784,13 @@ C ------------------------------------------------------------------
                   resb_phit(k,irecnumb+1) = ipushits(ipthetac,k)
                   resb_used(ipushits(ipthetac,k),irecnumb+1) =
      +                 ireflechit(ipthetac,ipushits(ipthetac,k))
+               enddo
+
+               do j=1,min(nbhits,nhitmax)
+                  if(iflghit(j).eq.4) then
+                     resb_hres(j,irecnumb+1) = 1.e20
+                     resb_used(j,irecnumb+1) = -2
+                  endif
                enddo
 
                resb_invchi2(irecnumb+1) = 0.
@@ -950,11 +953,7 @@ C ------------------------------------------------------------------
          endif
 
 * ------ flatness
-         if (chradid.eq.'AGL')then
-            chgwin = 1.3        !cm
-         elseif(chradid.eq.'NAF')then
-            chgwin = 2.76
-         endif
+*         chgwin = sqrt(chi2htcut)  ! value now initialized in richinitrec
          call flatness(1,chgwin,flatsin,flatcos)
          flatevt(1) = flatsin
          flatevt(2) = flatcos
@@ -1126,11 +1125,7 @@ C ------------------------------------------------------------------
          endif
 
 * ------ flatness
-         if (chradid.eq.'AGL')then
-            chgwin = 1.3        !cm
-         elseif(chradid.eq.'NAF')then
-            chgwin = 2.76
-         endif
+*         chgwin = sqrt(chi2htcut)  ! value now initialized in richinitrec
          call flatness(1,chgwin,flatsin,flatcos)
          flatevt(1) = flatsin
          flatevt(2) = flatcos
@@ -1713,7 +1708,7 @@ cc         call lipfzphemi(amsrt,ZPHEMI)
       endif
 
 * --- set reconstruction parameters
-      NSIGCUT = 4. ! nb sigmas to count fitted hits
+      NSIGCUT = 4. ! nb sigmas to count fitted hits (currently unused)
       if (rcgeom(1).ne.9) then !-------------------------[ FLIGHT
          FDISTAN    =  134.      ! detector matrix dimension
          if (chradid.eq.'AGL') then
@@ -1739,7 +1734,8 @@ C           CHI2HTCUT =  0.598**2   ! signal hits distance cut
             F2SIGMA2  =  1.3500**2 ! likelihood function width
             F1NORMG   =  0.4723    ! likelihood function width
             FBACKGR   =  0.2059    ! background fraction
-            CHI2HTCUT =  4.0**2    !signal hits distance cut
+*            CHI2HTCUT =  4.0**2    !signal hits distance cut
+            CHI2HTCUT =  2.76**2    !signal hits distance cut
 * --------- single gaussian
 C            FSIGMA2   =  0.7**2 ! likelihood function width
          endif
@@ -1783,6 +1779,8 @@ C            FSIGMA2   =  0.7**2 ! likelihood function width
             endif
          endif
       endif
+
+      chgwin = sqrt(chi2htcut)  ! now done exclusively here
 
 * --- end
       return

@@ -56,7 +56,8 @@
        SAVE d2minip,FNORM
        data d2minip /25./
 *       data FNORM /146.1/
-       data FNORM /124.84/
+*       data FNORM /124.84/
+       data FNORM /88.1/
        !$OMP THREADPRIVATE (d2minip)
        !$OMP THREADPRIVATE (FNORM)
 
