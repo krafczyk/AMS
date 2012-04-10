@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.379 2012/03/20 10:54:54 mdelgado Exp $
+//  $Id: root.C,v 1.380 2012/04/10 15:55:04 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4454,6 +4454,33 @@ float RichRingR::getChargeExpectedRms(){
   return -1;
 }
 
+
+float RichRingR::getPMTChargeConsistency(){
+  // Compute the charge using iterators
+  if(NpExpPMT.size()<1) return -1;
+
+  double totalCol=0,totalExp=0;
+  typedef map<unsigned short,float>::iterator It;
+  for(It i=NpColPMT.begin();i!=NpColPMT.end();i++) totalCol+=i->second;
+  for(It i=NpExpPMT.begin();i!=NpExpPMT.end();i++) totalExp+=i->second;
+
+  if(totalExp==0) return -1;
+
+  double charge2=totalCol/totalExp;
+
+  double acc=0;
+  for(It i=NpExpPMT.begin();i!=NpExpPMT.end();i++){
+    double sigma=charge2/i->second;
+    if(NpColPMT.find(i->first)==NpColPMT.end()) continue;
+    double lcharge=NpColPMT.find(i->first)->second/i->second;
+    lcharge-=charge2;
+    lcharge*=lcharge/sigma;
+    acc+=lcharge;
+  }
+
+  acc/=NpExpPMT.size();
+  return acc;
+}
 
 void RichRingR::calPush(double beta,double index,float x,float y){
   if(isCalibrating()){cerr<<"RichRingR::calPush -- should not be used if calibrating."<<endl;return;}

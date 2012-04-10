@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.416 2012/04/05 09:39:32 choumilo Exp $
+//  $Id: root.h,v 1.417 2012/04/10 15:55:03 mdelgado Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1306,9 +1306,13 @@ static bool useEfficiencyCorrections;  ///< Activate PMT Efficiency equalization
 static bool useBiasCorrections; ///< Activate PMT Efficiency bias corrections
 static bool useTemperatureCorrections; ///< Activate PMT Temperature corrections
 /** @name Sets the initial correction to reconstrcuted beta.There are three possibilities foreseen, and only two implementes:
+
  *   RichRingR::noCorrection - No initial information is loaded. The dynamic calibration can be used to update the refractive index on the tiles on the flight
+
  *   RichRingR::tileCorrection - A default initial correction to the refractive indexes are loaded. These values can be subsequently corrected using the dynamic calibration, although it is not necessary. This is loaded by default.
- *   RichRingR::fullUniformityCorrection -  A fine grained correction to the refractive index, which also takes into account the direction of the incident particle, is loaded. Further corrections using the dynamic calibration are not possible. (NOT YET IMPLEMENTED)
+
+ *   RichRingR::fullUniformityCorrection -  A fine grained correction to the refractive index, which also takes into account the direction of the incident particle, is loaded. Further corrections using the dynamic calibration are not possible. 
+
  */
   ///@{
   /// Sets the initial correction
@@ -1453,6 +1457,7 @@ public:
   /// access function to the reconstructed beta per hit
   /// \param i index of the hit.
   /// \return Reconstructed beta for the hit number i or 0 if no more reconstructed hits are available
+  ///         A negative beta is returned for reflected hits
   float BetaHit(unsigned int i){return (i<fBetaHit.size())?fBetaHit[i]:0;}
 
   /// Class empty constructor (as required by root)
@@ -1541,6 +1546,8 @@ public:
   int   getPMTs();
   /// Number of hits which are consistent with reflected photons
   int   getReflectedHits() {return UsedM;}
+  /// Simple statistical test to check if the hit by hit charge is consistent with PMT by PMT one
+  float getPMTChargeConsistency();
   ///@}
 
 /** @name Interface to retrieve quality estimates of the uniformity corrections
