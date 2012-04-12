@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.370 2012/03/29 19:38:32 sdifalco Exp $
+#  $Id: datacards.doc,v 1.371 2012/04/12 10:28:34 lquadran Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -966,6 +966,7 @@ R 39 tdccum (10)  // tdc-calib usage mode: MN->M=1/0(Economy mode/norm);N=1/0->w
 //for OnBoardPeds:
 R 40 onbpedspat (63)//ijklmn(bit-patt for peds|dinpeds|pretrs|statws|theshs|widths sections in table),
 //                           i(j,..)-bitset => section present
+I 42 newslew (1) // 0/1 use Old/New Slewing Calibration mode
 
 //---------------------------------------------------------------------------------
     ECAL simulation:
