@@ -1,0 +1,19 @@
+     Described procedure will create executable file "TofCalibRF" in your
+ CVS exe-directory .../AMS/exe/linuxx8664[icc/gcc]. After you
+ created this file, you can copy it to "/f2users/tofaccuser/headquarters/amsjobwd"
+ to work with GUI ("StartTofCommander"). To work manually use "TofCalibRF -h"
+ to get help (currently do not define number of threads (-t) - the default value =1
+ will be used.
+     It is implied that you have your private AMS CVS tree installed.
+ "cd .../AMS/install",  "source $Offline/vdev/install/amsvar.icc64" (for example,
+ if not done in your .SHELLrc-file).
+ As usually "setenv PGTRACK 1", "gmake -j", "setenv AMSWD .../AMS", "gmake lib",
+ "cd" to your working directory (for example /f2users/uuuu/tofrfcal where you keep
+ latest version of "l64pg.sh" and "TofCalibRF.C" files). After that run
+ "l64pg.sh TofCalibRF". It will create executable "TofCalibRF".
+     To work with this executable out of  /f2users/tofaccuser/headquarters directory
+ you have to keep in your private working directory some set of calibration files
+ described by TofCflistRD.1305815610 (for the moment data in this calib-set are not really
+ used as any "init"-values, just for future development...). 
+                                                        24.06.2011  E.Choumilov.
+  

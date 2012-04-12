@@ -1,0 +1,196 @@
+         These 2 DB-update sessions (TdcL2DB/TAU2DB) use calibration 
+       files created befor during corresponding calibration sessions 
+       (TdcLin/TAUCal) to combine them and write properly formatted
+       records into related section of DB. The names of these sections
+       (so called TDV-names) are displayed in "GeneralInfo/Settings"
+       section of the window under the name "CalSetName". You can select
+       files in needed RunN/Date limits. You also can check the quality
+       of these files (by clicking "Check"-button) and exclude suspicious
+       ones from writing to DB. You can also scan and see the quality of
+       files in archive-directory (where the processed files are stored).
+       This can be useful to get better understanding of parameters 
+       evolution in time.  
+         After processing the calibration- and log-files should be 
+       archived (the routine processing). Set to 'ON'(orange color)
+       "ArchiveOnExit" switch in advance.  
+         Use TdcL2DB or TAU2DB buttons on TofCommander's primery menu to
+       start related session.
+   
+       The complete set of Tof-paddles calibration parameters consists
+    of 5 sub-sets:
+    
+    1) "Tdelv", for each paddle keep : 
+       a) Offset in 2 sides time difference for
+          particles crossing the middle of the paddle;
+       b) Effective light velocity along the paddle.
+       
+    2) "Amplf", for each paddle/side keep : 
+       a) Relative anode channel amplification wrt to some reference 
+          paddle (there are few reference counters, each one 
+          is representative of counters group with the same design);
+       b) Relative dynodes channels amplification;
+       c) Dynodes (averaged) relative amplification wrt common anode
+          channel;
+                for each reference paddle keep :
+       a) Total (2sides sum) anode signal impact point dependence 
+          parameters;
+       b) Absolute normalization (conversion factor from
+          pC to Edep(mev));
+       
+    3) "Tzslw", for each paddle keep :
+       a) Offset to measured time (Time=(t1+t2)/2) to have proper
+          particle velocity measurement;
+                common for all paddles/sides:
+       b) Average slewing correction parameter (to compensate
+          Time vs Ampl dependence due to the threshold);
+       
+    4) "Cstat", for each paddle/side keep :
+       a) Calibration status for each above type of calibration
+          (0/1=>ok/bad);
+	  
+    5) "Tdcor", for each crate, SFET(4 per crate) and inp.channel
+       (6 channels per SFET, sumHT and sumSHT channels are not 
+       calibrated) keep :
+       a) TDC channel integral nonlinearity over 1 period of 25ns
+          (this 25ns(1024bins) structure is repeated over whole TDC
+	  measurement range)  
+      
+         The information from first 4 file types is combined befor 
+     writing to DB, the 5th type of file is processed alone. 
+       
+       
+		 
+          The standard actions sequence for the DBupdate-session is :
+	  
+       Enter UserName/Passw in 'General Info/Settings' console ->
+     Do necessary selections in 'Job Settings' console -> "Scan"[repeat
+     if necessary with changed date(run) range] -> "Check"[check quality
+     and remove some files if necessary, -> "Close"] -> "UpdDB" ->
+     "QuitSess"(when prev.step is over after 5-10 mins - you will see 
+     successful completion message) -> "Exit".
+  
+     
+     
+          The particular buttons description is shown below:
+
+		     
+
+    "RunNumber<=>Date-Button:"
+                     Click it if you changed any default setting
+    for search limits on calib-files run-numbers/dates. This action will
+    convert RunNumber <=> RunDate values for each changed limit.
+      
+      
+    "Scan-Button:" 
+		     Scan calib-files storage directory (differente
+    for TAUC and TDCL files) searching  for calib-file(s) in pre-defined
+    low/high RunNumbers(=Dates) window. If low-boundary > high-boundary
+    - ALL existing calib-files are selected. The run-numbers sorted list
+    of found files is saved into memory. After that the program stops
+    and give you the announsement. You can repeate scan with modified
+    dates/runnumbers window if nesessary.
+    
+    
+    "DB ReadOnly-Button:"
+                     when this switch is ON (orange), the
+    clicking of "UpdDB"-button results to call to
+    Offline Program in "no-real-update" mode thus updating
+    the corresponding map-file to see existing records and
+    their parameters (Begin/End/Insert-times).
+
+    
+    "ScanArchive-Button:"
+                     being switched-on provides scanning
+    of Archive-dir instead of store-dir with its original 
+    calib-files. Useful when you realised that something
+    was wrong in one of the previous sessions and want to
+    repeat DB-update with some of already archived files
+    ( pay special attention to dates window selection !).
+    The described below button will have no effect because
+    the processed files are already archived. If wrong
+    session was not the last one - include also into the
+    dates window the files written after your bad session 
+    and use in any case "DBrewriteMode" in order to have more
+    simple DB-structure (update in default "DBinsertMode" is also
+    possible, but not really checked yet). 
+        
+    
+    "ArchiveOnExit-Button:"
+                     being switched-on provides archiving
+    of original calib-files written to DB during 
+    current session. This archiving is done really during
+    "QuitSess" sequence (see below). 
+
+
+    "UpdDB-Button:"
+                     start DB-update by calling Offline
+    Program in special "DB-update" mode for each selected 
+    calib-file. There are two mode of updating depending on 
+    pre-selected switch on "Job-settings" pannel: 
+    "DBinsertMode" or "DBrewriteMode". First mode provides
+    calculation of begin/end times for every new record 
+    (calib-files set) in accordance with begin/end times of 
+    existing records. The second mode delete all old 
+    DB-records with begin-times inside of requested dates
+    window, delete old  map-file and write
+    new records with their begin-times (end-times is year
+    2020). The request to run in this mode will require your 
+    confirmation. It is implied that the 1st filling of DB 
+    was done as series of records with increasing beg-times
+    and the end-times at year 2020. The DB new map-file will 
+    be recreated and refilled by Offline Program 
+    automatically at every subsequent call. Warning: your
+    last DB-writen calibration record is still not accounted
+    for in map-file befor next call to Offline Program. 
+    So the dry(ReadOnly) run is always useful to update
+    map-file and see its real contents befor real DB-update.
+    
+    
+    "QuitSess-Button:"
+                   Create current session DB-update history
+    file (contains one line per each processed calib.set : run
+    number of first run in the set and DB-update status (2->done)
+                   Save full-history LogFile screen into
+    "DBWrTAUC(TDCL)sessLog.xxxxxx." file, where xxxxxx is the 
+    session time stamp. This file is moved to /archive directory.
+                   Archive (if requested) calib/log-files into
+    /archive directory.
+    
+    
+    "Check-Button:"
+                    open the control pannel for calibration
+    files quality control. Based on shown plots you can
+    remove any of previously selected files from the list of 
+    candidates for DB-updating.
+
+    
+    
+    "ResetPlot-Button:"
+                    resets points in the currently displayed
+    plot. Particularly the SUBSEQUENT calls to the same plot 
+    will superimpose the new and old points, but the color for 
+    new ones will be changed (repetition period is 5) with each
+    new fill.
+    
+        
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

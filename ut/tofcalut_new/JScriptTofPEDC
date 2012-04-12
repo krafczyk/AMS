@@ -1,0 +1,153 @@
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+fi
+
+ if [ "${10}" = "" ] ; then
+   echo " Missing  parameter !!!"
+   exit
+ else
+   echo "DAQfile: $1"
+   echo "Detector: $2"
+   echo "PedCalTyp: $3"
+   echo "Evs2Read: $4"
+   echo "TruncCut: $5"
+   echo "PedMin: $6"
+   echo "PedMax: $7"
+   echo "RmsMin: $8"
+   echo "RmsMax: $9"
+   echo "SetupName: ${10}"
+   DAQFILE=$1
+   DETTYPE=$2
+   PEDTYPE=$3
+   NEVENTS=$4
+   TRUNCUT=$5
+   SETUPN=${10}
+   if [ "$2" = "tofp" ] ; then
+     ANTRTYP="0"
+     if [ "$3" = "Data" ] ; then
+       CALFLG="211"
+       TOFRTYP="6"
+     elif [ "$3" = "OnBrd" ] ; then
+       CALFLG="11"
+       TOFRTYP="7"
+     else
+       echo $PEDTYPE is not supported !
+       exit
+     fi
+   elif [ "$2" = "antp" ] ; then
+     TOFRTYP="0"
+     if [ "$3" = "Data" ] ; then
+       CALFLG="311"
+       ANTRTYP="3"
+     elif [ "$3" = "OnBrd" ] ; then
+       CALFLG="11"
+       ANTRTYP="4"
+     else
+       echo $PEDTYPE is not supported !
+       exit
+     fi
+   else
+     echo $DETTYPE is not supported yet
+     exit
+   fi
+   
+   echo "calflg: $CALFLG  Rtype(tof/ant): $TOFRTYP $ANTRTYP"
+   echo " Start program ..."
+   echo " "
+ fi
+
+
+cd $TofUserTopDir/headquarters_new/amsjobwd
+
+umask 000
+
+gbatch.exe <<!
+
+LIST
+KINE 14
+MULS 1
+LOSS 1 
+CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
+HADR 1
+TRIG $NEVENTS
+DEBUG -1 10 100
+C--------------
+TFRE 3=0 5=0 7=0  8=$TOFRTYP 
+  28=10101
+c 3=1/(0)->print/not (full/ reco-statistics
+c 5=1/(0)->print/not reco-histograms
+c 7=(0)/1/>1=>tofdebugprint(no/hist/details)
+c 8=(0)/1/2/...=TofRunType(normal/diff.kind.calib)(=6-> "get peds from normal data in raw fmt)
+c 28=LQDPC_flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
+c 
+TFCA 29=1  31=$TRUNCUT 32=$TRUNCUT 33=2 
+     34=$6 35=$7 36=$8 37=$9
+     40=63
+c 29=0/1=> flag selecting calib.files reading from official/user directories
+c 33-> ped-cal outp.flag(exept OnBoard): 0/1/2-> HistosOnly/PedWr2DB+File/PedWr2File
+c 34/35->PedMn/Mx; 36/37->RmsMn/Mx
+c 40=(63)->ijklmn(bit-patt for peds|dynpeds|pretrs|statws|threshs|widths sections
+c    in OnBoard PEDS table),i(j,..)-bitset => section present  
+c--------------  
+ATRE 1=0 3=$ANTRTYP
+c 9=111
+c 1=1/(0)->Print/Not RE-hist; 2->printDAQ(0/1/2->no/printDecoding/printEncoding&Decoding);
+c 3=(0)/1/2/3->norm/AmplCalib/PedClass(randTrig)Calib/PedDownScaled(inTrig)Calib
+c 4=(0.2mev)->ClustThresh;5=(10cm)->LongCooErr; 6=(3SigmPed)->DAQReadoutThr;
+c 7=(6pe)->HistDiscrThr; 8=(50ns)->HistHit CoincWindow(+-) wrt FT
+c 9=(111)->PVS(PedsReal/Variab/Stab-cal.params), P(V,S)=0/1->Read from DB/RawFiles
+c
+ATCA 2=1 3=$TRUNCUT 4=$TRUNCUT 5=2 
+     6=$6 7=$7 8=$8 9=$9
+c 2=0/(1)->ReadCalFiles from Official/Private Directory
+c 3/4=(0.01/0.02)->Highest adcs to remove for ped-calculation(Class/DScaled)
+C--------------- 
+ECRE 1=0
+c--------------
+MISC 2=1
+  8=1
+c (2=0/1/2->not?/cosmics/testbeam)
+c 8=(1)/-1/n -> parall.proc. with Ncpu=1/all/n
+c---------------
+TGL1  20=0 21=0 
+c 17=(1)-> MC def.version number of "Lvl1ConfMC.*" -file
+c 18=(1167606001)-> RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
+c 19=(01)-> MN, N=0/1->read Lvl1Config-data from DB/File
+c               M=0/1->read Lvl1Config raw-file from official/private dir
+c 20=(0)-> PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=1 ->max)
+c 21=(0)-> If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
+c---------------
+IOPA 1=0 127=0 128='/f2users/choumilo/ntuples/r1201279137.root'
+      43=101 45='TriggerLVL1' 126=10000
+c----------------
+CALIB 1=1
+      3=3000
+c 3=(11111)/0n000 --> OnBoardCalib for allSDets/TofAcc_only
+c         (n=0/1/2/3->no_processing/proc+DBwrite/proc+Hist/proc+CalFileWrite+hist)
+c---------------
+AMSJOB 1=$CALFLG 2=0      3=5. 6='TofAntPedCalculator'  4=1  5=0 46='$SETUPN'
+c---------------
+DAQC 1=1  2='$DAQFILE'
+c
+C Special HP-UX
+TIME 3=10000000
+TERM 1=1234567890 2=1198173513
+END
+
+
+!
+

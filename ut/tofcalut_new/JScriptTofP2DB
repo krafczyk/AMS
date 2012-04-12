@@ -1,0 +1,94 @@
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+
+ 
+if [ "$5" = "" ] ; then
+   echo " Missing  parameter !!!"
+   exit
+else
+   echo "TDVName  : $1"
+   echo "BegUTC   : $2"
+   echo "EndUTC   : $3"
+   echo "DBWrFlg  : $4"
+   echo "SetupName: $5"
+   TDVNAME=$1
+   DBWRBEG=$2
+   DBWREND=$3
+   DBWRFLG=$4
+   SETUPN=$5
+   if [ "$1" = "Tofpeds" ] ; then
+     CALFLG="211"
+   elif [ "$1" = "Antipeds" ] ; then
+     CALFLG="311"
+   else
+     echo $TDVNAME is not supported yet
+     exit
+   fi
+   
+   echo "calflg: $CALFLG"
+   echo " Start program ..."
+   echo " "
+fi
+
+
+
+cd $TofUserTopDir/headquarters_new/amsjobwd
+
+umask 000
+
+gbatch.exe <<!
+
+LIST
+TRIG 1
+DEBUG -1 10 1
+c---------------------------------------------------------
+MISC 6=$DBWRBEG 7=$DBWREND
+c---------------------------------------------------------
+TFRE 28=10111
+c 28=(LQDPC)
+TFCA 29=1
+c---------------------------------------------------------
+ATRE 9=111
+c 9=(111)->PVS(PedsReal/Variab/Stab-cal.params)
+ATCA 2=0
+c---------------------------------------------------------
+IOPA 1=0 43=101 45='TriggerLVL1' 126=10000 127=0
+C 1->lun # (0-NO_OUTPUT) , 2->out.f.n., 
+c 43->write_obj-flg(1/0->all/used(+100 to write errored events))
+c 127->write(if >0)/not(if=0) root file, value >0 means compress.level
+c 128-> root file name
+c---------------------------------------------------------
+C      S/R/C     Debug  CpuLim Read Write   Jobname
+AMSJOB 1=$CALFLG  2=0   3=100.  4=0  5=0 6='TofAntPedDBWriter'
+       46='$SETUPN'
+       87=$DBWRFLG 88='$TDVNAME'
+c (1=211/311=>tofcal/atccal)
+C--------------------------------------------------------
+c DAQC 1=0
+c        2='/s0fc00/Data/AMS02/2006A/RawData/1205830349'
+c--------------------------------------------------------
+TIME 3=10000000
+TERM 1=1234567890 2=1198173513
+END
+
+!
+#------------------------------------------------------
+ sleep 1
+ echo " "
+ echo " "

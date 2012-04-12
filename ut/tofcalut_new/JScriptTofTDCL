@@ -1,0 +1,138 @@
+
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+
+ if [ "${10}" = "" ] ; then
+   echo " Missing  parameter !!!"
+   exit
+ else
+   echo "CalMode   : $1"
+   echo "lqdpc     : $2"
+   echo "RefCflist : $3"
+   echo "Space/Ear : $4"
+   echo "BinMinEvs : $5"
+   echo "MAGNstat  : $6"
+   echo "Ncpus     : $7"
+   echo "Evs2use   : $8"
+   echo "LinkDir   : $9"
+   echo "SetupName : ${10}"
+   CALMODE=$1
+   LQDPC=$2
+   REFCFLN=$3
+   AMSPOS=$4
+   BINSTMN=$5
+   MAGSTAT=$6
+   NCPUS=$7
+   NEVENTS=$8
+   LINKDIR=$9
+   SETUPN=${10}
+      
+   echo " TofUserTopDir: $TofUserTopDir"
+   echo " Start program ..."
+   echo " "
+ fi
+
+
+cd $TofUserTopDir/headquarters_new/amsjobwd
+
+umask 000
+
+gbatch.exe <<!
+
+LIST
+KINE 14
+MULS 1
+LOSS 1 
+CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
+HADR 1
+TRIG $NEVENTS
+DEBUG -1 10 100000
+c-------------
+TFRE 3=1 6=1 8=1 28=$LQDPC  30=$REFCFLN
+c 3=2/1/(0)->print reco-statistics big/small/No
+c 4=1/(0)->print/not rec0-histograms
+c 5=(0)/1->not/print channels hits multiplicity  histograms
+c 6=(0)/1->not/print debug info when error found
+c 7=(0)/1-> flag for detailed debug print(activate incl.low-priority hist if #4 is set, ev-by-ev debug if #6 is set)
+c 8=(0)/1/2/...=TofRunType(normal/diff.kind.calib)(=6-> "get peds from normal data in raw fmt)
+c 9=(1)/0-> Permit/not LT/SumHT hits matching usage for multLT-case)
+c 10=1/(0)-> use/not TDClincor at reco-stage                                    
+c 28=(LQDPC)flag,selecting diff.kinds calib-data reading from DB(0)/Files(1)
+c 
+TFCA 11=$AMSPOS 29=1 38=$BINSTMN 39=$CALMODE
+c 11->(0)/1 to select space/earth calibr.
+c 12=-1/(0)/1=>(req.TRK|TRD-track,no mom.check)/(req.TRK,no Mom.check)/(TRK with mom.check)
+c 29=0/1=> flag selecting calib.files reading from official/user directories
+c 38=MinStatistics per bin (otherwise bin is "tiny" - just for monitoring)
+c 39=MN(10)->(M=1/0->econ/norm mode; N=0->1_pass_calib,1->start from scratch and
+c        create_interm_stat_file, 2->continue with interm_files, 3->final pass and
+c        outp.calib.table(file) creation)
+c--------------   
+ATRE 1=0  
+c      3=3
+c    9=11
+c 1=1/(0)->Print/Not RE-hist; 2->printDAQ(0/1/2->no/printDecoding/printEncoding&Decoding);
+c 3=(0)/1/2/3->norm/AmplCalib/PedClass(randTrig)Calib/PedDownScaled(inTrig)Calib
+c 4=(0.2mev)->ClustThresh;5=(10cm)->LongCooErr; 6=(3SigmPed)->DAQReadoutThr;
+c 7=(6pe)->HistDiscrThr; 8=(50ns)->HistHit CoincWindow(+-) wrt FT
+c 9=(111)->PVS(PedsReal/Variab/Stab-cal.params), P(V,S)=0/1->Read from DB/RawFiles
+c---
+ATCA 2=0 
+c 2=0/(1)->ReadCalFiles from Official/Private Directory
+c 3/4=(0.01/0.02)->Highest adcs to remove for ped-calculation(Class/DScaled)
+c--------------- 
+ECRE 1=0
+c--------------
+MAGS 1=$MAGSTAT
+c---------------
+MISC 2=1 8=$NCPUS 12=0
+c (2=0/1/2->not?/cosmics/testbeam)
+c 8=(1)/-1/n -> parall.proc. with Ncpu=1/all/n
+c 12=2/1/0->RaiseFPE:enforce/raise/not fpe signals
+c---------------
+c TGL1  20=0 21=0 
+c 17=(1)-> MC def.version number of "Lvl1ConfMC.*" -file
+c 18=(1167606001)-> RD def. UTC-extention of "Lvl1ConfRD.***" -file (20070101 0000001)
+c 19=(01)-> MN, N=0/1->read Lvl1Config-data from DB/File
+c               M=0/1->read Lvl1Config raw-file from official/private dir
+c 20=(0)-> PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=2 ->max)
+c 21=(0)-> If RD LVL1-setup block found, 2/1/0 -> save2file+DB/save2file/mem.update_only
+c----------------
+IOPA 1=0 43=101 45='TriggerLVL1' 126=10000
+    127=0 128='/f2users/choumilo/ntuples/r1203502079.root' 43=101
+c----------------
+AMSJOB 1=211  2=0  4=1  5=0  46='$SETUPN'
+c 2=0/(1)->debug off/on
+c 4=(0)/1/10/100/1000 -> Read (off)/setup/../rec_banks
+c 5=................. -> Write.........................
+c-----------------
+DAQC 1=1  
+2='$LINKDIR'
+83=5
+c 86=1
+c 1=klm -> m=1(read daq if reco)
+c-----------------
+C Special HP-UX
+TIME 3=10000000
+TERM 1=1234567890 2=1198173513
+END
+
+
+!
+

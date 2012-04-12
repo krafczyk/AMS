@@ -1,0 +1,203 @@
+
+        Tof/Acc pedestals calibration session.
+	
+     It creates TOF|ACC-pedestals tables (ped-files) using
+     Science Data (if in raw format) or OnBoard-created pedestals
+     tables. 
+   
+     The program can perform the following actions:
+
+    1) Scan standard AMS Daq-dirs and select all DAQ-files in 
+       pre-defined dates(or run-numbers) range (it is implied
+       that daq-files have file-extention equal to run-number,
+       i.e. to UTC-time at the beginning of the run). Some
+       limits are applied to length of the files and on some 
+       other parameters by setting status (1->selected, 
+       11->accepted) in the selected RunsList.
+         You can re-run "ScanDaqDir" with modified dates range 
+       based on info shown to you in "LogFileFrame" window.
+         You can see all selected files info (RunList) and
+       change the status selected<->accepted. Only runs with
+       "accepted" status will be processed.
+       
+    2) Submit (file-by-file) standard TOF(ACC) pedcalib jobs
+       to calculate ped_tables. As the result you have
+       tofp(antp)_ds(tb)_rl.runnumber files and related 
+       log-files written to working directory
+       (/f2users/tofaccuser/headquarters_new/amsjobwd).
+       
+    3) If required, can give some info on the content of 
+       ped_tables and their behaviour in the time (you need 
+       to open special control pannel by clicking "Check").
+       Based on the shown info you can exclude some of the
+       selected files from the candidates (to DB-writing)
+       list.
+       
+    4) To finish, you can click "Exit" to
+       complete the procedure. The program will move 
+       ped_table and ped_table_log files into /pedfiles
+       directory and save general log-file under the name
+       "PedCalcLogFile.xxxxxx" in /archive directory. The
+       "xxxx" will be run-number of the 1st(earliest) 
+       ped_table file successfully processed by the program. 
+       
+  The Program use the following entries for names of 
+                                     directories and files:
+  
+       "AmsD"  - according to your current "env" definition
+                 of standard path to AMSDataDir directory.
+       "WorkD" - path to standard SubDetector-calibration
+                 working directory.
+       "PedfD" - path to standard directory where the 
+                 ped_table files are stored befor writing
+		 to DB (sub-dir of "WorkD").
+       "ArchD" - path to standard directory where the
+                 DB-written ped_table files are moved to
+		 (currently sub-dir of "PedfD").
+       "DaqF"  - Single daq-file name (Run-numner) to be 
+                 processed (default is all files found in 
+		 the defined dates/runs window).
+		 
+  The standard buttons sequence for the session is :
+     "Tof(Acc)PedCalc"->"DataTrig/BoardTable"->
+     "RunNumner(RunDate)"->"ScanDaqDir"->["EditRList"]->
+     "StartJob"->Wait->["Check"(see plots, remove bad file)]
+     ->"Exit".
+     
+     
+  The particular buttons description is shown below:
+      
+    "ScanDaqDir-Button:" 
+                     scan AMS DAQ-files directories searching 
+    for daq-file(s) in pre-defined low/high DATES/RunNumbers
+    window. If low-boundary > high-boundary ALL files are 
+    selected. If in the "DaqF" entry window default "All" was
+    changed to particular daq-file run-number - only this 
+    file will be searched for. The run-number sorted list of
+    found files will be shown in LogFile-window and saved
+    in memory (if particular file pass through some tests, its 
+    status in memory is set to 11 (if not - to 1). After that
+    the program stops and give you the announsement in red. 
+    You can repeate scan with modified dates/runnumbers 
+    window if nesessary.
+    
+    "EditRlist-Button:"
+                     open window with the list of selected/
+    accepted (status=1/11) daq-files. If you want to remove
+    from processing some accepted files - click on related
+    lines (they will be highlighted in yellow) and then
+    click on "Exclude from processing" button. If you want
+    to add some selected-only (status=1) files  - click on
+    related lines and then click "Select for processing"
+    button. When you finished - click on "Exit editor" 
+    button.
+    
+    "StartJob-Button:"
+                   start looping over the list of accepted
+    daq-files and submit for every file the specially 
+    compiled "gbatch"-job in pedestals-calibration mode 
+    (mode is defined previously by "TofPedCalc/AccPedCal"-
+    buttons and "RandTrig/DataTrig/BoardTable"-buttons). 
+    Other run-parameter can be changed from default values 
+    using related yellow entry-windows.  
+    
+    
+    "QuitSess-Button:"
+                   save full-history LogFile screen 
+    into "Tof(Acc)PedCalcLogFile.xxxxxx." file, where 
+    xxxxxx is the run number of the first(youngest) daq-file 
+    successfully processed and not removed during the "check"
+    stage. This file is moved to /pedfiles/archive directory.
+    The program also moves ped_table/log files to /pedfiles
+    directory (for later usage by TofAccPedDBWriter). Bad
+    files are deleted. The list of all processed good files
+    is saved into "Tof(Acc)DaqfHist_Data(Rand/OnBt).PEDC"-file
+    to be used in the next session to define default search
+    window (last procecced run+1 is used as left boundary
+    of the search window).
+    
+    "StopJob/Check-Button:"
+                    initially appears as orange "StopJob" to
+    give user the possibility to interrupt the job (after 
+    StartJob-button was clicked) if something goes wrong (you
+    see, for example, bad diagnostics for every selected run
+    because you forgot setenv AMSDataDir correctly or your 
+    runs selection was not appropriate or ...). In this case
+    you can change conditions (rescan daq-dir or just edit run
+    list) and repeate "StartJob". In good case (no user 
+    interruption, nonzero number of successfully processed runs)
+    this button is changed to green "CheckJob" state. Clicking
+    this button will open the control pannel for ped_table
+    files quality control. Based on shown plots you can
+    remove any of processed files from the list of 
+    candidates for DB-updating.
+    
+    "ResetPlot-Button:"
+                    resets points in the currently displayed
+    plot. Particularly the SUBSEQUENT calls to the "Ped time-
+    scan plot" plot will superimpose the new and old points,
+    but the color for new ones will be changed (repetition
+    period is 5) with each new fill.
+    
+    "NonEmpty/GoogStat-channels(%)-Button:"
+                      plots time evolution of the portion(%)
+    of NonEmpty/GoodStatus-channels in ped_table file
+    (separately for anodes and dynodes). If these numbers 
+    are too low - you can mark this file add remove it 
+    by "Mark above file as bad"-button (to prevent 
+    it later from writing to /pedfiles-dir on Exit-stage).
+    
+    "PedRmsTimeScanPlot-Button:"
+                      plots time-evolution of Ped_Rms for
+    particular channel LBBSP(BBS). Its value is shown in 
+    yellow entry-window below (default value can be changed).
+    Again you can click on any bad point to mark this file
+    (its name appears in the lowest yellow entry window).
+    Using the special "Mark above file as bad"-button below 
+    you can mark this file as bad, i.e. it will not be 
+    written to /pedfiles-dir. You can also see its log-file
+    using "View above file JobLog"-button.
+    
+    "PedTimeScanPlot-Button:"
+                      plots time evolution of ped and rms
+    (+-5*rms is the height of the "point" and "middle of the
+    point" position corresponds to the value of pedestal)
+    for ONE particular channel (fill-in it in advance 
+    according to the prompt, but do not remove the prompt 
+    itself, or remove it completely !!!). If you see some 
+    suspicious point (ped value and/or rms) click it and 
+    the correcponding ped_table file name will appear in 
+    the yellow entry area. Now you can look at all-channels 
+    peds/rms values for this file if you click the next 
+    button (see below). Or you can mark this file as bad.
+    
+    "OneFilePedsPlot-Button:"
+                     plots all-channels peds for file name
+    given in the yellow entry-area below this button.
+    The dynode channels peds are plotted with its numbers
+    as markers. 
+      You can type-in another file name by hands or using the 
+    "point-click" methode described in "PedTimeScan" plot.
+    
+        
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

@@ -1,0 +1,35 @@
+ E.Choumilov, 15.06.2009
+ 
+   You are going to use TOF Calibration Commander - the graphic interface
+ between the user and different TOF calibration procedures which use the
+ standard offline reconstruction exec-file gbatch.exe comprising calibration
+ related codes. First of all you should ssh to pcamsr0 computer (temporary
+ limitation). CD to /f2users/tofaccuser/headquarters_new working directory.  
+  
+   The source files in  working /f2users/tofaccuser/headquarters_new directory
+ are the copies of files in my /afs/cern.ch/user/c/choumilo/AMS/ut/tofcalut
+ directory and can be updated only by me (temporary limitation).
+
+ Do 'source /Offline/vdev/install/amsvar' command befor starting
+ TofCommander (if this command not in your .login(or .tcshrc,...). This
+ will set standard ams environment.
+ 
+   To start session use StartTofCommander script (use 'StartTofCommander' 
+ command). This script opens "Tof calibration Commander" window. At the 
+ bottom/right side of the window there is the row of buttons(6 switches +
+ "Start" and "Exit" buttons). You should click on one of the 6 switches 
+ (selection of session type) and start selected session by clicking on 
+ "Start". After that left side of the window is built in accordance with 
+ selected session type, on right/top part of the window (messages area)
+ you get welcome messages and can continue your session. Click "Help" for 
+ introduction information. Most critical buttons have "right-click" help. 
+ Read carefully the warning (beep + red color)  and usual messages on 
+ log-screen - they can help you in many cases.
+ 
+   DB-update  sessions require user name and password to do real job
+ (ask me). For training purpose you can use "Guest" user name.
+ In this case password is not required, but real DB-update will be blocked.
+ 
+   The released version is preliminary, so some not critical buttons can
+ be disactivated. Also help facilities are not completed. Inform me
+ about any problems.    

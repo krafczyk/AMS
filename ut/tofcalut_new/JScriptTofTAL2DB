@@ -1,0 +1,131 @@
+[ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
+[ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
+[ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
+
+if [ "$UNAME" = "AIX" ] ; then
+   MACHINE="aix"
+elif [ "$UNAME" = "OSF1" ] ; then
+    MACHINE="osf1"
+elif [ "$UNAME" = "HP-UX" ] ; then
+    MACHINE="hpux"
+elif [ "$UNAME" = "IRIX" ] ; then
+    MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux/icc"
+else
+echo $UNAME is not supported yet
+
+fi
+
+ echo "----> Enter JScriptTofTAL2DB ..."
+ 
+ if [ "$7" = "" ] ; then
+   echo " Missing  parameter !!!"
+   exit
+ else
+   echo "TDVName  : $1"
+   echo "BegUTC   : $2"
+   echo "EndUTC   : $3"
+   echo "DBwrflg  : $4"
+   echo "SetupName: $5"
+   echo "LQDPC    : $6"
+   echo "RefCflist: $7"
+   echo "MAGNstat : $8"
+   echo "Spc/Ear  : $9"
+   TDVNAME=$1
+   DBWRBEG=$2
+   DBWREND=$3
+   DBWRFLG=$4
+   SETUPN=$5
+   LQDPC=$6
+   REFCFLN=$7
+   MAGSTAT=$8
+   AMSPOS=$9
+   
+   echo " TofUserTopDir: $TofUserTopDir"
+   echo " Start program ..."
+ fi
+
+cd $TofUserTopDir/headquarters_new/amsjobwd
+
+umask 000
+
+gbatchPG.exe <<!
+
+
+LIST
+TRIG 1
+DEBUG -1 10 100
+c------------------
+TFRE 3=0 5=0  28=$LQDPC  30=$REFCFLN
+c 3->print full statistics; 4->printDAQ(0/1/2->no/printDecoding/printEncoding&Decoding);
+c 5->0/1/2(print RECO-hist); 6->0/1(print TDC-hit multipl.histograms)
+c 8->(0)/1/2/3/4(norm/TDCL/TDIF/TZSL/AMPL-calib run);
+c 13-15->DAQ-trig-thresh; 15-16->TovT-thresh; 18-27->Cuts;
+c 28=LQDPC(L=0/1->TdcLinCor from DB/RawFile; Q=0/(1)->Elos-PDF's from DB/RawFiles;
+c          D=0/(1)->ThrCuts-set from DB/DataCards; P=(0)/1->RDPedS from DB/RawFiles;    
+c          C=(0)/1->CalibConst from DB/RawFiles)
+c 31-42->sec/years : beg/end for DB-writing
+c   Warning: if AMSJOB 1=211(RD cal), begin/end are taken from MISC 6/7 !!!
+c-----------------
+TFCA  11=$AMSPOS   29=1 42=1  
+c 11->(0)/1 to select space/earth calibr.
+c 29->(0)/1 use official/private dir. to read calib.files
+c 42->0/(1) use Old/New Slew. Calib. mode
+c 
+c------------------------------------------------------------------------ 
+ATRE 1=0  
+c 1=1/(0)->Print/Not RE-hist;
+c 3=(0)/1/2/3->norm/AmplCal/PedClass(randTrig)/PedDownScaled(inTrig)Calib
+c 9=(111)->PVS(PedReal/Variab/Stab-calpars),P(V,S)=0/1->Read from DB/RwFiles
+ATCA 2=0 
+c 2=0/(1)->ReadCalFiles from Official/Private Directory
+c------------------------------------------------------------------------
+ECRE 1=0
+c 34=DCP(111) (1/0) D-> Take ThrCuts-set from DataCards/DB
+c                   C-> Take Calib(RD/MC) from Files/DB
+c                   P-> Take PedS(RD) from Files/DB
+c ECCA  2=1   
+c 2=(0)/1->use official/private directory for cal.files
+c------------------------------------------------------------------------
+MAGS 1=$MAGSTAT
+c 1=-1/0/1->magn.status(warm/cold_OFF/cold_ON)(1)
+c------------------------------------------------------------------------
+MISC 2=1 6=$DBWRBEG 7=$DBWREND 8=1
+c (2=0/1/2->not?/cosmics/testbeam)
+c 6/7->begin/end UTC-time, redefine TFRE 31/42 beg/end if AMSJOB 1=211 !!!
+c 8=(1)/-1/n -> parall.proc. with Ncpu=1/all/n
+c------------------------------------------------------------------------
+IOPA 1=0 43=101 45='TriggerLVL1'
+     85=0  127=0
+C 1->lun # (0-NO_OUTPUT) , 2->out.f.n., 
+c 43->write_obj-flg(1/0->all/used(+100 to write errored events))
+c 45->cont.names
+c 85->4-vect_io_mode(0/1/2/3-> noth/read/write/append)
+c 86->4-vect_file_name
+C------------------------------------------------------------------------
+C      S/R/C Debug CpuLim  Read Write   Jobname          Setup
+AMSJOB 1=211  2=0  3=100.  4=0   5=0 6='Tofbarcal2DB' 46='$SETUPN'  
+       87=$DBWRFLG 88='$TDVNAME'
+c 1-> lmn, l=2/3/9->tof/acc/ec-calib; 
+c          m=1->real_data; n=1/0->reconstruction/simulation;
+c 2=0/(1)->debug off/on
+c 4=(0)/1/10/100/1000 -> Read (off)/setup/../rec_banks
+c 5=................. -> Write.........................
+c 87=2/1/0->update/not TDV; 88='names' 
+C------------------------------------------------------------------------
+DAQC 1=1
+ 2='/afs/cern.ch/ams/Offline/RunsDir/SCI/1305815610'
+c 1=mn, m=1/0->write/not,  n=1/0->read/not; 2->inp.f.n; 42->out.f.n.
+c------------------------------------------------------------------------
+TIME 3=10000000
+
+TERM 1=1234567890 2=1198173513
+
+END
+
+!
+#------------------------------------------------------
+ sleep 1
+ echo " "
+ echo " "

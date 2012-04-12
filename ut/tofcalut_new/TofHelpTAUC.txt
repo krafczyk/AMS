@@ -1,0 +1,242 @@
+       ==> This session creates Tof-paddles calibration tables <==
+          (short name TAUC -> Time/Ampl-Uniformity Calibration)
+   
+       The set of Tof-paddles calibration parameters consists
+    of 4 sub-sets:
+    
+    1) "Tdelv", for each paddle keep : 
+       a) Offset in 2 sides time difference for
+          particles crossing the middle of the paddle;
+       b) Effective light velocity along the paddle.
+       
+    2) "Amplf", for each paddle/side keep : 
+       a) Relative anode channel amplification wrt to some reference 
+          paddle (there are few reference counters, each one 
+          is representative of counters group with the same design);
+       b) Relative dynodes channels amplification;
+       c) Dynodes (averaged) relative amplification wrt common anode
+          channel;
+                for each reference paddle keep :
+       a) Total (2sides sum) anode signal impact point dependence 
+          parameters;
+       b) Absolute normalization (conversion factor from
+          pC to Edep(mev));
+       
+    3) "Tzslw", for each paddle keep :
+       a) Offset to measured time (Time=(t1+t2)/2) to have proper
+          particle velocity measurement;
+                common for all paddles/sides:
+       a) Average slewing correction parameter (to compensate
+          Time vs Ampl dependence due to the threshold);
+       
+    4) "Cstat", for each paddle/side keep :
+       a) Calibration status for different logic channels,
+          see status-word definition in TOF2Barcal-class of tofdbc.doc
+          (0/1=>ok/bad);
+       
+       
+          Generally calibration procedure creates 5 files:
+	  
+       TofCstatRD.NNN, TofTdelvRD.NNN, TofTzslwRD.NNN, TofAmplfRD.NNN
+       and TofCflistRD.MMM. The last one is reference file containing
+       just NNN-references for above 4 calibration file types.
+       Here NNN(MMM) is run number of the first DAQ-file used in
+       cabration procedure. Usually all NNN's are equal to MMM. The
+       MMM have to be provided (through the related data-card) for
+       any reconstruction Jobs if DataBase is not (can't be) used.   
+       
+		 
+          The standard buttons sequence for the TAUC-session is :
+	  
+     ["LookAround"]->["ManualSess"]->"MgnetON/OFF"->"InSpace/OnEarth"
+     ->"TimeDif"->"Time0Slw"->"AmplNorm"->"SetDefPars"
+     ->Redefine default params in yellow windows (if nesessary)
+     ->"ScanDaqDir"->["EditRlist"]->["EditJobScript"]->"SetupJob"
+     ->"SubmitJob"
+           Now Job is sent to CERN LSF batch-job system...
+     You can see job(s) status by clicking "CheckJobsStat". You can
+     click "QuitSess" if don't want to wait the results (may take 
+     few hours).
+  
+     
+     
+          The particular buttons description is shown below:
+
+    "LookAround-Button:"
+                     Shows all calib-files present in local
+    ams working directory (the one where the submitted jobs temporary 
+    put the output calib/log-files and where all reference calibration
+    files are permanently stored);
+                     Shows all log-files present in ams working
+    directory (their presence indicates that some jobs submitted in
+    present (or previous) sessions are completed.
+                     shows the presence of submitted jobs in LSF
+    queues and their status (running, pend etc);
+    
+    "ResetHistory-Button:"
+                     Should be used with precautions, will ask you
+    to confirm your desision;
+                     After confirmation it clear used DAQ-files history
+    file (not fatal, program use this file to prompt you the DAQ-files
+    range for the next job and for your actions monitoring);
+                     Clear 'Submitted Jobs List'-file - may be useful
+    to cleanup after few training/unsuccessful sessions;
+                     Delete temporary DAQ-files 'link'-directories,
+    be careful - submitted befor jobs can be destroid if untill this
+    moment they still have 'pend'-status !!!
+    
+    "Manual/AutoSession-Switch:"
+                     No immediate action;
+                     Being switched to 'Auto' force (later) automatic
+    submition of jobs withought clicking 'SubmitJob'-button. The
+    maximum number of submitted jobs is limited by the number of
+    found groups of DAQ-files with requested total statistics (the 
+    list of DAQ-files is created later using 'ScanDaqDir'-button). 
+    
+    
+    
+    "SetDefPars-Button:"
+                     Checks calibration-type selection (above 3 
+    switches in 'Setup New Job' frame);
+                     Sets job default values in accordance with
+    this selection, set default DAQ-files range based on 'Daq-files
+    History'-file(if not empty, low limit  - last+1 processed DAQ-file,
+    high limit -> +2weeks);
+                     Give you possibility to change default settings
+    by typing relevante values in yellow entry-windows;
+                     Activate next action button ('ScanDaqDir').
+		     
+
+    "RunNumber<=>Date-Button:"
+                     Click it if you changed any default setting
+    for search limits on DAQ-files run-numbers/dates. This action will
+    convert RunNumber <=> RunDate values for each changed limit.
+      
+      
+    "ScanDaqDir-Button:" 
+                     Is activated only after you clicked 
+    'SetDefPars' button;
+		     Scan AMS DAQ-files directories searching  for
+    daq-file(s) in pre-defined low/high RunNumbers(=Dates)
+    window and satisfying some criteria (presence of all Tof/Trk 
+    crates, more than minimal length of file and number of collected
+    events per file). If low-boundary > high-boundary - ALL existing
+    DAQ-files are selected. The run-numbers sorted list of found 
+    files will be shown in LogFile-window and saved in memory (if 
+    particular file pass through preselection criteria, its 
+    status in memory is set to 11 (if not - to 1). After that
+    the program stops and give you the announcement in red. 
+    You can repeate scan with modified dates/run-numbers window
+    if nesessary.
+    
+    "EditRlist-Button:"
+                     Open window with the list of selected/
+    accepted (status=1/11) daq-files. If you want to remove
+    from processing some accepted files - click on related
+    lines (they will be highlighted in yellow) and then
+    click on "Exclude from processing" button. If you want
+    to add some selected-only (status=1) files  - click on
+    related lines and then click "Select for processing"
+    button. When you finished - click on "Exit editor" 
+    button.
+    
+    "SetupJob-Button:"
+                   Based on list of selected (after scan)
+    DAQ-files creates minimal group of files (really links) 
+    with total statistics above or equal the requested one;  
+                   Prepare final parameters set for 'near 
+    standard' AMS Job-script;
+      In 'AutoSession' mode :
+                   Submits job (by calling job-script) and 
+       repeat above actions untill the selected DAQ-files 
+       list is completed (i.e. replace manual scan-setup-submit 
+       sequence); 
+                   After that puts the program in 'results 
+       waiting state'(named WatchDog) with opened new window 
+       (counters of running/finished jobs); 
+                   Performs complete processing for each 
+       finished job  - so you can go to sleep.
+    
+    
+    "SubmitJob-Button:"
+                  In "ManualSess"-mode submit job, save
+    info about job (node, status, subm.time,...) in memory and
+    special file and also inform user. In "AutoSess" mode is 
+    not active. 
+    
+    
+    "CheckJobsStat-Button:"
+                   Open window and show the LSF-SYSTEM status of
+    submitted jobs. If you click some line (particular job) in the
+    right part of the window (line becomes yellow) and click 
+    "Kill job" button -  the job will be removed from queue EVEN
+    if it is still running. Log- and calib-files (if any) will be
+    sent by LSF system to amsjobwd-directory. On "Quit JobControl"
+    button click all these files will be removed and related
+    link to used DAQ-files will be destroyed. List of submitted
+    jobs (in memory and related file) will be updated.
+    
+    
+    "JobOutpControl-Button:"
+                   Open job output-files control window. Go through
+    the list of submitted jobs and check their current status in
+    LSF-queues. Mark missing (in queues) jobs as ended. Go through
+    the amsjobwd directory and make the list of log-files. Inspect
+    each log-file by comparing internal quality-table with reference
+    values and set log-file status to bad/good state. Match list of
+    log-files with SubmittedJobsList and set job status accordingly.
+    Log-file info is shown in related column in right part of the
+    window. You can select in this column any line and inspect in
+    details the corresponding log-/err-files by clicking related
+    buttons in top row of control-section (left par of the open
+    window). List of all calib-files created by jobs is also
+    shown in corresponding columns.
+      "MatchFiles"-button checks consistency of calib- and log-files
+    (by comparing of their creation times and run-number labels) and set
+    new status (bad/good) in corresponding lists (seen in related
+    columns in right part of the window). Cflist file (also created
+    by job and containing the reference to all type-members of calibration
+    files set) is also consistency-checked. By selecting some line in
+    Cflist column you can add this complete set as new member to 
+    existing list of RefCalibFileSets and use it in new calibration job
+    for better events reconstruction/selection.
+      "Cleanup"-button set unmatched or bad-quality files status to
+    bad and delete temporary links to DAQ-files of finished jobs.
+    New info is dsplayed in related columns.
+      "Finish"-button PHYSICALLY delete bad log/cal-files and move
+    good ones to store directory 'taucfiles'. Related job statuses
+    are updated in SubmJobsList-file.       
+    
+    "QuitSess-Button:"
+                    Save list of UNFINISHED jobs in file
+    TofSubmJobsList.TAUC (to be used in next session of the same type).
+    Create log-file with full history of your session (all messages 
+    which you normally see on top/right side of the window) and move 
+    it to store (taucfiles directory). The left/top (session type 
+    related) part of the screen is removed (after some delay to let
+    you see 'quit'-stage messages) and session type selection switches
+    are again activated. You can start new session or click "Exit".
+    
+    
+        
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
