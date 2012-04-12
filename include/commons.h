@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.338 2012/03/29 19:38:12 sdifalco Exp $
+//  $Id: commons.h,v 1.339 2012/04/12 10:29:03 lquadran Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -857,6 +857,8 @@ class TFCAFFKEY_DEF {
   integer onbpedspat;//bit-pattern for onboard ped-table sections
   //
   integer updbrcaldb;//update RD barcal DB "on flight"
+  // 
+  integer newslew;// 0/1 use Old/New Slewing calibration mode
 };
 #define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
 COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);

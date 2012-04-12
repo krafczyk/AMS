@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.90 2012/02/09 09:20:31 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.91 2012/04/12 10:27:42 lquadran Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -555,7 +555,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
   time_t utct;
   uinteger verids[11],verid;
 //
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
     sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
@@ -621,7 +622,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
   if(AMSJob::gethead()->isMCData())ctyp=2;
   else ctyp=1;
   verid=verids[ctyp-1];//MC-versn or RD-utc
-  strcpy(name,"TofCStat");//generic name
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCStat");//generic name
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCStat2");//generic name
   strcat(name,datt);
   strcat(name,".");
   sprintf(ext,"%d",verid);
@@ -667,7 +669,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  if(AMSJob::gethead()->isMCData())ctyp=3;
  else ctyp=2;
  verid=verids[ctyp-1];//MC-versn or RD-utc
- strcpy(name,"TofTdelv");//generic name
+ if (TFCAFFKEY.newslew==0) strcpy(name,"TofTdelv");//generic name
+ else if (TFCAFFKEY.newslew==1) strcpy(name,"TofTdelv2");//generic name
  strcat(name,datt);
  strcat(name,".");
  sprintf(ext,"%d",verid);
@@ -717,32 +720,33 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  if(AMSJob::gethead()->isMCData())ctyp=4;
  else ctyp=3;
  verid=verids[ctyp-1];//MC-versn or RD-utc
- strcpy(name,"TofTzslw");//generic name
- strcat(name,datt);
- strcat(name,".");
- sprintf(ext,"%d",verid);
- strcat(name,ext);
- if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
- if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
- strcat(fname,name);
- cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
- ifstream tzcfile(fname,ios::in); // open  file for reading
- if(!tzcfile){
-   cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
-   exit(1);
- }
-//
- tzcfile >> slpf;
- for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
-   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
-     tzcfile >> tzerf[ila][ibr];
-   } 
- }
-//
+ if (TFCAFFKEY.newslew==0) {
+   strcpy(name,"TofTzslw");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
+   ifstream tzcfile(fname,ios::in); // open  file for reading
+   if(!tzcfile){
+     cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
+     exit(1);
+   }
+   //
+   tzcfile >> slpf;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tzcfile >> tzerf[ila][ibr];
+     } 
+   }
+   //
    tzcfile >> endflab;//read endfile-label
-//
+   //
    tzcfile.close();
-//
+   //
    if(endflab==12345){
      cout<<"      TOF Slewing/T0-params file is successfully read !"<<endl;
    }
@@ -750,6 +754,80 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
      cout<<"<---- Error: problems with TOF Slewing/T0-params file !!!"<<endl;
      exit(1);
    }
+ }
+ else if (TFCAFFKEY.newslew==1) {
+   strcpy(name,"TofTzero");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF T0-file : "<<fname<<'\n';
+   ifstream tzncfile(fname,ios::in); // open  file for reading
+   if(!tzncfile){
+     cout <<"<---- Error: missing TOF T0-file !!! "<<fname<<endl;
+     exit(1);
+   }
+   //
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tzncfile >> tzerf[ila][ibr];
+     } 
+   }
+   //
+   tzncfile >> endflab;//read endfile-label
+   //
+   tzncfile.close();
+   //
+   if(endflab==12345){
+     cout<<"      TOF T0-params file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF T0-params file !!!"<<endl;
+     exit(1);
+   }
+
+   ctyp=7;
+   verid=verids[ctyp-1];//MC-versn or RD-utc
+   strcpy(name,"TofSlwSlope");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF Slewing-file : "<<fname<<'\n';
+   ifstream tslcfile(fname,ios::in); // open  file for reading
+   if(!tslcfile){
+     cout <<"<---- Error: missing TOF Slewing-file !!! "<<fname<<endl;
+     exit(1);
+   }
+   //
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tslcfile >> slops1[ila][ibr];
+     } 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tslcfile >> slops2[ila][ibr];
+     } 
+   }
+   //
+   tslcfile >> endflab;//read endfile-label
+   //
+   tslcfile.close();
+   //
+   if(endflab==12345){
+     cout<<"      TOF Slewing-params file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF Slewing-params file !!!"<<endl;
+     exit(1);
+   }
+ }
+
 //-------------------------------------------------------
 //
 //   ---> Read anodes/dynode relat.gains, anode/dynode ratios,
@@ -759,7 +837,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
   if(AMSJob::gethead()->isMCData())ctyp=5;
    else ctyp=4;
    verid=verids[ctyp-1];//MC-versn or RD-utc
-   strcpy(name,"TofAmplf");//generic name
+   if (TFCAFFKEY.newslew==0) strcpy(name,"TofAmplf");//generic name
+   else if (TFCAFFKEY.newslew==1) strcpy(name,"TofAmplf2");//generic name
    strcat(name,datt);
    strcat(name,".");
    sprintf(ext,"%d",verid);
@@ -906,11 +985,16 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
     strat[1][1]=1100;
     sta[0]=stat[cnum][0];
     sta[1]=stat[cnum][1];
-    slope=slpf;// common slope from ext. file
-//    slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
-//    slops[1]=slops2[ila][ibr];
-    slops[0]=1.;// default indiv.slopes
-    slops[1]=1.;
+    if (TFCAFFKEY.newslew==0) {
+      slope=slpf;// common slope from ext. file
+      slops[0]=1.;// default indiv.slopes
+      slops[1]=1.;
+    }
+    else if (TFCAFFKEY.newslew==1) {
+      slope=1.;
+      slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
+      slops[1]=slops2[ila][ibr];
+    }
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file
     if(lsflg){
@@ -1080,7 +1164,8 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
   time_t utct;
   uinteger verids[11],verid;
 //
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   strcpy(datt,"RD");
   sprintf(ext,"%d",cfvers);//CFvers-file
   strcat(name,datt);
@@ -1108,7 +1193,8 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
 //
   ctyp=1;
   verid=verids[ctyp-1];//MC-versn or RD-utc
-  strcpy(name,"TofCStat");//generic name
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCStat");//generic name
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCStat2");//generic name
   strcat(name,datt);
   strcat(name,".");
   sprintf(ext,"%d",verid);
@@ -1152,7 +1238,8 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
  endflab=0;
  ctyp=2;
  verid=verids[ctyp-1];//MC-versn or RD-utc
- strcpy(name,"TofTdelv");//generic name
+ if (TFCAFFKEY.newslew==0) strcpy(name,"TofTdelv");//generic name
+ else if (TFCAFFKEY.newslew==1) strcpy(name,"TofTdelv2");//generic name
  strcat(name,datt);
  strcat(name,".");
  sprintf(ext,"%d",verid);
@@ -1200,31 +1287,32 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
  endflab=0;
  ctyp=3;
  verid=verids[ctyp-1];//MC-versn or RD-utc
- strcpy(name,"TofTzslw");//generic name
- strcat(name,datt);
- strcat(name,".");
- sprintf(ext,"%d",verid);
- strcat(name,ext);
- strcpy(fname,"");
- strcat(fname,name);
- cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
- ifstream tzcfile(fname,ios::in); // open  file for reading
- if(!tzcfile){
-   cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
-   return 1;
- }
-//
- tzcfile >> slpf;
- for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
-   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
-     tzcfile >> tzerf[ila][ibr];
-   } 
- }
-//
+ if (TFCAFFKEY.newslew==0) {
+   strcpy(name,"TofTzslw");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF T0/SlevCorr-file : "<<fname<<'\n';
+   ifstream tzcfile(fname,ios::in); // open  file for reading
+   if(!tzcfile){
+     cout <<"<---- Error: missing TOF T0/SlevCorr-file !!! "<<fname<<endl;
+     return 1;
+   }
+   //
+   tzcfile >> slpf;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tzcfile >> tzerf[ila][ibr];
+     } 
+   }
+   //
    tzcfile >> endflab;//read endfile-label
-//
+   //
    tzcfile.close();
-//
+   //
    if(endflab==12345){
      cout<<"      TOF Slewing/T0-params file is successfully read !"<<endl;
    }
@@ -1232,6 +1320,80 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
      cout<<"<---- Error: problems with TOF Slewing/T0-params file !!!"<<endl;
      return 2;
    }
+ }
+ else if (TFCAFFKEY.newslew==1) {
+   strcpy(name,"TofTzero");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF T0-file : "<<fname<<'\n';
+   ifstream tzncfile(fname,ios::in); // open  file for reading
+   if(!tzncfile){
+     cout <<"<---- Error: missing TOF T0-file !!! "<<fname<<endl;
+     return 1;
+   }
+   //
+
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tzncfile >> tzerf[ila][ibr];
+     } 
+   }
+   //
+   tzncfile >> endflab;//read endfile-label
+   //
+   tzncfile.close();
+   //
+   if(endflab==12345){
+     cout<<"      TOF T0-params file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF T0-params file !!!"<<endl;
+     return 2;
+   }
+
+   ctyp=7;
+   verid=verids[ctyp-1];//MC-versn or RD-utc
+   strcpy(name,"TofSlwSlope");//generic name
+   strcat(name,datt);
+   strcat(name,".");
+   sprintf(ext,"%d",verid);
+   strcat(name,ext);
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"      Opening TOF Slewing-file : "<<fname<<'\n';
+   ifstream tslcfile(fname,ios::in); // open  file for reading
+   if(!tslcfile){
+     cout <<"<---- Error: missing TOF Slewing-file !!! "<<fname<<endl;
+     return 2;
+   }
+   //
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tslcfile >> slops1[ila][ibr];
+     } 
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
+       tslcfile >> slops2[ila][ibr];
+     } 
+   }
+   //
+   tslcfile >> endflab;//read endfile-label
+   //
+   tslcfile.close();
+   //
+   if(endflab==12345){
+     cout<<"      TOF Slewing-params file is successfully read !"<<endl;
+   }
+   else{
+     cout<<"<---- Error: problems with TOF Slewing-params file !!!"<<endl;
+     return 2;
+   }
+ }
+
 //-------------------------------------------------------
 //
 //   ---> Read anodes/dynode relat.gains, anode/dynode ratios,
@@ -1240,7 +1402,8 @@ int TOF2Brcal::setpars(integer cfvers){// set RD scbrcal-objects according to CF
   endflab=0;
    ctyp=4;
    verid=verids[ctyp-1];//MC-versn or RD-utc
-   strcpy(name,"TofAmplf");//generic name
+   if (TFCAFFKEY.newslew==0) strcpy(name,"TofAmplf");//generic name
+   else if (TFCAFFKEY.newslew==1) strcpy(name,"TofAmplf2");//generic name
    strcat(name,datt);
    strcat(name,".");
    sprintf(ext,"%d",verid);
@@ -1476,17 +1639,20 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //
 // ---> read file with the list of version numbers for all needed MC-seed barcal.files :
 //
-  strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2MC.");// basic name for vers.list-file  
   sprintf(ext,"%d",TFMCFFKEY.calvern);//got TofCflistMC. file extention
   strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TOFBrcalMS::build: Opening TofCflistMC-file...  "<<fname<<'\n';
+  if (TFCAFFKEY.newslew==0) cout<<"====> TOFBrcalMS::build: Opening TofCflistMC-file...  "<<fname<<'\n';
+  else if (TFCAFFKEY.newslew==1) cout<<"====> TOFBrcalMS::build: Opening TofCflist2MC-file...  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cout <<"<---- missing TofCflistMC-file !!! "<<fname<<endl;
+    if (TFCAFFKEY.newslew==0) cout <<"<---- missing TofCflistMC-file !!! "<<fname<<endl;
+    else if (TFCAFFKEY.newslew==1) cout <<"<---- missing TofCflist2MC-file !!! "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
@@ -1520,7 +1686,8 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //   ---> Prepare to read tof-chan MCSeed calib-status file(used as "MC Seed") :
 //
   ctyp=2;//line# corresponding calib-status parameters file
-  strcpy(name,"TofCStat");
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCStat");
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCStat2");
   mcvn=mcvern[ctyp-1];
   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
   else strcat(name,vers2);//sd = copy of rl
@@ -1569,7 +1736,8 @@ void TOFBrcalMS::build(){// create MC-seed scbrcal-objects for each sc.bar
 //
    endflab=0;
   ctyp=5;
-   strcpy(name,"TofAmplf");
+   if (TFCAFFKEY.newslew==0) strcpy(name,"TofAmplf");
+   else if (TFCAFFKEY.newslew==1) strcpy(name,"TofAmplf2");
    mcvn=mcvern[ctyp-1];
    if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
    else strcat(name,vers2);//sd = copy of rl
@@ -3755,7 +3923,8 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
   time_t utct;
   uinteger verids[10],verid;
 //
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
     sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
@@ -3904,7 +4073,8 @@ void TofTdcCor::build(){// create TofTdcCor-objects array for real/mc data
     for(int j=0;j<1024;j++)corr[i][j]=0;
   }
 //
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
     sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
@@ -4038,7 +4208,8 @@ void TofTdcCorMS::build(){// create TofTdcCor-objects array for real/mc data
     for(int j=0;j<1024;j++)corr[i][j]=0;
   }
 //
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   strcpy(datt,"MC");
   sprintf(ext,"%d",TFMCFFKEY.calvern);//MC-versn
   ctyp=7;

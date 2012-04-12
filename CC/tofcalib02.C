@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.57 2011/06/24 09:16:20 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.58 2012/04/12 10:27:42 lquadran Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -102,6 +102,7 @@ integer TofTmAmCalib::elbt;
 geant TofTmAmCalib::elfitp[TOF2GC::SCELFT];
 char TofTmAmCalib::eltit[60];
 //
+geant TofTmAmCalib::TofTzSlope[TOF2GC::SCMXBR*TOF2GC::SCLRS];
 //------------------------------
 void TofTmAmCalib::initjob(){
   integer mode=TFREFFKEY.relogic[0];
@@ -285,7 +286,8 @@ if(TFCAFFKEY.hprintf>0){
     else verid=StartRun;
     TOF2Brcal::CFlistC[1]=verid;//update CStatRD utc in static store
   }
-  strcpy(name,"TofCStat");//generic name
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCStat");//generic name
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCStat2");//generic name
   strcat(name,datt);
   strcat(name,".");
   sprintf(ext,"%d",verid);
@@ -320,7 +322,8 @@ if(TFCAFFKEY.hprintf>0){
 //---> create  TofCflistMC(RD) file:
 //
   ntypes=integer(TOF2Brcal::CFlistC[0]);//7/6->MC/RD
-  strcpy(name,"TofCflist");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflist");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2");// basic name for vers.list-file  
   if(AMSJob::gethead()->isMCData()){
     strcpy(datt,"MC");
     overid=TOF2Brcal::CFlistC[ntypes+1];
@@ -396,8 +399,13 @@ if(TFCAFFKEY.hprintf>0){
 //
       if(retstat==0){
         AMSTimeID *ptdv;
-        ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal2",AMSJob::gethead()->isRealData()));
-        ptdv->UpdateMe()=1;
+        if (TFCAFFKEY.newslew==0) {
+	  ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal2",AMSJob::gethead()->isRealData()));
+	}
+	else if (TFCAFFKEY.newslew==1) {
+	  ptdv = AMSJob::gethead()->gettimestructure(AMSID("Tofbarcal3",AMSJob::gethead()->isRealData())); 
+	}
+	ptdv->UpdateMe()=1;
         ptdv->UpdCRC();
         time(&insert);
         if(CALIB.InsertTimeProc)insert=StartRun;//redefine insert time as runNumber
@@ -425,7 +433,7 @@ if(TFCAFFKEY.hprintf>0){
 //------------------------------
 void TofTmAmCalib::inittz(){
   int i,j,il,ib;
-  slope=0.;
+  if (TFCAFFKEY.newslew==0) slope=0.;
   s0=0.;
   s1=0.;
   s4=0.;
@@ -455,6 +463,45 @@ void TofTmAmCalib::inittz(){
     HBOOK1(1517,"T0-difference inside bar-types 2",80,-0.4,0.4,0.);
     HBOOK1(1518,"T0-difference between ref. and bar-types 4",80,-0.4,0.4,0.);
   }
+  if (TFCAFFKEY.newslew==1) {
+    //
+    //---> open file with TOF Slewing Parameters
+    //
+    Char_t fname[80];
+    Int_t endflab;
+    Char_t ext[80];
+    strcpy(fname,"TofSlwSlopeRD.");
+    sprintf(ext,"%d",TOF2Brcal::CFlistC[7]);  // TofSlwSlopeRD.1305806831
+    strcat(fname,ext);
+    cout << "      Opening TofSlwSlope-file: "<<fname<<endl; 
+    ifstream crfile(fname,ios::in); // open file for reading
+    if(!crfile){
+      cout <<"<---- Error: Missing TofSlwSlope-file !!? "<<fname<<endl;
+      exit(1);
+    }
+    int seqnum=0;
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      for (int is=0; is<2; is++) {
+	for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+	  if (il!=2 && ib>7) continue;
+	  crfile >> TofTzSlope[seqnum];
+	  cout << TofTzSlope[seqnum] << " ";
+	  seqnum++;
+	}
+	cout << endl;
+      }
+    }    
+    crfile >> endflab;//read endfile-label
+    crfile.close();
+    if(endflab==12345){
+      cout<<"      TofSlwSlope-file is successfully read !"<<endl;
+    }
+    else{
+      cout<<"<---- Error: broken structure in TofSlwSlope-file !!!"<<endl;
+      exit(1);
+    }
+  }
+
 }
 //------------------------------
 void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tzero[][]->file
@@ -467,47 +514,85 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   char in[2]="0";
   int ifit[TOF2GC::SCBLMX+1];
   char pnam[TOF2GC::SCBLMX+1][6];
+  int ifit2[TOF2GC::SCBLMX];
+  char pnam2[TOF2GC::SCBLMX][6];
   number argl[10];
   int iargl[10];
   number start[TOF2GC::SCBLMX+1],step[TOF2GC::SCBLMX+1];
   number plow[TOF2GC::SCBLMX+1],phigh[TOF2GC::SCBLMX+1];
+  number start2[TOF2GC::SCBLMX],step2[TOF2GC::SCBLMX];
+  number plow2[TOF2GC::SCBLMX],phigh2[TOF2GC::SCBLMX];
 //
   strcpy(p1nam,"tslop");
   strcpy(p2nam,"tz");
   strcpy(inum,"0123456789");
 //
+  Float_t deft0[34]={//side-A (1305815610)
+    2.365,  0.557,  1.036,  0.000,  0.051,  0.874,  0.875,  2.294,
+    -4.148, -3.549, -3.476, -2.150, -2.652, -3.146, -3.269, -3.642,
+    -7.969, -9.731, -7.885, -9.239, -8.825, -8.767, -8.990, -9.444, -9.562, -8.831,
+    -4.554, -6.586, -6.596, -6.792, -6.307, -6.629, -5.726, -5.167};
+
 // -----------> set parameter defaults:
-//slope:
-  strcpy(pnam[0],p1nam); // for slope
-  start[0]=TFCAFFKEY.fixsl;// def. slope 
-  step[0]=1.;
-  plow[0]=0.;
-  phigh[0]=40.;
-  ifit[0]=TFCAFFKEY.ifsl;// fix/release slope 
-  if(TFCAFFKEY.idref[1]==2)ifit[0]=0;
-//T0's
-  ii=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      id=(il+1)*100+ib+1;
-      start[ii+1]=TOF2Brcal::scbrcal[il][ib].gettzero();// def.T0's from current calibration
-      if(id == TFCAFFKEY.idref[0] && (TFCAFFKEY.idref[0]/100)==1)
-                                 start[ii+1]=TFCAFFKEY.tzref[0];//def.T0(0.) for ref.counter
-      step[ii+1]=1.;
-      plow[ii+1]=-40.;
-      phigh[ii+1]=40.;
-      ifit[ii+1]=0;//means fix
-      strcpy(pnm,p2nam);
-      in[0]=inum[il];
-      strcat(pnm,in);
-      i=ib/10;
-      j=ib%10;
-      in[0]=inum[i];
-      strcat(pnm,in);
-      in[0]=inum[j];
-      strcat(pnm,in);
-      strcpy(pnam[1+ii],pnm);
-      ii+=1;//use sequential solid numbering of counters
+  if (TFCAFFKEY.newslew==1) {
+    ii=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+	id=(il+1)*100+ib+1;
+	start2[ii]=deft0[ii];//tempor def.T0's from current calibration
+	if(id == TFCAFFKEY.idref[0] && (TFCAFFKEY.idref[0]/100)==1)
+	  start2[ii]=TFCAFFKEY.tzref[0];//def.T0(0.) for ref.counter
+	step2[ii]=1.;
+	plow2[ii]=-40.;
+	phigh2[ii]=40.;
+	ifit2[ii]=0;//means fix
+	strcpy(pnm,p2nam);
+	in[0]=inum[il];
+	strcat(pnm,in);
+	i=ib/10;
+	j=ib%10;
+	in[0]=inum[i];
+	strcat(pnm,in);
+	in[0]=inum[j];
+	strcat(pnm,in);
+	strcpy(pnam2[ii],pnm);
+	ii+=1;//use sequential solid numbering of counters
+      }
+    }
+  }
+  else if (TFCAFFKEY.newslew==0) {
+    //slope:
+    strcpy(pnam[0],p1nam); // for slope
+    start[0]=TFCAFFKEY.fixsl;// def. slope 
+    step[0]=1.;
+    plow[0]=0.;
+    phigh[0]=40.;
+    ifit[0]=TFCAFFKEY.ifsl;// fix/release slope 
+    if(TFCAFFKEY.idref[1]==2)ifit[0]=0;
+    //T0's
+    ii=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+	id=(il+1)*100+ib+1;
+	start[ii+1]=TOF2Brcal::scbrcal[il][ib].gettzero();// def.T0's from current calibration
+	if(id == TFCAFFKEY.idref[0] && (TFCAFFKEY.idref[0]/100)==1)
+	  start[ii+1]=TFCAFFKEY.tzref[0];//def.T0(0.) for ref.counter
+	step[ii+1]=1.;
+	plow[ii+1]=-40.;
+	phigh[ii+1]=40.;
+	ifit[ii+1]=0;//means fix
+	strcpy(pnm,p2nam);
+	in[0]=inum[il];
+	strcat(pnm,in);
+	i=ib/10;
+	j=ib%10;
+	in[0]=inum[i];
+	strcat(pnm,in);
+	in[0]=inum[j];
+	strcat(pnm,in);
+	strcpy(pnam[1+ii],pnm);
+	ii+=1;//use sequential solid numbering of counters
+      }
     }
   }
 // ------------> release T0-parameters with good statistics:
@@ -533,12 +618,14 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
         if(TFCAFFKEY.idref[1]==0 
 	     || (TFCAFFKEY.idref[1]==1 && (ib>0 || (ib+1)<TOF2DBc::getbppl(il)))
 	     || (TFCAFFKEY.idref[1]==2 && (ib==0 || (ib+1)==TOF2DBc::getbppl(il)))){
-          ifit[1+seqnum]=1;//bar with high statist.-> release
-          nparr+=1;
+	  if (TFCAFFKEY.newslew==0) ifit[1+seqnum]=1;//bar with high statist.-> release
+	  else if (TFCAFFKEY.newslew==1) ifit2[seqnum]=1;
+	  nparr+=1;
 	}
         if(id == TFCAFFKEY.idref[0]){
-          ifit[1+seqnum]=0;//fix, if ref counter
-          nparr-=1;
+          if (TFCAFFKEY.newslew==0) ifit[1+seqnum]=0;//fix, if ref counter
+	  else if (TFCAFFKEY.newslew==1) ifit2[seqnum]=0;
+	  nparr-=1;
         }
       }
       else{
@@ -546,7 +633,8 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
           cout<<" <--- Too low statistics in ref.counter "<<id<<" "<<s30[il][ib]<<'\n';
 	  missrefc=true;
         }
-        ifit[1+seqnum]=0;//bar with low statist.-> fix
+        if (TFCAFFKEY.newslew==0) ifit[1+seqnum]=0;//bar with low statist.-> fix
+	else if (TFCAFFKEY.newslew==1) ifit2[seqnum]=0;
       }
       seqnum+=1;
     }
@@ -560,24 +648,29 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   }
   TOF2JobStat::cqual(1,0)=geant(nparr+1)/seqnum;//% counters with good stat (for cal-quality evaluation)
 //
-  npar=seqnum+1;//T0's_of_counters + slope_parameter
+  if (TFCAFFKEY.newslew==0) npar=seqnum+1;//T0's_of_counters + slope_parameter
+  else if (TFCAFFKEY.newslew==1) npar=seqnum;//T0's_of_counters
 // ------------> initialize parameters for Minuit:
   MNINIT(5,6,6);
   MNSETI("      TZSL-calibration for TOF-system");
   for(i=0;i<npar;i++){
-    strcpy(pnm,pnam[i]);
+    if (TFCAFFKEY.newslew==0) strcpy(pnm,pnam[i]);
+    else if (TFCAFFKEY.newslew==1) strcpy(pnm,pnam2[i]);
     ier=0;
-    MNPARM((i+1),pnm,start[i],step[i],plow[i],phigh[i],ier);
+    if (TFCAFFKEY.newslew==0) MNPARM((i+1),pnm,start[i],step[i],plow[i],phigh[i],ier);
+    else if (TFCAFFKEY.newslew==1) MNPARM((i+1),pnm,start2[i],step2[i],plow2[i],phigh2[i],ier);
     if(ier!=0){
-      cout<<"<---- Fatal: Param-init problem for par-id="<<pnam[i]<<'\n';
+      if (TFCAFFKEY.newslew==0) cout<<"<---- Fatal: Param-init problem for par-id="<<pnam[i]<<'\n';
+      else if (TFCAFFKEY.newslew==1)  cout<<"<---- Fatal: Param-init problem for par-id="<<pnam2[i]<<'\n';
       exit(10);
     }
     argl[0]=number(i+1);
-    if(ifit[i]==0){
+    if((TFCAFFKEY.newslew==0 && ifit[i]==0) || (TFCAFFKEY.newslew==1 && ifit2[i]==0)){
       ier=0;
       MNEXCM(mfuntz,"FIX",argl,1,ier,0);
       if(ier!=0){
-        cout<<"<---- Fatal: Param-fix problem for par-id="<<pnam[i]<<'\n';
+        if (TFCAFFKEY.newslew==0) cout<<"<---- Fatal: Param-fix problem for par-id="<<pnam[i]<<'\n';
+        else if (TFCAFFKEY.newslew==1) cout<<"<---- Fatal: Param-fix problem for par-id="<<pnam2[i]<<'\n';
         exit(10);
       }
     }
@@ -607,7 +700,7 @@ void TofTmAmCalib::fittz(){  // Tzslw-calibr. fit procedure, f.results->slope,tz
   printf("      -----------------------------\n");
   printf("      Resolution(ns) : %6.3e\n",resol);
   printf("      Resolution1(ns): %6.3e\n",resol1);
-  printf("      Slope          : %6.3e\n",slope);
+  if (TFCAFFKEY.newslew==0) printf("      Slope          : %6.3e\n",slope);
   TOF2JobStat::cqual(1,1)=geant(resol1);//system resolution (for cal-quality evaluation)
 }
 //-----------------------------------------------------------------------
@@ -647,7 +740,8 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
   for(il=0;il<TOF2DBc::getnplns();il++){
     f1[il]=0.;
     for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      f1[il]+=s3[il][ib]*x[1+seqnum]*x[1+seqnum];//l=1,4 (s3[0][ib]=0 when ref.layer=2) 
+      if (TFCAFFKEY.newslew==0) f1[il]+=s3[il][ib]*x[1+seqnum]*x[1+seqnum];//l=1,4 (s3[0][ib]=0 when ref.layer=2) 
+      else if (TFCAFFKEY.newslew==1) f1[il]+=s3[il][ib]*x[seqnum]*x[seqnum];
       seqnum+=1;
     }
   }
@@ -656,45 +750,80 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
     f2[i]=0.;    
     il=i+1;
     if(il>(refl-1)){//skip missing pair Lr->L2 if refl=2
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++)f2[i]+=s6[i][ib]*x[1+TOF2DBc::barseqn(il,ib)];//l=(2),3,4
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++) {
+	if (TFCAFFKEY.newslew==0) f2[i]+=s6[i][ib]*x[1+TOF2DBc::barseqn(il,ib)];//l=(2),3,4
+	else if (TFCAFFKEY.newslew==1) f2[i]+=s6[i][ib]*x[TOF2DBc::barseqn(il,ib)];
+      }
     }
   }
 //
-  for(ib=0;ib<TOF2DBc::getbppl(refl-1);ib++)f3+=s7[ib]*x[1+TOF2DBc::barseqn(refl-1,ib)];//l=r
+  for(ib=0;ib<TOF2DBc::getbppl(refl-1);ib++) {
+    if (TFCAFFKEY.newslew==0) f3+=s7[ib]*x[1+TOF2DBc::barseqn(refl-1,ib)];//l=r
+    else if (TFCAFFKEY.newslew==1) f3+=s7[ib]*x[TOF2DBc::barseqn(refl-1,ib)];
+  }
 //
   if(refl==1){// f6=0(skipped) if refl=2
     for(i=0;i<TOF2DBc::getbppl(refl-1);i++){
-      for(j=0;j<TOF2DBc::getbppl(1);j++)f6+=s12[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(1,j)];//Lr*(2)
+      for(j=0;j<TOF2DBc::getbppl(1);j++) {
+	if (TFCAFFKEY.newslew==0) f6+=s12[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(1,j)];//Lr*(2)
+	else if (TFCAFFKEY.newslew==1) f6+=s12[i][j]*x[TOF2DBc::barseqn(refl-1,i)]*x[TOF2DBc::barseqn(1,j)];
+      }
     }
   }
 //
   for(i=0;i<TOF2DBc::getbppl(refl-1);i++){//loop over bars in refl
-    for(j=0;j<TOF2DBc::getbppl(2);j++)f7+=s13[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(2,j)];//Lr*3
+    for(j=0;j<TOF2DBc::getbppl(2);j++) {
+      if (TFCAFFKEY.newslew==0) f7+=s13[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(2,j)];//Lr*3
+      else if (TFCAFFKEY.newslew==1) f7+=s13[i][j]*x[TOF2DBc::barseqn(refl-1,i)]*x[TOF2DBc::barseqn(2,j)];
+    }
   }
 //
   for(i=0;i<TOF2DBc::getbppl(refl-1);i++){
-    for(j=0;j<TOF2DBc::getbppl(3);j++)f8+=s14[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(3,j)];//Lr*4
+    for(j=0;j<TOF2DBc::getbppl(3);j++) {
+      if (TFCAFFKEY.newslew==0) f8+=s14[i][j]*x[1+TOF2DBc::barseqn(refl-1,i)]*x[1+TOF2DBc::barseqn(3,j)];//Lr*4
+      else if (TFCAFFKEY.newslew==1) f8+=s14[i][j]*x[TOF2DBc::barseqn(refl-1,i)]*x[TOF2DBc::barseqn(3,j)];
+    }
   }
 //
   for(i=0;i<TOF2DBc::getnplns()-1;i++){ 
     f9[i]=0.;
     il=i+1;
     if(il>(refl-1)){//skip missing pair Lr->L2 if refl=2
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++)f9[i]+=s15[i][ib]*x[1+TOF2DBc::barseqn(il,ib)];//l=(2),3,4
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++) {
+	if (TFCAFFKEY.newslew==0) f9[i]+=s15[i][ib]*x[1+TOF2DBc::barseqn(il,ib)];//l=(2),3,4
+	else if (TFCAFFKEY.newslew==1) f9[i]+=s15[i][ib]*x[TOF2DBc::barseqn(il,ib)];
+      }
     }
   }
 //
-  for(ib=0;ib<TOF2DBc::getbppl(refl-1);ib++)f10+=s16[ib]*x[1+TOF2DBc::barseqn(refl-1,ib)];//l=r
+  for(ib=0;ib<TOF2DBc::getbppl(refl-1);ib++) {
+    if (TFCAFFKEY.newslew==0) f10+=s16[ib]*x[1+TOF2DBc::barseqn(refl-1,ib)];//l=r
+    else if (TFCAFFKEY.newslew==1) f10+=s16[ib]*x[TOF2DBc::barseqn(refl-1,ib)];
+  }
 //
-  f=s1
-   +f1[0]+f1[1]+f1[2]+f1[3]
-   +s4*x[0]*x[0]
-   +2.*(f2[0]+f2[1]+f2[2])
-   -2.*f3
-   +2.*s8*x[0]
-   -2.*(f6+f7+f8)
-   +2.*(f9[0]+f9[1]+f9[2])*x[0]
-   -2.*f10*x[0];
+  if (TFCAFFKEY.newslew==0) {
+    f=s1
+      +f1[0]+f1[1]+f1[2]+f1[3]
+      +s4*x[0]*x[0]
+      +2.*(f2[0]+f2[1]+f2[2])
+      -2.*f3
+      +2.*s8*x[0]
+      -2.*(f6+f7+f8)
+      +2.*(f9[0]+f9[1]+f9[2])*x[0]
+      -2.*f10*x[0];
+  }
+  else if (TFCAFFKEY.newslew==1) {
+    f=s1
+      +f1[0]+f1[1]+f1[2]+f1[3]
+      +s4
+      +2.*(f2[0]+f2[1]+f2[2])
+      -2.*f3
+      +2.*s8
+      -2.*(f6+f7+f8)
+      +2.*(f9[0]+f9[1]+f9[2])
+      -2.*f10;
+  }
+
 //----------------------------------
   if(flg==3){
     cout<<"----> TofTimeAmplCalib::fittz: Final call to FCN(user actions):"<<endl;
@@ -707,7 +836,8 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
 //
 //--> create name for output file
 // 
-    strcpy(fname,"TofTzslw");
+    if (TFCAFFKEY.newslew==0) strcpy(fname,"TofTzslw");
+    else if (TFCAFFKEY.newslew==1) strcpy(fname,"TofTzero");
     if(AMSJob::gethead()->isMCData()){
       strcat(fname,vers1);
       overid=TOF2Brcal::CFlistC[4];
@@ -758,19 +888,23 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
       cout<<"<---- error opening file for output"<<fname<<'\n';
       exit(8);
     }
-    cout<<"      Slope and individual T0's will be written !"<<'\n';
+    if (TFCAFFKEY.newslew==0) cout<<"      Slope and individual T0's will be written !"<<'\n';
+    else if (TFCAFFKEY.newslew==1) cout<<"      Individual T0's will be written !"<<'\n';
     cout<<"      First run used for calibration is "<<StartRun<<endl;
     cout<<"      Date of the first event : "<<frdate<<endl;
     tcfile.setf(ios::fixed);
     tcfile.width(6);
-    tcfile.precision(2);// precision for slope
-    slope=geant(x[0]);
-    tcfile << slope<<endl;
+    if (TFCAFFKEY.newslew==0) {
+      tcfile.precision(2);// precision for slope
+      slope=geant(x[0]);
+      tcfile << slope<<endl;
+    }
     tcfile.precision(3);// precision for T0
     seqnum=0;
     for(il=0;il<TOF2DBc::getnplns();il++){
       for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        tzero[il][ib]=geant(x[1+seqnum]);
+        if (TFCAFFKEY.newslew==0) tzero[il][ib]=geant(x[1+seqnum]);
+        else if (TFCAFFKEY.newslew==1) tzero[il][ib]=geant(x[seqnum]);
         tcfile <<" "<<tzero[il][ib];
 	seqnum+=1;
       }
@@ -1883,6 +2017,13 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   time_t StartTime;
   int dig;
   strcpy(inum,"0123456789");
+  number t0d[34]={
+    11.36,  11.73,  12.21,  12.02,  12.58,  13.07,  13.10,  13.45, 
+    -13.98, -13.18, -12.30, -10.86, -11.89, -11.82, -11.24, -10.47, 
+    -8.30,  -8.27,  -9.70, -10.25, -11.26, -10.79, -11.46, -11.67, -13.23, -12.68, 
+    -9.00, -10.18,  -9.51, -10.80, -10.73, -11.67, -11.99, -12.08
+  };//def.t0 
+
 //
 //--> get run/time of the first event(set at 1st event valid-stage using related AMSEvent values) 
 //
@@ -1892,7 +2033,8 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
 //
 //--> create name for output file
 // 
-  strcpy(fname,"TofTdelv");
+  if (TFCAFFKEY.newslew==0) strcpy(fname,"TofTdelv");
+  else if (TFCAFFKEY.newslew==1) strcpy(fname,"TofTdelv2");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
     overid=TOF2Brcal::CFlistC[3];
@@ -1938,7 +2080,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
       bins=0;
       gsbins=0;
       sl[chan]=0;
-      t0[chan]=0;
+      t0[chan]=t0d[chan];
       chi2[chan]=0;
       cout<<"<===== Events/bin in lay/bar="<<(il+1)<<" "<<(ib+1)<<"  ===> ";
       for(nb=0;nb<_nbins[btyp-1];nb++)cout<<_nevnt[chan][nb]<<" ";
@@ -2638,7 +2780,8 @@ void TofTmAmCalib::fitam(){
 //
 //--> create name for output file
 // 
-  strcpy(fname,"TofAmplf");
+  if (TFCAFFKEY.newslew==0) strcpy(fname,"TofAmplf");
+  else if (TFCAFFKEY.newslew==1) strcpy(fname,"TofAmplf2");
   if(AMSJob::gethead()->isMCData()){
     strcat(fname,vers1);
     overid=TOF2Brcal::CFlistC[5];

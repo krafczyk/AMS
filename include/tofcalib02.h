@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.21 2011/03/22 11:20:58 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.22 2012/04/12 10:29:03 lquadran Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -78,6 +78,7 @@ private:
   static integer elbt;//     tot.bins
   static geant elfitp[TOF2GC::SCELFT];// fit-parameters
   static char eltit[60];  // title for fit
+  static geant TofTzSlope[TOF2GC::SCMXBR*TOF2GC::SCLRS]; // New Slewing parameters
 //
 public:
   static void initjob();

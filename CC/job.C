@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.855 2012/03/29 19:37:05 sdifalco Exp $
+// $Id: job.C,v 1.856 2012/04/12 10:27:42 lquadran Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1557,6 +1557,9 @@ void AMSJob::_retof2data(){
   //                           i(j,..)-bitset => section present (47-> dynam.peds section missing)
   TFCAFFKEY.updbrcaldb=0;// (41) if=1 - update RD barcal DB "on flight"(just after new calib-file was written) 
   //
+  // New Slewing calibration mode   
+  TFCAFFKEY.newslew=1; //(42) 0/1 Use Old/New Slewing Calibration mode.
+  
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -3613,9 +3616,17 @@ void AMSJob::_timeinitjob(){
     //-----
     if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//(C)BarCalibConst from DB
 
-    TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
-			   begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-			   (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+    if (TFCAFFKEY.newslew==0) {
+      TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
+			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
+			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+    }
+    else if (TFCAFFKEY.newslew==1) {
+      TID.add (new AMSTimeID(AMSID("Tofbarcal3",isRealData()),
+			     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
+			     (void*)&TOF2Brcal::scbrcal[0][0],server,needval));
+    }
+
     end.tm_year=TFREFFKEY.year[1];
     //-----
     if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//(D)ThreshCuts-set from DB

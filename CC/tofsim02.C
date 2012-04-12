@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.53 2011/05/03 14:15:25 choumilo Exp $
+//  $Id: tofsim02.C,v 1.54 2012/04/12 10:27:42 lquadran Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -177,17 +177,20 @@ void TOFWScan::build(){
 //
 // ---> read version number of "TofSfmapMC"-file from verslist-file:
 //
-  strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  if (TFCAFFKEY.newslew==0) strcpy(name,"TofCflistMC.");// basic name for vers.list-file  
+  else if (TFCAFFKEY.newslew==1) strcpy(name,"TofCflist2MC.");// basic name for vers.list-file  
   sprintf(ext,"%d",TFMCFFKEY.calvern);//got TofCflistMC. file extention
   strcat(name,ext);
 //
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"====> TOFWScan::build: Opening TofCflistMC-file  "<<fname<<endl;
+  if (TFCAFFKEY.newslew==0) cout<<"====> TOFWScan::build: Opening TofCflistMC-file  "<<fname<<endl;
+  else if (TFCAFFKEY.newslew==1) cout<<"====> TOFWScan::build: Opening TofCflist2MC-file  "<<fname<<endl;
   ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cout <<"<---- Error: missing TofCflistMC-file !!! "<<fname<<endl;
+    if (TFCAFFKEY.newslew==0) cout <<"<---- Error: missing TofCflistMC-file !!! "<<fname<<endl;
+    else if (TFCAFFKEY.newslew==1) cout <<"<---- Error: missing TofCflist2MC-file !!! "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
