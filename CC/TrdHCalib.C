@@ -894,7 +894,7 @@ int TrdHCalibR::DynamicCalibration(AMSEventR *pev, int opt){
     //    else // cosmics - muons
     //      momcorr=f_logmom->Eval(0.515*0.93827/0.10566)/f_logmom->Eval(log10(fabs(rig*0.93827/0.10566)));
 
-    update_medians(pev->pParticle(p)->pTrdHTrack(),1,1,momcorr);
+    update_medians(pev->pParticle(p)->pTrdHTrack(),0,1,1,momcorr);
     n++;
   }
   
