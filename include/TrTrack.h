@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.77 2012/03/24 15:18:47 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.78 2012/04/12 10:18:15 mduranti Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/03/24 15:18:47 $
+///$Date: 2012/04/12 10:18:15 $
 ///
-///$Revision: 1.77 $
+///$Revision: 1.78 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -393,7 +393,7 @@ public:
     \li 4  refit and rebuild of coordinates with PG    ExtPlanes Alignment 
     \li 5  refit and rebuild of coordinates with CIEMAT ExtPlanes Alignment 
     
-    To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetAlign(); and refit with 3
+    To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetExtAlign(); and refit with 3
 
     To correctly perform the refit, the FieldMap file is needed.
     If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPermanent_NEW.bin
