@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.722 2012/04/04 09:50:14 ams Exp $
+# $Id: RemoteClient.pm,v 1.723 2012/04/13 08:33:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16675,7 +16675,7 @@ sub calculateMipsVC {
 #
 # take same from ntuples
 #
-                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.run=runs.run and runs.jid=$job->[0]";
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.jid=runs.jid and runs.jid=$job->[0]";
                           my $r4=$self->{sqlserver}->Query($sql);
                          my $ntevt=$r4->[0][0];
                          if(not defined $ntevt){
