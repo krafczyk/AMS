@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.381 2012/04/13 10:38:41 choutko Exp $
+//  $Id: root.C,v 1.382 2012/04/13 10:41:47 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5958,7 +5958,7 @@ int ret=0;
     aa+=90;  //  fix from Urban/Consolandi
     if(aa>360)aa+=-360;
     ab+=90;  //  fix from Urban/Consolandi
-    if(ab>360)aab=-360;
+    if(ab>360)ab=-360;
     alpha*=dr;
     aa*=dr;
     ab*=dr;
