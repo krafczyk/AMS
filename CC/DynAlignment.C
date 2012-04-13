@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.48 2012/03/24 08:16:53 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.49 2012/04/13 10:19:48 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -588,6 +588,9 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
 
       error=classInfo[Class].rms[which];
       if(error<1e-6) continue;
+
+      if(which==0) error*=10; // Decouple X and Y axis, and use the latter for most computations
+
       Fit.AddPoint(x,y,error);
       Events++;
     }
@@ -784,12 +787,13 @@ bool DynAlFit::findPeak(vector<double> &array,const double fraction,double &peak
 bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,double Max,double &peak,double &width,int buckets){
   if(fraction>=1 || fraction<0) return false;
 
+  
   // Sort the array
   if(!bucketSort(array,Min,Max,buckets)) return false;
   
   // Get the search window size
   const int window=int(array.size()*fraction);
-  
+
   if(!window) return false;
 
   width=HUGE_VAL;
@@ -802,6 +806,7 @@ bool DynAlFit::findPeak(vector<double> array,const double fraction,double Min,do
     }
   }
   
+
   peak=0.5*(array[maxPosition]+array[maxPosition-window]);
   return true;
 
@@ -1163,7 +1168,6 @@ void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,
   }
 #undef Do
 
-  //  double zHit=z-ZOffset;
 
 #ifdef VERBOSE__
   cout<<"GETPARAMETERS EVALUATING "<<seconds<<" "<<museconds<<endl;
@@ -1361,6 +1365,8 @@ void DynAlFitContainer::Eval(DynAlEvent &ev,double &x,double &y,double &z){
   int seconds=ev.Time[0]; 
   int museconds=ev.Time[1]; 
   int Id=GetId(ev);
+
+
   // Find the candidate
   map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
   if(lower==FitParameters.end()){
@@ -1383,7 +1389,6 @@ void DynAlFitContainer::Eval(DynAlEvent &ev,double &x,double &y,double &z){
       cout<<"DynAlFitContainer::Eval-W-Local Fit parameters requested but not found"<<endl;
     }
   }
-
   fit.ApplyAlignment(seconds,museconds,x,y,z);
 }
 
@@ -2106,34 +2111,3 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
 }
 
 
-#ifdef _PGTRACK_
-void DynAlManager::LocalAlignmentTest(){
-  int layers[2]={1,9};
-  int slots[2]={15,8};
-  int oldlayers[2]={8,9};
-  for(int l=0;l<2;l++){
-    int layer=layers[l];
-    cout<<"DEALING WITH LAYER "<<layer<<endl;
-
-    // Pick all the ladders
-    for(int s=1;s<=slots[l];s++)
-      for(int side=-1;side<=1;side+=2){
-	int hwid=side*(oldlayers[l]*100+s);
-	TkLadder* ll=TkDBc::Head->FindTkId(hwid);	
-	if(!ll) continue;
-	
-	cout<<"DEALING WITH SIDE "<<side<<" slot "<<s<<" id "<<hwid<<endl;
-
-	cout<<"    Pos "<<ll->GetPos()<<endl
-	    <<"    PosA "<<ll->GetPosA()<<endl
-	    <<"    Rot  "<<ll->GetRotMat()<<endl
-	    <<"    RotA "<<ll->GetRotMatA()<<endl;
-      }
-
-    
-  }
-
-}
-#else
-void DynAlManager::LocalAlignmentTest(){}
-#endif

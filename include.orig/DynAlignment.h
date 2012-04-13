@@ -291,8 +291,6 @@ class DynAlManager:public TObject{
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
 
-  static void LocalAlignmentTest();  // A simple test
-
   ClassDef(DynAlManager,4);
 };
 

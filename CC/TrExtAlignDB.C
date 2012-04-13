@@ -164,8 +164,10 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     pars.GetParameters(time,0,pos,rot);
     double offset=pars.ZOffset;
 
+
     // Apply local alignment
     int ladderId=layerJ[i]==1?lad1:lad9;
+
     if(ladderId!=-1){
       //      cout<<"LADDERS NUMBERS "<<lad1<<" "<<lad9<<endl;
       //      cout<<"APPLYING LADDER ALIGNMENT FOR LAYER "<<layerJ[i]<<" ladder "<<ladderId<<endl;
@@ -213,20 +215,11 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     // Take into account the difference in the reference frames
     // between the local geometry and the one used in the computation
     AMSPoint o(0,0,offset);
-    pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos());
+    pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
 
     // Set plane parameters
     pl->posA=pos;
     pl->rotA=rot;
-
-    // Temporal correction of  peak to mean bias due
-
-    if(DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.size()){
-      if(layerJ[i]==1)	pl->posA=pl->posA+AMSPoint(1.74e-4,1.95e-4,-80e-4);
-      if(layerJ[i]==9)  pl->posA=pl->posA+AMSPoint(3.54e-4,3.32e-4,80e-4);
-    }
-
-
   }
   return 0;
 }
