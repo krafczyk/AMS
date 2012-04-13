@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.380 2012/04/10 15:55:04 mdelgado Exp $
+//  $Id: root.C,v 1.381 2012/04/13 10:38:41 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5953,6 +5953,12 @@ int ret=0;
     int s2=fHeader.getISSSA(ab,b1a,b3a,b1b,b3b,5);
     int s3=fHeader.getISSSA(alpha,b1a,b3a,b1b,b3b);
     double dr=3.1415926/180.;
+    alpha+=90;  //  fix from Urban/Consolandi
+    if(alpha>360)alpha+=-360;
+    aa+=90;  //  fix from Urban/Consolandi
+    if(aa>360)aa+=-360;
+    ab+=90;  //  fix from Urban/Consolandi
+    if(ab>360)aab=-360;
     alpha*=dr;
     aa*=dr;
     ab*=dr;
