@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.723 2012/04/13 08:33:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.724 2012/04/16 07:47:14 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20430,6 +20430,16 @@ sub RemoveFromDisks{
         return 0;
     }
    $ret =$self->{sqlserver}->Query($sql);
+    if($#$ret<0 and $runsn eq 'runs'){
+       $runsn='dataruns';
+    $sql = "SELECT $runsn.run,$runsn.jid from $runsn,jobs,ntuples where $runsn.jid=jobs.jid and jobs.pid=$did and $runsn.jid=ntuples.jid and ntuples.datamc=$datamc and ntuples.path like '%$dir%'";
+   $ret =$self->{sqlserver}->Query($sql);
+    if($#$ret<0 and $runsn eq 'dataruns'){
+    $sql = "SELECT ntuples.run,ntuples.jid from jobs,ntuples where ntuples.jid=jobs.jid and jobs.pid=$did and   ntuples.datamc=$datamc and ntuples.path like '%$dir%'";
+   $ret =$self->{sqlserver}->Query($sql);
+
+    }
+    }
     foreach my $run (@{$ret}){
        my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){
