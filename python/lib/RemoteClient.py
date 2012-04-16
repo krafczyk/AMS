@@ -3064,7 +3064,7 @@ class RemoteClient:
             </table>
             </HR>
             """
-    def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno):
+    def DeleteDataSet(self,run2p,dataset,u,v,f,donly,datamc,buildno,castoronly):
         self.update=u
         self.verbose=v
         self.run2p=run2p
@@ -3077,10 +3077,17 @@ class RemoteClient:
         runsname=""
         runbuild=""
         runbuildd=""
-
         if(buildno!=0):
             runbuild=" and ntuples.buildno=%d " %(buildno)
             runbuildd=" and ntuples_deleted.buildno=%d " %(buildno)
+        if(castoronly!=0):
+            buildno=1
+            if(castoronly>0):
+                runbuild=runbuild+" and ntuples.castortime>0 "
+                runbuildd=runbuildd+" and ntuples_deleted.castortime>0 "
+            if(castoronly<0):
+                runbuild=runbuild+" and ntuples.castortime=0 "
+                runbuildd=runbuildd+" and ntuples_deleted.castortime=0 "
         if(datamc==0):
             sql="select run,jid from ntuples where path like '%%%s/%%' and datamc=%d  " %(dataset,datamc) 
             check=self.sqlserver.Query(sql)
