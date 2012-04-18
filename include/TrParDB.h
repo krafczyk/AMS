@@ -1,4 +1,4 @@
-// $Id: TrParDB.h,v 1.9 2011/05/06 00:40:23 choutko Exp $
+// $Id: TrParDB.h,v 1.10 2012/04/18 10:15:06 oliva Exp $
 
 #ifndef __TrParDB__
 #define __TrParDB__
@@ -15,9 +15,9 @@
 /// author: A. Oliva -- INFN Perugia 19/06/2008 
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2011/05/06 00:40:23 $
+///$Date: 2012/04/18 10:15:06 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -64,14 +64,14 @@ class TrParDB : public TObject{
   /// Default contructor
   TrParDB(){}
   /// Constructor with a root file
-  TrParDB(char * filename);
+  TrParDB(const char * filename);
   /// Default destructor
   ~TrParDB();
   /// Initialization
   void init();
   /// Load a root file 
-  static void Load(char* filename);
-  static void ReadDB(char* filename) { Load(filename); } 
+  static void Load(const char* filename);
+  static void ReadDB(const char* filename) { Load(filename); } 
   /// TrLadPar singleton pointer
   static TrParDB* Head;
 #ifdef __ROOTSHAREDLIBRARY__

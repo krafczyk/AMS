@@ -220,7 +220,7 @@ void TrSimCluster::ApplyGain(int iside, int tkid) {
 
 void TrSimCluster::ApplyAsymmetry(int iside) {
   for (int ist=GetWidth()-1; ist>0; ist--) { // first channel is excluded
-    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrParDB::Head->GetAsymmetry(iside));
+    SetSignal(ist,GetSignal(ist)+GetSignal(ist-1)*TrClusterR::GetAsymmetry(iside));
   } 
 }
 

@@ -8,9 +8,14 @@ TrCalDB* TrClusterR::_trcaldb = NULL;
 TrParDB* TrClusterR::_trpardb = NULL;
 
 
-int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss;
-int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kMIP;
-int   TrClusterR::DefaultEdepCorrOpt   = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP|TrClusterR::kMeV;
+// Asymmetry determined from Muons 2011 analysis
+float TrClusterR::Asymmetry[2] = {0.027, 0.034};
+
+
+// TMP FIX: excluded charge loss corretion, was working well only for protons
+int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain;
+int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kMIP;
+int   TrClusterR::DefaultEdepCorrOpt   = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kMIP|TrClusterR::kMeV;
 
 
 int   TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
@@ -185,7 +190,7 @@ std::ostream &TrClusterR::putout(std::ostream &ostr) {
 
 float TrClusterR::GetSignal(int ii, int opt) {
   float signal = _signal.at(ii);
-  if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetTrParDB()->GetAsymmetry(GetSide());
+  if ( (kAsym&opt)&&(ii>0) ) signal = signal - _signal.at(ii-1)*GetAsymmetry(GetSide());
   return signal;
 }
 
@@ -234,8 +239,8 @@ float TrClusterR::GetTotSignal(int opt, float beta) {
   if (kPN&opt)    sum = ConvertToPSideScale(sum); 
   if (kMIP&opt)   sum = GetNumberOfMIPs(sum);
   if (kAngle&opt) sum = sum*GetCosTheta();
-  if (kBeta&opt)  sum /= BetaCorrection(beta);
-  if (kMeV&opt)   sum *= 0.081; // 81 keV per MIP 
+  if (kBeta&opt)  sum = (BetaCorrection(beta)!=0) ? sum/BetaCorrection(beta) : 0;
+  if (kMeV&opt)   sum = sum*0.081; // 81 keV per MIP 
   return sum;
 }
 
@@ -274,7 +279,7 @@ float TrClusterR::ConvertToNSideScale(float adc) {
 static float A_BetaCorr[3]  = { 1.14505, 0.73906, -0.39480};
 static float B_BetaCorr[3]  = { 0.67118, 0.05288, -1.47569};
 static float b0_BetaCorr[3] = { 0.85387, 0.89147,  0.93449};
-float TrClusterR::BetaCorrection(float beta) {
+float TrClusterR::BetaCorrection_Muons_2010(float beta) {
   /*
      - Maximum Probability Energy Loss:
        MPEL(300 um of Si) = 53.6614 eV / beta^2 * { 12.1489 - 2 log(beta) - beta^2 - 0.1492 * 
@@ -309,23 +314,30 @@ float TrClusterR::BetaCorrection(float beta) {
          B_BetaCorr[index]*log(b0_BetaCorr[index])/pow(b0_BetaCorr[index],2);
 }
 
+  
+float TrClusterR::BetaCorrection_ISS_2011(float beta) { 
+  int jlayer = GetLayerJ(); 
+  return AMSEnergyLoss::GetBetaCorrectionTrackerLayer(jlayer,beta); 
+}
+
 
 /* 
   MIP Correction Parameters
-  - Extracted by preliminar charge reconstruction ISS data (Nov 2011)
+  - Extracted by preliminar charge reconstruction ISS data (15/03/2012)
   - No p-strip correction
-  - Forced o pass through 0,0
-  - A point at charge 100 is added extrapolating linerly from the two last points (for around Iron stuff)
+  - No charge loss
+  - Old gain
+  - Forced to pass through 0,0
+  - A point at charge 50 is added extrapolating linerly from the two last points (for around Iron stuff)
 */
-static Int_t    npoints_x_iss11 = 13;
-static Double_t sqrtmip_x_iss11[13] = {0,   1,    2,    3,    4,    5,    6,    7,    8,   10,   12,   26,   100};
-static Double_t sqrtadc_x_iss11[13] = {0,5.77,11.85,17.63,26.35,33.27,40.04,46.75,52.89,63.82,72.94,121.4,377.55};
-static Int_t    npoints_y_iss11 = 15;
-static Double_t sqrtmip_y_iss11[15] = {0,   1,    2,    3,    4,    5,    6,    7,    8,   10,   12,   14,   16,   26,   100};
-static Double_t sqrtadc_y_iss11[15] = {0,5.83,11.86,17.58,22.00,25.38,27.72,29.43,31.05,34.29,37.96,41.74,45.65,66.06,217.10};
+static Int_t    npoints_x_iss11 = 14;
+static Double_t sqrtmip_x_iss11[14] = {  0.000000,  1.000000,  2.000000,  3.000000,  4.000000,  5.000000,  6.000000,  7.000000,  8.000000, 10.000000, 12.000000, 14.000000, 26.000000, 50.000000};
+static Double_t sqrtadc_x_iss11[14] = {  0.000000,  5.531720, 11.296013, 18.371866, 25.171396, 31.897547, 38.464909, 44.658779, 50.470642, 60.331924, 68.210243, 74.606316,103.365150,160.882820};
+static Int_t    npoints_y_iss11 = 14;
+static Double_t sqrtmip_y_iss11[14] = {  0.000000,  1.000000,  2.000000,  3.000000,  4.000000,  5.000000,  6.000000,  7.000000,  8.000000, 10.000000, 12.000000, 14.000000, 26.000000, 50.000000};
+static Double_t sqrtadc_y_iss11[14] = {  0.000000,  5.567749, 11.480528, 17.141417, 21.615240, 25.100355, 27.365740, 29.365822, 30.827951, 33.765102, 37.085659, 40.455532, 64.482658,112.536911};
 TSpline3* TrClusterR::sqrtadc_to_sqrtmip_spline[2] = {0,0};
-
-float TrClusterR::GetNumberOfMIPs(float adc) {
+float TrClusterR::GetNumberOfMIPs_ISS_2011(float adc) {
   // initialize if needed
   if (!sqrtadc_to_sqrtmip_spline[0]) sqrtadc_to_sqrtmip_spline[0] = new TSpline3("sqrtadc_to_sqrtmip_x",sqrtadc_x_iss11,sqrtmip_x_iss11,npoints_x_iss11);
   if (!sqrtadc_to_sqrtmip_spline[1]) sqrtadc_to_sqrtmip_spline[1] = new TSpline3("sqrtadc_to_sqrtmip_y",sqrtadc_y_iss11,sqrtmip_y_iss11,npoints_y_iss11);
@@ -349,7 +361,7 @@ static float adc_vs_z_tb03[2][12] = {
   // {  31.50, 106.58, 209.81, 335.58, 525.61, 747.78, 977.83,1299.27,1609.36,1919.63,2220.36,2533.95}  // p-side corr
 };
 
-float TrClusterR::GetNumberOfMIPs_TB03(float adc) {
+float TrClusterR::GetNumberOfMIPs_TB_2003(float adc) {
   /*
     These parameters are extracted from TB2003.
     - straight tracks 

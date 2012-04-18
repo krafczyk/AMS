@@ -1,4 +1,4 @@
-//  $Id: TrParDB.C,v 1.8 2011/03/14 00:12:11 oliva Exp $
+//  $Id: TrParDB.C,v 1.9 2012/04/18 10:15:09 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -6,9 +6,9 @@
 ///\brief Source file of TrParDB class
 ///
 ///\date  2008/06/19 AO  First version
-///$Date: 2011/03/14 00:12:11 $
+///$Date: 2012/04/18 10:15:09 $
 ///
-///$Revision: 1.8 $
+///$Revision: 1.9 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +49,7 @@ void TrParDB::init(){
   }
 }
 
-TrParDB::TrParDB(char * filename){
+TrParDB::TrParDB(const char * filename){
   if (filename) Load(filename);
 }
 
@@ -99,7 +99,7 @@ TrLadPar* TrParDB::GetEntry(int ii){
   return 0;
 }
 
-void TrParDB::Load(char * filename){
+void TrParDB::Load(const char * filename){
   TFile f(filename);
   Head = (TrParDB*) f.Get("TrParDB");
   f.Close();

@@ -16,6 +16,8 @@
 #include "TkCoo.h"
 #include "TrLadPar.h"
 #include "TrParDB.h"
+#include "TrGainDB.h"
+#include "TrCluster.h"
 
 #include <iostream>
 #include <cstdio>

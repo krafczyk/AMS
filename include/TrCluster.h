@@ -9,7 +9,10 @@
 #include "TrLadCal.h"
 #include "TrParDB.h"
 #include "TrLadPar.h"
+#include "TrGainDB.h"
 
+
+#include "edep.h"
 #include "amsdbc.h"
 
 #include "TSpline.h"
@@ -28,9 +31,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2012/02/20 17:16:52 $
+ $Date: 2012/04/18 10:15:03 $
 
- $Revision: 1.27 $
+ $Revision: 1.28 $
 
 */
 
@@ -109,6 +112,8 @@ class TrClusterR :public TrElem{
  
  public:
 
+  /// Cluster asymmetry (strip cross talk)
+  static float Asymmetry[2];
   /// Silicon intrinsic corrections
   static int DefaultCorrOpt;
   /// Normalization up to Z^2 scale 
@@ -192,6 +197,9 @@ class TrClusterR :public TrElem{
   int   GetRightLength(int opt = DefaultCorrOpt) { return GetNelem() - GetSeedIndex(opt) - 1; } 
   /// Get i-th strip status (from calibration)
   short GetStatus(int ii);
+
+  /// Get the strip cross talk factor 
+  static float GetAsymmetry(int iside) { return ( (iside>=0)&&(iside<=1) ) ? Asymmetry[iside] : 0; }
 	
   /// Is a TAS cluster? (check the status bit)
   bool  TasCls() const { return checkstatus(TASCLS); }
@@ -204,21 +212,28 @@ class TrClusterR :public TrElem{
   /** @name   SIGNALS & AMPLITUDE */
   /**@{*/	
 
-  /// Get cluster amplitude
-  float GetTotSignal(int opt = DefaultCorrOpt, float beta = 1);
-  /// Convert an ADC signal to the ADC scale of p-side 
-  float ConvertToPSideScale(float adc/*n-side*/);
-  /// Convert an ADC signal to the ADC scale of n-side
-  float ConvertToNSideScale(float adc/*p-side*/);
-  /// Convert an ADC signal to a number of MIPs
-  float GetNumberOfMIPs(float adc);
-  /// Convert an ADC signal to a number of MIPs (TB03)
-  float GetNumberOfMIPs_TB03(float adc);
-  /// Beta correction
-  float BetaCorrection(float beta);
-  /// Get energy deposition (MeV)
+  //! Get cluster amplitude, with corrections
+  float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1);
+  //! Convert an ADC signal to the ADC scale of p-side 
+  float         ConvertToPSideScale(float adc/*n-side*/);
+  //! Convert an ADC signal to the ADC scale of n-side
+  float         ConvertToNSideScale(float adc/*p-side*/);
+  //! Conversion between ADC and MIPs 
+  float         GetNumberOfMIPs(float adc) { return GetNumberOfMIPs_ISS_2011(adc); }
+  //! Conversion between ADC and MIPs (derived from 2003 Ion Test Beam data)
+  float         GetNumberOfMIPs_TB_2003(float adc);
+  //! Conversion between ADC and MIPs (derived from ISS data 2011, used as default)
+  float         GetNumberOfMIPs_ISS_2011(float adc);
+  //! Beta correction 
+  float         BetaCorrection(float beta) { return BetaCorrection_ISS_2011(beta); } 
+  //! Beta correction (estimated with on ground Muons, 2010)
+  float         BetaCorrection_Muons_2010(float beta);
+  //! Beta correction (derived from ISS data 2011, used as default)
+  float         BetaCorrection_ISS_2011(float beta);
+
+  //! Get energy deposition (MeV)
   float GetEdep() { return GetTotSignal(TrClusterR::DefaultEdepCorrOpt); }
-  /// Get floating charge estimation
+  //! Get floating charge estimation
   float GetQ(float beta = 1) { return sqrt(GetTotSignal(TrClusterR::DefaultChargeCorrOpt,beta)); }
 
   /// Get i-th strip signal

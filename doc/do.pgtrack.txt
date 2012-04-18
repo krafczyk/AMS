@@ -526,8 +526,10 @@ FILE_PATTERNS          = root.h \
 			 TkObject.h TkPlane.h TkLadder.h TkDBc.h TkCoo.h \
 			 TkSens.h TrFit.h MagField.h \
 			 TrLadPar.h TrParDB.h \
-                         TrdRawHit.h 	TrdHSegment.h TrdHTrack.h TrCharge.h \
-			 TrTrackSelection.h
+                         TrdRawHit.h TrdHSegment.h TrdHTrack.h TrCharge.h \
+			 TrTrackSelection.h \ 
+                         TofGeometry.h TofRecon.h TofPdfDB.h TofTimeCalibration.h TofTrack.h 
+
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
 # If left blank NO is used.
