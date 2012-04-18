@@ -216,9 +216,15 @@ class DynAlFitParameters: public TObject{
   };
 
   void dumpToLinearSpace(SingleFitLinear &single,int when=0,int id=-1); 
+  void dumpErrorToLinearSpace(SingleFitLinear &single,int when=0,int id=-1); 
   DynAlFitParameters(SingleFitLinear &single);
 
-  ClassDef(DynAlFitParameters,3);
+  // Errors
+  Double_t EX;
+  Double_t EY;
+  Double_t EZ;
+
+  ClassDef(DynAlFitParameters,5);
 };
 
 class DynAlFitContainer:public TObject{
@@ -232,6 +238,7 @@ class DynAlFitContainer:public TObject{
   void Eval(DynAlEvent &ev,double &x,double &y,double &z);
   int GetId(TrRecHitR &hit);
   static int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
+
   
   void BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors=0);
   void BuildAlignment(TString dir,TString prefix,int run);
@@ -289,6 +296,7 @@ class DynAlManager:public TObject{
   static bool SetTDVName(TString tdvname,bool forceReading=true);
   static bool DumpDirToLinear(TString dir,TString tdvname,DynAlFitContainer *local1,DynAlFitContainer *local9); // Dump a while directory ti a TDV
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
+  static bool RetrieveAlignmentErrors(int time,int layer,double &ex,double &ey,double &ez);
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
 
   ClassDef(DynAlManager,4);

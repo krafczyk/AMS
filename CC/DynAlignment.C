@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.49 2012/04/13 10:19:48 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.50 2012/04/18 15:02:55 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -29,7 +29,8 @@
 #define PEAKFRACTION (0.68)
 // Half width of the initial window to search for the residuals (in cm) 
 #define EXCLUSION 3.0
- 
+// X vs Y decoupling factor
+#define DECOUPLING 10
 
 ClassImp(DynAlEvent);
 
@@ -320,7 +321,6 @@ void DynAlFit::Init(){
     formula+=TString(Form(" ++ x[0]*x[6]**%i ++ x[1]*x[6]**%i ++x[2]*x[6]**%i ++ x[3]*x[6]**%i ++ x[4]*x[6]**%i ++ x[5]*x[6]**%i",i+1,i+1,i+1,i+1,i+1,i+1));
   Fit.SetFormula(formula);
   Fit.StoreData(false);
-
 }
 
 
@@ -589,7 +589,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       error=classInfo[Class].rms[which];
       if(error<1e-6) continue;
 
-      if(which==0) error*=10; // Decouple X and Y axis, and use the latter for most computations
+      if(which==0) error*=DECOUPLING; // Decouple X and Y axis, and use the latter for most computations
 
       Fit.AddPoint(x,y,error);
       Events++;
@@ -1106,6 +1106,13 @@ DynAlFitParameters::DynAlFitParameters(DynAlFit &fit){
   
   ZOffset=fit.ZOffset;
   TOffset=fit.TOffset;
+
+  // Compute the errors (at TOffset)
+  TVectorD errors;
+  fit.Fit.GetErrors(errors);
+  EX=errors[0]/DECOUPLING;
+  EY=errors[1];
+  EZ=errors[2];
 }
 
 void DynAlFitParameters::ApplyAlignment(double &x,double &y,double &z){
@@ -1226,7 +1233,24 @@ void DynAlFitParameters::dumpToLinearSpace(SingleFitLinear &fit,int when,int id)
 
   fit.ZOffset=ZOffset;
   fit.TOffset=TOffset;
+
 }
+
+
+void DynAlFitParameters::dumpErrorToLinearSpace(SingleFitLinear &fit,int when,int id){
+  fit.id=id;
+  fit.time=when;
+
+#define CL(_x) fit._x=0
+  CL(DX);     CL(DY);     CL(DZ);
+  CL(THETA);  CL(ALPHA);  CL(BETA);
+#undef CL
+
+  fit.DX=EX;
+  fit.DY=EY;
+  fit.DZ=EZ;
+}
+
 
 
 DynAlFitParameters::DynAlFitParameters(SingleFitLinear &fit){
@@ -1251,7 +1275,7 @@ ClassImp(DynAlFitContainer);
 
 bool DynAlFitContainer::dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer9){
   if(FitParameters.size()+LocalFitParameters.size()==0) return false;
-  if(FitParameters.size()+LocalFitParameters.size()>LinearSpaceMaxRecords){
+  if(2*FitParameters.size()+LocalFitParameters.size()>LinearSpaceMaxRecords){
     cout<<"DynAlFitContainer::dumpToLinearSpace--E-To many records. No dump."<<endl;
     return false;
   }
@@ -1269,13 +1293,16 @@ bool DynAlFitContainer::dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer9){
 
   // Dump alignment parameters
   for(map<int,DynAlFitParameters>::iterator i=FitParameters.begin();
-      i!=FitParameters.end();i++, tdvBuffer.records++){
+      i!=FitParameters.end();i++, tdvBuffer.records+=2){
     int when=i->first;
     if(when<tdvBuffer.id) tdvBuffer.id=when;
     DynAlFitParameters &current=i->second;
     if(!current.DX.size()) continue;
     current.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][layer9?1:0],when,-1);
+    current.dumpErrorToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records+1][layer9?1:0],when,-2);
   }
+
+
   return true;
 }
 
@@ -1288,6 +1315,15 @@ DynAlFitContainer::DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9){
     
     if(tdvBuffer.Alignment[i][layer9?1:0].id==-1) // Layer alignment
       FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time]=DynAlFitParameters(tdvBuffer.Alignment[i][layer9?1:0]);
+
+    if(tdvBuffer.Alignment[i][layer9?1:0].id==-2){ // Error of layer alignment
+      if(FitParameters.find(tdvBuffer.Alignment[i][layer9?1:0].time)!=FitParameters.end()){
+	FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time].EX=tdvBuffer.Alignment[i][layer9?1:0].DX;
+	FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time].EY=tdvBuffer.Alignment[i][layer9?1:0].DY;
+	FitParameters[tdvBuffer.Alignment[i][layer9?1:0].time].EZ=tdvBuffer.Alignment[i][layer9?1:0].DZ;
+      }
+    }
+
     records++;
   }
   //  cout<<"DynAlFitContainer::DynAlFitContainer--Got "<<records<<" for layer "<<(layer9?9:1)<<endl; 
@@ -1718,11 +1754,14 @@ bool DynAlManager::FinishLinear(TString TDVname=TDVNAME){
 
 
 bool  DynAlManager::AddToLinear(int time,DynAlFitParameters &layer1,DynAlFitParameters &layer9,TString name=TDVNAME){
+  const int recordsConsumed=2;
   tdvBuffer.id=INT_MAX;
   layer1.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][0],time,-1);
+  layer1.dumpErrorToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records+1][0],time,-2);
   layer9.dumpToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records][1],time,-1);
-  tdvBuffer.records++;
-  if(tdvBuffer.records==LinearSpaceMaxRecords) FinishLinear(name);
+  layer9.dumpErrorToLinearSpace(tdvBuffer.Alignment[tdvBuffer.records+1][1],time,-2);
+  tdvBuffer.records+=recordsConsumed;
+  if(tdvBuffer.records>LinearSpaceMaxRecords-recordsConsumed) FinishLinear(name);
   return true;
 }
 bool DynAlManager::SetTDVName(TString tdvname,bool forceReading){
@@ -2110,4 +2149,17 @@ DynAlFitContainer DynAlManager::BuildLocalAlignment(DynAlHistory &history){
   return local;
 }
 
+
+
+bool DynAlManager::RetrieveAlignmentErrors(int time,int layer,double &ex,double &ey,double &ez){
+  ex=ey=ez=-1;
+  DynAlFitParameters fit;
+  if(dynAlFitContainers[layer].Find(time,fit)){
+    ex=fit.EX;
+    ey=fit.EY;
+    ez=fit.EZ;
+    return true;
+  }
+  return false;
+}
 
