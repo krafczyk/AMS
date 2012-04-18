@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.856 2012/04/12 10:27:42 lquadran Exp $
+// $Id: job.C,v 1.857 2012/04/18 22:56:12 paniccia Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -981,39 +981,39 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.SimpleRearLeak[1]=0.952e-3;
   ECREFFKEY.SimpleRearLeak[2]=3.1;
   ECREFFKEY.SimpleRearLeak[3]=0.9984e-3;  //  ==  [1]/(1-abs([0])*[2])
-
   //LAPP rear-leakage correction parameters (M.P.)
-  ECREFFKEY.LAPPRearLeak[0]=1.055;   // (50-53)
-  ECREFFKEY.LAPPRearLeak[1]=0.0016;
-  ECREFFKEY.LAPPRearLeak[2]=1.589;
-  ECREFFKEY.LAPPRearLeak[3]=0.035; 
-  // end of LAPP parameters
+  ECREFFKEY.LAPPRearLeak[0]=4.234;   // (50-56)
+  ECREFFKEY.LAPPRearLeak[1]=1.388;
+  ECREFFKEY.LAPPRearLeak[2]=1.604;
+  ECREFFKEY.LAPPRearLeak[3]=0.01; 
+  ECREFFKEY.LAPPRearLeak[4]=0.025;
+  ECREFFKEY.LAPPRearLeak[5]=1000.;
+  ECREFFKEY.LAPPRearLeak[6]=0.3;
+  // end of LAPP rear-leakage correction parameters
 
-  ECREFFKEY.ealpha0=-3.0; // (54)
-  ECREFFKEY.ebeta=75.2;   // (55)
-  ECREFFKEY.egamma=563.3;  // (56)
-  ECREFFKEY.ealpha_par[0]=-5.; // (57-58)
+  ECREFFKEY.ealpha0=-3.0; // (57)
+  ECREFFKEY.ebeta=75.2;   // (58)
+  ECREFFKEY.egamma=563.3;  // (59)
+  ECREFFKEY.ealpha_par[0]=-5.; // (60-61)
   ECREFFKEY.ealpha_par[1]=0.0143;
 
-
-
-  ECREFFKEY.CalorTransSize=32;  // (59)
-  ECREFFKEY.EMDirCorrection=1.03; // (60)
-  ECREFFKEY.HiEnThr=1650;        // (61)
-  ECREFFKEY.HiEnCorFac=0.225;  // (62)
-  ECREFFKEY.S1S3[0]=0.6;  // (63-66)
+  ECREFFKEY.CalorTransSize=32;  // (62)
+  ECREFFKEY.EMDirCorrection=1.03; // (63)  
+  ECREFFKEY.HiEnThr=1650;        // (64)
+  ECREFFKEY.HiEnCorFac=0.225;  // (65)
+  ECREFFKEY.S1S3[0]=0.6;  // (66-69)
   ECREFFKEY.S1S3[1]=0.25;
   ECREFFKEY.S1S3[2]=0.4;
   ECREFFKEY.S1S3[3]=0.8;
 
-  ECREFFKEY.S1S3X[0]=0.529; // (67-72)
+  ECREFFKEY.S1S3X[0]=0.529; // (70-75)
   ECREFFKEY.S1S3X[1]=0.753;
   ECREFFKEY.S1S3X[2]=0.922;
   ECREFFKEY.S1S3X[3]=47.25;
   ECREFFKEY.S1S3X[4]=-104.;
   ECREFFKEY.S1S3X[5]=-0.006;
  
-  ECREFFKEY.S1S3Y[0]=0.517; // (73-78)
+  ECREFFKEY.S1S3Y[0]=0.517; // (76-81)
   ECREFFKEY.S1S3Y[1]=0.743;
   ECREFFKEY.S1S3Y[2]=0.933;
   ECREFFKEY.S1S3Y[3]=49.19;
@@ -1021,30 +1021,38 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.S1S3Y[5]=-0.193;
 
   //LAPP impact-point correction parameters X and Y sides (M.P.)
-  ECREFFKEY.S1S3XA[0]=0.38; // (79-82)
+  ECREFFKEY.S1S3XA[0]=0.38; // (82-85)
   ECREFFKEY.S1S3XA[1]=0.715;
   ECREFFKEY.S1S3XA[2]=0.75;
   ECREFFKEY.S1S3XA[3]=0.5;
       
-  ECREFFKEY.S1S3YA[0]=0.44; // (83-86) 
-  ECREFFKEY.S1S3YA[1]=0.67;
-  ECREFFKEY.S1S3YA[2]=0.735;
+  ECREFFKEY.S1S3YA[0]=0.33; // (86-89) 
+  ECREFFKEY.S1S3YA[1]=0.7525;
+  ECREFFKEY.S1S3YA[2]=0.75;
   ECREFFKEY.S1S3YA[3]=0.5;
-  // end of LAPP parameters
+  // end of LAPP impact-point correction parameters
 
-  ECREFFKEY.sec[0]=0;//  (87-88)
+ //LAPP hit multiplicity correction parameters (M.P.) 
+  ECREFFKEY.LAPPHitLeak[0]=1.05;  // (90-94)
+  ECREFFKEY.LAPPHitLeak[1]=13.;
+  ECREFFKEY.LAPPHitLeak[2]=1.32;  
+  ECREFFKEY.LAPPHitLeak[3]=15.; 
+  ECREFFKEY.LAPPHitLeak[4]=1.69; 
+ // end of LAPP hit multiplicity correction parameters
+
+  ECREFFKEY.sec[0]=0;//  (95-96)
   ECREFFKEY.sec[1]=0;//
-  ECREFFKEY.min[0]=0;//  (89-90)
+  ECREFFKEY.min[0]=0;//  (97-98)
   ECREFFKEY.min[1]=0;//
-  ECREFFKEY.hour[0]=0;// (91-92) 
+  ECREFFKEY.hour[0]=0;// (99-100) 
   ECREFFKEY.hour[1]=0;//
-  ECREFFKEY.day[0]=1;//  (93-94)
+  ECREFFKEY.day[0]=1;//  (101-102)
   ECREFFKEY.day[1]=1;//
-  ECREFFKEY.mon[0]=0;//  (95-96)
+  ECREFFKEY.mon[0]=0;//  (103-104)
   ECREFFKEY.mon[1]=0;//
-  ECREFFKEY.year[0]=108;// (97-98)
+  ECREFFKEY.year[0]=108;// (105-106)
   ECREFFKEY.year[1]=125;//
-  ECREFFKEY.Tref=23.;// (99)
+  ECREFFKEY.Tref=23.;// (107)
 
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //

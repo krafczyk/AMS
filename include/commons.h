@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.339 2012/04/12 10:29:03 lquadran Exp $
+//  $Id: commons.h,v 1.340 2012/04/18 22:56:13 paniccia Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -432,7 +432,7 @@ class ECREFFKEY_DEF {
   float Chi2Change2D;
   float TransShowerSize2D;
   float SimpleRearLeak[4]; 
-  float LAPPRearLeak[4]; //LAPP rear-leakage correction parameters (M.P.)
+  float LAPPRearLeak[7]; //LAPP rear-leakage correction parameters (M.P.)
 
   float ealpha0;
   float ebeta;
@@ -447,7 +447,8 @@ class ECREFFKEY_DEF {
   float S1S3X[6];
   float S1S3Y[6];
   float S1S3XA[4]; //LAPP impact-point correction parameters X side (M.P.)
-  float S1S3YA[4]; //LAPP impact-point correction parameter Y side (M.P.)
+  float S1S3YA[4]; //LAPP impact-point correction parameters Y side (M.P.)
+  float LAPPHitLeak[5]; //LAPP multiplicity correction parameters (M.P.)
 
   integer sec[2];
   integer min[2];

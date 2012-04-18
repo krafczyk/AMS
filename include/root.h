@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.417 2012/04/10 15:55:03 mdelgado Exp $
+//  $Id: root.h,v 1.418 2012/04/18 22:56:13 paniccia Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -558,19 +558,23 @@ public:
 
 //LAPP (MP) begin
   float Energy0A[2]; ///< LAPP shower energy x, y only impact point correction applied, no fiber cross-talk (Mev)
-  float EnergyA; ///< LAPP shower energy (Mev)
-  float ErEnergyA;   ///< LAPP energy error (Mev)
+  float EnergyA; ///< LAPP shower energy (Gev)
+  float ErEnergyA;   ///< LAPP energy error (Gev)
   float SideLeakA;    ///< LAPP rel side leak
   float RearLeakA;    ///< LAPP rel rear leak
   float DeadLeakA;    ///< LAPP rel dead leak
   float AttLeakA;     ///< LAPP rel att length correction
   float NLinLeakA;   ///<  LAPP rel non-lin correction
-  float S13LeakXA;  ///< LAPP impact-point correction for X view
-  float S13LeakYA;  ///< LAPP  impact-point correction for Y view
-  float S13LeakYA0;  ///< LAPP  impact-point correction (no-fiber cross-talk) for Y view
+  float S13LeakXA0;  ///< LAPP  impact-point correction  for Y view
+  float S13LeakYA0;  ///< LAPP  impact-point correction for Y view
+  float S13LeakXA;  ///< LAPP impact-point x hit multiplicity correction for X view
+  float S13LeakYA;  ///< LAPP  impact-point x hit multiplicity correction for Y view
   float OrpLeakA;   ///<  LAPP fraction of shower energy outside core.
   float S13Ra[2];  ///< LAPP S1/S3 Ratio for X and Y view
   float S35Ra[2];  ///< LAPP S3/S5 Ratio for X and Y view
+  float S1tot[3];  ///< Energy CofG cell / energy ratio: 0=X; 1=Y ; 2=X+Y 
+  float S3tot[3];  ///< Energy CofG+-1 cells / energy ratio: 0=X ; 1=Y ; 2=X+Y 
+  float S5tot[3];  ///< Energy CofG+-2 cells / energy ratio: 0=X ; 1=Y ; 2=X+Y
 // LAPP (MP) end
 
   float Orp2DEnergy; ///< orphaned Ecal2DClusterR energy (if any) (geV)
@@ -587,10 +591,7 @@ public:
 // LAPP Variables
   int NbLayerX;
   int NbLayerY;
-  float S1tot[3];  ///< Energy max fired cell / energy ratio - 0=X - 1=Y - 2=X+Y
-  float S3tot[3];  ///< Energy 3 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
-  float S5tot[3];  ///< Energy 5 max fired cells / energy ratio - 0=X - 1=Y - 2=X+Y
-  float ShowerLatDisp[3];  ///< Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y
+  float ShowerLatDisp[3];  ///< Shower Lateral Dispersion: 0=X - 1=Y - 2=X+Y
   float ShowerLongDisp;  ///< Shower Longitudinal Dispersion
   float ShowerDepth;  ///< Shower Depth
   float ShowerFootprint[3]; ///< Shower Footprint - 0=X - 1=Y - 2=X+Y

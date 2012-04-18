@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.169 2012/03/29 19:36:20 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.170 2012/04/18 22:56:12 paniccia Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -952,7 +952,7 @@ void AMSEcalHit::build(int &stat){
       else{
  	deltaT=ECMCFFKEY.Tsim-ECREFFKEY.Tref;
       }
-      if ( !ECCAFFKEY.useTslope) deltaT=0.; 
+      if ( !ECCAFFKEY.useTslope) deltaT=0.;
       //
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
@@ -2376,6 +2376,7 @@ void AMSEcalShower::EnergyFit(){
   _OrpLeakA=0;
   _S13LeakXA=0;
   _S13LeakYA=0;
+  _S13LeakXA0=0;
   _S13LeakYA0=0;
 
   _Nhits=0;
@@ -2399,6 +2400,11 @@ void AMSEcalShower::EnergyFit(){
   float edept=0.;
   float edepx=0.;
   float edepy=0.;
+  int nhitsx=0;
+  int nhitsy=0;
+  int nhitshx=0;
+  int nhitshy=0;
+  //float madc[3];
   //end LAPP
   for(int k=0;k<Maxrow;k++){
     is1[k]=-2;
@@ -2439,9 +2445,21 @@ void AMSEcalShower::EnergyFit(){
 	  s3[phit->getplane()]=phit->getedep();
 	}
 	//begin LAPP
-        if(phit->getedep()>0){            
+        if(phit->getedep()>0){           
 	  cofgcell[phit->getplane()]+=phit->getcell()*phit->getedep();        
 	  edepl[phit->getplane()]+=phit->getedep();
+          /*
+           //phit->getadc(madc);          
+          //if (madc[0]>4){// count only hits with adc_highgain>4
+          */
+          if (phit->getedep()>=2){// count only hits with edep >= 2 MeV
+              if (((phit->getplane()/2)%2)==0){
+                  nhitshy++;
+              }else {
+                  nhitshx++;
+              }
+          }
+          
         }        
         // end LAPP
       }
@@ -2516,7 +2534,16 @@ void AMSEcalShower::EnergyFit(){
 	  s3a[ipl]+=ptr->getedep();
 	  s5a[ipl]+=ptr->getedep();
 	}
-      if(abs(ptr->getcell()-icofgcell[ipl])==2)s5a[ipl]+=ptr->getedep(); 
+      if(abs(ptr->getcell()-icofgcell[ipl])==2)s5a[ipl]+=ptr->getedep();
+      //ptr->getadc(madc);
+      //if (madc[0]>4){// count only hits with adc_highgain>4 ADC
+      if (ptr->getedep()>=2){// count only hits with edep >=2 MeV
+          if (((ptr->getplane()/2)%2)==0){
+              nhitsy++;
+          }else {
+              nhitsx++;
+          }
+      } 
       ////end LAPP
       ptr=ptr->next();
     }
@@ -2562,7 +2589,26 @@ void AMSEcalShower::EnergyFit(){
 
   _S35Ra[0]=ss3a[0]/ss5a[0];
   _S35Ra[1]=ss3a[1]/ss5a[1];
-  //LAPP
+
+  // compute S1, S3, S5 (CofG used as seed)
+  _S1totx=0.;
+   _S3totx=0.;
+   _S5totx=0.;
+    if (edepx>0){
+      _S1totx=ss1a[0]/edepx;
+      _S3totx=ss3a[0]/edepx;
+      _S5totx=ss5a[0]/edepx;
+    }
+   _S1toty=0.;
+   _S3toty=0.;
+   _S5toty=0.;
+   if (edepy>0){
+     _S1toty=ss1a[1]/edepy;
+     _S3toty=ss3a[1]/edepy;
+     _S5toty=ss5a[1]/edepy;
+    }
+
+  //end LAPP
   //
   if(energy){
     _Energy3C/=energy;
@@ -2655,143 +2701,99 @@ void AMSEcalShower::EnergyFit(){
 	}
       }
     }
-    ////LAPP impact-point correction (implemented by on M.P. April 6, 2011)  BEGIN
-    //workaround for fiber cross-talk in sl 4 and 8  (to be replaced in next future with proper correction)
-    float s13rmod=_S13Ra[1];
-    _S13LeakYA0=0; //needed for the fiber cross-talk workaround 
-  
-    bool flagy=kFALSE;
-    int d1=1;
-   
-    float wsl4=1.;
-    float wl16=1.;
-    float wl17=1.;
-   
-    int icofgcelly=int(cofgcelly);
-    if ((cofgcelly-icofgcelly)>=0.5)  icofgcelly++;
-
-    int positiony=icofgcelly%4;
-
-    if (edepl[17]>0){
-      positiony=icofgcell[17]%4;
-      if (positiony>=3) wl17=1.107;
-      if ((positiony>=1)&&(positiony<2)) wl17=0.92;
-     
-    }
-    if (edepl[16]>0){
-      positiony=icofgcell[16]%4;
-      if (positiony>=3) wl16=1.083;
-      if ((positiony>=1)&&(positiony<2)) wl16=0.92;
-     
-    }
-
-    if (edepl[8]>0){
-      positiony=icofgcell[8]%4;
-      if (positiony>=3) wsl4=1.02;
-      if ((positiony>=1)&&(positiony<2)) wsl4=0.92;
-    }
-
-    if (edepl[8]>0 && edepl[17]>0) d1=abs(icofgcell[8]-icofgcell[17]);     
-  
-    positiony=icofgcelly%4;
-
-    if ((positiony>=3)&&(d1<1)) flagy=kTRUE;
-
-    if (ss3a[1]>0) s13rmod=(s1a[0]+s1a[1]+s1a[4]+s1a[5]+(s1a[8]+s1a[9])*wsl4+s1a[12]+s1a[13]+s1a[16]*wl16+s1a[17]*wl17)/ss3a[1];
-    //
+    ////LAPP impact-point correction (implemented by M.P. April 6, 2011, updated March 19, 2012)  
     //begin lapp  impact-point correction:
     //X side:
     if(_S13Ra[0]>ECREFFKEY.S1S3XA[3] && _S13Ra[0]<=ECREFFKEY.S1S3XA[2]){
-      _S13LeakXA=ECREFFKEY.S1S3XA[0]*_S13Ra[0]+ECREFFKEY.S1S3XA[1]-1.;
+      _S13LeakXA0=ECREFFKEY.S1S3XA[0]*_S13Ra[0]+ECREFFKEY.S1S3XA[1]-1.;
     } 
     else if(_S13Ra[0]<=ECREFFKEY.S1S3XA[3]){ 
-      _S13LeakXA=ECREFFKEY.S1S3XA[0]*ECREFFKEY.S1S3XA[3]+ECREFFKEY.S1S3XA[1]-1.;
+      _S13LeakXA0=ECREFFKEY.S1S3XA[0]*ECREFFKEY.S1S3XA[3]+ECREFFKEY.S1S3XA[1]-1.;
     }
     //X-side done
     //beginning Y-side:
-    if (!flagy){
-      //(this below should be the only block to be kept for Y.side impact point correction ( with S13LeakYA0 replaced by _S13LeakYA) after implementation of proper fiber-cross talk correction )
       if(_S13Ra[1]>ECREFFKEY.S1S3YA[3] && _S13Ra[1]<=ECREFFKEY.S1S3YA[2]){
 	_S13LeakYA0=ECREFFKEY.S1S3YA[0]*_S13Ra[1]+ECREFFKEY.S1S3YA[1]-1.;
       }
       else if(_S13Ra[1]<=ECREFFKEY.S1S3YA[3]){
 	_S13LeakYA0=ECREFFKEY.S1S3YA[0]*ECREFFKEY.S1S3YA[3]+ECREFFKEY.S1S3YA[1]-1.;
 
-      }
-      //(this above should be the only block to be kept for Y.side impact point correction ( with S13LeakYA0 replaced by _S13LeakYA) after implementation of proper fiber-cross talk correction )
-    }
-    else
-      {
-	if(_S13Ra[1]>0.5 && _S13Ra[1]<=0.701){
-	  _S13LeakYA0=0.32*_S13Ra[1]+0.78-1.;
-	}
-	else if(_S13Ra[1]<=0.5){
-	  _S13LeakYA0=0.32*0.5+0.78-1.;
-	}
-
-      }
-     
-    if (flagy){
-      if(s13rmod>0.606 && s13rmod<=0.75){
-	_S13LeakYA=0.42*s13rmod+0.70-1.;
-      }
-      else if(s13rmod<=0.606){
-	_S13LeakYA=0.42*0.606+0.70-1.;
-      }
-    }
-    else
-      {
-	if(s13rmod>0.52 && s13rmod<=0.735){
-	  _S13LeakYA=0.44*s13rmod+0.67-1.;
-	}
-	else if(s13rmod<=0.52){
-	  _S13LeakYA=0.44*0.52+0.67-1.;
-	}
-      }
-
-    float erec_ipcorr= edepx/(1+_S13LeakXA) + edepy/(1+_S13LeakYA0);  //energy w impact-point correction 
-    _Energy0A[0]=edepx/(1+_S13LeakXA);
-    _Energy0A[1]=edepy/(1+_S13LeakYA0);
-    float erec_xtc= edepx/(1+_S13LeakXA) + edepy/(1+_S13LeakYA); // energy w kind-of fiber cross-talk and impact-point corrections
-    //end LAPP impact point-correction
-    //Beginning LAPP rear leakage correction (implemented by M.P. on April 6, 2011)
+      }      
    
-    float frac1=edepl[17]/edept;
-    float frac2=frac1+ edepl[16]/edept;
-    //begin corr_leak_2d  
-   
-    erec_ipcorr=erec_ipcorr/1000.;//in GeV
-    float corr_leak_2d=1.;
 
-    if (frac2>ECREFFKEY.LAPPRearLeak[3]){
-      corr_leak_2d=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*erec_ipcorr/((float)cofgl))-ECREFFKEY.LAPPRearLeak[2]*frac2;
+    // S1tot, S3tot S5tot (no impact point correction applied to global S1, S3, S5 
+   _S1tot=0.;
+   _S3tot=0.;
+   _S5tot=0.;
+   if ((edepx+edepy)>0){
+	_S1tot=_S1tot/(edepx+edepy);
+	_S3tot=_S3tot/(edepx+edepy);
+	_S5tot=_S5tot/(edepx+edepy);
     }
-    //explicit datacards values (N.B. erec_ipcorr in GeV):
-    // if (frac2>0.035){
-    //     corr_leak_2d=1.055*exp(-0.0016*erec_ipcorr/((float)cofgl))-1.589*frac2;
+    // end S1, S3, S5
+
+   edepx=ep[0]/1000.;// redefine edepx from ep and express in GeV
+   edepy=ep[1]/1000.;// redefine edepy from ep and express in GeV
+
+   float erec_ipcorr= edepx/(1+_S13LeakXA0) + edepy/(1+_S13LeakYA0);  //energy w impact-point correction  (in GeV)
+
+   _Energy0A[0]=edepx/(1+_S13LeakXA0); //  Energy X-side w impact point correction in GeV
+   _Energy0A[1]=edepy/(1+_S13LeakYA0);  // Energy Y-side w impact point correction in GeV
+
+   //end LAPP impact point-correction
+
+   // begin LAPP hit multiplicity correction
+    float hitrx=nhitsx/((float)nhitshx);
+    float hitry=nhitsy/((float)nhitshy);
+
+    float hitleakx=(edepx+ECREFFKEY.LAPPHitLeak[1])/(ECREFFKEY.LAPPHitLeak[2]*(hitrx-1)+edepx+ECREFFKEY.LAPPHitLeak[1])-1.;
+    float hitleaky=(edepy+ECREFFKEY.LAPPHitLeak[3])/(ECREFFKEY.LAPPHitLeak[4]*(hitry-1)+edepy+ECREFFKEY.LAPPHitLeak[3])-1.;
+
+    _S13LeakXA=_S13LeakXA0+hitleakx+_S13LeakXA0*hitleakx;
+    _S13LeakYA=_S13LeakYA0+hitleaky+_S13LeakYA0*hitleaky;
+
+    float erec_new= edepx/(1+_S13LeakXA) + edepy/(1+_S13LeakYA); // impact-point and  hitmult corrections (GeV)
+
+    erec_new= erec_new/ECREFFKEY.LAPPHitLeak[0];
+
+     // end LAPP hit multiplicity correction
+
+    //Beginning LAPP rear leakage correction (implemented by M.P. on April 6, 2011, updated 20 March 2012)
+   
+    float frac2=(edepl[17]+ edepl[16])/((1+_S13LeakYA0)*erec_ipcorr*1000.);
+    //begin corr_leak_f 
+      
+    float corr_leak_f=1.;
+
+    if (frac2>ECREFFKEY.LAPPRearLeak[4]){
+      corr_leak_f=ECREFFKEY.LAPPRearLeak[0]*exp(-ECREFFKEY.LAPPRearLeak[1]*pow(erec_ipcorr/((float)cofgl),ECREFFKEY.LAPPRearLeak[3]))-ECREFFKEY.LAPPRearLeak[2]*frac2;
+    }
+   
+// if (frac2>0.25){
+    //     corr_leak_f=4.234*exp(-1.388*pow(erec_ipcorr/((float)cofgl),0.01))-1.604*frac2;
     //   }      
      
-    if ((erec_ipcorr>=1000.)||(frac2>=0.15)) corr_leak_2d=1.;// do not apply correction for E>=1TeV or too big Edep in last2layers
-    if ((erec_xtc/corr_leak_2d)<0){
+    if ((erec_new>=ECREFFKEY.LAPPRearLeak[5])||(frac2>=ECREFFKEY.LAPPRearLeak[6])) corr_leak_f=1.;// do not apply correction for E>=1TeV or too big Edep in last2layers
+    if ((erec_new/corr_leak_f)<0){
       //           setstatus(AMSDBc::CATLEAK);
       EcalJobStat::addre(12);
 #ifdef __AMSDEBUG__
       cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<< frac2 <<endl;
 #endif
-      corr_leak_2d=1./FLT_MAX*100;
-
+      //corr_leak_f=1./FLT_MAX*100; 
+      corr_leak_f=1;// 18Apr2012 do not apply correction in this case nor flag
+      
     }
  
+    _EnergyA=erec_new/corr_leak_f;
+    _RearLeakA=_EnergyA-erec_new;
 
-    _EnergyA=erec_xtc/corr_leak_2d;
-    _RearLeakA=_EnergyA-erec_xtc;
-
-    _SideLeakA=_SideLeak/corr_leak_2d;
-    _OrpLeakA=_OrpLeak/corr_leak_2d;
-    _DeadLeakA=_DeadLeak/corr_leak_2d;
-    _AttLeakA=_AttLeak/corr_leak_2d;
-    _NLinLeakA=_NLinLeak/corr_leak_2d; 
-    //end corr_leak_2d
+    _SideLeakA=_SideLeak/(1000.*corr_leak_f);
+    _OrpLeakA=_OrpLeak/(1000.*corr_leak_f);
+    _DeadLeakA=_DeadLeak/(1000.*corr_leak_f);
+    _AttLeakA=_AttLeak/(1000.*corr_leak_f);
+    _NLinLeakA=_NLinLeak/(1000.*corr_leak_f); 
+    //end corr_leak_f
     //end LAPP rear-leakage correction
 
 
@@ -3155,19 +3157,13 @@ void AMSEcalShower::LAPPVariables(){
   float bplane=0.;
   float bplane2=0.;
   float bcell_latmx=0., bcell_latmy=0.;
-  _S1tot=0.; _S1totx=0.; _S1toty=0.;
-  _S3tot=0.; _S3totx=0.; _S3toty=0.;
-  _S5tot=0.; _S5totx=0.; _S5toty=0.; 
   float edep_tot=0., edep_totx=0., edep_toty=0.;
 
   float shower_depth_op=0.;
-  float S1=0.;
-  float S3=0.;
-  float S5=0.; 
-  int bcell_i=0;
+ 
   int nbcellx=0,nbcelly=0;
   for (int jj=0; jj<18; jj++){
-    S1=0.;S3=0.;S5=0.; 
+   
     if (edep_layer[jj]!=0){
       edep_tot+=edep_layer[jj];
       // Calculate shower longitudinal dispersion
@@ -3191,33 +3187,6 @@ void AMSEcalShower::LAPPVariables(){
 	edep_totx+=edep_layer[jj];
 	nbcellx++;      
       }
-
-      bcell_i=(int) (bcell_lat[jj]-1.);
-      if ((bcell_lat[jj]-1-bcell_i)>0.5)  bcell_i++;
-   
-      	  
-      S1=edep_cell[jj][bcell_i];
-      S3=S1;	     
-         
-      if ((bcell_i-1)>=0) S3+=edep_cell[jj][bcell_i-1];
-      if ((bcell_i+1)<=71) S3+=edep_cell[jj][bcell_i+1];
-
-      S5=S3;
-      if ((bcell_i-2)>=0) S5+=edep_cell[jj][bcell_i-2];
-      if ((bcell_i+2)<=71) S5+=edep_cell[jj][bcell_i+2];
-	    
-	  
-      if (((jj/2)%2)==0){
-	_S1toty+=S1;
-	_S3toty+=S3;
-	_S5toty+=S5;               
-      }
-      else{
-	_S1totx+=S1;
-	_S3totx+=S3;
-	_S5totx+=S5;
-      }
-	 
     }
   }
   _NbLayerX = nbcellx;
@@ -3231,11 +3200,7 @@ void AMSEcalShower::LAPPVariables(){
   else
 	_ShowerLongDisp = -1.;  
 
-  _S1tot=_S1totx+_S1toty;
-  _S3tot=_S3totx+_S3toty;
-  _S5tot=_S5totx+_S5toty;
   edep_tot=edep_totx+edep_toty;
-
 
   //Calculate shower depth
   _ShowerDepth = TMath::Log(shower_depth_op);
@@ -3248,22 +3213,12 @@ void AMSEcalShower::LAPPVariables(){
 
   //Calculate shower CofG x,y 
   if (edep_totx>0.){
-    bcell_latmx=bcell_latmx/edep_totx;
-    _S1totx=_S1totx/edep_totx;
-    _S3totx=_S3totx/edep_totx; 
-    _S5totx=_S5totx/edep_totx;
+    bcell_latmx=bcell_latmx/edep_totx;   
   }
   if (edep_toty>0.){
-    bcell_latmy=bcell_latmy/edep_toty;
-    _S1toty=_S1toty/edep_toty;
-    _S3toty=_S3toty/edep_toty; 
-    _S5toty=_S5toty/edep_toty;
+    bcell_latmy=bcell_latmy/edep_toty;   
   }
-  if (edep_tot>0.){
-    _S1tot=_S1tot/edep_tot;
-    _S3tot=_S3tot/edep_tot; 
-    _S5tot=_S5tot/edep_tot;
-  }
+ 
   //Calculate shower footprint
   float sigmax2=0., sigmaxz=0., sigmay2=0., sigmayz=0., sigmaz2_x=0., sigmaz2_y=0.;
   for (int jj=0; jj<18; jj++)

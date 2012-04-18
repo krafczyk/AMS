@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.371 2012/04/12 10:28:34 lquadran Exp $
+#  $Id: datacards.doc,v 1.372 2012/04/18 22:56:13 paniccia Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1075,64 +1075,64 @@ R 43   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm
 R 44   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
 R 46   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
 R 45-49SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
-R 50   CalorTransSize(32)  // trans calorimeter size (cm)     
-R 51   EMDirCorrection(1.035)  // em shower shape direction correction 
-R 52   HiEnThr(1650)           // pmt saturation limit (gev)
-R 53   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
+
+R 50-56 LAPPRearLeak[7](4.234,1.388,1.604,0.01,0.025,1000.,0.3)//LAPP rear-leakage correction parameters (M.P.- C.Goy)        
  
-R 54 ealpha0(-3.0)  // leakage correction: alpha0(averaged on energy) + beta*T +gamma*T^2
-R 55 ebeta(75.2)    // first order coefficient
-R 56 egamma(563.3)  // second order coefficient
-R 57 ealpha_par[0](-5)     // Alpha(E)=par0+par1*Energy
-R 58 ealpha_par[1](0.0143) // 
+R 57 ealpha0(-3.0)  // leakage correction: alpha0(averaged on energy) + beta*T +gamma*T^2
+R 58 ebeta(75.2)    // first order coefficient
+R 59 egamma(563.3)  // second order coefficient
+R 60 ealpha_par[0](-5)     // Alpha(E)=par0+par1*Energy
+R 61 ealpha_par[1](0.0143) // 
 
-R 59 CalorTransSize(32)
-R 60 EMDirCorrection(1.03)
-R 61 HiEnThr(1650.)
-R 62 HiEnCorFac(0.225)
-R 63 S1S3[0](0.6)
-R 64 S1S3[1](0.25)
-R 64 S1S3[2](0.4)
-R 66 S1S3[3](0.8)
+R 62 CalorTransSize(32)   // trans calorimeter size (cm)  
+R 63 EMDirCorrection(1.03)// em shower shape direction correction 
+R 64 HiEnThr(1650.)       // pmt saturation limit (gev)
+R 65 HiEnCorFac(0.225)    // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
+R 66 S1S3[0](0.6)
+R 67 S1S3[1](0.25)
+R 68 S1S3[2](0.4)
+R 69 S1S3[3](0.8)
 
-R 67 S1S3X[0](0.529) // (67-72)
-R 68 S1S3X[1](0.753)
-R 69 S1S3X[2](0.922)
-R 70 S1S3X[3](47.25)
-R 71 S1S3X[4](-104.)
-R 72 S1S3X[5](-0.006)
+R 70 S1S3X[0](0.529) // (70-75)
+R 71 S1S3X[1](0.753)
+R 72 S1S3X[2](0.922)
+R 73 S1S3X[3](47.25)
+R 74 S1S3X[4](-104.)
+R 75 S1S3X[5](-0.006)
  
-R 73 S1S3Y[0](0.517) // (73-78)
-R 74 S1S3Y[1](0.743)
-R 75 S1S3Y[2](0.933)
-R 76 S1S3Y[3](49.19)
-R 77 S1S3Y[4](-7.23)
-R 78 S1S3Y[5](-0.193)
+R 76 S1S3Y[0](0.517) // (76-81)
+R 77 S1S3Y[1](0.743)
+R 78 S1S3Y[2](0.933)
+R 79 S1S3Y[3](49.19)
+R 80 S1S3Y[4](-7.23)
+R 81 S1S3Y[5](-0.193)
 
-//LAPP impact-point correction parameters X and Y sides (M.P.)
-R 79 S1S3XA[0](0.38) // (79-82)
-R 80 S1S3XA[1](0.715)
-R 81 S1S3XA[2](0.75)
-R 82 S1S3XA[3](0.5)
+//LAPP impact-point correction parameters X and Y sides (M.P. - C.Goy)
+R 82 S1S3XA[0](0.38) // (82-85)
+R 83 S1S3XA[1](0.715)
+R 84 S1S3XA[2](0.75)
+R 85 S1S3XA[3](0.5)
       
-R 83 S1S3YA[0](0.44) // (83-86) 
-R 84 S1S3YA[1](0.67)
-R 85 S1S3YA[2](0.735)
-R 86 S1S3YA[3](0.5;)  // end of LAPP parameters
+R 86 S1S3YA[0](0.33) // (86-89) 
+R 87 S1S3YA[1](0.7525)
+R 88 S1S3YA[2](0.75)
+R 89 S1S3YA[3](0.5;)  
 
-I 87 sec[0](0)                // cards below are used as validity time when need to write
-I 88 sec[1](0)                // to DB new calibration/status parameters
-I 89 min[0](0)                //
-I 90 min[1](0)                //
-I 91 hour[0](0)               //
-I 92 hour[1](0)               //
-I 93 day[0](1)                //
-I 94 day[1](1)                //
-I 95 mon[0](0)                //
-I 96 mon[1](0)                //
-I 97 year[0](101)             //
-I 98 year[1](108)             //
-R 99 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
+R 90-94 LAPPHitLeak[5](1.05,13.1.32,15.,1.69) //LAPP hit multiplicity correction parameters (M.P.-C.Goy) 
+
+I 95 sec[0](0)                // cards below are used as validity time when need to write
+I 96 sec[1](0)                // to DB new calibration/status parameters
+I 97 min[0](0)                //
+I 98 min[1](0)                //
+I 99 hour[0](0)               //
+I 100 hour[1](0)               //
+I 101 day[0](1)                //
+I 102 day[1](1)                //
+I 103 mon[0](0)                //
+I 104 mon[1](0)                //
+I 105 year[0](108)             //
+I 106 year[1](125)             //
+R 107 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
 
    ECAL calibration:
 
