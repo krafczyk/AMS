@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.724 2012/04/16 07:47:14 ams Exp $
+# $Id: RemoteClient.pm,v 1.725 2012/04/19 10:57:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7333,6 +7333,7 @@ print qq`
 # 'C'/'G' - custom, generic
 #
         my $jst=$q->param("JST");
+        $self->{jst}=$jst;              
 #
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
@@ -8128,6 +8129,7 @@ if(defined $dataset->{buildno} ){
 # check here custom/generic
 #
          if(defined $q->param("JST")){
+             $self->{jst}=$q->param("JST");         
              my $sdir="$self->{AMSSoftwareDir}/scripts/";
              my $newfile=$sdir."$self->{CCA}";
              if(not open(FILEI,"<".$newfile)){
@@ -9202,6 +9204,7 @@ if(defined $dataset->{buildno} ){
          my $i;
          if($Any<0 or $srunno eq $qrunno){
          $file2tar="$self->{UploadsDir}/$dataset->{version}script.$run.tar";
+         $self->{file2tar}=$file2tar;
            $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1");
      }
          else{
@@ -9419,6 +9422,7 @@ if(defined $dataset->{buildno} ){
 # check here custom/generic
 #
          if(defined $q->param("JST")){
+             $self->{jst}=$q->param("JST");         
              my $sdir="$self->{AMSSoftwareDir}/scripts/";
              my $newfile=$sdir."$self->{CCA}";
              if(not open(FILEI,"<".$newfile)){
@@ -9727,8 +9731,12 @@ else{
               $attach= "$file2tar.gz,$dataset->{version}mcscripts.tar.gz";
           }
                   $self->sendmailmessage($address,$subject,$message,$attach);
+    if($self->{jst} eq 'C' and $self->{CCA} eq 'test'){
+    }
+          else{
                   my $i=unlink "$file2tar.gz";
-                  if($self->{sendaddon}==1){
+              }
+                      if($self->{sendaddon}==1){
                    $self->{TU2}=time();
                    $attach="$filedb_att,ams02mcdb.addon.tar.gz";
                    $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
@@ -9773,6 +9781,75 @@ else{
                        unlink $file;
                      }
                   }
+
+
+
+
+#
+#         if custom and taiwan - print all the job scripts as html output
+# 
+
+
+    if($self->{jst} eq 'C' and $self->{CCA} eq 'taiwan'){
+         my $dir2tar="/tmp/tar.$self->{CCA}.".$$;
+        system("rm -rf $dir2tar");
+        system("mkdir  -p $dir2tar");
+       
+         my $cmd ="tar -zxvf $file2tar.gz -C$dir2tar 1>/dev/null 2>&1";
+         my $i=system($cmd);
+               if($i){
+                  system("rm -rf $dir2tar");
+                  unlink "$file2tar.gz";
+                  $self->ErrorPlus("Unable to untar: $cmd ");
+               }
+               else{
+                 opendir THISDIR, $dir2tar or die "unable to open $dir2tar";
+                 my @jobs=readdir THISDIR;
+                 closedir THISDIR;
+                 print $q->header("text/html ");
+                 $q->start_html();
+                 my $min=20000000000;
+                 my $max=0;
+                 foreach my $job (@jobs){
+                     if($job =~ /\.job$/){
+                       if($job =~ /^\./){
+                           next;
+                       }
+                       my @junk=split '\.',$job;
+                           if($#junk>1){
+                               if($min>$junk[1]){
+                                  $min=$junk[1];
+                                }
+                               if($max<$junk[1]){
+                                  $max=$junk[1];
+                                }
+                            }
+                      }
+                     }
+                     my $jobsetid="$min$max";
+                       print $q->h1("JOBSETID=$jobsetid");
+                 foreach my $job (@jobs){
+                     if($job =~ /\.job$/){
+                       if($job =~ /^\./){
+                           next;
+                       }
+                       my $full="$dir2tar/$job";
+                       open(FILE,"<".$full) or die "Unable to open job file $full \n";
+                       my $buf; 
+                       read(FILE,$buf,1638400) or next;
+                       close FILE;
+                       print $q->h3("JOB=$job ");
+                       print $q->textarea($job,$buf,20,100);
+                       print $q->h3(" ");
+                   }
+                 }
+                 system("rm -rf $dir2tar");
+                 unlink "$file2tar.gz";
+                 $q->end_html;
+             }
+}
+
+
 # check last download time
 # but first check local/remote cite
       my $cite_status="remote";
@@ -9837,10 +9914,13 @@ else{
        } else {
          $self->Download($vvv, $vdb);
         }
+
+
+
      } else {
       $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
 
-     }
+  }
 }
 }
 #here the default action
@@ -12654,7 +12734,8 @@ sub Download {
           }
           print "<input type=\"hidden\" name=\"VDB\" value=$vvv>\n";
           print "<input type=\"submit\" name=\"Download\" value=\"Finish\">\n";
-    print "</FORM>\n";
+
+   print "</FORM>\n";
     print "</BODY>\n";
     print "</HTML>\n";
 }
@@ -18888,7 +18969,9 @@ sub CheckFS{
                  if($ava<0){
                    $ava=0;
                  }
+                if(defined $vrb and $vrb==1){
                  print " $path status $fs->[0] $status  $ava1 $bavail*$fac  =$tot*$fs->[3]/100-$rused\n";
+             }
                   $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]' and path like '$path%' ";
             }
              else{
