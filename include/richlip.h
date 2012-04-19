@@ -43,6 +43,8 @@ class RichLIPRec{
   static void coordlip2rich(float pxlip, float pylip, float pzlip, float &pxrich, float &pyrich, float &pzrich);
   static void anglerich2lip(float therich, float phirich, float &thelip, float &philip);
   static void anglelip2rich(float thelip, float philip, float &therich, float &phirich);
+  static int PMTams2lip(int PMTams);
+  static int PMTlip2ams(int PMTlip);
 
 };
 

@@ -888,6 +888,8 @@ C ------------------------------------------------------------------
                   resc_eff(4,irecnumb+1) = richeff_2rf
                   resc_eff(5,irecnumb+1) = richeff_rad
                   resc_eff(6,irecnumb+1) = richeff_lg
+                  resc_arw(1,irecnumb+1) = 1.-richarwdir ! inverted convention
+                  resc_arw(2,irecnumb+1) = 1.-richarwref ! inverted convention
 
 *                  print*,'IRECNUMB = ',irecnumb
 
@@ -901,6 +903,7 @@ C ------------------------------------------------------------------
      +                    = richeff_msec0(i)
                      resc_effmsec(i,2,irecnumb+1)
      +                    = richeff_msec1(i)
+                     resc_arwmsec(i,irecnumb+1) = 1.-richarwmsec(i) ! inverted convention
                      if(i.le.nmirsec) then
 *                        print*,'Sector ',i,':',
 *     +                       ' accs = ',
@@ -913,6 +916,16 @@ C ------------------------------------------------------------------
                   resc_chgprob(1,irecnumb+1) = chgprob1
                   resc_chgprob(2,irecnumb+1) = chgprob2
                   resc_chgprob(3,irecnumb+1) = chgprob3
+
+                  resc_nrseg(irecnumb+1) = nringseg_smear
+                  do i=1,nringseg_smear
+                     resc_pmtrseg(i,irecnumb+1) = ipmtringseg_smear(i)
+                     resc_refrseg(i,irecnumb+1) = irefringseg_smear(i)
+                     do j=1,3
+                        resc_effrseg(j,i,irecnumb+1)
+     +                       = effringseg_smear(i,j)
+                     enddo
+                  enddo
 
                endif
 
@@ -1327,11 +1340,18 @@ C ------------------------------------------------------------------
          print*,'resc_chgmir   = ',resc_chgmir(k)
          print*,'resc_accgeom  = ',(resc_accgeom(i,k),i=1,3)
          print*,'resc_eff      = ',(resc_eff(i,k),i=1,6)
+         print*,'resc_arw      = ',(resc_arw(i,k),i=1,2)
          print*,'resc_nmirsec  = ',resc_nmirsec(k)
          print*,'resc_accmsec  = ',
      +        ((resc_accmsec(i,j,k),i=1,resc_nmirsec(k)),j=1,2)
          print*,'resc_effmsec  = ',((resc_effmsec(i,j,k),i=1,3),j=1,2)
+         print*,'resc_arwmsec  = ',(resc_arwmsec(i,k),i=1,3)
          print*,'resc_chgprob  = ',(resc_chgprob(i,k),i=1,3)
+         print*,'resc_nrseg    = ',resc_nrseg(k)
+         print*,'resc_pmtrseg  = ',(resc_pmtrseg(i,k),i=1,resc_nrseg(k))
+         print*,'resc_refrseg  = ',(resc_refrseg(i,k),i=1,resc_nrseg(k))
+         print*,'resc_effrseg  = ',
+     +        ((resc_effrseg(i,j,k),i=1,3),j=1,resc_nrseg(k))
          print*,'resb_pimp     = ',(resb_pimp(i,k),i=1,3)
          print*,'resb_epimp    = ',(resb_epimp(i,k),i=1,3)
          print*,'resb_pvtx     = ',(resb_pvtx(i,k),i=1,3)

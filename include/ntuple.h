@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.140 2012/03/13 02:03:10 pzuccon Exp $
+//  $Id: ntuple.h,v 1.141 2012/04/19 16:09:20 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -776,6 +776,7 @@ public:
   // (should match those in other files)
 #define LIP_NHITMAX 1000
 #define LIP_NMAXLIPREC 10
+#define LIP_NMAXRINGSEG 1000
   int   resb_iflag[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_itype[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_itrk[MAXRICHRIN][LIP_NMAXLIPREC];
@@ -802,10 +803,16 @@ public:
   float resc_chgmir[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_accgeom[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resc_eff[MAXRICHRIN][LIP_NMAXLIPREC][6];
+  float resc_arw[MAXRICHRIN][LIP_NMAXLIPREC][2];
   int resc_nmirsec[MAXRICHRIN][LIP_NMAXLIPREC];
   float resc_accmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
   float resc_effmsec[MAXRICHRIN][LIP_NMAXLIPREC][2][LIP_NMAXMIRSECCC];
+  float resc_arwmsec[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXMIRSECCC];
   float resc_chgprob[MAXRICHRIN][LIP_NMAXLIPREC][3];
+  int resc_nrseg[MAXRICHRIN][LIP_NMAXLIPREC];
+  int resc_pmtrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
+  int resc_refrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
+  float resc_effrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG][3];
   float resb_pimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_epimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_pvtx[MAXRICHRIN][LIP_NMAXLIPREC][3];
@@ -866,18 +873,21 @@ public:
   float NpeRingRef[MAXRICHRINLIP];
   float RingAcc[MAXRICHRINLIP][3];
   float RingEff[MAXRICHRINLIP][6];
+  float RingAccRW[MAXRICHRINLIP][2];
   int NMirSec;
-  //float RingAccMsec1R[MAXRICHRINLIP][MAXRICHMIRSEC];
-  //float RingAccMsec2R[MAXRICHRINLIP][MAXRICHMIRSEC];
-  //float RingEffMsec1R[MAXRICHRINLIP][MAXRICHMIRSEC];
-  //float RingEffMsec2R[MAXRICHRINLIP][MAXRICHMIRSEC];
   float RingAccMsec1R[MAXRICHRINLIP][3];
   float RingAccMsec2R[MAXRICHRINLIP][3];
   float RingEffMsec1R[MAXRICHRINLIP][3];
   float RingEffMsec2R[MAXRICHRINLIP][3];
+  float RingAccRWMSec[MAXRICHRINLIP][3];
+  int Segments[MAXRICHRINLIP];
+  int SegPMT[MAXRICHRINLIP][1000];
+  int SegRefStatus[MAXRICHRINLIP][1000];
+  float SegAcceptance[MAXRICHRINLIP][1000];
+  float SegEffRad[MAXRICHRINLIP][1000];
+  float SegEffFull[MAXRICHRINLIP][1000];
   float HitsResiduals[MAXRICHRINLIP][LIP_NHITMAX];
   int HitsStatus[MAXRICHRINLIP][LIP_NHITMAX];
-  //  int HitsAssoc[MAXRICHRINLIP][LIP_NHITMAX];
   float TrackRec[MAXRICHRINLIP][10];
 
 friend class AMSRichRingNew;

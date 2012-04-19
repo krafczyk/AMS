@@ -8,6 +8,12 @@
      +           NHITMAX   = 1000     ! nb of data hits to be stored on reconstruction
      +          )
 
+      INTEGER NBPMTLIP                ! number of PMTs in LIP numbering
+      PARAMETER(NBPMTLIP=756)         ! (includes 76 empty positions)
+
+      integer nmaxmirsec              ! maximum number of mirror sectors
+      PARAMETER(NMAXMIRSEC=10)
+
 
 ******************************
 *** CODE FROM constant.inc ***
@@ -119,8 +125,6 @@
      +       PGLIX,RADIX,TGMIR,D0MIR,EMCXLIM,EMCYLIM,JUMP,
      +       DMECX,DMECY,DX0,ZTARG
 
-	integer nmaxmirsec
-	PARAMETER(NMAXMIRSEC=10)
 	integer nmirsec
 	integer idmirs(nmaxmirsec)
 	real phimirs(nmaxmirsec)
@@ -221,8 +225,6 @@
         INTEGER NBPMTX,NBPMTY
         PARAMETER(NBPMTX=10,NBPMTY=11)
         INTEGER iflpmt,INBPMT,IEXPMT,NEXPMT,NONPMT,IONPMT
-        INTEGER NBPMTLIP
-        PARAMETER(NBPMTLIP=756)
         INTEGER ipmtstat
 
         common /pmtprotoc/
@@ -491,11 +493,11 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richacc_gapmsec(nmaxmirsecc)  ! gap efficiency by MIRROR SECTOR
 
        !$OMP THREADPRIVATE (/richaccg/)
+
        real richeff_rad, richeff_lg, richeff_dir, richeff_1rf,
      +      richeff_2rf, richeff_tot,richeff_pni, richeff_avz,
      +      richeff_tot_gap, richeff_dir_gap, richeff_ref_gap,
      +      richeff_msec0, richeff_msec1, richeff_msec_gap
-
 
        common /richeffc/
      +        richeff_rad,      ! Eff(nint)*Eff(geom)
@@ -513,14 +515,23 @@ C ... Particle impact point hint in the PMT matrix to be used by 5par rec
      +        richeff_msec1(nmaxmirsecc),  ! efficiency for each mirror sector (2nd ref)
      +        richeff_msec_gap(nmaxmirsecc)  ! eff by mir sect with gap effect
 
-        !$OMP THREADPRIVATE (/richeffc/)
+       !$OMP THREADPRIVATE (/richeffc/)
+
+      real richerwdir,richerwref,richerwmsec
+
+       common /richaccrwall/
+     +        richarwdir,      ! acc in radiator poron walls (direct branch)
+     +        richarwref,      ! acc in radiator poron walls (reflected branch)
+     +        richarwmsec(nmaxmirsec) ! acc in radiator poron walls (ref branch by mirror sector)
+
+       !$OMP THREADPRIVATE (/richaccrwall/)
+
 	real a_beta, b_beta
 
-
-	common /richbetawidthc/
+       common /richbetawidthc/
      +        a_beta,           ! statistical uncertainty for beta
      +        b_beta            ! systematic uncertainty for beta
-        !$OMP THREADPRIVATE (/richbetawidthc/)
+       !$OMP THREADPRIVATE (/richbetawidthc/)
 
 ****************************
 *** CODE FROM matrix.inc ***
@@ -742,7 +753,6 @@ C      data irotflg /0/
 
       !$OMP THREADPRIVATE (/rstddet/)
 
-
 ***************************************************************************
 *** NEW CODE: alternative velocity reconstruction (added December 2011) ***
 ***************************************************************************
@@ -795,3 +805,231 @@ C      data irotflg /0/
      +                 tollinagl,
      +                 tollinnaf
       !$OMP THREADPRIVATE (/richraltpar/)
+
+**********************************************************************
+*** NEW CODE: PMT-by-PMT acceptance calculation (added April 2012) ***
+**********************************************************************
+
+      integer nringscanmax
+      PARAMETER(NRINGSCANMAX=10000)
+
+      integer nringsegmax
+      PARAMETER(NRINGSEGMAX=1000)
+
+      integer inrsamp,ipmtsamp,ipmtact,itrkreg,irefsamp,
+     +        imsecsamp,ipmtneigh
+      real coosamp,erdsamp,effsamp,pmtsmfrac
+
+      common /richrspoint/
+     +            inrsamp,
+     +		  coosamp(nringscanmax,2),
+     +		  ipmtsamp(nringscanmax),
+     +		  ipmtact(nringscanmax),
+     +		  itrkreg(nringscanmax),
+     +		  erdsamp(nringscanmax),
+     +		  effsamp(nringscanmax),
+     +		  irefsamp(nringscanmax),
+     +		  imsecsamp(nringscanmax),
+     +		  ipmtneigh(nringscanmax,9),
+     +		  pmtsmfrac(nringscanmax,9)
+      !$OMP THREADPRIVATE (/richrspoint/)
+
+      integer ipmttouch_withgap,ipmttouch_nogap,ipmttouch_smear
+      real accbypmt_tot_withgap,accbypmt_tot_nogap,accbypmt_tot_smear,
+     +     accbypmt_dir_withgap,accbypmt_dir_nogap,accbypmt_dir_smear,
+     +     accbypmt_ref1_withgap,accbypmt_ref1_nogap,
+     +     accbypmt_ref1_smear,
+     +     accbypmt_ref1ms_withgap,accbypmt_ref1ms_nogap,
+     +     accbypmt_ref1ms_smear,
+     +     accbypmt_ref2_withgap,accbypmt_ref2_nogap,
+     +     accbypmt_ref2_smear,
+     +     accbypmt_ref2ms_withgap,accbypmt_ref2ms_nogap,
+     +     accbypmt_ref2ms_smear,
+     +     erdbypmt_tot_withgap,erdbypmt_tot_nogap,erdbypmt_tot_smear,
+     +     erdbypmt_dir_withgap,erdbypmt_dir_nogap,erdbypmt_dir_smear,
+     +     erdbypmt_ref1_withgap,erdbypmt_ref1_nogap,
+     +     erdbypmt_ref1_smear,
+     +     erdbypmt_ref1ms_withgap,erdbypmt_ref1ms_nogap,
+     +     erdbypmt_ref1ms_smear,
+     +     erdbypmt_ref2_withgap,erdbypmt_ref2_nogap,
+     +     erdbypmt_ref2_smear,
+     +     erdbypmt_ref2ms_withgap,erdbypmt_ref2ms_nogap,
+     +     erdbypmt_ref2ms_smear,
+     +     effbypmt_tot_withgap,effbypmt_tot_nogap,effbypmt_tot_smear,
+     +     effbypmt_dir_withgap,effbypmt_dir_nogap,effbypmt_dir_smear,
+     +     effbypmt_ref1_withgap,effbypmt_ref1_nogap,
+     +     effbypmt_ref1_smear,
+     +     effbypmt_ref1ms_withgap,effbypmt_ref1ms_nogap,
+     +     effbypmt_ref1ms_smear,
+     +     effbypmt_ref2_withgap,effbypmt_ref2_nogap,
+     +     effbypmt_ref2_smear,
+     +     effbypmt_ref2ms_withgap,effbypmt_ref2ms_nogap,
+     +     effbypmt_ref2ms_smear,
+     +     sumaccbypmt_tot_withgap,sumaccbypmt_tot_nogap,
+     +     sumaccbypmt_tot_smear,
+     +     sumaccbypmt_dir_withgap,sumaccbypmt_dir_nogap,
+     +     sumaccbypmt_dir_smear,
+     +     sumaccbypmt_ref1_withgap,sumaccbypmt_ref1_nogap,
+     +     sumaccbypmt_ref1_smear,
+     +     sumaccbypmt_ref1ms_withgap,sumaccbypmt_ref1ms_nogap,
+     +     sumaccbypmt_ref1ms_smear,
+     +     sumaccbypmt_ref2_withgap,sumaccbypmt_ref2_nogap,
+     +     sumaccbypmt_ref2_smear,
+     +     sumaccbypmt_ref2ms_withgap,sumaccbypmt_ref2ms_nogap,
+     +     sumaccbypmt_ref2ms_smear,
+     +     sumerdbypmt_tot_withgap,sumerdbypmt_tot_nogap,
+     +     sumerdbypmt_tot_smear,
+     +     sumerdbypmt_dir_withgap,sumerdbypmt_dir_nogap,
+     +     sumerdbypmt_dir_smear,
+     +     sumerdbypmt_ref1_withgap,sumerdbypmt_ref1_nogap,
+     +     sumerdbypmt_ref1_smear,
+     +     sumerdbypmt_ref1ms_withgap,sumerdbypmt_ref1ms_nogap,
+     +     sumerdbypmt_ref1ms_smear,
+     +     sumerdbypmt_ref2_withgap,sumerdbypmt_ref2_nogap,
+     +     sumerdbypmt_ref2_smear,sumerdbypmt_ref2ms_withgap,
+     +     sumerdbypmt_ref2ms_nogap,sumerdbypmt_ref2ms_smear,
+     +     sumeffbypmt_tot_withgap,sumeffbypmt_tot_nogap,
+     +     sumeffbypmt_tot_smear,
+     +     sumeffbypmt_dir_withgap,sumeffbypmt_dir_nogap,
+     +     sumeffbypmt_dir_smear,
+     +     sumeffbypmt_ref1_withgap,sumeffbypmt_ref1_nogap,
+     +     sumeffbypmt_ref1_smear,
+     +     sumeffbypmt_ref1ms_withgap,sumeffbypmt_ref1ms_nogap,
+     +     sumeffbypmt_ref1ms_smear,sumeffbypmt_ref2_withgap,
+     +     sumeffbypmt_ref2_nogap,sumeffbypmt_ref2_smear,
+     +     sumeffbypmt_ref2ms_withgap,sumeffbypmt_ref2ms_nogap,
+     +     sumeffbypmt_ref2ms_smear
+
+      common /richrstotal/
+     +		  ipmttouch_withgap(nbpmtlip),
+     +		  ipmttouch_nogap(nbpmtlip),
+     +		  ipmttouch_smear(nbpmtlip),
+     +		  accbypmt_tot_withgap(nbpmtlip),
+     +		  accbypmt_tot_nogap(nbpmtlip),
+     +		  accbypmt_tot_smear(nbpmtlip),
+     +		  accbypmt_dir_withgap(nbpmtlip),
+     +		  accbypmt_dir_nogap(nbpmtlip),
+     +		  accbypmt_dir_smear(nbpmtlip),
+     +		  accbypmt_ref1_withgap(nbpmtlip),
+     +		  accbypmt_ref1_nogap(nbpmtlip),
+     +		  accbypmt_ref1_smear(nbpmtlip),
+     +		  accbypmt_ref1ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  accbypmt_ref1ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  accbypmt_ref1ms_smear(nbpmtlip,nmaxmirsec),
+     +		  accbypmt_ref2_withgap(nbpmtlip),
+     +		  accbypmt_ref2_nogap(nbpmtlip),
+     +		  accbypmt_ref2_smear(nbpmtlip),
+     +		  accbypmt_ref2ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  accbypmt_ref2ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  accbypmt_ref2ms_smear(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_tot_withgap(nbpmtlip),
+     +		  erdbypmt_tot_nogap(nbpmtlip),
+     +		  erdbypmt_tot_smear(nbpmtlip),
+     +		  erdbypmt_dir_withgap(nbpmtlip),
+     +		  erdbypmt_dir_nogap(nbpmtlip),
+     +		  erdbypmt_dir_smear(nbpmtlip),
+     +		  erdbypmt_ref1_withgap(nbpmtlip),
+     +		  erdbypmt_ref1_nogap(nbpmtlip),
+     +		  erdbypmt_ref1_smear(nbpmtlip),
+     +		  erdbypmt_ref1ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_ref1ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_ref1ms_smear(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_ref2_withgap(nbpmtlip),
+     +		  erdbypmt_ref2_nogap(nbpmtlip),
+     +		  erdbypmt_ref2_smear(nbpmtlip),
+     +		  erdbypmt_ref2ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_ref2ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  erdbypmt_ref2ms_smear(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_tot_withgap(nbpmtlip),
+     +		  effbypmt_tot_nogap(nbpmtlip),
+     +		  effbypmt_tot_smear(nbpmtlip),
+     +		  effbypmt_dir_withgap(nbpmtlip),
+     +		  effbypmt_dir_nogap(nbpmtlip),
+     +		  effbypmt_dir_smear(nbpmtlip),
+     +		  effbypmt_ref1_withgap(nbpmtlip),
+     +		  effbypmt_ref1_nogap(nbpmtlip),
+     +		  effbypmt_ref1_smear(nbpmtlip),
+     +		  effbypmt_ref1ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_ref1ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_ref1ms_smear(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_ref2_withgap(nbpmtlip),
+     +		  effbypmt_ref2_nogap(nbpmtlip),
+     +		  effbypmt_ref2_smear(nbpmtlip),
+     +		  effbypmt_ref2ms_withgap(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_ref2ms_nogap(nbpmtlip,nmaxmirsec),
+     +		  effbypmt_ref2ms_smear(nbpmtlip,nmaxmirsec),
+     +		  sumaccbypmt_tot_withgap,
+     +		  sumaccbypmt_tot_nogap,
+     +		  sumaccbypmt_tot_smear,
+     +		  sumaccbypmt_dir_withgap,
+     +		  sumaccbypmt_dir_nogap,
+     +		  sumaccbypmt_dir_smear,
+     +		  sumaccbypmt_ref1_withgap,
+     +		  sumaccbypmt_ref1_nogap,
+     +		  sumaccbypmt_ref1_smear,
+     +		  sumaccbypmt_ref1ms_withgap(nmaxmirsec),
+     +		  sumaccbypmt_ref1ms_nogap(nmaxmirsec),
+     +		  sumaccbypmt_ref1ms_smear(nmaxmirsec),
+     +		  sumaccbypmt_ref2_withgap,
+     +		  sumaccbypmt_ref2_nogap,
+     +		  sumaccbypmt_ref2_smear,
+     +		  sumaccbypmt_ref2ms_withgap(nmaxmirsec),
+     +		  sumaccbypmt_ref2ms_nogap(nmaxmirsec),
+     +		  sumaccbypmt_ref2ms_smear(nmaxmirsec),
+     +		  sumerdbypmt_tot_withgap,
+     +		  sumerdbypmt_tot_nogap,
+     +		  sumerdbypmt_tot_smear,
+     +		  sumerdbypmt_dir_withgap,
+     +		  sumerdbypmt_dir_nogap,
+     +		  sumerdbypmt_dir_smear,
+     +		  sumerdbypmt_ref1_withgap,
+     +		  sumerdbypmt_ref1_nogap,
+     +		  sumerdbypmt_ref1_smear,
+     +		  sumerdbypmt_ref1ms_withgap(nmaxmirsec),
+     +		  sumerdbypmt_ref1ms_nogap(nmaxmirsec),
+     +		  sumerdbypmt_ref1ms_smear(nmaxmirsec),
+     +		  sumerdbypmt_ref2_withgap,
+     +		  sumerdbypmt_ref2_nogap,
+     +		  sumerdbypmt_ref2_smear,
+     +		  sumerdbypmt_ref2ms_withgap(nmaxmirsec),
+     +		  sumerdbypmt_ref2ms_nogap(nmaxmirsec),
+     +		  sumerdbypmt_ref2ms_smear(nmaxmirsec),
+     +		  sumeffbypmt_tot_withgap,
+     +		  sumeffbypmt_tot_nogap,
+     +		  sumeffbypmt_tot_smear,
+     +		  sumeffbypmt_dir_withgap,
+     +		  sumeffbypmt_dir_nogap,
+     +		  sumeffbypmt_dir_smear,
+     +		  sumeffbypmt_ref1_withgap,
+     +		  sumeffbypmt_ref1_nogap,
+     +		  sumeffbypmt_ref1_smear,
+     +		  sumeffbypmt_ref1ms_withgap(nmaxmirsec),
+     +		  sumeffbypmt_ref1ms_nogap(nmaxmirsec),
+     +		  sumeffbypmt_ref1ms_smear(nmaxmirsec),
+     +		  sumeffbypmt_ref2_withgap,
+     +		  sumeffbypmt_ref2_nogap,
+     +		  sumeffbypmt_ref2_smear,
+     +		  sumeffbypmt_ref2ms_withgap(nmaxmirsec),
+     +		  sumeffbypmt_ref2ms_nogap(nmaxmirsec),
+     +		  sumeffbypmt_ref2ms_smear(nmaxmirsec)
+      !$OMP THREADPRIVATE (/richrstotal/)
+
+      integer nringseg_withgap,ipmtringseg_withgap,irefringseg_withgap,
+     +        nringseg_nogap,ipmtringseg_nogap,irefringseg_nogap,
+     +        nringseg_smear,ipmtringseg_smear,irefringseg_smear
+      real effringseg_withgap,effringseg_nogap,effringseg_smear
+
+      common /richrsres/
+     +            nringseg_withgap,
+     +		  ipmtringseg_withgap(nringsegmax),
+     +		  irefringseg_withgap(nringsegmax),
+     +		  effringseg_withgap(nringsegmax,3),
+     +            nringseg_nogap,
+     +		  ipmtringseg_nogap(nringsegmax),
+     +		  irefringseg_nogap(nringsegmax),
+     +		  effringseg_nogap(nringsegmax,3),
+     +            nringseg_smear,
+     +		  ipmtringseg_smear(nringsegmax),
+     +		  irefringseg_smear(nringsegmax),
+     +		  effringseg_smear(nringsegmax,3)
+      !$OMP THREADPRIVATE (/richrsres/)

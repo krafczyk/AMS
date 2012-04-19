@@ -238,15 +238,22 @@ C ----------------------------------------
 *                   3 - bad PMT (dead areas)
 *
 *     Updated: April 2011 (R. Pereira) - IFLG now comes from external array
-*                                        intermediate determinations of IFLAG
+*                                        intermediate determinations of IFLG
 *                                        maintained since they are used mid-code,
 *                                        but overriden by final change
+*
+*              11-Apr-2012 (R. Pereira) - final change to IFLG protected
+*                                         to include cases where point
+*                                         is not in a PMT
 **************************************************************************
 
 #include "../include/richrec_lipf.h"
 
       integer IPM,IFLG
+      integer IFLG_ORIG
       real XPHOT,YPHOT,RPHOT,dxp,dyp
+
+      IFLG_ORIG = IFLG
 
 *      PITCH=3.7
       IP   = -1
@@ -289,12 +296,12 @@ C ----------------------------------------
      & (ABS(XPHOT).LT.(XLIMV)).AND.
      &   ABS(YPHOT).GT.YLIMV.AND.
      &   ABS(YPHOT).LT.YLIMV+9*PITCHY) THEN ! TOP/BOTTOM PLANES : 3RD/4th/8TH/9th
-             IF((XPHOT.LT.-DX0.AND.YPHOT.GT.0).OR.
-     &          (XPHOT.GT. DX0.AND.YPHOT.LT.0))THEN
+             IF((XPHOT.LT.-DX0-JUMP.AND.YPHOT.GT.0).OR.   ! corrected LA/RP 13-Apr-2012
+     &          (XPHOT.GT. DX0+JUMP.AND.YPHOT.LT.0))THEN  ! corrected LA/RP 13-Apr-2012
                DXP=ABS(XPHOT+SIGN(-JUMP+XLIMV,XPHOT))
                IFLG = 0
-             ELSEIF((XPHOT.GT.-DX0+JUMP.AND.YPHOT.GT.0).OR.
-     &         (XPHOT.LT.DX0-JUMP.AND.YPHOT.LT.0)) THEN
+             ELSEIF((XPHOT.GT.-DX0.AND.YPHOT.GT.0).OR.    ! corrected LA/RP 13-Apr-2012
+     &         (XPHOT.LT.DX0.AND.YPHOT.LT.0)) THEN        ! corrected LA/RP 13-Apr-2012
                DXP=ABS(ABS(XPHOT)-XLIMV)
                IFLG = 0
              ENDIF
@@ -369,7 +376,11 @@ C ----------------------------------------
       ENDIF
 
 * --- Final change overrides all previous changes to IFLG
-      IFLG = IPMTSTAT(IPM+1)
+      if((IPM.GE.1).AND.(IPE.LE.756)) then
+         IFLG = IPMTSTAT(IPM+1)
+      else
+         IFLG = IFLG_ORIG
+      endif
 
 * --- END
       END

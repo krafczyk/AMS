@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.161 2011/12/22 13:22:59 barao Exp $
+//  $Id: richrec.C,v 1.162 2012/04/19 16:09:19 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2468,6 +2468,23 @@ void AMSRichRingNew::fillresult(){
     _RingAccMsec2R[i] = LIPF2C.resc_accmsec[nr][1][i];
     _RingEffMsec1R[i] = LIPF2C.resc_effmsec[nr][0][i];
     _RingEffMsec2R[i] = LIPF2C.resc_effmsec[nr][1][i];
+  }
+
+  _RingAccRW[0] = LIPF2C.resc_arw[nr][0];
+  _RingAccRW[1] = LIPF2C.resc_arw[nr][1];
+
+  for(int i=0;i<LIPF2C.resc_nmirsec[nr];i++) {
+    _RingAccRWMsec[i] = LIPF2C.resc_arwmsec[nr][i];
+  }
+
+  _Segments = LIPF2C.resc_nrseg[nr];
+
+  for(int i=0;i<LIPF2C.resc_nrseg[nr];i++) {
+    _SegPMT.push_back(RichLIPRec::PMTlip2ams(LIPF2C.resc_pmtrseg[nr][i]));
+    _SegRefStatus.push_back(LIPF2C.resc_refrseg[nr][i]);
+    _SegAcceptance.push_back(LIPF2C.resc_effrseg[nr][i][0]);
+    _SegEffRad.push_back(LIPF2C.resc_effrseg[nr][i][1]);
+    _SegEffFull.push_back(LIPF2C.resc_effrseg[nr][i][2]);
   }
 
   int icurr = 0;

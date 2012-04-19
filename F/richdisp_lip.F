@@ -456,7 +456,7 @@ c      if (ipthatc.ne.0) then  <--- replaced, was a typo? (RP, 01-Mar-2007)
       endif
 
 
-      call vzero(richacca,5)
+      call vfill(richacca,5,0.)
       idum=0
       pitchx=pmtwx+shieldw
       pitchy=pmtwy+shieldw

@@ -204,7 +204,7 @@ CC      nbushits_buf = 0
          ntherec  = 0
          betarec = -999.
          call vfill(cangrec,ntherecmax,-999.)
-         call vzero(nbushits, ntherecmax)
+         call vzero(nbushits,ntherecmax)
          return
       endif
 
@@ -268,7 +268,7 @@ CC            prob_evt = fliketotall(cangrecmin)
                ntherec  = 0
                betarec = -999.
                call vfill(cangrec,ntherecmax,-999.)
-               call vzero(nbushits, ntherecmax)
+               call vzero(nbushits,ntherecmax)
                call vfill(cangrec,ntherecmax,-999.)
                resvlike = -999.
             endif
@@ -579,8 +579,8 @@ CC        print*,'(fliketotall) nbushits=0!!!'
       external fchi2hit
 
 * ... init
-      call vzero(phihintsv,nphihintsmax)
-      call vzero(chi2hintsv,nphihintsmax)
+      call vfill(phihintsv,nphihintsmax,0.)
+      call vfill(chi2hintsv,nphihintsmax,0.)
       nphihints = 0
       ierr = 0
 

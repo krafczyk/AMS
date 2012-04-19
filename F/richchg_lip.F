@@ -70,11 +70,11 @@
 
 * --> init local variables
 
-      call vzero(richacca,5)
-      call vzero(richeffa,8)
+      call vfill(richacca,5,0.)
+      call vfill(richeffa,8,0.)
 
-      call vzero(richaccmseca,nmaxmirsec*2)
-      call vzero(richeffmseca,nmaxmirsec*8)
+      call vfill(richaccmseca,nmaxmirsec*2,0.)
+      call vfill(richeffmseca,nmaxmirsec*8,0.)
 
       richeff_pni  = -1.
       richeff_avz  = -1.
@@ -214,17 +214,33 @@ C         if ( iflghit(i).ne.1 .and.                !hits not associated to part
          enddo
          richeffa(5) = richeffa(6)+richeffa(7)+richeffa(8)
 
+* ...... fill values in common block
+         richarwdir = accradwalldir
+         richarwref = accradwallref
+         do i=1,nmirsec
+            richarwmsec(i) = accradwallmsec(i)
+         enddo
+
+      else
+
+* ...... fill values in common block
+         richarwdir = 0.
+         richarwref = 0.
+         do i=1,nmirsec
+            richarwmsec(i) = 0.
+         enddo
+
       endif
 
-cc      print*,'In RICHCHGREC - post-correction values:'
-cc      print*,'- richacca = ',(richacca(i),i=1,5)
-cc      print*,'- richeffa = ',(richeffa(i),i=1,8)
-cc      print*,'- richaccmseca = ',
-cc     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
-cc      print*,'- richeffmseca = ...'
-cc      do j=1,nmirsec
-cc         print*,(richeffmseca(j,i),i=1,8)
-cc      enddo
+*      print*,'In RICHCHGREC - post-correction values:'
+*      print*,'- richacca = ',(richacca(i),i=1,5)
+*      print*,'- richeffa = ',(richeffa(i),i=1,8)
+*      print*,'- richaccmseca = ',
+*     +     ((richaccmseca(j,i),j=1,nmirsec),i=1,2)
+*      print*,'- richeffmseca = ...'
+*      do j=1,nmirsec
+*         print*,(richeffmseca(j,i),i=1,8)
+*      enddo
 
       valma1 = richacca(3)*reflec
       valma1a = richacca(3)*reflec+richacca(4)*reflec**2.
@@ -325,6 +341,9 @@ cc      enddo
 *      print*,'pathrad     = ',pathrad
 *      print*,'richeff_tot = ',richeff_tot
 *      print*,'sin2thc_rec = ',sin2thc_rec
+
+* ... new call to get PMT-by-PMT data
+      call richaccbypmt
 
 * ... compute reconstructed charge
       if ( ipartpat.eq.0 ) then         !is particle near the pattern?

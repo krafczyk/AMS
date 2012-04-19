@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.76 2011/12/22 13:23:00 barao Exp $
+//  $Id: richrec.h,v 1.77 2012/04/19 16:09:20 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -369,16 +369,22 @@ class AMSRichRingNew: public AMSlink{
   float _NpeRingRef;	  // no. photoelectrons in ring (reflected branch)
   float _RingAcc[3];	  // ring geometrical acceptances
   float _RingEff[6];	  // ring efficiencies
+  float _RingAccRW[2];	  // radiator wall acceptance fractions (direct, reflected branches)
   int _NMirSec;           // no. mirror sectors
-
- protected:
-
   // acceptance/efficiency data by mirror sector
   float _RingAccMsec1R[3];    // acceptance, 1st reflection
   float _RingAccMsec2R[3];    // acceptance, 2nd reflection
   float _RingEffMsec1R[3];    // efficiency, 1st reflection
   float _RingEffMsec2R[3];    // efficiency, 2nd reflection
-
+  float _RingAccRWMsec[3];    // radiator wall acceptance fractions, reflected branch
+  // data on ring segments
+  int _Segments;                        // number of ring segments
+  std::vector<int>      _SegPMT;        // segment PMT
+  std::vector<int>      _SegRefStatus;  // segment reflection status (0 if direct,
+                                        // S*10+N if reflected N times and coming from mirror sector S)
+  std::vector<float> _SegAcceptance;    // segment geometrical acceptance
+  std::vector<float> _SegEffRad;        // segment efficiency considering only radiator
+  std::vector<float> _SegEffFull;       // segment full efficiency (including radiator and light guide)
   // hit data
   std::vector<float> _HitsResiduals;    // residuals of (ring and non-ring) hits in reconstruction
   std::vector<int>   _HitsStatus;       // status of hits
@@ -389,6 +395,8 @@ class AMSRichRingNew: public AMSlink{
                                         // _TrackRec[4] = z                _TrackRec[5] = error in z
                                         // _TrackRec[6] = theta (radians)  _TrackRec[7] = error in theta
                                         // _TrackRec[8] = phi (radians)    _TrackRec[9] = error in phi
+
+ protected:
 
   void _printEl(ostream &stream){stream<<" Lip Beta "<<_Beta<<" Cerenkov Angle "<<_AngleRec<<endl;}
   void _writeEl();
@@ -439,11 +447,19 @@ class AMSRichRingNew: public AMSlink{
   float getNpeRingRef(){return _NpeRingRef;}
   float getRingAcc(int i){return _RingAcc[i];}
   float getRingEff(int i){return _RingEff[i];}
+  float getRingAccRW(int i){return _RingAccRW[i];}
   int getNMirSec(){return _NMirSec;}
   float getRingAccMsec1R(int i){return _RingAccMsec1R[i];}
   float getRingAccMsec2R(int i){return _RingAccMsec2R[i];}
   float getRingEffMsec1R(int i){return _RingEffMsec1R[i];}
   float getRingEffMsec2R(int i){return _RingEffMsec2R[i];}
+  float getRingAccRWMsec(int i){return _RingAccRWMsec[i];}
+  int getSegments(){return _Segments;}
+  std::vector<int> getSegPMT(){return _SegPMT;}
+  std::vector<int> getSegRefStatus(){return _SegRefStatus;}
+  std::vector<float> getSegAcceptance(){return _SegAcceptance;}
+  std::vector<float> getSegEffRad(){return _SegEffRad;}
+  std::vector<float> getSegEffFull(){return _SegEffFull;}
   std::vector<float> getHitsResiduals(){return _HitsResiduals;}
   std::vector<int> getHitsStatus(){return _HitsStatus;}
   std::vector<int> getHitsAssoc(){return _HitsAssoc;}

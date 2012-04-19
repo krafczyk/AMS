@@ -403,7 +403,7 @@ C
                 endif
 *
                 nmiref = nmiref + 1
-                IF (NMIREF.GT.10)then
+                IF (NMIREF.GT.10) then
                    nerr=nerr+1
                    RETURN
                 endif
@@ -562,6 +562,93 @@ C
          call patints(vdetcopy,vdir,'MIRI',ierr)
          phimir = atan2(vdetcopy(2)-vtmir(2),vdetcopy(1)-vtmir(1))
          if(phimir.lt.0.) phimir = phimir+TWOPI
+      endif
+*      print*,'phimir = ',phimir
+
+* --- end
+      return
+      end
+
+
+* ================================================================
+      subroutine patrace_phimir
+     +     (phig,thc,vdet,vdir,vmir,phimir,angmir,nmiref,nerr)
+* ================================================================
+******************************************************************
+*     Routine to obtain additional information on
+*     possible mirror reflections (check nmiref =/= 0)
+*
+*     INPUT:  phig - photon azimuthal angle
+*             thc  - Cerenkov angle
+*
+*     OUTPUT: vdet(3) - point at matrix
+*             vdir(3) - direction at matrix (with Z>0)
+*             vmir(3) - point at mirror (last reflection)
+*             phimir - azmuthal mirror position
+*             angmir - angle at mirror (wrt normal direction)
+*             nmiref - number of reflections
+*             nerr   - error flag (from patrace)
+*
+*     Note: Intersection with mirror is done with direction having
+*           Z_rich > 0 (pointing downwards)
+*
+*     F. Barao, R. Pereira - 13-Apr-2012
+*
+******************************************************************
+
+#include "../include/richrec_lipf.h"
+
+      integer nphmax
+      parameter(nphmax=10)
+      integer nerr,verr(nphmax)
+      real vdet(3),vdir(3)
+      real phimir
+      real angmir
+      real cosangmir
+
+      real vdetcopy(3)
+      real vnorm(3)
+      real vnormm
+
+* ... get photon impact impact point and direction on detection matrix
+      call patrace(phig,thc,vdet,vdir,nmiref,nerr,verr)
+
+      if (nerr.ne.0) return
+
+* ... output coordinates
+      xdet = vdet(1)
+      ydet = vdet(2)
+
+* ... mirror phi
+      if(nmiref.eq.0) then
+         phimir = -999.
+         return
+      else
+         vdetcopy(1) = vdet(1)
+         vdetcopy(2) = vdet(2)
+         vdetcopy(3) = vdet(3)
+
+         call patints(vdetcopy,vdir,'MIRI',ierr)
+         phimir = atan2(vdetcopy(2)-vtmir(2),vdetcopy(1)-vtmir(1))
+         if(phimir.lt.0.) phimir = phimir+TWOPI
+*         print*,'In patrace_phimir: vdetcopy = ',vdetcopy
+*         print*,'In patrace_phimir: phimir = ',phimir
+
+* ------ normal vector at the intersection point
+         vnorm(1) = -2.*(vdetcopy(1)-vtmir(1))
+         vnorm(2) = -2.*(vdetcopy(2)-vtmir(2))
+         vnorm(3) =  2.*TGMIR**2*(vdetcopy(3)-vtmir(3))
+         vnormm = sqrt(vnorm(1)**2+vnorm(2)**2+vnorm(3)**2)
+         do 2 i=1,3
+ 2          vnorm(i)=vnorm(i)/vnormm
+
+* ------ get mirror attack angle
+         cosangmir = vnorm(1)*vdir(1)+vnorm(2)*vdir(2)+vnorm(3)*vdir(3)
+         angmir = -999.
+         if(abs(cosamgmir).le.1.) then
+            angmir = acos(cosangmir)
+         endif
+
       endif
 *      print*,'phimir = ',phimir
 
@@ -1295,9 +1382,9 @@ cc         print*,'[richacc] npvis = ',npvis
          do i=1,nmirsec
 
             npvismsec = 0
-            call vzero(fidminmsec,nphmax)
-            call vzero(fidmaxmsec,nphmax)
-            call vzero(fphipatmsec,nphmax)
+            call vfill(fidminmsec,nphmax,0.)
+            call vfill(fidmaxmsec,nphmax,0.)
+            call vfill(fphipatmsec,nphmax,0.)
 
             do j=1,npvis
                if(msecpat(j).eq.i) then
@@ -4949,22 +5036,44 @@ c      data idummy /0/
        real radsigma,raddelta,thetacsmear
        integer kas1,kas2
 
+* ... ADDITIONAL LOCAL VARIABLES for ring width calculation
+* ... R. Pereira 16-Apr-2012
+       real vmaxthc,vhexp,vrmaxthc,vderiv
+
       if (zch.eq.0) zch = 1
 
 * ... Reset variables
-      call vzero(avgrichacca,5)
-      call vzero(avgricheffa,8)
-      call vzero(avgrichaccmseca,nmaxmirsec*2)
-      call vzero(avgricheffmseca,nmaxmirsec*8)
+      call vfill(avgrichacca,5,0.)
+      call vfill(avgricheffa,8,0.)
+      call vfill(avgrichaccmseca,nmaxmirsec*2,0.)
+      call vfill(avgricheffmseca,nmaxmirsec*8,0.)
 
       IF (ZCH.NE.99) THEN       !-----------------------------------------------------------------
 *     ...... thetac resolution
-         sigmabetarel =  1.E-2*sqrt( (a_beta/zch)**2 + b_beta**2 )
-         sigmathetac  = sigmabetarel/tan(thc)
+*         sigmabetarel =  1.E-2*sqrt( (a_beta/zch)**2 + b_beta**2 )
+*         sigmathetac  = sigmabetarel/tan(thc)
 
-*     ...... evaluate acceptances for different thetac
+*     ... Estimated ring width (cm)
+         radsigma = sqrt(F1SIGMA2)  ! uses width of main gaussian given for likelihood
+                                    ! R. Pereira 16-Apr-2012
+
+         vmaxthc = acos(1./refindex)   ! max Cerenkov angle for this ref index
+         vhexp = pcoopmt(3)-pcervtx(3) ! Cerenkov cone height
+         vrmaxthc = vhexp*tan(vmaxthc) ! radius for a vertical ring, beta=1,
+                                       ! refraction not taken into account
+         vderiv = 1./(vhexp*(1.+(vrmaxthc/vhexp)**2.))  ! dthetac/dr at max radius
+
+         sigmathetac = vderiv*radsigma  ! width in thetac
+
+*         print*,'radsigma = ',radsigma
+*         print*,'vmaxthc (deg) = ',vmaxthc*RADDEG
+*         print*,'vhexp = ',vhexp
+*         print*,'vrmaxthc = ',vrmaxthc
+*         print*,'vderiv (deg/cm) = ',vderiv*RADDEG
+*         print*,'sigmathetac (deg) = ',sigmathetac*RADDEG
+
+* ...... evaluate acceptances for different thetac
          wttot = 0.
-
 
          do k=1,5               !  5 rings are taken
             thetacsmear=thc+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
@@ -5004,14 +5113,14 @@ c      data idummy /0/
             enddo
          enddo
 
-
       ELSE                      !-----------------------------------------------------------------
 
 *     ... SMEARED ACCEPTANCE CALCULATION
 *     ... R. Pereira 24-Jun-2005
 
 *     ... Estimated ring width (cm)
-         radsigma = 0.4         ! Fair estimate for any AGL in test beam
+         radsigma = sqrt(F1SIGMA2)  ! uses width of main gaussian given for likelihood
+                                    ! R. Pereira 16-Apr-2012
 
          do kas1=1,5            !  5 rings are taken
             raddelta = radsigma*(kas1-3.) !  rings at -2,-1,0,+1,+2 sigma
@@ -5133,6 +5242,8 @@ c      data idummy /0/
       real phimir
       integer imsec
 
+      integer nk
+
       if(ipthetac.eq.0)return
       thetac=cangrec(ipthetac)
 
@@ -5155,7 +5266,10 @@ c      data idummy /0/
 
 * ... calculate geometrical efficiency correction due to gaps
 * ... ring width taken into account
-      do k=1,5                  !  5 rings are taken
+
+      nk = 5  !  5 rings are taken
+
+      do k=1,nk
 * ...... init variables
          accgap       =-999.
          accgapdir    =-999.
@@ -5199,7 +5313,7 @@ c      data idummy /0/
          enddo
 
 * ...... thetac
-         allthetac=thetac+sigmathetac*(float(k)-3.) !  rings at -2,-1,0,+1,+2 sigma
+         allthetac=thetac+sigmathetac*(float(k)-(nk+1.)/2.)  ! rings at different sigmas
 * ...... ring sampling
          ierr = 0
          do phig=0.,twopi,1.E-2
@@ -5378,7 +5492,7 @@ c      data idummy /0/
 *     +           spgammadetmsec(i)/spgamma0msec(i)
 *         enddo
 
-         weight=exp(-0.5*(float(k)-3.)**2.)
+         weight=exp(-0.5*(float(k)-(nk+1.)/2.)**2.)
          avaccgap    = avaccgap    + accgap*weight
          avaccgapdir = avaccgapdir + accgapdir*weight
          avaccgapref = avaccgapref + accgapref*weight
@@ -5401,6 +5515,1681 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
 
 *      print*,'accgap,accgapdir,accgapref: ',accgap,accgapdir,accgapref
 *      print*,'accgapmsec: ',(accgapmsec(i),i=1,nmirsec)
+
+      return
+      end
+
+
+****************
+*** NEW CODE ***
+****************
+
+
+      subroutine richaccbypmt
+**********************************************************************
+* Returns acceptance and efficiency values for each PMT
+* using a uniform ring sampling in photon phi
+*
+* Created: 10/16-Apr-2012 by L. Arruda, R. Pereira
+*
+*********************************************************************
+
+#include "../include/richrec_lipf.h"
+
+* ... patrace variables
+      real vdet(3),vdir(3)
+      real vmir(3)
+      real phimir,angmir
+      integer nphotmax
+      parameter(nphotmax=10)
+      integer nerr,verr(nphotmax)
+
+      real phdir(3)
+
+      real hcrossed
+
+      integer imsec
+
+      integer isamp
+      integer ipmtaux,iflgaux
+
+      real ringsm
+      integer ipneigh
+      real xlneigh,xrneigh
+      real yuneigh,ydneigh
+      real xcneigh,ycneigh
+      integer iflgneigh
+      real xlneighin,xrneighin
+      real yuneighin,ydneighin
+      real xdev,yved
+      real xpdc,ypdc
+      real xlnorm,xrnorm
+      real yunorm,ydnorm
+      real sgx,sgy,sgxy
+
+
+      call vzero(ipmttouch_withgap,nbpmtlip)
+      call vzero(ipmttouch_nogap,nbpmtlip)
+      call vzero(ipmttouch_smear,nbpmtlip)
+
+      call vfill(accbypmt_tot_withgap,nbpmtlip,0.)
+      call vfill(accbypmt_tot_nogap,nbpmtlip,0.)
+      call vfill(accbypmt_tot_smear,nbpmtlip,0.)
+
+      call vfill(accbypmt_dir_withgap,nbpmtlip,0.)
+      call vfill(accbypmt_dir_nogap,nbpmtlip,0.)
+      call vfill(accbypmt_dir_smear,nbpmtlip,0.)
+
+      call vfill(accbypmt_ref1_withgap,nbpmtlip,0.)
+      call vfill(accbypmt_ref1_nogap,nbpmtlip,0.)
+      call vfill(accbypmt_ref1_smear,nbpmtlip,0.)
+
+      call vfill(accbypmt_ref1ms_withgap,nbpmtlip*3,0.)
+      call vfill(accbypmt_ref1ms_nogap,nbpmtlip*3,0.)
+      call vfill(accbypmt_ref1ms_smear,nbpmtlip*3,0.)
+
+      call vfill(accbypmt_ref2_withgap,nbpmtlip,0.)
+      call vfill(accbypmt_ref2_nogap,nbpmtlip,0.)
+      call vfill(accbypmt_ref2_smear,nbpmtlip,0.)
+
+      call vfill(accbypmt_ref2ms_withgap,nbpmtlip*3,0.)
+      call vfill(accbypmt_ref2ms_nogap,nbpmtlip*3,0.)
+      call vfill(accbypmt_ref2ms_smear,nbpmtlip*3,0.)
+
+      call vfill(erdbypmt_tot_withgap,nbpmtlip,0.)
+      call vfill(erdbypmt_tot_nogap,nbpmtlip,0.)
+      call vfill(erdbypmt_tot_smear,nbpmtlip,0.)
+
+      call vfill(erdbypmt_dir_withgap,nbpmtlip,0.)
+      call vfill(erdbypmt_dir_nogap,nbpmtlip,0.)
+      call vfill(erdbypmt_dir_smear,nbpmtlip,0.)
+
+      call vfill(erdbypmt_ref1_withgap,nbpmtlip,0.)
+      call vfill(erdbypmt_ref1_nogap,nbpmtlip,0.)
+      call vfill(erdbypmt_ref1_smear,nbpmtlip,0.)
+
+      call vfill(erdbypmt_ref1ms_withgap,nbpmtlip*3,0.)
+      call vfill(erdbypmt_ref1ms_nogap,nbpmtlip*3,0.)
+      call vfill(erdbypmt_ref1ms_smear,nbpmtlip*3,0.)
+
+      call vfill(erdbypmt_ref2_withgap,nbpmtlip,0.)
+      call vfill(erdbypmt_ref2_nogap,nbpmtlip,0.)
+      call vfill(erdbypmt_ref2_smear,nbpmtlip,0.)
+
+      call vfill(erdbypmt_ref2ms_withgap,nbpmtlip*3,0.)
+      call vfill(erdbypmt_ref2ms_nogap,nbpmtlip*3,0.)
+      call vfill(erdbypmt_ref2ms_smear,nbpmtlip*3,0.)
+
+      call vfill(effbypmt_tot_withgap,nbpmtlip,0.)
+      call vfill(effbypmt_tot_nogap,nbpmtlip,0.)
+      call vfill(effbypmt_tot_smear,nbpmtlip,0.)
+
+      call vfill(effbypmt_dir_withgap,nbpmtlip,0.)
+      call vfill(effbypmt_dir_nogap,nbpmtlip,0.)
+      call vfill(effbypmt_dir_smear,nbpmtlip,0.)
+
+      call vfill(effbypmt_ref1_withgap,nbpmtlip,0.)
+      call vfill(effbypmt_ref1_nogap,nbpmtlip,0.)
+      call vfill(effbypmt_ref1_smear,nbpmtlip,0.)
+
+      call vfill(effbypmt_ref1ms_withgap,nbpmtlip*3,0.)
+      call vfill(effbypmt_ref1ms_nogap,nbpmtlip*3,0.)
+      call vfill(effbypmt_ref1ms_smear,nbpmtlip*3,0.)
+
+      call vfill(effbypmt_ref2_withgap,nbpmtlip,0.)
+      call vfill(effbypmt_ref2_nogap,nbpmtlip,0.)
+      call vfill(effbypmt_ref2_smear,nbpmtlip,0.)
+
+      call vfill(effbypmt_ref2ms_withgap,nbpmtlip*3,0.)
+      call vfill(effbypmt_ref2ms_nogap,nbpmtlip*3,0.)
+      call vfill(effbypmt_ref2ms_smear,nbpmtlip*3,0.)
+
+      if(ipthetac.eq.0) return
+      thetac=cangrec(ipthetac)
+
+* ... perform ring sampling and store data for each point
+
+      inrsamp = 1000 !500 !5000
+
+*      print*,"phi - i - coosamp(x,y) - PMT - erd - eff - ref - msec"
+
+      do i=1,inrsamp
+
+         phig = twopi*(i-1.)/(inrsamp*1.)
+
+* ...... trace photon to matrix plane
+C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
+          call patrace_phimir(phig,thetac,vdet,vdir,vmir,
+     +        phimir,angmir,nmiref,nerr)
+
+         coosamp(i,1) = vdet(1)
+         coosamp(i,2) = vdet(2)
+         irefsamp(i) = nmiref
+         imsecsamp(i) = -1
+
+         if(nmiref.gt.0) then  ! reflected photon
+            call getmirsec(phimir,imsec)
+            if(imsec.ge.1.and.imsec.le.3) then
+               imsecsamp(i) = imsec
+            endif
+         endif
+
+         call pmtnmb_flight(coosamp(i,1),coosamp(i,2),
+     +        ipmtaux,iflgaux)
+         ipmtsamp(i) = ipmtaux
+         if(iflgaux.eq.1) then  ! numbered, but non-existing PMT
+            ipmtsamp(i) = -1
+         endif
+
+         hcrossed = 0.
+         if (chradid.eq.'AGL') then
+            hcrossed = hrad
+         else if (chradid.eq.'NAF') then
+            hcrossed = hrnaf
+         endif
+
+         erdsamp(i) = fradeff(hcrossed,radint,pthe,thetac,phig)
+     +        /(inrsamp*1.)
+
+         effsamp(i) = ftoteff(hcrossed,radint,pthe,thetac,phig)
+     +        /(inrsamp*1.)
+
+*         print*,phig,i,coosamp(i,1),coosamp(i,2),
+*     +        ipmtsamp(i),erdsamp(i),effsamp(i),irefsamp(i),
+*     +        imsecsamp(i)
+
+* ...... check if photon is in particle track region
+         if((coosamp(i,1)-pcoopmt(1))**2
+     +        +(coosamp(i,2)-pcoopmt(2))**2.lt.trhitass2) then
+            itrkreg(i) = 1
+            ipmtsamp(i) = -1  ! point PMT no. immediately reset
+         else
+            itrkreg(i) = 0
+         endif
+
+         ipmtact(i) = 0  ! flag for photon falling in active area
+                         ! (filled later, see below)
+
+* ...... get photon spread across PMTs
+
+         ringsm = sqrt(F1SIGMA2)  ! gaussian smearing (cm), value used here
+                                  ! is width of main gaussian given for likelihood
+
+* ...... cycle over PMTs in point region
+
+         do j=0,8 ! cover 9 positions (3x3) around point
+
+            ipmtneigh(i,j+1) = -1
+            pmtsmfrac(i,j+1) = 0.
+
+            if(itrkreg(i).eq.0) then  ! exclude points near track
+               ipneigh = ipmtnear(coosamp(i,1),coosamp(i,2),j)
+            else
+               ipneigh = -1
+            endif
+
+* ......... add data if PMT found in that position
+*           (and reference point is not in track region)
+            if(ipneigh.ge.0) then
+
+* ............ get PMT coordinates
+               call pmtpos_flight(ipneigh,xlneigh,xrneigh,
+     +              yuneigh,ydneigh,xcneigh,ycneigh,iflgneigh)
+
+* ............ get PMT limits excluding dead zone
+               xlneighin = xlneigh+0.5*shieldw
+               xrneighin = xrneigh-0.5*shieldw
+               yuneighin = yuneigh-0.5*shieldw
+               ydneighin = ydneigh+0.5*shieldw
+
+* ............ check point coordinates in PMT frame
+
+               xdev = 0.
+               ydev = 0.
+
+               if((j.eq.1).or.(j.eq.2).or.(j.eq.8)) then
+                  xdev = pmtwx+shieldw
+               endif
+
+               if((j.eq.4).or.(j.eq.5).or.(j.eq.6)) then
+                  xdev = -(pmtwx+shieldw)
+               endif
+
+               if((j.eq.2).or.(j.eq.3).or.(j.eq.4)) then
+                  ydev = pmtwy+shieldw
+               endif
+
+               if((j.eq.6).or.(j.eq.7).or.(j.eq.8)) then
+                  ydev = -(pmtwy+shieldw)
+               endif
+
+               xpdc = coosamp(i,1)+xdev-xcneigh
+               ypdc = coosamp(i,2)+ydev-ycneigh
+
+*               if((xpdc.lt.-0.5*(pmtwx+shieldw))
+*     +              .or.(xpdc.gt.0.5*(pmtwx+shieldw))
+*     +              .or.(ypdc.lt.-0.5*(pmtwy+shieldw))
+*     +              .or.(ypdc.gt.0.5*(pmtwy+shieldw))) then
+*                  print*,'ANOMALOUS PMT COORD: ',ipneigh,xpdc,ypdc
+*               endif
+
+*............. for non-smeared result, in the case of central PMT,
+* ............ flag point if inside active area
+               if(j.eq.0) then
+                  if((xpdc.gt.-0.5*pmtwx)
+     +                 .and.(xpdc.lt.0.5*pmtwx)
+     +                 .and.(ypdc.gt.-0.5*pmtwy)
+     +                 .and.(ypdc.lt.0.5*pmtwy)) then
+                     ipmtact(i) = 1
+                  endif
+               endif
+
+* ............ get position in smeared-point coordinates
+               xlnorm = (xlneighin-coosamp(i,1))/ringsm
+               xrnorm = (xrneighin-coosamp(i,1))/ringsm
+               yunorm = (yuneighin-coosamp(i,2))/ringsm
+               ydnorm = (ydneighin-coosamp(i,2))/ringsm
+
+*               print*,'xlnorm,xrnorm,yunorm,ydnorm = ',
+*     +              xlnorm,xrnorm,yunorm,ydnorm
+
+* ............ get gaussian integrals
+               sgx = fsumgauss(xrnorm)-fsumgauss(xlnorm)
+               sgy = fsumgauss(yunorm)-fsumgauss(ydnorm)
+               sgxy = sgx*sgy
+
+*               print*,'Neighbour ',j,' is PMT ',ipneigh,
+*     +              ' with fraction ',sgxy
+
+               ipmtneigh(i,j+1) = ipneigh
+               pmtsmfrac(i,j+1) = sgxy
+
+            else
+
+*               print*,'Neighbour ',j,' does not exist'
+
+            endif
+         enddo
+
+      enddo
+
+* ... cycle over point data to get PMT-by-PMT statistics
+
+      do i=1,inrsamp
+
+* ...... non-smeared ring
+
+         if(ipmtsamp(i).ge.0) then  ! photon point in matrix
+                                    ! and outside track region
+
+            ipmttouch_withgap(ipmtsamp(i)+1) = 1  ! PMT flagged as touched
+
+            if(irefsamp(i).eq.0) then  ! direct photon
+
+               accbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_tot_withgap(ipmtsamp(i)+1)+1./inrsamp
+               accbypmt_dir_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_dir_withgap(ipmtsamp(i)+1)+1./inrsamp
+
+               erdbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_tot_withgap(ipmtsamp(i)+1)+erdsamp(i)
+               erdbypmt_dir_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_dir_withgap(ipmtsamp(i)+1)+erdsamp(i)
+
+               effbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_tot_withgap(ipmtsamp(i)+1)+effsamp(i)
+               effbypmt_dir_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_dir_withgap(ipmtsamp(i)+1)+effsamp(i)
+
+               if(ipmtact(i).eq.1) then  ! in active area
+
+                  ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
+
+                  accbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_tot_nogap(ipmtsamp(i)+1)+1./inrsamp
+                  accbypmt_dir_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_dir_nogap(ipmtsamp(i)+1)+1./inrsamp
+
+                  erdbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_tot_nogap(ipmtsamp(i)+1)+erdsamp(i)
+                  erdbypmt_dir_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_dir_nogap(ipmtsamp(i)+1)+erdsamp(i)
+
+                  effbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_tot_nogap(ipmtsamp(i)+1)+effsamp(i)
+                  effbypmt_dir_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_dir_nogap(ipmtsamp(i)+1)+effsamp(i)
+
+               endif
+            endif
+
+            if(irefsamp(i).eq.1) then  ! photon with 1 reflection
+
+               if((imsecsamp(i).lt.1).or.(imsecsamp(i).gt.3)) then
+                  print*,'Wrong IMSECSAMP! - ',imsecsamp(i),
+     +                 ' for point ',i
+               endif
+
+               accbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_tot_withgap(ipmtsamp(i)+1)+reflec/inrsamp
+               accbypmt_ref1_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_ref1_withgap(ipmtsamp(i)+1)+1./inrsamp
+               accbypmt_ref1ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = accbypmt_ref1ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+1./inrsamp
+
+               erdbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              +reflec*erdsamp(i)
+               erdbypmt_ref1_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_ref1_withgap(ipmtsamp(i)+1)+erdsamp(i)
+               erdbypmt_ref1ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = erdbypmt_ref1ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+erdsamp(i)
+
+               effbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              +reflec*effsamp(i)
+               effbypmt_ref1_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_ref1_withgap(ipmtsamp(i)+1)+effsamp(i)
+               effbypmt_ref1ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = effbypmt_ref1ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+effsamp(i)
+
+               if(ipmtact(i).eq.1) then  ! in active area
+
+                  ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
+
+                  accbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_tot_nogap(ipmtsamp(i)+1)+reflec/inrsamp
+                  accbypmt_ref1_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_ref1_nogap(ipmtsamp(i)+1)+1./inrsamp
+                  accbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = accbypmt_ref1ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+1./inrsamp
+
+                  erdbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +reflec*erdsamp(i)
+                  erdbypmt_ref1_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_ref1_nogap(ipmtsamp(i)+1)+erdsamp(i)
+                  erdbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = erdbypmt_ref1ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+erdsamp(i)
+
+                  effbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +reflec*effsamp(i)
+                  effbypmt_ref1_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_ref1_nogap(ipmtsamp(i)+1)+effsamp(i)
+                  effbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = effbypmt_ref1ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+effsamp(i)
+
+               endif
+            endif
+
+            if(irefsamp(i).eq.2) then  ! photon with 2 reflections
+
+               if((imsecsamp(i).lt.1).or.(imsecsamp(i).gt.3)) then
+                  print*,'Wrong IMSECSAMP! - ',imsecsamp(i),
+     +                 ' for point ',i
+               endif
+
+               accbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              +(reflec**2.)/inrsamp
+               accbypmt_ref2_withgap(ipmtsamp(i)+1)
+     +              = accbypmt_ref2_withgap(ipmtsamp(i)+1)+1./inrsamp
+               accbypmt_ref2ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = accbypmt_ref2ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+1./inrsamp
+
+               erdbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              +(reflec**2.)*erdsamp(i)
+               erdbypmt_ref2_withgap(ipmtsamp(i)+1)
+     +              = erdbypmt_ref2_withgap(ipmtsamp(i)+1)+erdsamp(i)
+               erdbypmt_ref2ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = erdbypmt_ref2ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+erdsamp(i)
+
+               effbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_tot_withgap(ipmtsamp(i)+1)
+     +              +(reflec**2.)*effsamp(i)
+               effbypmt_ref2_withgap(ipmtsamp(i)+1)
+     +              = effbypmt_ref2_withgap(ipmtsamp(i)+1)+effsamp(i)
+               effbypmt_ref2ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
+     +              = effbypmt_ref2ms_withgap(ipmtsamp(i)+1,
+     +              imsecsamp(i))+effsamp(i)
+
+               if(ipmtact(i).eq.1) then  ! in active area
+
+                  ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
+
+                  accbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +(reflec**2.)/inrsamp
+                  accbypmt_ref2_nogap(ipmtsamp(i)+1)
+     +                 = accbypmt_ref2_nogap(ipmtsamp(i)+1)+1./inrsamp
+                  accbypmt_ref2ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = accbypmt_ref2ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+1./inrsamp
+
+                  erdbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +(reflec**2.)*erdsamp(i)
+                  erdbypmt_ref2_nogap(ipmtsamp(i)+1)
+     +                 = erdbypmt_ref2_nogap(ipmtsamp(i)+1)+erdsamp(i)
+                  erdbypmt_ref2ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = erdbypmt_ref2ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+erdsamp(i)
+
+                  effbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_tot_nogap(ipmtsamp(i)+1)
+     +                 +(reflec**2.)*effsamp(i)
+                  effbypmt_ref2_nogap(ipmtsamp(i)+1)
+     +                 = effbypmt_ref2_nogap(ipmtsamp(i)+1)+effsamp(i)
+                  effbypmt_ref2ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
+     +                 = effbypmt_ref2ms_nogap(ipmtsamp(i)+1,
+     +                 imsecsamp(i))+effsamp(i)
+
+               endif
+            endif
+
+         endif
+
+* ...... smeared ring
+
+         do j=1,9  ! cycle over PMTs in point region
+
+            if((ipmtneigh(i,j).ge.0)
+     +           .and.(pmtsmfrac(i,j).gt.1.e-5)) then  ! valid PMT with relevant signal
+
+               ipmttouch_smear(ipmtneigh(i,j)+1) = 1 ! PMT flagged as touched
+
+               if(irefsamp(i).eq.0) then ! direct photon
+
+                  accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)/inrsamp
+                  accbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)/inrsamp
+
+                  erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*erdsamp(i)
+                  erdbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*erdsamp(i)
+
+                  effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*effsamp(i)
+                  effbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_dir_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*effsamp(i)
+
+               endif
+
+               if(irefsamp(i).eq.1) then ! photon with 1 reflection
+
+                  if((imsecsamp(i).lt.1).or.(imsecsamp(i).gt.3)) then
+                     print*,'Wrong IMSECSAMP! - ',imsecsamp(i),
+     +                    ' for point ',i
+                  endif
+
+                  accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*reflec/inrsamp
+                  accbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)/inrsamp
+                  accbypmt_ref1ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = accbypmt_ref1ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)/inrsamp
+
+                  erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*reflec*erdsamp(i)
+                  erdbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*erdsamp(i)
+                  erdbypmt_ref1ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = erdbypmt_ref1ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)*erdsamp(i)
+
+                  effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*reflec*effsamp(i)
+                  effbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_ref1_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*effsamp(i)
+                  effbypmt_ref1ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = effbypmt_ref1ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)*effsamp(i)
+
+               endif
+
+               if(irefsamp(i).eq.2) then ! photon with 2 reflections
+
+                  if((imsecsamp(i).lt.1).or.(imsecsamp(i).gt.3)) then
+                     print*,'Wrong IMSECSAMP! - ',imsecsamp(i),
+     +                    ' for point ',i
+                  endif
+
+                  accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*(reflec**2.)/inrsamp
+                  accbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 = accbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)/inrsamp
+                  accbypmt_ref2ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = accbypmt_ref2ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)/inrsamp
+
+                  erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*(reflec**2.)*erdsamp(i)
+                  erdbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 = erdbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*erdsamp(i)
+                  erdbypmt_ref2ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = erdbypmt_ref2ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)*erdsamp(i)
+
+                  effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_tot_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*(reflec**2.)*effsamp(i)
+                  effbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 = effbypmt_ref2_smear(ipmtneigh(i,j)+1)
+     +                 +pmtsmfrac(i,j)*effsamp(i)
+                  effbypmt_ref2ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
+     +                 = effbypmt_ref2ms_smear(ipmtneigh(i,j)+1,
+     +                 imsecsamp(i))+pmtsmfrac(i,j)*effsamp(i)
+
+               endif
+
+            endif
+
+         enddo
+
+      enddo
+
+* ... reset values for global acceptances and efficiencies
+
+      sumaccbypmt_tot_withgap = 0.
+      sumaccbypmt_tot_nogap = 0.
+      sumaccbypmt_tot_smear = 0.
+
+      sumaccbypmt_dir_withgap = 0.
+      sumaccbypmt_dir_nogap = 0.
+      sumaccbypmt_dir_smear = 0.
+
+      sumaccbypmt_ref1_withgap = 0.
+      sumaccbypmt_ref1_nogap = 0.
+      sumaccbypmt_ref1_smear = 0.
+
+      do i=1,3
+         sumaccbypmt_ref1ms_withgap(i) = 0.
+         sumaccbypmt_ref1ms_nogap(i) = 0.
+         sumaccbypmt_ref1ms_smear(i) = 0.
+      enddo
+
+      sumaccbypmt_ref2_withgap = 0.
+      sumaccbypmt_ref2_nogap = 0.
+      sumaccbypmt_ref2_smear = 0.
+
+      do i=1,3
+         sumaccbypmt_ref2ms_withgap(i) = 0.
+         sumaccbypmt_ref2ms_nogap(i) = 0.
+         sumaccbypmt_ref2ms_smear(i) = 0.
+      enddo
+
+      sumerdbypmt_tot_withgap = 0.
+      sumerdbypmt_tot_nogap = 0.
+      sumerdbypmt_tot_smear = 0.
+
+      sumerdbypmt_dir_withgap = 0.
+      sumerdbypmt_dir_nogap = 0.
+      sumerdbypmt_dir_smear = 0.
+
+      sumerdbypmt_ref1_withgap = 0.
+      sumerdbypmt_ref1_nogap = 0.
+      sumerdbypmt_ref1_smear = 0.
+
+      do i=1,3
+         sumerdbypmt_ref1ms_withgap(i) = 0.
+         sumerdbypmt_ref1ms_nogap(i) = 0.
+         sumerdbypmt_ref1ms_smear(i) = 0.
+      enddo
+
+      sumerdbypmt_ref2_withgap = 0.
+      sumerdbypmt_ref2_nogap = 0.
+      sumerdbypmt_ref2_smear = 0.
+
+      do i=1,3
+         sumerdbypmt_ref2ms_withgap(i) = 0.
+         sumerdbypmt_ref2ms_nogap(i) = 0.
+         sumerdbypmt_ref2ms_smear(i) = 0.
+      enddo
+
+      sumeffbypmt_tot_withgap = 0.
+      sumeffbypmt_tot_nogap = 0.
+      sumeffbypmt_tot_smear = 0.
+
+      sumeffbypmt_dir_withgap = 0.
+      sumeffbypmt_dir_nogap = 0.
+      sumeffbypmt_dir_smear = 0.
+
+      sumeffbypmt_ref1_withgap = 0.
+      sumeffbypmt_ref1_nogap = 0.
+      sumeffbypmt_ref1_smear = 0.
+
+      do i=1,3
+         sumeffbypmt_ref1ms_withgap(i) = 0.
+         sumeffbypmt_ref1ms_nogap(i) = 0.
+         sumeffbypmt_ref1ms_smear(i) = 0.
+      enddo
+
+      sumeffbypmt_ref2_withgap = 0.
+      sumeffbypmt_ref2_nogap = 0.
+      sumeffbypmt_ref2_smear = 0.
+
+      do i=1,3
+         sumeffbypmt_ref2ms_withgap(i) = 0.
+         sumeffbypmt_ref2ms_nogap(i) = 0.
+         sumeffbypmt_ref2ms_smear(i) = 0.
+      enddo
+
+* ... cycle over PMT data to get global acceptances and efficiencies
+
+      do i=1,nbpmtlip
+
+         if(ipmttouch_withgap(i).eq.1) then
+
+            sumaccbypmt_tot_withgap
+     +           = sumaccbypmt_tot_withgap+accbypmt_tot_withgap(i)
+            sumaccbypmt_dir_withgap
+     +           = sumaccbypmt_dir_withgap+accbypmt_dir_withgap(i)
+            sumaccbypmt_ref1_withgap
+     +           = sumaccbypmt_ref1_withgap+accbypmt_ref1_withgap(i)
+            sumaccbypmt_ref2_withgap
+     +           = sumaccbypmt_ref2_withgap+accbypmt_ref2_withgap(i)
+            do j=1,3
+               sumaccbypmt_ref1ms_withgap(j)
+     +              = sumaccbypmt_ref1ms_withgap(j)
+     +              +accbypmt_ref1ms_withgap(i,j)
+               sumaccbypmt_ref2ms_withgap(j)
+     +              = sumaccbypmt_ref2ms_withgap(j)
+     +              +accbypmt_ref2ms_withgap(i,j)
+            enddo
+
+            sumerdbypmt_tot_withgap
+     +           = sumerdbypmt_tot_withgap+erdbypmt_tot_withgap(i)
+            sumerdbypmt_dir_withgap
+     +           = sumerdbypmt_dir_withgap+erdbypmt_dir_withgap(i)
+            sumerdbypmt_ref1_withgap
+     +           = sumerdbypmt_ref1_withgap+erdbypmt_ref1_withgap(i)
+            sumerdbypmt_ref2_withgap
+     +           = sumerdbypmt_ref2_withgap+erdbypmt_ref2_withgap(i)
+            do j=1,3
+               sumerdbypmt_ref1ms_withgap(j)
+     +              = sumerdbypmt_ref1ms_withgap(j)
+     +              +erdbypmt_ref1ms_withgap(i,j)
+               sumerdbypmt_ref2ms_withgap(j)
+     +              = sumerdbypmt_ref2ms_withgap(j)
+     +              +erdbypmt_ref2ms_withgap(i,j)
+            enddo
+
+            sumeffbypmt_tot_withgap
+     +           = sumeffbypmt_tot_withgap+effbypmt_tot_withgap(i)
+            sumeffbypmt_dir_withgap
+     +           = sumeffbypmt_dir_withgap+effbypmt_dir_withgap(i)
+            sumeffbypmt_ref1_withgap
+     +           = sumeffbypmt_ref1_withgap+effbypmt_ref1_withgap(i)
+            sumeffbypmt_ref2_withgap
+     +           = sumeffbypmt_ref2_withgap+effbypmt_ref2_withgap(i)
+            do j=1,3
+               sumeffbypmt_ref1ms_withgap(j)
+     +              = sumeffbypmt_ref1ms_withgap(j)
+     +              +effbypmt_ref1ms_withgap(i,j)
+               sumeffbypmt_ref2ms_withgap(j)
+     +              = sumeffbypmt_ref2ms_withgap(j)
+     +              +effbypmt_ref2ms_withgap(i,j)
+            enddo
+
+         endif
+
+         if(ipmttouch_nogap(i).eq.1) then
+
+            sumaccbypmt_tot_nogap
+     +           = sumaccbypmt_tot_nogap+accbypmt_tot_nogap(i)
+            sumaccbypmt_dir_nogap
+     +           = sumaccbypmt_dir_nogap+accbypmt_dir_nogap(i)
+            sumaccbypmt_ref1_nogap
+     +           = sumaccbypmt_ref1_nogap+accbypmt_ref1_nogap(i)
+            sumaccbypmt_ref2_nogap
+     +           = sumaccbypmt_ref2_nogap+accbypmt_ref2_nogap(i)
+            do j=1,3
+               sumaccbypmt_ref1ms_nogap(j)
+     +              = sumaccbypmt_ref1ms_nogap(j)
+     +              +accbypmt_ref1ms_nogap(i,j)
+               sumaccbypmt_ref2ms_nogap(j)
+     +              = sumaccbypmt_ref2ms_nogap(j)
+     +              +accbypmt_ref2ms_nogap(i,j)
+            enddo
+
+            sumerdbypmt_tot_nogap
+     +           = sumerdbypmt_tot_nogap+erdbypmt_tot_nogap(i)
+            sumerdbypmt_dir_nogap
+     +           = sumerdbypmt_dir_nogap+erdbypmt_dir_nogap(i)
+            sumerdbypmt_ref1_nogap
+     +           = sumerdbypmt_ref1_nogap+erdbypmt_ref1_nogap(i)
+            sumerdbypmt_ref2_nogap
+     +           = sumerdbypmt_ref2_nogap+erdbypmt_ref2_nogap(i)
+            do j=1,3
+               sumerdbypmt_ref1ms_nogap(j)
+     +              = sumerdbypmt_ref1ms_nogap(j)
+     +              +erdbypmt_ref1ms_nogap(i,j)
+               sumerdbypmt_ref2ms_nogap(j)
+     +              = sumerdbypmt_ref2ms_nogap(j)
+     +              +erdbypmt_ref2ms_nogap(i,j)
+            enddo
+
+            sumeffbypmt_tot_nogap
+     +           = sumeffbypmt_tot_nogap+effbypmt_tot_nogap(i)
+            sumeffbypmt_dir_nogap
+     +           = sumeffbypmt_dir_nogap+effbypmt_dir_nogap(i)
+            sumeffbypmt_ref1_nogap
+     +           = sumeffbypmt_ref1_nogap+effbypmt_ref1_nogap(i)
+            sumeffbypmt_ref2_nogap
+     +           = sumeffbypmt_ref2_nogap+effbypmt_ref2_nogap(i)
+            do j=1,3
+               sumeffbypmt_ref1ms_nogap(j)
+     +              = sumeffbypmt_ref1ms_nogap(j)
+     +              +effbypmt_ref1ms_nogap(i,j)
+               sumeffbypmt_ref2ms_nogap(j)
+     +              = sumeffbypmt_ref2ms_nogap(j)
+     +              +effbypmt_ref2ms_nogap(i,j)
+            enddo
+
+         endif
+
+         if(ipmttouch_smear(i).eq.1) then
+
+            sumaccbypmt_tot_smear
+     +           = sumaccbypmt_tot_smear+accbypmt_tot_smear(i)
+            sumaccbypmt_dir_smear
+     +           = sumaccbypmt_dir_smear+accbypmt_dir_smear(i)
+            sumaccbypmt_ref1_smear
+     +           = sumaccbypmt_ref1_smear+accbypmt_ref1_smear(i)
+            sumaccbypmt_ref2_smear
+     +           = sumaccbypmt_ref2_smear+accbypmt_ref2_smear(i)
+            do j=1,3
+               sumaccbypmt_ref1ms_smear(j)
+     +              = sumaccbypmt_ref1ms_smear(j)
+     +              +accbypmt_ref1ms_smear(i,j)
+               sumaccbypmt_ref2ms_smear(j)
+     +              = sumaccbypmt_ref2ms_smear(j)
+     +              +accbypmt_ref2ms_smear(i,j)
+            enddo
+
+            sumerdbypmt_tot_smear
+     +           = sumerdbypmt_tot_smear+erdbypmt_tot_smear(i)
+            sumerdbypmt_dir_smear
+     +           = sumerdbypmt_dir_smear+erdbypmt_dir_smear(i)
+            sumerdbypmt_ref1_smear
+     +           = sumerdbypmt_ref1_smear+erdbypmt_ref1_smear(i)
+            sumerdbypmt_ref2_smear
+     +           = sumerdbypmt_ref2_smear+erdbypmt_ref2_smear(i)
+            do j=1,3
+               sumerdbypmt_ref1ms_smear(j)
+     +              = sumerdbypmt_ref1ms_smear(j)
+     +              +erdbypmt_ref1ms_smear(i,j)
+               sumerdbypmt_ref2ms_smear(j)
+     +              = sumerdbypmt_ref2ms_smear(j)
+     +              +erdbypmt_ref2ms_smear(i,j)
+            enddo
+
+            sumeffbypmt_tot_smear
+     +           = sumeffbypmt_tot_smear+effbypmt_tot_smear(i)
+            sumeffbypmt_dir_smear
+     +           = sumeffbypmt_dir_smear+effbypmt_dir_smear(i)
+            sumeffbypmt_ref1_smear
+     +           = sumeffbypmt_ref1_smear+effbypmt_ref1_smear(i)
+            sumeffbypmt_ref2_smear
+     +           = sumeffbypmt_ref2_smear+effbypmt_ref2_smear(i)
+            do j=1,3
+               sumeffbypmt_ref1ms_smear(j)
+     +              = sumeffbypmt_ref1ms_smear(j)
+     +              +effbypmt_ref1ms_smear(i,j)
+               sumeffbypmt_ref2ms_smear(j)
+     +              = sumeffbypmt_ref2ms_smear(j)
+     +              +effbypmt_ref2ms_smear(i,j)
+            enddo
+
+         endif
+
+      enddo
+
+#ifdef LIP_DEBUG
+
+* ... print final acceptance and efficiency results
+
+      print*,' '
+      print*,'Cerenkov angle (deg) = ',thetac*RADDEG
+
+      print*,' '
+      print*,'Acceptances (no smearing, including gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumaccbypmt_tot_withgap,
+     +     sumaccbypmt_dir_withgap,
+     +     sumaccbypmt_ref1_withgap,
+     +     sumaccbypmt_ref2_withgap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref1ms_withgap(1),
+     +     sumaccbypmt_ref1ms_withgap(2),
+     +     sumaccbypmt_ref1ms_withgap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref2ms_withgap(1),
+     +     sumaccbypmt_ref2ms_withgap(2),
+     +     sumaccbypmt_ref2ms_withgap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_withgap(i).eq.1) then
+            print*,i-1,
+     +           accbypmt_tot_withgap(i),
+     +           accbypmt_dir_withgap(i),
+     +           accbypmt_ref1_withgap(i),
+     +           accbypmt_ref2_withgap(i)
+            print*,'(1 REF by sector:',
+     +           accbypmt_ref1ms_withgap(i,1),
+     +           accbypmt_ref1ms_withgap(i,2),
+     +           accbypmt_ref1ms_withgap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           accbypmt_ref2ms_withgap(i,1),
+     +           accbypmt_ref2ms_withgap(i,2),
+     +           accbypmt_ref2ms_withgap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Acceptances (no smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumaccbypmt_tot_nogap,
+     +     sumaccbypmt_dir_nogap,
+     +     sumaccbypmt_ref1_nogap,
+     +     sumaccbypmt_ref2_nogap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref1ms_nogap(1),
+     +     sumaccbypmt_ref1ms_nogap(2),
+     +     sumaccbypmt_ref1ms_nogap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref2ms_nogap(1),
+     +     sumaccbypmt_ref2ms_nogap(2),
+     +     sumaccbypmt_ref2ms_nogap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_nogap(i).eq.1) then
+            print*,i-1,
+     +           accbypmt_tot_nogap(i),
+     +           accbypmt_dir_nogap(i),
+     +           accbypmt_ref1_nogap(i),
+     +           accbypmt_ref2_nogap(i)
+            print*,'(1 REF by sector:',
+     +           accbypmt_ref1ms_nogap(i,1),
+     +           accbypmt_ref1ms_nogap(i,2),
+     +           accbypmt_ref1ms_nogap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           accbypmt_ref2ms_nogap(i,1),
+     +           accbypmt_ref2ms_nogap(i,2),
+     +           accbypmt_ref2ms_nogap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Acceptances (with smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumaccbypmt_tot_smear,
+     +     sumaccbypmt_dir_smear,
+     +     sumaccbypmt_ref1_smear,
+     +     sumaccbypmt_ref2_smear
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref1ms_smear(1),
+     +     sumaccbypmt_ref1ms_smear(2),
+     +     sumaccbypmt_ref1ms_smear(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumaccbypmt_ref2ms_smear(1),
+     +     sumaccbypmt_ref2ms_smear(2),
+     +     sumaccbypmt_ref2ms_smear(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_smear(i).eq.1) then
+            print*,i-1,
+     +           accbypmt_tot_smear(i),
+     +           accbypmt_dir_smear(i),
+     +           accbypmt_ref1_smear(i),
+     +           accbypmt_ref2_smear(i)
+            print*,'(1 REF by sector:',
+     +           accbypmt_ref1ms_smear(i,1),
+     +           accbypmt_ref1ms_smear(i,2),
+     +           accbypmt_ref1ms_smear(i,3),')'
+            print*,'(2 REF by sector:',
+     +           accbypmt_ref2ms_smear(i,1),
+     +           accbypmt_ref2ms_smear(i,2),
+     +           accbypmt_ref2ms_smear(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Effs at rad (no smearing, including gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumerdbypmt_tot_withgap,
+     +     sumerdbypmt_dir_withgap,
+     +     sumerdbypmt_ref1_withgap,
+     +     sumerdbypmt_ref2_withgap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref1ms_withgap(1),
+     +     sumerdbypmt_ref1ms_withgap(2),
+     +     sumerdbypmt_ref1ms_withgap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref2ms_withgap(1),
+     +     sumerdbypmt_ref2ms_withgap(2),
+     +     sumerdbypmt_ref2ms_withgap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_withgap(i).eq.1) then
+            print*,i-1,
+     +           erdbypmt_tot_withgap(i),
+     +           erdbypmt_dir_withgap(i),
+     +           erdbypmt_ref1_withgap(i),
+     +           erdbypmt_ref2_withgap(i)
+            print*,'(1 REF by sector:',
+     +           erdbypmt_ref1ms_withgap(i,1),
+     +           erdbypmt_ref1ms_withgap(i,2),
+     +           erdbypmt_ref1ms_withgap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           erdbypmt_ref2ms_withgap(i,1),
+     +           erdbypmt_ref2ms_withgap(i,2),
+     +           erdbypmt_ref2ms_withgap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Effs at rad (no smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumerdbypmt_tot_nogap,
+     +     sumerdbypmt_dir_nogap,
+     +     sumerdbypmt_ref1_nogap,
+     +     sumerdbypmt_ref2_nogap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref1ms_nogap(1),
+     +     sumerdbypmt_ref1ms_nogap(2),
+     +     sumerdbypmt_ref1ms_nogap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref2ms_nogap(1),
+     +     sumerdbypmt_ref2ms_nogap(2),
+     +     sumerdbypmt_ref2ms_nogap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_nogap(i).eq.1) then
+            print*,i-1,
+     +           erdbypmt_tot_nogap(i),
+     +           erdbypmt_dir_nogap(i),
+     +           erdbypmt_ref1_nogap(i),
+     +           erdbypmt_ref2_nogap(i)
+            print*,'(1 REF by sector:',
+     +           erdbypmt_ref1ms_nogap(i,1),
+     +           erdbypmt_ref1ms_nogap(i,2),
+     +           erdbypmt_ref1ms_nogap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           erdbypmt_ref2ms_nogap(i,1),
+     +           erdbypmt_ref2ms_nogap(i,2),
+     +           erdbypmt_ref2ms_nogap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Effs at rad (with smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumerdbypmt_tot_smear,
+     +     sumerdbypmt_dir_smear,
+     +     sumerdbypmt_ref1_smear,
+     +     sumerdbypmt_ref2_smear
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref1ms_smear(1),
+     +     sumerdbypmt_ref1ms_smear(2),
+     +     sumerdbypmt_ref1ms_smear(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumerdbypmt_ref2ms_smear(1),
+     +     sumerdbypmt_ref2ms_smear(2),
+     +     sumerdbypmt_ref2ms_smear(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_smear(i).eq.1) then
+            print*,i-1,
+     +           erdbypmt_tot_smear(i),
+     +           erdbypmt_dir_smear(i),
+     +           erdbypmt_ref1_smear(i),
+     +           erdbypmt_ref2_smear(i)
+            print*,'(1 REF by sector:',
+     +           erdbypmt_ref1ms_smear(i,1),
+     +           erdbypmt_ref1ms_smear(i,2),
+     +           erdbypmt_ref1ms_smear(i,3),')'
+            print*,'(2 REF by sector:',
+     +           erdbypmt_ref2ms_smear(i,1),
+     +           erdbypmt_ref2ms_smear(i,2),
+     +           erdbypmt_ref2ms_smear(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Efficiencies (no smearing, including gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumeffbypmt_tot_withgap,
+     +     sumeffbypmt_dir_withgap,
+     +     sumeffbypmt_ref1_withgap,
+     +     sumeffbypmt_ref2_withgap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref1ms_withgap(1),
+     +     sumeffbypmt_ref1ms_withgap(2),
+     +     sumeffbypmt_ref1ms_withgap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref2ms_withgap(1),
+     +     sumeffbypmt_ref2ms_withgap(2),
+     +     sumeffbypmt_ref2ms_withgap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_withgap(i).eq.1) then
+            print*,i-1,
+     +           effbypmt_tot_withgap(i),
+     +           effbypmt_dir_withgap(i),
+     +           effbypmt_ref1_withgap(i),
+     +           effbypmt_ref2_withgap(i)
+            print*,'(1 REF by sector:',
+     +           effbypmt_ref1ms_withgap(i,1),
+     +           effbypmt_ref1ms_withgap(i,2),
+     +           effbypmt_ref1ms_withgap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           effbypmt_ref2ms_withgap(i,1),
+     +           effbypmt_ref2ms_withgap(i,2),
+     +           effbypmt_ref2ms_withgap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Efficiencies (no smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumeffbypmt_tot_nogap,
+     +     sumeffbypmt_dir_nogap,
+     +     sumeffbypmt_ref1_nogap,
+     +     sumeffbypmt_ref2_nogap
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref1ms_nogap(1),
+     +     sumeffbypmt_ref1ms_nogap(2),
+     +     sumeffbypmt_ref1ms_nogap(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref2ms_nogap(1),
+     +     sumeffbypmt_ref2ms_nogap(2),
+     +     sumeffbypmt_ref2ms_nogap(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_nogap(i).eq.1) then
+            print*,i-1,
+     +           effbypmt_tot_nogap(i),
+     +           effbypmt_dir_nogap(i),
+     +           effbypmt_ref1_nogap(i),
+     +           effbypmt_ref2_nogap(i)
+            print*,'(1 REF by sector:',
+     +           effbypmt_ref1ms_nogap(i,1),
+     +           effbypmt_ref1ms_nogap(i,2),
+     +           effbypmt_ref1ms_nogap(i,3),')'
+            print*,'(2 REF by sector:',
+     +           effbypmt_ref2ms_nogap(i,1),
+     +           effbypmt_ref2ms_nogap(i,2),
+     +           effbypmt_ref2ms_nogap(i,3),')'
+         endif
+      enddo
+
+      print*,' '
+      print*,'Efficiencies (with smearing, excluding gaps):'
+      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
+      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
+      print*,
+     +     sumeffbypmt_tot_smear,
+     +     sumeffbypmt_dir_smear,
+     +     sumeffbypmt_ref1_smear,
+     +     sumeffbypmt_ref2_smear
+      print*,'(1 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref1ms_smear(1),
+     +     sumeffbypmt_ref1ms_smear(2),
+     +     sumeffbypmt_ref1ms_smear(3)
+      print*,'(2 REF: S1 - S2 - S3)'
+      print*,
+     +     sumeffbypmt_ref2ms_smear(1),
+     +     sumeffbypmt_ref2ms_smear(2),
+     +     sumeffbypmt_ref2ms_smear(3)
+      print*,'PMT# - Total - Dir - Ref1 - Ref2'
+      do i=1,nbpmtlip
+         if(ipmttouch_smear(i).eq.1) then
+            print*,i-1,
+     +           effbypmt_tot_smear(i),
+     +           effbypmt_dir_smear(i),
+     +           effbypmt_ref1_smear(i),
+     +           effbypmt_ref2_smear(i)
+            print*,'(1 REF by sector:',
+     +           effbypmt_ref1ms_smear(i,1),
+     +           effbypmt_ref1ms_smear(i,2),
+     +           effbypmt_ref1ms_smear(i,3),')'
+            print*,'(2 REF by sector:',
+     +           effbypmt_ref2ms_smear(i,1),
+     +           effbypmt_ref2ms_smear(i,2),
+     +           effbypmt_ref2ms_smear(i,3),')'
+         endif
+      enddo
+
+#endif
+
+* ... save summary of acceptances and efficiencies by PMT
+
+      nringseg_withgap = 0
+      nringseg_nogap = 0
+      nringseg_smear = 0
+
+      do i=1,nbpmtlip
+
+         if(ipmttouch_withgap(i).eq.1) then
+
+            if(accbypmt_dir_withgap(i).gt.0.00001) then
+               nringseg_withgap = nringseg_withgap+1
+               ipmtringseg_withgap(nringseg_withgap) = i-1
+               irefringseg_withgap(nringseg_withgap) = 0
+               effringseg_withgap(nringseg_withgap,1)
+     +              = accbypmt_dir_withgap(i)
+               effringseg_withgap(nringseg_withgap,2)
+     +              = erdbypmt_dir_withgap(i)
+               effringseg_withgap(nringseg_withgap,3)
+     +              = effbypmt_dir_withgap(i)
+            endif
+
+            do j=1,3
+               if(accbypmt_ref1ms_withgap(i,j).gt.0.00001) then
+                  nringseg_withgap = nringseg_withgap+1
+                  ipmtringseg_withgap(nringseg_withgap) = i-1
+                  irefringseg_withgap(nringseg_withgap) = 10*j+1
+                  effringseg_withgap(nringseg_withgap,1)
+     +                 = accbypmt_ref1ms_withgap(i,j)
+                  effringseg_withgap(nringseg_withgap,2)
+     +                 = erdbypmt_ref1ms_withgap(i,j)
+                  effringseg_withgap(nringseg_withgap,3)
+     +                 = effbypmt_ref1ms_withgap(i,j)
+               endif
+            enddo
+
+            do j=1,3
+               if(accbypmt_ref2ms_withgap(i,j).gt.0.00001) then
+                  nringseg_withgap = nringseg_withgap+1
+                  ipmtringseg_withgap(nringseg_withgap) = i-1
+                  irefringseg_withgap(nringseg_withgap) = 10*j+2
+                  effringseg_withgap(nringseg_withgap,1)
+     +                 = accbypmt_ref2ms_withgap(i,j)
+                  effringseg_withgap(nringseg_withgap,2)
+     +                 = erdbypmt_ref2ms_withgap(i,j)
+                  effringseg_withgap(nringseg_withgap,3)
+     +                 = effbypmt_ref2ms_withgap(i,j)
+               endif
+            enddo
+
+         endif
+
+         if(ipmttouch_nogap(i).eq.1) then
+
+            if(accbypmt_dir_nogap(i).gt.0.00001) then
+               nringseg_nogap = nringseg_nogap+1
+               ipmtringseg_nogap(nringseg_nogap) = i-1
+               irefringseg_nogap(nringseg_nogap) = 0
+               effringseg_nogap(nringseg_nogap,1)
+     +              = accbypmt_dir_nogap(i)
+               effringseg_nogap(nringseg_nogap,2)
+     +              = erdbypmt_dir_nogap(i)
+               effringseg_nogap(nringseg_nogap,3)
+     +              = effbypmt_dir_nogap(i)
+            endif
+
+            do j=1,3
+               if(accbypmt_ref1ms_nogap(i,j).gt.0.00001) then
+                  nringseg_nogap = nringseg_nogap+1
+                  ipmtringseg_nogap(nringseg_nogap) = i-1
+                  irefringseg_nogap(nringseg_nogap) = 10*j+1
+                  effringseg_nogap(nringseg_nogap,1)
+     +                 = accbypmt_ref1ms_nogap(i,j)
+                  effringseg_nogap(nringseg_nogap,2)
+     +                 = erdbypmt_ref1ms_nogap(i,j)
+                  effringseg_nogap(nringseg_nogap,3)
+     +                 = effbypmt_ref1ms_nogap(i,j)
+               endif
+            enddo
+
+            do j=1,3
+               if(accbypmt_ref2ms_nogap(i,j).gt.0.00001) then
+                  nringseg_nogap = nringseg_nogap+1
+                  ipmtringseg_nogap(nringseg_nogap) = i-1
+                  irefringseg_nogap(nringseg_nogap) = 10*j+2
+                  effringseg_nogap(nringseg_nogap,1)
+     +                 = accbypmt_ref2ms_nogap(i,j)
+                  effringseg_nogap(nringseg_nogap,2)
+     +                 = erdbypmt_ref2ms_nogap(i,j)
+                  effringseg_nogap(nringseg_nogap,3)
+     +                 = effbypmt_ref2ms_nogap(i,j)
+               endif
+            enddo
+
+         endif
+
+         if(ipmttouch_smear(i).eq.1) then
+
+            if(accbypmt_dir_smear(i).gt.0.00001) then
+               nringseg_smear = nringseg_smear+1
+               ipmtringseg_smear(nringseg_smear) = i-1
+               irefringseg_smear(nringseg_smear) = 0
+               effringseg_smear(nringseg_smear,1)
+     +              = accbypmt_dir_smear(i)
+               effringseg_smear(nringseg_smear,2)
+     +              = erdbypmt_dir_smear(i)
+               effringseg_smear(nringseg_smear,3)
+     +              = effbypmt_dir_smear(i)
+            endif
+
+            do j=1,3
+               if(accbypmt_ref1ms_smear(i,j).gt.0.00001) then
+                  nringseg_smear = nringseg_smear+1
+                  ipmtringseg_smear(nringseg_smear) = i-1
+                  irefringseg_smear(nringseg_smear) = 10*j+1
+                  effringseg_smear(nringseg_smear,1)
+     +                 = accbypmt_ref1ms_smear(i,j)
+                  effringseg_smear(nringseg_smear,2)
+     +                 = erdbypmt_ref1ms_smear(i,j)
+                  effringseg_smear(nringseg_smear,3)
+     +                 = effbypmt_ref1ms_smear(i,j)
+               endif
+            enddo
+
+            do j=1,3
+               if(accbypmt_ref2ms_smear(i,j).gt.0.00001) then
+                  nringseg_smear = nringseg_smear+1
+                  ipmtringseg_smear(nringseg_smear) = i-1
+                  irefringseg_smear(nringseg_smear) = 10*j+2
+                  effringseg_smear(nringseg_smear,1)
+     +                 = accbypmt_ref2ms_smear(i,j)
+                  effringseg_smear(nringseg_smear,2)
+     +                 = erdbypmt_ref2ms_smear(i,j)
+                  effringseg_smear(nringseg_smear,3)
+     +                 = effbypmt_ref2ms_smear(i,j)
+               endif
+            enddo
+
+         endif
+
+      enddo
+
+#ifdef LIP_DEBUG
+
+* ... print final segment data
+
+      print*,' '
+      print*,'LISTS OF STORED SEGMENTS'
+
+      print*,' '
+      print*,'No smearing, including gaps'
+      print*,'PMT - RefFlag - acc - erd - eff'
+
+      do i=1,nringseg_withgap
+         print*,
+     +        ipmtringseg_withgap(i),
+     +        irefringseg_withgap(i),
+     +        effringseg_withgap(i,1),
+     +        effringseg_withgap(i,2),
+     +        effringseg_withgap(i,3)
+      enddo
+
+      print*,' '
+      print*,'No smearing, excluding gaps'
+      print*,'PMT - RefFlag - acc - erd - eff'
+
+      do i=1,nringseg_nogap
+         print*,
+     +        ipmtringseg_nogap(i),
+     +        irefringseg_nogap(i),
+     +        effringseg_nogap(i,1),
+     +        effringseg_nogap(i,2),
+     +        effringseg_nogap(i,3)
+      enddo
+
+      print*,' '
+      print*,'With smearing, excluding gaps'
+      print*,'PMT - RefFlag - acc - erd - eff'
+
+      do i=1,nringseg_smear
+         print*,
+     +        ipmtringseg_smear(i),
+     +        irefringseg_smear(i),
+     +        effringseg_smear(i,1),
+     +        effringseg_smear(i,2),
+     +        effringseg_smear(i,3)
+      enddo
+
+#endif
+
+      return
+      end
+
+
+      integer function ipmtnear(xpt,ypt,ineigh)
+**********************************************************************
+* Returns the LIP number of a nearby PMT (or -1 if no PMT present
+* at that position) given reference coordinates x,y and the desired
+* neighbouring cell.
+* "Virtual" PMTs in LIP numbering are treated as non-existing
+* (function also returns -1 in these cases).
+*
+* This is done by getting the point, moving it one pitch (37 mm)
+* along the desired direction(s) and getting the PMT number at that
+* point. This method always works since no significant gaps
+* (more than 11 mm) exist in the matrix.
+*
+* PARAMETERS: xpt,ypt - point coordinates
+*             ineigh - neighbouring cell according to map:
+*
+*                        4.3.2
+*                        5.0.1
+*                        6.7.8
+*
+* Created: 12/13-Apr-2012 by R. Pereira
+*
+*********************************************************************
+
+#include "../include/richrec_lipf.h"
+
+      real pitchx,pitchy
+      real xpt,ypt
+      integer ineigh
+      real xmove,ymove
+      real xlorig,xrorig,yuorig,ydorig,xcorig,ycorig
+      integer iflgorig
+      real xnew,ynew
+      integer ipmtaux,iflgaux
+
+      PITCHX=PMTWX+SHIELDW
+      PITCHY=PMTWY+SHIELDW
+
+* ... return -1 if neighbouring cell number makes no sense
+      if((ineigh.lt.0).or.(ineigh.gt.8)) then
+         ipmtnear = -1
+         return
+      endif
+
+      if(ineigh.eq.0) then
+         xmove = 0.
+         ymove = 0.
+      endif
+
+      if(ineigh.eq.1) then
+         xmove = PITCHX
+         ymove = 0.
+      endif
+
+      if(ineigh.eq.2) then
+         xmove = PITCHX
+         ymove = PITCHY
+      endif
+
+      if(ineigh.eq.3) then
+         xmove = 0.
+         ymove = PITCHY
+      endif
+
+      if(ineigh.eq.4) then
+         xmove = -PITCHX
+         ymove = PITCHY
+      endif
+
+      if(ineigh.eq.5) then
+         xmove = -PITCHX
+         ymove = 0.
+      endif
+
+      if(ineigh.eq.6) then
+         xmove = -PITCHX
+         ymove = -PITCHY
+      endif
+
+      if(ineigh.eq.7) then
+         xmove = 0.
+         ymove = -PITCHY
+      endif
+
+      if(ineigh.eq.8) then
+         xmove = PITCHX
+         ymove = -PITCHY
+      endif
+
+* ... move coordinates
+      xnew = xpt+xmove
+      ynew = ypt+ymove
+
+*      print*,'orig coo:',xpt,ypt
+*      print*,'new coo:',xnew,ynew
+
+* ... get number of neghbouring PMT
+      call pmtnmb_flight(xnew,ynew,ipmtaux,iflgaux)
+
+      ipmtnear = ipmtaux
+      if(iflgaux.eq.1) then  ! numbered, but non-existing PMT
+         ipmtnear = -1
+      endif
+
+      return
+      end
+
+
+      real function fsumgauss(x)
+**********************************************************************
+* Returns the integral of a gaussian distribution
+* from -infinity to x*sigma
+*
+* Result is interpolation of data from table
+* containing function values from -4*sigma to +4*sigma
+* in steps of 0.1*sigma (clone of Cernlib's DIVDIF is used)
+*
+* Created: 11-Apr-2012 by R. Pereira
+*
+*********************************************************************
+
+      real x
+
+      real vx(81),vsum(81)
+
+      data vx /  -4.0, -3.9, -3.8, -3.7, -3.6,
+     +           -3.5, -3.4, -3.3, -3.2, -3.1,
+     +           -3.0, -2.9, -2.8, -2.7, -2.6,
+     +           -2.5, -2.4, -2.3, -2.2, -2.1,
+     +           -2.0, -1.9, -1.8, -1.7, -1.6,
+     +           -1.5, -1.4, -1.3, -1.2, -1.1,
+     +           -1.0, -0.9, -0.8, -0.7, -0.6,
+     +           -0.5, -0.4, -0.3, -0.2, -0.1,
+     +            0.0,  0.1,  0.2,  0.3,  0.4,
+     +            0.5,  0.6,  0.7,  0.8,  0.9,
+     +            1.0,  1.1,  1.2,  1.3,  1.4,
+     +            1.5,  1.6,  1.7,  1.8,  1.9,
+     +            2.0,  2.1,  2.2,  2.3,  2.4,
+     +            2.5,  2.6,  2.7,  2.8,  2.9,
+     +            3.0,  3.1,  3.2,  3.3,  3.4,
+     +            3.5,  3.6,  3.7,  3.8,  3.9,
+     +            4.0/
+
+      SAVE vx
+      !$OMP THREADPRIVATE(vx)
+
+      data vsum / 0.000032, 0.000048, 0.000072, 0.000108, 0.000159, 
+     +            0.000233, 0.000337, 0.000483, 0.000687, 0.000968, 
+     +            0.001350, 0.001866, 0.002555, 0.003467, 0.004661, 
+     +            0.006210, 0.008198, 0.010724, 0.013903, 0.017864, 
+     +            0.022750, 0.028717, 0.035930, 0.044566, 0.054799, 
+     +            0.066807, 0.080757, 0.096800, 0.115070, 0.135666, 
+     +            0.158655, 0.184060, 0.211855, 0.241964, 0.274253, 
+     +            0.308538, 0.344578, 0.382089, 0.420740, 0.460172, 
+     +            0.500000, 0.539828, 0.579260, 0.617911, 0.655422, 
+     +            0.691462, 0.725747, 0.758036, 0.788145, 0.815940, 
+     +            0.841345, 0.864334, 0.884930, 0.903200, 0.919243, 
+     +            0.933193, 0.945201, 0.955435, 0.964070, 0.971283, 
+     +            0.977250, 0.982136, 0.986097, 0.989276, 0.991802, 
+     +            0.993790, 0.995339, 0.996533, 0.997445, 0.998134, 
+     +            0.998650, 0.999032, 0.999313, 0.999517, 0.999663, 
+     +            0.999767, 0.999841, 0.999892, 0.999928, 0.999952,
+     +            0.999968/
+
+      SAVE vsum
+      !$OMP THREADPRIVATE(vsum)
+
+      if(x.lt.-4.) then  ! far left
+*         print*,'fsumgauss returns 0'
+         fsumgauss = 0.
+         return
+      endif
+
+      if(x.gt.4.) then  ! far right
+*         print*,'fsumgauss returns 1'
+         fsumgauss = 1.
+         return
+      endif
+
+      fsumgauss = DIVDIF_ALT(vsum,vx,81,x,2)
+*      print*,'fsumgauss returns ',fsumgauss
+
+      return
+      end
+
+
+      real function ftoteff(fehrad,felint,fethe,fethc,fephiphot)
+**********************************************************************
+* Returns the integral over the radiator thickness
+* of the efficiency function for a given point in the
+* Cerenkov ring, specified by its photon angle (phi),
+* then includes the light guide efficiency factor
+*
+* eff = abs_rad * eff_LG
+*
+* Analytical integration is performed (over exponential)
+*
+* WARNING: reflectivity coefficient is not included
+*
+* PARAMETERS: fehrad - radiator height
+*             felint - interaction length
+*             fethe - particle theta
+*             fethc - Cerenkov angle
+*             fephiphot - photon azimuthal angle
+*
+* Created: 11/16-Apr-2012 by L. Arruda, R. Pereira
+*
+*********************************************************************
+
+      double precision pareff
+      double precision efflg
+      double precision flgeff
+
+      common /radeff/ pareff(10)
+      !$OMP THREADPRIVATE(/radeff/)
+
+      double precision dfephiphot
+
+      ftoteff = 0.
+
+      if(fehrad.le.0) return
+      if(felint.le.0) return
+
+      pareff(3) = dble(fethc)
+      dfephiphot = dble(fephiphot)
+      efflg = flgeff(dfephiphot)
+      ftoteff = efflg*fradeff(fehrad,felint,fethe,fethc,fephiphot)
+*      print*,'dfephiphot,efflg,ftoteff = ',
+*     +     dfephiphot,efflg,ftoteff
+
+      return
+      end
+
+
+      real function fradeff(fehrad,felint,fethe,fethc,fephiphot)
+**********************************************************************
+* Returns the integral over the radiator thickness
+* of the efficiency function for a given point in the
+* Cerenkov ring, specified by its photon angle (phi),
+* not considering the light guide efficiency factor
+*
+* eff = abs_rad
+*
+* Analytical integration is performed (over exponential)
+*
+* WARNING: reflectivity coefficient is not included
+*
+* PARAMETERS: fehrad - radiator height
+*             felint - interaction length
+*             fethe - particle theta
+*             fethc - Cerenkov angle
+*             fephiphot - photon azimuthal angle
+*
+* Created: 16-Apr-2012 by R. Pereira
+*
+*********************************************************************
+
+      real cosphot,dphot
+
+      fradeff = 0.
+
+      if(fehrad.le.0) return
+      if(felint.le.0) return
+
+      cosphot = cos(fethe)*(cos(fethc)
+     +     +sin(fethc)*tan(fethe)*cos(fephiphot))
+      dphot = fehrad/cosphot
+
+      fradeff = felint*(1.-exp(-dphot/felint))/dphot
+*      print*,'fephiphot,cosphot,dphot,fradeff = ',
+*     +     fephiphot,cosphot,dphot,fradeff
 
       return
       end
@@ -5776,7 +7565,7 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       parameter(nphmax=NPHIRMAX)
       parameter(nermax=10)
 
-      DOUBLE PRECISION dphig,V( 1)
+      DOUBLE PRECISION dphig,V(1)
       REAL pol3(4),pol1(2),pol5(6),pol9(10), LGeff
       REAL phig,vdet(3),vdir(3),thc,thei
       integer verr(nermax)
@@ -5797,6 +7586,7 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
          goto 99
       else
          thei = acos(vdir(3))*raddeg
+*         print*,'thei = ',thei
       endif
 * ... interpolate lg efficiency
 *      print*,'rcgeom(1) = ',rcgeom(1)
@@ -7026,11 +8816,6 @@ C         print*,gamvtx(1), gamvtx(2), gamvtx(3), '|', x1,x2,y1,y2,ig
 * ... lost photons fraction
       accradwalldir = 0.
       accradwallref = 0.
-
-*      if (nfotalldir.ne.0)
-*     + accradwalldir = float(nfotwalldir)/float(nfotalldir)
-*      if (nfotallref.ne.0)
-*     + accradwallref = float(nfotwallref)/float(nfotallref)
 
       if (nfotalldir.ne.0)
      + accradwalldir = spfotwalldir/spfotalldir

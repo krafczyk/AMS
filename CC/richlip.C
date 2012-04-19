@@ -238,7 +238,8 @@ void RichLIPRec::InitGlobal(){
 
   // PMT and pixel status
 
-  int maxbadpix = 3;  // max no. bad pixels for PMT to be flagged as good
+  //int maxbadpix = 3;  // max no. bad pixels for PMT to be flagged as good
+  int maxbadpix = 0;  // changed from 3 to 0 in April 2012 update (R. Pereira)
 
   for(int i=0;i<680;i++) {
     badpix_ams[i] = 0;
@@ -260,6 +261,38 @@ void RichLIPRec::InitGlobal(){
   // badpix_ams[###] = 16;
   //
   // where ### is the number of the PMT to flag.
+
+  // List added in April 2012 update (R. Pereira)
+
+  badpix_ams[29] = 16;
+  badpix_ams[43] = 16;
+  badpix_ams[205] = 16;
+  badpix_ams[225] = 16;
+  badpix_ams[305] = 16;
+  badpix_ams[323] = 16;
+  badpix_ams[366] = 16;
+  badpix_ams[373] = 16;
+  badpix_ams[439] = 16;
+  badpix_ams[446] = 16;
+  badpix_ams[452] = 16;
+  badpix_ams[454] = 16;
+  badpix_ams[456] = 16;
+  badpix_ams[458] = 16;
+  badpix_ams[460] = 16;
+  badpix_ams[466] = 16;
+  badpix_ams[473] = 16;
+  badpix_ams[493] = 16;
+  badpix_ams[510] = 16;
+  badpix_ams[511] = 16;
+  badpix_ams[512] = 16;
+  badpix_ams[513] = 16;
+  badpix_ams[514] = 16;
+  badpix_ams[515] = 16;
+  badpix_ams[628] = 16;
+  badpix_ams[647] = 16;
+  badpix_ams[652] = 16;
+  badpix_ams[664] = 16;
+
   // ------------------------------------------------------------------
 
   //cout << "PMT bad pixels (AMS numbering): " << endl;
@@ -276,8 +309,8 @@ void RichLIPRec::InitGlobal(){
   //cout << "PMT bad pixels (LIP numbering): " << endl;
   for(int i=0;i<756;i++) {
     badpix_lip[i] = 16;
-    if(pmtconv_lip2ams[i]>=0) {
-      badpix_lip[i] = badpix_ams[pmtconv_lip2ams[i]];
+    if(RichLIPRec::PMTlip2ams(i)>=0) {
+      badpix_lip[i] = badpix_ams[RichLIPRec::PMTlip2ams(i)];
     }
     //cout << badpix_lip[i];
     if(i<755) {
@@ -291,7 +324,7 @@ void RichLIPRec::InitGlobal(){
   //cout << "PMT LIP status (LIP numbering): " << endl;
   for(int i=0;i<756;i++) {
     badpmt_lip[i] = 1;  // non-existing PMT
-    if(pmtconv_lip2ams[i]>=0) { // existing PMT
+    if(RichLIPRec::PMTlip2ams(i)>=0) { // existing PMT
       if(badpix_lip[i]>maxbadpix) {
 	badpmt_lip[i] = 3; // bad
       }
@@ -357,7 +390,7 @@ void RichLIPRec::InitEvent() {
     LIPC2F.hitstat_ev[actual]=0;
 
     if((hit->getchannelstatus()%10)!=Status_good_channel) LIPC2F.hitstat_ev[actual]=1;  // flag hits in bad channels (from DB)
-    if(badpmt_lip[pmtconv_ams2lip[hit->getchannel()/16]]!=0) LIPC2F.hitstat_ev[actual]=1;  // flag hits in bad PMTs according to LIP criteria
+    if(badpmt_lip[RichLIPRec::PMTams2lip(hit->getchannel()/16)]!=0) LIPC2F.hitstat_ev[actual]=1;  // flag hits in bad PMTs according to LIP criteria
 
     actual++;
   }
@@ -654,6 +687,30 @@ void RichLIPRec::anglelip2rich(float thelip, float philip, float &therich, float
   //cout << "CALL TO anglelip2rich" << endl;
   //cout << "In - LIP (theta,phi in deg): " << thelip*180./3.14159265 << "," << philip*180./3.14159265 << endl;
   //cout << "Out - RICH (theta,phi in deg): " << therich*180./3.14159265 << "," << phirich*180./3.14159265 << endl;
+}
+
+
+int RichLIPRec::PMTams2lip(int PMTams) {
+
+  if(PMTams>=0 && PMTams<=679) {
+    return (int) pmtconv_ams2lip[PMTams];
+  }
+  else {
+    return -1;
+  }
+
+}
+
+
+int RichLIPRec::PMTlip2ams(int PMTlip) {
+
+  if(PMTlip>=0 && PMTlip<=755) {
+    return (int) pmtconv_lip2ams[PMTlip];
+  }
+  else {
+    return -1;
+  }
+
 }
 
 

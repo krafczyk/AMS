@@ -19,6 +19,9 @@
       integer NPMTLIP
       PARAMETER(NPMTLIP=756)
 
+      integer NMAXRINGSEG
+      PARAMETER(NMAXRINGSEG=1000)
+
       real ztoprad_ams_c2f,
      +     ztarg_c2f,hrad_c2f,hrnaf_c2f,radtile_pitch_c2f,
      +     radtile_supthk_c2f,radix_c2f,radclarity_c2f,hpgl_c2f,
@@ -172,14 +175,16 @@
 * ===============================================================================================
 
       integer resb_iflag,resb_itype,resb_itrk,resb_nhit,resb_phit,
-     +        resb_used,resc_iflag,resc_nmirsec
+     +        resb_used,resc_iflag,resc_nmirsec,
+     +        resc_nrseg,resc_pmtrseg,resc_refrseg
       real resb_beta,resb_thc,resb_thcerr,resb_chi2,
      +     resb_like,resb_d2like,
      +     resb_hres,resb_invchi2,resb_flatsin,resb_flatcos,
      +     resb_probkl,
      +     resc_cnpe,resc_cnpedir,resc_cnperef,resc_chg,resc_chgdir,
-     +     resc_chgmir,resc_accgeom,resc_eff,
-     +     resc_accmsec,resc_effmsec,resc_chgprob,
+     +     resc_chgmir,resc_accgeom,resc_eff,resc_arw,
+     +     resc_accmsec,resc_effmsec,resc_arwmsec,resc_chgprob,
+     +     resc_effrseg,
      +     resb_pimp,resb_epimp,resb_pvtx,resb_epvtx,
      +     resb_pthe,resb_epthe,resb_pphi,resb_epphi
 
@@ -219,10 +224,19 @@
      +                 resc_chgmir(nmaxliprec),         ! rec charge (ref branch)
      +                 resc_accgeom(3,nmaxliprec),      ! geom acceptance
      +                 resc_eff(6,nmaxliprec),          ! efficiency
+     +                 resc_arw(2,nmaxliprec),          ! radiator wall acceptance (direct, reflected parts)
      +                 resc_nmirsec(nmaxliprec),        ! number of mirror sectors
      +                 resc_accmsec(nmaxmirseccc,2,nmaxliprec), ! geom acceptance by mirror sector (1st,2nd ref)
      +                 resc_effmsec(nmaxmirseccc,2,nmaxliprec), ! efficiency by mirror sector (1st,2nd ref)
+     +                 resc_arwmsec(nmaxmirseccc,nmaxliprec), ! radiator wall acceptance by mirror sector
      +                 resc_chgprob(3,nmaxliprec),      ! charge probabilities (Z-1,Z,Z+1)
+     +                 resc_nrseg(nmaxliprec),          ! number of ring segments
+     +                 resc_pmtrseg(nmaxringseg,nmaxliprec), ! ring segment PMT (in LIP PMT numbering)
+     +                 resc_refrseg(nmaxringseg,nmaxliprec), ! ring segment reflection status
+                                                             ! (0=direct, 10*S+N=reflected N times, from sector S)
+     +                 resc_effrseg(3,nmaxringseg,nmaxliprec), ! total efficiencies for ring segment
+                                                               ! (not including reflectivity coefficients)
+                                                               ! 1st=acceptance, 2nd=acc*Rayleigh, 3rd=full(acc*Rayl*LGeff)
                      ! [ TRACK PARAMETERS ]
      +                 resb_pimp(3,nmaxliprec),         ! impact point at radiator top
      +                 resb_epimp(3,nmaxliprec),        ! error in impact point

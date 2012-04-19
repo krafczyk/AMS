@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.419 2012/04/19 13:36:36 sdifalco Exp $
+//  $Id: root.h,v 1.420 2012/04/19 16:09:20 barao Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1647,11 +1647,29 @@ static char _Info[255];
                                        ///< [3] = total efficiency, 2 reflection
                                        ///< [4] = radiator efficiency * geometrical acceptance
                                        ///< [5] = light guide efficiency
+  float RingAccRW[2];                  ///< radiator wall ring acceptance fraction
+                                       ///< [0] = direct branch
+                                       ///< [1] = reflected branch
   int NMirSec;                         ///< number of mirror sectors
-  float RingAccMsec1R[3];    ///< ring acceptance for mirror sectors, 1 reflection
-  float RingAccMsec2R[3];    ///< ring acceptance for mirror sectors, 2 reflection
-  float RingEffMsec1R[3];    ///< ring efficiency for mirror sectors, 1 reflection
-  float RingEffMsec2R[3];    ///< ring efficiency for mirror sectors, 2 reflection
+  float RingAccMsec1R[3];              ///< ring acceptance for mirror sectors, 1 reflection
+  float RingAccMsec2R[3];              ///< ring acceptance for mirror sectors, 2 reflection
+  float RingEffMsec1R[3];              ///< ring efficiency for mirror sectors, 1 reflection
+  float RingEffMsec2R[3];              ///< ring efficiency for mirror sectors, 2 reflection
+  float RingAccRWMsec[3];              ///< radiator wall ring acceptance fraction
+                                       ///< for reflected branches by mirror sector
+  int Segments;                        ///< n. of ring segments
+                                       ///< (typically a piece of ring falling in a given PMT)
+  std::vector<int> SegPMT;             ///< list of segment PMTs
+                                       ///< (PMT may have more than one segment
+                                       ///< if it is touched by different branches
+                                       ///< or segments from different mirror sectors)
+  std::vector<int> SegRefStatus;       ///< list of segment reflectivity status flags:
+                                       ///< 0 = direct branch,
+                                       ///< 10*S+N = reflected branch with N reflections
+                                       ///< from mirror sector S
+  std::vector<float> SegAcceptance;    ///< list of segment geometrical acceptances
+  std::vector<float> SegEffRad;        ///< list of segment efficiencies (radiator only)
+  std::vector<float> SegEffFull;       ///< list of segment efficiencies (full, i.e. radiator+LG)
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits)
   std::vector<int> HitsStatus;         ///< hit status:
                                        ///<         -2 = not considered for reconstruction,
@@ -1725,7 +1743,7 @@ static char _Info[255];
     return _Info;
   }
   virtual ~RichRingBR(){};
-  ClassDef(RichRingBR,3)           // RichRingBR
+  ClassDef(RichRingBR,4)           // RichRingBR
 #pragma omp threadprivate(fgIsA)
 };
 
