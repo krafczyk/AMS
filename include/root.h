@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.420 2012/04/19 16:09:20 barao Exp $
+//  $Id: root.h,v 1.421 2012/04/19 16:53:43 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -532,7 +532,7 @@ public:
   float FirstLayerEdep; ///< front energy dep (Mev)
   float EnergyD; ///< energy deposit (Mev)
   float EnergyC; ///< shower energy (gev) - old version
-  float EnergyE; ///< shower energy (gev) - Pisa version
+  float EnergyE; ///< shower reconstructed energy (GeV)
   float Energy3C[3]; ///< energy(+-3,+-5, +-1 cm)/energy ratios
   float  S13R;        ///< S1/S3 Ratio
   float  S13Rpi[2];  ///< S1/S3 Ratio for X and Y view
