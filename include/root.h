@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.418 2012/04/18 22:56:13 paniccia Exp $
+//  $Id: root.h,v 1.419 2012/04/19 13:36:36 sdifalco Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -618,6 +618,9 @@ public:
   float NEnergy3C2;
   float NEnergy3C3;
 
+  /// Function to obtain the best reconstructed energy for the shower according to a particle hyptothesis: partid=1(photon),2=(electron/positron). Using different methods to recover anode efficiency, rear leakage, lateral leakage and temperature effects. It's till dummy for the moment: just retrieves EnergyC (method=0), EnergyA (method=1) or EnergyE (method=2)
+  float GetCorrectedEnergy(int partid=2,int method=2);
+
   void NormaliseVariableLAPP();
   ///< LAPP function to normalise several variables
   ///< Remove the energy dependence (Mean and RMS deduced from electron selection May19->August31)
@@ -658,11 +661,11 @@ public:
 
   EcalShowerR(){};
   EcalShowerR(AMSEcalShower *ptr);
-friend class AMSEcalShower;
-friend class AMSEventR;
+  friend class AMSEcalShower;
+  friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-ClassDef(EcalShowerR,10)       //EcalShowerR
+  ClassDef(EcalShowerR,11)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

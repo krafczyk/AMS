@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.383 2012/04/18 22:56:12 paniccia Exp $
+//  $Id: root.C,v 1.384 2012/04/19 13:35:31 sdifalco Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3171,6 +3171,33 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   Zprofile[3] = ptr->_Zprofile[3];
 
 #endif
+}
+
+/// Second pass corrections on shower energy
+float  EcalShowerR::GetCorrectedEnergy(int partid,int method){
+  float energy;
+  if (partid==1 ) {
+    // photon hypothesis
+  }
+  else{
+    // electron hypothesis
+  }
+  // temporary
+  switch (method){
+  case 0:
+    energy=EnergyC;
+    break;
+  case 1:
+    energy=EnergyA;
+    break;
+  case 2:
+    energy=EnergyE;
+    break;
+  default:
+    energy=EnergyE;    
+  }
+
+  return energy;
 }
 
 
