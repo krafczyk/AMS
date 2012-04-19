@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.107 2012/04/18 10:15:07 oliva Exp $
+//  $Id: linkdef.h,v 1.108 2012/04/19 16:11:46 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -126,10 +126,12 @@
 #pragma link C++ class TrdHChargeR+;
 #pragma link C++ class TrdHCalibR+;
 
+#ifdef _PGTRACK_
 #pragma link C++ class TofTrack+;
 #pragma link C++ class TofCandidate+;
 #pragma link C++ class TofRecon+;
 #pragma link C++ class TofGeometry+;
+#endif
 
 #ifdef _PGTRACK_
 #pragma link C++ class AC_TrdHits+;
