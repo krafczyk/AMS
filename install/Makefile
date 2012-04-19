@@ -256,7 +256,7 @@ TRACK_BASE= $(SCC)TkCoo.C 	\
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C   $(SCC)TkDBc.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \
 	   $(SCC)bcorr.C    $(SFF)fint_my.F $(SCC)TrCalDB.C $(SCC)TrTasDB.C $(SCC)TrGainDB.C $(SCC)gufld.C $(SFF)rkms.F $(SCC)TrExtAlignDB.C \
-	   $(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichBeta.C $(SCC)RichTools.C
+	   $(SCC)DynAlignment.C 
 
 TRACK_ADD+=$(SCC)OrbGen.C $(SCC)pfunction.C $(SCC)cgmmap.C
 else
@@ -267,7 +267,7 @@ TRACK_BASE +=   $(SCC)trid.C       $(SCC)trmccluster.C $(SCC)trrec.C  $(SCC)trca
 		$(SFF)tszfit.F     $(SCC)trfit.C $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
 		$(SFF)tptcir.F     $(SCC)gsen.C    $(SCC)TrPdf.C \
 		$(SFF)rkms.F       $(SFF)tkmccl.F $(SCC)tkgeom.C $(SCC)vtx.C
-TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C  $(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichBeta.C $(SCC)RichTools.C
+TRACK_ADD=      $(SFF)mfield.F     $(SCC)bcorr.C  $(SCC)DynAlignment.C
 endif
 COMMON_FILES +=$(TRACK_ADD) 
 COMMON_FILES +=$(TRACK_BASE)
@@ -304,7 +304,8 @@ COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C 
 		$(SCC)richradid.C         $(SFF)ggckov.F         $(SCC)richcal.C     $(SCC)richdaq.C \
 		$(SFF)richbetalike_lip.F \
 		$(SFF)richbetastand_lip.F $(SFF)richchg_lip.F \
-		$(SFF)richutil_lip.F
+		$(SFF)richutil_lip.F \
+		$(SCC)RichCharge.C $(SCC)RichBeta.C $(SCC)RichTools.C
 
 # High level reconstruction
 COMMON_FILES += $(SCC)beta.C     $(SCC)charge.C   $(SCC)particle.C   \
