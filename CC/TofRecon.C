@@ -1,4 +1,4 @@
-// $Id: TofRecon.C,v 1.2 2012/04/19 16:11:44 oliva Exp $
+// $Id: TofRecon.C,v 1.3 2012/04/20 08:23:52 oliva Exp $
 
 #include "TofRecon.h"
 
@@ -1217,15 +1217,6 @@ TofTrack* TofRecon::BuildAll(AMSEventR* event, int id) {
 }
 
 
-
-
-
-
-
-
-
-
-
 /*
 TrTrackR* TofRecon::GetClosestTrTrack(TofTrack* tof_track, AMSEventR* event) {
   // tracker-tof match (at trk layer 1)
@@ -1414,112 +1405,105 @@ RichRingR* TofRecon::GetClosestRichRing(TofTrack* tof_track, AMSEventR* event) {
 }
 
 
-/*
-void TofRecon::GetClosestTrTracks(AMSEventR* event, int fittype) {
-  int NTofTrack=TofTracksList.size();
-  for(int i=0;i<NTofTrack;i++){ // loop on TofTracks
-    TofTrack* tof_track=pTofTrack(i);
-    // quantities on witch is possible to cut
-    float min_distance = 10000;
-    float min_costheta = 0;
-    TrTrackR* trk_track = 0;
-    int matchedtrack=-1;
-    AMSDir tof_dir = tof_track->GetDir();
-    for (int itrack=0; itrack<event->NTrTrack(); itrack++) { // loop on TrTracks
-      TrTrackR* track = event->pTrTrack(itrack);
-      AMSPoint trk_point;
-      AMSDir   trk_dir;
-      float distance=0;
-      float avcostheta=0;
-      for(int itofhit=0;itofhit<tof_track->GetNhits();itofhit++){ // loop on TofTrack hits
-	TofClusterR* clu=tof_track->GetHit(itofhit);
-	AMSPoint tof_point = tof_track->GetPoint(clu->Coo[2]);
-	track->Interpolate(clu->Coo[2],trk_point,trk_dir);
-	avcostheta += trk_dir.prod(tof_dir);
-	float dx = (trk_point-tof_point).x();
-	float dy = (trk_point-tof_point).y();
-	distance += sqrt(dx*dx + dy*dy);
-      }
-      if (distance<min_distance) {
-	min_distance = distance/tof_track->GetNhits();
-	min_costheta = avcostheta/tof_track->GetNhits();
-	trk_track = track;
-	matchedtrack=itrack;
+
+////////////////////////////////
+// TofTimeCalibration
+////////////////////////////////
+
+ClassImp(TofTimeCalibration);
+
+float TofTimeCalibration::slewing_par[4][10][2]={
+  { 
+    {17.96291,16.83554},{14.0314,12.99512},{15.61507,16.43706},{17.04257,12.80316},{14.72713,13.87814},
+    {14.67123,13.62868},{12.5161,15.16941},{15.94649,12.65001},{0.,0.},{0.,0.}
+  },
+  {
+    {13.4411,15.00852},{16.40132,16.68143},{15.5744,15.93634},{13.96471,18.62774},{13.37814,18.22032},
+    {15.08228,21.13302},{11.45179,17.04846},{17.42891,15.19894},{0.,0.},{0.,0.}
+  },
+  {
+    {18.39408,9.263855},{13.89204,15.32413},{16.83036,12.15041},{13.89913,12.17081},{16.5926,10.46456},
+    {13.83534,11.05082},{13.37524,9.290484},{11.34494,10.92213},{16.35789,9.630091},{13.94434,11.06138}
+  },
+  {
+    {16.37876,18.50454},{13.52378,11.42957},{13.45374,14.93331},{15.82747,10.52073},{13.6899,16.47858},
+    {14.73641,11.42947},{19.08128,12.82591},{15.60377,11.66079},{0.,0.},{0.,0.}
+  }
+};      
+int          TofTimeCalibration::max_calibration_run = 0;
+unsigned int TofTimeCalibration::calibration_run[2000];
+int          TofTimeCalibration::calibration_run_file[2000];
+float        TofTimeCalibration::t_zero[4][10][2000];
+string       TofTimeCalibration::calibration_folder = ".";
+bool         TofTimeCalibration::init_calibrations = false;
+
+void TofTimeCalibration::LoadCalibrations() {
+  printf("TofTimeCalibration::LoadCalibration-V initialize TOF calibrations.\n");
+  init_calibrations = true;
+  FILE *tzero_in;
+  string line;
+  ifstream inf;
+  inf.open(Form("%s/TOF_calibration/calibration_run_list.txt",calibration_folder.c_str()),ifstream::in);
+  if (!inf.is_open()) {
+    printf("CalibrationLoad-W file %s/TOF_calibration/calibration_run_list.txt not found. Skip.\n",calibration_folder.c_str());
+    return;
+  }
+  printf("CalibrationLoad-V reading file %s/TOF_calibration/calibration_run_list.txt\n",calibration_folder.c_str());
+  int ncal=0;
+  while (inf.good()) {
+    getline(inf,line);
+    sscanf (line.c_str(),"%d %d",&calibration_run[ncal],&calibration_run_file[ncal]);
+    tzero_in = fopen(Form("%s/TOF_calibration/tof_tzero_pars_Z2_def_%d.txt",calibration_folder.c_str(),calibration_run_file[ncal]),"r");
+    if (tzero_in==0) {
+      printf("CalibrationLoad-W file %s/TOF_calibration/tof_tzero_pars_Z2_def_%d.txt not found. Skip.\n",calibration_folder.c_str(),calibration_run_file[ncal]);
+      continue;
+    }
+    for (int il=0;il<4;il++) {
+      for (int ic=0;ic<10;ic++) {
+        if (il!=2 && ic>7) continue;
+        fscanf(tzero_in,"%e\n",&t_zero[il][ic][calibration_run_file[ncal]]);
       }
     }
-    TrTracksIndex.push_back(matchedtrack);
-    TrTracksDistance.push_back(min_distance);
-    TrTracksCosine.push_back(min_costheta);
+    fclose(tzero_in);
+    ncal++;
   }
-  // match to Tracker Tracks at first the TofTracks with all 4 layers, then with 3 layers, then with 2 layers
-  TrTofTracksMatch.assign(event->NTrTrack(),-1);
-  for (int itrack=0; itrack<event->NTrTrack(); itrack++){
-    float min_distance = 10000;
-    float min_costheta = 0;
-    int matchedtof=-1;
-    for(int i=0;i<NTofTrack;i++){
-      TofTrack* tof_track=pTofTrack(i);
-      if(itrack==TrTracksIndex.at(i) && tof_track->GetNhits()==4){
-	if (TrTracksDistance.at(i)<min_distance) {
-	  min_distance = TrTracksDistance.at(i);
-	  min_costheta = TrTracksCosine.at(i);
-	  matchedtof = i;
-	}
-      }
-    }
-    h_min_distance_4->Fill(min_distance);
-    h_min_costheta_4->Fill(min_costheta);
-    if ( (min_distance<40)&&(min_costheta>0.85) ) TrTofTracksMatch.at(itrack)=matchedtof;
-  }
-  for (int itrack=0; itrack<event->NTrTrack(); itrack++){
-    if(TrTofTracksMatch.at(itrack)<0){
-      float min_distance = 10000;
-      float min_costheta = 0;
-      int matchedtof=-1;
-      for(int i=0;i<NTofTrack;i++){
-	TofTrack* tof_track=pTofTrack(i);
-	if(itrack==TrTracksIndex.at(i) && tof_track->GetNhits()==3){
-	  if (TrTracksDistance.at(i)<min_distance) {
-	    min_distance = TrTracksDistance.at(i);
-	    min_costheta = TrTracksCosine.at(i);
-	    matchedtof = i;
-	  }
-	}
-      }
-      h_min_distance_3->Fill(min_distance);
-      h_min_costheta_3->Fill(min_costheta);
-      if ( (min_distance<40)&&(min_costheta>0.85) ) TrTofTracksMatch.at(itrack)=matchedtof;
-    }
-  }
-  for (int itrack=0; itrack<event->NTrTrack(); itrack++){
-    if(TrTofTracksMatch.at(itrack)<0){
-      float min_distance = 10000;
-      float min_costheta = 0;
-      int matchedtof=-1;
-      for(int i=0;i<NTofTrack;i++){
-	TofTrack* tof_track=pTofTrack(i);
-	if(itrack==TrTracksIndex.at(i) && tof_track->GetNhits()==2){
-	  if (TrTracksDistance.at(i)<min_distance) {
-	    min_distance = TrTracksDistance.at(i);
-	    min_costheta = TrTracksCosine.at(i);
-	    matchedtof = i;
-	  }
-	}
-      }
-      h_min_distance_2->Fill(min_distance);
-      h_min_costheta_2->Fill(min_costheta);
-      if ( (min_distance<40)&&(min_costheta>0.85) ) TrTofTracksMatch.at(itrack)=matchedtof;
-    }
-  }
-  // Set the track to each associated TofTrack
-  for (int itrack=0; itrack<event->NTrTrack(); itrack++){
-    int matchedtof=TrTofTracksMatch.at(itrack);
-    if(matchedtof>=0){
-      TofTrack* tof_track=pTofTrack(matchedtof);
-      TrTrackR* tr_track=event->pTrTrack(itrack);
-      int trackfit= tr_track->iTrTrackPar(1,fittype,1);
-      tof_track->SetAssociatedTrTrack(event->pTrTrack(itrack),trackfit);
-    }
-  }
+  printf("CalibrationLoad-V %d calibrations read.\n",ncal);
+  max_calibration_run = ncal;
+  inf.close();
 }
-*/
+
+void TofTimeCalibration::RecalculateTofClusterTimes(AMSEventR* event) {
+  if (event==0) return;
+  if (!init_calibrations) LoadCalibrations();
+  // take calibration file
+  unsigned int run = event->Run();
+  int cal_file = calibration_run_file[max_calibration_run-1]; // default is last one
+  for (int i=0; i<max_calibration_run-1; i++) 
+    if ( (run>=calibration_run[i]) && (run<calibration_run[i+1]) ) 
+      cal_file=calibration_run_file[i];
+  // improve
+  for (int icluster=0; icluster<event->NTofCluster(); icluster++) {
+    TofClusterR* cluster = event->pTofCluster(icluster);
+    float timesum=0;
+    for (int irawcluster=0; irawcluster<cluster->NTofRawCluster(); irawcluster++) {
+      TofRawClusterR* rawcluster = cluster->pTofRawCluster(irawcluster);
+      int ilayer = rawcluster->Layer - 1;
+      int ibar   = rawcluster->Bar - 1;
+      float anode_adc[2] = {-1000,-1000};
+      float anode_tdc[2] = {-2000,-2000};
+      for(int iside=0; iside<2; iside++){ 
+        anode_adc[iside] = rawcluster->adca[iside];
+        anode_tdc[iside] = rawcluster->sdtm[iside];
+      }
+      float times = ( 
+        anode_tdc[0] + slewing_par[ilayer][ibar][0]/sqrt(anode_adc[0]) +
+        anode_tdc[1] + slewing_par[ilayer][ibar][1]/sqrt(anode_adc[1]) ) / 2 
+        - t_zero[ilayer][ibar][cal_file];
+      rawcluster->time = times;
+      timesum += times;
+    }
+    cluster->Time = -timesum*1e-9/cluster->NTofRawCluster(); 
+  } 
+}
+
+
