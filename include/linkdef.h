@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.110 2012/04/20 12:35:26 oliva Exp $
+//  $Id: linkdef.h,v 1.111 2012/04/20 14:57:29 oliva Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -97,6 +97,7 @@
 #pragma link C++ class AMSPoint+;
 #pragma link C++ class AMSDir+;
 #pragma link C++ class AMSRotMat+;
+#pragma link C++ class AMSEnergyLoss+;
 #pragma link C++ class HeaderR+;
 #pragma link C++ class AMSSetupR::SlowControlR+;
 #pragma link C++ class AMSSetupR::SlowControlR::Element+;
@@ -125,10 +126,6 @@
 #pragma link C++ class TrdHReconR+;
 #pragma link C++ class TrdHChargeR+;
 #pragma link C++ class TrdHCalibR+;
-
-#ifdef _PGTRACK_
-#pragma link C++ class AMSEnergyLoss+;
-#endif
 
 #ifdef _PGTRACK_
 #pragma link C++ class TofTrack+;

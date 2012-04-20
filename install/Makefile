@@ -196,7 +196,7 @@ INCS= $(wildcard ../include/*.h)
 
 
 # Base AMS Classes
-AMS_BASE=     $(SCC)amsdbc.C  $(SCC)astring.C     $(SCC)id.C  $(SCC)point.C   
+AMS_BASE=     $(SCC)amsdbc.C  $(SCC)astring.C     $(SCC)id.C  $(SCC)point.C  $(SCC)edep.C 
 
 AMS_BASEO=$(AMS_BASE:$(SCC)%.C=$(BIN)%.o)
 COMMON_FILES+= $(AMS_BASE) $(BIN)predict.o
@@ -283,11 +283,9 @@ COMMON_FILES += $(SCC)trdid.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)TrdHRecon.C $(
 ifdef PGTRACK
 TRD_ADD= $(SCC)TrdSCalib.C
 TOF_ADD= $(SCC)TofGeometry.C $(SCC)TofRecon.C $(SCC)TofTrack.C
-TRK_ADD= $(SCC)edep.C
 endif
 COMMON_FILES +=$(TRD_ADD) 
 COMMON_FILES +=$(TOF_ADD)
-COMMON_FILES +=$(TRK_ADD)
 
 #TOF + ACC
 COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
@@ -350,14 +348,14 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrFit.h \
 		../include/TrMCCluster.h \
                 ../include/trrec.h ../include/tkdcards.h \
-		../include/point.h ../include/root_RV.h ../include/root.h  \
+		../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h  \
 		../include/TrSim.h ../include/TrSimSensor.h ../include/TrSimCluster.h \
 		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
 		../include/TrHistoMan.h ../include/HistoMan.h \
 		../include/TrTrackSelection.h \
 		../include/root_setup.h ../include/TrExtAlignDB.h  ../include/pfunction.h
 else
-ROOTDICTFILES=  ../include/point.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
+ROOTDICTFILES=  ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
 endif
 
 ROOTDICTFILES += ../include/VCon.h ../include/TrElem.h ../include/trigger102_setup.h  
@@ -369,7 +367,6 @@ ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/Ric
 ifdef PGTRACK
 ROOTDICTFILES += ../include/TrdSCalib.h
 ROOTDICTFILES += ../include/TofGeometry.h  ../include/TofRecon.h  ../include/TofTrack.h
-ROOTDICTFILES += ../include/edep.h
 endif
 
 ROOTDICTFILES += ../include/linkdef.h
@@ -579,17 +576,14 @@ ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o \
         $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o \
-        $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)commonsi.o \
-	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o \
-        $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)commonsi.o \
+	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o 
-SHLIBO+= $(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o 
-SHLIBO+= $(BIN)edep.o
+SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o   
 SHLIBBO:=$(SHLIBO)
 else
-SHLIBBO := $(BIN)point.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o   $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o
-SHLIBO := $(BIN)point.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o  $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o
+SHLIBBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o $(BIN)TrFitF.o $(BIN)tkfit.o $(BIN)rkms.o $(BIN)/trfit_s.o $(BIN)tkfit.o $(BIN)/mfield_s.o $(BIN)/fint_my.o $(BIN)/bcorr_s.o  $(BIN)/trafit.o $(BIN)/txyfit.o  $(BIN)/tszfit.o $(BIN)/tptcir.o $(BIN)/tcircf.o $(BIN)/DynAlignment_s.o   $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o
+SHLIBO := $(BIN)point.o $(BIN)edep.o $(BIN)amschain_s.o $(BIN)root_rs.o $(BIN)rootdict_s.o $(BIN)id.o $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o $(BIN)root_setup_s.o $(BIN)tracking.o $(BIN)SlowControlDB.o $(BIN)ecalBDT.o $(BIN)timeid_s.o $(BIN)amsdbc.o  $(BIN)astring.o $(BIN)commonsi.o $(BIN)TrPdf.o  $(BIN)/trfit.o $(BIN)DynAlignment_s.o  $(BIN)RichCharge_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)Sunposition.o
 endif
 
 shared : amswd $(SHLD)
@@ -637,12 +631,12 @@ $(BIN)rootdict_s.C:   ../include/VCon_root.h ../include/root_RVSP.h ../include/a
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c -p  $(ROOTDICT_CPPFLAGS) -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 else
-$(BIN)rootdict.C: ../include/point.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/linkdef.h  
+$(BIN)rootdict.C: ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/root_setup.h ../include/trigger102_setup.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/linkdef.h  
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint      -f $(BIN)rootdict.C -c -I$(ROOTSYS)/include -I../include $^ 
 	@echo "OK"
 
-$(BIN)rootdict_s.C: ../include/point.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/linkdef.h
+$(BIN)rootdict_s.C: ../include/point.h ../include/edep.h ../include/VCon_root.h ../include/root_RVS.h ../include/root.h ../include/amschain.h  ../include/tracking.h ../include/trfit.h ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/linkdef.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict_s.C -c -I$(ROOTSYS)/include -I../include  $^ 
 	@echo "OK"
