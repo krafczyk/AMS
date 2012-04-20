@@ -1,4 +1,4 @@
-//  $Id: trdrec.C,v 1.62 2012/02/03 14:49:16 choutko Exp $
+//  $Id: trdrec.C,v 1.63 2012/04/20 07:43:26 choutko Exp $
 #include "trdrec.h"
 #include "event.h"
 #include "ntuple.h"
@@ -125,9 +125,9 @@ for(int mode=0;mode<2*AMSTRDIdSoft::ncrates();mode+=AMSTRDIdSoft::ncrates()){
              coo[1]+=-0.09;
              coo[2]+=-0.003;
             }
-            else{
+            else if(!strstr(AMSJob::gethead()->getsetup(),"AMS02P")){
              coo[0]+=-0.03;
-             coo[1]+=-0.12;
+              coo[1]+=-0.12;
              coo[2]+=0.045;
             }
            }
