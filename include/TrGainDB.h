@@ -1,4 +1,4 @@
-// $Id: TrGainDB.h,v 1.2 2012/04/19 16:11:45 oliva Exp $
+// $Id: TrGainDB.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
 
 #ifndef __TrGainDB__
 #define __TrGainDB__
@@ -92,7 +92,7 @@ class TrLadGain : public TObject {
   //! Set all VAs statuses
   void  SetStatus(int* status)           { for (int iva=0; iva<16; iva++) fStatus[iva] = status[iva]; }
   //! Set a VA status
-  void  SetStatus(int iva, float status) { if ( (iva>=0)&&(iva<16) ) fStatus[iva] = status; }
+  void  SetStatus(int iva, int status)   { if ( (iva>=0)&&(iva<16) ) fStatus[iva] = status; }
   //! Set all VAs statuses (for database purposes)
   void  SetStatus(float* status)         { for (int iva=0; iva<16; iva++) fStatus[iva] = (int) status[iva]; }
 

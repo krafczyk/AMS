@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.2 2012/04/19 16:11:45 oliva Exp $
+// $Id: TofTrack.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -183,7 +183,6 @@ class TofTrack {
     * coordinates. In this approximation longitudinal and transverse coordinates have both a gaussian error given
     * by the TrTofClusterR::CooErr method.
     *
-    * \todo controlla i cluster usati nel fit 
     */
   /**@{*/
   //! Get point (linear fit)
@@ -235,9 +234,8 @@ class TofTrack {
   /** @name Beta reconstruction 
     *
     * Beta reconstruction is given by the linear fit between the path of the particle
-    * and the time ...  
+    * and the time (more details here ...).  
     *
-    * \todo Beta correction can deform to much edep for low beta, then we have a MakeMean failure. Check beta correction.
     */
   /**@{*/
   //! Get beta (for the current time fit)
@@ -271,7 +269,6 @@ class TofTrack {
     * - Standalone: beta correction is performed wih standalone beta + theta correction is based on standalone TOF fit
     * - Associated: beta correction is performed using the refined beta measurement + theta from associated track
     *
-    * \todo Clarify how to quote energy deposition for superposition. Clarify how to combine anode/dynode.
     */
   /**@{*/
   //! Evaluate the goodness of the Anode signal measurement

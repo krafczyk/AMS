@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.69 2012/01/11 09:30:52 oliva Exp $
+// $Id: tkdcards.C,v 1.70 2012/04/20 07:14:25 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -108,15 +108,16 @@ for (int ii=0;ii<9;ii++){
   UseSensorAlign=1;
   statflag = 1;
 
-  ChargeSeedTagActive = 0; // inactive (1)
-  ChargeSeedSelActive = 0; // inactive (0)
-  CorrelationProbThr = 0; // inactive (0.001)
-  YClusterSNThr = 0; // inactive (5)
-  YClusterNStripThr = 0; // inactive (1)
-  ReorderTrClusters = 0; // inactive (1)
-  ReorderTrRecHits = 0; // inactive (2)
-  BuildTracksSimpleChargeSeedTag = 0; // inactive (1)
-  TrackFindChargeCutActive = 0; // inactive (1)
+  // Charge Recon. Parameters
+  ChargeSeedTagActive = 1;
+  ChargeSeedSelActive = 0; 
+  CorrelationProbThr = 0.001; 
+  YClusterSNThr = 5; 
+  YClusterNStripThr = 0; 
+  ReorderTrClusters = 1; 
+  ReorderTrRecHits = 0; 
+  BuildTracksSimpleChargeSeedTag = 1; 
+  TrackFindChargeCutActive = 0; 
 }
 
 TRCLFFKEY_DEF TRCLFFKEY;

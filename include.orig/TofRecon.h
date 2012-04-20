@@ -1,4 +1,4 @@
-// $Id: TofRecon.h,v 1.2 2012/04/19 16:11:45 oliva Exp $
+// $Id: TofRecon.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
 
 #ifndef __TofRecon__
 #define __TofRecon__
@@ -361,5 +361,49 @@ class TofRecon {
   ClassDef(TofRecon,1);
 };
 
+
+
+//! ToF preliminary time calibration class 
+/*!  
+ *  Needed  until the new slewing/t-zero calibration system is introduced in the reconstruction program
+ *  This class will read a txt database (TOF_calibration), that you have to set at the beginning of
+ *  your program with static function TofTimeCalibration::SetCalibrationFolder("path_to_tof_cals_dir").
+ *  Default value for this folder is ./. 
+ *  The class is able to correct timing values of TofRawClusterR and TofClusterR classes. For each
+ *  event you must call TofTimeCalibration::RecalculateTofClusterTimes(event) before any other operation.
+ *  This will correct the time values in these classes. 
+ *
+ *  Created by Andrea Contin on 06/12/2011. Revised by A. Oliva 16/12/2011.
+ */
+class TofTimeCalibration {
+
+ public:
+ 
+  //! Calibration init flag
+  static bool init_calibrations;
+  //! Calibration folder
+  static string calibration_folder;
+  //! Max calibration run
+  static int max_calibration_run;
+  //! Calibration runs
+  static unsigned int calibration_run[2000];
+  //! Calibration run files
+  static int calibration_run_file[2000];
+  //! t_zero
+  static float t_zero[4][10][2000];
+  //! Slewing calibration data
+  static float slewing_par[4][10][2];
+
+ public:
+
+  //! Set calibration folder (default is .)
+  static void SetCalibrationFolder(string folder) { calibration_folder = folder; }
+  //! Read zero-time calibrations
+  static void LoadCalibrations();
+  //! Recalculate TOF times according to zero-times/slewing calibrations
+  static void RecalculateTofClusterTimes(AMSEventR* event);
+
+  ClassDef(TofTimeCalibration,1);
+};
 
 #endif
