@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.10 2011/11/06 18:51:55 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.11 2012/04/20 23:11:16 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2011/11/06 18:51:55 $
+///$Date: 2012/04/20 23:11:16 $
 ///
-/// $Revision: 1.10 $
+/// $Revision: 1.11 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -123,8 +123,11 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   // Alignment corrected Plane Rotation matrix
   AMSRotMat PRotG = pp->GetRotMatA()*pp->GetRotMat();
 
+  int Layer=ll->GetLayer();
+  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->_layer_deltaZA[Layer-1]);
+
   // Alignment corrected Plane postion
-  AMSPoint  PPosG = pp->GetPosA()+pp->GetPos();
+  AMSPoint  PPosG = pp->GetPosA()+pp->GetPos()+LayerZCorrection;
 
   // Covolute with the Plane pos in the space and Get the global Coo
   AMSPoint  oo2   = PRotG*oo + PPosG;

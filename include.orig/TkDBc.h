@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.29 2012/03/09 06:58:21 shaino Exp $
+// $Id: TkDBc.h,v 1.30 2012/04/20 23:11:17 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -135,6 +135,8 @@ public:
 
   //! Z distance of the silicon surface from the middle of the plane;
   number _layer_deltaZ[maxlay];
+  //! Alignment correction to Z distance of the silicon surface from the middle of the plane;
+  number _layer_deltaZA[maxlay];
 
   //! number of active ladders for side/layer
   integer  _nlad[2][maxlay];
@@ -483,7 +485,7 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  ClassDef(TkDBc, 8);
+  ClassDef(TkDBc, 9);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

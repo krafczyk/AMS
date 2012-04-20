@@ -251,7 +251,7 @@ TRACK_BASE= $(SCC)TkCoo.C 	\
 	$(SCC)TrTasCluster.C $(SCC)TrTasPar.C \
 	$(SCC)TrAlignFit.C \
 	$(SCC)TrHistoMan.C   $(SCC)HistoMan.C $(SCC)TrTrackSelection.C \
-        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C 
+        $(SCC)TrPdf.C        $(SCC)TrPdfDB.C  $(SCC)TrCharge.C $(SCC)TrInnerDzDB.C 
 
 TRACK_ADD= $(SCC)tkgeom.C   $(SCC)trdaq.C   $(SCC)TkDBc.C \
 	   $(SCC)trrec.C    $(SCC)MagField.C $(SCC)TrFit.C $(SCC)TrRecon.C $(SCC)TrSim.C $(SCC)TrSimSensor.C $(SCC)TrSimCluster.C \

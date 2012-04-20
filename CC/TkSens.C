@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.18 2011/11/06 18:51:55 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.19 2012/04/20 23:11:17 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2011/11/06 18:51:55 $
+///$Date: 2012/04/20 23:11:17 $
 ///
-/// $Revision: 1.18 $
+/// $Revision: 1.19 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -191,7 +191,10 @@ int TkSens::GetSens(){
   if(IsMC()) PRotG=pp->GetRotMat().Invert()*pp->GetRotMatT().Invert();
 
   //Alignment corrected Ladder postion
-  AMSPoint PosG=lad->GetPosA()+lad->GetPos();
+  int Layer=lad->GetLayer();
+  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->_layer_deltaZA[Layer-1]);
+
+  AMSPoint PosG=lad->GetPosA()+lad->GetPos()+LayerZCorrection;
   if(IsMC()) PosG=lad->GetPosT()+lad->GetPos();
 
   //Alignment corrected Ladder Rotation matrix

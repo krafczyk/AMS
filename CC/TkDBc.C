@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.51 2012/03/11 21:14:10 shaino Exp $
+//  $Id: TkDBc.C,v 1.52 2012/04/20 23:11:17 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/03/11 21:14:10 $
+///$Date: 2012/04/20 23:11:17 $
 ///
-///$Revision: 1.51 $
+///$Revision: 1.52 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -252,6 +252,10 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     
     const number layer_deltaZ[maxlay]={-3.08, 1.698,-2.318, 1.698,-2.318, 2.318,-1.698, 3.08,1.698};
     memcpy(_layer_deltaZ,layer_deltaZ,maxlay*sizeof(layer_deltaZ[0]));
+
+
+    const number layer_deltaZA[maxlay]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
+    memcpy(_layer_deltaZA,layer_deltaZA,maxlay*sizeof(layer_deltaZA[0]));
 
 
 //----------------------------------------------------------------------------------

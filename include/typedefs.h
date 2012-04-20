@@ -1,4 +1,4 @@
-//  $Id: typedefs.h,v 1.18 2010/11/30 18:42:47 pzuccon Exp $
+//  $Id: typedefs.h,v 1.19 2012/04/20 23:11:17 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __TYPEDEFS__
@@ -15,6 +15,7 @@ typedef  unsigned char uint8;
 typedef  signed char int8;
 typedef  short int int16;
 typedef long int_L;
+typedef unsigned int uint;
 typedef unsigned int uinteger;
 typedef unsigned long int ulong;
 typedef unsigned long long uint64;
