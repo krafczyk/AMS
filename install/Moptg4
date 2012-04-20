@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.130 2012/03/09 08:31:54 mdelgado Exp $
+#  $Id: Moptg4,v 1.131 2012/04/20 10:58:30 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -509,7 +509,7 @@ compile:= $(AMS_EXE)
 
 $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h ../include/DynAlignment.h 
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/point.h ../include/root_RV.h ../include/DynAlignment.h  ../include/RichCharge.h ../include/RichTools.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/edep.h ../include/point.h ../include/root_RV.h ../include/DynAlignment.h  ../include/RichCharge.h ../include/RichTools.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
