@@ -1,4 +1,4 @@
-// $Id: edep.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
+// $Id: edep.h,v 1.4 2012/04/21 09:29:30 oliva Exp $
 
 #ifndef __AMSEnergyLoss__
 #define __AMSEnergyLoss__
@@ -20,11 +20,6 @@ using namespace std;
 class AMSEnergyLoss { 
 
  public:
-
-  //! Parameters for 300 um Silicon
-  static Double_t pars_Si[9];
-  //! Parameters for 1 cm Polyvinyltoluene
-  static Double_t pars_Poly[9];
 
   //! Csi as function of log10(betagamma) (par = {grammage,Z_on_A})
   static Double_t csi_logbetagamma(Double_t* x, Double_t* par);
@@ -69,25 +64,38 @@ class AMSEnergyLoss {
   //! Get \f$\beta\gamma\f$ from rigidity (mass/Z guess needed, proton by default)
   static Double_t GetLogBetaGammaFromRigidity(Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
 
-  //! Effective \f$\beta\gamma\f$ coming from rigidity for TOF
+  //! Effective \f$\beta\gamma\f$ coming from rigidity for TOF (layer = 1, ..., 4)
   static Double_t GetTofLayerEffLogBetaGammaFromRigidity(Int_t layer, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
-  //! Effective \f$\beta\gamma\f$ coming from beta for TOF 
+  //! Effective \f$\beta\gamma\f$ coming from beta for TOF (layer = 1, ..., 4)
   static Double_t GetTofLayerEffLogBetaGammaFromBeta(Int_t layer, Double_t beta);
-  //! Effective \f$\beta\gamma\f$ coming from rigidity and beta (best description of one of the two) for TOF
+  //! Effective \f$\beta\gamma\f$ coming from rigidity and beta (best description of one of the two) for TOF (layer = 1, ..., 4)
   static Double_t GetTofLayerEffLogBetaGamma(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
-  //! Effective \f$\beta\gamma\f$ coming from rigidity for Tracker
+
+  //! TOF betagamma correction using rigidity  
+  static Double_t GetTofLayerLogBetaGammaCorrectionFromRigidity(Int_t layer, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
+  //! TOF betagamma correction using beta
+  static Double_t GetTofLayerLogBetaGammaCorrectionFromBeta(Int_t layer, Double_t beta);
+  //! TOF betagamma correction using beta and rigidity 
+  static Double_t GetTofLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
+
+  //! Effective \f$\beta\gamma\f$ coming from rigidity for Tracker (layer = 1, ..., 9)
   static Double_t GetTrackerLayerEffLogBetaGammaFromRigidity(Int_t layer, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938); 
-  //! Effective \f$\beta\gamma\f$ coming from beta for Tracker
+  //! Effective \f$\beta\gamma\f$ coming from beta for Tracker (layer = 1, ..., 9)
   static Double_t GetTrackerLayerEffLogBetaGammaFromBeta(Int_t layer, Double_t beta);
-  //! Effective \f$\beta\gamma\f$ coming from rigidity and beta (best description of one of the two) for Tracker
+  //! Effective \f$\beta\gamma\f$ coming from rigidity and beta (best description of one of the two) for Tracker (layer = 1, ..., 9)
   static Double_t GetTrackerLayerEffLogBetaGamma(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
-  
-  /*
-  //! Get the effective \f$\beta\gamma\f$ needed to have the theretical energy deposition release
-  static Double_t GetTofEffectiveLogBetaGamma(Double_t betagamma, Int_t layer) { return 0; }
-  //! Get the effective \f$\beta\gamma\f$ needed to have the theretical energy deposition release
-  static Double_t GetTrackerEffectiveLogBetaGamma(Double_t betagamma, Int_t jlayer) { return 0; }
-  */
+
+  //! Tracker betagamma correction using rigidity  
+  static Double_t GetTrackerLayerLogBetaGammaCorrectionFromRigidity(Int_t layer, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
+  //! Tracker betagamma correction using beta
+  static Double_t GetTrackerLayerLogBetaGammaCorrectionFromBeta(Int_t layer, Double_t beta);
+  //! Tracker betagamma correction using beta and rigidity 
+  static Double_t GetTrackerLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
+ 
+  ///////////////////////////////////
+  // Z dependence renormalization 
+  ///////////////////////////////////
+
 
   ClassDef(AMSEnergyLoss,1); 
 };

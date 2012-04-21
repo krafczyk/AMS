@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.857 2012/04/18 22:56:12 paniccia Exp $
+// $Id: job.C,v 1.858 2012/04/21 09:29:29 oliva Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -32,6 +32,7 @@
 #include "TrCalDB.h"
 #include "TrParDB.h"
 #include "TrPdfDB.h"
+#include "TrGainDB.h"
 
 #include "trrec.h"
 #include "tkdcards.h"
@@ -2093,7 +2094,11 @@ void AMSJob::udata(){
   cc2->CreateLinear();
   TrClusterR::UsingTrParDB(TrParDB::Head);
 
+  // create default pdfs
   TrPdfDB::GetHead()->LoadDefaults();
+
+  // create the gain database singleton, and linear array
+  TrGainDB::GetHead()->Init();
 
   TrRecon::Init();
   TrRecon::SetParFromDataCards();
@@ -3311,7 +3316,28 @@ void AMSJob::_timeinitjob(){
     TID.add (new AMSTimeID(AMSID("TrackerPars",isRealData()),begin,end,
                            TrParDB::GetLinearSize(),TrParDB::linear,
                            server,need,SLin2ParDB));
-    
+
+
+    // new gain database (April 2012)
+    begin.tm_isdst=0;
+    end.tm_isdst=0;
+    begin.tm_sec  =0;
+    begin.tm_min  =0;
+    begin.tm_hour =0;
+    begin.tm_mday =0;
+    begin.tm_mon  =0;
+    begin.tm_year =0;
+    end.tm_sec=0;
+    end.tm_min=0;
+    end.tm_hour=0;
+    end.tm_mday=0;
+    end.tm_mon=0;
+    end.tm_year=0;
+    // both real data and montecarlo 
+    TID.add (new AMSTimeID(AMSID("TrackerVAGains",isRealData()),begin,end,
+                           TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),
+                           server,need,FunctionLinearToGainDB));
+
 
     if (isRealData() && TrRecon::TasRecon) {
       begin.tm_isdst=0;

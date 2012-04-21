@@ -1,4 +1,4 @@
-// $Id: TrGainDB.C,v 1.2 2012/04/19 16:11:44 oliva Exp $
+// $Id: TrGainDB.C,v 1.3 2012/04/21 09:29:29 oliva Exp $
 
 #include "TrGainDB.h"
 
@@ -114,9 +114,18 @@ bool TrGainDB::Load(const char* filename) {
   // Init(); // no memory loss
   TFile* rootfile = TFile::Open(filename,"read");
   if (rootfile==0) return false;
+  Load(rootfile);
+  rootfile->Close();
+  return true;
+}
+
+
+bool TrGainDB::Load(TFile* rootfile) { 
+  // Init(); // no memory loss
+  if (rootfile==0) return false;
   if (rootfile->Get("TrGainDB")==0) return false;
   fHead = (TrGainDB*) rootfile->Get("TrGainDB");
-  rootfile->Close();
+  printf("TrGainDB::Load-V TrGainDB loaded from file %s.\n",rootfile->GetName());
   return true;
 }
 
@@ -246,8 +255,8 @@ void FunctionLinearToGainDB(){
 }
 
 
-float TrGainDB::GetGainCorrected(float adc, int tkid, int channel) {
-  int iva = int(channel/64);
+float TrGainDB::GetGainCorrected(float adc, int tkid, int iva) {
+  if ( (iva<0)||(iva>15) ) return 0;
   TrLadGain* ladgain = (TrLadGain*) FindGainTkId(tkid);
   if (ladgain==0) return 0;
   return ladgain->GetGainCorrected(adc,iva);   

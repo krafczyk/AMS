@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.247 2012/03/13 02:17:07 pzuccon Exp $
+//  $Id: ntuple.C,v 1.248 2012/04/21 09:29:29 oliva Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -324,7 +324,8 @@ _rfile->cd();
     TrCalDB::Head->Write();
     TkDBc  ::Head->Write();
     TrParDB::Head->Write();
-    TrPdfDB::GetHead()->Write();
+    // TrPdfDB::GetHead()->Write(); // don't save it, crete it every time
+    if (!TrGainDB::IsNull()) TrGainDB::GetHead()->Write();
     TrExtAlignDB::GetHead()->Write();
     if (TrTasDB::Head) TrTasDB::Head->Write();
     if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();

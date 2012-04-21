@@ -223,6 +223,7 @@ int TrClusterR::GetSeedIndex(int opt) {
 
 float TrClusterR::GetTotSignal(int opt, float beta) {
   float sum = 0.;
+  /*
   if (!(kVAGain&opt)) {
     for (int ii=0; ii<GetNelem(); ii++) {
       sum += GetSignal(ii,opt);
@@ -235,6 +236,18 @@ float TrClusterR::GetTotSignal(int opt, float beta) {
     }
   }
   if (kGain&opt)  sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
+  */
+  if (!(kGain&opt)) {
+    for (int ii=0; ii<GetNelem(); ii++) {
+      sum += GetSignal(ii,opt);
+    }
+  }
+  else {
+    for (int ii=0; ii<GetNelem(); ii++) {
+       int iva = int(GetAddress(ii)/64);  
+       sum += TrGainDB::GetHead()->GetGainCorrected(GetSignal(ii,opt),GetTkId(),iva);
+    }
+  }
   if (kLoss&opt)  sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
   if (kPN&opt)    sum = ConvertToPSideScale(sum); 
   if (kMIP&opt)   sum = GetNumberOfMIPs(sum);

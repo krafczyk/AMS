@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.385 2012/04/19 16:09:19 barao Exp $
+//  $Id: root.C,v 1.386 2012/04/21 09:29:29 oliva Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5623,7 +5623,7 @@ Int_t AMSEventR::Fill()
     if (_ClonedTree[thr]==NULL) {
   TFile * input=_Tree->GetCurrentFile();
   if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrPdfDB","TrReconPar","TrExtAlignDB"};
+  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB"};
   TObject* obj[6]={0,0,0,0,0,0}; 
   TObjString* obj2=0;
   TObjString* obj3=0;
@@ -6140,6 +6140,7 @@ char * DaqEventR::Info(int number){
 #include "TrCalDB.h"
 #include "TrParDB.h"
 #include "TrPdfDB.h"
+#include "TrGainDB.h"
 #endif
 
 void AMSEventR::InitDB(TFile *_FILE){
@@ -6204,7 +6205,17 @@ cerr<<"AMSEventR::InitDB-E-Unabletoget datacards "<<endl;
     TrRecon::SetParFromDataCards();
     TrRecon::UsingTrCalDB(TrCalDB::Head);
 
-    if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
+    // if (TrPdfDB::IsNull()) TrPdfDB::Load(_FILE);
+    TrPdfDB::GetHead()->LoadDefaults();
+
+    // TrGainDB load
+    // 1st attempt: file
+    if (!TrGainDB::GetHead()->Load(_FILE)) { 
+      // 2 attempt: TDV
+      TrGainDB::GetHead()->LoadFromTDV(Run()+30); 
+      // if TDV load fails the default is used
+    }
+
 }
 master=1;  
 }

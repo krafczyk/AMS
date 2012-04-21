@@ -1,4 +1,4 @@
-// $Id: TrGainDB.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
+// $Id: TrGainDB.h,v 1.4 2012/04/21 09:29:30 oliva Exp $
 
 #ifndef __TrGainDB__
 #define __TrGainDB__
@@ -11,6 +11,7 @@
 
 
 #include "TObject.h"
+#include "TFile.h"
 #include "typedefs.h"
 #include "TH2D.h"
 
@@ -152,8 +153,10 @@ class TrGainDB : public TObject {
 
   //! Save the database into a ROOT file
   bool  Save(const char* filename);
-  //! Load the database from a ROOT file
+  //! Load the database from a ROOT file (by filename)
   bool  Load(const char* filename);
+  //! Load the database from a ROOT file (by TFile pointer)
+  bool  Load(TFile* rootfile);
 
   //! Read from txt file (Pierre's format)
   bool  LoadFromTxtFile(const char* filename);
@@ -179,7 +182,7 @@ class TrGainDB : public TObject {
   int  LoadFromTDV(long int time);
 
   //! Apply correction to a strip (very bad VA are excluded)
-  float GetGainCorrected(float adc, int tkid, int channel); 
+  float GetGainCorrected(float adc, int tkid, int iva); 
 
   //! Display gains as a 2D histogram 
   TH2D* GetGainHistogram();

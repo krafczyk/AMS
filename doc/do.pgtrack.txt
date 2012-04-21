@@ -528,7 +528,7 @@ FILE_PATTERNS          = root.h \
 			 TrLadPar.h TrParDB.h \
                          TrdRawHit.h TrdHSegment.h TrdHTrack.h TrCharge.h \
 			 TrTrackSelection.h \ 
-                         TofGeometry.h TofRecon.h TofPdfDB.h TofTimeCalibration.h TofTrack.h \ 
+                         TofGeometry.h TofRecon.h TofTrack.h \ 
                          TrInnerDzDB.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 

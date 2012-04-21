@@ -95,9 +95,10 @@ void TrPdfDB::Clear(Option_t* option) {
 
 
 void TrPdfDB::LoadDefaults() {
+  printf("TrPdfDB::LoadDefaults-V Loading default PDFs.\n");
   LoadPierrePdf01(Form("%s/v5.00/tkpdf001mc.root",getenv("AMSDataDir")));
   LoadPierrePdf02();
-  Info();
+  // Info();
 }
 
 
@@ -105,7 +106,7 @@ void TrPdfDB::LoadPierrePdf01(char* filename) {
   TFile* file = TFile::Open(filename,"read");
   if (file==0) printf("TrPdfDB::LoadPierrePdf01-W cannot open file %s. Loading only hard coded pdfs.\n",filename);
   LoadPierrePdf01(file);
-  file->Close();
+  if (file!=0) file->Close();
 }
 
 
