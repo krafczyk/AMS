@@ -353,7 +353,7 @@ ROOTDICTFILES=  ../include/TkPlane.h ../include/TkSens.h \
 		../include/TrPdf.h ../include/TrPdfDB.h ../include/TrCharge.h \
 		../include/TrHistoMan.h ../include/HistoMan.h \
 		../include/TrTrackSelection.h \
-		../include/root_setup.h ../include/TrExtAlignDB.h  ../include/pfunction.h
+		../include/root_setup.h ../include/TrExtAlignDB.h ../include/TrInnerDzDB.h  ../include/pfunction.h
 else
 ROOTDICTFILES=  ../include/point.h ../include/edep.h ../include/root_RV.h ../include/root.h ../include/amschain.h ../include/root_setup.h ../include/TrPdf.h ../include/trfit.h 
 endif

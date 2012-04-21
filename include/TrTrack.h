@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.78 2012/04/12 10:18:15 mduranti Exp $
+//  $Id: TrTrack.h,v 1.79 2012/04/21 02:31:53 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/04/12 10:18:15 $
+///$Date: 2012/04/21 02:31:53 $
 ///
-///$Revision: 1.78 $
+///$Revision: 1.79 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -61,6 +61,8 @@ private:
   short int HitBits;
   /// Fitting residual at each layer 0-X  1-Y
   float Residual[trconst::maxlay][2];
+  /// Fit layer weights (Errors)
+  float weight[trconst::maxlay][2];
 public:
   /// Fit done flag
   bool FitDone;
@@ -73,6 +75,7 @@ public:
   short int NdofX;
   /// Ndof in Y
   short int NdofY;
+public:
   /// Normalized chisquare, Chisq(x+y)/Ndof(x+y)
   /*!
    * Note: In case of kChoutko fitting _Chisq is not exactly the same 
@@ -91,6 +94,7 @@ public:
   /*!
    * Note: Theta and Phi can be obtained through AMSDir */
   AMSDir Dir;
+
 
   /// Returns true if the Layer (J-scheme)(1-9) has an hit used in this fit
   bool TestHitLayerJ(int layJ) const {
@@ -123,14 +127,26 @@ public:
   float GetResidualY_Lay(int lay) const {
     return Residual[lay-1][1];
   }
+  /// return the weight used in the Xfit for the layer layJ (J-scheme)
+  float GetFitWeightXLayerJ(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    return weight[lay][0];
+  }
+  /// return the weight used in the Yfit for the layer layJ (J-scheme)
+  float GetFitWeightYLayerJ(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    return weight[lay][1];
+  }
 
   /// Default constructor to fill default values
   TrTrackPar()
     : FitDone(false), HitBits(0), ChisqX(-1), ChisqY(-1), 
       NdofX(0), NdofY(0), Chisq(-1), Rigidity(0), ErrRinv(0), 
       P0(AMSPoint()), Dir(AMSPoint(0, 0, -1)) {
-    for (int i = 0; i < trconst::maxlay; i++)
+    for (int i = 0; i < trconst::maxlay; i++){
       Residual[i][0] = Residual[i][1] = 0;
+      weight[i][0] = weight[i][1] = 0;
+    }
   }
   ~TrTrackPar(){}
   void Print(int full=0) const;
@@ -514,7 +530,15 @@ public:
     int ilyJ=TkDBc::Head->GetJFromLayer(ilay);
     return GetResidualKindJ(ilyJ,pnt,kind,id);
   }
+  /// return the weight used in the YFit  for the layer layJ (J-scheme)
+  float GetFitWeightXLayerJ(int layJ, int id=0 ) const {
+    return GetPar(id).GetFitWeightXLayerJ(layJ);
+  }
 
+  /// return the weight used in the Yfit for the layer layJ (J-scheme)
+  float GetFitWeightYLayerJ(int layJ, int id=0 ) const {
+    return GetPar(id).GetFitWeightYLayerJ(layJ);
+  }
 
   /// Get track position at layer ilay J-scheme  (1-9)
   AMSPoint GetPlayerJ(int ilayJ, int id = 0) const;

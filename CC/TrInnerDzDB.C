@@ -49,8 +49,8 @@ int TrInnerDzDB::GetEntry(uint Timeid, float* Dz, int kind){
   it0=it1; it0--;
   uint T0=it0->first;
   uint T1=it1->first;
-  uint DT0=Timeid-T0;
-  uint DT1=T1-Timeid;
+  int DT0=Timeid-T0;
+  int DT1=T1-Timeid;
   if(DT0 < 0 || DT1 <0 ) return -5;
   if (kind ==0) { // return the closer
     itC=it1;
@@ -131,7 +131,7 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
   if(!ADD) {printf("TrInnerDzDB::TrInnerDB2Lin2TDV-E- Cannot find the Enviromnet variable AMSDataDir!\n I give up in updating TDV!\n");
     return -2;
   }
-  sprintf(database,"%s/DataBase",ADD);
+  sprintf(database,"%s/DataBase/",ADD);
 
   int ret2=tid.write(database);
 
@@ -141,17 +141,18 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
 
 void TrInnerLin2DB(){
   float dz0[TrInnerDzDB::kLaynum],dz1[TrInnerDzDB::kLaynum];
-    
+  memset(dz0,0,TrInnerDzDB::kLaynum*sizeof(float));
+  memset(dz1,0,TrInnerDzDB::kLaynum*sizeof(float));
   uint T0 = *(   (uint*) &(TrInnerDzDB::TDVSwap[0]) );
   uint T1 = *(   (uint*) &(TrInnerDzDB::TDVSwap[8]) );
     
-  for (int ii=0;ii<TrInnerDzDB::kLaynum;ii++){
-    dz0[ii]=TrInnerDzDB::TDVSwap[ii+1];
-    dz1[ii]=TrInnerDzDB::TDVSwap[ii+TrInnerDzDB::kLaynum+2];
-  }
-  TrInnerDzDB * db=TrInnerDzDB::GetHead();
-  db->AddEntry(T0,dz0);
-  db->AddEntry(T1,dz1);
+   for (int ii=0;ii<TrInnerDzDB::kLaynum;ii++){
+     dz0[ii]=TrInnerDzDB::TDVSwap[ii+1];
+     dz1[ii]=TrInnerDzDB::TDVSwap[ii+TrInnerDzDB::kLaynum+2];
+   }
+   TrInnerDzDB * db=TrInnerDzDB::GetHead();
+   db->AddEntry(T0,dz0);
+   db->AddEntry(T1,dz1);
   return;
 }
 
@@ -188,4 +189,44 @@ int TrInnerDzDB::TDV2DB(){
   }
   return 0;
     
+}
+
+int TrInnerDzDB::ReadFromFile(char* filename){
+  FILE * ff=fopen(filename,"r");
+  if(!ff) return -1;
+
+  while(1){
+    uint t;
+    float a,b,c,d,e,f,g,dz[7];
+    fscanf(ff," %u  %e  %e  %e  %e  %e  %e  %e",&t,
+	   &a,&b,&c,&d,&e,&f,&g);
+    if(feof(ff)) break;
+    if(ferror(ff)) return -2;
+    dz[0]=a;dz[1]=b;dz[2]=c;
+    dz[3]=d;dz[4]=e;dz[5]=f;dz[6]=g;
+    AddEntry(t,dz);
+  }
+  return 0;
+}
+ 
+int TrInnerDzDB::WriteToFile(char* filename, int append){
+ FILE * ff;
+  if(append) 
+    ff=fopen(filename,"a");
+  else
+    ff=fopen(filename,"w");
+  if(!ff) return -1;
+  for (mapit it=pos.begin();it!=pos.end();it++){
+
+    fprintf(ff,"%9u ",it->first);
+    if(ferror(ff)) return -2;
+    for (int ii=0;ii<kLaynum;ii++){
+      fprintf(ff,"%+12.5e ",it->second.dz[ii]);
+      if(ferror(ff)) return -2;
+    }
+    fprintf(ff,"\n");
+    if(ferror(ff)) return -2;
+  }
+  fclose(ff);
+  return 0;
 }

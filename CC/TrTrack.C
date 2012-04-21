@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.129 2012/03/16 18:08:25 pzuccon Exp $
+// $Id: TrTrack.C,v 1.130 2012/04/21 02:31:53 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/03/16 18:08:25 $
+///$Date: 2012/04/21 02:31:53 $
 ///
-///$Revision: 1.129 $
+///$Revision: 1.130 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -948,9 +948,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   par.P0  = pnt;
   par.Dir = dir;
 
-  for (int i = 0; i < trconst::maxlay; i++)
+  for (int i = 0; i < trconst::maxlay; i++){
     par.Residual[i][0] = par.Residual[i][1] = 0;
-
+    par.weight[i][0] = par.weight[i][1] = 0;
+  }
   // Fill residuals
   for (int i = 0; i < _TrFit.GetNhit(); i++) {
     int j = idx[i]%10;
@@ -959,6 +960,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     int il = hit->GetLayer()-1;
     par.Residual[il][0] = _TrFit.GetXr(i);
     par.Residual[il][1] = _TrFit.GetYr(i);
+    par.weight[il][0]=_TrFit.GetXh(i);
+    par.weight[il][1]=_TrFit.GetYh(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
     if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
@@ -973,6 +976,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       }
     }
   }
+
+  for (int i = 0; i < trconst::maxlay; i++)
 
   return GetChisq(id);
 }
