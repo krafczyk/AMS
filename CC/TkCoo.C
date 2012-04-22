@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.12 2012/04/22 10:01:45 shaino Exp $ 
+/// $Id: TkCoo.C,v 1.13 2012/04/22 14:30:25 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/04/22 10:01:45 $
+///$Date: 2012/04/22 14:30:25 $
 ///
-/// $Revision: 1.12 $
+/// $Revision: 1.13 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -139,7 +139,7 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
       0 <= sens && sens < trconst::maxsen) {
     oo2[0] -= ll->_sensx[sens];
     oo2[1] -= ll->_sensy[sens];
-    oo2[1] -= ll->_sensz[sens];
+    oo2[2] -= ll->_sensz[sens];
   }
 
   return oo2;
