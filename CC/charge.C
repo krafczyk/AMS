@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.88 2012/01/17 13:32:45 oliva Exp $
+//  $Id: charge.C,v 1.89 2012/04/22 23:40:33 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -1006,7 +1006,7 @@ int AMSChargeTracker::Fill(int refit) {
 
   //! Best available Q evaluation (charge units) with beta correction 
   float beta = _pbeta->getbeta();
-  _Q = TrCharge::GetQ(_ptrtk, TrCharge::kXY, beta);
+  _Q = _ptrtk->GetQ(beta); 
 
   //! Truncated mean charge (inner tracker), no beta correction
   _TruncatedMean = TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner, _ptrtk, TrCharge::kX).Mean;

@@ -1,4 +1,4 @@
-// $Id: TrTrackSelection.C,v 1.7 2012/01/04 19:35:48 oliva Exp $
+// $Id: TrTrackSelection.C,v 1.8 2012/04/22 23:40:33 oliva Exp $
 #include "TrTrackSelection.h"
 #include "TrRecHit.h"
 #include "tkdcards.h"
@@ -264,8 +264,8 @@ bool TrTrackSelection::IsGoodHeliumHit(TrRecHitR* hit) {
   // bad correlation
   if (hit->GetCorrelationProb()<0.001) return false;
   // signal over a simple threshold
-  float sigx = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
-  float sigy = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  float sigx = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
+  float sigy = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
   if ( (sigx<90)||(sigy<90) ) return false; 
   return true;
 }

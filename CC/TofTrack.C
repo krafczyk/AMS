@@ -1,4 +1,4 @@
-// $Id: TofTrack.C,v 1.2 2012/04/19 16:11:44 oliva Exp $
+// $Id: TofTrack.C,v 1.3 2012/04/22 23:40:33 oliva Exp $
 
 #include "TofTrack.h"
 
@@ -571,7 +571,7 @@ float TofTrack::GetTime(float z) {
 }
 
 
-bool TofTrack::MakeMean(int type, int mean_opt, int sig_opt) {
+bool TofTrack::MakeMean(int type, int mean_opt, int sig_opt, float mass_on_Z) {
   // init
   _Mean[type] = 0;
   _RMS[type] = 0;
@@ -585,7 +585,7 @@ bool TofTrack::MakeMean(int type, int mean_opt, int sig_opt) {
   float rms = 0;
   for (int ihit=0; ihit<nhit; ihit++) {
   int layer = GetHit(ihit)->Layer;
-    float signal = GetSignalLayer(layer,type,sig_opt);
+    float signal = GetSignalLayer(layer,type,sig_opt,mass_on_Z);
     if (signal<1e-06) continue;
     if (mean_opt&kSqrt) {
       mean += sqrt(signal);
@@ -740,7 +740,7 @@ bool TofTrack::MakeEdep() {
 }
 
 
-float TofTrack::GetSignalLayer(int layer, int type, int sig_opt) { 
+float TofTrack::GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z) { 
   if ( (layer<1)||(layer>4) ) return 0;
   if ( (type!=kAnode)&&(type!=kDynode)&&(type!=kMix) ) return 0;
   TofClusterR* cluster = (TofClusterR*) GetHitLayer(layer);
@@ -816,18 +816,22 @@ float TofTrack::GetSignalLayer(int layer, int type, int sig_opt) {
   /////////////////////////
   // Beta correction
   /////////////////////////
-
-  if (sig_opt&kBeta) {
-    if (sig_opt&kContin) {
-      edep /= BetaCorrectionContin1(type);
-    }
-    else { 
-      edep /= BetaCorrection(layer);
-    }
+ 
+  if (sig_opt&kContin) {
+    edep /= BetaCorrectionContin1(type);
+  }
+  else { 
+    float betagamma_corr = 1;
+    if      ( (kBeta&sig_opt)&&(kRigidity&sig_opt) ) betagamma_corr = BetaRigidityCorrection(layer,mass_on_Z);
+    else if (kBeta&sig_opt)                          betagamma_corr = BetaCorrection(layer);
+    else if (kRigidity&sig_opt)                      betagamma_corr = RigidityCorrection(layer,mass_on_Z);
+    if (betagamma_corr<=0.) betagamma_corr = 1;
+    edep /= betagamma_corr;
   }
  
   return edep;
 }
+
 
 // Gain corrections derived from charge fits (13/03/2012, from data of 21 - 27 Jul 2011)
 // - 1 to 5 for Anode
@@ -977,7 +981,21 @@ float TofTrack::MipCorrectionContin(float edep, int layer, int bar, int type) {
 
 float TofTrack::BetaCorrection(int layer) {
   float beta = GetBeta();
-  return AMSEnergyLoss::GetBetaCorrectionTofLayer(layer,beta); 
+  // return AMSEnergyLoss::GetBetaCorrectionTofLayer(layer,beta); 
+  return AMSEnergyLoss::GetTofLayerLogBetaGammaCorrectionFromBeta(layer,beta);
+}
+
+
+float TofTrack::RigidityCorrection(int layer, float mass_on_Z) {
+  float rigidity = GetAssociatedTrTrackRigidity();
+  return AMSEnergyLoss::GetTofLayerLogBetaGammaCorrectionFromRigidity(layer,rigidity,mass_on_Z);
+}
+
+
+float TofTrack::BetaRigidityCorrection(int layer, float mass_on_Z) {
+  float beta = GetBeta();
+  float rigidity = GetAssociatedTrTrackRigidity();
+  return AMSEnergyLoss::GetTofLayerLogBetaGammaCorrection(layer,beta,rigidity,mass_on_Z);
 }
 
 
@@ -1073,33 +1091,24 @@ float TofTrack::GetMipResolution(float mip, int type) {
 }
 
 
-/*
-float TofTrack::GetQ() {
-  float q_d = GetMean(TofTrack::kDynode);
-  float q_a = GetMean(TofTrack::kAnode);
-  if ( (q_a<3.5)||(q_d<1e-06) ) return q_a;
-  return q_d;
-}
-*/
-
-float TofTrack::GetMaxChargeLayer(int type) {
+float TofTrack::GetMaxChargeLayer(int type, float mass_on_Z) {
   float max = 0;
   for (int ilayer=0; ilayer<4; ilayer++) {
-    float value = sqrt(GetSignalLayer(ilayer+1,type,kMIP|kBeta|kPath));
+    float value = sqrt(GetSignalLayer(ilayer+1,type,kMIP|kBeta|kPath,mass_on_Z));
     if (value>max) max = value;
   }
   return max;
 }
 
 
-float TofTrack::GetChargePlane(int plane, int type) {
+float TofTrack::GetChargePlane(int plane, int type, float mass_on_Z) {
   if ( (plane!=kUpper)&&(plane!=kLower) ) return 0.;
   if ( (type!=kAnode)&&(type!=kDynode)&&(type!=kMix) ) return 0;
   float sum = 0;
   int   n = 0;
   for (int i=0; i<2; i++) {
     int layer = plane*2 + i + 1;
-    float value = GetChargeLayer(layer,type);
+    float value = GetChargeLayer(layer,type,mass_on_Z);
     if (value<1e-06) continue;
     sum += value;
     n++;
@@ -1109,19 +1118,19 @@ float TofTrack::GetChargePlane(int plane, int type) {
 }
 
 
-float TofTrack::GetChargeRatio(int type) {
+float TofTrack::GetChargeRatio(int type, float mass_on_Z) {
   if ( (type!=kAnode)&&(type!=kDynode)&&(type!=kMix) ) return 0;
-  float upper = GetChargePlane(kUpper,type);
-  float lower = GetChargePlane(kLower,type);
+  float upper = GetChargePlane(kUpper,type,mass_on_Z);
+  float lower = GetChargePlane(kLower,type,mass_on_Z);
   if (lower<1e-6) return 0;
   return upper/lower;
 }
 
 
-float TofTrack::GetChargeAsymmetry(int type) {
+float TofTrack::GetChargeAsymmetry(int type, float mass_on_Z) {
   if ( (type!=kAnode)&&(type!=kDynode)&&(type!=kMix) ) return 0;
-  float upper = GetChargePlane(kUpper,type);
-  float lower = GetChargePlane(kLower,type);
+  float upper = GetChargePlane(kUpper,type,mass_on_Z);
+  float lower = GetChargePlane(kLower,type,mass_on_Z);
   if (lower+upper<1e-6) return 0;
   return (lower-upper)/(lower+upper);
 }

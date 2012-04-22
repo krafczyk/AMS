@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.70 2012/04/20 07:14:25 oliva Exp $
+// $Id: tkdcards.C,v 1.71 2012/04/22 23:40:33 oliva Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -112,7 +112,7 @@ for (int ii=0;ii<9;ii++){
   ChargeSeedTagActive = 1;
   ChargeSeedSelActive = 0; 
   CorrelationProbThr = 0.001; 
-  YClusterSNThr = 5; 
+  YClusterSNThr = 5.; 
   YClusterNStripThr = 0; 
   ReorderTrClusters = 1; 
   ReorderTrRecHits = 0; 
@@ -211,21 +211,22 @@ void TRMCFFKEY_DEF::init(){
   // Noise type 
   NoiseType = 3;
   // DSP seed strip S/N threshold per layer (updated 03/03/2011)
-  //* Settings for test beam */
+  // Settings for test beam 
+  /*
   DSPSeedThr[0][0] = 3.500; DSPSeedThr[0][7] = 3.500; DSPSeedThr[0][8] = 3.500; // x: single layer on plane
   DSPSeedThr[0][1] = 3.500; DSPSeedThr[0][2] = 3.500; DSPSeedThr[0][3] = 3.500; // x: two layers on a single plane
   DSPSeedThr[0][4] = 3.500; DSPSeedThr[0][5] = 3.500; DSPSeedThr[0][6] = 3.500; // x: two layers on a single plane
   DSPSeedThr[1][0] = 3.500; DSPSeedThr[1][7] = 3.500; DSPSeedThr[1][8] = 3.500; // y: single layer on plane
   DSPSeedThr[1][1] = 3.500; DSPSeedThr[1][2] = 3.500; DSPSeedThr[1][3] = 3.500; // y: two layers on a single plane
   DSPSeedThr[1][4] = 3.500; DSPSeedThr[1][5] = 3.500; DSPSeedThr[1][6] = 3.500; // y: two layers on a single plane
-  /* Settings for "space" --> future use
+  */
+  // Settings for "space" 
   DSPSeedThr[0][0] = 3.500; DSPSeedThr[0][7] = 3.500; DSPSeedThr[0][8] = 3.500; // x: single layer on plane
   DSPSeedThr[0][1] = 3.875; DSPSeedThr[0][2] = 3.875; DSPSeedThr[0][3] = 3.875; // x: two layers on a single plane
   DSPSeedThr[0][4] = 3.875; DSPSeedThr[0][5] = 3.875; DSPSeedThr[0][6] = 3.875; // x: two layers on a single plane
   DSPSeedThr[1][0] = 3.625; DSPSeedThr[1][7] = 3.625; DSPSeedThr[1][8] = 3.625; // y: single layer on plane
   DSPSeedThr[1][1] = 4.000; DSPSeedThr[1][2] = 4.000; DSPSeedThr[1][3] = 4.000; // y: two layers on a single plane
   DSPSeedThr[1][4] = 4.000; DSPSeedThr[1][5] = 4.000; DSPSeedThr[1][6] = 4.000; // y: two layers on a single plane
-  */
   // DSP neigboring strips S/N threshold (updated 03/03/2011)
   DSPNeigThr[0] = 1.;
   DSPNeigThr[1] = 1.;

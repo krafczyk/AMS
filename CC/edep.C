@@ -1,4 +1,4 @@
-// $Id: edep.C,v 1.4 2012/04/21 09:29:29 oliva Exp $
+// $Id: edep.C,v 1.5 2012/04/22 23:40:33 oliva Exp $
 
 #include "edep.h"
 
@@ -14,7 +14,7 @@ Double_t pars_Poly[9] = {   1*1.032,0.54141, 64.7,0.1464,2.4855,3.1997,0.16101,3
 
 // From a fit on proton data: delta0 derived from function match
 //
-//                          g/cm2   <Z/A>        eV      x0      x1    Cbar       a   k (m)     MIP      
+//                         g/cm2   <Z/A>        eV      x0      x1    Cbar       a   k (m)     MIP      
 Double_t pars_Si[9]   = {0.06990,0.49848,173.00000,0.20140,4.05905,4.56882,0.00121,5.93325,0.70847};
 Double_t pars_Poly[9] = {1.03200,0.54141, 64.70000,0.14640,0.73322,4.72874,6.47414,1.89853,2.00000}; // no MIP
 
@@ -30,6 +30,7 @@ Double_t AMSEnergyLoss::csi_logbetagamma(Double_t* x, Double_t* par) {
   return 0.5*K*Z_on_A*grammage/beta/beta; // MeV
 }
 
+
 Double_t AMSEnergyLoss::density_correction_logbetagamma(Double_t* x, Double_t* par) {
   // x[0] is log10(betagamma)
   Double_t eta    = x[0];
@@ -43,6 +44,7 @@ Double_t AMSEnergyLoss::density_correction_logbetagamma(Double_t* x, Double_t* p
   else if (eta>=x0) return 2*log(10)*eta - Cbar + a*pow(x1-eta,k);
   else              return (2*log(10)*x0 - Cbar + a*pow(x1-x0,k))*pow(10.,2*(eta-x0)); // delta0*pow(10.,2*(eta-x0));
 }
+
 
 Double_t AMSEnergyLoss::delta_logbetagamma(Double_t *x, Double_t *par) {
   // Most Probable Value for Energy Deposition
@@ -73,6 +75,7 @@ Double_t AMSEnergyLoss::delta_logbetagamma(Double_t *x, Double_t *par) {
   return 1e+3*delta; // keV
 }
 
+
 Double_t AMSEnergyLoss::delta_beta(Double_t *x, Double_t *par) {
   // x[0] is beta
   Double_t beta         = x[0];
@@ -80,11 +83,21 @@ Double_t AMSEnergyLoss::delta_beta(Double_t *x, Double_t *par) {
   return delta_logbetagamma(&logbetagamma,par);
 }
 
-Double_t AMSEnergyLoss::delta_beta_fit(Double_t *x, Double_t *par) {
-  Double_t beta = x[0];
-  if (beta<par[9]) return par[10]*delta_beta(&beta,par);
-  else             return par[10]*delta_beta(&par[9],par);
+
+Double_t AMSEnergyLoss::GetMostProbEDepIn300umSi(Double_t logbetagamma) {
+  return delta_logbetagamma(&logbetagamma,pars_Si);
 }
+
+
+Double_t AMSEnergyLoss::GetMostProbEDepIn1cmPoly(Double_t logbetagamma) {
+  return delta_logbetagamma(&logbetagamma,pars_Poly);
+}
+
+
+///////////////////////////////////
+// Preliminary correction
+///////////////////////////////////
+
 
 Double_t AMSEnergyLoss::beta_tol_on_beta(Double_t *x, Double_t *par) {
   Double_t xx = x[0]; 
@@ -100,16 +113,6 @@ Double_t AMSEnergyLoss::beta_tol_on_beta(Double_t *x, Double_t *par) {
   Double_t m = b+2*c*x1+3*d*pow(x1,2)+4*e*pow(x1,3);
   Double_t q = -m*x1+a+b*x1+c*pow(x1,2)+d*pow(x1,3)+e*pow(x1,4);
   return m*xx + q;
-}
-
-
-Double_t AMSEnergyLoss::GetMostProbEDepIn300umSi(Double_t logbetagamma) {
-  return delta_logbetagamma(&logbetagamma,pars_Si); 
-}
-
-
-Double_t AMSEnergyLoss::GetMostProbEDepIn1cmPoly(Double_t logbetagamma) {
-  return delta_logbetagamma(&logbetagamma,pars_Poly);
 }
 
 
@@ -275,6 +278,8 @@ Double_t AMSEnergyLoss::GetTofLayerEffLogBetaGammaFromRigidity(Int_t layer, Doub
 
 Double_t AMSEnergyLoss::GetTofLayerEffLogBetaGammaFromBeta(Int_t layer, Double_t beta) {
   if ( (layer<1)||(layer>4) ) return -100;
+  // up-going/down-going symmetry folding
+  if (beta<0) layer = 4 - layer + 1;  
   Double_t logbetagamma = GetLogBetaGammaFromBeta(beta);
   return line_to_line(&logbetagamma,&pars_line_to_line_tof[1][layer-1][0]);
 }
@@ -305,12 +310,16 @@ Double_t AMSEnergyLoss::GetTofLayerLogBetaGammaCorrectionFromRigidity(Int_t laye
 
 
 Double_t AMSEnergyLoss::GetTofLayerLogBetaGammaCorrectionFromBeta(Int_t layer, Double_t beta) {
+  if ( (layer<1)||(layer>9) ) return -100;
   Double_t logbetagamma = GetTofLayerEffLogBetaGammaFromBeta(layer,beta);
+  // up-going/down-going symmetry folding
+  if (beta<0) layer = 9 - layer + 1;
   return delta_logbetagamma(&logbetagamma,&pars_Poly[0])/delta_logbetagamma(&pars_Poly[8],&pars_Poly[0]);            
 }
 
 
 Double_t AMSEnergyLoss::GetTofLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity, Double_t mass_on_Z) {
+  if ( (layer<1)||(layer>9) ) return -100;
   Double_t logbetagamma = GetTofLayerEffLogBetaGamma(layer,beta,rigidity,mass_on_Z);
   return delta_logbetagamma(&logbetagamma,&pars_Poly[0])/delta_logbetagamma(&pars_Poly[8],&pars_Poly[0]);  
 }

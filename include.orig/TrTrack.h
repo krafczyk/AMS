@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.79 2012/04/21 02:31:53 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.80 2012/04/22 23:40:34 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/04/21 02:31:53 $
+///$Date: 2012/04/22 23:40:34 $
 ///
-///$Revision: 1.79 $
+///$Revision: 1.80 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -671,6 +671,18 @@ public:
   /// Return a string with hit infos (used for the event display)
   char *Info(int iRef=0);
   /**@}*/
+
+
+  /** @name Track charge estimation */
+  /**@{*/
+  //! Get the track floating point charge estimator
+  float   GetQ(float beta = 1);
+  //! Get the number of points used in the charge estimator
+  float   GetQ_NPoints(float beta = 1);
+  //! Get the RMS of the evaluation  
+  float   GetQ_RMS(float beta = 1);
+  /**@}*/
+
 
   /** @name Alternative and deprecated methods
    */

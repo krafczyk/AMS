@@ -1,4 +1,4 @@
-// $Id: TofRecon.C,v 1.3 2012/04/20 08:23:52 oliva Exp $
+// $Id: TofRecon.C,v 1.4 2012/04/22 23:40:33 oliva Exp $
 
 #include "TofRecon.h"
 
@@ -1167,9 +1167,9 @@ bool TofRecon::CalculateChargeDifference(TofTrack* tof_track, TrTrackR* trk_trac
   if ( (!tof_track)||(!trk_track)||(id<0) ) return false;
   // tracker temporary charge estimation
   float q_trk_x = TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,trk_track,TrCharge::kX,1,-1,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kMIP).Mean;
+    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP).Mean;
   float q_trk_y = TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,trk_track,TrCharge::kY,1,-1,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kMIP).Mean;
+    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP).Mean;
   float q_trk = q_trk_x;
   if ( (q_trk_x>12.5)&&(q_trk_y>12.5) ) q_trk = q_trk_y;
   float q_tof = tof_track->GetQ();
@@ -1252,9 +1252,9 @@ TrTrackR* TofRecon::GetClosestTrTrack(TofTrack* tof_track, AMSEventR* event) {
     if (distance>min_distance) continue;
     // tracker TMP charge estimation
     float q_trk_x = TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,track,TrCharge::kX,1,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP).Mean;
     float q_trk_y = TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,track,TrCharge::kY,1,-1,
-      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP).Mean;
+      TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kMIP).Mean;
     Histogram("TofTrkMatch_Qx_vs_Qy","; Q_{Y}; Q_{X}",300,0,30,300,0,30,q_trk_y,q_trk_x);
     float q_trk = q_trk_x;
     if ( (q_trk_x>12.5)&&(q_trk_y>12.5) ) q_trk = q_trk_y;

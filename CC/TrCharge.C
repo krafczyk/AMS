@@ -178,12 +178,15 @@ mean_t TrCharge::GetGaussMean(vector<float> signal) {
 }
 
 
-mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int layerj, int opt) {
+mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int layerj, int opt, int fit_id, float mass_on_Z) {
   // check
   if (track==0) {
     printf("TrCharge::GetMean-W track with NULL pointer, return empty mean_t.\n");
     return mean_t();
   }
+
+  // rigidity
+  float rigidity = track->GetRigidity(fit_id);
 
   // track hit loop
   vector<float> signal;
@@ -211,7 +214,7 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
     if ( (iside<=1)&&(!GoodChargeReconCluster(cluster)) ) continue;
 
     // add signal to the vector 
-    float asignal = hit->GetSignalCombination(iside,opt,beta); 
+    float asignal = hit->GetSignalCombination(iside,opt,beta,rigidity,mass_on_Z); 
     if (type&kSqrt) asignal = (asignal>0) ? sqrt(asignal) : 0;
     signal.push_back(asignal);
   }

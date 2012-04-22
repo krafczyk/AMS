@@ -13,9 +13,9 @@ float TrClusterR::Asymmetry[2] = {0.027, 0.034};
 
 
 // TMP FIX: excluded charge loss corretion, was working well only for protons
-int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain;
-int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kMIP;
-int   TrClusterR::DefaultEdepCorrOpt   = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kMIP|TrClusterR::kMeV;
+int   TrClusterR::DefaultCorrOpt       = TrClusterR::kAsym|TrClusterR::kGain;
+int   TrClusterR::DefaultChargeCorrOpt = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kAngle|TrClusterR::kBeta|TrClusterR::kMIP;
+int   TrClusterR::DefaultEdepCorrOpt   = TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kMIP|TrClusterR::kMeV;
 
 
 int   TrClusterR::DefaultUsedStrips = -1;     // -1: inclination dependent
@@ -221,38 +221,23 @@ int TrClusterR::GetSeedIndex(int opt) {
 }
 
 
-float TrClusterR::GetTotSignal(int opt, float beta) {
+float TrClusterR::GetTotSignal(int opt, float beta, float rigidity, float mass_on_Z) {
   float sum = 0.;
-  /*
-  if (!(kVAGain&opt)) {
-    for (int ii=0; ii<GetNelem(); ii++) {
-      sum += GetSignal(ii,opt);
-    }
+  for (int ii=0; ii<GetNelem(); ii++) {
+    float signal = GetSignal(ii,opt);
+    if (kGain&opt) signal = TrGainDB::GetHead()->GetGainCorrected(GetSignal(ii,opt),GetTkId(),int(GetAddress(ii)/64));
+    sum += signal;
   }
-  else {
-    for (int ii=0; ii<GetNelem(); ii++) {
-       int iva = int(GetAddress(ii)/64);  
-       sum += GetSignal(ii,opt)*GetTrParDB()->FindPar_TkId(GetTkId())->GetVAGain(iva); 
-    }
-  }
-  if (kGain&opt)  sum = sum*GetTrParDB()->FindPar_TkId(GetTkId())->GetGain(GetSide()); 
-  */
-  if (!(kGain&opt)) {
-    for (int ii=0; ii<GetNelem(); ii++) {
-      sum += GetSignal(ii,opt);
-    }
-  }
-  else {
-    for (int ii=0; ii<GetNelem(); ii++) {
-       int iva = int(GetAddress(ii)/64);  
-       sum += TrGainDB::GetHead()->GetGainCorrected(GetSignal(ii,opt),GetTkId(),iva);
-    }
-  }
-  if (kLoss&opt)  sum = sum*GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
-  if (kPN&opt)    sum = ConvertToPSideScale(sum); 
-  if (kMIP&opt)   sum = GetNumberOfMIPs(sum);
-  if (kAngle&opt) sum = sum*GetCosTheta();
-  if (kBeta&opt)  sum = (BetaCorrection(beta)!=0) ? sum/BetaCorrection(beta) : 0;
+  if (kLoss&opt)  sum *= GetTrParDB()->GetChargeLoss(GetSide(),GetCofG(DefaultUsedStrips,opt),GetImpactAngle());
+  if (kPN&opt)    sum =  ConvertToPSideScale(sum); 
+  if (kMIP&opt)   sum =  GetNumberOfMIPs(sum);
+  if (kAngle&opt) sum *= GetCosTheta();
+  float betagamma_corr = 1;
+  if      ((kBeta&opt)&&(kRigidity&opt)) betagamma_corr = BetaRigidityCorrection(beta,rigidity,mass_on_Z);
+  else if (kBeta&opt)                    betagamma_corr = BetaCorrection(beta);
+  else if (kRigidity&opt)                betagamma_corr = RigidityCorrection(rigidity,mass_on_Z);
+  if (betagamma_corr<=0.)                betagamma_corr = 1; 
+  sum /= betagamma_corr; 
   if (kMeV&opt)   sum = sum*0.081; // 81 keV per MIP 
   return sum;
 }
@@ -330,7 +315,19 @@ float TrClusterR::BetaCorrection_Muons_2010(float beta) {
   
 float TrClusterR::BetaCorrection_ISS_2011(float beta) { 
   int jlayer = GetLayerJ(); 
-  return AMSEnergyLoss::GetBetaCorrectionTrackerLayer(jlayer,beta); 
+  return AMSEnergyLoss::GetTrackerLayerLogBetaGammaCorrectionFromBeta(jlayer,beta);
+}
+
+
+float TrClusterR::RigidityCorrection(float rigidity, float mass_on_Z) {
+  int jlayer = GetLayerJ();
+  return AMSEnergyLoss::GetTrackerLayerLogBetaGammaCorrectionFromRigidity(jlayer,rigidity,mass_on_Z); 
+}
+
+
+float TrClusterR::BetaRigidityCorrection(float beta, float rigidity, float mass_on_Z) {
+  int jlayer = GetLayerJ();
+  return AMSEnergyLoss::GetTrackerLayerLogBetaGammaCorrection(jlayer,beta,rigidity,mass_on_Z);  
 }
 
 

@@ -353,11 +353,11 @@ float TrRecHitR::GetProb()   {
 }
 
 
-float TrRecHitR::GetSignalCombination(int iside, int opt, float beta) {
+float TrRecHitR::GetSignalCombination(int iside, int opt, float beta, float rigidity, float mass_on_Z) {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
-  float sig_x = (clx!=0) ? clx->GetTotSignal(opt,beta) : 0;
-  float sig_y = (cly!=0) ? cly->GetTotSignal(opt,beta) : 0;
+  float sig_x = (clx!=0) ? clx->GetTotSignal(opt,beta,rigidity,mass_on_Z) : 0;
+  float sig_y = (cly!=0) ? cly->GetTotSignal(opt,beta,rigidity,mass_on_Z) : 0;
   float wei_x = 1; // to be tuned (wei(adc) ...)
   float wei_y = 1; // to be tuned (wei(adc) ...)
   if      (iside==0) return sig_x;
@@ -372,8 +372,8 @@ float TrRecHitR::GetSignalDifference() {
   TrClusterR* clx = GetXCluster();
   TrClusterR* cly = GetYCluster();
   if ( (clx!=0)&&(cly!=0) ) {
-    float sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
-    float sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kPN);
+    float sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss|TrClusterR::kPN);
     return sig_x - sig_y;
   }
   else if (clx!=0) return -10000;
@@ -400,10 +400,10 @@ float TrRecHitR::GetCorrelationProb() {
   TrClusterR* cly = GetYCluster();
   if ( (clx==0)||(cly==0) ) return -1; // no definition, default value!
   // cluster signal
-  double sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  double sig_x = clx->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
   double x = sqrt(sig_x);
   if (x>HisCorrelation_XMax) return 1; // good if out of range
-  double sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss);
+  double sig_y = cly->GetTotSignal(TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss);
   double y = sqrt(sig_y);
   // parameters for the test
   double mean = 0.;

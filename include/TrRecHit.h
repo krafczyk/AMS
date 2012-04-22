@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.38 2012/01/04 19:35:49 oliva Exp $
+//  $Id: TrRecHit.h,v 1.39 2012/04/22 23:40:34 oliva Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -198,7 +198,7 @@ public:
       ((GetYCluster())? GetYCluster()->GetTotSignal():0);
   }
   /// Returns the hit signal (0: x, 1: y, 2: weighted mean, 3: simple mean)
-  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1);
+  float GetSignalCombination(int iside, int opt = TrClusterR::DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0.938);
   /// Returns the hit signal signal (on side p scale) 
   float GetSignalDifference();
   /// Returns the hit correlation for a gaussian p-value

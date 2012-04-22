@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.130 2012/04/21 02:31:53 pzuccon Exp $
+// $Id: TrTrack.C,v 1.131 2012/04/22 23:40:33 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/21 02:31:53 $
+///$Date: 2012/04/22 23:40:33 $
 ///
-///$Revision: 1.130 $
+///$Revision: 1.131 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +37,8 @@
 #include "TrRecon.h"
 #include <cmath>
 #include <algorithm>
+
+#include "TrCharge.h"
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 
@@ -1523,4 +1525,17 @@ bool TrTrackR::ValidTrRecHitsPointers() {
     if (!hit) invalid_pointers = true; 
   }
   return (!invalid_pointers);
-}  
+}
+
+float TrTrackR::GetQ(float beta) {
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+}
+
+float TrTrackR::GetQ_NPoints(float beta) {
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
+}
+
+float TrTrackR::GetQ_RMS(float beta) {
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+}
+  

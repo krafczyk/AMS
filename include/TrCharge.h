@@ -8,9 +8,9 @@
  \class TrCharge
  \brief A static class for the Tracker charge reconstruction
 
- $Date: 2012/01/04 19:35:49 $
+ $Date: 2012/04/22 23:40:34 $
 
- $Revision: 1.7 $
+ $Revision: 1.8 $
 */
 
 #include "VCon.h"
@@ -198,7 +198,7 @@ class TrCharge {
 
   //! Track mean generic method
   static mean_t GetMean(int type, TrTrackR* track, int iside, float beta = 1, int jlayer = -1, 
-    int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kBeta);
+    int opt = TrClusterR::DefaultChargeCorrOpt, int fit_id = 0, float mass_on_Z = 0.938);
   //! Mean generic interface
   static mean_t GetMean(int type, vector<float> signal);
   //! Mean of n signals
@@ -212,7 +212,8 @@ class TrCharge {
   static like_t GetTruncMeanProbToBeZ(TrTrackR* track, int Z, float beta = 1);
   //! Truncated mean charge (inner tracker)
   static int    GetTruncMeanCharge(TrTrackR* track, float beta = 1);
-  //! Best available Q evaluation (truncated mean, charge units, all tracker) 
+
+  //! Best available Q evaluation, DEPRECATED, see TrTrack::GetQ()
   static float  GetQ(TrTrackR* track, int iside, float beta = 1);
 
   //! Get mean signal of 4 highest clusters 

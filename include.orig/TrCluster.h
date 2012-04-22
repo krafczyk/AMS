@@ -31,9 +31,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2012/04/18 10:15:03 $
+ $Date: 2012/04/22 23:40:34 $
 
- $Revision: 1.28 $
+ $Revision: 1.29 $
 
 */
 
@@ -53,26 +53,24 @@ class TrClusterR :public TrElem{
     kAngle        =    0x04,
     /// Total Signal Corr.: Gain Correction
     kGain         =    0x08, 
-    /// Total Signal Corr.: VA Gain Correction 
-    kVAGain       =    0x10, 
     /// Total Signal Corr.: Charge Loss Correction 
-    kLoss         =    0x20,
+    kLoss         =    0x10,
     /// Total Signal Corr.: Normalization to P-Side (not needed)    
-    kPN           =    0x40,
+    kPN           =    0x20,
     /// Total Signal Corr.: Normalization to number of MIP
-    kMIP          =    0x80,
+    kMIP          =    0x30,
     /// Total Signal Corr.: Multiply by 300 um MIP energy deposition (estimated to be 81 keV)
-    kMeV          =   0x100,
+    kMeV          =   0x080,
     /// Total Signal Corr.: Beta correction 
-    kBeta         =   0x200,
-    /// Total Signal Corr.: Rigidity correction (inactive)
-    kRigidity     =   0x400,
+    kBeta         =   0x100,
+    /// Total Signal Corr.: Rigidity correction 
+    kRigidity     =   0x200,
     /// Coordinate Corr.: Flip the eta used strips
-    kFlip         =   0x800,
+    kFlip         =   0x400,
     /// Coordinate Corr.: Correct for the charge coupling (4%) (inactive)
-    kCoupl        =  0x1000,
+    kCoupl        =  0x0800,
     /// Coordinate Corr.: Belau correction (inactive)
-    kBelau        =  0x2000
+    kBelau        =  0x1000
   };
 
   enum { TASCLS = 0x400 };
@@ -213,7 +211,7 @@ class TrClusterR :public TrElem{
   /**@{*/	
 
   //! Get cluster amplitude, with corrections
-  float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1);
+  float         GetTotSignal(int opt = DefaultCorrOpt, float beta = 1, float rigidity = 0, float mass_on_Z = 0);
   //! Convert an ADC signal to the ADC scale of p-side 
   float         ConvertToPSideScale(float adc/*n-side*/);
   //! Convert an ADC signal to the ADC scale of n-side
@@ -230,6 +228,10 @@ class TrClusterR :public TrElem{
   float         BetaCorrection_Muons_2010(float beta);
   //! Beta correction (derived from ISS data 2011, used as default)
   float         BetaCorrection_ISS_2011(float beta);
+  //! Rigidity correction (estimated with ISS data), dependent on the A/Z guess
+  float         RigidityCorrection(float rigidity, float mass_on_Z = 0.938); 
+  //! Beta and rigidity correction (best ranges selected), dependent on the A/Z guess
+  float         BetaRigidityCorrection(float beta, float rigidity, float mass_on_z = 0.938);
 
   //! Get energy deposition (MeV)
   float GetEdep() { return GetTotSignal(TrClusterR::DefaultEdepCorrOpt); }

@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.147 2012/03/17 20:25:42 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.148 2012/04/22 23:40:33 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/03/17 20:25:42 $
+/// $Date: 2012/04/22 23:40:33 $
 ///
-/// $Revision: 1.147 $
+/// $Revision: 1.148 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1353,7 +1353,7 @@ if (TrDEBUG >= 1) {\
                ntcls, ntmax) << endl;\
   cout << "      ";\
   int opt = TrClusterR::kAngle|TrClusterR::kAsym|TrClusterR::kGain|\
-            TrClusterR::kVAGain|TrClusterR::kLoss|TrClusterR::kMIP;\
+            TrClusterR::kLoss|TrClusterR::kMIP;\
   for (int j = 0; j < track->GetNhits(); j++) {\
     TrRecHitR *hit = track->GetHit(j);\
     double qx = hit->GetSignalCombination(0,opt,1);\
@@ -5218,12 +5218,12 @@ void TrRecon::FillChargeSeeds() {
   _htmx = TrCharge::GetMeanHighestFourClusters(
     TrCharge::kInner|TrCharge::kTruncMean,
     TrCharge::kX,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss
+    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss
   ).Mean;
   _htmy = TrCharge::GetMeanHighestFourClusters(
     TrCharge::kInner|TrCharge::kTruncMean,
     TrCharge::kY,
-    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kVAGain|TrClusterR::kLoss
+    TrClusterR::kAsym|TrClusterR::kGain|TrClusterR::kLoss
   ).Mean;
   hman.Fill("CSxCSy",sqrt(_htmy),sqrt(_htmx));
   hman.Fill("CSrCSx",sqrt(_htmx),sqrt(_htmy)/sqrt(_htmx));

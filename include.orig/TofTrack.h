@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
+// $Id: TofTrack.h,v 1.4 2012/04/22 23:40:34 oliva Exp $
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -41,18 +41,20 @@ class TofTrack {
 
   //! Mean options
   enum MeanOptions {
-    kPlain  = 0x01, /*!< If set plain mean. If not set truncated mean. */
-    kSqrt   = 0x02  /*!< If set sqrt of signal. If not set normal. */
+    kPlain   = 0x01, /*!< If set plain mean. If not set truncated mean. */
+    kSqrt    = 0x02, /*!< If set sqrt of signal. If not set normal. */
+    kExclude = 0x04  /*!< Exclude from evaluation clusters judged bad by HasToBeExcluded() function. */
   };
 
   //! Signal options
   enum SignalOptions {
-    kGain   = 0x01, /*!< Gain correction */
-    kMIP    = 0x02, /*!< MIP scale. */
-    kMeV    = 0x04, /*!< MeV scale. */
-    kPath   = 0x08, /*!< Pathlength correction. */
-    kBeta   = 0x10, /*!< \f$\beta\f$ correction. */
-    kContin = 0x20, /*!< use Contin corrections instead of mine when possible. */
+    kGain     = 0x01, /*!< Gain correction */
+    kMIP      = 0x02, /*!< MIP scale. */
+    kMeV      = 0x04, /*!< MeV scale. */
+    kPath     = 0x08, /*!< Pathlength correction. */
+    kBeta     = 0x10, /*!< \f$\beta\f$ correction. */
+    kRigidity = 0x20, /*!< Rigidity correction (depends on A/Z guess). */
+    kContin   = 0x40, /*!< use Contin corrections instead of mine whenever possible. */
   };
 
   //! Plane type
@@ -98,9 +100,6 @@ class TofTrack {
   //! Pathlength 
   float            _PathLength[4];
 
-  //! 
-  float            _Charge;
- 
   //! Truncated mean 
   float            _Mean[3];
   //! RMS of the truncated mean  
@@ -303,19 +302,19 @@ class TofTrack {
    * - where \c sig_opt is a combination of #SignalOptions (ex. to have \f$E_{dep}\f$ in MeV use \c sig_opt = #TofTrack::kMIP|#TofTrack::kMeV)
    * - if \c sig_opt = 0 you will get the default value: ADC counts * \c adc2mev, where \c adc2mev value is given by Choumilov.
    */
-  float        GetSignalLayer(int layer, int type, int sig_opt);
+  float        GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z = 0.938);
   //! Get floating point charge evaluation for a single layer 
-  float        GetChargeLayer(int layer, int type = kMix) { return sqrt(GetSignalLayer(layer,type,kMIP|kBeta|kPath)); }
+  float        GetChargeLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return sqrt(GetSignalLayer(layer,type,kMIP|kBeta|kPath,mass_on_Z)); }
   //! Get the maximum signal on ToF
-  float        GetMaxChargeLayer(int type = kMix);
+  float        GetMaxChargeLayer(int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate energy deposition for a given layer
-  float        GetEdepLayer(int layer, int type = kMix) { return GetSignalLayer(layer,type,kMIP|kMeV); } 
+  float        GetEdepLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return GetSignalLayer(layer,type,kMIP|kMeV,mass_on_Z); } 
   //! Get the floating point charge estimator for Upper/Lower plane 
-  float        GetChargePlane(int plane, int type = kMix);
+  float        GetChargePlane(int plane, int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate charge ratio (upper/lower charge estimations) 
-  float        GetChargeRatio(int type = kMix);
+  float        GetChargeRatio(int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate charge asymmetry: (lower-upper)/(lower+upper) 
-  float        GetChargeAsymmetry(int type = kMix);
+  float        GetChargeAsymmetry(int type = kMix, float mass_on_Z = 0.938);
   //! Get the gain correction
   static float GainCorrection(float edep, int layer, int bar, int type);
   //! Get the pathlength correction 
@@ -332,6 +331,10 @@ class TofTrack {
   float        BetaCorrectionContin1(int type);
   //! Beta correction (applied to charge estimator)
   float        BetaCorrectionContin2(float edep, int type);
+  //! Rigidity correction (depends on A/Z guess)
+  float        RigidityCorrection(int layer, float mass_on_Z = 0.938);
+  //! Beta and Rigidity correction (best ranges selected)
+  float        BetaRigidityCorrection(int layer, float mass_on_Z = 0.938);
   //! Weighting function used for Anode/Dynode mixing  
   static float GetMipResolution(float mip, int type);
   //! Get current mean 
@@ -345,7 +348,7 @@ class TofTrack {
   //! Get TOF floating point charge estimator Anode/Dynode (TO-DO: it may request refit ...)
   float        GetQ(int type = kMix) { return GetMean(type); }
   //! Make mean 
-  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kMIP|kPath|kBeta);
+  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kMIP|kPath|kBeta, float mass_on_Z = 0.938);
   //! Calculate the energy deposition
   bool         MakeEdep();
   //! Calculate the pathlength in material (unit of paddle height)
@@ -366,6 +369,8 @@ class TofTrack {
   int          GetAssociatedTrTrackFitId() { return _Id; }
   //! Is there any associated Tracker track
   bool         AnAssociatedTrTrackExist() { return (_TrTrack!=0)&&(_Id>=0); } 
+  //! Get the rigidity of the associated track with the wanted fit id
+  float        GetAssociatedTrTrackRigidity() { return (AnAssociatedTrTrackExist()) ? _TrTrack->GetRigidity(_Id) : 0; }
   //! Get X chi-squared with respect to tracker track 
   float        GetAssociatedTrTrackChiSqX() { return _TrackChiSq[0]; }
   //! Get Y chi-squared with respect to tracker track

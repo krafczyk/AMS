@@ -1,4 +1,4 @@
-// $Id: edep.h,v 1.4 2012/04/21 09:29:30 oliva Exp $
+// $Id: edep.h,v 1.5 2012/04/22 23:40:34 oliva Exp $
 
 #ifndef __AMSEnergyLoss__
 #define __AMSEnergyLoss__
@@ -19,8 +19,16 @@ using namespace std;
  */
 class AMSEnergyLoss { 
 
+
  public:
 
+
+  /** @name Most Probable Energy Loss description (Landau, 1944). 
+    * 
+    * The treatment involves also the Sternheimer density correction
+    * modified to have a continuous behaviour (delta0 suppressed). 
+    */
+  /**@{*/
   //! Csi as function of log10(betagamma) (par = {grammage,Z_on_A})
   static Double_t csi_logbetagamma(Double_t* x, Double_t* par);
   //! Sternheimer density correction as function of log10(betagamma) (par = {x0,x1,Cbar,a,k,delta0}) 
@@ -30,32 +38,36 @@ class AMSEnergyLoss {
   //! Most Probable Energy loss (Landau formula) function of beta [keV] (par = {grammage,Z_on_A,I,x0,x1,Cbar,a,k,delta0})
   static Double_t delta_beta(Double_t *x, Double_t *par);
 
-  //! Most Probable Energy loss function of beta, connected with a plateau (good for dE/dx vs beta ToF fit) 
-  static Double_t delta_beta_fit(Double_t *x, Double_t *par);
-  //! Function for the beta transformation, used in charge deposition fitting 
-  static Double_t beta_tol_on_beta(Double_t *x, Double_t *par);
-
   //! Most probable energy deposition in 300 um Silicon (keV)
   static Double_t GetMostProbEDepIn300umSi(Double_t logbetagamma);
   //! Most probable energy deposition in 1 cm Polyvinyltoluene (keV)
   static Double_t GetMostProbEDepIn1cmPoly(Double_t logbetagamma);
+  /**@}*/
+
+
+  /** @name Energy loss correction (preliminary correction)
+    */
+  /**@{*/
+  //! Function for the beta transformation, used in charge deposition fitting 
+  static Double_t beta_tol_on_beta(Double_t *x, Double_t *par);
 
   //! Beta at top of a Tracker layer (jlayer = 1, ..., 9; beta = beta measured in ToF)
   static Double_t GetBetaTopOfTrackerLayer(Int_t jlayer, Double_t beta);
   //! Low energy beta correction (jlayer = 1, ..., 9; beta = beta measured in ToF) 
   static Double_t GetBetaCorrectionTrackerLayer(Int_t jlayer, Double_t beta);
 
-  //! Beta at top of a ToF layer (layer = 1, ..., 4; beta = beta measured in ToF)
+  //! Beta at top of a ToF layer (layer = 1, ..., 4)
   static Double_t GetBetaTopOfTofLayer(Int_t layer, Double_t beta);
-  //! Low energy beta correction (jlayer = 1, ..., 9; beta = beta measured in ToF) 
+  //! Low energy beta correction (jlayer = 1, ..., 4; beta = beta measured in ToF) 
   static Double_t GetBetaCorrectionTofLayer(Int_t layer, Double_t beta);
+  /**@}*/
 
-  //! More detailed correction (April 2012)
-  /* 
-   *  Effective BetaGamma is the value of the betagamma needed to respect the dE/dx law for protons
-   *  Then additional correction depending on Q itself should be added 
-   */
 
+  /** @name More detailed energy loss correction (April 2012)
+    *
+    * Both Beta and Rigidity (A/Z guess) dependence implemented.
+    */
+  /**@{*/
   //! Parametrization for the effective \f$\beta\gamma\f$ calculation 
   static Double_t line_to_line(Double_t *x, Double_t *par);
 
@@ -91,6 +103,7 @@ class AMSEnergyLoss {
   static Double_t GetTrackerLayerLogBetaGammaCorrectionFromBeta(Int_t layer, Double_t beta);
   //! Tracker betagamma correction using beta and rigidity 
   static Double_t GetTrackerLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
+  /**@}*/
  
   ///////////////////////////////////
   // Z dependence renormalization 

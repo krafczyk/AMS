@@ -202,7 +202,6 @@ void TrSimCluster::ApplySaturation(double maxvalue) {
 
 
 void TrSimCluster::ApplyGain(int iside, int tkid) {
-  TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
   for (int ist=0; ist<GetWidth(); ist++) {
     int   address = (iside==0) ? GetAddressCycl(ist) + 640 : GetAddress(ist);
     int   iva = int(address/64);
@@ -210,10 +209,17 @@ void TrSimCluster::ApplyGain(int iside, int tkid) {
        printf("TrSimCluster::ApplyGain-E wrong VA (va=%2d, tkid=%+4d, addr=%4d), skipping.\n",iva,tkid,address);
        return; 
     }
+    // for the moment I leave the old code
+    TrLadPar* ladpar = TrParDB::Head->FindPar_TkId(tkid);
     float gain = ladpar->GetGain(iside)*ladpar->GetVAGain(iva);
     if      ( gain<0.02 )     SetSignal(ist,0.);                 // VA with no gain!
     else if ( (1./gain)<0.5 ) SetSignal(ist,GetSignal(ist)/10.); // VA with bad gain!
     else                      SetSignal(ist,GetSignal(ist)/gain);
+    /* decide how to use the tag ... FIX-ME
+    TrGainDB::GetHead()->FindGainTkId(tkid)
+    if (TrGainDB::GetHead()->FindGainTkId(tkid)->IsBad(iva))
+    SetSignal(ist,TrGainDB::GetHead()->GetGainCorrected(GetSignal(ist),tkid,iva));
+    */
   }
 }
 
