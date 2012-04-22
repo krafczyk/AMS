@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.63 2012/03/16 18:08:24 pzuccon Exp $
+//  $Id: TrFit.C,v 1.64 2012/04/22 10:01:45 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/03/16 18:08:24 $
+///$Date: 2012/04/22 10:01:45 $
 ///
-///$Revision: 1.63 $
+///$Revision: 1.64 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,9 +55,8 @@ void TrFit::Clear()
   _chisqx = _chisqy = _chisq = -1;
   _ndofx  = _ndofy  =  0;
   _errrinv = 0;
-  _mscat=0;
-  _eloss=0;
-  _beta=0;
+  _mscat = 0;
+  _eloss = 0;
 }
 
 int TrFit::Add(double x,  double y,  double z,
@@ -87,79 +86,36 @@ int TrFit::Add(double x,  double y,  double z,
   return _nhit;
 }
 
-double TrFit::DoFit(int method,int mscat,int  eloss,float charge,float mass,float beta)
+double TrFit::DoFit(int method, int mscat, int eloss, 
+		    float charge, float mass, float beta)
 {
-
-// Check number of hits
+  // Check number of hits
   if (_nhit < 3) return -1;
 
+  // Estimate mass from given beta
+  if (mass == 0 && beta != 0 && -1 < beta && beta < 1) {
+    if (_rigidity == 0 && SimpleFit() < 0) return -21;
 
+    if (beta < -1 || 1 < beta) beta = 1;
+    double p  = _rigidity*charge;
+    double mm = p*p*(1/beta/beta-1);
+    mass = (mm > 0) ? std::sqrt(mm) : 0;
+  }
 
-  _mscat=mscat;
-  _eloss=eloss;
-  SetBetaMass(charge,mass,beta);  
+  SetMultScat(mscat, eloss);
+  SetMassChrg(mass, charge);
+
   double ret = 0;
   if (method ==    LINEAR)  ret = LinearFit();
   if (method ==    CIRCLE)  ret = CircleFit();
   if (method ==    SIMPLE)  ret = SimpleFit();
   if (method ==   ALCARAZ)  ret = AlcarazFit();
   if (method ==   CHOUTKO)  ret = ChoutkoFit();
-  if (method == CHIKANIANC)  ret = ChikanianFitCInt(1);
+  if (method == CHIKANIANC) ret = ChikanianFitCInt(1);
   if (method == CHIKANIANF) ret = ChikanianFitF();
 
   ParLimits();
   return ret;
-}
-
-
-void TrFit::SetBetaMass(double charge, double mass, double beta){
-  _chrg=charge;
-  if(_chrg==0) { 
-    printf(" TrFit::SetBeta-W- You are fitting a particle with CHARGE=0 results can be meaningless!!!\n");
-    _beta=1;
-    _mass=Mproton;
-    return;
-  }
-  double abeta=fabs(beta);
-  if(abeta>1||abeta==0) {
-    _beta=999;
-    if(mass<=0)  _mass=Mproton;
-    else _mass=fabs(mass);
-  }else{
-    _mass=999;
-    _beta=abeta;
-  }
-  return;
-}
-
-double TrFit::GetMass(){
-  double ma=0;
-  if(_mass!=0 && _mass<999) ma=_mass;
-  else if(_beta>0){
-    if(_rigidity==0) {
-      int lmscat=_mscat;
-      _mscat=0;
-      SimpleFit();
-      _mscat=lmscat;
-    }
-    ma=sqrt(_rigidity*_chrg*_rigidity*_chrg*(1-1/_beta));
-  }
-  return ma;
-}
-
-double TrFit::GetBeta(){
-  double bb=0;
-  if(_beta<900) bb=_beta;
-  else if(_mass>0){
-    if(_rigidity==0) {
-      int lmscat=_mscat;
-      _mscat=0;
-      SimpleFit();
-      _mscat=lmscat;
-    }
-    bb=sqrt(1./(1+_mass*_mass/(_chrg*_rigidity*_chrg*_rigidity)));
-  }
-  return bb;
 }
 
 
@@ -1058,11 +1014,14 @@ int TrFit::FillDmsc(double *dmsc, double fact,
 
   if (_rigidity == 0) return -1;
 
-  // Calculate pbi2 = (p*beta/z)^(-2)
-  double pbi= GetBeta()*_rigidity;
-  double pbi2= 0;
-  if (pbi!=0) 
-    pbi2=1/(pbi*pbi);  
+  // Calculate pbi2 = (pbeta)^(-2)
+  double pbi2 = 0;
+  if (_mass > 0 && _chrg != 0) {
+    double p   = _rigidity*_chrg;
+    double pi2 = (p != 0) ? 1/p/p : 0;
+    double bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+    pbi2 = pi2*bi2;
+  }
   if (pbi2 <= 0) return -1;
 
   int ic = GetPcen(0);
@@ -1685,10 +1644,17 @@ Feb 2012 PZ update interface to new RKMS.F format
     SimpleFit();
     _mscat=lmscat;
   }
-  rini=_rigidity;
-  float beta=GetBeta();
-  float charge=_chrg;
-  rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge,&rini, out);
+  rini = _rigidity;
+  float beta   = 1;
+  float charge =_chrg;
+
+  if (_mass > 0 && _chrg != 0) {
+    float p   = _rigidity*_chrg;
+    float bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+    beta = (bi2 > 0) ? 1/std::sqrt(bi2) : 0;
+  }
+
+  rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge, &rini, out);
   
   if (RkmsDebug >= 1)
     cout << "RkmsFit: rini,rgt,chi2= "
@@ -3537,8 +3503,9 @@ int TrFit::Inv66(double M[6][6])
 //--------------------------------------------------------------------------
 //          TRPROP IMPLEMENTATION 
 //--------------------------------------------------------------------------
-double TrProp::Mproton = 0.938272297;     // Proton mass in GeV/c^2
-double TrProp::Mmuon   = 0.105658367;     // Muon   mass in GeV/c^2
+double TrProp::Mproton = 0.938272297;     // Proton  mass in GeV/c^2
+double TrProp::Mhelium = 3.727379240;     // Helium4 mass in GeV/c^2
+double TrProp::Mmuon   = 0.105658367;     // Muon    mass in GeV/c^2
 double TrProp::Clight  = 2.99792458e+08;  // Speed of light in m/s
 
 TrProp::TrProp(double p0x,   double p0y, double p0z, 

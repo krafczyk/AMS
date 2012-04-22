@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.27 2012/03/16 18:08:34 pzuccon Exp $
+//  $Id: TrFit.h,v 1.28 2012/04/22 10:01:42 shaino Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/03/16 18:08:34 $
+///$Date: 2012/04/22 10:01:42 $
 ///
-///$Revision: 1.27 $
+///$Revision: 1.28 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,6 +72,9 @@ public:
 
   /// Proton mass in GeV
   static double Mproton;
+
+  /// Helium4 mass in GeV
+  static double Mhelium;
 
   /// Muon mass in GeV
   static double Mmuon;
@@ -203,12 +206,10 @@ public:
 protected:
   /// Multiple scattering switch
   int _mscat;
+
   /// Energy loss correction switch
   int _eloss;
-  // Beta if obtained from ext infos
-  double _beta;
-  double _rini;
-  
+
   int    _nhit;          ///< Number of hits
   int    _nhitx;         ///< Number of hits in X
   int    _nhity;         ///< Number of hits in Y
@@ -248,16 +249,12 @@ protected:
     return (bb > 0);
   }
 
-  void SetBetaMass(double charge=1, double mass=Mproton, double beta=999);
-
 public:
   /// Default constructor
   TrFit(void);
 
   /// Destructor
   ~TrFit();
-  double GetBeta();
-  double GetMass();
   
   int    GetNhit  (void) const { return _nhit;   }
   int    GetNhitX (void) const { return _nhitx;  }
@@ -287,6 +284,9 @@ public:
   void SetErr(int i, double xs, double ys, double zs) {
     if (0 <= i && i < LMAX) { _xs[i] = xs; _ys[i] = ys; _zs[i] = zs; }
   }
+
+  /// Set multiple scattring and energy loss switch
+  void SetMultScat(int msc, int els = 0) { _mscat = msc; _eloss = els; }
 
   /// Recomended to use GetP0x(), GetDxDz(),. etc. instead of Getparam
   double GetParam(int i) const {
@@ -332,12 +332,13 @@ public:
    \li CHIKANIANC
    \li CHIKANIANF
    \param mscat  (0/1) activate the multiple scattering treatment
-   \param eloss  (0/1) activate the energy loss  treatment (dummy for the moment)
-   \param charge  charge of the fitted particle
-   \param mass    mass of the particle (if beta is valid the mass is calculated from it)
-   \param beta    valid if >0 and <=1, if not valid is calculated from mass
+   \param eloss  (0/1) activate the energy loss treatment (to be implemented)
+   \param charge charge of the fitted particle
+   \param mass   mass of the particle (calculated if mass==0 && beta!=0)
+   \param beta   used to calculate mass if mass==0 && beta!=0
   */
-  double DoFit(int method = CHOUTKO,int mscat=1,int  eloss=1,float charge=1,float mass=Mproton,float beta=999);
+  double DoFit(int method = CHOUTKO, int mscat = 1, int eloss = 1,
+	       float charge = 1, float mass = Mproton, float beta = 0);
 
   /// Linear fitting in X-Z and Y-Z planes
   double LinearFit(void);
