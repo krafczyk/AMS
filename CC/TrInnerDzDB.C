@@ -109,9 +109,11 @@ int TrInnerDzDB::TrInnerDB2Lin2TDV(mapit it0){
     TDVSwap[ii+1]         = it0->second.dz[ii];
     TDVSwap[ii+kLaynum+2] = it1->second.dz[ii];
   }
+
+  cout<<"Updating: "<<it0->first<<" "<<it1->first<<endl;
     
-  time_t starttime=it0->first;
-  time_t endtime=it1->first;
+  time_t starttime=it0->first+3600;
+  time_t endtime=it1->first+3600;
   tm begin;
   tm end;
   tm* mtim=gmtime_r(&starttime,&begin);
