@@ -31,9 +31,9 @@
  properties: signal (data members), calibration parameters (via TrCalDB), gains (via TrParDB),
  coordinates (via TkCoo). 
 
- $Date: 2012/04/22 23:40:34 $
+ $Date: 2012/04/23 01:19:18 $
 
- $Revision: 1.29 $
+ $Revision: 1.30 $
 
 */
 
@@ -44,23 +44,23 @@ class TrClusterR :public TrElem{
   
   enum CorrectionOptions {
     /// No Correction Applied
-    kNoCorr       =    0x00,       
+    kNoCorr       =     0x0,       
     /// Signal Corr.: Cluster Asymmetry Correction (left/right)
-    kAsym         =    0x01, 
+    kAsym         =     0x1, 
     /// Signal Corr.: P-Strip Correction (inactive)
-    kPStrip       =    0x02,
+    kPStrip       =     0x2,
     /// Total Signal Corr.: Energy Loss Normalization at 300 um [cos(Theta)^-1]
-    kAngle        =    0x04,
+    kAngle        =     0x4,
     /// Total Signal Corr.: Gain Correction
-    kGain         =    0x08, 
+    kGain         =     0x8, 
     /// Total Signal Corr.: Charge Loss Correction 
     kLoss         =    0x10,
     /// Total Signal Corr.: Normalization to P-Side (not needed)    
     kPN           =    0x20,
     /// Total Signal Corr.: Normalization to number of MIP
-    kMIP          =    0x30,
+    kMIP          =    0x40,
     /// Total Signal Corr.: Multiply by 300 um MIP energy deposition (estimated to be 81 keV)
-    kMeV          =   0x080,
+    kMeV          =    0x80,
     /// Total Signal Corr.: Beta correction 
     kBeta         =   0x100,
     /// Total Signal Corr.: Rigidity correction 
@@ -68,7 +68,7 @@ class TrClusterR :public TrElem{
     /// Coordinate Corr.: Flip the eta used strips
     kFlip         =   0x400,
     /// Coordinate Corr.: Correct for the charge coupling (4%) (inactive)
-    kCoupl        =  0x0800,
+    kCoupl        =   0x800,
     /// Coordinate Corr.: Belau correction (inactive)
     kBelau        =  0x1000
   };
