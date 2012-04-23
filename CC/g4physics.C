@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.45 2011/11/18 12:07:52 sdifalco Exp $
+//  $Id: g4physics.C,v 1.46 2012/04/23 16:41:43 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,10 +6,15 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.45 2011/11/18 12:07:52 sdifalco Exp $
+// $Id: g4physics.C,v 1.46 2012/04/23 16:41:43 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
+//Qi Yan
+#include "g4physics_ion.h"
+#include "G4EmExtraPhysics.hh"
+#include "G4NeutronTrackingCut.hh"
+#include "G4QStoppingPhysics.hh"
 
 #include "g4physics.h"
 #include "g4xray.h"
@@ -142,16 +147,25 @@ void AMSG4Physics::ConstructProcess()
       //     G4IonPhysics *pion=new G4IonPhysics("ion");
       //     pion->ConstructProcess();
 
-      cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
       HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
       pqgsp->ConstructProcess();    
       hadronelastic->ConstructProcess();
-      AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
-      pamshi->ConstructProcess();
-
-
-
+//--Qi Yan
+      G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
+      hardonstop->ConstructProcess();
+      if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
+        cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
+        AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
+        pamshi->ConstructProcess();
+      }
+//--Qi Yan
+      else {
+         cout<<"AMS DPMJET_HadronIon  will be used. "<<endl;
+         bool vers=1;
+         IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(vers);
+         pamshi->ConstructProcess();
+       } 
     }
   }
   else if(G4FFKEY.PhysicsListUsed==2){
@@ -168,21 +182,45 @@ void AMSG4Physics::ConstructProcess()
       //      G4IonPhysics *pion=new G4IonPhysics("ion");
       //      pion->ConstructProcess();
 
-      cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
       G4HadronElasticPhysics *hadronelastic = new G4HadronElasticPhysics("elastic");
+      hadronelastic->ConstructProcess();
       HadronPhysicsQGSP_BERT* pqgsp=new HadronPhysicsQGSP_BERT();
       pqgsp->ConstructProcess();    
-      hadronelastic->ConstructProcess();
-      AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
-      pamshi->ConstructProcess();
+//--Qi Yan      
+      G4QStoppingPhysics* hardonstop=new G4QStoppingPhysics("stopping");
+      hardonstop->ConstructProcess();
 
+     if(G4FFKEY.IonPhysicsModel==1||G4FFKEY.IonPhysicsModel==2){
+        cout<<"AMSPhysicsList_HadronIon  will be used. "<<endl;
+        AMSPhysicsList_HadronIon* pamshi = new AMSPhysicsList_HadronIon("TestIonAbrasian");
+        pamshi->ConstructProcess();
+      }
+//--Qi Yan
+      else {
+        cout<<"AMS DPMJET_HadronIon  will be used. "<<endl;
+        IonDPMJETPhysics* pamshi = new IonDPMJETPhysics(1);
+        pamshi->ConstructProcess();
+      }
 
     }
   }
+//---
   else{
     cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;
     abort();
   }
+//--Qi Yan
+   if(G4FFKEY.ExEmPhysics==1){
+      G4EmExtraPhysics *exph=new G4EmExtraPhysics("extra EM");
+      exph->ConstructProcess();
+   }
+   if(G4FFKEY.NeutronTkCut==1){
+      G4NeutronTrackingCut *neutroncut=new G4NeutronTrackingCut("Neutron tracking cut");
+//      neutroncut->SetTimeLimit(10.*microsecond);//time should <
+//      neutroncut->SetKineticEnergyLimit(10*MeV);//Energy should >
+      neutroncut->ConstructProcess();
+   }
+
   ConstructGeneral();
   //  if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV)ConstructOp();

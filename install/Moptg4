@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.132 2012/04/20 11:06:04 choutko Exp $
+#  $Id: Moptg4,v 1.133 2012/04/23 16:41:50 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -78,36 +78,36 @@ SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolv
 ROOTLIBS =
 CPPFLAGS+= -std ansi -m32
 ifdef AMSDEBUG
-CFLAGS4=        -D__BATCH__ --g -D__AMSDEBUG__    -I../include     $(CPPFLAGS)
-CFLAGS4P=        -D__BATCH__     -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
-CFLAGS4O1=        -D__BATCH__    -g -D__AMSDEBUG__   -I../include    $(CPPFLAGS)
-CFLAGS=  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include
-CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__  -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
-CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
-FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian -fpe2
-FFLAGSn=   -g -I../include  -d -static -nofor_main -convert big_endian -fpe2
-DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
+CFLAGS4=        -D__BATCH__ --g -D__AMSDEBUG__    -I../include  -I../DPMJET/include   $(CPPFLAGS)
+CFLAGS4P=        -D__BATCH__     -g -D__AMSDEBUG__   -I../include -I../DPMJET/include    $(CPPFLAGS)
+CFLAGS4O1=        -D__BATCH__    -g -D__AMSDEBUG__   -I../include  -I../DPMJET/include  $(CPPFLAGS)
+CFLAGS=  -D__BATCH__ -D__ALPHA__   -g     -I../include -I../DPMJET/include -I$(ROOTSYS)/include
+CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__  -D__AMSDEBUG__ -g     -I../include -I../DPMJET/include -I$(ROOTSYS)/include  
+CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__AMSDEBUG__ -g     -I../include -I../DPMJET/include -I$(ROOTSYS)/include  
+FFLAGS=   -g -I../include -I../DPMJET/include -d -static -nofor_main -convert big_endian -fpe2
+FFLAGSn=   -g -I../include -I../DPMJET/include -d -static -nofor_main -convert big_endian -fpe2
+DFLAGS=  -g   -I/usr/include -I../DPMJET/include -I../include  -I/usr/include/cxx
 else
-CFLAGS4=          -D__BATCH__ -O     -I../include     $(CPPFLAGS)
-CFLAGS4P=        -D__BATCH__    -O    -I../include     $(CPPFLAGS)
-CFLAGS4O1=        -D__BATCH__    -O    -I../include    $(CPPFLAGS)
-CFLAGS=  -D__BATCH__  -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include
-CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include  
-CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include  
-FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
-FFLAGSn=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
-DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
+CFLAGS4=          -D__BATCH__ -O     -I../include  -I../DPMJET/include   $(CPPFLAGS)
+CFLAGS4P=        -D__BATCH__    -O    -I../include  -I../DPMJET/include   $(CPPFLAGS)
+CFLAGS4O1=        -D__BATCH__    -O    -I../include  -I../DPMJET/include  $(CPPFLAGS)
+CFLAGS=  -D__BATCH__  -D__ALPHA__   -O4     -I../include -I../DPMJET/include -I$(ROOTSYS)/include
+CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I../DPMJET/include -I$(ROOTSYS)/include  
+CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I../DPMJET/include -I$(ROOTSYS)/include  
+FFLAGS=   -O -I../include -I../DPMJET/include -d -static -nofor_main -convert big_endian -fpe2
+FFLAGSn=   -O -I../include -I../DPMJET/include -d -static -nofor_main -convert big_endian -fpe2
+DFLAGS=  -g   -I/usr/include  -I../include -I../DPMJET/include -I/usr/include/cxx
 endif
 CFLAGSDAQ=$(CFLAGS) -D__LINUXGNU__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
 ifdef G4USE_OSPACE
-CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew  -timplicit_local -DOS_OSF1_4 -DOS_NEW_CHECK -DOS_STL_ASSERT -DOS_NO_WSTRING -DOS_NO_ALLOCATORS -D__NO_EDG_EXCEPTION_CLASSES
-CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -nostdnew   -timplicit_local 
+CP1F=-D__NAMESPACE__  -D__G4AMS__ -DG4_USE_DPMJET  -DG4DPMJET25GDSHDEBU -ieee -nostdnew  -timplicit_local -DOS_OSF1_4 -DOS_NEW_CHECK -DOS_STL_ASSERT -DOS_NO_WSTRING -DOS_NO_ALLOCATORS -D__NO_EDG_EXCEPTION_CLASSES
+CP2F=-D__NAMESPACE__  -D__G4AMS__ -DG4_USE_DPMJET  -DG4DPMJET25GDSHDEBU -ieee  -nostdnew   -timplicit_local 
 else
-CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee   -use_std  -timplicit_local -D__USE_STD_IOSTREAM
+CP1F=-D__NAMESPACE__  -D__G4AMS__ -DG4_USE_DPMJET  -DG4DPMJET25GDSHDEBU -ieee   -use_std  -timplicit_local -D__USE_STD_IOSTREAM
 #CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee   -use_std  -D__USE_STD_IOSTREAM -timplicit_local 
-CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -use_std -timplicit_local -D__USE_STD_IOSTREAM
+CP2F=-D__NAMESPACE__  -D__G4AMS__ -DG4_USE_DPMJET  -DG4DPMJET25GDSHDEBU -ieee  -use_std -timplicit_local -D__USE_STD_IOSTREAM
 endif
 endif
 XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lm
@@ -120,7 +120,7 @@ TIMEL=
 endif
 ifeq  "$(G4SYSTEM)"  "Linux-icc"
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
-CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
+CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -I../DPMJET/include
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
 CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) $(CFLAGSB)
@@ -128,8 +128,8 @@ CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS) $(CFLA
 CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS) $(CFLAGSB)
 CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
-FFLAGS=   -I../include  -fp_port
-FFLAGSn=  -I../include  -fp_port -D__ICC__
+FFLAGS=   -I../include -I../DPMJET/include  -fp_port
+FFLAGSn=  -I../include  -I../DPMJET/include -fp_port -D__ICC__
 CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include  -D__ICC__ $(CFLAGSB)
 else
 CFLAGS=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
@@ -139,21 +139,21 @@ CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS) $(CFLAGSB)
 CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  $(CFLAGSB)
 CFLAGSDAQ=      -D__BATCH__    -D__LINUXGNU__   -I../include  -O2 -D__ICC__ $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
-FFLAGS=   -fp_port -O -I../include
-FFLAGSn=  -fp_port -I../include -D__ICC__
+FFLAGS=   -fp_port -O -I../include -I../DPMJET/include
+FFLAGSn=  -fp_port -I../include -I../DPMJET/include -D__ICC__
 endif
-DFLAGS=    -g  -I../include
+DFLAGS=    -g  -I../include -I../DPMJET/include
 
 
 INTELDIR=/opt/intel/
 INTELVER=Compiler/11.1/073/
-INTELOPT=-axsse4.2,ssse3 -openmp -D__G4AMS__ 
+INTELOPT=-axsse4.2,ssse3 -openmp -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU 
 PARALLEL=
 
 ifndef DEFINES
 DEFINES= 
 endif
-DEFINES += -D__NAMESPACE__ -D__G4AMS__ 
+DEFINES += -D__NAMESPACE__ -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU
 
 FF=$(INTELDIR)/$(INTELVER)/bin/intel64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL) 
 CXX=$(INTELDIR)/$(INTELVER)/bin/intel64/icc   $(INTELOPT) -vec-report0  $(PARALLEL) $(DEFINES) -D__LINUXGNU__
@@ -202,7 +202,7 @@ endif
 
 ifeq  "$(G4SYSTEM)"  "Linux-icc.ia64"
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib64 -pthread -lORBit-2-cpp  
-CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
+CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -I../DPMJET/include
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
 CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) $(CFLAGSB)
@@ -210,9 +210,9 @@ CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS) $(CFLA
 CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS) $(CFLAGSB)
 CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include $(CFLAGSB)
-FFLAGS=   -I../include  -fp_port
-FFLAGSn=  -I../include  -fp_port -D__ICC__
-CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include  -D__ICC__ $(CFLAGSB)
+FFLAGS=   -I../include -I../DPMJET/include  -fp_port
+FFLAGSn=  -I../include  -I../DPMJET/include -fp_port -D__ICC__
+CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include -I../DPMJET/include -D__ICC__ $(CFLAGSB)
 else
 CFLAGS=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
 CFLAGS4=      -D__BATCH__ -O2      -I../include     $(CPPFLAGS) $(CFLAGSB)
@@ -221,21 +221,21 @@ CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS) $(CFLAGSB)
 CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  $(CFLAGSB)
 CFLAGSDAQ=      -D__BATCH__    -D__LINUXGNU__   -I../include  -O2 -D__ICC__ $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -O2    -I../include  $(CFLAGSB)
-FFLAGS=   -fp_port -O -I../include
-FFLAGSn=  -fp_port -I../include -D__ICC__
+FFLAGS=   -fp_port -O -I../include -I../DPMJET/include
+FFLAGSn=  -fp_port -I../include -I../DPMJET/include -D__ICC__
 endif
-DFLAGS=    -g  -I../include
+DFLAGS=    -g  -I../include -I../DPMJET/include
 
 
 INTELDIR=/opt/intel/
 INTELVER=Compiler/11.1/075/
-INTELOPT= -openmp -D__G4AMS__ 
+INTELOPT= -openmp -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU
 PARALLEL=
 
 ifndef DEFINES
 DEFINES= 
 endif
-DEFINES += -D__NAMESPACE__ -D__G4AMS__ 
+DEFINES += -D__NAMESPACE__ -D__G4AMS__  -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU
 
 FF=$(INTELDIR)/$(INTELVER)/bin/ia64/ifort -W0  $(INTELOPT)  -vec-report0 $(PARALLEL) 
 CXX=$(INTELDIR)/$(INTELVER)/bin/ia64/icc   $(INTELOPT) -vec-report0  $(PARALLEL) $(DEFINES) -D__LINUXGNU__
@@ -286,7 +286,7 @@ endif
 
 ifeq  "$(G4SYSTEM)"  "Linux-g++"
 LDFLAGSIDL=    -L$(ORBIT2DIR)/lib -pthread -lORBit-2-cpp  
-CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include
+CFLAGSB =  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -I../DPMJET/include
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include    $(CFLAGSB)
 CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__    -pipe  -DGNU_GCC -I../include     $(CPPFLAGS) $(CFLAGSB)
@@ -294,8 +294,8 @@ CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe  -DGNU_GCC -I../include  
 CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe  -DGNU_GCC -I../include     $(CPPFLAGS) $(CFLAGSB)
 CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include    $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include   $(CFLAGSB)
-FFLAGS=   -fno-automatic -g -I../include
-FFLAGSn=   -fno-automatic -g -I../include
+FFLAGS=   -fno-automatic -g -I../include -I../DPMJET/include
+FFLAGSn=   -fno-automatic -g -I../include -I../DPMJET/include
 CFLAGSDAQ=      -D__BATCH__  -D__LINUXGNU__ -g     -I../include   $(CFLAGSB) 
 else 
 CFLAGS=      -D__BATCH__  -O2    -I../include   $(CFLAGSB)
@@ -305,19 +305,19 @@ CFLAGS4O1=      -D__BATCH__   -O1  -pipe  -DGNU_GCC -I../include     $(CPPFLAGS)
 CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include    $(CFLAGSB)
 CFLAGSDAQ=      -D__BATCH__   -D__LINUXGNU__    -I../include    $(CFLAGSB)
 CFLAGSn=      -D__BATCH__  -O2    -I../include    $(CFLAGSB)
-FFLAGS=   -fno-automatic -O -I../include
-FFLAGSn=   -fno-automatic  -I../include
+FFLAGS=   -fno-automatic -O -I../include -I../DPMJET/include
+FFLAGSn=   -fno-automatic  -I../include -I../DPMJET/include
 endif
-DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
+DFLAGS=    -g   -I/usr/local/include/g++  -I../include -I../DPMJET/include
 
 XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib -lcrypt -lcrypto -ldl  -lpcre -lncurses -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl -lfreetype -lgfortran -pthread
-CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__  -mcpu=i686
+CC=gcc  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU  -mcpu=i686
 ifndef LinuxBUG
-CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+CXX=g++  -m32 -D__NAMESPACE__ -D__LINUXGNU__ -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU -Wno-deprecated -mcpu=i686
 FF=g77 -m32
 LD=g++ -m32 -static 
 else
-CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+CXX=/usr/local/bin/g++  -m32 -D_LINUXGNU_ -D__NAMESPACE__ -D__G4AMS__ -DG4_USE_DPMJET -DG4DPMJET25GDSHDEBU -Wno-deprecated -mcpu=i686
 FF=/usr/local/bin/g77 -m32
 LD=/usr/local/bin/g++ -m32
 endif
@@ -333,7 +333,7 @@ CFLAGSDAQ += -I$(CLHEP_INCLUDE_DIR)
 SCC=../CC/
 SFF=../F/
 SHLD=..$(LIB)/ntuple.so$
-INCS= $(wildcard ../include/*.h)
+INCS= $(wildcard ../include/*.h ../DPMJET/include/*.hh)
 #$(SCC)G4PropagatorInField.cc $(SCC)G4MagIntegratorDriver.cc $(SCC)G4ChordFinder.cc 
  G4XRAY=$(SCC)g4xray.C
 
@@ -341,7 +341,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C \
 	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
 	$(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C \
-	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C $(SCC)edep.C \
+	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics_ion.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C $(SCC)edep.C \
 	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trfit.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
@@ -378,11 +378,12 @@ FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)richrec_lip.F  $(SFF)richnodisp_lip.F $(SFF)richpatt_lip.F $(SFF)richbetalike_lip.F $(SFF)richbetastand_lip.F $(SFF)richchg_lip.F $(SFF)richutil_lip.F \
 	$(SFF)rkms.F $(SFF)rzerowrapper.F $(SFF)trd.F
 
+
 FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C \
 	$(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C \
 	$(SCC)amsgeom.C  \
-	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C $(SCC)edep.C \
+	$(SCC)AMSPhysicsList_HadronIon.C $(SCC)g4physics_ion.C $(SCC)g4physics.C $(SCC)mceventg.C $(SCC)rnormx.C  $(SCC)trid.C $(SCC)edep.C \
 	$(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trfit.C $(SCC)trdsim.C $(SCC)TRD_SimUtil.C\
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C \
 	$(SCC)VCon_gbatch.C $(SCC)TrElem.C    $(SCC)VCon.C \
@@ -423,6 +424,7 @@ FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
 
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
 
+
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
 OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
@@ -446,6 +448,29 @@ OBJECTSC += $(BIN)TrackFit_utils_c.o
 SRC=$(BIN)
 INCLUDE=../include/
 
+#---Qi Yan
+DPMDIR=../DPMJET/
+DPMSCC=$(DPMDIR)/src/
+DPMFF= $(DPMDIR)/dpmjet2_5/
+
+$(BIN)%.o : $(DPMFF)%.f
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
+$(BIN)%.o : $(DPMSCC)%.cc
+	$(CXX) -c $(CP1F) $(CFLAGS4P) -I$(CERNDIR)/include  $< -o $@
+
+DPMSCCLIST= $(wildcard $(DPMSCC)/*.cc)
+DPMSCCLIST1= $(notdir $(DPMSCCLIST))
+DPMSCCOBJ=$(patsubst %.cc, $(BIN)%.o, $(DPMSCCLIST1))
+
+DPMFFLIST= $(wildcard $(DPMFF)/*.f)
+DPMFFLIST1= $(notdir $(DPMFFLIST))
+DPMFFOBJ=$(patsubst %.f, $(BIN)%.o, $(DPMFFLIST1))
+
+OBJECTS+= $(DPMSCCOBJ) $(DPMFFOBJ)
+OBJECTSC+= $(DPMSCCOBJ) $(DPMFFOBJ)
+#---
+
+
 INCSCPP= $(SRC)server-cpp-stubs.h $(SRC)server-cpp-skels.h $(SRC)server-cpp-common.h
 
 SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
@@ -461,7 +486,7 @@ OBJECTSEAUX=    $(BIN)id.o         $(BIN)node.o     $(BIN)astring.o \
 		$(BIN)apool.o      $(BIN)snode.o    $(BIN)dbserver.o  
 
 
-#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)rzerowrapper.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)edep.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trfit.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o  $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)trddbcntuple.o $(BIN)root.o  $(BIN)root_setup.o $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalBDT.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)richlip.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
+#OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)commonsi.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)TrackFit_utils.o  $(BIN)Geant3_utils.o  $(BIN)rkms.o $(BIN)rzerowrapper.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o  $(BIN)g4physics_ion.o $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)edep.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trfit.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)trdhrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o  $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o  $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)trddbcntuple.o $(BIN)root.o  $(BIN)root_setup.o $(BIN)rootdict.o $(BIN)user.o $(BIN)vtx.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalBDT.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richradid.o $(BIN)richgeom.o $(BIN)richlip.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)daqecblock.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)richpmtlib.o $(BIN)astro.o  $(BIN)richrec_lip.o $(BIN)richnodisp_lip.o $(BIN)richpatt_lip.o 	$(BIN)richbetalike_lip.o $(BIN)richbetastand_lip.o $(BIN)richchg_lip.o $(BIN)richutil_lip.o $(BIN)anticalib02.o $(BIN)trmccluster.o $(BIN)tkgeom.o
 #$(BIN)G4LowEnergyPhotoElectric.o
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
@@ -820,6 +845,9 @@ $(BIN)G4ChordFinder.o: 	 $(SCC)G4ChordFinder.cc
 
 $(BIN)G4MagIntegratorDriver.o: 	 $(SCC)G4MagIntegratorDriver.cc
 	$(CXX) -c $(CP1F) $(CFLAGS4O1) $(SCC)G4MagIntegratorDriver.cc -o $(BIN)G4MagIntegratorDriver.o
+
+$(BIN)g4physics_ion.o:          $(SCC)g4physics_ion.C
+	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)g4physics_ion.C -o $(BIN)g4physics_ion.o
 
 $(BIN)g4physics.o: 	 $(SCC)g4physics.C
 	$(CXX) -c $(CP1F) $(CFLAGS4P) $(SCC)g4physics.C -o $(BIN)g4physics.o

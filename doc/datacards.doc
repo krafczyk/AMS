@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.372 2012/04/18 22:56:13 paniccia Exp $
+#  $Id: datacards.doc,v 1.373 2012/04/23 16:41:49 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -657,8 +657,11 @@ I 6 LowEMagProcUsed(0)  // Use(1) not use(0) g4 "low-em-proc" as opposed to "sta
 I 7 IonPhysicsModel(1)  // Physics Model for Ion:
 			// 1: Binary Light Ion Cascade model(not supposed to be valid above few 10GeV/n)
 			// 2: Wilson abrasion model (not supposed to be valid above few 10GeV/n)
+                        // 3: Binary Light(<5GeV/n) +DPMJET2-5 Model(5GeV/n,1000TeV/n)
 I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
+I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
+I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd

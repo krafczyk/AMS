@@ -80,6 +80,20 @@ endif
 
 DEFINES  +=    -D__WRITEROOT__    
 INCDIRS  += -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
+
+#----Qi Yan
+ifdef G4AMS
+DPMDIR=../DPMJET/
+DPMBIN=$(DPMDIR)/bin/$(MARCH)/
+DPMSCC=$(DPMDIR)/src/
+DPMFF= $(DPMDIR)/dpmjet2_5/
+
+DEFINES +=-DG4_USE_DPMJET \
+        -DG4DPMJET25GDSHDEBU
+INCDIRS +=-I$(DPMDIR)/include
+endif
+#-----
+
 CPPFLAGS += $(DEFINES)  $(INCDIRS)
 
 ROOTDICT_CPPFLAGS= $(CPPFLAGS) 
@@ -211,7 +225,7 @@ COMMON_FILES+=$(GBATCH_BASE)
 ifdef G4AMS
 #Geant 4 interface
 
-COMMON_FILES +=   $(SCC)TRD_SimUtil.C\
+COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
 	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C	
 
@@ -460,7 +474,31 @@ ifndef PGTRACK
 OBJECTSC += $(BIN)TrackFit_utils_c.o
 endif
 
+#---Qi Yan
+ifdef G4AMS
+$(DPMBIN)%.o : $(DPMFF)%.f
+	@echo Compiling  $< ...
+	@if ! [ -d $(DPMBIN) ] ; then mkdir -p $(DPMBIN); fi
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
+
+$(DPMBIN)%.o : $(DPMSCC)%.cc
+	@echo Compiling  $< ...
+	@if ! [ -d $(DPMBIN) ] ; then mkdir -p $(DPMBIN); fi
+	$(CXX) -c $(CFLAGS) -I$(CERNDIR)/include -I$(DPMDIR)/include -I../include  $< -o $@
+
+DPMSCCLIST= $(wildcard $(DPMSCC)/*.cc)
+DPMSCCLIST1= $(notdir $(DPMSCCLIST))
+DPMSCCOBJ=$(patsubst %.cc, $(DPMBIN)%.o, $(DPMSCCLIST1))
+
+DPMFFLIST= $(wildcard $(DPMFF)/*.f)
+DPMFFLIST1= $(notdir $(DPMFFLIST))
+DPMFFOBJ=$(patsubst %.f, $(DPMBIN)%.o, $(DPMFFLIST1))
+
+OBJECTS+=  $(DPMSCCOBJ) $(DPMFFOBJ)
+OBJECTSI+= $(DPMSCCOBJ) $(DPMFFOBJ)
+OBJECTSC+= $(DPMSCCOBJ) $(DPMFFOBJ)
+endif
 #------------------------------------------------------------------------------
 #----   Files list for the ORBiT/CORBA client/server 
 #------------------------------------------------------------------------------
@@ -895,7 +933,7 @@ clean :
 	rm -f $(BIN)*.h
 	rm -f $(STANDALONE) $(INTERACTIVE) $(CLIENT) $(SERVER)
 	rm -f $(NTLD) $(SHLD)
-
+	rm -f $(DPMBIN)*.o
 cleanALL : 
 	rm -rf $(AMSWD)/bin 
 	rm -rf $(AMSWD)/lib

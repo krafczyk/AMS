@@ -29,6 +29,7 @@
 #include "AMSPhysicsList_HadronIon.h" 
 #include "G4LElastic.hh"
 #include "G4HadronElasticProcess.hh"
+#include "G4IonsShenCrossSection.hh"
 //////////////////////////////////////////////////////////////////////////////// 
 // 
 AMSPhysicsList_HadronIon::AMSPhysicsList_HadronIon(const G4String& name)
@@ -77,7 +78,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 
     G4EMDissociationCrossSection *EMDCrossSection = new G4EMDissociationCrossSection;
     G4GeneralSpaceNNCrossSection * generalCrossSection =  new G4GeneralSpaceNNCrossSection;
-
+   G4IonsShenCrossSection* fShen = new G4IonsShenCrossSection();
 
    G4LEDeuteronInelastic*  fDeuteronModel = new G4LEDeuteronInelastic;
     fDeuteronModel->SetMaxEnergy(100.0*MeV);
@@ -108,6 +109,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Deuteron
 	particle = G4Deuteron::Deuteron();
 	pManager = particle->GetProcessManager();
+        fDeuteronProcess->AddDataSet(fShen);
 	fDeuteronProcess->AddDataSet(generalCrossSection);
 	fDeuteronProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fDeuteronProcess);
@@ -116,7 +118,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Triton
 	particle = G4Triton::Triton();
 	pManager = particle->GetProcessManager();
-	
+        fTritonProcess->AddDataSet(fShen);	
 	fTritonProcess->AddDataSet(generalCrossSection);
 	fTritonProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fTritonProcess);
@@ -124,6 +126,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	//======Alpha
 	particle = G4Alpha::Alpha();
 	pManager = particle->GetProcessManager();
+        fAlphaProcess->AddDataSet(fShen);
 	fAlphaProcess->AddDataSet(generalCrossSection);
 	fAlphaProcess->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fAlphaProcess);
@@ -132,6 +135,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4He3::He3();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fhe3Ion = new G4HadronInelasticProcess("He3Inelastic",particle);
+        fhe3Ion->AddDataSet(fShen);
 	fhe3Ion->AddDataSet(generalCrossSection);
 	fhe3Ion->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fhe3Ion);
@@ -140,6 +144,7 @@ void AMSPhysicsList_HadronIon::ConstructProcess() {
 	particle = G4GenericIon::GenericIon();
 	pManager = particle->GetProcessManager();
 	G4HadronInelasticProcess* fGenericIon = new G4HadronInelasticProcess("IonInelastic",particle);
+        fGenericIon->AddDataSet(fShen);
 	fGenericIon->AddDataSet(generalCrossSection);
 	fGenericIon->RegisterMe(theGenIonBC);
 	pManager->AddDiscreteProcess(fGenericIon);

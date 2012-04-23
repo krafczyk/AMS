@@ -25,6 +25,8 @@ setenv offmon        $Offline/vdev/exe/linuxicc/offmon
 setenv offmonc        $Offline/vdev/exe/linuxicc/offmonc      
 
 setenv AMSDynAlignment $AMSDataDirRW/ExtAlig/AlignmentFiles/
+setenv G4DPMJET2_5DATA  $AMSWD/DPMJET/GlauberData
+
 
 setenv AMSICC 1
 setenv AMSP 1

@@ -41,7 +41,7 @@ else
   PARALLEL= -openmp -D__LINUX24__ 
 endif
 ifdef AMSP
- PARALLEL=-D__AMSP__ -openmp  -D__LINUX24__ 
+  PARALLEL=-D__AMSP__ -openmp  -D__LINUX24__ 
 endif
 
 

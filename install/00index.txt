@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.59 2011/09/27 23:44:00 pzuccon Exp $
+#  $Id: 00index.txt,v 1.60 2012/04/23 16:41:50 choutko Exp $
 
 Makefile //  General Makefile
 source /Offline/vdev/install/amsvar.gcc64
@@ -18,7 +18,6 @@ Makefile.linux// OS dep -> Linux-gcc32
           // setenv   ECALBDT 1        enable ECAL electron classifier function
           //                           WARNING: if set file ecalBDT.C need ~6 
           //                           minutes to be compiled
-          //  
 	  
 Moptg4    // makefile to gmake g4 batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
