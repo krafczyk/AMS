@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.386 2012/04/21 09:29:29 oliva Exp $
+//  $Id: root.C,v 1.387 2012/04/23 11:43:25 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4452,7 +4452,6 @@ int RichHitR::getPMTs(bool countCrossed){
   return counter;
 }
 
-
 float RichRingR::getBetaExpectedResolution(){
   if(RichBetaUniformityCorrection::getHead())     // Use the uniformity corrections, which should be better
     return RichBetaUniformityCorrection::getHead()->getWidth(this)*2;
@@ -4745,7 +4744,12 @@ int RichRingR::getUsedHits(int pmt, bool corr) {
 
 
 float RichRingR::getPhotoElectrons(bool corr){
-  if (!corr || !loadPmtCorrections) return NpCol;
+  if (!corr || !loadPmtCorrections){
+    NpCol=0;
+    for(map<unsigned short,float>::iterator i=NpColPMT.begin();
+	i!=NpColPMT.end();i++,NpCol+=i->second);
+      return NpCol;
+  }
 
   float sum=0;
   for(map<unsigned short,float>::iterator i=NpColPMT.begin();
@@ -4771,7 +4775,12 @@ float RichRingR::getPhotoElectrons(int pmt, bool corr){
 
 
 float RichRingR::getExpectedPhotoElectrons(bool corr){
-  if (!corr) return NpExp;
+  if (!corr){
+    NpExp=0;
+    for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
+	i!=NpExpPMT.end();i++,NpExp+=i->second);
+    return NpExp;
+  }
 
   float sum=0;
   for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
@@ -4962,10 +4971,12 @@ RichRingR::RichRingR(AMSRichRing *ptr, int nhits) {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }
   
-  // Fill the information per PMT
+  // Fill the information per PMT. 
+  NpCol=0;
+  NpExp=0;
   for(unsigned short pmtNb=0;pmtNb<680;pmtNb++){
-    if(ptr->NpColPMT[pmtNb]>1e-6) NpColPMT[pmtNb]=ptr->NpColPMT[pmtNb];
-    if(ptr->NpExpPMT[pmtNb]>1e-6) NpExpPMT[pmtNb]=ptr->NpExpPMT[pmtNb];
+    if(ptr->NpColPMT[pmtNb]>1e-6) {NpColPMT[pmtNb]=ptr->NpColPMT[pmtNb];NpCol+=ptr->NpColPMT[pmtNb];}
+    if(ptr->NpExpPMT[pmtNb]>1e-6) {NpExpPMT[pmtNb]=ptr->NpExpPMT[pmtNb];NpExp+=ptr->NpExpPMT[pmtNb];}
   }
   
 #endif
