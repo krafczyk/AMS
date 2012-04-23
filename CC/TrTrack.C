@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.131 2012/04/22 23:40:33 oliva Exp $
+// $Id: TrTrack.C,v 1.132 2012/04/23 03:58:45 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/22 23:40:33 $
+///$Date: 2012/04/23 03:58:45 $
 ///
-///$Revision: 1.131 $
+///$Revision: 1.132 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -979,7 +979,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     }
   }
 
-  for (int i = 0; i < trconst::maxlay; i++)
 
   return GetChisq(id);
 }
@@ -987,7 +986,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 void TrTrackR::Print(int opt) {
   _PrepareOutput(opt);
   cout <<sout;
-
+ return;
 }
 
 bool TrTrackR::CheckLayFit(int fittype,int lay) const{
