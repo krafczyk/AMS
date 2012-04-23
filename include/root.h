@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.422 2012/04/23 11:43:25 mdelgado Exp $
+//  $Id: root.h,v 1.423 2012/04/23 15:42:17 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -214,14 +214,14 @@ static char _Info[255];
   int Raw;            ///<raw event length in bytes
   int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
   unsigned int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
-  int RNDMSeed[2];  /// MC Only RNDM(1)/RNDM(2) seeds
+  int RNDMSeed[2];  ///< MC Only RNDM(1)/RNDM(2) seeds
 
 
 // shuttle/ISS parameters
 
-   float RadS;    ///<iss orbit altitude cm  (GTOD coo sys)
-   float ThetaS;  ///<theta (GTOD rad)
-   float PhiS;    ///<phi   (GTOD rad)
+   float RadS;    ///<iss orbit altitude cm  (GTOD coo sys, prediction from NORAD web site)
+   float ThetaS;  ///<theta (GTOD rad,NORAD, accuracy declared 1km)
+   float PhiS;    ///<phi   (GTOD rad,NORAD, accuracy declared 1km )
    float Yaw;     ///<ISS yaw (LVLH rad)
    float Pitch;   ///<ISS pitch (LVLH rad)
    float Roll;   ///<ISS roll (LVLH rad)

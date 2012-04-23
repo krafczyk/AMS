@@ -1,9 +1,9 @@
-//  $Id: server.h,v 1.60 2011/09/28 07:50:05 choutko Exp $
+//  $Id: server.h,v 1.61 2012/04/23 15:42:24 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include "typedefs.h"
 #include <time.h>
-#include <iostream.h>
+#include <iostream>
 #include <unistd.h>
 #include <map>
 #include <list>
