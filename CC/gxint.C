@@ -1,7 +1,7 @@
-//  $Id: gxint.C,v 1.13 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: gxint.C,v 1.14 2012/04/23 15:42:05 choutko Exp $
 // Author V. Choutko 24-may-1996
  
-#include <iostream.h>
+#include <iostream>
 #include "cern.h"
 #include "gvolume.h"
 #include <signal.h>

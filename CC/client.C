@@ -1,8 +1,8 @@
-//  $Id: client.C,v 1.54 2011/08/25 15:44:14 choutko Exp $
+//  $Id: client.C,v 1.55 2012/04/23 15:41:58 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
-#include <iostream.h>
+#include <iostream>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
