@@ -1,4 +1,4 @@
-//  $Id: TrFit.h,v 1.28 2012/04/22 10:01:42 shaino Exp $
+//  $Id: TrFit.h,v 1.29 2012/04/23 05:20:16 pzuccon Exp $
 #ifndef __TrFit__
 #define __TrFit__
 
@@ -49,9 +49,9 @@
 ///\date  2008/12/11 SH  NORMAL renamed as CHOUTKO, and ALCARAZ fit added
 ///\date  2010/03/03 SH  ChikanianFit added
 ///
-///$Date: 2012/04/22 10:01:42 $
+///$Date: 2012/04/23 05:20:16 $
 ///
-///$Revision: 1.28 $
+///$Revision: 1.29 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -114,6 +114,8 @@ public:
 
   double GetPhi  (void) const { return atan2(_dydz, _dxdz);}
   double GetTheta(void) const { return atan(sqrt(_dydz*_dydz+_dxdz*_dxdz));}
+  double GetMass(){return _mass;}
+  double GetCharge(){return _chrg;}
 
   double GetRigidity(void) const { return _rigidity; }
 
@@ -255,6 +257,7 @@ public:
 
   /// Destructor
   ~TrFit();
+  double GetBeta();
   
   int    GetNhit  (void) const { return _nhit;   }
   int    GetNhitX (void) const { return _nhitx;  }

@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.64 2012/04/22 10:01:45 shaino Exp $
+//  $Id: TrFit.C,v 1.65 2012/04/23 05:20:16 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/04/22 10:01:45 $
+///$Date: 2012/04/23 05:20:16 $
 ///
-///$Revision: 1.64 $
+///$Revision: 1.65 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +116,24 @@ double TrFit::DoFit(int method, int mscat, int eloss,
 
   ParLimits();
   return ret;
+}
+
+double TrFit::GetBeta(){
+  double bb=1;
+  if(_mass>0){
+    if(_rigidity==0) {
+      int lmscat=_mscat;
+      _mscat=0;
+      SimpleFit();
+      _mscat=lmscat;
+    }
+    double p=0;
+    if(_chrg!=0) 
+    p   = _rigidity*_chrg;
+    float bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+    bb= (bi2 > 0) ? 1/std::sqrt(bi2) : 0;
+  }
+  return bb;
 }
 
 
@@ -1019,7 +1037,8 @@ int TrFit::FillDmsc(double *dmsc, double fact,
   if (_mass > 0 && _chrg != 0) {
     double p   = _rigidity*_chrg;
     double pi2 = (p != 0) ? 1/p/p : 0;
-    double bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+    //    double bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+    double bi2 =1/GetBeta()/GetBeta();
     pbi2 = pi2*bi2;
   }
   if (pbi2 <= 0) return -1;
@@ -1645,14 +1664,14 @@ Feb 2012 PZ update interface to new RKMS.F format
     _mscat=lmscat;
   }
   rini = _rigidity;
-  float beta   = 1;
+  float beta   = GetBeta();
   float charge =_chrg;
 
-  if (_mass > 0 && _chrg != 0) {
-    float p   = _rigidity*_chrg;
-    float bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
-    beta = (bi2 > 0) ? 1/std::sqrt(bi2) : 0;
-  }
+//   if (_mass > 0 && _chrg != 0) {
+//     float p   = _rigidity*_chrg;
+//     float bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
+//     beta = (bi2 > 0) ? 1/std::sqrt(bi2) : 0;
+//   }
 
   rkms_rig_(&npo, npl, xyz, dxyz, &beta, &charge, &rini, out);
   
