@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.132 2012/04/23 03:58:45 pzuccon Exp $
+// $Id: TrTrack.C,v 1.133 2012/04/24 02:01:23 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/23 03:58:45 $
+///$Date: 2012/04/24 02:01:23 $
 ///
-///$Revision: 1.132 $
+///$Revision: 1.133 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1527,14 +1527,14 @@ bool TrTrackR::ValidTrRecHitsPointers() {
 }
 
 float TrTrackR::GetQ(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
 }
 
 float TrTrackR::GetQ_NPoints(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
 }
 
 float TrTrackR::GetQ_RMS(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
 }
   

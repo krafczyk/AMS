@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.80 2012/04/22 23:40:34 oliva Exp $
+//  $Id: TrTrack.h,v 1.81 2012/04/24 02:01:23 oliva Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/04/22 23:40:34 $
+///$Date: 2012/04/24 02:01:23 $
 ///
-///$Revision: 1.80 $
+///$Revision: 1.81 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -675,7 +675,7 @@ public:
 
   /** @name Track charge estimation */
   /**@{*/
-  //! Get the track floating point charge estimator
+  //! Get the track best floating point charge estimator
   float   GetQ(float beta = 1);
   //! Get the number of points used in the charge estimator
   float   GetQ_NPoints(float beta = 1);
