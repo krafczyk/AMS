@@ -134,6 +134,8 @@ class DynAlFit: public TObject{
   static bool findPeak(vector<double> &array,const double fraction,double &peak,double &width,int buckets=10000);
   static bool findPeak(vector<double> array,const double fraction,double Min,double Max,double &peak,double &width,int buckets=10000);
 
+  static float DecouplingFactor; // The large this value the larger the decoupling between X and Y dof. 
+
 
   ClassDef(DynAlFit,4);
 };
@@ -199,6 +201,7 @@ class DynAlFitParameters: public TObject{
   void ApplyAlignment(double &x,double &y,double &z);   // To use in case it is a local alignment
   // Return the parameters without local alignment
   void GetParameters(int seconds,int musecodns,AMSPoint &posA,AMSRotMat &rotA);
+  void GetParameters(float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz,int seconds=0);
 
   // Structure to store the whole information needed by a single
   // fit linearly    
@@ -238,7 +241,6 @@ class DynAlFitContainer:public TObject{
   void Eval(DynAlEvent &ev,double &x,double &y,double &z);
   int GetId(TrRecHitR &hit);
   static int GetId(DynAlEvent &event){return 100*event.lad()+10*event.half()+event.lay();}
-
   
   void BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors=0);
   void BuildAlignment(TString dir,TString prefix,int run);
@@ -297,6 +299,10 @@ class DynAlManager:public TObject{
   static bool DumpDirToLinear(TString dir,TString tdvname,DynAlFitContainer *local1,DynAlFitContainer *local9); // Dump a while directory ti a TDV
   static DynAlFitContainer BuildLocalAlignment(DynAlHistory &history);
   static bool RetrieveAlignmentErrors(int time,int layer,double &ex,double &ey,double &ez);
+  static bool RetrieveLocalAlignmentParameters(int layerJ,int slotSide,int ladder,
+					       float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz);
+
+
 #pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb)  
 
   ClassDef(DynAlManager,4);

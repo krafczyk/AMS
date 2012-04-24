@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.50 2012/04/18 15:02:55 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.51 2012/04/24 09:46:51 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -29,8 +29,6 @@
 #define PEAKFRACTION (0.68)
 // Half width of the initial window to search for the residuals (in cm) 
 #define EXCLUSION 3.0
-// X vs Y decoupling factor
-#define DECOUPLING 10
 
 ClassImp(DynAlEvent);
 
@@ -305,6 +303,9 @@ void DynAlHistory::FindTimeWindow(int event,int seconds,int &first,int &last){
 
 
 //////////////////////////////////////////////////////////////////////////////
+
+float DynAlFit::DecouplingFactor=1;  // Force
+
 
 DynAlFit::DynAlFit(int order){
   ZOffset=-136.0;First=Last=Excluded=-1;
@@ -589,7 +590,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       error=classInfo[Class].rms[which];
       if(error<1e-6) continue;
 
-      if(which==0) error*=DECOUPLING; // Decouple X and Y axis, and use the latter for most computations
+      if(which==0) error*=DecouplingFactor;
 
       Fit.AddPoint(x,y,error);
       Events++;
@@ -1110,7 +1111,7 @@ DynAlFitParameters::DynAlFitParameters(DynAlFit &fit){
   // Compute the errors (at TOffset)
   TVectorD errors;
   fit.Fit.GetErrors(errors);
-  EX=errors[0]/DECOUPLING;
+  EX=errors[0]/DynAlFit::DecouplingFactor;
   EY=errors[1];
   EZ=errors[2];
 }
@@ -1202,6 +1203,37 @@ void DynAlFitParameters::GetParameters(int seconds,int museconds,AMSPoint &posA,
   matrix[2][1]=_BETA;
 
   rotA.SetMat(matrix);
+}
+
+void DynAlFitParameters::GetParameters(float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz,int seconds){
+  double _DX=0;
+  double _DY=0;
+  double _DZ=0;
+  double _THETA=0;
+  double _ALPHA=0;
+  double _BETA=0;
+
+  double elapsed=GetTime(seconds,0);
+  double dt=1;
+
+#define Do(xx) _##xx+=dt* xx.at(i) 
+  for(int i=0;i<DX.size();i++){
+    Do(DX);
+    Do(DY);
+    Do(DZ);
+    Do(THETA);
+    Do(ALPHA);
+    Do(BETA);
+    dt*=elapsed;
+  }
+#undef Do
+
+  rotZ=_THETA;
+  rotY=_ALPHA;
+  rotX=_BETA;
+  dx=_DX+_ALPHA*ZOffset;
+  dy=_DY+_BETA*ZOffset;
+  dz=_DZ;
 }
 
 
@@ -2163,3 +2195,16 @@ bool DynAlManager::RetrieveAlignmentErrors(int time,int layer,double &ex,double 
   return false;
 }
 
+
+
+bool DynAlManager::RetrieveLocalAlignmentParameters(int layerJ,int slotSide,int ladder,
+				      float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz){
+  
+  if(layerJ!=1 && layerJ!=9) return false;
+  int id=layerJ+10*slotSide+100*ladder;
+  DynAlFitContainer &container=dynAlFitContainers[layerJ];
+  
+  if(container.LocalFitParameters.find(id)==container.LocalFitParameters.end()) return false;
+  container.LocalFitParameters[id].GetParameters(rotZ,rotY,rotX,dx,dy,dz);
+  return true;
+}
