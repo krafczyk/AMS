@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.235 2012/04/23 11:50:52 choutko Exp $
+//  $Id: daqevt.C,v 1.236 2012/04/24 21:16:54 pzuccon Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1569,10 +1569,15 @@ void DAQEvent::buildRawStructures(){
  	  uinteger size=((*_pcur)&0x8000)?(*(_pcur+1)|(((*_pcur)&0x7FFF)<<16))+sizeof(_pcur[0]): *_pcur;
 	  if(size%2==1) size++;
 	  ushort JinjStatus=(*(_pcur+size/2-1));
-	  if(jinj== 0x81 | jinj== 0x82)
-	    _JStatus|=(JinjStatus>>8);
-	  else 
-	    _JStatus|=(JinjStatus&0xFF00);
+	  if(jinj== 0x080)      _JStatus[0]=JinjStatus;
+	  else if(jinj== 0x081) _JStatus[1]=JinjStatus;
+	  else if(jinj== 0x082) _JStatus[2]=JinjStatus;
+	  else if(jinj== 0x083) _JStatus[3]=JinjStatus;
+//
+// 	  if(jinj== 0x81 | jinj== 0x82)
+// 	    _JStatus|=(JinjStatus>>8);
+// 	  else 
+// 	    _JStatus|=(JinjStatus&0xFF00);
 
 	  for(int16u * pdown=_pcur+_cll(_pcur)+1+_clll(_pcur);pdown<_pcur+_cl(_pcur)-2&& pdown>=_pcur &&pdown<_pData+_Length;pdown+=*pdown+1){
 	    int ic=fpl->_pgetid(_getportj(*(pdown+*pdown)))-1;

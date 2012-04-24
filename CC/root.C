@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.387 2012/04/23 11:43:25 mdelgado Exp $
+//  $Id: root.C,v 1.388 2012/04/24 21:16:54 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5156,7 +5156,8 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
   for(int k=0;k<sizeof(JError)/sizeof(JError[0]);k++){
       JError[k]=ptr->getjerror(k);
   }
-  JStatus=ptr->getjstatus();
+  for(int ii=0;ii<4;ii++)
+  JStatus[ii]=ptr->getjstatus(ii);
   
 #endif
 }   

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.423 2012/04/23 15:42:17 choutko Exp $
+//  $Id: root.h,v 1.424 2012/04/24 21:16:55 pzuccon Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -340,10 +340,11 @@ public:
   unsigned int Rdr;  ///< RICH  length in bytes
   unsigned int Edr;  ///< Ecal length in bytes
   unsigned int L1dr;  ///< Lvl1  length in bytes
-  unsigned  int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
+  unsigned int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
   unsigned int  L3VEvent; ///<Lvl3 event counter + Version
   unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
-  unsigned  int JStatus; ///< 8 lower bit JINJ-P (hi8 bits of status word) 8 higher bits JINJ-S (hi8 bits of status word)
+  unsigned short int JStatus[4];///< JINJ-[01,2,3] status word 
+  //  unsigned int JStatus; ///< 8 lower bit JINJ-P (hi8 bits of status word) 8 higher bits JINJ-S (hi8 bits of status word)
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}
@@ -353,7 +354,7 @@ public:
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,5)       //DaqEventR
+ClassDef(DaqEventR,6)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 
