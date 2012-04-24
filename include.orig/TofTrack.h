@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.4 2012/04/22 23:40:34 oliva Exp $
+// $Id: TofTrack.h,v 1.5 2012/04/24 01:58:32 oliva Exp $
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -54,7 +54,8 @@ class TofTrack {
     kPath     = 0x08, /*!< Pathlength correction. */
     kBeta     = 0x10, /*!< \f$\beta\f$ correction. */
     kRigidity = 0x20, /*!< Rigidity correction (depends on A/Z guess). */
-    kContin   = 0x40, /*!< use Contin corrections instead of mine whenever possible. */
+    kBetaAdd  = 0x40, /*!< Additional \f$\beta\f$ correction. */ 
+    kContin   = 0x80, /*!< use Contin corrections instead of mine whenever possible. */
   };
 
   //! Plane type
@@ -304,7 +305,7 @@ class TofTrack {
    */
   float        GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z = 0.938);
   //! Get floating point charge evaluation for a single layer 
-  float        GetChargeLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return sqrt(GetSignalLayer(layer,type,kMIP|kBeta|kPath,mass_on_Z)); }
+  float        GetChargeLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return sqrt(GetSignalLayer(layer,type,kMIP|kPath|kBeta|kBetaAdd,mass_on_Z)); }
   //! Get the maximum signal on ToF
   float        GetMaxChargeLayer(int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate energy deposition for a given layer
@@ -335,6 +336,8 @@ class TofTrack {
   float        RigidityCorrection(int layer, float mass_on_Z = 0.938);
   //! Beta and Rigidity correction (best ranges selected)
   float        BetaRigidityCorrection(int layer, float mass_on_Z = 0.938);
+  //! Additional beta correction (depends on the signal itself) [TMP?]
+  float        AdditionalBetaCorrection(float edep);
   //! Weighting function used for Anode/Dynode mixing  
   static float GetMipResolution(float mip, int type);
   //! Get current mean 
@@ -348,7 +351,7 @@ class TofTrack {
   //! Get TOF floating point charge estimator Anode/Dynode (TO-DO: it may request refit ...)
   float        GetQ(int type = kMix) { return GetMean(type); }
   //! Make mean 
-  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kMIP|kPath|kBeta, float mass_on_Z = 0.938);
+  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kMIP|kPath|kBeta|kBetaAdd, float mass_on_Z = 0.938);
   //! Calculate the energy deposition
   bool         MakeEdep();
   //! Calculate the pathlength in material (unit of paddle height)

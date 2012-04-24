@@ -1,4 +1,4 @@
-// $Id: TofTrack.C,v 1.3 2012/04/22 23:40:33 oliva Exp $
+// $Id: TofTrack.C,v 1.4 2012/04/24 01:58:32 oliva Exp $
 
 #include "TofTrack.h"
 
@@ -107,8 +107,8 @@ void TofTrack::Print(int verbosity) {
       printf("                  --- A/D(MIP|MeV) = (%7.2f,%7.2f)  sqrtA/sqrtD(MIP|Beta|Path) = (%7.2f,%7.2f)\n",
         GetSignalLayer(layer,kAnode,kMIP|kMeV),
         GetSignalLayer(layer,kDynode,kMIP|kMeV),
-        sqrt(GetSignalLayer(layer,kAnode,kBeta|kPath|kMIP)),
-        sqrt(GetSignalLayer(layer,kDynode,kBeta|kPath|kMIP))
+        sqrt(GetSignalLayer(layer,kAnode,kBeta|kBetaAdd|kPath|kMIP)),
+        sqrt(GetSignalLayer(layer,kDynode,kBeta|kBetaAdd|kPath|kMIP))
       );
     if (verbosity>2) 
       printf("                  --- ResX(cm) %10.5f  ResY(cm) %10.5f  ResT(ns) %10.5f\n",
@@ -827,8 +827,10 @@ float TofTrack::GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z
     else if (kRigidity&sig_opt)                      betagamma_corr = RigidityCorrection(layer,mass_on_Z);
     if (betagamma_corr<=0.) betagamma_corr = 1;
     edep /= betagamma_corr;
+    // apply only with just beta ... 
+    if ((kBeta&sig_opt)&&(kBetaAdd&sig_opt)) edep = AdditionalBetaCorrection(edep);
   }
- 
+
   return edep;
 }
 
@@ -1077,6 +1079,21 @@ float TofTrack::BetaCorrectionContin2(float edep, int type) {
 }
 
 
+// Double_t pars_add_beta[10] = {0,1.03202,0.183082,0.793141,-1.19169,0.549029,0,0,0,0};
+Double_t pars_add_beta[10] = {0,1.02402,-1.28205,0.594407,0.0900581,0.597897,-3.89486,3.38096,0,0};
+float TofTrack::AdditionalBetaCorrection(float edep) {
+  if (edep<=1e-06) return 0.;
+  Double_t logbetagamma = AMSEnergyLoss::GetLogBetaGammaFromBeta(GetBeta());
+  Double_t x0 = 1;
+  Double_t y0 = 1;
+  Double_t x1 = 6*sqrt(AMSEnergyLoss::line_to_line(&logbetagamma,&pars_add_beta[0])/pars_add_beta[1]);
+  Double_t y1 = 6;
+  Double_t m  = (y1-y0)/(x1-x0);
+  Double_t q  = y0 - m*x0;
+  return pow(sqrt(edep)*m + q,2);
+}
+
+
 // very rought fit from my charge evaluation done in Dec 2011 up to Iron
 // this should be evaluated using only plane informations ... 
 static float par_res[2][3] = {  
@@ -1094,7 +1111,7 @@ float TofTrack::GetMipResolution(float mip, int type) {
 float TofTrack::GetMaxChargeLayer(int type, float mass_on_Z) {
   float max = 0;
   for (int ilayer=0; ilayer<4; ilayer++) {
-    float value = sqrt(GetSignalLayer(ilayer+1,type,kMIP|kBeta|kPath,mass_on_Z));
+    float value = sqrt(GetSignalLayer(ilayer+1,type,kMIP|kPath|kBeta|kBetaAdd,mass_on_Z));
     if (value>max) max = value;
   }
   return max;

@@ -1,4 +1,4 @@
-// $Id: edep.h,v 1.5 2012/04/22 23:40:34 oliva Exp $
+// $Id: edep.h,v 1.6 2012/04/24 01:58:32 oliva Exp $
 
 #ifndef __AMSEnergyLoss__
 #define __AMSEnergyLoss__
@@ -104,11 +104,6 @@ class AMSEnergyLoss {
   //! Tracker betagamma correction using beta and rigidity 
   static Double_t GetTrackerLayerLogBetaGammaCorrection(Int_t layer, Double_t beta, Double_t rigidity /*GV*/, Double_t mass_on_Z = 0.938);
   /**@}*/
- 
-  ///////////////////////////////////
-  // Z dependence renormalization 
-  ///////////////////////////////////
-
 
   ClassDef(AMSEnergyLoss,1); 
 };
