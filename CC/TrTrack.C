@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.133 2012/04/24 02:01:23 oliva Exp $
+// $Id: TrTrack.C,v 1.134 2012/04/24 04:33:08 oliva Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/24 02:01:23 $
+///$Date: 2012/04/24 04:33:08 $
 ///
-///$Revision: 1.133 $
+///$Revision: 1.134 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1527,14 +1527,35 @@ bool TrTrackR::ValidTrRecHitsPointers() {
 }
 
 float TrTrackR::GetQ(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
 }
 
-float TrTrackR::GetQ_NPoints(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
+int TrTrackR::GetQ_NPoints(float beta) {
+  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
 }
 
 float TrTrackR::GetQ_RMS(float beta) {
-  return TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+  return TrCharge::GetMean(TrCharge::kAll|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+}
+ 
+float TrTrackR::GetInnerQ(float beta) {
+  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).Mean;
+}
+
+int TrTrackR::GetInnerQ_NPoints(float beta) {
+  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).NPoints;
 }
   
+float TrTrackR::GetInnerQ_RMS(float beta) {
+  return TrCharge::GetMean(TrCharge::kInner|TrCharge::kTruncMean|TrCharge::kSqrt,this,TrCharge::kX,beta,-1,TrClusterR::DefaultChargeCorrOpt).RMS;
+}
+  
+float TrTrackR::GetLayerJQ(int jlayer, float beta) {
+  // for the time being the best evaluation comes from X side. I simply discard OnlyY.
+  TrRecHitR* hit = (TrRecHitR*) GetHitLJ(jlayer);
+  if (hit==0) return 0;
+  if (hit->GetXCluster()==0) return 0;
+  return hit->GetXCluster()->GetQ(beta);
+}
+
+ 

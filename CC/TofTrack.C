@@ -1,6 +1,10 @@
-// $Id: TofTrack.C,v 1.4 2012/04/24 01:58:32 oliva Exp $
+// $Id: TofTrack.C,v 1.5 2012/04/24 04:33:08 oliva Exp $
+
 
 #include "TofTrack.h"
+
+
+#include "TMath.h"
 
 
 ClassImp(TofTrack);
@@ -810,7 +814,7 @@ float TofTrack::GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z
   /////////////////////////
   // Pathlength correction
   /////////////////////////
-
+ 
   if (sig_opt&kPath) edep *= PathLengthCorrection(layer); 
   
   /////////////////////////
@@ -827,6 +831,7 @@ float TofTrack::GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z
     else if (kRigidity&sig_opt)                      betagamma_corr = RigidityCorrection(layer,mass_on_Z);
     if (betagamma_corr<=0.) betagamma_corr = 1;
     edep /= betagamma_corr;
+
     // apply only with just beta ... 
     if ((kBeta&sig_opt)&&(kBetaAdd&sig_opt)) edep = AdditionalBetaCorrection(edep);
   }
@@ -1084,9 +1089,10 @@ Double_t pars_add_beta[10] = {0,1.02402,-1.28205,0.594407,0.0900581,0.597897,-3.
 float TofTrack::AdditionalBetaCorrection(float edep) {
   if (edep<=1e-06) return 0.;
   Double_t logbetagamma = AMSEnergyLoss::GetLogBetaGammaFromBeta(GetBeta());
+  if (logbetagamma<=-100) return 0.;
   Double_t x0 = 1;
   Double_t y0 = 1;
-  Double_t x1 = 6*sqrt(AMSEnergyLoss::line_to_line(&logbetagamma,&pars_add_beta[0])/pars_add_beta[1]);
+  Double_t x1 = 6*sqrt(TMath::Max(0.,AMSEnergyLoss::line_to_line(&logbetagamma,&pars_add_beta[0]))/pars_add_beta[1]);
   Double_t y1 = 6;
   Double_t m  = (y1-y0)/(x1-x0);
   Double_t q  = y0 - m*x0;
