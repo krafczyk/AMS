@@ -9,7 +9,7 @@ TrParDB* TrClusterR::_trpardb = NULL;
 
 
 // Asymmetry determined from Muons 2011 analysis
-float TrClusterR::Asymmetry[2] = {0.027, 0.034};
+float TrClusterR::Asymmetry[2] = {0.040,0.005};
 
 
 // TMP FIX: excluded charge loss corretion, was working well only for protons
