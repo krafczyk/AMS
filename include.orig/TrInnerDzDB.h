@@ -10,8 +10,9 @@
 #define TrInnerDzDB_TrInnerDzDB_h
 #include <map>
 #include <cstring>
+#include "TObject.h"
 
-
+class TFile;
 typedef unsigned int uint;
 
 /*!
@@ -28,32 +29,30 @@ typedef unsigned int uint;
 
 */
 
-class TrInnerDzDB {
+class TrInnerDzDB: public TObject {
 public:
   enum {kLaynum=7};
 
-private:
+
   class DzElem{
   public:
     float dz[kLaynum];
     DzElem(){memset(dz,0,kLaynum*sizeof(dz[0]));}
     DzElem(float *Dz){memcpy(dz,Dz,kLaynum*sizeof(dz[0]));}
-    
+    ClassDef(TrInnerDzDB::DzElem,1);
   };
-
+private:
   /// map implementig the DB
-  std::map <uint,DzElem> pos;
+  std::map <uint,TrInnerDzDB::DzElem> pos;
   
-  typedef std::map<uint,DzElem>::iterator mapit;
-    
-  /// std constructor (private is a singleton)
-  TrInnerDzDB(){}
+  typedef std::map<uint,TrInnerDzDB::DzElem>::iterator mapit;
   static TrInnerDzDB* Head;
-#pragma omp threadprivate (Head)
-   
+#pragma omp threadprivate (Head)    
   int TrInnerDB2Lin2TDV(mapit  it);
 
+
 public:
+  TrInnerDzDB(){}
   /// Get the pointer to the class single instance
   static TrInnerDzDB* GetHead(int regen=0){
     if(regen && Head){ delete Head; Head=0;}
@@ -109,9 +108,12 @@ public:
 #pragma omp threadprivate (TDVSwap)
   /// TDV Swap Space Size
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
-
+ /// Load the DB from a file and make it available
+  static void Load(TFile * ff);
   /// Printout
   void Print();
+
+   ClassDef(TrInnerDzDB,1);
 };
 
 void TrInnerLin2DB();

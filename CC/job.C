@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.860 2012/04/25 07:41:51 choutko Exp $
+// $Id: job.C,v 1.861 2012/04/25 16:36:29 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -39,6 +39,7 @@
 #include "trdaq.h"
 #include "MagField.h"
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 #include "OrbGen.h"
 
 #else
@@ -3236,6 +3237,16 @@ void AMSJob::_timeinitjob(){
 			     TrExtAlignDB::fLinear,
 			     server,need,SLin2ExAlign));
 
+      TrInnerDzDB::GetHead();
+      TID.add ( new AMSTimeID(
+			      AMSID("TrInnerDzAlign",isRealData()),
+			      begin,
+			      end,
+			      TrInnerDzDB::GetTDVSwapSize(),
+			      TrInnerDzDB::TDVSwap,
+			      server,need,
+			      TrInnerLin2DB));
+		
       DynAlManager::need2bookTDV=((CALIB.SubDetRequestCalib/100)%10)>0;
       DynAlManager::tdvdb=new AMSTimeID(AMSID("DynAlignmentPG",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
       TID.add(DynAlManager::tdvdb);

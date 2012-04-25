@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.249 2012/04/25 07:11:16 choutko Exp $
+//  $Id: ntuple.C,v 1.250 2012/04/25 16:36:29 pzuccon Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -18,6 +18,7 @@ extern "C" int ISSLoad(const char *name, const char *line1, const char *line2);
 #else
 #include "TrCalDB.h"
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 #include "TrParDB.h"
 #include "TrPdfDB.h" 
 #include "TrRecon.h"
@@ -327,6 +328,7 @@ _rfile->cd();
     // TrPdfDB::GetHead()->Write(); // don't save it, crete it every time
     if (!TrGainDB::IsNull()) TrGainDB::GetHead()->Write();
     TrExtAlignDB::GetHead()->Write();
+    TrInnerDzDB::GetHead()->Write();
     if (TrTasDB::Head) TrTasDB::Head->Write();
     if (TrTasClusterR::HistDir) TrTasClusterR::HistDir->Write();
     if (IOPA.histoman%10==1 || IOPA.histoman%10==3) hman.Save(_rfile);

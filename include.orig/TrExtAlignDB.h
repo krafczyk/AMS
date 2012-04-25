@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.18 2012/03/07 15:50:30 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.19 2012/04/25 16:36:29 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -189,7 +189,7 @@ public:
   /// Read from AMSRoot file or not
   static int OverLoadFlag;
 
-  /// Loaoad the DB from a file and make it available
+  /// Load the DB from a file and make it available
   static void Load(TFile * ff);
 
   /// Loaoad the DB from a file and make it available

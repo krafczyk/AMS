@@ -11,7 +11,8 @@
 #include "TkDBc.h"
 #include "timeid.h"
 
-
+ClassImp (TrInnerDzDB);
+ClassImp (TrInnerDzDB::DzElem);
 TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
@@ -241,4 +242,19 @@ void TrInnerDzDB::Print()
       printf(" %5.1f", it->second.dz[ii]*1e4);
     printf("\n");
   }
+}
+
+
+void TrInnerDzDB::Load(TFile * ff){
+  if(!ff) return;
+
+  if (Head) delete Head;
+  Head = (TrInnerDzDB*) ff->Get("TrInnerDzDB");
+  if(!Head)
+    cout << "TrInnerDzDB::Load-W- Cannot Load the InnerDz Layer AlignmentDB"
+	 << endl;
+  else
+    cout << "TrInnerDzDB::Load-I- Loaded from: " << ff->GetName() 
+	 << " Size= " << Head->pos.size() << endl;
+  return;
 }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.389 2012/04/25 07:11:16 choutko Exp $
+//  $Id: root.C,v 1.390 2012/04/25 16:36:29 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -13,6 +13,7 @@
 #endif
 #ifdef _PGTRACK_
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 #endif
 #include "timeid.h"
 #include "commonsi.h"
@@ -5627,154 +5628,153 @@ Int_t AMSEventR::Fill()
   int i;
 #pragma omp critical 
   {
-  int thr=0;
+    int thr=0;
 #ifdef _OPENMP
-  if(fgSeparateOutputFile)thr=omp_get_thread_num();
+    if(fgSeparateOutputFile)thr=omp_get_thread_num();
 #endif
    
     if (_ClonedTree[thr]==NULL) {
-  TFile * input=_Tree->GetCurrentFile();
-  if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB"};
-  TObject* obj[6]={0,0,0,0,0,0}; 
-  TObjString* obj2=0;
-  TObjString* obj3=0;
-  if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
-  else{
-       cout <<input->GetName()<<endl;
-   for(int ii=5;ii>=0;ii--){
-    obj[ii]=input->Get(objlist[ii]);
-     input->Get("TrParDB");
-   }
-   obj2=(TObjString*)input->Get("AMS02Geometry");
-   obj3=(TObjString*)input->Get("DataCards");
-  }
+      TFile * input=_Tree->GetCurrentFile();
+      if(!input){cerr<<"AMSEventR::Fill-E-annot find input file "<<endl;}
+      char objlist[7][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB"};
+      TObject* obj[7]={0,0,0,0,0,0,0}; 
+      TObjString* obj2=0;
+      TObjString* obj3=0;
+      if(!input){cerr<<"AMSEventR::Fill-E-cannot find input file "<<endl;}
+      else{
+	cout <<input->GetName()<<endl;
+	for(int ii=6;ii>=0;ii--){
+	  obj[ii]=input->Get(objlist[ii]);
+	}
+	obj2=(TObjString*)input->Get("AMS02Geometry");
+	obj3=(TObjString*)input->Get("DataCards");
+      }
       _ClonedTree[thr] = _Tree->GetTree()->CloneTree(0);
-//    cout <<"  cloned treeess "<<_ClonedTree<<endl;
+      //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
       TDirectory *gdir=gDirectory;
-//  cout <<" ************8thr "<<thr<<" "<<fgOutSepDir[thr]<<endl;
-if(thr!=0){
-  if(!fgOutSepDir[thr] ){
-  char dir[1024];
-  sprintf(dir,"_%d",thr);
-if(fgSeparateOutputFile==2){
-	  string fname(GetOption());
-          fname+=dir;
-          TFile *f=new TFile(fname.c_str(),"RECREATE");
-          if(!f){
-           cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
-           thr=0;
-          }  
-          else{
-           fgOutSep[thr]=f;
-           AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
-           fgOutSepDir[thr]=gDirectory;
-          }
-       }
- else{
-     gDirectory=AMSEventR::OFD();
-     if(gDirectory){
-      gDirectory=gDirectory->mkdir(dir);
-      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
-      fgOutSepDir[thr]=gDirectory;
-//      cout <<" gdirectory "<<gDirectory->GetName()<<endl;
-     }
- }
-    }
-    else{
-      AMSEventR::_ClonedTree[thr]->SetDirectory(fgOutSepDir[thr]);
-      gDirectory=fgOutSepDir[thr];
-    }
-}
-if(thr==0){
-      AMSEventR::_ClonedTree[thr]->SetDirectory(AMSEventR::OFD());
-      gDirectory=AMSEventR::OFD();
-}
-
+      //  cout <<" ************8thr "<<thr<<" "<<fgOutSepDir[thr]<<endl;
+      if(thr!=0){
+	if(!fgOutSepDir[thr] ){
+	  char dir[1024];
+	  sprintf(dir,"_%d",thr);
+	  if(fgSeparateOutputFile==2){
+	    string fname(GetOption());
+	    fname+=dir;
+	    TFile *f=new TFile(fname.c_str(),"RECREATE");
+	    if(!f){
+	      cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
+	      thr=0;
+	    }  
+	    else{
+	      fgOutSep[thr]=f;
+	      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+	      fgOutSepDir[thr]=gDirectory;
+	    }
+	  }
+	  else{
+	    gDirectory=AMSEventR::OFD();
+	    if(gDirectory){
+	      gDirectory=gDirectory->mkdir(dir);
+	      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+	      fgOutSepDir[thr]=gDirectory;
+	      //      cout <<" gdirectory "<<gDirectory->GetName()<<endl;
+	    }
+	  }
+	}
+	else{
+	  AMSEventR::_ClonedTree[thr]->SetDirectory(fgOutSepDir[thr]);
+	  gDirectory=fgOutSepDir[thr];
+	}
+      }
+      if(thr==0){
+	AMSEventR::_ClonedTree[thr]->SetDirectory(AMSEventR::OFD());
+	gDirectory=AMSEventR::OFD();
+      }
+      
       cout <<" ofd "<<AMSEventR::OFD()<<endl;
       cout <<" gdir "<<gDirectory->GetFile()<<endl;
       //cout <<" obj2 "<<obj2<<" "<<(void*)obj3<<" "<<AMSEventR::OFD()->GetFile()->GetName()<<" "<<gDirectory->GetFile()->GetName()<<endl;
       if(obj2)obj2->Write("AMS02Geometry");
-           if(obj3)obj3->Write("DataCards");
-         for(int i=0;i<6;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
-        gDirectory=gdir;
-//    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
-//    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
-}
-//    cout <<"  cloned treeess "<<_ClonedTree<<endl;
-
+      if(obj3)obj3->Write("DataCards");
+      for(int i=0;i<7;i++)if(obj[i]){cout<<" write "<<objlist[i]<<endl;obj[i]->Write();};
+      gDirectory=gdir;
+      //    cout <<"  hopa "<<_ClonedTree<<" "<<_ClonedTree->GetCurrentFile()<<endl;
+      //    cout <<"2nd "<< _ClonedTree->GetCurrentFile()->GetName()<<endl;
+    }
+    //    cout <<"  cloned treeess "<<_ClonedTree<<endl;
+    
     {
       _ClonedTree[thr]->SetBranchAddress(_Name,&Head());
       i= _ClonedTree[thr]->Fill();
-//      cout <<"  i "<<i<<" thr "<<thr<<endl;
+      //      cout <<"  i "<<i<<" thr "<<thr<<endl;
     }
-
-
-// save root setup here
-
-      TDirectory *gdir=gDirectory;
+    
+    
+    // save root setup here
+    
+    TDirectory *gdir=gDirectory;
     if (_ClonedTreeSetup[thr]==NULL) {
-        if(_TreeSetup){
-        }
-        else{
-           TFile * input=_Tree->GetCurrentFile();
-         if(input){
-            _TreeSetup=dynamic_cast<TTree*>(input->Get("AMSRootSetup"));
-         }
-        }
-         if(_TreeSetup){
-           _ClonedTreeSetup[thr] = _TreeSetup->GetTree()->CloneTree(0);
-if(thr!=0){
-  if(!fgOutSepDir[thr]){
-  char dir[1024];
-  sprintf(dir,"_%d",thr);
-  if(fgSeparateOutputFile==2){
-	  string fname(GetOption());
-          TFile *f=new TFile(fname.c_str(),"RECREATE");
-          if(!f){
-           cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
-           thr=0;
-          }  
-          else{
-           fgOutSep[thr]=f;
-           AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(gDirectory);
-           fgOutSepDir[thr]=gDirectory;
-          }
-}
-else{
-    gDirectory=AMSEventR::OFD();
-    if(!gDirectory->cd(dir)){
-     gDirectory=gDirectory->mkdir(dir);
-      AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
-     fgOutSepDir[thr]=gDirectory;
-//      cout <<" gdirectory2 "<<gDirectory->GetName()<<endl;
-    }
-    else{
-//      cout <<" gdirectory3 "<<gDirectory->GetName()<<endl;
-     AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
-    } 
+      if(_TreeSetup){
+      }
+      else{
+	TFile * input=_Tree->GetCurrentFile();
+	if(input){
+	  _TreeSetup=dynamic_cast<TTree*>(input->Get("AMSRootSetup"));
+	}
+      }
+      if(_TreeSetup){
+	_ClonedTreeSetup[thr] = _TreeSetup->GetTree()->CloneTree(0);
+	if(thr!=0){
+	  if(!fgOutSepDir[thr]){
+	    char dir[1024];
+	    sprintf(dir,"_%d",thr);
+	    if(fgSeparateOutputFile==2){
+	      string fname(GetOption());
+	      TFile *f=new TFile(fname.c_str(),"RECREATE");
+	      if(!f){
+		cerr<<"AMSEventR::Fill-E-UnableToOpenFile "<<fname<<endl;
+		thr=0;
+	      }  
+	      else{
+		fgOutSep[thr]=f;
+		AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(gDirectory);
+		fgOutSepDir[thr]=gDirectory;
+	      }
+	    }
+	    else{
+	      gDirectory=AMSEventR::OFD();
+	      if(!gDirectory->cd(dir)){
+		gDirectory=gDirectory->mkdir(dir);
+		AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+		fgOutSepDir[thr]=gDirectory;
+		//      cout <<" gdirectory2 "<<gDirectory->GetName()<<endl;
+	      }
+	      else{
+		//      cout <<" gdirectory3 "<<gDirectory->GetName()<<endl;
+		AMSEventR::_ClonedTree[thr]->SetDirectory(gDirectory);
+	      } 
  
-}
-}
-else{
-      AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(fgOutSepDir[thr]);
-      gDirectory=fgOutSepDir[thr];
-}
-}
-if(thr==0){
-      AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(AMSEventR::OFD());
-}
-        }
-}
-        gDirectory=gdir;
+	    }
+	  }
+	  else{
+	    AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(fgOutSepDir[thr]);
+	    gDirectory=fgOutSepDir[thr];
+	  }
+	}
+	if(thr==0){
+	  AMSEventR::_ClonedTreeSetup[thr]->SetDirectory(AMSEventR::OFD());
+	}
+      }
+    }
+    gDirectory=gdir;
       
-      if(_ClonedTreeSetup[thr] && _EntrySetup!=-1){
-        _ClonedTreeSetup[thr]->SetBranchAddress("run.",&AMSSetupR::gethead());
-        i= _ClonedTreeSetup[thr]->Fill();
-         cout <<" Setup written for run "<<AMSSetupR::gethead()->fHeader.Run<<" "<<i<<endl;
-         _EntrySetup=-1;
-         }
-        }
+    if(_ClonedTreeSetup[thr] && _EntrySetup!=-1){
+      _ClonedTreeSetup[thr]->SetBranchAddress("run.",&AMSSetupR::gethead());
+      i= _ClonedTreeSetup[thr]->Fill();
+      cout <<" Setup written for run "<<AMSSetupR::gethead()->fHeader.Run<<" "<<i<<endl;
+      _EntrySetup=-1;
+    }
+  }
     
 
   
@@ -6183,7 +6183,9 @@ static int master=0;
 	TkDBc::Head->init(setup);
       }
     }
-    if(!TrExtAlignDB::ForceFromTDV) TrExtAlignDB::Load(_FILE);
+    if(!TrExtAlignDB::ForceFromTDV) 
+      TrExtAlignDB::Load(_FILE);
+    TrInnerDzDB::Load(_FILE);
 try{
                                  if (_FILE->Get("datacards/TKGEOMFFKEY_DEF"))
     TKGEOMFFKEY =*((TKGEOMFFKEY_DEF*)_FILE->Get("datacards/TKGEOMFFKEY_DEF"));
@@ -7087,6 +7089,8 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
     }
     if(ret2!=0) return ret2;
   } 
+  // PZ Update also the Inner DzDB
+  int ret0=TrInnerDzDB::GetHead()->UpdateTkDBc(time);
 
   int ret;
   if(type==0)

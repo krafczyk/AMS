@@ -1,8 +1,9 @@
-//  $Id: event_tk.C,v 1.51 2011/11/29 20:59:28 mdelgado Exp $
+//  $Id: event_tk.C,v 1.52 2012/04/25 16:36:28 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
 #include "TrExtAlignDB.h"
+#include "TrInnerDzDB.h"
 
 void AMSEvent::_sitkinitevent(){
   AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
@@ -39,6 +40,7 @@ void AMSEvent::_retkevent(integer refit){
       TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
       //      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime());
     }
+    TrInnerDzDB::GetHead()->UpdateTkDBc(gettime());
     
     trstat = rec.Build(TRCLFFKEY.recflag, 0, TRCLFFKEY.statflag);
   }
