@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.82 2012/04/24 04:33:08 oliva Exp $
+//  $Id: TrTrack.h,v 1.83 2012/04/25 06:19:12 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/04/24 04:33:08 $
+///$Date: 2012/04/25 06:19:12 $
 ///
-///$Revision: 1.82 $
+///$Revision: 1.83 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -152,7 +152,7 @@ public:
   void Print(int full=0) const;
   void Print_stream(std::string &ostr,int full=0) const;
   friend class TrTrackR;
-  ClassDef(TrTrackPar,3);
+  ClassDef(TrTrackPar,4);
 } ; 
 
 
