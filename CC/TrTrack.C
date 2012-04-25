@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.135 2012/04/25 13:02:57 shaino Exp $
+// $Id: TrTrack.C,v 1.136 2012/04/25 16:51:09 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/25 13:02:57 $
+///$Date: 2012/04/25 16:51:09 $
 ///
-///$Revision: 1.135 $
+///$Revision: 1.136 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +41,7 @@
 #include "TrCharge.h"
 
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
+int  UpdateInnerDz();
 
 
 int my_int_pow(int base, int exp){
@@ -1443,10 +1444,9 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   if(rret!=0) return -5;    
 
   if(refit>=2 || (!FitExists && refit==1)) { 
-    if(refit>2){
-      for (int ii=0;ii<getnhits () ;ii++)
-	pTrRecHit(ii)->BuildCoordinate();
-    }
+    int ret0=UpdateInnerDz();
+    for (int ii=0;ii<getnhits () ;ii++)
+	    pTrRecHit(ii)->BuildCoordinate();
     float ret=FitT(fittype,-1,true,0,mass,chrg,beta);
     if (ret>=0) 
       return fittype; 

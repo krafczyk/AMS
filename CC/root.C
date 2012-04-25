@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.390 2012/04/25 16:36:29 pzuccon Exp $
+//  $Id: root.C,v 1.391 2012/04/25 16:51:10 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7066,6 +7066,20 @@ return false;
 #endif
 
 #ifdef _PGTRACK_
+int  UpdateInnerDz(){
+
+  uint time,run;
+#ifdef __ROOTSHAREDLIBRARY__ 
+  time=AMSEventR::Head()->UTime();
+  run=AMSEventR::Head()->Run();
+#else
+  time=AMSEvent::gethead()->gettime();
+  run=AMSEvent::gethead()->getrun();
+#endif
+
+  // PZ Update also the Inner DzDB
+  return TrInnerDzDB::GetHead()->UpdateTkDBc(time);
+}
 int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   //type 0 PG; 1 Madrid
   uint time,run;
@@ -7089,8 +7103,6 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
     }
     if(ret2!=0) return ret2;
   } 
-  // PZ Update also the Inner DzDB
-  int ret0=TrInnerDzDB::GetHead()->UpdateTkDBc(time);
 
   int ret;
   if(type==0)
