@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.248 2012/04/21 09:29:29 oliva Exp $
+//  $Id: ntuple.C,v 1.249 2012/04/25 07:11:16 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -914,6 +914,22 @@ if(!Get_setup02())return 2;
 else{
 AMSSetupR::ISSCTRSR a;
 int ret=Get_setup02()->getISSCTRS(a,xtime);
+r=a.r;
+theta=a.theta;
+phi=a.phi;
+v=a.v;
+vphi=a.vphi;
+vtheta=a.vtheta;
+return ret;
+}
+} 
+
+
+int AMSNtuple::ISSGTOD(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
+if(!Get_setup02())return 2;
+else{
+AMSSetupR::ISSGTOD a;
+int ret=Get_setup02()->getISSGTOD(a,xtime);
 r=a.r;
 theta=a.theta;
 phi=a.phi;

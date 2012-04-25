@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.388 2012/04/24 21:16:54 pzuccon Exp $
+//  $Id: root.C,v 1.389 2012/04/25 07:11:16 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5157,7 +5157,7 @@ DaqEventR::DaqEventR(DAQEvent *ptr){
       JError[k]=ptr->getjerror(k);
   }
   for(int ii=0;ii<4;ii++)
-  JStatus[ii]=ptr->getjstatus(ii);
+  JINJStatus[ii]=ptr->getjstatus(ii);
   
 #endif
 }   
@@ -6481,6 +6481,25 @@ vtheta=a.vtheta;
 return ret;
 
 }
+
+
+
+int HeaderR::getISSGTOD(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
+unsigned int gpsdiff=15;
+if(!AMSEventR::getsetup())return 2;
+AMSSetupR::ISSGTOD a;
+double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+int ret=AMSEventR::getsetup()->getISSGTOD(a,xtime);
+r=a.r;
+theta=a.theta;
+phi=a.phi;
+v=a.v;
+vphi=a.vphi;
+vtheta=a.vtheta;
+return ret;
+
+}
+
 
 int HeaderR::getISSAtt(float & roll, float &pitch, float &yaw){
 unsigned int gpsdiff=15;

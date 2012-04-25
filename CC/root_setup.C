@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.66 2012/03/16 14:06:55 choutko Exp $
+//  $Id: root_setup.C,v 1.67 2012/04/25 07:11:16 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -103,6 +103,7 @@ Reset();
   ClassImp(AMSSetupR::ISSAtt)
   ClassImp(AMSSetupR::ISSSA)
   ClassImp(AMSSetupR::ISSCTRS)
+  ClassImp(AMSSetupR::ISSGTOD)
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
@@ -541,6 +542,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
    LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
+   LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
    return false; 
   }
@@ -572,6 +574,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadDynAlignment(fHeader.Run);
    return true;
    }
@@ -1397,6 +1400,109 @@ a=ISSCTRSR(b);
 
 
 
+
+
+
+
+int AMSSetupR::getISSGTOD(AMSSetupR::ISSGTOD & a, double xtime){
+if(fISSGTOD.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
+if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
+}
+else LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
+#endif
+}
+if (fISSGTOD.size()==0)return 2;
+
+
+
+AMSSetupR::ISSGTOD_i k=fISSGTOD.lower_bound(xtime);
+if(k==fISSGTOD.begin()){
+a=(k->second);
+return 1;
+}
+if(k==fISSGTOD.end()){
+k--;
+a=(k->second);
+return 1;
+}
+
+if(xtime==k->first){
+a=(k->second);
+return 0;
+}
+
+  AMSSetupR::ISSGTOD b;
+  float s0[2]={-1.,-1};
+  double tme[2]={0,0};
+  tme[0]=k->first;
+  AMSSetupR::ISSGTOD_i l=k;
+  l++;
+  tme[1]=l->first;
+//  cout <<" alpha "<< k->second.alpha<<" "<<l->second.alpha<<endl;
+//   cout << int(k->first)<<" "<<int(l->first)<<" "<<int(xtime)<<endl;
+{
+  double ang1=k->second.r;
+  double ang2=l->second.r;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.r=s1;
+}
+{
+  double ang1=k->second.phi;
+  double ang2=l->second.phi;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.phi=s1;
+}
+{
+  double ang1=k->second.theta;
+  double ang2=l->second.theta;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.theta=s1;
+}
+{
+  double ang1=k->second.vphi;
+  double ang2=l->second.vphi;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.vphi=s1;
+}
+{
+  double ang1=k->second.vtheta;
+  double ang2=l->second.vtheta;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.vtheta=s1;
+}
+
+{
+  double ang1=k->second.v;
+  double ang2=l->second.v;
+  s0[0]=ang1;
+  s0[1]=ang2;
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  b.v=s1;
+}
+
+a=b;
+  return 0;
+
+
+}
+
+
+
+
+
+
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
 #ifdef __ROOTSHAREDLIBRARY__
 return 0;
@@ -1737,6 +1843,196 @@ else ret=1;
 
 return ret;
 }
+
+
+int AMSSetupR::LoadISSGTOD(unsigned int t1, unsigned int t2){
+ char AMSISSlocal[]="/afs/cern.ch/ams/local/altec/";
+char * AMSISS=getenv("AMSISS");
+if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
+
+if(t1>t2){
+cerr<< "AMSSetupR::LoadISSGTOD-S-BegintimeNotLessThanEndTime "<<t1<<" "<<t2<<endl;
+return 2;
+}
+else if(t2-t1>864000){
+    cerr<< "AMSSetupR::LoadISSGTOD-S-EndBeginDifferenceTooBigMax864000 "<<t2-t1<<endl;
+   t2=t1+864000;
+}
+const char fpatb[]="GTOD/ISS_SV_GTOD_01-";
+const char fpatb2[]="GTOD/ISS_SV_GTOD_01_";
+const char fpate[]="-24H.csv";
+const char fpate2[]="-24h.csv";
+
+// convert time to GMT format
+
+// check tz
+   unsigned int tzd=0;
+    tm tmf;
+{
+char tmp2[255];
+   time_t tz=t1;
+          strftime(tmp2,80,"%Y_%j:%H:%M:%S",gmtime(&tz));
+          strptime(tmp2,"%Y_%j:%H:%M:%S",&tmf);
+    time_t tc=mktime(&tmf);
+    tc=mktime(&tmf);
+    tzd=tz-tc;
+    cout<< "AMSSetupR::LoadISSGTOD-I-TZDSeconds "<<tzd<<endl;
+
+}
+
+   char tmp[255];
+    time_t utime=t1;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int yb=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int db=atol(tmp);
+    utime=t2;
+    strftime(tmp, 40, "%Y", gmtime(&utime));
+    unsigned int ye=atol(tmp);
+    strftime(tmp, 40, "%j", gmtime(&utime));
+    unsigned int de=atol(tmp);
+    
+    unsigned int yc=yb;
+    unsigned int dc=db;
+    int bfound=0;
+    int efound=0;
+    while(yc<ye || dc<=de){
+     string fname=AMSISS;
+     fname+=fpatb;
+     char utmp[80];
+     sprintf(utmp,"%u-%03u",yc,dc);
+     fname+=utmp;
+     fname+=fpate;
+     ifstream fbin;
+     fbin.close();    
+     fbin.clear();
+     fbin.open(fname.c_str());
+     if(!fbin){
+// change 24H to 24h
+      fname=AMSISS;
+      fname+=fpatb;
+      char utmp[80];
+      sprintf(utmp,"%u-%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(!fbin){
+// change Vec to vec
+      fname=AMSISS;
+      fname+=fpatb2;
+      char utmp[80];
+      sprintf(utmp,"%u-%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(!fbin){
+// change 24h back
+      fname=AMSISS;
+      fname+=fpatb2;
+      char utmp[80];
+      sprintf(utmp,"%u-%03u",yc,dc);
+      fname+=utmp;
+      fname+=fpate2;
+      fbin.clear();
+      fbin.close();    
+      fbin.clear();
+      fbin.open(fname.c_str());
+     }
+     if(fbin){
+      while(fbin.good() && !fbin.eof()){
+        char line[120];
+        fbin.getline(line,119);
+        
+        if(isdigit(line[0])){
+         char *pch;
+         pch=strtok(line,".");
+         ISSGTOD a;
+         if(pch){
+          strptime(pch,"%Y_%j:%H:%M:%S",&tmf);
+          //cout <<" pch "<<pch<<endl;
+          time_t tf=mktime(&tmf)+tzd;
+          pch=strtok(NULL,",");
+          char tm1[80];
+          sprintf(tm1,".%s",pch);
+          double tc=tf+atof(tm1);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0]) && pch[0]!='-' && pch[0]!='.')continue;
+          a.r=atof(pch)*100;
+          //cout <<" alpha "<<a.x<<" "<<tf<<" "<<tc<<endl;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.theta=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.phi=atof(pch);
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.v=atof(pch)/1000.;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vtheta=atof(pch)/1000.;
+          pch=strtok(NULL,",");
+          if(!pch)continue;
+          if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
+          a.vphi=atof(pch)/1000.;
+           fISSGTOD.insert(make_pair(tc,a));
+          
+          if(tc>=t1 && tc<=t2){
+           if(abs(bfound)!=2){
+               fISSGTOD.clear();
+               fISSGTOD.insert(make_pair(tc,a));
+               bfound=bfound?2:-2;
+//               cout <<" line "<<line<<" "<<tc<<endl;
+           }
+          }
+         else if(tc<t1)bfound=1;
+         else if(tc>t2){
+             efound=1;
+             break;
+         }
+      }   
+     }
+     }
+     }
+     else{
+       cerr<<"AMSSetupR::LoadISSGTOD-E-UnabletoOpenFile "<<fname<<endl;
+     }
+     dc++;
+     if(dc>366){
+      dc=1;
+      yc++;
+     }
+    }
+
+
+int ret;
+if(bfound>0 &&efound)ret=0;
+else if(!bfound && !efound )ret=2;
+else ret=1;
+    cout<< "AMSSetupR::LoadISSGTOD-I- "<<fISSGTOD.size()<<" Entries Loaded"<<endl;
+
+return ret;
+}
+
+
+
+
+
+
+
 
 int AMSSetupR::LoadDynAlignment(unsigned int run){
 #ifdef __ROOTSHAREDLIBRARY__

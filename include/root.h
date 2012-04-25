@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.424 2012/04/24 21:16:55 pzuccon Exp $
+//  $Id: root.h,v 1.425 2012/04/25 07:11:21 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -304,6 +304,7 @@ public:
 int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, float dt=0); ///<get AMSSetupR::ISSSA values for the current event time;
 
 int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
+int getISSGTOD(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSGTOD values for the current event time;
 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader
@@ -343,8 +344,7 @@ public:
   unsigned int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
   unsigned int  L3VEvent; ///<Lvl3 event counter + Version
   unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
-  unsigned short int JStatus[4];///< JINJ-[01,2,3] status word 
-  //  unsigned int JStatus; ///< 8 lower bit JINJ-P (hi8 bits of status word) 8 higher bits JINJ-S (hi8 bits of status word)
+  unsigned short int JINJStatus[4];///< JINJ-[01,2,3] status word 
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}

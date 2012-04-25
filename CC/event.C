@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.555 2012/02/23 09:51:48 choutko Exp $
+//  $Id: event.C,v 1.556 2012/04/25 07:11:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -4780,6 +4780,8 @@ if(!ret){
 //cout<< "tbd "<<endl;
 
 }
+ret=AMSNtuple::ISSGTOD(r,theta,phi,v,vtheta,vphi,double(_time)+_usec/1.e6-gpsdiff);
+if( ret && print++<100)cerr<<" AMSEvent::LoadISS-E-ISSGTOD Returns "<<ret<<" "<<r<<" "<<theta<<" "<<phi<<" "<<v<<" "<<_time<<endl;
 
 }
 
