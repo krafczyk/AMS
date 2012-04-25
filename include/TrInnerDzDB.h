@@ -108,7 +108,7 @@ public:
   static float TDVSwap[2*(1+kLaynum)];
 #pragma omp threadprivate (TDVSwap)
   /// TDV Swap Space Size
-  static int   GetTDVSwapSize(){return 2*(2+kLaynum)*sizeof(float);}
+  static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
 
 
 };
