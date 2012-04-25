@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.859 2012/04/23 16:41:43 choutko Exp $
+// $Id: job.C,v 1.860 2012/04/25 07:41:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3336,10 +3336,10 @@ void AMSJob::_timeinitjob(){
     end.tm_mday=0;
     end.tm_mon=0;
     end.tm_year=0;
-    // both real data and montecarlo 
+    //  real data only - VC 25-apr-2012 
     TID.add (new AMSTimeID(AMSID("TrackerVAGains",isRealData()),begin,end,
                            TrGainDB::GetLinearSize(),TrGainDB::GetLinear(),
-                           server,need,FunctionLinearToGainDB));
+                           server,isRealData(),FunctionLinearToGainDB));
 
 
     if (isRealData() && TrRecon::TasRecon) {
