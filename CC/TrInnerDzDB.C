@@ -232,3 +232,13 @@ int TrInnerDzDB::WriteToFile(char* filename, int append){
   fclose(ff);
   return 0;
 }
+
+void TrInnerDzDB::Print()
+{
+  for (mapit it = pos.begin(); it != pos.end(); it++) {
+    printf("%9u", it->first);
+    for (int ii = 0; ii < kLaynum; ii++)
+      printf(" %5.1f", it->second.dz[ii]*1e4);
+    printf("\n");
+  }
+}

@@ -110,7 +110,8 @@ public:
   /// TDV Swap Space Size
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
 
-
+  /// Printout
+  void Print();
 };
 
 void TrInnerLin2DB();
