@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.134 2012/04/24 04:33:08 oliva Exp $
+// $Id: TrTrack.C,v 1.135 2012/04/25 13:02:57 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/24 04:33:08 $
+///$Date: 2012/04/25 13:02:57 $
 ///
-///$Revision: 1.134 $
+///$Revision: 1.135 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -865,6 +865,14 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   if      (ParExists(id )) rrgt = GetRigidity(id);
   else if (ParExists(id0)) rrgt = GetRigidity(id0);
 
+  // Get inclination dX/dZ for Z correction
+  double dxdz = _TrFit.GetDxDz();
+  double zdxc = 4e-4;
+  if (dxdz == 0) {
+    if      (ParExists(id )) dxdz = GetThetaXZ(id);
+    else if (ParExists(id0)) rrgt = GetThetaXZ(id0);
+  }
+
   // Fill hit points
   _TrFit.Clear();
   for (int i = i1; i < i2 && i < _Nhits; i++) {
@@ -892,6 +900,12 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       }
     }
 
+    // Z-correction
+    if (TkDBc::Head && !hit->OnlyY() && dxdz != 0) {
+      TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
+      coo[0] += (lad) ? lad->rot.GetEl(2, 2)*zdxc*dxdz : 0;
+    }
+
     float ferx = (hit->OnlyY()) ? 0 : 1;
     float fery = (hit->OnlyX()) ? 0 : 1;
 
@@ -916,6 +930,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if (ParExists(idr)) rini = GetRigidity(idr);
     _TrFit.SetRigidity(rini);
   }
+  if (beta > 1 || beta < -1) beta = 0;
 
   // Perform fitting
   float fdone = _TrFit.DoFit(method,mscat,0, chrg,mass,beta);
@@ -952,7 +967,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   for (int i = 0; i < trconst::maxlay; i++){
     par.Residual[i][0] = par.Residual[i][1] = 0;
-    par.weight[i][0] = par.weight[i][1] = 0;
+    par.weight  [i][0] = par.weight  [i][1] = 0;
   }
   // Fill residuals
   for (int i = 0; i < _TrFit.GetNhit(); i++) {
@@ -962,8 +977,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     int il = hit->GetLayer()-1;
     par.Residual[il][0] = _TrFit.GetXr(i);
     par.Residual[il][1] = _TrFit.GetYr(i);
-    par.weight[il][0]=_TrFit.GetXh(i);
-    par.weight[il][1]=_TrFit.GetYh(i);
+    par.weight  [il][0] = _TrFit.GetXs(i);
+    par.weight  [il][1] = _TrFit.GetYs(i);
   }
   for (int i = 0; i < trconst::maxlay; i++) {
     if (par.Residual[i][0] == 0 && par.Residual[i][1] == 0) {
@@ -1074,10 +1089,16 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
   if (id == kDummy) tprop.SetChrg(0);
 
   int tkid = 0;
+  int sens = -1;
   TrRecHitR *hit = GetHitLO(ily);
-  if (hit)
+  if (hit) {
     tkid = hit->GetTkId();
 
+    AMSPoint pnt = hit->GetLocalCoordinate(hit->GetResolvedMultiplicity());
+    double   ax  = (TkDBc::Head->_ssize_inactive[0]-
+		    TkDBc::Head->_ssize_active  [0])/2;
+    sens = (int)(abs(pnt.x()+ax)/TkDBc::Head->_SensorPitchK);
+  }
   else {
     dir.setp(0, 0, 1);
     pnt.setp(0, 0, TkDBc::Head->GetZlayer(ily));
@@ -1087,9 +1108,12 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
     TkSens tks(pnt,0);
     if (!tks.LadFound()) return ret;
     tkid = tks.GetLadTkID();
+    sens = tks.GetSensor();
   }
 
   TkLadder *lad = TkDBc::Head->FindTkId(tkid);
+  if (!lad) return -1;
+
   TkPlane  *pla = lad->GetPlane();
   AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
   AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();
@@ -1097,6 +1121,13 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
 
   pnt = prm*(lad->GetPos()+lad->GetPosA())+pla->GetPosA()+pla->GetPos();
   dir = prm*lrm*dir;
+
+  if (TRCLFFKEY.UseSensorAlign == 1 && 
+      0 <= sens && sens < trconst::maxsen) {
+    pnt[0] -= lad->_sensx[sens];
+    pnt[1] -= lad->_sensy[sens];
+    pnt[2] -= lad->_sensz[sens];
+  }
 
   return tprop.Interpolate(pnt, dir);
 }

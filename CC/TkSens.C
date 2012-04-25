@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.19 2012/04/20 23:11:17 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.20 2012/04/25 13:02:57 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2012/04/20 23:11:17 $
+///$Date: 2012/04/25 13:02:57 $
 ///
-/// $Revision: 1.19 $
+/// $Revision: 1.20 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -280,6 +280,7 @@ int TkSens::GetSens(){
      ) {
     gcoo[0] += lad->_sensx[nsens];
     gcoo[1] += lad->_sensy[nsens];
+    gcoo[2] += lad->_sensz[nsens];
 
     //Get the local coo on the Ladder (again)
     AMSPoint oo2 = PRotG*(gcoo-PPosG);
