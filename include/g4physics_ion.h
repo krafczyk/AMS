@@ -40,6 +40,7 @@ class IonDPMJETPhysics : public G4VHadronPhysics
 #endif
   G4bool useDPMJETXS;
   G4BinaryLightIonReaction*  theIonBC;
+  G4BinaryLightIonReaction*  theIonBC1;
 };
 
 #endif

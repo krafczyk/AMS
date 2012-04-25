@@ -33,7 +33,7 @@ using namespace std;
 
 // -----------------------------------------------------------
 IonDPMJETPhysics::IonDPMJETPhysics(G4bool val)
-  : G4VHadronPhysics("ionInelasticDPMJET"),theIonBC(0),useDPMJETXS(val)
+  : G4VHadronPhysics("ionInelasticDPMJET"),theIonBC(0),theIonBC1(0),useDPMJETXS(val)
 {
   fTripathi = fTripathiLight = fShen = fIonH = 0;
 #ifdef G4_USE_DPMJET
@@ -50,19 +50,30 @@ void IonDPMJETPhysics::ConstructProcess()
 {
   G4double dpmemin=5.*GeV; 
   G4double emax = 1000.*TeV;
-//--Model Binary Cascade
+//--Model Binary Cascade Low Energy
   theIonBC = new G4BinaryLightIonReaction();
   theIonBC->SetMinEnergy(0.0);
+  theIonBC->SetMaxEnergy(dpmemin);
+//--High Energy
+  theIonBC1 = new G4BinaryLightIonReaction();
+  theIonBC1->SetMinEnergy(dpmemin);
+  theIonBC1->SetMaxEnergy(emax);
 
 #ifdef G4_USE_DPMJET
-  theIonBC->SetMaxEnergy(dpmemin);
 //--Model DPMJET
   theDPM = new G4DPMJET2_5Model();
   theDPM->SetMinEnergy(dpmemin);
   theDPM->SetMaxEnergy(emax);
+  G4int dpmAmax=58;
+  G4ElementTable::iterator iter;
+  G4ElementTable *elementTable =const_cast<G4ElementTable*>(G4Element::GetElementTable());
+  for (iter = elementTable->begin(); iter != elementTable->end(); ++iter) {
+       G4int AA  =(*iter)->GetN();
+//       G4cout<<"Element AA="<<AA<<G4endl;
+       if(AA<=dpmAmax){theDPM   ->ActivateFor(*iter);theIonBC1->DeActivateFor(*iter);}
+       else           {theIonBC1->ActivateFor(*iter);theDPM   ->DeActivateFor(*iter);}
+   }
 //  theDPM->SetVerboseLevel(10);
-#else
-  theIonBC->SetMaxEnergy(emax); 
 #endif
 
 //---CrossSection
@@ -103,6 +114,7 @@ void IonDPMJETPhysics::AddProcess(const G4String& name,
   hadi->AddDataSet(fTripathiLight);
   if(isIon) { hadi->AddDataSet(fIonH); }
   hadi->RegisterMe(theIonBC);
+  hadi->RegisterMe(theIonBC1);
 #ifdef G4_USE_DPMJET
   hadi->RegisterMe(theDPM);
 #endif
