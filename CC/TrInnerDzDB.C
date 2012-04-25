@@ -88,7 +88,11 @@ int TrInnerDzDB::GetFromTDV( uint Timeid){
   time_t tt=Timeid;
   int ret=tid->validate(tt);
   if(ret<0) return -1;
-  else return 0;
+  else {
+    cout << "TrInnerDzDB::GetFromTDV-I-GetFromTDV" << endl;
+    Print();
+    return 0;
+  }
 }
 
 int TrInnerDzDB::DB2TDV(){

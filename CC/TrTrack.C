@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.136 2012/04/25 16:51:09 pzuccon Exp $
+// $Id: TrTrack.C,v 1.137 2012/04/25 19:49:07 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/25 16:51:09 $
+///$Date: 2012/04/25 19:49:07 $
 ///
-///$Revision: 1.136 $
+///$Revision: 1.137 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -868,10 +868,16 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   // Get inclination dX/dZ for Z correction
   double dxdz = _TrFit.GetDxDz();
-  double zdxc = 4e-4;
-  if (dxdz == 0) {
-    if      (ParExists(id )) dxdz = GetThetaXZ(id);
-    else if (ParExists(id0)) rrgt = GetThetaXZ(id0);
+  double dydz = _TrFit.GetDyDz();
+  double zdxc = 3e-4;
+  double zdyc = 0;
+  if (dxdz == 0 || dydz == 0) {
+    if      (ParExists(id )){ dxdz = GetThetaXZ(id);  dydz = GetThetaYZ(id);  }
+    else if (ParExists(id0)){ dxdz = GetThetaXZ(id0); dydz = GetThetaYZ(id0); }
+  }
+  if (chrg > 1.5) {
+    zdxc = (1-TMath::Abs(dxdz)*0.5)*10e-4;
+    zdyc = -4e-4;
   }
 
   // Fill hit points
@@ -901,10 +907,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       }
     }
 
-    // Z-correction
+    // Small Z-correction (charge dependent)
     if (TkDBc::Head && !hit->OnlyY() && dxdz != 0) {
       TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
       coo[0] += (lad) ? lad->rot.GetEl(2, 2)*zdxc*dxdz : 0;
+      coo[1] += (lad) ? lad->rot.GetEl(2, 2)*zdyc*dydz : 0;
     }
 
     float ferx = (hit->OnlyY()) ? 0 : 1;
@@ -1444,9 +1451,11 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   if(rret!=0) return -5;    
 
   if(refit>=2 || (!FitExists && refit==1)) { 
-    int ret0=UpdateInnerDz();
-    for (int ii=0;ii<getnhits () ;ii++)
-	    pTrRecHit(ii)->BuildCoordinate();
+    if (refit >= 3) {
+      int ret0=UpdateInnerDz();
+      for (int ii=0;ii<getnhits () ;ii++)
+	pTrRecHit(ii)->BuildCoordinate();
+    }
     float ret=FitT(fittype,-1,true,0,mass,chrg,beta);
     if (ret>=0) 
       return fittype; 
