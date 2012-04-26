@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.51 2012/04/24 09:46:51 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.52 2012/04/26 09:04:07 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1685,6 +1685,46 @@ void DynAlFitContainer::BuildAlignment(TString dir,TString prefix,int run){
 #undef VERBOSE__
 #endif
 }
+
+
+DynAlFitContainer::DynAlFitContainer(DynAlFitContainer &previous,DynAlFitContainer &second){
+  Layer=previous.Layer;
+  LocalFitParameters=previous.LocalFitParameters;
+  ApplyLocalAlignment=previous.ApplyLocalAlignment;
+
+  typedef map<int,DynAlFitParameters>::iterator iter;
+  for(iter i=previous.FitParameters.begin();i!=previous.FitParameters.end();i++){
+    // Get the original
+    int time=i->first;
+    DynAlFitParameters pars=i->second;
+
+    // Get the seconde one
+    if(second.FitParameters.find(time)!=second.FitParameters.end()){
+      DynAlFitParameters secondPars=second.FitParameters[time];
+
+      // Get the pars for current event for both
+        double x=pars.DX[0];
+	double y=pars.DY[0];
+	double z=pars.DZ[0]+pars.ZOffset;
+	secondPars.ApplyAlignment(x,y,z);
+	DynAlFitParameters &current=FitParameters[time];
+	current.DX.push_back(x);
+	current.DY.push_back(y);
+	current.DZ.push_back(z-pars.ZOffset);
+	current.THETA.push_back(pars.THETA[0]+secondPars.THETA[0]);
+	current.ALPHA.push_back(pars.ALPHA[0]+secondPars.ALPHA[0]);
+	current.BETA.push_back(pars.BETA[0]+secondPars.BETA[0]);
+	current.ZOffset=pars.ZOffset;
+	current.TOffset=pars.TOffset;
+	current.EX=secondPars.EX;
+	current.EY=secondPars.EY;
+	current.EZ=secondPars.EZ;
+    }
+  }
+
+}
+
+
 
 /////////////////// Finally the tools to provide the alignment as a function of time
 ClassImp(DynAlManager);

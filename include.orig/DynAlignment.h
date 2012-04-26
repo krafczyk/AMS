@@ -244,9 +244,8 @@ class DynAlFitContainer:public TObject{
   
   void BuildLocalAlignment(DynAlHistory &history,map<Int_t,Double_t> *errors=0);
   void BuildAlignment(TString dir,TString prefix,int run);
-
+  DynAlFitContainer(DynAlFitContainer &previous,DynAlFitContainer &second);
   void DumpLocalAlignment();
-  
   DynAlFitContainer():Layer(-1),ApplyLocalAlignment(false){};
 
 
@@ -262,7 +261,7 @@ class DynAlFitContainer:public TObject{
   bool dumpToLinearSpace(LinearSpace &tdvBuffer,bool layer=false);
   DynAlFitContainer(LinearSpace &tdvBuffer,bool layer9=false);
   void TestDump();
-  ClassDef(DynAlFitContainer,4);
+  ClassDef(DynAlFitContainer,5);
 };
 
 
