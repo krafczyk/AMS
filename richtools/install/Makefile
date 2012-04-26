@@ -120,6 +120,7 @@ Forest:
 
 $(LIBPATH)/libForest.so: Forest
 
+
 ####################### TESTS
 
 parametric_rec_build: $(LIBPATH)/libForest.so
@@ -140,4 +141,10 @@ tile_maps: lib $(EXEPATH)
 beta_map: $(LIBPATH)/libForest.so
 	$(CC) $(CONTRIB)$(@)/*.C $(GENERAL) -I$(CONTRIB)$(@) `root-config --cflags --libs` -lForest -o $(EXEPATH)$(@).exe
 
+
+####################### OTHER
+
+# Creates RunClassifier files from raw files
+rich_cnf_hkd: $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.c $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.h
+	$(CC) $(CONTRIB)$(@)/*.c -I$(CONTRIB)$(@) -o $(EXEPATH)$(@) -lm
 
