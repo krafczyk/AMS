@@ -42,7 +42,6 @@ namespace RichPMTCalibConstants{
   const float pmtRefdGdT = -0.56e-2, pmtMindGdT = -1.00e-2, pmtMaxdGdT = 0.00e-2;
   const float pmtRefdEdT =  0.08e-2, pmtMindEdT = -0.10e-2, pmtMaxdEdT = 0.30e-2;
   const float brickRefTemperature = 25, brickMinTemperature = -20, brickMaxTemperature = 40;
-  //const float brickRefdVdT = -1.e-3;
 }
 
 class RichPMTCalib{
@@ -54,8 +53,8 @@ class RichPMTCalib{
  public:
   static RichPMTCalib* getHead(){return _header;};
   static TString currentDir;
-  static bool Init(TString dir="."); // Start the singleton or modify it
-  static RichPMTCalib* Update();
+  static bool Init(TString dir=".",int run=-1); // Start the singleton or modify it
+  static RichPMTCalib* Update(int run=0);
 
   // Corrections fail status
   static int pmtCorrectionsFailed;
@@ -103,7 +102,7 @@ class RichPMTCalib{
   //
   // Efficiency & Gain corrections
   vector<float> v_pmt_ecor, v_pmt_gcor, v_pmt_gmcor;
-  vector<float> v_brick_temp_ref, v_pmt_temp_ref;
+  vector<float> v_pmt_temp_ref;
   vector<float> v_pmt_ecor_dflt, v_pmt_gcor_dflt, v_pmt_gmcor_dflt;
   vector<float> v_pmt_temp_ref_dflt;
 
@@ -116,14 +115,10 @@ class RichPMTCalib{
   bool pmtTemperatures;
   vector<float> v_pmt_dGdT, v_pmt_dEdT, v_pmt_temp;
   bool brickTemperatures;
-  vector<float> v_brick_dVdT, v_brick_temp;
-
-  //
-  // Gain Monitoring
-  vector<float> v_signal[680], v_signalc[680];
+  vector<float> v_brick_temp;
 
 //
-// Declare here the functions, and define them if thwy are very one-liners
+// Declare here the functions, and define them if they are very one-liners
 //
   bool init();
   bool retrieve(int);
@@ -151,8 +146,13 @@ class RichPMTCalib{
   unsigned short CheckRichRun(int run,
 			      vector<unsigned short> &v_pmt_stat,
 			      vector<unsigned short> &v_pmt_volt);
+  unsigned short CheckRichRunOLD(int run,
+			      vector<unsigned short> &v_pmt_stat,
+			      vector<unsigned short> &v_pmt_volt);
   bool richRunGood() {return !(richRunTag&richRunBad);}
   bool richPmtGood(int pmt) {return !(v_pmt_stat[pmt]&richPmtBad);}
+
+  bool Reload();
 
 
   static int lastRun;

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.40 2012/04/25 07:11:21 choutko Exp $
+//  $Id: root_setup.h,v 1.41 2012/04/26 16:54:37 jorgec Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -9,10 +9,12 @@
 #include "TString.h"
 #include "TTree.h"
 #include "trigger102_setup.h"
+#include "RichConfig.h"
 
 
 class SlowControlDB;
 class DynAlFitContainer;
+class RichConfigContainer;
 class AMSEventR;
 class AMSTimeID;
 #ifdef __LINUXGNU__
@@ -299,6 +301,8 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
    LVL1Setup_m fLVL1Setup; ///<  LVL1Setup Map
    typedef map <int,DynAlFitContainer> DynAlignment_m;
    DynAlignment_m fDynAlignment;
+   typedef vector<RichConfigContainer> RichConfig_m; 
+   RichConfig_m fRichConfig;
 
   const char * BuildTime(){time_t tm=fHeader.BuildTime;return ctime(&tm);};
 
@@ -410,6 +414,8 @@ static    AMSSetupR * & gethead(){return _Head;}
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
  int LoadISSGTOD(unsigned int t1, unsigned int t2);
  int LoadDynAlignment(unsigned int run);
+ bool BuildRichConfig(unsigned int run);
+ int LoadRichConfig(unsigned int run);
  void Init(TTree *tree);
 ClassDef(AMSSetupR,15)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)

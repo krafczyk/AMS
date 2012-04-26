@@ -1,4 +1,5 @@
 #include "RichCharge.h"
+#include "RichConfig.h"
 #include "root.h"
 #include "root_setup.h"
 #include <iostream>
@@ -20,7 +21,11 @@ RichPMTCalib* RichPMTCalib::_header=NULL;
 TString RichPMTCalib::currentDir="";
 
 // General Settings
+#ifndef __ROOTSHAREDLIBRARY__
+int RichPMTCalib::verbosityLevel = 1;
+#else
 int RichPMTCalib::verbosityLevel = 0;
+#endif
 bool RichPMTCalib::loadPmtCorrections = true;
 bool RichPMTCalib::useRichRunTag = false;
 bool RichPMTCalib::usePmtStat = true;
@@ -38,25 +43,43 @@ int RichPMTCalib::pmtCorrectionsFailed=-1;
 float RichPMTCalib::NpColPMTCorr[680];
 float RichPMTCalib::NpExpPMTCorr[680];
 
-
-bool RichPMTCalib::Init(TString dir){
-  if(_header) delete _header;
+void setCurrentDir(TString dir) {
   if(dir=="")
 #ifndef _PGTRACK_
     dir=Form("%s/v4.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
 #else
     dir=Form("%s/v5.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
 #endif
-
-  currentDir=dir;
-  _header=new RichPMTCalib();
-  return _header->init();
+  RichPMTCalib::currentDir=dir;
 }
 
-RichPMTCalib* RichPMTCalib::Update(){
-  //  cout<<"IN UPDATE CURRENT DIR "<<currentDir<<endl;
+bool RichPMTCalib::Init(TString dir,int run){
+  setCurrentDir(dir);
+
+  if(_header) delete _header;
+
+ _header=new RichPMTCalib();
+
+  if(run==-1) return _header->init();
+
+  return _header->retrieve(run);
+}
+
+RichPMTCalib* RichPMTCalib::Update(int run){
+  if(!RichConfigManager::useExternalFiles){
+    // Check if AMSSetup contains information
+    AMSSetupR *setup=AMSSetupR::gethead();
+    if(setup && setup->fRichConfig.size()){
+      if (setup->fRichConfig.at(0).runID==AMSEventR::Head()->fHeader.Run) {
+	if (!RichPMTCalib::getHead()) {_header=new RichPMTCalib();currentDir="";}
+	if (!setup->fRichConfig.at(0).dumpToRichPMTCalib(*RichPMTCalib::getHead())) return 0;
+	return RichPMTCalib::getHead();
+      }
+    }
+  }
+
   if(!RichPMTCalib::getHead() &&!RichPMTCalib::Init(currentDir)) return 0;
-  if(!RichPMTCalib::getHead()->retrieve(AMSEventR::Head()->fHeader.Run)) return 0;
+  if(!RichPMTCalib::getHead()->retrieve(run?run:AMSEventR::Head()->fHeader.Run)) return 0;
   return RichPMTCalib::getHead();
 }
 
@@ -74,10 +97,12 @@ bool RichPMTCalib::init(){
 
 
 bool RichPMTCalib::retrieve(int run){
+
   // retrieve the information for the given run
   static int prevRun=0;
   static bool retValue=true;
 #pragma omp threadprivate(prevRun,retValue)
+  if (currentDir=="") setCurrentDir(RichRingR::correctionsDir);
 
   //
   // PMT Temperatures
@@ -87,7 +112,6 @@ bool RichPMTCalib::retrieve(int run){
     //brickTemperatures=getRichBrickTemperatures();
     if(!pmtTemperatures) retValue=false;
   }
-  
   if(run==prevRun) return retValue;
   prevRun=run;
 
@@ -106,6 +130,60 @@ bool RichPMTCalib::retrieve(int run){
   return retValue;
 }
 
+
+bool RichPMTCalib::Reload(){
+  static int prevRun=0;
+#pragma omp threadprivate(prevRun)
+  int run = AMSEventR::Head()->fHeader.Run;
+  if (currentDir=="") setCurrentDir(RichRingR::correctionsDir);
+
+  bool retValue=true;
+
+  //
+  // PMT Info
+  //
+  if (RichConfigManager::reloadPMTs) {
+    if (!prevRun) {
+      // Read Pmt DB
+      if (!ReadPmtDB()) retValue=false;
+
+      // Init PMTs List
+      if (!initPMTs()) retValue=false;
+
+      if (!retValue) return retValue;
+    }
+  }
+
+  //
+  // PMT Temperatures
+  //
+  if (RichConfigManager::reloadTemperatures) {
+    if (useTemperatureCorrections) {
+      pmtTemperatures=getRichPmtTemperatures();
+      //brickTemperatures=getRichBrickTemperatures();
+      if(!pmtTemperatures) retValue=false;
+    }
+  }
+  if(run==prevRun) return retValue;
+  prevRun=run;
+
+  //
+  // RICH Config & Status
+  //
+  if (RichConfigManager::reloadRunTag) {
+    richRunTag=CheckRichRun(run, v_pmt_stat, v_pmt_volt);
+    if (useRichRunTag && !richRunGood()) 
+      retValue=false;
+  }
+
+  //
+  // Update PMT Info
+  //
+  if (RichConfigManager::reloadPMTs || RichConfigManager::reloadRunTag)
+    updatePMTs(run);
+
+  return retValue;
+}
 
 float RichPMTCalib::EfficiencyCorrection(int pmt) {
 
@@ -249,10 +327,10 @@ void RichPMTCalib::updatePMTs(int run) {
   }
 
   if (verbosityLevel>0)
-    cout << "RichPMTCalib::UpdatePMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
+    cout << "RichPMTCalib::updatePMTs: Number of declared Bad PMTs = " << BadPMTs.size() << endl;
   if (DEBUG)
     for (int i=0; i<BadPMTs.size(); i++) 
-      cout << "RichPMTCalib::UpdatePMTs :  " << i << " : " << BadPMTs[i] << endl;
+      cout << "RichPMTCalib::updatePMTs :  " << i << " : " << BadPMTs[i] << endl;
 
 }
 
@@ -887,8 +965,11 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 
   }
 
+#ifndef __ROOTSHAREDLIBRARY__
+  if (!initok) return RichPmtTemperatures;
+  RichPmtTemperatures = true;
+#else
   if (!initok || !AMSSetupR::gethead()) return RichPmtTemperatures;
-
   RichPmtTemperatures = true;
 
   // Retrieve DTS temperatures
@@ -910,8 +991,9 @@ bool RichPMTCalib::getRichPmtTemperatures() {
 						      );
       if (!rc) v_dts_temp[dts] = value[0];
       else if (rc==1) {
-	cout << "RichPMTCalib::getRichPmtTemperatures-E-NoNodeNameFound : skip this run" << endl;
-	skip_run=1; 
+	cout << "RichPMTCalib::getRichPmtTemperatures-E-NoElementNameFound : skip this run" << endl;
+	skip_run=1;
+	RichPmtTemperatures = false;
 	break;
       }
     }
@@ -946,6 +1028,7 @@ bool RichPMTCalib::getRichPmtTemperatures() {
   }
 
   last_stat = RichPmtTemperatures;
+#endif
 
   return RichPmtTemperatures;
 
@@ -1106,8 +1189,11 @@ bool RichPMTCalib::getRichBrickTemperatures() {
 
   }
 
-  if (!initok || !AMSSetupR::gethead())  return RichBrickTemperatures;
-
+#ifndef __ROOTSHAREDLIBRARY__
+  if (!initok) return RichBrickTemperatures;
+  RichBrickTemperatures = true;
+#else
+  if (!initok || !AMSSetupR::gethead()) return RichBrickTemperatures;
   RichBrickTemperatures = true;
 
   // Retrieve DTS temperatures
@@ -1168,13 +1254,312 @@ bool RichPMTCalib::getRichBrickTemperatures() {
   }
 
   last_stat = RichBrickTemperatures;
+#endif
 
   return RichBrickTemperatures;
 
 }
 
 
+
 unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt_stat, vector<unsigned short> &v_pmt_volt) {
+
+  /////////////////////////////////////
+  //
+  // richRunTag: 
+  //
+  // XXXX XXXX XXX1 1111
+  // .... .... .... ...v : JINFR CNF Missing 
+  // .... .... .... ..v. : JINFR HKD Missing 
+  // .... .... .... .v.. : RDR   CNF Missing 
+  // .... .... .... v... : RDR   HKD Missing
+  //
+  //
+  // PMT Status :
+  //
+  // XXX1 1111 XXX1 1111
+  // .... .... .... ...v : FE Off           
+  // .... .... .... ..v. : HV NotNominal    
+  // .... .... .... .v.. : JINFR Mismatch / Error  
+  // .... .... .... v... : RDR   Mismatch / Error
+  //
+  // .... ...v .... .... : JINFR CNF Missing 
+  // .... ..v. .... .... : JINFR HKD Missing 
+  // .... .v.. .... .... : RDR   CNF Missing 
+  // .... v... .... .... : RDR   HKD Missing
+  //
+  /////////////////////////////////////
+
+  // Rich Tag Dirs
+  char *dName[NTAG] = {
+    "RunClassifierJ", "RunClassifierJHK",
+    "RunClassifierR", "RunClassifierRHK"
+  };
+
+  // Tag Dirs time span
+  const int TagDirsTimeSpan = 1000000;
+
+
+  // PMT Default Status
+  const unsigned short richRunDflt = (1<<kTagJ) | (1<<kTagJHK) | (1<<kTagR) | (1<<kTagRHK) | (1<<kTagOcc);
+  const unsigned short richPmtDflt = (1<<kPmtFE) | (1<<kPmtHV) | (1<<kPmtJ) | (1<<kPmtR)   | (1<<kPmtOcc);
+  const unsigned short richVltDflt = 0;
+
+  // Association windows
+  const int MaxRunDelay = 5;
+  const int MaxRunSpan = 1800;
+
+  static bool init = true;
+  static bool initok = false;
+#pragma omp threadprivate(init,initok)
+
+  static map<int,string> m_tag[NTAG];
+#pragma omp threadprivate(m_tag)
+  map<int,string>::iterator it;
+
+  static vector<unsigned short> w_pmt_stat, w_pmt_volt;
+
+  static vector<string> v_brick_name[NBRICK];
+  static vector<int> v_brick_busa[NBRICK], v_brick_busb[NBRICK], v_brick_fgin[NBRICK];
+#pragma omp threadprivate(w_pmt_stat,w_pmt_volt,v_brick_name,v_brick_busa,v_brick_busb,v_brick_fgin)
+
+  unsigned short richRunTag = richRunDflt; 
+
+  static int run_prev = 0;
+  static unsigned short richRunTag_prev; 
+  static vector<unsigned short> v_pmt_stat_prev, v_pmt_volt_prev;
+#pragma omp threadprivate(run_prev,richRunTag_prev,v_pmt_stat_prev,v_pmt_volt_prev)
+  if (init) {
+
+    init = false;
+
+    w_pmt_stat.assign(NPMT, richRunDflt << 8 | richPmtDflt);
+    w_pmt_volt.assign(NPMT, richVltDflt);
+
+    v_pmt_stat = w_pmt_stat;
+    v_pmt_volt = w_pmt_volt;
+
+    richRunTag_prev = richRunTag;
+    v_pmt_stat_prev = v_pmt_stat;
+    v_pmt_volt_prev = v_pmt_volt;
+
+  }
+
+  if (run == run_prev) {
+    v_pmt_stat = v_pmt_stat_prev;
+    v_pmt_volt = v_pmt_volt_prev;
+    return richRunTag_prev;
+  }
+
+  else {
+
+    TString TAGDir=currentDir+("/RichPMTCalib/");
+
+    for (int tag=0; tag<NTAG; tag++) {
+
+      char line[256];
+      TString RunTagFileName, RunTagFileIndexName;
+
+      m_tag[tag].clear();
+
+      for (int ind=0; ind<3; ind++) {
+
+	if(((run-MaxRunDelay)/TagDirsTimeSpan != run/TagDirsTimeSpan-1+ind) &&
+	   ((run+MaxRunSpan )/TagDirsTimeSpan != run/TagDirsTimeSpan-1+ind) ) continue;
+
+	RunTagFileIndexName = TAGDir + TString(dName[tag]) + 
+	  Form("/%d.txt", (run/TagDirsTimeSpan-1+ind)*TagDirsTimeSpan);
+
+	if (verbosityLevel>0)
+	  cout << "RichPMTCalib::CheckRichRun: Open File " << RunTagFileIndexName << endl;
+
+	ifstream RunTagFileIndex(RunTagFileIndexName);
+	if (!RunTagFileIndex.good()) {
+	  cout << "RichPMTCalib::CheckRichRun: Problems Opening " << RunTagFileIndexName << endl;
+	  return richRunTag;
+	}
+
+	int utime;
+	while ( RunTagFileIndex >> utime ) {
+	  if (utime<run-MaxRunDelay || utime>run+MaxRunSpan) continue;
+
+	  RunTagFileName = TAGDir + TString(dName[tag]) + 
+	    Form("/%d/%d", (utime/TagDirsTimeSpan)*TagDirsTimeSpan, utime);
+
+	  if (verbosityLevel>0)
+	    cout << "RichPMTCalib::CheckRichRun: Open File " << RunTagFileName << endl;
+
+	  ifstream RunTagFile(RunTagFileName);
+	  if (!RunTagFile.good()) {
+	    cout << "RichPMTCalib::CheckRichRun: Problems Opening " << RunTagFileName << endl;
+	    return richRunTag;
+	  }
+
+	  while ( RunTagFile.getline( line, sizeof(line)) ) { 
+	    string sline(line);
+	    istringstream ssline(sline);
+	    int utime;
+	    ssline >> utime;
+	    m_tag[tag].insert(pair<int,string>(utime,sline));
+	  }
+
+	  RunTagFile.close();
+
+	}
+
+	RunTagFileIndex.close();
+
+      }
+
+      if (verbosityLevel>0)
+	cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << m_tag[tag].size() << endl;
+      //for (it=m_tag[tag].begin(); it!=m_tag[tag].end(); it++)
+      //	cout << it->first << " : " << it->second << endl;
+
+    }
+
+
+    string name("RHVUNK");
+    int brick, side, busa, busb, fgin;
+
+    TString HVBrickMapFileName;
+    HVBrickMapFileName = TAGDir + TString("HVBrickMap.txt");
+    if (verbosityLevel>0)
+      cout << "RichPMTCalib::CheckRichRun: Open File " << HVBrickMapFileName << endl;
+
+    ifstream HVBrickMapFile(HVBrickMapFileName);
+    if (!HVBrickMapFile.good()) {
+      cout << "RichPMTCalib::CheckRichRun: Problems Opening " << HVBrickMapFileName << endl;
+      return richRunTag;
+    }
+
+    for (brick=0; brick<NBRICK; brick++) {
+      v_brick_name[brick].assign(NSIDE, name);
+      v_brick_busa[brick].assign(NSIDE, -1);
+      v_brick_busb[brick].assign(NSIDE, -1);
+      v_brick_fgin[brick].assign(NSIDE, -1);
+    }
+    int nbside = 0;
+    while ( HVBrickMapFile >> brick >> side >> name >> busa >> busb >> fgin ) {
+      if (DEBUG)
+	cout << brick << " " << side << " " << name << " " << busa << " " << busb << " " << fgin << endl;
+      if (brick<NBRICK && side<NSIDE) {
+	nbside++;
+	v_brick_name[brick][side] = name;
+	v_brick_busa[brick][side] = busa;
+	v_brick_busb[brick][side] = busb;
+	v_brick_fgin[brick][side] = fgin;
+      }
+
+    }
+
+    HVBrickMapFile.close();
+
+    if (verbosityLevel>0)
+      cout << "RichPMTCalib::CheckRichRun: Number of Entries Read : " << nbside << endl;
+    if (nbside != NSIDE*NBRICK) {
+      cout << "RichPMTCalib::CheckRichRun: Error Expected HVBrick Records : " << NSIDE*NBRICK << endl;
+      return richRunTag;
+    }
+
+
+    // Occupancy based bits should be filled here
+
+
+    initok = true;
+
+  }
+
+  v_pmt_stat = w_pmt_stat;
+  v_pmt_volt = w_pmt_volt;
+
+  run_prev = run;
+  richRunTag_prev = richRunTag;
+  v_pmt_stat_prev = v_pmt_stat;
+  v_pmt_volt_prev = v_pmt_volt;
+
+  if (!initok) return richRunTag;
+
+
+  // All stuff comes here ...
+  for (int tag=0; tag<NTAG; tag++) {
+
+    it = m_tag[tag].upper_bound(run);
+
+    switch (tag) {
+
+    case kTagJ:
+      it--;
+      if (run-it->first<0 || run-it->first>MaxRunDelay) {
+	if (verbosityLevel>0)
+	  cout << "RichPMTCalib::CheckRichRun : CNF-J-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
+      }
+      else {
+	richRunTag ^= (1<<kTagJ);
+        RichDecodeJ(it->second, v_brick_fgin, v_pmt_stat, v_pmt_volt);
+      }
+      break;
+
+    case kTagJHK:
+      if (it->first-run<0 || it->first-run>MaxRunSpan)
+	//cout << "RichPMTCalib::CheckRichRun : HKD-J-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
+	break;
+      else {
+	richRunTag ^= (1<<kTagJHK);
+        RichDecodeJHK(it->second, v_brick_busa, v_brick_busb, v_pmt_stat);
+      }
+      break;
+
+    case kTagR:
+      it--;
+      if (run-it->first<0 || run-it->first>MaxRunDelay) {
+	if (verbosityLevel>0)
+	  cout << "RichPMTCalib::CheckRichRun : CNF-R-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
+      }
+      else {
+	richRunTag ^= (1<<kTagR);
+	RichDecodeR(it->second, v_pmt_stat);
+      }
+      break;
+
+    case kTagRHK:
+      if (it->first-run<0 || it->first-run>MaxRunSpan)
+	//cout << "RichPMTCalib::CheckRichRun : HKD-R-NotFoundForRun " << run << " (dt: " << it->first-run << " ) " << endl;
+	break;
+      else {
+	richRunTag ^= (1<<kTagRHK);
+	RichDecodeRHK(it->second, v_pmt_stat);
+      }
+      break;
+
+    }
+
+  }
+
+  // Occupancy based bits should be set here
+
+  if (DEBUG) {
+    cout << "RichPMTCalib::CheckRichRun : richRunTag ";
+    bin(richRunTag, cout);
+    cout << endl;
+    for (int pmt=0; pmt<NPMT; pmt++) {
+      cout << pmt << " ";  
+      bin(v_pmt_stat[pmt], cout);
+      cout << " " << v_pmt_volt[pmt] << "(" << v_pmt_vnom[pmt] << ")" << endl;
+    }
+  }
+
+
+  richRunTag_prev = richRunTag;
+  v_pmt_stat_prev = v_pmt_stat;
+  v_pmt_volt_prev = v_pmt_volt;
+
+  return richRunTag;
+
+}
+
+
+unsigned short RichPMTCalib::CheckRichRunOLD(int run, vector<unsigned short> &v_pmt_stat, vector<unsigned short> &v_pmt_volt) {
 
   /////////////////////////////////////
   //
@@ -1465,7 +1850,6 @@ void RichPMTCalib::RichDecodeJ(string sline, vector<int> v_brick_fgin[],
     hvchn = v_pmt_hvchn[pmt];
     fgin = v_brick_fgin[brick][0];
 
-    //cout << pmt << " " << fgin << " " << strlen(code[fgin]) << " " << code[fgin] << endl; 
     if (strlen(code[fgin]) != NHVCHN+2) continue;
 
     v_pmt_stat[pmt] ^= (1<<kPmtJ);
@@ -1654,7 +2038,6 @@ bool RichPMTCalib::ReadPmtDB() {
   if (initok) readPmtDB = true;
 
   return readPmtDB;
-
 }
 
 

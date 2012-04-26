@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.391 2012/04/25 16:51:10 pzuccon Exp $
+//  $Id: root.C,v 1.392 2012/04/26 16:54:26 jorgec Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -1544,7 +1544,10 @@ bool RichRingR::useGainCorrections = true;       // PMT Gain equalization
 bool RichRingR::useEfficiencyCorrections = true; // PMT Efficiency equalization
 bool RichRingR::useBiasCorrections = true;       // PMT Efficiency bias corrections
 bool RichRingR::useTemperatureCorrections = true;// PMT Temperature corrections
-
+bool RichRingR::useExternalFiles = false;        // read external files
+bool RichRingR::reloadTemperatures = true;       // force load Temperatures from AMSSetup
+bool RichRingR::reloadRunTag = false;            // force load Config & Status from ext. files
+bool RichRingR::reloadPMTs = true;               // force load PMT info from ext. files
 
 void AMSEventR::GetBranch(TTree *fChain){
   char tmp[255];
@@ -2219,7 +2222,6 @@ TrTrackFitR::InitMF(UTime());
       RichRingR::loadPmtCorrections=false;
     }
     if (RichRingR::loadPmtCorrections) {
-      RichPMTCalib::currentDir=RichRingR::correctionsDir;
       RichPMTCalib::useRichRunTag=RichRingR::useRichRunTag;
       RichPMTCalib::usePmtStat=RichRingR::usePmtStat;
       RichPMTCalib::useSignalMean=RichRingR::useSignalMean;
@@ -2227,10 +2229,17 @@ TrTrackFitR::InitMF(UTime());
       RichPMTCalib::useEfficiencyCorrections=RichRingR::useEfficiencyCorrections;
       RichPMTCalib::useBiasCorrections=RichRingR::useBiasCorrections;
       RichPMTCalib::useTemperatureCorrections=RichRingR::useTemperatureCorrections;
-      if(!RichPMTCalib::getHead() &&  RichRingR::correctionsDir!=RichPMTCalib::currentDir){
+
+      RichConfigManager::useExternalFiles=RichRingR::useExternalFiles;
+      RichConfigManager::reloadTemperatures=RichRingR::reloadTemperatures;
+      RichConfigManager::reloadRunTag=RichRingR::reloadRunTag;
+      RichConfigManager::reloadPMTs=RichRingR::reloadPMTs;
+
+      // Initialize if it has not yet done and the directory name is the new one
+      if(!RichPMTCalib::getHead() && RichRingR::useExternalFiles && RichRingR::correctionsDir!=RichPMTCalib::currentDir){
 	RichPMTCalib::Init(RichRingR::correctionsDir);
-	RichRingR::correctionsDir=RichPMTCalib::currentDir; // Force not calling this anymore
       }
+      RichPMTCalib::currentDir=RichRingR::correctionsDir;
       if (!RichPMTCalib::buildCorrections()) {
 	cout<<"*********************** Failed to build RICH PMT corrections. Skiping."<<endl; 
 	RichRingR::loadPmtCorrections=false;
@@ -4681,9 +4690,13 @@ bool RichRingR::buildChargeCorrections(){
   RichPMTCalib::useBiasCorrections = useBiasCorrections;
   RichPMTCalib::useTemperatureCorrections = useTemperatureCorrections;
 
+  RichConfigManager::useExternalFiles = useExternalFiles;
+  RichConfigManager::reloadTemperatures = reloadTemperatures;
+  RichConfigManager::reloadRunTag = reloadRunTag;
+  RichConfigManager::reloadPMTs = reloadPMTs;
+
   RichPMTCalib *corr=RichPMTCalib::Update();
   if(!corr) return false;
-
 
   // Correct the collected 
   for(map<unsigned short,float>::iterator it=NpColPMT.begin();

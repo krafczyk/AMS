@@ -1,10 +1,11 @@
-//  $Id: root_setup.C,v 1.67 2012/04/25 07:11:16 choutko Exp $
+//  $Id: root_setup.C,v 1.68 2012/04/26 16:54:26 jorgec Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
 #include "SlowControlDB.h"
 #include "ntuple.h"
 #include "DynAlignment.h"
+#include "RichConfig.h"
 #include "dirent.h"
 #include <sys/stat.h>
 #ifndef __ROOTSHAREDLIBRARY__
@@ -544,6 +545,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
+   if(!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return false; 
   }
   else{
@@ -576,6 +578,7 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadDynAlignment(fHeader.Run);
+   if (!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return true;
    }
 }
@@ -2083,6 +2086,112 @@ int AMSSetupR::LoadDynAlignment(unsigned int run){
 *******************************************************/
    return true;
    }
+#endif
+
+
+
+#ifndef __ROOTSHAREDLIBRARY__
+bool AMSSetupR::BuildRichConfig(uinteger run){
+
+
+  const char *nve=getenv("RichCnfHkdExec");
+  char ior[]="rich_cnf_hkd";
+  if(! (nve && strlen(nve)))nve=ior;
+  const char *exedir=getenv("ExeDir");
+  const char *amsdatadir=getenv("AMSDataDir");
+  char local[1024]="";
+
+  if(! (exedir && strlen(exedir))){
+    if(amsdatadir && strlen(amsdatadir)){
+      strcpy(local,amsdatadir);
+      strcat(local,"/DataManagement/exe");
+    }
+    exedir=local;
+  }
+
+  if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
+    char t1[1024];
+    strcpy(t1,exedir);
+    strcat(t1,"/../prod");
+    setenv("TNS_ADMIN",t1,0);
+    AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 100 ");
+    systemc+=exedir;
+    systemc+="/";
+    systemc+=AMSCommonsI::getosname();
+    systemc+="/";
+    systemc+=nve;
+    char u[128];
+    sprintf(u," %u",fHeader.Run);
+    systemc+=u;
+    systemc+="  > /tmp/rich_cnf_hkd.";
+    char tmp[80];
+    sprintf(tmp,"%u",getpid());
+    systemc+=tmp;
+    cout << "AMSSetupR::BuildRichConfig-I-Execute "<<systemc<<endl;
+    int i=system(systemc);
+    if(i){
+      cerr <<"  AMSSetupR::BuildRichConfig-E-UnableTo "<<systemc<<endl;
+      systemc="rm /tmp/rich_cnf_hkd."; 
+      systemc+=tmp;
+      system(systemc);
+      LoadRichConfig(fHeader.Run);
+      return false;
+    }
+    else{
+      systemc="rm /tmp/rich_cnf_hkd."; 
+      systemc+=tmp;
+      system(systemc);
+      LoadRichConfig(fHeader.Run);
+      return true;
+    }
+  }
+  else{
+    cerr<<" AMSSetupR::BuildRichConfig-E-UnableToGetRichCnfHkdBecauseSomeVarAreNull"<<endl;
+    return false;
+  }
+}
+#else
+bool AMSSetupR::BuildRichConfig(uinteger run){return true;}
+#endif
+
+
+
+int AMSSetupR::LoadRichConfig(unsigned int run){
+#ifdef __ROOTSHAREDLIBRARY__
+  return false;
+}
+#else
+   static int runError=-1;
+   char defaultDir[1024];
+#ifndef _PGTRACK_
+   sprintf(defaultDir,"%s/v4.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
+#else
+   sprintf(defaultDir,"%s/v5.00/RichDefaultPMTCalib",getenv("AMSDataDir"));
+#endif
+   char *directory=getenv("AMSRichConfig");
+   if(!directory || !strlen(directory)) directory=defaultDir;
+
+   bool prev=RichConfigManager::useExternalFiles;
+   TString prevString=RichConfigManager::defaultDir;
+   RichConfigManager::useExternalFiles=true;
+   RichConfigManager::defaultDir="";
+   if(!RichConfigManager::UpdateParameters(run,0,directory)){
+     if(runError!=run){
+       cout<<"AMSSetupR::LoadRichConfig-W-Failed to find files in "<<directory<<" for run "<<run<<endl;
+       runError=run;
+     }
+     RichConfigManager::useExternalFiles=prev;
+     RichConfigManager::defaultDir=prevString;
+     return false;
+   }
+
+   // Copy the objects into the map
+   fRichConfig.clear(); fRichConfig.push_back(RichConfigManager::richConfigContainer);
+   RichConfigManager::useExternalFiles=prev;
+   RichConfigManager::defaultDir=prevString;
+
+   return true;
+}
 #endif
 
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.861 2012/04/25 16:36:29 pzuccon Exp $
+// $Id: job.C,v 1.862 2012/04/26 16:54:26 jorgec Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -255,6 +255,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   IOPA.WriteTGeometry=0;//173
   IOPA.WriteTDVDataInRoot=1;
   IOPA.ReadAMI=0;
+  IOPA.BuildRichConfig=1;//218
   IOPA.unitimegen=0;
   VBLANK(IOPA.TGeometryFileName,40);//174
   char tgeofilename[16]="ams02.root";

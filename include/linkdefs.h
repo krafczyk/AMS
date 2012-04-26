@@ -1,4 +1,4 @@
-//  $Id: linkdefs.h,v 1.27 2012/04/25 07:11:21 choutko Exp $
+//  $Id: linkdefs.h,v 1.28 2012/04/26 16:54:37 jorgec Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -43,6 +43,8 @@
 #pragma link C++ class GeomHashEnsemble;
 //////////////////////////////////////
 #pragma link C++ class RichPMTCalib;
+#pragma link C++ class RichConfigManager;
+#pragma link C++ class RichConfigContainer;
 ///////////////////////////////////////
 #pragma link C++ class TrElem+;
 #pragma link C++ class TrMCClusterR+;
