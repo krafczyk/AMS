@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.71 2012/04/22 23:40:33 oliva Exp $
+// $Id: tkdcards.C,v 1.72 2012/04/26 15:28:38 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -25,7 +25,7 @@ void TKGEOMFFKEY_DEF::init(){
   CalibVer=3;
   memset(fname,400,sizeof(fname[0]));
   memset(disfname,400,sizeof(disfname[0]));
-  alignver=2;
+  alignver=3;
   LoadMCDisalign=0;
   EnableExtMov=0;
   float p1[6]={0.02,0.02,0.02,0.0001,0.0001,0.0001};

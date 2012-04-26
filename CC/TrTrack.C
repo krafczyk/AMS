@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.138 2012/04/25 20:06:39 shaino Exp $
+// $Id: TrTrack.C,v 1.139 2012/04/26 15:28:38 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/25 20:06:39 $
+///$Date: 2012/04/26 15:28:38 $
 ///
-///$Revision: 1.138 $
+///$Revision: 1.139 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -876,7 +876,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     else if (ParExists(id0)){ dxdz = GetThetaXZ(id0); dydz = GetThetaYZ(id0); }
   }
   if (chrg > 1.5) {
-    zdxc = (1-TMath::Abs(dxdz))*9e-4;
+    zdxc = (1-TMath::Abs(dxdz))*12e-4;
     zdyc = -4e-4;
   }
 
