@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.5 2012/04/24 01:58:32 oliva Exp $
+// $Id: TofTrack.h,v 1.6 2012/04/26 13:48:19 oliva Exp $
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -55,7 +55,7 @@ class TofTrack {
     kBeta     = 0x10, /*!< \f$\beta\f$ correction. */
     kRigidity = 0x20, /*!< Rigidity correction (depends on A/Z guess). */
     kBetaAdd  = 0x40, /*!< Additional \f$\beta\f$ correction. */ 
-    kContin   = 0x80, /*!< use Contin corrections instead of mine whenever possible. */
+    kContin   = 0x80  /*!< use Contin corrections instead of mine whenever possible. */
   };
 
   //! Plane type
@@ -79,7 +79,7 @@ class TofTrack {
   //! Spatial fit chi-squared (x, y)
   float            _SpatialChiSq[2];
   //! Spatial fit degrees of freedom (x, y)
-  float            _SpatialNdof[2];
+  int              _SpatialNdof[2];
   //! Spatial fit residuals (cm)
   AMSPoint         _SpatialResiduals[4];
 
@@ -92,7 +92,7 @@ class TofTrack {
   //! Beta fit chi-squared 
   float            _ChiSqT;
   //! Beta fit number of degrees of freedom
-  float            _NdofT;
+  int              _NdofT;
   //! Beta time residuals (ns)
   float            _TimeResiduals[4];
 
@@ -115,7 +115,7 @@ class TofTrack {
   //! TOF wrt Tracker track chi-squared (x, y)
   float            _TrackChiSq[2];
   //! TOF wrt Tracker track degrees of freedom (x, y)
-  float            _TrackNdof[2];
+  int              _TrackNdof[2];
   //! TOF wrt Tracker track residuals (cm)
   AMSPoint         _TrackResiduals[4];
 
@@ -210,7 +210,7 @@ class TofTrack {
   //! Get Y spatial fit number of degrees of freedom (linear fit)
   int          GetNdofY() { return _SpatialNdof[1]; }
   //! Get XY spatial fit combined number of degrees of freedom (linear fit)
-  int          GetNdofXY() { return GetNdofX() + GetNdofY(); }
+  int          GetNdofXY() { return _SpatialNdof[0] + _SpatialNdof[1]; }
   //! Get X spatial fit reduced chi-squared (linear fit)
   float        GetRedChiSqX() { return (GetNdofX()>0) ? GetChiSqX()/GetNdofX() : 0; }
   //! Get Y spatial fit reduced chi-squared (linear fit)
@@ -259,7 +259,7 @@ class TofTrack {
   //! Make a time fit with the TOF track spatial fit knowledge and layer 2 and 3 
   bool         MakeTimeFitInner() { return MakeTimeFit(0x6); }
   //! TO BE DONE: Make a temporal fit with CDSA correction 
-  bool         MakeTimeFitCDSA(float mass, int charge) { return false; }
+  // bool         MakeTimeFitCDSA(float mass, int charge) { return false; }
   //! Make the time residuals
   bool         MakeTimeResiduals(); 
   /**@}*/
@@ -385,7 +385,7 @@ class TofTrack {
   //! Get Y number of degrees of freedom 
   int          GetAssociatedTrTrackNdofY() { return _TrackNdof[1]; }
   //! Get XY combined number of degrees of freedom
-  int          GetAssociatedTrTrackNdofXY() { return GetAssociatedTrTrackNdofX() + GetAssociatedTrTrackNdofY(); }
+  int          GetAssociatedTrTrackNdofXY() { return _TrackNdof[0] + _TrackNdof[1]; }
   //! Get X reduced chi-squared with respect to tracker track
   float        GetAssociatedTrTrackRedChiSqX() { return (GetAssociatedTrTrackNdofX()>0) ? GetAssociatedTrTrackChiSqX()/GetAssociatedTrTrackNdofX() : 0; }
   //! Get Y reduced chi-squared with respect to tracker track

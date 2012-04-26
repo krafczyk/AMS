@@ -1,4 +1,4 @@
-// $Id: TofRecon.h,v 1.3 2012/04/20 07:14:25 oliva Exp $
+// $Id: TofRecon.h,v 1.4 2012/04/26 13:48:19 oliva Exp $
 
 #ifndef __TofRecon__
 #define __TofRecon__
@@ -40,7 +40,7 @@ class TofCandidate {
   //! c-tor 
   TofCandidate(char kind, TofClusterR* u, TofClusterR* l) { type = kind; nclusters = 2; cl_upper = u; cl_lower = l; }
   //! c-tor (for single clusters) 
-  TofCandidate(int kind, TofClusterR* s) { type = kind; nclusters = 1; cl_upper = s; cl_lower = s; }
+  TofCandidate(char kind, TofClusterR* s) { type = kind; nclusters = 1; cl_upper = s; cl_lower = s; }
   //! d-tor
   ~TofCandidate() { type = ' '; nclusters = 0; cl_upper = 0; cl_lower = 0; }
   //! Get type name 
