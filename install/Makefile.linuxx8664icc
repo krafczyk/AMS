@@ -1,4 +1,4 @@
-#  $Id: Makefile.linuxx8664icc,v 1.18 2012/04/27 16:21:26 chchung Exp $
+#  $Id: Makefile.linuxx8664icc,v 1.19 2012/04/27 16:36:52 chchung Exp $
 
 # General clean up and reorganization
 #
@@ -73,7 +73,7 @@ endif
   FFOLD=$(FF)  -save
   FFLAGSSAVE= -save
   FORTRAN_LIBS=
-  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifcore -lifport -lifcoremt -limf  -lipgo -lirc_s
+  FORTRAN2_LIBS= -Wl,--allow-multiple-definition -L$(INTELDIR)/$(INTELVER)/lib/intel64   -lifport -lifcoremt -limf  -lipgo -lirc_s
 
 ORBIT2DIR=/opt/Orbit2
 IDL=$(ORBIT2DIR)/bin/orbit-idl-2
