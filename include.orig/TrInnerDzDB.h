@@ -47,7 +47,9 @@ private:
   
   typedef std::map<uint,TrInnerDzDB::DzElem>::iterator mapit;
   static TrInnerDzDB* Head;
+#ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (Head)    
+#endif
   int TrInnerDB2Lin2TDV(mapit  it);
 
 
@@ -105,7 +107,9 @@ public:
 
   /// TDV Swap Space
   static float TDVSwap[2*(1+kLaynum)];
+#ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (TDVSwap)
+#endif
   /// TDV Swap Space Size
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
  /// Load the DB from a file and make it available
