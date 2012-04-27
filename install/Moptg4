@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.133 2012/04/23 16:41:50 choutko Exp $
+#  $Id: Moptg4,v 1.134 2012/04/27 11:02:44 jorgec Exp $
 #
 SHELL=/bin/sh
 #
@@ -367,7 +367,7 @@ FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C \
 	$(SCC)Sunposition.C
 
 
-FILES+=$(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichBeta.C $(SCC)RichTools.C
+FILES+=$(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C
 
 FILES+=$(SFF)tkmccl.F $(SFF)geocoor.F  $(SFF)TrackFit_utils.F \
 	$(SFF)Geant3_utils.F  $(SFF)mtx.F $(SFF)tptcir.F $(SFF)trafit.F \
@@ -407,7 +407,7 @@ FILESC= $(SCC)id.C $(SCC)node.C $(SCC)snode.C   \
 	$(SCC)richdaq.C	$(SCC)astro.C   $(SCC)producer.C $(SCC)client.C \
 	$(SCC)g4rich.C
 
-FILESC+=$(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichBeta.C $(SCC)RichTools.C
+FILESC+=$(SCC)DynAlignment.C $(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C
 
 
 FILESC+=$(SFF)tkmccl.F $(SFF)geocoor.F  \
@@ -534,7 +534,7 @@ compile:= $(AMS_EXE)
 
 $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h ../include/DynAlignment.h 
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/edep.h ../include/point.h ../include/root_RV.h ../include/DynAlignment.h  ../include/RichCharge.h ../include/RichTools.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/edep.h ../include/point.h ../include/root_RV.h ../include/DynAlignment.h  ../include/RichCharge.h ../include/RichConfig.h ../include/RichTools.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
