@@ -115,6 +115,7 @@ public:
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
  /// Load the DB from a file and make it available
   static void Load(TFile * ff);
+  using TObject::Print;
   /// Printout
   void Print();
 
