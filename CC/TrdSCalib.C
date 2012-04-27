@@ -4924,7 +4924,7 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
       temp_TRDHit[0]=TrdHit->hitXYraw; temp_TRDHit[1]=TrdHit->hitR; temp_TRDHit[2]=TrdHit->hitZraw; 
     }
     
-    if( _DB_instance.readDB_Alignment(Atime) ) {
+    if( _DB_instance.readDB_Alignment(Atime)>0 ) {
       TRDAlignmentPar par =_DB_instance.GetAlignmentPar(TrdHit->Lay, (int) Atime); 
       
       AMSPoint  T(par.dX, par.dY, par.dZ);

@@ -198,7 +198,7 @@ public:
     int readDB_Calibration(Double_t asktime);
     int readDB_Alignment_Plane(Double_t asktime);
     int readDB_Alignment_Global(Double_t asktime);
-    int readDB_Alignment(Double_t asktime);
+    int readDB_Alignment(Double_t asktime, int readplane=1, int readglobal=1);
     double GetGainCorrectionFactorTube(int tubeid, double asktime);
     double GetGainCorrectionFactorModule(int Moduleid, double asktime);
     TRDAlignmentPar *GetAlignmentPar_Global(int t);

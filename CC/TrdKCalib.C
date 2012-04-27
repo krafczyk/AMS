@@ -149,12 +149,21 @@ int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
 };
 
 
-int TrdKCalib::readDB_Alignment(Double_t asktime){
-    int r1=readDB_Alignment_Plane(asktime);
-    int r2=readDB_Alignment_Global(asktime);
+int TrdKCalib::readDB_Alignment(Double_t asktime,int readplane, int readglobal){
 
-    if(r1==0 || r2==0) return 0;
-    else return 1;
+    int r1=0;
+    int r2=0;
+    //    cout<<"Read ? "<<readplane<<", "<<readglobal<<endl;
+    if(readplane==1)  r1=readDB_Alignment_Plane(asktime);
+    if(readglobal==1) r2=readDB_Alignment_Global(asktime);
+
+
+    if(r1==0 && r2==0)return 0;
+    else if(r1!=0 && r2==0)return 1;
+    else if(r1!=0 && r2!=0)return 2;
+    else if(r1==0 && r2!=0) return -1;
+
+    return 0;
 };
 
 
