@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.30 2012/04/20 23:11:17 pzuccon Exp $
+// $Id: TkDBc.h,v 1.31 2012/04/27 11:52:21 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -451,6 +451,9 @@ public:
 
   //! Load from TDV, ver=2: TrackerAlignPM2, ver3: TrackerAlignPM3
   static int GetFromTDV(unsigned int time, int ver = 2);
+
+  //! Update TDV, ver=2: TrackerAlignPM2, ver3: TrackerAlignPM3
+  static int UpdateTDV(unsigned int begin, unsigned int end, int ver = 2);
 
   //!interface to GBTACH TDV database
   static float* linear;

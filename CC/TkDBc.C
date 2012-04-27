@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.52 2012/04/20 23:11:17 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.53 2012/04/27 11:52:22 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/04/20 23:11:17 $
+///$Date: 2012/04/27 11:52:22 $
 ///
-///$Revision: 1.52 $
+///$Revision: 1.53 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1304,6 +1304,7 @@ int TkDBc::readAlignmentSensor(const char* filename, int pri){
 }
 
 #include "timeid.h"
+#include "commonsi.h"
 
 int TkDBc::GetFromTDV(unsigned int time, int ver)
 {
@@ -1334,6 +1335,33 @@ int TkDBc::GetFromTDV(unsigned int time, int ver)
   int ret = db->validate(tt);
   if (db) delete db;
   return ret;
+}
+
+int TkDBc::UpdateTDV(unsigned int brun, unsigned int erun, int ver)
+{
+  TkLadder::version = ver-1;
+
+  TkDBc::CreateLinear();
+  TkDBc::Head->Align2Lin();
+
+  TString stn = Form("TrackerAlignPM%d", TkLadder::version+1);
+  cout << "Updating " << stn.Data() << endl;
+  
+  time_t br = brun+3600;
+  time_t er = erun+3600;
+
+  tm begin; gmtime_r(&br, &begin);
+  tm end;   gmtime_r(&er, &end);
+  cout << "Begin: " <<(int)brun<<"  " <<asctime(&begin)<<endl;
+  cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
+
+  AMSTimeID *tt
+    = new AMSTimeID(AMSID("TrackerAlignPM3", 1), begin, end,
+		    TkDBc::GetLinearSize(),
+		    TkDBc::linear, AMSTimeID::Standalone, 1);
+
+  tt->UpdateMe();
+  return tt->write(AMSDATADIR.amsdatabase);
 }
 
 
