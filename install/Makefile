@@ -319,7 +319,7 @@ COMMON_FILES += $(SCC)richdbc.C           $(SCC)richrec.C        $(SCC)richid.C 
 		$(SFF)richbetalike_lip.F \
 		$(SFF)richbetastand_lip.F $(SFF)richchg_lip.F \
 		$(SFF)richutil_lip.F \
-		$(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C $(SCC)RichConfig.C
+		$(SCC)RichCharge.C $(SCC)RichConfig.C $(SCC)RichBeta.C $(SCC)RichTools.C 
 
 # High level reconstruction
 COMMON_FILES += $(SCC)beta.C     $(SCC)charge.C   $(SCC)particle.C   \
