@@ -410,6 +410,7 @@ class TrdSCalibR {
  private:
   int algo,patt,refit, pmass, pcharge;
   static TrdSCalibR* head[64];
+  vector<AC_TrdHits*> TrdNHits;
  
  private:
   /// filename for GetTrdHits
@@ -476,7 +477,9 @@ class TrdSCalibR {
   vector<AC_TrdHits*> TrdSHits;
 
   /// + use for ver.05
-  vector<AC_TrdHits*> TrdNHits;
+  TSpline3* grTrkXZ;  
+  TSpline3* grTrkYZ;
+
   vector<TF1*> fTrdLR_fElectronXe0, fTrdLR_fElectronXe1, fTrdLR_fElectronXe2;
   vector<TF1*> fTrdLR_fElectronXe3, fTrdLR_fElectronXe4, fTrdLR_fElectronXe5;
   
@@ -599,13 +602,26 @@ class TrdSCalibR {
 	delete grTrdS_PDF_Elec_Xe2[i];
 	delete grTrdS_PDF_Elec_Xe3[i];
 	delete grTrdS_PDF_Elec_Xe4[i];
-	delete grTrdS_PDF_Elec_Xe5[i];
+	delete grTrdS_PDF_Elec_Xe5[i]; 
       }
 
     delete grTrdS_Xe;
 
     //delete grTrkXZ;
     //delete grTrkYZ;
+
+    if(fTrdLR_fElectronXe0.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe0.size();i++) delete fTrdLR_fElectronXe0[i];
+    if(fTrdLR_fElectronXe1.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe1.size();i++) delete fTrdLR_fElectronXe1[i];
+    if(fTrdLR_fElectronXe2.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe2.size();i++) delete fTrdLR_fElectronXe2[i];
+    if(fTrdLR_fElectronXe3.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe3.size();i++) delete fTrdLR_fElectronXe3[i];
+    if(fTrdLR_fElectronXe4.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe4.size();i++) delete fTrdLR_fElectronXe4[i];
+    if(fTrdLR_fElectronXe5.size()) 
+      for(int i=0; i<fTrdLR_fElectronXe5.size();i++) delete fTrdLR_fElectronXe4[5];
 
     TrkXcors.clear();
     TrkYcors.clear();
@@ -615,23 +631,18 @@ class TrdSCalibR {
     
     if( TrdSHits.size() !=0) 
       for(int i=0; i< TrdSHits.size();i++) delete TrdSHits[i];
+     
     
   }
  
   void Clear(){
-
     nTrdHitLayer.clear();  
     TrdSum8Amp.clear(); 
     TruncatedMean.clear();
     TrdMedian.clear();
     TrdLRs.clear();    
-    TrdLRs_MC.clear(); 
-
-    if ( TrdSHits.size() != 0) 
-      for(int i=0; i< TrdSHits.size()-1;i++)  delete TrdSHits[i];
-
-    //if ( TrdNHits.size() != 0) 
-    // for(int i=0; i< TrdNHits.size()-1;i++)  delete TrdNHits[i];
+    TrdLRs_MC.clear();   
+    TrdSHits.clear();
   }
   
   int Isitsame (TrdSCalibR& ObjRawHit) {
@@ -1021,7 +1032,6 @@ class TrdSCalibR {
   int ProcessTrdEvt(AMSEventR *pev, int Debug=0);
   int ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug);
   int ProcessTrdHit(TrdTrackR  *Trdtrk,  TrTrackR *Trtrk, int Debug);
-  int ProcessTrdHit(TrTrackR *Trtrk, vector<AC_TrdHits*> &TrdHits, int Debug);
   int ProcessTrdHit(TrTrackR *Trtrk, int Debug);
 
   int BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, double &s1,double &s2, double &s3 , int Debug);

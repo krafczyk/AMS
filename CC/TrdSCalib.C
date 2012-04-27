@@ -33,7 +33,7 @@
 //  2012.03.01 include AC_TrdGeom considering shimming
 //  2012.03.09 include multiple scattering correction routine developed by Blobel 
 //  2012.03.26 add M.Millinger gain calibration method
-// 
+//  2012.04.26 released version 5
 //  To do Lists: 
 //              1. interface with other TrdAlignmentDB (Z.Weng, V.Zhukov)
 //              2. update toyMC
@@ -168,6 +168,15 @@ const char *TrdSCalibR::TrdGeomDB[] =
     "TRD_shift_rot_default.lst"
   };
 
+std::vector<int> TrdSCalibR::nTrdModulesPerLayer(20);
+std::vector< vector<int> > TrdSCalibR::mStraw(18, vector<int>(20)); 
+std::vector<int> TrdSCalibR::aP(trdconst::nTrdModules);
+std::vector<int> TrdSCalibR::aA(trdconst::nTrdModules);
+std::vector<double> TrdSCalibR::xTrks(7);
+std::vector<double> TrdSCalibR::yTrks(7);
+std::vector<double> TrdSCalibR::zTrks(7);
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 
@@ -323,15 +332,7 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3),
   }
   
 //--------------------------------------------------------------------------------------------------
-std::vector<int> TrdSCalibR::nTrdModulesPerLayer(20);
-std::vector< vector<int> > TrdSCalibR::mStraw(18, vector<int>(20)); 
-std::vector<int> TrdSCalibR::aP(trdconst::nTrdModules);
-std::vector<int> TrdSCalibR::aA(trdconst::nTrdModules);
-std::vector<double> TrdSCalibR::xTrks(7);
-std::vector<double> TrdSCalibR::yTrks(7);
-std::vector<double> TrdSCalibR::zTrks(7);
-//--------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------
+
 //--------------------------------------------------------------------------------------------------
 
 void AC_TrdHits::PrintTrdHit(Option_t *) const{
@@ -3750,8 +3751,6 @@ int TrdSCalibR::BuildTrdSCalib(time_t evut, double fMom, TrdHTrackR *TrdHtrk, Tr
   
 
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
-
-  //static vector<int> aP, aA;
   aP.assign(trdconst::nTrdModules, 0);
   aA.assign(trdconst::nTrdModules, 0);
 
@@ -3843,8 +3842,6 @@ int TrdSCalibR::ProcessTrdHit(TrdHTrackR *TrdHtrk, TrTrackR *Trtrk, int Debug){
 		      TrdHtrk->Coo[0],TrdHtrk->Coo[1],TrdHtrk->Coo[2]) << std::endl;
 
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
-
-  //static vector<int> aP, aA;
   aP.assign(trdconst::nTrdModules, 0);
   aA.assign(trdconst::nTrdModules, 0);
 
@@ -3933,8 +3930,6 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
   if (!MatchingTrdTKtrack(iRabs, Debug) ) return 11; 
 
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
-
-  //static vector<int> aP, aA;
   aP.assign(trdconst::nTrdModules, 0);
   aA.assign(trdconst::nTrdModules, 0);
    
@@ -4051,99 +4046,7 @@ int TrdSCalibR::ProcessTrdHit(TrdTrackR *Trdtrk, TrTrackR *Trtrk, int Debug){
 
 
 
-
-
-/// input TrdNHits
-int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, vector<AC_TrdHits*> &TrdHits, int Debug){
-
-  TrdSHits.clear();
- 
-  TSpline3 *grTrkXZ = NULL;  
-  TSpline3 *grTrkYZ = NULL;
-
-  if(Debug) {
-    int i = 0;
-    for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
-      {
-	cout << Form("*** %03d Lay=%02d Lad=%02d Tub=%02d Amp=%6.1f / %6.1f XY=%+8.3f Z=%8.3f --> XY=%+8.3f Z=%8.3f", 
-		     i++,  (*iter)->Lay, (*iter)->Lad, (*iter)->Tub, (*iter)->EadcR, (*iter)->EadcCS, 
-		     (*iter)->hitXYraw, (*iter)->hitZraw, (*iter)->hitXY, (*iter)->hitZ )  << endl;
-      }
-    }
-
-  /// do wee need a ms correction ?
-  bool needMScorr = NeedTrkSpline(Trtrk, Debug);
-  if(Debug) std::cout << Form("*** needMScorr=%s", needMScorr?"true":"false") << std::endl; 
-  
-  int msflag = 1;
-  if(needMScorr) {
-    /// get tracker splines in both xz and zy plane
-    if(Debug) std::cout << Form("*** GetTrkSpline in ProcessTrdHit") << std::endl;
-    if( GetTrkSpline(grTrkXZ, grTrkYZ, msflag, Debug) ) return 11; 
-    
-    /// get new hits and push_back into TrdSHits
-    if(Debug) std::cout << Form("*** GetTrdNewHits in ProcessTrdHit") << std::endl;
-    GetTrdNewHits(grTrkXZ, grTrkYZ, TrdHits, Debug);  //== AC geo, gain and align are executed --> TrdSHits
-    
-  } else {
-    /// get new hits and push_back TrdSHits
-    if(Debug) std::cout << Form("*** GetTrdNewHits with no MS corr.") << std::endl;
-    GetTrdNewHits(TrdHits, Debug);                    //== AC geo, gain and align are executed --> TrdSHits   
-  }
-  
-  /// clear TG, TS
-  AC_ClearInterpolate2Z();
-  
-  
-  
-  if(Debug) {
-    int ii = 0;
-    for (vector<AC_TrdHits*>::iterator iter = TrdSHits.begin(); iter != TrdSHits.end(); ++iter) 
-      {
-	cout << Form("*** %3d Lay=%02d Lad=%02d Tub=%02d Amp=%6.1f / %6.1f XY=%+8.3f Z=%8.3f --> XY=%+8.3f Z=%8.3f TrkD=%+8.3f", 
-		     ii++,  (*iter)->Lay, (*iter)->Lad, (*iter)->Tub, (*iter)->EadcR, (*iter)->EadcCS, 
-		     (*iter)->hitXYraw, (*iter)->hitZraw, (*iter)->hitXY, (*iter)->hitZ, (*iter)->TrkD )  << endl;
-      }
-    }
-  
-
-  int TrdStrkLevel = 2;
-  int nLayNearStrk=0, nLayOnStrk=0, nHitOnStrk=0, nHitNearStrk=0;
-  vector<int> nTrdStat;
-  nTrdStat.assign(3,0);
-  if(Debug) std::cout << Form("*** CalPathLen3D in ProcessTrdHit") << std::endl;
-  nTrdStat = CalPathLen3D(TrdSHits, Trtrk, TrdStrkLevel, Debug);
-  nLayNearStrk 	= nTrdStat.at(0); 
-  nLayOnStrk	= nTrdStat.at(1); 
-  nHitOnStrk	= nTrdStat.at(2); 
-  nHitNearStrk 	= TrdSHits.size(); 
-
-  GetnTrdHitLayer(TrdSHits, Debug);
-
-  if(Debug) std::cout << Form("*** nHitOnStrk=%3d nHitNearStrk=%3d ", nHitOnStrk, nHitNearStrk) << std::endl;
-
-  
-  //== disable on 2012.03.21
-  //if (nHitOnStrk<12) return 12;
-  //if (nHitNearStrk-nHitOnStrk>=8)  return 13;
- 
-  if( TrdSHits.size() < 8 ) return 14; 
-
-  if( GetTrdSum8(Debug) ) return 15;
-  if( GetTrdMedian(Debug) ) return 15;
-
-  if( GetTruncatedMean(Debug) ) return 16;
-  
-  if( TrdLR_CalcXe(Xtime, iPabs, iFlag, Debug) ) return 17; 
-  
-  if (grTrkXZ) grTrkXZ->Delete();
-  if (grTrkYZ) grTrkYZ->Delete();
-  
-
-  return 0;
-}
 //--------------------------------------------------------------------------------------------------
-/// input TrdNHits
 int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, int Debug){
 
   TrdSHits.clear();
@@ -4233,12 +4136,6 @@ int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, int Debug){
   return 0;
 }
 //--------------------------------------------------------------------------------------------------
-
-
-
-
-
-
 
 int TrdSCalibR::GetnTrdHitLayer(vector<AC_TrdHits*> &TrdHits, int Debug){
   nTrdHitLayer.assign(trdconst::nTrdLayers, 0);
@@ -4734,14 +4631,14 @@ bool TrdSCalibR::NeedTrkSpline(TrTrackR *Trtrk, int Debug){
 
   AMSPoint trCooL1, trCooL9;
   for(int it=1; it<=9; it++){
-    TrRecHitR *rhit = (TrRecHitR *) Trtrk->GetHitLJ(it);
+    TrRecHitR *rhit = (TrRecHitR*) Trtrk->GetHitLJ(it);
     if(rhit) AMSPoint trCoo = rhit->GetCoord();
     else continue;
     HitTkLayer.set(it-1);
     if(it==1) trCooL1 = rhit->GetCoord();
     if(it==9) trCooL9 = rhit->GetCoord();
   }
-  
+
   int fitcode = Trtrk->iTrTrackPar(algo, patt, refit);
   if( fitcode < 0)  {
     Warning("TrdSCalibR::NeedTrkSpline-W- ", "TrackFit algo %d and patt %d Not AVAILABLE Fitcode=%d !!", 
@@ -4889,7 +4786,7 @@ int TrdSCalibR::GetLocalTrkVec(float zTrdCor, TSpline3 *grTrkXZ, TSpline3 *grTrk
 
 int TrdSCalibR::GetTrdNewHits(TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, vector<AC_TrdHits*> TrdHits, int Debug) {
 	
-  TrdSHits.clear();
+  if(TrdSHits.size()) for(int i=0;i<TrdSHits.size();i++) delete TrdSHits[i];
 
   AMSPoint lcTrk; AMSDir ldTrk;
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
@@ -4924,7 +4821,7 @@ int TrdSCalibR::GetTrdNewHits(TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, vector<AC_Tr
 
 int TrdSCalibR::GetTrdNewHits(vector<AC_TrdHits*> TrdHits, int Debug) {
 	
-  TrdSHits.clear();
+  if(TrdSHits.size()) for(int i=0;i<TrdSHits.size();i++) delete TrdSHits[i];
 
   for (vector<AC_TrdHits*>::iterator iter = TrdHits.begin(); iter != TrdHits.end(); ++iter) 
     {	   
@@ -5403,7 +5300,7 @@ int TrdSCalibR::GetTrkCoordinates(TrTrackR *Trtrk, int Debug) {
       trCooL9 = rhit->GetCoord();
       passL9 = true;
     }
-  }  
+  } 
 
   AMSPoint pL1, pL9, pUtof, pTU, pTC, pTL, pRich;
   AMSDir   dL1, dL9, dUtof, dTU, dTC, dTL, dRich;
@@ -5465,6 +5362,8 @@ int TrdSCalibR::GetTrkCoordinates(TrTrackR *Trtrk, int Debug) {
 
 int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
 
+  Clear();
+
   unsigned int itrdcalib = 0;
 
   if( pev->nParticle() != 1 ) return 1; 
@@ -5511,7 +5410,6 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
 	      << std::endl;
   }
 
-  
   if(TrdGainMethod==3) TrdHChargeR::gethead()->Initialize(pev);
 
   if(TrdAlignMethod==1) {
@@ -5519,15 +5417,14 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
     AC_InitInterpolate2Z(1.0, 1.0, 0.0, 0.0); //== (float dZ_UT, float dZ_L1, float dY_UT, float dY_L1)
 
     /// push_back to TrdRawHit -> TrdNHits
-    TrdNHits.clear();
-    //int init_nhit = InitiateTrdRawHit(pev, TrdNHits, Debug); 
+    //TrdNHits.clear();
+    if(TrdNHits.size()) for(int i=0;i<TrdNHits.size();i++) delete TrdNHits[i];
     int init_nhit = InitiateTrdRawHit(pev, Debug); 
     if(Debug) 
       std::cout << Form("TrdSCalibR::ProcessTrdEvt-I- InitiateTrdRawHit= %d", init_nhit) << std::endl;
     if( !init_nhit || init_nhit > trdconst::nTrdMaxHits) return 6; //== no hit or too many 
 
     /// use track track instead of trdtrack or trdhtrack
-    //itrdcalib = ProcessTrdHit(Trtrk, TrdNHits, Debug);
     itrdcalib = ProcessTrdHit(Trtrk, Debug);
     return itrdcalib;
     
@@ -5538,7 +5435,7 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
       {
 	if( pev->nTrdHTrack() == 0 ) return 7;
 	if(!pev->pParticle(0)->pTrdHTrack())  return 8;
-	TrdHTrackR  *TrdHtrk = pev->pParticle(0)->pTrdHTrack();
+	TrdHTrackR* TrdHtrk = pev->pParticle(0)->pTrdHTrack();
 	
 	if( !GetdTrd(TrdHtrk) ||  !GetcTrd(TrdHtrk) ) return 9;
 	
@@ -5549,7 +5446,7 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
       {
 	if( pev->nTrdTrack() == 0 ) return 7;
 	if(!pev->pParticle(0)->pTrdTrack())   return 8;
-	TrdTrackR  *Trdtrk = pev->pParticle(0)->pTrdTrack();
+	TrdTrackR* Trdtrk = pev->pParticle(0)->pTrdTrack();
 	
 	if( !GetdTrd(Trdtrk) ||  !GetcTrd(Trdtrk) ) return 9;
 	
