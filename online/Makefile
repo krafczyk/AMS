@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.53 2011/10/16 09:10:13 choutko Exp $
+#  $Id: Makefile,v 1.54 2012/04/27 16:37:48 chchung Exp $
 # PZ reviewing the online  Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -47,7 +47,7 @@ NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -m32 -axssse3 -openmp
 
-LDFLAGS       = 
+LDFLAGS       = -lifcore
 LDS	= 	$(LD) -Bstatic
 LDD	= 	$(LD) -Bdynamic
 ifdef PGTRACK
@@ -76,7 +76,7 @@ NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/intel64/icpc  -axssse3 -openmp -static-intel
 ifdef PGTRACK
-LDFLAGS       = 
+LDFLAGS       = -lifcore
 LFORT= 
 else
 LDFLAGS = 
@@ -103,7 +103,7 @@ OPT           = -g
 OPTC          = -g
 NOOPT         = -g
 LD            = g++ -m32
-LDFLAGS       = -g 
+LDFLAGS       = -g -lgfortran 
 LDS	= 	$(LD) -static
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
@@ -132,7 +132,7 @@ OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g -lgfortran 
 ifdef PGTRACK
 LFORT= 
 else

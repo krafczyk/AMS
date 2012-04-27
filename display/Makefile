@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.95 2011/10/16 09:10:12 choutko Exp $
+#  $Id: Makefile,v 1.96 2012/04/27 16:37:48 chchung Exp $
 # PZ reviewing the display Makefile on Aug 2009
 #    WIN32 ans MACOSX arch commented as not supported in GBATCH for the moment
 #    LINUX arch supported is SLC4 with gcc or  icc
@@ -61,7 +61,7 @@ OPTC          = -O3
 NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/ia32/icpc -axsse4.2,ssse3 -openmp -static-intel
-LDFLAGS       = 
+LDFLAGS       = -lifcore
 LDS	= 	$(LD) -static 
 LDD	= 	$(LD) -rdynamic 
 ifdef PGTRACK
@@ -91,7 +91,7 @@ NOOPT         = -g
 NOOPTC        = -g
 LD            = /opt/intel/Compiler/11.1/073/bin/intel64/icpc -axsse4.2,ssse3 -openmp -static-intel
 ifdef PGTRACK
-LDFLAGS       = 
+LDFLAGS       = -lifcore
 LFORT= 
 else
 LDFLAGS = 
@@ -120,7 +120,7 @@ OPT           = -O3
 NOOPT         = -g
 
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g -lgfortran
 LDS	= 	$(LD) 
 LDS	= 	$(LD) 
 LDD	= 	$(LD) 
@@ -139,13 +139,13 @@ CXX           =  g++ -m32
 CPPFLAGS      =  -D__LINUXGNU__  -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I. -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 CXXFLAGS      = -Wno-deprecated $(OPT) $(CPPFLAGS)
 OPT           = -g
-NOOPT         = -g
+NOOPT         = -g 
 
 LD            = g++ -m32
 LDFLAGS       = -g 
 LDS	= 	$(LD) -static
 LD            = g++ -m32
-LDFLAGS       = -g 
+LDFLAGS       = -g -lgfortran
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 ifdef PGTRACK
@@ -180,7 +180,7 @@ LD            = g++
 LDFLAGS       = -g 
 LDS	= 	$(LD) -static
 LD            = g++ 
-LDFLAGS       = -g 
+LDFLAGS       = -g -lgfortran
 LDS	= 	$(LD) -static
 LDD	= 	$(LD) -rdynamic
 ifdef PGTRACK
