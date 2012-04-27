@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.139 2012/04/26 15:28:38 shaino Exp $
+// $Id: TrTrack.C,v 1.140 2012/04/27 07:30:33 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/26 15:28:38 $
+///$Date: 2012/04/27 07:30:33 $
 ///
-///$Revision: 1.139 $
+///$Revision: 1.140 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -908,7 +908,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     }
 
     // Small Z-correction (charge dependent)
-    if (TkDBc::Head && !hit->OnlyY() && dxdz != 0) {
+    if (TkDBc::Head && dxdz != 0 && dydz != 0) {
       TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
       coo[0] += (lad) ? lad->rot.GetEl(2, 2)*zdxc*dxdz : 0;
       coo[1] += (lad) ? lad->rot.GetEl(2, 2)*zdyc*dydz : 0;
