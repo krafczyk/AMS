@@ -64,8 +64,6 @@ public:
   }
   /// std detructor
   ~TrInnerDzDB(){}
-   using TObject::Clear;
-   using TObject::Print;
   /// Clear the DB content
   using TObject::Clear;
   void Clear(){pos.clear();return;}
