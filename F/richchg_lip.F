@@ -113,7 +113,11 @@ C         if ( iflghit(i).ne.1 .and.                !hits not associated to part
 *      print*,'... chg_nphe_ref = ',chg_nphe_ref
 
 * ... compute particle path length
-      pathrad = hrad/cos(pthe)
+      hcrossed = hrad
+      if (chradid.eq.'NAF') then
+         hcrossed = hrnaf
+      endif
+      pathrad = hcrossed/cos(pthe)
 
 * ... compute additional quantities for charge calculation
       sin2thc_rec = (sin(cangrec(ipthetac)))**2
