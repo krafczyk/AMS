@@ -64,7 +64,10 @@ public:
   }
   /// std detructor
   ~TrInnerDzDB(){}
+   using TObject::Clear;
+   using TObject::Print;
   /// Clear the DB content
+  using TObject::Clear;
   void Clear(){pos.clear();return;}
   /// look up on the DB and update the TkDBC _layer_deltaZA values.
   /// In the case the time is not available it tries to seach fot it in the TDV 
