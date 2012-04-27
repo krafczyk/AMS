@@ -1,4 +1,4 @@
-// $Id: TofTrack.h,v 1.6 2012/04/26 13:48:19 oliva Exp $
+// $Id: TofTrack.h,v 1.7 2012/04/27 18:06:33 oliva Exp $
 
 #ifndef __TofTrack__
 #define __TofTrack__
@@ -300,16 +300,16 @@ class TofTrack {
   //! Get signal on a layer for the given set of corrections for a particular measurement
   /*!
    * The signal is given by the sum of signal on the counters (this means that 2 signals are merged in 1 measurement)
-   * - where \c sig_opt is a combination of #SignalOptions (ex. to have \f$E_{dep}\f$ in MeV use \c sig_opt = #TofTrack::kMIP|#TofTrack::kMeV)
+   * - where \c sig_opt is a combination of #SignalOptions (ex. to have \f$E_{dep}\f$ in MeV use \c sig_opt = #TofTrack::kGain|#TofTrack::kMIP|#TofTrack::kMeV)
    * - if \c sig_opt = 0 you will get the default value: ADC counts * \c adc2mev, where \c adc2mev value is given by Choumilov.
    */
   float        GetSignalLayer(int layer, int type, int sig_opt, float mass_on_Z = 0.938);
   //! Get floating point charge evaluation for a single layer 
-  float        GetChargeLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return sqrt(GetSignalLayer(layer,type,kMIP|kPath|kBeta|kBetaAdd,mass_on_Z)); }
+  float        GetChargeLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return sqrt(GetSignalLayer(layer,type,kGain|kMIP|kPath|kBeta|kBetaAdd,mass_on_Z)); }
   //! Get the maximum signal on ToF
   float        GetMaxChargeLayer(int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate energy deposition for a given layer
-  float        GetEdepLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return GetSignalLayer(layer,type,kMIP|kMeV,mass_on_Z); } 
+  float        GetEdepLayer(int layer, int type = kMix, float mass_on_Z = 0.938) { return GetSignalLayer(layer,type,kGain|kMIP|kMeV,mass_on_Z); } 
   //! Get the floating point charge estimator for Upper/Lower plane 
   float        GetChargePlane(int plane, int type = kMix, float mass_on_Z = 0.938);
   //! Evaluate charge ratio (upper/lower charge estimations) 
@@ -351,7 +351,7 @@ class TofTrack {
   //! Get TOF floating point charge estimator Anode/Dynode (TO-DO: it may request refit ...)
   float        GetQ(int type = kMix) { return GetMean(type); }
   //! Make mean 
-  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kMIP|kPath|kBeta|kBetaAdd, float mass_on_Z = 0.938);
+  bool         MakeMean(int type, int mean_opt = kPlain|kSqrt, int sig_opt = kGain|kMIP|kPath|kBeta|kBetaAdd, float mass_on_Z = 0.938);
   //! Calculate the energy deposition
   bool         MakeEdep();
   //! Calculate the pathlength in material (unit of paddle height)

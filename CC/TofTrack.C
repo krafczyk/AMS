@@ -1,4 +1,4 @@
-// $Id: TofTrack.C,v 1.5 2012/04/24 04:33:08 oliva Exp $
+// $Id: TofTrack.C,v 1.6 2012/04/27 18:06:34 oliva Exp $
 
 
 #include "TofTrack.h"
@@ -109,10 +109,10 @@ void TofTrack::Print(int verbosity) {
       );
     if (verbosity>1) 
       printf("                  --- A/D(MIP|MeV) = (%7.2f,%7.2f)  sqrtA/sqrtD(MIP|Beta|Path) = (%7.2f,%7.2f)\n",
-        GetSignalLayer(layer,kAnode,kMIP|kMeV),
-        GetSignalLayer(layer,kDynode,kMIP|kMeV),
-        sqrt(GetSignalLayer(layer,kAnode,kBeta|kBetaAdd|kPath|kMIP)),
-        sqrt(GetSignalLayer(layer,kDynode,kBeta|kBetaAdd|kPath|kMIP))
+        GetSignalLayer(layer,kAnode,kGain|kMIP|kMeV),
+        GetSignalLayer(layer,kDynode,kGain|kMIP|kMeV),
+        sqrt(GetSignalLayer(layer,kAnode,kGain|kBeta|kBetaAdd|kPath|kMIP)),
+        sqrt(GetSignalLayer(layer,kDynode,kGain|kBeta|kBetaAdd|kPath|kMIP))
       );
     if (verbosity>2) 
       printf("                  --- ResX(cm) %10.5f  ResY(cm) %10.5f  ResT(ns) %10.5f\n",
@@ -1085,7 +1085,8 @@ float TofTrack::BetaCorrectionContin2(float edep, int type) {
 
 
 // Double_t pars_add_beta[10] = {0,1.03202,0.183082,0.793141,-1.19169,0.549029,0,0,0,0};
-Double_t pars_add_beta[10] = {0,1.02402,-1.28205,0.594407,0.0900581,0.597897,-3.89486,3.38096,0,0};
+// Double_t pars_add_beta[10] = {0,1.02402,-1.28205,0.594407,0.0900581,0.597897,-3.89486,3.38096,0,0};
+Double_t pars_add_beta[10] = {0,1.02378,-0.20000,0.582207,0.0688473,1.123270,-5.25774,4.38939,0,0};
 float TofTrack::AdditionalBetaCorrection(float edep) {
   if (edep<=1e-06) return 0.;
   Double_t logbetagamma = AMSEnergyLoss::GetLogBetaGammaFromBeta(GetBeta());
@@ -1117,7 +1118,7 @@ float TofTrack::GetMipResolution(float mip, int type) {
 float TofTrack::GetMaxChargeLayer(int type, float mass_on_Z) {
   float max = 0;
   for (int ilayer=0; ilayer<4; ilayer++) {
-    float value = sqrt(GetSignalLayer(ilayer+1,type,kMIP|kPath|kBeta|kBetaAdd,mass_on_Z));
+    float value = sqrt(GetSignalLayer(ilayer+1,type,kGain|kMIP|kPath|kBeta|kBetaAdd,mass_on_Z));
     if (value>max) max = value;
   }
   return max;
