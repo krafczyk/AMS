@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.68 2012/04/26 16:54:26 jorgec Exp $
+//  $Id: root_setup.C,v 1.69 2012/04/27 13:21:18 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1014,7 +1014,7 @@ int AMSSetupR::LoadISSAtt(unsigned int t1, unsigned int t2){
 //}
 //#else
 
- char AMSISSlocal[]="/afs/cern.ch/ams/local/altec/";
+ char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
 char * AMSISS=getenv("AMSISS");
 if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
@@ -1512,7 +1512,7 @@ return 0;
 }
 #else
 
- char AMSISSlocal[]="/afs/cern.ch/ams/local/isssa/";
+ char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
 char * AMSISS=getenv("AMSISSSA");
 if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
@@ -1666,7 +1666,7 @@ return ret;
 
 int AMSSetupR::LoadISSCTRS(unsigned int t1, unsigned int t2){
 
- char AMSISSlocal[]="/afs/cern.ch/ams/local/isssa/";
+ char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
 char * AMSISS=getenv("AMSISSSA");
 if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
@@ -1849,7 +1849,7 @@ return ret;
 
 
 int AMSSetupR::LoadISSGTOD(unsigned int t1, unsigned int t2){
- char AMSISSlocal[]="/afs/cern.ch/ams/local/altec/";
+ char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/altec/";
 char * AMSISS=getenv("AMSISS");
 if(!AMSISS || !strlen(AMSISS))AMSISS=AMSISSlocal;
 
