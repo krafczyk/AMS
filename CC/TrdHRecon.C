@@ -872,8 +872,8 @@ void TrdHReconR::AddTrack(TrdHTrackR* tr){
     TrdHTrackR* amstr=tr;
 #endif
 
-    amstr->charge=TrdHChargeR::gethead()->GetCharge(amstr);
-    if(amstr->charge>=0)amstr->elikelihood=amstr->GetLikelihood();
+    TrdHChargeR::gethead()->GetCharge(amstr);
+    if(amstr->Charge[0]>=0)amstr->elikelihood=amstr->GetLikelihood();
 
 #ifndef __ROOTSHAREDLIBRARY__
     VCon* cont2=GetVCon()->GetCont("AMSTRDHTrack");

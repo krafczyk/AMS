@@ -573,7 +573,7 @@ float TrdHCalibR::GetPathCorr(float path, float val,int opt,int debug){
     return pathcorr(path,val);
 
   float toReturn=0.;
-  if(path<0.3||path>0.7)toReturn=0.;
+  if(path<0.1||path>0.7)toReturn=0.;
   else toReturn=PathParametrization(val,opt)/PathParametrization(path,opt);
 
   if(debug)cout<<"TrdHCalibR::GetPathCorr-I-path "<<path<<" correction "<<toReturn<<endl;

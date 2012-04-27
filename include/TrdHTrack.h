@@ -22,8 +22,8 @@ class TrdHTrackR:public TrElem{
   /// Number of hits on track
   int Nhits;
 
-  /// reconstructed absolute charge (positive! 0:e 1:p 2:He etc. -1:N/A)
-  float charge;
+  // reconstructed absolute charge (positive! 0:e 1:p 2:He etc. -1:N/A)
+  //  float charge;
 
   /// reconstructed electron likelihood (-log(like/(like+likp)))
   float elikelihood;
@@ -38,8 +38,11 @@ class TrdHTrackR:public TrElem{
   vector<int> fTrdHSegment;
   vector<TrdHSegmentR> segments; //!
 
-  /// container to store charge probabilities
-  map<double,int> charge_probabilities; //!
+  /// charges hypothesis ordered from highest to lowest probability 
+  short int Charge[10];
+
+  /// unnormalized charge probabilities from highest to lowest probability
+  float ChargeP[10];
 
   /// return number of segments (should be 2)
   int NTrdHSegment();
@@ -112,8 +115,8 @@ class TrdHTrackR:public TrElem{
   /// get probability for 'charge' (0:e, 1:p, 2:He)
   double GetProb(int charge, int debug=0);
 
-  /// new likelihood method - multihypothesis - sig selected by 0/1/2 e/p/he - bkg bitwise flagged by -1:all 0:use electron 1:use proton 2:use helium etc. 
-  float GetLikelihood(int sig=0,int bkg=1,int debug=0);
+  /// new likelihood method - multihypothesis - sig selected by 0/1/2 e/p/he - bkg bitwise flagged by 0:all bit1:use electron bit2:use proton bit3:use helium etc. 
+  float GetLikelihood(int sig=0,int bkg=2,int debug=0);
   
   /// get number of layers above CC amplitude cut
   int GetNCC(float cut=200.,int debug=0);
@@ -122,7 +125,7 @@ class TrdHTrackR:public TrElem{
   virtual ~TrdHTrackR(){
     segments.clear();
     fTrdHSegment.clear();
-    charge_probabilities.clear();
+    //    charge_probabilities.clear();
   };
 
   void clear();
@@ -135,7 +138,7 @@ class TrdHTrackR:public TrElem{
   };
 
   char* Info(int iRef=0){
-    sprintf(_Info,"TrdHTrack Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g NHits=%d chg %i elik %.2f",Coo[0],Coo[1],Coo[2],ex(),ey(),0.,Theta(),Phi(),Chi2,Nhits,(int)charge,elikelihood);
+    sprintf(_Info,"TrdHTrack Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g NHits=%d chg %i elik %.2f",Coo[0],Coo[1],Coo[2],ex(),ey(),0.,Theta(),Phi(),Chi2,Nhits,(int)Charge[0],elikelihood);
     return _Info;
   };
 
@@ -177,7 +180,7 @@ p=0;
 }
 } 
 #endif
-  ClassDef(TrdHTrackR, 10);
+  ClassDef(TrdHTrackR, 11);
 };
 
 

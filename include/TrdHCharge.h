@@ -33,7 +33,7 @@ class TrdHChargeR{
   map<int,TH1F*> spectra;
 
   /// array for TDV interaction (charged particles)
-  static float charge_hist_array[10][1000];
+  static float charge_hist_array[3][10000];
   
   /// array for TDV interaction (electrons)
   static float electron_hist_array[10000];
@@ -68,8 +68,8 @@ class TrdHChargeR{
     nlogbins=0;
     use_single_layer_pdfs=true;
     for(int i=0;i<100;i++)logbins[i]=0.;
-    for(int i=0;i<10;i++)
-      for(int j=0;j<1000;j++)charge_hist_array[i][j]=0.;
+    for(int i=0;i<3;i++)
+      for(int j=0;j<10000;j++)charge_hist_array[i][j]=0.;
     for(int i=0;i<10000;i++)
       electron_hist_array[i]=0.;
   };
@@ -140,7 +140,7 @@ class TrdHChargeR{
   string GetStringForTDVEntry(int n);
   int GetTDVEntryForMapKey(int c);
 
-  ClassDef(TrdHChargeR,3)
+  ClassDef(TrdHChargeR,4)
 };
 #endif
 

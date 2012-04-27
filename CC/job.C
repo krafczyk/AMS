@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.862 2012/04/26 16:54:26 jorgec Exp $
+// $Id: job.C,v 1.863 2012/04/27 09:00:35 mmilling Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3590,16 +3590,26 @@ void AMSJob::_timeinitjob(){
     end.tm_mon=TRDMCFFKEY.mon[1];
     end.tm_year=TRDMCFFKEY.year[1];
     
-    for(int n=1;n<3;n++)
-      TID.add (new AMSTimeID(AMSID(TrdHChargeR::gethead()->GetStringForTDVEntry(n).c_str(),isRealData()),
-			     begin,end,sizeof(TrdHChargeR::charge_hist_array[n][0])*1000,
-			     (void*)TrdHChargeR::charge_hist_array[n],server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
-    
+    //need to create instance
+    TrdHChargeR::gethead();
+
+    // charges 2-6
+    TID.add (new AMSTimeID(AMSID("TRDHighZ",isRealData()),
+			   begin,end,sizeof(TrdHChargeR::charge_hist_array[2][0])*10000,
+			   (void*)TrdHChargeR::charge_hist_array[2],server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
+      
     // single layers electron
-    TID.add( new AMSTimeID(AMSID("TRDElectron",isRealData()),
-			   begin,end,sizeof(TrdHChargeR::electron_hist_array[0])*10000,
-			   (void*)TrdHChargeR::electron_hist_array,server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
+    TID.add(new AMSTimeID(AMSID("TRDElectron",isRealData()),
+			  begin,end,sizeof(TrdHChargeR::electron_hist_array[0])*10000,
+			  (void*)TrdHChargeR::electron_hist_array,server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
+
+    // protons
+    TID.add (new AMSTimeID(AMSID("TRDCharge1",isRealData()),
+			   begin,end,sizeof(TrdHChargeR::charge_hist_array[1][0])*1000,
+			   (void*)TrdHChargeR::charge_hist_array[1],server,isRealData()&&(CALIB.SubDetRequestCalib/10000)%10));
+
   }
+
 
   
 
