@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.41 2012/01/31 19:37:23 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.42 2012/04/27 09:34:31 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -48,8 +48,11 @@ void HistoMan::Save(TFile *file, char* dirname){
 
   TDirectory *dsave = gDirectory;
   file->cd();
-  TDirectoryFile *dir = new TDirectoryFile(dirname, dirname);
-  dir->cd();
+
+  if (dirname) {
+    TDirectoryFile *dir = new TDirectoryFile(dirname, dirname);
+    dir->cd();
+  }
   for (int i = 0; i < fhist.GetEntries(); i++) {
     TH1 *obj = (TH1 *)fhist.At(i);
     if (obj && obj->GetEntries() > 0) obj->Write();
@@ -269,16 +272,6 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("TrPtkL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
   Add(new TH2D("TrPftL9", "tkY VS tkX", 140, -70, 70, 140, -70, 70));
 
-  Add(new TH3D("TrAlg81", "rx VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg82", "rx VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg83", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg84", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-
-  Add(new TH3D("TrAlg91", "rx VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg92", "rx VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg93", "ry VS x", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-  Add(new TH3D("TrAlg94", "ry VS y", 20, -50, 50, 12, -.6, .6, 500, -.5, .5));
-
   Add(new TH2D("TkTrdD0", "TkTRD dy VS dx bef.",   300, 0, 60, 100, 0,  2));
   Add(new TH2D("TkTrdDD", "TkTRD dx aft. VS bef.", 300, 0, 60, 300, 0, 60));
   Add(TH2D_L  ("TkMoveC", "CsqX 2 VS 1", 120, 1e-5, 1e7, 120, 1e-5, 1e7));
@@ -334,8 +327,18 @@ void HistoMan::BookHistos(int simmode){
   Add(TH2D_L("TfCsn4", "ClsSN mrgX",    120,   10, 1e4, 120, 1e-2, 1e2));
   Add(TH2D_L("TfCsn5", "ClsSN mrgY",    120,   10, 1e4, 120, 1e-2, 1e2));
   Add(TH2D_L("TfCsn6", "ClsSN ntcl",    120,   10, 1e4, 120, 1e-2, 1e2));
-
   Add(TH2D_L("XvsR1",  "XvsR1",         100, 1e-2, 1e3, 120, 1e-2, 1e4));
+
+  // Alignment
+  for (int i = 0; i < 9; i++) {
+    TString shn = Form("TrRes%d", i+1);
+    TString stt = Form("Layer %d res", i+1);
+    double rng = (i == 0 || i == 8) ? 2000 : 200;
+    Add(new TH3D(shn+"1", stt+"x-X", 20, -60, 60, 20, -1, 1, 200, -rng, rng));
+    Add(new TH3D(shn+"2", stt+"y-X", 20, -60, 60, 20, -1, 1, 200, -rng, rng));
+    Add(new TH3D(shn+"3", stt+"x-Y", 20, -60, 60, 20, -1, 1, 200, -rng, rng));
+    Add(new TH3D(shn+"4", stt+"y-Y", 20, -60, 60, 20, -1, 1, 200, -rng, rng));
+  }
 
   // Reconstruction summary  
   Add(new TH2D("TrSimple","; rec. step; n. candidates",10,-0.5,9.5,100,-0.5,99.5));

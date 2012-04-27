@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.148 2012/04/22 23:40:33 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.149 2012/04/27 09:34:31 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/04/22 23:40:33 $
+/// $Date: 2012/04/27 09:34:31 $
 ///
-/// $Revision: 1.148 $
+/// $Revision: 1.149 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3096,232 +3096,236 @@ int TrRecon::FillHistos(int trstat, int refit)
 	      0, cls->GetTotSignal());
   }
 
+  delete cont0;
+  delete cont1;
+  delete cont2;
+
+  // Select event with only one track
+  if (ntrk >= 2) return trstat;
+
   // Fitting algorithm for iTrTrackPar
   int malgo = 1;  // 1: Choutko, 2: Alcaraz, +10: no-MSC, +20: same-weight
 
-  for (int i = 0; ntrk <= 2 && i < ntrk; i++) {
-    TrTrackR *trk = (TrTrackR *)cont3->getelem(i);
+  // Get track
+  TrTrackR *trk = (TrTrackR *)cont3->getelem(0);
+  delete cont3;
 
-    // Request on a track with at least one hit at all the INNER PLANES
-    int span = (TrTrackSelection::GetSpanFlags(trk) & 0xff);
-    if (!(span & TrTrackSelection::kAllPlane)) continue;
+  // Request on a track with at least one hit at all the INNER PLANES
+  int span = (TrTrackSelection::GetSpanFlags(trk) & 0xff);
+  if (!(span & TrTrackSelection::kAllPlane)) return trstat;
 
-    // Check if the inner track fitting exists
-    int mfi = trk->iTrTrackPar(malgo, 3, refit); // Inner fitting
-    if (mfi < 0) continue;
+  // Check if the inner track fitting exists
+  int mfi = trk->iTrTrackPar(malgo, 3, refit); // Inner fitting
+  if (mfi < 0) return trstat;
 
-    ////////// Hit ladders and cluster signals on track//////////
-    int nhxi = 0, nhyi = 0;
-    for (int j = 0; j < TkDBc::Head->nlay(); j++) {
-      TrRecHitR *hit = trk->GetHitLO(j+1);
-      if (hit) {
-	int slot  = hit->GetTkId()%100;
-	int layer = hit->GetLayer();
-	TrClusterR *clx = hit->GetXCluster();
-	TrClusterR *cly = hit->GetYCluster();
+  ////////// Hit ladders and cluster signals on track //////////
+  int nhxi = 0, nhyi = 0;
+  for (int j = 0; j < TkDBc::Head->nlay(); j++) {
+    TrRecHitR *hit = trk->GetHitLO(j+1);
+    if (hit) {
+      int slot  = hit->GetTkId()%100;
+      int layer = hit->GetLayer();
+      TrClusterR *clx = hit->GetXCluster();
+      TrClusterR *cly = hit->GetYCluster();
 
-	hman.Fill("TrLadTrk", slot, layer);
-	if (cly) { hman.Fill("TrLadYh",  slot, layer);
-	  if (clx) hman.Fill("TrLadXYh", slot, layer);
-	}
-	if (clx) {
-	  double sig = clx->GetTotSignal();
-	  hman.Fill("TrClsSigN", 1, sig);
-	  hman.Fill("TrClsStrN", clx->GetNelem(), std::fabs(clx->GetCofG()),
-		    sig/clx->GetSeedSignal()/clx->GetNelem());
-	}
-	if (cly) {
-	  double sig = cly->GetTotSignal();
-	  hman.Fill("TrClsSigP", 1, sig);
-	  hman.Fill("TrClsStrP", cly->GetNelem(), std::fabs(cly->GetCofG()),
-		    sig/cly->GetSeedSignal()/cly->GetNelem());
-	}
-
-	if (layer <= 7) {
-	  if (clx) nhxi++;
-	  if (cly) nhyi++;
-	}
+      hman.Fill("TrLadTrk", slot, layer);
+      if (cly) { hman.Fill("TrLadYh",  slot, layer);
+	if (clx) hman.Fill("TrLadXYh", slot, layer);
       }
-      else {
-	AMSPoint play = trk->InterpolateLayerO(j+1);
-	TkSens tks(play, 0);
-	if (tks.LadFound())
-	  hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
-		                abs(tks.GetLadTkID())/100);
+      if (clx) {
+	double sig = clx->GetTotSignal();
+	hman.Fill("TrClsSigN", 1, sig);
+	hman.Fill("TrClsStrN", clx->GetNelem(), std::fabs(clx->GetCofG()),
+		  sig/clx->GetSeedSignal()/clx->GetNelem());
+      }
+      if (cly) {
+	double sig = cly->GetTotSignal();
+	hman.Fill("TrClsSigP", 1, sig);
+	hman.Fill("TrClsStrP", cly->GetNelem(), std::fabs(cly->GetCofG()),
+		  sig/cly->GetSeedSignal()/cly->GetNelem());
+      }
+
+      if (layer <= 7) {
+	if (clx) nhxi++;
+	if (cly) nhyi++;
       }
     }
-    hman.Fill("TrNhit", 0, nhxi);
-    hman.Fill("TrNhit", 1, nhyi);
-    hman.Fill("TrNhit", 2, trk->GetNhitsX());
-    hman.Fill("TrNhit", 3, trk->GetNhitsY());
-    hman.Fill("TrNhit", 4, trk->GetNhitsXY());
-
-    ////////// Inner fitting chisquares //////////
-    double csqx = trk->GetNormChisqX(mfi);
-    double csqy = trk->GetNormChisqY(mfi);
-    double eriv = trk->GetErrRinv   (mfi);
-    double argt = fabs(trk->GetRigidity(mfi));
-    hman.Fill("TrCsqX", argt, csqx);
-    hman.Fill("TrCsqY", argt, csqy);
-
-    eriv /= std::sqrt(0.004*0.004+0.03*0.03/argt/argt
-		                 +0.02*0.02/argt/argt/argt/argt);
-
-    // Select a track with reasonable inner chisquare
-    if (csqx > 20 || csqy > 20) continue;
-    if (trk->checkstatus(16)) continue;
-
-    hman.Fill("TrEriC", argt, eriv);
-    if (eriv > 20) continue;
-
-    ////////// Hit residuals and trunc-mean signals //////////
-    for (int j = 0; j < 7; j++) {  // Inner layers
-      TrRecHitR *hit = trk->GetHitLO(j+1);
-      AMSPoint   res = trk->GetResidualO(j+1, mfi);  // Inner fitting residual
-      if (hit && !hit->OnlyY()) hman.Fill("TrResX", argt, res.x()*1e4);
-      if (hit && !hit->OnlyX()) hman.Fill("TrResY", argt, res.y()*1e4);
+    else {
+      AMSPoint play = trk->InterpolateLayerO(j+1);
+      TkSens tks(play, 0);
+      if (tks.LadFound())
+	hman.Fill("TrLadTrk", tks.GetLadTkID()%100,
+		  abs(tks.GetLadTkID())/100);
     }
+  }
+  hman.Fill("TrNhit", 0, nhxi);
+  hman.Fill("TrNhit", 1, nhyi);
+  hman.Fill("TrNhit", 2, trk->GetNhitsX());
+  hman.Fill("TrNhit", 3, trk->GetNhitsY());
+  hman.Fill("TrNhit", 4, trk->GetNhitsXY());
 
-    // Fill truncated mean of charge
-    double chgp = TrCharge::GetQ(trk, 1);
-    double chgn = TrCharge::GetQ(trk, 0);
-    double chg  = (chgp > 0 && chgn > 0) ? (chgp+chgn)/2
-                                         : ((chgp > 0) ? chgp : chgn);
-    hman.Fill("TrChgP", argt, chgp);
-    hman.Fill("TrChgN", argt, chgn);
+  ////////// Inner fitting chisquares //////////
+  double csqx = trk->GetNormChisqX(mfi);
+  double csqy = trk->GetNormChisqY(mfi);
+  double eriv = trk->GetErrRinv   (mfi);
+  double argt = fabs(trk->GetRigidity(mfi));
+  hman.Fill("TrCsqX", argt, csqx);
+  hman.Fill("TrCsqY", argt, csqy);
 
-    if (chg > 1.5*std::sqrt(1.5*1.5/argt/argt+1)) {
-      hman.Fill("TrCsqXh", argt, csqx);
-      hman.Fill("TrCsqYh", argt, csqy);
-    }
+  eriv /= std::sqrt(0.004*0.004+0.03*0.03/argt/argt
+		               +0.02*0.02/argt/argt/argt/argt);
 
-    ////////// Track position at external planes //////////
-    AMSPoint pl8, pl9;
-    AMSDir   dr8, dr9;
-    trk->InterpolateLayerO(8, pl8, dr8, mfi);
-    trk->InterpolateLayerO(9, pl9, dr9, mfi);
-    if (pl8.z() >  150) hman.Fill("TrPtkL8", pl8.x(), pl8.y());
-    if (pl9.z() < -130) hman.Fill("TrPtkL9", pl9.x(), pl9.y());
+  // Select a track with reasonable inner chisquare
+  if (csqx > 20 || csqy > 20) return trstat;
+  if (trk->checkstatus(16)) return trstat;
 
-    int mf8 = trk->iTrTrackPar(malgo, 5, 0); // With L1N
-    int mf9 = trk->iTrTrackPar(malgo, 6, 0); // With L9
-    int mff = trk->iTrTrackPar(malgo, 7, 0); // Full span
+  hman.Fill("TrEriC", argt, eriv);
+  if (eriv > 20) return trstat;
 
-    AMSPoint   res8 = trk->GetResidualO(8, mfi);
-    AMSPoint   res9 = trk->GetResidualO(9, mfi);
-    TrRecHitR *hit8 = trk->GetHitLO(8);
-    TrRecHitR *hit9 = trk->GetHitLO(9);
+  ////////// Hit residuals and trunc-mean signals //////////
+  for (int j = 0; j < 7; j++) {  // Inner layers
+    TrRecHitR *hit = trk->GetHitLO(j+1);
+    AMSPoint   res = trk->GetResidualJ(j+1, mfi);  // Inner fitting residual
+    if (hit && !hit->OnlyY()) hman.Fill("TrResX", argt, res.x()*1e4);
+    if (hit && !hit->OnlyX()) hman.Fill("TrResY", argt, res.y()*1e4);
+  }
 
-    ////////// For the external planes alignment //////////
-    if (mf8 > 0 && trk->GetChisq(mf8) < 100) {
-      hman.Fill("TrPftL8", pl8.x(), pl8.y());
-      if (hit8 && !hit8->OnlyY()) {
-	hman.Fill("TrAlg81", pl8.x(), dr8.x()/dr8.z(), res8.x());
-	hman.Fill("TrAlg82", pl8.y(), dr8.x()/dr8.z(), res8.x());
-      }
-      if (hit8 && !hit8->OnlyX()) {
-	hman.Fill("TrAlg83", pl8.x(), dr8.y()/dr8.z(), res8.y());
-	hman.Fill("TrAlg84", pl8.y(), dr8.y()/dr8.z(), res8.y());
-      }
-    }
+  // Fill truncated mean of charge
+  double chgp = TrCharge::GetQ(trk, 1);
+  double chgn = TrCharge::GetQ(trk, 0);
+  double chg  = (chgp > 0 && chgn > 0) ? (chgp+chgn)/2
+                                       : ((chgp > 0) ? chgp : chgn);
+  hman.Fill("TrChgP", argt, chgp);
+  hman.Fill("TrChgN", argt, chgn);
 
-    if (mf9 > 0 && trk->GetChisq(mf9) < 100) {
-      hman.Fill("TrPftL9", pl9.x(), pl9.y());
-      if (hit9 && !hit9->OnlyY()) {
-	hman.Fill("TrAlg91", pl9.x(), dr9.x()/dr9.z(), res9.x());
-	hman.Fill("TrAlg92", pl9.y(), dr9.x()/dr9.z(), res9.x());
-      }
-      if (hit9 && !hit9->OnlyX()) {
-	hman.Fill("TrAlg93", pl9.x(), dr9.y()/dr9.z(), res9.y());
-	hman.Fill("TrAlg94", pl9.y(), dr9.y()/dr9.z(), res9.y());
-      }
-    }
+  if (chg > 1.5*std::sqrt(1.5*1.5/argt/argt+1)) {
+    hman.Fill("TrCsqXh", argt, csqx);
+    hman.Fill("TrCsqYh", argt, csqy);
+  }
 
-    double beta = 0;
+  // Check fitting with external layers
+  int mf8 = trk->iTrTrackPar(malgo, 5, 0); // With L1N
+  int mf9 = trk->iTrTrackPar(malgo, 6, 0); // With L9
+  int mff = trk->iTrTrackPar(malgo, 7, 0); // Full span
+
+  ////////// Track position at external planes //////////
+  AMSPoint pl8, pl9;
+  AMSDir   dr8, dr9;
+  trk->InterpolateLayerO(8, pl8, dr8, mfi);
+  trk->InterpolateLayerO(9, pl9, dr9, mfi);
+  if (pl8.z() >  150) hman.Fill("TrPtkL8", pl8.x(), pl8.y());
+  if (pl9.z() < -130) hman.Fill("TrPtkL9", pl9.x(), pl9.y());
+
+  if (mf8 > 0 && argt > 10) hman.Fill("TrPftL8", pl8.x(), pl8.y());
+  if (mf9 > 0 && argt > 10) hman.Fill("TrPftL9", pl9.x(), pl9.y());
+
+  AMSPoint   res8 = trk->GetResidualO(8, mfi);
+  AMSPoint   res9 = trk->GetResidualO(9, mfi);
+  TrRecHitR *hit8 = trk->GetHitLO(8);
+  TrRecHitR *hit9 = trk->GetHitLO(9);
+
+  // Check TOF beta
+  double beta = 0;
 #ifndef _STANDALONE_
-    double ttm[4], sln[4];
-    for (int j = 0; j < 4; j++) {
-      double dmin = 25, dxmin, dymin;
-      ttm[j] = sln[j] = 0;
-      int itc = (j == 0 || j == 3) ? 1 : 0;
-      int jj  = (j == 0 || j == 2) ? j+1 : j-1;
+  double ttm[4], sln[4];
+  for (int j = 0; j < 4; j++) {
+    double dmin = 25, dxmin, dymin;
+    ttm[j] = sln[j] = 0;
+    int itc = (j == 0 || j == 3) ? 1 : 0;
+    int jj  = (j == 0 || j == 2) ? j+1 : j-1;
 #ifndef __ROOTSHAREDLIBRARY__
-      for (AMSTOFCluster *tofcls
-	     = AMSTOFCluster::gethead(j); tofcls; tofcls = tofcls->next()) {
-	AMSPoint tcoo = tofcls->getcoo();
-	AMSPoint ecoo = tofcls->getecoo();
-	double   time = tofcls->gettime();
+    for (AMSTOFCluster *tofcls
+	   = AMSTOFCluster::gethead(j); tofcls; tofcls = tofcls->next()) {
+      AMSPoint tcoo = tofcls->getcoo();
+      AMSPoint ecoo = tofcls->getecoo();
+      double   time = tofcls->gettime();
 #else
-      AMSEventR *evt = AMSEventR::Head();
-      for (int k = 0; evt && k < evt->nTofCluster(); k++) {
-	TofClusterR *tofcls = evt->pTofCluster(k);
-	if (tofcls->Layer != j+1) continue;
-	AMSPoint tcoo(tofcls->Coo);
-	AMSPoint ecoo(tofcls->ErrorCoo);
-	double   time = tofcls->Time;
+    AMSEventR *evt = AMSEventR::Head();
+    for (int k = 0; evt && k < evt->nTofCluster(); k++) {
+      TofClusterR *tofcls = evt->pTofCluster(k);
+      if (tofcls->Layer != j+1) continue;
+      AMSPoint tcoo(tofcls->Coo);
+      AMSPoint ecoo(tofcls->ErrorCoo);
+      double   time = tofcls->Time;
 #endif
-	if (time > 2.5e-10) continue;
-	if (ecoo.x() == 0 || ecoo.y() == 0) continue;
+      if (time > 2.5e-10) continue;
+      if (ecoo.x() == 0 || ecoo.y() == 0) continue;
 
-	double zl = tcoo.z();
-	AMSPoint pnt;
-	AMSDir   dir;
-	double slen = trk->Interpolate(zl, pnt, dir);
-	if (pnt.z() > 0) slen *= -1;
+      double zl = tcoo.z();
+      AMSPoint pnt;
+      AMSDir   dir;
+      double slen = trk->Interpolate(zl, pnt, dir);
+      if (pnt.z() > 0) slen *= -1;
 
-	AMSPoint dp = tcoo-pnt;
-	double dx = dp[  itc]/ecoo[  itc];
-	double dy = dp[1-itc]/ecoo[1-itc];
-	double dd = dx*dx+dy*dy;
-	if (std::fabs(dx) < 3.5 && std::fabs(dy) < 3.5 && dd < dmin) {
-	  dmin   = dd;
-	  dxmin  = dx;
-	  dymin  = dy;
-	  ttm[j] = time;
-	  sln[j] = slen;
-	}
-      }
-      if (ttm[j] < 0) hman.Fill("TrTofDD", dxmin, dymin);
-    }
-    if (ttm[0] < 0 && ttm[1] < 0 && ttm[2] < 0 && ttm[3] < 0) {
-      double dtof = (ttm[2]+ttm[3])/2-(ttm[0]+ttm[1])/2;
-      double dlen = (sln[2]+sln[3])/2-(sln[0]+sln[1])/2;
-      beta = 0.01*dlen/dtof/TrProp::Clight;
-    }
-#endif
-    if (beta != 0 && mfi > 0 && chg > 0) {
-      double schg = (beta > 0) ? chg : -chg;
-      double rgt   = trk->GetRigidity(mfi);
-      hman.Fill("TrRiIBi", 1/rgt, 1/beta);
-
-      if (schg != 0) {
-	hman.Fill("TrRiICs", 1/rgt, schg);
-
-	if (-1 < 1/rgt && 1/rgt < -0.1 && 
-	    schg > 1.5*std::sqrt(1.5*1.5/rgt/rgt+1)) {
-	  static int nhb = 0;
-	  if (nhb++ < 20)
-	    cout << "TrRecon::FillHistos-I-Hebar: Run/Ev= "
-		 << GetRunID() << " " << GetEventID() 
-		 << " 1/R= " << 1/rgt 
-		 << " Q= " << schg << " " << chgp << " " << chgn << endl;
-	  trstat |= 0x1000;
-	}
-      }
-
-      if (mff > 0) {
-	double ersq = TrTrackSelection::GetHalfRessq(mff, trk);
-	if (ersq < 20) {
-	  double rgt = trk->GetRigidity(mff);
-	  hman.Fill("TrRiFBi", 1/rgt, 1/beta);
-	  if (schg != 0) hman.Fill("TrRiFCs", 1/rgt, schg);
-	}
+      AMSPoint dp = tcoo-pnt;
+      double dx = dp[  itc]/ecoo[  itc];
+      double dy = dp[1-itc]/ecoo[1-itc];
+      double dd = dx*dx+dy*dy;
+      if (std::fabs(dx) < 3.5 && std::fabs(dy) < 3.5 && dd < dmin) {
+	dmin   = dd;   dxmin  = dx; dymin = dy;
+	ttm[j] = time; sln[j] = slen;
       }
     }
+    if (ttm[j] < 0) hman.Fill("TrTofDD", dxmin, dymin);
 
-    // Fit id for the maximum span
-    int mf0 = trk->iTrTrackPar(malgo, 0, refit);
-    if (mf0 < 0) continue;
+  } // for (int j = 0; j < 4; j++)
+
+  if (ttm[0] < 0 && ttm[1] < 0 && ttm[2] < 0 && ttm[3] < 0) {
+    double dtof = (ttm[2]+ttm[3])/2-(ttm[0]+ttm[1])/2;
+    double dlen = (sln[2]+sln[3])/2-(sln[0]+sln[1])/2;
+    beta = 0.01*dlen/dtof/TrProp::Clight;
+  }
+#endif // _STANDALONE_
+
+  if (beta != 0 && mfi > 0 && chg > 0) {
+    double schg = (beta > 0) ? chg : -chg;
+    double rgt   = trk->GetRigidity(mfi);
+    hman.Fill("TrRiIBi", 1/rgt, 1/beta);
+
+    if (schg != 0)
+      hman.Fill("TrRiICs", 1/rgt, schg);
+
+    if (mff > 0) {
+      double ersq = TrTrackSelection::GetHalfRessq(mff, trk);
+      if (ersq < 20) {
+	double rgt = trk->GetRigidity(mff);
+	hman.Fill("TrRiFBi", 1/rgt, 1/beta);
+	if (schg != 0) hman.Fill("TrRiFCs", 1/rgt, schg);
+      }
+    }
+  }
+
+  ////////// Alignment check //////////
+  if (0.9 < beta && beta < 1.1 &&
+      ((trk->GetBitPattern() & 0x080) ||
+       (trk->GetBitPattern() & 0x100))) {  // Require L1-OR-L9
+
+    for (int j = 0; j < 9; j++) {
+      TrRecHitR *hit = trk->GetHitLJ(j+1);
+      if (!hit) continue;
+      AMSPoint res = trk->GetResidualJ(j+1, mfi);  // Inner fitting residual
+      AMSPoint coo;
+      AMSDir   dir;
+      trk->InterpolateLayerJ(j+1, coo, dir, mfi);
+      if (dir.z() == 0) continue;
+
+      TString shn = Form("TrRes%d", j+1);
+      if (!hit->OnlyY()) {
+	hman.Fill(shn+"1", coo.x(), dir.x()/dir.z(), res.x()*1e4);
+	hman.Fill(shn+"3", coo.y(), dir.x()/dir.z(), res.x()*1e4);
+      }
+      if (!hit->OnlyX()) {
+	hman.Fill(shn+"2", coo.x(), dir.y()/dir.z(), res.y()*1e4);
+	hman.Fill(shn+"4", coo.y(), dir.y()/dir.z(), res.y()*1e4);
+      }
+    }
+
+    trstat |= 0x1000;
+  }
+
+  // Fit id for the maximum span
+  int mf0 = trk->iTrTrackPar(malgo, 0, refit);
+  if (mf0 > 0) {
 
     ////////// Residual vs layer //////////
     for (int ilay = 0; ilay < 9; ilay++) {
@@ -3331,39 +3335,34 @@ int TrRecon::FillHistos(int trstat, int refit)
       AMSPoint res = trk->GetResidualO(ilay+1, mf0);
       if (hit->GetXCluster()) hman.Fill("TrResLayx", ilay, res.x()*1.e+04);
       if (hit->GetYCluster()) hman.Fill("TrResLayy", ilay, res.y()*1.e+04);
-    }  
-
-    if (!ismc) continue;
-
-    ////////// For simulation //////////
-    double armc = fabs(rmc);
-    TrSim::fillreso(trk);
-    if (hit8 && mf8 > 0) hman.Fill("TrDtyL81", armc, res8.y());
-    if (hit9 && mf9 > 0) hman.Fill("TrDtyL91", armc, res9.y());
-
-    if (mff > 0) {
-      if (mf9 > 0) hman.Fill("TrDtyL82", armc, trk->GetResidualO(8, mf9).y());
-      if (mf8 > 0) hman.Fill("TrDtyL92", armc, trk->GetResidualO(9, mf8).y());
     }
-
-    int mf[4] = { mfi, mf8, mf9, mff };
-    for (int j = 0; j < 4; j++) {
-      if (mf[j] < 0) continue;
-
-      double rgt = trk->GetRigidity(mf[j]);
-      if (rgt != 0 && rmc != 0) {
-	TString shn = "TrRres";
-	shn += (char)('0'+j+1);
-	hman.Fill(shn+"1", armc, 1e3*(1/rgt-1/rmc));
-	hman.Fill(shn+"2", armc, rmc*(1/rgt-1/rmc));
-      }
-    }   
   }
 
-  delete cont0;
-  delete cont1;
-  delete cont2;
-  delete cont3;
+  if (!ismc) return trstat;
+
+  ////////// For simulation //////////
+  double armc = fabs(rmc);
+  TrSim::fillreso(trk);
+  if (hit8 && mf8 > 0) hman.Fill("TrDtyL81", armc, res8.y());
+  if (hit9 && mf9 > 0) hman.Fill("TrDtyL91", armc, res9.y());
+
+  if (mff > 0) {
+    if (mf9 > 0) hman.Fill("TrDtyL82", armc, trk->GetResidualO(8, mf9).y());
+    if (mf8 > 0) hman.Fill("TrDtyL92", armc, trk->GetResidualO(9, mf8).y());
+  }
+
+  int mf[4] = { mfi, mf8, mf9, mff };
+  for (int j = 0; j < 4; j++) {
+    if (mf[j] < 0) continue;
+
+    double rgt = trk->GetRigidity(mf[j]);
+    if (rgt != 0 && rmc != 0) {
+      TString shn = "TrRres";
+      shn += (char)('0'+j+1);
+      hman.Fill(shn+"1", armc, 1e3*(1/rgt-1/rmc));
+      hman.Fill(shn+"2", armc, rmc*(1/rgt-1/rmc));
+    }
+  }
 
   return trstat;
 }
