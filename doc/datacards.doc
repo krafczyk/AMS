@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.374 2012/04/26 16:53:35 jorgec Exp $
+#  $Id: datacards.doc,v 1.375 2012/04/27 09:49:59 chchung Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -752,9 +752,11 @@ R1 time        // max time allowd for prog execution
                // NB NOT included : initialization & termination
 
 TRDCALIB                // trd calibration
-I 1 TrdSCalibVersion(4) // current version = 4 relesed on Feb.22 2012
-I 2 TrdSCalibTrack(1)   // trd track for likelihoods 0:trdtrack, 1:trdhtrack
-I 3 TrdSCalibDebug(0)   // debug 
+I 1 TrdSCalibVersion(5)     // current version = 5 relesed on Apr.26 2012
+I 2 TrdSCalibTrack(0)       // trd track for likelihoods 0:trdhtrack, 1:trdtrack
+I 3 TrdSCalibGainMethod(1)  // 1:AC, 2:MIT, 3:AC
+I 4 TrdSCalibAlignMethod(1) // 1:AC, 2:MIT, 3:AC
+I 5 TrdSCalibDebug(0)       // debug 
 
 //-----------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.343 2012/04/26 16:54:37 jorgec Exp $
+//  $Id: commons.h,v 1.344 2012/04/27 09:49:59 chchung Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1110,6 +1110,8 @@ class TRDCALIB_DEF{
   geant BadChanThr;
   integer TrdSCalibVersion;
   integer TrdSCalibTrack;
+  integer TrdSCalibGainMethod;
+  integer TrdSCalibAlignMethod;
   integer TrdSCalibDebug;
 };
 #define TRDCALIB COMMON_BLOCK(TRDCALIB,trdcalib)

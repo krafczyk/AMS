@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.249 2012/02/27 05:42:49 pzuccon Exp $
+//  $Id: particle.C,v 1.250 2012/04/27 09:49:59 chchung Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -246,8 +246,8 @@ integer AMSParticle::build(integer refit){
 	  {
 // VC Dec-27-2011 No hardwired limits in user functionsw
             double fmom=fabs(ppart->_Momentum);
-            if (fmom<=3)fmom=3+1e-5;
-            if (fmom>=100)fmom=100-1e-5;
+            if (fmom<=2)fmom=2+1e-5;
+            if (fmom>=600)fmom=600-1e-5;
  	    if( !TrdSCalibR::gethead()->BuildTrdSCalib(AMSEvent::gethead()->gettime(), fmom,
 						       ppart->_phtrd, ppart->_ptrack,
 						       ppart->_TrdSH_E2P_lik, ppart->_TrdSH_He2P_lik, ppart->_TrdSH_E2He_lik, isdebug) )
