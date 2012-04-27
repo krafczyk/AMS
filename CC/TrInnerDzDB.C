@@ -238,9 +238,10 @@ int TrInnerDzDB::WriteToFile(char* filename, int append){
   return 0;
 }
 
-void TrInnerDzDB::Print()
+void TrInnerDzDB::Print(Option_t *) const
 {
-  for (mapit it = pos.begin(); it != pos.end(); it++) {
+  typedef std::map<uint,TrInnerDzDB::DzElem>::const_iterator mapitc;
+  for (mapitc it = pos.begin(); it != pos.end(); it++) {
     printf("%9u", it->first);
     for (int ii = 0; ii < kLaynum; ii++)
       printf(" %5.1f", it->second.dz[ii]*1e4);

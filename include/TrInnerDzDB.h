@@ -65,8 +65,8 @@ public:
   /// std detructor
   ~TrInnerDzDB(){}
   /// Clear the DB content
-  using TObject::Clear;
-  void Clear(){pos.clear();return;}
+  void Clear(Option_t* = ""){pos.clear();return;}
+
   /// look up on the DB and update the TkDBC _layer_deltaZA values.
   /// In the case the time is not available it tries to seach fot it in the TDV 
   int UpdateTkDBc(uint timeid);
@@ -115,9 +115,8 @@ public:
   static int   GetTDVSwapSize(){return 2*(1+kLaynum)*sizeof(float);}
  /// Load the DB from a file and make it available
   static void Load(TFile * ff);
-  using TObject::Print;
   /// Printout
-  void Print();
+  void Print(Option_t* = "") const;
 
    ClassDef(TrInnerDzDB,1);
 };
