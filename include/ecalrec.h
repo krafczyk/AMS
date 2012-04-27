@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.61 2012/04/18 22:56:13 paniccia Exp $
+//  $Id: ecalrec.h,v 1.62 2012/04/27 22:43:17 paniccia Exp $
 //
 // 28.09.1999 E.Choumilov
 // last update 22.04.2008 E.Choumilov, EcalHit-constructor for 1DClusters corrected by V.Choutko
@@ -428,7 +428,11 @@ class AMSEcalShower: public AMSlink{
   number  _S13LeakXA;
   number  _S13LeakYA; 
   number  _S13LeakXA0;
-  number  _S13LeakYA0;  
+  number  _S13LeakYA0;
+  number  _S35LeakXA;
+  number  _S35LeakYA; 
+  number  _VarLeakXA;
+  number  _VarLeakYA;
   number  _SideLeakA;
   number  _DeadLeakA;
   number  _AttLeakA;

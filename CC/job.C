@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.864 2012/04/27 09:49:59 chchung Exp $
+// $Id: job.C,v 1.865 2012/04/27 22:43:16 paniccia Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1059,6 +1059,31 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.year[0]=108;// (105-106)
   ECREFFKEY.year[1]=125;//
   ECREFFKEY.Tref=23.;// (107)
+
+
+  //LAPP impact-point correction parameters for S3/S5 X and Y sides (M.P.-S-R)
+  ECREFFKEY.S3S5XA[0]=0.5; // (108-111)
+  ECREFFKEY.S3S5XA[1]=0.77;
+  ECREFFKEY.S3S5XA[2]=0.883;
+  ECREFFKEY.S3S5XA[3]=0.072;
+      
+  ECREFFKEY.S3S5YA[0]=0.5; // (112-115) 
+  ECREFFKEY.S3S5YA[1]=0.77;
+  ECREFFKEY.S3S5YA[2]=0.873;
+  ECREFFKEY.S3S5YA[3]=0.085;
+  // end of LAPP impact-point correction parameters for S3/S5
+
+  //LAPP impact-point correction parameters for ShowerLatDisp X and Y sides (M.P.-S-R)
+  ECREFFKEY.VarXA[0]=0.5; // (116-119)
+  ECREFFKEY.VarXA[1]=0.75;
+  ECREFFKEY.VarXA[2]=18.6;
+  ECREFFKEY.VarXA[3]=5.8;
+      
+  ECREFFKEY.VarYA[0]=0.5; // (120-123) 
+  ECREFFKEY.VarYA[1]=0.75;
+  ECREFFKEY.VarYA[2]=41.12;
+  ECREFFKEY.VarYA[3]=21.6;
+  // end of LAPP impact-point correction parameters for ShowerLatDisp
 
   FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   //

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.170 2012/04/18 22:56:12 paniccia Exp $
+//  $Id: ecalrec.C,v 1.171 2012/04/27 22:43:16 paniccia Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -2379,6 +2379,11 @@ void AMSEcalShower::EnergyFit(){
   _S13LeakXA0=0;
   _S13LeakYA0=0;
 
+  _S35LeakXA=0;
+  _S35LeakYA=0;
+  _VarLeakXA=0;
+  _VarLeakYA=0;
+
   _Nhits=0;
  
   Ecal1DCluster *p1cl;
@@ -2591,6 +2596,15 @@ void AMSEcalShower::EnergyFit(){
   _S35Ra[1]=ss3a[1]/ss5a[1];
 
   // compute S1, S3, S5 (CofG used as seed)
+   _S1tot=ss1a[0]+ss1a[1];
+   _S3tot=ss3a[0]+ss3a[1];
+   _S5tot=ss5a[0]+ss5a[1];
+   if ((edepx+edepy)>0){
+	_S1tot=_S1tot/(edepx+edepy);
+	_S3tot=_S3tot/(edepx+edepy);
+	_S5tot=_S5tot/(edepx+edepy);
+    }
+    // end S1, S3, S5
   _S1totx=0.;
    _S3totx=0.;
    _S5totx=0.;
@@ -2721,16 +2735,50 @@ void AMSEcalShower::EnergyFit(){
       }      
    
 
-    // S1tot, S3tot S5tot (no impact point correction applied to global S1, S3, S5 
-   _S1tot=0.;
-   _S3tot=0.;
-   _S5tot=0.;
-   if ((edepx+edepy)>0){
-	_S1tot=_S1tot/(edepx+edepy);
-	_S3tot=_S3tot/(edepx+edepy);
-	_S5tot=_S5tot/(edepx+edepy);
+//begin lapp  impact-point correction for S35R x, y and ShowerLatDisp x, y:
+    //X side:
+    if(_S13Ra[0]>ECREFFKEY.S3S5XA[0] && _S13Ra[0]<=ECREFFKEY.S3S5XA[1]){
+        _S35LeakXA=((ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*_S13Ra[0])/(ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[1]))-1.;
+        _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+    } 
+    else if(_S13Ra[0]<=ECREFFKEY.S3S5XA[0] ){ 
+      _S35LeakXA=((ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[0])/(ECREFFKEY.S3S5XA[2]+ECREFFKEY.S3S5XA[3]*ECREFFKEY.S3S5XA[1]))-1.;
+      _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
     }
-    // end S1, S3, S5
+    //X-side done
+    //beginning Y-side:
+        if(_S13Ra[1]>ECREFFKEY.S3S5YA[0] && _S13Ra[1]<=ECREFFKEY.S3S5YA[1]){
+        _S35LeakYA=((ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*_S13Ra[1])/(ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[1]))-1.;
+        _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    } 
+    else if(_S13Ra[1]<=ECREFFKEY.S3S5YA[0] ){ 
+      _S35LeakYA=((ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[0])/(ECREFFKEY.S3S5YA[2]+ECREFFKEY.S3S5YA[3]*ECREFFKEY.S3S5YA[1]))-1.;
+      _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[0])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    }   
+      /// end lapp  impact-point correction for S35R x, y
+        /*  
+//begin lapp  impact-point correction for ShowerLatDisp x, y:
+    //X side:
+    if(_S13Ra[0]>ECREFFKEY.VarXA[0] && _S13Ra[0]<=ECREFFKEY.VarXA[1]){
+        _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*_S13Ra[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+    } 
+    else if(_S13Ra[0]<=ECREFFKEY.VarXA[0] ){ 
+      _VarLeakXA=((ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[0])/(ECREFFKEY.VarXA[2]-ECREFFKEY.VarXA[3]*ECREFFKEY.VarXA[1]))-1.;
+    }
+    //X-side done
+    //beginning Y-side:
+        if(_S13Ra[1]>ECREFFKEY.VarYA[0] && _S13Ra[1]<=ECREFFKEY.VarYA[1]){
+        _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*_S13Ra[1])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    } 
+    else if(_S13Ra[1]<=ECREFFKEY.VarYA[0] ){ 
+      _VarLeakYA=((ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[0])/(ECREFFKEY.VarYA[2]-ECREFFKEY.VarYA[3]*ECREFFKEY.VarYA[1]))-1.;
+    }   
+      /// end lapp  impact-point correction for ShowerLatDisp x, y
+      */
+// Apply Impact point correction to S35Ra:
+        _S35Ra[0]=_S35Ra[0]/(1 +_S35LeakXA);
+        _S35Ra[1]=_S35Ra[1]/(1 +_S35LeakYA);
+//done Impact point correction to S35Ra
 
    edepx=ep[0]/1000.;// redefine edepx from ep and express in GeV
    edepy=ep[1]/1000.;// redefine edepy from ep and express in GeV
@@ -3113,47 +3161,84 @@ void AMSEcalShower::ZProfile()
 
 
 void AMSEcalShower::LAPPVariables(){
-  float bcell_lat[18]={0.};
-  float bcell2_lat[18]={0.};
-  float bcell_latx[18]={0.};
-  float bcell_laty[18]={0.};
-  float s_cell_w[18]={0.};
-  float s_cell2_w[18]={0.};
-  float edep_cell[18][72]={0.};
-  float edep_layer[18]={0.};
-  int nhitcell[18]={0.};
-  int necalcl=0;
-  int ihit,cell,plane,proj;
-  int nhits_cl;
-
-  //  if(_Nhits>50){
-  // Loop over 2d clusters
-  for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
-    // Number of 1d cluster in 2D cluster
-    necalcl=_pCl[cl2]->getNClust();
-    // Loop over 1d clusters in cluster 2d
-    for (int cl=0; cl<necalcl; cl++){
-      nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
-      // Loop over hits in cluster 1d
-      for (int ie=0; ie<nhits_cl; ie++){ 
-	cell = _pCl[cl2]->getpClust(cl)->getphit(ie)->getcell();
-	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
-	proj = _pCl[cl2]->getpClust(cl)->getphit(ie)->getproj();
-	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep()))
-	  edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	s_cell_w[plane]        += (cell+1)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
-	s_cell2_w[plane]       += pow((cell+1),2.)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();          
-	nhitcell[plane]++;
-      }
-    }
-  }
-  //   }
    
   _ShowerLatDisp=0.;
   _ShowerLatDispx=0.;
   _ShowerLatDispy=0.;
+
   _ShowerLongDisp=0.;
+
+  _NbLayerX = 0;
+  _NbLayerY = 0;
+  
+  _ShowerDepth=0.;
+  
+  _ShowerFootprintx = 0.;	
+  _ShowerFootprinty = 0.;	
+  _ShowerFootprint = 0.;
+
+  float bcell_lat[18];
+  float bcell2_lat[18];
+  float bcell_latx[18];
+  float bcell_laty[18];
+  float s_cell_w[18];
+  float s_cell2_w[18];
+  float edep_cell[18][72];
+  float edep_layer[18];
+  int nhitcell[18]={0.};
+  for (int elay=0; elay<18; elay++){
+      bcell_lat[elay]=0.;
+      bcell2_lat[elay]=0.;
+      bcell_latx[elay]=0.;
+      bcell_laty[elay]=0.;
+      s_cell_w[elay]=0.;
+      s_cell2_w[elay]=0.; 
+      edep_layer[elay]=0.;
+      nhitcell[elay]=0;
+      for (int icell=0; icell<72; icell++){
+          edep_cell[elay][icell]=0.;
+      }    
+  }  
+  int necalcl=0;
+  int ihit,cell,plane,proj;
+  int nhits_cl;
+
+ 
+  // Loop over 2d clusters
+
+  for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
+
+    // Number of 1d cluster in 2D cluster
+
+    necalcl=_pCl[cl2]->getNClust();
+
+    // Loop over 1d clusters in cluster 2d
+
+    for (int cl=0; cl<necalcl; cl++){
+
+      nhits_cl=_pCl[cl2]->getpClust(cl)->getNHits();
+
+      // Loop over hits in cluster 1d
+      for (int ie=0; ie<nhits_cl; ie++){ 
+
+	cell = _pCl[cl2]->getpClust(cl)->getphit(ie)->getcell();
+	plane= _pCl[cl2]->getpClust(cl)->getphit(ie)->getplane();
+	proj = _pCl[cl2]->getpClust(cl)->getphit(ie)->getproj();
+
+	if(!isnan(_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep())){
+            
+	   edep_layer[plane]      += _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	   edep_cell[plane][cell] =  _pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	   s_cell_w[plane]        += (cell+1)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();
+	   s_cell2_w[plane]       += pow((cell+1),2.)*_pCl[cl2]->getpClust(cl)->getphit(ie)->getedep();          
+	   nhitcell[plane]++;
+        }
+        
+      }
+    }
+  }
+
+
   float bplane=0.;
   float bplane2=0.;
   float bcell_latmx=0., bcell_latmy=0.;
@@ -3162,19 +3247,23 @@ void AMSEcalShower::LAPPVariables(){
   float shower_depth_op=0.;
  
   int nbcellx=0,nbcelly=0;
-  for (int jj=0; jj<18; jj++){
-   
+  for (int jj=0; jj<18; jj++){   
     if (edep_layer[jj]!=0){
+
       edep_tot+=edep_layer[jj];
-      // Calculate shower longitudinal dispersion
+
+      // Compute shower longitudinal dispersion
       bplane2+=pow((jj+1),2.)*edep_layer[jj];  
       bplane+=(jj+1)*edep_layer[jj]; 
-      // Calculate shower lateral dispersion  
+
+      // Compute shower lateral dispersion  
       bcell_lat[jj]=s_cell_w[jj]/edep_layer[jj];
       bcell2_lat[jj]=s_cell2_w[jj]/edep_layer[jj];
       _ShowerLatDisp += bcell2_lat[jj] - (bcell_lat[jj]*bcell_lat[jj]);
-      // Calculate shower depth term  
+
+      // Compute shower depth term  
       shower_depth_op+=(jj+1)*(1./pow(edep_layer[jj],2));
+
       if (((jj/2)%2)==0){
 	_ShowerLatDispy+=bcell2_lat[jj]-pow((bcell_lat[jj]),2);
 	bcell_latmy+=bcell_lat[jj]*edep_layer[jj];
@@ -3189,29 +3278,37 @@ void AMSEcalShower::LAPPVariables(){
       }
     }
   }
+
+// Apply Impact point correction to ShowerLatDisp x,y:
+  _ShowerLatDispx=_ShowerLatDispx/(1+_VarLeakXA);
+  _ShowerLatDispy=_ShowerLatDispy/(1+_VarLeakYA);
+//done Impact point correction to ShowerLatDisp x, y
+
   _NbLayerX = nbcellx;
   _NbLayerY = nbcelly;
-  _ShowerLatDispx=_ShowerLatDispx;
-  _ShowerLatDispy=_ShowerLatDispy;
-  
-  //Calculate longitudinal dispersions
-  if(edep_tot>0.)
-  	_ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
-  else
-	_ShowerLongDisp = -1.;  
+
+  //Compute longitudinal dispersions
+  if(edep_tot>0.){
+      _ShowerLongDisp =bplane2/edep_tot-pow((bplane/edep_tot),2);
+  }  
+  else{
+      _ShowerLongDisp = -1.; 
+  }
 
   edep_tot=edep_totx+edep_toty;
 
-  //Calculate shower depth
+  //Compute shower depth
   _ShowerDepth = TMath::Log(shower_depth_op);
 
-  //Calculate shower shower Cofg_z
-  if(edep_tot>0.)	
-    bplane=bplane/edep_tot;
-  bplane = -1000.;  
+  //Compute shower shower Cofg_z
+  if(edep_tot>0.){
+      bplane=bplane/edep_tot;
+  } 
+  else { 
+      bplane = -1000.;  
+  }
 
-
-  //Calculate shower CofG x,y 
+  //Compute shower CofG x,y 
   if (edep_totx>0.){
     bcell_latmx=bcell_latmx/edep_totx;   
   }
@@ -3219,7 +3316,8 @@ void AMSEcalShower::LAPPVariables(){
     bcell_latmy=bcell_latmy/edep_toty;   
   }
  
-  //Calculate shower footprint
+  //Compute shower footprint
+
   float sigmax2=0., sigmaxz=0., sigmay2=0., sigmayz=0., sigmaz2_x=0., sigmaz2_y=0.;
   for (int jj=0; jj<18; jj++)
     {
@@ -3253,9 +3351,8 @@ void AMSEcalShower::LAPPVariables(){
 	    }
 	}
     }
-  _ShowerFootprintx = 0.;	
-  _ShowerFootprinty = 0.;	
-  _ShowerFootprint = 0.;	
+
+	
   if(edep_totx>0.){ 
     sigmax2=sigmax2/edep_totx;
     sigmaxz=sigmaxz/edep_totx;

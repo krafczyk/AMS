@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.426 2012/04/26 16:54:37 jorgec Exp $
+//  $Id: root.h,v 1.427 2012/04/27 22:43:17 paniccia Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -566,11 +566,15 @@ public:
   float DeadLeakA;    ///< LAPP rel dead leak
   float AttLeakA;     ///< LAPP rel att length correction
   float NLinLeakA;   ///<  LAPP rel non-lin correction
-  float S13LeakXA0;  ///< LAPP  impact-point correction  for Y view
-  float S13LeakYA0;  ///< LAPP  impact-point correction for Y view
-  float S13LeakXA;  ///< LAPP impact-point x hit multiplicity correction for X view
-  float S13LeakYA;  ///< LAPP  impact-point x hit multiplicity correction for Y view
+  float S13LeakXA0;  ///< LAPP  impact-point correction  applied to energy deposited in X view
+  float S13LeakYA0;  ///< LAPP  impact-point correction applied to energy deposited in Y view
+  float S13LeakXA;  ///< LAPP impact-point x hit multiplicity correction  applied to energy deposited in X view
+  float S13LeakYA;  ///< LAPP  impact-point x hit multiplicity correction applied to energy deposited in Y view
   float OrpLeakA;   ///<  LAPP fraction of shower energy outside core.
+  float S35LeakXA;  ///< LAPP impact-point correction applied to S3/S5 Ratio X view 
+  float S35LeakYA;  ///< LAPP  impact-point correction applied to S3/S5 Ratio Y view
+  float VarLeakXA;  ///< LAPP impact-point correction applied to ShowerLatDisp X view 
+  float VarLeakYA;  ///< LAPP  impact-point correction applied to ShowerLatDisp Y view
   float S13Ra[2];  ///< LAPP S1/S3 Ratio for X and Y view
   float S35Ra[2];  ///< LAPP S3/S5 Ratio for X and Y view
   float S1tot[3];  ///< Energy CofG cell / energy ratio: 0=X; 1=Y ; 2=X+Y 

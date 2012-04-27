@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.344 2012/04/27 09:49:59 chchung Exp $
+//  $Id: commons.h,v 1.345 2012/04/27 22:43:17 paniccia Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -447,9 +447,13 @@ class ECREFFKEY_DEF {
   float S1S3[4];
   float S1S3X[6];
   float S1S3Y[6];
-  float S1S3XA[4]; //LAPP impact-point correction parameters X side (M.P.)
-  float S1S3YA[4]; //LAPP impact-point correction parameters Y side (M.P.)
-  float LAPPHitLeak[5]; //LAPP multiplicity correction parameters (M.P.)
+  float S1S3XA[4]; //LAPP impact-point correction parameters for energy deposited in  X side (M.P.-C.G)
+  float S1S3YA[4]; //LAPP impact-point correction parameters for energy deposited in  Y side (M.P.-C.G) 
+  float LAPPHitLeak[5]; //LAPP multiplicity correction parameters (M.P.- C.G)
+  float S3S5XA[4]; //LAPP impact-point correction parameters for S3/S5 ratio X side (M.P.-S.R)
+  float S3S5YA[4]; //LAPP impact-point correction parameters for S3/S5 ratio Y side (M.P.- S.R)
+  float VarXA[4]; //LAPP impact-point correction parameters for ShowerLatDisp X side (M.P.-S.R)
+  float VarYA[4]; //LAPP impact-point correction parameters for ShowerLatDisp Y side (M.P.- S.R)
 
   integer sec[2];
   integer min[2];

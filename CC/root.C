@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.392 2012/04/26 16:54:26 jorgec Exp $
+//  $Id: root.C,v 1.393 2012/04/27 22:43:16 paniccia Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3119,9 +3119,14 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   SideLeakA    = ptr->_SideLeakA;//LAPP
   RearLeakA    = ptr->_RearLeakA;//LAPP
   S13LeakXA    = ptr->_S13LeakXA;//LAPP
+  S13LeakYA    = ptr->_S13LeakYA;//LAPP
   S13LeakXA0    = ptr->_S13LeakXA0;//LAPP March 21 2012
   S13LeakYA0    = ptr->_S13LeakYA0;//LAPP Apr 26 2011
-  S13LeakYA    = ptr->_S13LeakYA;//LAPP
+  S35LeakXA    = ptr->_S35LeakXA;//LAPP Apr 27 2012
+  S35LeakYA    = ptr->_S35LeakYA;//LAPP Apr 27 2012
+  VarLeakXA    = ptr->_VarLeakXA;//LAPP Apr 27 2012
+  VarLeakYA    = ptr->_VarLeakYA;//LAPP Apr 27 2012
+
    NLinLeakA   =ptr->_NLinLeakA;//LAPP
 
   S13Ra[0]    = ptr->_S13Ra[0];//LAPP

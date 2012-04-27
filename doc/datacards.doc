@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.375 2012/04/27 09:49:59 chchung Exp $
+#  $Id: datacards.doc,v 1.376 2012/04/27 22:43:16 paniccia Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -1139,6 +1139,28 @@ I 104 mon[1](0)                //
 I 105 year[0](108)             //
 I 106 year[1](125)             //
 R 107 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
+
+//LAPP impact-point correction parameters for S3/S5 X and Y sides (M.P.-S-Rosier)
+R 108 S3S5XA[0](0.5) // (108-111)
+R 109 S3S5XA[1](0.77)
+R 110 S3S5XA[2](0.883)
+R 111 S3S5XA[3](0.072)
+
+R 112 S3S5YA[0](0.5) // (112-115) 
+R 113 S3S5YA[1](0.77)
+R 114 S3S5YA[2](0.873)
+R 115 S3S5YA[3](0.085)
+
+ //LAPP impact-point correction parameters for ShowerLatDisp X and Y sides (M.P.-S-Rosier)
+R 116 VarXA[0](0.5) // (116-119)
+R 117 VarXA[1](0.75)
+R 118 VarXA[2](18.6)
+R 119 VarXA[3](5.8)
+      
+R 120 VarYA[0](0.5) // (120-123) 
+R 121 VarYA[1](0.75)
+R 122 VarYA[2](41.12)
+R 123 VarYA[3](21.6)
 
    ECAL calibration:
 
