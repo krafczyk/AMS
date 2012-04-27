@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.172 2011/12/26 11:11:07 choutko Exp $
+//  $Id: mceventg.C,v 1.173 2012/04/27 18:14:17 sdellato Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -576,11 +576,18 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
   Orbit.EarthR=6371.2e5;                      
   Orbit.AlphaAltitude=Orbit.EarthR+380.e5;  
-  Orbit.DipoleR=534.259e5;                       // Dipole Shift Distance  (cm)
-  Orbit.DipoleTheta=21.687/AMSDBc::raddeg;       //              Latitude  (rad)
-  Orbit.DipolePhi=144.280/AMSDBc::raddeg;        //              Longitude (rad)
-  Orbit.PoleTheta=-79.397/AMSDBc::raddeg;        // Dipole Direction Lat   (rad)
-  Orbit.PolePhiStatic=108.392/AMSDBc::raddeg;    //                  Lon   (rad)
+// average values for 2011-2012 
+ Orbit.DipoleR=567.946e5;                       // Dipole Shift Distance (cm)
+  Orbit.DipoleTheta=22.596/AMSDBc::raddeg;       //              Latitude (rad)
+  Orbit.DipolePhi=151.365/AMSDBc::raddeg;        //              Longitude (rad)
+  Orbit.PoleTheta=-80.130/AMSDBc::raddeg;        // Dipole Direction Lat (rad)
+  Orbit.PolePhiStatic=107.622/AMSDBc::raddeg;    //                  Lon (rad) 
+//old - 1998 value
+//   Orbit.DipoleR=534.259e5;                       // Dipole Shift Distance  (cm)
+//  Orbit.DipoleTheta=21.687/AMSDBc::raddeg;       //              Latitude  (rad)
+//  Orbit.DipolePhi=144.280/AMSDBc::raddeg;        //              Longitude (rad)
+//  Orbit.PoleTheta=-79.397/AMSDBc::raddeg;        // Dipole Direction Lat   (rad)
+//  Orbit.PolePhiStatic=108.392/AMSDBc::raddeg;    //                  Lon   (rad)
   Orbit.Nskip=0;
   Orbit.Nskip2=0;
   Orbit.Ntot=AMSIO::getntot();
