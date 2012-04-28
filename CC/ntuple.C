@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.251 2012/04/26 16:54:26 jorgec Exp $
+//  $Id: ntuple.C,v 1.252 2012/04/28 10:13:17 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -845,117 +845,123 @@ TCanvas* AMSNtuple::TRDPlot(int mode){
 
 uinteger AMSNtuple::writeRSetup(){
 if( _treesetup){
-   _treesetup->Fill();
-   Get_setup02()->Reset();
+   try{
+	_treesetup->Fill();
 }
-return _treesetup!=NULL;
-}
+    catch(std::bad_alloc a){
+      cerr<<" AMSNtuple::writeRSetup-E-BadALLOC" <<endl;
+    }
+
+	   Get_setup02()->Reset();
+	}
+	return _treesetup!=NULL;
+	}
 
 
-bool AMSNtuple::LoadISS(time_t xtime){
-static unsigned int time=0;
-unsigned int tl=0;
-#pragma omp threadprivate(time)
-if(Get_setup02() && Get_setup02()->fISSData.size()>0){
-for(AMSSetupR::ISSData_i i=Get_setup02()->fISSData.begin();i!=Get_setup02()->fISSData.end();i++){
- if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
-}
-if(tl!=time && tl){
-time=tl;
-AMSSetupR::ISSData_i i=Get_setup02()->fISSData.find(time);
-if(i!=Get_setup02()->fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
-cout << "LOAD!!!! "<<i->second.Name<<endl;
-return true;
-}
-else{
-static int print=0;
-time=0;
-if(print++<100)cerr<<"AMSNtuple::LoadISS-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
-return false ;
-}
-}
-return time!=0;
+	bool AMSNtuple::LoadISS(time_t xtime){
+	static unsigned int time=0;
+	unsigned int tl=0;
+	#pragma omp threadprivate(time)
+	if(Get_setup02() && Get_setup02()->fISSData.size()>0){
+	for(AMSSetupR::ISSData_i i=Get_setup02()->fISSData.begin();i!=Get_setup02()->fISSData.end();i++){
+	 if(fabs(i->first-xtime)<fabs(tl-xtime))tl=i->first;
+	}
+	if(tl!=time && tl){
+	time=tl;
+	AMSSetupR::ISSData_i i=Get_setup02()->fISSData.find(time);
+	if(i!=Get_setup02()->fISSData.end() && ISSLoad((const char *)i->second.Name,(const char *)i->second.TL1,(const char*)i->second.TL2)){
+	cout << "LOAD!!!! "<<i->second.Name<<endl;
+	return true;
+	}
+	else{
+	static int print=0;
+	time=0;
+	if(print++<100)cerr<<"AMSNtuple::LoadISS-E-UnableToLoad "<<i->second.Name<<" "<<i->first<<endl;
+	return false ;
+	}
+	}
+	return time!=0;
 
-}
-else{
-static int print=0;
-if(print++<100)cerr<<"AMSEvent::LoadISs-E-noSetupFoundorISSDataEmpty "<<Get_setup02()<<endl;
-return false;
-}
-}
-
-
-
-int AMSNtuple::ISSAtt(float &roll, float&pitch, float &yaw,double xtime){
-if(!Get_setup02())return 2;
-else {
- return Get_setup02()->getISSAtt(roll,pitch,yaw,xtime);
-}
-}   
- 
+	}
+	else{
+	static int print=0;
+	if(print++<100)cerr<<"AMSEvent::LoadISs-E-noSetupFoundorISSDataEmpty "<<Get_setup02()<<endl;
+	return false;
+	}
+	}
 
 
 
-
-int AMSNtuple::ISSSA(float &alpha, float&b1a, float &b3a, float &b1b, float &b3b, double xtime){
-const double rad=3.14159267/180.;
-if(!Get_setup02())return 2;
-else{
-AMSSetupR::ISSSA a;
-int ret=Get_setup02()->getISSSA(a,xtime);
-alpha=a.alpha*rad;
-b1a=a.b1a*rad;
-b3a=a.b3a*rad;
-b1b=a.b1b*rad;
-b3b=a.b3b*rad;
-return ret;
-}
-} 
-int AMSNtuple::ISSCTRS(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
-if(!Get_setup02())return 2;
-else{
-AMSSetupR::ISSCTRSR a;
-int ret=Get_setup02()->getISSCTRS(a,xtime);
-r=a.r;
-theta=a.theta;
-phi=a.phi;
-v=a.v;
-vphi=a.vphi;
-vtheta=a.vtheta;
-return ret;
-}
-} 
-
-
-int AMSNtuple::ISSGTOD(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
-if(!Get_setup02())return 2;
-else{
-AMSSetupR::ISSGTOD a;
-int ret=Get_setup02()->getISSGTOD(a,xtime);
-r=a.r;
-theta=a.theta;
-phi=a.phi;
-v=a.v;
-vphi=a.vphi;
-vtheta=a.vtheta;
-return ret;
-}
-} 
+	int AMSNtuple::ISSAtt(float &roll, float&pitch, float &yaw,double xtime){
+	if(!Get_setup02())return 2;
+	else {
+	 return Get_setup02()->getISSAtt(roll,pitch,yaw,xtime);
+	}
+	}   
+	 
 
 
 
 
-void AMSNtuple::readRSetup(AMSEvent *ev){
-if(!_rfile)return;
-int tmout=0;
-string name=_rfile->GetName();
-//_rfile->Write();
-//_rfile->Close();
-if(Get_setup02() && AMSJob::gethead()->isRealData()){
-#ifdef __CORBA__
-AMSProducer::gethead()->SendTimeout(2500);
-#endif
-if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
+	int AMSNtuple::ISSSA(float &alpha, float&b1a, float &b3a, float &b1b, float &b3b, double xtime){
+	const double rad=3.14159267/180.;
+	if(!Get_setup02())return 2;
+	else{
+	AMSSetupR::ISSSA a;
+	int ret=Get_setup02()->getISSSA(a,xtime);
+	alpha=a.alpha*rad;
+	b1a=a.b1a*rad;
+	b3a=a.b3a*rad;
+	b1b=a.b1b*rad;
+	b3b=a.b3b*rad;
+	return ret;
+	}
+	} 
+	int AMSNtuple::ISSCTRS(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
+	if(!Get_setup02())return 2;
+	else{
+	AMSSetupR::ISSCTRSR a;
+	int ret=Get_setup02()->getISSCTRS(a,xtime);
+	r=a.r;
+	theta=a.theta;
+	phi=a.phi;
+	v=a.v;
+	vphi=a.vphi;
+	vtheta=a.vtheta;
+	return ret;
+	}
+	} 
+
+
+	int AMSNtuple::ISSGTOD(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
+	if(!Get_setup02())return 2;
+	else{
+	AMSSetupR::ISSGTOD a;
+	int ret=Get_setup02()->getISSGTOD(a,xtime);
+	r=a.r;
+	theta=a.theta;
+	phi=a.phi;
+	v=a.v;
+	vphi=a.vphi;
+	vtheta=a.vtheta;
+	return ret;
+	}
+	} 
+
+
+
+
+	void AMSNtuple::readRSetup(AMSEvent *ev){
+	if(!_rfile)return;
+	int tmout=0;
+	string name=_rfile->GetName();
+	//_rfile->Write();
+	//_rfile->Close();
+	if(Get_setup02() && AMSJob::gethead()->isRealData()){
+	#ifdef __CORBA__
+	AMSProducer::gethead()->SendTimeout(2500);
+	#endif
+	if(!Get_setup02()->FillHeader(ev?ev->getrun():0)){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
 }
 else{
