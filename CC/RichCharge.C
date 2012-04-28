@@ -1484,12 +1484,13 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
   // All stuff comes here ...
   for (int tag=0; tag<NTAG; tag++) {
 
+    if (!m_tag[tag].size()) continue;
     it = m_tag[tag].upper_bound(run);
 
     switch (tag) {
 
     case kTagJ:
-      it--;
+      if (it!=m_tag[tag].begin()) it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay) {
 	if (verbosityLevel>0)
 	  cout << "RichPMTCalib::CheckRichRun : CNF-J-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
@@ -1511,7 +1512,7 @@ unsigned short RichPMTCalib::CheckRichRun(int run, vector<unsigned short> &v_pmt
       break;
 
     case kTagR:
-      it--;
+      if (it!=m_tag[tag].begin()) it--;
       if (run-it->first<0 || run-it->first>MaxRunDelay) {
 	if (verbosityLevel>0)
 	  cout << "RichPMTCalib::CheckRichRun : CNF-R-NotFoundForRun " << run << " (dt: " << run-it->first << " ) " << endl;
