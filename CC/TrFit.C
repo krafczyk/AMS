@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.65 2012/04/23 05:20:16 pzuccon Exp $
+//  $Id: TrFit.C,v 1.66 2012/04/28 04:51:40 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/04/23 05:20:16 $
+///$Date: 2012/04/28 04:51:40 $
 ///
-///$Revision: 1.65 $
+///$Revision: 1.66 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2165,7 +2165,7 @@ void TrFit::RkmsMtx(double rini)
   mtx.Invert(&detx);
   mty.Invert(&dety);
   if (detx == 0 || dety == 0) {
-    cerr << "### rsinv: ifail= -1" << endl;
+    if (RkmsDebug >= 1) cerr << "### rsinv: ifail= -1" << endl;
     return;
   }
 
