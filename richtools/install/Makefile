@@ -145,6 +145,6 @@ beta_map: $(LIBPATH)/libForest.so
 ####################### OTHER
 
 # Creates RunClassifier files from raw files
-rich_cnf_hkd: $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.c $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.h
-	$(CC) $(CONTRIB)$(@)/*.c -I$(CONTRIB)$(@) -o $(EXEPATH)$(@) -lm
+rich_cnf_hkd: dirs $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.c $(CONTRIB)rich_cnf_hkd/rich_cnf_hkd.h
+	$(CC) $(CONTRIB)$(@)/*.c -I$(CONTRIB)$(@) -o $(EXEPATH)$(@) -lm -static
 
