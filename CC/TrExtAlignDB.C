@@ -4,7 +4,7 @@
 #include "random.h"
 #include "tkdcards.h"
 #include "timeid.h"
-
+#include "commonsi.h"
 
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
@@ -13,6 +13,8 @@ using namespace  std;
 TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
+
+int TrExtAlignDB::version = 1;
 
 void TrExtAlignPar::Print(Option_t *) const
 {
@@ -372,8 +374,9 @@ void TrExtAlignDB::ExAlign2Lin()
     cout << "TrExtAlignDB::ExAlingn2Lin()-I-linear space is created" << endl;
   }
 
+  int npar = GetNpar();
   int nlin = GetLinearSize()/sizeof(float);
-  int ntim = nlin/2/8;
+  int ntim = nlin/2/npar;
   for (int i = 0; i < nlin; i++) fLinear[i] = 0;
 
   uint *uptr = (uint *)fLinear;
@@ -388,13 +391,27 @@ void TrExtAlignDB::ExAlign2Lin()
       if (time == 0) continue;
 
       TrExtAlignPar par = GetM(layer, time);
-      uptr   [(i*ntim+n)*8]   = time;
-      fLinear[(i*ntim+n)*8+1] = par.dpos  [0];
-      fLinear[(i*ntim+n)*8+2] = par.dpos  [1];
-      fLinear[(i*ntim+n)*8+3] = par.dpos  [2];
-      fLinear[(i*ntim+n)*8+4] = par.angles[0];
-      fLinear[(i*ntim+n)*8+5] = par.angles[1];
-      fLinear[(i*ntim+n)*8+6] = par.angles[2];
+      uptr   [(i*ntim+n)*npar]   = time;
+      fLinear[(i*ntim+n)*npar+1] = par.dpos  [0];
+      fLinear[(i*ntim+n)*npar+2] = par.dpos  [1];
+      fLinear[(i*ntim+n)*npar+3] = par.dpos  [2];
+      fLinear[(i*ntim+n)*npar+4] = par.angles[0];
+      fLinear[(i*ntim+n)*npar+5] = par.angles[1];
+      fLinear[(i*ntim+n)*npar+6] = par.angles[2];
+
+      if (npar > 12) {
+	fLinear[(i*ntim+n)*npar+ 7] = par.edpos  [0];
+	fLinear[(i*ntim+n)*npar+ 8] = par.edpos  [1];
+	fLinear[(i*ntim+n)*npar+ 9] = par.edpos  [2];
+	fLinear[(i*ntim+n)*npar+10] = par.eangles[0];
+	fLinear[(i*ntim+n)*npar+11] = par.eangles[1];
+	fLinear[(i*ntim+n)*npar+12] = par.eangles[2];
+      }
+      if (npar > 14) {
+	fLinear[(i*ntim+n)*npar+13] = par.chisq;
+	fLinear[(i*ntim+n)*npar+14] = par.NDF;
+      }
+
       n++;
     }
 
@@ -410,8 +427,9 @@ void TrExtAlignDB::Lin2ExAlign()
     return;
   }
 
+  int npar = GetNpar();
   int nlin = GetLinearSize()/4;
-  int ntim = nlin/2/8;
+  int ntim = nlin/2/npar;
 
   uint *uptr = (uint *)fLinear;
 
@@ -422,16 +440,29 @@ void TrExtAlignDB::Lin2ExAlign()
 
     int n = 0;
     for (int j = 0; j < ntim; j++) {
-      uint time = uptr[(i*ntim+j)*8];
+      uint time = uptr[(i*ntim+j)*npar];
       if (time == 0) continue;
 
       TrExtAlignPar &par = GetM(layer, time);
-      par.dpos  [0] = fLinear[(i*ntim+j)*8+1];
-      par.dpos  [1] = fLinear[(i*ntim+j)*8+2];
-      par.dpos  [2] = fLinear[(i*ntim+j)*8+3];
-      par.angles[0] = fLinear[(i*ntim+j)*8+4];
-      par.angles[1] = fLinear[(i*ntim+j)*8+5];
-      par.angles[2] = fLinear[(i*ntim+j)*8+6];
+      par.dpos  [0] = fLinear[(i*ntim+j)*npar+1];
+      par.dpos  [1] = fLinear[(i*ntim+j)*npar+2];
+      par.dpos  [2] = fLinear[(i*ntim+j)*npar+3];
+      par.angles[0] = fLinear[(i*ntim+j)*npar+4];
+      par.angles[1] = fLinear[(i*ntim+j)*npar+5];
+      par.angles[2] = fLinear[(i*ntim+j)*npar+6];
+
+      if (npar > 12) {
+	par.edpos  [0] = fLinear[(i*ntim+n)*npar+ 7];
+	par.edpos  [1] = fLinear[(i*ntim+n)*npar+ 8];
+	par.edpos  [2] = fLinear[(i*ntim+n)*npar+ 9];
+	par.eangles[0] = fLinear[(i*ntim+n)*npar+10];
+	par.eangles[1] = fLinear[(i*ntim+n)*npar+11];
+	par.eangles[2] = fLinear[(i*ntim+n)*npar+12];
+      }
+      if (npar > 14) {
+	par.chisq = fLinear[(i*ntim+n)*npar+13];
+	par.NDF   = fLinear[(i*ntim+n)*npar+14];
+      }
       n++;
     }
 
@@ -499,9 +530,16 @@ long long TrExtAlignDB::GetDt(float rate){
   return out;
 }
 
+const char *TrExtAlignDB::GetTDVName()
+{
+  static TString stn;
+  stn = "TrackerExtAlign";
+  if (version >= 2) stn += Form("%d", version);
+  return stn.Data();
+}
 
-int  TrExtAlignDB::GetFromTDV(uint time){
-  
+int TrExtAlignDB::GetFromTDV(uint time, int ver)
+{
   time_t tt=time;
   tm begin;
   tm end;
@@ -521,12 +559,41 @@ int  TrExtAlignDB::GetFromTDV(uint time){
   end.tm_mday=0;
   end.tm_mon=0;
   end.tm_year=0;
+
+  version = ver;
+
   TrExtAlignDB::CreateLinear();
-  AMSTimeID* db=new AMSTimeID(AMSID("TrackerExtAlign",1),begin,end,
+
+  AMSTimeID* db=new AMSTimeID(AMSID(GetTDVName(),1),begin,end,
 			      TrExtAlignDB::GetLinearSize(),
 			      TrExtAlignDB::fLinear,
 			      AMSTimeID::Standalone,1,SLin2ExAlign);
   int ret=db->validate(tt);
   if(db) delete db;
   return ret;
+}
+
+int TrExtAlignDB::UpdateTDV(uint brun, uint erun, int ver)
+{
+  version = ver;
+  CreateLinear();
+
+  cout << "Updating " << GetTDVName() << endl;
+
+  TrExtAlignDB::GetHead()->ExAlign2Lin();
+
+  time_t br = brun+3600;
+  time_t er = erun+3600;
+
+  tm begin; gmtime_r(&br, &begin);
+  tm end;   gmtime_r(&er, &end);
+  cout << "Begin: " <<(int)brun<<"  " <<asctime(&begin)<<endl;
+  cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
+
+  AMSTimeID *tt = new AMSTimeID(AMSID(GetTDVName(), 1), begin, end,
+				TrExtAlignDB::GetLinearSize(),
+				TrExtAlignDB::fLinear,
+				AMSTimeID::Standalone, 1);
+  tt->UpdateMe();
+  return tt->write(AMSDATADIR.amsdatabase);
 }

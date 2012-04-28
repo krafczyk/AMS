@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.48 2012/01/17 19:31:46 oliva Exp $
+// $Id: tkdcards.h,v 1.49 2012/04/28 02:07:51 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -49,9 +49,11 @@ public:
   float L9Amp[6];
   ///[827,832]; L9 relative phase ofdx,dy,dz,dTheta_XY,dTheta_YZ,dTheta_XZ
   float L9Phase[6];
+  ///[833] External Alignment version; (1: no errors,  2: with errors)
+  integer exalignver;
   void init();
   TKGEOMFFKEY_DEF():TObject(){init();}
-  ClassDef(TKGEOMFFKEY_DEF,4);
+  ClassDef(TKGEOMFFKEY_DEF,5);
 
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)

@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.19 2012/04/25 16:36:29 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.20 2012/04/28 02:07:50 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -98,6 +98,9 @@ public:
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (ForceLocalAlign)
 #endif
+
+  /// TDV version (1: no errors,  2: with errors) 
+  static int version;  // It should be thread-common
 
 public:
   /// Std dummy constructor
@@ -201,16 +204,28 @@ public:
 
   /// Print all the entries
   void Print(Option_t *option = "") const;
-  /// Load from TDV
-  static int GetFromTDV(uint time);
+
+  /// Get TDV name
+  static const char *GetTDVName();
+
+  /// Load from TDV (ver= 1: no errors,  2: with errors) 
+  static int GetFromTDV(uint time, int ver = 1);
+
+  /// Update TDV (ver= 1: no errors,  2: with errors) 
+  static int UpdateTDV(uint begin, uint end, int ver = 1);
 
   /// interface to GBTACH TDV database
   static float* fLinear;
 
+  /// Number of parameters to be stored in TDV, depends on version
+  static int GetNpar() {
+    return (version >= 2) ? 6+6+2+2 : 6+2;
+  }
+
   /// interface to GBTACH TDV database
   static int GetLinearSize() {
     int nlay = 2;
-    int npar = 2+6;
+    int npar = GetNpar();
     int ntim = 500; 
     return nlay*npar*ntim*sizeof(float);
   }
