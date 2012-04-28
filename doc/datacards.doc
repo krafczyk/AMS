@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.376 2012/04/27 22:43:16 paniccia Exp $
+#  $Id: datacards.doc,v 1.377 2012/04/28 10:52:49 jorgec Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -85,7 +85,7 @@ I214 WriteTDVDataInRoot(0)             // Write/NotWrite TDVData in Root (not to
 I215 ReadAMI(0)                   //  0,1,2 not read/Read/force read AMI interface with standalone program
 I216 unitimegen(0)                    // dummy datacard entry for future use 
 I217 MaxOneMinuteRootFileSize(100000000)  //  in bytes
-I218 BuildRichConfig(1)          // Create Rich Config DB records on-the-fly (0:no, 1:yes) 
+I218 BuildRichConfig(1)          // Create Rich Config DB records (>0) and write them in Root (>=0) 
 //-------------------------------------------------------------------------------
 
     RICH simulation

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.252 2012/04/28 10:13:17 choutko Exp $
+//  $Id: ntuple.C,v 1.253 2012/04/28 10:52:49 jorgec Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -965,7 +965,7 @@ if( _treesetup){
 cerr<<"AMSNtuple::readRSetup-E-UnableToFillRootSetupHeader "<<endl;
 }
 else{
-if (IOPA.BuildRichConfig && !Get_setup02()->BuildRichConfig(ev?ev->getrun():0))
+if (IOPA.BuildRichConfig>0 && !Get_setup02()->BuildRichConfig(ev?ev->getrun():0))
   cerr<<"AMSNtuple::readRSetup-E-UnableToBuildRichConfig "<<endl;
 string slc;
 if(!ev ||  !Get_setup02()->FillSlowcontrolDB(slc)){
