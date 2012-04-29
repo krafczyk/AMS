@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.73 2012/04/28 02:07:48 shaino Exp $
+// $Id: tkdcards.C,v 1.74 2012/04/29 10:20:39 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -38,7 +38,7 @@ void TKGEOMFFKEY_DEF::init(){
     L9Amp[ii]=p9[ii];
     L9Phase[ii]=phase9[ii];
   }
-  exalignver=1;
+  exalignver=2;
 }
 
 TKGEOMFFKEY_DEF TKGEOMFFKEY;
