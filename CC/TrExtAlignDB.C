@@ -14,7 +14,7 @@ TrExtAlignDB* TrExtAlignDB::Head=0;
 int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
 
-int TrExtAlignDB::version = 1;
+int TrExtAlignDB::version = 2;
 
 void TrExtAlignPar::Print(Option_t *) const
 {
@@ -272,7 +272,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){  // Try to fall back to TDV if data in memory are no good
       if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
       int ret=-1;
-      ret=GetFromTDV(time);
+      ret=GetFromTDV(time, version);
       if(ret<=0) {
 	if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");
 	return -2;
@@ -301,14 +301,15 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
 
   }else{ // FORCED reading from TDV
-    if(first) {GetFromTDV(time);first=0;}
+    if(first) {GetFromTDV(time, version);first=0;}
     tf8 = Find(8, time);
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
     dt9 = (int)tf9-(int)time;
+
     int ret=-1;
     if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
-      ret=GetFromTDV(time);
+      ret=GetFromTDV(time, version);
 
       if(ret<=0) {
 	if(nwar++ <errlim)printf("TrExtAlignDB::UpdateTkDBc-E- TDV not accessible, I give up\n");
