@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.427 2012/04/27 22:43:17 paniccia Exp $
+//  $Id: root.h,v 1.428 2012/04/30 09:35:45 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -305,6 +305,7 @@ int getISSSA(float & alpha,float & b1a, float &b3a, float &b1b, float &b3b, floa
 
 int getISSCTRS(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSCTRS values for the current event time;
 int getISSGTOD(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::ISSGTOD values for the current event time;
+int getGPSWGS84(float & r,float & theta, float &phi, float &v, float &vtheta, float &vphi,float dt=0); ///<get AMSSetupR::GPSWGS84 values for the current event time;
 
 int getISSAtt(float & roll,float & pitch, float &yaw); ///<get AMSSetupR::ISSAtt values for the current event time
 int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and replace roll,pitch,yaw in the fHeader

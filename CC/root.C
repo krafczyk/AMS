@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.393 2012/04/27 22:43:16 paniccia Exp $
+//  $Id: root.C,v 1.394 2012/04/30 09:35:14 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6510,6 +6510,30 @@ if(!AMSEventR::getsetup())return 2;
 AMSSetupR::ISSGTOD a;
 double xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
 int ret=AMSEventR::getsetup()->getISSGTOD(a,xtime);
+r=a.r;
+theta=a.theta;
+phi=a.phi;
+v=a.v;
+vphi=a.vphi;
+vtheta=a.vtheta;
+return ret;
+
+}
+
+
+int HeaderR::getGPSWGS84(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
+if(!AMSEventR::getsetup())return 2;
+unsigned int gpsdiff=15;
+AMSSetupR::GPSWGS84R a;
+unsigned int sec,nsec;
+int ok=AMSEventR::Head()->GetGPSTime(sec,nsec);
+double xtime=sec+double(nsec)/1e9+dt;
+if(!ok){
+  static int nprint=0;
+  if(nprint++<100)cerr<<"HeaderR::getGPSWGS84-GetGPSTimeRetuens "<<ok<<endl;
+  xtime=Time[0]+Time[1]/1000000.-gpsdiff+dt;
+}
+int ret=AMSEventR::getsetup()->getGPSWGS84(a,xtime);
 r=a.r;
 theta=a.theta;
 phi=a.phi;

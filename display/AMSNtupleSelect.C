@@ -17,9 +17,14 @@ unsigned int eventSec, eventNanoSec;
 ev->GetGPSTime(eventSec, eventNanoSec);
 double xtime=ev->UTime()+ev->Frac();
 AMSSetupR::ISSCTRSR setup;
+AMSSetupR::GPSWGS84R gps;
 if(ev->getsetup()){
 ev->getsetup()->getISSCTRS(setup, xtime);
 cout <<" qq "<<setup.r<<" "<<setup.v<<endl;
+
+ev->getsetup()->getGPSWGS84(gps, eventSec+double(eventNanoSec)/1.e9);
+cout <<" qqq "<<gps.r<<" "<<gps.v<<" "<<xtime<<" "<<eventSec+double(eventNanoSec)/1.e9<<endl;
+
 }
 }
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>2  ){
