@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: del.py,v 1.6 2012/01/12 17:05:03 ams Exp $
+#  $Id: del.py,v 1.7 2012/04/30 11:36:03 ams Exp $
 # this script suppose to delete datasets
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
@@ -14,6 +14,7 @@ u=1
 b=0
 run2p=0
 h=0
+castortime=0
 source=""
 donly=0
 datamc=1
@@ -28,6 +29,8 @@ for x in sys.argv:
         run2p=int(x[2:len(x)])
     elif x[0:2] == "-b" :
         b=int(x[2:len(x)])
+    elif x[0:2] == "-c" :
+        castortime=int(x[2:len(x)])
     elif x[0:2] == "-d" :
         source=x[2:len(x)]
 if(len(source)<2):
@@ -36,6 +39,6 @@ if(len(source)<2):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 #donly :  only delete data, not dataruns
-html.DeleteDataSet(run2p,source,u,v,f,donly,datamc,b)
+html.DeleteDataSet(run2p,source,u,v,f,donly,datamc,b,castortime)
 
 

@@ -2932,6 +2932,24 @@ class RemoteClient:
         rund=""
         runn=""
         runst=""
+        typess=["SCI","0LAS","0CAL","0CMD","0CAB"]
+        for type in typess:
+           sql="select path,paths,run from datafiles where   type like '%s%%' " %(type)
+           sql=sql+" and status not like '%BAD%'"
+           files=self.sqlserver.Query(sql)
+           for file in files:
+                run=file[2]
+                if(run2p!=0 and run!=run2p):
+                        continue
+                pathso=file[1]
+                cmd="ls -lL "+pathso
+                pair=commands.getstatusoutput(cmd)
+                out=pair[1]
+                if(out.find("No such")>=0 or pathso.find('ams.cern.ch/Offline')>=0):
+                    paths=pathso.replace('ams.cern.ch/Offline','cern.ch/ams/Offline',1)
+                    cmd="ln -sf "+file[0]+" "+paths
+                    os.system(cmd)
+                    print cmd
         types=["0SCI","0LAS","0CAL","0CMD","0CAB"]
         datapath=dataset
         ds1=""
