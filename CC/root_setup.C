@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.70 2012/04/30 09:35:14 choutko Exp $
+//  $Id: root_setup.C,v 1.71 2012/04/30 15:12:47 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -515,13 +515,29 @@ if( nve &&strlen(nve) && exedir  && AMSCommonsI::getosname()){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
-   AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 2400 ");
+ if(getenv("AMSOracle")){
+ setenv("LD_LIBRARY_PATH",getenv("AMSOracle"),1);
+}
+else{
+ setenv("LD_LIBRARY_PATH","/afs/cern.ch/ams/oracle/10205/lib",1);
+}
+   char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+   AString systemc=localbin;
+  systemc+="/DataManagement/exe/linux/timeout --signal 9 2400 ";
   systemc+=exedir;
  systemc+="/";
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
-  if(strstr(nvr,"2.6")){
+  if(strstr(nvr,".el6")){
+   systemc+=".so";
+  }
+  else if(strstr(nvr,"2.6")){
    systemc+=".6";
   }
   char u[128];
@@ -840,7 +856,14 @@ for (int ntry=0;ntry<maxtry;ntry++){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
-  AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 2400 ");
+   char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+   AString systemc=localbin;
+  systemc+="/DataManagement/exe/linux/timeout --signal 9 2400 ";
   systemc+=exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
@@ -2369,7 +2392,14 @@ bool AMSSetupR::BuildRichConfig(uinteger run){
     strcpy(t1,exedir);
     strcat(t1,"/../prod");
     setenv("TNS_ADMIN",t1,0);
-    AString systemc("/afs/cern.ch/ams/local/bin/timeout --signal 9 100 ");
+   char local[]="/afs/cern.ch/ams/Offline/AMSDataDir";
+   char *localbin=0;
+   if(getenv("AMSDataDir")){
+    localbin=getenv("AMSDataDir");
+   }
+   else localbin=local;
+    AString systemc=localbin;
+    systemc+="/DataManagement/exe/linux/timeout --signal 9 100 ";
     systemc+=exedir;
     systemc+="/";
     systemc+=AMSCommonsI::getosname();
