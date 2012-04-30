@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.69.2.2 2012/04/30 15:00:46 choutko Exp $
+//  $Id: root_setup.C,v 1.69.2.3 2012/04/30 15:10:45 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -528,7 +528,7 @@ else{
    }
    else localbin=local;
    AString systemc=localbin;
-  systemc+="DataManagement/exe/linux/timeout --signal 9 2400 ";
+  systemc+="/DataManagement/exe/linux/timeout --signal 9 2400 ";
   systemc+=exedir;
  systemc+="/";
   systemc+=AMSCommonsI::getosname();
@@ -863,7 +863,7 @@ for (int ntry=0;ntry<maxtry;ntry++){
    }
    else localbin=local;
    AString systemc=localbin;
-  systemc+="DataManagement/exe/linux/timeout --signal 9 2400 ";
+  systemc+="/DataManagement/exe/linux/timeout --signal 9 2400 ";
   systemc+=exedir;
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
@@ -2399,7 +2399,7 @@ bool AMSSetupR::BuildRichConfig(uinteger run){
    }
    else localbin=local;
     AString systemc=localbin;
-    systemc+="DataManagement/exe/linux/timeout --signal 9 100 ";
+    systemc+="/DataManagement/exe/linux/timeout --signal 9 100 ";
     systemc+=exedir;
     systemc+="/";
     systemc+=AMSCommonsI::getosname();
