@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.253 2012/04/28 10:52:49 jorgec Exp $
+//  $Id: ntuple.C,v 1.253.2.1 2012/04/30 09:44:20 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -917,11 +917,27 @@ if( _treesetup){
 	return ret;
 	}
 	} 
+
 	int AMSNtuple::ISSCTRS(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
 	if(!Get_setup02())return 2;
 	else{
 	AMSSetupR::ISSCTRSR a;
 	int ret=Get_setup02()->getISSCTRS(a,xtime);
+	r=a.r;
+	theta=a.theta;
+	phi=a.phi;
+	v=a.v;
+	vphi=a.vphi;
+	vtheta=a.vtheta;
+	return ret;
+	}
+	} 
+
+	int AMSNtuple::GPSWGS84(float &r, float&theta, float &phi, float &v, float &vtheta, float &vphi,double xtime){
+	if(!Get_setup02())return 2;
+	else{
+	AMSSetupR::GPSWGS84R a;
+	int ret=Get_setup02()->getGPSWGS84(a,xtime);
 	r=a.r;
 	theta=a.theta;
 	phi=a.phi;

@@ -1,9 +1,10 @@
-//  $Id: root_setup.h,v 1.41 2012/04/26 16:54:37 jorgec Exp $
+//  $Id: root_setup.h,v 1.41.2.1 2012/04/30 09:44:24 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
 #include <typedefs.h>
 #include <map>
+#include <math.h>
 #include <vector>
 #include "TObject.h"
 #include "TString.h"
@@ -180,6 +181,51 @@ vector<unsigned int> Epoche; ///< GPS Time Epoche Format
 ClassDef(GPS,2)
 };
 
+
+class GPSWGS84{
+public:
+  float x; ///< x (km) in CTRS
+  float y; ///< y
+  float z; ///< z
+  float vx; ///< v_x km/s
+  float vy; ///< v_y km/s
+  float vz; ///< v_z km/s
+  unsigned int val; ///< validity
+  float fom;    ///< figure of merit
+  float fomv;   ///< figure of merit velocity
+ClassDef(GPSWGS84,1)
+};
+
+class GPSWGS84R{
+public:
+  float r; ///< r (km) in CTRS
+  float phi; ///< (rad)
+  float theta; ///< (rad) 0 == equator
+  float v; ///< velocity in rad/s
+  float vphi; ///< (rad)
+  float vtheta; ///< (rad)
+
+  GPSWGS84R():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
+
+  GPSWGS84R(const GPSWGS84 &a){
+    r=sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
+    phi=atan2(a.y,a.x);
+    theta=asin(a.z/r);
+    v=sqrt(a.vx*a.vx+a.vy*a.vy+a.vz*a.vz);
+    vphi=atan2(a.vy,a.vx);
+    vtheta=asin(a.vz/v);
+    v=v/r;
+    r*=100000;
+  }
+ClassDef(GPSWGS84R,1)
+};
+
+
+
+
+
+
+
 class ISSData{
 public:
 TString Name;
@@ -286,7 +332,10 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <unsigned int,ISSGTOD>::iterator ISSGTOD_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
+typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
+typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
     GPS_m fGPS;    ///< GPS Epoch Time
+    GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
@@ -351,6 +400,23 @@ public:
                2   no data                  
 	 */
   int getISSCTRS(ISSCTRSR & a, double xtime); 
+
+         //! ISS Coo & Velocity GPS accessor
+	/*! 
+            
+
+	 \param double xtime (unix time + fraction of second)
+         \param GPSWGS84R a  interpolated values      
+	   
+             
+           \return 
+               0   ok (interpolation)
+               1   ok  (extrapolation)
+               2   no data                  
+	 */
+  int getGPSWGS84(GPSWGS84R & a, double xtime); 
+
+
          //! ISS Coo & Velocity GTOD accessor
 	/*! 
             
@@ -411,13 +477,14 @@ static    AMSSetupR * & gethead(){return _Head;}
  void LoadISS(unsigned int t1, unsigned int t2);
  int LoadISSAtt(unsigned int t1, unsigned int t2);
  int LoadISSSA(unsigned int t1, unsigned int t2);
+ int LoadGPSWGS84(unsigned int t1, unsigned int t2);
  int LoadISSCTRS(unsigned int t1, unsigned int t2);
  int LoadISSGTOD(unsigned int t1, unsigned int t2);
  int LoadDynAlignment(unsigned int run);
  bool BuildRichConfig(unsigned int run);
  int LoadRichConfig(unsigned int run);
  void Init(TTree *tree);
-ClassDef(AMSSetupR,15)       //AMSSetupR
+ClassDef(AMSSetupR,16)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif
