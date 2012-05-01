@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.71 2012/04/30 15:12:47 choutko Exp $
+//  $Id: root_setup.C,v 1.72 2012/05/01 13:58:52 jorgec Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -761,7 +761,7 @@ slc+="/SlowControlDir";
          //cout << "slow "<<t.t1<<" "<<t.t2<<" "<<t.tmod<<endl;
          }
          
- 	free(namelist);
+	if(nptr>0)free(namelist);
          int k=-1;
          unsigned int maxt=0;
          for(int i=0;i<tv.size();i++){
