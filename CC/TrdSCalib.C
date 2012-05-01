@@ -5595,7 +5595,7 @@ int TrdSCalibR::InitTrdSCalib(int CalVer, int TrdTrackType, int Debug) {
       for(int i=0; i<fTrdLR_fElectronXe2.size();i++) delete fTrdLR_fElectronXe2[i];
       for(int i=0; i<fTrdLR_fElectronXe3.size();i++) delete fTrdLR_fElectronXe3[i];
       for(int i=0; i<fTrdLR_fElectronXe4.size();i++) delete fTrdLR_fElectronXe4[i];
-      for(int i=0; i<fTrdLR_fElectronXe5.size();i++) delete fTrdLR_fElectronXe4[5];
+      for(int i=0; i<fTrdLR_fElectronXe5.size();i++) delete fTrdLR_fElectronXe5[i];
 
     TrkXcors.clear();
     TrkYcors.clear();
