@@ -89,7 +89,7 @@ TrdSCalibR* TrdSCalibR::gethead(int i)
 const char *TrdSCalibR::TrdDBUpdateDir[] = 
   {
     "DataBase/TrdCalNew",
-    "/afs/ams.cern.ch/user/chchung/CAL"
+    "/afs/ams.cern.ch/user/chchung/CAL"          //== for debug
   };
 
 const char *TrdSCalibR::TrdCalDBUpdate[] =
@@ -156,8 +156,9 @@ const char *TrdSCalibR::TrdTrackTypeName[] = {"TrdHTrack", "TrdTrack"};
 
 const char *TrdSCalibR::TrdGeomUpdateDir[] =
   {
-    "/afs/cern.ch/exp/ams/Offline/AMSDataDir/DataBase/TrdCalNew/Geom",
-    "/afs/ams.cern.ch/user/chchung/CAL/Geom"
+    //"/afs/cern.ch/exp/ams/Offline/AMSDataDir/DataBase/TrdCalNew/Geom",
+    "DataBase/TrdCalNew/Geom",
+    "/afs/ams.cern.ch/user/chchung/CAL/Geom" //== for debug
   };
 
 const char *TrdSCalibR::TrdGeomDB[] =
@@ -758,10 +759,10 @@ double AC_TrdHits::GetTrdPathLen3D(AC_TrdHits *AC, AMSPoint cP, AMSDir dP) {
 
 bool TrdSCalibR::AC_InitTrdGeom(int Debug){
   char tdname[200];
-  sprintf(tdname, "%s/%s", TrdGeomUpdateDir[0], TrdGeomDB[0]);
+  sprintf(tdname, "%s/%s/%s", pPath, TrdGeomUpdateDir[0], TrdGeomDB[0]);
   if( AC_InitTrdShim( tdname, Debug ) ) return false;
     
-  sprintf(tdname, "%s/%s", TrdGeomUpdateDir[0], TrdGeomDB[1]);
+  sprintf(tdname, "%s/%s/%s", pPath, TrdGeomUpdateDir[0], TrdGeomDB[1]);
   if( AC_InitTrdMove( tdname, Debug ) ) return false;
 
   std::cout << Form("TrdSCalibR::Init_TrdGeom-I- Successfully Loaded") << std::endl;
