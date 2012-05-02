@@ -187,7 +187,7 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3),
 			  //algo(1), patt(3), refit(1), 
 			  algo(1), patt(0), refit(0),
 			  //algo(1), patt(0), refit(4),
-			  TrdGainMethod(1),TrdAlignMethod(1),			  
+			  TrdGainMethod(1),TrdAlignMethod(1),_ierror(0),			  
   dummy(0) {
     FirstCall   = true;
     FirstLLCall = true;
@@ -1479,12 +1479,12 @@ bool TrdSCalibR::GetTrdCalibHistos(int CalibLevel, int Debug) {
   char tdname[200]; 
   if (CalibLevel>0) 
     {
-      sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdCalDBUpdate[0]);
+      sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdCalDBUpdate[0]);
       TrdCalib_01 = Get01TrdCalibration(tdname, Debug);
     }
   if (CalibLevel>1) 
     {
-      sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdCalDBUpdate[1]);
+      sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdCalDBUpdate[1]);
       TrdCalib_02 = Get02TrdCalibration(tdname, Debug);
       
       /// check module calibration time period
@@ -1518,7 +1518,7 @@ bool TrdSCalibR::GetTrdV3CalibHistos(int CalibLevel, int Debug) {
   
   if (CalibLevel>2) 
     {
-      sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdCalDBUpdate[2]);
+      sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdCalDBUpdate[2]);
       TrdCalib_03 = Get03TrdCalibration(tdname, Debug);
       
       /// check module calibration time period
@@ -1795,7 +1795,7 @@ void TrdSCalibR::TrdLR_CalcIni_v01(int Debug) {
 
   
   /// electron parameters
-  sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[0]); 
+  sprintf(fname, "%s/%s/%s",pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[0]); 
   hname.assign("hElectron_Par");
   TrdLR_GetParameters(fname, hname, trdconst::TrdLR_Elec_nPar, TrdLR_xElec, TrdLR_pElec);
   TrdLR_nElec.assign(TrdLR_xElec.size(),1.0);
@@ -1813,7 +1813,7 @@ void TrdSCalibR::TrdLR_CalcIni_v01(int Debug) {
   hname.clear();
   
   /// proton parameters
-  sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[1]); 
+  sprintf(fname, "%s/%s/%s", pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[1]); 
   hname.assign("hProton_Par");
   TrdLR_GetParameters(fname, hname, trdconst::TrdLR_Prot_nPar, TrdLR_xProt, TrdLR_pProt);
   TrdLR_nProt.assign(TrdLR_xProt.size(),1.0);
@@ -1831,7 +1831,7 @@ void TrdSCalibR::TrdLR_CalcIni_v01(int Debug) {
   hname.clear();
   
   ///  helium parameters
-  sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[2]); 
+  sprintf(fname, "%s/%s/%s", pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[2]); 
   hname.assign("hHelium_Par");
   TrdLR_GetParameters(fname, hname, trdconst::TrdLR_Heli_nPar, TrdLR_xHeli, TrdLR_pHeli);
   TrdLR_nHeli.assign(TrdLR_xHeli.size(),1.0);
@@ -2427,15 +2427,15 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
  
   /// version 2
   if(SCalibLevel < 3)
-    sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[3]);
+    sprintf(fname, "%s/%s/%s", pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[3]);
   
   /// version 3
   else if(SCalibLevel < 4) 
-    sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[4]);
+    sprintf(fname, "%s/%s/%s", pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[4]);
   
   /// version 4
   else 
-    sprintf(fname, "%s/%s", TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[4]); //////////////////
+    sprintf(fname, "%s/%s/%s", pPath,TrdDBUpdateDir[0],TrdElectronProtonHeliumLFname[4]); //////////////////
   
   TFile *input = new TFile(fname);
   if (!input->IsOpen()) {
@@ -2947,6 +2947,7 @@ int TrdSCalibR::TrdLR_MC_CalcXe(double xDay, float Pabs, vector<bool> PartId, in
   int iP 	= -1;
   int iMax 	= TrdPDF_xProt.size()-1;
   if (iMax<=0) {
+    _ierror++;
     Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "iMax<=0 is wrong");
     Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "First call TrdLR_MC_CalcIniXe");
     return 3;
@@ -2961,7 +2962,9 @@ int TrdSCalibR::TrdLR_MC_CalcXe(double xDay, float Pabs, vector<bool> PartId, in
   if (Pabs <  TrdPDF_xProt.at(0))    iP = 0;
   
   if (iP<0) {
-    Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "Out of momentum range P=%f", Pabs);
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::TrdLR_MC_CalcXe-E- ", "Out of momentum range P=%f", Pabs);
     return 4;
   }
 
@@ -3243,7 +3246,9 @@ bool TrdSCalibR::Get04TrdCalibration(TString fname, int Debug) {
 	
   TFile *input = new TFile(fname);
   if (!input->IsOpen()) {
-    Error("TrdSCalibR::Get04TrdCalibration-E- ","Unable Open Calibtration File");
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::Get04TrdCalibration-E- ","Unable Open Calibtration File");
     return false;
   }
 
@@ -3279,7 +3284,9 @@ bool TrdSCalibR::Get04TrdCalibration(TString fname, int Debug) {
       sprintf(grName,"grTrdCalibMpv_%d",iMod);
       grTrd = (TGraph*)input->Get(grName);
       if (!grTrd) {
-	Error("TrdSCalibR::Get04TrdCalibration-E- ","No GraphName .. %s", grName);
+	_ierror++;
+	if(_ierror<trdconst::nMaxError)
+	  Error("TrdSCalibR::Get04TrdCalibration-E- ","No GraphName .. %s", grName);
 	nLost++;
       }
       
@@ -3302,7 +3309,9 @@ bool TrdSCalibR::Get04TrdCalibration(TString fname, int Debug) {
 	      << "Calibration File is sucessfully loaded "  << std::endl;
     return true;
   } else {
-    Error("TrdSCalibR::Get04TrdCalibration", " Lost Entry in Calibration=%d", nLost); 
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::Get04TrdCalibration", " Lost Entry in Calibration=%d", nLost); 
     return false;
   }
 
@@ -3313,6 +3322,7 @@ bool TrdSCalibR::Get01TrdAlignment(TString fname, int Debug) {
 	
   TFile *input = new TFile(fname);
   if (!input->IsOpen()) {
+    _ierror++;
     Error("TrdSCalibR::Get01TrdAlignment-E- ","Unable Open Alignment File");
     return false;
   }
@@ -3347,6 +3357,7 @@ bool TrdSCalibR::Get01TrdAlignment(TString fname, int Debug) {
       sprintf(grName,"grTrdCalibPos_%d",iMod);
       grTrd = (TGraph*)input->Get(grName);
       if (!grTrd) {
+	_ierror++;
 	Error("TrdSCalibR::Get01TrdAlignment-E- ", "No TGraphName .. %s", grName);
 	nLost++;
       }
@@ -3378,6 +3389,7 @@ bool TrdSCalibR::Get01TrdAlignment(TString fname, int Debug) {
 	      << " Loaded Successfully "  << std::endl;
     return true;
   } else {
+    _ierror++;
     Error("TrdSCalibR::Get01TrdAlignment"," Lost Entry in Alignment=%d", nLost); 
     return false;
   }
@@ -3396,8 +3408,8 @@ bool TrdSCalibR::GetTrdV4CalibHistos(int CalibLevel, int Debug) {
   char tdname[200]; 
   
   /// Call TRD Calibration Histograms 
-  if ( CalibLevel < 5 )  sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdCalDBUpdate[4]);   
-  else if ( CalibLevel < 6 )  sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdCalDBUpdate[5]);
+  if ( CalibLevel < 5 )  sprintf(tdname, "%s/%s/%s", pPath,TrdDBUpdateDir[0], TrdCalDBUpdate[4]);   
+  else if ( CalibLevel < 6 )  sprintf(tdname, "%s/%s/%s", pPath,TrdDBUpdateDir[0], TrdCalDBUpdate[5]);
   else return false;
 
   TrdCalib_04 = Get04TrdCalibration(tdname, Debug);  
@@ -3412,8 +3424,8 @@ bool TrdSCalibR::GetTrdV4CalibHistos(int CalibLevel, int Debug) {
     {
       /// Call Trd Alignment DB 
       if(TrdAlignMethod == 1) { //== method from S.Schael & T.Siedenburg
-	if ( CalibLevel < 5 ) sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdAlignDBUpdate[0]); 
-	else if ( CalibLevel < 6 )  sprintf(tdname, "%s/%s", TrdDBUpdateDir[0], TrdAlignDBUpdate[1]); 
+	if ( CalibLevel < 5 ) sprintf(tdname, "%s/%s/%s", pPath,TrdDBUpdateDir[0], TrdAlignDBUpdate[0]); 
+	else if ( CalibLevel < 6 )  sprintf(tdname, "%s/%s/%s", pPath,TrdDBUpdateDir[0], TrdAlignDBUpdate[1]); 
 
 	TrdAlign_01 = Get01TrdAlignment(tdname, Debug);
 	
@@ -4913,7 +4925,9 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
     TrdHit->EadcCS = TrdHit->EadcR*TrdHCalibR::gethead()->GetGainCorr(TrdHit->Lay, TrdHit->Lad, TrdHit->Tub); 
     
   } else {
-    Error("TrdSCalibR::GetThisTrdHit-E- ", "SCalibLevel = %d", SCalibLevel);
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::GetThisTrdHit-E- ", "SCalibLevel = %d", SCalibLevel);
     return 1;
   }
 
@@ -4968,7 +4982,9 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
     // do something
     
   } else {
-    Error("TrdSCalibR::GetThisTrdHit-E- ", "TrdAlign_XX");
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::GetThisTrdHit-E- ", "TrdAlign_XX");
     return 2;
   }
   
@@ -5293,7 +5309,9 @@ int TrdSCalibR::GetTrkCoordinates(TrTrackR *Trtrk, int Debug) {
 
   int fitcode = Trtrk->iTrTrackPar(algo, patt, refit);
   if(fitcode < 0) {
-    Error("TrdSCalibR::GetTrkCoordinates-E- "," iTrTrackerPar is not available");
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::GetTrkCoordinates-E- "," iTrTrackerPar is not available");
     return 1;
   }
 
@@ -5391,7 +5409,9 @@ int TrdSCalibR::ProcessTrdEvt(AMSEventR *pev, int Debug) {
   iRsigned=1000, iRerrinv=0;
   if( fitcode>=0) {iRsigned = Trtrk->GetRigidity(fitcode); iRerrinv = Trtrk->GetErrRinv(fitcode);} 
   else {
-    Error("TrdSCalibR::ProcessTrdEvt-E-"," TrackFit Fails (algo=%d patt=%d fitcode=%d)",algo,patt,fitcode);
+    _ierror++;
+    if(_ierror<trdconst::nMaxError)
+      Error("TrdSCalibR::ProcessTrdEvt-E-"," TrackFit Fails (algo=%d patt=%d refit=%d fitcode=%d)",algo,patt,refit,fitcode);
     return 2;
   }
 
