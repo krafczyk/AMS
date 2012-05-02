@@ -413,7 +413,7 @@ class TrdSCalibR {
   vector<AC_TrdHits*> TrdNHits;
  
  private:
-  /// filename for GetTrdHits
+  /// filename
   static const char* TrdDBUpdateDir[];
   static const char* TrdCalDBUpdate[];
   /// filename for TrdAlignDB
@@ -433,6 +433,8 @@ class TrdSCalibR {
 
   static const char *TrdGeomUpdateDir[];
   static const char *TrdGeomDB[];
+
+  const char *pPath;
  
   bool p_Graph[nParLR];
   TGraph *p_gr_L[nParLR];
@@ -446,6 +448,7 @@ class TrdSCalibR {
 
   /// extended TrdRawHit class
  public:
+
   TF1 *fBetheBlochProton,*fBetheBlochHelium;
   unsigned int SCalibLevel;
   unsigned int TrdTrackLevel;
@@ -545,103 +548,14 @@ class TrdSCalibR {
 
   TrdSCalibR();
 
-  virtual ~TrdSCalibR(){
-
-    delete fTrdSigmaDx;
-    delete fTrdSigmaDy;
-    delete fTrd95Da;
-
-    if ( h_TrdGasCirMPV.size() != 0) 
-      for(int i=0; i< trdconst::nTrdGasCir;i++)  delete h_TrdGasCirMPV[i];
-    if ( h_TrdModuleMPV.size() != 0) 
-      for(int i=0; i< trdconst::nTrdModules;i++) delete h_TrdModuleMPV[i];
-
-    if ( g_TrdCalibMPV.size() != 0) 
-      for(int i=0; i< trdconst::nTrdModules;i++) delete g_TrdCalibMPV[i];
-  
-    
-    if( h_TrdLR_Prot.size() !=0) 
-      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Prot[i];
-
-    if( h_TrdLR_Elec.size() !=0) 
-      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Elec[i];
-
-    if( h_TrdLR_Heli.size() !=0) 
-      for(int i=0; i< trdconst::nParLR;i++) delete h_TrdLR_Heli[i];
-
-    if( fTrdLR_fProton.size() !=0) 
-      for(int i=0; i< trdconst::CalMomNbin;i++) delete fTrdLR_fProton[i];
-
-    if( fTrdLR_fElectron.size() !=0) 
-      for(int i=0; i< trdconst::CalMomNbin;i++) delete fTrdLR_fElectron[i];
-
-    if( fTrdLR_fHelium.size() !=0) 
-      for(int i=0; i< trdconst::CalMomNbin;i++) delete fTrdLR_fHelium[i];
-
-    TrdPDF_xProt.clear();
-    TrdPDF_nProt.clear();
-    TrdPDF_xHeli.clear();
-    TrdPDF_nHeli.clear();
-    TrdPDF_nElec_Xe0.clear();
-    TrdPDF_nElec_Xe1.clear();
-    TrdPDF_nElec_Xe2.clear(); 
-    TrdPDF_nElec_Xe3.clear();
-    TrdPDF_nElec_Xe4.clear();
-    TrdPDF_nElec_Xe5.clear();
-   
-    if(TrdLR_Gr_Prot.size() != 0)
-      for(int i=0; i< trdconst::nTrdLayers;i++) {
-	delete TrdLR_Gr_Prot[i];
-	delete TrdLR_Gr_Heli[i];
-      }
-
-    if(grTrdS_PDF_Elec_Xe0.size() != 0)
-      for(int i=0; i< trdconst::nTrdLayers;i++) {
-	delete grTrdS_PDF_Elec_Xe0[i];
-	delete grTrdS_PDF_Elec_Xe1[i];
-	delete grTrdS_PDF_Elec_Xe2[i];
-	delete grTrdS_PDF_Elec_Xe3[i];
-	delete grTrdS_PDF_Elec_Xe4[i];
-	delete grTrdS_PDF_Elec_Xe5[i]; 
-      }
-
-    delete grTrdS_Xe;
-
-    //delete grTrkXZ;
-    //delete grTrkYZ;
-
-    if(fTrdLR_fElectronXe0.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe0.size();i++) delete fTrdLR_fElectronXe0[i];
-    if(fTrdLR_fElectronXe1.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe1.size();i++) delete fTrdLR_fElectronXe1[i];
-    if(fTrdLR_fElectronXe2.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe2.size();i++) delete fTrdLR_fElectronXe2[i];
-    if(fTrdLR_fElectronXe3.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe3.size();i++) delete fTrdLR_fElectronXe3[i];
-    if(fTrdLR_fElectronXe4.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe4.size();i++) delete fTrdLR_fElectronXe4[i];
-    if(fTrdLR_fElectronXe5.size()) 
-      for(int i=0; i<fTrdLR_fElectronXe5.size();i++) delete fTrdLR_fElectronXe4[5];
-
-    TrkXcors.clear();
-    TrkYcors.clear();
-     
-    if( TrdNHits.size() !=0) 
-      for(int i=0; i< TrdNHits.size();i++) delete TrdNHits[i];
-    
-    if( TrdSHits.size() !=0) 
-      for(int i=0; i< TrdSHits.size();i++) delete TrdSHits[i];
-     
-    
-  }
- 
+ ~TrdSCalibR(); 
   void Clear(){
     nTrdHitLayer.clear();  
     TrdSum8Amp.clear(); 
     TruncatedMean.clear();
     TrdMedian.clear();
     TrdLRs.clear();    
-    TrdLRs_MC.clear();   
+    TrdLRs_MC.clear(); 
     TrdSHits.clear();
   }
   
