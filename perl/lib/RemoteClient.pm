@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.725 2012/04/19 10:57:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.726 2012/05/02 08:19:36 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7672,6 +7672,10 @@ print qq`
           if($i){
               $self->ErrorPlus("Unable to tar $gbatch to $filen ");
           }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch.64  1>/dev/null 2>&1") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gbatch.64 to $filen ");
+          }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatchcomp  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar $gbatchcomp to $filen");
@@ -8048,14 +8052,14 @@ if(defined $dataset->{buildno} ){
            $buf=~ s/RUNDIR=/RUNDIR=$path/;
           }
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/g;
-         }
+      }
          else{
           $buf=~ s/RUNDIR=/CRUNDIR=/;
           $tmpb=~ s/\$RUNDIR/\$RUNDIR\/\$RUN/;
           $tmpb=~ s/END/SELECT 1=$run 2=$fevent 43=$run 44=$levent \n END/;
              my @gbc=split "\/", $gbatch;
 
-          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
+          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc].64 -$self->{IORP} -U$job  -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$job.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
