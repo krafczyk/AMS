@@ -413,7 +413,7 @@ class TrdSCalibR {
   vector<AC_TrdHits*> TrdNHits;
  
  private:
-  /// filename for GetTrdHits
+  /// filename
   static const char* TrdDBUpdateDir[];
   static const char* TrdCalDBUpdate[];
   /// filename for TrdAlignDB
@@ -433,6 +433,8 @@ class TrdSCalibR {
 
   static const char *TrdGeomUpdateDir[];
   static const char *TrdGeomDB[];
+
+  const char *pPath;
  
   bool p_Graph[nParLR];
   TGraph *p_gr_L[nParLR];
@@ -446,6 +448,7 @@ class TrdSCalibR {
 
   /// extended TrdRawHit class
  public:
+
   TF1 *fBetheBlochProton,*fBetheBlochHelium;
   unsigned int SCalibLevel;
   unsigned int TrdTrackLevel;
@@ -552,7 +555,7 @@ class TrdSCalibR {
     TruncatedMean.clear();
     TrdMedian.clear();
     TrdLRs.clear();    
-    TrdLRs_MC.clear();   
+    TrdLRs_MC.clear(); 
     TrdSHits.clear();
   }
   
