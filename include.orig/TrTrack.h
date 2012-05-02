@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.83 2012/04/25 06:19:12 shaino Exp $
+//  $Id: TrTrack.h,v 1.84 2012/05/02 16:30:36 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/04/25 06:19:12 $
+///$Date: 2012/05/02 16:30:36 $
 ///
-///$Revision: 1.83 $
+///$Revision: 1.84 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -130,12 +130,12 @@ public:
   /// return the weight used in the Xfit for the layer layJ (J-scheme)
   float GetFitWeightXLayerJ(int layJ) const {
     int lay=TkDBc::Head->GetLayerFromJ(layJ);
-    return weight[lay][0];
+    return weight[lay-1][0];
   }
   /// return the weight used in the Yfit for the layer layJ (J-scheme)
   float GetFitWeightYLayerJ(int layJ) const {
     int lay=TkDBc::Head->GetLayerFromJ(layJ);
-    return weight[lay][1];
+    return weight[lay-1][1];
   }
 
   /// Default constructor to fill default values
