@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.73 2012/05/03 10:29:49 choutko Exp $
+//  $Id: root_setup.C,v 1.74 2012/05/03 12:14:51 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2252,11 +2252,11 @@ char tmp2[255];
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.theta=atof(pch);
+          a.phi=atof(pch);
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.phi=atof(pch);
+          a.theta=atof(pch);
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
