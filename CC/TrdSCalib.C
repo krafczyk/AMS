@@ -4644,7 +4644,7 @@ int TrdSCalibR::IterateTrk4MS(float aRig, vector<AC_TrdHits*> &TrdHits,
   return niter;
 }
 
-void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+void fcn_sfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {
   
   TrdSChi2Fit *fit=&TrdSCalibR::gethead()->fit;
@@ -4674,7 +4674,7 @@ int TrdSCalibR::IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vec
 
   TVirtualFitter::SetDefaultFitter("Minuit2");
   TVirtualFitter *vfit=TVirtualFitter::Fitter(0,2);
-  vfit->SetFCN(fcn);
+  vfit->SetFCN(fcn_sfit);
 
   vfit->SetParameter(0,"p0",0.,0.001,0,0);
   vfit->SetParameter(1,"p1",0.,0.001,0,0);
