@@ -222,6 +222,9 @@ class TrdHReconR{
   /// run prefit
   int DoPrefit(int debug=0);
 
+  /// run prefit
+  int MLFit(TrdHTrackR* track,int force=0,int debug=0);
+
   /// run linear regression
   //  vector<TrdHSegmentR> 
   //int DoLinReg(int debug=0);
@@ -257,6 +260,9 @@ class TrdHReconR{
 
   /// add hit to containers
   void AddHit(TrdRawHitR* hit);
+
+  /// get sum of hit loglikelihoods on track fit 
+  float getFitLik(TrdHTrackR *tr);
 
   /// combine 2 TrdHSegments (2D) to 1 TrdHTrack (3D)
   TrdHTrackR* SegToTrack(int is1, int is2, int debug=0);
