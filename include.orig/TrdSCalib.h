@@ -177,6 +177,7 @@ namespace trdconst{
   const number TRD_As  = 0.e-6;         // global TRD XvsY module shear  100 mu-rad 
 
   const integer nDataRuns = 13336;      // updated on 2011.12.23
+  const integer nMaxError = 99;
  
 }
 using namespace trdconst;
@@ -408,7 +409,7 @@ class AC_TrdHits {
 class TrdSCalibR { 
 
  private:
-  int algo,patt,refit, pmass, pcharge;
+  int algo,patt,refit, pmass, pcharge, _ierror;
   static TrdSCalibR* head[64];
   vector<AC_TrdHits*> TrdNHits;
  
