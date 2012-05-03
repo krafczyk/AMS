@@ -634,17 +634,18 @@ int TrdHReconR::combine_segments(int debug){
     n_poss[i]=0;
     for(int j=0;j!=hsegvec.size();j++)if(s_poss[i][j]==1)n_poss[i]++;
     
-    else if(n_poss[i]==1){
+    if(n_poss[i]==1)
       for(int j=0;j!=hsegvec.size();j++){
 	if(s_poss[i][j]!=1)continue;
-	if(s_done[i]==1||s_done[j]==1)continue;
+	if(s_done[j]==1)continue;
 	TrdHTrackR *tr=SegToTrack(i,j);
 	if(tr){
 	  tr->status=1;
 	  AddTrack(tr);
+	  s_done[i]=1;
+	  s_done[j]=1;
 	  delete tr;
 	}
-      }
     }
   }
 
