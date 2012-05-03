@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.69.2.4 2012/05/01 13:58:32 jorgec Exp $
+//  $Id: root_setup.C,v 1.69.2.5 2012/05/03 10:31:28 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2264,11 +2264,11 @@ char tmp2[255];
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vtheta=atof(pch)/1000.;
+          a.vphi=atof(pch)/1000.;
           pch=strtok(NULL,",");
           if(!pch)continue;
           if(!isdigit(pch[0])&& pch[0]!='-'&& pch[0]!='.')continue;
-          a.vphi=atof(pch)/1000.;
+          a.vtheta=atof(pch)/1000.;
            fISSGTOD.insert(make_pair(tc,a));
           
           if(tc>=t1 && tc<=t2){
