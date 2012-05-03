@@ -2541,7 +2541,7 @@ bool TrdSCalibR::TrdLR_CalcIni_v02(int Debug) {
 int TrdSCalibR::TrdLR_CalcXe(double xDay, float Pabs, int iFlag, int Debug) {
 
   //vector<double> TrdLR;
-  TrdLRs.assign(3,-1.0);
+  TrdLRs.assign(3, -1.0);
   
   if( Pabs<CalMomMin || Pabs>CalMomMax ) return 1;
 
@@ -2638,11 +2638,12 @@ int TrdSCalibR::TrdLR_CalcXe(double xDay, float Pabs, int iFlag, int Debug) {
   double LR_Heli_Prot	= Lprod_Helium/(Lprod_Helium+Lprod_Proton);
   double LR_Elec_Heli	= Lprod_Electron/(Lprod_Electron+Lprod_Helium);
 
-  
+  if(Lprod_Electron == 1.0 && Lprod_Proton == 1.0 && Lprod_Helium == 1.0) return 2;
+ 
   TrdLRs.at(0) = -log(LR_Elec_Prot);
   TrdLRs.at(1) = -log(LR_Heli_Prot);
   TrdLRs.at(2) = -log(LR_Elec_Heli);
-
+    
   if(Debug > 1) 
     {
       int j = 0;
