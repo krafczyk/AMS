@@ -405,6 +405,18 @@ class AC_TrdHits {
 //--------------------------------------------------
 
 
+class TrdSChi2Fit{
+ public:
+  vector<AC_TrdHits*> TrdHits;
+  double RmsX;
+  double RmsY;
+  int nTrdHits;
+  int Debug;
+  
+  TrdSChi2Fit():RmsX(0.),RmsY(0.),nTrdHits(0),Debug(0){};
+  ClassDef(TrdSChi2Fit,1)
+};
+
 
 class TrdSCalibR { 
 
@@ -449,7 +461,7 @@ class TrdSCalibR {
 
   /// extended TrdRawHit class
  public:
-
+  TrdSChi2Fit fit;
   TF1 *fBetheBlochProton,*fBetheBlochHelium;
   unsigned int SCalibLevel;
   unsigned int TrdTrackLevel;
@@ -481,8 +493,8 @@ class TrdSCalibR {
   vector<AC_TrdHits*> TrdSHits;
 
   /// + use for ver.05
-  TSpline3* grTrkXZ;  
-  TSpline3* grTrkYZ;
+  TSpline3 grTrkXZ;  
+  TSpline3 grTrkYZ;
 
   vector<TF1*> fTrdLR_fElectronXe0, fTrdLR_fElectronXe1, fTrdLR_fElectronXe2;
   vector<TF1*> fTrdLR_fElectronXe3, fTrdLR_fElectronXe4, fTrdLR_fElectronXe5;
@@ -954,18 +966,19 @@ class TrdSCalibR {
   int GetnTrdHitLayer( vector<AC_TrdHits*> &TrdHits, int Debug);
   
   vector<int> TrdFillHits( vector<AC_TrdHits*> &TrdHits, int Debug);
-  vector<int> TrdFillHits2( vector<AC_TrdHits*> &TrdHits, TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, int Debug);
+  vector<int> TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug);
   vector<int> CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trtrk, int TrdStrkLevel, int Debug);
 
-  int GetTrdHitsInAcceptance(vector<AC_TrdHits*> &TrdHits, TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, vector<int> &Straws, int &nTrdLay, int Debug);
-  int IterateTrk4MS(float aRig, vector<AC_TrdHits*> &TrdHits, TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, vector<float> &Results, int Debug);
-  int TrdTrkChi2(vector<AC_TrdHits*> TrdHits, TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, double DeltaX, double DeltaY, double &Chi2, int &nTrdHits, int Debug);
+  int GetTrdHitsInAcceptance(vector<AC_TrdHits*> &TrdHits, vector<int> &Straws, int &nTrdLay, int Debug);
+  int IterateTrk4MS(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug);
+  int IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug);
+  int TrdTrkChi2(vector<AC_TrdHits*> TrdHits, double DeltaX, double DeltaY, double &Chi2, int &nTrdHits, int Debug);
 
   bool NeedTrkSpline(TrTrackR *Trtrk, int Debug);
-  int GetTrkSpline(TSpline3* &grTrkXZ, TSpline3* &grTrkYZ, int msFlag, int Debug);
-  int GetLocalTrkVec(float zTrdCor, TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, AMSPoint &cTrk, AMSDir &bTrk, double DeltaX, double DeltaY, int Debug);
+  int GetTrkSpline(int msFlag, int Debug);
+  int GetLocalTrkVec(float zTrdCor, AMSPoint &cTrk, AMSDir &bTrk, double DeltaX, double DeltaY, int Debug);
   
-  int GetTrdNewHits(TSpline3 *grTrkXZ, TSpline3 *grTrkYZ, vector<AC_TrdHits*> TrdHits, int Debug);
+  int GetTrdNewHits_ms(vector<AC_TrdHits*> TrdHits, int Debug);
   int GetTrdNewHits(vector<AC_TrdHits*> TrdHits, int Debug);
 
   int GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug);
@@ -1026,7 +1039,7 @@ class TrdSCalibR {
   }
  
 
-  ClassDef(TrdSCalibR,5)
+  ClassDef(TrdSCalibR,6)
     };
 
 #endif
