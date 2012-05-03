@@ -156,7 +156,6 @@ const char *TrdSCalibR::TrdTrackTypeName[] = {"TrdHTrack", "TrdTrack"};
 
 const char *TrdSCalibR::TrdGeomUpdateDir[] =
   {
-    //"/afs/cern.ch/exp/ams/Offline/AMSDataDir/DataBase/TrdCalNew/Geom",
     "DataBase/TrdCalNew/Geom",
     "/afs/ams.cern.ch/user/chchung/CAL/Geom" //== for debug
   };
@@ -2148,7 +2147,7 @@ bool TrdSCalibR::TrdLR_CalcIniPDF(int Debug) {
  
 
   // true if the normalisation of the PDF's should be checked
-  bool CheckNormPDF = true;
+  bool CheckNormPDF = false;
 
   // read in calibration files
   vector<double> Runs;
