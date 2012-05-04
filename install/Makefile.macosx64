@@ -118,7 +118,9 @@ else
     FFLAGSn      += -O2  
 endif
 
-SOFLAGS = -shared
+# -undefined dynamic_lookup to have not the linker complaining for the undefined symbols (like in Linux)
+# -shared -dynamiclib -dynamic means ~ the same but not all the versions of Apple gcc understand the same option...
+SOFLAGS = --dynamic --shared --dynamiclib -undefined dynamic_lookup
 
 
 ifdef SLC4system
@@ -128,8 +130,8 @@ else
 endif
 endif
 
-#SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lRFIO -lTMVA
-SHLDFLAGS=`root-config --libs`   -lMinuit -lNet -lNetx -lTMVA
+#SHLDFLAGS=`root-config --libs` -lMinuit -lNet -lNetx -lRFIO -lTMVA
+SHLDFLAGS=`root-config --libs` -lMinuit -lNet -lNetx -lTMVA
 
 ########################################################################
 # Output dirs
