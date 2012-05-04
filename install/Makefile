@@ -229,7 +229,7 @@ COMMON_FILES +=   $(SCC)TRD_SimUtil.C  $(SCC)g4physics_ion.C \
 	$(SCC)TRD_GammaXTRadiator.C $(SCC)TRD_VXTenergyLoss.C $(SCC)geant4.C \
 	$(SCC)g4physics.C $(SCC)g4util.C $(SCC)g4xray.C  $(SCC)AMSPhysicsList_HadronIon.C	
 
-COMMON_FILES += $(SCC)g4rich.C
+COMMON_FILES += $(SCC)g4rich.C $(SCC)g4tof.C $(SCC)TofSimUtil.C
 
 else
 #Geant3/AMS custom  files
@@ -305,7 +305,7 @@ COMMON_FILES +=$(TOF_ADD)
 COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
 		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
-		$(SCC)anticalib02.C 
+		$(SCC)anticalib02.C $(SCC)Tofsim02.C $(SCC)Tofdbc.C
 
 #ECAL
 COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C \

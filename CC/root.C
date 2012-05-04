@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.394 2012/04/30 09:35:14 choutko Exp $
+//  $Id: root.C,v 1.395 2012/05/04 13:53:31 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -92,6 +92,7 @@ using namespace root;
   ClassImp(AntiMCClusterR)
   ClassImp(TrMCClusterR)
   ClassImp(TofMCClusterR)
+  ClassImp(TofMCPmtHitR)
   ClassImp(EcalMCHitR)
   ClassImp(TrdMCClusterR)
   ClassImp(RichMCClusterR)
@@ -1371,6 +1372,7 @@ TBranch* AMSEventR::bParticle;
 TBranch* AMSEventR::bAntiMCCluster;
 TBranch* AMSEventR::bTrMCCluster;
 TBranch* AMSEventR::bTofMCCluster;
+TBranch* AMSEventR::bTofMCPmtHit;
 TBranch* AMSEventR::bEcalMCHit;
 TBranch* AMSEventR::bTrdMCCluster;
 TBranch* AMSEventR::bRichMCCluster;
@@ -1413,6 +1415,7 @@ void* AMSEventR::vParticle=0;
 void* AMSEventR::vAntiMCCluster=0;
 void* AMSEventR::vTrMCCluster=0;
 void* AMSEventR::vTofMCCluster=0;
+void* AMSEventR::vTofMCPmtHit=0;
 void* AMSEventR::vEcalMCHit=0;
 void* AMSEventR::vTrdMCCluster=0;
 void* AMSEventR::vRichMCCluster=0;
@@ -1757,6 +1760,13 @@ void AMSEventR::GetBranch(TTree *fChain){
 
   {
     strcpy(tmp,_Name);
+    strcat(tmp,"fTofMCPmtHit");
+    bTofMCPmtHit=fChain->GetBranch(tmp);
+  }
+
+
+  {
+    strcpy(tmp,_Name);
     strcat(tmp,"fEcalMCHit");
     bEcalMCHit=fChain->GetBranch(tmp);
   }
@@ -2009,6 +2019,13 @@ void AMSEventR::GetBranchA(TTree *fChain){
     vTofMCCluster=fChain->GetBranch(tmp)->GetAddress();
   }
 
+   {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fTofMCPmtHit");
+    vTofMCPmtHit=fChain->GetBranch(tmp)->GetAddress();
+  }
+
+
   {
     strcpy(tmp,_Name);
     strcat(tmp,"fEcalMCHit");
@@ -2085,6 +2102,7 @@ void AMSEventR::SetCont(){
   fHeader.AntiMCClusters=fAntiMCCluster.size();
   fHeader.TrMCClusters=fTrMCCluster.size();
   fHeader.TofMCClusters=fTofMCCluster.size();
+  fHeader.TofMCPmtHits=fTofMCPmtHit.size();
   fHeader.EcalMCHits=fEcalMCHit.size();
   fHeader.TrdMCClusters=fTrdMCCluster.size();
   fHeader.RichMCClusters=fRichMCCluster.size();
@@ -2401,6 +2419,7 @@ AMSEventR::AMSEventR():TSelector(){
 
   fAntiMCCluster.reserve(MAXANTIMC);
   fTofMCCluster.reserve(MAXTOFMC);
+  fTofMCPmtHit.reserve(MAXTOFMCPMT);
   fEcalMCHit.reserve(MAXECALMC);
   fTrMCCluster.reserve(MAXTRCLMC);
   fTrdMCCluster.reserve(MAXTRDCLMC);
@@ -2449,6 +2468,7 @@ void AMSEventR::clear(){
 
   fAntiMCCluster.clear();
   fTofMCCluster.clear();
+  fTofMCPmtHit.clear();
   fEcalMCHit.clear();
   fTrMCCluster.clear();
   fTrdMCCluster.clear();
@@ -2809,6 +2829,21 @@ void AMSEventR::AddAMSObject(AMSTOFMCCluster *ptr)
     ptr->SetClonePointer(fTofMCCluster.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTofMCCluster ptr is NULL"<<endl;
+  }
+}
+
+void  AMSEventR::AddAMSObject(AMSTOFMCPmtHit *ptr)
+{
+  if(ptr) {
+    if(fTofMCPmtHit.size()<=MAXTOFMCPMT){
+      fTofMCPmtHit.push_back(TofMCPmtHitR(ptr));
+      ptr->SetClonePointer(fTofMCPmtHit.size()-1);
+      if(fTofMCPmtHit.size()==MAXTOFMCPMT-1) {
+    //   cout<<"AddAMSObject -E- TofMCPmtHit Size Too Large Abandon"<<endl;
+      }
+    }
+   } else {
+    cout<<"AddAMSObject -E- AMSTofMCPmtHit ptr is NULL"<<endl;
   }
 }
 
@@ -3749,6 +3784,22 @@ TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
   for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
   TOF = ptr->tof;
   Edep= ptr->edep;
+#endif
+}
+
+TofMCPmtHitR::TofMCPmtHitR(AMSTOFMCPmtHit *ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+  Idsoft = ptr->getpmtid();
+  ParId  = ptr->getparentid();
+  TimeG=   ptr->getphtime();
+  TimeT=   ptr->getphtimel();
+  Ekin=    ptr->getphekin();
+  Length=  ptr->getphtral();
+  //cout<<"photon pos"<<ptr->getphpos()[0]<<endl;
+  for(int i=0;i<3;i++){Pos[i]=ptr->getphpos()[i];}
+  for(int i=0;i<3;i++){Dir[i]=ptr->getphdir()[i];}
+  TimeP=   ptr->gettimp();
+  Amp=     ptr->getamp();
 #endif
 }
 
@@ -5845,6 +5896,7 @@ void AMSEventR::GetAllContents() {
   bAntiMCCluster->GetEntry(_Entry);
   bTrMCCluster->GetEntry(_Entry);
   bTofMCCluster->GetEntry(_Entry);
+  bTofMCPmtHit->GetEntry(_Entry);
   bEcalMCHit->GetEntry(_Entry);
   bTrdMCCluster->GetEntry(_Entry);
   bRichMCCluster->GetEntry(_Entry);
@@ -5863,7 +5915,7 @@ fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
 fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
-fTofMCCluster(o.fTofMCCluster),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
+fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
 {}
 #endif

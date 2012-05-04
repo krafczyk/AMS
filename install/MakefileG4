@@ -1,4 +1,4 @@
-#  $Id: MakefileG4,v 1.3 2012/04/23 16:41:50 choutko Exp $
+#  $Id: MakefileG4,v 1.4 2012/05/04 13:55:31 qyan Exp $
 
 #P.Zuccon june 2005
 
@@ -74,7 +74,7 @@ DEFINES  +=    -D__WRITEROOT__   -D__NAMESPACE__ -D__G4AMS__
 INCDIRS  += -I$(G4INCLUDE) -I$(G4INSTALL)/source/geometry/management/include -I$(CLHEP_BASE_DIR)/include -I../include  -I$(CERNDIR)/include_dummy -I$(ROOTSYS)/include
 
 #----Qi Yan
-DPMDIR=$(AMSWD)/DPMJET/
+DPMDIR=../DPMJET/
 DPMBIN=$(DPMDIR)/bin/$(MARCH)/
 DPMSCC=$(DPMDIR)/src/
 DPMFF= $(DPMDIR)/dpmjet2_5/

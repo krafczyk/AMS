@@ -1,4 +1,4 @@
-#  $Id: MoptVMC,v 1.8 2010/11/08 18:53:46 barao Exp $
+#  $Id: MoptVMC,v 1.9 2012/05/04 13:55:31 qyan Exp $
 
 #P.Zuccon june 2005
 
@@ -295,7 +295,7 @@ COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)TrdHRec
 COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
 		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
-		$(SCC)anticalib02.C 
+		$(SCC)anticalib02.C $(SCC)Tofsim02.C $(SCC)Tofdbc.C
 
 
 #ECAL
