@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.143 2012/04/30 09:35:45 choutko Exp $
+//  $Id: ntuple.h,v 1.144 2012/05/04 13:54:27 qyan Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -20,6 +20,7 @@ const int MAXTOF     =    48;
 const int MAXTOFRAW  =    48;
 const int MAXTOFRAWS  =   70;
 const int MAXTOFMC   =   100;
+const int MAXTOFMCPMT=   20000;
 const int MAXANTICL  =    8;
 const int MAXANTIRS  =    16;
 const int MAXANTIMC  =   100;
@@ -126,6 +127,7 @@ public:
   int TOFClusters;
   int TOFRawSides;
   int TOFMCClusters;
+  int TOFMCPmtHits;
   int AntiMCClusters;
   int TRDMCClusters;
   int AntiClusters;
@@ -335,6 +337,18 @@ public:
   float Edep[MAXTOFMC];
 
 friend class AMSTOFMCCluster;
+friend class AMSNtuple;
+};
+
+class TOFMCPmtHitNtuple {
+public:
+  int Ntofpmtmc;
+  int Idsoft[MAXTOFMCPMT];
+  float TimeG[MAXTOFMCPMT];
+  float TimeT[MAXTOFMCPMT];
+  float Ekin[MAXTOFMCPMT];
+
+friend class AMSMCTOFPmtHit;
 friend class AMSNtuple;
 };
 

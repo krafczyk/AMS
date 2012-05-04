@@ -1,8 +1,8 @@
+//Modified by Qi Yan qyan@cern.ch OpBoundaryProcess->TOFG4OpBoundaryProcess
 #ifndef _richG4Cerenkov_
 #define _richG4Cerenkov_
 
 #include "G4Cerenkov.hh"
-
 // A implementation of a Cerenkov process, smart enough
 // to simulate the RICH idiosincracies
 
@@ -39,8 +39,9 @@ class RichG4Cerenkov: public G4Cerenkov{
 
 
 #include "G4OpBoundaryProcess.hh"
-
-class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
+#include "g4tof.h"
+//class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
+class RichG4OpBoundaryProcess: public TOFG4OpBoundaryProcess{
  public:
   G4double Rindex1;
   G4double Rindex2;
@@ -54,8 +55,8 @@ class RichG4OpBoundaryProcess: public G4OpBoundaryProcess{
 
   RichG4OpBoundaryProcess(const G4String& processName = "OpBoundary",
 			  G4ProcessType type = fOptical):
-    G4OpBoundaryProcess(processName,type){};
-
+//    G4OpBoundaryProcess(processName,type){};
+  TOFG4OpBoundaryProcess(processName,type){};
   G4VParticleChange* PostStepDoIt(const G4Track& aTrack,
 				  const G4Step&  aStep);
 

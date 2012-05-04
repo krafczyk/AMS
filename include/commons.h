@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.345 2012/04/27 22:43:17 paniccia Exp $
+//  $Id: commons.h,v 1.346 2012/05/04 13:54:27 qyan Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -244,6 +244,31 @@ class TFMCFFKEY_DEF {
   integer calvern;//  TofCflistMC-file version number (file extention)
   integer tdclin;//flag to activate(if =1) TDC-linearity logic for MC
   integer tdcovf;//flag to activate(if =1) TDC-ovfl protection logic
+
+  //---TOF new Geant4
+  geant seamref;
+  geant seamres;
+  geant selampec;
+  geant selamref;
+  geant pheffref;
+  integer refmodel;
+  geant absorp;
+  geant reflobsc;
+  geant reflamber;
+  geant reflob;
+  geant refbac;
+  geant refskin;
+  geant scskpol;
+  geant birk;
+  geant phancut;
+  geant phtrlcut;
+  geant phstepcut;
+  integer maxphcut;
+  geant refloblg;
+  geant lgskpol;
+  geant phtsmear;
+  integer g4tfdir;
+  integer g4tfdb[100];
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
@@ -1139,6 +1164,7 @@ class G4FFKEY_DEF{
 //--Qi Yan
   int ExEmPhysics;
   int NeutronTkCut;
+  int TFNewGeant4;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);

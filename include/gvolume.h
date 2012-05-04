@@ -1,10 +1,11 @@
-//  $Id: gvolume.h,v 1.28 2010/06/24 10:47:05 zweng Exp $
+//  $Id: gvolume.h,v 1.29 2012/05/04 13:54:27 qyan Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.
 //                    Add set, get functions and one more constructor
 // Last Edit: Aug 08, 1996. ak.
-// 
+// 2012-May-3 Edit  Qi Yan setpg4l setpg4v
+
 #ifndef __AMSGVOLUME__
 #define __AMSGVOLUME__
 #include "node.h"
@@ -111,6 +112,9 @@ class AMSgvolume : public AMSNode {
    amsg4pv * & pg4v()  {return _pg4v;}
   G4LogicalVolume * & pg4l()  {return _pg4l;}
   amsg4rm * & pg4rm() {return _pg4rm;}
+  void setpg4l(G4LogicalVolume *vol) {_pg4l=vol;}
+  void setpg4v(amsg4pv *phv) {_pg4v=phv;}
+
   int VolumeHasSameG4AttributesAs(AMSgvolume *pvo );
 #endif
 static  integer & getNlv()  {return _Nlog;}

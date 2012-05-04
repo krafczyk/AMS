@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.38 2009/06/11 13:51:31 choumilo Exp $
+//  $Id: mccluster.h,v 1.39 2012/05/04 13:54:27 qyan Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -7,7 +7,7 @@
 // Sep  30, 1996. ak. V127
 // Oct  04, 1996. ak _ContPos is moved to AMSLink
 //
-//
+// May 03,  2012. AMSTOFMCPmtHit
 
 #ifndef __AMSMCCLUSTER__
 #define __AMSMCCLUSTER__
@@ -46,6 +46,54 @@ public:
    friend class TofMCClusterR;
 #endif
 };
+
+//========================================================
+class AMSTOFMCPmtHit:  public AMSlink{
+  protected: //sum SE-time= _phtim+_phtimp
+  integer _pmtid;//PMT id
+  integer _parentid;//PMT phton Parent paticle Id
+  number _phtim; //PMT photon arrving time in pmt
+  number _phtiml;//PMT photon local transmit time(SC+LG)(ns)
+  number _phtral; //PMT photon local transmit length(cm)  
+  number _phekin; //PMT photon energy(keV)
+  AMSPoint _phpmpos;//photon gene vetex pos(cm)
+  AMSDir _phpmdir;//photon gene vetex dir
+  number _phtimp;//Transmit time in PMT
+  number _phamp;//SE amp
+
+  public:
+  AMSTOFMCPmtHit(integer pmtid,integer parentid,number phtim,number phtiml,number phtral,number phekin,AMSPoint phpos,AMSDir phdir):
+    AMSlink(),_pmtid(pmtid),_parentid(parentid),_phtim(phtim),_phtiml(phtiml),_phtral(phtral),_phekin(phekin),_phpmpos(phpos),_phpmdir(phdir),_phtimp(0),_phamp(0){};
+
+  AMSTOFMCPmtHit():AMSlink(){};
+  ~AMSTOFMCPmtHit(){};
+  AMSTOFMCPmtHit * next(){ return (AMSTOFMCPmtHit *)_next;}
+
+  void _printEl(ostream &stream){stream <<"AMSTOFMCPmtHit "<<_pmtid<<" "<<" "<<_phtim<<endl;}
+  void _writeEl();
+  void _copyEl(){};
+  integer operator < (AMSlink & o)const{
+  return _pmtid < ((AMSTOFMCPmtHit*)(&o)) ->_pmtid;}
+
+  static void sitofpmthits(integer pmtid,integer parentid,geant phtim, geant phtiml, geant phtral,geant phekin, geant pos[],geant dir[]);
+  static integer Out(integer);
+  void sitofpmtpar(geant phtimp,geant phamp);
+  integer  getpmtid()   const {return _pmtid;}
+  integer  getparentid()const {return  _parentid;}
+  number   getphtime()  const {return _phtim;}
+  number   getphtimel() const {return _phtiml;}
+  number   getphtral()  const {return _phtral;}
+  number   getphekin()  const {return _phekin; }
+  AMSPoint getphpos()   {return _phpmpos;}
+  AMSDir getphdir()   {return _phpmdir;}
+  number  gettimp()   const {return _phtimp;}
+  number  getamp()    const {return _phamp; }
+#ifdef __WRITEROOT__
+  friend class TOFMCPmtHit;
+#endif
+};
+
+
 
 //=====================================================
 class AMSAntiMCCluster: public AMSlink{

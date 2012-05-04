@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.428 2012/04/30 09:35:45 choutko Exp $
+//  $Id: root.h,v 1.429 2012/05/04 13:54:27 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -103,6 +103,7 @@ class AMSRichRingNew;
 class AMSNtuple;
 class AMSTOFCluster;
 class AMSTOFMCCluster;
+class AMSTOFMCPmtHit;
 class AMSEcalHit;
 class AMSEcalMCHit;
 class AMSTRDCluster;
@@ -140,6 +141,7 @@ class AMSRichRingNew{};
 class AMSNtuple{};
 class AMSTOFCluster{};
 class AMSTOFMCCluster{};
+class AMSTOFMCPmtHit{};
 class AMSTRDCluster{};
 class AMSTRDMCCluster{};
 class AMSTRDRawHit{};
@@ -286,6 +288,7 @@ int   Particles;
 int   AntiMCClusters;
 int   TrMCClusters;
 int   TofMCClusters;
+int   TofMCPmtHits;
 int   EcalMCHits;
 int   TrdMCClusters;
 int   RichMCClusters;
@@ -321,7 +324,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,18)       //HeaderR
+  ClassDef(HeaderR,19)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -2683,6 +2686,31 @@ ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 #pragma omp threadprivate(fgIsA)
 };
 
+/// TofMCPmtHit structure
+/*!
+
+   \author qyan@cern.ch
+*/
+class TofMCPmtHitR {
+public:
+   int    Idsoft; ///< Idsoft  LBSP---L=Layer(0-3) B=Bar(0-9) S=Side(0-1) P=PMT(0-2)
+   int    ParId;   //photon parent id 
+   float  TimeG;   //< time of photon in pmt (nsec)
+   float  TimeT;   //< time of photon delay in SC+LG (nsec)
+   float  Ekin;    //< photon energy (eV)
+   float  Length;  //< photon transmit length in SC+LG
+   float  Pos[3];  //< photon gen vetex pos
+   float  Dir[3];  //< photon gen vetex dir
+   float  TimeP;   //transmit time in PMT 
+   float  Amp;     //SE amp
+
+   TofMCPmtHitR(){};
+   TofMCPmtHitR(AMSTOFMCPmtHit *ptr);
+   virtual ~TofMCPmtHitR(){};
+ClassDef(TofMCPmtHitR,1)       //TofMCPmtHitR
+#pragma omp threadprivate(fgIsA)
+};
+
 
 /// EcalMCHit structure
 /*!
@@ -2977,6 +3005,7 @@ static TBranch*  bParticle;
 static TBranch*  bAntiMCCluster;
 static TBranch*  bTrMCCluster;
 static TBranch*  bTofMCCluster;
+static TBranch*  bTofMCPmtHit;
 static TBranch*  bEcalMCHit;
 static TBranch*  bTrdMCCluster;
 static TBranch*  bRichMCCluster;
@@ -2986,7 +3015,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTofMCPmtHit,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 
 #endif
 
@@ -3025,6 +3054,7 @@ static void*  vParticle;
 static void*  vAntiMCCluster;
 static void*  vTrMCCluster;
 static void*  vTofMCCluster;
+static void*  vTofMCPmtHit;
 static void*  vEcalMCHit;
 static void*  vTrdMCCluster;
 static void*  vRichMCCluster;
@@ -3634,6 +3664,8 @@ int   nTrMCCluster()const { return fHeader.TrMCClusters;} ///< \return number of
 ///
 int   nTofMCCluster()const { return fHeader.TofMCClusters;} ///< \return number of TofMCClusterR elements (fast)
 ///
+int   nTofMCPmtHit()const { return fHeader.TofMCPmtHits;} ///< \return number of TofMCPmtHitR elements (fast)
+///
 int   nEcalMCHit()const { return fHeader.EcalMCHits;} ///< \return number of EcalMCHitR elements (fast)
 ///
 int   nTrdMCCluster()const { return fHeader.TrdMCClusters;} ///< \return number of TrdMCClusterR elements (fast)
@@ -3713,6 +3745,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<AntiMCClusterR> fAntiMCCluster;
   vector<TrMCClusterR>   fTrMCCluster;
   vector<TofMCClusterR>  fTofMCCluster;
+  vector<TofMCPmtHitR>   fTofMCPmtHit;
   vector<EcalMCHitR>     fEcalMCHit;
   vector<TrdMCClusterR>  fTrdMCCluster;
   vector<RichMCClusterR> fRichMCCluster;
@@ -4863,6 +4896,37 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
       }
 
 
+      ///  TofMCPmtHitR accessor  //Qi Yan
+      ///  \return number of TofMCPmtHitR
+      ///
+      unsigned int   NTofMCPmtHit()  {
+        if(fHeader.TofMCPmtHits && fTofMCPmtHit.size()==0)bTofMCPmtHit->GetEntry(_Entry);
+        return fTofMCPmtHit.size();
+      }
+      ///  \return reference of TofMCPmtHitR> Collection
+      ///
+      vector<TofMCPmtHitR> & TofMCPmtHit()  {
+        if(fHeader.TofMCPmtHits && fTofMCPmtHit.size()==0)bTofMCPmtHit->GetEntry(_Entry);
+         return  fTofMCPmtHit;
+       }
+
+       ///  TofMCPmtHitR accessor
+       /// \param l index of TofMCPmtHitR Collection
+      ///  \return reference to corresponding TofMCPmtHitR element
+      ///
+     TofMCPmtHitR &   TofMCPmtHit(unsigned int l) {//problem
+        if(fHeader.TofMCPmtHits && fTofMCPmtHit.size()==0)bTofMCPmtHit->GetEntry(_Entry);
+         return fTofMCPmtHit.at(l);
+      }
+
+       ///  TofMCPmtHitR accessor
+       /// \param l index of TofMCPmtHitR Collection
+      ///  \return pointer to corresponding TofMCPmtHitR element
+      ///
+      TofMCPmtHitR *   pTofMCPmtHit(unsigned int l) {//problem
+        if(fHeader.TofMCPmtHits && fTofMCPmtHit.size()==0)bTofMCPmtHit->GetEntry(_Entry);
+        return l<fTofMCPmtHit.size()?&(fTofMCPmtHit[l]):0;
+      }
 
 
 
@@ -5154,6 +5218,7 @@ void         AddAMSObject(AMSRichRingNew *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z);
 void         AddAMSObject(AMSTOFCluster *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
+void         AddAMSObject(AMSTOFMCPmtHit *ptr);
 void         AddAMSObject(AMSTrRecHit *ptr);
 void         AddAMSObject(AMSTRDCluster *ptr);
 void         AddAMSObject(AMSTRDMCCluster *ptr);
@@ -5175,7 +5240,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,15)       //AMSEventR
+ClassDef(AMSEventR,16)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 
