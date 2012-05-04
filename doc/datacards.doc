@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.377 2012/04/28 10:52:49 jorgec Exp $
+#  $Id: datacards.doc,v 1.378 2012/05/04 14:01:24 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -663,6 +663,7 @@ I 8 UseEMDModel(0)     Use(1)/not use(0) EM Dissociation model
 I 9 SIGTERM   (0)      //  1 immediate sigterm
 I 10 ExEmPhysics (0)   //Use(1) or Not Extra EM Physics //SynchrotronRadiation+ Gamma/Electron/Position/Moun Nuclear Inelastic process
 I 11 NeutronTkCut(0)   //Use(1) or Not Standard Neutron Tracking Cut(tracking global time>10 microsecond),can also self adjustment 
+I 12 TFNewGeant4(0)    //TOF new Geant4(0 old simulation) (1 new online simulation) (2 new table mode)
 HISE   // Heavy Ion MC switch (Geant3 only)
 I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
 I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
@@ -866,6 +867,31 @@ I 20   addpeds(0)          // 1/0-> add/not peds into empty(no MC dE/dX) channel
 I 21   calvern(1)          // TofCflistMC-file(barcal_files vers. list) version number
 I 22   tdclin(0)           // 1/0->do/not activate TDC-linearity simulation logic 
 I 23   tdcovf(1)           // 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtr)
+
+//TOF new Geant4 part
+R 24   seamref(1.)     (0 2) //PMT single electron spectrum ref to  5mV
+R 25   seamres(0.9)       //PMT single electron spectrum resolution Rms/Mean
+R 26   selampec(0.2)   (0 1) //PMT single electron low amplitude fraction
+R 27   selamref(0.2)   (0 1) //PMT single electron low Amp/normal Amp
+R 28   pheffref(0.45)  (0 4) //photon ref eff
+I 29   refmodel(1)  // (1)new polishbackpaint (2)polishbackpaint (3)groudbackpaint (4)unified dielectric_metal
+R 30   absorp(0.)      (0 1) //Sci-facet absorption prob
+R 31   reflobsc(0.1222)(0 3.14/2) //Sci-facet lob-diffuse angle sigma
+R 32   reflamber(0.)   (0 1) //Sci-facet surf Lambertian reflection prob
+R 33   reflob(0.)      (0 1) //Sci-facet lob-diffuse reflection prob
+R 34   refbac(0.)      (0 1) //Sci-facet back-reflection prob
+R 35   refskin(1.)     (0 1) //Al-skin reflection ref to normal value
+R 36   scskpol(1.)     (0 1) Sc->Al-skin polish quality 1->Total mirror 0->diffuse
+R 37   birk(0.02224)   (0  )//scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV
+R 38   phancut(0.01)   (0 1) //verticle direction photon need more cpu time
+R 39   phtrlcut(3.)    (1 10) //photon transmit track length cut //5m
+R 40   phstepcut(2.)   (0,)   //photon max steplength cut//2*m
+R 41   maxphcut(0.);   (0,)   //photon max number cut(dummy)
+R 42   refloblg(-1.)          //Lg-facet lob-diffuse reflection prob[0 1] -1 use Sc
+R 43   lgskpol (-1.)          //Lg->Al polish quality 1->Total mirror 0->diffuss
+R 44   phtsmear(0.)    (0,)   //SE-TTS saear 
+I 45   g4tfdir (1.)           //New TOF database from local(1) or AMSDataDir(0)
+I 46   g4tfdb                 //New TOFSimUtil database file name
 
 
 // AMS02 TOF Reconstruction
