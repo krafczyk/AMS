@@ -639,6 +639,7 @@ int TrdHReconR::combine_segments(int debug){
 	if(s_poss[i][j]!=1)continue;
 	if(s_done[j]==1)continue;
 	TrdHTrackR *tr=SegToTrack(i,j);
+	
 	if(tr){
 	  tr->status=1;
 	  AddTrack(tr);
@@ -999,46 +1000,37 @@ bool TrdHReconR::update_tdv_array(int debug){
 
 float TrdHReconR::getFitLik(TrdHTrackR *tr){
   double globallik=0.;
-  vector<int> tubeshit;
 
   int tubeid;
   int layer,ladder,tube;
   int layers[20];for(int i=0;i<20;i++)layers[i]=0;
-  
+  int nlayer=0;
+
   for(std::vector<TrdRawHitR>::const_iterator it=rhits.begin();it!=rhits.end();it++){
     TrdHCalibR::gethead()->GetTubeIdFromLLT(it->Layer,it->Ladder,it->Tube,tubeid);
-    tubeshit.push_back(tubeid);
-    double dr=tr->TubePath(it->Layer,it->Ladder,it->Tube,0,3)*10.;
-
-    int d=-1;
-    if((it->Layer>=16)||(it->Layer<=3)) d = 1;
-    else d = 0;
-    dr*=cos(atan(tr->Dir[d]/tr->Dir[2]));
+    double dr=tr->TubePath(it->Layer,it->Ladder,it->Tube,0,2)*10.;
     if(dr>5)continue;
 
     double lik=1./(exp((dr-2.8)*20.)+1);
     if(lik>=1.||lik<=0.)continue;
 
     layers[it->Layer]++;
+    nlayer++;
     globallik-=log(lik);
   }
 
   for(int i=0;i<5248;i++){
     TrdHCalibR::gethead()->GetLLTFromTubeId(layer,ladder,tube,i);
     if(layers[layer])continue;
-    double dr=tr->TubePath(layer,ladder,tube,0,3)*10.;
-
-    int d=-1;
-    if((layer>=16)||(layer<=3)) d = 1;
-    else d = 0;
-    dr*=cos(atan(tr->Dir[d]/tr->Dir[2]));
-    if(dr>8)continue;
+    double dr=tr->TubePath(layer,ladder,tube,0,2)*10.;
+    if(dr>5)continue;
 
     double lik=1./(exp((dr-2.8)*20.)+1);
     if(lik>=1.||lik<=0.)continue;
     globallik-=log(1.-lik);
   }
 
+  if(nlayer<4)return 1.e6;
   return globallik;
 }
 
@@ -1058,6 +1050,7 @@ void fcn_mlfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t ifl
   if(f<0||isinf(f)||isnan(f))f=1.e6;
 }
 
+double quadadd(double a, double b){return sqrt(pow(a,2)+pow(b,2));}
 int TrdHReconR::MLFit(TrdHTrackR* track,int force, int debug){
   TVirtualFitter::SetDefaultFitter("Minuit2");
   TVirtualFitter *vfit=TVirtualFitter::Fitter(0,5);
@@ -1092,7 +1085,7 @@ int TrdHReconR::MLFit(TrdHTrackR* track,int force, int debug){
   vfit->SetParameter(4,"dz",track->Dir[2],0.01,0,0);
 
   Double_t arglist[10];
-  arglist[0] = -1;
+  arglist[0] = debug-1;
   vfit->ExecuteCommand("SET PRINT",arglist,1);
   arglist[0] = 50000;
   arglist[1] = 0.01;
@@ -1104,6 +1097,31 @@ int TrdHReconR::MLFit(TrdHTrackR* track,int force, int debug){
   track->Dir[0]=vfit->GetParameter(2);
   track->Dir[1]=vfit->GetParameter(3);
   track->Dir[2]=vfit->GetParameter(4);
+
+  //  if(goodness of fit)
+  {
+    for(int i=0;i<2;i++){
+      track->pTrdHSegment(i)->clear();
+      track->pTrdHSegment(i)->m=vfit->GetParameter(2+i)/vfit->GetParameter(4);
+      track->pTrdHSegment(i)->em=quadadd(vfit->GetParError(2+i)/vfit->GetParameter(2+i),vfit->GetParError(4)/vfit->GetParameter(4))*track->pTrdHSegment(i)->m;
+      track->pTrdHSegment(i)->r=vfit->GetParameter(i);
+      track->pTrdHSegment(i)->er=vfit->GetParError(i);
+      track->pTrdHSegment(i)->w=0.; 
+      track->pTrdHSegment(i)->z=113.55;
+    }
+    int n=0;int tubeid;
+    for(std::vector<TrdRawHitR>::const_iterator it=rhits.begin();it!=rhits.end();it++,n++){
+      TrdHCalibR::gethead()->GetTubeIdFromLLT(it->Layer,it->Ladder,it->Tube,tubeid);
+      double dr=track->TubePath(it->Layer,it->Ladder,it->Tube,0,2)*10.;
+      if(dr>5)continue;
+      int d=-1;
+      if((it->Layer>=16)||(it->Layer<=3)) d = 1;
+      else d = 0;
+      track->pTrdHSegment(d)->AddHit(*it,n);
+    }
+    track->Nhits=(int)track->pTrdHSegment(0)->fTrdRawHit.size()+(int)track->pTrdHSegment(1)->fTrdRawHit.size();
+    track->Chi2=track->pTrdHSegment(0)->Chi2+track->pTrdHSegment(1)->Chi2; 
+  }
 
   if(debug){
     cout<<"TrdHReconR::MLFit-I-maximum likelihood fit performed"<<endl<<"STAT: "<<ierflg<<" L: "<<getFitLik(track)<<endl;;

@@ -220,10 +220,10 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,i
     if(tube >= 12) x+=0.03;
     if(tube >= 15) x+=0.03;
     
-    if(d==1&&fabs(exp_y-x)<tuberad)
+    if(d==1)
       dr=fabs(exp_y-x);
     
-    if(d==0&&fabs(exp_x-x)<tuberad)
+    if(d==0)
       dr=fabs(exp_x-x);
     
     if(opt==3)return dr;
@@ -233,8 +233,8 @@ float TrdHTrackR::TubePath(int layer, int ladder, int tube,int method, int opt,i
     //  if(d==1)dradial*=cos(my());
     dradial*=cos(atan(Dir[d]/Dir[2]));
     //  if(d==1)dradial*=cos(atan(Dir[1]/trdir.z()));
-    if(dradial>tuberad)return -1.;
     if(opt==2)return dradial;
+    if(dradial>tuberad)return -1.;
     
     double path2d=2*sqrt(pow(tuberad,2)-pow(dradial,2));
     if(opt==1)return path2d;
