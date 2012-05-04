@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.46 2012/04/23 16:41:43 choutko Exp $
+//  $Id: g4physics.C,v 1.47 2012/05/04 13:46:49 qyan Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,11 +6,10 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.46 2012/04/23 16:41:43 choutko Exp $
+// $Id: g4physics.C,v 1.47 2012/05/04 13:46:49 qyan Exp $
 // GEANT4 tag $Name:  $
 //
 // 
-//Qi Yan
 #include "g4physics_ion.h"
 #include "G4EmExtraPhysics.hh"
 #include "G4NeutronTrackingCut.hh"
@@ -882,9 +881,20 @@ void AMSG4Physics::ConstructHad()
 #include "G4OpRayleigh.hh"
 #include "G4OpBoundaryProcess.hh"
 #include "g4rich.h"
+#include "g4tof.h"
 
 void AMSG4Physics::ConstructOp()
 {
+//--TOF part
+  TOFG4Scintillation *theScintProcessDef= new TOFG4Scintillation("Scintillation");
+  theScintProcessDef->SetScintillationYieldFactor(1.0);
+  theScintProcessDef->SetScintillationExcitationRatio(0.0);
+//--saturation
+  theScintProcessDef->SetTrackSecondariesFirst(true);
+  G4EmSaturation* emSaturation =G4LossTableManager::Instance()->EmSaturation();
+  theScintProcessDef->AddSaturation(emSaturation);
+//---
+
   G4cout << " Construction Optical Processes "<<endl;
   RichG4Cerenkov*   theCerenkovProcess = new RichG4Cerenkov("Cerenkov");
   G4OpAbsorption* theAbsorptionProcess = new G4OpAbsorption();
@@ -920,6 +930,10 @@ void AMSG4Physics::ConstructOp()
 #else
       pmanager->AddContinuousProcess(theCerenkovProcess);
 #endif
+//--TOF Geant4
+      pmanager->AddProcess(theScintProcessDef);
+      pmanager->SetProcessOrderingToLast(theScintProcessDef,idxAtRest);
+      pmanager->SetProcessOrderingToLast(theScintProcessDef,idxPostStep);
     }
     if (particleName == "opticalphoton") {
       G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;

@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.134 2011/04/25 14:02:52 choutko Exp $
+//  $Id: geant.C,v 1.135 2012/05/04 13:46:49 qyan Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -33,6 +33,7 @@
 //
 //  Last Edit: Nov 20, 1997. ak
 //
+//2012-Feb-10 new G4TOF TofSimUtil Qi Yan //all photon
 
 #include "typedefs.h"
 #include <fenv.h>
@@ -69,6 +70,7 @@
 
 #ifdef __G4AMS__
 #include "TRD_SimUtil.h"
+#include "TofSimUtil.h"
 #endif
 #ifdef __AMSVMC__
 #include <TROOT.h>
@@ -85,7 +87,6 @@
 #include "amsvmc_MCApplication.h"
 extern amsvmc_MCApplication*  appl;
 #endif
-
 
 #ifdef __DB__
 #include <db_comm.h>
@@ -208,6 +209,9 @@ void gams::UGINIT(int argc,  char * argv[]){
 #else
 #ifdef __G4AMS__
    trdSimUtil.UpdateGas();
+   if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){//Qi Yan
+       TofSimUtil::CreateTofG4();
+   }
 #endif
    AMSgmat::amsmat();
    AMSgtmed::amstmed();

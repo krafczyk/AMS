@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.84 2011/12/05 10:51:45 sdifalco Exp $
+//  $Id: geant4.C,v 1.85 2012/05/04 13:46:49 qyan Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -36,6 +36,10 @@
 #include "G4VPhysicalVolume.hh"
 #include "g4xray.h"
 #include "producer.h"
+#include "TofSimUtil.h"
+#include "Tofsim02.h"
+#include "g4tof.h"
+#include "g4rich.h"
 #ifdef G4VIS_USE
 #include "g4visman.h"
 #endif
@@ -538,6 +542,12 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
+//---
+  if(G4FFKEY.TFNewGeant4>0){ //TOF New Geant4 Geometry->down to mother
+    cout << "AMSG4DetectorInterface::Construct-I-New TOFB Geometry "<<endl;
+    TofSimUtil::Head->MakeTOFG4Volumes(AMSJob::gethead()->getgeom()->down());
+   }
+//--
 // Attention as step volumes are linked to false_mother, not mother as other ones
  AString fnam(AMSDATADIR.amsdatadir);
  fnam+="amsstp_";
@@ -673,6 +683,21 @@ void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
      
      GCTRAK.istop=0;
 
+//---TOF Geant4//in case of rich photon cut+photon track length cut
+  G4ParticleDefinition* particleType = Step->GetTrack()->GetDefinition();
+  if(particleType==G4OpticalPhoton::OpticalPhotonDefinition()){
+     number phposz=Step->GetPostStepPoint()->GetPosition().z()/cm;
+     if(phposz>-71.62||phposz<71.62){ //tof regin
+        G4Track* theTrack = Step->GetTrack(); 
+        if(theTrack->GetCreatorProcess()->GetProcessName()!="Scintillation"||
+           theTrack->GetTrackLength()/m>TFMCFFKEY.phtrlcut)
+        {theTrack->SetTrackStatus(fStopAndKill);return;}
+        G4String tofn=Step->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+        if(tofn(0)!='T'||tofn(1)!='O'||tofn(2)!='F'||tofn(3)!='P')return;
+      }
+   }
+//---
+
 /* 
     Some stuff about step
 G4StepPoint* GetPreStepPoint() const
@@ -779,7 +804,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      GCTRAK.getot=PostPoint->GetTotalEnergy()/GeV;
      GCTRAK.gekin=PostPoint->GetKineticEnergy()/GeV;
      GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
-     GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
+//     GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
+     GCTRAK.tofg=PrePoint->GetGlobalTime()/second;
      { int i;
        for(i=0;i<3;i++)GCKINE.vert[i]=Track->GetVertexPosition()[i]/cm; 
        for(i=0;i<3;i++)GCKINE.pvert[i]=Track->GetVertexMomentumDirection()[i]; 
@@ -929,10 +955,92 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        number rkb=0.0011;
        number c=0.52;
        number dedxcm=1000*dee/GCTRAK.step;
-       dee=dee/(1+c*atan(rkb/c*dedxcm));
-//cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
+       if(G4FFKEY.TFNewGeant4>0)dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+       else                     dee=dee/(1+c*atan(rkb/c*dedxcm));
+       //cout<<"   > continue TOF: part="<<iprt<<" x/y/z="<<x<<" "<<y<<"  "<<z<<" Edep="<<dee<<" numv="<<numv<<"  step="<<pstep<<" dedx="<<tdedx<<endl;
        AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
+//----
+       if(G4FFKEY.TFNewGeant4>1){
+          number tofdt= Step->GetStepLength()/((PostPoint->GetVelocity()+PrePoint->GetVelocity())/2.)/nanosecond;
+          integer  parentid=Track->GetTrackID();
+          TOF2TovtN::covtoph(numv,GCTRAK.vect,dee,tof,tofdt,GCTRAK.step,parentid);
+       } 
      }
+     
+//--Trace every photon in PMT //may be already absorb
+    if(G4FFKEY.TFNewGeant4==1){
+       if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='O'&& PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='L'&&
+          PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='O' && PostPV->GetName()(2)=='F'&&PostPV->GetName()(3)=='P'){
+//check boundary           
+            G4OpBoundaryProcessStatus TOFPMBoundaryStatus=Undefined;
+            static RichG4OpBoundaryProcess* boundary=NULL;
+            if(!boundary){
+               G4ProcessManager* pm= Step->GetTrack()->GetDefinition()->GetProcessManager();
+               G4int nprocesses = pm->GetProcessListLength();
+               G4ProcessVector* pv = pm->GetProcessList();
+               G4int i;
+               for( i=0;i<nprocesses;i++){
+                 if((*pv)[i]->GetProcessName()=="OpBoundary"){
+                   boundary = (RichG4OpBoundaryProcess* )(*pv)[i];
+                   break;
+                 }
+               }
+             }
+         //----absorption
+            if(particle==G4OpticalPhoton::OpticalPhotonDefinition()&&PostPoint->GetStepStatus()==fGeomBoundary&&boundary
+              && Step->GetTrack()->GetCreatorProcess()->GetProcessName()=="Scintillation")
+              {
+               TOFPMBoundaryStatus=boundary->GetStatus();
+               switch(TOFPMBoundaryStatus){
+                case Absorption:
+//        G4cout<<"absorption"<<G4endl;
+                break;
+                case Detection://detected by pmt
+                  {
+                   integer parentid=Step->GetTrack()->GetParentID();
+                   const G4VTouchable *touch = PostPoint->GetTouchable();
+                   integer       pmtid =touch    ->GetReplicaNumber();
+//                   cout<<"pmtid"<<pmtid<<endl;
+                   geant         phtim= PostPoint->GetGlobalTime()/nanosecond;
+                   geant         phtiml=PostPoint->GetLocalTime()/nanosecond;//from gene
+                   geant         phene= PostPoint->GetTotalEnergy()/eV;
+                   geant         phtral=Step     ->GetTrack()->GetTrackLength()/cm;
+//                   G4ThreeVector phpos= PostPoint->GetPosition()/cm;
+//                   G4ThreeVector phdir= PostPoint->GetMomentumDirection();
+                   G4ThreeVector phpos=Step->GetTrack()->GetVertexPosition();//generatep pos
+                   G4ThreeVector phdir=Step->GetTrack()->GetVertexMomentumDirection();//generatep pos  
+                   G4ThreeVector localpos=touch  ->GetHistory()->GetTopTransform().TransformPoint(phpos);
+                   G4ThreeVector localdir=touch  ->GetHistory()->GetTopTransform().TransformAxis(phdir);//grobal to local
+//pmt effciency rely on angle and energy                   
+//                   G4double tofsina=sqrt(1.-localdir.z()*localdir.z());
+//                   G4double tofsinb=tofsina*TofSimUtil::LGRIND/TofSimUtil::VARIND;//vaccum angle
+                   bool AnPass=1;
+//                   if(tofsinb>=1.)AnPass=0;//total reflection in gap
+//                   else  AnPass=1.;
+                  if(AnPass==1){
+                    if(G4UniformRand()<TofSimUtil::PHEFFC[pmtid/1000%10][pmtid/100%10][pmtid/10%10][pmtid%10]){
+                       geant tfpos[3],tfdir[3];
+                       tfpos[0]=phpos.x();tfpos[1]=phpos.y();tfpos[2]=phpos.z();
+                       tfdir[0]=phdir.x();tfdir[1]=phdir.y();tfdir[2]=phdir.z();
+                       AMSTOFMCPmtHit::sitofpmthits(pmtid,parentid,phtim,phtiml,phtral,phene,tfpos,tfdir);
+                     }
+                    }
+                  }
+                break;
+                case FresnelReflection:
+                     //G4cout<<"fresnel_reflection"<<G4endl;
+                break;
+                case FresnelRefraction:
+                    // G4cout<<"postvol name="<<PostPV->GetName()<<G4endl;
+                break;
+                default:
+                break;
+            }
+         }
+//---end absorption
+       }//volume
+    }//TOF geant4
+
 //------------------------------------------------------------------
 //  ANTI :
 //
@@ -1075,6 +1183,34 @@ G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track *
   G4ParticleDefinition* particle =aTrack->GetDefinition();
   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
   if(GCKINE.ipart==Cerenkov_photon){
+    //--new TOF part
+     if((G4FFKEY.TFNewGeant4==1)){
+       G4ThreeVector phver=aTrack->GetPosition();
+       number phposz=phver.z()/cm;
+       bool IsTof=(phposz>-71.62&&phposz<71.62);//not RICH region
+       if(IsTof){
+         if(aTrack->GetCreatorProcess()->GetProcessName()!="Scintillation")return fKill;
+         G4PhysicsTable* PMTEffTable=TofSimUtil::Head->TOFPM_Et;
+         G4PhysicsOrderedFreeVector* PMTEnEff=(G4PhysicsOrderedFreeVector*)((*PMTEffTable)(0));
+         G4double phene=aTrack->GetTotalEnergy()/eV;
+         if(phene<2.4||phene>3.35)return fKill;
+         G4double EnEff =PMTEnEff->Value(phene*eV);
+         bool  EnPass=(G4UniformRand()<EnEff/TofSimUtil::Head->QEMAX);
+         if(!EnPass)return fKill;
+//---verticle direction photon need more cpu time + more absorbtion=big angle cut
+        const G4VTouchable *touch = aTrack->GetTouchable();
+        G4ThreeVector phdir=aTrack->GetMomentumDirection();
+        G4ThreeVector localdir=touch  ->GetHistory()->GetTopTransform().TransformAxis(phdir);//grobal to local
+        G4bool  AnPass;
+        AnPass=(fabs(localdir.y())>TFMCFFKEY.phancut);
+        if(!AnPass){
+           return fKill;
+         }
+        return fWaiting;
+       }
+     }
+
+//--Rich part
     double e=aTrack->GetTotalEnergy()/GeV;
     if(!RICHDB::detcer(e)) return fKill; // Kill discarded Cerenkov photons
   }

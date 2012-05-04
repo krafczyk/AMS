@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.866 2012/04/28 02:07:48 shaino Exp $
+// $Id: job.C,v 1.867 2012/05/04 13:46:49 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -10,8 +10,10 @@
 //misc/ Last Edit : Dec 27, 1997. ak.
 // Dec 27, 2005 and befor: lots of changes for TOF,ANTI,ECAL,TrigLVL1,...by E.Choumilov. 
 //
+//2012-Feb-10 new G4TOF added by Qi Yan(TFNewGeant4)
 
 #include "tofdbc02.h"
+#include "Tofdbc.h"
 #include "ecaldbc.h"
 #include "daqecblock.h"
 #include "ecalcalib.h"
@@ -306,6 +308,7 @@ IOPA.MaxOneMinuteRootFileSize=50000000; // 50m
   G4FFKEY.SigTerm=0;
   G4FFKEY.ExEmPhysics=0;
   G4FFKEY.NeutronTkCut=0;
+  G4FFKEY.TFNewGeant4=0;
 
   FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -848,6 +851,36 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.tdclin=0;//(22) 1/0->do/not activate TDC-linearity logic for MC
   TFMCFFKEY.tdcovf=1;//(23) 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtraction)
   //
+  //---TOF new Geant4 Qi Yan
+  TFMCFFKEY.seamref=1.; //(24)PMT single electron spectrum ref to  5mV
+  TFMCFFKEY.seamres=0.9;//(25)PMT single electron spectrum resolution Rms/Mean
+  TFMCFFKEY.selampec=0.2;//(26)PMT single electron low amplitude fraction
+  TFMCFFKEY.selamref=0.2;//(27)PMT single electron low Amp/normal Amp
+  TFMCFFKEY.pheffref=0.45; //(28)photon ref eff
+
+  TFMCFFKEY.refmodel=1; //(29)(1)new polishbackpaint (2)polishbackpaint (3)groudbackpaint (4)unified dielectric_metal (5)simple polishbackpaint
+  TFMCFFKEY.absorp=0.; //(30)Sci-facet absorption prob[0,1]//MD-1
+  TFMCFFKEY.reflobsc=0.1222;//(31)Sci-facet lob-diffuse angle sigma//MD-1234
+  TFMCFFKEY.reflamber=0.;//(32)Sci-facet Lambertian reflection prob[0 1]//MD-1234
+  TFMCFFKEY.reflob=1.;   //(33)Sci-facet lob-diffuse reflection prob[0 1]//MD-1234 
+  TFMCFFKEY.refbac=0.;   //(34)Sci-facet back-reflection prob[0 1]//MD-1234
+  TFMCFFKEY.refskin=1.;  //(35)Al-skin reflection ref prob//small angle more possible reach Al surface//may affect final fast slow fraction [0 1./0.902]//MD-1234
+  TFMCFFKEY.scskpol=1.;//(36)ScAl-skin polish quality 1->Total mirror 0->diffuse//MD-1 
+
+  TFMCFFKEY.birk=0.02224; //(37)scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV
+  TFMCFFKEY.phancut=0.01;// (38)cos(Angle) verticle direction photon cut
+  TFMCFFKEY.phtrlcut=3.;// (39)photon transmit track length cut //5m
+  TFMCFFKEY.phstepcut=2.;//(40)photon max steplength cut//2*m
+  TFMCFFKEY.maxphcut=0;//(41)//max photon number allow 0(inf)
+  TFMCFFKEY.refloblg=-1.;//(42)Lg-facet lob-diffuse reflection prob[0 1]//MD-1234 //(-1)use same polish as Sci
+  TFMCFFKEY.lgskpol=-1.;//(43)LgAl-skin polish quality 1->Total mirror 0->diffuse //(-1)use same polish as Sci
+  TFMCFFKEY.phtsmear=0.;//(44)SE-jitter smear
+  TFMCFFKEY.g4tfdir=1;//(45) from local(1) or AMSDataDir(0)
+  VBLANK(TFMCFFKEY.g4tfdb,100);
+  char tfdb[80]="TofGainPMag_v4polish_LT0_3n.dat";
+  UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
+//---
+
   FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -2306,7 +2339,8 @@ void AMSJob::_sitrig2initjob(){
   else if(LVL3FFKEY.RebuildLVL3)
     cout <<"<---- AMSJob::sitrig2initjob:TriggerLvl3 will be rebuild from TOF/LVL1 data. Original info will be kept"<<endl<<endl;
   AMSgObj::BookTimer.book("LVL3");
-  TriggerLVL302::init();  
+  if(!(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0))TriggerLVL302::init();//new TOF geant4 initial move to TofSimUtil.C
+
 }
 //-------------------------------------------------------------------------------------------
 #ifndef _PGTRACK_
@@ -2482,6 +2516,10 @@ void AMSJob::_sitof2initjob(){
   //---------
   //
   TOF2JobStat::bookhistmc();//Book histograms for MC
+  if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){
+     TOFPMT::build();//New PMT information
+     if(G4FFKEY.TFNewGeant4>1)TOFWScanN::build();//Table method
+   }
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_siecalinitjob(){

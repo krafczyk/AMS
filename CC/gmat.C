@@ -1,7 +1,8 @@
-//  $Id: gmat.C,v 1.118 2012/04/05 07:14:21 choumilo Exp $
+//  $Id: gmat.C,v 1.119 2012/05/04 13:46:49 qyan Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
+//2012-May-10 new G4TOF TofSimUtil Qi Yan
 #include "gmat.h"
 #include "snode.h"
 #include "amsgobj.h"
@@ -13,6 +14,7 @@
 #include "G4UnitsTable.hh"
 #include <strstream>
 #include "TRD_SimUtil.h"
+#include "TofSimUtil.h"
 #endif
 
 #ifdef __AMSVMC__
@@ -443,6 +445,12 @@ mat.add (new AMSgmat("ANTICARBONF",12.01,6.,2.265*relden,18.8/relden,38.1/relden
   mat.add(new AMSgmat("TOFLGPLEX",a,z,w,3,1.16));
 }
 
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){//new TOF mat
+  TofSimUtil::Head->AddTOFgmat(mat);
+}
+#endif
+
 //-------------------------------------------
 // ---> materials for ECAL:
 //
@@ -768,6 +776,13 @@ tmed.add (new AMSgtmed("TOF_PMT_BOX","TOF_LOW_DENS_Fe",0));
 tmed.add (new AMSgtmed("TOF_SC_COVER","TOFCARBONF",0));
 tmed.add (new AMSgtmed("TOF_TOP_CONV","TUNGSTEN",0));
 tmed.add (new AMSgtmed("TOF_LG","TOFLGPLEX",0));
+
+//TOF Material+Table for G4TOF photon simulation
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){
+  TofSimUtil::Head->AddTOFgtmed(tmed);
+}
+#endif
 //
 tmed.add (new AMSgtmed("ANTI_WRAP","MYLAR",0));//  tempor. mylar
 tmed.add (new AMSgtmed("ANTI_SUPTB","ANTICARBONF",0));//  tempor. carb.fiber

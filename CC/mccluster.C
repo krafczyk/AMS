@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.81 2010/10/29 09:40:15 mdelgado Exp $
+//  $Id: mccluster.C,v 1.82 2012/05/04 13:46:49 qyan Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -125,6 +125,22 @@ geant tofg){
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSTOFMCCluster",0),
    new AMSTOFMCCluster(idsoft,pnt,edep,tofg));
+}
+
+//----------------PMT hit
+void AMSTOFMCPmtHit::sitofpmthits(integer pmtid,integer parentid,geant phtim, geant phtiml,
+geant phtral, geant phekin, geant pos[],geant dir[]){
+//  
+  AMSPoint pp(pos[0],pos[1],pos[2]);
+  AMSDir   pd(dir[0],dir[1],dir[2]);
+  AMSEvent::gethead()->addnext(AMSID("AMSTOFMCPmtHit",0),
+                               new AMSTOFMCPmtHit(pmtid,parentid,phtim,phtiml,phtral,phekin,pp,pd));
+}
+
+void AMSTOFMCPmtHit::sitofpmtpar(geant phtimp,geant phamp){
+   _phtimp=phtimp;
+   _phamp=phamp;
+  //cout<<"phtimp="<<_phtimp<<" phamp="<<phamp<<endl;
 }
 
 //------------- ANTI -------------
@@ -377,6 +393,16 @@ void AMSTOFMCCluster::_writeEl(){
   }
 }
 
+void AMSTOFMCPmtHit::_writeEl(){
+  if(AMSTOFMCPmtHit::Out( IOPA.WriteAll%10==1)){
+#ifdef __WRITEROOT__
+//       cout<<"write tof"<<endl;
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+   }
+}
+
+
 void AMSAntiMCCluster::_writeEl(){
 
 
@@ -415,6 +441,23 @@ if(init == 0){
  }
 }
 return (WriteAll || status);
+}
+
+
+integer AMSTOFMCPmtHit::Out(integer status){
+  static integer init=0;
+  static integer WriteAll=0;
+  if(init == 0){
+    init=1;
+    integer ntrig=AMSJob::gethead()->gettriggerN();
+    for(int n=0;n<ntrig;n++){
+      if(strcmp("AMSTOFMCPmtHit",AMSJob::gethead()->gettriggerC(n))==0){
+       WriteAll=1;
+       break;
+     }
+    }
+  }
+  return (WriteAll || status);
 }
 
 

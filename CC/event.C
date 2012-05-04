@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.556 2012/04/25 07:11:16 choutko Exp $
+//  $Id: event.C,v 1.557 2012/05/04 13:46:48 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -36,6 +36,7 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #include "charge.h"
 #include "particle.h"
 #include "tofsim02.h"
+#include "Tofsim02.h"
 #include <stdlib.h>
 #include "tofcalib02.h"
 #include "anticalib02.h"
@@ -875,6 +876,8 @@ void AMSEvent::_sitofinitevent(){
   ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFMCCluster",0),0));
 //
+  ptr = add (
+  new AMSContainer(AMSID("AMSContainer:AMSTOFMCPmtHit",0),0)); 
 //    container for time_over_threshold hits (digi step):
 //
   for(il=0;il<TOF2GC::SCLRS;il++){
@@ -2741,7 +2744,8 @@ void AMSEvent:: _sitof2event(int &cftr){
 //
 //   cout << "before build "<<endl;
 //   AMSmceventg::PrintSeeds(cout);
-   TOF2Tovt::build();// Ghits->TovT-hits
+   if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0)TOF2TovtN::build();// Ghits->TovT-hits
+   else                                     TOF2Tovt::build();
 //    cout <<"after build "<<endl;
    AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
    TOF2JobStat::addmc(1);
@@ -2760,6 +2764,8 @@ void AMSEvent:: _sitof2event(int &cftr){
 //
 #ifdef __AMSDEBUG__
   p=getC("AMSTOFMCCluster",0);
+  if(p && AMSEvent::debug>1)p->printC(cout);
+  p=getC("AMSTOFMCPmtHit",0);
   if(p && AMSEvent::debug>1)p->printC(cout);
   p =getC("TOF2RawCluster",0);
   if(p && AMSEvent::debug>1)p->printC(cout);

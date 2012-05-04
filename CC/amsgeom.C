@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.219 2011/03/31 16:53:30 sdifalco Exp $
+//  $Id: amsgeom.C,v 1.220 2012/05/04 13:46:48 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -10,7 +10,7 @@
 // AMS02 Radiators/crates/TRD-TOF_supports/USS geometry v1.0  E.Choumilov 4.06.2001
 // New ANTI design (AMS-02). E.Choumilov 24.03.03.
 // 
-//
+// TOF new Geant  Qi Yan 2012-Feb-10
 #include "typedefs.h"
 #include "node.h"
 #include "snode.h"
@@ -386,6 +386,10 @@ AMSID amsid;
 strcpy(inum,"0123456789");
 TOF2DBc::readgconf();// read TOF-counters geometry parameters
 //------
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0)return;//
+#endif
+//---
 //          <-- create/position top supp. honeycomb plate
 gid=1;
 par[0]=TOF2DBc::supstr(7)/2; //dx
