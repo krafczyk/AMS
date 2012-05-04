@@ -42,16 +42,6 @@
 #include <omp.h>
 #endif
 
-#include "cfortran.h"
-#include "d_blobel.h"
-
-extern "C" {
-   void dvallin_(int*, double*, int*);
-   void dvalley_(double*, double*, int*);
-}
-
-
-
 namespace trdconst{
 
   const integer nTrdGasCir       = 10;
@@ -74,7 +64,7 @@ namespace trdconst{
 
   const integer nParLR           = 20;         // iP range[3-100 GeV/c] || 20 layers
   
-  const integer	TrdMinAdc	 = 12; //10; //12; //15;
+  const integer	TrdMinAdc	 = 12; 
   const integer	TrdMaxAdc	 = 4048; //3500;//4048;
   const integer nTrdMaxHits      = 100;
 
@@ -492,7 +482,7 @@ class TrdSCalibR {
   /// use for ver.04
   vector<AC_TrdHits*> TrdSHits;
 
-  /// + use for ver.05
+  /// use for ver.05
   TSpline3 grTrkXZ;  
   TSpline3 grTrkYZ;
 
@@ -970,7 +960,6 @@ class TrdSCalibR {
   vector<int> CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trtrk, int TrdStrkLevel, int Debug);
 
   int GetTrdHitsInAcceptance(vector<AC_TrdHits*> &TrdHits, vector<int> &Straws, int &nTrdLay, int Debug);
-  int IterateTrk4MS(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug);
   int IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug);
   int TrdTrkChi2(vector<AC_TrdHits*> TrdHits, double DeltaX, double DeltaY, double &Chi2, int &nTrdHits, int Debug);
 
@@ -1005,13 +994,11 @@ class TrdSCalibR {
   float  Tht_RI, Phi_RI, X_RI, Y_RI;          //== RICH  -73.6 cm (Center of Radiator)
   float  Tht_L9, Phi_L9, X_L9, Y_L9;          //== Layer-9   -136.041 cm
 
-  //TSpline3 *grTrkXZ, *grTrkYZ;
   TGraph      *TG[2];  //!  for z-interpolation
   TSpline3    *TS[2];  //!  for z-interpolation
 
   float TRD_SHIFT[3]; //== TrdGeom global shift
   float TRD_ROT[3];   //== TrdGeom global rotation: 
-  //Int_t GetGeo[2][6][7][4][3]; // crate,nudr,nufe,nute -> layer,ladder,direction(0,1)
   
   /// module displacement from shimming:     
   float Mod_Dz[328];         // Z-Offset/mu-m in Octagon from Shimming     

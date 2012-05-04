@@ -34,6 +34,7 @@
 //  2012.03.09 include multiple scattering correction routine developed by Blobel 
 //  2012.03.26 add M.Millinger gain calibration method
 //  2012.04.26 released version 5
+//  2012.05.03 update fortran minization routine to TMinuit2 by M.Millinger
 //  To do Lists: //              1. interface with other TrdAlignmentDB (Z.Weng, V.Zhukov)
 //              2. update toyMC
 //              3. change GG <-> GC  
@@ -157,7 +158,6 @@ const char *TrdSCalibR::TrdTrackTypeName[] = {"TrdHTrack", "TrdTrack"};
 
 const char *TrdSCalibR::TrdGeomUpdateDir[] =
   {
-    //"/afs/cern.ch/exp/ams/Offline/AMSDataDir/DataBase/TrdCalNew/Geom",
     "DataBase/TrdCalNew/Geom",
     "/afs/ams.cern.ch/user/chchung/CAL/Geom" //== for debug
   };
@@ -185,9 +185,7 @@ std::vector<double> TrdSCalibR::zTrks(7);
 TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3), 
 			  iPabs(0), iQabs(0), iRsigned(0),iRerrinv(0), iRabs(0), iChisq(-1), 
 			  TrdTkD(0), TrdTkDa(0), 
-			  //algo(1), patt(3), refit(1), 
 			  algo(1), patt(0), refit(0),
-			  //algo(1), patt(0), refit(4),
 			  TrdGainMethod(1),TrdAlignMethod(1),_ierror(0),			  
   dummy(0) {
     FirstCall   = true;
@@ -271,12 +269,10 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3),
     grTrdS_PDF_Elec_Xe4.clear();
     grTrdS_PDF_Elec_Xe5.clear();
 
-
     nTrdHitLayer.clear();
     TrdScalibXdaysMpv.clear();
     TrdScalibXdaysPos.clear();
     TrdScalibMpv.clear();
-
 
     for(int i=0;i<nParLR;i++){
       p_Graph[i] = 0;
@@ -312,9 +308,6 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3),
     TRD_SHIFT[2]  =  1000.e-4;          // global TRD Z-Shift/cm (1mm)
     for(int i=0;i<3;TRD_ROT[i++]=0.); 
 
-    //    grTrkXZ = 0;
-    //    grTrkYZ = 0;
-
     TrkXcors.clear();
     TrkYcors.clear();
 
@@ -327,10 +320,6 @@ TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3),
     fTrd95Da->SetParameters(0.7729,0.7324,0.2005);
 
     fTrdLR      = 0;
-    //fTrdLR = new TF1("fTrdLR",this,&TrdSCalibR::Fun2Landau3Expo, 0.0,4000.0, 0);
-    ///avoids being deleted next time a new one with the same name is constructed 
-    //gROOT->GetListOfFunctions()->Remove(fTrdLR);
-
   }
   
 //--------------------------------------------------------------------------------------------------
@@ -3478,7 +3467,7 @@ bool TrdSCalibR::GetTrdV5CalibHistos(int Debug) {
     sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdCalDBUpdate[5]);
     TrdGain_01 = Get04TrdCalibration(tdname, Debug);  
 
-    std::cout << Form("TrdSCalibR::GetTrdV4CalibHistos-I- ModCalibTime= %10u - %10u <=> %7.4f - %7.4f days",
+    std::cout << Form("TrdSCalibR::GetTrdV5CalibHistos-I- ModCalibTime= %10u - %10u <=> %7.4f - %7.4f days",
 		      FirstCalRunTime, LastCalRunTime, FirstCalXday, LastCalXday) << std::endl;
     if(Debug) 
       std::cout << Form("TrdScalibXdaysMpv[8].size()= %6d TrdScalibMpv[8].size()= %6d TrdScalibMpv[8][10]=%8.3f", 
@@ -3498,7 +3487,7 @@ bool TrdSCalibR::GetTrdV5CalibHistos(int Debug) {
 	sprintf(tdname, "%s/%s/%s", pPath, TrdDBUpdateDir[0], TrdAlignDBUpdate[1]); 
 	TrdAlign_01 = Get01TrdAlignment(tdname, Debug);
 	
-	std::cout << Form("TrdSCalibR::GetTrdV4CalibHistos-I- ModAlignTime= %10u - %10u <=> %7.4f - %7.4f days",
+	std::cout << Form("TrdSCalibR::GetTrdV5CalibHistos-I- ModAlignTime= %10u - %10u <=> %7.4f - %7.4f days",
 			  FirstAlignRunTime, LastAlignRunTime, FirstAlignXday, LastAlignXday) << std::endl;
 	if(Debug)
 	  std::cout << Form("TrdScalibXdaysPos[8].size()= %6d TrdScalibPos[8].size()= %6d TrdScalibPos[8][10]=%8.3f", 
@@ -4148,10 +4137,6 @@ int TrdSCalibR::ProcessTrdHit(TrTrackR *Trtrk, int Debug){
   if( GetTruncatedMean(Debug) ) return 16;
   
   if( TrdLR_CalcXe(Xtime, iPabs, iFlag, Debug) ) return 17; 
-  
-  //  if (grTrkXZ) grTrkXZ->Delete();
-  //  if (grTrkYZ) grTrkYZ->Delete();
-  
 
   return 0;
 }
@@ -4166,10 +4151,7 @@ int TrdSCalibR::GetnTrdHitLayer(vector<AC_TrdHits*> &TrdHits, int Debug){
 			   TrdHits.at(i)->hitXYraw, TrdHits.at(i)->hitZraw, TrdHits.at(i)->hitXY, TrdHits.at(i)->hitZ, 
 			   TrdHits.at(i)->TrkD, TrdHits.at(i)->Len3D)  << endl;  
     
-    if ((fabs(TrdHits.at(i)->Len3D)<trdconst::TrdMinPathLen3D)) { 
-      //TrdHits.erase(TrdHits.begin()+i);
-      continue;
-    }
+    if ((fabs(TrdHits.at(i)->Len3D)<trdconst::TrdMinPathLen3D)) continue;
     nTrdHitLayer[TrdHits.at(i)->Lay]++; 
   }
   
@@ -4359,9 +4341,6 @@ vector<int> TrdSCalibR::TrdFillHits2( vector<AC_TrdHits*> &TrdHits, int Debug) {
 
 vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trtrk, int TrdStrkLevel, int Debug) {
 
-  //  grTrkXZ = NULL;
-  //  grTrkYZ = NULL;
-
   int iFlagTrkSpline = 0;
   if (TrdStrkLevel>0) iFlagTrkSpline =  1;    // iFlag=1 correction for multiple scattering using plane 1N
 
@@ -4373,8 +4352,6 @@ vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trt
   if(!needMScorr) {
     nTrdStat.assign(3,0);
     nTrdStat = TrdFillHits(TrdHits, Debug);
-    //    if (grTrkXZ) grTrkXZ->Delete();
-    //    if (grTrkYZ) grTrkYZ->Delete();
     return nTrdStat;
   }
 
@@ -4422,11 +4399,7 @@ vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trt
 		      nLayNearStrk, nLayOnStrk, nHitOnStrk, nHitNearStrk ) << std::endl;
   
   //if (nHitOnStrk>=14 && (nHitNearStrk-nHitOnStrk)<4) {
-  if (nHitOnStrk>=16 && (nHitNearStrk-nHitOnStrk)<8) {  
-    //    if (grTrkXZ) grTrkXZ->Delete();
-    //    if (grTrkYZ) grTrkYZ->Delete();
-    return nTrdStat;
-  }
+  if (nHitOnStrk>=16 && (nHitNearStrk-nHitOnStrk)<8) return nTrdStat;
 
   ///================================ 2nd 
   iFlagTrkSpline = 0;
@@ -4447,25 +4420,11 @@ vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trt
   std::cout << Form("*** 2nd TrdFillHits  nLayNearStrk=%3d nLayOnStrk=%3d nHitOnStrk=%3d nHitNearStrk=%3d", 
 		      nLayNearStrk, nLayOnStrk, nHitOnStrk, nHitNearStrk ) << std::endl;
  
-  //> MM: suggestion on minimalinvasive replacement of fortran minimization by ROOT virtual fitter
-  /*  vector<float> Results;
-  int 	nStep 		= IterateTrk4MS(iRabs, TrdHits, grTrkXZ, grTrkYZ, Results, Debug);
-  if(Debug)
-  std::cout << Form("*** IterateTrk4MS .... nStep=%d", nStep) << std::endl;
-
-  double Chi2Opt	= Results.at(0);
-  double DeltaX_Opt  	= Results.at(1);
-  double DeltaY_Opt  	= Results.at(2);
-  int	nTrdHits_Opt 	= (int) Results.at(3);*/
-	
-
-  // minuit2 minimization via virtual fitter
+  /// MM: minuit2 minimization via virtual fitter 
   vector<float> Results;
   int 	nStep 		= IterateTrk4MS_ROOT(iRabs, TrdHits, Results, Debug);
   if(Debug)
   std::cout << Form("*** IterateTrk4MS .... nStep=%d", nStep) << std::endl;
-
-  //< MM
 
   double Chi2Opt	= Results.at(0);
   double DeltaX_Opt  	= Results.at(1);
@@ -4505,8 +4464,6 @@ vector<int> TrdSCalibR::CalPathLen3D(vector<AC_TrdHits*> &TrdHits, TrTrackR *Trt
   }
   */
   
-  //  if (grTrkXZ) grTrkXZ->Delete();
-  //  if (grTrkYZ) grTrkYZ->Delete();
   
   return nTrdStat;
 	
@@ -4582,68 +4539,6 @@ int TrdSCalibR::GetTrdHitsInAcceptance(vector<AC_TrdHits*> &TrdHits,
 }
 
 //--------------------------------------------------------------------------------------------------
-
-int TrdSCalibR::IterateTrk4MS(float aRig, vector<AC_TrdHits*> &TrdHits,
-			      vector<float> &Results, int Debug) {
-
-  if(Debug) 
-    std::cout << Form("TrdSCalibR::IterateTrk4MS-I- DVALLIN .... ") << std::endl;
-
-  static bool FirstCall = true;
-  static TF1 *fRmsX, *fRmsY;
-  if (FirstCall) {
-    fRmsX = new TF1("fRmsX",this, &TrdSCalibR::FunRms,1.0,1000.0,2);
-    fRmsY = new TF1("fRmsY",this, &TrdSCalibR::FunRms,1.0,1000.0,2);
-    fRmsX->SetParameters(6.579,0.1927);
-    fRmsY->SetParameters(5.994,0.00027);
-    FirstCall = false;
-  }
-  double RmsX = 0.1*fRmsX->Eval(aRig);
-  double RmsY = 0.1*fRmsY->Eval(aRig);
-
-
-  /// initialize valley - start values for parameters, step sizes
-  double pa[2], st[2];
-  pa[0] =   0.0;
-  pa[1] =   0.0;   
-  st[0] =   0.01; 
-  st[1] =   0.01;
-  DVALLIN(-2,st,-100);
-  
-  /// calculate chi-square
-  double 	Chi2	 =	0.0;
-  int		nTrdHits =	0, nTrdHits_Opt=0;
-  double	DeltaX_Opt=0.0, DeltaY_Opt=0.0, Chi2Opt=1E99;
-  
-  int nc    = -1;
-  int niter = 0; 
-  /// NC = -1 FOR LAST FUNCTION EVALUATION  1: IF CONVERGENCE IS REACHED  2: IF ENDED WITHOUT CONVERGENCE
-  while (nc <= 0) {   
-    if( TrdTrkChi2(TrdHits, pa[0], pa[1], Chi2, nTrdHits, Debug) ) break;		
-    Chi2 += pow(pa[0]/(2.0*RmsX),2) + pow(pa[1]/(2.0*RmsY),2);	//== some damping as we expect 0 from multiple scattering
-    
-    /// transmit function value (Chi2) and get next parameter values
-    DVALLEY(Chi2,pa,nc);
-    if (Chi2<Chi2Opt) {
-      Chi2Opt 			= Chi2;
-      DeltaX_Opt 		= pa[0];
-      DeltaY_Opt 		= pa[1];
-      nTrdHits_Opt 	        = nTrdHits;			
-    }
-    niter ++;
-  }
-  
-
-  Results.clear();
-  Results.push_back(Chi2Opt);
-  Results.push_back(DeltaX_Opt);
-  Results.push_back(DeltaY_Opt);
-  Results.push_back(nTrdHits_Opt);
-  Results.push_back(nc);
-  
-  return niter;
-}
-
 void fcn_sfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {
   
@@ -4658,7 +4553,7 @@ void fcn_sfit(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t ifla
   }
   else f=1.e6;
 }
-
+//--------------------------------------------------------------------------------------------------
 int TrdSCalibR::IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vector<float> &Results, int Debug) {
 
   if(Debug) 
@@ -4692,7 +4587,7 @@ int TrdSCalibR::IterateTrk4MS_ROOT(float aRig, vector<AC_TrdHits*> &TrdHits, vec
   double DeltaY_Opt=vfit->GetParameter(1);
 
   TrdTrkChi2(TrdHits, DeltaX_Opt, DeltaY_Opt, Chi2Opt, nTrdHits_Opt, Debug);		
-  Chi2Opt += pow(DeltaX_Opt/(2.0*fit.RmsX),2) + pow(DeltaY_Opt/(2.0*fit.RmsY),2);	//== some damping as we expect 0 from multiple scattering
+  Chi2Opt += pow(DeltaX_Opt/(2.0*fit.RmsX),2) + pow(DeltaY_Opt/(2.0*fit.RmsY),2);//== some damping as we expect 0 from multiple scattering
   
   Results.clear();
   Results.push_back(Chi2Opt);
@@ -4819,9 +4714,6 @@ int TrdSCalibR::GetTrkSpline( int msFlag, int Debug) {
   xTrks.at(6) = cTrk1.X() + lambda1*bTrk1.X();
   yTrks.at(6) = cTrk1.Y() + lambda1*bTrk1.Y();
 
-  
-  //  if (grTrkXZ) grTrkXZ->Delete();
-  //  if (grTrkYZ) grTrkYZ->Delete();
   /// Graph to be used to extrapolate the tracker track into the TRD
   grTrkXZ = TSpline3("grTrkXZ",&zTrks[0],&xTrks[0],int(zTrks.size()));
   grTrkYZ = TSpline3("grTrkYZ",&zTrks[0],&yTrks[0],int(zTrks.size()));
@@ -4831,16 +4723,7 @@ int TrdSCalibR::GetTrkSpline( int msFlag, int Debug) {
       return 1;
     }
   }
-  /*
-  TGraph *gxz = new TGraph(zTrks.size(), &zTrks[0], &xTrks[0]);
-  TGraph *gyz = new TGraph(zTrks.size(), &zTrks[0], &yTrks[0]);
-  grTrkXZ = new TSpline3("grTrkXZ", gxz);
-  grTrkYZ = new TSpline3("grTrkYZ", gyz);
-  delete gxz, gyz;
-  */
-
  
-
   return 0;
   
 }
@@ -5060,7 +4943,7 @@ int TrdSCalibR::GetThisTrdHit(AC_TrdHits* &TrdHit, int Debug) {
     
   }
   else if (TrdAlign_03) {
-    // do something
+    // to be implemented asap.
     
   } else {
     _ierror++;
