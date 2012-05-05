@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.54 2012/04/12 10:27:42 lquadran Exp $
+//  $Id: tofsim02.C,v 1.55 2012/05/05 19:44:07 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-5 logic, E.Choumilov 22.08.2005
@@ -161,8 +161,8 @@ void TOFWScan::build(){
 //
   int i,ic,nverst,ivers,dig,nctot(0);
   int brfnam[TOF2GC::SCBTPN];
-  char fname[80];
-  char name[80];
+  char fname[1024];
+  char name[256];
   char in[2]="0";
   char inum[11];
   char ext[80];

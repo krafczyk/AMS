@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.50 2011/01/12 13:49:42 pzuccon Exp $
+//  $Id: trigger302.C,v 1.51 2012/05/05 19:44:08 choumilo Exp $
 
 #ifdef _PGTRACK_
 #include "tofdbc02.h"
@@ -359,8 +359,8 @@ void TriggerLVL302::init(){
   //
   // ---> read TOF T0's calibration for direction algorithm:
   //
-  char fname[80];
-  char name[80];
+  char fname[1024];
+  char name[256];
   char vers1[3]="mc";
   char vers2[3]="rl";
   strcpy(name,"TOFT0LVL3.AMS02");
@@ -2446,8 +2446,8 @@ void TriggerLVL302::init(){
 //
 // ---> read TOF T0's calibration for direction algorithm:
 //
- char fname[80];
- char name[80];
+ char fname[1024];
+ char name[256];
  char vers1[3]="mc";
  char vers2[3]="rl";
  strcpy(name,"TOFT0LVL3.AMS02");

@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.42 2011/05/10 21:46:17 jorgec Exp $
+//  $Id: AMSTOFHist.cxx,v 1.43 2012/05/05 19:44:33 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -1330,9 +1330,9 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   Float_t rrr,betnor,etrtof(0),absbet,clong[4]={0,0,0,0};
   Float_t etrtofb(0);
   absbet=fabs(tofbet);
-  Float_t betpow=1.83;//Pr  
-  if(absbet<0.94)betnor=pow(absbet,betpow)
-                       /pow(Float_t(0.94),betpow);//norm.factor to MIP(prot)
+  Float_t betpow=1.59;//Pr  
+  if(absbet<0.95)betnor=pow(absbet,betpow)
+                       /pow(Float_t(0.95),betpow);//norm.factor to MIP(prot)
   else betnor=1;
   Bool_t TOFTRKnormOK(0);
 //

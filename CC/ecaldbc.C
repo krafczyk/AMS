@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.100 2012/04/20 08:56:01 sdifalco Exp $
+//  $Id: ecaldbc.C,v 1.101 2012/05/05 19:44:02 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -82,7 +82,7 @@ geant ECALDBc::_ftedel=40.;//tempor: signals delay between EC/JLV1-crates + JLV1
 void ECALDBc::readgconf(){
   //
   int i;
-  char fname[80];
+  char fname[1024];
   char name[80]="EcalAlign";
   char vers1[10]="MC";//not used now
   char vers2[10]="PreAss";//= first clean room assembly(jan 2008)
@@ -1502,7 +1502,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   pmmx=ECPMSMX;//max.PM's in S-layer
   cout<<endl<<"====> ECcalib_build: start with total PMTs="<<ECPMSL<<endl;
   //
-  char fname[80];
+  char fname[1024];
   char name[80];
   char datt[3];
   char ext[80];
@@ -1850,7 +1850,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   pmmx=ECPMSMX;//max.PM's in S-layer
   cout<<endl<<"====> ECcalibMS::build: start build with total PMs="<<ECPMSL<<endl;
   //
-  char fname[80];
+  char fname[1024];
   char name[80];
   char vers1[3]="MC";
   char vers2[3]="SD";
@@ -2113,7 +2113,7 @@ void ECPMPeds::build(){// create MC/RD ECPeds-objects for each cell from MC/RD- 
   //
   int i,isl,ipm,isc,cnum;
   integer sid,endflab(0);
-  char fname[80];
+  char fname[1024];
   char name[80];
   geant pedh[4],sigh[4],pedl[4],sigl[4],pedd,sigd;
   uinteger stah[4],stal[4],stad;
@@ -2303,7 +2303,7 @@ void ECPMPeds::mcbuild(){// create MC ECPeds-objects for each cell by smearing o
 //  ECTslope class functions :
 //
 void ECTslope::build(){// <--- create MC/RealData ecpmtslo-objects
-  char fname[80];
+  char fname[1024];
   char name[80];
   char datt[3];
   char ext[80];

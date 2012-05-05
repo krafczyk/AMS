@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.378 2012/05/04 14:01:24 qyan Exp $
+#  $Id: datacards.doc,v 1.379 2012/05/05 19:44:32 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -640,7 +640,7 @@ I 2 BeamTest(0)             // BeamTest data(2) cosmic (1) not(0)
 R 3 BZCorr(1.)              // Z scale for b field (test only)
 I 4 G3On(1)                 // 0 off 1 on geant3
 I 5 G4On(0)                 // 0 off 1 on geant4
-I 6 dbwrbeg(0)              // used by TofAccPedDBWriter, don't use/modify ! 
+I 6 dbwrbeg(0)              // used by Tof[Acc,Ecal]DBWriter when AMSJOB 1 is set to 2[3,9]11 (subd.calib.mode) 
 I 7 dbwrend(0)              // ---//---//---//---//---//---//---//---//---
 I 8 NumThreads(1)    //  number of threads if compiled with openmp (-1  == number_of_cores)
 I 9 DynThreads(0)    //   dyn adjustment of thread number w/r proc loading
@@ -1110,6 +1110,44 @@ R 45-49SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correc
 
 R 50-56 LAPPRearLeak[7](4.234,1.388,1.604,0.01,0.025,1000.,0.3)//LAPP rear-leakage correction parameters (M.P.- C.Goy)        
  
+<<<<<<< datacards.doc
+<<<<<<< datacards.doc
+R 54 S1S3[4]  //  s1/s3 energy correction
+R 58 sec[0](0)                // cards below are used as validity time when need to write
+R 59 sec[1](0)                // to DB new calibration/status parameters (when AMSJOB 1 is not set
+R 60 min[0](0)                // to calib.mode, see MISC 6,7 note !!!)
+R 61 min[1](0)                //
+R 62 hour[0](0)               //
+R 63 hour[1](0)               //
+R 64 day[0](1)                //
+R 65 day[1](1)                //
+R 66 mon[0](0)                //
+R 67 mon[1](0)                //
+R 68 year[0](101)             //
+R 69 year[1](108)             //
+=======
+R 54 ealpha0(-3.0)  // leakage correction: alpha0(averaged on energy) + beta*T +gamma*T^2
+R 55 ebeta(75.2)    // first order coefficient
+R 56 egamma(563.3)  // second order coefficient
+R 57 ealpha_par[0](-5)     // Alpha(E)=par0+par1*Energy
+R 58 ealpha_par[1](0.0143) // 
+
+R 59 CalorTransSize(32)
+R 60 EMDirCorrection(1.03)
+R 61 HiEnThr(1650.)
+R 62 HiEnCorFac(0.225)
+R 63 S1S3[0](0.6)
+R 64 S1S3[1](0.25)
+R 64 S1S3[2](0.4)
+R 66 S1S3[3](0.8)
+
+R 67 S1S3X[0](0.529) // (67-72)
+R 68 S1S3X[1](0.753)
+R 69 S1S3X[2](0.922)
+R 70 S1S3X[3](47.25)
+R 71 S1S3X[4](-104.)
+R 72 S1S3X[5](-0.006)
+=======
 R 57 ealpha0(-3.0)  // leakage correction: alpha0(averaged on energy) + beta*T +gamma*T^2
 R 58 ebeta(75.2)    // first order coefficient
 R 59 egamma(563.3)  // second order coefficient
@@ -1131,6 +1169,7 @@ R 72 S1S3X[2](0.922)
 R 73 S1S3X[3](47.25)
 R 74 S1S3X[4](-104.)
 R 75 S1S3X[5](-0.006)
+>>>>>>> 1.373
  
 R 76 S1S3Y[0](0.517) // (76-81)
 R 77 S1S3Y[1](0.743)
@@ -1145,6 +1184,27 @@ R 83 S1S3XA[1](0.715)
 R 84 S1S3XA[2](0.75)
 R 85 S1S3XA[3](0.5)
       
+<<<<<<< datacards.doc
+R 83 S1S3YA[0](0.44) // (83-86) 
+R 84 S1S3YA[1](0.67)
+R 85 S1S3YA[2](0.735)
+R 86 S1S3YA[3](0.5;)  // end of LAPP parameters
+
+I 87 sec[0](0)                // cards below are used as validity time when need to write
+I 88 sec[1](0)                // to DB new calibration/status parameters
+I 89 min[0](0)                //
+I 90 min[1](0)                //
+I 91 hour[0](0)               //
+I 92 hour[1](0)               //
+I 93 day[0](1)                //
+I 94 day[1](1)                //
+I 95 mon[0](0)                //
+I 96 mon[1](0)                //
+I 97 year[0](101)             //
+I 98 year[1](108)             //
+R 99 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
+>>>>>>> 1.368
+=======
 R 86 S1S3YA[0](0.33) // (86-89) 
 R 87 S1S3YA[1](0.7525)
 R 88 S1S3YA[2](0.75)
@@ -1165,6 +1225,7 @@ I 104 mon[1](0)                //
 I 105 year[0](108)             //
 I 106 year[1](125)             //
 R 107 Tref(23.)                // Reference temperature (from 2010 august TB) for ADC2MeV calculation 
+>>>>>>> 1.373
 
 //LAPP impact-point correction parameters for S3/S5 X and Y sides (M.P.-S-Rosier)
 R 108 S3S5XA[0](0.5) // (108-111)

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.103 2011/06/24 09:16:20 choumilo Exp $
+//  $Id: trigger102.C,v 1.104 2012/05/05 19:44:07 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -507,8 +507,8 @@ if((TGL1FFKEY.printfl%10)>0){
 }
 //--------------------
 void Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
-  char fname[80];
-  char name[80];
+  char fname[1024];
+  char name[256];
   char datt[3];
   char ext[80];
   int date[2],year,mon,day,hour,min,sec;
@@ -907,8 +907,8 @@ void Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,
 //
 //flg=1/2-> save2file/+DB
   integer endflab(12345);
-  char fname[80];
-  char name[80];
+  char fname[1024];
+  char name[256];
   char buf[20];
   static integer runno(-1);
 //
