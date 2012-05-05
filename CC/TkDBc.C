@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.53 2012/04/27 11:52:22 shaino Exp $
+//  $Id: TkDBc.C,v 1.54 2012/05/05 02:18:44 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/04/27 11:52:22 $
+///$Date: 2012/05/05 02:18:44 $
 ///
-///$Revision: 1.53 $
+///$Revision: 1.54 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,15 +24,19 @@
 // Hard-coded sensor alignment parameters
 #include "TkDBcSalig.C"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
+int    TkDBc::nthreads=1;
 TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
 char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 int    TkDBc::_setup=3;
  
 TkDBc::TkDBc(){
- for (int ii=0;ii<maxplanes;ii++)
-      planes[ii]=0; 
+  for (int jj=0;jj<nthreads*maxplanes;jj++)
+    planes2.push_back( new TkPlane() );
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -64,13 +68,32 @@ TkDBc* TkDBc::GetHead(int setup,const char* inputfilename, int pri){
 TkDBc::~TkDBc(){
   PGlocal.clear();
   MDlocal.clear();
-  for (int ii=0;ii<maxplanes;ii++)
-    if(planes[ii]) delete planes[ii];
-  
+
+
+  for (int jj=0;jj<nthreads*maxplanes;jj++)
+    if(planes2[jj]) delete planes2[jj];
+  planes2.clear();
+
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
     if(pp->second) delete pp->second;
 
 }
+
+TkPlane* TkDBc::GetPlane(int ii) {
+
+  int thre=0;
+#ifdef _OPENMP
+  thre=omp_get_thread_num();
+  if(thre>=nthreads)thre=0;
+#endif
+  
+  if (ii>0&&ii<=nplanes)   
+    return planes2[ii-1+thre*maxplanes]; 
+ 
+  else return 0;
+
+}
+
 
 
 void TkDBc::init(int setup,const char *inputfilename, int pri){
@@ -583,16 +606,24 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       cerr <<" TkDBc:: Generating the Tracker geometry from nominal positions!"<<endl;
       //create the planes objects
       for (int ii=0;ii<nplanes;ii++){
-	sprintf(name,"Plane%d",ii+1);
-	planes[ii]=new TkPlane(name,ii+1,_nslot[ii]);
-	planes[ii]->setpos(_xpos[ii],_ypos[ii],_zpos[ii]);
+	sprintf(GetPlane(ii+1)->name,"Plane%d",ii+1);
+	GetPlane(ii+1)->_pnumber=ii+1;
+	GetPlane(ii+1)->_nslot[0]=_nslot[ii][0];
+	GetPlane(ii+1)->_nslot[1]=_nslot[ii][1];
+	GetPlane(ii+1)->setpos(_xpos[ii],_ypos[ii],_zpos[ii]);
 	if(_setup==3 && ii==4) {
-	  planes[ii]->rot.XParity();
-	  planes[ii]->rot.ZParity();
+	  GetPlane(ii+1)->rot.XParity();
+	  GetPlane(ii+1)->rot.ZParity();
 	}
-	//	 cout <<*(planes[ii])<<endl;
+	//	 cout <<*(GetPlane(ii+1))<<endl;
       }
       
+#ifdef _OPENMP
+      for (int ii=1;ii<nthreads;ii++)
+	for (int jj=0;jj<maxplanes;jj++)
+	  *(planes2[ii*maxplanes+jj])=*(planes2[jj]);
+#endif
+
       for (int lay=0;lay<nlays;lay++) //loop on layers
 	for (int side=0;side<2;side++)
           for (int slot=0;slot<maxlad;slot++)
@@ -607,7 +638,7 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 	      int tkid=(lay+1)*100+(slot+1);
               if (side==0) tkid*=-1;
               sprintf(name,"%s",_LadName[side][lay][slot]);
-              TkLadder* aa= new TkLadder(planes[_plane_layer[lay]-1],name,tkid,hwid,_nsen[side][lay][slot]);
+              TkLadder* aa= new TkLadder(GetPlane(_plane_layer[lay]),name,tkid,hwid,_nsen[side][lay][slot]);
               if(_octid[side][lay][slot]<0 && _octid[side][lay][slot]!=-1 ) aa->SetLaserFlag();
 	      if((lay+1)==1 || (lay+1) ==8) aa->SetAsK7();
 	      // Special for k5/k7 on layer 9/plane6
@@ -801,7 +832,7 @@ int TkDBc::write(const char* filename){
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
-    fileout<<*(planes[ii]);
+    fileout<<*(GetPlane(ii+1));
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     fileout << *(pp->second);
 
@@ -818,9 +849,6 @@ int TkDBc::read(const char* filename, int pri){
     return -1;
   }
   
-  // Delete existing planes
-  for (int ii=0;ii<nplanes;ii++)
-    if(planes[ii]) delete planes[ii];
   
   // Delete existing ladders
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
@@ -846,10 +874,8 @@ int TkDBc::read(const char* filename, int pri){
   }
 
 
-  for (int ii=0;ii<nplanes;ii++){
-    planes[ii]= new TkPlane();
-    
-    fileout>>(*planes[ii]);
+   for (int ii=0;ii<nplanes;ii++){    
+     fileout>>*(GetPlane(ii+1));
   }
   int count=0;
   for(;;){
@@ -1196,8 +1222,14 @@ int TkDBc::readAlignment(const char* filename, int pri){
   }
 
   for (int ii=0;ii<nplanes;ii++){
-    planes[ii]->ReadA(fileout);
+    GetPlane(ii+1)->ReadA(fileout);
   }
+#ifdef _OPENMP
+  for (int ii=1;ii<nthreads;ii++)
+    for (int jj=0;jj<maxplanes;jj++)
+      *(planes2[ii*maxplanes+jj])=*(planes2[jj]);
+#endif
+
   int count=0;
   for(tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); pp++) {
     TkLadder*  aa=pp->second;
@@ -1224,8 +1256,15 @@ int TkDBc::readDisalignment(const char* filename, int pri){
   
 
   for (int ii=0;ii<nplanes;ii++){
-    planes[ii]->ReadT(fileout);
+    GetPlane(ii+1)->ReadT(fileout);
   }
+#ifdef _OPENMP
+  for (int ii=1;ii<nthreads;ii++)
+    for (int jj=0;jj<maxplanes;jj++)
+      *(planes2[ii*maxplanes+jj])=*(planes2[jj]);
+#endif
+
+
   int count=0;
   for(tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); pp++) {
     TkLadder*  aa=pp->second;
@@ -1250,7 +1289,7 @@ int TkDBc::writeAlignment(const char* filename){
   if(TkLadder::version>=2) (fileout) << "VVV"<<TkLadder::version<<endl; 
 
   for (int ii=0;ii<nplanes;ii++)
-    planes[ii]->WriteA(fileout);
+    GetPlane(ii+1)->WriteA(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     pp->second->WriteA(fileout);
 
@@ -1264,7 +1303,7 @@ int TkDBc::writeDisalignment(const char* filename){
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
-    planes[ii]->WriteT(fileout);
+    GetPlane(ii+1)->WriteT(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     pp->second->WriteT(fileout);
 
@@ -1403,6 +1442,11 @@ void TkDBc::Lin2Align(){
     pl->Lin2Align(&linear[off+1]);
     off+=7;
   }
+#ifdef _OPENMP
+  for (int ii=1;ii<nthreads;ii++)
+    for (int jj=0;jj<maxplanes;jj++)
+      *(planes2[ii*maxplanes+jj])=*(planes2[jj]);
+#endif
 
   for (int lad=0;lad<192;lad++){
     int tkid= (int)linear[off];

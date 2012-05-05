@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.140 2012/04/27 07:30:33 shaino Exp $
+// $Id: TrTrack.C,v 1.141 2012/05/05 02:18:44 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/04/27 07:30:33 $
+///$Date: 2012/05/05 02:18:44 $
 ///
-///$Revision: 1.140 $
+///$Revision: 1.141 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -825,9 +825,30 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     if ((id & kFitLayer9) && !bhit[1]) return -7;
     if ((id & kExternal)  && !bhit[0] && !bhit[1]) return -17;
   }
-  // AMS02P
-
   std::sort(idx, &idx[nhit]);
+
+
+  //  Update External DB alignment
+  int rret =0;
+  int UsedCiemat=0;
+  if(
+     ((id & kFitLayer8) || (id & kFitLayer9)|| (id & kExternal)) &&
+     !(id & kDisExtAlCorr)
+     ){
+    if( (id & kAltExtAl) ){
+      TrRecHitR *hit1=GetHitLJ(1);
+      TrRecHitR *hit9=GetHitLJ(9);
+      int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+      int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+      rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+      UsedCiemat=1;
+    }else
+      rret=UpdateExtLayer(0);   //PG
+    if (!rret) return -6;
+    // update hit coo
+    for (int ii=0;ii<getnhits () ;ii++)
+      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  }
 
   // External fit
   if (TkDBc::Head->GetSetup() == 3 && (id & kExternal) ){
@@ -946,6 +967,16 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   bool done = (fdone >= 0 && _TrFit.GetChisqX() >= 0 && 
 	                     _TrFit.GetChisqY() >= 0);
 
+  /// Restore deafult PG alignment if CIEMAT one was used
+  if(UsedCiemat){
+      rret=UpdateExtLayer(0);   //PG
+    if (!rret) return -6;
+    // update hit coo
+    for (int ii=0;ii<getnhits () ;ii++)
+      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  }
+
+  /// Check if the fit was successful
   if (done && method != TrFit::LINEAR && _TrFit.GetRigidity() == 0)
     done = false;
   if (!done) return -90000+fdone;
@@ -1247,24 +1278,33 @@ void TrTrackR::getParFastFit(number& Chi2,  number& Rig, number& Err,
 int TrTrackR::DoAdvancedFit(int add_flag)
 {
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
- for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
-
-   // SameWeight fit only with ext. layers
-   if ((DefaultAdvancedFitFlags[ii] & kSameWeight) &&
-       !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
-     continue;
-
-   if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
-     FitT(DefaultAdvancedFitFlags[ii]| add_flag);
-     if (add_flag == 0) {
-       FitT(DefaultAdvancedFitFlags[ii]| kUpperHalf);
-       FitT(DefaultAdvancedFitFlags[ii]| kLowerHalf);
-     }
-     else if (ii < 4)
+ 
+ int kmax=1;
+ //  PZ Uncomment this for the CIEMAT Alignment FITTING
+//  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
+//    kmax=2;
+ 
+ for (int kk=0;kk<kmax;kk++){
+   if(kk==1) add_flag|=kAltExtAl;
+   for(int ii=0;ii<DEF_ADVFIT_NUM;ii++) {
+     
+     // SameWeight fit only with ext. layers
+     if ((DefaultAdvancedFitFlags[ii] & kSameWeight) &&
+	 !(add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)))
+       continue;
+     
+     if ((AdvancedFitBits & (1 << ii)) && DefaultAdvancedFitFlags[ii] > 0) {
        FitT(DefaultAdvancedFitFlags[ii]| add_flag);
-
-     if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
-       FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
+       if (add_flag == 0) {
+	 FitT(DefaultAdvancedFitFlags[ii]| kUpperHalf);
+	 FitT(DefaultAdvancedFitFlags[ii]| kLowerHalf);
+       }
+      //  else if (ii < 4)
+       // 	 FitT(DefaultAdvancedFitFlags[ii]| add_flag);
+       
+       if (add_flag == (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9)) 
+	 FitT(DefaultAdvancedFitFlags[ii]| add_flag| kExternal);
+     }
    }
  }
  return AdvancedFitDone(add_flag);
@@ -1353,6 +1393,17 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   bool mscat=((algo/10)==1);
   bool wsame=((algo/20)==1);
   int fittype=0;
+  
+  int DisableFlag=refit/100;
+  refit=refit%100;
+
+  if (refit==14 ||refit >13||refit <0||(refit>5&&refit<10)) return -1;
+  if (refit==5 ) refit=13; 
+  if (refit==4 ) refit=3; 
+
+  int CIEMATFlag=refit/10;
+  refit=refit%10;
+
   switch (type){
     case 0 :
       fittype|=trdefaultfit;
@@ -1437,18 +1488,32 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   }else
     return -1;
 
+
+  if( (
+       (fittype & kFitLayer8) || (fittype & kFitLayer8)|| (fittype & kExternal)
+       ) 
+      && CIEMATFlag) fittype|=kAltExtAl;
+ 
+
+ if( (
+       (fittype & kFitLayer8) || (fittype & kFitLayer8)|| (fittype & kExternal)
+       ) 
+      && DisableFlag) fittype|=kDisExtAlCorr;
   
+
   bool FitExists=ParExists(fittype);
   int rret=0;
-  if(refit==4) rret=UpdateExtLayer(0);
-  if(refit==5){
-    TrRecHitR *hit1=GetHitLJ(1);
-    TrRecHitR *hit9=GetHitLJ(9);
-    int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
-    int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-    rret=UpdateExtLayer(1,l1,l9);
-  }
-  if(rret!=0) return -5;    
+
+  /// PZ May 2012 --- Moved to TrTrack::FitT()
+//   if(refit==4) rret=UpdateExtLayer(0);
+//   if(refit==5){
+//     TrRecHitR *hit1=GetHitLJ(1);
+//     TrRecHitR *hit9=GetHitLJ(9);
+//     int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+//     int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+//     rret=UpdateExtLayer(1,l1,l9);
+//   }
+//   if(rret!=0) return -5;    
 
   if(refit>=2 || (!FitExists && refit==1)) { 
     if (refit >= 3) {

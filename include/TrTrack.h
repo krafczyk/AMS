@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.84 2012/05/02 16:30:36 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.85 2012/05/05 02:18:44 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/02 16:30:36 $
+///$Date: 2012/05/05 02:18:44 $
 ///
-///$Revision: 1.84 $
+///$Revision: 1.85 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -226,7 +226,11 @@ public:
     /// **AMS-B: fitting with layer 7**
     kFitLayer7  = 0x40000,
     /// Specific pattern selected
-    kPattern    = 0x80000
+    kPattern    =   0x80000,
+    /// Should  Ext Aligment corr be loaded ( default YES aka this bit =0)
+    kDisExtAlCorr= 0x100000,
+    /// Alternative Ext aligment = Active CIEMAT - NotActive PG
+    kAltExtAl    = 0x200000
   };
 
 #define DEF_ADVFIT_NUM 8
@@ -402,14 +406,21 @@ public:
     900990090  corresponds to layers
     2,5,6,9 J-Scheme. (DEPRECATED) if you want to use OLD scheme replace everywhere 9 with 1)
     \param refit    
-    \li 0   do not refit
-    \li 1    refit if does not exist
-    \li 2  refit
-    \li 3  refit and rebuild of coordinates (useful for tricked alignment)
-    \li 4  refit and rebuild of coordinates with PG    ExtPlanes Alignment 
-    \li 5  refit and rebuild of coordinates with CIEMAT ExtPlanes Alignment 
-    
-    To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetExtAlign(); and refit with 3
+    \li   0  do not refit
+    \li   1  refit if does not exist
+    \li   2  refit
+    \li   3  refit and rebuild ALSO  coordinates (useful for tricked alignment)
+    \li +10  CIEMAT Aligment if meaningful for the pattern
+    \li  10  do not refit 
+    \li  11  refit if does not exist 
+    \li  12  force refit 
+    \li  13  refit and rebuild also INNER coordinates (useful for tricked alignment)
+    \li  DEPRECATED OPT (kept for compatibility)			\
+    \li  4  same as 3
+    \li  5  same as 13
+
+    To Refit without loading any Ext aligment add 100 to the refit parameter
+    To reset the ExtPlane Aligment you can call the static function TrExtAlignDB::ResetExtAlign(); and refit with 103
 
     To correctly perform the refit, the FieldMap file is needed.
     If not loaded elsewhere the program try load the file $AMSDataDir/v5.00/MagneticFieldMapPermanent_NEW.bin

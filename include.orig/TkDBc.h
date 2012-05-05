@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.31 2012/04/27 11:52:21 shaino Exp $
+// $Id: TkDBc.h,v 1.32 2012/05/05 02:18:44 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -315,7 +315,8 @@ private:
   int GetOctant(int side,int _layer,int _slot);
 
   //Pointer ro the planes;
-  TkPlane* planes[maxplanes];
+
+  vector<TkPlane*>  planes2;
 
   //! Rebuild all the other maps from tkidmap
   void RebuildMap();
@@ -380,7 +381,8 @@ public:
   //! Returns the number of active planes
   int GetNPlanes() const { return nplanes;} 
   //! Return the pointer to the iith (ii [1-6]) TkPlane object 
-  TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return planes[ii-1]; else return 0;}
+  TkPlane* GetPlane(int ii);
+  //  TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return &(planes[ii-1]); else return 0;}
 
   //! TkId map number of elements
   int GetEntries() { return 192; }
@@ -487,6 +489,8 @@ public:
   int GetSetup(){return _setup;}
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
+
+  static int nthreads;
 
   ClassDef(TkDBc, 9);
 };

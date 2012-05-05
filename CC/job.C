@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.867 2012/05/04 13:46:49 qyan Exp $
+// $Id: job.C,v 1.868 2012/05/05 02:18:44 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2059,6 +2059,9 @@ void AMSJob::udata(){
 
 
 #ifdef _PGTRACK_
+#ifdef _OPENMP
+  TkDBc::nthreads=omp_get_num_procs();
+#endif
   TkDBc::CreateTkDBc();
 #else
 #endif
