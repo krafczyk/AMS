@@ -53,11 +53,12 @@ void tkafit(const char *fname, const char *dname = "HistoMan",
 	  continue;
 	}
 
-	Int_t rebin = (j == 0 || j == 8) ? 2 : 1;
+	Int_t   rebin = (j == 0 || j == 8) ? 2 : 1;
+	Double_t xrng = (j == 8) ? 30 : 0;
 
 	shn = Form("prof%d%d%d", i+1, j+1, k+1);
 	Int_t   col = (k == 0) ? 2 : 4;
-	TH1F  *prof = fitp(hist, shn, axis, rebin, col);
+	TH1F  *prof = fitp(hist, shn, axis, xrng, rebin, col);
 	if (!prof) continue;
 
 	while (prof->GetMinimum() < -rng) rng *= 2;
@@ -125,8 +126,8 @@ void tkafit(const char *fname, const char *dname = "HistoMan",
   c1->SaveAs(spn+"]");
 }
 
-TH1F *fitp(TH3F *hist, const char *hname, Int_t axis, Int_t rebin = 1,
-	   Int_t col = 1, Int_t sty = 21)
+TH1F *fitp(TH3F *hist, const char *hname, Int_t axis, Double_t xrng = 0,
+	   Int_t rebin = 1, Int_t col = 1, Int_t sty = 21)
 {
   Int_t nbx = hist->GetNbinsX();
   Int_t nby = hist->GetNbinsY();
@@ -151,12 +152,19 @@ TH1F *fitp(TH3F *hist, const char *hname, Int_t axis, Int_t rebin = 1,
   if (wthd < 200) wthd = 200;
   if (wthd > 1e3) wthd = 1e3;
 
+  Int_t jb1 = 1;
+  Int_t jb2 = (axis == 1) ? nby : nbx;
+  if (axis == 2 && xrng > 0) {
+    jb1 = ax->FindBin(-xrng);
+    jb2 = ax->FindBin( xrng)-1;
+  }
+
   for (Int_t i = 0; i < nbn; i++) {
     Int_t ib1 = i*rebin+1;
     Int_t ib2 = (i+1)*rebin;
 
-    htmp = (axis == 1) ? hist->ProjectionZ("htmp", ib1, ib2, 1, nby)
-                       : hist->ProjectionZ("htmp", 1, nbx, ib1, ib2);
+    htmp = (axis == 1) ? hist->ProjectionZ("htmp", ib1, ib2, jb1, jb2)
+                       : hist->ProjectionZ("htmp", jb1, jb2, ib1, ib2);
     if (htmp->GetSumOfWeights() < wthd) continue;
     htmp->Fit("gaus", "q0");
 
