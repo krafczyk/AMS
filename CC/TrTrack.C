@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.142 2012/05/05 15:04:34 shaino Exp $
+// $Id: TrTrack.C,v 1.143 2012/05/05 15:09:13 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/05 15:04:34 $
+///$Date: 2012/05/05 15:09:13 $
 ///
-///$Revision: 1.142 $
+///$Revision: 1.143 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -841,7 +841,9 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       TrRecHitR *hit9=GetHitLJ(9);
       int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
       int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+#ifndef _OPENMP
       rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+#endif
       UsedCiemat=1;
     }else
       rret=UpdateExtLayer(0);   //PG
@@ -1282,8 +1284,10 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  
  int kmax=1;
  //  PZ Uncomment this for the CIEMAT Alignment FITTING
-//  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-//    kmax=2;
+#ifndef _OPENMP
+  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
+    kmax=2;
+#endif
  
  for (int kk=0;kk<kmax;kk++){
    if(kk==1) add_flag|=kAltExtAl;
