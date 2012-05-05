@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.556 2012/04/25 07:11:16 choutko Exp $
+//  $Id: event.C,v 1.556.2.1 2012/05/05 10:07:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2557,7 +2557,7 @@ void AMSEvent:: _siecalevent(){
 /*
    int16u tesarr[200];
    int16u *p;
-   char fname[80];
+   char fname[1024];
    strcpy(fname,"/f2users/choumilo/ams02wrk/ecalcftes1.dat");
    cout<<"Opening RawFormat test file: "<<fname<<'\n';
    ifstream stfile(fname,ios::in|ios::binary); // open file for reading

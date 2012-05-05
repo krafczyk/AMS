@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.177 2012/04/23 15:42:05 choutko Exp $
+//  $Id: producer.C,v 1.177.2.1 2012/05/05 10:07:51 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -207,7 +207,8 @@ again:
 
 
 
-void AMSProducer::getRunEventInfo(){
+void AMSProducer::getRunEventInfo(bool solo){
+if(solo && _Solo)return;
 if (_Solo){
     struct timeb  ft;
     ftime(&ft);

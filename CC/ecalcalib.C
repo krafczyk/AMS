@@ -805,7 +805,7 @@ void ECREUNcalib::makeToyRLGAfile(){
 //
   strcpy(inum,"0123456789");
   npmx=ECALDBc::slstruc(4);//numb.of PM's/sl
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char vers1[3]="mc";
   char vers2[3]="sd";
@@ -1840,7 +1840,7 @@ void ECREUNcalib::mfit(){
 //--------------------------------------------------------
 //------------> write outp.files :
 //  
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char vers1[3]="MC";
   char vers2[3]="RD";
@@ -2976,7 +2976,7 @@ void ECREUNcalib::mfite(){
 //
 //------------> write outp.files :
 //  
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char vers1[3]="MC";
   char vers2[3]="RD";
@@ -3372,7 +3372,7 @@ void ECREUNcalib::mfite(){
 // ---> write OnBoardPedTable to ped-file:
    if(flg==3 && AMSFFKEY.Update==0){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //
@@ -3892,7 +3892,7 @@ void ECREUNcalib::mfite(){
 // ---> write RD default-peds file:
    if(flg==1 || flg==2){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //

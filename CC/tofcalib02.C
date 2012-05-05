@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.58 2012/04/12 10:27:42 lquadran Exp $
+//  $Id: tofcalib02.C,v 1.58.2.1 2012/05/05 10:07:51 choutko Exp $
 #include "tofdbc02.h"
 #include "tofid.h"
 #include "point.h"
@@ -467,7 +467,7 @@ void TofTmAmCalib::inittz(){
     //
     //---> open file with TOF Slewing Parameters
     //
-    Char_t fname[80];
+    Char_t fname[1024];
     Int_t endflab;
     Char_t ext[80];
     strcpy(fname,"TofSlwSlopeRD.");
@@ -716,7 +716,7 @@ void TofTmAmCalib::mfuntz(int &np, number grad[], number &f, number x[], int &fl
   number f2[TOF2GC::SCLRS-1];
   number f9[TOF2GC::SCLRS-1];
   geant w,tz,tzr;
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char in[2]="0";
   char inum[11];
@@ -2005,7 +2005,7 @@ void TofTmAmCalib::fittd(){//--->Tdelv-calib: get the slope,td0,chi2
   geant tdf[TOF2GC::SCTDBM];
   integer gchan,gsbins;
   geant gsbchan; 
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char in[2]="0";
   char inum[11];
@@ -2759,7 +2759,7 @@ void TofTmAmCalib::fitam(){
   geant step[10],pmin[10],pmax[10],sigp[10];
   integer nev1,nev2,npar=2;
   char htit1[60];
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char in[2]="0";
   char inum[11];
@@ -4386,7 +4386,7 @@ void TOFPedCalib::outptb(int flg){//called in buildonbP
 //
    if(flg==3 && AMSFFKEY.Update==0){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //
@@ -4830,7 +4830,7 @@ void TOFPedCalib::outp(int flg){// very preliminary
 // ---> write MC/RD ped-file:
    if(flg==1 || flg==2){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //
@@ -5062,7 +5062,7 @@ void TOFTdcCalib::outp(int flg){
   uinteger BeginRun=AMSUser::JobFirstRunN();//job 1st run# 
   time_t BeginTime=time_t(BeginRun);//begin time = BeginRun
   time_t end,insert;
-  char fname[80],ifname[80];
+  char fname[1024],ifname[1024];
   char frdate[30];
   char vers1[3]="MC";
   char vers2[3]="RD";

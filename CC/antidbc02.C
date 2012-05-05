@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.37 2010/03/05 12:01:20 choumilo Exp $
+//  $Id: antidbc02.C,v 1.37.20.1 2012/05/05 10:07:50 choutko Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -330,7 +330,7 @@ void ANTI2SPcal::build(){ // fill array of objects with data
   geant dqthr,daqthr[ANTI2C::MAXANTI];//daq-readout thresh(adc-ch)
   geant ftdl[2],ftdel[ANTI2C::MAXANTI][2];
   geant t0[2],tzer[ANTI2C::MAXANTI][2],m2p[4],m2pe[ANTI2C::MAXANTI][4];
-  char fname[80];
+  char fname[1024];
   char name[80];
   int ctyp,ntypes;
 //
@@ -467,7 +467,7 @@ void ANTI2VPcal::build(){ // fill array of objects with data
   geant attlen[ANTI2C::MAXANTI][2][2],atl[2][2];
   geant powp[ANTI2C::MAXANTI][2][2],pow[2][2];
   geant snorp[ANTI2C::MAXANTI][2][2],snor[2][2];
-  char fname[80];
+  char fname[1024];
   char name[80];
   int ctyp,ntypes;
   int phs,sd;
@@ -654,7 +654,7 @@ void ANTIPeds::mcbuild(){// create MC ANTI-Peds-objects for each ReadoutPaddle
 //
   int i,j,is;
   integer sid;
-  char fname[80];
+  char fname[1024];
   char name[80];
   integer asta[ANTI2C::MAXANTI][2];// array of counter stat
   geant aped[ANTI2C::MAXANTI][2];// array of counter peds
@@ -721,7 +721,7 @@ void ANTIPeds::build(){//tempor solution for RealData peds.
 //
   int i,j,is;
   integer sid;
-  char fname[80];
+  char fname[1024];
   char name[80];
   integer asta[ANTI2C::MAXANTI][2];// array of counter stat
   geant aped[ANTI2C::MAXANTI][2];// array of counter peds
@@ -790,7 +790,7 @@ void ANTIPedsMS::build(){//tempor solution for MC-Seed peds.
 //
   int i,j,is;
   integer sid;
-  char fname[80];
+  char fname[1024];
   char name[80];
   integer asta[ANTI2C::MAXANTI][2];// array of counter stat
   geant aped[ANTI2C::MAXANTI][2];// array of counter peds

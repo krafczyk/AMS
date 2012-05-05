@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.103.10.1 2012/05/05 09:34:56 choutko Exp $
+//  $Id: trigger102.C,v 1.103.10.2 2012/05/05 10:07:51 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -907,7 +907,7 @@ void Lvl1TrigConfig::saveRD(int flg){//save current Lvl1TrigConfig-params(masks,
 //
 //flg=1/2-> save2file/+DB
   integer endflab(12345);
-  char fname[80];
+  char fname[1025];
   char name[80];
   char buf[20];
   static integer runno(-1);

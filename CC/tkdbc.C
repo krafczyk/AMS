@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.76 2010/12/30 13:43:18 choutko Exp $
+//  $Id: tkdbc.C,v 1.76.20.1 2012/05/05 10:07:51 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -4152,7 +4152,7 @@ TrkElosPDF::TrkElosPDF(int ich, int ch, int nb[], geant stp[],
 //---
 void TrkElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 //
-  char fname[80];
+  char fname[1024];
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";

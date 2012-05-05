@@ -662,7 +662,7 @@ void AntiCalib::fit(){
     }//--->endof phys.sect.index-loop
   }//--->endof Log.sect-loop
 //------------------>save parameters:
-  char fname[80];
+  char fname[1024];
   char frdate[30];
   char vers1[3]="MC";
   char vers2[3]="RD";
@@ -995,7 +995,7 @@ void ANTPedCalib::outptb(int flg){//called in buildonbP
 //
    if(flg==3 && AMSFFKEY.Update==0){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //
@@ -1357,7 +1357,7 @@ void ANTPedCalib::outp(int flg){// very preliminary
 // ---> write MC/RD ped-file:
    if(flg==1 || flg==2){
      integer endflab(12345);
-     char fname[80];
+     char fname[1024];
      char name[80];
      char buf[20];
 //
