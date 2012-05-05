@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.103 2011/06/24 09:16:20 choumilo Exp $
+//  $Id: trigger102.C,v 1.103.10.1 2012/05/05 09:34:56 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // deep modifications Nov.2005 by E.Choumilov
 // decoding tools added dec.2006 by E.Choumilov
@@ -507,7 +507,7 @@ if((TGL1FFKEY.printfl%10)>0){
 }
 //--------------------
 void Lvl1TrigConfig::read(){//read needed Lvl1TrigConfig-params(masks,...) from def.file
-  char fname[80];
+  char fname[1024];
   char name[80];
   char datt[3];
   char ext[80];
