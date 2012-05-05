@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.149 2012/04/27 09:34:31 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.150 2012/05/05 15:04:34 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/04/27 09:34:31 $
+/// $Date: 2012/05/05 15:04:34 $
 ///
-/// $Revision: 1.149 $
+/// $Revision: 1.150 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3301,13 +3301,17 @@ int TrRecon::FillHistos(int trstat, int refit)
        (trk->GetBitPattern() & 0x100))) {  // Require L1-OR-L9
 
     for (int j = 0; j < 9; j++) {
-      TrRecHitR *hit = trk->GetHitLJ(j+1);
+      int       layj = j+1;
+      TrRecHitR *hit = trk->GetHitLJ(layj);
       if (!hit) continue;
-      AMSPoint res = trk->GetResidualJ(j+1, mfi);  // Inner fitting residual
+      AMSPoint res = trk->GetResidualJ(layj, mfi);  // Inner fitting residual
       AMSPoint coo;
       AMSDir   dir;
-      trk->InterpolateLayerJ(j+1, coo, dir, mfi);
+      trk->InterpolateLayerJ(layj, coo, dir, mfi);
       if (dir.z() == 0) continue;
+
+      // Exclude Layer9 hits out of Ecal window
+      if (layj == 9 && std::fabs(coo.x()) > 33) continue;
 
       TString shn = Form("TrRes%d", j+1);
       if (!hit->OnlyY()) {

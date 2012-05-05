@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.141 2012/05/05 02:18:44 pzuccon Exp $
+// $Id: TrTrack.C,v 1.142 2012/05/05 15:04:34 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/05 02:18:44 $
+///$Date: 2012/05/05 15:04:34 $
 ///
-///$Revision: 1.141 $
+///$Revision: 1.142 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -831,9 +831,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   //  Update External DB alignment
   int rret =0;
   int UsedCiemat=0;
-  if(
-     ((id & kFitLayer8) || (id & kFitLayer9)|| (id & kExternal)) &&
-     !(id & kDisExtAlCorr)
+  if(1
+   // SH apply always outer alignment
+   /*((id & kFitLayer8) || (id & kFitLayer9)|| (id & kExternal)) &&
+     !(id & kDisExtAlCorr)*/
      ){
     if( (id & kAltExtAl) ){
       TrRecHitR *hit1=GetHitLJ(1);
@@ -844,7 +845,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
       UsedCiemat=1;
     }else
       rret=UpdateExtLayer(0);   //PG
-    if (!rret) return -6;
+    if (rret != 0) return -6;
     // update hit coo
     for (int ii=0;ii<getnhits () ;ii++)
       if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
@@ -970,7 +971,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   /// Restore deafult PG alignment if CIEMAT one was used
   if(UsedCiemat){
       rret=UpdateExtLayer(0);   //PG
-    if (!rret) return -6;
+    if (rret != 0) return -6;
     // update hit coo
     for (int ii=0;ii<getnhits () ;ii++)
       if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
