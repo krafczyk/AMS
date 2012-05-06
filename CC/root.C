@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.395 2012/05/04 13:53:31 qyan Exp $
+//  $Id: root.C,v 1.396 2012/05/06 19:58:47 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -4815,10 +4815,10 @@ int RichRingR::getUsedHits(int pmt, bool corr) {
 
 float RichRingR::getPhotoElectrons(bool corr){
   if (!corr || !loadPmtCorrections){
-    NpCol=0;
+    float myNpCol=0;
     for(map<unsigned short,float>::iterator i=NpColPMT.begin();
-	i!=NpColPMT.end();i++,NpCol+=i->second);
-      return NpCol;
+	i!=NpColPMT.end();i++) myNpCol+=i->second;
+      return myNpCol;
   }
 
   float sum=0;
@@ -4846,10 +4846,10 @@ float RichRingR::getPhotoElectrons(int pmt, bool corr){
 
 float RichRingR::getExpectedPhotoElectrons(bool corr){
   if (!corr){
-    NpExp=0;
+    float myNpExp=0;
     for(map<unsigned short,float>::iterator i=NpExpPMT.begin();
-	i!=NpExpPMT.end();i++,NpExp+=i->second);
-    return NpExp;
+	i!=NpExpPMT.end();i++) myNpExp+=i->second;
+    return myNpExp;
   }
 
   float sum=0;
