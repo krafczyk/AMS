@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.33 2012/05/05 15:09:13 pzuccon Exp $
+// $Id: TkDBc.h,v 1.34 2012/05/07 09:02:35 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -135,9 +135,10 @@ public:
 
   //! Z distance of the silicon surface from the middle of the plane;
   number _layer_deltaZ[maxlay];
-  //! Alignment correction to Z distance of the silicon surface from the middle of the plane;
-  number _layer_deltaZA[maxlay];
-
+private:  
+//! Alignment correction to Z distance of the silicon surface from the middle of the plane;
+  vector<number> _layer_deltaZA;
+public:
   //! number of active ladders for side/layer
   integer  _nlad[2][maxlay];
 
@@ -314,7 +315,7 @@ private:
 
   int GetOctant(int side,int _layer,int _slot);
 
-  //Pointer ro the planes;
+  //Pointer to the planes;
 
   vector<TkPlane*>  planes2;
 
@@ -381,9 +382,12 @@ public:
   //! Returns the number of active planes
   int GetNPlanes() const { return nplanes;} 
   //! Return the pointer to the iith (ii [1-6]) TkPlane object 
-  TkPlane* GetPlane(int ii);
+  TkPlane* GetPlane(int ii, int override=0);
   //  TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return &(planes[ii-1]); else return 0;}
-
+  //! returns the layer (0-8) deltaZ inner alignment correction.
+  number Get_layer_deltaZA(int ii, int override=0);
+  //! returns the layer (0-8) deltaZ inner alignment correction.
+  void  Update_layer_deltaZA(int ii,number dz);
   //! TkId map number of elements
   int GetEntries() { return 192; }
   //! TkId map element by iterator index
@@ -412,12 +416,12 @@ public:
   //! Get X-coordinate of layer
   double GetXlayer(int i) {
     return (1 <= i && i <= nlays)
-      ? GetPlane(_plane_layer[i-1])->pos[0]: -9999.;} 
+      ? GetPlane(_plane_layer[i-1])->GetPos()[0]: -9999.;} 
   
   //! Get Y-coordinate of layer
   double GetYlayer(int i) {
     return (1 <= i && i <= nlays)
-      ? GetPlane(_plane_layer[i-1])->pos[1]: -9999.;} 
+      ? GetPlane(_plane_layer[i-1])->GetPos()[1]: -9999.;} 
 
   //! Get Aligned Z-coordinate of layer J-scheme
   double GetZlayerAJ(int i) {
@@ -432,15 +436,15 @@ public:
   //! Get Aligned Z-coordinate of layer OLD scheme
   double GetZlayerA(int i) {
     return (1 <= i && i <= nlays) 
-      ? GetPlane(_plane_layer[i-1])->pos[2]+
-        GetPlane(_plane_layer[i-1])->posA[2]+
-        GetPlane(_plane_layer[i-1])->rot.GetEl(2, 2)*
+      ? GetPlane(_plane_layer[i-1])->GetPos()[2]+
+        GetPlane(_plane_layer[i-1])->GetPosA()[2]+
+      GetPlane(_plane_layer[i-1])->GetRotMat().GetEl(2, 2)*
         _layer_deltaZ[i-1] : -99999.;}
   //! Get Z-coordinate of layer OLD scheme
   double GetZlayer(int i) {
     return (1 <= i && i <= nlays) 
-      ? GetPlane(_plane_layer[i-1])->pos[2]+
-        GetPlane(_plane_layer[i-1])->rot.GetEl(2, 2)*
+      ? GetPlane(_plane_layer[i-1])->GetPos()[2]+
+      GetPlane(_plane_layer[i-1])->GetRotMat().GetEl(2, 2)*
         _layer_deltaZ[i-1] : -99999.;}
   //! copy the rotation matrix into nrm array
   void GetLayerRot(int lay,number nrm[][3]);
@@ -492,7 +496,7 @@ public:
 
   static int nthreads;
 
-  ClassDef(TkDBc, 10);
+  ClassDef(TkDBc, 11);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

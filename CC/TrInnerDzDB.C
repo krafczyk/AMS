@@ -24,7 +24,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
   int ret=GetEntry(Timeid,Dz,1);
   if( ret >=0) {
     for (int ii=0;ii<7;ii++)
-      db->_layer_deltaZA[ii]=Dz[ii];
+      db->Update_layer_deltaZA(ii,Dz[ii]);
     return 0;
   }
   else if(ret ==-2 || ret==-3){ //Fall back to TDV
@@ -33,7 +33,7 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
     int ret2=GetEntry(Timeid,Dz,1);
     if( ret2 >=0) {
       for (int ii=0;ii<7;ii++)
-	db->_layer_deltaZA[ii]=Dz[ii];
+	db->Update_layer_deltaZA(ii,Dz[ii]);
       return 0;
     }
     else return -3;    

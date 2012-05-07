@@ -9,7 +9,7 @@ SRC_U= analyze.C
 OBJS_U=$(SRC_U:%.C=%.o)
 
 CPPFLAGS=-D_PGTRACK_ -I. -Ilib -I$(AMSSRC)/include -I$(ROOTSYS)/include
-CXXFLAGS= -O3 -Wno-write-strings  $(CPPFLAGS)
+CXXFLAGS= -g -Wno-write-strings  $(CPPFLAGS)
 
 main: static
 static: analyze

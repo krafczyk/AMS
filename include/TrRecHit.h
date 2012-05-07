@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.39 2012/04/22 23:40:34 oliva Exp $
+//  $Id: TrRecHit.h,v 1.40 2012/05/07 09:02:36 pzuccon Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -237,8 +237,8 @@ public:
   void Clear();
   /// Rebuild the current coordinate; _coord
   void BuildCoordinate() { if (_imult>=0) _coord=GetGlobalCoordinate(_imult); }
-  /// Rebuild the current coordinate using DynAlignment class for the external layers
-  void BuildCoordinateDynExt();
+  // Rebuild the current coordinate using DynAlignment class for the external layers
+  //void BuildCoordinateDynExt();
   /// Get dummy strip position
   float GetDummyX() { return _dummyX; }
   /// Set dummy strip position

@@ -1,4 +1,4 @@
-// $Id: TkLadder.h,v 1.11 2012/02/13 16:44:22 pzuccon Exp $
+// $Id: TkLadder.h,v 1.12 2012/05/07 09:02:35 pzuccon Exp $
 
 #ifndef __TkLadder__
 #define __TkLadder__
@@ -19,9 +19,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2012/02/13 16:44:22 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-///$Revision: 1.11 $
+///$Revision: 1.12 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
@@ -79,8 +79,6 @@ private:
   //! The number of sensors composing the ladder(0xFF) 
   //! IsAlignment(LASER)  (0x800), IsK7 (0x400)
   int _nsensors;
-  //! Pointer to the plane object the ladder is mounted to
-  TkPlane* _plane;
 
 public:
   //! version >=2 support sensor alignment (XYZ) TDV and file IO interface 
@@ -96,9 +94,9 @@ public:
   //! Default constructor set all properties to zero
   TkLadder();
   //! explicit constructor
-  TkLadder(TkPlane* plane,char* name,int layer,int slot,int crate,int tdr,int nsensors);
+  TkLadder(char* name,int layer,int slot,int crate,int tdr,int nsensors);
   //! explicit constructor with TkId= signof(slot) * (abs(slot)+100*layer) and HwId= tdr+ crate*100
-  TkLadder(TkPlane* plane,char* name,int TkId,int HwId,int nsensors);
+  TkLadder(char* name,int TkId,int HwId,int nsensors);
   ~TkLadder(){}
 
   //! it returns the layer OLD scheme
@@ -106,7 +104,18 @@ public:
   //! it returns the layer J-scheme
   int GetLayerJ()const;
   //! it returns the pointer to the plane object
-  TkPlane* GetPlane()const{return _plane;}
+  TkPlane* GetPlane()const;
+  
+  int GetPlaneId()const{
+    if(_layer==1) return 1;
+    else if(_layer==2 || _layer==3) return 2;
+    else if(_layer==4 || _layer==5) return 3;
+    else if(_layer==6 || _layer==7) return 4;
+    else if(_layer==8) return 5;
+    else if(_layer==9) return 6;
+    else
+      return -1;
+  }
 
 
   //! it returns the number of sensors
@@ -137,8 +146,6 @@ public:
   //! it returns PGid= pwgp*100+pwpos
   int GetPgId()const{return GetPwGroup()*100+GetPwgroupPos(); }
 
-  //! it Sets the pointer to the plane object
-  void SetPlane(TkPlane* pl) { _plane=pl;}
 
   //! Sets the Sensor align pars to XY Metrology data (dz=0)
   void ResetSensorAlign();
@@ -187,7 +194,7 @@ public:
   void Align2Lin(float * off);
   void Lin2Align(float * off);
   static int GetSize(){return (version<2)?6:6+trconst::maxsen*3;}
-  ClassDef(TkLadder,4);
+  ClassDef(TkLadder,5);
 };
 #endif
 

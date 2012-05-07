@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.85 2012/05/05 02:18:44 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.86 2012/05/07 09:02:36 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/05 02:18:44 $
+///$Date: 2012/05/07 09:02:36 $
 ///
-///$Revision: 1.85 $
+///$Revision: 1.86 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -228,9 +228,9 @@ public:
     /// Specific pattern selected
     kPattern    =   0x80000,
     /// Should  Ext Aligment corr be loaded ( default YES aka this bit =0)
-    kDisExtAlCorr= 0x100000,
+    kDisExtAlCorr= 0x200000,
     /// Alternative Ext aligment = Active CIEMAT - NotActive PG
-    kAltExtAl    = 0x200000
+    kAltExtAl    = 0x400000
   };
 
 #define DEF_ADVFIT_NUM 8
@@ -252,8 +252,11 @@ protected:
   short int _iHits[trconst::maxlay];
   //   /// Vector of multiplicty index (to fix x-coord) 
   //   short int _iMult[trconst::maxlay];
+  map<int,AMSPoint> _HitCoo;
   /// The real bitted Track Pattern
   unsigned short int _bit_pattern;
+  /// The real bitted Track Pattern
+  unsigned short int _bit_patternX;
   /// Track pattern ID
   short int _Pattern;
   /// Number of hits
@@ -914,7 +917,7 @@ public:
     return Tr.putout(ostr);}
 	
 	
-  ClassDef(TrTrackR, 4); 
+  ClassDef(TrTrackR, 5); 
 
 
   

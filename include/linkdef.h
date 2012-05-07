@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.117 2012/05/04 13:54:27 qyan Exp $
+//  $Id: linkdef.h,v 1.118 2012/05/07 09:02:36 pzuccon Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -7,6 +7,7 @@
 #pragma link C++ class MTF1+;
 #pragma link C++ class TkObject+;
 #pragma link C++ class TkPlane+;
+#pragma link C++ class TkPlaneExt+;
 #pragma link C++ class TkLadder+;
 #pragma link C++ class TkCoo+;
 #pragma link C++ class TkDBc+;

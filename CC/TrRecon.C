@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.150 2012/05/05 15:04:34 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.151 2012/05/07 09:02:35 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/05/05 15:04:34 $
+/// $Date: 2012/05/07 09:02:35 $
 ///
-/// $Revision: 1.150 $
+/// $Revision: 1.151 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -3879,7 +3879,7 @@ TkSens TrRecon::EstimateXCoord(AMSPoint gcoo, int tkid) const
   TkSens tks(tkid, gcoo,0);
   if (tks.LadFound() && tks.GetStripX() < 0) {
     float sx = tks.GetSensCoo().x();
-    float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
+    float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->GetRotMat().GetEl(0, 0);
     if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
     if (sx > TkDBc::Head->_ssize_active[0])
       gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);

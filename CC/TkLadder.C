@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.9 2012/02/13 16:44:22 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.10 2012/05/07 09:02:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2012/02/13 16:44:22 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-///$Revision: 1.9 $
+///$Revision: 1.10 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,31 +36,31 @@ TkLadder::TkLadder():TkObject()
   _crate=0;
   _tdr=0;
   _nsensors=0;
-  _plane=NULL;
   for (int i = 0; i < trconst::maxsen; i++){ _sensx[i] =0.; _sensy[i] =0; _sensz[i] = 0.;}
 }
 
-TkLadder::TkLadder(TkPlane* plane,char* Name,int layer,int slot,int crate,int tdr, int nsensors):TkObject(Name)
+TkLadder::TkLadder(char* Name,int layer,int slot,int crate,int tdr, int nsensors):TkObject(Name)
 {
   _layer=layer;
   _slot=slot;
   _crate=crate;
   _tdr=tdr;
   _nsensors=nsensors;
-  _plane=plane;
   for (int i = 0; i < trconst::maxsen; i++){ _sensx[i] =0.; _sensy[i] =0; _sensz[i] = 0.;}
 }
 
-TkLadder::TkLadder(TkPlane* plane,char* Name,int Trid,int HwId,  int nsensors):TkObject(Name){
+TkLadder::TkLadder(char* Name,int Trid,int HwId,  int nsensors):TkObject(Name){
   _layer=abs(Trid)/100;
   _slot=abs(Trid)/Trid*(abs(Trid)-100*_layer);
   _crate=HwId/100;
   _tdr=HwId-_crate*100;
   _nsensors=nsensors;
-  _plane=plane;
   for (int i = 0; i < trconst::maxsen; i++){ _sensx[i] =0.; _sensy[i] =0; _sensz[i] = 0.;}
 }
 
+TkPlane* TkLadder::GetPlane()const{
+  return TkDBc::Head->GetPlane(GetPlaneId());
+}
 
 
 int TkLadder::GetLayerJ()const{

@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.20 2012/04/25 13:02:57 shaino Exp $ 
+/// $Id: TkSens.C,v 1.21 2012/05/07 09:02:35 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2012/04/25 13:02:57 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-/// $Revision: 1.20 $
+/// $Revision: 1.21 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -187,19 +187,34 @@ int TkSens::GetSens(){
 
 
   //Alignment corrected Plane Rotation matrix
-  AMSRotMat PRotG=pp->GetRotMat().Invert()*pp->GetRotMatA().Invert();
-  if(IsMC()) PRotG=pp->GetRotMat().Invert()*pp->GetRotMatT().Invert();
+  AMSRotMat PRotG0=pp->GetRotMat();
+  AMSRotMat PRotG1=pp->GetRotMatA();
+  AMSRotMat PRotG=PRotG0.Invert()*PRotG1.Invert();
+
+  if(IsMC()) {
+	  PRotG0=pp->GetRotMat();
+	  PRotG1=pp->GetRotMatT();
+	  PRotG=PRotG0.Invert()*PRotG1.Invert();
+  }
+
 
   //Alignment corrected Ladder postion
   int Layer=lad->GetLayer();
-  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->_layer_deltaZA[Layer-1]);
+  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->Get_layer_deltaZA(Layer-1));
 
   AMSPoint PosG=lad->GetPosA()+lad->GetPos()+LayerZCorrection;
   if(IsMC()) PosG=lad->GetPosT()+lad->GetPos();
 
   //Alignment corrected Ladder Rotation matrix
-  AMSRotMat RotG=lad->GetRotMat().Invert()*lad->GetRotMatA().Invert();
-  if(IsMC()) RotG=lad->GetRotMat().Invert()*lad->GetRotMatT().Invert();
+  AMSRotMat RotG0=lad->GetRotMat();
+  AMSRotMat RotG1=lad->GetRotMatA();
+  AMSRotMat RotG=RotG0.Invert()*RotG1.Invert();
+  if(IsMC()) {
+	  RotG0=lad->GetRotMat();
+	  RotG1=lad->GetRotMatT();
+	  RotG=RotG0.Invert()*RotG1.Invert();
+  }
+
 
   //Convolute with the Plane pos in the space
   AMSPoint oo = PRotG*(GlobalCoo-PPosG);

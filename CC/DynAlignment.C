@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.52 2012/04/26 09:04:07 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.53 2012/05/07 09:02:35 pzuccon Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -901,8 +901,8 @@ void DynAlContinuity::CleanAlignment(){
   for(int i=0;i<2;i++){
     TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
     if (!pl) continue;
-    pl->posA.setp(0,0,0);
-    pl->rotA.Reset();
+    pl->UpdatePosA().setp(0,0,0);
+    pl->UpdateRotA().Reset();
   }
 #endif
 }

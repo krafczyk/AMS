@@ -1,4 +1,4 @@
-// $Id: TkObject.h,v 1.6 2011/09/27 23:50:08 pzuccon Exp $
+// $Id: TkObject.h,v 1.7 2012/05/07 09:02:35 pzuccon Exp $
 
 #ifndef __TkObject__
 #define __TkObject__
@@ -22,9 +22,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/02/21 PZ  Updates for alignment correction
 ///\date  2008/04/02 SH  putin/putout updated for the alignment correction
-///$Date: 2011/09/27 23:50:08 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-///$Revision: 1.6 $
+///$Revision: 1.7 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +54,7 @@ protected:
 public:
   //! the name of the TkObject
   char name[50];
+protected:
   //! the 3D position of the TkObject 
   AMSPoint   pos;
   //! the orientation in space of the TkObject
@@ -76,46 +77,40 @@ public:
   TkObject(char* namein="");
   //! The destructor
   virtual ~TkObject(){}
-  //! set the postion from a set of 3 coordinates
-  void setpos(number x, number y, number z){pos.setp(x,y,z);}
-  //! set the rotation matric from an array[3][3]
-  void setrot(number rr[][3]){rot.SetMat(rr);}
-  //! set the rotation matric from an array[3][3]
-  void setrot(number ** rr){rot.SetMat(rr);}
+
+
   //! it returns a copy of the AMSPoint defining the position of the TkObject
-  AMSPoint  GetPos() const  { return pos;}
+  const AMSPoint&  GetPos()  const { return pos;}
   //! it returns a copy of the AMSRotMat defining the orientation of the TkObject
-  AMSRotMat GetRotMat()const{ return rot;}
+  const AMSRotMat& GetRotMat()const{ return rot;}
+  //! get the pointer to pos
+  AMSPoint&  UpdatePos(){return pos;}
+  //! get the pointer to rot
+  AMSRotMat& UpdateRot() {return rot;}
 
 
-
-
-  //! set the Alignment correction from a set of 3 coordinates
-  void setposA(number x, number y, number z){posA.setp(x,y,z);}
-  //! set the Alignment correction rotation matrix from an array[3][3]
-  void setrotA(number rr[][3]){rotA.SetMat(rr);}
-  //! set the Alignment correction rotation matrix from an array[3][3]
-  void setrotA(number ** rr){rotA.SetMat(rr);}
-  //! it returns a copy of the AMSPoint defining Alignment correction to the position of the TkObject
-  AMSPoint  GetPosA() const  { return posA;}
+  virtual const AMSPoint&  GetPosA() const  { return posA;}
   //! it returns a copy of the AMSRotMat defining Alignment correction to the orientation of the TkObject
-  AMSRotMat GetRotMatA() const { return rotA;}
+  virtual const AMSRotMat& GetRotMatA() const { return rotA;}
+  //! get the pointer to posA
+  virtual AMSPoint&  UpdatePosA(int kk=0){return posA;}
+  //! get the pointer to rotA
+  virtual AMSRotMat& UpdateRotA(int kk=0) {return rotA;}
 
 
-  //! set the MC (Dis)Alignment correction from a set of 3 coordinates
-  void setposT(number x, number y, number z){posT.setp(x,y,z);}
-  //! set the MC (Dis)Alignment correction rotation matrix from an array[3][3]
-  void setrotT(number rr[][3]){rotT.SetMat(rr);}
-  //! set the MC (Dis)Alignment correction rotation matrix from an array[3][3]
-  void setrotT(number ** rr){rotT.SetMat(rr);}
   //! it returns a copy of the AMSPoint defining MC (Dis)Alignment correction to the position of the TkObject
-  AMSPoint  GetPosT() const  { return posT;}
+  const AMSPoint&  GetPosT() const  { return posT;}
   //! it returns a copy of the AMSRotMat defining MC (Dis)Alignment correction to the orientation of the TkObject
-  AMSRotMat GetRotMatT() const { return rotT;}
+  const AMSRotMat& GetRotMatT() const { return rotT;}
+  //! get the pointer to posT
+  AMSPoint&  UpdatePosT(){return posT;}
+  //! get the pointer to rotT
+  AMSRotMat& UpdateRotT() {return rotT;}
+
 
 
   //! Create a rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
-void SetRotAngles(double alpha, double beta, double gamma){
+  void SetRotAngles(double alpha, double beta, double gamma){
     rot.SetRotAngles(alpha, beta, gamma);
   }
   //!copy the rot mat to a 3x3 array
@@ -123,15 +118,15 @@ void SetRotAngles(double alpha, double beta, double gamma){
 
 
   //! Create a rotation matrix( MC (Dis)alignemnt) according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
-void SetRotAnglesT(double alpha, double beta, double gamma){
+  void SetRotAnglesT(double alpha, double beta, double gamma){
     rotT.SetRotAngles(alpha, beta, gamma);
   }
-
+  
   //! Create a rotation matrix(alignemnt) according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
-void SetRotAnglesA(double alpha, double beta, double gamma){
+  virtual void SetRotAnglesA(double alpha, double beta, double gamma){
     rotA.SetRotAngles(alpha, beta, gamma);
   }
-
+  
 
   //! Get the angles corresponding to te current rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
   void GetRotAngles(double& alpha, double& beta, double& gamma){
@@ -144,18 +139,18 @@ void SetRotAnglesA(double alpha, double beta, double gamma){
   }
 
   //! Get the angles corresponding to te current  (aligment) rotation matrix according to a rotation sequence: alpha(XY) beta(XZ) gamma(YZ) all angles are increasing with the right hand notation
-  void GetRotAnglesA(double& alpha, double& beta, double& gamma){
+  virtual void GetRotAnglesA(double& alpha, double& beta, double& gamma){
     rotA.GetRotAngles(alpha, beta, gamma);
   }
-
+  
   //! operator to stream out (stdout or a file) the data of the class
   friend ostream &operator << (ostream &o,  TkObject& b)
   {return b.putout(o);}
-
+  
   //! operator to read the class data from an input  stream  (stdin or a file) 
   friend istream &operator >> (istream &o,  TkObject& b)
   {return b.putin(o);}
-
+  
   void ReadA(istream &o){putinA(o);}
   void WriteA(ostream &o){putoutA(o);}
 

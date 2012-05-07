@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.143 2012/05/05 15:09:13 pzuccon Exp $
+// $Id: TrTrack.C,v 1.144 2012/05/07 09:02:35 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/05 15:09:13 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-///$Revision: 1.143 $
+///$Revision: 1.144 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -94,7 +94,7 @@ const int TrTrackR::DefaultAdvancedFitFlags[DEF_ADVFIT_NUM]=
     kChoutko|kSameWeight, 
     kAlcaraz|kSameWeight };
 
-int TrTrackR::AdvancedFitBits = 0xcf; // kChikanian and kChikanianF is off
+int TrTrackR::AdvancedFitBits = 0xef; // kChikanian and kChikanianF is off
 
 TrTrackR::TrTrackR(): _Pattern(-1), _Nhits(0)
 {
@@ -355,12 +355,25 @@ void TrTrackR::AddHit(TrRecHitR *hit, int imult)
   if (hit->GetXCluster()) _NhitsX++;
   if (hit->GetYCluster()) _NhitsY++;
   if (hit->GetXCluster() && hit->GetYCluster()) _NhitsXY++;
-  _bit_pattern|= (1<<(hit->GetLayer()-1));
+  _bit_pattern|= (1<<(hit->GetLayer()-1)); 
+  if (hit->GetXCluster()) _bit_patternX|= (1<<(hit->GetLayer()-1));
+  
 
   VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
   _Hits [ihit] = hit;
   _iHits[ihit] = cont2->getindex(hit);
   if(imult>-1) hit->SetResolvedMultiplicity(imult);
+  int ll=hit->GetLayer();
+  if(ll==8||ll==9){
+    TkPlaneExt::SetAlKind(1);
+    hit->BuildCoordinate();
+    _HitCoo[ll+10]=hit->GetCoord();
+    TkPlaneExt::SetAlKind(0);
+    hit->BuildCoordinate();
+    _HitCoo[ll]=hit->GetCoord();
+  }else 
+    _HitCoo[ll]=hit->GetCoord();
+
   //  _iMult[ihit] = (imult >= 0) ? imult : hit->GetResolvedMultiplicity();
   delete cont2;
 
@@ -567,7 +580,7 @@ void TrTrackR::EstimateDummyX(int fitid)
 
       if (tks.GetStripX() < 0) {
 	float sx = tks.GetSensCoo().x();
-	float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->rot.GetEl(0, 0);
+	float sg = TkDBc::Head->FindTkId(tks.GetLadTkID())->GetRotMat().GetEl(0, 0);
 	if (sx < 0) gcoo[0] -= sg*(sx-1e-3);
 	if (sx > TkDBc::Head->_ssize_active[0])
 	  gcoo[0] -= sg*(sx-TkDBc::Head->_ssize_active[0]+1e-3);
@@ -831,27 +844,24 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   //  Update External DB alignment
   int rret =0;
   int UsedCiemat=0;
-  if(1
-   // SH apply always outer alignment
-   /*((id & kFitLayer8) || (id & kFitLayer9)|| (id & kExternal)) &&
-     !(id & kDisExtAlCorr)*/
-     ){
-    if( (id & kAltExtAl) ){
-      TrRecHitR *hit1=GetHitLJ(1);
-      TrRecHitR *hit9=GetHitLJ(9);
-      int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
-      int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-#ifndef _OPENMP
-      rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
-#endif
-      UsedCiemat=1;
-    }else
-      rret=UpdateExtLayer(0);   //PG
-    if (rret != 0) return -6;
-    // update hit coo
-    for (int ii=0;ii<getnhits () ;ii++)
-      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
-  }
+  if( (id & kAltExtAl) ){
+    // Set TkPlaneExt to CIEMAT
+    TkPlaneExt::SetAlKind(1);
+//     TrRecHitR *hit1=GetHitLJ(1);
+//     TrRecHitR *hit9=GetHitLJ(9);
+//     int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+//     int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+//     rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
+    UsedCiemat=1;
+  }else
+    // Set TkPlaneExt to PG
+    TkPlaneExt::SetAlKind(0);
+  
+  if (rret != 0) return -6;
+  // update hit coo
+  for (int ii=0;ii<getnhits () ;ii++)
+    if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  
 
   // External fit
   if (TkDBc::Head->GetSetup() == 3 && (id & kExternal) ){
@@ -934,8 +944,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     // Small Z-correction (charge dependent)
     if (TkDBc::Head && dxdz != 0 && dydz != 0) {
       TkLadder *lad = TkDBc::Head->FindTkId(hit->GetTkId());
-      coo[0] += (lad) ? lad->rot.GetEl(2, 2)*zdxc*dxdz : 0;
-      coo[1] += (lad) ? lad->rot.GetEl(2, 2)*zdyc*dydz : 0;
+      coo[0] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdxc*dxdz : 0;
+      coo[1] += (lad) ? lad->GetRotMat().GetEl(2, 2)*zdyc*dydz : 0;
     }
 
     float ferx = (hit->OnlyY()) ? 0 : 1;
@@ -972,9 +982,8 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   /// Restore deafult PG alignment if CIEMAT one was used
   if(UsedCiemat){
-      rret=UpdateExtLayer(0);   //PG
-    if (rret != 0) return -6;
-    // update hit coo
+    // Set TkPlaneExt to PG
+    TkPlaneExt::SetAlKind(0);
     for (int ii=0;ii<getnhits () ;ii++)
       if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
   }
@@ -1157,8 +1166,11 @@ double TrTrackR::InterpolateLayerO(int ily, AMSPoint &pnt,
   if (!lad) return -1;
 
   TkPlane  *pla = lad->GetPlane();
-  AMSRotMat lrm = lad->GetRotMatA()*lad->GetRotMat();
-  AMSRotMat prm = pla->GetRotMatA()*pla->GetRotMat();
+  AMSRotMat lrm0 = lad->GetRotMatA();
+  AMSRotMat lrm = lrm0*lad->GetRotMat();
+
+  AMSRotMat prm0 = pla->GetRotMatA();
+  AMSRotMat prm = prm0*pla->GetRotMat();
   dir.setp(0, 0, 1);
 
   pnt = prm*(lad->GetPos()+lad->GetPosA())+pla->GetPosA()+pla->GetPos();
@@ -1283,11 +1295,8 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  if (!_MagFieldOn) return (int)FitT(kLinear|add_flag);
  
  int kmax=1;
- //  PZ Uncomment this for the CIEMAT Alignment FITTING
-#ifndef _OPENMP
-  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-    kmax=2;
-#endif
+ if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
+   kmax=2;
  
  for (int kk=0;kk<kmax;kk++){
    if(kk==1) add_flag|=kAltExtAl;

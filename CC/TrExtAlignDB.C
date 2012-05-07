@@ -134,6 +134,8 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -2;
   }
+  // Set TkPlaneExt to CIEMAT
+  TkPlaneExt::SetAlKind(1);
 
   // Update the alignment
   if(!DynAlManager::UpdateParameters(run,time)){
@@ -143,8 +145,8 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
       if(!(pln & (1<<i)))continue;
       TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
       if (!pl) return i==0?-3:-13;
-      pl->posA.setp(0,0,0);
-      pl->rotA.Reset();
+      pl->UpdatePosA().setp(0,0,0);
+      pl->UpdateRotA().Reset();
     }
     return 1;
   }
@@ -220,8 +222,8 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
 
     // Set plane parameters
-    pl->posA=pos;
-    pl->rotA=rot;
+    pl->UpdatePosA()=pos;
+    pl->UpdateRotA()=rot;
   }
   return 0;
 }
@@ -229,14 +231,27 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 
 void TrExtAlignDB::ResetExtAlign() 
 {
-
+  // Set TkPlaneExt to PG
+  TkPlaneExt::SetAlKind(0);
   for (int layer = 8; layer <= 9; layer++) {
     int plane = (layer == 8) ? 5 : 6;
     TkPlane* pl = TkDBc::Head->GetPlane(plane);
     if (!pl) continue;
 
-    pl->posA.setp(0,0,0);
-    pl->rotA.SetRotAngles(0,0,0);
+    pl->UpdatePosA().setp(0,0,0);
+    pl->UpdateRotA().SetRotAngles(0,0,0);
+  }
+
+
+  // Set TkPlaneExt to CIEMAT
+  TkPlaneExt::SetAlKind(1);
+  for (int layer = 8; layer <= 9; layer++) {
+    int plane = (layer == 8) ? 5 : 6;
+    TkPlane* pl = TkDBc::Head->GetPlane(plane);
+    if (!pl) continue;
+
+    pl->UpdatePosA().setp(0,0,0);
+    pl->UpdateRotA().SetRotAngles(0,0,0);
   }
   return;
 }
@@ -247,6 +262,10 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -1;
   }
+
+  // Set TkPlaneExt to PG
+  TkPlaneExt::SetAlKind(0);
+
   int errlim=100;
   static int nwar = 0;
   static int first=1;
@@ -345,8 +364,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
     const TrExtAlignPar *par = Get(layer, time);
     if(!par) return -4;
-    pl->posA.setp(par->dpos[0], par->dpos[1], par->dpos[2]);
-    pl->rotA.SetRotAngles(par->angles[0], par->angles[1], par->angles[2]);
+    pl->UpdatePosA().setp(par->dpos[0], par->dpos[1], par->dpos[2]);
+    pl->UpdateRotA().SetRotAngles(par->angles[0], par->angles[1], par->angles[2]);
   }
 
   return 0;
@@ -516,8 +535,8 @@ void TrExtAlignDB::ProduceDisalignment(unsigned int * tt){
     if (!pl) continue;
     
     TrExtAlignPar &ppar=par[(layer==8)?0:1];
-    pl->posT.setp(ppar.dpos[0], ppar.dpos[1], ppar.dpos[2]);
-    pl->rotT.SetRotAngles(ppar.angles[0], ppar.angles[1], ppar.angles[2]);
+    pl->UpdatePosT().setp(ppar.dpos[0], ppar.dpos[1], ppar.dpos[2]);
+    pl->UpdateRotT().SetRotAngles(ppar.angles[0], ppar.angles[1], ppar.angles[2]);
   }
 
   return;

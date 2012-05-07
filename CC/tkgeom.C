@@ -136,16 +136,18 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
   }
   if(plane ==7) {//PLAN -B DUMMY plane 5N
     TkPlane *pl = TkDBc::Head->GetPlane(1);
-    coo[0] = pl->pos[0]+pl->GetPosT()[0];
-    coo[1] = pl->pos[1]+pl->GetPosT()[1];
-    coo[2] = -1*(pl->pos[2]+pl->GetPosT()[2]+
+    coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
+    coo[1] = pl->GetPos()[1]+pl->GetPosT()[1];
+    coo[2] = -1*(pl->GetPos()[2]+pl->GetPosT()[2]+
 		 pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[0]);
       
     par[0] = 0;
     par[1] = TkDBc::Head->_plane_d1[0]; //container radius
     par[2] = TkDBc::Head->_plane_d2[0]; //container half thickness
   
-    AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
+    
+    AMSRotMat lrm0 = pl->GetRotMatT();
+    AMSRotMat lrm = lrm0*pl->GetRotMat();
   
     for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout=(AMSgvolume*)mvol
@@ -154,9 +156,9 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     }
   else if(plane==6){ //PLAN -B ECAL PLANE 
       // Center is offset because of the ladder asymmetry
-      coo[0] = pl->pos[0]+pl->GetPosT()[0];
-      coo[1] = pl->pos[1]+pl->GetPosT()[1];
-      coo[2] = pl->pos[2]+pl->GetPosT()[2]+TkDBc::Head->_dz[plane-1];
+      coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
+      coo[1] = pl->GetPos()[1]+pl->GetPosT()[1];
+      coo[2] = pl->GetPos()[2]+pl->GetPosT()[2]+TkDBc::Head->_dz[plane-1];
       par[0]=TkDBc::Head->Plane6EnvelopSize[0]/2.;
       //       plan6E Y size/2.
       par[1]=TkDBc::Head->Plane6EnvelopSize[1]/2.;
@@ -165,7 +167,8 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
       cout <<" Placing the Tk  Plan 6 Vol at "<< coo[0]<<"  "<< coo[1]<<"  "<< coo[2]<<
 	"with half dim "<<par[0]<<"  "<<par[1]<<"  "<<par[2]<<endl;
     
-      AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
+      AMSRotMat lrm0 = pl->GetRotMatT();
+      AMSRotMat lrm = lrm0*pl->GetRotMat();
     
       for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout= (AMSgvolume*)mvol
@@ -173,9 +176,9 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
                              par, 3, coo, nrm, "ONLY", 0, plane, 1));
   }else{ //STD AMS PLANES
   
-    coo[0] = pl->pos[0]+pl->GetPosT()[0];
-    coo[1] = pl->pos[1]+pl->GetPosT()[1];
-    coo[2] = pl->pos[2]+pl->GetPosT()[2]+
+    coo[0] = pl->GetPos()[0]+pl->GetPosT()[0];
+    coo[1] = pl->GetPos()[1]+pl->GetPosT()[1];
+    coo[2] = pl->GetPos()[2]+pl->GetPosT()[2]+
       pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[plane-1];
   
     geant par[3];
@@ -183,7 +186,8 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
     par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
   
-    AMSRotMat lrm = pl->GetRotMatT()*pl->GetRotMat();
+    AMSRotMat lrm0 = pl->GetRotMatT();
+    AMSRotMat lrm = lrm0*pl->GetRotMat();
   
     for (int ii = 0; ii < 9; ii++) nrm[ii/3][ii%3] = lrm.GetEl(ii/3,ii%3);
     volout=(AMSgvolume*)mvol
@@ -227,7 +231,9 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
     -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSRotMat rot0 = lad->GetRotMatT();
+  AMSRotMat rot = rot0*lad->GetRotMat();
+
   AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
@@ -241,7 +247,8 @@ AMSgvolume *BuildLadder(AMSgvolume *mvol, int tkid)
   if(layer==8) coo[2] -= TkDBc::Head->_dz[4];
   if(layer==9) coo[2] -= TkDBc::Head->_dz[5];
 
-  AMSRotMat lrm = lad->GetRotMatT()*lad->GetRotMat();
+  AMSRotMat lrm0 = lad->GetRotMatT();
+  AMSRotMat lrm = lrm0*lad->GetRotMat();
   
 
   number nrm[3][3];
@@ -315,7 +322,9 @@ void BuildHybrid(AMSgvolume *mvol, int tkid)
     -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
 
-  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSRotMat rot0 = lad->GetRotMatT();
+  AMSRotMat rot = rot0*lad->GetRotMat();
+
   AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;
@@ -369,7 +378,9 @@ void BuildSupport(AMSgvolume *mvol, int tkid)
     -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
   double hwid = TkDBc::Head->_ssize_active[1]/2;
   
-  AMSRotMat rot = lad->GetRotMatT()*lad->GetRotMat();
+  AMSRotMat rot0 = lad->GetRotMatT();
+  AMSRotMat rot = rot0*lad->GetRotMat();
+
   AMSPoint  pos = lad->GetPos()+lad->GetPosT();
   AMSPoint  loc(hlen, hwid, 0);
   AMSPoint  oo = rot*loc+pos;

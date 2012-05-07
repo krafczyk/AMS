@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.13 2012/04/22 14:30:25 shaino Exp $ 
+/// $Id: TkCoo.C,v 1.14 2012/05/07 09:02:35 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/04/22 14:30:25 $
+///$Date: 2012/05/07 09:02:35 $
 ///
-/// $Revision: 1.13 $
+/// $Revision: 1.14 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -109,7 +109,8 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   loc2[2]=0;
 
   // Alignment corrected Ladder Rotation matrix
-  AMSRotMat RotG  = ll->GetRotMatA()*ll->GetRotMat();
+  AMSRotMat RotG0  = ll->GetRotMatA();
+  AMSRotMat RotG  = RotG0*ll->GetRotMat();
 
   // Alignment corrected Ladder postion
   AMSPoint  PosG  = ll->GetPosA()+ll->GetPos();
@@ -121,10 +122,11 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
   TkPlane*  pp    = ll->GetPlane();
 
   // Alignment corrected Plane Rotation matrix
-  AMSRotMat PRotG = pp->GetRotMatA()*pp->GetRotMat();
+  AMSRotMat PRotG0 = pp->GetRotMatA();
+  AMSRotMat PRotG = PRotG0*pp->GetRotMat();
 
   int Layer=ll->GetLayer();
-  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->_layer_deltaZA[Layer-1]);
+  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->Get_layer_deltaZA(Layer-1));
 
   // Alignment corrected Plane postion
   AMSPoint  PPosG = pp->GetPosA()+pp->GetPos()+LayerZCorrection;
@@ -421,7 +423,8 @@ AMSPoint TkCoo::GetGlobalT(int tkid, AMSPoint& loc){
   loc2[2]=0;
 
   // Alignment corrected Ladder Rotation matrix
-  AMSRotMat RotG  = ll->GetRotMatT()*ll->GetRotMat();
+  AMSRotMat RotG0  = ll->GetRotMatT();
+  AMSRotMat RotG  = RotG0*ll->GetRotMat();
 
   // Alignment corrected Ladder postion
   AMSPoint  PosG  = ll->GetPosT()+ll->GetPos();
@@ -433,7 +436,8 @@ AMSPoint TkCoo::GetGlobalT(int tkid, AMSPoint& loc){
   TkPlane*  pp    = ll->GetPlane();
 
   // Alignment corrected Plane Rotation matrix
-  AMSRotMat PRotG = pp->GetRotMatT()*pp->GetRotMat();
+  AMSRotMat PRotG0 = pp->GetRotMatT();
+  AMSRotMat PRotG = PRotG0*pp->GetRotMat();
 
   // Alignment corrected Plane postion
   AMSPoint  PPosG = pp->GetPosT()+pp->GetPos();
