@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.151 2012/05/07 09:02:35 pzuccon Exp $ 
+/// $Id: TrRecon.C,v 1.152 2012/05/08 20:52:49 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/05/07 09:02:35 $
+/// $Date: 2012/05/08 20:52:49 $
 ///
-/// $Revision: 1.151 $
+/// $Revision: 1.152 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4069,6 +4069,10 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
     if (hit->GetLayer() == lyext[0]) il = 0;
     if (hit->GetLayer() == lyext[1]) il = 1;
     if (il < 0) continue;
+
+    // Ignore layer9 hits which are out of Ecal window (|x| < 33 cm)
+    if (hit->GetLayer() == 9 && std::fabs(ptrk[1].x()) > 33) continue;
+
     int mult;
     AMSPoint DD = hit->HitPointDist(ptrk[il],mult);
     float dxy=sqrt(DD[0]*DD[0]+DD[1]*DD[1]);
