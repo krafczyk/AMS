@@ -301,8 +301,7 @@ class DynAlManager:public TObject{
   static bool RetrieveLocalAlignmentParameters(int layerJ,int slotSide,int ladder,
 					       float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz);
 
-
-#ifdef __ROOTSHAREDLIBREY__
+#ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate(dynAlFitContainers)
 #pragma omp threadprivate (currentRun,skipRun,tdvBuffer,tdvdb,begin,insert,end)  
 #endif
