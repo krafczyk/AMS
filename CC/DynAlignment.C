@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.53 2012/05/07 09:02:35 pzuccon Exp $
+//  $Id: DynAlignment.C,v 1.54 2012/05/08 10:11:09 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1911,6 +1911,8 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME,DynAlFitC
     const char *name=entry.Data();
     // Open the file
     TFile file(Form("%s/%s",dir.Data(),name));
+    //    DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1_1_20");
+    //    DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9_1_20");
     DynAlFitContainer *l1=(DynAlFitContainer*)file.Get("layer_1");
     DynAlFitContainer *l9=(DynAlFitContainer*)file.Get("layer_9");
 
@@ -1998,6 +2000,12 @@ bool DynAlManager::DumpDirToLinear(TString dir,TString tdvname=TDVNAME,DynAlFitC
 bool DynAlManager::UpdateParameters(int run,int time,TString dir){
   // If directory name is empty, use the default
   if(dir.Length()==0) dir=defaultDir;
+
+#ifndef __ROOTSHAREDLIBRARY__
+  // Force reading from the TDV instead AMSSetup if this is for production 
+  dir="";
+  useTDV=true;
+#endif
   
 
 #define TDVUPDATE     {                                   \
@@ -2017,7 +2025,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
       // Search for the proper TDV
       AMSSetupR::TDVR tdv;
       if(setup->getTDV (TDVNAME,time, tdv)) TDVUPDATE;
-      
+
       // Check that we have to copy out everything again
       if(tdv.Begin!=begin || tdv.End!=end || tdv.Insert!=insert){
 	begin=tdv.Begin;
