@@ -1,11 +1,11 @@
-// $Id: TofRecon.C,v 1.4 2012/04/22 23:40:33 oliva Exp $
+// $Id: TofRecon.C,v 1.5 2012/05/08 19:35:36 pzuccon Exp $
 
 #include "TofRecon.h"
 
 #include "point.h"
 #include "root.h"
 #include "TofTrack.h"
-#include "TrCharge.h""
+#include "TrCharge.h"
 #include "HistoMan.h"
 
 ClassImp(TofCandidate);
