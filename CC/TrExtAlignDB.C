@@ -38,13 +38,33 @@ uint TrExtAlignDB::Find(int lay, uint time) const
 
 const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
 {
-  ealgITc it;
-  if (lay == 8 && (it = L8.lower_bound(time)) != L8.end()) return &(it->second);
-  if (lay == 9 && (it = L9.lower_bound(time)) != L9.end()) return &(it->second);
+  ealgITc it1 = (lay == 8) ? L8.lower_bound(time)
+                           : L9.lower_bound(time);
+  if (lay == 8 && it1 == L8.end()) return 0;
+  if (lay == 9 && it1 == L9.end()) return 0;
 
-  return 0;
-//  static TrExtAlignPar dummy;
-//  return dummy;
+  ealgITc it0 = it1; it0--;
+  if (lay == 8 && it0 == L8.begin()) return &(it1->second);
+  if (lay == 9 && it0 == L9.begin()) return &(it1->second);
+
+  int tt = (it0->first+it1->first)/2;
+  if (time > tt) {
+    it0 = it1; it1++;
+    if (lay == 8 && it1 == L8.end()) return &(it0->second);
+    if (lay == 9 && it1 == L9.end()) return &(it0->second);
+  }
+
+  int tt1 = (it0->first+it1->first)/2;
+  int tt0 = tt1-(it1->first-it0->first);
+  int dt0 =   time-tt0;
+  int dt1 = -(time-tt1);
+  if (dt0 < 0 || dt1 < 0) return 0;
+
+  static TrExtAlignPar eapar;
+#pragma omp threadprivate (eapar)
+  eapar = (it0->second*dt1+it1->second*dt0)/(dt0+dt1);
+
+  return &eapar;
 }
 
 TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time)

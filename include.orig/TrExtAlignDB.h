@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.20 2012/04/28 02:07:50 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.21 2012/05/08 20:53:18 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -57,6 +57,63 @@ public:
     dpos  [2] += par.dpos  [2]; angles[0] += par.angles[0];
     angles[1] += par.angles[1]; angles[2] += par.angles[2];
     return *this;
+  }
+
+  TrExtAlignPar operator +(const TrExtAlignPar &par) const {
+    TrExtAlignPar pp = *this;
+    pp.dpos   [0] = dpos   [0]+par.dpos   [0];
+    pp.dpos   [1] = dpos   [1]+par.dpos   [1];
+    pp.dpos   [2] = dpos   [2]+par.dpos   [2];
+    pp.angles [0] = angles [0]+par.angles [0];
+    pp.angles [1] = angles [1]+par.angles [1];
+    pp.angles [2] = angles [2]+par.angles [2];
+    pp.edpos  [0] = edpos  [0]+par.edpos  [0];
+    pp.edpos  [1] = edpos  [1]+par.edpos  [1];
+    pp.edpos  [2] = edpos  [2]+par.edpos  [2];
+    pp.eangles[0] = eangles[0]+par.eangles[0];
+    pp.eangles[1] = eangles[1]+par.eangles[1];
+    pp.eangles[2] = eangles[2]+par.eangles[2];
+    pp.chisq      = chisq     +par.chisq;
+    pp.NDF        = NDF       +par.NDF;
+    return pp;
+  }
+
+  TrExtAlignPar operator *(double a) const {
+    TrExtAlignPar pp = *this;
+    pp.dpos   [0] = dpos   [0]*a;
+    pp.dpos   [1] = dpos   [1]*a;
+    pp.dpos   [2] = dpos   [2]*a;
+    pp.angles [0] = angles [0]*a;
+    pp.angles [1] = angles [1]*a;
+    pp.angles [2] = angles [2]*a;
+    pp.edpos  [0] = edpos  [0]*a;
+    pp.edpos  [1] = edpos  [1]*a;
+    pp.edpos  [2] = edpos  [2]*a;
+    pp.eangles[0] = eangles[0]*a;
+    pp.eangles[1] = eangles[1]*a;
+    pp.eangles[2] = eangles[2]*a;
+    pp.chisq      = chisq*a;
+    pp.NDF        = (int)(NDF*a);
+    return pp;
+  }
+
+  TrExtAlignPar operator /(double a) const {
+    TrExtAlignPar pp = *this;
+    pp.dpos   [0] = dpos   [0]/a;
+    pp.dpos   [1] = dpos   [1]/a;
+    pp.dpos   [2] = dpos   [2]/a;
+    pp.angles [0] = angles [0]/a;
+    pp.angles [1] = angles [1]/a;
+    pp.angles [2] = angles [2]/a;
+    pp.edpos  [0] = edpos  [0]/a;
+    pp.edpos  [1] = edpos  [1]/a;
+    pp.edpos  [2] = edpos  [2]/a;
+    pp.eangles[0] = eangles[0]/a;
+    pp.eangles[1] = eangles[1]/a;
+    pp.eangles[2] = eangles[2]/a;
+    pp.chisq      = chisq/a;
+    pp.NDF        = (int)(NDF/a);
+    return pp;
   }
 
   void Print(Option_t *option = "") const;
