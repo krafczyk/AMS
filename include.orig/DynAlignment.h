@@ -302,8 +302,10 @@ class DynAlManager:public TObject{
 					       float &rotZ,float &rotY,float &rotX,float &dx,float &dy,float &dz);
 
 
-#pragma omp threadprivate(dynAlFitContainers,currentRun,skipRun,tdvBuffer,tdvdb,begin,insert,end)  
-
+#ifdef __ROOTSHAREDLIBREY__
+#pragma omp threadprivate(dynAlFitContainers)
+#pragma omp threadprivate (currentRun,skipRun,tdvBuffer,tdvdb,begin,insert,end)  
+#endif
   ClassDef(DynAlManager,4);
 };
 
