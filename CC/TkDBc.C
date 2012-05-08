@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.55 2012/05/07 09:02:35 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.56 2012/05/08 19:43:33 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/07 09:02:35 $
+///$Date: 2012/05/08 19:43:33 $
 ///
-///$Revision: 1.55 $
+///$Revision: 1.56 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -96,16 +96,16 @@ number TkDBc::Get_layer_deltaZA(int ii, int override){
   thre=omp_get_thread_num();
   if(thre>=nthreads) thre=0;
   if (override) thre=0;
-  if((ii+thre*maxlay)>=_layer_deltaZA.size()){
-    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZA.size());kk++) 
-      _layer_deltaZA.push_back(0.);
+  if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
+    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
+      _layer_deltaZAV.push_back(0.);
     for (int jj=0;jj<nthreads;jj++)
       for (int hh=0;hh<maxlay;hh++)
-	_layer_deltaZA[hh+jj*maxlay]=_layer_deltaZA[hh]; 
+	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
   }
 #endif
   if (ii>=0&&ii<maxlay)   
-    return _layer_deltaZA[ii+thre*maxlay]; 
+    return _layer_deltaZAV[ii+thre*maxlay]; 
   else return 0;
 }
 
@@ -114,16 +114,16 @@ void TkDBc::Update_layer_deltaZA(int ii, number dz){
 #ifdef _OPENMP
   thre=omp_get_thread_num();
   if(thre>=nthreads) thre=0;
-  if((ii+thre*maxlay)>=_layer_deltaZA.size()){
-    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZA.size());kk++) 
-      _layer_deltaZA.push_back(0.);
+  if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
+    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
+      _layer_deltaZAV.push_back(0.);
     for (int jj=0;jj<nthreads;jj++)
       for (int hh=0;hh<maxlay;hh++)
-	_layer_deltaZA[hh+jj*maxlay]=_layer_deltaZA[hh]; 
+	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
   }
 #endif
   if (ii<=0&&ii<maxlay)   
-    _layer_deltaZA[ii+thre*maxlay]=dz; 
+    _layer_deltaZAV[ii+thre*maxlay]=dz; 
   return;
 }
 
@@ -312,12 +312,12 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
 
 
     const number layer_deltaZA[maxlay]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
-    //    memcpy(_layer_deltaZA[0],layer_deltaZA,maxlay*sizeof(layer_deltaZA[0]));
+    memcpy(_layer_deltaZA,layer_deltaZA,maxlay*sizeof(layer_deltaZA[0]));
 #ifdef _OPENMP
     for (int ii=0;ii<nthreads;ii++)
 #endif
     for (int jj=0;jj<maxlay;jj++)
-    _layer_deltaZA.push_back(layer_deltaZA[jj]);
+    _layer_deltaZAV.push_back(layer_deltaZA[jj]);
 
 //----------------------------------------------------------------------------------
 //            LADDERS

@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.34 2012/05/07 09:02:35 pzuccon Exp $
+// $Id: TkDBc.h,v 1.35 2012/05/08 19:43:33 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -137,7 +137,8 @@ public:
   number _layer_deltaZ[maxlay];
 private:  
 //! Alignment correction to Z distance of the silicon surface from the middle of the plane;
-  vector<number> _layer_deltaZA;
+  number _layer_deltaZA[maxlay];
+  vector<number> _layer_deltaZAV;
 public:
   //! number of active ladders for side/layer
   integer  _nlad[2][maxlay];
