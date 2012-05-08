@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.144 2012/05/07 09:02:35 pzuccon Exp $
+// $Id: TrTrack.C,v 1.145 2012/05/08 20:52:01 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/07 09:02:35 $
+///$Date: 2012/05/08 20:52:01 $
 ///
-///$Revision: 1.144 $
+///$Revision: 1.145 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1503,10 +1503,12 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
     return -1;
 
 
-  if( (
+  if(/*(
        (fittype & kFitLayer8) || (fittype & kFitLayer8)|| (fittype & kExternal)
        ) 
-      && CIEMATFlag) fittype|=kAltExtAl;
+       &&*/
+    // SH apply always outer alignment
+    CIEMATFlag) fittype|=kAltExtAl;
  
 
  if( (
