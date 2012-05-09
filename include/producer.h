@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.26 2011/03/12 01:52:47 choutko Exp $
+//  $Id: producer.h,v 1.26.20.1 2012/05/09 16:13:55 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -45,7 +45,7 @@ int FreeSpace()const{return _FreeSpace;}
 bool getior(const char * getiorvar);
 void AddEvent();
 void UpdateARS();
-void getRunEventInfo();
+void getRunEventInfo(bool solo=false);
 void sendCurrentRunInfo(bool force=false);
 void getASL();
 bool SendFile(const char * Remote, const char *Local,bool erase=true);
