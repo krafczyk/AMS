@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.54 2012/05/08 10:11:09 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.55 2012/05/09 17:05:21 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -550,7 +550,7 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
       time/=TIMEUNIT;  // Simplify a bit the computation
       
-      double sigmasCut=2.5;
+      double sigmasCut=2.0; // This reduces the mean-peak difference with small penalty in stat error.  
       double vx=dz*tan(event.TrackTheta)*cos(event.TrackPhi);
       double vy=dz*tan(event.TrackTheta)*sin(event.TrackPhi);
       if(classInfo[Class].rms[0]>1e-6)
@@ -2006,7 +2006,7 @@ bool DynAlManager::UpdateParameters(int run,int time,TString dir){
   dir="";
   useTDV=true;
 #endif
-  
+
 
 #define TDVUPDATE     {                                   \
   if(UpdateWithTDV(time)){				  \
