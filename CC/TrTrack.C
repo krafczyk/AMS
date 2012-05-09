@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.145 2012/05/08 20:52:01 shaino Exp $
+// $Id: TrTrack.C,v 1.146 2012/05/09 04:40:16 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/08 20:52:01 $
+///$Date: 2012/05/09 04:40:16 $
 ///
-///$Revision: 1.145 $
+///$Revision: 1.146 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1412,8 +1412,12 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
   refit=refit%100;
 
   if (refit==14 ||refit >13||refit <0||(refit>5&&refit<10)) return -1;
-  if (refit==5 ) refit=13; 
-  if (refit==4 ) refit=3; 
+
+  // Load alignment in case of explicit refit
+  int ret1 = 0;
+  if (refit==4) { ret1 = UpdateExtLayer(0); refit =  3; }
+  if (refit==5) { ret1 = UpdateExtLayer(1); refit = 13; }
+  if (ret1 !=0) return -5;
 
   int CIEMATFlag=refit/10;
   refit=refit%10;
