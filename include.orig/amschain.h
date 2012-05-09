@@ -58,6 +58,9 @@ public:
   /// Destructor
   virtual ~AMSChain(){ if(fout) CloseOutputFile(); fout=0;_FILE=0;if (_EVENT) delete _EVENT; };
   
+   /// Add Function take into account svcClass syntax
+   Int_t     Add(const char* name, Long64_t nentries = kBigNumber);
+   using TChain::Add;
   /// Add TFiles to the chain from a text file 
   int AddFromFile(const char* rootfilelist);
 
@@ -146,7 +149,7 @@ public:
   AMSEventList(); ///< Default Constructor
   AMSEventList(const char* filename); ///< Constructor with an already existing list
   virtual ~AMSEventList(){};
-
+  
   void Add(int run, int event); ///<Add a (run,event) number to the list
   void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEventR object to the list
   void Remove(int run, int event); ///<Remove a (run,event) number from the list
