@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.21 2012/05/08 20:53:18 shaino Exp $
+//  $Id: TrExtAlignDB.h,v 1.22 2012/05/10 16:05:52 mdelgado Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -185,6 +185,13 @@ public:
 
   /// Get TrExtAlignPar with [time]
   TrExtAlignPar &GetM(int lay, uint time);
+
+  ///  Get TrExtAlignPar with [time] for Madrid alignment 
+  ///  The returned object includes the alignment parameters and the error
+  ///  in the position of the origin of the layer. Errors in the angular 
+  ///  parameters are not returned, neither NDF or chisquare.
+  static TrExtAlignPar &GetMDyn(int lay, uint time);
+
 
   /// Update TrExtAlignPar[time]
   void AddM(int lay, uint time, Double_t *par);

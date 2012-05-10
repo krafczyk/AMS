@@ -193,14 +193,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     int ladderId=layerJ[i]==1?lad1:lad9;
 
     if(ladderId!=-1){
-      //      cout<<"LADDERS NUMBERS "<<lad1<<" "<<lad9<<endl;
-      //      cout<<"APPLYING LADDER ALIGNMENT FOR LAYER "<<layerJ[i]<<" ladder "<<ladderId<<endl;
-      //      cout<<"DUMPING IDs found"<<endl;
-      //      for( map<Int_t,DynAlFitParameters>::iterator it=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.begin();
-      //	   it!=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.end();it++){
-      //	cout<<"ID "<<it->first<<endl;
-      //      }
-
       // Apply local alignment for the hit: modify the rotation matrix
       map<Int_t,DynAlFitParameters>::iterator it=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.find(ladderId);
       if(it!=DynAlManager::dynAlFitContainers[layerJ[i]].LocalFitParameters.end()){
@@ -215,24 +207,10 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 	double newOffset=it->second.ZOffset;
 	AMSRotMat newRot=rot*lrot;
 	
-	/*
-	cout<<"BEFORE LOCAL ALIGNMENT "<<endl
-	    <<"OFFSET: "<<offset<<endl
-	    <<"DELTA: "<<pos<<endl
-	    <<"ROT MATRIX:"<<endl<<rot<<endl;
-	*/
-
 	// Copy back
 	pos=newDelta;
 	offset=newOffset;
 	rot=newRot;
-
-	/*
-	cout<<"AFTER LOCAL ALIGNMENT "<<endl
-	    <<"OFFSET: "<<offset<<endl
-	    <<"DELTA: "<<pos<<endl
-	    <<"ROT MATRIX:"<<endl<<rot<<endl;
-	*/
       }
     }
 
@@ -247,6 +225,44 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   }
   return 0;
 }
+
+TrExtAlignPar & TrExtAlignDB::GetMDyn(int layerJ,uint time){
+  static TrExtAlignPar Pars;
+#pragma omp threadprivate(Pars)
+
+  Pars.Init();
+
+  
+  if(layerJ!=1 && layerJ!=9) return Pars;
+  // Retrieve alignment parameters
+  if(!DynAlManager::UpdateParameters(0,time)) return Pars;
+  DynAlFitParameters pars;
+  if(!DynAlManager::dynAlFitContainers[layerJ].Find(time,pars)) return Pars;
+  AMSPoint pos;
+  AMSRotMat rot;
+  pars.GetParameters(time,0,pos,rot);
+  double offset=pars.ZOffset;
+
+  
+  // Take into account the difference in the reference frames
+  // between the local geometry and the one used in the computation
+  TkPlane* pl = TkDBc::Head->GetPlane(layerJ==1?5:6);
+  if (!pl) return Pars;
+  AMSPoint o(0,0,offset);
+  pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
+  
+  double alpha,beta,gamma;
+  rot.GetRotAngles(alpha,beta,gamma);
+  Pars.SetPar(pos[0],pos[1],pos[2],alpha,beta,gamma);
+
+  // Retrieve the errors (not all of them, but the most relevant since covariance matrix is not taken into account)
+  double ex,ey,ez;
+  DynAlManager::RetrieveAlignmentErrors(time,layerJ,ex,ey,ez);
+  Pars.SetErr(ex,ey,ez,0,0,0);
+
+  return Pars;
+}
+
 
 
 void TrExtAlignDB::ResetExtAlign() 
