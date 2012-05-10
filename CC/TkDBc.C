@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.56 2012/05/08 19:43:33 pzuccon Exp $
+//  $Id: TkDBc.C,v 1.57 2012/05/10 19:15:25 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/08 19:43:33 $
+///$Date: 2012/05/10 19:15:25 $
 ///
-///$Revision: 1.56 $
+///$Revision: 1.57 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -84,6 +84,11 @@ TkPlane* TkDBc::GetPlane(int ii, int override) {
   if(thre>=nthreads) thre=0;
   if (override) thre=0;
 #endif
+  // Try to fill planes2
+  if (planes2.size() == 0) {
+    cout << "TkDBc::GetPlane-W-Trying to fill planes2" << endl;
+    for (int i = 0; i < maxplanes; i++) planes2.push_back(planes[i]);
+  }
   if (ii>0&&ii<=nplanes)   
     return planes2[ii-1+thre*nplanes]; 
   else return 0;
