@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.146 2012/05/09 04:40:16 shaino Exp $
+// $Id: TrTrack.C,v 1.147 2012/05/10 18:33:21 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/09 04:40:16 $
+///$Date: 2012/05/10 18:33:21 $
 ///
-///$Revision: 1.146 $
+///$Revision: 1.147 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1297,6 +1297,13 @@ int TrTrackR::DoAdvancedFit(int add_flag)
  int kmax=1;
  if (add_flag & (TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
    kmax=2;
+
+ DefaultMass   = TrFit::Mproton;
+ DefaultCharge = 1;
+ if (GetQ() > 1.5) {
+   DefaultMass   = TrFit::Mhelium;
+   DefaultCharge = 2;
+ }
  
  for (int kk=0;kk<kmax;kk++){
    if(kk==1) add_flag|=kAltExtAl;

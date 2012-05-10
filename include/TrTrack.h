@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.86 2012/05/07 09:02:36 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.87 2012/05/10 18:33:15 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/07 09:02:36 $
+///$Date: 2012/05/10 18:33:15 $
 ///
-///$Revision: 1.86 $
+///$Revision: 1.87 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -301,9 +301,12 @@ public:
 
   /// Default mass for fitting
   static float DefaultMass;
+#pragma omp threadprivate(DefaultMass)
 
   /// Default charge for fitting
   static float DefaultCharge;
+#pragma omp threadprivate(DefaultCharge)
+
 public:
   /** @name CONSTRUCTORS & C.
    */
