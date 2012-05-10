@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.35 2012/05/08 19:43:33 pzuccon Exp $
+// $Id: TkDBc.h,v 1.36 2012/05/10 19:15:16 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -316,8 +316,10 @@ private:
 
   int GetOctant(int side,int _layer,int _slot);
 
-  //Pointer to the planes;
+  //Pointer to the planes;  (For < B572)
+  TkPlane* planes[maxplanes];
 
+  //Pointer to the planes; (For >= B572)
   vector<TkPlane*>  planes2;
 
   //! Rebuild all the other maps from tkidmap
@@ -497,7 +499,7 @@ public:
 
   static int nthreads;
 
-  ClassDef(TkDBc, 11);
+  ClassDef(TkDBc, 12);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
