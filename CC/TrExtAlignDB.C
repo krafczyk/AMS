@@ -308,6 +308,19 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (first)
 #endif
+  uint ti8 = Find(8, 0);
+  uint ti9 = Find(9, 0);
+  uint te8 = ti8+50000;  // Effective time range
+  uint te9 = ti8+50000;  // Effective time range
+  int out_of_range = 0;
+  if (time < ti8 || time < ti9 || 
+      time > te8 || time > te9) {
+    std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is out of range: "
+	      << ti8 << " " << ti9 << " " << time
+	      << te8 << " " << te9  << std::endl;
+    out_of_range = 1;
+  }
+
   uint tf8,tf9;
   int dt8,dt9;
   if(!ForceFromTDV){ // Access the data available in memory(from ROOT file) unless forced not to do it
@@ -356,7 +369,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
 
   }else{ // FORCED reading from TDV
-    if(first) {GetFromTDV(time, version);first=0;}
+    if(first || out_of_range) {GetFromTDV(time, version);first=0;}
     tf8 = Find(8, time);
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
