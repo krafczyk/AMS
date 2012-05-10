@@ -2111,7 +2111,7 @@ float RichChargeUniformityCorrection::getCorrection(float beta,float x,float y,f
   // Determine if it is AGL or NaF
   GeomHashEnsemble *corr=_agl;
   if(RichRingR::getTileIndex(x,y)==121) corr=_naf;
-  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak*corr->MeanPeak;
   _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
   corr->Eval(beta,x,y,vx,vy);
   return corr->MeanPeak*corr->MeanPeak;
@@ -2136,7 +2136,7 @@ float RichChargeUniformityCorrection::getCorrection(RichRingR *ring){
   float vy=sin(theta)*sin(phi);
   if(cos(theta)>0) {vx*=-1;vy*=-1;} // Keep a coherent definition
 
-  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak;
+  if(_latest[0]==beta && _latest[1]==x && _latest[2]==y && _latest[3]==vx && _latest[4]==vy) return corr->MeanPeak*corr->MeanPeak;
   _latest[0]=beta;_latest[1]=x;_latest[2]=y;_latest[3]=vx;_latest[4]=vy;
   corr->Eval(beta,x,y,vx,vy);
   return corr->MeanPeak*corr->MeanPeak;
