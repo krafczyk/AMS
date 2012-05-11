@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.58 2012/05/11 06:22:12 shaino Exp $
+//  $Id: TkDBc.C,v 1.59 2012/05/11 13:34:51 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/11 06:22:12 $
+///$Date: 2012/05/11 13:34:51 $
 ///
-///$Revision: 1.58 $
+///$Revision: 1.59 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +35,7 @@ char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","
 int    TkDBc::_setup=3;
  
 TkDBc::TkDBc(){
+for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -67,7 +68,7 @@ TkDBc::~TkDBc(){
   PGlocal.clear();
   MDlocal.clear();
 
-
+   for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)delete planes;
   for (int jj=0;jj<planes2.size();jj++)
     if(planes2[jj]) delete planes2[jj];
   planes2.clear();
@@ -80,6 +81,7 @@ TkDBc::~TkDBc(){
 TkPlane* TkDBc::GetPlane(int ii, int override) {
   int thre=0;
 #ifdef _OPENMP
+   nthreads=omp_get_num_threads();
   thre=omp_get_thread_num();
   if(thre>=nthreads) thre=0;
   if (override) thre=0;
@@ -87,7 +89,7 @@ TkPlane* TkDBc::GetPlane(int ii, int override) {
   // Try to fill planes2
   if (planes2.size() == 0) {
     cout << "TkDBc::GetPlane-W-Trying to fill planes2" << endl;
-    for (int i = 0; i < maxplanes; i++) planes2.push_back(planes[i]);
+    for(int k=0;k<nthreads;k++)for (int i = 0; i < maxplanes; i++) planes2.push_back(planes[i]);
   }
   if (ii>0&&ii<=nplanes)   
     return planes2[ii-1+thre*nplanes]; 
@@ -109,7 +111,7 @@ number TkDBc::Get_layer_deltaZA(int ii, int override){
 	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
   }
 #endif
-  if (ii>=0&&ii<maxlay)   
+  if (ii>=0&&ii+thre*maxlay<_layer_deltaZAV.size())   
     return _layer_deltaZAV[ii+thre*maxlay]; 
   else return 0;
 }

@@ -13,6 +13,16 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
 if(ev && ev->nParticle()){
+for (int pindex=0;pindex<ev->nParticle();pindex++){
+int itrktr = ev->Particle(pindex).iTrTrack();
+ if(itrktr>=0){
+   TrTrackR trktr=ev->TrTrack(itrktr);
+    cout <<"  trying "<<endl;
+    AMSPoint LayIntP=trktr.InterpolateLayerJ(3,17);
+
+    cout <<LayIntP<<endl;
+ }
+}
 unsigned int eventSec, eventNanoSec;
 ev->GetGPSTime(eventSec, eventNanoSec);
 double xtime=ev->UTime()+ev->Frac();

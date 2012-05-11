@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.726 2012/05/02 08:19:36 choutko Exp $
+# $Id: RemoteClient.pm,v 1.727 2012/05/11 13:35:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6885,7 +6885,7 @@ if( not defined $dbserver->{dbfile}){
      $dbserver->{dbfile}=$self->ServerConnectDB($dataset->{serverno});
 }
                my $rn=DBServer::GetRunsNumber($dbserver);
-               my $maxr=256*2;
+               my $maxr=256;
                if($rn>=0){
                 if($rn<$maxr){
                  $jbs=$maxr-$rn;
@@ -7511,6 +7511,14 @@ print qq`
             $self->ErrorPlus($mes);
         }
         else{
+            $sql="select max(jid) from jobs where jobname like '$self->{CCA}.%'";
+             my $resj=$self->{sqlserver}->Query($sql);
+          if(defined $resj->[0][0] and $resj->[0][0]> $res->[0][0]){
+               my $mes="Cite $self->{CCA} maxrun/jid mismatch $resj->[0][0]  $res->[0][0] ";
+               $sql="update Cites set maxrun=$res->[0][0]+1 where name='$self->{CCA}'";
+               $self->{sqlserver}->Update($sql);
+               $self->ErrorPlus($mes);
+          }
             my $time = time();
             $sql="update Cites set state=1, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
@@ -12755,6 +12763,7 @@ sub DownloadSA {
     push @{$self->{FileDB}}, "v4.00rddb.tar.gz";
     push @{$self->{FileDB}}, "v5.00mcdb.tar.gz";
     push @{$self->{FileDB}}, "v5.00rddb.tar.gz";
+    push @{$self->{FileDB}}, "amsdatadir.addon.tar";
 
     push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
@@ -19084,12 +19093,15 @@ sub UploadToCastor{
 #
 # datamc==2 datafiles, not ntuples
 #
-    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc,$force)= @_;
+    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer,$datamc,$force,$validate)= @_;
   if(not defined $datamc){
      $datamc=0;
   }  
  if(not defined $force){
      $force=0;
+  }  
+ if(not defined $validate){
+     $validate=1;
   }  
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
@@ -19153,7 +19165,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,$run->[1],1,$datamc);
+        my $ok=$validate?$self->CheckCRC($verbose,0,$update,$run->[0],0,$run->[1],1,$datamc):1;
         if(!$ok){
         $errors++;
             if($errors>=$maxer){
