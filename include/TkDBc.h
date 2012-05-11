@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.36 2012/05/10 19:15:16 shaino Exp $
+// $Id: TkDBc.h,v 1.37 2012/05/11 09:31:33 shaino Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -499,7 +499,7 @@ public:
 
   static int nthreads;
 
-  ClassDef(TkDBc, 12);
+  ClassDef(TkDBc, 10);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
