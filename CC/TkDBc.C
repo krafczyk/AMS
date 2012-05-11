@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.57 2012/05/10 19:15:25 shaino Exp $
+//  $Id: TkDBc.C,v 1.58 2012/05/11 06:22:12 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/10 19:15:25 $
+///$Date: 2012/05/11 06:22:12 $
 ///
-///$Revision: 1.57 $
+///$Revision: 1.58 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -127,7 +127,7 @@ void TkDBc::Update_layer_deltaZA(int ii, number dz){
 	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
   }
 #endif
-  if (ii<=0&&ii<maxlay)   
+  if (ii>=0&&ii<maxlay)   
     _layer_deltaZAV[ii+thre*maxlay]=dz; 
   return;
 }
