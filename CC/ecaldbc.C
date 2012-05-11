@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.101 2012/05/05 19:44:02 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.102 2012/05/11 17:38:56 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -47,7 +47,7 @@ geant ECALDBc::_gendim[20]={// Warning: only alignment params are readout from E
 //
 geant ECALDBc::_fpitch[3]={
   0.135,      // i=1   fiber pitch in X(Y) projection
-  0.173,0.    // i=2 fiber pitch in Z (inside super-layer); =3->spare
+  0.184,0.    // i=2 fiber pitch in Z (inside super-layer); =3->spare
 };
 //
 geant ECALDBc::_rdcell[10]={
