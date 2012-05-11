@@ -305,21 +305,24 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   int errlim=100;
   static int nwar = 0;
   static int first=1;
+  int out_of_range = 0;
 #ifdef __ROOTSHAREDLIBRARY__
 #pragma omp threadprivate (first)
-#endif
-  uint ti8 = Find(8, 0);
-  uint ti9 = Find(9, 0);
+  uint ti8 = Find(8, 0)-119;
+  uint ti9 = Find(9, 0)-119;
+
   uint te8 = ti8+50000;  // Effective time range
   uint te9 = ti8+50000;  // Effective time range
-  int out_of_range = 0;
-  if (time < ti8 || time < ti9 || 
-      time > te8 || time > te9) {
+
+  static int nor = 0;
+  if (nor++ < 20 && (time < ti8 || time < ti9 || 
+		     time > te8 || time > te9)) {
     std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is out of range: "
-	      << ti8 << " " << ti9 << " " << time
+	      << ti8 << " " << ti9 << " " << time << " "
 	      << te8 << " " << te9  << std::endl;
     out_of_range = 1;
   }
+#endif
 
   uint tf8,tf9;
   int dt8,dt9;
@@ -337,7 +340,7 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 		<< tf9 << " " << time << " " << tf9-time << std::endl;
     
 #ifdef __ROOTSHAREDLIBRARY__
-    if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){  // Try to fall back to TDV if data in memory are no good
+    if(out_of_range || (dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){  // Try to fall back to TDV if data in memory are no good
       if(nwar++ <errlim) printf("TrExtAlignDB::UpdateTkDBc-I- Trying to Access TDV directly\n");
       int ret=-1;
       ret=GetFromTDV(time, version);
