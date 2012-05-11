@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.868 2012/05/05 02:18:44 pzuccon Exp $
+// $Id: job.C,v 1.869 2012/05/11 22:07:59 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -226,6 +226,8 @@ void AMSJob::data(){
   char amsetup[16]="AMS02P";
   UCTOH(amsetup,AMSFFKEY.Setupname,4,16);
   AMSFFKEY.ZeroSetupOk=0;
+  AMSFFKEY.ExtAlignErrorThreshold[0]=-1; // Threshold in the statistical error in external alignment to abort the job for layer 1
+  AMSFFKEY.ExtAlignErrorThreshold[1]=-1; // Threshold in the statistical error in external alignment to abort the job for layer 9
   // Set Defaults
   FFKEY("AMSJOB",(float*)&AMSFFKEY+2,sizeof(AMSFFKEY_DEF)/sizeof(integer),"MIXED");
   _siamsdata();

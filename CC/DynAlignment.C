@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.55 2012/05/09 17:05:21 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.56 2012/05/11 22:07:58 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -13,6 +13,8 @@
 #include <map>
 #ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
+#else
+#include "commons.h"
 #endif
 
 
@@ -550,7 +552,8 @@ bool DynAlFit::ForceFit(DynAlHistory &history,int first,int last,set<int> &exclu
       time=(history.Events.at(i).Time[0]-TOffset)+1e-6*history.Events.at(i).Time[1];
       time/=TIMEUNIT;  // Simplify a bit the computation
       
-      double sigmasCut=2.0; // This reduces the mean-peak difference with small penalty in stat error.  
+      //      double sigmasCut=2.0; // This reduces the mean-peak difference with small penalty in stat error.  
+      double sigmasCut=2.5; // This reduces the mean-peak difference with small penalty in stat error.  
       double vx=dz*tan(event.TrackTheta)*cos(event.TrackPhi);
       double vy=dz*tan(event.TrackTheta)*sin(event.TrackPhi);
       if(classInfo[Class].rms[0]>1e-6)
@@ -1409,22 +1412,69 @@ int DynAlFitContainer::GetId(TrRecHitR &hit){
 bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
   map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
   if(lower==FitParameters.end()){
-    lower=FitParameters.upper_bound(seconds);
-    if(lower==FitParameters.end()){
-      static int counter=0;
-      counter++;
-      if(counter<=50)
+    static int counter=0;
+    counter++;
+    if(counter<=50)
       // Not possible to find anything -- return
-	cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
-      if(counter==50)
-	cout<<"DynAlFitContainer::Eval-W-Skipping further errors"<<endl;
-      return false;
-    }
+      cout<<"DynAlFitContainer::Eval-W-Not element for time "<<seconds<<endl;
+    if(counter==50)
+      cout<<"DynAlFitContainer::Eval-W-Skipping further errors"<<endl;
+    
+#ifndef __ROOTSHAREDLIBRARY__
+    if(DynAlManager::need2bookTDV)
+      if(AMSFFKEY.ExtAlignErrorThreshold[0]>0 || 
+	 AMSFFKEY.ExtAlignErrorThreshold[1]>0) 
+
+	cerr <<" DynAlFitContainer::Find-F-No alignment found when expected"<<endl;
+#ifdef __CORBA__
+    AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment missing.",DPS::Client::CInAbort);
+#else
+    abort();
+#endif
+#endif
+
+    return false;
   }
   
-  if(abs(lower->first-seconds)>30) return false; // Not found
+  if(abs(lower->first-seconds)>30){
+#ifndef __ROOTSHAREDLIBRARY__
+    if(DynAlManager::need2bookTDV)
+      if(AMSFFKEY.ExtAlignErrorThreshold[0]>0 || 
+	 AMSFFKEY.ExtAlignErrorThreshold[1]>0) 
+
+	cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<endl;
+#ifdef __CORBA__
+    AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment too distant.",DPS::Client::CInAbort);
+#else
+    abort();
+#endif
+#endif
+
+    return false; // Not found
+  }
+
   fit=lower->second;
-  return true;
+  
+#ifndef __ROOTSHAREDLIBRARY__
+  if(DynAlManager::need2bookTDV){
+    int lay=fit.ZOffset>0?0:1;
+    if(AMSFFKEY.ExtAlignErrorThreshold[lay]>0 && 
+       1e4*fit.EY>AMSFFKEY.ExtAlignErrorThreshold[lay]>0){
+      
+      cerr <<" DynAlFitContainer::Find-F-Alignment error for external layer "<<(lay?9:1)<<" exceeds the threshold. "<<fit.EY*1e4<<">"<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<endl;
+#ifdef __CORBA__
+      AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment error.",DPS::Client::CInAbort);
+#else
+      abort();
+#endif
+    }
+  }      
+#endif    
+
+  //  int lay=fit.ZOffset>0?0:1;
+  //  cout<<"DEBUG "<<fit.ZOffset<<" "<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<" "<<fit.EY<<endl;
+      
+    return true;
 }
 
 
@@ -1740,7 +1790,7 @@ TString DynAlManager::defaultDir="";
 DynAlFitContainer::LinearSpace DynAlManager::tdvBuffer;
 AMSTimeID* DynAlManager::tdvdb=0;
 bool DynAlManager::useTDV=false;  // Set to true to use external TDV intesad the one stored int he root file
-bool DynAlManager::need2bookTDV=true;  // Set to true to avoid even booking the TDV
+bool DynAlManager::need2bookTDV=true;  // Set to false to avoid even booking the TDV
 unsigned int DynAlManager::begin=0;
 unsigned int DynAlManager::end=0;
 unsigned int DynAlManager::insert=0;

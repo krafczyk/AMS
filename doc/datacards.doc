@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.379 2012/05/05 19:44:32 choumilo Exp $
+#  $Id: datacards.doc,v 1.380 2012/05/11 22:08:30 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -45,6 +45,10 @@ I86  ZeroSetupOK(0)  // Internal
 I87  Update(0)       // Update(1) or not(0) TDV in DBase
 I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
                      // if Update(see above) ==1
+R488 ExtAlignErrorThreshold[2](-1,-1) // Maximum error in Madrid external 
+                                      //alignment parameters allowed in whole run 
+                                      //for layer 1([0]) and layer 9([1]) in microns.
+                                      // Negative values are ignored.   
 //IO
 
 IOPA 

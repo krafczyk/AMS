@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.346 2012/05/04 13:54:27 qyan Exp $
+//  $Id: commons.h,v 1.347 2012/05/11 22:07:57 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -186,6 +186,7 @@ class AMSFFKEY_DEF {
   integer ZeroSetupOk;
   integer Update;
   integer TDVC[400];
+  geant   ExtAlignErrorThreshold[2];
 };
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);
@@ -1519,10 +1520,5 @@ COMMON_BLOCK_DEF(LIPVAR_DEF,LIPVAR);
 #pragma omp threadprivate(LIPVAR)
 
 // ENDofLIP
-
-
-
-
-
 
 #endif
