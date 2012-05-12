@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.102 2012/05/11 17:38:56 sdifalco Exp $
+//  $Id: ecaldbc.C,v 1.103 2012/05/12 08:48:07 sdifalco Exp $
 // Author E.Choumilov 14.07.99.
 // latest update by E.Choumilov 11.06.2009
 #include "typedefs.h"
@@ -89,7 +89,7 @@ void ECALDBc::readgconf(){
   char vers3[10]="Ass1";//= final clean room assembly (oct 2009)
   char vers4[10]="Space";//final
   //  char vers5[10]="PMag";//permanent magnet
-  char vers5[10]="ISS";// ISS alignment (modified Apr 20, 2012 by G.Gallucci)
+  char vers5[15]="ISS_20120512";// ISS alignment (modified May 12, 2012 by S. Di Falco )
   geant ZShift(0);
   //
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
