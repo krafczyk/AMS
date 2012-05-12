@@ -128,7 +128,7 @@ int TrdHChargeR::GetCharge(TrdHTrackR* track,float rig, int debug){
       toReturn=it->second;
     }
     //    track->charge_probabilities.insert(pair<double,int>(it->second,it->first));
-    track->Charge[i]=it->second;
+    track->Charge[i]=it->second%10;
     track->ChargeP[i++]=it->first;
   }
   
