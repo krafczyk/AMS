@@ -41,6 +41,10 @@ public:
     DzElem(float *Dz){memcpy(dz,Dz,kLaynum*sizeof(dz[0]));}
     ClassDef(TrInnerDzDB::DzElem,1);
   };
+
+  static float LDZA[kLaynum];
+#pragma omp threadprivate (LDZA) 
+   
 private:
   /// map implementig the DB
   std::map <uint,TrInnerDzDB::DzElem> pos;
@@ -67,7 +71,7 @@ public:
   /// Clear the DB content
   void Clear(Option_t* = ""){pos.clear();return;}
 
-  /// look up on the DB and update the TkDBC _layer_deltaZA values.
+  /// look up on the DB and update the LDZA static array used to calculate the coo
   /// In the case the time is not available it tries to seach fot it in the TDV 
   int UpdateTkDBc(uint timeid);
 

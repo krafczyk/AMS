@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include "TrInnerDzDB.h"
-#include "TkDBc.h"
 #include "timeid.h"
+#include "TFile.h"
 
 ClassImp (TrInnerDzDB);
 ClassImp (TrInnerDzDB::DzElem);
@@ -17,14 +17,15 @@ TrInnerDzDB* TrInnerDzDB::Head=0;
 float TrInnerDzDB::TDVSwap[2*(1+kLaynum)];
 
 
+float TrInnerDzDB::LDZA[kLaynum]={0.,0.,0.,0.,0.,0.,0.};
+
 int TrInnerDzDB::UpdateTkDBc(uint Timeid){
-    
-  TkDBc* db=TkDBc::GetHead();
-  float Dz[7];
+  //  TkDBc* db=TkDBc::GetHead();
+  float Dz[kLaynum];
   int ret=GetEntry(Timeid,Dz,1);
   if( ret >=0) {
-    for (int ii=0;ii<7;ii++)
-      db->Update_layer_deltaZA(ii,Dz[ii]);
+    for (int ii=0;ii<kLaynum;ii++)
+      LDZA[ii]=Dz[ii];
     return 0;
   }
   else if(ret ==-2 || ret==-3){ //Fall back to TDV
@@ -32,8 +33,8 @@ int TrInnerDzDB::UpdateTkDBc(uint Timeid){
     if(retTDV<0) return -2;
     int ret2=GetEntry(Timeid,Dz,1);
     if( ret2 >=0) {
-      for (int ii=0;ii<7;ii++)
-	db->Update_layer_deltaZA(ii,Dz[ii]);
+      for (int ii=0;ii<kLaynum;ii++)
+	LDZA[ii]=Dz[ii];
       return 0;
     }
     else return -3;    
@@ -204,7 +205,7 @@ int TrInnerDzDB::ReadFromFile(char* filename){
 
   while(1){
     uint t;
-    float a,b,c,d,e,f,g,dz[7];
+    float a,b,c,d,e,f,g,dz[kLaynum];
     fscanf(ff," %u  %e  %e  %e  %e  %e  %e  %e",&t,
 	   &a,&b,&c,&d,&e,&f,&g);
     if(feof(ff)) break;

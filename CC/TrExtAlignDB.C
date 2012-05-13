@@ -5,7 +5,10 @@
 #include "tkdcards.h"
 #include "timeid.h"
 #include "commonsi.h"
+#include "TrRecHit.h"
+#include "VCon.h"
 
+int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1);
 ClassImp(TrExtAlignPar);
 ClassImp(TrExtAlignDB);
 
@@ -15,6 +18,11 @@ int TrExtAlignDB::ForceFromTDV=0;
 int TrExtAlignDB::ForceLocalAlign=0;
 
 int TrExtAlignDB::version = 2;
+
+
+int TrExtAlignDB::Ciemat=0;
+float TrExtAlignDB::SL1[12]={0,0,0,0,0,0,0,0,0,0,0,0 };
+float TrExtAlignDB::SL9[12]={0,0,0,0,0,0,0,0,0,0,0,0 };
 
 void TrExtAlignPar::Print(Option_t *) const
 {
@@ -154,8 +162,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     std::cerr << "TkDBc::Head is null" << std::endl;
     return -2;
   }
-  // Set TkPlaneExt to CIEMAT
-  TkPlaneExt::SetAlKind(1);
 
   // Update the alignment
   if(!DynAlManager::UpdateParameters(run,time)){
@@ -165,12 +171,13 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
       if(!(pln & (1<<i)))continue;
       TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
       if (!pl) return i==0?-3:-13;
-      pl->UpdatePosA().setp(0,0,0);
-      pl->UpdateRotA().Reset();
+      float *ll= (plane[i]==5)?SL1:SL9;
+      for(int ii=6;ii<12;ii++) ll[ii]=0;
+//       pl->UpdatePosA().setp(0,0,0);
+//       pl->UpdateRotA().Reset();
     }
     return 1;
   }
-  
   // Retrieve the parameters
   int layerJ[2]={1,9};
   int plane[2]={5,6};
@@ -187,7 +194,6 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
     AMSRotMat rot;
     pars.GetParameters(time,0,pos,rot);
     double offset=pars.ZOffset;
-
 
     // Apply local alignment
     int ladderId=layerJ[i]==1?lad1:lad9;
@@ -213,15 +219,21 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
 	rot=newRot;
       }
     }
-
     // Take into account the difference in the reference frames
     // between the local geometry and the one used in the computation
     AMSPoint o(0,0,offset);
     pos=pos-pl->GetPos()+o-rot*(o-pl->GetPos()); 
 
     // Set plane parameters
-    pl->UpdatePosA()=pos;
-    pl->UpdateRotA()=rot;
+//     pl->UpdatePosA()=pos;
+//     pl->UpdateRotA()=rot;
+
+    double a,b,c;
+    rot.GetRotAngles(a,b,c);
+    float *ll= (plane[i]==5)?SL1:SL9;
+    ll[6]=pos[0]; ll[7]=pos[1];ll[8]=pos[2];
+    ll[9]=a;ll[10]=b;ll[11]=c;
+
   }
   return 0;
 }
@@ -263,32 +275,69 @@ TrExtAlignPar & TrExtAlignDB::GetMDyn(int layerJ,uint time){
   return Pars;
 }
 
+int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
+  int alkind=0;
+  if (kind<0 ||kind>2) return -1;
+
+  if (kind==1) alkind=1;
+  TrExtAlignDB::SetAlKind(alkind);
+
+  int rret=0;
+
+  if(kind==0)
+    rret=UpdateExtLayer(0); //PG
+  if (kind==1)
+    rret=UpdateExtLayer(1); //CIEMAT
+  else
+    ResetExtAlign();
+  if(rret!=0) return -2;
+
+  
+  VCon* cont2=GetVCon()->GetCont("AMSTrRecHit");
+  if (!cont2) return -1;
+  for (int ii=0;ii<cont2->getnelem();ii++){
+    TrRecHitR* hit=(TrRecHitR*)cont2->getelem(ii);
+    if(hit->GetLayer()>7){
+      if(kind==1){
+	TrRecHitR*   hit1=(hit->GetLayer()==8)?hit:0;
+	TrRecHitR*   hit9=(hit->GetLayer()==9)?hit:0;
+	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+	rret=UpdateExtLayer(1,l1,l9);
+	if(!rret) {if(cont2)delete cont2;return -3;}
+      }
+      hit->BuildCoordinate();
+    }
+  }
+  if(cont2) delete cont2;
+
+  return 0;
+}
 
 
 void TrExtAlignDB::ResetExtAlign() 
 {
-  // Set TkPlaneExt to PG
-  TkPlaneExt::SetAlKind(0);
-  for (int layer = 8; layer <= 9; layer++) {
-    int plane = (layer == 8) ? 5 : 6;
-    TkPlane* pl = TkDBc::Head->GetPlane(plane);
-    if (!pl) continue;
 
-    pl->UpdatePosA().setp(0,0,0);
-    pl->UpdateRotA().SetRotAngles(0,0,0);
-  }
+  memset(SL1,0,12*sizeof(SL1[0]));
+  memset(SL9,0,12*sizeof(SL9[0]));
+//   for (int layer = 8; layer <= 9; layer++) {
+//     int plane = (layer == 8) ? 5 : 6;
+//     TkPlane* pl = TkDBc::Head->GetPlane(plane);
+//     if (!pl) continue;
+
+//     pl->UpdatePosA().setp(0,0,0);
+//     pl->UpdateRotA().SetRotAngles(0,0,0);
+//   }
 
 
-  // Set TkPlaneExt to CIEMAT
-  TkPlaneExt::SetAlKind(1);
-  for (int layer = 8; layer <= 9; layer++) {
-    int plane = (layer == 8) ? 5 : 6;
-    TkPlane* pl = TkDBc::Head->GetPlane(plane);
-    if (!pl) continue;
+//   for (int layer = 8; layer <= 9; layer++) {
+//     int plane = (layer == 8) ? 5 : 6;
+//     TkPlane* pl = TkDBc::Head->GetPlane(plane);
+//     if (!pl) continue;
 
-    pl->UpdatePosA().setp(0,0,0);
-    pl->UpdateRotA().SetRotAngles(0,0,0);
-  }
+//     pl->UpdatePosA().setp(0,0,0);
+//     pl->UpdateRotA().SetRotAngles(0,0,0);
+//   }
   return;
 }
 
@@ -299,8 +348,6 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     return -1;
   }
 
-  // Set TkPlaneExt to PG
-  TkPlaneExt::SetAlKind(0);
 
   int errlim=100;
   static int nwar = 0;
@@ -416,8 +463,12 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
 
     const TrExtAlignPar *par = Get(layer, time);
     if(!par) return -4;
-    pl->UpdatePosA().setp(par->dpos[0], par->dpos[1], par->dpos[2]);
-    pl->UpdateRotA().SetRotAngles(par->angles[0], par->angles[1], par->angles[2]);
+
+    float * ll= (layer==8)?SL1:SL9;
+
+    ll[0]=par->dpos[0];  ll[1]=par->dpos[1];   ll[2]=par->dpos[2];
+    ll[3]=par->angles[0];ll[4]=par->angles[1]; ll[5]=par->angles[2];
+
   }
 
   return 0;

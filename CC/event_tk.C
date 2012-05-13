@@ -1,4 +1,4 @@
-//  $Id: event_tk.C,v 1.53 2012/05/07 09:02:35 pzuccon Exp $
+//  $Id: event_tk.C,v 1.54 2012/05/13 21:59:47 pzuccon Exp $
 #include "TrRecon.h"
 #include "TrSim.h"
 #include "TkSens.h"
@@ -36,14 +36,15 @@ void AMSEvent::_retkevent(integer refit){
   TrRecon rec;
   try{
     if (TrExtAlignDB::GetHead()->GetSize(8) > 0 &&
-	TrExtAlignDB::GetHead()->GetSize(9) > 0){
-      TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
-      TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime(),3);
-
+	TrExtAlignDB::GetHead()->GetSize(9) > 0)
+    {
+        TrExtAlignDB::GetHead()->UpdateTkDBc(gettime());
+        TrExtAlignDB::GetHead()->UpdateTkDBcDyn(getrun(),gettime(),3);
     }
+
     TrInnerDzDB::GetHead()->UpdateTkDBc(gettime());
     // Set TkPlaneExt to PG
-    TkPlaneExt::SetAlKind(0);
+    TrExtAlignDB::SetAlKind(0);
     
     trstat = rec.Build(TRCLFFKEY.recflag, 0, TRCLFFKEY.statflag);
   }

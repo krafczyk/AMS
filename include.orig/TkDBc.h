@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.37 2012/05/11 09:31:33 shaino Exp $
+// $Id: TkDBc.h,v 1.38 2012/05/13 21:59:38 pzuccon Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -135,10 +135,10 @@ public:
 
   //! Z distance of the silicon surface from the middle of the plane;
   number _layer_deltaZ[maxlay];
-private:  
-//! Alignment correction to Z distance of the silicon surface from the middle of the plane;
-  number _layer_deltaZA[maxlay];
-  vector<number> _layer_deltaZAV;
+  //private:  
+  //! Alignment correction to Z distance of the silicon surface from the middle of the plane;
+  // number _layer_deltaZA[maxlay];
+  //  vector<number> _layer_deltaZAV;
 public:
   //! number of active ladders for side/layer
   integer  _nlad[2][maxlay];
@@ -316,11 +316,11 @@ private:
 
   int GetOctant(int side,int _layer,int _slot);
 
-  //Pointer to the planes;  (For < B572)
+  //Pointer to the planes;  
   TkPlane* planes[maxplanes];
 
   //Pointer to the planes; (For >= B572)
-  vector<TkPlane*>  planes2;
+  //  vector<TkPlane*>  planes2;
 
   //! Rebuild all the other maps from tkidmap
   void RebuildMap();
@@ -384,13 +384,18 @@ public:
   
   //! Returns the number of active planes
   int GetNPlanes() const { return nplanes;} 
+
+
   //! Return the pointer to the iith (ii [1-6]) TkPlane object 
-  TkPlane* GetPlane(int ii, int override=0);
+  TkPlane* GetPlane(int ii);
   //  TkPlane* GetPlane(int ii) {if (ii>0&&ii<=nplanes) return &(planes[ii-1]); else return 0;}
   //! returns the layer (0-8) deltaZ inner alignment correction.
-  number Get_layer_deltaZA(int ii, int override=0);
+  //  number Get_layer_deltaZA(int ii, int override=0);
   //! returns the layer (0-8) deltaZ inner alignment correction.
-  void  Update_layer_deltaZA(int ii,number dz);
+  // void  Update_layer_deltaZA(int ii,number dz);
+
+
+
   //! TkId map number of elements
   int GetEntries() { return 192; }
   //! TkId map element by iterator index
@@ -497,9 +502,9 @@ public:
   //! Returns the Setup Index
   char * GetSetupName(){return _setupname[_setup];}
 
-  static int nthreads;
 
-  ClassDef(TkDBc, 10);
+
+  ClassDef(TkDBc, 9);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;

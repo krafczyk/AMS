@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.22 2012/05/10 16:05:52 mdelgado Exp $
+//  $Id: TrExtAlignDB.h,v 1.23 2012/05/13 21:59:38 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -159,6 +159,15 @@ public:
   /// TDV version (1: no errors,  2: with errors) 
   static int version;  // It should be thread-common
 
+
+  static float SL1[12];
+#pragma omp threadprivate(SL1)
+  static float SL9[12];
+#pragma omp threadprivate(SL9)
+private:
+  static int Ciemat;
+#pragma omp threadprivate(Ciemat)
+
 public:
   /// Std dummy constructor
   TrExtAlignDB(){}
@@ -310,7 +319,26 @@ public:
   /// Produce disaligment for MC TESTS
   static void ProduceDisalignment(unsigned int * tt);
   static long long GetDt(float rate);
+  static float GetDynCorr(int layerJ,int par){
+    int off=0;
+    if(Ciemat) off=6;
+    float* ll=SL1;
+    if(layerJ==9) ll=SL9;
+    if(par>=6){
+      printf("TrExtAlignDB::GetDynCoor-E- parameter request is out of boundaries MAX 5 reuested %d\n",par);
+      return 0;
+    }
+    return ll[off+par];
+  }
 
+  /// Sets the kind of alignment to be use to calculate ext coo (0 PG 1 CIEMAT)
+  static void  SetAlKind(int ii){
+    if(ii!=0) Ciemat=1;
+    else Ciemat=0;
+    return;
+  }
+  /// Recalculate the coordinates of all the hits of external planes according to a given alignment (0=PG, 1=CIEMA,T 2=NO_ALIGNAMENT)
+  static int RecalcAllExtHitCoo(int kind);
 
   ClassDef(TrExtAlignDB,3);
 };

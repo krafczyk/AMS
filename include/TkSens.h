@@ -1,4 +1,4 @@
-/// $Id: TkSens.h,v 1.7 2011/07/10 10:49:27 pzuccon Exp $ 
+/// $Id: TkSens.h,v 1.8 2012/05/13 21:59:38 pzuccon Exp $ 
 #ifndef _TKSENS_
 #define _TKSENS_
 
@@ -13,9 +13,9 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate
-///$Date: 2011/07/10 10:49:27 $
+///$Date: 2012/05/13 21:59:38 $
 ///
-/// $Revision: 1.7 $
+/// $Revision: 1.8 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -153,6 +153,7 @@ class TkSens {
   number   GetImpactAngleYZ() { return ImpactAngleYZ; }
   //! Returns if is MC TkSens
   bool IsMC() {return _isMC;}
+  AMSPoint FindCloseSensorCenter();
 
   //! Clear the calculated content
   void Clear();

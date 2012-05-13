@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.87 2012/05/10 18:33:15 shaino Exp $
+//  $Id: TrTrack.h,v 1.88 2012/05/13 21:59:38 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/10 18:33:15 $
+///$Date: 2012/05/13 21:59:38 $
 ///
-///$Revision: 1.87 $
+///$Revision: 1.88 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -343,8 +343,20 @@ public:
     }  
     return aa; 
   }
+  //! returns the BIT Mask of the layers J scheme (1-9) with hit. bit_num <==> layer_num-1
+  unsigned short int GetBitPatternXYJ() const { 
+    int aa=0;
+    for (int ii=0;ii<9;ii++){
+      int lay=TkDBc::Head->GetLayerFromJ(ii+1)-1;
+      if(_bit_patternX&(1<<lay))  aa|=(1<<ii);
+    }  
+    return aa; 
+  }
   //! DEPRECATED returns the BIT Mask of the layers OLD  scheme (1-9) with hit. bit_num <==> layer_num-1
   unsigned short int GetBitPattern() const { return _bit_pattern; }
+  //! DEPRECATED returns the BIT Mask of the layers OLD  scheme (1-9) with hit. bit_num <==> layer_num-1
+  unsigned short int GetBitPatternXY() const { return _bit_patternX; }
+
   //! returns the Number of Hits
   int GetNhits  () const { return _Nhits;   }
   //! returns the Number of Hits

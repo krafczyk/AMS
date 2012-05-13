@@ -1,4 +1,4 @@
-/// $Id: TkSens.C,v 1.21 2012/05/07 09:02:35 pzuccon Exp $ 
+/// $Id: TkSens.C,v 1.22 2012/05/13 21:59:47 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,13 +9,15 @@
 ///\date  2008/04/02 SH  Some bugs are fixed
 ///\date  2008/04/18 SH  Updated for alignment study
 ///\date  2008/04/21 AO  Ladder local coordinate and bug fixing
-///$Date: 2012/05/07 09:02:35 $
+///$Date: 2012/05/13 21:59:47 $
 ///
-/// $Revision: 1.21 $
+/// $Revision: 1.22 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
 #include "TkDBc.h"
+#include "TrInnerDzDB.h"
+#include "TrExtAlignDB.h"
 
 #include "TkSens.h"
 #include "TkCoo.h"
@@ -180,15 +182,36 @@ int TkSens::GetSens(){
 
   //Get The Plane Pointer
   TkPlane * pp=lad->GetPlane();
-
+  int Layer=lad->GetLayer();
+  int layJ=lad->GetLayerJ();
+  AMSPoint planeA;
+  if(Layer>7)
+     planeA.setp( TrExtAlignDB::GetDynCorr(layJ,0),
+		  TrExtAlignDB::GetDynCorr(layJ,1),
+		  TrExtAlignDB::GetDynCorr(layJ,2));
+  else
+     planeA=pp->GetPosA();
   //Alignment corrected Plane postion
-  AMSPoint PPosG=pp->GetPosA()+pp->GetPos();
+  float dzcorr=0;
+  if (Layer<=7) dzcorr= TrInnerDzDB::LDZA[Layer-1];
+  AMSPoint LayerZCorrection(0,0,dzcorr);
+  
+  AMSPoint PPosG=planeA+pp->GetPos()+LayerZCorrection;
+
   if(IsMC()) PPosG=pp->GetPosT()+pp->GetPos();
 
 
   //Alignment corrected Plane Rotation matrix
   AMSRotMat PRotG0=pp->GetRotMat();
-  AMSRotMat PRotG1=pp->GetRotMatA();
+
+  AMSRotMat PRotG1;
+  if(Layer>7)
+    PRotG1.SetRotAngles(TrExtAlignDB::GetDynCorr(layJ,3),
+		      TrExtAlignDB::GetDynCorr(layJ,4),
+		      TrExtAlignDB::GetDynCorr(layJ,5));
+  else   
+    PRotG1=pp->GetRotMatA();
+
   AMSRotMat PRotG=PRotG0.Invert()*PRotG1.Invert();
 
   if(IsMC()) {
@@ -199,10 +222,8 @@ int TkSens::GetSens(){
 
 
   //Alignment corrected Ladder postion
-  int Layer=lad->GetLayer();
-  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->Get_layer_deltaZA(Layer-1));
 
-  AMSPoint PosG=lad->GetPosA()+lad->GetPos()+LayerZCorrection;
+  AMSPoint PosG=lad->GetPosA()+lad->GetPos();
   if(IsMC()) PosG=lad->GetPosT()+lad->GetPos();
 
   //Alignment corrected Ladder Rotation matrix
@@ -382,6 +403,104 @@ int TkSens::FindLadder(int lay){
     if (IsInsideLadder(lad)) return tkid;
   }
   return 0;
+}
+
+AMSPoint TkSens::FindCloseSensorCenter(){
+  AMSPoint pret;
+  AMSPoint gcoo=GlobalCoo;
+  int Layer = -1;
+  Layer=GetLayer();
+  if (Layer<=0) return pret;
+  TkPlane* pp=TkDBc::Head->GetPlane(TkDBc::Head->_plane_layer[Layer-1]);
+  int layJ=TkDBc::Head->GetJFromLayer(Layer);
+  AMSPoint planeA;
+  if(Layer>7)
+     planeA.setp( TrExtAlignDB::GetDynCorr(layJ,0),
+		  TrExtAlignDB::GetDynCorr(layJ,1),
+		  TrExtAlignDB::GetDynCorr(layJ,2));
+  else
+    planeA=pp->GetPosA();
+  //Alignment corrected Plane postion
+
+  float dzcorr=0;
+  if (Layer<=7) dzcorr= TrInnerDzDB::LDZA[Layer-1];
+  AMSPoint LayerZCorrection(0,0,dzcorr);
+  
+  AMSPoint PPosG=planeA+pp->GetPos()+LayerZCorrection;
+  if(IsMC()) PPosG=pp->GetPosT()+pp->GetPos();
+
+  //Alignment corrected Plane Rotation matrix
+  AMSRotMat PRotG0=pp->GetRotMat();
+  AMSRotMat PRotG1;
+  if(Layer>7)
+    PRotG1.SetRotAngles(TrExtAlignDB::GetDynCorr(layJ,3),
+			TrExtAlignDB::GetDynCorr(layJ,4),
+			TrExtAlignDB::GetDynCorr(layJ,5));
+  else   
+    PRotG1=pp->GetRotMatA();
+
+  AMSRotMat PRotG=PRotG0.Invert()*PRotG1.Invert();
+
+  if(IsMC()) {
+	  PRotG0=pp->GetRotMat();
+	  PRotG1=pp->GetRotMatT();
+	  PRotG=PRotG0.Invert()*PRotG1.Invert();
+  }
+  AMSPoint oo = PRotG*(gcoo-PPosG);
+
+  int otkid=0;
+  float max=300;
+  double hwid = TkDBc::Head->_ssize_inactive[1]/2;
+  for(int ii=1;ii<15;ii++){
+    int tkid=Layer*100+ii;
+    TkLadder* lad=TkDBc::Head->FindTkId(tkid);
+    if(lad==0) tkid*=-1;lad=TkDBc::Head->FindTkId(tkid);
+    if(lad==0) continue;
+    double hlen = TkCoo::GetLadderLength(tkid)/2
+      -(TkDBc::Head->_ssize_inactive[0]-TkDBc::Head->_ssize_active[0])/2;
+
+    AMSRotMat rot0 = lad->GetRotMatA();
+    AMSRotMat rot = rot0*lad->GetRotMat();
+
+    AMSPoint  pos = lad->GetPos()+lad->GetPosA();
+    AMSPoint  loc(hlen, hwid, 0);
+    AMSPoint  Center = rot*loc+pos;
+    float dist=abs(oo[1]-Center[1]);
+    if(dist<max) {otkid=tkid; max=dist;}
+  }
+  if(!TkDBc::Head->FindTkId(otkid)) return pret;
+
+  int slot=abs(otkid)%100;
+  int msens=-1;
+  vector<float> csM;
+  vector<float> csP;
+  TkLadder* ladM=TkDBc::Head->FindTkId(abs(otkid)*-1);
+  TkLadder* ladP=TkDBc::Head->FindTkId(abs(otkid));
+  if(ladM)
+    for (int ii=0;ii<ladM->GetNSensors();ii++)
+      csM.push_back(ladM->GetPos()[0]+ladM->GetPosA()[0]+TkDBc::Head->_SensorPitchK*ii+TkDBc::Head->_ssize_active[0]/2);
+  if(ladP)
+    for (int ii=0;ii<ladP->GetNSensors();ii++)
+      csP.push_back(ladP->GetPos()[0]+ladP->GetPosA()[0]-TkDBc::Head->_SensorPitchK*ii-TkDBc::Head->_ssize_active[0]/2);
+
+  float distM=9999;
+  int sM=-1;
+  for (int ii=0;ii<csM.size();ii++){
+    float dd=fabs(oo[0]-csM[ii]);
+    if( dd< distM) {distM=dd; sM=ii;}
+  }
+
+  float distP=9999;
+  int sP=-1;
+  for (int ii=0;ii<csP.size();ii++){
+    float dd=fabs(oo[0]-csP[ii]);
+    if( dd< distP) {distP=dd; sP=ii;}
+  }
+  if(distP<distM){otkid=abs(otkid);msens=sP;}
+  else {otkid=abs(otkid)*-1;msens=sM;}
+  
+  pret=TkCoo::GetGlobalA(otkid,msens*TkDBc::Head->_SensorPitchK+TkDBc::Head->_ssize_active[0]/2,TkDBc::Head->_ssize_inactive[1]/2);
+  return pret;
 }
 
 

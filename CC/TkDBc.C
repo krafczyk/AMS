@@ -1,4 +1,4 @@
-//  $Id: TkDBc.C,v 1.60 2012/05/11 13:52:05 choutko Exp $
+//  $Id: TkDBc.C,v 1.61 2012/05/13 21:59:47 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/18 PZ  Update for the new TkSens class
 ///\date  2008/04/10 PZ  Update the Z coo according to the latest infos
 ///\date  2008/04/18 SH  Update for the alignment study
-///$Date: 2012/05/11 13:52:05 $
+///$Date: 2012/05/13 21:59:47 $
 ///
-///$Revision: 1.60 $
+///$Revision: 1.61 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -24,18 +24,15 @@
 // Hard-coded sensor alignment parameters
 #include "TkDBcSalig.C"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
-int    TkDBc::nthreads=1;
+
 TkDBc* TkDBc::Head=0;
 float* TkDBc::linear=0;
 char   TkDBc::_setupname[4][30]={"Unknown","AMS02-PreIntegration","AMS02-Ass1","AMS02P"};
 int    TkDBc::_setup=3;
  
 TkDBc::TkDBc(){
-for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
+  for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)planes[j]=0;
 }
 
 void TkDBc::CreateTkDBc(int force_delete){
@@ -68,71 +65,59 @@ TkDBc::~TkDBc(){
   PGlocal.clear();
   MDlocal.clear();
 
-   for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)delete planes;
-  for (int jj=0;jj<planes2.size();jj++)
-    if(planes2[jj]) delete planes2[jj];
-  planes2.clear();
-
+  for(int j=0;j<sizeof(planes)/sizeof(planes[0]);j++)delete planes;
+//   for (int jj=0;jj<planes2.size();jj++)
+//     if(planes2[jj]) delete planes2[jj];
+//   planes2.clear();
+  
   for ( tkidIT pp=tkidmap.begin();pp!=tkidmap.end();++pp)
     if(pp->second) delete pp->second;
 
 }
 
-TkPlane* TkDBc::GetPlane(int ii, int override) {
-  int thre=0;
-#ifdef _OPENMP
-   nthreads=omp_get_num_threads();
-  thre=omp_get_thread_num();
-  if(thre>=nthreads) thre=0;
-  if (override) thre=0;
-#endif
-  // Try to fill planes2
-  if (planes2.size() == 0) {
-    cout << "TkDBc::GetPlane-W-Trying to fill planes2" << endl;
-    for(int k=0;k<nthreads;k++)for (int i = 0; i < maxplanes; i++) planes2.push_back(planes[i]);
-  }
-  if (ii>0&&ii-1+thre*nplanes<planes2.size())   
-    return planes2[ii-1+thre*nplanes]; 
+TkPlane* TkDBc::GetPlane(int ii) {
+  if (ii>0&&ii<=maxplanes)   
+    return planes[ii-1]; 
   else return 0;
 }
 
 
-number TkDBc::Get_layer_deltaZA(int ii, int override){
-  int thre=0;
-#ifdef _OPENMP
-  thre=omp_get_thread_num();
-  if(thre>=nthreads) thre=0;
-  if (override) thre=0;
-  if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
-    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
-      _layer_deltaZAV.push_back(0.);
-    for (int jj=0;jj<nthreads;jj++)
-      for (int hh=0;hh<maxlay;hh++)
-	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
-  }
-#endif
-  if (ii>=0&&ii+thre*maxlay<_layer_deltaZAV.size())   
-    return _layer_deltaZAV[ii+thre*maxlay]; 
-  else return 0;
-}
+// number TkDBc::Get_layer_deltaZA(int ii, int override){
+//   int thre=0;
+// #ifdef _OPENMP
+//   thre=omp_get_thread_num();
+//   if(thre>=nthreads) thre=0;
+//   if (override) thre=0;
+//   if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
+//     for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
+//       _layer_deltaZAV.push_back(0.);
+//     for (int jj=0;jj<nthreads;jj++)
+//       for (int hh=0;hh<maxlay;hh++)
+// 	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
+//   }
+// #endif
+//   if (ii>=0&&ii+thre*maxlay<_layer_deltaZAV.size())   
+//     return _layer_deltaZAV[ii+thre*maxlay]; 
+//   else return 0;
+// }
 
-void TkDBc::Update_layer_deltaZA(int ii, number dz){
-  int thre=0;
-#ifdef _OPENMP
-  thre=omp_get_thread_num();
-  if(thre>=nthreads) thre=0;
-  if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
-    for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
-      _layer_deltaZAV.push_back(0.);
-    for (int jj=0;jj<nthreads;jj++)
-      for (int hh=0;hh<maxlay;hh++)
-	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
-  }
-#endif
-  if (ii>=0&&ii<maxlay)   
-    _layer_deltaZAV[ii+thre*maxlay]=dz; 
-  return;
-}
+// void TkDBc::Update_layer_deltaZA(int ii, number dz){
+//   int thre=0;
+// #ifdef _OPENMP
+//   thre=omp_get_thread_num();
+//   if(thre>=nthreads) thre=0;
+//   if((ii+thre*maxlay)>=_layer_deltaZAV.size()){
+//     for(int kk=0;kk<(ii+nthreads*maxlay-_layer_deltaZAV.size());kk++) 
+//       _layer_deltaZAV.push_back(0.);
+//     for (int jj=0;jj<nthreads;jj++)
+//       for (int hh=0;hh<maxlay;hh++)
+// 	_layer_deltaZAV[hh+jj*maxlay]=_layer_deltaZAV[hh]; 
+//   }
+// #endif
+//   if (ii>=0&&ii<maxlay)   
+//     _layer_deltaZAV[ii+thre*maxlay]=dz; 
+//   return;
+// }
 
 
 
@@ -144,7 +129,6 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       fprintf(stderr,"TkDBc::init -E-  FATAL Unknown Setup number %d\n",_setup);
       exit(-3);
     }
-    TkPlaneExt::SetAlKind(0);
     
     printf("TkDBc::init -I- Selected Setup %d  %s\n",_setup,_setupname[_setup]);
 
@@ -318,13 +302,13 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
     memcpy(_layer_deltaZ,layer_deltaZ,maxlay*sizeof(layer_deltaZ[0]));
 
 
-    const number layer_deltaZA[maxlay]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
-    memcpy(_layer_deltaZA,layer_deltaZA,maxlay*sizeof(layer_deltaZA[0]));
-#ifdef _OPENMP
-    for (int ii=0;ii<nthreads;ii++)
-#endif
-    for (int jj=0;jj<maxlay;jj++)
-    _layer_deltaZAV.push_back(layer_deltaZA[jj]);
+//     const number layer_deltaZA[maxlay]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
+//     memcpy(_layer_deltaZA,layer_deltaZA,maxlay*sizeof(layer_deltaZA[0]));
+// #ifdef _OPENMP
+//     for (int ii=0;ii<nthreads;ii++)
+// #endif
+//     for (int jj=0;jj<maxlay;jj++)
+//     _layer_deltaZAV.push_back(layer_deltaZA[jj]);
 
 //----------------------------------------------------------------------------------
 //            LADDERS
@@ -654,25 +638,18 @@ void TkDBc::init(int setup,const char *inputfilename, int pri){
       for (int ii=0;ii<nplanes;ii++){
 	char name[255];
 	sprintf(name,"Plane%d",ii+1);
-	if(ii<4)  // internal planes
-	  planes2.push_back( new TkPlane(name,ii+1, _nslot[ii]));
-	else  // external planes
-	  planes2.push_back( new TkPlaneExt(name,ii+1, _nslot[ii]));
-	GetPlane(ii+1,1)->UpdatePos().setp(_xpos[ii],_ypos[ii],_zpos[ii]);
+	//	if(ii<4)  // internal planes
+	planes[ii]= new TkPlane(name,ii+1, _nslot[ii]);
+	//	  planes2.push_back( new TkPlane(name,ii+1, _nslot[ii]));
+	// 	else  // external planes
+	// 	  planes2.push_back( new TkPlaneExt(name,ii+1, _nslot[ii]));
+	GetPlane(ii+1)->UpdatePos().setp(_xpos[ii],_ypos[ii],_zpos[ii]);
 	if(_setup==3 && ii==4) {
-	  GetPlane(ii+1,1)->UpdateRot().XParity();
-	  GetPlane(ii+1,1)->UpdateRot().ZParity();
+	  GetPlane(ii+1)->UpdateRot().XParity();
+	  GetPlane(ii+1)->UpdateRot().ZParity();
 	}
 	//	 cout <<*(GetPlane(ii+1))<<endl;
       }
-#ifdef _OPENMP
-      for(int jj=1;jj<nthreads;jj++){
-	for (int ii=0;ii<nplanes;ii++){
-	  if (ii<4) planes2.push_back(new TkPlane(*(GetPlane(ii+1,1))));
-	  else 	    planes2.push_back(new TkPlaneExt((TkPlaneExt&)*(GetPlane(ii+1,1))));
-	}
-      }
-#endif
 
       
       for (int lay=0;lay<nlays;lay++) //loop on layers
@@ -884,7 +861,7 @@ int TkDBc::write(const char* filename){
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
-    fileout<<*(GetPlane(ii+1,1));
+    fileout<<*(GetPlane(ii+1));
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     fileout << *(pp->second);
 
@@ -927,19 +904,9 @@ int TkDBc::read(const char* filename, int pri){
 
 
    for (int ii=0;ii<nplanes;ii++){    
-     fileout>>*(GetPlane(ii+1,1));
+     fileout>>*(GetPlane(ii+1));
   }
-#ifdef _OPENMP
-   for(int jj=1;jj<nthreads;jj++){
-     for (int ii=0;ii<nplanes;ii++){
-       if((ii+jj*nplanes)>=planes2.size()){
-	 if(ii<4) planes2.push_back(new TkPlane());
-	 else planes2.push_back(new TkPlaneExt());
-       }
-       *(planes2[ii+jj*nplanes])=*(planes2[ii]);
-     }
-   }
-#endif
+
 
 
   int count=0;
@@ -1265,17 +1232,7 @@ int TkDBc::readAlignmentLadFF(const char* filename, int pri){
 
   }
   cout << count <<" Ladders ALIGNMENTFree  have been read from file "<<filename<<endl;
-#ifdef _OPENMP
-    for(int jj=1;jj<nthreads;jj++){
-      for (int ii=0;ii<nplanes;ii++){
-	if((ii+jj*nplanes)>=planes2.size()){
-	  if(ii<4) planes2.push_back(new TkPlane());
-	  else planes2.push_back(new TkPlaneExt());
-	}
-	*(planes2[ii+jj*nplanes])=*(planes2[ii]);
-      }
-    }
-#endif
+
 
   fileout.close();
   return 0;
@@ -1299,19 +1256,9 @@ int TkDBc::readAlignment(const char* filename, int pri){
   }
 
   for (int ii=0;ii<nplanes;ii++){
-    GetPlane(ii+1,1)->ReadA(fileout);
+    GetPlane(ii+1)->ReadA(fileout);
   }
-#ifdef _OPENMP
-    for(int jj=1;jj<nthreads;jj++){
-      for (int ii=0;ii<nplanes;ii++){
-	if((ii+jj*nplanes)>=planes2.size()){
-	  if(ii<4) planes2.push_back(new TkPlane());
-	  else planes2.push_back(new TkPlaneExt());
-	}
-	*(planes2[ii+jj*nplanes])=*(planes2[ii]);
-      }
-    }
-#endif
+
 
   int count=0;
   for(tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); pp++) {
@@ -1339,19 +1286,9 @@ int TkDBc::readDisalignment(const char* filename, int pri){
   
 
   for (int ii=0;ii<nplanes;ii++){
-    GetPlane(ii+1,1)->ReadT(fileout);
+    GetPlane(ii+1)->ReadT(fileout);
   }
-#ifdef _OPENMP
-    for(int jj=1;jj<nthreads;jj++){
-      for (int ii=0;ii<nplanes;ii++){
-	if((ii+jj*nplanes)>=planes2.size()){
-	  if(ii<4) planes2.push_back(new TkPlane());
-	  else planes2.push_back(new TkPlaneExt());
-	}
-	*(planes2[ii+jj*nplanes])=*(planes2[ii]);
-      }
-    }
-#endif
+
 
 
   int count=0;
@@ -1378,7 +1315,7 @@ int TkDBc::writeAlignment(const char* filename){
   if(TkLadder::version>=2) (fileout) << "VVV"<<TkLadder::version<<endl; 
 
   for (int ii=0;ii<nplanes;ii++)
-    GetPlane(ii+1,1)->WriteA(fileout);
+    GetPlane(ii+1)->WriteA(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     pp->second->WriteA(fileout);
 
@@ -1392,7 +1329,7 @@ int TkDBc::writeDisalignment(const char* filename){
   ofstream  fileout(filename);
   if(TkLadder::version>=2) fileout << "VVV"<<TkLadder::version<<endl;
   for (int ii=0;ii<nplanes;ii++)
-    GetPlane(ii+1,1)->WriteT(fileout);
+    GetPlane(ii+1)->WriteT(fileout);
   for (tkidIT pp=tkidmap.begin(); pp!=tkidmap.end(); ++pp)
     pp->second->WriteT(fileout);
 
@@ -1503,7 +1440,7 @@ void TkDBc::Align2Lin(){
   int off=0;
   for (int pla=1;pla<(nplanes+1);pla++){
     linear[off]=(float)pla;
-    TkPlane* pl=GetPlane(pla,1);
+    TkPlane* pl=GetPlane(pla);
     pl->Align2Lin(&linear[off+1]);
     off+=7;
   }
@@ -1527,22 +1464,12 @@ void TkDBc::Lin2Align(){
   int off=0;
   for (int pla=1;pla<(nplanes+1);pla++){
     int pll=(int)linear[off];
-    TkPlane* pl=GetPlane(pll,1);
+    TkPlane* pl=GetPlane(pll);
     pl->Lin2Align(&linear[off+1]);
     off+=7;
   }
 
-#ifdef _OPENMP
-  for(int jj=1;jj<nthreads;jj++){
-    for (int ii=0;ii<nplanes;ii++){
-      if((ii+jj*nplanes)>=planes2.size()){
-	if(ii<4) planes2.push_back(new TkPlane());
-	else planes2.push_back(new TkPlaneExt());
-      }
-      *(planes2[ii+jj*nplanes])=*(planes2[ii]);
-    }
-  }
-#endif
+
 
   for (int lad=0;lad<192;lad++){
     int tkid= (int)linear[off];
@@ -1570,17 +1497,7 @@ TkDBc *TkDBc::Load(TFile *rfile)
   TkDBc::Head = (TkDBc *)rfile->Get("TkDBc");
 
   if (TkDBc::Head) TkDBc::Head->RebuildMap();
-#ifdef _OPENMP
-    for(int jj=1;jj<nthreads;jj++){
-      for (int ii=0;ii<TkDBc::Head->nplanes;ii++){
-	if((ii+jj*TkDBc::Head->nplanes)>=TkDBc::Head->planes2.size()){
-	  if(ii<4) TkDBc::Head->planes2.push_back(new TkPlane());
-	  else TkDBc::Head->planes2.push_back(new TkPlaneExt());
-	}
-	*(TkDBc::Head->planes2[ii+jj*TkDBc::Head->nplanes])=*(TkDBc::Head->planes2[ii]);
-      }
-    }
-#endif
+
   return TkDBc::Head;
 }
 

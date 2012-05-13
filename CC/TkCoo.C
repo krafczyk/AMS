@@ -1,4 +1,4 @@
-/// $Id: TkCoo.C,v 1.14 2012/05/07 09:02:35 pzuccon Exp $ 
+/// $Id: TkCoo.C,v 1.15 2012/05/13 21:59:47 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -9,9 +9,9 @@
 ///\date  2008/03/19 PZ  Add some features to TkSens
 ///\date  2008/04/10 AO  GetLocalCoo(float) of interstrip position 
 ///\date  2008/04/22 AO  Swiching back some methods  
-///$Date: 2012/05/07 09:02:35 $
+///$Date: 2012/05/13 21:59:47 $
 ///
-/// $Revision: 1.14 $
+/// $Revision: 1.15 $
 ///
 //////////////////////////////////////////////////////////////////////////
 #include <execinfo.h>
@@ -21,8 +21,8 @@
 #include "TkDBc.h"
 #include "TkCoo.h"
 #include "tkdcards.h"
-
-
+#include "TrInnerDzDB.h"
+#include "TrExtAlignDB.h"
 
 
 
@@ -120,16 +120,32 @@ AMSPoint TkCoo::GetGlobalA(int tkid, AMSPoint& loc){
 
   // Get The Plane Pointer
   TkPlane*  pp    = ll->GetPlane();
-
+  int layJ=ll->GetLayerJ();
   // Alignment corrected Plane Rotation matrix
-  AMSRotMat PRotG0 = pp->GetRotMatA();
+  AMSRotMat PRotG0;
+  if(layJ!=1&& layJ!=9) 
+     PRotG0 = pp->GetRotMatA();
+  else 
+     PRotG0.SetRotAngles(TrExtAlignDB::GetDynCorr(layJ,3),
+                         TrExtAlignDB::GetDynCorr(layJ,4),
+                         TrExtAlignDB::GetDynCorr(layJ,5));
+
   AMSRotMat PRotG = PRotG0*pp->GetRotMat();
 
   int Layer=ll->GetLayer();
-  AMSPoint LayerZCorrection(0,0,TkDBc::GetHead()->Get_layer_deltaZA(Layer-1));
+  float dzcorr=0.;
+  if (Layer<=7) dzcorr=TrInnerDzDB::LDZA[Layer-1]; 
+  AMSPoint LayerZCorrection(0,0,dzcorr);
 
   // Alignment corrected Plane postion
-  AMSPoint  PPosG = pp->GetPosA()+pp->GetPos()+LayerZCorrection;
+  AMSPoint planeA = pp->GetPosA();
+
+  if(layJ==1|| layJ==9) 
+   planeA=AMSPoint(TrExtAlignDB::GetDynCorr(layJ,0),
+	            TrExtAlignDB::GetDynCorr(layJ,1),
+	            TrExtAlignDB::GetDynCorr(layJ,2));
+  
+  AMSPoint  PPosG = planeA+pp->GetPos()+LayerZCorrection;
 
   // Covolute with the Plane pos in the space and Get the global Coo
   AMSPoint  oo2   = PRotG*oo + PPosG;
