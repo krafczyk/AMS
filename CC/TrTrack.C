@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.148 2012/05/13 21:59:47 pzuccon Exp $
+// $Id: TrTrack.C,v 1.149 2012/05/13 23:23:27 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/13 21:59:47 $
+///$Date: 2012/05/13 23:23:27 $
 ///
-///$Revision: 1.148 $
+///$Revision: 1.149 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1621,42 +1621,25 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
 int TrTrackR::GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id){
   pnt.setp(0,0,0);
+  //sanity check
   if(!GetHitLJ(ilay)) return -1;
   TrTrackPar aa=GetPar(id);
   if(aa.FitDone==0) return -2;
+ 
+
   if(!aa.TestHitLayerJ(ilay)){
     if(kind==2){
       pnt=GetResidualJ(ilay,id);
-    }	else
+      return 1;
+    }	
+    else
       return -3;
   }
   if(kind==0){
     pnt=GetResidualJ(ilay,id);
     return 0;
   }
-  else if(kind==1){
-    int dec_patt=0;
-    for (int ii=1;ii<=9;ii++)
-      if(aa.TestHitLayerJ(ii)&&ii!=ilay)
-	dec_patt+=pow(10.,ii-1)*9;
-      
-    int fit_type=0;
-    if((id&kMultScat)==1) fit_type=10;
-    else if((id&kSameWeight)==1) fit_type=20;
-      
-    if((id&0xF)==kChoutko) fit_type+=1;
-    else if((id&0xF)==kAlcaraz) fit_type+=2;
-    else if((id&0xF)==kChikanian) fit_type+=3;
-    else if((id&0xF)==kChikanianF) fit_type+=4;
-      
-      
-    int fitcode=iTrTrackPar(fit_type,dec_patt,1);
-    if(fitcode<0) return fitcode*10;
-    pnt=GetResidualJ(ilay,fitcode);
-      
-    return 1;
-  }else
-    return -4;
+  return -4;
     
 }
 

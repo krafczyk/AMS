@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.88 2012/05/13 21:59:38 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.89 2012/05/13 23:23:27 pzuccon Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/13 21:59:38 $
+///$Date: 2012/05/13 23:23:27 $
 ///
-///$Revision: 1.88 $
+///$Revision: 1.89 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -507,7 +507,8 @@ public:
   /// Returns the Phi angle at the point of passage on the Z=0 XY plane from TrTrackPar corresponding to id
   double   GetPhi      (int id= 0) const { return GetDir(id).getphi();  }
 
-  /// Return the  proj (0=X,1=Y) residual at layer ilay J-scheme (1-9) from TrTrackPar corresponding to id
+  /// Return an AMSPoint with (X,Y) residual at layer ilay J-scheme (1-9) Z is the layer avarage one and should be not tusted too much
+  /// \parameter id  Fit id for the residuals
   /// \return The obtained quantity can be:
   /// \li The true fit residual => In the case the track has an hit on the layer and that hit is included in the fit 
   /// \li The distance between the hit and the track fit => in the case the track has an hit on the layer that  is NOT used in the fit
@@ -520,7 +521,8 @@ public:
   }
 
 
-  /// Return the  proj (0=X,1=Y) residual at layer ilay  OLD Scheme (1-9) from TrTrackPar corresponding to id
+  /// Return an AMSPoint with (X,Y) residual at layer ilay Old-scheme (1-9) Z is the layer avarage one and should be not tusted too much
+  /// \parameter id  Fit id for the residuals
   /// \return The obtained quantity can be:
   /// \li The true fit residual => In the case the track has an hit on the layer and that hit is included in the fit 
   /// \li The distance between the hit and the track fit => in the case the track has an hit on the layer that  is NOT used in the fit
@@ -532,23 +534,21 @@ public:
 		    TkDBc::Head->GetZlayer(ilay));
   }
 
-  /// Calculate the residual for two kinds (0= point included in the fit; 1= point not included) 
+  /// Calculate the residual for two kinds (0= point included in the fit; 1= point not belonging to the fit) 
   /// starting from the base fit defined by id 
   /// \param ilay the selected layer (J-Scheme),
   /// \param pnt  reference to the amspoint that will contail the result
   /// \param kind 
   ///  \li 0=  point included in the fit; 
-  ///  \li 1= point not included ;
-  ///  \li 2 =The distance between the fit and the hit not belonging to the fit
+  ///  \li 1 =The distance between the fit and the hit not belonging to the fit
   /// \param id  the fitcode of the base fit that is considered
   /// \return a code that reports that success or the failure of the procedure
-  /// \retval  2  --> The distance between the fit and the hit not belonging to the fit
   /// \retval  1  --> The Residual with point NOT included in the fit has been calculated
   /// \retval  0  --> The Residual with point included in the fit has been calculated
   /// \retval -1 --> No hit on the track on this layer
-  /// \retval -2 --> Cannot find the fit inic
+  /// \retval -2 --> Cannot find the fit id
   /// \retval -3 --> The layer was not used in the fit and kind !=2
-  /// \retval -4 --> the kind type was not 0, 1 or 2
+  /// \retval -4 --> the kind type was not 0, 1 o
   /// \retval <-10 ---> Problem with the fitting, returning iTrTrackPar error multiplied by 10
   int GetResidualKindJ(int ilay, AMSPoint& pnt,int kind, int id);
 
