@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.397 2012/05/13 12:34:46 choutko Exp $
+//  $Id: root.C,v 1.398 2012/05/13 21:57:07 pzuccon Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -7186,25 +7186,28 @@ int  UpdateExtLayer(int type=0,int lad1=-1,int lad9=-1){
   time=AMSEvent::gethead()->gettime();
   run=AMSEvent::gethead()->getrun();
 #endif
-  if(TrExtAlignDB::ForceLocalAlign){
-    int ret2=0;
-    char filenam[400];
-    if (type==0) {
-      sprintf(filenam,"%s/v5.00/PGExtLocalAlign.txt",getenv("AMSDataDir"));
-      ret2=TkDBc::Head->LoadPGExtAlign(filenam);
-    }
-    else{
-      sprintf(filenam,"%s/v5.00/MDExtLocalAlign.txt",getenv("AMSDataDir"));
-      ret2=TkDBc::Head->LoadMDExtAlign(filenam);
-    }
-    if(ret2!=0) return ret2;
-  } 
 
-  int ret;
+//   if(TrExtAlignDB::ForceLocalAlign){
+//     int ret2=0;
+//     char filenam[400];
+//     if (type==0) {
+//       sprintf(filenam,"%s/v5.00/PGExtLocalAlign.txt",getenv("AMSDataDir"));
+//       ret2=TkDBc::Head->LoadPGExtAlign(filenam);
+//     }
+//     else{
+//       sprintf(filenam,"%s/v5.00/MDExtLocalAlign.txt",getenv("AMSDataDir"));
+//       ret2=TkDBc::Head->LoadMDExtAlign(filenam);
+//     }
+//     if(ret2!=0) return ret2;
+//   } 
+
+  int ret=0;
   if(type==0)
     ret=TrExtAlignDB::GetHead()->UpdateTkDBc(time);
-  else
+  else{
+    //    printf("updating withh l1 %d ln%d \n",lad1,lad9);
     ret=TrExtAlignDB::GetHead()->UpdateTkDBcDyn(run,time,3,lad1,lad9);
+  }
   return ret;
 } 
 
