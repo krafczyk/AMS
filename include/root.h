@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.429 2012/05/04 13:54:27 qyan Exp $
+//  $Id: root.h,v 1.430 2012/05/13 12:34:52 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -3597,6 +3597,20 @@ float LiveTime(); ///< trying to get livetime from scalers map
 
 char * Time() const {time_t ut=fHeader.Time[0];return ctime(&ut);} ///< \return  Time
 time_t UTime() const {return fHeader.Time[0];} ///< \return Unix Time
+      //! RunTagChecker
+        /*!
+
+
+         \param unsigned int bit to be checked
+                bit 0  -> Bad MD ext alignment accuracy
+                bit 32++ -> any bit
+           \return
+               0   bit not set
+               1   bit  set
+               2   unable to access root_setup
+      */
+int  CheckRunTag(unsigned int bit);///<  Check run tag  
+
 ///
 float Frac() const {return fHeader.Time[1]/1000000.;} ///< \return sec fraction
 ///

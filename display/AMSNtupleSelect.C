@@ -12,6 +12,11 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>90 && fabs(ev->TrTrack(ev->Particle(0).iTrTrack()).Rigidityf())<5){
+return 1;
+}
+
+else return 0;
 if(ev && ev->nParticle()){
 for (int pindex=0;pindex<ev->nParticle();pindex++){
 int itrktr = ev->Particle(pindex).iTrTrack();

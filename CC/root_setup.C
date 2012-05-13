@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.74 2012/05/03 12:14:51 choutko Exp $
+//  $Id: root_setup.C,v 1.75 2012/05/13 12:34:46 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -33,6 +33,65 @@ void AMSSetupR::CreateBranch(TTree *tree, int branchSplit){
     branch->SetCompressionLevel(6);
     cout <<" SetupR CompressionLevel "<<branch->GetCompressionLevel()<<" "<<branch->GetSplitLevel()<<endl;
   }
+}
+
+int  AMSSetupR::Header::ClearRTB(unsigned int Time,unsigned int bit){
+if(bit>31)return 1;
+if(fRunTag.size()==0){
+fRunTag.insert(make_pair(Time,0));
+return 0;
+}
+runtag_i k=fRunTag.upper_bound(Time);
+if(k==fRunTag.begin()){
+fRunTag.insert(make_pair(Time,0));
+return 0;
+}
+else k--;
+unsigned int runtag=k->second;
+runtag =runtag & (~(1<<bit));
+if(k->first==Time)fRunTag.erase(k);
+fRunTag.insert(make_pair(Time,runtag));
+return 0;
+
+
+}
+
+
+int  AMSSetupR::Header::SetRTB(unsigned int Time,unsigned int bit){
+if(bit>31)return 1;
+if(fRunTag.size()==0){
+fRunTag.insert(make_pair(Time,(1<<bit)));
+return 0;
+}
+runtag_i k=fRunTag.upper_bound(Time);
+if(k==fRunTag.begin()){
+fRunTag.insert(make_pair(Time,(1<<bit)));
+return 0;
+}
+else k--;
+unsigned int runtag=k->second;
+runtag =runtag | (1<<bit);
+if(k->first==Time)fRunTag.erase(k);
+fRunTag.insert(make_pair(Time,runtag));
+return 0;
+
+
+}
+
+bool  AMSSetupR::Header::CheckRTB(unsigned int Time,unsigned int bit){
+if(fRunTag.size()==0){
+return false;
+}
+runtag_i k=fRunTag.upper_bound(Time);
+if(k==fRunTag.begin()){
+return false;
+}
+else k--;
+unsigned int runtag=k->second;
+if(bit<32)runtag =runtag & (1<<bit);
+if(runtag)return true;
+else return false;
+
 }
 
 AMSSetupR::GPS AMSSetupR::GetGPS(unsigned int run,unsigned int event){

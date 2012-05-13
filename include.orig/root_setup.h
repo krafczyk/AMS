@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.42 2012/04/30 09:35:45 choutko Exp $
+//  $Id: root_setup.h,v 1.43 2012/05/13 12:34:52 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -296,9 +296,43 @@ public:
   uinteger BuildTime;
   uinteger BuildNo;
   uinteger OS;
+  typedef map <unsigned int,unsigned int> runtag_m;
+  typedef map <unsigned int,unsigned int>::iterator runtag_i;
+  runtag_m fRunTag;
   Header():Run(0),FEvent(0),LEvent(0),FEventTime(0),LEventTime(0),
   BuildTime(0),BuildNo(0),OS(0){}
-  ClassDef(Header,1)       //Header
+        //! RunTagModifier 
+        /*!
+
+
+         \param unsigned int Time (unix time)
+         \param unsigned int bit to be set/clear 
+                bit 0  -> Bad MD ext alignment accuracy
+
+           \return
+               0   ok 
+               1   bit>31
+      */
+  int SetRTB(unsigned int  Time,unsigned int bit);///< Set Bit and Add/Replace element 
+  int ClearRTB(unsigned int  Time,unsigned int bit); ///< Clear Bit and Add/Replace element
+
+
+       //! RunTagChecker
+        /*!
+
+
+         \param unsigned int Time (unix time)
+         \param unsigned int bit to be checked
+                bit 0  -> Bad MD ext alignment accuracy
+                bit 32++ -> any bit
+           \return
+               false   bit not set
+               true   bit  set
+      */
+
+  bool CheckRTB(unsigned int  Time,unsigned int bit); ///< Check bit (all word if bit>31) 
+
+  ClassDef(Header,2)       //Header
 //#pragma omp threadprivate(fgIsA)
 };
 public:

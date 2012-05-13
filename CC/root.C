@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.396 2012/05/06 19:58:47 mdelgado Exp $
+//  $Id: root.C,v 1.397 2012/05/13 12:34:46 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6536,8 +6536,10 @@ return ret;
 
 }
 
-
-
+int AMSEventR::CheckRunTag(unsigned int bit){
+if(!getsetup())return 2;
+return getsetup()->fHeader.CheckRTB(UTime(),bit)?1:0;
+}
 int HeaderR::getISSCTRS(float & r, float &theta, float &phi, float &v,float &vtheta,float &vphi,float dt){
 unsigned int gpsdiff=15;
 if(!AMSEventR::getsetup())return 2;
