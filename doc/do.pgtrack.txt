@@ -529,7 +529,7 @@ FILE_PATTERNS          = root.h \
                          TrdRawHit.h TrdHSegment.h TrdHTrack.h TrCharge.h \
 			 TrTrackSelection.h \ 
                          TofGeometry.h TofRecon.h TofTrack.h \ 
-                         TrInnerDzDB.h
+                         TrInnerDzDB.h TrExtALignDB.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
