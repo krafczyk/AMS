@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.75 2012/05/13 12:34:46 choutko Exp $
+//  $Id: root_setup.C,v 1.76 2012/05/13 13:27:51 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1433,7 +1433,13 @@ return 0;
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.x=s1;
+// try quadratic interpolation
+  double v1=k->second.vx;
+  double v2=l->second.vx;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-6);
+  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
   double ang1=k->second.y;
@@ -1441,15 +1447,26 @@ return 0;
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.y=s1;
+  double v1=k->second.vy;
+  double v2=l->second.vy;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-6);
+  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+
 }
 {
   double ang1=k->second.z;
   double ang2=l->second.z;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.z=s1;
+    double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double v1=k->second.vz;
+  double v2=l->second.vz;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-6);
+  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
   double ang1=k->second.vx;
