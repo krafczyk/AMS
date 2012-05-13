@@ -181,7 +181,6 @@ AMSgvolume *BuildPlaneEnvelop(AMSgvolume *mvol, int plane)
     coo[2] = pl->GetPos()[2]+pl->GetPosT()[2]+
       pl->GetRotMat().GetEl(2,2)*TkDBc::Head->_dz[plane-1];
   
-    geant par[3];
     par[0] = 0;
     par[1] = TkDBc::Head->_plane_d1[plane-1]; //container radius
     par[2] = TkDBc::Head->_plane_d2[plane-1]; //container half thickness
