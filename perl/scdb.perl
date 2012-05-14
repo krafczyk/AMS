@@ -13,7 +13,7 @@ my $len=86400*2;
 my $v=0;
 my $HelpTxt=" -min -max -len ";
 $ENV{AMISERVER}="http://pcamss0.cern.ch:8081";
-my $scdbp="/afs/cern.ch/ams/local/bin/timeout --signal 9 10800 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe ";
+my $scdbp="/afs/cern.ch/ams/local/bin/timeout --signal 9 14400 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe ";
 my $tmout=10800;
 my $force=0;
 
