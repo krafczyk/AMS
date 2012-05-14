@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.76 2012/05/13 13:27:51 choutko Exp $
+//  $Id: root_setup.C,v 1.77 2012/05/14 14:48:45 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1235,7 +1235,21 @@ return ret;
 //#endif
 
 int AMSSetupR::getISSSA(AMSSetupR::ISSSA & a, double xtime){
+if (fISSSA.size()==0){
+#ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
+if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
+}
+else LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
+}
+#endif
+}
 if (fISSSA.size()==0)return 2;
+
 
 
 AMSSetupR::ISSSA_i k=fISSSA.lower_bound(xtime);
@@ -1333,10 +1347,15 @@ int AMSSetupR::getISSAtt(float &roll, float&pitch,float &yaw,double xtime){
 
 if(fISSAtt.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
 LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
 }
 else LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
+}
 #endif
 if(fISSAtt.size()==0)return 2;
 }
@@ -1392,10 +1411,15 @@ r*=100000;
 int AMSSetupR::getISSCTRS(AMSSetupR::ISSCTRSR & a, double xtime){
 if(fISSCTRS.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
 LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
 }
 else LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
+}
 #endif
 }
 if (fISSCTRS.size()==0)return 2;
@@ -1438,7 +1462,7 @@ return 0;
   double v2=l->second.vx;
   double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-6);
+  double corr=(ang2-ang1)/(dx+1.e-10);
   b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
@@ -1451,7 +1475,7 @@ return 0;
   double v2=l->second.vy;
   double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-6);
+  double corr=(ang2-ang1)/(dx+1.e-10);
   b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 
 }
@@ -1465,7 +1489,7 @@ return 0;
   double v2=l->second.vz;
   double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-6);
+  double corr=(ang2-ang1)/(dx+1.e-10);
   b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
@@ -1508,10 +1532,15 @@ a=ISSCTRSR(b);
 int AMSSetupR::getGPSWGS84(AMSSetupR::GPSWGS84R & a, double xtime){
 if(fGPSWGS84.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
 LoadGPSWGS84(fHeader.FEventTime-60,fHeader.LEventTime+1);
 }
 else LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
+}
 #endif
 }
 if (fGPSWGS84.size()==0)return 2;
@@ -1549,7 +1578,13 @@ return 0;
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.x=s1;
+// try quadratic interpolation
+  double v1=k->second.vx;
+  double v2=l->second.vx;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-10);
+  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
   double ang1=k->second.y;
@@ -1557,7 +1592,12 @@ return 0;
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.y=s1;
+  double v1=k->second.vy;
+  double v2=l->second.vy;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-10);
+  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
   double ang1=k->second.z;
@@ -1565,7 +1605,12 @@ return 0;
   s0[0]=ang1;
   s0[1]=ang2;
   double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
-  b.z=s1;
+  double v1=k->second.vz;
+  double v2=l->second.vz;
+  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
+  double corr=(ang2-ang1)/(dx+1.e-10);
+  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
 }
 {
   double ang1=k->second.vx;
@@ -1609,10 +1654,15 @@ a=GPSWGS84R(b);
 int AMSSetupR::getISSGTOD(AMSSetupR::ISSGTOD & a, double xtime){
 if(fISSGTOD.size()==0){
 #ifdef __ROOTSHAREDLIBRARY__
+static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+if(stime!=floor(xtime)){
+stime=xtime;
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
 LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
 }
 else LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
+}
 #endif
 }
 if (fISSGTOD.size()==0)return 2;
@@ -1706,10 +1756,6 @@ a=b;
 
 
 int AMSSetupR::LoadISSSA(unsigned int t1, unsigned int t2){
-#ifdef __ROOTSHAREDLIBRARY__
-return 0;
-}
-#else
 
  char AMSISSlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/isssa/";
 char * AMSISS=getenv("AMSISSSA");
@@ -1859,7 +1905,6 @@ else ret=1;
 
 return ret;
 }
-#endif
 
 
 
