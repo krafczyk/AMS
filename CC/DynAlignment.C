@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.56 2012/05/11 22:07:58 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.57 2012/05/14 14:24:23 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -14,8 +14,11 @@
 #ifdef __ROOTSHAREDLIBRARY__
 #include "amschain.h"
 #else
+#include "ntuple.h"
 #include "commons.h"
 #endif
+
+#include "omp.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -1411,6 +1414,12 @@ int DynAlFitContainer::GetId(TrRecHitR &hit){
 
 bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
   map<int,DynAlFitParameters>::iterator lower=FitParameters.lower_bound(seconds);
+
+#ifndef __ROOTSHAREDLIBRARY__
+  static bool largeErrorSet[2]={false,false};
+#pragma omp threadprivate(largeErrorSet)
+#endif
+
   if(lower==FitParameters.end()){
     static int counter=0;
     counter++;
@@ -1421,35 +1430,31 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
       cout<<"DynAlFitContainer::Eval-W-Skipping further errors"<<endl;
     
 #ifndef __ROOTSHAREDLIBRARY__
+#define seterror   AMSNtuple::Get_setup02()->fHeader.SetRTB(seconds,0); 
+#define unseterror AMSNtuple::Get_setup02()->fHeader.ClearRTB(seconds,0); 
+
     if(DynAlManager::need2bookTDV)
       if(AMSFFKEY.ExtAlignErrorThreshold[0]>0 || 
-	 AMSFFKEY.ExtAlignErrorThreshold[1]>0) 
-
-	cerr <<" DynAlFitContainer::Find-F-No alignment found when expected"<<endl;
-#ifdef __CORBA__
-    AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment missing.",DPS::Client::CInAbort);
-#else
-    abort();
+	 AMSFFKEY.ExtAlignErrorThreshold[1]>0) {
+	if(!largeErrorSet[0] && !largeErrorSet[1]) cerr <<" DynAlFitContainer::Find-F-No alignment found when expected"<<endl;	
+	if(!largeErrorSet[0] && !largeErrorSet[1]) seterror;
+	largeErrorSet[0]=largeErrorSet[1]=true;
+      }
 #endif
-#endif
-
     return false;
   }
+
   
   if(abs(lower->first-seconds)>30){
 #ifndef __ROOTSHAREDLIBRARY__
     if(DynAlManager::need2bookTDV)
       if(AMSFFKEY.ExtAlignErrorThreshold[0]>0 || 
-	 AMSFFKEY.ExtAlignErrorThreshold[1]>0) 
-
-	cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<endl;
-#ifdef __CORBA__
-    AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment too distant.",DPS::Client::CInAbort);
-#else
-    abort();
+	 AMSFFKEY.ExtAlignErrorThreshold[1]>0){
+	if(!largeErrorSet[0] && !largeErrorSet[1]) cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<endl;
+	if(!largeErrorSet[0] && !largeErrorSet[1]) seterror;
+	largeErrorSet[0]=largeErrorSet[1]=true;
+      }
 #endif
-#endif
-
     return false; // Not found
   }
 
@@ -1460,21 +1465,14 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
     int lay=fit.ZOffset>0?0:1;
     if(AMSFFKEY.ExtAlignErrorThreshold[lay]>0 && 
        1e4*fit.EY>AMSFFKEY.ExtAlignErrorThreshold[lay]>0){
-      
-      cerr <<" DynAlFitContainer::Find-F-Alignment error for external layer "<<(lay?9:1)<<" exceeds the threshold. "<<fit.EY*1e4<<">"<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<endl;
-#ifdef __CORBA__
-      AMSProducer::gethead()-> FMessage("AMSProducer::AMSProducer-F-External layer alignment error.",DPS::Client::CInAbort);
-#else
-      abort();
-#endif
-    }
+      if(!largeErrorSet[lay]) cerr <<" DynAlFitContainer::Find-F-Alignment error for external layer "<<dec<<(lay?9:1)<<" exceeds the threshold. "<<fit.EY*1e4<<">"<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<endl;
+      if(!largeErrorSet[0] && !largeErrorSet[1]) seterror;
+      largeErrorSet[lay]=true;
+    }else if(largeErrorSet[lay]) {largeErrorSet[lay]=false;if(!largeErrorSet[1-lay]) unseterror;}
   }      
 #endif    
 
-  //  int lay=fit.ZOffset>0?0:1;
-  //  cout<<"DEBUG "<<fit.ZOffset<<" "<<AMSFFKEY.ExtAlignErrorThreshold[lay]<<" "<<fit.EY<<endl;
-      
-    return true;
+  return true;
 }
 
 
