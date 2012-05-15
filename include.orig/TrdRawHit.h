@@ -1,4 +1,4 @@
-//  $Id: TrdRawHit.h,v 1.8 2011/10/21 12:47:18 choutko Exp $
+//  $Id: TrdRawHit.h,v 1.9 2012/05/15 16:50:26 choutko Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
 //  below is the gift from VC to MM
@@ -6,7 +6,7 @@
 #include "TObject.h"
 #include "TrElem.h"
 
-#ifdef __WRITEROOT__
+#ifndef __ROOTSHAREDLIBRARY__
 class AMSTRDRawHit;
 #endif
 
@@ -52,7 +52,7 @@ class TrdRawHitR: public TrElem{
 
   virtual ~TrdRawHitR(){};
 
-#ifdef __WRITEROOT__
+#ifndef __ROOTSHAREDLIBRARY__
   TrdRawHitR(AMSTRDRawHit *ptr);
 #endif
 #ifdef __MLD__
