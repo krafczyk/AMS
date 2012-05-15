@@ -13,8 +13,9 @@
 #include "TMath.h"
 
 class AMSTimeID;
+#ifndef __ROOTSHAREDLIBRARY__
 class AMSTRDRawHit;
- 
+#endif 
 const int maxtrdhrecon=64;
 
 const float TRDz0=113.5;
@@ -178,8 +179,9 @@ class TrdHReconR{
   /// vector of TrdRawHit objects (used as input to reconstruction)
   vector<TrdRawHitR> rhits;
 
+#ifndef __ROOTSHAREDLIBRARY__
   vector<AMSTRDRawHit*> gbhits;
-  
+#endif  
   /// vector of reconstructed TrdHSegment objects
   vector<TrdHSegmentR> hsegvec;
 
