@@ -31,6 +31,10 @@ class RichLIPRec{
   static int hitinlip[11000];
 #pragma omp threadprivate(hitinlip)
 
+  static short int badpix_ams[680]; // bad pmt arrays to be used on InitGlobal (FB, RP: April 2012)
+  static short int badpix_lip[756];
+  static short int badpmt_lip[756];
+
   static void InitGlobal();
   static void InitEvent();
   static void InitTrack(AMSPoint, AMSDir);
