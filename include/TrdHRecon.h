@@ -199,7 +199,9 @@ class TrdHReconR{
   /// default ctor
   TrdHReconR():tracking_min_amp(5.){
     rhits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
     gbhits.clear();
+#endif
     hsegvec.clear();
     htrvec.clear();
     referr.clear();
@@ -208,7 +210,9 @@ class TrdHReconR{
 
   ~TrdHReconR(){
     rhits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
     gbhits.clear();
+#endif
     hsegvec.clear();
     htrvec.clear();
     referr.clear();

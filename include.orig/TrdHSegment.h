@@ -93,7 +93,9 @@ class TrdHSegmentR: public TrElem {
   virtual ~TrdHSegmentR(){
     fTrdRawHit.clear();
     hits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
     gbhits.clear();
+#endif
     clear();}
 
   void clear();
