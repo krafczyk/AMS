@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.171 2012/04/27 22:43:16 paniccia Exp $
+//  $Id: ecalrec.C,v 1.172 2012/05/15 10:43:15 sdifalco Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -372,7 +372,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       Tref= ECREFFKEY.Tref;
       Tsim= ECMCFFKEY.Tsim;
       deltaT=Tsim-Tref;     
-      if ( !ECCAFFKEY.useTslope) deltaT=0.;   
+      if ( !ECCAFFKEY.useTslope || AMSEvent::gethead()->getrun()<1305763200) deltaT=0.; // T correction not applied for rund before May 19, 2011  
       for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
         if(sum[ipm][ic]>0){
 	  scgn=ECcalib::ecpmcal[il][ipm].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
@@ -952,7 +952,7 @@ void AMSEcalHit::build(int &stat){
       else{
  	deltaT=ECMCFFKEY.Tsim-ECREFFKEY.Tref;
       }
-      if ( !ECCAFFKEY.useTslope) deltaT=0.;
+      if ( !ECCAFFKEY.useTslope || AMSEvent::gethead()->getrun()<1305763200) deltaT=0.; // T correction not applied for runs before May 19, 2011
       //
       scgn=ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
       // correct for Gain dependence on Temperature
