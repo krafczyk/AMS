@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.64 2012/03/18 10:34:25 ams Exp $
+# $Id: NetMonitor.pm,v 1.65 2012/05/15 16:32:14 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -24,7 +24,7 @@ sub new{
 my %fields=(
   sendmail=>[],
   hosts=>[],
-  excluded=>['pcposc1','pcamsp1','pcamsj0','pcamsj1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
+  excluded=>['pcposc1','amsvobox05','pcamsp1','pcamsj0','pcamsj1','pcamsf7','pcamsf8','pcamsap','pcamsd1','pcamsvc','pcamsdt0','pcamst0','pcamsd3','lxplus'], 
   dbhosts=>['pcamss0','amsvobox02','scamsfs0'],
   sbhost=>'pcamss0',
   clusterhosts=>['pcamsr0','pcamsf2','pcamsf4'],

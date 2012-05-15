@@ -63,7 +63,7 @@ begin:
                          }
                       }
                       close TIME;
-                      print " Error $j  $output/$file \n"
+                      print " Error $j  $output/$file \n";
                       if($force){
                           $cmd="mv $output/$file $output/$file.out";
                           system($cmd);

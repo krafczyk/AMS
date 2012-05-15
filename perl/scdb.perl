@@ -174,7 +174,9 @@ while ($beg<$end and $end<=$max){
                   my $ctime=localtime(time());
             warn " scdb.perl-E-UnableTo-T-$ctime $cmd \n";
 #                 here add mail message
-            sleep 600;
+             sendmailmessage('vitali.choutko@cern.ch',  "scdb.perl-E-UnableTo-T-$ctime $cmd n"," ");
+             system("mv /tmp/getior.$$ /tmp/getior.$$.$ctime ");
+             sleep 60;
             unlink "/tmp/t.root.$$";
             $max=4000000000;
             goto begin;
@@ -215,4 +217,22 @@ unlink "/tmp/getior.$$";
 
 sub prio{
     $a->{b} <=> $b->{b};
+}
+
+sub sendmailmessage{
+    my $self=shift;
+    my $add=shift;
+    my $sub=shift;
+    my $mes=shift;
+    open MAIL, "| /usr/lib/sendmail -t -i"
+#        or die "could not open sendmail: $!";
+        or return 1;
+     print MAIL <<END_OF_MESSAGE2;
+To:  $add
+Subject: $sub
+
+$mes
+END_OF_MESSAGE2
+    close MAIL or return 1;
+    return 0;
 }
