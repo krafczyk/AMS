@@ -1,4 +1,4 @@
-//  $Id: ami2root.C,v 1.18 2011/12/07 18:04:49 choutko Exp $
+//  $Id: ami2root.C,v 1.19 2012/05/15 10:08:12 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -262,6 +262,7 @@ else if(timelast<end){
 	if(!check_selection(select,node_numbers[num]->node_number,datatypes[data_type]->data_type,debug))continue;
 
 	printf("Processing %s | %s | %s | %x...\n",node_numbers[num]->name,node_numbers[num]->node_type_name,datatypes[data_type]->name,node_numbers[num]->node_number);
+//        if(!strstr(node_numbers[num]->node_type_name,"UGSCM"))continue;
 	// create DataType object and link to Node
 	if(!datatype||datatype->number!=datatypes[data_type]->data_type){
 	  datatype=new DataType(datatypes[data_type]->data_type);
@@ -319,7 +320,7 @@ if(retry++>0){
               continue;
 }
 else{
-             sleep(1);
+             //sleep(1);
              goto retry;
 }
          }      
@@ -351,6 +352,7 @@ else{
  notcompleted=2;
 }
 }
+  cout <<" notcompleted "<<notcompleted<<endl;
   tree->Branch("begin", &start,"start/i");
   tree->Branch("end", &end,"end/i");
   tree->Branch("uncompleted", &notcompleted,"uncompleted/i");
