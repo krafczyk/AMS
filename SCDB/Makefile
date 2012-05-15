@@ -14,7 +14,7 @@ CFLAGS+=  -I$(XMLRPCLIB)/include -I../include
 CFLAGSD+=  -I$(XMLRPCLIB)/include -I../include
 XRPCC=$(XMLRPCLIB)/bin/xmlrpc-c-config
 
-all: ConvertAMI ScanDB MergeDB ami2root
+all: ConvertAMI ScanDB MergeDB ami2root CheckDB
 
 ConvertAMI: src/ConvertAMI.cc $(AMICLIB)/libAMI.a  SCDBDict.o
 	$(CXX) $(CFLAGS) -o ConvertAMI src/ConvertAMI.cc $(AMICLIB)/libAMI.a `$(XRPCC) client  --libs` -Wl,--rpath -Wl,`$(XRPCC) --libdir` -I$(AMICLIB)  `$(ROOTSYS)/bin/root-config --cflags --libs` -I$(PWD)/inc src/xmlrpclib.C SCDBDict.o
@@ -30,6 +30,9 @@ checka2r: src/checka2r.C $(AMICLIB)/libAMI.a  SCDBDictg.o
 
 ScanDB: src/ScanDB.cc  SCDBDict.o
 	$(CXX) $(CFLAGS) -o ScanDB src/ScanDB.cc $(ROOTCFLAGS) $(ROOTLIBS) -I$(PWD)/inc SCDBDict.o
+
+CheckDB: src/CheckDB.cc  SCDBDict.o
+	$(CXX) $(CFLAGS) -o CheckDB src/CheckDB.cc $(ROOTCFLAGS) $(ROOTLIBS) -I$(PWD)/inc SCDBDict.o
 
 MergeDB: src/MergeDB.C SCDBDict.o
 	$(CC) -fPIC $(CFLAGS) $(ROOTLIBS) -o MergeDB src/MergeDB.C -I$(PWD)/inc SCDBDict.o

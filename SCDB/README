@@ -15,3 +15,7 @@ dump the slow control database information for an existing root file
 
 merge slow control database information of existing root files to one
 ./MergeDB SCDB.<begin1>.<end1>.root SCDB.<begin2>.<end2>.root (...)
+
+test if slow control database is complete (fixed number of subtypes requested for the combination of nodes and datatypes) or contains information for given nodes/datatypes (via config file)
+./TestDB SCDB.<begin>.<end>.root
+./TestDB SCDB.<begin>.<end>.root test.config (<debug>) 
