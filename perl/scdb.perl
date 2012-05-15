@@ -134,7 +134,7 @@ while ($i <$#tmpb){
 
 
 
-my $overlap=$len/12;
+my $overlap=$len/24;
 my $beg=$min-$overlap;
 my $end=$beg+$len;
 if($end>$max){

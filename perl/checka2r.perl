@@ -3,7 +3,7 @@
 use strict;
 use Carp;
 
-my $output="/afs/cern.ch/ams/local/SCDBGlobal/";
+my $output="/afs/cern.ch/ams/Offline/AMSDataDir/SlowControlDir/";
     if(defined $ENV{SCDBGlobal}){
         $output=$ENV{SCDBGlobal};
     }
@@ -64,7 +64,10 @@ begin:
                       }
                       close TIME;
                       print " Error $j  $output/$file \n"
-                       
+                      if($force){
+                          $cmd="mv $output/$file $output/$file.out";
+                          system($cmd);
+                      }                       
                       }
                       else{
                         print " OK $output/$file \n"
