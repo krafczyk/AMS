@@ -11,6 +11,7 @@ my $min=1305810000;
 my $max=4000000000;
 my $ref="SCDB.1336410654.1336521957.root";
 my $v=0;
+
 my $HelpTxt=" -ref -force -v ";
 $ENV{AMISERVER}="http://pcamss0.cern.ch:8081";
 my $scdbp="/afs/cern.ch/ams/local/bin/timeout --signal 9 14400 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/checka2r.exe ";
@@ -55,6 +56,9 @@ begin:
                       open (TIME, "/tmp/checka2r.$$");
                       while (my $line=<TIME>){
                          if ($line=~/^ERROR/){
+                           print "$line";
+                         }
+                         if($v and $line=~/table size 0/){
                            print "$line";
                          }
                       }

@@ -1,4 +1,4 @@
-//  $Id: checka2r.C,v 1.1 2012/05/15 10:08:12 choutko Exp $
+//  $Id: checka2r.C,v 1.2 2012/05/15 10:20:17 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]){
           std::map<int,DataType>::iterator itd2=it2->second.datatypes.find(itd->first);
           if(itd2==it2->second.datatypes.end()){
             cerr<<"ERROR datatype "<<itd->first <<" "<<it->first<<" not found "<<endl;
-            return 4;
+            if(!strstr(it->first.c_str(),"CRATE_"))return 4;
           }
           else {
 //            cout<<itd2->first<<endl; 
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]){
               std::map<int,SubType>::iterator its2=itd2->second.subtypes.find(its->first);
               if(its2==itd2->second.subtypes.end()){
                 cerr<<"ERROR subtype "<<its->first<<" "<<itd->first <<" "<<it->first<<" not found "<<endl;
-                return 5;
+              if(!strstr(it->first.c_str(),"CRATE_"))return 5;
               }
               else{
                
