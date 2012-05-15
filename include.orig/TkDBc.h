@@ -1,4 +1,4 @@
-// $Id: TkDBc.h,v 1.38 2012/05/13 21:59:38 pzuccon Exp $
+// $Id: TkDBc.h,v 1.39 2012/05/15 16:38:56 choutko Exp $
 
 #ifndef __TkDBC__
 #define __TkDBC__
@@ -504,7 +504,7 @@ public:
 
 
 
-  ClassDef(TkDBc, 9);
+  ClassDef(TkDBc, 10);
 };
 
 typedef map<int,TkLadder*>::const_iterator tkidIT;
