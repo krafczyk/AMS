@@ -1,4 +1,4 @@
-//  $Id: checka2r.C,v 1.2 2012/05/15 10:20:17 choutko Exp $
+//  $Id: checka2r.C,v 1.3 2012/05/15 16:11:13 choutko Exp $
 #include "TGraph.h"
 #include "TH2F.h"
 #include "TFile.h"
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]){
               else{
                
 //               cout<<its2->first<<" "<<its2->second.tag<<endl; 
-                 if(its2->second._table.size()==0 && its->second._table.size()){
+                 if(its2->second._table.size()==0 && its->second._table.size() &&!strstr(it2->first.c_str(),"TTCE")  ){
                     cerr<<"  table size 0 " <<it2->first<<" "<<its2->second.tag<<" "<<its->second._table.size()<<endl; 
                     count++;
                  }
