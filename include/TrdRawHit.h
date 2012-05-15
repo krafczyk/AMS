@@ -1,4 +1,4 @@
-//  $Id: TrdRawHit.h,v 1.9 2012/05/15 16:50:26 choutko Exp $
+//  $Id: TrdRawHit.h,v 1.10 2012/05/15 17:26:37 choutko Exp $
 #ifndef __AMSTRDRhit__
 #define __AMSTRDRhit__
 //  below is the gift from VC to MM
@@ -8,8 +8,9 @@
 
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSTRDRawHit;
+#else
+class AMSTRDRawHit{};
 #endif
-
 using namespace std;
 class TrdRawHitR: public TrElem{
  public:
@@ -52,9 +53,7 @@ class TrdRawHitR: public TrElem{
 
   virtual ~TrdRawHitR(){};
 
-#ifndef __ROOTSHAREDLIBRARY__
   TrdRawHitR(AMSTRDRawHit *ptr);
-#endif
 #ifdef __MLD__
 static int num;
 static int numa;

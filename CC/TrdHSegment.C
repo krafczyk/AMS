@@ -53,7 +53,9 @@ TrdRawHitR *TrdHSegmentR::pTrdRawHit(unsigned int i){
 
 TrdHSegmentR::TrdHSegmentR():d(-1),m(0.),r(0.),z(0.),w(0.),em(0.),er(0.),Nhits(0),Chi2(0.){
   fTrdRawHit.clear();
+  #ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+  #endif
   hits.clear();
 }
 
@@ -62,7 +64,9 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_,floa
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_), w(w_), Nhits(0), Chi2(0.) 
 {
   fTrdRawHit.clear();
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+#endif
   hits.clear();
 };
 
@@ -70,7 +74,9 @@ TrdHSegmentR::TrdHSegmentR(int d_, float m_, float em_, float r_, float er_, flo
   : d(d_), m(m_), em(em_), r(r_), er(er_), z(z_) , w(w_), Nhits(Nhits_)
 {
   fTrdRawHit.clear();
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+#endif
   hits.clear();
   SetHits(Nhits_,pthit);
 };
@@ -87,7 +93,9 @@ TrdHSegmentR::TrdHSegmentR(TrdHSegmentR* seg){
 
   fTrdRawHit=seg->fTrdRawHit;
   hits=seg->hits;
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits=seg->gbhits;
+#endif
   Chi2=seg->Chi2;
 };
 

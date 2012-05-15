@@ -683,7 +683,9 @@ int TrdHReconR::combine_segments(int debug){
 
 void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vector<TrdHTrackR> t){
   rhits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+#endif
   hsegvec.clear();
   htrvec.clear();
 
@@ -696,7 +698,9 @@ void TrdHReconR::ReadTRDEvent(vector<TrdRawHitR> r, vector<TrdHSegmentR> s, vect
 
 void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
   rhits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+#endif
   htrvec.clear();
   hsegvec.clear();
   refhits.clear();
@@ -712,7 +716,9 @@ void TrdHReconR::BuildTRDEvent(vector<TrdRawHitR> r, int debug ){
 
 int TrdHReconR::build(){
   rhits.clear();
+#ifndef __ROOTSHAREDLIBRARY__
   gbhits.clear();
+#endif
   hsegvec.clear();
   htrvec.clear();
   refhits.clear();

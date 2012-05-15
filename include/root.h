@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.430 2012/05/13 12:34:52 choutko Exp $
+//  $Id: root.h,v 1.431 2012/05/15 17:26:37 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -144,7 +144,7 @@ class AMSTOFMCCluster{};
 class AMSTOFMCPmtHit{};
 class AMSTRDCluster{};
 class AMSTRDMCCluster{};
-class AMSTRDRawHit{};
+//class AMSTRDRawHit{};
 class AMSTRDSegment{};
 class AMSTRDTrack{};
 
