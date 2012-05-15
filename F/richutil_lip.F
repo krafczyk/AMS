@@ -376,7 +376,7 @@ C ----------------------------------------
       ENDIF
 
 * --- Final change overrides all previous changes to IFLG
-      if((IPM.GE.1).AND.(IPE.LE.756)) then
+      if((IPM.GE.0).AND.(IPM.LE.755)) then
          IFLG = IPMTSTAT(IPM+1)
       else
          IFLG = IFLG_ORIG

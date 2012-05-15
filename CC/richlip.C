@@ -151,14 +151,10 @@ short int pmtconv_lip2ams[756] = { -1,647,648,649,650,651,652, -1, -1,639,
 				  654,655, -1,653, -1, -1};
 #pragma omp threadprivate(pmtconv_lip2ams)
 
-short int badpix_ams[680];
-#pragma omp threadprivate(badpix_ams)
-short int badpix_lip[756];
-#pragma omp threadprivate(badpix_lip)
-
-short int badpmt_lip[756];
-#pragma omp threadprivate(badpmt_lip)
-
+//F. Barao
+short int RichLIPRec::badpix_ams[680] = {0};
+short int RichLIPRec::badpix_lip[756];
+short int RichLIPRec::badpmt_lip[756];
 
 ////////////////////////////////////////////////////////////////////////
 
