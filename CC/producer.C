@@ -1,11 +1,11 @@
-//  $Id: producer.C,v 1.170 2011/11/03 09:10:17 choutko Exp $
+//  $Id: producer.C,v 1.170.2.1 2012/05/16 11:24:37 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
 #include "cern.h"
 #include "commons.h" 
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
 #include "event.h"
 #include "job.h"
 #include<algorithm>
@@ -292,8 +292,8 @@ again:
          
     if(_dstinfo->DieHard){
      if(!mtry){
-      cerr <<" problem with runevinfo sleep 20 sec "<<_dstinfo->DieHard<<endl;
-       sleep(20);
+      cerr <<" problem with runevinfo sleep 2 sec "<<_dstinfo->DieHard<<endl;
+       sleep(2);
        mtry=true;
        goto again;
     } 
@@ -820,6 +820,12 @@ againcp:
  if(!suc && means){
    if(!_Solo)sendid(3600);
    cerr <<"SendNtupleEnd-E-UnabletoCopyDSTSuccesfully "<<" Tried "<<(const char*)fcopy<<endl;
+  if(getenv("TransferRawByB") and strlen(getenv("TransferRawByB"))){
+    setenv("TransferBy",getenv("TransferRawByB"),1);
+    unsetenv("TransferRawByB");
+    goto againcp;
+  }
+  
   char *nd2=getenv("NtupleDestDirBackup");
   char *nd20=getenv("NtupleDestDir00");
   char *td2=getenv("TransferRawBy2");
@@ -1358,7 +1364,14 @@ sprintf(tmp," (sleep 60 ; kill -9 %u )&",_pid.pid);
 system(tmp);
 cout <<" Exiting-I-Bkill "<<tmp<<endl;
 }
-
+else{
+char tmp[256];
+sprintf(tmp," (sleep 7200 ; bkill %u )&",_pid.pid);
+system(tmp);
+sprintf(tmp," (sleep 7200 ; kill -9 %u )&",_pid.pid);
+system(tmp);
+cout <<" Exiting-I-Bkill "<<tmp<<endl;
+}
 }
 
 
@@ -2050,6 +2063,12 @@ if(exedir && nve && AMSCommonsI::getosname()){
  strcpy(t1,exedir);
  strcat(t1,"/../prod");
  setenv("TNS_ADMIN",t1,0);
+ if(getenv("AMSOracle")){
+ setenv("LD_LIBRARY_PATH",getenv("AMSOracle"),1);
+}
+else{
+ setenv("LD_LIBRARY_PATH","/afs/cern.ch/ams/oracle/10205/lib",1);
+}
  for (int tries=0;tries<maxtries;tries++){
   sleep(delay);
   delay*=8;
@@ -2059,16 +2078,24 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
-  if(strstr(nvr,"2.6")){
+  if(strstr(nvr,".el6") || strstr(nvr,".el5")){
+   systemc+=".so";
+  }
+  else if(strstr(nvr,"2.6")){
    systemc+=".6";
   }
   if(strstr(version,"v4.00")){
     systemc+=" -m ";
   }
+  else if(getenv("AMSServerNo")){
+    systemc+=" -s";
+    systemc+=getenv("AMSServerNo");
+  }
   systemc+=" > /tmp/getior.";
   char tmp[80];
   sprintf(tmp,"%d",getpid());
   systemc+=tmp;
+   cout <<" AMSProducer::getenv-I-Running "<<systemc<<endl;
   int i=system(systemc);
   if(i){
    cerr <<" AMSProducer::getenv-E-UnableTo "<<systemc<<endl;

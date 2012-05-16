@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.150 2011/04/25 16:03:42 shaino Exp $
+//  $Id: geant3.C,v 1.150.16.1 2012/05/16 11:24:36 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -966,7 +966,7 @@ for(int ik=0;ik<maxt;ik++)ia[ik*16]=0;
    AMSEvent::ResetThreadWait(1);
 #pragma omp for schedule(dynamic) nowait
     for(int  kevt=0;kevt<nchunk;kevt++){
-      try{
+//      try{
 #pragma omp critical (g3)
       if(GCFLAG.IEOTRI){
         if(!count++)oldtime=tt;
@@ -1101,12 +1101,12 @@ try{
 }
      continue;
     }
-    }
-    catch (AMSaPoolError e){
-#pragma omp critical (g1)
-      cerr << "Oops "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
-      continue;
-    }
+//    }
+//    catch (AMSaPoolError e){
+//#pragma omp critical (g1)
+//      cerr << "Oops "<<" Thread "<<AMSEvent::get_thread_num()<<" "<<e.getmessage()<<endl;
+//      continue;
+//    }
    }
 // ---> endof "kevt<nchunk" for-loop
 #pragma omp critical (g2)
@@ -1172,7 +1172,7 @@ try{
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
-      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+//      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
   }

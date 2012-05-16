@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.552.2.1 2011/12/07 18:07:01 choutko Exp $
+//  $Id: event.C,v 1.552.2.2 2012/05/16 11:24:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -138,8 +138,8 @@ if(AMSEvent::get_thread_num()==0){
       p->getFL(first,last);
       cout << "  Status First last "<<first<<" "<<last<<endl;
 #ifdef __CORBA__
-      cout <<" sending eventtag end "<<endl;
-      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+//      cout <<" sending eventtag end "<<endl;
+//      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
       opendst=true;
 #endif
       ptdv->SetTime(inserto,begino,endo);
@@ -156,8 +156,8 @@ if(AMSEvent::get_thread_num()==0){
       AMSStatus *p=AMSJob::gethead()->getstatustable();
       uinteger first,last;
       p->getFL(first,last);
-      cout <<" sending eventtag begin "<<endl;
-     AMSProducer::gethead()->sendEventTagBegin(ptdv->getname(),p->getrun(),first);       
+//      cout <<" sending eventtag begin "<<endl;
+//     AMSProducer::gethead()->sendEventTagBegin(ptdv->getname(),p->getrun(),first);       
 }
     }
 #endif

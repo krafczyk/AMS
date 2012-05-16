@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.840.2.3 2011/12/23 15:06:47 choutko Exp $
+// $Id: job.C,v 1.840.2.4 2012/05/16 11:24:36 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3433,10 +3433,10 @@ void AMSJob::_timeinitjob(){
     if((CALIB.SubDetRequestCalib/10000)%10==2){
       TID.add (new AMSTimeID(AMSID("TRDGains2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-			     (void*)AMSTRDIdSoft::_gain,server,1));
+			     (void*)AMSTRDIdSoft::_gain,server,isRealData()));
       TID.add (new AMSTimeID(AMSID("TRDStatus2",isRealData()),
 			     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-			     (void*)AMSTRDIdSoft::_status,server,1));
+			     (void*)AMSTRDIdSoft::_status,server,isRealData()));
     }
     else{
       TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),

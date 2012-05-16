@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.45.2.2 2012/02/22 11:27:16 mduranti Exp $
+//  $Id: amschain.C,v 1.45.2.3 2012/05/16 11:24:36 choutko Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -745,4 +745,42 @@ int AMSChain::GenUFSkel(char* filename){
   printf("AMSChain::GenUFSkel --> Successfully generated skeleton file  %s\n",filename);
 
   return 0;
+}
+
+Int_t AMSChain::Add(const char* name, Long64_t nentries){
+
+//check if svcClass present in name
+
+         string cname=name;
+         int  found=cname.find("?svcClass=");
+         string aname=cname;
+         if(found>=0){
+          aname=cname.substr(0,found);
+        }
+        Int_t ret=TChain::Add(aname.c_str(),nentries);
+        TRegexp d("^root:",false);
+        TRegexp e("^xroot:",false);
+        TString tname(name);
+        if(tname.Contains(d) || tname.Contains(e)){
+          if(found>=0){
+           aname=cname.substr(found);
+          }
+          else if(getenv("STAGE_SVCCLASS")){
+            aname="?svcClass=";
+            aname+=getenv("STAGE_SVCCLASS");
+          }
+          else{
+           aname="";
+          }
+           TObjArray* arr=GetListOfFiles();
+           TChainElement* el=0;
+            TIter next(arr);
+            while(el=(TChainElement*) next()){
+               string title=el->GetTitle();
+               title+=aname.c_str();
+               el->SetTitle(title.c_str());
+//               cout <<" title "<<el->GetTitle()<<endl;
+             }
+        }
+        return ret; 
 }
