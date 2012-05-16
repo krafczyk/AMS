@@ -172,12 +172,12 @@ while ($beg<$end and $end<=$max){
     if($i){
         if(($i&255) or ($i>>8)!=4){
                   my $ctime=localtime(time());
-            warn " scdb.perl-E-UnableToCreateRootFile-$ctime $cmd \n";
+            warn " scdb.perl-E-UnableToCreateRootFile-$ctime $i $t1 $cmd \n";
 #                 here add mail message
-             sendmailmessage('vitali.choutko@cern.ch',  "scdb.perl-E-UnableToCreateRootFile-$ctime $cmd"," ");
-             system("mv /tmp/getior.$$ /tmp/getior.$$.$ctime ");
+             sendmailmessage('vitali.choutko@cern.ch',  "scdb.perl-E-UnableToCreateRootFile-$ctime $i"," ");
+             system("mv /tmp/getior.$$ /tmp/getior.$$.$t1 ");
             unlink "/tmp/t.root.$$";
-             die " scdb.perl-E-UnableToCreateRootFile-$ctime $cmd \n";
+             die " scdb.perl-E-UnableToCreateRootFile-$ctime $i $t1 $cmd \n";
             $max=4000000000;
             goto begin;
            
@@ -189,15 +189,16 @@ while ($beg<$end and $end<=$max){
     my $t21=$t2-$t1;
         print "$output/SCDB.$beg.$end.root Created by $t21 sec\n";
     }
+    my $t2=time();
     $cmd="mv /tmp/t.root.$$  $output/SCDB.$beg.$end.root";
     $i=system($cmd);
              if($i){
                  my $ctime=localtime(time());
-                 warn "scdb.perl-E-UnableToMove-$ctime $cmd \n";
+                 warn "scdb.perl-E-UnableToMove-$ctime $i $t2 $cmd \n";
 #                here add mail message
-                sendmailmessage('vitali.choutko@cern.ch',  "scdb.perl-E-UnableToMove-$ctime $cmd"," ");
-                system("mv /tmp/getior.$$ /tmp/getior.$$.$ctime ");
-                 die "scdb.perl-E-UnableToMove-$ctime $cmd \n";
+                sendmailmessage('vitali.choutko@cern.ch',  "scdb.perl-E-UnableToMove-$ctime $i $t2 "," ");
+                system("mv /tmp/getior.$$ /tmp/getior.$$.$t2 ");
+                 die "scdb.perl-E-UnableToMove-$ctime $i $t2 $cmd \n";
                  next;
              }
     $t1=time();
