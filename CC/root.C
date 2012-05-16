@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.398 2012/05/13 21:57:07 pzuccon Exp $
+//  $Id: root.C,v 1.399 2012/05/16 14:05:05 mdelgado Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5099,7 +5099,7 @@ bool RichRingTables::Load(TString fileName){
     if(gDirectory) currentFile=gDirectory->GetFile();
     TFile file(fileName);
     tables=(RichRingTables*)file.Get("RichRingTables");
-    file.Close();
+
     if(!tables) fail=true;
     
 #define Do(_x) RichRingR::_x[i]=tables->_x[i]
@@ -5114,6 +5114,8 @@ bool RichRingTables::Load(TString fileName){
       }
 #undef Do
     if(tables) delete tables;
+    file.Close();
+
     // Return to the previous root directory
     if(currentFile) currentFile->cd();
   }
