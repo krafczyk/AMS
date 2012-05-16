@@ -1,4 +1,4 @@
-// $Id: TofTrack.C,v 1.6 2012/04/27 18:06:34 oliva Exp $
+// $Id: TofTrack.C,v 1.7 2012/05/16 09:06:27 oliva Exp $
 
 
 #include "TofTrack.h"
@@ -413,18 +413,11 @@ bool TofTrack::MakePathLength() {
       AMSPoint hit_point;
       AMSDir hit_dir;
       Interpolate(z,hit_point,hit_dir); 
-      if (TofGeometry::HitCounter(hit_point.x(),hit_point.y(),ilayer,ibar,1)) 
-        _PathLength[ilayer] += TofGeometry::LengthInsideCounter(ilayer,ibar,hit_point.x(),hit_point.y(),hit_dir); 
-      // _PathLength[ilayer] += TofGeometry::PathLengthInAPaddle(ilayer,ibar,hit_point,hit_dir);
-    }
+      float length = TofGeometry::LengthInsideCounter(ilayer,ibar,hit_point.x(),hit_point.y(),hit_dir); // contin, simple un-aligned routine
+      // float length = TofGeometry::PathLengthInAPaddle(ilayer,ibar,hit_point,hit_dir)); // mine, less precise for trapezoidal counters
+      _PathLength[ilayer] += (length>0) ? length : 0.;
+    } 
   }
-  /*
-  printf("TofTrack::MakePathLength-V ");
-  for (int ilayer=0; ilayer<4; ilayer++) {
-    printf("%8.5f (%7.2f)  ",_PathLength[ilayer],_EdepRaw[0][ilayer]);
-  }
-  printf("\n");
-  */
   return true;
 }
 
