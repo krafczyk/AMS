@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.432 2012/05/16 15:50:12 choutko Exp $
+//  $Id: root.h,v 1.433 2012/05/16 15:51:31 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -359,7 +359,7 @@ public:
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,6)       //DaqEventR
+ClassDef(DaqEventR,7)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 
