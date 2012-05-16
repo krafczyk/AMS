@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.77 2012/05/14 14:48:45 choutko Exp $
+//  $Id: root_setup.C,v 1.78 2012/05/16 11:05:49 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1272,6 +1272,21 @@ a.b1b*=180./3.14159267;
 a.b3b*=180./3.14159267;
 return 1;
 }
+
+
+if(xtime==k->first){
+a=k->second;
+a.alpha*=180./3.14159267;
+a.b1a*=180./3.14159267;
+a.b3a*=180./3.14159267;
+a.b1b*=180./3.14159267;
+a.b3b*=180./3.14159267;
+return 1;
+}
+
+
+k--;
+
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
   tme[0]=k->first;
@@ -1373,6 +1388,13 @@ pitch=k->second.Pitch;
 yaw=k->second.Yaw;
 return 1;
 }
+if(xtime==k->first){
+ roll=k->second.Roll;
+ pitch=k->second.Pitch;
+ yaw=k->second.Yaw;
+ return 0;
+}
+  k--;
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
   tme[0]=k->first;
@@ -1441,7 +1463,7 @@ if(xtime==k->first){
 a=ISSCTRSR(k->second);
 return 0;
 }
-
+  k--;
   AMSSetupR::ISSCTRS b;
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
@@ -1563,6 +1585,7 @@ a=GPSWGS84R(k->second);
 return 0;
 }
 
+k--;
   AMSSetupR::GPSWGS84 b;
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
@@ -1684,7 +1707,7 @@ if(xtime==k->first){
 a=(k->second);
 return 0;
 }
-
+  k--;
   AMSSetupR::ISSGTOD b;
   float s0[2]={-1.,-1};
   double tme[2]={0,0};
