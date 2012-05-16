@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.727 2012/05/11 13:35:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.728 2012/05/16 12:37:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -879,6 +879,24 @@ if($#{$self->{DataSetsT}}==-1){
              $dataset->{datamc}=1;
 #             $self->{DataMC}=1;
          }
+         if($job=~/\.runlist$/){
+             if(open(FILE,"<"."$newfile/$job")){
+                 $dataset->{$job}=<FILE>;
+                 if($dataset->{$job}=~/\,$/){
+                     chop $dataset->{$job};
+                 }
+                 close FILE;
+             }
+         }
+         if($job=~/\.runalist$/){
+             if(open(FILE,"<"."$newfile/$job")){
+                 $dataset->{$job}=<FILE>;
+                 if($dataset->{$job}=~/\,$/){
+                     chop $dataset->{$job};
+                 }
+                 close FILE;
+             }
+         }
          if($job=~/^mc=true/){
              $dataset->{MC}=1;
 #             $self->{DataMC}=1;
@@ -1143,6 +1161,19 @@ if($#{$self->{DataSetsT}}==-1){
                }
             }
         }
+#
+#  check for cite.runlist files 
+#
+
+
+       if(defined $dataset->{"$self->{CCA}.runlist"}){
+          $template->{RUNLIST}=$dataset->{"$self->{CCA}.runlist"};   
+       }
+       if(defined $dataset->{"$self->{CCA}.runalist"}){
+          $template->{RUNALIST}=$dataset->{"$self->{CCA}.runalist"};   
+       }
+
+
            $template->{initok}=1;
            foreach my $ent (@farray){
              if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
@@ -16869,6 +16900,15 @@ sub calculateMipsVC {
                }
             }
         }
+#
+#  check for cite.runlist files 
+#
+       if(defined $dataset->{"$self->{CCA}.runlist"}){
+          $template->{RUNLIST}=$dataset->{"$self->{CCA}.runlist"};   
+       }
+       if(defined $dataset->{"$self->{CCA}.runalist"}){
+          $template->{RUNALIST}=$dataset->{"$self->{CCA}.runalist"};   
+       }
            $template->{initok}=1;
            foreach my $ent (@farray){
              if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
