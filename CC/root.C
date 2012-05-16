@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.400 2012/05/16 15:50:00 choutko Exp $
+//  $Id: root.C,v 1.401 2012/05/16 17:13:58 afiasson Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3219,7 +3219,12 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   Zprofile[1] = ptr->_Zprofile[1];
   Zprofile[2] = ptr->_Zprofile[2];
   Zprofile[3] = ptr->_Zprofile[3];
-
+  ZprofileChi2v2 = ptr->_ZprofileChi2v2;
+  Zprofilev2[0] = ptr->_Zprofilev2[0];
+  Zprofilev2[1] = ptr->_Zprofilev2[1];
+  Zprofilev2[2] = ptr->_Zprofilev2[2];
+  Zprofilev2[3] = ptr->_Zprofilev2[3];
+  EnergyF = ptr->_EnergyF;
 #endif
 }
 

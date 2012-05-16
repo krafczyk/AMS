@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.433 2012/05/16 15:51:31 choutko Exp $
+//  $Id: root.h,v 1.434 2012/05/16 17:13:59 afiasson Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -390,21 +390,21 @@ pm1(at -x/y)>> ------>> pm36(at +x/y) \n
   float ADC[3];   ///< ECAL (ADC-Ped) for Hi/Low/Dynode channels
   float Gain;     ///<  1/gain (!)
 
-  static float GetECALPed(int layer, int cell, int channel=0);
   /// ECAL Ped for current run and given layer, cell, channel (Hi/Low/Dynode)
   /// \author basara@lapp.in2p3.fr
   /// \param layer between 0 and 17 (including for dynode)
   /// \param cell between 0 and 71 (including for dynode)
   /// \param channel between 0 and 2 for Hi/Low/Dynode
   /// \return -1 if bad parameters, -2 if SlowControl error, value for Pedestal otherwise
+  static float GetECALPed(int layer, int cell, int channel=0);
 
- static float GetECALRms(int layer, int cell, int channel=0);
   /// ECAL RMS for current run and given layer, cell, channel (Hi/Low/Dynode)
   /// \author basara@lapp.in2p3.fr
   /// \param layer between 0 and 17 (including for dynode)
   /// \param cell between 0 and 71 (including for dynode)
   /// \param channel between 0 and 2 for Hi/Low/Dynode
   /// \return -1 if bad parameters, -2 if SlowControl error, value for RMS otherwise
+ static float GetECALRms(int layer, int cell, int channel=0);
 
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
@@ -606,7 +606,10 @@ public:
   float ShowerDepth;  ///< Shower Depth
   float ShowerFootprint[3]; ///< Shower Footprint - 0=X - 1=Y - 2=X+Y
   float ZprofileChi2; ///< Chi2 of Zprofile
-  float Zprofile[4]; ///< Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=???????
+  float Zprofile[4]; ///< Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=ratio b/Xo
+  float ZprofileChi2v2; ///< Chi2 of Zprofile version 2
+  float Zprofilev2[4]; ///< Parameter of the Shower Z profile version 2 - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=Primary interaction shift
+  float EnergyF; ///< Energy obtained by the Gamma function fit 
   float EnergyFractionLayer[18];  ///< Energy fraction per layer
 
 // LAPP Variables Normalised (Filled only if NormaliseVariableLAPP() or EcalStandaloneEstimator() functions are called)
@@ -616,7 +619,7 @@ public:
   float NShowerLatDisp[3]; ///< Normalised Shower Lateral Dispersion - 0=X - 1=Y - 2=X+Y
   float NShowerLongDisp; ///< Normalised Shower Longitudinal Dispersion
   float NShowerFootprint[3]; ///< Normalised Shower Footprint - 0=X - 1=Y - 2=X+Y
-  float NZprofile[4];  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=???????
+  float NZprofile[4];  ///< Normalised Parameter of the Shower Z profile - 0=Normalised integral divided by energy 1=Z at fit max value 2=Reference Zmax 3=
   float NZprofileChi2; ///< Normalised Chi2 of Zprofile
   float NZProfileMaxRatio; ///< Ratio between profile fitted and expected Zmax
   float NEnergyFractionLayer[18];  ///< Normalised energy fraction per layer
@@ -675,7 +678,7 @@ public:
   friend class AMSEventR;
 
   virtual ~EcalShowerR(){};
-  ClassDef(EcalShowerR,11)       //EcalShowerR
+  ClassDef(EcalShowerR,12)       //EcalShowerR
 #pragma omp threadprivate(fgIsA)
 
 };

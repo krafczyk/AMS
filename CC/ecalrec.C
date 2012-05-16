@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.172 2012/05/15 10:43:15 sdifalco Exp $
+//  $Id: ecalrec.C,v 1.173 2012/05/16 17:13:32 afiasson Exp $
 // v0.0 28.09.1999 by E.Choumilov
 // v1.1 22.04.2008 by E.Choumilov, Ecal1DCluster bad ch. treatment corrected by V.Choutko.
 //
@@ -3013,6 +3013,7 @@ void AMSEcalShower::EnergyFit(){
 
 
 float z[18],x[18],errorz[18];
+float zv2[18],xv2[18],errorzv2[18];
 Int_t nbins;
 //______________________________________________________________________________
 Double_t func(float x,Double_t *par)
@@ -3035,9 +3036,32 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
   f = chisq;
 }
 
+//______________________________________________________________________________
+double funcv2(float x, double *par){
+        //scale factor is set to 0.48 
+        double fitval = (x<par[2])?0.:(par[0]*0.48*TMath::Exp(-0.48*(x-par[2]))*pow(0.48*(x-par[2]),0.48*par[1])/TMath::Gamma(0.48*par[1]+1.));
+        return fitval;
+}
+
+void fcnv2(int &npar, double *gin, double &f, double *par, int iflag)
+{
+  int i;
+  double chisq = 0.;
+  double delta;
+  for (i=0;i<18; i++) {
+    delta = (zv2[i]-funcv2(xv2[i],par))/errorzv2[i];
+    chisq += delta*delta;
+  }
+  f = chisq;
+}
+
+
+
 namespace ecalrec_ZProf {
   static TMinuit *fMinuit = 0;
 #pragma omp threadprivate(fMinuit)
+  static TMinuit *fMinuitv2 = 0;
+#pragma omp threadprivate(fMinuitv2)
 };
 
 //______________________________________________________________________________
@@ -3048,6 +3072,13 @@ void AMSEcalShower::ZProfile()
   _Zprofile[2]=-1.;
   _Zprofile[3]=-1.;
   _ZprofileChi2=-1.;
+  // Version #2 Mai16
+  _Zprofilev2[0]=-1.;
+  _Zprofilev2[1]=-1.;
+  _Zprofilev2[2]=-1.;
+  _EnergyF=-1.;
+  _ZprofileChi2v2=-1.;
+
   int necalcl=0;
   int ihit,cell,plane,proj;
   int nhits_cl;
@@ -3058,9 +3089,22 @@ void AMSEcalShower::ZProfile()
   float par[3];
   float chi2n,chis,zmax1,zmax,xx,yu,yu1,yu2,yu3,xt,fitn,fitval;
   float frac[18]={0.};
+  float fracv2[18]={0.};
   float ECalEdepFrac[18]={0.};
-  if(_Nhits>50){
-    // Loop over 2d clusters
+   
+  // Impact point correction for version #2
+  float cora,corx,cory;
+  corx=1.;
+  float ratio= _S1totx/_S3totx;
+  if (ratio<=0.5) ratio=0.5;
+  if (ratio>=0.5&&ratio<0.75) corx=1./(0.379*ratio+0.717);// 
+  //
+  cory=1.;
+  ratio=_S1toty/_S3toty;
+  if (ratio<0.5) ratio=0.5;
+  if (ratio>=0.5&&ratio<0.75) cory=1./(0.3749*ratio+0.7187);
+
+  // Loop over 2d clusters
     for (int cl2=0 ; cl2 < _N2dCl ; cl2++){
       // Number of 1d cluster in 2D cluster
       necalcl=_pCl[cl2]->getNClust();
@@ -3076,12 +3120,24 @@ void AMSEcalShower::ZProfile()
 	}
       }
     }
-  }
   nbins=0;
-  if(etot>0. && etot<1000000. &&_EnergyPIC>0. && _EnergyPIC<5000000. && _Nhits>50 && _N2dCl>=2){
+  if(etot<=0)
+     return;
     par2= 1.05*(log(_EnergyPIC*1000./(8.))-0.5);
     //     std::cout << "EShower " <<  _EnergyPIC << std::endl;
     for(int a=0;a<18;a++){
+      // Impact point correction layer by layer version #2
+      cora=1.;
+      if (((a/2)%2)==1&&corx>0.7) cora=corx;
+      if (((a/2)%2)==0&&cory>0.7) cora=cory;
+      fracv2[a] = ECalEdepFrac[a]/etot;	      
+      err = fracv2[a] * 0.1;  
+      if (err<.009&&etot<10000.) err=0.009;
+      if (err<.004&&etot>10000.) err=0.004;
+      zv2[a] = frac[a];
+      errorzv2[a] = err;
+      xv2[a]=(float) a;
+
       frac[a] = ECalEdepFrac[a]/(_EnergyPIC*1000.);
       err=(ECalEdepFrac[a]/(_EnergyPIC*1000.))*0.10; 
       if (err<.009&&_EnergyPIC<1000.) err=0.009;
@@ -3096,16 +3152,22 @@ void AMSEcalShower::ZProfile()
       }
     }
 
-    if(nbins>3){
-	 
+
+
+      Double_t arglist[10];
+      Double_t a1,erra1;
       // The z values	
       Double_t zprof[3],errprof[3];
-      float xx=-1.;
+      xx=-1.;
       int ix=-1;  
       float zint=0.;
       par0=1.;
       par1=0.5; 
       float erec0=1000.; 
+      Int_t ierflg = 0;
+
+    if(nbins>3){
+	 
       // par2==zmax if the shower is an electromagnetic shower 
       // Minuit
       if (!ecalrec_ZProf::fMinuit) {
@@ -3117,9 +3179,6 @@ void AMSEcalShower::ZProfile()
       //Set Minuit print Options
       minuit->SetPrintLevel(-1); 
       minuit->SetFCN(fcn);
-      Double_t arglist[10];
-      Double_t a1,erra1;
-      Int_t ierflg = 0;
       arglist[0]   = 1;
       minuit->mnexcm("SET ERR", arglist ,1,ierflg);
       // Set starting values and step sizes for parameters
@@ -3145,7 +3204,40 @@ void AMSEcalShower::ZProfile()
       _Zprofile[1] = zprof[1];
       _ZprofileChi2 = amin/(nbins-3);
     }
-  }
+
+  // Fit Version #2 
+        float par3=1.;
+        par0=1.; 
+    // Minuit
+      if (!ecalrec_ZProf::fMinuitv2) {
+#pragma omp critical (tminuit)
+        ecalrec_ZProf::fMinuitv2 = new TMinuit(3);
+      }         
+      TMinuit *minuitv2 = ecalrec_ZProf::fMinuitv2;
+      minuitv2->SetPrintLevel(-1);
+        minuitv2->SetFCN(fcnv2);
+        arglist[0]=2;
+        minuitv2->mnexcm("SET ERR",arglist,1,ierflg);
+        minuitv2->mnparm(0, "Normalisation", par0 , 0.1,0.,2.,ierflg);
+        minuitv2->mnparm(1, "Zmax", par2, 0.1,.5*par2,1.5*par2,ierflg);
+        minuitv2->mnparm(2, "Zshift", par3 , 0.5,-2.,18.,ierflg);
+        arglist[0]=400;
+        minuitv2->mnexcm("MIGRAD",arglist,1,ierflg);
+        minuitv2->GetParameter(0,zprof[0],errprof[0]);
+        minuitv2->GetParameter(1,zprof[1],errprof[1]);
+        minuitv2->GetParameter(2,zprof[2],errprof[2]);
+        float delta=0.;
+	_ZprofileChi2 = 0.;
+	for (int i=0;i<18; i++) {
+            delta = (zv2[i]-funcv2(xv2[i],zprof))/errorzv2[i];
+            _ZprofileChi2 += delta*delta;
+        }
+      _Zprofilev2[0] = zprof[0];
+      _Zprofilev2[2] = zprof[2];
+      _Zprofilev2[3] = par2;
+      _Zprofilev2[1] = zprof[1];
+  _EnergyF = etot * zprof[0];  	
+
 
   // Normalised energy dep frac
   if(etot>0.&&etot<10000000.){
