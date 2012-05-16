@@ -66,14 +66,20 @@ TrRecHitR::TrRecHitR(int tkid, TrClusterR* clX, TrClusterR* clY,  int imult, int
   if(clY&&clY->GetSide()!=1)
     printf("TrRecHitR::TrRecHitR--> BIG problems The cluster you passed as Y is on X!!!!!  \n");
 
+  Status    = status;
   _clusterX = clX;   
   _clusterY = clY;   
-  VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
-  _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
-  _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
-  delete cont2;
+  if (Reblt()) {
+    _iclusterX = -1;
+    _iclusterY = -1;
+  }
+  else {
+    VCon* cont2=GetVCon()->GetCont("AMSTrCluster");
+    _iclusterX = (_clusterX) ? cont2->getindex(_clusterX) : -1;
+    _iclusterY = (_clusterY) ? cont2->getindex(_clusterY) : -1;
+    delete cont2;
+  }
 
-  Status    = status;
   if (!clX) Status |= YONLY;
   if (!clY) Status |= XONLY;
   _dummyX   = 0;

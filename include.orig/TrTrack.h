@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.89 2012/05/13 23:23:27 pzuccon Exp $
+//  $Id: TrTrack.h,v 1.90 2012/05/16 14:37:59 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/13 23:23:27 $
+///$Date: 2012/05/16 14:37:59 $
 ///
-///$Revision: 1.89 $
+///$Revision: 1.90 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -902,6 +902,9 @@ public:
   /// Recalculate all the hit/cluster coordinates using the fit information
   void RecalcHitCoordinates(int id = 0);
   
+  /// Rebuild hits from _HitCoo : useful for refit without loading TrRecHitR
+  int RebuildHits(void);
+
   /// Check if the track has good TrRecHit pointers
   bool ValidTrRecHitsPointers();
 

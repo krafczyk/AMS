@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.149 2012/05/13 23:23:27 pzuccon Exp $
+// $Id: TrTrack.C,v 1.150 2012/05/16 14:38:03 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/13 23:23:27 $
+///$Date: 2012/05/16 14:38:03 $
 ///
-///$Revision: 1.149 $
+///$Revision: 1.150 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -244,6 +244,14 @@ TrTrackR::TrTrackR(const TrTrackR& orig){
 
 TrTrackR::~TrTrackR()
 {
+#ifdef __ROOTSHAREDLIBRARY__
+  for (int i = 0; i < trconst::maxlay; i++)
+    if (_Hits[i] && _iHits[i] == -2 && _Hits[i]->Reblt()) {
+      delete _Hits[i]->GetXCluster();
+      delete _Hits[i]->GetYCluster();
+      delete _Hits[i];
+    }
+#endif
 }
 
 
@@ -1685,10 +1693,96 @@ void TrTrackR::RecalcHitCoordinates(int id) {
                 xcls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
     if (ycls) { ycls->SetDxDz(sens.GetSensDir().x()/sens.GetSensDir().z());
                 ycls->SetDyDz(sens.GetSensDir().y()/sens.GetSensDir().z()); }
+
+    int ll = hit->GetLayer();
+    if (ll == 8 || ll == 9) {
+      TrExtAlignDB::SetAlKind(1);
+      hit->BuildCoordinate();
+      _HitCoo[ll+10] = hit->GetCoord();
+      TrExtAlignDB::SetAlKind(0);
+    }
+
     hit->BuildCoordinate();
+    _HitCoo[ll] = hit->GetCoord();
   }
 }
 
+int TrTrackR::RebuildHits(void)
+{
+#ifdef __ROOTSHAREDLIBRARY__
+  int n = 0;
+  for (int i = 0; i < trconst::maxlay; i++) if (_Hits[i]) n++;
+  if (n > 0) return n;
+
+  typedef map<int,AMSPoint>::const_iterator mapIT;
+
+  _Nhits = 0;
+
+  int id0 = iTrTrackPar(0);
+  if (id0 < 0) return -1;
+
+  float pmrg = 100e-4;
+
+  for (int i = 0; i < trconst::maxlay; i++) {
+    int layr = i+1;
+    int layj = TkDBc::Head->GetJFromLayer(layr);
+
+    mapIT it = _HitCoo.find(layr);
+    if (it == _HitCoo.end()) continue;
+
+    AMSPoint hcoo = it->second;
+    TkSens tks(hcoo, 0);
+    if (!tks.LadFound()) continue;
+
+    int tkid = tks.GetLadTkID();
+    int mult = tks.GetMultIndex();
+
+    float wx = GetFitWeightXLayerJ(layj, id0);
+    float wy = GetFitWeightYLayerJ(layj, id0);
+
+    AMSPoint pc = tks.GetSensCoo();
+//cout <<"AHO "<<hcoo<<" "<<tkid<<" "
+//     <<pc.x()<<" "<<pc.x()-TkDBc::Head->_ssize_active[0]<<" "<<pmrg<<" "<<wx<<endl;
+//    if (wx < 1 && 
+//	(pc.x() < -pmrg || pc.x() > TkDBc::Head->_ssize_active[0]+pmrg))
+//      continue;
+
+    int    stx = tks.GetStripX()+640;
+    int    sty = tks.GetStripY();
+    float  ipx = tks.GetImpactPointX();
+    float  ipy = tks.GetImpactPointY();
+    int  seedx = (ipx > 0) ? 0 : 1;
+    int  seedy = (ipy > 0) ? 0 : 1;
+    if (ipx < 0) stx--;
+    if (ipy < 0) sty--;
+
+    float sig = 20;
+    float adcx[2] = { 0, 0 };
+    float adcy[2] = { 0, 0 };
+    adcx[0] = (ipx > 0) ? sig*(1-ipx) : -sig*ipx;
+    adcx[1] = (ipx < 0) ? sig*(1+ipx) :  sig*ipx;
+    adcy[0] = (ipy > 0) ? sig*(1-ipy) : -sig*ipy;
+    adcy[1] = (ipy < 0) ? sig*(1+ipy) :  sig*ipy;
+
+    if (stx <   640) stx =  640;
+    if (stx >= 1024) stx = 1023;
+    if (sty <     0) sty =    0;
+    if (sty >=  640) sty =  639;
+
+    TrClusterR  *clx = (wx < 1) ? 
+                       new TrClusterR(tkid, 0, stx, 2, seedx, adcx, 0) : 0;
+    TrClusterR  *cly = new TrClusterR(tkid, 0, sty, 2, seedy, adcy, 0);
+    _iHits[_Nhits]   = -2;
+     _Hits[_Nhits++] = new TrRecHitR (tkid, clx, cly, mult, TrRecHitR::REBLT);
+  }
+  EstimateDummyX(id0);
+
+  TrClusterR::DefaultUsedStrips = 2;
+  TrClusterR::DefaultCorrOpt    = 0;
+#endif
+
+  return _Nhits;
+}
 
 bool TrTrackR::ValidTrRecHitsPointers() {
   bool invalid_pointers = false;

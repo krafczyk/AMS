@@ -1,4 +1,4 @@
-//  $Id: TrRecHit.h,v 1.40 2012/05/07 09:02:36 pzuccon Exp $
+//  $Id: TrRecHit.h,v 1.41 2012/05/16 14:37:52 shaino Exp $
 #ifndef __TrRecHitR__
 #define __TrRecHitR__
 
@@ -42,7 +42,8 @@ class TrRecHitR : public TrElem {
 
  public:
 
-  enum { XONLY = 0x100, YONLY = 0x200, TASHIT = 0x400, ZSEED = 0x800 };
+  enum { XONLY = 0x100, YONLY = 0x200, TASHIT = 0x400, ZSEED = 0x800,
+	 REBLT = 0x1000 };
 
  protected:
 
@@ -128,6 +129,7 @@ public:
   bool OnlyX () const { return checkstatus(XONLY); }
   bool OnlyY () const { return checkstatus(YONLY); }
   bool TasHit() const { return checkstatus(TASHIT); }
+  bool Reblt () const { return checkstatus(REBLT); }
   // AMSDBc::USED = 32; (0x0020)
   bool Used  () const { return checkstatus(AMSDBc::USED); }
   // AMSDBc::FalseX = 8192; (0x2000)
