@@ -57,6 +57,9 @@ public:
   /// Destructor
   virtual ~AMSChain(){ if(fout) CloseOutputFile(); fout=0;_FILE=0;if (_EVENT) delete _EVENT; };
   
+   /// Add Function take into account svcClass syntax
+   Int_t     Add(const char* name, Long64_t nentries = kBigNumber);
+   using TChain::Add;
   ///Set event branch and links; called after reading of all trees; called automatically in GetEvent
   void Init(AMSEventR* event=0); 
   

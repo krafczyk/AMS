@@ -1,4 +1,4 @@
-//  $Id: commonsi.h,v 1.7 2010/12/04 19:44:11 choutko Exp $
+//  $Id: commonsi.h,v 1.7.18.1 2012/05/16 11:24:43 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -62,7 +62,7 @@ static int  AB_catch;
  static bool remote(){return _remote;}
  static integer getosno()  {return _os;}
  static char* getosname()  {return _osname;}
- static char* getosversion(){return _version;}
+ static char* getosversion(){return _osversion;}
 };
 static AMSCommonsI cmnI;
 
