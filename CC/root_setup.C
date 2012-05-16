@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.78 2012/05/16 11:05:49 choutko Exp $
+//  $Id: root_setup.C,v 1.79 2012/05/16 13:24:28 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -1299,20 +1299,20 @@ k--;
   double ang2=l->second.alpha;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=cos(ang1);
   s0[1]=cos(ang2);
-  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.alpha=atan2(s1,c1)*180/3.1415926;
 {
   double ang1=k->second.b1a;
   double ang2=l->second.b1a;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=cos(ang1);
   s0[1]=cos(ang2);
-  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.b1a=atan2(s1,c1)*180/3.1415926;
 }
 
@@ -1321,10 +1321,10 @@ k--;
   double ang2=l->second.b3a;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=cos(ang1);
   s0[1]=cos(ang2);
-  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.b3a=atan2(s1,c1)*180/3.1415926;
 
 }
@@ -1333,10 +1333,10 @@ k--;
   double ang2=l->second.b1b;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=cos(ang1);
   s0[1]=cos(ang2);
-  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.b1b=atan2(s1,c1)*180/3.1415926;
 }
 
@@ -1345,10 +1345,10 @@ k--;
   double ang2=l->second.b3b;
   s0[0]=sin(ang1);
   s0[1]=sin(ang2);
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=cos(ang1);
   s0[1]=cos(ang2);
-  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double c1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   a.b3b=atan2(s1,c1)*180/3.1415926;
 }
 
@@ -1403,13 +1403,13 @@ if(xtime==k->first){
   tme[1]=l->first;
   s0[0]=k->second.Roll;
   s0[1]=l->second.Roll;
-  roll=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  roll=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=k->second.Pitch;
   s0[1]=l->second.Pitch;
-  pitch=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  pitch=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   s0[0]=k->second.Yaw;
   s0[1]=l->second.Yaw;
-  yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  yaw=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   return 0;
 
 
@@ -1438,7 +1438,7 @@ static unsigned int stime=0;
 if(stime!=floor(xtime)){
 stime=xtime;
 if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
+LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+60);
 }
 else LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
 }
@@ -1478,27 +1478,25 @@ return 0;
   double ang2=l->second.x;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
 // try quadratic interpolation
   double v1=k->second.vx;
   double v2=l->second.vx;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-10);
-  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  double corr=(ang2-ang1)/(dx+1.e-16);
+  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 }
 {
   double ang1=k->second.y;
   double ang2=l->second.y;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vy;
   double v2=l->second.vy;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-10);
-  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  double corr=(ang2-ang1)/(dx+1.e-16);
+  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 
 }
 {
@@ -1506,20 +1504,19 @@ return 0;
   double ang2=l->second.z;
   s0[0]=ang1;
   s0[1]=ang2;
-    double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+    double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vz;
   double v2=l->second.vz;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
-  double corr=(ang2-ang1)/(dx+1.e-10);
-  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  double corr=(ang2-ang1)/(dx+1.e-16);
+  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 }
 {
   double ang1=k->second.vx;
   double ang2=l->second.vx;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vx=s1;
 }
 {
@@ -1527,7 +1524,7 @@ return 0;
   double ang2=l->second.vy;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vy=s1;
 }
 
@@ -1536,7 +1533,7 @@ return 0;
   double ang2=l->second.vz;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vz=s1;
 }
 
@@ -1600,47 +1597,44 @@ k--;
   double ang2=l->second.x;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
 // try quadratic interpolation
   double v1=k->second.vx;
   double v2=l->second.vx;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
   double corr=(ang2-ang1)/(dx+1.e-10);
-  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  b.x=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 }
 {
   double ang1=k->second.y;
   double ang2=l->second.y;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vy;
   double v2=l->second.vy;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
   double corr=(ang2-ang1)/(dx+1.e-10);
-  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  b.y=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 }
 {
   double ang1=k->second.z;
   double ang2=l->second.z;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   double v1=k->second.vz;
   double v2=l->second.vz;
-  double vs1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
   double dx=v1*(tme[1]-tme[0]) +(v2-v1)*(tme[1]-tme[0])/2;
   double corr=(ang2-ang1)/(dx+1.e-10);
-  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)/2);
+  b.z=s0[0]+corr*(v1*(xtime-tme[0]) +(v2-v1)*(xtime-tme[0])*(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)/2);
 }
 {
   double ang1=k->second.vx;
   double ang2=l->second.vx;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vx=s1;
 }
 {
@@ -1648,7 +1642,7 @@ k--;
   double ang2=l->second.vy;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vy=s1;
 }
 
@@ -1657,7 +1651,7 @@ k--;
   double ang2=l->second.vz;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vz=s1;
 }
 
@@ -1722,7 +1716,7 @@ return 0;
   double ang2=l->second.r;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.r=s1;
 }
 {
@@ -1730,7 +1724,7 @@ return 0;
   double ang2=l->second.phi;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.phi=s1;
 }
 {
@@ -1738,7 +1732,7 @@ return 0;
   double ang2=l->second.theta;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.theta=s1;
 }
 {
@@ -1746,7 +1740,7 @@ return 0;
   double ang2=l->second.vphi;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vphi=s1;
 }
 {
@@ -1754,7 +1748,7 @@ return 0;
   double ang2=l->second.vtheta;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.vtheta=s1;
 }
 
@@ -1763,7 +1757,7 @@ return 0;
   double ang2=l->second.v;
   s0[0]=ang1;
   s0[1]=ang2;
-  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-6)*(s0[1]-s0[0]);
+  double s1=s0[0]+(xtime-tme[0])/(tme[1]-tme[0]+1.e-16)*(s0[1]-s0[0]);
   b.v=s1;
 }
 
