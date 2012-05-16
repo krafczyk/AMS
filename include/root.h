@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.431 2012/05/15 17:26:37 choutko Exp $
+//  $Id: root.h,v 1.432 2012/05/16 15:50:12 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -346,6 +346,7 @@ public:
   unsigned int Edr;  ///< Ecal length in bytes
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
+  unsigned int  L3VError;  ///<Lvl3 event error
   unsigned int  L3VEvent; ///<Lvl3 event counter + Version
   unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
   unsigned short int JINJStatus[4];///< JINJ-[01,2,3] status word 

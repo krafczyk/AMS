@@ -2,6 +2,7 @@
 #include "AMSNtupleHelper.h"
 #include "../include/root_setup.h"
 #include "../include/DynAlignment.h"
+#include <fstream>
 static AMSNtupleHelper * fgHelper=0;
 
 extern "C" AMSNtupleHelper * gethelper();
@@ -12,6 +13,7 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
+/*
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>90 && fabs(ev->TrTrack(ev->Particle(0).iTrTrack()).Rigidityf())<5){
 return 1;
 }
@@ -28,20 +30,38 @@ int itrktr = ev->Particle(pindex).iTrTrack();
     cout <<LayIntP<<endl;
  }
 }
+*/
+{
 unsigned int eventSec, eventNanoSec;
 ev->GetGPSTime(eventSec, eventNanoSec);
 double xtime=ev->UTime()+ev->Frac();
+double xtime0=ev->UTime()+ev->Frac();
+cout <<setprecision(14);
+cout <<" xtime "<<xtime<<endl;
 AMSSetupR::ISSCTRSR setup;
 AMSSetupR::GPSWGS84R gps;
 if(ev->getsetup()){
 ev->getsetup()->getISSCTRS(setup, xtime);
-cout <<" qq "<<setup.r<<" "<<setup.v<<endl;
-
+ofstream ftxt;
+ftxt.clear();
+ftxt.open("/f2users/choutko/ctrs.txt");
+ftxt<<setprecision(14);
+cout <<" qq "<<setup.r<<" "<<setup.v<<xtime<<endl;
+for(int k=0;k<20001;k++){
+  double step=0.005;
+  xtime+=step;
+ev->getsetup()->getISSCTRS(setup, xtime);
+cout <<"r "<<xtime-xtime0<<" "<<setup.r<<" "<<setup.v<<endl;
+ftxt<<xtime-xtime0<<" "<<setup.r<<" "<<setup.v<<" "<<ev->Run()<<" "<<ev->Event()<<endl;
+}
+cout <<" GOOD "<<ftxt.good()<<endl;
+ftxt.close();
 ev->getsetup()->getGPSWGS84(gps, eventSec+double(eventNanoSec)/1.e9);
 cout <<" qqq "<<gps.r<<" "<<gps.v<<" "<<xtime<<" "<<eventSec+double(eventNanoSec)/1.e9<<endl;
 
 }
 }
+return 1;
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iEcalShower()>=0 && ev->EcalShower(0).EnergyC>2  ){
 AMSSetupR::SlowControlR::ReadFromExternalFile=false;
  TrTrackR tr=ev->TrTrack(ev->Particle(0).iTrTrack());

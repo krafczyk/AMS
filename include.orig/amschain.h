@@ -1,3 +1,4 @@
+//  $Id: amschain.h,v 1.30 2012/05/16 15:50:11 choutko Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
