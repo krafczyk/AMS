@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.89 2012/04/22 23:40:33 oliva Exp $
+//  $Id: charge.C,v 1.90 2012/05/16 06:13:14 oliva Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -976,53 +976,57 @@ int AMSChargeRich::Fill(int refit) {
 #ifdef _PGTRACK_
 int AMSChargeTracker::Fill(int refit) {
 
-  // First Implementation : Use only Inner Tracker for Charge Estimation
-  if (_ID.CompareTo(AMSChargeTracker::ClassID()) &&
-      _ID.CompareTo(AMSChargeTrackerInner::ClassID()))
+  if (_ID.CompareTo(AMSChargeTracker::ClassID())      &&
+      _ID.CompareTo(AMSChargeTrackerInner::ClassID()) && 
+      _ID.CompareTo(AMSChargeTrackerLower::ClassID()) && 
+      _ID.CompareTo(AMSChargeTrackerUpper::ClassID()) 
+     )
     return 0;
 
-  // loop on charge indexes
-  like_t like;
-  for (int ind=0; ind<MaxZTypes; ind++) {
-
-    float beta = ind>0?_pbeta->getbeta():1;
-    int Z = ind2charge(ind);
-
-    if (_debug) 
-      cout << "AMSChargeTracker::Fill-I- " <<
-	"_ptrtk " << _ptrtk << " Z " << Z <<  " beta " << beta << endl;
-
-    //! Truncated mean probability (inner tracker)
-    like = TrCharge::GetTruncMeanProbToBeZ(_ptrtk, Z, beta);
-
-    // Fill 
-    Fill(ind, like);
-  }
-
-  // Compute Sum Probabilities for all charges & check
-  _ProbSum=0;
-  for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
-  if (_ProbSum<=0) return 0; // GetTruncMeanProbToBeZ failed? 
-
-  //! Best available Q evaluation (charge units) with beta correction 
   float beta = _pbeta->getbeta();
-  _Q = _ptrtk->GetQ(beta); 
 
-  //! Truncated mean charge (inner tracker), no beta correction
-  _TruncatedMean = TrCharge::GetMean(TrCharge::kTruncMean|TrCharge::kInner, _ptrtk, TrCharge::kX).Mean;
-
-  //! ProbAlltracker not yet available
-  _ProbAllTracker = 0;
-
-  if (_debug)
-    cout << "AMSChargeTracker::Fill-I- " <<
-      "_Q " << _Q << " _TruncatedMean " << _TruncatedMean <<  " _ProbAllTracker " << _ProbAllTracker << endl;
-
-  // Sort Likelihoods  
-  _i=sortlkhd();
-
-  // Assign Most likely charge
-  _Charge=ind2charge(_i);
+  // AMSChargeTrackerInner
+  if (_ID.CompareTo(AMSChargeTrackerInner::ClassID())==0) {
+    _Q = _ptrtk->GetInnerQ(beta);
+    _TruncatedMean = _ptrtk->GetInnerQ(1);
+  }
+  // AMSChargeTrackerUpper
+  else if (_ID.CompareTo(AMSChargeTrackerUpper::ClassID())==0) {
+    _Q = _ptrtk->GetLayerJQ(1,beta);
+    _TruncatedMean = _ptrtk->GetLayerJQ(1,1);
+  }
+  // AMSChargeTrackerLower
+  else if (_ID.CompareTo(AMSChargeTrackerLower::ClassID())==0) {
+    _Q = _ptrtk->GetLayerJQ(9,beta);
+    _TruncatedMean = _ptrtk->GetLayerJQ(9,1);
+  }
+  // AMSChargeTracker
+  else if (_ID.CompareTo(AMSChargeTracker::ClassID())==0) {
+    //! Best available Q evaluation (charge units) with beta correction 
+    _Q = _ptrtk->GetQ(beta);
+    //! Truncated mean charge (inner tracker), no beta correction
+    _TruncatedMean = _ptrtk->GetQ(1);
+    //! ProbAlltracker not yet available
+    _ProbAllTracker = 0;
+    // very preliminary likelihood estimation 
+    like_t like;
+    for (int ind=0; ind<MaxZTypes; ind++) {
+      float beta = ind>0?_pbeta->getbeta():1;
+      int Z = ind2charge(ind);
+      //! Truncated mean probability (inner tracker)
+      like = TrCharge::GetTruncMeanProbToBeZ(_ptrtk, Z, beta);
+      // Fill 
+      Fill(ind, like);
+    }
+    // Compute Sum Probabilities for all charges & check
+    _ProbSum=0;
+    for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
+    if (_ProbSum<=0) return 0; // GetTruncMeanProbToBeZ failed? 
+    // Sort Likelihoods  
+    _i=sortlkhd();
+    // Assign Most likely charge
+    _Charge=ind2charge(_i);
+  }
 
   if (_debug)
     _printEl(cout);

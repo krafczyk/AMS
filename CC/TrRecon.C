@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.152 2012/05/08 20:52:49 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.153 2012/05/16 06:13:14 oliva Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/05/08 20:52:49 $
+/// $Date: 2012/05/16 06:13:14 $
 ///
-/// $Revision: 1.152 $
+/// $Revision: 1.153 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -2590,8 +2590,6 @@ int TrRecon::BuildTrTracksSimple(int rebuild, int select_tag) {
       float qx = TrCharge::GetQ(track,TrCharge::kX,1);
       float qy = TrCharge::GetQ(track,TrCharge::kY,1);
       hman.Fill("QxQy_final",qx,qy);
-      float qq = TrCharge::GetQ(track,TrCharge::kXY,1); 
-      hman.Fill("Q_final",qq);
 
       for (int ihit=0; ihit<track->GetNhits(); ihit++) {
 	TrRecHitR* hit = track->GetHit(ihit);

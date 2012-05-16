@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.42 2012/04/27 09:34:31 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.43 2012/05/16 06:13:14 oliva Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -371,8 +371,7 @@ void HistoMan::BookHistos(int simmode){
   // TO-BE-DONE: Residuals versus charge, angle, layer)
 
   // Plots after reconstruction
-  Add(new TH2D("QxQy_final","; Q_{x}; Q_{y}",300,0,30,300,0,30));
-  Add(new TH1D("Q_final","; Q",300,0,30));
+  Add(new TH2D("QxQy_final","; Q_{x}; Q_{y}",600,0,30,600,0,30));
   Add(new TH2D("AmpyCSy_final", "; y charge seed (#sqrt{ADC}); y signal (#sqrt{ADC})",400,0,200,400,0,200));
   Add(new TH2D("AmpxCSx_final", "; x charge seed (#sqrt{ADC}); x signal (#sqrt{ADC})",400,0,200,400,0,200));
   Add(new TH2D("AmpyAmpx_final","; x signal corr. (#sqrt{ADC}); y signal corr. (#sqrt{ADC})",75,5,155,300,0,90));
