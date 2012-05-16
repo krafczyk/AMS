@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.728 2012/05/16 12:37:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.729 2012/05/16 22:18:02 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -21116,18 +21116,29 @@ sub TestPerl{
 sub datasetlink{
     my $self=shift;
     my $path=shift;
-    my $dir=shift;
+    my $sdir=shift;
     my $crdel=shift;
     my $predefined=shift;
 #split path
            my @junk=split '\/',$path;
-           my $newfile=$dir;
-           my $newdir=$dir; 
+           my $newfile=$sdir;
+           my $file=$sdir;
+           my $newdir=$sdir; 
+           my $dir=$sdir; 
            for my $j (2...$#junk){
+               if($junk[$j]=~/\.root$/){
+                   my @rmrun=split '\.',$junk[$j];
+                   my $isdir=int(int($rmrun[0])/1000000);
+                   $isdir=$isdir*1000000;
+                   $newdir=$newdir."/$isdir";
+                   $newfile=$newfile."/$isdir";
+               }
+               $file=$file.'/'.$junk[$j];
                $newfile=$newfile.'/'.$junk[$j];
-           }
-           for my $j (2...$#junk-1){
-               $newdir=$newdir.'/'.$junk[$j];
+               if($j<$#junk){
+                   $newdir=$newdir.'/'.$junk[$j];
+                   $dir=$dir.'/'.$junk[$j];
+               }
            }
     if(defined $predefined){
         $newfile=$predefined;
@@ -21141,6 +21152,8 @@ sub datasetlink{
         $cp=" ln -sf $path $newfile";
     }
     else{
+        $cp="rm $file";
+        my $i=system($cp);
         $cp="rm $newfile";
     }
     my $i=system($cp);

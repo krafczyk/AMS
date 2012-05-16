@@ -3599,19 +3599,32 @@ class RemoteClient:
     def linkdataset(self,path,sdir,crdel):
         rmpath=path.split('/')
         newdir=sdir
-        dir=sdir      
+        file=sdir      
+        newfile=sdir      
+        dir=sdir
+        newdir=sdir
         for i in range (2,len(rmpath)):
-                dir=dir+"/"+rmpath[i]
-        for i in range (2,len(rmpath)-1):
-                newdir=newdir+"/"+rmpath[i]
-
+                if(rmpath[i].find('.root')>=0):
+                    rmrun=rmpath[i].split('.')
+                    isdir=int(rmrun[0])/1000000;
+                    isdir=isdir*1000000;
+                    fdir="%d" %(isdir)
+                    newfile=newfile+"/"+fdir
+                    newdir=newdir+"/"+fdir
+                file=file+"/"+rmpath[i]
+                newfile=newfile+"/"+rmpath[i]
+                if(i<len(rmpath)-1):
+                    dir=dir+"/"+rmpath[i]
+                    newdir=newdir+"/"+rmpath[i]
         os.system("mkdir -p "+newdir)
         cmd=""
         if(crdel==1):
-                cmd="ln -sf "+path+" "+dir
+                cmd="ln -sf "+path+" "+newdir
         else:
-                cmd="rm "+dir
+                cmd="rm "+file
+                i=os.system(cmd)
+                cmd="rm "+newfile
         i=os.system(cmd)
         if(i):
                 print "Problem with "+cmd
-        return dir
+        return newfile

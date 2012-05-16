@@ -8,6 +8,7 @@ my $output="/afs/cern.ch/ams/local/SCDBGlobal/";
         $output=$ENV{SCDBGlobal};
     }
 my $min=1305810000;
+my $xmin=0;
 my $max=4000000000;
 my $len=86400*2;
 my $v=0;
@@ -19,7 +20,7 @@ my $force=0;
 
    foreach my $chop  (@ARGV){
     if($chop =~/^-min/){
-      $min=unpack("x4 A*",$chop);
+      $xmin=unpack("x4 A*",$chop);
     }
     if($chop =~/^-force/){
         $force=1;
@@ -39,6 +40,12 @@ begin:
 
 #check max time in db
 
+if($xmin>0){
+$min=$xmin;
+}
+else{
+ $min=1305810000;
+}
 my $maxtime=2000000000;
         if (my $answ = (system "/afs/cern.ch/ams/local/bin/timeout --signal 9 300 /afs/cern.ch/ams/Offline/AMSDataDir/DataManagement/exe/linux/ami2root.exe 1900000000 2000000000 /tmp/t1.root.$$ /tmp/t1.root.$$ 60 1>/tmp/checkami.$$ 2>&1") != 0) {
         warn "scdb.perl-E-CouldNotGetMaxTime  \n";
