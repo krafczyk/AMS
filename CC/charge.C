@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.90 2012/05/16 06:13:14 oliva Exp $
+//  $Id: charge.C,v 1.91 2012/05/17 06:47:21 jorgec Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -949,21 +949,21 @@ int AMSChargeRich::Fill(int refit) {
   double exp = _pring->getnpexp();
   double use = _pring->getcollnpe();
 
+  if (AMSJob::gethead()->isRealData()) exp*=0.836; // average correction factor 
   if(exp<=0) return 0;
 
   for (int i=0; i<MaxZTypes; i++){
     double z=ind2charge(i);
     double zz=z*z;
-    double f=(use-zz*exp)*(use-zz*exp)/zz/exp;
     _Lkhdz.push_back(exp*zz-use*log(exp*zz));
-    _Probz.push_back(PROB((float)f,1));
-    //cout << "AMSChargeRich::Fill " <<  _Lkhdz.back() << " " << _Probz.back() << " " << _ProbSum << endl;
   }
 
-  _ProbSum=0;
-  for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
   _i=sortlkhd();
   _Charge=ind2charge(_i);
+  for (int i=0; i<MaxZTypes; i++)
+    _Probz.push_back(PROB(2.*(float)(_Lkhdz[i]-_Lkhdz[_i]),1));
+  _ProbSum=0;
+  for (int i=0; i<_Probz.size(); _ProbSum+=_Probz[i++]); 
 
   _Q = sqrt(use/exp);
 
