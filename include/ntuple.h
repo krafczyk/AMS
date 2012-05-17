@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.144 2012/05/04 13:54:27 qyan Exp $
+//  $Id: ntuple.h,v 1.145 2012/05/17 17:57:46 barao Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 #ifdef _OPENMP
@@ -791,6 +791,7 @@ public:
 #define LIP_NHITMAX 1000
 #define LIP_NMAXLIPREC 10
 #define LIP_NMAXRINGSEG 1000
+#define LIP_NMAXPIXELSEG 5000
   int   resb_iflag[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_itype[MAXRICHRIN][LIP_NMAXLIPREC];
   int   resb_itrk[MAXRICHRIN][LIP_NMAXLIPREC];
@@ -826,7 +827,13 @@ public:
   int resc_nrseg[MAXRICHRIN][LIP_NMAXLIPREC];
   int resc_pmtrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
   int resc_refrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
+  float resc_angrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG][2];
   float resc_effrseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXRINGSEG][3];
+  int resc_npseg[MAXRICHRIN][LIP_NMAXLIPREC];
+  int resc_pixpseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXPIXELSEG];
+  int resc_refpseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXPIXELSEG];
+  float resc_angpseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXPIXELSEG][2];
+  float resc_effpseg[MAXRICHRIN][LIP_NMAXLIPREC][LIP_NMAXPIXELSEG][3];
   float resb_pimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_epimp[MAXRICHRIN][LIP_NMAXLIPREC][3];
   float resb_pvtx[MAXRICHRIN][LIP_NMAXLIPREC][3];
@@ -897,9 +904,19 @@ public:
   int Segments[MAXRICHRINLIP];
   int SegPMT[MAXRICHRINLIP][1000];
   int SegRefStatus[MAXRICHRINLIP][1000];
+  float SegTheta[MAXRICHRINLIP][1000];
+  float SegPhi[MAXRICHRINLIP][1000];
   float SegAcceptance[MAXRICHRINLIP][1000];
   float SegEffRad[MAXRICHRINLIP][1000];
   float SegEffFull[MAXRICHRINLIP][1000];
+  int PixelSegments[MAXRICHRINLIP];
+  int PixSegPixel[MAXRICHRINLIP][5000];
+  int PixSegRefStatus[MAXRICHRINLIP][5000];
+  float PixSegTheta[MAXRICHRINLIP][5000];
+  float PixSegPhi[MAXRICHRINLIP][5000];
+  float PixSegAcceptance[MAXRICHRINLIP][5000];
+  float PixSegEffRad[MAXRICHRINLIP][5000];
+  float PixSegEffFull[MAXRICHRINLIP][5000];
   float HitsResiduals[MAXRICHRINLIP][LIP_NHITMAX];
   int HitsStatus[MAXRICHRINLIP][LIP_NHITMAX];
   float TrackRec[MAXRICHRINLIP][10];

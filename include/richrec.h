@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.77 2012/04/19 16:09:20 barao Exp $
+//  $Id: richrec.h,v 1.78 2012/05/17 17:57:46 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -377,14 +377,28 @@ class AMSRichRingNew: public AMSlink{
   float _RingEffMsec1R[3];    // efficiency, 1st reflection
   float _RingEffMsec2R[3];    // efficiency, 2nd reflection
   float _RingAccRWMsec[3];    // radiator wall acceptance fractions, reflected branch
-  // data on ring segments
+  // segment status flag
+  int _UsePixelSegments;     // 0=store data by PMT, 1=store data by pixel
+  // data on ring segments (by PMT)
   int _Segments;                        // number of ring segments
-  std::vector<int>      _SegPMT;        // segment PMT
-  std::vector<int>      _SegRefStatus;  // segment reflection status (0 if direct,
+  std::vector<int>   _SegPMT;           // segment PMT number
+  std::vector<int>   _SegRefStatus;     // segment reflection status (0 if direct,
                                         // S*10+N if reflected N times and coming from mirror sector S)
+  std::vector<float> _SegTheta;         // segment photon theta at LG
+  std::vector<float> _SegPhi;           // segment photon phi at LG
   std::vector<float> _SegAcceptance;    // segment geometrical acceptance
   std::vector<float> _SegEffRad;        // segment efficiency considering only radiator
   std::vector<float> _SegEffFull;       // segment full efficiency (including radiator and light guide)
+  // data on ring segments (by pixel)
+  int _PixelSegments;                      // number of ring segments
+  std::vector<int>   _PixSegPixel;         // segment pixel number
+  std::vector<int>   _PixSegRefStatus;     // segment reflection status (0 if direct,
+                                           // S*10+N if reflected N times and coming from mirror sector S)
+  std::vector<float> _PixSegTheta;         // segment photon theta at LG
+  std::vector<float> _PixSegPhi;           // segment photon phi at LG
+  std::vector<float> _PixSegAcceptance;    // segment geometrical acceptance
+  std::vector<float> _PixSegEffRad;        // segment efficiency considering only radiator
+  std::vector<float> _PixSegEffFull;       // segment full efficiency (including radiator and light guide)
   // hit data
   std::vector<float> _HitsResiduals;    // residuals of (ring and non-ring) hits in reconstruction
   std::vector<int>   _HitsStatus;       // status of hits
@@ -428,6 +442,8 @@ class AMSRichRingNew: public AMSlink{
   int buildlip();
   void fillresult();
 
+  static bool PixelDataStored() {return (AMSEvent::gethead()->getEvent())%10==0;}
+
   AMSTrTrack* gettrack(){return _ptrack;}
 
   int getStatus(){return _Status;}
@@ -457,9 +473,19 @@ class AMSRichRingNew: public AMSlink{
   int getSegments(){return _Segments;}
   std::vector<int> getSegPMT(){return _SegPMT;}
   std::vector<int> getSegRefStatus(){return _SegRefStatus;}
+  std::vector<float> getSegTheta(){return _SegTheta;}
+  std::vector<float> getSegPhi(){return _SegPhi;}
   std::vector<float> getSegAcceptance(){return _SegAcceptance;}
   std::vector<float> getSegEffRad(){return _SegEffRad;}
   std::vector<float> getSegEffFull(){return _SegEffFull;}
+  int getPixelSegments(){return _PixelSegments;}
+  std::vector<int> getPixSegPixel(){return _PixSegPixel;}
+  std::vector<int> getPixSegRefStatus(){return _PixSegRefStatus;}
+  std::vector<float> getPixSegTheta(){return _PixSegTheta;}
+  std::vector<float> getPixSegPhi(){return _PixSegPhi;}
+  std::vector<float> getPixSegAcceptance(){return _PixSegAcceptance;}
+  std::vector<float> getPixSegEffRad(){return _PixSegEffRad;}
+  std::vector<float> getPixSegEffFull(){return _PixSegEffFull;}
   std::vector<float> getHitsResiduals(){return _HitsResiduals;}
   std::vector<int> getHitsStatus(){return _HitsStatus;}
   std::vector<int> getHitsAssoc(){return _HitsAssoc;}

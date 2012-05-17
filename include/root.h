@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.434 2012/05/16 17:13:59 afiasson Exp $
+//  $Id: root.h,v 1.435 2012/05/17 17:57:46 barao Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -1617,6 +1617,34 @@ class RichRingTables:public TObject{
 };
 
 
+//!  LIP Rich Ring Segment
+//!  (part of reconstructed ring touching a given RICH PMT or pixel)
+
+/*!
+ \authors barao@lip.pt, pereira@lip.pt
+*/
+
+class RichRingBSegmentR {
+ public:
+  short int PMT;        ///< RICH PMT where segment falls
+  short int Pixel;      ///< Pixel (between 0 and 15) where segment falls,
+                        ///< or -1 if segment corresponds to a whole PMT
+  short int RefStatus;  ///< segment reflectivity status flag:
+                        ///< 0 = direct branch,
+                        ///< 10*S+N = reflected branch with N reflections
+                        ///< from mirror sector S
+  float Theta;          ///< photon angle at light guide (with respect to RICH z axis)
+  float Phi;            ///< photon angle at light guide (azimuthal)
+  float Acceptance;     ///< integrated geometrical acceptance
+  float EffRad;         ///< integrated efficiency (radiator only)
+  float EffFull;        ///< integrated efficiency (full, i.e. radiator*LG)
+ public:
+  virtual ~RichRingBSegmentR(){};
+  ClassDef(RichRingBSegmentR,1)         // RichRingBSegmentR
+#pragma omp threadprivate(fgIsA)
+};
+
+
 //!  LIP Rich Ring Structure
 
 /*!
@@ -1674,19 +1702,7 @@ static char _Info[255];
   float RingEffMsec2R[3];              ///< ring efficiency for mirror sectors, 2 reflection
   float RingAccRWMsec[3];              ///< radiator wall ring acceptance fraction
                                        ///< for reflected branches by mirror sector
-  int Segments;                        ///< n. of ring segments
-                                       ///< (typically a piece of ring falling in a given PMT)
-  std::vector<int> SegPMT;             ///< list of segment PMTs
-                                       ///< (PMT may have more than one segment
-                                       ///< if it is touched by different branches
-                                       ///< or segments from different mirror sectors)
-  std::vector<int> SegRefStatus;       ///< list of segment reflectivity status flags:
-                                       ///< 0 = direct branch,
-                                       ///< 10*S+N = reflected branch with N reflections
-                                       ///< from mirror sector S
-  std::vector<float> SegAcceptance;    ///< list of segment geometrical acceptances
-  std::vector<float> SegEffRad;        ///< list of segment efficiencies (radiator only)
-  std::vector<float> SegEffFull;       ///< list of segment efficiencies (full, i.e. radiator+LG)
+  map<unsigned short,vector<RichRingBSegmentR> > Segments;  ///< Ring segment data by PMT
   std::vector<float> HitsResiduals;    ///< hit residuals (ring and non-ring hits)
   std::vector<int> HitsStatus;         ///< hit status:
                                        ///<         -2 = not considered for reconstruction,
@@ -1699,7 +1715,6 @@ static char _Info[255];
                                        ///< TrackRec[4] = z                TrackRec[5] = error in z
                                        ///< TrackRec[6] = theta (radians)  TrackRec[7] = error in theta
                                        ///< TrackRec[8] = phi (radians)    TrackRec[9] = error in phi
-
  protected:
   int fTrTrack;   ///< index of  TrTrackR in collection or null if rec. i=3,4,5,6,7
   vector<int> fRichHit; ///< indexes of RichHitR in collection
@@ -1760,7 +1775,7 @@ static char _Info[255];
     return _Info;
   }
   virtual ~RichRingBR(){};
-  ClassDef(RichRingBR,4)           // RichRingBR
+  ClassDef(RichRingBR,5)           // RichRingBR
 #pragma omp threadprivate(fgIsA)
 };
 

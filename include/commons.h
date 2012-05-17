@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.347 2012/05/11 22:07:57 mdelgado Exp $
+//  $Id: commons.h,v 1.348 2012/05/17 17:57:46 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1300,6 +1300,7 @@ COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 #define LIP_NMAXMIRSECCC 10
 #define LIP_NPMTLIP 756
 #define LIP_NMAXRINGSEG 1000
+#define LIP_NMAXPIXELSEG 5000
 
 // input data (see richrec_lipc.h for details)
 
@@ -1475,7 +1476,13 @@ class LIPF2C_DEF{
   int resc_nrseg[LIP_NMAXLIPREC];
   int resc_pmtrseg[LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
   int resc_refrseg[LIP_NMAXLIPREC][LIP_NMAXRINGSEG];
+  geant resc_angrseg[LIP_NMAXLIPREC][LIP_NMAXRINGSEG][2];
   geant resc_effrseg[LIP_NMAXLIPREC][LIP_NMAXRINGSEG][3];
+  int resc_npseg[LIP_NMAXLIPREC];
+  int resc_pixpseg[LIP_NMAXLIPREC][LIP_NMAXPIXELSEG];
+  int resc_refpseg[LIP_NMAXLIPREC][LIP_NMAXPIXELSEG];
+  geant resc_angpseg[LIP_NMAXLIPREC][LIP_NMAXPIXELSEG][2];
+  geant resc_effpseg[LIP_NMAXLIPREC][LIP_NMAXPIXELSEG][3];
 
   //track parameters
   geant resb_pimp[LIP_NMAXLIPREC][3];
