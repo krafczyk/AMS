@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.150 2012/05/16 14:38:03 shaino Exp $
+// $Id: TrTrack.C,v 1.151 2012/05/17 07:10:31 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/16 14:38:03 $
+///$Date: 2012/05/17 07:10:31 $
 ///
-///$Revision: 1.150 $
+///$Revision: 1.151 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1723,6 +1723,8 @@ int TrTrackR::RebuildHits(void)
 
   float pmrg = 100e-4;
 
+  static int nwar = 0;
+
   for (int i = 0; i < trconst::maxlay; i++) {
     int layr = i+1;
     int layj = TkDBc::Head->GetJFromLayer(layr);
@@ -1731,21 +1733,37 @@ int TrTrackR::RebuildHits(void)
     if (it == _HitCoo.end()) continue;
 
     AMSPoint hcoo = it->second;
-    TkSens tks(hcoo, 0);
-    if (!tks.LadFound()) continue;
 
-    int tkid = tks.GetLadTkID();
+    int tkid = 0;
+    for (int slot = -15; slot <= 15; slot++) {
+      int   tkidchk = TMath::Sign(layr*100+TMath::Abs(slot), slot);
+      AMSPoint diff = hcoo-TkCoo::GetLadderCenter(tkidchk);
+      if (abs(diff[0]) < TkCoo::GetLadderLength(tkidchk)/2 &&
+	  abs(diff[1]) < TkDBc::Head->_ladder_Ypitch/2) {
+	tkid = tkidchk;
+	break;
+      }
+    }
+    if (tkid == 0) {
+      if (nwar++ < 20)
+	cout << "TrTrackR::RebuildHits-W-Ladder not found(1): "
+	     << layr << " " << hcoo << endl;
+      continue;
+    }
+
+    TkSens tks(tkid, hcoo, 0);
+    if (!tks.LadFound()) {
+      if (nwar++ < 20)
+	cout << "TrTrackR::RebuildHits-W-Ladder not found(2): "
+	     << layr << " " << hcoo << endl;
+      continue;
+    }
+
     int mult = tks.GetMultIndex();
-
     float wx = GetFitWeightXLayerJ(layj, id0);
     float wy = GetFitWeightYLayerJ(layj, id0);
 
     AMSPoint pc = tks.GetSensCoo();
-//cout <<"AHO "<<hcoo<<" "<<tkid<<" "
-//     <<pc.x()<<" "<<pc.x()-TkDBc::Head->_ssize_active[0]<<" "<<pmrg<<" "<<wx<<endl;
-//    if (wx < 1 && 
-//	(pc.x() < -pmrg || pc.x() > TkDBc::Head->_ssize_active[0]+pmrg))
-//      continue;
 
     int    stx = tks.GetStripX()+640;
     int    sty = tks.GetStripY();
