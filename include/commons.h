@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.348 2012/05/17 17:57:46 barao Exp $
+//  $Id: commons.h,v 1.347.2.1 2012/05/17 17:58:10 barao Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:

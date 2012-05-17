@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.78 2012/05/17 17:57:46 barao Exp $
+//  $Id: richrec.h,v 1.77.4.1 2012/05/17 17:58:10 barao Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__

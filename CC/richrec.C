@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.163 2012/05/17 17:57:45 barao Exp $
+//  $Id: richrec.C,v 1.162.4.1 2012/05/17 17:58:10 barao Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
