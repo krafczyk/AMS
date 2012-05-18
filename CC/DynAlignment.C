@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.57 2012/05/14 14:24:23 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.58 2012/05/18 12:48:37 choutko Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -1924,7 +1924,8 @@ bool DynAlManager::SetTDVName(TString tdvname,bool forceReading){
 
 
 bool DynAlManager::UpdateWithTDV(int time){
-  if(!tdvdb){
+  if(!need2bookTDV)return false;
+  if( !tdvdb ){
     SetTDVName(TDVNAME,false);
     if(!tdvdb){
       cout<<"DynAlManager::UpdateWithTDV-- AMSTimeId cannot be created"<<endl;
