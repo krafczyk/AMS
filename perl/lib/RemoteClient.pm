@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.729 2012/05/16 22:18:02 ams Exp $
+# $Id: RemoteClient.pm,v 1.730 2012/05/18 10:44:39 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1143,7 +1143,7 @@ if($#{$self->{DataSetsT}}==-1){
        $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
+       my @farray=("TOTALEVENTS","RUNMIN", "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
           $template->{RUNMAX}=4000000000;   
@@ -1165,7 +1165,9 @@ if($#{$self->{DataSetsT}}==-1){
 #  check for cite.runlist files 
 #
 
-
+       if(defined $template->{SERVERNO}){
+           $dataset->{serverno}=$template->{SERVERNO};
+       }
        if(defined $dataset->{"$self->{CCA}.runlist"}){
           $template->{RUNLIST}=$dataset->{"$self->{CCA}.runlist"};   
        }
@@ -1176,7 +1178,7 @@ if($#{$self->{DataSetsT}}==-1){
 
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST" and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO")){
                $template->{initok}=undef;
              }
            }
@@ -16885,7 +16887,7 @@ sub calculateMipsVC {
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-       my @farray=("TOTALEVENTS","RUNMIN", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
+       my @farray=("TOTALEVENTS","RUNMIN",  "SERVERNO", "RUNMAX","OPENCLOSE","CPUPEREVENTPERGHZ","QTYPE","HOST","ROOTNTUPLE","RUNLIST","RUNALIST","PRIO","TAG","EVENTMIN");
           $template->{TAG}=-1;   
           $template->{RUNMIN}=0;   
           $template->{EVENTMIN}=1;   
@@ -16903,6 +16905,9 @@ sub calculateMipsVC {
 #
 #  check for cite.runlist files 
 #
+       if(defined $template->{SERVERNO}){
+           $dataset->{serverno}=$template->{SERVERNO};
+       }
        if(defined $dataset->{"$self->{CCA}.runlist"}){
           $template->{RUNLIST}=$dataset->{"$self->{CCA}.runlist"};   
        }
@@ -16911,7 +16916,7 @@ sub calculateMipsVC {
        }
            $template->{initok}=1;
            foreach my $ent (@farray){
-             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG")){
+             if(not defined $template->{$ent} and ($ent ne "HOST" and $ent ne "ROOTNTUPLE" and $ent ne "RUNLIST"  and $ent ne "RUNALIST" and $ent ne "PRIO" and $ent ne "TAG" and $ent ne "SERVERNO")){
                $template->{initok}=undef;
              }
            }
