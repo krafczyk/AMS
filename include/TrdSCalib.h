@@ -413,6 +413,7 @@ class TrdSCalibR {
  private:
   int algo,patt,refit, pmass, pcharge, _ierror;
   static TrdSCalibR* head;
+#pragma omp threadprivate (head)
   vector<AC_TrdHits*> TrdNHits;
  
  private:
