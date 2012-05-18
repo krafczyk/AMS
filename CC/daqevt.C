@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.237 2012/05/18 15:54:37 choutko Exp $
+//  $Id: daqevt.C,v 1.238 2012/05/18 16:37:36 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -3847,12 +3847,12 @@ unsigned long long DAQlv3::pack(){
 unsigned long long out=0;
 
 
-out|= err_proc?(1<<63):0;
-out|= err_run?(1<<62):0;
-out|= err_event?(1<<61):0;
-out|= err_tdr?((err_tdr&255)<<48):0;
-out|= err_udr?((err_udr&255)<<40):0;
-out|= err_rdr?((err_rdr&255)<<32):0;
+out|= err_proc?(1ULL<<63):0;
+out|= err_run?(1ULL<<62):0;
+out|= err_event?(1ULL<<61):0;
+out|= err_tdr?(((unsigned long long)err_tdr&255)<<48):0;
+out|= err_udr?((unsigned long long)(err_udr&255)<<40):0;
+out|= err_rdr?((unsigned long long)(err_rdr&255)<<32):0;
 out|= err_edr?((err_edr&255)<<24):0;
 out|= err_sdr?((err_sdr&255)<<16):0;
 out|= err_lv1?((err_lv1&255)<<8):0;

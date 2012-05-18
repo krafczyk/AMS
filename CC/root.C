@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.403 2012/05/18 15:54:37 choutko Exp $
+//  $Id: root.C,v 1.404 2012/05/18 16:37:37 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6229,6 +6229,12 @@ char * ParticleR::Info(int number, AMSEventR* pev){
 
 
 
+}
+
+unsigned int DaqEventR::L3NodeError(int i){
+
+int j=i*8;
+return (unsigned int)((L3Error>>j)&255);
 }
 
 char * DaqEventR::Info(int number){

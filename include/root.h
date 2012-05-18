@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.436 2012/05/18 15:54:40 choutko Exp $
+//  $Id: root.h,v 1.437 2012/05/18 16:37:38 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -365,6 +365,10 @@ public:
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}
+  unsigned int L3NodeError(int i); ///< Return number of nodes with errors for (ETRG<LV1,SDR,EDR,RDR,UDR,TDR 0...6
+  bool L3ProcError(){return (L3Error & (1ULL<<63))?true:false;}
+  bool L3RunError(){return (L3Error & (1ULL<<62))?true:false;}
+  bool L3EventError(){return (L3Error & (1ULL<<61))?true:false;}
   DaqEventR(DAQEvent *ptr);
   DaqEventR(){};
   virtual ~DaqEventR(){};
