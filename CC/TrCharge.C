@@ -186,9 +186,9 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
   }
 
   // rigidity
-  cout << "rigidity...fit_id=" << fit_id << flush;
+//  cout << "rigidity...fit_id=" << fit_id << flush;
   float rigidity = track->GetRigidity(fit_id);
-  cout << "rigidity=" << rigidity << endl;
+ // cout << "rigidity=" << rigidity << endl;
 
   // track hit loop
   vector<float> signal;
@@ -220,7 +220,7 @@ mean_t TrCharge::GetMean(int type, TrTrackR* track, int iside, float beta, int l
     if (type&kSqrt) asignal = (asignal>0) ? sqrt(asignal) : 0;
     signal.push_back(asignal);
   }
-  cout << "signal size=" << signal.size() << endl;
+  //cout << "signal size=" << signal.size() << endl;
 
   // computation
   mean_t mean = GetMean(type,signal);

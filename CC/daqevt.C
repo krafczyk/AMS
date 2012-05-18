@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.236 2012/04/24 21:16:54 pzuccon Exp $
+//  $Id: daqevt.C,v 1.237 2012/05/18 15:54:37 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1402,6 +1402,7 @@ integer DAQEvent::_DDGSBOK(){
 	return 0;
       }
       static int nprint=0;
+      int ok=lv3.lv3_unpack(_pcur,_Event,AMSJob::gethead()->isRealData()?false:true);
       if(_isjinj(*(_pcur+_cll(_pcur)))){
 	int16u event=*(_pcur+_cll(_pcur)+1);
 	if(event !=  (_Event&((1<<16)-1)) && nprint++<100 ){
@@ -3357,3 +3358,510 @@ bool DAQEvent::SetFileSize(const char *fnam){
           return false;
         }
 }
+
+
+unsigned short int DAQlv3::lv3_node_addr[384] = {
+  0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000,    // JINJs
+  0x6000, 0x6001, 0x6000, 0x6001, 0x7016, 0x7017, 0x7016, 0x7017,    // JLV1s   and ETRGs
+  0x7116, 0x7117, 0x7116, 0x7117, 0x0000, 0x0000, 0xC000, 0xC000,    // ETRGs   and JINF-Es
+  0xC000, 0xC000, 0xC100, 0xC100, 0xC100, 0xC100, 0xB000, 0xB000,    // JINJ-Es and JINF-Rs
+  0xB000, 0xB000, 0xB100, 0xB100, 0xB100, 0xB100, 0x9000, 0x9000,    // JINJ-Es and JINF-Ts
+  0x9000, 0x9000, 0x9100, 0x9100, 0x9100, 0x9100, 0x9200, 0x9200,    // JINJ-Ts
+  0x9200, 0x9200, 0x9300, 0x9300, 0x9300, 0x9300, 0x9400, 0x9400,    // JINJ-Ts
+  0x9400, 0x9400, 0x9500, 0x9500, 0x9500, 0x9500, 0x9600, 0x9600,    // JINJ-Ts
+  0x9600, 0x9600, 0x9700, 0x9700, 0x9700, 0x9700, 0xA000, 0xA000,    // JINJ-Ts and JINF-Us
+  0xA000, 0xA000, 0xA100, 0xA100, 0xA100, 0xA100, 0x4000, 0x4001,    // JINJ-Us and EDRs
+  0x4000, 0x4004, 0x4005, 0x4004, 0x4008, 0x4009, 0x4008, 0x400C,    // EDRs
+  0x400D, 0x400C, 0x4010, 0x4011, 0x4010, 0x4014, 0x4015, 0x4014,    // EDRs
+  0x4100, 0x4101, 0x4100, 0x4104, 0x4105, 0x4104, 0x4108, 0x4109,    // EDRs
+  0x4108, 0x410C, 0x410D, 0x410C, 0x4110, 0x4111, 0x4110, 0x4114,    // EDRs
+  0x4115, 0x4114, 0x3000, 0x3001, 0x3004, 0x3005, 0x3008, 0x3009,    // EDRs    and RDRs
+  0x300C, 0x300D, 0x3010, 0x3011, 0x3014, 0x3015, 0x3100, 0x3101,    // RDRs
+  0x3104, 0x3105, 0x3108, 0x3109, 0x310C, 0x310D, 0x3110, 0x3111,    // RDRs
+  0x3114, 0x3115, 0x5000, 0x5000, 0x5000, 0x5000, 0x5001, 0x5001,    // RDRs    and SDRs
+  0x5001, 0x5001, 0x5002, 0x5002, 0x5002, 0x5002, 0x5003, 0x5003,    // SDRs
+  0x5003, 0x5003, 0x1000, 0x1001, 0x1002, 0x1003, 0x1004, 0x1005,    // SDRs    and TDRs
+  0x1006, 0x1007, 0x1008, 0x1009, 0x100A, 0x100B, 0x100C, 0x100D,    // TDRs
+  0x100E, 0x100F, 0x1010, 0x1011, 0x1012, 0x1013, 0x1014, 0x1015,    // TDRs
+  0x1016, 0x1017, 0x1100, 0x1101, 0x1102, 0x1103, 0x1104, 0x1105,    // TDRs
+  0x1106, 0x1107, 0x1108, 0x1109, 0x110A, 0x110B, 0x110C, 0x110D,    // TDRs
+  0x110E, 0x110F, 0x1110, 0x1111, 0x1112, 0x1113, 0x1114, 0x1115,    // TDRs
+  0x1116, 0x1117, 0x1200, 0x1201, 0x1202, 0x1203, 0x1204, 0x1205,    // TDRs
+  0x1206, 0x1207, 0x1208, 0x1209, 0x120A, 0x120B, 0x120C, 0x120D,    // TDRs
+  0x120E, 0x120F, 0x1210, 0x1211, 0x1212, 0x1213, 0x1214, 0x1215,    // TDRs
+  0x1216, 0x1217, 0x1300, 0x1301, 0x1302, 0x1303, 0x1304, 0x1305,    // TDRs
+  0x1306, 0x1307, 0x1308, 0x1309, 0x130A, 0x130B, 0x130C, 0x130D,    // TDRs
+  0x130E, 0x130F, 0x1310, 0x1311, 0x1312, 0x1313, 0x1314, 0x1315,    // TDRs
+  0x1316, 0x1317, 0x1400, 0x1401, 0x1402, 0x1403, 0x1404, 0x1405,    // TDRs
+  0x1406, 0x1407, 0x1408, 0x1409, 0x140A, 0x140B, 0x140C, 0x140D,    // TDRs
+  0x140E, 0x140F, 0x1410, 0x1411, 0x1412, 0x1413, 0x1414, 0x1415,    // TDRs
+  0x1416, 0x1417, 0x1500, 0x1501, 0x1502, 0x1503, 0x1504, 0x1505,    // TDRs
+  0x1506, 0x1507, 0x1508, 0x1509, 0x150A, 0x150B, 0x150C, 0x150D,    // TDRs
+  0x150E, 0x150F, 0x1510, 0x1511, 0x1512, 0x1513, 0x1514, 0x1515,    // TDRs
+  0x1516, 0x1517, 0x1600, 0x1601, 0x1602, 0x1603, 0x1604, 0x1605,    // TDRs
+  0x1606, 0x1607, 0x1608, 0x1609, 0x160A, 0x160B, 0x160C, 0x160D,    // TDRs
+  0x160E, 0x160F, 0x1610, 0x1611, 0x1612, 0x1613, 0x1614, 0x1615,    // TDRs
+  0x1616, 0x1617, 0x1700, 0x1701, 0x1702, 0x1703, 0x1704, 0x1705,    // TDRs
+  0x1706, 0x1707, 0x1708, 0x1709, 0x170A, 0x170B, 0x170C, 0x170D,    // TDRs
+  0x170E, 0x170F, 0x1710, 0x1711, 0x1712, 0x1713, 0x1714, 0x1715,    // TDRs
+  0x1716, 0x1717, 0x2000, 0x2001, 0x2000, 0x2004, 0x2005, 0x2004,    // TDRs    and UDRs
+  0x2008, 0x2009, 0x2008, 0x200C, 0x200D, 0x200C, 0x2010, 0x2011,    // UDRs
+  0x2010, 0x2014, 0x2015, 0x2014, 0x2100, 0x2101, 0x2100, 0x2104,    // UDRs
+  0x2105, 0x2104, 0x2108, 0x2109, 0x2108, 0x210C, 0x210D, 0x210C,    // UDRs
+  0x2110, 0x2111, 0x2110, 0x2114, 0x2115, 0x2114, 0x0000, 0x0000     // UDRs
+};
+//
+// HW ID - JINJ slave ID correspondence
+// (JINF-XA connected to JINJ 1,2; JINF-XB - to JINJ 0,3)
+//
+unsigned short int  DAQlv3::lv3_jinj_slave[32] = {
+  0x9200,                                                            // 00 - JINF-T2
+  0x9300,                                                            // 01 - JINF-T3
+  0xA100,                                                            // 02 - JINF-U1
+  0x9000,                                                            // 03 - JINF-T0
+  0x5001,                                                            // 04 - SDR2-1A
+  0x5001,                                                            // 05 - SDR2-1B
+  0x5000,                                                            // 06 - SDR2-0A
+  0x5000,                                                            // 07 - SDR2-0B
+  0xA000,                                                            // 08 - JINF-U0
+  0x9100,                                                            // 09 - JINF-T1
+  0xB000,                                                            // 10 - JINF-R0
+  0xB100,                                                            // 11 - JINF-R1
+  0xC000,                                                            // 12 - JINF-E0
+  0xC100,                                                            // 13 - JINF-E1
+  0x6000,                                                            // 14 - JLV1-A
+  0x6000,                                                            // 15 - JLV1-B
+  0x9400,                                                            // 16 - JINF-T4
+  0x9500,                                                            // 17 - JINF-T5
+  0x5002,                                                            // 18 - SDR2-2A
+  0x5002,                                                            // 19 - SDR2-2B
+  0x5003,                                                            // 20 - SDR2-3A
+  0x5003,                                                            // 21 - SDR2-3B
+  0x9600,                                                            // 22 - JINF-T6
+  0x9700,                                                            // 23 - JINF-T7
+  0x0000,                                                            // 24 - MC
+  0x0001,                                                            // 25 - MC
+  0x0002,                                                            // 26 - MC
+  0x0003,                                                            // 27 - MC
+  0x0004,                                                            // 28 - MC
+  0x0005,                                                            // 29 - MC
+  0x0006,                                                            // 30 - MC
+  0x0007,                                                            // 31 - MC
+};
+
+
+void DAQlv3::lv3_xdr_proc(unsigned short detector, unsigned short len, unsigned short *ptr, bool mc) {
+
+
+  unsigned short register reg = 0, var, nht, i, j;
+  unsigned short k, stat;
+
+  unsigned short *p, l;
+
+  unsigned long register reg0, reg1, reg2 = 0;
+
+  stat = ptr[len-1];
+
+if(mc){
+  stat |= 0x0020;
+  if ( (detector&0x7000) == 0 ) {
+    // process MC information
+    return;
+  }
+}
+
+  // check XDR fragment status
+  if ( stat & 0x7800 ) {                                     // Fragment Error
+
+    // check significance of the error
+    if ( (stat & 0xF800) == 0xA000 ) err_run = 1;
+
+    // check how many nodes affected
+    switch ( (detector>>12) & 0x7 ) {
+    case 1:
+      err_tdr += 1;
+      break;
+    case 2:
+      err_udr += 1;
+      break;
+    case 3:
+      err_rdr += 1;
+      break;
+    case 4:
+      if ( (stat&0x1F) < 22 ) err_edr += 1;
+      else                    err_etrg+= 1;
+      break;
+    case 5:
+      err_sdr += 1;
+      break;
+    case 6:
+      err_lv1 += 1;
+      break;
+    case 7:
+      err_etrg+= 1;
+    }
+
+    /*
+#ifdef OFFLINE
+    printf("\n");
+    printf("Detector %04x, Fragment Length %d, XDR Fragment:\n", detector, len);
+    for (i=0; i<len; i++) {
+      if ( i%16 == 0 ) {
+	if ( i == 0 )  printf(" %04x:", i);
+	else           printf("\n %04x:", i);
+      }
+      printf(" %04x", ptr[i]);
+    }
+    printf("\n");
+#endif
+    */
+
+    return;
+
+  } else if ( stat & 0x0600 ) {
+
+    // account for permanent error in T0, TDR12 and T3, TDR0c/0d/10/11/14/15
+    //    if ( (detector != 0x1012) || (stat != 0x84b2) ) {
+    if ( ((detector != 0x1012) || (stat != 0x84b2)) && 
+	 ((detector != 0x130c) || (stat != 0x84ac)) &&
+	 ((detector != 0x130d) || (stat != 0x84ad)) &&
+	 ((detector != 0x1310) || (stat != 0x84b0)) &&
+	 ((detector != 0x1311) || (stat != 0x84b1)) &&
+	 ((detector != 0x1314) || (stat != 0x84b4)) &&
+	 ((detector != 0x1315) || (stat != 0x84b5))  ) {
+
+      // check how many nodes affected
+      switch ( (detector>>12) & 0x7 ) {
+      case 1:
+	err_tdr += 1;
+	break;
+      case 2:
+	err_udr += 1;
+	break;
+      case 3:
+	err_rdr += 1;
+	break;
+      case 4:
+	if ( (stat&0x1F) < 22 ) err_edr += 1;
+	else                    err_etrg+= 1;
+	break;
+      case 5:
+	err_sdr += 1;
+	break;
+      case 6:
+	err_lv1 += 1;
+	break;
+      case 7:
+	err_etrg+= 1;
+      }
+
+      /*
+#ifdef OFFLINE
+      printf("\n");
+      printf("Detector %04x, Fragment Length %d, XDR Fragment:\n", detector, len);
+      for (i=0; i<len; i++) {
+	if ( i%16 == 0 ) {
+	  if ( i == 0 )  printf(" %04x:", i);
+	  else           printf("\n %04x:", i);
+	}
+	printf(" %04x", ptr[i]);
+      }
+      printf("\n");
+#endif
+      */
+
+      return;
+
+    }
+
+  }
+
+}
+
+int DAQlv3::lv3_unpack(unsigned short *ev_sblock,
+	       unsigned int    event_id,
+	       bool mc) {
+
+
+  unsigned long  register i, l, len, length;
+  unsigned short register reg, det, stat, node_id, *node_data, *ptr;
+
+
+
+  //
+  //  analyse data - create input data to LV3 algorithms
+  //
+  ptr    = ev_sblock;
+  length = *ptr++;                               // Normal Size in bytes
+
+if(mc){
+  if ( length & 0x8000 ) {
+    length = (length & 0x7FFF) << 16;
+    length = length + *ptr++;                    // Large Size in bytes
+  }
+}
+
+  length    = (length>>1) - 1;                   // Length of the DSP data part - short words
+
+  node_id   = (*ptr++ >> 5) & 0x1FF;
+  node_data = ptr;                               // Pointer to event number
+
+
+  // fragment status as defined by JINJ
+  stat = node_data[length-2];                    // the very last word is CRC
+
+
+  if ( (node_id > 0x7F) && (node_id < 0x1FE) ) { // DSP nodes
+
+    det = lv3_node_addr[node_id - 0x80];
+    if ( det == 0x8000 ) {                       // this is JINJ
+
+      // pointers to JINJ slaves
+      len = 3;                                   // size without events
+      ptr = &node_data[1];                       // skip event number
+
+      // check event number
+      if ( (event_id&0xFFFF) != node_data[0] ) {
+
+	// Event mismatch between JINJ and JMDC
+        err_event    = 1;
+        err_run      = 1;
+
+	/*
+#ifdef OFFLINE
+	printf("\n");
+	printf("Detector %04x, Fragment Length %d, JINJ Fragment Status %04x, Event %04x\n", det, length, stat, node_data[0]);
+#endif
+	*/
+	
+	goto lv3_compress;
+
+      }
+
+      while ( len < length ) {
+
+	l    = ptr[0];                           //  slave event fragment length
+	stat = ptr[l];                           //  status of event fragment
+	det  = lv3_jinj_slave[stat & 0x1f];      //  find detector according to slave id
+
+	if ( det & 0x8000 ) {                    // JINF - detector except for SDR and LV1
+
+	  // check JINF fragment status
+	  /*
+if(mc){
+	  stat |= 0x8000;                        // MC fix
+}
+	  */
+	  if ( (stat & 0xF800) == 0x8000 ) {     // process only Data reply without errors
+
+	    i = 1;
+	    while ( i < l-3 ) {
+	      reg  = ptr[i];
+	      stat = ptr[i + reg];
+	      // processing event fragment
+	      lv3_xdr_proc( (0x7FFF&det) + (stat&0x1f), ptr[i], &ptr[i+1], mc);
+	      i += ptr[i] + 1;
+	    }
+
+	  } else {
+
+	    // Error set by JINF - set corresponding error bit
+	    err_event    = 1;
+            // check significance of the error
+	    if ( (stat & 0xF800) == 0xA000 ) err_run = 1;
+
+            // check how many nodes affected
+	    switch ( (det>>12) & 0x7 ) {
+	    case 1:
+	      err_tdr += 24;
+	      break;
+	    case 2:
+	      err_udr += 6;
+	      break;
+	    case 3:
+	      err_rdr += 12;
+	      break;
+	    case 4:
+	      err_edr += 6;
+	      err_etrg+= 1;
+	      break;
+	    }
+
+	    /*
+#ifdef OFFLINE
+	    printf("\n");
+	    printf("Detector %04x, Fragment Length %d, JINF Fragment Status %04x\n", det, l, stat);
+	    for (i=0; i<l; i++) {
+	      if ( i%16 == 0 ) {
+		if ( i == 0 )  printf(" %04x:", i);
+		else           printf("\n %04x:", i);
+	      }
+	      printf(" %04x", ptr[i+1]);
+	    }
+	    printf("\n");
+#endif
+	    */
+	    //	    goto lv3_compress;
+
+	  }
+
+	} else {
+	  lv3_xdr_proc( det, ptr[0], &ptr[1], mc);
+	}
+
+	len += l + 1;
+	ptr += l + 1;
+
+      }
+
+    } else if ( det & 0x8000 ) {               // this is JINF
+
+      ptr = &node_data[1];                     // skip event number
+
+      // check status errors
+      if ( (stat & 0x7800) != 0x0000 ) {
+
+	// Error set by JINF - set corresponding error bit
+        err_event    = 1;
+
+	// check how many nodes affected
+	switch ( (det>>12) & 0x7 ) {
+	case 1:
+	  err_tdr += 24;
+	  break;
+	case 2:
+	  err_udr += 6;
+	  break;
+	case 3:
+	  err_rdr += 12;
+	  break;
+	case 4:
+	  err_edr += 6;
+	  err_etrg+= 1;
+	  break;
+	}
+	/*
+#ifdef OFFLINE
+	printf("\n");
+	printf("Detector %04x, Fragment Length %d, JINF Fragment Status %04x, Event %04x\n", det, length, stat, node_data[0]);
+	for (i=0; i<length-1; i++) {
+	  if ( i%16 == 0 ) {
+	    if ( i == 0 )  printf(" %04x:", i);
+	    else           printf("\n %04x:", i);
+	  }
+	  printf(" %04x", node_data[i]);
+	}
+	printf("\n");
+#endif
+	*/
+	goto lv3_compress;
+
+      }
+
+      // check event mismatch
+      if ( (event_id&0xFFFF) != node_data[0] ) {
+
+	// Error set by JINF - set corresponding error bit
+        err_event    = 1;
+        err_run      = 1;
+
+	/*
+#ifdef OFFLINE
+	printf("\n");
+	printf("Detector %04x, Fragment Length %d, JINF Fragment Status %04x, Event %04x\n", det, length, stat, node_data[0]);
+	for (i=0; i<length-1; i++) {
+	  if ( i%16 == 0 ) {
+	    if ( i == 0 )  printf(" %04x:", i);
+	    else           printf("\n %04x:", i);
+	  }
+	  printf(" %04x", node_data[i]);
+	}
+	printf("\n");
+#endif
+	*/
+
+	goto lv3_compress;
+
+      }
+
+      i = 0;
+      while ( i < length-5 ) {
+
+	reg  = ptr[i];
+	stat = ptr[i + reg];
+
+	lv3_xdr_proc( (0x7FFF&det) + (stat&0x1f), ptr[i], &ptr[i+1], mc);
+	i += ptr[i] + 1;
+
+      }
+
+    } else {                                   // this is xDR
+
+      ptr = &node_data[1];                     // skip event number
+
+      // check event number
+      if ( (event_id&0xFFFF) != node_data[0] ) {
+
+	// Event mismatch between JINJ and JMDC
+        err_event    = 1;
+        err_run      = 1;
+
+	/*
+#ifdef OFFLINE
+	printf("\n");
+	printf("Detector %04x, Fragment Length %d, CDP Fragment Status %04x, Event %04x\n", det, length, stat, node_data[0]);
+	for (i=0; i<length-1; i++) {
+	  if ( i%16 == 0 ) {
+	    if ( i == 0 )  printf(" %04x:", i);
+	    else           printf("\n %04x:", i);
+	  }
+	  printf(" %04x", node_data[i]);
+	}
+	printf("\n");
+#endif
+	*/
+
+	goto lv3_compress;
+
+      }
+
+      lv3_xdr_proc( det, length-2, ptr, mc);       // this is CDP
+    }
+
+  } else {
+
+    err_proc    = 1;
+
+  }
+
+
+ lv3_compress:
+
+  return 0;
+
+}
+
+
+unsigned long long DAQlv3::pack(){
+
+unsigned long long out=0;
+
+
+out|= err_proc?(1<<63):0;
+out|= err_run?(1<<62):0;
+out|= err_event?(1<<61):0;
+out|= err_tdr?((err_tdr&255)<<48):0;
+out|= err_udr?((err_udr&255)<<40):0;
+out|= err_rdr?((err_rdr&255)<<32):0;
+out|= err_edr?((err_edr&255)<<24):0;
+out|= err_sdr?((err_sdr&255)<<16):0;
+out|= err_lv1?((err_lv1&255)<<8):0;
+out|= (err_etrg&255);
+if(out){
+//cerr<<" "<<out<<endl;
+}
+return out;
+
+}
+
+

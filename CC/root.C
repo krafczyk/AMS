@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.402 2012/05/17 17:57:45 barao Exp $
+//  $Id: root.C,v 1.403 2012/05/18 15:54:37 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5243,7 +5243,7 @@ RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
 
 DaqEventR::DaqEventR(DAQEvent *ptr){
 #ifndef __ROOTSHAREDLIBRARY__ 
-  L3VError=0;
+  L3Error=ptr->lv3.pack();
   Length=ptr->getlength();
   Tdr=ptr->getsublength(0);
   Udr=ptr->getsublength(1);

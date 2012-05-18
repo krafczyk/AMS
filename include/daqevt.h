@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.92 2012/04/24 21:16:55 pzuccon Exp $
+//  $Id: daqevt.h,v 1.93 2012/05/18 15:54:40 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -56,6 +56,41 @@ public:
   static bool           decompress(unsigned short *istream, size_t inputl, unsigned short *ostream, size_t outputl); 
 };
 
+class DAQlv3{
+public:
+  unsigned short err_proc;                       // proc error
+  unsigned short err_run;                       // Desynch error
+  unsigned short err_event;                     // Event error
+
+  unsigned short err_tdr;                       // number of TDR  with fatal errors
+  unsigned short err_udr;                       // number of UDR  with fatal errors
+  unsigned short err_rdr;                       // number of RDR  with fatal errors
+  unsigned short err_edr;                       // number of EDR  with fatal errors
+  unsigned short err_sdr;                       // number of SDR  with fatal errors
+  unsigned short err_lv1;                       // number of LV1  with fatal errors
+  unsigned short err_etrg;                      // number of ETRG with fatal errors
+
+static unsigned short int lv3_node_addr[384];
+static unsigned short int lv3_jinj_slave[32];
+void lv3_xdr_proc(unsigned short int detector, unsigned short int len, unsigned short int *ptr, bool mc);
+
+/******************************************************************
+ *                                                                *
+ *            Subroutine  lv3_unpack                              *
+ *                                                                *
+ *         input: *ev_sblock - pointer to DSP subblock            *
+ *                 event_id  - JMDC event ID                      *
+ *                                                                *
+ *        output:  OK status                                      *
+ *                 structure lv3_event                            *
+ *                                                                *
+ ******************************************************************/
+ unsigned long long pack();  ///<  pack founction to 64 bit word
+ int lv3_unpack(unsigned short int *ev_sblock,unsigned int    event_id, bool mc);
+DAQlv3():err_proc(0), err_run(0),err_event(0),err_tdr(0),err_udr(0),err_rdr(0),err_edr(0),err_sdr(0),err_lv1(0),err_etrg(0){}
+
+};
+
 class DAQBlockType  {
 protected:
   integer _maxbl;
@@ -105,10 +140,10 @@ public:
   int16u _lvl3[5];
   unsigned int _gps[7];
   unsigned int _gpsl;
+  DAQlv3 lv3;
 protected:
   int16u *  _pcur;
   int16u * _pData;
-
   static const char *_NodeNames[512];
   static const char *_PortNamesJ[32];
   unsigned int _SubLength[7];   //  tracker trd tof rich ecal lvl1 lvl3

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.435 2012/05/17 17:57:46 barao Exp $
+//  $Id: root.h,v 1.436 2012/05/18 15:54:40 choutko Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -346,10 +346,22 @@ public:
   unsigned int Edr;  ///< Ecal length in bytes
   unsigned int L1dr;  ///< Lvl1  length in bytes
   unsigned int L3dr;  ///< Lvl3  info two short integers (lvl3[1]<<16 | lvl3[0])
-  unsigned int  L3VError;  ///<Lvl3 event error
+/*!
+  bit 63 proc error
+  bit 62 desync error
+  bit 61 event error
+  byte 6  number of TDR  with fatal errors
+  byte 5  number of UDR  with fatal errors
+  byte 4  number of RDR  with fatal errors
+  byte 3  number of EDR  with fatal errors
+  byte 2  number of SDR  with fatal errors
+  byte 1  number of LV1  with fatal errors
+  byte 0  number of ETRG  with fatal errors
+*/
+  unsigned long long  L3Error;  ///<Lvl3 event error
   unsigned int  L3VEvent; ///<Lvl3 event counter + Version
   unsigned int  L3TimeD; ///< lvl3 event time diffence in 0.64 usec counts;
-  unsigned short int JINJStatus[4];///< JINJ-[01,2,3] status word 
+  unsigned short int JINJStatus[4];///< JINJ-[0,1,2,3] status word 
   unsigned char JError[24]; ///< higher 8 bit of corresponding slave in jinj block
   unsigned int L3Version() const {return (L3VEvent>>24)&255;};
   unsigned int L3Event()const {return (L3VEvent&16777215);}
@@ -359,7 +371,7 @@ public:
 
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
-ClassDef(DaqEventR,7)       //DaqEventR
+ClassDef(DaqEventR,8)       //DaqEventR
 #pragma omp threadprivate(fgIsA)
 };
 
