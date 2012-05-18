@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.162.4.1 2012/05/17 17:58:10 barao Exp $
+//  $Id: richrec.C,v 1.162.4.2 2012/05/18 05:31:27 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -2477,33 +2477,14 @@ void AMSRichRingNew::fillresult(){
     _RingAccRWMsec[i] = LIPF2C.resc_arwmsec[nr][i];
   }
 
-  _UsePixelSegments = 0;  // store segment data by PMT only
-  if(AMSRichRingNew::PixelDataStored()) {
-    _UsePixelSegments = 1;  // store segment data by pixel (done for 1/10 of events)
-  }
-
   _Segments = LIPF2C.resc_nrseg[nr];
 
   for(int i=0;i<LIPF2C.resc_nrseg[nr];i++) {
     _SegPMT.push_back(RichLIPRec::PMTlip2ams(LIPF2C.resc_pmtrseg[nr][i]));
     _SegRefStatus.push_back(LIPF2C.resc_refrseg[nr][i]);
-    _SegTheta.push_back(LIPF2C.resc_angrseg[nr][i][0]);
-    _SegPhi.push_back(LIPF2C.resc_angrseg[nr][i][1]);
     _SegAcceptance.push_back(LIPF2C.resc_effrseg[nr][i][0]);
     _SegEffRad.push_back(LIPF2C.resc_effrseg[nr][i][1]);
     _SegEffFull.push_back(LIPF2C.resc_effrseg[nr][i][2]);
-  }
-
-  _PixelSegments = LIPF2C.resc_npseg[nr];
-
-  for(int i=0;i<LIPF2C.resc_npseg[nr];i++) {
-    _PixSegPixel.push_back((RichLIPRec::PMTlip2ams(LIPF2C.resc_pixpseg[nr][i]/16))*16+LIPF2C.resc_pixpseg[nr][i]%16);
-    _PixSegRefStatus.push_back(LIPF2C.resc_refpseg[nr][i]);
-    _PixSegTheta.push_back(LIPF2C.resc_angpseg[nr][i][0]);
-    _PixSegPhi.push_back(LIPF2C.resc_angpseg[nr][i][1]);
-    _PixSegAcceptance.push_back(LIPF2C.resc_effpseg[nr][i][0]);
-    _PixSegEffRad.push_back(LIPF2C.resc_effpseg[nr][i][1]);
-    _PixSegEffFull.push_back(LIPF2C.resc_effpseg[nr][i][2]);
   }
 
   int icurr = 0;

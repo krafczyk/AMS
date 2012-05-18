@@ -62,8 +62,6 @@
       !$OMP THREADPRIVATE (idummy)
       !$OMP THREADPRIVATE (idumdisp)
 
-      print*,'RICH LIP REC CALLED'
-
       if(idummy.eq.0)then
 
          call hbook1(-110001,'5-par rec, top x error (cm)',
@@ -923,29 +921,9 @@ C ------------------------------------------------------------------
                   do i=1,nringseg_smear
                      resc_pmtrseg(i,irecnumb+1) = ipmtringseg_smear(i)
                      resc_refrseg(i,irecnumb+1) = irefringseg_smear(i)
-                     do j=1,2
-                        resc_angrseg(j,i,irecnumb+1)
-     +                       = angringseg_smear(i,j)
-                     enddo
                      do j=1,3
                         resc_effrseg(j,i,irecnumb+1)
      +                       = effringseg_smear(i,j)
-                     enddo
-                  enddo
-
-                  resc_npseg(irecnumb+1) = nringsegpix_smear
-                  do i=1,nringsegpix_smear
-                     resc_pixpseg(i,irecnumb+1)
-     +                    = ipixringsegpix_smear(i)
-                     resc_refpseg(i,irecnumb+1)
-     +                    = irefringsegpix_smear(i)
-                     do j=1,2
-                        resc_angpseg(j,i,irecnumb+1)
-     +                       = angringsegpix_smear(i,j)
-                     enddo
-                     do j=1,3
-                        resc_effpseg(j,i,irecnumb+1)
-     +                       = effringsegpix_smear(i,j)
                      enddo
                   enddo
 

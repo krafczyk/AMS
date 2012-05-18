@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.401.2.1 2012/05/17 17:58:10 barao Exp $
+//  $Id: root.C,v 1.401.2.2 2012/05/18 05:31:27 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -68,7 +68,6 @@ using namespace root;
   ClassImp(EcalShowerR)
   ClassImp(RichHitR)
   ClassImp(RichRingR)
-  ClassImp(RichRingBSegmentR)
   ClassImp(RichRingBR)
   ClassImp(TofRawClusterR)
   ClassImp(TofRawSideR)
@@ -5201,34 +5200,12 @@ RichRingBR::RichRingBR(AMSRichRingNew *ptr) {
       RingEffMsec2R[i] = (ptr->_RingEffMsec2R)[i];
       RingAccRWMsec[i] = (ptr->_RingAccRWMsec)[i];
     }
-    if(ptr->_UsePixelSegments==0) {  // use segment data by PMT
-      for(int i=0;i<ptr->_Segments;i++) {
-	RichRingBSegmentR seg;
-	seg.PMT = (short int) (ptr->_SegPMT)[i];
-	seg.Pixel = -1;
-	seg.RefStatus = (short int) (ptr->_SegRefStatus)[i];
-	seg.Theta = (ptr->_SegTheta)[i];
-	seg.Phi = (ptr->_SegPhi)[i];
-	seg.Acceptance = (ptr->_SegAcceptance)[i];
-	seg.EffRad = (ptr->_SegEffRad)[i];
-	seg.EffFull = (ptr->_SegEffFull)[i];
-	Segments[(ptr->_SegPMT)[i]].push_back(seg);
-      }
-    }
-    else {  // use segment data by pixel
-      for(int i=0;i<ptr->_PixelSegments;i++) {
-	RichRingBSegmentR seg;
-	seg.PMT = (short int) ((ptr->_PixSegPixel)[i])/16;
-	seg.Pixel = (short int) ((ptr->_PixSegPixel)[i])%16;
-	seg.RefStatus = (short int) (ptr->_PixSegRefStatus)[i];
-	seg.Theta = (ptr->_PixSegTheta)[i];
-	seg.Phi = (ptr->_PixSegPhi)[i];
-	seg.Acceptance = (ptr->_PixSegAcceptance)[i];
-	seg.EffRad = (ptr->_PixSegEffRad)[i];
-	seg.EffFull = (ptr->_PixSegEffFull)[i];
-	Segments[((ptr->_PixSegPixel)[i])/16].push_back(seg);
-      }
-    }
+    Segments = ptr->_Segments;
+    SegPMT = ptr->_SegPMT;
+    SegRefStatus = ptr->_SegRefStatus;
+    SegAcceptance = ptr->_SegAcceptance;
+    SegEffRad = ptr->_SegEffRad;
+    SegEffFull = ptr->_SegEffFull;
     HitsResiduals = ptr->_HitsResiduals;
     HitsStatus = ptr->_HitsStatus;
     TrackRec = ptr->_TrackRec;

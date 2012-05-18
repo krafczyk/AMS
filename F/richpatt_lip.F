@@ -5567,94 +5567,10 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       real yunorm,ydnorm
       real sgx,sgy,sgxy
 
-      real xlneighpix(16),xrneighpix(16)
-      real yuneighpix(16),ydneighpix(16)
-
-      real sdirx,sdiry
 
       call vzero(ipmttouch_withgap,nbpmtlip)
       call vzero(ipmttouch_nogap,nbpmtlip)
       call vzero(ipmttouch_smear,nbpmtlip)
-
-      call vfill(sdxbypmt_dir_withgap,nbpmtlip,0.)
-      call vfill(sdxbypmt_dir_nogap,nbpmtlip,0.)
-      call vfill(sdxbypmt_dir_smear,nbpmtlip,0.)
-
-      call vfill(sdxbypmt_ref1_withgap,nbpmtlip,0.)
-      call vfill(sdxbypmt_ref1_nogap,nbpmtlip,0.)
-      call vfill(sdxbypmt_ref1_smear,nbpmtlip,0.)
-
-      call vfill(sdxbypmt_ref1ms_withgap,nbpmtlip*3,0.)
-      call vfill(sdxbypmt_ref1ms_nogap,nbpmtlip*3,0.)
-      call vfill(sdxbypmt_ref1ms_smear,nbpmtlip*3,0.)
-
-      call vfill(sdxbypmt_ref2_withgap,nbpmtlip,0.)
-      call vfill(sdxbypmt_ref2_nogap,nbpmtlip,0.)
-      call vfill(sdxbypmt_ref2_smear,nbpmtlip,0.)
-
-      call vfill(sdxbypmt_ref2ms_withgap,nbpmtlip*3,0.)
-      call vfill(sdxbypmt_ref2ms_nogap,nbpmtlip*3,0.)
-      call vfill(sdxbypmt_ref2ms_smear,nbpmtlip*3,0.)
-
-      call vfill(sdybypmt_dir_withgap,nbpmtlip,0.)
-      call vfill(sdybypmt_dir_nogap,nbpmtlip,0.)
-      call vfill(sdybypmt_dir_smear,nbpmtlip,0.)
-
-      call vfill(sdybypmt_ref1_withgap,nbpmtlip,0.)
-      call vfill(sdybypmt_ref1_nogap,nbpmtlip,0.)
-      call vfill(sdybypmt_ref1_smear,nbpmtlip,0.)
-
-      call vfill(sdybypmt_ref1ms_withgap,nbpmtlip*3,0.)
-      call vfill(sdybypmt_ref1ms_nogap,nbpmtlip*3,0.)
-      call vfill(sdybypmt_ref1ms_smear,nbpmtlip*3,0.)
-
-      call vfill(sdybypmt_ref2_withgap,nbpmtlip,0.)
-      call vfill(sdybypmt_ref2_nogap,nbpmtlip,0.)
-      call vfill(sdybypmt_ref2_smear,nbpmtlip,0.)
-
-      call vfill(sdybypmt_ref2ms_withgap,nbpmtlip*3,0.)
-      call vfill(sdybypmt_ref2ms_nogap,nbpmtlip*3,0.)
-      call vfill(sdybypmt_ref2ms_smear,nbpmtlip*3,0.)
-
-      call vfill(thebypmt_dir_withgap,nbpmtlip,0.)
-      call vfill(thebypmt_dir_nogap,nbpmtlip,0.)
-      call vfill(thebypmt_dir_smear,nbpmtlip,0.)
-
-      call vfill(thebypmt_ref1_withgap,nbpmtlip,0.)
-      call vfill(thebypmt_ref1_nogap,nbpmtlip,0.)
-      call vfill(thebypmt_ref1_smear,nbpmtlip,0.)
-
-      call vfill(thebypmt_ref1ms_withgap,nbpmtlip*3,0.)
-      call vfill(thebypmt_ref1ms_nogap,nbpmtlip*3,0.)
-      call vfill(thebypmt_ref1ms_smear,nbpmtlip*3,0.)
-
-      call vfill(thebypmt_ref2_withgap,nbpmtlip,0.)
-      call vfill(thebypmt_ref2_nogap,nbpmtlip,0.)
-      call vfill(thebypmt_ref2_smear,nbpmtlip,0.)
-
-      call vfill(thebypmt_ref2ms_withgap,nbpmtlip*3,0.)
-      call vfill(thebypmt_ref2ms_nogap,nbpmtlip*3,0.)
-      call vfill(thebypmt_ref2ms_smear,nbpmtlip*3,0.)
-
-      call vfill(phibypmt_dir_withgap,nbpmtlip,0.)
-      call vfill(phibypmt_dir_nogap,nbpmtlip,0.)
-      call vfill(phibypmt_dir_smear,nbpmtlip,0.)
-
-      call vfill(phibypmt_ref1_withgap,nbpmtlip,0.)
-      call vfill(phibypmt_ref1_nogap,nbpmtlip,0.)
-      call vfill(phibypmt_ref1_smear,nbpmtlip,0.)
-
-      call vfill(phibypmt_ref1ms_withgap,nbpmtlip*3,0.)
-      call vfill(phibypmt_ref1ms_nogap,nbpmtlip*3,0.)
-      call vfill(phibypmt_ref1ms_smear,nbpmtlip*3,0.)
-
-      call vfill(phibypmt_ref2_withgap,nbpmtlip,0.)
-      call vfill(phibypmt_ref2_nogap,nbpmtlip,0.)
-      call vfill(phibypmt_ref2_smear,nbpmtlip,0.)
-
-      call vfill(phibypmt_ref2ms_withgap,nbpmtlip*3,0.)
-      call vfill(phibypmt_ref2ms_nogap,nbpmtlip*3,0.)
-      call vfill(phibypmt_ref2ms_smear,nbpmtlip*3,0.)
 
       call vfill(accbypmt_tot_withgap,nbpmtlip,0.)
       call vfill(accbypmt_tot_nogap,nbpmtlip,0.)
@@ -5728,53 +5644,6 @@ cc         print*,'k,avacc',k,avaccgap,avaccgapdir,avaccgapref
       call vfill(effbypmt_ref2ms_nogap,nbpmtlip*3,0.)
       call vfill(effbypmt_ref2ms_smear,nbpmtlip*3,0.)
 
-      call vzero(ipixtouch_smear,nbpmtlip*16)
-
-      call vfill(sdxbypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(sdxbypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(sdxbypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(sdxbypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(sdxbypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(sdybypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(sdybypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(sdybypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(sdybypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(sdybypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(thebypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(thebypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(thebypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(thebypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(thebypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(phibypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(phibypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(phibypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(phibypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(phibypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(accbypix_tot_smear,nbpmtlip*16,0.)
-      call vfill(accbypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(accbypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(accbypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(accbypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(accbypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(erdbypix_tot_smear,nbpmtlip*16,0.)
-      call vfill(erdbypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(erdbypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(erdbypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(erdbypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(erdbypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
-      call vfill(effbypix_tot_smear,nbpmtlip*16,0.)
-      call vfill(effbypix_dir_smear,nbpmtlip*16,0.)
-      call vfill(effbypix_ref1_smear,nbpmtlip*16,0.)
-      call vfill(effbypix_ref1ms_smear,nbpmtlip*16*3,0.)
-      call vfill(effbypix_ref2_smear,nbpmtlip*16,0.)
-      call vfill(effbypix_ref2ms_smear,nbpmtlip*16*3,0.)
-
       if(ipthetac.eq.0) return
       thetac=cangrec(ipthetac)
 
@@ -5795,10 +5664,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
          coosamp(i,1) = vdet(1)
          coosamp(i,2) = vdet(2)
-
-         dirsamp(i,1) = vdir(1)
-         dirsamp(i,2) = vdir(2)
-
          irefsamp(i) = nmiref
          imsecsamp(i) = -1
 
@@ -5857,10 +5722,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
             ipmtneigh(i,j+1) = -1
             pmtsmfrac(i,j+1) = 0.
 
-            do k=0,15
-               pixsmfrac(i,j+1,k+1) = 0.
-            enddo
-
             if(itrkreg(i).eq.0) then  ! exclude points near track
                ipneigh = ipmtnear(coosamp(i,1),coosamp(i,2),j)
             else
@@ -5880,14 +5741,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                xrneighin = xrneigh-0.5*shieldw
                yuneighin = yuneigh-0.5*shieldw
                ydneighin = ydneigh+0.5*shieldw
-
-* ............ get pixel limits
-               do k=0,15
-                  xlneighpix(k+1) = xlneighin+0.25*pmtwx*mod(k,4)
-                  xrneighpix(k+1) = xlneighin+0.25*pmtwx*(mod(k,4)+1)
-                  yuneighpix(k+1) = ydneighin+0.25*pmtwy*(k/4+1)
-                  ydneighpix(k+1) = ydneighin+0.25*pmtwy*(k/4)
-               enddo
 
 * ............ check point coordinates in PMT frame
 
@@ -5931,7 +5784,7 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   endif
                endif
 
-* ............ get PMT position in smeared-point coordinates
+* ............ get position in smeared-point coordinates
                xlnorm = (xlneighin-coosamp(i,1))/ringsm
                xrnorm = (xrneighin-coosamp(i,1))/ringsm
                yunorm = (yuneighin-coosamp(i,2))/ringsm
@@ -5951,33 +5804,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                ipmtneigh(i,j+1) = ipneigh
                pmtsmfrac(i,j+1) = sgxy
 
-* ............ do smeared calculations for individual pixels
-
-               do k=0,15
-
-* ............... get pixel position in smeared-point coordinates
-                  xlnorm = (xlneighpix(k+1)-coosamp(i,1))/ringsm
-                  xrnorm = (xrneighpix(k+1)-coosamp(i,1))/ringsm
-                  yunorm = (yuneighpix(k+1)-coosamp(i,2))/ringsm
-                  ydnorm = (ydneighpix(k+1)-coosamp(i,2))/ringsm
-
-*                  print*,'FOR PIXEL ',k
-*                  print*,'xlnorm,xrnorm,yunorm,ydnorm = ',
-*     +                 xlnorm,xrnorm,yunorm,ydnorm
-
-* ............... get gaussian integrals
-                  sgx = fsumgauss(xrnorm)-fsumgauss(xlnorm)
-                  sgy = fsumgauss(yunorm)-fsumgauss(ydnorm)
-                  sgxy = sgx*sgy
-
-*                  print*,'Neighbour ',j,' is PMT ',ipneigh,
-*     +                 ' with pixel ',k,
-*     +                 ' with fraction ',sgxy
-
-                  pixsmfrac(i,j+1,k+1) = sgxy
-
-               enddo
-
             else
 
 *               print*,'Neighbour ',j,' does not exist'
@@ -5988,7 +5814,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
       enddo
 
 * ... cycle over point data to get PMT-by-PMT statistics
-*                              and pixel-by-pixel statistics
 
       do i=1,inrsamp
 
@@ -6016,14 +5841,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                effbypmt_dir_withgap(ipmtsamp(i)+1)
      +              = effbypmt_dir_withgap(ipmtsamp(i)+1)+effsamp(i)
 
-               sdxbypmt_dir_withgap(ipmtsamp(i)+1)
-     +              = sdxbypmt_dir_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,1)*1./inrsamp
-
-               sdybypmt_dir_withgap(ipmtsamp(i)+1)
-     +              = sdybypmt_dir_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,2)*1./inrsamp
-
                if(ipmtact(i).eq.1) then  ! in active area
 
                   ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
@@ -6042,14 +5859,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +                 = effbypmt_tot_nogap(ipmtsamp(i)+1)+effsamp(i)
                   effbypmt_dir_nogap(ipmtsamp(i)+1)
      +                 = effbypmt_dir_nogap(ipmtsamp(i)+1)+effsamp(i)
-
-                  sdxbypmt_dir_nogap(ipmtsamp(i)+1)
-     +                 = sdxbypmt_dir_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,1)*1./inrsamp
-
-                  sdybypmt_dir_nogap(ipmtsamp(i)+1)
-     +                 = sdybypmt_dir_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,2)*1./inrsamp
 
                endif
             endif
@@ -6087,20 +5896,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +              = effbypmt_ref1ms_withgap(ipmtsamp(i)+1,
      +              imsecsamp(i))+effsamp(i)
 
-               sdxbypmt_ref1_withgap(ipmtsamp(i)+1)
-     +              = sdxbypmt_ref1_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,1)*1./inrsamp
-               sdxbypmt_ref1ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
-     +              = sdxbypmt_ref1ms_withgap(ipmtsamp(i)+1,
-     +              imsecsamp(i))+dirsamp(i,1)*1./inrsamp
-
-               sdybypmt_ref1_withgap(ipmtsamp(i)+1)
-     +              = sdybypmt_ref1_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,2)*1./inrsamp
-               sdybypmt_ref1ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
-     +              = sdybypmt_ref1ms_withgap(ipmtsamp(i)+1,
-     +              imsecsamp(i))+dirsamp(i,2)*1./inrsamp
-
                if(ipmtact(i).eq.1) then  ! in active area
 
                   ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
@@ -6130,20 +5925,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   effbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
      +                 = effbypmt_ref1ms_nogap(ipmtsamp(i)+1,
      +                 imsecsamp(i))+effsamp(i)
-
-                  sdxbypmt_ref1_nogap(ipmtsamp(i)+1)
-     +                 = sdxbypmt_ref1_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,1)*1./inrsamp
-                  sdxbypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
-     +                 = sdxbypmt_ref1ms_nogap(ipmtsamp(i)+1,
-     +                 imsecsamp(i))+dirsamp(i,1)*1./inrsamp
-
-                  sdybypmt_ref1_nogap(ipmtsamp(i)+1)
-     +                 = sdybypmt_ref1_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,2)*1./inrsamp
-                  sdybypmt_ref1ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
-     +                 = sdybypmt_ref1ms_nogap(ipmtsamp(i)+1,
-     +                 imsecsamp(i))+dirsamp(i,2)*1./inrsamp
 
                endif
             endif
@@ -6182,20 +5963,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +              = effbypmt_ref2ms_withgap(ipmtsamp(i)+1,
      +              imsecsamp(i))+effsamp(i)
 
-               sdxbypmt_ref2_withgap(ipmtsamp(i)+1)
-     +              = sdxbypmt_ref2_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,1)*1./inrsamp
-               sdxbypmt_ref2ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
-     +              = sdxbypmt_ref2ms_withgap(ipmtsamp(i)+1,
-     +              imsecsamp(i))+dirsamp(i,1)*1./inrsamp
-
-               sdybypmt_ref2_withgap(ipmtsamp(i)+1)
-     +              = sdybypmt_ref2_withgap(ipmtsamp(i)+1)
-     +              +dirsamp(i,2)*1./inrsamp
-               sdybypmt_ref2ms_withgap(ipmtsamp(i)+1,imsecsamp(i))
-     +              = sdybypmt_ref2ms_withgap(ipmtsamp(i)+1,
-     +              imsecsamp(i))+dirsamp(i,2)*1./inrsamp
-
                if(ipmtact(i).eq.1) then  ! in active area
 
                   ipmttouch_nogap(ipmtsamp(i)+1) = 1 ! PMT flagged as touched
@@ -6227,20 +5994,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +                 = effbypmt_ref2ms_nogap(ipmtsamp(i)+1,
      +                 imsecsamp(i))+effsamp(i)
 
-                  sdxbypmt_ref2_nogap(ipmtsamp(i)+1)
-     +                 = sdxbypmt_ref2_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,1)*1./inrsamp
-                  sdxbypmt_ref2ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
-     +                 = sdxbypmt_ref2ms_nogap(ipmtsamp(i)+1,
-     +                 imsecsamp(i))+dirsamp(i,1)*1./inrsamp
-
-                  sdybypmt_ref2_nogap(ipmtsamp(i)+1)
-     +                 = sdybypmt_ref2_nogap(ipmtsamp(i)+1)
-     +                 +dirsamp(i,2)*1./inrsamp
-                  sdybypmt_ref2ms_nogap(ipmtsamp(i)+1,imsecsamp(i))
-     +                 = sdybypmt_ref2ms_nogap(ipmtsamp(i)+1,
-     +                 imsecsamp(i))+dirsamp(i,2)*1./inrsamp
-
                endif
             endif
 
@@ -6254,9 +6007,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +           .and.(pmtsmfrac(i,j).gt.1.e-5)) then  ! valid PMT with relevant signal
 
                ipmttouch_smear(ipmtneigh(i,j)+1) = 1 ! PMT flagged as touched
-               do k=0,15
-                  ipixtouch_smear(ipmtneigh(i,j)*16+k+1) = 1 ! pixels in PMT flagged as touched
-               enddo
 
                if(irefsamp(i).eq.0) then ! direct photon
 
@@ -6280,47 +6030,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   effbypmt_dir_smear(ipmtneigh(i,j)+1)
      +                 = effbypmt_dir_smear(ipmtneigh(i,j)+1)
      +                 +pmtsmfrac(i,j)*effsamp(i)
-
-                  sdxbypmt_dir_smear(ipmtneigh(i,j)+1)
-     +                 = sdxbypmt_dir_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,1)*pmtsmfrac(i,j)/inrsamp
-
-                  sdybypmt_dir_smear(ipmtneigh(i,j)+1)
-     +                 = sdybypmt_dir_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,2)*pmtsmfrac(i,j)/inrsamp
-
-                  do k=0,15
-
-                     accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)/inrsamp
-                     accbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)/inrsamp
-
-                     erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*erdsamp(i)
-                     erdbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*erdsamp(i)
-
-                     effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*effsamp(i)
-                     effbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*effsamp(i)
-
-                     sdxbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdxbypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,1)*pixsmfrac(i,j,k+1)/inrsamp
-
-                     sdybypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdybypix_dir_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,2)*pixsmfrac(i,j,k+1)/inrsamp
-
-                  enddo
 
                endif
 
@@ -6361,75 +6070,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +                 = effbypmt_ref1ms_smear(ipmtneigh(i,j)+1,
      +                 imsecsamp(i))+pmtsmfrac(i,j)*effsamp(i)
 
-                  sdxbypmt_ref1_smear(ipmtneigh(i,j)+1)
-     +                 = sdxbypmt_ref1_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,1)*pmtsmfrac(i,j)/inrsamp
-                  sdxbypmt_ref1ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
-     +                 = sdxbypmt_ref1ms_smear(ipmtneigh(i,j)+1,
-     +                 imsecsamp(i))+dirsamp(i,1)*pmtsmfrac(i,j)/inrsamp
-
-                  sdybypmt_ref1_smear(ipmtneigh(i,j)+1)
-     +                 = sdybypmt_ref1_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,2)*pmtsmfrac(i,j)/inrsamp
-                  sdybypmt_ref1ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
-     +                 = sdybypmt_ref1ms_smear(ipmtneigh(i,j)+1,
-     +                 imsecsamp(i))+dirsamp(i,2)*pmtsmfrac(i,j)/inrsamp
-
-                  do k=0,15
-
-                     accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*reflec/inrsamp
-                     accbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)/inrsamp
-                     accbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = accbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)/inrsamp
-
-                     erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*reflec*erdsamp(i)
-                     erdbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*erdsamp(i)
-                     erdbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = erdbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)*erdsamp(i)
-
-                     effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*reflec*effsamp(i)
-                     effbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*effsamp(i)
-                     effbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = effbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)*effsamp(i)
-
-                     sdxbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdxbypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,1)*pixsmfrac(i,j,k+1)/inrsamp
-                     sdxbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = sdxbypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+dirsamp(i,1)*pixsmfrac(i,j,k+1)
-     +                    /inrsamp
-
-                     sdybypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdybypix_ref1_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,2)*pixsmfrac(i,j,k+1)/inrsamp
-                     sdybypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = sdybypix_ref1ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+dirsamp(i,2)*pixsmfrac(i,j,k+1)
-     +                    /inrsamp
-
-                  enddo
-
                endif
 
                if(irefsamp(i).eq.2) then ! photon with 2 reflections
@@ -6469,75 +6109,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
      +                 = effbypmt_ref2ms_smear(ipmtneigh(i,j)+1,
      +                 imsecsamp(i))+pmtsmfrac(i,j)*effsamp(i)
 
-                  sdxbypmt_ref2_smear(ipmtneigh(i,j)+1)
-     +                 = sdxbypmt_ref2_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,1)*pmtsmfrac(i,j)/inrsamp
-                  sdxbypmt_ref2ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
-     +                 = sdxbypmt_ref2ms_smear(ipmtneigh(i,j)+1,
-     +                 imsecsamp(i))+dirsamp(i,1)*pmtsmfrac(i,j)/inrsamp
-
-                  sdybypmt_ref2_smear(ipmtneigh(i,j)+1)
-     +                 = sdybypmt_ref2_smear(ipmtneigh(i,j)+1)
-     +                 +dirsamp(i,2)*pmtsmfrac(i,j)/inrsamp
-                  sdybypmt_ref2ms_smear(ipmtneigh(i,j)+1,imsecsamp(i))
-     +                 = sdybypmt_ref2ms_smear(ipmtneigh(i,j)+1,
-     +                 imsecsamp(i))+dirsamp(i,2)*pmtsmfrac(i,j)/inrsamp
-
-                  do k=0,15
-
-                     accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*(reflec**2.)/inrsamp
-                     accbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = accbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)/inrsamp
-                     accbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = accbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)/inrsamp
-
-                     erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*(reflec**2.)*erdsamp(i)
-                     erdbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = erdbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*erdsamp(i)
-                     erdbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = erdbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)*erdsamp(i)
-
-                     effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_tot_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*(reflec**2.)*effsamp(i)
-                     effbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = effbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +pixsmfrac(i,j,k+1)*effsamp(i)
-                     effbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = effbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+pixsmfrac(i,j,k+1)*effsamp(i)
-
-                     sdxbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdxbypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,1)*pixsmfrac(i,j,k+1)/inrsamp
-                     sdxbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = sdxbypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+dirsamp(i,1)*pixsmfrac(i,j,k+1)
-     +                    /inrsamp
-
-                     sdybypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    = sdybypix_ref2_smear(ipmtneigh(i,j)*16+k+1)
-     +                    +dirsamp(i,2)*pixsmfrac(i,j,k+1)/inrsamp
-                     sdybypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))
-     +                    = sdybypix_ref2ms_smear(ipmtneigh(i,j)*16+k+1,
-     +                    imsecsamp(i))+dirsamp(i,2)*pixsmfrac(i,j,k+1)
-     +                    /inrsamp
-
-                  enddo
-
                endif
 
             endif
@@ -6546,303 +6117,7 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
       enddo
 
-* ... calculate average photon angles (by PMT)
-
-      do i=1,nbpmtlip
-
-         if(ipmttouch_withgap(i).eq.1) then
-
-            if(accbypmt_dir_withgap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_dir_withgap(i)/accbypmt_dir_withgap(i)
-               avgdy = sdybypmt_dir_withgap(i)/accbypmt_dir_withgap(i)
-
-               thebypmt_dir_withgap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_dir_withgap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            if(accbypmt_ref1_withgap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref1_withgap(i)/accbypmt_ref1_withgap(i)
-               avgdy = sdybypmt_ref1_withgap(i)/accbypmt_ref1_withgap(i)
-
-               thebypmt_ref1_withgap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref1_withgap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref1ms_withgap(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref1ms_withgap(i,j)
-     +                 /accbypmt_ref1ms_withgap(i,j)
-                  avgdy = sdybypmt_ref1ms_withgap(i,j)
-     +                 /accbypmt_ref1ms_withgap(i,j)
-
-                  thebypmt_ref1ms_withgap(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref1ms_withgap(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-            if(accbypmt_ref2_withgap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref2_withgap(i)/accbypmt_ref2_withgap(i)
-               avgdy = sdybypmt_ref2_withgap(i)/accbypmt_ref2_withgap(i)
-
-               thebypmt_ref2_withgap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref2_withgap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref2ms_withgap(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref2ms_withgap(i,j)
-     +                 /accbypmt_ref2ms_withgap(i,j)
-                  avgdy = sdybypmt_ref2ms_withgap(i,j)
-     +                 /accbypmt_ref2ms_withgap(i,j)
-
-                  thebypmt_ref2ms_withgap(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref2ms_withgap(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-         endif
-
-         if(ipmttouch_nogap(i).eq.1) then
-
-            if(accbypmt_dir_nogap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_dir_nogap(i)/accbypmt_dir_nogap(i)
-               avgdy = sdybypmt_dir_nogap(i)/accbypmt_dir_nogap(i)
-
-               thebypmt_dir_nogap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_dir_nogap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            if(accbypmt_ref1_nogap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref1_nogap(i)/accbypmt_ref1_nogap(i)
-               avgdy = sdybypmt_ref1_nogap(i)/accbypmt_ref1_nogap(i)
-
-               thebypmt_ref1_nogap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref1_nogap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref1ms_nogap(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref1ms_nogap(i,j)
-     +                 /accbypmt_ref1ms_nogap(i,j)
-                  avgdy = sdybypmt_ref1ms_nogap(i,j)
-     +                 /accbypmt_ref1ms_nogap(i,j)
-
-                  thebypmt_ref1ms_nogap(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref1ms_nogap(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-            if(accbypmt_ref2_nogap(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref2_nogap(i)/accbypmt_ref2_nogap(i)
-               avgdy = sdybypmt_ref2_nogap(i)/accbypmt_ref2_nogap(i)
-
-               thebypmt_ref2_nogap(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref2_nogap(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref2ms_nogap(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref2ms_nogap(i,j)
-     +                 /accbypmt_ref2ms_nogap(i,j)
-                  avgdy = sdybypmt_ref2ms_nogap(i,j)
-     +                 /accbypmt_ref2ms_nogap(i,j)
-
-                  thebypmt_ref2ms_nogap(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref2ms_nogap(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-         endif
-
-         if(ipmttouch_smear(i).eq.1) then
-
-            if(accbypmt_dir_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_dir_smear(i)/accbypmt_dir_smear(i)
-               avgdy = sdybypmt_dir_smear(i)/accbypmt_dir_smear(i)
-
-               thebypmt_dir_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_dir_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            if(accbypmt_ref1_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref1_smear(i)/accbypmt_ref1_smear(i)
-               avgdy = sdybypmt_ref1_smear(i)/accbypmt_ref1_smear(i)
-
-               thebypmt_ref1_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref1_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref1ms_smear(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref1ms_smear(i,j)
-     +                 /accbypmt_ref1ms_smear(i,j)
-                  avgdy = sdybypmt_ref1ms_smear(i,j)
-     +                 /accbypmt_ref1ms_smear(i,j)
-
-                  thebypmt_ref1ms_smear(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref1ms_smear(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-            if(accbypmt_ref2_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypmt_ref2_smear(i)/accbypmt_ref2_smear(i)
-               avgdy = sdybypmt_ref2_smear(i)/accbypmt_ref2_smear(i)
-
-               thebypmt_ref2_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypmt_ref2_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypmt_ref2ms_smear(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypmt_ref2ms_smear(i,j)
-     +                 /accbypmt_ref2ms_smear(i,j)
-                  avgdy = sdybypmt_ref2ms_smear(i,j)
-     +                 /accbypmt_ref2ms_smear(i,j)
-
-                  thebypmt_ref2ms_smear(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypmt_ref2ms_smear(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-         endif
-
-      enddo
-
-* ... calculate average photon angles (by pixel)
-
-      do i=1,nbpmtlip*16
-
-         if(ipixtouch_smear(i).eq.1) then
-
-            if(accbypix_dir_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypix_dir_smear(i)/accbypix_dir_smear(i)
-               avgdy = sdybypix_dir_smear(i)/accbypix_dir_smear(i)
-
-               thebypix_dir_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypix_dir_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            if(accbypix_ref1_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypix_ref1_smear(i)/accbypix_ref1_smear(i)
-               avgdy = sdybypix_ref1_smear(i)/accbypix_ref1_smear(i)
-
-               thebypix_ref1_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypix_ref1_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypix_ref1ms_smear(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypix_ref1ms_smear(i,j)
-     +                 /accbypix_ref1ms_smear(i,j)
-                  avgdy = sdybypix_ref1ms_smear(i,j)
-     +                 /accbypix_ref1ms_smear(i,j)
-
-                  thebypix_ref1ms_smear(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypix_ref1ms_smear(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-            if(accbypix_ref2_smear(i).gt.0.00001) then
-
-               avgdx = sdxbypix_ref2_smear(i)/accbypix_ref2_smear(i)
-               avgdy = sdybypix_ref2_smear(i)/accbypix_ref2_smear(i)
-
-               thebypix_ref2_smear(i)
-     +              = asin(sqrt(avgdx**2.+avgdy**2.))
-               phibypix_ref2_smear(i) = atan2(avgdy,avgdx)
-
-            endif
-
-            do j=1,3
-
-               if(accbypix_ref2ms_smear(i,j).gt.0.00001) then
-
-                  avgdx = sdxbypix_ref2ms_smear(i,j)
-     +                 /accbypix_ref2ms_smear(i,j)
-                  avgdy = sdybypix_ref2ms_smear(i,j)
-     +                 /accbypix_ref2ms_smear(i,j)
-
-                  thebypix_ref2ms_smear(i,j)
-     +                 = asin(sqrt(avgdx**2.+avgdy**2.))
-                  phibypix_ref2ms_smear(i,j) = atan2(avgdy,avgdx)
-
-               endif
-
-            enddo
-
-         endif
-
-      enddo
-
-* ... reset values for global acceptances and efficiencies (PMT sum)
+* ... reset values for global acceptances and efficiencies
 
       sumaccbypmt_tot_withgap = 0.
       sumaccbypmt_tot_nogap = 0.
@@ -6928,42 +6203,7 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
          sumeffbypmt_ref2ms_smear(i) = 0.
       enddo
 
-* ... reset values for global acceptances and efficiencies (pixel sum)
-
-      sumaccbypmt_tot_smear = 0.
-      sumaccbypmt_dir_smear = 0.
-      sumaccbypmt_ref1_smear = 0.
-      do i=1,3
-         sumaccbypmt_ref1ms_smear(i) = 0.
-      enddo
-      sumaccbypmt_ref2_smear = 0.
-      do i=1,3
-         sumaccbypmt_ref2ms_smear(i) = 0.
-      enddo
-
-      sumerdbypmt_tot_smear = 0.
-      sumerdbypmt_dir_smear = 0.
-      sumerdbypmt_ref1_smear = 0.
-      do i=1,3
-         sumerdbypmt_ref1ms_smear(i) = 0.
-      enddo
-      sumerdbypmt_ref2_smear = 0.
-      do i=1,3
-         sumerdbypmt_ref2ms_smear(i) = 0.
-      enddo
-
-      sumeffbypmt_tot_smear = 0.
-      sumeffbypmt_dir_smear = 0.
-      sumeffbypmt_ref1_smear = 0.
-      do i=1,3
-         sumeffbypmt_ref1ms_smear(i) = 0.
-      enddo
-      sumeffbypmt_ref2_smear = 0.
-      do i=1,3
-         sumeffbypmt_ref2ms_smear(i) = 0.
-      enddo
-
-* ... cycle over PMT data to get global acceptances and efficiencies (PMT sum)
+* ... cycle over PMT data to get global acceptances and efficiencies
 
       do i=1,nbpmtlip
 
@@ -7134,196 +6374,12 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
       enddo
 
-* ... cycle over pixel data to get global acceptances and efficiencies (pixel sum)
-
-      do i=1,nbpmtlip*16
-
-         if(ipixtouch_smear(i).eq.1) then
-
-            sumaccbypix_tot_smear
-     +           = sumaccbypix_tot_smear+accbypix_tot_smear(i)
-            sumaccbypix_dir_smear
-     +           = sumaccbypix_dir_smear+accbypix_dir_smear(i)
-            sumaccbypix_ref1_smear
-     +           = sumaccbypix_ref1_smear+accbypix_ref1_smear(i)
-            sumaccbypix_ref2_smear
-     +           = sumaccbypix_ref2_smear+accbypix_ref2_smear(i)
-            do j=1,3
-               sumaccbypix_ref1ms_smear(j)
-     +              = sumaccbypix_ref1ms_smear(j)
-     +              +accbypix_ref1ms_smear(i,j)
-               sumaccbypix_ref2ms_smear(j)
-     +              = sumaccbypix_ref2ms_smear(j)
-     +              +accbypix_ref2ms_smear(i,j)
-            enddo
-
-            sumerdbypix_tot_smear
-     +           = sumerdbypix_tot_smear+erdbypix_tot_smear(i)
-            sumerdbypix_dir_smear
-     +           = sumerdbypix_dir_smear+erdbypix_dir_smear(i)
-            sumerdbypix_ref1_smear
-     +           = sumerdbypix_ref1_smear+erdbypix_ref1_smear(i)
-            sumerdbypix_ref2_smear
-     +           = sumerdbypix_ref2_smear+erdbypix_ref2_smear(i)
-            do j=1,3
-               sumerdbypix_ref1ms_smear(j)
-     +              = sumerdbypix_ref1ms_smear(j)
-     +              +erdbypix_ref1ms_smear(i,j)
-               sumerdbypix_ref2ms_smear(j)
-     +              = sumerdbypix_ref2ms_smear(j)
-     +              +erdbypix_ref2ms_smear(i,j)
-            enddo
-
-            sumeffbypix_tot_smear
-     +           = sumeffbypix_tot_smear+effbypix_tot_smear(i)
-            sumeffbypix_dir_smear
-     +           = sumeffbypix_dir_smear+effbypix_dir_smear(i)
-            sumeffbypix_ref1_smear
-     +           = sumeffbypix_ref1_smear+effbypix_ref1_smear(i)
-            sumeffbypix_ref2_smear
-     +           = sumeffbypix_ref2_smear+effbypix_ref2_smear(i)
-            do j=1,3
-               sumeffbypix_ref1ms_smear(j)
-     +              = sumeffbypix_ref1ms_smear(j)
-     +              +effbypix_ref1ms_smear(i,j)
-               sumeffbypix_ref2ms_smear(j)
-     +              = sumeffbypix_ref2ms_smear(j)
-     +              +effbypix_ref2ms_smear(i,j)
-            enddo
-
-         endif
-
-      enddo
-
 #ifdef LIP_DEBUG
+
+* ... print final acceptance and efficiency results
 
       print*,' '
       print*,'Cerenkov angle (deg) = ',thetac*RADDEG
-
-* ... print final angle, acceptance, efficiency results (by PMT)
-
-      print*,' '
-      print*,'by PMT'
-
-      print*,' '
-      print*,'Theta angles (deg) (no smearing, including gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_withgap(i).eq.1) then
-            print*,i-1,
-     +           thebypmt_dir_withgap(i)*RADDEG,
-     +           thebypmt_ref1_withgap(i)*RADDEG,
-     +           thebypmt_ref2_withgap(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           thebypmt_ref1ms_withgap(i,1)*RADDEG,
-     +           thebypmt_ref1ms_withgap(i,2)*RADDEG,
-     +           thebypmt_ref1ms_withgap(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           thebypmt_ref2ms_withgap(i,1)*RADDEG,
-     +           thebypmt_ref2ms_withgap(i,2)*RADDEG,
-     +           thebypmt_ref2ms_withgap(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Theta angles (deg) (no smearing, excluding gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_nogap(i).eq.1) then
-            print*,i-1,
-     +           thebypmt_dir_nogap(i)*RADDEG,
-     +           thebypmt_ref1_nogap(i)*RADDEG,
-     +           thebypmt_ref2_nogap(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           thebypmt_ref1ms_nogap(i,1)*RADDEG,
-     +           thebypmt_ref1ms_nogap(i,2)*RADDEG,
-     +           thebypmt_ref1ms_nogap(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           thebypmt_ref2ms_nogap(i,1)*RADDEG,
-     +           thebypmt_ref2ms_nogap(i,2)*RADDEG,
-     +           thebypmt_ref2ms_nogap(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Theta angles (deg) (with smearing, excluding gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           thebypmt_dir_smear(i)*RADDEG,
-     +           thebypmt_ref1_smear(i)*RADDEG,
-     +           thebypmt_ref2_smear(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           thebypmt_ref1ms_smear(i,1)*RADDEG,
-     +           thebypmt_ref1ms_smear(i,2)*RADDEG,
-     +           thebypmt_ref1ms_smear(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           thebypmt_ref2ms_smear(i,1)*RADDEG,
-     +           thebypmt_ref2ms_smear(i,2)*RADDEG,
-     +           thebypmt_ref2ms_smear(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Phi angles (deg) (no smearing, including gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_withgap(i).eq.1) then
-            print*,i-1,
-     +           phibypmt_dir_withgap(i)*RADDEG,
-     +           phibypmt_ref1_withgap(i)*RADDEG,
-     +           phibypmt_ref2_withgap(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           phibypmt_ref1ms_withgap(i,1)*RADDEG,
-     +           phibypmt_ref1ms_withgap(i,2)*RADDEG,
-     +           phibypmt_ref1ms_withgap(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           phibypmt_ref2ms_withgap(i,1)*RADDEG,
-     +           phibypmt_ref2ms_withgap(i,2)*RADDEG,
-     +           phibypmt_ref2ms_withgap(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Phi angles (deg) (no smearing, excluding gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_nogap(i).eq.1) then
-            print*,i-1,
-     +           phibypmt_dir_nogap(i)*RADDEG,
-     +           phibypmt_ref1_nogap(i)*RADDEG,
-     +           phibypmt_ref2_nogap(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           phibypmt_ref1ms_nogap(i,1)*RADDEG,
-     +           phibypmt_ref1ms_nogap(i,2)*RADDEG,
-     +           phibypmt_ref1ms_nogap(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           phibypmt_ref2ms_nogap(i,1)*RADDEG,
-     +           phibypmt_ref2ms_nogap(i,2)*RADDEG,
-     +           phibypmt_ref2ms_nogap(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Phi angles (deg) (with smearing, excluding gaps):'
-      print*,'PMT# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           phibypmt_dir_smear(i)*RADDEG,
-     +           phibypmt_ref1_smear(i)*RADDEG,
-     +           phibypmt_ref2_smear(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           phibypmt_ref1ms_smear(i,1)*RADDEG,
-     +           phibypmt_ref1ms_smear(i,2)*RADDEG,
-     +           phibypmt_ref1ms_smear(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           phibypmt_ref2ms_smear(i,1)*RADDEG,
-     +           phibypmt_ref2ms_smear(i,2)*RADDEG,
-     +           phibypmt_ref2ms_smear(i,3)*RADDEG,')'
-         endif
-      enddo
 
       print*,' '
       print*,'Acceptances (no smearing, including gaps):'
@@ -7667,168 +6723,9 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
          endif
       enddo
 
-* ... print final angle, acceptance, efficiency results (by pixel)
-
-      print*,' '
-      print*,'by pixel'
-
-      print*,' '
-      print*,'Theta angles (deg) (with smearing, excluding gaps):'
-      print*,'Pixel# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip*16
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           thebypix_dir_smear(i)*RADDEG,
-     +           thebypix_ref1_smear(i)*RADDEG,
-     +           thebypix_ref2_smear(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           thebypix_ref1ms_smear(i,1)*RADDEG,
-     +           thebypix_ref1ms_smear(i,2)*RADDEG,
-     +           thebypix_ref1ms_smear(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           thebypix_ref2ms_smear(i,1)*RADDEG,
-     +           thebypix_ref2ms_smear(i,2)*RADDEG,
-     +           thebypix_ref2ms_smear(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Phi angles (deg) (with smearing, excluding gaps):'
-      print*,'Pixel# - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip*16
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           phibypix_dir_smear(i)*RADDEG,
-     +           phibypix_ref1_smear(i)*RADDEG,
-     +           phibypix_ref2_smear(i)*RADDEG
-            print*,'(1 REF by sector:',
-     +           phibypix_ref1ms_smear(i,1)*RADDEG,
-     +           phibypix_ref1ms_smear(i,2)*RADDEG,
-     +           phibypix_ref1ms_smear(i,3)*RADDEG,')'
-            print*,'(2 REF by sector:',
-     +           phibypix_ref2ms_smear(i,1)*RADDEG,
-     +           phibypix_ref2ms_smear(i,2)*RADDEG,
-     +           phibypix_ref2ms_smear(i,3)*RADDEG,')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Acceptances (with smearing, excluding gaps):'
-      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
-      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
-      print*,
-     +     sumaccbypix_tot_smear,
-     +     sumaccbypix_dir_smear,
-     +     sumaccbypix_ref1_smear,
-     +     sumaccbypix_ref2_smear
-      print*,'(1 REF: S1 - S2 - S3)'
-      print*,
-     +     sumaccbypix_ref1ms_smear(1),
-     +     sumaccbypix_ref1ms_smear(2),
-     +     sumaccbypix_ref1ms_smear(3)
-      print*,'(2 REF: S1 - S2 - S3)'
-      print*,
-     +     sumaccbypix_ref2ms_smear(1),
-     +     sumaccbypix_ref2ms_smear(2),
-     +     sumaccbypix_ref2ms_smear(3)
-      print*,'Pixel# - Total - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip*16
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           accbypix_tot_smear(i),
-     +           accbypix_dir_smear(i),
-     +           accbypix_ref1_smear(i),
-     +           accbypix_ref2_smear(i)
-            print*,'(1 REF by sector:',
-     +           accbypix_ref1ms_smear(i,1),
-     +           accbypix_ref1ms_smear(i,2),
-     +           accbypix_ref1ms_smear(i,3),')'
-            print*,'(2 REF by sector:',
-     +           accbypix_ref2ms_smear(i,1),
-     +           accbypix_ref2ms_smear(i,2),
-     +           accbypix_ref2ms_smear(i,3),')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Effs at rad (with smearing, excluding gaps):'
-      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
-      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
-      print*,
-     +     sumerdbypix_tot_smear,
-     +     sumerdbypix_dir_smear,
-     +     sumerdbypix_ref1_smear,
-     +     sumerdbypix_ref2_smear
-      print*,'(1 REF: S1 - S2 - S3)'
-      print*,
-     +     sumerdbypix_ref1ms_smear(1),
-     +     sumerdbypix_ref1ms_smear(2),
-     +     sumerdbypix_ref1ms_smear(3)
-      print*,'(2 REF: S1 - S2 - S3)'
-      print*,
-     +     sumerdbypix_ref2ms_smear(1),
-     +     sumerdbypix_ref2ms_smear(2),
-     +     sumerdbypix_ref2ms_smear(3)
-      print*,'Pixel# - Total - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip*16
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           erdbypix_tot_smear(i),
-     +           erdbypix_dir_smear(i),
-     +           erdbypix_ref1_smear(i),
-     +           erdbypix_ref2_smear(i)
-            print*,'(1 REF by sector:',
-     +           erdbypix_ref1ms_smear(i,1),
-     +           erdbypix_ref1ms_smear(i,2),
-     +           erdbypix_ref1ms_smear(i,3),')'
-            print*,'(2 REF by sector:',
-     +           erdbypix_ref2ms_smear(i,1),
-     +           erdbypix_ref2ms_smear(i,2),
-     +           erdbypix_ref2ms_smear(i,3),')'
-         endif
-      enddo
-
-      print*,' '
-      print*,'Efficiencies (with smearing, excluding gaps):'
-      print*,'(convention is tot = dir+0.85*ref1+0.85*0.85*ref2)'
-      print*,'GLOBAL: Total - Dir - Ref1 - Ref2'
-      print*,
-     +     sumeffbypix_tot_smear,
-     +     sumeffbypix_dir_smear,
-     +     sumeffbypix_ref1_smear,
-     +     sumeffbypix_ref2_smear
-      print*,'(1 REF: S1 - S2 - S3)'
-      print*,
-     +     sumeffbypix_ref1ms_smear(1),
-     +     sumeffbypix_ref1ms_smear(2),
-     +     sumeffbypix_ref1ms_smear(3)
-      print*,'(2 REF: S1 - S2 - S3)'
-      print*,
-     +     sumeffbypix_ref2ms_smear(1),
-     +     sumeffbypix_ref2ms_smear(2),
-     +     sumeffbypix_ref2ms_smear(3)
-      print*,'Pixel# - Total - Dir - Ref1 - Ref2'
-      do i=1,nbpmtlip*16
-         if(ipmttouch_smear(i).eq.1) then
-            print*,i-1,
-     +           effbypix_tot_smear(i),
-     +           effbypix_dir_smear(i),
-     +           effbypix_ref1_smear(i),
-     +           effbypix_ref2_smear(i)
-            print*,'(1 REF by sector:',
-     +           effbypix_ref1ms_smear(i,1),
-     +           effbypix_ref1ms_smear(i,2),
-     +           effbypix_ref1ms_smear(i,3),')'
-            print*,'(2 REF by sector:',
-     +           effbypix_ref2ms_smear(i,1),
-     +           effbypix_ref2ms_smear(i,2),
-     +           effbypix_ref2ms_smear(i,3),')'
-         endif
-      enddo
-
 #endif
 
-* ... save summary of angles, acceptances, efficiencies by PMT
+* ... save summary of acceptances and efficiencies by PMT
 
       nringseg_withgap = 0
       nringseg_nogap = 0
@@ -7842,10 +6739,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                nringseg_withgap = nringseg_withgap+1
                ipmtringseg_withgap(nringseg_withgap) = i-1
                irefringseg_withgap(nringseg_withgap) = 0
-               angringseg_withgap(nringseg_withgap,1)
-     +              = thebypmt_dir_withgap(i)
-               angringseg_withgap(nringseg_withgap,2)
-     +              = phibypmt_dir_withgap(i)
                effringseg_withgap(nringseg_withgap,1)
      +              = accbypmt_dir_withgap(i)
                effringseg_withgap(nringseg_withgap,2)
@@ -7859,10 +6752,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_withgap = nringseg_withgap+1
                   ipmtringseg_withgap(nringseg_withgap) = i-1
                   irefringseg_withgap(nringseg_withgap) = 10*j+1
-                  angringseg_withgap(nringseg_withgap,1)
-     +                 = thebypmt_ref1ms_withgap(i,j)
-                  angringseg_withgap(nringseg_withgap,2)
-     +                 = phibypmt_ref1ms_withgap(i,j)
                   effringseg_withgap(nringseg_withgap,1)
      +                 = accbypmt_ref1ms_withgap(i,j)
                   effringseg_withgap(nringseg_withgap,2)
@@ -7877,10 +6766,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_withgap = nringseg_withgap+1
                   ipmtringseg_withgap(nringseg_withgap) = i-1
                   irefringseg_withgap(nringseg_withgap) = 10*j+2
-                  angringseg_withgap(nringseg_withgap,1)
-     +                 = thebypmt_ref2ms_withgap(i,j)
-                  angringseg_withgap(nringseg_withgap,2)
-     +                 = phibypmt_ref2ms_withgap(i,j)
                   effringseg_withgap(nringseg_withgap,1)
      +                 = accbypmt_ref2ms_withgap(i,j)
                   effringseg_withgap(nringseg_withgap,2)
@@ -7898,10 +6783,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                nringseg_nogap = nringseg_nogap+1
                ipmtringseg_nogap(nringseg_nogap) = i-1
                irefringseg_nogap(nringseg_nogap) = 0
-               angringseg_nogap(nringseg_nogap,1)
-     +              = thebypmt_dir_nogap(i)
-               angringseg_nogap(nringseg_nogap,2)
-     +              = phibypmt_dir_nogap(i)
                effringseg_nogap(nringseg_nogap,1)
      +              = accbypmt_dir_nogap(i)
                effringseg_nogap(nringseg_nogap,2)
@@ -7915,10 +6796,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_nogap = nringseg_nogap+1
                   ipmtringseg_nogap(nringseg_nogap) = i-1
                   irefringseg_nogap(nringseg_nogap) = 10*j+1
-                  angringseg_nogap(nringseg_nogap,1)
-     +                 = thebypmt_ref1ms_nogap(i,j)
-                  angringseg_nogap(nringseg_nogap,2)
-     +                 = phibypmt_ref1ms_nogap(i,j)
                   effringseg_nogap(nringseg_nogap,1)
      +                 = accbypmt_ref1ms_nogap(i,j)
                   effringseg_nogap(nringseg_nogap,2)
@@ -7933,10 +6810,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_nogap = nringseg_nogap+1
                   ipmtringseg_nogap(nringseg_nogap) = i-1
                   irefringseg_nogap(nringseg_nogap) = 10*j+2
-                  angringseg_nogap(nringseg_nogap,1)
-     +                 = thebypmt_ref2ms_nogap(i,j)
-                  angringseg_nogap(nringseg_nogap,2)
-     +                 = phibypmt_ref2ms_nogap(i,j)
                   effringseg_nogap(nringseg_nogap,1)
      +                 = accbypmt_ref2ms_nogap(i,j)
                   effringseg_nogap(nringseg_nogap,2)
@@ -7954,10 +6827,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                nringseg_smear = nringseg_smear+1
                ipmtringseg_smear(nringseg_smear) = i-1
                irefringseg_smear(nringseg_smear) = 0
-               angringseg_smear(nringseg_smear,1)
-     +              = thebypmt_dir_smear(i)
-               angringseg_smear(nringseg_smear,2)
-     +              = phibypmt_dir_smear(i)
                effringseg_smear(nringseg_smear,1)
      +              = accbypmt_dir_smear(i)
                effringseg_smear(nringseg_smear,2)
@@ -7971,10 +6840,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_smear = nringseg_smear+1
                   ipmtringseg_smear(nringseg_smear) = i-1
                   irefringseg_smear(nringseg_smear) = 10*j+1
-                  angringseg_smear(nringseg_smear,1)
-     +                 = thebypmt_ref1ms_smear(i,j)
-                  angringseg_smear(nringseg_smear,2)
-     +                 = phibypmt_ref1ms_smear(i,j)
                   effringseg_smear(nringseg_smear,1)
      +                 = accbypmt_ref1ms_smear(i,j)
                   effringseg_smear(nringseg_smear,2)
@@ -7989,10 +6854,6 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
                   nringseg_smear = nringseg_smear+1
                   ipmtringseg_smear(nringseg_smear) = i-1
                   irefringseg_smear(nringseg_smear) = 10*j+2
-                  angringseg_smear(nringseg_smear,1)
-     +                 = thebypmt_ref2ms_smear(i,j)
-                  angringseg_smear(nringseg_smear,2)
-     +                 = phibypmt_ref2ms_smear(i,j)
                   effringseg_smear(nringseg_smear,1)
      +                 = accbypmt_ref2ms_smear(i,j)
                   effringseg_smear(nringseg_smear,2)
@@ -8006,87 +6867,21 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
       enddo
 
-* ... save summary of angles, acceptances, efficiencies by pixel
-
-      nringsegpix_smear = 0
-
-      do i=1,nbpmtlip*16
-
-         if(ipixtouch_smear(i).eq.1) then
-
-            if(accbypix_dir_smear(i).gt.0.00001) then
-               nringsegpix_smear = nringsegpix_smear+1
-               ipixringsegpix_smear(nringsegpix_smear) = i-1
-               irefringsegpix_smear(nringsegpix_smear) = 0
-               angringsegpix_smear(nringsegpix_smear,1)
-     +              = thebypix_dir_smear(i)
-               angringsegpix_smear(nringsegpix_smear,2)
-     +              = phibypix_dir_smear(i)
-               effringsegpix_smear(nringsegpix_smear,1)
-     +              = accbypix_dir_smear(i)
-               effringsegpix_smear(nringsegpix_smear,2)
-     +              = erdbypix_dir_smear(i)
-               effringsegpix_smear(nringsegpix_smear,3)
-     +              = effbypix_dir_smear(i)
-            endif
-
-            do j=1,3
-               if(accbypix_ref1ms_smear(i,j).gt.0.00001) then
-                  nringsegpix_smear = nringsegpix_smear+1
-                  ipixringsegpix_smear(nringsegpix_smear) = i-1
-                  irefringsegpix_smear(nringsegpix_smear) = 10*j+1
-                  angringsegpix_smear(nringsegpix_smear,1)
-     +                 = thebypix_ref1ms_smear(i,j)
-                  angringsegpix_smear(nringsegpix_smear,2)
-     +                 = phibypix_ref1ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,1)
-     +                 = accbypix_ref1ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,2)
-     +                 = erdbypix_ref1ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,3)
-     +                 = effbypix_ref1ms_smear(i,j)
-               endif
-            enddo
-
-            do j=1,3
-               if(accbypix_ref2ms_smear(i,j).gt.0.00001) then
-                  nringsegpix_smear = nringsegpix_smear+1
-                  ipixringsegpix_smear(nringsegpix_smear) = i-1
-                  irefringsegpix_smear(nringsegpix_smear) = 10*j+2
-                  angringsegpix_smear(nringsegpix_smear,1)
-     +                 = thebypix_ref2ms_smear(i,j)
-                  angringsegpix_smear(nringsegpix_smear,2)
-     +                 = phibypix_ref2ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,1)
-     +                 = accbypix_ref2ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,2)
-     +                 = erdbypix_ref2ms_smear(i,j)
-                  effringsegpix_smear(nringsegpix_smear,3)
-     +                 = effbypix_ref2ms_smear(i,j)
-               endif
-            enddo
-
-         endif
-
-      enddo
-
 #ifdef LIP_DEBUG
 
-* ... print final segment data (by PMT)
+* ... print final segment data
 
       print*,' '
-      print*,'LISTS OF STORED SEGMENTS (by PMT)'
+      print*,'LISTS OF STORED SEGMENTS'
 
       print*,' '
       print*,'No smearing, including gaps'
-      print*,'PMT - RefFlag - the (deg) - phi (deg) - acc - erd - eff'
+      print*,'PMT - RefFlag - acc - erd - eff'
 
       do i=1,nringseg_withgap
          print*,
      +        ipmtringseg_withgap(i),
      +        irefringseg_withgap(i),
-     +        angringseg_withgap(i,1)*RADDEG,
-     +        angringseg_withgap(i,2)*RADDEG,
      +        effringseg_withgap(i,1),
      +        effringseg_withgap(i,2),
      +        effringseg_withgap(i,3)
@@ -8094,14 +6889,12 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
       print*,' '
       print*,'No smearing, excluding gaps'
-      print*,'PMT - RefFlag - the (deg) - phi (deg) - acc - erd - eff'
+      print*,'PMT - RefFlag - acc - erd - eff'
 
       do i=1,nringseg_nogap
          print*,
      +        ipmtringseg_nogap(i),
      +        irefringseg_nogap(i),
-     +        angringseg_nogap(i,1)*RADDEG,
-     +        angringseg_nogap(i,2)*RADDEG,
      +        effringseg_nogap(i,1),
      +        effringseg_nogap(i,2),
      +        effringseg_nogap(i,3)
@@ -8109,37 +6902,15 @@ C         call patrace(phig,thetac,vdet,vdir,nmiref,nerr,verr)
 
       print*,' '
       print*,'With smearing, excluding gaps'
-      print*,'PMT - RefFlag - the (deg) - phi (deg) - acc - erd - eff'
+      print*,'PMT - RefFlag - acc - erd - eff'
 
       do i=1,nringseg_smear
          print*,
      +        ipmtringseg_smear(i),
      +        irefringseg_smear(i),
-     +        angringseg_smear(i,1)*RADDEG,
-     +        angringseg_smear(i,2)*RADDEG,
      +        effringseg_smear(i,1),
      +        effringseg_smear(i,2),
      +        effringseg_smear(i,3)
-      enddo
-
-* ... print final segment data (by pixel)
-
-      print*,' '
-      print*,'LISTS OF STORED SEGMENTS (by pixel)'
-
-      print*,' '
-      print*,'With smearing, excluding gaps'
-      print*,'Pixel - RefFlag - the (deg) - phi (deg) - acc - erd - eff'
-
-      do i=1,nringsegpix_smear
-         print*,
-     +        ipixringsegpix_smear(i),
-     +        irefringsegpix_smear(i),
-     +        angringsegpix_smear(i,1)*RADDEG,
-     +        angringsegpix_smear(i,2)*RADDEG,
-     +        effringsegpix_smear(i,1),
-     +        effringsegpix_smear(i,2),
-     +        effringsegpix_smear(i,3)
       enddo
 
 #endif
