@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.120 2012/05/17 17:57:46 barao Exp $
+//  $Id: linkdef.h,v 1.121 2012/05/18 14:06:52 barao Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -202,6 +202,6 @@
 #pragma link C++ class std::pair<std::string,Node>+;
 #pragma link C++ class std::map<std::string,unsigned int>+;
 #pragma link C++ class std::pair<std::string,unsigned int>+;
-
+#pragma link C++ class std::map<unsigned short,std::vector<RichRingBSegmentR> >+;
 
 #endif
