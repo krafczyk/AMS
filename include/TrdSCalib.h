@@ -412,7 +412,8 @@ class TrdSCalibR {
 
  private:
   int algo,patt,refit, pmass, pcharge, _ierror;
-  static TrdSCalibR* head[64];
+  static TrdSCalibR* head;
+#pragma omp threadprivate (head)
   vector<AC_TrdHits*> TrdNHits;
  
  private:
@@ -1014,15 +1015,11 @@ class TrdSCalibR {
 
 
 
-  static TrdSCalibR* gethead(int i=0);
+  static TrdSCalibR* gethead();
   
   static void  KillPointer(){
-    int i=0;
-#ifdef _OPENMP
-    i=omp_get_thread_num();
-#endif
-    delete head[i];
-    head[i]=0; 
+    delete head;
+    head=0; 
   }
  
 

@@ -55,36 +55,26 @@ ClassImp(AC_TrdHits);
 ClassImp(TrdSCalibR);
 
 //--------------------------------------------------------------------------------------------------
-TrdSCalibR* TrdSCalibR::head[64]=
-  {
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0
-  };
+TrdSCalibR* TrdSCalibR::head=0;
 
-TrdSCalibR* TrdSCalibR::gethead(int i)
+TrdSCalibR* TrdSCalibR::gethead()
 {
-#ifdef _OPENMP
-  if(i==0)
-    i=omp_get_thread_num();
-#endif
-  if(!head[i]){
-    head[i] = new TrdSCalibR();
+  if(!head){
+#pragma omp critical (trdscalibrgethead)
+{
+
+    head = new TrdSCalibR();
 #ifndef __ROOTSHAREDLIBRARY__
     //== version 4
-    //head[i]->InitTrdSCalib(TRDCALIB.TrdSCalibVersion,TRDCALIB.TrdSCalibTrack,TRDCALIB.TrdSCalibDebug);
+    //head->InitTrdSCalib(TRDCALIB.TrdSCalibVersion,TRDCALIB.TrdSCalibTrack,TRDCALIB.TrdSCalibDebug);
     //== version 5
-    head[i]->InitNewTrdSCalib(TRDCALIB.TrdSCalibVersion, TRDCALIB.TrdSCalibTrack, 
+    head->InitNewTrdSCalib(TRDCALIB.TrdSCalibVersion, TRDCALIB.TrdSCalibTrack, 
 			      TRDCALIB.TrdSCalibGainMethod, TRDCALIB.TrdSCalibAlignMethod, 
 			      TRDCALIB.TrdSCalibDebug);
 #endif    
-    
+}    
   }
-  return head[i];
+  return head;
 }
 //--------------------------------------------------------------------------------------------------
 
@@ -5482,7 +5472,6 @@ int TrdSCalibR::InitNewTrdSCalib(int CalVer, int TrdTrackType, int GainMethod, i
 	    << std::endl;
  
   bool ok=true;
-#pragma omp single
   ok=Init(SCalibLevel,Debug);
 
   if( !ok ) {
