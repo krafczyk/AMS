@@ -1,4 +1,4 @@
-//  $Id: amschain.h,v 1.30 2012/05/16 15:50:11 choutko Exp $
+//  $Id: amschain.h,v 1.31 2012/05/20 16:05:35 mduranti Exp $
 #ifndef _AMSCHAIN_H
 #define _AMSCHAIN_H
 
@@ -85,6 +85,7 @@ public:
   Int_t ReadOneEvent(Int_t entry);
   
   ///Get AMSEventR with run number "run" and event number "ev"
+  ///If kDontRewind=true the event will be searched starting from current event. If kDontRewind=false (default) the whole chain is rewinded and event will be searched starting from the first event in the chain
   AMSEventR* GetEvent(UInt_t run, Int_t ev, Bool_t kDontRewind=false); 
 
   //  bool   getevent(unsigned int run, unsigned int event);
