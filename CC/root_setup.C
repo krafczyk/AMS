@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79 2012/05/16 13:24:28 choutko Exp $
+//  $Id: root_setup.C,v 1.79.4.1 2012/05/21 16:29:33 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -609,6 +609,8 @@ else{
   int i=system(systemc);
   if(i){
    cerr <<"  AMSSetupR::FillHeader-E-UnableTo "<<systemc<<endl;
+   fHeader.FEventTime=fHeader.Run-60;
+   fHeader.LEventTime=fHeader.Run+3600;
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
@@ -645,7 +647,12 @@ else{
     cout <<" AMSSetupR::FillHeader-I-"<<fHeader.Run<<" "<<fHeader.FEvent<<" "<<fHeader.LEvent<<" "<<fHeader.FEventTime<<" "<<fHeader.LEventTime<<endl;
    fbin.close();
    }
-   else cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
+   else {
+      cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
+      fHeader.FEventTime=fHeader.Run-60;
+      fHeader.LEventTime=fHeader.Run+3600;
+
+   }
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
