@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.238 2012/02/03 14:49:16 choutko Exp $
+//  $Id: trrec.C,v 1.239 2012/05/21 10:36:28 shaino Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -5146,9 +5146,9 @@ AMSTrTrackError::AMSTrTrackError(char * name){
     if(n>255)n=255;
     strncpy(msg,name,n);
   }
-  AMSgObj::BookTimer.stop("TrTrack",1);
-  AMSgObj::BookTimer.stop("RETKEVENT",1);
-  AMSgObj::BookTimer.stop("REAMSEVENT",1);
+//AMSgObj::BookTimer.stop("TrTrack",1);
+//AMSgObj::BookTimer.stop("RETKEVENT",1);
+//AMSgObj::BookTimer.stop("REAMSEVENT",1);
   //  AMSEvent::gethead()->seterror(2);
 }
 char * AMSTrTrackError::getmessage(){return msg;}
