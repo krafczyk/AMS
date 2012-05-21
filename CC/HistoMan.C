@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.43 2012/05/16 06:13:14 oliva Exp $ 
+/// $Id: HistoMan.C,v 1.44 2012/05/21 17:37:19 shaino Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -253,9 +253,14 @@ void HistoMan::BookHistos(int simmode){
   Add(new TH2D("TrLadYh",  "Ladder with hitY",  33, -16.5, 16.5, 9, 0.5, 9.5));
   Add(new TH2D("TrLadXYh", "Ladder with hitXY", 33, -16.5, 16.5, 9, 0.5, 9.5));
 
+  double bintm[71];
+  bintm[0] = 5e-4;
+  for (int i = 0; i <   9; i++) bintm[i+1]  = 1e-3*(i+1);
+  for (int i = 0; i <= 60; i++) bintm[i+10] = TMath::Power(10, i*0.05-2);
+
   // TrTrack
-  Add(TH2D_L("TrTimH","Tcpu VS nTrHit", 500,   0, 2e3,   80, 1e-2, 1e2, 0, 1));
-  Add(TH2D_L("TrTimT","Tcpu VS nTrack",   5,   0,   5,   80, 1e-2, 1e2, 0, 1));
+  Add(new TH2D("TrTimH","Tcpu VS nTrHit", 500, 0, 500, 70, bintm));
+  Add(new TH2D("TrTimT","Tcpu VS nTrack", 5,   0,   5, 70, bintm));
   Add(TH2D_L("TrNhit","Nhit(Xi/Yi/X/Y)",  5,   0,   5,   10,    0,  10, 0, 0));
   Add(TH2D_L("TrCsqX",  "ChisqX VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
   Add(TH2D_L("TrCsqY",  "ChisqY VS RGT", 40, 0.1, 1e3,  120, 1e-2, 1e4, 1, 1));
