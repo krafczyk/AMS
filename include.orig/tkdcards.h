@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.50 2012/05/21 07:10:07 shaino Exp $
+// $Id: tkdcards.h,v 1.49.6.1 2012/05/21 07:16:06 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
