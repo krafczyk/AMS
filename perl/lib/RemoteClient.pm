@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.731 2012/05/21 10:05:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.732 2012/05/21 14:38:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2451,7 +2451,7 @@ sub doCopy {
               die;
              }
          }
-     }
+  }
          else{
              my @junk=split '/',$outputpath;
              $outputpath="";
@@ -2480,6 +2480,9 @@ sub doCopy {
               $jobname =~ s/.job//;
               $outputpath = $outputpath."/".$dataset."/".$jobname;
               $cmd = "mkdir -p $outputpath";
+              if($outputpath=~/^\/castor/){
+                  $cmd="/usr/bin/nsmkdir -p $outputpath";
+              }   
               $cmdstatus = system($cmd);
               if ($cmdstatus == 0) {
                $outputpath = $outputpath."/".$file;
@@ -13551,12 +13554,16 @@ sub parseJournalFile {
 #         copy to final destination
 #
 
-    my $outputpath=undef;
  my $self         = shift;
  my $firstjobtime = shift;
  my $lastjobtime  = shift;
  my $logdir       = shift;
  my $inputjfile    = shift;
+#
+# castor
+#
+    my $outputpath=shift;
+ 
  my $inputfile=$inputjfile.".work";
     my $cmd="mv ".$inputjfile." ".$inputfile;
     my $i=system($cmd);
@@ -15770,7 +15777,9 @@ sub calculateCRC {
 
   my $time0     = time();
   $crcCalls++;
-
+  if($filename=~/^\/castor/){
+      return 1;
+  }
   my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $filename  $crc";
   my $rstatus   = system($crccmd);
   $rstatus=($rstatus>>8);
@@ -16411,6 +16420,9 @@ sub copyFile {
     my $time0 = time();
     $copyCalls++;
     my $cmd = "cp -p -d -v $inputfile  $outputpath ";
+    if($outputpath=~/^\/castor/){
+        $cmd="/usr/bin/rfcp $inputfile  $outputpath ";
+    }
     my $cmdstatus = system($cmd);
     if ($verbose == 1 && $webmode == 0)  {
       $self->amsprint("*** docopy - ",666);

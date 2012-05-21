@@ -67,7 +67,7 @@ my $max=4000000000;
 my $list="cern.runlist";
 my $alist="cern.runalist";
 my $v=0;
-
+my $maxrun=2300000000;
 my $HelpTxt=" -ref -force -v ";
 my $force=0;
 my $ref="";
@@ -75,6 +75,9 @@ my $rmc=undef;
    foreach my $chop  (@ARGV){
     if($chop =~/^-ref/){
       $ref=unpack("x4 A*",$chop);
+    }
+    if($chop =~/^-mxr/){
+      $maxrun=unpack("x4 A*",$chop);
     }
     if($chop =~/^-rmc/){
       $rmc=unpack("x4 A*",$chop);
@@ -133,8 +136,9 @@ if(defined $rmc){
     @rungood=@runlist;
                     for my $i (0...$#rungood){
                         if(defined $rungood[$i]){
-                        if($rungood[$i]=~/1308224335/){
-                        }
+                            if($rungood[$i]>$maxrun){
+                                next;
+                            }
                         foreach my $run (@runlistrm){
                             if( $rungood[$i]==$run){
                                 delete $rungood[$i];
@@ -146,11 +150,14 @@ if(defined $rmc){
                     for my $i (0...$#runlist){
                         my $ok=0;
                         foreach my $run (@runlistrm){
-                            if(defined $runlist[$i] and $runlist[$i]==$run){
+                            if(defined $runlist[$i] and $runlist[$i]==$run ){
                                 $ok=1;
                                 last;
                             }
                             if(defined $runlist[$i] and $runlist[$i]<$run){
+                                last;
+                            }
+                            if(defined $runlist[$i] and $runlist[$i]>$maxrun){
                                 last;
                             }
                         }
