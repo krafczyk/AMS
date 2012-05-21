@@ -1,4 +1,4 @@
-// $Id: tkdcards.h,v 1.49 2012/04/28 02:07:51 shaino Exp $
+// $Id: tkdcards.h,v 1.50 2012/05/21 07:10:07 shaino Exp $
 #ifndef tkcommons_h
 #define tkcommons_h
 
@@ -388,13 +388,17 @@ public:
   /// R [17,18] thresholds for TrRecon::TryDropX
   float RthdDropX[2];
 
+  /// R [19,20] Factor on ErrX/ErrY for He
+  float ErcHeX;
+  float ErcHeY;
+
   TRFITFFKEY_DEF():TObject(){init();}
   void init();
 
   /// Read from AMSRoot file or not
   static int ReadFromFile;
 
-  ClassDef(TRFITFFKEY_DEF,4);
+  ClassDef(TRFITFFKEY_DEF,5);
 };
 //
 

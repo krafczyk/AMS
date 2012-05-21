@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.90 2012/05/16 14:37:59 shaino Exp $
+//  $Id: TrTrack.h,v 1.91 2012/05/21 07:10:07 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/16 14:37:59 $
+///$Date: 2012/05/21 07:10:07 $
 ///
-///$Revision: 1.90 $
+///$Revision: 1.91 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -252,6 +252,7 @@ protected:
   short int _iHits[trconst::maxlay];
   //   /// Vector of multiplicty index (to fix x-coord) 
   //   short int _iMult[trconst::maxlay];
+  /// Hit coordinates as a key with LayerO
   map<int,AMSPoint> _HitCoo;
   /// The real bitted Track Pattern
   unsigned short int _bit_pattern;
@@ -382,6 +383,14 @@ public:
   TrRecHitR *GetHitLJ(int ilay) const;
   ///  Get the pointer of hit at Layer OLD-scheme
   TrRecHitR *GetHitLO(int ilay) const;
+  /// Get the hit coordinate used for the fitting
+  AMSPoint GetHitCooLJ(int layJ, int CIEMAT = 0) const {
+    int layo = TkDBc::Head->GetLayerFromJ(layJ);
+    if (CIEMAT && layo >= 8) layo += 10;
+    map<int,AMSPoint>::const_iterator it = _HitCoo.find(layo);
+    if (it == _HitCoo.end()) return AMSPoint(0, 0, 0);
+    return it->second;
+  }
   /// Return true if the track hit on lajer layJ (J-scheme) has X and Y clusters
   bool TestHitLayerJHasXY(int layJ);
   /// Returns a number corresponding to the ladder combination spanned by the track
