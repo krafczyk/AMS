@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.730 2012/05/18 10:44:39 choutko Exp $
+# $Id: RemoteClient.pm,v 1.731 2012/05/21 10:05:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7515,7 +7515,7 @@ print qq`
                my $qt=$q->param("QType");
                $qtype="and datafiles.type like '$qt%'";
             }
-                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and (datafiles.status='OK' or datafiles.status='Validated')  $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') $tag order by datafiles.run ";
+                 my $sql="select datafiles.run,datafiles.path,datafiles.paths , datafiles.fevent, datafiles.levent from datafiles where run>=$runmi and run<=$runma   and  datafiles.nevents>0 and (datafiles.status='OK' or datafiles.status='Validated')  $qtype $runlist  $runalist and run not in  (select run from dataruns,jobs where  dataruns.jid=jobs.jid and jobs.did=$dataset->{did} and jobs.jobname like '%$template') $tag order by datafiles.run desc";
           my $runsret=$self->{sqlserver}->Query($sql);
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
