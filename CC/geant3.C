@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.154 2012/05/12 09:19:11 barao Exp $
+//  $Id: geant3.C,v 1.154.4.1 2012/05/21 08:01:23 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -1178,7 +1178,7 @@ try{
   }
 
      AMSProducer::gethead()->sendRunEnd(res);
-     AMSProducer::gethead()->getRunEventInfo();
+     AMSProducer::gethead()->getRunEventInfo(AMSProducer::gethead()->IsSolo());
      res=DAQEvent::init();
     }
     catch (AMSClientError a){
@@ -1208,7 +1208,7 @@ else if (res==DAQEvent::Interrupt){
     try{
      AMSJob::gethead()->uhend();
      AMSProducer::gethead()->sendRunEnd(res);
-     AMSProducer::gethead()->getRunEventInfo();
+     AMSProducer::gethead()->getRunEventInfo(AMSProducer::gethead()->IsSolo());
      res=DAQEvent::init();
     }
     catch (AMSClientError a){

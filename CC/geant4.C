@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.85 2012/05/04 13:46:49 qyan Exp $
+//  $Id: geant4.C,v 1.85.4.1 2012/05/21 08:01:23 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -342,7 +342,7 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
     try{
      AMSJob::gethead()->uhend();
      AMSProducer::gethead()->sendRunEnd(res);
-     AMSProducer::gethead()->getRunEventInfo();
+     AMSProducer::gethead()->getRunEventInfo(AMSProducer::gethead()->IsSolo());
     }
     catch (AMSClientError a){
      cerr<<a.getMessage()<<endl;
@@ -358,7 +358,7 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
     try{
      AMSJob::gethead()->uhend();
      AMSProducer::gethead()->sendRunEnd(res);
-     AMSProducer::gethead()->getRunEventInfo();
+     AMSProducer::gethead()->getRunEventInfo(AMSProducer::gethead()->IsSolo());
     }
     catch (AMSClientError a){
      cerr<<a.getMessage()<<endl;
