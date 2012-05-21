@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151 2012/05/17 07:10:31 shaino Exp $
+// $Id: TrTrack.C,v 1.152 2012/05/21 07:10:38 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/17 07:10:31 $
+///$Date: 2012/05/21 07:10:38 $
 ///
-///$Revision: 1.151 $
+///$Revision: 1.152 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -923,6 +923,11 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   double zh0  = 0;
   int hitbits = 0;
 
+  if (chrg > 1.5) {
+    errx *= TRFITFFKEY.ErcHeX;  // 0.65
+    erry *= TRFITFFKEY.ErcHeY;  // 0.50
+  }
+
   // Get the reference rigidity for weight tuning
   double rrgt = 0;
   int     id0 = kChoutko;
@@ -1598,16 +1603,17 @@ int  TrTrackR::iTrTrackPar(int algo, int pattern, int refit, float mass, float  
 
   if(refit>=2 || (!FitExists && refit==1)) { 
     int rret=0;
-    if(CIEMATFlag){
-      TrRecHitR *hit1=GetHitLJ(1);
-      TrRecHitR *hit9=GetHitLJ(9);
-      int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
-      int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
-      rret=UpdateExtLayer(1,l1,l9);
-    }
-    else rret=UpdateExtLayer(0);
     
-    if (refit >= 3) {
+    if (refit >= 3 || CIEMATFlag){
+      if(CIEMATFlag){
+	TrRecHitR *hit1=GetHitLJ(1);
+	TrRecHitR *hit9=GetHitLJ(9);
+	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
+	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
+	rret=UpdateExtLayer(1,l1,l9);
+      }
+      else rret=UpdateExtLayer(0);
+
       int ret0=UpdateInnerDz();
       for (int ii=0;ii<getnhits () ;ii++)
 	pTrRecHit(ii)->BuildCoordinate();

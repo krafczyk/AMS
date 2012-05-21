@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.67 2012/05/02 16:30:35 pzuccon Exp $
+//  $Id: TrFit.C,v 1.68 2012/05/21 07:10:38 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/05/02 16:30:35 $
+///$Date: 2012/05/21 07:10:38 $
 ///
-///$Revision: 1.67 $
+///$Revision: 1.68 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1038,11 +1038,9 @@ int TrFit::FillDmsc(double *dmsc, double fact,
   // Calculate pbi2 = (pbeta)^(-2)
   double pbi2 = 0;
   if (_mass > 0 && _chrg != 0) {
-    double p   = _rigidity*_chrg;
-    double pi2 = (p != 0) ? 1/p/p : 0;
-    //    double bi2 = (p != 0) ? 1+_mass*_mass/p/p : 0;
-    double bi2 =1/GetBeta()/GetBeta();
-    pbi2 = pi2*bi2;
+    double ri2 = (_rigidity != 0) ? 1/_rigidity/_rigidity : 0;
+    double bi2 = 1/GetBeta()/GetBeta();
+    pbi2 = ri2*bi2;
   }
   if (pbi2 <= 0) return -1;
 

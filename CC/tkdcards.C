@@ -1,4 +1,4 @@
-// $Id: tkdcards.C,v 1.74 2012/04/29 10:20:39 shaino Exp $
+// $Id: tkdcards.C,v 1.75 2012/05/21 07:10:38 shaino Exp $
 #include "tkdcards.h"
 #include "TrCluster.h"
 #include <math.h>
@@ -424,6 +424,9 @@ void TRFITFFKEY_DEF::init(){
   RthdDropX[0] = 100;
   RthdDropX[1] =  10;
 
+  /// R [19,20] Factor on ErrX/ErrY for He
+  ErcHeX = 0.65;
+  ErcHeY = 0.65;
 }
 int TRFITFFKEY_DEF::ReadFromFile = 1;
 
