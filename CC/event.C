@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.557 2012/05/04 13:46:48 qyan Exp $
+//  $Id: event.C,v 1.557.4.1 2012/05/21 10:07:30 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1461,10 +1461,26 @@ void AMSEvent::event(){
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
 
       if(_id<=IOPA.skip) return;
-      _reamsevent();
+      try{
+_reamsevent();
+     }
+  catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reamsevent"<<endl;
+      seterror(2);
+      throw;
+    }
+try{
       if(AMSJob::gethead()->isCalibration())_caamsevent();
 
       _trdgain();
+}
+catch(std::bad_alloc a){
+      cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdgein"<<endl;
+      seterror(2);
+      throw;
+    }
+
+
       _collectstatus();
     }
   }
@@ -1606,6 +1622,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
       seterror(2);
+      throw;
     }
     try{
       _reanti2event();
@@ -1613,6 +1630,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reantievent"<<endl;
       seterror(2);
+      throw;
     }
 
     try{
@@ -1621,6 +1639,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retrdevent"<<endl;
       seterror(2);
+      throw;
     }
     
     if(calltrk){
@@ -1637,6 +1656,7 @@ if(DAQEvent::FileSize()){
       catch(std::bad_alloc a){
 	cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _retof2event"<<endl;
 	seterror(2);
+        throw;
       }
     } 
     try{
@@ -1645,6 +1665,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _rerichevent"<<endl;
       seterror(2);
+        throw;
     }
     try{
       if(callecal)_reecalevent();
@@ -1652,6 +1673,7 @@ if(DAQEvent::FileSize()){
     catch(std::bad_alloc a){
       cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reecalevent"<<endl;
       seterror(2);
+        throw;
     }
   }
   try{
@@ -1660,6 +1682,7 @@ if(DAQEvent::FileSize()){
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" _reaxevent"<<endl;
     seterror(2);
+        throw;
   }
   try{
     if(calluser)AMSUser::Event();
@@ -1667,6 +1690,7 @@ if(DAQEvent::FileSize()){
   catch(std::bad_alloc a){
     cerr<<" AMSEvent::_reamsevent-E-BadALLOC in "<<getrun()<<" "<<getid()<<" AMSUser::Event"<<endl;
     seterror(2);
+        throw;
   }
 #ifndef _PGTRACK_
   if(calltrk)AMSTrTrack::cleanup(); 

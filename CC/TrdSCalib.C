@@ -175,7 +175,7 @@ std::vector<double> TrdSCalibR::zTrks(7);
 TrdSCalibR::TrdSCalibR(): SCalibLevel(5), TrdTrackLevel(0), iFlag(3), 
 			  iPabs(0), iQabs(0), iRsigned(0),iRerrinv(0), iRabs(0), iChisq(-1), 
 			  TrdTkD(0), TrdTkDa(0), 
-			  algo(1), patt(0), refit(0),
+			  algo(1), patt(0), refit(0),grTrdS_Xe(0),
 			  TrdGainMethod(1),TrdAlignMethod(1),_ierror(0),			  
   dummy(0) {
     FirstCall   = true;
@@ -5553,7 +5553,7 @@ TrdSCalibR::~TrdSCalibR(){
   for(int i=0; i< grTrdS_PDF_Elec_Xe2.size();i++) delete grTrdS_PDF_Elec_Xe2[i];
   for(int i=0; i< grTrdS_PDF_Elec_Xe3.size();i++) delete grTrdS_PDF_Elec_Xe3[i];
   for(int i=0; i< grTrdS_PDF_Elec_Xe4.size();i++) delete grTrdS_PDF_Elec_Xe4[i];
-  for(int i=0; i< grTrdS_PDF_Elec_Xe5.size();i++) delete grTrdS_PDF_Elec_Xe5[i]; 
+  for(int i=0; i< grTrdS_PDF_Elec_Xe5.size();i++) delete grTrdS_PDF_Elec_Xe5[i];  
 
   if(grTrdS_Xe) delete grTrdS_Xe;
     

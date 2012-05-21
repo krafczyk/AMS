@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.870 2012/05/13 21:59:47 pzuccon Exp $
+// $Id: job.C,v 1.870.4.1 2012/05/21 10:07:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -4882,9 +4882,10 @@ void AMSJob::_dbendjob(){
       }
     */
   }
-  if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+  if( AMSFFKEY.Update && AMSStatus::isDBWriteR() && AMSJob::gethead()->gettimestructure() ){
     AMSJob::gethead()->getstatustable()->Sort();
     AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
+    if(ptdv){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time_t begin,end,insert;
@@ -4897,6 +4898,8 @@ void AMSJob::_dbendjob(){
     cout <<" Time Insert "<<ctime(&insert);
     cout <<" Time Begin "<<ctime(&begin);
     cout <<" Time End "<<ctime(&end);
+   }
+   else cerr<<" AMSJob::_dbendjob-E-unable to fiund timestructure "<<endl;
   }
 #endif
   if( AMSFFKEY.Update && AMSStatus::isDBUpdateR()   ){
@@ -4905,16 +4908,7 @@ void AMSJob::_dbendjob(){
 
 
 
-#ifdef __DB__
-  if (AMSEvent::_checkUpdate() == 1) {
-    Message("====> AMSJob::_dbendjob -I- UpdateMe is set. Update database and tables.");
-    int rstatus = lms -> AddAllTDV();
-  } else {
-    Message("====> AMSJob::_dbendjob -I- UpdateMe != 1. NO UPDATE");
-  }
-#else
-  //    if (AMSFFKEY.Update && !isCalibration()){
-  if (AMSFFKEY.Update){
+  if (AMSFFKEY.Update && AMSJob::gethead()->gettimestructure()){
     cout << "AMSjob::_dbendjob-I-updating database... "<<endl;
     AMSTimeID * offspring = 
       (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
@@ -4925,7 +4919,6 @@ void AMSJob::_dbendjob(){
       offspring=(AMSTimeID*)offspring->next();
     }
   }
-#endif
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.250 2012/04/27 09:49:59 chchung Exp $
+//  $Id: particle.C,v 1.250.6.1 2012/05/21 10:07:31 choutko Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -239,6 +239,7 @@ integer AMSParticle::build(integer refit){
       ppart->trd_likelihood();
       if(TRDFITFFKEY.FitMethod)ppart->trd_Hlikelihood();
 #ifdef _PGTRACK_
+try{
       if( TRDCALIB.TrdSCalibVersion && TrdSCalibR::gethead() && AMSEvent::gethead() ) {
 	int isdebug = 0;
 	ppart->_TrdSH_E2P_lik = ppart->_TrdSH_He2P_lik = ppart->_TrdSH_E2He_lik = 0;
@@ -256,8 +257,16 @@ integer AMSParticle::build(integer refit){
 		cout <<"### TrdSCalib Likelihood "<< AMSEvent::gethead()->gettime() <<" "  
 		     <<ppart->_TrdSH_E2P_lik<<" "<<ppart->_TrdSH_He2P_lik <<" "<<ppart->_TrdSH_E2He_lik 
 		     << endl; 
-	  }
       }
+}
+}
+  catch(std::bad_alloc a){
+    cerr<<" AMSParticle::build-E-BadALLOC in  trdscalib"<<endl;
+TrdSCalibR::gethead()->Clear();
+TrdSCalibR::gethead()->KillPointer();
+		AMSEvent::gethead()->seterror(2);
+  }
+
 #endif
       AMSgObj::BookTimer.stop("ReTRDRefit");
       ppart=ppart->next();

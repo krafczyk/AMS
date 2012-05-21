@@ -1,4 +1,4 @@
-//  $Id: snode.C,v 1.18 2011/03/05 23:25:40 choutko Exp $
+//  $Id: snode.C,v 1.18.24.1 2012/05/21 10:07:31 choutko Exp $
 // Author V. Choutko 24-may-1996
 
 #include <typeinfo> 
@@ -181,8 +181,7 @@ integer AMSNodeMap::add(AMSNode & o){
 
 AMSNode * AMSNodeMap::getp  (  const AMSID& id, char hint ) const {
 
-   
-  integer i= AMSbsi((AMSID**)_hash,id,_numo, hint);
+  integer i= _hash?AMSbsi((AMSID**)_hash,id,_numo, hint):-1;
 
   if(i<0){
 //           cerr <<"AMSNodeMap::getp-S-PointerNotFound "<<id<<" "<<" "<<_numo<<endl;
