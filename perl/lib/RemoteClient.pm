@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.732 2012/05/21 14:38:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.733 2012/05/22 12:47:21 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2427,7 +2427,10 @@ sub doCopy {
      if (not defined $period || $period == $UNKNOWN || $prodStartTime == 0) {
          die "Cannnot find Active Production Period for DB version $dbv \n";
      }
-
+     
+     if(defined $outputpath and not (($outputpath=~$path) or ($outputpath=~$period) or ($outputpath=~/\.root$/ ))){
+         $outputpath=$outputpath.$path."/$period/d1/d2/1.root";
+     }
 
      $doCopyCalls++;
 
@@ -2440,7 +2443,7 @@ sub doCopy {
 
      my $outputdisk => undef;
      my $filesize    = (stat($inputfile))[7];
-     if ($filesize > 0) {
+     if ($filesize > 0 or $inputfile=~/^\/castor/) {
 # get output disk
          if(not defined $outputpath){
       my($outputpatha, $gb) = $self->getOutputPath($period,$path);
@@ -8164,7 +8167,12 @@ if(defined $dataset->{buildno} ){
             $self->ErrorPlus("unable to retreive getior name from db");
         }
            @tmpa=split '/', $ret->[0][0];
+         if($self->{CCT} eq "remote"){
+          print FILE "export GetIorExec=dummy \n";
+         }
+          else{
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
+      }
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
          if($dataset->{serverno}=~/^v/){
@@ -8202,7 +8210,7 @@ if(defined $dataset->{buildno} ){
          if($self->{CCT} eq "local"){
              $path="$self->{AMSDataDir}/$self->{LocalClientsDir}/";
          }
-         $buf=~s:export:export AMSFSCRIPT=$path$script \nexport:;
+         $buf=~s:export:export AMSFSCRIPT=$path$script \nexport AMSISS=\$AMSDataDir\/altec\/\nexport AMSISSSA=\$AMSDataDir\/isssa\/\nexport:;
          print FILE $buf;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
@@ -9457,7 +9465,12 @@ if(defined $dataset->{buildno} ){
             $self->ErrorPlus("unable to retreive getior name from db");
         }
            @tmpa=split '/', $ret->[0][0];
+         if($self->{CCT} eq "remote"){
+          print FILE "export GetIorExec=dummy \n";
+         }
+else{
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
+      }
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
             if($dataset->{serverno}=~/^v/){
           }
@@ -13165,8 +13178,11 @@ sub Color {
 sub parseJournalFiles {
 
  my $self = shift;
-
-
+ my $datamc=shift;
+ my $castor=shift;
+ if(not defined $datamc){
+     $datamc=0;
+ }
  my $firstjobtime = 0;      # first job order time
  my $lastjobtime  = 0;      # last
  my $cid          = -1;
@@ -13335,6 +13351,9 @@ sub parseJournalFiles {
    $nCheckedCite++;
    my $timenow    = time();
    my $dir        = trimblanks($jou->[0]);  # journal file's path
+   if($datamc==1){
+       $dir=~s/MC/Data/;
+   }
    my $cite       = trimblanks($jou->[2]);  # cite
    my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
@@ -13464,7 +13483,7 @@ sub parseJournalFiles {
                                  $lastjobtime,
                                  $logdir,
                                  $newfile,
-                                 $ntdir,$cid);
+                                 $ntdir,$cid,$datamc,$castor);
           if($suc>0 && $mail){
              my $sql = "SELECT jid,mid FROM Jobs WHERE jid=$suc";
              my $ret = $self->{sqlserver}->Query($sql);
@@ -13559,20 +13578,30 @@ sub parseJournalFile {
  my $lastjobtime  = shift;
  my $logdir       = shift;
  my $inputjfile    = shift;
-#
-# castor
-#
-    my $outputpath=shift;
  
  my $inputfile=$inputjfile.".work";
-    my $cmd="mv ".$inputjfile." ".$inputfile;
-    my $i=system($cmd);
+     my $cmd="cp ".$inputjfile." ".$inputfile;
+     my $i=system($cmd);
+    if($i){
+        print " Unable to sys ",$cmd;
+        return 0," ";
+    }
+      $cmd="rm -rf ".$inputjfile;
+      $i=system($cmd);
     if($i){
         print " Unable to sys ",$cmd;
         return 0," ";
     }
  my $dirpath      = shift;
  my$cid=shift; 
+#
+# castor
+#
+ my $datamc=shift;
+ if(not defined $datamc){
+     $datamc=0;
+ }
+    my $outputpath=shift;
  my $host         = "unknown";
  my $tevents      = 0;
  my $terrors      = 0;
@@ -13929,7 +13958,7 @@ foreach my $block (@blocks) {
        $j++;
      }
      
-     if($lastjobid!=$startingrun[2]){
+     if($lastjobid!=$startingrun[2] and $datamc!=1){
       print FILE " changung data mc $lastjobid $startingrun[2]\n";
       $startingrun[21]=2;
      }
@@ -14098,8 +14127,44 @@ foreach my $block (@blocks) {
     my $dstfile = trimblanks($junk[$#junk]);
     my $filename= $dstfile;
     $dstfile=$dirpath."/".$dstfile;
+    my $dstlink=$dstfile;
+        my $inputfilel=readlink($dstfile);
+    if(defined $inputfilel and $inputfilel=~/^\/castor/){
+        $dstfile=$inputfilel    ;
+        if(not defined $outputpath){
+            $outputpath='/castor/cern.ch/ams';
+        }
+        }
     my $dstsize = -1;
-    $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
+    if($dstfile=~/^\/castor/){
+        unlink "/tmp/castor.$$";
+        my $cmd="/usr/bin/nsls -l $dstfile >/tmp/castor.$$";
+        my $i=system($cmd);
+        if(!$i){
+            if(open(FILEL,"</tmp/castor.$$")){
+                my $line=<FILEL>;
+                close FILEL;
+                my @junk=split ' ',$line;
+                foreach my $piece (@junk){
+                  if( $piece =~/^\d+$/ and $piece>100){
+                      $dstsize=$piece;
+                      last;
+                  }
+                }   
+            }
+            else{
+             print "parsejournalfile-E-Unableto open file /tmp/castor.$$ \n";
+            }
+          
+        }
+        else {
+            print "parsejournalfile-E-Unableto $cmd \n";
+        }
+        unlink "/tmp/castor.$$";
+    }
+    else{    
+     $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
+ }
     if ($dstsize == -1) {
      print FILE "parseJournalFile -W- CloseDST block : cannot stat $dstfile \n";
      $runfinishedR=1;
@@ -14113,6 +14178,7 @@ foreach my $block (@blocks) {
       $dstsize = sprintf("%.1f",$dstsize/1000/1000);
       $closedst[0] = "CloseDST";
        print FILE "$dstfile.... \n";
+
        my $ntstatus =$closedst[1];
        my $nttype   =$closedst[2];
        my $version  =$closedst[4];
@@ -14188,6 +14254,10 @@ foreach my $block (@blocks) {
             }
             print FILE "doCopy return status : $rstatus \n";
             if ($rstatus == 1) {
+                my $castortime=0;
+                if($outputpath=~/^\/castor/){
+                    $castortime=time();
+                }
              $self->insertNtuple(
                                $run,
                                $version,
@@ -14202,11 +14272,11 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, 0,$startingrun[21],$feti,$leti);
+                               $timestamp, 1, $castortime,$startingrun[21],$feti,$leti);
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
-             push @cpntuples, $dstfile;
+             push @cpntuples, $dstlink;
            } else {
             print FILE "***** Error in doCopy for : $outputpath\n";
            }
@@ -16395,6 +16465,9 @@ sub validateDST {
      } elsif ($ftype eq "RootFile") {
          $dtype = 1;
      }
+     if($fname=~/^\/castor/){
+         return 1,0;
+     }
      if (defined $dtype) {
       $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fname $nevents $dtype $levent";
       $vcode=system($validatecmd);
@@ -16417,12 +16490,21 @@ sub copyFile {
     }
         return 0;
     }
+# symbolic link
+        my $inputfilel=readlink($inputfile);
+    if(defined $inputfilel and $inputfilel=~/^\/castor/){
+        $inputfile=$inputfilel    ;
+        }
     my $time0 = time();
     $copyCalls++;
     my $cmd = "cp -p -d -v $inputfile  $outputpath ";
     if($outputpath=~/^\/castor/){
         $cmd="/usr/bin/rfcp $inputfile  $outputpath ";
+        if($inputfile=~/^\/castor/){
+          $cmd="/usr/bin/rfrename $inputfile  $outputpath ";
+      }
     }
+    
     my $cmdstatus = system($cmd);
     if ($verbose == 1 && $webmode == 0)  {
       $self->amsprint("*** docopy - ",666);
