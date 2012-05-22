@@ -1,4 +1,4 @@
-//  $Id: amschain.C,v 1.57 2012/05/11 13:34:51 choutko Exp $
+//  $Id: amschain.C,v 1.57.4.1 2012/05/22 00:37:52 pzuccon Exp $
 #include "amschain.h"
 #include "TChainElement.h"
 #include "TRegexp.h"
@@ -46,6 +46,7 @@ AMSChain::AMSChain(AMSEventR* event,const char* name, unsigned int thr,unsigned 
 {
   fout=0;
   amsnew=0;
+  rsetup=0;
   Init(event);
 }
 
@@ -496,10 +497,17 @@ int AMSChain::OpenOutputFile(const char* filename){
   amsnew = CloneTree(0);
   TFile * input=GetFile();
   if(!input){cerr<<"AMSEventList::Write- Error - Cannot find input file"<<endl;return -2;}
+  if(!rsetup){
+    TTree* rsetup0=(TTree*) GetFile()->Get("AMSRootSetup");
+    fout->cd();
+    rsetup=rsetup0->CloneTree();
+  }
+
 #ifdef _PGTRACK_
   // Parameters
-  char objlist[6][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB"};
-  for(int ii=0;ii<6;ii++){
+  enum {nfiles=7};
+  char objlist[nfiles][40]={"TkDBc","TrCalDB","TrParDB","TrGainDB","TrReconPar","TrExtAlignDB","TrInnerDzDB"};
+  for(int ii=0;ii<nfiles;ii++){
     TObject* obj=input->Get(objlist[ii]);
     if(obj) {fout->cd();obj->Write();}
   }
@@ -519,8 +527,10 @@ int AMSChain::OpenOutputFile(const char* filename){
     fout->cd();
   }
 #endif
-  TTree* rsetup=(TTree*) input->Get("AMSRootSetup");
-  if(rsetup){fout->cd();rsetup->Write("AMSRootSetup");}
+
+
+
+
   TObjString* obj2=(TObjString*)input->Get("AMS02Geometry");
   if(obj2) {fout->cd();obj2->Write("AMS02Geometry");}
   TObjString* obj3=(TObjString*)input->Get("DataCards");
@@ -549,6 +559,7 @@ void AMSChain::SaveCurrentEventCont(){
   }
   if(_EVENT){
     _EVENT->SetCont();
+    
     amsnew->Fill();
   }
   return;
