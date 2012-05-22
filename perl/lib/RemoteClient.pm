@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.733 2012/05/22 12:47:21 ams Exp $
+# $Id: RemoteClient.pm,v 1.734 2012/05/22 13:17:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8167,12 +8167,7 @@ if(defined $dataset->{buildno} ){
             $self->ErrorPlus("unable to retreive getior name from db");
         }
            @tmpa=split '/', $ret->[0][0];
-         if($self->{CCT} eq "remote"){
-          print FILE "export GetIorExec=dummy \n";
-         }
-          else{
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
-      }
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
          if($dataset->{serverno}=~/^v/){
@@ -8210,7 +8205,7 @@ if(defined $dataset->{buildno} ){
          if($self->{CCT} eq "local"){
              $path="$self->{AMSDataDir}/$self->{LocalClientsDir}/";
          }
-         $buf=~s:export:export AMSFSCRIPT=$path$script \nexport AMSISS=\$AMSDataDir\/altec\/\nexport AMSISSSA=\$AMSDataDir\/isssa\/\nexport:;
+        $buf=~s:export:export AMSFSCRIPT=$path$script \nexport:;
          print FILE $buf;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
@@ -9465,12 +9460,7 @@ if(defined $dataset->{buildno} ){
             $self->ErrorPlus("unable to retreive getior name from db");
         }
            @tmpa=split '/', $ret->[0][0];
-         if($self->{CCT} eq "remote"){
-          print FILE "export GetIorExec=dummy \n";
-         }
-else{
           print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
-      }
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
             if($dataset->{serverno}=~/^v/){
           }
