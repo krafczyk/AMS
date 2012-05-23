@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.23.4.1 2012/05/23 21:21:13 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.23.4.2 2012/05/23 22:18:38 pzuccon Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -58,14 +58,18 @@ public:
     angles[1] += par.angles[1]; angles[2] += par.angles[2];
     return *this;
   }
-
- TrExtAlignPar & operator = (const TrExtAlignPar &par) {
-   if( &par == this) return *this;
+  TrExtAlignPar & operator = (const TrExtAlignPar &par) {
+    if( &par == this) return *this;
     dpos  [0] = par.dpos  [0]; dpos  [1] = par.dpos  [1];
     dpos  [2] = par.dpos  [2]; angles[0] = par.angles[0];
     angles[1] = par.angles[1]; angles[2] = par.angles[2];
+    edpos  [0] = par.edpos  [0]; edpos  [1] = par.edpos  [1];
+    edpos  [2] = par.edpos  [2]; eangles[0] = par.eangles[0];
+    eangles[1] = par.eangles[1]; eangles[2] = par.eangles[2];
+    chisq=par.chisq; NDF=par.NDF;
     return *this;
   }
+
 
   TrExtAlignPar operator +(const TrExtAlignPar &par) const {
     TrExtAlignPar pp = *this;
