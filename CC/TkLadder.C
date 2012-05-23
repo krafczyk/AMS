@@ -1,4 +1,4 @@
-//  $Id: TkLadder.C,v 1.10 2012/05/07 09:02:35 pzuccon Exp $
+//  $Id: TkLadder.C,v 1.10.4.1 2012/05/23 22:18:05 pzuccon Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -11,9 +11,9 @@
 ///\date  2008/01/23 SH  Some comments are added
 ///\date  2008/03/17 SH  Some utils for MC geometry are added
 ///\date  2008/04/02 SH  Update for alignment correction
-///$Date: 2012/05/07 09:02:35 $
+///$Date: 2012/05/23 22:18:05 $
 ///
-///$Revision: 1.10 $
+///$Revision: 1.10.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,7 +27,7 @@ int TkLadder::pwg[24]= {1,1,4,4,1,1,4,4,1,1, 4, 4, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2,
    //                   0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
 int TkLadder::pwgp[24]={1,2,5,6,3,4,3,4,5,6, 1, 2, 1, 2, 5, 6, 3, 4, 3, 4, 5, 6, 1, 2};
 
-int TkLadder::version=0;
+int TkLadder::version=2;
 
 TkLadder::TkLadder():TkObject()
 {
