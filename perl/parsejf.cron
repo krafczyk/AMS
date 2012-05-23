@@ -1,6 +1,6 @@
 #!/bin/bash
 # parsejf daily 
-/var/www/cgi-bin/mon/parsejf.o.cgi -c
+/var/www/cgi-bin/mon/parsejf.o.cgi -c -dbonly  -v 1>/fc02dat0/scratch/MC/validate/jf.`date +%F:+%H`.log 2>&1
 exit 0
 
 
