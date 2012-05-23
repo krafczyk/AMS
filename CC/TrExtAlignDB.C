@@ -75,13 +75,35 @@ const TrExtAlignPar *TrExtAlignDB::Get(int lay, uint time) const
   return &eapar;
 }
 
-TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time)
-{
-  if (lay == 8) return L8[time];
-  if (lay == 9) return L9[time];
-
+TrExtAlignPar &TrExtAlignDB::GetM(int lay, uint time){
   static TrExtAlignPar dummy;
   dummy.Init(); 
+  if (lay==1 ||lay==8) 
+    return L8[time];
+  else if  (lay==9) 
+    return L9[time];
+  else    
+    return dummy;
+}
+
+TrExtAlignPar &TrExtAlignDB::FindM(int lay, uint time)
+{
+  map<uint,TrExtAlignPar>::iterator lit;
+  static TrExtAlignPar dummy;
+  dummy.Init(); 
+
+  if (lay == 8||lay==1){
+    lit=L8.lower_bound(time);
+    if(lit!=L8.begin() && lit!=L8.end())
+      dummy=lit->second;
+  }
+
+  if (lay == 9){
+    lit=L9.lower_bound(time);
+    if(lit!=L9.begin() && lit!=L9.end())
+      dummy=lit->second;
+  }
+
   return dummy;
 }
 
