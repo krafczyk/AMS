@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437 2012/05/18 16:37:38 choutko Exp $
+//  $Id: root.h,v 1.437.2.1 2012/05/23 23:46:51 pzuccon Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -373,6 +373,14 @@ public:
   DaqEventR(){};
   virtual ~DaqEventR(){};
 
+  /// Checks the error bits (0x7F00) on the four JINJStatus word and return True if any of these bit is up
+  bool HasHWError(){
+   return ( (JINJStatus[0]&0x7F00)>0 ||
+            (JINJStatus[1]&0x7F00)>0 ||
+            (JINJStatus[2]&0x7F00)>0 ||
+            (JINJStatus[3]&0x7F00)>0
+	  );
+  }
   /// \return human readable info about DaqEventR
   char * Info(int number=-1);
 ClassDef(DaqEventR,8)       //DaqEventR
