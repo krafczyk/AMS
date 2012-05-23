@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.871 2012/05/21 10:05:10 choutko Exp $
+// $Id: job.C,v 1.872 2012/05/23 14:15:12 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -938,7 +938,7 @@ void AMSJob::_siecaldata(){
   //     
   ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrMCSeeds|MCPeds:C=1/0->Read MSCalibFile/DB
   //                                          P=1/0->ReadFromFile/ReadFromDB
-  ECMCFFKEY.calvern=3;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
+  ECMCFFKEY.calvern=4;//(29)EcalCflistMC-file vers.number(keep RlgaMC(SD),FiatMC(SD),AnorMC-calib.files vers#)
   //
   ECMCFFKEY.mch2root=0;//(30) =1 to write ECmc-hits to root file when 'All' requested, =2 to write in any case
   // 
