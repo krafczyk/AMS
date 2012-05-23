@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.238 2012/05/18 16:37:36 choutko Exp $
+//  $Id: daqevt.C,v 1.238.2.1 2012/05/23 09:04:38 choutko Exp $
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -1911,6 +1911,8 @@ DAQEvent::InitResult DAQEvent::init(){
   integer Run,Event;
   int ntryscp=0;
   char * fnam=_getNextFile(Run, Event);
+  if(!fnam)return UnableToFindRunEvent;
+
         string fnamei=fnam; 
   if(getenv("TMPRawFile") && getenv("NtupleDir") && strstr(getenv("TMPRawFile"),getenv("NtupleDir"))){
     unlink(getenv("TMPRawFile"));
