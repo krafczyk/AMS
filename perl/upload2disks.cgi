@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2disks.cgi,v 1.3 2011/11/30 14:31:38 ams Exp $
+#  $Id: upload2disks.cgi,v 1.4 2012/05/23 14:48:42 choutko Exp $
 use strict;
 #use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
@@ -16,14 +16,14 @@ my $ok=$html->ConnectDB();
 my $v=1;
 my $upd=1;
 my $run2p=0;
-my $dir="MC/AMS02/2005A";
+my $dir="/Data/AMS02/2011B";
  my $HelpTxt = "
      RemoteClient::UploadToCastor
 #
 #
 #  uploads file to disk
 #  input paramaters
-#  -d :   path  to castor files like MC/AMS02/2005A/dir
+#  -d :   path  to castor files like /MC/AMS02/2005A/dir
 #                                   /dir are optional ones
 #  -v   verbose if 1 
 #  -u     do sql  if 1
@@ -33,7 +33,7 @@ my $dir="MC/AMS02/2005A";
 #
 # 
 #     example
-     ./upload2disks.cgi -v -u -dMC/AMS02/2004A 
+     ./upload2disks.cgi -v -u -d/MC/AMS02/2004A 
 ";
    foreach my $chop  (@ARGV){
     if($chop =~/^-d/){

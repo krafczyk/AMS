@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#  $Id: rdntuples_ext.perl,v 1.1 2012/05/23 09:22:10 ams Exp $
+#  $Id: rdntuples_ext.perl,v 1.2 2012/05/23 14:48:42 choutko Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -43,12 +43,12 @@ unshift @ARGV, "-Fpdb_ams";
      my $ok=$o->ConnectRO();
 if($ok){
     my $time=time();
-    my $sql = "SELECT ntuples.run,ntuples.path,cites.name fROM amsdes.ntuples,amsdes.jobs,amsdes.cites  where ntuples.datamc=1 and ntuples.version like 'v5.00%' and ntuples.path like '%ISS.B584/pass2%root' and ntuples.jid=jobs.jid and jobs.cid!=1  and jobs.cid=cites.cid $run2p  ORDER BY run ";
+    my $sql = "SELECT ntuples.run,ntuples.path,cites.name,ntuples.jid fROM amsdes.ntuples,amsdes.jobs,amsdes.cites  where ntuples.datamc=1 and ntuples.version like 'v5.00%' and ntuples.path like '%ISS.B584/pass2%root' and ntuples.jid=jobs.jid and jobs.cid!=1  and jobs.cid=cites.cid $run2p  ORDER BY run ";
          my $ret=$o->Query($sql);
     my $okk=0;
     foreach my $file (@{$ret}){
          if((not $okk) or $time-$file->[0]<864000000){ 
-             print "$file->[1] Cite $file->[2]\n";
+             print "$file->[1] Cite $file->[2] $file->[3]\n";
              $okk=1;
          }
      }
