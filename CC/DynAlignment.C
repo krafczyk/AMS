@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.58 2012/05/18 12:48:37 choutko Exp $
+//  $Id: DynAlignment.C,v 1.59 2012/05/23 10:49:14 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -898,10 +898,12 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 
 #ifdef _PGTRACK_
 #include "TkDBc.h"
+#include "TrExtAlignDB.h"
 #endif
 
 void DynAlContinuity::CleanAlignment(){
 #ifdef _PGTRACK_
+  TrExtAlignDB::ResetExtAlign();
   // Cleanup the external planes alignment, just in case
   int plane[2]={5,6};
   for(int i=0;i<2;i++){
