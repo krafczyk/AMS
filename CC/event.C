@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.557.4.2 2012/05/24 11:58:28 choutko Exp $
+//  $Id: event.C,v 1.557.4.3 2012/05/24 12:13:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2349,7 +2349,8 @@ void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("Vtx");
 #ifdef _PGTRACK_
   //PZ FIXME DEBUG 
-     TrRecon::gethead()->BuildVertex();
+     TrRecon rec;
+     rec.BuildVertex();
 #else
   buildC("AMSVtx");
 #endif
