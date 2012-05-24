@@ -54,13 +54,8 @@ TrdHSegmentR * TrdHTrackR::pTrdHSegment(unsigned int i){
   if(segments.size()<=i&&i<2){
     segments.clear();
     VCon* cont2=GetVCon()->GetCont("AMSTRDHSegment");
-    for(int i=0;i<cont2->getnelem();i++){
-      for(int n=0;n<fTrdHSegment.size();n++){
-        if(i==fTrdHSegment[n]){
-          segments.push_back(*(TrdHSegmentR*)cont2->getelem(i));
-	}
-      }
-    }
+    for(int s=0;s<2;s++)
+      segments.push_back(*(TrdHSegmentR*)cont2->getelem(fTrdHSegment[s]));
     delete cont2;
   }
   
