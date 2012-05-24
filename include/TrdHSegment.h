@@ -8,9 +8,7 @@
 
 using namespace std;
 
-#ifndef __ROOTSHAREDLIBRARY__
 class AMSTRDRawHit;
-#endif
 
 /// Class to store 2D tracks in xz or yz plane
 class TrdHSegmentR: public TrElem {
@@ -40,9 +38,8 @@ class TrdHSegmentR: public TrElem {
 
   vector<TrdRawHitR> hits; //!
 
-#ifndef __ROOTSHAREDLIBRARY__
   vector<AMSTRDRawHit*> gbhits; //!
-#endif
+
   /// return number of hits
   int NTrdRawHit();
 
@@ -93,9 +90,7 @@ class TrdHSegmentR: public TrElem {
   virtual ~TrdHSegmentR(){
     fTrdRawHit.clear();
     hits.clear();
-#ifndef __ROOTSHAREDLIBRARY__
     gbhits.clear();
-#endif
     clear();}
 
   void clear();
