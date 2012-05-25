@@ -1,5 +1,5 @@
-#!/usr/local/bin/perl -w
-#  $Id: rdntuples_ext.perl,v 1.2 2012/05/23 14:48:42 choutko Exp $
+#!/usr/bin/perl -w
+#  $Id: rdntuples_ext.perl,v 1.3 2012/05/25 10:25:13 ams Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
