@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.220 2012/05/04 13:46:48 qyan Exp $
+//  $Id: amsgeom.C,v 1.221 2012/05/25 13:50:43 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2636,6 +2636,7 @@ ECALDBc::readgconf();//
   number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
   number nrm1[3][3]={1.,0.,0., 0.,0.,1., 0.,-1.,0.};// for X-proj fibers wrt ECMO
   number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
+
   geant coo[3]={0.,0.,0.};
   geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz;
   geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
@@ -2689,6 +2690,40 @@ ECALDBc::readgconf();//
     cout << "LAYER " << ilayer << " DX=" <<  ECMCFFKEY.claddxy[2*ilayer] << " DY=" << ECMCFFKEY.claddxy[2*ilayer+1] << endl;
   }
   cout<<"      EcalGeom: Gap Thickness=" <<  ECMCFFKEY.gap << " cm" << endl;
+
+  number fiber_displacement[9];
+  for (int isupl=0;isupl<nsupl;isupl++){
+    fiber_displacement[isupl]=ECMCFFKEY.FiberDisplacement[isupl];
+  } // displacement in cm between negative coordinate and positive coordinate fiber edge due to fiber rotation (default value from W.Xu)
+  number angle[9];
+  number nrm3[9][3][3];
+  for (int isupl=0;isupl<nsupl;isupl++){
+    if (isupl%2==1){
+      angle[isupl]=atan(fiber_displacement[isupl]/dy1);
+      nrm3[isupl][0][0]=cos(angle[isupl]);
+      nrm3[isupl][1][0]=0;
+      nrm3[isupl][2][0]=-sin(angle[isupl]);
+      nrm3[isupl][0][1]=0;
+      nrm3[isupl][1][1]=1;
+      nrm3[isupl][2][1]=0;
+      nrm3[isupl][0][2]=sin(angle[isupl]);
+      nrm3[isupl][1][2]=0;
+      nrm3[isupl][2][2]=cos(angle[isupl]);
+    }
+    else{
+      angle[isupl]=atan(fiber_displacement[isupl]/dx1);
+      nrm3[isupl][0][0]=1;
+      nrm3[isupl][1][0]=0;
+      nrm3[isupl][2][0]=0;
+      nrm3[isupl][0][1]=0;
+      nrm3[isupl][1][1]=cos(angle[isupl]);
+      nrm3[isupl][2][1]=-sin(angle[isupl]);
+      nrm3[isupl][0][2]=0;
+      nrm3[isupl][1][2]=sin(angle[isupl]);
+      nrm3[isupl][2][2]=cos(angle[isupl]);
+    }
+  }
+
   
 //------------------------------------
   par[0]=dx1/2.+dxe;
@@ -2826,6 +2861,7 @@ ECALDBc::readgconf();//
         pECfbl=pECrad->add(new AMSgvolume(
                "EC_RADIATOR",0,vname,"BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. f-layer in ECrad
 //-----------
+	nrot= ecalconst::ECROTN+isupl+10;
         for(ifib=0;ifib<nf;ifib++){ // <--- fiber loop in layer
           if(iproj==0){
 	    par[0]=ECALDBc::rdcell(4)/2.+claddrx;// fiber radious(+glue) horizontal
@@ -2843,7 +2879,9 @@ ECALDBc::readgconf();//
 	  coo[2]=0.;
 	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
           
-          pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECFW","ELTU",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
+	  // sdf pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",0,"ECFW","ELTU",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
+	
+          pECfib=pECfbl->add(new AMSgvolume("EC_FWALL",nrot,"ECFW","ELTU",par,3,coo,nrm3[isupl],"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
 
 //
 #ifndef __G4AMS__
