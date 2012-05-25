@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.872 2012/05/23 14:15:12 sdifalco Exp $
+// $Id: job.C,v 1.873 2012/05/25 13:50:10 sdifalco Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -958,6 +958,16 @@ void AMSJob::_siecaldata(){
   }
   ECMCFFKEY.g4cutge=1.; // (76) Factor to divide the standard minimum range for photons and electrons in g4physics.C
   ECMCFFKEY.Tsim=23.; // (77) Temperature for MC simulation (equal to the test beam ECREFFKEY.Tref means no T corrections applied)
+  ECMCFFKEY.FiberDisplacement[0]=0.0290; // (78-86) displacement in cm between negative coordinate and positive coordinate fiber edge due to fiber rotation (from W.Xu) for each superlayer
+  ECMCFFKEY.FiberDisplacement[1]=0.0527;
+  ECMCFFKEY.FiberDisplacement[2]= 0.0117;
+  ECMCFFKEY.FiberDisplacement[3]= 0.0123;
+  ECMCFFKEY.FiberDisplacement[4]= -0.0429;
+  ECMCFFKEY.FiberDisplacement[5]= 0.0015;
+  ECMCFFKEY.FiberDisplacement[6]= -0.0132;
+  ECMCFFKEY.FiberDisplacement[7]= 0.0214;
+  ECMCFFKEY.FiberDisplacement[8]= -0.1052;
+
   FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.348 2012/05/17 17:57:46 barao Exp $
+//  $Id: commons.h,v 1.349 2012/05/25 13:50:58 sdifalco Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -435,6 +435,7 @@ class ECMCFFKEY_DEF {
   float claddxy[36]; // clad+glue thick. horiz./vert. variation in layer
   float g4cutge;     // Factor to divide the standard minimum range for photons and electrons in g4physics.C
   float Tsim;      // Temperature for MC simulation
+  float FiberDisplacement[9]; // displacement in cm between negative coordinate and positive coordinate fiber edge due to fiber rotation
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
