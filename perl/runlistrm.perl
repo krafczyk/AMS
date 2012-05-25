@@ -132,8 +132,11 @@ my @runlistrm=split '\,',$runlistr;
             }
 my $lst=0;
 my $alst=0;
-if(defined $rmc){
+if(defined $rmc or $maxrun<4000000000){
     @rungood=@runlist;
+    if(not defined $rmc){
+       @runlistrm=@runlist;
+    }
                     for my $i (0...$#rungood){
                         if(defined $rungood[$i]){
                             if($rungood[$i]>$maxrun){

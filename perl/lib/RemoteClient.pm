@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.735 2012/05/23 14:48:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.736 2012/05/25 11:57:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14135,12 +14135,15 @@ foreach my $block (@blocks) {
                 my $line=<FILEL>;
                 close FILEL;
                 my @junk=split ' ',$line;
-                foreach my $piece (@junk){
-                  if( $piece =~/^\d+$/ and $piece>100){
-                      $dstsize=$piece;
-                      last;
-                  }
-                }   
+                if($#junk>3){
+                    $dstsize=$junk[4];
+                }
+#                foreach my $piece (@junk){
+#                  if( $piece =~/^\d+$/ and $piece>1000000){
+#                      $dstsize=$piece;
+#                      last;
+#                  }
+#                }   
             }
             else{
              print "parsejournalfile-E-Unableto open file /tmp/castor.$$ \n";
