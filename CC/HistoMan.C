@@ -1,4 +1,4 @@
-/// $Id: HistoMan.C,v 1.44 2012/05/21 17:37:19 shaino Exp $ 
+/// $Id: HistoMan.C,v 1.45 2012/05/28 09:05:10 qyan Exp $ 
 #include <math.h>
 #include "HistoMan.h"
 #include "TFile.h"
@@ -428,8 +428,21 @@ void HistoMan::BookHistos(int simmode){
     Add(new TH1D("TrSimFakex","fake clusters; ladder",192,0,192));
     Add(new TH1D("TrSimFakey","fake clusters; ladder",192,0,192));
 
+  //--Record TOF MC pulse-max for trigger study
+   char histn[1000];
+   for(int ilay=0;ilay<4;ilay++){
+     for(int ibar=0;ibar<10;ibar++){
+       for(int is=0;is<2;is++){
+         int barid=1000*(ilay+1)+10*(ibar+1)+(is+1);
+         sprintf(histn,"Tof_MIP_Pulse_hight_%d",barid);
+         Add(new TH1D(histn,histn,300,0.,3000.));
+      }
+    }
+   }
+
     printf("HistoMan::BookHistos: histograms for MC-gen booked\n");
   }
+
 
   if (dsave) dsave->cd();
   booked = true;
