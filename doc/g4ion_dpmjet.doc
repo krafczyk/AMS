@@ -1,0 +1,42 @@
+             DPMJET Geant4 Ion Inelastic Model Guide
+                             Qi Yan
+
+========================================================
+DPMJET provide simulation of ion with different targets. 
+Geant4 nucleus code don't provide detailed spectra for projectile energy above 10GeV/n
+however DPMJET fortran codes can cover 5GeV/n-1000TeV/n.FORTRAN code of DPMJET-2.5 is 
+developed by J.Ranft for FLUKA. The interface to Geang4 was developed by P.Truscott. 
+The Modification version to be compatible with AMSsoft is released.
+
+
+1.1 Using DPMJET Process Simulation
+========================================================
+Environment variables Setting, G4DPMJET2_5DATA-path to Glauber data
+     setenv  G4DPMJET2_5DATA $AMSBASE/share/geant4/data/GlauberData
+Datacard switch:
+     G4FFKEY.IonPhysicsModel=3(g4)
+
+
+1.2 File introduction
+========================================================
+1.  $AMSSRC/DPMJET--new create DPMJET Dir
+       1: fortran source code--$AMSSRC/DPMJET/dpmjet2_5
+       2: Geant4 interface-----$AMSSRC/DPMJET/include(src)
+
+2:  $AMSSRC/include/g4physics_ion.h
+    $AMSSRC/CC/g4physics_ion.C  ---new ion DPMJET physicslist Model+CrossSection
+
+
+1.3  KONWN ISSUE
+========================================================
+If switch IonPhysicsModel=3, for Kinetic energy <5GeV/n, G4BinaryLightIonReaction Model will be active.
+For Kinetic Energy >5GeV/n, DPMJET Model will be used instead.
+
+Currently DPMJET-CrossSection data only support nucleus number up to AT(Traget)=58 AP(Projectile)=58.
+
+1: For inject paricle nuclus number AP>58(Ni), this model is not supported due to lack of data
+2: For high A detector(AT>58), such as AMSEcal Pb,
+G4IonsShenCrossSection(CrossSection) and G4BinaryLightIonReaction(Model) will be used in high energy range for those material.
+Ion fragment simulation maybe not so accurate in high energy(>10GeV) for high AT(>58) material.
+
+========================================================
