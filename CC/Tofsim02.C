@@ -1,4 +1,9 @@
 //Create by Qi Yan 2012/05/01
+// ------------------------------------------------------------
+//      History
+//        Modified:  Adding Geant3 Support 2012/05/16
+// -----------------------------------------------------------
+
 #include "tofdbc02.h"
 #include "Tofdbc.h"
 #include <stdio.h>
@@ -21,7 +26,9 @@
 #include "tofid.h"
 #include "root.h"
 #include "ntuple.h"
+#ifdef _PGTRACK_
 #include "HistoMan.h"
+#endif
 #include "tofsim02.h"
 //
 using namespace std;
@@ -97,8 +104,8 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 	 phtimd=TOFPMT::phriset();//photon rise time+decay time
 	 if(is==0)phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm1(idivx,r,i1,i2);
 	 else     phtiml=TOFWScanN::scmcscan1[ilay][ibar].gettm2(idivx,r,i1,i2);
-	 if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>1)phtim=time+phtims+phtimd+phtiml;
-         else                                     phtim=time+phtiml; 
+	 if(G4FFKEY.TFNewGeant4>0)phtim=time+phtims+phtimd+phtiml;
+         else                     phtim=time+phtiml; 
 /*         if(phtim>500){
              cout<<"ilay ibar is ipm idiv i1 i2"<<ilay<<" "<<ibar<<" "<<is<<" "<<ipm<<" "<<idivx<<" "<<i1<<" "<<i2<<endl;
              cout<<" time="<<time<<" phtims="<<phtims<<" phtimd="<<phtimd<<" phtiml="<<phtiml<<endl;
@@ -123,8 +130,12 @@ void TOF2TovtN::build()
   geant dummy(-1);int ierr(0);
   integer nhitl[TOF2GC::SCLRS];
   static geant ifadcb=1./TOF2DBc::fladctb();
+  static int prlevel=1;
 
-  cout<<"using tof Tofsim02"<<endl;
+  if(prlevel==1){
+     cout<<"using tof Tofsim02"<<endl;
+     prlevel=0;
+   }
  //---
    AMSTOFMCPmtHit *ptrpm=(AMSTOFMCPmtHit *)AMSEvent::gethead()->
                                    getheadC("AMSTOFMCPmtHit",0,1); 
@@ -145,7 +156,7 @@ void TOF2TovtN::build()
       nphoton++;
       if(ptrpm==0)cout<<"Error TOF PMT Hit loop"<<endl;
       pmtime=0;
-      if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){//LTRANS already include this item
+      if(G4FFKEY.TFNewGeant4>0){//LTRANS already include this item
         pmtime+=TOFPMT::pmttm[ilay][ibar][is][ipm];//Transmit time Mean about 7.2ns
         pmtime+=TOFPMT::pmtts[ilay][ibar][is][ipm]*rnormx()-1.9;//Transmit time Spread (-1.9) convert to pulse begin time  
       }
@@ -154,11 +165,9 @@ void TOF2TovtN::build()
       //cout<<"phtime="<<time<<endl;
      ii=uinteger(time*ifadcb+0.5);//arrive time bin/compesate
 //    if(ii>1000)cout<<"ilay ibar is ipm"<<ilay<<" "<<ibar<<" "<<is<<" "<<ipm<<" pmtime="<<pmtime<<" neg_time="<<time<<endl;
-     am=TOFPMT::pmamp.getx(RNDM(-1));
-//      am*=TOFPMT::pmgain[ilay][ibar][is][ipm];//mult gain
+      am=TOFPMT::phseamp();
       ptrpm->sitofpmtpar(pmtime,(am*TOFPMT::pmgain[ilay][ibar][is][ipm]));
-      //cout<<"am="<<am<<endl;
-      uinteger npulseb=TOFPMT::pmamp.getnb();
+      uinteger npulseb=TOFPMT::pmpulse.getnb();
       for(i=0;i<npulseb;i++){
         ij=i+ii;
         if(ij>TOF2GC::SCTBMX)break;//max time
@@ -191,7 +200,7 @@ void TOF2TovtN::build()
       ptrpm=ptrpm->next();//to next
     }//out of loop
 
-    cout<<"Event nphoton="<<nphoton<<endl;
+    cout<<"<<---TOF New MC Event nphoton="<<nphoton<<endl;
 
          
 //-------
@@ -316,7 +325,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
         tslice[i]+=   tslice1[ipm][i]*TOFPMT::pmgain[ilay][ibar][isid][ipm];;//all pmt together
         charged[ipm]+=tslice1[ipm][i]*TOFPMT::pmgaind[ilay][ibar][isid][ipm];;//integral signal together
        }
-       tslice[i]+=TFMCFFKEY.hfnoise*rnormx();//tempor high freq. noise
+       tslice[i]+=TFMCFFKEY.g4hfnoise*rnormx();//tempor high freq. noise
        charge+=tslice[i];
     }
 //---total charge(PC)
@@ -589,10 +598,11 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
 //---------------------------        
         } //      --- end of time bin loop for time measurements --->
 //---------------------------        
-/*       char histn[1000];
+#ifdef _PGTRACK_
+       char histn[1000];
        sprintf(histn,"Tof_MIP_Pulse_hight_%d",idd); 
        hman.Fill(histn,amx,1.);
-*/
+#endif
        //HF1(idd+10000,amx,1.); //amx.spectrum   
        if(TFMCFFKEY.mcprtf[2]!=0){
 	  if(idd==1041)HF1(1070,float(charge),1.);
@@ -619,7 +629,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
 //anode:
         TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,0,adcs,charge);// Qa(pC)->Anode(adc,float) 
         //cout<<"anode adc="<<adcs<<endl;
-        adcs=pmsatur(adcs,ilay,ibar,isid);
+        if(TFMCFFKEY.anodesat>0)adcs=pmsatur(adcs,ilay,ibar,isid);
         if(adcs>TOF2GC::SCPUXMX)adcs=TOF2GC::SCPUXMX;//PUX-chip saturation
         ped=TOFBPeds::scbrped[ilay][ibar].apeda(isid);// aver.ped in adc-chann. units(float)
         sig=TOFBPeds::scbrped[ilay][ibar].asiga(isid);// .... sig

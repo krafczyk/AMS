@@ -1,4 +1,9 @@
 //Author Qi Yan 2012/Feb/09 23:14
+// ------------------------------------------------------------
+//      History
+//        Modified:  Adding diff surface  2012/05/17
+//        Modified:  DB     update        2012/05/27
+// -----------------------------------------------------------
 #include "TofSimUtil.h"
 #include "job.h"
 #include "gmat.h"
@@ -190,8 +195,10 @@ G4double TofSimUtil::Pm_s[NLAY][NBAR]={
 G4double        TofSimUtil::SCRIND=1.58;
 G4double        TofSimUtil::LGRIND=1.49;
 G4double        TofSimUtil::VARIND=1.;
+G4double        TofSimUtil::LOBSIG[NLAY][NBAR];
 ///-----PMT eff
 G4double        TofSimUtil::QEMAX=0.25;
+G4double        TofSimUtil::SCEFFC[NLAY][NBAR];
 G4double        TofSimUtil::PHEFFC[NLAY][NBAR][NSIDE][NPMTM];
 G4PhysicsTable* TofSimUtil::TOFPM_Et=0;
 
@@ -222,17 +229,30 @@ TofSimUtil::~TofSimUtil(){
 
 void TofSimUtil::init(){
 //--read file  
-   char fname[100];
+   char fname[1000];
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
    else                    strcpy(fname,AMSDATADIR.amsdatadir);
-   strcat(fname,"TofGeant4_v3pr.dat");
+   char tfg4db[100];
+   int  tfg4dbv=TFMCFFKEY.simfvern/100000%10;
+   sprintf(tfg4db,"TofGeant4_v%dpr.dat",tfg4dbv);
+   strcat(fname,tfg4db);
 //--
    
    cout<<"<------TOF Geant4 Simulation::init: Opening  file : "<<fname<<endl;
    ifstream vlfile(fname,ios::in);
    if(!vlfile){
     cerr <<"<---- Error: missing TOF Geant4 Simulation-file !!: "<<fname<<endl;
+   }
+
+//---SC log Normal sigmal
+   for(int ilay=0;ilay<NLAY;ilay++){
+     for(int ibar=0;ibar<Nbar[ilay];ibar++){
+       if(vlfile){
+         vlfile>>LOBSIG[ilay][ibar];//deg
+         LOBSIG[ilay][ibar]=LOBSIG[ilay][ibar]*3.1415926/180.;
+       }
+     }
    }
 
 //---pn eff
@@ -248,16 +268,13 @@ void TofSimUtil::init(){
       }
     }
 //---bar eff
-  double bareff[NLAY][NBAR];
   for(int ilay=0;ilay<NLAY;ilay++){
     for(int ibar=0;ibar<Nbar[ilay];ibar++){
         if(vlfile){
-           vlfile>>bareff[ilay][ibar];
+           vlfile>>SCEFFC[ilay][ibar];
         }
       }
     }
-  
-//---
 
 //--Photon EFF Correction factor
    cout<<"Photon EFF Correction factor:"<<endl;
@@ -265,13 +282,7 @@ void TofSimUtil::init(){
       for(int is=0;is<NSIDE;is++){
         for(int ibar=0;ibar<Nbar[ilay];ibar++){
            for(int ipm=0;ipm<NPMTM;ipm++){
-/*             if(vlfile){
-                vlfile>>PHEFFC[ilay][ibar][is][ipm];
-                cout<<PHEFFC[ilay][ibar][is][ipm]<<" ";
-              }
-*/ 
-             PHEFFC[ilay][ibar][is][ipm]=bareff[ilay][ibar]*sideff[ilay][ibar][is];
-             //cout<<PHEFFC[ilay][ibar][is][ipm]<<" ";
+              PHEFFC[ilay][ibar][is][ipm]=sideff[ilay][ibar][is];
             }
          }
        }
@@ -334,9 +345,15 @@ void TofSimUtil::DefineTOF_M() {
   TOFFe_M = new G4Material("TOFFe",z=26, a=55.85*g/mole,density=7.87*g/cm3);
 
 //Scintillator EJ-200 C10H11
-  TOFSc_M = new G4Material("TOFSc", density= 1.032*g/cm3, 2);//-1.032
-  TOFSc_M->AddElement(C, 10);
-  TOFSc_M->AddElement(H, 11);
+   char scmatnam[1000];
+   for(int ilay=0;ilay<NLAY;ilay++){
+     for(int ibar=0;ibar<Nbar[ilay];ibar++){
+       sprintf(scmatnam,"TOFSc_l%d_b%d",ilay,ibar);
+       TOFSc_MA[ilay][ibar] = new G4Material(G4String(scmatnam), density= 1.032*g/cm3, 2);//-1.032
+       TOFSc_MA[ilay][ibar]->AddElement(C, 10);
+       TOFSc_MA[ilay][ibar]->AddElement(H, 11);
+    }
+ }
 
 //LG PMMA C5H802
   TOFLg_M = new G4Material("TOFLg", density=1.16*g/cm3,3);//-1.16
@@ -374,28 +391,33 @@ void TofSimUtil::DefineTOF_Mt() {
   G4double Sci_ABSL[ENUMSI]={
    400.*cm, 400.*cm, 400.*cm,
   };
-  TOFSc_Mt = new G4MaterialPropertiesTable();
-  TOFSc_Mt->AddProperty("FASTCOMPONENT", PhEnergyS, Sci_Fast, ENUMS);
-  TOFSc_Mt->AddProperty("SLOWCOMPONENT", PhEnergyS, Sci_Fast, ENUMS);// slow the same
-  TOFSc_Mt->AddProperty("RINDEX",        PhEnergySI, Sci_RIND, ENUMSI);
-  TOFSc_Mt->AddProperty("ABSLENGTH",     PhEnergySI, Sci_ABSL, ENUMSI);
 
-  G4double YIELD=QEMAX*10000./MeV;//quatum eff
-  YIELD*=TFMCFFKEY.pheffref;//gap loss also come to front
-//  G4double DEDX=10000./MeV;
-  TOFSc_Mt->AddConstProperty("SCINTILLATIONYIELD",YIELD);
-  TOFSc_Mt->AddConstProperty("RESOLUTIONSCALE", 1.0);
-  TOFSc_Mt->AddConstProperty("FASTTIMECONSTANT",2.1*ns);
-  TOFSc_Mt->AddConstProperty("SLOWTIMECONSTANT",2.1*ns);
-  TOFSc_Mt->AddConstProperty("FASTSCINTILLATIONRISETIME",0.9*ns);
-  TOFSc_Mt->AddConstProperty("SLOWSCINTILLATIONRISETIME",0.9*ns);
-  //TOFSc_Mt->AddConstProperty("YIELDRATIO",0.8);
-  TOFSc_Mt->AddConstProperty("YIELDRATIO",0.0);
-  TOFSc_M->SetMaterialPropertiesTable(TOFSc_Mt);
+   for(int ilay=0;ilay<NLAY;ilay++){
+     for(int ibar=0;ibar<Nbar[ilay];ibar++){
+        TOFSc_MtA[ilay][ibar] = new G4MaterialPropertiesTable();
+        TOFSc_MtA[ilay][ibar]->AddProperty("FASTCOMPONENT", PhEnergyS, Sci_Fast, ENUMS);
+        TOFSc_MtA[ilay][ibar]->AddProperty("SLOWCOMPONENT", PhEnergyS, Sci_Fast, ENUMS);// slow the same
+        TOFSc_MtA[ilay][ibar]->AddProperty("RINDEX",        PhEnergySI, Sci_RIND, ENUMSI);
+        TOFSc_MtA[ilay][ibar]->AddProperty("ABSLENGTH",     PhEnergySI, Sci_ABSL, ENUMSI);
+
+//---photon yield
+        G4double YIELD=SCEFFC[ilay][ibar]*QEMAX*10000./MeV;//quatum eff
+        YIELD*=TFMCFFKEY.pheffref;//gap loss also come to front
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("SCINTILLATIONYIELD",YIELD);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("RESOLUTIONSCALE", 1.0);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("FASTTIMECONSTANT",2.1*ns);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("SLOWTIMECONSTANT",2.1*ns);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("FASTSCINTILLATIONRISETIME",0.9*ns);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("SLOWSCINTILLATIONRISETIME",0.9*ns);
+        TOFSc_MtA[ilay][ibar]->AddConstProperty("YIELDRATIO",0.0);
+        TOFSc_MA[ilay][ibar]->SetMaterialPropertiesTable(TOFSc_MtA[ilay][ibar]);
 
 //--Set Birks Constant for the scintillator de/dx/(1+a*de/dx)
-  G4double BIRK=TFMCFFKEY.birk*mm/MeV;
-  TOFSc_M->GetIonisation()->SetBirksConstant(BIRK);
+        G4double BIRK=TFMCFFKEY.birk*mm/MeV;
+        TOFSc_MA[ilay][ibar]->GetIonisation()->SetBirksConstant(BIRK);
+     }
+  }
+
 
 //--Lg part
 //  const G4int ENUML = 26;
@@ -474,35 +496,34 @@ void TofSimUtil::DefineTOF_Su(){
   AlPT->AddProperty("RINDEX",      PhEnergySu, Gap_RIND,        ENUMSSA);//gap index
   AlPT->AddProperty("EFFICIENCY",  PhEnergySu, AlEfficiency,    ENUMSSA);//al det eff
   AlPT->AddProperty("REFLECTIVITY",PhEnergySu1,AlReflection,    ENUMSSA1);//al ref
- 
-  G4double lobsc=TFMCFFKEY.reflobsc;//lobsc
-  G4double loblg=TFMCFFKEY.refloblg>=0.?TFMCFFKEY.refloblg:lobsc;//loblg
- if(TFMCFFKEY.refmodel==1||TFMCFFKEY.refmodel==2){
-    TOFSC_Su=new G4OpticalSurface("ScintAlSurface",unified,polishedbackpainted,dielectric_dielectric,lobsc);
-    TOFLG_Su=new G4OpticalSurface("LGAlSurface",   unified,polishedbackpainted,dielectric_dielectric,loblg);
-   }
-  else if(TFMCFFKEY.refmodel==3){
-    TOFSC_Su=new G4OpticalSurface("ScintAlSurface",unified,groundbackpainted,dielectric_dielectric,lobsc);
-    TOFLG_Su=new G4OpticalSurface("LGAlSurface",   unified,groundbackpainted,dielectric_dielectric,loblg);
-  }
- else if(TFMCFFKEY.refmodel==4){
-    TOFSC_Su=new G4OpticalSurface("ScintAlSurface",unified,ground,dielectric_metal,lobsc);
-    TOFLG_Su=new G4OpticalSurface("LGAlSurface",   unified,ground,dielectric_metal,loblg);
-  }
- else { //refmodel==5
-    TOFSC_Su=new G4OpticalSurface("ScintAlSurface",unified,polishedbackpainted,dielectric_metal,lobsc);
-    TOFLG_Su=new G4OpticalSurface("LGAlSurface",   unified,polishedbackpainted,dielectric_metal,loblg);
- }
-  
-//--Al polish factor
- if(TFMCFFKEY.refmodel==1||TFMCFFKEY.refmodel>4){
-   G4double scskpolish=TFMCFFKEY.scskpol;
-   TOFSC_Su->SetPolish(scskpolish);//Al polish factor
-   G4double lgskpolish=TFMCFFKEY.lgskpol>=0.? TFMCFFKEY.lgskpol:scskpolish;
-   TOFLG_Su->SetPolish(lgskpolish);//Al polish factor
-  }
-  TOFSC_Su->SetMaterialPropertiesTable(AlPT);
-  TOFLG_Su->SetMaterialPropertiesTable(AlPT);
+
+//-----Surface build 
+   char scsunam[1000];
+   for(int ilay=0;ilay<NLAY;ilay++){
+      for(int ibar=0;ibar<Nbar[ilay];ibar++){
+          G4double lobsc=LOBSIG[ilay][ibar];
+          sprintf(scsunam,"ScintAlSurface_l%d_b%d",ilay,ibar);
+          if(TFMCFFKEY.refmodel==1||TFMCFFKEY.refmodel==2){
+             TOFSC_SuA[ilay][ibar]=new G4OpticalSurface(G4String(scsunam),unified,polishedbackpainted,dielectric_dielectric,lobsc);
+          }
+          else if(TFMCFFKEY.refmodel==3){
+             TOFSC_SuA[ilay][ibar]=new G4OpticalSurface(G4String(scsunam),unified,groundbackpainted,dielectric_dielectric,lobsc);
+          }
+          else if(TFMCFFKEY.refmodel==4){
+             TOFSC_SuA[ilay][ibar]=new G4OpticalSurface(G4String(scsunam),unified,ground,dielectric_metal,lobsc);
+          }
+          else { //refmodel==5
+             TOFSC_SuA[ilay][ibar]=new G4OpticalSurface(G4String(scsunam),unified,polishedbackpainted,dielectric_metal,lobsc);
+          }
+          //--Al polish factor
+          if(TFMCFFKEY.refmodel==1||TFMCFFKEY.refmodel>4){
+             G4double scskpolish=TFMCFFKEY.scskpol;
+             TOFSC_SuA[ilay][ibar]->SetPolish(scskpolish);//Al polish factor
+          }
+          TOFSC_SuA[ilay][ibar]->SetMaterialPropertiesTable(AlPT);
+      }
+    }
+
 //--PMT Detector Eff //PMT eff depend on angle and quatum
   const G4int PMENUMS = 3;
   G4double PhEnergyP[PMENUMS]={
@@ -580,7 +601,7 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
    
    G4LogicalVolume   *mvol=mother->pg4l();
    G4VPhysicalVolume *mvop=mother->pg4v();
-   G4cout<<"<<----------TOF Geant4 Geometry Init="<<G4endl;
+   G4cout<<"---------->>TOF Geant4 Geometry Init"<<G4endl;
    int nrot=5000;//temp
    char scname[100];
    char pmname[100];
@@ -595,6 +616,7 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
          int kk=ilay*10+ibar+1;//different from id
          if(kk>=10)sprintf(scname,"TF%d",kk);
          else      sprintf(scname,"TF0%d",kk);
+         TOFSc_M=TOFSc_MA[ilay][ibar];
          G4AssemblyVolume *AsBar=ConstructSubBar(G4String(scname));
 //--bar pos
          G4RotationMatrix BarRot;
@@ -650,6 +672,8 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
        if(G4FFKEY.TFNewGeant4==1){
          pm_log-> SetSensitiveDetector(AMSG4DummySD::pSD());
          pm_log1->SetSensitiveDetector(AMSG4DummySD::pSD());
+         TOFSC_Su=TOFSC_SuA[ilay][ibar];
+         TOFLG_Su=TOFSC_SuA[ilay][ibar];
          ConstructBarSurface(AsBar,mvop);
        }
     }
@@ -680,7 +704,7 @@ bool TofSimUtil::MakeTOFG4Volumes(AMSgvolume *mother){
    new G4PVPlacement(0,G4ThreeVector(PCarbon[3][0],PCarbon[3][1],PCarbon[3][2]),Carbon_log,"CarbonP4",mvol,false,0);
 
    AMSJob::map(1);
-   G4cout<<"<<----------End of TOF Geant4 Geometry Init="<<G4endl;   
+   G4cout<<"<<----------End of TOF Geant4 Geometry Init"<<G4endl;   
 
 //Add TOF geometry to map LVL302 need TOF geometry information
    G4cout<<"------>>LVL302 reinit"<<G4endl;
@@ -743,22 +767,22 @@ G4AssemblyVolume* TofSimUtil::ConstructSubBar(G4String sci_name){
    sciRot->rotateY(M_PI/2.*rad);*/
    scipar[0]=sci_w; scipar[1]=sci_l; scipar[2]=sci_t;
    scipar[3]=sci_wc;scipar[4]=sci_lc;
-   sci_log=tofgvol->GetSameG4Vol("TOFSC_M","TRDSPX",5,scipar);//Qi Yan
-   if(!sci_log){//Qi Yan
+//   sci_log=tofgvol->GetSameG4Vol("TOFSC_M","TRDSPX",5,scipar);//Qi Yan
+//   if(!sci_log){//Qi Yan
      sci_sol=SpeTrd(sci_name,scipar,sci_wc>0?1:-1);
      sci_log=new G4LogicalVolume(sci_sol,TOFSc_M,"tsc_log");
      tofgvol->add(new TOFgvolume("TOFSC_M","TRDSPX",5,scipar,sci_log));
-    }
+//    }
     sci_wc=fabs(sci_wc);
   }
  else {
      scipar[0]=sci_w;scipar[1]=sci_l;scipar[2]=sci_t;
-     sci_log=tofgvol->GetSameG4Vol("TOFSC_M","BOX",3,scipar);
-     if(!sci_log){
+//     sci_log=tofgvol->GetSameG4Vol("TOFSC_M","BOX",3,scipar);
+//     if(!sci_log){
        sci_sol=new G4Box(sci_name,sci_w/2.,(sci_l)/2.,sci_t/2.);
        sci_log=new G4LogicalVolume(sci_sol,TOFSc_M,"bsc_log");
        tofgvol->add(new TOFgvolume("TOFSC_M","BOX",3,scipar,sci_log));
-     }
+//     }
    }
  Abar->AddPlacedVolume(sci_log,scipos,sciRot);
 
@@ -965,10 +989,15 @@ AMSgmat* TofSimUtil::GetAMSgmat(G4Material *mat){
 
 bool TofSimUtil::AddTOFgmat(AMSgmat &gmat){
   // G4cout<<"gmat="<<G4endl;
-   AMSgmat* scgmat=GetAMSgmat(TOFSc_M);
+   for(int ilay=0;ilay<NLAY;ilay++){
+     for(int ibar=0;ibar<Nbar[ilay];ibar++){
+        AMSgmat* scgmat=GetAMSgmat(TOFSc_MA[ilay][ibar]);
+        gmat.add(scgmat);
+      }
+   }
+
    AMSgmat* lggmat=GetAMSgmat(TOFLg_M);
    AMSgmat* pmgmat=GetAMSgmat(TOFPM_M);
-   gmat.add(scgmat);
    gmat.add(lggmat);
    gmat.add(pmgmat);
 //   G4cout<<"gmatend"<<G4endl;
@@ -977,19 +1006,24 @@ bool TofSimUtil::AddTOFgmat(AMSgmat &gmat){
 
 
 bool TofSimUtil::AddTOFgtmed(AMSgtmed &gtmat){
- // G4cout<<"TofPMT"<<G4endl;
-/*  AMSgtmed *scgtmed=new AMSgtmed("TOF_SCINT1",TOFSc_M->GetName(),1);//sensitive volume
-  AMSgtmed *lggtmed=new AMSgtmed("TOF_LG1",TOFLg_M->GetName(),0);
-  AMSgtmed *pmgtmed=new AMSgtmed("TOF_PM1",TOFPM_M->GetName(),1);
-*/
-  AMSgtmed *scgtmed=new AMSgtmed(TOFSc_M->GetName(),TOFSc_M->GetName(),1);//sensitive volume
+   AMSgtmed *scgtmed[NLAY][NBAR];
+   for(int ilay=0;ilay<NLAY;ilay++){
+     for(int ibar=0;ibar<Nbar[ilay];ibar++){
+         scgtmed[ilay][ibar]=new AMSgtmed(TOFSc_MA[ilay][ibar]->GetName(),TOFSc_MA[ilay][ibar]->GetName(),1);//sensitive volume
+         gtmat.add(scgtmed[ilay][ibar]);
+     }
+   }
   AMSgtmed *lggtmed=new AMSgtmed(TOFLg_M->GetName(),TOFLg_M->GetName(),0);
   AMSgtmed *pmgtmed=new AMSgtmed(TOFPM_M->GetName(),TOFPM_M->GetName(),1);  
-  gtmat.add(scgtmed);
   gtmat.add(lggtmed);
   gtmat.add(pmgtmed);
+//----
   if(G4FFKEY.TFNewGeant4==1){
-   scgtmed->getpgmat()->getpamsg4m()->SetMaterialPropertiesTable(TOFSc_Mt);//adding table
+    for(int ilay=0;ilay<NLAY;ilay++){
+       for(int ibar=0;ibar<Nbar[ilay];ibar++){
+          scgtmed[ilay][ibar]->getpgmat()->getpamsg4m()->SetMaterialPropertiesTable(TOFSc_MtA[ilay][ibar]);//adding table
+     }
+   }
    lggtmed->getpgmat()->getpamsg4m()->SetMaterialPropertiesTable(TOFLg_Mt);
   }
 //  G4cout<<"endl TofPMT"<<G4endl;

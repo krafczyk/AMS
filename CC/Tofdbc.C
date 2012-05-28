@@ -1,4 +1,10 @@
 //Athor Qi Yan 2012/01/05 new Tof database
+// ------------------------------------------------------------
+//      History
+//        Modified:  Adding phseamp  2012/05/16
+//        Modified:  DB update       2010/05/28
+// -----------------------------------------------------------
+
 #include "typedefs.h"
 #include "cern.h"
 #include "commons.h"
@@ -172,6 +178,7 @@ void  TOFPMT::init(){
       for(int is=0;is<2;is++){
         for(int ibar=0;ibar<TOF2GC::SCMXBR;ibar++){
              vlfile>>daqthr[ilay][ibar][is][ish];
+             daqthr[ilay][ibar][is][ish]*=TFMCFFKEY.threref[ish]; 
             // cout<<daqthr[ilay][ibar][is][ish]<<" ";
         }
       }
@@ -207,66 +214,28 @@ void  TOFPMT::init(){
 void  TOFPMT::build(){
  cout<<"TOFPMT build begin"<<endl;
  init();
- cout<<"TOFPMT end build"<<endl;
 
-//Hamamatsu PMT R5946
-//--SE pulse build
-const int pulnb=12;
-geant pulset[pulnb]={
-   0.,1.,2.25,3.5,4.75,6.,8.5,11.,13.5,16.,18.5,21.
-};
-geant pulseh[pulnb]={
-   0.,0.132,0.85,1.,0.83,0.68,0.35,0.15,0.078, 0.059,0.029,0.
-};
+//Hamamatsu PMT R5946--SE pulse build
+ const int pulnb=12;
+ geant pulset[pulnb]={
+    0.,1.,2.25,3.5,4.75,6.,8.5,11.,13.5,16.,18.5,21.
+  };
+  geant pulseh[pulnb]={
+    0.,0.132,0.85,1.,0.83,0.68,0.35,0.15,0.078, 0.059,0.029,0.
+  };
  
-int pulnbc=int((pulset[pulnb-1]- pulset[0])/TOF2DBc::fladctb())+1;
- pmpulse =TOFHist(pulnb,pulset,pulseh,pulnbc);
-// pmpulse=TOFHist(pulnb,pulset,pulseh,pulnbc);
- //cout<<"<<--TOF SE pulse init"<<endl;
- //cout<<"pulse x"<<endl;
-
-/* for(int i=0;i<pmpulse.getnb();i++){cout<<pmpulse.getxc(i+1)<<" ";}
- cout<<endl;
- cout<<"pulse y"<<endl;
- for(int i=0;i<pmpulse.getnb();i++){cout<<pmpulse.gety(i+1)<<" ";}
- cout<<endl;
-*/
-// exit(0);
-//--SE amplitude part
- geant semean = 2.8421*TFMCFFKEY.seamref;//amp Mean value~ 5mV*ref
- geant seres=semean*TFMCFFKEY.seamres;//amp RMS value 0.9*mean
- geant selref =     TFMCFFKEY.selamref;//low amp part Mean amp 0.2
- geant selpec =     TFMCFFKEY.selampec;//low amp radio 0.2
-
- const int senbin=500;
- geant sebiny[senbin];
- geant sebinl=0,sebinh=25;//high 20mV
- geant sebinw=(sebinh-sebinl)/senbin;
- for(int ibin=0;ibin<senbin;ibin++)sebiny[ibin]=0;
- int senevent=50000;
- for(int iev=0;iev<senevent;iev++){
-    geant am=semean+seres*rnormx();
-    if(am<=0)continue;
-    if(RNDM(-1)<selpec)am=am*selref;
-    int ibin=int((am-sebinl)/sebinw+0.5);
-    if(ibin>=senbin)continue;
-    sebiny[ibin]++;
-  }
- pmamp=TOFHist(senbin,sebinl,sebinh,sebiny);
- /*cout<<"<<--TOF SE Amp init"<<endl;
- cout<<"amp x"<<endl;
- for(int i=0;i<pmamp.getnb();i++){cout<<pmamp.getxc(i+1)<<" ";}
- cout<<endl;
- cout<<"amp y"<<endl;
- for(int i=0;i<pmamp.getnb();i++){cout<<pmamp.gety(i+1)<<" ";}
- cout<<endl;
-*/
- //exit(0); 
+  int pulnbc=int((pulset[pulnb-1]- pulset[0])/TOF2DBc::fladctb())+1;
+  pmpulse =TOFHist(pulnb,pulset,pulseh,pulnbc);
+//  cout<<"<<--TOF SE pulse init"<<endl;
+ /* for(int i=0;i<pmpulse.getnb();i++){cout<<pmpulse.getxc(i+1)<<" ";}
+  cout<<endl;
+  cout<<"pulse y"<<endl;
+  for(int i=0;i<pmpulse.getnb();i++){cout<<pmpulse.gety(i+1)<<" ";}
+  cout<<endl;
+ */
 
 //--convert anode gain to refgain  
- //cout<<"pm refgain"<<endl;
  geant sumgain=0;
- //geant refgain=2.57;//2.54e^6 as refgain(mean gain)
  geant refgain=1.;
  for(int ilay=0;ilay<TOF2GC::SCLRS;ilay++){
     for(int ibar=0;ibar<TOF2GC::SCMXBR;ibar++){
@@ -278,10 +247,8 @@ int pulnbc=int((pulset[pulnb-1]- pulset[0])/TOF2DBc::fladctb())+1;
         }
       }
    }
-  //cout<<endl;
 
 //--PMT transmit time+transmit time spread 
-  //cout<<"transmit time"<<endl;
   geant hv;
   for(int ilay=0;ilay<TOF2GC::SCLRS;ilay++){
     for(int ibar=0;ibar<TOF2GC::SCMXBR;ibar++){
@@ -298,13 +265,15 @@ int pulnbc=int((pulset[pulnb-1]- pulset[0])/TOF2DBc::fladctb())+1;
              pmtts[ilay][ibar][is][ipm]=0;   
            }
            //cout<<pmttm[ilay][ibar][is][ipm]<<" "<<pmtts[ilay][ibar][is][ipm]<<" ";
-         
         }
       }
     }
   }
+
+   cout<<"TOFPMT build begin"<<endl;  
 }
 
+//----------------------------------------------------------
 geant TOFPMT::phriset(){
    // tau1: rise time and tau2: decay time
         geant tau1=emitt[0];
@@ -328,6 +297,24 @@ geant TOFPMT::phriset(){
 }
 
 //----------------------------------------------------------
+geant TOFPMT::phseamp(){
+  //--SE Amplitude part
+ geant semean = 2.8421*TFMCFFKEY.seamref;//amp Mean value~ 5mV*ref
+ geant seres=semean*TFMCFFKEY.seamres;//amp RMS value 0.9*mean
+ geant selref =     TFMCFFKEY.selamref;//low amp part Mean amp 0.2
+ geant selpec =     TFMCFFKEY.selampec;//low amp radio 0.2
+ geant am=-1;
+
+//---SE Amp-Sample
+ do{
+   am=semean+seres*rnormx();
+  }while(am<=0);
+
+  if(RNDM(-1)<selpec)am=am*selref;//low amp part
+
+  return am;
+} 
+
 //===========================================================
 TOFTpointsN::TOFTpointsN(int nbin, geant bnl, geant bnw, geant arr[]){//constructor
   int i,it,nb,nbf,fst,nbl;
@@ -472,10 +459,12 @@ TOFWScanN TOFWScanN::scmcscan1[TOF2GC::SCLRS][TOF2GC::SCMXBR];
 //----------------------------------------------------------------
 void TOFWScanN::build(){
 
-   char fname[1000],name[1000];
+   char fname[1000],name[2000];
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
    else                    strcpy(fname,AMSDATADIR.amsdatadir);
+   int tsfdbv=TFMCFFKEY.simfvern/100%10;
+
 //--------                       <-- now read t-distr. files
  int i,j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,dnumm,mult,dnumo;
  integer nb;
@@ -501,7 +490,7 @@ void TOFWScanN::build(){
 //--
  for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
      for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){
-       sprintf(name,"%s/tofg4l%db%d_1.tsf",fname,ilay,ibar);
+       sprintf(name,"%s/tofg4l%db%d_%d.tsf",fname,ilay,ibar,tsfdbv);
        cout<<"      Open file : "<<name<<'\n';
        ifstream tcfile(name,ios::in); // open needed t-calib. file for reading
        if(!tcfile){
