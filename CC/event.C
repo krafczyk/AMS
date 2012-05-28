@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.560 2012/05/24 12:12:49 choutko Exp $
+//  $Id: event.C,v 1.561 2012/05/28 09:03:16 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2802,8 +2802,8 @@ void AMSEvent:: _sitof2event(int &cftr){
 //
 //   cout << "before build "<<endl;
 //   AMSmceventg::PrintSeeds(cout);
-   if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0)TOF2TovtN::build();// Ghits->TovT-hits
-   else                                     TOF2Tovt::build();
+   if(G4FFKEY.TFNewGeant4>0)TOF2TovtN::build();// Ghits->TovT-hits
+   else                     TOF2Tovt::build();
 //    cout <<"after build "<<endl;
    AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
    TOF2JobStat::addmc(1);

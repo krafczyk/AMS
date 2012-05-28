@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.873 2012/05/25 13:50:10 sdifalco Exp $
+// $Id: job.C,v 1.874 2012/05/28 09:03:16 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -854,11 +854,11 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.tdcovf=1;//(23) 1/0->do/not activate TDC-overf.protection logic(= usage of TDC TrigTimeTag subtraction)
   //
   //---TOF new Geant4 Qi Yan
-  TFMCFFKEY.seamref=1.; //(24)PMT single electron spectrum ref to  5mV
+  TFMCFFKEY.seamref=1.; //(24)PMT single electron spectrum Amp ref nomral value
   TFMCFFKEY.seamres=0.9;//(25)PMT single electron spectrum resolution Rms/Mean
   TFMCFFKEY.selampec=0.2;//(26)PMT single electron low amplitude fraction
   TFMCFFKEY.selamref=0.2;//(27)PMT single electron low Amp/normal Amp
-  TFMCFFKEY.pheffref=0.45; //(28)photon ref eff
+  TFMCFFKEY.pheffref=0.7; //(28)photon ref eff
 
   TFMCFFKEY.refmodel=1; //(29)(1)new polishbackpaint (2)polishbackpaint (3)groudbackpaint (4)unified dielectric_metal (5)simple polishbackpaint
   TFMCFFKEY.absorp=0.; //(30)Sci-facet absorption prob[0,1]//MD-1
@@ -869,7 +869,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.refskin=1.;  //(35)Al-skin reflection ref prob//small angle more possible reach Al surface//may affect final fast slow fraction [0 1./0.902]//MD-1234
   TFMCFFKEY.scskpol=1.;//(36)ScAl-skin polish quality 1->Total mirror 0->diffuse//MD-1 
 
-  TFMCFFKEY.birk=0.02224; //(37)scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV
+  TFMCFFKEY.birk=0.02632; //(37)scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV Qi Yan
   TFMCFFKEY.phancut=0.01;// (38)cos(Angle) verticle direction photon cut
   TFMCFFKEY.phtrlcut=3.;// (39)photon transmit track length cut //5m
   TFMCFFKEY.phstepcut=2.;//(40)photon max steplength cut//2*m
@@ -879,8 +879,16 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.phtsmear=0.;//(44)SE-jitter smear
   TFMCFFKEY.g4tfdir=1;//(45) from local(1) or AMSDataDir(0)
   VBLANK(TFMCFFKEY.g4tfdb,100);
-  char tfdb[80]="TofGainPMag_v4polish_LT0_3n.dat";
+  char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
+  TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
+  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->on(1) off(0)
+  TFMCFFKEY.writeall=0;   //148 write photon information to rootfile(table mode)->on(1) off(0)
+  TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
+  TFMCFFKEY.threref[0]=1.;//150  LT  reference to normal value
+  TFMCFFKEY.threref[1]=1.;//151  HT  reference to normal value
+  TFMCFFKEY.threref[2]=1.;//151  SHT reference to normal value
+         
 //---
 
   FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -2528,9 +2536,9 @@ void AMSJob::_sitof2initjob(){
   //---------
   //
   TOF2JobStat::bookhistmc();//Book histograms for MC
-  if(MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4>0){
+  if(G4FFKEY.TFNewGeant4>0){
      TOFPMT::build();//New PMT information
-     if(G4FFKEY.TFNewGeant4>1)TOFWScanN::build();//Table method
+     if(G4FFKEY.TFNewGeant4>1||MISCFFKEY.G3On)TOFWScanN::build();//Table method
    }
 }
 //----------------------------------------------------------------------------------------
