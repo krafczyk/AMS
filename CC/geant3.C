@@ -1,5 +1,6 @@
-//  $Id: geant3.C,v 1.156 2012/05/23 09:03:07 choutko Exp $
+//  $Id: geant3.C,v 1.157 2012/05/28 08:59:16 qyan Exp $
 
+#include "Tofsim02.h"
 #include "typedefs.h"
 #include "cern.h"
 #include "mceventg.h"
@@ -270,10 +271,21 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //  if(tfprf)cout<<"   x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<"  step="<<pstep<<endl;
     if(TFMCFFKEY.birks){
 //cout<<"  ----->TOF-Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
-      GBIRK(dee);
+//---TOFNew Simulation Using Geant4 table
+      number dedxcm=1000*dee/GCTRAK.step;
+      if(G4FFKEY.TFNewGeant4>0)dee=dee/(1.+TFMCFFKEY.birk*dedxcm*0.1);
+      else                     GBIRK(dee);
 //cout<<"  ----->Aft.Birks:Edep="<<dee<<endl;
     }
     AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+//---TOFNew Simulation Using Geant4 table
+    if(G4FFKEY.TFNewGeant4>0){
+          number tofdt= 0;
+          integer  parentid=0;
+          TOF2TovtN::covtoph(numv,coo,dee,tof,tofdt,GCTRAK.step,parentid);
+     }
+//--
+
   }// ===> endof "in TFnn"
 //-------------------------------------
 
