@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.82 2012/05/04 13:46:49 qyan Exp $
+//  $Id: mccluster.C,v 1.83 2012/05/28 09:00:46 qyan Exp $
 // Author V. Choutko 24-may-1996
  
 
@@ -396,8 +396,10 @@ void AMSTOFMCCluster::_writeEl(){
 void AMSTOFMCPmtHit::_writeEl(){
   if(AMSTOFMCPmtHit::Out( IOPA.WriteAll%10==1)){
 #ifdef __WRITEROOT__
-//       cout<<"write tof"<<endl;
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+//       cout<<"write tof"<<endl; online mode write AMSRoot
+     if((MISCFFKEY.G4On&&G4FFKEY.TFNewGeant4==1)||(TFMCFFKEY.writeall==1)){
+       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+     } 
 #endif
    }
 }
