@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.381 2012/05/18 07:00:29 choutko Exp $
+#  $Id: datacards.doc,v 1.382 2012/05/28 09:10:47 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -886,7 +886,7 @@ R 33   reflob(0.)      (0 1) //Sci-facet lob-diffuse reflection prob
 R 34   refbac(0.)      (0 1) //Sci-facet back-reflection prob
 R 35   refskin(1.)     (0 1) //Al-skin reflection ref to normal value
 R 36   scskpol(1.)     (0 1) Sc->Al-skin polish quality 1->Total mirror 0->diffuse
-R 37   birk(0.02224)   (0  )//scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV
+R 37   birk(0.02632)   (0  )//scintillator Birks Constant de/dx/(1+a*de/dx) mm/MeV
 R 38   phancut(0.01)   (0 1) //verticle direction photon need more cpu time
 R 39   phtrlcut(3.)    (1 10) //photon transmit track length cut //5m
 R 40   phstepcut(2.)   (0,)   //photon max steplength cut//2*m
@@ -896,7 +896,11 @@ R 43   lgskpol (-1.)          //Lg->Al polish quality 1->Total mirror 0->diffuss
 R 44   phtsmear(0.)    (0,)   //SE-TTS saear 
 I 45   g4tfdir (1.)           //New TOF database from local(1) or AMSDataDir(0)
 I 46   g4tfdb                 //New TOFSimUtil database file name
-
+R 146  g4hfnoise(10.)         //New G4TOF high freq.noise
+R 147  anodesat(1)            //Anode saturation simulation on(1) off(0)
+R 148  writeall(0)            //write photon information to rootfile(table mode)->on(1) off(0   
+I 149  simfvern(509300)       //simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
+R 150  threref(1. 1. 1.)      //LT HT SHT reference to normal value
 
 // AMS02 TOF Reconstruction
 

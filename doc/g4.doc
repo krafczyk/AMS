@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.42 2010/11/21 00:58:24 choutko Exp $
+#  $Id: g4.doc,v 1.43 2012/05/28 09:10:46 qyan Exp $
 -------
 Platform:
 linux-gcc.4.x          ($G4SYSTEM=Linux-g++) 
@@ -50,6 +50,9 @@ Switch Off/On Physics Lists
 
 G4FF 5=0/1,2,3...
 
+--------
+Ion Physics Process
+New Ion inelastic model DPMJET: g4ion_dpmjet.doc
 
 --------
 Datacards Switch:
@@ -184,8 +187,17 @@ last one is rayleigh "opacity", others as in g3 GSCKOV routine
 NB: g4 optical processes were modified, standard ones will not work.   
 
 
+TOF Photons
 ---------------------
 
+g4 tof simulation based on g4 optical process
+tof simulation has three mode, which can switched via datacard option:
+
+G4FFKEY.TFNewGeant4=?
+1: Old LTRANS Table (g3 g4)
+2: New Geant4 Online(g4)     //trace every photon
+3: New Geant4 Table (g3 g4)
+g3 can still use g4 parameterization table to do simulation.
 
 
-
+---------------------
