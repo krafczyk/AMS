@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.349 2012/05/25 13:50:58 sdifalco Exp $
+//  $Id: commons.h,v 1.350 2012/05/28 09:07:55 qyan Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -270,6 +270,11 @@ class TFMCFFKEY_DEF {
   geant phtsmear;
   integer g4tfdir;
   integer g4tfdb[100];
+  geant g4hfnoise;
+  integer anodesat;
+  integer writeall;
+  integer simfvern;
+  geant   threref[3];
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);

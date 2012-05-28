@@ -118,6 +118,9 @@ class TofSimUtil
   static G4double DCarbonR;
   static G4double DCarbonZ;
   static G4double PCarbon[4][3];
+  G4OpticalSurface*          TOFSC_SuA[NLAY][NBAR];
+  G4MaterialPropertiesTable* TOFSc_MtA[NLAY][NBAR];//sci material table all
+  G4Material*                TOFSc_MA[NLAY][NBAR];//sci material all
 
  private:
   int npmt;
@@ -162,6 +165,8 @@ class TofSimUtil
     static G4double SCRIND;
     static G4double LGRIND;
     static G4double VARIND;
+    static G4double LOBSIG[NLAY][NBAR];
+    static G4double SCEFFC[NLAY][NBAR];
     static G4double PHEFFC[NLAY][NBAR][NSIDE][NPMTM];//effeciency uncertainty correction
   public:
     TofSimUtil();

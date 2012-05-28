@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.39 2012/05/04 13:54:27 qyan Exp $
+//  $Id: mccluster.h,v 1.40 2012/05/28 09:07:55 qyan Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -89,7 +89,7 @@ class AMSTOFMCPmtHit:  public AMSlink{
   number  gettimp()   const {return _phtimp;}
   number  getamp()    const {return _phamp; }
 #ifdef __WRITEROOT__
-  friend class TOFMCPmtHit;
+  friend class TofMCPmtHitR;
 #endif
 };
 

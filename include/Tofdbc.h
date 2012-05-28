@@ -79,6 +79,7 @@ class TOFPMT{
      static geant ansat[TOF2GC::SCLRS][TOF2GC::SCMXBR][2][2];//Anode 2saturation par
      static geant emitt[2];
      static geant phriset();
+     static geant phseamp();
 };  
 
 
