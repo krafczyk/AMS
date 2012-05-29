@@ -66,7 +66,7 @@ bool Clean_Event(AMSEventR *pev){
   float rig_fs=0, rig_up=0, rig_low=0;
   float chi2_fs=0, chi2_up=0, chi2_low=0;
   
-  if(id_up>=0 && id_low>=0){
+  if(id_up>=0 && id_low>=0 && id_fs>=0){
     rig_fs=track->GetRigidity(id_fs);
     rig_up=track->GetRigidity(id_up);
     rig_low=track->GetRigidity(id_low);
@@ -74,7 +74,7 @@ bool Clean_Event(AMSEventR *pev){
     chi2_up=track->GetNormChisqY(id_up);
     chi2_low=track->GetNormChisqY(id_low);
     
-    if(! (rig_low/rig_up<2. && rig_low/rig_up>0.5  && chi2_low<15. && chi2_up<15.) )return false;
+    if(! (rig_low/rig_up<2. && rig_low/rig_up>0.5  && chi2_low<50. && chi2_up<50.) )return false;
   }
   else return false;
 
@@ -171,32 +171,30 @@ bool Clean_Event(AMSEventR *pev){
   for(int i=0; i<4; i++) if(goodlayer[i] && goodlay[i]) nlay++;
   if(nlay<3) return false;
 
-  int tr_lay[9][2];
-  for(int i=0;i<9;i++){tr_lay[i][0]=0;tr_lay[i][1]=0;}
-
+  int tr_lay[9];
+  int lay2=0;
+  for(int i=0;i<9;i++) tr_lay[i]=0;
+  
   TrRecHitR *hit;
-  for(int i=2; i<9; i++){
-    hit=track->GetHitLJ(i);
-    if(hit){
-      if(!hit->OnlyY()) tr_lay[i-1][0]++;
-      if(!hit->OnlyX()) tr_lay[i-1][1]++;
+  for(int i=1; i<10; i++){
+    hit=track->GetHitLJ(i);  
+    if(hit>0){
+      if(track->TestHitLayerJHasXY(i)) tr_lay[i-1]=1;
+      if(i==2) lay2=1;
     }
   }
+  
+  int n_planes=0;
+  
+  if( lay2 > 0) n_planes+=1;
+  if( tr_lay[2]> 0 ||  tr_lay[3]> 0) n_planes+=1;
+  if( tr_lay[4]> 0 ||  tr_lay[5]> 0) n_planes+=1;
+  if( tr_lay[6]> 0 ||  tr_lay[7]> 0) n_planes+=1;
 
-  int n_layers[2]={0,0};
-  
-  for(int i=1; i<8; i++){
-    if(tr_lay[i][0]>0) n_layers[0]++;
-    if(tr_lay[i][1]>0) n_layers[1]++;
-  }
-  
-  
   // One hit on every inner tracker plane in X,Y
-  if(!((tr_lay[2][0]||tr_lay[3][0]) && (tr_lay[4][0]||tr_lay[5][0]) && (tr_lay[6][0]||tr_lay[7][0]))) return false;
-  if(!(tr_lay[1][1]&&(tr_lay[2][1]||tr_lay[3][1]) && (tr_lay[4][1]||tr_lay[5][1]) && (tr_lay[6][1]||tr_lay[7][1]))) return false;
+  if(n_planes!=4) return false; 
   
-  
-  if(track->GetNormChisqY(id) >=15. ) return false;
+  if(track->GetNormChisqY(id) >=50. ) return false;
 
   AMSPoint ecaltop;
   AMSDir ecal;
@@ -250,7 +248,7 @@ bool good_trd_event(AMSEventR *pev){
   
   TrTrackR *tr_track=pev->pTrTrack(0);
   int id=tr_track->iTrTrackPar(1,3,1);
-  if(tr_track->GetRigidity(id)>50.) id=tr_track->iTrTrackPar(1,0,4);
+  if(fabs(tr_track->GetRigidity(id))>50.) id=tr_track->iTrTrackPar(1,0,4);
   float P=tr_track->GetRigidity(id);
 
   // TRD point and direction at z=UToF;
@@ -312,7 +310,7 @@ bool good_ecal_event(AMSEventR *pev){
 
   TrTrackR *tr_track=pev->pTrTrack(0);
   int id=tr_track->iTrTrackPar(1,3,1);
-  if(tr_track->GetRigidity(id)>50.) id=tr_track->iTrTrackPar(1,0,4);
+  if(fabs(tr_track->GetRigidity(id))>50.) id=tr_track->iTrTrackPar(1,0,4);
 
   AMSPoint tk_pnt;
   AMSDir tk_dir;
