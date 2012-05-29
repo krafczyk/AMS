@@ -94,7 +94,7 @@ void TrExtAlignDB::AddM(int lay, uint time, Double_t *par)
   }
 }
 
-std::vector<uint> TrExtAlignDB::GetVt(int lay, uint tmin, uint tmax)
+std::vector<uint> TrExtAlignDB::GetVt(int lay, uint tmin, uint tmax) const
 {
   std::vector<uint> vt;
 
@@ -107,6 +107,20 @@ std::vector<uint> TrExtAlignDB::GetVt(int lay, uint tmin, uint tmax)
   }
 
   return vt;
+}
+
+uint TrExtAlignDB::GetTmin(int lay) const
+{
+  const std::map<uint, TrExtAlignPar> &tmap = (lay == 8) ? L8 : L9;
+  ealgITc it = tmap.begin();
+  return it->first;
+}
+
+uint TrExtAlignDB::GetTmax(int lay) const
+{
+  const std::map<uint, TrExtAlignPar> &tmap = (lay == 8) ? L8 : L9;
+  ealgITc it = tmap.end(); it--;
+  return it->first;
 }
 
 int TrExtAlignDB::OverLoadFlag = 1;
@@ -361,6 +375,13 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
   uint te8 = ti8+50000;  // Effective time range
   uint te9 = ti8+50000;  // Effective time range
 
+  // For default data
+  if (GetSize(8) == 1) { ti8 = GetTmin(8); te8 = 2100000000; }
+  if (GetSize(9) == 1) { ti9 = GetTmin(9); te9 = 2100000000; }
+
+  if (GetSize(8) == 2) { ti8 = GetTmin(8); te8 = GetTmax(8); }
+  if (GetSize(9) == 2) { ti9 = GetTmin(9); te9 = GetTmax(9); }
+
   static int nor = 0;
   if (nor++ < 20 && (time < ti8 || time < ti9 || 
 		     time > te8 || time > te9)) {
@@ -378,6 +399,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
     dt9 = (int)tf9-(int)time;
+
+    if (GetSize(8) <= 2 || GetSize(9) <= 2) dt8 = dt9 = 0;
     
     if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
       std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
@@ -399,6 +422,9 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
       tf9 = Find(9, time);
       dt8 = (int)tf8-(int)time;
       dt9 = (int)tf9-(int)time;
+
+      if (GetSize(8) <= 2 || GetSize(9) <= 2) dt8 = dt9 = 0;
+
       if ((dt8 < -200 || 200 < dt8) && nwar++ < errlim)
 	std::cout << "TrExtAlignDB::UpdateTkDBc-W-Time is too far: "
 		  << tf8 << " " << time << " " << tf8-time << std::endl;
@@ -424,6 +450,8 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     tf9 = Find(9, time);
     dt8 = (int)tf8-(int)time;
     dt9 = (int)tf9-(int)time;
+
+    if (GetSize(8) <= 2 || GetSize(9) <= 2) dt8 = dt9 = 0;
 
     int ret=-1;
     if((dt8 < -200 || 200 < dt8)|| (dt9 < -200 || 200 < dt9)){
@@ -462,6 +490,11 @@ int  TrExtAlignDB::UpdateTkDBc(uint time) const
     if (!pl) return -3 ;
 
     const TrExtAlignPar *par = Get(layer, time);
+    if (!par && GetSize(layer) == 1) {
+      const std::map<uint, TrExtAlignPar> &tmap = (layer == 8) ? L8 : L9;
+      par = &(tmap.begin()->second);
+    }
+
     if(!par) return -4;
 
     float * ll= (layer==8)?SL1:SL9;
@@ -589,7 +622,8 @@ void TrExtAlignDB::Lin2ExAlign()
       n++;
     }
 
-    cout << "size" << layer << "= " << n << " " << GetSize(layer) << endl;
+    cout << "size" << layer << "= " << n << " " << GetSize(layer) << " "
+	 << "time= " << GetTmin(layer) << " " << GetTmax(layer) << endl;
   }
 }
 

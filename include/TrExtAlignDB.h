@@ -1,4 +1,4 @@
-//  $Id: TrExtAlignDB.h,v 1.23 2012/05/13 21:59:38 pzuccon Exp $
+//  $Id: TrExtAlignDB.h,v 1.24 2012/05/29 11:13:44 shaino Exp $
 #ifndef TREXTALIGNDB_H
 #define TREXTALIGNDB_H
 
@@ -190,7 +190,14 @@ public:
   const TrExtAlignPar *Get(int lay, uint time) const;
 
   /// Get a list of time in range
-  std::vector<uint> GetVt(int lay, uint tmin = 0, uint tmax = 2000000000);
+  std::vector<uint> GetVt(int lay, uint tmin = 0,
+			           uint tmax = 2000000000) const;
+
+  /// Get the first time
+  uint GetTmin(int lay) const;
+
+  /// Get the last time
+  uint GetTmax(int lay) const;
 
   /// Get TrExtAlignPar with [time]
   TrExtAlignPar &GetM(int lay, uint time);
