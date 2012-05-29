@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.874 2012/05/28 09:03:16 qyan Exp $
+// $Id: job.C,v 1.875 2012/05/29 18:17:57 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -882,7 +882,7 @@ void AMSJob::_sitof2data(){
   char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46
   TFMCFFKEY.g4hfnoise=9.;//146 new g4tof high freq. noise 
-  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->on(1) off(0)
+  TFMCFFKEY.anodesat=1;   //147 anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
   TFMCFFKEY.writeall=0;   //148 write photon information to rootfile(table mode)->on(1) off(0)
   TFMCFFKEY.simfvern=509300;//149  simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
   TFMCFFKEY.threref[0]=1.;//150  LT  reference to normal value

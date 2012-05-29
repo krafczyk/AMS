@@ -35,7 +35,7 @@ using namespace std;
 //------------------------------------------------------------------
 void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, geant tofdt,geant stepl,integer parentid){
 
-  integer id,pmtid,ibar,ilay,is,ipm,ibtyp,cnum;//Qi Yan
+  integer id,pmtid,ibar,ilay,is,ipm,ibtyp,cnum;
   integer i,kk,i1,i2;
   geant edep1,x,y,z,time,dtime,sharep,eff,r,rand;
   geant nel0,nels,nelp;
@@ -139,6 +139,9 @@ void TOF2TovtN::build()
  //---
    AMSTOFMCPmtHit *ptrpm=(AMSTOFMCPmtHit *)AMSEvent::gethead()->
                                    getheadC("AMSTOFMCPmtHit",0,1); 
+   AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
+                                    getheadC("AMSTOFMCCluster",0,1);
+
     for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
        for(i=0;i<=TOF2GC::SCTBMX;i++){
          tslice[ipm][i]=0;
@@ -176,15 +179,14 @@ void TOF2TovtN::build()
       }
 ///----
       if(ptrpm->next()==0||(ptrpm->next()->getpmtid()/10!=ptrpm->getpmtid()/10)){//isid different
-        AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
-                                    getheadC("AMSTOFMCCluster",0,1);
         //cout<<"begin tofcluster edep"<<endl;
         edepb=0.;//GeV
         while(ptr){
           id=ptr->idsoft;
-          if((id/100-1==ilay)&&(id%100-1==ibar))edepb+=ptr->edep*1000;//GeV->MeV
+          if(id>(100*(ilay+1)+ibar+1))break;
+          else if(id==(100*(ilay+1)+ibar+1))edepb+=ptr->edep*1000;//GeV->MeV
           ptr=ptr->next();
-        } 
+        }
         if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
 //        idd=id*10+1;//LBBS already change
         idd=1000*(ilay+1)+10*(ibar+1)+(is+1);//LBBS
@@ -270,7 +272,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
   geant a2dr[2],adc2q;
   static geant a2ds[2],adc2qs;
   geant tshd,tshup,saturf;
-  number charge,charged[TOF2GC::PMTSMX];//Qi Yan
+  number charge,charged[TOF2GC::PMTSMX];
   geant tbn,w,bo1,bo2,bn1,bn2,tmark;
   static integer first=0;
   static integer nshbn,mxcon,mxshc,mxshcg;
@@ -315,21 +317,33 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
    daqt2=TOFPMT::daqthr[ilay][ibar][isid][2];
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
-  geant tslice[TOF2GC::SCTBMX+1]; //Qi Yan
+  geant tslice[TOF2GC::SCTBMX+1];
+  geant gainref=1;
+  bool gainflag=1;
+  if(TFMCFFKEY.anodesat==2)gainflag=0;
+
+pmtansat:
   charge=0;
-  for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++)charged[ipm]=0;//Qi Yan
+  for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++)charged[ipm]=0;
 //---
   for(i=0;i<=TOF2GC::SCTBMX;i++){
      tslice[i]=0;
      for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
-        tslice[i]+=   tslice1[ipm][i]*TOFPMT::pmgain[ilay][ibar][isid][ipm];;//all pmt together
-        charged[ipm]+=tslice1[ipm][i]*TOFPMT::pmgaind[ilay][ibar][isid][ipm];;//integral signal together
+        tslice[i]+=   tslice1[ipm][i]*TOFPMT::pmgain[ilay][ibar][isid][ipm]*gainref;//all pmt together
+        if(gainflag)charged[ipm]+=tslice1[ipm][i]*TOFPMT::pmgaind[ilay][ibar][isid][ipm];//integral signal together
        }
-       tslice[i]+=TFMCFFKEY.g4hfnoise*rnormx();//tempor high freq. noise
+       if(gainflag)tslice[i]+=TFMCFFKEY.g4hfnoise*rnormx();//tempor high freq. noise
        charge+=tslice[i];
     }
 //---total charge(PC)
     charge*=fladcb/50.; // get total charge (pC)
+//---Anode PMT saturation simulation
+    if(!gainflag){
+        if(charge>0)gainref=pmsatur(charge,ilay,ibar,isid)/charge;
+        else        gainref=0;
+        gainflag=1;goto pmtansat;
+    }
+
     //cout<<"charge an="<<charge<<"pC"<<endl;
     for(ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
        charged[ipm]*=fladcb/50.;
@@ -414,7 +428,7 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
           if(am>amx)amx=am;//to find max amplitude
 //-------------------          
 // generic discr-1 up/down setting (used by LT-time branch):
-          if(am>=daqt0){// <=== Am>50mV LTthr ->corrected by Qi Yan
+          if(am>=daqt0){// <=== Am>LTthr
             if(pupd1==0&& (tm-tmd1d)>daqp4){//--D1(dead time 11 ns after previous LT down)
               pupd1=1;//already over
               tpupd1=tm;
@@ -627,9 +641,10 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
 	  _adcd[ipm]=0.;
 	}
 //anode:
-        TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,0,adcs,charge);// Qa(pC)->Anode(adc,float) 
+        adcs=charge;// Qa(pC)->Anode(adc,float)
         //cout<<"anode adc="<<adcs<<endl;
-        if(TFMCFFKEY.anodesat>0)adcs=pmsatur(adcs,ilay,ibar,isid);
+//----Anode Electronic saturation
+        if(TFMCFFKEY.anodesat==1)adcs=pmsatur(adcs,ilay,ibar,isid);
         if(adcs>TOF2GC::SCPUXMX)adcs=TOF2GC::SCPUXMX;//PUX-chip saturation
         ped=TOFBPeds::scbrped[ilay][ibar].apeda(isid);// aver.ped in adc-chann. units(float)
         sig=TOFBPeds::scbrped[ilay][ibar].asiga(isid);// .... sig
@@ -637,9 +652,9 @@ void TOF2TovtN::totovtn(integer idd, geant edepb, geant tslice1[][TOF2GC::SCTBMX
 //	cout<<"  Aped/sig="<<ped<<" "<<sig<<" _adca="<<_adca<<endl;
 //
 //
-//dynode: Qi Yan
+//----Dynode:
 	for(int ipm=0;ipm<npmts;ipm++){
-          TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,0,adcs,charged[ipm]);//Qa(pC)->(adc,float)//Dynode same as anode
+          adcs=charged[ipm];//a(pC)->(adc,float)//Dynode same as anode
 	  //cout<<"ipm="<<ipm<<" dynode adc="<<adcs<<endl;  
           if(adcs>TOF2GC::SCPUXMX)adcs=TOF2GC::SCPUXMX;//PUX-chip saturation
 	  ped=TOFBPeds::scbrped[ilay][ibar].apedd(isid,ipm);
