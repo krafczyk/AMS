@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.382 2012/05/28 09:10:47 qyan Exp $
+#  $Id: datacards.doc,v 1.383 2012/05/29 18:20:30 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -897,7 +897,7 @@ R 44   phtsmear(0.)    (0,)   //SE-TTS saear
 I 45   g4tfdir (1.)           //New TOF database from local(1) or AMSDataDir(0)
 I 46   g4tfdb                 //New TOFSimUtil database file name
 R 146  g4hfnoise(10.)         //New G4TOF high freq.noise
-R 147  anodesat(1)            //Anode saturation simulation on(1) off(0)
+R 147  anodesat(1)            //Anode saturation simulation->off(0) readoutsat(1)  pmtsat(2)
 R 148  writeall(0)            //write photon information to rootfile(table mode)->on(1) off(0   
 I 149  simfvern(509300)       //simulation DB version/g4DB(5)/PMDB(09)/tsfDB(3)/other use
 R 150  threref(1. 1. 1.)      //LT HT SHT reference to normal value
