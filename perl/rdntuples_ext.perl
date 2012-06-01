@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: rdntuples_ext.perl,v 1.3 2012/05/25 10:25:13 ams Exp $
+#  $Id: rdntuples_ext.perl,v 1.4 2012/06/01 06:46:23 choutko Exp $
 use strict;
 use lib qw(../perl);
 use lib::DBSQLServer;
@@ -31,11 +31,16 @@ unshift @ARGV, "-Fpdb_ams";
 # LETIME                                             NUMBER(38)
 # PATHS                                              VARCHAR2(255)
 
-   my $run2p="";
+ my $cite="" ;
+my $run2p="";
    foreach my $chop  (@ARGV){
-   if ($chop =~/^-r/) {
+ if ($chop =~/^-r/) {
         $run2p=unpack("x2 A*",$chop);
         $run2p=" and run=".$run2p;
+    }
+   if ($chop =~/^-c/) {
+        $cite=unpack("x2 A*",$chop);
+        $cite=" and cites.name='$cite'";
     }
    }
 
@@ -43,7 +48,7 @@ unshift @ARGV, "-Fpdb_ams";
      my $ok=$o->ConnectRO();
 if($ok){
     my $time=time();
-    my $sql = "SELECT ntuples.run,ntuples.path,cites.name,ntuples.jid fROM amsdes.ntuples,amsdes.jobs,amsdes.cites  where ntuples.datamc=1 and ntuples.version like 'v5.00%' and ntuples.path like '%ISS.B584/pass2%root' and ntuples.jid=jobs.jid and jobs.cid!=1  and jobs.cid=cites.cid $run2p  ORDER BY run ";
+    my $sql = "SELECT ntuples.run,ntuples.path,cites.name,ntuples.jid fROM amsdes.ntuples,amsdes.jobs,amsdes.cites  where ntuples.datamc=1 and ntuples.version like 'v5.00%' and ntuples.path like '%ISS.B584/pass2%root' and ntuples.jid=jobs.jid and jobs.cid!=1  and jobs.cid=cites.cid $cite $run2p  ORDER BY run ";
          my $ret=$o->Query($sql);
     my $okk=0;
     foreach my $file (@{$ret}){
