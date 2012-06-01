@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.68 2012/05/21 07:10:38 shaino Exp $
+//  $Id: TrFit.C,v 1.69 2012/06/01 21:07:31 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/05/21 07:10:38 $
+///$Date: 2012/06/01 21:07:31 $
 ///
-///$Revision: 1.68 $
+///$Revision: 1.69 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -512,7 +512,7 @@ bool TrFit::ParLimits(double &par, double min, double max)
 
 int TrFit::GetLayer(double z)
 {
-  int ilay = -1;
+  int ilay = 0;
   double dzmin = 2.5;
   for (int i = 0; i < TkDBc()->nlay(); i++) 
     if (std::abs(z-TkDBc()->GetZlayer(i+1)) < dzmin) {
@@ -1014,12 +1014,9 @@ int TrFit::FillDmsc(double *dmsc, double fact,
 			0.0006,  // 6:L5  (Si+HC)/2
 			0.0006,  // 7:L6  (Si)
 			0.0012,  // 8:L7  (Si+HC)
-			0.0600,   // 9:L9  (Si+TOF+RICH)
-			1.,
-			1,1,1,1,1,
-			1,1,1,1,1
-  };
-  
+			0.0600   // 9:L9  (Si+TOF+RICH)
+                      };
+
   static bool first = true;
 #pragma omp critical (filldmsc)
   if (first && _mscat) {
@@ -1031,7 +1028,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
   }
 
   for (int i = 0; i < _nhit; i++) dmsc[i] = 0;
-  for (int i = 1; i <     LMAX; i++) WLEN[i] *= fact;
+  for (int i = 1; i <     8; i++) WLEN[i] *= fact;
 
   if (_rigidity == 0) return -1;
 
@@ -1055,27 +1052,22 @@ int TrFit::FillDmsc(double *dmsc, double fact,
     if (!len)  len  = ltmp;
     if (!cosz) cosz = ctmp;
   }
-  //PZ fix to handle more points than the tracker layers
-  int pos[10];
-  int ind=0;
   if (!ilay) {
     ilay = itmp;
     for (int i = 0; i < _nhit; i++) {
-      ilay[ind] = GetLayer(_zh[i]);
-      pos[ind]=i;
-      if (ilay[ind] == 8) ilay[ind] = 0;
-      if (ilay[ind] == 9) ilay[ind] = 8;
-      if (ilay[ind] != -1) ind++;
+      ilay[i] = GetLayer(_zh[i]);
+      if (ilay[i] == 8) ilay[i] = 0;
+      if (ilay[i] == 9) ilay[i] = 8;
     }
   }
 
-  memset(dmsc,0,_nhit*sizeof(dmsc[0]));
-  for (int i = 0; i < ind; i++) {
+  for (int i = 0; i < _nhit; i++) {
+    dmsc[i] = 0;
 
     if (_mscat && pbi2 > 0) {
       int k1 = (i < ic) ? ic-1 : ic;
       int dk = (i < ic) ?   -1 :  1;
-      if (k1+dk < 0 || ind <= k1+dk) continue;
+      if (k1+dk < 0 || _nhit <= k1+dk) continue;
 
       int l1 = ilay[k1+dk], l2 = ilay[i], dl = (l1 < l2) ? 1 : -1;
       for (int k = k1+dk; k != i+dk; k += dk) {
@@ -1084,7 +1076,7 @@ int TrFit::FillDmsc(double *dmsc, double fact,
 	for (int l =  k; l !=  i+dk; l += dk) ln += len[l];
 	for (int l = l1; l != l2+dl; l += dl) wl += WLEN[l];
 
-	dmsc[pos[i]] += ln*ln*0.0118*0.0118*pbi2*wl/cosz[k];
+	dmsc[i] += ln*ln*0.0118*0.0118*pbi2*wl/cosz[k];
 	l1 = l2+dl;
       }
     }
