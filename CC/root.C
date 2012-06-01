@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404 2012/05/18 16:37:37 choutko Exp $
+//  $Id: root.C,v 1.405 2012/06/01 15:50:30 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5927,7 +5927,7 @@ void AMSEventR::GetAllContents() {
   bAntiMCCluster->GetEntry(_Entry);
   bTrMCCluster->GetEntry(_Entry);
   bTofMCCluster->GetEntry(_Entry);
-  bTofMCPmtHit->GetEntry(_Entry);
+  if(bTofMCPmtHit)bTofMCPmtHit->GetEntry(_Entry);
   bEcalMCHit->GetEntry(_Entry);
   bTrdMCCluster->GetEntry(_Entry);
   bRichMCCluster->GetEntry(_Entry);

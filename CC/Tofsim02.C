@@ -2,6 +2,7 @@
 // ------------------------------------------------------------
 //      History
 //        Modified:  Adding Geant3 Support 2012/05/16
+//        Modified:                        2012/06/01
 // -----------------------------------------------------------
 
 #include "tofdbc02.h"
@@ -121,10 +122,10 @@ void TOF2TovtN::covtoph(integer idsoft, geant vect[], geant edep,geant tofg, gea
 //------
 void TOF2TovtN::build()
 {
-  integer id,idd,ibar,ilay,is,ipm;
+  integer id,idd,ibar,ilay,is,ipm,prbar=-1,nowbar=-1;
   integer i,j,ij;
   uinteger ii;
-  geant edep,edepb,time,pmtime,am;
+  geant edep,edepb=-1,time,pmtime,am;
   geant tslice[TOF2GC::PMTSMX][TOF2GC::SCTBMX+1]; //  flash ADC array
 //---
   geant dummy(-1);int ierr(0);
@@ -180,14 +181,18 @@ void TOF2TovtN::build()
 ///----
       if(ptrpm->next()==0||(ptrpm->next()->getpmtid()/10!=ptrpm->getpmtid()/10)){//isid different
         //cout<<"begin tofcluster edep"<<endl;
-        edepb=0.;//GeV
-        while(ptr){
-          id=ptr->idsoft;
-          if(id>(100*(ilay+1)+ibar+1))break;
-          else if(id==(100*(ilay+1)+ibar+1))edepb+=ptr->edep*1000;//GeV->MeV
-          ptr=ptr->next();
-        }
-        if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
+        nowbar=100*(ilay+1)+ibar+1;
+        if(nowbar!=prbar){//recount Edep
+          edepb=0.;//GeV
+          while(ptr){
+            id=ptr->idsoft;
+            if(id>nowbar)break;
+            else if(id==nowbar)edepb+=ptr->edep*1000;//GeV->MeV
+            ptr=ptr->next();
+          }
+          prbar=nowbar;
+          if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
+         }
 //        idd=id*10+1;//LBBS already change
         idd=1000*(ilay+1)+10*(ibar+1)+(is+1);//LBBS
         //cout<<"begin proces totovtn"<<endl;
@@ -227,16 +232,6 @@ void TOF2TovtN::build()
 	}
       }
     }
-  }
-
-//---
-  geant edepl[4];
-  if(TFMCFFKEY.mcprtf[2]!=0){
-    for(i=0;i<TOF2GC::SCLRS;i++)HF1(1050+i,geant(nhitl[i]),1.);
-    HF1(1060,1000.*edepl[0],1.);
-    HF1(1061,1000.*edepl[1],1.);
-    HF1(1062,1000.*edepl[2],1.);
-    HF1(1063,1000.*edepl[3],1.);
   }
 
 //
