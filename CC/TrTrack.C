@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.1 2012/05/21 07:16:11 shaino Exp $
+// $Id: TrTrack.C,v 1.151.4.2 2012/06/03 15:52:34 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/05/21 07:16:11 $
+///$Date: 2012/06/03 15:52:34 $
 ///
-///$Revision: 1.151.4.1 $
+///$Revision: 1.151.4.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -835,6 +835,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrRecHitR *hit = GetHit(i);
     if (!hit || hit->GetLayer() == layer) continue;
 
+    // Inner halves
+    if ((id & kUpperHalf) && hit->GetLayer() >= 6) continue;
+    if ((id & kLowerHalf) && hit->GetLayer() == 1) continue;
+
     // For AMS02P
     if (TkDBc::Head->GetSetup() == 3) {
       if (hit->GetLayer() == 8) { 
@@ -956,10 +960,6 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     int j = idx[i]%10;
     TrRecHitR *hit = GetHit(j);
     if (!hit) continue;
-
-    int lyr = hit->GetLayer();
-    if ((id & kUpperHalf) && lyr >= 6) continue;
-    if ((id & kLowerHalf) && lyr == 1) continue;
 
     AMSPoint coo =  hit->GetCoord();
 
