@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.875 2012/05/29 18:17:57 qyan Exp $
+// $Id: job.C,v 1.876 2012/06/05 09:06:29 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3302,6 +3302,7 @@ void AMSJob::_timeinitjob(){
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
 
+    DynAlManager::need2bookTDV=false;
     if(isRealData()){
       begin.tm_isdst=0;
       end.tm_isdst=0;    
@@ -3559,6 +3560,7 @@ void AMSJob::_timeinitjob(){
       //   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
 
 
+      DynAlManager::need2bookTDV=false;
       if(isRealData()){
 	begin.tm_isdst=0;
 	end.tm_isdst=0;    
@@ -3580,7 +3582,6 @@ void AMSJob::_timeinitjob(){
 	DynAlManager::tdvdb=new AMSTimeID(AMSID("DynAlignment",1),begin,end,sizeof(DynAlManager::tdvBuffer),&DynAlManager::tdvBuffer,server,DynAlManager::need2bookTDV,_ToAlign);
 	TID.add(DynAlManager::tdvdb);
       }
-      
     }
   }
 #endif
