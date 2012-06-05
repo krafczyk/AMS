@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.154 2012/05/21 17:37:19 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.155 2012/06/05 22:20:37 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/05/21 17:37:19 $
+/// $Date: 2012/06/05 22:20:37 $
 ///
-/// $Revision: 1.154 $
+/// $Revision: 1.155 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4349,6 +4349,9 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 
   // Check it the X matching with the TRD and/or TOF direction
   int ret3=MatchTOF_TRD(track,select_tag);
+
+  // Update bit patterns
+  track->UpdateBitPattern();
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("TrTrack4Match"); 

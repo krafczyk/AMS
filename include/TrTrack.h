@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.91 2012/05/21 07:10:07 shaino Exp $
+//  $Id: TrTrack.h,v 1.92 2012/06/05 22:20:32 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/05/21 07:10:07 $
+///$Date: 2012/06/05 22:20:32 $
 ///
-///$Revision: 1.91 $
+///$Revision: 1.92 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -256,7 +256,7 @@ protected:
   map<int,AMSPoint> _HitCoo;
   /// The real bitted Track Pattern
   unsigned short int _bit_pattern;
-  /// The real bitted Track Pattern
+  /// The real bitted Track Pattern for XY hits
   unsigned short int _bit_patternX;
   /// Track pattern ID
   short int _Pattern;
@@ -391,8 +391,18 @@ public:
     if (it == _HitCoo.end()) return AMSPoint(0, 0, 0);
     return it->second;
   }
+  /// Return true if the track hit on lajer layJ (J-scheme) exists
+  bool TestHitLayerJ(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    if(_bit_pattern&(1<<(lay-1))) return true;
+    else  return false;
+  }
   /// Return true if the track hit on lajer layJ (J-scheme) has X and Y clusters
-  bool TestHitLayerJHasXY(int layJ);
+  bool TestHitLayerJHasXY(int layJ) const {
+    int lay=TkDBc::Head->GetLayerFromJ(layJ);
+    if(_bit_patternX&(1<<(lay-1))) return true;
+    else  return false;
+  }
   /// Returns a number corresponding to the ladder combination spanned by the track
   long long GetTrackPathID() const;
   /// For Gbatch compatibility
@@ -907,6 +917,9 @@ public:
   void AddHit(TrRecHitR *hit, int imult = -1);
   /// Remove the hit on the selected layer OLD scheme (1-9) 
   bool RemoveHitOnLayer( int layer);
+
+  /// Update _bit_pattern and _bit_patternX
+  int UpdateBitPattern(void);
 
   /// Recalculate all the hit/cluster coordinates using the fit information
   void RecalcHitCoordinates(int id = 0);
