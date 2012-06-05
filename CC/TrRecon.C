@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.153 2012/05/16 06:13:14 oliva Exp $ 
+/// $Id: TrRecon.C,v 1.153.4.1 2012/06/05 22:24:09 shaino Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/05/16 06:13:14 $
+/// $Date: 2012/06/05 22:24:09 $
 ///
-/// $Revision: 1.153 $
+/// $Revision: 1.153.4.1 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -429,6 +429,9 @@ int TrRecon::Build(int iflag, int rebuild, int hist)
 	   << GetCpuTime() << " at Event: " <<  GetEventID() << endl;
     else {
 #ifndef __ROOTSHAREDLIBRARY__
+      _CpuTimeTotal += _CpuTime;
+      RecPar.NcutCpu++;
+
       // Throw cpulimit here
       char mex[255];
       sprintf(mex,"TrRecon::BuildTrTracks Cpulimit(%.1f) Exceeded: %.1f", 
@@ -3081,7 +3084,7 @@ int TrRecon::FillHistos(int trstat, int refit)
 
   ////////// CPU time and Tracker data size //////////
   float dlt = GetTrigTime(4); // delta-T
-  float tcp = GetCpuTime()+(evid%100)*1e-4;
+  float tcp = GetCpuTime()+5e-4;
   hman.Fill("TrSizeDt", dlt, GetTrackerSize());
   hman.Fill("TrTimH",  nhit, tcp);
   hman.Fill("TrTimT",  ntrk, tcp);
@@ -4346,6 +4349,9 @@ int TrRecon::ProcessTrack(TrTrackR *track, int merge_low, int select_tag)
 
   // Check it the X matching with the TRD and/or TOF direction
   int ret3=MatchTOF_TRD(track,select_tag);
+
+  // Update bit patterns
+  track->UpdateBitPattern();
 
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.stop("TrTrack4Match"); 

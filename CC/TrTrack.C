@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.2 2012/06/03 15:52:34 shaino Exp $
+// $Id: TrTrack.C,v 1.151.4.3 2012/06/05 22:24:09 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/06/03 15:52:34 $
+///$Date: 2012/06/05 22:24:09 $
 ///
-///$Revision: 1.151.4.2 $
+///$Revision: 1.151.4.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -292,13 +292,6 @@ TrTrackPar &TrTrackR::GetPar(int id)
   static TrTrackPar parerr;
   return parerr;
 }
-
-bool TrTrackR::TestHitLayerJHasXY(int layJ)
-{
-  TrRecHitR* hit=GetHitLJ(layJ);
-  if(!hit) return false;
-  return ((!hit->OnlyY())&&(!hit->OnlyX()));
-}     
 
 double TrTrackR::GetNormChisqX(int id) const
 {
@@ -1669,6 +1662,16 @@ int TrTrackR::Pattern(int input) const {
   return pat;
 }
 
+int TrTrackR::UpdateBitPattern()
+{
+  _bit_pattern = _bit_patternX = 0;
+  for (int i = 0; i < trconst::maxlay; i++) {
+    TrRecHitR *hit = GetHitLO(i+1);
+    if (hit)                  _bit_pattern  |= 1<<i;
+    if (hit && !hit->OnlyY()) _bit_patternX |= 1<<i;
+  }
+  return 0;
+}
 
 void TrTrackR::RecalcHitCoordinates(int id) {
   // check for invalid pointers
