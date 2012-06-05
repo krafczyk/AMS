@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.870.4.1 2012/05/21 10:07:31 choutko Exp $
+// $Id: job.C,v 1.870.4.2 2012/06/05 09:11:42 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3284,6 +3284,7 @@ void AMSJob::_timeinitjob(){
                            TrCalDB::GetLinearSize(),TrCalDB::linear,
                            server,need,SLin2CalDB));
 
+    DynAlManager::need2bookTDV=false;
     if(isRealData()){
       begin.tm_isdst=0;
       end.tm_isdst=0;    
@@ -3540,7 +3541,7 @@ void AMSJob::_timeinitjob(){
       //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
       //   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
 
-
+      DynAlManager::need2bookTDV=false;
       if(isRealData()){
 	begin.tm_isdst=0;
 	end.tm_isdst=0;    
