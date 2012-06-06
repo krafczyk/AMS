@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79.4.1 2012/05/21 16:29:33 choutko Exp $
+//  $Id: root_setup.C,v 1.79.4.2 2012/06/06 11:14:13 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -110,11 +110,18 @@ unsigned int nsec;
 unsigned int sec;
 if(!head->fHeader.GetGPSEpoche(sec,nsec)){
  GPS gps;
- gps.Run=head->Run();
- gps.Event=head->Event();
- gps.Epoche=head->fHeader.GPSTime;
+ GPS_i it=fGPS.find(sec);
+ if(it!=fGPS.end()){
+   it->second.EventLast=head->Event();
+ }
+ else { 
+  gps.Run=head->Run();
+  gps.Event=head->Event();
+  gps.EventLast=head->Event();
+  gps.Epoche=head->fHeader.GPSTime;
+ }
  fGPS.insert(make_pair(sec,gps));
-gps=GetGPS(gps.Run,gps.Event);
+ // gps=GetGPS(gps.Run,gps.Event);
  head->fHeader.GPSTime.clear();
 
 }   
