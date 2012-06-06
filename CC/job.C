@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.876 2012/06/05 09:06:29 mdelgado Exp $
+// $Id: job.C,v 1.877 2012/06/06 10:03:45 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -877,7 +877,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.refloblg=-1.;//(42)Lg-facet lob-diffuse reflection prob[0 1]//MD-1234 //(-1)use same polish as Sci
   TFMCFFKEY.lgskpol=-1.;//(43)LgAl-skin polish quality 1->Total mirror 0->diffuse //(-1)use same polish as Sci
   TFMCFFKEY.phtsmear=0.;//(44)SE-jitter smear
-  TFMCFFKEY.g4tfdir=1;//(45) from local(1) or AMSDataDir(0)
+  TFMCFFKEY.g4tfdir=0;//(45) from local(1) or AMSDataDir(0)
   VBLANK(TFMCFFKEY.g4tfdb,100);
   char tfdb[80]="TofGainPMag_v9polish_LTof.dat";
   UCTOH(tfdb,TFMCFFKEY.g4tfdb,4,80);//46

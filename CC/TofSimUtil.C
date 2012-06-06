@@ -232,7 +232,10 @@ void TofSimUtil::init(){
    char fname[1000];
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
-   else                    strcpy(fname,AMSDATADIR.amsdatadir);
+   else {
+      strcpy(fname,AMSDATADIR.amsdatadir);
+      strcat(fname,"tofdata/");
+     }
    char tfg4db[100];
    int  tfg4dbv=TFMCFFKEY.simfvern/100000%10;
    sprintf(tfg4db,"TofGeant4_v%dpr.dat",tfg4dbv);

@@ -114,7 +114,10 @@ void  TOFPMT::init(){
    char fname[1000];
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
-   else                    strcpy(fname,AMSDATADIR.amsdatadir);
+   else {
+       strcpy(fname,AMSDATADIR.amsdatadir);
+       strcat(fname,"tofdata/");
+    }
    char vers[200];
    UHTOC(TFMCFFKEY.g4tfdb,100,vers,200);
    strcat(fname,vers);
@@ -462,7 +465,10 @@ void TOFWScanN::build(){
    char fname[1000],name[2000];
    char *ldir="/afs/ams.cern.ch/user/qyan/Offline/AMSTOF/tofdata/";
    if(TFMCFFKEY.g4tfdir==1)strcpy(fname,ldir);
-   else                    strcpy(fname,AMSDATADIR.amsdatadir);
+   else   {
+      strcpy(fname,AMSDATADIR.amsdatadir);
+      strcat(fname,"tofdata/");
+    }
    int tsfdbv=TFMCFFKEY.simfvern/100%10;
 
 //--------                       <-- now read t-distr. files
@@ -490,7 +496,7 @@ void TOFWScanN::build(){
 //--
  for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
      for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){
-       sprintf(name,"%s/tofg4l%db%d_%d.tsf",fname,ilay,ibar,tsfdbv);
+       sprintf(name,"%stofg4l%db%d_%d.tsf",fname,ilay,ibar,tsfdbv);
        cout<<"      Open file : "<<name<<'\n';
        ifstream tcfile(name,ios::in); // open needed t-calib. file for reading
        if(!tcfile){
