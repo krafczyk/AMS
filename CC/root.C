@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.405 2012/06/01 15:50:30 qyan Exp $
+//  $Id: root.C,v 1.406 2012/06/06 13:18:35 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -6522,6 +6522,11 @@ void AMSEventR::UpdateGPS(){
 if(getsetup()){
 AMSSetupR::GPS gps=getsetup()->GetGPS(Run(),Event());
 if(gps.Epoche.size()){
+ if(gps.EventLast<Event() && gps.EventLast>0){
+// simulate gps time not valid
+   gps.Epoche[0]&=~(1<<21);
+
+ } 
  fHeader.GPSTime.clear();
  for(int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
 }

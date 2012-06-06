@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.44 2012/06/06 11:13:12 choutko Exp $
+//  $Id: root_setup.h,v 1.45 2012/06/06 13:18:24 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -179,6 +179,7 @@ unsigned int Run;  ///< Run
 unsigned int Event;  ///<Event (Usually first event of Epoche)
 unsigned int EventLast; ///<Last event with  the same Epoche
 vector<unsigned int> Epoche; ///< GPS Time Epoche Format
+GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
 };
 
