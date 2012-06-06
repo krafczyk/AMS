@@ -1,11 +1,11 @@
 #!/usr/bin/env python2.4
-#  $Id: transfer.py,v 1.7 2010/12/31 08:28:10 ams Exp $
+#  $Id: transfer.py,v 1.8 2012/06/06 18:05:12 ams Exp $
 # this script suppose to check & transfer data files from
 # $AMSRawFilesI dir to /disk/Data/Raw/year/
 #
 import sys, os
 sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
-sys.path.insert(0,'./lib')
+sys.path.insert(0,'lib')
 import RemoteClient
 p=0
 c=1

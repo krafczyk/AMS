@@ -1,4 +1,4 @@
-import sys,os,time,string,re,thread,smtplib,commands,math
+import sys,os,time,string,re,thread,smtplib,commands,math,socket
 from stat import *
 from DBSQLServer import DBSQLServer
 from DBServer import DBServer
@@ -399,6 +399,8 @@ class RemoteClient:
         #  isonline: 1/0 
         #  return disk with highest available and online=1 and path like req
         #
+        # add priority if the current hostname listed in the host table
+        hostname=socket.gethostname()
         if(path== ""):
            sql="select disk from filesystems where isonline=1 and status='Active'  order by available desc" 
         else:
@@ -1400,7 +1402,7 @@ class RemoteClient:
                                                hostok=1
                                            else:
                                                hparser=host.split('.')
-                                               if(len(hparser)>1 and hparser[1]=='om'):
+                                               if((len(hparser)>1 and hparser[1]=='om') or len(hparser)==1):
                                                    host=hparser[0]+".cern.ch"
                                                    hostok=1
                                                else:
@@ -1856,6 +1858,17 @@ class RemoteClient:
             if(len(ret)<=0):
                 idisk=None;
         tme=int(time.time())
+        hostname=socket.gethostname()
+        if(tme%2 ==0 and idisk==None):
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available " %(path,hostname)
+            ret=self.sqlserver.Query(sql)
+            if(len(ret)>0):
+                idisk="";
+        elif(idisk==None):
+            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available DESC" %(path,hostname)
+            ret=self.sqlserver.Query(sql)
+            if(len(ret)>0):
+                idisk="";
         if(tme%2 ==0 and idisk==None):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         elif(idisk==None):
@@ -1902,12 +1915,23 @@ class RemoteClient:
         gb=0
         outputpath='xyz'
         rescue=self.CheckFS(1,300,path)
+        hostname=socket.gethostname()
         tme=int(time.time())
         if(tme%2 ==0):
             sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
         else:
             sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
+        if(tme%2 ==0):
+            sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available " %(path,hostname)
+        else:
+            sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' and host like '%%%s%%' ORDER BY priority DESC, available DESC" %(path,hostname)
         ret=self.sqlserver.Query(sql)
+        if(len(ret)<=0):
+            if(tme%2 ==0):
+                sql="SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available " %(path)
+            else:
+                sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE status='Active' and isonline=1 and path='%s' ORDER BY priority DESC, available DESC" %(path)
+            ret=self.sqlserver.Query(sql)
         if(len(ret)<=0):
             sql = "SELECT disk, path, totalsize-occupied, allowed  FROM filesystems WHERE status='Full' and isonline=1 and path='%s' ORDER BY totalsize-occupied DESC" %(path)
             ret=self.sqlserver.Query(sql)
