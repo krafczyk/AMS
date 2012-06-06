@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79 2012/05/16 13:24:28 choutko Exp $
+//  $Id: root_setup.C,v 1.80 2012/06/06 11:12:50 choutko Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -110,11 +110,18 @@ unsigned int nsec;
 unsigned int sec;
 if(!head->fHeader.GetGPSEpoche(sec,nsec)){
  GPS gps;
- gps.Run=head->Run();
- gps.Event=head->Event();
- gps.Epoche=head->fHeader.GPSTime;
+ GPS_i it=fGPS.find(sec);
+ if(it!=fGPS.end()){
+   it->second.EventLast=head->Event();
+ }
+ else { 
+  gps.Run=head->Run();
+  gps.Event=head->Event();
+  gps.EventLast=head->Event();
+  gps.Epoche=head->fHeader.GPSTime;
+ }
  fGPS.insert(make_pair(sec,gps));
-gps=GetGPS(gps.Run,gps.Event);
+ // gps=GetGPS(gps.Run,gps.Event);
  head->fHeader.GPSTime.clear();
 
 }   
@@ -609,6 +616,8 @@ else{
   int i=system(systemc);
   if(i){
    cerr <<"  AMSSetupR::FillHeader-E-UnableTo "<<systemc<<endl;
+   fHeader.FEventTime=fHeader.Run-60;
+   fHeader.LEventTime=fHeader.Run+3600;
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);
@@ -645,7 +654,12 @@ else{
     cout <<" AMSSetupR::FillHeader-I-"<<fHeader.Run<<" "<<fHeader.FEvent<<" "<<fHeader.LEvent<<" "<<fHeader.FEventTime<<" "<<fHeader.LEventTime<<endl;
    fbin.close();
    }
-   else cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
+   else {
+      cerr<<"AMSSetupR::FillHeader-E-UnableToOpenfile "<<systemc<<endl;
+      fHeader.FEventTime=fHeader.Run-60;
+      fHeader.LEventTime=fHeader.Run+3600;
+
+   }
    systemc="rm /tmp/getior."; 
    systemc+=tmp;
    system(systemc);

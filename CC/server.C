@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.198 2012/01/20 12:40:13 choutko Exp $
+//  $Id: server.C,v 1.199 2012/06/06 11:12:50 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3556,17 +3556,20 @@ int crun=0;
     lxplus5=getenv("AMSPublicBatch");
 
     NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)cid.HostName));
+    bool bsub=false;
    if(cli!=_ncl.end()){
    string lp=(const char*)((*cli)->LogPath);  
       char pat[]="bsub -n ";
       int pos=lp.find(pat);
       if(pos>=0){
+       bsub=true;
        int pos2=lp.find(" ",pos+8);
        string lps=lp.substr(pos+8,pos2);
        int thr=atol(lps.c_str());
        cout <<"  found max "<<thr<<" Threads for host "<<(const char *)cid.HostName<<endl;
+       if(threads<thr)threads=thr;  
        if(threads>thr && strstr((const char *)cid.HostName,lxplus5))threads=thr;        
-//       if(threads>thr && strstr((const char *)cid.HostName,lxplus5))threads=thr;        
+       threads=thr;
       }
     }
 
