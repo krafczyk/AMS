@@ -1,4 +1,4 @@
-/// $Id: TrRecon.C,v 1.153.4.1 2012/06/05 22:24:09 shaino Exp $ 
+/// $Id: TrRecon.C,v 1.153.4.2 2012/06/06 16:37:54 pzuccon Exp $ 
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -12,9 +12,9 @@
 ///\date  2008/03/11 AO  Some change in clustering methods 
 ///\date  2008/06/19 AO  Updating TrCluster building 
 ///
-/// $Date: 2012/06/05 22:24:09 $
+/// $Date: 2012/06/06 16:37:54 $
 ///
-/// $Revision: 1.153.4.1 $
+/// $Revision: 1.153.4.2 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -4189,28 +4189,50 @@ int TrRecon::MergeExtHits(TrTrackR *track, int mfit, int select_tag)
 #ifndef __ROOTSHAREDLIBRARY__
   AMSgObj::BookTimer.start("TrTrack6FitE");
 #endif
+  int good_base1=mfit | TrTrackR::kMultScat;
+  int good_base2=mfit | TrTrackR::kMultScat;
+  int base=mfit&0xf;
+  if(base==TrTrackR::kChoutko)
+    good_base2=(mfit & 0xfffffff0) + TrTrackR::kAlcaraz;
+  else if(base==TrTrackR::kAlcaraz)
+    good_base2=(mfit & 0xfffffff0) + TrTrackR::kChoutko;
+  
 
   if(iadd[0]==1) {
-    if (track->DoAdvancedFit(TrTrackR::kFitLayer8))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 | mfit);
+    track->DoAdvancedFit(TrTrackR::kFitLayer8);
+    if(        track->GetPar(good_base1|TrTrackR::kFitLayer8).FitDone)
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8);
+    else  if  (track->GetPar(good_base2|TrTrackR::kFitLayer8).FitDone)
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8);
   }
   if(iadd[1]==1) {
-    if (track->DoAdvancedFit(TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer9 | mfit);
+    track->DoAdvancedFit(TrTrackR::kFitLayer9);
+    if(        track->GetPar(good_base1|TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer9);
+    else  if  (track->GetPar(good_base2|TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer9);
+  }
+  
+  if(iadd[0]==1 && iadd[1]==1) {
+    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+
+    if(        track->GetPar(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
+    else  if  (track->GetPar(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
+
   }
 
-  if(iadd[0]==1 && iadd[1]==1) {
-    if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 |
-			     TrTrackR::kFitLayer9 | mfit);
-  }
   else if ( track->ParExists(mfit | TrTrackR::kFitLayer8) &&
             track->ParExists(mfit | TrTrackR::kFitLayer9) &&
            !track->ParExists(mfit | TrTrackR::kFitLayer8 |
 			            TrTrackR::kFitLayer9)) {
-    if (track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9))
-      track->Settrdefaultfit(TrTrackR::kFitLayer8 |
-			     TrTrackR::kFitLayer9 | mfit);
+    track->DoAdvancedFit(TrTrackR::kFitLayer8 | TrTrackR::kFitLayer9);
+    
+    if(        track->GetPar(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base1|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
+    else  if  (track->GetPar(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9).FitDone)
+      track->Settrdefaultfit(good_base2|TrTrackR::kFitLayer8 |TrTrackR::kFitLayer9);
   }
 
 #ifndef __ROOTSHAREDLIBRARY__

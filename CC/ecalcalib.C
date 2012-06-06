@@ -2265,10 +2265,14 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
           ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
           AdvFit=ptrack->AdvancedFitDone();
 #ifdef _PGTRACK_
-          if(AdvFit){
-	    hrid[0]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kUpperHalf);
-	    hrid[1]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kLowerHalf);
-	  }
+          if(
+	     (ptrack->GetPar(AMSTrTrack::kChoutko|AMSTrTrack::kUpperHalf).FitDone)&&
+	     (ptrack->GetPar(AMSTrTrack::kChoutko|AMSTrTrack::kLowerHalf).FitDone)
+	     )
+	    {
+	      hrid[0]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kUpperHalf);
+	      hrid[1]=ptrack->GetRigidity(AMSTrTrack::kChoutko|AMSTrTrack::kLowerHalf);
+	    }
 #else
           if(AdvFit)ptrack->
              getParAdvancedFit(gchi2,grid,gerr,gthe,gphi,gC0,hchi2,hrid,herr,hthe,hphi,Cout);
