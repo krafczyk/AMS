@@ -218,7 +218,13 @@ int  TrExtAlignDB::UpdateTkDBcDyn(int run,uint time, int pln,int lad1,int lad9){
   int layerJ[2]={1,9};
   int plane[2]={5,6};
   int layer[2]={8,9};
+  bool skip[2]={false,false};
+  if(lad1!=-1 || lad9!=-1){
+    skip[0]=(lad1==-1);
+    skip[1]=(lad9==-1);
+  }
   for(int i=0;i<2;i++){
+    if(skip[i]) continue;
     if(!(pln & (1<<i)))continue;
     TkPlane* pl = TkDBc::Head->GetPlane(plane[i]);
     if (!pl) return i==0?-3:-13;
@@ -340,7 +346,7 @@ int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
 	int l1=!hit1?-1:1+hit1->GetSlotSide()*10+hit1->lad()*100;
 	int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
 	rret=UpdateExtLayer(1,l1,l9);
-	if(!rret) {if(cont2)delete cont2;return -3;}
+	if(rret) {if(cont2)delete cont2;return -3;}
       }
       hit->BuildCoordinate();
     }
