@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.90.4.2 2012/06/05 22:24:04 shaino Exp $
+//  $Id: TrTrack.h,v 1.90.4.3 2012/06/06 07:27:15 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/06/05 22:24:04 $
+///$Date: 2012/06/06 07:27:15 $
 ///
-///$Revision: 1.90.4.2 $
+///$Revision: 1.90.4.3 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -403,6 +403,7 @@ public:
     if(_bit_patternX&(1<<(lay-1))) return true;
     else  return false;
   }
+
   /// Returns a number corresponding to the ladder combination spanned by the track
   long long GetTrackPathID() const;
   /// For Gbatch compatibility
@@ -917,6 +918,9 @@ public:
   void AddHit(TrRecHitR *hit, int imult = -1);
   /// Remove the hit on the selected layer OLD scheme (1-9) 
   bool RemoveHitOnLayer( int layer);
+
+  /// Update and fix TrTrack Parameters (needed for B584/pass2)
+  int FixAndUpdate(void);
 
   /// Update _bit_pattern and _bit_patternX
   int UpdateBitPattern(void);

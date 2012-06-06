@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.3 2012/06/05 22:24:09 shaino Exp $
+// $Id: TrTrack.C,v 1.151.4.4 2012/06/06 07:27:17 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/06/05 22:24:09 $
+///$Date: 2012/06/06 07:27:17 $
 ///
-///$Revision: 1.151.4.3 $
+///$Revision: 1.151.4.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -887,6 +887,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
   //  Update External DB alignment
   int rret =0;
   int UsedCiemat=0;
+  int UpdateCoo=0;
   if( (id & kAltExtAl) ){
     // Set TkPlaneExt to CIEMAT
     TrExtAlignDB::SetAlKind(1);
@@ -896,6 +897,7 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
      int l9=!hit9?-1:9+hit9->GetSlotSide()*10+hit9->lad()*100;
      rret=UpdateExtLayer(1,l1,l9);  // CIEMAT
      UsedCiemat=1;
+     UpdateCoo=1;
   }else{
  //   rret=UpdateExtLayer(0); //PG
     TrExtAlignDB::SetAlKind(0);
@@ -904,12 +906,15 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
     TrExtAlignDB::ResetExtAlign();
     TrExtAlignDB::SetAlKind(0);
     UsedCiemat=0;
+    UpdateCoo=1;
   }
   if (rret != 0) return -6;
+
   // update hit coo
-  for (int ii=0;ii<getnhits () ;ii++)
-    if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
-  
+  if (UpdateCoo) {
+    for (int ii=0;ii<getnhits () ;ii++)
+      if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
+  }  
 
   int i1 = 0, i2 = nhit;
 
@@ -1024,10 +1029,10 @@ float TrTrackR::FitT(int id2, int layer, bool update, const float *err,
 
   if (!update || !done){
     /// Restore deafult PG alignment if CIEMAT one was used
-    if(UsedCiemat){
+    if (UpdateCoo) {
       // Set TkPlaneExt to PG
       TrExtAlignDB::SetAlKind(0);
-      //rret=UpdateExtLayer(0); //PG
+      rret=UpdateExtLayer(0); //PG
       for (int ii=0;ii<getnhits () ;ii++)
 	if(pTrRecHit(ii)->GetLayer()>7)pTrRecHit(ii)->BuildCoordinate();
     }
@@ -1660,6 +1665,61 @@ int TrTrackR::Pattern(int input) const {
     p*=10;
   }
   return pat;
+}
+
+int TrTrackR::FixAndUpdate()
+{
+  // Fix 1 : trdefaultfit to be the longest span
+  int spans[4] = { kFitLayer8 | kFitLayer9, kFitLayer9, kFitLayer8, 0 };
+  int algos[4] = { kChoutko | kMultScat, kAlcaraz | kMultScat, 
+		   kChoutko | kAlcaraz };
+  int dfitsave = trdefaultfit;
+  trdefaultfit = 0;
+  for (int i = 0; !trdefaultfit && i < 4; i++)
+    for (int j = 0; !trdefaultfit && j < 4; j++) {
+      int id = spans[i] | algos[j];
+      if (ParExists(id)) trdefaultfit = id;
+    }
+
+  static int nerr = 0;
+  static int nwar = 0;
+
+  if (dfitsave > 0 && trdefaultfit == 0 && nerr++ < 20) 
+    cout << "TrTrackR::FixAndUpdate-E-No default fit found: " << dfitsave
+	 << endl;
+  if (dfitsave != trdefaultfit && nwar++ < 20)
+    cout << "TrTrackR::FixAndUpdate-I-Default fit changed from "
+	 << dfitsave << " to " << trdefaultfit << endl;
+
+  if (trdefaultfit == 0) return -1;
+
+  // Fix 2 : set _bit_pattern and _bit_patternX with defaultfit
+  const TrTrackPar &par = GetPar(trdefaultfit);
+
+  int bpsave  = _bit_pattern;
+  int bpsaveX = _bit_patternX;
+
+  _bit_pattern = _bit_patternX = 0;
+  for (int i = 0; i < trconst::maxlay; i++) {
+    if (par.HitBits & (1<<i)) {
+      _bit_pattern  |= 1<<i;
+      if (par.weight[i][1] == 0 && nerr++ < 20)
+	cout << "TrTrackR::FixAndUpdate-E-HitBits and weight are not "
+	     << "consistent: HitBits= " << par.HitBits
+	     << " weight[" << i << "][1]= " << par.weight[i][1] << endl;
+
+      if (0 < par.weight[i][0] && par.weight[i][0] < 1) _bit_patternX |= 1<<i;
+    }
+  }
+
+  if (bpsave != _bit_pattern && nwar++ < 20)
+    cout << "TrTrackR::FixAndUpdate-I-Bit pattern changed from "
+	 << bpsave << " to " << _bit_pattern << endl;
+  if (bpsaveX != _bit_patternX && nwar++ < 20)
+    cout << "TrTrackR::FixAndUpdate-I-Bit pattern(X) changed from "
+	 << bpsaveX << " to " << _bit_patternX << endl;
+
+  return 0;
 }
 
 int TrTrackR::UpdateBitPattern()
