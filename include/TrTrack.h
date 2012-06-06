@@ -1,4 +1,4 @@
-//  $Id: TrTrack.h,v 1.90.4.3 2012/06/06 07:27:15 shaino Exp $
+//  $Id: TrTrack.h,v 1.90.4.4 2012/06/06 15:09:26 shaino Exp $
 #ifndef __TrTrackR__
 #define __TrTrackR__
 
@@ -37,9 +37,9 @@
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
 ///\date  2010/03/03 SH  Advanced fits updated 
-///$Date: 2012/06/06 07:27:15 $
+///$Date: 2012/06/06 15:09:26 $
 ///
-///$Revision: 1.90.4.3 $
+///$Revision: 1.90.4.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -398,11 +398,7 @@ public:
     else  return false;
   }
   /// Return true if the track hit on lajer layJ (J-scheme) has X and Y clusters
-  bool TestHitLayerJHasXY(int layJ) const {
-    int lay=TkDBc::Head->GetLayerFromJ(layJ);
-    if(_bit_patternX&(1<<(lay-1))) return true;
-    else  return false;
-  }
+  bool TestHitLayerJHasXY(int layJ) const;
 
   /// Returns a number corresponding to the ladder combination spanned by the track
   long long GetTrackPathID() const;

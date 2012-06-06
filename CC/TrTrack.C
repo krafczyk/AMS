@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.151.4.4 2012/06/06 07:27:17 shaino Exp $
+// $Id: TrTrack.C,v 1.151.4.5 2012/06/06 15:09:29 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/06/06 07:27:17 $
+///$Date: 2012/06/06 15:09:29 $
 ///
-///$Revision: 1.151.4.4 $
+///$Revision: 1.151.4.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -268,7 +268,18 @@ const TrTrackPar &TrTrackR::GetPar(int id) const
   return parerr;
 }
 
-
+bool TrTrackR::TestHitLayerJHasXY(int layJ) const
+{
+  // For backward compatibility (< B584)
+  if (_bit_patternX == 0) {
+    TrRecHitR *hit = GetHitLJ(layJ);
+    return (hit && (!hit->OnlyY()) && (!hit->OnlyX()));
+  }
+  // For >= B584 (minimum I/O load)
+  int lay=TkDBc::Head->GetLayerFromJ(layJ);
+  if(_bit_patternX&(1<<(lay-1))) return true;
+  return false;
+}
 
 long long TrTrackR::GetTrackPathID() const{
   long long ret=0;
@@ -1692,6 +1703,12 @@ int TrTrackR::FixAndUpdate()
 	 << dfitsave << " to " << trdefaultfit << endl;
 
   if (trdefaultfit == 0) return -1;
+
+  // For the backward compatibility
+  if (_bit_patternX == 0) {
+    UpdateBitPattern();
+    return 1;
+  }
 
   // Fix 2 : set _bit_pattern and _bit_patternX with defaultfit
   const TrTrackPar &par = GetPar(trdefaultfit);
