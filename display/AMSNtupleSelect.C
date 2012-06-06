@@ -14,6 +14,16 @@ public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
 
+if(ev){
+for(int k=0;k<ev->fHeader.GPSTime.size();k++){
+  cout <<" gpstime k "<<k<<" "<<ev->fHeader.GPSTime[k]<<endl;
+}
+unsigned int gps_time_sec=0;
+unsigned int gps_time_nsec=0;
+int ret=ev->fHeader.GetGPSEpoche( gps_time_sec, gps_time_nsec);
+cout <<" ret "<<ret<<" "<< gps_time_sec<< " "<< gps_time_nsec<<endl;
+}
+
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
 
    TrTrackPar algref;

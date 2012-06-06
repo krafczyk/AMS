@@ -925,6 +925,10 @@ c        write(6,*)'### wxy_matr: # of planes',npo
         if(iabs(npl(i)-npl(i-1)).gt.1) then ! Missing plane
           do is=1,iabs(npl(i)-npl(i-1))-1
             ii=ii+1
+            if(ii.gt.NPma)then
+                write(*,*)' wxy-rmatr9 ii ERROR ',ii,npl,i
+                ii=ii-1
+            endif 
             oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
      +                                      /dz(npl(i),npl(i-1))**2)
 *           ----------------------------------  v  dedx
@@ -942,6 +946,11 @@ c        write(6,*)'### wxy_matr: # of planes',npo
           enddo
         endif
         ii=ii+1
+          if(ii.gt.NPma)then
+                write(*,*)' wxy-rmatr9 ii ERROR2 ',ii,npl,i
+                ii=ii-1
+            endif
+
         oco(ii)=dsqrt(1.+((xc(i)-xc(i-1))**2+(yc(i)-yc(i-1))**2)
      +                                  /dz(npl(i),npl(i-1))**2)
 *       ----------------------------------   v  dEdx

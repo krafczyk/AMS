@@ -70,7 +70,7 @@ my $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites
 my $ret=$o->Query($sql);
 $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites where amsdes.jobs.cid=cites.cid and amsdes.jobs.did=233 and amsdes.jobs.jobname like '%pass2.%' and amsdes.jobs.realtriggers>0 group by cites.name";
 my $ret2=$o->Query($sql);
-     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>1305800000  $run2p  and run <=1336097217  ORDER BY run ";
+     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>1305800000  $run2p  and run <=1337238986  ORDER BY run ";
 my $ret3=$o->Query($sql);
 
 print " Total of : $#{@{$ret3}}\n";
@@ -85,4 +85,23 @@ foreach my $cite (@{$ret2}){
 print "Completed $cite->[1] $cite->[0] \n";
 $requestec+=$cite->[0];
 }
+
 print " Requested $requested Completed $requestec \n";
+if($requested>$#{@{$ret3}}){
+
+    my $double=0;
+
+    $sql="select amsdes.jobs.jid,amsdes.dataruns.run  from amsdes.jobs,amsdes.dataruns where amsdes.jobs.jid=dataruns.jid and amsdes.jobs.did=233 and amsdes.jobs.jobname like '%pass2.%'  order by dataruns.run";
+my $ret4=$o->Query($sql);
+    my $runold=0;
+    my $jidold=0;
+foreach my $ntuple (@{$ret4}){
+     if($runold == $ntuple->[1]){
+        print "$ntuple->[0] $ntuple->[1] $runold $jidold\n";
+        $double++;
+}
+      $runold=$ntuple->[1];
+     $jidold=$ntuple->[0];
+   }  
+    print " Doubl $double \n";
+}

@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.43 2012/05/13 12:34:52 choutko Exp $
+//  $Id: root_setup.h,v 1.44 2012/06/06 11:13:12 choutko Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -176,9 +176,10 @@ class LVL1Setup {
 class GPS{
 public:
 unsigned int Run;  ///< Run
-unsigned int Event;  ///<Event
+unsigned int Event;  ///<Event (Usually first event of Epoche)
+unsigned int EventLast; ///<Last event with  the same Epoche
 vector<unsigned int> Epoche; ///< GPS Time Epoche Format
-ClassDef(GPS,2)
+ClassDef(GPS,3)
 };
 
 

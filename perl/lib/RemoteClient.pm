@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.736 2012/05/25 11:57:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.737 2012/06/06 11:13:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2097,8 +2097,8 @@ my $fevt=-1;
                    if($ntuple->{Status} ne "Validated" or 1){
                    my $retcrc=0;
                    if($rcp){
-                    $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
-                   }
+                    $retcrc = $self->calculateCRC($fpath,$ntuple->{crc},0);
+                  }
                    print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
                    if ($retcrc != 1) {
                        $self->amsprint("********* validateRuns - ERROR- crc status :",666);
@@ -14195,7 +14195,7 @@ foreach my $block (@blocks) {
       last;
      }
       $levent += $dstlevent-$dstfevent+1;
-      my $i = $self->calculateCRC($dstfile, $ntcrc);
+      my $i = $self->calculateCRC($dstfile, $ntcrc,0);
       print FILE "calculateCRC($dstfile, $ntcrc) : Status : $i \n";
       if ($i != 1) {
           $unchecked++;
@@ -15837,10 +15837,13 @@ sub calculateCRC {
   my $self      = shift;
   my $filename  = shift;
   my $crc       = shift;
-
+  my $force=shift;
+  if(not defined $force){
+      $force=1;
+  }
   my $time0     = time();
   $crcCalls++;
-  if($filename=~/^\/castor/){
+  if($filename=~/^\/castor/ or ($filename=~/\/Data\// and $force==0)){
       return 1;
   }
   my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $filename  $crc";
