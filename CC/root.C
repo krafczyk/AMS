@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404 2012/05/18 16:37:37 choutko Exp $
+//  $Id: root.C,v 1.404.2.1 2012/06/06 13:22:56 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5927,7 +5927,7 @@ void AMSEventR::GetAllContents() {
   bAntiMCCluster->GetEntry(_Entry);
   bTrMCCluster->GetEntry(_Entry);
   bTofMCCluster->GetEntry(_Entry);
-  bTofMCPmtHit->GetEntry(_Entry);
+  if(bTofMCPmtHit)bTofMCPmtHit->GetEntry(_Entry);
   bEcalMCHit->GetEntry(_Entry);
   bTrdMCCluster->GetEntry(_Entry);
   bRichMCCluster->GetEntry(_Entry);
@@ -6522,6 +6522,11 @@ void AMSEventR::UpdateGPS(){
 if(getsetup()){
 AMSSetupR::GPS gps=getsetup()->GetGPS(Run(),Event());
 if(gps.Epoche.size()){
+ if(gps.EventLast<Event() && gps.EventLast>0){
+// simulate gps time not valid
+   gps.Epoche[0]&=~(1<<21);
+
+ } 
  fHeader.GPSTime.clear();
  for(int k=0;k<gps.Epoche.size();k++)fHeader.GPSTime.push_back(gps.Epoche[k]);
 }
