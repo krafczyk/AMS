@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.84 2012/02/09 09:20:31 choumilo Exp $
+//  $Id: tofrec02.C,v 1.85 2012/06/07 08:28:05 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1851,8 +1851,8 @@ void AMSTOFCluster::build2(int &stat){
 }
 	}
 //--------> decision to glue:
-	bool glue=((ematch && tmatch) || (ematch && cmatch));//relaxed conditions
-//        bool glue=(tmatch && cmatch);//nominal, means glue only if t/c-matched
+//	bool glue=((tmatch || cmatch) && ematch);//relaxed conditions
+        bool glue=(tmatch && cmatch && ematch);//nominal, means glue only if t/c/e-matched
 //--------
 	if(glue){//<--- condition ok for gluing
 // cout<<"   ******> Glued:"<<endl; 
