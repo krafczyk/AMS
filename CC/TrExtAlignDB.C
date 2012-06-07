@@ -326,12 +326,11 @@ int TrExtAlignDB::RecalcAllExtHitCoo(int kind){
 
   int rret=0;
 
-  if(kind==0)
-    rret=UpdateExtLayer(0); //PG
-  if (kind==1)
-    rret=UpdateExtLayer(1); //CIEMAT
-  else
-    ResetExtAlign();
+  switch(kind){
+  case 0:  rret=UpdateExtLayer(0); break;//PG
+  case 1:  rret=UpdateExtLayer(1); break;//CIEMAT
+  default: ResetExtAlign();
+  }
   if(rret!=0) return -2;
 
   
