@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.870.4.2 2012/06/05 09:11:42 mdelgado Exp $
+// $Id: job.C,v 1.870.4.3 2012/06/07 08:25:20 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -826,7 +826,7 @@ void AMSJob::_signdata(){
 //=================================================================================
 //
 void AMSJob::_sitof2data(){
-  TFMCFFKEY.TimeSigma=0.270; //(1) side time resolution(ns, now =CounterResol(0.19)*sqrt(2)) 
+  TFMCFFKEY.TimeSigma=0.21; //(1) side time resolution(ns, now =CounterResol(0.15)*sqrt(2)) 
   TFMCFFKEY.sumHTdel=4.4;    //(2) eff. h/w delay of sumHT(sumSHT)-signal wrt LT-signal for MC
   TFMCFFKEY.canormf=1.;      //(3) amplif. factor(common for all bar-types,i.e. all SE MP are mult.by it))
   TFMCFFKEY.dzconv=0.;        //(4) if !=0 => thickness of optional TungstenConverter
