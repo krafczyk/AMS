@@ -1,4 +1,4 @@
-// $Id: TrTrack.C,v 1.156 2012/06/06 15:05:25 shaino Exp $
+// $Id: TrTrack.C,v 1.157 2012/06/07 07:48:24 shaino Exp $
 
 //////////////////////////////////////////////////////////////////////////
 ///
@@ -18,9 +18,9 @@
 ///\date  2008/11/05 PZ  New data format to be more compliant
 ///\date  2008/11/13 SH  Some updates for the new TrRecon
 ///\date  2008/11/20 SH  A new structure introduced
-///$Date: 2012/06/06 15:05:25 $
+///$Date: 2012/06/07 07:48:24 $
 ///
-///$Revision: 1.156 $
+///$Revision: 1.157 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1682,12 +1682,12 @@ int TrTrackR::FixAndUpdate()
 {
   // Fix 1 : trdefaultfit to be the longest span
   int spans[4] = { kFitLayer8 | kFitLayer9, kFitLayer9, kFitLayer8, 0 };
-  int algos[4] = { kChoutko | kMultScat, kAlcaraz | kMultScat, 
-		   kChoutko | kAlcaraz };
+  int algos[2] = { kChoutko | kMultScat, kAlcaraz | kMultScat };
+
   int dfitsave = trdefaultfit;
   trdefaultfit = 0;
   for (int i = 0; !trdefaultfit && i < 4; i++)
-    for (int j = 0; !trdefaultfit && j < 4; j++) {
+    for (int j = 0; !trdefaultfit && j < 2; j++) {
       int id = spans[i] | algos[j];
       if (ParExists(id)) trdefaultfit = id;
     }
