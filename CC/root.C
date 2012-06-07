@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.404.2.1 2012/06/06 13:22:56 choutko Exp $
+//  $Id: root.C,v 1.404.2.2 2012/06/07 15:33:49 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5987,183 +5987,417 @@ long long AMSEventR::Size(){
   return size;
 }
 
+
+  
+
+//----------------------------------------------------------------------
 int AMSEventR::isInShadow(AMSPoint&  ic,int ipart){
+// Says if particle ipart is in shadow and returns also  AMSPoints of interception of particles 
+// with iss solar panel rotation plane (FLT_MAX if directed away);
+
+        double deg2rad =3.141592654/180.;
+
+        ic=0;
+        //cout<<"\n----------------------New Event --------------------"<<endl;
+
+        if(ipart>=nParticle()){
+                cerr<<"AMSEventR::isInShadow-E-NiSuchParticle "<<ipart<<endl;
+                return -1;
+        }
 
 
-// says if particle ipart is in shadow and returns also  AMSPoints of interception of particles with iss solar panel rotation plane planes (FLT_MAX if directed away);
+        ParticleR part=Particle(ipart);
+                if(part.Beta<0)return -2;
 
-if(ipart>=nParticle()){
- cerr<<"AMSEventR::isInShadow-E-NiSuchParticle "<<ipart<<endl;
- return -1;
-}
-ParticleR part=Particle(ipart);
-if(part.Beta<0)return -2;
-AMSPoint AMSGlCoo(-33.7 , -841.1, 152.8);   // AMS Coo (inches)in Station  coo system , to be changed
+        // AMS Coo central point in SSACS [cm]
+        double x_ams=-85.73;
+        double y_ams=2136.4;
+        double z_ams=-388.29;
+        AMSPoint AMScoo( x_ams  ,y_ams , z_ams );
 
-AMSGlCoo=AMSGlCoo*2.54;  //to cm
+        // Solar array centers in cm (at alpha=0)
+        // Solar Array 1A
+        double x_1A=1982.51;
+        double y_1A=3417.32 ;
+        double z_1A=-23.77;
+        // Solar Array 3A
+        double x_3A=-1982.51;
+        double y_3A=3418.02 ;
+        double z_3A=110.11;
 
-AMSPoint SA[2];
+        AMSPoint s1A(x_1A ,y_1A ,z_1A);
+        AMSPoint s3A(x_3A ,y_3A ,z_3A);
 
-// SA arraya centers in cm (at alpha=0)
+        //Dimensions: ...inchs
+        double dx=1306. ;
+       double dy=0.5 ;
+        double dz=453.9 ;
+        //.....cm
+        dx*=2.54;
+        dy*=2.54;
+        dz*=2.54;
+        //......half dim:
+        dx/=2.;
+        dy/=2.;
+        dz/=2.;
 
-SA[0]=AMSPoint(-1982.51,-3418.02,-110.11);  //3A
+//-------if alpha==0 && beta(1or3)==0 pannels are in this config:
+//
+//                     z+
+//      s1-------s2                s1--------s2           
+//x+    |    1A   |    y(out)      |    3A   |        x-
+//      s3-------s4                s3--------s4
+//
+//                     z-
+//---------------------------------------------------------------
 
-SA[1]=AMSPoint(1982.51,-3417.3,23.77);  //1A
+        // AMS tilt angle 
+        double tilt=12.*deg2rad;
 
+        // add some error due to the mscattering
+        double addon=13.6e-3/fabs(part.Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
 
-double za=(SA[0][2]+SA[1][2])/2;
+        //Direction of incident particle in AMS coo
+        AMSDir dir(part.Theta,part.Phi);
 
-SA[0][2]=SA[0][2]-za;
+        dir[0]=-dir[0];
+        dir[1]=-dir[1];
+        dir[2]=-dir[2];
 
-SA[1][2]=SA[0][1]-za;
-AMSGlCoo[2]=AMSGlCoo[2]-za;
-// sizes
-
-
-AMSPoint SAsize[2];
-for(int k=0;k<2;k++){
-   SAsize[k]=AMSPoint(1306.,453.9,0.5);  // size in inches in their local coo sys
-   SAsize[k]=SAsize[k]*2.54;
-}
-
-
-// here need account for tilt;
-
-double nrm[3][3];
-
-//take into acc 0.5 deg uncertainty
-
-double angle=11.5/180.*3.1415926;
-
-
-AMSDir dir(part.Theta,part.Phi);
-dir[0]=-dir[0];
-dir[1]=-dir[1];
-dir[2]=-dir[2];
-
-//  add some error due to the mscattering
-    double addon=13.6e-3/fabs(part.Momentum)*part.Charge*sqrt(0.35)*5/sqrt(2.);
-
-   double roll=angle-addon;
-   double cr=cos(roll);
-   double sr=sin(roll);
-   double l1=1;
-   double m1=0;
-   double n1=0;
-
-   double l2=0;
-   double m2=cr;
-   double n2=sr;
-
-   double l3=0;
-   double m3=-sr;
-   double n3=cr;
-   AMSDir dv;
-
-   dv[0]=dir[0]*l1+dir[1]*m1+dir[2]*n1;
-   dv[1]=dir[0]*l2+dir[1]*m2+dir[2]*n2;
-   dv[2]=dir[0]*l3+dir[1]*m3+dir[2]*n3;
+        //Direction of incident particle in SSACS coo
+         AMSDir dv0;//..........1) rotation of titl angle
+         AMSDir dv; //..........2) axis inversion (x'-> -y, y'->-x, z'->-z)
 
 
+        //1) rotation  around y_iss in SSACS 
+        dv0[0]= dir[0]*cos(tilt)+ dir[2]*sin(tilt);//  |  cos   0   sin   |   |x|           
+        dv0[1]= dir[1];                            //= |   0    1    0    | * |y|
+        dv0[2]=-dir[0]*sin(tilt)+ dir[2]*cos(tilt);//  | -sin   0   cos   |   |z|_particle
+        //2) inversion
+        dv[0]=-dv0[1];
+        dv[1]=-dv0[0];
+        dv[2]=-dv0[2];
 
-//  Calculate interception points;
+        //................................Incident Particle
+        //.....incident point of particle in AMS Coo
+        AMSPoint coo0(part.Coo);
 
-AMSPoint coo(part.Coo);
+        AMSPoint coo1;//1) rotation of tilt angle
+        AMSPoint coo;// 2) axis inversion + AMScoo ---> Coo in SSACS
 
-coo=coo+AMSGlCoo;
+        //1)
+        coo1[0]= coo0[0]*cos(tilt)+ coo0[2]*sin(tilt);//  |  cos   0   sin   |   |x|           
+        coo1[1]= coo0[1];                             //= |   0    1    0    | * |y|
+        coo1[2]=-coo0[0]*sin(tilt)+ coo0[2]*cos(tilt);//  | -sin   0   cos   |   |z|_particle
+        //2)
+        coo[0]=-coo1[1] + AMScoo[0];
+        coo[1]=-coo1[0] + AMScoo[1];
+        coo[2]=-coo1[2] + AMScoo[2];
 
-AMSDir Dirp(0,1,0);  // alpha rot plane
+
+        //.........................SET angles ................................
+
+        float alpha,beta1,beta3,  b1b,b3b;
+        float aa,ab ,ba1,bb1, ba3,bb3;
+        int s1=fHeader.getISSSA(aa,ba1,ba3,b1b,b3b,-5);
+        int s2=fHeader.getISSSA(ab,bb1,bb3,b1b,b3b,5);
+        int s3=fHeader.getISSSA(alpha,beta1,beta3,b1b,b3b);
+        //....rad
+        alpha*=deg2rad;
+        aa*=deg2rad;
+        ab*=deg2rad;
+        ba1*=deg2rad;
+        bb1*=deg2rad;
+        ba3*=deg2rad;
+        bb3*=deg2rad;
+
+        beta1*=deg2rad;
+        beta3*=deg2rad;
+
+        //.......some error on angles
+        double da = fabs(ab-aa)/2.;
+        double db1 = fabs(ba1-bb1)/2.;
+        double db3 = fabs(ba3-bb3)/2.;
 
 
-AMSPoint Coop=SA[0]+SA[1];
+     if(s3==2 || s1==2 || s2==2){
+        alpha=fHeader.Alpha;
+        beta1=fHeader.B1a;
+        beta3=fHeader.B3a;
+        //.....................if no values only d-alpha 
+        //mean variation of alpha in 5 seconds during one orbit:
+        da=360.*deg2rad/(90.*60)*5;
+        db1=0;
+        db3=0;
+        }
 
-Coop=Coop*0.5;
 
-int ret=0;
 
- double xcross=dv.prod(Dirp);
- if(xcross==0){
-    ic=AMSPoint(FLT_MAX,FLT_MAX,FLT_MAX);
-    return ret;
-  }
- else{
-   double t=Dirp.prod(Coop-coo)/xcross;
-   if(t<0){
-    ic=AMSPoint(FLT_MAX,FLT_MAX,FLT_MAX);
-    return ret;
-   }
-   else{
-    ic=dv*t;
-    ic=ic+coo;
-//   check here if in shadow
+        //.................Check intersection of particle direction and solar array plane.....................
 
-    // Check phi angle
-    float alpha,b1a,b3a,b1b,b3b;
-    float aa,ab; 
-    int s1=fHeader.getISSSA(aa,b1a,b3a,b1b,b3b,-5);
-    int s2=fHeader.getISSSA(ab,b1a,b3a,b1b,b3b,5);
-    int s3=fHeader.getISSSA(alpha,b1a,b3a,b1b,b3b);
-    double dr=3.1415926/180.;
-    alpha+=90;  //  fix from Urban/Consolandi
-    if(alpha>360)alpha+=-360;
-    aa+=90;  //  fix from Urban/Consolandi
-    if(aa>360)aa+=-360;
-    ab+=90;  //  fix from Urban/Consolandi
-    if(ab>360)ab=-360;
-    alpha*=dr;
-    aa*=dr;
-    ab*=dr;
-    b1a*=dr;
-    b3a*=dr;
-    double da=fabs(ab-aa)/2+addon;
-    if(s3==2 || s1==2 || s2==2){
-     alpha=fHeader.Alpha;
-     b1a=fHeader.B1a;
-     b3a=fHeader.B3a;
-     da=2*3.1415926/90./60.*5+addon;
-    }
-    double beta;    
-    double rmax;
-    double size;
-    double c; 
-    if(alpha>0 && alpha<3.1415926){
-        beta=b1a;
-        c=SA[1][2];
-        size=SAsize[1][1]/2*fabs(cos(beta));
-        rmax=fabs(SA[1][0])+SAsize[1][0]/2;
-        rmax=sqrt(rmax*rmax+(SAsize[1][1]/2)*(SAsize[1][1]/2));
-    }
-    else {
-     c=-SA[0][2];
-     alpha=alpha-3.1415926;
-     beta=b3a;
-     size=SAsize[0][1]/2*fabs(cos(beta));
-     rmax=fabs(SA[0][0])+SAsize[0][0]/2;
-     rmax=sqrt(rmax*rmax+(SAsize[0][1]/2)*(SAsize[0][1]/2));
-    }
-    double r=sqrt(ic[0]*ic[0]+ic[1]*ic[1]);
-    if(r>rmax)return 0;
-    double phi=atan2(ic[2],ic[0]);
-    if(phi>alpha-da && phi<alpha+da){
-         return 1;
-    }
-    else{
-{
-      double d=fabs(cos(alpha-da)*ic[2]-sin(alpha-da)*ic[0]-c);
-      if(d<size)return 1;
-}
-{
-      double d=fabs(cos(alpha+da)*ic[2]-sin(alpha+da)*ic[0]-c);
-      if(d<size)return 1;
-}
-    }    
-   }
-}
+
+        // Three points to define each plane
+        double P[2][3][3];
+        double xyz0[2][3][3];//zero condition (alpha=0 & beta=0)
+        double xyzRb[2][3][3];//rotation of beta
+        double xyzRba[2][3][3];//rotation of alpha
+        double xyzC[2][3];//central poit of solar array
+
+        //this parameter sets the rotation of beta (3A == clockwise; 1A==anticlockwise)
+        double s=0;
+
+
+        //..coefficient for intersections:
+        double A[2];
+        double B[2];
+        double C[2];
+        double D[2];
+        //.................. r == distance of intersection from each plane:
+        //coordinates of intersection in SSACS:
+        AMSPoint Int[2];
+        // x=r*cos*(dirX) + x0
+        // y=r*cos*(dirY) + y0
+        // z=r*cos*(dirZ) + z0
+        //(x0,y0,z0)---> coortinates of incident point 
+        double r[2];
+      //......................uncertainties:
+        double db=0; //in beta --> to be defined after
+        double dt = 2*deg2rad; // 2 deg for tilt 12+/-1 [deg];
+        double dr[2]; //distance due to multiple scattering;
+
+
+         //...back to original position: 
+        AMSPoint Int1[2];
+        AMSPoint Int0[2];//...in SSACS  
+
+
+        //...If there is intersection tell which Solar Array (wh==0 --> 1A ; wh==1 --> 3A; wh==-1 No intersection)
+        int wh=-1;
+        //..................sign of r if ==0 (>0) if ==1 (<0)
+        int sr[2];
+
+        //.......................................begin for k==0 1A ; k==1 3A 
+        for(int k=0; k<2 ; k++){
+
+        //...................................Plane construction
+               if(k==0){//1A
+                s=1.;//anticlockwise beta rotation
+                xyzC[k][0]=s1A[0];
+                xyzC[k][1]=s1A[1];
+                xyzC[k][2]=s1A[2];
+                db=db1;
+                }
+
+                if(k==1){//3A
+                s=-1.;//clockwise beta rotation
+                xyzC[k][0]=s3A[0];
+                xyzC[k][1]=s3A[1];
+                xyzC[k][2]=s3A[2];
+                db=db3;
+                }
+
+        //We need 3 points to define the plane in local coo: 
+         xyz0[k][0][0]= s*dx ;
+         xyz0[k][0][1]= 0.  ;
+         xyz0[k][0][2]= dz ;
+
+         xyz0[k][1][0]= s*dx ;
+        xyz0[k][1][1]= 0.  ;
+         xyz0[k][1][2]= -dz;
+
+         xyz0[k][2][0]=0.;
+         xyz0[k][2][1]=0.;
+         xyz0[k][2][2]=0.;
+
+        // 1).............................rotation of beta:
+        double beta=0;
+        if(k==0){
+        beta=beta1;
+        }else{
+        beta=beta3;
+        }
+
+       for(int i=0 ; i <3 ; i++){
+        xyzRb[k][i][0]=  xyz0[k][i][0]                                       + xyzC[k][0];
+        xyzRb[k][i][1]=  xyz0[k][i][1]*cos(beta) - s*xyz0[k][i][2]*sin(beta) + xyzC[k][1];
+        xyzRb[k][i][2]=s*xyz0[k][i][1]*sin(beta) +   xyz0[k][i][2]*cos(beta) + xyzC[k][2];
+        }
+
+        // 2)..........................rotation of alpha
+        for(int i=0 ; i <3 ; i++){
+        xyzRba[k][i][0]=  xyzRb[k][i][0]*cos(alpha) + xyzRb[k][i][2]*sin(alpha)  ;
+        xyzRba[k][i][1]=  xyzRb[k][i][1] ;
+        xyzRba[k][i][2]= -xyzRb[k][i][0]*sin(alpha) + xyzRb[k][i][2]*cos(alpha) ;
+
+        }
+
+
+        //..............................3 points to define the plane:
+
+        //if(k==0)cout<<" 1A........ "<<endl;
+        //if(k==1)cout<<" 3A........ "<<endl;
+
+        for(int i=0 ; i<3 ; i++){
+                for(int j=0 ; j<3 ; j++){
+                                P[k][i][j]=  xyzRba[k][i][j] ;
+                }
+        }
+
+        //............................................................
+         A[k]=   P[k][0][1]*( P[k][1][2] - P[k][2][2] ) -  P[k][0][2]*( P[k][1][1]- P[k][2][1]) +
+                                                        ( P[k][1][1]* P[k][2][2] -  P[k][1][2]* P[k][2][1]);
+         B[k]= -(P[k][0][0]*( P[k][1][2] - P[k][2][2] ) -  P[k][0][2]*( P[k][1][0]- P[k][2][0]) +
+                                                        ( P[k][1][0]* P[k][2][2] -  P[k][1][2]* P[k][2][0]));
+         C[k]=   P[k][0][0]*( P[k][1][1] - P[k][2][1] ) -  P[k][0][1]*( P[k][1][0]- P[k][2][0]) +
+                                                        ( P[k][1][0]* P[k][2][1] -  P[k][1][1]* P[k][2][0]);
+         D[k]=-(P[k][0][0]*(P[k][1][1]*P[k][2][2]-P[k][1][2]* P[k][2][1])-
+                P[k][0][1]*(P[k][1][0]*P[k][2][2]-P[k][1][2]*P[k][2][0])+P[k][0][2]*(P[k][1][0]*P[k][2][1]-P[k][1][1]*P[k][2][0]));
+
+
+        double num= A[k]*coo[0] + B[k]*coo[1] + C[k]*coo[2] +D[k]  ;
+        double den= A[k]*dv[0] +  B[k]*dv[1] + C[k]*dv[2];
+
+
+
+        //.................. r == distance of intersection:
+        //coordinates of intersection:
+        // x=r*cos*(dirX) + x0
+        // y=r*cos*(dirY) + y0
+        // z=r*cos*(dirZ) + z0
+        //(x0,y0,z0)---> coortinates of incident point 
+
+
+        if(den!=0){
+        r[k]=-num/den;
+        }
+        else{
+        //....No intersection because the plane and the particle directions are parallel.
+        r[k]=0;
+        }
+
+        //....................intersection point in SSACS:
+        Int[k][0]=r[k]*dv[0] + coo[0];
+        Int[k][1]=r[k]*dv[1] + coo[1];
+        Int[k][2]=r[k]*dv[2] + coo[2];
+
+        //cout<<" Int[k] "<< Int[k] <<endl;
+
+
+        //...........................Ckeck if intersection point is onside Solar Array:
+
+        //...back to original position: 
+        //1) -alpha rotation 
+        Int1[k][0]=  Int[k][0]*cos(alpha) - Int[k][2]*sin(alpha)  ;
+        Int1[k][1]=  Int[k][1] ;
+        Int1[k][2]=  Int[k][0]*sin(alpha) + Int[k][2]*cos(alpha) ;
+
+        //2) -shift for zero popsition
+        Int1[k][0]-= xyzC[k][0];
+        Int1[k][1]-= xyzC[k][1];
+        Int1[k][2]-= xyzC[k][2];
+
+        //3) -beta rotation + shift for zero posiotion in SSACS
+        Int0[k][0]=   Int1[k][0]                                 + xyzC[k][0];
+        Int0[k][1]=    Int1[k][1]*cos(beta)   + s*Int1[k][2]*sin(beta) + xyzC[k][1];
+        Int0[k][2]= -s*Int1[k][1]*sin(beta)   +   Int1[k][2]*cos(beta) + xyzC[k][2];
+
+
+
+        dr[k]=r[k]*tan(addon);//5 sigma radius
+
+        //...........................................................
+        //with propagation of errors calculate the uncertainty for each dimension : dx , dy, dz
+        //they depend on : beta (db), alpha (da), tilt angle (dt) and multiple scattering (dr)
+
+        // X partial derivates:
+        double dxdb=0;
+        double dxda=- Int[k][0]*sin(alpha) - Int[k][2]*cos(alpha);
+        double dxdr=cos(alpha)*dv[0] - sin(alpha)*dv[2];
+        double dxdt=-r[k]*sin(alpha)*cos(tilt)*dir[0] - r[k]*sin(alpha)*sin(tilt)*dir[2];
+        // Y partial derivates:
+        double dydb=-Int1[k][1]*sin(beta) +s* Int1[k][2]*cos(beta);
+        double dyda=s*sin(beta)*(Int[k][0]*cos(alpha)-Int[k][2]*sin(alpha) );
+        double dydr=cos(beta)*dv[1] +s*sin(beta)*(sin(alpha)*dv[0] + cos(alpha)*dv[2] );
+        double dydt=r[k]*cos(beta)*(dir[0]*sin(tilt) - dir[2]*cos(tilt) ) + s*sin(beta)*cos(alpha)*r[k]*(dir[0]*cos(tilt) + dir[2]*sin(tilt)  ) ;
+         // Z partial derivates:
+        double dzdb=-s*Int1[k][1]*cos(beta) - Int1[k][2]*sin(beta);
+        double dzda=cos(beta)*(Int[k][0]*cos(alpha) - Int[k][2]*sin(alpha));
+        double dzdr=-s*sin(beta)*dv[1] + cos(beta)*( sin(alpha)*dv[0] + cos(alpha)*dv[2]);
+        double dzdt= -s*sin(beta)*r[k]*(dir[0]*sin(tilt) - dir[2]*cos(tilt)) + cos(beta)*r[k]*(-dir[0]*cos(tilt) - dir[2]*sin(tilt));
+
+        //squares:
+        double dxdb2=dxdb*dxdb;
+        double dxda2=dxda*dxda;
+        double dxdr2=dxdr*dxdr;
+        double dxdt2=dxdt*dxdt;
+
+        double dydb2=dydb*dydb;
+        double dyda2=dyda*dyda;
+        double dydr2=dydr*dydr;
+        double dydt2=dydt*dydt;
+
+        double dzdb2=dzdb*dzdb;
+        double dzda2=dzda*dzda;
+        double dzdr2=dzdr*dzdr;
+        double dzdt2=dzdt*dzdt;
+
+        double db2=db*db;
+        double da2=da*da;
+        double dr2=dr[k]*dr[k];
+        double dt2=dt*dt;
+
+        //sigmas:
+        double sigmax= sqrt( dxdb2*db2 + dxda2*da2 + dxdr2*dr2 +dxdt2*dt2  );
+        double sigmay= sqrt( dydb2*db2 + dyda2*da2 + dydr2*dr2 +dydt2*dt2  );
+        double sigmaz= sqrt( dzdb2*db2 + dzda2*da2 + dzdr2*dr2 +dzdt2*dt2  );
+
+
+        if(r[k]>0 && Int[k][2]<0 ){
+
+                //...............................all uncertainties together
+                // distance of intersection point to SA center
+                double dxc=abs(Int0[k][0]- xyzC[k][0]);
+                double dyc=abs(Int0[k][1]- xyzC[k][1]);
+                double dzc=abs(Int0[k][2]- xyzC[k][2]);
+
+        if( dxc<= dx+ sigmax && dyc<= dy+ sigmay && dzc<= dz+ sigmaz  ){
+                        // 1A , 3A or no ? 
+                        wh=k;
+                        }
+                }
+        }//.....................end for k ...........................
+       //.............................................
+        //............................................
+        if(wh==-1){
+        //cout<< " NOT cross Solar Array!"<<endl;
+        ic=AMSPoint(FLT_MAX,FLT_MAX,FLT_MAX);
+        return 0;
+        }else if(wh==0){ // in 1A
+                ic[0]=Int0[0][0];
+                ic[1]=Int0[0][1];
+                ic[2]=Int0[0][2];
+        return 1;
+
+        }else if(wh==1){ // in 3A
+                ic[0]=Int0[1][0];
+                ic[1]=Int0[1][1];
+                ic[2]=Int0[1][2];
+        return 1;
+
+        }
+        //cout<<"---------------------------------------\n "<<endl;
+
+
+
+
+
+
+
+
    return 0;
 }
-
-
-
+//..............................................................
+  
 char * HeaderR::Info(unsigned long long status){
 	if(Pitch==0 && Yaw==0 && Roll==0){
 		int ret=getISSAtt();
