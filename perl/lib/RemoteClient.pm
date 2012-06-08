@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.737 2012/06/06 11:13:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.738 2012/06/08 10:15:29 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14124,7 +14124,25 @@ foreach my $block (@blocks) {
         if(not defined $outputpath){
             $outputpath='/castor/cern.ch/ams';
         }
+    }
+    elsif(defined $inputfilel and $inputfilel=~/^\//){
+        my @junk=split '\/',$inputfilel;
+     my $path='/MC';
+     if($startingrun[21]%2==1){
+             $path='/Data'
+             }
+            my $disk="/$junk[1]";
+
+      my $sql = "SELECT disk   FROM filesystems WHERE 
+                   status='Active' and  isonline=1 and path='$path' and disk='$disk' ORDER BY priority DESC, available ";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if(defined $ret->[0][0] and $ret->[0][0] eq $disk){
+            $outputpath=$disk;
+            $dstfile=$inputfilel;
         }
+
+        
+    }
     my $dstsize = -1;
     if($dstfile=~/^\/castor/){
         unlink "/tmp/castor.$$";
@@ -15843,7 +15861,7 @@ sub calculateCRC {
   }
   my $time0     = time();
   $crcCalls++;
-  if($filename=~/^\/castor/ or ($filename=~/\/Data\// and $force==0)){
+  if($filename=~/^\/castor/ or ( $force==0)){
       return 1;
   }
   my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $filename  $crc";
@@ -16499,6 +16517,13 @@ sub copyFile {
         if($inputfile=~/^\/castor/){
           $cmd="/usr/bin/rfrename $inputfile  $outputpath ";
       }
+    }
+    elsif($inputfile=~/^\// and $outputpath=~/^\//){
+        my @junk=split '\/',$inputfile;
+        my @jo=split '\/',$outputpath;
+        if($junk[1] eq $jo[1]){
+            $cmd="mv   $inputfile  $outputpath ";
+        }
     }
     
     my $cmdstatus = system($cmd);

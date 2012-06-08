@@ -70,10 +70,10 @@ my $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites
 my $ret=$o->Query($sql);
 $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites where amsdes.jobs.cid=cites.cid and amsdes.jobs.did=233 and amsdes.jobs.jobname like '%pass2.%' and amsdes.jobs.realtriggers>0 group by cites.name";
 my $ret2=$o->Query($sql);
-     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>1305800000  $run2p  and run <=1337238986  ORDER BY run ";
+     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>=1305853512  $run2p  and run <=1337238986  ORDER BY run ";
 my $ret3=$o->Query($sql);
 
-print " Total of : $#{@{$ret3}}\n";
+print " Total of : $#{@{$ret3}}+1\n";
 
 my $requested=0;
 my $requestec=0;
@@ -86,8 +86,11 @@ print "Completed $cite->[1] $cite->[0] \n";
 $requestec+=$cite->[0];
 }
 
+if($requested!=$#{@{$ret3}}+1){
+}
+
 print " Requested $requested Completed $requestec \n";
-if($requested>$#{@{$ret3}}){
+if(1 or $requested>$#{@{$ret3}}) {
 
     my $double=0;
 
@@ -97,11 +100,28 @@ my $ret4=$o->Query($sql);
     my $jidold=0;
 foreach my $ntuple (@{$ret4}){
      if($runold == $ntuple->[1]){
-        print "$ntuple->[0] $ntuple->[1] $runold $jidold\n";
+     #   print "$ntuple->[0] $ntuple->[1] $runold $jidold\n";
+        $sql="select path,jid from amsdes.ntuples where run=$ntuple->[1] and (jid=$jidold or jid=$ntuple->[0])";
+      #print "$sql \n"; 
+      my $ret5=$o->Query($sql);
+        if(defined $ret5->[0][0]){
+       #     print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
+            my $rmv=$ntuple->[0];
+            if($rmv==$ret5->[0][1]){
+                $rmv=$jidold;
+            }
+            $sql="select jobname from amsdes.jobs where jid=$rmv  and realtriggers<0"; 
+            my $ret6=$o->Query($sql);
+            if(defined $ret6->[0][0]){
+              print "$ret6->[0][0],"; 
+          }
+        }
         $double++;
 }
       $runold=$ntuple->[1];
      $jidold=$ntuple->[0];
    }  
-    print " Doubl $double \n";
+    if($double){
+        print " \n Double $double \n";
+    }
 }
