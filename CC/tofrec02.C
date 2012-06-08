@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.85 2012/06/07 08:28:05 choumilo Exp $
+//  $Id: tofrec02.C,v 1.86 2012/06/08 17:42:00 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawSide::validate added
@@ -1697,6 +1697,7 @@ void AMSTOFCluster::build2(int &stat){
   geant time,etime,timen,etimen,speedl,err;
   integer timeoks,timeokn;
 //-----
+  int count[4]={0,0,0,0}; 
   stat=1; // bad
   for(i=0;i<TOF2GC::SCLRS;i++)cllay[i]=0;
 //
@@ -1712,6 +1713,7 @@ void AMSTOFCluster::build2(int &stat){
     while (ptr){// scan to put all fired bars of layer "il" in buffer
       if(ptr->getntof()==il+1){
         ib=ptr->getplane();
+        if(il>=0 && il<sizeof(count)/sizeof(count[0]))count[il]++;
 #ifdef __AMSDEBUG__
         assert(ib>0 && ib <= TOF2GC::SCMXBR);
 #endif
@@ -1852,7 +1854,7 @@ void AMSTOFCluster::build2(int &stat){
 	}
 //--------> decision to glue:
 //	bool glue=((tmatch || cmatch) && ematch);//relaxed conditions
-        bool glue=(tmatch && cmatch && ematch);//nominal, means glue only if t/c/e-matched
+        bool glue=(tmatch && cmatch && ematch) && count[il]<3;//nominal, means glue only if t/c/e-matched
 //--------
 	if(glue){//<--- condition ok for gluing
 // cout<<"   ******> Glued:"<<endl; 
