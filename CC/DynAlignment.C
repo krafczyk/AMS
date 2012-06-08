@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.59 2012/05/23 10:49:14 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.60 2012/06/08 14:52:19 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -17,6 +17,12 @@
 #include "ntuple.h"
 #include "commons.h"
 #endif
+
+#ifdef _PGTRACK_
+#include "TkDBc.h"
+#include "TrExtAlignDB.h"
+#endif
+
 
 #include "omp.h"
 
@@ -82,7 +88,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   // Try to avoid biasing due to a wrong window in pattern recognition by building our own pattern recognition
   // We delegate thet election of the proper range to the DoFit function  
   // This also guarantees that the alignment does not depend in such parameters
-  int trId=track.iTrTrackPar(1,3,3);
+  int trId=track.iTrTrackPar(1,3,1);
   if(trId<0) return false;
   int counter=0;
   double bestDist=HUGE_VAL;
@@ -91,7 +97,8 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
     if(hit.GetLayerJ()!=layer) continue;
     if(hit.FalseX() || hit.OnlyY() || hit.OnlyX()) continue;
     int imult=hit.GetResolvedMultiplicity();	
-    AMSPoint punto=hit.GetGlobalCoordinate(imult,"A");
+    //    TrExtAlignDB::RecalcAllExtHitCoo(2);
+    AMSPoint punto=hit.GetCoord();
     AMSPoint pnt;
     AMSDir dir;
     track.Interpolate(punto[2],pnt,dir,trId);
@@ -119,8 +126,7 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   AMSDir dir;
 #ifdef _PGTRACK_
   int imult=hit.GetResolvedMultiplicity();
-  //  pnt=hit.GetGlobalCoordinate(imult,"");
-  pnt=hit.GetGlobalCoordinate(imult,"A");
+  pnt=hit.GetCoord();
 #else
   TrTrackFitR fitAll(0,0,3,1);    // Full span with alignment
   int idAll=track.iTrTrackFit(fitAll);
@@ -134,7 +140,6 @@ bool DynAlEvent::buildEvent(AMSEventR &ev,int layer,DynAlEvent &event){
   //////////////////////////
 
   for(int i=0;i<3;i++) event.RawHit[i]=pnt[i];
-
 
   ////////////////////// 
   // Dump the hit id  //
@@ -928,7 +933,9 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
   int events = ch.GetEntries();
   for (int entry=0; entry<events; entry++) {
     AMSEventR *pev = ch.GetEvent(entry);
-    CleanAlignment();
+#ifdef _PGTRACK_
+    TrExtAlignDB::RecalcAllExtHitCoo(2);
+#endif
     if(!select(pev,layer)) continue;
     if(pev->fHeader.Run!=current_run) break;
     
@@ -936,6 +943,10 @@ void DynAlContinuity::CreateIdx(AMSChain &ch,int layer,TString dir_name,TString 
     if(!DynAlEvent::buildEvent(*pev,layer,event)) continue;
     event.extrapolateTrack();
     history.Push(event);
+
+    ///////////// TEST
+    //    cout<<"ADDED TIME "<<event.Time[0]<<endl;
+
   }
 
   // Clean up
@@ -1457,6 +1468,7 @@ bool DynAlFitContainer::Find(int seconds,DynAlFitParameters &fit){
 	largeErrorSet[0]=largeErrorSet[1]=true;
       }
 #endif
+    cerr <<" DynAlFitContainer::Find-F-Alignment parameters too distant in the past."<<lower->first<<" "<<seconds<<" "<<abs(lower->first-seconds)<<endl;
     return false; // Not found
   }
 
