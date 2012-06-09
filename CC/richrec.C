@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.163 2012/05/17 17:57:45 barao Exp $
+//  $Id: richrec.C,v 1.163.2.1 2012/06/09 21:40:51 pzuccon Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -977,7 +977,11 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 AMSRichRing* AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
   AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+#ifdef _PGTRACK_
+  if(ring && ring->_ptrack && !(ring->_ptrack->IsFake()))return 0;
+#else
   if(ring && ring->_ptrack && ring->_ptrack->getpattern()>=0)return 0;
+#endif
   ring=build(ptrack,10);if(!ring) ring=build(ptrack,0);
   return ring;
 
