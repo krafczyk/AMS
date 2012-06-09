@@ -1,4 +1,4 @@
-//  $Id: DynAlignment.C,v 1.60 2012/06/08 14:52:19 mdelgado Exp $
+//  $Id: DynAlignment.C,v 1.61 2012/06/09 01:18:49 mdelgado Exp $
 #include "DynAlignment.h"
 #include "TChainElement.h"
 #include "TSystem.h"
@@ -857,12 +857,17 @@ int DynAlContinuity::getPreviousBin(int run){
 
 bool DynAlContinuity::select(AMSEventR *ev,int layer){
 #define SELECT(_name,_condition) {if(!(_condition)) return false;}
-#define fStatus (ev->fStatus)  
+  // For some reason, fStatus does not longer stores the number of tracks 
+  //SELECT("1 Tracker+RICH particle",(fStatus&0x13)==0x11);
+  //  SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
+  //  SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
+  //  SELECT("At least 1 tr track",fStatus&(0x3<<13));
 
-  SELECT("1 Tracker+RICH particle",(fStatus&0x13)==0x11);
-  SELECT("At most 1 anti",((fStatus>>21)&0x3)<=1);
-  SELECT("At most 4 tof clusters",(fStatus&(0x7<<10))<=(0x4<<10));
-  SELECT("At least 1 tr track",fStatus&(0x3<<13));
+  SELECT("1 Tracker particle",ev->nParticle()==1 && ev->pParticle(0)->pTrTrack());
+  SELECT("At most 1 anti",ev->nAntiCluster()<=1);
+  SELECT("At most 4 tof clusters",ev->nTofCluster()<=4);
+  SELECT("At least 1 tr track",ev->nTrTrack()==1);
+
 
 #ifndef _PGTRACK_
   SELECT("XCheck",ev->pParticle(0) && ev->pParticle(0)->pTrTrack());  
@@ -895,7 +900,6 @@ bool DynAlContinuity::select(AMSEventR *ev,int layer){
 
   return true;
 #undef SELECT
-#undef fStatus
 }
 
 
