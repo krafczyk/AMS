@@ -43,7 +43,7 @@ my $run2p="";
     my @runalist=();
 if($ok){
     my $time=time();
-    my $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>1305800000  $run2p  and run <=1337244535 ORDER BY run ";
+    my $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>1305853512  $run2p  and run <=1337244535 ORDER BY run ";
          my $ret=$o->Query($sql);
     my $okk=0;
     foreach my $file (@{$ret}){
