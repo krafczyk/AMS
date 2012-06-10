@@ -879,7 +879,10 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	$(CXX_ORBIT) -c $(CFLAGSTOFSIM) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+
+$(BIN)timeid.o:        $(SCC)timeid.C
+	$(CXX) -c $(CFLAGSTOFSIM) $(SCC)timeid.C -o $(BIN)timeid.o
 
 $(BIN)timeid_server.o:        $(SCC)timeid.C
 	$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_server.o
