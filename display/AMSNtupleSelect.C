@@ -13,17 +13,32 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
   AMSNtupleSelect(){};
   bool IsGolden(AMSEventR *ev){
-
-if(ev){
-for(int k=0;k<ev->fHeader.GPSTime.size();k++){
-  cout <<" gpstime k "<<k<<" "<<ev->fHeader.GPSTime[k]<<endl;
-}
+if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0 && ev->Particle(0).iTrdTrack()>=0 && ev->Particle(0).iBeta()>=0 &&ev->Particle(0).iEcalShower()>=0 &&ev->nEcalShower()==1 && ev->EcalShower(0).EnergyC*(1-ev->EcalShower(0).RearLeak)>2){
 unsigned int gps_time_sec=0;
 unsigned int gps_time_nsec=0;
-int ret=ev->fHeader.GetGPSEpoche( gps_time_sec, gps_time_nsec);
-cout <<" ret "<<ret<<" "<< gps_time_sec<< " "<< gps_time_nsec<<endl;
+int ret=ev->GetGPSTime( gps_time_sec, gps_time_nsec);
+//cout <<"time ret "<<ret<<" "<< gps_time_sec<< " "<< gps_time_nsec<<endl;
+for(int k=0;k<ev->fHeader.GPSTime.size();k++){
+ // cout <<" gpstime k "<<k<<" "<<ev->fHeader.GPSTime[k]<<endl;
+}
+ ret=ev->fHeader.GetGPSEpoche( gps_time_sec, gps_time_nsec);
+//cout <<" ret "<<ret<<" "<< gps_time_sec<< " "<< gps_time_nsec<<endl;
+cout <<"  status bits "<<((ev->fStatus)&3) <<" trd "<<((ev->fStatus>>2)&1)<<" tof "<<((ev->fStatus>>3)&1)<<" trk "<<((ev->fStatus>>4)&1)<<" ecal "<<((ev->fStatus>>6)&1)<<" necal "<<((ev->fStatus>>17)&3)<<" ene "<<((ev->fStatus>>37)&3)<<endl;
+return true;
+}
+else return false;
+if(ev->getsetup()){
+
+AMSSetupR::GPS gps=ev->getsetup()->GetGPS(ev->Run(),ev->Event());
+cout <<" gps "<<ev->Event()<<" "<<gps.Event<<" "<<ev->getsetup()->fGPS.size()<<endl;
+
+for( AMSSetupR::GPS_ri i=ev->getsetup()->fGPS.rbegin();i!=ev->getsetup()->fGPS.rend();i++){
+   cout <<i->first<<" "<<i->second.Event<<" "<<i->second.EventLast<<endl;
+ }
+
 }
 
+return 1;
 if(ev && ev->nParticle() && ev->Particle(0).iTrTrack()>=0){
 
    TrTrackPar algref;
