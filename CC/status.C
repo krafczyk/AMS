@@ -1,4 +1,4 @@
-//  $Id: status.C,v 1.54 2011/11/28 17:06:07 choutko Exp $
+//  $Id: status.C,v 1.54.8.1 2012/06/10 07:47:42 choutko Exp $
 // Author V.Choutko.
 #include "status.h"
 #include "snode.h"
@@ -76,14 +76,23 @@ for(int i=0;i<_Nelem;i++){
  tmp[i]=_Status[0][i];
  padd[i]=tmp+i;
 }
+//for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
+//cout <<"******** "<<endl;
 AMSsortNAG(padd,_Nelem);
 for(int i=0;i<4;i++){
  for(int k=0;k<_Nelem;k++)tmp[k]=_Status[i][k];
+ cout <<" i "<<i<<" "<<_Status[i][0]<<" "<<tmp[0]<<" "<<padd[0]<<endl;
  for(int k=0;k<_Nelem;k++)_Status[i][k]=*(padd[k]);
+//cout <<" ii "<<i<<" "<<_Status[i][0]<<" "<<tmp[0]<<" "<<padd[0]<<endl;
+
 }
 delete[] padd;
 delete[] tmp;
-// for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
+if(_Status[0][0]==_Status[1][0] && _Status[0][0]==_Status[2][0] &&_Status[0][0]==_Status[3][0] ){
+cerr<<"  AMSStatus::Sort-F-CompilerBug Aborting "<<endl;
+abort();
+}
+ //for(int k=0;k<_Nelem;k++)cout <<_Status[0][k]<<" "<<_Status[1][k]<<" "<<_Status[2][k]<<" "<<_Status[3][k]<<endl;
 }
 void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   if(_Nelem==0  || (isFull(run,evt,time,NULL)>1 && !AMSFFKEY.Update )){
