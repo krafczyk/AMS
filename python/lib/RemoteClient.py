@@ -741,7 +741,8 @@ class RemoteClient:
         global fsmutexes
         fsmutexes = {}
         maxt=5
-        for run in self.dbclient.rtb:
+        rtb_tuples=sorted(self.dbclient.rtb,key=lambda rtb: rtb.Run,reverse=True)
+        for run in rtb_tuples:
             if((run2p!=0 and run2p!=run.Run) and not(run2p<0 and run.Run>-run2p) and not(run2p/10000000000>0 and run.Run<=(run2p%10000000000))):
                 continue
             self.CheckedRuns[0]=self.CheckedRuns[0]+1
@@ -1795,7 +1796,7 @@ class RemoteClient:
         output=output+buf2[1]
         cmd="nsrm "+output
         cmdstatus=os.system(cmd)
-        cmd="/afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" root://castorpublic.cern.ch//"+output
+        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr"
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
@@ -3248,7 +3249,7 @@ class RemoteClient:
                     cmd="rm "+file[0]
                     i=0
 		    i=os.system(cmd)
-                    if(i and self.force==0):
+                    if(i and self.force==-1 ):
                         print " Command Failed ",cmd
                         self.sqlserver.Commit(0)
                         return
