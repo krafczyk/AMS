@@ -600,7 +600,8 @@ class RemoteClient:
                s.sendmail(message['From'],message['To'],message.as_string())
                s.quit()
                
-    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0):
+    def ValidateRuns(self,run2p,i,v,d,h,b,u,mt,datamc=0,force=0,nfs=0,castoronly=0):
+        self.castoronly=castoronly
         self.needfsmutex=nfs
         self.crczero=0
         self.failedcp=0
@@ -1661,6 +1662,26 @@ class RemoteClient:
                if(outputpath.find('xyz')>=0 or gb==0):
                    self.setprocessingflag(0,timenow,1)
                    sys.exit("doCopy-F-CannotFindAnyDisk Exit")
+           elif(outputpath.find('/castor/cern.ch')>=0):
+               stime=100
+               while(stime>60):
+                   if(odisk!=None):
+                       fsmutexes[odisk].release()
+                   try:
+                       (outputpatha,gb,odisk,stime)=self.getOutputPath(period,idisk,path)
+                   except IOError,e:
+                       print e
+                       print "Problem to getoutputpath file ",path
+                       return None,0,None,0
+                   except OSError,e:
+                       print e
+                       print "Problem to getoutputpath file ",path
+                       return None,0,None,0
+                   print "acquired:  ",outputpatha,gb,odisk,stime
+               outputpath=outputpatha[:]
+               if(outputpath.find('xyz')>=0 or gb==0):
+                   self.setprocessingflag(0,timenow,1)
+                   sys.exit("doCopy-F-CannotFindAnyDisk Exit")
            else:
                junk=outputpath.split('/')
                odisk="/"+junk[1]
@@ -1698,7 +1719,9 @@ class RemoteClient:
                                else:
                                    rstatus=self.calculateCRC(outputpath,crc)
                                if(rstatus==1):
-                                   castortime=self.moveCastor(inputfile,outputpath)
+                                   (castortime,castorpath)=self.moveCastor(inputfile,outputpath)
+                                   if(self.castoronly and castortime>0 and castorpath!=None):
+                                       outputpath=castorpath
                                    return outputpath,1,odisk,castortime
                                else:
                                    print "doCopy-E-ErorrCRC ",rstatus
@@ -1796,7 +1819,7 @@ class RemoteClient:
         output=output+buf2[1]
         cmd="nsrm "+output
         cmdstatus=os.system(cmd)
-        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr"
+        cmd="/afs/cern.ch/ams/local/bin/timeout --signal 9 1800 /afs/cern.ch/exp/ams/Offline/root/Linux/527.icc64/bin/xrdcp "+input+" 'root://castorpublic.cern.ch//"+output+"?svcClass=amscdr'"
         cmdstatus=os.system(cmd)
         if(cmdstatus):
             print "Error uploadToCastor via xrdcp",input,output,cmdstatus
@@ -1958,20 +1981,20 @@ class RemoteClient:
         junk=output.split('/')
         cmove='/castor/cern.ch/ams'
         if(input.find(cmove)<0):
-            return 0   
+            return 0,None   
         for i in range (2,len(junk)):
             cmove=cmove+'/'+junk[i]
         cmd="rfrename "+input+" "+cmove
         i=os.system(cmd)
         if(i==0):
-            return int(time.time())
+            return int(time.time()),cmove
         else:
             cmdn="nsls "+cmove
             cmdstatus=os.system(cmdn)
             if(cmdstatus):
-                return 0  
+                return 0,None
             else:
-                return int(time.time())
+                return int(time.time()),cmove
                 
     def getmoveCastor(self,input,output):
         junk=output.split('/')
@@ -2006,6 +2029,9 @@ class RemoteClient:
                     input=cmove
 
             cmd="rfcp "+input+" "+output
+            if(self.castoronly):
+                mutex.acquire()
+                return 1024
 #
 #      check if same disk
 #

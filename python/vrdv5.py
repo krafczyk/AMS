@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.4
-#  $Id: vrdv5.py,v 1.3 2011/07/27 10:02:55 ams Exp $
+#  $Id: vrdv5.py,v 1.4 2012/06/12 12:42:42 ams Exp $
 
 import sys, os
 #sys.path.insert(0,os.environ['AMSDataDir'] + '/DataManagement/python/lib')
@@ -16,7 +16,9 @@ run2p=0
 h=0
 u=0
 mt=0
+castoronly=0
 force=0
+nfs=0
 #u =1 for reverse unchecked runs to tobererun & deleting ntuples
 
 for x in sys.argv:
@@ -27,6 +29,7 @@ for x in sys.argv:
     elif x == "-dd": d=2
     elif x == "-u": u=1
     elif x == "-force": force=1
+    elif x == "-castoronly": castoronly=1
     elif x == "-mt": mt=1
     elif x[0:2] == "-b":
         b=1
@@ -39,6 +42,6 @@ if(d==0):
 html= RemoteClient.RemoteClient()
 html.ConnectDB(1)
 if(html.ServerConnect(1)):
-    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force)
+    html.ValidateRuns(run2p,i,v,d,h,b,u,mt,1,force,nfs,castoronly)
 
 
