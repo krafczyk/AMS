@@ -128,7 +128,7 @@ class RichPMTCalib{
   float  EfficiencyTemperatureCorrection(int );
   float  GainTemperatureCorrection(int );
   bool   initPMTs();
-  void   updatePMTs(int );
+  void   updatePMTs(int run, bool force=true);
   bool   checkRichPmtTemperatures();
   //bool   checkRichBrickTemperatures();
   bool   getRichPmtTemperatures();
