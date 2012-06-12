@@ -70,7 +70,7 @@ my $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites
 my $ret=$o->Query($sql);
 $sql="select count(amsdes.jobs.jid),cites.name  from amsdes.jobs,amsdes.cites where amsdes.jobs.cid=cites.cid and amsdes.jobs.did=233 and amsdes.jobs.jobname like '%pass2.%' and amsdes.jobs.realtriggers>0 group by cites.name";
 my $ret2=$o->Query($sql);
-     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>=1305853512  $run2p  and run <=1337238986  ORDER BY run ";
+     $sql = "SELECT run,fetime,letime fROM amsdes.datafiles where  status  like '%OK%' and type like 'SCI%'   and run>=1305853512  $run2p  and run <=1337244535  ORDER BY run ";
 my $ret3=$o->Query($sql);
 
 print " Total of : $#{@{$ret3}}+1\n";
@@ -105,7 +105,7 @@ foreach my $ntuple (@{$ret4}){
       #print "$sql \n"; 
       my $ret5=$o->Query($sql);
         if(defined $ret5->[0][0]){
-       #     print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
+            print "  exist in $ret5->[0][0] $ret5->[0][1] \n";
             my $rmv=$ntuple->[0];
             if($rmv==$ret5->[0][1]){
                 $rmv=$jidold;
@@ -124,4 +124,11 @@ foreach my $ntuple (@{$ret4}){
     if($double){
         print " \n Double $double \n";
     }
+
+    $sql="select amsdes.jobs.jid,amsdes.dataruns.run  from amsdes.jobs,amsdes.dataruns where amsdes.jobs.jid=dataruns.jid and amsdes.jobs.did=233 and amsdes.jobs.jobname like '%pass2.%'  and jobs.realtriggers<0 and jobs.cid=1 order by dataruns.run";
+my $ret7=$o->Query($sql);
+foreach my $ntuple (@{$ret7}){
+    print "$ntuple->[1],";
+}
+    print "\n";
 }
