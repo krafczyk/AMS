@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.67.4.3 2012/06/03 15:52:34 shaino Exp $
+//  $Id: TrFit.C,v 1.67.4.4 2012/06/12 07:58:27 pzuccon Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/06/03 15:52:34 $
+///$Date: 2012/06/12 07:58:27 $
 ///
-///$Revision: 1.67.4.3 $
+///$Revision: 1.67.4.4 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1345,7 +1345,7 @@ double TrFit::ChoutkoFit(void)
     if (ic <= 0) return -1;
 
     // Special treatment for Inner lower half
-    if (_zh[0] < 50) ic = 0;
+    //if (_zh[0] < 50) ic = 0;
 
     for (int s = 0; s <= 1; s++) {
      int i1 = (s == 0) ? ic-1 :    ic;
