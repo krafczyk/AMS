@@ -182,6 +182,18 @@ bool RichPMTCalib::Reload(){
   if (RichConfigManager::reloadPMTs || RichConfigManager::reloadRunTag)
     updatePMTs(run);
 
+  //
+  // force RICH Config & Status reload if failed
+  //
+  if (BadPMTs.size()==NPMT) {
+    if (verbosityLevel>0)
+      cout << "RichPMTCalib::Reload-I-ForceConfig&StatusReload " << endl;
+    richRunTag=CheckRichRun(run, v_pmt_stat, v_pmt_volt);
+    if (useRichRunTag && !richRunGood())
+      retValue=false;
+    updatePMTs(run,true);
+  }
+
   return retValue;
 }
 
@@ -254,14 +266,14 @@ float RichPMTCalib::GainTemperatureCorrection(int pmt) {
 }
 
 
-void RichPMTCalib::updatePMTs(int run) {
+void RichPMTCalib::updatePMTs(int run, bool force) {
   int utime, dV, pmt, pm;
   float ecor, gcor, gmcor, temp, dtemp;
   multimap<int,string>::iterator it;
 
   static int run_prev = 0;
 #pragma omp threadprivate(run_prev)
-  if (run == run_prev) return;
+  if (!force && run == run_prev) return;
   run_prev = run;
 
   // Set Defaults
