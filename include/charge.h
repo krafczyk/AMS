@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.27 2011/05/10 19:10:06 jorgec Exp $
+//  $Id: charge.h,v 1.28 2012/06/17 16:17:18 qyan Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -21,6 +21,7 @@
 #include "richrec.h"
 #include "trdrec.h"
 #include "TString.h"
+#include "Tofrec02_ihep.h"
 
 using namespace AMSChargConst;
 
@@ -236,6 +237,7 @@ class AMSChargeRich : public AMSChargeSubD {
 class AMSCharge : public AMSlink{
  public:
   AMSBeta * _pbeta;            // pointer to beta 
+  AMSBetaH * _pbetah;           //pointer to betah
 
   map <TString,AMSChargeSubD*> _charges;  // map storing all SubQ charges
 
@@ -274,6 +276,7 @@ class AMSCharge : public AMSlink{
   double getprobcharge(int charge);
 
   AMSBeta* getpbeta(){return _pbeta;}
+  AMSBetaH* getpbetah(){return _pbetah;}
 
   int getchargeTOF();
   int getchargeTracker();

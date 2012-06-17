@@ -2,7 +2,8 @@
 
 #ifndef __TOFDBCQ__
 #define __TOFDBCQ__ 1
-#include "typedefs.h"
+
+#ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
 #include "commons.h"
 #include "amsdbc.h"
@@ -10,6 +11,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "tofanticonst.h"
+#endif
+#include "typedefs.h"
+#include <map.h>
+#include "timeid.h"
+#include "commonsi.h"
 
 //--TOF Const 
 namespace TOFCSN{
@@ -18,8 +24,18 @@ namespace TOFCSN{
    const integer SCANMT=700;
    const integer SCANMY=50;   
    const integer SCANMX=10;
+   const integer NBARN=34;
+   const integer NSIDE=2;
 }
 
+namespace TOFDBcN{
+  const uinteger BAD=16;
+  const uinteger USED=32;
+  const uinteger BADHIS=128;
+  const uinteger ONESIDE=256;
+  const uinteger BADTIME=512;
+  const uinteger TRDTRACK=16384*2*2*2*2*2*2*2*2*2;
+}
 //----get random x from a[] distribution
 class TOFTool{
   TOFTool(){};
@@ -59,7 +75,7 @@ public:
    const TOFHist& operator=(const TOFHist &right);
 };
 
-
+#ifndef __ROOTSHAREDLIBRARY__
 //--pmt information hist
 class TOFPMT{
   public:
@@ -81,7 +97,6 @@ class TOFPMT{
      static geant phriset();
      static geant phseamp();
 };  
-
 
 //=======================================================================
 //  <--- to store time-points, corresp. to integral 0-1 with bin 1/(SCTPNMX-1)
@@ -194,6 +209,47 @@ public:
   geant gettm2(const int div, const geant r, const int i1, const int i2){return(wscan[div].gettm2(r, i1, i2));}
   static void build();
 };
-   
+#endif
 
+//Tof Time Alignment pars
+//===========================================================
+template <typename T1>
+class TofTDVTool{
+ public:
+   int   TDVSize;
+   int   TDVParN;
+   T1*   TDVBlock;//
+   char *TDVName;
+   bool  Isload;//has load or not
+   int   BRun;//begin run id
+   int   ERun;//end   run id
+//----
+ public:
+   TofTDVTool():TDVSize(0),TDVBlock(0),TDVName(0),Isload(0),BRun(0),ERun(0),TDVParN(0){};
+   virtual void LoadTDVPar(){};//copy TDV to class
+   virtual void GetTDVPar(){};//copy class to TDV
+   virtual int  ReadTDV(int rtime,int real=1);
+   virtual int  WriteTDV(int brun,int erun,int real=1);
+   virtual int  WriteTDV(int real=1){return WriteTDV(BRun,ERun,real);}
+};
+
+
+//===========================================================
+class TofTAlignPar: public TofTDVTool<float>{
+  public:
+     std::map<int, float>slew; //id LBS0
+     std::map<int, float>delay;//id LB00
+     float powindex;
+//----
+  public:
+     TofTAlignPar();
+     TofTAlignPar(float *arr,int brun,int erun);//load 
+     static TofTAlignPar *Head;
+     static TofTAlignPar *GetHead();
+     static void HeadLoadTDVPar(){GetHead()->LoadTDVPar();}
+     void LoadTDVPar();//copy TDV to class 
+     int  LoadFromFile(char *file);//read data from file->Block data
+};  
+
+//---
 #endif

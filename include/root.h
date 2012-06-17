@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437 2012/05/18 16:37:38 choutko Exp $
+//  $Id: root.h,v 1.438 2012/06/17 16:17:18 qyan Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -90,6 +90,8 @@ class AMSTrRecHit;
 class AMSAntiCluster;
 class AMSAntiMCCluster;
 class AMSBeta;
+class TofBetaPar;
+class AMSBetaH;
 class AMSChargeSubD;
 class AMSCharge;
 class AMSEvent;
@@ -102,6 +104,7 @@ class AMSRichRing;
 class AMSRichRingNew;
 class AMSNtuple;
 class AMSTOFCluster;
+class AMSTOFClusterH;
 class AMSTOFMCCluster;
 class AMSTOFMCPmtHit;
 class AMSEcalHit;
@@ -126,6 +129,7 @@ class DAQEvent;
 class AMSAntiCluster{};
 class AMSAntiMCCluster{};
 class AMSBeta{};
+class AMSBetaH{};
 class AMSCharge{};
 class AMSChargeSubD{};
 class AMSEvent{};
@@ -140,6 +144,7 @@ class AMSRichRing{};
 class AMSRichRingNew{};
 class AMSNtuple{};
 class AMSTOFCluster{};
+class AMSTOFClusterH{};
 class AMSTOFMCCluster{};
 class AMSTOFMCPmtHit{};
 class AMSTRDCluster{};
@@ -266,6 +271,7 @@ int   RichRingBs;
 int   TofRawClusters;
 int   TofRawSides;
 int   TofClusters;
+int   TofClusterHs;
 int   AntiRawSides;
 int   AntiClusters;
 int   TrRawClusters;
@@ -282,6 +288,7 @@ int   Level1s;
 int   Level3s;
 int   Betas;
 int   BetaBs;
+int   BetaHs;
 int   Vertexs;
 int   Charges;
 int   Particles;
@@ -324,7 +331,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,19)       //HeaderR
+  ClassDef(HeaderR,20)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
@@ -888,6 +895,63 @@ ClassDef(TofClusterR,1)       //TofClusterR
 #pragma omp threadprivate(fgIsA)
 };
 
+/// TofClusterHR structure
+/*
+  \author qyan@cern.ch
+
+*/
+class TofClusterHR {
+   static char _Info[255];
+ public:
+  
+   unsigned int Status;    //bad tag
+   int   Pattern;   //Counter Pattern->1(Side 0 has Signal T+A) 2(Side 1 has Signal T+A) 3(both Side has Signal T+A)
+   int   Layer;     //Counter Layer->Number 0-3
+   int   Bar;       //Counter Bar  ->Number 0-9
+   int   Direction; //Counter Along Direction ->0(x)-1(y) 
+   float Aadc[2];   //Raw Anode ADC   ->Side  0-1
+   float Rtime[2];  //Non Correct Time(ns)(FT-LT)->Side 0-1
+   float Time;      //Counter Hit Time(ns)(After Caliberation LT-FT+Const)
+   float ETime;     //Counter Hit Time Error(ns)
+   float Coo[3];    //Cluster Coo      (cm)
+   float ECoo[3];   //Cluster Coo Error(cm)
+   float AEdep;     //Anode   Energy dep(MeV)
+   float DEdep;     //Dynode  Energy dep(MeV)  
+
+ protected:
+    vector<int> fTofRawSide;   //indexes of TofRawclusterR's current object is made of.
+
+ public:
+   int  NTofRawSide(){return fTofRawSide.size();}
+   int iTofRawSide(unsigned int i){return i<fTofRawSide.size()?fTofRawSide[i]:-1;}
+   TofRawSideR * pTofRawSide(unsigned int i);
+
+  TofClusterHR(){};
+  TofClusterHR(AMSTOFClusterH *ptr);
+  virtual ~TofClusterHR(){};
+
+//-------user function
+  /// check Counter Side is good or not
+  bool IsGoodSide(int is){return (is==0||is==1)?((Pattern%10)&(is+1)):0;}//Side 0 or 1
+  /// Number of BetaHs use this Counter to build 
+  /*! return 0--this counter not belong to any BetaH  (Matched by zero track)
+      return 1--this counter belong to 1 BetaH        (Matched by one track)//indicate clear events
+      return >=2(N)...--this counter belong to N BetaH(Matched by N track)//indicate bad events
+      
+  !*/
+  int  NBetaHUsed( )     {return (Pattern/1000);}
+
+//------
+  char * Info(int number=-1){
+    sprintf(_Info,"TofClusterHR Info");
+    return _Info;
+  }
+//-------
+  friend class AMSTOFClusterH;
+  friend class AMSEventR;
+  ClassDef(TofClusterHR ,1)       //TofRawClusterR
+#pragma omp threadprivate(fgIsA)
+};
 
 /// AntiClusterR structure
 
@@ -2275,6 +2339,186 @@ public:
 #pragma omp threadprivate(fgIsA)
 };
 
+/// TofBetaPar structure
+/*!
+ \author qyan@cern.ch
+*/
+//////////////////////////////////////////////////////////////////////////
+class  TofBetaPar: public TObject{
+public:
+  int    Status;//bad good trdtrack.....
+//--Pattern Mode
+  int    SumHit;//Beta Hit Num
+  int    UseHit;//Use Tof Hit For Fit
+  int    Pattern[4];//Pattern for 4 layer /*0-lay missing/1-has sideN /2-has sideP/4-both side OK
+  float  Len[4]; //Leng for 4 layer
+  float  Time[4];//Time for 4 layer
+  float  ETime[4];//ETime for 4lay
+//--Fit Result
+  float  T0;//Time[il]=Len[il]/(Beta*Cvel)+T0 //using for calulate TResidual
+  float  Beta;
+  float  BetaC;
+  float  InvErrBeta;
+  float  InvErrBetaC;
+  float  Chi2T;//Time Chis
+  float  TResidual[4];//Time Resiual for 4lay
+  float  Chi2C;//Coo  Chis
+  float  CResidual[4][2];//Coo Residual X+Y Match with tracker
+
+//--Other Par
+  float  Rigidity;//all rigidty
+  float  InvErrRigidity;
+  float  Charge;//all charge
+  float  Momentum;
+  float  EMomentum;
+  float  Mass;
+  float  EMass;
+
+public:
+  TofBetaPar(){Init();}
+  const TofBetaPar& operator=(const TofBetaPar &right);
+  void SetFitPar(float _Beta,float _BetaC,float _InvErrBeta,float _InvErrBetaC,
+                 float _Chi2T, float _T0);
+  void CalFitRes();//calculate residual
+  void Init();
+  ClassDef(TofBetaPar, 1);//
+};
+
+/// Tof BetaH structure
+/*!
+ \author qyan@cern.ch
+*/
+class BetaHR {
+ protected:
+  TofBetaPar       BetaPar;
+ protected:
+  int   fTrTrack;    ///< index to TrTrack used
+  int   fTrdTrack;   ///< index to TrdTrack used
+  vector<int> fTofClusterH; ///< indexes of TofClusterHR's used
+  int   fLayer[4]; 
+
+ public:
+  BetaHR(){};
+  BetaHR(AMSBetaH *ptr);
+  virtual ~BetaHR(){};
+
+ public: 
+  int iTrTrack()const {return fTrTrack;}
+  TrTrackR * pTrTrack();
+  int iTrdTrack()const {return fTrdTrack;}//trd betah
+  TrdTrackR * pTrdTrack();
+  int NTofClusterH()const {return fTofClusterH.size();}
+  int iTofClusterH(unsigned int i){return i<fTofClusterH.size()?fTofClusterH[i]:-1;}
+  TofClusterHR * pTofClusterH(unsigned int i);
+
+  /// Get pointer to TOF BetaH iLayer(0-3) ClusterH /*return 0 if not exist*/
+  TofClusterHR * GetClusterHL (int ilay);
+  /// if TOF BetaH iLayer(0-3) ClusterH exists Return true
+  bool           TestExistHL  (int ilay){return (ilay>=0&&ilay<4)&&(fLayer[ilay]>=0);}
+  /// Number of All Fired TOF Counters in iLayer/ */
+  int            GetAllFireHL (int ilay){return BetaPar.Pattern[ilay]/1000;}
+  /// Return True if BetaH Cluster is Isolation Fire Counter/*return 0 if neighbor Counter Fire/
+  bool           IsIsolaionHL (int ilay,int idis=1){ //idis=1  //BetaH +-1 No Fire Counter
+        bool left=0;
+        if((BetaPar.Pattern[ilay]/100%10)==0)left=1;
+        else if((BetaPar.Pattern[ilay]/100%10)>idis)left=1;
+        bool right=0;
+        if((BetaPar.Pattern[ilay]/10%10)==0)right=1;
+        else if((BetaPar.Pattern[ilay]/10%10)>idis)right=1;
+        return (left&&right);
+     }
+   
+
+//---user function
+ public:
+   //Acess BetaH All Data
+  const TofBetaPar&  gTofBetaPar()      {return BetaPar;}
+  void  SetTofBetaPar(TofBetaPar tofpar){BetaPar=tofpar;}
+
+//--Beta data
+ public:
+  /// Beta Value
+  float GetBeta  () {return BetaPar.Beta; }
+  /// Fitting Error on 1/Beta
+  float GetEBetaV () {return BetaPar.InvErrBeta; }
+  /// Convert Beta Value(BetaC Convert fabs(Beta)>1 to <1 for Mass Calculation)
+  float GetBetaC () {return BetaPar.BetaC;}
+  /// Fitting Error on 1/BetaC
+  float GetEBetaCV() {return BetaPar.InvErrBetaC; }
+  /// Fitting Time Chis on Beta
+  float GetChi2T()  {return BetaPar.Chi2T; }
+  /// Fitting Coo Chis On Beta(Match with Tracker)
+  float GetChi2C()  {return BetaPar.Chi2C; }
+  /// Number of ClusterHs  (Pos Matched by Tracker) 
+  int   GetSumHit() {return BetaPar.SumHit;}
+  /// Number of ClusterHs for Beta Fit  (require counter 2side Ok)
+  int   GetUseHit() {return BetaPar.UseHit;} 
+  /// Cluster Status
+  int   GetStatus() {return BetaPar.Status;}
+  /// ClusterH Pattern for iLayer %10= (0)Layer missing (1)only has sideN (2)only has sideP (4) 2side OK
+  int   GetPattern(int ilay){return BetaPar.Pattern[ilay];}
+  /// Time Measument for iLayer(return 0 means Layer missing or Time bad)/ns
+  float GetTime   (int ilay){return BetaPar.Time[ilay];}
+  /// Time Measument Eror for iLayer
+  float GetETime  (int ilay){return BetaPar.ETime[ilay];}
+  /// Time Residual for iLayer
+  float GetTResidual (int ilay){return BetaPar.TResidual[ilay];}
+  /// Fit Beta T0 //Time[il]=Len[il]/(Beta*Cvel)+T0
+  float GetT0()  {return BetaPar.T0;}
+   /// Signed Distance along the Track from plane Z=0 to the Tof iLayer
+  float GetTkTFLen(int ilay){return BetaPar.Len[ilay];}
+  /// Coo Residula for iLayer ixy 0-X 1-Y (Distance with Tracker)
+  float GetCResidual (int ilay,int ixy){return BetaPar.CResidual[ilay][ixy];}
+
+//---Mass data
+ public:
+  /// Mass Measument for Beta
+  float GetMass()      {return BetaPar.Mass;} 
+  /// Err Mass
+  float GetEMass()     {return BetaPar.EMass;}
+  /// Mass Fit using Rigidity
+  float GetRigidity()  {return BetaPar.Rigidity;}
+  /// Mass Fit using Error 1/Rigidity
+  float GetERigidityV(){return BetaPar.InvErrRigidity;}
+  /// Mass Fit using Charge
+  float GetCharge()    {return BetaPar.Charge;}
+  
+//---Using Function 
+  ///ReFit Mass using new Rigidity+new Charge
+  /*!
+    [rig]     Input New Rigidity->0  means not update
+    [charge]  Input New Charge  ->0  means not update
+    [erigv]   Input New Error of 1/RigidityV->0 means not update 
+    [isbetac] (1)Using BetaC  (0)Using Beta //Fit Mass
+    [update]  (1)Update BetaPar or (0)Not
+  !*/
+  int  MassReFit(double rig=0,double charge=0,double erigv=0,int isbetac=0,int update=1);
+   ///Beta ReFit 
+   /*
+     [pattern] mmmm: m=1 or 0,  1011 using TofClusterH layer0+laye2+lay3 for Beta fit. while don't use lay1.
+     [mode]    mode=1 or 0,  different time err or same time err for 4 Tof Layers
+     [update]  (2)Beta ReFit and then Mass ReFit (1)Only Beta ReFit (0)No ReFit
+   */
+  int  BetaReFit(int pattern=1111,int mode=1,int update=2);
+//  int    
+    /// Time Interpolation to pos=Z /*Time Infomation for BackSplash Study*/
+  /*!
+   * \param[in]  zpl  Plane position (Z=zpl)
+   * \param[out] pnt  Track position  at Z=zpl
+   * \param[out] dif  Track direction at Z=zpl
+   * \param[in]  time BetaH Fit Time in  Z=zpl(ns)
+   * \return          Path length between Z=P0z(usually 0) and Z=zpl
+   */
+#ifdef _PGTRACK_
+  double  TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time);
+#endif
+//---- 
+  friend class AMSBetaH;
+  friend class AMSEventR;
+  ClassDef(BetaHR,1)
+#pragma omp threadprivate(fgIsA)   
+};
+
 #include <map>
 #include <vector>
 
@@ -2342,7 +2586,7 @@ class ChargeR{
 
  protected:
   int fBeta;                        ///< index of BetaR used
-
+  int fBetaH;                       ///< index of BetaRH 
  public:
   /// access function to BetaR object used
   /// \return index of BetaR object in collection or -1
@@ -2350,6 +2594,12 @@ class ChargeR{
   /// access function to BetaR object used
   /// \return pointer to BetaR object or 0
   BetaR * pBeta();
+  /// access function to BetaHR object used
+  /// \return index of BetaHR object in collection or -1
+  int iBetaH()const {return fBetaH;}
+  /// access function to BetaHR object used
+  /// \return pointer to BetaHR object or 0
+  BetaHR *pBetaH();
 
   /// most probable integer charge
   int Charge(){return max(1,int(ChargeI[0]));}
@@ -2372,13 +2622,13 @@ class ChargeR{
 
   /// set function of the index of BetaR object used
   void setBeta(int iBeta) {fBeta=iBeta;}
-
+  void setBetaH(int iBetaH){fBetaH=iBetaH;}
   ChargeR(AMSCharge* ptr);
   ChargeR(){};
   friend class AMSEventR;
   friend class AMSCharge;
 
-  ClassDef(ChargeR,2)
+  ClassDef(ChargeR,3)
 };
 
 #ifndef _PGTRACK_
@@ -2525,6 +2775,7 @@ endif
 
 protected:
   int  fBeta;          ///<index of  BetaR used
+  int  fBetaH;          ///<index of  BetaHR used
   int  fCharge;        ///<index of  ChargeR used
   int  fTrTrack;      ///<index of  TrTrackR used
   int  fTrdTrack;     ///<index of  TrdTrackR used
@@ -2541,6 +2792,13 @@ public:
   /// access function to BetaR object used
   /// \return pointer to BetaR object or 0
   BetaR * pBeta();
+
+  /// access function to BetaHR object used
+  /// \return index of BetaHR object in collection or -1
+  int iBetaH()const {return fBetaH;}
+  /// access function to BetaHR object used
+  /// \return pointer to BetaHR object or 0
+  BetaHR * pBetaH();
 
   /// access function to ChargeR object used
   /// \return index of ChargeR object in collection or -1
@@ -2641,7 +2899,7 @@ public:
   /// \return true if position at z=(center of the TRD) is inside the geometrical acceptance of the TRD, otherwise false.
   bool IsInsideTRD();
 
-  ClassDef(ParticleR,14)       //ParticleR
+  ClassDef(ParticleR,15)       //ParticleR
 #pragma omp threadprivate(fgIsA)
 };
 
@@ -3018,6 +3276,7 @@ static TBranch*  bRichRingB;
 static TBranch*  bTofRawCluster;
 static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
+static TBranch*  bTofClusterH;
 static TBranch*  bAntiRawSide;
 static TBranch*  bAntiCluster;
 static TBranch*  bTrRawCluster;
@@ -3034,6 +3293,7 @@ static TBranch*  bLevel1;
 static TBranch*  bLevel3;
 static TBranch*  bBeta;
 static TBranch*  bBetaB;
+static TBranch*  bBetaH;
 static TBranch*  bVertex;
 static TBranch*  bCharge;
 static TBranch*  bParticle;
@@ -3050,7 +3310,7 @@ static TBranch*  bDaqEvent;
 static TBranch*  bAux;
 #ifdef __ROOTSHAREDLIBRARY__
 
-#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTofMCPmtHit,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
+#pragma omp threadprivate (bStatus,bHeader,bEcalHit,bEcalCluster,bEcal2DCluster,bEcalShower,bRichHit,bRichRing,bRichRingB,bTofRawCluster,bTofRawSide,bTofCluster,bTofClusterH,bAntiRawSide,bAntiCluster,bTrRawCluster,bTrCluster,bTrRecHit,bTrTrack,bTrdRawHit,bTrdCluster,bTrdSegment,bTrdTrack,bTrdHSegment,bTrdHTrack,bLevel1,bLevel3,bBeta,bBetaB,bBetaH,bVertex,bCharge,bParticle,bAntiMCCluster,bTrMCCluster,bTofMCCluster,bTofMCPmtHit,bEcalMCHit,bTrdMCCluster,bRichMCCluster,bMCTrack,bMCEventg,bDaqEvent,bAux)
 
 #endif
 
@@ -3067,6 +3327,7 @@ static void*  vRichRingB;
 static void*  vTofRawCluster;
 static void*  vTofRawSide;
 static void*  vTofCluster;
+static void*  vTofClusterH;
 static void*  vAntiRawSide;
 static void*  vAntiCluster;
 static void*  vTrRawCluster;
@@ -3083,6 +3344,7 @@ static void*  vLevel1;
 static void*  vLevel3;
 static void*  vBeta;
 static void*  vBetaB;
+static void*  vBetaH;
 static void*  vVertex;
 static void*  vCharge;
 static void*  vParticle;
@@ -3669,6 +3931,8 @@ int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of T
 ///
 int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)
 ///
+int   nTofClusterH()const { return fHeader.TofClusterHs;} ///< \return number of TofClusterHR elements (fast)
+///
 int   nAntiRawSide()const { return fHeader.AntiRawSides;} ///< \return number of AntiRawSideR elements (fast)
 ///
 int   nAntiCluster()const { return fHeader.AntiClusters;} ///< \return number of AntiClusterR elements (fast)
@@ -3700,6 +3964,8 @@ int   nLevel3()const { return fHeader.Level3s;} ///< \return number of Level3R e
 int   nBeta()const { return fHeader.Betas;} ///< \return number of BetaR elements (fast)
 ///
 int   nBetaB()const { return fHeader.BetaBs;} ///< \return number of BetaR elements alternative rec (fast)
+///
+int   nBetaH()const { return fHeader.BetaHs;} ///< \return number of BetaHR elements alternative rec (fast)
 ///
 int   nVertex()const { return fHeader.Vertexs;} ///< \return number of VertexR elements (fast)
 ///
@@ -3751,6 +4017,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   vector<TofRawClusterR> fTofRawCluster;
   vector<TofRawSideR> fTofRawSide;
   vector<TofClusterR> fTofCluster;
+  vector<TofClusterHR>fTofClusterH;
 
 
   //Anti
@@ -3784,6 +4051,7 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
   //AxAMS
   vector<BetaR> fBeta;
   vector<BetaR> fBetaB;
+  vector<BetaHR> fBetaH;
   vector<ChargeR> fCharge;
   vector<VertexR> fVertex;
   vector<ParticleR> fParticle;
@@ -4163,6 +4431,37 @@ int   nDaqEvent()const { return fHeader.DaqEvents;} ///< \return number of MCEve
         return l<fTofCluster.size()?&(fTofCluster[l]):0;
       }
 
+
+        ///  \return number of TofClusterHR
+      ///
+      unsigned int   NTofClusterH()  {
+        if(fHeader.TofClusterHs && fTofClusterH.size()==0)bTofClusterH->GetEntry(_Entry);
+        return fTofClusterH.size();
+      }
+      ///  \return reference of TofClusterR Collection
+      ///
+      vector<TofClusterHR> & TofClusterH()  {
+        if(fHeader.TofClusterHs && fTofClusterH.size()==0)bTofClusterH->GetEntry(_Entry);
+         return  fTofClusterH;
+       }
+
+       ///  TofClusterHR accessor
+       /// \param l index of TofClusterHR Collection
+      ///  \return reference to corresponding TofClusterHR element
+      ///
+       TofClusterHR &   TofClusterH(unsigned int l) {
+        if(fHeader.TofClusterHs && fTofClusterH.size()==0)bTofClusterH->GetEntry(_Entry);
+         return fTofClusterH.at(l);
+      }
+
+       ///  TofClusterHR accessor
+       /// \param l index of TofClusterHR Collection
+      ///  \return pointer to corresponding TofClusterHR element
+      ///
+      TofClusterHR *   pTofClusterH(unsigned int l) {
+        if(fHeader.TofClusterHs && fTofClusterH.size()==0)bTofClusterH->GetEntry(_Entry);
+        return l<fTofClusterH.size()?&(fTofClusterH[l]):0;
+      }
 
 
 
@@ -4733,6 +5032,38 @@ for(int k=0;k<fTrTrack.size();k++)fTrTrack[k].Compat();
       }
 
 
+       ///  BetaHR accessor
+      ///  \return number of BetaHR
+      ///
+      unsigned int   NBetaH()  {
+        if(fHeader.BetaHs && fBetaH.size()==0)bBetaH->GetEntry(_Entry);
+        return fBetaH.size();
+      }
+      ///  \return reference of BetaHR Collection
+      ///
+      vector<BetaHR> & BetaH()  {
+        if(fHeader.BetaHs && fBetaH.size()==0)bBetaH->GetEntry(_Entry);
+         return  fBetaH;
+       }
+
+       ///  BetaHR accessor
+       /// \param l index of BetaHR Collection
+      ///  \return reference to corresponding BetaHR element
+      ///
+       BetaHR &   BetaH(unsigned int l) {
+        if(fHeader.BetaHs && fBetaH.size()==0)bBetaH->GetEntry(_Entry);
+         return fBetaH.at(l);
+      }
+
+       ///  BetaHR accessor
+       /// \param l index of BetaHR Collection
+      ///  \return pointer to corresponding BetaHR element
+      ///
+      BetaHR *   pBetaH(unsigned int l) {
+        if(fHeader.BetaHs && fBetaH.size()==0)bBetaH->GetEntry(_Entry);
+        return l<fBetaH.size()?&(fBetaH[l]):0;
+      }
+
 
 
        ///  ChargeR accessor
@@ -5254,6 +5585,7 @@ void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
 void         AddAMSObjectB(AMSBeta *ptr);
+void         AddAMSObject(AMSBetaH *ptr);
 void         AddAMSObject(AMSCharge *ptr);
 void         AddAMSObject(AMSEcalHit *ptr);
 void         AddAMSObject(AMSEcalMCHit *ptr);
@@ -5266,6 +5598,7 @@ void         AddAMSObject(AMSRichRing *ptr);
 void         AddAMSObject(AMSRichRingNew *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z);
 void         AddAMSObject(AMSTOFCluster *ptr);
+void         AddAMSObject(AMSTOFClusterH *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
 void         AddAMSObject(AMSTOFMCPmtHit *ptr);
 void         AddAMSObject(AMSTrRecHit *ptr);
@@ -5289,7 +5622,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 friend class AMSChain;
-ClassDef(AMSEventR,16)       //AMSEventR
+ClassDef(AMSEventR,17)       //AMSEventR
 #pragma omp threadprivate(fgIsA)
 };
 

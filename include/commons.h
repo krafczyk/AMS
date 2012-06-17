@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.350 2012/05/28 09:07:55 qyan Exp $
+//  $Id: commons.h,v 1.351 2012/06/17 16:17:18 qyan Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -854,6 +854,7 @@ class TFREFFKEY_DEF {
   integer day[2];
   integer mon[2];
   integer year[2];
+  integer TFHTDVCalib;
 };
 #define TFREFFKEY COMMON_BLOCK(TFREFFKEY,tfreffkey)
 COMMON_BLOCK_DEF(TFREFFKEY_DEF,TFREFFKEY);
@@ -965,6 +966,13 @@ class BETAFITFFKEY_DEF {
   integer OldNew; // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ; N==3 Beta Old & New; M==0 Master New, M==1 Master old
   float TRDNorm;  //  Trd beta charge normaqization factor
   float TRDP[3];  //  tof beta to trd extrapolation
+  integer HSearchMode;  //sum control serach mode
+  integer HSearchLMatch;//require LMatch or not for pattern finding
+  geant   HSearchReg[2];//TMatch+LMatch(N Sigma)
+  integer HMinLayer[2];//require Min Layer//Match Layer+T require Layer
+  integer HBetaCheck;//0 not check 1 check+tag 2 recover(throw tofhit) 3 abandon(beta)
+  geant   HBetaReg[2];//check beta is in resonable regin
+  geant   HBetaChis;//check Fit chis;
 };
 //
 
