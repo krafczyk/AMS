@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.383 2012/05/29 18:20:30 qyan Exp $
+#  $Id: datacards.doc,v 1.384 2012/06/17 16:23:54 qyan Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -438,7 +438,15 @@ I20  OldNew(1)            // MN N==0 -> N beta ; N==1 Beta new; N==2 Beta old ;
                           // N==3 Beta Old & New; M==0 Master New, M==1 Master old
 
 R21 TRDNorm       trd charge  beta norm factor
-R22 TRDP          beta extrapolation to trd region
+R22 TRDP[3]       beta extrapolation to trd region
+R25 HSearchMode   //BetaH sum control search mode
+R26 HSearchLMatch //require LMatch or not for pattern finding
+R27 HSearchReg[2] //Match+LMatch(N Sigma)
+R29 HMinLayer[2]  //require Min Layer//Match Layer+T require Layer
+R31 HBetaCheck    //0 not check 1 check+tag 2 recover(throw tofhit) 3abandon(beta)
+R32 HBetaReg[2];  //check beta is in resonable regin
+R34 HBetaChis     //check Fit chis;
+
 
 CHARGEFIT
 //- AMSCharge Combination options
@@ -954,6 +962,7 @@ I 35-36   hour[2](0,0)       //
 I 37-38   day[2](1,1)        //
 I 39-40   mon[2](0,0)        //
 I 41-42   year[2](101,110)   //
+I 43      TFHTDVCalib        //
 
 // AMS02 TOF calibration
 
