@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.251 2012/05/21 10:05:10 choutko Exp $
+//  $Id: particle.C,v 1.252 2012/06/17 16:15:21 qyan Exp $
 
 // Author V. Choutko 6-june-1996
 
@@ -101,7 +101,7 @@ integer sign(number a){
 
 integer AMSParticle::build(integer refit){
   //Particle mass rec, momentum etc.
-  number mass,emass,charge,momentum,emomentum,theta(0),phi(0);
+  number mass,emass,charge,momentum,emomentum,theta(0),phi(0),massH,emassH;
   AMSPoint coo;
   AMSParticle * ppart(0);
   AMSAntiMCCluster * pcl(0);
@@ -139,6 +139,7 @@ integer AMSParticle::build(integer refit){
     while(pcharge) {
       {
 	AMSBeta * pbeta=pcharge->getpbeta();
+        AMSBetaH *pbetah=pcharge->getpbetah();
 	AMSTrTrack * ptrack=pbeta->getptrack();
 #ifdef __AMSDEBUG__
 	//          assert (ptrack && pbeta && pcharge);
@@ -156,7 +157,12 @@ integer AMSParticle::build(integer refit){
           number beta=pbeta->getbeta();
           number ebeta=pbeta->getebeta()*beta*beta;
           _build(rid,err,charge,beta,ebeta,mass,emass,momentum,emomentum);
-          ppart=new AMSParticle(pbeta, pcharge, ptrack,
+//--Qi Yan
+          if(pbetah){
+             TofRecH::MassRec(pbetah->_betapar,rid,charge,err);
+           }
+//----
+          ppart=new AMSParticle(pbeta,pbetah, pcharge, ptrack,
 				beta,ebeta,mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
           
@@ -202,7 +208,7 @@ integer AMSParticle::build(integer refit){
          int charge=0;
          if(ptr2 && ptr2->TofFasTrigOK())charge=1;
 	ptrack->setstatus(AMSDBc::ECALTRACK); 
-	ppart=new AMSParticle(0, 0, ptrack,
+	ppart=new AMSParticle(0,0,0, ptrack,
 			      pecal->getDirection(),1,0,100000,ecal_ene*i*pecal->getDirection(),ecal_ene_err,charge,pecal->getDir().gettheta(),pecal->getDir().getphi(),pecal->getEntryPoint());
 	//          cout <<" ecal particle done "<<AMSEvent::gethead()->getid()<<endl;
 	AMSgObj::BookTimer.start("ReAxPid");
@@ -830,6 +836,8 @@ void AMSParticle::_copyEl(){
   ParticleR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Particle(_vpos);
   if (_pbeta)   ptr.fBeta  =_pbeta  ->GetClonePointer();
   else ptr.fBeta=-1;
+  if (_pbetah)   ptr.fBetaH  =_pbetah  ->GetClonePointer();
+  else ptr.fBetaH=-1;
   if (_pcharge) ptr.fCharge=_pcharge->GetClonePointer();
   else ptr.fCharge=-1;
   if (_ptrack)  ptr.fTrTrack =_ptrack ->GetClonePointer();
@@ -846,6 +854,8 @@ void AMSParticle::_copyEl(){
   else ptr.fEcalShower=-1;
   if (_pvert) ptr.fVertex=_pvert->GetClonePointer();
   else ptr.fVertex=-1;
+  if(_pbetah) ptr.fBetaH= _pbetah->GetClonePointer();
+  else  ptr.fBetaH=-1;
 #endif
 }
 
@@ -1317,7 +1327,7 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
  
  
 AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
-					_ptrd(0),_phtrd(0),_prich(0),_prichB(0),_pShower(0),_pcharge(0),_pbeta(0){
+					_ptrd(0),_phtrd(0),_prich(0),_prichB(0),_pShower(0),_pcharge(0),_pbeta(0),_pbetah(0){
   int i;
   for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
   for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);

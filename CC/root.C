@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.407 2012/06/07 16:29:15 cconsola Exp $
+//  $Id: root.C,v 1.408 2012/06/17 16:15:22 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -58,6 +58,7 @@
 #endif
 #endif
 #include "Sunposition.h"
+#include "Tofrec02_ihep.h"
 using namespace root;
 #ifdef __WRITEROOT__
 /*
@@ -73,6 +74,7 @@ using namespace root;
   ClassImp(TofRawClusterR)
   ClassImp(TofRawSideR)
   ClassImp(TofClusterR)
+  ClassImp(TofClusterHR)
   ClassImp(AntiRawSideR)
   ClassImp(AntiClusterR)
   ClassImp(TrRawClusterR)
@@ -88,6 +90,7 @@ using namespace root;
   ClassImp(Level1R)
   ClassImp(Level3R)
   ClassImp(BetaR)
+  ClassImp(BetaHR)
   ClassImp(ChargeR)
   ClassImp(ParticleR)
   ClassImp(AntiMCClusterR)
@@ -1351,6 +1354,7 @@ TBranch* AMSEventR::bRichRingB;
 TBranch* AMSEventR::bTofRawCluster;
 TBranch* AMSEventR::bTofRawSide;
 TBranch* AMSEventR::bTofCluster;
+TBranch* AMSEventR::bTofClusterH;
 TBranch* AMSEventR::bAntiRawSide;
 TBranch* AMSEventR::bAntiCluster;
 TBranch* AMSEventR::bTrRawCluster;
@@ -1367,6 +1371,7 @@ TBranch* AMSEventR::bLevel1;
 TBranch* AMSEventR::bLevel3;
 TBranch* AMSEventR::bBeta;
 TBranch* AMSEventR::bBetaB;
+TBranch* AMSEventR::bBetaH;
 TBranch* AMSEventR::bVertex;
 TBranch* AMSEventR::bCharge;
 TBranch* AMSEventR::bParticle;
@@ -1394,6 +1399,7 @@ void* AMSEventR::vRichRingB=0;
 void* AMSEventR::vTofRawCluster=0;
 void* AMSEventR::vTofRawSide=0;
 void* AMSEventR::vTofCluster=0;
+void* AMSEventR::vTofClusterH=0;
 void* AMSEventR::vAntiRawSide=0;
 void* AMSEventR::vAntiCluster=0;
 void* AMSEventR::vTrRawCluster=0;
@@ -1410,6 +1416,7 @@ void* AMSEventR::vLevel1=0;
 void* AMSEventR::vLevel3=0;
 void* AMSEventR::vBeta=0;
 void* AMSEventR::vBetaB=0;
+void* AMSEventR::vBetaH=0;
 void* AMSEventR::vVertex=0;
 void* AMSEventR::vCharge=0;
 void* AMSEventR::vParticle=0;
@@ -1428,6 +1435,7 @@ void* AMSEventR::vAux=0;
 char   DaqEventR::_Info[255];
 char  AntiClusterR::_Info[255];
 char  TofClusterR::_Info[255];
+char  TofClusterHR::_Info[255];
 char  ParticleR::_Info[255];
 #ifndef _PGTRACK_
 //PZ FIXME
@@ -1625,6 +1633,12 @@ void AMSEventR::GetBranch(TTree *fChain){
     strcat(tmp,"fTofCluster");
     bTofCluster=fChain->GetBranch(tmp);
   }
+ 
+  {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fTofClusterH");
+    bTofClusterH=fChain->GetBranch(tmp);
+  }
 
   {
     strcpy(tmp,_Name);
@@ -1721,6 +1735,13 @@ void AMSEventR::GetBranch(TTree *fChain){
     strcat(tmp,"fBetaB");
     bBetaB=fChain->GetBranch(tmp);
   }
+  
+   {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fBetaH");
+    bBetaH=fChain->GetBranch(tmp);
+   }
+
 
   {
     strcpy(tmp,_Name);
@@ -1886,6 +1907,13 @@ void AMSEventR::GetBranchA(TTree *fChain){
     strcat(tmp,"fTofCluster");
     vTofCluster=fChain->GetBranch(tmp)->GetAddress();
   }
+ 
+   {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fTofClusterH");
+    vTofClusterH=fChain->GetBranch(tmp)->GetAddress();
+  }
+
 
   {
     strcpy(tmp,_Name);
@@ -1982,6 +2010,13 @@ void AMSEventR::GetBranchA(TTree *fChain){
     strcat(tmp,"fBetaB");
     vBetaB=fChain->GetBranch(tmp)->GetAddress();
   }
+
+   {
+    strcpy(tmp,_Name);
+    strcat(tmp,"fBetaH");
+    vBetaH=fChain->GetBranch(tmp)->GetAddress();
+  }
+
 
   {
     strcpy(tmp,_Name);
@@ -2081,6 +2116,7 @@ void AMSEventR::SetCont(){
   fHeader.TofRawClusters=fTofRawCluster.size();
   fHeader.TofRawSides=fTofRawSide.size();
   fHeader.TofClusters=fTofCluster.size();
+  fHeader.TofClusterHs=fTofClusterH.size();
   fHeader.AntiRawSides=fAntiRawSide.size();
   fHeader.AntiClusters=fAntiCluster.size();
   fHeader.TrRawClusters=fTrRawCluster.size();
@@ -2097,6 +2133,7 @@ void AMSEventR::SetCont(){
   fHeader.Level3s=fLevel3.size();
   fHeader.Betas=fBeta.size();
   fHeader.BetaBs=fBetaB.size();
+  fHeader.BetaHs=fBetaH.size();
   fHeader.Vertexs=fVertex.size();
   fHeader.Charges=fCharge.size();
   fHeader.Particles=fParticle.size();
@@ -2394,6 +2431,7 @@ AMSEventR::AMSEventR():TSelector(){
   fTofRawCluster.reserve(MAXTOFRAW);
   fTofRawSide.reserve(MAXTOFRAWS);
   fTofCluster.reserve(MAXTOF);
+  fTofClusterH.reserve(MAXTOFH);
   fAntiRawSide.reserve(MAXANTIRS);
   fAntiCluster.reserve(MAXANTICL);
 
@@ -2414,6 +2452,7 @@ AMSEventR::AMSEventR():TSelector(){
 
   fBeta.reserve(MAXBETA02);
   fBetaB.reserve(MAXBETA02);
+  fBetaH.reserve(MAXBETAH);
   fCharge.reserve(MAXCHARGE02);
   fVertex.reserve(2);
   fParticle.reserve(MAXPART02);
@@ -2443,6 +2482,7 @@ void AMSEventR::clear(){
   fTofRawCluster.clear();
   fTofRawSide.clear();
   fTofCluster.clear();
+  fTofClusterH.clear();
   fAntiRawSide.clear();
   fAntiCluster.clear();
 
@@ -2463,6 +2503,7 @@ void AMSEventR::clear(){
 
   fBeta.clear();
   fBetaB.clear();
+  fBetaH.clear();
   fCharge.clear();
   fVertex.clear();
   fParticle.clear();
@@ -2568,6 +2609,15 @@ void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
     ptr->SetClonePointer(fTofCluster.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSTofCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSTOFClusterH *ptr){
+  if (ptr) {
+    fTofClusterH.push_back(TofClusterHR(ptr));
+    ptr->SetClonePointer(fTofClusterH.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSTofClusterH ptr is NULL"<<endl;
   }
 }
 
@@ -2776,6 +2826,17 @@ void AMSEventR::AddAMSObjectB(AMSBeta *ptr)
     cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
   }
 }
+
+void AMSEventR::AddAMSObject(AMSBetaH *ptr)
+{
+  if (ptr) {
+    fBetaH.push_back(BetaHR(ptr));
+    ptr->SetClonePointer(fBetaH.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSBetaH ptr is NULL"<<endl;
+  }
+}
+
 
 void AMSEventR::AddAMSObject(AMSCharge *ptr){
   if(!ptr){
@@ -3042,6 +3103,13 @@ BetaR::BetaR(AMSBeta *ptr){
   fTrTrack    = -1;
 #endif
 }
+
+BetaHR::BetaHR(AMSBetaH *ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+  BetaPar=ptr->_betapar;
+#endif
+}
+
 
 ChargeSubDR::ChargeSubDR(AMSChargeSubD *ptr){
 
@@ -3783,6 +3851,30 @@ TofClusterR::TofClusterR(AMSTOFCluster *ptr){
   }
 #endif
 }
+
+TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+  Status = ptr->_status;
+  Pattern= ptr->_pattern;
+  Layer  = ptr->_idsoft/1000%10;
+  Bar    = ptr->_idsoft/100%10;
+  if(Layer==0||Layer==3)Direction=0;
+  else                  Direction=1;
+  for(int is=0;is<2;is++){
+    Aadc[is]= ptr->_adca[is];
+    Rtime[is]=ptr->_sdtm[is];
+  }
+  Time= ptr->_timer;
+  ETime=ptr->_etimer;
+  for(int i=0;i<3;i++){
+    Coo[i]= ptr->_coo[i];
+    ECoo[i]=ptr->_ecoo[i];
+  }
+  AEdep=ptr->_edepa;
+  DEdep=ptr->_edepd;
+#endif
+}
+
 
 TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
@@ -5425,6 +5517,10 @@ TofRawSideR* TofRawClusterR::pTofRawSide(unsigned int i){
   return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
 }
 
+TofRawSideR* TofClusterHR::pTofRawSide(unsigned int i){
+  return (AMSEventR::Head() && i<fTofRawSide.size())?AMSEventR::Head()->pTofRawSide(fTofRawSide[i]):0;
+}
+
 #ifndef _PGTRACK_
 TrClusterR* TrRecHitR::pTrCluster(char xy){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrCluster(xy=='x'?fTrClusterX:fTrClusterY):0;
@@ -5500,8 +5596,130 @@ TrTrackR* BetaR::pTrTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
 }
 
+//-------TofBetaPar
+void TofBetaPar::Init(){
+  Status=SumHit=UseHit=0;
+  Beta=BetaC=0;
+  UseHit=0;
+  for(int ilay=0;ilay<4;ilay++){
+    Pattern[ilay]=0;
+    Len[ilay]=0;
+    Time[ilay]=0;
+    ETime[ilay]=1000;
+    TResidual[ilay]=1000;
+    for(int is=0;is<2;is++){CResidual[ilay][is]=0;}
+   }
+   Beta=Beta=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
+   Rigidity=InvErrRigidity=Charge=Momentum=EMomentum=Mass=EMass=0;
+};
+
+const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
+  Status=right.Status;
+  SumHit=right.SumHit;
+  UseHit=right.SumHit;
+  for(int ilay=0;ilay<4;ilay++){
+    Pattern[ilay]=right.Pattern[ilay];
+    Len[ilay]=right.Len[ilay];
+    Time[ilay]=right.Time[ilay];
+    ETime[ilay]=right.ETime[ilay];
+    TResidual[ilay]=right.TResidual[ilay];
+    for(int is=0;is<2;is++){CResidual[ilay][is]=right.CResidual[ilay][is];}
+  }
+  T0=right.T0;
+  Beta=right.Beta;
+  BetaC=right.BetaC;
+  InvErrBeta=right.InvErrBeta;
+  InvErrBetaC=right.InvErrBeta;
+  Chi2T=right.Chi2T;
+  Chi2C=right.Chi2C;
+//---
+  Rigidity=right.Rigidity;
+  InvErrRigidity=right.InvErrRigidity;
+  Charge=right.Charge;
+  Momentum=right.Rigidity;
+  EMomentum=right.EMomentum;
+  Mass=right.Mass;
+  EMass=right.EMass;
+  return *this;
+}
+
+void TofBetaPar::SetFitPar(float _Beta,float _BetaC,float _InvErrBeta,float _InvErrBetaC,float _Chi2T,float _T0){
+    Beta=_Beta;BetaC= _BetaC;
+    InvErrBeta=_InvErrBeta;InvErrBetaC=_InvErrBetaC;
+    Chi2T=_Chi2T;T0=_T0;
+}
+
+void TofBetaPar::CalFitRes(){
+  for(int ilay=0;ilay<4;ilay++){
+    if((Pattern[ilay]%10==4)){
+      TResidual[ilay]=Time[ilay]-(Len[ilay]/Beta/TofRecH::cvel+T0);
+    }
+  }
+}
+
+//-------BetaH
+TrTrackR* BetaHR::pTrTrack(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
+}
+
+TrdTrackR* BetaHR::pTrdTrack(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
+}
+
+TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
+  return (AMSEventR::Head() && i<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fTofClusterH[i]):0;
+}
+
+//-------BetaH Function
+TofClusterHR* BetaHR::GetClusterHL(int ilay){
+  if(ilay<0||ilay>=4||fLayer[ilay]<0)return 0;
+  return (AMSEventR::Head() && fLayer[ilay]<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
+}
+
+int BetaHR::MassReFit(double rig,double charge,double erigv,int isbetac,int update){
+  if(update)return TofRecH::MassRec(BetaPar,rig,charge,erigv,isbetac);
+  else      return -1;
+}
+
+int BetaHR::BetaReFit(int pattern,int mode,int update){
+  if(!update)return -1; 
+  double time[4],etime[4],len[4];
+  int nhit=0;
+  int ndiv=1000;
+  for(int ilay=0;ilay<4;ilay++){
+      if((GetPattern(ilay))%10==4&&((pattern/ndiv)%10>0)){
+        time [nhit]=GetTime(ilay);
+        etime[nhit]=GetETime(ilay);
+        len  [nhit]=GetTkTFLen(ilay);
+        nhit++;
+      }
+     ndiv=ndiv/10;
+   }
+  TofRecH::BetaFitT(time,etime,len,nhit,BetaPar,mode);
+  if(update>=2)MassReFit();
+  BetaPar.UseHit=nhit;
+  return 0;
+}
+
+#ifdef _PGTRACK_
+double BetaHR::TInterpolate(double zpl,AMSPoint &pnt,AMSDir &dir,double &time){
+  double path=0;
+  if(fTrTrack>=0){
+     path=pTrTrack()->Interpolate(zpl,pnt,dir);
+     time =path/GetBeta()/TofRecH::cvel+GetT0();
+   }
+  else {time=0;}
+  return path;
+}
+#endif
+//---end of BetaH
+
 BetaR* ChargeR::pBeta(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pBeta(fBeta):0;
+}
+
+BetaHR* ChargeR::pBetaH(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pBetaH(fBetaH):0;
 }
 
 RichRingR* ParticleR::pRichRing(){
@@ -5514,6 +5732,10 @@ RichRingBR* ParticleR::pRichRingB(){
 
 BetaR* ParticleR::pBeta(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pBeta(fBeta):0;
+}
+
+BetaHR* ParticleR::pBetaH(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pBetaH(fBetaH):0;
 }
 
 ChargeR* ParticleR::pCharge(){
@@ -5905,6 +6127,7 @@ void AMSEventR::GetAllContents() {
   bTofRawCluster->GetEntry(_Entry);
   NTofRawSide();
   bTofCluster->GetEntry(_Entry);
+  if(bTofClusterH)bTofClusterH->GetEntry(_Entry);
   NAntiRawSide();
   bAntiCluster->GetEntry(_Entry);
   bTrRawCluster->GetEntry(_Entry);
@@ -5921,6 +6144,7 @@ void AMSEventR::GetAllContents() {
   bLevel3->GetEntry(_Entry);
   bBeta->GetEntry(_Entry);
   bBetaB->GetEntry(_Entry);
+  if(bBetaH) bBetaH->GetEntry(_Entry);
   bVertex->GetEntry(_Entry);
   bCharge->GetEntry(_Entry);
   bParticle->GetEntry(_Entry);
@@ -5940,11 +6164,11 @@ void AMSEventR::GetAllContents() {
 AMSEventR::AMSEventR(const AMSEventR &o):TSelector(),fStatus(o.fStatus),fHeader(o.fHeader),
 fEcalHit(o.fEcalHit),fEcalCluster(o.fEcalCluster),fEcal2DCluster(o.fEcal2DCluster),
 fEcalShower(o.fEcalShower),fRichHit(o.fRichHit),fRichRing(o.fRichRing),fRichRingB(o.fRichRingB),
-fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),
+fTofRawCluster(o.fTofRawCluster),fTofRawSide(o.fTofRawSide),fTofCluster(o.fTofCluster),fTofClusterH(o.fTofClusterH),
 fAntiRawSide(o.fAntiRawSide),fAntiCluster(o.fAntiCluster),fTrRawCluster(o.fTrRawCluster),
 fTrCluster(o.fTrCluster),fTrRecHit(o.fTrRecHit),fTrTrack(o.fTrTrack),fTrdRawHit(o.fTrdRawHit),
 fTrdCluster(o.fTrdCluster),fTrdSegment(o.fTrdSegment),fTrdTrack(o.fTrdTrack),fTrdHSegment(o.fTrdHSegment),
-fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fCharge(o.fCharge),
+fTrdHTrack(o.fTrdHTrack),fLevel1(o.fLevel1),fLevel3(o.fLevel3),fBeta(o.fBeta),fBetaB(o.fBetaB),fBetaH(o.fBetaH),fCharge(o.fCharge),
 fVertex(o.fVertex),fParticle(o.fParticle),fAntiMCCluster(o.fAntiMCCluster),fTrMCCluster(o.fTrMCCluster),
 fTofMCCluster(o.fTofMCCluster),fTofMCPmtHit(o.fTofMCPmtHit),fEcalMCHit(o.fEcalMCHit),fTrdMCCluster(o.fTrdMCCluster),
 fRichMCCluster(o.fRichMCCluster),fMCTrack(o.fMCTrack),fMCEventg(o.fMCEventg),fDaqEvent(o.fDaqEvent),fAux(o.fAux)
@@ -5964,6 +6188,7 @@ long long AMSEventR::Size(){
   size+=sizeof(TofRawClusterR)*fTofRawCluster.size();
   size+=sizeof(TofRawSideR)*fTofRawSide.size();
   size+=sizeof(TofClusterR)*fTofCluster.size();
+  size+=sizeof(TofClusterHR)*fTofClusterH.size();
   size+=sizeof(AntiRawSideR)*fAntiRawSide.size();
   size+=sizeof(AntiClusterR)*fAntiCluster.size();
   size+=sizeof(TrRawClusterR)*fTrRawCluster.size();
@@ -5980,6 +6205,7 @@ long long AMSEventR::Size(){
   size+=sizeof(Level3R)*fLevel3.size();
   size+=sizeof(BetaR)*fBeta.size();
   size+=sizeof(BetaR)*fBetaB.size();
+  size+=sizeof(BetaHR)*fBetaH.size();
   size+=sizeof(ChargeR)*fCharge.size();
   size+=sizeof(VertexR)*fVertex.size();
   size+=sizeof(ParticleR)*fParticle.size();

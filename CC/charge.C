@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.91 2012/05/17 06:47:21 jorgec Exp $
+//  $Id: charge.C,v 1.92 2012/06/17 16:15:21 qyan Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -434,7 +434,7 @@ int AMSCharge::build(int refit){
 int AMSCharge::BuildTOF(AMSBeta *pbeta) {
 
   if (pbeta == NULL) return 0;
-  
+
   AMSChargeTOF *chargetof = new AMSChargeTOF(pbeta);
 
   if (chargetof == NULL) return 0;
@@ -446,6 +446,20 @@ int AMSCharge::BuildTOF(AMSBeta *pbeta) {
     return 0;
   }
   if (_debug) chargetof->_printEl(cout);
+
+//--New TOF BetaH
+  AMSTrTrack *ptrack=pbeta->getptrack();
+  if (ptrack == NULL) return 0;
+
+  
+  AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+  while(betah){
+    if(betah->gettrack()==ptrack){_pbetah=betah;break;}
+    betah=betah->next();
+  }
+ 
+//---
+
 
   return 1;
 }
@@ -564,6 +578,20 @@ again:
     delete chargetrd;
     return 0;
   }
+
+//---Use TRD Match for BetaH
+  if(ptrd!=NULL){
+     if(_pbetah==0){//no tracker match->try to use trdtrack match
+       AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
+       while(betah){
+        if(betah->gettrdtrack()==ptrd){_pbetah=betah;break;}
+          betah=betah->next();
+       }
+     }
+     else _pbetah->settrdtrack(ptrd); //reset this trd to betah
+   } 
+
+
   if (_debug) chargetrd->_printEl(cout);
 
   return 1; 
@@ -879,6 +907,8 @@ AMSCharge::AMSCharge(AMSBeta *pbeta) {
   _i=-1;
   _Charge = 0;
   _pbeta = pbeta;
+//--  
+  _pbetah=0;
 
   if (CHARGEFITFFKEY.RecEnable[kTOF] > 0) {
     if (_debug) cout << "AMSCharge::AMSCharge-I-BuildTOF" << endl;
@@ -1472,7 +1502,7 @@ void AMSCharge::_copyEl(){
   if(PointerNotSet()) return;
   ChargeR &ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->Charge(_vpos);
   ptr.setBeta(_pbeta==NULL?-1:_pbeta->GetClonePointer());
-
+  ptr.setBetaH(_pbetah==0?-1:_pbetah->GetClonePointer());
   for(  map <TString,AMSChargeSubD*> :: iterator i=_charges.begin();i!=_charges.end();++i){
 
     ChargeSubDR &subPtr=ptr.Charges[i->first];

@@ -3,22 +3,15 @@
 //      History
 //        Modified:  Adding phseamp  2012/05/16
 //        Modified:  DB update       2010/05/28
+//        Modified:  TOF New Caliberation TDV Template 2012/06/12
 // -----------------------------------------------------------
-
-#include "typedefs.h"
+#ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
-#include "commons.h"
 #include "amsdbc.h"
-#include "extC.h"
 #include <string.h>
 #include <stdlib.h>
-#include "tofanticonst.h"
-#include "Tofdbc.h"
-#include "tofdbc02.h"
 #include <math.h>
-#include "root.h"
 #include "ntuple.h"
-#include "event.h"
 #include "amsstl.h"
 #include "commons.h"
 #include "tofsim02.h"
@@ -26,6 +19,10 @@
 #include "mceventg.h"
 #include "tofid.h"
 #include "job.h"
+#endif
+#include "root.h"
+#include "Tofdbc.h"
+
 //------same x width arr
 TOFHist::TOFHist(int nbin,geant bl,geant bh,geant arr[])
 :_xbn(nbin),_xbl(bl),_xbh(bh){
@@ -96,7 +93,7 @@ geant TOFHist::gety(int ibin){
   else return 0;
 }
 
-
+#ifndef __ROOTSHAREDLIBRARY__
 //----
 TOFHist TOFPMT::pmpulse;
 TOFHist TOFPMT::pmamp;
@@ -555,3 +552,125 @@ void TOFWScanN::build(){
   }//---end of lay
   cout<<"<---- TOFWScanN::build: succsessfully done !"<<endl<<endl;
 }
+#endif
+
+//===========================================================
+template  <typename T1>
+int TofTDVTool<T1>::ReadTDV(int rtime,int real){
+   if(!TDVBlock || !TDVName){
+      cerr<<"--->>TDV Read Problem!!!"<<endl;
+      return -1;
+   }
+    time_t time=rtime;
+    time_t brun=time+1;
+    time_t erun=time;
+    tm begin;
+    tm end;
+    gmtime_r(&brun, &begin);
+    gmtime_r(&erun, &end);
+    
+//--------Already load
+    AMSTimeID* tdv=new AMSTimeID((TDVName,real),begin,end,
+                              TDVSize,
+                              TDVBlock,
+                              AMSTimeID::Standalone,1);
+    
+    int status=tdv->validate(time);
+    LoadTDVPar();
+    delete tdv;
+    return status;
+}
+
+//===========================================================
+template  <typename T1>
+int TofTDVTool<T1>::WriteTDV(int brun,int erun,int real){
+   if(!TDVBlock|| ! TDVName) {
+     cerr<<"---->>TDV Write Problem!!!"<<endl;
+     return -1;
+   }
+
+     time_t br=brun;
+     time_t er=erun;
+     tm begin;
+     tm end;
+     gmtime_r(&br, &begin);
+     gmtime_r(&er, &end);
+     cout << "Begin: " <<(int)brun<<"  " <<asctime(&begin)<<endl;
+     cout << "End  : " <<(int)erun<<"  " <<asctime(&end  )<<endl;
+//--1 realdata  1--vertify   
+     AMSTimeID *tdv=new AMSTimeID((TDVName, real),begin,end,
+                                  TDVSize,
+                                  TDVBlock,
+                                  AMSTimeID::Standalone,1
+                                 );
+     int status=tdv->write(AMSDATADIR.amsdatabase);
+     delete tdv;
+     return status;
+}
+
+//===========================================================
+TofTAlignPar* TofTAlignPar::Head=0;
+
+TofTAlignPar *TofTAlignPar::GetHead(){
+  if(!Head)Head = new TofTAlignPar();
+  return Head;
+}
+
+//===========================================================
+TofTAlignPar::TofTAlignPar(){
+  TDVName="TofTAlignPar";
+  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
+  TDVBlock=new float[TDVParN];
+  TDVSize=TDVParN*sizeof(float);
+}
+
+//===========================================================
+TofTAlignPar::TofTAlignPar(float *arr,int brun,int erun){
+  TDVName="TofTAlignPar";
+  TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
+  TDVBlock=arr;
+  TDVSize=TDVParN*sizeof(float);
+  BRun=brun;
+  ERun=erun;
+  LoadTDVPar();
+}
+
+//===========================================================
+void   TofTAlignPar::LoadTDVPar(){
+   int iblock=0;
+//----load par
+   for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//SN
+       int id=ilay*1000+ibar*100;
+        slew[id]=TDVBlock[iblock++];
+      }
+      for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//SP
+       int id=ilay*1000+ibar*100+10;
+        slew[id]=TDVBlock[iblock++];
+     }
+   }
+   for(int ilay=0;ilay<TOFCSN::SCLRS;ilay++){
+      for(int ibar=0;ibar<TOFCSN::NBAR[ilay];ibar++){//Const
+       int id=ilay*1000+ibar*100;
+        delay[id]=TDVBlock[iblock++];
+      }
+   }
+   powindex=TDVBlock[iblock++];
+   Isload=1;
+}
+//==========================================================
+int TofTAlignPar::LoadFromFile(char *file){
+   ifstream vlfile(file,ios::in);
+   if(!vlfile){
+    cerr <<"<---- Error: missing "<<file<<"--file !!: "<<endl;
+    return -1;
+   }
+//---load
+   vlfile>>BRun>>ERun;
+   for(int i=0;i<TDVParN;i++){vlfile>>TDVBlock[i];} 
+   LoadTDVPar();
+   vlfile.close();
+   return 0;
+}
+
+//==========================================================

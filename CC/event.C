@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.561 2012/05/28 09:03:16 qyan Exp $
+//  $Id: event.C,v 1.562 2012/06/17 16:15:21 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -70,6 +70,8 @@ extern "C" int ISSGTOD(float *r,float *t,float *p, float *v, float *vt, float *v
 #ifdef __G4AMS__
 #include "g4util.h"
 #endif
+#include "Tofrec02_ihep.h"
+
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
 
@@ -994,6 +996,11 @@ void AMSEvent::_retof2initevent(){
 //
    for( i=0;i<TOF2GC::SCLRS;i++)  ptr = add (
        new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
+
+//--TOFClusterH
+   for( i=0;i<TOF2GC::SCLRS;i++)  ptr = add (
+     new AMSContainer(AMSID("AMSContainer:AMSTOFClusterH",i),0));
+
 //
 //  DAQS2Block::clrtbll();//clear sc.data length
 }
@@ -1082,6 +1089,9 @@ void AMSEvent::_reaxinitevent(){
 
   for( i=0;i<npatb;i++)  ptr = add (
   new AMSContainer(AMSID("AMSContainer:AMSBetaB",i),&AMSBeta::build,0));
+ 
+  add (
+  new AMSContainer(AMSID("AMSContainer:AMSBetaH",0),0));
 
   add (
   new AMSContainer(AMSID("AMSContainer:AMSCharge",0),&AMSCharge::build,0));
@@ -2155,10 +2165,18 @@ bool tofftok(false),ecalftok(false),extrigok(false);
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build2(stat); // RawCluster-->Cluster
       AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+ 
+      AMSgObj::BookTimer.start("TOF:RwCl->ClH");
+      if(TFREFFKEY.TFHTDVCalib/10000%100>0){
+        TofRecH::BuildTofClusterH();//RawCluster->ClsuterH
+      }
+      AMSgObj::BookTimer.stop("TOF:RwCl->ClH");
+
       if(stat!=0){
         AMSgObj::BookTimer.stop("RETOFEVENT");
         return;
       }
+      
       TOF2JobStat::addre(4);
 //
   #ifdef __AMSDEBUG__
@@ -2331,6 +2349,10 @@ try{
 
 
   buildC("AMSBeta");
+ 
+  if(TFREFFKEY.TFHTDVCalib/10000%100>0){
+    TofRecH::BuildBetaH();//BetaH
+  }
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSBeta::print();
 #endif

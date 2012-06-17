@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.878 2012/06/07 08:28:05 choumilo Exp $
+// $Id: job.C,v 1.879 2012/06/17 16:15:21 qyan Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1595,6 +1595,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.mon[1]=0;
   TFREFFKEY.year[0]=101;//(41)(since year 1900)
   TFREFFKEY.year[1]=125;//(42)
+  TFREFFKEY.TFHTDVCalib=1000000;//TOFH TDV Version T0P0C0(Time POSITION Charge)
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
 	"MIXED");
 
@@ -1795,6 +1796,17 @@ void AMSJob::_reaxdata(){
   BETAFITFFKEY.TRDP[0]=0.522677;
   BETAFITFFKEY.TRDP[1]=-0.16927;
   BETAFITFFKEY.TRDP[2]=0.676221;
+//----BETAHPAR
+  BETAFITFFKEY.HSearchMode=1;//sum control search mode
+  BETAFITFFKEY.HSearchLMatch=0;//require Tof LMatch or not for pattern finding
+  BETAFITFFKEY.HSearchReg[0]=3.;//Tof TMatch(N Sigma)
+  BETAFITFFKEY.HSearchReg[1]=3.;//Tof LMatch(N Sigma)
+  BETAFITFFKEY.HMinLayer[0]=2;//Min Match Layer for beta
+  BETAFITFFKEY.HMinLayer[1]=2;//Min T measure for beta//2 side ok
+  BETAFITFFKEY.HBetaCheck=0;//0 not check 1 check+tag 2 recover(throw tofhit) 3 abandon(beta)
+  BETAFITFFKEY.HBetaReg[0]=0.1;//check beta>
+  BETAFITFFKEY.HBetaReg[1]=1.9; //check beta<
+  BETAFITFFKEY.HBetaChis=1000.;//check chis<
   FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
   FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -2812,6 +2824,7 @@ void AMSJob::_retof2initjob(){
   AMSgObj::BookTimer.book("TOF:validation");
   AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
   AMSgObj::BookTimer.book("TOF:RwCl->Cl");
+  AMSgObj::BookTimer.book("TOF:RwCl->ClH");
   //
   // ===> some inits, common for reco/simu :
   //
@@ -2854,6 +2867,10 @@ void AMSJob::_retof2initjob(){
   //
   //-----------
   if(((CALIB.SubDetInCalib/1000)%10)>0)TOFPedCalib::initb();//OnBoardPeds-calib, runs in normal(not calib) mode
+  if(TFREFFKEY.TFHTDVCalib/10000%10>0){
+     TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+     TofTAlign->LoadFromFile("/afs/cern.ch/user/q/qyan/work/tofmc/data6/TofTzslw_REC.SO9");
+  }
   //-----------
   AMSTOFCluster::init();
   AMSSCIds::inittable();
@@ -3714,6 +3731,30 @@ void AMSJob::_timeinitjob(){
     begin.tm_isdst=0;
     end.tm_isdst=0;
     int needval=1;
+
+       begin.tm_sec=TFREFFKEY.sec[0];
+       begin.tm_min=TFREFFKEY.min[0];
+       begin.tm_hour=TFREFFKEY.hour[0];
+       begin.tm_mday=TFREFFKEY.day[0];
+       begin.tm_mon=TFREFFKEY.mon[0];
+       begin.tm_year=TFREFFKEY.year[0];
+
+       end.tm_sec=TFREFFKEY.sec[1];
+       end.tm_min=TFREFFKEY.min[1];
+       end.tm_hour=TFREFFKEY.hour[1];
+       end.tm_mday=TFREFFKEY.day[1];
+       end.tm_mon=TFREFFKEY.mon[1];
+       end.tm_year=TFREFFKEY.year[1];
+
+//----TOF ClusterH TDV/ version
+      if(TFREFFKEY.TFHTDVCalib/10000%100>=10){
+       TofTAlignPar *TofTAlign=TofTAlignPar::GetHead();
+       TID.add (new AMSTimeID(AMSID(TofTAlign->TDVName,isRealData()),begin,end,
+                              TofTAlign->TDVSize,
+                              TofTAlign->TDVBlock,
+                              server,needval,TofTAlignPar::HeadLoadTDVPar));
+       }
+
     //
     if((isCalibration() && CTOF) && AMSFFKEY.Update>0 && TFCAFFKEY.updbrcaldb==0){//only for RD "non-onflight" update 
       if(TFREFFKEY.relogic[0]==6)needval=0;//only for ds tof-peds to DB
