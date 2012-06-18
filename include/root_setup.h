@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.45 2012/06/06 13:18:24 choutko Exp $
+//  $Id: root_setup.h,v 1.46 2012/06/18 11:52:19 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -170,9 +170,7 @@ class Scalers {
 */
 class LVL1Setup { 
 };
-
-
-
+ 
 class GPS{
 public:
 unsigned int Run;  ///< Run
@@ -182,7 +180,6 @@ vector<unsigned int> Epoche; ///< GPS Time Epoche Format
 GPS():Run(0),Event(0),EventLast(0){}
 ClassDef(GPS,3)
 };
-
 
 class GPSWGS84{
 public:
@@ -222,12 +219,6 @@ public:
 ClassDef(GPSWGS84R,1)
 };
 
-
-
-
-
-
-
 class ISSData{
 public:
 TString Name;
@@ -243,6 +234,7 @@ float Pitch; ///< Pitch in LVLH, Rad
 float Yaw; ///< Yaw in LVLH, Rad
 ClassDef(ISSAtt,1)       //ISS Attitude Data
 };
+
 class ISSSA{
 public:
 float alpha; ///< Solar Array alpha angle (degrees) alpha:0 means 3a and  1b is in ams field of view ;see also https://twiki.cern.ch/twiki/bin/view/AMS/ISSAuxData
@@ -252,6 +244,7 @@ float b1b; ///< beta 1b  --
 float b3b; ///< beta 3b  --
 ClassDef(ISSSA,1)       //ISS Solar Arrays Data
 };
+
 class ISSCTRS{
 public:
 float x; ///< x (km) in CTRS
@@ -262,6 +255,7 @@ float vy; ///< v_y km/s
 float vz; ///< v_z km/s
 ClassDef(ISSCTRS,1)       //ISS Solar Arrays Data
 };
+
 class ISSCTRSR{
 public:
 float r; ///< r (cm) in CTRS
@@ -274,6 +268,7 @@ ISSCTRSR():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
 ISSCTRSR(const ISSCTRS &a);
 ClassDef(ISSCTRSR,1)       //ISS Solar Arrays Data
 };
+
 class ISSGTOD{
 public:
 float r; ///< r (cm) in GTOD
@@ -286,7 +281,41 @@ ISSGTOD():r(0),phi(0),theta(0),v(0),vphi(0),vtheta(0){};
 ClassDef(ISSGTOD,1)       //ISS GTOD
 };
 
-
+//--------------DSP Errors-------------------------
+ class DSPError{
+ public:
+   DSPError(){
+     TimeStart=0;TimeEnd=0;
+     Nodes_000_01F=0;Nodes_020_03F=0;Nodes_040_05F=0;Nodes_060_07F=0;
+     Nodes_080_09F=0;Nodes_0A0_0BF=0;Nodes_0C0_0DF=0;Nodes_0E0_0FF=0;
+     Nodes_100_11F=0;Nodes_120_13F=0;Nodes_140_15F=0;Nodes_160_17F=0;
+     Nodes_180_19F=0;Nodes_1A0_1BF=0;Nodes_1C0_1DF=0;Nodes_1E0_1FF=0;
+   };
+   unsigned int TimeStart; ///< Start of NOT validity period due to DSP error (unixtime) (also key of the map DSPError_m). \li TimeStart<=t<TimeEnd is affected by DSP error
+   unsigned int TimeEnd; ///< End of NOT validity period due to DSP error (unixtime). \li TimeStart<=t<TimeEnd is affected by DSP error
+   unsigned int Nodes_000_01F; ///< Bitted map of affected nodes (from NA=0x000 [LSB] to NA=0x01F [MSB])
+   unsigned int Nodes_020_03F; ///< Bitted map of affected nodes (from NA=0x020 [LSB] to NA=0x03F [MSB])
+   unsigned int Nodes_040_05F; ///< Bitted map of affected nodes (from NA=0x040 [LSB] to NA=0x05F [MSB])
+   unsigned int Nodes_060_07F; ///< Bitted map of affected nodes (from NA=0x060 [LSB] to NA=0x07F [MSB])
+   unsigned int Nodes_080_09F; ///< Bitted map of affected nodes (from NA=0x080 [LSB] to NA=0x09F [MSB])
+   unsigned int Nodes_0A0_0BF; ///< Bitted map of affected nodes (from NA=0x0A0 [LSB] to NA=0x0BF [MSB])
+   unsigned int Nodes_0C0_0DF; ///< Bitted map of affected nodes (from NA=0x0C0 [LSB] to NA=0x0DF [MSB])
+   unsigned int Nodes_0E0_0FF; ///< Bitted map of affected nodes (from NA=0x0E0 [LSB] to NA=0x0FF [MSB])
+   unsigned int Nodes_100_11F; ///< Bitted map of affected nodes (from NA=0x100 [LSB] to NA=0x11F [MSB])
+   unsigned int Nodes_120_13F; ///< Bitted map of affected nodes (from NA=0x120 [LSB] to NA=0x13F [MSB])
+   unsigned int Nodes_140_15F; ///< Bitted map of affected nodes (from NA=0x140 [LSB] to NA=0x15F [MSB])
+   unsigned int Nodes_160_17F; ///< Bitted map of affected nodes (from NA=0x160 [LSB] to NA=0x17F [MSB])
+   unsigned int Nodes_180_19F; ///< Bitted map of affected nodes (from NA=0x180 [LSB] to NA=0x19F [MSB])
+   unsigned int Nodes_1A0_1BF; ///< Bitted map of affected nodes (from NA=0x1A0 [LSB] to NA=0x1BF [MSB])
+   unsigned int Nodes_1C0_1DF; ///< Bitted map of affected nodes (from NA=0x1C0 [LSB] to NA=0x1DF [MSB])
+   unsigned int Nodes_1E0_1FF; ///< Bitted map of affected nodes (from NA=0x1E0 [LSB] to NA=0x1FF [MSB])
+   bool SetNA(unsigned int NA); ///< Set the NA affected by DSP error (erase any previous set nodes!). \return \retval true in case of positive inception.
+   bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \return \retval true in case of positive inception.
+   bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) \li taking by a DSPError object (neglecting its timestart,timend). \return \retval true in case of positive inception.
+   int GetFirstNA(); ///< Gives NA affected by DSP error \li (in case of multiple nodes return the first [the one with lower NA] with negative sign)
+   ClassDef(DSPError,1)       //DSP Error
+ };
+//-------------------------------------------------
 
 class Header{
 public:
@@ -363,17 +392,26 @@ int  getAllTDV(unsigned int time); ///< Get All TDV for the Current Time Returns
  typedef map <unsigned int,ISSCTRS> ISSCTRS_m;
  typedef map <unsigned int,ISSGTOD> ISSGTOD_m;
  typedef map <double,ISSAtt> ISSAtt_m;
+ //---------------DSP Errors-------------------------
+ typedef map <unsigned int, DSPError> DSPError_m;
+ //--------------------------------------------------
  typedef map <unsigned int,ISSData>::iterator ISSData_i;
  typedef map <unsigned int,ISSSA>::iterator ISSSA_i;
  typedef map <unsigned int,ISSCTRS>::iterator ISSCTRS_i;
  typedef map <unsigned int,ISSGTOD>::iterator ISSGTOD_i;
  typedef map <double,ISSAtt>::iterator ISSAtt_i;
+ //---------------DSP Errors-------------------------
+ typedef map <unsigned int, DSPError>::iterator DSPError_i;
+ //--------------------------------------------------
 typedef map <unsigned int,GPSWGS84> GPSWGS84_m;
 typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
     GPS_m fGPS;    ///< GPS Epoch Time
     GPSWGS84_m fGPSWGS84;  ///<  GPS Coo Data        
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
+ //---------------DSP Errors-------------------------
+  DSPError_m fDSPError; ///< DSP Error map (key is the start time of NOT validity period due to DSP Errors). \li 'second' contains DSPError object with start/end NON validity and affected nodes
+ //--------------------------------------------------
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
   ISSCTRS_m fISSCTRS;      ///< ISS CTRS coordinates & velocity vector map
   ISSGTOD_m fISSGTOD;      ///< ISS GTOD coordinates & velocity vector map
@@ -481,6 +519,20 @@ public:
                2   no data                  
 	 */
   int getISSSA(ISSSA & a, double xtime); 
+  
+  //---------------DSP Errors-------------------------
+  //! DSP Errors accessor
+  /*! 
+
+    \param unsigned int time : unix time
+    \param DSPError dsperror : object containing (if any DSP error affecting 'time') time interval of NOT validity and nodes affected
+    
+    \return 
+    \retval  0 -->  OK (NO nodes affected by DSP errors)
+    \retval  1 -->  KO (SOME nodes affected by DSP errors)
+  */
+  int getDSPError(DSPError& dsperror, unsigned int time); 
+  //--------------------------------------------------
 
          //! Scalers Accessor
 	/*! 
@@ -495,10 +547,9 @@ public:
              
            \return Nearest Scalers iterators vector length                  
 	 */
-
 int getScalers(unsigned int time,unsigned int usec );
 void Purge();
-static    AMSSetupR * & gethead(){return _Head;}
+ static    AMSSetupR * & gethead(){return _Head;}
  void CreateBranch(TTree *tree, int brs);
  bool UpdateVersion(uinteger run,uinteger os,uinteger buildno,uinteger buildtime);
  bool FillHeader(uinteger run); //fillHeader at run start by database
@@ -519,8 +570,30 @@ static    AMSSetupR * & gethead(){return _Head;}
  int LoadDynAlignment(unsigned int run);
  bool BuildRichConfig(unsigned int run);
  int LoadRichConfig(unsigned int run);
+ //--------DSP Errors-----------------------
+ //! DSP Errors loader from .csv files
+ /*! 
+   
+   \param unsigned int t1 : start time to load
+   \param unsigned int t2 : end time to load
+   
+   \return 
+   \retval -1 -->  KO (problems in retrieving the info from .csv files)
+   \retval -2 -->  KO (passed time interval not valid [<=0])
+   \retval +N -->  OK (number of periods affected by DSP problem in t1-t2 time intervals)
+ */
+ int LoadDSPErrors(unsigned int t1, unsigned int t2);
+ //---------------------------------------
  void Init(TTree *tree);
-ClassDef(AMSSetupR,16)       //AMSSetupR
+
+ private:
+ //--------DSP Errors-----------------------
+ void RearrangeManyDSPErrors(vector<DSPError>& vec);
+ void RearrangeTwoDSPErrors(DSPError dsperr, vector<DSPError>& vec, int index_vec);
+ //---------------------------------------
+
+
+ClassDef(AMSSetupR,17)       //AMSSetupR
 #pragma omp threadprivate(fgIsA)
 };
 #endif

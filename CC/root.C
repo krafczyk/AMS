@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.408 2012/06/17 16:15:22 qyan Exp $
+//  $Id: root.C,v 1.409 2012/06/18 11:52:18 mduranti Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3018,6 +3018,9 @@ void HeaderR::Set(EventNtuple02* ptr){
   B3a=ptr->B3a;    
   B1b=ptr->B1b;    
   B3b=ptr->B3b;    
+  //--------DSP Errors-----------------------
+  pdsperr=0;
+  //-----------------------------------------
 }
 #endif
 
@@ -7140,6 +7143,39 @@ sunPos.setISSGTOD( HeaderR::RadS, HeaderR::ThetaS, HeaderR::PhiS, HeaderR::VelTh
  if (!sunPos.GetSunFromAMS(elevation,azimut)) return -1;
  return sunPos.ISSday_night();
 }
+
+//--------DSP Errors-----------------------
+int HeaderR::getDSPError(AMSSetupR::DSPError& dsperr){
+
+  if(!AMSEventR::getsetup()) return 2;
+   
+  return AMSEventR::getsetup()->getDSPError(dsperr, Time[0]);
+}
+
+int HeaderR::getDSPError(){
+  
+  if(!AMSEventR::getsetup()) return 2;
+  
+  if (pdsperr) delete pdsperr;
+  pdsperr = new AMSSetupR::DSPError();
+
+  int ret=AMSEventR::getsetup()->getDSPError(*pdsperr, Time[0]);
+  if (!ret) {//AMSSetupR::getDSPError() returned 0 -> no DSPError found
+    if (pdsperr) delete pdsperr;
+    pdsperr=0;
+  }
+
+  return ret; 
+}
+
+AMSSetupR::DSPError* HeaderR::pDSPError(){
+
+  getDSPError();
+
+  return pdsperr;
+}
+//-----------------------------------------
+
 
 float AMSEventR::LiveTime(){
 
