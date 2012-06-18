@@ -1,4 +1,4 @@
-//  $Id: TrFit.C,v 1.67.4.4 2012/06/12 07:58:27 pzuccon Exp $
+//  $Id: TrFit.C,v 1.67.4.5 2012/06/18 20:38:40 shaino Exp $
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,9 @@
 ///\date  2008/11/25 SH  Splitted into TrProp and TrFit
 ///\date  2008/12/02 SH  Fits methods debugged and checked
 ///\date  2010/03/03 SH  ChikanianFit added
-///$Date: 2012/06/12 07:58:27 $
+///$Date: 2012/06/18 20:38:40 $
 ///
-///$Revision: 1.67.4.4 $
+///$Revision: 1.67.4.5 $
 ///
 //////////////////////////////////////////////////////////////////////////
 
@@ -1317,6 +1317,8 @@ double TrFit::ChoutkoFit(void)
   double init[7], out[7];
   for (int i = 0; i < 7; i++) out[i] = 0;
 
+  double zc = 0;
+
   for (int kiter = 0; kiter < maxcal; kiter++) {
     double mm[NDIM][NDIM], gg[NDIM][NDIM], g[NDIM];
     for (int i = 0; i < NDIM*NDIM; i++) mm[i/NDIM][i%NDIM] = 0;
@@ -1345,7 +1347,7 @@ double TrFit::ChoutkoFit(void)
     if (ic <= 0) return -1;
 
     // Special treatment for Inner lower half
-    //if (_zh[0] < 50) ic = 0;
+    if (_zh[0] < 50) { ic = 0; zc = _zh[0]; }
 
     for (int s = 0; s <= 1; s++) {
      int i1 = (s == 0) ? ic-1 :    ic;
@@ -1357,7 +1359,7 @@ double TrFit::ChoutkoFit(void)
 
      init[0] = _param[0];
      init[1] = _param[2];
-     init[2] =  0;
+     init[2] =  zc;
      init[3] = -_param[1]*dnorm;
      init[4] = -_param[3]*dnorm;
      init[5] = -dnorm;
@@ -1452,7 +1454,7 @@ double TrFit::ChoutkoFit(void)
 
   _p0x = _param[0]; _dxdz = _param[1];
   _p0y = _param[2]; _dydz = _param[3];
-  _p0z = 0;
+  _p0z = zc;
 
   _param[4] = _param[4]*_chrg/std::fabs(_chrg);
   _rigidity = (_param[4] != 0) ? 1/_param[4] : 0;
