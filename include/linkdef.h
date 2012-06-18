@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.121 2012/05/18 14:06:52 barao Exp $
+//  $Id: linkdef.h,v 1.121.2.1 2012/06/18 13:32:35 mduranti Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -187,6 +187,7 @@
 #pragma link C++ class AMSSetupR::GPSWGS84+;
 #pragma link C++ class AMSSetupR::GPSWGS84R+;
 #pragma link C++ class AMSSetupR::ISSGTOD+;
+#pragma link C++ class AMSSetupR::DSPError+;
 #pragma link C++ class SlowControlDB+;
 #pragma link C++ class std::pair<unsigned int,std::vector<float> >+;
 #pragma link C++ class std::map<unsigned int,std::vector<float> >+;

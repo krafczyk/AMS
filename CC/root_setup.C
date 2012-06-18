@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79.4.2 2012/06/06 11:14:13 choutko Exp $
+//  $Id: root_setup.C,v 1.79.4.3 2012/06/18 13:32:35 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -171,6 +171,7 @@ Reset();
   ClassImp(AMSSetupR::ISSSA)
   ClassImp(AMSSetupR::ISSCTRS)
   ClassImp(AMSSetupR::ISSGTOD)
+  ClassImp(AMSSetupR::DSPError)
   ClassImp(AMSSetupR::TDVR)
   ClassImp(AMSSetupR::Header)
   ClassImp(AMSSetupR)
@@ -626,12 +627,14 @@ else{
    fISSCTRS.clear();
    fISSGTOD.clear();
    fGPSWGS84.clear();
+   fDSPError.clear();
    LoadISS(fHeader.Run,fHeader.Run);
    LoadISSAtt(fHeader.Run-60,fHeader.Run+3600);
    LoadISSSA(fHeader.Run-60,fHeader.Run+3600);
    LoadISSCTRS(fHeader.Run-60,fHeader.Run+3600);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.Run-60,fHeader.Run+3600);
+   LoadDSPErrors(fHeader.Run-60,fHeader.Run+3600);
    LoadDynAlignment(fHeader.Run);
    if(!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return false; 
@@ -665,12 +668,14 @@ else{
    system(systemc);
    fISSData.clear();
    fISSAtt.clear();
+   fDSPError.clear();
    LoadISS(fHeader.FEventTime,fHeader.LEventTime);
    LoadISSAtt(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSSA(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadISSCTRS(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadGPSWGS84(fHeader.Run-60,fHeader.Run+3600);
    LoadISSGTOD(fHeader.FEventTime-60,fHeader.LEventTime+1);
+   LoadDSPErrors(fHeader.FEventTime-60,fHeader.LEventTime+1);
    LoadDynAlignment(fHeader.Run);
    if (!IOPA.BuildRichConfig)LoadRichConfig(fHeader.Run);
    return true;
@@ -1208,7 +1213,7 @@ char tmp2[255];
           pch=strtok(NULL,",");
           if(!pch)continue;
           a.Roll=atof(pch)*3.14159267/180;
-           fISSAtt.insert(make_pair(tc,a));
+	  fISSAtt.insert(make_pair(tc,a));
           
           if(tc>=t1 && tc<=t2){
            if(abs(bfound)!=2){
@@ -2631,5 +2636,616 @@ int AMSSetupR::LoadRichConfig(unsigned int run){
 }
 #endif
 
+//-------------------------DSP Errors-------------------------------------
 
+int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
+  
+  const char DSPPathlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/";
+  
+  char DSPPath[256];
+  strcpy(DSPPath, getenv("AMSDSP"));
+  if(!DSPPath || !strlen(DSPPath)) strcpy(DSPPath, DSPPathlocal);
+  //  printf("%s\n", DSPPath);//only for debug
+  
+  char amsdsp_add[256];
+  sprintf(amsdsp_add, "%s/altec/DSP/", DSPPath);
+  strcpy(DSPPath, amsdsp_add);
+  //  printf("%s\n", DSPPath);//only for debug
+  
+  if (t2<(unsigned int)(1305500000)){
+    cerr<< "AMSSetupR::LoadDSPErrors-S-TimeEndLessThanLaunch "<<t1<<" "<<t2<<" "<<endl;
+    return -2;
+  }
+  
+  if (t1>=t2){
+    cerr<< "AMSSetupR::LoadDSPErrors-S-TimeIntervalNotValid "<<t1<<" "<<t2<<" "<<endl;
+    return -2;
+  }
 
+  int oldsize=fDSPError.size();
+
+  const char fpath[256]="DSPPERIODS.csv";
+  
+  string fname=DSPPath;
+  //  cout<<fname<<endl;//only for debug
+  fname+=fpath;
+  //  cout<<fname<<endl;//only for debug
+  ifstream fbin;
+  fbin.close();    
+  fbin.clear();
+  fbin.open(fname.c_str());
+  
+  if(fbin){
+    //    printf("Found %s\n", fname.c_str());
+    int number_of_lines=0;
+    while(fbin.good() && !fbin.eof()){
+      char line[31];
+      fbin.getline(line, 30);
+      number_of_lines++;
+      //      printf("%d\n", number_of_lines);//only for debug
+      if (number_of_lines>=1) {
+	//	printf("%s is good -> %d\n", fname.c_str(), number_of_lines);//only for debug
+	//	printf("%s\n", line);//only for debug
+	if(isdigit(line[0])){
+	  char *pch;
+	  pch=strtok(line,",");
+	  if (!pch) continue;
+	  //	  printf("%s\n", pch);//only for debug
+	  unsigned int TimeStart=atoi(pch);
+	  //	  printf("%d\n", TimeStart);//only for debug
+	  pch=strtok(NULL,",");
+	  if(!pch) continue;
+	  //	  printf("%s\n", pch);//only for debug
+	  unsigned int TimeEnd=atoi(pch);
+	  TimeEnd++;//since the information is given in second the end will be put and the end of this second (aka the start of following second)
+	  //	  printf("%d\n", TimeEnd);//only for debug
+	  pch=strtok(NULL,",");
+	  if(!pch) continue;
+	  //	  printf("%s\n", pch);//only for debug
+	  unsigned int NA=atoi(pch);
+	  sscanf(pch, "%03X\n", &NA);
+	  if (TimeStart<t1 && TimeEnd<t1) continue;//they are outside t1-t2 interval
+	  if (TimeStart>t2 && TimeEnd>t2) continue;//they are outside t1-t2 interval
+	  DSPError a;
+	  a.TimeStart=TimeStart; 
+	  a.TimeEnd=TimeEnd;
+	  if (!a.SetNA(NA)) {
+	    continue;
+	  }
+	  //	  printf("%d %d %03X\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	  static unsigned int maxdiff=0;
+	  if ((TimeEnd-TimeStart)>maxdiff) maxdiff=(TimeEnd-TimeStart);
+	  //	  printf("MaxDiff = %d\n", maxdiff);//only for debug
+	  if (fDSPError.size()) {//the map is not empty
+	    DSPError tmp;
+	    DSPError_i it;
+	    unsigned int START=TimeStart;
+	    //	    printf("Searching for %d...\n", TimeStart);//only for debug
+	    it=fDSPError.lower_bound(TimeStart);//if not found any item 'after' it gives back fDSPError.end(
+	    //	    if (it == fDSPError.begin()) printf("begin()\n");//only for debug
+	    //	    if (it == fDSPError.end()) printf("end()\n");//only for debug
+	    for (; it != fDSPError.begin(); it--) {
+	      DSPError_i it2=it;
+	      it2--;//last item in map before TimeStart and otherwise begin() is never watched...
+	      tmp=it2->second;
+	      //	      printf("Found on map: %d %d\n", tmp.TimeStart, tmp.TimeEnd);
+	      if (tmp.TimeEnd>=TimeStart) {
+		START=tmp.TimeStart;
+		//		printf("New start: %d (%d)\n", START, TimeStart);
+	      }
+	      else {
+		// break;// if cannot break 'simply' since, even if they are ordered so would be stupid going even back, there could be, back, another item, with the start before this (so ordered before this) but with the end after TimeStart
+		if ((TimeStart-tmp.TimeStart)>maxdiff) {
+		  //		  printf("Breaking since %d-%d=%d>%d\n", TimeStart, tmp.TimeStart, TimeStart-tmp.TimeStart, maxdiff);//only for debug
+		  break;//in the map there's no entry with TimeEnd>TimeStart+maxdiff, so I can break safely. This is true even if I call LoadDSPErrors several times since maxdiff is static and so remembering its value up to the end of program
+		}
+	      }
+	    }
+	    //	    printf("Start: %d (%d)\n", START, TimeStart);
+	    DSPError_i it_start=fDSPError.lower_bound(START);
+	    if (it_start != fDSPError.end()) {
+	      DSPError_i it_stop=fDSPError.lower_bound(TimeEnd);
+	      if (it_stop != fDSPError.end()) it_stop++;//otherwise last will be never processed. if after ++ end() is reached is OK however
+	      //	      if (it_stop == fDSPError.begin()) printf("begin()\n");//only for debug
+	      //	      if (it_stop == fDSPError.end()) printf("end()\n");//only for debug
+	      vector<DSPError> vec;
+	      vector<DSPError>::iterator it_vec;
+	      vector<DSPError_i> vec_of_it;
+	      vector<DSPError_i>::iterator it_vec_of_it;
+	      vec.clear();
+	      vec_of_it.clear();
+	      vec.push_back(a);
+	      for (it=it_start; it != it_stop; it++) {
+		tmp=it->second;
+		//		printf("Found on map: %d %d %03X\n", tmp.TimeStart, tmp.TimeEnd, tmp.GetFirstNA());//only for debug
+		//I remove it from the map (on a separated loop otherwise iterators during this loop will be screwed up)
+		//and I add to the temporary vec.
+		//After RearrangeManyDSPErrors it will be inserted again to map (divided into pieces if needed)
+		vec.push_back(tmp);
+		vec_of_it.push_back(it);
+	      }
+	      for (it_vec_of_it=vec_of_it.begin(); it_vec_of_it<vec_of_it.end(); it_vec_of_it++) {
+		fDSPError.erase(*it_vec_of_it);
+	      }
+	      //	      printf("%d\n", (int)vec.size());//only for debug
+	      RearrangeManyDSPErrors(vec);
+	      for (it_vec=vec.begin(); it_vec<vec.end(); it_vec++) {
+		DSPError fromvec=*it_vec;
+		//		printf("Inserting: %d %d %03X\n", fromvec.TimeStart, fromvec.TimeEnd, fromvec.GetFirstNA());//only for debug
+		if (fDSPError.find(fromvec.TimeStart) != fDSPError.end())
+		  cerr<<"AMSSetupR::LoadDSPErrors-W-KeyAlreadyPresent "<<fromvec.TimeStart<<endl;
+		fDSPError.insert(make_pair(fromvec.TimeStart,fromvec));
+	      }
+	    }
+	    else {
+	      if (fDSPError.find(TimeStart) != fDSPError.end())
+		cerr<<"AMSSetupR::LoadDSPErrors-W-KeyAlreadyPresent "<<TimeStart<<endl;
+	      fDSPError.insert(make_pair(TimeStart,a));//there's no item already filled from START to end(). I can insert without problems
+	    }
+	  }
+	  else {
+	    if (fDSPError.find(TimeStart) != fDSPError.end())
+	      cerr<<"AMSSetupR::LoadDSPErrors-W-KeyAlreadyPresent "<<TimeStart<<endl;
+	    fDSPError.insert(make_pair(TimeStart,a));//this is the first inception in the map...
+	  }
+	}
+	//	printf("Map size=%d\n", (int)fDSPError.size());//only for debug
+      }
+    }
+    fbin.close();    
+    fbin.clear();
+  }
+  else{
+    cerr<<"AMSSetupR::LoadDSPErrors-E-UnabletoOpenFile "<<fname<<endl;
+    return -1;
+  }
+  
+  int newsize=fDSPError.size();
+
+  int ret=(newsize-oldsize);
+  cout<< "AMSSetupR::LoadDSPErrors-I-LoadedEntries "<<ret<<endl;
+  cout<< "AMSSetupR::LoadDSPErrors-I-TotalEntries "<<newsize<<endl;
+  // //  only for debug
+  // for (DSPError_i it=fDSPError.begin(); it!=fDSPError.end(); it++) {
+  //   DSPError tmp=it->second;
+  //   printf("Found on map: %d %d %03X\n", tmp.TimeStart, tmp.TimeEnd, tmp.GetFirstNA());
+  // }
+  
+  return ret;
+}
+
+void AMSSetupR::RearrangeManyDSPErrors(vector<DSPError>& vec){
+  vector<DSPError> vec2;
+  vec2.clear();
+
+  vector<DSPError>::iterator it_vec;
+  vector<DSPError>::iterator it_vec2;
+
+  int index_vec2=-1;
+
+  //  printf("really before) vec.size=%d\n", (int)vec.size());//only for debug
+  //  printf("really before) vec2.size=%d\n", (int)vec2.size());//only for debug
+
+  while (1) {
+    vec2.push_back(*vec.begin());//first element of vec moved to vec2
+    vec.erase(vec.begin());//first element of vec erased from vec
+    //    printf("before) vec.size=%d\n", (int)vec.size());//only for debug
+    //    printf("before) vec2.size=%d\n", (int)vec2.size());//only for debug
+    index_vec2++;
+    //    printf("index_vec2=%d\n", index_vec2);//only for debug
+    int start_vec_size=vec.size();
+    for (int ii=0; ii<start_vec_size; ii++) {
+      //      printf("ii=%d of %d\n", ii, start_vec_size);//only for debug
+      RearrangeTwoDSPErrors(*(vec.begin()), vec2, index_vec2);//I process the first element in vec with 'index_vec2'th element if vec2
+      vec.erase(vec.begin());//I remove processed element in vec
+      //      printf("after_rearrange) vec.size=%d\n", (int)vec.size());//only for debug
+      //      printf("after_rearrange) vec2.size=%d\n", (int)vec2.size());//only for debug
+      while (vec2.size()>(index_vec2+1)) {//I move all elements after 'index_vec2'th in vec2 to vec
+	vec.push_back(*(vec2.rbegin()));
+	vec2.pop_back();
+	//	printf("second_while) vec.size=%d\n", (int)vec.size());//only for debug
+	//	printf("second_while) vec2.size=%d\n", (int)vec2.size());//only for debug
+      }
+    }
+    if (!vec.size()) break;
+  }
+
+  vec=vec2;
+
+  return;
+}
+
+void AMSSetupR::RearrangeTwoDSPErrors(DSPError dsperr, vector<DSPError>& vec, int in){
+
+  //  printf("Comparing (%d,%d,%03X) with (%d,%d,%03X) \n", dsperr.TimeStart, dsperr.TimeEnd, dsperr.GetFirstNA(), vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+
+  if ( (dsperr.TimeEnd<=vec[in].TimeStart) || //dsperr completely (disjoint) before vec[index]
+       (dsperr.TimeStart>=vec[in].TimeEnd)    ) {//dsperr completely (disjoint) after vec[index]
+    //    printf("rearrange) vec2.size %d -> ", (int)vec.size());//only for debug
+    vec.push_back(dsperr);
+    //    printf("%d\n", (int)vec.size());//only for debug
+  }
+  else if ( (dsperr.TimeStart==vec[in].TimeStart) && (dsperr.TimeEnd==vec[in].TimeEnd) ) {//very same interval
+    //    printf("%d %d ->", dsperr.GetFirstNA(), vec[in].GetFirstNA());//only for debug
+    dsperr.AddNA(vec[in]);
+    //    printf("%d\n", dsperr.GetFirstNA());//only for debug
+    //    printf("rearrange) vec2.size %d -> ", (int)vec.size());//only for debug
+    vec.erase(vec.begin()+in);//I remove the one already in vec
+    vec.push_back(dsperr);//and I add the combined one
+    //    printf("%d\n", (int)vec.size());//only for debug
+  }
+  else {
+    int vec_size_prev=(int)vec.size();
+    if (dsperr.TimeStart<vec[in].TimeStart) {//d starts before v start
+      //      printf("dsperr starts before vec[%d] start\n", in);//only for debug
+      if (dsperr.TimeEnd==vec[in].TimeEnd) {//d and v end togheter --> they overlap between vec[in].TimeStart and vec[in].TimeEnd, 2 pieces
+	DSPError a=dsperr; a.TimeEnd=vec[in].TimeStart;
+	DSPError b=vec[in]; b.AddNA(dsperr);
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b);//and I add the resulting ones
+      }
+      else if (dsperr.TimeEnd<vec[in].TimeEnd) {//d ends before v end --> they overlap between vec[in].TimeStart and dsperr.TimeEnd, 3 pieces
+	DSPError a=dsperr; a.TimeEnd=vec[in].TimeStart;
+	DSPError b=dsperr; b.TimeStart=vec[in].TimeStart; b.AddNA(vec[in]);
+	DSPError c=vec[in]; c.TimeStart=dsperr.TimeEnd;
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", c.TimeStart, c.TimeEnd, c.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b); vec.push_back(c);//and I add the resulting ones
+      }
+      else if (dsperr.TimeEnd>vec[in].TimeEnd) {//d ends after v end --> they overlap between vec[in].TimeStart and vec[in].TimeEnd, 3 pieces
+	DSPError a=dsperr; a.TimeEnd=vec[in].TimeStart;
+	DSPError b=vec[in]; b.AddNA(dsperr);
+	DSPError c=dsperr; c.TimeStart=vec[in].TimeEnd;
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", c.TimeStart, c.TimeEnd, c.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b); vec.push_back(c);//and I add the resulting ones
+      }	
+    }
+    else if (dsperr.TimeStart>vec[in].TimeStart) {//d starts after v start
+      //      printf("dsperr starts after vec[%d] start\n", in);//only for debug
+      if (vec[in].TimeEnd==dsperr.TimeEnd) {//v and d end togheter --> they overlap between dsperr.TimeStart and dsperr.TimeEnd, 2 pieces
+	DSPError a=vec[in]; a.TimeEnd=dsperr.TimeStart;
+	DSPError b=dsperr; b.AddNA(vec[in]);
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b);//and I add the resulting ones
+      }
+      else if (vec[in].TimeEnd<dsperr.TimeEnd) {//v ends before d end --> they overlap between dsperr.TimeStart and vec[in].TimeEnd, 3 pieces
+	DSPError a=vec[in]; a.TimeEnd=dsperr.TimeStart;
+	DSPError b=vec[in]; b.TimeStart=dsperr.TimeStart; b.AddNA(dsperr);
+	DSPError c=dsperr; c.TimeStart=vec[in].TimeEnd;
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", c.TimeStart, c.TimeEnd, c.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b); vec.push_back(c);//and I add the resulting ones
+      }
+      else if (vec[in].TimeEnd>dsperr.TimeEnd) {//v ends after d end --> they overlap between dsperr.TimeStart and dsperr.TimeEnd, 3 pieces
+	DSPError a=vec[in]; a.TimeEnd=dsperr.TimeStart;
+	DSPError b=dsperr; b.AddNA(vec[in]);
+	DSPError c=vec[in]; c.TimeStart=dsperr.TimeEnd;
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", c.TimeStart, c.TimeEnd, c.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b); vec.push_back(c);//and I add the resulting ones
+      }	
+    }
+    else { // they start togheter
+      //      printf("dsperr and vec[%d] start togheter\n", in);//only for debug
+      if (dsperr.TimeEnd==vec[in].TimeEnd) {//d ends before v end --> they overlap completely, 1 pieces SHOULD NOT HAPPEN: ALREADY DONE!!!!
+	cerr<<"AMSSetupR::LoadDSPErrors-W-SameIntervalShouldNotHappen "<<endl;
+	dsperr.AddNA(vec[in]);
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", dsperr.TimeStart, dsperr.TimeEnd, dsperr.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(dsperr);//and I add the combined one
+      }
+      if (dsperr.TimeEnd<vec[in].TimeEnd) {//d ends before v end --> they overlap between dsperr.TimeStart and dsperr.TimeEnd, 2 pieces
+	DSPError a=dsperr; a.AddNA(vec[in]);
+	DSPError b=vec[in]; b.TimeStart=dsperr.TimeEnd; 
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b);//and I add the resulting ones
+      }
+      else {//d ends after v end --> they overlap between dsperr.TimeStart and vec[in].TimeEnd, 2 pieces
+	DSPError a=vec[in]; a.AddNA(dsperr);
+	DSPError b=dsperr; b.TimeStart=vec[in].TimeEnd;
+	// printf("Removing (%d,%d,%03X)\n", vec[in].TimeStart, vec[in].TimeEnd, vec[in].GetFirstNA());//only for debug
+	// printf("Removing (%d,%d,%03X)\n", (*(vec.begin()+in)).TimeStart, (*(vec.begin()+in)).TimeEnd, (*(vec.begin()+in)).GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", a.TimeStart, a.TimeEnd, a.GetFirstNA());//only for debug
+	// printf("Pushing (%d,%d,%03X)\n", b.TimeStart, b.TimeEnd, b.GetFirstNA());//only for debug
+	vec.erase(vec.begin()+in);//I remove the one already in vec
+	vec.push_back(a); vec.push_back(b);//and I add the resulting ones
+      }
+    }
+    //    printf("rearrange) vec2.size %d -> %d\n", vec_size_prev, (int)vec.size());//only for debug
+  }
+  
+  return;
+}
+
+int AMSSetupR::getDSPError(DSPError& dsperror, unsigned int time){
+  
+  static unsigned int tstartloaded=0;
+  static unsigned int tendloaded=0;
+
+  if(
+     fDSPError.size()==0 ||
+     (time<tstartloaded || time>tendloaded)
+     ){
+#ifdef __ROOTSHAREDLIBRARY__
+    static unsigned int stime=0;
+#pragma omp threadprivate (stime)
+    if(stime!=floor(time)){
+      stime=time;
+      if(fHeader.FEventTime==0 && fHeader.Run==0 && fHeader.LEventTime==0){//"dummy" AMSSetupR
+	tstartloaded=time-60;
+	tendloaded=time+1;
+	LoadDSPErrors(tstartloaded, tendloaded);
+      }
+      else if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
+	tstartloaded=fHeader.FEventTime-60;
+	tendloaded=fHeader.LEventTime+1;
+	LoadDSPErrors(tstartloaded, tendloaded);
+      }
+      else {
+	tstartloaded=fHeader.Run-60;
+	tendloaded=fHeader.Run+3600;
+	LoadDSPErrors(tstartloaded, tendloaded);
+      }
+    }
+#endif
+    if(fDSPError.size()==0)
+      return 0;
+  }
+
+  AMSSetupR::DSPError_i k=fDSPError.upper_bound(time);//it gives the first found element after (strictly!!!) time
+  k--;//previous item
+  AMSSetupR::DSPError _dsperr=k->second;
+  if (time>=_dsperr.TimeStart && time<_dsperr.TimeEnd) {
+    dsperror=_dsperr;
+    return 1;
+  }
+
+  return 0;
+}
+
+bool AMSSetupR::DSPError::SetNA(unsigned int NA){
+
+  // //only used for debug
+  // printf("Before SetNA\n");
+  // printf("%08X\n", Nodes_000_01F);
+  // printf("%08X\n", Nodes_020_03F);
+  // printf("%08X\n", Nodes_040_05F);
+  // printf("%08X\n", Nodes_060_07F);
+  // printf("%08X\n", Nodes_080_09F);
+  // printf("%08X\n", Nodes_0A0_0BF);
+  // printf("%08X\n", Nodes_0C0_0DF);
+  // printf("%08X\n", Nodes_0E0_0FF);
+  // printf("%08X\n", Nodes_100_11F);
+  // printf("%08X\n", Nodes_120_13F);
+  // printf("%08X\n", Nodes_140_15F);
+  // printf("%08X\n", Nodes_160_17F);
+  // printf("%08X\n", Nodes_180_19F);
+  // printf("%08X\n", Nodes_1A0_1BF);
+  // printf("%08X\n", Nodes_1C0_1DF);
+  // printf("%08X\n", Nodes_1E0_1FF);
+
+  if (NA<0x01F)      Nodes_000_01F=(1<< NA      );
+  else if (NA<0x03F) Nodes_020_03F=(1<<(NA-   32));
+  else if (NA<0x05F) Nodes_040_05F=(1<<(NA- 2*32));
+  else if (NA<0x07F) Nodes_060_07F=(1<<(NA- 3*32));
+  else if (NA<0x09F) Nodes_080_09F=(1<<(NA- 4*32));
+  else if (NA<0x0BF) Nodes_0A0_0BF=(1<<(NA- 5*32));
+  else if (NA<0x0DF) Nodes_0C0_0DF=(1<<(NA- 6*32));
+  else if (NA<0x0FF) Nodes_0E0_0FF=(1<<(NA- 7*32));
+  else if (NA<0x11F) Nodes_100_11F=(1<<(NA- 8*32));
+  else if (NA<0x13F) Nodes_120_13F=(1<<(NA- 9*32));
+  else if (NA<0x15F) Nodes_140_15F=(1<<(NA-10*32));
+  else if (NA<0x17F) Nodes_160_17F=(1<<(NA-11*32));
+  else if (NA<0x19F) Nodes_180_19F=(1<<(NA-12*32));
+  else if (NA<0x1BF) Nodes_1A0_1BF=(1<<(NA-13*32));
+  else if (NA<0x1DF) Nodes_1C0_1DF=(1<<(NA-14*32));
+  else if (NA<0x1FF) Nodes_1E0_1FF=(1<<(NA-15*32));
+  else {
+    cerr<<"DSPError::SetNA-W-NodeAddressNotPossible "<<NA<<endl;
+    return false;
+  }
+
+  // //only used for debug
+  // printf("After SetNA\n");
+  // printf("%08X\n", Nodes_000_01F);
+  // printf("%08X\n", Nodes_020_03F);
+  // printf("%08X\n", Nodes_040_05F);
+  // printf("%08X\n", Nodes_060_07F);
+  // printf("%08X\n", Nodes_080_09F);
+  // printf("%08X\n", Nodes_0A0_0BF);
+  // printf("%08X\n", Nodes_0C0_0DF);
+  // printf("%08X\n", Nodes_0E0_0FF);
+  // printf("%08X\n", Nodes_100_11F);
+  // printf("%08X\n", Nodes_120_13F);
+  // printf("%08X\n", Nodes_140_15F);
+  // printf("%08X\n", Nodes_160_17F);
+  // printf("%08X\n", Nodes_180_19F);
+  // printf("%08X\n", Nodes_1A0_1BF);
+  // printf("%08X\n", Nodes_1C0_1DF);
+  // printf("%08X\n", Nodes_1E0_1FF);
+  
+  return true;
+}
+bool AMSSetupR::DSPError::AddNA(unsigned int NA) {
+
+  //only used for debug (see below)
+  unsigned int _Nodes_000_01F=Nodes_000_01F;
+  unsigned int _Nodes_020_03F=Nodes_020_03F;
+  unsigned int _Nodes_040_05F=Nodes_040_05F;
+  unsigned int _Nodes_060_07F=Nodes_060_07F;
+  unsigned int _Nodes_080_09F=Nodes_080_09F;
+  unsigned int _Nodes_0A0_0BF=Nodes_0A0_0BF;
+  unsigned int _Nodes_0C0_0DF=Nodes_0C0_0DF;
+  unsigned int _Nodes_0E0_0FF=Nodes_0E0_0FF;
+  unsigned int _Nodes_100_11F=Nodes_100_11F;
+  unsigned int _Nodes_120_13F=Nodes_120_13F;
+  unsigned int _Nodes_140_15F=Nodes_140_15F;
+  unsigned int _Nodes_160_17F=Nodes_160_17F;
+  unsigned int _Nodes_180_19F=Nodes_180_19F;
+  unsigned int _Nodes_1A0_1BF=Nodes_1A0_1BF;
+  unsigned int _Nodes_1C0_1DF=Nodes_1C0_1DF;
+  unsigned int _Nodes_1E0_1FF=Nodes_1E0_1FF;
+
+  if (NA<0x01F)      Nodes_000_01F|=(1<< NA      );
+  else if (NA<0x03F) Nodes_020_03F|=(1<<(NA-   32));
+  else if (NA<0x05F) Nodes_040_05F|=(1<<(NA- 2*32));
+  else if (NA<0x07F) Nodes_060_07F|=(1<<(NA- 3*32));
+  else if (NA<0x09F) Nodes_080_09F|=(1<<(NA- 4*32));
+  else if (NA<0x0BF) Nodes_0A0_0BF|=(1<<(NA- 5*32));
+  else if (NA<0x0DF) Nodes_0C0_0DF|=(1<<(NA- 6*32));
+  else if (NA<0x0FF) Nodes_0E0_0FF|=(1<<(NA- 7*32));
+  else if (NA<0x11F) Nodes_100_11F|=(1<<(NA- 8*32));
+  else if (NA<0x13F) Nodes_120_13F|=(1<<(NA- 9*32));
+  else if (NA<0x15F) Nodes_140_15F|=(1<<(NA-10*32));
+  else if (NA<0x17F) Nodes_160_17F|=(1<<(NA-11*32));
+  else if (NA<0x19F) Nodes_180_19F|=(1<<(NA-12*32));
+  else if (NA<0x1BF) Nodes_1A0_1BF|=(1<<(NA-13*32));
+  else if (NA<0x1DF) Nodes_1C0_1DF|=(1<<(NA-14*32));
+  else if (NA<0x1FF) Nodes_1E0_1FF|=(1<<(NA-15*32));
+  else {
+    cerr<<"DSPError::AddNA-W-NodeAddressNotPossible "<<NA<<endl;
+    return false;
+  }
+  
+  //only used for debug
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_000_01F, NA, Nodes_000_01F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_020_03F, NA, Nodes_020_03F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_040_05F, NA, Nodes_040_05F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_060_07F, NA, Nodes_060_07F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_080_09F, NA, Nodes_080_09F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_0A0_0BF, NA, Nodes_0A0_0BF);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_0C0_0DF, NA, Nodes_0C0_0DF);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_0E0_0FF, NA, Nodes_0E0_0FF);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_100_11F, NA, Nodes_100_11F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_120_13F, NA, Nodes_120_13F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_140_15F, NA, Nodes_140_15F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_160_17F, NA, Nodes_160_17F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_180_19F, NA, Nodes_180_19F);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_1A0_1BF, NA, Nodes_1A0_1BF);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_1C0_1DF, NA, Nodes_1C0_1DF);
+  printf("%08X | NA=%03X -> %08X\n", _Nodes_1E0_1FF, NA, Nodes_1E0_1FF);
+
+  return true;
+}
+
+bool AMSSetupR::DSPError::AddNA(DSPError dsperr) {
+
+  //only used for debug
+  // printf("%08X | %08X -> %08X\n", Nodes_000_01F, dsperr.Nodes_000_01F, Nodes_000_01F|=dsperr.Nodes_000_01F);
+  // printf("%08X | %08X -> %08X\n", Nodes_020_03F, dsperr.Nodes_020_03F, Nodes_020_03F|=dsperr.Nodes_020_03F);
+  // printf("%08X | %08X -> %08X\n", Nodes_040_05F, dsperr.Nodes_040_05F, Nodes_040_05F|=dsperr.Nodes_040_05F);
+  // printf("%08X | %08X -> %08X\n", Nodes_060_07F, dsperr.Nodes_060_07F, Nodes_060_07F|=dsperr.Nodes_060_07F);
+  // printf("%08X | %08X -> %08X\n", Nodes_080_09F, dsperr.Nodes_080_09F, Nodes_080_09F|=dsperr.Nodes_080_09F);
+  // printf("%08X | %08X -> %08X\n", Nodes_0A0_0BF, dsperr.Nodes_0A0_0BF, Nodes_0A0_0BF|=dsperr.Nodes_0A0_0BF);
+  // printf("%08X | %08X -> %08X\n", Nodes_0C0_0DF, dsperr.Nodes_0C0_0DF, Nodes_0C0_0DF|=dsperr.Nodes_0C0_0DF);
+  // printf("%08X | %08X -> %08X\n", Nodes_0E0_0FF, dsperr.Nodes_0E0_0FF, Nodes_0E0_0FF|=dsperr.Nodes_0E0_0FF);
+  // printf("%08X | %08X -> %08X\n", Nodes_100_11F, dsperr.Nodes_100_11F, Nodes_100_11F|=dsperr.Nodes_100_11F);
+  // printf("%08X | %08X -> %08X\n", Nodes_120_13F, dsperr.Nodes_120_13F, Nodes_120_13F|=dsperr.Nodes_120_13F);
+  // printf("%08X | %08X -> %08X\n", Nodes_140_15F, dsperr.Nodes_140_15F, Nodes_140_15F|=dsperr.Nodes_140_15F);
+  // printf("%08X | %08X -> %08X\n", Nodes_160_17F, dsperr.Nodes_160_17F, Nodes_160_17F|=dsperr.Nodes_160_17F);
+  // printf("%08X | %08X -> %08X\n", Nodes_180_19F, dsperr.Nodes_180_19F, Nodes_180_19F|=dsperr.Nodes_180_19F);
+  // printf("%08X | %08X -> %08X\n", Nodes_1A0_1BF, dsperr.Nodes_1A0_1BF, Nodes_1A0_1BF|=dsperr.Nodes_1A0_1BF);
+  // printf("%08X | %08X -> %08X\n", Nodes_1C0_1DF, dsperr.Nodes_1C0_1DF, Nodes_1C0_1DF|=dsperr.Nodes_1C0_1DF);
+  // printf("%08X | %08X -> %08X\n", Nodes_1E0_1FF, dsperr.Nodes_1E0_1FF, Nodes_1E0_1FF|=dsperr.Nodes_1E0_1FF);
+
+  Nodes_000_01F|=dsperr.Nodes_000_01F;
+  Nodes_020_03F|=dsperr.Nodes_020_03F;
+  Nodes_040_05F|=dsperr.Nodes_040_05F;
+  Nodes_060_07F|=dsperr.Nodes_060_07F;
+  Nodes_080_09F|=dsperr.Nodes_080_09F;
+  Nodes_0A0_0BF|=dsperr.Nodes_0A0_0BF;
+  Nodes_0C0_0DF|=dsperr.Nodes_0C0_0DF;
+  Nodes_0E0_0FF|=dsperr.Nodes_0E0_0FF;
+  Nodes_100_11F|=dsperr.Nodes_100_11F;
+  Nodes_120_13F|=dsperr.Nodes_120_13F;
+  Nodes_140_15F|=dsperr.Nodes_140_15F;
+  Nodes_160_17F|=dsperr.Nodes_160_17F;
+  Nodes_180_19F|=dsperr.Nodes_180_19F;
+  Nodes_1A0_1BF|=dsperr.Nodes_1A0_1BF;
+  Nodes_1C0_1DF|=dsperr.Nodes_1C0_1DF;
+  Nodes_1E0_1FF|=dsperr.Nodes_1E0_1FF;
+
+  return true;
+}
+
+int AMSSetupR::DSPError::GetFirstNA(){
+
+  // //only used for debug
+  // printf("%08X\n", Nodes_000_01F);
+  // printf("%08X\n", Nodes_020_03F);
+  // printf("%08X\n", Nodes_040_05F);
+  // printf("%08X\n", Nodes_060_07F);
+  // printf("%08X\n", Nodes_080_09F);
+  // printf("%08X\n", Nodes_0A0_0BF);
+  // printf("%08X\n", Nodes_0C0_0DF);
+  // printf("%08X\n", Nodes_0E0_0FF);
+  // printf("%08X\n", Nodes_100_11F);
+  // printf("%08X\n", Nodes_120_13F);
+  // printf("%08X\n", Nodes_140_15F);
+  // printf("%08X\n", Nodes_160_17F);
+  // printf("%08X\n", Nodes_180_19F);
+  // printf("%08X\n", Nodes_1A0_1BF);
+  // printf("%08X\n", Nodes_1C0_1DF);
+  // printf("%08X\n", Nodes_1E0_1FF);
+
+  vector<unsigned int> vec_NA;
+  
+  for (unsigned int NA=0; NA<32; NA++) {
+    if ((Nodes_000_01F)&(1<<NA)) vec_NA.push_back(NA      );
+    if ((Nodes_020_03F)&(1<<NA)) vec_NA.push_back(NA+0x020);
+    if ((Nodes_040_05F)&(1<<NA)) vec_NA.push_back(NA+0x040);
+    if ((Nodes_060_07F)&(1<<NA)) vec_NA.push_back(NA+0x060);
+    if ((Nodes_080_09F)&(1<<NA)) vec_NA.push_back(NA+0x080);
+    if ((Nodes_0A0_0BF)&(1<<NA)) vec_NA.push_back(NA+0x0A0);
+    if ((Nodes_0C0_0DF)&(1<<NA)) vec_NA.push_back(NA+0x0C0);
+    if ((Nodes_0E0_0FF)&(1<<NA)) vec_NA.push_back(NA+0x0E0);
+    if ((Nodes_100_11F)&(1<<NA)) vec_NA.push_back(NA+0x100);
+    if ((Nodes_120_13F)&(1<<NA)) vec_NA.push_back(NA+0x120);
+    if ((Nodes_140_15F)&(1<<NA)) vec_NA.push_back(NA+0x140);
+    if ((Nodes_160_17F)&(1<<NA)) vec_NA.push_back(NA+0x160);
+    if ((Nodes_180_19F)&(1<<NA)) vec_NA.push_back(NA+0x180);
+    if ((Nodes_1A0_1BF)&(1<<NA)) vec_NA.push_back(NA+0x1A0);
+    if ((Nodes_1C0_1DF)&(1<<NA)) vec_NA.push_back(NA+0x1C0);
+    if ((Nodes_1E0_1FF)&(1<<NA)) vec_NA.push_back(NA+0x1E0);
+  }
+
+  sort(vec_NA.begin(), vec_NA.end()); 
+
+  //  for (int ii=0; ii<vec_NA.size(); ii++) printf("%d\n", vec_NA[ii]);//only for debug
+
+  if (vec_NA.size()==1) return vec_NA[0];
+  else return -vec_NA[0];
+}
+
+//-------------------------------------------------------------------------------------------------------

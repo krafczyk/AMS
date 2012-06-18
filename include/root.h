@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.1 2012/05/23 23:46:51 pzuccon Exp $
+//  $Id: root.h,v 1.437.2.2 2012/06/18 13:32:35 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -239,6 +239,18 @@ static char _Info[255];
    float B3a;   ///< ISS Solar Array Beta (rad)
    float B3b;   ///< ISS Solar Array Beta (rad)
 
+   //--------DSP Errors-----------------------
+   
+ private:
+   AMSSetupR::DSPError* pdsperr; ///< AMSSetupR::DSPError* (if current event time is affected by a DSP error) for the current event time.
+   
+ public:
+   /// Access function to DSPError object
+   /// \return \retval pointer to DSPError object (if current event time is affected by a DSP error) or 0
+   AMSSetupR::DSPError* pDSPError();
+   
+   //-----------------------------------------
+
    vector<unsigned int> GPSTime; ///< see https://twiki.cern.ch/twiki/bin/view/AMS/AMSGPSTimeFormat;
 
    /*!
@@ -315,6 +327,11 @@ int getISSAtt(); ///<get AMSSetupR::ISSAtt values for the current event time and
 double getBetaSun();///<get solar beta angle via geometrical calculation
 int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS coordinate, ret= -1:error, 0:night, 1:day
 
+//--------DSP Errors-----------------------
+ int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \return \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
+ int getDSPError(); ///< Get AMSSetupR::DSPError (if any) for the current event time and replace it in the fHeader. \return \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
+ //-----------------------------------------
+
   //#ifdef _PGTRACK_
   friend class VCon_root;
   //#endif
@@ -324,7 +341,7 @@ int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS
   char * Info(unsigned long long status);
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,19)       //HeaderR
+  ClassDef(HeaderR,20)       //HeaderR
 //#pragma omp threadprivate(fgIsA)
 };
 
