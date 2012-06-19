@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79.4.3 2012/06/18 13:32:35 mduranti Exp $
+//  $Id: root_setup.C,v 1.79.4.4 2012/06/19 14:54:36 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -2643,8 +2643,9 @@ int AMSSetupR::LoadDSPErrors(unsigned int t1, unsigned int t2){
   const char DSPPathlocal[]="/afs/cern.ch/ams/Offline/AMSDataDir/";
   
   char DSPPath[256];
-  strcpy(DSPPath, getenv("AMSDSP"));
-  if(!DSPPath || !strlen(DSPPath)) strcpy(DSPPath, DSPPathlocal);
+  char* AMSDSPEnv=getenv("AMSDSP");
+  if(!AMSDSPEnv || !strlen(AMSDSPEnv)) strcpy(DSPPath, DSPPathlocal);
+  else strcpy(DSPPath, getenv("AMSDSP"));
   //  printf("%s\n", DSPPath);//only for debug
   
   char amsdsp_add[256];
