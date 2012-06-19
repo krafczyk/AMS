@@ -23,14 +23,20 @@ map<int, TRDOnline> TrdKCluster::map_TRDOnline;
 
 float TrdKCluster::MinimumDistance=3;
 
+/////////////////////////////////////////////////////////////////////
+
 TrdKCluster::TrdKCluster()
 {
     Init_Base();
 }
 
+/////////////////////////////////////////////////////////////////////
+
 TrdKCluster::~TrdKCluster(){
 
 }
+
+/////////////////////////////////////////////////////////////////////
 
 TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
 {
@@ -91,6 +97,8 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir,AMSPoint *TRDTrack_P0, AMSPoint *TRDTrack_Dir,AMSPoint *MaxSpan_P0, AMSPoint *MaxSpan_Dir):TRDHitCollection(_collection)
 {
 
@@ -115,6 +123,8 @@ TrdKCluster::TrdKCluster(vector<TrdKHit> _collection,AMSPoint *P0, AMSPoint *Dir
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::Constrcut_TRDTube(){
     cout<<"Construct TRD Tube: "<<endl;
     TRDTubeCollection.clear();
@@ -131,6 +141,8 @@ void TrdKCluster::Constrcut_TRDTube(){
     return;
 }
 
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::Init_Base(){
 
@@ -153,6 +165,8 @@ void TrdKCluster::Init_Base(){
 
 }
 
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::DoGainCalibration(){
     int read=_DB_instance->readDB_Calibration(Time);
     if(read==0){
@@ -163,6 +177,8 @@ int TrdKCluster::DoGainCalibration(){
     }
     return read;
 }
+
+/////////////////////////////////////////////////////////////////////
 
 int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
     int read = _DB_instance->readDB_Alignment(Time,readplane,readglobal);
@@ -187,6 +203,8 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::DoHitPreselection(float cut_distance){
     vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
     for (;Hit_it!=TRDHitCollection.end(); ) {
@@ -199,6 +217,8 @@ void TrdKCluster::DoHitPreselection(float cut_distance){
 }
 
 
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::AddEmptyTubes(float cut_distance){
 
@@ -236,6 +256,8 @@ void TrdKCluster::AddEmptyTubes(float cut_distance){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::SelectClosest(){
     vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
     for (;Hit_it!=TRDHitCollection.end(); ) {
@@ -254,6 +276,8 @@ void TrdKCluster::SelectClosest(){
     }
 }
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::RemoveDuplicate(TrdKCluster *fired){
     vector<TrdKHit>::iterator  Hit_it=TRDHitCollection.begin();
     for (;Hit_it!=TRDHitCollection.end(); ) {
@@ -271,18 +295,26 @@ void TrdKCluster::RemoveDuplicate(TrdKCluster *fired){
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::Propogate_TrTrack(double z){
     TrTrack_Pro.Propagate(z);
 }
+
+/////////////////////////////////////////////////////////////////////
 
 AMSPoint TrdKCluster::GetPropogated_TrTrack_P0(){
     return TrTrack_Pro.GetP0();
 }
 
+/////////////////////////////////////////////////////////////////////
+
 AMSDir TrdKCluster::GetPropogated_TrTrack_Dir(){
     return TrTrack_Pro.GetDir();
 }
 
+
+/////////////////////////////////////////////////////////////////////
 
 bool  TrdKCluster::IsCalibrated(){
     bool v=1;
@@ -290,6 +322,8 @@ bool  TrdKCluster::IsCalibrated(){
         if(!GetHit(i)->IsCalibrated)v=0;
     return v;
 }
+
+/////////////////////////////////////////////////////////////////////
 
 bool  TrdKCluster::IsAligned(){
     bool v=1;
@@ -301,6 +335,8 @@ bool  TrdKCluster::IsAligned(){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::fcn_TRDTrack(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
     TrdKCluster* cluster=( TrdKCluster*)gMinuit_TRDTrack->GetObjectFit();
     f=cluster->TRDTrack_ImpactChi2(par);
@@ -309,11 +345,15 @@ void TrdKCluster::fcn_TRDTrack(Int_t &npar, Double_t *gin, Double_t &f, Double_t
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::fcn_TRDTrack_PathLength(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
     TrdKCluster* cluster=( TrdKCluster*)gMinuit_TRDTrack->GetObjectFit();
     f=cluster->TRDTrack_PathLengthLikelihood(par);
 }
 
+
+/////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
 
@@ -335,8 +375,7 @@ double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
 
 }
 
-
-
+/////////////////////////////////////////////////////////////////////
 
 double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     int size= NHits();
@@ -367,19 +406,10 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
 
 
     return result;
-};
+}
 
 
-
-
-
-
-
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////
 
 void TRD_ImpactParameter_Likelihood::InitLikelihood(){
     TString s_func ="[0]*(TMath::ATan((0.3-(x-[1]))/[2])+TMath::ATan((0.3+(x-[1]))/[2]))";
@@ -407,6 +437,8 @@ void TRD_ImpactParameter_Likelihood::InitLikelihood(){
     return ;
 }
 
+/////////////////////////////////////////////////////////////////////
+
 double TRD_ImpactParameter_Likelihood::GetLikelihood(float Amp, float d0){
     //    if(fabs(d0)>100){
     //        cout<<"~~~~~~WARNING~~~~~,  D0: "<<d0<<" exceeded tube range ~~~~~~~~~~~~~~   "<<endl;
@@ -418,6 +450,8 @@ double TRD_ImpactParameter_Likelihood::GetLikelihood(float Amp, float d0){
 }
 
 
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::FitTRDTrack(int method, int hypothesis){
 
@@ -431,8 +465,8 @@ void TrdKCluster::FitTRDTrack(int method, int hypothesis){
     return;
 };
 
-//void TrdKCluster::FitTRDTrack(){
-//Changed by Wei Sun
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 
     TVirtualFitter::SetDefaultFitter("Minuit");
@@ -496,6 +530,8 @@ void TrdKCluster::FitTRDTrack_IPLikelihood(int IsCharge){
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::MergeWith(TrdKCluster *secondcluster){
     for(int i=0;i<secondcluster->NHits();i++){
         this->TRDHitCollection.push_back(*secondcluster->GetHit(i));
@@ -503,6 +539,8 @@ void TrdKCluster::MergeWith(TrdKCluster *secondcluster){
 }
 
 
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx, double dz, double &TRDTrack_x,double &TRDTrack_dx){
 
@@ -575,6 +613,8 @@ void TrdKCluster::AnalyticalFit_2D(int direction, double x, double z, double dx,
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
@@ -637,6 +677,8 @@ void TrdKCluster::FitTRDTrack_PathLength(int particle_hypothesis){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::FitTRDTrack_Analytical(){
 
     int count=0;
@@ -679,6 +721,8 @@ void TrdKCluster::FitTRDTrack_Analytical(){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::SetTrTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
     track_extrapolated_Dir=*Dir;
@@ -695,6 +739,8 @@ void TrdKCluster::SetTrTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
     return;
 }
 
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
@@ -714,8 +760,9 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 
 
 
-void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
+/////////////////////////////////////////////////////////////////////
 
+void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
     if(fitcode>0){
         track_extrapolated_Dir=  AMSDir(0,0,0);
@@ -739,6 +786,8 @@ void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, int fitmethod, int particle_hypothesis){
 
     if(HasTRDTrack==0 || fitmethod>0)   FitTRDTrack(fitmethod,particle_hypothesis);
@@ -747,10 +796,14 @@ int TrdKCluster::GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits){
     return GetLikelihoodRatio(threshold,LLR,nhits,&track_extrapolated_P0,&track_extrapolated_Dir);
 }
 
+
+/////////////////////////////////////////////////////////////////////
 
 int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AMSPoint* P0, AMSDir* Dir){
 
@@ -814,6 +867,8 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::InitXePressure(){
 
     cout<<"Initilize Online TRD Parameters map..........."<<endl;
@@ -854,6 +909,8 @@ void TrdKCluster::InitXePressure(){
 
 
 
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetXePressure(){
     if(map_TRDOnline.size()==0)return -1;
     map<int, TRDOnline>::iterator  it=map_TRDOnline.upper_bound((int)Time);
@@ -866,9 +923,13 @@ int TrdKCluster::GetXePressure(){
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TrdKCluster::GetOffTrackHit_TrTrack(int& nhits, float & amp){
     GetOffTrackHit(nhits,amp,&track_extrapolated_P0,&track_extrapolated_Dir);
 }
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp){
     if(HasTRDTrack==0){
@@ -880,6 +941,8 @@ void TrdKCluster::GetOffTrackHit_TRDRefit(int& nhits, float & amp){
 
     GetOffTrackHit(nhits,amp,&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
 }
+
+/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir){
     nhits=0;
@@ -897,6 +960,8 @@ void TrdKCluster::GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir*
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 int TrdKCluster::GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir){
 
     if(!HasTRDTrack){
@@ -910,10 +975,24 @@ int TrdKCluster::GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir){
 
 }
 
+/////////////////////////////////////////////////////////////////////
+
+int TrdKCluster::GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir){
+
+    if(GetValidity()==-1){
+        cout<<"~ERROR~ TrdKCluster, In valid Fitcode passed by SetTrTrack ."<<endl;
+        return -1;
+    }
+
+    P0=track_extrapolated_P0;
+    Dir=track_extrapolated_Dir;
+
+    return 1;
+}
+
 
 //================TRD Charge Estimation=====================
 
-/////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::fcn_TRDTrack_Charge(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {

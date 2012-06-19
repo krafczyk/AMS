@@ -105,11 +105,16 @@ public:
     int GetLikelihoodRatio_TrTrack(float threshold, double* LLR, int &nhits);
     int GetLikelihoodRatio_TRDRefit(float threshold, double* LLR, int &nhits, int fitmethod=1, int particle_hypothesis=1);
 
+    // Number of Hits and Total Amplitude of Off-Track Tubes
     void GetOffTrackHit(int& nhits, float & amp,  AMSPoint* P0, AMSDir* Dir);
     void GetOffTrackHit_TrTrack(int& nhits, float & amp);
     void GetOffTrackHit_TRDRefit(int& nhits, float & amp);
 
+    // Get Refitted TRD Track, accroding to the latest refit
     int GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir);
+
+    // Get TrTrack Extrapolation of current TrTrack
+    int GetTrTrackExtrapolation(AMSPoint &P0, AMSDir &Dir);
 
 
     // Hit manipulation/operation
@@ -159,6 +164,10 @@ public:
     //Get TRD charge value and error
     double GetTRDCharge() {return TRDChargeValue;}
     double GetTRDChargeError() {return TRDChargeError;}
+
+
+    // TRD Partial Pressure
+    float Pressure_Xe;
 
 
     // Flags for Calibration / Alignment status
@@ -229,7 +238,6 @@ private:
     float Zshift;
     float TRDCenter;
     float Minimum_dR;
-    float Pressure_Xe;
     vector <TrdKHit> TRDHitCollection;
 
 
