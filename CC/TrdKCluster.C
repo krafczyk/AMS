@@ -413,7 +413,7 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
 
 void TRD_ImpactParameter_Likelihood::InitLikelihood(){
     TString s_func ="[0]*(TMath::ATan((0.3-(x-[1]))/[2])+TMath::ATan((0.3+(x-[1]))/[2]))";
-    cout<<"Init Likelihood function: "<<s_func<<endl;
+    //    cout<<"Init Likelihood function: "<<s_func<<endl;
 
     d0_likelihood_func = new TF1("Residual_Function", s_func, -5,5);
     d0_likelihood_func->SetNpx(10000);
@@ -431,7 +431,7 @@ void TRD_ImpactParameter_Likelihood::InitLikelihood(){
     d0_likelihood_func_missed->SetNpx(50000);
     d0_likelihood_func_missed_integral=d0_likelihood_func_missed->Integral(-100,100);
 
-    cout<<"Integral for Missed Function: "<<d0_likelihood_func_missed_integral<<endl;
+    //    cout<<"Integral for Missed Function: "<<d0_likelihood_func_missed_integral<<endl;
 
 
     return ;
