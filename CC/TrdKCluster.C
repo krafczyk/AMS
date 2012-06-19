@@ -717,7 +717,7 @@ void TrdKCluster::SetTRDTrack(AMSPoint *P0, AMSDir *Dir, float Rigidity){
 void TrdKCluster::SetTrTrack(TrTrackR* track, int fitcode){
 
 
-    if(track->ParExists(fitcode)){
+    if(fitcode>0){
         track_extrapolated_Dir=  AMSDir(0,0,0);
         track_extrapolated_P0= AMSPoint(0,0,0);
         track->Interpolate(TRDCenter,track_extrapolated_P0,track_extrapolated_Dir,fitcode);
