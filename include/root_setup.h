@@ -1,4 +1,4 @@
-//  $Id: root_setup.h,v 1.46 2012/06/18 11:52:19 mduranti Exp $
+//  $Id: root_setup.h,v 1.47 2012/06/19 00:17:37 mduranti Exp $
 #ifndef __ROOTSETUP__
 #define __ROOTSETUP__
 
@@ -290,8 +290,8 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
      Nodes_080_09F=0;Nodes_0A0_0BF=0;Nodes_0C0_0DF=0;Nodes_0E0_0FF=0;
      Nodes_100_11F=0;Nodes_120_13F=0;Nodes_140_15F=0;Nodes_160_17F=0;
      Nodes_180_19F=0;Nodes_1A0_1BF=0;Nodes_1C0_1DF=0;Nodes_1E0_1FF=0;
-   };
-   unsigned int TimeStart; ///< Start of NOT validity period due to DSP error (unixtime) (also key of the map DSPError_m). \li TimeStart<=t<TimeEnd is affected by DSP error
+   };///< Standard constructor
+   unsigned int TimeStart; ///< Start of NOT validity period due to DSP error (unixtime) (also key of the map AMSRootSetupR::DSPError_m). \li TimeStart<=t<TimeEnd is affected by DSP error
    unsigned int TimeEnd; ///< End of NOT validity period due to DSP error (unixtime). \li TimeStart<=t<TimeEnd is affected by DSP error
    unsigned int Nodes_000_01F; ///< Bitted map of affected nodes (from NA=0x000 [LSB] to NA=0x01F [MSB])
    unsigned int Nodes_020_03F; ///< Bitted map of affected nodes (from NA=0x020 [LSB] to NA=0x03F [MSB])
@@ -309,10 +309,10 @@ ClassDef(ISSGTOD,1)       //ISS GTOD
    unsigned int Nodes_1A0_1BF; ///< Bitted map of affected nodes (from NA=0x1A0 [LSB] to NA=0x1BF [MSB])
    unsigned int Nodes_1C0_1DF; ///< Bitted map of affected nodes (from NA=0x1C0 [LSB] to NA=0x1DF [MSB])
    unsigned int Nodes_1E0_1FF; ///< Bitted map of affected nodes (from NA=0x1E0 [LSB] to NA=0x1FF [MSB])
-   bool SetNA(unsigned int NA); ///< Set the NA affected by DSP error (erase any previous set nodes!). \return \retval true in case of positive inception.
-   bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \return \retval true in case of positive inception.
-   bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) \li taking by a DSPError object (neglecting its timestart,timend). \return \retval true in case of positive inception.
-   int GetFirstNA(); ///< Gives NA affected by DSP error \li (in case of multiple nodes return the first [the one with lower NA] with negative sign)
+   bool SetNA(unsigned int NA); ///< Set the NA affected by DSP error (erase any previous set nodes!). \return true in case of positive inception.
+   bool AddNA(unsigned int NA); ///< Add a NA affected by DSP error (keep previous nodes!). \return true in case of positive inception.
+   bool AddNA(DSPError dsperr); ///< Add a NA affected by DSP error (keep previous nodes!) taking by a DSPError object (neglecting its timestart,timend). \return true in case of positive inception.
+   int GetFirstNA(); ///< Gives NA affected by DSP error (in case of multiple nodes return the first [the one with lower NA] with negative sign)
    ClassDef(DSPError,1)       //DSP Error
  };
 //-------------------------------------------------
@@ -410,7 +410,7 @@ typedef map <unsigned int,GPSWGS84>::iterator GPSWGS84_i;
   ISSData_m fISSData;    ///< ISS Aux Data map
   ISSAtt_m fISSAtt;      ///< ISS Attitude angles map
  //---------------DSP Errors-------------------------
-  DSPError_m fDSPError; ///< DSP Error map (key is the start time of NOT validity period due to DSP Errors). \li 'second' contains DSPError object with start/end NON validity and affected nodes
+  DSPError_m fDSPError; ///< DSP Error map (key is the start time of NOT validity period due to DSP Errors). Map 'second' contains DSPError object with start/end NOT validity and affected nodes
  //--------------------------------------------------
   ISSSA_m fISSSA;      ///< ISS Solar Array angles map
   ISSCTRS_m fISSCTRS;      ///< ISS CTRS coordinates & velocity vector map
@@ -527,7 +527,6 @@ public:
     \param unsigned int time : unix time
     \param DSPError dsperror : object containing (if any DSP error affecting 'time') time interval of NOT validity and nodes affected
     
-    \return 
     \retval  0 -->  OK (NO nodes affected by DSP errors)
     \retval  1 -->  KO (SOME nodes affected by DSP errors)
   */
@@ -577,7 +576,6 @@ void Purge();
    \param unsigned int t1 : start time to load
    \param unsigned int t2 : end time to load
    
-   \return 
    \retval -1 -->  KO (problems in retrieving the info from .csv files)
    \retval -2 -->  KO (passed time interval not valid [<=0])
    \retval +N -->  OK (number of periods affected by DSP problem in t1-t2 time intervals)
