@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.437.2.2 2012/06/18 13:32:35 mduranti Exp $
+//  $Id: root.h,v 1.437.2.3 2012/06/19 00:18:28 mduranti Exp $
 //
 //  NB
 //  Only stl vectors ,scalars and fixed size arrays
@@ -246,7 +246,7 @@ static char _Info[255];
    
  public:
    /// Access function to DSPError object
-   /// \return \retval pointer to DSPError object (if current event time is affected by a DSP error) or 0
+   /// \return pointer to DSPError object (if current event time is affected by a DSP error) or 0
    AMSSetupR::DSPError* pDSPError();
    
    //-----------------------------------------
@@ -328,8 +328,8 @@ double getBetaSun();///<get solar beta angle via geometrical calculation
 int getSunAMS(double & azimut, double & elevation ); ///<get sun position in AMS coordinate, ret= -1:error, 0:night, 1:day
 
 //--------DSP Errors-----------------------
- int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \return \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
- int getDSPError(); ///< Get AMSSetupR::DSPError (if any) for the current event time and replace it in the fHeader. \return \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
+ int getDSPError(AMSSetupR::DSPError& dsperr); ///< Get AMSSetupR::DSPError (if any) for the current event time. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
+ int getDSPError(); ///< Get AMSSetupR::DSPError (if any) for the current event time and replace it in the fHeader. \retval return values from AMSSetupR::getDSPError() \retval 2 in case of not AMSSetupR object in HeaderR
  //-----------------------------------------
 
   //#ifdef _PGTRACK_
