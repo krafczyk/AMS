@@ -293,9 +293,9 @@ COMMON_FILES += $(SCC)VCon_gbatch.C $(SCC)TrElem.C $(SCC)VCon.C
 #TRD 
 COMMON_FILES += $(SCC)trdid.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)TrdHRecon.C $(SCC)TrdHCalib.C $(SCC)TrdHCharge.C $(SCC)TrdTFit.C $(SCC)TrdHSegment.C $(SCC)TrdHTrack.C $(SCC)trdhrec.C  $(SCC)trddbc.C $(SCC)trdcalib.C  
 
-#TRD + AC Calibration
+#TRD + AC Calibration + TrdKLikelihood Methods
 ifdef PGTRACK
-TRD_ADD= $(SCC)TrdSCalib.C $(SCC)TrdKCalib.C 
+TRD_ADD= $(SCC)TrdSCalib.C $(SCC)TrdKCalib.C $(SCC)TrdKHit.C $(SCC)TrdKCluster.C $(SCC)TrdKPDF.C  
 TOF_ADD= $(SCC)TofGeometry.C $(SCC)TofRecon.C $(SCC)TofTrack.C
 endif
 COMMON_FILES +=$(TRD_ADD) 
@@ -380,7 +380,7 @@ ROOTDICTFILES += ../include/TrdRawHit.h ../include/TrdHSegment.h ../include/TrdH
 ROOTDICTFILES += ../include/DynAlignment.h ../include/RichTools.h ../include/RichCharge.h ../include/RichConfig.h
 
 ifdef PGTRACK
-ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h
+ROOTDICTFILES += ../include/TrdSCalib.h ../include/TrdKCalib.h ../include/TrdKHit.h ../include/TrdKCluster.h ../include/TrdKPDF.h
 ROOTDICTFILES += ../include/TofGeometry.h  ../include/TofRecon.h  ../include/TofTrack.h
 endif
 
@@ -615,7 +615,7 @@ ifdef PGTRACK
 SHLIBO:=$(AMS_BASEO) $(TRACK_BASEO) $(BIN)amschain_s.o  \
         $(BIN)rnormx_s.o $(BIN)TrFit_s.o $(BIN)TrRecon_s.o  $(BIN)TrSim_s.o $(BIN)TrSimCluster_s.o $(BIN)TrSimSensor_s.o $(BIN)TkDBc_s.o $(BIN)TrTrack_s.o \
         $(BIN)root_rs.o $(BIN)root_setup_s.o  $(BIN)SlowControlDB_s.o $(BIN)TrCalDB_s.o $(BIN)TrTasDB_s.o $(BIN)TrGainDB_s.o $(BIN)rootdict_s.o   $(BIN)MagField_s.o \
-        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o $(BIN)TrdKCalib_s.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)commonsi.o \
+        $(BIN)VCon_s.o $(BIN)TrdHSegment_s.o $(BIN)TrdHTrack.o $(BIN)TrdHCalib.o $(BIN)TrdSCalib_s.o  $(BIN)TrdKCalib.o  $(BIN)TrdKCluster.o $(BIN)TrdKHit.o $(BIN)TrdKPDF.o $(BIN)TrdHCharge.o $(BIN)TrdTFit.o $(BIN)TrdHRecon_s.o $(BIN)VCon_root_s.o $(BIN)TrElem.o  $(BIN)ecalBDT.o $(BIN)commonsi.o \
 	$(BIN)timeid_s.o $(BIN)TrExtAlignDB_s.o  $(BIN)DynAlignment_s.o $(BIN)RichCharge_s.o $(BIN)RichConfig_s.o $(BIN)RichBeta_s.o $(BIN)RichTools_s.o $(BIN)pfunction_s.o $(BIN)OrbGen_s.o $(BIN)cgmmap.o $(BIN)Sunposition.o \
 	$(BIN)rkms_s.o $(BIN)gufld.o $(BIN)util.o 
 SHLIBO+=$(BIN)TofGeometry_s.o  $(BIN)TofRecon_s.o  $(BIN)TofTrack_s.o $(BIN)Tofdbc_s.o $(BIN)Tofrec02_ihep_s.o
