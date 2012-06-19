@@ -172,7 +172,7 @@ int TrdKCluster::DoAlignment(int &readplane, int &readglobal){
     }else if(read==2){
         for(int i=0;i<NHits();i++){
             int layer=GetHit(i)->TRDHit_Layer;
-            par_alignment=_DB_instance->GetAlignmentPar(layer,Time);
+            par_alignment=_DB_instance->GetAlignmentPar(layer,(int)Time);
             GetHit(i)->DoAlignment(&par_alignment);
         }
     }else if(read==1){
@@ -913,12 +913,6 @@ int TrdKCluster::GetTRDRefittedTrack(AMSPoint &P0, AMSDir &Dir){
 
 //================TRD Charge Estimation=====================
 
-
-//////////////////////////
-//Added by Wei Sun
-//////////////////////////
-
-
 /////////////////////////////////////////////////////////////////////
 
 void TrdKCluster::fcn_TRDTrack_Charge(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
@@ -1233,8 +1227,3 @@ void TrdKCluster::HitSelectionAfterRefit()
         }
     }
 }
-
-//////////////////////////
-//END: Added by Wei Sun
-//////////////////////////
-
