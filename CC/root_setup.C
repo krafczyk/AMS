@@ -1,4 +1,4 @@
-//  $Id: root_setup.C,v 1.79.4.4 2012/06/19 14:54:36 mduranti Exp $
+//  $Id: root_setup.C,v 1.79.4.5 2012/06/21 01:58:26 mduranti Exp $
 #include "root_setup.h"
 #include "root.h"
 #include <fstream>
@@ -3004,18 +3004,18 @@ int AMSSetupR::getDSPError(DSPError& dsperror, unsigned int time){
     if(stime!=floor(time)){
       stime=time;
       if(fHeader.FEventTime==0 && fHeader.Run==0 && fHeader.LEventTime==0){//"dummy" AMSSetupR
-	tstartloaded=time-60;
-	tendloaded=time+1;
+	tstartloaded=min(tstartloaded, time-60);
+	tendloaded=max(tendloaded, time+1);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
       else if(fHeader.FEventTime-60<fHeader.Run && fHeader.LEventTime+1>fHeader.Run){
-	tstartloaded=fHeader.FEventTime-60;
-	tendloaded=fHeader.LEventTime+1;
+	tstartloaded=min(tstartloaded, fHeader.FEventTime-60);
+	tendloaded=max(tendloaded, fHeader.LEventTime+1);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
       else {
-	tstartloaded=fHeader.Run-60;
-	tendloaded=fHeader.Run+3600;
+	tstartloaded=min(tstartloaded, fHeader.Run-60);
+	tendloaded=max(tendloaded, fHeader.Run+3600);
 	LoadDSPErrors(tstartloaded, tendloaded);
       }
     }
