@@ -1,13 +1,13 @@
 #include <TrdKCalib.h>
+#include <timeid.h>
+#include <commonsi.h>
 
-#include "root.h"
-#ifndef __ROOTSHAREDLIBRARY__
-#include "commons.h"
-#endif
+ClassImp(TrdKCalib)
 
-#include "timeid.h"
-#include "amsdbc.h"
-#include "commonsi.h"
+//#include <TRDDBClass_ROOT.h>
+
+
+
 
 TString TrdKCalib::GetEnv( const string & var ) {
     const char * val = getenv( var.c_str() );
@@ -41,7 +41,7 @@ void TrdKCalib::fillDB(TString s_type,  T *_db, Double_t time_start, Double_t ti
     int pp=tid->write(AMSDATADIR.amsdatabase);
     //        int pp=tid->write(getenv("TRDDataDir"));
     delete tid;
-};
+}
 
 
 template <class T>
@@ -54,48 +54,32 @@ int TrdKCalib::readDB(TString s_type,  T *db, Double_t asktime){
     tm end;
     tm* mtim=localtime_r(&starttime,&begin);
     tm* mtim2=localtime_r(&endtime,&end);
-
-    /// CC 2012.02.29
-    /// define new db directory 	
-    //char tdname[] = "/afs/cern.ch/exp/ams/Offline/AMSDataDir/DataBase/TrdCalNew/ZW/";
-    //AMSDBc::amsdatabase = tdname;		
-
     AMSTimeID* tid= new AMSTimeID(AMSID(s_type,1),begin,end,sizeof(*db),db,AMSTimeID::Standalone,1);
-    //	}
-
-    //        TString path=GetEnv("TRDDataDir")+TString("/DataBase/");
-    //        tid->readDB(path,time);
     int read=tid->validate(time);
-
-    //time_t t_insert,t_bigen,t_end;
-    //tid->gettime(t_insert,t_bigen,t_end);
-    //printf("Time From DB:  %i, %i \n",t_bigen,t_end);
     delete tid;
-
     return 0;
-
-};
+}
 
 
 
 void TrdKCalib::fillDB_Calibration(TRDCalibPar *_db, Double_t time_start, Double_t time_end){
     fillDB("TRDCalibration",_db,time_start,time_end);
-};
+}
 
 
 void TrdKCalib::fillDB_Alignment_Plane(TRDAlignmentDB_Plane *_db, Double_t time_start, Double_t time_end){
     fillDB("TRDAlignmentPlane",_db,time_start,time_end);
-};
+}
 
 void TrdKCalib::fillDB_Alignment_Global(TRDAlignmentDB_Global *_db, Double_t time_start, Double_t time_end){
     fillDB("TRDAlignmentGlobal",_db,time_start,time_end);
-};
+}
 
 
 int TrdKCalib::readDB_Calibration(Double_t asktime){
 
     if(asktime>=_trddb.Time_E){
-        //printf("Ask time: %f \n",asktime);
+        //        printf("Ask time: %f ,  Previos End Time: %f\n",asktime,_trddb.Time_E);
         readDB("TRDCalibration",&_trddb,asktime);
     }
 
@@ -109,11 +93,11 @@ int TrdKCalib::readDB_Calibration(Double_t asktime){
 int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
     if(asktime>_trdaligndb_Plane.time_end){
         readDB("TRDAlignmentPlane",&_trdaligndb_Plane,asktime);
-        //printf("TRDAlignmentPlane DB read, Validity: %i - %i \n",_trdaligndb_Plane.time_start,_trdaligndb_Plane.time_end);
+        //        printf("TRDAlignmentPlane DB read, Validity: %i - %i \n",_trdaligndb_Plane.time_start,_trdaligndb_Plane.time_end);
         TRDAlignmentPar * par= _trdaligndb_Plane.getplaneparp(0);
         if(par->dX==0){
-            //printf("****ERROR****** Plane Alignment parameter return zero within validity period,  %f\n",asktime);
-	    Error("TrdKCalib::readDB_Alignment_Plane-E-", "Plane Alignment non validity period: %f", asktime);
+            //            printf("****ERROR****** Plane Alignment parameter return zero within validity period,  %f\n",asktime);
+            Error("TrdKCalib::readDB_Alignment_Plane-E-", "Plane Alignment non validity period: %f", asktime);
             return 0;
         }
     }
@@ -121,13 +105,12 @@ int TrdKCalib::readDB_Alignment_Plane(Double_t asktime){
 }
 
 int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
-    //        printf("Asking: %.0f \n",asktime);
+    //   printf("Asking: %.0f , Current DB valid until: %.0f\n",asktime,_trdaligndb_Global.time_end);
     if(asktime>_trdaligndb_Global.time_end){
         _trdaligndb_Global=TRDAlignmentDB_Global();
         readDB("TRDAlignmentGlobal",&_trdaligndb_Global,asktime);
-        //printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
-
-        //printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
+        //        printf("TRDAlignmentGlobal Asking: %.0f \n",asktime);
+        //        printf("TRDAlignmentGlobal DB read, Validity: %f - %f \n",_trdaligndb_Global.time_start,_trdaligndb_Global.time_end);
 
         if(!_trdaligndb_Global.size)return 0;
         float average[6]={0,0,0,0,0,0};
@@ -142,11 +125,14 @@ int TrdKCalib::readDB_Alignment_Global(Double_t asktime){
             average[5]+=_trdaligndb_Global.globalpar[i].gamma;
             count++;
         }
-        for(int i=0;i<6;i++)average[i]/=count;
+        if(count!=0)for(int i=0;i<6;i++){
+            average[i]/=count;
+        }
+        //        printf("TRDAlignmentGlobla, Average Alignment Parameter based on %i measurement \n",count);
         TRDAlignmentPar_Global_average=TRDAlignmentPar(-1,average[0],average[1],average[2],average[3],average[4],average[5],_trdaligndb_Global.globalpar[0].RotationCenter_X,_trdaligndb_Global.globalpar[0].RotationCenter_Y,_trdaligndb_Global.globalpar[0].RotationCenter_Z);
     }
     return 1;
-};
+}
 
 
 int TrdKCalib::readDB_Alignment(Double_t asktime,int readplane, int readglobal){
@@ -163,8 +149,8 @@ int TrdKCalib::readDB_Alignment(Double_t asktime,int readplane, int readglobal){
     else if(r1!=0 && r2!=0)return 2;
     else if(r1==0 && r2!=0) return -1;
 
-    return 0;
-};
+    return -2;
+}
 
 
 
@@ -197,9 +183,16 @@ TRDAlignmentPar *TrdKCalib::GetAlignmentPar_Plane(int plane){
 }
 
 TRDAlignmentPar TrdKCalib::GetAlignmentPar(int plane,int t){
+
     TRDAlignmentPar * plane_par= GetAlignmentPar_Plane(plane);
     TRDAlignmentPar * plane0_par= GetAlignmentPar_Plane(0);
     TRDAlignmentPar *global_par=GetAlignmentPar_Global(t);
+
+    if(global_par->dX==0 && global_par->dY==0 && global_par->dZ==0){
+        return *plane_par;
+    }
+
+
     AMSRotMat RGlobal=GetRotationMatrix(global_par->alpha,global_par->beta,global_par->gamma);
     AMSPoint TGlobal(global_par->dX,global_par->dY,global_par->dZ);
     AMSRotMat R1=GetRotationMatrix(plane_par->alpha,plane_par->beta,plane_par->gamma);
@@ -227,10 +220,6 @@ TRDAlignmentPar TrdKCalib::GetAlignmentPar(int plane,int t){
 }
 
 
-
-
-
-
 AMSRotMat TrdKCalib::GetRotationMatrix(float angle_alpha, float angle_beta, float angle_gamma){
     AMSRotMat temp_RotMat_ALL;
     temp_RotMat_ALL.SetRotAngles(-angle_alpha,-angle_beta,-angle_gamma);
@@ -238,94 +227,57 @@ AMSRotMat TrdKCalib::GetRotationMatrix(float angle_alpha, float angle_beta, floa
 }
 
 
-void TrdKCalib::TestDB_Alignment(Double_t  t_start, Double_t t_end, Double_t t_interval, int layer, int mode){
+void TrdKCalib::WriteDBFromRoot_Calib_TB(TString f_input){
 
-    TFile *f=new TFile("TRDDB_Validation_Alignment.root","RECREATE");
+    TChain *fChain=new TChain("tube");
+    fChain->Add(f_input);
 
-    int count=0;
+    // Declaration of leaf types
+    Float_t         Ind[5248];
+    Float_t         Par[5248];
+    Float_t         Err[5248];
 
-    TGraph *g_constant_dX[20];
-    TGraph *g_constant_dY[20];
-    TGraph *g_constant_dZ[20];
-    TGraph *g_constant_alpha[20];
-    TGraph *g_constant_beta[20];
-    TGraph *g_constant_gamma[20];
+    // List of branches
+    TBranch        *b_Ind;   //!
+    TBranch        *b_Par;   //!
+    TBranch        *b_Err;   //!
 
-    for(int i=0;i<20;i++){
-        g_constant_dX[i]=new TGraph();
-        g_constant_dX[i]->SetName(Form("Constant_dX_Layer%i",i));
-        g_constant_dX[i]->SetTitle(Form("Constant_dX_Layer%i",i));
-
-        g_constant_dY[i]=new TGraph();
-        g_constant_dY[i]->SetName(Form("Constant_dY_Layer%i",i));
-        g_constant_dY[i]->SetTitle(Form("Constant_dY_Layer%i",i));
-
-        g_constant_dZ[i]=new TGraph();
-        g_constant_dZ[i]->SetName(Form("Constant_dZ_Layer%i",i));
-        g_constant_dZ[i]->SetTitle(Form("Constant_dZ_Layer%i",i));
-
-        g_constant_alpha[i]=new TGraph();
-        g_constant_alpha[i]->SetName(Form("Constant_alpha_Layer%i",i));
-        g_constant_alpha[i]->SetTitle(Form("Constant_alpha_Layer%i",i));
-
-        g_constant_beta[i]=new TGraph();
-        g_constant_beta[i]->SetName(Form("Constant_beta_Layer%i",i));
-        g_constant_beta[i]->SetTitle(Form("Constant_beta_Layer%i",i));
-
-        g_constant_gamma[i]=new TGraph();
-        g_constant_gamma[i]->SetName(Form("Constant_gamma_Layer%i",i));
-        g_constant_gamma[i]->SetTitle(Form("Constant_gamma_Layer%i",i));
+    fChain->SetBranchAddress("Ind", Ind, &b_Ind);
+    fChain->SetBranchAddress("Par", Par, &b_Par);
+    fChain->SetBranchAddress("Err", Err, &b_Err);
 
 
 
+
+    if (fChain == 0) return;
+    fChain->GetEntry(0);
+
+
+    int Time_S=1281300000;
+    int Time_E=1282400000;
+    int Time_A=Time_S;
+    float The_A=0;
+    float Phi_A=0;
+    float Gain[328];
+    float Rate[328];
+
+    for(int i=0;i<5248;i++){
+        Par[i]*=1.30;
     }
 
-    for(double t=t_start; t<t_end; t+=t_interval){
-
-        //if(int(t)%10000==0) printf("Asking time: %f \n",t);
-        int i=0;
-
-        /**
-        readDB_Alignment(t);
-        //                    for(int i=0;i<20;i++){
-        g_constant_dX[i]->SetPoint(count,t,GetAlignmentPar(i,t).dX);
-        g_constant_dY[i]->SetPoint(count,t,GetAlignmentPar(i,t).dY);
-        g_constant_dZ[i]->SetPoint(count,t,GetAlignmentPar(i,t).dZ);
-        g_constant_alpha[i]->SetPoint(count,t,GetAlignmentPar(i,t).alpha);
-        g_constant_beta[i]->SetPoint(count,t,GetAlignmentPar(i,t).beta);
-        g_constant_gamma[i]->SetPoint(count,t,GetAlignmentPar(i,t).gamma);
-        count++;
-        //                }
-**/
-
-        bool result= readDB_Alignment_Global(t);
-        if(result==0){
-            t+=24*60*60;
-            continue;
-        }
-        //                        for(int i=0;i<20;i++){
-        g_constant_dX[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->dX);
-        g_constant_dY[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->dY);
-        g_constant_dZ[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->dZ);
-        g_constant_alpha[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->alpha);
-        g_constant_beta[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->beta);
-        g_constant_gamma[i]->SetPoint(count,t,GetAlignmentPar_Global(t)->gamma);
-        count++;
-        //        }
-
+    for(int i=0;i<328;i++){
+        Rate[i]=-1*2.3e-7/1.30;
+        Gain[i]=1;
     }
 
-    for(int i=0;i<20;i++){
-        g_constant_dX[i]->Write();
-        g_constant_dY[i]->Write();
-        g_constant_dZ[i]->Write();
-        g_constant_alpha[i]->Write();
-        g_constant_beta[i]->Write();
-        g_constant_gamma[i]->Write();
+    TRDCalibPar _db(Time_S,Time_E,Time_A,The_A,Phi_A,Par,Err,Gain,Rate);
+    fillDB_Calibration(&_db,(double)Time_S,(double)Time_E);
 
-    }
-    f->Save();
-    f->Close();
+
+
+
+
+
 
 }
 
@@ -374,7 +326,7 @@ void TrdKCalib::WriteDBFromRoot_Calib(vector<TString> f_input){
     if (fChain == 0) return;
     Long64_t nentries = fChain->GetEntries();
     Long64_t nbytes = 0, nb = 0;
-    //printf("Nentries: %i \n",nentries);
+    //    printf("Nentries: %i \n",nentries);
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         nb = fChain->GetEntry(jentry);   nbytes += nb;
         TRDCalibPar _db(Time_S,Time_E,Time_A,The_A,Phi_A,Par,Err,Gain,Rate);
@@ -384,60 +336,6 @@ void TrdKCalib::WriteDBFromRoot_Calib(vector<TString> f_input){
 
 }
 
-void TrdKCalib::TestDB_Calibration(Double_t  t_start, Double_t t_end, Double_t t_interval, int tube, int mode){
-
-    TFile *f=new TFile("TRDDB_Validation_Constant.root","RECREATE");
-    int count=0;
-    TGraph *g_constant=new TGraph();
-    g_constant->SetName(Form("Gain_Tube%i",tube));
-    g_constant->SetTitle(Form("Gain_Tube%i",tube));
-
-    TGraph *g_constant2=new TGraph();
-    g_constant2->SetName(Form("Gain_Smooth_Tube%i",tube));
-    g_constant2->SetTitle(Form("Gain_Smooth_Tube%i",tube));
-
-
-    TGraph *g_constant_mod=new TGraph();
-    g_constant_mod->SetName(Form("Gain_Module%i",int(tube/16)));
-    g_constant_mod->SetTitle(Form("Gain_Module%i",int(tube/16)));
-
-    TGraph *g_constant2_mod=new TGraph();
-    g_constant2_mod->SetName(Form("Gain_Smooth_Module%i",int(tube/16)));
-    g_constant2_mod->SetTitle(Form("Gain_Smooth_Module%i",int(tube/16)));
-
-    for(double t=t_start; t<t_end; t+=t_interval){
-        //            if(int(t)%1000==0)
-        //                printf("Asking time: %f \n",t);
-        readDB_Calibration(t);
-        g_constant2->SetPoint(count,t,GetGainCorrectionFactorTube(tube,t));
-        g_constant->SetPoint(count,t,_trddb.Par[tube]);
-        g_constant2_mod->SetPoint(count,t,GetGainCorrectionFactorModule(int(tube/16),t));
-        g_constant_mod->SetPoint(count,t,_trddb.Gain[int(tube/16)]);
-
-        //        g_constant->SetPoint(count,t,0);
-        count++;
-    }
-
-
-    g_constant->SetMarkerColor(kRed);
-    g_constant->SetMarkerStyle(20);
-    g_constant2->SetMarkerColor(kBlue);
-    g_constant2->SetMarkerStyle(20);
-    g_constant2->Write();
-    g_constant->Write();
-
-    g_constant_mod->SetMarkerColor(kRed);
-    g_constant_mod->SetMarkerStyle(20);
-    g_constant2_mod->SetMarkerColor(kBlue);
-    g_constant2_mod->SetMarkerStyle(20);
-    g_constant2_mod->Write();
-    g_constant_mod->Write();
-
-
-    f->Save();
-    f->Close();
-
-}
 
 void TrdKCalib::WriteDBFromRoot_Alignment(TTree *fChain){
     //#ifdef __TRDDB_ROOT__

@@ -1,5 +1,17 @@
-#ifndef _TrdKCalib_
-#define _TrdKCalib_
+//**************************************************************//
+// TRDKLikelihood methods
+//
+// For detailed information:
+// https://twiki.cern.ch/twiki/bin/view/AMS/TRDKLikelihood
+//
+//
+// 2012-06-18  v1.0,  First commit on cvs
+//
+//**************************************************************//
+
+
+#ifndef TrdKCalib_H
+#define TrdKCalib_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +33,13 @@
 using namespace std;
 
 
+//#include <TRDDBClass_ROOT.h>
+//class TRDAlignmentPar_ROOT;
+//class TRDAlignmentDB_Plane_ROOT;
+//class TRDAlignmentDB_Global_ROOT;
+
+
+
 class TRDAlignmentPar{
 public:
     TRDAlignmentPar(int _id, float _dX, float _dY, float _dZ, float _alpha, float _beta, float _gamma, float CX, float CY, float CZ):
@@ -39,6 +58,7 @@ public:
     float RotationCenter_X;
     float RotationCenter_Y;
     float RotationCenter_Z;
+
 };
 
 class TRDAlignmentDB_Global{
@@ -198,23 +218,27 @@ public:
     int readDB_Calibration(Double_t asktime);
     int readDB_Alignment_Plane(Double_t asktime);
     int readDB_Alignment_Global(Double_t asktime);
-    int readDB_Alignment(Double_t asktime, int readplane=1, int readglobal=1);
+    int readDB_Alignment(Double_t asktime,int readplane=1, int readglobal=1);
     double GetGainCorrectionFactorTube(int tubeid, double asktime);
     double GetGainCorrectionFactorModule(int Moduleid, double asktime);
     TRDAlignmentPar *GetAlignmentPar_Global(int t);
     TRDAlignmentPar *GetAlignmentPar_Plane(int plane);
     TRDAlignmentPar GetAlignmentPar(int plane,int t);
     AMSRotMat GetRotationMatrix(float angle_alpha, float angle_beta, float angle_gamma);
-    void TestDB_Alignment(Double_t  t_start, Double_t t_end, Double_t t_interval, int layer, int mode);
+//    void TestDB_Alignment(Double_t  t_start, Double_t t_end, Double_t t_interval, int layer, int mode);
     void WriteDBFromRoot_Calib(vector<TString> f_input);
-    void TestDB_Calibration(Double_t  t_start, Double_t t_end, Double_t t_interval, int tube, int mode);
+    void WriteDBFromRoot_Calib_TB(TString f_input);
+//    void TestDB_Calibration(Double_t  t_start, Double_t t_end, Double_t t_interval, int tube, int mode);
     void WriteDBFromRoot_Alignment(TTree *fChain);
 
     TRDAlignmentPar TRDAlignmentPar_Global_average;
+
+    ClassDef(TrdKCalib,1)
+
 
 };
 
 
 
 
-#endif // TrdKCalib
+#endif // TrdKCalib_H
