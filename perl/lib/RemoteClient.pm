@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.738 2012/06/08 10:15:29 ams Exp $
+# $Id: RemoteClient.pm,v 1.739 2012/06/22 16:59:30 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14136,11 +14136,18 @@ foreach my $block (@blocks) {
       my $sql = "SELECT disk   FROM filesystems WHERE 
                    status='Active' and  isonline=1 and path='$path' and disk='$disk' ORDER BY priority DESC, available ";
         my $ret=$self->{sqlserver}->Query($sql);
+        $dstfile=$inputfilel;
         if(defined $ret->[0][0] and $ret->[0][0] eq $disk){
             $outputpath=$disk;
-            $dstfile=$inputfilel;
         }
-
+        else{
+          $sql = "SELECT disk   FROM filesystems WHERE 
+                   status='Full' and  Allowed=0 and isonline=1 and path='$path' and disk='$disk' ORDER BY priority DESC, available ";
+        $ret=$self->{sqlserver}->Query($sql);
+        if(defined $ret->[0][0] and $ret->[0][0] eq $disk){
+            $outputpath=$disk;
+        }
+        }
         
     }
     my $dstsize = -1;
