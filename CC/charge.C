@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.92 2012/06/17 16:15:21 qyan Exp $
+//  $Id: charge.C,v 1.93 2012/06/25 02:58:34 qyan Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -454,7 +454,7 @@ int AMSCharge::BuildTOF(AMSBeta *pbeta) {
   
   AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
   while(betah){
-    if(betah->gettrack()==ptrack){_pbetah=betah;break;}
+    if(betah->gettrack()==ptrack){_pbetah=betah;_pbetah->setcharge(this);break;}
     betah=betah->next();
   }
  
@@ -584,7 +584,7 @@ again:
      if(_pbetah==0){//no tracker match->try to use trdtrack match
        AMSBetaH * betah=(AMSBetaH*)AMSEvent::gethead()->getheadC("AMSBetaH",0,0);
        while(betah){
-        if(betah->gettrdtrack()==ptrd){_pbetah=betah;break;}
+        if(betah->gettrdtrack()==ptrd){_pbetah=betah;_pbetah->setcharge(this);break;}
           betah=betah->next();
        }
      }

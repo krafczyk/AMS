@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.409 2012/06/18 11:52:18 mduranti Exp $
+//  $Id: root.C,v 1.410 2012/06/25 02:58:34 qyan Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -3861,8 +3861,6 @@ TofClusterHR::TofClusterHR(AMSTOFClusterH *ptr){
   Pattern= ptr->_pattern;
   Layer  = ptr->_idsoft/1000%10;
   Bar    = ptr->_idsoft/100%10;
-  if(Layer==0||Layer==3)Direction=0;
-  else                  Direction=1;
   for(int is=0;is<2;is++){
     Aadc[is]= ptr->_adca[is];
     Rtime[is]=ptr->_sdtm[is];
@@ -5613,7 +5611,7 @@ void TofBetaPar::Init(){
     for(int is=0;is<2;is++){CResidual[ilay][is]=0;}
    }
    Beta=Beta=InvErrBeta=InvErrBetaC=Chi2T=T0=Chi2C=0;
-   Rigidity=InvErrRigidity=Charge=Momentum=EMomentum=Mass=EMass=0;
+   Mass=EMass=0;
 };
 
 const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
@@ -5636,11 +5634,6 @@ const TofBetaPar& TofBetaPar::operator=(const TofBetaPar &right){
   Chi2T=right.Chi2T;
   Chi2C=right.Chi2C;
 //---
-  Rigidity=right.Rigidity;
-  InvErrRigidity=right.InvErrRigidity;
-  Charge=right.Charge;
-  Momentum=right.Rigidity;
-  EMomentum=right.EMomentum;
   Mass=right.Mass;
   EMass=right.EMass;
   return *this;
@@ -5669,6 +5662,10 @@ TrdTrackR* BetaHR::pTrdTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
 }
 
+ChargeR* BetaHR::pCharge(){
+  return (AMSEventR::Head() )?AMSEventR::Head()->pCharge(fCharge):0;
+}
+
 TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
   return (AMSEventR::Head() && i<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fTofClusterH[i]):0;
 }
@@ -5679,13 +5676,16 @@ TofClusterHR* BetaHR::GetClusterHL(int ilay){
   return (AMSEventR::Head() && fLayer[ilay]<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fLayer[ilay]):0;
 }
 
-int BetaHR::MassReFit(double rig,double charge,double erigv,int isbetac,int update){
-  if(update)return TofRecH::MassRec(BetaPar,rig,charge,erigv,isbetac);
-  else      return -1;
+int BetaHR::MassReFit(double &mass, double &emass,double rig,double charge,double erigv,int isbetac,int update){
+  TofRecH::betapar=BetaPar;
+  TofRecH::MassRec(TofRecH::betapar,rig,charge,erigv,isbetac);
+  mass=TofRecH::betapar.Mass;
+  emass=TofRecH::betapar.EMass;
+  if(update){BetaPar=TofRecH::betapar;}
+  return 0;
 }
 
-int BetaHR::BetaReFit(int pattern,int mode,int update){
-  if(!update)return -1; 
+int BetaHR::BetaReFit(double &beta,double &ebetav,int pattern,int mode,int update){
   double time[4],etime[4],len[4];
   int nhit=0;
   int ndiv=1000;
@@ -5698,9 +5698,11 @@ int BetaHR::BetaReFit(int pattern,int mode,int update){
       }
      ndiv=ndiv/10;
    }
-  TofRecH::BetaFitT(time,etime,len,nhit,BetaPar,mode);
-  if(update>=2)MassReFit();
-  BetaPar.UseHit=nhit;
+  TofRecH::betapar=BetaPar;
+  TofRecH::BetaFitT(time,etime,len,nhit,TofRecH::betapar,mode);
+  beta=TofRecH::betapar.Beta;
+  ebetav=TofRecH::betapar.InvErrBeta;
+  if(update){BetaPar=TofRecH::betapar;BetaPar.UseHit=nhit;}
   return 0;
 }
 

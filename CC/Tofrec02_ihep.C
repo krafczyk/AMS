@@ -1,3 +1,5 @@
+//  $Id: Tofrec02_ihep.C,v 1.2 2012/06/25 02:58:34 qyan Exp $
+
 // ------------------------------------------------------------
 //      AMS TOF recontruction-> /*IHEP TOF cal+rec version*/
 //      Not All finish: Now focus on time caliberation (BetaH BetaHC)
@@ -23,6 +25,7 @@
 #include "trigger302.h"
 #include "event.h"
 #include "trdrec.h"
+#include "charge.h"
 #ifdef _PGTRACK_
 #include "tkpatt.h"
 #include "TrRecon.h"
@@ -158,7 +161,7 @@ int TofRecH::BuildBetaH(int mode){
       if(iktr==1)ntracks=ntrackTs;
       for(int itr=0;itr<ntracks;itr++){
          uinteger status=0;
-         AMSTrTrack *track=0;AMSTRDTrack *trdtrack=0;
+         AMSTrTrack *track=0;AMSTRDTrack *trdtrack=0;AMSCharge *amscharge=0;
          if(iktr==0){track=ptrack;trdtrack=0;}
          else if(iktr==1){
            if(!BETAFITFFKEY.FullReco && ptrackT->checkstatus(AMSDBc::USED)){ptrackT=ptrackT->next();continue;}
@@ -189,7 +192,7 @@ int TofRecH::BuildBetaH(int mode){
            BetaFitC(phit,cres,pattern,betapar,1);
            BetaFitT(phit,len,pattern,betapar,1);
            BetaFitCheck(betapar);
-           AMSEvent::gethead()->addnext(AMSID("AMSBetaH",0),new AMSBetaH(status,phit,track,trdtrack,betapar));
+           AMSEvent::gethead()->addnext(AMSID("AMSBetaH",0),new AMSBetaH(status,phit,track,trdtrack,amscharge,betapar));
            found++;
           }
         }
@@ -444,17 +447,10 @@ number TofRecH::BetaCorr(number zint,number z0,number part,uinteger &status){//V
 
 //========================================================
 int TofRecH::MassRec(TofBetaPar &par,number rig,number charge,number evrig,int isubetac){
-   if((par.Mass==0)&&(rig==0||charge==0))return -1;
-   if(par.Beta==0)return -1;
-   if(rig!=0){par.Rigidity=rig;}
-   if(evrig!=0){par.InvErrRigidity=evrig;}
-   if(charge!=0){par.Charge=charge;}
-   if(par.Rigidity==0||par.Charge==0)return -1;
 //-----
-   par.Momentum=par.Rigidity*par.Charge; //momentum
-   par.EMomentum=par.InvErrRigidity*par.Rigidity*par.Rigidity*par.Charge;
-//----
-   if(par.Beta<0)par.Momentum=-par.Momentum;
+   number Momentum=rig*charge;
+   number EMomentum=evrig*rig*rig*charge;
+   if(par.Beta<0)Momentum=-Momentum;
    if(fabs(par.Beta)<1.e-10){par.EMass=FLT_MAX;par.Mass=FLT_MAX;}
    else                     {
       number RBeta=(isubetac>0)?par.BetaC:par.Beta;
@@ -463,9 +459,9 @@ int TofRecH::MassRec(TofBetaPar &par,number rig,number charge,number evrig,int i
       number CBeta=1./fabs(RBeta);
       if(fabs(RBeta)>1){CBeta=2.-CBeta;}
       number gamma2=(CBeta!=1)?1./(1.-RBeta*RBeta):FLT_MAX;
-      number mass2=par.Momentum*par.Momentum*(CBeta*CBeta-1);
+      number mass2=Momentum*Momentum*(CBeta*CBeta-1);
       par.Mass=(fabs(RBeta)<1)?sqrt(mass2):-sqrt(mass2);
-      par.EMass=par.Mass*sqrt(par.EMomentum/par.Momentum*par.EMomentum/par.Momentum+gamma2*EBeta/RBeta*gamma2*EBeta/RBeta);
+      par.EMass=par.Mass*sqrt(EMomentum/Momentum*EMomentum/Momentum+gamma2*EBeta/RBeta*gamma2*EBeta/RBeta);
    }
    return 0;
 }
@@ -526,6 +522,11 @@ void AMSBetaH::_copyEl(){
          ptr.fTrdTrack=_ptrdtrack->GetClonePointer();
      }
     else {ptr.fTrdTrack=-1;}
+//-----
+    if(_pcharge){
+      ptr.fCharge=_pcharge->GetClonePointer();
+    }
+    else {ptr.fCharge=-1;}
 //-----
     ptr.fTofClusterH.clear(); 
     for  (int i=0; i<4; i++) {

@@ -1,9 +1,12 @@
+//  $Id: Tofdbc.C,v 1.5 2012/06/25 02:58:34 qyan Exp $
+
 //Athor Qi Yan 2012/01/05 new Tof database
 // ------------------------------------------------------------
 //      History
 //        Modified:  Adding phseamp  2012/05/16
 //        Modified:  DB update       2010/05/28
 //        Modified:  TOF New Caliberation TDV Template 2012/06/12
+//        Modified:  Simple Geometry Adding            2012/06/23
 // -----------------------------------------------------------
 #ifndef __ROOTSHAREDLIBRARY__
 #include "cern.h"
@@ -20,8 +23,150 @@
 #include "tofid.h"
 #include "job.h"
 #endif
-#include "root.h"
 #include "Tofdbc.h"
+#include "timeid.h"
+#include "commonsi.h"
+#include <fstream>
+//Overlap
+const float TOFGeom::Overlapw=0.5;//cm
+const float TOFGeom::Normw=12.;//cm
+const float TOFGeom::Nthick=1.;//cm
+//Bar number
+const int  TOFGeom::Nbar[NLAY]={8,8,10,8};
+//Bar Projection(Along 0x1y)
+const int  TOFGeom::Proj[NLAY]={0,1,1,0};
+//PMT number
+const int  TOFGeom::Npmt[NLAY][NBAR]={
+   3, 2, 2, 2, 2, 2, 2, 3, 0, 0,
+   2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+   3, 2, 2, 2, 2, 2, 2, 3, 0, 0
+};
+//Sci_width
+const float TOFGeom::Sci_w[NLAY][NBAR]={
+       22.5, 12., 12., 12., 12., 12., 12., 22.5, 0.,   0.,
+       25.5, 12., 12., 12., 12., 12., 12., 25.5, 0.,   0.,
+ 18.5, 12.,  12., 12., 12., 12., 12., 12., 12.,  18.5,
+       26.,  12., 12., 12., 12., 12., 12., 26.,  0.,   0.
+};
+//Sci_length
+const float TOFGeom::Sci_l[NLAY][NBAR]={
+       126.5, 130.5, 130.5, 130.5, 130.5, 130.5, 130.5, 126.5,  0.,  0.,
+       117.2, 127.0, 132.2, 132.2, 132.2, 132.2, 127.0, 117.2,  0.,  0.,
+110.0, 117.2, 127.0, 132.2, 132.2, 132.2, 132.2, 127.0, 117.2,  110.0,
+       130.0, 134.0, 134.0, 134.0, 134.0, 134.0, 134.0, 130.0,  0.,  0.
+};
+//Sci_thick
+const float TOFGeom::Sci_t[NLAY][NBAR]={//cm
+   1., 1., 1., 1., 1., 1., 1., 1., 0., 0.,
+   1., 1., 1., 1., 1., 1., 1., 1., 0., 0.,
+1.,1., 1., 1., 1., 1., 1., 1., 1., 1.,
+   1., 1., 1., 1., 1., 1., 1., 1., 0., 0.
+};
+//Sci short(Trans) central Pos
+const float TOFGeom::Sci_pt[NLAY][NBAR]={
+      -45.5,  -28.75, -17.25, -5.75, 5.75, 17.25, 28.75, 45.5,  0., 0.,
+      -47.,   -28.75, -17.25, -5.75, 5.75, 17.25, 28.75, 47.,   0., 0.,
+-55., -40.25, -28.75, -17.25, -5.75, 5.75, 17.25, 28.75, 40.25, 55.,
+      -47.25, -28.75, -17.25, -5.75, 5.75, 17.25, 28.75, 47.25, 0., 0.,
+};
+//Sci_z position
+const float TOFGeom::Sci_pz[NLAY][NBAR]={//counter central cm
+         64.425, 65.975, 64.425, 65.975, 64.425, 65.975, 64.425, 65.975, 0., 0., //!  __-_-_-_--
+         61.325, 62.875, 61.325, 62.875, 61.325, 62.875, 61.325, 62.875, 0., 0., //!   _-_-_-_-
+-62.875,-61.325,-62.875,-61.325,-62.875,-61.325,-62.875,-61.325,-62.875,-61.325, //! _-_-_-_-_-_
+        -64.425,-65.975,-64.425,-65.975,-64.425,-65.975,-64.425,-65.975, 0., 0., //!  --_-_-_-__
+};
+//honeycomp shift
+const float TOFGeom::Honshift[2][2]={//topxy +bowxy 0.1cm 0.1
+  0., 0.,
+  0., 0.
+};
+//--Bar Coo(include shift)
+AMSPoint TOFGeom::GetBarCoo(int ilay,int ibar){
+    AMSPoint coo(0,0,0);
+//--other direction should+pt
+   coo[1-Proj[ilay]]=Sci_pt[ilay][ibar]+Honshift[ilay/2][1-Proj[ilay]];
+   coo[Proj[ilay]]=Honshift[ilay/2][Proj[ilay]];
+   coo[2]=Sci_pz[ilay][ibar];
+   return coo;
+}
+//--Global To Local Coo(of ilay ibar) //Along 0=>bar along x 1=>bar along y(local)
+AMSPoint  TOFGeom::GToLCoo(int ilay,int ibar,AMSPoint gpos){
+   AMSPoint coo=GetBarCoo(ilay,ibar);
+   coo=gpos-coo;//glbal-barcoo
+   return coo;
+}
+//--Local To Global Coo(of ilay ibar)
+AMSPoint  TOFGeom::LToGCoo(int ilay,int ibar,AMSPoint lpos){
+   AMSPoint coo=GetBarCoo(ilay,ibar);
+   coo=lpos+coo;//local+barcoo
+   return coo;
+}
+//--to Judge whether Inside Counter
+bool TOFGeom::IsInSideBar(int ilay,int ibar,float x,float y,float z){
+   AMSPoint rcoo(x,y,z);
+   AMSPoint coo=GToLCoo(ilay,ibar,rcoo);
+   bool lok=0,sok=0,zok=1;
+   if(fabs(coo[Proj[ilay]])<Sci_l[ilay][ibar]/2.)lok=1;
+   if(fabs(coo[1-Proj[ilay]])<Sci_w[ilay][ibar]/2.)sok=1;
+   if(z!=0){zok=(fabs(coo[2])<Sci_t[ilay][ibar]/2.)?1:0;}
+   return (lok&&sok&&zok);
+}
+//--To Judge whether Inside TOF Layer
+bool TOFGeom::IsInSideTOF(int ilay,float x,float y,float z){
+  bool inside=0;
+  for(int ibar=0;ibar<Nbar[ilay];ibar++){if(IsInSideBar(ilay,ibar,x,y,z)){inside=1;break;}}
+  return inside;
+}
+//--Find Nearest Counter
+int TOFGeom::FindNearBar(int ilay,float x,float y,float &dis,bool &isinbar,float z){
+    float mindis=10000000;int minbar=-1;
+    AMSPoint gcoo(x,y,z),lcoo;
+    for(int ibar=0;ibar<Nbar[ilay];ibar++){
+      lcoo=GToLCoo(ilay,ibar,gcoo);
+      if(z!=0){ if(fabs(lcoo[1-Proj[ilay]])<mindis){dis=lcoo[1-Proj[ilay]],mindis=fabs(dis);minbar=ibar;} }
+      else    { if(lcoo.norm()<mindis){dis=lcoo.norm(),mindis=dis,minbar=ibar;}}
+    }
+    isinbar=IsInSideBar(ilay,minbar,x,y,z);
+    return minbar;
+}
+//--Is in  Overlap region
+bool TOFGeom::IsInOverlap(int ilay,float x, float y,int nexcl){
+    float dis; bool isinbar;
+    int minbar=FindNearBar(ilay,x,y,dis,isinbar);
+    if(minbar<0)return 0;
+    bool selfch=0;
+    if(((minbar==0)&&(dis<0))||((minbar==Nbar[ilay]-1)&&(dis>0)))selfch=0;
+    else {
+      selfch=((fabs(dis)>Sci_w[ilay][minbar]/2.-Overlapw*nexcl)&&isinbar);
+    }
+   return selfch;
+}
+//--Find Bar Edge
+void TOFGeom::GetBarEdge(int ilay,int ibar,float x[3][2]){
+  AMSPoint barpos=GetBarCoo(ilay,ibar);
+  x[1-Proj[ilay]][0]=barpos[1-Proj[ilay]]-Sci_w[ilay][ibar]/2.;
+  x[1-Proj[ilay]][1]=barpos[1-Proj[ilay]]+Sci_w[ilay][ibar]/2.;
+  x[Proj[ilay]][0]=barpos[Proj[ilay]]-Sci_l[ilay][ibar]/2.;
+  x[Proj[ilay]][1]=barpos[Proj[ilay]]+Sci_l[ilay][ibar]/2.;
+  x[2][0]=barpos[2]-Sci_t[ilay][ibar]/2.;
+  x[2][1]=barpos[2]+Sci_t[ilay][ibar]/2.;
+}
+//--Find Layer Max Edge
+void TOFGeom::GetLayEdge(int ilay,float x[3][2]){
+  x[0][0]=x[0][1]=x[1][0]=x[1][1]=x[2][0]=x[2][1]=0;
+  float x1[3][2];
+  for(int ibar=0;ibar<Nbar[ilay];ibar++){
+     GetBarEdge(ilay,ibar,x1);
+     for(int ipr=0;ipr<3;ipr++){
+     if(x1[ipr][0]<x[ipr][0])x[ipr][0]=x1[ipr][0];
+     if(x1[ipr][1]>x[ipr][1])x[ipr][1]=x1[ipr][1];
+    }
+  }
+}
+
+
 
 //------same x width arr
 TOFHist::TOFHist(int nbin,geant bl,geant bh,geant arr[])
@@ -618,7 +763,7 @@ TofTAlignPar *TofTAlignPar::GetHead(){
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(){
-  TDVName="TofTAlignPar";
+  TDVName="TofTAlign";
   TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
   TDVBlock=new float[TDVParN];
   TDVSize=TDVParN*sizeof(float);
@@ -626,7 +771,7 @@ TofTAlignPar::TofTAlignPar(){
 
 //===========================================================
 TofTAlignPar::TofTAlignPar(float *arr,int brun,int erun){
-  TDVName="TofTAlignPar";
+  TDVName="TofTAlign";
   TDVParN=(TOFCSN::NBARN*2+TOFCSN::NBARN+1);
   TDVBlock=arr;
   TDVSize=TDVParN*sizeof(float);
