@@ -68,11 +68,11 @@ public:
     bool IsCalibrated;
     bool IsAligned;
 
-    TrdRawHitR* _rawhit;
+//    TrdRawHitR* _rawhit;
 
     static float Tube_radius;
 
-    ClassDef(TrdKHit,1)
+    ClassDef(TrdKHit,2)
 
 };
 

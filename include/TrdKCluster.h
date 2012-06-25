@@ -176,6 +176,9 @@ public:
     static int IsReadAlignmentOK;
     static int IsReadCalibOK;
 
+    static int ForceReadAlignment;
+    static int ForceReadCalibration;
+
     static Double_t LastProcessedRun_Calibration;
     static Double_t LastProcessedRun_Alignment;
 
@@ -206,7 +209,7 @@ private:
 
     double TRDTrack_ImpactChi2(Double_t *par);
     double TRDTrack_PathLengthLikelihood(Double_t *par);
-    void SetImpLikelihood(TRD_ImpactParameter_Likelihood Likelihood){ TRDImpactlikelihood=Likelihood;}
+    void SetImpLikelihood(TRD_ImpactParameter_Likelihood *Likelihood){ TRDImpactlikelihood=Likelihood;}
 
     void FitTRDTrack_IPLikelihood(int IsCharge=0); //IsCharge==1 is used for charge
     void FitTRDTrack_PathLength(int particle_hypothesis);
@@ -263,16 +266,19 @@ private:
 
     // Static object
 
-    static TRD_ImpactParameter_Likelihood TRDImpactlikelihood;
+    static bool DebugOn;
+
+    static TRD_ImpactParameter_Likelihood *TRDImpactlikelihood;
     static vector <TrdKHit> TRDTubeCollection;
 
 
     static TrdKCalib *_DB_instance;
 
-    static TrdKPDF kpdf_e;
-    static TrdKPDF kpdf_p;
-    static TrdKPDF kpdf_h;
-    static TrdKPDF kpdf_q;
+    static TrdKPDF *kpdf_e;
+    static TrdKPDF *kpdf_p;
+    static TrdKPDF *kpdf_h;
+    static TrdKPDF *kpdf_q;
+
     static TVirtualFitter *gMinuit_TRDTrack;
 
     static map<int, TRDOnline> map_TRDOnline;

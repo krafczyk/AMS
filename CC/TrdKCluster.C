@@ -4,23 +4,27 @@ ClassImp(TrdKCluster)
 
 using namespace TMath;
 
-TVirtualFitter *TrdKCluster::gMinuit_TRDTrack = TVirtualFitter::Fitter(0, 4);
+
+TVirtualFitter *TrdKCluster::gMinuit_TRDTrack = NULL;
+TrdKCalib *TrdKCluster::_DB_instance = NULL;
+TRD_ImpactParameter_Likelihood *TrdKCluster::TRDImpactlikelihood = NULL;
+TrdKPDF *TrdKCluster::kpdf_e=NULL;
+TrdKPDF *TrdKCluster::kpdf_p=NULL;
+TrdKPDF *TrdKCluster::kpdf_h=NULL;
+TrdKPDF *TrdKCluster::kpdf_q=NULL;
+
+bool TrdKCluster::DebugOn=0;
 int TrdKCluster::Default_TrPar[3];
+int TrdKCluster::ForceReadAlignment=1;
+int TrdKCluster::ForceReadCalibration=1;
 int TrdKCluster::IsReadAlignmentOK=2;
 int TrdKCluster::IsReadCalibOK=1;
 int TrdKCluster::IsReadGlobalAlignment=1;
 int TrdKCluster::IsReadPlaneAlignment=1;
 Double_t TrdKCluster::LastProcessedRun_Alignment=0;
 Double_t TrdKCluster::LastProcessedRun_Calibration=0;
-TrdKCalib *TrdKCluster::_DB_instance = new TrdKCalib();
-TRD_ImpactParameter_Likelihood TrdKCluster::TRDImpactlikelihood = TRD_ImpactParameter_Likelihood();
-TrdKPDF TrdKCluster::kpdf_e("Electron");
-TrdKPDF TrdKCluster::kpdf_p("Proton");
-TrdKPDF TrdKCluster::kpdf_h("Helium");
-TrdKPDF TrdKCluster::kpdf_q("Nuclei");
 vector <TrdKHit> TrdKCluster::TRDTubeCollection;
 map<int, TRDOnline> TrdKCluster::map_TRDOnline;
-
 float TrdKCluster::MinimumDistance=3;
 
 /////////////////////////////////////////////////////////////////////
@@ -34,6 +38,9 @@ TrdKCluster::TrdKCluster()
 
 TrdKCluster::~TrdKCluster(){
 
+    delete M_MyDD;
+    delete M_MyD;
+    delete M_A;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -71,12 +78,12 @@ TrdKCluster::TrdKCluster(AMSEventR *evt, TrTrackR *track, int fitcode)
     AddEmptyTubes(MinimumDistance);  //===========Add empty tubes to complete the geometry==========
 
 
-    if(IsReadAlignmentOK>0){
+    if(IsReadAlignmentOK>0 && ForceReadAlignment>0){
         IsReadAlignmentOK=DoAlignment(IsReadPlaneAlignment,IsReadGlobalAlignment);
         LastProcessedRun_Alignment=Time;
     }
 
-    if(IsReadCalibOK){
+    if(IsReadCalibOK && ForceReadCalibration>0){
         IsReadCalibOK=DoGainCalibration();
         LastProcessedRun_Calibration=Time;
     }
@@ -151,13 +158,14 @@ void TrdKCluster::Init_Base(){
     Minimum_dR=2;
     TRDCenter=115;
 
-    if(TRDTubeCollection.size()!=5248){
-        Constrcut_TRDTube();
-    }
-
-    if(map_TRDOnline.size()==0){
-        InitXePressure();
-    }
+    if(TRDTubeCollection.size()!=5248)Constrcut_TRDTube();
+    if(map_TRDOnline.size()==0) InitXePressure();
+    if(!TRDImpactlikelihood)TRDImpactlikelihood=new TRD_ImpactParameter_Likelihood();
+    if(!_DB_instance) _DB_instance=new TrdKCalib();
+    if(!kpdf_e)kpdf_e=new TrdKPDF("Electron");
+    if(!kpdf_p)kpdf_p=new TrdKPDF("Proton");
+    if(!kpdf_h)kpdf_h=new TrdKPDF("Helium");
+    if(!kpdf_q)kpdf_q=new TrdKPDF("Nuclei");
 
     M_MyDD=new TMatrixD(2,2);
     M_A = new TMatrixD(1,2);
@@ -366,7 +374,7 @@ double TrdKCluster::TRDTrack_ImpactChi2(Double_t *par){
     for(int i=0;i<size;i++){
         hit=GetHit(i);
         impact_parameter=hit->Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
-        likelihood = TRDImpactlikelihood.GetLikelihood(hit->TRDHit_Amp,impact_parameter);
+        likelihood = TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
         if(likelihood<0.0000001) likelihood=0.0000001;
         result-=2*log(likelihood);
     }
@@ -386,15 +394,10 @@ double TrdKCluster::TRDTrack_PathLengthLikelihood(Double_t *par){
     TrdKHit* hit;
     for(int i=0;i<size;i++){
         hit=GetHit(i);
-        //        if(hit->TRDHit_Amp<=0)continue;
-        //        impact_parameter=hit->Tube_Track_Distance(&temp_TrTrackP0,&temp_TrTrackDir);
-        //        likelihood = TRDImpactlikelihood->GetLikelihood(hit->TRDHit_Amp,impact_parameter);
-        //        if(likelihood<0.0000001) likelihood=0.0000001;
-
         pathlength=hit->Tube_Track_3DLength(&temp_TrTrackP0,&temp_TrTrackDir);
-        if(Refit_hypothesis==1) likelihood=kpdf_p.GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-        else if(Refit_hypothesis==0) likelihood=kpdf_e.GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
-        else if(Refit_hypothesis==2) likelihood=kpdf_h.GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        if(Refit_hypothesis==1) likelihood=kpdf_p->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==0) likelihood=kpdf_e->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
+        else if(Refit_hypothesis==2) likelihood=kpdf_h->GetLikelihood(hit->TRDHit_Amp,abs(Track_Rigidity),pathlength,hit->TRDHit_Layer,Pressure_Xe/1000);
         else{
             cout<<"~~~~~WARNING~~~~TrdKCluster, Refit using PathLength Likelihood, Particle Hypothesis not found: "<<Refit_hypothesis<<endl;
             return -999;
@@ -814,9 +817,9 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
 
 
     if(threshold>0){
-        kpdf_e.SetNormalization(1,threshold);
-        kpdf_p.SetNormalization(1,threshold);
-        kpdf_h.SetNormalization(1,threshold);
+        kpdf_e->SetNormalization(1,threshold);
+        kpdf_p->SetNormalization(1,threshold);
+        kpdf_h->SetNormalization(1,threshold);
     }
 
 
@@ -829,11 +832,11 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
         TrdKHit *hit=GetHit(i);
 
         if(hit->IsCalibrated ==0 ){
-            cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
+            if(DebugOn)  cout<<"~~~WARNING~~~, Hit Not calibrated: "<<_event->Run()<<", "<<_event->Event()<<endl;
             continue;
         }
         if(hit->IsAligned==0) {
-            cout<<"~~~WARNING~~~, Hit Not Aligned: , "<<_event->Run()<<", "<<_event->Event()<<endl;
+            if(DebugOn) cout<<"~~~WARNING~~~, Hit Not Aligned: , "<<_event->Run()<<", "<<_event->Event()<<endl;
             continue;
         }
 
@@ -842,12 +845,12 @@ int TrdKCluster::GetLikelihoodRatio(float threshold, double* LLR, int &nhits, AM
         float Amp=hit->TRDHit_Amp;
         if(Amp>threshold && path_length>0){
             Track_nhits++;
-            kpdf_e.GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
-            kpdf_p.GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
-            kpdf_h.GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
-            double kp=kpdf_p.GetLikelihood(Amp);
-            double kh=kpdf_h.GetLikelihood(Amp);
-            double ke=kpdf_e.GetLikelihood(Amp);
+            kpdf_e->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            kpdf_p->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            kpdf_h->GetPar(fabs(Track_Rigidity),path_length,Layer,Pressure_Xe/1000.);
+            double kp=kpdf_p->GetLikelihood(Amp);
+            double kh=kpdf_h->GetLikelihood(Amp);
+            double ke=kpdf_e->GetLikelihood(Amp);
             LL_pdf_track_particle[0]*=(ke);
             LL_pdf_track_particle[1]*=(kp);
             LL_pdf_track_particle[2]*=(kh);
@@ -1013,7 +1016,7 @@ double TrdKCluster::TRDTrack_ImpactChi2_Charge(Double_t *par)
         impact_parameter=(*it).Tube_Track_Distance_3D(&temp_TrTrackP0,&temp_TrTrackDir);
         Amp=(*it).TRDHit_Amp;
 
-        likelihood=TRDImpactlikelihood.GetLikelihood(Amp,impact_parameter);
+        likelihood=TRDImpactlikelihood->GetLikelihood(Amp,impact_parameter);
         if(likelihood<0.0000001) likelihood=0.0000001;
 
         if(Amp<=0) result-=2*log(likelihood);
@@ -1184,7 +1187,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
     if(Option==2)
     {
         double DAmpL=DAmp/20.0;
-        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q.GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
         return TRDChargeLikelihood;
     }
 
@@ -1199,7 +1202,7 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
             Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
             Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-            TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q.GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+            TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
         }
         return TRDChargeLikelihood;
     }
@@ -1213,10 +1216,10 @@ double TrdKCluster::GetTRDChargeLikelihood(double Z,int Option)
         Length=(*it).Tube_Track_3DLength(&TRDtrack_extrapolated_P0,&TRDtrack_extrapolated_Dir);
         Corr=_DB_instance->GetGainCorrectionFactorTube((*it).tubeid,Time);
 
-        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q.GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
+        TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihood(ADC,Z,Corr,Track_Rigidity,Length,TRDLayer,Pressure_Xe/1000.0));
     }
     double DAmpL=DAmp/20.0;
-    TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q.GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
+    TRDChargeLikelihood=TRDChargeLikelihood-log10(kpdf_q->GetLikelihoodDR(DAmpL,Z,Track_Rigidity));
 
     return TRDChargeLikelihood;
 }
