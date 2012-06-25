@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.410 2012/06/25 02:58:34 qyan Exp $
+//  $Id: root.C,v 1.411 2012/06/25 16:24:26 choutko Exp $
 
 #include "TRegexp.h"
 #include "root.h"
@@ -5662,9 +5662,6 @@ TrdTrackR* BetaHR::pTrdTrack(){
   return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
 }
 
-ChargeR* BetaHR::pCharge(){
-  return (AMSEventR::Head() )?AMSEventR::Head()->pCharge(fCharge):0;
-}
 
 TofClusterHR* BetaHR::pTofClusterH(unsigned int i){
   return (AMSEventR::Head() && i<fTofClusterH.size())?AMSEventR::Head()->pTofClusterH(fTofClusterH[i]):0;
